@@ -9,12 +9,14 @@
 //   2700   THE POND: the first rolling log, alone on still water (its sign); falling in is just a swim.
 //   4500   WOLF WOODS (cp 1): two wolves with a trap in their path (watch one step in); a beehive over a pack (shoot it
 //          down on them); a pine.
-//   6200   THE CREEK: two pools either side of a rock island, a log in each; a beaver; a crow.
+//   6200   THE CREEK: two pools either side of a rock island, a log in each (tied up at the near bank till he's on
+//          it); the first trout alone (it leaps the log: duck; it bites a swimmer: stay on the log); the first fallen
+//          tree to duck under, alone; a beaver; a crow.
 //   7800   THE BLUFFS: ledges up the bluff, a cougar on top; a ravine with a chain of loose ledges over it (they come
 //          back: the way back's the same).
 //   9300   SNAKE FLATS (cp 2): a rattlesnake hole alone, then two with a trap between; a porcupine (no dive kicks).
 //   10400  THE RAPIDS: current; two channels and a rock island; submerged rocks buck the log; a fallen tree to duck under
-//          on the log; beavers.
+//          on the log; beavers, trout; snags just under the surface (swimming it is a bad idea).
 //   13100  BISON MEADOW (cp 3): a bison; a buck; up the hill against the log pile's rolling logs.
 //   15200  THE LONG RIVER: one log, a long gentle river: wolves and a cougar on the overhangs over it, a hive hanging off
 //          one, a crow, a fallen tree to duck; the log boom at the end, the falls past it: jump off to the far cliff.
@@ -115,10 +117,23 @@ export const LOGS: [string, number, number][] = [
   ['river', 15515, 170],
 ];
 
-/** Fallen trees across the water to duck under on the log (impassable down to the gap): [x from, x to]. */
+/** Fallen trees across the water to duck under on the log (impassable down to the gap): [x from, x to]. The creek's
+ *  is the first, alone (the trout and the snags are elsewhere); then the rapids', then the long river's. */
 export const LOW_BRANCHES: [number, number][] = [
+  [7320, 7380],
   [12360, 12420],
   [17020, 17080],
+];
+/** How high the gap under a fallen tree is (px over his feet on the log): ducked, his head's under it with room. */
+export const BRANCH_GAP = 54;
+
+/** Snags (the playtest's: the water's a bad idea): dead branches sharpened by the current, just under the surface of
+ *  the rapids and the long river, their tips poking out. A swimmer carried into one is cut; a log rides over them.
+ *  [x]. Not by a submerged rock, not under a fallen tree, not at a bank's step. */
+export const SNAGS: number[] = [
+  10760, 11150, 11500,
+  12000, 12520, 12780,
+  15760, 16350, 16620, 17250,
 ];
 
 /** Bear traps: [x, height of the ground it's on]. */
@@ -146,7 +161,7 @@ export const HIVES: [number, number][] = [[5720, 230], [16100, 160]];
 /** The log pile atop the hill (x), and the stretch its logs roll down (from the pile to the hill's foot). */
 export const LOG_PILE = { x: 15080, foot: 14220, top: 15020, every: 150 } as const;
 
-export type AnimalKind = 'm2:fr_doe' | 'm2:fr_buck' | 'm2:fr_wolf' | 'm2:fr_cougar' | 'm2:fr_beaver' | 'm2:fr_rattler' | 'm2:fr_crow' | 'm2:fr_porcupine' | 'm2:fr_bison' | 'm2:fr_hive';
+export type AnimalKind = 'm2:fr_doe' | 'm2:fr_buck' | 'm2:fr_wolf' | 'm2:fr_cougar' | 'm2:fr_beaver' | 'm2:fr_rattler' | 'm2:fr_crow' | 'm2:fr_porcupine' | 'm2:fr_bison' | 'm2:fr_hive' | 'm2:fr_trout';
 /** Who lives where: [kind, x, height of what it stands on (a crow, a hive: where it flies or hangs; a beaver: in which
  *  water, its height ignored)]. None on a trap or in a hazard's path. */
 export const ANIMALS: [AnimalKind, number, number][] = [
@@ -160,8 +175,11 @@ export const ANIMALS: [AnimalKind, number, number][] = [
   ['m2:fr_wolf', 5650, 0], ['m2:fr_wolf', 5800, 0],
   ['m2:fr_hive', 5720, 230],
   ['m2:fr_doe', 6150, 0],
-  // (the creek)
-  ['m2:fr_beaver', 7400, 0],
+  // (the creek: the first trout alone in the first pool (taught: it leaps the log, it bites a swimmer); the second
+  // pool's beaver and trout)
+  ['m2:fr_trout', 6640, 0],
+  ['m2:fr_beaver', 7480, 0],
+  ['m2:fr_trout', 7580, 0],
   ['m2:fr_crow', 7250, 360],
   // (the bluffs)
   ['m2:fr_cougar', 8380, 300],
@@ -172,6 +190,7 @@ export const ANIMALS: [AnimalKind, number, number][] = [
   // (the rapids)
   ['m2:fr_beaver', 11200, 0],
   ['m2:fr_beaver', 12050, 0], ['m2:fr_beaver', 12720, 0],
+  ['m2:fr_trout', 11040, 0], ['m2:fr_trout', 12260, 0],
   ['m2:fr_crow', 12200, 380],
   // (bison meadow)
   ['m2:fr_buck', 13250, 0],
@@ -183,6 +202,7 @@ export const ANIMALS: [AnimalKind, number, number][] = [
   ['m2:fr_cougar', 16830, 220],
   ['m2:fr_crow', 16500, 380], ['m2:fr_crow', 17200, 400],
   ['m2:fr_beaver', 15900, 0], ['m2:fr_beaver', 16900, 0],
+  ['m2:fr_trout', 16060, 0], ['m2:fr_trout', 16780, 0], ['m2:fr_trout', 17160, 0],
   // (the last mile)
   ['m2:fr_rattler', 18050, 0],
   ['m2:fr_wolf', 18450, 0], ['m2:fr_wolf', 18530, 0], ['m2:fr_wolf', 18720, 0],
@@ -206,10 +226,10 @@ export const SIGNS: [number, number, string[], boolean?][] = [
   [1340, 0, ['SCENIC ROCKS', '100% FIBERGLASS']],
   [2820, 0, ['LOG ROLLING', 'WALK TO ROLL. STOP TO DRIFT.']],
   [4650, 0, ['WOLF WOODS', 'DO NOT HOWL BACK']],
-  [6200, 0, ['CREEK CROSSING', 'BYO BALANCE']],
+  [6200, 0, ['CREEK CROSSING', 'TROUT BITE. RIDE THE LOG.'], true],
   [7760, 0, ['THE BLUFFS', 'EDGES MAY BE LOOSE'], true],
   [9460, 0, ['RATTLESNAKES', 'REAL ONES. SORRY.'], true],
-  [10380, 0, ['RAPIDS', 'CLASS II (ISH)'], true],
+  [10380, 0, ['RAPIDS', 'SNAGS. DO NOT SWIM.'], true],
   [13180, 0, ['BISON MEADOW', 'DO NOT RIDE THE BISON']],
   [14120, 0, ['LOG PILE', 'LOGS MAY ROLL'], true],
   [15470, 0, ['LONG RIVER', 'GET OFF BEFORE THE FALLS'], true],

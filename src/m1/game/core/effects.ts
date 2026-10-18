@@ -2,7 +2,7 @@ import { spared } from '../enemies/enemies';
 import { Vector2, PickupType, VulgarityType, Enemy } from '../../types';
 import {
   PARTICLE_PALETTES, BOULDER_SHRAPNEL_DAMAGE, VULGARITY_TEXT_DURATION, VOICE_LINE_COOLDOWN_FRAMES, SPOKEN_TEXT_HOLD, isRangeStage, FINALE_STAGE } from '../../constants';
-import { VULGARITIES, BOSS_DIALOGUE, KILL_LINES, KILL_CALLOUTS, KillCallout, ENEMY_KILL_LINES, GENERIC_KILL_LINES, RANGE_KILL_LINES, SURFACE_CALLOUTS } from '../../content/dialogue';
+import { VULGARITIES, BOSS_DIALOGUE, KILL_LINES, KILL_CALLOUTS, KillCallout, ENEMY_KILL_LINES, GENERIC_KILL_LINES, RANGE_KILL_LINES, SURFACE_CALLOUTS, KIND_CALLOUTS } from '../../content/dialogue';
 import { groundUnder } from './groundUnder';
 import { enemyGender, forGender, type Gender } from '../../content/gender';
 import { GameState } from './state';
@@ -58,7 +58,9 @@ export const createFx = (state: GameState) => {
     // (the ones that name what it hit go by what's actually under it)
     const bySurface = SURFACE_CALLOUTS[kind];
     const ground = bySurface ? groundUnder(state, e.pos.x + e.width / 2, e.pos.y + (e.height ?? 0)) : undefined;
-    const lines = (ground && bySurface?.[ground]) || KILL_CALLOUTS[kind].lines;
+    // (and the ones that'd name the wrong creature go by what it was)
+    const own = e.kind ? KIND_CALLOUTS[e.kind]?.[kind] : undefined;
+    const lines = (own?.length ? own : undefined) || (ground && bySurface?.[ground]) || KILL_CALLOUTS[kind].lines;
     // (a he for a man, a she for a woman: see content/gender)
     const text = forGender(pickRandom(lines), enemyGender(e));
     // (who says it, if anybody, is settled next frame: see settleKillVoice)

@@ -18,7 +18,12 @@ export const ARRIVE: ByPants = {
   shitty: ['THE FRONTIER. PIONEERS SHAT THEIR PANTS TOO. I FIT RIGHT IN.', 'OLD AMERICA. SMELLS LIKE ME.'],
   nude: ['THE FRONTIER. NAKED AS THE DAY THE PIONEERS MADE ME.', 'WILDERNESS LAND. I DRESSED FOR IT.'],
 };
-export const GAGS: Record<'trap' | 'log' | 'wolves' | 'rapids' | 'bison' | 'falls' | 'tracks', ByPants> = {
+export const GAGS: Record<'trap' | 'log' | 'wolves' | 'trout' | 'rapids' | 'bison' | 'falls' | 'tracks', ByPants> = {
+  trout: {
+    clean: ['TROUT WITH TEETH. I\'M STAYING ON THE LOG.'],
+    shitty: ['BITING TROUT. THEY CAN SMELL ME FROM THERE.'],
+    nude: ['TROUT THAT BITE. EVERYTHING I OWN IS HANGING OUT.'],
+  },
   trap: {
     clean: ['A BEAR TRAP. ON THE PATH. FOR THE GUESTS.'],
     shitty: ['A BEAR TRAP. GREAT. ONE MORE THING TO STEP IN.'],
@@ -198,6 +203,41 @@ export const HURT: HurtTable = {
     hurt: ['I CHARGED A BUFFALO! WHY?!', 'HORNS! RIGHT IN THE GUT!', 'IT DIDN\'T EVEN MOVE!'],
     death: ['SHOULDER CHARGED A BISON. THE BISON WON.', 'HORNED BY A BUFFALO'],
   },
+  'm2:fr_doe_ram': {
+    hurt: ['THE DEER RAMMED ME!', 'SHE TURNED AROUND!', 'CORNERED DEER! BAD IDEA!', 'BAMBI\'S MOM HEADBUTTS!'],
+    death: ['RAMMED TO DEATH BY A CORNERED DEER', 'HE CHASED HER INTO A WALL. SHE CAME BACK.'],
+  },
+  'm2:fr_needles': {
+    hurt: ['IT SHOT QUILLS AT ME!', 'NEEDLES! IN MY FACE!', 'IT SPRAYS?! SINCE WHEN?!', 'MY ASS IS A PINCUSHION!'],
+    death: ['SHOT FULL OF QUILLS BY A PORCUPINE', 'HE STOOD THERE. IT SPRAYED.'],
+  },
+  'm2:fr_trout': {
+    hurt: ['THE TROUT BIT ME!', 'A FISH JUMPED IN MY FACE!', 'TROUT DON\'T HAVE TEETH!', 'FISH SLAP!'],
+    death: ['EATEN BY TROUT. STOCKED TROUT.', 'KILLED BY A FISH. HE DIDN\'T DUCK.'],
+  },
+  'm2:fr_snag': {
+    hurt: ['SOMETHING STABBED ME!', 'A STICK! UNDER THE WATER!', 'MY NUTS! A BRANCH!', 'SHOULD HAVE STAYED ON THE LOG!'],
+    death: ['SKEWERED ON A SNAG. THE SIGN SAID DO NOT SWIM.', 'SWAM THE RAPIDS. THE RAPIDS HAD STICKS.'],
+  },
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// Each animal's own kill callouts (the announcer's), where the engine's would name some other creature: a kill made
+// swimming (a lunge through the water) is otherwise FISH STICKS! / SUSHI!, whatever it was. By kind, then by callout.
+
+const SWIM = (lines: string[]) => ({ swim: lines });
+export const KILL_CALLS: Record<string, Record<string, string[]>> = {
+  'm2:fr_doe': SWIM(['VENISON!', 'OH DEER!', 'DEER CROSSING!']),
+  'm2:fr_buck': SWIM(['VENISON!', 'TROPHY BUCK!', 'MOUNTED!']),
+  'm2:fr_wolf': SWIM(['BAD DOG!', 'NO MORE HOWLING!', 'PUPPY CHOW!']),
+  'm2:fr_cougar': SWIM(['KITTY LITTER!', 'CAT NAP!', 'NINE LIVES USED!']),
+  'm2:fr_beaver': SWIM(['DAM BUSTED!', 'LODGE CONDEMNED!', 'TAIL SLAPPED!', 'BEAVER DOWN!']),
+  'm2:fr_rattler': SWIM(['SNAKE EYES!', 'RATTLED!', 'NO MORE RATTLE!']),
+  'm2:fr_crow': SWIM(['EAT CROW!', 'BIRDIE!', 'GROUNDED!']),
+  'm2:fr_porcupine': SWIM(['PINCUSHION!', 'POINTLESS!', 'DEFLATED!']),
+  'm2:fr_bison': SWIM(['BUFFALO WINGS!', 'STAMPEDE OVER!', 'BISON BURGER!']),
+  'm2:fr_hive': SWIM(['BEE GONE!', 'HIVE FIVE!']),
+  'm2:fr_trout': SWIM(['FISH STICKS!', 'CATCH OF THE DAY!', 'FILLETED!', 'CATCH AND RELEASE!']),
 };
 
 export const VOICE_LINES: Record<string, string[]> = {
@@ -206,5 +246,6 @@ export const VOICE_LINES: Record<string, string[]> = {
     ...Object.values(HURT).flatMap(h => h.hurt),
   ],
   death: Object.values(HURT).flatMap(h => h.death),
+  announcer: [...new Set(Object.values(KILL_CALLS).flatMap(k => Object.values(k).flat()))],
   [TUCKER_VOICE]: [TUCKER_GREET, TUCKER_PITCH, TUCKER_TICKET, TUCKER_BLOCK, TUCKER_OOF, TUCKER_RAGE, TUCKER_RUN, TUCKER_CAB].flatMap(allOf),
 };

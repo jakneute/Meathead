@@ -3,13 +3,14 @@
 // behind the platform (a 4-4-0: the balloon stack, the cowcatcher, the big red drivers; its tender, a coach, the
 // caboose). The scene, to the user's brief:
 //
-//   THE PITCH (a cutscene: HUD hidden, SKIP >> for the lot): Tucker, cheery, tips his cap and makes his pitch (Sawdust
-//     Gulch, mining and logging, these newfangled railroad tracks); TICKET, PLEASE (his hand out); Meathead hasn't got
-//     one.
+//   THE PITCH (a cutscene: HUD hidden, no controls, SKIP >> for the lot): it starts while Tucker's still off the
+//     screen's edge (he can't be shot or hit before it: the playtest), Meathead walked up short of the gate; Tucker,
+//     cheery, tips his cap and makes his pitch (Sawdust Gulch, mining and logging, these newfangled railroad tracks);
+//     TICKET, PLEASE (his hand out); Meathead hasn't got one. (A retry this visit: just TICKET, PLEASE.)
 //   THE PUNCH (played, not scripted): Tucker stands in the gate with his hand out, the way on shut behind him, nagging
 //     now and then. Any hit on him (any move, any weapon: he can't be killed here, he's a stand-in that's never hurt)
 //     and down he goes on his backside, his cap flying.
-//   THE RAGE (a cutscene, SKIP >> for the lot): up he springs, furious; a close-up of his face (tucker.ts): "NO ONE
+//   THE RAGE (a cutscene from the punch landing on, no controls, SKIP >> for the lot): up he springs, furious; a close-up of his face (tucker.ts): "NO ONE
 //     BOARDS MY TRAIN WITHOUT A TICKET!"; he snatches up his cap and runs to his engine, up into the cab, hauls on the
 //     whistle, and the train pulls out and speeds off; ALL ABOARD! EXCEPT YOU! out the cab window; Meathead goes after
 //     it, and the scene ends with him at the train section's start (job 2 builds the caboose jump-on).
@@ -94,8 +95,10 @@ const tuckerSay = (state: GameState, s: Station, pool: ByPants, done?: () => voi
 };
 
 const AWAY = -99999;
-const closeGate = (state: GameState, s: Station) => {
-  if (!s.puppet) {
+/** The way on shut (the wall past him), and, once the pitch is done (`puppet`), him in the gate as something to hit:
+ *  never before (he's not to be shot or hit before his scene's had its say: the playtest). */
+const closeGate = (state: GameState, s: Station, puppet = true) => {
+  if (!s.puppet && puppet) {
     const e = makeKindEnemy(PUPPET as EnemyKind, STATION.gate, Y(STATION.deck.h));
     e.facing = -1; e.variant = 0;
     state.enemies.push(e); s.puppet = e;
@@ -105,6 +108,18 @@ const closeGate = (state: GameState, s: Station) => {
 const openGate = (state: GameState, s: Station) => {
   if (s.puppet) { state.enemies = state.enemies.filter(e => e !== s.puppet); s.puppet = null; }
   if (s.wall) { s.wall.y = AWAY; s.wall = null; }
+};
+
+/** How far short of the gate the scene starts (he's off the edge of the screen there: nothing can reach him), and
+ *  where he's walked up to for it. */
+const TRIGGER = 520, STOP_SHORT = 220;
+
+/** The pitch done (or skipped): Tucker in the gate with his hand out, something to hit now; the controls his. */
+const toBlock = (state: GameState, s: Station) => {
+  s.step = 'block'; s.t = 0; s.pose = 'ticket'; s.said = null; s.talking = false;
+  state.player.inCutscene = false;
+  state.stageMemo[PITCH_MEMO] = '1';
+  closeGate(state, s);
 };
 
 /** The scene's over (run through, or skipped from the rage on): on to the train. */
@@ -132,37 +147,42 @@ export const updateStation = (ctx: FrameContext, controls: Controls): Controls =
   }
   if (s.step === 'wait') {
     s.pose = 'stand'; s.face = -1;
-    // (heard it already, this visit: he's just in the gate, hand out)
-    if (state.stageMemo[PITCH_MEMO] && !s.puppet) { closeGate(state, s); s.step = 'block'; s.pose = 'ticket'; s.nagT = 300; return controls; }
-    if (cx > STATION.gate - 320 && p.isGrounded && p.health > 0 && !p.inCutscene) {
-      s.step = 'pitch'; s.t = 0; s.all = 0; s.line = 0; s.lineDone = false;
-      closeGate(state, s);
+    // (the scene starts while he's still off the screen's edge, before Tucker's anywhere he can be shot or hit; a
+    // retry this visit (the pitch heard) just gets TICKET, PLEASE again)
+    if (cx > STATION.gate - TRIGGER && p.health > 0 && !p.inCutscene) {
+      const heard = !!state.stageMemo[PITCH_MEMO];
+      s.step = 'pitch'; s.t = heard ? 21 : 0; s.all = 0; s.line = heard ? 3 : 0; s.lineDone = false;
+      closeGate(state, s, false);
+      // (and nothing he'd already let fly gets there)
+      state.projectiles = state.projectiles.filter(q => q.owner !== 'player');
     }
     return controls;
   }
-  // (the cutscenes: no HUD, SKIP >> for the lot)
-  const cut = s.step === 'pitch' || s.step === 'rage' || s.step === 'run' || s.step === 'board' || s.step === 'leave' || s.step === 'chase';
+  // (the cutscenes: no HUD, no controls, SKIP >> for the lot)
+  const cut = s.step === 'pitch' || s.step === 'punched' || s.step === 'rage' || s.step === 'run' || s.step === 'board' || s.step === 'leave' || s.step === 'chase';
   if (cut) {
     s.all++;
     p.inCutscene = true;
     if (s.all > SKIP_AFTER) {
       offerSkip();
       if (takeSkip()) {
-        if (s.step === 'pitch') { silenceAll(); s.step = 'block'; s.t = 0; s.said = null; s.talking = false; s.pose = 'ticket'; p.inCutscene = false; state.stageMemo[PITCH_MEMO] = '1'; return controls; }
+        if (s.step === 'pitch') { silenceAll(); toBlock(state, s); return hands(); }
         finish(state, s, true); return hands();
       }
     }
   }
   switch (s.step) {
     case 'pitch': {
-      // (him stopped short of the gate; Tucker's pitch, then his hand out; then him: no ticket)
-      p.vel.x = 0;
+      // (him walked up short of the gate (no controls of his own); Tucker's pitch, then his hand out; then him: no
+      // ticket)
+      const walk = cx < STATION.gate - STOP_SHORT && p.health > 0;
+      if (!walk) p.vel.x = 0;
       if (s.t === 20) { s.pose = 'tip'; tuckerSay(state, s, TUCKER_GREET, () => { s.line = 1; }); }
       if (s.line === 1) { s.line = 2; s.pose = 'talk'; tuckerSay(state, s, TUCKER_PITCH, () => { s.line = 3; }); }
       if (s.line === 3) { s.line = 4; s.pose = 'ticket'; tuckerSay(state, s, TUCKER_TICKET, () => { s.line = 5; }); }
       if (s.line === 5) { s.line = 6; meatheadSays(state, pickLine(byPants(state, NO_TICKET)), true, () => { s.line = 7; }); }
-      if (s.line === 7) { s.step = 'block'; s.t = 0; s.pose = 'ticket'; p.inCutscene = false; state.stageMemo[PITCH_MEMO] = '1'; }
-      return hands();
+      if (s.line === 7 && !walk) toBlock(state, s);
+      return walk ? ({ ...hands(), right: true } as Controls) : hands();
     }
     case 'block': {
       // (in the way, hand out; nagging now and then; any hit on him and down he goes)
@@ -173,24 +193,29 @@ export const updateStation = (ctx: FrameContext, controls: Controls): Controls =
       if (hit) {
         punchedByGrab = false;
         openGate(state, s);
-        s.step = 'punched'; s.t = 0; s.pose = 'sit'; s.capless = true;
+        // (from the punch on, it's all a cutscene: no controls, no HUD; nothing more to be done to him)
+        s.step = 'punched'; s.t = 0; s.all = 0; s.pose = 'sit'; s.capless = true;
+        p.inCutscene = true; p.vel.x *= 0.3;
+        state.projectiles = state.projectiles.filter(q => q.owner !== 'player');
         s.cap = { x: s.tx, y: Y(STATION.deck.h) - TUCKER_H + 6, vx: (cx < s.tx ? 1 : -1) * 3.2, vy: -6, rot: 0, down: false };
         playSound('punch', 1, -2); playSound('thud', 0.9, -6); shakeScreen(state, 6, 3);
         silenceAll(); s.said = null;
         tuckerSay(state, s, TUCKER_OOF, undefined, false);
+        return hands();
       }
       return controls;
     }
     case 'punched':
+      if (p.isGrounded) p.vel.x *= 0.8;
       if (s.t > 80 && !s.talking) {
         // (up he springs, red to the ears: the close-up, the line)
-        s.step = 'rage'; s.t = 0; s.all = 0; s.pose = 'furious'; s.face = cx < s.tx ? -1 : 1;
+        s.step = 'rage'; s.t = 0; s.pose = 'furious'; s.face = cx < s.tx ? -1 : 1;
         p.vel.x = 0;
         playSound('slam', 0.7, -2);
         s.lineDone = false;
         tuckerSay(state, s, TUCKER_RAGE, () => { s.lineDone = true; });
       }
-      return controls;
+      return hands();
     case 'rage':
       s.close = Math.min(1, s.close + 0.12);
       state.cameraOverride = { x: STATION.camX, y: state.camera.y }; state.camera.x += (STATION.camX - state.camera.x) * 0.15;
@@ -412,7 +437,7 @@ export const drawStationHud = (c: Ctx, state: GameState) => {
     if (s.said) saidOver(c, s.said.text, cx, y + h + 34, '#FDE68A', 320);
   }
   if (s.fade > 0) { c.fillStyle = `rgba(0, 0, 0, ${s.fade})`; c.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); }
-  const cut = s.step === 'pitch' || s.step === 'rage' || s.step === 'run' || s.step === 'board' || s.step === 'leave' || s.step === 'chase';
+  const cut = s.step === 'pitch' || s.step === 'punched' || s.step === 'rage' || s.step === 'run' || s.step === 'board' || s.step === 'leave' || s.step === 'chase';
   if (cut && s.all > SKIP_AFTER) drawSkipPrompt(c, CANVAS_WIDTH);
 };
 

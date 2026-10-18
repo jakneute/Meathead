@@ -8,7 +8,7 @@ import type { FrameContext } from '../m1/game/core/context';
 import type { GameState } from '../m1/game/core/state';
 import { registerKind, type KindStats } from '../m1/game/enemies/kinds';
 import { registerKindDrawer, KIND_HEAD } from '../m1/game/render/enemies';
-import { BOSS_DIALOGUE } from '../m1/content/dialogue';
+import { BOSS_DIALOGUE, KIND_CALLOUTS } from '../m1/content/dialogue';
 import { DEATH_LINES } from '../m1/content/deaths';
 import { registerMidBossKind } from '../m1/game/combat/midBoss';
 import { registerHalfKind } from './weapons/half';
@@ -115,3 +115,10 @@ export const registerHurtLines = (source: string, hurt: string[], death: string[
   (BOSS_DIALOGUE.SPECIFIC_HAZARD_HURT as Record<string, string[]>)[source] = hurt;
   DEATH_LINES[source] = death;
 };
+
+/**
+ * A kind's own kill callouts (by callout: e.g. `{ swim: [...] }`), called in place of the engine's where those would
+ * name some other creature (a beaver lunged through the water isn't FISH STICKS!). Their text goes in the section's
+ * VOICE_LINES under 'announcer' too, so they're recorded.
+ */
+export const registerKindCallouts = (kind: string, calls: Record<string, string[]>) => { KIND_CALLOUTS[kind] = { ...KIND_CALLOUTS[kind], ...calls }; };

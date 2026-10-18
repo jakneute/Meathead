@@ -88,7 +88,8 @@ helpers, the time of day, signLetters, pickLine, the grab, victory, walkAway, dr
   (up on ledges, pounces down), the beaver (in the water: surfaces by his log, slaps and bites; registered a swimmer),
   the rattlesnake (in its hole: rattles, then strikes), the crow (swoops), the porcupine (quills up: spiky, so a dive kick
   onto it is punished; charge or slide it), the bison (a slow, huge charger: knocks him far, and plows through whatever's
-  in its way). The small ones (doe, wolf, beaver, rattler, crow, porcupine) go down to a charge, a slide or an uppercut.
+  in its way). (Superseded by the 2026-10-18 playtest fixes in the log: the deer, wolves, cougar and bison are big
+  game, not critters; the trout added.)
 - **Hazards of ours:** bear traps (snap, hold him, damage; mash to pry free; animals step in them too), pine cones
   (a big pine shakes, then drops one), rolling logs off a log pile down a slope (jump them), loose cliff edges (crumble a
   moment after he stands on them, re-form later: never lock the way), a beehive (shoot it down: the swarm goes for
@@ -123,7 +124,7 @@ Teach, then escalate (each hazard alone in a safe spot first):
 | 1400 | THE ROCKY RISE | fiberglass ledges up to a ridge; a crow; a trap on a ledge landing; the first loose edge (safe drop under it) |
 | 2700 | THE POND | the first rolling log on still water, alone (sign: LOG ROLLING); falling in is just a swim |
 | 4500 | WOLF WOODS (cp 1) | two wolves; a trap in their path (watch one step in); a beehive over a pack (shoot it down on them) |
-| 6200 | THE CREEK | two logs and a stepping rock; a beaver; a crow |
+| 6200 | THE CREEK | two logs (tied up at the near bank) and a stepping rock; the first trout alone; the first fallen tree to duck, alone; a beaver; a crow |
 | 7800 | THE BLUFFS | a cougar on the bluff; a chain of loose ledges over a ravine (they come back a few seconds after they drop: the way back's the same) |
 | 9300 | SNAKE FLATS (cp 2) | the first rattlesnake hole alone, then two with a trap between; a porcupine (no dive kicks) |
 | 10400 | THE RAPIDS | current; two channels and a rock island; submerged rocks buck the log; low branches; beavers |
@@ -558,3 +559,43 @@ Teach, then escalate (each hazard alone in a safe spot first):
 - 2026-10-18 (job 7): still a SEPARATE LATER JOB, not built: the walk-back from the parking lot after his kill (the
   walk-away's HEADING BACK TO PARK, the intro's lot in a re-entry mode, the ticket lady's re-entry exchange, clean /
   shitty / naked; see the fill-ins above). And his fight itself, when the user gives it.
+- 2026-10-18 (playtest fixes A, section 1, the user's notes): THE ANIMALS ARE BIGGER and tougher (drawn and boxed at
+  a scale each, their heads, corpses and special deaths with them: doe x1.4, buck x1.35, wolf x1.4, cougar x1.3, bison
+  x1.3, beaver x1.25, porcupine x1.25, rattler, crow and trout x1.2): doe 55 HP (kick 14), buck 120 (charge 22), wolf
+  50 (bite 14), cougar 120 (pounce 20), bison 340 (charge 28). The deer, wolves, cougar and bison are NOT critters
+  (mass over the hazards' small line: a trap or the bees no longer kill them outright; the slide's one-shot stays the
+  rattler's and the porcupine's); the grabs beat them down, a dive kick or uppercut is the big hit. The bear traps are
+  drawn and catch x1.45.
+- 2026-10-18 (playtest A): any walking animal on a loose ledge cracks it like him. A doe bolting into a wall (a drop,
+  the water's edge) wheels round, stamps (the tell) and RAMS him (m2:fr_doe_ram, its own hurt lines and death screens).
+  The porcupine, him close, bristles (the tell: its quills rattling) and SPRAYS a fan of quills up off its back
+  (m2:fr_needles): they go up and out over anything low, so the slide's the answer (the hazards that a low move gets
+  under go by `reachTop`: the engine's box doesn't shrink); still no dive kicking it (spiky).
+- 2026-10-18 (playtest A): THE LOG CROSSINGS: the pond stays the teach. Every later log (creek, rapids, river) waits
+  TIED UP at the near (left) bank (a rope to a stake) till he's on it, or he comes at it from the far side (then it
+  drifts down to him): the current had them off at the far bank before he got there. The water's a bad idea now: the
+  park's stocked TROUT (aggressive, new kind m2:fr_trout: piranha-like at a swimmer; at him on a log, its fin shows (the
+  tell) and it LEAPS out across at head height: duck under it or shoot it), taught alone in the creek's first pool (its
+  sign: TROUT BITE. RIDE THE LOG.), then in every crossing; and SNAGS (sharpened deadwood just under the surface of the
+  rapids and the river, their points poking out: a swimmer carried into one is cut, m2:fr_snag; the log rides over
+  them; the rapids' sign: SNAGS. DO NOT SWIM.). The obstacles on the crossings: the leaping trout, the fallen trees (a
+  new first one alone in the creek's second pool), the rocks, crows, beavers.
+- 2026-10-18 (playtest A): THE FALLEN TREES to duck on the log: the crown a wall of boughs down onto one great low limb
+  flat across the water at ducking height (54 px over his feet, his ducked head clear under it), its underside scraped
+  pale, a yellow DUCK! board with a red down arrow nailed to it; the limb is what hits (as wide as it's drawn). His own
+  poses crouched on a log (render/player/player.ts logCrouch): squatting low, hunched forward with the wobble, the free
+  hand down gripping the log in front, the boots shuffling round its top as he drives it on from the crouch.
+- 2026-10-18 (playtest A): the rolling logs off the pile lie along the hill's slope (their belly on it) and visibly
+  turn (bark streaks rolling round, a crack turning in each end; drawLog's for every log). The ravine's back wall runs
+  rim to rim (nothing hangs over the lower side). The beehive: shot, smashed or thrown, its swarm's out; nothing kills
+  the swarm; it stings mildly (3); after ~10 s it loses interest and drifts off up out of it.
+- 2026-10-18 (playtest A): KILL CALLOUTS BY KIND: an engine-wide hook (dialogue.ts KIND_CALLOUTS, effects.ts
+  spawnKillCallout; m2/kinds.ts registerKindCallouts): a kind's own pool per callout, in place of the engine's. Every
+  wilds animal has its own for the swim kill (the one that was FISH STICKS! on a beaver); voiced as the announcer
+  (wilds/lines.ts KILL_CALLS).
+- 2026-10-18 (playtest A): CUTSCENES TAKE EVERY CONTROL: frontier/index.ts, for every section of the land: in a
+  cutscene nothing of his gets through (a section's own script can still walk or hop him; never a shot or a special).
+  The station: the pitch starts 520 px short of the gate (Tucker still off the screen's edge), Meathead walked up short
+  of him without his controls; Tucker isn't something to hit till the pitch is done (a retry this visit: just TICKET,
+  PLEASE); from the punch landing on it's all one cutscene (no controls, no HUD, one SKIP >>), anything he'd fired
+  cleared.

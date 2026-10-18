@@ -162,6 +162,9 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   // Rolling a floating log under his feet (Meathead 2's Wilderness Land): feet pedaling on its top, the free arm out
   // for balance, leaning with the wobble
   const logRoll = p.logRoll && onFeet && hurtT < 0 && !isCharging && !isUppercutting && !isDivekicking && !isDucking && !vine ? p.logRoll : null;
+  // ...and crouched down on it (under a low branch): squatting low, the free hand down on the log in front gripping it,
+  // the boots shuffling round its top as he drives it on from down there
+  const logCrouch = p.logRoll && onFeet && hurtT < 0 && isDucking && !isCharging && !isUppercutting && !isDivekicking && !vine && !isSeated && !isSki ? p.logRoll : null;
   // The finale's boulder: pitched, the whole of him in it (render/player/pitch.ts): how far through it he is (-1: not)
   const pitchK = p.throwPitch && (p.throwTimer || 0) > 0 && hurtT < 0 && !isCharging && !isUppercutting && !isDivekicking && !isSwimming && !isSeated && !isDucking
     ? 1 - p.throwTimer! / PITCH_FRAMES : -1;
@@ -413,6 +416,10 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     // On the log: leaning with the wobble, bobbing as each foot comes down on it
     bodyRot = logRoll.lean * p.facing * 0.35 + 0.06;
     bodyY = -2 - Math.abs(Math.sin(logRoll.spin * 2)) * 1.6;
+  } else if (logCrouch) {
+    // Crouched on the log: hunched forward over it, rocking with the wobble, bobbing as each boot comes down
+    bodyRot = 0.18 + logCrouch.lean * p.facing * 0.25;
+    bodyY = -1 - Math.abs(Math.sin(logCrouch.spin * 2)) * 1.2;
   } else if (isDucking) {
     bodyRot = 0.05; // Slight forward combat crouch angle
     bodyY = 0; // Feet remain firmly planted on the ground level (0)!
@@ -559,6 +566,11 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   } else if (pitchK >= 0) {
     // Pitching: the glove arm (over the torso, below)
     freeArm = () => (p.throwKeg ? drawKegGloveArm : drawPitchGloveArm)(ctx, pitchK);
+  } else if (logCrouch) {
+    // Crouched on the log: the free hand reaching down to it in front of him, gripping on, sliding along it as it
+    // turns (drawn over the torso, below)
+    const pat = Math.sin(logCrouch.spin * 1.6) * 3;
+    freeArm = () => drawArm(ctx, -15, -30, -6, -16, 7 + pat, -3, skinTone, skinShadow, skinHighlight);
   } else if (isDucking) {
     // Crouched: the arm down at his side in front of him, the fist resting on his thigh (drawn over the torso, below)
     freeArm = () => drawArm(ctx, -15, -30, -17, -19, -13, -11, skinTone, skinShadow, skinHighlight);
@@ -683,6 +695,20 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     // Astride the seat: thighs out forward, shins down into the footwell
     drawJointedLeg(ctx, -4, -22, -1.3, 1.2, pantsShadow, false);
     drawJointedLeg(ctx, 5, -22, -1.4, 1.25, pantsColor, true);
+  } else if (logCrouch) {
+    // Crouched on the log, driving it: the squat, the boots shuffling round its top in turn (each one lifting and coming
+    // down further on as it turns under him), knees out
+    const ph = logCrouch.spin * 1.6;
+    const thigh = (side: number, col: string, dx: number, up: number) => {
+      ctx.fillStyle = col; ctx.beginPath();
+      ctx.moveTo(side * 6, -14); ctx.lineTo(side * 20 + dx, -10 - up); ctx.lineTo(side * 18 + dx, -6 - up); ctx.lineTo(side * 8, -6);
+      ctx.closePath(); ctx.fill();
+    };
+    const sb = Math.sin(ph + Math.PI) * 4, lb = Math.max(0, Math.cos(ph + Math.PI)) * 2.5;
+    const sf = Math.sin(ph) * 4, lf = Math.max(0, Math.cos(ph)) * 2.5;
+    thigh(-1, pantsShadow, sb, lb); drawBoot(ctx, -20 + sb, -6 - lb, 14, 6, false);
+    thigh(1, pantsColor, sf, lf); drawBoot(ctx, 6 + sf, -6 - lf, 15, 6, true);
+    ctx.fillStyle = '#27272A'; ctx.beginPath(); ctx.ellipse(17 + sf, -9.5 - lf, 3, 2.5, 0.3, 0, Math.PI * 2); ctx.fill();
   } else if (isDucking) {
     // Deep martial-arts power squat: boots flat on floor level (y = -6 to 0), thighs flared outward
     // Back thigh

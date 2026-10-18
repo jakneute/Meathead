@@ -18,8 +18,14 @@ export interface LogRun {
   lean: number; lastVx: number;
   /** Frames since it last bumped into something (the thunk's not every frame it's against it). */
   bumpCd: number;
+  /** Tied up at the near (left) bank, where he comes to it: the current doesn't take it off downstream till he's on
+   *  it (or he's come at it from the far side). */
+  moored: boolean;
   m: Mover;
 }
+
+/** A porcupine's quill, sprayed up off its back (flying, then gone). */
+export interface Quill { x: number; y: number; vx: number; vy: number; t: number; from: Enemy }
 
 /** A bear trap: open (armed), shut on him (holding: frames left), shut on an animal (holding it), or sprung (shut,
  *  re-arming). `latch`: he's still stood in it after it let go (it doesn't snap again till he's off it). */
@@ -31,8 +37,9 @@ export interface Pine { x: number; coneY: number; groundY: number; state: 'ready
 /** A loose ledge: solid, shaking under him (the tell), fallen (its block away), coming back. */
 export interface Loose { a: number; b: number; y: number; state: 'solid' | 'shake' | 'fallen'; t: number; drop: number; block: import('../../../m1/types').Block }
 
-/** The bees out of a knocked-down hive: going for whoever's nearest. */
-export interface Swarm { x: number; y: number; t: number; tx: number; ty: number; stingCd: Map<object, number> }
+/** The bees out of a knocked-down hive: going for whoever's nearest; nothing kills them; after a while they lose
+ *  interest and drift off up out of it (`gone`: how far they've drifted). */
+export interface Swarm { x: number; y: number; t: number; tx: number; ty: number; stingCd: Map<object, number>; gone: number }
 
 /** A log off the pile, rolling down the hill. */
 export interface Roller { x: number; y: number; vx: number; spin: number; dead: number }
@@ -44,6 +51,9 @@ export interface Wilds {
   loose: Loose[];
   swarms: Swarm[];
   rollers: Roller[];
+  quills: Quill[];
+  /** The snags' cut (frames before one can cut him again). */
+  snagCd: number;
   pileT: number;
   /** The hives (their enemies), where each was last seen (to let the swarm out where it fell). */
   hives: { e: Enemy; x: number; y: number; out: boolean }[];
@@ -57,6 +67,6 @@ export interface Wilds {
 }
 
 export const wildsOf = (state: GameState) => frontierState<Wilds>(state, 'wilds', () => ({
-  logs: [], traps: [], pines: [], loose: [], swarms: [], rollers: [], pileT: 0, hives: [], said: {},
+  logs: [], traps: [], pines: [], loose: [], swarms: [], rollers: [], quills: [], snagCd: 0, pileT: 0, hives: [], said: {},
   lastPress: { left: false, right: false, jump: false }, branchCd: 0, tuckerSaid: null,
 }));

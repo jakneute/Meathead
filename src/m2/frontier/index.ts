@@ -131,6 +131,12 @@ export const frontierLayout: StageLayout = {
     let out = sec.update ? sec.update(ctx, controls) : controls;
     out = updateGrab(ctx, fs.grab, out);
     if (arriving) out = { ...NO_CONTROLS };
+    // (a cutscene in any section: none of his own controls get through (no shooting, no moves: the playtest); only
+    // what the scene itself scripts him to do (a walk, a hop), never a shot or a special)
+    if (p.inCutscene && p.health > 0) {
+      const scripted = out !== controls;
+      out = scripted ? { ...NO_CONTROLS, left: !!out.left, right: !!out.right, up: !!out.up, down: !!out.down, jump: !!out.jump } : { ...NO_CONTROLS };
+    }
     // (a cutscene in any section: no HUD; the HUD's look: Wilderness Land's, everywhere in it)
     setUi({ introCutscene: !!p.inCutscene, zone: 'frontier' });
     return out;

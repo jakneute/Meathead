@@ -146,6 +146,11 @@
  },
  {
   "voice": "announcer",
+  "text": "BAD DOG!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "announcer",
   "text": "BAD TRIP!",
   "from": "KILL_CALLOUTS"
  },
@@ -171,6 +176,16 @@
  },
  {
   "voice": "announcer",
+  "text": "BEAVER DOWN!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "announcer",
+  "text": "BEE GONE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "announcer",
   "text": "BELLY FLOP!",
   "from": "SURFACE_CALLOUTS"
  },
@@ -193,6 +208,11 @@
   "voice": "announcer",
   "text": "BIRDIE!",
   "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "BISON BURGER!",
+  "from": "FRONTIER"
  },
  {
   "voice": "announcer",
@@ -251,6 +271,11 @@
  },
  {
   "voice": "announcer",
+  "text": "BUFFALO WINGS!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "announcer",
   "text": "BULLDOGGED!",
   "from": "GRAB_CALLOUTS"
  },
@@ -283,6 +308,16 @@
   "voice": "announcer",
   "text": "CARPET BOMBED!",
   "from": "SURFACE_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "CAT NAP!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "announcer",
+  "text": "CATCH AND RELEASE!",
+  "from": "FRONTIER"
  },
  {
   "voice": "announcer",
@@ -376,6 +411,11 @@
  },
  {
   "voice": "announcer",
+  "text": "DAM BUSTED!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "announcer",
   "text": "DANCE FLOOR DIVE!",
   "from": "SURFACE_CALLOUTS"
  },
@@ -408,6 +448,16 @@
   "voice": "announcer",
   "text": "DEEP FRIED!",
   "from": "ALIEN_DEATH_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "DEER CROSSING!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "announcer",
+  "text": "DEFLATED!",
+  "from": "FRONTIER"
  },
  {
   "voice": "announcer",
@@ -473,6 +523,11 @@
   "voice": "announcer",
   "text": "DUSTED!",
   "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "EAT CROW!",
+  "from": "FRONTIER"
  },
  {
   "voice": "announcer",
@@ -721,6 +776,11 @@
  },
  {
   "voice": "announcer",
+  "text": "HIVE FIVE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "announcer",
   "text": "HOME RUN!",
   "from": "GRAB_CALLOUTS"
  },
@@ -816,6 +876,11 @@
  },
  {
   "voice": "announcer",
+  "text": "KITTY LITTER!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "announcer",
   "text": "KNOCKOUT!",
   "from": "KILL_CALLOUTS"
  },
@@ -868,6 +933,11 @@
   "voice": "announcer",
   "text": "LIVE WIRE IN THE WATER!",
   "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "LODGE CONDEMNED!",
+  "from": "FRONTIER"
  },
  {
   "voice": "announcer",
@@ -941,6 +1011,11 @@
  },
  {
   "voice": "announcer",
+  "text": "MOUNTED!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "announcer",
   "text": "NECK CHECKED!",
   "from": "GRAB_CALLOUTS"
  },
@@ -948,6 +1023,11 @@
   "voice": "announcer",
   "text": "NEW ALTITUDE RECORD!",
   "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "NINE LIVES USED!",
+  "from": "FRONTIER"
  },
  {
   "voice": "announcer",
@@ -963,6 +1043,16 @@
   "voice": "announcer",
   "text": "NO MERCY!",
   "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "NO MORE HOWLING!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "announcer",
+  "text": "NO MORE RATTLE!",
+  "from": "FRONTIER"
  },
  {
   "voice": "announcer",
@@ -1008,6 +1098,11 @@
   "voice": "announcer",
   "text": "OFF THE TURNBUCKLE!",
   "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "OH DEER!",
+  "from": "FRONTIER"
  },
  {
   "voice": "announcer",
@@ -1101,6 +1196,11 @@
  },
  {
   "voice": "announcer",
+  "text": "PINCUSHION!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "announcer",
   "text": "PINNED FOREVER!",
   "from": "KILL_CALLOUTS"
  },
@@ -1108,6 +1208,11 @@
   "voice": "announcer",
   "text": "PLOWED!",
   "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "POINTLESS!",
+  "from": "FRONTIER"
  },
  {
   "voice": "announcer",
@@ -1151,8 +1256,18 @@
  },
  {
   "voice": "announcer",
+  "text": "PUPPY CHOW!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "announcer",
   "text": "RAMMED!",
   "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "RATTLED!",
+  "from": "FRONTIER"
  },
  {
   "voice": "announcer",
@@ -1386,6 +1501,11 @@
  },
  {
   "voice": "announcer",
+  "text": "SNAKE EYES!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "announcer",
   "text": "SNOW ANGEL!",
   "from": "SURFACE_CALLOUTS"
  },
@@ -1466,6 +1586,11 @@
  },
  {
   "voice": "announcer",
+  "text": "STAMPEDE OVER!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "announcer",
   "text": "STEAMROLLED!",
   "from": "KILL_CALLOUTS"
  },
@@ -1518,6 +1643,11 @@
   "voice": "announcer",
   "text": "SWEPT!",
   "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "TAIL SLAPPED!",
+  "from": "FRONTIER"
  },
  {
   "voice": "announcer",
@@ -1626,6 +1756,11 @@
  },
  {
   "voice": "announcer",
+  "text": "TROPHY BUCK!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "announcer",
   "text": "TRUCKED!",
   "from": "KILL_CALLOUTS"
  },
@@ -1653,6 +1788,11 @@
   "voice": "announcer",
   "text": "VAPORIZED!",
   "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "VENISON!",
+  "from": "FRONTIER"
  },
  {
   "voice": "announcer",
@@ -7481,6 +7621,11 @@
  },
  {
   "voice": "death",
+  "text": "EATEN BY TROUT. STOCKED TROUT.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "death",
   "text": "EATEN BY WOLVES",
   "from": "FRONTIER"
  },
@@ -8326,6 +8471,11 @@
  },
  {
   "voice": "death",
+  "text": "HE CHASED HER INTO A WALL. SHE CAME BACK.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "death",
   "text": "HE DID NOT STAND CLEAR",
   "from": "FRONTIER"
  },
@@ -8348,6 +8498,11 @@
   "voice": "death",
   "text": "HE LOST A GAME OF CHICKEN",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "death",
+  "text": "HE STOOD THERE. IT SPRAYED.",
+  "from": "FRONTIER"
  },
  {
   "voice": "death",
@@ -9063,6 +9218,11 @@
   "voice": "death",
   "text": "KILLED BY A FAKE HERO",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "death",
+  "text": "KILLED BY A FISH. HE DIDN'T DUCK.",
+  "from": "FRONTIER"
  },
  {
   "voice": "death",
@@ -10711,6 +10871,11 @@
  },
  {
   "voice": "death",
+  "text": "RAMMED TO DEATH BY A CORNERED DEER",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "death",
   "text": "RAN INTO A PARKED TRACTOR",
   "from": "FRONTIER"
  },
@@ -11601,6 +11766,11 @@
  },
  {
   "voice": "death",
+  "text": "SHOT FULL OF QUILLS BY A PORCUPINE",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "death",
   "text": "SHOT FULL OF ROMAN HOLES",
   "from": "FOREIGN"
  },
@@ -11818,6 +11988,11 @@
   "voice": "death",
   "text": "SKEWERED ON A KATANA",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "death",
+  "text": "SKEWERED ON A SNAG. THE SIGN SAID DO NOT SWIM.",
+  "from": "FRONTIER"
  },
  {
   "voice": "death",
@@ -12463,6 +12638,11 @@
   "voice": "death",
   "text": "SWALLOWED WHOLE BY A BOA",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "death",
+  "text": "SWAM THE RAPIDS. THE RAPIDS HAD STICKS.",
+  "from": "FRONTIER"
  },
  {
   "voice": "death",
@@ -40366,6 +40546,11 @@
  },
  {
   "voice": "meathead",
+  "text": "A FISH JUMPED IN MY FACE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "A FISH! MADE OF LAVA! BIT ME!",
   "from": "HAZARD_HURT"
  },
@@ -41153,6 +41338,11 @@
   "voice": "meathead",
   "text": "A STEIN! A FULL ONE! WHAT A WASTE!",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "A STICK! UNDER THE WATER!",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -42051,6 +42241,11 @@
  },
  {
   "voice": "meathead",
+  "text": "BAMBI'S MOM HEADBUTTS!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "BAMBI'S MOM HITS HARD!",
   "from": "FRONTIER"
  },
@@ -42293,6 +42488,11 @@
   "voice": "meathead",
   "text": "BIKER GANG? MORE LIKE BIKER GANGRENE!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "BITING TROUT. THEY CAN SMELL ME FROM THERE.",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -43333,6 +43533,11 @@
   "voice": "meathead",
   "text": "COOLING OFF YOUR ROID RAGE",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "CORNERED DEER! BAD IDEA!",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -44613,6 +44818,11 @@
   "voice": "meathead",
   "text": "FISH FRY!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "FISH SLAP!",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -49866,6 +50076,11 @@
  },
  {
   "voice": "meathead",
+  "text": "IT SHOT QUILLS AT ME!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "IT SLAPPED ME WITH ITS TAIL!",
   "from": "FRONTIER"
  },
@@ -49913,6 +50128,11 @@
   "voice": "meathead",
   "text": "IT SPITS MARBLES!",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT SPRAYS?! SINCE WHEN?!",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -51421,6 +51641,11 @@
  },
  {
   "voice": "meathead",
+  "text": "MY ASS IS A PINCUSHION!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "MY ASS IS ON FIRE!",
   "from": "SPOOKY"
  },
@@ -51821,6 +52046,11 @@
  },
  {
   "voice": "meathead",
+  "text": "MY NUTS! A BRANCH!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "MY PANTS WOULD BURN BETTER THAN THAT.",
   "from": "SPACE"
  },
@@ -52143,6 +52373,11 @@
   "voice": "meathead",
   "text": "NEEDLES! A HUNDRED LITTLE NEEDLES! DALE, IS THIS YOU?!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "NEEDLES! IN MY FACE!",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -56051,6 +56286,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SHE TURNED AROUND!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "SHE'S A TOUGH OLD BROAD. HE ISN'T. THE CROSSBOW.",
   "from": "FOREIGN"
  },
@@ -56273,6 +56513,11 @@
   "voice": "meathead",
   "text": "SHOULD HAVE LED WITH THIS.",
   "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHOULD HAVE STAYED ON THE LOG!",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -56963,6 +57208,11 @@
   "voice": "meathead",
   "text": "SOMETHING POPPED ON ME! THAT WAS A BOIL!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "SOMETHING STABBED ME!",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -59256,6 +59506,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THE DEER RAMMED ME!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "THE DEVIL GOAT!",
   "from": "SPOOKY"
  },
@@ -60388,6 +60643,11 @@
   "voice": "meathead",
   "text": "THE TROLL GRABBED MY ASS!",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE TROUT BIT ME!",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -61533,6 +61793,21 @@
   "voice": "meathead",
   "text": "TROLL CROSSING. I'LL CROSS HIS FACE.",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "TROUT DON'T HAVE TEETH!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "TROUT THAT BITE. EVERYTHING I OWN IS HANGING OUT.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "TROUT WITH TEETH. I'M STAYING ON THE LOG.",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",

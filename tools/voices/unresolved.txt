@@ -150,7 +150,7 @@ m2/frontier/dirtbike/chase.ts:596 voice: true
 m2/frontier/dirtbike/chase.ts:728 voice: pickLine(byPants(state, TUCKER_FLEE))
 m2/frontier/arena/cast.ts:28 voice: pickLine(byPants(state, pool))
 m2/frontier/arena/cast.ts:33 voice: pickLine(byPants(state, pool))
-m2/frontier/wilds/station.ts:93 voice: pickLine(byPants(state, pool))
+m2/frontier/wilds/station.ts:94 voice: pickLine(byPants(state, pool))
 m1/components/Cutscene.tsx:97 voice: p.voice
 m1/components/Cutscene.tsx:105 voice: p.voice
 m1/game/bosses/alien.ts:90 voice: text
@@ -168,9 +168,6 @@ m1/game/core/deathCause.ts:70 name: undefined
 m1/game/core/deathCause.ts:71 name: ANIMAL_DEATH_LINES
 m1/game/core/deathCause.ts:71 name: undefined
 m1/game/core/deathCause.ts:72 name: undefined
-m1/game/core/effects.ts:261 call: forGender(line, gender)
-m1/game/core/effects.ts:258 call: getHurtLines(hurtSource)
-m1/game/core/effects.ts:258 call: killLine(category, victim)
 m1/game/core/update.ts:224 name: undefined
 m1/game/core/update.ts:622 name: undefined
 m1/game/core/update.ts:622 call: pluckDeathMessage(state)
@@ -178,6 +175,9 @@ m1/game/core/update.ts:622 call: animalDeathMessage(state)
 m1/game/core/update.ts:622 call: layout?.deathMessage?.(ctx)
 m1/game/core/update.ts:622 call: deathByCause(state)
 m1/game/core/update.ts:622 call: deathFallback(state, ctx.stageId, fell)
+m1/game/core/effects.ts:263 call: forGender(line, gender)
+m1/game/core/effects.ts:260 call: getHurtLines(hurtSource)
+m1/game/core/effects.ts:260 call: killLine(category, victim)
 m1/game/player/player.ts:85 call: message()
 m1/game/render/world.ts:1303 voice: 0
 m1/game/render/world.ts:1309 voice: Math.max(state.camera.y + 16 + (rows.length - 1) * 13, playe

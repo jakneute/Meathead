@@ -988,6 +988,13 @@ export type KillCallout =
 export type Ground = 'concrete' | 'water' | 'snow' | 'rock' | 'dirt' | 'sand' | 'wood' | 'glass' | 'carpet' | 'tile' | 'metal' | 'muck' | 'grass' | 'lava';
 
 /**
+ * The callouts that name what was killed, by its kind, then by callout (in place of the plain lines, and of the
+ * surface ones): so a beaver lunged through the water isn't "FISH STICKS!". Filled in by the games' own kinds (Meathead
+ * 2's registerKindCallouts).
+ */
+export const KIND_CALLOUTS: Record<string, Partial<Record<string, string[]>>> = {};
+
+/**
  * The callouts that name what the body hit, by what's under it (in place of the plain lines): so it's never
  * "KISSED CONCRETE!" on the water or in the snow.
  */

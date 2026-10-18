@@ -35,7 +35,10 @@ const rolled = (c: Ctx, md: Mood, h: number) => { if (md === 'dead') { c.transla
 const FAWN = '#B8844E', FAWN_D = '#8A5E32', FAWN_L = '#D8A870', BELLY = '#F2E2C8';
 
 const deer = (c: Ctx, e: Enemy, f: number, buck: boolean) => {
-  const md = mood(e), st = e.aiState;
+  const md = mood(e), raw = e.aiState;
+  // (the doe cornered and ramming him: head down like the buck's charge; stamping before it)
+  const st = raw === 'ram' ? 'charge' : raw;
+  const stamp = raw === 'cornered' ? Math.max(0, Math.sin(f * 0.8)) * 4 : 0;
   const run = st === 'bolt' || st === 'charge' || (Math.abs(e.vel.x) > 1.5 && md !== 'dead');
   const graze = st === 'graze' || (st === 'idle' && Math.sin(f * 0.02 + (e.variant ?? 0)) > 0.3 && !buck);
   const s = buck ? 1.15 : 1;
@@ -48,8 +51,9 @@ const deer = (c: Ctx, e: Enemy, f: number, buck: boolean) => {
   legs.forEach(([lx, k], i) => {
     const far = i % 2 === 0, col = far ? FAWN_D : FAWN;
     const kick = st === 'kick' && lx < 0 ? -12 : 0;
-    limb(c, lx, -26, lx + legSwing(k) + kick, md === 'dead' ? -4 : -2, 3, col);
-    dot(c, lx + legSwing(k) + kick - 2, -3, 4, 3, INK);
+    const lift = lx > 0 && !far ? stamp : 0;
+    limb(c, lx, -26, lx + legSwing(k) + kick, (md === 'dead' ? -4 : -2) - lift, 3, col);
+    dot(c, lx + legSwing(k) + kick - 2, -3 - lift, 4, 3, INK);
   });
   // (the body: a long barrel, the pale belly, the rump and its tail (white, flagged up when she runs))
   ell(c, 0, -32, 22, 10, FAWN);
@@ -58,13 +62,15 @@ const deer = (c: Ctx, e: Enemy, f: number, buck: boolean) => {
   const tailUp = run || st === 'kick';
   blob(c, () => { c.moveTo(-21, -36); c.lineTo(-27, tailUp ? -46 : -32); c.lineTo(-22, tailUp ? -44 : -30); c.closePath(); }, tailUp ? '#FFFFFF' : FAWN_D, 1);
   // (the neck and the head: down to the grass grazing, up and alert otherwise; the buck's neck thicker and darker)
-  const hx = graze ? 26 : 22, hy = graze ? -14 : st === 'charge' ? -34 : -50;
+  const hx = graze ? 26 : 22, hy = graze ? -14 : st === 'charge' || st === 'cornered' ? -34 : -50;
   limb(c, 16, -36, hx - 2, hy + 4, buck ? 9 : 7, buck ? FAWN_D : FAWN);
-  c.save(); c.translate(hx, hy); c.rotate(graze ? 1.1 : st === 'charge' ? 0.6 : 0);
+  c.save(); c.translate(hx, hy); c.rotate(graze ? 1.1 : st === 'charge' || st === 'cornered' ? 0.6 : 0);
   ell(c, 2, 0, 7, 5, FAWN);
   ell(c, 8, 1.5, 3, 2.6, '#3A2414', 0, 0.8);
   dot(c, 9, 0, 1.6, 1.4, '#1C1209');
-  eye(c, 1.5, -1.5, md, 1.4, st === 'charge' || st === 'paw');
+  eye(c, 1.5, -1.5, md, 1.4, st === 'charge' || st === 'paw' || st === 'cornered');
+  // (her ears pinned back, cornered: wild-eyed, the white showing)
+  if (!buck && (st === 'charge' || st === 'cornered') && md === 'ok') dot(c, 0, -3, 1.4, 1, '#FFFFFF');
   // (the big ears)
   blob(c, () => { c.moveTo(-3, -3); c.lineTo(-9, -11); c.lineTo(-1, -6); c.closePath(); }, FAWN_L, 0.8);
   if (md === 'dead') tongue(c, 7, 4, 5);
@@ -288,6 +294,33 @@ export const drawBison = (c: Ctx, e: Enemy, f: number) => {
   eye(c, hx + 4, hy - 4, md, 1.8, charge || paw);
   if (paw && f % 20 < 10) for (let i = 0; i < 3; i++) dot(c, hx + 16 + i * 3, hy + 4 - i, 2, 2, '#E7E5E4');
   if (md === 'dead') tongue(c, hx + 8, hy + 10, 8);
+  c.restore();
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// Trout: a rainbow trout (olive back, the pink stripe, black spots), a mouth full of teeth (the park's "aggressive"
+// stock), the fin up out of the water as the tell, arched along its leap, belly up dead
+
+export const drawTrout = (c: Ctx, e: Enemy, f: number) => {
+  const md = mood(e), st = e.aiState;
+  c.save();
+  c.translate(0, -6);
+  if (md === 'dead') c.rotate(Math.PI);
+  else if (st === 'leap') c.rotate(Math.atan2(e.vel.y, Math.abs(e.vel.x) || 1) * 0.9);
+  const wag = md === 'dead' ? 0 : Math.sin(f * (st === 'chase' || st === 'leap' ? 0.7 : 0.25)) * 3;
+  // (the tail: a forked fan, wagging)
+  blob(c, () => { c.moveTo(-10, 0); c.lineTo(-18, -6 + wag); c.lineTo(-15, 0); c.lineTo(-18, 6 + wag); c.closePath(); }, '#6A7A3A', 1);
+  // (the body, the pale belly, the stripe, the spots; the dorsal fin up)
+  ell(c, 0, 0, 13, 5.5, '#7A8A44');
+  ell(c, 1, 2.5, 10, 2.2, '#E8E2C8', 0, 0.6);
+  dot(c, -9, -0.5, 18, 2, '#E87A8A');
+  for (const [sx, sy] of [[-7, -3], [-3, -4], [1, -3], [-5, 1], [4, -4]] as const) dot(c, sx, sy, 1.4, 1.4, '#1C1C14');
+  blob(c, () => { c.moveTo(-4, -5); c.lineTo(0, -10); c.lineTo(3, -5); c.closePath(); }, '#5A6A2A', 0.8);
+  // (the head: the jaw open on teeth when it's after him)
+  const open = st === 'chase' || st === 'leap' || st === 'fin' ? 2.4 : md === 'dead' ? 1.5 : 0;
+  if (open) { blob(c, () => { c.moveTo(9, 0.5); c.lineTo(14, -1); c.lineTo(14, 1 + open); c.closePath(); }, '#A33A4A', 0.8); for (let k = 0; k < 3; k++) dot(c, 10 + k * 1.4, -0.4, 0.8, 1.2, '#FFFFFF'); }
+  eye(c, 8, -2, md, 1.2, st === 'chase' || st === 'leap' || st === 'fin');
+  if (md === 'dead') tongue(c, 12, 2, 3);
   c.restore();
 };
 

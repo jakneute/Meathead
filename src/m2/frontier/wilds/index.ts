@@ -20,7 +20,7 @@ import { GROUND, LEDGES, BOULDERS, ANIMALS, PICKUPS, CHECKPOINTS, WATERS, STATIO
 import { wildsOf } from './state';
 import { waterAt, layWaterSteps, waterZones, carrySwimmer, surfaceY, drawWaterBack, drawWaterFront } from './water';
 import { buildLogs, updateLogs, updateFalls, updateBranches, drawLogs, drawBoomAndBranches } from './logs';
-import { buildHazards, updateTraps, updatePines, updateLoose, updateBees, updateRollers, drawHazardsBack, drawHazardsFront } from './hazards';
+import { buildHazards, updateTraps, updatePines, updateLoose, updateBees, updateRollers, updateQuills, updateSnags, drawHazardsBack, drawHazardsFront } from './hazards';
 import { drawWildsBackdrop, drawWildsBack } from './art';
 import { updateStation, drawStationBack, drawStationFront, drawStationHud, stationGone } from './station';
 import { ARRIVE, GAGS } from './lines';
@@ -30,7 +30,7 @@ const { x0, x1 } = SECTIONS.wilds;
 
 /** Once each, passing: [the gag, from x (from the section's start)]. */
 const GAG_AT: [keyof typeof GAGS, number][] = [
-  ['trap', 470], ['log', 2860], ['wolves', 4900], ['rapids', 10420], ['bison', 13360], ['falls', 15480], ['tracks', 18820],
+  ['trap', 470], ['log', 2860], ['wolves', 4900], ['trout', 6240], ['rapids', 10420], ['bison', 13360], ['falls', 15480], ['tracks', 18820],
 ];
 
 export const wilds: FrontierSection = {
@@ -50,7 +50,7 @@ export const wilds: FrontierSection = {
     for (const [kind, rx, h] of ANIMALS) {
       // (a beaver in its water, its bottom under the surface; a hive hanging from h; a crow flying at h)
       let feet = Y(h);
-      if (kind === 'm2:fr_beaver') { const w = WATERS.find(q => X(rx) > q.a && X(rx) < q.b); feet = (w ? surfaceY(w) : GY) + 10; }
+      if (kind === 'm2:fr_beaver' || kind === 'm2:fr_trout') { const w = WATERS.find(q => X(rx) > q.a && X(rx) < q.b); feet = (w ? surfaceY(w) : GY) + (kind === 'm2:fr_trout' ? 40 : 10); }
       if (kind === 'm2:fr_hive') feet = Y(h) + 30;
       const e = makeKindEnemy(kind as EnemyKind, X(rx), feet);
       e.homeX ??= e.pos.x; e.homeY = e.pos.y; e.variant = Math.abs(rx) % 7;
@@ -64,7 +64,7 @@ export const wilds: FrontierSection = {
     let out = updateStation(ctx, controls);
     out = updateTraps(ctx, out);
     out = updateLogs(ctx, out);
-    updatePines(ctx); updateLoose(ctx); updateBees(ctx); updateRollers(ctx); updateBranches(ctx); updateFalls(ctx);
+    updatePines(ctx); updateLoose(ctx); updateBees(ctx); updateRollers(ctx); updateQuills(ctx); updateSnags(ctx); updateBranches(ctx); updateFalls(ctx);
     carrySwimmer(state); waterZones(state);
     // What he's got to say about it (once each)
     const once = (k: string, pool: string[]) => { if (!w.said[k] && !p.inCutscene && p.health > 0) { w.said[k] = true; meatheadSays(state, pickLine(pool), false); } };

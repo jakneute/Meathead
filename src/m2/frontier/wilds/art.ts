@@ -9,7 +9,7 @@ import type { GameState } from '../../../m1/game/core/state';
 import { CANVAS_WIDTH } from '../../../m1/constants';
 import { GY } from '../geometry';
 import { box, mix, hash, onScreen, frontierSign, frontierSky, INK, type Ctx } from '../kit';
-import { GROUND, LEDGES, BOULDERS, SIGNS, HIVES, X, Y } from './layout';
+import { GROUND, LEDGES, BOULDERS, SIGNS, HIVES, X, Y, groundH } from './layout';
 import { drawShelf } from './hazards';
 
 const DIRT = '#6B4A2A', DIRT_D = '#4A321C', GRASS = '#6E9A42', GRASS_L = '#A8C86A';
@@ -62,12 +62,21 @@ const boulder = (c: Ctx, a: number, b: number, h: number) => {
   box(c, hx + 6, GY - 60, 32, 8, '#A3A3A3'); for (let i = 0; i < 6; i++) box(c, hx + 9 + i * 5, GY - 58, 3, 4, '#3F3F46');
 };
 
-/** The ravine: a dark drop between the bluff and the far side (no bottom). */
-const ravine = (c: Ctx, a: number, b: number, h: number) => {
-  const xa = X(a), xb = X(b);
-  for (let k = 0; k < 6; k++) box(c, xa, Y(h) + k * 70, xb - xa, 70, mix('#2A2018', '#050403', k / 5));
-  // (its walls, going down)
-  box(c, xa, Y(h), 10, 600, '#4A3420'); box(c, xb - 10, Y(h - 40), 10, 600, '#4A3420');
+/** The ravine: a dark drop between the bluff and the far side (no bottom). Its back wall's top runs from the near
+ *  rim to the far rim (each at its own height: nothing of it hangs up in the air over the lower side), and its two
+ *  faces go straight down from the rims. */
+const ravine = (c: Ctx, a: number, b: number, hA: number, hB: number) => {
+  const xa = X(a), xb = X(b), ya = Y(hA), yb = Y(hB), bot = GY + 420;
+  // (the back wall, banded darker going down, under the line from rim to rim)
+  for (let k = 0; k < 7; k++) {
+    const t0 = k * 70, t1 = (k + 1) * 70 + 1;
+    c.fillStyle = mix('#3A2C1E', '#050403', k / 6);
+    c.beginPath(); c.moveTo(xa, Math.min(bot, ya + t0)); c.lineTo(xb, Math.min(bot, yb + t0)); c.lineTo(xb, Math.min(bot, yb + t1)); c.lineTo(xa, Math.min(bot, ya + t1)); c.closePath(); c.fill();
+  }
+  // (a few rock ledges on the back wall, following its slope)
+  for (let k = 1; k < 4; k++) { const t = k / 4, x = xa + (xb - xa) * t, y = ya + (yb - ya) * t; box(c, x - 30, y + 24 + k * 30, 46, 4, '#4A3A28'); }
+  // (its faces, straight down from each rim)
+  box(c, xa, ya, 10, bot - ya, '#4A3420'); box(c, xb - 10, yb, 10, bot - yb, '#4A3420');
 };
 
 /** A bear-proof trash can (the park's: PACK IT IN, PACK IT OUT, in burned letters on a little plate). */
@@ -126,7 +135,7 @@ export const drawWildsBack = (c: Ctx, state: GameState) => {
   for (const [rx, h] of HIVES) if (rx < 10000 && onScreen(state, X(rx) - 220, X(rx) + 120)) hiveTree(c, X(rx), Y(h), GY);
   // (the ground)
   for (const [a, b, h1, h2] of GROUND) { if (h1 < 0 && h2 < 0) continue; if (!onScreen(state, X(a), X(b))) continue; groundRun(c, a, b, h1, h2); }
-  if (onScreen(state, X(8500), X(9100))) ravine(c, 8500, 9100, 300);
+  if (onScreen(state, X(8500), X(9100))) ravine(c, 8500, 9100, groundH(X(8500)) ?? 300, groundH(X(9100)) ?? 260);
   for (const [a, b, h] of BOULDERS) if (onScreen(state, X(a), X(b))) boulder(c, a, b, h);
   for (const [a, b, h] of LEDGES) {
     if (!onScreen(state, X(a), X(b))) continue;
