@@ -101,8 +101,7 @@ export interface Town {
   /** The announcer's words, while they're said. */
   pa: Said | null;
   said: Record<string, boolean>;
-  /** The crash's stretcher going by (frames), and the hit cooldowns for the hazards that touch him. */
-  stretcherT: number;
+  /** The hit cooldowns for the hazards that touch him. */
   beamCd: number; sawCd: number; cloudCd: number;
 }
 
@@ -113,5 +112,5 @@ export const townOf = (state: GameState) => frontierState<Town>(state, 'town', (
   brawl: { calmT: 0, pop: 0, doneT: 0 },
   duel: { phase: 'wait', t: 0, drawAt: 0, sheriff: null, step: 0, token: 0, wasShooting: false, card: '', cardT: 0 },
   zoom: 0.8,
-  barks: new Map(), barkAt: -999, pa: null, said: {}, stretcherT: 0, beamCd: 0, sawCd: 0, cloudCd: 0,
+  barks: new Map(), barkAt: -999, pa: null, said: {}, beamCd: 0, sawCd: 0, cloudCd: 0,
 }));

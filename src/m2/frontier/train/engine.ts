@@ -13,7 +13,8 @@
 // tucker.ts's close-up with this job's wound painter: the slug coming in, the lens starring, the eye bursting, the gout
 // out the back of his head, the hole clean through (sky through it), the blood running), his last words; he slumps over
 // the sill, apparently dead, on the whistle cord (the whistle stuck on: Riggs's horn); nobody's driving; the train runs
-// on, faster, into the buffer stop at Sawdust Gulch: the crash; black; the town (the town's section). From then on he's
+// on, faster, at the buffer stop at Sawdust Gulch: its sign coming up, a dip to black, and the crash is the town's own
+// cutscene (town/crash.ts: the wide shot of it coming in, the wreck, Tucker thrown out of it). From then on he's
 // got the eye wound for the rest of the land (TUCKER_EYE_MEMO, drawn on his figure by tucker.ts). A cutscene from the
 // shot on: no HUD, SKIP >> for the lot.
 
@@ -89,7 +90,7 @@ export const updateEngine = (ctx: FrameContext, controls: Controls): Controls =>
   const cx = p.pos.x + p.width / 2;
   s.t++;
   s.duck = Math.max(0, s.duck - 1);
-  if (tr.phase === 'still' || s.step === 'done') return controls;
+  if (tr.phase === 'still' || s.step === 'done') { s.fade = 0; return controls; }
   if (cut(s)) {
     s.all++;
     p.inCutscene = true;
@@ -157,17 +158,14 @@ export const updateEngine = (ctx: FrameContext, controls: Controls): Controls =>
       const b = tr.passers.find(q => q.kind === 'bumper');
       s.bumper = b ? b.x : ENGINE_FRONT;
       if (s.t % 30 === 0) shakeScreen(state, 4, 3);
-      if (s.bumper <= ENGINE_FRONT + 4) {
-        s.step = 'crash'; s.t = 0; s.flash = 1; tr.v = 0; tr.vTarget = 0;
-        playSound('crash', 1, -10); playSound('boom', 1, -16); playSound('crunch', 1, -8); shakeScreen(state, 24, 9);
-        for (let n = 0; n < 60; n++) state.particles.push({ pos: { x: ENGINE_FRONT - Math.random() * 90, y: GY - 60 - Math.random() * 200 }, vel: { x: (Math.random() - 0.3) * 14, y: -4 - Math.random() * 10 }, life: 60 + Math.random() * 40, color: n % 4 === 0 ? '#E4E4E7' : n % 4 === 1 ? '#8A5A30' : n % 4 === 2 ? '#3F3F46' : '#B91C1C', size: 3 + Math.random() * 5 });
-      }
+      // (the station's sign coming up fast: cut, to the town's wide shot of the train coming in (town/crash.ts))
+      if (s.bumper <= ENGINE_FRONT + 520) { s.step = 'crash'; s.t = 0; }
       return hands();
     }
     case 'crash':
-      s.flash = Math.max(0, s.flash - 0.04);
-      s.fade = Math.max(0, Math.min(1, (s.t - 60) / 40));
-      if (s.t > 104) finish(state, s, false);
+      // (a dip to black, still flat out; the crash itself is the town's)
+      s.fade = Math.min(1, s.t / 14);
+      if (s.t >= 16) finish(state, s, false);
       return hands();
   }
   return controls;
@@ -230,14 +228,20 @@ const shoot = (ctx: FrameContext, s: Scene) => {
   shakeScreen(state, 8, 4);
 };
 
-/** The scene's over (run through, or skipped): the memos, and on to Sawdust Gulch. */
+/** The town's: the crash is to be shown there (run through to it here, not skipped). Once. */
+let crashOwed = false;
+export const takeCrashScene = () => { const o = crashOwed; crashOwed = false; return o; };
+
+/** The scene's over (run through, or skipped): the memos, and on to Sawdust Gulch. Run through, the crash plays on in
+ *  the town (town/crash.ts: still black this frame, still a cutscene); skipped, it's all skipped: the aftermath. */
 const finish = (state: GameState, s: Scene, skipped: boolean) => {
   if (skipped) silenceAll();
   state.stageMemo[CRASH_MEMO] = '1';
   state.stageMemo[TUCKER_EYE_MEMO] = '1';
-  s.step = 'done'; s.said = null; s.fade = 0; s.flash = 0;
+  s.step = 'done'; s.said = null; s.fade = skipped ? 0 : 1; s.flash = 0;
+  crashOwed = !skipped;
   const p = state.player;
-  p.inCutscene = false;
+  p.inCutscene = !skipped;
   state.cameraOverride = null;
   for (const e of state.enemies) e.puppet = false;
   teleport(state, DOORS.town.start.x, DOORS.town.start.y);
@@ -338,7 +342,8 @@ const wheel = (c: Ctx, x: number, y: number, r: number, a: number) => {
 export const drawEngineBack = (c: Ctx, state: GameState) => {
   const s = scOf(state), tr = trainOf(state), f = state.frame, x = ENGINE_X, y = GY, roll = tr.dist / 40;
   if (!inView(state, x - 200, x + CARS[ENGINE].len + 100, 100)) return;
-  const crushed = s.step === 'crash' || s.step === 'done' ? Math.min(40, s.t * 4) : 0;
+  // (never stove in here: the train cuts away before the stop; the wreck's the town's)
+  const crushed = 0;
   const stuck = s.step === 'slump' || s.step === 'speed';
   // ---- the machine, in the first pass's units, blown up about the rail under its back end
   c.save(); c.translate(x, y); c.scale(ES, ES); c.translate(-x, -y);
@@ -422,7 +427,7 @@ export const drawEngineFront = (c: Ctx, state: GameState) => {
   }
   // (the end of the line: SAWDUST GULCH's buffer stop and its platform, coming)
   const b = tr.passers.find(q => q.kind === 'bumper');
-  if (b) drawBumper(c, b.x, s.step === 'crash' ? s.t : 0);
+  if (b) drawBumper(c, b.x, 0);
 };
 
 /** The buffer stop (timbers, a red-and-white striped beam) and Sawdust Gulch's station front behind it. */

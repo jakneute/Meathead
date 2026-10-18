@@ -25,11 +25,17 @@ export const ARRIVE: ByPants = {
   shitty: ['I SHAT MYSELF ON IMPACT. FAIR ENOUGH.', 'END OF THE LINE. MY PANTS GOT THERE FIRST.'],
   nude: ['BUCK NAKED IN A TRAIN WRECK. NEW LOW.', 'END OF THE LINE. NO SEATBELT. NO PANTS.'],
 };
-/** The covered stretcher going by to FIRST AID. */
+/** The paramedics carrying Tucker off to FIRST AID on a stretcher (the crash's cutscene). */
 export const STRETCHER: ByPants = {
   clean: ['THAT IS ONE WAY TO GET OFF A TRAIN.', "DON'T BOTHER WITH FIRST AID. TRY A MOP."],
   shitty: ["HE GOT OFF EASY. I'M STILL IN THESE PANTS.", 'TAKE HIM. AND IF YOU GOT SPARE PANTS...'],
-  nude: ["HE GETS A SHEET? I DON'T GET A SHEET?", 'HEY. TOSS ME THAT SHEET WHEN YOU ARE DONE.'],
+  nude: ["HE GETS A STRETCHER? I DON'T GET PANTS?", 'HEY. GOT A SHEET IN THERE? FOR ME?'],
+};
+/** A park paramedic over Tucker, face down in the dirt (and about the state of Meathead). A townsfolk voice. */
+export const MEDIC: ByPants = {
+  clean: ['NO PULSE. GRAB HIS FEET.', "HE'S DEAD. I'M ON BREAK IN FIVE."],
+  shitty: ['NO PULSE. AND SOMEBODY SHAT THEMSELVES.', "HE'S DEAD. YOU SMELL WORSE THAN HIM."],
+  nude: ['NO PULSE. SIR, PUT YOUR DICK AWAY.', "HE'S DEAD. AND YOU'RE NAKED. GREAT."],
 };
 /** Back on a later visit: the stop fixed. */
 export const REVISIT: ByPants = {
@@ -45,7 +51,7 @@ export const TOWN_IN: ByPants = {
 };
 /** The empty coffin in the undertaker's window, Tucker's name on it. */
 export const COFFIN: ByPants = {
-  clean: ['COFFIN WITH HIS NAME ON IT. EMPTY. THEY ARE STILL HOSING HIM OFF THE ENGINE.', 'RESERVED FOR TUCKER. NOBODY HOME.'],
+  clean: ["COFFIN WITH HIS NAME ON IT. EMPTY. FIRST AID'S STILL GOT HIM.", 'RESERVED FOR TUCKER. NOBODY HOME.'],
   shitty: ['EMPTY COFFIN. I COULD HIDE THESE PANTS IN THERE.', 'NOBODY IN IT. SMELLS LIKE SOMEBODY IN IT NOW.'],
   nude: ['EMPTY COFFIN. DOES IT COME WITH A SUIT? NO? FINE.', 'NOBODY IN IT. ROOMY. COLD ON THE BALLS.'],
 };
@@ -324,7 +330,7 @@ export const HURT: HurtTable = {
 
 const pools = (r: ByPants) => allOf(r);
 /** Everything the townsfolk's own voices say (men and women both do every job). */
-const TOWNSFOLK = [DEPUTY_BARK, BOUNCER_BARK, BOUNCER_WAIT, BOUNCER_START, PATRON_BARK, POSSE_BARK, DANCER_BARK, SMITH_BARK, FARMHAND_BARK, FELLER_TIMBER, FELLER_BARK, BIRLER_BARK, MINER_BARK];
+const TOWNSFOLK = [MEDIC, DEPUTY_BARK, BOUNCER_BARK, BOUNCER_WAIT, BOUNCER_START, PATRON_BARK, POSSE_BARK, DANCER_BARK, SMITH_BARK, FARMHAND_BARK, FELLER_TIMBER, FELLER_BARK, BIRLER_BARK, MINER_BARK];
 export const VOICE_LINES: Record<string, string[]> = {
   meathead: [
     ...[ARRIVE, STRETCHER, REVISIT, TOWN_IN, COFFIN, SALOON_IN, BRAWL_DONE, LOCKED, SALOON_OUT, CHEATED, POSSE_DONE, SHOWDOWN_IN, SHOWDOWN_DONE, POND, BIRLER_SEEN, LADDER_UP, MILL, MINE, CARTS, RIDE_CART, CANARY, FLOOD, QUEUE].flatMap(allOf),

@@ -75,7 +75,8 @@ move your DOORS entries to match; keep the way back working (revisits), or give 
 - **The station -> the train** (built, wilds/station.ts): the train speeds off, he runs after it; the scene ends with
   him at `DOORS.train.start`. Back from the train's left end: `DOORS.wilds.end` (on the platform). The train section
   plays the caboose jump-on from there (train/index.ts).
-- **The crash** (train -> town, built, train/engine.ts): the crash puts him at `DOORS.town.start`. Back from the town's
+- **The crash** (train -> town, built, train/engine.ts dips to black and hands over with `takeCrashScene`; the crash
+  itself is town/crash.ts's cutscene): it puts him at `DOORS.town.start`. Back from the town's
   left end: `DOORS.train.end` (the tender's front, set by train/index.ts): the train stood still after the crash (walk it
   back to the caboose and the station); into the cab's back goes on to the town again.
 - **The woodchipper** (logride -> woods, built, logride/chipper.ts): he lands on the crew's clearing past the chipper

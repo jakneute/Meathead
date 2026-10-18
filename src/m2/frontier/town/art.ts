@@ -22,7 +22,8 @@ import {
   FY, CEIL_Y, X, Y, inMine, inSaloon,
 } from './layout';
 import { onScreen, viewOf } from './view';
-import { squareShut } from './scenes';
+import { squareShut, wreckHere } from './scenes';
+import { drawWreck, drawCanopy, firstAidOpen, wreckLights } from './crash';
 
 const LIP = '#E8C890';
 const DIRT = '#7A5A38', DIRT_LIP = '#B8935A';
@@ -110,7 +111,7 @@ export const drawTownBack = (c: Ctx, state: GameState, wreck: boolean) => {
   const f = state.frame;
   const on = (a: number, b: number) => onScreen(state, X(a), X(b));
   // ---- the far fronts along the street (behind the ground's lip)
-  if (on(-200, 900)) drawEndOfLine(c, state, wreck);
+  if (on(-1000, 1100)) drawEndOfLine(c, state, wreck);
   if (on(850, 3800)) {
     falseFront(c, X(920), 240, 290, '#A0603A', ['GENERAL STORE', 'SOUVENIRS'], { awning: '#B91C1C' });
     falseFront(c, X(1210), 200, 250, '#5A7A8A', ['ASSAY', 'OFFICE'], { awning: '#1D4ED8' });
@@ -225,59 +226,27 @@ const store = (c: Ctx, xa: number, xb: number, top: number, col: string, name: s
   box(c, (xa + xb) / 2 - 25, GY - 104, 50, 104, INK); box(c, (xa + xb) / 2 - 24, GY - 103, 48, 103, mix(col, '#000000', 0.45));
 };
 
-/** The end of the line: the buffer stop (smashed, the engine nosed into it steaming; or rebuilt), the depot, the gawkers. */
+/** The end of the line: the depot, FIRST AID, and the crash's wreck (crash.ts) or the stop rebuilt. */
 const drawEndOfLine = (c: Ctx, state: GameState, wreck: boolean) => {
-  const f = state.frame, tw = townOf(state);
-  // (the rails, ending)
-  box(c, X(-200), GY - 5, 400, 4, '#71717A');
-  for (let x = X(-200); x < X(200); x += 26) box(c, x, GY - 3, 14, 4, '#5A3A1E');
+  // (the rails, coming in from the left to where the stop is (or was))
+  box(c, X(-900), GY - 5, X(100) - X(-900), 4, '#71717A');
+  for (let x = X(-900); x < X(100); x += 26) box(c, x, GY - 3, 14, 4, '#5A3A1E');
   // (the depot behind)
   falseFront(c, X(380), 240, 260, '#7A6A4A', ['SAWDUST GULCH', 'DEPOT'], { door: true });
-  // (FIRST AID: the park's own shack, a red cross)
+  // (FIRST AID: the park's own shack, a red cross; its door open while they carry him in)
   box(c, X(690), GY - 160, 130, 160, INK); box(c, X(691), GY - 159, 128, 159, '#E7E5E4');
   box(c, X(743), GY - 150, 24, 8, '#DC2626'); box(c, X(751), GY - 158, 8, 24, '#DC2626');
-  box(c, X(728), GY - 104, 54, 104, INK); box(c, X(729), GY - 103, 52, 103, wreck && tw.stretcherT > 0 && tw.stretcherT < 340 ? '#1C1917' : '#A8A29E');
+  box(c, X(728), GY - 104, 54, 104, INK); box(c, X(729), GY - 103, 52, 103, wreck && firstAidOpen() ? '#1C1917' : '#A8A29E');
   painty(c, X(755), GY - 118, 'FIRST AID', '#DC2626', '#FFFFFF');
   if (wreck) {
-    // (the buffer stop, smashed flat; the engine's nose in it: the cowcatcher crumpled, the boiler front stove in, steam)
-    const bx = X(190);
-    box(c, bx - 14, GY - 40, 32, 40, INK); box(c, bx - 13, GY - 26, 30, 26, '#7F1D1D');
-    for (let k = 0; k < 5; k++) box(c, bx + 14 + k * 18, GY - 8 - (k % 2) * 8, 16, 5, '#8A5A30');
-    box(c, X(-200), GY - 190, X(165) - X(-200), 140, INK); box(c, X(-200), GY - 188, X(163) - X(-200), 136, '#1C1917');
-    box(c, X(-200), GY - 188, X(163) - X(-200), 8, '#3F3F46');
-    for (const rx of [-160, -60, 40]) box(c, X(rx), GY - 175, 4, 120, '#27272A');
-    c.fillStyle = '#27272A'; c.beginPath(); c.moveTo(X(163), GY - 188); c.lineTo(X(186), GY - 166); c.lineTo(X(172), GY - 116); c.lineTo(X(188), GY - 86); c.lineTo(X(163), GY - 56); c.closePath(); c.fill();
-    box(c, X(100), GY - 240, 44, 52, INK); box(c, X(103), GY - 237, 38, 48, '#3F3F46');
-    c.fillStyle = '#52525B'; c.beginPath(); c.moveTo(X(90), GY - 54); c.lineTo(X(176), GY - 44); c.lineTo(X(144), GY - 4); c.lineTo(X(98), GY - 12); c.closePath(); c.fill();
-    box(c, X(160), GY - 160, 14, 14, '#FDE68A');
-    for (const wx of [X(-120), X(-20), X(80)]) { c.fillStyle = INK; c.beginPath(); c.arc(wx, GY - 24, 24, 0, Math.PI * 2); c.fill(); c.fillStyle = '#7F1D1D'; c.beginPath(); c.arc(wx, GY - 24, 18, 0, Math.PI * 2); c.fill(); }
-    for (let k = 0; k < 7; k++) {
-      const t = ((f * 0.6 + k * 30) % 200) / 200;
-      c.globalAlpha = 0.45 * (1 - t); c.fillStyle = '#E4E4E7';
-      c.beginPath(); c.arc(X(120) + k * 11 + t * 40, GY - 240 - t * 200, 18 + t * 40, 0, Math.PI * 2); c.fill();
-    }
-    c.globalAlpha = 1;
-    // (the gawkers: guests and staff at the tape)
-    box(c, X(240), GY - 60, 400, 3, '#FDE047');
-    for (let k = 0; k < 20; k++) box(c, X(242) + k * 20, GY - 60, 10, 3, '#18181B');
-    for (const px of [240, 640]) box(c, X(px) - 2, GY - 64, 4, 64, '#71717A');
-    const crowd: [number, number, 'stand' | 'photo' | 'point', 'shocked' | 'scared' | 'happy'][] = [[280, 11, 'photo', 'shocked'], [330, 29, 'point', 'shocked'], [380, 47, 'stand', 'scared'], [430, 63, 'photo', 'happy'], [560, 81, 'stand', 'shocked'], [610, 93, 'point', 'scared']];
-    for (const [rx, seed, pose, mood] of crowd) guest(c, X(rx), GY - 6, seed, f, pose, mood, -1);
-    // (the stretcher, carried off to FIRST AID under a sheet: a conductor's cap on it, two shoes poking out)
-    const t = tw.stretcherT;
-    if (t > 0 && t < 320) {
-      const sx = X(200) + Math.min(t, 300) * 1.8;
-      guest(c, sx - 48, GY, 7, f, 'stand', 'bored', 1, 'operator');
-      guest(c, sx + 48, GY, 18, f, 'stand', 'bored', 1, 'operator');
-      box(c, sx - 44, GY - 44, 88, 6, INK); box(c, sx - 43, GY - 43, 86, 4, '#8A6A40');
-      c.fillStyle = INK; c.beginPath(); c.ellipse(sx, GY - 48, 42, 11, 0, Math.PI, 0); c.fill();
-      c.fillStyle = '#F5F5F4'; c.beginPath(); c.ellipse(sx, GY - 48, 40, 10, 0, Math.PI, 0); c.fill();
-      box(c, sx + 33, GY - 57, 4, 9, '#1C1917'); box(c, sx + 37, GY - 55, 4, 7, '#1C1917');
-      box(c, sx - 40, GY - 62, 15, 6, '#1E3A5F'); box(c, sx - 42, GY - 57, 19, 2, '#0F172A');
-      for (let k = 0; k < 3; k++) box(c, sx - 10 + k * 9, GY - 52 + (k % 2), 3, 3, '#B91C1C');
-    }
+    // (the crash (crash.ts): happening, or as it ended up: the engine through the stop and stove into the depot, the
+    // tender up on its cab, the coach jackknifed behind, fires, steam, wreckage; the guests well back gawking)
+    drawWreck(c, state);
   } else {
-    // (rebuilt: fresh lumber, a sawhorse, the bill)
+    // (rebuilt: fresh lumber, a sawhorse, the bill; the platform's canopy back up)
+    drawCanopy(c, 0);
+    box(c, X(100), GY - 5, X(200) - X(100), 4, '#71717A');
+    for (let x = X(100); x < X(200); x += 26) box(c, x, GY - 3, 14, 4, '#5A3A1E');
     const bx = X(190);
     box(c, bx - 16, GY - 52, 34, 52, INK); box(c, bx - 15, GY - 51, 32, 51, '#D9B45A'); box(c, bx - 15, GY - 34, 32, 8, '#DC2626');
     box(c, X(230), GY - 40, 70, 5, '#FDE047'); box(c, X(236), GY - 35, 5, 35, '#8A5A30'); box(c, X(290), GY - 35, 5, 35, '#8A5A30');
@@ -640,5 +609,6 @@ export const townLamps = (state: GameState) => {
   const out = LANTERNS.map(([lx, lh]) => ({ x: X(lx), y: Y(lh), r: 120, a: 0.32, color: '#4A3818' }));
   for (const lx of [4000, 4400, 4750]) out.push({ x: X(lx), y: Y(400), r: 220, a: 0.4, color: '#5A4420' });
   out.push({ x: LADDER.foot, y: Y(120), r: 140, a: 0.35, color: '#5A4420' });
+  if (wreckHere(state)) out.push(...wreckLights(state));
   return out.filter(l => onScreen(state, l.x - l.r, l.x + l.r));
 };

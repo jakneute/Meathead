@@ -24981,6 +24981,21 @@
  },
  {
   "voice": "m2.frontier.townsman",
+  "text": "HE'S DEAD. AND YOU'RE NAKED. GREAT.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townsman",
+  "text": "HE'S DEAD. I'M ON BREAK IN FIVE.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townsman",
+  "text": "HE'S DEAD. YOU SMELL WORSE THAN HIM.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townsman",
   "text": "HEY! JUMP! JUMP!",
   "from": "FRONTIER"
  },
@@ -25092,6 +25107,21 @@
  {
   "voice": "m2.frontier.townsman",
   "text": "NICE WOOD. SMALL WOOD.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townsman",
+  "text": "NO PULSE. AND SOMEBODY SHAT THEMSELVES.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townsman",
+  "text": "NO PULSE. GRAB HIS FEET.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townsman",
+  "text": "NO PULSE. SIR, PUT YOUR DICK AWAY.",
   "from": "FRONTIER"
  },
  {
@@ -25436,6 +25466,21 @@
  },
  {
   "voice": "m2.frontier.townswoman",
+  "text": "HE'S DEAD. AND YOU'RE NAKED. GREAT.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townswoman",
+  "text": "HE'S DEAD. I'M ON BREAK IN FIVE.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townswoman",
+  "text": "HE'S DEAD. YOU SMELL WORSE THAN HIM.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townswoman",
   "text": "HEY! JUMP! JUMP!",
   "from": "FRONTIER"
  },
@@ -25547,6 +25592,21 @@
  {
   "voice": "m2.frontier.townswoman",
   "text": "NICE WOOD. SMALL WOOD.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townswoman",
+  "text": "NO PULSE. AND SOMEBODY SHAT THEMSELVES.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townswoman",
+  "text": "NO PULSE. GRAB HIS FEET.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townswoman",
+  "text": "NO PULSE. SIR, PUT YOUR DICK AWAY.",
   "from": "FRONTIER"
  },
  {
@@ -44151,7 +44211,7 @@
  },
  {
   "voice": "meathead",
-  "text": "COFFIN WITH HIS NAME ON IT. EMPTY. THEY ARE STILL HOSING HIM OFF THE ENGINE.",
+  "text": "COFFIN WITH HIS NAME ON IT. EMPTY. FIRST AID'S STILL GOT HIM.",
   "from": "FRONTIER"
  },
  {
@@ -47406,7 +47466,7 @@
  },
  {
   "voice": "meathead",
-  "text": "HE GETS A SHEET? I DON'T GET A SHEET?",
+  "text": "HE GETS A STRETCHER? I DON'T GET PANTS?",
   "from": "FRONTIER"
  },
  {
@@ -48291,13 +48351,13 @@
  },
  {
   "voice": "meathead",
-  "text": "HEY. I KNOW THIS FLOOR.",
-  "from": "SPOOKY"
+  "text": "HEY. GOT A SHEET IN THERE? FOR ME?",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
-  "text": "HEY. TOSS ME THAT SHEET WHEN YOU ARE DONE.",
-  "from": "FRONTIER"
+  "text": "HEY. I KNOW THIS FLOOR.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",

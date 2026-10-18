@@ -1,7 +1,7 @@
-// Sawdust Gulch's scenes: the crash's aftermath (the visit of the crash: the engine nosed into the smashed buffer
-// stop, steaming; the gawkers; a covered stretcher carried off to FIRST AID: Tucker, never seen, the sheet over him,
-// his cap on it), the saloon's brawl and the showdown's duel, what he's got to say passing things (once each), and the
-// townsfolk's barks and the announcer's words drawn over them.
+// Sawdust Gulch's scenes: the crash (crash.ts: its cutscene, in from the train: the wreck, Tucker thrown out face first
+// into the dirt, the paramedics carrying him into FIRST AID; then its aftermath for the visit), the saloon's brawl and
+// the showdown's duel, what he's got to say passing things (once each), and the townsfolk's barks and the announcer's
+// words drawn over them.
 //
 // THE SALOON (the playtest: "the back door is locked and as soon as you initiate violence BRAWL pops up on screen and
 // everyone fights everyone. last man alive can leave"): calm in there (harmless: cards, drinks, the kick line, the
@@ -40,8 +40,9 @@ import type { ByPants } from '../talk';
 import { townOf } from './state';
 import { GY } from '../geometry';
 import { X, Y, x0, SALOON, SALOON_CAST, SQUARE, POSSE, inSaloon, type TownKind } from './layout';
+import { updateCrash, crashRunning, arriveSaid, drawCrashFront, drawCrashHud } from './crash';
 import {
-  ARRIVE, STRETCHER, REVISIT, TOWN_IN, COFFIN, SALOON_IN, BRAWL_DONE, LOCKED, SALOON_OUT, BOUNCER_WAIT, BOUNCER_START,
+  ARRIVE, REVISIT, TOWN_IN, COFFIN, SALOON_IN, BRAWL_DONE, LOCKED, SALOON_OUT, BOUNCER_WAIT, BOUNCER_START,
   SHOWDOWN_IN, SHOWDOWN_DONE, CHEATED, POSSE_DONE, POSSE_BARK, POND, MILL, MINE, CANARY, FLOOD, QUEUE, SHOW_OPEN,
   DUEL_RULES, SHOW_CHEAT, SHOW_CLOSE, SHERIFF_BARK, SHERIFF_DRAW, TOWN_VOICES,
 } from './lines';
@@ -65,7 +66,7 @@ export const spawnTown = (state: GameState, kind: TownKind, rx: number, h: numbe
 // The crash: is this the visit it happened in? (the town built before it, this visit: then the wreck's still there).
 // The fights won this visit (a death after either doesn't put them back).
 
-let sawUncrashed = -1, stretcherVisit = -1, wonSaloon = -1, wonDuel = -1;
+let sawUncrashed = -1, wonSaloon = -1, wonDuel = -1;
 export const wreckHere = (state: GameState) => crashed(state) && sawUncrashed === landVisit();
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -315,15 +316,11 @@ export const updateScenes = (ctx: FrameContext, controls: Controls): Controls =>
   const cx = p.pos.x + p.width / 2, rx = cx - X(0);
   const free = p.health > 0 && !p.inCutscene;
   const once = (k: string, pool: ByPants) => { if (!tw.said[k] && free) { tw.said[k] = true; meatheadSays(state, pickLine(byPants(state, pool)), false); } };
-  // ---- the crash's aftermath
+  // ---- the crash (crash.ts: its cutscene, in from the train), then its aftermath
+  const crashOut = updateCrash(ctx, controls);
+  if (crashRunning()) return crashOut;
   const wreck = wreckHere(state);
-  if (state.checkpoint === 20 && rx < 700 && state.frame > 30) once('arrive', wreck ? ARRIVE : REVISIT);
-  if (wreck && stretcherVisit !== landVisit() && rx < 900) { stretcherVisit = landVisit(); tw.stretcherT = 1; }
-  if (tw.stretcherT > 0 && tw.stretcherT < 340) {
-    tw.stretcherT++;
-    if (tw.stretcherT === 170) once('stretcher', STRETCHER);
-    if (tw.stretcherT === 320) playSound('slam', 0.5, 4);
-  }
+  if (state.checkpoint === 20 && rx < 700 && state.frame > 30 && !(wreck && arriveSaid())) once('arrive', wreck ? ARRIVE : REVISIT);
   // ---- passing things
   for (const [k, a, b, pool] of GAGS) if (rx > a && rx < b) once(k, pool);
   runSaloon(ctx);
@@ -335,6 +332,7 @@ export const updateScenes = (ctx: FrameContext, controls: Controls): Controls =>
 
 export const drawScenesFront = (c: CanvasRenderingContext2D, state: GameState) => {
   const tw = townOf(state), d = tw.duel;
+  drawCrashFront(c, state);
   for (const [e, s] of tw.barks) if (e.health > 0 || s) saidOver(c, s.text, e.pos.x + e.width / 2, e.pos.y - 22, '#FDE68A');
   if (tw.pa) saidOver(c, (tw.pa as Said).text, (SQUARE.a + SQUARE.b) / 2, Y(330), '#F5F5F4');
   for (const e of state.enemies) {
@@ -363,4 +361,5 @@ export const drawScenesHud = (c: CanvasRenderingContext2D, state: GameState) => 
   if (br.pop > 0 && br.pop < 110) big('BRAWL!', br.pop, 110, '#F87171', 150);
   if (d.cardT > 0) big(d.card, (d.card === 'DRAW!' ? 60 : d.card === 'NO DRAW!' ? 80 : 90) - d.cardT, d.card === 'DRAW!' ? 60 : d.card === 'NO DRAW!' ? 80 : 90, d.card === 'DRAW!' ? '#FDE047' : '#F87171', 170);
   if (d.phase === 'intro' && d.t > SKIP_AFTER && state.player.inCutscene) drawSkipPrompt(c, CANVAS_WIDTH);
+  drawCrashHud(c, state);
 };

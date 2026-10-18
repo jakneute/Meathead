@@ -1,10 +1,11 @@
-// SAWDUST GULCH AND THE MINES: section 3 of Wilderness Land. The train's crash (train/engine.ts) puts him at its
+// SAWDUST GULCH AND THE MINES: section 3 of Wilderness Land. The train's run into the end of the line (train/engine.ts)
+// cuts to the crash here (crash.ts: the wreck, Tucker thrown out face first, the paramedics), and leaves him at its
 // smashed buffer stop. The user's design: "you then face a sequence of characters in this logging/mining town going
 // through the town and the mines for a bit until you hit the log ride." Still the PARK's frontier (plywood false fronts,
 // fake gold, the Wild West Show, guests, staff in costume breaking character); the real wilderness only comes after the
 // log ride's sewer.
 //
-// The run (layout.ts, teach then escalate): the crash's aftermath (Tucker carried off under a sheet: never seen alive
+// The run (layout.ts, teach then escalate): the crash's aftermath (Tucker carried off to FIRST AID: never seen alive
 // here), main street's characters (deputies, the snake-oil man, the barbershop quartet, the undertaker), the saloon's
 // brawl (calm till he starts it: then everybody at everybody, last man out the back), the rooftops, the showdown's duel
 // (DRAW!), the livery and the smithy, the mill pond (the land's ROLLING LOGS again: the birler, the fellers' TIMBER!,

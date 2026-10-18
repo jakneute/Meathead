@@ -8,13 +8,15 @@ import type { GameState } from '../../../m1/game/core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { townOf } from './state';
 import { inSaloon } from './layout';
+import { crashZoom } from './crash';
 
 export const ZOOM = 0.8, SALOON_ZOOM = 0.72;
 
 /** A frame of the zoom: toward the saloon's while he's in it (or its brawl's on), the town's otherwise. */
 export const updateZoom = (state: GameState) => {
   const tw = townOf(state), p = state.player;
-  const want = tw.saloon.state === 'on' || inSaloon(p.pos.x + p.width / 2, p.pos.y + p.height) ? SALOON_ZOOM : ZOOM;
+  // (the crash's wide shot pulls it back further still, crash.ts)
+  const want = crashZoom() ?? (tw.saloon.state === 'on' || inSaloon(p.pos.x + p.width / 2, p.pos.y + p.height) ? SALOON_ZOOM : ZOOM);
   tw.zoom += Math.max(-0.004, Math.min(0.004, want - tw.zoom));
 };
 /** The zoom right now. */

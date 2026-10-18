@@ -4,8 +4,9 @@
 // queue. Teach, then escalate. (The playtest: "the general size of everything should be larger here": the fronts, the
 // doors, the saloon and the street much bigger, the props a bit; the camera pulled back to 0.8, see view.ts.)
 //
-//   0      END OF THE LINE (cp 20): the smashed buffer stop, the engine nosed into it steaming (the visit of the crash),
-//          gawking guests; a covered stretcher carried off to FIRST AID (Tucker: never seen). The depot.
+//   0      END OF THE LINE (cp 20): the crash (crash.ts, a cutscene in from the train: the engine through the buffer
+//          stop into the depot, the cars jackknifed, Tucker thrown out face first, paramedics carrying him into FIRST
+//          AID), then its wreck for the visit (fires, steam, debris; gawking guests). The depot.
 //   800    MAIN STREET (cp 21 at 2000): deputies (one alone first, then on the bank's balcony), the snake-oil wagon
 //          (tonic bottles burst into a fume cloud), the water tower (a deputy up on its catwalk), the barbershop quartet
 //          (SHAVE AND A HAIRCUT... TWO BITS!), the undertaker (measures him first) by his parlor (Tucker's empty coffin).
@@ -51,7 +52,8 @@ export const CEIL_Y = FY - 210;
 
 /** Ground: [from, to, height at from, height at to] (between runs: pits, all the way down; or water, below). */
 export const GROUND: [number, number, number, number][] = [
-  [-200, 8400, 0, 0],
+  // (from well back of the section's start: the crash's wide shot sees the line coming in; the end wall's at 0)
+  [-900, 8400, 0, 0],
   // (the mill pond: pond A's bed, the island, pond B's bed)
   [8400, 8800, -160, -160],
   [8800, 8900, 20, 20],
@@ -146,6 +148,11 @@ export const CART_RUN = { a: X(11860), b: X(12225) } as const;
 /** The ride cart's track over the chasm (its left end's x at either end), and the low beams over it: [x, half wide]. */
 export const RIDE = { a: X(12240), b: X(12600), w: 70 } as const;
 export const BEAMS: [number, number][] = [[12325, 10], [12450, 10], [12560, 10]];
+/** The beams come down solid to this far over the ride cart's floor (his feet in it), drawn and hit alike (the log
+ *  ride's DUCK_LINE way): stood up, his head (70 over his feet) is well into it; ducked (55), well under it. */
+export const BEAM_GAP = 63;
+/** His head's top over his feet, stood up and ducked (as he's drawn). */
+export const HEAD_UP = 71, HEAD_DUCKED = 55;
 /** The trestle's chasm (under the ride cart's rails). */
 export const CHASM = { a: X(12330), b: X(12670) } as const;
 /** The firedamp pocket (the canary dead in its cage at its mouth). */

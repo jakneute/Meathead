@@ -150,7 +150,7 @@ Teach, then escalate (each hazard alone in a safe spot first):
 
 | x | Stretch (checkpoint) | What |
 |---|---|---|
-| 0 | END OF THE LINE (cp 20) | the smashed buffer stop, the engine nosed in steaming (the crash's visit), gawkers at the tape, the covered stretcher to FIRST AID; the depot |
+| 0 | END OF THE LINE (cp 20) | the crash (a cutscene: the engine through the stop into the depot, the cars jackknifed, Tucker thrown out face first, paramedics carry him into FIRST AID), then its burning wreck for the visit; the depot |
 | 800 | MAIN STREET (cp 21 at 2000) | deputies (alone, then the bank's balcony), the snake-oil wagon (tonic clouds), the water tower's deputy, the barbershop quartet, the undertaker (the empty coffin: TUCKER) |
 | 3800 | THE SALOON (cp 22 at 3700) | calm (cards, drinks, the kick line, the piano) till he starts something: BRAWL!, the batwings barred, the camera on the whole room, everybody at everybody (bouncer, 2 dancers, 8 drinkers); last man standing: the locked back door opens. Starts nothing: the bouncer starts it (16 s) |
 | 4900 | THE ROOFTOPS | out the back into the alley; false-front roofs over alleys (crates back up), deputies |
@@ -767,3 +767,34 @@ Teach, then escalate (each hazard alone in a safe spot first):
   pizza boxes, tires, a cooler, the cart, the mattress), none of it in the ivy, on the trap or in the way. The log
   ride's station queue sold as the town's line's last stretch: two switchback rows on the platform (the back one on a
   dimmed step), every rail on its posts, packed, the town's yellow boards (15 MIN FROM HERE, NEXT LOG. ALMOST THERE).
+- 2026-10-18 (job C2, THE CRASH; the user's: "when the train crashes in the station, make it look more devastating as
+  tucker flies from the wreckage and lands face first in the dirt as paramedics pick him up and carry him to first
+  aid"): the train no longer flashes white and fades at the stop. Slumped on the whistle, faster, the station's sign
+  coming up, a dip to black (train/engine.ts 'crash': 16 frames, still flat out), and the crash itself is the town's
+  own cutscene (town/crash.ts; a run-through hands it over with takeCrashScene; a SKIP >> on the train skips the lot,
+  straight to the aftermath; one cutscene all through: no HUD from the first frame, no controls, SKIP >> any time lands
+  on the aftermath). The wide shot (the camera pulled back to 0.62 and eased back to the town's 0.8 for the
+  paramedics; its middle never left of the section's start, so the train's stretch stays off screen): the train flat
+  out along the last of the line, the whistle on, guests on the platform screaming and running for it (they end up
+  well back past FIRST AID, gawking); the engine (the train's size, 600 long) through the buffer stop (its timbers
+  flying), the platform's canopy smashed down onto it, the rails torn up and curled, the engine plowing on through the
+  dirt (sparks, dirt thrown up) and stove into the depot's front (a hole, boards everywhere), nosed down, its back end
+  up; the tender rides up onto the cab, the coach behind jackknifes the other way (its nose in the dirt, its back end
+  up in the air); steam bursting out of the boiler, debris raining, a dust cloud rolling over it, fires catching in
+  the cab, on the coal and in the coach; a big shake for the hit and one for each car. TUCKER (the full figure, the
+  eye shot through, limp) is thrown out of the cab in a long tumbling arc and comes down FACE FIRST in the dirt (a
+  skid, a spray of dirt, his face buried in it), his cap down after him. Meathead tumbles out of the cab (ARRIVE). The
+  park's paramedics (white shirts, navy trousers, a red cross; a woman and a man) run round from behind FIRST AID with
+  a stretcher, roll him over onto it face up (the hole through his eye), his cap on his chest (MEDIC: a new pool, the
+  townsfolk voices), and carry him in head first through the opened door (STRETCHER as they go; the nude pool's sheet
+  lines replaced). Ours: no sheet now. Never alive: the coffin stays empty (COFFIN's clean line: FIRST AID'S STILL GOT
+  HIM). The wreck stays for the visit (art.ts's end of the line draws it): all background, nothing on it to stand on
+  and no lit tops on it; the fires smoldering (lights of their own after dark), the steam still pouring and hissing,
+  the debris where it came down (the scene's own, kept through a death; skipped, strewn the same way). The old tape and
+  gawkers there are gone. The revisit as before (the stop rebuilt, REPAIRS BILLED TO: YOU KNOW WHO), the canopy back
+  up. The ground drawn from x -900 (the end wall still at the section's start).
+- 2026-10-18 (job C2): THE TRESTLE'S LOW BEAMS made a real duck (the log ride's DUCK_LINE way): each beam comes down
+  solid to BEAM_GAP (63) over the ride cart's floor, drawn and hit alike; it hits by his head's line as he's drawn
+  (stood up 71 over his feet: well into it; ducked 55: well under it; a hop takes him into it), not his box (which
+  never reached it before); its foot hazard-striped, a DUCK plate with a red down arrow on each. No other duck-under
+  in the town or the mine.
