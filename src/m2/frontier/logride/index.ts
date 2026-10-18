@@ -101,6 +101,16 @@ export const logride: FrontierSection = {
       const c = RIDE_CPS.find(q => q.cp === state.checkpoint);
       if (c && Math.abs(p.pos.x + p.width / 2 - X(c.rx)) < 60) { board(state, c.rx, 'ride'); }
     }
+    // (off the clearing's end into the woods, on foot, whatever the ride's state says (the playtest, twice: stuck at the
+    // clearing's end against its wall; the ways off below only ran with the log 'off' or 'done'))
+    {
+      const cx = p.pos.x + p.width / 2, feet = p.pos.y + p.height;
+      if (!p.carried && p.health > 0 && !p.inCutscene && cx >= x1 - 140 && Math.abs(feet - CHIPPER.ground) < 300) {
+        if (L.mode !== 'done') L.mode = 'done';
+        teleport(state, DOORS.woods.start.x, DOORS.woods.start.y);
+        return controls;
+      }
+    }
     // (the crew have their chance at him once he's down on their clearing on foot)
     {
       const cx = p.pos.x + p.width / 2, feet = p.pos.y + p.height;
