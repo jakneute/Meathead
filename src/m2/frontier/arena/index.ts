@@ -136,7 +136,7 @@ export const arena: FrontierSection = {
         if (tickEntrance(state)) fightOn(state);
         return controls;
       case 'body': {
-        runExits(state, endExits('arena'));
+        runExits(state, endExits('arena', { left: false }));
         if (isLandCleared('frontier') || p.health <= 0 || p.inCutscene) return controls;
         // (up to the body: the fake-out; a retry: he pops up again as he comes near)
         if (s.tMode === 'impaled' && p.isGrounded && pmid(state) > HANG_X - BODY_NEAR) { startFakeout(state); return hands(); }
@@ -166,7 +166,7 @@ export const arena: FrontierSection = {
         return hands();
       }
       default:
-        runExits(state, endExits('arena'));
+        runExits(state, endExits('arena', { left: false }));
         return controls;
     }
   },

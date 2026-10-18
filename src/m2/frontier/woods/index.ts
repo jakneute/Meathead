@@ -29,7 +29,6 @@ import { REAL_WOODS, KID_SULK } from './lines';
 
 /** The ways off its ends, on foot (the right one only once the bounty's been: before it, the bounty's ride is the way). */
 const exits = (on: boolean): Exit[] => [
-  { x0, x1: x0 + 60, yTop: GY - 40, yBot: GY + 2, to: DOORS.logride.end },
   ...(on ? [{ x0: x1 - 60, x1, yTop: GY - 40, yBot: GY + 2, to: DOORS.dirtbike.start }] : []),
 ];
 /** Said the woods' first line this visit. */

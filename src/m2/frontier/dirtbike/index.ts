@@ -43,7 +43,6 @@ interface Side { pending: number | null; first: boolean }
 const sideOf = (state: GameState) => frontierState<Side>(state, 'dirtbike-side' as 'dirtbike', () => ({ pending: null, first: true }));
 
 const exits = (done: boolean): Exit[] => [
-  { x0, x1: x0 + 60, yTop: GY - 40, yBot: GY + 2, to: DOORS.woods.end },
   ...(done ? [{ x0: x0 + LEN - 60, x1: x0 + LEN, yTop: GY - 40, yBot: GY + 2, to: DOORS.arena.start }] : []),
 ];
 

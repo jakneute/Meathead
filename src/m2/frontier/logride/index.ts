@@ -56,7 +56,6 @@ const EXITS: Exit[] = [
   // (off the clearing's right end into the woods: a generous mouth, so walking (or jumping) into the end always takes
   // him through, whatever the run's tread does to his feet there)
   { x0: x1 - 100, x1: x1 + 60, yTop: CHIPPER.ground - 220, yBot: CHIPPER.ground + 40, to: DOORS.woods.start },
-  { x0: X(CLEARING.a), x1: X(CLEARING.a) + 40, yTop: CHIPPER.ground - 40, yBot: CHIPPER.ground + 2, to: STATION },
 ];
 
 /** Round again (the trail back to the station): the saws reset, the log waiting. */

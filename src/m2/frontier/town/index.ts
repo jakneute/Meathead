@@ -78,7 +78,7 @@ export const town: FrontierSection = {
     updateRide(ctx);
     updateCover(state);
     waterZones(state);
-    runExits(state, endExits('town'));
+    runExits(state, endExits('town', { left: false }));
     return out;
   },
   waterBodyAt: (_state, x, y) => waterAt(x, y),
