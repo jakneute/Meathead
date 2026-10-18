@@ -20,22 +20,40 @@ import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import type { EnemyKind } from '../../../m1/types';
 import { meatheadSays, byPants } from '../section';
 import { drawLog } from '../wilds/logs';
-import { box, INK, onScreen, type Ctx } from '../kit';
+import { box, INK, type Ctx } from '../kit';
+import { onScreen } from './view';
 import { townOf, type PondLog } from './state';
 import { WATERS, LOGS, LADDER, X } from './layout';
 import { LADDER_UP, BIRLER_SEEN } from './lines';
 
+/** (he's been tilted with a log on the ladder: stood straight again once he's off it) */
+let tilted = false;
 const R = 14, SINK = 2, PUSH = 3.2, ANSWER = 0.08, EASE = 0.03, BACK = 260;
 const logTop = (L: PondLog) => WATERS[L.water].surface - (2 * R - SINK);
 /** Up the jack ladder: its left end and top at k (0 at the water, 1 tipped onto the deck): up the chain (kept short of
  *  the mill's works), then over onto the deck. */
 const UP = 0.8;
+/** The chain's run (its foot at the water, its head at the deck's edge): the log's middle rides R + 3 up off it. */
+const chain = () => {
+  const W = WATERS.find(w => w.key === 'pondB')!;
+  return { xa: W.b - 20, ya: W.surface + 30, xb: LADDER.foot + 185, yb: LADDER.topY };
+};
+/** The chain's slope (radians: negative, up to the right). */
+export const LADDER_ANGLE = (() => { const ch = chain(); return Math.atan2(ch.yb - ch.ya, ch.xb - ch.xa); })();
+/** Up the jack ladder at k: the log's middle (on the chain, lying along it) and its tilt (eased in off the water,
+ *  along the chain's slope all the way up, laid flat again as it's tipped onto the deck). */
 const ladderAt = (L: PondLog, k: number) => {
-  const W = WATERS[L.water];
-  const xa = W.b - L.len - 2, ya = logTop(L), xm = LADDER.foot + 175 - L.len, xb = LADDER.top, yb = LADDER.topY - 2 * R + 2;
-  if (k < UP) { const t = k / UP; return { x: xa + (xm - xa) * t, y: ya + (yb - ya) * t }; }
-  const t = (k - UP) / (1 - UP);
-  return { x: xm + (xb - xm) * t, y: yb };
+  const ch = chain(), ux = Math.cos(LADDER_ANGLE), uy = Math.sin(LADDER_ANGLE), nx = uy, ny = -ux, off = R + 3;
+  const len = Math.hypot(ch.xb - ch.xa, ch.yb - ch.ya);
+  // (where it starts: floating at the chain's foot; where the chain lets go of it: its back end at the chain's head)
+  const W = WATERS[L.water], sx = W.b - 2 - L.len / 2, sy = logTop(L) + R;
+  const ex = ch.xa + ux * (len - L.len / 2) + nx * off, ey = ch.ya + uy * (len - L.len / 2) + ny * off;
+  if (k < UP) {
+    const t = k / UP, tilt = LADDER_ANGLE * Math.min(1, t / 0.12);
+    return { cx: sx + (ex - sx) * t, cy: sy + (ey - sy) * t, tilt };
+  }
+  const t = (k - UP) / (1 - UP), deckX = LADDER.top + L.len / 2, deckY = LADDER.topY - R;
+  return { cx: ex + (deckX - ex) * t, cy: ey + (deckY - ey) * t, tilt: LADDER_ANGLE * (1 - t) };
 };
 
 export const buildLogs = (state: GameState) => {
@@ -75,11 +93,13 @@ export const updateLogs = (ctx: FrameContext, controls: Controls): Controls => {
     // (on the ladder: up it, then tipped onto the deck)
     if (L.ladder > 0) {
       L.ladder = Math.min(1, L.ladder + 1 / LADDER.frames);
+      // (carried up the chain lying along it: no rolling; whoever's on it stands where its top is under him, tilted
+      // with it)
       const at = ladderAt(L, L.ladder);
-      L.spin += 0.04;
-      moveMover(state, L.m, at.x, at.y);
+      moveMover(state, L.m, at.cx - L.len / 2, at.cy - R);
+      if (L === on && p.health > 0) p.spriteRot = at.tilt;
       if (state.frame % 12 === 0) playSound('clink', 0.4, -4);
-      if (L.ladder >= 1) { L.gone = BACK; moveMover(state, L.m, at.x, at.y, true); playSound('thud', 0.8, -8); shakeScreen(state, 3, 2); }
+      if (L.ladder >= 1) { L.gone = BACK; moveMover(state, L.m, at.cx - L.len / 2, at.cy - R, true); playSound('thud', 0.8, -8); shakeScreen(state, 3, 2); }
       continue;
     }
     const rider = L === on && p.health > 0 && !p.inCutscene;
@@ -145,6 +165,10 @@ export const updateLogs = (ctx: FrameContext, controls: Controls): Controls => {
     }
   }
   if ((!on || on.ladder > 0) && p.logRoll) p.logRoll = undefined;
+  // (off the ladder's log (stepped off, or tipped onto the deck): stood up straight again)
+  const up = !!on && on.ladder > 0 && p.health > 0;
+  if (!up && tilted) p.spriteRot = 0;
+  tilted = up;
   return out;
 };
 
@@ -153,7 +177,17 @@ export const updateLogs = (ctx: FrameContext, controls: Controls): Controls => {
 
 export const drawLogs = (c: Ctx, state: GameState) => {
   for (const L of townOf(state).logs) {
-    if (L.gone > 0 || !onScreen(state, L.x, L.x + L.len)) continue;
+    if (L.gone > 0) continue;
+    if (L.ladder > 0) {
+      // (up the chain: drawn lying along it, about its middle)
+      const at = ladderAt(L, L.ladder);
+      if (!onScreen(state, at.cx - L.len, at.cx + L.len)) continue;
+      c.save(); c.translate(at.cx, at.cy); c.rotate(at.tilt);
+      drawLog(c, -L.len / 2, -R, L.len, L.spin);
+      c.restore();
+      continue;
+    }
+    if (!onScreen(state, L.x, L.x + L.len)) continue;
     drawLog(c, L.m.b.x, L.m.b.y, L.len, L.spin);
   }
 };
@@ -161,7 +195,7 @@ export const drawLogs = (c: Ctx, state: GameState) => {
 export const drawLadder = (c: Ctx, state: GameState) => {
   const W = WATERS.find(w => w.key === 'pondB')!;
   if (!onScreen(state, W.b - 60, LADDER.top + 60)) return;
-  const xa = W.b - 20, ya = W.surface + 30, xb = LADDER.foot + 185, yb = LADDER.topY;
+  const { xa, ya, xb, yb } = chain();
   // (the ramp: timbers on trestle legs)
   for (let k = 0.15; k < 1; k += 0.28) { const lx = xa + (xb - xa) * k, ly = ya + (yb - ya) * k; box(c, lx - 3, ly, 6, ya - ly + 40, '#5A3A1E'); }
   c.strokeStyle = INK; c.lineWidth = 14; c.beginPath(); c.moveTo(xa, ya); c.lineTo(xb, yb); c.stroke();

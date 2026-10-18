@@ -258,6 +258,48 @@ export const drawDancer = (c: Ctx, e: Enemy, f: number, seed: number) => {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
+// The saloon's drinkers: a gambler (a brocade vest, a string tie, a flat-brimmed hat) or a cowpoke (a bandanna, a
+// battered hat); a glass up at the calm, a chair up over the head for the swing, a bottle back for the throw
+
+const VESTS = ['#7F1D1D', '#1E3A5F', '#3F3F46', '#5B3A1A', '#14532D'];
+const paintPatron = (g: Ctx, F: Frame) => {
+  const B = bodyOf(F.seed, F.pose, F.fr), L = B.L, gambler = F.seed % 2 === 0;
+  const shirt = gambler ? '#F5F0E6' : pickOf(F.seed, 2, ['#B88A6A', '#9AA8B8', '#C8A878', '#8A5A3A']), vest = pickOf(F.seed, 3, VESTS);
+  legs(g, B, { col: gambler ? '#2A2622' : '#4A5A78', shoe: 'boot', shoeCol: '#3F2A14' });
+  const chair = F.v === 'chair', drink = F.v === 'drink', toss = F.v === 'toss', up = F.pose === 'tell', sw = F.pose === 'strike';
+  const H = handsAt(B, F,
+    chair && up ? [-B.w / 2 + 2, B.shY - 18] : chair && sw ? [B.w / 2 + 12, B.shY - 2] : [-B.w / 2 - 2, B.shY + 18],
+    drink ? [B.hx + 4, B.hy + 6] : chair && up ? [B.w / 2 - 2, B.shY - 20] : chair && sw ? [B.w / 2 + 22, B.shY + 4] : toss ? [-B.w / 2 - 6, B.shY - 10] : up ? [B.w / 2 - 2, B.shY + 2] : sw ? [B.w / 2 + 22, B.shY + 2] : [B.w / 2 + 4, B.shY + 20]);
+  arm(g, B, -1, H.far[0], H.far[1], { sleeve: shirt, hand: L.skin });
+  torso(g, B, shirt);
+  part(g, () => { g.moveTo(-B.w / 2 + 1, B.shY + 2); g.lineTo(-B.hipW / 2 + 1, B.hipY); g.lineTo(B.hipW / 2 - 1, B.hipY); g.lineTo(B.w / 2 - 1, B.shY + 2); g.lineTo(3, B.shY + 9); g.lineTo(-3, B.shY + 9); g.closePath(); }, vest, -B.w / 2, B.shY + 2, B.w, B.hipY - B.shY, 1);
+  if (gambler) { px(g, -1, B.shY + 1, 2, 8, '#1C1917'); px(g, -B.w / 2 + 4, B.shY + 10, 3, 2, '#CA8A04'); }
+  else px(g, -5, B.shY, 10, 4, pickOf(F.seed, 5, ['#B91C1C', '#1D4ED8', '#CA8A04']));
+  hairBack(g, B, L.hair, 14);
+  face(g, B, F, up || sw ? 'angry' : drink ? 'tired' : 'open', sw ? 'teeth' : drink ? 'o' : 'flat');
+  whiskers(g, B); glasses(g, B);
+  if (gambler) { part(g, () => g.rect(B.hx - 8, B.hy - 15, 18, 6), '#1C1917', B.hx - 8, B.hy - 15, 18, 6, 1); part(g, () => g.ellipse(B.hx + 1, B.hy - 9, 14, 2.6, 0, 0, Math.PI * 2), '#1C1917', B.hx - 13, B.hy - 12, 28, 5, 1); }
+  else cowboyHat(g, B, pickOf(F.seed, 4, ['#8A6A40', '#5A4028', '#A08060', '#3F3F46']), '#3F2A14', 0.9);
+  arm(g, B, 1, H.near[0], H.near[1], { sleeve: shirt, hand: L.skin });
+  if (H.held) return;
+  if (drink) { part(g, () => g.rect(H.near[0] - 2, H.near[1] - 8, 6, 8), '#E8C890', H.near[0] - 2, H.near[1] - 8, 6, 8, 0.6); px(g, H.near[0] - 1, H.near[1] - 6, 4, 4, '#B45309'); }
+  else if (chair) {
+    // (a saloon chair: up over the head, then down across a back)
+    g.save(); g.translate(H.near[0], H.near[1]); g.rotate(sw ? 0.9 : -0.3);
+    part(g, () => g.rect(-14, -4, 28, 4), '#8A5A30', -14, -4, 28, 4, 0.8);
+    for (const lx of [-13, 10]) px(g, lx, 0, 3, 16, '#6B4423');
+    px(g, 10, -22, 3, 18, '#6B4423'); px(g, -2, -20, 14, 3, '#8A5A30'); px(g, -2, -12, 14, 2, '#8A5A30');
+    g.restore();
+  } else if (toss) { part(g, () => g.roundRect(H.near[0] - 3, H.near[1] - 16, 7, 13, 2), '#8A5A20', H.near[0] - 3, H.near[1] - 16, 7, 13, 0.8); px(g, H.near[0] - 1, H.near[1] - 20, 3, 4, '#8A5A20'); }
+};
+export const drawPatron = (c: Ctx, e: Enemy, f: number, seed: number) => {
+  const chair = !!(e as { chair?: boolean }).chair && e.aiState !== 'calm' && e.aiState !== 'drink';
+  const v = e.aiState === 'drink' ? 'drink' : e.aiState === 'toss' ? 'toss' : chair ? 'chair' : '';
+  const F = frameFor(e, f, seed, poseOf(e, ['wind', 'chairWind', 'toss'], ['swing', 'chair']), undefined, v);
+  putFrame(c, 'fr-patron', F, BOX, g => paintPatron(g, F));
+};
+
+// ---------------------------------------------------------------------------------------------------------------
 // The undertaker
 
 const paintUndertaker = (g: Ctx, F: Frame) => {

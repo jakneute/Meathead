@@ -27,9 +27,10 @@ import { hazardVictims, hazardHit, boxHits, setHazardZones, type Zone } from '..
 import { makeMover, moveMover, riding } from '../../foreign/movers';
 import { ledge, meatheadSays, byPants } from '../section';
 import { drawLog } from '../wilds/logs';
-import { box, mix, INK, onScreen, hash, type Ctx } from '../kit';
+import { box, mix, INK, hash, type Ctx } from '../kit';
+import { onScreen, viewOf } from './view';
 import { townOf } from './state';
-import { WATERS, PINES, CAVEINS, CHUTES, CART_RUN, RIDE, BEAMS, BELTS, SAW, MILL_DECK, COVER, FY, CEIL_Y, X, Y } from './layout';
+import { WATERS, PINES, CAVEINS, CHUTES, CART_RUN, RIDE, BEAMS, BELTS, SAW, MILL_DECK, COVER, CHASM, FY, CEIL_Y, X, Y } from './layout';
 import { CARTS, RIDE_CART } from './lines';
 
 const AWAY = -99999;
@@ -179,7 +180,7 @@ export const updateMine = (ctx: FrameContext) => {
   const onRun = down && cx > CART_RUN.a - 60 && cx < CART_RUN.b + 20;
   if (onRun && ++tw.runT > 190 && !tw.runaways.some(r => r.dead === 0)) {
     tw.runT = 0;
-    tw.runaways.push({ x: Math.min(CART_RUN.b, state.camera.x + 860), warn: 70, t: 0, dead: 0 });
+    { const v = viewOf(state); tw.runaways.push({ x: Math.min(CART_RUN.b, v.x + v.w + 60), warn: 70, t: 0, dead: 0 }); }
     playSound('rumble', 0.8, -4);
     if (!tw.said.carts) { tw.said.carts = true; meatheadSays(state, pickLine(byPants(state, CARTS)), false); }
   }
@@ -362,7 +363,7 @@ export const drawHazardsFront = (c: Ctx, state: GameState) => {
   for (const r of tw.runaways) {
     if (r.dead > 0) continue;
     if (r.warn > 0) {
-      const ex = Math.min(state.camera.x + 780, r.x + 30), y = FY - 30;
+      const v = viewOf(state), ex = Math.min(v.x + v.w - 20, r.x + 30), y = FY - 30;
       c.globalAlpha = 0.4 + 0.4 * Math.sin(f * 0.4); c.fillStyle = '#FEF08A'; c.beginPath(); c.arc(ex, y, 26, 0, Math.PI * 2); c.fill(); c.globalAlpha = 1;
       box(c, ex - 30, y - 50, 22, 26, '#B91C1C'); box(c, ex - 22, y - 46, 6, 12, '#FFFFFF'); box(c, ex - 22, y - 30, 6, 4, '#FFFFFF');
       continue;
@@ -392,7 +393,7 @@ export const drawMineBits = (c: Ctx, state: GameState) => {
     // (the buffer at the track's foot)
     box(c, CART_RUN.a - 34, FY - 30, 16, 30, INK); box(c, CART_RUN.a - 33, FY - 29, 14, 28, '#B91C1C'); box(c, CART_RUN.a - 33, FY - 20, 14, 4, '#FDE047');
     // (the trestle: timbers down into the dark under the rails; the chasm black all the way down)
-    const a = X(9330), b = X(9670);
+    const a = CHASM.a, b = CHASM.b;
     box(c, a, FY, b - a, 1200, '#050302');
     for (let x = a; x < b; x += 56) { box(c, x, FY, 8, 300, '#3F2A14'); c.strokeStyle = '#3F2A14'; c.lineWidth = 4; c.beginPath(); c.moveTo(x, FY + 10); c.lineTo(x + 56, FY + 120); c.moveTo(x + 56, FY + 10); c.lineTo(x, FY + 120); c.stroke(); }
     box(c, a, FY - 2, b - a, 8, '#5A3A1E');

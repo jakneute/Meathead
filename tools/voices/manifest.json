@@ -6176,6 +6176,11 @@
  },
  {
   "voice": "death",
+  "text": "BROKEN OVER A BARSTOOL",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "death",
   "text": "BROUGHT DOWN WITH THE SET",
   "from": "HOLLYWOOD"
  },
@@ -6458,6 +6463,11 @@
   "voice": "death",
   "text": "CHAINED AT SIXTY MILES AN HOUR",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "CHAIRED TO DEATH IN A SALOON",
+  "from": "FRONTIER"
  },
  {
   "voice": "death",
@@ -9661,6 +9671,11 @@
  },
  {
   "voice": "death",
+  "text": "KILLED IN A BAR FIGHT",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "death",
   "text": "KILLED ON A COFFEE RUN",
   "from": "HOLLYWOOD"
  },
@@ -9738,6 +9753,11 @@
   "voice": "death",
   "text": "LAST CALL",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "LAST CALL. FOR HIM.",
+  "from": "FRONTIER"
  },
  {
   "voice": "death",
@@ -10413,6 +10433,11 @@
   "voice": "death",
   "text": "OUTCLASSED",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "OUTDRAWN BY A GUY ON NINE BUCKS AN HOUR",
+  "from": "FRONTIER"
  },
  {
   "voice": "death",
@@ -13398,6 +13423,11 @@
   "voice": "death",
   "text": "TOO GROSS FOR A GATOR",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "TOO SLOW ON THE DRAW. A HOLE CLEAN THROUGH THE FACE.",
+  "from": "FRONTIER"
  },
  {
   "voice": "death",
@@ -23106,6 +23136,26 @@
  },
  {
   "voice": "m2.frontier.announcer",
+  "text": "FOUL! FOUL! SOMEBODY CALL THE SHERIFF! OH. RIGHT.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.announcer",
+  "text": "HE SHOT BEFORE THE DRAW! DEPUTIES! THIS IS NOT A DRILL!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.announcer",
+  "text": "HE SHOT BEFORE THE DRAW! GET THE NAKED MAN!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.announcer",
+  "text": "HE SHOT FIRST! THE STINKY ONE SHOT FIRST! GET HIM!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.announcer",
   "text": "HERE COMES THE SHERIFF! AND SOME GUY WHO WASN'T AT REHEARSAL!",
   "from": "FRONTIER"
  },
@@ -23117,6 +23167,26 @@
  {
   "voice": "m2.frontier.announcer",
   "text": "HOWDY, PARTNERS! ON YOUR LEFT, THE BUSY BEAVERS OF BEAVER CREEK!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.announcer",
+  "text": "NO DRAW, NO PANTS, NO RULES! DEPUTIES!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.announcer",
+  "text": "NOBODY DRAWS TILL THE SHERIFF SAYS DRAW! AND STRANGER? HOLD IT IN!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.announcer",
+  "text": "NOBODY DRAWS TILL THE SHERIFF SAYS DRAW! STRANGER, PLEASE DRAW A GUN!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.announcer",
+  "text": "NOBODY DRAWS TILL THE SHERIFF SAYS SO! THEN IT IS THE FASTEST HAND!",
   "from": "FRONTIER"
  },
  {
@@ -23141,6 +23211,11 @@
  },
  {
   "voice": "m2.frontier.announcer",
+  "text": "THAT IS AGAINST THE RULES! AND SO IS THAT SMELL!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.announcer",
   "text": "THAT'S THE SHOW. REFUNDS AT GUEST SERVICES.",
   "from": "FRONTIER"
  },
@@ -23161,7 +23236,22 @@
  },
  {
   "voice": "m2.frontier.announcer",
+  "text": "THE RULES, FOLKS: NOBODY TOUCHES IRON TILL THE SHERIFF SAYS DRAW!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.announcer",
   "text": "THE STRANGER WEARS NO HAT. OR ANYTHING.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.announcer",
+  "text": "WAIT FOR THE DRAW, FOLKS! AND PLEASE STAY UPWIND!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.announcer",
+  "text": "WAIT FOR THE DRAW! AND KIDS, LOOK AT THE SHERIFF!",
   "from": "FRONTIER"
  },
  {
@@ -23576,6 +23666,11 @@
  },
  {
   "voice": "m2.frontier.sheriff",
+  "text": "AIM HIGH! AIM HIGH!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.sheriff",
   "text": "DRAW!",
   "from": "FRONTIER"
  },
@@ -23602,6 +23697,31 @@
  {
   "voice": "m2.frontier.sheriff",
   "text": "FOUR HUNDRED SHOWS. NOBODY EVER SHOT BACK.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.sheriff",
+  "text": "GET HIM, BOYS!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.sheriff",
+  "text": "GET THE NAKED BACKSHOOTER!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.sheriff",
+  "text": "GET THE STINKY BACKSHOOTER!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.sheriff",
+  "text": "HE SHOT HIM AND SHAT HIMSELF!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.sheriff",
+  "text": "HE SHOT THE SHERIFF! THAT WAS NOT IN THE SCRIPT!",
   "from": "FRONTIER"
  },
  {
@@ -23640,6 +23760,16 @@
   "from": "FRONTIER"
  },
  {
+  "voice": "m2.frontier.sheriff",
+  "text": "YOU SHOT A GUY DOING A BIT!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.sherifff",
+  "text": "AIM HIGH! AIM HIGH!",
+  "from": "FRONTIER"
+ },
+ {
   "voice": "m2.frontier.sherifff",
   "text": "DRAW!",
   "from": "FRONTIER"
@@ -23667,6 +23797,31 @@
  {
   "voice": "m2.frontier.sherifff",
   "text": "FOUR HUNDRED SHOWS. NOBODY EVER SHOT BACK.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.sherifff",
+  "text": "GET HIM, BOYS!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.sherifff",
+  "text": "GET THE NAKED BACKSHOOTER!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.sherifff",
+  "text": "GET THE STINKY BACKSHOOTER!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.sherifff",
+  "text": "HE SHOT HIM AND SHAT HIMSELF!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.sherifff",
+  "text": "HE SHOT THE SHERIFF! THAT WAS NOT IN THE SCRIPT!",
   "from": "FRONTIER"
  },
  {
@@ -23702,6 +23857,11 @@
  {
   "voice": "m2.frontier.sherifff",
   "text": "YOU MESSED YOUR CHAPS, STRANGER.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.sherifff",
+  "text": "YOU SHOT A GUY DOING A BIT!",
   "from": "FRONTIER"
  },
  {
@@ -24686,7 +24846,17 @@
  },
  {
   "voice": "m2.frontier.townsman",
+  "text": "AIM HIGH! AIM HIGH!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townsman",
   "text": "BACK OF THE TOUR GROUP, PAL!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townsman",
+  "text": "BAR FIGHT! DO NOT GRAB HIM THERE!",
   "from": "FRONTIER"
  },
  {
@@ -24706,12 +24876,27 @@
  },
  {
   "voice": "m2.frontier.townsman",
+  "text": "GET HIM, BOYS!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townsman",
   "text": "GET OFF MY POND, STINKY!",
   "from": "FRONTIER"
  },
  {
   "voice": "m2.frontier.townsman",
   "text": "GET OUT OF THE LOG! THE CHIPPER!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townsman",
+  "text": "GET THE NAKED BACKSHOOTER!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townsman",
+  "text": "GET THE STINKY BACKSHOOTER!",
   "from": "FRONTIER"
  },
  {
@@ -24726,12 +24911,32 @@
  },
  {
   "voice": "m2.frontier.townsman",
+  "text": "HE IS SITTING ON THE STOOLS NAKED!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townsman",
+  "text": "HE SHOT HIM AND SHAT HIMSELF!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townsman",
+  "text": "HE SHOT THE SHERIFF! THAT WAS NOT IN THE SCRIPT!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townsman",
   "text": "HEY! JUMP! JUMP!",
   "from": "FRONTIER"
  },
  {
   "voice": "m2.frontier.townsman",
   "text": "HOT SHOES! FRESH OFF THE ANVIL!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townsman",
+  "text": "I AM NOT HITTING THAT. FINE. I AM HITTING HIM.",
   "from": "FRONTIER"
  },
  {
@@ -24751,6 +24956,11 @@
  },
  {
   "voice": "m2.frontier.townsman",
+  "text": "I WARNED YOU. BAR FIGHT!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townsman",
   "text": "I'LL FORGE YOU A DIAPER. IN IRON.",
   "from": "FRONTIER"
  },
@@ -24762,6 +24972,16 @@
  {
   "voice": "m2.frontier.townsman",
   "text": "I'M NOT SWINGING A HAMMER NEAR THAT.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townsman",
+  "text": "I'VE BEEN WAITING TWENTY YEARS FOR A REAL BAR FIGHT!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townsman",
+  "text": "IT'S SWEET TEA! I'M STILL MAD!",
   "from": "FRONTIER"
  },
  {
@@ -24836,6 +25056,26 @@
  },
  {
   "voice": "m2.frontier.townsman",
+  "text": "OKAY. BAR FIGHT. EVERYBODY.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townsman",
+  "text": "ORDER SOMETHING OR GET OUT.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townsman",
+  "text": "ORDER SOMETHING OR TAKE THAT SMELL OUTSIDE.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townsman",
+  "text": "ORDER SOMETHING. AND SIT ON A TOWEL.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townsman",
   "text": "PITCHFORK'S REAL, PARTNER.",
   "from": "FRONTIER"
  },
@@ -24886,6 +25126,11 @@
  },
  {
   "voice": "m2.frontier.townsman",
+  "text": "SOMEBODY OPEN A WINDOW AND HIT HIM!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townsman",
   "text": "SOMEBODY SHOVEL HIM OUT.",
   "from": "FRONTIER"
  },
@@ -24902,6 +25147,26 @@
  {
   "voice": "m2.frontier.townsman",
   "text": "THAT TREE'S PLYWOOD. STILL HURTS.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townsman",
+  "text": "THAT WAS MY GOOD CHAIR!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townsman",
+  "text": "THAT'S IT. GET THE STINKY ONE. GET EVERYBODY.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townsman",
+  "text": "THAT'S IT. SOMEBODY HIT THE NAKED GUY. HIT EVERYBODY.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townsman",
+  "text": "THAT'S IT. YOU WANT A FIGHT? EVERYBODY GETS A FIGHT.",
   "from": "FRONTIER"
  },
  {
@@ -24946,12 +25211,37 @@
  },
  {
   "voice": "m2.frontier.townsman",
+  "text": "WHO SHAT IN THE SALOON?",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townsman",
   "text": "YOU CALL THAT FOOTWORK?",
   "from": "FRONTIER"
  },
  {
   "voice": "m2.frontier.townsman",
+  "text": "YOU DRINKING OR STARING?",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townsman",
+  "text": "YOU DRINKING, OR JUST LEAKING?",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townsman",
+  "text": "YOU DRINKING? WHERE DO YOU KEEP YOUR WALLET?",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townsman",
   "text": "YOU SHIT YOURSELF IN MY TOWN?",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townsman",
+  "text": "YOU SHOT A GUY DOING A BIT!",
   "from": "FRONTIER"
  },
  {
@@ -24962,6 +25252,11 @@
  {
   "voice": "m2.frontier.townsman",
   "text": "YOU SMELL WORSE THAN THE LIVERY.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townsman",
+  "text": "YOU SPILLED MY DRINK!",
   "from": "FRONTIER"
  },
  {
@@ -24976,7 +25271,17 @@
  },
  {
   "voice": "m2.frontier.townswoman",
+  "text": "AIM HIGH! AIM HIGH!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townswoman",
   "text": "BACK OF THE TOUR GROUP, PAL!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townswoman",
+  "text": "BAR FIGHT! DO NOT GRAB HIM THERE!",
   "from": "FRONTIER"
  },
  {
@@ -24996,12 +25301,27 @@
  },
  {
   "voice": "m2.frontier.townswoman",
+  "text": "GET HIM, BOYS!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townswoman",
   "text": "GET OFF MY POND, STINKY!",
   "from": "FRONTIER"
  },
  {
   "voice": "m2.frontier.townswoman",
   "text": "GET OUT OF THE LOG! THE CHIPPER!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townswoman",
+  "text": "GET THE NAKED BACKSHOOTER!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townswoman",
+  "text": "GET THE STINKY BACKSHOOTER!",
   "from": "FRONTIER"
  },
  {
@@ -25016,12 +25336,32 @@
  },
  {
   "voice": "m2.frontier.townswoman",
+  "text": "HE IS SITTING ON THE STOOLS NAKED!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townswoman",
+  "text": "HE SHOT HIM AND SHAT HIMSELF!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townswoman",
+  "text": "HE SHOT THE SHERIFF! THAT WAS NOT IN THE SCRIPT!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townswoman",
   "text": "HEY! JUMP! JUMP!",
   "from": "FRONTIER"
  },
  {
   "voice": "m2.frontier.townswoman",
   "text": "HOT SHOES! FRESH OFF THE ANVIL!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townswoman",
+  "text": "I AM NOT HITTING THAT. FINE. I AM HITTING HIM.",
   "from": "FRONTIER"
  },
  {
@@ -25041,6 +25381,11 @@
  },
  {
   "voice": "m2.frontier.townswoman",
+  "text": "I WARNED YOU. BAR FIGHT!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townswoman",
   "text": "I'LL FORGE YOU A DIAPER. IN IRON.",
   "from": "FRONTIER"
  },
@@ -25052,6 +25397,16 @@
  {
   "voice": "m2.frontier.townswoman",
   "text": "I'M NOT SWINGING A HAMMER NEAR THAT.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townswoman",
+  "text": "I'VE BEEN WAITING TWENTY YEARS FOR A REAL BAR FIGHT!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townswoman",
+  "text": "IT'S SWEET TEA! I'M STILL MAD!",
   "from": "FRONTIER"
  },
  {
@@ -25126,6 +25481,26 @@
  },
  {
   "voice": "m2.frontier.townswoman",
+  "text": "OKAY. BAR FIGHT. EVERYBODY.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townswoman",
+  "text": "ORDER SOMETHING OR GET OUT.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townswoman",
+  "text": "ORDER SOMETHING OR TAKE THAT SMELL OUTSIDE.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townswoman",
+  "text": "ORDER SOMETHING. AND SIT ON A TOWEL.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townswoman",
   "text": "PITCHFORK'S REAL, PARTNER.",
   "from": "FRONTIER"
  },
@@ -25176,6 +25551,11 @@
  },
  {
   "voice": "m2.frontier.townswoman",
+  "text": "SOMEBODY OPEN A WINDOW AND HIT HIM!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townswoman",
   "text": "SOMEBODY SHOVEL HIM OUT.",
   "from": "FRONTIER"
  },
@@ -25192,6 +25572,26 @@
  {
   "voice": "m2.frontier.townswoman",
   "text": "THAT TREE'S PLYWOOD. STILL HURTS.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townswoman",
+  "text": "THAT WAS MY GOOD CHAIR!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townswoman",
+  "text": "THAT'S IT. GET THE STINKY ONE. GET EVERYBODY.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townswoman",
+  "text": "THAT'S IT. SOMEBODY HIT THE NAKED GUY. HIT EVERYBODY.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townswoman",
+  "text": "THAT'S IT. YOU WANT A FIGHT? EVERYBODY GETS A FIGHT.",
   "from": "FRONTIER"
  },
  {
@@ -25236,12 +25636,37 @@
  },
  {
   "voice": "m2.frontier.townswoman",
+  "text": "WHO SHAT IN THE SALOON?",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townswoman",
   "text": "YOU CALL THAT FOOTWORK?",
   "from": "FRONTIER"
  },
  {
   "voice": "m2.frontier.townswoman",
+  "text": "YOU DRINKING OR STARING?",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townswoman",
+  "text": "YOU DRINKING, OR JUST LEAKING?",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townswoman",
+  "text": "YOU DRINKING? WHERE DO YOU KEEP YOUR WALLET?",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townswoman",
   "text": "YOU SHIT YOURSELF IN MY TOWN?",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townswoman",
+  "text": "YOU SHOT A GUY DOING A BIT!",
   "from": "FRONTIER"
  },
  {
@@ -25252,6 +25677,11 @@
  {
   "voice": "m2.frontier.townswoman",
   "text": "YOU SMELL WORSE THAN THE LIVERY.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.townswoman",
+  "text": "YOU SPILLED MY DRINK!",
   "from": "FRONTIER"
  },
  {
@@ -40536,6 +40966,11 @@
  },
  {
   "voice": "meathead",
+  "text": "A CHAIR! ACROSS MY BACK!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "A CITY PAINTED ON PLYWOOD. BY A GUY WHO HATES CITIES.",
   "from": "HOLLYWOOD"
  },
@@ -40653,6 +41088,11 @@
   "voice": "meathead",
   "text": "A DRONE HIT ME! AM I ON CAMERA?!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A DRUNK SLUGGED ME!",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -42221,6 +42661,11 @@
  },
  {
   "voice": "meathead",
+  "text": "BACK DOOR IS LOCKED. FRONT DOOR IT IS. OR VIOLENCE.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "BACK FOR SECONDS.",
   "from": "HOLLYWOOD"
  },
@@ -42437,6 +42882,11 @@
  {
   "voice": "meathead",
   "text": "BANDITS! SHOOTING!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "BAR FIGHT! OW!",
   "from": "FRONTIER"
  },
  {
@@ -44387,6 +44837,11 @@
  {
   "voice": "meathead",
   "text": "DYNAMITE! DYNAMITE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "EARLY? I DO EVERYTHING EARLY.",
   "from": "FRONTIER"
  },
  {
@@ -46721,6 +47176,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HE BROKE A CHAIR ON ME!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "HE BUMPED ME! I COULD FEEL HIS RIBS!",
   "from": "HAZARD_HURT"
  },
@@ -47056,6 +47516,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HE PUNCHES LIKE A COWBOY!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "HE RAMMED ME WITH HIS CART! WATCH THE WHEELS, MAN!",
   "from": "HAZARD_HURT"
  },
@@ -47333,6 +47798,11 @@
   "voice": "meathead",
   "text": "HE TRIED TO FILLET ME! I'M NOT A FAJITA!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE WAS FASTER!",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -48381,6 +48851,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I CAN SEE THROUGH MY FACE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "I CAN SEE YOU THROUGH THE SCREEN, CHAMP.",
   "from": "m1/game/stages/victor/doorman.ts:540"
  },
@@ -48676,6 +49151,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I DON'T WAIT FOR ANYTHING. ASK MY PANTS.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "I DON'T WANT A STRAW.",
   "from": "FOREIGN"
  },
@@ -48693,6 +49173,11 @@
   "voice": "meathead",
   "text": "I DON'T WEAR SUITS. SHIRTS ARE ALREADY TOO MUCH.",
   "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "I DRAW WHEN I WANT.",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -51056,6 +51541,21 @@
  },
  {
   "voice": "meathead",
+  "text": "LAST MAN STANDING. LAST MAN STINKING.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "LAST MAN STANDING. LAST MAN SWINGING.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "LAST MAN STANDING. OUT THE BACK.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "LAST ONE. YOU'RE THE LEAD NOW. CONGRATULATIONS.",
   "from": "HOLLYWOOD"
  },
@@ -51331,8 +51831,33 @@
  },
  {
   "voice": "meathead",
+  "text": "LOCKED. AND I REALLY NEED THE BACK DOOR.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "LOCKED. GUESS I GOTTA EARN IT.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "LOCKED. GUESS I KILL EVERYBODY.",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "LOCKED. NOWHERE TO HIDE THE GOODS.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "LOCKED. SOMEBODY'S GONNA PAY FOR THAT.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "LOCKED. THE HARD WAY THEN.",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -53036,6 +53561,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NO MORE LAW. NAKED IS LEGAL NOW.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "NO MORE PIZZA CRUSTS FOR YOU!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -53048,6 +53578,11 @@
   "voice": "meathead",
   "text": "NO MORE ROCKS! JUST RUBBLE!",
   "from": "FINALE_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "NO MORE SHERIFFS. NOBODY TO ARREST THE PANTS.",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -53227,6 +53762,11 @@
  {
   "voice": "meathead",
   "text": "NOBODY OUTRUNS ME. EXCEPT TRAINS. NOT TODAY.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOBODY SAID I HAD TO WAIT. NOBODY SAID PANTS EITHER.",
   "from": "FRONTIER"
  },
  {
@@ -54173,6 +54713,16 @@
   "voice": "meathead",
   "text": "OUT OF THE WAY. I HAVE A DISASTER TO GET TO.",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "OUT THE BACK. LIKE ALWAYS.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "OUT THE BACK. NOTHING TO GRAB ME BY.",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -55351,6 +55901,11 @@
  },
  {
   "voice": "meathead",
+  "text": "QUICK DRAW. NO HOLSTER NEEDED.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "QUIET, YOU MEATHEAD. SHE CAN HEAR THAT.",
   "from": "SPACE"
  },
@@ -55821,6 +56376,11 @@
  },
  {
   "voice": "meathead",
+  "text": "RIGHT THROUGH THE FACE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "RIGHT THROUGH THE FOOT!",
   "from": "SPACE"
  },
@@ -56023,6 +56583,11 @@
   "voice": "meathead",
   "text": "RUB A BALLOON ON YOUR HEAD, THEY SAID.",
   "from": "RANGE_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "RULES ARE FOR DEAD GUYS.",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -58566,6 +59131,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THAT CHAIR WAS NOT BREAKAWAY!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "THAT CHIMP LIFTS!",
   "from": "ADVENTURE"
  },
@@ -58958,6 +59528,11 @@
   "voice": "meathead",
   "text": "THAT WAS THE GUY NEXT TO ME FARTING.",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT WAS THE WHOLE POLICE DEPARTMENT.",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -59786,6 +60361,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THE DOOR WAS UNLOCKED THE WHOLE TIME. KIDDING. I KILLED EVERYBODY.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "THE DOOR! THE DOOR!",
   "from": "SPACE"
  },
@@ -60168,6 +60748,11 @@
   "voice": "meathead",
   "text": "THE LAVA SPIT AT ME!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE LAW IS DEAD. THE SMELL LIVES ON.",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -61971,6 +62556,11 @@
  },
  {
   "voice": "meathead",
+  "text": "TOWN'S MINE. DRESS CODE: NONE.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "TOXIC SPRAY IN MY PORES!",
   "from": "HAZARD_HURT"
  },
@@ -62958,6 +63548,11 @@
   "voice": "meathead",
   "text": "WHO DOES THAT?!",
   "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHO ELSE WEARS A STAR? NOBODY? GOOD.",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",

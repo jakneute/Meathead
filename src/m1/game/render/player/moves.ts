@@ -210,6 +210,35 @@ export const drawStandingKick = (ctx: Ctx, frame: number, k: number) => {
 };
 
 // ---------------------------------------------------------------------------
+// The gunslinger (Meathead 2's showdown duel: squared up, waiting on the DRAW)
+// ---------------------------------------------------------------------------
+
+/**
+ * Squared up for a duel: feet planted wide, knees soft, leaning in a touch; his gun tucked in his belt at his front
+ * hip, barrel down, and his gun hand hovering over it, fingers twitching; the other arm loose, a scowl. `gun` paints
+ * the held weapon in its own frame (the grip at the origin, the barrel along +x). He fires: the pose is over (the
+ * player's own shooting pose takes it).
+ */
+export const drawGunslinger = (ctx: Ctx, frame: number, gun: (c: Ctx) => void) => {
+  frameNow = frame;
+  const twitch = Math.sin(frame * 0.9) > 0.7 ? 1 : 0, sway = Math.sin(frame * 0.05) * 0.6;
+  leg(ctx, [-5, -26], [-11, -13], [-15, 0], 0, true);
+  leg(ctx, [5, -26], [12, -13], [15, 0], 0, false);
+  ctx.save();
+  ctx.translate(-1, -26 + Math.abs(sway) * 0.3);
+  ctx.rotate(0.06);
+  // Back arm hanging loose, a little out from him
+  arm(ctx, [-9, -22], [-14, -11], [-15, 0 + sway], true);
+  torso(ctx);
+  // The gun in his belt at the front hip, barrel down and forward
+  ctx.save(); ctx.translate(11, -1); ctx.rotate(1.25); ctx.scale(0.85, 0.85); gun(ctx); ctx.restore();
+  ctx.save(); ctx.translate(2, -37); ctx.rotate(0.04); head(ctx, 0, 0, 'scowl'); ctx.restore();
+  // Gun hand: down by the hip, hovering over the grip, fingers twitching
+  arm(ctx, [11, -22], [18, -12], [17 + twitch, -4 - twitch], false, 5);
+  ctx.restore();
+};
+
+// ---------------------------------------------------------------------------
 // Dropping down through a ledge
 // ---------------------------------------------------------------------------
 

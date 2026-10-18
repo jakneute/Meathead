@@ -31,11 +31,11 @@ fighting and platforming on the way (about 2.5x pure walking).
 |---|---|---|---|
 | wilds | FRX+0 .. FRX+21000 (21000) | ~24000 (platform heavy, the logs) | ~5 min |
 | train | FRX+24000 .. FRX+38300 (14300: the big cars, the playtest's) | 12000 | ~2.5 min |
-| town | FRX+39000 .. FRX+50000 (11000) | 11000 (the mines' shafts counted by play) | ~2.3 min |
-| logride | FRX+53000 .. FRX+64600 (11600) | 9000 (a ride: by time) | ~2 min |
-| woods | FRX+65000 .. FRX+68000 (3000) | 3000 + its scene | ~0.6 min |
-| dirtbike | FRX+71000 .. FRX+81000 (10000) | by time: the TEENAGERS | ~3 min |
-| arena | FRX+84000 .. FRX+88000 (4000) | the catch-up + the boss | the fight |
+| town | FRX+39000 .. FRX+54800 (15800: the playtest's bigger town, the long flooded shaft) | 11000 (the mines' shafts counted by play) + the saloon's brawl and the duel | ~3 min |
+| logride | FRX+56000 .. FRX+67600 (11600) | 9000 (a ride: by time) | ~2 min |
+| woods | FRX+68000 .. FRX+71000 (3000) | 3000 + its scene | ~0.6 min |
+| dirtbike | FRX+74000 .. FRX+84000 (10000) | by time: the TEENAGERS | ~3 min |
+| arena | FRX+87000 .. FRX+91000 (4000) | the catch-up + the boss | the fight |
 | **total** | | **~76000** | **~15 min + cutscenes + two fights** |
 
 FRX = 700000. Need more x room? Widen your x1 into the gap after it (re-read geometry.ts first); the gaps are 3000.

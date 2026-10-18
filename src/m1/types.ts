@@ -301,6 +301,9 @@ export interface Player extends Entity {
   logRoll?: { spin: number; lean: number };
   /** Frames left of a cutscene kick pose (drawn like the dive kick, standing). */
   kickPose?: number;
+  /** Squared up for a duel (Meathead 2's showdown: render/player/moves.ts drawGunslinger), till whatever set it clears
+   *  it (his shot: he draws). */
+  gunslinger?: boolean;
   /** Being stabbed, held up on the knife (a game's boss doing it): frames since it started, and the frames each stab
    *  lands on (he doubles over at each). Or posed outright (his gutted death): how far he's doubled over (`hunch`, his
    *  lean in radians) and where his clutching hand's got to (`hand`: 0 on the wound, 1 shoved up into it). */

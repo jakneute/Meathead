@@ -51,6 +51,29 @@ export interface BeltLog { belt: number; x: number; len: number; m: Mover; cut: 
 /** A fight that shuts its doors till it's done: waiting, on (its wave), done. */
 export interface Gate { state: 'wait' | 'on' | 'done'; wave: number; foes: Set<Enemy>; walls: Block[]; t: number }
 
+/** The saloon before the brawl: frames he's been in it calm (the bouncer loses patience), what's been said; the BRAWL!
+ *  card's frames since it went up (0: not yet). */
+export interface Brawl { calmT: number; pop: number; doneT: number }
+
+/** The showdown's duel: waiting for him; the intro (a cutscene: the announcer, the sheriff, him walked to his mark);
+ *  the duel itself (his: only his trigger finger; DRAW! at `drawAt`); won (the sheriff outdrawn); the posse (he shot
+ *  before the DRAW: the sheriff's dead, his posse after him); lost (too slow: the face-hole death); done. */
+export interface Duel {
+  phase: 'wait' | 'intro' | 'duel' | 'won' | 'posse' | 'lost' | 'done';
+  t: number;
+  /** (the duel) When the DRAW! comes (frames into it), and how long he has after it. */
+  drawAt: number;
+  /** The sheriff (held to his mark till it's settled). */
+  sheriff: Enemy | null;
+  /** The intro's lines, in turn: which one it's waiting on (bumped by each one's end); the scene's token (a skip or a
+   *  death turns stale callbacks away). */
+  step: number; token: number;
+  /** His trigger last frame (a fresh press is the shot). */
+  wasShooting: boolean;
+  /** The big card's words while it's up (DRAW!, TOO SLOW, NO DRAW!), and its frames. */
+  card: string; cardT: number;
+}
+
 export interface Town {
   logs: PondLog[];
   throws: Throw[];
@@ -69,6 +92,9 @@ export interface Town {
   /** The firedamp: there (0), or burned off (frames till it's back). */
   gasGone: number;
   saloon: Gate; showdown: Gate;
+  brawl: Brawl; duel: Duel;
+  /** The camera's pull-back (view.ts), eased toward where it wants to be. */
+  zoom: number;
   /** Barks: who's saying what, the last one's frame. */
   barks: Map<Enemy, Said>;
   barkAt: number;
@@ -84,5 +110,8 @@ const gate = (): Gate => ({ state: 'wait', wave: 0, foes: new Set(), walls: [], 
 export const townOf = (state: GameState) => frontierState<Town>(state, 'town', () => ({
   logs: [], throws: [], clouds: [], blasts: [], pines: [], caves: [], chutes: [], runaways: [], runT: 0, ride: null,
   beltLogs: [], beltT: [0, 60], crates: [], gasGone: 0, saloon: gate(), showdown: gate(),
+  brawl: { calmT: 0, pop: 0, doneT: 0 },
+  duel: { phase: 'wait', t: 0, drawAt: 0, sheriff: null, step: 0, token: 0, wasShooting: false, card: '', cardT: 0 },
+  zoom: 0.8,
   barks: new Map(), barkAt: -999, pa: null, said: {}, stretcherT: 0, beamCd: 0, sawCd: 0, cloudCd: 0,
 }));

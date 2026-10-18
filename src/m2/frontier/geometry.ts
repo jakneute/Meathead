@@ -30,16 +30,17 @@ export const SECTIONS = {
    *  uncoupled behind him, tunnels getting thicker); the KILL arrow, the shot through the eye, the crash. */
   train: { x0: FRX + 24000, x1: FRX + 38300 },
   /** THE MINING AND LOGGING TOWN (the crash stop) and THE MINES: the townsfolk, through the town and down the mines. */
-  town: { x0: FRX + 39000, x1: FRX + 50000 },
+  // (the town's playtest made it bigger (FRX+54800); everything after it moved on 3000)
+  town: { x0: FRX + 39000, x1: FRX + 54800 },
   /** THE LOG RIDE: Tucker at the controls (the buzzsaw), the tracked ride and its saws, then the SEWER (way off the
    *  track), then out into a real river, which ends at the WOODCHIPPER. */
-  logride: { x0: FRX + 53000, x1: FRX + 64600 },
+  logride: { x0: FRX + 56000, x1: FRX + 67600 },
   /** THE WOODS (outside the park): the kids on dirt bikes, "MINE", Tucker out of the leaf pile, the bounty. */
-  woods: { x0: FRX + 65000, x1: FRX + 68000 },
+  woods: { x0: FRX + 68000, x1: FRX + 71000 },
   /** THE DIRT-BIKE CHASE: the TEENAGERS sub-boss, in a Genesis road-racer's view. */
-  dirtbike: { x0: FRX + 71000, x1: FRX + 81000 },
+  dirtbike: { x0: FRX + 74000, x1: FRX + 84000 },
   /** THE CATCH-UP and TUCKER's arena: the tree branch, the fake-out, the jumpscare; the fight (not designed yet). */
-  arena: { x0: FRX + 84000, x1: FRX + 88000 },
+  arena: { x0: FRX + 87000, x1: FRX + 91000 },
 } as const;
 export type FrontierId = keyof typeof SECTIONS;
 export const SECTION_ORDER: FrontierId[] = ['wilds', 'train', 'town', 'logride', 'woods', 'dirtbike', 'arena'];

@@ -103,11 +103,11 @@ helpers, the time of day, signLetters, pickLine, the grab, victory, walkAway, dr
 |---|---|---|---|---|---|
 | 1 | The frontier wilds + the station | `wilds` | FRX+0 .. FRX+21000 | 0-9 | built (section 1 job) |
 | 2 | The train | `train` | FRX+24000 .. FRX+38300 | 10-19 | built (job 2; playtest fixes B) |
-| 3 | Sawdust Gulch + the mines | `town` | FRX+39000 .. FRX+50000 | 20-29 | built (job 3) |
-| 4 | The log ride (ride, sewer, real river, woodchipper) | `logride` | FRX+53000 .. FRX+64600 | 30-38 | built (job 4) |
-| 5 | The woods (outside the park) + the bounty | `woods` | FRX+65000 .. FRX+68000 | 40-41 | built (job 5) |
-| 6 | The dirt-bike chase (TEENAGERS sub-boss) | `dirtbike` | FRX+71000 .. FRX+81000 (side view: the first 1800) | 50-55 | built (job 6) |
-| 7 | The catch-up + Tucker's arena | `arena` | FRX+84000 .. FRX+88000 | 60-69 | catch-up, impalement, fake-out built (job 7); the fight a placeholder |
+| 3 | Sawdust Gulch + the mines | `town` | FRX+39000 .. FRX+54800 | 20-29 | built (job 3; playtest fixes C) |
+| 4 | The log ride (ride, sewer, real river, woodchipper) | `logride` | FRX+56000 .. FRX+67600 | 30-38 | built (job 4) |
+| 5 | The woods (outside the park) + the bounty | `woods` | FRX+68000 .. FRX+71000 | 40-41 | built (job 5) |
+| 6 | The dirt-bike chase (TEENAGERS sub-boss) | `dirtbike` | FRX+74000 .. FRX+84000 (side view: the first 1800) | 50-55 | built (job 6) |
+| 7 | The catch-up + Tucker's arena | `arena` | FRX+87000 .. FRX+91000 | 60-69 | catch-up, impalement, fake-out built (job 7); the fight a placeholder |
 
 Gaps of 3000 between sections (grow your x1 into the one after yours). The stubs: flat ground, a frontier sign naming
 the section, a COMING SOON board, one checkpoint at the start, walk off the right end into the next section (and back
@@ -151,21 +151,21 @@ Teach, then escalate (each hazard alone in a safe spot first):
 | x | Stretch (checkpoint) | What |
 |---|---|---|
 | 0 | END OF THE LINE (cp 20) | the smashed buffer stop, the engine nosed in steaming (the crash's visit), gawkers at the tape, the covered stretcher to FIRST AID; the depot |
-| 500 | MAIN STREET (cp 21 at 1300) | deputies (alone, then a balcony), the snake-oil wagon (tonic clouds), the water tower's deputy, the barbershop quartet, the undertaker (the empty coffin: TUCKER) |
-| 2500 | THE SALOON (cp 22 at 2440) | the brawl (doors barred, camera on the room): bouncer + can-can dancers, then a second wave off the balcony; out the upstairs window |
-| 3300 | THE ROOFTOPS | false-front roofs over alleys (crates back up), deputies |
-| 3900 | THE SHOWDOWN (cp 23 at 3920) | the Wild West Show's street: gates shut, the announcer, the sheriff (DRAW!, fans three), deputies on the balconies, then two more; trough and barrels stop shots |
-| 4700 | THE LIVERY, THE SMITHY | farmhands (pitchforks: pointy), the hay loft, the blacksmith (hot horseshoes) |
-| 5100 | THE MILL POND (cp 24 at 5250) | the bank feller's TIMBER! alone; pond A, one log; the island feller drops his pine across the water; pond B, the BIRLER ramming; the JACK LADDER up to the deck |
-| 6800 | THE SAWMILL (cp 25 at 6840, on the deck) | belt one into the head saw (a log goes in first), over the saw onto belt two coming back with logs on it; a feller at the end |
-| 7800 | THE LUMBER YARD | fellers with hatchets; the mine's entrance |
-| 8300 | THE MOTHER LODE (cp 26 at 8050) | down the shaft's landings into the dark; a singing canary; the first cave-in alone; miners (candle hats: spiky) round a TNT crate; an ore chute |
-| 8860 | THE CART TRACK | runaway carts (warned: jump them or the alcoves); a cave-in over the rails; a TNT crate in their way |
-| 9230 | THE TRESTLE (cp 27 at 9265) | the ride cart over the chasm, low beams (duck), a prospector lobbing dynamite at the far end |
-| 9670 | THE GAS (cp 28 at 9680) | the dead canary, FIREDAMP (a shot in it sets the pocket off), a prospector past it |
-| 10000 | THE FLOODED SHAFT | dive under the rock |
-| 10330 | UP AND OUT | landings up into the daylight |
-| 10600 | TIMBER TUMBLE (cp 29 at 10660) | the log ride's queue (WAIT FROM HERE: 90 MIN), the station's front; off the right end into the log ride |
+| 800 | MAIN STREET (cp 21 at 2000) | deputies (alone, then the bank's balcony), the snake-oil wagon (tonic clouds), the water tower's deputy, the barbershop quartet, the undertaker (the empty coffin: TUCKER) |
+| 3800 | THE SALOON (cp 22 at 3700) | calm (cards, drinks, the kick line, the piano) till he starts something: BRAWL!, the batwings barred, the camera on the whole room, everybody at everybody (bouncer, 2 dancers, 8 drinkers); last man standing: the locked back door opens. Starts nothing: the bouncer starts it (16 s) |
+| 4900 | THE ROOFTOPS | out the back into the alley; false-front roofs over alleys (crates back up), deputies |
+| 5960 | THE SHOWDOWN (cp 23 at 5920) | the Wild West Show's street: gates shut, the intro (a cutscene), the duel (a clear lane: his mark, the sheriff's); DRAW!: in time wins, too slow the face-hole death, before it the posse (2 waves) |
+| 7000 | THE LIVERY, THE SMITHY | farmhands (pitchforks: pointy), the hay loft, the blacksmith (hot horseshoes) |
+| 8100 | THE MILL POND (cp 24 at 8250) | the bank feller's TIMBER! alone; pond A, one log; the island feller drops his pine across the water; pond B, the BIRLER ramming; the JACK LADDER up to the deck (the log lies along the chain, him tilted with it) |
+| 9800 | THE SAWMILL (cp 25 at 9840, on the deck) | belt one into the head saw (a log goes in first), over the saw onto belt two coming back with logs on it; a feller at the end |
+| 10800 | THE LUMBER YARD | fellers with hatchets; the mine's entrance |
+| 11300 | THE MOTHER LODE (cp 26 at 11050) | down the shaft's landings into the murk; a singing canary; the first cave-in alone; miners (candle hats: spiky) round a TNT crate; an ore chute |
+| 11860 | THE CART TRACK | runaway carts (warned: jump them or the alcoves); a cave-in over the rails; a TNT crate in their way |
+| 12230 | THE TRESTLE (cp 27 at 12265) | the ride cart over the chasm, low beams (duck), a prospector lobbing dynamite at the far end |
+| 12670 | THE GAS (cp 28 at 12680) | the dead canary, FIREDAMP (a shot in it sets the pocket off), a prospector past it |
+| 13000 | THE FLOODED SHAFT | a long swim (1420 wide) under the rock, down under a low hump and up; no air pockets |
+| 14420 | UP AND OUT | landings up into the daylight; the shaft's mouth fenced at its edges, the ground beside it |
+| 14690 | TIMBER TUMBLE (cp 29 at 14760) | the log ride's long queue (switchbacks three rows deep on a stepped deck, WAIT FROM HERE boards 90 / 75 / 60 / 45 MIN, bored guests, the flume behind), the station's marquee; off the right end into the log ride |
 
 ### Section 4: Timber Tumble (logride/layout.ts; x from the section's start; one flume, left to right, the log on it)
 
@@ -671,3 +671,45 @@ Teach, then escalate (each hazard alone in a safe spot first):
   once, shaken off in a spray (flung off him, into the water or the dirt). Not enemies: no kills, no callouts. REMOVED:
   the trout's chase and bite at a swimmer (it only leaps at him on a log now, head height: duck or shoot it) and the
   snags (m2:fr_snag, their lines, signs and drawing). The creek's passing line is about the leeches now.
+- 2026-10-18 (playtest fix C, the town and the mine; the user's notes verbatim in the job brief): BIGGER (the user:
+  "the general size of everything should be larger here... not everything scaled up the same amount"): the fronts two
+  stories and more (250-320 tall), doors 104 (a head over him), the water tower, wagon, wreck and coffin up, props a
+  little; the town's stretch ~1.5x longer. The section widened to FRX+54800 and everything after it moved on 3000
+  (logride FRX+56000, woods 68000, dirtbike 74000, arena 87000; all their code is x0-relative). The camera pulled back
+  as the train's (town/view.ts: 0.8, 0.72 in the saloon, eased; the view is the screen for the rules).
+- 2026-10-18 (playtest C): THE SALOON (the user's: more saloony, quite a bit larger, back door locked, BRAWL pops up the
+  moment violence starts, everyone fights everyone, last man alive can leave): 1100 wide, two stories (the stage and its
+  curtain, the piano under the stairs, two card tables, the long bar with its brass rail and spittoons, the back bar's
+  mirror and bottles, the barkeep, the stairs to a balcony with three rooms, chandeliers, wanted posters; no moose).
+  Calm till he starts it (any of them hurt or knocked about, or a shot of his in the room): BRAWL! on screen, the
+  batwings barred, the camera on the whole room, and everybody at everybody (kinds.ts's saloon AI: the bouncer, two
+  dancers and eight drinkers, a new kind m2:fr_patron, pick the nearest or him, punches, chairs broken over backs,
+  bottles thrown at each other (bottles now hit the cast too), the bouncer throwing people across the room; the kills
+  between them real, their callouts THROWN OUT! / CAN-CANNED! / CHAIRED! / KNOCKED OUT! / BOTTLED!). The last man
+  standing (him) gets out: the back door unlocks (it says STAFF ONLY, padlocked, and Meathead says so if he tries it).
+  OURS: if he starts nothing, the bouncer warns him at 8 s and starts it himself at 16 s. The barkeep (ducks) and the
+  piano player (plays on) are scenery, not in the count. Won stays won (cp 23 past it, or a death after it this visit);
+  the old two waves and the upstairs window are gone.
+- 2026-10-18 (playtest C): THE SHOWDOWN, the user's confirmed design: a standard duel. Into the street, the gates shut
+  and a cutscene (no controls, no HUD, SKIP >> for all of it): the announcer, the rules (nobody draws till the sheriff
+  says DRAW), the sheriff's line, Meathead's; he's walked to his mark. Then the duel is his trigger finger only (no
+  walking, no moves): the ray gun's forced on for it (lockWeapon; he's left holding it after, as the land's other forced
+  weapons leave him), he stands squared up in a gunslinger pose (moves.ts drawGunslinger: the gun in his belt, his hand
+  hovering over it; a shot snaps him out into the engine's firing), the sheriff's fingers twitch, then DRAW! (2.7-5.5 s
+  in, random). Fire within DRAW_WINDOW (34 frames) after it: the sheriff's OUTDRAWN!, done. Too SLOW: the sheriff's one
+  shot, the special death (town/duelDeath.ts, m2:fr_duel: a hole clean through his face with the sky through it, he
+  stands a beat swaying, the hole smoking, then over backward stiff as a board, a tumbleweed rolls by; its hurt lines,
+  death lines, death screens). Fire BEFORE the DRAW: cheating: the sheriff's dead (SHOT FIRST!), the crowd turns, and
+  his posse comes after him (two waves of sheriffs and deputies, ordinary enemy logic, no one-shots); all down, done.
+  No obstacles in the lane during the duel: the barrels are gone, the trough stands behind the sheriff's mark (cover for
+  the posse fight only). The sheriff can't be hurt before the duel (refilled). Done stays done like the saloon.
+- 2026-10-18 (playtest C): the jack ladder's log rides up lying along the chain (tilted to its slope, no rolling), laid
+  flat again as it's tipped onto the deck; Meathead tilts with it (spriteRot) and straightens off it. The mine's lights
+  muted like the train's tunnels (dark 0.5-0.78, never black; rim 0.22; lanterns soft warm glows r120 a0.32, the
+  saloon's chandeliers soft too). The flooded shaft made a long swim (13000-14420: under a long rock, down under a hump
+  and up), NO air pockets: ~11-12 s for a quick swimmer (about half his air), dawdling drowns him; a FLOODED / LONG
+  SWIM. NO AIR POCKETS. board before it. No leeches in the mine. The log ride's queue sold as a long wait (switchbacks
+  three rows deep on a stepped plank deck, WAIT FROM HERE boards 90 / 75 / 60 / 45 MIN, bored guests packed in, a rope
+  barrier, the flume on its trestles behind with a log coming down, the station's marquee THE LONGEST LOG RIDE IN THE
+  WEST); every row stands on the deck, the flume's legs reach it, and nothing's drawn over the far shaft's mouth (posts
+  at its edges, its own MINE EXIT headframe, the ground right up to it).

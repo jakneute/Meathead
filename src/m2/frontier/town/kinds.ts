@@ -10,6 +10,8 @@
 //               him with straight razors (TWO BITS!: the slash)
 //   bouncer     huge: arms out (the tell), grabs him and throws him the length of the room
 //   dancer      the can-can: the leg up (the tell), the kick; at range, a whiskey bottle lobbed
+//   patron      the saloon's drinkers (gamblers, cowpokes): calm at their cards and drinks till the brawl, then at
+//               anybody: punches, a chair broken over a back (some carry one), bottles thrown (the saloon's AI, below)
 //   undertaker  walks up and MEASURES him (the tape out: the tell, the callout), then the spade
 //   blacksmith  a red-hot horseshoe lobbed from his tongs; the hammer up close (a big knock)
 //   farmhand    the pitchfork drawn back (the tell), the jab; the tines out front are pointy (no charging into them)
@@ -30,8 +32,9 @@ import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { playSound } from '../../../m1/game/platform/audio';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { pickLine } from '../../../m1/game/platform/speech';
+import { pushEnemy } from '../../../m1/game/combat/knockback';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
-import { exemptFromZones } from '../../hazardHit';
+import { exemptFromZones, hazardKill } from '../../hazardHit';
 import { lookOf } from '../../adventure/temple/people';
 import { speak, byPants } from '../section';
 import type { ByPants } from '../talk';
@@ -40,11 +43,13 @@ import { lob } from './throws';
 import {
   HURT, TOWN_VOICES, DEPUTY_BARK, SHERIFF_DRAW, SALESMAN_BARK, QUARTET_SING, QUARTET_HIT, BOUNCER_BARK, DANCER_BARK,
   UNDERTAKER_MEASURE, SMITH_BARK, FARMHAND_BARK, FELLER_TIMBER, FELLER_BARK, BIRLER_BARK, MINER_BARK, PROSPECTOR_BARK,
+  PATRON_BARK,
 } from './lines';
 import {
   drawDeputy, drawSheriff, drawSalesman, drawBarber, drawBouncer, drawDancer, drawUndertaker, drawSmith, drawFarmhand,
-  drawFeller, drawBirler, drawMiner, drawProspector, drawCrate,
+  drawFeller, drawBirler, drawMiner, drawProspector, drawCrate, drawPatron,
 } from './kindArt';
+import './duelDeath';
 
 for (const [source, l] of Object.entries(HURT)) registerHurtLines(source, l.hurt, l.death);
 
@@ -101,6 +106,8 @@ export const bark = (state: GameState, e: Enemy, voice: string, pool: ByPants, c
   speak(voice, pickLine(byPants(state, pool)), s => { if (s) tw.barks.set(e, s); else tw.barks.delete(e); }, false);
 };
 const townVoice = (e: Enemy) => (woman(e) ? TOWN_VOICES.woman : TOWN_VOICES.man);
+/** Whoever's voice it is (a townsman's or a townswoman's; the sheriffs their own). */
+export const voiceOf = (e: Enemy) => (e.kind === 'm2:fr_sheriff' ? (woman(e) ? TOWN_VOICES.sherifff : TOWN_VOICES.sheriff) : townVoice(e));
 /** Its first sight of him: a bark, maybe. */
 const spotted = (state: GameState, e: Enemy, voice: string, pool: ByPants, chance = 0.45) => {
   const k = e as { spotted?: boolean };
@@ -265,9 +272,123 @@ const barber = (ctx: FrameContext, e: Enemy) => {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
+// The saloon (the playtest: "as soon as you initiate violence BRAWL pops up on screen and everyone fights everyone.
+// last man alive can leave"): its bouncer, can-can dancers and drinkers are calm (harmless, at their cards, their
+// drinks, the kick line on the stage) till he starts something (scenes.ts's saloon); then it's everybody at everybody:
+// each picks somebody (the nearest, him often enough), goes at them and lays into them: punches, chairs broken over
+// backs, bottles thrown, the kick line's kicks, the bouncer throwing people the length of the room (over the bar).
+// Whoever hits one, it's after them now, often. What one of them does to another is real: they die of it.
+
+/** The saloon's own (scenes.ts puts them in): calm, then the brawl. */
+export const SALOON_FOLK = new WeakSet<Enemy>();
+interface Brawler { target?: Enemy | 'him'; pickT?: number; chair?: boolean }
+const brawlerOf = (e: Enemy) => e as Enemy & Brawler;
+const alive = (e: Enemy) => e.health > 0 && !e.isBlownAway;
+
+/** One of them lays into another: the damage, a knock (or a throw), the kill (its callout); it'll be after them now. */
+const hitOther = (ctx: FrameContext, e: Enemy, o: Enemy, dmg: number, call: string, kx: number, ky: number) => {
+  const dir = mid(o).x < mid(e).x ? -1 : 1;
+  o.health -= dmg; o.hitFlash = 8;
+  if (o.health <= 0) { o.seen = true; hazardKill(ctx, o, mid(e).x, call, { fling: { x: dir * Math.max(8, kx), y: Math.min(-9, ky) } }); return; }
+  pushEnemy(o, dir * kx, ky, 24);
+  ctx.fx.spawnDamageNumber({ x: o.pos.x, y: o.pos.y - 20 }, Math.round(dmg), false);
+  playSound('punch', 0.7, -2);
+  if (SALOON_FOLK.has(o) && Math.random() < 0.6) { const ob = brawlerOf(o); ob.target = e; ob.pickT = 140; }
+};
+/** Somebody to go at: the nearest on his level (him, if he's nearer, or a third of the time anyway). */
+const pickTarget = (state: GameState, e: Enemy) => {
+  const b = brawlerOf(e), p = state.player, m = mid(e);
+  const him = p.health > 0 && !p.inCutscene, pm = mid(p);
+  let best: Enemy | null = null, bestD = Infinity;
+  for (const o of townOf(state).saloon.foes) {
+    if (o === e || !alive(o)) continue;
+    const om = mid(o), d = Math.abs(om.x - m.x) + Math.abs(om.y - m.y) * 2.5;
+    if (d < bestD) { bestD = d; best = o; }
+  }
+  const himD = Math.abs(pm.x - m.x) + Math.abs(pm.y - m.y) * 2.5;
+  b.target = him && (!best || himD < bestD || Math.random() < 0.33) ? 'him' : best ?? undefined;
+  b.pickT = 120 + Math.floor(Math.random() * 140);
+};
+
+/** The calm before it: harmless, at their drinks and cards; the kick line kicking on the stage. */
+const calm = (state: GameState, e: Enemy) => {
+  e.harmless = true; e.vel.x = 0;
+  const f = state.frame + (e.variant ?? 0) * 13;
+  if (e.kind === 'm2:fr_dancer') { e.aiState = f % 40 < 20 ? 'kickWind' : 'kick'; e.facing = f % 160 < 80 ? 1 : -1; }
+  else if (e.kind === 'm2:fr_patron') e.aiState = Math.floor(f / 90) % 3 === 0 ? 'drink' : 'calm';
+  else e.aiState = 'calm';
+  return false;
+};
+
+/** The brawl. */
+const brawl = (ctx: FrameContext, e: Enemy) => {
+  const { state } = ctx, b = brawlerOf(e), p = state.player;
+  e.harmless = false;
+  tick(e);
+  if (b.chair === undefined) b.chair = e.kind === 'm2:fr_patron' && seedOf(e) % 3 === 0;
+  const gone = b.target === 'him' ? p.health <= 0 || p.inCutscene : !b.target || !alive(b.target);
+  if (gone || (b.pickT = (b.pickT ?? 0) - 1) <= 0) { pickTarget(state, e); if (Math.random() < 0.2) bark(state, e, townVoice(e), PATRON_BARK, 0.5); }
+  const t = b.target;
+  if (!t) { e.vel.x = 0; return false; }
+  const tm = t === 'him' ? mid(p) : mid(t), tFeet = t === 'him' ? feetOf(state) : t.pos.y + t.height;
+  const dx = Math.abs(tm.x - mid(e).x), lvl = Math.abs(tFeet - (e.pos.y + e.height)) < 50;
+  const k = e.kind, bouncer = k === 'm2:fr_bouncer', dancer = k === 'm2:fr_dancer';
+  const reach = bouncer ? 54 : dancer ? 56 : b.chair ? 60 : 46;
+  const WIND = bouncer ? 'grabWind' : dancer ? 'kickWind' : b.chair ? 'chairWind' : 'wind';
+  const HIT = bouncer ? 'grab' : dancer ? 'kick' : b.chair ? 'chair' : 'swing';
+  const TOSS = dancer ? 'wind' : 'toss';
+  switch (e.aiState) {
+    case WIND: {
+      e.vel.x = 0; e.facing = dirTo(e, tm.x);
+      if (e.aiTimer! <= (bouncer ? 26 : b.chair ? 22 : 14)) break;
+      const dmg = bouncer ? 44 : dancer ? 22 : b.chair ? 30 : 16;
+      if (t === 'him') {
+        const src = bouncer ? 'm2:fr_bouncer' : dancer ? 'm2:fr_dancer' : b.chair ? 'm2:fr_chair' : 'm2:fr_patron';
+        if (strike(ctx, e, reach, bouncer ? 14 : dancer ? 9 : b.chair ? 12 : 8, src, bouncer ? 13 : 6, bouncer ? -10 : -4) && bouncer) shakeScreen(state, 6, 3);
+      } else {
+        const fx0 = e.facing! > 0 ? e.pos.x + e.width - 6 : e.pos.x - reach + 6;
+        if (t.pos.x < fx0 + reach && t.pos.x + t.width > fx0 && t.pos.y < e.pos.y + e.height && t.pos.y + t.height > e.pos.y + 6)
+          hitOther(ctx, e, t, dmg, bouncer ? 'THROWN OUT!' : dancer ? 'CAN-CANNED!' : b.chair ? 'CHAIRED!' : 'KNOCKED OUT!', bouncer ? 12 : 7, bouncer ? -11 : -5);
+      }
+      playSound(b.chair ? 'crunch' : 'whoosh', 0.7, bouncer ? -8 : 4);
+      // (a chair goes to pieces over whoever it's broken on)
+      if (b.chair) { b.chair = false; for (let n = 0; n < 10; n++) state.particles.push({ pos: { x: mid(e).x + e.facing! * 30, y: e.pos.y + 20 }, vel: { x: (Math.random() - 0.5) * 6, y: -2 - Math.random() * 4 }, life: 30, color: n % 2 ? '#8A5A30' : '#B07A48', size: 3 + Math.random() * 3 }); }
+      setState(e, HIT);
+      break;
+    }
+    case HIT: case 'after':
+      e.vel.x = 0;
+      if (e.aiTimer! > (bouncer ? 40 : 24)) setState(e, 'go');
+      break;
+    case TOSS:
+      e.vel.x = 0; e.facing = dirTo(e, tm.x);
+      if (e.aiTimer! > 22) { lob(state, e, 'bottle', tm.x, tFeet - 30, 30); setState(e, 'after'); }
+      break;
+    default:
+      // (going at them; off the balcony (or not level with them, or a long way off), a bottle thrown)
+      if (dx < reach && lvl) { setState(e, WIND); e.vel.x = 0; break; }
+      if (!bouncer && (e.aiState === 'go' ? e.aiTimer! : 0) > 60 && (!lvl || dx > 260) && Math.random() < 0.03) { setState(e, TOSS); break; }
+      if (e.aiState !== 'go') setState(e, 'go');
+      walkTo(ctx, e, tm.x, bouncer ? 1.2 : 1.7, reach - 8);
+      if (!lvl && e.vel.x === 0 && e.aiTimer! > 90 && !bouncer) setState(e, TOSS);
+      break;
+  }
+  return false;
+};
+
+/** The saloon's folk: calm till it starts, then the brawl; anybody else (never, so far): at him, the brawl's way. */
+const saloonAI = (ctx: FrameContext, e: Enemy) => {
+  const g = townOf(ctx.state).saloon;
+  if (SALOON_FOLK.has(e) && g.state === 'wait') return calm(ctx.state, e);
+  if (!SALOON_FOLK.has(e)) brawlerOf(e).target = 'him';
+  return brawl(ctx, e);
+};
+
+// ---------------------------------------------------------------------------------------------------------------
 // The bouncer
 
 const bouncer = (ctx: FrameContext, e: Enemy) => {
+  if (SALOON_FOLK.has(e)) return saloonAI(ctx, e);
   const { state } = ctx, pm = mid(state.player);
   tick(e);
   switch (e.aiState) {
@@ -298,6 +419,7 @@ const bouncer = (ctx: FrameContext, e: Enemy) => {
 // The can-can dancer
 
 const dancer = (ctx: FrameContext, e: Enemy) => {
+  if (SALOON_FOLK.has(e)) return saloonAI(ctx, e);
   const { state } = ctx, pm = mid(state.player);
   tick(e);
   switch (e.aiState) {
@@ -568,6 +690,7 @@ person('m2:fr_snakeoil', { w: 38, h: 72, hp: 70, contact: 4, mass: 180 }, snakeo
 person('m2:fr_barber', { w: 36, h: 70, hp: 40, contact: 3, mass: 160 }, barber, drawBarber, { head: { x: 1, y: -66, r: 10 } });
 person('m2:fr_bouncer', { w: 50, h: 76, hp: 240, contact: 6, mass: 330 }, bouncer, drawBouncer, { head: { x: 1, y: -70, r: 11 } });
 person('m2:fr_dancer', { w: 36, h: 70, hp: 50, contact: 3, mass: 150 }, dancer, drawDancer, { head: { x: 1, y: -66, r: 10 } });
+person('m2:fr_patron', { w: 38, h: 72, hp: 60, contact: 3, mass: 180 }, saloonAI, drawPatron);
 person('m2:fr_undertaker', { w: 36, h: 80, hp: 120, contact: 4, mass: 170 }, undertaker, drawUndertaker, { head: { x: 1, y: -76, r: 10 } });
 person('m2:fr_blacksmith', { w: 44, h: 74, hp: 180, contact: 5, mass: 280 }, blacksmith, drawSmith, { head: { x: 1, y: -70, r: 10 } });
 person('m2:fr_farmhand', { w: 38, h: 72, hp: 70, contact: 4, mass: 180 }, farmhand, drawFarmhand, { pointy: { source: 'm2:fr_pitchfork', label: 'FORKED!', damage: 13 } });

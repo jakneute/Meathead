@@ -69,6 +69,9 @@ export const updateThrows = (ctx: FrameContext) => {
       if (s.kind === 'bottle' || s.kind === 'tonic') landed(ctx, s);
       else if (s.kind === 'hatchet') s.dead = true;
     }
+    // (a bottle in flight breaks over whoever's in its way (the saloon's brawl: they throw them at each other), never
+    // the one who threw it)
+    if (s.kind === 'bottle' && s.rest === undefined && !s.dead) for (const e of hazardVictims(state)) if (e !== s.from && boxHits(e, s.x - r, s.y - r, r * 2, r * 2)) { hazardHit(ctx, e, 14, s.x, 'BOTTLED!', { knock: 5 }); landed(ctx, s); break; }
     // (a hot horseshoe on the ground burns the cast too; never the one who threw it)
     if (hot) for (const e of hazardVictims(state)) if (e !== s.from && boxHits(e, s.x - r, s.y - 6, r * 2, 6)) { hazardHit(ctx, e, 10, s.x, 'BRANDED!', { knock: 4 }); s.dead = true; break; }
   }
