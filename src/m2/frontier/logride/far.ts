@@ -24,6 +24,7 @@ import { GY } from '../geometry';
 import { type Ctx, box, checker, mix, hash, bandedGradient, hazeBands, pixelBlob, stillAt, INK, timeOfDay, farTint, skyAt, hourMix, FIBER, PLY, STEEL, NEEDLE, POOL } from './paint';
 import { zoneAt, inSewer, indoorsAt, realAt, x0 } from './layout';
 import { stamp } from '../../intro/art/kit';
+import { rideOf } from './state';
 
 const W = CANVAS_WIDTH, H = CANVAS_HEIGHT;
 
@@ -44,7 +45,9 @@ export const drawRideBackdrop = (c: Ctx, state: GameState): boolean => {
   // (the sewer's dark; around the break, only once the view's gone down the chasm after him)
   const nearBreak = z === 'brk' || (rx >= 5700 && rx < 6300);
   if (nearBreak ? state.camera.y > GY - 100 : inSewer(rx)) { bandedGradient(c, 0, 0, W, H, ['#0C0A06', '#120E08', '#16120A', '#120E08'], 8); return true; }
-  if (indoorsAt(rx)) { bandedGradient(c, 0, 0, W, H, ['#1A120A', '#22180E', '#2A1E12', '#22180E'], 8); return true; }
+  // (indoors only while he's in there: from out on the ride the station and the shed are their outsides (veils.ts))
+  const L = rideOf(state).log, here = L.mode === 'ride' || L.mode === 'scene' ? L.rx : state.player.pos.x + state.player.width / 2 - x0;
+  if (indoorsAt(rx) && indoorsAt(here)) { bandedGradient(c, 0, 0, W, H, ['#1A120A', '#22180E', '#2A1E12', '#22180E'], 8); return true; }
   if (realAt(rx)) return realFar(c, state);
   return parkFar(c, state);
 };

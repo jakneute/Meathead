@@ -65,6 +65,14 @@ const earthTop = (rx: number) => {
   return rx < 5300 ? cut : cut + ((GY - 4 - cut) * (rx - 5300)) / 150;
 };
 
+/** The earth's strata over world a..b, top..bot (the caller clips it): the sewer's veil. */
+export const earthPatch = (c: Ctx, state: GameState, a: number, b: number, top: number, bot: number) => {
+  const t = Math.max(top, state.camera.y - 20), bt = Math.min(bot, state.camera.y + 640);
+  for (let ix = Math.floor((a - X(-300)) / ET); X(-300) + ix * ET < b; ix++) for (let jy = Math.max(0, Math.floor((t - GY + 4) / ET)); GY - 4 + jy * ET < bt; jy++) {
+    stillAt(c, `lr-earth-${ix % 5}-${Math.min(jy, 5)}`, X(-300) + ix * ET, GY - 4 + jy * ET, 0, 0, ET, ET, g => paintEarth(g, Math.min(jy, 5), ix % 5));
+  }
+};
+
 export const drawEarth = (c: Ctx, state: GameState) => {
   const a = Math.max(X(-300), state.camera.x - 20), b = Math.min(X(8440), state.camera.x + CANVAS_WIDTH + 20);
   if (b <= a) return;

@@ -34,6 +34,7 @@ import { RAT, LOGGER, setCrewOn } from './kinds';
 import { startScene, updateScene, updateBooth, againLine, sawed, drawBooth, drawSceneHud } from './scene';
 import { updateChipper, drawChipperBack, drawChipperFront } from './chipper';
 import { drawRideBackdrop, drawRideBack, drawRideFront, drawLogBack, drawLogFront, drawSplashes, rideLighting } from './art';
+import { drawVeils } from './veils';
 
 /** Back from the woods: on the crew's clearing, past the chipper. */
 DOORS.logride.end = { x: X(11760), y: CHIPPER.ground };
@@ -161,6 +162,8 @@ export const logride: FrontierSection = {
     drawRideFront(c, state);
     drawHazardsFront(c, state);
     drawObstaclesFront(c, state);
+    // (what's shut away from the view put back over it: the station's and the shed's outsides, the earth over the sewer)
+    drawVeils(c, state);
     drawChipperFront(c, state);
     // (the big splashes over everything: the log, him, the trough, the hazards; then the water down the screen)
     drawSplashes(c, state);
