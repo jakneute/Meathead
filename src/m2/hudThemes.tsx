@@ -10,7 +10,7 @@ import type { HudSkin } from '../m1/components/HUD';
 export type Zone =
   | 'garage' | 'security' | 'america' | 'ticket' | 'hub' | 'staff'
   | 'jungle' | 'queue' | 'boat' | 'underwater' | 'dino' | 'temple' | 'cart' | 'roof' | 'clearing'
-  | 'spooky' | 'space' | 'hollywood' | 'foreign';
+  | 'spooky' | 'space' | 'hollywood' | 'foreign' | 'frontier';
 
 /** How the pause menu looks. */
 export interface PauseSkin {
@@ -455,6 +455,26 @@ export const THEMES: Record<Zone, Theme> = {
       well: { background: 'rgba(23,37,84,0.6)', border: '1px solid #CA8A04' },
       slot: 'rgba(23,37,84,0.92)', slotOn: 'rgba(253,230,138,0.8)',
       button: 'linear-gradient(180deg, #B91C1C, #7F1D1D)', buttonEdge: '#172554',
+    },
+  },
+  // Wilderness Land (one look for all of it): a pine plank, a burned brand, brass tacks, a railroad ticket's red
+  frontier: {
+    hud: {
+      panel: { background: 'linear-gradient(180deg, rgba(120,72,36,0.96), rgba(74,42,18,0.96))', border: '2px solid #FCD34D', boxShadow: PIXEL_SHADOW },
+      deco: <>{edge('#7F1D1D', 4)}{tag('TICKET', { background: '#7F1D1D', color: '#FEF3C7' })}</>,
+      label: '#FEF3C7', value: '#FFFFFF', name: '#FCD34D',
+      track: { background: '#3F2A14', borderColor: '#FCD34D' },
+      slot: { background: 'rgba(63,42,20,0.6)', borderColor: '#FCD34D' },
+    },
+    pause: {
+      title: 'PAUSED', sub: 'TICKETS, PLEASE',
+      titleStyle: { color: '#FCD34D', textShadow: '3px 3px 0 #7F1D1D, 5px 5px 0 #000' },
+      frame: { background: 'linear-gradient(180deg, #78482A, #4A2A12)', border: '4px solid #FCD34D', boxShadow: '0 0 0 3px #000, 0 0 40px rgba(0,0,0,0.9)' },
+      stripe: 'repeating-linear-gradient(135deg, #7F1D1D 0 8px, #FEF3C7 8px 16px)',
+      accent: '#FCD34D', text: '#FEF3C7', muted: '#FDE68A',
+      well: { background: 'rgba(63,42,20,0.6)', border: '1px solid #FCD34D' },
+      slot: 'rgba(63,42,20,0.92)', slotOn: 'rgba(252,211,77,0.8)',
+      button: 'linear-gradient(180deg, #7F1D1D, #450A0A)', buttonEdge: '#3F2A14',
     },
   },
 };

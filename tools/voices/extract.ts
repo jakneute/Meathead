@@ -26,6 +26,7 @@ import { SPOOKY_VOICE_LINES } from '../../src/m2/spooky/voices';
 import { SPACE_VOICE_LINES } from '../../src/m2/space/voices';
 import { HOLLYWOOD_VOICE_LINES } from '../../src/m2/hollywood/voices';
 import { FOREIGN_VOICE_LINES } from '../../src/m2/foreign/voices';
+import { FRONTIER_VOICE_LINES } from '../../src/m2/frontier/voices';
 import { AMERICA_DENY } from '../../src/m2/lines/hubLines';
 
 const ROOT = path.resolve(__dirname, '../../src');
@@ -124,6 +125,8 @@ for (const byVoice of SPACE_VOICE_LINES) for (const [v, lines] of Object.entries
 for (const byVoice of HOLLYWOOD_VOICE_LINES) for (const [v, lines] of Object.entries(byVoice)) for (const t of lines) add(v, t, 'HOLLYWOOD');
 // (Foreign Lands: every section's, by voice)
 for (const byVoice of FOREIGN_VOICE_LINES) for (const [v, lines] of Object.entries(byVoice)) for (const t of lines) add(v, t, 'FOREIGN');
+// (Wilderness Land: every section's, by voice)
+for (const byVoice of FRONTIER_VOICE_LINES) for (const [v, lines] of Object.entries(byVoice)) for (const t of lines) add(v, t, 'FRONTIER');
 for (const t of allStrings(AMERICA_DENY)) add('meathead', t, 'HUB');
 for (const t of allStrings([introLines.GUEST_HURRY, introLines.GUEST_CUT, introLines.GUEST_HIT, introLines.GUEST_REACT, introLines.GUEST_REACT_NOW])) { add('m2.guest', t, 'INTRO'); add('m2.guest2', t, 'INTRO'); }
 for (const byGround of Object.values(dialogue.SURFACE_CALLOUTS)) for (const lines of Object.values(byGround ?? {})) for (const t of lines ?? []) add('announcer', t, 'SURFACE_CALLOUTS');
