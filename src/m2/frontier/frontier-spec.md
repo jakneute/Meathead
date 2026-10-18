@@ -102,7 +102,7 @@ helpers, the time of day, signLetters, pickLine, the grab, victory, walkAway, dr
 |---|---|---|---|---|---|
 | 1 | The frontier wilds + the station | `wilds` | FRX+0 .. FRX+21000 | 0-9 | built (section 1 job) |
 | 2 | The train | `train` | FRX+24000 .. FRX+36000 | 10-19 | built (job 2) |
-| 3 | Sawdust Gulch + the mines | `town` | FRX+39000 .. FRX+50000 | 20-29 | stub |
+| 3 | Sawdust Gulch + the mines | `town` | FRX+39000 .. FRX+50000 | 20-29 | built (job 3) |
 | 4 | The log ride (ride, sewer, real river, woodchipper) | `logride` | FRX+53000 .. FRX+62000 | 30-39 | stub |
 | 5 | The woods (outside the park) | `woods` | FRX+65000 .. FRX+68000 | 40-49 | stub |
 | 6 | The dirt-bike chase (TEENAGERS sub-boss) | `dirtbike` | FRX+71000 .. FRX+81000 | 50-59 | stub |
@@ -144,6 +144,27 @@ Teach, then escalate (each hazard alone in a safe spot first):
 | 17-20 | THE MAIL CAR (cp 15) | two porters; robbers; the long tunnels begin; the cook in the dark; the fourth cut, quick, in a tunnel, with a brakeman |
 | 21-23 | THE LAST COACH (cp 16), THE LOG CAR (cp 17) | a water tower, robbers, a bridge, a long tunnel; the stack's cinders from car 22 on |
 | 24-25 | THE ENGINE (cp 18) | the fireman's coal on the tender; Tucker, the KILL arrow, the rant; the shot, the close-up, the crash |
+
+### Section 3: Sawdust Gulch and the mines (town/layout.ts; x from the section's start)
+
+| x | Stretch (checkpoint) | What |
+|---|---|---|
+| 0 | END OF THE LINE (cp 20) | the smashed buffer stop, the engine nosed in steaming (the crash's visit), gawkers at the tape, the covered stretcher to FIRST AID; the depot |
+| 500 | MAIN STREET (cp 21 at 1300) | deputies (alone, then a balcony), the snake-oil wagon (tonic clouds), the water tower's deputy, the barbershop quartet, the undertaker (the empty coffin: TUCKER) |
+| 2500 | THE SALOON (cp 22 at 2440) | the brawl (doors barred, camera on the room): bouncer + can-can dancers, then a second wave off the balcony; out the upstairs window |
+| 3300 | THE ROOFTOPS | false-front roofs over alleys (crates back up), deputies |
+| 3900 | THE SHOWDOWN (cp 23 at 3920) | the Wild West Show's street: gates shut, the announcer, the sheriff (DRAW!, fans three), deputies on the balconies, then two more; trough and barrels stop shots |
+| 4700 | THE LIVERY, THE SMITHY | farmhands (pitchforks: pointy), the hay loft, the blacksmith (hot horseshoes) |
+| 5100 | THE MILL POND (cp 24 at 5250) | the bank feller's TIMBER! alone; pond A, one log; the island feller drops his pine across the water; pond B, the BIRLER ramming; the JACK LADDER up to the deck |
+| 6800 | THE SAWMILL (cp 25 at 6840, on the deck) | belt one into the head saw (a log goes in first), over the saw onto belt two coming back with logs on it; a feller at the end |
+| 7800 | THE LUMBER YARD | fellers with hatchets; the mine's entrance |
+| 8300 | THE MOTHER LODE (cp 26 at 8050) | down the shaft's landings into the dark; a singing canary; the first cave-in alone; miners (candle hats: spiky) round a TNT crate; an ore chute |
+| 8860 | THE CART TRACK | runaway carts (warned: jump them or the alcoves); a cave-in over the rails; a TNT crate in their way |
+| 9230 | THE TRESTLE (cp 27 at 9265) | the ride cart over the chasm, low beams (duck), a prospector lobbing dynamite at the far end |
+| 9670 | THE GAS (cp 28 at 9680) | the dead canary, FIREDAMP (a shot in it sets the pocket off), a prospector past it |
+| 10000 | THE FLOODED SHAFT | dive under the rock |
+| 10330 | UP AND OUT | landings up into the daylight |
+| 10600 | TIMBER TUMBLE (cp 29 at 10660) | the log ride's queue (WAIT FROM HERE: 90 MIN), the station's front; off the right end into the log ride |
 
 ## Standing rules (all apply)
 
@@ -236,3 +257,35 @@ Teach, then escalate (each hazard alone in a safe spot first):
 - 2026-10-18 (job 2): Tucker's speaking-tube lines (train/lines.ts: boarding, the ledger now and then, the cuts, made
   it anyway, the first tunnel, the robbers, the rant, time's up, his last words) are clean / shitty / naked pools; his
   words show up top by a brass horn while they're said.
+- 2026-10-18 (job 3, the town; fill-ins, ours, not the user's): the user's words are only "a sequence of characters in
+  this logging/mining town going through the town and the mines for a bit until you hit the log ride"; all the rest is
+  ours. The cast (all new kinds, `m2:fr_*`, people seeded on Spooky Land's costume drawer; the park's staff in costume,
+  breaking character to yell at him): deputy (six-shooter), sheriff (DRAW!: fans three shots), snake-oil salesman (DR.
+  PEABODY'S MIRACLE TONIC: bottles burst into a choking cloud that hurts anybody), barbershop quartet (they sing SHAVE AND
+  A HAIRCUT... as the tell, TWO BITS! on the slash; straight razors), bouncer (grab and throw), can-can dancers (men too;
+  the kick, whiskey bottles), undertaker (measures him first: 6 FT 1, then the spade), blacksmith (red-hot horseshoes
+  that skid and stay hot), farmhand (pitchfork: pointy), feller (chops a prop pine: TIMBER!, it falls the way it leans on
+  whoever's there; hatchets after), birler (a lumberjack on his own log ramming Meathead's), miner (pickaxe; a lit
+  candle on his hard hat: spiky, HOT WAX!), prospector (lit dynamite, lobbed), and TNT crates (fixtures that go up).
+- 2026-10-18 (job 3): Tucker in the town: never seen alive. The visit of the crash, the engine's nosed into the smashed
+  buffer stop steaming, guests gawk at the tape, and park EMTs carry a sheet-covered body (his cap on it, his shoes
+  poking out, drips of blood) into FIRST AID. The undertaker's window: an empty coffin carded TUCKER. On a later visit the
+  stop's rebuilt (REPAIRS BILLED TO: YOU KNOW WHO), no wreck, no gawkers.
+- 2026-10-18 (job 3): the two set-piece fights shut their doors till they're done (the cast held off till he's in;
+  the camera held on the room, everybody on screen): THE SALOON's brawl (the doors barred, the upstairs window shuttered;
+  two waves, the next when the last is down to one) and THE SHOWDOWN (the Wild West Show's street, "WILD WEST SHOW 2PM"
+  on main street: gates SHOW IN PROGRESS, guests in the bleachers, the announcer, the sheriff's line; cover that stops
+  shots). A checkpoint past either has it done. No line names the time of day (the show's sign is a schedule).
+- 2026-10-18 (job 3): the land's ROLLING LOGS again on the mill pond, escalated: the BIRLER (his log driven at
+  Meathead's; a hard ram bucks him up off it and hurts) and the JACK LADDER (a log that reaches pond B's right end is
+  hauled up the chain with whoever's on it and tipped onto the mill deck: the only way up; a new log floats out at home
+  later). Back the other way: off the deck's left end, swim the pond.
+- 2026-10-18 (job 3): the sawmill's saw kept modest (one head saw, the buzzsaw spectacle is the log ride's): belt one
+  carries him and its logs right into it, belt two runs back at him with logs that shove him (jump them or ride them).
+  The mine: dark by the lighting system (0.64 at most, lanterns, the blasts light it), cave-ins (dust and a creak, then
+  rocks; the rubble clears), an ore chute, runaway carts (warned by a lamp at the edge; they come out of a side adit,
+  hurt the cast, set off a TNT crate in their way), the ride cart over the trestle (it comes to whichever end he's at),
+  LOW BEAMS over it (duck), the canary (singing at the top, dead at the gas), FIREDAMP (a shot fired in it, or a blast
+  reaching it, sets the whole pocket off; it builds back), the flooded shaft (swim under the rock). New hurts, each with
+  its lines and death screens: the cast's, the tonic, bottles, horseshoes, hatchets, TIMBER, the birler's ram, hot wax,
+  dynamite, cave-in, ore, mine cart, beam, firedamp, the mill saw.

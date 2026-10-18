@@ -9,7 +9,7 @@ verbatim, the fill-ins, the rules, the section plan). Each section's index.ts he
 |---|---|---|
 | 1 (done) | `wilds/`, `tucker.ts` | wilds (0-9) |
 | 2 (done) | `train/` (and tucker.ts's eye wound) | train (10-18) |
-| later | `town/` | town (20-29) |
+| 3 (done) | `town/` | town (20-29) |
 | later | `logride/` | logride (30-39) |
 | later | `woods/` | woods (40-49) |
 | later | `dirtbike/` (incl. the TEENAGERS sub-boss) | dirtbike (50-59) |
