@@ -104,18 +104,26 @@ export const drawShots = (c: Ctx, state: GameState) => {
     if (s.dead !== undefined) continue;
     c.save(); c.translate(Math.round(s.x), Math.round(s.y));
     if (s.kind === 'suitcase') {
+      // (a leather suitcase tumbling: its straps, brass corners, the handle, a sticker)
       c.rotate(s.t * 0.2);
-      box(c, -11, -8, 22, 16, INK); box(c, -10, -7, 20, 14, '#8A5A30'); box(c, -10, -7, 20, 3, '#B07A48'); box(c, -4, -11, 8, 4, INK); box(c, -2, -7, 4, 14, '#5A3A1E');
-      box(c, -10, -1, 20, 2, '#D6A84E');
+      box(c, -12, -9, 24, 18, INK); box(c, -11, -8, 22, 16, '#8A5A30'); box(c, -11, -8, 22, 3, '#B07A48'); box(c, -11, -8, 2, 16, '#A06A3C'); box(c, 8, -8, 3, 16, '#5A3A1E');
+      box(c, -5, -12, 10, 4, INK); box(c, -4, -11, 8, 2, '#5A3A1E');
+      box(c, -6, -8, 2, 16, '#4A2A12'); box(c, 4, -8, 2, 16, '#4A2A12'); box(c, -11, -1, 22, 1, '#D6A84E');
+      for (const [cx, cy] of [[-11, -8], [9, -8], [-11, 6], [9, 6]]) box(c, cx, cy, 2, 2, '#E8C25A');
+      box(c, -2, 2, 5, 4, '#E86A4A'); box(c, -2, 2, 5, 1, '#F8B8A0');
     } else if (s.kind === 'cleaver') {
+      // (the cleaver spinning: the blade stepped, its bright edge, the hole, the riveted handle)
       c.rotate(s.t * 0.45 * Math.sign(s.vx));
-      box(c, -9, -6, 13, 11, INK); box(c, -8, -5, 11, 9, '#D4D4D8'); box(c, -8, -5, 11, 2, '#F4F4F5'); box(c, 3, -2, 8, 4, INK); box(c, 4, -1, 6, 2, '#6B4423');
+      box(c, -10, -7, 15, 13, INK); box(c, -9, -6, 13, 11, '#A1A1AA'); box(c, -9, -6, 13, 3, '#E4E4E7'); box(c, -9, 3, 13, 2, '#F8FAFC'); box(c, -7, -4, 2, 2, INK);
+      box(c, 3, -2, 10, 5, INK); box(c, 4, -1, 8, 3, '#6B4423'); box(c, 4, -1, 8, 1, '#9A6A3A'); box(c, 6, 0, 1, 1, '#E8C25A'); box(c, 10, 0, 1, 1, '#E8C25A');
     } else {
-      // (a lump of coal, glowing in its cracks)
+      // (a lump of coal, faceted, glinting, glowing in its cracks)
       c.rotate(s.t * (s.rolling ? -0.3 : 0.15));
       c.fillStyle = INK; c.beginPath(); c.moveTo(-8, -2); c.lineTo(-4, -8); c.lineTo(5, -7); c.lineTo(8, 0); c.lineTo(3, 7); c.lineTo(-6, 6); c.closePath(); c.fill();
       c.fillStyle = '#27272A'; c.beginPath(); c.moveTo(-6, -2); c.lineTo(-3, -6); c.lineTo(4, -5); c.lineTo(6, 0); c.lineTo(2, 5); c.lineTo(-5, 4); c.closePath(); c.fill();
-      box(c, -2, -1, 4, 1, f % 6 < 3 ? '#F97316' : '#DC2626'); box(c, 1, 1, 1, 3, '#F97316');
+      c.fillStyle = '#4A4A56'; c.beginPath(); c.moveTo(-6, -2); c.lineTo(-3, -6); c.lineTo(0, -5); c.lineTo(-2, -1); c.closePath(); c.fill();
+      box(c, -3, -5, 1, 1, '#A8A8B8');
+      box(c, -2, -1, 4, 1, f % 6 < 3 ? '#F97316' : '#DC2626'); box(c, 1, 1, 1, 3, '#F97316'); box(c, 2, 2, 1, 1, '#FDE047');
     }
     c.restore();
   }

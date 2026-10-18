@@ -29,11 +29,12 @@ import { SKIP_AFTER, offerSkip, takeSkip, drawSkipPrompt } from '../../../m1/gam
 import { hands, meatheadSays, speak, saidOver, teleport, byPants, landVisit, type Said } from '../section';
 import { DOORS, GY } from '../geometry';
 import { TUCKER_VOICE, type ByPants } from '../talk';
-import { box, mix, INK, painted, burned, type Ctx } from '../kit';
-import { signText } from '../../signLetters';
+import { box, mix, INK, type Ctx } from '../kit';
 import { drawTucker, drawTuckerCloseup, registerWoundPainter } from '../tucker';
 import { trainOf } from './state';
-import { CARS, CAR_X, RAIL, TENDER, ENGINE, CAB, ENGINE_SCALE } from './layout';
+import { CARS, CAR_X, RAIL, TENDER, ENGINE, CAB } from './layout';
+import { N, VARNISH } from './paint';
+import { ENG, drawMachine, drawCabBack, drawOutOfService, drawBumperArt } from './engineArt';
 import { cutTender, cancelCut } from './cars';
 import { screenX, screenY, inView } from './view';
 import { TUBE_RANT, TUBE_TIMEUP, TUCKER_SHOT, KILL_SEEN, SHOT_LINE, DRIVER_LINE, TUCKER_INSULT, MH_COMEBACK, TUCKER_DARE, TUCKER_DODGE, MH_RAYGUN } from './lines';
@@ -75,7 +76,6 @@ const tuckerSay = (s: Scene, text: string | null, done?: () => void) => {
 };
 const pick = (state: GameState, pool: ByPants) => pickLine(byPants(state, pool));
 
-const ES = ENGINE_SCALE;
 const ENGINE_X = CAR_X[ENGINE], ENGINE_FRONT = ENGINE_X + CARS[ENGINE].len;
 /** Where a shot at him counts: from a bit back over the tender up to his window (before the cab wall eats it). */
 const ZONE = { x0: ENGINE_X - 110, x1: ENGINE_X + 6, y0: CAB.sill - 130, y1: CAB.sill + 8 };
@@ -324,69 +324,23 @@ registerWoundPainter('eye', (c, k) => {
 });
 
 // ---------------------------------------------------------------------------------------------------------------
-// Drawing: the engine (the first pass's, blown up to the big cars' size), Tucker in the back of the cab (his own size),
-// the KILL arrow, the buffer stop and the crash
+// Drawing: the engine (engineArt.ts: Lonesome Pine Station's 4-4-0 at the big cars' size), Tucker in the back of the cab
+// (his own size), the KILL arrow, the buffer stop and the crash
 
-const RED = '#A3262A', RED_L = '#D4483E', BLACK = '#26262C', BRASS = '#E0B040', WOOD = '#8A5A30';
-
-const wheel = (c: Ctx, x: number, y: number, r: number, a: number) => {
-  c.fillStyle = INK; c.beginPath(); c.arc(x, y, r + 1.5, 0, Math.PI * 2); c.fill();
-  c.fillStyle = RED; c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2); c.fill();
-  c.fillStyle = '#5A1A1A'; c.beginPath(); c.arc(x, y, r - 3, 0, Math.PI * 2); c.fill();
-  c.strokeStyle = RED_L; c.lineWidth = 2;
-  for (let k = 0; k < 8; k++) { const t = a + (k * Math.PI) / 4; c.beginPath(); c.moveTo(x, y); c.lineTo(x + Math.cos(t) * (r - 3), y + Math.sin(t) * (r - 3)); c.stroke(); }
-  c.fillStyle = BRASS; c.beginPath(); c.arc(x, y, 3, 0, Math.PI * 2); c.fill();
-};
+const BRASS = '#E0B040';
+const VARN = N(VARNISH);
 
 /** Behind the cast: the engine (the boiler, the stack smoking, the cab with Tucker leaning out of the back of it). */
 export const drawEngineBack = (c: Ctx, state: GameState) => {
-  const s = scOf(state), tr = trainOf(state), f = state.frame, x = ENGINE_X, y = GY, roll = tr.dist / 40;
+  const s = scOf(state), tr = trainOf(state), f = state.frame, x = ENGINE_X;
   if (!inView(state, x - 200, x + CARS[ENGINE].len + 100, 100)) return;
   // (never stove in here: the train cuts away before the stop; the wreck's the town's)
-  const crushed = 0;
   const stuck = s.step === 'slump' || s.step === 'speed';
-  // ---- the machine, in the first pass's units, blown up about the rail under its back end
-  c.save(); c.translate(x, y); c.scale(ES, ES); c.translate(-x, -y);
-  // (the smoke out of the stack, streaming back over the train)
-  const going = tr.v > 1;
-  for (let k = 0; k < (going ? 9 : 3); k++) {
-    const t = (f * (going ? 0.045 : 0.015) + k / (going ? 9 : 3)) % 1;
-    const sx = x + 271 - t * (going ? 420 : 20), sy = y - 150 - t * (going ? 40 : 90);
-    c.globalAlpha = 0.65 * (1 - t); c.fillStyle = mix('#3F3F46', '#E4E4E7', t); c.beginPath(); c.arc(sx, sy, 12 + t * 26, 0, Math.PI * 2); c.fill(); c.globalAlpha = 1;
-  }
-  // (the cab: red, its roof, a side window)
-  box(c, x - 8, y - 196, 106, 10, BLACK);
-  box(c, x - 4, y - 188, 100, 154, INK); box(c, x - 2, y - 186, 96, 150, RED); box(c, x - 2, y - 186, 96, 5, RED_L);
-  box(c, x + 34, y - 160, 40, 36, '#1A1210'); box(c, x + 34, y - 160, 40, 3, '#3A2A20');
-  // (the boiler, its bands, the domes, the bell, the balloon stack, the headlamp, the cowcatcher)
-  const b0 = x + 96 - crushed * 0.3, bw = 200 - crushed;
-  box(c, b0, y - 132, bw, 70, INK); box(c, b0 + 2, y - 130, bw - 4, 66, BLACK); box(c, b0 + 2, y - 130, bw - 4, 10, '#4A4A54');
-  for (let k = 1; k < 4; k++) box(c, b0 + k * bw / 4, y - 132, 5, 70, BRASS);
-  box(c, b0 + 40, y - 152, 26, 22, INK); box(c, b0 + 42, y - 150, 22, 20, BRASS);
-  box(c, b0 + 100, y - 146, 14, 14, BRASS); box(c, b0 + 105, y - 152, 4, 6, BLACK);
-  c.fillStyle = INK; c.beginPath(); c.moveTo(b0 + 160, y - 130); c.lineTo(b0 + 150, y - 190); c.lineTo(b0 + 196, y - 190); c.lineTo(b0 + 186, y - 130); c.closePath(); c.fill();
-  c.fillStyle = BLACK; c.beginPath(); c.moveTo(b0 + 162, y - 130); c.lineTo(b0 + 153, y - 187); c.lineTo(b0 + 193, y - 187); c.lineTo(b0 + 184, y - 130); c.closePath(); c.fill();
-  box(c, b0 + 150, y - 193, 46, 6, BRASS);
-  const front = b0 + bw;
-  box(c, front - 24, y - 162, 28, 26, INK); box(c, front - 22, y - 160, 24, 22, WOOD); box(c, front - 12, y - 155, 12, 12, '#E8D890');
-  box(c, front - 4, y - 64, 30, 30, INK); box(c, front - 2, y - 62, 26, 26, RED);
-  c.fillStyle = INK; c.beginPath(); c.moveTo(front + 22, y - 40); c.lineTo(front + 62 - crushed * 0.6, y - 2); c.lineTo(front + 22, y - 2); c.closePath(); c.fill();
-  c.strokeStyle = RED_L; c.lineWidth = 3; for (let k = 0; k < 5; k++) { c.beginPath(); c.moveTo(front + 24 + k * 7, y - 4); c.lineTo(front + 24, y - 36 + k * 7); c.stroke(); }
-  // (the frame, the drivers and their rods, the pilot wheels: all on the rail)
-  box(c, x - 4, y - 34, 330 - crushed, 12, INK);
-  const dr = 24, dy = y - (y - RAIL + dr * ES) / ES, pr = 12, py = y - (y - RAIL + pr * ES) / ES;
-  for (const wx of [x + 40, x + 110, x + 180]) wheel(c, wx, dy, dr, roll);
-  wheel(c, x + 250 - crushed * 0.5, py, pr, roll); wheel(c, x + 290 - crushed * 0.6, py, pr, roll);
-  const rx = Math.cos(roll) * 13, ry = Math.sin(roll) * 13;
-  c.strokeStyle = INK; c.lineWidth = 6; c.beginPath(); c.moveTo(x + 40 + rx, dy + ry); c.lineTo(x + 180 + rx, dy + ry); c.stroke();
-  c.strokeStyle = '#C8C8D0'; c.lineWidth = 3; c.stroke();
-  c.strokeStyle = '#A1A1AA'; c.lineWidth = 3; c.beginPath(); c.moveTo(x + 180 + rx, dy + ry); c.lineTo(x + 250, y - 46); c.stroke();
-  // (the steam off the whistle, stuck on)
-  if (stuck) for (let k = 0; k < 4; k++) { c.globalAlpha = 0.6; c.fillStyle = '#F8FAFC'; c.beginPath(); c.arc(x + 20 - k * 6, y - 200 - k * 12 - (f % 12), 6 + k * 3, 0, Math.PI * 2); c.fill(); c.globalAlpha = 1; }
-  c.restore();
+  // ---- the machine, its wheels on the rail
+  drawMachine(c, x, RAIL, f, tr.dist / ENG.dr, tr.v > 1, stuck);
   // ---- the cab's back (his own size from here: the opening he leans out of, the sill)
   const back = GY - 300;
-  box(c, x - 3, back, 40, CAB.sill - back, '#1A1210'); box(c, x - 3, back, 40, 4, '#3A2A20');
+  drawCabBack(c, x, back, CAB.sill, f);
   // ---- Tucker, leaning out of the back of the cab (clipped at the sill): manic, shaking his fist; ducked under it;
   // slumped over it once shot. Not at his window till the insult.
   if (tr.phase !== 'still' && s.step !== 'done' && s.step !== 'wait') {
@@ -405,8 +359,8 @@ export const drawEngineBack = (c: Ctx, state: GameState) => {
     }
     c.restore();
   }
-  box(c, x - 40, CAB.sill - 3, 64, 8, INK); box(c, x - 39, CAB.sill - 2, 62, 6, WOOD); box(c, x - 39, CAB.sill - 2, 62, 2, '#E8C890');
-  if (tr.phase === 'still' || s.step === 'done') { box(c, x + 60, GY - 230, 110, 34, INK); box(c, x + 62, GY - 228, 106, 30, '#FEF3C7'); signText(c, 'OUT OF', x + 115, GY - 218, painted(1, '#7F1D1D', '#FEF3C7')); signText(c, 'SERVICE', x + 115, GY - 206, painted(1, '#7F1D1D', '#FEF3C7')); }
+  box(c, x - 41, CAB.sill - 4, 66, 10, INK); box(c, x - 40, CAB.sill - 3, 64, 8, VARN[3]); box(c, x - 40, CAB.sill - 3, 64, 2, VARN[5]); box(c, x - 40, CAB.sill - 1, 64, 1, VARN[6]); box(c, x - 40, CAB.sill + 4, 64, 1, VARN[1]);
+  if (tr.phase === 'still' || s.step === 'done') drawOutOfService(c, x + 60, GY - 232);
   // (the whistle cord, pulled tight by his weight once he's slumped on it)
   c.strokeStyle = '#D6D3D1'; c.lineWidth = 1; c.beginPath(); c.moveTo(x + 12, GY - 310); c.lineTo(x + 12 + (stuck ? -10 : 0), stuck ? CAB.sill - 10 : GY - 250); c.stroke();
 };
@@ -421,8 +375,12 @@ export const drawEngineFront = (c: Ctx, state: GameState) => {
   const arrow = s.step === 'rant' || (s.step === 'insult' && s.beat >= 3);
   if (arrow && Math.floor(f / 10) % 2 === 0) {
     const ax = hx, ay = CAB.sill - 112 + Math.sin(f * 0.2) * 4;
-    c.fillStyle = '#DC2626'; c.beginPath(); c.moveTo(ax, ay + 16); c.lineTo(ax - 12, ay); c.lineTo(ax + 12, ay); c.fill();
+    // (the arrow: inked, stepped red, a lit edge)
+    c.fillStyle = INK; c.beginPath(); c.moveTo(ax, ay + 19); c.lineTo(ax - 15, ay - 2); c.lineTo(ax + 15, ay - 2); c.closePath(); c.fill();
+    c.fillStyle = '#B91C1C'; c.beginPath(); c.moveTo(ax, ay + 16); c.lineTo(ax - 12, ay); c.lineTo(ax + 12, ay); c.closePath(); c.fill();
+    c.fillStyle = '#EF4444'; c.beginPath(); c.moveTo(ax - 1, ay + 12); c.lineTo(ax - 10, ay); c.lineTo(ax - 2, ay); c.closePath(); c.fill();
     c.font = 'bold 14px "Press Start 2P"'; c.textAlign = 'center';
+    c.lineWidth = 4; c.strokeStyle = INK; c.lineJoin = 'round'; c.strokeText('KILL', ax, ay - 8);
     c.fillStyle = '#000'; c.fillText('KILL', ax + 2, ay - 6); c.fillStyle = '#F87171'; c.fillText('KILL', ax, ay - 8); c.textAlign = 'left';
   }
   // (the end of the line: SAWDUST GULCH's buffer stop and its platform, coming)
@@ -432,19 +390,8 @@ export const drawEngineFront = (c: Ctx, state: GameState) => {
 
 /** The buffer stop (timbers, a red-and-white striped beam) and Sawdust Gulch's station front behind it. */
 const drawBumper = (c: Ctx, x0: number, crashT: number) => {
-  c.save(); c.translate(x0, GY); c.scale(1.5, 1.5); c.translate(-x0, -GY);
-  const x = x0;
-  // (the station: a plywood false front, its name, END OF LINE)
-  box(c, x + 40, GY - 260, 260, 260, INK); box(c, x + 42, GY - 258, 256, 258, '#B08A5A');
-  for (let k = x + 50; k < x + 296; k += 16) box(c, k, GY - 258, 1, 258, '#8A6A40');
-  box(c, x + 60, GY - 240, 220, 40, INK); box(c, x + 62, GY - 238, 216, 36, '#FEF3C7');
-  signText(c, 'SAWDUST GULCH', x + 170, GY - 210, burned(2, 9));
-  box(c, x + 110, GY - 150, 120, 26, INK); box(c, x + 112, GY - 148, 116, 22, '#7F1D1D'); signText(c, 'END OF LINE', x + 170, GY - 131, painted(1, '#FDE047', '#1C1209'));
-  // (the bumper: heavy timbers, the striped beam the engine's going into)
-  const sq = Math.min(30, crashT * 3);
-  box(c, x + sq, GY - 70, 40, 70, INK); box(c, x + 2 + sq, GY - 68, 36, 68, '#5A3A1E');
-  for (let k = 0; k < 4; k++) box(c, x + 2 + sq, GY - 64 + k * 14, 36, 7, k % 2 ? '#F8FAFC' : '#DC2626');
-  c.restore();
+  void crashT;
+  drawBumperArt(c, x0, GY);
 };
 
 /** Screen space: his words (the insult's with his face up close over them); the eye close-up and his last words under
@@ -492,4 +439,4 @@ export const drawEngineHud = (c: Ctx, state: GameState) => {
 /** The engine's scene has the camera (for the section's camera, while it does). */
 export const engineHasCamera = (state: GameState) => cut(scOf(state)) || scOf(state).step === 'insult';
 /** The headlamp, for the lighting. */
-export const headlamp = () => ({ x: ENGINE_X + 473, y: GY - 250 });
+export const headlamp = () => ({ x: ENGINE_X + ENG.lamp.x, y: RAIL + ENG.lamp.y });

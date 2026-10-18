@@ -1064,3 +1064,21 @@ later (+1 if heavyset; was 2 / 3 before playtest fixes E). Tucker's glimpsed ahe
   trash can, speaker rock, the trap, pines and cones, swarm, quills, log pile, logs (drawLog: the town's too), the
   boom and the falls, the fallen trees, the leeches, and every animal (stamped frames; deer lie flat dead, the rest
   belly up). kit.ts gains parkSign() (plank boards on peeled posts, burned or painted letters; for every section).
+- 2026-10-18: SNES pass, section 2 (the train), art only (no gameplay, hitbox, layout or timing changes; the crash
+  handoff and the tilted view untouched). The train is Lonesome Pine Station's train at the big car sizes (the same
+  reds, maroons, Russia iron, brass, varnish): new train/paint.ts (its ramps; still(): per-hour caches that, unlike the
+  engine's stamps, survive the grades' tilt, under a pixel budget), carArt.ts (four cached layers per car kind: base
+  (floor, sills, truss rods, couplers, platforms, brake wheels, ladders and lit treads), top (outside-braced boxcar,
+  log flat, planked ore hopper, SARSAPARILLA tank, the black-and-brass tender with coal and cordwood), int (cream walls,
+  wainscot, curtains, clerestory panes, seats, the diner's kitchen, mail pigeonholes, cattle slats with daylight through
+  them, the caboose's stove and cupola ladder; every fitting's top lit) and ext (planked, pinstriped, arched windows
+  warm after dark, letterboards, the cupola, marker lamps); trucks with cached wheels; burning, charred wrecks),
+  engineArt.ts (the 4-4-0 No. 7 at 2.4x the station's, cached wheels, rods, smoke, stuck-whistle steam, the cab's open
+  back with the firebox glow; OUT OF SERVICE; Sawdust Gulch's false front and bumper), far.ts (the wilds' own far off,
+  slid by the distance, then a per-hour tile of the park: fiberglass buttes, plywood pine cutouts on braces, real pines,
+  the WAVE AT THE TRAIN! deck with live seeded guests, the billboard, the prop mine; the split-rail fence). Passers: a
+  covered road bridge end on (LOW kept on its fascia, the stripes; WALK YOUR HORSE), the station's water tower with its
+  spout over the line, fiberglass tunnel portals and a dark shell inside (ribs, conduit, caged lanterns), the falls'
+  fiberglass cliff and banded water, the FALLS AHEAD warning as a parkSign, the near bank tile (plunge pool, tunnel
+  foot). The cast redrawn seeded (porter, brakeman, robber + horse in four gallop frames, cook, passenger, fireman) and
+  the longhorn in the wilds' animal style; the shots touched up.
