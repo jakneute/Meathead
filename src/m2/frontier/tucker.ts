@@ -662,9 +662,30 @@ const drawCap = (c: Ctx, _f: number) => {
  * (the eye hole through his spectacles and out the back; the buzzsaw stuck in his forehead, over the cap's line). The
  * train's job draws `eye`, the log ride's `saw`, the catch-up's `branch`. Until then: nothing.
  */
-const drawWounds = (_c: Ctx, w: TuckerWounds, _layer: 'body' | 'head', _f: number) => {
+const drawWounds = (c: Ctx, w: TuckerWounds, layer: 'body' | 'head', f: number) => {
   if (!w.eye && !w.saw && !w.branch) return;
   // (the train's job: the near eye shot clean through: an empty socket, the lens starred, blood down his cheek)
+  if (w.eye && layer === 'head') {
+    // (the socket: a ragged ring of meat, and clean through the hole, light from the far side of his head)
+    ell(c, NEAR_EYE, EYE_Y, 2.7, 2.5, '#4A0A0A');
+    ell(c, NEAR_EYE, EYE_Y, 2.1, 1.9, '#7A1212');
+    ell(c, NEAR_EYE + 0.2, EYE_Y + 0.1, 1.3, 1.15, '#1A0303');
+    ell(c, NEAR_EYE + 0.25, EYE_Y + 0.1, 0.75, 0.65, '#BFE0F8');
+    px(c, NEAR_EYE - 1.6, EYE_Y - 1.2, 0.8, 0.6, '#B02A2A');
+    // (the lens starred round the hole)
+    c.globalAlpha = 0.8;
+    for (let i = 0; i < 6; i++) { const a = (i / 6) * Math.PI * 2 + 0.4; line(c, [NEAR_EYE + Math.cos(a) * 1.4, EYE_Y + Math.sin(a) * 1.3, NEAR_EYE + Math.cos(a) * 2.9, EYE_Y + Math.sin(a) * 2.7], 0.22, '#E8F0F8'); }
+    c.globalAlpha = 1;
+    // (the blood run down his cheek and over the chop, dried dark, a fresh drip now and then)
+    line(c, [NEAR_EYE - 0.5, EYE_Y + 2, NEAR_EYE - 0.8, EYE_Y + 5.5, NEAR_EYE - 0.2, EYE_Y + 10], 1.1, '#7A1212');
+    line(c, [NEAR_EYE - 0.3, EYE_Y + 2.2, NEAR_EYE - 0.6, EYE_Y + 5.5, NEAR_EYE, EYE_Y + 9.6], 0.35, '#C83232');
+    line(c, [NEAR_EYE + 1.2, EYE_Y + 2.2, NEAR_EYE + 1.6, EYE_Y + 6.4], 0.7, '#7A1212');
+    const d = (f % 90) / 90;
+    if (d < 0.6) ell(c, NEAR_EYE, EYE_Y + 10.4 + d * 4, 0.45, 0.65, '#991B1B');
+    // (the way out: a ragged hole at the back of his head, blood matted round it)
+    ell(c, -10.4, -3.4, 1.5, 2, '#4A0A0A'); ell(c, -10.6, -3.4, 0.8, 1.2, '#1A0303');
+    line(c, [-10.6, -1.6, -10.9, 1.8], 0.7, '#7A1212');
+  }
   // (the log ride's job: the buzzsaw buried in his forehead, the cap split round it, his splitting headache)
   // (the catch-up's job: the giant branch through his chest, out the back of his coat, leaves still on it)
 };

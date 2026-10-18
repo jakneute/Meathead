@@ -62,3 +62,14 @@ export const runExits = (state: GameState, exits: Exit[]) => {
   for (const e of exits) if (cx >= e.x0 && cx <= e.x1 && feet >= e.yTop && feet <= e.yBot) { teleport(state, e.to.x, e.to.y); return true; }
   return false;
 };
+
+// ---------------------------------------------------------------------------------------------------------------
+// Tucker's wounds so far (they stack through the land): each job that mutilates him sets its memo in state.stageMemo
+// (the train's: 'frontier-tucker-eye', set when he's shot through the eye); draw him with these from then on
+// (drawTucker(..., { wounds: tuckerWoundsOf(state) })).
+
+export const tuckerWoundsOf = (state: GameState) => ({
+  eye: state.stageMemo['frontier-tucker-eye'] === '1',
+  saw: state.stageMemo['frontier-tucker-saw'] === '1',
+  branch: state.stageMemo['frontier-tucker-branch'] === '1',
+});

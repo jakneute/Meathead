@@ -1,20 +1,197 @@
-// THE TRAIN: section 2 of Wilderness Land (job 2's to build; the skeleton's stand-in for now). The station scene (the
-// wilds' end, wilds/station.ts) leaves Tucker's train speeding off and puts him here. The user's design (frontier-spec.md,
-// verbatim there): Meathead jumps on the train from the caboose and makes his way through it to the engine. Cars he can
-// go through and cars he can only cross on top of; Tucker now and then uncouples the car he's on (dally and it derails:
-// a silly violent death); tunnels go by and darken the view, more and more of them, never quite black; train obstacles
-// and enemies. At the front: the engine with a big KILL arrow (as Riggs in Meathead 1); one shot from outside, a
-// close-up of the hole through his eye (the mutilation rule: an ANIMATED, multi-frame, gory close-up, tucker.ts
-// `drawTuckerCloseup` with `making: { wound: 'eye', k }`), apparently dead; the train crashes into the town's stop.
+// THE TRAIN: section 2 of Wilderness Land. The station scene (wilds/station.ts) leaves Tucker's train speeding off and
+// puts him here, running after it. The user's design (frontier-spec.md, verbatim there): Meathead jumps on the train from
+// the caboose and makes his way through it to the engine. Cars he can go into (the caboose, coaches, dining cars,
+// baggage and mail cars, cattle cars) and cars he can only cross on top (boxcars, flatcars of logs, ore hoppers, tank
+// cars, the tender); Tucker now and then uncouples the car he's on (dally and it derails: a silly violent death, cars.ts);
+// tunnels go by and darken the view, more and more of them, never quite black (passers.ts, the lighting); train hazards
+// (low bridges, water towers, the fireman's coal, the stack's cinders) and the train's cast (kinds.ts). At the front:
+// the engine with a big KILL arrow (as Riggs in Meathead 1); one shot, the close-up of the hole through his eye; the
+// crash into Sawdust Gulch (engine.ts).
 //
-// Checkpoints 10-19. Way back: the left end to the station (DOORS.wilds.end); the crash is one-way (back from the town,
-// he's at the wreck: the town's owner keeps the way back walkable).
+// The train stands still in the world; the world goes by it (the scenery, the ties, whatever's coming: tr.dist).
+//
+// THE RUN FOR THE CABOOSE: coming in from the station, he's on the ties behind the train as it labors up the grade; he
+// runs it down and hops up onto the caboose's back porch (a cutscene: SKIP >> puts him on it), and the train gets up to
+// speed. Down on the tracks after that (through a cut coupling), he's under the wheels.
+//
+// Checkpoints 10-18. A death puts the train back as it was at that checkpoint (cars cut loose before it stay gone).
+// The ways: back off the back of the rearmost car (or the section's left end) to the station's platform
+// (DOORS.wilds.end); on, only by the crash (the town, DOORS.town.start). After the crash (a revisit), the train's stood
+// still at the end of the line, whole again (the park towed the cars back, and billed him), nobody on it: walk it end to
+// end; into the cab's back to go on to the town; the town's left end brings him back to the tender (TRAIN_END).
 
-import { stubSection } from '../stub';
+import type { EnemyKind } from '../../../m1/types';
+import type { GameState } from '../../../m1/game/core/state';
+import type { Light } from '../../../m1/game/render/lighting';
+import { pickLine } from '../../../m1/game/platform/speech';
+import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
+import { SKIP_AFTER, offerSkip, takeSkip, drawSkipPrompt } from '../../../m1/game/platform/skip';
+import { CANVAS_WIDTH } from '../../../m1/constants';
+import { todLight } from '../../timeOfDay';
+import type { FrontierSection } from '../section';
+import { layOwn, endWalls, endExits, runExits, teleport, meatheadSays, byPants, hands } from '../section';
+import { SECTIONS, DOORS, GY } from '../geometry';
+import { trainOf } from './state';
+import { CARS, CAR_X, CHECKPOINTS, DECK, ROOF, END, TOP, ENTERABLE, ENGINE, V_FULL, V_INTRO, PICKUPS, TRAIN_END } from './layout';
+import { buildCars, rearForCheckpoint, updateCut, updateTracks, insideCar } from './cars';
+import { updatePassers, drawPassersBack, drawPassersFront, drawWarnings, tunnelLamps } from './passers';
+import { updateShots, drawShots } from './shots';
+import { setBounds } from './kinds';
+import { drawScenery, drawTrackside, drawCarsBack, drawCarsFront, carLamps } from './art';
+import { updateEngine, drawEngineBack, drawEngineFront, drawEngineHud, crashed, whenCrashed, headlamp } from './engine';
+import { tubeSay, drawTube } from './tube';
+import { BOARDED, TUBE_BOARD, TUBE_LEDGER, TRAIN_GAGS, REVISIT } from './lines';
 
-export const train = stubSection({
-  id: 'train', cp: 10, name: 'THE TRAIN',
-  sign: ['THE TRAIN', 'CABOOSE TO ENGINE'],
-  soon: ['ON AT THE CABOOSE', 'CAR BY CAR TO THE ENGINE', 'TUNNELS. UNCOUPLINGS.', 'THE KILL ARROW'],
-  more: [[4500, ['MIND THE GAP', 'BETWEEN CARS']], [8500, ['ENGINE AHEAD', 'KILL >']]],
+const { x0, x1 } = SECTIONS.train;
+// (back into the train from the town: the tender's front end)
+DOORS.train.end = TRAIN_END;
+
+const AWAY = -99999;
+
+/** Everybody on the train, where they were put (none on a revisit). */
+const spawnCast = (state: GameState) => {
+  CARS.forEach((d, i) => {
+    const x = CAR_X[i];
+    for (const [kind, rx, where] of d.foes ?? []) {
+      const feet = where === 'in' ? DECK : TOP[d.kind] ?? ROOF;
+      const e = makeKindEnemy(`m2:fr_${kind}` as EnemyKind, x + rx, feet);
+      e.homeX = e.pos.x; e.homeY = e.pos.y; e.variant = (i * 3 + rx) % 7; e.facing = -1;
+      // (each keeps to its car: inside it, or along its top)
+      setBounds(e, x + (where === 'in' ? END : END + 4), x + d.len - (where === 'in' ? END : END + 4));
+      state.enemies.push(e);
+    }
+  });
+};
+
+export const train: FrontierSection = {
+  id: 'train', x0, x1,
+  checkpoints: CHECKPOINTS,
+  build: (state) => {
+    const tr = trainOf(state);
+    // (the bed under the train: the ties; the ends walled)
+    layOwn(state, [{ x1: x0 - 200, y1: GY, x2: x1 + 200, y2: GY, surface: 'dirt' }]);
+    endWalls(state, 'train');
+    tr.rear = 0;
+    buildCars(state, tr);
+    if (!crashed(state)) spawnCast(state);
+    for (const [ci, rx, type] of PICKUPS) state.pickups.push({ id: `train-${ci}-${rx}`, pos: { x: CAR_X[ci] + rx - 10, y: DECK - 24 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type, life: 1e9 });
+  },
+  update: (ctx, controls) => {
+    const { state } = ctx, tr = trainOf(state), p = state.player;
+    const cx = p.pos.x + p.width / 2, feet = p.pos.y + p.height;
+    // (the first frame: where he really starts is known now (a cheat's pick comes after the build): the train as it is
+    // there; on the train, it's moving; behind it, he's running it down; after the crash, it's stood still)
+    if (!tr.settled) {
+      tr.settled = true;
+      if (crashed(state)) { tr.phase = 'still'; tr.v = 0; tr.vTarget = 0; }
+      else if (state.checkpoint >= 10) {
+        tr.phase = 'ride'; tr.v = V_FULL; tr.vTarget = V_FULL;
+        const rear = rearForCheckpoint(state.checkpoint);
+        if (rear > 0) {
+          for (let i = 0; i < rear; i++) { tr.cars[i].gone = true; for (const b of tr.cars[i].blocks) b.y = AWAY; tr.cutsDone.add(i); }
+          tr.rear = rear;
+          state.enemies = state.enemies.filter(e => e.pos.x > CAR_X[rear] - 10 || e.pos.x < x0 || e.pos.x > x1);
+          state.pickups = state.pickups.filter(q => !q.id.startsWith('train-') || q.pos.x > CAR_X[rear]);
+        }
+      } else { tr.phase = 'intro'; tr.v = V_INTRO; tr.vTarget = V_INTRO; }
+    }
+    tr.v += (tr.vTarget - tr.v) * 0.02;
+    if (Math.abs(tr.vTarget - tr.v) < 0.02) tr.v = tr.vTarget;
+    tr.dist += tr.v;
+    let out = controls;
+    // ---- the run for the caboose (from the station)
+    const rearX = CAR_X[tr.rear];
+    if (tr.phase === 'intro') {
+      if (cx >= rearX - 24 && feet < GY - 10 && p.isGrounded) boarded(state, tr.introT > 0);
+      else if (cx > x0 + 60 && cx < rearX && p.health > 0) {
+        tr.introT++;
+        p.inCutscene = true;
+        if (tr.introT > SKIP_AFTER) { offerSkip(); if (takeSkip()) { teleport(state, rearX + 14, DECK); boarded(state, true); return hands(); } }
+        // (running it down; close, a hop up onto the porch)
+        // (hopT: frames left holding the jump; below zero, frames it's been let go, so a missed hop can go again)
+        let jump = false;
+        if (tr.hopT > 0) { jump = true; if (--tr.hopT === 0) tr.hopT = -1; }
+        else if (tr.hopT < 0) tr.hopT--;
+        if (p.isGrounded && cx > rearX - 70 && (tr.hopT === 0 || tr.hopT < -4)) tr.hopT = 6;
+        if (tr.introT > 420) { teleport(state, rearX + 14, DECK); boarded(state, true); return hands(); }
+        return { ...hands(), right: true, jump } as typeof controls;
+      }
+    }
+    // ---- the engine's scene, the cuts, what goes by, what flies, the tracks
+    out = updateEngine(ctx, out);
+    // (off the back of the rearmost car, while it's coupled: back to the station)
+    const rearFloor = tr.cars[tr.rear]?.blocks[0];
+    if (tr.phase !== 'intro' && rearFloor && (!tr.cut || tr.cut.phase === 'tell' || tr.cut.k < tr.rear) && cx < rearFloor.x + 2 && feet < GY - 6 && feet > DECK - 40 && p.health > 0 && !p.inCutscene) {
+      if (tr.phase === 'ride') { tr.phase = 'intro'; tr.v = V_INTRO; tr.vTarget = V_INTRO; tr.introT = 0; }
+      teleport(state, DOORS.wilds.end.x, DOORS.wilds.end.y);
+      return out;
+    }
+    runExits(state, endExits('train', { right: false }));
+    // (stood still: into the back of the cab, on to the town)
+    if (tr.phase === 'still' && cx > CAR_X[ENGINE] - 30 && feet <= DECK + 4 && feet > DECK - 120) { teleport(state, DOORS.town.start.x, DOORS.town.start.y); return out; }
+    updateCut(ctx);
+    updatePassers(ctx);
+    updateShots(ctx, tr.phase === 'ride');
+    updateTracks(ctx, CAR_X[0] - 600, CAR_X[ENGINE] + CARS[ENGINE].len);
+    // ---- what's said: the ledger now and then; the firsts
+    if (tr.phase === 'ride' && p.health > 0 && !p.inCutscene) {
+      if (++tr.ledgerT > 1500 && !tr.tubeBusy && !tr.cut && cx < CAR_X[ENGINE - 1] - 40) { tr.ledgerT = 0; tubeSay(state, TUBE_LEDGER, undefined, false); }
+      for (let i = tr.rear; i < CARS.length; i++) if (CARS[i].kind === 'cattle' && !tr.said.cattle && insideCar(state, tr, i)) { tr.said.cattle = true; meatheadSays(state, pickLine(byPants(state, TRAIN_GAGS.cattle)), false); }
+      if (!tr.said.tower && tr.passers.some(q => q.kind === 'tower')) { tr.said.tower = true; meatheadSays(state, pickLine(byPants(state, TRAIN_GAGS.tower)), false); }
+    }
+    if (tr.phase === 'still' && !tr.said.revisit && cx > x0 + 400 && p.health > 0) { tr.said.revisit = true; meatheadSays(state, pickLine(byPants(state, REVISIT)), false); }
+    return out;
+  },
+  cameraX: () => ({ min: x0, max: x1 - CANVAS_WIDTH }),
+  // (the camera kept level: the train and the scenery steady, whichever car top he's on)
+  cameraRow: (state) => (state.player.isGrounded ? state.player.pos.y + state.player.height : DECK + 200),
+  drawBackdrop: (c, state) => drawScenery(c, state),
+  drawBack: (c, state) => {
+    drawTrackside(c, state);
+    drawPassersBack(c, state);
+    drawCarsBack(c, state);
+    drawEngineBack(c, state);
+    drawShots(c, state);
+  },
+  drawFront: (c, state) => {
+    drawCarsFront(c, state);
+    drawPassersFront(c, state);
+    drawEngineFront(c, state);
+  },
+  drawHud: (c, state) => {
+    const tr = trainOf(state);
+    drawWarnings(c, state);
+    drawTube(c, state);
+    drawEngineHud(c, state);
+    if (tr.phase === 'intro' && tr.introT > SKIP_AFTER && state.player.inCutscene) drawSkipPrompt(c, CANVAS_WIDTH);
+  },
+  outdoors: (state) => 1 - trainOf(state).dark,
+  // (the time of day's light; in a tunnel, the dark, the lanterns and the lamps lighting it (never black))
+  lighting: (state) => {
+    const tr = trainOf(state), h = headlamp();
+    const lamps: Light[] = [...carLamps(state), ...tunnelLamps(state), { x: h.x, y: h.y, r: 220, a: 0.9, color: '#FEF08A' }];
+    const tod = todLight(lamps, 1);
+    if (tr.dark < 0.02) return tod;
+    return { dark: Math.max(tod?.dark ?? 0, 0.72 * tr.dark), shade: [14, 10, 8], rim: 0.6, grade: tod?.grade, lights: lamps };
+  },
+};
+
+/** On (the porch reached, or skipped to): the train gets up to speed; him, then Tucker down the tube. */
+const boarded = (state: GameState, voiced: boolean) => {
+  const tr = trainOf(state), p = state.player;
+  tr.phase = 'ride'; tr.vTarget = V_FULL; tr.introT = 0; tr.hopT = 0;
+  p.inCutscene = false;
+  if (voiced) meatheadSays(state, pickLine(byPants(state, BOARDED)), true, () => tubeSay(state, TUBE_BOARD));
+};
+
+// After the crash: the train stood still and whole, nobody on it (the town's way back comes here).
+whenCrashed((state) => {
+  const tr = trainOf(state);
+  for (const car of tr.cars) for (const b of car.blocks) b.y = AWAY;
+  tr.rear = 0; tr.cut = null;
+  buildCars(state, tr);
+  state.enemies = state.enemies.filter(e => e.pos.x < x0 - 400 || e.pos.x > x1 + 400);
+  tr.passers = []; tr.shots = []; tr.horses = []; tr.wrecks = [];
+  tr.phase = 'still'; tr.v = 0; tr.vTarget = 0; tr.dark = 0;
 });
+void ENTERABLE;

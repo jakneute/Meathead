@@ -101,7 +101,7 @@ helpers, the time of day, signLetters, pickLine, the grab, victory, walkAway, dr
 | # | Section | id / folder | x range (world) | Checkpoints | State |
 |---|---|---|---|---|---|
 | 1 | The frontier wilds + the station | `wilds` | FRX+0 .. FRX+21000 | 0-9 | built (section 1 job) |
-| 2 | The train | `train` | FRX+24000 .. FRX+36000 | 10-19 | stub (job 2) |
+| 2 | The train | `train` | FRX+24000 .. FRX+36000 | 10-19 | built (job 2) |
 | 3 | Sawdust Gulch + the mines | `town` | FRX+39000 .. FRX+50000 | 20-29 | stub |
 | 4 | The log ride (ride, sewer, real river, woodchipper) | `logride` | FRX+53000 .. FRX+62000 | 30-39 | stub |
 | 5 | The woods (outside the park) | `woods` | FRX+65000 .. FRX+68000 | 40-49 | stub |
@@ -131,6 +131,19 @@ Teach, then escalate (each hazard alone in a safe spot first):
 | 15200 | THE LONG RIVER | one log down a long river: wolves and a cougar on fake-rock overhangs over the water (they leap down at him), a hive hanging off one, beavers, crows, a fallen tree to duck; the log boom and the falls at the end: jump off to the far cliff |
 | 17800 | THE LAST MILE (cp 4) | a wolf pack, crows, the trap gauntlet with ledges over it, the tracks begin |
 | 19300 | THE STATION (cp 5) | Tucker, the train, the scene |
+
+### Section 2: the train (train/layout.ts: 26 cars, caboose at x0+1000, engine's nose at x0+11520)
+
+| Cars | Checkpoint | What |
+|---|---|---|
+| 0-2 | THE CABOOSE (cp 10) | the run for the caboose (a cutscene); an empty boxcar: the first LOW BRIDGE alone; the first CUT, alone, on a flatcar of logs |
+| 3-6 | THE COACHES (cp 11) | passengers (parasols, canes), a porter; a brakeman alone on a boxcar roof; an ore hopper |
+| 7-9 | THE BAGGAGE CAR (cp 12) | the first tunnel (short, while he's inside); a porter among crates; a steer in a cattle car; the second cut, a brakeman on it |
+| 10-12 | THE DINING CAR (cp 13) | the cook, passengers; the first robber riding up alone, then two; a tank car with a brakeman |
+| 13-16 | THE WATER TOWER (cp 14) | the first water tower over a coach (get inside); two brakemen and a bridge; the third cut with a bridge coming; a tunnel; two steers |
+| 17-20 | THE MAIL CAR (cp 15) | two porters; robbers; the long tunnels begin; the cook in the dark; the fourth cut, quick, in a tunnel, with a brakeman |
+| 21-23 | THE LAST COACH (cp 16), THE LOG CAR (cp 17) | a water tower, robbers, a bridge, a long tunnel; the stack's cinders from car 22 on |
+| 24-25 | THE ENGINE (cp 18) | the fireman's coal on the tender; Tucker, the KILL arrow, the rant; the shot, the close-up, the crash |
 
 ## Standing rules (all apply)
 
@@ -183,3 +196,43 @@ Teach, then escalate (each hazard alone in a safe spot first):
   remembered: straight to Tucker in the gate). The scene done is STATION_MEMO (stageMemo).
 - 2026-10-17 (section 1): Tucker's station lines are in clean / shitty / naked pools (wilds/lines.ts); the user's line
   ("NO ONE BOARDS MY TRAIN WITHOUT A TICKET!") is verbatim in all three (the shat and naked ones add a kicker).
+- 2026-10-18 (job 2, the train): the train stands still in the world and the world goes by it (scenery, ties, and
+  whatever's coming, all scrolled by the train's distance). The cars' floors meet over the couplings (no falling between
+  coupled cars); down on the ties while it's moving is death under the wheels (m2:fr_tracks). Cars he goes into:
+  caboose, coach, dining car, baggage/mail car, cattle car (seen from outside with lit windows till he's in one, then
+  opened up, the scenery through its windows); cars he crosses on top: boxcar, flatcar of logs, ore hopper, tank car
+  (SARSAPARILLA), the tender.
+- 2026-10-18 (job 2): THE CUT (the user's uncoupling): four marked cars; a way along one, the tell (Tucker on the
+  speaking tube, the coupling ahead sparking and clanking, a flashing red ! and UNCOUPLING!, the car shuddering; 80-120
+  frames, shorter toward the front), then that car and everything behind it drop back, faster and faster; ~560 px back
+  it derails off the line (wrecks tumbling); still on it: dead (m2:fr_derail: flung off with it, its own death screens).
+  On respawn the train's as it was at the checkpoint: cars cut loose before it stay gone, one cut after it is back on.
+  Left too long at the engine (35 s), Tucker cuts the tender loose too.
+- 2026-10-18 (job 2): fill-ins (ours, not the user's): the train's hazards are LOW BRIDGES (duck on a roof; inside or
+  on a deck is safe), WATER TOWERS (the spout pours over the train: up on top of anything it hoses him back; get
+  inside), the fireman's COAL (lobbed, rolls back along the roofs: jump it), the stack's CINDERS over the last cars
+  (a glowing mark where each lands); each warned of at the right edge first, and each hits the cast too (bridges take
+  brakemen off roofs and robbers off horses; the tunnel portals scrape riders off). The cast (all new kinds, `m2:fr_*`,
+  people seeded on Spooky Land's costume drawer): porter (suitcases), brakeman (brake club, on roofs), robber (rides up
+  along the embankment behind the train and shoots at the roofs (inside is cover), then leaps aboard), cook (cleavers,
+  a frying pan), passenger (a lady's parasol or a gent's cane: pointy), longhorn steer (cattle cars; pointy), fireman
+  (on the tender's coal). Tunnels darken by the lighting system (0.72 at most, the cars' lanterns, the tunnel's wall
+  lamps and the headlamp lighting it), longer and closer together toward the front.
+- 2026-10-18 (job 2): the run for the caboose: from the station he's on the ties behind the train laboring up a grade
+  (the world going by slow); he runs it down and hops onto the back porch (a cutscene, SKIP >> puts him on it); then the
+  train gets up to speed. Off the back of the rearmost car (or the section's left end) is the way back to the station.
+- 2026-10-18 (job 2): THE ENGINE: Tucker leans out of the back of the cab over the tender (the cab's walled off) under
+  the flashing KILL arrow (Meathead 1's, as on Riggs: the same red arrow and lettering) and rants the ledger, line after
+  line. Any hit on him is the shot (a stand-in in his window; shots into it count too). The eye close-up (engine.ts's
+  wound painter, tucker.ts's close-up, mirrored to face the shot): the slug coming in, the lens starring, the eye
+  bursting out the front, the gout out the back of his head, the hole clean through with the sky through it, the blood
+  running, a wisp of smoke; his last words; he slumps head down over the sill onto the whistle cord (the whistle stuck
+  on: Riggs's horn), nobody's driving, faster, into Sawdust Gulch's buffer stop: the crash, the flash, black, the town.
+  TUCKER_EYE_MEMO ('frontier-tucker-eye') is set and stays for the land: tucker.ts now draws the eye wound on his figure
+  (the socket, sky through it, the lens starred, the blood run, the exit hole); section.ts `tuckerWoundsOf(state)` gives
+  later jobs his wounds (they set 'frontier-tucker-saw' / 'frontier-tucker-branch'). CRASH_MEMO ('frontier-train-crashed')
+  marks the revisit: the train stood still at the end of the line, whole again, nobody on it, OUT OF SERVICE on the cab;
+  into the cab's back goes on to the town; the town's left end comes back to the tender (DOORS.train.end, set by train/).
+- 2026-10-18 (job 2): Tucker's speaking-tube lines (train/lines.ts: boarding, the ledger now and then, the cuts, made
+  it anyway, the first tunnel, the robbers, the rant, time's up, his last words) are clean / shitty / naked pools; his
+  words show up top by a brass horn while they're said.
