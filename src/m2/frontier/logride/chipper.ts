@@ -23,14 +23,12 @@ import { shakeScreen } from '../../../m1/game/core/state';
 import { isShat, isNude } from '../../../m1/game/player/gut';
 import type { Enemy } from '../../../m1/types';
 import { KILL_CALLOUTS, type KillCallout } from '../../../m1/content/dialogue';
-import { hands, meatheadSays, speak, saidOver, byPants, getFrontier } from '../section';
+import { hands, meatheadSays, speak, byPants, getFrontier } from '../section';
 import type { ByPants } from '../talk';
-import { box, mix, INK, painted, burned, onScreen, type Ctx } from '../kit';
-import { signText } from '../../signLetters';
 import { lookOf } from '../../adventure/temple/people';
 import { rideOf } from './state';
 import { unboard, feetY, riderX } from './ride';
-import { X, x0, x1, waterY, CHIPPER, JUMP_FROM, READY_FROM, LAND_X, CLEARING, END } from './layout';
+import { X, x0, x1, CHIPPER, JUMP_FROM, READY_FROM, LAND_X, END } from './layout';
 import { RIDE_VOICES, CREW_JUMP, CREW_MAD, CHIPPED_CALLS, JUMPED, HURT } from './lines';
 
 const LEAP = 54;
@@ -187,88 +185,7 @@ const mulch = (ctx: FrameContext): Controls => {
 // Drawing: the sluice and its conveyor, the chipper (its hopper, its body, its chute out over the crew's truck), the
 // crew, the lamp and the JUMP!; the clearing.
 
-const ORANGE = '#EA7A1A', ORANGE_D = '#B4560E', ORANGE_L = '#F6A04A';
 /** The chute's mouth (world): where it all comes out. */
-const CHUTE = { x: CHIPPER.x + 150, y: CHIPPER.hopperY - 96 };
+export const CHUTE = { x: CHIPPER.x + 150, y: CHIPPER.hopperY - 96 };
 
-/** Behind him: the conveyor, the chipper's body and chute, the truck, the crew. */
-export const drawChipperBack = (c: Ctx, state: GameState) => {
-  if (!onScreen(state, X(10600), X(11700))) return;
-  const r = rideOf(state), ch = r.chip, f = state.frame, g = CHIPPER.ground;
-  // ---- the clearing: real dirt and grass, stumps, the woods beyond
-  box(c, X(CLEARING.a) - 40, g, X(CLEARING.b) - X(CLEARING.a) + 80, 400, '#4A3420'); box(c, X(CLEARING.a) - 40, g, X(CLEARING.b) - X(CLEARING.a) + 80, 4, '#6B8A3A');
-  for (const sx of [11420, 11520]) { box(c, X(sx) - 12, g - 14, 24, 14, INK); box(c, X(sx) - 11, g - 13, 22, 13, '#7A5A38'); box(c, X(sx) - 11, g - 13, 22, 3, '#C8A070'); }
-  // (the trail back to the park off the left end of the clearing)
-  frontierlessSign(c, X(CLEARING.a) + 82, g, ['< TRAIL', 'TO PARK']);
-  // ---- the crew's truck (a flatbed, where the chute spits), the bed full of chips
-  const tx = CHIPPER.x + 200;
-  box(c, tx, g - 70, 150, 50, INK); box(c, tx + 2, g - 68, 146, 46, '#3F5B3A'); box(c, tx + 2, g - 68, 146, 4, '#5A7A50');
-  box(c, tx + 150, g - 90, 60, 70, INK); box(c, tx + 152, g - 88, 56, 66, '#3F5B3A'); box(c, tx + 170, g - 84, 34, 24, '#9CC0D8');
-  for (const wx of [tx + 30, tx + 120, tx + 180]) { c.fillStyle = INK; c.beginPath(); c.arc(wx, g - 14, 15, 0, Math.PI * 2); c.fill(); c.fillStyle = '#3F3F46'; c.beginPath(); c.arc(wx, g - 14, 7, 0, Math.PI * 2); c.fill(); }
-  c.fillStyle = '#C8A070'; c.beginPath(); c.moveTo(tx + 4, g - 68); c.quadraticCurveTo(tx + 75, g - 96, tx + 146, g - 68); c.closePath(); c.fill();
-  if (ch.state === 'mulch') { c.fillStyle = '#991B1B'; c.beginPath(); c.moveTo(tx + 30, g - 72); c.quadraticCurveTo(tx + 80, g - 92, tx + 130, g - 70); c.closePath(); c.fill(); }
-  // ---- the conveyor up out of the water (rollers, its belt moving, cleats)
-  const a = END - 300, wa = waterY(a), wb = waterY(END);
-  c.strokeStyle = INK; c.lineWidth = 16; c.beginPath(); c.moveTo(X(a), wa + 4); c.lineTo(X(END), wb + 4); c.stroke();
-  c.strokeStyle = '#3F3F46'; c.lineWidth = 12; c.stroke();
-  for (let k = 0; k < 14; k++) { const u = ((k / 14) + f * 0.004) % 1, cx = X(a) + (X(END) - X(a)) * u, cy = wa + (wb - wa) * u; box(c, cx - 2, cy - 4, 4, 8, '#A1A1AA'); }
-  for (const u of [0.1, 0.4, 0.7, 0.95]) { const cx = X(a) + (X(END) - X(a)) * u, cy = wa + (wb - wa) * u; box(c, cx - 3, cy + 8, 6, g - cy - 8 + 120, INK); box(c, cx - 2, cy + 8, 4, g - cy - 8 + 120, '#71717A'); }
-  // ---- the chipper: its body on its trailer, the engine housing, the chute up and out over the truck
-  const bx = CHIPPER.x;
-  box(c, bx - 30, g - 120, 160, 100, INK); box(c, bx - 28, g - 118, 156, 96, ORANGE); box(c, bx - 28, g - 118, 156, 8, ORANGE_L); box(c, bx + 90, g - 118, 38, 96, ORANGE_D);
-  signText(c, 'CHIP-O-MATIC 9000', bx + 50, g - 70, painted(1, '#1C1917', ORANGE));
-  for (const wx of [bx + 10, bx + 100]) { c.fillStyle = INK; c.beginPath(); c.arc(wx, g - 14, 16, 0, Math.PI * 2); c.fill(); c.fillStyle = '#27272A'; c.beginPath(); c.arc(wx, g - 14, 7, 0, Math.PI * 2); c.fill(); }
-  // (the chute: up and over to the right, its mouth over the truck's bed)
-  c.strokeStyle = INK; c.lineWidth = 26; c.lineCap = 'butt'; c.beginPath(); c.moveTo(bx + 100, g - 110); c.quadraticCurveTo(bx + 110, CHUTE.y - 30, CHUTE.x, CHUTE.y); c.stroke();
-  c.strokeStyle = ORANGE; c.lineWidth = 22; c.stroke();
-  // (running: it shakes, exhaust puffs)
-  const running = ch.state !== 'idle';
-  if (running && f % 10 < 5) for (let i = 0; i < 2; i++) { c.globalAlpha = 0.5; c.fillStyle = '#52525B'; c.beginPath(); c.arc(bx + 120 + i * 6, g - 130 - ((f * 2 + i * 20) % 40), 5 + i * 3, 0, Math.PI * 2); c.fill(); c.globalAlpha = 1; }
-  // ---- the lamp on its top: off, amber (ready), flashing green (now)
-  const lamp = ch.state === 'open' ? (f % 10 < 5 ? '#22C55E' : '#14532D') : ch.state === 'ready' ? '#F59E0B' : '#3F3F46';
-  box(c, bx + 40, g - 136, 20, 18, INK); box(c, bx + 42, g - 134, 16, 14, lamp);
-  // (the crew are the enemies on the clearing: kinds.ts LOGGER)
-  // (the river's sign before it: the crew's own, hand-painted)
-  if (onScreen(state, X(10480), X(10620))) frontierlessSign(c, X(10560), waterY(10560) - 10, ['WOODCHIPPER', 'AHEAD. NO LOGS PAST HERE'], true);
-};
-
-/** In front of him: the hopper's front (it swallows him), the chips flying, JUMP!, the crew's words. */
-export const drawChipperFront = (c: Ctx, state: GameState) => {
-  if (!onScreen(state, X(10600), X(11800))) return;
-  const r = rideOf(state), ch = r.chip, f = state.frame, g = CHIPPER.ground;
-  // ---- the hopper: a big funnel mouth at the top of the conveyor, its throat going down into the body
-  const hx = CHIPPER.x, hy = CHIPPER.hopperY;
-  c.fillStyle = INK; c.beginPath(); c.moveTo(hx - 50, hy - 20); c.lineTo(hx + 34, hy - 20); c.lineTo(hx + 22, hy + 70); c.lineTo(hx - 30, hy + 70); c.closePath(); c.fill();
-  c.fillStyle = ORANGE; c.beginPath(); c.moveTo(hx - 47, hy - 17); c.lineTo(hx + 31, hy - 17); c.lineTo(hx + 20, hy + 67); c.lineTo(hx - 28, hy + 67); c.closePath(); c.fill();
-  box(c, hx - 47, hy - 17, 78, 5, ORANGE_L);
-  box(c, hx - 30, hy + 4, 50, 14, '#1C1917'); signText(c, 'DANGER', hx - 5, hy + 15, painted(1, '#FDE047', '#1C1917'));
-  box(c, hx - 47, hy - 24, 78, 6, mix(ORANGE_D, '#000000', 0.3));
-  // (the throat's teeth, glimpsed, turning)
-  if (ch.state !== 'idle') for (let i = 0; i < 5; i++) box(c, hx - 36 + ((f * 4 + i * 16) % 70), hy - 22, 4, 4, '#E5E7EB');
-  // ---- the chips and the bits out of the chute
-  for (const q of ch.chips) { box(c, q.x - q.s / 2 - 0.5, q.y - q.s / 2 - 0.5, q.s + 1, q.s * 0.7 + 1, INK); box(c, q.x - q.s / 2, q.y - q.s / 2, q.s, q.s * 0.7, q.c); }
-  // ---- READY / JUMP! over the clearing, big, and an arrow from the log over to the landing
-  if (ch.state === 'ready' || ch.state === 'open') {
-    const lx = X(LAND_X), ly = g - 210;
-    if (ch.state === 'open') {
-      if (f % 12 < 8) {
-        c.font = 'bold 22px "Press Start 2P"'; c.textAlign = 'center';
-        c.fillStyle = '#000'; c.fillText('JUMP!', lx + 3, ly + 3); c.fillStyle = '#4ADE80'; c.fillText('JUMP!', lx, ly); c.textAlign = 'left';
-      }
-      c.strokeStyle = '#4ADE80'; c.lineWidth = 4; c.setLineDash([8, 8]); c.lineDashOffset = -f;
-      c.beginPath(); c.moveTo(X(r.log.rx), waterY(r.log.rx) - 80); c.quadraticCurveTo((X(r.log.rx) + lx) / 2, ly - 30, lx, g - 20); c.stroke(); c.setLineDash([]);
-    } else {
-      c.font = 'bold 14px "Press Start 2P"'; c.textAlign = 'center';
-      c.fillStyle = '#000'; c.fillText('READY...', lx + 2, ly + 2); c.fillStyle = '#FBBF24'; c.fillText('READY...', lx, ly); c.textAlign = 'left';
-    }
-  }
-  if (ch.crew) { const by = ch.crewBy; saidOver(c, ch.crew.text, by ? by.pos.x + by.width / 2 : X(11460), (by ? by.pos.y : g - 72) - 30, '#E0F2FE', 240); }
-};
-
-/** A plank sign of the real world (no park lettering: hand-painted), on its two stakes. */
-export const frontierlessSign =(c: Ctx, x: number, feet: number, lines: string[], warn = false) => {
-  const w = Math.max(...lines.map(l => l.length * 6 + 14)), h = lines.length * 12 + 6, top = feet - 70;
-  for (const px of [x - w / 2 + 6, x + w / 2 - 10]) { box(c, px - 1, top, 6, 70, INK); box(c, px, top, 4, 70, '#6B4423'); }
-  box(c, x - w / 2 - 1, top - 1, w + 2, h + 2, INK); box(c, x - w / 2, top, w, h, warn ? '#E8E0C8' : '#A0703C');
-  lines.forEach((l, i) => signText(c, l, x, top + 11 + i * 12, warn ? painted(1, '#B91C1C', '#E8E0C8') : burned(1, i)));
-};
+export { drawChipperBack, drawChipperFront } from './chipperArt';

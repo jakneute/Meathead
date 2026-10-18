@@ -1124,3 +1124,48 @@ later (+1 if heavyset; was 2 / 3 before playtest fixes E). Tucker's glimpsed ahe
   brocade, the undertaker's crepe band, the smith's bandana, the farmhand's gingham and straw, fellers' knit caps and
   belt hatchets, the miners' lunch pails and candle drips, the prospectors' patches); the TNT crate stamped with rope
   handles and DANGER; the throws and the blasts stepped.
+- 2026-10-18: SNES pass, section 4 (Timber Tumble), art only (no gameplay, hitbox, timing, layout or collision
+  changes: every saw's teeth still drawn to r + 6, the ducks' saws, the sewer's lowest pipe and the river's low limbs
+  still drawn down to DUCK_LINE and no lower, the lift hill's swing clamp untouched; hazards.ts's logic is as it was,
+  its drawing moved to hazardArt.ts). New logride/paint.ts (the ride's ramps: pool-blue flume water, the real river,
+  sewer brick, sludge, concrete, rust, moss, granite, the crew's orange and hi-vis, the fiberglass logs' painted bark;
+  the train's per-hour still(), cached under the slopes' tilt; crewSign: the real world's spray-painted ply on stakes,
+  no park lettering), far.ts (in the park the wilds' far off plus Timber Tumble's own fiberglass crags going by, per
+  hour: strata, bolted seams, plywood pines on braces, a catwalk, a light tower, another flume's chute; from the
+  culvert on the REAL thing: a clean sky, the real Rockies close, a ridge of real forest with the crew's clear-cut
+  (stumps, slash, a skid road, a log deck, a yarder's spar), ragged real pines with dead snags, the valley's mist),
+  flume.ts (the trough piece by piece, turned to each slope, cached tiles: plank walls on studs, capped rails, iron
+  straps, the water pool-blue and banded with foam along the wall and streaks running on; trestles straight down on
+  concrete footings; the chain; the broken ends), parkArt.ts (the earth in strata tiles, cut down by the pool and the
+  camp; the station's board-and-batten walls, the burned TIMBER TUMBLE board on chains with crossed axes, RULES and
+  YOU WILL GET WET, the plywood lumberjack you must be this tall to ride, caged bulbs, the way out behind its flaps,
+  the queue's tail as one cached layer of seeded guests on the costume drawer, WAIT boards as parkSigns, the platform's
+  lit lip; the canyon's molded crags stood back and dimmed, plywood pines, the beavers' fake lodge, plastic reeds in a
+  planter (a zip tie); the Old Sawmill's weathered boards, windows by the hour, trusses, a line shaft with its belts,
+  the motor-turned wheel; the pool's crag, the viewing bridge and its soaked guests, SPLASH ZONE hung on chains, the
+  photo camera; the camp's wall tents, cordwood, the cookfire that's a silk flame on a fan, the washing; the back lot's
+  chain-link and AUTHORIZED ONLY, the chasm's faces in strata), sewerArt.ts (the brick vault in cached chunks: the
+  arch's ring, sooty courses, a conduit, the water main, slime and moss below the high-water line, the sludge banded
+  with the park's flotsam drifting (a gift-shop rubber duck, a souvenir cup, a bottle), the dimmed walkways, grates
+  with the day down them in soft bands, caged bulbs; the culvert: the bluff's real rock, the poured headwall with its
+  rust and bent trash rack, the park's fence busted out, PARK PROPERTY ENDS as the park's last parkSign on the headwall,
+  the spillway, a shopping cart and a tire in the far shallows), realArt.ts (the real river: a cutbank with roots and
+  cobbles, a grass and sedge lip with wildflowers, real firs, spruce, an aspen, a leaner, dead snags, boulders,
+  driftwood, the real world's junk (a tire, a cooler, a bag in a bush, a lawn chair, cans); the water's surface going
+  back and its body cached, foam lines running on; the near bank's cobbles; the real waterfall's granite ledge, the
+  curtain's falling streaks, the boil and the mist; the clearing's dirt bank), hazardArt.ts (saws turned with their
+  spin from a cached disc: rings, gullets, slots, carbide tips, a fixed sheen, blur arcs, striped hubs; riveted striped
+  bulkheads under timber headers, the swing's gantry on I-beams, the drop's rails and motor box, the rail's track; the
+  animatronics in fiberglass and fur with neck bolts, cut to the gelcoat and armature; the stepped pipe stack with its
+  tape and caged work lamp, the outfalls' bell mouths, slime and lamps, the busted concrete section with rebar and a
+  barricade blinker; real granite rocks with moss and lichen (the crew's orange blaze gone: no marks on real rock);
+  the fallen tree's cached crown over its scraped limb), chipperArt.ts (the crew's clearing with its lit lip, fresh
+  stumps, a gas can and cooler, the mud-spattered flatbed heaped with chips, the steel conveyor, the stepped orange
+  chipper on its trailer and its chute; the timing lamp and READY / JUMP! kept: a timing cue; the riverbank warning
+  and the trail sign as crewSigns), people.ts (the ride operator on the costume drawer: khaki, a fringed suede vest and
+  badge, a campaign hat, the mouth going as she talks; flung, then flat and kicking). The log is the park's molded
+  fiberglass (painted bark, a bolted mold seam, ringed ends, TT-4 stenciled; the sewer's muck up its side after).
+  The splashes stay huge and last, in the water's own tones (pool, sludge, river), stepped. The rats in the wilds'
+  animal style (ticked fur, scaly tail, hurt, belly up dead); the loggers enriched (cut-resistant chaps, flannel check,
+  vest or suspenders, gloves, visored hard hats, a stepped chainsaw). Tucker, his saw drop and Meathead's seated pose
+  untouched.

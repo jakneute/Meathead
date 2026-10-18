@@ -23,8 +23,10 @@ import { playSound } from '../../../m1/game/platform/audio';
 import { pickLine, silenceAll } from '../../../m1/game/platform/speech';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { SKIP_AFTER, offerSkip, takeSkip, drawSkipPrompt } from '../../../m1/game/platform/skip';
-import { drawPerson } from '../../adventure/temple/people';
 import { signText } from '../../signLetters';
+import { steppedGlow } from '../../intro/art/kit';
+import { stillAt, checker, PLANK, STEEL } from './paint';
+import { drawOperator } from './people';
 import { hands, meatheadSays, speak, saidOver, byPants, landVisit, tuckerWoundsOf } from '../section';
 import { GY } from '../geometry';
 import { TUCKER_VOICE, type ByPants } from '../talk';
@@ -270,19 +272,32 @@ registerWoundPainter('saw', (c, k, frame) => {
 export const drawBooth = (c: Ctx, state: GameState) => {
   const r = rideOf(state), s = r.scene, f = state.frame, top = FLOOR - BOOTH.top;
   if (BX1 + 200 < state.camera.x || BX0 - 200 > state.camera.x + CANVAS_WIDTH) return;
-  // ---- the booth's back: dark inside, a wall clock, a SAFETY FIRST poster, the back door (banged open in the scene)
-  box(c, BX0 - 4, top - 4, BX1 - BX0 + 8, BOOTH.top + 4, INK);
-  box(c, BX0, top, BX1 - BX0, BOOTH.top, '#3A2A1E');
-  box(c, BX0, top, BX1 - BX0, 4, '#5A4430');
-  box(c, BX0 + 16, top + 30, 34, 44, '#E7D8B0'); signText(c, 'SAFETY', BX0 + 33, top + 46, painted(1, '#7F1D1D', '#E7D8B0')); signText(c, 'FIRST', BX0 + 33, top + 58, painted(1, '#7F1D1D', '#E7D8B0'));
+  // ---- the booth's back: paneled inside, a wall clock, a SAFETY FIRST poster, the ride's track map, the back door
+  // (banged open in the scene)
+  stillAt(c, 'lr-booth-back', BX0, top, -4, -4, BX1 - BX0 + 8, BOOTH.top + 4, g => {
+    const w = BX1 - BX0, P = PLANK;
+    box(g, -4, -4, w + 8, BOOTH.top + 4, INK);
+    for (let x = 0, i = 0; x < w; x += 16, i++) { box(g, x, 0, 16, BOOTH.top, i % 2 ? mix(P[2], '#2A1E14', 0.3) : mix(P[2], P[3], 0.3)); box(g, x, 0, 1, BOOTH.top, P[1]); box(g, x + 1, 0, 1, BOOTH.top, P[3]); }
+    box(g, 0, 0, w, 5, P[4]); box(g, 0, 0, w, 1, P[5]); box(g, 0, BOOTH.top - 50, w, 4, P[4]); box(g, 0, BOOTH.top - 46, w, 1, P[1]);
+    box(g, 14, 28, 38, 48, INK); box(g, 16, 30, 34, 44, '#E7D8B0'); box(g, 16, 30, 34, 2, '#F4ECD0'); checker(g, 16, 70, 34, 4, '#CDBE94', 0);
+    signText(g, 'SAFETY', 33, 46, painted(1, '#7F1D1D', '#E7D8B0')); signText(g, 'FIRST', 33, 58, painted(1, '#7F1D1D', '#E7D8B0'));
+    // (the ride's track map: the flume's loop on a board, little lamps along it)
+    box(g, 64, 22, 66, 40, INK); box(g, 66, 24, 62, 36, '#1E3A2A'); g.strokeStyle = '#7AB6D0'; g.lineWidth = 2; g.beginPath(); g.moveTo(72, 52); g.lineTo(90, 52); g.lineTo(98, 34); g.lineTo(112, 34); g.lineTo(122, 52); g.stroke();
+    for (const [lx, ly] of [[80, 52], [98, 34], [112, 34], [122, 52]] as const) box(g, lx - 1, ly - 1, 3, 3, '#F2C21A');
+    // (the clock)
+    g.fillStyle = INK; g.beginPath(); g.arc(150, 34, 11, 0, Math.PI * 2); g.fill(); g.fillStyle = '#F4F0E4'; g.beginPath(); g.arc(150, 34, 9, 0, Math.PI * 2); g.fill();
+    box(g, 149, 27, 2, 8, INK); box(g, 150, 33, 6, 2, INK);
+  });
   const doorOpen = s.step !== 'wait';
-  box(c, BX0 + 2, FLOOR - 96, 6, 96, doorOpen ? '#1C1209' : '#6B4423');
+  box(c, BX0 + 1, FLOOR - 97, 8, 97, INK); box(c, BX0 + 2, FLOOR - 96, 6, 96, doorOpen ? '#0E0A06' : PLANK[3]); if (!doorOpen) box(c, BX0 + 2, FLOOR - 96, 2, 96, PLANK[5]);
   // ---- the blood (once he's had it): up the back wall, on the console
   if (sawed(state)) { c.fillStyle = '#7F1D1D'; for (let i = 0; i < 9; i++) { c.beginPath(); c.arc(SAW_X - 30 + i * 9, top + 40 + (i * 13) % 30, 2 + (i % 3), 0, Math.PI * 2); c.fill(); } box(c, SAW_X - 14, top + 50, 3, 30, '#7F1D1D'); }
   // ---- BUZZSAW MODE: the panel over the console, dark till he slams the button, lit (flashing) from then on
   const modeOn = sawed(state) || (inScene(s) && !(s.step === 'burst' || s.step === 'shove' || s.step === 'engage' || (s.step === 'press' && s.t < 12)));
-  box(c, CONSOLE_X - 40, FLOOR - 112, 84, 20, INK);
-  box(c, CONSOLE_X - 38, FLOOR - 110, 80, 16, modeOn ? (f % 16 < 8 || !inScene(s) ? '#DC2626' : '#7F1D1D') : '#3F1A1A');
+  box(c, CONSOLE_X - 41, FLOOR - 113, 86, 22, INK); box(c, CONSOLE_X - 40, FLOOR - 112, 84, 20, '#3F3F46');
+  const panel = modeOn ? (f % 16 < 8 || !inScene(s) ? '#DC2626' : '#7F1D1D') : '#3F1A1A';
+  box(c, CONSOLE_X - 38, FLOOR - 110, 80, 16, panel); box(c, CONSOLE_X - 38, FLOOR - 110, 80, 2, mix(panel, '#FFFFFF', 0.25));
+  if (modeOn && (f % 16 < 8 || !inScene(s))) steppedGlow(c, CONSOLE_X + 2, FLOOR - 102, 56, '#EF4444', 0.02, 0.22, 4);
   signText(c, 'BUZZSAW MODE', CONSOLE_X + 2, FLOOR - 98, painted(1, modeOn ? '#FEF08A' : '#5A3A3A', '#1C1209'));
   // ---- the saw (nowhere to be seen before the button): out of the sky, down through the station's roof and the
   // booth's, into his head
@@ -307,22 +322,32 @@ export const drawBooth = (c: Ctx, state: GameState) => {
     c.strokeStyle = '#F1F5F9'; c.lineWidth = 1.5; c.beginPath(); c.ellipse(TUCK_AT - 6, FLOOR - 4, 40, 4, 0, 0, Math.PI * 2); c.stroke();
   }
   // ---- the console: the levers, the lamps, the big red button under its flip cover (up in the scene)
-  box(c, CONSOLE_X - 14, FLOOR - 52, 56, 52, INK); box(c, CONSOLE_X - 12, FLOOR - 50, 52, 50, '#52525B'); box(c, CONSOLE_X - 12, FLOOR - 50, 52, 6, '#71717A');
-  for (let i = 0; i < 4; i++) box(c, CONSOLE_X - 6 + i * 10, FLOOR - 40, 5, 5, (f >> 4) % 4 === i ? '#22C55E' : '#14532D');
+  stillAt(c, 'lr-console', CONSOLE_X, FLOOR, -16, -54, 60, 56, g => {
+    const S = STEEL;
+    box(g, -14, -52, 56, 52, INK); box(g, -12, -50, 52, 50, S[3]); box(g, -12, -50, 52, 6, S[5]); box(g, -12, -44, 52, 1, S[1]); box(g, -12, -50, 2, 50, S[4]); box(g, 36, -50, 4, 50, S[2]);
+    for (let y = -30; y < -2; y += 6) box(g, -8, y, 40, 2, S[2]);
+    for (let i = 0; i < 3; i++) { box(g, -8 + i * 8, -60 + 10, 2, 8, INK); box(g, -9 + i * 8, -53, 4, 4, i === 1 ? '#DC2626' : '#26262C'); }
+    box(g, 20, -46, 18, 10, INK); box(g, 21, -45, 16, 8, '#1E3A2A'); box(g, 22, -44, 6, 2, '#4ADE80');
+  });
+  for (let i = 0; i < 4; i++) { const on = (f >> 4) % 4 === i; box(c, CONSOLE_X - 7 + i * 10, FLOOR - 41, 7, 7, INK); box(c, CONSOLE_X - 6 + i * 10, FLOOR - 40, 5, 5, on ? '#22C55E' : '#14532D'); if (on) box(c, CONSOLE_X - 5 + i * 10, FLOOR - 39, 2, 2, '#BBF7D0'); }
   const pressed = s.step === 'press' && s.t >= 12;
-  box(c, CONSOLE_X + 22, FLOOR - 58 + (pressed ? 3 : 0), 12, 6, '#DC2626');
-  box(c, CONSOLE_X + 20, FLOOR - 66, 16, 3, s.step === 'wait' || s.step === 'burst' || s.step === 'shove' ? '#FDE047' : '#A16207');
+  box(c, CONSOLE_X + 21, FLOOR - 59 + (pressed ? 3 : 0), 14, 8, INK); box(c, CONSOLE_X + 22, FLOOR - 58 + (pressed ? 3 : 0), 12, 6, '#DC2626'); box(c, CONSOLE_X + 23, FLOOR - 58 + (pressed ? 3 : 0), 5, 2, '#F87171');
+  const cover = s.step === 'wait' || s.step === 'burst' || s.step === 'shove';
+  box(c, CONSOLE_X + 19, FLOOR - 67, 18, 5, INK); box(c, CONSOLE_X + 20, FLOOR - 66, 16, 3, cover ? '#FDE047' : '#A16207'); box(c, CONSOLE_X + 20, FLOOR - 66, 16, 1, cover ? '#FFF4A0' : '#C8862A');
   // ---- the operator (in the booth till she's shoved; then out on the platform)
   const op = r.scene.step === 'wait' && !sawed(state) ? { x: OP_AT, y: FLOOR, pose: 'stand' as const } : { x: s.ox, y: s.oy, pose: s.opDown ? (s.ovy || s.ovx ? 'fly' as const : 'sit' as const) : 'stand' as const };
   if (sawed(state) && !inScene(s)) { op.x = OP_AT + 90; op.y = FLOOR; op.pose = 'stand'; }
-  c.save(); c.translate(Math.round(op.x), Math.round(op.y)); c.scale(-1, 1);
-  drawPerson(c, { seed: opSeed(), woman: opWoman(), outfit: 'operator', f, pose: op.pose, talking: s.opTalking || !!r.bark, mood: s.step === 'fall' || s.step === 'after' ? 'shocked' : s.opDown ? 'scared' : 'angry' });
-  c.restore();
-  // ---- the booth's front: its window frame (the glass over them), the sill, the roof and its sign
-  c.globalAlpha = 0.18; box(c, BX0 + 10, top + 12, BX1 - BX0 - 20, 70, '#BFE0F8'); c.globalAlpha = 1;
-  box(c, BX0 - 4, top - 18, BX1 - BX0 + 8, 18, INK); box(c, BX0 - 2, top - 16, BX1 - BX0 + 4, 14, '#7F1D1D');
-  signText(c, 'RIDE CONTROL', BX0 + 64, top - 5, painted(1, '#FDE047', '#1C1209'));
-  box(c, BX0, top + 82, BX1 - BX0, 6, '#6B4423'); box(c, BX0, top + 82, BX1 - BX0, 2, '#9A6A3A');
+  drawOperator(c, op.x, op.y, { seed: opSeed(), woman: opWoman(), f, pose: op.pose === 'fly' ? 'fly' : op.pose === 'sit' ? 'down' : 'stand', talk: s.opTalking || !!r.bark, mood: s.step === 'fall' || s.step === 'after' ? 'shocked' : s.opDown ? 'scared' : 'angry', facing: -1 });
+  // ---- the booth's front: its window (the glass over them, a glint), the frame and sill, the roof and its sign
+  c.globalAlpha = 0.16; box(c, BX0 + 10, top + 12, BX1 - BX0 - 20, 70, '#BFE0F8'); c.globalAlpha = 0.3; box(c, BX0 + 18, top + 16, 6, 40, '#F4FAFE'); box(c, BX0 + 28, top + 16, 2, 26, '#F4FAFE'); c.globalAlpha = 1;
+  stillAt(c, 'lr-booth-front', BX0, top, -6, -20, BX1 - BX0 + 12, 110, g => {
+    const w = BX1 - BX0, P = PLANK;
+    box(g, -4, -18, w + 8, 18, INK); box(g, -2, -16, w + 4, 14, '#7F1D1D'); box(g, -2, -16, w + 4, 2, '#B83A2A'); box(g, -2, -4, w + 4, 2, '#4A0E0A');
+    signText(g, 'RIDE CONTROL', 64, -5, painted(1, '#FDE047', '#1C1209'));
+    for (const fx of [4, w - 10]) { box(g, fx - 1, 0, 8, 84, INK); box(g, fx, 0, 6, 84, P[3]); box(g, fx, 0, 2, 84, P[5]); }
+    box(g, 0, 0, w, 4, INK); box(g, 0, 1, w, 2, P[4]);
+    box(g, -2, 81, w + 4, 8, INK); box(g, 0, 82, w, 6, P[3]); box(g, 0, 82, w, 2, P[5]); box(g, 0, 86, w, 2, P[1]);
+  });
   // ---- the holes it came down through (the station's roof, the booth's), splinters hanging, daylight down them
   if (sawed(state) || (inScene(s) && s.roof)) roofHole(c, ROOF_Y, 12, true);
   if (sawed(state) || (inScene(s) && s.booth)) roofHole(c, top - 9, 9, false);
