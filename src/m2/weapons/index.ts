@@ -41,7 +41,7 @@ export const M2_WEAPON_INFO: Partial<Record<WeaponType, M2Weapon>> = {
     blurb: "Some wizard's diary, now with murder. Fire drops a meteor, a comet and lightning on up to three assholes. BULK UP makes you huge and punts whoever you touch into orbit. Don't ask.",
   },
   STUNT_CAR: {
-    name: 'CLAPPERBOARD', from: 'HOLLYWOOD LAND',
+    name: 'THE CLAPPING CLAPPERBOARD', from: 'HOLLYWOOD LAND',
     controls: [{ pad: ['X'], mouse: 'left', label: 'ACTION!' }],
     description: "Snap it and yell ACTION. A stuntman in a sports car flies over your head and nose-dives into whoever's in front of you. Big fireball. He goes through the windshield into the next guy. He doesn't get up.",
   },
