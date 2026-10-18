@@ -32,8 +32,9 @@ import { registerM2Kind } from '../../kinds';
 import { hands, meatheadSays, speak, saidOver, teleport, byPants, type Said } from '../section';
 import { DOORS } from '../geometry';
 import { TUCKER_VOICE, type ByPants } from '../talk';
-import { box, mix, onScreen, frontierSign, burned, INK, type Ctx } from '../kit';
-import { signText } from '../../signLetters';
+import { box, mix, onScreen, parkSign, INK, type Ctx } from '../kit';
+import { viewOf } from './paint';
+import { drawTrain, drawDepot, drawDeck } from './stationArt';
 import { drawTucker, drawTuckerCap, drawTuckerCloseup, TUCKER_H, type TuckerPose } from '../tucker';
 import { STATION, Y } from './layout';
 import { TUCKER_GREET, TUCKER_PITCH, TUCKER_TICKET, NO_TICKET, TUCKER_BLOCK, TUCKER_OOF, TUCKER_RAGE, TUCKER_RUN, TUCKER_CAB, CHASE, STATION_EMPTY } from './lines';
@@ -267,145 +268,19 @@ const tickCap = (s: Station) => {
 // ---------------------------------------------------------------------------------------------------------------
 // Drawing: the station, the train, Tucker
 
-const RED = '#A3262A', RED_L = '#D4483E', BLACK = '#26262C', BRASS = '#E0B040', WOOD = '#8A5A30', WOOD_L = '#B07A48';
-
-/** A spoked driving wheel (red, a brass hub, spokes turned by `a`). */
-const wheel = (c: Ctx, x: number, y: number, r: number, a: number) => {
-  c.fillStyle = INK; c.beginPath(); c.arc(x, y, r + 1.5, 0, Math.PI * 2); c.fill();
-  c.fillStyle = RED; c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2); c.fill();
-  c.fillStyle = '#5A1A1A'; c.beginPath(); c.arc(x, y, r - 3, 0, Math.PI * 2); c.fill();
-  c.strokeStyle = RED_L; c.lineWidth = 2;
-  for (let k = 0; k < 8; k++) { const t = a + (k * Math.PI) / 4; c.beginPath(); c.moveTo(x, y); c.lineTo(x + Math.cos(t) * (r - 3), y + Math.sin(t) * (r - 3)); c.stroke(); }
-  c.fillStyle = BRASS; c.beginPath(); c.arc(x, y, 3, 0, Math.PI * 2); c.fill();
-};
-
-/** The train, its back end (the caboose's) at x0, rails at y; `roll` how far it's gone (the wheels and rods). */
-const drawTrain = (c: Ctx, s: Station, f: number) => {
-  const dx = s.trainX, y = Y(STATION.deck.h) + 40, roll = dx / 16;
-  // ---- the caboose: red, a cupola on top, its back porch and rail, its lamp
-  const cb = STATION.caboose + dx;
-  box(c, cb, y - 92, 170, 76, INK); box(c, cb + 2, y - 90, 166, 72, RED); box(c, cb + 2, y - 90, 166, 6, RED_L);
-  box(c, cb + 60, y - 118, 56, 30, INK); box(c, cb + 62, y - 116, 52, 28, RED); box(c, cb + 66, y - 110, 18, 12, '#FDE68A'); box(c, cb + 90, y - 110, 18, 12, '#FDE68A');
-  box(c, cb - 4, y - 96, 178, 6, BLACK); box(c, cb + 56, y - 122, 64, 5, BLACK);
-  for (const wx of [cb + 24, cb + 74, cb + 126]) box(c, wx, y - 76, 24, 20, '#FDE68A');
-  box(c, cb - 10, y - 40, 14, 4, BLACK); box(c, cb - 10, y - 66, 3, 26, BLACK);
-  box(c, cb - 6, y - 80, 8, 10, '#DC2626');
-  wheel(c, cb + 30, y - 10, 10, roll); wheel(c, cb + 140, y - 10, 10, roll);
-  // ---- the coach: maroon and gold, a row of windows, its name along the top
-  const co = cb + 180;
-  box(c, co, y - 96, 200, 80, INK); box(c, co + 2, y - 94, 196, 76, '#5A2A3A'); box(c, co + 2, y - 94, 196, 6, '#7A3A4E');
-  box(c, co - 4, y - 102, 208, 8, BLACK); box(c, co + 2, y - 30, 196, 4, BRASS);
-  for (let k = 0; k < 6; k++) box(c, co + 14 + k * 30, y - 80, 20, 24, '#FDE68A');
-  signText(c, 'WILDERNESS LAND R.R.', co + 100, y - 38, { sx: 1, sy: 1, fill: '#F4CC4E' });
-  wheel(c, co + 34, y - 10, 10, roll); wheel(c, co + 166, y - 10, 10, roll);
-  // ---- the tender: black, the woodpile heaped in it, its brass trim
-  const te = co + 210;
-  box(c, te, y - 70, 96, 56, INK); box(c, te + 2, y - 68, 92, 52, BLACK); box(c, te + 2, y - 68, 92, 4, BRASS);
-  for (let k = 0; k < 6; k++) box(c, te + 6 + k * 14, y - 82 + (k % 2) * 4, 14, 14, k % 2 ? WOOD : WOOD_L);
-  wheel(c, te + 22, y - 10, 10, roll); wheel(c, te + 74, y - 10, 10, roll);
-  // ---- the engine: the cab (red, its window: Tucker in it), the boiler (black, brass bands), the domes, the balloon
-  //      stack, the headlamp, the bell, the cowcatcher, the big red drivers and their rods
-  const en = te + 104, cab = en, front = en + 200;
-  box(c, cab, y - 124, 66, 104, INK); box(c, cab + 2, y - 122, 62, 100, RED); box(c, cab + 2, y - 122, 62, 5, RED_L);
-  box(c, cab - 6, y - 132, 78, 9, BLACK);
-  // (the cab window: dark inside; Tucker leaning out of it once he's aboard, from the sill up; the whistle cord)
-  box(c, cab + 16, y - 102, 38, 32, '#1A1210');
-  if (s.inCab) {
-    if (s.pose === 'whistle') { c.strokeStyle = '#D6D3D1'; c.lineWidth = 1; c.beginPath(); c.moveTo(cab + 47, y - 124); c.lineTo(cab + 47, y - 26 - 104 + Math.max(0, Math.sin(f * 0.2)) * 6 + 8); c.stroke(); }
-    c.save(); c.beginPath(); c.rect(cab - 30, y - 220, 140, 150); c.clip();
-    drawTucker(c, cab + 38, y - 26, 1, f, s.pose, { talking: s.talking });
-    c.restore();
-  }
-  box(c, cab + 14, y - 72, 42, 4, WOOD_L); box(c, cab + 14, y - 72, 42, 1, '#E8C890');
-  // (the boiler)
-  box(c, cab + 64, y - 92, 126, 48, INK); box(c, cab + 66, y - 90, 122, 44, BLACK); box(c, cab + 66, y - 90, 122, 8, '#4A4A54');
-  for (const bx of [cab + 90, cab + 130, cab + 170]) box(c, bx, y - 92, 5, 48, BRASS);
-  // (the domes, the bell, the stack)
-  box(c, cab + 100, y - 110, 22, 20, INK); box(c, cab + 102, y - 108, 18, 18, BRASS);
-  box(c, cab + 140, y - 104, 12, 12, BRASS); box(c, cab + 144, y - 108, 4, 4, BLACK);
-  c.fillStyle = INK; c.beginPath(); c.moveTo(cab + 160, y - 92); c.lineTo(cab + 152, y - 140); c.lineTo(cab + 190, y - 140); c.lineTo(cab + 182, y - 92); c.closePath(); c.fill();
-  c.fillStyle = BLACK; c.beginPath(); c.moveTo(cab + 162, y - 92); c.lineTo(cab + 155, y - 137); c.lineTo(cab + 187, y - 137); c.lineTo(cab + 180, y - 92); c.closePath(); c.fill();
-  box(c, cab + 152, y - 142, 38, 5, BRASS);
-  // (the headlamp: a big box lamp, lit)
-  box(c, front - 22, y - 120, 24, 22, INK); box(c, front - 20, y - 118, 20, 18, WOOD); box(c, front - 12, y - 114, 10, 10, '#FEF08A');
-  // (the cowcatcher: red slats in a wedge)
-  c.fillStyle = INK; c.beginPath(); c.moveTo(front - 6, y - 44); c.lineTo(front + 34, y - 4); c.lineTo(front - 6, y - 4); c.closePath(); c.fill();
-  c.strokeStyle = RED_L; c.lineWidth = 3; for (let k = 0; k < 5; k++) { c.beginPath(); c.moveTo(front - 4 + k * 7, y - 6); c.lineTo(front - 4, y - 40 + k * 7); c.stroke(); }
-  // (the drivers, the little pilot wheels, the rods going round with them)
-  for (const wx of [cab + 34, cab + 96]) wheel(c, wx, y - 22, 22, roll);
-  wheel(c, cab + 150, y - 12, 11, roll); wheel(c, cab + 178, y - 12, 11, roll);
-  const rx = Math.cos(roll) * 12, ry = Math.sin(roll) * 12;
-  c.strokeStyle = INK; c.lineWidth = 6; c.beginPath(); c.moveTo(cab + 34 + rx, y - 22 + ry); c.lineTo(cab + 96 + rx, y - 22 + ry); c.stroke();
-  c.strokeStyle = '#C8C8D0'; c.lineWidth = 3; c.stroke();
-  c.strokeStyle = '#A1A1AA'; c.lineWidth = 3; c.beginPath(); c.moveTo(cab + 96 + rx, y - 22 + ry); c.lineTo(cab + 150, y - 40); c.stroke();
-  // ---- the smoke out of the stack (thick and fast when it goes), the steam off the whistle
-  const going = s.step === 'leave' || s.step === 'chase';
-  for (let k = 0; k < (going ? 8 : 3); k++) {
-    const t = ((f * (going ? 0.05 : 0.015) + k / (going ? 8 : 3)) % 1);
-    const sx = cab + 171 - t * (going ? 120 : 20), sy = y - 150 - t * 90;
-    c.globalAlpha = 0.7 * (1 - t); c.fillStyle = mix('#52525B', '#E4E4E7', t); c.beginPath(); c.arc(sx, sy, 10 + t * 22, 0, Math.PI * 2); c.fill(); c.globalAlpha = 1;
-  }
-  if (s.step === 'board' && s.t > 8 && s.t < 50) for (let k = 0; k < 4; k++) { c.globalAlpha = 0.6; c.fillStyle = '#F8FAFC'; c.beginPath(); c.arc(cab + 110 + k * 4, y - 120 - k * 10 - (s.t % 10), 6 + k * 3, 0, Math.PI * 2); c.fill(); c.globalAlpha = 1; }
-};
-
-/** The platform, the depot, the board, the bell, the tower: behind the train (the tower) and in front of it. */
-const drawDepot = (c: Ctx) => {
-  const deckY = Y(STATION.deck.h);
-  // (the water tower, behind)
-  const tw = STATION.tower;
-  for (const lx of [tw - 40, tw + 34]) box(c, lx, deckY - 150, 8, 150, '#5A3A1E');
-  box(c, tw - 50, deckY - 230, 100, 84, INK); box(c, tw - 48, deckY - 228, 96, 80, WOOD); box(c, tw - 48, deckY - 228, 96, 6, WOOD_L);
-  for (let k = 0; k < 3; k++) box(c, tw - 48, deckY - 210 + k * 22, 96, 3, '#3F3F46');
-  c.fillStyle = INK; c.beginPath(); c.moveTo(tw - 54, deckY - 228); c.lineTo(tw, deckY - 262); c.lineTo(tw + 54, deckY - 228); c.closePath(); c.fill();
-  c.fillStyle = '#5A3A1E'; c.beginPath(); c.moveTo(tw - 50, deckY - 229); c.lineTo(tw, deckY - 258); c.lineTo(tw + 50, deckY - 229); c.closePath(); c.fill();
-  // (the depot shack: plank walls, a shake roof, its name board, the ticket window (CLOSED), the timetable)
-  const dp = STATION.depot;
-  box(c, dp - 90, deckY - 150, 180, 150, INK); box(c, dp - 88, deckY - 148, 176, 148, '#9A6A3A');
-  for (let x = dp - 88; x < dp + 88; x += 12) box(c, x, deckY - 148, 1, 148, '#6B4423');
-  c.fillStyle = INK; c.beginPath(); c.moveTo(dp - 106, deckY - 146); c.lineTo(dp, deckY - 206); c.lineTo(dp + 106, deckY - 146); c.closePath(); c.fill();
-  c.fillStyle = '#5A3A22'; c.beginPath(); c.moveTo(dp - 100, deckY - 148); c.lineTo(dp, deckY - 202); c.lineTo(dp + 100, deckY - 148); c.closePath(); c.fill();
-  for (let k = 1; k < 4; k++) box(c, dp - 100 + k * 12, deckY - 148 - k * 13, 200 - k * 24, 2, '#3A2414');
-  box(c, dp - 86, deckY - 178, 172, 26, INK); box(c, dp - 84, deckY - 176, 168, 22, '#C89A5E');
-  signText(c, 'LONESOME PINE STATION', dp, deckY - 160, burned(1, 3));
-  // (the ticket window: bars, its CLOSED sign hung in it)
-  box(c, dp - 50, deckY - 110, 46, 40, INK); box(c, dp - 48, deckY - 108, 42, 36, '#2A1A10');
-  for (let k = 0; k < 4; k++) box(c, dp - 46 + k * 11, deckY - 108, 2, 36, '#A1A1AA');
-  box(c, dp - 44, deckY - 96, 34, 14, '#FEF3C7'); signText(c, 'CLOSED', dp - 27, deckY - 86, { sx: 1, sy: 1, fill: '#B91C1C' });
-  // (the door)
-  box(c, dp + 20, deckY - 100, 40, 100, INK); box(c, dp + 22, deckY - 98, 36, 98, '#6B4423'); box(c, dp + 50, deckY - 52, 4, 4, BRASS);
-};
-
-/** The platform's planks (in front of the train's wheels), its lit edge (standable), the bell post at the gate, the
- *  timetable board on its own post (SAWDUST GULCH: ON TIME; later, WHENEVER). */
-const drawDeck = (c: Ctx, state: GameState, gone: boolean) => {
-  const deckY = Y(STATION.deck.h), a = Math.max(STATION.deck.a, state.camera.x - 40), b = Math.min(STATION.deck.b + 200, state.camera.x + 840);
-  box(c, a, deckY, b - a, 44, INK); box(c, a, deckY + 1, b - a, 40, '#7A5030');
-  for (let x = Math.floor(a / 30) * 30; x < b; x += 30) box(c, x, deckY + 1, 1, 40, '#4A2C16');
-  box(c, a, deckY, b - a, 3, '#D8B080');
-  for (let x = Math.floor(a / 120) * 120; x < b; x += 120) box(c, x + 50, deckY + 41, 10, 60, '#4A2C16');
-  // (the gate: two posts, the bell on one)
-  const g = STATION.gate + 20;
-  box(c, g, deckY - 60, 6, 60, '#5A3A1E'); box(c, g + 26, deckY - 60, 6, 60, '#5A3A1E');
-  box(c, g - 6, deckY - 76, 4, 30, '#3F3F46'); c.fillStyle = BRASS; c.beginPath(); c.moveTo(g - 14, deckY - 50); c.lineTo(g - 10, deckY - 66); c.lineTo(g - 2, deckY - 66); c.lineTo(g + 2, deckY - 50); c.closePath(); c.fill();
-  const tb = STATION.gate + 130;
-  box(c, tb - 3, deckY - 120, 6, 120, '#5A3A1E');
-  box(c, tb - 46, deckY - 150, 92, 50, INK); box(c, tb - 44, deckY - 148, 88, 46, '#1E2A22');
-  signText(c, 'DEPARTURES', tb, deckY - 136, { sx: 1, sy: 1, fill: '#F4CC4E' });
-  signText(c, 'SAWDUST GULCH', tb, deckY - 122, { sx: 1, sy: 1, fill: '#FEF3C7' });
-  signText(c, gone ? 'WHENEVER' : 'ON TIME', tb, deckY - 110, { sx: 1, sy: 1, fill: gone ? '#F87171' : '#86EFAC' });
-};
+const BRASS = '#E0B040';
 
 /** Behind him: the depot and tower, the train (Tucker in its cab), the deck, Tucker on the platform, his cap. */
 export const drawStationBack = (c: Ctx, state: GameState) => {
   if (!onScreen(state, STATION.depot - 140, STATION.deck.b + 1600)) return;
-  const s = stOf(state), f = state.frame;
+  const s = stOf(state), f = state.frame, v = viewOf(state);
   tickCap(s);
-  drawDepot(c);
+  drawDepot(c, v);
   if (s.step !== 'gone') drawTrain(c, s, f);
-  drawDeck(c, state, s.step === 'gone');
+  drawDeck(c, v, s.step === 'gone');
   if (!s.inCab && s.step !== 'gone') drawTucker(c, s.tx, Y(STATION.deck.h), s.face, f, s.pose, { talking: s.talking, capless: s.capless });
   if (s.cap) drawTuckerCap(c, s.cap.x, s.cap.y, s.cap.rot);
-  if (s.step === 'gone') frontierSign(c, STATION.deck.b - 150, Y(STATION.deck.h), ['TO SAWDUST GULCH', 'FOLLOW THE TRACKS >'], { seed: 7 });
+  if (s.step === 'gone') parkSign(c, STATION.deck.b - 150, Y(STATION.deck.h), ['TO SAWDUST GULCH', 'FOLLOW THE TRACKS >'], { seed: 7 });
 };
 
 /** Over the world: what Tucker's saying, over his head (or under the close-up while it's up). */
@@ -426,8 +301,10 @@ export const drawStationHud = (c: Ctx, state: GameState) => {
     c.save();
     c.globalAlpha = Math.min(1, k * 1.4);
     // (its frame: a wooden one, brass at the corners)
-    box(c, x - 8, y - 8, w + 16, h + 16, INK); box(c, x - 6, y - 6, w + 12, h + 12, '#6B4423'); box(c, x - 6, y - 6, w + 12, 3, '#9A6A3A');
-    for (const [qx, qy] of [[x - 6, y - 6], [x + w - 4, y - 6], [x - 6, y + h - 4], [x + w - 4, y + h - 4]]) box(c, qx, qy, 10, 10, BRASS);
+    box(c, x - 9, y - 9, w + 18, h + 18, INK); box(c, x - 8, y - 8, w + 16, h + 16, '#5A3418');
+    box(c, x - 8, y - 8, w + 16, 2, '#B07A48'); box(c, x - 8, y - 8, 2, h + 16, '#9A6A3A'); box(c, x - 8, y + h + 6, w + 16, 2, '#3A1E0C'); box(c, x + w + 6, y - 8, 2, h + 16, '#3A1E0C');
+    box(c, x - 3, y - 3, w + 6, h + 6, INK);
+    for (const [qx, qy] of [[x - 8, y - 8], [x + w - 4, y - 8], [x - 8, y + h - 4], [x + w - 4, y + h - 4]]) { box(c, qx, qy, 12, 12, INK); box(c, qx + 1, qy + 1, 10, 10, BRASS); box(c, qx + 1, qy + 1, 10, 2, '#FFF0A8'); box(c, qx + 4, qy + 4, 3, 3, '#6A4410'); }
     c.beginPath(); c.rect(x, y, w, h); c.clip();
     // (behind his head: rage red in bands)
     for (let i = 0; i < 6; i++) box(c, x, y + (i * h) / 6, w, h / 6 + 1, mix('#7F1D1D', '#F97316', i / 6));

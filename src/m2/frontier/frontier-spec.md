@@ -1047,3 +1047,20 @@ later (+1 if heavyset; was 2 / 3 before playtest fixes E). Tucker's glimpsed ahe
   by drawLion's new 'dead' pose (on its back, legs stiff in the air, eye crossed out, tongue lolled) and a hurt eye on
   hits. The next blood shower's cats are fresh (showered() makes new ones), whatever became of the last; both deaths'
   clearCritters (and endFight) take any lions still leaving.
+- 2026-10-18: SNES pass, section 1 (the wilds and Lonesome Pine Station), art only (no gameplay, hitbox or layout
+  changes). New wilds/paint.ts (materials in ramps: fiberglass, real rock, dirt, grass, needles, bark, oak, planks,
+  ply, steel, water; part/slab/post/pine/fiberglass; still() stamps per hour), far.ts (the backdrop cached per hour:
+  banded sky and cumulus, the REAL Rockies far off past the park, the park's painted plywood flats with their braces
+  and a light stand, two pine rows with a fire lookout and a cell tower in a fake-bough costume), ground.ts (one eye:
+  the meadow going back to FAR with brush along its edge, the floor coming toward him bent (the groomed trail, then
+  grass), fiberglass bluff and dirt hill faces, ends' sides going back, the ravine's dark walls and mist, near banks,
+  the tracks' ties going back), stationArt.ts (a proper 4-4-0: cowcatcher, oil headlamp, diamond stack, Russia-iron
+  boiler in brass bands, domes and bell, cylinder and crosshead, counterweighted drivers with side and main rods,
+  varnished cab No. 7; the cordwood tender, the clerestory coach, the cupola caboose; the depot with its side going
+  back, the water tower, the platform's top going back and lit lip, the gate's bell, the chalk DEPARTURES board).
+  The water (its surface going back with reeds on the far bank, the banded body with caustics, the bed and the
+  guests' litter, the rocks), the boulder (sides and top going back, the STAFF ONLY hatch), shelves (top going back,
+  worn lip, bracket plate; loose ones cracked to the gelcoat), stood-back flats, pines and a split-rail fence, the oak,
+  trash can, speaker rock, the trap, pines and cones, swarm, quills, log pile, logs (drawLog: the town's too), the
+  boom and the falls, the fallen trees, the leeches, and every animal (stamped frames; deer lie flat dead, the rest
+  belly up). kit.ts gains parkSign() (plank boards on peeled posts, burned or painted letters; for every section).

@@ -18,7 +18,7 @@ import { layOwn, ledge, solid, meatheadSays, byPants, endExits, runExits } from 
 import { SECTIONS, GY } from '../geometry';
 import { GROUND, LEDGES, BOULDERS, ANIMALS, PICKUPS, CHECKPOINTS, WATERS, STATION, X, Y } from './layout';
 import { wildsOf } from './state';
-import { waterAt, layWaterSteps, waterZones, carrySwimmer, surfaceY, drawWaterBack, drawWaterFront } from './water';
+import { waterAt, layWaterSteps, waterZones, carrySwimmer, surfaceY, drawWaterFront } from './water';
 import { buildLogs, updateLogs, updateFalls, updateBranches, drawLogs, drawBoomAndBranches } from './logs';
 import { buildHazards, updateTraps, updatePines, updateLoose, updateBees, updateRollers, updateQuills, drawHazardsBack, drawHazardsFront } from './hazards';
 import { updateLeeches, drawLeeches } from './leeches';
@@ -79,7 +79,7 @@ export const wilds: FrontierSection = {
   waterBodyAt: (_state, x, y) => waterAt(x, y),
   drawBackdrop: (c, state) => drawWildsBackdrop(c, state),
   drawBack: (c, state) => {
-    drawWaterBack(c, state);
+    // (the water's body is drawn in among the ground: drawWildsBack)
     drawWildsBack(c, state);
     drawStationBack(c, state);
     drawHazardsBack(c, state);

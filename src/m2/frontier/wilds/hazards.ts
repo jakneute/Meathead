@@ -27,7 +27,8 @@ import { shakeScreen } from '../../../m1/game/core/state';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { hazardHit, hazardVictims, boxHits, isSmall, setHazardZones } from '../../hazardHit';
 import { ledge } from '../section';
-import { box, onScreen, INK, type Ctx } from '../kit';
+import { onScreen } from '../kit';
+import { type Ctx, box, checker, mix, at, poly, still, near, pine, fiberglass, viewOf, INK, FIBER, FIBER_LIP, STEEL, BARK, NEEDLE, PLANK } from './paint';
 import { TRAPS, PINES, LOOSE, LOG_PILE, X, Y, groundH } from './layout';
 import { wildsOf, type Trap, type Roller } from './state';
 import { drawLog } from './logs';
@@ -107,33 +108,62 @@ export const updateTraps = (ctx: FrameContext, controls: Controls): Controls => 
   return out;
 };
 
-/** A trap, crude: the stake and chain, the two jaws (open flat on the ground, teeth up; or shut, standing up). */
+/** A trap (peak SNES): the stake and its chain, the two flat springs out either side, the jaws (open: two half rings
+ *  lying on the ground seen a little from above, their teeth standing up round the pan; shut: standing up clamped, the
+ *  teeth meshed), the steel in steps, rust in its pits, a glint now and then; blood on it while it's got somebody. */
 const drawTrap = (c: Ctx, t: Trap, f: number) => {
+  const shut = t.state !== 'open';
   c.save(); c.translate(Math.round(t.x), Math.round(t.y)); c.scale(TRAP_S, TRAP_S);
-  trapArt(c, t, f);
+  still(c, `trap-${shut ? 1 : 0}`, 0, 0, -32, -24, 64, 28, g => trapArt(g, shut));
+  if (!shut && f % 90 < 6) { box(c, 7, -7, 2, 2, '#FFFFFF'); box(c, 6, -6, 4, 0.6, '#FFFFFF'); }
+  if (t.state === 'him' || t.state === 'animal') {
+    // (blood on the jaws, running, dripping)
+    const d = (f % 20) < 10 ? 1 : 0;
+    box(c, -6, -12, 3, 6 + d, '#8E1414'); box(c, 3, -10, 3, 5 + d, '#B91C1C'); box(c, -1, -6, 2, 3, '#B91C1C');
+    if (f % 30 < 15) box(c, 4, -4 + (f % 15) * 0.3, 1, 2, '#B91C1C');
+  }
   c.restore();
 };
 /** The trap's art at the origin (its middle, on the ground), base size. */
-const trapArt = (c: Ctx, t: Trap, f: number) => {
-  const x = 0, y = 0;
-  // (the stake, the chain to it)
-  box(c, x - 26, y - 6, 3, 7, '#52525B');
-  for (let k = 0; k < 5; k++) box(c, x - 23 + k * 3, y - 2 - (k % 2), 3, 2, '#71717A');
-  if (t.state === 'open') {
-    // (flat open: the two jaws each a half ring, the teeth along their inner edges, the pan in the middle)
-    box(c, x - 15, y - 3, 30, 4, INK);
-    box(c, x - 14, y - 2, 28, 2, '#8A8A92'); box(c, x - 14, y - 2, 28, 1, '#C8C8D0');
-    for (let k = 0; k < 6; k++) { box(c, x - 13 + k * 5, y - 5, 2, 3, '#D4D4D8'); }
-    box(c, x - 4, y - 3, 8, 2, '#A16207');
-    // (a glint now and then: it's there, it's real)
-    if (f % 90 < 6) box(c, x + 6, y - 6, 2, 2, '#FFFFFF');
+const trapArt = (g: Ctx, shut: boolean) => {
+  const S = near(STEEL), RU = near(['#3A1A0A', '#5A2A10', '#7A3E18', '#9A5A2A']);
+  // (the stake, driven in, its ring; the chain to it in links)
+  box(g, -28, -8, 4, 9, INK); box(g, -27, -7, 2, 8, S[3]); box(g, -27, -7, 1, 8, S[5]); box(g, -29, -9, 6, 2, S[2]);
+  for (let k = 0; k < 6; k++) { const lx = -24 + k * 3, ly = -2 - (k % 2); box(g, lx - 0.5, ly - 0.5, 3, 2.5, INK); box(g, lx, ly, 2, 1.5, k % 2 ? S[4] : S[3]); }
+  // (the flat springs out either side: long U-bends of steel, lit along their tops, rusted at the bends)
+  for (const sd of [-1, 1]) {
+    const x0 = sd * 10, x1 = sd * 26;
+    box(g, Math.min(x0, x1) - 1, -4, Math.abs(x1 - x0) + 2, 5, INK);
+    box(g, Math.min(x0, x1), -3, Math.abs(x1 - x0), 1.5, S[5]); box(g, Math.min(x0, x1), -1.5, Math.abs(x1 - x0), 1.5, S[2]);
+    box(g, x1 - (sd > 0 ? 3 : 0), -4, 3, 4, RU[2]); box(g, x1 - (sd > 0 ? 2 : 1), -3, 1, 1, RU[3]);
+  }
+  if (!shut) {
+    // (open flat: the frame ring, the two jaws lying open as half rings (seen from a little above), the teeth standing
+    // up along their inner edges, the pan (the trigger plate) in the middle with its dog)
+    g.fillStyle = INK; g.beginPath(); g.ellipse(0, -2, 17, 6, 0, 0, Math.PI * 2); g.fill();
+    g.fillStyle = S[3]; g.beginPath(); g.ellipse(0, -2, 16, 5, 0, 0, Math.PI * 2); g.fill();
+    g.fillStyle = S[1]; g.beginPath(); g.ellipse(0, -2, 13, 3.4, 0, 0, Math.PI * 2); g.fill();
+    g.fillStyle = S[5]; g.beginPath(); g.ellipse(-1, -3.6, 14, 2, 0, Math.PI, Math.PI * 2); g.fill();
+    // (the teeth: back row darker, front row lit)
+    for (let k = 0; k < 7; k++) { const tx = -11 + k * 3.6; g.fillStyle = INK; g.beginPath(); g.moveTo(tx - 1.6, -4); g.lineTo(tx, -8.5); g.lineTo(tx + 1.6, -4); g.closePath(); g.fill(); g.fillStyle = S[4]; g.beginPath(); g.moveTo(tx - 0.9, -4.4); g.lineTo(tx, -7.4); g.lineTo(tx + 0.9, -4.4); g.closePath(); g.fill(); }
+    for (let k = 0; k < 7; k++) { const tx = -10 + k * 3.4; g.fillStyle = INK; g.beginPath(); g.moveTo(tx - 1.8, 1); g.lineTo(tx, -4); g.lineTo(tx + 1.8, 1); g.closePath(); g.fill(); g.fillStyle = S[6]; g.beginPath(); g.moveTo(tx - 1, 0.4); g.lineTo(tx, -3); g.lineTo(tx + 0.4, 0.4); g.closePath(); g.fill(); }
+    // (the pan: a round plate, rusty, its dog arm across)
+    g.fillStyle = INK; g.beginPath(); g.ellipse(0, -2, 5.5, 2.4, 0, 0, Math.PI * 2); g.fill();
+    g.fillStyle = RU[2]; g.beginPath(); g.ellipse(0, -2, 4.6, 1.8, 0, 0, Math.PI * 2); g.fill();
+    box(g, -3, -3, 3, 1, RU[3]); box(g, 2, -3, 6, 1, S[2]);
+    // (rust in the pits of the ring)
+    for (const rx of [-14, -6, 9, 13]) box(g, rx, 0, 2, 1, RU[1]);
   } else {
-    // (shut: the jaws standing up, clamped together, the teeth meshed)
-    box(c, x - 9, y - 16, 18, 17, INK);
-    box(c, x - 8, y - 15, 7, 15, '#8A8A92'); box(c, x + 1, y - 15, 7, 15, '#71717A');
-    for (let k = 0; k < 4; k++) { box(c, x - 2, y - 14 + k * 4, 2, 2, '#D4D4D8'); box(c, x, y - 12 + k * 4, 2, 2, '#D4D4D8'); }
-    box(c, x - 10, y - 2, 20, 3, '#52525B');
-    if (t.state === 'him' || t.state === 'animal') for (let k = 0; k < 2; k++) box(c, x - 6 + k * 9, y - 5 - (f % 20 < 10 ? 1 : 0), 3, 4, '#B91C1C');
+    // (shut: the jaws standing up, clamped, the teeth meshed in a zigzag; the frame flat under them)
+    box(g, -14, -3, 28, 4, INK); box(g, -13, -2, 26, 2, S[3]); box(g, -13, -2, 26, 1, S[5]);
+    g.fillStyle = INK; g.beginPath(); g.moveTo(-11, 0); g.quadraticCurveTo(-12, -20, 0, -21); g.quadraticCurveTo(12, -20, 11, 0); g.closePath(); g.fill();
+    g.fillStyle = S[3]; g.beginPath(); g.moveTo(-9.5, -1); g.quadraticCurveTo(-10.5, -18.5, -1, -19.5); g.lineTo(-1, -1); g.closePath(); g.fill();
+    g.fillStyle = S[2]; g.beginPath(); g.moveTo(9.5, -1); g.quadraticCurveTo(10.5, -18.5, 1, -19.5); g.lineTo(1, -1); g.closePath(); g.fill();
+    box(g, -9, -16, 2, 14, S[5]); box(g, -8, -18, 4, 1, S[6]);
+    box(g, 6, -14, 3, 12, S[1]);
+    // (the meshed teeth down the middle)
+    for (let k = 0; k < 5; k++) { const ty = -17 + k * 3.4; box(g, -2, ty, 2, 2, S[6]); box(g, 0, ty + 1.7, 2, 2, S[4]); box(g, -2, ty + 2, 4, 0.6, INK); }
+    box(g, -8, -6, 3, 2, RU[2]); box(g, 5, -9, 2, 3, RU[1]);
   }
 };
 
@@ -173,24 +203,30 @@ export const updatePines = (ctx: FrameContext) => {
   }
 };
 
-const cone = (c: Ctx, x: number, y: number) => {
-  box(c, x - 4, y - 6, 8, 12, INK);
-  box(c, x - 3, y - 5, 6, 10, '#8A5A2E');
-  for (let k = 0; k < 3; k++) box(c, x - 3, y - 4 + k * 3, 6, 1, '#5A3416');
-  box(c, x - 1, y - 8, 2, 3, '#4A2A10');
-};
+/** A pine cone: scales in rows (each lit along its lip, dark under), its stem. Stamped. */
+const cone = (c: Ctx, x: number, y: number) => still(c, 'cone', x, y, -7, -11, 14, 20, g => {
+  const R = near(['#1E0E06', '#3A1E0C', '#5A3216', '#7A4A22', '#9A6432', '#BC8448', '#DCA868']);
+  g.fillStyle = INK; g.beginPath(); g.ellipse(0, 0, 5, 7, 0, 0, Math.PI * 2); g.fill();
+  g.fillStyle = R[2]; g.beginPath(); g.ellipse(0, 0, 4, 6, 0, 0, Math.PI * 2); g.fill();
+  for (let r = 0; r < 4; r++) for (let k = 0; k < 3; k++) { const sx = -3.5 + k * 2.6 + (r % 2) * 1.2, sy = -5 + r * 3; box(g, sx, sy, 2, 2, k === 0 ? R[5] : R[4]); box(g, sx, sy + 2, 2, 1, R[1]); }
+  box(g, -1, -9, 2, 3, R[1]); box(g, -1, -9, 1, 3, R[3]);
+});
 
-/** A big pine (crude: a trunk, stacked triangles of boughs, a lit edge), shaking while it's about to drop. */
+/** A big pine (stepped tiers of boughs over a bare red trunk, cones hanging in it), shaking while it's about to drop.
+ *  Painted once for the hour; the shake just jiggles the lot. */
 const drawPine = (c: Ctx, x: number, groundY: number, coneY: number, shake: number, f: number) => {
-  const sx = shake ? Math.sin(f * 1.4) * 2 : 0;
-  const top = coneY - 120;
-  box(c, x - 6, coneY - 20, 12, groundY - coneY + 20, INK); box(c, x - 5, coneY - 20, 10, groundY - coneY + 20, '#6B4423'); box(c, x - 5, coneY - 20, 3, groundY - coneY + 20, '#8A5A30');
-  for (let k = 0; k < 5; k++) {
-    const yy = top + k * 34, half = 20 + k * 14;
-    c.fillStyle = INK; c.beginPath(); c.moveTo(x + sx, yy - 4); c.lineTo(x + half + 2 + sx, yy + 44); c.lineTo(x - half - 2 + sx, yy + 44); c.closePath(); c.fill();
-    c.fillStyle = '#24502E'; c.beginPath(); c.moveTo(x + sx, yy); c.lineTo(x + half + sx, yy + 42); c.lineTo(x - half + sx, yy + 42); c.closePath(); c.fill();
-    c.fillStyle = '#3A7040'; c.beginPath(); c.moveTo(x + sx, yy); c.lineTo(x - half + sx, yy + 42); c.lineTo(x - half + 8 + sx, yy + 42); c.closePath(); c.fill();
-  }
+  const sx = shake ? Math.round(Math.sin(f * 1.4) * 2) : 0, up = groundY - coneY;
+  still(c, `hpine-${Math.round(up)}`, x + sx, groundY, -96, -up - 140, 192, up + 144, g => {
+    const B = near(BARK), foot = -up + 50;
+    // (the bare trunk under the crown, down to its roots)
+    box(g, -7, foot - 20, 14, up - 30, INK); box(g, -6, foot - 20, 12, up - 30, B[3]); box(g, -6, foot - 20, 4, up - 30, B[4]); box(g, -5, foot - 20, 1, up - 30, B[5]); box(g, 3, foot - 20, 3, up - 30, B[2]);
+    for (let y = foot - 16; y < -4; y += 6) box(g, -4 + ((y * 5) & 3) * 2, y, 3, 2, (y >> 1) % 2 ? B[1] : B[5]);
+    g.fillStyle = INK; g.beginPath(); g.moveTo(-12, 1); g.quadraticCurveTo(-7, -6, -6, -14); g.lineTo(6, -14); g.quadraticCurveTo(7, -6, 12, 1); g.closePath(); g.fill();
+    g.fillStyle = B[3]; g.beginPath(); g.moveTo(-10, 0); g.quadraticCurveTo(-6, -6, -5, -13); g.lineTo(5, -13); g.quadraticCurveTo(6, -6, 10, 0); g.closePath(); g.fill();
+    box(g, -8, -4, 3, 4, B[4]);
+    // (the crown)
+    pine(g, 0, foot, 178, 150, Math.round(up), near(NEEDLE), B);
+  });
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -220,21 +256,52 @@ export const updateLoose = (ctx: FrameContext) => {
 };
 
 /** A fake-rock shelf (crude): its fiberglass face, a lit top lip (standable), a bolt; loose ones cracked, shaking. */
-export const drawShelf = (c: Ctx, a: number, b: number, y: number, loose: boolean, shake = 0, f = 0) => {
-  const sx = shake ? Math.sin(f * 2.1) * 1.5 : 0;
-  box(c, a - 1 + sx, y - 1, b - a + 2, 18, INK);
-  box(c, a + sx, y, b - a, 16, loose ? '#9A8E78' : '#8E8676');
-  box(c, a + sx, y + 10, b - a, 6, loose ? '#7A6E58' : '#6E6858');
-  box(c, a + sx, y, b - a, 3, '#D8CCAA');
-  box(c, a + 6 + sx, y + 6, 2, 2, '#52525B');
-  // (its underside tapering off: fake rock on a steel bracket)
-  c.fillStyle = loose ? '#7A6E58' : '#6E6858'; c.beginPath(); c.moveTo(a + 8 + sx, y + 16); c.lineTo(b - 8 + sx, y + 16); c.lineTo((a + b) / 2 + sx, y + 30); c.closePath(); c.fill();
-  if (loose) {
-    // (the cracks across it)
-    c.strokeStyle = '#3A3428'; c.lineWidth = 1; c.beginPath();
-    c.moveTo(a + (b - a) * 0.3 + sx, y + 2); c.lineTo(a + (b - a) * 0.36 + sx, y + 9); c.lineTo(a + (b - a) * 0.3 + sx, y + 15);
-    c.moveTo(a + (b - a) * 0.7 + sx, y + 3); c.lineTo(a + (b - a) * 0.64 + sx, y + 12); c.stroke();
+/**
+ * A fake-rock shelf (peak SNES): a slab of molded fiberglass, its top going back (banded, when he's looking down on
+ * it), its face in molded lumps, the lip lit pale where the paint's worn (standable), an outcrop bulging under it to a
+ * point, a steel bracket's plate and bolts showing; the loose ones paler, cracked through to the white gelcoat, a bolt
+ * hanging out, shaking before they go. `eye`: the scene's (its top going back).
+ */
+export const drawShelf = (c: Ctx, a: number, b: number, y: number, loose: boolean, shake = 0, f = 0, eye?: { x: number; y: number }) => {
+  const sx = shake ? Math.round(Math.sin(f * 2.1) * 1.5) : 0, w = Math.round(b - a);
+  const F = near(loose ? FIBER.map(col => mix(col, '#B8A888', 0.14)) : FIBER);
+  if (eye && eye.y < y - 1 && c.globalAlpha === 1) {
+    const D = 0.93;
+    for (let i = 0; i < 2; i++) { const d0 = 1 - ((1 - D) * i) / 2, d1 = 1 - ((1 - D) * (i + 1)) / 2; poly(c, [at(eye, a + sx + 3, y, d0), at(eye, b + sx - 3, y, d0), at(eye, b + sx - 3, y, d1), at(eye, a + sx + 3, y, d1)], i ? F[4] : F[5]); }
+    const [p0x, p0y] = at(eye, a + sx + 3, y, D), [p1x, p1y] = at(eye, b + sx - 3, y, D);
+    c.strokeStyle = INK; c.lineWidth = 1; c.beginPath(); c.moveTo(p0x, p0y); c.lineTo(p1x, p1y); c.stroke();
   }
+  still(c, `shelf-${w}-${loose ? 1 : 0}`, a + sx, y, -3, -3, w + 6, 40, g => {
+    const L = near(FIBER_LIP), S = near(STEEL);
+    // (the outcrop under it: molded rock bulging down to a point, shaded underneath)
+    g.fillStyle = INK; g.beginPath(); g.moveTo(4, 15); g.lineTo(w - 4, 15); g.lineTo(w * 0.62, 34); g.lineTo(w * 0.42, 37); g.closePath(); g.fill();
+    g.fillStyle = F[2]; g.beginPath(); g.moveTo(7, 15); g.lineTo(w - 7, 15); g.lineTo(w * 0.61, 32); g.lineTo(w * 0.43, 35); g.closePath(); g.fill();
+    g.fillStyle = F[3]; g.beginPath(); g.moveTo(7, 15); g.lineTo(w * 0.5, 15); g.lineTo(w * 0.43, 33); g.closePath(); g.fill();
+    g.fillStyle = F[1]; g.beginPath(); g.moveTo(w * 0.55, 24); g.lineTo(w - 7, 15); g.lineTo(w * 0.61, 32); g.closePath(); g.fill();
+    // (the slab: inked, its face in molded lumps, darker under the lip)
+    g.fillStyle = INK; g.beginPath(); g.roundRect(-1, -1, w + 2, 19, 4); g.fill();
+    g.save(); g.beginPath(); g.roundRect(0, 0, w, 17, 3); g.clip();
+    fiberglass(g, 0, 0, w, 17, F, w + (loose ? 7 : 0), false);
+    box(g, 0, 12, w, 5, F[2]); checker(g, 0, 10, w, 2, F[2], 0); box(g, 0, 15, w, 2, F[1]);
+    g.restore();
+    // (the lip: worn pale where boots go)
+    box(g, 2, 0, w - 4, 3, L[2]); box(g, 2, 0, w - 4, 1, L[3]); box(g, 1, 3, w - 2, 1, L[1]);
+    for (let x = 8; x < w - 8; x += 13) box(g, x, 1, 4, 1, L[3]);
+    // (the bracket's plate and bolts, on its face)
+    const px = Math.round(w * 0.5 - 7);
+    box(g, px, 6, 14, 7, INK); box(g, px + 1, 7, 12, 5, S[3]); box(g, px + 1, 7, 12, 1, S[5]);
+    for (const bx of [px + 2, px + 10]) { box(g, bx, 8, 2, 2, S[1]); box(g, bx, 8, 1, 1, S[6]); }
+    if (loose) {
+      // (cracked through: the white gelcoat in the cracks, a bolt hanging out on its last thread, chips off the edge)
+      for (const [cx, k] of [[0.28, 0], [0.7, 1]] as const) {
+        const x = Math.round(w * cx);
+        g.strokeStyle = INK; g.lineWidth = 2; g.beginPath(); g.moveTo(x, 0); g.lineTo(x + 4, 6); g.lineTo(x - 2, 11); g.lineTo(x + 3, 17); if (k) { g.moveTo(x + 4, 6); g.lineTo(x + 10, 9); } g.stroke();
+        g.strokeStyle = '#E8E2D2'; g.lineWidth = 1; g.beginPath(); g.moveTo(x + 1, 1); g.lineTo(x + 4.6, 6); g.lineTo(x - 1, 11); g.stroke();
+      }
+      box(g, px + 10, 12, 2, 6, S[4]); box(g, px + 9, 18, 4, 2, S[2]);
+      box(g, w - 10, 15, 6, 3, F[1]); box(g, 6, 16, 4, 2, F[1]);
+    }
+  });
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -298,12 +365,18 @@ export const updateBees = (ctx: FrameContext) => {
   });
 };
 
+/** The swarm: a cloud of fat bees (inked, striped, their wings a blur), a haze in among them, churning. */
 const drawSwarm = (c: Ctx, x: number, y: number, t: number) => {
-  for (let i = 0; i < 22; i++) {
-    const a = t * (0.2 + (i % 5) * 0.03) + i * 2.3, r = 8 + (i % 4) * 6 + Math.sin(t * 0.1 + i) * 4;
-    const bx = x + Math.cos(a) * r, by = y + Math.sin(a * 1.3) * r * 0.7;
-    box(c, bx - 1, by - 1, 3, 2, '#1C1917'); box(c, bx, by - 1, 1, 2, '#FACC15');
-    if ((t + i) % 4 < 2) box(c, bx - 1, by - 3, 2, 1, 'rgba(255,255,255,0.7)');
+  c.fillStyle = 'rgba(40, 32, 12, 0.12)'; c.beginPath(); c.ellipse(x, y, 30, 20, 0, 0, Math.PI * 2); c.fill();
+  for (let i = 0; i < 26; i++) {
+    const a = t * (0.2 + (i % 5) * 0.03) + i * 2.3, r = 8 + (i % 4) * 7 + Math.sin(t * 0.1 + i) * 4;
+    const bx = Math.round(x + Math.cos(a) * r), by = Math.round(y + Math.sin(a * 1.3) * r * 0.7), dir = Math.sin(a) > 0 ? 1 : -1;
+    // (wings: up or down, a pale blur)
+    if ((t + i) % 4 < 2) { box(c, bx - 1, by - 4, 3, 2, 'rgba(240, 248, 255, 0.75)'); } else box(c, bx - 2, by - 3, 4, 1, 'rgba(240, 248, 255, 0.55)');
+    box(c, bx - 2, by - 2, 6, 4, INK);
+    box(c, bx - 1, by - 1, 4, 2, '#F2C21A'); box(c, bx - 1, by - 1, 4, 1, '#FCE47A');
+    box(c, bx + (dir > 0 ? 0 : 1), by - 1, 1, 2, INK); box(c, bx + (dir > 0 ? 2 : -1), by - 1, 1, 2, '#1C1917');
+    box(c, bx + (dir > 0 ? 3 : -2), by - 1, 1, 1, INK);
   }
 };
 
@@ -405,9 +478,11 @@ export const updateQuills = (ctx: FrameContext) => {
 const drawQuill = (c: Ctx, x: number, y: number, vx: number, vy: number) => {
   const d = Math.hypot(vx, vy) || 1, ux = vx / d, uy = vy / d;
   c.lineCap = 'round';
-  c.strokeStyle = INK; c.lineWidth = 2.6; c.beginPath(); c.moveTo(x - ux * 9, y - uy * 9); c.lineTo(x + ux * 3, y + uy * 3); c.stroke();
-  c.strokeStyle = '#3A2814'; c.lineWidth = 1.4; c.beginPath(); c.moveTo(x - ux * 8, y - uy * 8); c.lineTo(x - ux * 2, y - uy * 2); c.stroke();
-  c.strokeStyle = '#F5F5F4'; c.beginPath(); c.moveTo(x - ux * 2, y - uy * 2); c.lineTo(x + ux * 2.5, y + uy * 2.5); c.stroke();
+  c.strokeStyle = INK; c.lineWidth = 2.8; c.beginPath(); c.moveTo(x - ux * 10, y - uy * 10); c.lineTo(x + ux * 3, y + uy * 3); c.stroke();
+  c.strokeStyle = '#2A1C0E'; c.lineWidth = 1.4; c.beginPath(); c.moveTo(x - ux * 9, y - uy * 9); c.lineTo(x - ux * 4, y - uy * 4); c.stroke();
+  c.strokeStyle = '#D8CCB0'; c.beginPath(); c.moveTo(x - ux * 4, y - uy * 4); c.lineTo(x, y); c.stroke();
+  c.strokeStyle = '#FFFFFF'; c.lineWidth = 1; c.beginPath(); c.moveTo(x, y); c.lineTo(x + ux * 2.5, y + uy * 2.5); c.stroke();
+  c.lineCap = 'butt';
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -422,7 +497,8 @@ export const drawHazardsBack = (c: Ctx, state: GameState) => {
     if (pn.state === 'ready' || pn.state === 'shake') cone(c, pn.x + (pn.state === 'shake' ? Math.sin(f * 1.4) * 2 : 0), pn.coneY);
     for (const dx of [-26, 30]) cone(c, pn.x + dx, pn.coneY - 30 + (dx > 0 ? 10 : 0));
   }
-  for (const L of w.loose) if (L.state !== 'fallen' && onScreen(state, L.a, L.b)) drawShelf(c, L.a, L.b, L.y, true, L.state === 'shake' ? 1 : 0, f);
+  const eye = viewOf(state).eye;
+  for (const L of w.loose) if (L.state !== 'fallen' && onScreen(state, L.a, L.b)) drawShelf(c, L.a, L.b, L.y, true, L.state === 'shake' ? 1 : 0, f, eye);
   for (const L of w.loose) if (L.state === 'fallen' && L.drop < 600) { c.globalAlpha = Math.max(0, 1 - L.drop / 600); drawShelf(c, L.a, L.b, L.y + L.drop, true); c.globalAlpha = 1; }
   for (const t of w.traps) if (onScreen(state, t.x - 30, t.x + 30)) drawTrap(c, t, f);
   // (the log pile: logs stacked in a pyramid behind a broken rail, at the hill's top)
@@ -430,7 +506,13 @@ export const drawHazardsBack = (c: Ctx, state: GameState) => {
   if (onScreen(state, px - 140, px + 140)) {
     const rock = w.pileT > LOG_PILE.every - 36 ? Math.sin(f * 1.1) * 3 : 0;
     for (let row = 0; row < 3; row++) for (let k = 0; k < 3 - row; k++) drawLog(c, px - 60 + k * 30 + row * 15 + (row === 2 ? rock : 0), py - 2 * ROLL_R * (row + 1), ROLL_LEN, row + k + (row === 2 ? rock * 0.2 : 0));
-    box(c, px - 90, py - 40, 6, 40, '#6B4423'); box(c, px - 90, py - 40, 60, 5, '#8A5A30');
+    // (the broken rail that was holding them: a post, a split rail snapped off, its splinters; a chock knocked loose)
+    const P = near(PLANK);
+    box(c, px - 91, py - 44, 8, 44, INK); box(c, px - 90, py - 43, 6, 43, P[3]); box(c, px - 90, py - 43, 2, 43, P[5]); box(c, px - 85, py - 43, 1, 43, P[2]);
+    box(c, px - 91, py - 41, 54, 7, INK); box(c, px - 90, py - 40, 52, 5, P[3]); box(c, px - 90, py - 40, 52, 1, P[5]); box(c, px - 90, py - 36, 52, 1, P[1]);
+    for (let k = 0; k < 4; k++) { box(c, px - 38 + k * 2, py - 41 + (k % 2) * 3, 3, 2, P[5 - (k % 2)]); }
+    c.fillStyle = INK; c.beginPath(); c.moveTo(px - 70, py); c.lineTo(px - 60, py - 9); c.lineTo(px - 52, py); c.closePath(); c.fill();
+    c.fillStyle = P[4]; c.beginPath(); c.moveTo(px - 68, py - 1); c.lineTo(px - 60, py - 7); c.lineTo(px - 54, py - 1); c.closePath(); c.fill();
   }
   for (const r of w.rollers) {
     if (!onScreen(state, r.x, r.x + ROLL_LEN)) continue;

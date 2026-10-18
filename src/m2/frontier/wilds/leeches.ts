@@ -104,11 +104,17 @@ export const updateLeeches = (ctx: FrameContext, controls: Controls): Controls =
 const drawLeech = (c: Ctx, x: number, y: number, a: number, wr: number) => {
   c.save(); c.translate(x, y); c.rotate(a);
   const len = 6 + wr;
-  c.fillStyle = '#0C0A09'; c.beginPath(); c.ellipse(0, 0, len + 1, 3.4, 0, 0, Math.PI * 2); c.fill();
-  c.fillStyle = '#292524'; c.beginPath(); c.ellipse(0, 0, len, 2.5, 0, 0, Math.PI * 2); c.fill();
-  c.fillStyle = '#57532A'; c.fillRect(-len + 2, -1.5, len * 1.4, 1);
-  c.fillStyle = '#44403C'; for (let k = -len + 3; k < len - 1; k += 3) c.fillRect(k, -2, 1, 4);
-  c.fillStyle = '#7F1D1D'; c.beginPath(); c.arc(len - 0.5, 0, 1.6, 0, Math.PI * 2); c.fill();
+  // (inked; its body in steps (the dark belly, the olive back, a wet glint along it); banded in rings; the orange
+  // stripe down its back; the sucker end swollen and red with what it's had)
+  c.fillStyle = '#0C0A09'; c.beginPath(); c.ellipse(0, 0, len + 1, 3.6, 0, 0, Math.PI * 2); c.fill();
+  c.fillStyle = '#1E1C14'; c.beginPath(); c.ellipse(0, 0.4, len, 2.7, 0, 0, Math.PI * 2); c.fill();
+  c.fillStyle = '#3A3A22'; c.beginPath(); c.ellipse(-0.5, -0.6, len - 1, 1.7, 0, 0, Math.PI * 2); c.fill();
+  c.fillStyle = '#B8642A'; c.fillRect(-len + 2, -1, len * 1.5, 0.8);
+  c.fillStyle = '#141208'; for (let k = -len + 3; k < len - 1; k += 2.5) c.fillRect(k, -2.2, 0.8, 4.4);
+  c.fillStyle = 'rgba(230, 240, 220, 0.7)'; c.fillRect(-len * 0.5, -2, len * 0.6, 0.7);
+  c.fillStyle = '#0C0A09'; c.beginPath(); c.arc(len - 0.5, 0, 2.4, 0, Math.PI * 2); c.fill();
+  c.fillStyle = '#8E1414'; c.beginPath(); c.arc(len - 0.5, 0, 1.8, 0, Math.PI * 2); c.fill();
+  c.fillStyle = '#D94A3A'; c.fillRect(len - 1.4, -1.2, 1, 1);
   c.restore();
 };
 
