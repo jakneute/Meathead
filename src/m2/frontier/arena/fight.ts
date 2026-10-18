@@ -603,7 +603,8 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
   // (the cats on him: nothing else gets a look in)
   if (f.act === 'mauled' || f.iframes > 0) return;
   const plain = plainHit(state, melee);
-  if (plain === null && state.player.currentWeapon !== 'SOUL_SUCKER' && (++f.wrongN === 2 || f.wrongN % 5 === 0) && f.t - f.hintAt > HINT_GAP) {
+  // (no hint at a weapon he hasn't got (the user's))
+  if (plain === null && state.player.availableWeapons.includes('SOUL_SUCKER') && state.player.currentWeapon !== 'SOUL_SUCKER' && (++f.wrongN === 2 || f.wrongN % 5 === 0) && f.t - f.hintAt > HINT_GAP) {
     f.hintAt = f.t; mhSays(state, L.MH_HINT, false);
   }
   const dmg = plain ?? Math.max(1, dealt * SHARE);
@@ -618,7 +619,7 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
 const talk = (state: GameState, f: Fight) => {
   if (!f.lowSaid && f.hp < HP * 0.25 && !f.said) { f.lowSaid = true; tuckerSays(f, L.TF_LOW); }
   if (!f.bagSaid && goreBag() >= SPRAY) { f.bagSaid = true; mhSays(state, L.MH_BAG, false); }
-  if (f.stampedes >= 2 && f.stampedes % 3 === 2 && goreBag() < SPRAY && f.t - f.hintAt > HINT_GAP && f.act === 'reload' && f.actT === 20) { f.hintAt = f.t; mhSays(state, L.MH_HINT, false); }
+  if (f.stampedes >= 2 && f.stampedes % 3 === 2 && state.player.availableWeapons.includes('SOUL_SUCKER') && goreBag() < SPRAY && f.t - f.hintAt > HINT_GAP && f.act === 'reload' && f.actT === 20) { f.hintAt = f.t; mhSays(state, L.MH_HINT, false); }
 };
 
 // ---- the camera: on them both while it can (the arena's two screens), always on Meathead

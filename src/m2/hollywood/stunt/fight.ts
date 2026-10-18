@@ -564,7 +564,8 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
   if (dealt <= 0 || !state.enemies.includes(e) || f.iframes > 0) return;
   const plain = plainHit(state, melee);
   // (anything else but the book: a share; and him thinking out loud about the book, now and then)
-  if (plain === null && state.player.currentWeapon !== 'SPELLBOOK' && !f.zappedOnce && (++f.wrongN === 2 || f.wrongN % 5 === 0) && f.total - f.hintAt > HINT_GAP) {
+  // (no hint at a weapon he hasn't got (the user's))
+  if (plain === null && state.player.availableWeapons.includes('SPELLBOOK') && state.player.currentWeapon !== 'SPELLBOOK' && !f.zappedOnce && (++f.wrongN === 2 || f.wrongN % 5 === 0) && f.total - f.hintAt > HINT_GAP) {
     f.hintAt = f.total; meatheadSays(state, pick(L.MEATHEAD_HINT), false);
   }
   hurt(ctx, f, plain ?? Math.max(1, dealt * SHARE), IFRAMES);

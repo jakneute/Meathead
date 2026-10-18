@@ -1086,7 +1086,8 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
   f.moveSeen = e.hitByMove;
   if (dealt <= 0 || !state.enemies.includes(e) || f.iframes > 0) return;
   const plain = plainHit(state, melee);
-  if (plain === null && state.player.currentWeapon !== 'CROSSBOW' && f.barfs === 0 && (++f.wrongN === 2 || f.wrongN % 5 === 0) && f.total - f.hintAt > HINT_GAP) {
+  // (no hint at a weapon he hasn't got (the user's))
+  if (plain === null && state.player.availableWeapons.includes('CROSSBOW') && state.player.currentWeapon !== 'CROSSBOW' && f.barfs === 0 && (++f.wrongN === 2 || f.wrongN % 5 === 0) && f.total - f.hintAt > HINT_GAP) {
     f.hintAt = f.total; meatheadSays(state, pick(L.MH_HINT), false);
   }
   // (puking his guts out, without her: wide open, every hit a big one)
