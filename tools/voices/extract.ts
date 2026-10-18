@@ -111,9 +111,9 @@ for (const t of [...TOO_BIG_LINES, ...Object.values(TOO_BIG_BY_KIND).flat(), ...
 for (const t of Object.values(M2_GUT_LINES).flat()) add('meathead', t, 'M2_GUT_LINES');
 for (const t of M2_GUT_DEATH) add('death', t, 'M2_GUT_DEATH');
 // (Meathead 2's intro: who says what)
-for (const t of allStrings([introLines.MEATHEAD_TICKET, introLines.MEATHEAD_PARKED])) add('meathead', t, 'INTRO');
-for (const t of allStrings([introLines.TICKET_LADY, introLines.TICKET_NEXT, introLines.TICKET_ALARM, introLines.TICKET_CUT])) add('m2.ticket', t, 'INTRO');
-for (const t of allStrings([introLines.GUARD_ALERT, introLines.GUARD_BARK, introLines.GUARD_IDLE, introLines.GUARD_WELCOME])) { add('m2.guard', t, 'INTRO'); add('m2.guardf', t, 'INTRO'); }
+for (const t of allStrings([introLines.MEATHEAD_TICKET, introLines.MEATHEAD_PARKED, introLines.MEATHEAD_BACK_LOT, introLines.MEATHEAD_REENTRY, introLines.MEATHEAD_REENTRY_BACK])) add('meathead', t, 'INTRO');
+for (const t of allStrings([introLines.TICKET_LADY, introLines.TICKET_NEXT, introLines.TICKET_ALARM, introLines.TICKET_CUT, introLines.TICKET_REENTRY])) add('m2.ticket', t, 'INTRO');
+for (const t of allStrings([introLines.GUARD_ALERT, introLines.GUARD_BARK, introLines.GUARD_IDLE, introLines.GUARD_WELCOME, introLines.GUARD_WELCOME_BACK])) { add('m2.guard', t, 'INTRO'); add('m2.guardf', t, 'INTRO'); }
 for (const t of introLines.PA_LINES) add('m2.pa', t, 'INTRO');
 // (Adventure Land: every section's, by voice)
 for (const byVoice of ADV_VOICE_LINES) for (const [v, lines] of Object.entries(byVoice)) for (const t of lines) add(v, t, 'ADVENTURE');

@@ -12,6 +12,12 @@
 // behind him, and if he holds it up at the window they let him know. Or he plows through the lot of them. At the window
 // he shows his ticket: clean, it's a ticket; shitty, so's the ticket; naked, there's no ticket (it was in his pants), so
 // he knocks the ticket lady out and goes in anyway.
+//
+// THE WALK BACK (Wilderness Land's spin, after Tucker: the walk-away's HEADING BACK TO PARK, then here, not the hub;
+// store.ts setWalkBack): no truck crash (it's still in the pillar); he walks into the garage from its far left, the way
+// in off the real woods, and says so. No tips, a short line that's served quick (he can still cut it or plow through
+// it), the first guard's a welcome BACK, and the window's a re-entry exchange (his opener, her answer, his last word;
+// naked: her answer, then the punch). Security's rules as ever. Out the gate (or SKIP INTRO): the hub, and it's over.
 
 import type { StageLayout } from '../../m1/game/stages/index';
 import type { GameState } from '../../m1/game/core/state';
@@ -31,7 +37,7 @@ import { isShat, isNude } from '../../m1/game/player/gut';
 import { shakeScreen } from '../../m1/game/core/state';
 import { SKIP_AFTER, offerSkip, takeSkip } from '../../m1/game/platform/skip';
 import { createGrab, updateGrab, drawGrab, grabbing, type Grab } from '../moves/grab';
-import { setUi, goTo, isLeaving, arrived, carryGut, takeGut } from '../store';
+import { setUi, goTo, isLeaving, arrived, carryGut, takeGut, walkBackOn, setWalkBack } from '../store';
 import { stopWeapons } from '../weapons';
 import { todLight } from '../timeOfDay';
 import { drawNotedSunFlare } from '../sunFlare';
@@ -39,6 +45,7 @@ import { CAST, type CastMember } from '../cast/people';
 import {
   TICKET_VOICE, GUARD_VOICE, GUARD_F_VOICE, PA_VOICE, GUEST_VOICE, GUEST2_VOICE, type Dressed, MEATHEAD_TICKET, MEATHEAD_PARKED, TICKET_LADY, TICKET_NEXT, TICKET_ALARM,
   GUARD_ALERT, GUARD_BARK, GUARD_IDLE, GUARD_WELCOME, PA_LINES, GUEST_HURRY, GUEST_CUT, TICKET_CUT, GUEST_HIT, GUEST_REACT, GUEST_REACT_NOW,
+  MEATHEAD_BACK_LOT, GUARD_WELCOME_BACK, MEATHEAD_REENTRY, TICKET_REENTRY, MEATHEAD_REENTRY_BACK,
 } from './lines';
 import { drawIntroBackdrop, drawIntroBack, drawIntroFront } from './draw';
 import { X0, R, CEIL_Y, UPPER, floorY, GARAGE_END, CHECK_END, STAIRS_END, USA_START, WALKWAYS, WALKWAY_SPEED, OFFICE_X, DETECTOR_X, FRONT_X, WINDOW_X, SPACING, QUEUE_START, TURN_X, GATE_X, END_X } from './geometry';
@@ -62,7 +69,9 @@ export interface Intro {
   /** The ticket window: what she's saying, whether she's out cold; whether he's been let in. */
   lady: { said: Said | null; ko: number }; admitted: boolean;
   /** The ticket scene at the window: how it went, how far it's got. */
-  scene: { kind: Dressed; t: number; done: boolean; punched: boolean; card: boolean; cardAt: number; pip: number } | null;
+  scene: { kind: Dressed; t: number; done: boolean; punched: boolean; card: boolean; cardAt: number; pip: number; back?: Reentry } | null;
+  /** (the walk back) His walk into the garage off the woods, its frames (null once he's in it, or not walking back). */
+  walkIn: number | null;
   /** The checkpoint's security office: the door, the next one out. */
   office: { open: number; cd: number; due: number };
   /** The PA (what it's saying, when next), the guards' barks. */
@@ -84,6 +93,12 @@ export interface Intro {
   arrival: { t: number; landed: number; said: boolean; done: number; waiting: boolean } | null;
 }
 export const getIntro = (state: GameState) => state.stage as Intro | null;
+/** (the walk back) The window's re-entry exchange: his opener, her answer, his last word (none naked: the punch). */
+interface Reentry { me: string; lady: string; last: string | null }
+/** On the walk back (Wilderness Land's, after Tucker): the way in again. */
+const walkingBack = () => walkBackOn();
+/** (the walk back) He's walked in off the woods already this time round (back here after dying: by his truck). */
+let walkedIn = false;
 
 /** Who's in the line, by enemy (they're people the engine can hit). */
 export const guests = new WeakMap<Enemy, Guest>();
@@ -183,14 +198,25 @@ export const introLayout: StageLayout = {
       { x: R(END_X), y: -3000, w: 60, h: 3600, type: 'wall', hidden: true, tag: 'intro-r' },
       { x: X0 - 60, y: -3000, w: R(GARAGE_END) - X0 + 60, h: 3000 + CEIL_Y, type: 'wall', hidden: true, tag: 'intro-ceiling' },
     );
+    // (the walk back: the truck's long since in the pillar, whatever this run's seen of the way in)
+    const back = walkingBack(), walkIn = back && !walkedIn;
+    if (back) crashedIn = true;
     const intro: Intro = {
       grab: createGrab(state), provoked: false, me: null, nextNumber: 0, serveT: 0, arriveT: 0, hurryT: 0, atWindowT: 0,
       lady: { said: null, ko: 0 }, admitted: false, scene: null, office: { open: 0, cd: 0, due: 0 },
       pa: { said: null, next: 600, heard: [] }, bark: null, barkNext: 0, hp: new WeakMap(), hpWas: state.player.health, upWas: false, alarm: 0, inDetector: false, cool: 0, tripped: false, welcomed: false, lineFight: false, seenDressed: 'clean', reactNext: 0,
       arrival: crashedIn ? null : { t: 0, landed: 0, said: false, done: 0, waiting: true },
+      walkIn: walkIn ? 0 : null,
     };
+    // (the walk back, the first time in: in at the garage's far left end, off the woods, walking; no HUD till he's in)
+    if (walkIn) {
+      walkedIn = true;
+      const p = state.player;
+      p.hidden = false; p.inCutscene = true; p.pos = { x: X0 + 6, y: UPPER - p.height }; p.vel = { x: 0, y: 0 }; p.facing = 1;
+      setUi({ introCutscene: true });
+    }
     // (only the once: back here after dying, the truck's already in the pillar and he's already out of it)
-    if (!crashedIn) { crashedIn = true; state.player.hidden = true; state.player.inCutscene = true; setUi({ introCutscene: true }); }
+    else if (!crashedIn) { crashedIn = true; state.player.hidden = true; state.player.inCutscene = true; setUi({ introCutscene: true }); }
     // (back after dying: on his feet by his truck, on the garage floor; not where the engine puts him, up in the garage's
     // ceiling, where he'd be stuck out of sight)
     else { const p = state.player; p.hidden = false; p.inCutscene = false; p.pos = { x: R(190) - p.width / 2, y: UPPER - p.height }; p.vel = { x: 0, y: 0 }; p.facing = 1; }
@@ -198,14 +224,15 @@ export const introLayout: StageLayout = {
     state.cameraMinX = X0 - 60;
     state.cameraMaxX = R(END_X) + 60 - CANVAS_WIDTH;
     for (const x of POSTS) addGuard(state, intro, R(x));
-    // The line, already there: six people, the front one at the window
-    for (let i = 0; i < 6; i++) addGuest(state, intro, R(FRONT_X - i * SPACING), false);
+    // The line, already there: six people, the front one at the window (the walk back: a short one, three)
+    for (let i = 0; i < (back ? 3 : 6); i++) addGuest(state, intro, R(FRONT_X - i * SPACING), false);
   },
   update: (ctx, controls) => {
     const { state } = ctx;
     const intro = getIntro(state);
     if (import.meta.env.DEV) (window as unknown as { __m2: GameState }).__m2 = state;
-    if (isLeaving()) { stopWeapons(); carryGut(state.player.gut); state.player.vel.x = 0; return { ...NO_CONTROLS }; }
+    // (off out of it: the walk back, if it was one, is over)
+    if (isLeaving()) { stopWeapons(); carryGut(state.player.gut); state.player.vel.x = 0; setWalkBack(false); walkedIn = false; return { ...NO_CONTROLS }; }
     if (!intro) return controls;
     const p = state.player, px = p.pos.x + p.width / 2;
     // (where he is, for the HUD's look)
@@ -218,6 +245,8 @@ export const introLayout: StageLayout = {
 
     // The way in: the truck, the pillar, him out of the window (nothing else to do till he's out)
     if (intro.arrival) { arrival(ctx, intro, controls); security(ctx, intro); return { ...NO_CONTROLS }; }
+    // The walk back: in off the woods, walking (nothing else to do till he's in)
+    if (intro.walkIn !== null) { security(ctx, intro); return walkBackIn(state, intro); }
 
     walkways(state);
     watchForTrouble(ctx, intro);
@@ -363,6 +392,27 @@ const endArrival = (state: GameState, intro: Intro, skipped: boolean) => {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
+// The walk back (after Wilderness Land): in at the garage's far left end, walking, off the actual woods; a short walk
+// (not skippable: a second and a half), then his line about it, his to play (nobody else talks over it)
+
+/** Where he stops (short of his truck in the pillar, looking at it). */
+const WALK_IN_TO = 120;
+const walkBackIn = (state: GameState, intro: Intro) => {
+  const p = state.player;
+  intro.walkIn = (intro.walkIn ?? 0) + 1;
+  p.inCutscene = true; p.facing = 1;
+  setUi({ introCutscene: true, introTip: null, introPrompt: null });
+  if (p.pos.x + p.width / 2 < R(WALK_IN_TO) && intro.walkIn < 150) return { ...NO_CONTROLS, right: true };
+  intro.walkIn = null;
+  p.inCutscene = false; p.vel.x = 0;
+  setUi({ introCutscene: false });
+  // (the guards hold their welcome till he's said it)
+  intro.barkNext = Infinity;
+  meatheadSays(state, pick(MEATHEAD_BACK_LOT[dressed(state)]), true, () => { intro.barkNext = state.frame + 30; }, true);
+  return { ...NO_CONTROLS };
+};
+
+// ---------------------------------------------------------------------------------------------------------------
 // The hallway's moving walkways: anybody stood on one goes along with it
 
 const walkways = (state: GameState) => {
@@ -446,7 +496,7 @@ const security = (ctx: FrameContext, intro: Intro) => {
       if (!intro.arrival && Math.abs(cx - px) < 120 && !intro.bark && state.frame > intro.barkNext && !remarked.has(e) && (first || Math.random() < 0.02)) {
         remarked.add(e); intro.welcomed = true;
         intro.bark = { e, said: { text: '' } };
-        speak(guardVoice(e), first ? GUARD_WELCOME[dressed(state)] : pick(GUARD_IDLE[dressed(state)]), s => { if (intro.bark) intro.bark.said = s ?? { text: '' }; if (!s) intro.bark = null; }, false, undefined, first);
+        speak(guardVoice(e), first ? (walkingBack() ? GUARD_WELCOME_BACK : GUARD_WELCOME)[dressed(state)] : pick(GUARD_IDLE[dressed(state)]), s => { if (intro.bark) intro.bark.said = s ?? { text: '' }; if (!s) intro.bark = null; }, false, undefined, first);
         intro.barkNext = state.frame + 540;
       }
       continue;
@@ -508,6 +558,8 @@ const frontGuest = (state: GameState, intro: Intro) => {
 
 /** How long the window takes over each person (it's real time: he waits); how often somebody new turns up behind him. */
 const SERVE = 270, ARRIVE = 420, HURRY_AFTER = 240, HURRY_EVERY = 600;
+/** (the walk back: the window's quick this time, the line short) */
+const SERVE_BACK = 120;
 /** The longest the line gets (him in it, or not): past this, nobody else joins it till it's moved up. */
 const LINE_MAX = 12;
 const line = (ctx: FrameContext, intro: Intro) => {
@@ -552,7 +604,7 @@ const line = (ctx: FrameContext, intro: Intro) => {
   if (intro.me !== null && front?.e && intro.lady.ko <= 0) {
     const e = front.e, cx = e.pos.x + e.width / 2;
     if (Math.abs(cx - R(FRONT_X)) < 3) {
-      if (++intro.serveT >= SERVE) {
+      if (++intro.serveT >= (walkingBack() ? SERVE_BACK : SERVE)) {
         intro.serveT = 0;
         guests.get(e)!.state = 'served';
         if (Math.random() < 0.3) speak(TICKET_VOICE, pick(TICKET_NEXT), s => { intro.lady.said = s; });
@@ -628,22 +680,41 @@ const startScene = (state: GameState, intro: Intro, kind: Dressed | 'punch') => 
     sc.punched = true; sc.done = true;
     return;
   }
+  // The walk back: the re-entry exchange (one set: his opener, her answer, his last word, the same place in each list)
+  if (walkingBack()) {
+    const me = pick(MEATHEAD_REENTRY[k]), i = Math.max(0, MEATHEAD_REENTRY[k].indexOf(me));
+    sc.back = { me, lady: TICKET_REENTRY[k][i], last: k === 'nude' ? null : MEATHEAD_REENTRY_BACK[k][i] };
+    // (naked: no ticket, no stamp: him, her, then the punch, up close)
+    if (k === 'nude') {
+      const lady = sc.back.lady;
+      meatheadSays(state, me, true, () => speak(TICKET_VOICE, lady, s => { intro.lady.said = s; }, true, () => punchCam(intro), true), true);
+      return;
+    }
+    meatheadSays(state, me, true, () => ladyTurn(state, intro), true);
+    return;
+  }
   // Naked: no ticket, nowhere he could have kept one: he panics, then she gets it in the face (up close, in a box)
   if (k === 'nude') { meatheadSays(state, pick(MEATHEAD_TICKET.nude), true, () => punchCam(intro), true); return; }
   // Him first, always: then out comes the ticket, then her (nobody talks over anybody)
-  meatheadSays(state, pick(MEATHEAD_TICKET[k]), true, () => ladyTurn(intro), true);
+  meatheadSays(state, pick(MEATHEAD_TICKET[k]), true, () => ladyTurn(state, intro), true);
 };
 
 /** The punch, up close (see punchCam.ts): how long it runs, the frame the fist lands. */
 export const PIP_LEN = 170, PIP_HIT = 40;
 const punchCam = (intro: Intro) => { const sc = intro.scene; if (sc && sc.pip < 0) sc.pip = 0; };
 
-/** His line said: out comes the ticket (or the slap on his bare hip), and it's her turn. */
-const ladyTurn = (intro: Intro) => {
+/** His line said: out comes the ticket (or the slap on his bare hip), and it's her turn (the walk back: her answer,
+ *  then his last word). */
+const ladyTurn = (state: GameState, intro: Intro) => {
   const sc = intro.scene;
   if (!sc || sc.card) return;
   sc.card = true; sc.cardAt = sc.t;
-  speak(TICKET_VOICE, pick(TICKET_LADY[sc.kind]), s => { intro.lady.said = s; }, true, () => { if (intro.scene === sc) sc.done = true; }, true);
+  const last = sc.back?.last;
+  speak(TICKET_VOICE, sc.back ? sc.back.lady : pick(TICKET_LADY[sc.kind]), s => { intro.lady.said = s; }, true, () => {
+    if (intro.scene !== sc) return;
+    if (last) meatheadSays(state, last, true, () => { if (intro.scene === sc) sc.done = true; }, true);
+    else sc.done = true;
+  }, true);
 };
 
 const scene = (ctx: FrameContext, intro: Intro) => {
@@ -651,7 +722,7 @@ const scene = (ctx: FrameContext, intro: Intro) => {
   sc.t++;
   // Naked: he panics (his line, or its time), then the punch, up close; then in he goes
   if (sc.kind === 'nude' && !sc.punched) {
-    if (sc.pip < 0 && sc.t > 260) punchCam(intro);
+    if (sc.pip < 0 && sc.t > (sc.back ? 480 : 260)) punchCam(intro);
     if (sc.pip >= 0 && ++sc.pip === PIP_HIT) knockOut(ctx, intro);
     setUi({ introTicket: null, introCutscene: true, introPrompt: null });
     if (sc.pip < PIP_LEN) return;
@@ -660,8 +731,8 @@ const scene = (ctx: FrameContext, intro: Intro) => {
     return;
   }
   // (it doesn't hang on the voices: his line's had its time, the ticket comes out; hers has had its time, on we go)
-  if (!sc.card && !sc.punched && sc.t > 200) ladyTurn(intro);
-  if (sc.card && !sc.done && sc.t - sc.cardAt > 330) sc.done = true;
+  if (!sc.card && !sc.punched && sc.t > 200) ladyTurn(ctx.state, intro);
+  if (sc.card && !sc.done && sc.t - sc.cardAt > (sc.back?.last ? 600 : 330)) sc.done = true;
   // (the ticket, up close: what he's got, or hasn't)
   setUi({ introTicket: sc.card && !sc.punched ? sc.kind : null, introCutscene: true, introPrompt: null });
   // (the lines might never get said, the voice busy or missing: it doesn't wait forever for them)
@@ -706,6 +777,8 @@ export type IntroTip = 'postal' | 'grabs' | 'line' | null;
 const tipAt = (state: GameState, intro: Intro): IntroTip => {
   const x = state.player.pos.x + state.player.width / 2 - X0;
   if (intro.scene) return null;
+  // (the walk back: he knows all that by now; just the line's count)
+  if (walkingBack() && x < QUEUE_START - 300) return null;
   if (x < 1300) return 'postal';
   if (x > 3700 && x < CHECK_END) return 'grabs';
   if (x > QUEUE_START - 300 && !intro.admitted) return 'line';

@@ -98,6 +98,39 @@ export const GUEST_CUT: Record<Dressed, string[]> = {
   shitty: ['NO CUTTING! AND YOU STINK!', 'BACK OF THE LINE, SHIT PANTS!'],
   nude: ['HEY! NO CUTTING! OR NUDITY!', 'BACK OF THE LINE! AND GET DRESSED!'],
 };
+// ---------------------------------------------------------------------------------------------------------------
+// The walk back in (after Wilderness Land's boss: the walk-away's HEADING BACK TO PARK, then here from the parking
+// lot, in off the real wilderness: blood, sawdust, sewer muck, leaves).
+
+/** Meathead, walked back into the parking garage from the actual woods (his truck still in the pillar). */
+export const MEATHEAD_BACK_LOT: Record<Dressed, string[]> = {
+  clean: ['HOW THE FUCK AM I IN THE PARKING LOT?', "THERE'S MY TRUCK. STILL IN THE PILLAR.", 'THE WOODS SPIT ME OUT IN THE PARKING LOT.'],
+  shitty: ['THREE MILES OF WOODS IN SHITTY PANTS. CHAFED RAW.', 'MY PANTS ARE FULL AND I WALKED HERE FROM THE WOODS.', 'THE DEER WOULDN\'T EVEN COME NEAR ME.'],
+  nude: ['WALKED BACK FROM THE WOODS BALLS OUT.', 'THE MOSQUITOES GOT EVERYTHING. EVERYTHING.', 'NAKED IN A PARKING GARAGE. NEW LOW.'],
+};
+/** The first guard he comes to, the way back in: he's been in already. */
+export const GUARD_WELCOME_BACK: Record<Dressed, string> = {
+  clean: 'WELCOME BACK, SIR. IS THAT BLOOD?',
+  shitty: 'WELCOME BACK, SIR. YOU WALKED HERE LIKE THAT?',
+  nude: 'WELCOME BACK, SIR. YOU HAVE A LEAF ON YOUR... OH GOD.',
+};
+/** The ticket window again, the way back in: his opener, her answer, his last word (one exchange: the same place in
+ *  each list goes together). Naked, there's no last word: she gets knocked out (the intro's naked rule). */
+export const MEATHEAD_REENTRY: Record<Dressed, string[]> = {
+  clean: ["I'M BACK. GOT MY TICKET RIGHT HERE.", "COMING BACK IN. DON'T ASK.", 'RE-ENTRY. ONE ADULT.'],
+  shitty: ['ME AGAIN.', 'I NEED BACK IN.', 'RE-ENTRY. SCAN IT.'],
+  nude: ["LET ME BACK IN. MY TICKET'S SOMEWHERE IN THE WOODS.", 'I GOT A RE-ENTRY STAMP. IT WAS ON MY ASS.', 'OPEN UP. I WALKED HERE FROM THE WOODS.'],
+};
+export const TICKET_REENTRY: Record<Dressed, string[]> = {
+  clean: ["THAT TICKET'S BEEN USED. WHERE'S YOUR HAND STAMP?", 'SIR, YOU CAME FROM THE PARKING LOT. THERE ARE PINE NEEDLES IN YOUR TEETH.', 'WE DO NOT DO RE-ENTRY. HOW DID YOU EVEN GET OUT?'],
+  shitty: ['OH NO. THE WARM TICKET.', 'SIR, YOU SMELL WORSE THAN LAST TIME.', "YOU'VE GOT SAWDUST STUCK ALL OVER YOUR... THAT'S NOT SAWDUST."],
+  nude: ['NO TICKET. NO STAMP. NO PANTS. NO.', "SIR, THAT'S A BEE STING.", "SIR, THERE'S A TICK ON YOUR... NO. JUST NO."],
+};
+export const MEATHEAD_REENTRY_BACK: Record<Exclude<Dressed, 'nude'>, string[]> = {
+  clean: ['SOMEWHERE UNDER ALL THIS BLOOD.', "YOUR LOG RIDE DOESN'T STOP AT THE FENCE, LADY.", 'SEWER. RIVER. WOODCHIPPER. DIRT BIKES. PARKING LOT.'],
+  shitty: ["IT'S BEEN THROUGH A SEWER SINCE. IT'S CLEANER.", 'I WAS IN YOUR SEWER. THEN THE WOODS. THEN YOUR PARKING LOT.', 'SOME OF IT IS.'],
+};
+
 /** The ticket lady, to him when he's cut in. */
 export const TICKET_CUT = ['BACK OF THE LINE, SIR.', 'SIR. THERE IS A LINE.'];
 /** Somebody in line, knocked flying. */

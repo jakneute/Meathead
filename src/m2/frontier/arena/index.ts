@@ -26,9 +26,9 @@
 // Checkpoints (manual): 60 (at the trail's start, once he's up: a retry the same visit is the entrance beat by the felled
 // tree), 61 (short of the arena once the fight's first started: the world as the entry left it). The boss-door refills:
 // one between where the kid's bike is left and the body, one right before the arena (both every retry). Once the fight's
-// on, both ends are walled (till he's dead); beaten: VICTORY, the walk-away (walkAway/tucker.ts, the FLINTLOCK) and the
-// hub, Wilderness Land cleared. (The user's spin, a later job (H): the walk-away says HEADING BACK TO PARK and he walks
-// back in from the parking lot: `leave` below is the hook.) The way back: the left end (the chase's side-view trail,
+// on, both ends are walled (till he's dead); beaten: VICTORY, the walk-away (walkAway/tucker.ts, the FLINTLOCK),
+// Wilderness Land cleared; the walk-away says HEADING BACK TO PARK and he walks back in from the intro's parking lot
+// (job H: `leave` below; not the hub). The way back: the left end (the chase's side-view trail,
 // DOORS.dirtbike.end). Revisits once the land's cleared: nobody here; the oak's branch snapped, the wreck, the kid's bike,
 // the felled tree, the axe in the stump, and his cap and a stain where he died.
 
@@ -38,7 +38,7 @@ import type { FrontierSection } from '../section';
 import { layOwn, endWalls, endExits, runExits, hands } from '../section';
 import { DOORS } from '../geometry';
 import { topBand } from '../../../m1/constants';
-import { goTo, markLandCleared, noteBossKill, isLandCleared } from '../../store';
+import { goTo, markLandCleared, noteBossKill, isLandCleared, setWalkBack } from '../../store';
 import { startVictory, tickVictory, drawVictory, victoryDone } from '../../victory';
 import { playWalkAway, tickWalkAway, drawWalkAway } from '../../walkAway';
 import { takeChaseHandoff } from '../dirtbike';
@@ -89,11 +89,11 @@ const fightOn = (state: GameState) => {
   if (state.checkpoint < 61) state.checkpoint = 61;
 };
 
-/** Beaten: off he walks (the walk-away, the FLINTLOCK). Job H's hook: the walk-back in from the parking lot (HEADING
- *  BACK TO PARK) goes here, in place of the hub. */
+/** Beaten: off he walks (the walk-away, the FLINTLOCK, HEADING BACK TO PARK), and then, in place of the hub, the walk
+ *  back in from the intro's parking lot (job H: intro/index.ts). The land's cleared first, so the lot's at the new hour. */
 const leave = (state: GameState, weakness: boolean) => {
   markLandCleared('frontier'); noteBossKill();
-  arenaOf(state).walk = playWalkAway(state, { boss: 'tucker', weakness, onDone: () => goTo('hub') });
+  arenaOf(state).walk = playWalkAway(state, { boss: 'tucker', weakness, onDone: () => { setWalkBack(true); goTo('intro'); } });
 };
 
 export const arena: FrontierSection = {

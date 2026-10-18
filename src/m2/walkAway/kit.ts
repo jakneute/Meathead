@@ -51,6 +51,8 @@ export interface SceneDef {
   /** The weapon he got off the boss (M2_WEAPON_INFO's), or null for a placeholder (weaponName then). */
   weapon: WeaponType | null;
   weaponName?: string;
+  /** The title across the top, if not the usual HEADING BACK TO HUB (Tucker's: HEADING BACK TO PARK). */
+  title?: string;
   /** What it does, short (two lines at most, ~70 characters each). Left out: the weapon info's first sentences. */
   blurb?: string[];
   /** The sky, top to horizon (banded), and the haze the far ground fades into. */

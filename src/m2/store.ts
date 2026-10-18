@@ -124,6 +124,12 @@ let bossKill = false;
 export const noteBossKill = () => { bossKill = true; };
 export const takeBossKill = () => { const k = bossKill; bossKill = false; return k; };
 
+/** (Wilderness Land's spin, after Tucker's walk-away) The way in again from the parking lot: set going there
+ *  (goTo('intro')), read by the intro as it's built, put down once he's out of it (the gate, or SKIP INTRO). */
+let walkBack = false;
+export const setWalkBack = (on: boolean) => { walkBack = on; };
+export const walkBackOn = () => walkBack;
+
 /** (the checkpoint-skip cheat) Where in the land he's going into to start: taken once, by the land, as it's built. */
 let startCheckpoint: number | null = null;
 export const setStartCheckpoint = (cp: number | null) => { startCheckpoint = cp; };

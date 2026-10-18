@@ -1,8 +1,8 @@
 // The walk-away from TUCKER THE TRAIN CONDUCTOR (Wilderness Land's boss): a PLACEHOLDER (the skeleton's: replace it,
 // the way walkAway/donnie.ts is done). Down a dirt road out of the real woods toward the camera at whatever hour it is
 // now (timeOfDay.ts): ruts, pines along it, the park's perimeter fence busted open far behind him. His new toy: the
-// FLINTLOCK (its walk-away act: walkAway/acts.ts). (The user's spin for the real thing: HEADING BACK TO PARK, and he
-// starts from the parking lot: frontier-spec.md.)
+// FLINTLOCK (its walk-away act: walkAway/acts.ts). The user's spin: the title's HEADING BACK TO PARK, and after it he
+// starts from the intro's parking lot and walks back in (arena/index.ts `leave`; intro/index.ts's walk back).
 
 import { type Ctx, type Prop, type SceneDef, HOR, box } from './kit';
 import { timeOfDay } from '../timeOfDay';
@@ -40,6 +40,7 @@ const props = (): Prop[] => {
 export const TUCKER: SceneDef = {
   land: 'WILDERNESS LAND',
   weapon: 'FLINTLOCK',
+  title: 'HEADING BACK TO PARK',
   sky: ['#1E40AF', '#2563EB', '#3B82F6', '#7DB8F0', '#BFE0F8', '#F2E6C4', '#F8D9A0'],
   haze: '#F2E6C4',
   ground, back, props,

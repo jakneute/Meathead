@@ -81,8 +81,8 @@ helpers, the time of day, signLetters, pickLine, the grab, victory, walkAway, dr
   returning to the hub, Meathead starts from the PARKING LOT (the intro's lot, src/m2/intro) and walks back into the park.
   At the intro's ticket window again (TICKET_LADY etc., src/m2/intro) he and the ticket lady have a short, funny re-entry
   exchange (he already went in: a hand stamp? the re-entry policy? he's soaked in blood and sawdust...), clean / shitty /
-  naked, fitted round the intro's ticket logic (naked = no ticket = he knocks her out). **Not wired yet** (a later job:
-  the intro's lot needs a re-entry mode, and walkAway.ts a title option). Exiting the land from the pause menu ALWAYS
+  naked, fitted round the intro's ticket logic (naked = no ticket = he knocks her out). **Built (job H):** the intro's
+  walk-back mode (intro/index.ts, store.ts setWalkBack) and SceneDef.title (walkAway/kit.ts). Exiting the land from the pause menu ALWAYS
   goes back to the hub as normal, even from the out-of-park sections after the log ride ("we're not fighting logistics
   here"): the parking-lot return is only the post-boss walk-away.
 
@@ -977,3 +977,20 @@ later (+1 if heavyset; was 2 / 3 before playtest fixes E). Tucker's glimpsed ahe
   the walk up, jumped again, after the bear, after the lions; a grab at him (too slippery). New hurt sources (the ball, the
   glade's bees, the seven critters) with hurt lines and death screens. The walk-away gets `weakness` (the lions); job H's
   parking-lot walk-back hooks in at arena/index.ts `leave`.
+- 2026-10-18 (job H): THE WALK BACK, built. Tucker's walk-away title reads HEADING BACK TO PARK (SceneDef.title; the
+  rest say HEADING BACK TO HUB), its A goes to the intro (goTo('intro'), store.ts setWalkBack) instead of the hub. The
+  land's cleared (markLandCleared, so the FLINTLOCK's his and the hour's moved on) before the walk-away even starts; the
+  intro's sky and light already follow timeOfDay, so the lot's at the new hour. Ammo's topped up going there (the boss
+  kill's top-up used on it). The intro's walk-back mode: no truck crash (still in the pillar); he walks into the garage
+  from its far left end, the way in off the woods (a second's walk, no HUD, no controls), stops short of his truck and
+  says so (MEATHEAD_BACK_LOT, clean / shitty / naked; the guards hold their welcome till he's done); no tips (only the
+  line's count by the window); the first guard's a welcome BACK (GUARD_WELCOME_BACK); the line's three people, served
+  every 2 s (he can still cut it or plow through it); security's rules as ever. The window: a re-entry exchange, one set
+  picked (MEATHEAD_REENTRY / TICKET_REENTRY / MEATHEAD_REENTRY_BACK, the same index together): his opener, the ticket
+  card (his used ticket, clean or shitty), her answer (the used ticket and no hand stamp, pine needles in his teeth, how
+  did he even get out; the warm ticket again, sawdust that isn't), his last word (blood, the log ride doesn't stop at the
+  fence, sewer-river-woodchipper-dirt bikes-parking lot). Naked: his opener, her answer (no ticket, no stamp, no pants;
+  that's a bee sting; a tick), then the intro's punch close-up, K.O.!, security on him. A death in it: back by his truck
+  (no second walk-in). Out the gate, or SKIP INTRO from the pause menu: the hub (America USA's spot), and the walk back's
+  over. It plays after every Tucker kill; in practice only the first clear (a cleared land's arena has nobody to fight).
+  BACK TO HUB from the pause menu anywhere in the land is untouched: always the hub.

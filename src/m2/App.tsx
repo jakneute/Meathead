@@ -197,7 +197,8 @@ const App2: React.FC = () => {
   }, [status]);
   useEffect(() => {
     onTravel(dest => {
-      const to = dest === 'pen' ? PEN_STAGE : dest === 'hub' ? HUB_STAGE : LAND_STAGES[dest]?.stage ?? null;
+      // ('intro': the way in again, from the parking lot: Wilderness Land's walk back after Tucker, store.ts setWalkBack)
+      const to = dest === 'pen' ? PEN_STAGE : dest === 'hub' ? HUB_STAGE : dest === 'intro' ? INTRO_STAGE : LAND_STAGES[dest]?.stage ?? null;
       if (!to) return;
       clearSkyCache();
       // (back at the hub where he left it: the staff door, the land's portal, or America USA's way in)
@@ -207,11 +208,12 @@ const App2: React.FC = () => {
       // (back from a land, its boss beaten or BACK TO HUB: out of its portal he comes; not from the break room or the way in)
       setHubExit(to === HUB_STAGE && stage !== PEN_STAGE && !!from);
       // (through a portal: no HUD from here till the land's opened on him, not a frame of it as it loads)
-      setUi({ introTip: null, introPrompt: null, introAhead: null, introTicket: null, introCutscene: portalArrivalPending() || hubExitPending() });
+      setUi({ introTip: null, introPrompt: null, introAhead: null, introTicket: null, introCutscene: dest === 'intro' || portalArrivalPending() || hubExitPending() });
       setUi({ near: null, map: null, nearExit: false, nearAmerica: false, noSwitch: false, heliHud: false, bikeHud: false, bikeTips: false });
       setFade(true);
       // (into a land, everything's topped up; and back at the hub after a boss: elsewhere, what he had)
-      const refill = (dest !== 'hub' && dest !== 'pen') || (to === HUB_STAGE && takeBossKill());
+      // (the walk back after a boss: topped up there, and the boss's top-up used up on it)
+      const refill = (dest === 'intro' && (takeBossKill() || true)) || (dest !== 'hub' && dest !== 'pen') || (to === HUB_STAGE && takeBossKill());
       setTimeout(() => { pending.current = to; setInitialAmmo(refill ? createFullAmmo() : { ...ammoRef.current }); setStatus(GameStatus.START); }, 260);
     });
   }, [stage]);

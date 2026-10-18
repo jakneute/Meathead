@@ -16,7 +16,7 @@ verbatim, the fill-ins, the rules, the section plan). Each section's index.ts he
 | 7 (done) | `arena/` (the catch-up, the impalement, the fake-out and its retry entrance beat, the fight's placeholder; and tucker.ts's `branch` wound, the pose 'impaled', `onBranch`, IMPALED_TILT / tuckerPoint, drawBough, drawCloseupBranch) | arena (60) |
 | F (done) | `arena/entry.ts` (the arena entry: the axe tree, the split close-up, blind; and tucker.ts's `split` wound, the pose 'grope', registerWoundPainter's `drive`; Player.axeSwing / moves.ts drawAxeSwing) | arena (60) |
 | G (done) | `arena/` (Tucker's fight: fight.ts, critters.ts, beasts.ts; the arena re-laid two screens wide; and tucker.ts's poses 'aim' / 'cock' / 'reload' / 'mauled', drawFlintlock / tuckerMuzzle, opts aim / pan / pistol, the `clawed` / `bloody` looks, the 'maul' / 'lions' wounds; appended weapons/soulSucker.ts noBagFrom / onGlobHit) | arena (60-61) |
-| H (later) | the walk-back in from the parking lot after his kill (HEADING BACK TO PARK; hooks in at arena/index.ts `leave`) | |
+| H (done) | the walk-back in from the parking lot after his kill: arena/index.ts `leave`, walkAway/tucker.ts (title HEADING BACK TO PARK); appended walkAway/kit.ts SceneDef.title, walkAway.ts, store.ts setWalkBack / walkBackOn, App.tsx's 'intro' destination, intro/index.ts's walk-back mode and intro/lines.ts's re-entry lines, tools/voices extract.ts / m2pack.ts | |
 
 Inside your folders, anything goes: split into layout.ts, art.ts, kinds.ts and so on, as `wilds/` does. Number your
 checkpoints only inside your range (they're numbered across the whole land and sorted; the CHECKPOINT SKIP cheat

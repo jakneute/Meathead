@@ -312,7 +312,7 @@ export const drawWalkAway = (c: Ctx, w: WalkAway) => {
   blitPicture(c, pic.cv);
   // The line under the title: where he's leaving
   c.textAlign = 'center';
-  drawTitle(c, w.t, TITLE);
+  drawTitle(c, w.t, w.def.title ?? TITLE);
   if (w.t > 60) { c.font = font(7); c.fillStyle = '#A78BFA'; c.textAlign = 'center'; c.fillText(`${w.def.land} - CLEARED`, W / 2, 56); c.textAlign = 'left'; }
   drawBottom(c, w);
   // In: an iris opening out from him (the first half second)

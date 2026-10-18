@@ -28051,6 +28051,21 @@
  },
  {
   "voice": "m2.guard",
+  "text": "WELCOME BACK, SIR. IS THAT BLOOD?",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guard",
+  "text": "WELCOME BACK, SIR. YOU HAVE A LEAF ON YOUR... OH GOD.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guard",
+  "text": "WELCOME BACK, SIR. YOU WALKED HERE LIKE THAT?",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guard",
   "text": "WELCOME TO HAPPY LAND, SIR.",
   "from": "INTRO"
  },
@@ -28212,6 +28227,21 @@
  {
   "voice": "m2.guardf",
   "text": "THEY DON'T PAY ME ENOUGH TO SMELL THAT.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guardf",
+  "text": "WELCOME BACK, SIR. IS THAT BLOOD?",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guardf",
+  "text": "WELCOME BACK, SIR. YOU HAVE A LEAF ON YOUR... OH GOD.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.guardf",
+  "text": "WELCOME BACK, SIR. YOU WALKED HERE LIKE THAT?",
   "from": "INTRO"
  },
  {
@@ -41546,6 +41576,16 @@
  },
  {
   "voice": "m2.ticket",
+  "text": "NO TICKET. NO STAMP. NO PANTS. NO.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.ticket",
+  "text": "OH NO. THE WARM TICKET.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.ticket",
   "text": "SECURITY! SECURITY!",
   "from": "INTRO"
  },
@@ -41561,7 +41601,27 @@
  },
  {
   "voice": "m2.ticket",
+  "text": "SIR, THAT'S A BEE STING.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.ticket",
+  "text": "SIR, THERE'S A TICK ON YOUR... NO. JUST NO.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.ticket",
+  "text": "SIR, YOU CAME FROM THE PARKING LOT. THERE ARE PINE NEEDLES IN YOUR TEETH.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.ticket",
   "text": "SIR, YOU HAVE NO TICKET AND NO PANTS.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.ticket",
+  "text": "SIR, YOU SMELL WORSE THAN LAST TIME.",
   "from": "INTRO"
  },
  {
@@ -41576,12 +41636,27 @@
  },
  {
   "voice": "m2.ticket",
+  "text": "THAT TICKET'S BEEN USED. WHERE'S YOUR HAND STAMP?",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.ticket",
+  "text": "WE DO NOT DO RE-ENTRY. HOW DID YOU EVEN GET OUT?",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.ticket",
   "text": "WELCOME TO HAPPY LAND. GOD BLESS, AND DON'T SUE.",
   "from": "INTRO"
  },
  {
   "voice": "m2.ticket",
   "text": "WELCOME TO HAPPY LAND. NEXT.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.ticket",
+  "text": "YOU'VE GOT SAWDUST STUCK ALL OVER YOUR... THAT'S NOT SAWDUST.",
   "from": "INTRO"
  },
  {
@@ -45153,6 +45228,11 @@
   "voice": "meathead",
   "text": "COME OUT HERE. I'LL HUG YOU.",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "COMING BACK IN. DON'T ASK.",
+  "from": "INTRO"
  },
  {
   "voice": "meathead",
@@ -49856,6 +49936,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HOW THE FUCK AM I IN THE PARKING LOT?",
+  "from": "INTRO"
+ },
+ {
+  "voice": "meathead",
   "text": "HOW'S THAT FOR DENSITY?",
   "from": "VULGARITIES"
  },
@@ -50411,6 +50496,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I GOT A RE-ENTRY STAMP. IT WAS ON MY ASS.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "meathead",
   "text": "I GOT BUCKED BY A FUCKING MOOSE!",
   "from": "HAZARD_HURT"
  },
@@ -50626,6 +50716,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I NEED BACK IN.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "meathead",
   "text": "I NEED FIFTY PAPER TOWELS AND YOUR HEAD ON A PLATE!",
   "from": "HAZARD_HURT"
  },
@@ -50836,6 +50931,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I WAS IN YOUR SEWER. THEN THE WOODS. THEN YOUR PARKING LOT.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "meathead",
   "text": "I WAS LEAVING ANYWAY!",
   "from": "FRONTIER"
  },
@@ -51033,6 +51133,11 @@
   "voice": "meathead",
   "text": "I'M AN ASTRONAUT NOW. NASA CAN SUCK IT.",
   "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M BACK. GOT MY TICKET RIGHT HERE.",
+  "from": "INTRO"
  },
  {
   "voice": "meathead",
@@ -52206,6 +52311,11 @@
  },
  {
   "voice": "meathead",
+  "text": "IT'S BEEN THROUGH A SEWER SINCE. IT'S CLEANER.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "meathead",
   "text": "IT'S BOLTED TOGETHER! NOTHING TO GRAB!",
   "from": "TOO_BIG_LINES"
  },
@@ -52896,6 +53006,11 @@
  },
  {
   "voice": "meathead",
+  "text": "LET ME BACK IN. MY TICKET'S SOMEWHERE IN THE WOODS.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "meathead",
   "text": "LET ME HAVE A LOOK AROUND. A REAL LOOK.",
   "from": "m1/game/stages/oscar/bunker.ts:396"
  },
@@ -53368,6 +53483,11 @@
   "voice": "meathead",
   "text": "MAYDAY, MOTHERFUCKER!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "ME AGAIN.",
+  "from": "INTRO"
  },
  {
   "voice": "meathead",
@@ -54056,6 +54176,11 @@
  },
  {
   "voice": "meathead",
+  "text": "MY PANTS ARE FULL AND I WALKED HERE FROM THE WOODS.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "meathead",
   "text": "MY PANTS WOULD BURN BETTER THAN THAT.",
   "from": "SPACE"
  },
@@ -54258,6 +54383,11 @@
   "voice": "meathead",
   "text": "NAKED IN A BASEMENT. THIS IS HOW THE MOVIES START.",
   "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "NAKED IN A PARKING GARAGE. NEW LOW.",
+  "from": "INTRO"
  },
  {
   "voice": "meathead",
@@ -55896,6 +56026,11 @@
  },
  {
   "voice": "meathead",
+  "text": "OPEN UP. I WALKED HERE FROM THE WOODS.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "meathead",
   "text": "ORBITAL STRIKE",
   "from": "VULGARITIES"
  },
@@ -57086,6 +57221,11 @@
  },
  {
   "voice": "meathead",
+  "text": "punch",
+  "from": "m2/intro/index.ts:157"
+ },
+ {
+  "voice": "meathead",
   "text": "PUNCHED MY TICKET. AND HIS.",
   "from": "FRONTIER"
  },
@@ -57388,6 +57528,16 @@
   "voice": "meathead",
   "text": "RATTLE THIS!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "RE-ENTRY. ONE ADULT.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "meathead",
+  "text": "RE-ENTRY. SCAN IT.",
+  "from": "INTRO"
  },
  {
   "voice": "meathead",
@@ -58218,6 +58368,11 @@
   "voice": "meathead",
   "text": "SEWER WATER. BARE ASS. GREAT.",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "SEWER. RIVER. WOODCHIPPER. DIRT BIKES. PARKING LOT.",
+  "from": "INTRO"
  },
  {
   "voice": "meathead",
@@ -59216,6 +59371,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SOME OF IT IS.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "meathead",
   "text": "SOMEBODY DO SOMETHING STUPID. PLEASE.",
   "from": "SPACE"
  },
@@ -59338,6 +59498,11 @@
   "voice": "meathead",
   "text": "SOMETHING'S GUTS!",
   "from": "FOR_AN_ANIMAL"
+ },
+ {
+  "voice": "meathead",
+  "text": "SOMEWHERE UNDER ALL THIS BLOOD.",
+  "from": "INTRO"
  },
  {
   "voice": "meathead",
@@ -61686,6 +61851,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THE DEER WOULDN'T EVEN COME NEAR ME.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "meathead",
   "text": "THE DEVIL GOAT!",
   "from": "SPOOKY"
  },
@@ -62208,6 +62378,11 @@
   "voice": "meathead",
   "text": "THE MOOSE RAMMED ME!",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE MOSQUITOES GOT EVERYTHING. EVERYTHING.",
+  "from": "INTRO"
  },
  {
   "voice": "meathead",
@@ -63001,6 +63176,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THE WOODS SPIT ME OUT IN THE PARKING LOT.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "meathead",
   "text": "THE WORLD OF TOMORROW. SMELLS LIKE CHURROS AND ASBESTOS.",
   "from": "SPACE"
  },
@@ -63098,6 +63278,11 @@
   "voice": "meathead",
   "text": "THERE'S MORE?! WHERE'S IT ALL COMING FROM?!",
   "from": "M2_GUT_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "THERE'S MY TRUCK. STILL IN THE PILLAR.",
+  "from": "INTRO"
  },
  {
   "voice": "meathead",
@@ -63603,6 +63788,11 @@
   "voice": "meathead",
   "text": "THREE HOURS. FOR A BOAT.",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "THREE MILES OF WOODS IN SHITTY PANTS. CHAFED RAW.",
+  "from": "INTRO"
  },
  {
   "voice": "meathead",
@@ -64378,6 +64568,11 @@
   "voice": "meathead",
   "text": "WAKE ME UP WHEN SOMETHING HAPPENS.",
   "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "WALKED BACK FROM THE WOODS BALLS OUT.",
+  "from": "INTRO"
  },
  {
   "voice": "meathead",
@@ -66193,6 +66388,11 @@
   "voice": "meathead",
   "text": "YOUR HEAD SMELLS LIKE A COMPOST BIN!",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOUR LOG RIDE DOESN'T STOP AT THE FENCE, LADY.",
+  "from": "INTRO"
  },
  {
   "voice": "meathead",

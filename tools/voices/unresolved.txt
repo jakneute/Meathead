@@ -4,23 +4,36 @@ m2/weapons/spellbook.ts:374 name: BULK_FAIL_LINES
 m2/weapons/mallet.ts:235 name: DUCK_LINES
 m2/weapons/soulSucker.ts:192 name: FULL_BAG_LINES
 m2/weapons/soulSucker.ts:331 name: EMPTY_BAG_LINES
-m2/intro/index.ts:345 name: MEATHEAD_PARKED
-m2/intro/index.ts:632 name: MEATHEAD_TICKET
-m2/intro/index.ts:634 name: MEATHEAD_TICKET
-m2/intro/index.ts:153 voice: voice
-m2/intro/index.ts:262 voice: pick(TICKET_CUT)
-m2/intro/index.ts:264 voice: true
-m2/intro/index.ts:350 voice: GUARD_WELCOME.clean
-m2/intro/index.ts:402 voice: pick(GUEST_HIT)
-m2/intro/index.ts:415 voice: pick(GUARD_ALERT[dressed(state)])
-m2/intro/index.ts:416 voice: true
-m2/intro/index.ts:449 voice: first ? GUARD_WELCOME[dressed(state)] : pick(GUARD_IDLE[dres
-m2/intro/index.ts:473 voice: pick(GUARD_BARK[dressed(state)])
-m2/intro/index.ts:558 voice: pick(TICKET_NEXT)
-m2/intro/index.ts:602 voice: now
-m2/intro/index.ts:612 voice: pick(GUEST_HURRY[dressed(state)])
-m2/intro/index.ts:646 voice: pick(TICKET_LADY[sc.kind])
-m2/intro/index.ts:698 voice: line
+m2/intro/index.ts:374 name: MEATHEAD_PARKED
+m2/intro/index.ts:411 name: MEATHEAD_BACK_LOT
+m2/intro/index.ts:685 name: MEATHEAD_REENTRY
+m2/intro/index.ts:697 name: MEATHEAD_TICKET
+m2/intro/index.ts:699 name: MEATHEAD_TICKET
+m2/intro/index.ts:686 expr: null
+m2/intro/index.ts:686 name: MEATHEAD_REENTRY_BACK
+m2/intro/index.ts:206 expr: null
+m2/intro/index.ts:672 call: dressed(state)
+m2/intro/index.ts:288 call: dressed(state)
+m2/intro/index.ts:673 expr: 0
+m2/intro/index.ts:673 expr: false
+m2/intro/index.ts:673 expr: -1
+m2/intro/index.ts:729 expr: null
+m2/intro/index.ts:745 expr: null
+m2/intro/index.ts:168 voice: voice
+m2/intro/index.ts:291 voice: pick(TICKET_CUT)
+m2/intro/index.ts:293 voice: true
+m2/intro/index.ts:379 voice: GUARD_WELCOME.clean
+m2/intro/index.ts:452 voice: pick(GUEST_HIT)
+m2/intro/index.ts:465 voice: pick(GUARD_ALERT[dressed(state)])
+m2/intro/index.ts:466 voice: true
+m2/intro/index.ts:499 voice: first ? (walkingBack() ? GUARD_WELCOME_BACK : GUARD_WELCOME)
+m2/intro/index.ts:523 voice: pick(GUARD_BARK[dressed(state)])
+m2/intro/index.ts:610 voice: pick(TICKET_NEXT)
+m2/intro/index.ts:654 voice: now
+m2/intro/index.ts:664 voice: pick(GUEST_HURRY[dressed(state)])
+m2/intro/index.ts:690 voice: lady
+m2/intro/index.ts:713 voice: sc.back ? sc.back.lady : pick(TICKET_LADY[sc.kind])
+m2/intro/index.ts:769 voice: line
 m2/adventure/queue/talk.ts:33 voice: l.text
 m2/adventure/river/index.ts:438 voice: fromBag(rv, 'gkill', GUESTS_KILL)
 m2/adventure/river/index.ts:444 voice: fromBag(rv, `gsee:${d}`, GUESTS_SEE[d])
