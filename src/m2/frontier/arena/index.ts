@@ -13,7 +13,10 @@
 //   catchup.ts  THE CATCH-UP (a cutscene, in off the chase's black): the rant, the crash, the close-up (the branch's
 //               wound painter), him hung on the oak; BRANCH_MEMO
 //   intro.ts    HIS ARENA INTRO, reusable for the fight: THE FAKE-OUT (walk up to the body: the line, the jumpscare;
-//               UP_MEMO, checkpoint 60) and a retry's ENTRANCE BEAT (he pops up again off the ground)
+//               UP_MEMO) and a retry's ENTRANCE BEAT (he pops up again off the ground)
+//   entry.ts    THE ARENA ENTRY (on from the fake-out, the same cutscene): he runs off to the axe tree, MAN TO MAN;
+//               Meathead's one swing; the tree on his head, the close-up (the split's wound painter), blind; SPLIT_MEMO,
+//               checkpoint 60; the fight starts at its end
 //   cast.ts     saying things, the camera, Tucker and the bikes in the world
 //   art.ts      the real woods, the clearing, the oak, the wreck, the fight's placeholder board
 //   lines.ts    every line, clean / shitty / naked
@@ -36,12 +39,13 @@ import { goTo, markLandCleared, noteBossKill, isLandCleared } from '../../store'
 import { startVictory, tickVictory, drawVictory, victoryDone } from '../../victory';
 import { playWalkAway, tickWalkAway, drawWalkAway } from '../../walkAway';
 import { takeChaseHandoff } from '../dirtbike';
-import { x0, x1, GY, HANG_X, UP_X, MH_PARK, REFILL_X, BODY_NEAR, ENTRANCE_NEAR, TRIGGER_X } from './layout';
-import { arenaOf, introSeen, UP_MEMO, type Arena } from './state';
+import { x0, x1, GY, HANG_X, FIGHT_X, MH_PARK, REFILL_X, BODY_NEAR, ENTRANCE_NEAR, TRIGGER_X } from './layout';
+import { arenaOf, introSeen, UP_MEMO, SPLIT_MEMO, type Arena } from './state';
+import { updateEntry, drawEntryHud, setFelled } from './entry';
 import { startCatchup, updateCatchup, drawCatchupHud, branchDone, setBranchMemos } from './catchup';
 import { startFakeout, updateFakeout, startEntrance, tickEntrance, layFlat, drawIntroHud } from './intro';
 import { drawArenaCast, drawTuckerWords, tickTucker } from './cast';
-import { drawArenaBackdrop, drawArenaBack, drawBoard, drawLeaves, tickLeaves } from './art';
+import { drawArenaBackdrop, drawArenaBack, drawBoard, drawLeaves, tickLeaves, drawFallingTree } from './art';
 
 const pmid = (state: GameState) => state.player.pos.x + state.player.width / 2;
 
@@ -49,11 +53,12 @@ const pmid = (state: GameState) => state.player.pos.x + state.player.width / 2;
 const setUp = (state: GameState, s: Arena) => {
   // (a start at his checkpoint, or anything past the catch-up: the world as a run left it)
   if (state.checkpoint >= 60) setBranchMemos(state);
-  if (isLandCleared('frontier')) { s.phase = 'body'; s.tMode = 'gone'; s.snapped = true; s.wreck = true; s.mx = MH_PARK; return; }
+  if (isLandCleared('frontier')) { s.phase = 'body'; s.tMode = 'gone'; s.snapped = true; s.wreck = true; s.mx = MH_PARK; setFelled(state, s); return; }
   if (!branchDone(state)) { s.phase = 'wait'; s.tMode = 'gone'; s.wreck = false; s.mx = null; return; }
   s.phase = 'body'; s.wreck = true; s.mx = MH_PARK;
-  // (a retry this visit: flat by the oak, the branch up out of his chest, waiting to pop up again; else hung on it)
-  if (introSeen() && state.stageMemo[UP_MEMO] === '1') layFlat(s);
+  // (a retry this visit: the axe tree down, him flat by it, split, the branch up out of his chest, waiting to pop up
+  // again; else hung on the oak, the axe tree standing)
+  if (introSeen() && state.stageMemo[UP_MEMO] === '1') { setFelled(state, s); state.stageMemo[SPLIT_MEMO] = '1'; layFlat(s); }
   else { s.tMode = 'impaled'; s.face = 'out'; s.snapped = false; }
 };
 
@@ -86,6 +91,7 @@ export const arena: FrontierSection = {
     switch (s.phase) {
       case 'catchup': return updateCatchup(ctx) ?? controls;
       case 'fakeout': return updateFakeout(ctx, fightOn) ?? controls;
+      case 'entry': return updateEntry(ctx, fightOn) ?? controls;
       case 'entrance':
         if (tickEntrance(state)) fightOn(state);
         return controls;
@@ -94,15 +100,19 @@ export const arena: FrontierSection = {
         if (isLandCleared('frontier') || p.health <= 0 || p.inCutscene) return controls;
         // (up to the body: the fake-out; a retry: he pops up again as he comes near)
         if (s.tMode === 'impaled' && p.isGrounded && pmid(state) > HANG_X - BODY_NEAR) { startFakeout(state); return hands(); }
-        if (s.tMode === 'flat' && pmid(state) > UP_X - ENTRANCE_NEAR) startEntrance(state);
+        if (s.tMode === 'flat' && pmid(state) > FIGHT_X - ENTRANCE_NEAR) startEntrance(state);
         return controls;
       }
       case 'up': {
         runExits(state, endExits('arena'));
         tickTucker(s);
-        // (the fight's placeholder: squaring up at him, stamping, jabbing the ledger finger)
-        s.tFacing = pmid(state) < s.tx ? -1 : 1;
-        s.pose = Math.floor(state.frame / 150) % 2 ? 'point' : 'furious';
+        // (the fight's placeholder: blind, groping, now and then squared up and jabbing the ledger finger at the wrong
+        // way, turning to face him when he's near and making noise)
+        {
+          const toward: 1 | -1 = pmid(state) < s.tx ? -1 : 1, beat = Math.floor(state.frame / 150);
+          s.tFacing = beat % 3 === 2 ? (toward === 1 ? -1 : 1) : toward;
+          s.pose = beat % 2 ? 'point' : 'grope';
+        }
         if (!isLandCleared('frontier') && pmid(state) > TRIGGER_X && p.isGrounded && p.health > 0) {
           s.phase = 'won'; s.wonAt = state.frame; s.victory = startVictory();
         }
@@ -135,15 +145,17 @@ export const arena: FrontierSection = {
   },
   drawFront: (c, state) => {
     const s = arenaOf(state);
+    drawFallingTree(c, s);
     drawLeaves(c, s);
     // (his words over him; not while a close-up or the jumpscare has the screen: they're under those)
-    const screened = (s.phase === 'catchup' && s.step === 'close') || (s.phase === 'fakeout' && s.step === 'pop');
+    const screened = (s.phase === 'catchup' && s.step === 'close') || (s.phase === 'fakeout' && s.step === 'pop') || (s.phase === 'entry' && s.step === 'close');
     if (!screened) drawTuckerWords(c, state);
   },
   drawHud: (c, state) => {
     const s = arenaOf(state);
     drawCatchupHud(c, state);
     drawIntroHud(c, state);
+    drawEntryHud(c, state);
     if (s.victory) drawVictory(c, s.victory);
     if (s.walk) drawWalkAway(c, s.walk);
   },

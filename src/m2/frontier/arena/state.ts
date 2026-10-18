@@ -11,13 +11,18 @@ import type { TuckerPose, TuckerFace } from '../tucker';
 export const BRANCH_MEMO = 'frontier-tucker-branch';
 /** He's popped up off it (the fake-out's been): the fight's ground from here on (checkpoint 60). */
 export const UP_MEMO = 'frontier-arena-up';
+/** The arena entry's been: the felled tree drove the saw down, his face split to the nose, blind (tucker.ts's `split`,
+ *  from here on). */
+export const SPLIT_MEMO = 'frontier-tucker-split';
 
 /** Seen the fake-out this visit (a retry from the checkpoint gets the entrance beat instead). */
 let introVisit = -1;
 export const introSeen = () => introVisit === landVisit();
 export const markIntroSeen = () => { introVisit = landVisit(); };
 
-export type Phase = 'wait' | 'catchup' | 'body' | 'fakeout' | 'entrance' | 'up' | 'won';
+export type Phase = 'wait' | 'catchup' | 'body' | 'fakeout' | 'entry' | 'entrance' | 'up' | 'won';
+/** The axe tree: standing, coming down (chopped through), down along the ground. */
+export type TreeMode = 'up' | 'falling' | 'down';
 /** Where Tucker is and what he's doing (world feet). */
 export type TMode = 'gone' | 'ride' | 'stand' | 'hop' | 'impaled' | 'flat' | 'pop' | 'up';
 
@@ -50,6 +55,12 @@ export interface Arena {
   leaves: Leaf[];
   /** A retry's entrance beat: frames left. */
   entrance: number;
+  // ---- the arena entry: the axe tree (how far over it's tipped, radians from upright toward the right, how fast; the
+  // butt's slide off the stump to the ground 0..1), where the axe is, him split and blind, squashed by the blow, the
+  // close-up of it 0..1; the felled trunk's ledge laid
+  tree: TreeMode; treeTh: number; treeVth: number; treeDrop: number;
+  axe: 'tree' | 'held' | 'stump';
+  split: boolean; squash: number; splitK: number; logLaid: boolean;
   victory: Victory | null; walk: WalkAway | null; wonAt: number;
 }
 
@@ -59,6 +70,7 @@ export const arenaOf = (state: GameState) => frontierState<Arena>(state, 'arena'
   bx: 0, bvx: 0, btilt: 0, bspin: 0, wreck: false,
   mx: null, mspin: 0, mtilt: 0, riding: false, hopFrom: 0,
   closeK: 0, snapped: false, leaves: [], entrance: 0,
+  tree: 'up', treeTh: 0, treeVth: 0, treeDrop: 0, axe: 'tree', split: false, squash: 0, splitK: 0, logLaid: false,
   victory: null, walk: null, wonAt: 0,
 }));
 

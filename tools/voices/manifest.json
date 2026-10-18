@@ -25901,6 +25901,36 @@
  },
  {
   "voice": "m2.frontier.tucker",
+  "text": "AAAAAGH! BOTH HALVES CAN SMELL YOU!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "AAAAAGH! MY HEAD! MY HEADS!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "AAAAAGH! MY HEADS! AND IT STILL STINKS!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "AAAAAGH! MY HEADS! WORST THING I EVER SAW! TIED WITH YOU!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "AAAAAGH! THAT'S A DECENCY FINE AND A TREE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "AAAAAGH! THAT'S COMING OUT OF YOUR DEPOSIT!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
   "text": "AAAAAHHH!",
   "from": "FRONTIER"
  },
@@ -25912,6 +25942,11 @@
  {
   "voice": "m2.frontier.tucker",
   "text": "AAAHHH!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "AAAHHH! DON'T NEED EYES! I CAN SMELL YOU!",
   "from": "FRONTIER"
  },
  {
@@ -25936,17 +25971,12 @@
  },
  {
   "voice": "m2.frontier.tucker",
-  "text": "AAAHHH! STILL HERE!",
+  "text": "AAAHHH! STILL NAKED? I'LL TAKE YOUR WORD FOR IT!",
   "from": "FRONTIER"
  },
  {
   "voice": "m2.frontier.tucker",
-  "text": "AAAHHH! STILL NAKED!",
-  "from": "FRONTIER"
- },
- {
-  "voice": "m2.frontier.tucker",
-  "text": "AAAHHH! STILL STINKING!",
+  "text": "AAAHHH! WHERE'D YOU GO?! YOU STILL OWE ME!",
   "from": "FRONTIER"
  },
  {
@@ -26031,17 +26061,17 @@
  },
  {
   "voice": "m2.frontier.tucker",
-  "text": "BOO! YOU STILL OWE ME!",
+  "text": "BOO! ...WAS THAT YOU? YOU STILL OWE ME!",
   "from": "FRONTIER"
  },
  {
   "voice": "m2.frontier.tucker",
-  "text": "BOO! YOU STILL OWE ME! AND YOU STILL STINK!",
+  "text": "BOO! BEST PART OF BLIND! NO MORE OF YOUR THING!",
   "from": "FRONTIER"
  },
  {
   "voice": "m2.frontier.tucker",
-  "text": "BOO! YOU STILL OWE ME! AND YOU'RE STILL NAKED!",
+  "text": "BOO! I CAN'T SEE YOU! I CAN SURE SMELL YOU!",
   "from": "FRONTIER"
  },
  {
@@ -26052,6 +26082,51 @@
  {
   "voice": "m2.frontier.tucker",
   "text": "CANCELLING THAT CAR. I'LL NEVER GET THE SMELL OUT ANYWAY.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "COME ON! MAN TO MAN! I CAN SEE YOU'RE A MAN! WE ALL CAN!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "COME ON! MAN TO MAN! NO TICKET! NO TRICKS! JUST FISTS AND A FARE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "COME ON! MAN TO MAN! WELL, MAN TO WHATEVER CRAWLED OUT OF THOSE PANTS!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "DOESN'T MATTER! A FARE'S A FARE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "DOESN'T MATTER! I CAN HEAR A FREELOADER BREATHING!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "DOESN'T MATTER! I'LL FIND YOU BY THE BREEZE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "DOESN'T MATTER! I'LL FOLLOW THE SMELL!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "DOESN'T MATTER! I'LL HEAR IT SLAPPING!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "DOESN'T MATTER! YOU LEAVE A TRAIL!",
   "from": "FRONTIER"
  },
  {
@@ -26262,6 +26337,36 @@
  {
   "voice": "m2.frontier.tucker",
   "text": "I CAN SMELL YOU FROM THE CAB! YOU FREELOADING SEWER!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "I CAN'T SEE! ...BUT WOW, CAN I SMELL!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "I CAN'T SEE! ...OH THANK GOD!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "I CAN'T SEE! FINALLY! SOME GOOD NEWS!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "I CAN'T SEE! I CAN'T SEE ANYTHING!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "I CAN'T SEE! WHAT IS THAT?! IS THAT YOU?!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "I CAN'T SEE! WHO TURNED OUT THE LIGHTS?!",
   "from": "FRONTIER"
  },
  {
@@ -26647,6 +26752,21 @@
  {
   "voice": "m2.frontier.tucker",
   "text": "PLUS INTEREST. PUT SOMETHING ON AND WE CAN TALK.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "PUT 'EM UP! MAN TO MAN! I'LL STAND UPWIND!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "PUT 'EM UP! MAN TO MAN! I'LL TAKE IT OUT OF YOUR HIDE! WITH INTEREST!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "PUT 'EM UP! MAN TO MAN! YOUR FISTS! NOT THAT!",
   "from": "FRONTIER"
  },
  {
@@ -43316,6 +43436,11 @@
  },
  {
   "voice": "meathead",
+  "text": "BLIND AS A BAT. NOSE LIKE A BLOODHOUND.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "BLOATED SEWER MAN HUGGED ME! GROSS!",
   "from": "HAZARD_HURT"
  },
@@ -45571,6 +45696,11 @@
  },
  {
   "voice": "meathead",
+  "text": "FINALLY. SOMEBODY WHO CAN'T SEE ME NAKED.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "FINE. I KNOW A SHORTCUT.",
   "from": "SPOOKY"
  },
@@ -46956,6 +47086,11 @@
  },
  {
   "voice": "meathead",
+  "text": "GOOD. NOW I'M DECENT.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "GOOD. TREES DON'T JUDGE.",
   "from": "FRONTIER"
  },
@@ -47373,6 +47508,11 @@
   "voice": "meathead",
   "text": "HE CAME UP RIGHT UNDER ME!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE CAN'T SEE ME. LUCKY. HE CAN STILL SMELL ME.",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -48066,6 +48206,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HE'S HALF THE MAN HE USED TO BE. TWICE.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "HE'S HEALING OFF THAT GUY. RAM HIM!",
   "from": "SPOOKY"
  },
@@ -48588,6 +48733,21 @@
   "voice": "meathead",
   "text": "HOLD ON. WHO'S DRIVING NOW?",
   "from": "m1/game/stages/dale/convoy.ts:882"
+ },
+ {
+  "voice": "meathead",
+  "text": "HOLD THAT THOUGHT.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "HOLD THAT THOUGHT. AND YOUR NOSE.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "HOLD THAT THOUGHT. I'M GONNA NEED BOTH HANDS.",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -52283,6 +52443,21 @@
   "voice": "meathead",
   "text": "MALLET, MOTHERFUCKER!",
   "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "MAN TO MAN? SURE.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "MAN TO MAN. ONE OF US HAS PANTS.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "MAN TO MAN. ONE OF US SHIT HIMSELF.",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -58423,6 +58598,11 @@
   "voice": "meathead",
   "text": "SPLINTERS IN MY TAINT!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "SPLIT THE BILL. SPLIT HIS FACE.",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",

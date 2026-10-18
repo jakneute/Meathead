@@ -307,6 +307,10 @@ export interface Player extends Entity {
   /** Squared up for a duel (Meathead 2's showdown: render/player/moves.ts drawGunslinger), till whatever set it clears
    *  it (his shot: he draws). */
   gunslinger?: boolean;
+  /** Swinging a lumberjack's axe (Meathead 2's Wilderness Land, Tucker's arena entry: render/player/moves.ts
+   *  drawAxeSwing): 0..1 through it (yanked out of a tree, hoisted over his shoulder, ONE swing clean through, the follow
+   *  through); whatever set it clears it. */
+  axeSwing?: number;
   /** Being stabbed, held up on the knife (a game's boss doing it): frames since it started, and the frames each stab
    *  lands on (he doubles over at each). Or posed outright (his gutted death): how far he's doubled over (`hunch`, his
    *  lean in radians) and where his clutching hand's got to (`hand`: 0 on the wound, 1 shoved up into it). */

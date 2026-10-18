@@ -107,7 +107,7 @@ helpers, the time of day, signLetters, pickLine, the grab, victory, walkAway, dr
 | 4 | The log ride (ride, sewer, real river, woodchipper) | `logride` | FRX+56000 .. FRX+67900 | 30-38 | built (job 4; playtest fixes D) |
 | 5 | The woods (outside the park) + the bounty | `woods` | FRX+68000 .. FRX+71000 | 40-41 | built (job 5) |
 | 6 | The dirt-bike chase (TEENAGERS sub-boss) | `dirtbike` | FRX+74000 .. FRX+84000 (side view: the first 1800) | 50-55 | built (job 6) |
-| 7 | The catch-up + Tucker's arena | `arena` | FRX+87000 .. FRX+91000 | 60-69 | catch-up, impalement, fake-out built (job 7); the fight a placeholder |
+| 7 | The catch-up + Tucker's arena | `arena` | FRX+87000 .. FRX+91000 | 60-69 | catch-up, impalement, fake-out built (job 7); the arena entry (the axe tree, the split, blind) built (job F); the fight a placeholder (job G) |
 
 Gaps of 3000 between sections (grow your x1 into the one after yours). The stubs: flat ground, a frontier sign naming
 the section, a COMING SOON board, one checkpoint at the start, walk off the right end into the next section (and back
@@ -217,7 +217,8 @@ later (+1 if heavyset; was 2 / 3 before playtest fixes E). Tucker's glimpsed ahe
 | 40 .. 720 | THE TRAIL (cp 60 at 200, manual: his once Tucker's up) | the catch-up (a cutscene in off the chase's black): Meathead on the kid's bike rides up on Tucker, whose bike has coughed out; the rant; Tucker guns it up the trail |
 | 1230 | THE KID'S BIKE | where Meathead gets off after the crash (it stays there on its stand) |
 | 1300 | THE REFILL | big health + big ammo (the boss-door refill; there every retry, short of the entrance beat) |
-| 1400 .. 2200 | THE CLEARING | real woods thinned out round THE OAK (1700): its pointed branch at chest height; the crash, Tucker hung on it, the stolen bike wrecked under it; walk up to the body (~1490): the fake-out; Tucker up (~1550) squaring up; the fight's placeholder board (1850); walk past 1930: VICTORY, the walk-away |
+| 1400 .. 2000 | THE CLEARING | real woods thinned out round THE OAK (1700): its pointed branch at chest height; the crash, Tucker hung on it, the stolen bike wrecked under it; walk up to the body (~1490): the fake-out; Tucker up (~1550), NOW! ABOUT THAT FARE!, and (the same cutscene) off to the right |
+| 2000 .. 2500 | THE AXE TREE (job F; the arena proper is job G's, about double size) | a tall pine (2130), a lumberjack's axe in its near side: Tucker taunts from just past it (2222), Meathead chops from 2080; the trunk comes down on Tucker's head (the split close-up), then lies along the ground (2144 .. 2404, its bare first 94 a low one-way ledge, lit top), the axe planted in the stump (scenery); Tucker blind at 2192 (a retry: flat there, the entrance beat 220 short); the fight's placeholder board (2424); walk past 2494: VICTORY, the walk-away |
 
 ## Standing rules (all apply)
 
@@ -556,6 +557,47 @@ later (+1 if heavyset; was 2 / 3 before playtest fixes E). Tucker's glimpsed ahe
   door's refill (big health + big ammo) is the arena's own, between the kid's bike and the body (the woods' was before
   the TEENAGERS, too far back). Revisits once the land's cleared: nobody; the oak's branch snapped, the wreck, the kid's
   bike.
+- 2026-10-18 (job F, TUCKER'S ARENA ENTRY. The user's: "after getting impaled by the tree branch, he runs off to the
+  right, taunting you to fight him, man to man. there's a tree with a lumberjack axe sticking in it. with one swing,
+  meathead chops down the tree and it falls on his head, pushing the buzzsaw in his forehead further down splitting his
+  face up to his nose in half now. then the fight begins. be sure to show a closeup of this happening." Everything below
+  is OURS unless it says the user's): arena/entry.ts, straight on from the fake-out's NOW! ABOUT THAT FARE! as THE SAME
+  CUTSCENE (no HUD, no controls; SKIP >> anywhere in the fake-out or the entry lands on the fight's start: the tree down,
+  the axe in the stump, him split and blind at his spot, Meathead by the stump). Tucker runs off right past the oak to
+  the AXE TREE (a tall crude pine, the axe stuck in its near side at cutting height, old chop marks) and turns round just
+  past it (the side it'll fall): TUCKER_TAUNT (MAN TO MAN, ledger talk). Meathead walks himself up to the tree (MH_AXE),
+  yanks the axe out, hoists it over his shoulder and with ONE swing goes clean through (Player.axeSwing, a new Meathead
+  pose: render/player/moves.ts drawAxeSwing, AXE_BITE; both hands, the in-game sprite just mirrors, the left-handed
+  rule's way; a red-headed axe, the bit leading). The trunk creaks over about its butt, faster and faster, Tucker still
+  gloating, then looking up, onto his head (TH_HIT: its underside on the saw's back).
+- 2026-10-18 (job F): THE CLOSE-UP (the mutilation rule; entry.ts's 'split' painter on tucker.ts's close-up, framed on
+  his face): the trunk's shadow and the speed of it coming down; the slam onto the saw's back (a white flash, an impact
+  star, bark chips and needles); the saw driven down through his skull to the top of his nose while his head itself is
+  drawn splitting as it goes (registerWoundPainter's new `drive`: the head gets the wound's 0..1); his face split in half
+  up from the nose (the two halves shoved apart in a V, the cap with them), the skull's bone white and chipped at the
+  lips, his brains bulging out at them, blood and bone and brains bursting out both ways; the far eye bursting out of its
+  socket on its snapped nerve, spinning off, the far half of his spectacles with it, both sockets spurting (a red flash);
+  the trunk bounced off him and gone; the blood fountaining up out of the V a beat at a time; his scream (TUCKER_SPLIT).
+  Behind the close-up the trunk slides off the stump to the ground and lands (a crash, dust and needles) and Meathead
+  plants THE AXE IN THE STUMP: it stays there as scenery (the visit and the revisits), not a weapon pickup. Wide: he
+  staggers out from under it, groping (new Tucker pose 'grope': both hands out feeling the air, a shuffle, chin up), "I
+  CAN'T SEE!" (TUCKER_BLIND), Meathead's say (MH_BLIND), "...DOESN'T MATTER!" squared up the wrong way (TUCKER_MATTER);
+  the fight starts there (`onUp`; still the placeholder: he gropes and jabs his finger, sometimes the wrong way; walk
+  past the felled tree: VICTORY). Checkpoint 60 is now set at the entry's end.
+- 2026-10-18 (job F): THE SPLIT WOUND (tucker.ts `split`, SPLIT_MEMO 'frontier-tucker-split', in tuckerWoundsOf; on him
+  from here on, figure and close-up, stacked with the eye, the branch and the grime; the saw's now the split's):
+  drawHead draws the head three times, below the top of his nose as he is and each half above it sheared out away from
+  the cut (a V widening up through the cap), then the gap over it (meat, bone lips, brains, the saw's hub down between
+  his eyes, its blade seen in the gap and out in front of his brow, its snapped hanger up out of the top), blood sheeting
+  down both halves and off his nose, both eye sockets empty and bleeding, the spectacles snapped at the bridge (the near
+  lens hung crooked, starred), blood down his collar and shirt. A number is how far it's driven (the close-up's frames).
+  BLIND from here on: job G's fight is fought blind (the user's: the blow severed his optic nerves; a flintlock).
+- 2026-10-18 (job F): A RETRY (checkpoint 60, the same visit): the axe tree down, the axe in the stump, him lying flat by
+  the felled trunk, split (TUCKER_ENTRANCE now blind: WHERE'D YOU GO?! / I CAN SMELL YOU!), popping up when Meathead's
+  220 short; a fresh visit or the cheat skip to 60 gets the oak, the fake-out and the entry again. Revisits once the
+  land's cleared: the felled tree and the axe in the stump with the rest. The felled trunk's bare part is a low one-way
+  ledge (lit top: standable reads standable); the boughs aren't solid. Job G re-lays the arena (double size): move the
+  axe tree / felled trunk with it (layout.ts AXE_TREE_X, LOG_X, FIGHT_X).
 - 2026-10-18 (job 7): still a SEPARATE LATER JOB, not built: the walk-back from the parking lot after his kill (the
   walk-away's HEADING BACK TO PARK, the intro's lot in a re-entry mode, the ticket lady's re-entry exchange, clean /
   shitty / naked; see the fill-ins above). And his fight itself, when the user gives it.

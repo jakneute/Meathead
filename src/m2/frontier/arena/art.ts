@@ -13,7 +13,7 @@ import { box, mix, hash, INK, painted, onScreen, type Ctx } from '../kit';
 import { groundBox } from '../section';
 import { drawBough } from '../tucker';
 import { drawDirtBike } from '../woods/teens';
-import { x0, x1, X, GY, TREE_X, TRUNK_W, ROOT, PIERCE, TIP, branchY, branchR, BOARD_X, TUCK_BIKE } from './layout';
+import { x0, x1, X, GY, TREE_X, TRUNK_W, ROOT, PIERCE, TIP, branchY, branchR, BOARD_X, TUCK_BIKE, AXE_TREE_X, AXE_TR, CUT_H, LOG_LEN, LOG_X, LOG_BARE, MH_CHOP_X } from './layout';
 import type { Arena } from './state';
 
 const W = CANVAS_WIDTH, H = CANVAS_HEIGHT;
@@ -178,6 +178,99 @@ export const drawBoard = (c: Ctx, state: GameState) => {
   signText(c, 'TUCKER', x, top + 18, painted(2, '#7F1D1D', '#C8A070'));
   signText(c, 'THE FIGHT:', x, top + 33, painted(1, '#1C1917', '#C8A070'));
   signText(c, 'COMING SOON', x, top + 45, painted(1, '#1C1917', '#C8A070'));
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// The axe tree (the arena entry): a tall pine past the oak, a lumberjack's axe stuck in its near side; the stump once
+// it's chopped through, the trunk coming down, then down along the ground (its bare part a low ledge with a lit top);
+// the axe planted in the stump after (scenery, not a pickup)
+
+const BARK_L = '#A8865A', BARK = '#6E4E30', BARK_D = '#4A3220', BARK_DD = '#2E1E12';
+
+/** The pine above the cut, in its own frame: its butt's middle at the origin, up along -y `len` long (any tip). */
+const pineTrunk = (c: Ctx, len: number, tr: number, seed: number) => {
+  // (the trunk: bark, lit down one side, its furrows; tapering up)
+  c.fillStyle = INK; c.beginPath(); c.moveTo(-tr - 1, 1); c.lineTo(-3, -len); c.lineTo(3, -len); c.lineTo(tr + 1, 1); c.closePath(); c.fill();
+  c.fillStyle = BARK; c.beginPath(); c.moveTo(-tr, 0); c.lineTo(-2, -len); c.lineTo(2, -len); c.lineTo(tr, 0); c.closePath(); c.fill();
+  c.fillStyle = BARK_L; c.beginPath(); c.moveTo(-tr, 0); c.lineTo(-2, -len); c.lineTo(-0.5, -len); c.lineTo(-tr + 5, 0); c.closePath(); c.fill();
+  c.fillStyle = BARK_D; c.beginPath(); c.moveTo(tr - 4, 0); c.lineTo(1, -len); c.lineTo(2, -len); c.lineTo(tr, 0); c.closePath(); c.fill();
+  for (let k = 0; k < 14; k++) { const y = -8 - k * len * 0.025, w = tr * (1 + y / len); box(c, -w * 0.4 + ((k * 7) % 5), y, 2, 7, BARK_DD); }
+  // (the boughs: ragged tiers, darker under, widening down to a third of the way up)
+  for (let k = 0; k < 6; k++) {
+    const ty = -len + k * len * 0.11, w = len * (0.07 + k * 0.034) * (0.9 + hash(seed + k) * 0.2), h = len * 0.17;
+    const g = hash(seed + k * 3) > 0.5 ? '#1F4A2A' : '#2A5530';
+    c.fillStyle = INK; c.beginPath(); c.moveTo(0, ty - 3); c.lineTo(w + 2, ty + h + 1); c.lineTo(-w - 2, ty + h + 1); c.closePath(); c.fill();
+    c.fillStyle = g; c.beginPath(); c.moveTo(0, ty); c.lineTo(w, ty + h); c.lineTo(-w, ty + h); c.closePath(); c.fill();
+    c.fillStyle = mix(g, '#7DB87A', 0.2); c.beginPath(); c.moveTo(0, ty); c.lineTo(-w * 0.25, ty + h); c.lineTo(-w, ty + h); c.closePath(); c.fill();
+    c.fillStyle = mix(g, '#000000', 0.3); c.fillRect(-w * 0.8, ty + h - 3, w * 1.6, 3);
+  }
+};
+
+/** Where the trunk's butt is (world): on the cut, sliding off the stump to the ground as it lands (`drop` 0..1). */
+const buttAt = (drop: number) => ({ x: AXE_TREE_X + (LOG_X - AXE_TREE_X) * drop, y: GY - CUT_H + (CUT_H - AXE_TR) * drop * drop });
+
+/** The trunk above the cut, tipped `th` (radians from upright, toward the right) about its butt. */
+const trunkAt = (c: Ctx, th: number, drop: number, clipGround: boolean) => {
+  const b = buttAt(drop);
+  c.save();
+  if (clipGround) { c.beginPath(); c.rect(b.x - 400, GY - 900, 1200, 900 + 3); c.clip(); }
+  c.translate(b.x, b.y); c.rotate(th);
+  pineTrunk(c, LOG_LEN, AXE_TR, 77);
+  c.restore();
+};
+
+/** A lumberjack's axe, its head at (hx, hy), the handle back from it along angle `a` (butt to head): hickory, the head
+ *  painted red; `buried`: its bit's in the wood (not drawn). Its handle's 33 long. */
+const axeAt = (c: Ctx, hx: number, hy: number, a: number, buried: boolean) => {
+  const dx = Math.cos(a), dy = Math.sin(a), bx = hx - dx * 33, by = hy - dy * 33;
+  c.lineCap = 'round';
+  c.strokeStyle = '#3B2412'; c.lineWidth = 3.4; c.beginPath(); c.moveTo(bx, by); c.lineTo(hx, hy); c.stroke();
+  c.strokeStyle = '#A0703C'; c.lineWidth = 2.2; c.beginPath(); c.moveTo(bx, by); c.lineTo(hx, hy); c.stroke();
+  c.lineCap = 'butt';
+  c.save(); c.translate(hx, hy); c.rotate(a);
+  const poly = (pts: number[], col: string) => { c.fillStyle = col; c.beginPath(); c.moveTo(pts[0], pts[1]); for (let i = 2; i < pts.length; i += 2) c.lineTo(pts[i], pts[i + 1]); c.closePath(); c.fill(); };
+  const reach = buried ? 3 : 10;
+  poly([-3.4, -6, 3.4, -6, 3.4, Math.min(2, reach), -3.4, Math.min(2, reach)], '#1C1917');
+  poly([-2.6, -5.2, 2.6, -5.2, 2.6, Math.min(2.2, reach), -2.6, Math.min(2.2, reach)], '#B91C1C');
+  if (!buried) {
+    poly([-3.4, 2, 3.4, 2, 5.6, 10, -5.6, 10], '#1C1917'); poly([-2.6, 2.2, 2.6, 2.2, 4.6, 9, -4.6, 9], '#B91C1C');
+    poly([-4.2, 6.6, 4.2, 6.6, 4.6, 9, -4.6, 9], '#D6DAE0');
+  }
+  c.restore();
+};
+
+/** The axe tree in the world (behind the cast): standing with the axe in it; the stump once it's chopped (the axe planted
+ *  in it after); the trunk down along the ground. (Coming down it's drawn in front: drawFallingTree.) */
+export const drawAxeTree = (c: Ctx, state: GameState, s: Arena) => {
+  if (!onScreen(state, AXE_TREE_X - 200, LOG_X + LOG_LEN + 120)) return;
+  const x = AXE_TREE_X, w = AXE_TR, top = GY - CUT_H;
+  // ---- the stump (the bottom of the trunk), its roots spread
+  c.fillStyle = INK; c.beginPath(); c.moveTo(x - w - 12, GY + 2); c.quadraticCurveTo(x - w - 1, GY - 6, x - w - 1, top); c.lineTo(x + w + 1, top); c.quadraticCurveTo(x + w + 1, GY - 6, x + w + 12, GY + 2); c.closePath(); c.fill();
+  c.fillStyle = BARK; c.beginPath(); c.moveTo(x - w - 10, GY); c.quadraticCurveTo(x - w, GY - 6, x - w, top); c.lineTo(x + w, top); c.quadraticCurveTo(x + w, GY - 6, x + w + 10, GY); c.closePath(); c.fill();
+  box(c, x - w, top, 5, CUT_H - 4, BARK_L); box(c, x + w - 4, top, 4, CUT_H - 4, BARK_D);
+  for (let k = 0; k < 4; k++) box(c, x - w + 6 + k * 4, top + 6 + k * 7, 2, 8, BARK_DD);
+  if (s.tree === 'up') {
+    trunkAt(c, 0, 0, false);
+    // (the axe, stuck in its near side at the height he'll cut it; a few old chops round it)
+    for (const dy of [-14, 9]) { c.fillStyle = '#D8B886'; c.beginPath(); c.moveTo(x - w, top + dy - 3); c.lineTo(x - w + 5, top + dy); c.lineTo(x - w, top + dy + 2); c.closePath(); c.fill(); }
+    if (s.axe === 'tree') axeAt(c, MH_CHOP_X + 34.8, GY - 54.2, -0.7, true);
+    return;
+  }
+  // ---- chopped through: the cut's face (pale, its rings, a splintered lip on the far side where it broke)
+  c.fillStyle = '#D8B886'; c.beginPath(); c.ellipse(x, top, w, 3, 0, 0, Math.PI * 2); c.fill();
+  c.strokeStyle = '#A88A5A'; c.lineWidth = 0.8; for (const r of [3, 6, 9]) { c.beginPath(); c.ellipse(x, top, Math.min(r, w - 1), Math.min(r, w - 1) * 0.27, 0, 0, Math.PI * 2); c.stroke(); }
+  c.fillStyle = '#C8A070'; c.beginPath(); c.moveTo(x + w - 5, top - 1); c.lineTo(x + w - 2, top - 7); c.lineTo(x + w, top - 1); c.closePath(); c.fill();
+  if (s.tree === 'down') {
+    trunkAt(c, Math.PI / 2, 1, true);
+    // (the lit top of the bare trunk: it's a ledge)
+    box(c, LOG_X + 4, GY - 2 * AXE_TR, LOG_BARE - 4, 2, mix(BARK_L, '#FFFFFF', 0.25));
+  }
+  if (s.axe === 'stump') axeAt(c, x + 2, top + 1, 0.93, true);
+};
+
+/** The trunk coming down (in front of everybody: it comes down on his head). */
+export const drawFallingTree = (c: Ctx, s: Arena) => {
+  if (s.tree === 'falling') trunkAt(c, s.treeTh, s.treeDrop, s.treeDrop > 0);
 };
 
 /** The leaves (shaken off the oak, burst off the branch), in front. */

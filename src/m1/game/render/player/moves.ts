@@ -239,6 +239,91 @@ export const drawGunslinger = (ctx: Ctx, frame: number, gun: (c: Ctx) => void) =
 };
 
 // ---------------------------------------------------------------------------
+// The axe (Meathead 2's Wilderness Land: Tucker's arena entry, one swing and a tree comes down)
+// ---------------------------------------------------------------------------
+
+/** The swing's keys (in his hips' frame): `g` the back hand on the handle, `a` the handle's angle (butt to head), `lean`
+ *  the body's. Yanked out of the tree (0..0.2), hoisted up over his shoulder (to 0.48), ONE swing (to the bite at
+ *  AXE_BITE, on clean through by 0.62), held in the follow-through. */
+const AXE_KEYS: { k: number; g: [number, number]; a: number; lean: number }[] = [
+  { k: 0, g: [15, -6], a: -0.7, lean: -0.08 },
+  { k: 0.2, g: [10, -6], a: -0.62, lean: -0.24 },
+  { k: 0.42, g: [1, -26], a: -2.45, lean: -0.22 },
+  { k: 0.48, g: [1, -27], a: -2.55, lean: -0.25 },
+  { k: 0.53, g: [14, -4], a: -0.72, lean: 0.14 },
+  { k: 0.62, g: [16, 2], a: 0.35, lean: 0.28 },
+  { k: 1, g: [14, 1], a: 0.3, lean: 0.22 },
+];
+/** When the axe bites (clean through the trunk: the scene's tree goes). */
+export const AXE_BITE = 0.53;
+/** The handle, butt to head. */
+const AXE_LEN = 30;
+
+/** A lumberjack's axe, its back hand's grip at `g`, the handle along angle `a`: a hickory handle, the head painted red, its
+ *  bit bright steel on the leading side (the way it swings). */
+const drawAxe = (ctx: Ctx, g: [number, number], a: number) => {
+  const dx = Math.cos(a), dy = Math.sin(a);
+  const bx = g[0] - dx * 3, by = g[1] - dy * 3, hx = g[0] + dx * AXE_LEN, hy = g[1] + dy * AXE_LEN;
+  limb(ctx, bx, by, hx, hy, 3.4, '#3B2412');
+  limb(ctx, bx, by, hx, hy, 2.2, '#A0703C');
+  limb(ctx, bx + dy * 0.5, by - dx * 0.5, hx + dy * 0.5, hy - dx * 0.5, 0.7, '#D2A468');
+  ctx.save(); ctx.translate(hx, hy); ctx.rotate(a);
+  const poly = (pts: number[], col: string) => { ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(pts[0], pts[1]); for (let i = 2; i < pts.length; i += 2) ctx.lineTo(pts[i], pts[i + 1]); ctx.closePath(); ctx.fill(); };
+  poly([-3.4, -6, 3.4, -6, 3.4, 2, 5.6, 10, -5.6, 10, -3.4, 2], '#1C1917');
+  poly([-2.6, -5.2, 2.6, -5.2, 2.6, 2.2, 4.6, 9, -4.6, 9, -2.6, 2.2], '#B91C1C');
+  poly([-2.6, -5.2, -1, -5.2, -1, 2.2, -3, 9, -4.6, 9, -2.6, 2.2], '#DC4A4A');
+  poly([-4.2, 6.6, 4.2, 6.6, 4.6, 9, -4.6, 9], '#D6DAE0');
+  poly([-4.4, 8.2, 4.4, 8.2, 4.6, 9, -4.6, 9], '#FFFFFF');
+  ctx.restore();
+};
+
+/**
+ * Swinging an axe, `k` 0..1 through it: both hands on the handle out at the tree, leaning back and yanking it free; up
+ * over his shoulder, wound right back; ONE swing, body and all, the bit biting in at chest height at AXE_BITE and on
+ * clean through; held there in the follow-through, a scowl.
+ */
+export const drawAxeSwing = (ctx: Ctx, frame: number, k: number) => {
+  frameNow = frame;
+  let i = 0;
+  while (i < AXE_KEYS.length - 2 && k > AXE_KEYS[i + 1].k) i++;
+  const A = AXE_KEYS[i], B = AXE_KEYS[i + 1];
+  const u = Math.max(0, Math.min(1, (k - A.k) / (B.k - A.k || 1))), e = u * u * (3 - 2 * u);
+  const yank = k < 0.2 ? Math.sin(frame * 1.6) * (1 - k / 0.2) : 0;
+  const g: [number, number] = [A.g[0] + (B.g[0] - A.g[0]) * e - yank, A.g[1] + (B.g[1] - A.g[1]) * e];
+  const a = A.a + (B.a - A.a) * e, lean = A.lean + (B.lean - A.lean) * e + yank * 0.02;
+  const swinging = k > 0.48 && k < 0.64;
+  // Legs: planted wide, the front knee driving forward into the swing
+  const drive = Math.max(0, Math.min(1, (k - 0.46) / 0.1));
+  leg(ctx, [-5, -26], kneeFor([-5, -26], [-15, 0]), [-15, 0], 0, true);
+  const front: [number, number] = [15 + drive * 3, 0];
+  leg(ctx, [5, -26], kneeFor([5, -26], front), front, 0, false);
+  ctx.save();
+  ctx.translate(-1, -26 + drive * 1.5);
+  ctx.rotate(lean);
+  const dx = Math.cos(a), dy = Math.sin(a);
+  const lead: [number, number] = [g[0] + dx * 9, g[1] + dy * 9];
+  const elbow = (s: [number, number], h: [number, number]): [number, number] => {
+    const mx = (s[0] + h[0]) / 2, my = (s[1] + h[1]) / 2, ex = h[0] - s[0], ey = h[1] - s[1], L = Math.hypot(ex, ey) || 1;
+    const o = Math.sqrt(Math.max(0, 11 * 11 - (L / 2) * (L / 2)));
+    return [mx - (ey / L) * o, my + (ex / L) * o];
+  };
+  // Back arm to the butt end of the handle
+  arm(ctx, [-9, -22], elbow([-9, -22], g), g, true);
+  torso(ctx);
+  // The swing's smear: the arc the bit's just come round
+  if (swinging) {
+    const r = Math.hypot(dx * AXE_LEN, dy * AXE_LEN);
+    ctx.save(); ctx.globalAlpha = 0.45; ctx.strokeStyle = '#F1F5F9'; ctx.lineWidth = 7; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.arc(g[0], g[1], r, a - 1.3, a); ctx.stroke(); ctx.restore();
+  }
+  drawAxe(ctx, g, a);
+  ctx.save(); ctx.translate(2, -37); ctx.rotate(lean * -0.3); head(ctx, 0, 0, k < 0.22 ? 'grit' : k < 0.48 ? 'scowl' : k < 0.66 ? 'roar' : 'scowl'); ctx.restore();
+  // Front arm, its fist up the handle over it
+  arm(ctx, [11, -22], elbow([11, -22], lead), lead, false);
+  ctx.restore();
+};
+
+// ---------------------------------------------------------------------------
 // Dropping down through a ledge
 // ---------------------------------------------------------------------------
 

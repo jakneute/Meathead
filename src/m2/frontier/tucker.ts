@@ -13,7 +13,8 @@
 // The user's inspiration: a character in Cannibal! The Musical who just can't seem to die. Every "death" sold as final;
 // every comeback more mangled and more stubbornly chipper (or indignant); never explained. His WOUNDS STACK through the
 // land and carry into his fight (`TuckerWounds`): the eye (shot through it from outside the engine), the buzzsaw (stuck
-// in his forehead at the log ride), the branch (impaled through his chest in the woods); and between them the woods'
+// in his forehead at the log ride), the branch (impaled through his chest in the woods), the split (his arena entry: a
+// felled tree drove the saw down through his skull, his face split in half to his nose, both eyes gone); and between them the woods'
 // `grime` (EXTRA BLOODIED: blood, chips, sewer muck, leaves; no new wound, so no close-up). Each job that mutilates him
 // draws its wound here (on the figure: `drawWounds`; on the close-up: its painter).
 //
@@ -46,15 +47,18 @@ export type TuckerPose =
   | 'pounce'   // diving at somebody head first, both hands out to grab (tipped forward about his hips)
   | 'ride'     // sat astride a dirt bike, both fists on the bars, boots on the pegs (feetY: the seat + 30)
   | 'ridepoint' // ...one fist on the bars, jabbing a finger with the other
-  | 'impaled';  // hung on the tree's branch through his chest: tipped forward over it, arms and legs dangling, head lolled
+  | 'impaled'   // hung on the tree's branch through his chest: tipped forward over it, arms and legs dangling, head lolled
+  | 'grope';    // blind (the split): both hands out in front of him, feeling the air, shuffling, chin up, listening
 
 /** 'manic': the bookkeeper unhinged (the user's model: South Park's Mel Gibson): one eye bulging, the other a pinprick,
  *  a brow up in his cap, a clenched grin of every tooth he's got, the gap and all. */
 export type TuckerFace = 'smile' | 'cheer' | 'talk' | 'shock' | 'angry' | 'yell' | 'daze' | 'out' | 'ow' | 'manic';
-export type TuckerWound = 'eye' | 'saw' | 'branch';
+export type TuckerWound = 'eye' | 'saw' | 'branch' | 'split';
 /** What's been done to him so far (they stack, in this order, through the land). `grime`: the woods' EXTRA BLOODIED
- *  look (his trip after Meathead, never explained: fresh blood, wood chips, sewer muck, leaves; a torn shoulder). */
-export interface TuckerWounds { eye?: boolean; saw?: boolean; branch?: boolean; grime?: boolean }
+ *  look (his trip after Meathead, never explained: fresh blood, wood chips, sewer muck, leaves; a torn shoulder).
+ *  `split`: the arena entry's felled tree drove the saw down through his skull, his face split in half to his nose, both
+ *  eyes gone (blind); a number 0..1 is how far it's been driven (the close-up's frames), true is all the way. */
+export interface TuckerWounds { eye?: boolean; saw?: boolean; branch?: boolean; grime?: boolean; split?: boolean | number }
 
 export interface TuckerOpts {
   wounds?: TuckerWounds;
@@ -167,7 +171,7 @@ const HS = 1.1;
 const FACES: Record<TuckerPose, TuckerFace> = {
   stand: 'smile', talk: 'talk', ticket: 'cheer', tip: 'cheer', sit: 'daze', flat: 'out', furious: 'manic', point: 'angry',
   run: 'manic', cab: 'manic', whistle: 'manic', hurt: 'ow', shove: 'manic', slam: 'manic', press: 'manic',
-  pop: 'yell', pounce: 'manic', ride: 'smile', ridepoint: 'manic', impaled: 'out',
+  pop: 'yell', pounce: 'manic', ride: 'smile', ridepoint: 'manic', impaled: 'out', grope: 'shock',
 };
 /** 'impaled': how far he's tipped forward over the branch (about his chest, where it goes in). */
 export const IMPALED_TILT = 0.22;
@@ -208,8 +212,8 @@ export const drawTucker = (c: Ctx, x: number, feetY: number, facing: number, fra
   drawWounds(c, wounds, 'body', f, false, !!opts.onBranch);
   // ---- the head, on his neck
   const hy = pose === 'sit' ? -71 + Math.sin(f * 0.1) * 1.2 : pose === 'hurt' ? -70 : pose === 'impaled' ? -70 : -72;
-  const hx = pose === 'sit' ? Math.sin(f * 0.1) * 2 : pose === 'hurt' ? -2 : pose === 'run' ? 1.5 : pose === 'impaled' ? 2.5 : 0.5;
-  const nod = pose === 'impaled' ? 0.5 : pose === 'hurt' ? -0.25 : pose === 'sit' ? Math.sin(f * 0.1) * 0.14 : pose === 'run' ? 0.08 : pose === 'furious' ? Math.sin(f * 1.3) * 0.05 : pose === 'tip' ? 0.08 : 0;
+  const hx = pose === 'sit' ? Math.sin(f * 0.1) * 2 : pose === 'hurt' ? -2 : pose === 'run' ? 1.5 : pose === 'impaled' ? 2.5 : pose === 'grope' ? 1.5 : 0.5;
+  const nod = pose === 'impaled' ? 0.5 : pose === 'hurt' ? -0.25 : pose === 'grope' ? -0.2 + Math.sin(f * 0.07) * 0.08 : pose === 'sit' ? Math.sin(f * 0.1) * 0.14 : pose === 'run' ? 0.08 : pose === 'furious' ? Math.sin(f * 1.3) * 0.05 : pose === 'tip' ? 0.08 : 0;
   c.save(); c.translate(hx, hy); c.rotate(nod); c.scale(HS, HS);
   drawHead(c, face, f, !!opts.talking, opts.capless || pose === 'sit' || pose === 'flat', pose === 'furious' || face === 'yell', wounds);
   c.restore();
@@ -269,6 +273,8 @@ const drawLegs = (c: Ctx, pose: TuckerPose, f: number) => {
   else if (pose === 'pounce') L = [[-4, -31, -5, -18, -6, -5, 0.7], [4, -31, 2, -18, 0, -6, 0.9]];
   // (hung on the branch: dangling, toes down, swaying a hair)
   else if (pose === 'impaled') { const sw = Math.sin(f * 0.05) * 0.8; L = [[-4, -31, -3 + sw, -18, -1 + sw * 1.4, -5, 0.9], [4, -31, 6 + sw, -18, 8 + sw * 1.4, -5, 1.1]]; }
+  // (blind: a feeling-his-way shuffle, one boot sliding out ahead of the other, the toes testing the ground)
+  else if (pose === 'grope') { const k = Math.sin(f * 0.16); L = [[-4, -31, -4 + k * 2, -18, -5 + k * 5, -5 - Math.max(0, k) * 2.5, -Math.max(0, k) * 0.3], [4, -31, 5 - k * 2, -18, 6 - k * 5, -5 - Math.max(0, -k) * 2.5, -Math.max(0, -k) * 0.3]]; }
   else {
     // (rocking on his heels: the toes up a touch)
     const rock = pose === 'stand' || pose === 'ticket' ? Math.max(0, Math.sin(f * 0.06)) * 0.12 : 0;
@@ -418,6 +424,11 @@ const armsFor = (pose: TuckerPose, f: number): [Arm, Arm] => {
       const sw = Math.sin(f * 0.05) * 1.2;
       return [{ ...FS, hx: -7 + sw, hy: -35, bend: 1, fist: false }, { ...NS, hx: 18 + sw, hy: -34, bend: -1, fist: false }];
     }
+    case 'grope': {
+      // (blind: both hands out in front of him, open, feeling the air in slow circles)
+      const w = Math.sin(f * 0.13) * 4, w2 = Math.cos(f * 0.11) * 3.5;
+      return [{ ...FS, hx: 20 + w, hy: -64 + w2, bend: -0.5, fist: false, palm: true }, { ...NS, hx: 30 - w, hy: -60 - w2, bend: 0.4, fist: false, palm: true }];
+    }
     default:
       // (thumbs hooked in his vest pockets)
       return [{ ...FS, hx: -7, hy: -47, bend: -1, fist: false, thumbIn: true }, { ...NS, hx: 9, hy: -47, bend: 1, fist: false, thumbIn: true }];
@@ -508,7 +519,37 @@ const viseme = (f: number) => {
   return [{ o: 0.4, w: 0.8 }, { o: 2.2, w: 1 }, { o: 1.2, w: 1.2 }, { o: 3, w: 0.9 }, { o: 0.6, w: 1.3 }, { o: 2.6, w: 1 }, { o: 1.6, w: 0.7 }, { o: 0.2, w: 1 }][k];
 };
 
+/** How far the felled tree's driven the saw down and split his face: 0 (not yet) .. 1 (all the way; `split: true`). */
+const splitOf = (w: TuckerWounds) => (w.split === true ? 1 : typeof w.split === 'number' ? Math.max(0, Math.min(1, w.split)) : 0);
+/** From this far into the split on, both his eyes are gone (the far one burst out of its socket: the close-up's). */
+export const SPLIT_EYES_AT = 0.45;
+/** The split (head units): the cut's x down his face, where it stops (the top of his nose), and how far each half's
+ *  sheared out from it at full (the gap opens wider the higher up: a V, the saw wedged in it). */
+const SPLIT = { x: 4.2, py: -0.6, shear: 0.15 };
+/** Where the saw's hub sits: up in his forehead (the log ride's) .. driven down to his nose (the split's). */
+const sawHubY = (d: number) => lerp(-17, -10.8, d);
+
+/** His head: as it is, or split (the two halves sheared apart up from the top of his nose, the gap and the saw in it). */
 const drawHead = (c: Ctx, face: TuckerFace, f: number, talking: boolean, capless: boolean, red: boolean, wounds: TuckerWounds) => {
+  const d = splitOf(wounds);
+  if (d <= 0) { headInner(c, face, f, talking, capless, red, wounds); return; }
+  const s = SPLIT.shear * d, { x: cx, py } = SPLIT;
+  // (below the split: as he is; above it, each half sheared out away from the cut, more the higher up)
+  for (const side of [0, -1, 1] as const) {
+    c.save();
+    if (side) { c.translate(0, py); c.transform(1, 0, -side * s, 1, 0, 0); c.translate(0, -py); }
+    c.beginPath();
+    if (side === 0) c.rect(-40, py, 80, 60);
+    else if (side < 0) c.rect(-40, -60, 40 + cx, 60 + py);
+    else c.rect(cx, -60, 40, 60 + py);
+    c.clip();
+    headInner(c, face, f, talking, capless, red, wounds);
+    c.restore();
+  }
+  drawSplitGap(c, d, f, capless);
+};
+
+const headInner = (c: Ctx, face: TuckerFace, f: number, talking: boolean, capless: boolean, red: boolean, wounds: TuckerWounds) => {
   const S = red ? RAGE : SKIN;
   // ---- the back of his neck, the jowls over his collar
   // ---- the skull: round and jowly, a double chin
@@ -547,8 +588,10 @@ const drawHead = (c: Ctx, face: TuckerFace, f: number, talking: boolean, capless
   shape(c, () => { c.moveTo(3.2, -1.6); c.quadraticCurveTo(4.8, 0.6, 7.2, 2); c.quadraticCurveTo(8.4, 3.8, 6.4, 4.4); c.lineTo(3.6, 4.2); c.quadraticCurveTo(2.2, 3.4, 3, 1.2); c.closePath(); }, S, 2.2, 8.4, 0.7);
   ell(c, 6.4, 2.8, 1.6, 1.3, (red ? RAGE : ROSY)[1]); px(c, 5.8, 1.8, 0.8, 0.6, '#FFF4EC');
   ell(c, 4.8, 4, 0.8, 0.4, S[4]);
-  // ---- the spectacles: round wire rims on his nose, the arm back to his ear, a glint
-  specs(c, f);
+  // ---- the spectacles: round wire rims on his nose, the arm back to his ear, a glint (split: snapped at the bridge, the
+  // far half gone with his eye, the near lens hanging crooked and starred)
+  if (splitOf(wounds) >= SPLIT_EYES_AT) brokenSpecs(c);
+  else specs(c, f);
   // ---- the mouth under the mustache, then the mustache over it
   drawMouth(c, face, f, talking);
   mustache(c, face, f, talking);
@@ -567,6 +610,17 @@ const specs = (c: Ctx, f: number) => {
   line(c, [FAR_EYE + 2.6, EYE_Y - 0.2, NEAR_EYE - 3, EYE_Y - 0.2], 0.6, WIRE);
   line(c, [FAR_EYE - 2.6, EYE_Y, -8.6, -1.4], 0.6, WIRE);
   if (f % 240 < 10) px(c, NEAR_EYE + 0.6, EYE_Y - 1.8, 1.2, 1.2, '#FFFFFF');
+};
+/** The spectacles after the split: the bridge snapped (a stub of wire), the near lens slipped down his cheek, crooked,
+ *  its glass starred and smeared red. */
+const brokenSpecs = (c: Ctx) => {
+  const lx = NEAR_EYE + 1.2, ly = EYE_Y + 3.6;
+  c.strokeStyle = '#5E4A1C'; c.lineWidth = 1; c.beginPath(); c.ellipse(lx, ly, 3, 2.7, 0.5, 0, Math.PI * 2); c.stroke();
+  c.strokeStyle = WIRE; c.lineWidth = 0.5; c.beginPath(); c.ellipse(lx, ly, 3, 2.7, 0.5, Math.PI * 1.05, Math.PI * 1.7); c.stroke();
+  c.globalAlpha = 0.75;
+  for (let i = 0; i < 5; i++) { const a = (i / 5) * Math.PI * 2 + 0.9; line(c, [lx + 0.3, ly - 0.2, lx + Math.cos(a) * 2.6, ly + Math.sin(a) * 2.3], 0.22, '#E8F0F8'); }
+  c.globalAlpha = 0.5; ell(c, lx - 0.6, ly + 0.8, 1.6, 1, '#991B1B'); c.globalAlpha = 1;
+  line(c, [lx - 2.9, ly - 0.9, lx - 4.4, ly - 2.6], 0.6, WIRE);
 };
 
 const eye = (c: Ctx, x: number, y: number, r: number, look: number, lid: number) => {
@@ -588,6 +642,8 @@ const drawEyes = (c: Ctx, face: TuckerFace, f: number, wounds: TuckerWounds) => 
   const blink = f % 210 < 5;
   // (the eye he loses: the near one. Once it's shot through, its painter draws the hole: `drawWounds`)
   const nearOk = !wounds.eye;
+  // (the split: both gone; the sockets are its wound's)
+  if (splitOf(wounds) >= SPLIT_EYES_AT) return;
   switch (face) {
     case 'cheer': happy(FAR_EYE, 1.6); if (nearOk) happy(NEAR_EYE, 1.9); return;
     case 'out':
@@ -719,7 +775,8 @@ const drawCap = (c: Ctx, _f: number) => {
  * train's job draws `eye`, the log ride's `saw`, the catch-up's `branch`. Until then: nothing.
  */
 const drawWounds = (c: Ctx, w: TuckerWounds, layer: 'body' | 'head', f: number, capless = false, onBranch = false) => {
-  if (!w.eye && !w.saw && !w.branch && !w.grime) return;
+  if (!w.eye && !w.saw && !w.branch && !w.grime && !w.split) return;
+  const sd = splitOf(w);
   // (the train's job: the near eye shot clean through: an empty socket, the lens starred, blood down his cheek)
   if (w.eye && layer === 'head') {
     // (the socket: a ragged ring of meat, and clean through the hole, light from the far side of his head)
@@ -743,7 +800,8 @@ const drawWounds = (c: Ctx, w: TuckerWounds, layer: 'body' | 'head', f: number, 
     line(c, [-10.6, -1.6, -10.9, 1.8], 0.7, '#7A1212');
   }
   // (the log ride's job: the buzzsaw buried in his forehead, the cap split round it, his splitting headache)
-  if (w.saw && layer === 'head') {
+  // (split, the saw's the split's: drawGap draws it driven down in the gap)
+  if (w.saw && layer === 'head' && sd <= 0) {
     // (the slot down through the cap's crown (or, the cap off, his scalp) into his forehead: meat, bone at its lips)
     const top = capless ? -13.6 : -21.4;
     fill(c, '#4A0A0A', () => { c.moveTo(1.2, top); c.lineTo(7.4, top + 0.8); c.lineTo(5.6, -8); c.lineTo(3.2, -8.4); c.closePath(); });
@@ -774,6 +832,28 @@ const drawWounds = (c: Ctx, w: TuckerWounds, layer: 'body' | 'head', f: number, 
   // trousers' line and his coat, the chipper's wood chips stuck all over him, fresh blood splashed down his front, the
   // near shoulder torn open, leaves off the pile in his chops and on his cap)
   if (w.grime) drawGrime(c, layer, f, capless);
+  // (the arena entry's job: the split. On each half (drawn sheared apart): the blood sheeting down from the cut over his
+  // brow, either side of his nose, off his jaw; the far eye's socket empty, its blood run down the cheek)
+  if (sd > 0 && layer === 'head') {
+    const x = SPLIT.x, run = Math.min(1, sd * 1.6);
+    line(c, [x - 0.6, -10, x - 1.2, -6, x - 1.6, -6 + 9 * run, x - 2.6, -6 + 16 * run], 1.3, '#7A0E0E');
+    line(c, [x - 0.5, -10, x - 1.1, -6, x - 1.5, -6 + 8 * run], 0.45, '#C42A2A');
+    line(c, [x + 0.8, -10, x + 1.4, -5, x + 1.2, -5 + 7 * run, x + 2.2, -5 + 13 * run], 1.1, '#7A0E0E');
+    line(c, [x - 3, -12, x - 3.6, -9, x - 3.2, -9 + 6 * run], 0.7, '#7A0E0E');
+    if (sd >= SPLIT_EYES_AT) {
+      ell(c, FAR_EYE, EYE_Y, 2.5, 2.3, '#4A0A0A'); ell(c, FAR_EYE, EYE_Y, 1.9, 1.7, '#7A1212'); ell(c, FAR_EYE + 0.1, EYE_Y + 0.1, 1.15, 1.05, '#1A0303');
+      px(c, FAR_EYE - 0.3, EYE_Y + 0.2, 0.7, 0.5, '#E89AA6');
+      line(c, [FAR_EYE - 0.4, EYE_Y + 2, FAR_EYE - 0.9, EYE_Y + 6, FAR_EYE - 0.3, EYE_Y + 11], 1.2, '#7A1212');
+      line(c, [FAR_EYE - 0.2, EYE_Y + 2.2, FAR_EYE - 0.7, EYE_Y + 6, FAR_EYE - 0.1, EYE_Y + 10], 0.4, '#C83232');
+      const dd = ((f + 31) % 70) / 70;
+      if (dd < 0.6) ell(c, FAR_EYE - 0.3, EYE_Y + 11.4 + dd * 4, 0.45, 0.65, '#991B1B');
+    }
+  }
+  // (...and down his front, off his chin onto his collar and shirt)
+  if (sd >= 1 && layer === 'body') {
+    line(c, [2.2, -63, 1.8, -58, 2.6, -52, 2, -46], 1.8, '#7A0E0E'); line(c, [2.4, -63, 2, -58, 2.8, -52], 0.5, '#C42A2A');
+    ell(c, 4.6, -61.6, 2, 1.2, '#7A0E0E');
+  }
   // (the catch-up's job: the giant branch through his chest, out the back of his coat, a twig and its leaves still on
   // it; over the grime)
   if (w.branch && layer === 'body') drawBranchWound(c, f, onBranch);
@@ -782,6 +862,69 @@ const drawWounds = (c: Ctx, w: TuckerWounds, layer: 'body' | 'head', f: number, 
     line(c, [8.8, 8.4, 9.2, 10.6, 8.6, 13.4], 0.9, '#7A0E0E'); line(c, [8.9, 8.6, 9.3, 10.6], 0.3, '#C42A2A');
     const d = ((f + 13) % 64) / 64;
     if (d < 0.6) ell(c, 8.6, 13.8 + d * 5, 0.4, 0.6, '#991B1B');
+  }
+};
+
+/**
+ * The split's gap, over both halves of his head (drawHead draws them sheared apart), `d` 0..1 how far it's driven: a V
+ * from his crown (through the cap) down to the top of his nose, raw meat down in it, the skull's bone white at its lips
+ * and his brains bulging at them; the buzzsaw driven down in it (its hub from his forehead to between his eyes), seen in
+ * the gap, out in front of his brow, and its snapped hanger up out of the top; the blood welling at the V's foot and
+ * running off down his nose.
+ */
+const drawSplitGap = (c: Ctx, d: number, f: number, capless: boolean) => {
+  const s = SPLIT.shear * d, { x: cx, py } = SPLIT;
+  const g = (y: number) => s * (py - y);
+  const top = capless ? -13.9 : -21.8;
+  const yb = lerp(-8.4, py, Math.min(1, d * 1.3));
+  const TL = [cx - 2.2 - g(top), top - 0.3] as const, TR = [cx + 2.6 + g(top), top - 0.3] as const, B = [cx + 0.3, yb] as const;
+  const L = (t: number): [number, number] => [lerp(TL[0], B[0], t), lerp(TL[1], B[1], t)];
+  const Rt = (t: number): [number, number] => [lerp(TR[0], B[0], t), lerp(TR[1], B[1], t)];
+  const gap = () => { c.moveTo(TL[0], TL[1]); c.lineTo(TR[0], TR[1]); c.lineTo(B[0], B[1]); c.closePath(); };
+  // ---- the gap: raw meat down in it, wet
+  fill(c, '#3A0606', gap);
+  fill(c, '#7A1212', () => { const a = L(0.06), b = Rt(0.06); c.moveTo(a[0] + 0.6, a[1]); c.lineTo(b[0] - 0.6, b[1]); c.lineTo(B[0], B[1] - 1.2); c.closePath(); });
+  // ---- the saw, driven down in it: seen in the gap, above his head, out in front of his brow (stopped, a tooth gone)
+  const sx = cx + 0.2, sy = sawHubY(d), R = 10;
+  c.save();
+  c.beginPath();
+  c.rect(-40, -60, 80, 60 + top);
+  gap();
+  const fy = -10, fx = (y: number) => (capless ? 9.8 : 11.6) + g(y);
+  c.moveTo(fx(top), top); c.lineTo(40, top); c.lineTo(40, fy); c.lineTo(fx(fy), fy); c.closePath();
+  c.clip();
+  ell(c, sx, sy, R + 1.4, R + 1.4, STEEL[4]);
+  fill(c, STEEL[2], () => { for (let i = 0; i < 28; i++) { const a = (i / 28) * Math.PI * 2 + 0.2, rr = i % 2 ? R - 0.4 : R + 1.1; c.lineTo(sx + Math.cos(a) * rr, sy + Math.sin(a) * rr); } c.closePath(); });
+  ell(c, sx, sy, R * 0.8, R * 0.8, STEEL[3]);
+  fill(c, STEEL[1], () => { c.moveTo(sx, sy); c.arc(sx, sy, R * 0.75, -2.4, -1.9); c.closePath(); });
+  ell(c, sx, sy, 2.4, 2.4, BRASS[2]); ell(c, sx, sy, 1, 1, STEEL[4]);
+  // (blood on its teeth, and smeared over the part that's been down through him: more the further it's gone)
+  for (let i = 0; i < 9; i++) { const a = -2.8 + i * 0.7; ell(c, sx + Math.cos(a) * R * 0.88, sy + Math.sin(a) * R * 0.88, 0.9, 0.7, i % 2 ? '#7A1212' : '#B91C1C'); }
+  c.globalAlpha = 0.6 * d; ell(c, sx, sy + R * 0.55, R * 0.75, R * 0.4, '#7A1212'); c.globalAlpha = 1;
+  px(c, sx - 4, sy + R * 0.3, 8, 0.5, '#C42A2A');
+  c.restore();
+  // (the hanger's arm, snapped off short, up out of the top of him)
+  line(c, [sx, sy, sx - 1.4, sy - 13], 1.4, STEEL[4]); line(c, [sx, sy, sx - 1.4, sy - 13], 0.7, STEEL[2]);
+  // ---- the lips of it: the skull's bone, white and chipped, down to his brow; his brains bulging out at them; the meat
+  // of his face below that
+  const tS = Math.max(0, Math.min(1, (-8 - TL[1]) / (B[1] - TL[1] || 1)));
+  const [l1x, l1y] = L(tS), [r1x, r1y] = Rt(tS);
+  line(c, [TL[0], TL[1], l1x, l1y], 0.6, '#F5F0E6'); line(c, [TR[0], TR[1], r1x, r1y], 0.6, '#F5F0E6');
+  for (let i = 0; i < 4; i++) { const t = tS * (0.15 + i * 0.22), [lx, ly] = L(t), [rx, ry] = Rt(t); px(c, lx - 0.1, ly, 0.7, 0.5, '#E8E0D0'); px(c, rx - 0.6, ry, 0.7, 0.5, '#E8E0D0'); }
+  if (d > 0.3) {
+    for (const t of [0.14, 0.34, 0.56]) {
+      const tt = t * tS, [lx, ly] = L(tt), [rx, ry] = Rt(tt), q = Math.min(1, (d - 0.3) * 2);
+      ell(c, lx + 0.7, ly + 0.4, 0.9 * q, 1.3 * q, '#E8A0A8'); ell(c, lx + 0.6, ly, 0.4 * q, 0.6 * q, '#F8C8D0');
+      ell(c, rx - 0.7, ry + 0.6, 0.8 * q, 1.2 * q, '#E8A0A8'); line(c, [rx - 1, ry, rx - 0.4, ry + 0.8], 0.25, '#B86070');
+    }
+  }
+  line(c, [l1x, l1y, B[0], B[1]], 0.5, '#4A0A0A'); line(c, [r1x, r1y, B[0], B[1]], 0.5, '#4A0A0A');
+  // ---- the blood welling up at the foot of it and running off down his nose, dripping off the tip
+  ell(c, B[0], B[1] + 0.2, 1 + d * 0.6, 0.6, '#B91C1C');
+  if (d > 0.5) {
+    line(c, [B[0], B[1], B[0] + 1.2, 1.4, 6.2, 3.6], 0.8, '#7A0E0E'); line(c, [B[0] + 0.2, B[1], B[0] + 1.3, 1.4], 0.3, '#C42A2A');
+    const dd = ((f + 7) % 46) / 46;
+    if (dd < 0.65) ell(c, 6.4, 4.8 + dd * 6, 0.45, 0.7, '#991B1B');
   }
 };
 
@@ -978,8 +1121,13 @@ export const drawCloseupBranch = (c: Ctx, f: number, tip: number, snapped: boole
  *  the head's unit space (its middle at the origin, facing right; about 24 across). */
 export type WoundPainter = (c: Ctx, k: number, frame: number) => void;
 const PAINTERS = new Map<TuckerWound, WoundPainter>();
-/** (each mutilating job's: its wound's close-up frames) */
-export const registerWoundPainter = (wound: TuckerWound, paint: WoundPainter) => { PAINTERS.set(wound, paint); };
+const DRIVES = new Map<TuckerWound, (k: number) => number>();
+/** (each mutilating job's: its wound's close-up frames. `drive`, for a wound drawn on his head as it's made (the split):
+ *  how far it's gone at k, handed to the head's own drawing as the wound's 0..1) */
+export const registerWoundPainter = (wound: TuckerWound, paint: WoundPainter, drive?: (k: number) => number) => {
+  PAINTERS.set(wound, paint);
+  if (drive) DRIVES.set(wound, drive);
+};
 
 export interface CloseupOpts extends TuckerOpts {
   /** A wound being made right now (the mutilation rule): its painter at k 0..1, over the face. */
@@ -995,7 +1143,10 @@ export interface CloseupOpts extends TuckerOpts {
  * gives a face ~150 px wide). Drawn as he is (the stacked wounds), then the wound being made if any.
  */
 export const drawTuckerCloseup = (c: Ctx, cx: number, cy: number, scale: number, frame: number, opts: CloseupOpts = {}) => {
-  const f = frame, wounds = opts.wounds ?? {}, face = opts.face ?? 'smile';
+  const f = frame, face = opts.face ?? 'smile';
+  // (a wound being made that's drawn on his head as it goes (the split): how far it's gone, from its drive)
+  const mk = opts.making, drive = mk ? DRIVES.get(mk.wound) : undefined;
+  const wounds: TuckerWounds = mk && drive ? { ...(opts.wounds ?? {}), [mk.wound]: drive(Math.max(0, Math.min(1, mk.k))) } : opts.wounds ?? {};
   const red = !!opts.red || face === 'yell';
   const j = opts.jolt ?? 0;
   c.save();
@@ -1030,6 +1181,14 @@ export const drawTuckerCloseup = (c: Ctx, cx: number, cy: number, scale: number,
   // (the catch-up's branch, through his chest: in at the vest, the point out behind his far shoulder, snapped off in
   // front; as the close-up of it being done left it)
   if (wounds.branch) drawCloseupBranch(c, f, CLOSE_BRANCH_TIP, true);
+  // (the split's blood, sheeted down off his chin over the collar and the shirt front)
+  const sd = splitOf(wounds);
+  if (sd > 0.3) {
+    const q = Math.min(1, (sd - 0.3) * 1.6);
+    line(c, [3, 12, 2.6, 12 + 6 * q, 3.4, 12 + 14 * q, 2.8, 12 + 26 * q], 2.4, '#7A0E0E'); line(c, [3.3, 12, 2.9, 12 + 6 * q, 3.7, 12 + 14 * q], 0.7, '#C42A2A');
+    line(c, [6.4, 12, 7, 12 + 9 * q], 1.4, '#7A0E0E');
+    ell(c, 4.2, 12.6, 3.4 * q, 1.4 * q, '#7A0E0E');
+  }
   c.restore();
   // ---- the neck, the head
   fill(c, (red ? RAGE : SKIN)[2], () => c.roundRect(-6, 8, 12, 6, 2));

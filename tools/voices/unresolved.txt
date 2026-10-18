@@ -145,13 +145,13 @@ m2/frontier/woods/scene.ts:60 voice: text
 m2/frontier/woods/scene.ts:62 voice: who
 m2/frontier/woods/scene.ts:232 voice: 'teen'
 m2/frontier/woods/index.ts:87 voice: false
-m2/frontier/dirtbike/chase.ts:297 voice: false
-m2/frontier/dirtbike/chase.ts:363 voice: false
-m2/frontier/dirtbike/chase.ts:595 voice: true
-m2/frontier/dirtbike/chase.ts:596 voice: true
-m2/frontier/dirtbike/chase.ts:728 voice: pickLine(byPants(state, TUCKER_FLEE))
-m2/frontier/arena/cast.ts:28 voice: pickLine(byPants(state, pool))
-m2/frontier/arena/cast.ts:33 voice: pickLine(byPants(state, pool))
+m2/frontier/dirtbike/chase.ts:320 voice: false
+m2/frontier/dirtbike/chase.ts:408 voice: false
+m2/frontier/dirtbike/chase.ts:694 voice: true
+m2/frontier/dirtbike/chase.ts:695 voice: true
+m2/frontier/dirtbike/chase.ts:858 voice: pickLine(byPants(state, TUCKER_FLEE))
+m2/frontier/arena/cast.ts:30 voice: pickLine(byPants(state, pool))
+m2/frontier/arena/cast.ts:35 voice: pickLine(byPants(state, pool))
 m2/frontier/wilds/station.ts:94 voice: pickLine(byPants(state, pool))
 m1/components/Cutscene.tsx:97 voice: p.voice
 m1/components/Cutscene.tsx:105 voice: p.voice

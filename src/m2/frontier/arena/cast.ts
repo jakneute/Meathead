@@ -11,13 +11,15 @@ import { type Ctx } from '../kit';
 import { drawTucker, TUCKER_H, type TuckerPose, type TuckerOpts, type TuckerWounds } from '../tucker';
 import { drawDirtBike } from '../woods/teens';
 import { x0, x1, GY, HANG_X, HANG_FEET, MH_BIKE, TUCK_BIKE } from './layout';
-import { drawOakBranch, drawWreck } from './art';
+import { drawOakBranch, drawWreck, drawAxeTree } from './art';
 import { arenaOf, BRANCH_MEMO, type Arena } from './state';
 
 /** Before the branch: the eye, the saw, the woods' grime (whatever the memos say: a cheat start sees him right). */
 export const WOUNDS_BEFORE: TuckerWounds = { eye: true, saw: true, grime: true };
 /** From the branch on. */
 export const WOUNDS_ALL: TuckerWounds = { eye: true, saw: true, grime: true, branch: true };
+/** From the arena entry's felled tree on: split to the nose, blind. */
+export const WOUNDS_SPLIT: TuckerWounds = { ...WOUNDS_ALL, split: true };
 
 // ---------------------------------------------------------------------------------------------------------------
 // Saying things
@@ -79,8 +81,9 @@ const drawRider = (c: Ctx, bx: number, tilt: number, spin: number, f: number, po
 export const drawArenaCast = (c: Ctx, state: GameState) => {
   const s = arenaOf(state), f = state.frame;
   const branched = state.stageMemo[BRANCH_MEMO] === '1' || s.tMode === 'impaled';
-  const wounds = branched ? WOUNDS_ALL : WOUNDS_BEFORE;
+  const wounds = s.split ? WOUNDS_SPLIT : branched ? WOUNDS_ALL : WOUNDS_BEFORE;
   if (s.tMode !== 'impaled') drawOakBranch(c, s.snapped ? 'snapped' : 'whole');
+  drawAxeTree(c, state, s);
   if (s.wreck) drawWreck(c, state);
   // (the kid's bike: under him in the scene, parked on its stand after)
   if (s.mx !== null) drawDirtBike(c, s.mx, GY + (s.riding ? 4 : 0), 1, 1, s.mtilt, s.mspin, MH_BIKE, 7);
@@ -94,7 +97,12 @@ export const drawArenaCast = (c: Ctx, state: GameState) => {
     default:
       // (his bike, stood where it coughed out, while he's off it)
       if (s.step && s.phase === 'catchup' && !s.wreck) drawDirtBike(c, s.bx, GY, 1, 1, 0, s.bspin, TUCK_BIKE, 66);
-      drawTucker(c, s.tx, s.ty, s.tFacing, f, s.pose, { wounds, talking: s.talking, face: s.face });
+      // (squashed down by the trunk's blow, springing back)
+      if (s.squash > 0) {
+        c.save(); c.translate(Math.round(s.tx), Math.round(s.ty)); c.scale(1 + s.squash * 0.25, 1 - s.squash * 0.3);
+        drawTucker(c, 0, 0, s.tFacing, f, s.pose, { wounds, talking: s.talking, face: s.face });
+        c.restore();
+      } else drawTucker(c, s.tx, s.ty, s.tFacing, f, s.pose, { wounds, talking: s.talking, face: s.face });
   }
 };
 

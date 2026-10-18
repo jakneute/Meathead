@@ -97,15 +97,66 @@ export const TUCKER_UP: ByPants = {
   shitty: ['NOW! ABOUT THAT FARE! PLUS THE CLEANING FEE!', 'ONE FARE! PLUS INTEREST! PLUS NEW SEATS FOR THE LOG!'],
   nude: ['NOW! ABOUT THAT FARE! PLUS A DECENCY FINE!', 'ONE FARE! PLUS INTEREST! PLUS THERAPY FOR THOSE CHILDREN!'],
 };
-/** A retry: he pops up again off the ground (the entrance beat). */
+/** A retry: he pops up again off the ground by the felled tree (the entrance beat), split and blind. */
 export const TUCKER_ENTRANCE: ByPants = {
-  clean: ['AAAHHH! STILL HERE!', 'BOO! YOU STILL OWE ME!'],
-  shitty: ['AAAHHH! STILL STINKING!', 'BOO! YOU STILL OWE ME! AND YOU STILL STINK!'],
-  nude: ['AAAHHH! STILL NAKED!', 'BOO! YOU STILL OWE ME! AND YOU\'RE STILL NAKED!'],
+  clean: ['AAAHHH! WHERE\'D YOU GO?! YOU STILL OWE ME!', 'BOO! ...WAS THAT YOU? YOU STILL OWE ME!'],
+  shitty: ['AAAHHH! DON\'T NEED EYES! I CAN SMELL YOU!', 'BOO! I CAN\'T SEE YOU! I CAN SURE SMELL YOU!'],
+  nude: ['AAAHHH! STILL NAKED? I\'LL TAKE YOUR WORD FOR IT!', 'BOO! BEST PART OF BLIND! NO MORE OF YOUR THING!'],
 };
 
-const MEATHEAD = [MH_CAUGHT, MH_SKEWERED, FAKE_ME_OUT, MH_JUMPED];
-const TUCKER = [TUCKER_CAUGHT, TUCKER_RANT, TUCKER_HANDOUT, TUCKER_GUN, TUCKER_SKEWERED, TUCKER_JUMP, TUCKER_UP, TUCKER_ENTRANCE];
+// ---------------------------------------------------------------------------------------------------------------
+// The arena entry (the user's: he runs off to the right taunting him to fight him, man to man; a tree with a lumberjack
+// axe in it; one swing, the tree comes down on his head, the saw driven down, his face split to the nose; then the
+// fight). Blind from here on.
+
+/** Run off past the axe tree, turned round: man to man. */
+export const TUCKER_TAUNT: ByPants = {
+  clean: [
+    'COME ON! MAN TO MAN! NO TICKET! NO TRICKS! JUST FISTS AND A FARE!',
+    'PUT \'EM UP! MAN TO MAN! I\'LL TAKE IT OUT OF YOUR HIDE! WITH INTEREST!',
+  ],
+  shitty: [
+    'COME ON! MAN TO MAN! WELL, MAN TO WHATEVER CRAWLED OUT OF THOSE PANTS!',
+    'PUT \'EM UP! MAN TO MAN! I\'LL STAND UPWIND!',
+  ],
+  nude: [
+    'COME ON! MAN TO MAN! I CAN SEE YOU\'RE A MAN! WE ALL CAN!',
+    'PUT \'EM UP! MAN TO MAN! YOUR FISTS! NOT THAT!',
+  ],
+};
+/** Meathead, walked up to the tree, his hand on the axe. */
+export const MH_AXE: ByPants = {
+  clean: ['MAN TO MAN? SURE.', 'HOLD THAT THOUGHT.'],
+  shitty: ['MAN TO MAN. ONE OF US SHIT HIMSELF.', 'HOLD THAT THOUGHT. AND YOUR NOSE.'],
+  nude: ['MAN TO MAN. ONE OF US HAS PANTS.', 'HOLD THAT THOUGHT. I\'M GONNA NEED BOTH HANDS.'],
+};
+/** The close-up's end: the trunk off him, the saw down to his nose, both eyes gone. */
+export const TUCKER_SPLIT: ByPants = {
+  clean: ['AAAAAGH! MY HEAD! MY HEADS!', 'AAAAAGH! THAT\'S COMING OUT OF YOUR DEPOSIT!'],
+  shitty: ['AAAAAGH! MY HEADS! AND IT STILL STINKS!', 'AAAAAGH! BOTH HALVES CAN SMELL YOU!'],
+  nude: ['AAAAAGH! MY HEADS! WORST THING I EVER SAW! TIED WITH YOU!', 'AAAAAGH! THAT\'S A DECENCY FINE AND A TREE!'],
+};
+/** Out from under it, groping: blind. */
+export const TUCKER_BLIND: ByPants = {
+  clean: ['I CAN\'T SEE! WHO TURNED OUT THE LIGHTS?!', 'I CAN\'T SEE! I CAN\'T SEE ANYTHING!'],
+  shitty: ['I CAN\'T SEE! ...BUT WOW, CAN I SMELL!', 'I CAN\'T SEE! WHAT IS THAT?! IS THAT YOU?!'],
+  nude: ['I CAN\'T SEE! ...OH THANK GOD!', 'I CAN\'T SEE! FINALLY! SOME GOOD NEWS!'],
+};
+/** Meathead, watching him feel his way round. */
+export const MH_BLIND: ByPants = {
+  clean: ['HE\'S HALF THE MAN HE USED TO BE. TWICE.', 'SPLIT THE BILL. SPLIT HIS FACE.'],
+  shitty: ['HE CAN\'T SEE ME. LUCKY. HE CAN STILL SMELL ME.', 'BLIND AS A BAT. NOSE LIKE A BLOODHOUND.'],
+  nude: ['FINALLY. SOMEBODY WHO CAN\'T SEE ME NAKED.', 'GOOD. NOW I\'M DECENT.'],
+};
+/** ...doesn't matter: squared up at the wrong tree. The fight starts here. */
+export const TUCKER_MATTER: ByPants = {
+  clean: ['DOESN\'T MATTER! I CAN HEAR A FREELOADER BREATHING!', 'DOESN\'T MATTER! A FARE\'S A FARE!'],
+  shitty: ['DOESN\'T MATTER! I\'LL FOLLOW THE SMELL!', 'DOESN\'T MATTER! YOU LEAVE A TRAIL!'],
+  nude: ['DOESN\'T MATTER! I\'LL FIND YOU BY THE BREEZE!', 'DOESN\'T MATTER! I\'LL HEAR IT SLAPPING!'],
+};
+
+const MEATHEAD = [MH_CAUGHT, MH_SKEWERED, FAKE_ME_OUT, MH_JUMPED, MH_AXE, MH_BLIND];
+const TUCKER = [TUCKER_CAUGHT, TUCKER_RANT, TUCKER_HANDOUT, TUCKER_GUN, TUCKER_SKEWERED, TUCKER_JUMP, TUCKER_UP, TUCKER_ENTRANCE, TUCKER_TAUNT, TUCKER_SPLIT, TUCKER_BLIND, TUCKER_MATTER];
 
 export const VOICE_LINES: Record<string, string[]> = {
   meathead: MEATHEAD.flatMap(allOf),

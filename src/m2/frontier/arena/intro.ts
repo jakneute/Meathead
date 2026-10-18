@@ -6,13 +6,14 @@
 // the scene (no HUD; SKIP >> for all of it): "ARE YOU GOING TO FAKE ME OUT AGAIN?" A beat (nothing; a leaf comes down;
 // Meathead leans in)... and YEP: the branch snaps and Tucker comes off the oak at him screaming (the jumpscare: the
 // sting, the shake, the screen snapped to his screaming face, the oak's leaves everywhere), Meathead jumping back out of
-// his skin. Meathead's line; Tucker on his feet with the branch through him, squaring up (his line), and it's his fight
-// (`onUp`: the placeholder now; the fight hangs off it when it's designed). UP_MEMO ('frontier-arena-up') and checkpoint
-// 60 from here on.
+// his skin. Meathead's line; Tucker on his feet with the branch through him, squaring up (his line); then, the same
+// cutscene, THE ARENA ENTRY (entry.ts: the axe tree, the split, blind) and it's his fight (`onUp`: the placeholder now;
+// the fight hangs off it when it's designed). UP_MEMO ('frontier-arena-up') and checkpoint 60 from here on.
 //
 // REUSABLE for the fight: a retry (dead in his fight, back at checkpoint 60, the same visit) skips all of that for THE
-// ENTRANCE BEAT (as the other land bosses' retries do): he's lying flat by the oak, the branch sticking up out of his
-// chest; walk up and he pops up again (a sting, a shake, a bark), Meathead free to move meanwhile; then it's on.
+// ENTRANCE BEAT (as the other land bosses' retries do): he's lying flat by the felled tree (the axe in the stump), the
+// branch sticking up out of his chest, split; walk up and he pops up again, blind (a sting, a shake, a bark), Meathead
+// free to move meanwhile; then it's on.
 
 import type { FrameContext } from '../../../m1/game/core/context';
 import type { GameState } from '../../../m1/game/core/state';
@@ -25,7 +26,8 @@ import { SKIP_AFTER, offerSkip, takeSkip, drawSkipPrompt } from '../../../m1/gam
 import { hands, saidOver } from '../section';
 import { box, mix, hash, type Ctx } from '../kit';
 import { drawTuckerCloseup } from '../tucker';
-import { GY, TREE_X, HANG_X, HANG_FEET, UP_X, ROOT } from './layout';
+import { GY, TREE_X, HANG_X, HANG_FEET, UP_X, ROOT, FIGHT_X } from './layout';
+import { startEntry, finishEntry } from './entry';
 import { arenaOf, next, markIntroSeen, UP_MEMO, type Arena } from './state';
 import { tuckerSays, tuckerBarks, meatheadLine, camSnap, tickTucker, WOUNDS_ALL } from './cast';
 import { leafBurst } from './art';
@@ -37,10 +39,10 @@ export const ENTRANCE_T = 90;
 
 const pmid = (state: GameState) => state.player.pos.x + state.player.width / 2;
 
-/** He's up: where he stands squaring up, facing Meathead. */
+/** He's up: where he stands squaring up, facing Meathead (split, past the felled tree: blind, groping). */
 const standUp = (state: GameState, s: Arena) => {
-  s.tMode = 'up'; s.tx = UP_X; s.ty = GY; s.tvx = 0; s.tvy = 0; s.hop = null; s.snapped = true;
-  s.tFacing = pmid(state) < s.tx ? -1 : 1; s.pose = 'furious'; s.face = 'manic';
+  s.tMode = 'up'; s.tx = s.split ? FIGHT_X : UP_X; s.ty = GY; s.tvx = 0; s.tvy = 0; s.hop = null; s.snapped = true;
+  s.tFacing = pmid(state) < s.tx ? -1 : 1; s.pose = s.split ? 'grope' : 'furious'; s.face = 'manic';
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -61,7 +63,8 @@ export const updateFakeout = (ctx: FrameContext, onUp: (state: GameState) => voi
   if (s.phase !== 'fakeout') return null;
   s.t++; s.all++;
   p.inCutscene = true;
-  if (s.all > SKIP_AFTER) { offerSkip(); if (takeSkip()) { finishFakeout(state, true); onUp(state); return hands(); } }
+  // (SKIP: all of it, the arena entry after it too: straight to the fight with the tree down and him split)
+  if (s.all > SKIP_AFTER) { offerSkip(); if (takeSkip()) { finishFakeout(state, true); finishEntry(state, true); onUp(state); return hands(); } }
   tickTucker(s);
   switch (s.step) {
     case 'ask':
@@ -84,7 +87,8 @@ export const updateFakeout = (ctx: FrameContext, onUp: (state: GameState) => voi
       if (s.t === 1) { s.pose = 'point'; s.face = 'manic'; tuckerSays(state, s, TUCKER_UP, () => next(s, 'go')); }
       break;
     case 'go':
-      finishFakeout(state, false); onUp(state);
+      // (on into the arena entry, the same cutscene: he runs off to the axe tree; the fight's after it: entry.ts)
+      startEntry(state);
       return hands();
   }
   return hands();
@@ -123,15 +127,15 @@ export const finishFakeout = (state: GameState, skipped: boolean) => {
 // ---------------------------------------------------------------------------------------------------------------
 // The entrance beat (a retry this visit): flat by the oak; walk up and he pops up again
 
-/** Lying there, the branch up out of his chest (a retry's start). */
-export const layFlat = (s: Arena) => { s.tMode = 'flat'; s.tx = UP_X; s.ty = GY; s.tFacing = -1; s.pose = 'flat'; s.face = 'out'; s.snapped = true; };
+/** Lying there by the felled tree, the branch up out of his chest, split (a retry's start). */
+export const layFlat = (s: Arena) => { s.tMode = 'flat'; s.tx = FIGHT_X; s.ty = GY; s.tFacing = -1; s.pose = 'flat'; s.face = 'out'; s.snapped = true; };
 
 export const startEntrance = (state: GameState) => {
   const s = arenaOf(state);
   s.phase = 'entrance'; s.entrance = ENTRANCE_T;
   playSound('slam', 1, -8); playSound('alarm', 0.6, 14); shakeScreen(state, 10, 5);
-  s.tMode = 'pop'; s.tx = UP_X; s.ty = GY; s.tvy = -8; s.tvx = 0; s.tFacing = pmid(state) < s.tx ? -1 : 1; s.pose = 'pop'; s.face = 'yell';
-  leafBurst(s, UP_X, GY - 10, 18, 7, 50);
+  s.tMode = 'pop'; s.tx = FIGHT_X; s.ty = GY; s.tvy = -8; s.tvx = 0; s.tFacing = pmid(state) < s.tx ? -1 : 1; s.pose = 'pop'; s.face = 'yell';
+  leafBurst(s, FIGHT_X, GY - 10, 18, 7, 50);
   tuckerBarks(state, s, TUCKER_ENTRANCE);
 };
 /** A frame of it (Meathead's free); true once it's over (he's up: the fight's on). */

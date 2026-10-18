@@ -38,16 +38,34 @@ export const TIP = { x: PIERCE.x - dir.x * 50, y: PIERCE.y - dir.y * 50 };
 export const branchY = (x: number) => ROOT.y + (x - ROOT.x) * (dir.y / dir.x);
 export const branchR = (x: number) => Math.max(0, Math.min(6.5, 0.3 + (x - TIP.x) * 0.1));
 
-/** Where he lands, popped up off the branch (and stands for his fight); flat there on a retry till he pops again. */
+/** Where he lands, popped up off the branch (and runs off right from, for the axe tree). */
 export const UP_X = HANG_X - 70;
 /** The fake-out: how near the body he has to walk. */
 export const BODY_NEAR = 130;
+
+// ---- the arena entry (entry.ts): the axe tree past the oak, a lumberjack's axe stuck in it; Tucker runs off to it and
+// taunts from just past it; Meathead chops it down onto his head with one swing
+/** The axe tree (a tall pine): its trunk's middle, half width, height (ground to its top). */
+export const AXE_TREE_X = TREE_X + 430, AXE_TR = 11, AXE_TREE_H = 300;
+/** Where the swing cuts it (the stump's height). */
+export const CUT_H = 40;
+/** The trunk above the cut: its length. */
+export const LOG_LEN = AXE_TREE_H - CUT_H;
+/** Meathead's middle, chopping (his axe's bit bites the trunk's near face at CUT_H). */
+export const MH_CHOP_X = AXE_TREE_X - 50;
+/** Where Tucker stops to taunt, facing back at him, just past the tree (the side it falls): his feet. */
+export const TAUNT_X = AXE_TREE_X + 92;
+/** Where he stands for his fight, blind (and lies flat on a retry till he pops up again). */
+export const FIGHT_X = TAUNT_X;
+/** The felled trunk, lying (the butt slid off the stump on the far side): its butt's x; it's down along the ground to
+ *  the right, LOG_LEN long, the bare part a low ledge (its lit top) as far as the boughs. */
+export const LOG_X = AXE_TREE_X + 14, LOG_BARE = Math.round(LOG_LEN * 0.36);
 /** A retry: how near before Tucker pops up again (the entrance beat). */
 export const ENTRANCE_NEAR = 220;
-/** The placeholder's end (past him and the oak): VICTORY, the walk-away. */
-export const TRIGGER_X = TREE_X + 230;
-/** The placeholder board for the fight (past the oak). */
-export const BOARD_X = TREE_X + 150;
+/** The placeholder's end (past him and the felled tree): VICTORY, the walk-away. */
+export const TRIGGER_X = LOG_X + LOG_LEN + 90;
+/** The placeholder board for the fight (past the felled tree). */
+export const BOARD_X = LOG_X + LOG_LEN + 20;
 
 /** The bikes' colors: the kid's (his, from the bounty) and the one Tucker stole (the chase's). */
 export const MH_BIKE = '#DC2626', TUCK_BIKE = '#2563EB';
