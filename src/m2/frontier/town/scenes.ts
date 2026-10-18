@@ -204,7 +204,7 @@ const beginDuel = (state: GameState, controls: Controls) => {
   const d = townOf(state).duel, p = state.player;
   d.phase = 'duel'; d.t = 0; d.token++;
   d.drawAt = 160 + Math.floor(Math.random() * 170);
-  d.wasShooting = !!(controls.shoot || controls.secondary);
+  d.wasShooting = !!controls.shoot;
   p.inCutscene = false; p.facing = 1; p.gunslinger = true;
 };
 
@@ -305,7 +305,7 @@ const runDuel = (ctx: FrameContext, controls: Controls): Controls => {
     case 'duel': {
       d.t++;
       p.facing = 1;
-      const shooting = !!(controls.shoot || controls.secondary), pressed = shooting && !d.wasShooting;
+      const shooting = !!controls.shoot, pressed = shooting && !d.wasShooting;
       d.wasShooting = shooting;
       if (d.t === d.drawAt) {
         card(state, 'DRAW!', 60);
@@ -316,7 +316,7 @@ const runDuel = (ctx: FrameContext, controls: Controls): Controls => {
       if (p.health > 0 && pressed) { p.gunslinger = false; if (d.t < d.drawAt) cheat(ctx); else win(ctx); }
       else if (p.health > 0 && d.t >= d.drawAt + DRAW_WINDOW) lose(ctx);
       // (only his trigger finger: no walking, no moves, no turning away)
-      return { ...NO_CONTROLS, shoot: controls.shoot, secondary: controls.secondary };
+      return { ...NO_CONTROLS, shoot: controls.shoot };
     }
     case 'posse': {
       g.t++;
