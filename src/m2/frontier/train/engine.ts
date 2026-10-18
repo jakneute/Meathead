@@ -1,37 +1,41 @@
-// THE ENGINE: the end of the train. Tucker leaning out of the back of his cab over the tender, shaking his fist, and
-// over him a big flashing arrow that says KILL (Meathead 1's joke: Riggs in his cab). The cab's walled off; the way to
-// do it is from out here. Up on the tender (the fireman shoveling coal at him), Tucker reads him the ledger (his rant,
-// line after line, the arrow up all the while). Left too long, Tucker cuts the tender loose (the same as any car).
+// THE ENGINE: the end of the train. A big flashing arrow that says KILL (Meathead 1's joke: Riggs in his cab) over the
+// back of the cab, where Tucker leans out over the tender. The cab's walled off; the way to do it is from out here.
 //
-// Shot (any hit: one's all it takes), the user's: an ANIMATED, GRAPHIC close-up of the bullet going through his eye
-// (the mutilation close-up rule: tucker.ts's close-up with this job's wound painter: the slug coming in, the lens
-// starring, the eye bursting, the gout out the back of his head, the hole clean through (sky through it), the blood
-// running), his last words; he slumps over the sill, apparently dead, on the whistle cord (the whistle stuck on: Riggs's
-// horn); nobody's driving; the train runs on, faster, into the buffer stop at Sawdust Gulch: the crash; black; the
-// town (the town's section). From then on he's got the eye wound for the rest of the land (TUCKER_EYE_MEMO, drawn on
-// his figure by tucker.ts). A cutscene from the shot on: no HUD, SKIP >> for the lot.
+// The playtest's: coming up onto the tender, a CUTSCENE first (no controls, no HUD, SKIP >> for all of it): Tucker pops
+// up out of the cab's back and lays into him (manic, petty, the ledger: the user's Mel Gibson), Meathead's say, Tucker's
+// kicker, the KILL arrow drops in. He isn't something to shoot till that's done (he's not even at his window). Then it's
+// played: up on the tender (the fireman shoveling coal at him), Tucker reads him the ledger, line after line, and the
+// arrow's up all the while. He EVADES anything but the ray gun (a special weapon fired at him, or anything of it flying
+// at his window: he ducks below the sill, a crack about it: it's not legal tender); the plain ray gun's bolt through his
+// window is the shot. Left too long, Tucker cuts the tender loose (the same as any car).
+//
+// Shot, the user's: an ANIMATED, GRAPHIC close-up of the bullet going through his eye (the mutilation close-up rule:
+// tucker.ts's close-up with this job's wound painter: the slug coming in, the lens starring, the eye bursting, the gout
+// out the back of his head, the hole clean through (sky through it), the blood running), his last words; he slumps over
+// the sill, apparently dead, on the whistle cord (the whistle stuck on: Riggs's horn); nobody's driving; the train runs
+// on, faster, into the buffer stop at Sawdust Gulch: the crash; black; the town (the town's section). From then on he's
+// got the eye wound for the rest of the land (TUCKER_EYE_MEMO, drawn on his figure by tucker.ts). A cutscene from the
+// shot on: no HUD, SKIP >> for the lot.
 
 import type { FrameContext } from '../../../m1/game/core/context';
 import type { GameState } from '../../../m1/game/core/state';
 import type { Controls } from '../../../m1/game/platform/input';
-import type { Enemy, EnemyKind } from '../../../m1/types';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { playSound, playHornDrone } from '../../../m1/game/platform/audio';
 import { pickLine, silenceAll, takeFreshLine } from '../../../m1/game/platform/speech';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { SKIP_AFTER, offerSkip, takeSkip, drawSkipPrompt } from '../../../m1/game/platform/skip';
-import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
-import { registerM2Kind } from '../../kinds';
-import { hands, meatheadSays, speak, saidOver, teleport, byPants, type Said } from '../section';
+import { hands, meatheadSays, speak, saidOver, teleport, byPants, landVisit, type Said } from '../section';
 import { DOORS, GY } from '../geometry';
 import { TUCKER_VOICE, type ByPants } from '../talk';
 import { box, mix, INK, painted, burned, type Ctx } from '../kit';
 import { signText } from '../../signLetters';
 import { drawTucker, drawTuckerCloseup, registerWoundPainter } from '../tucker';
 import { trainOf } from './state';
-import { CARS, CAR_X, DECK, ROOF, TENDER, ENGINE, CAB } from './layout';
+import { CARS, CAR_X, RAIL, TENDER, ENGINE, CAB, ENGINE_SCALE } from './layout';
 import { cutTender, cancelCut } from './cars';
-import { TUBE_RANT, TUBE_TIMEUP, TUCKER_SHOT, KILL_SEEN, SHOT_LINE, DRIVER_LINE } from './lines';
+import { screenX, screenY, inView } from './view';
+import { TUBE_RANT, TUBE_TIMEUP, TUCKER_SHOT, KILL_SEEN, SHOT_LINE, DRIVER_LINE, TUCKER_INSULT, MH_COMEBACK, TUCKER_DARE, TUCKER_DODGE, MH_RAYGUN } from './lines';
 
 /** The train's crashed into Sawdust Gulch (for good: a revisit finds it stood still). */
 export const CRASH_MEMO = 'frontier-train-crashed';
@@ -39,27 +43,17 @@ export const crashed = (state: GameState) => state.stageMemo[CRASH_MEMO] === '1'
 /** Tucker's been shot through the eye: the wound's on him for the rest of the land (tucker.ts draws it). */
 export const TUCKER_EYE_MEMO = 'frontier-tucker-eye';
 
-// ---------------------------------------------------------------------------------------------------------------
-// Tucker in the window, as something to hit: a stand-in that's never hurt (any hit's the shot)
-
-const PUPPET = 'm2:fr_tucker_cab';
-let hitByGrab = false;
-registerM2Kind({
-  kind: PUPPET, stats: { w: 36, h: 60, hp: 99999, contact: 0, mass: 300, air: true },
-  ai: (_ctx, e) => { e.vel.x = 0; e.vel.y = 0; return true; },
-  make: b => ({ ...b, harmless: true, enemyType: 'flyer', initialY: b.pos.y }),
-  draw: () => {},
-  head: { x: 0, y: -48, r: 12 }, gender: 'm', grab: 'none', midBoss: true, fixture: true, pathing: false,
-  onGrab: () => { hitByGrab = true; return { said: true, free: true }; },
-});
-
-type Step = 'wait' | 'rant' | 'close' | 'slump' | 'speed' | 'crash' | 'done';
+type Step = 'wait' | 'insult' | 'rant' | 'close' | 'slump' | 'speed' | 'crash' | 'done';
 interface Scene {
   step: Step; t: number; all: number;
-  puppet: Enemy | null;
+  /** The insult: which beat it's at (his line, Meathead's, his kicker), and is one being said. */
+  beat: number;
   /** The rant: which line's next, and is one being said. */
   rantI: number; busy: boolean; timeT: number; timeSaid: boolean;
   said: Said | null; talking: boolean;
+  /** Up at his window (0 down in the cab, 1 leaning out); ducked below the sill (frames left); dodged yet; the shoot
+   *  button last frame. */
+  up: number; duck: number; dodged: boolean; shootWas: boolean;
   /** Where the buffer stop is (world x of its face), the crash's flash, the fade to black. */
   bumper: number; flash: number; fade: number;
   lineDone: boolean;
@@ -68,7 +62,7 @@ const SCENES = new WeakMap<object, Scene>();
 const scOf = (state: GameState): Scene => {
   const k = state.stage as object;
   let s = SCENES.get(k);
-  if (!s) { s = { step: 'wait', t: 0, all: 0, puppet: null, rantI: 0, busy: false, timeT: 0, timeSaid: false, said: null, talking: false, bumper: 0, flash: 0, fade: 0, lineDone: false }; SCENES.set(k, s); }
+  if (!s) { s = { step: 'wait', t: 0, all: 0, beat: 0, rantI: 0, busy: false, timeT: 0, timeSaid: false, said: null, talking: false, up: 0, duck: 0, dodged: false, shootWas: false, bumper: 0, flash: 0, fade: 0, lineDone: false }; SCENES.set(k, s); }
   return s;
 };
 const cut = (s: Scene) => s.step === 'close' || s.step === 'slump' || s.step === 'speed' || s.step === 'crash';
@@ -80,9 +74,12 @@ const tuckerSay = (s: Scene, text: string | null, done?: () => void) => {
 };
 const pick = (state: GameState, pool: ByPants) => pickLine(byPants(state, pool));
 
+const ES = ENGINE_SCALE;
 const ENGINE_X = CAR_X[ENGINE], ENGINE_FRONT = ENGINE_X + CARS[ENGINE].len;
 /** Where a shot at him counts: from a bit back over the tender up to his window (before the cab wall eats it). */
-const ZONE = { x0: ENGINE_X - 90, x1: ENGINE_X + 4, y0: GY - 168, y1: CAB.sill + 6 };
+const ZONE = { x0: ENGINE_X - 110, x1: ENGINE_X + 6, y0: CAB.sill - 130, y1: CAB.sill + 8 };
+/** The camera on the cab for the insult (the zoomed view: the tender and the cab's back in the middle). */
+const INSULT_CAM = ENGINE_X - 470;
 
 // ---------------------------------------------------------------------------------------------------------------
 // Each frame
@@ -91,6 +88,7 @@ export const updateEngine = (ctx: FrameContext, controls: Controls): Controls =>
   const { state } = ctx, p = state.player, s = scOf(state), tr = trainOf(state);
   const cx = p.pos.x + p.width / 2;
   s.t++;
+  s.duck = Math.max(0, s.duck - 1);
   if (tr.phase === 'still' || s.step === 'done') return controls;
   if (cut(s)) {
     s.all++;
@@ -100,13 +98,21 @@ export const updateEngine = (ctx: FrameContext, controls: Controls): Controls =>
   }
   switch (s.step) {
     case 'wait':
-      if (tr.phase === 'ride' && cx > CAR_X[TENDER] - 20 && p.health > 0 && !p.inCutscene) {
-        s.step = 'rant'; s.t = 0; s.rantI = 0; s.busy = false;
-        const e = makeKindEnemy(PUPPET as EnemyKind, ENGINE_X - 26, CAB.sill);
-        e.facing = -1; state.enemies.push(e); s.puppet = e;
+      // (up onto the tender's back: the insult)
+      if (tr.phase === 'ride' && cx > CAR_X[TENDER] - 30 && p.health > 0 && !p.inCutscene) {
+        // (seen it this visit (a retry): he's just up at his window, the arrow over him)
+        if (insultedOn === landVisit()) { endInsult(state, s); return controls; }
+        s.step = 'insult'; s.t = 0; s.all = 0; s.beat = 0; s.busy = false;
+        silenceAll();
+        p.inCutscene = true; p.vel.x = 0;
+        state.cameraOverride = { x: INSULT_CAM, y: state.camera.y };
+        state.projectiles = state.projectiles.filter(pj => pj.owner !== 'player');
+        playSound('clang', 0.8, 4);
       }
       return controls;
+    case 'insult': return insult(ctx, s);
     case 'rant': {
+      s.up = 1;
       // (the ledger, line after line; him once, after the first, about the arrow)
       if (!s.busy && p.health > 0 && !s.timeSaid) {
         const list = byPants(state, TUBE_RANT);
@@ -115,10 +121,17 @@ export const updateEngine = (ctx: FrameContext, controls: Controls): Controls =>
       }
       // (left too long: the tender goes)
       if (++s.timeT > 2100 && !s.timeSaid) { s.timeSaid = true; silenceAll(); tuckerSay(s, pick(state, TUBE_TIMEUP)); cutTender(state, 110); }
-      // (the shot: anything that hits him, or anything of his flying into his window)
-      const e = s.puppet;
-      let hit = hitByGrab || !e || e.health < e.maxHealth || !state.enemies.includes(e);
-      for (const pj of state.projectiles) if (pj.owner === 'player' && pj.health > 0 && pj.pos.x + pj.width > ZONE.x0 && pj.pos.x < ZONE.x1 && pj.pos.y + pj.height > ZONE.y0 && pj.pos.y < ZONE.y1) { pj.health = 0; hit = true; }
+      // (a special weapon fired anywhere near: he's already ducking. Anything of his flying into the window: the ray
+      // gun's bolt is the shot (unless he's down); anything else, he ducks it)
+      const near = cx > CAR_X[TENDER] - 700 && p.health > 0 && !p.inCutscene;
+      if (near && controls.shoot && !s.shootWas && p.currentWeapon !== 'GUN') dodge(state, s);
+      s.shootWas = !!controls.shoot;
+      let hit = false;
+      for (const pj of state.projectiles) {
+        if (pj.owner !== 'player' || pj.health <= 0 || pj.pos.x + pj.width < ZONE.x0 - 40 || pj.pos.x > ZONE.x1 || pj.pos.y + pj.height < ZONE.y0 || pj.pos.y > ZONE.y1) continue;
+        if (pj.isRay && s.duck <= 0 && pj.pos.x + pj.width > ZONE.x0) { pj.health = 0; hit = true; }
+        else if (!pj.isRay) dodge(state, s);
+      }
       if (hit) shoot(ctx, s);
       return controls;
     }
@@ -147,7 +160,7 @@ export const updateEngine = (ctx: FrameContext, controls: Controls): Controls =>
       if (s.bumper <= ENGINE_FRONT + 4) {
         s.step = 'crash'; s.t = 0; s.flash = 1; tr.v = 0; tr.vTarget = 0;
         playSound('crash', 1, -10); playSound('boom', 1, -16); playSound('crunch', 1, -8); shakeScreen(state, 24, 9);
-        for (let n = 0; n < 60; n++) state.particles.push({ pos: { x: ENGINE_FRONT - Math.random() * 60, y: DECK - Math.random() * 120 }, vel: { x: (Math.random() - 0.3) * 14, y: -4 - Math.random() * 10 }, life: 60 + Math.random() * 40, color: n % 4 === 0 ? '#E4E4E7' : n % 4 === 1 ? '#8A5A30' : n % 4 === 2 ? '#3F3F46' : '#B91C1C', size: 3 + Math.random() * 5 });
+        for (let n = 0; n < 60; n++) state.particles.push({ pos: { x: ENGINE_FRONT - Math.random() * 90, y: GY - 60 - Math.random() * 200 }, vel: { x: (Math.random() - 0.3) * 14, y: -4 - Math.random() * 10 }, life: 60 + Math.random() * 40, color: n % 4 === 0 ? '#E4E4E7' : n % 4 === 1 ? '#8A5A30' : n % 4 === 2 ? '#3F3F46' : '#B91C1C', size: 3 + Math.random() * 5 });
       }
       return hands();
     }
@@ -160,17 +173,59 @@ export const updateEngine = (ctx: FrameContext, controls: Controls): Controls =>
   return controls;
 };
 
+/** The insult (a cutscene): he pops up at his window and lays into him; Meathead's say; his kicker; the arrow. */
+const insult = (ctx: FrameContext, s: Scene): Controls => {
+  const { state } = ctx, p = state.player;
+  s.all++;
+  p.inCutscene = true;
+  for (const e of state.enemies) if (e.health > 0) { e.puppet = true; e.vel.x = 0; }
+  if (s.all > SKIP_AFTER) { offerSkip(); if (takeSkip()) { silenceAll(); endInsult(state, s); return hands(); } }
+  s.up = Math.min(1, s.up + 0.05);
+  if (s.t === 8) playSound('whoosh', 0.7, 2);
+  if (!s.busy && s.t > 30) {
+    s.busy = true;
+    if (s.beat === 0) tuckerSay(s, pick(state, TUCKER_INSULT), () => { s.beat = 1; s.busy = false; });
+    else if (s.beat === 1) meatheadSays(state, pick(state, MH_COMEBACK), true, () => { s.beat = 2; s.busy = false; });
+    else if (s.beat === 2) tuckerSay(s, pick(state, TUCKER_DARE), () => { s.beat = 3; s.busy = false; s.t = 0; });
+    else if (s.t > 24) { s.busy = false; endInsult(state, s); return hands(); }
+    else s.busy = false;
+  }
+  return hands();
+};
+/** The visit the insult was seen in (a retry that visit doesn't sit through it again). */
+let insultedOn = -1;
+const endInsult = (state: GameState, s: Scene) => {
+  const p = state.player;
+  insultedOn = landVisit();
+  s.step = 'rant'; s.t = 0; s.rantI = 0; s.busy = false; s.up = 1; s.said = null; s.talking = false; s.timeT = 0;
+  p.inCutscene = false;
+  state.cameraOverride = null;
+  for (const e of state.enemies) e.puppet = false;
+  playSound('clang', 0.6, -2);
+};
+
+/** Down below the sill: whatever it was goes over him; a crack about it (not over anybody else's words). */
+const dodge = (state: GameState, s: Scene) => {
+  if (s.duck > 6) return;
+  s.duck = 46;
+  playSound('whoosh', 0.6, 6);
+  if (s.busy || s.talking) return;
+  s.busy = true;
+  tuckerSay(s, pick(state, TUCKER_DODGE), () => {
+    if (!s.dodged) { s.dodged = true; meatheadSays(state, pick(state, MH_RAYGUN), true, () => { s.busy = false; }); }
+    else s.busy = false;
+  });
+};
+
 const shoot = (ctx: FrameContext, s: Scene) => {
   const { state } = ctx;
-  hitByGrab = false;
   silenceAll();
   cancelCut(state);
   s.said = null; s.talking = false;
-  if (s.puppet) { state.enemies = state.enemies.filter(e => e !== s.puppet); s.puppet = null; }
   s.step = 'close'; s.t = 0; s.all = 0;
   state.player.inCutscene = true;
-  state.cameraOverride = { x: ENGINE_X - 330, y: state.camera.y };
-  ctx.fx.spawnDamageNumber({ x: ENGINE_X - 60, y: GY - 200 }, 'HEADSHOT!', true, '#F87171');
+  state.cameraOverride = { x: ENGINE_X - 300, y: state.camera.y };
+  ctx.fx.spawnDamageNumber({ x: ENGINE_X - 60, y: CAB.sill - 60 }, 'HEADSHOT!', true, '#F87171');
   playSound('gun', 1, -4);
   shakeScreen(state, 8, 4);
 };
@@ -265,7 +320,8 @@ registerWoundPainter('eye', (c, k) => {
 });
 
 // ---------------------------------------------------------------------------------------------------------------
-// Drawing: the engine, Tucker in the back of the cab, the KILL arrow, the buffer stop and the crash
+// Drawing: the engine (the first pass's, blown up to the big cars' size), Tucker in the back of the cab (his own size),
+// the KILL arrow, the buffer stop and the crash
 
 const RED = '#A3262A', RED_L = '#D4483E', BLACK = '#26262C', BRASS = '#E0B040', WOOD = '#8A5A30';
 
@@ -278,45 +334,26 @@ const wheel = (c: Ctx, x: number, y: number, r: number, a: number) => {
   c.fillStyle = BRASS; c.beginPath(); c.arc(x, y, 3, 0, Math.PI * 2); c.fill();
 };
 
-/** Behind the cast: the engine (its cab with Tucker leaning out of the back of it, the boiler, the stack smoking). */
+/** Behind the cast: the engine (the boiler, the stack smoking, the cab with Tucker leaning out of the back of it). */
 export const drawEngineBack = (c: Ctx, state: GameState) => {
-  const s = scOf(state), tr = trainOf(state), f = state.frame, x = ENGINE_X, y = GY, roll = tr.dist / 16;
-  if (x + 400 < state.camera.x - 100 || x - 100 > state.camera.x + CANVAS_WIDTH + 100) return;
+  const s = scOf(state), tr = trainOf(state), f = state.frame, x = ENGINE_X, y = GY, roll = tr.dist / 40;
+  if (!inView(state, x - 200, x + CARS[ENGINE].len + 100, 100)) return;
   const crushed = s.step === 'crash' || s.step === 'done' ? Math.min(40, s.t * 4) : 0;
-  // ---- the smoke out of the stack, streaming back over the train
+  const stuck = s.step === 'slump' || s.step === 'speed';
+  // ---- the machine, in the first pass's units, blown up about the rail under its back end
+  c.save(); c.translate(x, y); c.scale(ES, ES); c.translate(-x, -y);
+  // (the smoke out of the stack, streaming back over the train)
   const going = tr.v > 1;
   for (let k = 0; k < (going ? 9 : 3); k++) {
     const t = (f * (going ? 0.045 : 0.015) + k / (going ? 9 : 3)) % 1;
     const sx = x + 271 - t * (going ? 420 : 20), sy = y - 150 - t * (going ? 40 : 90);
     c.globalAlpha = 0.65 * (1 - t); c.fillStyle = mix('#3F3F46', '#E4E4E7', t); c.beginPath(); c.arc(sx, sy, 12 + t * 26, 0, Math.PI * 2); c.fill(); c.globalAlpha = 1;
   }
-  // ---- Tucker, leaning out of the back of the cab (clipped at the sill): manic, shaking his fist; slumped once shot
-  if (tr.phase !== 'still' && s.step !== 'done') {
-    const shot = s.step !== 'wait' && s.step !== 'rant';
-    c.save(); c.beginPath(); c.rect(x - 120, y - 300, 200, CAB.sill - (y - 300));
-    // (slumped, he hangs out over the sill: below it too, outside the cab)
-    if (shot) c.rect(x - 160, CAB.sill - 4, 158, 120);
-    c.clip();
-    if (!shot) drawTucker(c, x - 12, CAB.feet, -1, f, 'cab', { talking: s.talking });
-    else {
-      // (slumped over the sill head down, his arms hanging, the eye shot through)
-      c.translate(x - 4, CAB.sill + 2); c.rotate(-1.9);
-      drawTucker(c, 0, 50, -1, f, 'cab', { face: 'out', wounds: { eye: true } });
-    }
-    c.restore();
-  }
-  // ---- the cab: red, its roof, its back opening (the sill he leans over), a side window
+  // (the cab: red, its roof, a side window)
   box(c, x - 8, y - 196, 106, 10, BLACK);
   box(c, x - 4, y - 188, 100, 154, INK); box(c, x - 2, y - 186, 96, 150, RED); box(c, x - 2, y - 186, 96, 5, RED_L);
-  // (the back opening: dark inside, round him)
-  box(c, x - 2, y - 170, 20, CAB.sill - (y - 170), '#1A1210');
   box(c, x + 34, y - 160, 40, 36, '#1A1210'); box(c, x + 34, y - 160, 40, 3, '#3A2A20');
-  box(c, x - 30, CAB.sill - 2, 50, 6, WOOD); box(c, x - 30, CAB.sill - 2, 50, 2, '#E8C890');
-  if (tr.phase === 'still' || s.step === 'done') { box(c, x + 18, y - 120, 70, 22, INK); box(c, x + 20, y - 118, 66, 18, '#FEF3C7'); signText(c, 'OUT OF', x + 53, y - 110, painted(1, '#7F1D1D', '#FEF3C7')); signText(c, 'SERVICE', x + 53, y - 102, painted(1, '#7F1D1D', '#FEF3C7')); }
-  // (the whistle cord, pulled tight by his weight once he's slumped on it)
-  const stuck = s.step === 'slump' || s.step === 'speed';
-  c.strokeStyle = '#D6D3D1'; c.lineWidth = 1; c.beginPath(); c.moveTo(x + 6, y - 186); c.lineTo(x + 6 + (stuck ? -8 : 0), stuck ? CAB.sill - 10 : y - 150); c.stroke();
-  // ---- the boiler, its bands, the domes, the bell, the balloon stack, the headlamp, the cowcatcher
+  // (the boiler, its bands, the domes, the bell, the balloon stack, the headlamp, the cowcatcher)
   const b0 = x + 96 - crushed * 0.3, bw = 200 - crushed;
   box(c, b0, y - 132, bw, 70, INK); box(c, b0 + 2, y - 130, bw - 4, 66, BLACK); box(c, b0 + 2, y - 130, bw - 4, 10, '#4A4A54');
   for (let k = 1; k < 4; k++) box(c, b0 + k * bw / 4, y - 132, 5, 70, BRASS);
@@ -326,43 +363,72 @@ export const drawEngineBack = (c: Ctx, state: GameState) => {
   c.fillStyle = BLACK; c.beginPath(); c.moveTo(b0 + 162, y - 130); c.lineTo(b0 + 153, y - 187); c.lineTo(b0 + 193, y - 187); c.lineTo(b0 + 184, y - 130); c.closePath(); c.fill();
   box(c, b0 + 150, y - 193, 46, 6, BRASS);
   const front = b0 + bw;
-  box(c, front - 24, y - 162, 28, 26, INK); box(c, front - 22, y - 160, 24, 22, WOOD); box(c, front - 12, y - 155, 12, 12, '#FEF08A');
+  box(c, front - 24, y - 162, 28, 26, INK); box(c, front - 22, y - 160, 24, 22, WOOD); box(c, front - 12, y - 155, 12, 12, '#E8D890');
   box(c, front - 4, y - 64, 30, 30, INK); box(c, front - 2, y - 62, 26, 26, RED);
   c.fillStyle = INK; c.beginPath(); c.moveTo(front + 22, y - 40); c.lineTo(front + 62 - crushed * 0.6, y - 2); c.lineTo(front + 22, y - 2); c.closePath(); c.fill();
   c.strokeStyle = RED_L; c.lineWidth = 3; for (let k = 0; k < 5; k++) { c.beginPath(); c.moveTo(front + 24 + k * 7, y - 4); c.lineTo(front + 24, y - 36 + k * 7); c.stroke(); }
-  // ---- the frame, the drivers and their rods, the pilot wheels
-  box(c, x - 4, DECK, 330 - crushed, 12, INK);
-  for (const wx of [x + 40, x + 110, x + 180]) wheel(c, wx, y - 26, 24, roll);
-  wheel(c, x + 250 - crushed * 0.5, y - 13, 12, roll); wheel(c, x + 290 - crushed * 0.6, y - 13, 12, roll);
+  // (the frame, the drivers and their rods, the pilot wheels: all on the rail)
+  box(c, x - 4, y - 34, 330 - crushed, 12, INK);
+  const dr = 24, dy = y - (y - RAIL + dr * ES) / ES, pr = 12, py = y - (y - RAIL + pr * ES) / ES;
+  for (const wx of [x + 40, x + 110, x + 180]) wheel(c, wx, dy, dr, roll);
+  wheel(c, x + 250 - crushed * 0.5, py, pr, roll); wheel(c, x + 290 - crushed * 0.6, py, pr, roll);
   const rx = Math.cos(roll) * 13, ry = Math.sin(roll) * 13;
-  c.strokeStyle = INK; c.lineWidth = 6; c.beginPath(); c.moveTo(x + 40 + rx, y - 26 + ry); c.lineTo(x + 180 + rx, y - 26 + ry); c.stroke();
+  c.strokeStyle = INK; c.lineWidth = 6; c.beginPath(); c.moveTo(x + 40 + rx, dy + ry); c.lineTo(x + 180 + rx, dy + ry); c.stroke();
   c.strokeStyle = '#C8C8D0'; c.lineWidth = 3; c.stroke();
-  c.strokeStyle = '#A1A1AA'; c.lineWidth = 3; c.beginPath(); c.moveTo(x + 180 + rx, y - 26 + ry); c.lineTo(x + 250, y - 46); c.stroke();
-  // ---- the steam off the whistle, stuck on
+  c.strokeStyle = '#A1A1AA'; c.lineWidth = 3; c.beginPath(); c.moveTo(x + 180 + rx, dy + ry); c.lineTo(x + 250, y - 46); c.stroke();
+  // (the steam off the whistle, stuck on)
   if (stuck) for (let k = 0; k < 4; k++) { c.globalAlpha = 0.6; c.fillStyle = '#F8FAFC'; c.beginPath(); c.arc(x + 20 - k * 6, y - 200 - k * 12 - (f % 12), 6 + k * 3, 0, Math.PI * 2); c.fill(); c.globalAlpha = 1; }
-  void ROOF;
+  c.restore();
+  // ---- the cab's back (his own size from here: the opening he leans out of, the sill)
+  const back = GY - 300;
+  box(c, x - 3, back, 40, CAB.sill - back, '#1A1210'); box(c, x - 3, back, 40, 4, '#3A2A20');
+  // ---- Tucker, leaning out of the back of the cab (clipped at the sill): manic, shaking his fist; ducked under it;
+  // slumped over it once shot. Not at his window till the insult.
+  if (tr.phase !== 'still' && s.step !== 'done' && s.step !== 'wait') {
+    const shot = s.step !== 'insult' && s.step !== 'rant';
+    c.save(); c.beginPath(); c.rect(x - 140, GY - 420, 220, CAB.sill - (GY - 420));
+    // (slumped, he hangs out over the sill: below it too, outside the cab)
+    if (shot) c.rect(x - 170, CAB.sill - 4, 168, 130);
+    c.clip();
+    if (!shot) {
+      const down = (1 - s.up) * 90 + (s.duck > 0 ? Math.min(1, s.duck / 8, (46 - s.duck + 8) / 8) * 80 : 0);
+      drawTucker(c, x - 12, CAB.feet + down, -1, f, 'cab', { talking: s.talking, face: s.duck > 0 ? 'shock' : 'manic' });
+    } else {
+      // (slumped over the sill head down, his arms hanging, the eye shot through)
+      c.translate(x - 4, CAB.sill + 2); c.rotate(-1.9);
+      drawTucker(c, 0, 50, -1, f, 'cab', { face: 'out', wounds: { eye: true } });
+    }
+    c.restore();
+  }
+  box(c, x - 40, CAB.sill - 3, 64, 8, INK); box(c, x - 39, CAB.sill - 2, 62, 6, WOOD); box(c, x - 39, CAB.sill - 2, 62, 2, '#E8C890');
+  if (tr.phase === 'still' || s.step === 'done') { box(c, x + 60, GY - 230, 110, 34, INK); box(c, x + 62, GY - 228, 106, 30, '#FEF3C7'); signText(c, 'OUT OF', x + 115, GY - 218, painted(1, '#7F1D1D', '#FEF3C7')); signText(c, 'SERVICE', x + 115, GY - 206, painted(1, '#7F1D1D', '#FEF3C7')); }
+  // (the whistle cord, pulled tight by his weight once he's slumped on it)
+  c.strokeStyle = '#D6D3D1'; c.lineWidth = 1; c.beginPath(); c.moveTo(x + 12, GY - 310); c.lineTo(x + 12 + (stuck ? -10 : 0), stuck ? CAB.sill - 10 : GY - 250); c.stroke();
 };
 
-/** Over the world: the KILL arrow over him, his words, the buffer stop and the station at the end of the line. */
+/** Over the world: the KILL arrow over him, the buffer stop and the station at the end of the line. */
 export const drawEngineFront = (c: Ctx, state: GameState) => {
   const s = scOf(state), tr = trainOf(state), f = state.frame;
   if (tr.phase === 'still' || s.step === 'done') return;
   const hx = ENGINE_X - 18;
-  // (the KILL arrow, as Meathead 1 had over Riggs: a red arrow down at him, KILL over it, flashing)
-  if (s.step === 'rant' && Math.floor(f / 10) % 2 === 0) {
-    const ax = hx, ay = GY - 196 + Math.sin(f * 0.2) * 4;
+  // (the KILL arrow, as Meathead 1 had over Riggs: a red arrow down at him, KILL over it, flashing; dropped in at the end
+  // of the insult)
+  const arrow = s.step === 'rant' || (s.step === 'insult' && s.beat >= 3);
+  if (arrow && Math.floor(f / 10) % 2 === 0) {
+    const ax = hx, ay = CAB.sill - 112 + Math.sin(f * 0.2) * 4;
     c.fillStyle = '#DC2626'; c.beginPath(); c.moveTo(ax, ay + 16); c.lineTo(ax - 12, ay); c.lineTo(ax + 12, ay); c.fill();
     c.font = 'bold 14px "Press Start 2P"'; c.textAlign = 'center';
     c.fillStyle = '#000'; c.fillText('KILL', ax + 2, ay - 6); c.fillStyle = '#F87171'; c.fillText('KILL', ax, ay - 8); c.textAlign = 'left';
   }
-  if (s.said && (s.step === 'rant' || s.step === 'wait')) saidOver(c, s.said.text, hx, GY - 232, '#FDE68A', 260);
   // (the end of the line: SAWDUST GULCH's buffer stop and its platform, coming)
   const b = tr.passers.find(q => q.kind === 'bumper');
   if (b) drawBumper(c, b.x, s.step === 'crash' ? s.t : 0);
 };
 
 /** The buffer stop (timbers, a red-and-white striped beam) and Sawdust Gulch's station front behind it. */
-const drawBumper = (c: Ctx, x: number, crashT: number) => {
+const drawBumper = (c: Ctx, x0: number, crashT: number) => {
+  c.save(); c.translate(x0, GY); c.scale(1.5, 1.5); c.translate(-x0, -GY);
+  const x = x0;
   // (the station: a plywood false front, its name, END OF LINE)
   box(c, x + 40, GY - 260, 260, 260, INK); box(c, x + 42, GY - 258, 256, 258, '#B08A5A');
   for (let k = x + 50; k < x + 296; k += 16) box(c, k, GY - 258, 1, 258, '#8A6A40');
@@ -373,11 +439,28 @@ const drawBumper = (c: Ctx, x: number, crashT: number) => {
   const sq = Math.min(30, crashT * 3);
   box(c, x + sq, GY - 70, 40, 70, INK); box(c, x + 2 + sq, GY - 68, 36, 68, '#5A3A1E');
   for (let k = 0; k < 4; k++) box(c, x + 2 + sq, GY - 64 + k * 14, 36, 7, k % 2 ? '#F8FAFC' : '#DC2626');
+  c.restore();
 };
 
-/** Screen space: the close-up (the slug through his eye), his last words under it; the crash's flash; the black; SKIP. */
+/** Screen space: his words (the insult's with his face up close over them); the eye close-up and his last words under
+ *  it; the crash's flash; the black; SKIP. */
 export const drawEngineHud = (c: Ctx, state: GameState) => {
-  const s = scOf(state);
+  const s = scOf(state), f = state.frame;
+  if (s.step === 'insult') {
+    // (his face up close in a frame while he's at it: manic, red, every tooth)
+    if (s.talking) {
+      const w = 220, h = 150, cx = CANVAS_WIDTH / 2, y = 70;
+      box(c, cx - w / 2 - 6, y - 6, w + 12, h + 12, INK); box(c, cx - w / 2 - 4, y - 4, w + 8, h + 8, '#6B4423'); box(c, cx - w / 2 - 4, y - 4, w + 8, 3, '#9A6A3A');
+      c.save(); c.beginPath(); c.rect(cx - w / 2, y, w, h); c.clip();
+      for (let i = 0; i < 5; i++) box(c, cx - w / 2, y + (i * h) / 5, w, h / 5 + 1, mix('#3A2A20', '#1A1210', i / 5));
+      drawTuckerCloseup(c, cx, y + h / 2 + 8, 3.6, f, { face: 'manic', talking: true, red: true, jolt: 0.2 });
+      c.restore();
+      if (s.said) saidOver(c, s.said.text, cx, y + h + 34, '#FDE68A', 340);
+    }
+    if (s.all > SKIP_AFTER) drawSkipPrompt(c, CANVAS_WIDTH);
+  } else if (s.said && (s.step === 'rant' || s.step === 'wait')) {
+    saidOver(c, s.said.text, screenX(state, ENGINE_X - 18), screenY(state, CAB.sill - 140), '#FDE68A', 260);
+  }
   if (s.step === 'close') {
     const t = s.t, k = Math.max(0, Math.min(1, (t - 6) / 120)), z = Math.min(1, t / 10);
     const w = 400 * (0.6 + 0.4 * z), h = 250 * (0.6 + 0.4 * z), cx = CANVAS_WIDTH / 2, cy = 200, x = cx - w / 2, y = cy - h / 2;
@@ -402,6 +485,6 @@ export const drawEngineHud = (c: Ctx, state: GameState) => {
 };
 
 /** The engine's scene has the camera (for the section's camera, while it does). */
-export const engineHasCamera = (state: GameState) => cut(scOf(state));
-/** The scene's state, for the lamps (the headlamp). */
-export const headlamp = () => ({ x: ENGINE_X + 284, y: GY - 150 });
+export const engineHasCamera = (state: GameState) => cut(scOf(state)) || scOf(state).step === 'insult';
+/** The headlamp, for the lighting. */
+export const headlamp = () => ({ x: ENGINE_X + 473, y: GY - 250 });

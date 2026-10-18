@@ -30,7 +30,7 @@ fighting and platforming on the way (about 2.5x pure walking).
 | Section | x range now (world) | Target (px of play) | Target playtime (excl. cutscenes) |
 |---|---|---|---|
 | wilds | FRX+0 .. FRX+21000 (21000) | ~24000 (platform heavy, the logs) | ~5 min |
-| train | FRX+24000 .. FRX+36000 (12000) | 12000 | ~2.5 min |
+| train | FRX+24000 .. FRX+38300 (14300: the big cars, the playtest's) | 12000 | ~2.5 min |
 | town | FRX+39000 .. FRX+50000 (11000) | 11000 (the mines' shafts counted by play) | ~2.3 min |
 | logride | FRX+53000 .. FRX+64600 (11600) | 9000 (a ride: by time) | ~2 min |
 | woods | FRX+65000 .. FRX+68000 (3000) | 3000 + its scene | ~0.6 min |

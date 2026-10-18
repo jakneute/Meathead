@@ -1,7 +1,8 @@
 // What flies on the train: the porters' suitcases (lobbed; they burst open), the cook's cleavers (flat and spinning),
 // the fireman's coal (lobbed; landing, a lump rolls on back along the roofs and the decks: jump it) and the stack's
 // cinders (they come down where their glowing mark is, and burn a moment). Coal and cinders are the train's hazards:
-// they hurt the cast too.
+// they hurt the cast too. Nothing thrown goes through a car's walls (cars.ts updateRooms: what's thrown in a car stays in
+// it; what's thrown outside stays out).
 
 import type { FrameContext } from '../../../m1/game/core/context';
 import type { GameState } from '../../../m1/game/core/state';
@@ -14,6 +15,7 @@ import { GY } from '../geometry';
 import { box, INK, type Ctx } from '../kit';
 import { trainOf, type Shot } from './state';
 import { CINDERS_FROM } from './layout';
+import { viewOf } from './view';
 
 const DMG: Record<Shot['kind'], number> = { suitcase: 9, cleaver: 11, coal: 8, cinder: 6 };
 const SRC: Record<Shot['kind'], string> = { suitcase: 'm2:fr_suitcase', cleaver: 'm2:fr_cleaver', coal: 'm2:fr_coal', cinder: 'm2:fr_cinder' };
@@ -39,7 +41,7 @@ export const updateShots = (ctx: FrameContext, live: boolean) => {
   const pcx = p.pos.x + p.width / 2;
   if (live && pcx > CINDERS_FROM && p.health > 0 && !p.inCutscene && ++tr.cinderT > 30) {
     tr.cinderT = 0;
-    const x = pcx - 200 + Math.random() * 560, y = state.camera.y - 20;
+    const x = pcx - 200 + Math.random() * 560, y = viewOf(state).y - 20;
     tr.shots.push({ kind: 'cinder', x, y, vx: -0.5, vy: 2.6, t: 0, mark: surfaceAt(state, x - 0.5 * 90, y) ?? GY });
   }
   for (const s of tr.shots) {

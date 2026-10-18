@@ -6,10 +6,13 @@
 //              bursts open: somebody's underwear everywhere); up close he swings it
 //   brakeman   on the roofs, in hickory-striped overalls with his brake club: walks at him, raises it (the tell), swings
 //              (a big knock: off the roof onto the deck, as like as not)
-//   robber     a masked bandit galloping up alongside on a horse (behind the cars, up over their roofs): keeps pace,
-//              raises the pistol (the tell), fires at whoever's up on the roofs (inside's cover); after a bit, or when
-//              he's close, leaps off onto the roof and comes on foot: keeps his distance and shoots, pistol-whips up
-//              close. The tunnels and the low bridges scrape the riders off (train/passers.ts)
+//   robber     a masked bandit galloping up alongside on a horse, on the NEAR side of the line (the foreground: nearer
+//              the eye, so bigger and lower, drawn in front of the train; the playtest's): keeps pace, raises the pistol
+//              (the tell), fires at him if he's outside (inside's cover: nothing gets through a car's walls); after a
+//              bit, or when something's coming that he can't ride through (a tunnel, a bridge's legs, a waterfall: they
+//              only ride where there's a clearing), leaps off up onto whatever car's beside him (no collision while he
+//              rides or leaps: nothing in the world gets in his way or kills him) and comes on foot: keeps his distance
+//              and shoots, pistol-whips up close
 //   cook       the dining car's: grumpy, heavy; flings cleavers flat across the car (the cleaver up: the tell), swings a
 //              frying pan up close
 //   passenger  the paying guests, who want him off: a lady with a parasol, a gent with a cane, poking at him; the
@@ -27,11 +30,12 @@ import type { GameState } from '../../../m1/game/core/state';
 import { safeAhead, holdingOff, mid } from '../../../m1/game/enemies/kinds';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { playSound } from '../../../m1/game/platform/audio';
-import { floorTopAt } from '../../../m1/game/core/terrain';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
 import { lookOf } from '../../adventure/temple/people';
 import { GY } from '../geometry';
-import { DECK } from './layout';
+import { CAR_X, ENGINE } from './layout';
+import { trainOf } from './state';
+import { playerRoom } from './where';
 import { HURT } from './lines';
 import { throwShot } from './shots';
 import { drawPorter, drawBrakeman, drawRobber, drawCook, drawPassenger, drawSteer, drawFireman } from './kindArt';
@@ -52,6 +56,8 @@ const gender = (e: Enemy) => (lookOf(seedOf(e)).woman ? 'f' : 'm') as 'm' | 'f';
 /** Its patch: a car's span it keeps to (a steer in its car, a hand on his roof). */
 const BOUNDS = new WeakMap<Enemy, [number, number]>();
 export const setBounds = (e: Enemy, a: number, b: number) => { BOUNDS.set(e, [a, b]); };
+/** Its car's dropped back (a cut): its patch goes with it. */
+export const shiftBounds = (e: Enemy, dx: number) => { const b = BOUNDS.get(e); if (b) BOUNDS.set(e, [b[0] + dx, b[1] + dx]); };
 const inBounds = (e: Enemy, dir: number) => {
   const b = BOUNDS.get(e);
   if (!b) return true;
@@ -154,10 +160,34 @@ const brakeman = (ctx: FrameContext, e: Enemy) => {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
-// The robber: on his horse alongside, then on foot
+// The robber: on his horse alongside (the near side, the foreground), then up onto the train and on foot
 
-/** A rider's feet, sat on his horse (galloping behind the cars, up over their roofs). */
-export const RIDE_FEET = GY - 140;
+/** The near side's lane (the foreground, in front of the train): where the horses' hooves come down (world), and how
+ *  much bigger it's drawn for being nearer the eye (one eye for the scene: the nearer, the bigger and the lower). */
+export const FG_GROUND = GY + 40;
+export const FG_SCALE = 1.25;
+/** Where a rider's box is, sat on his horse in the near lane (about where he's drawn, so he can be shot there). */
+const rideY = (e: Enemy) => FG_GROUND - 36 * FG_SCALE - e.height - 10;
+
+/** What's in the near lane that a horse can't get through or past (a tunnel, a bridge's near legs, a waterfall over
+ *  the line, the end of the line): true if any of it's in x0..x1 (world). The robbers only ride where it's clear. */
+export const laneBlocked = (state: GameState, x0: number, x1: number) =>
+  trainOf(state).passers.some(q => (q.kind === 'tunnel' || q.kind === 'bridge' || q.kind === 'falls' || q.kind === 'bumper') && q.x < x1 && q.x + q.len > x0);
+
+/** The top of the train at x (its roof, its load, a coupling's floor), or null (no car there, or the cab). */
+const trainTopAt = (state: GameState, x: number) => {
+  const tr = trainOf(state);
+  if (x < CAR_X[tr.rear] + 10 || x > CAR_X[ENGINE] - 40) return null;
+  let top: number | null = null;
+  for (const b of state.blocks) {
+    if (!b.tag?.startsWith('tr-') || b.tag === 'tr-cab' || b.y < -1000 || x < b.x + 8 || x > b.x + b.w - 8) continue;
+    if (top === null || b.y < top) top = b.y;
+  }
+  return top;
+};
+
+/** Is he inside a car (inside's cover from the riders)? */
+const insideAny = (state: GameState) => playerRoom(state, trainOf(state)) >= 0;
 
 const fire = (state: GameState, e: Enemy) => {
   const p = state.player, m = mid(e);
@@ -171,40 +201,68 @@ const fire = (state: GameState, e: Enemy) => {
 
 /** A rider's ride so far: frames on the horse, shots fired from it. */
 const RIDES = new WeakMap<Enemy, { t: number; shots: number }>();
-/** Still on his horse (the horse is drawn under him, behind the cars). */
+/** His leap off the horse up onto the train: from the near lane (x0, y0: his feet) to the top he's landing on. */
+const LEAPS = new WeakMap<Enemy, { x0: number; y0: number; x1: number; y1: number; t: number }>();
+const LEAP_T = 34;
+/** Still on his horse (the train draws him on it, in the near lane, in front of the cars). */
 export const riding = (e: Enemy) => e.kind === 'm2:fr_robber' && e.health > 0 && (e.aiState === 'ride' || e.aiState === 'rideAim');
+/** In the air between his horse and the train (the train draws him: coming in from the near side). */
+export const boarding = (e: Enemy) => e.kind === 'm2:fr_robber' && e.health > 0 && e.aiState === 'leap';
+/** How far along his leap he is, 0..1 (for the drawing: the nearer, the bigger). */
+export const leapK = (e: Enemy) => { const l = LEAPS.get(e); return l ? Math.min(1, l.t / LEAP_T) : 1; };
 
 const robber = (ctx: FrameContext, e: Enemy) => {
   const { state } = ctx, p = state.player, pm = mid(p), m = mid(e);
   tick(e);
   const st = e.aiState ?? 'ride';
   if (st === 'ride' || st === 'rideAim') {
-    // (galloping alongside: up level with him (a bit off to one side), the horse's stride bobbing him; he moves himself)
+    // (galloping alongside in the near lane: up level with him (a bit off to one side), the stride bobbing him; he moves
+    // himself, nothing in the world in his way)
     let r = RIDES.get(e);
     if (!r) { r = { t: 0, shots: 0 }; RIDES.set(e, r); }
     r.t++;
     const side = (e.variant ?? 0) % 2 ? -1 : 1;
     const want = pm.x + side * (150 + ((e.variant ?? 0) % 3) * 40);
-    e.pos.x += Math.max(-3.2, Math.min(3.2, (want - m.x) * 0.04));
-    e.pos.y = RIDE_FEET - e.height - Math.abs(Math.sin(r.t * 0.22)) * 4;
+    e.pos.x += Math.max(-3.4, Math.min(3.4, (want - m.x) * 0.04));
+    e.pos.y = rideY(e) - Math.abs(Math.sin(r.t * 0.22)) * 4;
     e.vel.x = 0; e.vel.y = 0;
+    // (out beside the train, not on it: bumping into him isn't a thing)
+    e.harmless = true;
     e.facing = dirTo(e, pm.x);
     if (st === 'ride') {
-      if (r.t > 70 && e.aiTimer! > 80 && Math.abs(pm.x - m.x) < 460 && p.health > 0 && !p.inCutscene) setState(e, 'rideAim');
-      // (enough of that: over onto a roof, if there's one under him; he can't jump onto nothing)
-      const roof = floorTopAt(state.blocks, m.x, RIDE_FEET - 40, 0);
-      if (r.shots >= 2 || r.t > 480 || (Math.abs(pm.x - m.x) < 120 && p.pos.y + p.height < DECK - 30)) {
-        if (roof !== null && roof < DECK - 30 && roof > RIDE_FEET - 20) { setState(e, 'leap'); e.vel.y = -7; e.vel.x = dirTo(e, pm.x) * 1.5; playSound('jump', 0.6, -4); return false; }
+      if (r.t > 70 && e.aiTimer! > 80 && Math.abs(pm.x - m.x) < 520 && p.health > 0 && !p.inCutscene && !insideAny(state)) setState(e, 'rideAim');
+      // (enough of that, or the lane's about to close up ahead (a tunnel, a bridge, the falls): up onto the train, onto
+      // whatever's beside him)
+      const closing = laneBlocked(state, m.x - 140, m.x + 460);
+      if (closing || r.shots >= 2 || r.t > 420) {
+        const lx = m.x + dirTo(e, pm.x) * 20, top = trainTopAt(state, lx);
+        if (top !== null) {
+          LEAPS.set(e, { x0: m.x, y0: e.pos.y + e.height, x1: lx, y1: top, t: 0 });
+          setState(e, 'leap'); playSound('jump', 0.6, -4);
+          return true;
+        }
       }
     } else if (e.aiTimer! > 26) {
-      fire(state, e); r.shots++; setState(e, 'ride');
+      if (!insideAny(state)) { fire(state, e); r.shots++; }
+      setState(e, 'ride');
     }
     return true;
   }
+  if (st === 'leap') {
+    // (up off the saddle in an arc onto the train: nothing in his way; landed, he's on foot)
+    const l = LEAPS.get(e);
+    if (!l) { setState(e, 'foot'); e.harmless = false; return false; }
+    l.t++;
+    const u = Math.min(1, l.t / LEAP_T);
+    const peak = Math.min(l.y0, l.y1) - 60, hump = (l.y0 + l.y1) / 2 - peak;
+    const y = l.y0 + (l.y1 - l.y0) * u - 4 * hump * u * (1 - u);
+    e.pos.x = l.x0 + (l.x1 - l.x0) * u - e.width / 2;
+    e.pos.y = y - e.height;
+    e.vel.x = 0; e.vel.y = 0;
+    if (u >= 1) { e.pos.y = l.y1 - e.height; LEAPS.delete(e); setState(e, 'foot'); e.harmless = false; playSound('thud', 0.6, -6); }
+    return true;
+  }
   switch (st) {
-    case 'leap':
-      if (e.vel.y === 0 && e.aiTimer! > 4) setState(e, 'foot');
-      break;
     case 'foot': {
       const dx = Math.abs(pm.x - m.x);
       if (dx < 56 && level(state, e)) { setState(e, 'whipWind'); e.vel.x = 0; break; }
@@ -362,10 +420,10 @@ const fireman = (ctx: FrameContext, e: Enemy) => {
 // ---------------------------------------------------------------------------------------------------------------
 
 const H = { x: 1, y: -68, r: 10 };
-registerM2Kind({ kind: 'm2:fr_porter', stats: { w: 38, h: 72, hp: 70, contact: 4, mass: 180 }, humanoid: true, gender, head: H, ai: porter, draw: (c, e, f) => drawPorter(c, e, f, seedOf(e)) });
-registerM2Kind({ kind: 'm2:fr_brakeman', stats: { w: 40, h: 76, hp: 110, contact: 5, mass: 210 }, humanoid: true, gender, head: { x: 1, y: -72, r: 10 }, ai: brakeman, draw: (c, e, f) => drawBrakeman(c, e, f, seedOf(e)) });
+registerM2Kind({ kind: 'm2:fr_porter', stats: { w: 38, h: 72, hp: 70, contact: 4, mass: 180 }, humanoid: true, gender, head: H, ai: porter, draw: (c, e, f) => drawPorter(c, e, f, seedOf(e)), pathing: false });
+registerM2Kind({ kind: 'm2:fr_brakeman', stats: { w: 40, h: 76, hp: 110, contact: 5, mass: 210 }, humanoid: true, gender, head: { x: 1, y: -72, r: 10 }, ai: brakeman, draw: (c, e, f) => drawBrakeman(c, e, f, seedOf(e)), pathing: false });
 registerM2Kind({ kind: 'm2:fr_robber', stats: { w: 38, h: 72, hp: 80, contact: 4, mass: 180 }, humanoid: true, gender, head: H, ai: robber, draw: (c, e, f) => drawRobber(c, e, f, seedOf(e)) });
-registerM2Kind({ kind: 'm2:fr_cook', stats: { w: 44, h: 74, hp: 140, contact: 5, mass: 260 }, humanoid: true, gender, head: { x: 1, y: -70, r: 10 }, ai: cook, draw: (c, e, f) => drawCook(c, e, f, seedOf(e)) });
-registerM2Kind({ kind: 'm2:fr_passenger', stats: { w: 36, h: 70, hp: 40, contact: 3, mass: 150 }, humanoid: true, gender, head: { x: 1, y: -66, r: 10 }, ai: passenger, draw: (c, e, f) => drawPassenger(c, e, f, seedOf(e)), pointy: { source: 'm2:fr_parasol', label: 'POKED!', damage: 11 } });
+registerM2Kind({ kind: 'm2:fr_cook', stats: { w: 44, h: 74, hp: 140, contact: 5, mass: 260 }, humanoid: true, gender, head: { x: 1, y: -70, r: 10 }, ai: cook, draw: (c, e, f) => drawCook(c, e, f, seedOf(e)), pathing: false });
+registerM2Kind({ kind: 'm2:fr_passenger', stats: { w: 36, h: 70, hp: 40, contact: 3, mass: 150 }, humanoid: true, gender, head: { x: 1, y: -66, r: 10 }, ai: passenger, draw: (c, e, f) => drawPassenger(c, e, f, seedOf(e)), pathing: false, pointy: { source: 'm2:fr_parasol', label: 'POKED!', damage: 11 } });
 registerM2Kind({ kind: 'm2:fr_steer', stats: { w: 84, h: 56, hp: 120, contact: 10, mass: 420 }, gender: 'n', grab: 'none', head: { x: 40, y: -42, r: 11 }, ai: steer, draw: drawSteer, pathing: false, pointy: { source: 'm2:fr_longhorns', label: 'GORED!', damage: 16 } });
 registerM2Kind({ kind: 'm2:fr_fireman', stats: { w: 40, h: 74, hp: 120, contact: 5, mass: 220 }, humanoid: true, gender, head: { x: 1, y: -70, r: 10 }, ai: fireman, draw: (c, e, f) => drawFireman(c, e, f, seedOf(e)), pathing: false });

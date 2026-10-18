@@ -102,7 +102,7 @@ helpers, the time of day, signLetters, pickLine, the grab, victory, walkAway, dr
 | # | Section | id / folder | x range (world) | Checkpoints | State |
 |---|---|---|---|---|---|
 | 1 | The frontier wilds + the station | `wilds` | FRX+0 .. FRX+21000 | 0-9 | built (section 1 job) |
-| 2 | The train | `train` | FRX+24000 .. FRX+36000 | 10-19 | built (job 2) |
+| 2 | The train | `train` | FRX+24000 .. FRX+38300 | 10-19 | built (job 2; playtest fixes B) |
 | 3 | Sawdust Gulch + the mines | `town` | FRX+39000 .. FRX+50000 | 20-29 | built (job 3) |
 | 4 | The log ride (ride, sewer, real river, woodchipper) | `logride` | FRX+53000 .. FRX+64600 | 30-38 | built (job 4) |
 | 5 | The woods (outside the park) + the bounty | `woods` | FRX+65000 .. FRX+68000 | 40-41 | built (job 5) |
@@ -133,18 +133,18 @@ Teach, then escalate (each hazard alone in a safe spot first):
 | 17800 | THE LAST MILE (cp 4) | a wolf pack, crows, the trap gauntlet with ledges over it, the tracks begin |
 | 19300 | THE STATION (cp 5) | Tucker, the train, the scene |
 
-### Section 2: the train (train/layout.ts: 26 cars, caboose at x0+1000, engine's nose at x0+11520)
+### Section 2: the train (train/layout.ts: 22 big cars, caboose at x0+700, engine's nose at x0+13912; x1 FRX+38300)
 
 | Cars | Checkpoint | What |
 |---|---|---|
 | 0-2 | THE CABOOSE (cp 10) | the run for the caboose (a cutscene); an empty boxcar: the first LOW BRIDGE alone; the first CUT, alone, on a flatcar of logs |
-| 3-6 | THE COACHES (cp 11) | passengers (parasols, canes), a porter; a brakeman alone on a boxcar roof; an ore hopper |
-| 7-9 | THE BAGGAGE CAR (cp 12) | the first tunnel (short, while he's inside); a porter among crates; a steer in a cattle car; the second cut, a brakeman on it |
-| 10-12 | THE DINING CAR (cp 13) | the cook, passengers; the first robber riding up alone, then two; a tank car with a brakeman |
-| 13-16 | THE WATER TOWER (cp 14) | the first water tower over a coach (get inside); two brakemen and a bridge; the third cut with a bridge coming; a tunnel; two steers |
-| 17-20 | THE MAIL CAR (cp 15) | two porters; robbers; the long tunnels begin; the cook in the dark; the fourth cut, quick, in a tunnel, with a brakeman |
-| 21-23 | THE LAST COACH (cp 16), THE LOG CAR (cp 17) | a water tower, robbers, a bridge, a long tunnel; the stack's cinders from car 22 on |
-| 24-25 | THE ENGINE (cp 18) | the fireman's coal on the tender; Tucker, the KILL arrow, the rant; the shot, the close-up, the crash |
+| 3-4 | THE COACHES (cp 11) | passengers (parasols, canes), a porter, the racks to climb; the first grade (gentle); a brakeman alone on the ore hopper |
+| 5-7 | THE BAGGAGE CAR (cp 12) | the first tunnel (short, while he's inside); a porter among crates and shelves; a steer in a cattle car (the hayloft); a dip; the second cut, a brakeman on it |
+| 8-10 | THE DINING CAR (cp 13) | the cook, passengers, tables and shelves; THE FIRST WATERFALL (short: the diner and a coach to duck into); the first robber riding up alone, then two; a climb; a tank car with a brakeman |
+| 11-14 | THE WATER TOWER (cp 14), THE MAIL CAR (cp 15) | the first water tower over a coach (get inside); the third cut with a bridge coming; a tunnel; two steers; a drop; two porters; robbers |
+| 15-17 | (from cp 15) | THE LONG WATERFALL over the open cars (the hopper: get back into the mail car or on into the diner); a steep climb; the long tunnels; the cook in the dark; the fourth cut, quick, in a tunnel, with a brakeman; a steep drop |
+| 18-19 | THE LAST COACH (cp 16), THE LOG CAR (cp 17) | a water tower, robbers, a bridge, the steepest climb, a long tunnel; the stack's cinders from car 19 on |
+| 20-21 | THE ENGINE (cp 18) | the fireman's coal on the tender; Tucker's insult (a cutscene), the KILL arrow, the rant; only the ray gun gets him (he ducks the rest); the shot, the close-up, the crash |
 
 ### Section 3: Sawdust Gulch and the mines (town/layout.ts; x from the section's start)
 
@@ -599,3 +599,60 @@ Teach, then escalate (each hazard alone in a safe spot first):
   of him without his controls; Tucker isn't something to hit till the pitch is done (a retry this visit: just TICKET,
   PLEASE); from the punch landing on it's all one cutscene (no controls, no HUD, one SKIP >>), anything he'd fired
   cleared.
+- 2026-10-18 (playtest fixes B, the train, the user's notes): THE CARS ARE BIG (the user: "a lot bigger... allow me
+  to actually platform inside. ceiling is way too low"): 300 tall inside (DECK GY-64, the ceiling 300 over it, the
+  roof 12 thick on that), 440-660 long (22 cars now, not 26: the section widened to FRX+38300, the engine's nose at
+  x0+13912). Inside, things to climb, each with its lit top (layout.ts `fittings`): luggage racks in two tiers (coach),
+  bunks, a desk and a shelf (caboose), tables, shelves, the kitchen counter (diner), stacked crates and shelves
+  (baggage), hay bales and a hayloft (cattle). Steps (lit treads on grab irons) up the cars' ends to the roofs and the
+  tall loads. Tunnels, bridges and towers scaled to match (the bridge's underside 48 over a roof, the portal's arch 80).
+  The engine is the first pass's drawing blown up to the cars' size (people stay theirs); every wheel sits on the rail.
+- 2026-10-18 (playtest B): THE CAMERA PULLED BACK (the user's "zoom this area out a little bit"): the train's world
+  drawn at 0.8 about the screen's middle (train/view.ts ZOOM; the whole view is the screen for the rules, viewIsScreen,
+  reset by frontier/index.ts on any other section); the HUD and the words stay full size in screen space.
+- 2026-10-18 (playtest B): THE LIGHTS MUTED (the user: "shine too brightly and makes everything look like a
+  spotlight"): in a tunnel it's murky (0.86 dark at most, never black), the actors keep only a little of themselves
+  (rim 0.2), the tunnel's wall lamps, the cars' windows, the headlamp and the caboose's marker only dim warm glows; the
+  only clear view is INSIDE the car he's in (lit right through by a soft fill), or waiting it out.
+- 2026-10-18 (playtest B): GRADES (the user's "uphill and downhill more frequently as you progress"): hills as things
+  coming by (a climb then a drop, or a dip then a climb; 0.03 rad early to 0.065 at the front, more and closer
+  together), the view tilting with the line under the middle of the screen (worldTilt: the whole train on its rails,
+  every car aligned, the horizon level; the park's scenery sinking as the line climbs); up a grade the train slows,
+  down one it picks up. The physics stays level (the tilt's only the view).
+- 2026-10-18 (playtest B): THE WATERFALLS (the user's "an extended waterfall section where you need to find an indoor
+  train and stay in there until it passes at a point or two"; the staging ours): the line runs under water pouring off
+  the park's fake cliff. Outside under it (a roof, a load, a platform, a coupling) he's battered (pushed back, pressed
+  down, hurt twice) and after ~0.9 s swept off the train (m2:fr_falls: its hurt lines, death lines, death screens);
+  inside a car it goes over (the water down the windows). It sweeps the cast off too (SWEPT AWAY!). Telegraphed: a
+  FALLS AHEAD / STAY IN YOUR CAR board up on posts over the roofs, the roar louder as it nears, the mist, the warning at
+  the edge (WATERFALL > GET INSIDE!, 240 frames ahead), and the first time Tucker on the tube and Meathead's line.
+  Two: a short one at the dining car (the diner and a coach to duck into), then a long one over the open cars (the
+  hopper between the mail car and the second diner).
+- 2026-10-18 (playtest B): THE ROBBERS from the FOREGROUND (the user's): they gallop up on the near side of the line
+  (one shared eye: nearer, so x1.25 and lower, drawn over the train), keep pace and shoot at him if he's outside, then
+  leap up onto whatever car's beside them (a scripted arc, shrinking to their size as they land); riding and leaping
+  they ignore collision and nothing in the world hurts or kills them. They only ride where there's a clearing: they
+  don't ride up with a tunnel, bridge or waterfall in or coming into the lane, and board before one gets to them.
+  Shootable from the decks and platforms (not from inside a car: walls).
+- 2026-10-18 (playtest B): INSIDE IS INSIDE (the user's "enemies inside cars don't camp the doors and can only be
+  killed when inside yourself and cannot be sniped from outside"): whoever's in a car he isn't in is out of the world
+  (cars.ts updateRooms: stashed, back where they were as he comes in), so nothing outside reaches them and they reach
+  nothing; nothing flies through a car's walls either way (a shot fired in a car dies leaving it, one fired outside dies
+  getting in: his, theirs, the robbers'); the cast inside keep 70 px clear of the doors and don't path (no following
+  him out).
+- 2026-10-18 (playtest B): THE CUT CAR'S END (the user: "it will slow down....THEN EXPLODE FOR NO REASON!"): no
+  explosion. Cut loose, it drops back, slowing; a switch comes out from under the train behind it, its target flips
+  green to red with a clank as the cut end gets to it (the points thrown under it), and the cut end goes off the line
+  there: the wheels jump the rails (sparks, ballast, planks), each car slews off down the near bank and rolls over onto
+  its side, wheels up, and is left there going by with the ground. Still on it: thrown off with it (m2:fr_derail, as
+  before). A checkpoint respawn doesn't set off everything that came before it again.
+- 2026-10-18 (playtest B): TUCKER AT THE ENGINE (the user's: "show a cutscene of tucker insulting you when you get
+  close. he 'evades' if you use a special weapon, so you need to use the raygun. make sure you see the insult scene
+  first before you can shoot him through the eye"): up onto the tender's back end, a cutscene (no controls, no HUD,
+  SKIP >> for all of it): the camera on the cab, Tucker pops up out of the back of it (not at his window before: nothing
+  to shoot), his manic face up close in a frame over his words: TUCKER_INSULT, Meathead's MH_COMEBACK, TUCKER_DARE
+  (GIVE ME MY FOUR DOLLARS!), the KILL arrow drops in. Then played: the rant, the arrow. Any special weapon fired near
+  him, or anything of it flying at his window, he DUCKS below the sill (TUCKER_DODGE: "NOT LEGAL TENDER!"; the first
+  time, Meathead's MH_RAYGUN hint); only the plain RAY GUN's bolt through his window is the shot (the stand-in in the
+  window is gone: nothing else can touch him). Then the eye close-up and the crash as before. All clean / shitty /
+  naked; voiced.

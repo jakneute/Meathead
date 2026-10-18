@@ -125,7 +125,7 @@ m2/foreign/harry/fight.ts:227 voice: text
 m2/foreign/harry/fight.ts:236 voice: voice(L.HARRY)
 m2/foreign/setpiece.ts:48 voice: false
 m2/frontier/train/tube.ts:20 voice: text
-m2/frontier/train/engine.ts:79 voice: text
+m2/frontier/train/engine.ts:73 voice: text
 m2/frontier/town/scenes.ts:138 voice: pickLine(byPants(state, SHERIFF_BARK))
 m2/frontier/town/scenes.ts:146 voice: pickLine(byPants(state, pool))
 m2/frontier/town/kinds.ts:101 voice: false

@@ -4,9 +4,13 @@
 // baggage and mail cars, cattle cars) and cars he can only cross on top (boxcars, flatcars of logs, ore hoppers, tank
 // cars, the tender); Tucker now and then uncouples the car he's on (dally and it derails: a silly violent death, cars.ts);
 // tunnels go by and darken the view, more and more of them, never quite black (passers.ts, the lighting); train hazards
-// (low bridges, water towers, the fireman's coal, the stack's cinders) and the train's cast (kinds.ts). At the front:
-// the engine with a big KILL arrow (as Riggs in Meathead 1); one shot, the close-up of the hole through his eye; the
-// crash into Sawdust Gulch (engine.ts).
+// (low bridges, water towers, the waterfalls, the grades, the fireman's coal, the stack's cinders) and the train's cast
+// (kinds.ts). At the front: the engine with a big KILL arrow (as Riggs in Meathead 1); Tucker's insult (a cutscene); one
+// shot of the ray gun, the close-up of the hole through his eye; the crash into Sawdust Gulch (engine.ts).
+//
+// The playtest's: the cars are big (300 tall inside, things to climb in them), the camera pulled back for them (view.ts
+// ZOOM); the lights muted (soft glows, no spotlights; in a tunnel only the inside of a car is lit right through); the
+// grades tilt the whole view (worldTilt: the train stays on its rails, the horizon level).
 //
 // The train stands still in the world; the world goes by it (the scenery, the ties, whatever's coming: tr.dist).
 //
@@ -32,13 +36,14 @@ import type { FrontierSection } from '../section';
 import { layOwn, endWalls, endExits, runExits, teleport, meatheadSays, byPants, hands } from '../section';
 import { SECTIONS, DOORS, GY } from '../geometry';
 import { trainOf } from './state';
-import { CARS, CAR_X, CHECKPOINTS, DECK, ROOF, END, TOP, ENTERABLE, ENGINE, V_FULL, V_INTRO, PICKUPS, TRAIN_END } from './layout';
-import { buildCars, rearForCheckpoint, updateCut, updateTracks, insideCar } from './cars';
-import { updatePassers, drawPassersBack, drawPassersFront, drawWarnings, tunnelLamps } from './passers';
+import { CARS, CAR_X, CHECKPOINTS, DECK, ROOF, END, TOP, ENGINE, V_FULL, V_INTRO, PICKUPS, TRAIN_END, EVENTS, eventX } from './layout';
+import { buildCars, rearForCheckpoint, updateCut, updateTracks, updateRooms, insideCar } from './cars';
+import { updatePassers, drawPassersBack, drawPassersFront, drawNearLane, drawWarnings, tunnelLamps } from './passers';
 import { updateShots, drawShots } from './shots';
 import { setBounds } from './kinds';
-import { drawScenery, drawTrackside, drawCarsBack, drawCarsFront, carLamps } from './art';
+import { drawScenery, drawTrackside, drawCarsBack, drawCarsFront, carLamps, stepWrecks, drawWrecks } from './art';
 import { updateEngine, drawEngineBack, drawEngineFront, drawEngineHud, crashed, whenCrashed, headlamp } from './engine';
+import { ZOOM } from './view';
 import { tubeSay, drawTube } from './tube';
 import { BOARDED, TUBE_BOARD, TUBE_LEDGER, TRAIN_GAGS, REVISIT } from './lines';
 
@@ -56,8 +61,9 @@ const spawnCast = (state: GameState) => {
       const feet = where === 'in' ? DECK : TOP[d.kind] ?? ROOF;
       const e = makeKindEnemy(`m2:fr_${kind}` as EnemyKind, x + rx, feet);
       e.homeX = e.pos.x; e.homeY = e.pos.y; e.variant = (i * 3 + rx) % 7; e.facing = -1;
-      // (each keeps to its car: inside it, or along its top)
-      setBounds(e, x + (where === 'in' ? END : END + 4), x + d.len - (where === 'in' ? END : END + 4));
+      // (each keeps to its car: inside it, well clear of its doors (the playtest: nobody camps the doors), or along its
+      // top)
+      setBounds(e, x + (where === 'in' ? END + 70 : END + 4), x + d.len - (where === 'in' ? END + 70 : END + 4));
       state.enemies.push(e);
     }
   });
@@ -86,6 +92,9 @@ export const train: FrontierSection = {
       if (crashed(state)) { tr.phase = 'still'; tr.v = 0; tr.vTarget = 0; }
       else if (state.checkpoint >= 10) {
         tr.phase = 'ride'; tr.v = V_FULL; tr.vTarget = V_FULL;
+        // (what came by before this checkpoint has been and gone: not all of it again at once)
+        const cpX = CHECKPOINTS.find(c => c.cp === state.checkpoint)?.x ?? 0;
+        EVENTS.forEach((ev, i) => { if (eventX(ev) < cpX) tr.fired.add(i); });
         const rear = rearForCheckpoint(state.checkpoint);
         if (rear > 0) {
           for (let i = 0; i < rear; i++) { tr.cars[i].gone = true; for (const b of tr.cars[i].blocks) b.y = AWAY; tr.cutsDone.add(i); }
@@ -95,8 +104,12 @@ export const train: FrontierSection = {
         }
       } else { tr.phase = 'intro'; tr.v = V_INTRO; tr.vTarget = V_INTRO; }
     }
-    tr.v += (tr.vTarget - tr.v) * 0.02;
-    if (Math.abs(tr.vTarget - tr.v) < 0.02) tr.v = tr.vTarget;
+    // (the camera's pulled back: the whole of what's drawn is the screen for the rules (what he can see, he can shoot))
+    state.viewIsScreen = true;
+    // (up a grade it slows, down one it picks up)
+    const want = tr.phase === 'ride' && tr.vTarget === V_FULL ? V_FULL * Math.max(0.7, Math.min(1.3, 1 - tr.grade * 4)) : tr.vTarget;
+    tr.v += (want - tr.v) * 0.02;
+    if (Math.abs(want - tr.v) < 0.02) tr.v = want;
     tr.dist += tr.v;
     let out = controls;
     // ---- the run for the caboose (from the station)
@@ -132,6 +145,8 @@ export const train: FrontierSection = {
     updateCut(ctx);
     updatePassers(ctx);
     updateShots(ctx, tr.phase === 'ride');
+    updateRooms(ctx);
+    stepWrecks(state);
     updateTracks(ctx, CAR_X[0] - 600, CAR_X[ENGINE] + CARS[ENGINE].len);
     // ---- what's said: the ledger now and then; the firsts
     if (tr.phase === 'ride' && p.health > 0 && !p.inCutscene) {
@@ -142,9 +157,14 @@ export const train: FrontierSection = {
     if (tr.phase === 'still' && !tr.said.revisit && cx > x0 + 400 && p.health > 0) { tr.said.revisit = true; meatheadSays(state, pickLine(byPants(state, REVISIT)), false); }
     return out;
   },
-  cameraX: () => ({ min: x0, max: x1 - CANVAS_WIDTH }),
+  // (pulled back: the view's wider than the camera's 800, so the camera's kept that much in from the ends)
+  cameraX: () => ({ min: x0 + (CANVAS_WIDTH / ZOOM - CANVAS_WIDTH) / 2, max: x1 - CANVAS_WIDTH - (CANVAS_WIDTH / ZOOM - CANVAS_WIDTH) / 2 }),
   // (the camera kept level: the train and the scenery steady, whichever car top he's on)
   cameraRow: (state) => (state.player.isGrounded ? state.player.pos.y + state.player.height : DECK + 200),
+  // (the playtest: the cars are big; the camera pulled back to fit them, about the middle of the screen)
+  zoom: (state) => ({ scale: ZOOM, x: state.camera.x + CANVAS_WIDTH / 2, y: state.camera.y + 300 }),
+  // (the grades: the whole train tilts with the line under it, the horizon (the backdrop) level)
+  worldTilt: (state) => { const t = trainOf(state).tilt; return Math.abs(t) > 0.0005 ? { x: state.camera.x + CANVAS_WIDTH / 2, y: DECK, angle: -t } : null; },
   drawBackdrop: (c, state) => drawScenery(c, state),
   drawBack: (c, state) => {
     drawTrackside(c, state);
@@ -157,6 +177,8 @@ export const train: FrontierSection = {
     drawCarsFront(c, state);
     drawPassersFront(c, state);
     drawEngineFront(c, state);
+    drawNearLane(c, state);
+    drawWrecks(c, state);
   },
   drawHud: (c, state) => {
     const tr = trainOf(state);
@@ -166,13 +188,14 @@ export const train: FrontierSection = {
     if (tr.phase === 'intro' && tr.introT > SKIP_AFTER && state.player.inCutscene) drawSkipPrompt(c, CANVAS_WIDTH);
   },
   outdoors: (state) => 1 - trainOf(state).dark,
-  // (the time of day's light; in a tunnel, the dark, the lanterns and the lamps lighting it (never black))
+  // (the time of day's light; in a tunnel, murky (never black): the car he's in lit right through, the rest only dim
+  // glows (the playtest: the lights muted, no spotlights; nobody lit up round him much))
   lighting: (state) => {
     const tr = trainOf(state), h = headlamp();
-    const lamps: Light[] = [...carLamps(state), ...tunnelLamps(state), { x: h.x, y: h.y, r: 220, a: 0.9, color: '#FEF08A' }];
+    const lamps: Light[] = [...carLamps(state), ...tunnelLamps(state), { x: h.x, y: h.y, r: 170, a: 0.35, color: '#4A4418' }];
     const tod = todLight(lamps, 1);
     if (tr.dark < 0.02) return tod;
-    return { dark: Math.max(tod?.dark ?? 0, 0.72 * tr.dark), shade: [14, 10, 8], rim: 0.6, grade: tod?.grade, lights: lamps };
+    return { dark: Math.max(tod?.dark ?? 0, 0.86 * tr.dark), shade: [12, 10, 10], rim: 0.2, grade: tod?.grade, lights: lamps };
   },
 };
 
@@ -191,7 +214,6 @@ whenCrashed((state) => {
   tr.rear = 0; tr.cut = null;
   buildCars(state, tr);
   state.enemies = state.enemies.filter(e => e.pos.x < x0 - 400 || e.pos.x > x1 + 400);
-  tr.passers = []; tr.shots = []; tr.horses = []; tr.wrecks = [];
-  tr.phase = 'still'; tr.v = 0; tr.vTarget = 0; tr.dark = 0;
+  tr.passers = []; tr.shots = []; tr.horses = []; tr.wrecks = []; tr.stash = [];
+  tr.phase = 'still'; tr.v = 0; tr.vTarget = 0; tr.dark = 0; tr.grade = 0; tr.tilt = 0; tr.soak = 0;
 });
-void ENTERABLE;

@@ -117,7 +117,9 @@ export const frontierLayout: StageLayout = {
     const lim = sec.cameraX?.(state) ?? { min: sec.x0, max: sec.x1 - CANVAS_WIDTH };
     state.cameraMinX = lim.min; state.cameraMaxX = lim.max;
     // (into a section (or back at a checkpoint): the camera's put right on him there, no gliding in from somewhere else)
-    if (fs.lastSec !== sec.id) { fs.lastSec = sec.id; state.camera.x = Math.max(lim.min, Math.min(lim.max, p.pos.x + p.width / 2 - CANVAS_WIDTH / 2)); }
+    // (a section that pulls the camera back (the train) makes the whole view the screen each frame; into any other, it's
+    // the camera's 800x600 again)
+    if (fs.lastSec !== sec.id) { fs.lastSec = sec.id; state.viewIsScreen = false; state.camera.x = Math.max(lim.min, Math.min(lim.max, p.pos.x + p.width / 2 - CANVAS_WIDTH / 2)); }
     // (passing a checkpoint: it's his)
     for (const c of sec.checkpoints) if (!c.manual && c.cp > state.checkpoint && p.pos.x + p.width / 2 >= c.x) state.checkpoint = c.cp;
     setUi({ near: null, map: null, nearExit: false, upPrompt: null, holdUpPrompt: null, holdDownPrompt: null });

@@ -12676,6 +12676,11 @@
  },
  {
   "voice": "death",
+  "text": "SWEPT OFF A TRAIN BY A WATERFALL",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "death",
   "text": "SWEPT UNDER THE RUG",
   "from": "SPOOKY"
  },
@@ -13406,6 +13411,11 @@
  },
  {
   "voice": "death",
+  "text": "TOOK A SHOWER ON A TRAIN. DIED.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "death",
   "text": "TOOK ONE FOR ZORBLAX",
   "from": "SPACE"
  },
@@ -13663,6 +13673,11 @@
   "voice": "death",
   "text": "WANTED: DEAD. GOT IT.",
   "from": "m1/game/stages/dale/runtime.ts:190"
+ },
+ {
+  "voice": "death",
+  "text": "WASHED OFF THE ROOF. SHOULD'VE GONE INSIDE.",
+  "from": "FRONTIER"
  },
  {
   "voice": "death",
@@ -25546,6 +25561,21 @@
  },
  {
   "voice": "m2.frontier.tucker",
+  "text": "FOUR DOLLARS! AND COVER THAT THING!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "FOUR DOLLARS! FOUR! I'LL TAKE IT OUT OF YOUR TEETH!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "FOUR DOLLARS! I'LL TAKE IT OUT OF YOUR TEETH! THEY'RE THE ONLY CLEAN PART!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
   "text": "FOUR HUNDRED DOLLARS. I'LL TAKE A KIDNEY.",
   "from": "FRONTIER"
  },
@@ -25557,6 +25587,36 @@
  {
   "voice": "m2.frontier.tucker",
   "text": "GIVE ME MY FOUR DOLLARS!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "GIVE ME MY FOUR DOLLARS! GIVE ME MY FOUR DOLLARS!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "GIVE ME MY FOUR DOLLARS! I DON'T CARE WHERE YOU'RE KEEPING IT!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "GIVE ME MY FOUR DOLLARS! NOT FROM THOSE PANTS! FROM A WALLET!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "HA! NOT LEGAL TENDER!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "HA! NOT LEGAL TENDER! NEITHER ARE YOUR PANTS!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "HA! NOT LEGAL TENDER! NEITHER IS THAT!",
   "from": "FRONTIER"
  },
  {
@@ -25597,6 +25657,16 @@
  {
   "voice": "m2.frontier.tucker",
   "text": "HOWDY, TRAVELER! WHEW! LONG TRAIL, HUH? SMELLS LIKE IT!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "I CAN SMELL YOU FROM THE CAB! YOU FREELOADING SEWER!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "I DON'T ACCEPT THAT!",
   "from": "FRONTIER"
  },
  {
@@ -25691,6 +25761,26 @@
  },
  {
   "voice": "m2.frontier.tucker",
+  "text": "LOOK WHO CRAWLED UP MY TRAIN! A BIG DUMB MOOCHER WITH A NECK LIKE A THUMB!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "MISSED! AIM WITH THE OTHER THING!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "MISSED! THAT'S A SURCHARGE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "MISSED! THAT'S A SURCHARGE! AND A SMELL CHARGE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
   "text": "MY BOUNTY! AND HE STILL STINKS!",
   "from": "FRONTIER"
  },
@@ -25722,6 +25812,21 @@
  {
   "voice": "m2.frontier.tucker",
   "text": "MY SPECTACLES!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "NO FANCY STUFF ON MY LINE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "NO FANCY STUFF! AND NO SHITTY STUFF!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "NO FANCY STUFF! NO PANTS! NO SERVICE!",
   "from": "FRONTIER"
  },
  {
@@ -25946,6 +26051,11 @@
  },
  {
   "voice": "m2.frontier.tucker",
+  "text": "PUT IT AWAY! NO! FIRST PAY! THEN PUT IT AWAY!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
   "text": "PUT IT... ON HIS TAB... THE NAKED ONE...",
   "from": "FRONTIER"
  },
@@ -26091,12 +26201,42 @@
  },
  {
   "voice": "m2.frontier.tucker",
+  "text": "THE FALLS! A COLD SHOWER. YOU NEED ONE.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "THE FALLS! FINALLY, SOMEBODY HOSES YOU OFF.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "THE FALLS! PASSENGERS PLEASE STAY INSIDE. YOU'RE NOT A PASSENGER.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
   "text": "THE LEDGER. FARE: FOUR DOLLARS. BOARDING FEE: TWO. BIOHAZARD: FIFTY.",
   "from": "FRONTIER"
  },
  {
   "voice": "m2.frontier.tucker",
   "text": "THE LEDGER. FARE: FOUR DOLLARS. BOARDING FEE: TWO. INDECENCY: I HAVEN'T DECIDED.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "THE STOWAWAY! THE DEADBEAT! THE BARE-ASSED FREELOADER!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "THE STOWAWAY! THE DEADBEAT! THE HUMAN UNPAID INVOICE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "THE STOWAWAY! THE DEADBEAT! THE WALKING DIAPER!",
   "from": "FRONTIER"
  },
  {
@@ -26181,6 +26321,21 @@
  },
  {
   "voice": "m2.frontier.tucker",
+  "text": "WATERFALL AHEAD! ENJOY YOUR SHOWER, FREELOADER!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "WATERFALL AHEAD! IT WON'T BE ENOUGH.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "WATERFALL AHEAD! TRY NOT TO SHRINK TO NOTHING.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
   "text": "WELL, HOWDY THERE, TRAVELER! WELCOME TO LONESOME PINE STATION!",
   "from": "FRONTIER"
  },
@@ -26201,17 +26356,17 @@
  },
  {
   "voice": "m2.frontier.tucker",
-  "text": "YOU MADE IT TO THE ENGINE. THAT'S TWENTY-SIX CARS. I CHARGE BY THE CAR.",
+  "text": "YOU MADE IT TO THE ENGINE. THAT'S TWENTY-TWO CARS. I CHARGE BY THE CAR.",
   "from": "FRONTIER"
  },
  {
   "voice": "m2.frontier.tucker",
-  "text": "YOU MADE IT TO THE ENGINE. TWENTY-SIX CARS, AND YOU SAT IN EVERY ONE.",
+  "text": "YOU MADE IT TO THE ENGINE. TWENTY-TWO CARS, AND YOU SAT IN EVERY ONE.",
   "from": "FRONTIER"
  },
  {
   "voice": "m2.frontier.tucker",
-  "text": "YOU MADE IT TO THE ENGINE. TWENTY-SIX CARS, BUCK NAKED. I CHARGE BY THE CAR.",
+  "text": "YOU MADE IT TO THE ENGINE. TWENTY-TWO CARS, BUCK NAKED. I CHARGE BY THE CAR.",
   "from": "FRONTIER"
  },
  {
@@ -26247,6 +26402,21 @@
  {
   "voice": "m2.frontier.tucker",
   "text": "YOU WILL PAY FOR THAT CAR. IN CLEAN BILLS.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "YOU! NAKED! ON MY TENDER! THAT'S A FARE, A FINE, AND A SEAT CUSHION!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "YOU! YOU FREELOADING SACK OF HAM! EVERY CAR YOU TOUCHED IS A FARE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "YOU! YOU SHAT YOUR WAY DOWN MY WHOLE TRAIN! EVERY CAR A CLEANING FEE!",
   "from": "FRONTIER"
  },
  {
@@ -41511,12 +41681,27 @@
  },
  {
   "voice": "meathead",
+  "text": "A WATERFALL. GET INSIDE BEFORE IT TAKES MY DICK.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "A WATERFALL. IF I GO OVER, I GO OVER CLEAN.",
   "from": "FRONTIER"
  },
  {
   "voice": "meathead",
   "text": "A WATERFALL. NOTHING LEFT TO LOSE BUT MY LIFE.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "A WATERFALL. OVER THE TRACKS. GET INSIDE.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "A WATERFALL. TEMPTING. NO. INSIDE.",
   "from": "FRONTIER"
  },
  {
@@ -43491,6 +43676,21 @@
  },
  {
   "voice": "meathead",
+  "text": "COME OUT HERE AND SAY THAT.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "COME OUT HERE. I'LL GIVE YOU A TIP.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "COME OUT HERE. I'LL HUG YOU.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "COMING THROUGH, LOSERS.",
   "from": "HOLLYWOOD"
  },
@@ -44748,6 +44948,21 @@
   "voice": "meathead",
   "text": "FINE. I KNOW A SHORTCUT.",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "FINE. RAY GUN. CLENCH AND AIM.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "FINE. THE PLAIN OLD RAY GUN.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "FINE. THE RAY GUN. THE OTHER GUN STAYS OUT TOO.",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -46567,6 +46782,21 @@
  {
   "voice": "meathead",
   "text": "HE CUT THE CAR LOOSE. WITH ME ON IT.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE DUCKS ANYTHING FANCY. RAY GUN, IN THE BUFF.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE DUCKS THE FANCY STUFF. RAY GUN, THEN.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE DUCKS THE FANCY STUFF. RAY GUN. SHIT.",
   "from": "FRONTIER"
  },
  {
@@ -49036,6 +49266,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I'LL PAY YOU IN WHAT'S IN MY PANTS.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "I'LL PUNCH THE AIR OUT OF YOUR LUNGS!",
   "from": "HURT"
  },
@@ -49373,6 +49608,11 @@
   "voice": "meathead",
   "text": "I'M NOT PAYING FOR THE PHOTO.",
   "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M NOT PAYING YOU FOUR BUCKS.",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -50498,6 +50738,11 @@
   "voice": "meathead",
   "text": "IT'S PROTEIN, BRO. IT'S GOTTA GO SOMEWHERE.",
   "from": "m1/components/EndingCutscene.tsx:71"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT'S PUSHING ME OFF!",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -60731,6 +60976,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THE WATER! IT'S TOO HEAVY!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "THE WATER'S COMING. CLIMB, FAT ASS!",
   "from": "HOLLYWOOD"
  },
@@ -62321,6 +62571,11 @@
  },
  {
   "voice": "meathead",
+  "text": "WATERFALL! WATERFALL!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "WATERLOGGED LOSER",
   "from": "VULGARITIES"
  },
@@ -62603,6 +62858,11 @@
   "voice": "meathead",
   "text": "WHERE THE FUCK AM I NOW?",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHERE WOULD I EVEN KEEP FOUR BUCKS?",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -63798,6 +64058,11 @@
   "voice": "meathead",
   "text": "YOU'RE FRYING MY NERVOUS SYSTEM, ASSHOLE!",
   "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOU'RE GONNA NEED A BIGGER LEDGER.",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",

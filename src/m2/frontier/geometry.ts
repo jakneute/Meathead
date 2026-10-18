@@ -28,7 +28,7 @@ export const SECTIONS = {
   wilds: { x0: FRX, x1: FRX + 21000 },
   /** THE TRAIN: on at the caboose, car by car to the engine (cars to go through, cars only to cross on top, cars
    *  uncoupled behind him, tunnels getting thicker); the KILL arrow, the shot through the eye, the crash. */
-  train: { x0: FRX + 24000, x1: FRX + 36000 },
+  train: { x0: FRX + 24000, x1: FRX + 38300 },
   /** THE MINING AND LOGGING TOWN (the crash stop) and THE MINES: the townsfolk, through the town and down the mines. */
   town: { x0: FRX + 39000, x1: FRX + 50000 },
   /** THE LOG RIDE: Tucker at the controls (the buzzsaw), the tracked ride and its saws, then the SEWER (way off the

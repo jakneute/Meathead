@@ -66,10 +66,46 @@ export const TUBE_ROBBERS: ByPants = {
   shitty: ["ROBBERS! GOOD LUCK ROBBING HIM. HE'S GOT NOTHING BUT A LOAD.", "BANDITS! SHOOT THE SMELLY ONE FIRST!"],
   nude: ["ROBBERS! DON'T BOTHER WITH THE NAKED ONE. NO POCKETS.", 'BANDITS! I SAW HIM FIRST! HE OWES ME!'],
 };
+/** The first waterfall coming. */
+export const TUBE_FALLS: ByPants = {
+  clean: ["THE FALLS! PASSENGERS PLEASE STAY INSIDE. YOU'RE NOT A PASSENGER.", 'WATERFALL AHEAD! ENJOY YOUR SHOWER, FREELOADER!'],
+  shitty: ['THE FALLS! FINALLY, SOMEBODY HOSES YOU OFF.', "WATERFALL AHEAD! IT WON'T BE ENOUGH."],
+  nude: ['THE FALLS! A COLD SHOWER. YOU NEED ONE.', 'WATERFALL AHEAD! TRY NOT TO SHRINK TO NOTHING.'],
+};
+/** At the engine, the cutscene: he pops up out of the back of the cab and lays into him. */
+export const TUCKER_INSULT: ByPants = {
+  clean: [
+    'YOU! YOU FREELOADING SACK OF HAM! EVERY CAR YOU TOUCHED IS A FARE!',
+    'LOOK WHO CRAWLED UP MY TRAIN! A BIG DUMB MOOCHER WITH A NECK LIKE A THUMB!',
+    'THE STOWAWAY! THE DEADBEAT! THE HUMAN UNPAID INVOICE!',
+  ],
+  shitty: [
+    'YOU! YOU SHAT YOUR WAY DOWN MY WHOLE TRAIN! EVERY CAR A CLEANING FEE!',
+    'THE STOWAWAY! THE DEADBEAT! THE WALKING DIAPER!',
+    'I CAN SMELL YOU FROM THE CAB! YOU FREELOADING SEWER!',
+  ],
+  nude: [
+    "YOU! NAKED! ON MY TENDER! THAT'S A FARE, A FINE, AND A SEAT CUSHION!",
+    'THE STOWAWAY! THE DEADBEAT! THE BARE-ASSED FREELOADER!',
+    'PUT IT AWAY! NO! FIRST PAY! THEN PUT IT AWAY!',
+  ],
+};
+/** ...his kicker (the KILL arrow drops in after it). */
+export const TUCKER_DARE: ByPants = {
+  clean: ['GIVE ME MY FOUR DOLLARS! GIVE ME MY FOUR DOLLARS!', "FOUR DOLLARS! FOUR! I'LL TAKE IT OUT OF YOUR TEETH!"],
+  shitty: ['GIVE ME MY FOUR DOLLARS! NOT FROM THOSE PANTS! FROM A WALLET!', "FOUR DOLLARS! I'LL TAKE IT OUT OF YOUR TEETH! THEY'RE THE ONLY CLEAN PART!"],
+  nude: ["GIVE ME MY FOUR DOLLARS! I DON'T CARE WHERE YOU'RE KEEPING IT!", 'FOUR DOLLARS! AND COVER THAT THING!'],
+};
+/** He's ducked a special weapon (only the plain ray gun gets him). */
+export const TUCKER_DODGE: ByPants = {
+  clean: ['HA! NOT LEGAL TENDER!', "MISSED! THAT'S A SURCHARGE!", 'NO FANCY STUFF ON MY LINE!', "I DON'T ACCEPT THAT!"],
+  shitty: ['HA! NOT LEGAL TENDER! NEITHER ARE YOUR PANTS!', "MISSED! THAT'S A SURCHARGE! AND A SMELL CHARGE!", 'NO FANCY STUFF! AND NO SHITTY STUFF!'],
+  nude: ['HA! NOT LEGAL TENDER! NEITHER IS THAT!', 'MISSED! AIM WITH THE OTHER THING!', 'NO FANCY STUFF! NO PANTS! NO SERVICE!'],
+};
 /** At the engine: his rant out of the cab (in order, one after the other: the KILL arrow's up the whole time). */
 export const TUBE_RANT: ByPants = {
   clean: [
-    "YOU MADE IT TO THE ENGINE. THAT'S TWENTY-SIX CARS. I CHARGE BY THE CAR.",
+    "YOU MADE IT TO THE ENGINE. THAT'S TWENTY-TWO CARS. I CHARGE BY THE CAR.",
     'LET ME READ YOU THE LEDGER. FARE: FOUR DOLLARS. BOARDING FEE: TWO.',
     'FOUR CARS DERAILED: SIXTEEN HUNDRED. ONE CONDUCTOR, PUNCHED: I SET MY OWN RATE.',
     'PLUS INTEREST. AT MY RATE. WHICH IS ALL OF IT.',
@@ -77,7 +113,7 @@ export const TUBE_RANT: ByPants = {
     'GIVE ME MY FOUR DOLLARS!',
   ],
   shitty: [
-    "YOU MADE IT TO THE ENGINE. TWENTY-SIX CARS, AND YOU SAT IN EVERY ONE.",
+    "YOU MADE IT TO THE ENGINE. TWENTY-TWO CARS, AND YOU SAT IN EVERY ONE.",
     'THE LEDGER. FARE: FOUR DOLLARS. BOARDING FEE: TWO. BIOHAZARD: FIFTY.',
     'FOUR CARS DERAILED: SIXTEEN HUNDRED. THE ONES YOU SAT IN: I WANTED THOSE GONE.',
     "PLUS INTEREST. PLUS DRY CLEANING. MINE, NOT YOURS. YOURS IS HOPELESS.",
@@ -85,7 +121,7 @@ export const TUBE_RANT: ByPants = {
     'GIVE ME MY FOUR DOLLARS!',
   ],
   nude: [
-    "YOU MADE IT TO THE ENGINE. TWENTY-SIX CARS, BUCK NAKED. I CHARGE BY THE CAR.",
+    "YOU MADE IT TO THE ENGINE. TWENTY-TWO CARS, BUCK NAKED. I CHARGE BY THE CAR.",
     'THE LEDGER. FARE: FOUR DOLLARS. BOARDING FEE: TWO. INDECENCY: I HAVEN\'T DECIDED.',
     'FOUR CARS DERAILED: SIXTEEN HUNDRED. ONE CONDUCTOR, SCARRED FOR LIFE: PRICELESS.',
     'PLUS INTEREST. PUT SOMETHING ON AND WE CAN TALK.',
@@ -115,9 +151,26 @@ export const BOARDED: ByPants = {
   shitty: ['ON THE TRAIN. PANTS FULL. LET\'S GO.', 'I JUMPED A TRAIN WITH A LOAD IN MY PANTS. IT SHIFTED.'],
   nude: ['NAKED ON A TRAIN. THE WIND IS EVERYWHERE.', 'GOT THE CABOOSE. MY BALLS ARE FREEZING.'],
 };
+/** At the engine, the cutscene: his say back. */
+export const MH_COMEBACK: ByPants = {
+  clean: ["I'M NOT PAYING YOU FOUR BUCKS.", 'COME OUT HERE AND SAY THAT.', "YOU'RE GONNA NEED A BIGGER LEDGER."],
+  shitty: ["I'LL PAY YOU IN WHAT'S IN MY PANTS.", "COME OUT HERE. I'LL HUG YOU."],
+  nude: ['WHERE WOULD I EVEN KEEP FOUR BUCKS?', "COME OUT HERE. I'LL GIVE YOU A TIP."],
+};
+/** The first time Tucker ducks a special weapon: the plain gun, then. */
+export const MH_RAYGUN: ByPants = {
+  clean: ['HE DUCKS THE FANCY STUFF. RAY GUN, THEN.', 'FINE. THE PLAIN OLD RAY GUN.'],
+  shitty: ['HE DUCKS THE FANCY STUFF. RAY GUN. SHIT.', 'FINE. RAY GUN. CLENCH AND AIM.'],
+  nude: ['HE DUCKS ANYTHING FANCY. RAY GUN, IN THE BUFF.', 'FINE. THE RAY GUN. THE OTHER GUN STAYS OUT TOO.'],
+};
 /** Once each, the first time (by what): the first uncoupling survived, the cattle car, the first robber, the water
- *  tower, the engine's KILL arrow. */
-export const TRAIN_GAGS: Record<'cut' | 'cattle' | 'robbers' | 'tower' | 'tunnel', ByPants> = {
+ *  tower, the first tunnel, the first waterfall. */
+export const TRAIN_GAGS: Record<'cut' | 'cattle' | 'robbers' | 'tower' | 'tunnel' | 'falls', ByPants> = {
+  falls: {
+    clean: ['A WATERFALL. OVER THE TRACKS. GET INSIDE.'],
+    shitty: ['A WATERFALL. TEMPTING. NO. INSIDE.'],
+    nude: ['A WATERFALL. GET INSIDE BEFORE IT TAKES MY DICK.'],
+  },
   cut: {
     clean: ['HE CUT THE CAR LOOSE. WITH ME ON IT.', "HE'D RATHER LOSE THE TRAIN THAN FOUR BUCKS."],
     shitty: ['HE DUMPED A WHOLE CAR TO GET RID OF ME. FAIR.', 'HE CUT ME LOOSE. I ALMOST SHAT. AGAIN.'],
@@ -173,6 +226,10 @@ export const REVISIT: ByPants = {
 // What hurts him on the train (by source), and the death screen when it's what killed him
 
 export const HURT: HurtTable = {
+  'm2:fr_falls': {
+    hurt: ["THE WATER! IT'S TOO HEAVY!", "IT'S PUSHING ME OFF!", 'WATERFALL! WATERFALL!'],
+    death: ['SWEPT OFF A TRAIN BY A WATERFALL', "WASHED OFF THE ROOF. SHOULD'VE GONE INSIDE.", 'TOOK A SHOWER ON A TRAIN. DIED.'],
+  },
   'm2:fr_derail': {
     hurt: ['IT\'S GOING! IT\'S GOING!', 'THE CAR\'S LOOSE! THE CAR\'S LOOSE!'],
     death: ['DERAILED. HE WAS STILL ON IT.', 'CANCELLED WITH THE CAR', 'UNCOUPLED, DERAILED, FOLDED. THE FARE WAS FOUR DOLLARS.'],
@@ -250,8 +307,9 @@ export const HURT: HurtTable = {
 export const VOICE_LINES: Record<string, string[]> = {
   meathead: [
     ...allOf(BOARDED), ...Object.values(TRAIN_GAGS).flatMap(allOf), ...allOf(KILL_SEEN), ...allOf(SHOT_LINE), ...allOf(DRIVER_LINE), ...allOf(REVISIT),
+    ...allOf(MH_COMEBACK), ...allOf(MH_RAYGUN),
     ...Object.values(HURT).flatMap(h => h.hurt),
   ],
   death: Object.values(HURT).flatMap(h => h.death),
-  [TUCKER_VOICE]: [TUBE_BOARD, TUBE_LEDGER, TUBE_UNCOUPLE, TUBE_MISSED, TUBE_TUNNEL, TUBE_ROBBERS, TUBE_RANT, TUBE_TIMEUP, TUCKER_SHOT].flatMap(allOf),
+  [TUCKER_VOICE]: [TUBE_BOARD, TUBE_LEDGER, TUBE_UNCOUPLE, TUBE_MISSED, TUBE_TUNNEL, TUBE_ROBBERS, TUBE_FALLS, TUCKER_INSULT, TUCKER_DARE, TUCKER_DODGE, TUBE_RANT, TUBE_TIMEUP, TUCKER_SHOT].flatMap(allOf),
 };

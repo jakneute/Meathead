@@ -148,10 +148,16 @@ const paintRobber = (g: Ctx, F: Frame) => {
   }
 };
 export const drawRobber = (c: Ctx, e: Enemy, f: number, seed: number) => {
-  // (riding: the train draws him on his horse, behind the cars: passers.ts)
-  if (e.health > 0 && (e.aiState === 'ride' || e.aiState === 'rideAim')) return;
+  // (riding, or leaping off the horse onto the train: the train draws him, in the near lane in front of the cars:
+  // passers.ts)
+  if (e.health > 0 && (e.aiState === 'ride' || e.aiState === 'rideAim' || e.aiState === 'leap')) return;
   const F = frameFor(e, f, seed, poseOf(e, ['aim', 'whipWind'], ['whip']));
   putFrame(c, 'fr-robber', F, BOX, g => paintRobber(g, F));
+};
+/** A robber on foot, wherever the caller's put the origin (his feet): leaping off his horse onto the train. */
+export const drawRobberAt = (c: Ctx, e: Enemy, f: number, seed: number) => {
+  if ((e.facing ?? 1) < 0) c.scale(-1, 1);
+  paintRobber(c, frameOf(seed, f, 'walk', (e.hitFlash ?? 0) > 0 ? 'hurt' : 'ok', 0));
 };
 /** A robber on his horse (world: feet at (x, feetY), facing): the horse galloping under him. `aim`: the pistol up. */
 export const drawRider = (c: Ctx, e: Enemy, x: number, feetY: number, f: number, seed: number) => {
