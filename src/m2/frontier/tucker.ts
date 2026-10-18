@@ -45,7 +45,8 @@ export type TuckerPose =
   | 'pop'      // bursting up out of something (the woods' leaf pile): arms flung up, legs wide, screaming
   | 'pounce'   // diving at somebody head first, both hands out to grab (tipped forward about his hips)
   | 'ride'     // sat astride a dirt bike, both fists on the bars, boots on the pegs (feetY: the seat + 30)
-  | 'ridepoint'; // ...one fist on the bars, jabbing a finger with the other
+  | 'ridepoint' // ...one fist on the bars, jabbing a finger with the other
+  | 'impaled';  // hung on the tree's branch through his chest: tipped forward over it, arms and legs dangling, head lolled
 
 /** 'manic': the bookkeeper unhinged (the user's model: South Park's Mel Gibson): one eye bulging, the other a pinprick,
  *  a brow up in his cap, a clenched grin of every tooth he's got, the gap and all. */
@@ -63,6 +64,9 @@ export interface TuckerOpts {
   face?: TuckerFace;
   /** His cap's off (knocked off: the caller draws it where it went, drawTuckerCap). */
   capless?: boolean;
+  /** Still skewered on the tree (the catch-up's): the branch's broken-off front end isn't drawn (the caller draws the
+   *  branch on from his chest to the trunk). */
+  onBranch?: boolean;
 }
 
 /** How tall he is (feet to the top of his cap), for putting words over him. */
@@ -163,7 +167,16 @@ const HS = 1.1;
 const FACES: Record<TuckerPose, TuckerFace> = {
   stand: 'smile', talk: 'talk', ticket: 'cheer', tip: 'cheer', sit: 'daze', flat: 'out', furious: 'manic', point: 'angry',
   run: 'manic', cab: 'manic', whistle: 'manic', hurt: 'ow', shove: 'manic', slam: 'manic', press: 'manic',
-  pop: 'yell', pounce: 'manic', ride: 'smile', ridepoint: 'manic',
+  pop: 'yell', pounce: 'manic', ride: 'smile', ridepoint: 'manic', impaled: 'out',
+};
+/** 'impaled': how far he's tipped forward over the branch (about his chest, where it goes in). */
+export const IMPALED_TILT = 0.22;
+/** A point on his figure (x, y from his feet, facing right, in drawTucker's units) where it ends up for `pose` (the
+ *  poses that tip him about: 'impaled'; the rest as given). The caller mirrors x for facing left. */
+export const tuckerPoint = (pose: TuckerPose, x: number, y: number): [number, number] => {
+  if (pose !== 'impaled') return [x, y];
+  const cs = Math.cos(IMPALED_TILT), sn = Math.sin(IMPALED_TILT), yy = y + 50;
+  return [x * cs - yy * sn, x * sn + yy * cs - 50];
 };
 const seated = (pose: TuckerPose) => pose === 'sit' || pose === 'ride' || pose === 'ridepoint';
 
@@ -177,6 +190,8 @@ export const drawTucker = (c: Ctx, x: number, feetY: number, facing: number, fra
   if (pose === 'sit') c.translate(0, 22);
   // (diving head first: tipped forward about his hips)
   if (pose === 'pounce') { c.translate(0, -31); c.rotate(1.15); c.translate(0, 31); }
+  // (hung on the branch: tipped forward over it about his chest)
+  if (pose === 'impaled') { c.translate(0, -50); c.rotate(IMPALED_TILT); c.translate(0, 50); }
   const shake = pose === 'furious' ? Math.sin(f * 1.3) * 0.8 : 0;
   // (rocking on his heels, pleased with himself; bobbing at the run)
   const b = pose === 'run' ? -Math.abs(Math.sin(f * 0.34)) * 2.4 : pose === 'stand' || pose === 'ticket' ? Math.sin(f * 0.06) * 0.8 - 0.4 : pose === 'talk' ? Math.sin(f * 0.12) * 0.6 : 0;
@@ -190,11 +205,11 @@ export const drawTucker = (c: Ctx, x: number, feetY: number, facing: number, fra
   const [far, near] = armsFor(pose, f);
   drawArm(c, far, false, pose, f);
   drawBody(c, pose, f);
-  drawWounds(c, wounds, 'body', f);
+  drawWounds(c, wounds, 'body', f, false, !!opts.onBranch);
   // ---- the head, on his neck
-  const hy = pose === 'sit' ? -71 + Math.sin(f * 0.1) * 1.2 : pose === 'hurt' ? -70 : -72;
-  const hx = pose === 'sit' ? Math.sin(f * 0.1) * 2 : pose === 'hurt' ? -2 : pose === 'run' ? 1.5 : 0.5;
-  const nod = pose === 'hurt' ? -0.25 : pose === 'sit' ? Math.sin(f * 0.1) * 0.14 : pose === 'run' ? 0.08 : pose === 'furious' ? Math.sin(f * 1.3) * 0.05 : pose === 'tip' ? 0.08 : 0;
+  const hy = pose === 'sit' ? -71 + Math.sin(f * 0.1) * 1.2 : pose === 'hurt' ? -70 : pose === 'impaled' ? -70 : -72;
+  const hx = pose === 'sit' ? Math.sin(f * 0.1) * 2 : pose === 'hurt' ? -2 : pose === 'run' ? 1.5 : pose === 'impaled' ? 2.5 : 0.5;
+  const nod = pose === 'impaled' ? 0.5 : pose === 'hurt' ? -0.25 : pose === 'sit' ? Math.sin(f * 0.1) * 0.14 : pose === 'run' ? 0.08 : pose === 'furious' ? Math.sin(f * 1.3) * 0.05 : pose === 'tip' ? 0.08 : 0;
   c.save(); c.translate(hx, hy); c.rotate(nod); c.scale(HS, HS);
   drawHead(c, face, f, !!opts.talking, opts.capless || pose === 'sit' || pose === 'flat', pose === 'furious' || face === 'yell', wounds);
   c.restore();
@@ -252,6 +267,8 @@ const drawLegs = (c: Ctx, pose: TuckerPose, f: number) => {
   // (bursting up: legs wide, kicking; diving: trailing straight, toes pointed)
   else if (pose === 'pop') { const k = Math.sin(f * 0.8) * 1.5; L = [[-4, -31, -9, -18 + k, -13, -6, 0.3], [4, -31, 9, -18 - k, 13, -6, -0.3]]; }
   else if (pose === 'pounce') L = [[-4, -31, -5, -18, -6, -5, 0.7], [4, -31, 2, -18, 0, -6, 0.9]];
+  // (hung on the branch: dangling, toes down, swaying a hair)
+  else if (pose === 'impaled') { const sw = Math.sin(f * 0.05) * 0.8; L = [[-4, -31, -3 + sw, -18, -1 + sw * 1.4, -5, 0.9], [4, -31, 6 + sw, -18, 8 + sw * 1.4, -5, 1.1]]; }
   else {
     // (rocking on his heels: the toes up a touch)
     const rock = pose === 'stand' || pose === 'ticket' ? Math.max(0, Math.sin(f * 0.06)) * 0.12 : 0;
@@ -396,6 +413,11 @@ const armsFor = (pose: TuckerPose, f: number): [Arm, Arm] => {
       return [{ ...FS, hx: 19, hy: -51, bend: 1, fist: true, grip: true }, { ...NS, hx: 23, hy: -53, bend: 1, fist: true, grip: true }];
     case 'ridepoint':
       return [{ ...FS, hx: 19, hy: -51, bend: 1, fist: true, grip: true }, { ...NS, hx: 31, hy: -66, bend: 0.2, fist: true, point: true }];
+    case 'impaled': {
+      // (limp: both arms hanging straight down off the branch, swaying with him)
+      const sw = Math.sin(f * 0.05) * 1.2;
+      return [{ ...FS, hx: -7 + sw, hy: -35, bend: 1, fist: false }, { ...NS, hx: 18 + sw, hy: -34, bend: -1, fist: false }];
+    }
     default:
       // (thumbs hooked in his vest pockets)
       return [{ ...FS, hx: -7, hy: -47, bend: -1, fist: false, thumbIn: true }, { ...NS, hx: 9, hy: -47, bend: 1, fist: false, thumbIn: true }];
@@ -689,14 +711,14 @@ const drawCap = (c: Ctx, _f: number) => {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
-// His wounds (they stack): each job that mutilates him draws its own here. Stubbed: only the clean state so far.
+// His wounds (they stack): each job that mutilates him draws its own here (the eye, the saw, the grime, the branch).
 
 /**
  * What's been done to him, drawn on the figure: `layer` 'body' (the branch through his chest: over the coat) or 'head'
  * (the eye hole through his spectacles and out the back; the buzzsaw stuck in his forehead, over the cap's line). The
  * train's job draws `eye`, the log ride's `saw`, the catch-up's `branch`. Until then: nothing.
  */
-const drawWounds = (c: Ctx, w: TuckerWounds, layer: 'body' | 'head', f: number, capless = false) => {
+const drawWounds = (c: Ctx, w: TuckerWounds, layer: 'body' | 'head', f: number, capless = false, onBranch = false) => {
   if (!w.eye && !w.saw && !w.branch && !w.grime) return;
   // (the train's job: the near eye shot clean through: an empty socket, the lens starred, blood down his cheek)
   if (w.eye && layer === 'head') {
@@ -748,11 +770,116 @@ const drawWounds = (c: Ctx, w: TuckerWounds, layer: 'body' | 'head', f: number, 
     const d = ((f + 45) % 80) / 80;
     if (d < 0.6) ell(c, 5.6, 9.6 + d * 4, 0.45, 0.65, '#991B1B');
   }
-  // (the catch-up's job: the giant branch through his chest, out the back of his coat, leaves still on it)
   // (the woods' job: EXTRA BLOODIED. Wherever he's been since the booth (never said): the sewer's muck smeared up his
   // trousers' line and his coat, the chipper's wood chips stuck all over him, fresh blood splashed down his front, the
   // near shoulder torn open, leaves off the pile in his chops and on his cap)
   if (w.grime) drawGrime(c, layer, f, capless);
+  // (the catch-up's job: the giant branch through his chest, out the back of his coat, a twig and its leaves still on
+  // it; over the grime)
+  if (w.branch && layer === 'body') drawBranchWound(c, f, onBranch);
+  // (...and the blood he's coughed up since, out of the corner of his mouth and off his chin)
+  if (w.branch && layer === 'head') {
+    line(c, [8.8, 8.4, 9.2, 10.6, 8.6, 13.4], 0.9, '#7A0E0E'); line(c, [8.9, 8.6, 9.3, 10.6], 0.3, '#C42A2A');
+    const d = ((f + 13) % 64) / 64;
+    if (d < 0.6) ell(c, 8.6, 13.8 + d * 5, 0.4, 0.6, '#991B1B');
+  }
+};
+
+/** Bark: light, base, shade, deep, line (a real tree's: gray-brown, the furrows dark). */
+const BARK: Ramp = ['#A8865A', '#7A5634', '#5A3C20', '#3E2812', '#1E1208'];
+/**
+ * A length of tree branch from xa to xb (xa < xb) along the line `ly(x)`, `r(x)` its half thickness (a taper to a
+ * point where r gets to 0): bark in stepped bands, lit along its top, its furrows; `bloodTo` coats it red from xa up to
+ * there (the part that's been through somebody); `jag` splinters its xb end (snapped off). Any units (the figure's,
+ * the close-up's head units, the world's); `step` the bands' width in them.
+ */
+export const drawBough = (c: Ctx, xa: number, xb: number, ly: (x: number) => number, r: (x: number) => number, opts: { bloodTo?: number; jag?: boolean; step?: number; seed?: number } = {}) => {
+  const st = opts.step ?? 0.5, seed = opts.seed ?? 0;
+  const path = () => {
+    c.moveTo(xa, ly(xa) - r(xa));
+    for (let x = xa; x < xb; x += st) c.lineTo(x, ly(x) - r(x));
+    c.lineTo(xb, ly(xb) - r(xb));
+    if (opts.jag) {
+      // (the snapped end: splinters out past it, top to bottom)
+      const rr = r(xb), y = ly(xb);
+      c.lineTo(xb + rr * 0.7, y - rr * 0.6); c.lineTo(xb + rr * 0.15, y - rr * 0.2); c.lineTo(xb + rr * 0.9, y + rr * 0.15);
+      c.lineTo(xb + rr * 0.2, y + rr * 0.45); c.lineTo(xb + rr * 0.5, y + rr * 0.85);
+    }
+    c.lineTo(xb, ly(xb) + r(xb));
+    for (let x = xb; x > xa; x -= st) c.lineTo(x, ly(x) + r(x));
+    c.lineTo(xa, ly(xa) + r(xa)); c.closePath();
+  };
+  c.beginPath(); path(); c.fillStyle = BARK[1]; c.fill();
+  c.save(); c.clip();
+  for (let x = Math.floor(xa / st) * st; x <= xb + 2 * r(xb); x += st) {
+    const xx = Math.min(x, xb), y = ly(xx), rr = Math.max(0.2, r(xx)), k = Math.round(x / st);
+    // (stepped bands: lit along the top, a dithered seam, the shade and the deep along the bottom)
+    px(c, x, y - rr - 1, st * 1.05, rr * 0.5 + 1, BARK[0]);
+    if (k % 2 === 0) px(c, x, y - rr * 0.5, st * 1.05, rr * 0.12, BARK[0]);
+    px(c, x, y + rr * 0.28, st * 1.05, rr * 0.45, BARK[2]);
+    if (k % 2 === 1) px(c, x, y + rr * 0.18, st * 1.05, rr * 0.12, BARK[2]);
+    px(c, x, y + rr * 0.66, st * 1.05, rr * 0.5, BARK[3]);
+    // (the furrows: short dark runs along it)
+    const h = Math.sin((k + seed) * 91.7) * 43758.5453, n = h - Math.floor(h);
+    if (n < 0.3) px(c, x, y - rr * 0.35 + n * rr * 2.2, st * 3, Math.max(0.25, rr * 0.1), BARK[3]);
+    else if (n > 0.9) px(c, x, y - rr * 0.7, st * 2, Math.max(0.2, rr * 0.08), BARK[0]);
+  }
+  // (a knot)
+  const kx = xa + (xb - xa) * 0.62, kr = r(kx) * 0.38;
+  if (kr > 0.3) { ell(c, kx, ly(kx) - r(kx) * 0.1, kr * 1.3, kr, BARK[4]); ell(c, kx - kr * 0.2, ly(kx) - r(kx) * 0.15, kr * 0.8, kr * 0.55, BARK[3]); }
+  if (opts.jag) {
+    // (the raw wood at the break: pale, splintered)
+    const rr = r(xb), y = ly(xb);
+    fill(c, '#D8B886', () => { c.moveTo(xb - rr * 0.3, y - rr); c.lineTo(xb + rr * 0.7, y - rr * 0.6); c.lineTo(xb + rr * 0.15, y - rr * 0.2); c.lineTo(xb + rr * 0.9, y + rr * 0.15); c.lineTo(xb + rr * 0.2, y + rr * 0.45); c.lineTo(xb + rr * 0.5, y + rr * 0.85); c.lineTo(xb - rr * 0.3, y + rr); c.closePath(); });
+    line(c, [xb - rr * 0.2, y - rr * 0.3, xb + rr * 0.5, y - rr * 0.4], Math.max(0.2, rr * 0.08), '#A88A5A');
+    line(c, [xb - rr * 0.2, y + rr * 0.3, xb + rr * 0.6, y + rr * 0.5], Math.max(0.2, rr * 0.08), '#A88A5A');
+  }
+  if (opts.bloodTo !== undefined && opts.bloodTo > xa) {
+    // (the blood on it: dark, wet, a lit streak along the top, runs off the bottom)
+    const bt = Math.min(xb + 2 * r(xb), opts.bloodTo);
+    c.globalAlpha = 0.88; px(c, xa - 1, -9999, bt - xa + 1, 19998, '#7A0E0E'); c.globalAlpha = 1;
+    for (let x = xa; x < bt; x += st * 2) { const rr = r(x); px(c, x, ly(x) - rr * 0.7, st * 2, Math.max(0.2, rr * 0.18), '#C42A2A'); }
+  }
+  c.restore();
+  c.beginPath(); path(); c.strokeStyle = BARK[4]; c.lineWidth = Math.max(0.4, r((xa + xb) / 2) * 0.12); c.lineJoin = 'round'; c.stroke();
+};
+
+/** The branch's line through him on the figure: in at the front of his chest (14, -50), out his back, sloped a touch. */
+const BR = { x: 14, y: -50, dy: 0.12 };
+const brY = (x: number) => BR.y + (x - BR.x) * BR.dy;
+/** Its half thickness: a point out behind him, thick as his arm and more at the front. */
+const brR = (x: number) => Math.max(0, Math.min(5, 0.3 + (x + 34) * 0.1));
+
+/** On the figure: the giant branch through his chest (the catch-up's). */
+const drawBranchWound = (c: Ctx, f: number, onBranch: boolean) => {
+  const BLOOD = '#7A0E0E', BLOOD_L = '#C42A2A', MEAT = '#4A0A0A';
+  // ---- the hole out his back: the coat torn open round it, blood down the back of it
+  ell(c, -13, brY(-13), 3.2, 3.8, MEAT); ell(c, -13, brY(-13), 2.4, 3, '#8A1414');
+  line(c, [-13.6, brY(-13) + 3, -14.6, -44, -14.2, -36, -15, -29], 1.2, BLOOD);
+  fill(c, COAT[3], () => { c.moveTo(-14.6, brY(-13) - 3.6); c.lineTo(-18, brY(-13) - 5.4); c.lineTo(-15.6, brY(-13) - 1.2); c.closePath(); });
+  // ---- the point out behind him: all of it red, dripping
+  drawBough(c, -34, -12.6, brY, brR, { bloodTo: -12.6, step: 0.5, seed: 3 });
+  const d = (f % 54) / 54;
+  if (d < 0.7) ell(c, -32 + 0.4, brY(-32) + 1 + d * 9, 0.45, 0.7, '#991B1B');
+  // ---- the hole in his chest: the vest torn open round it in a ragged star, the shirt red, the blood pumped down
+  // his front to the belt and over it
+  fill(c, VEST[3], () => { for (let i = 0; i < 12; i++) { const a = (i / 12) * Math.PI * 2, rr = i % 2 ? 6.4 : 8.6; c.lineTo(BR.x + Math.cos(a) * rr * 0.8, BR.y + Math.sin(a) * rr); } c.closePath(); });
+  ell(c, BR.x, BR.y, 6, 6.4, MEAT); ell(c, BR.x - 0.4, BR.y + 0.4, 5.2, 5.6, '#8A1414');
+  line(c, [12.4, -44, 11.4, -38, 12.6, -32, 11.8, -26], 2.6, BLOOD); line(c, [12.8, -44, 11.8, -38, 13, -32], 0.8, BLOOD_L);
+  line(c, [15.6, -45, 16, -38, 15.2, -31], 1.6, BLOOD);
+  ell(c, 12.4, -25.6, 2.4, 1.2, BLOOD);
+  const d2 = ((f + 27) % 70) / 70;
+  if (d2 < 0.6) ell(c, 11.8, -25 + d2 * 7, 0.5, 0.75, '#991B1B');
+  // ---- the front of it: snapped off the tree (a twig and its leaves still on it), or on the tree still (the caller
+  // draws the branch on to the trunk)
+  if (!onBranch) {
+    drawBough(c, BR.x - 5, 31, brY, brR, { bloodTo: BR.x + 3, jag: true, step: 0.5, seed: 11 });
+    // (the twig, up off it, and its leaves: turning)
+    line(c, [24, brY(24) - 4, 26.6, brY(24) - 10, 29.4, brY(24) - 13], 1.1, BARK[4]); line(c, [24, brY(24) - 4, 26.6, brY(24) - 10, 29.4, brY(24) - 13], 0.6, BARK[1]);
+    for (const [lx, ly, rot, col] of [[27, brY(24) - 11.6, -0.6, '#D97706'], [30, brY(24) - 14, 0.4, '#B45309'], [25.4, brY(24) - 8.4, -1.4, '#CA8A04']] as const) {
+      c.save(); c.translate(lx, ly); c.rotate(rot); ell(c, 0, 0, 2.4, 1.1, '#6E2A08'); ell(c, -0.2, -0.1, 2, 0.8, col); line(c, [-2.2, 0, 2, 0], 0.3, '#6E2A08'); c.restore();
+    }
+  }
 };
 
 /** The woods' extra-bloodied look, on the figure (`layer` as drawWounds). */
@@ -796,6 +923,56 @@ const drawGrime = (c: Ctx, layer: 'body' | 'head', f: number, capless: boolean) 
 
 // ---------------------------------------------------------------------------------------------------------------
 // The close-up (the mutilation rule's picture, and any scene's punch-in on his face)
+
+/** The branch on the close-up (head units): its line in at the vest (6, 30), sloped up toward the point behind him. */
+export const CLOSE_BRANCH = { x: 6, y: 30, dy: 0.18, exit: -21.5 };
+/** Where its point ends up behind him once it's all the way through (the painter slides it there). */
+export const CLOSE_BRANCH_TIP = -40;
+export const closeBranchY = (x: number) => CLOSE_BRANCH.y + (x - CLOSE_BRANCH.x) * CLOSE_BRANCH.dy;
+/** Its half thickness, by how far along from its point. */
+export const closeBranchR = (tip: number) => (x: number) => Math.max(0, Math.min(7, 0.3 + (x - tip) * 0.1));
+
+/**
+ * The branch through his chest on the close-up, its point at `tip` (head units; through him once it's past
+ * CLOSE_BRANCH.exit): the part out behind his far shoulder, the hole in his vest, the part out in front (snapped off a
+ * way out when `snapped`, else on out of the frame). The mutilation close-up's painter (the catch-up's) draws its frames
+ * with this; the stacked wound draws its last.
+ */
+export const drawCloseupBranch = (c: Ctx, f: number, tip: number, snapped: boolean, opts: { open?: number } = {}) => {
+  const B = CLOSE_BRANCH, r = closeBranchR(tip), open = opts.open ?? 1;
+  const through = tip < B.exit;
+  // ---- out behind his far shoulder: the coat burst open round it, the point all red
+  if (through) {
+    ell(c, B.exit, closeBranchY(B.exit), r(B.exit) + 1.6, r(B.exit) + 2, '#4A0A0A');
+    drawBough(c, tip, B.exit + 0.5, closeBranchY, r, { bloodTo: B.exit + 0.5, step: 0.5, seed: 5 });
+    fill(c, COAT[2], () => { const y = closeBranchY(B.exit); c.moveTo(B.exit + 0.6, y - r(B.exit) - 2.4); c.lineTo(B.exit - 3.4, y - r(B.exit) - 3.6); c.lineTo(B.exit - 0.6, y - r(B.exit) - 0.6); c.closePath(); });
+    fill(c, COAT[3], () => { const y = closeBranchY(B.exit); c.moveTo(B.exit + 0.6, y + r(B.exit) + 2); c.lineTo(B.exit - 2.6, y + r(B.exit) + 4); c.lineTo(B.exit - 0.4, y + r(B.exit) + 0.6); c.closePath(); });
+    const d = (f % 50) / 50;
+    if (d < 0.7) ell(c, tip + 1, closeBranchY(tip) + 1 + d * 16, 0.5, 0.9, '#991B1B');
+  }
+  // ---- the hole in the vest: torn open in a ragged star round it, meat, the blood down his front
+  if (tip < B.x) {
+    const rr = r(B.x) * (0.4 + 0.6 * open);
+    fill(c, VEST[3], () => { for (let i = 0; i < 14; i++) { const a = (i / 14) * Math.PI * 2, q = i % 2 ? 1.25 : 1.75; c.lineTo(B.x + Math.cos(a) * rr * q, B.y + Math.sin(a) * rr * q); } c.closePath(); });
+    ell(c, B.x, B.y, rr + 1.4, rr + 1.6, '#4A0A0A'); ell(c, B.x - 0.3, B.y + 0.3, rr + 0.6, rr + 0.8, '#8A1414');
+    line(c, [B.x - 1, B.y + rr, B.x - 1.6, B.y + rr + 4 * open, B.x - 0.8, 40], 2.2 * open + 0.4, '#7A0E0E');
+    line(c, [B.x - 0.7, B.y + rr, B.x - 1.3, B.y + rr + 4 * open, B.x - 0.5, 40], 0.7 * open + 0.2, '#C42A2A');
+    line(c, [B.x + 2.6, B.y + rr, B.x + 3.4, 40], 1.4 * open, '#7A0E0E');
+  }
+  // ---- the part out in front of him (or all of it, not into him yet)
+  const from = Math.max(tip, B.x - 2);
+  if (snapped) drawBough(c, from, 25, closeBranchY, r, { bloodTo: tip < B.x ? B.x + 2.4 : undefined, jag: true, step: 0.5, seed: 9 });
+  else drawBough(c, from, 90, closeBranchY, r, { bloodTo: tip < B.x ? B.x + 2.4 : undefined, step: 0.5, seed: 9 });
+  // (its twig and its leaves)
+  const tx = snapped ? 17 : 24;
+  if (tx > from + 2) {
+    const ty = closeBranchY(tx) - r(tx) + 0.4;
+    line(c, [tx, ty, tx + 2.4, ty - 5, tx + 5.4, ty - 7], 1.2, BARK[4]); line(c, [tx, ty, tx + 2.4, ty - 5, tx + 5.4, ty - 7], 0.6, BARK[1]);
+    for (const [lx, ly, rot, col] of [[tx + 3, ty - 6, -0.5, '#D97706'], [tx + 6.4, ty - 7.6, 0.5, '#B45309']] as const) {
+      c.save(); c.translate(lx, ly); c.rotate(rot); ell(c, 0, 0, 2.6, 1.2, '#6E2A08'); ell(c, -0.2, -0.1, 2.2, 0.9, col); line(c, [-2.4, 0, 2.2, 0], 0.3, '#6E2A08'); c.restore();
+    }
+  }
+};
 
 /** A wound being made, painted over the close-up at `k` 0..1 (its own frames: multi-frame, gory, animated). Drawn in
  *  the head's unit space (its middle at the origin, facing right; about 24 across). */
@@ -850,6 +1027,9 @@ export const drawTuckerCloseup = (c: Ctx, cx: number, cy: number, scale: number,
     line(c, [19.6, 18.6, 22.4, 23], 1.2, '#8A1414');
     for (let i = 0; i < 8; i++) { const x = -22 + ((i * 9.1) % 44), y = 20 + ((i * 7.7) % 18); px(c, x - 1.6, y - 0.7, 3.2, 1.4, '#8A6030'); px(c, x - 1.2, y - 0.5, 2.4, 0.8, '#D6A060'); }
   }
+  // (the catch-up's branch, through his chest: in at the vest, the point out behind his far shoulder, snapped off in
+  // front; as the close-up of it being done left it)
+  if (wounds.branch) drawCloseupBranch(c, f, CLOSE_BRANCH_TIP, true);
   c.restore();
   // ---- the neck, the head
   fill(c, (red ? RAGE : SKIN)[2], () => c.roundRect(-6, 8, 12, 6, 2));

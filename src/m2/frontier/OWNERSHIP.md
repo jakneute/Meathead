@@ -13,7 +13,8 @@ verbatim, the fill-ins, the rules, the section plan). Each section's index.ts he
 | 4 (done) | `logride/` (and tucker.ts's saw wound, its poses 'shove' / 'slam' / 'press') | logride (30-38) |
 | 5 (done) | `woods/` (and tucker.ts's `grime` look, its poses 'pop' / 'pounce' / 'ride' / 'ridepoint') | woods (40-41) |
 | 6 (done) | `dirtbike/` (incl. the TEENAGERS sub-boss; appended store.ts bikeHud/bikeBoost/bikeTips and App.tsx's bike HUD + controls card) | dirtbike (50-55) |
-| later | `arena/` (incl. Tucker's fight, when the user gives it) | arena (60-69) |
+| 7 (done) | `arena/` (the catch-up, the impalement, the fake-out and its retry entrance beat, the fight's placeholder; and tucker.ts's `branch` wound, the pose 'impaled', `onBranch`, IMPALED_TILT / tuckerPoint, drawBough, drawCloseupBranch) | arena (60) |
+| later | `arena/` (Tucker's fight, when the user gives it: it starts at intro.ts's `onUp`) | arena (61-69) |
 
 Inside your folders, anything goes: split into layout.ts, art.ts, kinds.ts and so on, as `wilds/` does. Number your
 checkpoints only inside your range (they're numbered across the whole land and sorted; the CHECKPOINT SKIP cheat
@@ -57,8 +58,8 @@ tools/voices/cast.json, the engine's player code...) are the same: re-read, appe
 ## Tucker (tucker.ts)
 
 `drawTucker(c, x, feetY, facing, frame, pose, wounds?)`: the full figure, any pose the scenes have needed so far (see
-`TuckerPose`); `wounds` (`TuckerWounds`: `eye`, `saw`, `branch`, booleans) STACK: each job that mutilates him adds its
-wound's drawing to the figure (stubbed now: only the clean state is drawn). `drawTuckerCloseup(c, cx, cy, scale,
+`TuckerPose`); `wounds` (`TuckerWounds`: `eye`, `saw`, `branch`, `grime`, booleans) STACK: each job that mutilates
+him adds its wound's drawing to the figure (all four drawn now; `tuckerWoundsOf(state)` in section.ts). `drawTuckerCloseup(c, cx, cy, scale,
 frame, opts)`: his face at close-up size (the station's furious shout uses it); `opts.making = { wound, k }` is the
 mutilation close-up rule's hook: register a painter per wound (`registerWoundPainter(wound, paint)`) that draws the wound
 being made at `k` 0..1 over the face (multi-frame, gory, ANIMATED: the user's rule). His voice: `TUCKER_VOICE`
@@ -91,6 +92,10 @@ move your DOORS entries to match; keep the way back working (revisits), or give 
   (or with) the bike. `TEENS_MEMO` ('frontier-teens-done') says the chase is beaten. Back from the arena:
   `DOORS.dirtbike.end` (the side view's trail, x0+1500; set by dirtbike/index.ts); its right end (x0+1800) goes on to
   `DOORS.arena.start` once the chase is beaten, its left end back to the woods (`DOORS.woods.end`).
+- **The arena** (built, arena/): the first frame there with the catch-up not done (in off the chase, or walked in), the
+  catch-up plays (arena/catchup.ts); BRANCH_MEMO says it's been, UP_MEMO ('frontier-arena-up') that he's up off the
+  branch (arena/state.ts). The fight, when it comes, hangs off intro.ts's `onUp` (index.ts `fightOn`); a retry's
+  entrance beat is intro.ts's startEntrance / tickEntrance.
 
 ## Things that outlive a death
 

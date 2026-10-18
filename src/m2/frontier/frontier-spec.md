@@ -106,7 +106,7 @@ helpers, the time of day, signLetters, pickLine, the grab, victory, walkAway, dr
 | 4 | The log ride (ride, sewer, real river, woodchipper) | `logride` | FRX+53000 .. FRX+64600 | 30-38 | built (job 4) |
 | 5 | The woods (outside the park) + the bounty | `woods` | FRX+65000 .. FRX+68000 | 40-41 | built (job 5) |
 | 6 | The dirt-bike chase (TEENAGERS sub-boss) | `dirtbike` | FRX+71000 .. FRX+81000 (side view: the first 1800) | 50-55 | built (job 6) |
-| 7 | The catch-up + Tucker's arena | `arena` | FRX+84000 .. FRX+88000 | 60-69 | placeholder end |
+| 7 | The catch-up + Tucker's arena | `arena` | FRX+84000 .. FRX+88000 | 60-69 | catch-up, impalement, fake-out built (job 7); the fight a placeholder |
 
 Gaps of 3000 between sections (grow your x1 into the one after yours). The stubs: flat ground, a frontier sign naming
 the section, a COMING SOON board, one checkpoint at the start, walk off the right end into the next section (and back
@@ -208,6 +208,15 @@ Teach, then escalate (each hazard alone in a safe spot first):
 
 30 teens in all; the wind-up (the tell) shortens 50 -> 34 frames down the stretches; teens take 2 hits early, 3 later
 (+1 if heavyset). Tucker's glimpsed ahead each stretch (the bounty going up: TUCKER_RAISE, the ledger after).
+
+### Section 7: the catch-up and Tucker's arena (arena/layout.ts; x from the section's start; flat ground at GY)
+
+| x | Stretch (checkpoint) | What |
+|---|---|---|
+| 40 .. 720 | THE TRAIL (cp 60 at 200, manual: his once Tucker's up) | the catch-up (a cutscene in off the chase's black): Meathead on the kid's bike rides up on Tucker, whose bike has coughed out; the rant; Tucker guns it up the trail |
+| 1230 | THE KID'S BIKE | where Meathead gets off after the crash (it stays there on its stand) |
+| 1300 | THE REFILL | big health + big ammo (the boss-door refill; there every retry, short of the entrance beat) |
+| 1400 .. 2200 | THE CLEARING | real woods thinned out round THE OAK (1700): its pointed branch at chest height; the crash, Tucker hung on it, the stolen bike wrecked under it; walk up to the body (~1490): the fake-out; Tucker up (~1550) squaring up; the fight's placeholder board (1850); walk past 1930: VICTORY, the walk-away |
 
 ## Standing rules (all apply)
 
@@ -499,3 +508,53 @@ Teach, then escalate (each hazard alone in a safe spot first):
   (m2:fr_teenbomb). Lines (clean / shitty / naked): his start, back on after dying, knock-off quips, a pool per parry,
   the end; the teens' taunts and parried yelps (reacting to the state of him); Tucker's raises, ledger and flee. Tuned
   blind (no runs): speeds, the parry window, wave sizes, damage.
+- 2026-10-18 (job 7, the catch-up, the impalement and the fake-out. The user's: back to side view, Meathead catches up,
+  "YOU TOOK THEM ALL OUT?", furious, the line-cutter and "I DON'T GIVE HANDOUTS", the crash into a tree with a pointy
+  branch through his chest shown in detail (the close-up rule), the body, "ARE YOU GOING TO FAKE ME OUT AGAIN?", the
+  jumpscare, the fight starting there. Everything below is OURS unless it says the user's): THE CATCH-UP is one
+  cutscene (no HUD, SKIP >> for all of it), up out of the chase's black (takeChaseHandoff; walked in with it not done,
+  the same): Meathead on the kid's bike up a real dirt trail; Tucker ahead on the stolen bike, coughing, run dry, rolling
+  to a stop; Meathead pulls up behind him. Tucker hops off and turns: TUCKER_CAUGHT (the user's line verbatim in all
+  three, a kicker on the shat and naked ones); furious (red, stamping): TUCKER_RANT (everybody waits, everybody pays,
+  you rode it all free); Meathead's say (MH_CAUGHT: he wants his twenty bucks); TUCKER_HANDOUT ("I DON'T GIVE
+  HANDOUTS" in every line). Then (ours, to get him onto the branch) he hops back on and revs, yelling he's running him
+  over, "ON THE HOUSE" (the handout joke), and guns it off up the trail for a run at him, never looking where he's
+  going, chest first onto the giant oak's pointed branch.
+- 2026-10-18 (job 7): THE CLOSE-UP (the mutilation rule; catchup.ts's 'branch' painter on tucker.ts's close-up, framed
+  to show his chest): the branch coming at him (speed streaks), the point punching into his vest (his TUCKER badge and
+  two vest buttons popping off), on through him and bursting out behind his far shoulder (blood, coat, a chip of rib,
+  a red mist), him shoved on up it to the thick of it, the blood pumping out of the hole a beat at a time, coughed out
+  of his mouth and running off his chin, dripping off the point; the oak's leaves shaken down (one settles on his cap);
+  his face manic, shocked, hurt, out; his last words (TUCKER_SKEWERED: PUT IT... ON MY TAB...). Wide: hung on the branch
+  by his chest, limp (new pose 'impaled': tipped forward over it, arms and legs dangling, head lolled; tucker.ts
+  IMPALED_TILT / tuckerPoint line the oak's branch up with his chest), the stolen bike nosed into the oak and wrecked
+  under him, its back wheel turning, smoking. Meathead rides up under him (MH_SKEWERED: SHISH KEBAB) and gets off; the
+  kid's bike stays parked there for good.
+- 2026-10-18 (job 7): THE BRANCH WOUND (tucker.ts `branch`, BRANCH_MEMO 'frontier-tucker-branch'; on him from here on,
+  through his fight): in at the front of his chest (the vest torn open in a ragged star, the blood pumped down his front
+  to the belt), out his back (the coat torn, the point red and dripping), snapped off a hand's width in front of him (raw
+  splintered wood, a twig with turning leaves still on it), the blood he's coughed up off his chin; on the close-up too
+  (drawCloseupBranch). `onBranch` (TuckerOpts) leaves the broken end off while he's still on the oak. drawBough is the
+  shared branch painter.
+- 2026-10-18 (job 7): THE FAKE-OUT (the user's beats; the staging ours) is played up to the body (Meathead walks up
+  himself, past the refill), then a cutscene (no HUD, SKIP >> for all of it): FAKE_ME_OUT (the user's line verbatim in
+  all three, a kicker on the shat and naked ones); a beat (a leaf comes down, he leans in); YEP: the branch snaps off
+  the oak (he takes it with him) and he comes off it at Meathead screaming: the jumpscare as the leaf pile's (a sting, a
+  big shake, the screen snapped to his screaming face with every wound on it, the branch at the bottom of the frame,
+  the oak's leaves whipping across; TUCKER_JUMP), Meathead jumping back out of his skin (MH_JUMPED: EVERY. SINGLE.
+  TIME.); Tucker on his feet with the branch through him, squaring up: TUCKER_UP (NOW! ABOUT THAT FARE!). UP_MEMO
+  ('frontier-arena-up'), checkpoint 60. intro.ts is written to be the fight's intro (`onUp` is where the fight starts).
+- 2026-10-18 (job 7): A RETRY (checkpoint 60, the same visit): no fake-out; THE ENTRANCE BEAT (as the other land
+  bosses' retries): he's lying flat by the oak, the branch up out of his chest; walk up and he pops up again (a sting, a
+  shake, TUCKER_ENTRANCE: STILL HERE!), Meathead free meanwhile; then it's on. A fresh visit (or the checkpoint skip to
+  60) gets the whole fake-out again, him hung on the oak. Checkpoint 60 (and anything past the catch-up) restores the
+  world as a run left it: the catch-up done, his memos set, the bikes where they were left.
+- 2026-10-18 (job 7): THE FIGHT'S PLACEHOLDER (the fight isn't designed: not invented): Tucker stands there squaring up
+  (stamping, jabbing his ledger finger, every wound on), a hand-painted plywood board past the oak (TUCKER / THE FIGHT:
+  COMING SOON); walk on past him and the oak: VICTORY, the walk-away (FLINTLOCK), the hub, the land cleared. The boss
+  door's refill (big health + big ammo) is the arena's own, between the kid's bike and the body (the woods' was before
+  the TEENAGERS, too far back). Revisits once the land's cleared: nobody; the oak's branch snapped, the wreck, the kid's
+  bike.
+- 2026-10-18 (job 7): still a SEPARATE LATER JOB, not built: the walk-back from the parking lot after his kill (the
+  walk-away's HEADING BACK TO PARK, the intro's lot in a re-entry mode, the ticket lady's re-entry exchange, clean /
+  shitty / naked; see the fill-ins above). And his fight itself, when the user gives it.

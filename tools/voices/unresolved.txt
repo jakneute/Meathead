@@ -148,6 +148,8 @@ m2/frontier/dirtbike/chase.ts:363 voice: false
 m2/frontier/dirtbike/chase.ts:595 voice: true
 m2/frontier/dirtbike/chase.ts:596 voice: true
 m2/frontier/dirtbike/chase.ts:728 voice: pickLine(byPants(state, TUCKER_FLEE))
+m2/frontier/arena/cast.ts:28 voice: pickLine(byPants(state, pool))
+m2/frontier/arena/cast.ts:33 voice: pickLine(byPants(state, pool))
 m2/frontier/wilds/station.ts:93 voice: pickLine(byPants(state, pool))
 m1/components/Cutscene.tsx:97 voice: p.voice
 m1/components/Cutscene.tsx:105 voice: p.voice

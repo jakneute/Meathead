@@ -25131,6 +25131,31 @@
  },
  {
   "voice": "m2.frontier.tucker",
+  "text": "AAAHHH! PEE-YEW!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "AAAHHH! PUT IT AWAY!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "AAAHHH! STILL HERE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "AAAHHH! STILL NAKED!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "AAAHHH! STILL STINKING!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
   "text": "ACCOUNT CLOSED. COVER YOURSELF.",
   "from": "FRONTIER"
  },
@@ -25181,6 +25206,16 @@
  },
  {
   "voice": "m2.frontier.tucker",
+  "text": "AT LEAST... I CAN'T SEE... YOUR THING... ANYMORE...",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "AT LEAST... I CAN'T SMELL YOU... ANYMORE...",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
   "text": "BANDITS! I SAW HIM FIRST! HE OWES ME!",
   "from": "FRONTIER"
  },
@@ -25197,6 +25232,21 @@
  {
   "voice": "m2.frontier.tucker",
   "text": "BILL HIM... FOR THE SAW... AND THE SMELL...",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "BOO! YOU STILL OWE ME!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "BOO! YOU STILL OWE ME! AND YOU STILL STINK!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "BOO! YOU STILL OWE ME! AND YOU'RE STILL NAKED!",
   "from": "FRONTIER"
  },
  {
@@ -25227,6 +25277,21 @@
  {
   "voice": "m2.frontier.tucker",
   "text": "EVERY SEAT YOUR BARE ASS TOUCHES IS A SURCHARGE.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "EVERYBODY PAYS! WHERE'S YOUR WALLET?! WHERE WOULD IT EVEN GO?!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "EVERYBODY WAITS! EVERYBODY PAYS! NOBODY CRAPS ON MY SEATS FOR FREE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "EVERYBODY WAITS! EVERYBODY PAYS! YOU JUST WALK TO THE FRONT!",
   "from": "FRONTIER"
  },
  {
@@ -25316,6 +25381,21 @@
  },
  {
   "voice": "m2.frontier.tucker",
+  "text": "HOLD STILL! THIS ONE'S ON THE HOUSE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "HOLD STILL! THIS ONE'S ON THE HOUSE! AIM FOR THE LITTLE ONE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "HOLD STILL! THIS ONE'S ON THE HOUSE! HOLD YOUR BOWELS TOO!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
   "text": "HOWDY, FRIEND! I SEE THE WOLVES GOT YOUR CLOTHES!",
   "from": "FRONTIER"
  },
@@ -25341,7 +25421,22 @@
  },
  {
   "voice": "m2.frontier.tucker",
+  "text": "I DON'T GIVE HANDOUTS! AND I DON'T TAKE SHIT! I'M LOOKING AT IT!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
   "text": "I DON'T GIVE HANDOUTS! IT'S ALL IN THE LEDGER!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "I DON'T GIVE HANDOUTS! KEEP YOURS WHERE I CAN SEE THEM! NOT THERE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "I DON'T GIVE HANDOUTS! ONE FARE! PLUS INTEREST!",
   "from": "FRONTIER"
  },
  {
@@ -25387,6 +25482,11 @@
  {
   "voice": "m2.frontier.tucker",
   "text": "I'M WRITING YOU UP. UNDER INDECENT. AND UNPAID.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "I'VE BEEN... OVERCHARGED...",
   "from": "FRONTIER"
  },
  {
@@ -25496,6 +25596,21 @@
  },
  {
   "voice": "m2.frontier.tucker",
+  "text": "NOBODY RIDES FREE! I DON'T GIVE HANDOUTS!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "NOBODY RIDES FREE! I DON'T GIVE HANDOUTS! OR PANTS!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "NOBODY RIDES FREE! I DON'T GIVE HANDOUTS! OR WET WIPES!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
   "text": "NOBODY RIDES FREE! NOBODY!",
   "from": "FRONTIER"
  },
@@ -25536,6 +25651,21 @@
  },
  {
   "voice": "m2.frontier.tucker",
+  "text": "NOW! ABOUT THAT FARE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "NOW! ABOUT THAT FARE! PLUS A DECENCY FINE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "NOW! ABOUT THAT FARE! PLUS THE CLEANING FEE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
   "text": "OH. THAT'S A SPLITTING HEADACHE.",
   "from": "FRONTIER"
  },
@@ -25567,6 +25697,21 @@
  {
   "voice": "m2.frontier.tucker",
   "text": "ONE FARE! PLUS INTEREST! I'LL GET IT OUT OF YOU!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "ONE FARE! PLUS INTEREST! PLUS NEW SEATS FOR THE LOG!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "ONE FARE! PLUS INTEREST! PLUS ONE TREE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "ONE FARE! PLUS INTEREST! PLUS THERAPY FOR THOSE CHILDREN!",
   "from": "FRONTIER"
  },
  {
@@ -25617,6 +25762,21 @@
  {
   "voice": "m2.frontier.tucker",
   "text": "PLUS INTEREST. PUT SOMETHING ON AND WE CAN TALK.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "PUT IT... ON HIS TAB... THE NAKED ONE...",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "PUT IT... ON HIS TAB... THE STINKY ONE...",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "PUT IT... ON MY TAB...",
   "from": "FRONTIER"
  },
  {
@@ -25682,6 +25842,21 @@
  {
   "voice": "m2.frontier.tucker",
   "text": "SPLITTING HEADACHE... PUT SOME PANTS ON...",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "STAY RIGHT THERE! I'M RUNNING YOU OVER! ALL OF YOU!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "STAY RIGHT THERE! I'M RUNNING YOU OVER! NO CHARGE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "STAY RIGHT THERE! I'M RUNNING YOU OVER! TIRES ARE CHEAPER THAN SOAP!",
   "from": "FRONTIER"
  },
  {
@@ -25831,6 +26006,21 @@
  },
  {
   "voice": "m2.frontier.tucker",
+  "text": "YOU CUT MY LINE! YOU RODE EVERYTHING I OWN! FREE! AND BARE-ASSED!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "YOU CUT MY LINE! YOU RODE MY LOG FOR FREE! AND YOU SHAT IN IT!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "YOU CUT MY LINE! YOU RODE MY TRAIN! YOU RODE MY LOG! ALL FREE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
   "text": "YOU MADE IT TO THE ENGINE. THAT'S TWENTY-SIX CARS. I CHARGE BY THE CAR.",
   "from": "FRONTIER"
  },
@@ -25852,6 +26042,21 @@
  {
   "voice": "m2.frontier.tucker",
   "text": "YOU SOILED MY LINE! TIME TO ENGAGE THE BUZZSAWS!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "YOU TOOK THEM ALL OUT?",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "YOU TOOK THEM ALL OUT? SMELLING LIKE THAT?",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "YOU TOOK THEM ALL OUT? WITH YOUR WHOLE THING OUT?",
   "from": "FRONTIER"
  },
  {
@@ -41421,6 +41626,16 @@
  },
  {
   "voice": "meathead",
+  "text": "AND I THOUGHT I WAS EXPOSED.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "AND I THOUGHT MY DAY WAS SHITTY.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "AND I'M FOLLOWING MY PROGRAM. TODAY IS ALIEN DAY.",
   "from": "ALIEN_LINES"
  },
@@ -41508,6 +41723,21 @@
   "voice": "meathead",
   "text": "AQUA-CRUSHED",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "ARE YOU GOING TO FAKE ME OUT AGAIN?",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "ARE YOU GOING TO FAKE ME OUT AGAIN? I'M NAKED. I SCARE EASY.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "ARE YOU GOING TO FAKE ME OUT AGAIN? I'VE GOT NOTHING LEFT TO SHIT.",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -43981,6 +44211,21 @@
  },
  {
   "voice": "meathead",
+  "text": "EVERY TIME. EVERYTHING JUST SHRANK.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "EVERY TIME. MY PANTS CAN'T TAKE THIS.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "EVERY. SINGLE. TIME.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "EVERYBODY GET BACK. WAY BACK.",
   "from": "M2_GUT_LINES"
  },
@@ -46161,6 +46406,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HE GOT TREED. I GOT SHAT.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "HE GOT WHAT HE WHISTLED FOR.",
   "from": "ADVENTURE"
  },
@@ -46713,6 +46963,11 @@
   "voice": "meathead",
   "text": "HE'S GOT SANDBAGS UP THERE. I NEED TO GET CLOSER.",
   "from": "m1/game/stages/dale/town.ts:574"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE'S GOT WOOD. I'VE GOT NOTHING ON.",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -48086,6 +48341,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I GOT NAKED OVER THIS. PAY UP.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "I GOT RAMMED BY THE FUCKING RIOT SQUAD!",
   "from": "HAZARD_HURT"
  },
@@ -48347,6 +48607,11 @@
  {
   "voice": "meathead",
   "text": "I SHAT MYSELF ON IMPACT. FAIR ENOUGH.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "I SHIT MYSELF OVER THIS. PAY UP.",
   "from": "FRONTIER"
  },
  {
@@ -55871,6 +56136,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SHISH KEBAB.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "SHISH-KE-ME!",
   "from": "ADVENTURE"
  },
@@ -60486,6 +60756,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THEY HAD IT COMING. SO DO YOU.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "THEY KEEP SENDING 'EM DOWN!",
   "from": "SPOOKY"
  },
@@ -61233,6 +61508,11 @@
   "voice": "meathead",
   "text": "TRASH PANDA'S IN THE TRASH NOW!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "TREE ONE. TUCKER ZERO.",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -62886,6 +63166,16 @@
  },
  {
   "voice": "meathead",
+  "text": "YEAH. AND I DID IT WITH MY DICK OUT.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "YEAH. AND I SMELL LIKE A WINNER.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "YEAH. HE WAS.",
   "from": "ADVENTURE"
  },
@@ -62903,6 +63193,21 @@
   "voice": "meathead",
   "text": "YEEHAW, MOTHERFUCKER!",
   "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "YEP. GOOD THING I'M NOT WEARING PANTS.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "YEP. THERE GOES ANOTHER LOAD.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "YEP. THERE IT IS.",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -63088,6 +63393,11 @@
   "voice": "meathead",
   "text": "YOU OVERGROWN FAN BITCH!",
   "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOU OWE ME TWENTY BUCKS.",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
