@@ -104,7 +104,7 @@ helpers, the time of day, signLetters, pickLine, the grab, victory, walkAway, dr
 | 1 | The frontier wilds + the station | `wilds` | FRX+0 .. FRX+21000 | 0-9 | built (section 1 job) |
 | 2 | The train | `train` | FRX+24000 .. FRX+38300 | 10-19 | built (job 2; playtest fixes B) |
 | 3 | Sawdust Gulch + the mines | `town` | FRX+39000 .. FRX+54800 | 20-29 | built (job 3; playtest fixes C) |
-| 4 | The log ride (ride, sewer, real river, woodchipper) | `logride` | FRX+56000 .. FRX+67600 | 30-38 | built (job 4) |
+| 4 | The log ride (ride, sewer, real river, woodchipper) | `logride` | FRX+56000 .. FRX+67900 | 30-38 | built (job 4; playtest fixes D) |
 | 5 | The woods (outside the park) + the bounty | `woods` | FRX+68000 .. FRX+71000 | 40-41 | built (job 5) |
 | 6 | The dirt-bike chase (TEENAGERS sub-boss) | `dirtbike` | FRX+74000 .. FRX+84000 (side view: the first 1800) | 50-55 | built (job 6) |
 | 7 | The catch-up + Tucker's arena | `arena` | FRX+87000 .. FRX+91000 | 60-69 | catch-up, impalement, fake-out built (job 7); the fight a placeholder |
@@ -178,12 +178,12 @@ Teach, then escalate (each hazard alone in a safe spot first):
 | 3000 | THE OLD SAWMILL (cp 33 at 3020) | the shed; DROPPING SAWS out of the rafters (a shudder and a red lamp, the slam: brake or paddle through the gap), alone, then a pair, then one more; the lumberjacks shredded |
 | 3900 | THE BIG DROP | out of the shed down into the splash pool; the ride photo's flash; soaked guests on the bridge |
 | 4250 | THE LUMBER CAMP (cp 34 at 4300) | a drop, RAIL SAWS (along the trough's edge at him: jump), alone, then mixed with a wall saw and a swing; the bear shredded |
-| 5360 | THE BREAK | the cutter comes down across the flume ahead of him: the log jumps the cut and goes down through a storm grate |
-| 5840 | THE SEWER (cp 35 at 5900, cp 36 at 7060) | LOW PIPES (brick headers down to the pipe: duck), SEWAGE GUSHERS (gurgle and drip, then the pour: brake or paddle), RATS on the walkways (they leap at the log), loose saws ROLLING down the tunnel (jump) |
+| 5420 | THE BREAK | the giant saw drops out of the sky and slams into the ground ahead (5720); a fault line cracks open, the flume over it breaks apart, the log falls through the chasm (5700-5840) into the sewer: a big splash |
+| 5840 | THE SEWER (cp 35 at 5900, cp 36 at 7060) | LOW PIPES (a bundle of round pipes down from the vault to head height: duck), BUSTED PIPE sections across the channel (jump), SEWAGE GUSHERS (round outfalls: brake, paddle or hop), RATS on the walkways (they leap at the log); no saws |
 | 8400 | THE CULVERT | out of the bluff the park sits on through its busted fence (PARK PROPERTY ENDS), down the spillway into a real river |
-| 8640 | A REAL RIVER (cp 37 at 8700, cp 38 at 10080) | ROCKS (be in the air as the log hits one), LOW BRANCHES (a fallen real tree's crown: duck), crows; the rapids; a real waterfall; the crew's WOODCHIPPER AHEAD sign |
+| 8640 | A REAL RIVER (cp 37 at 8700, cp 38 at 10080) | a big splash in; the crew's ROCKS! JUMP EM and LOW LIMBS DUCK! boards; ROCKS (well up out of the water, foaming, an orange blaze: be in the air as the log hits one), LOW LIMBS (a fallen real tree's crown down onto one great limb at head height, DUCK sprayed on it), crows; the rapids; a real waterfall (a big splash); the crew's WOODCHIPPER AHEAD sign |
 | 10760 | THE SLUICE | the crew's conveyor up into the chipper: READY (amber), then JUMP! (green, flashing, the crew yelling it, ~110 frames): over the hopper onto the clearing; missed: mulched |
-| 11180 | THE CREW'S CLEARING | off its right end into the woods; off its left end the trail back to the park (the station: ride it again) |
+| 11180 | THE CREW'S CLEARING | the logging crew (2, chainsaws; throw one in the chipper); off its right end (11900) into the woods; off its left end the trail back to the park (the station: ride it again) |
 
 ### Section 5: the woods (woods/layout.ts; x from the section's start; flat ground at GY)
 
@@ -713,3 +713,57 @@ Teach, then escalate (each hazard alone in a safe spot first):
   barrier, the flume on its trestles behind with a log coming down, the station's marquee THE LONGEST LOG RIDE IN THE
   WEST); every row stands on the deck, the flume's legs reach it, and nothing's drawn over the far shaft's mouth (posts
   at its edges, its own MINE EXIT headframe, the ground right up to it).
+- 2026-10-18 (playtest fixes D, the log ride and the woods; the user's notes verbatim in the job brief): IN THE WATER
+  (the user: "sell the idea it's in water more"): the log bobs on the flat, ripples spread off it, its wake trails in a
+  V, a bow wave curls off its nose, foam rings its foot, spray off the nose going, the water see-through over its belly
+  (the flume's near wall drops to just under the surface, the surface banded and rippling by), the water lapping (and
+  the real river rushing) in the sound. THE HOP (the user's): left or right during a hop carries him a little back or
+  on along the log (2.4 px a frame, up to 44 off its middle) and the log always follows, catching up under him (on the
+  free stretches; not on the chain or down a drop); he faces the way he goes (left/right in the log turns him).
+- 2026-10-18 (playtest D): HIS SEAT (the user's "resembles the shape of the car"): Player.logSeat, a new render pose
+  (render/player/player.ts, on the mine cart's seat): sat down in the log, legs out forward down in it (hidden by its
+  near side), the free hand gripping the rim, the gun out; ducked, hunched right down in it (and 10 px lower). Stood up
+  out of it in a hop. THE DUCKS (the user's "make sure ducking clears..."): every duck-under comes down solid to one
+  line, DUCK_LINE 44 over the water (layout.ts), drawn and hit alike: his ducked head tops out 28-30 over the water,
+  well under it; sat up, 58-64, well over. The wall saws' bulkheads down to the saw with a DUCK plate and arrow, the
+  swing's arm shortened to bring it to the line, the sewer's pipes and the river's limbs to it (their hit as wide as
+  drawn).
+- 2026-10-18 (playtest D): THE BOOTH (the user's): no saw over the console before; the button lights BUZZSAW MODE (a
+  panel over the console, flashing from then on) and the ride's PA chirps it (SPIEL_BUZZMODE: no talk-over, the drop
+  waits on it); then the saw drops out of the sky, down through the station's roof and the booth's (holes left in both,
+  splinters, daylight down them) into his forehead; the close-up's blade comes down loose (no arm).
+- 2026-10-18 (playtest D): THE BIG SPLASHES (the user's: every fall): a giant wave off the foot of every drop (the big
+  drop, into the sewer, into the river, the waterfall): walls of water up either side of the log (the front one the
+  big one), the crest breaking, white water boiling, spray over everything, the water running down the screen.
+- 2026-10-18 (playtest D): THE BREAK (the user's: the giant buzzsaw slams into the ground, opens a fault line, the ride
+  breaks apart, he falls into the sewer): played, not a cutscene (the log's on rails there anyway): the giant saw drops
+  out of the sky and slams half into the ground at 5720 (the shake, dirt flying, grinding in the gouge after); a fault
+  line cracks open, running off along the ground both ways, the chasm (5690-5850) tearing open down to the sewer's
+  vault; the flume over it breaks apart (both ends splintered and sagging into it, the water pouring off); the log
+  rides on to it and drops through nose first, into the sewer: the big splash, the vault's hole and daylight overhead.
+  No storm grate. Respawns past it see it done (the chasm open, the saw in the ground).
+- 2026-10-18 (playtest D): THE SEWER (the user's: natural pipes; jumping and ducking and rats; no buzzsaws): the rolling
+  saws are gone; the low pipes are a stack of round pipes end-on down from the vault on a rusted hanger (flanges, bolts,
+  slime, a drip) to head height; BUSTED PIPE sections (a concrete culvert section fallen across the channel, half sunk,
+  rebar out of it) to jump (the log bucks over: in the air or his tailbone, m2:fr_junk: its lines and death screens);
+  the gushers pour from round outfalls; a water main with its joints along the back wall.
+- 2026-10-18 (playtest D): THE RIVER: rocks stick well up out of the water (jagged, foaming round them, the crew's orange
+  blaze on each), the crew's hand-painted ROCKS! JUMP EM and LOW LIMBS DUCK! boards before the first of each; each
+  limb a wall of leaves down onto one great limb at the duck line, its underside scraped pale, DUCK sprayed on it.
+- 2026-10-18 (playtest D): THE CREW (the user's: killable; "throw them in the woodchipper yourself if you are skilled"):
+  a new kind m2:fr_logger (logride/kinds.ts: hard hats, ear defenders, hi-vis over flannel, chainsaws; men and women,
+  seeded), two on the clearing, which is widened to FRX+67900 for them. They yell JUMP as he comes (the alive one), then,
+  him down on their clearing on foot, sore about their log (CREW_MAD), they come at him: the saw revved up overhead (the
+  tell: the roar, smoke, the chain sparking), then the lunge (m2:fr_chainsaw: its lines and death screens). Anybody flung
+  or thrown into the running chipper's hopper (a logger alive or a body; a throw, a knock, a corpse going over) goes
+  through it: red and meat out the chute over the truck, CHIPPED! (a new callout of its own, the announcer's).
+- 2026-10-18 (playtest D): KILL CALLOUTS ON DESPAWN (an engine fix, m1/game/enemies/enemies.ts knockedOutOfBounds, every
+  land): only an enemy that's just gone out over the screen's top or bottom edge itself (within 90 px plus its own speed
+  of it) counts as knocked out; one the view jumped away from (a teleport into the next area: here, the river's crows
+  left far under the woods' view) is left alone: no kill, no callout, no drop. One dropping on forever out there is let
+  go quietly (2400 px under the screen).
+- 2026-10-18 (playtest D): THE WOODS: the poison ivy an obvious trap: a toxic green, a pulsing glow over each patch
+  (and a light of its own at dusk), spores shimmering up off it. Lots more trash (cans, bottles, fast-food bags and cups,
+  pizza boxes, tires, a cooler, the cart, the mattress), none of it in the ivy, on the trap or in the way. The log
+  ride's station queue sold as the town's line's last stretch: two switchback rows on the platform (the back one on a
+  dimmed step), every rail on its posts, packed, the town's yellow boards (15 MIN FROM HERE, NEXT LOG. ALMOST THERE).

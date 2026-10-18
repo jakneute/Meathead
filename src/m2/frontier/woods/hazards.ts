@@ -81,11 +81,29 @@ const itchFx = (state: GameState, col: string) => {
 // ---------------------------------------------------------------------------------------------------------------
 // Drawing
 
-/** The ivy: low clumps of shiny three-leaf plants, red at the stems, glistening; trembling while he's in it. */
+/** The ivy's glow for the lighting system (a sickly green, at dusk and after). */
+export const ivyLamps = () => IVY.map(([a, b]) => ({ x: X((a + b) / 2), y: GY - 12, r: 70 + (b - a) / 2, a: 0.55, color: '#A3E635' }));
+
+/** The ivy: an obvious trap (the playtest's): low clumps of shiny three-leaf plants, a toxic, sickly green, red at the
+ *  stems, glowing (a pulsing haze over the patch, spores shimmering up off it); trembling while he's in it. */
 export const drawIvy = (c: Ctx, state: GameState) => {
   const f = state.frame, shake = inIvy(state);
   for (const [a, b] of IVY) {
-    if (!onScreen(state, X(a), X(b))) continue;
+    if (!onScreen(state, X(a) - 40, X(b) + 40)) continue;
+    // (the glow: a pulsing green haze over the patch, brighter at its heart)
+    const pulse = 0.5 + 0.5 * Math.sin(f * 0.08 + a * 0.01), mx = (X(a) + X(b)) / 2, hw = (b - a) / 2;
+    c.save(); c.globalCompositeOperation = 'lighter';
+    c.fillStyle = '#84CC16';
+    c.globalAlpha = 0.1 + 0.08 * pulse; c.beginPath(); c.ellipse(mx, GY - 8, hw + 30, 30 + pulse * 6, 0, 0, Math.PI * 2); c.fill();
+    c.globalAlpha = 0.16 + 0.12 * pulse; c.beginPath(); c.ellipse(mx, GY - 6, hw + 12, 16 + pulse * 4, 0, 0, Math.PI * 2); c.fill();
+    c.restore();
+    // (spores shimmering up off it)
+    for (let i = 0; i < 10; i++) {
+      const sx = X(a) + ((i * 37 + f * 0.4) % (b - a)), rise = (f * 0.5 + i * 13) % 46;
+      c.globalAlpha = 0.85 * (1 - rise / 46); c.fillStyle = i % 2 ? '#D9F99D' : '#BEF264';
+      c.fillRect(sx + Math.sin(f * 0.1 + i) * 3, GY - 8 - rise, 2, 2);
+    }
+    c.globalAlpha = 1;
     for (let x = a + 4; x < b - 2; x += 9) {
       const h = hash(x), bx = X(x) + (shake ? Math.sin(f * 0.8 + x) * 1 : 0), by = GY;
       c.strokeStyle = '#7F1D1D'; c.lineWidth = 1; c.beginPath(); c.moveTo(bx, by); c.lineTo(bx + (h - 0.5) * 4, by - 8 - h * 6); c.stroke();
@@ -93,9 +111,9 @@ export const drawIvy = (c: Ctx, state: GameState) => {
       // (three leaves, pointed, the middle one on a longer stem)
       for (const [dx, dy, r] of [[-4, 1, -0.7], [4, 1, 0.7], [0, -4, 0]] as const) {
         c.save(); c.translate(tx + dx, ty + dy); c.rotate(r);
-        c.fillStyle = INK; c.beginPath(); c.ellipse(0, 0, 3.4, 2.4, 0, 0, Math.PI * 2); c.fill();
-        c.fillStyle = h > 0.6 ? '#65A30D' : h > 0.3 ? '#4D7C0F' : mix('#4D7C0F', '#B91C1C', 0.35); c.beginPath(); c.ellipse(0, 0, 2.8, 1.8, 0, 0, Math.PI * 2); c.fill();
-        c.fillStyle = '#D9F99D'; c.fillRect(-1, -1, 1.4, 0.8);
+        c.fillStyle = INK; c.beginPath(); c.ellipse(0, 0, 3.8, 2.7, 0, 0, Math.PI * 2); c.fill();
+        c.fillStyle = h > 0.6 ? '#A3E635' : h > 0.3 ? '#84CC16' : mix('#84CC16', '#B91C1C', 0.35); c.beginPath(); c.ellipse(0, 0, 3.2, 2.1, 0, 0, Math.PI * 2); c.fill();
+        c.globalAlpha = 0.5 + 0.5 * pulse; c.fillStyle = '#ECFCCB'; c.fillRect(-1.4, -1.2, 1.8, 1); c.globalAlpha = 1;
         c.restore();
       }
     }

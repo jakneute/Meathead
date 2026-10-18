@@ -62,6 +62,8 @@ export const OP_AGAIN: ByPants = {
 export const SPIEL_CREEK = ['HOWDY, PARTNERS! ON YOUR LEFT, THE BUSY BEAVERS OF BEAVER CREEK!'];
 export const SPIEL_MILL = ['THE OLD SAWMILL! MIND THE BLADES! THAT IS JUST A JOKE, FOLKS!'];
 export const SPIEL_DROP = ['HOLD ON TO YOUR HATS! HERE COMES TIMBER TUMBLE!'];
+/** The big red button slammed in the booth: the ride's own voice, chirpy as ever. */
+export const SPIEL_BUZZMODE = ['BUZZSAW MODE ENGAGED. PLEASE KEEP ALL LIMBS INSIDE THE LOG.'];
 
 // ---------------------------------------------------------------------------------------------------------------
 // The logging crew (real loggers, out past the park)
@@ -72,6 +74,14 @@ export const CREW_JUMP: ByPants = {
   shitty: ['JUMP! AND DO NOT LAND NEAR ME!', 'JUMP, STINKY! JUMP!'],
   nude: ['NAKED GUY! JUMP!', 'JUMP! AND COVER UP!'],
 };
+/** He's down on their clearing, their log mulched: they come at him with the chainsaws. */
+export const CREW_MAD: ByPants = {
+  clean: ['THAT WAS OUR LOG, ASSHOLE!', 'YOU MULCHED A WHOLE LOG! GET HIM!'],
+  shitty: ['HE SHAT IN OUR CHIPPER! GET HIM!', 'YOU STINK AND YOU OWE US A LOG!'],
+  nude: ['NAKED GUY KILLED OUR LOG! GET HIM!', 'PUT IT AWAY AND PAY FOR THE LOG!'],
+};
+/** Anybody thrown into the chipper (the announcer's kill callout). */
+export const CHIPPED_CALLS = ['CHIPPED!', 'MULCHED!', 'FED THE CHIPPER!', 'WOOD CHIPS!', 'LANDSCAPED!'];
 
 // ---------------------------------------------------------------------------------------------------------------
 // Meathead (he loves rides)
@@ -183,6 +193,14 @@ export const HURT: HurtTable = {
     hurt: ['NOT THE CHIPPER! NOT THE CHIPPER!', 'MY FEET! MY LEGS! MY—'],
     death: ['MULCHED', 'FED THROUGH A WOODCHIPPER. FEET FIRST.', 'HE WAS NOT WOOD'],
   },
+  'm2:fr_junk': {
+    hurt: ['MY TAILBONE! A PIPE!', 'SEWER JUNK! RIGHT IN THE SPINE!', "WHAT DID WE HIT?! DON'T TELL ME."],
+    death: ['BROKE HIS BACK ON SEWER JUNK', 'BUCKED OFF A LOG IN THE SEWER'],
+  },
+  'm2:fr_chainsaw': {
+    hurt: ['CHAINSAW! CHAINSAW!', 'A LUMBERJACK SAWED ME!', 'NOT THE CHAINSAW!'],
+    death: ['CUT DOWN BY THE CREW', 'FELLED BY A LOGGER', 'TIMBER'],
+  },
 };
 
 const MEATHEAD = [DEAD_AGAIN, RIDE_START, FIRST_SAW, LIFT_HILL, BIG_DROP, PHOTO, BREAKOUT, SEWER, RATS_SEEN, REAL_RIVER, FALLS, CHIPPER_SEEN, JUMPED];
@@ -193,7 +211,8 @@ export const VOICE_LINES: Record<string, string[]> = {
   [TUCKER_VOICE]: [TUCKER_ENGAGE, TUCKER_SAWED].flatMap(allOf),
   [RIDE_VOICES.operator]: OPERATOR.flatMap(allOf),
   [RIDE_VOICES.operatorf]: OPERATOR.flatMap(allOf),
-  [RIDE_VOICES.spiel]: [...SPIEL_CREEK, ...SPIEL_MILL, ...SPIEL_DROP],
-  [RIDE_VOICES.crew]: allOf(CREW_JUMP),
-  [RIDE_VOICES.crewf]: allOf(CREW_JUMP),
+  [RIDE_VOICES.spiel]: [...SPIEL_CREEK, ...SPIEL_MILL, ...SPIEL_DROP, ...SPIEL_BUZZMODE],
+  [RIDE_VOICES.crew]: [...allOf(CREW_JUMP), ...allOf(CREW_MAD)],
+  [RIDE_VOICES.crewf]: [...allOf(CREW_JUMP), ...allOf(CREW_MAD)],
+  announcer: CHIPPED_CALLS,
 };

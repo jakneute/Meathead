@@ -1,7 +1,8 @@
 // THE BOOTH (the user's): as Meathead cuts the whole line and drops into a log, Tucker (a hole through his eye, somehow
 // still going) bursts into the ride's control booth, shoves the real operator out of it, and at the controls: "TIME TO
-// ENGAGE THE BUZZSAWS". He slams the button; the ride's saws come on all down the line, and the one hung over the
-// console drops on its arm, straight into his forehead. The mutilation close-up rule: an ANIMATED, GRAPHIC close-up of
+// ENGAGE THE BUZZSAWS". He slams the button: BUZZSAW MODE (the console's panel lit, the ride's PA chirping it); the
+// ride's saws come on all down the line, and one drops out of the sky (nowhere to be seen before: down through the
+// station's roof and the booth's), straight into his forehead (the user's playtest note). The mutilation close-up rule: an ANIMATED, GRAPHIC close-up of
 // it happening (this job's wound painter on tucker.ts's close-up): the blade coming down out of the dark, the bite
 // through the cap's crown (the brass plate flying), the grind down into his forehead (sparks, bone, blood in a spray),
 // stuck there spinning down, the blood running down over his face and into the hole where his eye was, his one eye
@@ -31,7 +32,7 @@ import { box, mix, INK, painted, type Ctx } from '../kit';
 import { drawTucker, drawTuckerCloseup, drawTuckerCap, registerWoundPainter } from '../tucker';
 import { rideOf, type Scene } from './state';
 import { X, waterY, BOOTH, LOAD_X } from './layout';
-import { RIDE_VOICES, TUCKER_ENGAGE, TUCKER_SAWED, OP_CUT, OP_SHOVED, OP_AFTER, OP_AGAIN, DEAD_AGAIN } from './lines';
+import { RIDE_VOICES, TUCKER_ENGAGE, TUCKER_SAWED, OP_CUT, OP_SHOVED, OP_AFTER, OP_AGAIN, DEAD_AGAIN, SPIEL_BUZZMODE } from './lines';
 import { drawSawDisc } from './hazards';
 import { rideStartLine } from './ride';
 
@@ -50,6 +51,14 @@ const opVoice = () => (opWoman() ? RIDE_VOICES.operatorf : RIDE_VOICES.operator)
 const BX0 = X(BOOTH.a), BX1 = X(BOOTH.b), FLOOR = GY - BOOTH.floor;
 const CONSOLE_X = BX1 - 40, SAW_X = CONSOLE_X - 26;
 const TUCK_AT = CONSOLE_X - 30, OP_AT = CONSOLE_X - 20;
+/** The saw out of the sky: how long it takes to come down, the station's roof and the booth's it comes through, where it
+ *  falls from (over the top of the scene's view) and to (his head). */
+const DROP_T = 26, ROOF_Y = GY - 290, BOOTH_ROOF = FLOOR - BOOTH.top - 10, FALL_FROM = GY - 560, FALL_TO = FLOOR - 90;
+const sawFallY = (_state: GameState, k: number) => FALL_FROM + (FALL_TO - FALL_FROM) * k * k;
+/** Splintered boards and dust off a roof it's come through. */
+const splinters = (state: GameState, y: number) => {
+  for (let i = 0; i < 14; i++) state.particles.push({ pos: { x: SAW_X + (Math.random() - 0.5) * 30, y }, vel: { x: (Math.random() - 0.5) * 6, y: -1 - Math.random() * 4 }, life: 36, color: i % 3 ? '#8A5A30' : '#C8A070', size: 2 + Math.random() * 3 });
+};
 
 const say = (state: GameState, s: Scene, who: 'tucker' | 'op', pool: ByPants, done?: () => void) => {
   s.busy = true;
@@ -64,7 +73,7 @@ const inScene = (s: Scene) => s.step !== 'wait' && s.step !== 'done';
 export const startScene = (state: GameState) => {
   const s = rideOf(state).scene;
   silenceAll();
-  s.step = 'burst'; s.t = 0; s.all = 0; s.busy = false; s.tx = BX0 - 30; s.ox = OP_AT; s.oy = FLOOR; s.ovx = 0; s.ovy = 0; s.opDown = false; s.sawK = 0; s.k = 0;
+  s.step = 'burst'; s.t = 0; s.all = 0; s.busy = false; s.tx = BX0 - 30; s.ox = OP_AT; s.oy = FLOOR; s.ovx = 0; s.ovy = 0; s.opDown = false; s.sawK = 0; s.k = 0; s.roof = false; s.booth = false;
   state.player.inCutscene = true;
   state.cameraOverride = { x: X(BOOTH.a) - 180, y: GY - 470 };
   playSound('slam', 1, -6);
@@ -107,16 +116,20 @@ export const updateScene = (ctx: FrameContext): Controls | null => {
       if (s.t === 1) say(state, s, 'tucker', TUCKER_ENGAGE, () => next(s, 'press'));
       break;
     case 'press':
-      // (the button: slammed; the klaxon; the saws coming on all down the line)
+      // (the button: slammed; the klaxon; BUZZSAW MODE; the saws coming on all down the line; the PA says so)
       if (s.t === 12) { playSound('slam', 1, -4); playSound('alarm', 0.8); shakeScreen(state, 6, 3); }
       if (s.t === 22) playSound('grind', 1, -8);
-      if (s.t >= 40) { next(s, 'drop'); playSound('clang', 0.8, -6); }
+      if (s.t === 30) { s.busy = true; speak(RIDE_VOICES.spiel, pickLine(SPIEL_BUZZMODE), said => { r.pa = said; }, true, () => { s.busy = false; next(s, 'drop'); playSound('whoosh', 1, -8); }); }
       break;
-    case 'drop':
-      // (the saw over the console lets go on its arm: a glimpse of it coming down, then the close-up)
-      s.sawK = Math.min(1, s.t / 10);
-      if (s.t >= 10) { next(s, 'close'); playSound('grind', 1, -2); }
+    case 'drop': {
+      // (out of the sky: whistling down through the station's roof, then the booth's, into his head; then the close-up)
+      s.sawK = Math.min(1, s.t / DROP_T);
+      const y = sawFallY(state, s.sawK);
+      if (!s.roof && y >= ROOF_Y) { s.roof = true; playSound('crash', 1, -6); shakeScreen(state, 5, 2); splinters(state, ROOF_Y); }
+      if (!s.booth && y >= BOOTH_ROOF) { s.booth = true; playSound('crash', 0.9, -2); splinters(state, BOOTH_ROOF); }
+      if (s.t >= DROP_T) { next(s, 'close'); playSound('grind', 1, -2); }
       break;
+    }
     case 'close': {
       // (the close-up: the blade down into his forehead; his last words; then back out)
       s.k = Math.min(1, s.t / 150);
@@ -216,8 +229,8 @@ registerWoundPainter('saw', (c, k, frame) => {
   else c.clip('evenodd');
   drawSawDisc(c, SX, sy, SR, spin, after > 0.9 ? 1 : 0);
   c.restore();
-  // (its hanger arm, up out of the frame)
-  line([SX, sy, SX - 2, sy - 60], 2.2, '#1C1209'); line([SX, sy, SX - 2, sy - 60], 1.4, '#71717A');
+  // (loose, out of the sky: no arm; coming down, its streaks)
+  if (k < 0.25) { c.globalAlpha = 0.5; for (let i = -1; i <= 1; i++) line([SX + i * 6, sy - SR - 4, SX + i * 6, sy - SR - 30], 0.8, '#F1F5F9'); c.globalAlpha = 1; }
   // ---- the bite: sparks off the cap's brass, then bone chips and blood in a spray off the blade's back edge
   if (k >= 0.25 && grind < 1) {
     const t = grind;
@@ -266,18 +279,17 @@ export const drawBooth = (c: Ctx, state: GameState) => {
   box(c, BX0 + 2, FLOOR - 96, 6, 96, doorOpen ? '#1C1209' : '#6B4423');
   // ---- the blood (once he's had it): up the back wall, on the console
   if (sawed(state)) { c.fillStyle = '#7F1D1D'; for (let i = 0; i < 9; i++) { c.beginPath(); c.arc(SAW_X - 30 + i * 9, top + 40 + (i * 13) % 30, 2 + (i % 3), 0, Math.PI * 2); c.fill(); } box(c, SAW_X - 14, top + 50, 3, 30, '#7F1D1D'); }
-  // ---- the saw on its hanger over the console (up till the button; then down, into him)
-  const sawDown = s.step === 'drop' ? s.sawK : s.step === 'close' || s.step === 'last' || s.step === 'fall' || s.step === 'after' || s.step === 'go' ? 1 : 0;
-  const tuckerHead = FLOOR - 82;
-  const sawY = top + 26 + sawDown * (tuckerHead - 8 - (top + 26));
-  if (!sawed(state) || inScene(s)) {
-    box(c, SAW_X - 10, top + 2, 20, 8, '#52525B');
-    c.strokeStyle = INK; c.lineWidth = 3; c.beginPath(); c.moveTo(SAW_X, top + 8); c.lineTo(SAW_X, sawY); c.stroke();
-    if (s.step !== 'fall' && s.step !== 'after' && s.step !== 'go') drawSawDisc(c, SAW_X, sawY, 12, s.step === 'wait' ? 0 : f * 0.6);
-    box(c, SAW_X + 14, top + 12, 40, 12, '#FDE047'); signText(c, 'EFFECT #1', SAW_X + 34, top + 21, painted(1, '#1C1917', '#FDE047'));
-  } else {
-    // (the hanger's arm, snapped)
-    box(c, SAW_X - 10, top + 2, 20, 8, '#52525B'); box(c, SAW_X - 1, top + 8, 3, 18, INK);
+  // ---- BUZZSAW MODE: the panel over the console, dark till he slams the button, lit (flashing) from then on
+  const modeOn = sawed(state) || (inScene(s) && !(s.step === 'burst' || s.step === 'shove' || s.step === 'engage' || (s.step === 'press' && s.t < 12)));
+  box(c, CONSOLE_X - 40, FLOOR - 112, 84, 20, INK);
+  box(c, CONSOLE_X - 38, FLOOR - 110, 80, 16, modeOn ? (f % 16 < 8 || !inScene(s) ? '#DC2626' : '#7F1D1D') : '#3F1A1A');
+  signText(c, 'BUZZSAW MODE', CONSOLE_X + 2, FLOOR - 98, painted(1, modeOn ? '#FEF08A' : '#5A3A3A', '#1C1209'));
+  // ---- the saw (nowhere to be seen before the button): out of the sky, down through the station's roof and the
+  // booth's, into his head
+  if (inScene(s) && s.step === 'drop') {
+    const y = sawFallY(state, s.sawK);
+    c.globalAlpha = 0.45; for (let i = 0; i < 3; i++) box(c, SAW_X - 10 + i * 9, y - 70, 2, 50, '#F1F5F9'); c.globalAlpha = 1;
+    drawSawDisc(c, SAW_X, y, 12, f * 0.6);
   }
   // ---- Tucker: in the scene, or flat on its floor after (this visit)
   const wounds = tuckerWoundsOf(state);
@@ -309,13 +321,24 @@ export const drawBooth = (c: Ctx, state: GameState) => {
   // ---- the booth's front: its window frame (the glass over them), the sill, the roof and its sign
   c.globalAlpha = 0.18; box(c, BX0 + 10, top + 12, BX1 - BX0 - 20, 70, '#BFE0F8'); c.globalAlpha = 1;
   box(c, BX0 - 4, top - 18, BX1 - BX0 + 8, 18, INK); box(c, BX0 - 2, top - 16, BX1 - BX0 + 4, 14, '#7F1D1D');
-  signText(c, 'RIDE CONTROL', (BX0 + BX1) / 2, top - 5, painted(1, '#FDE047', '#1C1209'));
+  signText(c, 'RIDE CONTROL', BX0 + 64, top - 5, painted(1, '#FDE047', '#1C1209'));
   box(c, BX0, top + 82, BX1 - BX0, 6, '#6B4423'); box(c, BX0, top + 82, BX1 - BX0, 2, '#9A6A3A');
+  // ---- the holes it came down through (the station's roof, the booth's), splinters hanging, daylight down them
+  if (sawed(state) || (inScene(s) && s.roof)) roofHole(c, ROOF_Y, 12, true);
+  if (sawed(state) || (inScene(s) && s.booth)) roofHole(c, top - 9, 9, false);
   // (the words over them while they're said)
   const sayY = top - 30;
   if (s.tucker && s.step !== 'close') saidOver(c, s.tucker.text, s.tx, sayY, '#FDE68A', 260);
   else if (s.op) saidOver(c, s.op.text, op.x, sayY - 12, '#E0F2FE', 240);
   else if (r.bark) saidOver(c, r.bark.text, op.x, sayY - 12, '#E0F2FE', 240);
+};
+
+/** A ragged hole the saw punched down through a roof (its splintered boards hanging; the station's lets the daylight
+ *  down). */
+const roofHole = (c: Ctx, y: number, h: number, light: boolean) => {
+  c.fillStyle = '#0A0806'; c.beginPath(); c.moveTo(SAW_X - 16, y - h); c.lineTo(SAW_X - 10, y + h); c.lineTo(SAW_X - 2, y + h - 3); c.lineTo(SAW_X + 6, y + h + 2); c.lineTo(SAW_X + 15, y - h + 2); c.lineTo(SAW_X + 4, y - h - 2); c.closePath(); c.fill();
+  for (const [dx, a] of [[-12, 0.5], [10, -0.6], [0, 0.15]] as const) { c.save(); c.translate(SAW_X + dx, y + h - 2); c.rotate(a); box(c, -2, 0, 4, 12, '#8A5A30'); c.restore(); }
+  if (light) { c.globalAlpha = 0.14; c.fillStyle = '#FEF9C3'; c.beginPath(); c.moveTo(SAW_X - 10, y + h); c.lineTo(SAW_X + 10, y + h); c.lineTo(SAW_X + 34, FLOOR - BOOTH.top - 18); c.lineTo(SAW_X - 34, FLOOR - BOOTH.top - 18); c.closePath(); c.fill(); c.globalAlpha = 1; }
 };
 
 /** Screen space: the close-up (the saw into his forehead), his last words under it; SKIP. */

@@ -15,6 +15,11 @@ export interface Log {
   rx: number; v: number; push: number;
   /** Him in it: how far up out of it he's jumped, and how fast he's going up or down. */
   up: number; vy: number;
+  /** Him along it: how far ahead of (+) or behind (-) the log's middle he is (a hop forward or back: the log follows
+   *  him, catching up under him), and how fast a hop's carrying him along it. */
+  off: number; hopV: number;
+  /** The log riding the water: its gentle bob (px). */
+  float: number;
   /** The log's own buck (a rock under it, a splashdown): how far up, how fast. */
   bob: number; bobV: number;
   /** (frames since it last splashed down: the spray) */
@@ -48,8 +53,8 @@ export interface Scene {
   tucker: Said | null; op: Said | null; tuckerTalking: boolean; opTalking: boolean;
   /** Where Tucker is in the booth (world x), the operator (world x, and her pose's frames). */
   tx: number; ox: number; oy: number; ovx: number; ovy: number; opDown: boolean;
-  /** The saw over the console: how far down it's dropped (0..1). */
-  sawK: number;
+  /** The saw out of the sky: how far down it's dropped (0..1); through the station's roof yet, the booth's. */
+  sawK: number; roof?: boolean; booth?: boolean;
   /** The close-up's wound (0..1). */
   k: number;
 }
@@ -63,16 +68,29 @@ export interface Chipper {
   /** The mulch: frames in, the chips and the bits out the chute. */
   chips: { x: number; y: number; vx: number; vy: number; c: string; s: number; life: number }[];
   crew: Said | null; crewSaid: boolean;
+  /** Somebody thrown in (frames of red out the chute left); the crew's sore-about-it bark said. */
+  gore: number; madSaid: boolean;
+  /** Which of the crew's saying it (their words go over them). */
+  crewBy?: Enemy | null;
 }
+
+/** A big wave splash at the bottom of a drop (world: where, and frames since). */
+export interface Wave { x: number; y: number; t: number }
 
 export interface Ride {
   log: Log;
   saws: Saw[];
   props: Prop[];
   rocks: Rock[];
-  /** The cutter at the break: frames since it came across (0: not yet). */
+  /** The busted pipe sections across the sewer's channel (as the rocks). */
+  junk: Rock[];
+  /** The big splashes going; frames of water left running down the screen. */
+  waves: Wave[]; lens: number;
+  /** The cutter at the break: frames since it slammed down (0: not yet). */
   cutT: number;
   rats: Enemy[];
+  /** The logging crew (enemies of the clearing's). */
+  crew: Enemy[];
   scene: Scene;
   chip: Chipper;
   /** The ride's PA: what's being said (over the top of the screen). */
@@ -87,9 +105,9 @@ export interface Ride {
 }
 
 export const rideOf = (state: GameState) => frontierState<Ride>(state, 'logride', () => ({
-  log: { mode: 'off', rx: 0, v: 0, push: 1, up: 0, vy: 0, bob: 0, bobV: 0, splash: 0, t: 0, camY: 0 },
-  saws: [], props: [], rocks: [], cutT: 0, rats: [],
+  log: { mode: 'off', rx: 0, v: 0, push: 1, up: 0, vy: 0, off: 0, hopV: 0, float: 0, bob: 0, bobV: 0, splash: 0, t: 0, camY: 0 },
+  saws: [], props: [], rocks: [], junk: [], waves: [], lens: 0, cutT: 0, rats: [], crew: [],
   scene: { step: 'wait', t: 0, all: 0, busy: false, tucker: null, op: null, tuckerTalking: false, opTalking: false, tx: 0, ox: 0, oy: 0, ovx: 0, ovy: 0, opDown: false, sawK: 0, k: 0 },
-  chip: { state: 'idle', t: 0, lx0: 0, ly0: 0, lk: 0, chips: [], crew: null, crewSaid: false },
+  chip: { state: 'idle', t: 0, lx0: 0, ly0: 0, lk: 0, chips: [], crew: null, crewSaid: false, gore: 0, madSaid: false },
   pa: null, bark: null, said: {}, flash: 0, pipeCd: 0, gushCd: 0, branchCd: 0,
 }));

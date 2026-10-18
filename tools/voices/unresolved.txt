@@ -129,20 +129,21 @@ m2/frontier/train/engine.ts:73 voice: text
 m2/frontier/town/kinds.ts:106 voice: false
 m2/frontier/town/scenes.ts:148 voice: pickLine(byPants(state, pool))
 m2/frontier/town/scenes.ts:168 voice: pickLine(byPants(state, SHERIFF_BARK))
-m2/frontier/logride/scene.ts:57 voice: text
-m2/frontier/logride/scene.ts:58 voice: text
-m2/frontier/logride/scene.ts:78 voice: false
-m2/frontier/logride/scene.ts:104 voice: s
-m2/frontier/logride/scene.ts:107 voice: s
-m2/frontier/logride/scene.ts:127 voice: s
-m2/frontier/logride/scene.ts:138 voice: s
-m2/frontier/logride/scene.ts:162 voice: true
-m2/frontier/logride/ride.ts:78 voice: true
-m2/frontier/logride/chipper.ts:42 voice: false
-m2/frontier/woods/index.ts:87 voice: false
+m2/frontier/logride/ride.ts:94 voice: true
+m2/frontier/logride/chipper.ts:46 voice: false
+m2/frontier/logride/scene.ts:66 voice: text
+m2/frontier/logride/scene.ts:67 voice: text
+m2/frontier/logride/scene.ts:87 voice: false
+m2/frontier/logride/scene.ts:113 voice: s
+m2/frontier/logride/scene.ts:116 voice: s
+m2/frontier/logride/scene.ts:122 voice: pickLine(SPIEL_BUZZMODE)
+m2/frontier/logride/scene.ts:140 voice: s
+m2/frontier/logride/scene.ts:151 voice: s
+m2/frontier/logride/scene.ts:175 voice: true
 m2/frontier/woods/scene.ts:60 voice: text
 m2/frontier/woods/scene.ts:62 voice: who
 m2/frontier/woods/scene.ts:232 voice: 'teen'
+m2/frontier/woods/index.ts:87 voice: false
 m2/frontier/dirtbike/chase.ts:297 voice: false
 m2/frontier/dirtbike/chase.ts:363 voice: false
 m2/frontier/dirtbike/chase.ts:595 voice: true

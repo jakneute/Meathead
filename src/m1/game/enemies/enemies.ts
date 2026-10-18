@@ -162,6 +162,9 @@ const keepOutOfWalls = (state: FrameContext['state'], e: Enemy, xWas: number) =>
  * MOON!"; shoved off a ledge down a pit: "OFF THE CLIFF!"; sent flying off
  * either end of the stage: "YEETED!". (Only enemies: Meathead never is.)
  */
+/** How far past the screen's top or bottom edge (plus its own speed) one can be and still have just gone out over it;
+ *  and how far under the screen one dropping on forever is quietly let go (not a kill). */
+const OUT_MARGIN = 90, LOST_BELOW = 2400;
 const knockedOutOfBounds = (ctx: FrameContext, e: Enemy): boolean => {
   const { state, fx, stageId } = ctx;
   // (one that's never been on the screen hasn't gone anywhere: it wandered off something out of sight; it's put back
@@ -186,8 +189,15 @@ const knockedOutOfBounds = (ctx: FrameContext, e: Enemy): boolean => {
   // (On a hilly stage things sit above and below the view all the time, hopping, leaping and flying about:
   // only ones launched by a hit count going up, and only ones with nothing under them going down)
   const launched = (e.pauseTimer || 0) > 0 && e.vel.y < -2;
-  const up = !openAbove && !getStageLayout(stageId)?.noMoonKills && e.pos.y + e.height < scr.y && (!hilly || launched);
-  const down = e.pos.y > scr.y + scr.h && (!hilly || !hasFloorBelow(state, e));
+  // (only one that's gone out over the edge itself, just now: just past it, on its way out. One the view has jumped away
+  // from (he went through a way into the next area, a cut, a teleport) is far past the edge without ever crossing it: it's
+  // been left behind, not killed: no callout, no drop, nothing. Dropping on for good out there, it's quietly let go.)
+  const reach = OUT_MARGIN + Math.abs(e.vel.y);
+  const crossedTop = e.pos.y + e.height >= scr.y - reach;
+  const crossedBottom = e.pos.y <= scr.y + scr.h + reach;
+  if (e.pos.y > scr.y + scr.h + LOST_BELOW && e.vel.y > 0 && !hasFloorBelow(state, e)) return true;
+  const up = !openAbove && !getStageLayout(stageId)?.noMoonKills && e.pos.y + e.height < scr.y && crossedTop && (!hilly || launched);
+  const down = e.pos.y > scr.y + scr.h && crossedBottom && (!hilly || !hasFloorBelow(state, e));
   // (going out of bounds is about falling off the bottom or being launched off the top; off the ends only counts
   // on the old flat stages, where being knocked clean off either end is the joke)
   const side = !getStageLayout(stageId) && (e.pos.x + e.width < getStageLeft(stageId) || e.pos.x > getStageWidth(stageId));

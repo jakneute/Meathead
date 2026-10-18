@@ -322,6 +322,43 @@ const litter = (c: Ctx, x: number, what: Litter) => {
       c.strokeStyle = '#E5E7EB'; c.lineWidth = 1; c.beginPath(); c.moveTo(x - 10, g - 38); c.lineTo(x - 2, g - 28); c.lineTo(x + 6, g - 36); c.stroke();
       box(c, x + 12, g - 38, 4, 4, '#A8A29E'); box(c, x + 12, g - 30, 4, 4, '#A8A29E');
       return;
+    case 'bottles':
+      // (a few empties, brown and green, one smashed)
+      for (const [dx, col, up] of [[-8, '#7C2D12', true], [0, '#15803D', false], [8, '#92400E', true]] as const) {
+        if (up) { box(c, x + dx - 3, g - 12, 6, 12, INK); box(c, x + dx - 2, g - 11, 4, 10, col); box(c, x + dx - 1, g - 15, 2, 4, col); box(c, x + dx - 1, g - 10, 1, 6, '#FDE68A'); }
+        else { box(c, x + dx - 6, g - 4, 12, 4, INK); box(c, x + dx - 5, g - 3, 9, 2, col); }
+      }
+      for (let k = 0; k < 4; k++) box(c, x + 12 + k * 3, g - 1 - (k % 2), 2, 1, '#86EFAC');
+      return;
+    case 'fastfood':
+      // (a burger joint's paper bag, its cup and straw, fries spilled)
+      box(c, x - 10, g - 12, 12, 12, INK); box(c, x - 9, g - 11, 10, 11, '#D6B88A'); box(c, x - 7, g - 8, 6, 4, '#DC2626');
+      box(c, x + 4, g - 10, 8, 10, INK); box(c, x + 5, g - 9, 6, 9, '#F8FAFC'); box(c, x + 5, g - 6, 6, 2, '#DC2626'); box(c, x + 8, g - 14, 1, 5, '#F59E0B');
+      for (let k = 0; k < 5; k++) box(c, x - 16 + k * 4, g - 1 - (k % 2), 3, 1, '#FACC15');
+      return;
+    case 'cup':
+      box(c, x - 6, g - 4, 12, 5, INK); box(c, x - 5, g - 3, 10, 3, '#F8FAFC'); box(c, x - 1, g - 3, 3, 3, '#DC2626'); box(c, x + 5, g - 5, 4, 1, '#F59E0B');
+      return;
+    case 'pizza':
+      // (a grease-stained box, flipped open, a crust left)
+      box(c, x - 14, g - 3, 28, 4, INK); box(c, x - 13, g - 2, 26, 2, '#E7D8B0'); c.fillStyle = '#A16207'; c.beginPath(); c.ellipse(x + 3, g - 2, 6, 1.4, 0, 0, Math.PI * 2); c.fill();
+      box(c, x - 14, g - 15, 3, 13, INK); box(c, x - 13, g - 14, 2, 11, '#E7D8B0');
+      box(c, x - 4, g - 4, 8, 2, '#D97706');
+      return;
+    case 'cooler':
+      // (a busted cooler on the far side, its lid off (dimmed: not for standing on))
+      c.globalAlpha = 0.85;
+      box(c, x - 18, g - 40, 36, 20, INK); box(c, x - 17, g - 39, 34, 18, '#E5E7EB'); box(c, x - 17, g - 34, 34, 3, '#2563EB');
+      box(c, x + 18, g - 32, 22, 4, INK); box(c, x + 19, g - 31, 20, 2, '#E5E7EB');
+      c.globalAlpha = 1;
+      return;
+    case 'tires':
+      // (a stack of dumped tires on the far side (dimmed))
+      c.globalAlpha = 0.85;
+      for (let k = 0; k < 3; k++) { c.fillStyle = INK; c.beginPath(); c.ellipse(x, g - 32 - k * 9, 18, 6, 0, 0, Math.PI * 2); c.fill(); c.fillStyle = '#27272A'; c.beginPath(); c.ellipse(x, g - 32 - k * 9, 16, 4.5, 0, 0, Math.PI * 2); c.fill(); }
+      c.fillStyle = '#3F3F46'; c.beginPath(); c.ellipse(x, g - 50, 8, 2, 0, 0, Math.PI * 2); c.fill();
+      c.globalAlpha = 1;
+      return;
   }
 };
 

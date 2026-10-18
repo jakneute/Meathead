@@ -32,7 +32,7 @@ fighting and platforming on the way (about 2.5x pure walking).
 | wilds | FRX+0 .. FRX+21000 (21000) | ~24000 (platform heavy, the logs) | ~5 min |
 | train | FRX+24000 .. FRX+38300 (14300: the big cars, the playtest's) | 12000 | ~2.5 min |
 | town | FRX+39000 .. FRX+54800 (15800: the playtest's bigger town, the long flooded shaft) | 11000 (the mines' shafts counted by play) + the saloon's brawl and the duel | ~3 min |
-| logride | FRX+56000 .. FRX+67600 (11600) | 9000 (a ride: by time) | ~2 min |
+| logride | FRX+56000 .. FRX+67900 (11900: the crew's clearing widened for their fight) | 9000 (a ride: by time) | ~2 min |
 | woods | FRX+68000 .. FRX+71000 (3000) | 3000 + its scene | ~0.6 min |
 | dirtbike | FRX+74000 .. FRX+84000 (10000) | by time: the TEENAGERS | ~3 min |
 | arena | FRX+87000 .. FRX+91000 (4000) | the catch-up + the boss | the fight |
@@ -79,7 +79,7 @@ move your DOORS entries to match; keep the way back working (revisits), or give 
   left end: `DOORS.train.end` (the tender's front, set by train/index.ts): the train stood still after the crash (walk it
   back to the caboose and the station); into the cab's back goes on to the town again.
 - **The woodchipper** (logride -> woods, built, logride/chipper.ts): he lands on the crew's clearing past the chipper
-  and walks off its right end to `DOORS.woods.start`. Back from the woods: `DOORS.logride.end` (on the clearing, set by
+  (the crew, chainsaws, come at him) and walks off its right end to `DOORS.woods.start`. Back from the woods: `DOORS.logride.end` (on the clearing, set by
   logride/index.ts); its left end is the trail back to the ride's station.
 - **The bike** (woods -> dirtbike, built, woods/scene.ts): the bounty ends with him riding off on the kid's bike and
   puts him at `DOORS.dirtbike.start` (on foot, his ride flags cleared); `takeBountyHandoff()` (woods/scene.ts) is true

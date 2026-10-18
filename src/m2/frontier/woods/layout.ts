@@ -37,10 +37,14 @@ export const TRAP_X = 1080;
 /** Crows (the wilds' kind) [x, height]. */
 export const CROWS: [number, number][] = [[980, 210], [1460, 240]];
 /** Litter on the trail: [x, what]. */
-export type Litter = 'can' | 'cans' | 'tire' | 'mattress' | 'cart' | 'bag' | 'tv' | 'bottle';
+export type Litter = 'can' | 'cans' | 'tire' | 'mattress' | 'cart' | 'bag' | 'tv' | 'bottle' | 'bottles' | 'fastfood' | 'cup' | 'cooler' | 'tires' | 'pizza';
+/** (the playtest's: lots more of it; none of it in the ivy, on the trap or in the way: set dressing only) */
 export const LITTER: [number, Litter][] = [
-  [260, 'can'], [430, 'bag'], [520, 'tire'], [720, 'cans'], [1000, 'mattress'], [1180, 'bottle'], [1500, 'cart'],
-  [1640, 'cans'], [1780, 'can'], [2260, 'tv'], [2480, 'cans'], [2660, 'bag'],
+  [90, 'cup'], [180, 'bottles'], [260, 'can'], [370, 'fastfood'], [430, 'bag'], [470, 'tires'], [520, 'tire'],
+  [700, 'pizza'], [720, 'cans'], [760, 'cup'], [990, 'mattress'], [1010, 'fastfood'], [1150, 'bottle'], [1180, 'cans'],
+  [1450, 'cooler'], [1500, 'cart'], [1560, 'bottles'], [1640, 'cans'], [1700, 'cup'], [1780, 'can'], [1840, 'fastfood'],
+  [2010, 'bottles'], [2180, 'pizza'], [2260, 'tv'], [2330, 'cup'], [2480, 'cans'], [2560, 'fastfood'], [2660, 'bag'],
+  [2760, 'tires'], [2880, 'bottles'], [2950, 'can'],
 ];
 /** The refill before the bounty. */
 export const REFILL = 1760;

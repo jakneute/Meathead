@@ -26,17 +26,17 @@ import { teleport, layOwn, ledge, solid, endWalls, runExits, saidOver, type Fron
 import { DOORS, GY } from '../geometry';
 import { rideOf } from './state';
 import {
-  x0, x1, X, Y, waterY, PLATFORM_END, LOAD_X, WALKWAYS, RATS, CROWS, RIDE_CPS, CLEARING, CHIPPER, indoorsAt, inSewer,
+  x0, x1, X, Y, waterY, PLATFORM_END, LOAD_X, WALKWAYS, RATS, CROWS, RIDE_CPS, CLEARING, CHIPPER, CREW, indoorsAt, inSewer,
 } from './layout';
 import { board, updateRide, holdInLog, SINK } from './ride';
 import { buildHazards, updateHazards, drawHazardsBack, drawHazardsFront, drawProps, drawObstaclesBack, drawObstaclesFront } from './hazards';
-import { RAT } from './kinds';
+import { RAT, LOGGER, setCrewOn } from './kinds';
 import { startScene, updateScene, updateBooth, againLine, sawed, drawBooth, drawSceneHud } from './scene';
 import { updateChipper, drawChipperBack, drawChipperFront } from './chipper';
 import { drawRideBackdrop, drawRideBack, drawRideFront, drawLogBack, drawLogFront, rideLighting } from './art';
 
 /** Back from the woods: on the crew's clearing, past the chipper. */
-DOORS.logride.end = { x: X(11460), y: CHIPPER.ground };
+DOORS.logride.end = { x: X(11760), y: CHIPPER.ground };
 const STATION = { x: X(200), y: GY };
 
 /** Where the river and the sewer are (the swimming's, and whoever's knocked in drowns). */
@@ -59,7 +59,7 @@ const EXITS: Exit[] = [
 /** Round again (the trail back to the station): the saws reset, the log waiting. */
 const resetRide = (state: GameState) => {
   const r = rideOf(state);
-  r.log.mode = 'off'; r.cutT = 0; r.chip = { state: 'idle', t: 0, lx0: 0, ly0: 0, lk: 0, chips: [], crew: null, crewSaid: false };
+  r.log.mode = 'off'; r.cutT = 0; r.waves = []; r.lens = 0; r.chip = { state: 'idle', t: 0, lx0: 0, ly0: 0, lk: 0, chips: [], crew: null, crewSaid: false, gore: 0, madSaid: false };
   r.said = { opcut: true };
   buildHazards(state);
 };
@@ -86,6 +86,8 @@ export const logride: FrontierSection = {
     const r = rideOf(state);
     r.rats = RATS.map(([rx, h]) => { const e = makeKindEnemy(RAT as EnemyKind, X(rx), Y(h)); state.enemies.push(e); return e; });
     for (const [rx, h] of CROWS) { const e = makeKindEnemy('m2:fr_crow' as EnemyKind, X(rx), Y(h)); e.homeX = e.pos.x; e.homeY = e.pos.y; e.variant = rx % 7; state.enemies.push(e); }
+    // (the logging crew on their clearing)
+    r.crew = CREW.map((rx, i) => { const e = makeKindEnemy(LOGGER as EnemyKind, X(rx), CHIPPER.ground); e.variant = i * 3 + 1; state.enemies.push(e); return e; });
     buildHazards(state);
     fresh.set(state.stage as object, true);
   },
@@ -96,6 +98,11 @@ export const logride: FrontierSection = {
       fresh.delete(state.stage as object);
       const c = RIDE_CPS.find(q => q.cp === state.checkpoint);
       if (c && Math.abs(p.pos.x + p.width / 2 - X(c.rx)) < 60) { board(state, c.rx, 'ride'); }
+    }
+    // (the crew have their chance at him once he's down on their clearing on foot)
+    {
+      const cx = p.pos.x + p.width / 2, feet = p.pos.y + p.height;
+      setCrewOn((L.mode === 'off' || L.mode === 'done') && cx > X(CLEARING.a) && Math.abs(feet - CHIPPER.ground) < 120);
     }
     // ---- on foot: the ways off, the operator's bark, into the waiting log
     if (L.mode === 'off' || L.mode === 'done') {

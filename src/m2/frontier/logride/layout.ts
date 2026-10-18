@@ -1,8 +1,9 @@
 // Timber Tumble, laid out (x from the section's start; heights up from the ground line: Y(h) = GY - h, so the sewer and
 // the real river, under the park, are negative). One flume, left to right, the log following it (TRACK): the station,
 // the ride proper (the park's fiberglass canyon, Beaver Creek, the lift hill, the Old Sawmill's shed, the big drop and
-// its splash pool, the lumber camp), the break-out (a rail saw cuts the flume ahead of him: the log jumps it and goes
-// down through a storm grate), the SEWER, the storm drain's culvert out of the bluff the park sits on, the REAL river
+// its splash pool, the lumber camp), the break-out (a giant saw slams into the ground ahead of him and opens a fault
+// line: the ride breaks apart and the log falls through into the sewer), the SEWER, the storm drain's culvert out of the
+// bluff the park sits on, the REAL river
 // (rocks, low branches, crows, a real waterfall), and the logging crew's sluice up into their woodchipper. Teach each
 // saw alone and safe first, then two, then mixed:
 //
@@ -14,14 +15,18 @@
 //          the animatronic lumberjacks shredded.
 //   3900   THE BIG DROP: down out of the shed into the splash pool, the ride photo's flash.
 //   4250   THE LUMBER CAMP (cp 34 at 4300): RAIL SAWS (along the trough's edge at him: jump), then all of them mixed.
-//   5480   THE BREAK: a rail saw cuts the flume ahead of him; the log jumps it, down through a storm grate.
-//   5820   THE SEWER (cp 35 at 5900; cp 36 at 7100): LOW PIPES (duck), SEWAGE GUSHERS (brake or paddle), RATS on the
-//          walkways (they leap at him), a loose saw rolling down the tunnel (jump).
-//   8400   THE CULVERT: out of the bluff, through the park's busted fence (PARK PROPERTY ENDS), down into a real river.
-//   8600   A REAL RIVER (cp 37 at 8700): ROCKS (jump as the log hits one), LOW BRANCHES (duck), crows; the rapids;
-//          a real waterfall; (cp 38 at 10100) more of it.
+//   5420   THE BREAK: the giant cutter slams into the ground at 5720; a fault line cracks open along the ground, the
+//          flume over it breaks apart, and the log drops through the chasm (5700-5840) into the sewer: a big splash.
+//   5840   THE SEWER (cp 35 at 5900; cp 36 at 7060): LOW PIPES (a bundle of pipes down from the vault: duck), BUSTED
+//          PIPE sections lying across the channel (jump), SEWAGE GUSHERS (brake, paddle or hop), RATS on the walkways
+//          (they leap at him). No saws down here.
+//   8400   THE CULVERT: out of the bluff, through the park's busted fence (PARK PROPERTY ENDS), down into a real river
+//          (a big splash).
+//   8600   A REAL RIVER (cp 37 at 8700): ROCKS (jump as the log hits one), LOW LIMBS (duck), crows; the rapids;
+//          a real waterfall (a big splash at its foot); (cp 38 at 10080) more of it.
 //   10760  THE SLUICE: the logging crew's conveyor up into the WOODCHIPPER: jump at JUMP!, or mulch.
-//   11160  THE CREW'S CLEARING: off the right end into the woods. A trail back to the park off its left end.
+//   11160  THE CREW'S CLEARING: the crew (chainsaws: they're sore about it; throw one in the chipper); off the right end
+//          into the woods. A trail back to the park off its left end.
 
 import { SECTIONS, GY } from '../geometry';
 
@@ -37,8 +42,8 @@ export const TRACK: [number, number, number, number][] = [
   [3000, 3900, 300, 300],     // the Old Sawmill's shed
   [3900, 4250, 300, -60],     // the big drop
   [4250, 5560, -60, -60],     // the splash pool, the lumber camp
-  [5560, 5680, -60, 10],      // the break: off the cut flume, up...
-  [5680, 5840, 10, -560],     // ...and down through the storm grate into the sewer
+  [5560, 5700, -60, -60],     // the break: on to the fault line...
+  [5700, 5840, -60, -560],    // ...and down through the chasm into the sewer
   [5840, 8400, -560, -580],   // the sewer
   [8400, 8640, -580, -900],   // out of the culvert, down into the river
   [8640, 9860, -900, -900],   // a real river
@@ -54,7 +59,7 @@ export const LOAD_X = 660, PLATFORM_END = 560;
 export const ZONES = {
   station: [-200, 900], canyon: [900, 1800], creek: [1800, 2500], lift: [2500, 3000], mill: [3000, 3900], drop: [3900, 4250],
   camp: [4250, 5560], brk: [5560, 5840], sewer: [5840, 8400], culvert: [8400, 8640], river: [8640, 10760], sluice: [10760, 11160],
-  clearing: [11160, 11600],
+  clearing: [11160, 11900],
 } as const;
 export type ZoneId = keyof typeof ZONES;
 export const zoneAt = (rx: number): ZoneId => {
@@ -68,7 +73,7 @@ export const realAt = (rx: number) => rx >= 8400;
 /** The log's speed along each stretch (px a frame, before his brake or paddle): [from, speed, can he brake/paddle]. */
 export const SPEEDS: [number, number, boolean][] = [
   [560, 1.6, false], [900, 2.6, true], [2500, 1.4, false], [3000, 2.6, true], [3900, 8, false], [4260, 3.0, true],
-  [5560, 6.5, false], [5840, 3.0, true], [8400, 7.5, false], [8640, 3.0, true], [9300, 3.6, true], [9860, 8, false],
+  [5560, 3.0, false], [5700, 4.6, false], [5840, 3.0, true], [8400, 7.5, false], [8640, 3.0, true], [9300, 3.6, true], [9860, 8, false],
   [9990, 3.2, true], [10760, 1.7, false],
 ];
 export const speedAt = (rx: number) => { let s = SPEEDS[0]; for (const q of SPEEDS) if (rx >= q[0]) s = q; return s; };
@@ -84,16 +89,18 @@ export const slopeAt = (rx: number) => Math.atan2(waterY(rx + 12) - waterY(rx - 
 // ---------------------------------------------------------------------------------------------------------------
 // The saws (Tucker engaged them: the ride's "buzzsaw effects", live). x from the section's start.
 
-export type SawType = 'wall' | 'rise' | 'drop' | 'swing' | 'rail' | 'roll';
+export type SawType = 'wall' | 'rise' | 'drop' | 'swing' | 'rail';
 /**
- *   wall   on the flume wall, head high, spinning: duck under it
+ *   wall   on a bulkhead down to head height, spinning: duck under it
  *   rise   under the water; as the log comes it rises up out of it, knee high: jump it
- *   drop   up in the rafters; it drops on a beat, a shudder first, and goes back up: brake or paddle through the gap
+ *   drop   up in the rafters; it drops on a beat, a shudder first, and goes back up: brake, paddle or hop through the gap
  *   swing  on a pendulum under a gantry, sweeping through head high: duck it as it comes through
  *   rail   runs along a rail at the trough's edge, at him: jump it
- *   roll   (the sewer) a saw loose off its mount, rolling down the tunnel at him: jump it
- * `phase` sets a drop's or a swing's beat.
+ * `phase` sets a drop's or a swing's beat. (No saws in the sewer: the user's.)
  */
+/** How far over the waterline every duck-under's underside is (its lowest tooth, pipe or bough): his ducked head (down
+ *  in the log) is well under it, his sat-up head well over it (ride.ts). */
+export const DUCK_LINE = 44;
 export const SAWS: [SawType, number, number?][] = [
   // FIBERGLASS CANYON
   ['wall', 1250], ['wall', 1520], ['wall', 1700], ['wall', 1760],
@@ -105,11 +112,10 @@ export const SAWS: [SawType, number, number?][] = [
   ['drop', 3200, 0], ['drop', 3480, 0], ['drop', 3600, 70], ['drop', 3790, 30],
   // THE LUMBER CAMP
   ['drop', 4560, 40], ['rail', 4760], ['rail', 4960], ['wall', 5040], ['rail', 5130], ['swing', 5270, 20],
-  // THE SEWER
-  ['roll', 6980], ['roll', 7640], ['roll', 8150],
 ];
-/** The big one that cuts the flume ahead of him (the break): where it comes across. */
-export const CUTTER_X = 5530;
+/** The giant saw that slams into the ground ahead of him (the break): where it comes down; when (the log this far on);
+ *  the chasm the fault line opens (the log falls through it). */
+export const CUTTER_X = 5720, CUTTER_FROM = 5420, CHASM = { a: 5690, b: 5850 } as const;
 
 /** Shredded as the log comes by (the park's animatronic frontier, the saws through them): [x, what]. */
 export type PropKind = 'beaver' | 'jack' | 'bear' | 'settler';
@@ -120,8 +126,10 @@ export const PROPS: [number, PropKind][] = [
 // ---------------------------------------------------------------------------------------------------------------
 // The sewer's and the river's own
 
-/** Low pipes across the sewer (duck). */
+/** Low pipes across the sewer (a bundle of them down from the vault to head height: duck). */
 export const PIPES = [6060, 6720, 7280, 8240];
+/** Busted pipe sections lying across the sewer's channel, half sunk (the log hits one and bucks: be in the air). */
+export const JUNK = [6200, 6980, 7640, 8100];
 /** Sewage pouring out of a pipe in the sewer's roof on a beat (brake or paddle through): [x, phase]. */
 export const GUSHERS: [number, number][] = [[6320, 0], [7180, 50], [7820, 0], [7900, 75]];
 /** Rats on the walkways (they leap at the log): [x, height of the walkway]. None in a gusher's or a saw's way. */
@@ -130,8 +138,10 @@ export const RATS: [number, number][] = [[6540, -500], [6600, -500], [6800, -500
 export const WALKWAYS: [number, number, number][] = [[6450, 6900, -500], [7350, 7560, -500], [7960, 8200, -500]];
 /** Rocks in the river (the log hits it and bucks: be in the air as it does). */
 export const ROCKS = [9100, 9560, 9720, 10320, 10560];
-/** Low branches over the river (duck). Real trees. */
+/** Low limbs over the river (duck). Real trees. */
 export const BRANCHES = [9320, 10160, 10460];
+/** The crew's hand-painted warnings on the river's far bank: [x, words]. */
+export const CREW_SIGNS: [number, string[]][] = [[8990, ['ROCKS!', 'JUMP EM']], [9230, ['LOW LIMBS', 'DUCK!']]];
 /** Crows over the river: [x, height]. */
 export const CROWS: [number, number][] = [[9420, -760], [10380, -940]];
 
@@ -140,7 +150,9 @@ export const CHIPPER = { x: X(11100), hopperY: Y(-930), ground: Y(-1000) } as co
 /** The jump: open from here along the conveyor (READY till then); the landing on the clearing. */
 export const JUMP_FROM = 10860, READY_FROM = 10760, LAND_X = 11330;
 /** The clearing (the crew's: their truck, the trail back to the park off its left end). */
-export const CLEARING = { a: 11180, b: 11600 } as const;
+export const CLEARING = { a: 11180, b: 11900 } as const;
+/** The logging crew on the clearing (they yell JUMP!, then they're sore about it: chainsaws). */
+export const CREW = [11460, 11580];
 
 /** The station's booth (the operator's; Tucker shows up in it), and the saw over its console. */
 export const BOOTH = { a: 330, b: 520, floor: 0, top: 140 } as const;

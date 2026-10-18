@@ -7,6 +7,10 @@
 // Don't: the log noses into the hopper, then him, feet first, flailing (his own hurt line), the chute spraying wood
 // chips, then red, his shoe, the bits of his pants (or not: naked), all over the crew's truck; then the death screen
 // (m2:fr_chipper: its death lines). A jump before the window is just a hop in the log.
+//
+// The crew (kinds.ts LOGGER) are enemies: they yell JUMP while he's coming, then they're sore about their log and come
+// at him with chainsaws. Anybody flung or thrown into the running chipper's hopper (a logger, alive or a body; the grab's
+// throw, a charge's knock, a corpse going over) goes through it: red out the chute over the truck, CHIPPED!.
 
 import type { FrameContext } from '../../../m1/game/core/context';
 import type { GameState } from '../../../m1/game/core/state';
@@ -17,16 +21,52 @@ import { playSound } from '../../../m1/game/platform/audio';
 import { pickLine } from '../../../m1/game/platform/speech';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { isShat, isNude } from '../../../m1/game/player/gut';
-import { hands, meatheadSays, speak, saidOver, byPants } from '../section';
+import type { Enemy } from '../../../m1/types';
+import { KILL_CALLOUTS, type KillCallout } from '../../../m1/content/dialogue';
+import { hands, meatheadSays, speak, saidOver, byPants, getFrontier } from '../section';
+import type { ByPants } from '../talk';
 import { box, mix, INK, painted, burned, onScreen, type Ctx } from '../kit';
 import { signText } from '../../signLetters';
-import { drawPerson } from '../../adventure/temple/people';
+import { lookOf } from '../../adventure/temple/people';
 import { rideOf } from './state';
-import { unboard, feetY } from './ride';
+import { unboard, feetY, riderX } from './ride';
 import { X, x0, x1, waterY, CHIPPER, JUMP_FROM, READY_FROM, LAND_X, CLEARING, END } from './layout';
-import { RIDE_VOICES, CREW_JUMP, JUMPED, HURT } from './lines';
+import { RIDE_VOICES, CREW_JUMP, CREW_MAD, CHIPPED_CALLS, JUMPED, HURT } from './lines';
 
 const LEAP = 54;
+/** Whoever goes into the hopper: its own callout (the announcer's). */
+(KILL_CALLOUTS as Record<string, { lines: string[]; color: string }>).chipped = { lines: [...CHIPPED_CALLS], color: '#D6A060' };
+/** The hopper's mouth (world): flung into this, through the chipper. */
+const HOPPER = { x0: CHIPPER.x - 50, x1: CHIPPER.x + 70, y0: CHIPPER.hopperY - 70, y1: CHIPPER.hopperY + 40 };
+
+/** One of the crew says it (over them while it's said). */
+const crewSays = (state: GameState, who: Enemy, pool: ByPants) => {
+  const ch = rideOf(state).chip, woman = lookOf(Math.abs(Math.round(who.initialX || 0)) + (who.variant ?? 0) * 31).woman;
+  ch.crewBy = who;
+  speak(woman ? RIDE_VOICES.crewf : RIDE_VOICES.crew, pickLine(byPants(state, pool)), s => { ch.crew = s; }, false);
+};
+const crewAlive = (state: GameState) => rideOf(state).crew.filter(e => e.health > 0 && !e.isBlownAway && state.enemies.includes(e));
+
+/** Anybody flung into the running chipper's hopper goes through it. */
+const chipThrown = (ctx: FrameContext) => {
+  const { state } = ctx, ch = rideOf(state).chip;
+  const held = (getFrontier(state) as { grab?: { held: Enemy | null } } | null)?.grab?.held ?? null;
+  for (const e of state.enemies) {
+    if (e.type === 'boss' || e === held || (e.health <= 0 && !e.isBlownAway)) continue;
+    const flying = e.isBlownAway || e.meleeFlung || e.uppercutFlung || (e.pauseTimer ?? 0) > 0 || Math.abs(e.vel.y) > 2.5;
+    const feet = e.pos.y + e.height;
+    if (!flying || feet > CHIPPER.ground - 16) continue;
+    if (e.pos.x + e.width < HOPPER.x0 || e.pos.x > HOPPER.x1 || e.pos.y > HOPPER.y1 || feet < HOPPER.y0) continue;
+    const alive = e.health > 0;
+    e.health = 0; e.isBlownAway = false; e.vel.x = 0; e.vel.y = 0;
+    ctx.fx.spawnKillCallout(e, 'chipped' as KillCallout);
+    // (in and gone: out of sight down the throat)
+    e.pos.y = CHIPPER.ground + 4000;
+    ch.gore = 80;
+    playSound('grind', 1, -12); playSound('gorespray', 1, -4); playSound('crunch', 0.9, -8); shakeScreen(state, 7, 3);
+    if (alive) playSound('screams', 0.7, 4);
+  }
+};
 
 /** A frame of the end of the river (while he's in the log on the sluice, and after). Returns the controls (or none: the
  *  leap, the mulching). */
@@ -35,25 +75,35 @@ export const updateChipper = (ctx: FrameContext, controls: Controls): Controls |
   // ---- the chips and the bits, flying (on after it's done)
   for (const q of ch.chips) { q.vy += 0.35; q.x += q.vx; q.y += q.vy; q.life--; if (q.y > CHIPPER.ground + 10) { q.y = CHIPPER.ground + 10; q.vx *= 0.5; q.vy = 0; } }
   ch.chips = ch.chips.filter(q => q.life > 0);
+  // ---- running: anybody flung in goes through it, red out the chute a while after
+  if (ch.state !== 'idle') chipThrown(ctx);
+  if (ch.gore > 0) { ch.gore--; if (ch.gore % 3 === 0) spray(state, ch.gore > 50 ? 'red' : ch.gore > 25 ? 'meat' : 'wood'); if (ch.gore % 12 === 0) playSound('grind', 0.7, -8); }
+  // ---- the crew, sore about their log, once he's down on their clearing (the first time this visit)
+  if (!ch.madSaid && ch.state === 'safe' && ch.t > 50 && p.health > 0 && !p.inCutscene) {
+    const who = crewAlive(state)[0];
+    ch.madSaid = true;
+    if (who) crewSays(state, who, CREW_MAD);
+  }
   if (L.mode === 'ride' && L.rx >= READY_FROM) {
     if (ch.state === 'idle') { ch.state = 'ready'; ch.t = 0; playSound('engine', 0.8, -8); }
     if (ch.state === 'ready' && L.rx >= JUMP_FROM) {
       ch.state = 'open'; ch.t = 0; playSound('alert', 1, 4); playSound('beep', 0.8, 8);
-      if (!ch.crewSaid) { ch.crewSaid = true; speak(RIDE_VOICES.crew, pickLine(byPants(state, CREW_JUMP)), s => { ch.crew = s; }, false); }
+      const who = crewAlive(state)[0];
+      if (!ch.crewSaid && who) { ch.crewSaid = true; crewSays(state, who, CREW_JUMP); }
     }
     ch.t++;
     if (ch.state === 'open' && ch.t % 20 === 0) playSound('beep', 0.6, 10);
     // (jumped in the window: out and over)
     if (ch.state === 'open' && controls.jump && !ch.lk && p.health > 0) {
-      ch.state = 'leap'; ch.t = 0; ch.lk = 0.001; ch.lx0 = X(L.rx); ch.ly0 = feetY(r);
-      L.mode = 'leap'; p.inCutscene = true;
+      ch.state = 'leap'; ch.t = 0; ch.lk = 0.001; ch.lx0 = riderX(r); ch.ly0 = feetY(r);
+      L.mode = 'leap'; p.inCutscene = true; p.logSeat = false;
       playSound('jump', 1, -2); playSound('whoosh', 0.8);
       return hands();
     }
     // (the log's nose into the hopper: too late)
     if (L.rx >= END - 30 && (ch.state === 'open' || ch.state === 'ready')) {
       ch.state = 'mulch'; ch.t = 0; L.mode = 'chipper';
-      p.inCutscene = true; p.isDucking = false;
+      p.inCutscene = true; p.isDucking = false; p.logSeat = false;
       meatheadSays(state, pickLine(HURT['m2:fr_chipper'].hurt), false);
       playSound('grind', 1, -10); playSound('screams', 0.9, 2);
       return hands();
@@ -177,14 +227,7 @@ export const drawChipperBack = (c: Ctx, state: GameState) => {
   // ---- the lamp on its top: off, amber (ready), flashing green (now)
   const lamp = ch.state === 'open' ? (f % 10 < 5 ? '#22C55E' : '#14532D') : ch.state === 'ready' ? '#F59E0B' : '#3F3F46';
   box(c, bx + 40, g - 136, 20, 18, INK); box(c, bx + 42, g - 134, 16, 14, lamp);
-  // ---- the crew: two loggers by the truck (hard hats, plaid, ear defenders), yelling once it's coming
-  for (let i = 0; i < 2; i++) {
-    const px = X(11380) + i * 70, mood = ch.state === 'open' || ch.state === 'mulch' ? 'scared' as const : ch.state === 'safe' ? 'shocked' as const : 'bored' as const;
-    c.save(); c.translate(px, g); c.scale(-1, 1);
-    drawPerson(c, { seed: 77 + i * 31, woman: i === 1, outfit: 'maint', f, pose: ch.state === 'open' ? 'point' : 'stand', mood, talking: !!ch.crew && i === 0 });
-    c.restore();
-    box(c, px - 9, g - 82, 18, 5, '#FDE047');
-  }
+  // (the crew are the enemies on the clearing: kinds.ts LOGGER)
   // (the river's sign before it: the crew's own, hand-painted)
   if (onScreen(state, X(10480), X(10620))) frontierlessSign(c, X(10560), waterY(10560) - 10, ['WOODCHIPPER', 'AHEAD. NO LOGS PAST HERE'], true);
 };
@@ -219,11 +262,11 @@ export const drawChipperFront = (c: Ctx, state: GameState) => {
       c.fillStyle = '#000'; c.fillText('READY...', lx + 2, ly + 2); c.fillStyle = '#FBBF24'; c.fillText('READY...', lx, ly); c.textAlign = 'left';
     }
   }
-  if (ch.crew) saidOver(c, ch.crew.text, X(11380), g - 110, '#E0F2FE', 240);
+  if (ch.crew) { const by = ch.crewBy; saidOver(c, ch.crew.text, by ? by.pos.x + by.width / 2 : X(11460), (by ? by.pos.y : g - 72) - 30, '#E0F2FE', 240); }
 };
 
 /** A plank sign of the real world (no park lettering: hand-painted), on its two stakes. */
-const frontierlessSign = (c: Ctx, x: number, feet: number, lines: string[], warn = false) => {
+export const frontierlessSign =(c: Ctx, x: number, feet: number, lines: string[], warn = false) => {
   const w = Math.max(...lines.map(l => l.length * 6 + 14)), h = lines.length * 12 + 6, top = feet - 70;
   for (const px of [x - w / 2 + 6, x + w / 2 - 10]) { box(c, px - 1, top, 6, 70, INK); box(c, px, top, 4, 70, '#6B4423'); }
   box(c, x - w / 2 - 1, top - 1, w + 2, h + 2, INK); box(c, x - w / 2, top, w, h, warn ? '#E8E0C8' : '#A0703C');

@@ -1,7 +1,11 @@
-// Riding the log: it follows the flume at the ride's own pace (the stretch's speed); left drags his hands in the water
-// (brake), right paddles (faster), where the ride lets him (not on the chain, not down a drop); jump hops him up out
-// of the log and back down into it (the log goes on under him: he's kept over it), down ducks him low in it. He can
-// shoot (no specials: the charge, the slide and the rest need ground under them). The camera rides ahead of him.
+// Riding the log: it follows the flume at the ride's own pace (the stretch's speed) on the water (bobbing, its wake and
+// its spray, the water lapping); left drags his hands in the water (brake), right paddles (faster), where the ride lets
+// him (not on the chain, not down a drop); jump hops him up out of the log and back down into it, and left or right in
+// the hop carries him a little back or on along it (the log always follows, catching up under him: the user's, to get
+// out of the way of things); down ducks him right down in it. He faces the way he's going. He sits in it (Player.logSeat:
+// legs down in the log, a hand on its rim, the gun out). He can shoot (no specials: the charge, the slide and the rest
+// need ground under them). The camera rides ahead of him. Off the foot of every drop the water goes up in a big wave
+// (bigSplash: the big drop, into the sewer, into the river, the waterfall).
 //
 // Back at a checkpoint (31-38) he's put straight back in a log there; at the station (30) he walks to it.
 
@@ -16,23 +20,35 @@ import { setUi } from '../../store';
 import { meatheadSays, speak, byPants } from '../section';
 import type { ByPants } from '../talk';
 import { rideOf, type Ride } from './state';
-import { X, x0, x1, waterY, speedAt, slopeAt, RIDE_CPS, START, END } from './layout';
+import { X, x0, x1, waterY, speedAt, slopeAt, realAt, RIDE_CPS, START, END } from './layout';
 import {
   RIDE_VOICES, RIDE_START, FIRST_SAW, LIFT_HILL, BIG_DROP, PHOTO, SEWER, RATS_SEEN, REAL_RIVER, FALLS, CHIPPER_SEEN,
   SPIEL_CREEK, SPIEL_MILL, SPIEL_DROP,
 } from './lines';
 
-/** How far down in the log his feet are (under the waterline's height off it), the log's length, its rim. */
-export const SINK = 6, LOG_LEN = 136, RIM = 26;
+/** Where his feet are off the waterline sat in the log (negative: down in it, under the line), how much further down he
+ *  slumps ducking, the log's length, its rim. */
+export const SINK = -4, DUCK_SINK = 10, LOG_LEN = 136, RIM = 26;
+/** His box's height over his seat, sat up and ducked (the duck-unders' undersides are DUCK_LINE over the water: ducked
+ *  his head's well under it, sat up well over). */
+const SAT_H = 62, DUCKED_H = 34;
 const JUMP_V = 9.6, FALL = 0.5;
+/** A hop's carry along the log (px a frame either way), how far off its middle he can get, how fast it catches up. */
+const HOP_DX = 2.4, OFF_MAX = 44, CATCH = 0.14;
 
+/** Ducked down in the log (not mid-hop). */
+const ducked = (state: GameState) => !!state.player.isDucking && rideOf(state).log.up <= 0;
+/** His seat (world y): where his feet are sat up. */
+export const seatY = (r: Ride) => waterY(r.log.rx) - SINK - r.log.bob - r.log.float - r.log.up;
 /** Where his feet are (world y), riding. */
-export const feetY = (r: Ride) => waterY(r.log.rx) - SINK - r.log.bob - r.log.up;
-/** His box riding (world): narrower than his sprite, his head lower when he's ducked. */
+export const feetY = (r: Ride, duck = false) => seatY(r) + (duck ? DUCK_SINK : 0);
+/** Where he is along it (world x): the log's middle, and his hop off it. */
+export const riderX = (r: Ride) => X(r.log.rx + r.log.off);
+/** His box riding (world): narrower than his sprite, his head right down when he's ducked. */
 export const riderBox = (state: GameState) => {
-  const r = rideOf(state), p = state.player, f = feetY(r);
-  const top = f - (p.isDucking && r.log.up <= 0 ? 34 : 62);
-  return { x: X(r.log.rx) - 15, y: top, w: 30, h: f - top };
+  const r = rideOf(state), s = seatY(r), d = ducked(state);
+  const top = s - (d ? DUCKED_H : SAT_H);
+  return { x: riderX(r) - 15, y: top, w: 30, h: s + (d ? DUCK_SINK : 0) - top };
 };
 export const riding = (state: GameState) => { const m = rideOf(state).log.mode; return m === 'ride' || m === 'scene'; };
 
@@ -40,8 +56,8 @@ export const riding = (state: GameState) => { const m = rideOf(state).log.mode; 
 export const board = (state: GameState, rx: number, mode: 'ride' | 'scene' = 'ride') => {
   const r = rideOf(state), p = state.player, L = r.log;
   L.mode = mode; L.rx = Math.max(START, Math.min(END - 400, rx)); L.v = mode === 'scene' ? 0 : speedAt(L.rx)[1]; L.push = 1;
-  L.up = 0; L.vy = 0; L.bob = 0; L.bobV = 0; L.t = 0; L.camY = waterY(L.rx) - 420;
-  p.carried = true; p.noSpecials = true; p.vel.x = 0; p.vel.y = 0; p.facing = 1;
+  L.up = 0; L.vy = 0; L.off = 0; L.hopV = 0; L.float = 0; L.bob = 0; L.bobV = 0; L.t = 0; L.camY = waterY(L.rx) - 420;
+  p.carried = true; p.noSpecials = true; p.logSeat = true; p.vel.x = 0; p.vel.y = 0; p.facing = 1;
   place(state, r);
   state.camera.x = Math.max(x0, Math.min(x1 - CANVAS_WIDTH, X(L.rx) - 300));
   state.camera.y = L.camY;
@@ -53,17 +69,17 @@ export const board = (state: GameState, rx: number, mode: 'ride' | 'scene' = 'ri
 /** Out of the log (on his feet: the clearing, or dead). */
 export const unboard = (state: GameState) => {
   const p = state.player, r = rideOf(state);
-  p.carried = false; p.noSpecials = false; p.spriteRot = 0;
+  p.carried = false; p.noSpecials = false; p.logSeat = false; p.spriteRot = 0;
   state.cameraOverride = null;
   if (r.log.mode !== 'done') r.log.mode = 'off';
 };
 
-/** Keeps him stood in the log where it is (the scene at the station: it's not going yet). */
-export const holdInLog = (state: GameState) => { const r = rideOf(state); place(state, r); state.player.isGrounded = true; state.player.facing = 1; };
+/** Keeps him sat in the log where it is (the scene at the station: it's not going yet). */
+export const holdInLog = (state: GameState) => { const r = rideOf(state); place(state, r); state.player.isGrounded = true; state.player.facing = 1; state.player.logSeat = true; };
 const place = (state: GameState, r: Ride) => {
   const p = state.player;
-  p.pos.x = X(r.log.rx) - p.width / 2;
-  p.pos.y = feetY(r) - p.height;
+  p.pos.x = riderX(r) - p.width / 2;
+  p.pos.y = feetY(r, ducked(state)) - p.height;
   p.vel.x = 0; p.vel.y = r.log.up > 0 ? -r.log.vy : 0;
 };
 
@@ -76,6 +92,21 @@ const MEATHEAD_AT: Record<string, ByPants> = { first: FIRST_SAW, lift: LIFT_HILL
 const SPIEL_AT: Record<string, string[]> = { creek: SPIEL_CREEK, mill: SPIEL_MILL, spieldrop: SPIEL_DROP };
 
 export const paSay = (r: Ride, text: string) => speak(RIDE_VOICES.spiel, text, s => { r.pa = s; }, true);
+
+/** Water (a splash's drops) off the log at world (x, y). */
+const drops = (state: GameState, x: number, y: number, n: number, up: number, spread: number, sewer = false) => {
+  for (let i = 0; i < n; i++) state.particles.push({ pos: { x: x + (Math.random() - 0.5) * spread, y }, vel: { x: (Math.random() - 0.5) * 6, y: -1 - Math.random() * up }, life: 26 + Math.random() * 16, color: sewer ? (i % 2 ? '#8A8A3A' : '#6A6A2A') : i % 3 ? '#E0F2FE' : '#93C5FD', size: 2 + Math.random() * 3 });
+};
+
+/** The big wave splash off the foot of a drop (like a real log ride's): a wall of water up either side of the log,
+ *  the spray up over everything, the screen running wet. */
+export const bigSplash = (state: GameState, r: Ride, x: number, y: number, sewer = false) => {
+  r.waves.push({ x, y, t: 0 });
+  r.lens = 80;
+  playSound('splash', 1, -10); playSound('splash', 1, -3); playSound('crash', 0.45, -14); playSound('gush', 0.6, -8);
+  shakeScreen(state, 12, 6);
+  drops(state, x + 40, y, 70, 16, 220, sewer);
+};
 
 /** A frame of the ride. */
 export const updateRide = (ctx: FrameContext, controls: Controls): Controls => {
@@ -91,29 +122,52 @@ export const updateRide = (ctx: FrameContext, controls: Controls): Controls => {
   L.v += (target - L.v) * (base > 6 ? 0.12 : 0.07);
   const before = L.rx;
   L.rx = Math.min(END, L.rx + L.v);
+  // (riding the water: a gentle bob on the flat)
+  L.float = base < 6 && Math.abs(slopeAt(L.rx)) < 0.15 ? Math.sin(L.t * 0.09) * 1.6 : 0;
   // (the lift hill's chain: clack clack)
   if (base < 1.5 && L.t % 14 === 0) playSound('click', 0.5, -6);
   // (paddling: a slap of water now and then; braking: a hiss)
   if (free && L.t % 18 === 0 && (controls.right || controls.left)) playSound('splash', 0.18, controls.right ? 4 : -4);
-  // ---- splashdowns: off a drop onto the flat
+  // (the water lapping at it, always; the real river rushing)
+  if (L.t % 44 === 0) playSound('splash', 0.07, 6 + Math.random() * 6);
+  if (realAt(L.rx) && L.t % 90 === 0) playSound('gush', 0.08, -10);
+  // (spray off its nose, going)
+  if (L.v > 2.4 && L.t % 3 === 0 && L.up <= 0) drops(state, X(L.rx) + 60, waterY(L.rx) - 2, 1, 2 + L.v * 0.6, 10, L.rx > 5700 && L.rx < 8440);
+  // ---- splashdowns: off a drop onto the flat: the big wave
   const slopeWas = slopeAt(before), slopeNow = slopeAt(L.rx);
   if (slopeWas > 0.35 && slopeNow < 0.15) {
-    L.bobV = 6 + L.v * 0.4; L.splash = 1; playSound('splash', 1, -6); shakeScreen(state, 8, 4);
-    for (let i = 0; i < 26; i++) state.particles.push({ pos: { x: X(L.rx) + (Math.random() - 0.3) * 120, y: waterY(L.rx) }, vel: { x: (Math.random() - 0.2) * 8, y: -3 - Math.random() * 9 }, life: 40, color: i % 2 ? '#E0F2FE' : '#93C5FD', size: 3 + Math.random() * 4 });
+    L.bobV = 6 + L.v * 0.4; L.splash = 1;
+    bigSplash(state, r, X(L.rx), waterY(L.rx), L.rx > 5700 && L.rx < 8440);
   }
   if (L.splash > 0) L.splash++;
   // ---- the log's buck (a rock, a splashdown): up and back down on the water
   if (L.bob > 0 || L.bobV > 0) { L.bob += L.bobV; L.bobV -= 0.7; if (L.bob <= 0) { L.bob = 0; L.bobV = 0; } }
-  // ---- him: the hop out of it and back in
+  // ---- him: the hop out of it and back in, a little back or on along it with left or right; facing the way he goes
+  const dir = controls.right ? 1 : controls.left ? -1 : 0;
+  if (dir && !p.inCutscene) p.facing = dir as 1 | -1;
   const jumpNow = !!controls.jump;
-  if (jumpNow && !jumpWas.get(state) && L.up <= 0 && !p.inCutscene) { L.vy = JUMP_V; L.up = 0.01; playSound('jump', 0.7); }
+  if (jumpNow && !jumpWas.get(state) && L.up <= 0 && !p.inCutscene) {
+    L.vy = JUMP_V; L.up = 0.01; L.hopV = free ? dir * HOP_DX : 0;
+    playSound('jump', 0.7); playSound('splash', 0.3, 6);
+    drops(state, riderX(r), waterY(L.rx) - 4, 8, 4, 50);
+  }
   jumpWas.set(state, jumpNow);
   if (L.up > 0) {
     // (holding jump floats it a touch longer, as on foot)
     L.vy -= jumpNow && L.vy > 0 ? FALL * 0.75 : FALL;
     L.up += L.vy;
-    if (L.up <= 0) { L.up = 0; L.vy = 0; playSound('land', 0.6); playSound('thud', 0.4, 4); }
+    L.hopV = free ? L.hopV + (dir * HOP_DX - L.hopV) * 0.2 : L.hopV * 0.8;
+    L.off = Math.max(-OFF_MAX, Math.min(OFF_MAX, L.off + L.hopV));
+    if (L.up <= 0) {
+      L.up = 0; L.vy = 0; L.hopV = 0;
+      playSound('land', 0.6); playSound('thud', 0.4, 4); playSound('splash', 0.35, 2);
+      drops(state, riderX(r), waterY(L.rx) - 4, 10, 4, 70, L.rx > 5700 && L.rx < 8440);
+    }
   }
+  // (the log follows him: it catches up under him wherever he's hopped to)
+  const catchUp = L.off * (L.up > 0 ? CATCH : CATCH * 1.8);
+  L.rx = Math.max(START, Math.min(END, L.rx + catchUp)); L.off -= catchUp;
+  if (Math.abs(L.off) < 0.05) L.off = 0;
   // ---- checkpoints, as he passes them
   for (const c of RIDE_CPS) if (L.rx >= c.rx && state.checkpoint < c.cp) state.checkpoint = c.cp;
   // ---- what's said along the way (each once)
@@ -128,9 +182,9 @@ export const updateRide = (ctx: FrameContext, controls: Controls): Controls => {
   }
   if (r.flash > 0) r.flash--;
   place(state, r);
-  // (stood in the log: on his feet, for ducking; up out of it, in the air)
+  // (sat in the log: on his feet as far as ducking goes; up out of it, in the air, stood up off his seat)
   p.isGrounded = L.up <= 0;
-  p.facing = 1;
+  p.logSeat = L.up <= 0;
   p.spriteRot = L.up > 0 ? 0 : slopeAt(L.rx) * 0.6;
   // ---- the camera: ahead of him, at the log's height (not bobbing up with his hops)
   const ty = waterY(L.rx) - 420;

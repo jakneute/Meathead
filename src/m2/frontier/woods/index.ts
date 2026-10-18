@@ -22,7 +22,7 @@ import { DOORS } from '../geometry';
 import { x0, x1, X, GY, CP_LOT, FALLEN, BOULDER, CROWS, REFILL, TRIG, SULK } from './layout';
 import { woodsOf } from './state';
 import { makeBike, rideBike, teenOf } from './teens';
-import { updateHazards, drawIvy, drawTrap } from './hazards';
+import { updateHazards, drawIvy, drawTrap, ivyLamps } from './hazards';
 import { BOUNTY_MEMO, bountyDone, inBounty, startBounty, updateBounty, tickBountyCast, drawBountyCast, drawBountyFront, drawBountyHud, kidASeed } from './scene';
 import { drawWoodsBackdrop, drawWoodsBack, drawWoodsFront, drawPile, drawSulk } from './art';
 import { REAL_WOODS, KID_SULK } from './lines';
@@ -110,4 +110,6 @@ export const woods: FrontierSection = {
   },
   drawHud: (c, state) => drawBountyHud(c, state),
   outdoors: () => 1,
+  // (the poison ivy glows: a sickly green, at dusk and after)
+  lamps: () => ivyLamps(),
 };

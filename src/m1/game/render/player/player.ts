@@ -148,9 +148,11 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   // Grim determination after a charge that didn't kill (like the Doom guy's rampage face)
   const isAngry = !!p.angryTimer && p.angryTimer > 0 && !isHurt && !isRelieving;
   // Sat astride the jet ski: knees forward, off-hand on the handlebars (the gun hand's free)
-  const isSeated = (!!p.jetski || !!p.cartSeat) && hurtT < 0;
+  const isSeated = (!!p.jetski || !!p.cartSeat || !!p.logSeat) && hurtT < 0;
   // (in a mine cart: sat back in it, relaxed, an arm over the back)
   const lounging = isSeated && !p.jetski;
+  // (in a log-flume log: the cart's seat, but sat up in it, the free hand gripping its side, the gun out)
+  const logSeated = lounging && !!p.logSeat;
   // Hanging off a vine by one hand (the gun in the other): its own poses, the push among them (not the charge's)
   const vine = p.vine && hurtT < 0 && !p.headless ? p.vine : null;
   const vineMode = vine?.mode;
@@ -399,6 +401,10 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     // Ducked right down in it, hunched over, under whatever's coming
     bodyRot = 0.5;
     bodyY = 5;
+  } else if (logSeated) {
+    // Sat up in the log, legs out in front of him down in it, bobbing with the water
+    bodyRot = -0.07;
+    bodyY = 2 + Math.sin(animFrame * 0.12) * 0.8;
   } else if (lounging) {
     // Leaning back against the back of the cart, at his ease, rocking with the rails
     bodyRot = -0.3;
@@ -535,6 +541,10 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     // Ducked: hunched right over, both hands gripping the front of the cart, head down
     drawReachingArm(ctx, -6, -40, 6, -30, 18, -28, skinShadow);
     ctx.fillStyle = skinShadow; ctx.beginPath(); ctx.arc(18, -28, 4.5, 0, Math.PI * 2); ctx.fill();
+  } else if (logSeated) {
+    // Down at his side, gripping the log's rim
+    drawReachingArm(ctx, -6, -40, -12, -32, -9, -24, skinShadow);
+    ctx.fillStyle = skinShadow; ctx.beginPath(); ctx.arc(-9, -24, 4.5, 0, Math.PI * 2); ctx.fill();
   } else if (lounging) {
     // Draped back over the back of the cart, open, the hand resting on the top of it
     drawReachingArm(ctx, -8, -42, -22, -48, -18, -60, skinShadow);
@@ -1200,11 +1210,11 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     ctx.fillStyle = skinTone; ctx.beginPath(); ctx.ellipse(ramX, ramY, 8.5, 7.5, 0.3, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = skinShadow; ctx.beginPath(); ctx.ellipse(ramX - 1, ramY + 5, 6, 1.6, 0.3, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = skinHighlight; ctx.beginPath(); ctx.ellipse(ramX + 2.5, ramY - 3, 3.5, 2, 0.3, 0, Math.PI * 2); ctx.fill();
-  } else if (lounging && isDucking) {
+  } else if (lounging && isDucking && !logSeated) {
     // Ducked in the cart: hunched over, gripping the front of it white-knuckled
     drawReachingArm(ctx, 8, -42, 18, -32, 26, -26, skinTone);
     ctx.fillStyle = skinTone; ctx.beginPath(); ctx.arc(26, -26, 5, 0, Math.PI * 2); ctx.fill();
-  } else if (lounging) {
+  } else if (lounging && !logSeated) {
     // Sat back in the cart, nothing in his hand: the arm along the front of it, the hand over the side
     drawReachingArm(ctx, 8, -42, 20, -34, 30, -32, skinTone);
     ctx.fillStyle = skinTone; ctx.beginPath(); ctx.arc(30, -32, 5, 0, Math.PI * 2); ctx.fill();

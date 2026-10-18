@@ -18,8 +18,14 @@ import { drawPerson } from '../../adventure/temple/people';
 import { GY } from '../geometry';
 import { box, mix, INK, frontierSky, frontierSign, onScreen, hash, burned, painted, type Ctx } from '../kit';
 import { rideOf } from './state';
-import { X, Y, x0, waterY, zoneAt, inSewer, indoorsAt, realAt, SIGNS, PLATFORM_END, LOAD_X, WALKWAYS, CUTTER_X, CHIPPER, CLEARING } from './layout';
+import { X, Y, x0, waterY, zoneAt, inSewer, indoorsAt, realAt, SIGNS, PLATFORM_END, LOAD_X, WALKWAYS, CHASM, CHIPPER, CLEARING } from './layout';
 import { LOG_LEN, RIM } from './ride';
+
+/** (hazards.ts's beats: the giant saw hits the ground SLAM_AT frames after it lets go; the flume over the crack goes at
+ *  BREAK_AT) */
+const SLAM_AT = 16, BREAK_AT = 50;
+/** How far on the flume's drawn past the fault line (the way the ride was meant to go). */
+const FLUME_END = 6400;
 
 const LIP = '#E8C890';
 const PLANK = '#8A5A30', PLANK_L = '#B07A44', PLANK_D = '#5A3A1E';
@@ -36,7 +42,9 @@ const camRx = (state: GameState) => state.camera.x + CANVAS_WIDTH / 2 - x0;
 
 export const drawRideBackdrop = (c: Ctx, state: GameState): boolean => {
   const rx = camRx(state), z = zoneAt(rx);
-  if (inSewer(rx) || z === 'brk' && state.camera.y > GY - 100) { c.fillStyle = '#14120C'; c.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); return true; }
+  // (the sewer's black; around the break, only once the view's gone down the chasm after him)
+  const nearBreak = z === 'brk' || (rx >= 5700 && rx < 6300);
+  if (nearBreak ? state.camera.y > GY - 100 : inSewer(rx)) { c.fillStyle = '#14120C'; c.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); return true; }
   if (indoorsAt(rx)) { c.fillStyle = '#2A1E14'; c.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); return true; }
   if (realAt(rx)) return realSky(c, state);
   return frontierSky(c, state);
@@ -85,7 +93,7 @@ export const drawRideBack = (c: Ctx, state: GameState) => {
   if (vis(3000, 3900)) drawShedBack(c, state);
   if (vis(3880, 4600)) drawSplash(c, state);
   if (vis(4250, 5600)) drawCamp(c, state);
-  if (vis(5400, 5900)) drawBreak(c, state);
+  if (vis(5400, 6200)) drawBreak(c, state);
   if (vis(5640, 8460)) drawSewerBack(c, state);
   if (vis(8300, 8700)) drawCulvert(c, state);
   if (vis(8400, 11100)) drawRiverBack(c, state);
@@ -103,8 +111,66 @@ export const drawRideFront = (c: Ctx, state: GameState) => {
   if (onScreen(state, X(5640), X(8460))) drawSewerFront(c, state);
   if (onScreen(state, X(8400), X(11100))) drawRiverFront(c, state);
   if (onScreen(state, X(3000), X(3900))) drawShedFront(c, state);
+  drawWaves(c, state);
   const r = rideOf(state);
   if (r.flash > 0) { c.fillStyle = `rgba(255,255,255,${r.flash / 14})`; c.fillRect(state.camera.x - 10, state.camera.y - 10, CANVAS_WIDTH + 20, CANVAS_HEIGHT + 20); }
+  drawLens(c, state);
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// The big splashes (ride.ts bigSplash): off the foot of every drop, a wall of water up either side of the log like a
+// real log ride's (the front one the big one), curling over and coming down, the crest breaking into drops; then the
+// water running down the screen.
+
+const drawWaves = (c: Ctx, state: GameState) => {
+  const r = rideOf(state);
+  for (const w of r.waves) {
+    if (!onScreen(state, w.x - 400, w.x + 500)) continue;
+    const t = w.t, rx = w.x - x0, sewer = rx > 5700 && rx < 8440;
+    const rise = t < 20 ? Math.sin((t / 20) * Math.PI / 2) : Math.max(0, 1 - (t - 20) / 52);
+    const fade = t < 56 ? 1 : Math.max(0, (80 - t) / 24);
+    const body = sewer ? '#7A7A3A' : '#BFE0F8', crest = sewer ? '#A3A35A' : '#F8FAFC', deep = sewer ? '#5A5A28' : '#7AB6D0';
+    for (const s of [-1, 1] as const) {
+      const big = s > 0 ? 1.25 : 0.85, H = 240 * rise * big, out = (40 + t * 3.4) * big, base = w.x + s * 24;
+      c.globalAlpha = 0.82 * fade;
+      // (the sheet: thick at its foot, up and out, curling over at the top)
+      c.fillStyle = deep; c.beginPath(); c.moveTo(base, w.y + 4);
+      c.quadraticCurveTo(base + s * out * 0.15, w.y - H * 1.05, base + s * out, w.y - H * 0.8);
+      c.quadraticCurveTo(base + s * out * 1.35, w.y - H * 0.55, base + s * (out * 1.25 + 30), w.y + 4); c.closePath(); c.fill();
+      c.fillStyle = body; c.beginPath(); c.moveTo(base + s * 6, w.y + 2);
+      c.quadraticCurveTo(base + s * out * 0.2, w.y - H * 0.95, base + s * out * 0.95, w.y - H * 0.76);
+      c.quadraticCurveTo(base + s * out * 1.2, w.y - H * 0.5, base + s * (out * 1.1 + 18), w.y + 2); c.closePath(); c.fill();
+      // (the crest breaking into drops, falling as it goes over)
+      c.fillStyle = crest;
+      for (let i = 0; i < 12; i++) {
+        const u = i / 11, px = base + s * out * (0.25 + u * 1.05), py = w.y - H * (0.98 - u * 0.5) + Math.max(0, t - 20) * u * 2.2;
+        c.beginPath(); c.arc(px + s * hash(i + t) * 6, py - hash(i * 3) * 10, 3 + hash(i * 7) * 4, 0, Math.PI * 2); c.fill();
+      }
+      // (streaks down its face)
+      c.fillStyle = crest; c.globalAlpha = 0.5 * fade;
+      for (let i = 0; i < 4; i++) { const u = 0.3 + i * 0.18, px = base + s * out * u; c.fillRect(px, w.y - H * (0.8 - u * 0.4), 3, H * 0.4); }
+    }
+    // (the white water boiling round the log's foot)
+    c.globalAlpha = 0.9 * fade; c.fillStyle = crest;
+    for (let i = 0; i < 16; i++) { const px = w.x - 120 + i * 18 + Math.sin(t * 0.3 + i) * 4; c.beginPath(); c.ellipse(px, w.y - 2 - hash(i + 5) * 6, 10 + hash(i) * 8, 5 + hash(i + 1) * 4, 0, 0, Math.PI * 2); c.fill(); }
+    c.globalAlpha = 1;
+  }
+};
+
+/** The splash's water down the screen (the lens: drops sliding down it), fading. */
+const drawLens = (c: Ctx, state: GameState) => {
+  const r = rideOf(state);
+  if (r.lens <= 0) return;
+  const a = r.lens / 80, run = 80 - r.lens, sewer = inSewer(camRx(state));
+  for (let i = 0; i < 16; i++) {
+    const sx = state.camera.x + hash(i * 7 + 3) * CANVAS_WIDTH, sy = state.camera.y + ((hash(i * 3 + 1) * CANVAS_HEIGHT * 0.8 + run * (2 + hash(i) * 5)) % CANVAS_HEIGHT);
+    const w = 8 + hash(i * 5) * 14, h = w * 1.3;
+    c.globalAlpha = 0.32 * a; c.fillStyle = sewer ? '#A3A35A' : '#E0F2FE';
+    c.beginPath(); c.ellipse(sx, sy, w, h, 0, 0, Math.PI * 2); c.fill();
+    c.fillRect(sx - 2, sy - h - run * 0.6, 4, run * 0.6);
+    c.globalAlpha = 0.6 * a; c.fillStyle = '#FFFFFF'; c.beginPath(); c.ellipse(sx - w * 0.35, sy - h * 0.4, w * 0.22, h * 0.18, 0, 0, Math.PI * 2); c.fill();
+  }
+  c.globalAlpha = 1;
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -115,9 +181,22 @@ const drawLog = (c: Ctx, state: GameState, back: boolean) => {
   // (the station's waiting log, before he's in one; the log on the ride; gone into the chipper)
   const rx = L.mode === 'off' ? LOAD_X : L.rx;
   if (L.mode === 'done' || (L.mode === 'chipper' && rx > 11095)) return;
-  const x = X(rx), wy = waterY(rx) - L.bob, ang = Math.atan2(waterY(rx + 30) - waterY(rx - 30), 60);
+  const wl = waterY(rx), x = X(rx), wy = wl - L.bob - L.float, ang = Math.atan2(waterY(rx + 30) - waterY(rx - 30), 60);
+  const hl = LOG_LEN / 2, f = state.frame;
+  // (on the water (not up the chipper's conveyor, not down a drop): the water round it: ripples spreading off it, its
+  // wake trailing, a bow wave at its nose, foam round its foot)
+  const onWater = rx < 10760 && Math.abs(ang) < 0.3 && L.mode !== 'leap';
+  const sewer = rx > 5700 && rx < 8440, v = L.mode === 'ride' || L.mode === 'chipper' ? L.v : 0;
+  const foam = sewer ? '#A3A35A' : '#F1F5F9', ripple = sewer ? '#7A7A3A' : RIVER_L;
+  if (back && onWater) {
+    for (let i = 0; i < 3; i++) {
+      const k = ((f * 0.02 + i / 3) % 1), rw = hl + 12 + k * 70;
+      c.globalAlpha = 0.5 * (1 - k); c.strokeStyle = ripple; c.lineWidth = 2;
+      c.beginPath(); c.ellipse(x - k * v * 12, wl, rw, 4 + k * 4, 0, Math.PI, Math.PI * 2); c.stroke();
+    }
+    c.globalAlpha = 1;
+  }
   c.save(); c.translate(Math.round(x), Math.round(wy)); c.rotate(ang);
-  const hl = LOG_LEN / 2;
   if (back) {
     // (the far side's rim and the dark inside of it, a bench)
     box(c, -hl, -RIM - 2, LOG_LEN, 10, INK); box(c, -hl + 2, -RIM, LOG_LEN - 4, 8, '#3F2A14');
@@ -132,6 +211,20 @@ const drawLog = (c: Ctx, state: GameState, back: boolean) => {
     signText(c, 'TT-4', 0, -6, painted(1, '#FEF3C7', '#3F2A14'));
   }
   c.restore();
+  if (!back && onWater) {
+    // (the water over its foot: see-through, lapping; the foam collar; the wake's V trailing off its tail; the bow wave)
+    c.globalAlpha = 0.55; box(c, x - hl - 8, wl - 3, LOG_LEN + 16, 12, sewer ? SLUDGE : RIVER); c.globalAlpha = 1;
+    for (let i = 0; i < 12; i++) { const px = x - hl - 4 + i * 12 + Math.sin(f * 0.2 + i) * 2; box(c, px, wl - 3 + Math.sin(f * 0.15 + i * 1.7), 7, 2, foam); }
+    const wake = 50 + v * 34;
+    c.strokeStyle = foam; c.lineWidth = 2; c.globalAlpha = 0.75;
+    c.beginPath(); c.moveTo(x - hl, wl - 1); c.lineTo(x - hl - wake, wl - 6); c.moveTo(x - hl, wl + 2); c.lineTo(x - hl - wake, wl + 8); c.stroke();
+    for (let i = 0; i < 6; i++) { const k = ((f * (0.03 + v * 0.01) + i / 6) % 1); box(c, x - hl - k * wake, wl - 3 - k * 3 + (i % 2) * (6 + k * 8), 5 - k * 3, 2, foam); }
+    c.globalAlpha = 1;
+    if (v > 0.5) {
+      const h = 4 + v * 2.4 + Math.sin(f * 0.5) * 1.5;
+      c.fillStyle = foam; c.beginPath(); c.moveTo(x + hl - 4, wl); c.quadraticCurveTo(x + hl + 6, wl - h, x + hl + 14 + v * 2, wl - h * 0.4); c.lineTo(x + hl + 10, wl + 2); c.closePath(); c.fill();
+    }
+  }
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -156,9 +249,30 @@ const drawStation = (c: Ctx, state: GameState) => {
   box(c, X(820), GY - 150, 84, 150, INK); box(c, X(824), GY - 146, 76, 146, '#120C08');
   for (let k = 0; k < 6; k++) box(c, X(826) + k * 12 + Math.sin(f * 0.1 + k) * 2, GY - 140, 9, 110, '#2A2A30');
   box(c, X(810), GY - 170, 104, 20, '#7F1D1D'); signText(c, 'FLOAT ON', X(862), GY - 157, painted(1, '#FDE047', '#1C1209'));
-  // ---- the queue rails, the guests still waiting (the ones he cut)
-  for (const y of [GY - 30, GY - 60]) box(c, X(-200), y, 330, 4, '#A1A1AA');
-  for (let k = 0; k < 5; k++) { c.save(); c.translate(X(-10) + k * 30, GY); drawPerson(c, { seed: 211 + k * 19, outfit: 'guest', f, pose: k % 2 ? 'point' : 'stand', mood: 'angry' }); c.restore(); }
+  // ---- the last of the long line (the town's queue runs on into the station: the same pipe rails and boards): two
+  // switchback rows on the platform, the back one up on a step (dimmed: not for standing on), every rail on its posts,
+  // packed with guests, the ones at the front the ones he cut
+  const QA = X(-300), QB = X(300);
+  box(c, QA, GY - 26, QB - QA, 26, '#4A3220'); box(c, QA, GY - 26, QB - QA, 2, '#5A4028');
+  for (let x = QA; x < QB; x += 30) box(c, x, GY - 24, 1, 24, '#3A2616');
+  const rows: [number, number][] = [[GY - 26, 0.84], [GY, 1]];
+  rows.forEach(([y, s], ri) => {
+    for (const ry of [y - 40 * s, y - 22 * s]) box(c, QA, ry, QB - QA, Math.max(2, 3 * s), '#A1A1AA');
+    for (let x = QA + 10; x <= QB; x += 46) box(c, x, y - 42 * s, Math.max(2, 4 * s), 42 * s, '#71717A');
+    // (the turn at the end, round to the front row)
+    if (ri === 0) box(c, QB - 2, y - 42 * s, 4, 42 * s + 26, '#A1A1AA');
+    const n = Math.floor((QB - QA) / (30 * s));
+    for (let k = 0; k < n; k++) {
+      const gx = QA + 16 + k * 30 * s + hash(k + ri * 40) * 6;
+      if (gx < state.camera.x - 40 || gx > state.camera.x + CANVAS_WIDTH + 40) continue;
+      const seed = 211 + ri * 61 + k * 19, cut = ri === 1 && gx > X(120);
+      c.save(); c.translate(gx, y); c.scale(s, s);
+      drawPerson(c, { seed, outfit: 'guest', f, pose: cut && k % 2 ? 'point' : hash(seed) < 0.12 ? 'photo' : 'stand', mood: cut ? 'angry' : hash(seed + 1) < 0.2 ? 'happy' : 'bored' });
+      c.restore();
+    }
+  });
+  waitBoard(c, X(40), GY - 26, 96, '15 MIN FROM HERE');
+  waitBoard(c, X(250), GY, 112, 'NEXT LOG. ALMOST THERE');
   // ---- the platform (to stand on: its lit lip) and the trough's channel past it
   box(c, X(-300), GY, X(PLATFORM_END) - X(-300), 40, INK); box(c, X(-300), GY + 2, X(PLATFORM_END) - X(-300), 38, '#7A5A3A');
   box(c, X(-300), GY, X(PLATFORM_END) - X(-300), 3, LIP);
@@ -174,18 +288,24 @@ const along = (state: GameState, a: number, b: number, step: number, fn: (rx: nu
   for (let rx = lo; rx <= hi; rx += step) fn(rx);
 };
 
+/** The flume's waterline at x: the ride's own (TRACK) up to the fault line, and past it where the ride was meant to go
+ *  on (on the level, behind the chasm). */
+const flumeY = (rx: number) => (rx < CHASM.a ? waterY(rx) : Y(-60));
+/** The flume's gone at x: down the chasm, once the ground's broken under it. */
+const flumeGone = (state: GameState, rx: number) => { const t = rideOf(state).cutT; return t >= BREAK_AT && rx >= CHASM.a - 20 && rx < CHASM.b + 10; };
+
 const drawFlumeBack = (c: Ctx, state: GameState) => {
   const r = rideOf(state), f = state.frame;
-  // (the flume proper: the station to the cut)
-  const end = r.cutT ? CUTTER_X : 5560;
-  along(state, PLATFORM_END, 5560, 20, rx => {
-    const wy = waterY(rx), x = X(rx);
-    if (rx >= end + 40 && rx < 5560) return;
+  // (the flume proper: the station on past the fault line (the way the ride was meant to go))
+  along(state, PLATFORM_END, FLUME_END, 20, rx => {
+    const wy = flumeY(rx), x = X(rx);
+    if (flumeGone(state, rx)) return;
     // (its back wall, planks)
     box(c, x, wy - 34, 21, 36, PLANK_D); box(c, x, wy - 34, 21, 3, PLANK_L);
-    // (the water in it, running)
-    box(c, x, wy - 4, 21, 6, mix(RIVER, '#000000', 0.1));
-    if ((rx + Math.floor(f * 1.5)) % 60 < 8) box(c, x + 4, wy - 3, 8, 2, RIVER_L);
+    // (the water in it, running: the surface banded, its ripples going by with the flow)
+    box(c, x, wy - 4, 21, 12, mix(RIVER, '#000000', 0.1)); box(c, x, wy - 4, 21, 2, mix(RIVER, '#FFFFFF', 0.2));
+    if ((rx + Math.floor(f * 2.2)) % 60 < 10) box(c, x + 4, wy - 3, 10, 2, RIVER_L);
+    if ((rx * 3 + Math.floor(f * 1.7)) % 80 < 6) box(c, x + 10, wy + 1, 6, 1, '#E0F2FE');
     // (its trestles, where it's up off the ground: timber legs, cross-braced)
     if (wy < GY - 30 && rx % 80 === 0) {
       box(c, x - 4, wy + 10, 8, GY - wy - 10, INK); box(c, x - 3, wy + 10, 6, GY - wy - 10, '#6B4423');
@@ -194,22 +314,28 @@ const drawFlumeBack = (c: Ctx, state: GameState) => {
     // (the lift hill's chain up the middle)
     if (rx >= 2500 && rx < 3000) box(c, x + ((Math.floor(f * 1.4)) % 20), wy + 2, 6, 3, '#71717A');
   });
-  // (the cut: the flume's end splintered, sagging, water pouring off it)
-  if (r.cutT && onScreen(state, X(end), X(end + 60))) {
-    const wy = waterY(end);
-    for (let k = 0; k < 4; k++) box(c, X(end) + k * 6, wy - 30 + k * 4, 5, 40, PLANK);
-    for (let k = 0; k < 5; k++) box(c, X(end) + 26 + k * 3, wy + 4 + ((f * 6 + k * 13) % 70), 4, 8, RIVER_L);
+  // (broken over the fault line: both ends splintered and sagging into the chasm, the water pouring off them; before it
+  // goes, the length over the crack sagging, shaking)
+  if (r.cutT >= BREAK_AT && onScreen(state, X(CHASM.a) - 60, X(CHASM.b) + 60)) {
+    for (const [ex, dir] of [[CHASM.a - 20, 1], [CHASM.b + 10, -1]] as const) {
+      const wy = Y(-60);
+      for (let k = 0; k < 4; k++) { c.save(); c.translate(X(ex) + dir * k * 5, wy - 30); c.rotate(dir * (0.3 + k * 0.15)); box(c, -2, 0, 5, 40 + k * 6, PLANK); c.restore(); }
+      for (let k = 0; k < 5; k++) box(c, X(ex) + dir * (8 + k * 3), wy + 4 + ((f * 6 + k * 13) % 90), 4, 8, RIVER_L);
+    }
   }
 };
 
 const drawFlumeFront = (c: Ctx, state: GameState) => {
-  const r = rideOf(state);
-  const end = r.cutT ? CUTTER_X : 5560;
-  along(state, PLATFORM_END, Math.min(end, 5560), 20, rx => {
-    const wy = waterY(rx), x = X(rx);
-    // (the near wall: planks over the log's bottom and his feet; its lit top)
-    box(c, x, wy - 12, 21, 26, PLANK); box(c, x, wy - 12, 21, 3, PLANK_L); box(c, x + 20, wy - 12, 1, 26, PLANK_D);
-    box(c, x, wy + 12, 21, 3, PLANK_D);
+  const f = state.frame;
+  along(state, PLATFORM_END, FLUME_END, 20, rx => {
+    if (flumeGone(state, rx)) return;
+    const wy = flumeY(rx), x = X(rx);
+    // (the water over the log's foot, see-through, rippling; then the near wall down from just under the surface, its
+    // lit top, over his legs and the log's belly)
+    c.globalAlpha = 0.5; box(c, x, wy - 3, 21, 6, RIVER); c.globalAlpha = 1;
+    box(c, x, wy - 3 + Math.round(Math.sin(f * 0.12 + rx * 0.05)), 21, 1, RIVER_L);
+    box(c, x, wy + 3, 21, 22, PLANK); box(c, x, wy + 3, 21, 3, PLANK_L); box(c, x + 20, wy + 3, 1, 22, PLANK_D);
+    box(c, x, wy + 22, 21, 3, PLANK_D);
   });
 };
 
@@ -290,28 +416,43 @@ const drawCamp = (c: Ctx, state: GameState) => {
   }
 };
 
+/** The break: the park's back lot past the ride (a chain-link fence, AUTHORIZED ONLY); once the giant saw's down, the
+ *  fault line: cracks running off along the ground both ways, and the chasm torn open between them, rock and dirt down
+ *  its sides, down to the sewer's broken vault. */
 const drawBreak = (c: Ctx, state: GameState) => {
-  const r = rideOf(state);
-  // (past the cut: the park's back lot (a chain-link fence, AUTHORIZED PERSONNEL), the storm grate in the ground)
-  box(c, X(5580), GY - 90, 240, 3, '#A1A1AA');
-  for (let x = X(5580); x < X(5820); x += 20) box(c, x, GY - 90, 2, 90, '#A1A1AA');
-  box(c, X(5600), GY - 70, 110, 24, '#E5E7EB'); signText(c, 'AUTHORIZED ONLY', X(5655), GY - 55, painted(1, '#B91C1C', '#E5E7EB'));
-  // (the grate (smashed through once he's gone down it), and the shaft under it, bricked, down to the sewer)
-  const smashed = r.said.grate;
-  box(c, X(5680), GY + 30, 160, 560, INK); box(c, X(5684), GY + 30, 152, 560, '#1A1610');
-  for (let y = GY + 40; y < GY + 580; y += 16) box(c, X(5684), y, 152, 2, BRICK_D);
-  if (!smashed) for (let k = 0; k < 8; k++) box(c, X(5690) + k * 18, GY - 2, 6, 8, '#3F3F46');
-  else { box(c, X(5670), GY - 6, 20, 8, '#3F3F46'); box(c, X(5830), GY - 4, 16, 6, '#3F3F46'); }
-  box(c, X(5560), GY - 4, 120, 6, '#6A8A3A'); box(c, X(5840), GY - 4, 120, 6, '#6A8A3A');
+  const r = rideOf(state), t = r.cutT;
+  box(c, X(5900), GY - 90, 240, 3, '#A1A1AA');
+  for (let x = X(5900); x < X(6140); x += 20) box(c, x, GY - 90, 2, 90, '#A1A1AA');
+  box(c, X(5940), GY - 70, 110, 24, '#E5E7EB'); signText(c, 'AUTHORIZED ONLY', X(5995), GY - 55, painted(1, '#B91C1C', '#E5E7EB'));
+  if (t < SLAM_AT) return;
+  const open = t >= 999 ? 1 : Math.min(1, (t - SLAM_AT) / 44);
+  const a = X(CHASM.a), b = X(CHASM.b), mid = (a + b) / 2, half = ((b - a) / 2) * open, bottom = waterY(CHASM.b) - 236;
+  // (the cracks, running off along the ground from it, growing)
+  c.strokeStyle = '#120C08'; c.lineWidth = 3;
+  for (const [dir, len] of [[-1, 200], [1, 170]] as const) {
+    c.beginPath(); c.moveTo(mid + dir * half, GY - 3);
+    for (let k = 1; k <= 8; k++) c.lineTo(mid + dir * (half + (len * open * k) / 8), GY - 3 + (k % 2 ? 4 : -1) + hash(k + dir) * 6);
+    c.stroke();
+  }
+  if (half < 2) return;
+  // (the chasm: jagged walls of dirt and rock down into the dark)
+  const edge = (side: -1 | 1) => { const pts: [number, number][] = []; for (let k = 0; k <= 10; k++) { const y = GY - 4 + ((bottom - GY + 4) * k) / 10, w = half * (1 - k * 0.04) + (hash(k * 3 + side) - 0.5) * 14 * open; pts.push([mid + side * w, y]); } return pts; };
+  const L = edge(-1), R = edge(1);
+  c.fillStyle = '#0A0806'; c.beginPath(); c.moveTo(L[0][0], L[0][1]); for (const p of L) c.lineTo(p[0], p[1]); for (let i = R.length - 1; i >= 0; i--) c.lineTo(R[i][0], R[i][1]); c.closePath(); c.fill();
+  c.strokeStyle = '#6A5A44'; c.lineWidth = 3;
+  for (const side of [L, R]) { c.beginPath(); c.moveTo(side[0][0], side[0][1]); for (const p of side) c.lineTo(p[0], p[1]); c.stroke(); }
+  for (let k = 0; k < 8; k++) { const p = (k % 2 ? L : R)[1 + k]; box(c, p[0] - 5, p[1], 10, 6, k % 3 ? '#5A4630' : '#7A766E'); }
+  // (the ground's torn edges, the grass turned up)
+  box(c, mid - half - 14, GY - 6, 16, 6, '#6A8A3A'); box(c, mid + half - 2, GY - 5, 16, 5, '#6A8A3A');
 };
 
 // ---------------------------------------------------------------------------------------------------------------
 // The sewer
 
 const drawSewerBack = (c: Ctx, state: GameState) => {
-  const f = state.frame;
+  const f = state.frame, r = rideOf(state);
   along(state, 5640, 8460, 40, rx => {
-    const wy = waterY(rx), x = X(rx), top = wy - 240;
+    const wy = waterY(Math.max(rx, 5840)), x = X(rx), top = wy - 240;
     // (the brick tunnel: its back wall, the arch's shade at the top, the water's channel)
     box(c, x, top, 41, wy + 60 - top, BRICK);
     for (let k = 0; k < 15; k++) box(c, x + ((k % 2) * 20), top + k * 16, 41, 2, BRICK_D);
@@ -330,7 +471,25 @@ const drawSewerBack = (c: Ctx, state: GameState) => {
     box(c, X(rx) - 30, top - 6, 60, 10, '#3F3F46'); for (let k = 0; k < 5; k++) box(c, X(rx) - 26 + k * 12, top - 6, 4, 10, '#9CA3AF');
     c.globalAlpha = 0.12; c.fillStyle = '#FEF9C3'; c.beginPath(); c.moveTo(X(rx) - 26, top); c.lineTo(X(rx) + 26, top); c.lineTo(X(rx) + 60, waterY(rx)); c.lineTo(X(rx) - 60, waterY(rx)); c.closePath(); c.fill(); c.globalAlpha = 1;
   }
-  for (let rx = 5900; rx < 8400; rx += 300) if (onScreen(state, X(rx), X(rx + 300))) { const y = waterY(rx) - 150; box(c, X(rx), y, 300, 10, INK); box(c, X(rx), y + 1, 300, 8, '#5A5A48'); box(c, X(rx), y + 1, 300, 2, '#7A7A64'); }
+  // (a water main along the back wall: a fat round pipe, lit along its top and dark under, its joints' collars and their
+  // bolts every so often, hung on brackets, rust and slime weeping down from the joints)
+  along(state, 5840, 8400, 40, rx => {
+    const y = waterY(rx) - 160, x = X(rx);
+    box(c, x, y - 1, 41, 20, INK); box(c, x, y, 41, 18, '#5A5A48'); box(c, x, y + 1, 41, 4, '#7A7A64'); box(c, x, y + 13, 41, 5, '#3F3F34');
+    if (rx % 160 === 0) {
+      box(c, x - 4, y - 4, 10, 26, INK); box(c, x - 3, y - 3, 8, 24, '#6A6A58');
+      for (let k = 0; k < 3; k++) box(c, x - 1, y + 1 + k * 7, 3, 2, '#3F3A30');
+      box(c, x + 2, y + 22, 2, 14 + hash(rx) * 20, '#4A5A22');
+    }
+    if (rx % 240 === 0) { box(c, x + 18, y - 40, 4, 40, '#3F3A30'); box(c, x + 12, y + 18, 16, 3, '#3F3A30'); }
+  });
+  // (the vault broken through where he came down: the hole up into the chasm, daylight down through it, rubble)
+  if (r.cutT >= SLAM_AT + 20 && onScreen(state, X(CHASM.a) - 40, X(CHASM.b) + 40)) {
+    const top = waterY(5850) - 240, a = X(CHASM.a) + 10, b = X(CHASM.b) - 10;
+    c.fillStyle = '#0A0806'; c.beginPath(); c.moveTo(a, top - 6); for (let k = 0; k <= 6; k++) c.lineTo(a + ((b - a) * k) / 6, top + 14 + hash(k + 9) * 18); c.lineTo(b, top - 6); c.closePath(); c.fill();
+    c.globalAlpha = 0.16; c.fillStyle = '#FEF9C3'; c.beginPath(); c.moveTo(a + 10, top); c.lineTo(b - 10, top); c.lineTo(b + 30, waterY(5850)); c.lineTo(a - 30, waterY(5850)); c.closePath(); c.fill(); c.globalAlpha = 1;
+    for (let k = 0; k < 7; k++) box(c, a - 10 + k * 26, top + 22 + hash(k) * 12, 12, 8, k % 2 ? BRICK : '#6A5A44');
+  }
   // (a caged bulb now and then)
   for (let rx = 5980; rx < 8400; rx += 400) if (onScreen(state, X(rx), X(rx))) { box(c, X(rx) - 4, waterY(rx) - 200, 8, 10, '#3F3F46'); c.fillStyle = '#FDE68A'; c.beginPath(); c.arc(X(rx), waterY(rx) - 186, 4, 0, Math.PI * 2); c.fill(); }
 };
@@ -400,6 +559,14 @@ const drawRiverFront = (c: Ctx, state: GameState) => {
   });
 };
 
+/** A queue board up on its post (the town's WAIT FROM HERE boards': yellow, painted). */
+const waitBoard = (c: Ctx, x: number, feet: number, up: number, text: string) => {
+  const w = text.length * 6 + 14;
+  box(c, x - 3, feet - up, 6, up, INK); box(c, x - 2, feet - up, 4, up, '#6B4423');
+  box(c, x - w / 2 - 1, feet - up - 9, w + 2, 18, INK); box(c, x - w / 2, feet - up - 8, w, 16, '#FDE047');
+  signText(c, text, x, feet - up + 4, painted(1, '#1C1917', '#FDE047'));
+};
+
 /** A board with burned letters, hung at its middle. */
 const board = (c: Ctx, x: number, y: number, text: string) => {
   const w = text.length * 12 + 20;
@@ -416,6 +583,8 @@ export const rideLighting = (state: GameState, lamps: Light[]): SceneLight | nul
     const lights: Light[] = [me, ...lamps];
     for (let k = 6000; k < 8400; k += 520) lights.push({ x: X(k), y: waterY(k) - 120, r: 140, a: 0.55, color: '#FEF9C3' });
     for (let k = 5980; k < 8400; k += 400) lights.push({ x: X(k), y: waterY(k) - 186, r: 110, a: 0.6, color: '#FDE68A' });
+    // (daylight down the chasm he came down)
+    if (rideOf(state).cutT >= SLAM_AT) lights.push({ x: X((CHASM.a + CHASM.b) / 2), y: waterY(5850) - 120, r: 220, a: 0.7, color: '#FEF9C3' });
     return { dark: 0.62, shade: [10, 12, 6], rim: 0.6, lights };
   }
   if (indoorsAt(rx)) {

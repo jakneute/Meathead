@@ -251,6 +251,9 @@ export interface Player extends Entity {
    * `th` how far over the vine's swung (radians, + to the right), `om` how fast it's swinging. */
   /** Sat back in a mine cart (Meathead 2's): lounging, leaning back, the free arm draped open over the back of it. */
   cartSeat?: boolean;
+  /** Sat down inside a log-flume log (Meathead 2's Wilderness Land, frontier/logride/ride.ts): the cart's seat, sat up,
+   *  legs out forward down in the log, the free hand gripping its side, the gun hand his own; ducked, hunched down in it. */
+  logSeat?: boolean;
   /** The whole of him drawn turned (radians, about his feet): sat in a cart that's going up a loop. */
   spriteRot?: number;
   /** Drawn squashed up and down (about his feet, after spriteRot; negative: upside down), with the car he's sat in:
