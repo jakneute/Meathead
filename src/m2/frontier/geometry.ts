@@ -48,6 +48,8 @@ export const SECTION_ORDER: FrontierId[] = ['wilds', 'train', 'town', 'logride',
  *  one before it (start), and coming back into it from the one after it (end). Feet (x, y). */
 export const DOORS: Record<FrontierId, { start: { x: number; y: number }; end: { x: number; y: number } }> =
   Object.fromEntries(SECTION_ORDER.map(id => [id, { start: { x: SECTIONS[id].x0 + 200, y: GY }, end: { x: SECTIONS[id].x1 - 250, y: GY } }])) as Record<FrontierId, { start: { x: number; y: number }; end: { x: number; y: number } }>;
+// (back from the train: on the station's platform, which is up 40 off the ground: wilds/layout.ts STATION.deck)
+DOORS.wilds.end = { x: SECTIONS.wilds.x1 - 250, y: GY - 40 };
 /** The section before and after one (null: the land's start, the boss's arena). */
 export const prevOf = (id: FrontierId): FrontierId | null => SECTION_ORDER[SECTION_ORDER.indexOf(id) - 1] ?? null;
 export const nextOf = (id: FrontierId): FrontierId | null => SECTION_ORDER[SECTION_ORDER.indexOf(id) + 1] ?? null;

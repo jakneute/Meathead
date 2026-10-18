@@ -159,6 +159,9 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   // On skis: a racer's crouch going along (knees bent, leaning into it, the off arm back for balance), knees tucked up
   // in the air, and right down in an egg tuck ducking
   const isSki = !!p.skiing && !p.jetski && hurtT < 0 && !isCharging && !isUppercutting && !isDivekicking;
+  // Rolling a floating log under his feet (Meathead 2's Wilderness Land): feet pedaling on its top, the free arm out
+  // for balance, leaning with the wobble
+  const logRoll = p.logRoll && onFeet && hurtT < 0 && !isCharging && !isUppercutting && !isDivekicking && !isDucking && !vine ? p.logRoll : null;
   // The finale's boulder: pitched, the whole of him in it (render/player/pitch.ts): how far through it he is (-1: not)
   const pitchK = p.throwPitch && (p.throwTimer || 0) > 0 && hurtT < 0 && !isCharging && !isUppercutting && !isDivekicking && !isSwimming && !isSeated && !isDucking
     ? 1 - p.throwTimer! / PITCH_FRAMES : -1;
@@ -406,6 +409,10 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   } else if (isHurt) {
     bodyRot = -0.3; // Reeling back in pain/shock
     bodyY = 2;
+  } else if (logRoll) {
+    // On the log: leaning with the wobble, bobbing as each foot comes down on it
+    bodyRot = logRoll.lean * p.facing * 0.35 + 0.06;
+    bodyY = -2 - Math.abs(Math.sin(logRoll.spin * 2)) * 1.6;
   } else if (isDucking) {
     bodyRot = 0.05; // Slight forward combat crouch angle
     bodyY = 0; // Feet remain firmly planted on the ground level (0)!
@@ -575,7 +582,8 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     })();
     // Shrugging (tried to throw a boulder with none left): the free arm out from his side, the forearm up, palm up
     const shrug = shrugK(p, state.frame);
-    const armAngle0 = isSki ? (isAirborne ? 2.0 + Math.sin(animFrame * 0.2) * 0.1 : 0.85 + Math.sin(animFrame * 0.12) * 0.06)
+    const armAngle0 = logRoll ? 1.5 + Math.sin(animFrame * 0.21) * 0.45 - logRoll.lean * p.facing * 0.6
+      : isSki ? (isAirborne ? 2.0 + Math.sin(animFrame * 0.2) * 0.1 : 0.85 + Math.sin(animFrame * 0.12) * 0.06)
       : isSwimming ? (swimMoving ? swimHaul.angle : 0.9 + Math.sin(animFrame * 0.15) * 0.9)
       : isWalking ? 0.16 - walkStride * 0.42
       // (in the air: thrown up high behind him on the way up, coming down and out behind for balance as he falls)
@@ -647,6 +655,13 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     const u = ((animFrame * 0.55) / (Math.PI * 2)) % 1;
     sprintLeg(ctx, [-4, -22], (u + 0.5) % 1, true);
     sprintLeg(ctx, [4, -22], u, false);
+  } else if (logRoll) {
+    // On the log: feet pedaling round its top, each knee coming up in turn as the log turns under it
+    const ph = logRoll.spin * 1.6;
+    for (const [hip, off, col, near] of [[-4, Math.PI, pantsShadow, false], [5, 0, pantsColor, true]] as const) {
+      const s = Math.sin(ph + off), up = Math.max(0, Math.cos(ph + off));
+      drawJointedLeg(ctx, hip, -22, -0.25 + s * 0.45 - up * 0.35, 0.35 + up * 0.85, col, near);
+    }
   } else if (isSeated && p.bike) {
     // On the bike: feet on the pedals, going round (how far round's how far he's gone)
     drawPedalLegs(ctx, p.pos.x / 14);

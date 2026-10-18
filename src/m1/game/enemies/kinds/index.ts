@@ -155,7 +155,9 @@ export const KIND_STATS: Record<EnemyKind, KindStats> = {
  */
 export const isSmallCritter = (kind?: EnemyKind) =>
   kind === 'wolverine' || kind === 'salamander' || kind === 'raccoon' || kind === 'crab' || kind === 'iguana' || kind === 'magmafish'
-  || kind === 'rattlesnake' || kind === 'scorpion' || kind === 'rat' || kind === 'sludgeling' || kind === 'armadillo';
+  || kind === 'rattlesnake' || kind === 'scorpion' || kind === 'rat' || kind === 'sludgeling' || kind === 'armadillo'
+  // (Meathead 2's Wilderness Land: the rattlers in their holes, the porcupines)
+  || (kind as string) === 'm2:fr_rattler' || (kind as string) === 'm2:fr_porcupine';
 
 /** The ones that run you down like the rusher. */
 export const isChargerKind = (kind?: EnemyKind) => kind === 'charger' || kind === 'bouncer' || kind === 'smokejumper' || kind === 'firedancer' || kind === 'courier' || kind === 'convict' || kind === 'enforcer'

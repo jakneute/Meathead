@@ -22,6 +22,7 @@ import type { FrontierSection } from '../section';
 import { layOwn, endWalls, endExits, runExits, groundBox, frontierState, hands } from '../section';
 import { SECTIONS, DOORS, GY } from '../geometry';
 import { frontierSign, frontierSky, onScreen } from '../kit';
+import { drawTucker } from '../tucker';
 import { goTo, markLandCleared, noteBossKill, isLandCleared } from '../../store';
 import { type Victory, startVictory, tickVictory, drawVictory, victoryDone } from '../../victory';
 import { type WalkAway, playWalkAway, tickWalkAway, drawWalkAway } from '../../walkAway';
@@ -63,6 +64,8 @@ export const arena: FrontierSection = {
   drawBack: (c, state) => {
     groundBox(c, x0 - 200, x1 + 200, GY, '#4A3420', '#6B8A3A');
     if (onScreen(state, x0 + 400, x0 + 800)) frontierSign(c, x0 + 600, GY, ['TUCKER', 'THE FIGHT: COMING SOON']);
+    // (the stand-in: him stood in the clearing, flat on his back, "dead" (his wounds come with the jobs before this))
+    if (!isLandCleared('frontier') && onScreen(state, TRIGGER_X - 100, TRIGGER_X + 300)) drawTucker(c, TRIGGER_X + 160, GY, -1, state.frame, 'flat');
   },
   drawHud: (c, state) => {
     const s = arenaOf(state);

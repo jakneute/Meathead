@@ -39,6 +39,12 @@ helpers, the time of day, signLetters, pickLine, the grab, victory, walkAway, dr
 - **Tucker's inspiration (the user's):** heavily inspired by a character in *Cannibal! The Musical* (Trey Parker) who
   just can't seem to die. Play it that way: absurdly unkillable; each "death" sold as final; each comeback more
   mangled and more stubbornly chipper / indignant; never explained.
+- **Tucker's character (the user's): his sin is GREED as indignant bookkeeping.** Not money: a minor inconvenience
+  (one unpaid fare) consumes him, and he stops at nothing to collect what he's owed. The model: South Park's Mel Gibson
+  episode (Mel chasing the kids violently through the streets, pulling manic funny faces, "GIVE ME BACK MY 17
+  DOLLARS!"). So: manic, petty, cheery-turned-unhinged, ledger talk (the fare, plus interest; nobody rides free; "I
+  don't give handouts"), never brooding rage. His sprite has a `manic` face (one eye bulging, one a pinprick, a brow up
+  in his cap, a clenched grin of every tooth) for the rage, the run to the engine and the cab.
 - **The mutilation close-up rule (the user's standing rule for Tucker):** EVERY time Tucker is mutilated (the eye shot
   through, the buzzsaw into his forehead, the branch through his chest, the grizzly's mauling, and anything later in his
   fight), show a graphic ANIMATED close-up of it happening: a full-detail, multi-frame, gory cutscene close-up of the
@@ -118,11 +124,11 @@ Teach, then escalate (each hazard alone in a safe spot first):
 | 2700 | THE POND | the first rolling log on still water, alone (sign: LOG ROLLING); falling in is just a swim |
 | 4500 | WOLF WOODS (cp 1) | two wolves; a trap in their path (watch one step in); a beehive over a pack (shoot it down on them) |
 | 6200 | THE CREEK | two logs and a stepping rock; a beaver; a crow |
-| 7800 | THE BLUFFS | a cougar on the ledges; a chain of loose ledges over a ravine (the way back: a fallen trunk under them) |
+| 7800 | THE BLUFFS | a cougar on the bluff; a chain of loose ledges over a ravine (they come back a few seconds after they drop: the way back's the same) |
 | 9300 | SNAKE FLATS (cp 2) | the first rattlesnake hole alone, then two with a trap between; a porcupine (no dive kicks) |
 | 10400 | THE RAPIDS | current; two channels and a rock island; submerged rocks buck the log; low branches; beavers |
 | 13100 | BISON MEADOW (cp 3) | a bison; bucks; the log pile rolling logs down the hill he climbs |
-| 15200 | THE LONG RIVER | one log down a long river: wolves leaping from the banks, a hive over the water, crows; the log boom and the falls at the end: jump off to the far cliff |
+| 15200 | THE LONG RIVER | one log down a long river: wolves and a cougar on fake-rock overhangs over the water (they leap down at him), a hive hanging off one, beavers, crows, a fallen tree to duck; the log boom and the falls at the end: jump off to the far cliff |
 | 17800 | THE LAST MILE (cp 4) | a wolf pack, crows, the trap gauntlet with ledges over it, the tracks begin |
 | 19300 | THE STATION (cp 5) | Tucker, the train, the scene |
 
@@ -167,3 +173,13 @@ Teach, then escalate (each hazard alone in a safe spot first):
 - 2026-10-17: the mining and logging town is SAWDUST GULCH.
 - 2026-10-17: the walk-back from the parking lot (and the ticket lady's re-entry exchange) is recorded, not wired: a
   later job.
+- 2026-10-17 (section 1): the rolling logs' rules: his left/right go into the log (it answers fast, tops out at 3.2 px
+  a frame on top of the current) unless it's jammed against something that way, when they walk him along it (onto a
+  bank, to its end for a jump). Idle logs drift with the current and wait at the downstream bank (the long river's at
+  the log boom), so every crossing can be ridden back. Falling in is a swim (the river's pull at the boom, and the drop
+  past it, are the falls: dead). Meathead's pose on one: Player.logRoll (feet pedaling, the free arm out, the wobble).
+- 2026-10-17 (section 1): the station is LONESOME PINE STATION; the train waits behind the platform (engine front at
+  wilds x ~20594, the caboose's back at 19900); Tucker's gate at 19760. A death after the pitch skips it (the pitch is
+  remembered: straight to Tucker in the gate). The scene done is STATION_MEMO (stageMemo).
+- 2026-10-17 (section 1): Tucker's station lines are in clean / shitty / naked pools (wilds/lines.ts); the user's line
+  ("NO ONE BOARDS MY TRAIN WITHOUT A TICKET!") is verbatim in all three (the shat and naked ones add a kicker).

@@ -295,6 +295,10 @@ export interface Player extends Entity {
   copterSeat?: { mode: 'passenger' | 'pilot'; lean: number; fire: boolean; yank: boolean; hang: boolean; mood: 'grit' | 'snarl' | 'flinch' | 'bored' };
   /** Something he's doing takes him off the vine he's on (Meathead 2: the mallet's smash down, from one): let go of it. */
   dropVine?: boolean;
+  /** Stood on a floating log he's rolling under his feet (Meathead 2's Wilderness Land, frontier/wilds/logs.ts): his
+   *  feet pedaling on its top, the free arm out for balance, leaning with the wobble. `spin` how far the log's turned
+   *  (radians: his feet go round with it), `lean` -1..1 the wobble (radians-ish, small). Whatever sets it clears it. */
+  logRoll?: { spin: number; lean: number };
   /** Frames left of a cutscene kick pose (drawn like the dive kick, standing). */
   kickPose?: number;
   /** Being stabbed, held up on the knife (a game's boss doing it): frames since it started, and the frames each stab

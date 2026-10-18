@@ -1,3 +1,210 @@
-// What's said in the frontier wilds and at the station, by voice. (The skeleton's: section 1 fills it.)
+// What's said in the frontier wilds and at the station, by voice (frontier/voices.ts gathers it; tools/voices records
+// it). In the user's voice: blunt, short, vulgar, specific; talk less; fit the trigger. Picked with pickLine. Meathead's
+// own lines in clean / shitty / naked pools; Tucker's (a boss's) the same for every line group. Pure data.
+//
+// Tucker (the user's inspiration: a character in Cannibal! The Musical who just can't seem to die): cheery, chipper,
+// a railroad man in love with his newfangled railroad. His sin is GREED as indignant bookkeeping (the user's: South
+// Park's Mel Gibson, GIVE ME BACK MY 17 DOLLARS): one unpaid fare consumes him; manic, petty, cheery-turned-unhinged,
+// ledger talk (the fare, plus interest; nobody rides free; he doesn't give handouts), never brooding. The user's lines
+// are verbatim in his pools ("NO ONE BOARDS MY TRAIN WITHOUT A TICKET!").
 
-export const VOICE_LINES: Record<string, string[]> = {};
+import { TUCKER_VOICE, allOf, type ByPants, type HurtTable } from '../talk';
+
+// ---------------------------------------------------------------------------------------------------------------
+// Meathead, along the way (once each)
+
+export const ARRIVE: ByPants = {
+  clean: ['WILDERNESS LAND. THE ROCKS HAVE BOLTS IN THEM.', 'THE WILD FRONTIER. THE MOUNTAINS ARE PLYWOOD.'],
+  shitty: ['THE FRONTIER. PIONEERS SHAT THEIR PANTS TOO. I FIT RIGHT IN.', 'OLD AMERICA. SMELLS LIKE ME.'],
+  nude: ['THE FRONTIER. NAKED AS THE DAY THE PIONEERS MADE ME.', 'WILDERNESS LAND. I DRESSED FOR IT.'],
+};
+export const GAGS: Record<'trap' | 'log' | 'wolves' | 'rapids' | 'bison' | 'falls' | 'tracks', ByPants> = {
+  trap: {
+    clean: ['A BEAR TRAP. ON THE PATH. FOR THE GUESTS.'],
+    shitty: ['A BEAR TRAP. GREAT. ONE MORE THING TO STEP IN.'],
+    nude: ['A BEAR TRAP. AND MY BALLS ARE OUT. COOL.'],
+  },
+  log: {
+    clean: ['A LOG IN A POND. I AM A LUMBERJACK NOW.'],
+    shitty: ['A LOG. I KNOW ALL ABOUT LOGS TODAY.'],
+    nude: ['NAKED LOG ROLLING. MOM WOULD BE SO PROUD.'],
+  },
+  wolves: {
+    clean: ['WOLVES. GOOD. I NEED THE CARDIO.'],
+    shitty: ['WOLVES. THEY CAN SMELL ME. EVERYTHING CAN SMELL ME.'],
+    nude: ['WOLVES. DO NOT GO FOR THE DANGLY BITS.'],
+  },
+  rapids: {
+    clean: ['RAPIDS. ON A LOG. NO HELMET. LET\'S GO.'],
+    shitty: ['RAPIDS. AT LEAST THE WATER WILL WASH MY PANTS.'],
+    nude: ['WHITE WATER. NAKED. THIS IS HOW BABIES ARE BAPTIZED.'],
+  },
+  bison: {
+    clean: ['A BUFFALO. THEY STOCKED A FREAKING BUFFALO.'],
+    shitty: ['A BUFFALO. IT SMELLS WORSE THAN ME. BARELY.'],
+    nude: ['A BUFFALO. DO NOT LOOK AT ME, BUFFALO.'],
+  },
+  falls: {
+    clean: ['A WATERFALL AT THE END. GET OFF BEFORE IT. GOT IT.'],
+    shitty: ['A WATERFALL. IF I GO OVER, I GO OVER CLEAN.'],
+    nude: ['A WATERFALL. NOTHING LEFT TO LOSE BUT MY LIFE.'],
+  },
+  tracks: {
+    clean: ['RAILROAD TRACKS. A TRAIN. FINALLY, A SEAT.'],
+    shitty: ['A TRAIN. A TRAIN HAS A BATHROOM. PLEASE HAVE A BATHROOM.'],
+    nude: ['A TRAIN STATION. NOBODY CHECKS FOR PANTS ON A TRAIN.'],
+  },
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// The station: Tucker and Meathead (each group's pools by the state of Meathead)
+
+/** Tucker sees him coming. */
+export const TUCKER_GREET: ByPants = {
+  clean: ['WELL, HOWDY THERE, TRAVELER! WELCOME TO LONESOME PINE STATION!', 'HOWDY, FRIEND! RIGHT ON TIME! THE TRAIN ALWAYS IS!'],
+  shitty: ['HOWDY, TRAVELER! WHEW! LONG TRAIL, HUH? SMELLS LIKE IT!', 'HOWDY, FRIEND! THE OUTHOUSE IS OUT BACK! A LITTLE LATE NOW!'],
+  nude: ['HOWDY, TRAV... OH! WELL! THE FRONTIER IS HARD ON A FELLA\'S TROUSERS!', 'HOWDY, FRIEND! I SEE THE WOLVES GOT YOUR CLOTHES!'],
+};
+/** Tucker's pitch: the newfangled railroad to Sawdust Gulch. */
+export const TUCKER_PITCH: ByPants = {
+  clean: ['ALL ABOARD FOR SAWDUST GULCH! MINING! LOGGING! THESE NEWFANGLED RAILROAD TRACKS GET YOU THERE IN A JIFFY!', 'SAWDUST GULCH, ONE STOP! THESE NEWFANGLED RAILROAD TRACKS! A WHOLE DAY\'S RIDE IN TWENTY MINUTES!'],
+  shitty: ['ALL ABOARD FOR SAWDUST GULCH! THESE NEWFANGLED RAILROAD TRACKS GET YOU THERE IN A JIFFY! YOU CAN SIT IN THE CABOOSE!'],
+  nude: ['ALL ABOARD FOR SAWDUST GULCH! THESE NEWFANGLED RAILROAD TRACKS GET YOU THERE IN A JIFFY! WE\'LL FIND YOU A BLANKET!'],
+};
+/** TICKET, PLEASE (the hand out). */
+export const TUCKER_TICKET: ByPants = {
+  clean: ['TICKET, PLEASE!'],
+  shitty: ['TICKET, PLEASE! HOLD IT BY THE CORNER!'],
+  nude: ['TICKET, PLEASE! WHEREVER YOU KEEP IT. I DON\'T WANT TO KNOW.'],
+};
+/** Meathead: no ticket. */
+export const NO_TICKET: ByPants = {
+  clean: ['TICKET? I\'VE GOT A FIST.', 'I DON\'T DO TICKETS.'],
+  shitty: ['MY TICKET\'S IN MY PANTS. YOU DON\'T WANT IT.', 'NO TICKET. I\'VE GOT A LOAD, THOUGH.'],
+  nude: ['DO I LOOK LIKE I HAVE POCKETS?', 'WHERE WOULD I PUT A TICKET?'],
+};
+/** Tucker, while he's in the way at the gate (now and then, till he's hit). */
+export const TUCKER_BLOCK: ByPants = {
+  clean: ['NO TICKET, NO TRAIN, FRIEND!', 'TICKETS AT THE WINDOW! WHICH IS CLOSED!', 'ONE FARE. A DOLLAR TEN. I KEEP A LEDGER, FRIEND.'],
+  shitty: ['NO TICKET, NO TRAIN! AND NO SMELL LIKE THAT EITHER!', 'TICKETS AT THE WINDOW! WIPE FIRST!'],
+  nude: ['NO TICKET, NO TRAIN! NO PANTS, NO... WELL, ALSO NO TRAIN!', 'TICKETS AT THE WINDOW! COVER UP FIRST!'],
+};
+/** Punched: on his backside (a yelp). */
+export const TUCKER_OOF: ByPants = {
+  clean: ['OOF!', 'MY SPECTACLES!'],
+  shitty: ['OOF! IT\'S ON YOUR HANDS!', 'OOF! YOU TOUCHED ME!'],
+  nude: ['OOF! YOU\'RE TOUCHING ME WITH THAT?!', 'OOF! PUT IT AWAY!'],
+};
+/** Furious (the close-up): the user's line, every pool. */
+export const TUCKER_RAGE: ByPants = {
+  clean: ['NO ONE BOARDS MY TRAIN WITHOUT A TICKET!'],
+  shitty: ['NO ONE BOARDS MY TRAIN WITHOUT A TICKET! OR WITH A LOAD IN HIS PANTS!'],
+  nude: ['NO ONE BOARDS MY TRAIN WITHOUT A TICKET! OR WITHOUT PANTS!'],
+};
+/** Running for his engine, manic (the ledger: one unpaid fare, and it's consuming him). */
+export const TUCKER_RUN: ByPants = {
+  clean: ['ONE FARE! PLUS INTEREST! I\'LL GET IT OUT OF YOU!', 'NOBODY RIDES FREE! NOBODY!'],
+  shitty: ['ONE FARE! PLUS A CLEANING FEE!', 'NOBODY RIDES FREE! NOT EVEN STINKY!'],
+  nude: ['ONE FARE! PLUS A DECENCY SURCHARGE!', 'NOBODY RIDES FREE! NOT EVEN NAKED!'],
+};
+/** From the cab, pulling out. */
+export const TUCKER_CAB: ByPants = {
+  clean: ['ALL ABOARD! EXCEPT YOU! YOU OWE ME A DOLLAR TEN!', 'I DON\'T GIVE HANDOUTS! IT\'S ALL IN THE LEDGER!'],
+  shitty: ['ALL ABOARD! EXCEPT STINKY! YOU OWE ME A DOLLAR TEN AND A SEAT CUSHION!'],
+  nude: ['ALL ABOARD! EXCEPT THE NAKED MAN! YOU OWE ME A DOLLAR TEN! WHERE WOULD YOU EVEN KEEP IT?!'],
+};
+/** Meathead, the train pulling away: after it. */
+export const CHASE: ByPants = {
+  clean: ['OH, IT\'S ON, CHOO-CHOO.', 'NOBODY OUTRUNS ME. EXCEPT TRAINS. NOT TODAY.'],
+  shitty: ['I\'M CATCHING THAT TRAIN IF I HAVE TO SHIT MY WAY THERE.'],
+  nude: ['NAKED TRAIN ROBBERY. HERE WE GO.'],
+};
+/** Back at the station later (the train long gone). */
+export const STATION_EMPTY = ['NO TRAIN. JUST A BELL. I\'M RINGING IT.'];
+
+// ---------------------------------------------------------------------------------------------------------------
+// What hurts him in the wilds (by source), and the death screen when it's what killed him
+
+export const HURT: HurtTable = {
+  'm2:fr_beartrap': {
+    hurt: ['MY LEG! MY LEG!', 'BEAR TRAP! I\'M NOT A BEAR!', 'IT\'S GOT MY ANKLE!', 'GET IT OFF! GET IT OFF!'],
+    death: ['CAUGHT IN A BEAR TRAP. NOT A BEAR.', 'THE BEAR TRAP WORKED'],
+  },
+  'm2:fr_cone': {
+    hurt: ['A PINE CONE! TO THE SKULL!', 'OW! THE TREE THREW IT!', 'BONK!'],
+    death: ['KILLED BY A PINE CONE', 'THE TREE WON'],
+  },
+  'm2:fr_rolllog': {
+    hurt: ['LOG! LOG!', 'IT ROLLED RIGHT OVER ME!', 'WHO STACKS LOGS ON A HILL?!'],
+    death: ['FLATTENED BY A LOG', 'ROLLED OUT LIKE DOUGH'],
+  },
+  'm2:fr_bees': {
+    hurt: ['BEES! BEES!', 'THEY\'RE IN MY SHIRT!', 'NOT THE BEES!'],
+    death: ['STUNG TO DEATH. HE KNOCKED DOWN THE HIVE.', 'THE BEES WON'],
+  },
+  'm2:fr_branch': {
+    hurt: ['BRANCH! FACE!', 'I DIDN\'T DUCK!', 'TREE TO THE FACE!'],
+    death: ['CLOTHESLINED BY A TREE', 'FORGOT TO DUCK'],
+  },
+  'm2:fr_falls': {
+    hurt: ['OH NO. OH NO NO NO.'],
+    death: ['WENT OVER THE FALLS. THEY\'RE FAKE. THE ROCKS ARE NOT.', 'OVER THE FALLS. THE SIGN WARNED HIM.'],
+  },
+  'm2:fr_doe': {
+    hurt: ['THE DEER KICKED ME!', 'BAMBI\'S MOM HITS HARD!', 'RIGHT IN THE SHIN!'],
+    death: ['KICKED TO DEATH BY A DEER', 'BAMBI\'S MOM GOT REVENGE'],
+  },
+  'm2:fr_buck': {
+    hurt: ['THE BUCK RAMMED ME!', 'BIG DEER! BIG DEER!', 'HE HIT ME LIKE A TRUCK!'],
+    death: ['RAMMED TO DEATH BY A BUCK', 'THE DEER HUNTED HIM'],
+  },
+  'm2:fr_antlers': {
+    hurt: ['ANTLERS! I CHARGED INTO ANTLERS!', 'OW! POINTY END!', 'THEY STAB!'],
+    death: ['SHOULDER CHARGED A BUCK. ANTLERS FIRST.', 'SKEWERED ON ANTLERS'],
+  },
+  'm2:fr_wolf': {
+    hurt: ['THE WOLF BIT ME!', 'BAD DOG! BAD DOG!', 'HE\'S GOT MY ASS!'],
+    death: ['EATEN BY WOLVES', 'THE WOLVES SHARED HIM'],
+  },
+  'm2:fr_cougar': {
+    hurt: ['COUGAR! FROM ABOVE!', 'IT CLAWED MY FACE!', 'BIG CAT! BIG CAT!'],
+    death: ['MAULED BY A COUGAR', 'THE COUGAR PLAYED WITH HIM FIRST'],
+  },
+  'm2:fr_beaver': {
+    hurt: ['THE BEAVER BIT ME!', 'BEAVER TEETH!', 'IT SLAPPED ME WITH ITS TAIL!'],
+    death: ['CHEWED UP BY A BEAVER', 'THE BEAVER BUILT A DAM OUT OF HIM'],
+  },
+  'm2:fr_rattler': {
+    hurt: ['SNAKE BITE!', 'IT RATTLED! I DIDN\'T LISTEN!', 'MY ANKLE\'S ON FIRE!'],
+    death: ['BITTEN BY A RATTLESNAKE', 'IT RATTLED. HE DIDN\'T LISTEN.'],
+  },
+  'm2:fr_crow': {
+    hurt: ['STUPID CROW!', 'IT WENT FOR MY EYES!', 'GET OUT OF MY HAIR!'],
+    death: ['PECKED TO DEATH BY CROWS', 'A MURDER OF CROWS. LITERALLY.'],
+  },
+  'm2:fr_porcupine': {
+    hurt: ['PORCUPINE!', 'IT POKED ME!', 'OW! THE BACK END!'],
+    death: ['KILLED BY A PORCUPINE', 'A PORCUPINE. OF ALL THINGS.'],
+  },
+  'm2:fr_quills': {
+    hurt: ['QUILLS! IN MY FEET!', 'I DIVE KICKED A PORCUPINE!', 'PINCUSHION! I\'M A PINCUSHION!'],
+    death: ['DIVE KICKED A PORCUPINE', 'A PINCUSHION WITH A HEAD'],
+  },
+  'm2:fr_bison': {
+    hurt: ['BUFFALO! BUFFALO!', 'IT HIT ME LIKE A TRAIN!', 'TWO THOUSAND POUNDS OF NOPE!'],
+    death: ['TRAMPLED BY A BISON', 'RUN OVER BY A BUFFALO'],
+  },
+  'm2:fr_horns': {
+    hurt: ['I CHARGED A BUFFALO! WHY?!', 'HORNS! RIGHT IN THE GUT!', 'IT DIDN\'T EVEN MOVE!'],
+    death: ['SHOULDER CHARGED A BISON. THE BISON WON.', 'HORNED BY A BUFFALO'],
+  },
+};
+
+export const VOICE_LINES: Record<string, string[]> = {
+  meathead: [
+    ...allOf(ARRIVE), ...Object.values(GAGS).flatMap(allOf), ...allOf(NO_TICKET), ...allOf(CHASE), ...STATION_EMPTY,
+    ...Object.values(HURT).flatMap(h => h.hurt),
+  ],
+  death: Object.values(HURT).flatMap(h => h.death),
+  [TUCKER_VOICE]: [TUCKER_GREET, TUCKER_PITCH, TUCKER_TICKET, TUCKER_BLOCK, TUCKER_OOF, TUCKER_RAGE, TUCKER_RUN, TUCKER_CAB].flatMap(allOf),
+};
