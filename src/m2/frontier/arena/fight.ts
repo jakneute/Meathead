@@ -77,6 +77,10 @@ const TRACK: [number, number] = [0.05, 0.085], WOBBLE: [number, number] = [20, 5
 const BALL_V: [number, number] = [18, 25], BALL_DMG = 46, SPREAD = 0.03;
 /** His shuffle (px a frame), how near he'll come (and backs off nearer), how far he wants to be; hurrying back on screen. */
 const WALK: [number, number] = [0.45, 0.85], TOO_NEAR = 150, WANT = 300, HURRY = 2.4;
+/** The blind run (the user's: now and then he runs about flailing, firing as he goes): how likely instead of a planted
+ *  shot, how fast, how long (frames), the gap between shots off the hip, how far off those go (px at what he heard). */
+const RUN_CHANCE: [number, number] = [0.3, 0.55], RUN_V: [number, number] = [3.2, 4.6], RUN_LEN: [number, number] = [70, 140];
+const RUN_FIRE: [number, number] = [26, 46], RUN_ERR = 90;
 /** The noises: how far off he hears each (px of error either way). */
 const ERR = { jump: 40, land: 30, step: 70, shot: 16, hit: 0 };
 /** The stampede after each bang: how many (more later), how soon the first comes, the gaps, how many fly. */
@@ -94,7 +98,7 @@ const lerp = (r: [number, number], k: number) => r[0] + (r[1] - r[0]) * k;
 // ---------------------------------------------------------------------------------------------------------------
 // The state
 
-type Act = 'listen' | 'cock' | 'aim' | 'pan' | 'recoil' | 'reload' | 'bloody' | 'mauled' | 'getup';
+type Act = 'listen' | 'cock' | 'aim' | 'pan' | 'recoil' | 'reload' | 'bloody' | 'mauled' | 'getup' | 'run';
 interface Shot { x: number; y: number; vx: number; vy: number; life: number }
 interface Queued { at: number; c: Critter; dir: 1 | -1; y: number; sp: number }
 interface Swarm { x: number; y: number; t: number; cd: number; off: number; gone: number }
@@ -122,6 +126,8 @@ export interface Fight {
   tx: number; facing: 1 | -1; act: Act; actT: number; aim: number; aimX: number; aimY: number; jerkX: number; jerkY: number;
   /** Where he heard Meathead last (world), and when. */
   heard: { x: number; y: number; at: number };
+  /** A blind run (the user's): which way, frames left of it, to his next shot off the hip, the shot's pose held. */
+  runDir: 1 | -1; runN: number; runFire: number; runShot: number;
   wasGrounded: boolean; pShots: number; stepT: number;
   shots: Shot[]; smoke: { x: number; y: number; t: number }[];
   // ---- the critters coming, the rustle where they're coming from
@@ -207,7 +213,7 @@ export const startFight = (state: GameState, tx: number, facing: 1 | -1): Fight 
   const f: Fight = {
     mode: 'on', t: 0, hp: HP, iframes: 0, flash: 0, e, moveSeen: e.hitByMove,
     tx, facing, act: 'listen', actT: 20, aim: 0.6, aimX: m.x, aimY: m.y, jerkX: 0, jerkY: 0,
-    heard: { x: m.x, y: m.y, at: 0 }, wasGrounded: state.player.isGrounded, pShots: 0, stepT: 0,
+    heard: { x: m.x, y: m.y, at: 0 }, runDir: 1, runN: 0, runFire: 0, runShot: 0, wasGrounded: state.player.isGrounded, pShots: 0, stepT: 0,
     shots: [], smoke: [], queue: [], rustle: null, stampedes: 0, swarms: [],
     bloody: 0, shower: 0, lions: [], maulT: 0, maulDealt: 0, clawed: 0,
     said: null, talking: false, tauntT: 200, hintAt: -9999, wrongN: 0, lowSaid: false, bagSaid: false, beeSaidAt: -9999,
@@ -309,7 +315,16 @@ const tucker = (ctx: FrameContext, f: Fight) => {
   switch (f.act) {
     case 'listen':
       // (stood listening, groping; then up comes the gun, so long as he's where Meathead can see him)
-      if (f.actT >= lerp(LISTEN, k) && inView(state, f.tx) && state.player.health > 0) { setAct(f, 'cock'); playSound('click', 0.9, -4); }
+      // (the roll's made once, as the listening's done: a run, or the planted shot)
+      if (Math.round(f.actT) === Math.round(lerp(LISTEN, k)) && state.player.health > 0 && Math.random() < lerp(RUN_CHANCE, k)) {
+        // (off he goes, blind, flailing: either way, toward the noise or away from it, it's all the same to him)
+        setAct(f, 'run');
+        f.runDir = (Math.random() < 0.5 ? f.facing : -f.facing) as 1 | -1;
+        f.runN = Math.round(lerp(RUN_LEN, Math.random()));
+        f.runFire = Math.round(lerp(RUN_FIRE, Math.random()) * 0.6);
+        f.runShot = 0;
+        if (Math.random() < 0.5) bark(f, L.TF_TAUNT);
+      } else if (f.actT >= lerp(LISTEN, k) && inView(state, f.tx) && state.player.health > 0) { setAct(f, 'cock'); playSound('click', 0.9, -4); }
       if (++f.tauntT >= TAUNT_EVERY) { f.tauntT = Math.floor(Math.random() * 160); bark(f, f.hp < HP * 0.3 && Math.random() < 0.4 ? L.TF_LOW : L.TF_TAUNT); }
       break;
     case 'cock':
@@ -351,6 +366,31 @@ const tucker = (ctx: FrameContext, f: Fight) => {
     case 'getup':
       if (f.actT >= 56) { setAct(f, 'listen'); f.actT = 30; }
       break;
+    case 'run': {
+      // (flat out, blind, arms going: a stagger in it; into the arena's end, he bounces off it and goes back the other
+      // way; a shot off the hip now and then at whatever he last heard, way off)
+      f.facing = f.runDir;
+      f.tx += f.runDir * (lerp(RUN_V, k) + Math.sin(f.actT * 0.4) * 0.8);
+      if (f.tx < ARENA_L + 50 || f.tx > ARENA_R - 50) {
+        f.tx = Math.max(ARENA_L + 50, Math.min(ARENA_R - 50, f.tx));
+        f.runDir = (-f.runDir) as 1 | -1;
+        playSound('thud', 0.9, -6); shakeScreen(state, 4, 2);
+      }
+      if (f.actT % 16 === 0) playSound('thud', 0.25, 8);
+      if (f.runShot > 0) f.runShot--;
+      if (--f.runFire <= 0 && inView(state, f.tx) && state.player.health > 0) {
+        f.runFire = Math.round(lerp(RUN_FIRE, Math.random()));
+        f.aimX = f.heard.x + (Math.random() - 0.5) * 2 * RUN_ERR;
+        f.aimY = f.heard.y + (Math.random() - 0.5) * RUN_ERR * 0.6;
+        f.aim = aimTarget(f);
+        const n = f.runN, t = f.actT, d = f.runDir;
+        fire(ctx, f);
+        // (on he runs: the shot doesn't stop him)
+        f.act = 'run'; f.actT = t; f.runN = n; f.runDir = d; f.runShot = 10;
+      }
+      if (--f.runN <= 0) { setAct(f, 'listen'); f.actT = 0; }
+      break;
+    }
   }
 };
 
@@ -910,6 +950,7 @@ const tuckerLook = (f: Fight): { pose: TuckerPose; face?: TuckerFace; aim?: numb
     case 'bloody': return { pose: 'grope', face: f.talking ? 'yell' : 'shock' };
     case 'mauled': return { pose: 'mauled', face: 'yell' };
     case 'getup': return f.actT < 26 ? { pose: 'sit', face: 'daze' } : { pose: 'hurt', face: f.talking ? 'talk' : 'ow' };
+    case 'run': return f.runShot > 0 ? { pose: 'aim', aim: f.aim, face: 'yell' } : { pose: 'run', face: hurt ? 'ow' : f.talking ? 'yell' : 'manic' };
   }
 };
 const woundsOf = (f: Fight): TuckerWounds => ({ ...WOUNDS_SPLIT, clawed: f.clawed, bloody: f.bloody });
