@@ -14,6 +14,8 @@ import { townOf } from './state';
 import { GAS, FY, CEIL_Y } from './layout';
 
 const GAS_BACK = 420;
+/** A TNT crate's reach (the playtest: it was 90, too small for a crate of TNT). */
+const TNT_R = 150;
 
 /** A blast at (x, y): `r` its reach, `dmg` to him at its heart (less toward its edge), `source` his hurt. */
 export const explode = (ctx: FrameContext, x: number, y: number, r: number, dmg: number, source: string, call: string) => {
@@ -56,7 +58,7 @@ export const updateBlasts = (ctx: FrameContext) => {
     if (cr.health <= 0 && !(cr as { boomed?: boolean }).boomed) {
       (cr as { boomed?: boolean }).boomed = true;
       state.enemies = state.enemies.filter(e => e !== cr);
-      explode(ctx, cr.pos.x + cr.width / 2, cr.pos.y + cr.height / 2, 90, 24, 'm2:fr_dynamite', 'KABOOM!');
+      explode(ctx, cr.pos.x + cr.width / 2, cr.pos.y + cr.height / 2, TNT_R, 24, 'm2:fr_dynamite', 'KABOOM!');
     }
   }
   tw.crates = tw.crates.filter(cr => !(cr as { boomed?: boolean }).boomed);
