@@ -19,6 +19,8 @@ import { timeOfDay, drawTodSky } from '../../timeOfDay';
 export const W = 400, H = 300, HORIZON = 112, K = W / 2;
 export const SEG_L = 200, ROAD_W = 1000, CAM_H = 700, CAM_D = 0.84, DRAW = 140, PLAYER_Z = 900;
 export const RUMBLE = 3;
+/** Road nearer the camera than this never clips anything (it's behind him). */
+const NEAR_CLIP = PLAYER_Z * 0.5;
 const RING = 2048, MASK = RING - 1;
 
 export type Biome = 'trail' | 'fields' | 'farm' | 'creek' | 'power' | 'last';
@@ -28,7 +30,7 @@ export const BIOMES: Biome[] = ['trail', 'fields', 'farm', 'creek', 'power', 'la
 export type SprKind =
   | 'pine' | 'oak' | 'bush' | 'boulder' | 'post' | 'mailbox' | 'hay' | 'outhouse' | 'tractor' | 'slow' | 'sign'
   | 'cow' | 'deer' | 'pylon' | 'pole' | 'barn' | 'house' | 'reeds' | 'rock' | 'log' | 'stump'
-  | 'teentree' | 'deadcow' | 'deaddeer' | 'health' | 'scorch';
+  | 'teentree' | 'bloodtree' | 'deadcow' | 'deaddeer' | 'health' | 'scorch' | 'gore';
 
 /** How each kind is in the world: its size (world units), how wide it is to hit (road half-widths either side of
  *  its middle), whether it's tall (no jumping it) or low (jump it), what it hurts him as, and whether it's alive. */
@@ -37,6 +39,7 @@ export const SPR: Record<SprKind, SprDef> = {
   pine: { w: 620, h: 1500, hit: 0.16, solid: 'tall', src: 'm2:fr_bail_tree' },
   oak: { w: 980, h: 1300, hit: 0.22, solid: 'tall', src: 'm2:fr_bail_tree' },
   teentree: { w: 980, h: 1300, hit: 0.22, solid: 'tall', src: 'm2:fr_bail_tree' },
+  bloodtree: { w: 980, h: 1300, hit: 0.22, solid: 'tall', src: 'm2:fr_bail_tree' },
   bush: { w: 420, h: 300, hit: 0, solid: 'none' },
   boulder: { w: 620, h: 440, hit: 0.26, solid: 'tall', src: 'm2:fr_bail_rock' },
   post: { w: 70, h: 260, hit: 0.05, solid: 'tall', src: 'm2:fr_bail_post' },
@@ -60,6 +63,7 @@ export const SPR: Record<SprKind, SprDef> = {
   deaddeer: { w: 520, h: 200, hit: 0.2, solid: 'low', src: 'm2:fr_bail_deer' },
   health: { w: 180, h: 160, hit: 0.16, solid: 'none' },
   scorch: { w: 900, h: 60, hit: 0, solid: 'none' },
+  gore: { w: 900, h: 60, hit: 0, solid: 'none' },
 };
 
 /** A thing by (or in) the road: its kind, where across (road half-widths from the middle: past ±1 is off the road),
@@ -231,7 +235,10 @@ export const project = (t: Track, camZ: number, camX: number, camY: number) => {
     PY[n] = HORIZON - sc * (s.y1 - camY) * K;
     PW[n] = sc * ROAD_W * K; PS[n] = sc; PZ[n] = z;
     CLIP[n] = maxy;
-    if (n > 0 && z > 40 && PY[n] < maxy) maxy = PY[n];
+    // (only road out ahead of the camera's own stretch can hide what's past it: the few segments under and just in
+    // front of the camera (behind him) never clip anything; on a steep way down they projected up off the top of the
+    // screen and hid every rider past them)
+    if (n > 0 && z > NEAR_CLIP && PY[n] < maxy) maxy = PY[n];
     x += dx; dx += s.curve;
   }
 };

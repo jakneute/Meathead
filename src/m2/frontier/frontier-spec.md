@@ -203,12 +203,12 @@ Teach, then escalate (each hazard alone in a safe spot first):
 | THE DIRT TRAIL (cp 50) | DIRT TRAIL | bat, chain, bat | 1 (2 off the bounty) / 1 | woods, gentle bends and hills; logs across, dirt jumps; stumps |
 | OPEN RANGE (cp 51) | OPEN RANGE | crowbar, chain, bat, crowbar | 2 / 1 | fields, fence posts, hay bales, cows (some in the road), rocks; a first-aid kit |
 | FARM ROAD (cp 52) | FARM ROAD | nunchucks, bat, chain, nunchucks, crowbar | 3 / 2 | mailboxes, an outhouse, a parked tractor, SLOW CHILDREN, barns, cows in the road, hay; bigger hills |
-| CREEK CROSSING (cp 53) | CREEK CROSSING | hockey stick, skateboard, chain, nunchucks, hockey stick | 3 / 2 | the creek fords (a CREEK sign, then water across the road: jump it), reeds, boulders, deer; sharper bends |
+| CREEK CROSSING (cp 53) | CREEK CROSSING | hockey stick, skateboard, chain, nunchucks, hockey stick | 3 / 2 | the creek fords (a CREEK sign, then water across the road: it bogs him down, or jump it), reeds, boulders, deer; sharper bends |
 | POWER LINE CUT (cp 54) | POWER LINE CUT | skateboard, chain, hockey stick, crowbar, nunchucks, bat | 4 / 2 | the towers marching along both sides, logs, rocks in pairs, jumps, deer; steep hills, hard bends |
 | THE LAST MILE (cp 55) | DEAD END 1 MILE | chain, skateboard, hockey stick, nunchucks, crowbar, bat, chain | 4 / 2 | dry fields, telephone poles, cows and deer crossing, logs, jumps; the hardest bends and hills |
 
-30 teens in all; the wind-up (the tell) shortens 50 -> 34 frames down the stretches; teens take 2 hits early, 3 later
-(+1 if heavyset). Tucker's glimpsed ahead each stretch (the bounty going up: TUCKER_RAISE, the ledger after).
+30 teens in all; the wind-up (the tell) shortens 50 -> 34 frames down the stretches; teens take 3 punches early, 4
+later (+1 if heavyset; was 2 / 3 before playtest fixes E). Tucker's glimpsed ahead each stretch (the bounty going up: TUCKER_RAISE, the ledger after).
 
 ### Section 7: the catch-up and Tucker's arena (arena/layout.ts; x from the section's start; flat ground at GY)
 
@@ -798,3 +798,56 @@ Teach, then escalate (each hazard alone in a safe spot first):
   (stood up 71 over his feet: well into it; ducked 55: well under it; a hop takes him into it), not his box (which
   never reached it before); its foot hazard-striped, a DUCK plate with a red down arrow on each. No other duck-under
   in the town or the mine.
+- 2026-10-18 (playtest fixes E, the dirt-bike chase; the user's notes verbatim in the job brief): HIS PUNCH (the user:
+  "more weight and oomph... his face gets in profile... with a scowl like he wants you fucking dead"): cocked back a
+  beat (PUNCH_WIND, 7 frames: the fist pulled up by his ear, his shoulders twisting away from it), then thrown hard
+  (the arm right out past where it was, the fist bigger, a blur behind it, his whole upper body twisting into it and
+  over), back over 24 frames in all; from the cock on, his head swings round in PROFILE at whoever he's hitting: the
+  brow crushed down over a slit of an eye, the nose out, the jaw jutting, the lips pulled back off clenched teeth, a
+  vein up his temple (art.ts mhHead; the same head through every parry). The blow lands at the end of the cock (a
+  teen caught mid-swing by then is still parried): a 5-frame hit-stop, the shake, an impact star on them, a spray of
+  blood, and the teen THROWN BACK (back 90 and out, slowed) and recoiling in pain (RiderPose.pain: the body flung away
+  from him, the head snapped back, the arms off the bars, turned half round wincing, a howl, blood off the nose in an
+  arc). The count: teens take one more punch than before (3 early, 4 later, +1 heavy) on top of the wind-up and the
+  push back (ours: "a couple more" read as the extra punch plus the wind-up). SOUND: both punches the same: a low
+  heavy whoosh as it's thrown, the punch's impact and a slam under it when it lands, nothing on a miss (the miss was a
+  high-pitched whoosh, the likely "pew"; no gun sound is involved: the chase takes every control).
+- 2026-10-18 (playtest E): EVERY KILL WIPES OUT IN FRONT OF HIM (the user's): any kid off their bike (punched off,
+  shoved into the roadside, blown up by the chain's bomb, bowled by the nunchucks from way back in the pack: those sail
+  right over him) is flung to come down 520-840 ahead in his lane, tumbling, then lying there; their bike skids off to
+  the side. Run over a body (or a tumbling one once it's come down) and it bursts (a red banded burst, chunks of them in
+  their shirt and pants colors, bone, a red smear left on the road; SPLAT! / GIBLETS! / SPEED BUMP! / SPLATTER!) and
+  ramps him up (BODY_V 22; the hockey stick's human ramp the same, higher: RAMP_V 28). Just for fun: it never hurts
+  him (no new hurt). Parry kills: the bat's kid splats into the tree (now a blood-splatted oak, a shoe in the leaves)
+  and peels off it back out into the road ahead; the crowbar's faceplant and the hockey stick's ramp are bodies ahead
+  already; the skateboard's blind rider is thrown back off whatever they hit into the road ahead; the chain's kid is
+  the human bomb itself (the user's gag: no body, the blast's victims leave theirs ahead); the nunchucks' kid is still
+  slung back past the camera into the pack (ours: the gag kept; the pack they bowl over sails over him and lands
+  ahead).
+- 2026-10-18 (playtest E): THE PARRIES UNTOLD (the user's: "don't put in an exclamation point... nor tell the player
+  about it"): no "!" over a winding teen, no white flash on the weapon, no PARRY! pop, the controls card's parry line
+  gone; the only tell is the wind-up itself (the weapon cocked up behind them, quivering as they put their back into
+  it). FUNNIER PARRIES (the user's; the gags ours): BAT: caught, BONK BONK BONK on their head (squashing it down each
+  time, the stars coming out, their head wobbling side to side), a wind-up, HOME RUN! into the tree. CROWBAR: hooked
+  in the back of their pants, hoisted off the bike by the underwear and hung up there kicking (WEDGIE!, the waistband
+  stretching), then slung face first into the road ahead (FACEPLANT!). NUNCHUCKS: clonked about the face with them four
+  times, left right left right, teeth flying, the head snapping (WA-TAH!), then round the neck and slung back into the
+  pack. HOCKEY STICK: in the spokes: ENDO!, the bike stood up on its nose with the kid hung upside down over the bars,
+  legs flapping, a long wobbling beat, then over into the human ramp. SKATEBOARD: CLONK, CLONK on the head with it
+  (squashed, dazed), then down over their head (NECK BOARD!), ridden blind with both arms waving. Each 0.4-0.8 s.
+- 2026-10-18 (playtest E): THE ROAD: LOW things (logs, rocks, stumps, dead cows and deer) no longer bail him: they kick
+  him up into the air (LOG_V 15, a thud, dirt or blood flying); only TALL things (trees, cows, deer, posts, hay bales,
+  the outhouse, the tractor, towers) wipe him out. THE CREEK slows him (bogged down to ~26 MPH while he's in it, spray
+  up both sides, the bike shuddering, a splash going in) and never wipes him out (m2:fr_bail_creek and m2:fr_bail_log
+  stay registered, unused). HIS JUMPS much higher (JUMP_V 25 on his own gravity 0.8: ~390 up, over a second in the air;
+  the dirt jumps 17): anything tall is cleared once he's over 70% of its height (cows, deer, posts, hay bales; never
+  trees or towers); the landing a thump by how far he fell (a thud, the shake, dust).
+- 2026-10-18 (playtest E): THE RIDERS VANISHING DOWNHILL (the user's bug): down a steep hill the camera (kept 700 over
+  the road under HIM) sank under the road behind him, which then projected up off the top of the screen and clipped
+  every rider past it. The camera now keeps 700 over whichever is higher, the road under him or under it; road nearer
+  the camera than 450 never clips; riders and Tucker partly behind a real crest are cut at it, not hidden whole.
+- 2026-10-18 (playtest E): BLOODIER AS HE'S HURT (the user's): his from-behind figure by the health he's lost (art.ts
+  MhPose.blood): past 15% road rash on his shoulder blades; 35% bruises, blood smeared down his back, scraped
+  forearms, bloody knuckles; 55% his jeans torn through at the knees and the seat (skinned raw under them; naked: his
+  cheeks scraped raw), streaks down his back to his belt, a gash in his scalp running down his neck, blood off his lip
+  in profile; 75% the lot dripping (off his back, his ear), the waistband soaked. Clean, shat and naked alike.

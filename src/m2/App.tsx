@@ -445,7 +445,6 @@ const App2: React.FC = () => {
               <Prompt pad={['DPAD_UP']} kb={['@up']} label="BOOST" />
               <Prompt pad={['DPAD_DOWN']} kb={['@down']} label="BRAKE" />
             </div>
-            <span className="text-yellow-300">HIT THEIR SIDE AS THEY SWING (THE FLASH): PARRY!</span>
           </div>
         )}
         {/* The intro: what the panel in the corner's teaching, where he is; what up does at the ticket window; the ticket */}

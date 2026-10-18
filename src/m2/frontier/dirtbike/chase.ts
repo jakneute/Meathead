@@ -9,12 +9,15 @@
 //
 // The teens come up from behind and ahead in waves, one stretch of road each (the trail, the fields, farm country, the
 // creek, the power lines, the last mile), each harder: a few, then packs, nastier weapons, rougher road. They work
-// him from his left and right; a wound-up swing flashes (the tell); hit toward them as they swing and it's a PUNCH
-// PARRY: they're done, at once, with a flourish (the bike chain: a human bomb; the bat: into a tree; the crowbar:
-// faceplant, run over by their own pack; the nunchucks: bowled back into the pack; the hockey stick: jammed in their
-// spokes, a human ramp; the skateboard: worn round their neck, ridden blind into a cow). A plain hit knocks them about
-// (two or three and they're off); a shove can put them into the roadside. Riding into the roadside is a bail (over the
-// bars, the bike cartwheeling): heavy damage, then straight back on the road (it only kills him low).
+// him from his left and right; a swing is wound up first (the weapon cocked up behind them: the only tell, nothing on
+// screen says so); hit toward them as they swing and it's a PUNCH PARRY: they're done, at once, with a flourish (the
+// bike chain: a human bomb; the bat: bonked three times and knocked into a tree; the crowbar: a wedgie, hoisted off the
+// bike, then a faceplant; the nunchucks: clonked about the face, then bowled back into the pack; the hockey stick: an
+// endo, then a human ramp; the skateboard: clonked, then worn round their neck, ridden blind into a cow). His punch is
+// cocked a beat, then lands heavy (a hit-stop, the shake, them thrown back howling, blood); three or four and they're
+// off. EVERY kid that comes off wipes out ahead of him, in his lane: run the body over and it bursts and ramps him.
+// Riding into anything tall by the road is a bail (over the bars, the bike cartwheeling): heavy damage, then straight
+// back on the road (it only kills him low); low things (logs, rocks, stumps) kick him up; the creek bogs him down.
 
 import type { FrameContext } from '../../../m1/game/core/context';
 import type { GameState } from '../../../m1/game/core/state';
@@ -36,7 +39,7 @@ import {
   W, H, K, SEG_L, DRAW, PLAYER_Z, CAM_H, SPR, view, PS, PX, PY, PZ, CLIP,
   newTrack, generate, nextBiome, segAt, project, placeAt, roadYAt, drawRoad, drawBackground, type Track, type Spr,
 } from './road';
-import { drawSpr, drawTeenRider, drawTeenBody, drawMeathead, drawMhTumble, drawBikeTumble, drawTuckerRider, drawWeapon, teenLookOf, ART, INK, type Weapon, type TeenLook, type RiderPose, type MhPose } from './art';
+import { drawSpr, drawTeenRider, drawTeenBody, drawTeenDangle, drawMeathead, drawMhTumble, drawBikeTumble, drawTuckerRider, drawWeapon, teenLookOf, parryHand, rearBike, PUNCH_WIND, PUNCH_LEN, ART, INK, type Weapon, type TeenLook, type RiderPose, type MhPose } from './art';
 import { HURT, MH_START, MH_AGAIN, MH_KNOCKOFF, MH_PARRY, MH_END, TEEN_TAUNT, TEEN_PARRIED, TUCKER_RAISE, TUCKER_LEDGER, TUCKER_FLEE } from './lines';
 
 for (const [source, l] of Object.entries(HURT)) registerHurtLines(source, l.hurt, l.death);
@@ -53,20 +56,25 @@ export const takeChaseHandoff = () => { const h = handoff; handoff = false; retu
 
 interface Wave { name: string; sign: string; biome: number; teens: Weapon[]; pack: number; engage: number; wind: number; hp: number }
 export const WAVES: Wave[] = [
-  { name: 'TEENAGERS', sign: 'DIRT TRAIL', biome: 0, teens: ['bat', 'chain', 'bat'], pack: 1, engage: 1, wind: 50, hp: 2 },
-  { name: 'TEENAGERS: OPEN RANGE', sign: 'OPEN RANGE', biome: 1, teens: ['crowbar', 'chain', 'bat', 'crowbar'], pack: 2, engage: 1, wind: 46, hp: 2 },
-  { name: 'TEENAGERS: FARM ROAD', sign: 'FARM ROAD', biome: 2, teens: ['nunchucks', 'bat', 'chain', 'nunchucks', 'crowbar'], pack: 3, engage: 2, wind: 42, hp: 2 },
-  { name: 'TEENAGERS: CREEK CROSSING', sign: 'CREEK CROSSING', biome: 3, teens: ['hockey', 'skateboard', 'chain', 'nunchucks', 'hockey'], pack: 3, engage: 2, wind: 40, hp: 2 },
-  { name: 'TEENAGERS: POWER LINE CUT', sign: 'POWER LINE CUT', biome: 4, teens: ['skateboard', 'chain', 'hockey', 'crowbar', 'nunchucks', 'bat'], pack: 4, engage: 2, wind: 37, hp: 3 },
-  { name: 'TEENAGERS: THE LAST MILE', sign: 'DEAD END 1 MILE', biome: 5, teens: ['chain', 'skateboard', 'hockey', 'nunchucks', 'crowbar', 'bat', 'chain'], pack: 4, engage: 2, wind: 34, hp: 3 },
+  { name: 'TEENAGERS', sign: 'DIRT TRAIL', biome: 0, teens: ['bat', 'chain', 'bat'], pack: 1, engage: 1, wind: 50, hp: 3 },
+  { name: 'TEENAGERS: OPEN RANGE', sign: 'OPEN RANGE', biome: 1, teens: ['crowbar', 'chain', 'bat', 'crowbar'], pack: 2, engage: 1, wind: 46, hp: 3 },
+  { name: 'TEENAGERS: FARM ROAD', sign: 'FARM ROAD', biome: 2, teens: ['nunchucks', 'bat', 'chain', 'nunchucks', 'crowbar'], pack: 3, engage: 2, wind: 42, hp: 3 },
+  { name: 'TEENAGERS: CREEK CROSSING', sign: 'CREEK CROSSING', biome: 3, teens: ['hockey', 'skateboard', 'chain', 'nunchucks', 'hockey'], pack: 3, engage: 2, wind: 40, hp: 3 },
+  { name: 'TEENAGERS: POWER LINE CUT', sign: 'POWER LINE CUT', biome: 4, teens: ['skateboard', 'chain', 'hockey', 'crowbar', 'nunchucks', 'bat'], pack: 4, engage: 2, wind: 37, hp: 4 },
+  { name: 'TEENAGERS: THE LAST MILE', sign: 'DEAD END 1 MILE', biome: 5, teens: ['chain', 'skateboard', 'hockey', 'nunchucks', 'crowbar', 'bat', 'chain'], pack: 4, engage: 2, wind: 34, hp: 4 },
 ];
 const TOTAL = WAVES.reduce((a, w) => a + w.teens.length, 0);
-/** The parry window: the last frames of the wind-up (the flash) and the swing's own. */
+/** The parry window: the last frames of the wind-up and the swing's own (no tell but the wind-up itself). */
 const TELL = 18, SWING = 9;
+/** How long a punched teen recoils in pain (frames). */
+const PAIN = 18;
 
-/** Speeds (world units a frame): cruising, boosting, braking, off the road. */
-const CRUISE = 140, BOOST = 200, BRAKE = 50, ROUGH = 75, MAXV = 200;
-const GRAV = 0.75, JUMP_V = 15, MOUND_V = 12, RAMP_V = 22;
+/** Speeds (world units a frame): cruising, boosting, braking, off the road, wading the creek. */
+const CRUISE = 140, BOOST = 200, BRAKE = 50, ROUGH = 75, MAXV = 200, WADE = 58;
+const GRAV = 0.75;
+/** His air: his own gravity, the jump (high: over cows and deer), a dirt jump, the human ramp, a body run over, a low
+ *  log (or rock, stump, carcass) kicking him up. Tall things are cleared once he's over this share of their height. */
+const MH_GRAV = 0.8, JUMP_V = 25, MOUND_V = 17, RAMP_V = 28, BODY_V = 22, LOG_V = 15, CLEAR = 0.7;
 /** Damage (before M2's x0.65): a bail, a weapon, a loose bike, the blast. */
 const BAIL_DMG = 32, HIT_DMG = 14, WRECK_DMG = 10, BOMB_DMG = 18;
 
@@ -81,7 +89,7 @@ interface Teen {
   hoverDz: number; ready: number;
   said: Said | null; taunted: boolean; alive: boolean;
 }
-type LooseKind = 'tumbler' | 'body' | 'wreck' | 'bomb' | 'blast' | 'flyer' | 'faceplant' | 'vault' | 'ramp' | 'blind' | 'mh' | 'mhbike';
+type LooseKind = 'tumbler' | 'body' | 'wreck' | 'bomb' | 'blast' | 'flyer' | 'faceplant' | 'vault' | 'ramp' | 'blind' | 'mh' | 'mhbike' | 'gore';
 interface Loose {
   kind: LooseKind; z: number; x: number; h: number; vz: number; vx: number; vh: number; t: number; rot: number;
   k?: TeenLook; color?: string; flat?: number; done?: boolean; side?: number;
@@ -90,6 +98,8 @@ interface Loose {
   ran?: number;
   /** (when he last rode over it) */
   hitAt?: number;
+  /** (a tumbler that's hit the ground once: run over from then on, it goes up) */
+  down?: boolean;
 }
 interface Particle { z: number; x: number; h: number; vz: number; vx: number; vh: number; life: number; col: string; size: number }
 interface Pop { text: string; t: number; col: string; y: number }
@@ -104,6 +114,8 @@ interface Chase {
   parry: Parry | null;
   bail: { t: number } | null;
   inv: number; hitStop: number; shake: number; fade: number; tips: number; t: number;
+  /** In the creek's water (frames left: bogged down, spraying). */
+  wet: number;
   teens: Teen[]; loose: Loose[]; parts: Particle[]; pops: Pop[];
   bgX: number;
   prev: { l: boolean; r: boolean; j: boolean };
@@ -120,7 +132,7 @@ const chaseOf = (state: GameState) => frontierState<Chase>(state, 'dirtbike', ()
   phase: 'off', wave: 0, spawned: 0, killed: 0, spawnAt: 0, nextId: 1, track: newTrack(0, 1),
   z: 0, x: 0, vx: 0, speed: 0, h: 0, vh: 0, lean: 0, boost: 1, spin: 0,
   punch: null, punchCool: 0, parry: null, bail: null,
-  inv: 0, hitStop: 0, shake: 0, fade: 0, tips: 0, t: 0,
+  inv: 0, hitStop: 0, shake: 0, fade: 0, tips: 0, t: 0, wet: 0,
   teens: [], loose: [], parts: [], pops: [], bgX: 0, prev: { l: false, r: false, j: false },
   tucker: { on: false, z: 0, x: 0.3, t: 0, leave: false, flee: false, said: null, at: 0 },
   outro: { t: 0, step: 'talk', said: false },
@@ -157,7 +169,7 @@ export const startChase = (state: GameState, wave: number, fromBounty: boolean) 
   c.z = SEG_L * 14; c.x = 0; c.vx = 0; c.h = 0; c.vh = 0; c.lean = 0; c.boost = 1;
   c.speed = fromBounty ? 130 : 60;
   c.teens = []; c.loose = []; c.parts = []; c.pops = []; c.parry = null; c.punch = null; c.bail = null;
-  c.inv = 90; c.fade = 1; c.tips = wave === 0 ? 720 : 0;
+  c.inv = 90; c.fade = 1; c.tips = wave === 0 ? 720 : 0; c.wet = 0; c.hitStop = 0;
   c.tucker = { on: false, z: 0, x: 0.3, t: 0, leave: false, flee: false, said: null, at: state.frame + (wave === 0 ? 1100 : 260) };
   c.bike = '#DC2626';
   generate(c.track, Math.floor(c.z / SEG_L) + DRAW + 20);
@@ -202,12 +214,22 @@ const spawnTeen = (state: GameState, c: Chase, behind: boolean, dz?: number) => 
   playSound('engine', 0.35, 6);
 };
 
-/** A teen's off (not by a parry: punched off, shoved into something, bowled, blown up). */
+/** A kid off their bike flung so they come down IN FRONT of him, in his lane (from wherever they were: alongside,
+ *  ahead, or way back in the pack, sailing over him), tumbling, then lying there for him to run over. */
+const wipeOut = (c: Chase, k: TeenLook, z: number, x: number, h: number) => {
+  const landZ = Math.max(z, c.z) + 520 + rnd() * 320;
+  const n = 30 + clamp((c.z - z) / 150, 0, 30);
+  const lx = clamp(c.x + (x - c.x) * 0.25 + (rnd() - 0.5) * 0.2, -0.85, 0.85);
+  c.loose.push({ kind: 'tumbler', z, x, h: Math.max(40, h), vz: Math.max(c.speed, 40) + (landZ - z) / n, vx: (lx - x) / n, vh: GRAV * n / 2, t: 0, rot: 0, k });
+};
+
+/** A teen's off (not by a parry: punched off, shoved into something, bowled, blown up): they wipe out ahead of him;
+ *  their bike goes skidding off the other way. */
 const knockOff = (state: GameState, c: Chase, t: Teen, side: number, quip: boolean) => {
   if (!t.alive) return;
   t.alive = false; c.killed++;
-  c.loose.push({ kind: 'tumbler', z: t.z + 30, x: t.x, h: 60 + t.h, vz: t.speed * 0.85, vx: side * 0.018, vh: 12, t: 0, rot: 0, k: t.k });
-  c.loose.push({ kind: 'wreck', z: t.z, x: t.x, h: 0, vz: t.speed * 0.8, vx: side * 0.01, vh: 6, t: 0, rot: 0, color: t.k.bike });
+  wipeOut(c, t.k, t.z + 30, t.x, 60 + t.h);
+  c.loose.push({ kind: 'wreck', z: t.z, x: t.x, h: 0, vz: t.speed * 0.8, vx: side * 0.03, vh: 6, t: 0, rot: 0, color: t.k.bike });
   blood(c, t.z, t.x, 140, 10);
   playSound('crash', 0.5, 4);
   if (quip && state.frame > c.quipAt && rnd() < 0.3) { c.quipAt = state.frame + 400; meatheadSays(state, pickLine(byPants(state, MH_KNOCKOFF)), false); }
@@ -221,6 +243,7 @@ const hitIn = (c: Chase, i: number, x: number, h: number, pad: number): Spr | nu
     const d = SPR[sp.k];
     if (d.solid === 'none') continue;
     if (d.solid === 'low' && h > 60) continue;
+    if (d.solid === 'tall' && h > d.h * CLEAR) continue;
     if (Math.abs(x - sp.x) < d.hit + pad) return sp;
   }
   return null;
@@ -330,27 +353,50 @@ const hitHim = (ctx: FrameContext, c: Chase, t: Teen) => {
 // ---------------------------------------------------------------------------------------------------------------
 // His hits, and the punch parries
 
-const attack = (state: GameState, c: Chase, side: number) => {
-  if (c.punch || c.punchCool > 0 || c.parry || c.phase !== 'ride') return;
-  c.punch = { side, t: 0 };
-  // (a teen on that side, mid-swing (the tell or the swing): the parry)
-  let parry: Teen | null = null, near: Teen | null = null, best = 1e9;
+/** The teen on that side he'd catch mid-swing (the last of the wind-up or the swing: the parry), and the nearest he'd
+ *  hit otherwise. Results in TARGET (no allocation). */
+const TARGET: { parry: Teen | null; near: Teen | null } = { parry: null, near: null };
+const targetOn = (c: Chase, side: number) => {
+  TARGET.parry = null; TARGET.near = null;
+  let best = 1e9;
+  const wv = WAVES[c.wave];
   for (const t of c.teens) {
     if (!t.alive) continue;
     const dz = t.z - c.z, sep = t.x - c.x;
-    if (Math.sign(sep) !== side || Math.abs(dz) > 210 || Math.abs(sep) < 0.1 || Math.abs(sep) > 0.85) continue;
-    const wv = WAVES[c.wave];
-    if ((t.mode === 'wind' && t.t >= wv.wind - TELL) || (t.mode === 'swing' && t.t < SWING)) { parry = t; break; }
-    if (Math.abs(dz) < best) { best = Math.abs(dz); near = t; }
+    if (Math.sign(sep) !== side || Math.abs(dz) > 220 || Math.abs(sep) < 0.1 || Math.abs(sep) > 0.9) continue;
+    if ((t.mode === 'wind' && t.t >= wv.wind - TELL) || (t.mode === 'swing' && t.t < SWING)) { TARGET.parry = t; return TARGET; }
+    if (Math.abs(dz) < best) { best = Math.abs(dz); TARGET.near = t; }
   }
-  if (parry) return startParry(state, c, parry, side);
-  if (near) {
-    near.hp--; near.hit = 8; near.vx += side * 0.032;
-    if (near.mode === 'wind' || near.mode === 'swing') { near.mode = 'recover'; near.t = 0; }
-    playSound('punch', 0.75);
-    blood(c, near.z, near.x, 260, 4);
-    if (near.hp <= 0) knockOff(state, c, near, side, true);
-  } else playSound('whoosh', 0.3, 8);
+  return TARGET;
+};
+
+/** The swing's sound: the same both ways (the fist going, low and heavy). */
+const swingSound = () => playSound('whoosh', 0.55, -6);
+
+const attack = (state: GameState, c: Chase, side: number) => {
+  if (c.punch || c.punchCool > 0 || c.parry || c.phase !== 'ride') return;
+  // (a teen on that side caught mid-swing: the parry, at once)
+  const tg = targetOn(c, side);
+  if (tg.parry) return startParry(state, c, tg.parry, side);
+  // (otherwise the punch: cocked back a beat, then it lands (strike, at PUNCH_WIND))
+  c.punch = { side, t: 0 };
+  swingSound();
+};
+
+/** The punch lands (or doesn't): whoever's caught mid-swing by then is parried; whoever's nearest that side takes it,
+ *  a big one: the hit-stop, the shake, the flash, blood off them, and they're thrown back a way, howling. */
+const strike = (state: GameState, c: Chase, side: number) => {
+  const tg = targetOn(c, side);
+  if (tg.parry) { startParry(state, c, tg.parry, side); return; }
+  const t = tg.near;
+  if (!t) return;
+  t.hp--; t.hit = PAIN;
+  t.vx += side * 0.05; t.z -= 90; t.speed = Math.max(30, t.speed - 35);
+  if (t.mode === 'wind' || t.mode === 'swing') { t.mode = 'recover'; t.t = 0; }
+  c.hitStop = 5; c.shake = Math.max(c.shake, 9);
+  playSound('punch', 1, -4); playSound('slam', 0.5, -2);
+  blood(c, t.z, t.x, 280, 12);
+  if (t.hp <= 0) knockOff(state, c, t, side, true);
 };
 
 const startParry = (state: GameState, c: Chase, t: Teen, side: number) => {
@@ -358,7 +404,6 @@ const startParry = (state: GameState, c: Chase, t: Teen, side: number) => {
   c.punch = null;
   c.parry = { w: t.weapon, side, t: 0, k: t.k, x: t.x, dz: clamp(t.z - c.z, -60, 120), bike: t.k.bike };
   c.hitStop = 6; c.boost = Math.min(1, c.boost + 0.35);
-  c.pops.push({ text: 'PARRY!', t: 0, col: '#FDE047', y: 150 });
   playSound('slam', 0.8); playSound(t.weapon === 'bat' || t.weapon === 'hockey' ? 'clang' : 'punch', 0.7, 2);
   if (rnd() < 0.6) speak(t.k.voice, pickLine(byPants(state, TEEN_PARRIED)), s => { c.yelp = s; }, false);
   if (state.frame > c.quipAt && rnd() < 0.55) { c.quipAt = state.frame + 300; const pool = MH_PARRY[t.weapon]; setTimeout(() => meatheadSays(state, pickLine(byPants(state, pool)), false), 500); }
@@ -386,8 +431,14 @@ const tickParry = (state: GameState, c: Chase) => {
       }
       break;
     case 'bat':
-      if (t === 10) { playSound('bonk', 0.9); c.pops.push({ text: 'BONK!', t: 0, col: '#FFFFFF', y: 120 }); }
-      if (t === 16) {
+      // (caught; BONK BONK BONK on their head, each one squashing it down; then he winds up and knocks them out of the
+      // park: a home run into a tree)
+      if (t === 2) playSound('clang', 0.6, 4);
+      if (t === 8 || t === 13 || t === 18) { const n = (t - 8) / 5; playSound('bonk', 0.9, n * 3); c.pops.push({ text: 'BONK!', t: 0, col: '#FFFFFF', y: 128 - n * 16 }); c.shake = Math.max(c.shake, 3); }
+      if (t === 22) playSound('whoosh', 0.5, -9);
+      if (t === 28) {
+        playSound('crack', 0.9); playSound('slam', 0.6); c.hitStop = 4; c.shake = Math.max(c.shake, 8);
+        c.pops.push({ text: 'HOME RUN!', t: 0, col: '#FDE047', y: 100 });
         // (a tree far enough ahead that it's still ahead of him when they get there)
         const n = 34, need = Math.ceil((Math.max(c.speed, 60) * n) / SEG_L) + 8;
         const tree = treeAhead(c, pr.side, need, need + 30);
@@ -395,35 +446,54 @@ const tickParry = (state: GameState, c: Chase) => {
         if (tree) { spr = tree.sp; z = tree.z; x = tree.sp.x; }
         else { const i = Math.floor(c.z / SEG_L) + need + 20; spr = { k: 'oak', x: pr.side * 1.8, seed: 7 }; segAt(c.track, i).spr.push(spr); z = i * SEG_L; x = spr.x; }
         c.loose.push({ kind: 'flyer', z: tz, x: pr.x, h: 80, vz: 0, vx: 0, vh: 0, t: 0, rot: 0, k: pr.k, to: { z, x, n, spr, z0: tz, x0: pr.x } });
-        c.loose.push({ kind: 'wreck', z: tz, x: pr.x, h: 0, vz: c.speed * 0.8, vx: pr.side * 0.01, vh: 4, t: 0, rot: 0, color: pr.bike });
+        c.loose.push({ kind: 'wreck', z: tz, x: pr.x, h: 0, vz: c.speed * 0.8, vx: pr.side * 0.03, vh: 4, t: 0, rot: 0, color: pr.bike });
         c.parry = null;
       }
       break;
     case 'crowbar':
+      // (yanked off them, hooked in the back of their pants, and up they go by the underwear off the bike, hung kicking:
+      // WEDGIE!; then slung down face first into the road ahead)
       if (t === 3) playSound('clang', 0.5, 4);
-      if (t === 9) {
-        c.loose.push({ kind: 'faceplant', z: c.z + 320, x: c.x + pr.side * 0.08, h: 0, vz: c.speed * 0.6, vx: 0, vh: 0, t: 0, rot: 0, k: pr.k, flat: 0 });
-        c.loose.push({ kind: 'wreck', z: tz, x: pr.x, h: 0, vz: c.speed * 0.8, vx: pr.side * 0.014, vh: 5, t: 0, rot: 0, color: pr.bike });
-        playSound('thud', 0.7); c.pops.push({ text: 'FACEPLANT!', t: 0, col: '#FCA5A5', y: 130 });
+      if (t === 10) {
+        playSound('twang', 0.8, -2); c.pops.push({ text: 'WEDGIE!', t: 0, col: '#F5F5F4', y: 120 });
+        c.loose.push({ kind: 'wreck', z: tz, x: pr.x, h: 0, vz: c.speed * 0.8, vx: pr.side * 0.03, vh: 5, t: 0, rot: 0, color: pr.bike });
+      }
+      if (t === 17 || t === 22) playSound('twang', 0.5, t === 17 ? 3 : 6);
+      if (t === 26) {
+        c.loose.push({ kind: 'faceplant', z: c.z + 340, x: c.x + pr.side * 0.06, h: 0, vz: c.speed * 0.6, vx: 0, vh: 0, t: 0, rot: 0, k: pr.k, flat: 0 });
+        playSound('thud', 0.7); c.pops.push({ text: 'FACEPLANT!', t: 0, col: '#FCA5A5', y: 140 });
         c.parry = null;
       }
       break;
     case 'nunchucks':
-      if (t === 4) playSound('clink', 0.6);
-      if (t === 10) playSound('whoosh', 0.7, -4);
-      if (t === 28) {
+      // (caught; clonked about the face with their own nunchucks, left right left right, teeth flying; then round their
+      // neck and slung back over his shoulder into the pack)
+      if (t === 2) playSound('clink', 0.6);
+      if (t >= 6 && t <= 18 && (t - 6) % 4 === 0) {
+        playSound('bonk', 0.8, (t - 6) / 2);
+        if (t === 6) c.pops.push({ text: 'WA-TAH!', t: 0, col: '#FDE047', y: 120 });
+        for (let i = 0; i < 2; i++) c.parts.push({ z: tz, x: pr.x, h: 400, vz: c.speed * 0.9 + (rnd() - 0.5) * 20, vx: -pr.side * (0.008 + rnd() * 0.01), vh: 5 + rnd() * 5, life: 30, col: '#F5F5F4', size: 22 });
+      }
+      if (t === 22) playSound('clink', 0.6, 3);
+      if (t === 30) {
+        playSound('whoosh', 0.7, -4);
+        c.loose.push({ kind: 'wreck', z: tz, x: pr.x, h: 0, vz: c.speed * 0.8, vx: pr.side * 0.03, vh: 4, t: 0, rot: 0, color: pr.bike });
+      }
+      if (t === 48) {
         // (bowled back into the pack: everybody behind him goes down)
         let n = 0;
         for (const q of c.teens) if (q.alive && q.z < c.z + 60 && q.z > c.z - 4000) { knockOff(state, c, q, Math.sign(q.x - c.x) || 1, false); n++; }
         for (let i = 0; i < Math.max(2, n + 1); i++) setTimeout(() => playSound(i % 2 ? 'clang' : 'crash', 0.6, i), 80 * i);
         c.pops.push({ text: n >= 2 ? 'STRIKE!' : n === 1 ? 'SPARE!' : 'GUTTER BALL!', t: 0, col: n >= 2 ? '#FDE047' : '#E5E7EB', y: 140 });
-        c.loose.push({ kind: 'wreck', z: tz, x: pr.x, h: 0, vz: c.speed * 0.8, vx: pr.side * 0.012, vh: 4, t: 0, rot: 0, color: pr.bike });
         c.parry = null;
       }
       break;
     case 'hockey':
-      if (t === 4) playSound('clang', 0.7, -4);
-      if (t === 9) {
+      // (jammed in their front spokes: the bike stands up on its nose, the kid hanging on up in the air over the bars,
+      // legs flapping, a long beat; then over they go)
+      if (t === 4) { playSound('clang', 0.7, -4); playSound('crunch', 0.6); c.pops.push({ text: 'ENDO!', t: 0, col: '#86EFAC', y: 120 }); }
+      if (t > 4 && t < 16) pr.dz -= 2;
+      if (t === 16) {
         // (the spokes jammed: the bike stops dead, the kid pole-vaults over the bars onto the road ahead of him)
         c.loose.push({ kind: 'wreck', z: tz, x: pr.x, h: 0, vz: 0, vx: 0, vh: 9, t: 0, rot: 0, color: pr.bike });
         c.loose.push({ kind: 'vault', z: tz + 60, x: pr.x, h: 100, vz: c.speed + 60, vx: (c.x - pr.x) / 44, vh: 21, t: 0, rot: 0, k: pr.k });
@@ -432,8 +502,10 @@ const tickParry = (state: GameState, c: Chase) => {
       }
       break;
     case 'skateboard':
-      if (t === 9) { playSound('crack', 0.8); c.pops.push({ text: 'NECK BOARD!', t: 0, col: '#C4B5FD', y: 130 }); }
-      if (t === 14) {
+      // (snatched; CLONK, CLONK on the head with it, the eyes crossing; then down over their head, through the deck)
+      if (t === 8 || t === 13) { playSound('clang', 0.7, t === 8 ? 0 : 3); playSound('bonk', 0.6); c.shake = Math.max(c.shake, 3); if (t === 8) c.pops.push({ text: 'CLONK!', t: 0, col: '#FFFFFF', y: 120 }); }
+      if (t === 19) { playSound('crack', 0.8); c.pops.push({ text: 'NECK BOARD!', t: 0, col: '#C4B5FD', y: 136 }); }
+      if (t === 22) {
         // (riding blind, wearing their board; make sure there's something to ride into)
         const base = Math.floor(c.z / SEG_L);
         let found = false;
@@ -494,8 +566,8 @@ const tickLoose = (ctx: FrameContext | null, state: GameState, c: Chase) => {
       case 'tumbler': case 'mh': case 'vault':
         l.z += l.vz; l.x += l.vx; l.vh -= GRAV; l.h += l.vh; l.rot += l.kind === 'vault' ? 0.12 : 0.28;
         if (l.h <= 0) {
-          l.h = 0;
-          if (l.vh < -6) { l.vh = -l.vh * 0.35; l.vz *= 0.6; playSound('thud', 0.4, l.kind === 'mh' ? -4 : 2); blood(c, l.z, l.x, 20, 4); }
+          l.h = 0; l.down = true;
+          if (l.vh < -6) { l.vh = -l.vh * 0.35; l.vz *= 0.6; l.vx *= 0.6; playSound('thud', 0.4, l.kind === 'mh' ? -4 : 2); blood(c, l.z, l.x, 20, 4); }
           else { l.vh = 0; l.vz *= 0.85; if (l.vz < 4) { l.vz = 0; if (l.kind === 'tumbler') l.kind = 'body'; else if (l.kind === 'vault') { l.kind = 'ramp'; c.pops.push({ text: 'HUMAN RAMP!', t: 0, col: '#86EFAC', y: 130 }); } } }
         }
         break;
@@ -533,7 +605,13 @@ const tickLoose = (ctx: FrameContext | null, state: GameState, c: Chase) => {
       case 'flyer': {
         const to = l.to!, k = Math.min(1, l.t / to.n);
         l.z = to.z0 + (to.z - to.z0) * k; l.x = to.x0 + (to.x - to.x0) * k; l.h = 80 + Math.sin(k * Math.PI) * 500; l.rot += 0.35;
-        if (k >= 1) { l.done = true; if (to.spr && !to.spr.gone) { to.spr.k = 'teentree'; to.spr.seed = l.k ? l.k.seed : 0; } playSound('splat', 0.9); playSound('crunch', 0.7); blood(c, to.z, to.x, 500, 16); }
+        if (k >= 1) {
+          // (splat into the trunk, and off it again: they peel off and bounce back out into the road ahead of him)
+          l.done = true;
+          if (to.spr && !to.spr.gone) { to.spr.k = 'bloodtree'; to.spr.seed = l.k ? l.k.seed : 0; }
+          playSound('splat', 0.9); playSound('crunch', 0.7); blood(c, to.z, to.x, 500, 16);
+          if (l.k) c.loose.push({ kind: 'tumbler', z: to.z, x: to.x, h: 260, vz: Math.max(c.speed, 40) * 0.85, vx: (clamp(c.x, -0.7, 0.7) - to.x) / 34, vh: 7, t: 0, rot: 0, k: l.k });
+        }
         break;
       }
       case 'blind': {
@@ -543,12 +621,14 @@ const tickLoose = (ctx: FrameContext | null, state: GameState, c: Chase) => {
         if (sp || l.t > 330 || Math.abs(l.x) > 2.6) {
           if (sp) { killAnimal(c, sp, l.z); playSound('crunch', 0.7); }
           l.done = true;
-          c.loose.push({ kind: 'tumbler', z: l.z, x: l.x, h: 80, vz: l.vz * 0.5, vx: 0, vh: 10, t: 0, rot: 0, k: l.k });
+          // (thrown off whatever they hit back out into the road, ahead of him)
+          c.loose.push({ kind: 'tumbler', z: Math.max(l.z, c.z + 500), x: l.x, h: 80, vz: Math.max(c.speed, 40) * 0.8, vx: (clamp(c.x, -0.7, 0.7) - l.x) / 30, vh: 10, t: 0, rot: 0, k: l.k });
           c.loose.push({ kind: 'wreck', z: l.z, x: l.x, h: 0, vz: l.vz * 0.4, vx: 0, vh: 6, t: 0, rot: 0, color: l.color });
           blood(c, l.z, l.x, 200, 12);
         }
         break;
       }
+      case 'gore': if (l.t > 24) l.done = true; break;
       case 'body': case 'ramp': break;
     }
     // (behind the camera a way: gone)
@@ -560,17 +640,36 @@ const tickLoose = (ctx: FrameContext | null, state: GameState, c: Chase) => {
   c.parts = c.parts.filter(q => q.life > 0);
 };
 
-/** Him passing over or into the loose things: bodies are bumps, the ramp launches him, a loose bike hurts. */
+const GIB_POPS = ['SPLAT!', 'GIBLETS!', 'SPEED BUMP!', 'SPLATTER!'];
+/** A wiped-out kid run over: they go off like a water balloon full of kid (a red burst, chunks of them, their shoes,
+ *  a red smear left on the road) and the body's a ramp: up he goes. Just for fun: it never hurts him. */
+const gib = (c: Chase, l: Loose, v: number) => {
+  l.done = true;
+  c.vh = Math.max(c.vh, v); c.h = Math.max(c.h, 1);
+  c.shake = Math.max(c.shake, 12); c.hitStop = Math.max(c.hitStop, 3);
+  playSound('splat', 1); playSound('crunch', 0.8); playSound('boom', 0.45, 6);
+  c.loose.push({ kind: 'gore', z: l.z, x: l.x, h: 0, vz: 0, vx: 0, vh: 0, t: 0, rot: 0, k: l.k });
+  segAt(c.track, Math.floor(l.z / SEG_L)).spr.push({ k: 'gore', x: l.x, seed: 1 });
+  blood(c, l.z, l.x, 60, 26);
+  const L = l.k?.look;
+  const chunk = L ? [L.shirt, L.pants, L.skin, '#F5F5F4', '#7F1D1D', '#F0A8B0'] : ['#7F1D1D', '#F0A8B0', '#F5F5F4'];
+  for (let i = 0; i < 14; i++) {
+    if (c.parts.length > 220) c.parts.shift();
+    c.parts.push({ z: l.z, x: l.x, h: 40, vz: c.speed * (0.6 + rnd() * 0.7), vx: (rnd() - 0.5) * 0.08, vh: 8 + rnd() * 14, life: 40 + rnd() * 30, col: chunk[i % chunk.length], size: 50 + rnd() * 50 });
+  }
+  c.pops.push({ text: GIB_POPS[Math.floor(rnd() * GIB_POPS.length)], t: 0, col: '#FCA5A5', y: 150 });
+};
+
+/** Him passing over or into the loose things: a wiped-out kid (lying there, or tumbling once they've come down) goes up
+ *  under his wheel and ramps him, the human ramp the same and higher, a loose bike hurts. */
 const hisLoose = (ctx: FrameContext, c: Chase, oldZ: number) => {
   for (const l of c.loose) {
     if (l.done) continue;
     const dx = Math.abs(l.x - c.x);
     const crossed = l.z > oldZ - 40 && l.z <= c.z + 40;
-    if ((l.kind === 'body' || l.kind === 'faceplant') && crossed && dx < 0.25 && c.h < 30 && c.t - (l.hitAt ?? -99) > 30) {
-      l.hitAt = c.t; c.vh = 5; c.h = 1; playSound('crunch', 0.6); blood(c, l.z, l.x, 30, 6); l.flat = Math.min(1, (l.flat ?? 0) + 0.5);
-      if (l.kind === 'faceplant' && !l.ran) { l.ran = 1; c.pops.push({ text: 'SPLAT!', t: 0, col: '#FCA5A5', y: 160 }); }
-    }
-    if (l.kind === 'ramp' && crossed && dx < 0.3 && c.h < 30 && !l.flat) { c.vh = RAMP_V; c.h = 1; l.flat = 1; playSound('crunch', 0.8); blood(c, l.z, l.x, 30, 10); c.pops.push({ text: 'WHEEE!', t: 0, col: '#86EFAC', y: 120 }); }
+    const lying = l.kind === 'body' || l.kind === 'faceplant' || (l.kind === 'tumbler' && l.down && l.h < 30);
+    if (lying && Math.abs(l.z - c.z) < 90 && dx < 0.26 && c.h < 40) { gib(c, l, BODY_V); continue; }
+    if (l.kind === 'ramp' && crossed && dx < 0.3 && c.h < 40) { gib(c, l, RAMP_V); c.pops.push({ text: 'WHEEE!', t: 0, col: '#86EFAC', y: 120 }); continue; }
     if (l.kind === 'wreck' && l.vz > 15 && Math.abs(l.z - c.z) < 120 && dx < 0.2 && c.h < 60 && c.inv <= 0) {
       hurtPlayer(ctx, WRECK_DMG, 'm2:fr_bikewreck', { x: 0, y: 0 }); c.inv = 50; c.shake = 8; c.vx += (c.x < l.x ? -1 : 1) * 0.03; l.vz = 0;
       playSound('clang', 0.7);
@@ -624,8 +723,9 @@ export const updateChase = (ctx: FrameContext, controls: Controls): Controls => 
   const offroad = Math.abs(c.x) > 1.02;
   let target = out ? 120 : controls.down ? BRAKE : controls.up && c.boost > 0 ? BOOST : CRUISE;
   if (offroad) target = Math.min(target, ROUGH);
+  if (c.wet > 0) { c.wet--; target = Math.min(target, WADE); }
   if (c.phase === 'bail') target = 0;
-  c.speed += (target - c.speed) * (target > c.speed ? (c.phase === 'bail' ? 0 : 0.025) : c.phase === 'bail' ? 0.09 : 0.06);
+  c.speed += (target - c.speed) * (target > c.speed ? (c.phase === 'bail' ? 0 : 0.025) : c.phase === 'bail' ? 0.09 : c.wet > 0 ? 0.14 : 0.06);
   if (riding && controls.up && c.boost > 0 && !offroad) c.boost = Math.max(0, c.boost - 1 / 150); else c.boost = Math.min(1, c.boost + 1 / 420);
   const sp = c.speed / MAXV, si = Math.floor(c.z / SEG_L), seg = segAt(c.track, si);
   const steer = riding ? (controls.right ? 1 : 0) - (controls.left ? 1 : 0) : out ? clamp(-c.x * 2, -1, 1) : 0;
@@ -643,22 +743,48 @@ export const updateChase = (ctx: FrameContext, controls: Controls): Controls => 
   c.z += c.speed;
   generate(c.track, Math.floor(c.z / SEG_L) + DRAW + 30);
   // ---- up in the air: a jump, a dirt jump, a ramp
-  if (riding && pressJ && c.h === 0) { c.vh = JUMP_V; c.h = 0.1; playSound('jump', 0.5, -4); }
+  if (riding && pressJ && c.h === 0) { c.vh = JUMP_V; c.h = 0.1; playSound('jump', 0.6, -6); playSound('engine', 0.3, 4); }
   if (c.h > 0 || c.vh > 0) {
-    c.vh -= GRAV; c.h += c.vh;
-    if (c.h <= 0) { c.h = 0; c.vh = 0; playSound('land', 0.5); c.shake = Math.max(c.shake, 4); }
+    c.vh -= MH_GRAV; c.h += c.vh;
+    if (c.h <= 0) {
+      // (the landing: a thump, harder the further he fell, the bike bottoming out, dust)
+      const hard = -c.vh;
+      c.h = 0; c.vh = 0;
+      playSound('land', 0.5 + Math.min(0.5, hard / 40));
+      if (hard > 12) playSound('thud', Math.min(0.9, 0.3 + hard / 50), -5);
+      c.shake = Math.max(c.shake, 4 + Math.min(10, hard * 0.3));
+      if (hard > 10) for (let i = 0; i < 6; i++) c.parts.push({ z: c.z, x: c.x + (rnd() - 0.5) * 0.3, h: 5, vz: c.speed * 0.7, vx: (rnd() - 0.5) * 0.03, vh: 2 + rnd() * 4, life: 20, col: '#9A7A50', size: 60 });
+    }
   }
   // ---- what he rides into
   if (riding) {
     for (let i = Math.floor(oldZ / SEG_L); i <= Math.floor(c.z / SEG_L); i++) {
       const s = segAt(c.track, i);
       if (s.mound && c.h === 0) { c.vh = MOUND_V; c.h = 0.1; playSound('jump', 0.4, 2); }
-      if (s.water && c.h < 15) { bail(ctx, c, 'm2:fr_bail_creek', null); playSound('splash', 0.9); break; }
+      // (the creek: no wipeout, he ploughs through it, bogged right down, the spray going up)
+      if (s.water && c.h < 15) {
+        if (c.wet <= 0) { playSound('splash', 0.9); c.shake = Math.max(c.shake, 6); }
+        c.wet = 26;
+      }
       // (a first-aid kit somebody dropped)
       for (const q of s.spr) if (q.k === 'health' && !q.gone && Math.abs(q.x - c.x) < 0.2 && c.h < 150) { q.gone = true; p.health = Math.min(p.maxHealth, p.health + 30); playSound('pickup'); }
       const hit = hitIn(c, i, c.x, c.h, 0.08);
+      // (a low log, a rock, a stump, a carcass: it kicks him up into the air; only tall things wipe him out)
+      if (hit && SPR[hit.k].solid === 'low') {
+        if (c.h < 30) {
+          c.vh = LOG_V; c.h = Math.max(c.h, 0.1); c.shake = Math.max(c.shake, 6);
+          playSound('thud', 0.7, -2); playSound('jump', 0.4, -2);
+          for (let k = 0; k < 5; k++) c.parts.push({ z: c.z + 60, x: c.x + (rnd() - 0.5) * 0.2, h: 20, vz: c.speed * 0.8, vx: (rnd() - 0.5) * 0.03, vh: 3 + rnd() * 5, life: 18, col: hit.k === 'deadcow' || hit.k === 'deaddeer' ? '#8A1010' : '#7A5430', size: 40 });
+        }
+        continue;
+      }
       if (hit) { bail(ctx, c, SPR[hit.k].src ?? 'm2:fr_bail_tree', hit); break; }
     }
+  }
+  // (wading: spray up off both sides, the bike shuddering)
+  if (c.wet > 0 && c.h < 15 && f % 2 === 0) {
+    for (let sd = -1; sd <= 1; sd += 2) c.parts.push({ z: c.z + 40, x: c.x + sd * 0.12, h: 10, vz: c.speed * 0.9, vx: sd * (0.01 + rnd() * 0.012), vh: 6 + rnd() * 6, life: 18, col: rnd() < 0.5 ? '#E6F2FA' : '#7FB0DC', size: 46 });
+    if (f % 6 === 0) c.shake = Math.max(c.shake, 2);
   }
   // (deer crossing the road as he comes: from whichever side it's on to the other)
   for (let i = si; i < si + 50; i++) for (const q of segAt(c.track, i).spr) if (q.vx && q.k === 'deer') {
@@ -669,7 +795,11 @@ export const updateChase = (ctx: FrameContext, controls: Controls): Controls => 
   if (c.phase === 'ride' || c.phase === 'bail' || out) hisLoose(ctx, c, oldZ);
   // ---- his punches
   if (c.punchCool > 0) c.punchCool--;
-  if (c.punch && ++c.punch.t >= 14) { c.punch = null; c.punchCool = 10; }
+  if (c.punch) {
+    c.punch.t++;
+    if (c.punch.t === PUNCH_WIND && riding) strike(state, c, c.punch.side);
+    if (c.punch && c.punch.t >= PUNCH_LEN) { c.punch = null; c.punchCool = 4; }
+  }
   if (riding && !c.parry) { if (pressL) attack(state, c, -1); else if (pressR) attack(state, c, 1); }
   if (c.parry) tickParry(state, c);
   // ---- the teens, the loose things, Tucker
@@ -757,7 +887,9 @@ export const drawChase = (c0: CanvasRenderingContext2D, state: GameState) => {
   const g = low.getContext('2d')!;
   g.imageSmoothingEnabled = false;
   // ---- the camera behind him
-  const camZ = c.z - PLAYER_Z, camY = roadYAt(c.track, c.z) + CAM_H;
+  // (kept over the road under the camera as well as under him: down a steep hill the road behind him is higher, and
+  // the camera used to sink into it)
+  const camZ = c.z - PLAYER_Z, camY = Math.max(roadYAt(c.track, c.z), roadYAt(c.track, camZ)) + CAM_H;
   project(c.track, camZ, c.x * 1000, camY);
   const pseg = segAt(c.track, Math.floor(c.z / SEG_L));
   drawBackground(g, pseg.biome, c.bgX, 0);
@@ -766,18 +898,19 @@ export const drawChase = (c0: CanvasRenderingContext2D, state: GameState) => {
   for (const b of buckets) b.length = 0;
   const into = (z: number, draw: () => void) => { const n = Math.floor((z - view.base * SEG_L) / SEG_L); if (n >= 1 && n <= DRAW) buckets[n].push({ z, draw }); };
   const shat = isShat(state), nude = isNude(state), wounds = tuckerWoundsOf(state);
-  const wv = WAVES[c.wave];
   for (const t of c.teens) {
     into(t.z, () => {
       placeAt(t.z, t.x, P); if (P.n < 1) return;
       const s = artS(P.sc), y = P.sy - t.h * P.sc * K;
       if (y - 90 * s > P.clip) return;
-      const tell = t.mode === 'wind' && t.t >= wv.wind - TELL;
-      const pose: RiderPose = { lean: t.lean, side: -t.side, arm: t.mode === 'wind' ? 'wind' : t.mode === 'swing' ? 'swing' : 'idle', flash: tell && (f >> 2) % 2 === 0, look: t.mode === 'hover' ? 0 : -t.side, hit: t.hit > 0, spin: t.z * 0.01 };
+      const pain = t.hit / PAIN;
+      const pose: RiderPose = { lean: t.lean, side: -t.side, arm: t.mode === 'wind' ? 'wind' : t.mode === 'swing' ? 'swing' : 'idle', flash: false, look: t.mode === 'hover' ? 0 : -t.side, hit: t.hit > PAIN - 3, spin: t.z * 0.01, pain };
+      const crop = clipAbove(g, P.sy, P.clip);
       shadow(g, P.sx, P.sy, s, P.clip);
       drawTeenRider(g, t.k, t.weapon, pose, P.sx, y, s, f + t.id * 7);
-      // (the tell: a "!" over their head)
-      if (tell) { const ex = P.sx, ey = y - 104 * s; g.fillStyle = (f >> 2) % 2 ? '#FDE047' : '#FFFFFF'; g.fillRect(ex - 1.5 * s, ey - 9 * s, 3 * s, 7 * s); g.fillRect(ex - 1.5 * s, ey, 3 * s, 2.5 * s); }
+      // (the punch landing: an impact star on them for its first frames)
+      if (t.hit > PAIN - 4) star(g, P.sx + (c.x < t.x ? -8 : 8) * s, y - 74 * s, 14 * s, (f >> 1) % 2 ? '#FFFFFF' : '#FDE047');
+      if (crop) g.restore();
       if (t.said) sayAt.push({ text: t.said.text, x: P.sx * 2, y: (y - 108 * s) * 2, col: '#E0F2FE' });
     });
   }
@@ -785,8 +918,11 @@ export const drawChase = (c0: CanvasRenderingContext2D, state: GameState) => {
   if (c.tucker.on) into(c.tucker.z, () => {
     placeAt(c.tucker.z, c.tucker.x, P); if (P.n < 1) return;
     const s = artS(P.sc);
+    if (P.sy - 110 * s > P.clip) return;
+    const crop = clipAbove(g, P.sy, P.clip);
     shadow(g, P.sx, P.sy, s, P.clip);
     drawTuckerRider(g, P.sx, P.sy, s, Math.sin(c.tucker.t * 0.05) * 0.1, wounds, !!c.tucker.said, f);
+    if (crop) g.restore();
   });
   // (him)
   const me = c.phase !== 'bail' && !(c.phase === 'dead');
@@ -794,7 +930,7 @@ export const drawChase = (c0: CanvasRenderingContext2D, state: GameState) => {
     placeAt(c.z, c.x, P);
     const s = artS(P.sc), y = P.sy - c.h * P.sc * K;
     shadow(g, P.sx, P.sy, s * (1 - Math.min(0.5, c.h / 600)), H);
-    const pose: MhPose = { lean: c.lean, spin: c.spin, punch: c.punch ? c.punch.side : 0, reach: c.punch ? c.punch.t / 14 : 0, parry: c.parry ? { w: c.parry.w, t: c.parry.t, side: c.parry.side } : null, shat, nude, blink: c.inv > 0 && c.phase === 'ride' && c.inv < 120 && c.inv > 0, bike: c.bike };
+    const pose: MhPose = { lean: c.lean, spin: c.spin, punch: c.punch ? c.punch.side : 0, pt: c.punch ? c.punch.t : 0, parry: c.parry ? { w: c.parry.w, t: c.parry.t, side: c.parry.side } : null, shat, nude, blink: c.inv > 0 && c.phase === 'ride' && c.inv < 120 && c.inv > 0, bike: c.bike, blood: hurtK(state) };
     drawMeathead(g, pose, P.sx, y, s, f);
     meAt.x = P.sx; meAt.y = y - 104 * s; meAt.s = s; meAt.base = y;
     if (c.parry) drawParry(g, c, P.sx, y, s, f);
@@ -807,7 +943,7 @@ export const drawChase = (c0: CanvasRenderingContext2D, state: GameState) => {
         if (q.gone) continue;
         const sc = PS[n], sx = PX[n] + sc * q.x * 1000 * K, sy = PY[n];
         if (sx < -400 || sx > W + 400 || sy - 20 > CLIP[n]) continue;
-        if (q.k === 'scorch') { g.fillStyle = 'rgba(20,14,10,0.8)'; g.beginPath(); g.ellipse(sx, sy, Math.max(1, sc * 450 * K), Math.max(0.5, sc * 80 * K), 0, 0, Math.PI * 2); g.fill(); continue; }
+        if (q.k === 'scorch' || q.k === 'gore') { g.fillStyle = q.k === 'gore' ? 'rgba(110,10,10,0.85)' : 'rgba(20,14,10,0.8)'; g.beginPath(); g.ellipse(sx, sy, Math.max(1, sc * 450 * K), Math.max(0.5, sc * 80 * K), 0, 0, Math.PI * 2); g.fill(); continue; }
         drawSpr(g, q.k, q.seed, sx, sy, sc, CLIP[n], q.words, (q.k === 'cow' || q.k === 'deer' || q.k === 'deadcow' || q.k === 'deaddeer') && q.x < 0);
       }
     }
@@ -835,9 +971,20 @@ export const drawChase = (c0: CanvasRenderingContext2D, state: GameState) => {
   sayAt.length = 0;
 };
 
+/** A rider partly down behind a crest: everything under the crest's line cut off (true: restore after). */
+const clipAbove = (g: CanvasRenderingContext2D, sy: number, clip: number) => {
+  if (sy <= clip) return false;
+  g.save(); g.beginPath(); g.rect(0, 0, W, Math.max(0, clip)); g.clip();
+  return true;
+};
+/** How beaten up he looks on the bike: by the health he's lost (0 near full .. 1 near dead). */
+const hurtK = (state: GameState) => clamp(1 - state.player.health / Math.max(1, state.player.maxHealth), 0, 1);
+
 const shadow = (g: CanvasRenderingContext2D, x: number, y: number, s: number, clip: number) => { if (y > clip + 1) return; g.fillStyle = 'rgba(20,12,6,0.35)'; g.beginPath(); g.ellipse(x, y, 16 * s, 3.5 * s, 0, 0, Math.PI * 2); g.fill(); };
 const meAt = { x: W / 2, y: 180, s: 1, base: 260 };
 const sayAt: { text: string; x: number; y: number; col: string }[] = [];
+
+const GORE_RINGS = ['#5A0A0A', '#8A1414', '#B91C1C', '#E04848', '#F0A8B0'];
 
 /** A loose thing on the road. */
 const drawLoose = (g: CanvasRenderingContext2D, c: Chase, l: Loose, f: number, shat: boolean, nude: boolean) => {
@@ -850,7 +997,7 @@ const drawLoose = (g: CanvasRenderingContext2D, c: Chase, l: Loose, f: number, s
     case 'blind':
       if (l.k) {
         // (riding on blind, wearing their board round their neck, flailing)
-        drawTeenRider(g, l.k, 'skateboard', { lean: l.rot, side: 1, arm: 'none', flash: false, look: 0, hit: false, spin: l.z * 0.01 }, P.sx, P.sy, s, f);
+        drawTeenRider(g, l.k, 'skateboard', { lean: l.rot, side: 1, arm: 'none', flash: false, look: 0, hit: false, spin: l.z * 0.01, flail: true }, P.sx, P.sy, s, f);
         g.save(); g.translate(P.sx, P.sy - 74 * s * 0.92); g.scale(s, s);
         g.fillStyle = INK; g.fillRect(-17, -4, 34, 9); g.fillStyle = '#7C3AED'; g.fillRect(-16, -3, 32, 7); g.fillStyle = '#F5F5F4'; g.fillRect(-13, 4, 4, 2); g.fillRect(9, 4, 4, 2);
         g.restore();
@@ -859,6 +1006,16 @@ const drawLoose = (g: CanvasRenderingContext2D, c: Chase, l: Loose, f: number, s
     case 'wreck': case 'mhbike': shadow(g, P.sx, P.sy, s * 0.8, P.clip); drawBikeTumble(g, P.sx, y, s, l.rot, l.color ?? '#888888'); break;
     case 'mh': shadow(g, P.sx, P.sy, s * 0.7, P.clip); drawMhTumble(g, P.sx, y - 10 * s, s, l.rot, nude, shat); break;
     case 'bomb': if (l.k) { drawTeenBody(g, l.k, P.sx, y, s, l.rot, false); g.fillStyle = (f >> 2) % 2 ? '#FDE047' : '#F97316'; g.fillRect(P.sx - 2 * s, y - 34 * s, 4 * s, 4 * s); } break;
+    case 'gore': {
+      // (a run-over kid going off: a red burst, banded dark to pink, flecks flying, fading)
+      const k = Math.min(1, l.t / 8), r = (20 + k * 70) * s, fade = l.t > 12 ? Math.max(0, 1 - (l.t - 12) / 12) : 1;
+      const cy = P.sy - r * 0.5;
+      g.globalAlpha = fade;
+      for (let i = 0; i < GORE_RINGS.length; i++) { g.fillStyle = GORE_RINGS[i]; g.beginPath(); g.arc(P.sx, cy, r * (1 - i * 0.2), 0, Math.PI * 2); g.fill(); }
+      for (let i = 0; i < 10; i++) { const a = i * 0.63 + 0.3, d = r * (0.7 + k); g.fillStyle = i % 4 ? '#7F1D1D' : '#F5F5F4'; g.fillRect(P.sx + Math.cos(a) * d, cy + Math.sin(a) * d * 0.6 - l.t * s, 3 * s, 3 * s); }
+      g.globalAlpha = 1;
+      break;
+    }
     case 'blast': {
       // (the human bomb: a banded fireball, white to yellow to orange to red, then smoke, chunks flying)
       const k = Math.min(1, l.t / 14), r = (30 + k * 90) * s, fade = l.t > 26 ? Math.max(0, 1 - (l.t - 26) / 24) : 1;
@@ -879,8 +1036,12 @@ const drawParry = (g: CanvasRenderingContext2D, c: Chase, mx: number, my: number
   placeAt(c.z + pr.dz, pr.x, P);
   const tx = P.n >= 1 ? P.sx : mx + sd * 60 * s, ty = P.n >= 1 ? P.sy : my;
   const ts = P.n >= 1 ? artS(P.sc) : s;
-  const rider = (arm: RiderPose['arm'], hit = false) => drawTeenRider(g, pr.k, pr.w, { lean: sd * 0.1, side: -sd, arm, flash: false, look: -sd, hit, spin: f }, tx, ty, ts, f);
+  const rider = (arm: RiderPose['arm'], hit = false, extra?: Partial<RiderPose>) => drawTeenRider(g, pr.k, pr.w, { lean: sd * 0.1, side: -sd, arm, flash: false, look: -sd, hit, spin: f, ...extra }, tx, ty, ts, f);
   const ln = (x1: number, y1: number, x2: number, y2: number, col: string, w: number) => { g.strokeStyle = col; g.lineWidth = w; g.beginPath(); g.moveTo(x1, y1); g.lineTo(x2, y2); g.stroke(); };
+  // (the weapon in his working fist, where art.ts's parryHand has it)
+  const held = (w: Weapon) => { const h = parryHand(pr.w, t, sd); g.save(); g.translate(mx + h.x * s, my + h.y * s); g.scale(s, s); drawWeapon(g, w, 0, 0, h.a, false, f); g.restore(); };
+  /** A bonk's squash: 1 on the frame it lands, easing off over 4. */
+  const bonk = (at: number) => (t >= at && t < at + 4 ? 1 - (t - at) / 4 : 0);
   switch (pr.w) {
     case 'chain': {
       if (t < 8) {
@@ -899,45 +1060,76 @@ const drawParry = (g: CanvasRenderingContext2D, c: Chase, mx: number, my: number
       break;
     }
     case 'bat': {
-      rider('swing', t >= 10 && t < 14);
-      // (the bat caught in his fist, then brought down on their head)
-      const hx = mx + sd * (t < 6 ? 38 : 24) * s, hy = my - (t < 6 ? 70 : 96 - (t - 6) * 3) * s;
-      drawWeapon(g, 'bat', hx, hy, sd > 0 ? (t < 6 ? 0 : 0.2 + (t - 6) * 0.12) : Math.PI - (t < 6 ? 0 : 0.2 + (t - 6) * 0.12), false, f);
-      if (t >= 10 && t < 16) star(g, tx, ty - 86 * ts, 10 * ts, '#FFFFFF');
+      // (caught; three bonks on the head, squashing it down each time, the stars coming out; the wind-up; the home run)
+      const sq = Math.max(bonk(8), bonk(13), bonk(18));
+      rider(t < 4 ? 'swing' : 'none', sq > 0.7, { squash: sq, daze: t >= 9, look: t >= 9 ? (((t >> 2) & 1) ? 1 : -1) : -sd });
+      held('bat');
+      if (sq > 0.7) star(g, tx, ty - 90 * ts, 10 * ts, '#FFFFFF');
+      if (t >= 26) star(g, tx, ty - 80 * ts, 16 * ts, '#FDE047');
       break;
     }
     case 'crowbar': {
-      rider(t < 5 ? 'swing' : 'none');
-      const hx = mx + sd * 38 * s, hy = my - 70 * s;
-      drawWeapon(g, 'crowbar', hx - sd * t * 2 * s, hy, sd > 0 ? Math.PI : 0, false, f);
+      // (hooked in the back of their pants; then hoisted off the bike by their underwear, hung there kicking)
+      if (t < 10) rider(t < 5 ? 'swing' : 'none', false, { look: t >= 5 ? sd : -sd });
+      const h = parryHand('crowbar', t, sd), hx = mx + h.x * s, hy = my + h.y * s;
+      held('crowbar');
+      if (t >= 5 && t < 10) ln(hx, hy, tx, ty - 44 * ts, '#F4F4F4', Math.max(1, 1.5 * ts));
+      if (t >= 10) {
+        const k = Math.min(1, (t - 10) / 6), dx = tx + (hx + sd * 18 * s - tx) * k, dy = (ty - 60 * ts) + (hy + 6 * s - (ty - 60 * ts)) * k;
+        drawTeenDangle(g, pr.k, dx, dy, ts + (s - ts) * k, f, Math.min(1, (t - 10) / 12));
+      }
       break;
     }
     case 'nunchucks': {
-      if (t < 10) {
-        rider('none');
+      const h = parryHand('nunchucks', t, sd), hx = mx + h.x * s, hy = my + h.y * s;
+      if (t < 22) {
+        // (clonk, clonk, clonk, clonk: their head snapping side to side with each one)
+        const hit = t >= 6 && (t - 6) % 4 < 2;
+        rider(t < 4 ? 'swing' : 'none', hit, { look: ((t >> 2) & 1) ? 1 : -1, daze: t >= 10, pain: hit ? 0.5 : 0 });
+        held('nunchucks');
+        if (hit) star(g, tx + (((t >> 2) & 1) ? 6 : -6) * ts, ty - 80 * ts, 9 * ts, '#FFFFFF');
+      } else if (t < 30) {
+        rider('none', false, { daze: true });
         // (wrapped round their neck, his fist on the other end)
         g.strokeStyle = '#3A2A1A'; g.lineWidth = Math.max(1, 2 * ts); g.beginPath(); g.ellipse(tx, ty - 74 * ts, 7 * ts, 3 * ts, 0, 0, Math.PI * 2); g.stroke();
-        ln(mx + sd * 10 * s, my - 60 * s, tx, ty - 74 * ts, '#A1A1AA', Math.max(1, s));
+        ln(hx, hy, tx, ty - 74 * ts, '#A1A1AA', Math.max(1, s));
       } else {
         // (slung back over his shoulder, at us, past the camera, into the pack behind)
-        const k = (t - 10) / 18, sc = s * (1 + k * 3.2);
+        const k = (t - 30) / 18, sc = s * (1 + k * 3.2);
         const bx = tx + (mx - sd * 40 * s - tx) * k, by = ty - 70 * ts - Math.sin(k * Math.PI) * 70 * s + k * k * 260 * s;
         drawTeenBody(g, pr.k, bx, by, sc, k * 9 * -sd, false);
       }
       break;
     }
     case 'hockey': {
-      rider(t < 4 ? 'swing' : 'none');
-      // (the stick jammed in their front spokes)
-      if (t >= 4) { ln(mx + sd * 38 * s, my - 66 * s, tx, ty - 14 * ts, '#D6B07A', Math.max(1, 2 * s)); if (t >= 7) star(g, tx, ty - 14 * ts, 8 * ts, '#FDE047'); }
-      else drawWeapon(g, 'hockey', mx + sd * 38 * s, my - 70 * s, sd > 0 ? 0 : Math.PI, false, f);
+      const h = parryHand('hockey', t, sd), hx = mx + h.x * s, hy = my + h.y * s;
+      if (t < 4) { rider('swing'); held('hockey'); break; }
+      // (the stick in their spokes; the bike stands up on its front wheel, the kid hanging on to the bars up in the air,
+      // legs kicking at nothing, a long beat, wobbling)
+      const k = Math.min(1, (t - 4) / 5), wob = Math.sin(t * 1.1) * 0.06;
+      g.save(); g.translate(tx, ty); g.scale(ts, ts);
+      g.save(); g.translate(0, -k * 24); g.rotate(wob); rearBike(g, pr.bike, 0); g.restore();
+      // (the kid: up over the bars, stretched out, upside down from here, the legs up and flapping)
+      g.save(); g.translate(0, -60 - k * 34); g.rotate(wob * 2);
+      const L = pr.k.look, kick = Math.sin(t * 0.9) * 6;
+      g.strokeStyle = L.pants; g.lineWidth = 5; g.beginPath(); g.moveTo(-4, -10); g.lineTo(-8 - kick, -32); g.moveTo(4, -10); g.lineTo(8 + kick, -30); g.stroke();
+      g.fillStyle = '#F5F5F4'; g.fillRect(-11 - kick, -36, 6, 4); g.fillRect(5 + kick, -34, 6, 4);
+      g.fillStyle = L.pants; g.fillRect(-9, -14, 18, 8); g.fillStyle = L.shirt; g.fillRect(-11, -6, 22, 16);
+      g.strokeStyle = L.skin; g.lineWidth = 3.4; g.beginPath(); g.moveTo(-9, 8); g.lineTo(-18, 22); g.moveTo(9, 8); g.lineTo(18, 22); g.stroke();
+      g.fillStyle = pr.k.helmet ?? L.skin; g.beginPath(); g.arc(0, 16, 8, 0, Math.PI * 2); g.fill();
+      g.restore();
+      g.restore();
+      ln(hx, hy, tx, ty - 14 * ts, '#D6B07A', Math.max(1, 2 * s));
+      if (t < 9) star(g, tx, ty - 14 * ts, 8 * ts, '#FDE047');
       break;
     }
     case 'skateboard': {
-      rider(t < 6 ? 'swing' : 'none', t >= 9 && t < 12);
-      // (snatched, then down over their head: their head through the deck)
-      if (t < 9) drawWeapon(g, 'skateboard', mx + sd * (38 - t * 2) * s, my - (70 + t * 3) * s, sd > 0 ? -0.4 : Math.PI + 0.4, false, f);
-      else { g.save(); g.translate(tx, ty - 74 * ts * 0.92); g.scale(ts, ts); g.fillStyle = INK; g.fillRect(-17, -4, 34, 9); g.fillStyle = '#7C3AED'; g.fillRect(-16, -3, 32, 7); g.restore(); if (t < 12) star(g, tx, ty - 86 * ts, 9 * ts, '#FFFFFF'); }
+      // (snatched; clonked on the head with it twice, eyes crossing; then brought down over their head, through it)
+      const sq = Math.max(bonk(8), bonk(13));
+      rider(t < 6 ? 'swing' : 'none', sq > 0.7, { squash: sq, daze: t >= 9 });
+      if (t < 19) held('skateboard');
+      else { g.save(); g.translate(tx, ty - 74 * ts * 0.92); g.scale(ts, ts); g.fillStyle = INK; g.fillRect(-17, -4, 34, 9); g.fillStyle = '#7C3AED'; g.fillRect(-16, -3, 32, 7); g.restore(); if (t < 22) star(g, tx, ty - 86 * ts, 9 * ts, '#FFFFFF'); }
+      if (sq > 0.7) star(g, tx, ty - 90 * ts, 9 * ts, '#FFFFFF');
       break;
     }
   }
