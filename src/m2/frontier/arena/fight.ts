@@ -479,7 +479,7 @@ const tickBees = (ctx: FrameContext, f: Fight) => {
     // (any critter they catch: stung (anything's enough))
     // (the middle of the swarm only: most of a stampede gets past them, for the sucker)
     for (const e of hazardVictims(state)) if (isCritter(e) && Math.hypot(e.pos.x + e.width / 2 - s.x, e.pos.y + e.height / 2 - s.y) < 16) hazardHit(ctx, e, 30, s.x, 'STUNG!', { knock: 3 });
-    if (s.t % 24 === 0) playSound('chitter', 0.3, 6);
+    if (s.t % 12 === 0) playSound('chitter', 0.55, 10);
     return true;
   });
 };
@@ -989,13 +989,20 @@ export const drawFightFront = (c: Ctx, state: GameState, f: Fight) => {
   void fr;
 };
 
+/** The swarm (the playtest: make the bees more noticeable): a dark, churning cloud of fat bees, a haze in it, its
+ *  shadow on the ground under it. */
 const drawSwarm = (c: Ctx, x: number, y: number, t: number, a: number) => {
   c.globalAlpha = Math.max(0, a);
-  for (let i = 0; i < 24; i++) {
-    const ang = t * (0.2 + (i % 5) * 0.03) + i * 2.3, r = 8 + (i % 4) * 6 + Math.sin(t * 0.1 + i) * 4;
-    const bx = x + Math.cos(ang) * r, by = y + Math.sin(ang * 1.3) * r * 0.7;
-    box(c, bx - 1, by - 1, 3, 2, '#1C1917'); box(c, bx, by - 1, 1, 2, '#FACC15');
-    if ((t + i) % 4 < 2) box(c, bx - 1, by - 3, 2, 1, 'rgba(255,255,255,0.7)');
+  // (its shadow on the ground, and the haze it makes)
+  c.fillStyle = 'rgba(20, 14, 6, 0.28)'; c.beginPath(); c.ellipse(x, GY - 2, 34, 6, 0, 0, Math.PI * 2); c.fill();
+  c.fillStyle = 'rgba(28, 20, 8, 0.22)'; c.beginPath(); c.ellipse(x, y, 40 + Math.sin(t * 0.13) * 5, 28 + Math.cos(t * 0.11) * 4, 0, 0, Math.PI * 2); c.fill();
+  for (let i = 0; i < 40; i++) {
+    const ang = t * (0.2 + (i % 5) * 0.03) + i * 2.3, r = 8 + (i % 5) * 7 + Math.sin(t * 0.1 + i) * 5;
+    const bx = Math.round(x + Math.cos(ang) * r), by = Math.round(y + Math.sin(ang * 1.3) * r * 0.7);
+    // (a fat bee: inked, striped, its wings a blur)
+    box(c, bx - 3, by - 2, 7, 5, '#0C0A09');
+    box(c, bx - 2, by - 1, 5, 3, '#FACC15'); box(c, bx, by - 1, 1, 3, '#1C1917'); box(c, bx + 2, by - 1, 1, 3, '#1C1917');
+    if ((t + i) % 4 < 2) { box(c, bx - 2, by - 5, 3, 2, 'rgba(255,255,255,0.85)'); box(c, bx + 1, by - 5, 3, 2, 'rgba(255,255,255,0.6)'); }
   }
   c.globalAlpha = 1;
 };
