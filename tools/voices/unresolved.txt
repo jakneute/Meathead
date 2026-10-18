@@ -2,8 +2,8 @@ m2/hub/index.ts:132 name: AMERICA_DENY
 m2/weapons/spellbook.ts:369 name: BULK_LINES
 m2/weapons/spellbook.ts:374 name: BULK_FAIL_LINES
 m2/weapons/mallet.ts:235 name: DUCK_LINES
-m2/weapons/soulSucker.ts:192 name: FULL_BAG_LINES
-m2/weapons/soulSucker.ts:331 name: EMPTY_BAG_LINES
+m2/weapons/soulSucker.ts:194 name: FULL_BAG_LINES
+m2/weapons/soulSucker.ts:335 name: EMPTY_BAG_LINES
 m2/intro/index.ts:374 name: MEATHEAD_PARKED
 m2/intro/index.ts:411 name: MEATHEAD_BACK_LOT
 m2/intro/index.ts:685 name: MEATHEAD_REENTRY
@@ -139,11 +139,10 @@ m2/foreign/harry/fight.ts:236 voice: voice(L.HARRY)
 m2/foreign/setpiece.ts:48 voice: false
 m2/frontier/train/tube.ts:20 voice: text
 m2/frontier/train/engine.ts:74 voice: text
-m2/frontier/town/kinds.ts:106 voice: false
-m2/frontier/town/scenes.ts:149 voice: pickLine(byPants(state, pool))
-m2/frontier/town/scenes.ts:169 voice: pickLine(byPants(state, SHERIFF_BARK))
 m2/frontier/town/crash.ts:277 voice: pickLine(byPants(state, MEDIC))
-m2/frontier/logride/ride.ts:94 voice: true
+m2/frontier/town/scenes.ts:177 voice: pickLine(byPants(state, pool))
+m2/frontier/town/scenes.ts:197 voice: pickLine(byPants(state, SHERIFF_BARK))
+m2/frontier/town/kinds.ts:106 voice: false
 m2/frontier/logride/chipper.ts:46 voice: false
 m2/frontier/logride/scene.ts:66 voice: text
 m2/frontier/logride/scene.ts:67 voice: text
@@ -154,6 +153,7 @@ m2/frontier/logride/scene.ts:122 voice: pickLine(SPIEL_BUZZMODE)
 m2/frontier/logride/scene.ts:140 voice: s
 m2/frontier/logride/scene.ts:151 voice: s
 m2/frontier/logride/scene.ts:175 voice: true
+m2/frontier/logride/ride.ts:96 voice: true
 m2/frontier/woods/scene.ts:60 voice: text
 m2/frontier/woods/scene.ts:62 voice: who
 m2/frontier/woods/scene.ts:232 voice: 'teen'
@@ -165,8 +165,8 @@ m2/frontier/dirtbike/chase.ts:695 voice: true
 m2/frontier/dirtbike/chase.ts:858 voice: pickLine(byPants(state, TUCKER_FLEE))
 m2/frontier/arena/cast.ts:30 voice: pickLine(byPants(state, pool))
 m2/frontier/arena/cast.ts:35 voice: pickLine(byPants(state, pool))
-m2/frontier/arena/fight.ts:177 voice: pants(lines)
-m2/frontier/arena/fight.ts:184 voice: pants(lines)
+m2/frontier/arena/fight.ts:181 voice: pants(lines)
+m2/frontier/arena/fight.ts:188 voice: pants(lines)
 m2/frontier/wilds/station.ts:94 voice: pickLine(byPants(state, pool))
 m1/components/Cutscene.tsx:97 voice: p.voice
 m1/components/Cutscene.tsx:105 voice: p.voice

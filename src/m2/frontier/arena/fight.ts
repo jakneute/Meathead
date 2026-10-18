@@ -24,6 +24,8 @@
 //   WEAKNESS    The soul sucker's spray, on him: showered in blood (enough of the spray landing on him), the scent draws
 //               the MOUNTAIN LIONS out of the woods, from both ends; they pounce and maul him (heavy damage; he can't be
 //               hurt by anything else meanwhile; a brief punch-in), then slink off; he gets up more clawed every time.
+//               Slinking off, each is a real enemy (critters.ts LION_KIND): full, harmless, a lot of poise; sucked up
+//               (a big helping in the bag) or killed before it's off the view's edge, else just gone.
 //   HURTING HIM The ray gun and Meathead's moves at Meathead 1's boss values; anything else 35%; the 60-frame breather.
 //
 // Two deaths (the land bosses' rule): the weakness (the lions' mauling the last thing to hurt him): THE SLOW-MO KILL
@@ -53,7 +55,7 @@ import { TUCKER_VOICE, type ByPants } from '../talk';
 import { mix, INK, type Ctx } from '../kit';
 import { drawTucker, drawTuckerCloseup, drawTuckerCap, tuckerMuzzle, TUCKER_H, type TuckerPose, type TuckerFace, type TuckerWounds } from '../tucker';
 import { drawLion, drawGrizzly, type LionPose, type BearPose } from './beasts';
-import { kindOf, GROUND_CRITTERS, FLYING_CRITTERS, critterSpeed, isCritter, type Critter } from './critters';
+import { kindOf, GROUND_CRITTERS, FLYING_CRITTERS, critterSpeed, isCritter, isLion, LION_KIND, type Critter } from './critters';
 import { GY, ARENA_L, ARENA_R, ROCK_X, ROCK_HW, ROCK_H, LION_FROM_L, LION_FROM_R } from './layout';
 import { WOUNDS_SPLIT } from './cast';
 import * as L from './lines';
@@ -460,6 +462,12 @@ const tickCritters = (ctx: FrameContext, f: Fight) => {
   });
   // (out: off the view's far edge (or the arena's), just gone: never a kill, never a callout)
   state.enemies = state.enemies.filter(e => {
+    // (a lion leaving: off either edge of the view (it came on in it; the sucker can turn it round), or at the wall it's
+    // heading for)
+    if (isLion(e) && e.health > 0 && !e.isBlownAway) {
+      const x = e.pos.x + e.width / 2, dir = e.facing ?? 1;
+      return !(x < state.camera.x - 70 || x > state.camera.x + CANVAS_WIDTH + 70 || (dir > 0 ? e.pos.x + e.width >= ARENA_R - 4 : e.pos.x <= ARENA_L + 4));
+    }
     if (!isCritter(e) || e.health <= 0 || e.isBlownAway) return true;
     // (the arena's walls stand at the view's edges once the camera's against them: reaching a wall, it's out of the scene
     // (they used to stop dead at the wall, off view only by a whisker, and pile up there for good: the playtest))
@@ -470,8 +478,8 @@ const tickCritters = (ctx: FrameContext, f: Fight) => {
     return !off;
   });
 };
-/** Every live critter gone (a death's cutscene: nothing running about in it). */
-const clearCritters = (state: GameState, f: Fight) => { f.queue = []; f.rustle = null; state.enemies = state.enemies.filter(e => !isCritter(e) || e.health <= 0 || !!e.isBlownAway); };
+/** Every live critter (and lion leaving) gone (a death's cutscene: nothing running about in it). */
+const clearCritters = (state: GameState, f: Fight) => { f.queue = []; f.rustle = null; state.enemies = state.enemies.filter(e => !(isCritter(e) || isLion(e)) || e.health <= 0 || !!e.isBlownAway); };
 
 // ---- the bees
 const tickBees = (ctx: FrameContext, f: Fight) => {
@@ -577,12 +585,24 @@ const maul = (ctx: FrameContext, f: Fight) => {
     if (f.hp <= 0) { die(ctx, f, true); return; }
   }
   if (f.maulT >= MAUL_T) {
-    // (done with him: off back into the trees, red to the eyes)
-    for (const l of f.lions) { l.mode = 'drag'; l.dir = l.side < 0 ? -1 : 1; l.t = 0; }
+    // (done with him: off back into the trees, red to the eyes; real enemies now, each one (critters.ts): sucked up,
+    // killed, or gone off the view's edge, none of it touches the next shower's cats)
+    for (const l of f.lions) leave(state, l);
+    f.lions = [];
     f.clawed++; f.bloody = 0.25; f.shower = 0;
     setAct(f, 'getup');
     tuckerSays(f, L.TF_GETUP);
   }
+};
+
+/** A cat done with him, made a real enemy where it stands, slinking off the way it came (critters.ts LION_KIND). */
+const leave = (state: GameState, l: Lion) => {
+  const e = makeKindEnemy(LION_KIND as EnemyKind, l.x, GY);
+  e.pos.x = l.x - e.width / 2; e.pos.y = GY - e.height; e.vel.x = 0; e.vel.y = 0;
+  e.facing = l.side < 0 ? -1 : 1; e.seen = true; e.variant = l.side < 0 ? 0 : 1;
+  // (it gives nothing back, like the critters: no heal or ammo off a beatdown or a shakedown; no drops, see updateFight)
+  e.noHeal = true;
+  state.enemies.push(e);
 };
 
 // ---- hits on him

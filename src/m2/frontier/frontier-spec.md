@@ -1032,3 +1032,18 @@ later (+1 if heavyset; was 2 / 3 before playtest fixes E). Tucker's glimpsed ahe
   THE WAY ON from the clearing: its exit into the woods made a wide mouth (the last 100 px of the clearing, any height
   near the ground) so walking or jumping into the end always takes him through; still clear of where he's put back
   from the woods (11760).
+- 2026-10-18 (Tucker's fight; the user's: "mountain lions after they're done with tucker can be sucked up/killed as
+  well. they have quite a lot of poise so you need to focus as they walk away offscreen"): THE LIONS, LEAVING. On him
+  they're still the fight's own (f.lions: not enemies, nothing can touch them or cut the mauling short; he's still
+  unhurtable meanwhile). The mauling done, each cat is made a real enemy where it stands (critters.ts LION_KIND
+  'm2:fr_lion', fight.ts leave) and slinks off the way it came, slower than before (1.9 px a frame, was 3.4) for the
+  window. 400 health, so 250 poise (the sucker's 0.6 x health + 10): ~37 frames held right up at the intake, ~100 at
+  arm's length, nothing much from the cone's edge; mass 260 (dragged in slowly, 0.77 of a man's pull); ground up it's
+  2.5 sprays in the bag (another shower's worth and more). Killable by anything (uppercut / dive kick 150 each, the
+  grabs: 'body', like the wilds' cougar). Harmless (it's full: no contact damage, so no new hurt lines). noHeal, no
+  drops (the fight's 'pickup-' strip). Off either edge of the view (70 px past), or at the arena wall it's heading
+  for: just gone, never a kill, never a callout. Its own kill callouts where the engine's would name another creature
+  (shred: KITTY LITTER! / CAT FOOD! / NINE LIVES USED!; swim: the cougar's). Drawn through the engine's special deaths
+  by drawLion's new 'dead' pose (on its back, legs stiff in the air, eye crossed out, tongue lolled) and a hurt eye on
+  hits. The next blood shower's cats are fresh (showered() makes new ones), whatever became of the last; both deaths'
+  clearCritters (and endFight) take any lions still leaving.

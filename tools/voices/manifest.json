@@ -311,6 +311,11 @@
  },
  {
   "voice": "announcer",
+  "text": "CAT FOOD!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "announcer",
   "text": "CAT NAP!",
   "from": "FRONTIER"
  },

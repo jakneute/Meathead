@@ -20,10 +20,11 @@
 
 import type { Enemy } from '../../../m1/types';
 import type { FrameContext } from '../../../m1/game/core/context';
-import { registerM2Kind, registerHurtLines } from '../../kinds';
+import { registerM2Kind, registerHurtLines, registerKindCallouts } from '../../kinds';
 import { INK } from '../kit';
 import { GY, LOG_X, LOG_LEN, AXE_TR, ROCK_X, ROCK_HW, ROCK_H } from './layout';
-import { FIGHT_HURT } from './lines';
+import { FIGHT_HURT, LION_CALLS } from './lines';
+import { drawLion } from './beasts';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -90,6 +91,37 @@ for (const c of Object.keys(DEF) as Critter[]) {
     head: { x: d.w * 0.4, y: -d.h * 0.7, r: Math.max(4, d.h * 0.25) }, gender: 'n', grab: 'critter', solid: false, pathing: false,
   });
 }
+
+// ---------------------------------------------------------------------------------------------------------------
+// THE LIONS, LEAVING (the user's: "mountain lions after they're done with tucker can be sucked up/killed as well. they
+// have quite a lot of poise so you need to focus as they walk away offscreen"). On him, they're the fight's own
+// (fight.ts f.lions: not enemies, nothing gets at them, the mauling's never cut short); done with him, each one's made
+// one of these where it stands, slinking off back the way it came: a real enemy, red to the eyes and full, that never
+// goes for Meathead (harmless: it's eaten; bumping it does nothing). Big and heavy: a lot of health, so a lot of
+// poise (the soul sucker's 0.6 of health + 10: it wants a second or two of it held right up on it; ground up, it's two
+// and a half sprays in the bag), heavy enough to drag in slowly; the big hits (dive kick, uppercut) to kill it.
+// Slower off than it used to slink (3.4), for the window. Like the critters: no heal or ammo off it, no drops, and
+// off the view's edge (or at the arena's wall it's heading for) it's just gone, never a kill, never a callout.
+
+export const LION_KIND = 'm2:fr_lion' as const;
+export const isLion = (e: Enemy) => e.kind === LION_KIND;
+/** Its health (poise 250), its mass (a man's 200), how fast it slinks off (px a frame). */
+export const LION = { hp: 400, mass: 260, walk: 1.9 };
+
+const slink = (_ctx: FrameContext, e: Enemy) => {
+  e.aiTimer = (e.aiTimer ?? 0) + 1;
+  e.pos.x += (e.facing ?? 1) * LION.walk;
+  e.pos.y = GY - humpAt(e.pos.x + e.width / 2) - e.height;
+  e.vel.y = 0;
+  return true;
+};
+registerM2Kind({
+  kind: LION_KIND, stats: { w: 88, h: 46, hp: LION.hp, contact: 0, mass: LION.mass },
+  ai: slink, make: b => ({ ...b, harmless: true }),
+  draw: (c, e, f) => drawLion(c, 0, 0, 1, f + (e.variant ?? 0) * 13, e.health <= 0 ? 'dead' : 'drag', { bloody: 0.8, hurt: (e.hitFlash ?? 0) > 0 }),
+  head: { x: 36, y: -32, r: 9 }, gender: 'n', grab: 'body', solid: false, pathing: false,
+});
+registerKindCallouts(LION_KIND, LION_CALLS);
 
 // ---------------------------------------------------------------------------------------------------------------
 // Drawing (each standing at the origin, its feet; facing right; alive running, hurt (eyes screwed shut), dead (belly up,

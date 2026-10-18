@@ -72,10 +72,15 @@ const leg = (c: Ctx, pts: number[], ws: number[], r: Ramp, claws: boolean, pawR:
 // The mountain lion: about 92 long nose to rump (a tail as long again), 40 at the shoulder; drawn at (x, feetY) facing
 // right, `t` its own frame count
 
-export type LionPose = 'run' | 'pounce' | 'maul' | 'drag' | 'crouch';
+export type LionPose = 'run' | 'pounce' | 'maul' | 'drag' | 'crouch' | 'dead';
 
-export const drawLion = (c: Ctx, x: number, feetY: number, facing: number, t: number, pose: LionPose, o: { bloody?: number; carry?: 'arm' | 'leg' | 'cap' | null } = {}) => {
+/** (`hurt`: its eye screwed shut (a hit on one leaving: critters.ts); the 'dead' pose: flat on its back, legs stuck up
+ *  stiff, eye crossed out, tongue out: what the engine's special deaths play out on) */
+export const drawLion = (c: Ctx, x: number, feetY: number, facing: number, t: number, pose: LionPose, o: { bloody?: number; carry?: 'arm' | 'leg' | 'cap' | null; hurt?: boolean } = {}) => {
   c.save(); c.translate(Math.round(x), Math.round(feetY)); c.scale(facing < 0 ? -1 : 1, 1);
+  const dead = pose === 'dead';
+  // (dead: turned over onto its back, its back on the ground, its paws in the air)
+  if (dead) { c.translate(0, -50); c.scale(1, -1); t = 0; }
   const g = t * (pose === 'run' ? 0.42 : pose === 'drag' ? 0.18 : 0.3);
   const air = pose === 'pounce', low = pose === 'maul' ? 9 : pose === 'crouch' ? 7 : pose === 'drag' ? 3 : 0;
   const bob = pose === 'run' ? Math.abs(Math.sin(g)) * -4 : pose === 'maul' ? Math.sin(t * 0.7) * 1.6 : 0;
@@ -103,11 +108,11 @@ export const drawLion = (c: Ctx, x: number, feetY: number, facing: number, t: nu
   // ---- the near legs
   leg(c, L.nearBack, [9, 5.4], PUMA, false, 4.4); leg(c, L.nearFront, [8, 5], PUMA, air || pose === 'maul' || pose === 'crouch', 4.6);
   // ---- the head: on the neck, low and forward; down tearing when mauling, the jaws on something when dragging
-  const hp = pose === 'maul' ? { x: 36, y: -14 + Math.sin(t * 0.9) * 3, a: 0.5 + Math.sin(t * 0.6) * 0.15 } : pose === 'drag' ? { x: 34, y: -30, a: 0.15 } : pose === 'crouch' ? { x: 34, y: -30, a: 0.05 } : air ? { x: 36, y: -44, a: -0.15 } : { x: 34, y: -42 + Math.sin(g) * 1.5, a: 0 };
+  const hp = pose === 'maul' ? { x: 36, y: -14 + Math.sin(t * 0.9) * 3, a: 0.5 + Math.sin(t * 0.6) * 0.15 } : pose === 'drag' ? { x: 34, y: -30, a: 0.15 } : pose === 'crouch' ? { x: 34, y: -30, a: 0.05 } : dead ? { x: 36, y: -38, a: -0.35 } : air ? { x: 36, y: -44, a: -0.15 } : { x: 34, y: -42 + Math.sin(g) * 1.5, a: 0 };
   shapeY(c, () => { c.moveTo(18, -44); c.quadraticCurveTo(hp.x - 6, hp.y - 10, hp.x, hp.y - 6); c.lineTo(hp.x + 2, hp.y + 6); c.quadraticCurveTo(hp.x - 8, hp.y + 8, 20, -24); c.closePath(); }, PUMA, Math.min(-44, hp.y - 10), -24, 1);
-  const open = pose === 'pounce' ? 1 : pose === 'maul' ? 0.6 + Math.sin(t * 0.9) * 0.4 : pose === 'crouch' ? 0.5 : pose === 'drag' ? 0.35 : 0.2;
+  const open = pose === 'pounce' ? 1 : pose === 'maul' ? 0.6 + Math.sin(t * 0.9) * 0.4 : pose === 'crouch' ? 0.5 : dead ? 0.55 : pose === 'drag' ? 0.35 : 0.2;
   c.save(); c.translate(hp.x, hp.y); c.rotate(hp.a);
-  lionHead(c, open, t, o.bloody ?? (pose === 'maul' ? 1 : pose === 'drag' ? 0.8 : 0));
+  lionHead(c, open, t, o.bloody ?? (pose === 'maul' ? 1 : pose === 'drag' ? 0.8 : 0), dead ? 'dead' : o.hurt ? 'hurt' : 'ok');
   // (what it's carrying off: a piece of him)
   if (o.carry) carried(c, o.carry, t);
   c.restore();
@@ -119,6 +124,11 @@ const lionLegs = (pose: LionPose, g: number, t: number) => {
   if (pose === 'pounce') return {
     farBack: [-32, -26, -48, -20, -62, -16], nearBack: [-28, -24, -44, -14, -58, -8],
     farFront: [18, -30, 34, -34, 50, -36], nearFront: [20, -28, 38, -28, 54, -30],
+  };
+  if (pose === 'dead') return {
+    // (stiff, splayed: stuck up in the air once it's turned over)
+    farBack: [-32, -26, -40, -12, -44, 0], nearBack: [-28, -24, -32, -10, -34, 2],
+    farFront: [18, -28, 24, -14, 28, -2], nearFront: [20, -26, 30, -12, 36, 0],
   };
   if (pose === 'maul' || pose === 'crouch') {
     const k = pose === 'maul' ? Math.sin(t * 0.8) * 4 : 0;
@@ -145,7 +155,7 @@ const lionLegs = (pose: LionPose, g: number, t: number) => {
 /** The lion's head in its own frame (the skull's middle at the origin, facing right): the round skull, the ears laid
  *  back, the pale muzzle and its black edging, the pink nose, the amber eyes narrowed; the jaws open `open` (fangs,
  *  the tongue); blood over the muzzle `bloody`. */
-const lionHead = (c: Ctx, open: number, t: number, bloody: number) => {
+const lionHead = (c: Ctx, open: number, t: number, bloody: number, md: 'ok' | 'hurt' | 'dead' = 'ok') => {
   // (the ears, laid back, dark backed)
   for (const ex of [-5, -1]) { c.fillStyle = PUMA[4]; c.beginPath(); c.moveTo(ex - 3, -6); c.lineTo(ex - 6, -12); c.lineTo(ex + 1, -8); c.closePath(); c.fill(); c.fillStyle = '#3A2414'; c.beginPath(); c.moveTo(ex - 2.6, -6.6); c.lineTo(ex - 5, -10.6); c.lineTo(ex + 0.2, -8); c.closePath(); c.fill(); }
   shapeY(c, () => c.ellipse(0, -1, 9.4, 7.6, 0, 0, Math.PI * 2), PUMA, -9, 7, 0.9);
@@ -165,8 +175,12 @@ const lionHead = (c: Ctx, open: number, t: number, bloody: number) => {
   c.fillStyle = '#C86A6A'; c.beginPath(); c.moveTo(11.4, -2.4); c.lineTo(14.2, -2); c.lineTo(12.8, 0.2); c.closePath(); c.fill();
   line(c, [3, -6, 10, -3.4], 1.1, PUMA[0]);
   // (the eye: amber, narrowed, a dark tear line down from it)
-  ell(c, 4.4, -3.4, 2.2, 1.3, '#1A120C'); ell(c, 4.6, -3.4, 1.7, 0.9, '#E8A830'); ell(c, 5, -3.4, 0.5, 0.8, '#0A0604'); px(c, 4, -3.9, 0.5, 0.4, '#FFFFFF');
+  if (md === 'dead') { line(c, [3, -5, 6, -1.8], 0.9, '#1A120C'); line(c, [3, -1.8, 6, -5], 0.9, '#1A120C'); }
+  else if (md === 'hurt') line(c, [3, -4.6, 5.8, -3.4, 3, -2.2], 0.9, '#1A120C');
+  else { ell(c, 4.4, -3.4, 2.2, 1.3, '#1A120C'); ell(c, 4.6, -3.4, 1.7, 0.9, '#E8A830'); ell(c, 5, -3.4, 0.5, 0.8, '#0A0604'); px(c, 4, -3.9, 0.5, 0.4, '#FFFFFF'); }
   line(c, [3.6, -2.6, 4.4, 0.6], 0.6, '#3A2414');
+  // (dead: the tongue lolled out the side of its jaws)
+  if (md === 'dead') { line(c, [10, 3, 13.4, 4.6, 14.6, 7.4], 2.2, '#5A1A20'); line(c, [10, 3, 13.4, 4.6, 14.6, 7.4], 1.5, TONGUE); }
   line(c, [2, -5.4, 6.2, -4.8], 0.7, PUMA[4]);
   // (blood all over its muzzle and down its chin, dripping)
   if (bloody > 0) {

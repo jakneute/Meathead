@@ -334,6 +334,13 @@ export const FIGHT_HURT: HurtTable = {
   'm2:fr_bat': { hurt: ['BAT! IN MY HAIR!', 'GET IT OUT! GET IT OUT!'], death: ['FLOWN INTO BY A BAT', 'BATTED TO DEATH'] },
 };
 
+/** A mountain lion's own kill callouts (one leaving, killed: critters.ts), where the engine's would name some other
+ *  creature (the soul sucker's grinder: no GROUND CHUCK off a cat; a lunge through water: no FISH STICKS). */
+export const LION_CALLS: Record<string, string[]> = {
+  shred: ['KITTY LITTER!', 'CAT FOOD!', 'NINE LIVES USED!'],
+  swim: ['KITTY LITTER!', 'CAT NAP!', 'NINE LIVES USED!'],
+};
+
 const MEATHEAD = [MH_CAUGHT, MH_SKEWERED, FAKE_ME_OUT, MH_JUMPED, MH_AXE, MH_BLIND, MH_SPRAY, MH_LIONS, MH_HINT, MH_BAG, MH_WALKUP, MH_POPPED, MH_GRIZZLY, MH_LIONS_WON];
 const TUCKER = [TUCKER_CAUGHT, TUCKER_RANT, TUCKER_HANDOUT, TUCKER_GUN, TUCKER_SKEWERED, TUCKER_JUMP, TUCKER_UP, TUCKER_ENTRANCE, TUCKER_TAUNT, TUCKER_SPLIT, TUCKER_BLIND, TUCKER_MATTER,
   TF_TAUNT, TF_FIRE, TF_HEAR, TF_HIT, TF_RELOAD, TF_HURT, TF_BEES, TF_STAMPEDE, TF_BLOODY, TF_MAULED, TF_GETUP, TF_LOW, TF_FALL, TF_POP, TF_GLOAT, TF_LAST_BEAR, TF_LAST_LIONS];
@@ -342,4 +349,5 @@ export const VOICE_LINES: Record<string, string[]> = {
   meathead: [...MEATHEAD.flatMap(allOf), ...GRAB_TUCKER, ...Object.values(FIGHT_HURT).flatMap(h => h.hurt)],
   death: Object.values(FIGHT_HURT).flatMap(h => h.death),
   [TUCKER_VOICE]: TUCKER.flatMap(allOf),
+  announcer: [...new Set(Object.values(LION_CALLS).flat())],
 };
