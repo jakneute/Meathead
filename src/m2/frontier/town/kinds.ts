@@ -681,8 +681,18 @@ const prospector = (ctx: FrameContext, e: Enemy) => {
 // ---------------------------------------------------------------------------------------------------------------
 
 const H = { x: 1, y: -68, r: 10 };
+/** Out of aggro range (the playtest: a blacksmith left alive kept lobbing horseshoes at him all through the sawmill):
+ *  this far off, anybody after him gives up and goes back to standing about (the saloon's folk are the saloon's). */
+const LEASH_X = 800, LEASH_Y = 420;
+const leashed = (ai: (ctx: FrameContext, e: Enemy) => boolean) => (ctx: FrameContext, e: Enemy) => {
+  if (e.aiState && e.aiState !== 'idle' && !SALOON_FOLK.has(e)) {
+    const p = mid(ctx.state.player), m = mid(e);
+    if (Math.abs(p.x - m.x) > LEASH_X || Math.abs(p.y - m.y) > LEASH_Y) { setState(e, 'idle'); e.vel.x = 0; }
+  }
+  return ai(ctx, e);
+};
 const person = (kind: `m2:fr_${string}`, stats: { w: number; h: number; hp: number; contact: number; mass: number }, ai: (ctx: FrameContext, e: Enemy) => boolean, draw: (c: CanvasRenderingContext2D, e: Enemy, f: number, seed: number) => void, extra: Partial<Parameters<typeof registerM2Kind>[0]> = {}) =>
-  registerM2Kind({ kind, stats, humanoid: true, gender, head: H, ai, draw: (c, e, f) => draw(c, e, f, seedOf(e)), ...extra });
+  registerM2Kind({ kind, stats, humanoid: true, gender, head: H, ai: leashed(ai), draw: (c, e, f) => draw(c, e, f, seedOf(e)), ...extra });
 
 person('m2:fr_deputy', { w: 38, h: 72, hp: 60, contact: 4, mass: 180 }, deputy, drawDeputy);
 person('m2:fr_sheriff', { w: 40, h: 74, hp: 260, contact: 5, mass: 210 }, sheriff, drawSheriff, { head: { x: 1, y: -70, r: 10 } });

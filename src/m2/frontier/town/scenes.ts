@@ -236,6 +236,14 @@ const win = (ctx: FrameContext) => {
   announce(state, SHOW_CLOSE, () => meatheadSays(state, pickLine(byPants(state, SHOWDOWN_DONE)), true));
 };
 
+/** A deputy out of the woodwork (the user's: shoot before the DRAW and they pop out after him for cheating): a burst
+ *  of splinters where he comes out, a crack. */
+const woodwork = (state: GameState, e: Enemy) => {
+  const x = e.pos.x + e.width / 2, y = e.pos.y + e.height / 2;
+  for (let n = 0; n < 16; n++) state.particles.push({ pos: { x: x + (Math.random() - 0.5) * e.width, y: y + (Math.random() - 0.5) * e.height }, vel: { x: (Math.random() - 0.5) * 8, y: -1 - Math.random() * 6 }, life: 26 + Math.random() * 20, color: n % 3 ? '#8A5A30' : '#C8A070', size: 2 + Math.random() * 3 });
+  playSound('crack', 0.7, Math.random() * 6);
+};
+
 const cheat = (ctx: FrameContext) => {
   const { state } = ctx, tw = townOf(state), d = tw.duel, g = tw.showdown;
   dropSheriff(ctx, 'SHOT FIRST!');
@@ -243,7 +251,7 @@ const cheat = (ctx: FrameContext) => {
   card(state, 'NO DRAW!', 80);
   d.phase = 'posse'; g.state = 'on'; g.wave = 0; g.t = 0;
   playSound('slam', 0.8, -2);
-  for (const [k, rx, h] of POSSE[0]) g.foes.add(spawnTown(state, k, rx, h));
+  for (const [k, rx, h] of POSSE[0]) { const e = spawnTown(state, k, rx, h); g.foes.add(e); woodwork(state, e); }
   announce(state, SHOW_CHEAT, () => {
     meatheadSays(state, pickLine(byPants(state, CHEATED)), true);
     const one = [...g.foes].find(e => e.health > 0);
@@ -262,10 +270,10 @@ const lose = (ctx: FrameContext) => {
     const hx = s.pos.x + s.width / 2 - 24, hy = s.pos.y + 28;
     for (let n = 0; n < 8; n++) state.particles.push({ pos: { x: hx, y: hy }, vel: { x: -(1 + Math.random() * 3), y: (Math.random() - 0.5) * 2 }, life: 12, color: n % 2 ? '#FDE047' : '#E7E5E4', size: 2 + Math.random() * 2 });
   }
-  p.invincibilityTimer = 0;
+  p.invincibilityTimer = 0; p.untouchable = false;
   hurtPlayer(ctx, 9999, 'm2:fr_duel', { x: 0, y: 0 });
-  // (still standing (the cheat): he outdrew him after all)
-  if (p.health > 0) win(ctx);
+  // (too slow is dead, always (the playtest: he only got hurt): whatever kept him up, the hole's through his face)
+  if (p.health > 0) p.health = 0;
 };
 
 /** The duel's frame; what he can do (in the intro, only what it walks him; in the duel, only his trigger). */
@@ -315,7 +323,7 @@ const runDuel = (ctx: FrameContext, controls: Controls): Controls => {
       const alive = [...g.foes].filter(e => e.health > 0 && !e.isBlownAway).length;
       if (alive <= 1 && g.wave + 1 < POSSE.length && g.t > 60) {
         g.wave++;
-        for (const [k, rx, h] of POSSE[g.wave]) g.foes.add(spawnTown(state, k, rx, h, g.wave * 3));
+        for (const [k, rx, h] of POSSE[g.wave]) { const e = spawnTown(state, k, rx, h, g.wave * 3); g.foes.add(e); woodwork(state, e); }
         playSound('slam', 0.7, -2);
       } else if (alive === 0 && g.wave + 1 >= POSSE.length) {
         settle(state);
