@@ -20,7 +20,6 @@ import { makeMover, moveMover, riding } from '../../foreign/movers';
 import { hazardHit } from '../../hazardHit';
 import { GY } from '../geometry';
 import { box, mix, onScreen, INK, type Ctx } from '../kit';
-import { signText } from '../../signLetters';
 import { LOGS, WATERS, LOW_BRANCHES, BRANCH_GAP, X, Y, groundH } from './layout';
 import { surfaceY } from './water';
 import { wildsOf, type LogRun } from './state';
@@ -285,12 +284,5 @@ const drawLowTree = (c: Ctx, bx0: number, bx1: number, bottom: number, f: number
   for (let k = 0; k < 4; k++) box(c, bx0 - 30 + k * 26, bottom - 3, 12, 2, '#FFF1D0');
   // (a fringe of needles under it, short: well clear of his ducked head)
   for (let x = L0 + 4; x < L1 - 4; x += 7) box(c, x, bottom - 1, 3, 3 + ((x >> 3) % 2) * 2, '#24482A');
-  // (the board nailed to the limb's face: DUCK! and a down arrow; it swings a hair)
-  const sx = (bx0 + bx1) / 2, sw = Math.sin(f * 0.05) * 0.6;
-  box(c, sx - 31 + sw, limbTop + 3, 62, 28, INK);
-  box(c, sx - 29 + sw, limbTop + 5, 58, 24, '#FACC15');
-  for (let k = 0; k < 7; k++) box(c, sx - 29 + k * 9 + sw, limbTop + 5, 4, 3, '#1C1917');
-  signText(c, 'DUCK!', sx - 8 + sw, limbTop + 25, { sx: 1, sy: 2, fill: '#1C1917' });
-  c.fillStyle = '#B91C1C'; c.beginPath(); c.moveTo(sx + 16 + sw, limbTop + 12); c.lineTo(sx + 26 + sw, limbTop + 12); c.lineTo(sx + 26 + sw, limbTop + 18); c.lineTo(sx + 30 + sw, limbTop + 18); c.lineTo(sx + 21 + sw, limbTop + 27); c.lineTo(sx + 12 + sw, limbTop + 18); c.lineTo(sx + 16 + sw, limbTop + 18); c.closePath(); c.fill();
-  box(c, sx - 27 + sw, limbTop + 7, 2, 2, '#52525B'); box(c, sx + 25 + sw, limbTop + 7, 2, 2, '#52525B');
+  // (no DUCK! board on it (the user's: the player can tell))
 };

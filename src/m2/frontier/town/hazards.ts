@@ -27,8 +27,7 @@ import { hazardVictims, hazardHit, boxHits, setHazardZones, type Zone } from '..
 import { makeMover, moveMover, riding } from '../../foreign/movers';
 import { ledge, meatheadSays, byPants } from '../section';
 import { drawLog } from '../wilds/logs';
-import { box, mix, INK, hash, painted, type Ctx } from '../kit';
-import { signText } from '../../signLetters';
+import { box, mix, INK, hash, type Ctx } from '../kit';
 import { onScreen, viewOf } from './view';
 import { townOf } from './state';
 import { WATERS, PINES, CAVEINS, CHUTES, CART_RUN, RIDE, BEAMS, BEAM_GAP, HEAD_UP, HEAD_DUCKED, BELTS, SAW, MILL_DECK, COVER, CHASM, FY, CEIL_Y, X, Y } from './layout';
@@ -403,15 +402,12 @@ export const drawMineBits = (c: Ctx, state: GameState) => {
     const x = X(bx);
     if (!onScreen(state, x - 30, x + 30)) continue;
     // (a beam: a timber down from the ceiling to the gap, full across: no standing under it; it comes down solid to the
-    // line it hits at (BEAM_GAP over the cart's floor), its foot hazard-striped, a DUCK plate on it, its arrow down at
-    // the gap)
+    // line it hits at (BEAM_GAP over the cart's floor), its foot hazard-striped; no DUCK plate (the user's: the player can
+    // tell))
     const bottom = FY - 34 - BEAM_GAP;
     box(c, x - half - 2, CEIL_Y, half * 2 + 4, bottom - CEIL_Y, INK); box(c, x - half, CEIL_Y, half * 2, bottom - CEIL_Y - 2, '#6B4423'); box(c, x - half, CEIL_Y, 3, bottom - CEIL_Y - 2, '#8A5A30');
     box(c, x - half - 14, bottom - 14, half * 2 + 28, 14, INK); box(c, x - half - 13, bottom - 13, half * 2 + 26, 12, '#7A5230');
     for (let k = 0; k < 4; k++) box(c, x - half - 13 + k * ((half * 2 + 26) / 4), bottom - 6, (half * 2 + 26) / 8, 5, '#FDE047');
-    box(c, x - 18, bottom - 64, 36, 44, INK); box(c, x - 16, bottom - 62, 32, 40, '#F8FAFC');
-    signText(c, 'DUCK', x, bottom - 50, painted(1, '#B91C1C', '#F8FAFC'));
-    c.fillStyle = '#B91C1C'; c.beginPath(); c.moveTo(x - 8, bottom - 44); c.lineTo(x + 8, bottom - 44); c.lineTo(x, bottom - 28); c.closePath(); c.fill();
   }
   for (const ch of CHUTES) {
     const x = X(ch);

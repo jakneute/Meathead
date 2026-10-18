@@ -150,7 +150,6 @@ export const ROCKS = [9100, 9580, 9740, 10460];
 /** Low limbs over the river (duck). Real trees. (Each at least ~240 from the nearest rock.) */
 export const BRANCHES = [9340, 10180];
 /** The crew's hand-painted warnings on the river's far bank: [x, words]. */
-export const CREW_SIGNS: [number, string[]][] = [[8990, ['ROCKS!', 'JUMP EM']], [9230, ['LOW LIMBS', 'DUCK!']]];
 /** Crows over the river: [x, height]. */
 export const CROWS: [number, number][] = [[9420, -760], [10380, -940]];
 

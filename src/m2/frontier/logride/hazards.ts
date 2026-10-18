@@ -24,9 +24,8 @@ import { box, mix, INK, onScreen, hash, painted, type Ctx } from '../kit';
 import { signText } from '../../signLetters';
 import { rideOf, type Saw } from './state';
 import { riderBox } from './ride';
-import { X, waterY, SAWS, PROPS, PIPES, GUSHERS, ROCKS, BRANCHES, JUNK, CUTTER_X, CUTTER_FROM, CHASM, DUCK_LINE, CREW_SIGNS, type PropKind } from './layout';
+import { X, waterY, SAWS, PROPS, PIPES, GUSHERS, ROCKS, BRANCHES, JUNK, CUTTER_X, CUTTER_FROM, CHASM, DUCK_LINE, type PropKind } from './layout';
 import { HURT, BREAKOUT } from './lines';
-import { frontierlessSign } from './chipper';
 import { GY } from '../geometry';
 
 for (const [source, l] of Object.entries(HURT)) registerHurtLines(source, l.hurt, l.death);
@@ -322,10 +321,6 @@ export const drawHazardsBack = (c: Ctx, state: GameState) => {
         // to duck under, not a bar to jump)
         box(c, X(s.x) - 40, wy - 300, 80, 14, INK); box(c, X(s.x) - 39, wy - 299, 78, 12, '#6B4423'); box(c, X(s.x) - 39, wy - 299, 78, 3, '#9A6A3A');
         stripes(c, X(s.x) - 28, wy - 286, 56, s.cy - (wy - 286));
-        // (a DUCK! plate on it, its arrow pointing down at the gap)
-        box(c, X(s.x) - 22, wy - 220, 44, 52, INK); box(c, X(s.x) - 20, wy - 218, 40, 48, '#F8FAFC');
-        signText(c, 'DUCK', X(s.x), wy - 204, painted(1, '#B91C1C', '#F8FAFC'));
-        c.fillStyle = '#B91C1C'; c.beginPath(); c.moveTo(X(s.x) - 10, wy - 196); c.lineTo(X(s.x) + 10, wy - 196); c.lineTo(X(s.x), wy - 176); c.closePath(); c.fill();
         drawSawDisc(c, s.cx, s.cy, s.r, s.spin, s.jam);
         break;
       case 'swing':
@@ -514,10 +509,8 @@ export const drawObstaclesBack = (c: Ctx, state: GameState) => {
     c.strokeStyle = '#7A4A1E'; c.lineWidth = 2; c.beginPath(); c.moveTo(x - 20, cy - 22); c.lineTo(x - 28, cy - 38); c.moveTo(x + 14, cy - 26); c.lineTo(x + 20, cy - 40); c.stroke();
     box(c, x - 6, cy - 31, 12, 4, '#6A645A');
     for (let i = 0; i < 4; i++) box(c, x - 44 + i * 6 + ((f >> 1) % 6), wy - 3 - (i % 2) * 2, 5, 3, '#8A8A3A');
-    // (the tell: sprayed on the wall behind it by somebody who found it the hard way, JUMP and an arrow up, and a
-    // work crew's orange blinker wedged on top of it, lit (its light in art.ts rideLighting))
-    signText(c, 'JUMP!', x, wy - 128, painted(2, '#F97316', '#1C1917'));
-    c.strokeStyle = '#F97316'; c.lineWidth = 4; c.beginPath(); c.moveTo(x, wy - 70); c.lineTo(x, wy - 106); c.moveTo(x - 10, wy - 96); c.lineTo(x, wy - 108); c.lineTo(x + 10, wy - 96); c.stroke();
+    // (seen coming: a work crew's orange blinker wedged on top of it, lit (its light in art.ts rideLighting); no JUMP
+    // sprayed up (the user's: the player can tell))
     box(c, x - 6, cy - 44, 12, 12, INK); box(c, x - 4, cy - 42, 8, 8, f % 16 < 8 ? '#FB923C' : '#7C2D12');
   }
   for (const k of ROCKS) {
@@ -534,7 +527,6 @@ export const drawObstaclesBack = (c: Ctx, state: GameState) => {
     for (let i = 0; i < 5; i++) box(c, x - 58 + i * 7 + ((f >> 1) % 7), wy - 4 - (i % 3) * 3, 7, 3, '#F8FAFC');
     for (let i = 0; i < 3; i++) box(c, x - 46 + ((f * 2 + i * 13) % 20), wy - 10 - ((f + i * 7) % 12), 3, 3, '#E0F2FE');
   }
-  for (const [sx, words] of CREW_SIGNS) if (onScreen(state, X(sx) - 80, X(sx) + 80)) frontierlessSign(c, X(sx), waterY(sx) - 58, words, true);
 };
 
 export const drawObstaclesFront = (c: Ctx, state: GameState) => {
@@ -559,11 +551,9 @@ export const drawObstaclesFront = (c: Ctx, state: GameState) => {
     // (the strap holding the bottom one up)
     box(c, x - PIPE_R - 2, low - 3, PIPE_R * 2 + 4, 4, '#3F3A30');
     if (f % 50 < 30) box(c, x - 1, low + PIPE_R + (f % 50), 3, 4, '#A3A35A');
-    // (the tell: the bottom pipe banded in hazard tape, LOW and DUCK stenciled on the stack, and a caged work lamp hung
-    // off the hanger lighting it up out of the dark (its light in art.ts rideLighting))
+    // (seen coming: the bottom pipe banded in hazard tape, and a caged work lamp hung off the hanger lighting it up out
+    // of the dark (its light in art.ts rideLighting); no DUCK stenciled on it (the user's: the player can tell))
     stripes(c, x - PIPE_R - 4, low + PIPE_R - 6, PIPE_R * 2 + 8, 6);
-    box(c, x - 26, low - 62, 52, 20, INK); box(c, x - 25, low - 61, 50, 18, '#FDE047');
-    signText(c, 'DUCK', x, low - 47, painted(1, '#1C1917', '#FDE047'));
     const lx = x + 30, ly = low - 70;
     c.strokeStyle = INK; c.lineWidth = 2; c.beginPath(); c.moveTo(x + 4, ly - 30); c.lineTo(lx, ly - 6); c.stroke();
     box(c, lx - 7, ly - 7, 14, 14, INK); box(c, lx - 5, ly - 5, 10, 10, '#FEF9C3');
@@ -598,6 +588,5 @@ export const drawObstaclesFront = (c: Ctx, state: GameState) => {
     box(c, x - LIMB_W, limbB - 4, LIMB_W * 2, 4, '#C8A878');
     c.fillStyle = INK; c.beginPath(); c.ellipse(x - LIMB_W, (limbT + limbB) / 2, 5, 9, 0, 0, Math.PI * 2); c.fill();
     c.fillStyle = '#C8A070'; c.beginPath(); c.ellipse(x - LIMB_W, (limbT + limbB) / 2, 4, 8, 0, 0, Math.PI * 2); c.fill();
-    signText(c, 'DUCK', x, limbB - 5, painted(1, '#F97316', '#3F2A14'));
   }
 };

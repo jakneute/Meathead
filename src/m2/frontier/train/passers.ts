@@ -409,7 +409,7 @@ export const drawWarnings = (c: Ctx, state: GameState) => {
   for (const q of tr.passers) {
     if (q.x < v.x + v.w + 4 || q.kind === 'bumper' || q.kind === 'hill' || q.kind === 'sign') continue;
     if (f % 20 < 6) { y += 52; continue; }
-    const [what, todo] = q.kind === 'bridge' ? ['LOW BRIDGE', 'DUCK!'] : q.kind === 'tower' ? ['WATER TOWER', 'GET INSIDE!'] : q.kind === 'falls' ? ['WATERFALL', 'GET INSIDE!'] : ['TUNNEL', ''];
+    const [what, todo] = q.kind === 'bridge' ? ['LOW BRIDGE', ''] : q.kind === 'tower' ? ['WATER TOWER', 'GET INSIDE!'] : q.kind === 'falls' ? ['WATERFALL', 'GET INSIDE!'] : ['TUNNEL', ''];
     box(c, CANVAS_WIDTH - 142, y - 22, 136, todo ? 44 : 30, INK); box(c, CANVAS_WIDTH - 140, y - 20, 132, todo ? 40 : 26, q.kind === 'falls' ? '#1E3A5F' : '#7F1D1D');
     label(c, `${what} >`, CANVAS_WIDTH - 74, y - 3, '#FDE047', 8);
     if (todo) label(c, todo, CANVAS_WIDTH - 74, y + 13, '#FEF3C7', 8);
