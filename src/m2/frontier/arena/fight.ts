@@ -444,8 +444,12 @@ const tickCritters = (ctx: FrameContext, f: Fight) => {
   // (out: off the view's far edge (or the arena's), just gone: never a kill, never a callout)
   state.enemies = state.enemies.filter(e => {
     if (!isCritter(e) || e.health <= 0 || e.isBlownAway) return true;
+    // (the arena's walls stand at the view's edges once the camera's against them: reaching a wall, it's out of the scene
+    // (they used to stop dead at the wall, off view only by a whisker, and pile up there for good: the playtest))
     const x = e.pos.x + e.width / 2, dir = e.facing ?? 1;
-    const off = dir > 0 ? x > state.camera.x + CANVAS_WIDTH + 70 || x > ARENA_R + 200 : x < state.camera.x - 70 || x < ARENA_L - 200;
+    const off = dir > 0
+      ? x > state.camera.x + CANVAS_WIDTH + 30 || e.pos.x + e.width >= ARENA_R - 4
+      : x < state.camera.x - 30 || e.pos.x <= ARENA_L + 4;
     return !off;
   });
 };
