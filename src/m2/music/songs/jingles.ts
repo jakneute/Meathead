@@ -1,10 +1,11 @@
 // The jingles (each plays once).
 //
 // "VICTORY!" (jingle:victory): the VICTORY stamp. 164 to the quarter, so an eighth is the 11 frames between the
-// letters' stamps (victory.ts): seven brass stabs climbing D major's scale (D, Em, F#m, G, G#dim7, A7), one a letter,
-// the big D (the orchestra hit, the crash, the trumpet up to the high A) on the Y. Then it can't help itself: the
-// xylophone's "shave and a haircut", and the "two bits" are a trombone and a tuba blowing a raspberry (both falling off
-// the note). Eight beats: done as the letters' hold is.
+// letters' stamps (victory.ts). Heavy metal (the user's): power-chord stabs climbing D major (D5, E5, F#5, G5, A5, B5),
+// one a letter, over palm-muted chugs on a low D pedal and double kick with the snare on every stab; a shred run into
+// the Y, where it all lands on a big D5 (the crash and the china) and the lead's pinch-harmonic squeal bends up to the
+// high D. Then it can't help itself: "shave and a haircut" chugged on the guitars and the toms, the "two" a power-chord
+// stab and the "bits" a whammy dive-bomb two octaves down off a feeble splash. Eight beats: done as the letters' hold is.
 //
 // "NYAH NYAH" (jingle:death): his death. 140, eight beats: the muted trumpet and trombone's sad slide down (B-flat,
 // A, A-flat, G, the last one wobbling and falling off), and before it's even finished the xylophone's playground taunt
@@ -16,18 +17,14 @@ export const VICTORY_JINGLE: Song = {
   title: 'VICTORY!',
   bpm: 164,
   once: true,
-  reverb: 'hall',
-  reverbMix: 0.8,
+  reverb: 'plate',
+  reverbMix: 0.7,
   parts: {
-    brass: { inst: 'brass', pan: -0.1, rev: 0.25, vol: 0.9, mml: 'o4 _v70 {d f+ a}8 _v78 {e g b}8 _v86 {f+ a >c+}8 _v94 {g b >d}8 _v102 {g+ b >d f}8 _v110 {a >c+ e g}8 _v125 o4 {a >d f+ a}4. r2. r8' },
-    trumpet: { inst: 'trumpet', pan: 0.1, rev: 0.25, mml: 'o5 _v80 a8 b8 >c+8 d8 f8 g8 _v120 _m40 a4. r2. r8' },
-    strings: { inst: 'strings', pan: 0, rev: 0.35, vol: 0.8, mml: 'r2. o4 _v110 {f+ a >d f+}4. r2. r8' },
-    hit: { inst: 'orchhit', pan: 0, rev: 0.3, vol: 0.8, mml: 'r2. o4 _v120 d4 r4 r2 r4' },
-    timpani: { inst: 'timpani', pan: -0.2, rev: 0.3, mml: 'o2 _v80 d8 e8 f+8 g8 g+8 a8 o3 _v120 d4. r8 r4 r4 o2 _v110 a8 o3 d8' },
-    xylo: { inst: 'xylophone', pan: 0.3, rev: 0.2, vol: 0.8, mml: 'r1 r8 o6 _v105 d8 <a16 a16 b8 a8 r8 r4' },
-    trombone: { inst: 'trombone', pan: -0.3, rev: 0.2, mml: 'r1 r2. o2 _v120 !c+8 _f-6 d8' },
-    tuba: { inst: 'tuba', pan: 0, rev: 0.12, mml: 'o2 _v90 d8 e8 f+8 g8 g+8 a8 o1 _v120 d4. r8 r4 r4 o2 !c+8 _f-6 o1 d8' },
-    drums: { inst: 'kick', drums: true, rev: 0.2, vol: 0.8, mml: '_v70 s8 _v78 s8 _v86 s8 _v94 s8 _v102 s8 _v110 s8 _v127 {kx}4. r8 r4 r4 _v100 k8 _v127 {kx}8' },
+    power: { inst: 'powerchord', pan: 0.35, rev: 0.12, vol: 0.6, mml: 'q6 o2 _v85 d8 _v90 e8 _v96 f+8 _v102 g8 _v108 a8 _v114 b8 | q8 o3 _v127 d4. | q5 o2 _v110 d8 a16 a16 b8 a8 r8 !c+8 r8' },
+    chug: { inst: 'chug', pan: -0.35, rev: 0.08, vol: 0.55, mml: 'o2 _v95 [d16]12 | q8 o2 _v120 d4. | q5 o2 _v105 d8 a16 a16 b8 a8 r8 !c+8 r8' },
+    lead: { inst: 'distlead', pan: 0.1, rev: 0.25, dly: 0.12, vol: 0.55, mml: 'r4. o5 _v90 f+16 g16 a16 b16 >c+16 e16 | o6 _v122 _m80 _b-2 d4. | r2 r8 r8 | o5 _v120 _m0 _f-24/8 d8' },
+    bass: { inst: 'bass', pan: 0, rev: 0.06, vol: 0.75, mml: 'q6 o1 _v100 d8 e8 f+8 g8 a8 b8 | q8 o1 _v120 d4. | q5 o1 _v105 d8 a16 a16 b8 a8 r8 !c+8 r8' },
+    drums: { inst: 'kick', drums: true, rev: 0.2, vol: 0.75, mml: '_v100 {kx}16 k16 _v104 {ks}16 k16 _v108 {ks}16 k16 _v112 {ks}16 k16 _v118 {ks}16 k16 _v124 {ks}16 k16 | _v127 {kx(china)}4. | _v110 {kt}8 t16 t16 {k(tom3)}8 {k(tom4)}8 r8 | _v120 {ks}8 _v85 {k(splash)}8' },
   },
 };
 
