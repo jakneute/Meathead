@@ -202,3 +202,14 @@ car is the show). **The fight isn't designed yet: don't design it.** Build the s
 cutscene beat when the time comes; keep the skeleton's stand-in (VICTORY -> walk-away -> hub, markLandCleared
 ('hollywood')) till the user gives the fight. A big health + ammo refill before the stage's door. The walk-away is
 walkAway/stuntmanSteve.ts (placeholder; his toy: the STUNT_CAR).
+
+## Decisions log
+
+- **Coaster rides go in and out of depth (2026-10-18, the user: "too two dimensional", "cramped").** Still a side
+  view; the track keeps its play-plane x, y (camera, stops, hazards, the launch handoff unchanged) and gets a depth per
+  point (coaster/track.ts DEPTH: keyframes along each ride, a loop's top leaning away, a roll's twist), drawn about the
+  scene's one eye (art.ts): lifts recede into the haze, drops dive at the camera, rows of loops go back one behind the
+  other, the corkscrew twists toward and away. The train and Meathead scale and sit at the track's depth (index.ts
+  seat: spriteScaleX/Y); track chunks sorted far to near, nearer-than-the-train track drawn over him. Every ride is at
+  depth 1 on and near the decks, so the station, the three stops and the launch ramp are exactly as they were. The
+  structure's near background row moved back past the hedge and both rows spaced out, for breathing room.

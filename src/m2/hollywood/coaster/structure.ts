@@ -15,8 +15,9 @@ import { streetPalm } from '../blvd/far';
 
 /** The far side of the plaza (the planter wall, the hedge). */
 export const HEDGE_D = 0.56;
-/** The structure's two rows going back. */
-const ROWS = [{ d: 0.6, seed: 3 }, { d: 0.79, seed: 7 }] as const;
+/** The structure's two rows going back: one past the hedge, one on the plaza (both behind the track he rides, which
+ *  comes and goes between about 0.62 and 1.46: track.ts DEPTH; the near row that was at 0.79 crowded it). */
+const ROWS = [{ d: 0.47, seed: 7 }, { d: 0.6, seed: 3 }] as const;
 
 // ---------------------------------------------------------------------------------------------------------------
 // The monstrosity's parts (world, laid out once)
@@ -94,7 +95,8 @@ const build = (seed: number): Elem[] => {
     for (const run of [...e.runs, ...e.back]) for (const [, py] of run) e.top = Math.min(e.top, py - 20);
     for (const [, ly] of e.legs) e.top = Math.min(e.top, ly);
     out.push(e);
-    x = e.b + 180 + r(9) * 420; i++;
+    // (breathing room between them: the ride's own track is the show)
+    x = e.b + 560 + r(9) * 800; i++;
   }
   return out;
 };
@@ -229,12 +231,12 @@ const drawHedge = (c: Ctx, v: CView) => {
 
 // ---------------------------------------------------------------------------------------------------------------
 
-/** Everything going back, back to front: the plaza, the hedge, the far row, the near row. */
+/** Everything going back, back to front: the far row (past the hedge), the plaza, the hedge, the row on the plaza. */
 export const drawStructureBack = (c: Ctx, state: GameState) => {
   const v = cview(state);
+  drawRow(c, v, 0);
   drawPlaza(c, v);
   drawHedge(c, v);
-  drawRow(c, v, 0);
   drawRow(c, v, 1);
 };
 /** At the play plane: the park's floor under it all (its face down from GY; along the queue's way in, its lit curb). */

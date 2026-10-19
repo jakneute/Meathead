@@ -101,7 +101,7 @@ export const member = (c: Ctx, ax: number, ay: number, bx: number, by: number, w
  * across every bay, gussets at the joints; its concrete footing at `foot`. `w` across, from `top` down to `foot`. `R`
  * its steel ramp (6). Taper: how much narrower at the top (0 none).
  */
-export const lattice = (c: Ctx, x: number, top: number, foot: number, w: number, R: string[], bay = 44, taper = 0, footing = true, anchor = top) => {
+export const lattice = (c: Ctx, x: number, top: number, foot: number, w: number, R: string[], bay = 44, taper = 0, footing = true, anchor = top, ink = INK) => {
   if (foot - top < 4) return;
   // (the bays counted from `anchor`, wherever it's cut off: the bracing doesn't crawl as the view does)
   const b0 = anchor + 6 + Math.max(0, Math.ceil((top - anchor) / bay)) * bay;
@@ -109,20 +109,20 @@ export const lattice = (c: Ctx, x: number, top: number, foot: number, w: number,
   const xl = (y: number) => Math.round(x - w / 2 + taper * w * 0.5 * (1 - (y - top) / (foot - top)));
   const xr = (y: number) => Math.round(x + w / 2 - taper * w * 0.5 * (1 - (y - top) / (foot - top)));
   // (the bracing first, behind the chords: one path for the lot)
-  c.strokeStyle = INK; c.lineWidth = Math.max(2, ch * 0.7) + 1.5; c.beginPath();
+  c.strokeStyle = ink; c.lineWidth = Math.max(2, ch * 0.7) + 1.5; c.beginPath();
   const bs = b0 - bay >= anchor + 6 ? b0 - bay : b0;
   const brace = () => { for (let y = bs; y < foot - 4; y += bay) { const y1 = Math.min(foot - 4, y + bay); c.moveTo(xl(y) + ch, y); c.lineTo(xr(y1) - ch, y1); c.moveTo(xr(y) - ch, y); c.lineTo(xl(y1) + ch, y1); } };
   brace(); c.stroke();
   c.strokeStyle = R[2]; c.lineWidth = Math.max(1, ch * 0.7); c.beginPath(); brace(); c.stroke();
   // (the struts across each bay, lit along the top)
-  for (let y = b0; y < foot - 4; y += bay) { const a = xl(y), b = xr(y); box(c, a, y - 1, b - a, 4, INK); box(c, a, y, b - a, 2, R[3]); }
+  for (let y = b0; y < foot - 4; y += bay) { const a = xl(y), b = xr(y); box(c, a, y - 1, b - a, 4, ink); box(c, a, y, b - a, 2, R[3]); }
   // (the two chords: stepped across, ink round; the near one lit, the far one in shade)
   const chord = (left: boolean) => {
     // (in runs: straight where it doesn't taper, stepped where it does)
     const step = taper ? 24 : foot - top;
     for (let y = top; y < foot; y += step) {
       const y1 = Math.min(foot, y + step), xx = left ? xl(y) : xr(y) - ch;
-      box(c, xx - 1, y, ch + 2, y1 - y, INK);
+      box(c, xx - 1, y, ch + 2, y1 - y, ink);
       box(c, xx, y, ch, y1 - y, left ? R[3] : R[2]);
       box(c, xx, y, Math.max(1, Math.round(ch * 0.35)), y1 - y, left ? R[5] : R[3]);
       if (ch > 3) box(c, xx + ch - 1, y, 1, y1 - y, R[1]);

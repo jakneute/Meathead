@@ -12,7 +12,7 @@
 import type { GameState } from '../../../m1/game/core/state';
 import type { Light } from '../../../m1/game/render/lighting';
 import { drawPerson } from '../../adventure/temple/people';
-import { type Ctx, type CView, INK, cview, vis, pal, lattice, rivets, hazard, goldStar, chains, PORCELAIN, CHROME, CRIMSON } from './paint';
+import { type Ctx, type CView, INK, cview, vis, pal, lattice, pier, rivets, hazard, goldStar, chains, PORCELAIN, CHROME, CRIMSON } from './paint';
 import {
   box, checker, mix, hash, poly, at, atDepth, still, stillAt, signW, STEEL, BRASS, VELVET, STEVE, ramp6, hour, lit, board, deco, bulbs, plain,
   words, sideBack, topBack, underBack, ball,
@@ -26,7 +26,7 @@ import {
   x0, X, Y, GY, QUEUE_GROUND, STATION, RAILS, RAIL_H, STOPS, BOOTH, CAR_GAP, CARS, STEVE_STANDEE, queueH, parkAt,
   LAUNCHED_MEMO, WALKER_MEMO, LEVER_MEMO, CLEARED_MEMO, type Place,
 } from './layout';
-import { tracks, at as trackAt, STEP, Mode, type Track } from './track';
+import { tracks, at as trackAt, pointOn, STEP, Mode, type Track, type TPt } from './track';
 import type { Coaster, QGuest } from './state';
 
 export { GY };
@@ -39,7 +39,15 @@ export const drawCoasterBackdrop = (c: Ctx, state: GameState) => { drawCoasterFa
 // ---------------------------------------------------------------------------------------------------------------
 // The track
 
-interface Chunk { i0: number; i1: number; x0: number; x1: number; y0: number; y1: number }
+// THE DEPTH (track.ts DEPTH): every point of track has its depth d, drawn d of the way from the scene's one eye to
+// where it is on the play plane (the boulevard kit's perspective, the same eye as the plaza and the structure going
+// back): the track, its legs down to the park at their own depth, the train and him on it (index.ts seat). Far off:
+// smaller, thinner, into the haze; near: bigger, heavier, darker. Drawn in a stretch at a time (a chunk: ~190 px of
+// track), sorted far to near: what's behind the play plane before the stations and the stops, what's in front of it
+// after them, and while he's riding whatever's nearer the camera than the train after him and the train (so he goes
+// behind nearer track and in front of farther). Culled by where it lands on screen (no pop-in).
+
+interface Chunk { tr: Track; i0: number; i1: number; x0: number; x1: number; y0: number; y1: number; d0: number; d1: number; d: number; s0: number; s1: number }
 const CHUNKS = new WeakMap<Track, Chunk[]>();
 const chunksOf = (tr: Track) => {
   let ch = CHUNKS.get(tr);
@@ -47,12 +55,31 @@ const chunksOf = (tr: Track) => {
   ch = [];
   for (let i = 0; i < tr.pts.length - 1; i += 48) {
     const i1 = Math.min(tr.pts.length - 1, i + 48);
-    let a = Infinity, b = -Infinity, t = Infinity, u = -Infinity;
-    for (let k = i; k <= i1; k++) { const p = tr.pts[k]; a = Math.min(a, p.x); b = Math.max(b, p.x); t = Math.min(t, p.y); u = Math.max(u, p.y); }
-    ch.push({ i0: i, i1, x0: a, x1: b, y0: t, y1: u });
+    let a = Infinity, b = -Infinity, t = Infinity, u = -Infinity, dl = Infinity, dh = -Infinity, ds = 0;
+    for (let k = i; k <= i1; k++) { const p = tr.pts[k]; a = Math.min(a, p.x); b = Math.max(b, p.x); t = Math.min(t, p.y); u = Math.max(u, p.y); dl = Math.min(dl, p.d); dh = Math.max(dh, p.d); ds += p.d; }
+    // (padded for the spine, the ties and the gear off the rail)
+    ch.push({ tr, i0: i, i1, x0: a - 16, x1: b + 16, y0: t - 16, y1: u + 16, d0: dl, d1: dh, d: ds / (i1 - i + 1), s0: i * STEP, s1: i1 * STEP });
   }
   CHUNKS.set(tr, ch);
   return ch;
+};
+/** The track's colors at a depth (in steps of 1/25): far, into the haze (its ink too); near, a step darker. */
+interface DPal { key: string; ink: string; steel: string[]; crimson: string[]; gold: string[]; concrete: string[]; brake: string[]; tire: string[] }
+const DQ = 25;
+const dPals = new Map<number, DPal>();
+const depthPal = (d: number): DPal => {
+  const q = Math.round(d * DQ), P = pal();
+  let o = dPals.get(q);
+  if (o && o.key === P.key) return o;
+  const dd = q / DQ;
+  const tone = (col: string) => (dd < 1 ? mix(col, P.haze, Math.min(0.78, (1 - dd) * 1.15)) : dd > 1 ? mix(col, INK, Math.min(0.3, (dd - 1) * 0.62)) : col);
+  o = {
+    key: P.key, ink: dd < 1 ? mix(INK, P.haze, Math.min(0.6, (1 - dd) * 0.95)) : INK,
+    steel: P.steel.map(tone), crimson: P.crimson.map(tone), gold: P.gold.map(tone), concrete: P.concrete.map(tone),
+    brake: ['#B4642A', '#E89A5A'].map(tone), tire: ['#3A3A40', '#8A8A90'].map(tone),
+  };
+  dPals.set(q, o);
+  return o;
 };
 /** On a deck (where the deck's own floor carries the rail: no legs). */
 const onDeck = (x: number, y: number) => (y > Y(STATION.h) - 4 && y < Y(STATION.h) + 4 && x < X(STATION.b + 60)) || STOPS.some(s => x > X(s.a - 60) && x < X(s.b + 60) && Math.abs(y - Y(s.h)) < 4);
@@ -61,66 +88,115 @@ const onDeck = (x: number, y: number) => (y > Y(STATION.h) - 4 && y < Y(STATION.
  *  not on a deck, up off the park. */
 const legAt = (p: { x: number; y: number; a: number; roll: number }) => Math.cos(p.a) * Math.cos(p.roll) >= 0.5 && Math.abs(Math.cos(p.roll)) >= 0.9 && !onDeck(p.x, p.y) && p.y <= GY - 30;
 
-/** A point off the rail along its normal (rolled with the train), `off` px (+ under it). */
-const offAt = (p: { x: number; y: number; a: number; roll: number }, off: number): [number, number] => {
-  const k = Math.cos(p.roll);
-  return [p.x - Math.sin(p.a) * k * off, p.y + Math.cos(p.a) * k * off];
+/** A point off the rail along its normal (rolled with the train), `off` px (+ under it), put at its depth about the
+ *  eye: into PX, PY (no allocation: a lot of these a frame). */
+let PX = 0, PY = 0;
+const proj = (p: TPt, off: number, ex: number, ey: number) => {
+  const k = Math.cos(p.roll), wx = p.x - Math.sin(p.a) * k * off, wy = p.y + Math.cos(p.a) * k * off;
+  PX = ex + (wx - ex) * p.d; PY = ey + (wy - ey) * p.d;
 };
-const drawTrackPath = (c: Ctx, v: CView, tr: Track, f: number) => {
-  const pts = tr.pts, S = pal().steel, Cr = pal().crimson, G = pal().gold;
-  const vis0 = v.vx - 80, vis1 = v.vx + v.vw + 80, vt = v.vy - 80, vb = v.vy + v.vh + 80;
-  for (const ch of chunksOf(tr)) {
-    if (ch.x1 < vis0 || ch.x0 > vis1 || ch.y0 > vb) continue;
-    // (the legs: from the track down to the park, now and then, where the track's the right way up)
-    for (let i = ch.i0; i < ch.i1; i++) {
-      if (i % 50 !== 0) continue;
-      const p = pts[i];
-      if (!legAt(p) || p.x < vis0 || p.x > vis1) continue;
-      const top = Math.max(p.y + 12, vt - 60), foot = Math.min(GY, vb + 60);
-      if (foot > top) lattice(c, p.x, top, foot, 20, S, 52, 0, foot >= GY, p.y + 12);
-      if (p.y + 12 >= vt - 60) { box(c, p.x - 14, p.y + 8, 28, 6, INK); box(c, p.x - 13, p.y + 9, 26, 4, S[3]); box(c, p.x - 13, p.y + 9, 26, 1, S[5]); }
-    }
-    if (ch.y1 < vt) continue;
-    // (the spine and the rails, along the points (every third), rolled with the train)
-    const spine: [number, number][] = [], rail: [number, number][] = [];
-    for (let i = ch.i0; i <= ch.i1; i += 3) { spine.push(offAt(pts[i], 7)); rail.push(offAt(pts[i], -2)); }
-    if (ch.i1 % 3) { spine.push(offAt(pts[ch.i1], 7)); rail.push(offAt(pts[ch.i1], -2)); }
-    const path = (ps: [number, number][]) => () => { c.moveTo(ps[0][0], ps[0][1]); for (let k = 1; k < ps.length; k++) c.lineTo(ps[k][0], ps[k][1]); };
-    const sp = path(spine), rl = path(rail);
-    c.lineCap = 'round'; c.lineJoin = 'round';
-    c.strokeStyle = INK; c.lineWidth = 13; c.beginPath(); sp(); c.stroke();
-    c.strokeStyle = Cr[1]; c.lineWidth = 11; c.beginPath(); sp(); c.stroke();
-    c.save(); c.translate(-1, -1.5); c.strokeStyle = Cr[2]; c.lineWidth = 8; c.beginPath(); sp(); c.stroke();
-    c.translate(-1, -1.5); c.strokeStyle = Cr[4]; c.lineWidth = 2; c.beginPath(); sp(); c.stroke(); c.restore();
-    // (the ties across, steel)
-    c.lineCap = 'butt';
-    c.strokeStyle = INK; c.lineWidth = 4; c.beginPath();
-    for (let i = ch.i0; i < ch.i1; i += 5) { const [ax, ay] = offAt(pts[i], -6), [bx, by] = offAt(pts[i], 10); c.moveTo(ax, ay); c.lineTo(bx, by); }
-    c.stroke();
-    c.strokeStyle = S[3]; c.lineWidth = 2; c.beginPath();
-    for (let i = ch.i0; i < ch.i1; i += 5) { const [ax, ay] = offAt(pts[i], -5), [bx, by] = offAt(pts[i], 9); c.moveTo(ax, ay); c.lineTo(bx, by); }
-    c.stroke();
-    // (what the track's doing: the chain up the lifts (crawling), the brake fins, the booster tires)
-    for (let i = ch.i0; i < ch.i1; i += 2) {
-      const p = pts[i];
-      if (p.mode === Mode.Lift && (i + (f >> 1)) % 4 === 0) { const [qx, qy] = offAt(p, 2); box(c, qx - 2, qy - 2, 4, 4, INK); box(c, qx - 1, qy - 1, 2, 2, S[2]); }
-      else if (p.mode === Mode.Brake && i % 6 === 0) { const [qx, qy] = offAt(p, 12); box(c, qx - 3, qy - 2, 6, 6, INK); box(c, qx - 2, qy - 1, 4, 4, '#B4642A'); box(c, qx - 2, qy - 1, 4, 1, '#E89A5A'); }
-      else if ((p.mode === Mode.Boost || p.mode === Mode.Launch) && i % 8 === 0) { const [qx, qy] = offAt(p, 12); c.fillStyle = INK; c.beginPath(); c.arc(qx, qy, 4, 0, Math.PI * 2); c.fill(); c.fillStyle = '#3A3A40'; c.beginPath(); c.arc(qx, qy, 2.5, 0, Math.PI * 2); c.fill(); box(c, qx - 1, qy - 1, 1, 1, '#8A8A90'); }
-    }
-    // (the gold rails over it, lit along their tops)
-    c.lineCap = 'round';
-    c.strokeStyle = INK; c.lineWidth = 6; c.beginPath(); rl(); c.stroke();
-    c.strokeStyle = G[2]; c.lineWidth = 4; c.beginPath(); rl(); c.stroke();
-    c.save(); c.translate(-0.5, -1); c.strokeStyle = G[4]; c.lineWidth = 2; c.beginPath(); rl(); c.stroke();
-    c.translate(-0.5, -0.5); c.strokeStyle = G[5]; c.lineWidth = 1; c.beginPath(); rl(); c.stroke(); c.restore();
-    c.lineCap = 'butt'; c.lineJoin = 'miter';
+/** A line along the chunk's points (every third, and its last), `off` off the rail, at their depths. */
+const trace = (c: Ctx, pts: TPt[], i0: number, i1: number, off: number, ex: number, ey: number) => {
+  for (let i = i0; ; i += 3) {
+    if (i > i1) i = i1;
+    proj(pts[i], off, ex, ey);
+    if (i === i0) c.moveTo(PX, PY); else c.lineTo(PX, PY);
+    if (i === i1) break;
   }
 };
+/** A square of `r` about (x, y). */
+const sq = (c: Ctx, x: number, y: number, r: number, col: string) => box(c, x - r, y - r, r * 2, r * 2, col);
 
-/** Every track (the three rides, the launch, the way back, the station's way in), and the EXPERIMENTAL section's end. */
-const drawTracks = (c: Ctx, v: CView, state: GameState) => {
-  const T = tracks(), launched = !!state.stageMemo[LAUNCHED_MEMO], f = state.frame;
-  for (const tr of [T.r1, T.r2, T.r3, T.back, T.arrive, T.launch]) drawTrackPath(c, v, tr, f);
+const drawChunk = (c: Ctx, v: CView, ch: Chunk, f: number) => {
+  const tr = ch.tr, pts = tr.pts, w = ch.d, P = depthPal(w), S = P.steel, Cr = P.crimson, G = P.gold, K = P.ink;
+  const ex = v.eye.x, ey = v.eye.y, vis0 = v.vx - 80, vis1 = v.vx + v.vw + 80, vt = v.vy - 80, vb = v.vy + v.vh + 80;
+  // (the legs: from the track down to the park, now and then, where the track's the right way up; each at the depth
+  // of the track over it, down to the ground there, near ones big and dark, far ones small in the haze)
+  for (let i = ch.i0 + ((50 - (ch.i0 % 50)) % 50); i < ch.i1; i += 50) {
+    const p = pts[i];
+    if (!legAt(p)) continue;
+    const sx = ex + (p.x - ex) * p.d;
+    if (sx < vis0 - 40 || sx > vis1 + 40) continue;
+    // (what's on screen of it, back in the world at its depth)
+    const wt = ey + (vt - 60 - ey) / p.d, wb = ey + (vb + 60 - ey) / p.d, top = Math.max(p.y + 12, wt), foot = Math.min(GY, wb), L = depthPal(p.d);
+    c.save(); c.translate(ex, ey); c.scale(p.d, p.d); c.translate(-ex, -ey);
+    if (foot > top) lattice(c, p.x, top, foot, 20, L.steel, 52, 0, false, p.y + 12, L.ink);
+    if (foot >= GY) pier(c, p.x, GY, 34, L.steel, L.concrete);
+    if (p.y + 12 >= wt) { box(c, p.x - 14, p.y + 8, 28, 6, L.ink); box(c, p.x - 13, p.y + 9, 26, 4, L.steel[3]); box(c, p.x - 13, p.y + 9, 26, 1, L.steel[5]); }
+    c.restore();
+  }
+  // (above the screen: just its legs)
+  if (Math.max(ey + (ch.y1 - ey) * ch.d0, ey + (ch.y1 - ey) * ch.d1) < vt) return;
+  // (the spine, rolled with the train: inked, the crimson, lit along its top)
+  c.lineCap = 'round'; c.lineJoin = 'round';
+  const line = (off: number, col: string, lw: number, dx = 0, dy = 0) => {
+    if (dx || dy) { c.save(); c.translate(dx * w, dy * w); }
+    c.strokeStyle = col; c.lineWidth = Math.max(1, lw * w); c.beginPath(); trace(c, pts, ch.i0, ch.i1, off, ex, ey); c.stroke();
+    if (dx || dy) c.restore();
+  };
+  line(7, K, 13); line(7, Cr[1], 11); line(7, Cr[2], 8, -1, -1.5); line(7, Cr[4], 2, -2, -3);
+  // (the ties across, steel)
+  c.lineCap = 'butt';
+  for (const [col, lw, a, b] of [[K, 4, -6, 10], [S[3], 2, -5, 9]] as const) {
+    c.strokeStyle = col; c.lineWidth = Math.max(1, lw * w); c.beginPath();
+    for (let i = ch.i0; i < ch.i1; i += 5) { proj(pts[i], a, ex, ey); c.moveTo(PX, PY); proj(pts[i], b, ex, ey); c.lineTo(PX, PY); }
+    c.stroke();
+  }
+  // (what the track's doing: the chain up the lifts (crawling), the brake fins, the booster tires)
+  for (let i = ch.i0; i < ch.i1; i += 2) {
+    const p = pts[i];
+    if (p.mode === Mode.Lift && (i + (f >> 1)) % 4 === 0) { proj(p, 2, ex, ey); sq(c, PX, PY, 2 * w, K); sq(c, PX, PY, w, S[2]); }
+    else if (p.mode === Mode.Brake && i % 6 === 0) { proj(p, 12, ex, ey); box(c, PX - 3 * w, PY - 2 * w, 6 * w, 6 * w, K); box(c, PX - 2 * w, PY - w, 4 * w, 4 * w, P.brake[0]); box(c, PX - 2 * w, PY - w, 4 * w, Math.max(1, w), P.brake[1]); }
+    else if ((p.mode === Mode.Boost || p.mode === Mode.Launch) && i % 8 === 0) { proj(p, 12, ex, ey); c.fillStyle = K; c.beginPath(); c.arc(PX, PY, 4 * w, 0, Math.PI * 2); c.fill(); c.fillStyle = P.tire[0]; c.beginPath(); c.arc(PX, PY, 2.5 * w, 0, Math.PI * 2); c.fill(); box(c, PX - 1, PY - 1, 1, 1, P.tire[1]); }
+  }
+  // (the gold rails over it, lit along their tops)
+  c.lineCap = 'round';
+  line(-2, K, 6); line(-2, G[2], 4); line(-2, G[4], 2, -0.5, -1); line(-2, G[5], 1, -1, -1.5);
+  c.lineCap = 'butt'; c.lineJoin = 'miter';
+};
+
+/** Where the train he's on is (its track, how far along, its depth); flying, at the play plane; null, not riding. */
+interface Rider { tr: Track | null; s: number; d: number }
+const riderOf = (co: Coaster): Rider | null => {
+  const r = co.ride;
+  if (!r.on) return null;
+  if (r.fly || !r.track) return { tr: null, s: 0, d: 1 };
+  return { tr: r.track, s: r.s, d: pointOn(r.track, r.s).d };
+};
+/** Which pass a chunk's drawn in: behind the play plane ('far': before the stations and stops), in front of it
+ *  ('near': after them), or nearer the camera than the train he's riding ('front': after him and the train). The
+ *  stretch the train's on is never in front of it. */
+type Pass = 'far' | 'near' | 'front';
+const passOf = (ch: Chunk, rider: Rider | null): Pass => {
+  if (rider) {
+    const own = ch.tr === rider.tr && ch.s1 >= rider.s - CARS * CAR_GAP - 140 && ch.s0 <= rider.s + 200;
+    if (!own && ch.d > rider.d + 0.03) return 'front';
+  }
+  return ch.d > 1.004 ? 'near' : 'far';
+};
+const PASS: Chunk[] = [];
+const byDepth = (a: Chunk, b: Chunk) => a.d - b.d;
+/** Every track's chunks in one pass (on screen by where they land; far to near); the far pass ends with the
+ *  EXPERIMENTAL section's end. */
+export const drawTrackPass = (c: Ctx, state: GameState, co: Coaster, pass: Pass) => {
+  const v = cview(state), T = tracks(), rider = riderOf(co), ex = v.eye.x, ey = v.eye.y;
+  const l = v.vx - 120, r = v.vx + v.vw + 120, vb = v.vy + v.vh + 80;
+  PASS.length = 0;
+  for (const tr of [T.r1, T.r2, T.r3, T.back, T.arrive, T.launch]) for (const ch of chunksOf(tr)) {
+    // (where it lands, at the nearest and farthest it is: right of the screen, left of it, or under it, it's off)
+    const a0 = ex + (ch.x0 - ex) * ch.d0, a1 = ex + (ch.x0 - ex) * ch.d1, b0 = ex + (ch.x1 - ex) * ch.d0, b1 = ex + (ch.x1 - ex) * ch.d1;
+    if (Math.max(b0, b1) < l || Math.min(a0, a1) > r) continue;
+    if (Math.min(ey + (ch.y0 - ey) * ch.d0, ey + (ch.y0 - ey) * ch.d1) > vb) continue;
+    if (passOf(ch, rider) === pass) PASS.push(ch);
+  }
+  PASS.sort(byDepth);
+  for (const ch of PASS) drawChunk(c, v, ch, state.frame);
+  if (pass === 'far') drawTrackEnd(c, v, state);
+};
+
+/** The EXPERIMENTAL section's end (at the play plane: the flight goes off it from where it always did). */
+const drawTrackEnd = (c: Ctx, v: CView, state: GameState) => {
+  const T = tracks(), launched = !!state.stageMemo[LAUNCHED_MEMO];
   // The EXPERIMENTAL section: the track just stops, pointed at the sky, a buffer on its end; bent up and torn after the
   // launch (they never fixed it)
   const end = T.launch.pts[T.launch.pts.length - 1];
@@ -226,24 +302,28 @@ const car = (c: Ctx, layer: 'back' | 'front', k: number) => {
   }
 };
 /** The cars' places: along the track (a train going), or parked at a place (level, front at its parked spot). */
-export interface CarAt { x: number; y: number; a: number; roll: number }
+/** `d`: its depth (track.ts DEPTH; the play plane's if not given): drawn there about the eye drawTrain's given. */
+export interface CarAt { x: number; y: number; a: number; roll: number; d?: number }
 export const carsOn = (tr: Track, s: number): CarAt[] => {
   const out: CarAt[] = [];
   for (let i = 0; i < CARS; i++) {
     const si = s - i * CAR_GAP;
-    if (si >= 0) { const p = trackAt(tr, si); out.push({ x: p.x, y: p.y, a: p.a, roll: p.roll }); }
-    else { const p0 = tr.pts[0]; out.push({ x: p0.x + Math.cos(p0.a) * si, y: p0.y + Math.sin(p0.a) * si, a: p0.a, roll: 0 }); }
+    if (si >= 0) { const p = trackAt(tr, si); out.push({ x: p.x, y: p.y, a: p.a, roll: p.roll, d: p.d }); }
+    else { const p0 = tr.pts[0]; out.push({ x: p0.x + Math.cos(p0.a) * si, y: p0.y + Math.sin(p0.a) * si, a: p0.a, roll: 0, d: p0.d }); }
   }
   return out;
 };
 export const carsParked = (pl: Place): CarAt[] => { const p = parkAt(pl); return [0, 1, 2].map(i => ({ x: p.x - i * CAR_GAP, y: p.y, a: 0, roll: 0 })); };
-export const drawTrain = (c: Ctx, cars: CarAt[], layer: 'back' | 'front', f: number, riderFront = false, lockLight?: boolean) => {
+/** `eye`: the scene's (cview), to put cars with a depth where they are (scaled with it, as he is: index.ts seat). */
+export const drawTrain = (c: Ctx, cars: CarAt[], layer: 'back' | 'front', f: number, riderFront = false, lockLight?: boolean, eye?: { x: number; y: number }) => {
   // (the back car first: the front one's in front of it)
   for (let i = cars.length - 1; i >= 0; i--) {
-    const k = cars[i], ridden = riderFront && i === 0;
+    const k = cars[i], ridden = riderFront && i === 0, d = eye ? k.d ?? 1 : 1;
     if (layer === 'front' && !ridden) continue;
-    c.save(); c.translate(k.x, k.y); c.rotate(k.a);
-    c.scale(1, rollScale(k.roll));
+    c.save();
+    if (d !== 1 && eye) c.translate(eye.x + (k.x - eye.x) * d, eye.y + (k.y - eye.y) * d); else c.translate(k.x, k.y);
+    c.rotate(k.a);
+    c.scale(d, d * rollScale(k.roll));
     car(c, layer, i);
     // (nobody in it: its near side too, here (behind him walking past it); his: in front of him, drawn after him)
     if (layer === 'back' && !ridden) car(c, 'front', i);
@@ -595,20 +675,25 @@ export const drawCoasterBack = (c: Ctx, state: GameState, co: Coaster) => {
   const v = cview(state);
   drawStructureBack(c, state);
   drawFloor(c, state);
-  // (Steve's billboard on its lattice mast, seen from the first lift: behind the track)
-  const bx = X(3200), by = Y(700);
-  if (vis(v, bx - 170, bx + 170, by - 150, GY)) {
-    lattice(c, bx, by + 8, GY, 26, pal().steel, 60);
-    still(c, 'hwc-billboard', bx, by, -160, -146, 320, 156, paintBillboard);
+  // (Steve's billboard on its lattice mast, seen from the first lift: set back behind it, past where the lift goes
+  // away to (track.ts DEPTH), on the plaza at its own depth)
+  const bx = X(3260), by = Y(820), BD = 0.6;
+  if (vis(v, bx - 170, bx + 170, by - 150, GY, BD)) {
+    atDepth(c, v.eye, BD, () => {
+      lattice(c, bx, by + 8, GY, 26, pal().steelD, 60);
+      still(c, 'hwc-billboard', bx, by, -160, -146, 320, 156, paintBillboard);
+    });
   }
-  // (what's set back at the station and the stops, then the track over it, then what's at the play plane)
+  // (what's set back at the station and the stops, then the track behind the play plane, then what's at the play
+  // plane, then the track in front of it (what's nearer than the train he's on: after him, index.ts drawFront))
   drawQueueBack(c, v, state);
   for (let i = 0; i < 3; i++) drawStopBack(c, v, i);
-  drawTracks(c, v, state);
+  drawTrackPass(c, state, co, 'far');
   drawQueue(c, v, state, co);
   // (the station's end wall: the train's way out through its arch)
   pylon(c, v, X(STATION.b), Y(STATION.h), co.ride.on && !!co.ride.track && co.ride.track === tracks().r1 && co.ride.s < 600, state.frame, true);
   for (let i = 0; i < 3; i++) drawStop(c, v, state, i, co);
+  drawTrackPass(c, state, co, 'near');
 };
 
 /** The lights after dark: the station's canopy bulbs, each shrine's theatre lights, the booth's window, the arch. */
@@ -617,7 +702,6 @@ export const coasterLamps = (): Light[] => [
   ...STOPS.map(s => ({ x: X(s.shrine.x + s.shrine.w / 2), y: Y(s.h) - 120, r: 300, a: 0.95, color: '#FEF08A' })),
   { x: X(BOOTH.cab + 100), y: Y(BOOTH.h) - 80, r: 160, a: 0.8, color: '#7DD3FC' },
   { x: X(120), y: GY - 250, r: 200, a: 0.8, color: '#FBBF24' },
-  { x: X(3200), y: Y(700) - 140, r: 220, a: 0.7, color: '#FDE68A' },
 ];
 export { LEVER_MEMO };
 

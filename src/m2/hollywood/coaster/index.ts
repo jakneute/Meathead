@@ -60,7 +60,8 @@ import { safeAhead } from '../../../m1/game/enemies/kinds';
 import { coasterOf, type Coaster } from './state';
 import { updatePlungers, staffBark, BEAM } from './kinds';
 import { drawPlunger } from './kindArt';
-import { drawCoasterBackdrop, drawCoasterBack, drawTrain, drawFlyingTrain, carsOn, carsParked, coasterLamps, SINK, rollScale } from './art';
+import { drawCoasterBackdrop, drawCoasterBack, drawTrain, drawFlyingTrain, drawTrackPass, carsOn, carsParked, coasterLamps, SINK, rollScale } from './art';
+import { cview } from './paint';
 import * as L from './lines';
 import { updateThrones, drawThroneFront, inCase, throneState, throneHere } from './thrones';
 
@@ -97,12 +98,15 @@ const placeOf = (state: GameState): Place | null => {
 /** His feet on the front seat at a rail point, sat in it the way the other rides' cars sit him (cartSeat: the mine
  *  cart's pose, its sink), turned and rolled exactly as the car is (art.ts drawTrain: rotated along the rail, squashed
  *  by the roll; hung under the rail, upside down with it). */
-const seat = (state: GameState, x: number, y: number, a: number, roll: number) => {
-  const p = state.player, k = rollScale(roll);
-  p.pos.x = x + Math.sin(a) * SINK * k - p.width / 2;
-  p.pos.y = y - Math.cos(a) * SINK * k - p.height;
+/** At the track's depth there (track.ts DEPTH: `d`), put where the train's drawn about the scene's eye and scaled
+ *  with it (narrowed and squashed alike, about his feet: as big as the car he's in). */
+const seat = (state: GameState, x: number, y: number, a: number, roll: number, d = 1) => {
+  const p = state.player, k = rollScale(roll), e = cview(state).eye;
+  const fx = x + Math.sin(a) * SINK * k, fy = y - Math.cos(a) * SINK * k;
+  p.pos.x = e.x + (fx - e.x) * d - p.width / 2;
+  p.pos.y = e.y + (fy - e.y) * d - p.height;
   p.vel.x = 0; p.vel.y = 0;
-  p.spriteRot = a; p.spriteScaleY = k;
+  p.spriteRot = a; p.spriteScaleY = k * d; p.spriteScaleX = d === 1 ? undefined : d;
   p.facing = 1; p.cartSeat = true; p.isDucking = false;
 };
 const board = (state: GameState, co: Coaster, pl: Place) => {
@@ -160,7 +164,7 @@ const boarding0 = (r: Coaster['ride']) => r.beats.some(b => b.at === 'board') ||
 const offTrain = (state: GameState, co: Coaster) => {
   const p = state.player, r = co.ride;
   r.on = false; r.track = null; r.fly = null; r.fade = 0; r.zoom = 1;
-  p.carried = false; p.cartSeat = false; p.inCutscene = false; p.spriteRot = 0; p.spriteScaleY = undefined; p.facing = 1; p.hidden = false;
+  p.carried = false; p.cartSeat = false; p.inCutscene = false; p.spriteRot = 0; p.spriteScaleY = undefined; p.spriteScaleX = undefined; p.facing = 1; p.hidden = false;
   state.cameraOverride = null;
   setHazardZones(state, 'hwc-train', []);
 };
@@ -206,7 +210,7 @@ const riding = (ctx: FrameContext, co: Coaster): Controls => {
   p.inCutscene = true; p.carried = true;
   if (r.t > SKIP_AFTER) { offerSkip(); if (takeSkip()) { finish(state, co); return hands(); } }
   runScript(state, co);
-  let x: number, y: number, a: number, roll = 0;
+  let x: number, y: number, a: number, roll = 0, d = 1;
   if (r.fly) {
     // THE LAUNCH's flight: off the end, up and away, turning over (a long, floaty arc: the PA's still going); a
     // white-out once it's done, and he's at the warehouse
@@ -240,7 +244,7 @@ const riding = (ctx: FrameContext, co: Coaster): Controls => {
       if (r.fade >= 1) { r.track = tr = T.arrive; r.s = 0; r.v = 7; const p0 = tr.pts[0]; r.fx = p0.x; r.fy = p0.y; r.lx = r.ly = 0; }
     } else if (tr === T.arrive && r.fade > 0) r.fade = Math.max(0, r.fade - 1 / 30);
     const pt = pointOn(tr, r.s);
-    x = pt.x; y = pt.y; a = pt.a; roll = pt.roll;
+    x = pt.x; y = pt.y; a = pt.a; roll = pt.roll; d = pt.d;
     // Anybody on the track's run down (the station's gate staff, if he left them alive); nobody walks out in front of it
     const cars = carsOn(tr, Math.min(r.s, tr.len)), front = cars[0];
     for (const e of hazardVictims(state)) for (const k of cars) if (boxHits(e, k.x - 34, k.y - 92, 68, 92)) {
@@ -267,16 +271,19 @@ const riding = (ctx: FrameContext, co: Coaster): Controls => {
       else { r.s = tr.len; r.v = 0; }
     }
   }
-  seat(state, x, y, a, roll);
-  // The camera: pulled back on the train, looking a little ahead the way it's going (back in to his size on the brakes)
+  // The camera: pulled back on the train, looking a little ahead the way it's going (back in to his size on the brakes;
+  // a touch further in while the train's off in the distance, out while it's diving in near: it still swells and
+  // shrinks with the depth, the camera just keeps it in a frame)
   const mode = r.fly ? Mode.Free : pointOn(tr, r.s).mode;
   const look = Math.min(170, r.v * 9);
   r.lx += (Math.cos(a) * look - r.lx) * 0.05; r.ly += (Math.sin(a) * look * 0.6 - r.ly) * 0.05;
-  const want = r.fly ? 0.45 : mode === Mode.Brake ? 1 : tr === T.r3 ? 0.5 : 0.58;
+  const want = r.fly ? 0.45 : mode === Mode.Brake ? 1 : (tr === T.r3 ? 0.5 : 0.58) * Math.pow(1 / d, 0.4);
   r.zoom += (want - r.zoom) * (mode === Mode.Brake ? 0.05 : 0.03);
   r.fx += (x + r.lx - r.fx) * 0.2; r.fy += (y + r.ly - 40 * r.zoom - r.fy) * 0.2;
   state.camera.x = r.fx - CANVAS_WIDTH / 2; state.camera.y = r.fy - CANVAS_HEIGHT / 2;
   state.cameraOverride = { x: state.camera.x, y: state.camera.y };
+  // (him in his seat, at the track's depth about the eye the camera's just given: art.ts draws the train there too)
+  seat(state, x, y, a, roll, d);
   return hands();
 };
 
@@ -551,14 +558,16 @@ export const coaster: HollywoodSection = {
   drawOverWires: (c, state) => {
     const co = coasterOf(state), f = state.frame, r = co.ride;
     // The trains (after everything of the structure and the stunt rigs' chains: nothing of them across a car or him): parked at every place (one each: the ride runs a few), but the one he's on, going
-    if (r.on && r.track && !r.fly) drawTrain(c, carsOn(r.track, r.s), 'back', f, true);
+    if (r.on && r.track && !r.fly) drawTrain(c, carsOn(r.track, r.s), 'back', f, true, undefined, cview(state).eye);
     else if (r.on && r.fly) drawFlyingTrain(c, r.fly.x, r.fly.y, r.fly.rot, 'back', f);
     if (!r.on) for (const pl of ['station', 0, 1, 2] as Place[]) drawTrain(c, carsParked(pl), 'back', f, false, pl === 'station' ? undefined : !state.stageMemo[CLEARED_MEMO(pl)]);
   },
   drawFront: (c, state) => {
     const co = coasterOf(state), f = state.frame, r = co.ride, p = state.player;
-    if (r.on && r.track && !r.fly) drawTrain(c, carsOn(r.track, r.s), 'front', f, true);
+    if (r.on && r.track && !r.fly) drawTrain(c, carsOn(r.track, r.s), 'front', f, true, undefined, cview(state).eye);
     else if (r.on && r.fly) drawFlyingTrain(c, r.fly.x, r.fly.y, r.fly.rot, 'front', f);
+    // (riding: the track nearer the camera than the train, over it and him: track.ts DEPTH)
+    if (r.on) drawTrackPass(c, state, co, 'front');
     for (const s of co.plungers) drawPlunger(c, s.x, s.y, s.rot);
     if (co.faceStuck > 0 && p.health > 0) drawPlunger(c, p.pos.x + p.width / 2 + p.facing * 30, p.pos.y + 16, p.facing * Math.PI / 2);
     // (security's flashlight beams, while they aim)
