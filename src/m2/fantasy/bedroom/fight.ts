@@ -98,6 +98,8 @@ const DEBRIS_WARN = 56, DEBRIS_MAX = 6;
 // (more deadly, the user's: on longer, off shorter, wider, harder)
 const HAZ = { heat: [95, 55, 150], nitro: [90, 55, 140], wires: [85, 45, 140] } as const;
 const HEAT_DMG = 24, NITRO_DMG = 14, SHOCK_DMG = 26;
+/** After thawing, frames the nitrogen can't freeze him again (it's on for good: time to get clear of it). */
+const NITRO_REFREEZE = 70;
 /** The heat pipe's flame (half-width), the fire on the floor under it; the nitrogen's jet (length, height); the
  *  flooded patch (half-width). */
 const HEAT_HW = 44, HEAT_FLOOR = 90, NITRO_LEN = 280, NITRO_H = 70, PUDDLE_HW = 150;
@@ -150,7 +152,7 @@ export interface Fight {
   /** Him: knocked off his feet (frames left), frozen. */
   stun: number; ice: Ice | null;
   /** Just thawed: frames his specials (the charge, the dash) stay off, so the press that broke the ice can't fire one. */
-  thawT: number;
+  thawT: number; thawedAt: number;
   throwAt: number; rip: Element | null;
   /** A hop over to a loose part to throw from it (from, to: x); the camera pulled out for a throw from far off (its scale, eased). */
   hopFrom: number; hopTo: number; zo: number;
@@ -227,7 +229,7 @@ const fresh = (state: GameState, e: Enemy): Fight => ({
   x: CHAISE_X, y: GY, vy: 0, facing: -1, act: 'walk', actT: 0, actLen: 160, rot: 0, ang: 0,
   slams: 0, stage: 0, slamHit: false,
   hazards: [], debris: [], rubble: [], shots: [], patches: [], splats: [], holes: [], thin: 0,
-  chand: null, chandDown: null, roofHole: null, stun: 0, ice: null, thawT: 0, throwAt: -9999, rip: null, hopFrom: 0, hopTo: 0, zo: 1,
+  chand: null, chandDown: null, roofHole: null, stun: 0, ice: null, thawT: 0, thawedAt: -9999, throwAt: -9999, rip: null, hopFrom: 0, hopTo: 0, zo: 1,
   e, moveSeen: e.hitByMove, said: null, tauntT: 0, tauntHer: true, hintAt: -9999, wrongN: 0, lowSaid: false,
   intro: 'approach', introT: 0, skipT: 0, camX: state.camera.x, doorT: null, closeup: null,
   erect: 1, death: null, deathSaid: 0, cam: null, entrance: 0,
@@ -415,7 +417,7 @@ const himself = (ctx: FrameContext, f: Fight, controls: Controls): Controls => {
       playSound('glass', 0.9, 2);
       for (let k = 0; k < 18; k++) state.particles.push({ pos: { x: p.pos.x + Math.random() * p.width, y: p.pos.y + Math.random() * p.height }, vel: { x: (Math.random() - 0.5) * 7, y: -2 - Math.random() * 4 }, life: 30, color: k % 2 ? '#E0F2FE' : '#BAE6FD', size: 3 + Math.random() * 3, grav: 0.3 });
       setUi({ iceMash: null });
-      f.thawT = 15;
+      f.thawT = 15; f.thawedAt = f.total;
       return { ...NO_CONTROLS };
     }
     setUi({ iceMash: I.fill });
@@ -616,10 +618,10 @@ const loosen = (ctx: FrameContext, f: Fight, kind: HazardKind) => {
 // The mains (they never hurt her)
 
 const hazPhase = (h: Hazard) => {
-  const [q, tl, on] = HAZ[h.kind], T = q + tl + on, t = h.t % T;
-  if (t < q) return { s: 'quiet' as const, k: t / q };
-  if (t < q + tl) return { s: 'tell' as const, k: (t - q) / tl };
-  return { s: 'on' as const, k: (t - q - tl) / on };
+  // (once loose they stay on for good, the user's: no more in and out; the tell once, as it comes loose)
+  const tl = HAZ[h.kind][1], t = h.t;
+  if (t < tl) return { s: 'tell' as const, k: t / tl };
+  return { s: 'on' as const, k: Math.min(1, (t - tl) / 60) };
 };
 
 const tickHazards = (ctx: FrameContext, f: Fight) => {
@@ -647,7 +649,8 @@ const tickHazards = (ctx: FrameContext, f: Fight) => {
       if (inCol || inFire) hurtPlayer(ctx, HEAT_DMG, L.SRC.heat, { x: away * 7, y: -6 });
     } else if (h.kind === 'nitro') {
       const a = h.x, b = h.x + h.dir * NITRO_LEN * Math.min(1, ph.k * 6);
-      if (!f.ice && overlaps(state, Math.min(a, b), GY - NITRO_H, Math.max(a, b), GY)) freezeHim(ctx, f, NITRO_DMG, L.SRC.nitro);
+      // (always on now: just thawed, a moment to get out of it before it has him again)
+      if (!f.ice && f.total - f.thawedAt > NITRO_REFREEZE && overlaps(state, Math.min(a, b), GY - NITRO_H, Math.max(a, b), GY)) freezeHim(ctx, f, NITRO_DMG, L.SRC.nitro);
     } else {
       const feet = p.pos.y + p.height;
       if (feet >= GY - 6 && m.x > h.x - PUDDLE_HW && m.x < h.x + PUDDLE_HW) {
@@ -1269,8 +1272,8 @@ const drawHazard = (c: Ctx, h: Hazard, fr: number) => {
     box(c, h.x - 12, CEIL_Y + 38, 24, 6, '#4A1A0A');
     const glow = ph.s === 'tell' ? ph.k : ph.s === 'on' ? 1 : 0;
     if (glow > 0) { c.globalAlpha = 0.25 * glow; c.fillStyle = '#FDBA74'; c.beginPath(); c.arc(h.x, CEIL_Y + 44, 26 + glow * 10, 0, Math.PI * 2); c.fill(); c.globalAlpha = 1; box(c, h.x - 6, CEIL_Y + 40, 12, 4, fr % 4 < 2 ? '#FDE047' : '#F97316'); }
-    // (steam: a wisp quiet, a roar of it in the tell)
-    const puffs = ph.s === 'quiet' ? 1 : ph.s === 'tell' ? 4 : 0;
+    // (steam: a roar of it in the tell, as it comes loose)
+    const puffs = ph.s === 'tell' ? 4 : 0;
     for (let k = 0; k < puffs; k++) { const tt = ((fr * 1.5 + k * 13) % 40) / 40; c.globalAlpha = 0.6 * (1 - tt); c.fillStyle = '#F4F4F8'; c.fillRect(h.x - 6 - tt * 14 + k * 3, CEIL_Y + 44 + tt * 40, 10 + tt * 16, 8 + tt * 8); c.globalAlpha = 1; }
     if (ph.s === 'on') {
       // (the fire: a column down to the floor, licking, banded; burning on the carpet under it)
