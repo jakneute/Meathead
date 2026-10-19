@@ -134,7 +134,7 @@ export const GUARD_BARK: ByPants = {
 export const HURT: Record<string, { hurt: string[]; death: string[] }> = {
   'm2:space_cadet': {
     hurt: ['SPACE CADET! I WILL END YOUR MISSION!', 'GET YOUR FISHBOWL OFF ME!', 'OW! YOU NERD!'],
-    death: ['BEATEN UP BY A SPACE CADET', 'KILLED BY A GUY IN A FISHBOWL'],
+    death: ['BEATEN UP BY A SPACE CADET', 'KILLED BY A FISHBOWL HEAD'],
   },
   'm2:space_cadet_shot': {
     hurt: ['A TOY GUN! A TOY GUN SHOT ME!', 'PEW PEW, MY ASS! THAT HURT!', 'WHAT DO THEY PUT IN THESE THINGS?!'],
@@ -154,7 +154,7 @@ export const HURT: Record<string, { hurt: string[]; death: string[] }> = {
   },
   'm2:space_guard_baton': {
     hurt: ['STUN STICK! RIGHT IN THE TITS!', 'OW! MY NIPPLES ARE ON FIRE!', 'DON\'T TASE ME, BRO! I MEAN IT!'],
-    death: ['CHARGED RIGHT INTO A STUN BATON', 'TASED, BRO'],
+    death: ['CHARGED INTO A STUN BATON', 'TASED, BRO'],
   },
   'm2:space_jetpack': {
     hurt: ['JETPACK IN MY FACE!', 'YOUR EXHAUST IS IN MY HAIR!', 'GET DOWN HERE, ROCKET BOY!'],
@@ -162,7 +162,7 @@ export const HURT: Record<string, { hurt: string[]; death: string[] }> = {
   },
   'm2:space_icecream': {
     hurt: ['ASTRONAUT ICE CREAM! IT\'S A BRICK!', 'FREEZE-DRIED RIGHT IN THE TEETH!', 'THAT AIN\'T ICE CREAM! THAT\'S A ROCK!'],
-    death: ['STONED TO DEATH WITH ASTRONAUT ICE CREAM', 'FREEZE-DRIED'],
+    death: ['STONED WITH SPACE ICE CREAM', 'FREEZE-DRIED'],
   },
   'm2:space_rover': {
     hurt: ['THE ROBOT DOG BIT ME!', 'BAD DOG! BAD ROBOT!', 'IT HUMPED MY ANKLE!'],

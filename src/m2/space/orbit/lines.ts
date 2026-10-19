@@ -162,7 +162,7 @@ export const HURT = {
   },
   'm2:zmine': {
     hurt: ['SPACE MINE!', 'WHO MINES SPACE?!', 'MY BALLS HIT MY CHIN!', 'THE BLINKY THING BLEW UP!'],
-    death: ['STEPPED ON A MINE IN SPACE', 'MINED', 'IN PIECES IN ORBIT', 'BURNED UP ON REENTRY, IN BITS'],
+    death: ['STEPPED ON A MINE IN SPACE', 'MINED', 'IN PIECES IN ORBIT', 'BURNED UP ON REENTRY'],
   },
   'm2:asteroid': {
     hurt: ['ROCK!', 'A FUCKING ASTEROID!', 'A ROCK HIT MY FACE GLASS!', 'SPACE IS FULL OF SHIT!'],
