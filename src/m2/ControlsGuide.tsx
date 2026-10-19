@@ -1,7 +1,7 @@
 import React, { useSyncExternalStore } from 'react';
 import { PadIcon, BindingIcon, useBoundKeys, type PadKey } from '../m1/components/ButtonIcons';
 import { useInputDevice, usePadFamily } from '../m1/components/useInputDevice';
-import { subscribeKeys, keysVersion } from '../m1/game/platform/keys';
+import { subscribeKeys, keysVersion, keysFor, keyLabel } from '../m1/game/platform/keys';
 import type { GuidePage } from '../m1/components/OptionsScreen';
 
 // Meathead 2's CONTROLS page (the options screen's, OptionsScreen.tsx's guide pages): every move's name and its buttons,
@@ -11,12 +11,11 @@ import type { GuidePage } from '../m1/components/OptionsScreen';
 /** One way to do it: buttons pressed together (+), or one after another / any of them (/). */
 type Chord = { k: string[]; join?: '+' | '/' };
 /** A move: its name, the controller's ways (positional buttons), the keyboard and mouse's ways. */
-type Row = { label: string; pad: Chord[]; kb: Chord[] };
+type Row = { label: string; pad: Chord[]; kb: Chord[]; dirs?: boolean };
 type Section = { head: string; rows: Row[] };
 
 const c = (join: '+' | '/', ...k: string[]): Chord => ({ k, join });
 const one = (...k: string[]): Chord => ({ k });
-const DIRS = ['@up', '@left', '@down', '@right'];
 
 const Sep: React.FC<{ s: string }> = ({ s }) => <span className={s === '+' ? 'text-yellow-300 text-[9px] px-[1px]' : 'text-zinc-500 px-[1px]'}>{s}</span>;
 
@@ -27,16 +26,28 @@ const KbChord: React.FC<{ ch: Chord }> = ({ ch }) => {
   return <>{keys.map((k, i) => <React.Fragment key={i}>{i > 0 && <Sep s={ch.join ?? '/'} />}<BindingIcon code={k.code} name={k.name} size={12} /></React.Fragment>)}</>;
 };
 
+/** The four directions on the keyboard as sets: each set the n-th key bound to up, left, down, right (the arrows, WASD),
+ *  the arrows' set first. */
+const DirsKb: React.FC = () => {
+  useSyncExternalStore(subscribeKeys, keysVersion, keysVersion);
+  const per = (['up', 'left', 'down', 'right'] as const).map(a => keysFor(a));
+  const n = Math.max(...per.map(k => k.length));
+  const sets = Array.from({ length: n }, (_, i) => per.map(k => k[i]).filter((k): k is string => !!k)).filter(s => s.length)
+    .sort((a, b) => Number(b.some(k => k.startsWith('arrow'))) - Number(a.some(k => k.startsWith('arrow'))));
+  if (!sets.length) return <span className="text-red-500">NONE</span>;
+  return <>{sets.map((s, i) => <React.Fragment key={i}>{i > 0 && <Sep s="/" />}{s.map((k, j) => <BindingIcon key={j} code={k} name={keyLabel(k)} size={12} />)}</React.Fragment>)}</>;
+};
+
 const RowView: React.FC<{ row: Row; pad: boolean }> = ({ row, pad }) => {
   const family = usePadFamily();
   const single = family === 'joycon-l' || family === 'joycon-r';
   const ways = pad ? row.pad.map(ch => ({ ...ch, k: single ? ch.k.filter(k => k !== 'RT' && k !== 'LT') : ch.k })).filter(ch => ch.k.length) : row.kb;
-  if (!ways.length) return null;
+  if (!ways.length && !(row.dirs && !pad)) return null;
   return (
     <div className="flex items-center justify-between gap-2 border-b border-[#2c0c0c] py-[1px] min-h-[17px]">
       <span className="text-[#f4701c] font-bold tracking-wider">{row.label}</span>
       <span className="inline-flex items-center gap-[2px] shrink-0">
-        {ways.map((ch, i) => (
+        {row.dirs && !pad ? <DirsKb /> : ways.map((ch, i) => (
           <React.Fragment key={i}>
             {i > 0 && <Sep s="/" />}
             {pad ? ch.k.map((k, j) => <React.Fragment key={j}>{j > 0 && <Sep s={ch.join ?? '/'} />}<PadIcon k={k as PadKey} size={12} family={family} /></React.Fragment>) : <KbChord ch={ch} />}
@@ -75,7 +86,7 @@ const Sheet: React.FC<{ left: Section[]; right: Section[] }> = ({ left, right })
 // ---- the moves (game/platform/input.ts readControls; App.tsx's weapons and pause; moves/grab.ts's grabs)
 const MOVES: Section[] = [
   { head: 'BASICS', rows: [
-    { label: 'MOVE / CROUCH', pad: [one('DPAD')], kb: [c('/', ...DIRS)] },
+    { label: 'MOVE / CROUCH', pad: [one('LSTICK'), one('DPAD')], kb: [], dirs: true },
     { label: 'JUMP', pad: [one('A')], kb: [one('@@jump')] },
     { label: 'FIRE', pad: [one('X'), one('RT')], kb: [one('@@fire')] },
     { label: 'SECONDARY FIRE (TAP)', pad: [one('Y')], kb: [one('@@secondary')] },
