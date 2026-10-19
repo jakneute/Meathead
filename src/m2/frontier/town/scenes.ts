@@ -225,7 +225,25 @@ const dropSheriff = (ctx: FrameContext, call: string) => {
   const s = townOf(ctx.state).duel.sheriff;
   if (!s || s.health <= 0) return;
   s.puppet = false; s.harmless = false; s.seen = true; s.pauseTimer = 0;
-  hazardKill(ctx, s, ctx.state.player.pos.x, call, { fling: { x: 6, y: -7 }, sound: 'gun' });
+  // (over backwards, where he stood, so it's seen (the user's); then, a beat later, he goes off: SHERIFF_BOOM)
+  const away = Math.sign(s.pos.x + s.width / 2 - (ctx.state.player.pos.x + ctx.state.player.width / 2)) || 1;
+  hazardKill(ctx, s, ctx.state.player.pos.x, call, { fling: { x: away * 1.6, y: -3.5 }, sound: 'gun' });
+  sheriffBoom = { e: s, at: ctx.state.frame + SHERIFF_BOOM };
+};
+/** Frames after he falls over that the sheriff explodes (outdrawn or shot first: the user's). */
+const SHERIFF_BOOM = 50;
+let sheriffBoom: { e: Enemy; at: number } | null = null;
+const boomSheriff = (ctx: FrameContext) => {
+  if (!sheriffBoom || ctx.state.frame < sheriffBoom.at) return;
+  const { e } = sheriffBoom, { state, fx } = ctx;
+  sheriffBoom = null;
+  if (!state.enemies.includes(e)) return;
+  const at = { x: e.pos.x + e.width / 2, y: e.pos.y + e.height / 2 };
+  fx.spawnDeathShower(at, 0, 2.2);
+  fx.spawnExplosion(at, '#B91C1C', 30, 0, 18);
+  fx.spawnExplosion(at, '#FDE047', 12, 0, 10);
+  playSound('boom', 1, -4); playSound('gorespray', 1, -2); shakeScreen(state, 12, 6);
+  state.enemies = state.enemies.filter(o => o !== e);
 };
 
 const win = (ctx: FrameContext) => {
@@ -281,6 +299,7 @@ const runDuel = (ctx: FrameContext, controls: Controls): Controls => {
   const { state } = ctx, tw = townOf(state), d = tw.duel, g = tw.showdown, p = state.player, s = d.sheriff;
   const cx = p.pos.x + p.width / 2, feet = p.pos.y + p.height;
   if (d.cardT > 0) d.cardT--;
+  boomSheriff(ctx);
   // (shot before the duel's even begun (from down the street, before he's walked to his mark): one shot does him, the
   // user's, and that's cheating: the posse; anything of his that reached him counts)
   if (s && s.health > 0 && d.phase === 'wait' && p.health > 0 && (s.health < s.maxHealth || s.isBlownAway || (s.hitFlash ?? 0) > 0 || s.meleeFlung || s.uppercutFlung)) {
