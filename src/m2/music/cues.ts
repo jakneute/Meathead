@@ -28,7 +28,7 @@ import { SONGS } from './songs/index';
 import { soundTestCue, type Cue } from './soundTest';
 import { momentOn } from './moments';
 import { bossFightName, inBossFight } from '../bossQuiet';
-import { getUi, walkBackOn } from '../store';
+import { getUi, walkBackOn, isLandCleared } from '../store';
 import { HUB_STAGE } from '../hub/index';
 import { PEN_STAGE } from '../pen/index';
 import { INTRO_STAGE } from '../intro/index';
@@ -43,6 +43,13 @@ import { HOUSE_DOOR } from '../space/crater/layout';
 import { LIFT_X0, ACT2_X } from '../space/ride/layout';
 import { TX0 } from '../spooky/tower/layout';
 import { SHOP_X } from '../spooky/control/geo';
+import { coasterOf } from '../hollywood/coaster/state';
+import { STATION, x0 as COASTER_X0 } from '../hollywood/coaster/layout';
+import { dzOf } from '../hollywood/disaster/state';
+import { PRESHOW, THEATER, x0 as DZ_X0 } from '../hollywood/disaster/layout';
+import { hvOf, FLUNG_MEMO } from '../hollywood/havoc/state';
+import { WIND, QUAKE, CLIMB, DOWNHILL, CHASE_AT, x0 as HV_X0 } from '../hollywood/havoc/layout';
+import { realDisastersOn } from '../hollywood/section';
 
 export type { Cue };
 
@@ -113,6 +120,7 @@ const jungleOwn = (s: GameState) => ((s.stage as { s?: JungleOwn } | null)?.s ??
 /** A sequence's arrangement by what's on in it: on the boat or under it; Artie on his tail in the cart; Artie having
  *  his say on the roof, or the roof coming in. */
 const seqArrs = (s: GameState, land: string, sec: string): string[] => {
+  if (land === 'hollywood') return hollywoodArrs(s, sec);
   if (land === 'space') {
     // (XENOSCARE, the crater past its door; the basement's stairs' top and the disco; the star sled by where it is:
     // the dark ride, the chain lift, space, and the warehouse once the work lights are on)
@@ -140,9 +148,48 @@ const seqArrs = (s: GameState, land: string, sec: string): string[] => {
   return [];
 };
 /** A sequence that's done while he's still in its section (the roof, once he's tumbled off it: the land's again), or
- *  isn't on yet (the clock tower's loading bay: the land's, the bay's old record). */
+ *  isn't on yet (the clock tower's loading bay: the land's, the bay's old record); the havoc once the tornado's
+ *  spent (the revisit's wreckage: the land's 'havoc'). */
 const seqOver = (s: GameState, land: string, sec: string) =>
-  (land === 'adventure' && sec === 'roof' && !!jungleOwn(s).roof?.tumbled) || (land === 'spooky' && sec === 'tower' && s.player.pos.x + s.player.width / 2 < TX0);
+  (land === 'adventure' && sec === 'roof' && !!jungleOwn(s).roof?.tumbled) || (land === 'spooky' && sec === 'tower' && s.player.pos.x + s.player.width / 2 < TX0) ||
+  (land === 'hollywood' && sec === 'havoc' && havocSpent(s));
+
+/** The havoc's tornado spent (the fling's been: havoc/hazards.ts spent()). */
+const havocSpent = (s: GameState) => s.stageMemo[FLUNG_MEMO] === '1' || s.checkpoint >= 60 || isLandCleared('hollywood');
+/** DISASTER: THE RIDE's narrator's loop, its disasters in order (disaster/show.ts DISASTERS). */
+const SHOW_ARR = ['quake', 'volcano', 'tornado', 'blizzard', 'flood', 'wildfire'];
+/** Hollywood Land's sequences by what's on in them: THRONES OF THE STARS by the ride (the station's queue, sat on
+ *  the parked train, riding, the launch, a stop's staff coming for him); DISASTER: THE RIDE by the room (the queue,
+ *  the pre-show, the theater by the disaster on, REAL DISASTERS going, the wreck after); the havoc by the stretch (the
+ *  street, the wind, the quake, the flood climb, the blizzard, the tornado's chase, the fling). */
+const hollywoodArrs = (s: GameState, sec: string): string[] => {
+  const cx = s.player.pos.x + s.player.width / 2;
+  if (sec === 'coaster') {
+    const co = coasterOf(s), r = co.ride;
+    if (r.on) return [r.at !== null ? 'board' : r.name === 'launch' ? 'launch' : 'ride'];
+    if (co.stops.some(st => st.phase === 'intro' || st.phase === 'fight')) return ['stop'];
+    return [cx - COASTER_X0 < STATION.b ? 'queue' : 'board'];
+  }
+  if (sec === 'disaster') {
+    const rx = cx - DZ_X0, o = dzOf(s);
+    if (rx < PRESHOW.a) return ['lobby'];
+    if (rx < THEATER.a) return ['preshow'];
+    if (o.real.phase === 'on' || rx >= THEATER.b) return ['real'];
+    if (o.real.phase === 'done' || realDisastersOn(s)) return ['wrecked'];
+    return [o.show.on && o.show.t >= 0 ? SHOW_ARR[o.show.beat] ?? 'theater' : 'theater'];
+  }
+  if (sec === 'havoc') {
+    const rx = cx - HV_X0, hv = hvOf(s);
+    if (hv.fling.step !== 'off') return ['fling'];
+    if (hv.tornado.on || rx >= CHASE_AT - 100) return ['chase'];
+    if (rx >= DOWNHILL.a) return ['blizzard'];
+    if (rx >= CLIMB.a) return ['flood'];
+    if (rx >= QUAKE[0][0]) return ['quake'];
+    if (rx >= WIND[0][0]) return ['wind'];
+    return ['street'];
+  }
+  return [];
+};
 
 /** Spooky Land's sections' own state, as much as the music looks at (spooky/dungeon, tower, hell). */
 interface SpookyOwn { dungeon?: { room?: string }; tower?: { crashed?: boolean }; hell?: { fin?: { full?: boolean; step?: string } | null } }
@@ -231,7 +278,9 @@ const gameWants = (s: GameState | null): Want => {
   const moment = land === 'spooky' ? spookyMoment(s, sec) : null;
   if (moment) return { cands: [moment, theme], cutscene: false };
   const seq = SEQUENCES[land]?.[sec];
-  if (seq && !seqOver(s, land, sec)) return { cands: [{ song: `seq:${seq}`, arrs: seqArrs(s, land, sec) }, theme], cutscene };
+  // (Hollywood Land's rides are shows he sits through (the coaster's laps, REAL DISASTERS, the fling): their songs at
+  // full, by what's on (hollywoodArrs), not the quieter cutscene mix)
+  if (seq && !seqOver(s, land, sec)) return { cands: [{ song: `seq:${seq}`, arrs: seqArrs(s, land, sec) }, theme], cutscene: cutscene && land !== 'hollywood' };
   return { cands: [theme], cutscene };
 };
 

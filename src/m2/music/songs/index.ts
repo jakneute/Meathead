@@ -16,6 +16,8 @@ import { LAND_SPOOKY, SEQ_CLOCK_TOWER, SEQ_RED_MIST, SEQ_SATAN } from './spooky'
 import { BOSS_DEMON, BOSS_DONNIE } from './spookyBosses';
 import { LAND_SPACE, SEQ_SPACE_TRAIN, SEQ_STALKER } from './space';
 import { BOSS_UFO, BOSS_SPACE_QUEEN } from './spaceBosses';
+import { LAND_HOLLYWOOD, SEQ_COASTER, SEQ_DISASTER_RIDE, SEQ_HAVOC } from './hollywood';
+import { BOSS_ENSEMBLE, BOSS_STEVE } from './hollywoodBosses';
 
 export const SONGS: Record<string, Song> = {
   title: TITLE,
@@ -57,4 +59,10 @@ export const SONGS: Record<string, Song> = {
   'seq:stalker': SEQ_STALKER,
   'boss:ufo': BOSS_UFO,
   'boss:space-queen': BOSS_SPACE_QUEEN,
+  'land:hollywood': LAND_HOLLYWOOD,
+  'seq:coaster': SEQ_COASTER,
+  'seq:disaster-ride': SEQ_DISASTER_RIDE,
+  'seq:havoc': SEQ_HAVOC,
+  'boss:ensemble-cast': BOSS_ENSEMBLE,
+  'boss:stuntman-steve': BOSS_STEVE,
 };
