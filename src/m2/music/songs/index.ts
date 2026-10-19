@@ -22,6 +22,8 @@ import { LAND_FOREIGN, SEQ_HELI } from './foreign';
 import { BOSS_HELI_GAUNTLET, BOSS_HARRY } from './foreignBosses';
 import { LAND_FRONTIER, SEQ_TRAIN, SEQ_BRAWL, SEQ_DUEL, SEQ_DRAW, SEQ_LOG_RIDE } from './frontier';
 import { SEQ_ROAD_RASH, BOSS_TUCKER } from './frontierBosses';
+import { LAND_FANTASY, SEQ_TRAGONS } from './fantasy';
+import { BOSS_FAIRY_WHEEL, BOSS_BROOMSTICKS, BOSS_PIPER } from './fantasyBosses';
 
 export const SONGS: Record<string, Song> = {
   title: TITLE,
@@ -83,4 +85,9 @@ export const SONGS: Record<string, Song> = {
   'seq:road-rash': SEQ_ROAD_RASH,
   'boss:teenagers': SEQ_ROAD_RASH,
   'boss:tucker': BOSS_TUCKER,
+  'land:fantasy': LAND_FANTASY,
+  'seq:tragons': SEQ_TRAGONS,
+  'boss:fairy-wheel': BOSS_FAIRY_WHEEL,
+  'boss:broomsticks': BOSS_BROOMSTICKS,
+  'boss:piper': BOSS_PIPER,
 };

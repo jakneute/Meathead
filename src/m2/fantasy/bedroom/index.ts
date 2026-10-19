@@ -68,6 +68,13 @@ const endOf = (state: GameState): { how: 'cork' | 'balloon'; x: number } | null 
 
 const pmidX = (state: GameState) => state.player.pos.x + state.player.width / 2;
 
+/** For the music (music/cues.ts): her fight as the score hears it (the intro's step, what she's at, how much of her
+ *  666 is left); null outside it. */
+export const piperMusic = (state: GameState) => {
+  const s = bedroomOf(state), f = s.f;
+  return s.fight === 'on' && f ? { mode: f.mode, intro: f.intro, act: f.act, hp: f.hp / 666 } : null;
+};
+
 export const bedroom: FantasySection = {
   id: 'bedroom', x0, x1: ARENA_R + 400,
   checkpoints: [

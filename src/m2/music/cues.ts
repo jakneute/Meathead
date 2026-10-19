@@ -61,13 +61,20 @@ import { rideOf } from '../frontier/logride/state';
 import { zoneAt, CUTTER_FROM, x0 as LR_X0 } from '../frontier/logride/layout';
 import { arenaOf } from '../frontier/arena/state';
 import { chaseMusic } from '../frontier/dirtbike/chase';
+import { SECTIONS as FA_SECTIONS } from '../fantasy/geometry';
+import { squareOf } from '../fantasy/square/state';
+import { keepOf } from '../fantasy/keep/state';
+import { wheelOf } from '../fantasy/wheel/state';
+import { tragonsOf } from '../fantasy/tragons/state';
+import { LANE_ID } from '../fantasy/tragons/layout';
+import { broomMusic } from '../fantasy/broom/fight';
+import { piperMusic } from '../fantasy/bedroom/index';
 
 export type { Cue };
 
 /** Each land's stage, by its lands.ts id. */
 const LAND_OF_STAGE: Record<string, string> = {
   [ADV_STAGE]: 'adventure', [SPOOKY_STAGE]: 'spooky', [SPACE_STAGE]: 'space', [HOLLYWOOD_STAGE]: 'hollywood', [FOREIGN_STAGE]: 'foreign', [FRONTIER_STAGE]: 'frontier',
-  // (Fairy Land's songs aren't written yet: no 'land:fantasy' in SONGS, so pick() finds nothing and it's quiet there)
   [FANTASY_STAGE]: 'fantasy',
 };
 /** The special sequences: a land's section that's a ride or a chase of its own ('seq:<name>'). */
@@ -81,12 +88,15 @@ export const SEQUENCES: Record<string, Record<string, string>> = {
   foreign: { heli: 'heli' },
   // (the dirt-bike chase is the TEENAGERS' fight: its music's theirs, below; the trail either side of it is the land's)
   frontier: { train: 'train', logride: 'log-ride' },
+  // (the fairy wheel and the broomsticks are sub-bosses: their music's theirs, below)
+  fantasy: { tragons: 'tragons' },
 };
 /** A fight that doesn't name itself: who it is, by land and section. (Future Land's saucer has the whole orbit.) */
 export const SECTION_BOSS: Record<string, string> = {
   'adventure:dino': 'trex', 'adventure:clearing': 'safari-artie', 'spooky:hell': 'demon', 'spooky:ballroom': 'donnie-dracula',
   'space:orbit': 'ufo', 'space:queen': 'space-queen', 'hollywood:warehouse': 'ensemble-cast', 'hollywood:stunt': 'stuntman-steve',
   'foreign:heli': 'heli-gauntlet', 'foreign:harry': 'helicopter-harry', 'frontier:dirtbike': 'teenagers', 'frontier:arena': 'tucker',
+  'fantasy:wheel': 'fairy-wheel', 'fantasy:broom': 'broomsticks', 'fantasy:bedroom': 'piper',
 };
 /** Fights whose music is a sequence's (the TEENAGERS are the Road Rash chase), and sections that are all one fight. */
 const BOSS_ALSO: Record<string, string> = { teenagers: 'seq:road-rash', 'heli-gauntlet': 'seq:heli' };
@@ -135,6 +145,7 @@ const jungleOwn = (s: GameState) => ((s.stage as { s?: JungleOwn } | null)?.s ??
 const seqArrs = (s: GameState, land: string, sec: string): string[] => {
   if (land === 'hollywood') return hollywoodArrs(s, sec);
   if (land === 'frontier') return frontierArrs(s, sec);
+  if (land === 'fantasy') return fantasyArrs(s, sec);
   if (land === 'foreign') return sec === 'heli' ? [heliSeqArr(s)] : [];
   if (land === 'space') {
     // (XENOSCARE, the crater past its door; the basement's stairs' top and the disco; the star sled by where it is:
@@ -168,7 +179,39 @@ const seqArrs = (s: GameState, land: string, sec: string): string[] => {
 const seqOver = (s: GameState, land: string, sec: string) =>
   (land === 'adventure' && sec === 'roof' && !!jungleOwn(s).roof?.tumbled) || (land === 'spooky' && sec === 'tower' && s.player.pos.x + s.player.width / 2 < TX0) ||
   (land === 'hollywood' && sec === 'havoc' && havocSpent(s)) || (land === 'foreign' && sec === 'heli' && !!foreignOwn(s).heli?.over) ||
-  (land === 'frontier' && sec === 'train' && trainOf(s).phase === 'still') || (land === 'frontier' && sec === 'logride' && logOver(s));
+  (land === 'frontier' && sec === 'train' && trainOf(s).phase === 'still') || (land === 'frontier' && sec === 'logride' && logOver(s)) ||
+  (land === 'fantasy' && sec === 'tragons' && (tragonsOf(s).phase === 'arrive' || tragonsOf(s).phase === 'done'));
+
+/** Fairy Land's sections as the music hears them: TRUELLING TRAGONS by the ride (the load hall; out of the station and
+ *  up the lift hill; then the car he's on, or hopping to: fire, ice, lightning); the castle's base past the broom
+ *  port (the runway); her room cleared (a revisit: wrecked). */
+const fantasyArrs = (s: GameState, sec: string): string[] => {
+  if (sec === 'tragons') {
+    const t = tragonsOf(s);
+    if (t.phase === 'load') return ['station'];
+    if (t.phase === 'dispatch' || (t.phase === 'ride' && t.dist < 4800)) return ['lift'];
+    return [LANE_ID[t.hop ? t.hop.to : t.lane]];
+  }
+  if (sec === 'keep' && s.player.pos.x + s.player.width / 2 - FA_SECTIONS.keep.x0 >= 9000) return ['runway'];
+  if (sec === 'bedroom' && isLandCleared('fantasy')) return ['wrecked'];
+  return [];
+};
+/** Fairy Land's moments inside a section: Piper on the town's PA (the loudspeaker's scene), the broom port's scene. */
+const fantasyMoment = (s: GameState, sec: string): Cand | null => {
+  if (sec === 'square') { const st = squareOf(s).scene.step; if (st === 'walk' || st === 'talk' || st === 'fade') return { song: 'land:fantasy', arrs: ['speaker'] }; }
+  if (sec === 'keep') { const st = keepOf(s).scene.step; if (st !== 'wait' && st !== 'done') return { song: 'land:fantasy', arrs: ['runway'] }; }
+  return null;
+};
+/** Piper's song by her fight: the door and her purring on the chaise (the intro); him seeing her, fat, ugly (awkward);
+ *  enraged on (main; fury in her last third); round the room like a let-go balloon after a flintlock hole; her death. */
+const piperArr = (s: GameState) => {
+  const m = piperMusic(s);
+  if (!m) return 'main';
+  if (m.mode === 'dead') return 'death';
+  if (m.mode === 'intro') return m.intro === 'sees' || m.intro === 'fat' || m.intro === 'ugly' ? 'awkward' : m.intro === 'rage' || m.intro === 'fight' || m.intro === 'on' ? 'main' : 'intro';
+  if (m.act === 'bounce' || m.act === 'flop' || m.act === 'getup') return 'balloon';
+  return m.hp <= 1 / 3 ? 'fury' : 'main';
+};
 
 /** Wilderness Land's sections as the music hears them: the town's and the log ride's stretches (the HUD's: index.ts
  *  hudZone); the train by where he is on it (the run for the caboose, on top, in a car, in a tunnel, the engine's
@@ -257,6 +300,9 @@ const bossArrs = (s: GameState, boss: string, cutscene: boolean): string[] => {
   if (boss === 'heli-gauntlet') return [heliArr(s)];
   if (boss === 'helicopter-harry' && !cutscene && foreignOwn(s).harry?.f?.crumbled) return ['rage'];
   if (boss === 'teenagers') { const c = chaseMusic(s); return c.outro ? ['outro'] : c.last ? ['last'] : []; }
+  if (boss === 'fairy-wheel') return wheelOf(s).qte ? ['qte'] : [];
+  if (boss === 'broomsticks') return [broomMusic(s)];
+  if (boss === 'piper') return [piperArr(s)];
   return [];
 };
 
@@ -394,13 +440,14 @@ const gameWants = (s: GameState | null): Want => {
   // Future Land's basement: the queen stalking him in the dark (the user's: atmospheric, creepy)
   if (land === 'space' && sec === 'queen' && p.pos.y + p.height > CEIL_B + 30 && p.pos.x < STAIRS_B) return { cands: [{ song: 'seq:stalker', arrs: [stalkerArr(s)] }, { song: 'land:space', arrs: ['stalker', 'queen'] }], cutscene };
   // Spooky Land's chamber and Satan (a scene, but not quieter: it's his)
-  const moment = land === 'spooky' ? spookyMoment(s, sec) : land === 'frontier' ? frontierMoment(s, sec) : null;
+  const moment = land === 'spooky' ? spookyMoment(s, sec) : land === 'frontier' ? frontierMoment(s, sec) : land === 'fantasy' ? fantasyMoment(s, sec) : null;
   if (moment) return { cands: [moment, theme], cutscene: false };
   const seq = SEQUENCES[land]?.[sec];
   // (Hollywood Land's rides are shows he sits through (the coaster's laps, REAL DISASTERS, the fling): their songs at
   // full, by what's on (hollywoodArrs), not the quieter cutscene mix; and the helicopter's tour, the ride's own tape;
-  // and Wilderness Land's run for the caboose, the engine's crash, the booth's scene and the chipper's leap)
-  if (seq && !seqOver(s, land, sec)) return { cands: [{ song: `seq:${seq}`, arrs: seqArrs(s, land, sec) }, theme], cutscene: cutscene && land !== 'hollywood' && land !== 'foreign' && land !== 'frontier' };
+  // and Wilderness Land's run for the caboose, the engine's crash, the booth's scene and the chipper's leap; and
+  // Truelling Tragons)
+  if (seq && !seqOver(s, land, sec)) return { cands: [{ song: `seq:${seq}`, arrs: seqArrs(s, land, sec) }, theme], cutscene: cutscene && land !== 'hollywood' && land !== 'foreign' && land !== 'frontier' && land !== 'fantasy' };
   return { cands: [theme], cutscene };
 };
 

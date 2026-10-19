@@ -94,8 +94,10 @@ come up with a normal death that is fitting for a fat bitch.
   enraged, a close-up portrait). She isn't seen in the square (only heard).
 - **Piper's fight:** the user's design (above), built in job 7 (bedroom/: section 7 in detail below). Her standard death
   is ours (THE CORK), the user's to revise.
-- **Music:** none yet. Fairy Land's in music/cues.ts's LAND_OF_STAGE, and with no `land:fantasy` song it's quiet (the
-  music job adds the songs).
+- **Music:** written (music/songs/fantasy.ts, fantasyBosses.ts; MUSIC.md has the rows): the land's theme with an
+  arrangement per section, Truelling Tragons' song by the car he's on, and the fairy wheel's, the broomsticks' and
+  Piper's own. cues.ts fantasyArrs / fantasyMoment / bossArrs read broom/fight.ts broomMusic and bedroom/index.ts
+  piperMusic.
 
 ## The section plan (world x; checkpoints numbered across the land)
 
@@ -532,3 +534,11 @@ markBossFight every frame of a boss or sub-boss fight. Voice every new line (`np
   died is `fa-piper-end` in state.stageMemo (`cork:<x>` / `balloon:<x>`): a revisit's room is wrecked and empty (the
   canopy down, a chandelier down, the hole in her ceiling and the floor she was wedged in, or the heap), the door down,
   no refill, the way back out the hall.
+- (music job) The land's theme "Once Upon a Line" (a storybook 6/8, F-sharp major, 114) re-orchestrated per section
+  (the loudspeaker's scene and the broom port's play their own arrangements, not the cutscene mix); "O Fortuna, Times
+  Three" for Truelling Tragons (B-flat minor, 174, 3/4: the station, the lift hill, then the lead by the car he's on);
+  "Pick Me! Pick Me!" for the fairy wheel (a 60s dating-game bounce, F, 140; the QTEs get the think music); "Last Man
+  Flying" for the broomsticks (Star Fox 64 meets a John Williams flying theme, C, 156; louder for the late entries,
+  the theme alone for the window); "It Ain't Over" for Piper (a symphonic-metal rage aria, E-flat minor, 136: purring
+  for the intro, a ticking clock while he sizes her up, ENRAGED on, a theremin and slide whistle while she's a let-go
+  balloon, her music box for her deaths).

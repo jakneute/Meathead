@@ -153,6 +153,11 @@ const fightOf = (state: GameState) => fantasyState<Fight>(state, 'broom', () => 
   deathLast: -1, fallY: 0, fallRot: 0,
 }));
 export const inFight = (state: GameState) => fightOf(state).phase !== 'off';
+/** For the music (music/cues.ts): the first lot, the late entries in, or the window (the barrier, the zoom). */
+export const broomMusic = (state: GameState): 'main' | 'late' | 'win' => {
+  const f = fightOf(state);
+  return f.phase === 'win' || f.phase === 'zoom' ? 'win' : keptOf().late ? 'late' : 'main';
+};
 
 const rnd = Math.random;
 /** Playing on a Nintendo pad (a Pro Controller, Joy-Con): the broom's boost and brake swap (the user's). */
