@@ -311,7 +311,7 @@ export const drawBooth = (c: Ctx, state: GameState) => {
   if (inScene(s)) {
     const pose = s.step === 'burst' ? 'run' : s.step === 'shove' ? (s.t < 18 ? 'shove' : 'stand') : s.step === 'engage' ? 'slam' : s.step === 'press' ? (s.t < 12 ? 'slam' : 'press') : s.step === 'fall' || s.step === 'after' || s.step === 'go' ? 'flat' : 'press';
     const capless = s.step === 'fall' || s.step === 'after' || s.step === 'go';
-    const w = s.step === 'fall' || s.step === 'after' || s.step === 'go' ? { ...wounds, saw: true } : wounds;
+    const w = s.step === 'close' || s.step === 'last' || s.step === 'fall' || s.step === 'after' || s.step === 'go' ? { ...wounds, saw: true } : wounds;
     if (pose === 'flat' && s.t < 14 && s.step === 'fall') {
       // (toppling: tipped back over his heels)
       c.save(); c.translate(s.tx, FLOOR); c.rotate(-(s.t / 14) * 1.4); drawTucker(c, 0, 0, 1, f, 'hurt', { wounds: w, face: 'out' }); c.restore();
