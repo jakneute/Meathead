@@ -319,18 +319,18 @@ export const GRAB_TUCKER = ['HE\'S TOO SLIPPERY! IT\'S ALL BLOOD!', 'I\'M NOT HU
 export const FIGHT_HURT: HurtTable = {
   'm2:fr_tucker_shot': {
     hurt: ['HE SHOT ME! HE\'S BLIND!', 'A MUSKET BALL! IN ME!', 'LUCKY SHOT, YOU BLIND BASTARD!', 'HOW DID HE HIT THAT?!'],
-    death: ['SHOT BY A BLIND MAN', 'THE BLIND CONDUCTOR COLLECTED'],
+    death: ['SHOT BY A BLIND MAN', 'THE CONDUCTOR COLLECTED'],
   },
   'm2:fr_glade_bees': {
     hurt: ['BEES! BEES!', 'WHY ARE THE BEES MAD AT ME?!', 'HE\'S THE ONE SHOOTING!'],
-    death: ['STUNG TO DEATH. TOO MUCH RACKET.', 'THE BEES HATED THE NOISE'],
+    death: ['STUNG. TOO MUCH RACKET.', 'THE BEES HATED THE NOISE'],
   },
-  'm2:fr_rabbit': { hurt: ['A BUNNY HIT ME!', 'RABBIT! TO THE SHIN!'], death: ['TRAMPLED BY A BUNNY', 'KILLED BY A RABBIT. A RABBIT.'] },
+  'm2:fr_rabbit': { hurt: ['A BUNNY HIT ME!', 'RABBIT! TO THE SHIN!'], death: ['TRAMPLED BY A BUNNY', 'KILLED BY A BUNNY. A BUNNY.'] },
   'm2:fr_squirrel': { hurt: ['SQUIRREL! IN MY FACE!', 'IT RAN UP MY LEG!'], death: ['RUN OVER BY A SQUIRREL', 'THE SQUIRREL DIDN\'T STOP'] },
   'm2:fr_raccoon': { hurt: ['RACCOON! IT BIT ME!', 'TRASH PANDA!'], death: ['MUGGED BY A RACCOON', 'A RACCOON TOOK HIS LIFE'] },
   'm2:fr_skunk': { hurt: ['SKUNK! OH GOD, THE SMELL!', 'IT SPRAYED ME!'], death: ['KILLED BY A SKUNK', 'HE SMELLED IT COMING'] },
   'm2:fr_turkey': { hurt: ['TURKEY! TURKEY!', 'THE BIRD KICKED ME!'], death: ['STAMPEDED BY A TURKEY', 'GOBBLED'] },
-  'm2:fr_duck': { hurt: ['A DUCK! TO THE FACE!', 'DUCK! I SHOULD\'VE DUCKED!'], death: ['HIT BY A DUCK. HE DIDN\'T DUCK.', 'QUACKED TO DEATH'] },
+  'm2:fr_duck': { hurt: ['A DUCK! TO THE FACE!', 'DUCK! I SHOULD\'VE DUCKED!'], death: ['HIT BY A DUCK. DIDN\'T DUCK.', 'QUACKED TO DEATH'] },
   'm2:fr_bat': { hurt: ['BAT! IN MY HAIR!', 'GET IT OUT! GET IT OUT!'], death: ['FLOWN INTO BY A BAT', 'BATTED TO DEATH'] },
 };
 

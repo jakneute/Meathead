@@ -171,7 +171,7 @@ export const JUMPED: ByPants = {
 export const HURT: HurtTable = {
   'm2:fr_saw': {
     hurt: ['SAW! SAW! SAW!', 'THE RIDE CUT ME!', 'BUZZSAW! IN MY MEAT!'],
-    death: ['SAWED IN HALF ON A LOG RIDE', 'TIMBER TUMBLED', 'KEPT HIS ARMS INSIDE. NOT HIS TORSO.'],
+    death: ['SAWED IN HALF ON A LOG RIDE', 'TIMBER TUMBLED', 'ARMS INSIDE. TORSO OUTSIDE.'],
   },
   'm2:fr_rat': {
     hurt: ['RAT! ON MY FACE!', 'IT BIT ME! SEWER RAT!', 'GET IT OFF! GET IT OFF!'],
@@ -191,11 +191,11 @@ export const HURT: HurtTable = {
   },
   'm2:fr_chipper': {
     hurt: ['NOT THE CHIPPER! NOT THE CHIPPER!', 'MY FEET! MY LEGS! MY—'],
-    death: ['MULCHED', 'FED THROUGH A WOODCHIPPER. FEET FIRST.', 'HE WAS NOT WOOD'],
+    death: ['MULCHED', 'WOODCHIPPED. FEET FIRST.', 'HE WAS NOT WOOD'],
   },
   'm2:fr_junk': {
     hurt: ['MY TAILBONE! A PIPE!', 'SEWER JUNK! RIGHT IN THE SPINE!', "WHAT DID WE HIT?! DON'T TELL ME."],
-    death: ['BROKE HIS BACK ON SEWER JUNK', 'BUCKED OFF A LOG IN THE SEWER'],
+    death: ['BROKE HIS BACK ON SEWER JUNK', 'BUCKED OFF A SEWER LOG'],
   },
   'm2:fr_chainsaw': {
     hurt: ['CHAINSAW! CHAINSAW!', 'A LUMBERJACK SAWED ME!', 'NOT THE CHAINSAW!'],

@@ -235,27 +235,27 @@ export const REVISIT: ByPants = {
 export const HURT: HurtTable = {
   'm2:fr_falls': {
     hurt: ["THE WATER! IT'S TOO HEAVY!", "IT'S PUSHING ME OFF!", 'WATERFALL! WATERFALL!'],
-    death: ['SWEPT OFF A TRAIN BY A WATERFALL', "WASHED OFF THE ROOF. SHOULD'VE GONE INSIDE.", 'TOOK A SHOWER ON A TRAIN. DIED.'],
+    death: ['SWEPT OFF BY A WATERFALL', "SHOULD'VE GONE INSIDE", 'SHOWERED ON A TRAIN. DIED.'],
   },
   'm2:fr_derail': {
     hurt: ['IT\'S GOING! IT\'S GOING!', 'THE CAR\'S LOOSE! THE CAR\'S LOOSE!'],
-    death: ['BLOWN UP WITH THE CAR. HE WAS STILL ON IT.', 'CANCELLED WITH THE CAR', 'UNCOUPLED, BLOWN UP, SCATTERED. THE FARE WAS FOUR DOLLARS.'],
+    death: ['BLOWN UP. STILL ON THE CAR.', 'CANCELLED WITH THE CAR', 'FOUR-DOLLAR FARE. ONE WAY.'],
   },
   'm2:fr_tracks': {
     hurt: ['THE TRACKS! THE TRACKS!', 'UNDER THE WHEELS!'],
-    death: ['RUN OVER BY HIS OWN TRAIN', 'FELL BETWEEN THE CARS. SLICED AND DICED.'],
+    death: ['RUN OVER BY HIS OWN TRAIN', 'DICED BETWEEN THE CARS'],
   },
   'm2:fr_bridge': {
     hurt: ['BRIDGE! FACE!', 'LOW BRIDGE! I DIDN\'T DUCK!', 'WHO BUILDS A BRIDGE THAT LOW?!'],
-    death: ['CLOTHESLINED BY A BRIDGE', 'FORGOT TO DUCK. THE BRIDGE DIDN\'T.'],
+    death: ['CLOTHESLINED BY A BRIDGE', 'THE BRIDGE DIDN\'T DUCK'],
   },
   'm2:fr_spout': {
     hurt: ['WATER! COLD WATER!', 'THE WATER TOWER GOT ME!', 'IT\'S IN MY EARS!'],
-    death: ['HOSED OFF A TRAIN BY A WATER TOWER', 'DROWNED ON A TRAIN. STANDING UP.'],
+    death: ['HOSED OFF BY A WATER TOWER', 'DROWNED STANDING ON A TRAIN'],
   },
   'm2:fr_coal': {
     hurt: ['COAL! HOT COAL!', 'A ROCK! A BURNING ROCK!', 'HE THREW COAL AT ME!'],
-    death: ['STONED TO DEATH WITH COAL', 'KILLED BY A LUMP OF COAL. EARLY CHRISTMAS.'],
+    death: ['STONED TO DEATH WITH COAL', 'NAUGHTY LIST. LUMP OF COAL.'],
   },
   'm2:fr_cinder': {
     hurt: ['EMBERS! IN MY HAIR!', 'HOT! HOT! HOT!', 'THE SMOKESTACK\'S SPITTING!'],
@@ -267,11 +267,11 @@ export const HURT: HurtTable = {
   },
   'm2:fr_suitcase': {
     hurt: ['SUITCASE! TO THE HEAD!', 'SOMEBODY\'S UNDERWEAR!', 'LUGGAGE! INCOMING!'],
-    death: ['KILLED BY CHECKED LUGGAGE', 'BURIED IN SOMEBODY\'S SUITCASE'],
+    death: ['KILLED BY CHECKED LUGGAGE', 'BURIED IN SOMEONE\'S SUITCASE'],
   },
   'm2:fr_brakeman': {
     hurt: ['HE CLUBBED ME!', 'THE BRAKEMAN! WITH A STICK!', 'MY HEAD! MY STUPID HEAD!'],
-    death: ['CLUBBED TO DEATH BY A BRAKEMAN', 'THE BRAKEMAN PUT ON THE BRAKES'],
+    death: ['CLUBBED BY A BRAKEMAN', 'THE BRAKEMAN BRAKED HIM'],
   },
   'm2:fr_robber': {
     hurt: ['HE PISTOL WHIPPED ME!', 'BANDIT! IN MY FACE!', 'RIGHT IN THE TEETH!'],
@@ -279,7 +279,7 @@ export const HURT: HurtTable = {
   },
   'm2:fr_robber_shot': {
     hurt: ['I\'M SHOT! BY A COWBOY!', 'HE SHOT ME OFF A HORSE!', 'BANDITS! SHOOTING!'],
-    death: ['SHOT BY A TRAIN ROBBER', 'GUNNED DOWN ON THE ROOF OF A TRAIN'],
+    death: ['SHOT BY A TRAIN ROBBER', 'GUNNED DOWN ON A TRAIN ROOF'],
   },
   'm2:fr_cook': {
     hurt: ['THE COOK! WITH A PAN!', 'FRYING PAN! TO THE FACE!', 'I DIDN\'T ORDER THAT!'],
@@ -291,7 +291,7 @@ export const HURT: HurtTable = {
   },
   'm2:fr_passenger': {
     hurt: ['SHE POKED ME!', 'THE OLD MAN HIT ME!', 'GRANDMA! OW!'],
-    death: ['JABBED TO DEATH BY A PASSENGER', 'KILLED BY A PAYING CUSTOMER'],
+    death: ['POKED TO DEATH BY GRANDMA', 'KILLED BY A PAYING CUSTOMER'],
   },
   'm2:fr_parasol': {
     hurt: ['I CHARGED A PARASOL! IT STABS!', 'OW! THE POINTY END!', 'SKEWERED BY AN UMBRELLA!'],

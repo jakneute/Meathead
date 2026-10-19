@@ -11,7 +11,7 @@ export const AIR_LOW = ["CAN'T BREATHE. CAN'T BREATHE.", 'AIR. NEED AIR. NOW.', 
 export const HURT: HurtTable = {
   'm2:fr_drown': {
     hurt: ['GLUB! GLUB!', 'WATER IN MY LUNGS! THE BAD KIND!', 'I SWALLOWED A FISH!'],
-    death: ['DROWNED IN THE FRONTIER', 'DROWNED. THE CREEK IS FOUR FEET DEEP.'],
+    death: ['DROWNED IN THE FRONTIER', 'DROWNED IN FOUR FEET'],
   },
 };
 

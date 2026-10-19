@@ -115,31 +115,31 @@ export const TUCKER_FLEE: ByPants = {
 export const HURT: HurtTable = {
   'm2:fr_bail_tree': {
     hurt: ['TREE!', 'FACE, MEET BARK!', 'WHO PUT A TREE THERE?!'],
-    death: ['WRAPPED AROUND A TREE', 'HUGGED A TREE AT FORTY MILES AN HOUR'],
+    death: ['WRAPPED AROUND A TREE', 'HUGGED A TREE AT 40 MPH'],
   },
   'm2:fr_bail_post': {
     hurt: ['MAILBOX! IN MY TEETH!', 'FENCE POST TO THE NUTS!', 'READ THE SIGN! WITH MY FACE!'],
-    death: ['READ A SIGN UP CLOSE', 'KILLED BY A MAILBOX. RETURN TO SENDER.'],
+    death: ['READ A SIGN UP CLOSE', 'MAILBOXED. RETURN TO SENDER.'],
   },
   'm2:fr_bail_cow': {
     hurt: ['COW! COW! COW!', 'I HIT A COW! IT HIT BACK!', 'MOO TO YOU TOO!'],
-    death: ['KILLED BY A COW HE KILLED', 'HIT A COW. BOTH DEAD. NOBODY WON.'],
+    death: ['KILLED BY A COW HE KILLED', 'HIT A COW. NOBODY WON.'],
   },
   'm2:fr_bail_deer': {
     hurt: ['DEER! RIGHT IN MY FACE!', 'BAMBI! NO!', 'ANTLER IN MY ASS!'],
-    death: ['DEER IN THE HEADLIGHTS. HE WAS THE DEER.', 'TAKEN OUT BY BAMBI'],
+    death: ['DEER IN THE HEADLIGHTS. HIM.', 'TAKEN OUT BY BAMBI'],
   },
   'm2:fr_bail_hay': {
     hurt: ['HAY BALE! NOT SOFT!', 'HAY! IN EVERY HOLE!'],
-    death: ['DIED IN A HAY BALE. NOT A ROLL IN THE HAY.', 'HAY BALES ARE NOT SOFT'],
+    death: ['A ROLL IN THE HAY. FATAL.', 'HAY BALES ARE NOT SOFT'],
   },
   'm2:fr_bail_outhouse': {
     hurt: ['OUTHOUSE! I\'M IN IT!', 'SOMEBODY WAS IN THERE!', 'COVERED IN IT! SOMEBODY ELSE\'S!'],
-    death: ['DIED IN AN OUTHOUSE', 'DROWNED IN SOMEBODY ELSE\'S SHIT FOR ONCE'],
+    death: ['DIED IN AN OUTHOUSE', 'DIED IN SOMEONE ELSE\'S SHIT'],
   },
   'm2:fr_bail_tractor': {
     hurt: ['TRACTOR! PARKED! WHY?!', 'FARM EQUIPMENT! MY SPINE!'],
-    death: ['RAN INTO A PARKED TRACTOR', 'FLATTENED BY A TRACTOR THAT WASN\'T EVEN ON'],
+    death: ['RAN INTO A PARKED TRACTOR', 'THE TRACTOR WASN\'T EVEN ON'],
   },
   'm2:fr_bail_rock': {
     hurt: ['ROCK! MY TAILBONE!', 'JUMP THE ROCKS, DUMBASS!'],
@@ -147,19 +147,19 @@ export const HURT: HurtTable = {
   },
   'm2:fr_bail_log': {
     hurt: ['LOG! IN MY CROTCH!', 'SHOULD HAVE JUMPED THAT LOG!'],
-    death: ['TRIPPED ON A LOG AT FORTY MILES AN HOUR', 'STOPPED DEAD BY A LOG'],
+    death: ['TRIPPED ON A LOG AT 40 MPH', 'STOPPED DEAD BY A LOG'],
   },
   'm2:fr_bail_creek': {
     hurt: ['CREEK! THAT WAS A JUMP!', 'WATER! UP MY NOSE!'],
-    death: ['DROWNED IN A CREEK ON A DIRT BIKE', 'SHOULD HAVE JUMPED THE CREEK'],
+    death: ['DROWNED ON A DIRT BIKE', 'SHOULD HAVE JUMPED THE CREEK'],
   },
   'm2:fr_bail_pylon': {
     hurt: ['POWER LINE TOWER! I\'M BUZZING!', 'STEEL! MY FACE!'],
-    death: ['HIT A POWER LINE TOWER. SHOCKING.', 'FLATTENED ON A POWER LINE TOWER'],
+    death: ['HIT A POWER TOWER. SHOCKING.', 'FLATTENED ON A POWER TOWER'],
   },
   'm2:fr_chain': {
     hurt: ['BIKE CHAIN! MY FACE!', 'GREASE IN MY EYE!', 'OW! CHAIN LINK FACE!'],
-    death: ['WHIPPED TO DEATH WITH A BIKE CHAIN', 'KILLED BY A KID\'S BIKE CHAIN. TWENTY BUCKS.'],
+    death: ['WHIPPED WITH A BIKE CHAIN', 'TWENTY BUCKS OF BIKE CHAIN'],
   },
   'm2:fr_bat': {
     hurt: ['BAT TO THE HEAD!', 'OW! IT\'S ALUMINUM!', 'MY SKULL! BATTER UP!'],
@@ -171,11 +171,11 @@ export const HURT: HurtTable = {
   },
   'm2:fr_nunchucks': {
     hurt: ['NUNCHUCKS?! WHAT YEAR IS IT?!', 'OW! MY EAR!'],
-    death: ['NUNCHUCKED TO DEATH', 'KILLED BY A KID WHO WATCHED TOO MANY KUNG FU MOVIES'],
+    death: ['NUNCHUCKED TO DEATH', 'A KID SAW ONE KUNG FU MOVIE'],
   },
   'm2:fr_hockey': {
     hurt: ['HOCKEY STICK! MY TEETH!', 'HIGH STICKING! PENALTY!'],
-    death: ['HIGH STICKED TO DEATH', 'CHECKED INTO THE BOARDS. THERE WERE NO BOARDS.'],
+    death: ['HIGH STICKED TO DEATH', 'CHECKED INTO THIN AIR'],
   },
   'm2:fr_skateboard': {
     hurt: ['SKATEBOARD! TO THE FACE!', 'GRIP TAPE! MY CHEEK!'],
@@ -183,11 +183,11 @@ export const HURT: HurtTable = {
   },
   'm2:fr_bikewreck': {
     hurt: ['LOOSE BIKE! MY SHINS!', 'EMPTY BIKE! IN MY NUTS!'],
-    death: ['HIT BY A BIKE WITH NOBODY ON IT', 'RUN OVER BY AN EMPTY BIKE'],
+    death: ['HIT BY A BIKE. NOBODY ON IT.', 'RUN OVER BY AN EMPTY BIKE'],
   },
   'm2:fr_teenbomb': {
     hurt: ['HOT! KID BITS! HOT!', 'I\'M COVERED IN TEENAGER!', 'THERE\'S BRACES IN MY HAIR!'],
-    death: ['RODE INTO HIS OWN HUMAN BOMB', 'BLOWN UP BY A TEENAGER HE THREW'],
+    death: ['RODE INTO HIS OWN HUMAN BOMB', 'BLOWN UP BY A TEEN HE THREW'],
   },
 };
 

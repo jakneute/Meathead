@@ -133,7 +133,7 @@ export const STATION_EMPTY = ['NO TRAIN. JUST A BELL. I\'M RINGING IT.'];
 export const HURT: HurtTable = {
   'm2:fr_beartrap': {
     hurt: ['MY LEG! MY LEG!', 'BEAR TRAP! I\'M NOT A BEAR!', 'IT\'S GOT MY ANKLE!', 'GET IT OFF! GET IT OFF!'],
-    death: ['CAUGHT IN A BEAR TRAP. NOT A BEAR.', 'THE BEAR TRAP WORKED'],
+    death: ['BEAR TRAP. NOT A BEAR.', 'THE BEAR TRAP WORKED'],
   },
   'm2:fr_cone': {
     hurt: ['A PINE CONE! TO THE SKULL!', 'OW! THE TREE THREW IT!', 'BONK!'],
@@ -145,7 +145,7 @@ export const HURT: HurtTable = {
   },
   'm2:fr_bees': {
     hurt: ['BEES! BEES!', 'THEY\'RE IN MY SHIRT!', 'NOT THE BEES!'],
-    death: ['STUNG TO DEATH. HE KNOCKED DOWN THE HIVE.', 'THE BEES WON'],
+    death: ['HE KNOCKED DOWN THE HIVE', 'THE BEES WON'],
   },
   'm2:fr_branch': {
     hurt: ['BRANCH! FACE!', 'I DIDN\'T DUCK!', 'TREE TO THE FACE!'],
@@ -153,7 +153,7 @@ export const HURT: HurtTable = {
   },
   'm2:fr_falls': {
     hurt: ['OH NO. OH NO NO NO.'],
-    death: ['WENT OVER THE FALLS. THEY\'RE FAKE. THE ROCKS ARE NOT.', 'OVER THE FALLS. THE SIGN WARNED HIM.'],
+    death: ['FAKE FALLS. REAL ROCKS.', 'THE SIGN SAID FALLS AHEAD'],
   },
   'm2:fr_doe': {
     hurt: ['THE DEER KICKED ME!', 'BAMBI\'S MOM HITS HARD!', 'RIGHT IN THE SHIN!'],
@@ -165,7 +165,7 @@ export const HURT: HurtTable = {
   },
   'm2:fr_antlers': {
     hurt: ['ANTLERS! I CHARGED INTO ANTLERS!', 'OW! POINTY END!', 'THEY STAB!'],
-    death: ['SHOULDER CHARGED A BUCK. ANTLERS FIRST.', 'SKEWERED ON ANTLERS'],
+    death: ['SHOULDER CHARGED A BUCK', 'SKEWERED ON ANTLERS'],
   },
   'm2:fr_wolf': {
     hurt: ['THE WOLF BIT ME!', 'BAD DOG! BAD DOG!', 'HE\'S GOT MY ASS!'],
@@ -173,19 +173,19 @@ export const HURT: HurtTable = {
   },
   'm2:fr_cougar': {
     hurt: ['COUGAR! FROM ABOVE!', 'IT CLAWED MY FACE!', 'BIG CAT! BIG CAT!'],
-    death: ['MAULED BY A COUGAR', 'THE COUGAR PLAYED WITH HIM FIRST'],
+    death: ['MAULED BY A COUGAR', 'THE COUGAR PLAYED WITH HIM'],
   },
   'm2:fr_beaver': {
     hurt: ['THE BEAVER BIT ME!', 'BEAVER TEETH!', 'IT SLAPPED ME WITH ITS TAIL!'],
-    death: ['CHEWED UP BY A BEAVER', 'THE BEAVER BUILT A DAM OUT OF HIM'],
+    death: ['CHEWED UP BY A BEAVER', 'BUILT INTO A BEAVER DAM'],
   },
   'm2:fr_rattler': {
     hurt: ['SNAKE BITE!', 'IT RATTLED! I DIDN\'T LISTEN!', 'MY ANKLE\'S ON FIRE!'],
-    death: ['BITTEN BY A RATTLESNAKE', 'IT RATTLED. HE DIDN\'T LISTEN.'],
+    death: ['BITTEN BY A RATTLESNAKE', 'IT RATTLED. HE IGNORED IT.'],
   },
   'm2:fr_crow': {
     hurt: ['STUPID CROW!', 'IT WENT FOR MY EYES!', 'GET OUT OF MY HAIR!'],
-    death: ['PECKED TO DEATH BY CROWS', 'A MURDER OF CROWS. LITERALLY.'],
+    death: ['PECKED TO DEATH BY CROWS', 'A LITERAL MURDER OF CROWS'],
   },
   'm2:fr_porcupine': {
     hurt: ['PORCUPINE!', 'IT POKED ME!', 'OW! THE BACK END!'],
@@ -201,23 +201,23 @@ export const HURT: HurtTable = {
   },
   'm2:fr_horns': {
     hurt: ['I CHARGED A BUFFALO! WHY?!', 'HORNS! RIGHT IN THE GUT!', 'IT DIDN\'T EVEN MOVE!'],
-    death: ['SHOULDER CHARGED A BISON. THE BISON WON.', 'HORNED BY A BUFFALO'],
+    death: ['CHARGED A BISON. BISON WON.', 'HORNED BY A BUFFALO'],
   },
   'm2:fr_doe_ram': {
     hurt: ['THE DEER RAMMED ME!', 'SHE TURNED AROUND!', 'CORNERED DEER! BAD IDEA!', 'BAMBI\'S MOM HEADBUTTS!'],
-    death: ['RAMMED TO DEATH BY A CORNERED DEER', 'HE CHASED HER INTO A WALL. SHE CAME BACK.'],
+    death: ['CORNERED A DEER. BAD IDEA.', 'BAMBI\'S MOM CAME BACK'],
   },
   'm2:fr_needles': {
     hurt: ['IT SHOT QUILLS AT ME!', 'NEEDLES! IN MY FACE!', 'IT SPRAYS?! SINCE WHEN?!', 'MY ASS IS A PINCUSHION!'],
-    death: ['SHOT FULL OF QUILLS BY A PORCUPINE', 'HE STOOD THERE. IT SPRAYED.'],
+    death: ['SHOT FULL OF QUILLS', 'HE STOOD THERE. IT SPRAYED.'],
   },
   'm2:fr_trout': {
     hurt: ['THE TROUT BIT ME!', 'A FISH JUMPED IN MY FACE!', 'TROUT DON\'T HAVE TEETH!', 'FISH SLAP!'],
-    death: ['FACE-SLAPPED TO DEATH BY A TROUT', 'KILLED BY A FISH. HE DIDN\'T DUCK.'],
+    death: ['SLAPPED TO DEATH BY A TROUT', 'KILLED BY A FLYING FISH'],
   },
   'm2:fr_leech': {
     hurt: ['LEECHES! ON MY EVERYTHING!', 'GET OFF ME, YOU SLIMY DICKS!', 'THEY\'RE SUCKING ME DRY!', 'ONE\'S IN MY ASS CRACK!'],
-    death: ['SUCKED DRY BY LEECHES. THE SIGN SAID RIDE THE LOG.', 'DIED A LEECH BUFFET'],
+    death: ['SUCKED DRY BY LEECHES', 'DIED A LEECH BUFFET'],
   },
 };
 

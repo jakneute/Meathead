@@ -91,7 +91,7 @@ export const KID_SULK: ByPants = {
 export const HURT: HurtTable = {
   'm2:fr_ivy': {
     hurt: ['ITCHY! ITCHY! ITCHY!', 'POISON IVY! ON MY EVERYTHING!', 'LEAVES OF THREE! I KNOW! I KNOW!', 'IT\'S IN MY CRACK!'],
-    death: ['DIED OF POISON IVY', 'SCRATCHED HIMSELF TO DEATH', 'LEAVES OF THREE. SHOULD HAVE LET IT BE.'],
+    death: ['DIED OF POISON IVY', 'SCRATCHED HIMSELF TO DEATH', 'LEAVES OF THREE. HE DIDN\'T.'],
   },
 };
 
