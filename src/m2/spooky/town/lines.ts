@@ -52,7 +52,7 @@ export const RIDE_LINES: Record<'cups' | 'carousel' | 'train' | 'drop' | 'pony',
 export const HURT: Record<string, { hurt: string[]; death: string[] }> = {
   'm2:town_bat': {
     hurt: ['BAT IN MY HAIR!', 'IT BIT MY NECK! DO I GET POWERS NOW?!', 'GET OFF, YOU FLYING RAT!'],
-    death: ['DRAINED BY A BAT THE SIZE OF A SANDWICH', 'OF COURSE THERE WERE BATS'],
+    death: ['SUCKED DRY BY A TINY BAT', 'OF COURSE THERE WERE BATS'],
   },
   'm2:town_crow': {
     hurt: ['IT WENT FOR MY EYE!', "I'M NOT DEAD YET, YOU GOTH PIGEON!", 'SHITTY BIRD!'],
@@ -60,11 +60,11 @@ export const HURT: Record<string, { hurt: string[]; death: string[] }> = {
   },
   'm2:town_rat': {
     hurt: ['RAT! UP MY PANT LEG!', 'IT BIT MY ANKLE! I NEED A SHOT!', 'GET OUT OF MY SOCK!'],
-    death: ['GNAWED TO DEATH AT THE ANKLES', 'RAT FOOD'],
+    death: ['GNAWED OFF AT THE ANKLES', 'RAT FOOD'],
   },
   'm2:town_cat': {
     hurt: ['MANGY BITCH CAT!', 'IT CROSSED MY PATH! THEN MY FACE!', 'BAD KITTY!'],
-    death: ['A BLACK CAT CROSSED HIS THROAT', 'SEVEN YEARS BAD LUCK, ALL AT ONCE'],
+    death: ['A BLACK CAT CROSSED HIM', 'SEVEN YEARS BAD LUCK AT ONCE'],
   },
   'm2:town_ghost': {
     hurt: ['I CAN SEE YOUR SNEAKERS, ASSHOLE!', 'BOO YOURSELF!', 'KILLED BY A BEDSHEET? NO!'],
@@ -76,15 +76,15 @@ export const HURT: Record<string, { hurt: string[]; death: string[] }> = {
   },
   'm2:town_monster': {
     hurt: ['BOTH FISTS! WHO DOES THAT?!', 'THOSE PLATFORM BOOTS ARE A WEAPON!', 'BIG FLATHEADED SON OF A BITCH!'],
-    death: ['FLATTENED BY PLATFORM BOOTS', 'STOMPED BY THE NIGHT-SHIFT MONSTER'],
+    death: ['FLATTENED BY PLATFORM BOOTS', 'STOMPED BY THE NIGHT SHIFT'],
   },
   'm2:town_witch': {
     hurt: ['THE BROOM IS FOR SWEEPING, YOU HAG!', 'GET DOWN HERE, CAT LADY!', 'WITCH SLAPPED!'],
-    death: ['KNOCKED OFF BY A WITCH ON A BROOM', 'SWEPT UNDER THE RUG'],
+    death: ['KNOCKED OFF BY A WITCH', 'SWEPT UNDER THE RUG'],
   },
   'm2:town_potion': {
     hurt: ["IT'S GREEN! WHY IS IT GREEN?!", "THAT'S JUST ANTIFREEZE!", 'MY EYEBROWS!'],
-    death: ['DISSOLVED IN A NOVELTY POTION', 'NOT FOR DRINKING. HE WORE IT.'],
+    death: ['MELTED BY A NOVELTY POTION', "DIDN'T DRINK IT. WORE IT."],
   },
   'm2:town_skeleton': {
     hurt: ['A FOAM TOMBSTONE! WHY DOES IT HURT?!', 'NICE ONESIE, BONES!', 'QUIT HIDING BEHIND YOUR GRAVE, PUSSY!'],
@@ -92,7 +92,7 @@ export const HURT: Record<string, { hurt: string[]; death: string[] }> = {
   },
   'm2:town_bone': {
     hurt: ['A PLASTIC FEMUR TO THE FACE!', 'THROW ME A BONE! NOT LIKE THAT!', 'BONED IN THE HEAD!'],
-    death: ['THROWN A BONE. IN THE TEMPLE.', 'BONED TO DEATH'],
+    death: ['THROWN A BONE. IN THE HEAD.', 'BONED TO DEATH'],
   },
 };
 
@@ -114,15 +114,15 @@ export const PUMPKINS_SEEN = ["THAT DICK IS BOWLING JACK-O'-LANTERNS AT ME."];
 export const RIDE_HURT: Record<string, { hurt: string[]; death: string[] }> = {
   'm2:town_cups': {
     hurt: ['THE TEACUP COFFIN HIT ME!', 'WATCH WHERE YOU SPIN!', 'RUN OVER BY A KIDDIE RIDE!'],
-    death: ['RUN DOWN BY A SPINNING TEACUP', 'THE COFFIN FINALLY GOT ITS GUY'],
+    death: ['RUN DOWN BY A TEACUP', 'THE COFFIN GOT ITS GUY'],
   },
   'm2:town_carousel': {
     hurt: ['A FIBERGLASS BAT TO THE FACE!', 'THE MERRY-GO-ROUND SHOVED ME!', 'FUCK THIS HORSE!'],
-    death: ['TRAMPLED BY A MERRY-GO-ROUND', 'WENT ROUND AND ROUND. THEN DOWN.'],
+    death: ['TRAMPLED BY A MERRY-GO-ROUND', 'ROUND AND ROUND. THEN DOWN.'],
   },
   'm2:town_train': {
     hurt: ['HIT BY A BABY TRAIN!', 'IT HAS A PACIFIER AND IT HIT ME!', 'TOOT TOOT MY ASS!'],
-    death: ['HIT BY A TRAIN FOR TODDLERS', 'THE GHOST TRAIN GOT ITS GHOST'],
+    death: ['HIT BY A TRAIN FOR TODDLERS', 'GHOST TRAIN. NEW GHOST.'],
   },
   'm2:town_drop': {
     hurt: ['SIX FEET OF DOOM ON MY HEAD!', 'WHY WAS I UNDER IT?!', 'MY SKULL! MINI DOOM!'],
@@ -130,11 +130,11 @@ export const RIDE_HURT: Record<string, { hurt: string[]; death: string[] }> = {
   },
   'm2:town_pony': {
     hurt: ['THE DEAD HORSE KICKED ME!', 'RIGHT IN THE NUTS! FROM A SKELETON!', 'I WANT MY QUARTER BACK!'],
-    death: ['KICKED TO DEATH BY A DEAD HORSE', 'BEAT A DEAD HORSE. IT BEAT HIM BACK.'],
+    death: ['KICKED DEAD BY A DEAD HORSE', 'THE DEAD HORSE BEAT HIM'],
   },
   'm2:town_pumpkin': {
     hurt: ['A WHOLE DAMN PUMPKIN!', 'STRIKE! I AM THE PINS!', 'PIE FILLING! IN MY EYES!'],
-    death: ["BOWLED OVER BY A JACK-O'-LANTERN", 'SMASHED LIKE A PUMPKIN ON NOVEMBER FIRST'],
+    death: ['BOWLED OVER BY A PUMPKIN', 'SMASHED. HAPPY NOVEMBER.'],
   },
   'm2:town_pumpkinhead': {
     hurt: ["YOU CAN'T EVEN SEE OUT OF THAT THING!", 'GET YOUR GOURD OUT OF MY FACE!', 'YOUR HEAD SMELLS LIKE A COMPOST BIN!'],
