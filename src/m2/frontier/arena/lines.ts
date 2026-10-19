@@ -158,12 +158,12 @@ export const TUCKER_MATTER: ByPants = {
 // ---------------------------------------------------------------------------------------------------------------
 // THE FIGHT (job G; the user's: blind, a flintlock, firing at sounds; bees after Meathead; every shot sends the small
 // wildlife stampeding; the soul sucker's blood on him draws the mountain lions; the standard death's grizzly). His
-// ledger, blind: he fires at noises, bills for everything, misjudges where Meathead is. "GIVE ME BACK MY DOLLAR TEN"
+// ledger, blind: he fires at noises, bills for everything, misjudges where Meathead is. "GIVE ME BACK MY FOUR DOLLARS"
 // is the Mel Gibson nod (the fare from the station's TUCKER_CAB).
 
 /** Listening, shuffling, now and then (blind, the ledger). */
 export const TF_TAUNT: ByPants = {
-  clean: ['I CAN HEAR YOU BREATHING! THAT\'S A BREATHING FEE!', 'ONE FARE! A DOLLAR TEN! NOW IT\'S A HUNDRED!', 'I DON\'T NEED EYES TO BALANCE A LEDGER!'],
+  clean: ['I CAN HEAR YOU BREATHING! THAT\'S A BREATHING FEE!', 'ONE FARE! FOUR DOLLARS! NOW IT\'S A HUNDRED!', 'I DON\'T NEED EYES TO BALANCE A LEDGER!'],
   shitty: ['I CAN\'T SEE YOU! I CAN SMELL EXACTLY WHERE YOU ARE!', 'FOLLOW THE STINK, TUCKER! FOLLOW THE STINK!', 'THAT\'S A CLEANING FEE! AND A NOSE FEE!'],
   nude: ['I CAN HEAR IT FLAPPING! THAT\'S A NOISE FEE!', 'BLIND! AND STILL NOT BLIND ENOUGH FOR YOU!', 'PUT SOMETHING ON! I CAN FEEL IT FROM HERE!'],
 };
@@ -229,9 +229,9 @@ export const TF_GETUP: ByPants = {
 };
 /** Low (once): manic. */
 export const TF_LOW: ByPants = {
-  clean: ['SHOT! SAWED! STABBED! SPLIT! CHEWED! GIVE ME BACK MY DOLLAR TEN!', 'GIVE ME BACK MY DOLLAR TEN!'],
-  shitty: ['GIVE ME BACK MY DOLLAR TEN! AND MY SENSE OF SMELL!', 'I\'LL TAKE IT IN CASH! NOT IN WHATEVER THAT IS!'],
-  nude: ['GIVE ME BACK MY DOLLAR TEN! YOU DON\'T EVEN HAVE POCKETS!', 'CASH! NOT WHATEVER YOU\'RE HIDING! YOU\'RE NOT HIDING ANYTHING!'],
+  clean: ['SHOT! SAWED! STABBED! SPLIT! CHEWED! GIVE ME BACK MY FOUR DOLLARS!', 'GIVE ME BACK MY FOUR DOLLARS!'],
+  shitty: ['GIVE ME BACK MY FOUR DOLLARS! AND MY SENSE OF SMELL!', 'I\'LL TAKE IT IN CASH! NOT IN WHATEVER THAT IS!'],
+  nude: ['GIVE ME BACK MY FOUR DOLLARS! YOU DON\'T EVEN HAVE POCKETS!', 'CASH! NOT WHATEVER YOU\'RE HIDING! YOU\'RE NOT HIDING ANYTHING!'],
 };
 /** The standard death: falling over, apparently dead. */
 export const TF_FALL: ByPants = {
@@ -247,9 +247,9 @@ export const TF_POP: ByPants = {
 };
 /** Gloating, the grizzly up behind him (he can't see it). */
 export const TF_GLOAT: ByPants = {
-  clean: ['NOW. ABOUT THAT DOLLAR TEN. ...WHO\'S BREATHING ON MY NECK?', 'NOBODY GETS OUT OF PAYING! ...WHY IS IT SO WARM BACK HERE?'],
-  shitty: ['NOW. ABOUT THAT DOLLAR TEN. ...WHAT\'S THAT SMELL? IT\'S NOT YOU!', 'NOBODY GETS OUT OF PAYING! ...SOMETHING BACK HERE SMELLS WORSE THAN YOU!'],
-  nude: ['NOW. ABOUT THAT DOLLAR TEN. ...WHO\'S BREATHING ON ME? PUT IT AWAY!', 'NOBODY GETS OUT OF PAYING! ...WHY IS IT HAIRY BACK HERE?'],
+  clean: ['NOW. ABOUT THOSE FOUR DOLLARS. ...WHO\'S BREATHING ON MY NECK?', 'NOBODY GETS OUT OF PAYING! ...WHY IS IT SO WARM BACK HERE?'],
+  shitty: ['NOW. ABOUT THOSE FOUR DOLLARS. ...WHAT\'S THAT SMELL? IT\'S NOT YOU!', 'NOBODY GETS OUT OF PAYING! ...SOMETHING BACK HERE SMELLS WORSE THAN YOU!'],
+  nude: ['NOW. ABOUT THOSE FOUR DOLLARS. ...WHO\'S BREATHING ON ME? PUT IT AWAY!', 'NOBODY GETS OUT OF PAYING! ...WHY IS IT HAIRY BACK HERE?'],
 };
 /** Last words, under the grizzly (its close-up). */
 export const TF_LAST_BEAR: ByPants = {

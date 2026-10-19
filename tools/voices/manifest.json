@@ -7696,11 +7696,6 @@
  },
  {
   "voice": "death",
-  "text": "EATEN BY SEWER RATS",
-  "from": "FRONTIER"
- },
- {
-  "voice": "death",
   "text": "EATEN BY WOLVES",
   "from": "FRONTIER"
  },
@@ -26121,17 +26116,17 @@
  },
  {
   "voice": "m2.frontier.tucker",
-  "text": "ALL ABOARD! EXCEPT STINKY! TICKETS ARE A DOLLAR TEN! BATHS ARE EXTRA!",
+  "text": "ALL ABOARD! EXCEPT STINKY! TICKETS ARE FOUR DOLLARS! BATHS ARE EXTRA!",
   "from": "FRONTIER"
  },
  {
   "voice": "m2.frontier.tucker",
-  "text": "ALL ABOARD! EXCEPT THE NAKED MAN! TICKETS ARE A DOLLAR TEN! PANTS ARE REQUIRED!",
+  "text": "ALL ABOARD! EXCEPT THE NAKED MAN! TICKETS ARE FOUR DOLLARS! PANTS ARE REQUIRED!",
   "from": "FRONTIER"
  },
  {
   "voice": "m2.frontier.tucker",
-  "text": "ALL ABOARD! EXCEPT YOU! TICKETS ARE A DOLLAR TEN! AT THE WINDOW!",
+  "text": "ALL ABOARD! EXCEPT YOU! TICKETS ARE FOUR DOLLARS! AT THE WINDOW!",
   "from": "FRONTIER"
  },
  {
@@ -26526,17 +26521,17 @@
  },
  {
   "voice": "m2.frontier.tucker",
-  "text": "GIVE ME BACK MY DOLLAR TEN!",
+  "text": "GIVE ME BACK MY FOUR DOLLARS!",
   "from": "FRONTIER"
  },
  {
   "voice": "m2.frontier.tucker",
-  "text": "GIVE ME BACK MY DOLLAR TEN! AND MY SENSE OF SMELL!",
+  "text": "GIVE ME BACK MY FOUR DOLLARS! AND MY SENSE OF SMELL!",
   "from": "FRONTIER"
  },
  {
   "voice": "m2.frontier.tucker",
-  "text": "GIVE ME BACK MY DOLLAR TEN! YOU DON'T EVEN HAVE POCKETS!",
+  "text": "GIVE ME BACK MY FOUR DOLLARS! YOU DON'T EVEN HAVE POCKETS!",
   "from": "FRONTIER"
  },
  {
@@ -27096,17 +27091,17 @@
  },
  {
   "voice": "m2.frontier.tucker",
-  "text": "NOW. ABOUT THAT DOLLAR TEN. ...WHAT'S THAT SMELL? IT'S NOT YOU!",
+  "text": "NOW. ABOUT THOSE FOUR DOLLARS. ...WHAT'S THAT SMELL? IT'S NOT YOU!",
   "from": "FRONTIER"
  },
  {
   "voice": "m2.frontier.tucker",
-  "text": "NOW. ABOUT THAT DOLLAR TEN. ...WHO'S BREATHING ON ME? PUT IT AWAY!",
+  "text": "NOW. ABOUT THOSE FOUR DOLLARS. ...WHO'S BREATHING ON ME? PUT IT AWAY!",
   "from": "FRONTIER"
  },
  {
   "voice": "m2.frontier.tucker",
-  "text": "NOW. ABOUT THAT DOLLAR TEN. ...WHO'S BREATHING ON MY NECK?",
+  "text": "NOW. ABOUT THOSE FOUR DOLLARS. ...WHO'S BREATHING ON MY NECK?",
   "from": "FRONTIER"
  },
  {
@@ -27121,7 +27116,7 @@
  },
  {
   "voice": "m2.frontier.tucker",
-  "text": "ONE FARE! A DOLLAR TEN! NOW IT'S A HUNDRED!",
+  "text": "ONE FARE! FOUR DOLLARS! NOW IT'S A HUNDRED!",
   "from": "FRONTIER"
  },
  {
@@ -27156,7 +27151,7 @@
  },
  {
   "voice": "m2.frontier.tucker",
-  "text": "ONE FARE. A DOLLAR TEN. I KEEP A LEDGER, FRIEND.",
+  "text": "ONE FARE. FOUR DOLLARS. I KEEP A LEDGER, FRIEND.",
   "from": "FRONTIER"
  },
  {
@@ -27431,7 +27426,7 @@
  },
  {
   "voice": "m2.frontier.tucker",
-  "text": "SHOT! SAWED! STABBED! SPLIT! CHEWED! GIVE ME BACK MY DOLLAR TEN!",
+  "text": "SHOT! SAWED! STABBED! SPLIT! CHEWED! GIVE ME BACK MY FOUR DOLLARS!",
   "from": "FRONTIER"
  },
  {
@@ -47466,11 +47461,6 @@
  },
  {
   "voice": "meathead",
-  "text": "GET OFF MY LOG, RAT!",
-  "from": "FRONTIER"
- },
- {
-  "voice": "meathead",
   "text": "GET OFF MY NECK!",
   "from": "SPOOKY"
  },
@@ -51868,11 +51858,6 @@
   "voice": "meathead",
   "text": "IT BIT ME! IT'S ALL TEETH AND ATTITUDE!",
   "from": "HAZARD_HURT"
- },
- {
-  "voice": "meathead",
-  "text": "IT BIT ME! SEWER RAT!",
-  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -57536,11 +57521,6 @@
  },
  {
   "voice": "meathead",
-  "text": "RAT! ON MY FACE!",
-  "from": "FRONTIER"
- },
- {
-  "voice": "meathead",
   "text": "RAT! UP MY PANT LEG!",
   "from": "SPOOKY"
  },
@@ -57556,28 +57536,8 @@
  },
  {
   "voice": "meathead",
-  "text": "RATS! BIG ONES!",
-  "from": "FRONTIER"
- },
- {
-  "voice": "meathead",
   "text": "RATS! NEW YORK RATS! THEY'RE BIGGER THAN MY CALVES!",
   "from": "HAZARD_HURT"
- },
- {
-  "voice": "meathead",
-  "text": "RATS! NOT THE BALLS!",
-  "from": "FRONTIER"
- },
- {
-  "voice": "meathead",
-  "text": "RATS. NOTHING BETWEEN THEM AND ME.",
-  "from": "FRONTIER"
- },
- {
-  "voice": "meathead",
-  "text": "RATS. THEY SMELL ME.",
-  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -62608,11 +62568,6 @@
   "voice": "meathead",
   "text": "THE RATS ARE EATING THE PROTEIN BARS AGAIN! AND ME!",
   "from": "HAZARD_HURT"
- },
- {
-  "voice": "meathead",
-  "text": "THE RATS WANT MY PANTS.",
-  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
