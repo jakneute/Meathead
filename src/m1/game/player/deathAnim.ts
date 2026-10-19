@@ -33,6 +33,9 @@
 //              clattering down onto it
 //   fall_moto  (the kill cam) off the chopper into the trench across the road: into the crude, and the chopper in after
 //              him, on top of him; its pipes light the lot
+//   fall_wheel (the kill cam, Meathead 2's fairy wheel) thrown out of a gondola: falling with him past the wheel, the
+//              gondolas and the fairy lights whipping by, the suitor waving bye; face first into a flower bed on the
+//              plaza, legs up; a string of fairy lights down on him, shorting; a bird on his boot
 //   headshot   an enemy's bullet (any gun goon's, a gunner's out of a car): through his forehead, out the back of his
 //              head in a spray, his head snapped back; and over he goes, the way it went, and bursts on the floor (shot
 //              up in the air, he drops first, and bursts where he lands)
@@ -60,6 +63,8 @@ export type MeatheadDeathKind = 'burnt' | 'lava' | 'boiled' | 'fried' | 'frozen'
   | 'vaporized'
   // the falls (the kill cam at the bottom: see render/player/fallCams)
   | 'fall_crevasse' | 'fall_trench' | 'fall_alley' | 'fall_crude' | 'fall_arroyo' | 'fall_rocks' | 'fall_dungeon' | 'fall_moto'
+  // (Meathead 2's fairy wheel: thrown out of a gondola, or off it, all the way down: its own fall, the whole way)
+  | 'fall_wheel'
   // killed on something he's riding
   | 'crash'
   // killed up in the air: drops, and bursts on the floor
@@ -114,12 +119,16 @@ export interface MeatheadDeath {
 /** The things he rides (the boat's the stage's own: see hector/chase). */
 export type Ride = 'bike' | 'moto' | 'jetski' | 'ski';
 
+/** (fall_wheel) When the camera stops falling with him (the plaza come up into the shot: he drops on into it), when he
+ *  hits it; the fairy lights down onto him, their short, the bulb that pops; the bird down onto his boot. */
+export const WHEEL_STOP = 50, WHEEL_HIT = 64, WHEEL_LIGHTS = 46, WHEEL_ZAP = 58, WHEEL_POP = 70, WHEEL_BIRD = 84;
+
 /** How long each one plays before the death screen goes up. */
 export const MEATHEAD_DEATH_FRAMES: Record<MeatheadDeathKind, number> = {
   burnt: 95, lava: 125, boiled: 85, fried: 85, frozen: 80, buried: 95, flattened: 70, dissolved: 110, roadkill: 80, overdose: 120,
   impaled: 80, cactus: 80, plucked: 150, spiked: 100, crash: 150, fall_moto: 150, airfall: 60, vaporized: 120,
   space: 360, eye_fall: 190, fall_crevasse: 110, fall_trench: 100, fall_alley: 120, fall_crude: 150, fall_arroyo: 130, fall_rocks: 120, fall_dungeon: 110,
-  headshot: 50, gutted: 200, ...ANIMAL_DEATH_FRAMES,
+  fall_wheel: WHEEL_HIT + 112, headshot: 50, gutted: 200, ...ANIMAL_DEATH_FRAMES,
 };
 
 const BY_SOURCE: Record<string, MeatheadDeathKind> = {
@@ -231,7 +240,7 @@ export const startMeatheadDeath = (ctx: FrameContext): boolean => {
 const rnd = (a: number, b: number) => a + Math.random() * (b - a);
 const GORE = PARTICLE_PALETTES.GORE;
 /** The deaths that work up in the air as they are (the rest, up there, are an airfall). */
-const AIR_OK = new Set<MeatheadDeathKind>(['roadkill', 'overdose', 'impaled', 'cactus', 'space', 'eye_fall', 'spiked', 'vaporized', 'headshot', ...ANIMAL_AIR_OK]);
+const AIR_OK = new Set<MeatheadDeathKind>(['roadkill', 'overdose', 'impaled', 'cactus', 'space', 'eye_fall', 'spiked', 'vaporized', 'headshot', 'fall_wheel', ...ANIMAL_AIR_OK]);
 /** (gutted) The loops coming out; his shoves at them (stuffing them back in); onto his knees; over on his face (and how
  * long the going over takes). */
 export const GUT_SPILL = 22, GUT_STUFF = 66, GUT_PUSHES = [70, 86, 102], GUT_KNEES = 120, GUT_FLOP = 140, GUT_FLOP_LEN = 12;
@@ -413,6 +422,21 @@ export const tickMeatheadDeath = (ctx: FrameContext, d: MeatheadDeath, t: number
       if (d.kind === 'fall_crude' && s === 74) { playSound('ignite', 1); playSound('boom', 0.7); }
       if (d.kind === 'fall_rocks' && s === 30) playSound('splash', 1);
       if (d.kind === 'fall_dungeon' && s > 36 && s < 70 && s % 8 === 0) playSound('clink', 0.6, -6);
+      break;
+    }
+    case 'fall_wheel': {
+      // (the wind louder and louder all the way down, the gondolas whooshing past; the flower bed; the fairy lights down
+      // on him, shorting on him, a bulb going pop; a bird, tweeting)
+      const s = t - WHEEL_HIT;
+      if (t === 1) playSound('whoosh', 1, -8);
+      if (s < 0 && t % 12 === 0) playSound('whoosh', 0.5 + Math.min(0.5, t / WHEEL_HIT * 0.5), -6 + t / 8);
+      if (s < 0 && t % 20 === 7) playSound('twinkle', 0.3, 6);
+      if (s === 0) { shakeScreen(state, 18, 9); playSound('crunch', 1); playSound('splat', 1, -4); playSound('thud', 1, -6); }
+      if (s === 6) playSound('splat', 0.4, 6);
+      if (s === WHEEL_LIGHTS + 10) playSound('clink', 0.8, 2);
+      if (s >= WHEEL_ZAP && s < WHEEL_ZAP + 24 && (s - WHEEL_ZAP) % 5 === 0) playSound('taser', 0.6, 4);
+      if (s === WHEEL_POP) playSound('glass', 0.8, 8);
+      if (s >= WHEEL_BIRD + 10 && s < WHEEL_BIRD + 40 && (s - WHEEL_BIRD) % 10 === 0) playSound('tinkle', 0.5, 12);
       break;
     }
     case 'space': {

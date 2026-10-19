@@ -1,6 +1,7 @@
 import type { GameState } from '../../core/state';
 import type { MeatheadDeath } from '../../player/deathAnim';
 import { MEATHEAD_DEATH_FRAMES, FALL_HIT, SPACE_OUT, MOTO_PIT_LANDS, MOTO_PIT_LIGHTS } from '../../player/deathAnim';
+import { WHEEL_STOP, WHEEL_HIT, WHEEL_LIGHTS, WHEEL_ZAP, WHEEL_POP, WHEEL_BIRD } from '../../player/deathAnim';
 import { drawChopperBike } from '../enemies/oscar';
 import { body } from './deathAnim';
 import type { DeathFace } from './deathFace';
@@ -96,6 +97,7 @@ export const drawFallCam = (ctx: Ctx, state: GameState, W: number, H: number) =>
     case 'fall_arroyo': arroyo(ctx, state, d, t, f, hit, since, W, H); break;
     case 'fall_rocks': rocks(ctx, state, d, t, f, hit, since, W, H); break;
     case 'fall_dungeon': dungeon(ctx, state, d, t, f, hit, since, W, H); break;
+    case 'fall_wheel': fairyWheel(ctx, state, d, t, f, W, H); break;
     case 'space': space(ctx, state, d, t, f, W, H); break;
   }
   // (and it dims on him at the end, for the message)
@@ -657,6 +659,337 @@ const dungeon: Scene = (ctx, state, d, t, f, hit, since, W, H) => {
     pool(ctx, cx - 30 * d.facing, floor + 6, Math.min(80, since * 1.4));
     him(ctx, state, d, cx, floor - 30, Math.PI * 0.62 * d.facing, 1.6, 'dead');
     if (since < 12) for (let k = 0; k < 8; k++) pixelBlob(ctx, cx + (hash(k) - 0.5) * 140, floor - since * 2 - hash(k + 1) * 20, 10 + since, 6 + since * 0.6, `rgba(168, 162, 158, ${(0.6 * (1 - since / 12)).toFixed(3)})`);
+  }
+};
+
+// ---------------------------------------------------------------------------
+// Meathead 2's fairy wheel
+
+const WH_INK = '#1A1028';
+const WH_CAPS = ['#F49AC8', '#9EE6C8', '#C8A8F4', '#FFC8A0'];
+const WH_BULBS = ['#FEF08A', '#A5F3FC', '#F9A8D4', '#FFFFFF', '#BBF7D0'];
+/** (the fairy wheel) The plaza's floor; the flower bed's soil (he goes in head first there); where his middle is, in it. */
+const WH_FLOOR = 470, WH_BED = 452, WH_PLANT = WH_BED - 18;
+/** (the fairy wheel) The ground layer: its top (screen, settled), how tall. */
+const WH_GL_TOP = WH_FLOOR - 74, WH_GL_H = 210;
+/** (the fairy wheel) How far the scenery's gone up past him, t frames in (faster and faster; it stops with the camera). */
+const wheelScroll = (t: number) => { const u = Math.min(t, WHEEL_STOP); return 6 * u + 0.25 * u * u; };
+const WH_SC = wheelScroll(WHEEL_STOP);
+/** A colour toward black (k < 0) or white (k > 0). */
+const tint = (hex: string, k: number) => {
+  const n = parseInt(hex.slice(1), 16), to = k < 0 ? 0 : 255, a = Math.abs(k);
+  const c = (v: number) => Math.round(v + (to - v) * a).toString(16).padStart(2, '0');
+  return `#${c(n >> 16)}${c((n >> 8) & 255)}${c(n & 255)}`;
+};
+const heart = (ctx: Ctx, x: number, y: number, col: string, s = P) => {
+  const rows = ['.XX.XX.', 'XXXXXXX', 'XXXXXXX', '.XXXXX.', '..XXX..', '...X...'];
+  ctx.fillStyle = col;
+  rows.forEach((r, j) => { for (let i = 0; i < r.length; i++) if (r[i] === 'X') ctx.fillRect(snap(x) + (i - 3) * s, snap(y) + (j - 3) * s, s, s); });
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.7)'; ctx.fillRect(snap(x) - 2 * s, snap(y) - 2 * s, s, s);
+};
+
+/** A suitor, beefy, sat on the bench at x (his feet on the floor at 0), grinning, waving bye-bye. */
+const waver = (ctx: Ctx, x: number, f: number) => {
+  ctx.fillStyle = WH_INK; ctx.fillRect(x - 14, -24, 30, 12); ctx.fillStyle = '#2A3A6A'; ctx.fillRect(x - 13, -23, 28, 10);
+  ctx.fillStyle = WH_INK; ctx.fillRect(x - 16, -58, 32, 36); ctx.fillStyle = '#E07A1E'; ctx.fillRect(x - 14, -56, 28, 33);
+  ctx.fillStyle = '#B05A10'; ctx.fillRect(x + 6, -56, 8, 33); checker(ctx, x + 4, -56, P, 33, '#B05A10');
+  ctx.fillStyle = WH_INK; ctx.fillRect(x - 10, -78, 20, 21); ctx.fillStyle = '#E8A070'; ctx.fillRect(x - 9, -77, 18, 19);
+  ctx.fillStyle = '#C47A48'; ctx.fillRect(x + 4, -77, 5, 19);
+  ctx.fillStyle = '#2A1A0E'; ctx.fillRect(x - 9, -78, 18, 5);
+  ctx.fillStyle = WH_INK; ctx.fillRect(x - 5, -70, P, P); ctx.fillRect(x + 3, -70, P, P); ctx.fillRect(x - 5, -64, 10, 4);
+  ctx.fillStyle = '#FFFFFF'; ctx.fillRect(x - 4, -64, 8, P);
+  // (the arm up, the hand going side to side)
+  ctx.save(); ctx.translate(x + 14, -54); ctx.rotate(-1.9 + Math.sin(f * 0.45) * 0.45);
+  ctx.fillStyle = WH_INK; ctx.fillRect(0, -6, 28, 12); ctx.fillStyle = '#E8A070'; ctx.fillRect(1, -5, 26, 10);
+  ctx.fillStyle = WH_INK; ctx.fillRect(25, -7, 11, 14); ctx.fillStyle = '#E8A070'; ctx.fillRect(26, -6, 9, 12); ctx.fillStyle = '#C47A48'; ctx.fillRect(26, 2, 9, P);
+  ctx.restore();
+  ctx.fillStyle = WH_INK; ctx.fillRect(x - 21, -54, 9, 26); ctx.fillStyle = '#E8A070'; ctx.fillRect(x - 20, -53, 7, 24);
+};
+
+/** A gondola (its floor's middle at x, y): the hanger up off the top, the petal back, the posts, the toadstool cap
+ *  with its lights and wings, the floor (a lit lip) and the flower bowl under it; a suitor in it, waving, if given. */
+const gondola = (ctx: Ctx, x: number, y: number, k: number, f: number, s = 1, suitor?: number) => {
+  const cap = WH_CAPS[k % WH_CAPS.length];
+  ctx.save(); ctx.translate(snap(x), snap(y)); ctx.scale(s, s);
+  ctx.fillStyle = WH_INK; ctx.fillRect(-3, -260, 6, 172); ctx.fillStyle = '#B8A8D8'; ctx.fillRect(-1, -260, P, 172);
+  // (the wings, either side of the cap, flapping slow)
+  for (const sd of [-1, 1]) {
+    ctx.save(); ctx.translate(sd * 54, -92); ctx.rotate(sd * (-0.5 + Math.sin(f * 0.08 + k) * 0.25)); ctx.scale(sd, 1);
+    ctx.fillStyle = 'rgba(26, 16, 40, 0.8)'; ctx.beginPath(); ctx.ellipse(16, -8, 20, 10, -0.4, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = 'rgba(220, 208, 255, 0.8)'; ctx.beginPath(); ctx.ellipse(16, -8, 18, 8, -0.4, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.65)'; ctx.fillRect(6, -12, 10, P);
+    ctx.restore();
+  }
+  // (the petal back: lit left, its right half shaded in a dither)
+  ctx.fillStyle = WH_INK; ctx.beginPath(); ctx.moveTo(-50, 0); ctx.quadraticCurveTo(-50, -60, 0, -66); ctx.quadraticCurveTo(50, -60, 50, 0); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = tint(cap, 0.45); ctx.beginPath(); ctx.moveTo(-48, 0); ctx.quadraticCurveTo(-48, -58, 0, -64); ctx.quadraticCurveTo(48, -58, 48, 0); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = tint(cap, 0.15); ctx.fillRect(14, -52, 32, 52); checker(ctx, 8, -52, 6, 52, tint(cap, 0.15));
+  ctx.fillStyle = tint(cap, -0.1); for (let p = -2; p <= 2; p++) ctx.fillRect(p * 17, -50 + Math.abs(p) * 6, P, 48 - Math.abs(p) * 6);
+  for (const sd of [-1, 1]) { ctx.fillStyle = WH_INK; ctx.fillRect(sd * 48 - 3, -90, 6, 90); ctx.fillStyle = '#FFF0D8'; ctx.fillRect(sd * 48 - 2, -90, 4, 90); }
+  if (suitor !== undefined) waver(ctx, suitor * 24, f);
+  // (the cap: a toadstool's, in three steps, spotted)
+  ctx.fillStyle = WH_INK; ctx.beginPath(); ctx.ellipse(0, -90, 64, 26, 0, Math.PI, 0); ctx.fill();
+  ctx.fillStyle = cap; ctx.beginPath(); ctx.ellipse(0, -90, 62, 24, 0, Math.PI, 0); ctx.fill();
+  ctx.fillStyle = tint(cap, -0.15); ctx.fillRect(-60, -98, 120, 8); checker(ctx, -60, -100, 120, P, tint(cap, -0.15));
+  ctx.fillStyle = tint(cap, 0.4); ctx.beginPath(); ctx.ellipse(-14, -104, 26, 7, 0, Math.PI, 0); ctx.fill();
+  ctx.fillStyle = '#FFFFFF'; for (const [sx, sy, r] of [[-34, -100, 5], [-6, -108, 4], [22, -102, 6], [44, -96, 3]]) ctx.fillRect(sx - r, sy - r * 0.6, r * 2, r * 1.2);
+  ctx.fillStyle = WH_INK; ctx.fillRect(-62, -91, 124, 8); ctx.fillStyle = tint(cap, -0.28); ctx.fillRect(-60, -90, 120, 6);
+  for (let i = 0; i < 7; i++) { ctx.fillStyle = (i + Math.floor(f / 6) + k) % 3 ? '#FEF08A' : '#A5F3FC'; ctx.fillRect(-54 + i * 18, -84, 4, 4); }
+  // (the bowl, scalloped; the floor, its top lit)
+  ctx.fillStyle = WH_INK; ctx.beginPath(); ctx.moveTo(-54, 6); ctx.quadraticCurveTo(0, 38, 54, 6); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = tint(cap, -0.12); ctx.beginPath(); ctx.moveTo(-52, 7); ctx.quadraticCurveTo(0, 35, 52, 7); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = tint(cap, 0.25); for (let p = -2; p <= 2; p++) ctx.fillRect(p * 19 - 8, 10, 16, 4);
+  ctx.fillStyle = WH_INK; ctx.fillRect(-53, -1, 106, 10);
+  ctx.fillStyle = '#A85A98'; ctx.fillRect(-52, 0, 104, 8); ctx.fillStyle = '#FFF6C8'; ctx.fillRect(-52, 0, 104, 2); ctx.fillStyle = '#6E2A6E'; ctx.fillRect(-52, 6, 104, 2);
+  ctx.restore();
+};
+
+/** A string of fairy lights along a curve (a to b, bent by c): its wire, its bulbs (lit, twinkling; one popped, if
+ *  given), streaking if it's going past fast. */
+const lightString = (ctx: Ctx, a: [number, number], c: [number, number], b: [number, number], f: number, seed: number, streak = 0, popped = -1) => {
+  const at = (u: number): [number, number] => [(1 - u) * (1 - u) * a[0] + 2 * u * (1 - u) * c[0] + u * u * b[0], (1 - u) * (1 - u) * a[1] + 2 * u * (1 - u) * c[1] + u * u * b[1]];
+  ctx.strokeStyle = '#1F3A24'; ctx.lineWidth = 2; ctx.beginPath();
+  for (let i = 0; i <= 24; i++) { const [x, y] = at(i / 24); if (i) ctx.lineTo(snap(x), snap(y)); else ctx.moveTo(snap(x), snap(y)); }
+  ctx.stroke();
+  const n = 15;
+  for (let i = 1; i < n; i++) {
+    const [x, y] = at(i / n), col = WH_BULBS[(i + seed) % WH_BULBS.length];
+    const on = i !== popped && (i * 7 + seed + Math.floor(f / 8)) % 6 !== 0;
+    if (streak > 0) { ctx.fillStyle = `${col}66`; ctx.fillRect(snap(x), snap(y + 6), P, snap(streak)); ctx.fillStyle = `${col}33`; ctx.fillRect(snap(x), snap(y + 6 + streak), P, snap(streak)); }
+    if (on && streak === 0) steppedGlow(ctx, x, y + 4, 12, col, 0.35, 0, 3);
+    ctx.fillStyle = WH_INK; ctx.fillRect(snap(x) - 2, snap(y), 6, P * 2);
+    ctx.fillStyle = i === popped ? '#3F3A36' : on ? col : tint(col, -0.55); ctx.fillRect(snap(x) - 2, snap(y) + P * 2, 6, 6);
+    if (on && i !== popped) { ctx.fillStyle = '#FFFFFF'; ctx.fillRect(snap(x) - 2, snap(y) + P * 2, P, P); }
+  }
+  return at;
+};
+
+/** A flower stood up out of the soil at (x, base), h tall: a tulip, a daisy or a bluebell. */
+const flower = (ctx: Ctx, x: number, base: number, h: number, kind: number) => {
+  x = snap(x);
+  ctx.fillStyle = '#2E6A2E'; ctx.fillRect(x, base - h, P, h); ctx.fillStyle = '#4A9A3A'; ctx.fillRect(x - 4, snap(base - h * 0.45), 4, P); ctx.fillRect(x + P, snap(base - h * 0.7), 4, P);
+  const y = snap(base - h);
+  if (kind % 3 === 0) { ctx.fillStyle = '#BE185D'; ctx.fillRect(x - 4, y - 6, 10, 8); ctx.fillStyle = '#F472B6'; ctx.fillRect(x - 4, y - 8, 10, 6); ctx.fillStyle = '#FBCFE8'; ctx.fillRect(x - 4, y - 8, P, 4); ctx.fillStyle = '#BE185D'; ctx.fillRect(x, y - 8, P, P); }
+  else if (kind % 3 === 1) { ctx.fillStyle = '#FFFFFF'; ctx.fillRect(x - 6, y - 4, 14, 4); ctx.fillRect(x - 2, y - 8, 6, 12); ctx.fillStyle = '#E2D6EE'; ctx.fillRect(x - 6, y - 2, 14, P); ctx.fillStyle = '#FDE047'; ctx.fillRect(x - 1, y - 4, 4, 4); ctx.fillStyle = '#CA8A04'; ctx.fillRect(x + 1, y - 2, P, P); }
+  else { ctx.fillStyle = '#7C6CC4'; ctx.fillRect(x - 4, y - 4, 10, 8); ctx.fillStyle = '#C4B5FD'; ctx.fillRect(x - 4, y - 6, 10, 6); ctx.fillStyle = '#EDE9FE'; ctx.fillRect(x - 2, y - 6, P, P); ctx.fillStyle = '#7C6CC4'; ctx.fillRect(x - 4, y + 2, P, P); ctx.fillRect(x + 4, y + 2, P, P); }
+};
+
+/** The plaza under the wheel (in a layer of its own, WH_GL_TOP its top): the hedge along the back, the cobbles, the
+ *  raised flower bed in the middle (its soil at WH_BED) with its flowers and toadstools (none where he goes in). */
+const paintWheelGround = (W: number) => (g: Ctx) => {
+  const cx = W / 2, fl = WH_FLOOR - WH_GL_TOP, bed = WH_BED - WH_GL_TOP;
+  // The hedge along the back, flowers dotted in it
+  for (let k = 0; k < 15; k++) { const x = k * 60 + hash(k) * 20 - 20, r = 30 + hash(k + 5) * 12; pixelBlob(g, x, fl - 6, r, r * 0.75, '#3E6A5E'); pixelBlob(g, x - 6, fl - 12 - r * 0.2, r * 0.7, r * 0.45, '#5A8A72'); pixelBlob(g, x - 10, fl - 16 - r * 0.3, r * 0.35, r * 0.2, '#7EAE8E'); }
+  for (let k = 0; k < 46; k++) { g.fillStyle = ['#F9A8D4', '#FEF08A', '#FFFFFF', '#C4B5FD'][k % 4]; g.fillRect(snap(hash(k * 3 + 1) * W), snap(fl - 8 - hash(k * 5 + 2) * 30), P, P); }
+  // The cobbles: rows getting deeper toward the front, each stone lit along its top, shaded along its bottom
+  bandedGradient(g, 0, fl, W, WH_GL_H - fl, ['#7C6C94', '#6C5C86', '#5C4C78', '#4C3E66'], 6);
+  g.fillStyle = '#E2D6EE'; g.fillRect(0, fl, W, P);
+  for (let y = fl + P, r = 0; y < WH_GL_H; r++) {
+    const h = 8 + r * 3, w = Math.round(h * 2.4), off = (r % 2) * (w / 2);
+    for (let x = -off; x < W; x += w) {
+      g.fillStyle = ['#B4A6C8', '#A294B8', '#9284AA'][Math.floor(hash(r * 31 + x) * 3)];
+      g.fillRect(snap(x + 2), snap(y + 1), snap(w - 4), snap(h - 2));
+      g.fillStyle = '#D4C8E2'; g.fillRect(snap(x + 2), snap(y + 1), snap(w - 4), P);
+      g.fillStyle = '#6C5C86'; g.fillRect(snap(x + 2), snap(y + h - 3), snap(w - 4), P);
+    }
+    y += h;
+  }
+  hazeBands(g, 0, fl, W, WH_GL_H - fl, '#2A1E40', 0.05, 0.4, 5);
+  // The bed's shadow on them
+  g.fillStyle = 'rgba(42, 30, 64, 0.4)'; g.fillRect(cx - 170, fl + 8, 340, 10); checker(g, cx - 170, fl + 18, 340, P * 2, 'rgba(42, 30, 64, 0.4)');
+  // The bed: its soil heaped up over the cap stones, the stone curb (cap course, face course, its right end shaded)
+  const bx0 = cx - 160, bx1 = cx + 160, cap = bed + 2, face = bed + 10, bot = fl + 8;
+  g.fillStyle = WH_INK; g.fillRect(bx0 - 2, cap - 2, bx1 - bx0 + 4, bot - cap + 4);
+  for (let x = bx0, i = 0; x < bx1; x += 40, i++) {
+    const w = Math.min(40, bx1 - x);
+    g.fillStyle = '#E4D8EC'; g.fillRect(x, cap, w - P, face - cap - P); g.fillStyle = '#FFFFFF'; g.fillRect(x, cap, w - P, P); g.fillStyle = '#B4A4C4'; g.fillRect(x, face - P * 2, w - P, P);
+    const fx = x - (i % 2 ? 20 : 0);
+    for (const xx of [fx, fx + 40]) { const a = Math.max(bx0, xx), b = Math.min(bx1, xx + 40); if (b - a < 4) continue; g.fillStyle = '#C4B4D4'; g.fillRect(a, face, b - a - P, bot - face); g.fillStyle = '#A494B4'; g.fillRect(b - 10, face, 8, bot - face); checker(g, b - 14, face, 4, bot - face, '#A494B4'); }
+  }
+  g.fillStyle = 'rgba(42, 30, 64, 0.45)'; g.fillRect(bx1 - 40, cap, 40, bot - cap); checker(g, bx1 - 52, cap, 12, bot - cap, 'rgba(42, 30, 64, 0.45)');
+  g.fillStyle = '#3A2014'; g.fillRect(bx0 + 4, bed - 2, bx1 - bx0 - 8, 6); pixelBlob(g, cx, bed, 150, 6, '#3A2014');
+  g.fillStyle = '#5C3A22'; for (let k = 0; k < 40; k++) g.fillRect(snap(bx0 + 8 + hash(k + 40) * (bx1 - bx0 - 16)), snap(bed - 4 + hash(k + 60) * 6), P, P);
+  // Its flowers (none in the middle, where he's coming down), and a pair of toadstools
+  for (let k = 0; k < 26; k++) { const x = bx0 + 12 + k * 11.6; if (Math.abs(x - cx) < 52) continue; flower(g, x + (hash(k) - 0.5) * 6, bed - 2, 14 + hash(k + 9) * 18, k); }
+  for (const [x, s] of [[cx - 122, 1], [cx + 114, 0.8]] as const) {
+    g.fillStyle = '#FFF0D8'; g.fillRect(snap(x - 3 * s), snap(bed - 12 * s), snap(6 * s) + P, snap(12 * s)); g.fillStyle = '#D8C4A8'; g.fillRect(snap(x + 1 * s), snap(bed - 12 * s), P, snap(12 * s));
+    g.fillStyle = WH_INK; g.beginPath(); g.ellipse(x, bed - 11 * s, 14 * s, 11 * s, 0, Math.PI, 0); g.fill();
+    g.fillStyle = '#DC2626'; g.beginPath(); g.ellipse(x, bed - 11 * s, 12 * s, 9 * s, 0, Math.PI, 0); g.fill();
+    g.fillStyle = '#991B1B'; g.fillRect(snap(x - 12 * s), snap(bed - 14 * s), snap(24 * s), P);
+    g.fillStyle = '#FFFFFF'; g.fillRect(snap(x - 6 * s), snap(bed - 18 * s), P * 2, P); g.fillRect(snap(x + 3 * s), snap(bed - 16 * s), P, P); g.fillRect(snap(x - 1 * s), snap(bed - 20 * s), P, P);
+  }
+};
+
+/** The flowers in the middle of the bed: stood up, or (once he's come down on them) flattened out from under him. */
+const middleFlowers = (ctx: Ctx, cx: number, bed: number, flat: boolean) => {
+  const at = [-44, -32, -18, -6, 8, 20, 34, 46];
+  at.forEach((dx, k) => {
+    if (!flat) { flower(ctx, cx + dx, bed - 2, 16 + hash(k + 70) * 14, k + 1); return; }
+    const sd = dx < 0 ? -1 : 1, x = snap(cx + dx + sd * 10), y = snap(bed - 2);
+    ctx.fillStyle = '#2E6A2E'; ctx.fillRect(sd < 0 ? x - 14 : x, y - P, 14, P);
+    ctx.fillStyle = ['#F472B6', '#FFFFFF', '#C4B5FD'][(k + 1) % 3]; ctx.fillRect(sd < 0 ? x - 20 : x + 14, y - 4, 6, 4);
+    ctx.fillStyle = '#991B1B'; if (k % 2) ctx.fillRect(sd < 0 ? x - 20 : x + 14, y - 4, P, P);
+  });
+};
+
+/** A bluebird, at (x, y) its feet, facing dir: perched (its beak open when it's tweeting) or flying (its wings). */
+const bluebird = (ctx: Ctx, x: number, y: number, dir: number, flap: number, tweet: boolean) => {
+  ctx.save(); ctx.translate(snap(x), snap(y)); ctx.scale(dir, 1);
+  ctx.fillStyle = WH_INK; ctx.fillRect(-8, -14, 18, 12); ctx.fillRect(4, -20, 10, 10);
+  ctx.fillStyle = '#3B82F6'; ctx.fillRect(-7, -13, 16, 10); ctx.fillRect(5, -19, 8, 8);
+  ctx.fillStyle = '#FB923C'; ctx.fillRect(-1, -8, 10, 5); ctx.fillStyle = '#FDBA74'; ctx.fillRect(1, -8, 6, P);
+  ctx.fillStyle = '#1D4ED8'; ctx.fillRect(-12, -12, 6, 4);
+  ctx.fillStyle = WH_INK; ctx.fillRect(9, -17, P, P);
+  ctx.fillStyle = '#F59E0B'; ctx.fillRect(13, -15, 4, P); if (tweet) ctx.fillRect(13, -12, 4, P);
+  if (flap >= 0) { ctx.fillStyle = '#1D4ED8'; ctx.fillRect(-6, flap ? -24 : -6, 10, flap ? 12 : 8); ctx.fillStyle = '#60A5FA'; ctx.fillRect(-6, flap ? -24 : -6, 10, P); }
+  else { ctx.fillStyle = '#1D4ED8'; ctx.fillRect(-6, -12, 10, 6); ctx.fillStyle = '#78350F'; ctx.fillRect(-2, -3, P, 3); ctx.fillRect(3, -3, P, 3); }
+  ctx.restore();
+};
+
+/**
+ * Meathead 2's fairy wheel: thrown out of a gondola (or off the wheel) all the way down. The camera falls with him,
+ * him tumbling and screaming, the wheel turning slow behind, the gondolas and the strings of fairy lights whipping up
+ * past him faster and faster, the suitor who threw him out waving bye-bye from his cart as it goes up out of the shot.
+ * The camera stops with the plaza come up into the shot, and he comes down past it, face first into the flower bed,
+ * in up to his shoulders, legs up, kicking; dirt and petals up, blood up the curb and out across the cobbles; hearts
+ * fluttering down. A string of fairy lights comes down after him, across his legs, and shorts on him (his legs jump,
+ * a bulb pops, his boots smoke); a bluebird lands on his upturned boot and tweets.
+ */
+const fairyWheel = (ctx: Ctx, state: GameState, d: MeatheadDeath, t: number, f: number, W: number, H: number) => {
+  const cx = W / 2, s = t - WHEEL_HIT, hit = s >= 0;
+  const sc = wheelScroll(t), rest = WH_SC - sc;
+  const speed = t < WHEEL_STOP ? 6 + 0.5 * t : 0;
+  // The sky: evening over the park, banded
+  bandedGradient(ctx, 0, 0, W, H, ['#2A2F7A', '#4A4CA8', '#8A78CC', '#C8A0DC', '#F0C0D8', '#F8D8D0'], 14);
+  // The wheel, far: its rim and spokes and lights turning slow, its gondolas round it, the A-frame down to the plaza
+  {
+    const hx = cx + 120, hy = 30 + rest * 0.35, ang = t * 0.004, R0 = 380;
+    for (const sd of [-1, 1]) {
+      ctx.strokeStyle = '#3A2E5A'; ctx.lineWidth = 16; ctx.beginPath(); ctx.moveTo(hx, hy); ctx.lineTo(hx + sd * 340, hy + 1200); ctx.stroke();
+      ctx.strokeStyle = '#9C8CC0'; ctx.lineWidth = 12; ctx.stroke();
+      ctx.strokeStyle = '#7A6AA2'; ctx.lineWidth = 3; for (let k = 1; k < 10; k++) { const ax = hx + sd * 34 * k, ay = hy + 120 * k; ctx.beginPath(); ctx.moveTo(ax - 6, ay); ctx.lineTo(ax + 6, ay - 40); ctx.stroke(); }
+    }
+    for (let k = 0; k < 24; k++) { const a = ang + (k * Math.PI) / 12; ctx.strokeStyle = '#3A2E5A'; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(hx, hy); ctx.lineTo(hx + Math.cos(a) * R0, hy + Math.sin(a) * R0); ctx.stroke(); ctx.strokeStyle = k % 2 ? '#C890B8' : '#90C0B8'; ctx.lineWidth = 2; ctx.stroke(); }
+    for (const [r, w, col] of [[R0, 9, '#B8A0D0'], [R0 - 50, 5, '#A890C4']] as const) { ctx.strokeStyle = '#3A2E5A'; ctx.lineWidth = w + 3; ctx.beginPath(); ctx.arc(hx, hy, r, 0, Math.PI * 2); ctx.stroke(); ctx.strokeStyle = col; ctx.lineWidth = w; ctx.stroke(); }
+    for (let k = 0; k < 72; k++) { const a = ang + (k * Math.PI) / 36; ctx.fillStyle = (k * 7 + Math.floor(f / 10)) % 5 ? WH_BULBS[k % 4] : '#5A4A7A'; ctx.fillRect(snap(hx + Math.cos(a) * (R0 + 7)) - 1, snap(hy + Math.sin(a) * (R0 + 7)) - 1, 3, 3); }
+    for (let k = 0; k < 12; k++) {
+      const a = ang + (k * Math.PI) / 6, gx = hx + Math.cos(a) * R0, gy = hy + Math.sin(a) * R0 + 40;
+      ctx.fillStyle = '#3A2E5A'; ctx.fillRect(snap(gx) - 1, snap(gy - 40), P, 30);
+      ctx.fillStyle = tint(WH_CAPS[k % 4], -0.25); ctx.beginPath(); ctx.ellipse(gx, gy - 14, 20, 9, 0, Math.PI, 0); ctx.fill();
+      ctx.fillStyle = '#7A5A8A'; ctx.fillRect(snap(gx - 16), snap(gy), 32, 4); ctx.fillStyle = tint(WH_CAPS[k % 4], 0.1); ctx.fillRect(snap(gx - 14), snap(gy - 14), 28, 14);
+    }
+    for (let k = 0; k < 8; k++) { const a = ang + (k * Math.PI) / 4; ctx.fillStyle = k % 2 ? '#C890B8' : '#D8A8C8'; ctx.beginPath(); ctx.ellipse(hx + Math.cos(a) * 30, hy + Math.sin(a) * 30, 24, 11, a, 0, Math.PI * 2); ctx.fill(); }
+    ctx.fillStyle = '#C8A848'; ctx.beginPath(); ctx.arc(hx, hy, 20, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#A88830'; ctx.fillRect(hx, hy, 12, 12);
+    // (it's back in the haze)
+    hazeBands(ctx, 0, 0, W, H, '#C8A0DC', 0.28, 0.12, 4);
+  }
+  // The gondolas whipping up past him; first, the one he was thrown out of, and the suitor in it waving him bye-bye
+  const fs = d.facing;
+  const carts: [number, number, number, number | undefined][] = [
+    [cx + fs * 110, 150 - WH_SC, 1, -fs], [cx - 250, -600, 2, undefined], [cx + 255, -420, 3, undefined], [cx - 240, -250, 0, undefined], [cx + 245, -160, 2, undefined],
+  ];
+  for (const [x, wy, k, side] of carts) { const y = wy + rest; if (y > -50 && y < H + 300) gondola(ctx, x, y, k, f, 1, side); }
+  if (t < 30) heart(ctx, cx + fs * 110 - fs * 24 + Math.sin(t * 0.3) * 6, 150 - WH_SC + rest - 100 - t * 1.2, '#F472B6', 3);
+  // The plaza, come up into the shot (painted the once)
+  const gy = WH_GL_TOP + rest;
+  if (gy < H) {
+    if (typeof document === 'undefined') { ctx.save(); ctx.translate(0, gy); paintWheelGround(W)(ctx); ctx.restore(); }
+    else ctx.drawImage(stillCanvas('wheel-plaza', W, WH_GL_H, paintWheelGround(W)), 0, snap(gy));
+  }
+  const bed = WH_BED + rest;
+  if (bed < H + 40) middleFlowers(ctx, cx, bed, hit);
+  // Blood: up the curb, over the soil, out across the cobbles
+  if (hit) {
+    pool(ctx, cx + 24, WH_FLOOR + 18, Math.min(86, Math.max(0, s - 8) * 1.5));
+    splatter(ctx, cx, WH_BED - 4, 96, 81, 0.3); splatter(ctx, cx + 10, WH_BED + 14, 64, 87, 0.45);
+    for (let k = 0; k < 6; k++) { const x = snap(cx - 40 + k * 16 + hash(k + 90) * 6); ctx.fillStyle = '#991B1B'; ctx.fillRect(x, WH_BED + 4, P, snap(Math.min(WH_FLOOR + 8 - WH_BED, s * (0.5 + hash(k) * 0.6)))); ctx.fillStyle = '#7F1D1D'; ctx.fillRect(x + P, WH_BED + 4, P, snap(Math.min(10, s * 0.4))); }
+    // (the bouquet, come down with him, burst on the cobbles)
+    const bxq = cx - 236, byq = WH_FLOOR + 26 - (s < 12 ? Math.abs(Math.sin(s * 0.5)) * (12 - s) : 0);
+    ctx.save(); ctx.translate(snap(bxq), snap(byq)); ctx.rotate(-0.4);
+    ctx.fillStyle = WH_INK; ctx.beginPath(); ctx.moveTo(-26, -2); ctx.lineTo(10, -12); ctx.lineTo(10, 10); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#86EFAC'; ctx.beginPath(); ctx.moveTo(-23, -1); ctx.lineTo(8, -9); ctx.lineTo(8, 7); ctx.closePath(); ctx.fill(); ctx.fillStyle = '#4ADE80'; ctx.fillRect(-10, 0, 18, 6);
+    for (const [rx, ry, col] of [[14, -10, '#E11D48'], [18, 0, '#F472B6'], [12, 8, '#E11D48']] as const) { ctx.fillStyle = WH_INK; ctx.fillRect(rx - 6, ry - 6, 12, 12); ctx.fillStyle = col; ctx.fillRect(rx - 5, ry - 5, 10, 10); ctx.fillStyle = tint(col, -0.3); ctx.fillRect(rx - 1, ry - 3, P, 6); ctx.fillStyle = tint(col, 0.5); ctx.fillRect(rx - 5, ry - 5, P, P); }
+    ctx.restore();
+    for (let k = 0; k < 9; k++) { ctx.fillStyle = k % 2 ? '#E11D48' : '#F472B6'; ctx.fillRect(snap(bxq + 20 + hash(k + 20) * 70), snap(WH_FLOOR + 12 + hash(k + 30) * 30), P * 2, P); }
+  }
+  // Him: falling, tumbling, screaming; then (the camera stopped) down past it, turned head first, into the bed
+  const r0 = -fs * 0.21, rStop = r0 * WHEEL_STOP;
+  const target = Math.sign(r0) * (Math.PI + Math.PI * 2 * Math.ceil((Math.abs(rStop) - Math.PI) / (Math.PI * 2)));
+  if (!hit) {
+    const k = clamp01((t - WHEEL_STOP) / (WHEEL_HIT - WHEEL_STOP));
+    const y = 220 + (WH_PLANT - 220) * k * k + (k === 0 ? Math.sin(t * 0.35) * 6 : 0);
+    const rot = t < WHEEL_STOP ? r0 * t : rStop + (target - rStop) * (1 - (1 - k) * (1 - k));
+    him(ctx, state, d, cx + (k === 0 ? Math.sin(t * 0.3) * 10 : 0), y, rot, 2, 'scream', { isGrounded: false, vel: { x: 0, y: 6 } });
+  } else {
+    const zap = s >= WHEEL_ZAP && s < WHEEL_ZAP + 24;
+    const kick = Math.sin(s * 1.2) * 0.08 * Math.max(0, 1 - s / 40) + (zap ? (s % 4 < 2 ? 0.06 : -0.06) : 0);
+    ctx.save();
+    ctx.beginPath(); ctx.rect(0, 0, W, WH_BED + 1); ctx.clip();
+    if (s < 6) { ctx.translate(cx, WH_BED); ctx.scale(1.1, 0.86 + s * 0.023); ctx.translate(-cx, -WH_BED); }
+    if (zap && s % 2 === 0) ctx.filter = 'brightness(1.8) saturate(0.4)';
+    else if (s >= WHEEL_ZAP + 24) ctx.filter = `brightness(${1 - clamp01((s - WHEEL_ZAP - 24) / 30) * 0.2})`;
+    him(ctx, state, d, cx, WH_PLANT, Math.PI + kick, 2, 'dead');
+    ctx.restore();
+    // (the dirt heaped round his shoulders, bloody)
+    pixelBlob(ctx, cx, WH_BED, 30, 7, '#3A2014'); pixelBlob(ctx, cx - 4, WH_BED - 3, 20, 4, '#5C3A22');
+    ctx.fillStyle = '#991B1B'; for (let k = 0; k < 7; k++) ctx.fillRect(snap(cx - 24 + hash(k + 11) * 48), snap(WH_BED - 6 + hash(k + 12) * 8), P * (1 + (k % 2)), P);
+    // (dirt, petals and blood up out of the bed)
+    if (s < 22) for (let k = 0; k < 24; k++) {
+      const vx = (hash(k * 3 + 5) - 0.5) * 11, vy = -(4 + hash(k * 7 + 1) * 7), x = cx + vx * s, y = WH_BED + vy * s + 0.45 * s * s;
+      if (y > WH_BED + 4) continue;
+      ctx.fillStyle = ['#3A2014', '#5C3A22', '#F472B6', '#FDE047', '#991B1B', '#FFFFFF'][k % 6];
+      ctx.fillRect(snap(x), snap(y), k % 3 ? P * 2 : P * 3, P * 2);
+    }
+  }
+  // The fairy lights: strings of them streaking up past him; after, one down onto him, shorting on his legs
+  if (!hit) for (let k = 0; k < 4; k++) {
+    const y = -120 - k * 340 + rest * 1.6;
+    if (y < -80 || y > H + 80) continue;
+    const tilt = (k % 2 ? 1 : -1) * 30;
+    lightString(ctx, [-30, y + tilt], [cx, y + 70], [W + 30, y - tilt], f, k * 3, speed * 1.6);
+  }
+  if (hit && s >= WHEEL_LIGHTS) {
+    const q = clamp01((s - WHEEL_LIGHTS) / 10), drop = -520 * (1 - q * q) + (q === 1 && s < WHEEL_LIGHTS + 16 ? -Math.sin((s - WHEEL_LIGHTS - 10) * 0.5) * 4 : 0);
+    const a: [number, number] = [cx - 300, WH_FLOOR + 10 + drop], b: [number, number] = [cx + 280, WH_FLOOR + 16 + drop];
+    const m = 392 + drop, c: [number, number] = [cx, (4 * m - a[1] - b[1]) / 2];
+    const along = lightString(ctx, a, c, b, f, 2, 0, s >= WHEEL_POP ? 6 : -1);
+    // (the short: sparks crackling over his legs, a flash; the bulb going pop; then his boots smoking)
+    if (s >= WHEEL_ZAP && s < WHEEL_ZAP + 24) {
+      if (s % 2 === 0) steppedGlow(ctx, cx, 392, 60, '#A5F3FC', 0.4, 0, 4);
+      ctx.strokeStyle = s % 2 ? '#FFFFFF' : '#A5F3FC'; ctx.lineWidth = 2;
+      for (let k = 0; k < 3; k++) { let x = cx - 18 + hash(s * 7 + k) * 36, y = 360 + hash(s * 3 + k) * 20; ctx.beginPath(); ctx.moveTo(snap(x), snap(y)); for (let j = 0; j < 4; j++) { x += (hash(s + k * 5 + j) - 0.5) * 16; y += 6 + hash(s * 2 + j + k) * 6; ctx.lineTo(snap(x), snap(y)); } ctx.stroke(); }
+    }
+    if (s >= WHEEL_POP && s < WHEEL_POP + 10) {
+      const [px, py] = along(6 / 15), u = s - WHEEL_POP;
+      for (let k = 0; k < 6; k++) { ctx.fillStyle = k % 2 ? '#FFFFFF' : '#FEF08A'; ctx.fillRect(snap(px + (hash(k + 50) - 0.5) * u * 6), snap(py + 6 - u * 3 + hash(k + 51) * u * 2 + 0.3 * u * u), P, P); }
+    }
+    if (s > WHEEL_ZAP + 8) for (let k = 0; k < 4; k++) { const q2 = ((s - WHEEL_ZAP - 8) * 1.2 + k * 14) % 56 / 56; pixelBlob(ctx, cx - 6 + k * 4 + Math.sin(q2 * 6 + k) * 6, 362 - q2 * 90, 6 + q2 * 10, 5 + q2 * 7, `rgba(120, 113, 128, ${(0.6 * (1 - q2)).toFixed(3)})`); }
+  }
+  // The bluebird: down onto his upturned boot, and tweeting
+  if (hit && s >= WHEEL_BIRD) {
+    const q = clamp01((s - WHEEL_BIRD) / 16), bx = W + 30 + (cx + 6 - W - 30) * q, by = 150 + (364 - 150) * (1 - (1 - q) * (1 - q));
+    const perched = q >= 1, tweet = perched && (s - WHEEL_BIRD) % 10 < 4 && s >= WHEEL_BIRD + 10;
+    bluebird(ctx, bx, by - (perched && (s - WHEEL_BIRD) % 22 < 2 ? 2 : 0), -1, perched ? -1 : Math.floor(s / 3) % 2, tweet);
+  }
+  // Hearts and petals fluttering down over it all, after
+  if (hit) for (let k = 0; k < 6; k++) {
+    const y = -20 + s * (0.9 + hash(k + 3) * 0.6) - k * 36;
+    if (y < -20 || y > WH_FLOOR) continue;
+    const x = cx - 230 + k * 92 + Math.sin(s * 0.07 + k) * 22;
+    if (k % 2) heart(ctx, x, y, '#F472B6'); else { ctx.fillStyle = '#F9A8D4'; ctx.fillRect(snap(x), snap(y), P * 2, P); ctx.fillStyle = '#FBCFE8'; ctx.fillRect(snap(x), snap(y), P, P); }
+  }
+  // Going down: the speed lines, and petals and glitter streaming up past him
+  if (!hit && speed > 0) {
+    const a = clamp01(speed / 30);
+    for (let k = 0; k < 40; k++) {
+      const x = snap(hash(k * 5) * W), len = 60 + hash(k) * 160, y = (((k * 97 - sc * (1.2 + hash(k + 3) * 0.6)) % (H + len)) + H + len) % (H + len) - len;
+      if (Math.abs(x - cx) < 50 && hash(k) < 0.7) continue;
+      ctx.fillStyle = `rgba(255, 255, 255, ${(a * (0.25 + hash(k + 9) * 0.4)).toFixed(3)})`; ctx.fillRect(x, snap(y), k % 4 === 0 ? P * 2 : P, snap(len));
+    }
+    for (let k = 0; k < 24; k++) {
+      const y = (((k * 53 - sc * 1.3) % (H + 40)) + H + 40) % (H + 40) - 20, x = hash(k + 7) * W + Math.sin(t * 0.2 + k) * 10;
+      ctx.fillStyle = ['#F9A8D4', '#FEF08A', '#FFFFFF', '#A5F3FC'][k % 4]; ctx.fillRect(snap(x), snap(y), P, k % 3 ? P * 2 : P * 4);
+    }
   }
 };
 

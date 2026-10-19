@@ -25,6 +25,7 @@ import { NO_CONTROLS } from '../../../m1/game/platform/input';
 import { playSound } from '../../../m1/game/platform/audio';
 import { pickFreshLine, announce } from '../../../m1/game/platform/speech';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
+import { registerDeathKind } from '../../../m1/game/player/deathAnim';
 import { CANVAS_WIDTH, CANVAS_HEIGHT} from '../../../m1/constants';
 import { markBossFight } from '../../bossQuiet';
 import { registerHurtLines } from '../../kinds';
@@ -47,6 +48,9 @@ import { nextKill, updateKill, updateBodies, drawKill, drawStruggle, drawBody, d
 import { drawWheelBackdrop, drawWheel, drawCartBack, drawCartFloor, drawItem, drawPlaza, drawGate, drawHubHorn } from './art';
 
 for (const [source, l] of Object.entries(HURT)) registerHurtLines(source, l.hurt, l.death);
+// (killed thrown out of a cart, or by a fall off the wheel: the fall's own kill cam, not coming apart in mid-air)
+registerDeathKind(QTE_SRC, 'fall_wheel');
+registerDeathKind(FALL_SRC, 'fall_wheel');
 
 const AWAY = -99999;
 const SEAT = 18;
@@ -76,7 +80,8 @@ const placeCarts = (state: GameState, w: Wheel, carry: boolean) => {
     // (stood on it: carried round with it)
     if (carry && !p.carried && p.health > 0 && c.b.y !== AWAY && p.vel.y >= 0 && Math.abs(feet - c.b.y) <= 3 && cx >= c.b.x - 2 && cx <= c.b.x + c.b.w + 2) { p.pos.x += nx - c.fx; p.pos.y += ny - c.fy; }
     c.dx = nx - c.fx; c.dy = ny - c.fy; c.fx = nx; c.fy = ny;
-    c.b.x = nx - FLOOR_W / 2; c.b.y = ny; c.b.w = FLOOR_W;
+    // (thrown out of a cart: no floor of theirs catches him on the way down)
+    c.b.x = nx - FLOOR_W / 2; c.b.y = w.thrown ? AWAY : ny; c.b.w = FLOOR_W;
   }
 };
 
@@ -253,14 +258,17 @@ export const wheel: FantasySection = {
         w.kill = nextKill(w, q.i, w.live.size > 1);
         playSound('punch', 1, -6);
       } else if (r === 'lost') {
-        // Thrown out: heavy, but only the end of him if it's enough to take him to zero
+        // Thrown out: clean out of the cart and off the wheel, all the way down to the plaza (no gondola's floor
+        // catches him: w.thrown), heavy, but only the end of him if it's enough to take him to zero (and then it's
+        // the fall's own kill cam: fall_wheel)
         const { side } = spots(w, q.i), away = -side;
         w.qte = null; letGo(state);
         const L = w.live.get(q.i); if (L) L.cool = 150;
-        p.pos.x += away * 30; p.pos.y -= 8;
-        w.knockedAt = f; w.fallFrom = null;
+        p.pos.x += away * 30; p.pos.y -= 8; p.isGrounded = false;
+        w.knockedAt = f; w.fallFrom = null; w.thrown = true;
+        for (const c of w.carts) c.b.y = AWAY;
         hurtPlayer(ctx, 46, QTE_SRC, { x: away * 9, y: -9 }, 40);
-        playSound('punch', 1, -10);
+        playSound('punch', 1, -10); playSound('whoosh', 1, -8);
         bark(state, w, q.i, byPants(state, QTE_WIN), true);
         if (Math.random() < 0.6) piperSays(w, byPants(state, PIPER_KNOCK));
       }
@@ -269,7 +277,7 @@ export const wheel: FantasySection = {
       if (p.carried && p.hidden) letGo(state);
       setUi({ qte: null });
       // Into a suitor's cart (landed in it): the QTE's on
-      if (w.trial === 'on' && p.health > 0 && p.isGrounded && !p.inCutscene) {
+      if (w.trial === 'on' && p.health > 0 && p.isGrounded && !p.inCutscene && !w.thrown) {
         const feet = p.pos.y + p.height;
         for (const [i, L] of w.live) {
           const c = w.carts[ROSTER[i].cart];
@@ -325,8 +333,10 @@ export const wheel: FantasySection = {
     else if (p.isGrounded && w.fallFrom !== null) {
       const drop = p.pos.y + p.height - w.fallFrom;
       w.fallFrom = null;
-      if (drop > FALL_HURT && p.pos.y + p.height >= GY - 4 && f - w.knockedAt > 240 && p.health > 0 && w.trial === 'on') { hurtPlayer(ctx, 12, FALL_SRC, { x: 0, y: -3 }); playSound('thud', 1, -10); }
+      if (drop > FALL_HURT && p.pos.y + p.height >= GY - 4 && !w.thrown && f - w.knockedAt > 240 && p.health > 0 && w.trial === 'on') { hurtPlayer(ctx, 12, FALL_SRC, { x: 0, y: -3 }); playSound('thud', 1, -10); }
     }
+    // (thrown out of a cart: down on the plaza, the gondolas' floors are floors again)
+    if (w.thrown && p.isGrounded && p.pos.y + p.height >= GY - 4) { w.thrown = false; playSound('thud', 1, -10); }
     // All of them dead (and down): won
     if (w.trial === 'on' && !w.live.size && !w.kill && !w.bodies.length) {
       w.trial = 'won'; w.opened = 0; kept.wonHere = true;
