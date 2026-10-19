@@ -6,8 +6,7 @@ import type { GuidePage } from '../m1/components/OptionsScreen';
 
 // Meathead 2's CONTROLS page (the options screen's, OptionsScreen.tsx's guide pages): every move's name and its buttons,
 // nothing else, for whatever's being played on right now (a controller's buttons, each family's as printed; or the
-// keyboard's keys and the mouse's, as they're bound now: '@jump' and so on). Three pages: the moves, climbing and the
-// rides, Fairy Land's.
+// keyboard's keys and the mouse's, as they're bound now: '@jump' and so on). One page: the moves.
 
 /** One way to do it: buttons pressed together (+), or one after another / any of them (/). */
 type Chord = { k: string[]; join?: '+' | '/' };
@@ -101,72 +100,7 @@ const MOVES_R: Section[] = [
   ] },
 ];
 
-// ---- climbing and the rides (vines.ts, ladders.ts, the log, cart/, dirtbike/chase.ts, heli/copter.ts)
-const RIDES: Section[] = [
-  { head: 'VINES + LADDERS', rows: [
-    { label: 'CLIMB', pad: [c('/', 'DPAD_UP', 'DPAD_DOWN')], kb: [c('/', '@up', '@down')] },
-    { label: 'SWING (VINES)', pad: [c('/', 'DPAD_LEFT', 'DPAD_RIGHT')], kb: [c('/', '@left', '@right')] },
-    { label: 'RUSH UP', pad: [c('+', 'DPAD_UP', 'B')], kb: [c('+', '@up', '@special'), one('@uppercut')] },
-    { label: 'RUSH DOWN', pad: [c('+', 'DPAD_DOWN', 'B')], kb: [c('+', '@down', '@special'), one('@downSpecial')] },
-    { label: 'LET GO', pad: [one('A')], kb: [one('@jump')] },
-  ] },
-  { head: 'ROLLING LOGS', rows: [
-    { label: 'CROUCH-WALK', pad: [c('+', 'DPAD_DOWN', 'DPAD_RIGHT')], kb: [c('+', '@down', '@right')] },
-  ] },
-  { head: 'MINE CART', rows: [
-    { label: 'JUMP', pad: [one('A')], kb: [one('@jump')] },
-    { label: 'DUCK', pad: [one('DPAD_DOWN')], kb: [one('@down')] },
-    { label: 'FIRE', pad: [one('X')], kb: [one('@fire')] },
-  ] },
-];
-const RIDES_R: Section[] = [
-  { head: 'DIRT BIKE', rows: [
-    { label: 'HIT LEFT', pad: [one('X')], kb: [one('@fire')] },
-    { label: 'HIT RIGHT', pad: [one('B')], kb: [one('@special'), one('@charge')] },
-    { label: 'JUMP', pad: [one('A')], kb: [one('@jump')] },
-    { label: 'BOOST', pad: [one('DPAD_UP')], kb: [one('@up')] },
-    { label: 'BRAKE', pad: [one('DPAD_DOWN')], kb: [one('@down')] },
-  ] },
-  { head: 'HELICOPTER', rows: [
-    { label: 'FLY', pad: [one('DPAD')], kb: [c('/', ...DIRS)] },
-    { label: 'MACHINE GUN', pad: [one('X')], kb: [one('@fire')] },
-    { label: 'ROCKETS', pad: [one('Y')], kb: [one('@secondary')] },
-    { label: 'DIRECTION + BOOST', pad: [c('+', 'DPAD', 'B')], kb: [one('@special'), one('@charge')] },
-  ] },
-];
-
-// ---- Fairy Land (store.ts car hops, broom/fight.ts, wheel/QtePanel.tsx, bedroom/IcePanel.tsx)
-const fairy = (nin: boolean): [Section[], Section[]] => [[
-  { head: 'TRUELLING TRAGONS', rows: [
-    { label: 'HOP UP A CAR', pad: [one('RB')], kb: [one('@prevWeapon')] },
-    { label: 'HOP DOWN A CAR', pad: [one('LB')], kb: [one('@nextWeapon')] },
-  ] },
-  { head: 'FAIRY WHEEL', rows: [
-    { label: 'QTE BUTTONS', pad: [c('/', 'A', 'B', 'X', 'Y', 'DPAD_LEFT', 'DPAD_RIGHT')], kb: [c('/', '@jump', '@special', '@fire', '@secondary', '@left', '@right')] },
-  ] },
-  { head: 'FROZEN', rows: [
-    { label: 'BREAK OUT', pad: [c('/', 'A', 'X', 'B', 'Y')], kb: [c('/', '@jump', '@fire', '@special', '@secondary')] },
-  ] },
-], [
-  { head: 'BROOMSTICK', rows: [
-    { label: 'PITCH UP / DOWN', pad: [c('/', 'DPAD_UP', 'DPAD_DOWN')], kb: [c('/', '@up', '@down')] },
-    { label: 'TURN', pad: [c('/', 'DPAD_LEFT', 'DPAD_RIGHT')], kb: [c('/', '@left', '@right')] },
-    // (a Nintendo pad's boost and brake swapped round: the user's)
-    { label: 'BOOST', pad: [one(nin ? 'B' : 'A')], kb: [one('@jump')] },
-    { label: 'BRAKE', pad: [one(nin ? 'A' : 'B')], kb: [one('@special'), one('@charge')] },
-    { label: 'LASER', pad: [one('X')], kb: [one('@fire')] },
-    { label: 'LOCK ON (HOLD)', pad: [one('X')], kb: [one('@fire')] },
-    { label: 'INVERT PITCH', pad: [one('Y')], kb: [one('@secondary')] },
-  ] },
-]];
-
-const FairyPage: React.FC = () => {
-  const f = usePadFamily(), [l, r] = fairy(f === 'switch' || f === 'joycon-l' || f === 'joycon-r');
-  return <Sheet left={l} right={r} />;
-};
-
+// (only the general controls: no rides', vehicles' or set pieces' own; they're taught where they come up (the user's))
 export const M2_GUIDE_PAGES: GuidePage[] = [
   { title: 'MOVES', body: <Sheet left={MOVES} right={MOVES_R} /> },
-  { title: 'CLIMBING + RIDES', body: <Sheet left={RIDES} right={RIDES_R} /> },
-  { title: 'FAIRY LAND', body: <FairyPage /> },
 ];
