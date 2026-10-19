@@ -206,7 +206,7 @@ export const MAX_AMMO: Record<WeaponType, number> = {
   // (Meathead 2's spellbook of the damned: its mana (a storm 11, bulking up 24))
   'SPELLBOOK': 100,
   // (Meathead 2's clapperboard: takes)
-  'STUNT_CAR': 6,
+  'STUNT_CAR': 9,
   // (Meathead 2's mallet of pain: its durability)
   'MALLET': 100,
   // (Meathead 2's otherworldly spawner: litters)

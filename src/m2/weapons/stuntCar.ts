@@ -28,6 +28,8 @@ const INK = '#1A0B06';
 /** The jump: how fast it comes, how high over his feet it comes in, how hard it's falling, where it comes down past him. */
 const CAR_SCALE = 1.55;
 const CAR = { speed: 18, rise: 170, vy: -4, gravity: 0.42, land: 240, w: Math.round(112 * CAR_SCALE), h: Math.round(34 * CAR_SCALE) };
+/** Snapped crouching: in low (just over his ducked head), flatter, coming down further out. */
+const LOW = { rise: 62, vy: -1.2, land: 330 };
 /** The fireball at the end: this wide, this hard in the middle (falling off to the edge). */
 const BLAST = { radius: 170, dmg: 140, edge: 40 };
 const MAN_SCALE = 1.4;
@@ -86,16 +88,19 @@ const fire = (ctx: FrameContext) => {
   const px = pl.pos.x + pl.width / 2;
   // (out of nowhere, up in the air behind him: started so its jump comes down a little way out in front of him)
   // (where it comes down: off his own height, onto whatever's there at it (the platform he's up on), else lower)
-  const feet = pl.pos.y + pl.height, landY = surfaceUnder(state, px + dir * CAR.land, feet - 4);
-  const drop = (landY < 2000 ? landY : feet) - (feet - CAR.rise);
-  const T = (-CAR.vy + Math.sqrt(CAR.vy * CAR.vy + 2 * CAR.gravity * Math.max(0, drop))) / CAR.gravity;
-  const startX = px + dir * CAR.land - dir * CAR.speed * T - CAR.w / 2;
-  const y = feet - CAR.rise - CAR.h;
+  // (snapped crouching: the same way he's facing, but in low (the user's): just over his ducked head, a flatter jump,
+  // coming down further out: through what's at his own height, under what's up high)
+  const J = pl.isDucking ? LOW : CAR;
+  const feet = pl.pos.y + pl.height, landY = surfaceUnder(state, px + dir * J.land, feet - 4);
+  const drop = (landY < 2000 ? landY : feet) - (feet - J.rise);
+  const T = (-J.vy + Math.sqrt(J.vy * J.vy + 2 * CAR.gravity * Math.max(0, drop))) / CAR.gravity;
+  const startX = px + dir * J.land - dir * CAR.speed * T - CAR.w / 2;
+  const y = feet - J.rise - CAR.h;
   playSound('whoosh', 1, -8);
   state.projectiles.push({
-    id: `stuntcar-${state.frame}`, pos: { x: startX, y }, vel: { x: dir * CAR.speed, y: CAR.vy }, width: CAR.w, height: CAR.h,
+    id: `stuntcar-${state.frame}`, pos: { x: startX, y }, vel: { x: dir * CAR.speed, y: J.vy }, width: CAR.w, height: CAR.h,
     health: 1, maxHealth: 1, type: 'projectile', damage: 0, owner: 'player', custom: 'STUNT_CAR',
-    customData: { kind: 'car', dir, endX: px + dir * CAR.land, hit: [], wheel: 0, wreck: 0, through: 0, inWall: false, paint: pickPaint(state) } satisfies Part,
+    customData: { kind: 'car', dir, endX: px + dir * J.land, hit: [], wheel: 0, wreck: 0, through: 0, inWall: false, paint: pickPaint(state) } satisfies Part,
   });
   clap = 30; clapDir = dir;
   pl.shootCooldown = COOLDOWN;
