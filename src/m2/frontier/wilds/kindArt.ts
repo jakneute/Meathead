@@ -623,3 +623,156 @@ export const drawHive = (c: Ctx, e: Enemy, f: number) => {
     c.fillStyle = 'rgba(240, 248, 255, 0.7)'; c.fillRect(bx - 1, by - 4 + ((f + i) % 4 < 2 ? 0 : 1), 3, 1);
   }
 };
+
+// ---------------------------------------------------------------------------------------------------------------
+// Hawk: a red-tail, the park's raptor show gone feral: brown back, a cream belly with its dark streaked band, the
+// rufous tail, a hooked beak, a fierce yellow eye under a heavy brow, yellow feet and black talons. Poses: soaring and
+// flapping (long fingered wings), hanging over him (the tell: wings up in a V, tail fanned, talons out), the stoop
+// (wings tucked tight, nose down along its dive), down on the ground (mantled, wings drooped round it), hurt, dead
+// (belly up, talons in the air, tongue out).
+
+const HAWK = '#6A4424', HAWK_B = '#4A2E16', CREAM = '#E8D8B4', RUFOUS = '#B4552A', CLAW = '#E8B830';
+type HawkPose = 'fly' | 'hang' | 'stoop' | 'ground';
+
+/** A long broad wing off the shoulder (`up` raised, below 0 lowered), its fingered primaries at the tip. */
+const hawkWing = (g: Ctx, x: number, y: number, up: number, col: string, k: number) => {
+  const s = up >= 0 ? 1 : -1, tx = x - (9 + 6 * Math.abs(up)) * k, ty = y - 17 * up * k;
+  ink(g, () => {
+    g.moveTo(x + 5 * k, y); g.lineTo(x - 1 * k, y - 10 * up * k); g.lineTo(tx, ty);
+    g.lineTo(tx - 3 * k, ty + 3 * s * k); g.lineTo(tx - 0.5 * k, ty + 4 * s * k); g.lineTo(tx - 3.5 * k, ty + 7 * s * k); g.lineTo(tx - 0.5 * k, ty + 8 * s * k);
+    g.lineTo(x - 7 * k, y + 1); g.closePath();
+  }, col, 1);
+  // (the coverts lit along the leading edge, the dark trailing band)
+  g.strokeStyle = lite(col, 0.3); g.lineWidth = 1; g.beginPath(); g.moveTo(x + 3 * k, y - 1); g.lineTo(x - 1 * k, y - 9 * up * k); g.stroke();
+  g.strokeStyle = dark(col, 0.45); g.beginPath(); g.moveTo(tx + 1, ty + 7 * s * k); g.lineTo(x - 6 * k, y); g.stroke();
+};
+
+const paintHawk = (g: Ctx, pose: HawkPose, flap: number, md: Mood) => {
+  g.save();
+  if (md === 'dead') { g.rotate(Math.PI); g.translate(0, 20); }
+  const tuck = pose === 'stoop', hang = pose === 'hang', gr = pose === 'ground';
+  const up = hang ? 1.25 : gr ? -0.45 : flap;
+  if (!tuck) hawkWing(g, 1, -13, up * 0.9, HAWK_B, 0.85);
+  // (the tail: a rufous fan, its dark band near the tip; spread when it hangs or stands)
+  const fan = hang || gr ? 1 : 0.4;
+  ink(g, () => { g.moveTo(-9, -12); g.lineTo(-19, -14 - 3 * fan); g.lineTo(-21, -10); g.lineTo(-19, -6 + 3 * fan); g.lineTo(-9, -8); g.closePath(); }, RUFOUS, 1);
+  g.fillStyle = lite(RUFOUS, 0.25); g.fillRect(-17, -12, 6, 1);
+  g.fillStyle = dark(RUFOUS, 0.45); g.fillRect(-19, -12 - fan, 1.5, 4 + fan * 2);
+  // (the legs: talons reaching out ahead (hanging), stood on (the ground, dead: stuck up), tucked in flight)
+  if (hang || gr || md === 'dead') {
+    const fx = hang ? 9 : 2, fy = hang ? -1 : 0;
+    for (const dx of [-2, 1]) {
+      stroke(g, dx, -6, fx + dx, fy - 1, 2.2, CLAW);
+      g.strokeStyle = INK; g.lineWidth = 1; g.beginPath(); g.moveTo(fx + dx - 2, fy); g.lineTo(fx + dx, fy - 1); g.lineTo(fx + dx + 3, fy + 1); g.moveTo(fx + dx, fy - 1); g.lineTo(fx + dx + 1, fy + 2); g.stroke();
+    }
+  }
+  // (the body: brown, stepped; the cream belly and its band of dark streaks)
+  const body = () => g.ellipse(0, -10, 11, 5.5, tuck ? 0 : 0.08, 0, Math.PI * 2);
+  sh(g, body, HAWK, -11, -16, 22, 12);
+  g.save(); g.beginPath(); body(); g.clip();
+  g.fillStyle = CREAM; g.beginPath(); g.ellipse(3, -6, 9, 3.6, 0, 0, Math.PI * 2); g.fill();
+  g.fillStyle = lite(CREAM, 0.4); g.fillRect(5, -8, 5, 1);
+  g.fillStyle = HAWK_B; for (const [sx, sy] of [[-3, -7], [-1, -6], [1, -7], [3, -6], [0, -5]] as const) g.fillRect(sx, sy, 1, 2);
+  g.restore();
+  // (the head: brown cap, the cream throat, a hooked beak with its yellow cere, the eye under its heavy brow)
+  sh(g, () => g.ellipse(10, -13, 4.8, 4.3, 0, 0, Math.PI * 2), HAWK, 5, -17.5, 10, 9);
+  g.fillStyle = CREAM; g.fillRect(10, -11, 3, 2);
+  ink(g, () => { g.moveTo(13.5, -14.6); g.quadraticCurveTo(18.2, -14.6, 17.6, -10.8); g.lineTo(15.6, -12); g.lineTo(13.6, -11.6); g.closePath(); }, '#3A3434', 0.8);
+  g.fillStyle = '#8A8486'; g.fillRect(14.5, -14.4, 2, 0.8);
+  g.fillStyle = CLAW; g.fillRect(13.2, -14.8, 1.6, 1.6);
+  if (hang && md === 'ok') { g.fillStyle = '#9A2A3A'; g.fillRect(15, -11.6, 2, 0.8); }
+  eye(g, 11, -14, md, 1.3, '#D8A41A', md === 'ok');
+  // (the near wing: spread, or folded tight down its back in the stoop)
+  if (tuck) {
+    ink(g, () => { g.moveTo(-6, -14); g.lineTo(8, -15.5); g.lineTo(5, -9); g.lineTo(-14, -8.5); g.closePath(); }, HAWK_B, 1);
+    g.fillStyle = lite(HAWK_B, 0.3); g.fillRect(-4, -14, 10, 1);
+    g.fillStyle = dark(HAWK_B, 0.4); for (let k = 0; k < 3; k++) g.fillRect(-12 + k * 4, -10, 3, 1);
+  } else hawkWing(g, -1, -12, up, HAWK, 1);
+  if (md === 'dead') tongue(g, 16, -11, 3);
+  g.restore();
+};
+
+export const drawHawk = (c: Ctx, e: Enemy, f: number) => {
+  const md = mood(e), st = e.aiState ?? 'idle';
+  const pose: HawkPose = md !== 'ok' ? 'fly' : st === 'stoop' ? 'stoop' : st === 'tell' ? 'hang' : st === 'ground' ? 'ground' : 'fly';
+  // (beating hard climbing back up or closing on him; soaring, a glide with a lazy beat now and then)
+  const hard = st === 'climb' || st === 'mark';
+  const fr = pose !== 'fly' || md !== 'ok' ? 0 : hard ? cyc(f, e, 4, 4) : (f + (e.variant ?? 0) * 31) % 120 < 24 ? cyc(f, e, 4, 6) : 0;
+  const FLAP = [0.85, 0.3, -0.55, 0.1];
+  c.save();
+  if (pose === 'stoop') { c.translate(0, -10); c.rotate(Math.atan2(e.vel.y, Math.abs(e.vel.x) || 0.1) * 0.85); c.translate(0, 10); }
+  put(c, `hawk-${pose}-${fr}-${md}`, -28, -42, 54, 60, g => paintHawk(g, pose, FLAP[fr], md));
+  c.restore();
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// Goose: a Canada goose, the park's pond's (they own it): gray-brown body barred pale, a pale breast, the white under
+// the tail, the long black neck and head with its white chinstrap, black beak and feet. Poses: grazing and waddling,
+// the honk (the tell: neck stretched out low, beak wide, wings half up), flying (neck out straight, legs trailed, the
+// wings beating in four frames), hurt, dead (belly up, feet up, the neck flopped).
+
+const GOOSE = '#8A7A66', GOOSE_D = '#5E5244', BREAST = '#D8CCB8', NECK = '#18181C';
+type GoosePose = 'stand' | 'walk' | 'honk' | 'fly';
+
+const paintGoose = (g: Ctx, pose: GoosePose, fr: number, md: Mood) => {
+  g.save();
+  if (md === 'dead') { g.rotate(Math.PI); g.translate(0, 18); }
+  const fly = pose === 'fly', honk = pose === 'honk';
+  const flap = fly ? [0.9, 0.3, -0.6, 0.1][fr] : honk ? 0.7 : 0;
+  // (the far wing, raised behind)
+  if (fly || honk) ink(g, () => { g.moveTo(2, -14); g.lineTo(-6 - 4 * Math.abs(flap), -14 - 14 * flap); g.lineTo(-12, -13 - 10 * flap); g.lineTo(-6, -12); g.closePath(); }, GOOSE_D, 1);
+  // (the legs: black, webbed; trailed behind in flight; stuck up dead)
+  if (fly && md !== 'dead') { stroke(g, -6, -8, -15, -6, 1.8, NECK); ink(g, () => g.ellipse(-16, -6, 2.4, 1.2, 0, 0, Math.PI * 2), NECK, 0.6); }
+  else for (const [i, dx] of [[0, -3], [1, 2]] as const) {
+    const step = pose === 'walk' ? (fr % 2 === i ? 3 : -2) : 0;
+    stroke(g, dx, -7, dx + step, -0.5, 1.8, NECK);
+    ink(g, () => { g.moveTo(dx + step - 1, 0); g.lineTo(dx + step + 4, 0); g.lineTo(dx + step + 1, -1.5); g.closePath(); }, NECK, 0.6);
+  }
+  // (the tail: black, the white under it)
+  ink(g, () => { g.moveTo(-11, -14); g.lineTo(-17, -15); g.lineTo(-16, -11); g.lineTo(-11, -10); g.closePath(); }, NECK, 1);
+  g.fillStyle = '#F4F4F0'; g.fillRect(-14, -11, 4, 2);
+  // (the body: gray-brown, stepped, barred pale across its back; the pale breast)
+  const body = () => g.ellipse(-2, -12, 11.5, 6.4, fly ? 0 : -0.08, 0, Math.PI * 2);
+  sh(g, body, GOOSE, -13.5, -18.4, 23, 13);
+  g.save(); g.beginPath(); body(); g.clip();
+  g.fillStyle = BREAST; g.beginPath(); g.ellipse(7, -10, 6, 6, 0, 0, Math.PI * 2); g.fill();
+  g.fillStyle = lite(GOOSE, 0.35); for (let k = 0; k < 4; k++) g.fillRect(-10 + k * 4, -16 + (k % 2), 3, 1);
+  g.fillStyle = '#F4F4F0'; g.fillRect(-9, -7, 6, 1);
+  g.restore();
+  // (the neck and head: up tall (grazing it dips), stretched out low and forward in the honk, straight out flying)
+  const [nx, ny, hx, hy] = fly ? [8, -13, 19, -14] : honk ? [7, -14, 19, -13] : pose === 'walk' ? [6, -15, 11, -27] : fr ? [6, -15, 13, -9] : [6, -15, 10, -28];
+  stroke(g, nx, ny, hx - 1, hy + 1, 4.4, NECK);
+  g.strokeStyle = '#3A3A44'; g.lineWidth = 1; g.beginPath(); g.moveTo(nx - 0.8, ny - 1); g.lineTo(hx - 2, hy); g.stroke();
+  ink(g, () => g.ellipse(hx, hy, 4.2, 3.2, 0, 0, Math.PI * 2), NECK, 0.9);
+  // (the white chinstrap)
+  ink(g, () => { g.moveTo(hx - 2.5, hy + 0.5); g.lineTo(hx + 1, hy - 0.5); g.lineTo(hx + 0.5, hy + 2.6); g.lineTo(hx - 2, hy + 2.6); g.closePath(); }, '#F4F4F0', 0.5);
+  // (the beak: black; wide open on a pink tongue in the honk, the teeth of its edges showing)
+  if (honk && md === 'ok') {
+    ink(g, () => { g.moveTo(hx + 3, hy - 1.5); g.lineTo(hx + 9, hy - 3.5); g.lineTo(hx + 4, hy); g.closePath(); }, NECK, 0.7);
+    ink(g, () => { g.moveTo(hx + 3, hy + 0.5); g.lineTo(hx + 8.5, hy + 3); g.lineTo(hx + 4, hy + 1.5); g.closePath(); }, NECK, 0.7);
+    g.fillStyle = '#E87A90'; g.fillRect(hx + 4, hy - 0.5, 3, 1.2);
+    g.fillStyle = '#F4F4F0'; for (let k = 0; k < 3; k++) g.fillRect(hx + 4.5 + k * 1.4, hy - 1.8 - k * 0.3, 0.7, 0.8);
+  } else ink(g, () => { g.moveTo(hx + 3, hy - 1.2); g.lineTo(hx + 8, hy - 0.2); g.lineTo(hx + 3, hy + 1.2); g.closePath(); }, NECK, 0.7);
+  eye(g, hx + 0.5, hy - 1, md, 1.1, '#2A1A10', honk || fly);
+  // (the near wing: folded along its side standing (the dark primaries crossed over the tail), out and beating flying)
+  if (fly || honk) {
+    ink(g, () => { g.moveTo(4, -13); g.lineTo(-8 - 5 * Math.abs(flap), -13 - 16 * flap); g.lineTo(-11 - 3 * Math.abs(flap), -11 - 12 * flap); g.lineTo(-14, -12 - 6 * flap); g.lineTo(-6, -11); g.closePath(); }, GOOSE, 1);
+    g.strokeStyle = lite(GOOSE, 0.35); g.lineWidth = 1; g.beginPath(); g.moveTo(3, -13.5); g.lineTo(-7 - 5 * Math.abs(flap), -13.5 - 16 * flap); g.stroke();
+    g.fillStyle = NECK; g.fillRect(-10 - 4 * Math.abs(flap), -13 - 14 * flap, 3, 2);
+  } else {
+    ink(g, () => { g.moveTo(5, -14); g.lineTo(-12, -16); g.lineTo(-16, -12.5); g.lineTo(-4, -10); g.closePath(); }, GOOSE_D, 1);
+    g.fillStyle = lite(GOOSE_D, 0.35); for (let k = 0; k < 3; k++) g.fillRect(-8 + k * 4, -14.5 + k * 0.4, 3, 1);
+    g.fillStyle = NECK; g.fillRect(-15, -13.5, 4, 1.5);
+  }
+  if (md === 'dead') tongue(g, hx + 5, hy + 1, 3);
+  g.restore();
+};
+
+export const drawGoose = (c: Ctx, e: Enemy, f: number) => {
+  const md = mood(e), st = e.aiState ?? 'idle';
+  const flying = st === 'fly' || st === 'wheel' || st === 'home';
+  const pose: GoosePose = md !== 'ok' ? 'stand' : flying ? 'fly' : st === 'honk' ? 'honk' : Math.abs(e.vel.x) > 0.2 ? 'walk' : 'stand';
+  // (grazing: its head down now and then; walking, two steps; flying, four beats)
+  const fr = md !== 'ok' ? 0 : pose === 'fly' ? cyc(f, e, 4, st === 'fly' ? 3 : 5) : pose === 'walk' ? cyc(f, e, 2, 8) : pose === 'stand' ? ((f + (e.variant ?? 0) * 40) % 150 < 60 ? 1 : 0) : 0;
+  put(c, `goose-${pose}-${fr}-${md}`, -26, -40, 52, 58, g => paintGoose(g, pose, fr, md));
+};

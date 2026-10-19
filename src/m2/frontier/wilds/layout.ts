@@ -161,51 +161,73 @@ export const HIVES: [number, number][] = [[5720, 230], [16100, 160]];
 /** The log pile atop the hill (x), and the stretch its logs roll down (from the pile to the hill's foot). */
 export const LOG_PILE = { x: 15080, foot: 14220, top: 15020, every: 150 } as const;
 
-export type AnimalKind = 'm2:fr_doe' | 'm2:fr_buck' | 'm2:fr_wolf' | 'm2:fr_cougar' | 'm2:fr_beaver' | 'm2:fr_rattler' | 'm2:fr_crow' | 'm2:fr_porcupine' | 'm2:fr_bison' | 'm2:fr_hive' | 'm2:fr_trout';
-/** Who lives where: [kind, x, height of what it stands on (a crow, a hive: where it flies or hangs; a beaver: in which
- *  water, its height ignored)]. None on a trap or in a hazard's path. */
+export type AnimalKind = 'm2:fr_doe' | 'm2:fr_buck' | 'm2:fr_wolf' | 'm2:fr_cougar' | 'm2:fr_beaver' | 'm2:fr_rattler' | 'm2:fr_crow' | 'm2:fr_porcupine' | 'm2:fr_bison' | 'm2:fr_hive' | 'm2:fr_trout' | 'm2:fr_hawk' | 'm2:fr_goose';
+/** Who lives where: [kind, x, height of what it stands on (a crow, a hawk, a hive: where it flies or hangs; a beaver:
+ *  in which water, its height ignored)]. None on a trap or in a hazard's path. The air's mixed in with the ground all
+ *  the way (the user's: walking right holding fire passed too much): hawks stooping from above, geese coming at his
+ *  back, the crows round behind him, while the ground's animals come at him from ahead. Each taught alone first: the
+ *  hawk at the trailhead, the goose past the pond. */
 export const ANIMALS: [AnimalKind, number, number][] = [
-  // (the trailhead)
+  // (the trailhead: the first hawk, alone (a doe grazing past it))
+  ['m2:fr_hawk', 760, 400],
   ['m2:fr_doe', 1020, 0],
   // (the rocky rise)
   ['m2:fr_crow', 2250, 470],
   ['m2:fr_doe', 2900, 0],
-  // (wolf woods: the pair with the trap in their way; the pack under the hive)
+  // (off the pond: the first goose, alone, grazing where he steps off the log)
+  ['m2:fr_goose', 4020, 0],
+  // (wolf woods: the pair with the trap in their way; the pack under the hive; a hawk over the lot)
   ['m2:fr_wolf', 5180, 0], ['m2:fr_wolf', 5260, 0],
+  ['m2:fr_hawk', 5450, 420],
   ['m2:fr_wolf', 5650, 0], ['m2:fr_wolf', 5800, 0],
   ['m2:fr_hive', 5720, 230],
   ['m2:fr_doe', 6150, 0],
-  // (the creek: the first trout alone in the first pool (taught: it leaps the log); the second
-  // pool's beaver and trout)
+  // (the creek: a goose at the bank, at his back as he takes the log; the first trout alone in the first pool
+  // (taught: it leaps the log); the second pool's beaver and trout)
+  ['m2:fr_goose', 6250, 0],
   ['m2:fr_trout', 6640, 0],
   ['m2:fr_beaver', 7480, 0],
   ['m2:fr_trout', 7580, 0],
   ['m2:fr_crow', 7250, 360],
-  // (the bluffs)
+  // (the bluffs: a hawk over the climb, the cougar up top)
+  ['m2:fr_hawk', 8250, 560],
   ['m2:fr_cougar', 8380, 300],
   ['m2:fr_crow', 8800, 470],
-  // (snake flats)
+  // (snake flats: a goose behind, a hawk over the holes)
+  ['m2:fr_goose', 9420, 0],
   ['m2:fr_rattler', 9620, 0], ['m2:fr_rattler', 9900, 0], ['m2:fr_rattler', 10180, 0],
+  ['m2:fr_hawk', 9900, 420],
   ['m2:fr_porcupine', 10330, 0],
   // (the rapids)
+  ['m2:fr_crow', 11000, 380],
   ['m2:fr_beaver', 11200, 0],
   ['m2:fr_beaver', 12050, 0], ['m2:fr_beaver', 12720, 0],
   ['m2:fr_trout', 11040, 0], ['m2:fr_trout', 12260, 0],
   ['m2:fr_crow', 12200, 380],
-  // (bison meadow)
+  // (bison meadow: geese either side of the porcupine, a hawk over the bison)
+  ['m2:fr_goose', 13120, 0],
   ['m2:fr_buck', 13250, 0],
+  ['m2:fr_hawk', 13450, 450],
   ['m2:fr_bison', 13800, 0],
   ['m2:fr_porcupine', 13560, 0],
-  // (the long river: the overhangs' wolves and cougar, the hive, crows)
+  ['m2:fr_goose', 13640, 0],
+  // (the log pile: a hawk over the hill)
+  ['m2:fr_hawk', 14800, 600],
+  // (the long river: a goose on the bank at his back as he takes the log; a hawk over the water; the overhangs'
+  // wolves and cougar, the hive, crows)
+  ['m2:fr_goose', 15472, 0],
+  ['m2:fr_hawk', 15800, 420],
   ['m2:fr_wolf', 16020, 200], ['m2:fr_wolf', 16180, 200],
   ['m2:fr_hive', 16100, 160],
   ['m2:fr_cougar', 16830, 220],
   ['m2:fr_crow', 16500, 380], ['m2:fr_crow', 17200, 400],
   ['m2:fr_beaver', 15900, 0], ['m2:fr_beaver', 16900, 0],
   ['m2:fr_trout', 16060, 0], ['m2:fr_trout', 16780, 0], ['m2:fr_trout', 17160, 0],
-  // (the last mile)
+  // (the last mile: a goose on the cliff behind him, a hawk over the wolves)
+  ['m2:fr_goose', 17850, 40],
   ['m2:fr_rattler', 18050, 0],
   ['m2:fr_wolf', 18450, 0], ['m2:fr_wolf', 18530, 0], ['m2:fr_wolf', 18720, 0],
+  ['m2:fr_hawk', 18600, 420],
   ['m2:fr_buck', 18250, 0],
   ['m2:fr_crow', 19000, 330], ['m2:fr_crow', 19250, 360],
 ];

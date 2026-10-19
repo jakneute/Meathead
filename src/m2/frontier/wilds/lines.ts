@@ -192,6 +192,14 @@ export const HURT: HurtTable = {
     hurt: ['STUPID CROW!', 'IT WENT FOR MY EYES!', 'GET OUT OF MY HAIR!'],
     death: ['PECKED TO DEATH BY CROWS', 'A LITERAL MURDER OF CROWS'],
   },
+  'm2:fr_hawk': {
+    hurt: ['HAWK! OUT OF NOWHERE!', 'TALONS! IN MY SCALP!', 'IT DIVE BOMBED ME!', 'I DIDN\'T LOOK UP!'],
+    death: ['NEVER LOOKED UP', 'HAWK FOOD'],
+  },
+  'm2:fr_goose': {
+    hurt: ['GOOSE! GOOSE!', 'IT HIT ME IN THE BACK OF THE HEAD!', 'HONK THIS, YOU PRICK!', 'THE GOOSE GOT ME!'],
+    death: ['KILLED BY A GOOSE. A GOOSE.', 'GOOSED TO DEATH'],
+  },
   'm2:fr_porcupine': {
     hurt: ['PORCUPINE!', 'IT POKED ME!', 'OW! THE BACK END!'],
     death: ['KILLED BY A PORCUPINE', 'A PORCUPINE. OF ALL THINGS.'],
@@ -239,6 +247,8 @@ export const KILL_CALLS: Record<string, Record<string, string[]>> = {
   'm2:fr_beaver': SWIM(['DAM BUSTED!', 'LODGE CONDEMNED!', 'TAIL SLAPPED!', 'BEAVER DOWN!']),
   'm2:fr_rattler': SWIM(['SNAKE EYES!', 'RATTLED!', 'NO MORE RATTLE!']),
   'm2:fr_crow': SWIM(['EAT CROW!', 'BIRDIE!', 'GROUNDED!']),
+  'm2:fr_hawk': SWIM(['HAWK DOWN!', 'TALONS UP!', 'BIRD OF PREY NO MORE!']),
+  'm2:fr_goose': SWIM(['COOKED GOOSE!', 'HONK NO MORE!', 'GOOSE EGG!']),
   'm2:fr_porcupine': SWIM(['PINCUSHION!', 'POINTLESS!', 'DEFLATED!']),
   'm2:fr_bison': SWIM(['BUFFALO WINGS!', 'STAMPEDE OVER!', 'BISON BURGER!']),
   'm2:fr_hive': SWIM(['BEE GONE!', 'HIVE FIVE!']),

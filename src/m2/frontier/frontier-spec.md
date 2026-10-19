@@ -1384,3 +1384,17 @@ later (+1 if heavyset; was 2 / 3 before playtest fixes E). Tucker's glimpsed ahe
   quickening toward the snag (never enough alone to carry a log over), white streaks racing for the lip, spray off it,
   the roar (heard on screen). The jump: from the snag ~110 px to the cliff (as off the old boom), less once it's going.
   Layout: Water.boom became `lip` (the drop's edge, 17470, unchanged) and `snag`.
+- **The wilds' air (the user's, 2026-10-18: "there should be resistance from more airborne enemies to offset grounded
+  ones. many sequences can be passed simply by walking right and holding fire in the wilderness area"):** two new
+  kinds and the crow reworked, mixed in all the way so the ground ahead and the air come at him at once. HAWK
+  (m2:fr_hawk, 45 HP): wheels high, closes over him and hangs screeching, wings up (the 30-frame tell), then stoops on
+  where he'll be when it lands, going as he's going (keep walking and it's on him: stop, turn back or jump); missed, it
+  flounders on the ground ~50 frames (its window), into water it splashes and climbs; talons 14. GOOSE (m2:fr_goose,
+  40 HP): grazes; once he's past it with his back to it (or crowds it, or shoots it) it honks twice (neck out low,
+  wings up), takes off and comes flat out down his lane at head height (duck under it, or turn and shoot), wheels for
+  three passes, glides home; 10. CROW: every other go it swings round behind him before the swoop. Taught alone: the
+  hawk at the trailhead (760), the goose off the pond (4020). Then: a hawk over wolf woods, a goose at the creek's bank
+  (at his back on the log, trout ahead), a hawk over the bluffs, a goose and a hawk at snake flats, a crow more at the
+  rapids, two geese and a hawk in bison meadow, a hawk over the log pile, a goose on the long river's bank and a hawk
+  over the water, a goose on the last mile's cliff and a hawk over the wolves. Each its own art (peak SNES, the
+  wilds' animals' way: poses, hurt, dead belly-up), hurt and death lines, kill callouts.

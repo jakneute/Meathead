@@ -8,7 +8,13 @@
 //   cougar     crouched up on a ledge; sees him below or level, tail twitching (the tell), and pounces at where he is
 //   beaver     in the water: swims to him (on his log or swimming), surfaces and slaps its tail or bites
 //   rattler    in its hole: peeks out; near, it rears and RATTLES (the tell), then strikes out a good way
-//   crow       circles its patch of sky, then swoops at him and climbs back
+//   crow       circles its patch of sky; caws (the tell) and swoops at him, every other go swinging round behind him
+//              first to come at his back; climbs back
+//   hawk       wheels high; closes over him and hangs there screeching, wings up (the tell), then STOOPS on where he
+//              is (step or jump out from under); missed, it flounders on the ground a moment (its window), beats back up
+//   goose      grazes; let him get past it (his back to it) or crowd it, and it HONKS (the tell: neck out low, wings
+//              up), takes off and comes flat out at his head down his lane: duck, or turn and shoot; three passes,
+//              then it glides home. (The air's answer to walking right holding fire: from above, from behind.)
 //   porcupine  waddles about; up close, it turns its back, bristles (the tell: the quills rattling) and SPRAYS a fan of
 //              quills up off its back (hazards.ts): a slide's in under them; DIVE KICKING onto it hurts (spiky)
 //   bison      grazes; sees him, paws and snorts (a long tell), then CHARGES a long way, plowing through anything in its
@@ -40,12 +46,17 @@ import { WATERS, BED } from './layout';
 import { surfaceY } from './water';
 import { logUnder } from './logs';
 import { sprayQuills, reachTop } from './hazards';
-import { drawDoe, drawBuck, drawWolf, drawCougar, drawBeaver, drawRattler, drawCrow, drawPorcupine, drawBison, drawHive, drawTrout } from './kindArt';
+import { drawDoe, drawBuck, drawWolf, drawCougar, drawBeaver, drawRattler, drawCrow, drawPorcupine, drawBison, drawHive, drawTrout, drawHawk, drawGoose } from './kindArt';
 
 for (const [source, l] of Object.entries(HURT)) registerHurtLines(source, l.hurt, l.death);
 // (each animal's own kill callouts, where the engine's would name the wrong creature: a beaver isn't FISH STICKS)
 for (const [kind, calls] of Object.entries(KILL_CALLS)) registerKindCallouts(kind, calls);
 
+/** What a flyer keeps between frames past the engine's fields: a count (the crow's goes, the goose's passes), the
+ *  goose's lane (the feet it's flying at the head of) and way, and the frame it's ready again from. */
+interface Memo { n: number; lane: number; dir: 1 | -1; cd: number }
+const MEMO = new WeakMap<Enemy, Memo>();
+const memo = (e: Enemy) => { let k = MEMO.get(e); if (!k) MEMO.set(e, (k = { n: 0, lane: 0, dir: 1, cd: 0 })); return k; };
 const dirTo = (e: Enemy, x: number) => (x < mid(e).x ? -1 : 1) as 1 | -1;
 const tick = (e: Enemy) => (e.aiTimer = (e.aiTimer || 0) + 1);
 const setState = (e: Enemy, s: string) => { e.aiState = s; e.aiTimer = 0; };
@@ -333,7 +344,16 @@ const rattler = (ctx: FrameContext, e: Enemy) => {
 // ---------------------------------------------------------------------------------------------------------------
 // Crow
 
-const crow = (ctx: FrameContext, e: Enemy) => {
+/** Down at where he is, beak first. */
+const swoopAt = (e: Enemy, pm: { x: number; y: number }) => {
+  const m = mid(e);
+  setState(e, 'swoop'); e.aiX = pm.x; e.aiY = pm.y;
+  const d = Math.hypot(pm.x - m.x, pm.y - m.y) || 1;
+  e.vel = { x: ((pm.x - m.x) / d) * 6.5, y: ((pm.y - m.y) / d) * 6.5 };
+  e.facing = (e.vel.x < 0 ? -1 : 1) as 1 | -1;
+};
+
+const crow =(ctx: FrameContext, e: Enemy) => {
   const { state } = ctx, p = state.player;
   tick(e);
   const hx = e.homeX ?? e.pos.x, hy = e.homeY ?? e.pos.y;
@@ -344,13 +364,22 @@ const crow = (ctx: FrameContext, e: Enemy) => {
       const tx = hx + Math.sin(t) * 140, ty = hy + Math.sin(t * 2) * 24;
       e.vel.x = (tx - e.pos.x) * 0.05; e.vel.y = (ty - e.pos.y) * 0.05;
       e.facing = (e.vel.x < 0 ? -1 : 1) as 1 | -1;
-      if (e.aiTimer! > 90 && sees(state, e, 360, 380)) {
-        setState(e, 'swoop'); e.aiX = pm.x; e.aiY = pm.y;
-        const d = Math.hypot(pm.x - m.x, pm.y - m.y) || 1;
-        e.vel = { x: ((pm.x - m.x) / d) * 6.5, y: ((pm.y - m.y) / d) * 6.5 };
-        e.facing = (e.vel.x < 0 ? -1 : 1) as 1 | -1;
-        playSound('chitter', 0.4, -6);
+      // (him under it: it caws (the tell) and swings round behind him, every other go, to come at his back)
+      if (e.aiTimer! > 70 && sees(state, e, 360, 380)) {
+        const k = memo(e); k.n++;
+        playSound('chitter', 0.45, -4);
+        if (k.n % 2 === 1) setState(e, 'flank');
+        else swoopAt(e, pm);
       }
+      break;
+    }
+    case 'flank': {
+      // (out behind him, up a way, then down at his back)
+      const tx = pm.x - (p.facing || 1) * 170, ty = pm.y - 120;
+      e.vel.x = Math.max(-5, Math.min(5, (tx - m.x) * 0.08)); e.vel.y = Math.max(-5, Math.min(5, (ty - m.y) * 0.08));
+      e.facing = (e.vel.x < 0 ? -1 : 1) as 1 | -1;
+      if ((Math.abs(tx - m.x) < 30 && Math.abs(ty - m.y) < 30) || e.aiTimer! > 70) { swoopAt(e, pm); playSound('chitter', 0.5, -8); }
+      if (!sees(state, e, 600, 500)) setState(e, 'climb');
       break;
     }
     case 'swoop':
@@ -364,6 +393,161 @@ const crow = (ctx: FrameContext, e: Enemy) => {
   const floor = floorTopAt(state.blocks, m.x, e.pos.y + e.height, 0);
   e.pos.x += e.vel.x; e.pos.y += e.vel.y;
   if (floor !== null && e.pos.y + e.height > floor) { e.pos.y = floor - e.height; if (e.aiState === 'swoop') setState(e, 'climb'); }
+  return true;
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// Hawk (circles high; hangs over him screeching (the tell), then STOOPS on where he is: step or jump out from under
+// it; missed, it hits the ground and flounders there a moment (its window), then beats back up)
+
+/** In the water there (and under its surface)? */
+const wetAt = (x: number, y: number) => { const w = WATERS.find(q => x > q.a && x < q.b); return !!w && y > surfaceY(w); };
+
+const hawk = (ctx: FrameContext, e: Enemy) => {
+  const { state } = ctx, p = state.player;
+  tick(e);
+  const hx = e.homeX ?? e.pos.x, hy = e.homeY ?? e.pos.y;
+  const m = mid(e), pm = mid(p);
+  switch (e.aiState) {
+    default: {
+      // (wheeling wide and slow over its patch, high up)
+      const t = (state.frame + hx) * 0.012;
+      const tx = hx + Math.cos(t) * 170, ty = hy + Math.sin(t) * 26;
+      e.vel.x = (tx - e.pos.x) * 0.04; e.vel.y = (ty - e.pos.y) * 0.04;
+      e.facing = (e.vel.x < 0 ? -1 : 1) as 1 | -1;
+      if (e.aiTimer! > 70 && state.frame >= memo(e).cd && sees(state, e, 420, 560) && pm.y > m.y + 90) setState(e, 'mark');
+      break;
+    }
+    case 'mark': {
+      // (closing to right over him, high)
+      const tx = pm.x, ty = Math.min(hy, pm.y - 250);
+      e.vel.x += (Math.max(-5, Math.min(5, (tx - m.x) * 0.06)) - e.vel.x) * 0.2;
+      e.vel.y = (ty - m.y) * 0.06;
+      e.facing = dirTo(e, pm.x);
+      if (Math.abs(tx - m.x) < 40 || e.aiTimer! > 90) { setState(e, 'tell'); playSound('chitter', 0.7, 16); }
+      if (!sees(state, e, 700, 700)) setState(e, 'climb');
+      break;
+    }
+    case 'tell':
+      // (hung there over him, wings up, tail fanned, talons out: the screech)
+      e.vel.x *= 0.85; e.vel.y = Math.sin(e.aiTimer! * 0.5) * 0.4;
+      e.facing = dirTo(e, pm.x);
+      if (e.aiTimer === 14) playSound('chitter', 0.6, 19);
+      if (e.aiTimer! > 30) {
+        // (locked on where he'll be when it gets there, going as he's going: keep walking and it's on him; stop, turn
+        // back or jump and it misses)
+        const lead = Math.max(10, Math.min(45, Math.hypot(pm.x - m.x, pm.y - m.y) / 7.5));
+        const ax = pm.x + p.vel.x * lead, ay = p.pos.y + p.height - 8;
+        const d = Math.hypot(ax - m.x, ay - m.y) || 1;
+        e.aiX = ax; e.aiY = ay;
+        e.vel = { x: ((ax - m.x) / d) * 3, y: ((ay - m.y) / d) * 3 };
+        setState(e, 'stoop'); playSound('whoosh', 0.7, 2);
+      }
+      break;
+    case 'stoop': {
+      // (folded, dropping like a stone, faster and faster down its line)
+      const v = Math.hypot(e.vel.x, e.vel.y) || 1, sp = Math.min(11, v + 0.5);
+      e.vel.x = (e.vel.x / v) * sp; e.vel.y = (e.vel.y / v) * sp;
+      e.facing = (e.vel.x < 0 ? -1 : 1) as 1 | -1;
+      if (strike(ctx, e, { x: e.pos.x, y: e.pos.y, w: e.width, h: e.height }, 14, 'm2:fr_hawk', 6)) { setState(e, 'climb'); e.vel.y = -2; playSound('splat', 0.4, 10); }
+      else if (wetAt(m.x, e.pos.y + e.height)) {
+        // (into the water: a splash, and up out of it wet)
+        playSound('splash', 0.6, 6);
+        for (let i = 0; i < 8; i++) state.particles.push({ pos: { x: m.x, y: e.pos.y + e.height }, vel: { x: (Math.random() - 0.5) * 4, y: -2 - Math.random() * 4 }, life: 22, color: '#BAE6FD', size: 2 + Math.random() * 2 });
+        setState(e, 'climb'); e.vel.y = -3;
+      } else if (e.aiTimer! > 80) setState(e, 'climb');
+      break;
+    }
+    case 'ground':
+      // (missed: down in the dirt, wings drooped round it, floundering to get up: its window)
+      e.vel.x *= 0.8; e.vel.y = 0;
+      if (e.aiTimer! > 50) { setState(e, 'climb'); e.vel.y = -2; playSound('whoosh', 0.3, 8); }
+      break;
+    case 'climb':
+      // (beating hard back up to its height, then wheeling again; a breather before the next)
+      e.vel.x *= 0.95; e.vel.y = Math.max(-3.2, e.vel.y - 0.25);
+      if (e.pos.y <= hy || e.aiTimer! > 140) { setState(e, 'idle'); memo(e).cd = state.frame + 50; }
+      break;
+  }
+  const floor = floorTopAt(state.blocks, m.x, e.pos.y + e.height, 0);
+  e.pos.x += e.vel.x; e.pos.y += e.vel.y;
+  if (floor !== null && e.pos.y + e.height > floor) {
+    e.pos.y = floor - e.height;
+    if (e.aiState === 'stoop') { setState(e, 'ground'); e.vel.x *= 0.3; playSound('thud', 0.5, 6); for (let i = 0; i < 6; i++) state.particles.push({ pos: { x: m.x, y: floor }, vel: { x: (Math.random() - 0.5) * 4, y: -1 - Math.random() * 2 }, life: 20, color: '#8A6A44', size: 2 + Math.random() * 2 }); }
+  }
+  return true;
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// Goose (grazes; let him get past it (or crowd it), and it honks (the tell: neck out low, wings up), takes off and
+// comes flat out at his head, from behind as often as not: duck, or turn round and shoot it; it wheels round for
+// another go (three), then glides back to its patch)
+
+/** How far over his feet the goose's bottom flies (ducked, his head's under it), and its passes before it settles. */
+const GOOSE_CLEAR = 42, GOOSE_PASSES = 3;
+
+const goose = (ctx: FrameContext, e: Enemy) => {
+  const { state } = ctx, p = state.player;
+  tick(e);
+  const hx = e.homeX ?? e.pos.x, hy = e.homeY ?? e.pos.y;
+  const m = mid(e), pm = mid(p), k = memo(e);
+  let fly = true;
+  const launch = (passes: number) => { k.n = passes; k.lane = p.pos.y + p.height; k.dir = dirTo(e, pm.x); e.facing = k.dir; };
+  switch (e.aiState) {
+    default: {
+      fly = false;
+      // (grazing about its patch, a waddle now and then)
+      e.vel.x = Math.sin(((e.aiTimer ?? 0) + (e.variant ?? 0) * 40) * 0.015) > 0.8 ? (e.facing ?? 1) * 0.6 : 0;
+      if (Math.abs(e.pos.x - hx) > 40) e.facing = (e.pos.x > hx ? -1 : 1) as 1 | -1;
+      const dx = pm.x - m.x, behind = Math.sign(dx) === (p.facing || 1);
+      // (him past it with his back to it, or crowding it)
+      if (state.frame >= k.cd && sees(state, e, 420, 220) && ((behind && Math.abs(dx) > 60) || Math.abs(dx) < 110 || (e.hitFlash ?? 0) > 0)) { setState(e, 'honk'); e.facing = dirTo(e, pm.x); }
+      break;
+    }
+    case 'honk':
+      fly = false;
+      e.vel.x = 0; e.facing = dirTo(e, pm.x);
+      if (e.aiTimer === 2 || e.aiTimer === 20) playSound('horn', 0.3, e.aiTimer === 2 ? 16 : 18);
+      if (e.aiTimer! > 38) { launch(0); setState(e, 'fly'); e.vel.y = -2; playSound('whoosh', 0.5, 6); }
+      break;
+    case 'fly': {
+      // (flat out down its lane, at his head)
+      e.vel.x += (k.dir * 6.5 - e.vel.x) * 0.08;
+      e.vel.y = (k.lane - GOOSE_CLEAR - e.height - e.pos.y) * 0.2;
+      e.facing = k.dir;
+      const top = reachTop(state);
+      if (alive(state) && p.invincibilityTimer <= 0 && e.pos.x < p.pos.x + p.width && e.pos.x + e.width > p.pos.x && e.pos.y < p.pos.y + p.height && e.pos.y + e.height > top) {
+        hurtPlayer(ctx, 10, 'm2:fr_goose', { x: k.dir * 5, y: -3 });
+        playSound('horn', 0.35, 20);
+      }
+      // (past him a way: round for another go)
+      if ((pm.x - m.x) * k.dir < -220 || e.aiTimer! > 160) { k.n++; setState(e, k.n >= GOOSE_PASSES || !alive(state) ? 'home' : 'wheel'); }
+      break;
+    }
+    case 'wheel':
+      // (up and round, a honk, and back down his lane the other way)
+      e.vel.x *= 0.9; e.vel.y = e.aiTimer! < 16 ? -2.2 : 0.4;
+      if (e.aiTimer === 16) { e.facing = dirTo(e, pm.x); playSound('horn', 0.28, 17); }
+      if (e.aiTimer! > 30) { launch(k.n); setState(e, 'fly'); }
+      break;
+    case 'home': {
+      // (gliding back to its patch, and down)
+      const tx = hx + e.width / 2, ty = hy + e.height / 2;
+      e.vel.x = Math.max(-3.5, Math.min(3.5, (tx - m.x) * 0.05)); e.vel.y = Math.max(-3, Math.min(3, (ty - 30 - m.y) * 0.05));
+      e.facing = (e.vel.x < 0 ? -1 : 1) as 1 | -1;
+      if (Math.abs(tx - m.x) < 12 || e.aiTimer! > 300) { setState(e, 'land'); }
+      break;
+    }
+    case 'land':
+      e.vel.x *= 0.8; e.vel.y = 2;
+      break;
+  }
+  const floor = floorTopAt(state.blocks, m.x, e.pos.y + e.height, fly ? 0 : 26);
+  e.pos.x += e.vel.x; e.pos.y += e.vel.y;
+  if (floor !== null && e.pos.y + e.height > floor) {
+    e.pos.y = floor - e.height;
+    if (e.aiState === 'land') { setState(e, 'idle'); e.homeX = e.pos.x; k.cd = state.frame + 200; }
+  } else if (e.aiState === 'land' && e.aiTimer! > 90) { e.pos.x = hx; e.pos.y = hy; setState(e, 'idle'); k.cd = state.frame + 200; }
   return true;
 };
 
@@ -510,7 +694,7 @@ const sized = (k: number, w: number, h: number) => ({ w: Math.round(w * k), h: M
 const headAt = (k: number, x: number, y: number, r: number) => ({ x: x * k, y: y * k, r: r * k });
 
 /** How much bigger each animal is than it was (the playtest's: the deer, the wolves; all of them a bit, the bison too). */
-const S = { doe: 1.4, buck: 1.35, wolf: 1.4, cougar: 1.3, beaver: 1.25, rattler: 1.2, crow: 1.2, porcupine: 1.25, bison: 1.3, trout: 1.2 } as const;
+const S = { doe: 1.4, buck: 1.35, wolf: 1.4, cougar: 1.3, beaver: 1.25, rattler: 1.2, crow: 1.2, porcupine: 1.25, bison: 1.3, trout: 1.2, hawk: 1.3, goose: 1.3 } as const;
 
 registerM2Kind({ kind: 'm2:fr_doe', stats: { ...sized(S.doe, 50, 46), hp: 95, contact: 10, mass: 120 }, ai: doe, draw: big(S.doe, drawDoe), head: headAt(S.doe, 22, -48, 7), gender: 'n', grab: 'body' });
 registerM2Kind({ kind: 'm2:fr_buck', stats: { ...sized(S.buck, 58, 54), hp: 180, contact: 14, mass: 210 }, ai: buck, draw: big(S.buck, drawBuck), head: headAt(S.buck, 26, -56, 8), gender: 'n', grab: 'body', pointy: { source: 'm2:fr_antlers', label: 'ANTLERS!', damage: 18 } });
@@ -519,6 +703,8 @@ registerM2Kind({ kind: 'm2:fr_cougar', stats: { ...sized(S.cougar, 66, 34), hp: 
 registerM2Kind({ kind: 'm2:fr_beaver', stats: { ...sized(S.beaver, 32, 26), hp: 26, contact: 7, mass: 30, air: true }, ai: beaver, make: flyer, draw: big(S.beaver, drawBeaver), head: headAt(S.beaver, 12, -16, 6), gender: 'n', grab: 'critter', pathing: false });
 registerM2Kind({ kind: 'm2:fr_rattler', stats: { ...sized(S.rattler, 30, 22), hp: 19, contact: 7, mass: 5 }, ai: rattler, draw: big(S.rattler, drawRattler), head: headAt(S.rattler, 8, -14, 5), gender: 'n', grab: 'critter', pathing: false });
 registerM2Kind({ kind: 'm2:fr_crow', stats: { ...sized(S.crow, 26, 18), hp: 16, contact: 7, mass: 4, air: true }, ai: crow, make: flyer, draw: big(S.crow, drawCrow), head: headAt(S.crow, 9, -12, 5), gender: 'n', grab: 'critter' });
+registerM2Kind({ kind: 'm2:fr_hawk', stats: { ...sized(S.hawk, 30, 18), hp: 45, contact: 8, mass: 6, air: true }, ai: hawk, make: flyer, draw: big(S.hawk, drawHawk), head: headAt(S.hawk, 10, -13, 5), gender: 'n', grab: 'critter' });
+registerM2Kind({ kind: 'm2:fr_goose', stats: { ...sized(S.goose, 30, 22), hp: 40, contact: 7, mass: 9, air: true }, ai: goose, make: flyer, draw: big(S.goose, drawGoose), head: headAt(S.goose, 11, -24, 5), gender: 'n', grab: 'critter' });
 registerM2Kind({ kind: 'm2:fr_porcupine', stats: { ...sized(S.porcupine, 36, 24), hp: 33, contact: 9, mass: 22 }, ai: porcupine, draw: big(S.porcupine, drawPorcupine), head: headAt(S.porcupine, 13, -9, 5), gender: 'n', grab: 'critter', spiky: { source: 'm2:fr_quills', label: 'QUILLS!', damage: 12 } });
 registerM2Kind({ kind: 'm2:fr_bison', stats: { ...sized(S.bison, 100, 68), hp: 400, contact: 20, mass: 900 }, ai: bison, draw: big(S.bison, drawBison), head: headAt(S.bison, 42, -32, 12), gender: 'n', grab: 'none', pointy: { source: 'm2:fr_horns', label: 'HORNS!', damage: 22 } });
 registerM2Kind({ kind: 'm2:fr_hive', stats: { w: 22, h: 30, hp: 4, contact: 0, mass: 2, air: true }, ai: hive, make: (b) => ({ ...flyer(b), harmless: true }), draw: drawHive, head: { x: 0, y: -15, r: 9 }, gender: 'n', grab: 'critter', fixture: true });

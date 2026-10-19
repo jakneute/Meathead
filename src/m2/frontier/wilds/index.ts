@@ -49,7 +49,8 @@ export const wilds: FrontierSection = {
     buildLogs(state);
     buildHazards(state);
     for (const [kind, rx, h] of ANIMALS) {
-      // (a beaver in its water, its bottom under the surface; a hive hanging from h; a crow flying at h)
+      // (a beaver in its water, its bottom under the surface; a hive hanging from h; a crow, a hawk flying at h; a goose
+      // grazing on the ground at h)
       let feet = Y(h);
       if (kind === 'm2:fr_beaver' || kind === 'm2:fr_trout') { const w = WATERS.find(q => X(rx) > q.a && X(rx) < q.b); feet = (w ? surfaceY(w) : GY) + (kind === 'm2:fr_trout' ? 40 : 10); }
       if (kind === 'm2:fr_hive') feet = Y(h) + 30;

@@ -206,6 +206,11 @@
  },
  {
   "voice": "announcer",
+  "text": "BIRD OF PREY NO MORE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "announcer",
   "text": "BIRDIE!",
   "from": "KILL_CALLOUTS"
  },
@@ -388,6 +393,11 @@
   "voice": "announcer",
   "text": "CONTACT HIGH!",
   "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "COOKED GOOSE!",
+  "from": "FRONTIER"
  },
  {
   "voice": "announcer",
@@ -681,6 +691,11 @@
  },
  {
   "voice": "announcer",
+  "text": "GOOSE EGG!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "announcer",
   "text": "GORE SHOWER!",
   "from": "GRAB_CALLOUTS"
  },
@@ -746,6 +761,11 @@
  },
  {
   "voice": "announcer",
+  "text": "HAWK DOWN!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "announcer",
   "text": "HE'S NOT COMING BACK DOWN!",
   "from": "KILL_CALLOUTS"
  },
@@ -798,6 +818,11 @@
   "voice": "announcer",
   "text": "HOME RUN!",
   "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "HONK NO MORE!",
+  "from": "FRONTIER"
  },
  {
   "voice": "announcer",
@@ -1683,6 +1708,11 @@
   "voice": "announcer",
   "text": "TAKEDOWN!",
   "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "TALONS UP!",
+  "from": "FRONTIER"
  },
  {
   "voice": "announcer",
@@ -8421,6 +8451,11 @@
  },
  {
   "voice": "death",
+  "text": "GOOSED TO DEATH",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "death",
   "text": "GORED BY A GIFT SHOP MASCOT",
   "from": "ADVENTURE"
  },
@@ -8547,6 +8582,11 @@
  {
   "voice": "death",
   "text": "HATCHETED",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "death",
+  "text": "HAWK FOOD",
   "from": "FRONTIER"
  },
  {
@@ -9348,6 +9388,11 @@
   "voice": "death",
   "text": "KILLED BY A FRIDGE",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "KILLED BY A GOOSE. A GOOSE.",
+  "from": "FRONTIER"
  },
  {
   "voice": "death",
@@ -10243,6 +10288,11 @@
   "voice": "death",
   "text": "NEVER LOOK DOWN",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "NEVER LOOKED UP",
+  "from": "FRONTIER"
  },
  {
   "voice": "death",
@@ -48031,6 +48081,11 @@
  },
  {
   "voice": "meathead",
+  "text": "GOOSE! GOOSE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "GORE SHOWER, BITCH!",
   "from": "M2_KILL_LINES"
  },
@@ -48368,6 +48423,11 @@
   "voice": "meathead",
   "text": "HAWK DOWN!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "HAWK! OUT OF NOWHERE!",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -49751,6 +49811,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HONK THIS, YOU PRICK!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "HOP IN THE CART. WHAT COULD GO WRONG.",
   "from": "FRONTIER"
  },
@@ -50338,6 +50403,11 @@
   "voice": "meathead",
   "text": "I DIDN'T KILL EIGHT ASSHOLES FOR THEIR TOYS JUST TO SHOOT A PISTOL.",
   "from": "FINALE_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "I DIDN'T LOOK UP!",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -51981,6 +52051,11 @@
  },
  {
   "voice": "meathead",
+  "text": "IT DIVE BOMBED ME!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "IT DOESN'T DO ANYTHING!",
   "from": "SPACE"
  },
@@ -52038,6 +52113,11 @@
   "voice": "meathead",
   "text": "IT HEADBUTTED MY KIDNEYS!",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT HIT ME IN THE BACK OF THE HEAD!",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -60516,6 +60596,11 @@
  },
  {
   "voice": "meathead",
+  "text": "TALONS! IN MY SCALP!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "TALONS! IN MY TRAPS!",
   "from": "HAZARD_HURT"
  },
@@ -62128,6 +62213,11 @@
   "voice": "meathead",
   "text": "THE GLITTER BALL! IT WORKED!",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE GOOSE GOT ME!",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
