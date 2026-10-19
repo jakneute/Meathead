@@ -20,7 +20,7 @@ import { steppedGlow } from '../../intro/art/kit';
 import { onScreen, painted } from '../kit';
 import { type Ctx, box, checker, mix, hash, still, stillAt, clump, part, rampOf, INK, hr, asIs, STEEL as STEELR, PLANK, BARK, CONCRETE, RUST, MOSS, GRANITE, SLUDGE, OAK, FIBER, RIVER } from './paint';
 import { rideOf } from './state';
-import { X, waterY, ROCKS, BRANCHES, GUSHERS, PIPES, CUTTER_X, DUCK_LINE, type PropKind } from './layout';
+import { X, waterY, ROCKS, BRANCHES, GUSHERS, PIPES, ARROW_LEAD, CUTTER_X, DUCK_LINE, type PropKind } from './layout';
 import { SWING_TOP, SLAM, PIPE_R, LIMB_W } from './hazards';
 import { GY } from '../geometry';
 
@@ -345,6 +345,34 @@ const pipeEnd = (c: Ctx, x: number, y: number, r: number, col: string, open: boo
   const Ru = asIs(RUST); box(c, x + r * 0.4, y + r * 0.5, 2, r * 0.8, Ru[4]); box(c, x + r * 0.4, y + r * 0.5, 1, r * 0.4, Ru[6]);
 };
 
+/**
+ * A road crew's flashing arrow board on its stand at the channel's edge (behind him): a black lamp face in a hazard
+ * frame, the arrow in amber lamps, the rows chasing tail to tip, then a beat dark. `dir` 1: up (jump it); -1: down
+ * (duck under it).
+ */
+const arrowBoard = (c: Ctx, state: GameState, rx: number, dir: 1 | -1) => {
+  if (!onScreen(state, X(rx) - 40, X(rx) + 40)) return;
+  const f = state.frame, wy = waterY(rx), x = Math.round(X(rx)), w = 58, h = 60, top = Math.round(wy - 178), bot = top + h;
+  // (the stand: two legs down into the sludge, a cross brace)
+  for (const lx of [x - 20, x + 15]) { box(c, lx, bot, 5, wy + 4 - bot, INK); box(c, lx + 1, bot, 3, wy + 4 - bot, '#3F3F46'); box(c, lx + 1, bot, 1, wy + 4 - bot, '#71717A'); }
+  box(c, x - 18, bot + 30, 36, 3, INK); box(c, x - 18, bot + 31, 36, 1, '#52525B');
+  // (the board)
+  box(c, x - w / 2 - 2, top - 2, w + 4, h + 4, INK);
+  stripes(c, x - w / 2, top, w, 5); stripes(c, x - w / 2, bot - 5, w, 5);
+  box(c, x - w / 2, top + 5, w, h - 10, '#111114'); box(c, x - w / 2, top + 5, w, 1, '#3A3A40');
+  const on = f % 36 < 26, head = Math.floor((f % 36) / 3);
+  if (on) steppedGlow(c, x, top + h / 2, 46, '#F59E0B', 0.03, 0.22, 3);
+  // (the arrow: a head four rows deep over a three-wide shaft; row 0 its tip)
+  for (let row = 0; row < 7; row++) {
+    const half = row < 4 ? row : 1, ry = dir > 0 ? row : 6 - row, lit = on && 6 - row <= head;
+    for (let col = 3 - half; col <= 3 + half; col++) {
+      const dx = x - 23 + col * 7, dy = Math.round(top + 8 + ry * 6.5);
+      box(c, dx, dy, 5, 5, lit ? '#FBBF24' : '#3A2A0C');
+      if (lit) box(c, dx + 1, dy + 1, 2, 2, '#FFF4C0');
+    }
+  }
+};
+
 /** The sewer's gushers' outfalls and its busted pipe sections, the river's rocks (behind him: the low pipes and limbs
  *  are in front, see drawObstaclesFront). */
 export const drawObstaclesBack = (c: Ctx, state: GameState) => {
@@ -396,6 +424,9 @@ export const drawObstaclesBack = (c: Ctx, state: GameState) => {
     box(c, x - 7, cy - 46, 14, 14, INK); box(c, x - 5, cy - 44, 10, 10, on ? '#FB923C' : '#7C2D12'); if (on) { box(c, x - 4, cy - 43, 3, 3, '#FFE4C0'); steppedGlow(c, x, cy - 39, 20, '#FB923C', 0.03, 0.3, 3); }
     box(c, x - 2, cy - 33, 4, 4, '#26262C');
   }
+  // (a road crew's arrow boards before each pipe and each busted section (the user's): which way to go, in lamps)
+  for (const px of PIPES) arrowBoard(c, state, px - ARROW_LEAD, -1);
+  for (const k of r.junk) arrowBoard(c, state, k.x - ARROW_LEAD, 1);
   // (the river's rocks: real granite boulders well up out of the water, faceted and stepped, moss on their backs and
   // lichen spots, dark and wet at the waterline; the water piling up white against them)
   const G = hr('granite', GRANITE, 0.16), Ms = hr('moss', MOSS, 0.16), Rv = hr('river', RIVER, 0.16);

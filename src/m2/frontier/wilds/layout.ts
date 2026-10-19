@@ -224,7 +224,7 @@ export const ANIMALS: [AnimalKind, number, number][] = [
   ['m2:fr_beaver', 15900, 0], ['m2:fr_beaver', 16900, 0],
   ['m2:fr_trout', 16060, 0], ['m2:fr_trout', 16780, 0], ['m2:fr_trout', 17160, 0],
   // (the last mile: a goose on the cliff behind him, a hawk over the wolves)
-  ['m2:fr_goose', 17850, 40],
+  ['m2:fr_goose', 17980, 40],
   ['m2:fr_rattler', 18050, 0],
   ['m2:fr_wolf', 18450, 0], ['m2:fr_wolf', 18530, 0], ['m2:fr_wolf', 18720, 0],
   ['m2:fr_hawk', 18600, 420],

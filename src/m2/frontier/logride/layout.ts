@@ -17,13 +17,13 @@
 //   4250   THE LUMBER CAMP (cp 34 at 4300): RAIL SAWS (along the trough's edge at him: jump), then all of them mixed.
 //   5420   THE BREAK: the giant cutter slams into the ground at 5720; a fault line cracks open along the ground, the
 //          flume over it breaks apart, and the log drops through the chasm (5700-5840) into the sewer: a big splash.
-//   5840   THE SEWER (cp 35 at 5900; cp 36 at 7060): LOW PIPES (a bundle of pipes down from the vault: duck), BUSTED
+//   5840   THE SEWER (cp 35 at 5900; cp 36 at 7100): LOW PIPES (a bundle of pipes down from the vault: duck), BUSTED
 //          PIPE sections lying across the channel (jump), SEWAGE GUSHERS (brake, paddle or hop). No saws down here,
 //          and no critters on the ride at all: only its obstacles hurt him (the user's).
 //   8400   THE CULVERT: out of the bluff, through the park's busted fence (PARK PROPERTY ENDS), down into a real river
 //          (a big splash).
 //   8600   A REAL RIVER (cp 37 at 8700): ROCKS (jump as the log hits one), LOW LIMBS (duck); the rapids;
-//          a real waterfall (a big splash at its foot); (cp 38 at 10080) more of it.
+//          a real waterfall (a big splash at its foot); (cp 38 at 10040) more of it.
 //   10760  THE SLUICE: the logging crew's conveyor up into the WOODCHIPPER: jump at JUMP!, or mulch.
 //   11160  THE CREW'S CLEARING: the crew (chainsaws: they're sore about it; throw one in the chipper); off the right end
 //          into the woods. A trail back to the park off its left end.
@@ -134,19 +134,23 @@ export const PROPS: [number, PropKind][] = [
 // The sewer's and the river's own
 
 /** Low pipes across the sewer (a bundle of them down from the vault to head height: duck). */
-// (the sewer's beats, ~300 apart, never a duck straight into a jump: pipe 6100, junk 6400, gusher 6700, pipe 7000,
-// junk 7300, the gusher pair 7560/7660, pipe 7950, junk 8200; each lit by its own work lamp, its warning sprayed on)
-export const PIPES = [6100, 7000, 7950];
+// (the sewer's beats, ~280 apart, never a duck straight into a jump; nothing for ~3 s after the fall in (the user's:
+// breathing room after a drop): pipe 6400, junk 6680, gusher 6960, pipe 7380, junk 7660, the gusher pair 7900/8000,
+// pipe 8240; each lit by its own work lamp, a road crew's arrow board before each pipe and junk (the user's))
+export const PIPES = [6400, 7380, 8240];
 /** Busted pipe sections lying across the sewer's channel, half sunk (the log hits one and bucks: be in the air). */
-export const JUNK = [6400, 7300, 8200];
+export const JUNK = [6680, 7660];
 /** Sewage pouring out of a pipe in the sewer's roof on a beat (brake or paddle through): [x, phase]. */
-export const GUSHERS: [number, number][] = [[6700, 0], [7560, 0], [7660, 80]];
+export const GUSHERS: [number, number][] = [[6960, 0], [7900, 0], [8000, 80]];
+/** How far ahead of a pipe or a junk its arrow board stands (down arrow: duck; up arrow: jump). */
+export const ARROW_LEAD = 190;
 /** The walkway along the sewer's back wall (scenery: dimmed, not his): from, to, height. */
 export const WALKWAYS: [number, number, number][] = [[6450, 6900, -500], [7350, 7560, -500], [7960, 8200, -500]];
 /** Rocks in the river (the log hits it and bucks: be in the air as it does). */
-export const ROCKS = [9100, 9580, 9740, 10460];
-/** Low limbs over the river (duck). Real trees. (Each at least ~240 from the nearest rock.) */
-export const BRANCHES = [9340, 10180];
+export const ROCKS = [9100, 9580, 9740];
+/** Low limbs over the river (duck). Real trees. (Each at least ~240 from the nearest rock; the one past the waterfall
+ *  well clear of its foot: breathing room, the user's.) */
+export const BRANCHES = [9340, 10460];
 /** The crew's hand-painted warnings on the river's far bank: [x, words]. */
 
 /** The woodchipper (its hopper's mouth at the top of the sluice) and the crew's clearing past it. */
@@ -168,9 +172,9 @@ export const RIDE_CPS: { cp: number; name: string; rx: number }[] = [
   { cp: 33, name: 'THE OLD SAWMILL', rx: 3020 },
   { cp: 34, name: 'THE LUMBER CAMP', rx: 4300 },
   { cp: 35, name: 'THE SEWER', rx: 5900 },
-  { cp: 36, name: 'THE DEEP SEWER', rx: 7060 },
+  { cp: 36, name: 'THE DEEP SEWER', rx: 7100 },
   { cp: 37, name: 'A REAL RIVER', rx: 8700 },
-  { cp: 38, name: 'THE RAPIDS', rx: 10080 },
+  { cp: 38, name: 'THE RAPIDS', rx: 10040 },
 ];
 
 /** Signs: [x, the ground's height there, words, painted (a warning) or burned]. */
