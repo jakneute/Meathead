@@ -21,7 +21,8 @@ import { GROUND, WATERS, SHAFTS, X, Y, type Water } from './layout';
 import { onScreen, viewOf } from './view';
 
 /** How far toward him the floor comes (bent), the earth under it. */
-const BAND = 160, SOIL = 420;
+export const BAND = 160;
+const SOIL = 420;
 
 type Zone = 'street' | 'mill' | 'queue';
 /** The ground he walks at the ground line (not the beds, not the mine's): world x, its zone. */

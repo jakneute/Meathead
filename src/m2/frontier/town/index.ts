@@ -42,6 +42,7 @@ import { buildLogs, updateLogs, drawLogs, drawLadder } from './logs';
 import { buildScenes, updateScenes, drawScenesFront, drawScenesHud, spawnTown, wreckHere, squareShut } from './scenes';
 import { drawTownBackdrop, drawTownBack, drawWaterFront, townLamps } from './art';
 import { updateZoom, zoomOf, spill } from './view';
+import { drawMineVeil } from './mine';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import type { EnemyKind } from '../../../m1/types';
 
@@ -109,6 +110,8 @@ export const town: FrontierSection = {
     drawHazardsFront(c, state);
     drawThrows(c, state);
     drawBlasts(c, state);
+    // (the ground's face over the underground while he's up top: everything down there, the miners too, behind it)
+    drawMineVeil(c, state);
     drawScenesFront(c, state);
   },
   drawHud: (c, state) => drawScenesHud(c, state),

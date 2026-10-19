@@ -15,11 +15,13 @@
 
 import type { GameState } from '../../../m1/game/core/state';
 import { GY } from '../geometry';
-import { type Ctx, type TownView, box, checker, mix, hash, at, poly, still, stillAt, atDepth, seen, sideBack, topBack, underBack, INK, timeOfDay, farTint, hr, hr7, back7, fiberglass, ball, puff, FIBER, FIBER_LIP, MINE, TIMBER, STEEL, IRON, BRASS, ORE, COAL, NEEDLE, PLY, TOPLIP, MINE_BK, signPaint, western } from './paint';
+import { type Ctx, type TownView, box, checker, mix, hash, at, poly, still, stillAt, atDepth, seen, sideBack, topBack, underBack, INK, timeOfDay, farTint, hr, hr7, back7, fiberglass, ball, puff, FIBER, FIBER_LIP, MINE, TIMBER, STEEL, IRON, BRASS, ORE, COAL, NEEDLE, PLY, TOPLIP, MINE_BK, signPaint, western, viewIn, PIX, pixelBlob, DIRT, STONE, BARK } from './paint';
 import { signText } from '../../signLetters';
 import { townOf } from './state';
-import { LANTERNS, CANARIES, GAS, CART_RUN, RIDE, BEAMS, BEAM_GAP, CHUTES, CAVEINS, CHASM, SHAFTS, FY, CEIL_Y, X, Y } from './layout';
+import { LANTERNS, CANARIES, GAS, CART_RUN, RIDE, BEAMS, BEAM_GAP, CHUTES, CAVEINS, CHASM, SHAFTS, FY, CEIL_Y, X, Y, mineDepthOf } from './layout';
 import { onScreen } from './view';
+import { BAND } from './ground';
+import { BEND } from '../../intro/art/kit';
 
 /** The tunnels' back wall (going back from the cut at the play plane). */
 const BK = MINE_BK;
@@ -414,6 +416,87 @@ export const drawDumpArt = (c: Ctx, x: number, f: number) => {
 export const drawPileArt = (c: Ctx, x: number, n: number) => {
   const O = hr('ore', ORE, 0.1);
   for (let k = 0; k < n; k++) { const px = x + (k - 1) * 18; c.fillStyle = INK; c.beginPath(); c.ellipse(px, FY, 23, 9 + k * 2, 0, Math.PI, 0); c.fill(); c.fillStyle = O[2]; c.beginPath(); c.ellipse(px, FY, 22, 8 + k * 2, 0, Math.PI, 0); c.fill(); c.fillStyle = O[4]; c.beginPath(); c.ellipse(px - 6, FY - 3, 10, 4 + k, 0, Math.PI, 0); c.fill(); box(c, px + 4, FY - 6 - k, 3, 2, '#C8962E'); }
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// The earth in front of it all, from up top
+
+/** The underground between the shafts (world x), down to under the flooded shaft's bed. */
+const VA = 11600, VB = 14420, VBOT = Y(-880) + 320;
+
+/** The cut-away ground face (world): the soil banded over the rock, roots down through it, pebbles; the rock below in
+ *  courses, darker going down; its sides at the shafts inked. */
+const paintEarth = (g: Ctx, x0: number, w: number, y0: number, h: number) => {
+  const tod = timeOfDay(), D = DIRT.map(col => farTint(col, 0.2, tod)), S = STONE.map(col => farTint(col, 0.2, tod)), B = BARK.map(col => farTint(col, 0.2, tod));
+  const xa = X(VA), xb = X(VB), SO = 90;
+  const dk = (col: string, y: number) => mix(col, '#040302', Math.min(0.88, 0.25 + Math.max(0, y - GY - SO) / 520));
+  // (the rock: courses of blocks, world-anchored, each lit along its top, shaded along its foot)
+  box(g, x0, y0, w, h, dk(S[1], y0 + h / 2));
+  for (let y = GY + SO, row = 0; y < y0 + h; row++) {
+    const rh = 22 + hash(row * 2.9) * 22;
+    if (y + rh >= y0) for (let x = xa - 60 + hash(row * 1.3) * 50; x < x0 + w; ) {
+      const bw = 36 + hash(row * 7.1 + x * 0.013) * 54;
+      if (x + bw >= x0) {
+        box(g, x, y, bw - 1, rh - 1, dk(S[1 + Math.floor(hash(row * 3.7 + x * 0.031) * 3)], y));
+        box(g, x, y, bw - 1, 2, dk(S[5], y)); box(g, x, y + rh - 2, bw - 1, 1, dk(S[0], y)); box(g, x + bw - 2, y, 1, rh - 1, dk(S[0], y));
+        if (hash(row * 5.3 + x * 0.07) > 0.85) checker(g, x + 4, y + 4, bw - 10, rh - 10, dk(S[3], y), row & 1);
+      }
+      x += bw;
+    }
+    y += rh;
+  }
+  // (the soil over it, banded darker going down, dithered between bands; the rubble at its foot)
+  const bands = [D[4], D[3], D[3], D[2], D[2], D[1]], bh = SO / bands.length;
+  for (let i = 0; i < bands.length; i++) { box(g, x0, GY + i * bh, w, bh + 1, bands[i]); if (i) checker(g, x0, GY + i * bh - 1, w, PIX, bands[i - 1], i & 1); }
+  for (let x = Math.floor(x0 / 22) * 22; x < x0 + w; x += 22) { const px = x + hash(x * 0.9) * 14, py = GY + 12 + hash(x * 1.7) * (SO - 20); pixelBlob(g, px, py, 3 + hash(x) * 4, 2 + hash(x * 2) * 2, S[2]); box(g, px - 2, py - 2, 3, 1, S[4]); }
+  box(g, x0, GY + SO - 2, w, 3, D[0]);
+  for (let x = Math.floor(x0 / 30) * 30; x < x0 + w; x += 30) pixelBlob(g, x + hash(x * 4.1) * 20, GY + SO + 2, 6 + hash(x * 3.3) * 8, 3, dk(S[2], GY + SO));
+  // (roots down through the soil from the mountain's foot: crooked, forking, lit down one side)
+  for (let x = Math.floor(x0 / 70) * 70; x < x0 + w; x += 70) {
+    let rx = x + hash(x * 0.37) * 50, ry = GY;
+    const len = 30 + hash(x * 0.61) * (SO + 30);
+    for (let s = 0; s < len; s += 6) {
+      const nx = rx + (hash(x + s * 1.9) - 0.5) * 6;
+      g.strokeStyle = B[1]; g.lineWidth = 3; g.beginPath(); g.moveTo(rx, ry); g.lineTo(nx, ry + 6); g.stroke();
+      g.strokeStyle = B[3]; g.lineWidth = 1; g.beginPath(); g.moveTo(rx - 1, ry); g.lineTo(nx - 1, ry + 6); g.stroke();
+      if (hash(x * 1.1 + s) > 0.86) { g.strokeStyle = B[2]; g.beginPath(); g.moveTo(nx, ry + 6); g.lineTo(nx + (hash(s + x) > 0.5 ? 8 : -8), ry + 14); g.stroke(); }
+      rx = nx; ry += 6;
+    }
+  }
+  // (the top: the ground's line, inked; the sides cut at the shafts, inked)
+  box(g, x0, GY - 1, w, 2, INK); box(g, x0, GY + 1, w, 1, D[5]);
+  box(g, xa - 1, y0, 3, h, INK); box(g, xb - 2, y0, 3, h, INK);
+};
+
+/** Over everything underground between the shafts while he's up top: the ground's face, solid (the playtest: the
+ *  tunnels, their lanterns and the canary showed through the ground from the street). Faded out by how far down a shaft
+ *  he goes (no pop), back as he comes up. From the street its top follows the bent floor's fanned edge (that's the
+ *  floor's to show). The shafts' own openings are left clear: down them is genuinely in view. */
+export const drawMineVeil = (c: Ctx, state: GameState) => {
+  const p = state.player, a = 1 - mineDepthOf(p.pos.x + p.width / 2, p.pos.y + p.height, 60, 300);
+  if (a <= 0.01) return;
+  const v = viewIn(state), xa = X(VA), xb = X(VB);
+  if (xb < v.v0 || xa > v.v1 || GY > v.bot) return;
+  const ex = v.eye.x, fan = (e: number, y: number) => ex + (e - ex) * (1 + (y - GY) * BEND);
+  const left = X(SHAFTS[0][0]), right = X(SHAFTS[1][1]);
+  const L = (y: number) => (ex < left ? Math.max(xa, fan(left, y)) : xa), R = (y: number) => (ex > right ? Math.min(xb, fan(right, y)) : xb);
+  c.save(); c.beginPath();
+  const N = 16;
+  for (let i = 0; i <= N; i++) { const y = GY - 1 + (BAND * i) / N; i ? c.lineTo(L(y), y) : c.moveTo(L(y), y); }
+  c.lineTo(xa, GY - 1 + BAND); c.lineTo(xa, VBOT); c.lineTo(xb, VBOT); c.lineTo(xb, GY - 1 + BAND);
+  for (let i = N; i >= 0; i--) { const y = GY - 1 + (BAND * i) / N; c.lineTo(R(y), y); }
+  c.closePath(); c.clip();
+  c.globalAlpha = a;
+  for (let x = xa, i = 0; x < xb; x += 512, i++) {
+    const w = Math.min(512, xb - x);
+    if (x + w < v.v0 || x > v.v1) continue;
+    for (let y = GY - 2, j = 0; y < VBOT; y += 512, j++) {
+      const hh = Math.min(512, VBOT - y);
+      if (y + hh < v.top || y > v.bot) continue;
+      still(c, `earth-${i}-${j}`, 0, 0, x, y, w, hh, g => paintEarth(g, x, w, y, hh));
+    }
+  }
+  c.restore();
 };
 
 void checker; void stillAt; void atDepth; void sideBack; void topBack; void back7; void hr7; void puff; void COAL; void TOPLIP;

@@ -1398,3 +1398,10 @@ later (+1 if heavyset; was 2 / 3 before playtest fixes E). Tucker's glimpsed ahe
   rapids, two geese and a hawk in bison meadow, a hawk over the log pile, a goose on the long river's bank and a hawk
   over the water, a goose on the last mile's cliff and a hawk over the wolves. Each its own art (peak SNES, the
   wilds' animals' way: poses, hurt, dead belly-up), hurt and death lines, kill callouts.
+- **The mine from up top (the user's, 2026-10-18: "notice how you can see the platform when you shouldn't?", entry and
+  exit).** Reverses 9f05a5d7's call not to veil the interior: at the 0.8 zoom the tunnels, lanterns and canary showed
+  through the ground from the street, and the shafts' landings drew over the bent floor's fanned corner (they were drawn
+  after it). Now the landings draw before the floor (its fan hides them, both shafts), and over everything underground
+  between the shafts (actors too) lies the ground's cut face (soil banded over rock courses, roots; mine.ts
+  drawMineVeil, drawn in drawFront), its top following the floor's fanned edge, faded out by how far down a shaft he
+  is (mineDepthOf 60..360 below the line: no pop) and back as he climbs out. The shafts' own openings stay clear.

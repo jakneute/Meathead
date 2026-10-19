@@ -62,6 +62,10 @@ export const drawTownBack = (c: Ctx, state: GameState, wreck: boolean) => {
   if (on(9500, 11100, 200)) drawMill(c, state, v);
   if (on(11000, 14800, 200)) drawMineBack(c, state, v);
   if (on(14400, 15900, 200)) drawQueue(c, state, v);
+  // ---- the mine's landings (all the ledges below the ground line: the rest draw their own), before the floor: from
+  //      the street the bent floor fans out over the shafts' tops and must hide them (the playtest: a landing poking out
+  //      past the floor's corner, at the entry and at the exit)
+  for (const [a, b, h] of LEDGES) if (on(a - 20, b + 20)) drawLedge(c, v, a, b, h);
   // ---- the floor under him (bent), the water's body, the rock over the flooded shaft
   drawGroundFloor(c, v);
   if (on(6100, 6800)) drawMarks(c);
@@ -70,8 +74,7 @@ export const drawTownBack = (c: Ctx, state: GameState, wreck: boolean) => {
   // ---- the mine's floors' lips (lit rock: he stands on them)
   const M = hr('mine', MINE, 0.08);
   for (const [a, b, h1] of GROUND) if (h1 < -300 && h1 > -800 && on(a, b)) { box(c, X(a), Y(h1) - 1, X(b) - X(a), 1, INK); box(c, X(a), Y(h1), X(b) - X(a), 2, M[5]); box(c, X(a), Y(h1) + 2, X(b) - X(a), 2, M[4]); checker(c, X(a), Y(h1) + 4, X(b) - X(a), 2, M[3], 0); }
-  // ---- the ledges and the solids he stands on, the showdown's cover
-  for (const [a, b, h] of LEDGES) if (on(a - 20, b + 20)) drawLedge(c, v, a, b, h);
+  // ---- the solids he stands on, the showdown's cover
   for (const s of SOLIDS) drawSolid(c, state, v, s);
   for (const [a, b, h] of COVER) if (on(a, b)) drawTrough(c, v, X(a), X(b), Y(h));
   // ---- signs (the park's planks; warnings painted on)
