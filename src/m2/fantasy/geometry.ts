@@ -39,7 +39,8 @@ export const SECTIONS = {
   /** THE BROOMSTICK DEATHMATCH (trial 3): behind-the-back, mode-7 style, as the Road Rash chase; in through the top
    *  window at the end. */
   broom: { x0: FAX + 76000, x1: FAX + 80000 },
-  /** OUTSIDE THE GREAT PIXIE'S BEDROOM, the door kicked down, PIPER THE PIXIE (the fight: not designed yet). */
+  /** OUTSIDE THE GREAT PIXIE'S BEDROOM, the door kicked down, PIPER THE PIXIE's fight in her extra-wide chambers
+   *  (bedroom/layout.ts: the hall x0..x0+1000, her room x0+1000..x0+3600). */
   bedroom: { x0: FAX + 83000, x1: FAX + 87000 },
 } as const;
 export type FantasyId = keyof typeof SECTIONS;

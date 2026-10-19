@@ -1,78 +1,183 @@
-// OUTSIDE THE GREAT PIXIE'S BEDROOM, AND PIPER: section 7 of Fairy Land, the boss (a later job's; the skeleton's
-// stand-in for now). The user's design (fantasy-spec.md, verbatim there): the broomstick's crash in through the
-// window puts him outside the great pixie's bedroom (naked: he's got a boner here). He kicks down the door to her
-// chambers; she's MORBIDLY OBESE (the reveal: the sultry voice all land long against the look of her); naked, his
-// boner slowly goes flaccid when he sees her (only when he's nude). He insults how fat and ugly she is, which enrages
-// her and starts the actual fight. THE FIGHT ISN'T DESIGNED YET: don't design it. (Main bosses: 666 HP, the 60-frame
-// breather, non-weakness damage 35%; clean / shitty / naked pools for every line group, intro to death; markBossFight
-// each frame of it.) She's drawn at full detail already: fantasy/piper.ts.
+// THE GREAT PIXIE'S CHAMBERS, AND PIPER THE PIXIE: section 7 of Fairy Land, the boss. The user's design
+// (fantasy-spec.md, verbatim there): the broomstick's crash in through the window puts him outside her bedroom (naked:
+// he's got a boner here). He kicks the door down; she's MORBIDLY OBESE; naked, his boner slowly goes flaccid at the
+// sight of her; he insults how fat and ugly she is, which enrages her, and it's on. The fight (the user's): she leaps
+// and crashes down (an earthquake, the ceiling coming down), wrecking the room more each time, tearing the park's
+// plumbing loose (a heat pipe, liquid nitrogen, live wires in water: fire, cold, lightning; she rips bits off them
+// and throws them: "FIRE BALL!"); her weakness the flintlock (holes: a let-go balloon), the deflated balloon death,
+// and a standard death of ours (the cork). See fight.ts.
 //
-// THE SKELETON'S STAND-IN (replace it): the boss-door refill (a big health, a big ammo), a door; walk past it and it's
-// VICTORY, the walk-away (walkAway/piper.ts, a placeholder registered as 'piper' in walkAway.ts; his toy: the
-// SPELLBOOK) and the hub, Fairy Land cleared. Revisits: once the land's cleared, the stand-in doesn't fire.
+//   layout.ts  the hall, her door, her bedroom (extra wide), the furniture to stand on, the camera, the checkpoints
+//   room.ts    the hall and her bedroom painted, the wreck by stages, the plumbing behind the walls
+//   fight.ts   the intro, her, the slams, the mains, the throws, the holes, both deaths; their drawing and the HUD bits
+//   lines.ts   every line, clean / shitty / naked, intro to death; the new hurts and their death screens
+//   IcePanel   (App.tsx) the mash prompt while he's frozen (ui.iceMash): the real buttons
 //
-// Checkpoints 60-69. The way back: the left end (to the broomsticks' end). No way on (the end of the land).
+// In the hall (in off the glass, or back at cp 60): the boss-door refill (a big health, a big ammo), her door. Up to it
+// the first time this visit: the intro. After that (a retry), it's down: walk in and she's waiting (cp 61, the fight's
+// start, is set as it starts). Beaten: VICTORY, the walk-away with the SPELLBOOK (walkAway/piper.ts), the hub, Fairy
+// Land cleared. Revisits (cleared): the hall, the door down, her room wrecked and empty (the hole in her roof, or the
+// heap she crumbled into); the way back.
+//
+// The way back: the left end (to the broomsticks' end). No way on (the end of the land).
 
 import type { GameState } from '../../../m1/game/core/state';
+import type { Block } from '../../../m1/types';
+import { pickLine } from '../../../m1/game/platform/speech';
+import { isNude } from '../../../m1/game/player/gut';
+import { topBand, CANVAS_WIDTH } from '../../../m1/constants';
 import type { FantasySection } from '../section';
-import { layOwn, endWalls, endExits, runExits, groundBox, fantasyState, hands } from '../section';
-import { SECTIONS, DOORS, GY } from '../geometry';
-import { storySign, onScreen, box } from '../kit';
-import { goTo, markLandCleared, noteBossKill, isLandCleared } from '../../store';
+import { layOwn, endWalls, endExits, runExits, fantasyState, hands, ledge, solid, landVisit, meatheadSays, byPants, box } from '../section';
+import { DOORS } from '../geometry';
+import { goTo, markLandCleared, noteBossKill, isLandCleared, setUi } from '../../store';
 import { type Victory, startVictory, tickVictory, drawVictory, victoryDone } from '../../victory';
 import { type WalkAway, playWalkAway, tickWalkAway, drawWalkAway } from '../../walkAway';
+import { markBossFight } from '../../bossQuiet';
+import { x0, GY, DOOR_X, KICK_AT, REFILL_X, ARENA_L, ARENA_R, CEIL_Y, CAM_Y, LEDGES, CP_HALL, CP_FIGHT, MAX_STAGE, R } from './layout';
+import { drawHall, drawChamber, drawEndWall } from './room';
+import {
+  type Fight, startFight, updateFight, fightOver, endFight, killedByWeakness, introSeen, drawFightBack, drawFightFront, drawFightHud,
+  killCamTick, killCamZoom, roomBits, keepErect, drawRemains,
+} from './fight';
+import { MH_HALL } from './lines';
 
-const { x0, x1 } = SECTIONS.bedroom;
-/** Her door (the stand-in ends the land walking through it). */
-const DOOR_X = x0 + 2200;
+/** How she died (for a revisit's look): `cork:<x>` or `balloon:<x>` in state.stageMemo. */
+export const PIPER_END_MEMO = 'fa-piper-end';
 
-interface Bedroom { done: boolean; wonAt: number; victory: Victory | null; walk: WalkAway | null }
-const bedroomOf = (state: GameState) => fantasyState<Bedroom>(state, 'bedroom', () => ({ done: false, wonAt: 0, victory: null, walk: null }));
+interface Bedroom {
+  fight: 'wait' | 'on' | 'won'; wonAt: number;
+  f: Fight | null; walls: Block[];
+  victory: Victory | null; walk: WalkAway | null;
+}
+const bedroomOf = (state: GameState) => fantasyState<Bedroom>(state, 'bedroom', () => ({ fight: 'wait', wonAt: 0, f: null, walls: [], victory: null, walk: null }));
+
+/** His line in the hall: once a visit. */
+let hallVisit = -1;
+
+const leave = (state: GameState, weakness: boolean) => {
+  const s = bedroomOf(state);
+  markLandCleared('fantasy'); noteBossKill();
+  s.walk = playWalkAway(state, { boss: 'piper', weakness, onDone: () => goTo('hub') });
+};
+const endOf = (state: GameState): { how: 'cork' | 'balloon'; x: number } | null => {
+  const m = state.stageMemo[PIPER_END_MEMO];
+  if (!m) return null;
+  const [how, x] = m.split(':');
+  return { how: how === 'balloon' ? 'balloon' : 'cork', x: +x || R(1300) };
+};
+
+const pmidX = (state: GameState) => state.player.pos.x + state.player.width / 2;
 
 export const bedroom: FantasySection = {
-  id: 'bedroom', x0, x1,
-  checkpoints: [{ name: 'PIPER THE PIXIE', cp: 60, x: DOORS.bedroom.start.x, y: GY }],
+  id: 'bedroom', x0, x1: ARENA_R + 400,
+  checkpoints: [
+    { name: "OUTSIDE PIPER'S DOOR", cp: CP_HALL, x: DOORS.bedroom.start.x, y: GY },
+    { name: 'PIPER THE PIXIE', cp: CP_FIGHT, x: ARENA_L + 160, y: GY, clear: [400, 3000], manual: true },
+  ],
   build: (state) => {
-    layOwn(state, [{ x1: x0 - 200, y1: GY, x2: x1 + 200, y2: GY, surface: 'wood' }]);
-    endWalls(state, 'bedroom');
+    const cleared = isLandCleared('fantasy');
+    layOwn(state, [{ x1: x0 - 200, y1: GY, x2: ARENA_R + 600, y2: GY, surface: 'wood' }]);
+    endWalls(state, 'bedroom', { right: false });
+    // (her room's far wall: the end of the land; the wall over her door; her door, till it's kicked in; her ceiling)
+    solid(state, ARENA_R, GY - 6000, 400, 6000, { hidden: true, tag: 'pp-end' });
+    solid(state, DOOR_X - 40, GY - 6000, 80, 6000 - 232, { hidden: true, tag: 'pp-over-door' });
+    if (!cleared && !introSeen()) solid(state, DOOR_X - 46, GY - 232, 92, 232, { hidden: true, tag: 'pp-door' });
+    solid(state, ARENA_L - 40, CEIL_Y - 40, ARENA_R - ARENA_L + 80, 40, { hidden: true, tag: 'pp-ceiling' });
+    // (the furniture to stand on: the canopy's down for good on a revisit)
+    for (const [lx, w, h, what] of LEDGES) if (!(cleared && what === 'canopy')) ledge(state, R(lx), GY - h, w, { hidden: true, tag: `pp-${what}` });
     // (the boss-door refill: a big health, a big ammo, before her door)
-    state.pickups.push({ id: 'fa-door-hp', pos: { x: DOOR_X - 420, y: GY - 24 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type: 'large_health', life: 1e9 });
-    state.pickups.push({ id: 'fa-door-ammo', pos: { x: DOOR_X - 340, y: GY - 24 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type: 'large_ammo', life: 1e9 });
+    if (!cleared) {
+      state.pickups.push({ id: 'fa-door-hp', pos: { x: REFILL_X[0], y: GY - 24 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type: 'large_health', life: 1e9 });
+      state.pickups.push({ id: 'fa-door-ammo', pos: { x: REFILL_X[1], y: GY - 24 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type: 'large_ammo', life: 1e9 });
+    }
   },
   update: (ctx, controls) => {
     const { state } = ctx, p = state.player, s = bedroomOf(state);
-    if (!s.done) {
+    const cleared = isLandCleared('fantasy');
+    if (s.fight === 'wait') {
       runExits(state, endExits('bedroom'));
-      if (!isLandCleared('fantasy') && p.pos.x + p.width / 2 > DOOR_X && p.isGrounded) { s.done = true; s.wonAt = state.frame; s.victory = startVictory(); }
+      if (cleared) return controls;
+      // (naked: up since the glass, till he sees her)
+      keepErect(state, introSeen() ? 0 : 1);
+      if (!introSeen() && !p.inCutscene && isNude(state) && state.frame % 40 === 0) state.particles.push({ pos: { x: pmidX(state) + (Math.random() - 0.5) * 16, y: p.pos.y - 6 }, vel: { x: (Math.random() - 0.5) * 0.6, y: -1.2 }, life: 40, color: Math.random() < 0.5 ? '#F472B6' : '#FB7185', size: 4 });
+      // (his line in the hall, once a visit, once the glass is done with)
+      if (!p.inCutscene && hallVisit !== landVisit() && !introSeen()) { hallVisit = landVisit(); meatheadSays(state, pickLine(byPants(state, MH_HALL))); }
+      const me = pmidX(state);
+      // (the first time: up to her door and it's the intro; after (or already through it): straight in)
+      if (!introSeen() && me < DOOR_X && me >= KICK_AT - 60 && p.isGrounded && !p.inCutscene) { s.f = startFight(state, false); s.fight = 'on'; }
+      else if (me > ARENA_L + 40 && p.health > 0) { s.f = startFight(state, true); s.fight = 'on'; }
       return controls;
     }
-    p.inCutscene = true;
-    if (s.victory) {
-      tickVictory(state, s.victory);
-      if (victoryDone(s.victory) && state.frame - s.wonAt > 60) {
-        s.victory = null;
-        markLandCleared('fantasy'); noteBossKill();
-        s.walk = playWalkAway(state, { boss: 'piper', onDone: () => goTo('hub') });
+    if (s.fight === 'on' && s.f) {
+      const f = s.f;
+      markBossFight(state, 'piper');
+      // (the door, in: no longer in the way)
+      if (f.doorT !== null) { f.doorT++; state.blocks = state.blocks.filter(b => b.tag !== 'pp-door'); }
+      const out = updateFight(ctx, f, controls);
+      keepErect(state, f.erect);
+      // (on: the roses across the doorway behind him, the room shut)
+      if (f.mode !== 'intro' && !s.walls.length) {
+        s.walls = [{ x: ARENA_L - 40, y: GY - 6000, w: 40, h: 6000, type: 'wall', hidden: true, tag: 'pp-roses' } as Block];
+        state.blocks.push(...s.walls);
       }
+      if (s.walls.length) {
+        const lo = ARENA_L, hi = ARENA_R - p.width;
+        if (p.pos.x < lo) { p.pos.x = lo; if (p.vel.x < 0) p.vel.x = 0; }
+        if (p.pos.x > hi) { p.pos.x = hi; if (p.vel.x > 0) p.vel.x = 0; }
+        if (p.pos.y < CEIL_Y) { p.pos.y = CEIL_Y; if (p.vel.y < 0) p.vel.y = 0; }
+      }
+      if (fightOver(f)) {
+        s.fight = 'won'; s.wonAt = state.frame;
+        const weak = killedByWeakness(f);
+        state.stageMemo[PIPER_END_MEMO] = `${weak ? 'balloon' : 'cork'}:${Math.round(weak ? f.x : f.death?.x ?? f.x)}`;
+        endFight(state, f);
+        state.blocks = state.blocks.filter(b => !s.walls.includes(b)); s.walls = [];
+        s.victory = startVictory();
+      }
+      return out;
     }
-    if (s.walk) tickWalkAway(s.walk, controls);
-    return hands();
+    if (s.fight === 'won') {
+      p.inCutscene = true;
+      setUi({ iceMash: null });
+      if (s.victory) { tickVictory(state, s.victory); if (victoryDone(s.victory) && state.frame - s.wonAt > 60) { s.victory = null; leave(state, !!s.f && killedByWeakness(s.f)); } }
+      if (s.walk) tickWalkAway(s.walk, controls);
+      return hands();
+    }
+    return controls;
   },
-  // (indoors: the castle's top floor, pink and gold)
-  drawBackdrop: (c) => { box(c, 0, 0, 800, 600, '#3A1A3E'); for (let y = 0; y < 600; y += 40) box(c, 0, y, 800, 2, '#4A2450'); return true; },
+  cameraX: (state) => {
+    const s = bedroomOf(state);
+    if (s.walls.length) return { min: ARENA_L, max: ARENA_R - CANVAS_WIDTH };
+    // (in the hall with her door shut: nothing past it shows (her room's hidden till he's in it))
+    if (s.fight === 'wait' && !introSeen() && !isLandCleared('fantasy')) return { min: x0, max: DOOR_X + 60 - CANVAS_WIDTH };
+    return { min: x0, max: ARENA_R - CANVAS_WIDTH };
+  },
+  // (his feet wherever he is, the camera's top held at CAM_Y: the floor low, the ceiling up under the HUD's band)
+  cameraRow: (state) => state.player.pos.y + state.player.height - CAM_Y,
+  drawBackdrop: (c) => { box(c, 0, 0, 800, 600, '#2A0E24'); return true; },
   drawBack: (c, state) => {
-    groundBox(c, x0 - 200, x1 + 200, GY, '#5A2A3A', '#E8B0C8');
-    if (onScreen(state, x0 + 400, x0 + 800)) storySign(c, x0 + 600, GY, ["THE GREAT PIXIE'S CHAMBERS", 'PIPER: COMING SOON'], { board: '#6E1E4E' });
-    if (onScreen(state, DOOR_X - 80, DOOR_X + 80)) {
-      // (her door: tall, pink, gold hinges, a heart knocker)
-      box(c, DOOR_X - 46, GY - 170, 92, 170, '#1A1028'); box(c, DOOR_X - 42, GY - 166, 84, 166, '#C8487E'); box(c, DOOR_X - 42, GY - 166, 16, 166, '#E070A0');
-      for (const y of [GY - 140, GY - 40]) box(c, DOOR_X - 42, y, 22, 8, '#F2C84A');
-      box(c, DOOR_X + 18, GY - 92, 10, 10, '#F2C84A');
-    }
+    const s = bedroomOf(state), f = s.f, cleared = isLandCleared('fantasy') && !f;
+    const end = cleared ? endOf(state) : null;
+    const bits = roomBits(f);
+    const look = cleared
+      ? { stage: MAX_STAGE, doorT: 999, barrier: false, chandelierDown: 0, roofHole: end?.how === 'cork' ? end.x : null, piperX: null }
+      : { ...bits, doorT: f ? f.doorT : introSeen() ? 999 : null, barrier: s.walls.length > 0 };
+    drawChamber(c, state, look);
+    drawEndWall(c);
+    drawHall(c, state, look);
+    if (end) drawRemains(c, end.how, end.x, state.frame);
+    if (f) drawFightBack(c, state, f);
+  },
+  drawFront: (c, state) => {
+    const f = bedroomOf(state).f;
+    if (f) drawFightFront(c, state, f);
   },
   drawHud: (c, state) => {
     const s = bedroomOf(state);
+    if (s.f && s.fight === 'on') drawFightHud(c, state, s.f, topBand());
     if (s.victory) drawVictory(c, s.victory);
     if (s.walk) drawWalkAway(c, s.walk);
   },
+  zoom: (state) => { const f = bedroomOf(state).f; return f ? killCamZoom(state, f) : null; },
+  holdTick: (ctx) => { const f = bedroomOf(ctx.state).f; return f ? killCamTick(f) : false; },
 };

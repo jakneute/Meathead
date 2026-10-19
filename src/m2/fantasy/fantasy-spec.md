@@ -26,6 +26,18 @@ The user's notes since (relayed):
   killing each other for her. The trials are her bloodsport; the promised "audience" is bait for the suitors (they, and
   Meathead, read it as sex: keep that innuendo on their side). Her loudspeaker lines purr over the violence and the
   rivalry (thrilled by the blood, egging them on, savoring each death), and she's coy about what the prize really is.
+- Piper's fight (the user's, verbatim):
+
+```
+the pixie's quarters/bedroom will be extra wide. like a princess's chambers or something. what she does is leap and crash down, causing an earth quake and stuff to fall from the ceiling. the room progressively gets damaged each time she smashes, up to a limit. eventually a pipe with heat coming out of it comes loose, giving area denial for fire attacks. then she breaks open more mains and pipes that squirt liquid nitrogen open, freezing you in place, requiring you to mash buttons to escape. also loose wires in water come causing electrical damage. fire, cold and lightning damage. if she's close to these loose parts, she'll pick it up and go 'fire ball' or 'ice ball' or 'lightning bolt' and fire a projectile of those elements at you. you will have up to three areas that are unsafe to stand in in addition to random debris from the ceiling falling when she jumps and lands.
+
+her weakness is the flintlock. fire a shot into her and a hole goes in her body, causing a disgusting mix of fat and gore to leak out as she bounces around the room. she cannot be shot as she's bouncing. cap another shot in her and another hole pops and she bounces around more. more gore and fat leaking everywhere. put in a 'deflated balloon' weakness death where she gets thinner and thinner until she looks like a supermodel, then progressively thinner until she's dangerously so and crumbles.
+
+come up with a normal death that is fitting for a fat bitch.
+```
+
+- And: the elemental zones (the heat pipe, the liquid nitrogen, the live wires in water) DON'T hurt her (an exception to
+  the hazards-hurt-enemies rule). Other weapons do normal boss damage (35% non-weakness); only the flintlock makes holes.
 
 ## Fill-ins (ours; the user's to overrule)
 
@@ -80,8 +92,8 @@ The user's notes since (relayed):
 - **Piper drawn at full detail from the first pass** (piper.ts): morbidly obese, a pixie (gossamer wings too small for
   her, a tiara, a star wand), a glittery pink gown straining at its seams; poses for the later jobs (lounging, talking,
   enraged, a close-up portrait). She isn't seen in the square (only heard).
-- **Piper's fight:** NOT designed (the user hasn't given mechanics): the bedroom section is a placeholder end (the
-  boss-door refill, her door, VICTORY, the walk-away, the hub). Don't invent the fight.
+- **Piper's fight:** the user's design (above), built in job 7 (bedroom/: section 7 in detail below). Her standard death
+  is ours (THE CORK), the user's to revise.
 - **Music:** none yet. Fairy Land's in music/cues.ts's LAND_OF_STAGE, and with no `land:fantasy` song it's quiet (the
   music job adds the songs).
 
@@ -97,7 +109,7 @@ FAX = 800000. Gaps of 3000 between sections (room to grow). Every section about 
 | 4 | Truelling Tragons | `tragons` | FAX+44000 .. FAX+58000 | 30-38 (of 30-39) | The three-car coaster (fire, ice, lightning): hop cars, holes, each car's obstacles, the rivals (built) |
 | 5 | The castle's base and the runway | `keep` | FAX+61000 .. FAX+73000 | 40-46 (of 40-49) | The gate, drawbridge, gatehouse, courtyard, ramparts, tower stairs, postern; the broom port (from x0+9000) and its scene (built) |
 | 6 | The broomstick deathmatch (trial 3) | `broom` | FAX+76000 .. FAX+80000 | 50-51 (of 50-59) | Behind the back, mode 7, Star Fox 64's all-range mode simpler: the castle grounds, 6-8 suitors, the laser and the lock-on; in through the top window (built) |
-| 7 | The bedroom and Piper | `bedroom` | FAX+83000 .. FAX+87000 | 60-69 | The door kicked in, the reveal, the fight (placeholder) |
+| 7 | The bedroom and Piper | `bedroom` | FAX+83000 .. FAX+87000 | 60-61 (of 60-69) | The hall, the door kicked in, the reveal, the insult; her fight in her extra-wide chambers; both deaths; the land's end (built) |
 
 (The trials: the wheel's trial one, the broomsticks' the final one; the ride's between them is "trial two" if the
 fairy wheel's job wants to call it that.)
@@ -219,6 +231,28 @@ at (0, -3700), 520 up, heading for the castle; the roster ahead of him.
 - cp 50 THE DEATHMATCH (in off the runway's scene, or back here): straight up on his broom; the dead stay dead.
 - cp 51 LATE ENTRIES (set as they fly in over the wall: when the first lot's down to one, or after 70 s).
 - All dead: the barrier wilts, the zoom, the glass; outside her bedroom (DOORS.bedroom.start).
+
+### Section 7 in detail (the great pixie's chambers and Piper, built: bedroom/)
+
+x from the section's start (x0 = FAX+83000); heights up from the floor. Her bedroom's x from its left wall (R(x)).
+
+- 0 THE HALL (cp 60 at 200, in off the glass): the castle's top floor, the smashed stained-glass window he came in by, the
+  runner covered in glass, little portraits of her all along, sconces; the boss-door refill (a big health 560, a big
+  ammo 650); the plaque (DO NOT DISTURB / UNLESS YOU WON); HER DOOR at 960 (tall, double, pink and gold). Naked, he's
+  had a boner since the glass (hearts now and then). The camera stops at her door (her room's hidden till it's open).
+- THE INTRO (up to the door, the first time this visit; a cutscene): the boot (both leaves off their hinges, flat on her
+  carpet), MH_KICK; in he walks; her on her chaise (R(600)), still purring (PIPER_REVEAL); her face close up; him seeing
+  her (MH_SEES: naked, it goes down in three sad sags and a sad little boing); MH_FAT, MH_UGLY; the close-up gone red,
+  PIPER_ENRAGED; PIPER_FIGHT; MH_ON; on (cp 61 set: the fight's start), roses across the doorway behind him.
+- 1000 HER BEDROOM (2600 wide; its ceiling 500 up; the camera's top held 540 up: no bobbing): the chaise R(600), the
+  vanity and its huge mirror R(760) (her reflection), wardrobe R(1000) (a ledge, 235), the trophy wall R(1190) (CHAD's
+  cap, SIR DEREK's helm, WAYNE's hat, HANK's lance, BLAKE's shaker, THADDEUS's broom) under the scoreboard (MEN WHO
+  DIED FOR ME, tallied, AND COUNTING), the canopy bed R(1480) (its canopy a ledge, 205: down at the 3rd slam), wardrobe
+  R(1880), the footstool R(2110) (110) up to the VIEWING BALCONY R(2220-2560) (235: the big window onto the grounds),
+  chandeliers R(700) and R(1950), portraits of her. The far wall at 3600: the end of the land.
+- THE WRECK (a stage a slam, six at most; looks only): 1 cracks; 2 plaster down (ceiling holes: the plumbing over it,
+  the HEAT main, the LN2 lines, the water main, the FX POWER trays), the mirror cracked; 3 the wallpaper torn, the canopy
+  down, the portraits askew; 4 more holes, holes in the walls; 5 a chandelier down; 6 cables hanging out of it all.
 
 ## Standing rules (all apply; check every one against new work)
 
@@ -433,3 +467,68 @@ markBossFight every frame of a boss or sub-boss fight. Voice every new line (`np
   window's middle, then ~100 radial shards flying apart (out and toward us, spinning, falling, glinting), the bedroom
   showing through (index.ts ticks and draws it: broom/fight.ts tickShatter / drawShatter). The bedroom's boner (and its
   going flaccid) is job 7's.
+- (job 7, ours) The section's x range is unchanged (FAX+83000..87000 holds the hall and a 2600-wide room). The hall,
+  the door and the room: section 7 in detail. The boner: render/player/body.ts got setErect(k, frame) (0 hanging .. 1 a
+  full boner, up and out the front; unset a few frames, it's hanging again): up in the hall from the glass on, down at
+  the sight of her (three sags and a sad boing), back up hopeful at the supermodel, down again past it.
+- (job 7, ours) Her: 666 HP; the ray gun and his moves in full, anything else 35%, the 60-frame breather (Steve's way;
+  the enemy `m2:piper` a mid-boss: no instant kills, no status effects). Phases by thirds: the waddle 1.3 / 1.6 / 1.95
+  px a frame, 150-210 / 110-170 / 80-130 frames of it between slams. Her belly bumps him (10). Grab her: too much of
+  her (GRAB_PIPER).
+- (job 7, ours) THE SLAM: a 46-frame crouch (squashing down, her wings buzzing, half the time a shout), up 30 frames to
+  200 under the ceiling, 36 frames hanging there tracking him (7 px a frame) with her shadow growing on the floor under
+  her, a 14-frame lock (the shadow red, a beep), down (about 15 frames). Under her: 22. THE EARTHQUAKE (fair: the jump
+  beats it): stood on anything (floor or furniture) when she lands, he's knocked off his feet 26 frames (a hop, stars,
+  no hurt); in the air, nothing. DEBRIS: 2 + the stage (6 at most), one at him, the rest about the room at least 110
+  apart; 56 frames of dust trickling and a shadow growing (a red ring blinking) on whatever it'll land on (the floor or
+  the furniture's tops), then it drops: 11. Rubble left about (looks only). She sits 60 / 50 / 40 frames after.
+- (job 7, ours) THE MAINS (unlocked by slams, the user's order; each comes loose where she landed, kept 420 apart and 260
+  off the walls; three unsafe areas at most; NONE OF THEM HURT HER):
+  2nd: the HEAT PIPE (the heat main's end hanging out of a ceiling hole): quiet 130 (a wisp), tell 60 (steam roaring, an
+  orange glow at its end, a hiss), on 110 (a column of fire to the floor, 68 wide, burning 128 wide along the carpet):
+  13, thrown off it. 4th: the LIQUID NITROGEN main (burst out of a hole low in the back wall): quiet 120, tell 60 (frost
+  spreading on the wall, a sputter), on 100 (a white jet along the floor, 230 long, 64 high, the way it faces flipping
+  each time): FROZEN in a block of ice (8): MASH any button (jump, fire, the special, secondary, the charge: 0.11 a press,
+  draining 0.0035 a frame; out on his own after 260 frames), the panel up with the real buttons (bedroom/IcePanel.tsx,
+  ui.iceMash; its cracks spread over the block as he goes). 6th: the water main and the FX POWER: a flooded patch on
+  the floor (260 wide), the cable down into it: quiet 110 (a spark now and then), tell 50 (sparks crackling over the
+  water), on 100 (arcs all over it): feet in it, 14 and a jolt up. The 5th slam brings the chandelier nearer him down:
+  70 frames swinging, its chain spitting sparks, creaking, its shadow (a red ring); then it falls: 24.
+- (job 7, ours) HER THROWS: walking within 170 of a loose part, at most every 6 s, with nobody talking (the shout must be
+  heard), she stoops 36 frames and rips a bit off it, shouting (her voice) "FIRE BALL!" / "ICE BALL!" / "LIGHTNING BOLT!"
+  (the user's words), then throws: the FIRE BALL lobbed to land where he's headed (12; a fire burning 80 frames where it
+  lands); the ICE BALL straight at him (6 and frozen: the mash); the LIGHTNING BOLT a flickering aim line off the cable's
+  end for 24 frames, then the bolt down it 10 frames (14, a jolt).
+- (job 7, ours) THE FLINTLOCK (the user's opt-in to its holes; still no headshot): a ball in her (breather or no, any
+  time she's not bouncing) is a HOLE (150, the ball's own boss hit, as its number says), fat and gore out of it, and
+  she's off round the room like a let-go balloon for 150 + 30 a hole frames (10 px a frame and a px more a hole,
+  wandering, off the walls and the ceiling with a boing; touching her 14; out of the enemy list: nothing can hit her),
+  leaking fat and gore (the carpet and the walls get the splats: looks only, it's no slicker: the floor's busy enough),
+  then down on her face, up, and on, a bit thinner each hole (thin 0.18 a hole). The fourth hole kills her (the
+  deflated balloon). Her bar shows the holes. The hint (him thinking out loud about the flintlock) only if he's got it.
+- (job 7, ours) Her two deaths, both a cutscene (no input, SKIP >> for the lot), the letterbox up: THE CORK (any other
+  way): "ONE LAST BELLY FLOP!", up and down through the wrecked floor; wedged to the waist (the boards splintered round
+  her, her legs kicking in a cutaway of the room below, the wings buzzing), PIPER_STUCK; the pressure (170 frames and
+  quiet: the rumble quicker, steam out of the cracks, her shaking, shocked) and MH_PRESSURE; POP (a boom and a boing):
+  straight up through her ceiling and the roof, a hole left in it, the mains gushing up out of the floor after her like
+  champagne, a brown streak behind her (she shits herself going) and the turd back down through the hole a moment
+  later, the scream (PIPER_POP); a beat; a distant thud; fairy dust drifting down through the hole; MH_WON. THE DEFLATED
+  BALLOON (the fourth hole; the kill cam, slow, pushed in): round the room one last time farting like a let-go
+  balloon, down on her feet, the hiss: down to a SUPERMODEL (thin 1: a waist, a jaw, no chins, the gown fitting her),
+  sparkles, PIPER_SUPERMODEL; MH_SUPERMODEL (naked: it's back up, hearts, a boing); then on down (thin to 2: gray, the
+  cheeks hollow, ribs, the gown hanging off her), PIPER_TOO_THIN, MH_TOO_THIN (naked: down again); PIPER_CRUMBLE; she
+  crumbles to a heap (the gown in a puddle, bones, the beehive flat with the tiara in it, dust); MH_WON_WEAK. piper.ts
+  got `thin` (0 .. 1 the supermodel .. 2 the bones) on drawPiper and piperBodyW.
+- (job 7, ours) Lines (bedroom/lines.ts): clean / shitty / naked pools for every group, his and hers, intro to death;
+  hers in person (`m2.fantasy.piper`). New hurts, each its voiced hurts and death screens (and its death: burnt, frozen,
+  fried, flattened): the heat pipe, the nitrogen, the live water, the fire ball, the ice ball, the lightning bolt, the
+  debris, the chandelier, her slam, her bouncing, her belly.
+- (job 7, ours) Checkpoints: 60 in the hall (the refill there), 61 the fight's start (manual: set as it starts; nobody
+  else about). The intro once a visit: a retry (or a start past the door) finds the door down and her waiting in the
+  middle of the room (an entrance beat of 100 frames, PIPER_AGAIN, MH_AGAIN). The room's wreck, the mains and her holes
+  go with her on a retry (she's whole again). markBossFight 'piper' (no music yet). Beaten: VICTORY, the walk-away
+  (walkAway/piper.ts, the SPELLBOOK: no longer a placeholder; the cork leaves a hole steaming in the castle's roof, the
+  balloon a greasy streak down from her window and drips down the lane), markLandCleared('fantasy'), the hub. How she
+  died is `fa-piper-end` in state.stageMemo (`cork:<x>` / `balloon:<x>`): a revisit's room is wrecked and empty (the
+  canopy down, a chandelier down, the hole in her ceiling and the floor she was wedged in, or the heap), the door down,
+  no refill, the way back out the hall.

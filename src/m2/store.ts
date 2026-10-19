@@ -60,6 +60,9 @@ export interface M2Ui {
   broomHud?: boolean;
   broomBoost?: number;
   broomTips?: boolean;
+  /** (Fairy Land's Piper fight) Frozen solid in liquid nitrogen: how far he's mashed out of the ice (0..1), or null
+   *  (fantasy/bedroom/IcePanel.tsx draws the prompt). */
+  iceMash?: number | null;
 }
 
 /** (Truelling Tragons) A hop asked for (wheel up or RB: the car above; wheel down or LB: the car below), taken by the

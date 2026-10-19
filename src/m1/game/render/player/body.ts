@@ -27,6 +27,7 @@ export const setNude = (on: boolean, vx = 0, vy = 0, frame = 0, facing = 1) => {
   nude = on;
   pantsColor = on ? skinTone : JEANS;
   pantsShadow = on ? skinShadow : JEANS_SHADOW;
+  if (erect.k > 0 && Math.abs(frame - erect.at) > 3) erect.k = 0;
   if (!on || dangle.frame === frame) return;
   // (a pendulum: it hangs back the way he's going, swings past and settles; walking, it bounces with his step)
   dangle.frame = frame;
@@ -39,6 +40,10 @@ export const setNude = (on: boolean, vx = 0, vy = 0, frame = 0, facing = 1) => {
   dangle.a += dangle.va;
 };
 export const isNude = () => nude;
+/** (Meathead 2's Fairy Land) How hard he is (0 hanging .. 1 a full boner), set by a stage every frame it wants it (by
+ *  the game's frame): unset for a few frames, it's back to hanging. */
+const erect = { k: 0, at: -99 };
+export const setErect = (k: number, frame: number) => { erect.k = Math.max(0, Math.min(1, k)); erect.at = frame; };
 export const bootColor = '#18181B';
 export const bootToe = '#94A3B8';
 export const beltColor = '#78350F';
@@ -271,6 +276,18 @@ const drawBareHips = (ctx: Ctx, y: number, h: number) => {
   ctx.save(); ctx.translate(6.5, y + h + 0.5); ctx.rotate(dangle.a);
   ctx.fillStyle = backArmShade; ctx.beginPath(); ctx.ellipse(-1.6, 3.6, 3.6, 3.2, 0, 0, Math.PI * 2); ctx.fill();
   ctx.fillStyle = skinShadow; ctx.beginPath(); ctx.ellipse(-1.3, 3.3, 2.8, 2.6, 0, 0, Math.PI * 2); ctx.fill();
+  // (Meathead 2's boner (setErect): the shaft up and out the front, longer, stiff; the balls stay hanging)
+  if (erect.k > 0) {
+    // (from hanging (dangle.a) to up and out the front (-1.95) by how hard it is; a droop's wobble on the way down)
+    ctx.rotate(-erect.k * (dangle.a + 1.95));
+    const len = 9 + erect.k * 6;
+    ctx.fillStyle = skinTone; ctx.beginPath(); ctx.roundRect(-0.6, -0.5, 4, len, 1.9); ctx.fill();
+    ctx.fillStyle = skinShadow; ctx.fillRect(-0.6, 0.5, 1, len - 1.5);
+    ctx.fillStyle = skinVein; ctx.fillRect(2.4, 2, 0.7, len * 0.5);
+    ctx.fillStyle = '#D9907A'; ctx.beginPath(); ctx.ellipse(1.4, len - 0.4, 2.3, 1.9, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+    return;
+  }
   ctx.fillStyle = skinTone; ctx.beginPath(); ctx.roundRect(-0.4, -0.5, 3.6, 9, 1.8); ctx.fill();
   ctx.fillStyle = skinShadow; ctx.fillRect(-0.4, 0.5, 1, 7.5);
   ctx.fillStyle = '#D9907A'; ctx.beginPath(); ctx.ellipse(1.4, 8.6, 2, 1.7, 0, 0, Math.PI * 2); ctx.fill();

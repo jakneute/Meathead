@@ -13,7 +13,7 @@ the fill-ins, the rules, the section plan). Each section's index.ts header says 
 | 4 (done) | `tragons/` (and store.ts's carHops / requestCarHop / tragonTips, App.tsx's wheel and LB / RB hop routing and the controls card) | tragons (30-39: 30-38 used) |
 | 5 (done) | `keep/` | keep (40-49: 40-46 used) |
 | 6 (done) | `broom/` (and store.ts's broomHud / broomBoost / broomTips, App.tsx's broom HUD and controls card, index.ts's tickShatter / drawShatter hooks) | broom (50-59: 50-51 used) |
-| 7 | `bedroom/` (Piper's fight: when the user gives its mechanics; piper.ts's poses as it needs) | bedroom (60-69) |
+| 7 (done) | `bedroom/` (and piper.ts's `thin`, render/player/body.ts's setErect, store.ts's iceMash, App.tsx's IcePanel, walkAway/piper.ts made real) | bedroom (60-69: 60-61 used) |
 
 Inside your folders, anything goes: split into layout.ts, art.ts, kinds.ts and so on, as `square/` does. Number your
 checkpoints only inside your range (they're numbered across the whole land and sorted; the CHECKPOINT SKIP cheat lists
@@ -82,9 +82,11 @@ move your DOORS entries to match; keep the way back working (revisits), or give 
   `DOORS.keep.end` (the deck); a revisit (done) walks off the keep's right end to `DOORS.broom.start`.
 - **The broomsticks -> the bedroom** (built, broom/): the last suitor down, the window cutscene ends with him put at
   `DOORS.bedroom.start` (one-way; `fa-broom-done` in state.stageMemo: won for good) and the glass shatter playing over
-  the bedroom for 78 frames (him held: p.inCutscene, set and cleared by broom/fight.ts tickShatter). Job 7: naked, he's
-  got a boner as he lands (draw it in the bedroom). Back from the bedroom: `DOORS.broom.end` (the side view's landing,
+  the bedroom for 78 frames (him held: p.inCutscene, set and cleared by broom/fight.ts tickShatter). Naked, he's got a
+  boner as he lands (bedroom/: body.ts setErect). Back from the bedroom: `DOORS.broom.end` (the side view's landing,
   only reachable once it's won); its left end back to `DOORS.keep.end`, its right on to `DOORS.bedroom.start`.
+- **The bedroom -> the hub** (built, bedroom/): Piper beaten, VICTORY, the walk-away (walkAway/piper.ts, the SPELLBOOK),
+  markLandCleared('fantasy'), the hub. How she died: `fa-piper-end` in state.stageMemo (a revisit's wrecked room).
 
 ## Things that outlive a death
 

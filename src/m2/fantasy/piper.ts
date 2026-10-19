@@ -17,6 +17,7 @@
 // drawPiper(c, x, feetY, facing, frame, pose, opts): her feet's point (world or screen), facing 1 right / -1 left.
 // drawPiperCloseup(c, cx, cy, scale, frame, opts): her face at close-up size (a portrait: the reveal, the insult's
 // reaction, the fight's taunts).
+// opts.thin (her fight's flintlock holes, the deflated balloon: bedroom/): 0 her .. 1 a SUPERMODEL .. 2 skin and bone.
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -40,7 +41,13 @@ export interface PiperOpts {
   chaise?: boolean;
   /** How far her beehive's come down (0 up .. 1 a wreck): the fight's damage, the rage. */
   mess?: number;
+  /** (her fight's flintlock holes: the deflated balloon) How much of her's leaked out: 0 her (morbidly obese) .. 1 a
+   *  SUPERMODEL (slim, cheekbones, the gown fitting) .. 2 dangerously thin (skin and bone, the gown hanging off her). */
+  thin?: number;
 }
+
+/** How wide her body is drawn at `thin` (1 her own width .. 0.45 the supermodel .. 0.23 the bones). */
+export const piperBodyW = (thin = 0) => { const t1 = Math.min(1, Math.max(0, thin)), t2 = Math.max(0, Math.min(1, thin - 1)); return 1 - 0.55 * t1 - 0.22 * t2; };
 
 /** How tall she is (feet to the top of her beehive), for words over her; how wide. */
 export const PIPER_H = 176;
@@ -60,7 +67,9 @@ const GOLD: Ramp = ['#FFF8C4', '#F6D24E', '#D0A02C', '#946E16', '#4A3608'];
 const WING: Ramp = ['#F8F4FF', '#DCD0FF', '#B8A4F0', '#8A74D0', '#4A3A8A'];
 const SHOE: Ramp = ['#FFFFFF', '#D8F4FF', '#A8DCF4', '#78B4D8', '#2A4A6A'];
 const LIPS = '#D21E4A', LIPS_HI = '#FF7090', SHADOW_EYE = '#5A8AE8', LASH = '#120A10';
-const CHAISE: Ramp = ['#FFD0E8', '#E880B8', '#C0508E', '#8E2E66', '#3E0C2A'];
+/** (dangerously thin) Her skin gone gray and papery. */
+const GAUNT: Ramp = ['#F2E4DA', '#D8C2B4', '#B49C8E', '#8A7266', '#3E2E28'];
+const CHAISE: Ramp =['#FFD0E8', '#E880B8', '#C0508E', '#8E2E66', '#3E0C2A'];
 
 // ---------------------------------------------------------------------------------------------------------------
 // Painting helpers
@@ -189,14 +198,26 @@ const beehive = (c: Ctx, hx: number, hy: number, mess: number, f: number) => {
 
 /** Her head: a round face in a ring of chins, the beauty mark, the lashes and the eyeshadow, the pout; `face` the look,
  *  `talking` the mouth going. (hx, hy) the middle of her face. */
-const head = (c: Ctx, hx: number, hy: number, face: PiperFace, f: number, talking: boolean, mess: number) => {
-  const sk = face === 'rage' ? RAGE : SKIN;
-  // (the chins: three rolls, under and round the jaw)
-  for (let k = 2; k >= 0; k--) shapeTop(c, () => c.ellipse(hx + 2, hy + 12 + k * 6, 16 + k * 2, 7, 0, 0, Math.PI * 2), sk, hy + 5 + k * 6, hy + 19 + k * 6, 0.9);
-  // (the face itself: round, the cheeks puffing out)
-  shape(c, () => c.ellipse(hx, hy, 17, 16, 0, 0, Math.PI * 2), sk, hx - 17, hx + 17);
-  ell(c, hx + 9, hy + 5, 5, 3, face === 'rage' ? '#E83A3A' : BLUSH);
-  ell(c, hx - 7, hy + 5, 4, 2.5, face === 'rage' ? '#E83A3A' : BLUSH);
+const head = (c: Ctx, hx: number, hy: number, face: PiperFace, f: number, talking: boolean, mess: number, thin = 0) => {
+  const t1 = Math.min(1, Math.max(0, thin)), t2 = Math.max(0, Math.min(1, thin - 1));
+  const sk = face === 'rage' ? RAGE : t2 > 0.3 ? GAUNT : SKIN;
+  // (the chins: three rolls, under and round the jaw; leaked away one by one; a neck under them once they're gone)
+  const chins = Math.round(3 * (1 - t1));
+  if (chins < 3) shape(c, () => c.rect(hx - 6 + t2 * 2, hy + 10, 12 - t2 * 4, 18), sk, hx - 6, hx + 6, 0.9);
+  for (let k = chins - 1; k >= 0; k--) shapeTop(c, () => c.ellipse(hx + 2, hy + 12 + k * 6, 16 + k * 2, 7, 0, 0, Math.PI * 2), sk, hy + 5 + k * 6, hy + 19 + k * 6, 0.9);
+  // (the face itself: round, the cheeks puffing out; slimmer as she leaks, a jaw, then hollow)
+  const fw = 17 - t1 * 4 - t2 * 3;
+  shape(c, () => c.ellipse(hx, hy, fw, 16 - t2 * 1, 0, 0, Math.PI * 2), sk, hx - fw, hx + fw);
+  if (t1 > 0.6) line(c, [hx - fw + 3, hy + 6, hx + 2, hy + 14, hx + fw - 2, hy + 7], 0.8, sk[3]);
+  if (t2 > 0) {
+    // (sunken: the cheeks hollowed under the bones, the eyes in pits)
+    c.globalAlpha = t2;
+    ell(c, hx + 8, hy + 6, 4, 4, sk[3]); ell(c, hx - 6, hy + 6, 3, 4, sk[3]);
+    ell(c, hx + 7, hy - 3, 6, 5, sk[3]); ell(c, hx - 5, hy - 3, 5, 5, sk[3]);
+    c.globalAlpha = 1;
+  }
+  ell(c, hx + 9, hy + 5, 5 - t1 * 2, 3, face === 'rage' ? '#E83A3A' : BLUSH);
+  ell(c, hx - 7, hy + 5, 4 - t1 * 2, 2.5, face === 'rage' ? '#E83A3A' : BLUSH);
   // (the eyes: the eyeshadow up to the brows, the lashes, the irises (bulging when she's furious))
   const eye = (ex: number, near: boolean) => {
     const sh = face === 'rage' ? '#3A5AC8' : SHADOW_EYE;
@@ -245,7 +266,8 @@ const head = (c: Ctx, hx: number, hy: number, face: PiperFace, f: number, talkin
 
 /** The body: the gown (bodycon pink satin, sequined, straining: the seams, a split up her thigh), the rolls under it,
  *  the chest, the shoulders. `j` the jiggle. Feet at 0, hips about y -44. */
-const body = (c: Ctx, j: number, f: number) => {
+const body = (c: Ctx, j: number, f: number, thin = 0) => {
+  if (thin > 0) { bodyThin(c, f, thin); return; }
   const jig = Math.sin(j * Math.PI * 6) * 2 * (1 - j);
   // (the gown's hem, flaring a little at her shins)
   const path = () => {
@@ -279,13 +301,55 @@ const body = (c: Ctx, j: number, f: number) => {
   for (const sx of [-24, 30]) line(c, [sx, -126, sx + 2, -112], 2, GOWN[2]);
 };
 
+/** The body leaking down (`thin` 0..2): the gown taken in to her (the rolls going flat, the seams easing), a slim
+ *  supermodel's at 1 (a waist, hips, the gown fitting her like it was cut for her); past it, the gown hanging off a
+ *  frame of bones (the folds of empty satin, the ribs up her chest, the collarbones, the hip bones through it). */
+const bodyThin = (c: Ctx, f: number, thin: number) => {
+  const t1 = Math.min(1, thin), t2 = Math.max(0, Math.min(1, thin - 1));
+  const bw = piperBodyW(thin), sk = t2 > 0.3 ? GAUNT : SKIN;
+  c.save(); c.scale(bw, 1);
+  // (the gown: her shape scaled in; a waist pinched in as it goes; empty satin hanging off the bones past it)
+  const waist = t1 * 12 * (1 - t2);
+  const path = () => {
+    c.moveTo(-34, -18); c.quadraticCurveTo(-58 + waist * 0.4, -50, -50 + waist, -82); c.quadraticCurveTo(-46, -106, -30, -114);
+    c.lineTo(34, -114); c.quadraticCurveTo(56, -104, 60 - waist, -76); c.quadraticCurveTo(66 - waist * 0.4, -46, 40, -18); c.closePath();
+  };
+  shape(c, path, GOWN, -58, 66, 1.4 / bw);
+  // (the rolls going flat)
+  if (t1 < 1) for (let k = 0; k < 3; k++) {
+    const y = -86 + k * 16, w = 52 - k * 4;
+    c.save(); c.beginPath(); path(); c.clip(); c.globalAlpha = 1 - t1;
+    shapeTop(c, () => c.ellipse(8, y, w, 9, 0, 0, Math.PI * 2), GOWN, y - 9, y + 9, 0.8);
+    c.restore();
+  }
+  // (the satin's sheen down her, and the sequins)
+  line(c, [-20, -108, -24, -30], 2, SATIN_HI);
+  for (let i = 0; i < 10; i++) { const on = (f + i * 9) % 48 < 6; const sx = -36 + ((i * 37) % 80), sy = -104 + ((i * 53) % 82); px(c, sx, sy, 1 / bw, 1, on ? '#FFFFFF' : GOWN[0]); }
+  // (past the supermodel: the empty satin hanging in folds, a crumpled hem round her ankles)
+  if (t2 > 0) for (let k = 0; k < 5; k++) line(c, [-40 + k * 18, -100, -44 + k * 18 + Math.sin(f * 0.05 + k) * 2, -20], 1.4 / bw, GOWN[3]);
+  // (the chest: the neckline; at the supermodel, a decent cleavage; at the bones, a sternum and ribs)
+  shapeTop(c, () => { c.moveTo(-26, -112); c.quadraticCurveTo(-10, -120 + t1 * 4, 4, -114); c.quadraticCurveTo(18, -120 + t1 * 4, 36, -112); c.quadraticCurveTo(14, -108, 4, -110); c.quadraticCurveTo(-10, -106, -26, -112); }, sk, -122, -104, 1 / bw);
+  for (const sx of [-24, 30]) line(c, [sx, -126, sx + 2, -112], 2 / bw, GOWN[2]);
+  c.restore();
+  if (t2 > 0) {
+    // (the bones: collarbones, the ribs up out of the neckline, the hip bones poking the satin)
+    c.globalAlpha = t2;
+    line(c, [-14 * bw - 6, -118, 0, -114, 14 * bw + 8, -118], 1.2, sk[3]);
+    for (let k = 0; k < 3; k++) line(c, [-8, -112 + k * 3, 0, -110 + k * 3, 8, -112 + k * 3], 0.8, sk[3]);
+    for (const hx of [-30, 34]) ell(c, hx * bw, -44, 2.5, 3, GOWN[0]);
+    c.globalAlpha = 1;
+  }
+};
+
 /** An arm: the upper arm fat with a wing hanging off it, the forearm, the hand (a fist, open, holding the wand, at the
  *  chin). From the shoulder (sx, sy) to the hand (hx, hy). */
-const armTo = (c: Ctx, sx: number, sy: number, hx: number, hy: number, near: boolean, hand: 'open' | 'fist' | 'wand' | 'clasp' | 'bonbon', f: number, enraged: boolean) => {
-  const sk = enraged ? RAGE : SKIN, r = near ? sk : ([sk[1], sk[2], sk[3], sk[3], sk[4]] as const);
+const armTo = (c: Ctx, sx: number, sy: number, hx: number, hy: number, near: boolean, hand: 'open' | 'fist' | 'wand' | 'clasp' | 'bonbon', f: number, enraged: boolean, thin = 0) => {
+  const t1 = Math.min(1, Math.max(0, thin)), t2 = Math.max(0, Math.min(1, thin - 1));
+  const sk = enraged ? RAGE : t2 > 0.3 ? GAUNT : SKIN, r = near ? sk : ([sk[1], sk[2], sk[3], sk[3], sk[4]] as const);
   const ex = (sx + hx) / 2 + (near ? 6 : -6), ey = (sy + hy) / 2 + 10;
-  fatLimb(c, sx, sy, 10, ex, ey, 8, r, 7);
-  fatLimb(c, ex, ey, 8, hx, hy, 5.5, r, 2);
+  const lf = 1 - 0.45 * t1 - 0.3 * t2;
+  fatLimb(c, sx, sy, 10 * lf, ex, ey, 8 * lf, r, 7 * (1 - t1));
+  fatLimb(c, ex, ey, 8 * lf, hx, hy, Math.max(2, 5.5 * lf), r, 2 * (1 - t1));
   // (the hand)
   if (hand === 'fist') { shape(c, () => c.ellipse(hx, hy, 6.5, 6, 0, 0, Math.PI * 2), r, hx - 7, hx + 7); line(c, [hx - 2, hy - 3, hx - 2, hy + 3], 0.8, r[3]); line(c, [hx + 2, hy - 3, hx + 2, hy + 3], 0.8, r[3]); }
   else { shape(c, () => c.ellipse(hx, hy, 6, 5, 0, 0, Math.PI * 2), r, hx - 6, hx + 6); for (let k = -1; k <= 1; k++) fill(c, r[1], () => c.ellipse(hx + 6, hy + k * 2.4, 3, 1.3, 0, 0, Math.PI * 2)); px(c, hx + 7, hy - 3, 2, 1, LIPS); }
@@ -300,11 +364,13 @@ const armTo = (c: Ctx, sx: number, sy: number, hx: number, hy: number, near: boo
 };
 
 /** The legs: thick, the knees dimpled, the calves (hidden by the gown down to the shins), the ankles, the heels. */
-const legs = (c: Ctx, step: number) => {
-  for (const [lx, near] of [[-18, false], [22, true]] as const) {
+const legs = (c: Ctx, step: number, thin = 0) => {
+  const bw = piperBodyW(thin), t2 = Math.max(0, Math.min(1, thin - 1)), sk = t2 > 0.3 ? GAUNT : SKIN;
+  for (const [lx0, near] of [[-18, false], [22, true]] as const) {
+    const lx = lx0 * bw, w = bw < 1 ? 0.5 + bw * 0.5 : 1;
     const lift = near ? Math.max(0, step) * 4 : Math.max(0, -step) * 4;
-    const r = near ? SKIN : ([SKIN[1], SKIN[2], SKIN[3], SKIN[3], SKIN[4]] as const);
-    shape(c, () => { c.moveTo(lx - 12, -22); c.quadraticCurveTo(lx - 14, -12 - lift, lx - 4, -8 - lift); c.lineTo(lx + 8, -8 - lift); c.quadraticCurveTo(lx + 16, -14 - lift, lx + 12, -22); c.closePath(); }, r, lx - 14, lx + 16);
+    const r = near ? sk : ([sk[1], sk[2], sk[3], sk[3], sk[4]] as const);
+    shape(c, () => { c.moveTo(lx - 12 * w, -22); c.quadraticCurveTo(lx - 14 * w, -12 - lift, lx - 4 * w, -8 - lift); c.lineTo(lx + 8 * w, -8 - lift); c.quadraticCurveTo(lx + 16 * w, -14 - lift, lx + 12 * w, -22); c.closePath(); }, r, lx - 14 * w, lx + 16 * w);
     foot(c, lx - 2, -lift, near);
   }
 };
@@ -330,19 +396,21 @@ export const drawPiper = (c: Ctx, x: number, feetY: number, facing: 1 | -1, f: n
   const shake = enraged ? (f % 4 < 2 ? 1 : -1) : 0;
   const lean = pose === 'hurt' ? -0.12 : 0;
   c.translate(shake, pose === 'gloat' ? -Math.abs(stamp) * 3 : 0); c.rotate(lean);
+  // (leaked down: the body drawn in to bw of her width, the arms and the hands in with it)
+  const thin = Math.max(0, Math.min(2, opts.thin ?? 0)), bw = piperBodyW(thin), hk = 0.45 + 0.55 * bw;
   // the wings, behind her
-  wings(c, -30, -112, f, enraged || pose === 'gloat');
+  wings(c, -30 * bw, -112, f, enraged || pose === 'gloat');
   // the far arm, behind her
   const sh = -114 + breathe;
   const farHand: [number, number, 'open' | 'fist' | 'wand' | 'clasp' | 'bonbon'] =
     enraged ? [-38, -150 + (f % 8 < 4 ? 0 : 6), 'fist'] : pose === 'gloat' ? [-4, -112, 'clasp'] : pose === 'talk' || pose === 'point' ? [-48, -70, 'open'] : [-26, -150, 'open'];
-  armTo(c, -34, sh, farHand[0], farHand[1], false, farHand[2], f, enraged);
-  legs(c, stamp);
-  body(c, j, f);
+  armTo(c, -34 * bw, sh, farHand[0] * hk, farHand[1], false, farHand[2], f, enraged, thin);
+  legs(c, stamp, thin);
+  body(c, j, f, thin);
   // the head (its beehive behind it)
-  const hx = 8, hy = -138 + breathe;
+  const hx = 8 * hk, hy = -138 + breathe;
   beehive(c, hx, hy - 4, mess, f);
-  head(c, hx, hy, face, f, talking, mess);
+  head(c, hx, hy, face, f, talking, mess, thin);
   // the near arm, in front
   const nearHand: [number, number, 'open' | 'fist' | 'wand' | 'clasp' | 'bonbon'] =
     enraged ? [52, -146 - (f % 8 < 4 ? 6 : 0), 'fist']
@@ -351,7 +419,7 @@ export const drawPiper = (c: Ctx, x: number, feetY: number, facing: 1 | -1, f: n
           : pose === 'point' ? [70, -108, 'wand']
             : pose === 'hurt' ? [60, -126, 'open']
               : [50, -62, 'wand'];
-  armTo(c, 38, sh, nearHand[0], nearHand[1], true, nearHand[2], f, enraged);
+  armTo(c, 38 * bw, sh, nearHand[0] * hk, nearHand[1], true, nearHand[2], f, enraged, thin);
   // (steam off her when she's furious)
   if (enraged) for (let k = 0; k < 3; k++) { const t = (f * 2 + k * 20) % 60; c.globalAlpha = 1 - t / 60; ell(c, hx - 10 + k * 12, hy - 60 - t * 0.6, 4 + t * 0.1, 3 + t * 0.08, '#FFFFFF'); c.globalAlpha = 1; }
   c.restore();

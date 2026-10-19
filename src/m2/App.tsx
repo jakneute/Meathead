@@ -75,6 +75,7 @@ import MapCard from './hub/MapCard';
 import CheckpointPicker from '../m1/components/CheckpointPicker';
 import ChordPrompt from './ChordPrompt';
 import QtePanel from './fantasy/wheel/QtePanel';
+import IcePanel from './fantasy/bedroom/IcePanel';
 import { registerKillLines, m2Kill } from './moves/killLines';
 import { cleanLines } from './lines/clean';
 import { registerGrabCallouts } from './moves/callouts';
@@ -226,7 +227,7 @@ const App2: React.FC = () => {
       setHubExit(to === HUB_STAGE && stage !== PEN_STAGE && !!from);
       // (through a portal: no HUD from here till the land's opened on him, not a frame of it as it loads)
       setUi({ introTip: null, introPrompt: null, introAhead: null, introTicket: null, introCutscene: dest === 'intro' || portalArrivalPending() || hubExitPending() });
-      setUi({ near: null, map: null, nearExit: false, nearAmerica: false, noSwitch: false, heliHud: false, bikeHud: false, bikeTips: false, carHops: false, tragonTips: false, broomHud: false, broomTips: false });
+      setUi({ near: null, map: null, nearExit: false, nearAmerica: false, noSwitch: false, heliHud: false, bikeHud: false, bikeTips: false, carHops: false, tragonTips: false, broomHud: false, broomTips: false, iceMash: null });
       setFade(true);
       // (into a land, everything's topped up; and back at the hub after a boss: elsewhere, what he had)
       // (the walk back after a boss: topped up there, and the boss's top-up used up on it)
@@ -510,6 +511,8 @@ const App2: React.FC = () => {
         )}
         {/* Fairy Land's fairy wheel: a QTE on (in a suitor's cart) */}
         {status === GameStatus.PLAYING && ui.map === null && !ui.introCutscene && ui.zone === 'wheel' && ui.qte && <QtePanel qte={ui.qte} />}
+        {/* Fairy Land's Piper fight: frozen solid, mash out */}
+        {status === GameStatus.PLAYING && ui.map === null && !ui.introCutscene && ui.zone === 'piper' && ui.iceMash != null && <IcePanel fill={ui.iceMash} />}
         {/* The intro: what the panel in the corner's teaching, where he is; what up does at the ticket window; the ticket */}
         {status === GameStatus.PLAYING && stage === INTRO_STAGE && !ui.introCutscene && ui.introTip && (
           // (the grabs' sheet goes wide, three moves side by side, under the HUD: not a tall column)
