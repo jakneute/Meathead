@@ -41,7 +41,7 @@ import { EVENTS, eventX, RAIL, DECK, ROOF, CEIL, END, CARS, V_FULL } from './lay
 import { FG_GROUND, FG_SCALE, leapK, leapAt, laneBlocked, addRiders, updateRiders } from './kinds';
 import { drawRider, drawHorse, drawRobberAt } from './kindArt';
 import { tubeSay } from './tube';
-import { viewOf } from './view';
+import { viewOf, drawnView } from './view';
 import { TUBE_TUNNEL, TUBE_ROBBERS, TUBE_FALLS, TRAIN_GAGS } from './lines';
 
 /** The low bridge's underside (stood on a roof, his head's over it; ducked, it's not). */
@@ -249,7 +249,7 @@ const paintTunnel = (g: Ctx) => {
 /** World, behind the train: the inside of whatever tunnel's on screen (the park's shell, dark; a lantern on the wall now
  *  and then), over the far side's embankment and the scenery. */
 export const drawTunnelInside = (c: Ctx, state: GameState) => {
-  const tr = trainOf(state), v = viewOf(state), top = v.y - 60;
+  const tr = trainOf(state), v = drawnView(state), top = v.y - 20;
   for (const q of tr.passers) {
     if (q.kind !== 'tunnel') continue;
     const a = Math.max(v.x - 60, q.x), b = Math.min(v.x + v.w + 60, q.x + q.len);
@@ -272,17 +272,52 @@ export const drawTunnelInside = (c: Ctx, state: GameState) => {
 };
 /** The tunnels' lamps (world), for the lighting: dim little pools (the playtest: no spotlights). */
 export const tunnelLamps = (state: GameState) => {
-  const tr = trainOf(state), v = viewOf(state), out: { x: number; y: number; r: number; a: number; color: string }[] = [];
+  const tr = trainOf(state), v = drawnView(state), out: { x: number; y: number; r: number; a: number; color: string }[] = [];
   for (const q of tr.passers) if (q.kind === 'tunnel') for (let x = q.x + 200; x < q.x + q.len - 100; x += 420) if (x > v.x - 100 && x < v.x + v.w + 100) out.push({ x, y: BERM_Y - 34, r: 80, a: 0.32, color: '#3A2E14' });
   return out;
 };
 
-/** Behind the train: the bridges' far legs, the water towers, the waterfall's cliff and its water behind the train, the
- *  signs up by the line. */
-export const drawPassersBack = (c: Ctx, state: GameState) => {
-  const tr = trainOf(state), f = state.frame, v = viewOf(state), top = v.y - 60;
+/** Furthest back (before the embankment and the telegraph poles stood on it: art.ts drawTrackside): the waterfalls'
+ *  cliffs, the park's fake rock up out of the top of the screen, its foot behind the embankment's grass. */
+export const drawCliffs = (c: Ctx, state: GameState) => {
+  const tr = trainOf(state), v = drawnView(state), top = v.y - 20;
   for (const q of tr.passers) {
-    if (q.x > v.x + v.w + 100 || q.x + q.len < v.x - 100) continue;
+    if (q.kind !== 'falls') continue;
+    const a = Math.max(v.x - 60, q.x - 60), b = Math.min(v.x + v.w + 60, q.x + q.len + 60);
+    if (b <= a) continue;
+    c.save(); c.beginPath(); c.rect(a, top, b - a, BERM_Y + 4 - top); c.clip();
+    for (let x = q.x - 60 + Math.floor((a - (q.x - 60)) / CLIFF_W) * CLIFF_W; x < b; x += CLIFF_W) stillAt(c, 'tr-cliff', x, 0, 0, TUN_TOP, CLIFF_W, BERM_Y + 4 - TUN_TOP, paintCliff);
+    if (top < TUN_TOP) box(c, a, top, b - a, TUN_TOP - top + 2, mix(FIBER[2], '#000000', 0.2));
+    c.restore();
+  }
+};
+
+/** The open ground a sign by the line stands on (between the tunnels going by and short of the falls' cliff it warns
+ *  of): it's kept on that, not stood inside a tunnel's shell or hung over the cliff (parkSign `within`). */
+const signGround = (passers: Passer[], q: Passer): [number, number] => {
+  let a = -Infinity, b = Infinity;
+  const mid = q.x + q.len / 2;
+  for (const o of passers) {
+    if (o.kind !== 'tunnel' && o.kind !== 'falls') continue;
+    if (o.x < mid) { if (o.kind === 'tunnel') a = Math.max(a, o.x + o.len + 30); }
+    else b = Math.min(b, o.x - (o.kind === 'falls' ? 70 : 30));
+  }
+  return [a, b];
+};
+/** Where a sign by the line stands (its middle, world x): on its open ground (signGround). */
+const SIGN_HALF = 130;
+const signX = (passers: Passer[], q: Passer) => {
+  const [a, b] = signGround(passers, q), mid = q.x + q.len / 2;
+  if (b - a >= SIGN_HALF * 2) return Math.max(a + SIGN_HALF, Math.min(b - SIGN_HALF, mid));
+  return Number.isFinite(a) && Number.isFinite(b) ? (a + b) / 2 : mid;
+};
+
+/** Behind the train: the bridges' far legs, the water towers, the waterfall's water behind the train, the signs up by
+ *  the line. */
+export const drawPassersBack = (c: Ctx, state: GameState) => {
+  const tr = trainOf(state), f = state.frame, v = drawnView(state), top = v.y - 20;
+  for (const q of tr.passers) {
+    if (q.kind !== 'sign' && (q.x > v.x + v.w + 100 || q.x + q.len < v.x - 100)) continue;
     if (q.kind === 'bridge') {
       // (the far bent: timber legs down to the far bank on their stone footing, cross-braced, the stringers' ends)
       stillAt(c, 'tr-bent', q.x, GY, -14, BRIDGE_Y - GY - 4, q.len + 28, GY - BRIDGE_Y + 6, g => {
@@ -299,14 +334,8 @@ export const drawPassersBack = (c: Ctx, state: GameState) => {
       const tx = q.x + q.len / 2;
       stillAt(c, 'tr-tower', tx, BERM_Y, -86, ROOF - 284 - BERM_Y, 172, BERM_Y - ROOF + 288, g => paintTower(g, BERM_Y - (ROOF - 118)));
     } else if (q.kind === 'falls') {
-      // (the park's fake cliff over the line (fiberglass in molded courses, seams, bolts), its lip up out of the top of
-      // the screen, and the water pouring off it behind the train)
-      const a = Math.max(v.x - 60, q.x - 60), b = Math.min(v.x + v.w + 60, q.x + q.len + 60);
-      c.save(); c.beginPath(); c.rect(a, top, b - a, BERM_Y + 4 - top); c.clip();
-      for (let x = q.x - 60 + Math.floor((a - (q.x - 60)) / CLIFF_W) * CLIFF_W; x < b; x += CLIFF_W) stillAt(c, 'tr-cliff', x, 0, 0, TUN_TOP, CLIFF_W, BERM_Y + 4 - TUN_TOP, paintCliff);
-      if (top < TUN_TOP) box(c, a, top, b - a, TUN_TOP - top + 2, mix(FIBER[2], '#000000', 0.2));
-      c.restore();
-      const wa = Math.max(a, q.x), wb = Math.min(b, q.x + q.len);
+      // (the water pouring off the park's fake cliff (drawCliffs, behind the embankment) behind the train)
+      const wa = Math.max(v.x - 60, q.x), wb = Math.min(v.x + v.w + 60, q.x + q.len);
       if (wb > wa) {
         const Wt = WATER;
         bandedGradientX(c, wa, top, wb - wa, RAIL - 1 - top, [Wt[7], Wt[6], Wt[7], Wt[6], Wt[7], Wt[8]]);
@@ -316,7 +345,11 @@ export const drawPassersBack = (c: Ctx, state: GameState) => {
       }
     } else if (q.kind === 'sign') {
       // (up on two tall peeled posts by the line, over the roofs: readable, nothing over it: the park's warning plank)
-      parkSign(c, q.x + q.len / 2, BERM_Y, q.text ?? [], { warn: true, tall: BERM_Y - (ROOF - 150), seed: 4 });
+      // (kept on open embankment; painted once and kept under the grades' tilt (the kit's stamps aren't))
+      const sx = signX(tr.passers, q), half = SIGN_HALF;
+      if (sx - half > v.x + v.w + 20 || sx + half < v.x - 20) continue;
+      const text = q.text ?? [], tall = BERM_Y - (ROOF - 150);
+      stillAt(c, `tr-sign-${text.join('|')}`, sx, BERM_Y, -half, -tall - 40, half * 2, tall + 48, g => parkSign(g, 0, 0, text, { warn: true, tall, seed: 4 }));
     }
   }
 };
@@ -423,7 +456,7 @@ const bandedGradientX = (c: Ctx, x: number, y: number, w: number, h: number, sto
 /** In front of the train: the bridges' decks, the water pouring, the tunnels' portals, the waterfall coming down over
  *  everything outside (inside the car he's in, it's down the windows). */
 export const drawPassersFront = (c: Ctx, state: GameState) => {
-  const tr = trainOf(state), f = state.frame, v = viewOf(state), top = v.y - 60;
+  const tr = trainOf(state), f = state.frame, v = drawnView(state), top = v.y - 20;
   for (const q of tr.passers) {
     if (q.x > v.x + v.w + 100 || q.x + q.len < v.x - 100) continue;
     if (q.kind === 'bridge') {
@@ -452,8 +485,10 @@ export const drawPassersFront = (c: Ctx, state: GameState) => {
 /** The waterfall's sheet over the train (clipped out of the inside of the car he's in: there it streams down the
  *  windows), its mist ahead and behind. */
 const drawFallsFront = (c: Ctx, state: GameState, q: Passer, top: number) => {
-  const tr = trainOf(state), f = state.frame;
+  const tr = trainOf(state), f = state.frame, v = drawnView(state);
   const room = playerRoom(state, tr);
+  // (only what of it's on screen: the long one's nearly 4000 wide)
+  const ca = Math.max(q.x, v.x - 60), cb = Math.min(q.x + q.len, v.x + v.w + 60);
   c.save();
   if (room >= 0) {
     const rx = carXNow(tr, room) + END, rw = CARS[room].len - 2 * END;
@@ -466,15 +501,21 @@ const drawFallsFront = (c: Ctx, state: GameState, q: Passer, top: number) => {
   }
   // (the sheet: banded blue, see-through enough to make out the train under it, white streaks pouring, its own shading
   // in columns where it's thicker)
-  const Wt = WATER, x0 = q.x, x1 = q.x + q.len;
-  c.globalAlpha = 0.6;
-  bandedGradientX(c, x0, top, q.len, GY + 40 - top, [Wt[7], Wt[6], Wt[7], Wt[7], Wt[6], Wt[8]]);
-  c.globalAlpha = 0.25; for (let x = x0 + 20; x < x1; x += 70) box(c, x, top, 18 + ((x * 3) % 14), GY + 40 - top, Wt[4]);
-  c.globalAlpha = 1;
-  for (let x = x0 + ((f * 2) % 10); x < x1; x += 10) { const o = (f * 14 + x * 5) % 90; box(c, x, top + o, 3, 54, 'rgba(240, 249, 255, 0.75)'); box(c, x + 4, top + ((o + 45) % 90) + 40, 2, 34, 'rgba(180, 220, 232, 0.6)'); box(c, x + 2, top + ((o + 20) % 90) + 20, 1, 20, 'rgba(255,255,255,0.8)'); }
-  // (spray thrown up off the roofs, the white water along the bottom)
-  for (let n = 0; n < 14; n++) { const sx = q.x + ((n * 97 + f * 3) % Math.max(1, q.len)), k = (f * 0.07 + n / 14) % 1; puff(c, sx, ROOF - k * 40, 3 + (1 - k) * 3, ['#B4DCE8', '#E8F6FA', '#FFFFFF'], 1 - k * 0.5); }
-  for (let x = x0; x < x1; x += 22) puff(c, x + 11, GY + 10 - ((f * 3 + x) % 14), 14, ['#9ACCE0', '#D8EEF6', '#FFFFFF'], 0.8);
+  const Wt = WATER, x0 = q.x, x1 = cb;
+  /** The first of a row (every `step` from `from`) that's on screen. */
+  const first = (from: number, step: number) => from + Math.max(0, Math.floor((ca - 40 - from) / step)) * step;
+  if (cb > ca) {
+    // (none of it past its own ends)
+    const end = q.x + q.len;
+    c.globalAlpha = 0.6;
+    bandedGradientX(c, ca, top, cb - ca, GY + 40 - top, [Wt[7], Wt[6], Wt[7], Wt[7], Wt[6], Wt[8]]);
+    c.globalAlpha = 0.25; for (let x = first(x0 + 20, 70); x < x1; x += 70) box(c, x, top, Math.min(18 + ((x * 3) % 14), end - x), GY + 40 - top, Wt[4]);
+    c.globalAlpha = 1;
+    for (let x = first(x0 + ((f * 2) % 10), 10); x < Math.min(x1, end - 6); x += 10) { const o = (f * 14 + x * 5) % 90; box(c, x, top + o, 3, 54, 'rgba(240, 249, 255, 0.75)'); box(c, x + 4, top + ((o + 45) % 90) + 40, 2, 34, 'rgba(180, 220, 232, 0.6)'); box(c, x + 2, top + ((o + 20) % 90) + 20, 1, 20, 'rgba(255,255,255,0.8)'); }
+    // (spray thrown up off the roofs, the white water along the bottom)
+    for (let n = 0; n < 14; n++) { const sx = q.x + ((n * 97 + f * 3) % Math.max(1, q.len)), k = (f * 0.07 + n / 14) % 1; if (sx > ca - 20 && sx < cb + 20) puff(c, sx, ROOF - k * 40, 3 + (1 - k) * 3, ['#B4DCE8', '#E8F6FA', '#FFFFFF'], 1 - k * 0.5); }
+    for (let x = first(x0, 22); x < x1; x += 22) puff(c, x + 11, GY + 10 - ((f * 3 + x) % 14), 14, ['#9ACCE0', '#D8EEF6', '#FFFFFF'], 0.8);
+  }
   c.restore();
   // (inside: the water down the windows of the car he's in)
   if (room >= 0) {
@@ -513,10 +554,10 @@ const paintPortal = (g: Ctx, archTop: number, entry: boolean) => {
 };
 
 /** The near side of the line, nearest the eye (drawn over the train): its bank going by (dark stone in a tunnel, the
- *  plunge pool's churn under a waterfall), the robbers on their horses and leaping off them, the riderless horses. */
+ *  plunge pool's churn under a waterfall). (Who rides along it: drawRiders.) */
 export const drawNearLane = (c: Ctx, state: GameState) => {
-  const tr = trainOf(state), f = state.frame, v = viewOf(state);
-  const a = v.x - 80, b = v.x + v.w + 80, y0 = GY + 8, h = v.y + v.h + 200 - y0;
+  const tr = trainOf(state), f = state.frame, v = drawnView(state);
+  const a = v.x - 80, b = v.x + v.w + 80, y0 = GY + 8, h = v.y + v.h + 60 - y0;
   const sp = tr.dist * 1.25;
   for (let x = Math.floor((a + sp) / NEAR_W) * NEAR_W - sp; x < b; x += NEAR_W) stillAt(c, 'tr-near', x, y0, 0, -2, NEAR_W, NEAR_H + 2, paintNear);
   if (h > NEAR_H) box(c, a, y0 + NEAR_H, b - a, h - NEAR_H, N(GRASS)[1]);
@@ -538,7 +579,12 @@ export const drawNearLane = (c: Ctx, state: GameState) => {
       for (let x = qa; x < qb; x += 26) puff(c, x + 13, y0 + 4 + ((f + x) % 8), 10, ['#9ACCE0', '#D8EEF6', '#FFFFFF'], 0.85);
     }
   }
-  // (the robbers on their horses, in the near lane: bigger, nearer)
+};
+
+/** The robbers on their horses in the near lane (bigger, nearer: over the near bank and the wrecks still up by the
+ *  rails, under the ones gone down the bank: index.ts), leaping off them, the riderless horses. */
+export const drawRiders = (c: Ctx, state: GameState) => {
+  const tr = trainOf(state), f = state.frame;
   for (const r of tr.riders) {
     const look = { aiState: r.st === 'rideAim' ? 'rideAim' : 'ride', facing: r.facing, hitFlash: 0 };
     if (r.st === 'leap' && r.leap) {

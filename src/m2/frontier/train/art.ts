@@ -16,8 +16,10 @@ import { type Ctx, box, checker, mix, hash, INK, still, stillAt, N, post, STEEL,
 import { trainOf } from './state';
 import { CARS, CAR_X, RAIL, DECK, ROOF, CEIL, COUPLER, END, TOP, ENTERABLE, ENGINE } from './layout';
 import { carXNow, insideCar, offOf } from './where';
-import { drawTunnelInside, BERM_Y } from './passers';
-import { viewOf, inView } from './view';
+import { drawTunnelInside, drawCliffs, BERM_Y } from './passers';
+import { viewOf, drawnView, inDrawn } from './view';
+import { FG_GROUND } from './kinds';
+import type { Train } from './state';
 import { WR, windows, WIN_T, WIN_H, truck, drawBase, drawExt, drawInt, drawTop, drawCarLive, drawLamp, drawWreckCar } from './carArt';
 
 export { drawScenery } from './far';
@@ -67,7 +69,9 @@ const paintTies = (g: Ctx) => {
 };
 
 export const drawTrackside = (c: Ctx, state: GameState) => {
-  const tr = trainOf(state), v = viewOf(state), a = v.x - 220, b = v.x + v.w + 220;
+  const tr = trainOf(state), v = drawnView(state), a = v.x - 220, b = v.x + v.w + 220;
+  // (the waterfalls' cliffs: furthest back, behind the embankment and the poles stood on it)
+  drawCliffs(c, state);
   // (the embankment)
   for (let x = Math.floor((a + tr.dist) / BW) * BW - tr.dist; x < b; x += BW) stillAt(c, 'tr-berm', x, BERM_Y, 0, -14, BW, GY - BERM_Y + 16, paintBerm);
   // (the telegraph poles whipping by, their wires sagging between)
@@ -97,33 +101,53 @@ const lamps = (i: number, x: number, f: number): [number, number][] => {
   return [0.25, 0.5, 0.75].map((k, n) => { const s = Math.sin(f * 0.05 + i + n * 1.3) * 5; return [x + d.len * k + s, CEIL + 46 - Math.abs(s) * 0.3]; });
 };
 
-/** Behind everybody: the cars (opened up if he's inside one; the ones he only crosses), their trucks on the rails. */
+/** Each car's outside, how much of it's over its inside (1: shut, he's not in it; 0: opened up, he's in it), easing
+ *  between so going in or out is a quick fade, not a pop (eased once a frame, however often it's drawn). */
+const veils = new WeakMap<Train, { frame: number; k: number[] }>();
+const VEIL_EASE = 0.3;
+const veilOf = (state: GameState, tr: Train) => {
+  let vl = veils.get(tr);
+  if (!vl) { vl = { frame: state.frame, k: CARS.map((_, i) => (insideCar(state, tr, i) ? 0 : 1)) }; veils.set(tr, vl); }
+  if (vl.frame !== state.frame) {
+    vl.frame = state.frame;
+    for (let i = 0; i < CARS.length; i++) {
+      const want = insideCar(state, tr, i) ? 0 : 1, k = vl.k[i] + (want - vl.k[i]) * VEIL_EASE;
+      vl.k[i] = Math.abs(want - k) < 0.04 ? want : k;
+    }
+  }
+  return vl.k;
+};
+
+/** Behind everybody: the cars (opened up if he's inside one, or fading as he goes in or out; the ones he only
+ *  crosses), their trucks on the rails. */
 export const drawCarsBack = (c: Ctx, state: GameState) => {
-  const tr = trainOf(state), f = state.frame, roll = tr.dist / WR;
+  const tr = trainOf(state), f = state.frame, roll = tr.dist / WR, veil = veilOf(state, tr);
   for (let i = tr.rear; i < CARS.length; i++) {
     if (i === ENGINE || tr.cars[i]?.gone) continue;
     const x = carXNow(tr, i) + (tr.cut && tr.cut.phase === 'tell' && i === tr.cut.k ? tr.shudder : 0), d = CARS[i];
-    if (!inView(state, x - COUPLER, x + d.len + COUPLER, 100)) continue;
+    if (!inDrawn(state, x - COUPLER, x + d.len + COUPLER, 100)) continue;
     for (const tx of [x + 70, x + d.len - 70]) truck(c, tx, roll + i);
     drawBase(c, d.kind, d.len, x);
-    const inside = ENTERABLE.includes(d.kind) && insideCar(state, tr, i);
+    const open = ENTERABLE.includes(d.kind) && veil[i] < 1;
     if (ENTERABLE.includes(d.kind)) {
-      if (inside) { drawInt(c, d.kind, d.len, x); for (const [lx, ly] of lamps(i, x, f)) drawLamp(c, lx, ly, f); }
+      if (open) { drawInt(c, d.kind, d.len, x); for (const [lx, ly] of lamps(i, x, f)) drawLamp(c, lx, ly, f); }
     } else drawTop(c, d.kind, d.len, x);
-    drawCarLive(c, d.kind, d.len, x, f, inside);
+    drawCarLive(c, d.kind, d.len, x, f, open);
   }
 };
 
 /** In front of the cast: the sides of the cars he isn't in (whoever's in there out of sight); the cut's warning over the
  *  coupling; the switch it'll go off the line at. */
 export const drawCarsFront = (c: Ctx, state: GameState) => {
-  const tr = trainOf(state), f = state.frame;
+  const tr = trainOf(state), f = state.frame, veil = veilOf(state, tr);
   for (let i = tr.rear; i < CARS.length; i++) {
     const d = CARS[i];
-    if (!ENTERABLE.includes(d.kind) || tr.cars[i]?.gone) continue;
+    if (!ENTERABLE.includes(d.kind) || tr.cars[i]?.gone || veil[i] <= 0) continue;
     const x = carXNow(tr, i) + (tr.cut && tr.cut.phase === 'tell' && i === tr.cut.k ? tr.shudder : 0);
-    if (!inView(state, x, x + d.len, 60) || insideCar(state, tr, i)) continue;
+    if (!inDrawn(state, x, x + d.len, 60)) continue;
+    c.globalAlpha = veil[i];
     drawExt(c, d.kind, d.len, x);
+    c.globalAlpha = 1;
   }
   // (the cut: a red ! over the coupling, UNCOUPLING!, then JUMP! as it goes)
   const cut = tr.cut;
@@ -173,9 +197,14 @@ export const stepWrecks = (state: GameState) => {
   }
   tr.wrecks = tr.wrecks.filter(w => w.x + w.len > v.x - 300 && w.t < 2000);
 };
-export const drawWrecks = (c: Ctx, state: GameState) => {
+/** How far down the near bank a wreck has slid when it's nearer than the robbers riding in the near lane. */
+const NEAR_WRECK = FG_GROUND - GY;
+export const drawWrecks = (c: Ctx, state: GameState, near?: boolean) => {
   const tr = trainOf(state), f = state.frame;
   for (const w of tr.wrecks) {
+    // (the far ones (still up by the rails) behind the riders in the near lane, the near ones (down the bank) in front)
+    if (near !== undefined && near !== w.y >= NEAR_WRECK) continue;
+    if (!inDrawn(state, w.x - 200, w.x + w.len + 200, 60)) continue;
     const top = ENTERABLE.includes(w.kind) ? ROOF - 44 : (TOP[w.kind] ?? DECK - 100) - 20;
     const H = GY - top, flip = Math.cos(w.tip * Math.PI);
     c.save();
@@ -196,17 +225,20 @@ export const drawWrecks = (c: Ctx, state: GameState) => {
 /** The lights in the cars (world), for the lighting (the playtest: muted, no spotlights): the car he's in lit right
  *  through (a soft fill; its lamps' warmth), the others only a dim glow at their windows; the caboose's marker. */
 export const carLamps = (state: GameState): Light[] => {
-  const tr = trainOf(state), f = state.frame, out: Light[] = [];
+  const tr = trainOf(state), f = state.frame, out: Light[] = [], veil = veilOf(state, tr);
   for (let i = tr.rear; i < CARS.length; i++) {
     const d = CARS[i];
     if (tr.cars[i]?.gone || !ENTERABLE.includes(d.kind)) continue;
     const x = carXNow(tr, i);
-    if (!inView(state, x, x + d.len, 200)) continue;
-    if (insideCar(state, tr, i)) {
-      for (let lx = x + END + 60; lx < x + d.len - END - 30; lx += 110) out.push({ x: lx, y: CEIL + 160, r: 200, a: 0.95 });
-      for (const [lx, ly] of lamps(i, x, f)) out.push({ x: lx, y: ly, r: 110, a: 0.3, color: '#4A3818' });
-    } else {
-      for (const wx of windows(i)) out.push({ x: x + wx, y: WIN_T + WIN_H / 2, r: 44, a: 0.3, color: '#3A2C12' });
+    if (!inDrawn(state, x, x + d.len, 200)) continue;
+    // (the light fades over with the outside: lit through as it opens up, back to the windows' glow as it shuts)
+    const open = 1 - veil[i];
+    if (open > 0) {
+      for (let lx = x + END + 60; lx < x + d.len - END - 30; lx += 110) out.push({ x: lx, y: CEIL + 160, r: 200, a: 0.95 * open });
+      for (const [lx, ly] of lamps(i, x, f)) out.push({ x: lx, y: ly, r: 110, a: 0.3 * open, color: '#4A3818' });
+    }
+    if (open < 1) {
+      for (const wx of windows(i)) out.push({ x: x + wx, y: WIN_T + WIN_H / 2, r: 44, a: 0.3 * (1 - open), color: '#3A2C12' });
     }
     if (d.kind === 'caboose') out.push({ x: x + END - 6, y: CEIL + 106, r: 50, a: 0.35, color: '#5A1A1A' });
   }

@@ -42,7 +42,7 @@ import { trainOf } from './state';
 import { CARS, CAR_X, RAIL, TENDER, ENGINE, CAB } from './layout';
 import { ENG, drawMachine, drawCabBack, drawCabFront, CAB_GAP, drawOutOfService, drawBumperArt } from './engineArt';
 import { cutTender, cancelCut } from './cars';
-import { screenX, screenY, inView } from './view';
+import { screenX, screenY, inDrawn } from './view';
 import { TUBE_RANT, TUBE_TIMEUP, TUCKER_SHOT, KILL_SEEN, SHOT_LINE, DRIVER_LINE, TUCKER_INSULT, MH_COMEBACK, TUCKER_DARE, TUCKER_DODGE, TUCKER_SLAM, MH_RAYGUN } from './lines';
 
 /** The train's crashed into Sawdust Gulch (for good: a revisit finds it stood still). */
@@ -360,7 +360,7 @@ const TUCK_X = ENGINE_X + 10, FOOTPLATE = RAIL - 96;
 /** Behind the cast: the engine (the boiler, the stack smoking, the cab with Tucker leaning out of the back of it). */
 export const drawEngineBack = (c: Ctx, state: GameState) => {
   const s = scOf(state), tr = trainOf(state), f = state.frame, x = ENGINE_X;
-  if (!inView(state, x - 200, x + CARS[ENGINE].len + 100, 100)) return;
+  if (!inDrawn(state, x - 300, x + CARS[ENGINE].len + 100, 100)) return;
   // (never stove in here: the train cuts away before the stop; the wreck's the town's)
   const stuck = s.step === 'slump' || s.step === 'speed';
   // ---- the machine, its wheels on the rail
@@ -372,7 +372,10 @@ export const drawEngineBack = (c: Ctx, state: GameState) => {
   // insult.
   const shot = s.step !== 'insult' && s.step !== 'rant';
   if (tr.phase !== 'still' && s.step !== 'done' && s.step !== 'wait') {
-    c.save(); c.beginPath(); c.rect(x - 140, GY - 420, 140 + CAB_GAP - 4, CAB.sill - (GY - 420));
+    // (out in the air off the cab's back (under the roof's overhang), and in the opening itself: never over the cab's
+    // back wall above the header)
+    const roofUnder = RAIL + ENG.cabTop + 24;
+    c.save(); c.beginPath(); c.rect(x - 140, roofUnder, 135, CAB.sill - roofUnder); c.rect(x - 5, CAB.header, CAB_GAP + 1, CAB.sill - CAB.header);
     // (slumped, he hangs out over the sill: below it too, outside the cab)
     if (shot) c.rect(x - 170, CAB.sill - 4, 162, 130);
     c.clip();
@@ -389,7 +392,8 @@ export const drawEngineBack = (c: Ctx, state: GameState) => {
     c.restore();
   }
   drawCabFront(c, x, CAB.header, CAB.sill, tr.phase === 'still' || shot ? 0 : shutK(s), FOOTPLATE);
-  if (tr.phase === 'still' || s.step === 'done') drawOutOfService(c, x + 60, GY - 232);
+  // (hung on the cab's side between the opening and its front edge, not hanging off it onto the boiler)
+  if (tr.phase === 'still' || s.step === 'done') drawOutOfService(c, x + 34, GY - 232);
   // (the whistle cord, pulled tight by his weight once he's slumped on it)
   c.strokeStyle = '#D6D3D1'; c.lineWidth = 1; c.beginPath(); c.moveTo(x + 12, GY - 310); c.lineTo(x + 12 + (stuck ? -10 : 0), stuck ? CAB.sill - 10 : GY - 250); c.stroke();
 };
@@ -415,7 +419,7 @@ export const drawEngineFront = (c: Ctx, state: GameState) => {
   }
   // (the end of the line: SAWDUST GULCH's buffer stop and its platform, coming)
   const b = tr.passers.find(q => q.kind === 'bumper');
-  if (b) drawBumper(c, b.x, 0);
+  if (b && inDrawn(state, b.x - 20, b.x + 500, 60)) drawBumper(c, b.x, 0);
 };
 
 /** The buffer stop (timbers, a red-and-white striped beam) and Sawdust Gulch's station front behind it. */

@@ -98,7 +98,8 @@ const viewingDeck = (g: Ctx, x: number) => {
   for (let k = 0; k < 3; k++) { box(g, x - 22 + k * 7, floor + 16 - k * 7, 10, 3, INK); box(g, x - 21 + k * 7, floor + 16 - k * 7, 8, 2, P[4]); }
   // (the board over it, on two peeled posts: burned in)
   const sx = x + 66, sw = 124, sy = floor - 98;
-  for (const px of [sx + 10, sx + sw - 10]) post(g, px, sy, floor - 36, 6, P);
+  // (its posts down to the deck's floor, behind the guests and the railing: not stopping short in the air over it)
+  for (const px of [sx + 10, sx + sw - 10]) post(g, px, sy, floor, 6, P);
   box(g, sx - 1, sy - 1, sw + 2, 24, INK); slab(g, sx, sy, sw, 22, P);
   for (let gy = sy + 4; gy < sy + 20; gy += 3) box(g, sx + 4 + ((gy * 7) % 13), gy, sw * 0.4, 1, P[2]);
   for (const nx of [sx + 4, sx + sw - 6]) { box(g, nx, sy + 9, 2, 2, '#26262C'); }
@@ -152,9 +153,9 @@ const mineProp = (g: Ctx, x: number) => {
   for (const px of [x - 4, x + pw - 6]) { box(g, px - 1, base - ph - 2, 12, ph + 2, INK); slab(g, px, base - ph - 1, 10, ph + 1, P); }
   box(g, x - 13, base - ph - 14, pw + 26, 14, INK); slab(g, x - 12, base - ph - 13, pw + 24, 12, P);
   for (const ex of [x - 12, x + pw + 8]) { box(g, ex, base - ph - 13, 4, 12, P[5]); g.fillStyle = P[2]; g.beginPath(); g.arc(ex + 2, base - ph - 7, 2, 0, Math.PI * 2); g.fill(); }
-  // (GOLD! on a board nailed over it)
-  box(g, x + 8, base - ph - 40, pw - 16, 24, INK); slab(g, x + 9, base - ph - 39, pw - 18, 22, near(['#4A3008', '#6A4A10', '#8E6A1A', '#C8A030', '#E8C858', '#FFE890', '#FFF4C0']));
-  signText(g, 'GOLD!', x + pw / 2, base - ph - 21, painted(2, '#7F1D1D', '#3A0A06'));
+  // (GOLD! on a board nailed over it, sat on the header (not a gap of sky under it))
+  box(g, x + 8, base - ph - 38, pw - 16, 25, INK); slab(g, x + 9, base - ph - 37, pw - 18, 23, near(['#4A3008', '#6A4A10', '#8E6A1A', '#C8A030', '#E8C858', '#FFE890', '#FFF4C0']));
+  signText(g, 'GOLD!', x + pw / 2, base - ph - 19, painted(2, '#7F1D1D', '#3A0A06'));
   // (the stub of track, the cart heaped with gold-painted rocks)
   box(g, x + pw + 8, base - 4, 70, 2, S[4]); for (let k = 0; k < 5; k++) box(g, x + pw + 10 + k * 14, base - 3, 6, 3, P[1]);
   const cx = x + pw + 20;

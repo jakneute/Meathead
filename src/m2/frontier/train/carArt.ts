@@ -136,7 +136,7 @@ const corners = (g: Ctx, len: number, Bd: string[]) => {
 };
 
 const paintExt = (g: Ctx, kind: CarKind, len: number) => {
-  const Bd = N(BODY[kind]), a = END, w = len - 2 * END, warm = warmth(), V = N(VARNISH), B = N(BLACK), S = N(STEEL);
+  const Bd = N(BODY[kind]), a = END, w = len - 2 * END, warm = warmth(), V = N(VARNISH), S = N(STEEL);
   box(g, a - 1, Cl - 1, w + 2, Dk - Cl + 2, INK);
   if (kind === 'caboose') {
     // (red planks standing up, the windows square in their frames, the belt rail, gold lettering)
@@ -146,12 +146,6 @@ const paintExt = (g: Ctx, kind: CarKind, len: number) => {
     winOf(kind, len).forEach((wx, k) => outWindow(g, wx - WIN_W / 2, false, Bd, warm, k + 1));
     signText(g, 'W.L.R.R.', a + w / 2, Cl + 42, { sx: 2, sy: 2, fill: GOLD, shadow: Bd[0] });
     signText(g, 'No. 13', a + w / 2, Dk - 46, { sx: 1, sy: 1, fill: GOLD, shadow: Bd[0] });
-    // (the marker lamp at the back: red lens in brass; another at the front, unlit)
-    for (const [mx, lit] of [[a - 12, true], [a + w + 2, false]] as const) {
-      box(g, mx - 1, Cl + 98, 12, 18, INK); box(g, mx, Cl + 99, 10, 16, BRASS[3]); box(g, mx, Cl + 99, 2, 16, BRASS[5]);
-      box(g, mx + 2, Cl + 103, 6, 7, lit ? '#E8262A' : '#4A1416'); if (lit) box(g, mx + 2, Cl + 103, 2, 2, '#FF9A8A');
-      box(g, mx + 3, Cl + 95, 4, 4, INK);
-    }
   } else if (kind === 'cattle') {
     // (slats with the dark of the car between them, its posts and braces, the LIVESTOCK board)
     const F = Bd;
@@ -218,7 +212,22 @@ const paintExt = (g: Ctx, kind: CarKind, len: number) => {
   }
   corners(g, len, Bd);
   roofSlab(g, len, Bd);
-  // (on the roof: the caboose's cupola (its top lit: stand on it) and stovepipe; a stovepipe on the diner)
+  outsideFittings(g, kind, len);
+};
+
+/** What's on the outside of a car he goes into but not its side, so it's there whether the car's shut or opened up
+ *  (paintExt and paintInt both): the caboose's marker lamps on its ends; on the roof, the caboose's cupola (its top lit:
+ *  stand on it; it's solid either way) and stovepipe, the diner's stovepipe (their smoke's drawn live either way). */
+const outsideFittings = (g: Ctx, kind: CarKind, len: number) => {
+  const Bd = N(BODY[kind]), a = END, w = len - 2 * END, warm = warmth(), V = N(VARNISH), B = N(BLACK);
+  if (kind === 'caboose') {
+    // (the marker lamp at the back: red lens in brass; another at the front, unlit)
+    for (const [mx, lit] of [[a - 12, true], [a + w + 2, false]] as const) {
+      box(g, mx - 1, Cl + 98, 12, 18, INK); box(g, mx, Cl + 99, 10, 16, BRASS[3]); box(g, mx, Cl + 99, 2, 16, BRASS[5]);
+      box(g, mx + 2, Cl + 103, 6, 7, lit ? '#E8262A' : '#4A1416'); if (lit) box(g, mx + 2, Cl + 103, 2, 2, '#FF9A8A');
+      box(g, mx + 3, Cl + 95, 4, 4, INK);
+    }
+  }
   if (kind === 'caboose') {
     const cx = Math.round(len * 0.42), R = Bd;
     box(g, cx - 1, Rf - 41, 86, 42, INK);
@@ -554,6 +563,8 @@ const paintInt = (g: Ctx, kind: CarKind, len: number) => {
   box(g, a - 5, Rf - 1, w + 10, Cl - Rf + 4, INK); box(g, a - 4, Rf, w + 8, Cl - Rf + 2, R[3]); box(g, a - 4, Cl, w + 8, 3, Bd[1]);
   for (let x = a + 8; x < a + w; x += 30) box(g, x, Rf + 3, 1, Cl - Rf - 3, R[2]);
   lip(g, a - 4, Rf, w + 8);
+  // ---- what's outside it that isn't its side (the cupola, the stovepipes, the marker lamps): there either way
+  outsideFittings(g, kind, len);
   void S; void IRON; void RED; void post;
 };
 
@@ -583,7 +594,7 @@ export const truck = (c: Ctx, x: number, roll: number) => {
 
 export const drawBase = (c: Ctx, kind: CarKind, len: number, x: number) => stillAt(c, `tr-base-${kind}-${len}`, x, GY, -COUPLER / 2 - 22, Rf - 64, len + COUPLER + 44, -Rf + 64 + 34, g => paintBase(g, kind, len));
 export const drawExt = (c: Ctx, kind: CarKind, len: number, x: number) => stillAt(c, `tr-ext-${kind}-${len}`, x, GY, -16, Rf - 50, len + 32, Dk - Rf + 52, g => paintExt(g, kind, len));
-export const drawInt = (c: Ctx, kind: CarKind, len: number, x: number) => stillAt(c, `tr-int-${kind}-${len}`, x, GY, END - 6, Rf - 4, len - 2 * END + 12, Dk - Rf + 6, g => paintInt(g, kind, len));
+export const drawInt = (c: Ctx, kind: CarKind, len: number, x: number) => stillAt(c, `tr-int-${kind}-${len}`, x, GY, END - 16, Rf - 50, len - 2 * END + 32, Dk - Rf + 52, g => paintInt(g, kind, len));
 export const drawTop = (c: Ctx, kind: CarKind, len: number, x: number) => {
   const top = (TOP[kind] ?? DECK) - GY;
   stillAt(c, `tr-top-${kind}-${len}`, x, GY, -6, top - 40, len + 12, Dk - top + 42, g => paintTop(g, kind, len));

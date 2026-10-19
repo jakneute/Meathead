@@ -38,7 +38,7 @@ import { SECTIONS, DOORS, GY } from '../geometry';
 import { trainOf } from './state';
 import { CARS, CAR_X, CHECKPOINTS, DECK, ROOF, END, TOP, ENGINE, V_FULL, V_INTRO, PICKUPS, TRAIN_END, EVENTS, eventX } from './layout';
 import { buildCars, rearForCheckpoint, updateCut, updateTracks, updateRooms, insideCar } from './cars';
-import { updatePassers, drawPassersBack, drawPassersFront, drawNearLane, drawWarnings, tunnelLamps } from './passers';
+import { updatePassers, drawPassersBack, drawPassersFront, drawNearLane, drawRiders, drawWarnings, tunnelLamps } from './passers';
 import { updateShots, drawShots } from './shots';
 import { setBounds } from './kinds';
 import { drawScenery, drawTrackside, drawCarsBack, drawCarsFront, carLamps, stepWrecks, drawWrecks } from './art';
@@ -182,7 +182,10 @@ export const train: FrontierSection = {
     drawPassersFront(c, state);
     drawEngineFront(c, state);
     drawNearLane(c, state);
-    drawWrecks(c, state);
+    // (the wrecks still up by the rails, then the riders in the near lane, then the wrecks gone down the bank past them)
+    drawWrecks(c, state, false);
+    drawRiders(c, state);
+    drawWrecks(c, state, true);
   },
   drawHud: (c, state) => {
     const tr = trainOf(state);

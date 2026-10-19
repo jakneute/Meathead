@@ -1241,3 +1241,15 @@ later (+1 if heavyset; was 2 / 3 before playtest fixes E). Tucker's glimpsed ahe
   Tumble's sides behind the queue's rows. Signs kept on their stretch of ground (kit.ts parkSign `within`; `wade` plants
   one in the water): FIREDAMP and FLOODED in three lines so both fit their floor, LONG RIVER planted in the river, the
   rest nudged off the edges they hung over. The saloon's inside/outside switch left as it is (inside is inside).
+- 2026-10-18 (playtest perspective notes, section 2, the train; art only): what's drawn is culled and filled to the
+  view as it's really drawn (train/view.ts drawnView: the 0.8 zoom turned by the grade's tilt, its corners reaching
+  ~50 px past the plain box on the steepest grades) for the cars, the trackside, the tunnels, the falls, the near bank,
+  the engine, the buffer stop and the wrecks (the rules keep viewOf); the long falls' sheet drawn only where it's on
+  screen and never past its own ends. A car's outside fades over its inside going in or out (a few frames, its lights
+  with it) instead of popping; the caboose's cupola (solid either way), its marker lamps and the stovepipes stay put
+  while a car's opened up (they vanished inside). The falls' cliff drawn behind the embankment and the telegraph poles
+  (it cut them off). The robbers in the near lane drawn over the wrecks still up by the rails, under the ones down the
+  bank. Tucker kept to the cab's opening and the air off its back (never over the cab's back wall above the header).
+  Signs on their ground: FALLS AHEAD kept on open embankment (out of any tunnel, short of the cliff) and cached under
+  the tilt; OUT OF SERVICE inside the cab's side (it hung off its front edge onto the boiler); WAVE AT THE TRAIN!'s
+  posts down to the deck (they stopped in the air); GOLD! sat on the mine prop's header.
