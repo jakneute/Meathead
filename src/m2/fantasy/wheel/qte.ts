@@ -44,7 +44,7 @@ const held = (c: Controls, k: QteKey) => !!(k === 'A' ? c.jump : k === 'B' ? c.s
 /** Which of the QTE's buttons went down this frame. */
 const downs = (c: Controls, prev: Controls) => (['A', 'B', 'X', 'Y', 'LEFT', 'RIGHT'] as QteKey[]).filter(k => held(c, k) && !held(prev, k));
 
-/** The beats for one fight: `level` how many he's killed (0..7), `dazed` the suitor's reeling. */
+/** The beats for one fight: `level` how many he's killed (0..7), `dazed` the suitor's reeling. (Eased a step: the user's.) */
 const beatsFor = (level: number, dazed: boolean): Beat[] => {
   const n = Math.max(1, 1 + Math.floor(level / 3) - (dazed ? 1 : 0));
   const slow = dazed ? 1.2 : 1;
@@ -55,17 +55,17 @@ const beatsFor = (level: number, dazed: boolean): Beat[] => {
     const kind: Kind = level === 0 && s === 0 ? 'mash' : pick(kinds);
     last = kind;
     const b: Beat = { kind, key: pick(FACE), seq: [], need: 0, got: 0, fill: 0, t: 0, dur: 0, next: 0 };
-    if (kind === 'mash') { b.need = 12 + level * 2; b.dur = Math.round(160 * slow); }
-    if (kind === 'press') { b.need = 3 + Math.floor(level / 2); b.seq = Array.from({ length: b.need }, () => pick(FACE)); b.key = b.seq[0]; b.dur = Math.round(Math.max(32, 72 - level * 5) * slow); }
-    if (kind === 'alternate') { b.need = 14 + level * 2; b.dur = Math.round(170 * slow); }
-    if (kind === 'ring') { b.need = 2 + Math.floor(level / 3); b.dur = Math.round(Math.max(44, 84 - level * 5) * slow); }
+    if (kind === 'mash') { b.need = 10 + Math.round(level * 1.5); b.dur = Math.round(190 * slow); }
+    if (kind === 'press') { b.need = 3 + Math.floor(level / 2); b.seq = Array.from({ length: b.need }, () => pick(FACE)); b.key = b.seq[0]; b.dur = Math.round(Math.max(46, 86 - level * 4) * slow); }
+    if (kind === 'alternate') { b.need = 12 + Math.round(level * 1.5); b.dur = Math.round(200 * slow); }
+    if (kind === 'ring') { b.need = 2 + Math.floor(level / 3); b.dur = Math.round(Math.max(58, 98 - level * 4) * slow); }
     out.push(b);
   }
   return out;
 };
 
 /** The ring's target band (how shut the ring is when it counts). */
-const BAND: [number, number] = [0.06, 0.26];
+const BAND: [number, number] = [0.04, 0.32];
 const LOCK = 30, PAUSE = 22;
 
 export const startQte = (i: number, name: string, level: number, dazed: boolean, prev: Controls): Qte =>
