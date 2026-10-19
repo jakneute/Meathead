@@ -1096,8 +1096,23 @@ export const drawFightBack = (c: Ctx, state: GameState, f: Fight) => {
   // ---- the aim: a dotted line off the muzzle where it's pointing (blinking bright in the pan's flash)
   if (f.mode === 'on' && (f.act === 'aim' || f.act === 'pan')) {
     const m = muzzleAt(f), dx = f.facing * Math.cos(f.aim), dy = Math.sin(f.aim), pan = f.act === 'pan';
-    c.globalAlpha = pan ? (fr % 6 < 3 ? 0.9 : 0.4) : 0.3;
-    for (let i = 1; i < 26; i++) { const x = m.x + dx * i * 12, y = m.y + dy * i * 12; if (y > GY) break; box(c, x - 1, y - 1, 3, 2, pan ? '#FDE047' : '#FCA5A5'); }
+    // (the laser: plainly seen (the playtest): a solid red beam, inked, a hot core, out to where it lands, the dot there
+    // a pulsing reticle; in the pan it flashes yellow: move now)
+    let len = 26 * 12;
+    if (dy > 0.01) len = Math.min(len, (GY - m.y) / dy);
+    const ex = m.x + dx * len, ey = m.y + dy * len, hot = pan ? '#FDE047' : '#EF4444', core = pan ? '#FFFFFF' : '#FCA5A5';
+    const on = pan ? fr % 6 < 3 : true;
+    c.lineCap = 'round';
+    c.globalAlpha = on ? 0.85 : 0.45;
+    c.strokeStyle = '#1A0606'; c.lineWidth = 5; c.beginPath(); c.moveTo(m.x, m.y); c.lineTo(ex, ey); c.stroke();
+    c.strokeStyle = hot; c.lineWidth = 3; c.stroke();
+    c.strokeStyle = core; c.lineWidth = 1; c.stroke();
+    const pr = 7 + Math.sin(fr * 0.3) * 2;
+    c.globalAlpha = on ? 0.95 : 0.5;
+    c.strokeStyle = '#1A0606'; c.lineWidth = 4; c.beginPath(); c.arc(ex, ey, pr, 0, Math.PI * 2); c.stroke();
+    c.strokeStyle = hot; c.lineWidth = 2; c.beginPath(); c.arc(ex, ey, pr, 0, Math.PI * 2); c.stroke();
+    box(c, ex - 2, ey - 2, 4, 4, core);
+    for (const [ox, oy] of [[-1, 0], [1, 0], [0, -1], [0, 1]] as const) box(c, ex + ox * (pr + 2) - (ox ? 0 : 1), ey + oy * (pr + 2) - (oy ? 0 : 1), ox ? 4 * ox : 2, oy ? 4 * oy : 2, hot);
     c.globalAlpha = 1;
   }
   // ---- Tucker
