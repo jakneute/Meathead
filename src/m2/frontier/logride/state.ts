@@ -92,7 +92,6 @@ export interface Ride {
   spray: Spray[];
   /** The cutter at the break: frames since it slammed down (0: not yet). */
   cutT: number;
-  rats: Enemy[];
   /** The logging crew (enemies of the clearing's). */
   crew: Enemy[];
   scene: Scene;
@@ -110,7 +109,7 @@ export interface Ride {
 
 export const rideOf = (state: GameState) => frontierState<Ride>(state, 'logride', () => ({
   log: { mode: 'off', rx: 0, v: 0, push: 1, up: 0, vy: 0, off: 0, hopV: 0, float: 0, bob: 0, bobV: 0, splash: 0, t: 0, camY: 0 },
-  saws: [], props: [], rocks: [], junk: [], waves: [], lens: 0, spray: [], cutT: 0, rats: [], crew: [],
+  saws: [], props: [], rocks: [], junk: [], waves: [], lens: 0, spray: [], cutT: 0, crew: [],
   scene: { step: 'wait', t: 0, all: 0, busy: false, tucker: null, op: null, tuckerTalking: false, opTalking: false, tx: 0, ox: 0, oy: 0, ovx: 0, ovy: 0, opDown: false, sawK: 0, k: 0 },
   chip: { state: 'idle', t: 0, lx0: 0, ly0: 0, lk: 0, chips: [], crew: null, crewSaid: false, gore: 0, madSaid: false },
   pa: null, bark: null, said: {}, flash: 0, pipeCd: 0, gushCd: 0, branchCd: 0,

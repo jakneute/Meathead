@@ -6,7 +6,7 @@
 //     ride; gone again the moment he's back in it
 //   the Old Sawmill's shed: its outside (weathered boards on girts, a shingled roof, THE OLD SAWMILL painted big, the
 //     dark doors the flume runs through) over its insides (the drops, the wheel, the belts) till the log's in it
-//   the sewer: the earth over the tunnel (its bricks, its sludge, its pipes and outfalls, the rats) till the view's gone
+//   the sewer: the earth over the tunnel (its bricks, its sludge, its pipes and outfalls) till the view's gone
 //     down the chasm after him; the chasm's own column left open (he falls through it)
 
 import type { GameState } from '../../../m1/game/core/state';

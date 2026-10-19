@@ -271,9 +271,16 @@ const paintFigure = (g: Ctx, kind: PropKind, split: boolean) => {
       break;
     }
   }
-  // (the cut face: the fiberglass shell's white gelcoat, its steel armature, a spring)
-  if (split) { box(g, -15, -43, 30, 4, '#F2EEE4'); box(g, -15, -40, 30, 1, '#B8B2A4'); box(g, -3, -44, 6, 5, S[2]); box(g, -2, -44, 2, 5, S[5]); box(g, 7, -43, 4, 3, '#71717A'); }
+  // (the cut face: the fiberglass shell's white gelcoat, its steel armature, a spring; across the figure where the saw
+  // went through it)
+  if (split) {
+    const [cy, fx, fw] = CUT[kind], ax = fx + Math.round(fw / 2) - 3;
+    box(g, fx, -cy - 3, fw, 4, '#F2EEE4'); box(g, fx, -cy, fw, 1, '#B8B2A4'); box(g, ax, -cy - 4, 6, 5, S[2]); box(g, ax + 1, -cy - 4, 2, 5, S[5]); box(g, ax + 10, -cy - 3, 4, 3, '#71717A');
+  }
 };
+/** Where the saw goes through each figure (up from its feet), and the cut face's span across it there: the beaver's
+ *  short (sat on its tail), so it's cut at the neck (the whole head off, teeth and all), not through its ears. */
+const CUT: Record<PropKind, [number, number, number]> = { beaver: [27, -9, 23], jack: [40, -15, 30], bear: [40, -15, 30], settler: [40, -15, 30] };
 
 /** The live bits: the lumberjack's axe arm, the settler's dasher, the beaver's head going. */
 const figureLive = (c: Ctx, kind: PropKind, f: number) => {
@@ -301,7 +308,7 @@ export const drawProps = (c: Ctx, state: GameState) => {
     for (const bx of [x - 28, x + 24]) { box(c, bx, y - 3, 4, 4, INK); box(c, bx, y - 3, 2, 2, S[5]); }
     const t = q.shred ? q.t : 0;
     const split = q.shred ? Math.min(1, Math.max(0, (t - 16) / 30)) : 0;
-    const cutY = y - 40;
+    const cutY = y - CUT[q.kind][0];
     const nod = q.shred ? 0 : Math.sin(f * 0.08 + q.x) * 0.06;
     const fig = (cut: boolean) => { c.rotate(nod); still(c, `lr-prop-${q.kind}-${cut ? 1 : 0}`, -40, -120, 90, 124, g => paintFigure(g, q.kind, cut)); if (!q.shred) figureLive(c, q.kind, f); };
     // (the bottom half)

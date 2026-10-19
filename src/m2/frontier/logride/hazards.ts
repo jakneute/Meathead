@@ -1,4 +1,4 @@
-// What's out to get him on the ride (and anything else in the way: the rats, the crows): the saws Tucker engaged (wall,
+// What's out to get him on the ride (the only things that hurt him on it: no critters): the saws Tucker engaged (wall,
 // rising, dropping, swinging, rail), the giant cutter that slams into the ground at the break and opens the fault line,
 // the animatronic frontier being shredded as the log comes, the sewer's low pipes, busted pipe sections and gushers (no
 // saws down there: the user's), the real river's rocks and low limbs. Every one telegraphed (a saw spins up loud as it

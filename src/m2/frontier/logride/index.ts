@@ -9,7 +9,7 @@
 //
 // The pieces: the station and the booth's scene (scene.ts: Tucker, the operator, the saw, the close-up); riding the
 // log (ride.ts: the ride's pace, brake and paddle, the hop, the duck); the saws and everything else in the way
-// (hazards.ts); the sewer's rats (kinds.ts); the woodchipper (chipper.ts); the art (art.ts); the lines (lines.ts); where
+// (hazards.ts); the logging crew (kinds.ts); the woodchipper (chipper.ts); the art (art.ts); the lines (lines.ts); where
 // it all is (layout.ts).
 //
 // Checkpoints 30-39: the station (30, walked to), and 31-38 along the ride (each puts him straight back in a log
@@ -26,11 +26,11 @@ import { teleport, layOwn, ledge, solid, endWalls, runExits, saidOver, type Fron
 import { DOORS, GY } from '../geometry';
 import { rideOf } from './state';
 import {
-  x0, x1, X, Y, waterY, PLATFORM_END, LOAD_X, WALKWAYS, RATS, CROWS, RIDE_CPS, CLEARING, CHIPPER, CREW, indoorsAt, inSewer,
+  x0, x1, X, waterY, PLATFORM_END, LOAD_X, RIDE_CPS, CLEARING, CHIPPER, CREW, indoorsAt, inSewer,
 } from './layout';
 import { board, updateRide, holdInLog, SINK } from './ride';
 import { buildHazards, updateHazards, drawHazardsBack, drawHazardsFront, drawProps, drawObstaclesBack, drawObstaclesFront } from './hazards';
-import { RAT, LOGGER, setCrewOn } from './kinds';
+import { LOGGER, setCrewOn } from './kinds';
 import { startScene, updateScene, updateBooth, againLine, sawed, drawBooth, drawSceneHud } from './scene';
 import { updateChipper, drawChipperBack, drawChipperFront } from './chipper';
 import { drawRideBackdrop, drawRideBack, drawRideFront, drawLogBack, drawLogFront, drawSplashes, rideLighting } from './art';
@@ -83,11 +83,8 @@ export const logride: FrontierSection = {
     layOwn(state, [{ x1: X(CLEARING.a) - 60, y1: CHIPPER.ground, x2: x1 + 200, y2: CHIPPER.ground, surface: 'dirt' }]);
     solid(state, X(CLEARING.a) - 80, CHIPPER.ground - 400, 40, 500, { hidden: true });
     endWalls(state, 'logride');
-    // (the sewer's walkways, and the rats on them)
-    for (const [a, b, h] of WALKWAYS) ledge(state, X(a), Y(h), X(b) - X(a), { hidden: true });
+    // (no critters on the ride: only its obstacles hurt him there (the user's))
     const r = rideOf(state);
-    r.rats = RATS.map(([rx, h]) => { const e = makeKindEnemy(RAT as EnemyKind, X(rx), Y(h)); state.enemies.push(e); return e; });
-    for (const [rx, h] of CROWS) { const e = makeKindEnemy('m2:fr_crow' as EnemyKind, X(rx), Y(h)); e.homeX = e.pos.x; e.homeY = e.pos.y; e.variant = rx % 7; state.enemies.push(e); }
     // (the logging crew on their clearing)
     r.crew = CREW.map((rx, i) => { const e = makeKindEnemy(LOGGER as EnemyKind, X(rx), CHIPPER.ground); e.variant = i * 3 + 1; state.enemies.push(e); return e; });
     buildHazards(state);

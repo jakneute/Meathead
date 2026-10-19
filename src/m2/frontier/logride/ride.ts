@@ -22,7 +22,7 @@ import type { ByPants } from '../talk';
 import { rideOf, type Ride } from './state';
 import { X, x0, x1, waterY, speedAt, slopeAt, realAt, RIDE_CPS, START, END, DROPS } from './layout';
 import {
-  RIDE_VOICES, RIDE_START, FIRST_SAW, LIFT_HILL, BIG_DROP, PHOTO, SEWER, RATS_SEEN, REAL_RIVER, FALLS, CHIPPER_SEEN,
+  RIDE_VOICES, RIDE_START, FIRST_SAW, LIFT_HILL, BIG_DROP, PHOTO, SEWER, REAL_RIVER, FALLS, CHIPPER_SEEN,
   SPIEL_CREEK, SPIEL_MILL, SPIEL_DROP,
 } from './lines';
 
@@ -39,7 +39,9 @@ const HOP_DX = 3.6, OFF_MAX = 76, CATCH = 0.1;
 const PADDLE = 1.75, BRAKE = 0.38;
 
 /** Ducked down in the log (not mid-hop). */
-const ducked = (state: GameState) => !!state.player.isDucking && rideOf(state).log.up <= 0;
+export const ducked = (state: GameState) => !!state.player.isDucking && rideOf(state).log.up <= 0;
+/** The log's tilt at rx (the water's slope under its length): it's drawn turned to it, and him in it with it. */
+export const logTilt = (rx: number) => Math.atan2(waterY(rx + 30) - waterY(rx - 30), 60);
 /** His seat (world y): where his feet are sat up. */
 export const seatY = (r: Ride) => waterY(r.log.rx) - SINK - r.log.bob - r.log.float - r.log.up;
 /** Where his feet are (world y), riding. */
@@ -88,9 +90,9 @@ const place = (state: GameState, r: Ride) => {
 /** What he says (and the ride's spiel) at each stretch, once: [key, at x]. */
 const TRIGGERS: [string, number][] = [
   ['first', 1130], ['creek', 1840], ['lift', 2560], ['mill', 3040], ['spieldrop', 3800], ['drop', 3920], ['photo', 4230],
-  ['sewer', 5960], ['rats', 6440], ['river', 8680], ['falls', 9740], ['chipper', 10560],
+  ['sewer', 5960], ['river', 8680], ['falls', 9740], ['chipper', 10560],
 ];
-const MEATHEAD_AT: Record<string, ByPants> = { first: FIRST_SAW, lift: LIFT_HILL, drop: BIG_DROP, photo: PHOTO, sewer: SEWER, rats: RATS_SEEN, river: REAL_RIVER, falls: FALLS, chipper: CHIPPER_SEEN };
+const MEATHEAD_AT: Record<string, ByPants> = { first: FIRST_SAW, lift: LIFT_HILL, drop: BIG_DROP, photo: PHOTO, sewer: SEWER, river: REAL_RIVER, falls: FALLS, chipper: CHIPPER_SEEN };
 const SPIEL_AT: Record<string, string[]> = { creek: SPIEL_CREEK, mill: SPIEL_MILL, spieldrop: SPIEL_DROP };
 
 export const paSay = (r: Ride, text: string) => speak(RIDE_VOICES.spiel, text, s => { r.pa = s; }, true);
@@ -205,7 +207,9 @@ export const updateRide = (ctx: FrameContext, controls: Controls): Controls => {
   // (sat in the log: on his feet as far as ducking goes; up out of it, in the air, stood up off his seat)
   p.isGrounded = L.up <= 0;
   p.logSeat = L.up <= 0;
-  p.spriteRot = L.up > 0 ? 0 : slopeAt(L.rx) * 0.6;
+  // (drawn turned with the log, all the way: art.ts turns the log about his feet, so the two stay one piece on a slope
+  // and, ducked, he stays down inside it behind its near side)
+  p.spriteRot = L.up > 0 ? 0 : logTilt(L.rx);
   // ---- the camera: ahead of him, at the log's height (not bobbing up with his hops)
   const ty = waterY(L.rx) - 420;
   L.camY += (ty - L.camY) * 0.25;

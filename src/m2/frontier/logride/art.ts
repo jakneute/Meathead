@@ -9,7 +9,7 @@
 // the lighting.
 //
 // Standable reads standable: the station's platform and the clearing have their lit lips; the walkways in the sewer
-// are the rats' (dimmed: he's never off the log down there). Impassable reads impassable: the duck-unders are walls
+// are dimmed (not his: he's never off the log down there). Impassable reads impassable: the duck-unders are walls
 // down to the gap (hazards.ts).
 
 import type { GameState } from '../../../m1/game/core/state';
@@ -20,7 +20,7 @@ import { signText } from '../../signLetters';
 import { onScreen, parkSign } from '../kit';
 import { type Ctx, box, checker, mix, hash, still, INK, hr, asIs, pixelBlob, POOL, RIVER, SLUDGE, FAKEBARK, RINGS, CONCRETE } from './paint';
 import { X, Y, x0, waterY, inSewer, indoorsAt, realAt, SIGNS, LOAD_X, CHASM, CHIPPER, PIPES, JUNK, GUSHERS, DUCK_LINE } from './layout';
-import { LOG_LEN, RIM } from './ride';
+import { LOG_LEN, RIM, SINK, DUCK_SINK, ducked, logTilt } from './ride';
 import { rideOf } from './state';
 import { drawFlumeBack, drawFlumeFront } from './flume';
 import { drawEarth, drawStation, drawCanyon, drawShedBack, drawShedFront, drawSplashPool, drawCamp, drawBreak, SLAM_AT } from './parkArt';
@@ -192,12 +192,15 @@ const drawLens = (c: Ctx, state: GameState) => {
 // water: ripples spreading off it, its wake, a bow wave at its nose, the foam round its foot.
 
 /** The near side (local: the rim along y -RIM, the waterline 0). */
+/** How far under its rim the log's near side goes down (its belly, under the waterline). */
+const HULL = 22;
 const paintLogNear = (g: Ctx, muck: boolean) => {
   const B = asIs(FAKEBARK), Rg = asIs(RINGS), hl = LOG_LEN / 2;
-  g.fillStyle = INK; g.beginPath(); g.roundRect(-hl - 2, -RIM, LOG_LEN + 4, RIM + 12, 12); g.fill();
-  g.save(); g.beginPath(); g.roundRect(-hl, -RIM + 2, LOG_LEN, RIM + 8, 10); g.clip();
-  // (the bark: banded round, lit along its top, molded plates in rows, cracks between)
-  const rows = [B[5], B[4], B[4], B[3], B[3], B[2], B[2], B[1]];
+  // (deep enough under the waterline that ducked, down in it, nothing of him shows under its belly)
+  g.fillStyle = INK; g.beginPath(); g.roundRect(-hl - 2, -RIM, LOG_LEN + 4, RIM + HULL, 12); g.fill();
+  g.save(); g.beginPath(); g.roundRect(-hl, -RIM + 2, LOG_LEN, RIM + HULL - 4, 10); g.clip();
+  // (the bark: banded round, lit along its top, molded plates in rows, cracks between; its belly in the shade)
+  const rows = [B[5], B[4], B[4], B[3], B[3], B[2], B[2], B[1], B[1], B[0]];
   rows.forEach((col, i) => { box(g, -hl, -RIM + 2 + i * 4.5, LOG_LEN, 5, col); if (i) checker(g, -hl, -RIM + 2 + i * 4.5 - 1, LOG_LEN, 2, rows[i - 1], i % 2); });
   for (let r = 0; r < 4; r++) for (let x = -hl + 6 + (r % 2) * 7; x < hl - 8; x += 14) {
     const y = -RIM + 6 + r * 8;
@@ -211,12 +214,14 @@ const paintLogNear = (g: Ctx, muck: boolean) => {
   if (muck) { box(g, -hl, -6, LOG_LEN, 6, 'rgba(74, 74, 26, 0.75)'); for (let x = -hl + 4; x < hl; x += 9) box(g, x, -12 + hash(x) * 4, 2, 6 + hash(x * 3) * 4, 'rgba(74, 74, 26, 0.7)'); }
   g.restore();
   // (the ends: painted rings, lit up the left)
+  // (down its full depth, the belly and all)
+  const ey = (-RIM + HULL) / 2 - 2, er = (RIM + HULL) / 2 - 3;
   for (const ex of [-hl + 4, hl - 4]) {
-    g.fillStyle = INK; g.beginPath(); g.ellipse(ex, -RIM / 2 + 4, 6, RIM / 2 + 3, 0, 0, Math.PI * 2); g.fill();
-    g.fillStyle = Rg[3]; g.beginPath(); g.ellipse(ex, -RIM / 2 + 4, 5, RIM / 2 + 2, 0, 0, Math.PI * 2); g.fill();
-    g.fillStyle = Rg[4]; g.beginPath(); g.ellipse(ex - 1, -RIM / 2 + 2, 3, RIM / 2 - 2, 0, 0, Math.PI * 2); g.fill();
-    g.strokeStyle = Rg[1]; g.lineWidth = 1; for (const k of [0.6, 0.3]) { g.beginPath(); g.ellipse(ex, -RIM / 2 + 4, 5 * k, (RIM / 2 + 2) * k, 0, 0, Math.PI * 2); g.stroke(); }
-    box(g, ex - 1, -RIM / 2 + 3, 2, 2, Rg[0]);
+    g.fillStyle = INK; g.beginPath(); g.ellipse(ex, ey, 6, er + 1, 0, 0, Math.PI * 2); g.fill();
+    g.fillStyle = Rg[3]; g.beginPath(); g.ellipse(ex, ey, 5, er, 0, 0, Math.PI * 2); g.fill();
+    g.fillStyle = Rg[4]; g.beginPath(); g.ellipse(ex - 1, ey - 2, 3, er - 4, 0, 0, Math.PI * 2); g.fill();
+    g.strokeStyle = Rg[1]; g.lineWidth = 1; for (const k of [0.6, 0.3]) { g.beginPath(); g.ellipse(ex, ey, 5 * k, er * k, 0, 0, Math.PI * 2); g.stroke(); }
+    box(g, ex - 1, ey - 1, 2, 2, Rg[0]);
   }
   // (its number on a painted plate)
   box(g, -17, -14, 34, 12, INK); box(g, -16, -13, 32, 10, '#E8D8A8'); box(g, -16, -13, 32, 1, '#FFF4D0');
@@ -228,7 +233,7 @@ const drawLog = (c: Ctx, state: GameState, back: boolean) => {
   // (the station's waiting log, before he's in one; the log on the ride; gone into the chipper)
   const rx = L.mode === 'off' ? LOAD_X : L.rx;
   if (L.mode === 'done' || (L.mode === 'chipper' && rx > 11095)) return;
-  const wl = waterY(rx), x = X(rx), wy = wl - L.bob - L.float, ang = Math.atan2(waterY(rx + 30) - waterY(rx - 30), 60);
+  const wl = waterY(rx), x = X(rx), wy = wl - L.bob - L.float, ang = logTilt(rx);
   const hl = LOG_LEN / 2, f = state.frame;
   // (on the water (not up the chipper's conveyor, not down a drop))
   const onWater = rx < 10760 && Math.abs(ang) < 0.3 && L.mode !== 'leap';
@@ -242,7 +247,11 @@ const drawLog = (c: Ctx, state: GameState, back: boolean) => {
     }
     c.globalAlpha = 1;
   }
-  c.save(); c.translate(Math.round(x), Math.round(wy)); c.rotate(ang);
+  // (turned about his feet, sat in it (down where they are ducked), not its middle: he's drawn turned the same about
+  // them (ride.ts spriteRot), so on a slope he stays sat down inside it, its near side over his lower half)
+  const inIt = (L.mode === 'ride' || L.mode === 'scene') && L.up <= 0 && !!state.player.logSeat;
+  const py = inIt ? -SINK + (ducked(state) ? DUCK_SINK : 0) : 0;
+  c.save(); c.translate(Math.round(x), Math.round(wy + py)); c.rotate(ang); c.translate(0, -py);
   if (back) {
     // (the far side's rim and the dark hollow of it, a molded bench across it)
     const B = asIs(FAKEBARK);
@@ -250,7 +259,7 @@ const drawLog = (c: Ctx, state: GameState, back: boolean) => {
     box(c, -hl + 6, -RIM + 5, LOG_LEN - 12, 8, '#1E1008'); box(c, -hl + 6, -RIM + 5, LOG_LEN - 12, 2, '#0E0804');
     box(c, -hl + 22, -RIM + 7, 14, 6, INK); box(c, -hl + 23, -RIM + 8, 12, 4, B[3]); box(c, -hl + 23, -RIM + 8, 12, 1, B[5]);
   } else {
-    still(c, `lr-log-${rx > 5840 ? 1 : 0}`, -hl - 4, -RIM - 2, LOG_LEN + 8, RIM + 16, g => paintLogNear(g, rx > 5840));
+    still(c, `lr-log-${rx > 5840 ? 1 : 0}`, -hl - 4, -RIM - 2, LOG_LEN + 8, RIM + HULL + 4, g => paintLogNear(g, rx > 5840));
   }
   c.restore();
   if (!back && onWater) {

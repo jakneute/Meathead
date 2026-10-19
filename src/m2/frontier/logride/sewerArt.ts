@@ -4,7 +4,7 @@
 // slime weeping below the high-water line, wet bricks under it, a cable conduit on its clamps, the old water main on its
 // brackets with its collars, bolts and rust runs), painted in cached chunks; the sludge in its channel (banded, a sheen
 // riding it downstream, scum and the park's flotsam drifting by: a rubber duck from the gift shop, a souvenir cup, a
-// bottle), the rats' walkways (old concrete, dimmed: not his), storm grates in the crown with the day coming down through
+// bottle), the walkways (old concrete, dimmed: not his), storm grates in the crown with the day coming down through
 // them in soft bands, caged bulbs, and where he came down, the vault broken through. In front: the sludge over the log's
 // foot and the channel's near edge.
 //
@@ -85,7 +85,7 @@ export const drawSewerBack = (c: Ctx, state: GameState) => {
     else if (kind === 1) { box(c, x - 4, wy - 7, 8, 8, INK); box(c, x - 3, wy - 6, 6, 6, '#E8E4D8'); box(c, x - 3, wy - 4, 6, 2, '#B91C1C'); box(c, x, wy - 11, 1, 5, '#F4F4F0'); }
     else { box(c, x - 7, wy - 4, 14, 5, INK); box(c, x - 6, wy - 3, 12, 3, '#3A6A3A'); box(c, x - 6, wy - 3, 12, 1, '#7AB07A'); box(c, x + 6, wy - 2, 3, 1, '#2A4A2A'); }
   }
-  // ---- the rats' walkways along the back wall: old concrete, dimmed (they're not his)
+  // ---- the walkways along the back wall: old concrete, dimmed (they're not his)
   for (const [a, b, h] of WALKWAYS) if (onScreen(state, X(a), X(b))) {
     const y = Y(h), w = X(b) - X(a);
     box(c, X(a), y - 1, w, 14, INK); box(c, X(a), y, w, 12, Cn[3]); box(c, X(a), y, w, 2, Cn[4]); box(c, X(a), y + 10, w, 2, Cn[1]);

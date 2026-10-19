@@ -4,7 +4,7 @@
 // its splash pool, the lumber camp), the break-out (a giant saw slams into the ground ahead of him and opens a fault
 // line: the ride breaks apart and the log falls through into the sewer), the SEWER, the storm drain's culvert out of the
 // bluff the park sits on, the REAL river
-// (rocks, low branches, crows, a real waterfall), and the logging crew's sluice up into their woodchipper. Teach each
+// (rocks, low branches, a real waterfall), and the logging crew's sluice up into their woodchipper. Teach each
 // saw alone and safe first, then two, then mixed:
 //
 //   0      THE STATION (cp 30): the platform, the booth (the operator; Tucker bursts in), the waiting log. In: the scene.
@@ -18,11 +18,11 @@
 //   5420   THE BREAK: the giant cutter slams into the ground at 5720; a fault line cracks open along the ground, the
 //          flume over it breaks apart, and the log drops through the chasm (5700-5840) into the sewer: a big splash.
 //   5840   THE SEWER (cp 35 at 5900; cp 36 at 7060): LOW PIPES (a bundle of pipes down from the vault: duck), BUSTED
-//          PIPE sections lying across the channel (jump), SEWAGE GUSHERS (brake, paddle or hop), RATS on the walkways
-//          (they leap at him). No saws down here.
+//          PIPE sections lying across the channel (jump), SEWAGE GUSHERS (brake, paddle or hop). No saws down here,
+//          and no critters on the ride at all: only its obstacles hurt him (the user's).
 //   8400   THE CULVERT: out of the bluff, through the park's busted fence (PARK PROPERTY ENDS), down into a real river
 //          (a big splash).
-//   8600   A REAL RIVER (cp 37 at 8700): ROCKS (jump as the log hits one), LOW LIMBS (duck), crows; the rapids;
+//   8600   A REAL RIVER (cp 37 at 8700): ROCKS (jump as the log hits one), LOW LIMBS (duck); the rapids;
 //          a real waterfall (a big splash at its foot); (cp 38 at 10080) more of it.
 //   10760  THE SLUICE: the logging crew's conveyor up into the WOODCHIPPER: jump at JUMP!, or mulch.
 //   11160  THE CREW'S CLEARING: the crew (chainsaws: they're sore about it; throw one in the chipper); off the right end
@@ -141,17 +141,13 @@ export const PIPES = [6100, 7000, 7950];
 export const JUNK = [6400, 7300, 8200];
 /** Sewage pouring out of a pipe in the sewer's roof on a beat (brake or paddle through): [x, phase]. */
 export const GUSHERS: [number, number][] = [[6700, 0], [7560, 0], [7660, 80]];
-/** Rats on the walkways (they leap at the log): [x, height of the walkway]. None in a gusher's or a saw's way. */
-export const RATS: [number, number][] = [[6560, -500], [6840, -500], [7440, -500], [8040, -500], [8110, -500]];
-/** The walkway along the sewer's back wall (the rats' ground): from, to, height. */
+/** The walkway along the sewer's back wall (scenery: dimmed, not his): from, to, height. */
 export const WALKWAYS: [number, number, number][] = [[6450, 6900, -500], [7350, 7560, -500], [7960, 8200, -500]];
 /** Rocks in the river (the log hits it and bucks: be in the air as it does). */
 export const ROCKS = [9100, 9580, 9740, 10460];
 /** Low limbs over the river (duck). Real trees. (Each at least ~240 from the nearest rock.) */
 export const BRANCHES = [9340, 10180];
 /** The crew's hand-painted warnings on the river's far bank: [x, words]. */
-/** Crows over the river: [x, height]. */
-export const CROWS: [number, number][] = [[9420, -760], [10380, -940]];
 
 /** The woodchipper (its hopper's mouth at the top of the sluice) and the crew's clearing past it. */
 export const CHIPPER = { x: X(11100), hopperY: Y(-930), ground: Y(-1000) } as const;

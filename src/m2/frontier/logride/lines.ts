@@ -134,12 +134,6 @@ export const SEWER: ByPants = {
   shitty: ['THE SEWER. FINALLY, I BLEND IN.', 'SMELLS LIKE MY PANTS DOWN HERE.'],
   nude: ['NAKED IN A SEWER. NEW LOW.', 'SEWER WATER. BARE ASS. GREAT.'],
 };
-/** The first rats. */
-export const RATS_SEEN: ByPants = {
-  clean: ['RATS! BIG ONES!', 'GET OFF MY LOG, RAT!'],
-  shitty: ['RATS. THEY SMELL ME.', 'THE RATS WANT MY PANTS.'],
-  nude: ['RATS! NOT THE BALLS!', 'RATS. NOTHING BETWEEN THEM AND ME.'],
-};
 /** Out of the culvert, out of the park, into a real river. */
 export const REAL_RIVER: ByPants = {
   clean: ['PARK PROPERTY ENDS. GOOD.', 'A REAL RIVER. NO BOLTS IN THE ROCKS.'],
@@ -173,10 +167,6 @@ export const HURT: HurtTable = {
     hurt: ['SAW! SAW! SAW!', 'THE RIDE CUT ME!', 'BUZZSAW! IN MY MEAT!'],
     death: ['SAWED IN HALF ON A LOG RIDE', 'TIMBER TUMBLED', 'ARMS INSIDE. TORSO OUTSIDE.'],
   },
-  'm2:fr_rat': {
-    hurt: ['RAT! ON MY FACE!', 'IT BIT ME! SEWER RAT!', 'GET IT OFF! GET IT OFF!'],
-    death: ['EATEN BY SEWER RATS', 'RAT FOOD'],
-  },
   'm2:fr_pipe': {
     hurt: ['PIPE! MY HEAD!', 'LOW PIPE! OW!', 'WHO PUTS A PIPE THERE?!'],
     death: ['HEADBUTTED A SEWER PIPE', 'CLOTHESLINED BY PLUMBING'],
@@ -203,7 +193,7 @@ export const HURT: HurtTable = {
   },
 };
 
-const MEATHEAD = [DEAD_AGAIN, RIDE_START, FIRST_SAW, LIFT_HILL, BIG_DROP, PHOTO, BREAKOUT, SEWER, RATS_SEEN, REAL_RIVER, FALLS, CHIPPER_SEEN, JUMPED];
+const MEATHEAD = [DEAD_AGAIN, RIDE_START, FIRST_SAW, LIFT_HILL, BIG_DROP, PHOTO, BREAKOUT, SEWER, REAL_RIVER, FALLS, CHIPPER_SEEN, JUMPED];
 const OPERATOR = [OP_CUT, OP_SHOVED, OP_AFTER, OP_AGAIN];
 export const VOICE_LINES: Record<string, string[]> = {
   meathead: [...MEATHEAD.flatMap(allOf), ...Object.values(HURT).flatMap(h => h.hurt)],
