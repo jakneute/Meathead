@@ -207,7 +207,7 @@ const clampCam = (x: number) => Math.max(ARENA_L, Math.min(ARENA_R - CANVAS_WIDT
 
 /** On: Tucker in the world where he stands (his x), facing that way; the bag emptied (the critters fill it here). */
 export const startFight = (state: GameState, tx: number, facing: 1 | -1): Fight => {
-  game = state; token++;
+  game = state; token++; lionsWaiting = false;
   const e = makeKindEnemy(TUCKER_KIND as EnemyKind, tx, GY);
   e.noCrowd = true;
   e.facing = facing; e.seen = true;
@@ -250,6 +250,7 @@ export const updateFight = (ctx: FrameContext, f: Fight): Controls | null => {
   if (state.pickups.some(q => q.id.startsWith('pickup-'))) state.pickups = state.pickups.filter(q => !q.id.startsWith('pickup-'));
   tickBees(ctx, f);
   tickLions(ctx, f);
+  tickLionsWaiting(state, f);
   if (f.mode === 'dead') {
     const walk = dying(ctx, f);
     sync(state, f);
@@ -575,6 +576,20 @@ const showered = (ctx: FrameContext, f: Fight) => {
   playSound('splat', 1, -6); playSound('gush', 0.7, -2);
   tuckerSays(f, L.TF_BLOODY);
   mhSays(state, L.MH_SPRAY, false);
+  // (the last lot still slinking off: no new ones till they're gone or dead (the user's): the scent waits for them)
+  if (lionsAbout(state)) { lionsWaiting = true; return; }
+  callLions(state, f, k);
+};
+/** A shower's lions held back till the last lot have left or died. */
+let lionsWaiting = false;
+const lionsAbout = (state: GameState) => state.enemies.some(e => isLion(e) && e.health > 0 && !e.isBlownAway);
+/** Each frame: a held-back shower's lions come once the last lot's gone. */
+const tickLionsWaiting = (state: GameState, f: Fight) => {
+  if (!lionsWaiting || f.mode !== 'on') { if (f.mode !== 'on') lionsWaiting = false; return; }
+  if (f.act !== 'bloody') { lionsWaiting = false; return; }
+  if (!lionsAbout(state)) { lionsWaiting = false; callLions(state, f, phaseK(f)); }
+};
+const callLions = (state: GameState, f: Fight, k: number) => {
   // (out of the woods, one from each end (a third later), a roar off in the trees first)
   const n = k > 0.6 ? 3 : 2;
   f.lions = [];
