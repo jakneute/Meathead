@@ -93,7 +93,7 @@ FAX = 800000. Gaps of 3000 between sections (room to grow). Every section about 
 |---|---|---|---|---|---|
 | 1 | The town square | `square` | FAX+0 .. FAX+15000 | 0-9 | Hogsmeat Village and the storybook square; the staircases; the loudspeaker |
 | 2 | The fairy wheel (trial 1) | `wheel` | FAX+18000 .. FAX+24000 | 10-12 (of 10-19) | The gigantic wheel, eight suitors in its gondolas throwing crap, the QTEs, the kills (built) |
-| 3 | The enchanted glen | `glen` | FAX+27000 .. FAX+41000 | 20-29 | Escalating platforming and enemies |
+| 3 | The enchanted glen | `glen` | FAX+27000 .. FAX+41000 | 20-26 (of 20-29) | The storybook forest: toadstools, briars, cauldrons, harder staircases, five new kinds; the ride's queue (built) |
 | 4 | Truelling Tragons | `tragons` | FAX+44000 .. FAX+58000 | 30-39 | The three-car coaster (fire, ice, lightning) |
 | 5 | The castle's base and the runway | `keep` | FAX+61000 .. FAX+73000 | 40-49 | Platforming in the castle; the runway (from x0+9000) |
 | 6 | The broomstick deathmatch (trial 3) | `broom` | FAX+76000 .. FAX+80000 | 50-59 | Behind the back, mode 7; in through the top window |
@@ -135,6 +135,34 @@ x from the section's start; heights up from the ground line.
   moving ledge (stood on, he's carried round); level, lit along its top. Neighbors are close enough to hop across at
   the top, the bottom and the slants; up the sides they're too far apart: ride. A suitor in every third (eight).
 - 4350 THE FAR GATE: open once they're all dead; cp 12 at 4560; the way on to the glen (its sign at 5200).
+
+### Section 3 in detail (the enchanted glen, built: glen/)
+
+x from the section's start; heights up from the ground line.
+
+- 0 THE GLEN GATE (cp 20): in from the wheel under a branch arch; a lone HUNTSMAN; Piper's first PA horn.
+- 1500 TOADSTOOL HOLLOW: the MUSHROOM TRAMPOLINE taught alone (a mossy cliff 280 up, a toadstool in front of it; a
+  second on the far side for the way back); a gingerbread man past it.
+- 2700 THE BRIAR PATCH: thorns 2780-3600, three toadstools across them; an owl over them, a wand clerk after.
+- 3900 THE STORYBOOK BRIDGE (cp 21): the bridge is out over a misty gorge (4300-5100): two staircases swinging in
+  opposition (left bank to the middle pillar; the pillar to the right bank; each level while the other's down in the
+  gorge); a witch over it; the troll on the far bank.
+- 5500 THE WITCH'S COTTAGE (cp 22): a swinging cauldron alone over the path (5800); the candy cottage (6300-6660, roof
+  200: too tall to jump) up its staircase off the roof's corner with a cauldron swinging across the flight and another
+  over the roof; the garden (a cauldron off a branch at 7000, gingerbread men, a witch); a woodpile round the back for
+  the way back up.
+- 7400 THE DWARF MINE (cp 23): a team of three dwarfs by the portal; the shaft (8200-9474): a chain of four faster
+  staircases (110 hold, 50 swing) between three timbered pillars (60, 120, 60 up); an owl, a witch, a dwarf throwing
+  from the far side.
+- 9630 UNICORN MEADOW (cp 24): a unicorn alone; briars (10340-10860) with two toadstools over them under a huntsman's
+  tree stand (300 up: a toadstool bounce with jump held gets there; a pickup); a witch; a second unicorn.
+- 11160 THE DRAGON'S LAIR (cp 25): the dragon mascot by the fiberglass skull; a toadstool up to a ledge (170), the RIDE
+  staircase off it (level out over a briar floor; stood on it 30 frames, it tells and swings him up to the top landing,
+  434) with a huntsman shooting down it from the top, a witch and an owl; the lair's back wall (534) and down its far
+  side's shelves.
+- 13160 THE QUEUE (cp 26): a last crowd (a knight, a witch, a gingerbread man, a princess); the rivals in the queue's
+  rails (BLAKE, RAFAEL, HANK) have their say in turn, he answers, Piper calls trial two over the ride's PA, and they go
+  in; the ride's door is the section's right end (on to Truelling Tragons).
 
 ## Standing rules (all apply; check every one against new work)
 
@@ -199,3 +227,31 @@ markBossFight every frame of a boss or sub-boss fight. Voice every new line (`np
 - (job 2) The dead stay dead through his deaths (state.ts keptDead, by landVisit; the corpses where they were left);
   won for good in state.stageMemo (WHEEL_MEMO): a later visit's wheel is empty, both gates open. Starting at cp 12 (the
   checkpoint cheat) counts it won. A heart per suitor in the top band while it's on.
+- (job 3, ours) The glen's theme: the park's storybook forest walk (giant toadstools, a briar patch, the storybook
+  bridge out, a witch's candy cottage, a dwarf mine, a unicorn meadow under a rainbow, a dragon's lair of fiberglass
+  bones), theme-park fake throughout (the bridge CLOSED FOR REFURBISHMENT, the bones' price tag, foam gold). Layout:
+  section 3 in detail. Checkpoints 20-26; 27-29 spare.
+- (job 3, ours) The staircases escalated: two in opposition over a gorge; one up the cottage with a cauldron swinging
+  across it (and its swing-up dock into the first cauldron's arc); a chain of four, faster (110/50 against the square's
+  150-210/60-80); a 'ride' one up the lair over briars while a huntsman shoots down it. Their stone mossy, lips moss-lit.
+- (job 3, ours) The glen's complementary obstacles (hazards.ts): MUSHROOM TRAMPOLINES (a toadstool cap's a springy
+  ledge 70 up: landing on it throws him its height (210-290 over the cap), a quarter higher holding jump; taught alone at
+  a cliff, then over briars, then to a tree stand only a held bounce reaches, then up to the lair's ledge); BRIAR
+  PATCHES (a thorn floor: hurt 10 and thrown up out of them; the cast get torn up and keep out); SWINGING CAULDRONS (an
+  iron pot of green brew on a chain off a branch, swinging on the clock: hurt 13 and knocked; the cast too). Each its own
+  hurt source and death screens (m2:fa_briars, m2:fa_cauldron).
+- (job 3, ours) Five new kinds (glen/kinds.ts, all humans in costume, men and women, seeded): HUNTSMAN (a loaded
+  crossbow: POINTY m2:fa_bolted; a 40-frame aim with a glint, a straight bolt; up close the stock), WITCH (a performer on
+  a broom flown on wires, airborne; a cackle and a bottle up, a potion lobbed that leaves a fizzing puddle 110 frames,
+  hurting him and the cast; grab: torn off her wire), GINGERBREAD MAN (runs at him, squats and shakes, leaps onto him,
+  dazed on landing), DWARF (adults in dwarf costume, short; a lit candle on the miner's hat: SPIKY m2:fa_candle; rocks
+  lobbed from range, the pickaxe up close, stuck after), UNICORN (a plush mascot: POINTY horn m2:fa_horn; paws and snorts
+  glitter, charges, dizzy after). The square's kinds reused (clerks, knights, a princess, owls, the troll, the dragon);
+  their throws fly in the glen through square/hazards.ts's exported updateThrows / drawThrows. Five new voice pairs
+  (witch, ginger, dwarf, unicorn: m and f; the huntsmen use the square's cast voices).
+- (job 3, ours) Piper on the PA from toadstool-capped horns at four spots (once each, a line a spot, purring over the
+  fights); half the time he answers with a HORNY line; two more HORNY thoughts on his own. Once-each gags per set piece.
+- (job 3, ours) THE QUEUE: three new rivals (glen/rivals.ts RIVALS: BLAKE in a tee, RAFAEL the gym prince, HANK the big
+  knight cosplayer; three new voices) for the ride and the broomsticks to reuse. Not a cutscene: he keeps control; they
+  speak in turn (never over each other), he answers, Piper calls trial two from the ride's horn, they go in through the
+  ride's door; shots bounce off them. Gone in for good (RIVALS_MEMO in state.stageMemo).

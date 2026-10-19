@@ -1,3 +1,192 @@
-// What's said in the enchanted glen, by voice (fantasy/voices.ts gathers it). Job 3's to fill.
+// What's said in the enchanted glen, by voice (fantasy/voices.ts gathers it; tools/voices records it). In the user's
+// voice: blunt, short, vulgar, specific; talk less; fit the trigger. Picked with pickLine. Meathead's lines and everybody
+// reacting to him in clean / shitty / naked pools. The cast are the park's cast members in costume (they break
+// character to yell at him); Piper's on the PA (her lust is for being fought over: purring over the blood, coy about
+// the prize); the rivals in the queue taunt him. Pure data.
 
-export const VOICE_LINES: Record<string, string[]> = {};
+import { allOf, PIPER_PA_VOICE, type ByPants, type HurtTable } from '../talk';
+
+/** The glen's new voices (cast.json); the huntsmen use the square's cast voices (a man's, a woman's). */
+export const GLEN_VOICES = {
+  witch: 'm2.fantasy.witch', witchf: 'm2.fantasy.witchf',
+  ginger: 'm2.fantasy.ginger', gingerf: 'm2.fantasy.gingerf',
+  dwarf: 'm2.fantasy.dwarf', dwarff: 'm2.fantasy.dwarff',
+  unicorn: 'm2.fantasy.unicorn', unicornf: 'm2.fantasy.unicornf',
+  blake: 'm2.fantasy.suitor_blake', rafael: 'm2.fantasy.suitor_rafael', hank: 'm2.fantasy.suitor_hank',
+} as const;
+/** (the square's, for the huntsmen) */
+const CAST_MAN = 'm2.fantasy.castman', CAST_WOMAN = 'm2.fantasy.castwoman';
+export const HUNTSMAN_VOICES = { m: CAST_MAN, f: CAST_WOMAN };
+
+// ---------------------------------------------------------------------------------------------------------------
+// Meathead
+
+/** In off the fairy wheel. */
+export const ARRIVE: ByPants = {
+  clean: ['ONE TRIAL DOWN. PIPER, WARM IT UP.', 'A FOREST. GOOD PLACE FOR A HOOKUP.'],
+  shitty: ['ONE DOWN. SHE BETTER LIKE THE SMELL OF WINNING.', 'INTO THE WOODS WITH A LOAD IN MY SHORTS.'],
+  nude: ['NAKED IN THE WOODS. VERY FAIRY TALE.', 'ONE TRIAL DOWN. STILL HARD.'],
+};
+/** Things he's got to say passing them (once each). */
+export const GAGS: Record<'hollow' | 'bounce' | 'briars' | 'bridge' | 'cottage' | 'mine' | 'unicorn' | 'bones' | 'ride', ByPants> = {
+  hollow: {
+    clean: ['GIANT MUSHROOMS. SOMEBODY IN DESIGN WAS HIGH.', 'MUSHROOMS THE SIZE OF A CAR. NOT THE FUN KIND.'],
+    shitty: ['GIANT MUSHROOMS. THEY GROW IN SHIT. THEY LOVE ME.', 'MUSHROOMS. SMELLS LIKE THEY GREW IN MY PANTS.'],
+    nude: ['GIANT MUSHROOMS. MINE IS SMALLER. FOR NOW.', 'BIG RED CAPS. I KNOW THE FEELING.'],
+  },
+  bounce: {
+    clean: ['WHOA! BOUNCY!', 'THE MUSHROOM THREW ME!'],
+    shitty: ['BOUNCY! SOMETHING SHIFTED IN THERE!', 'DO NOT BOUNCE IN SHIT PANTS. NOTED.'],
+    nude: ['BOUNCING NAKED. EVERYTHING FLAPS.', 'WHOA! MY BALLS HIT MY CHIN!'],
+  },
+  briars: {
+    clean: ['THORNS. ON THE GROUND. GREAT DESIGN.', 'A BRIAR PATCH. WHO WANTS THIS?'],
+    shitty: ['THORNS AND SHIT PANTS. INFECTION CITY.', 'FALL IN THERE AND THE THORNS STICK IN THE SHIT.'],
+    nude: ['THORNS. AND NO PANTS. GREAT.', 'BRIARS. MY BARE ASS SAYS NO.'],
+  },
+  bridge: {
+    clean: ['THE BRIDGE IS OUT. OF COURSE IT IS.', 'CLOSED FOR REFURBISHMENT. STAIRS IT IS.'],
+    shitty: ['BRIDGE OUT. MY BOWELS ARE ALSO OUT.', 'NO BRIDGE. JUST STAIRS AND SHIT PANTS.'],
+    nude: ['BRIDGE OUT. DICK OUT. MATCHING.', 'NO BRIDGE. NO PANTS. NO PROBLEM.'],
+  },
+  cottage: {
+    clean: ['A CANDY HOUSE. I COULD EAT THE GUTTERS.', 'A WITCH LIVES HERE. GOOD. I HIT WITCHES.'],
+    shitty: ['A CHOCOLATE HOUSE. LOOKS LIKE MY PANTS.', 'CANDY HOUSE. I KNOW WHERE IT ALL ENDS UP.'],
+    nude: ['A CANDY HOUSE. I COULD LICK IT NAKED.', 'CANDY ROOF. NO PANTS. HANSEL WISHES.'],
+  },
+  mine: {
+    clean: ['SEVEN DWARFS ON THE SIGN. I COUNT THREE.', 'A MINE. GUYS IN BEARDS WITH PICKAXES. COOL.'],
+    shitty: ['A MINE SHAFT. I ALREADY MINED MY PANTS.', 'DIGGING FOR GOLD. I FOUND BROWN.'],
+    nude: ['NAKED IN A MINE. COLD AND HARD.', 'A DEEP DARK HOLE. PIPER, I SEE WHAT YOU DID.'],
+  },
+  unicorn: {
+    clean: ['A UNICORN. WITH A GUY IN IT.', "A UNICORN. IT'S A HORSE WITH A DILDO ON ITS HEAD."],
+    shitty: ['A UNICORN. IT SMELLS ME COMING.', 'RAINBOWS OUT ITS ASS. SHIT OUT MINE.'],
+    nude: ['A UNICORN. ONE HORN. SO DO I.', 'MAGIC HORN. MINE IS OUT TOO.'],
+  },
+  bones: {
+    clean: ['DRAGON BONES. FIBERGLASS. THE TAG IS STILL ON.', "A DRAGON'S LAIR. SMELLS LIKE PAINT."],
+    shitty: ['SOMETHING DIED IN HERE. MAYBE ME.', 'THE LAIR SMELLS LIKE ME NOW. SORRY, DRAGON.'],
+    nude: ['DRAGON BONES. MY BONE IS ALSO OUT.', 'NAKED IN A DRAGON CAVE. VERY HEROIC.'],
+  },
+  ride: {
+    clean: ['THE STAIRS ARE TAKING ME UP! OKAY!', 'GOING UP! WITH A GUY SHOOTING AT ME!'],
+    shitty: ['GOING UP. MY LOAD IS GOING DOWN.', 'THE STAIRS GO UP. MY PANTS SAG.'],
+    nude: ['GOING UP! EVERYTHING DANGLES!', 'UP WE GO. BALLS IN THE BREEZE.'],
+  },
+};
+/** His answer to the rivals in the queue. */
+export const RETORT: ByPants = {
+  clean: ["SAVE ME A SEAT. I'LL THROW YOU OUT OF IT.", 'SEE YOU ON THE RIDE, LOSERS. AT THE BOTTOM.'],
+  shitty: ["I'LL SHIT IN YOUR CAR. TERRITORY.", 'SMELL THAT? THAT IS YOU LOSING.'],
+  nude: ['MY DICK HAS A BETTER SHOT THAN YOU.', "SHE'LL PICK THE ONE WITH NO PANTS. EFFICIENT."],
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// Piper on the PA (by the horn he's passing), and in the queue
+
+export const PIPER_GLEN: Record<string, string[]> = {
+  gate: ["ONE TRIAL DOWN, BOYS. I'M STILL TINGLING.", 'ALL THAT BLOOD ON MY WHEEL. DELICIOUS.'],
+  cottage: ['I CAN HEAR YOU OUT THERE. HIT HARDER.', 'EVERY BRUISE IS FOR ME. I KNOW IT.'],
+  meadow: ['MMM. KEEP FIGHTING. I LIKE THE GRUNTING.', 'BLEED A LITTLE MORE FOR ME, BOYS.'],
+  lair: ['THE STRONG ONES GET TO MY RIDE. THE REST FEED THE CROWS.', 'ALMOST THERE. MAKE A MESS ON THE WAY.'],
+  queue: ['TRIAL TWO, BOYS. TRUELLING TRAGONS. THREE CARS. ONE WINNER.', 'TRIAL TWO. RIDE IT. SHOVE EACH OTHER OFF IT.'],
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// The rivals in the queue (new beefy suitors: the rivals through the ride and the broomsticks)
+
+export const RIVAL_SAY: Record<'blake' | 'rafael' | 'hank', ByPants> = {
+  blake: {
+    clean: ['YOU MADE IT PAST THE WHEEL? LUCKY.', "PIPER'S MINE, MEATSACK."],
+    shitty: ['YOU SHIT YOURSELF ON THE WHEEL, BRO?', 'SHE WANTS A MAN, NOT A DIAPER.'],
+    nude: ['BRO. PANTS. PLEASE.', "PUT THAT AWAY. IT'S NOT A TRIAL."],
+  },
+  rafael: {
+    clean: ["SHE WANTS ROYALTY. YOU'RE A SNACK BAR.", 'SEE YOU ON THE RIDE. BRIEFLY.'],
+    shitty: ['A PRINCE DOES NOT SMELL LIKE THAT.', 'YOU REEK. SHE WILL SMELL YOU COMING.'],
+    nude: ['NAKED? DESPERATE AND SMALL.', 'NO PANTS. NO CHANCE.'],
+  },
+  hank: {
+    clean: ["I'LL SHOVE YOU OFF THE TRACK MYSELF.", 'TRIAL TWO. YOUR LAST.'],
+    shitty: ['STAY OUT OF MY CAR. YOU STINK.', 'SIT IN THE BACK. WAY BACK.'],
+    nude: ['NOT IN MY CAR WITH THAT OUT.', 'KEEP IT AWAY FROM THE LAP BAR.'],
+  },
+};
+/** Shot at in the queue: it bounces off them. */
+export const RIVAL_BOUNCE = ['HA! TICKLES!', "SAVE IT FOR THE RIDE, LOSER!"];
+
+// ---------------------------------------------------------------------------------------------------------------
+// The cast (barks: rare, short, broken character)
+
+export const HUNTSMAN_BARK: ByPants = {
+  clean: ['THE QUEEN WANTS YOUR HEART. IN A BOX.', 'HOLD STILL. THIS IS FOAM. MOSTLY.', 'I HUNT FOR TIPS.'],
+  shitty: ['I TRACKED YOU BY SMELL. EASY.', 'SOMETHING DIED IN YOUR PANTS. I HUNT THAT.'],
+  nude: ['NAKED GAME! OPEN SEASON!', 'I SEE A SMALL ANIMAL. FIRING.'],
+};
+export const WITCH_BARK: ByPants = {
+  clean: ['HEH HEH HEH! I GET OVERTIME!', "I'LL GET YOU, MY PRETTY! YOU'RE NOT PRETTY!", 'APPLE? NO? POTION THEN!'],
+  shitty: ['EYE OF NEWT, SHIT OF MAN! HEH HEH!', 'I SMELL HIM FROM UP HERE!'],
+  nude: ['HEH HEH! A NAKED ONE! TINY!', 'COVER IT, MY PRETTY! COVER IT!'],
+};
+export const GINGER_BARK: ByPants = {
+  clean: ['RUN, RUN, AS FAST AS YOU CAN!', "YOU CAN'T CATCH ME! I'LL CATCH YOU!", 'THIS SUIT IS A HUNDRED DEGREES!'],
+  shitty: ['YOU SMELL WORSE THAN BURNT COOKIES!', 'NOT EVEN THE FOX WOULD EAT YOU!'],
+  nude: ["NAKED? I'M THE GINGERBREAD MAN, NOT YOU!", 'PUT SOME ICING ON THAT!'],
+};
+export const DWARF_BARK: ByPants = {
+  clean: ["HEIGH-HO! YOU'RE DEAD, BRO!", 'WE DIG, WE DIG, WE STAB!', 'SEVEN ON THE POSTER. THREE ON THE BUDGET.'],
+  shitty: ['HEIGH-HO! HE SMELLS! HEIGH-HO!', 'HE WENT DIGGING IN HIS PANTS!'],
+  nude: ['HEIGH-HO! HE HAS NO CLOTHES!', 'SMALL PICKAXE ON THAT ONE!'],
+};
+export const UNICORN_BARK: ByPants = {
+  clean: ['NEIGH. THAT IS IN MY CONTRACT.', 'MAGIC IS REAL! SO IS THIS HORN!', 'I DID TWO YEARS AT JUILLIARD.'],
+  shitty: ['EVEN UNICORNS DO NOT SHIT LIKE THAT.', 'RAINBOWS, PLEASE. NOT THAT SMELL.'],
+  nude: ['I HAVE THE BIGGER HORN HERE.', 'YOU CALL THAT A HORN?'],
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// What hurts him here, and the death screens (28 characters at most)
+
+export const HURT: HurtTable = {
+  'm2:fa_huntsman': { hurt: ['CLUBBED WITH A CROSSBOW!', 'THE HUNTSMAN HIT ME!', 'STOCK TO THE FACE!'], death: ['CLUBBED BY A HUNTSMAN', 'BAGGED BY A HUNTSMAN'] },
+  'm2:fa_huntsman_shot': { hurt: ['A CROSSBOW BOLT! IN ME!', 'BOLTED! RIGHT IN THE ASS!', "THAT'S NOT FOAM!"], death: ['SHOT BY A HUNTSMAN', 'BOLTED TO DEATH'] },
+  'm2:fa_bolted': { hurt: ['I RAN INTO HIS CROSSBOW!', 'CHARGED A LOADED CROSSBOW!', 'BOLT IN THE SHOULDER! DUMB!'], death: ['CHARGED A LOADED CROSSBOW', 'RAN ONTO A BOLT'] },
+  'm2:fa_witch': { hurt: ['BROOM TO THE HEAD!', 'THE WITCH RAN ME OVER!', 'HIT BY A FLYING WITCH!'], death: ['RUN OVER BY A BROOM', 'KILLED BY A FLYING WITCH'] },
+  'm2:fa_witch_shot': { hurt: ['POTION! IT BURNS!', 'GREEN SHIT! ON MY FEET!', 'IT FIZZES! WHY DOES IT FIZZ?'], death: ['DISSOLVED BY A POTION', 'MELTED BY A WITCH'] },
+  'm2:fa_ginger': { hurt: ['THE GINGERBREAD MAN SAT ON ME!', 'CRUSHED BY A COOKIE!', 'HE JUMPED ON MY HEAD!'], death: ['CRUSHED BY A COOKIE', 'FLATTENED BY GINGERBREAD'] },
+  'm2:fa_dwarf': { hurt: ['PICKAXE! IN MY SHIN!', 'THE DWARF GOT ME!', 'HE MINED MY KNEE!'], death: ['PICKAXED BY A DWARF', 'MINED TO DEATH'] },
+  'm2:fa_dwarf_shot': { hurt: ['A ROCK! TO THE HEAD!', 'HE THREW A GEM AT ME!', 'FAKE GEM! REAL ROCK!'], death: ['STONED BY DWARFS', 'KILLED BY A FAKE GEM'] },
+  'm2:fa_candle': { hurt: ['THE CANDLE! MY FEET!', 'HOT WAX! ON MY TOES!', 'I KICKED A LIT CANDLE!'], death: ['DIVE KICKED A CANDLE', 'BURNED ON A DWARF HAT'] },
+  'm2:fa_unicorn': { hurt: ['RUN OVER BY A UNICORN!', 'THE UNICORN TRAMPLED ME!', 'HOOVES! FOAM HOOVES!'], death: ['TRAMPLED BY A UNICORN', 'KILLED BY A MAGIC HORSE'] },
+  'm2:fa_horn': { hurt: ['I CHARGED THE HORN!', 'UNICORN HORN! IN MY GUT!', 'HORN! RIGHT IN THE PECS!'], death: ['GORED BY A UNICORN', 'SKEWERED ON A UNICORN'] },
+  'm2:fa_briars': { hurt: ['THORNS! IN MY ASS!', 'BRIARS! EVERYWHERE!', 'OW! OW! THORNS!'], death: ['DIED IN A BRIAR PATCH', 'THORNED TO DEATH'] },
+  'm2:fa_cauldron': { hurt: ['A CAULDRON! TO THE FACE!', 'HOT SOUP! IRON POT!', 'THE POT HIT ME!'], death: ['HIT BY A CAULDRON', 'DIED IN WITCH SOUP'] },
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// The announcer's kill callouts, by kind
+
+export const KILL_CALLS: Record<string, Record<string, string[]>> = {
+  'm2:fa_huntsman': { charge: ['HUNTED!', 'OPEN SEASON!'], uppercut: ['TROPHY!'], divekick: ['BAGGED!'] },
+  'm2:fa_witch': { charge: ['DING DONG!', 'GROUNDED!'], uppercut: ['BROOM SERVICE!'], divekick: ['MELTED!'], swim: ['MELTED!'] },
+  'm2:fa_ginger': { charge: ['CRUMBLED!', 'OH SNAP!'], uppercut: ['FRESH OUT THE OVEN!'], divekick: ['DUNKED!'] },
+  'm2:fa_dwarf': { charge: ['HEIGH-NO!', 'SHAFTED!'], uppercut: ['OFF TO WORK!'], divekick: ['MINED OUT!'] },
+  'm2:fa_unicorn': { charge: ['DEHORNED!', 'GLUE FACTORY!'], uppercut: ['OVER THE RAINBOW!'], divekick: ['NO MORE MAGIC!'] },
+};
+
+const pools = (b: ByPants) => allOf(b);
+export const VOICE_LINES: Record<string, string[]> = {
+  meathead: [...[ARRIVE, RETORT, ...Object.values(GAGS)].flatMap(allOf), ...Object.values(HURT).flatMap(h => h.hurt)],
+  death: Object.values(HURT).flatMap(h => h.death),
+  announcer: [...new Set(Object.values(KILL_CALLS).flatMap(k => Object.values(k).flat()))],
+  [CAST_MAN]: pools(HUNTSMAN_BARK), [CAST_WOMAN]: pools(HUNTSMAN_BARK),
+  [GLEN_VOICES.witch]: pools(WITCH_BARK), [GLEN_VOICES.witchf]: pools(WITCH_BARK),
+  [GLEN_VOICES.ginger]: pools(GINGER_BARK), [GLEN_VOICES.gingerf]: pools(GINGER_BARK),
+  [GLEN_VOICES.dwarf]: pools(DWARF_BARK), [GLEN_VOICES.dwarff]: pools(DWARF_BARK),
+  [GLEN_VOICES.unicorn]: pools(UNICORN_BARK), [GLEN_VOICES.unicornf]: pools(UNICORN_BARK),
+  [GLEN_VOICES.blake]: [...pools(RIVAL_SAY.blake), RIVAL_BOUNCE[0]],
+  [GLEN_VOICES.rafael]: [...pools(RIVAL_SAY.rafael), ...RIVAL_BOUNCE],
+  [GLEN_VOICES.hank]: [...pools(RIVAL_SAY.hank), RIVAL_BOUNCE[1]],
+  [PIPER_PA_VOICE]: Object.values(PIPER_GLEN).flat(),
+};

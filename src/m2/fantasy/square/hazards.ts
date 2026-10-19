@@ -87,7 +87,8 @@ const DMG: Record<Throw['kind'], number> = { spark: 9, slipper: 8, ball: 9, wave
 const SRC: Record<Throw['kind'], string> = { spark: 'm2:fa_clerk_shot', slipper: 'm2:fa_princess_shot', ball: 'm2:fa_bro_shot', wave: 'm2:fa_troll_shot', flame: 'm2:fa_dragon_shot' };
 const G: Record<Throw['kind'], number> = { spark: 0.22, slipper: 0.32, ball: 0.3, wave: 0, flame: 0 };
 
-const updateThrows = (ctx: FrameContext) => {
+/** (exported for the glen, job 3: the square's cast turn up there too, and what they throw still flies) */
+export const updateThrows = (ctx: FrameContext) => {
   const { state } = ctx, sq = squareOf(state), p = state.player;
   for (const s of sq.throws) {
     s.t++;
@@ -156,8 +157,13 @@ export const drawHazardsBack = (c: Ctx, state: GameState) => {
 
 /** In front: the falling slabs, what's thrown. */
 export const drawHazardsFront = (c: Ctx, state: GameState) => {
-  const sq = squareOf(state), f = state.frame;
+  const sq = squareOf(state);
   for (const s of sq.snows) if (s.state === 'fall') { box(c, s.x - SLAB_W / 2 - 1, s.y - SLAB_H - 1, SLAB_W + 2, SLAB_H + 2, INK); box(c, s.x - SLAB_W / 2, s.y - SLAB_H, SLAB_W, SLAB_H, '#F4F8FF'); box(c, s.x - SLAB_W / 2, s.y - 5, SLAB_W, 5, '#C4CCE4'); }
+  drawThrows(c, state);
+};
+/** What the cast throw (exported for the glen, job 3: the square's cast turn up there too). */
+export const drawThrows = (c: Ctx, state: GameState) => {
+  const sq = squareOf(state), f = state.frame;
   for (const s of sq.throws) {
     if (s.kind === 'spark') { c.fillStyle = INK; c.beginPath(); c.arc(s.x, s.y, 6, 0, Math.PI * 2); c.fill(); c.fillStyle = f % 4 < 2 ? '#FDE047' : '#F0ABFC'; c.beginPath(); c.arc(s.x, s.y, 4.5, 0, Math.PI * 2); c.fill(); box(c, s.x - 1, s.y - 8, 2, 16, '#FFFFFF'); box(c, s.x - 8, s.y - 1, 16, 2, '#FFFFFF'); }
     else if (s.kind === 'slipper') { c.save(); c.translate(s.x, s.y); c.rotate(s.t * 0.3); box(c, -8, -3, 16, 7, INK); box(c, -7, -2, 14, 5, '#CFF4FF'); box(c, -6, -2, 4, 2, '#FFFFFF'); c.restore(); }

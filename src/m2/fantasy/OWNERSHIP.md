@@ -9,7 +9,7 @@ the fill-ins, the rules, the section plan). Each section's index.ts header says 
 |---|---|---|
 | 1 (done) | the skeleton; `square/`, `stairs.ts`, `monument.ts`, `piper.ts` | square (0-9) |
 | 2 (done) | `wheel/` (and suitors.ts's tee / knight / wizard kits, ui.qte in store.ts, QtePanel in App.tsx) | wheel (10-19: 10-12 used) |
-| 3 | `glen/` | glen (20-29) |
+| 3 (done) | `glen/` (and square/hazards.ts's updateThrows / drawThrows exported for the square's kinds in the glen) | glen (20-29: 20-26 used) |
 | 4 | `tragons/` | tragons (30-39) |
 | 5 | `keep/` | keep (40-49) |
 | 6 | `broom/` | broom (50-59) |
@@ -65,6 +65,9 @@ move your DOORS entries to match; keep the way back working (revisits), or give 
   the suitors dead, the far gate opens and its right end walks on to `DOORS.glen.start`; the gate back stays shut the
   rest of that visit (WHEEL_MEMO in state.stageMemo: won for good; a later visit's wheel is empty and open both ways).
   Back from the glen: `DOORS.wheel.end` (past the far gate).
+- **The glen -> Truelling Tragons** (built, glen/): the queue at the glen's end; the ride's door is its right end, on
+  to `DOORS.tragons.start`; back from the ride: `DOORS.glen.end` (in front of the queue). The rivals who go in ahead of
+  him (BLAKE, RAFAEL, HANK) are glen/rivals.ts's RIVALS (SuitorLooks with their voices): the ride's to put in its cars.
 
 ## Things that outlive a death
 
