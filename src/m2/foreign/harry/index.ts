@@ -107,7 +107,7 @@ export const harry: ForeignSection = {
     }
     if (s.fight === 'on' && s.f) {
       const f = s.f;
-      markBossFight(state);
+      markBossFight(state, 'helicopter-harry');
       const out = updateFight(ctx, f, controls);
       // (held in: never out of the arena, whatever sends him flying)
       const lo = ARENA_L, hi = ARENA_R - p.width;

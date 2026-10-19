@@ -59,8 +59,12 @@ const apply = () => {
   setMix(isTalking(), !testCue && (paused || (screenCue === undefined && !!game?.muffled)));
 };
 
+/** Meathead 2 has its own music (m2/music/): this one never starts there (its instruments never made). */
+let disabled = false;
+export const disableM1Music = () => { disabled = true; };
+
 const start = () => {
-  if (timer || typeof window === 'undefined') return;
+  if (disabled || timer || typeof window === 'undefined') return;
   useContext(getAudioContext);
   // (the instruments get made a few at a time in the background, so none of them hitches the first time it's played)
   setTimeout(() => warmUp(), 1500);

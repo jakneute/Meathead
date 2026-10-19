@@ -502,7 +502,7 @@ export const updateRex = (ctx: FrameContext) => {
   if (!r || r.fight === 'gone') return;
   // (started past the temple fence: the checkpoint's only known once the stage is built, so it's put down here)
   if (r.fight === 'wait' && state.checkpoint >= 33) retire(state, r);
-  if (r.fight === 'on') markBossFight(state);
+  if (r.fight === 'on') markBossFight(state, 'trex');
   const p = state.player;
   // What's come out of each part since last frame
   for (const id of PARTS) {

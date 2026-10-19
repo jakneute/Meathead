@@ -73,7 +73,7 @@ export const ballroom: SpookySection = {
     }
     if (b.fight === 'on' && b.f) {
       const f = b.f;
-      markBossFight(state);
+      markBossFight(state, 'donnie-dracula');
       let out = updateFight(ctx, f, controls);
       if (f.cam) { p.inCutscene = true; out = hands(); }
       // (locked in)

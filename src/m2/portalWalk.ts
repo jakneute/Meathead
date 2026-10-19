@@ -25,6 +25,7 @@ import { INTO_SPACE } from './walkAway/intoSpace';
 import { INTO_HOLLYWOOD } from './walkAway/intoHollywood';
 import { INTO_FOREIGN } from './walkAway/intoForeign';
 import { INTO_FRONTIER } from './walkAway/intoFrontier';
+import { musicMoment } from './music/moments';
 
 /** The lands that have a walk in (add each land's PortalDef here, by its lands.ts id). */
 export const PORTAL_SCENES: Record<string, PortalDef> = { adventure: INTO_ADVENTURE, spooky: INTO_SPOOKY, space: INTO_SPACE, hollywood: INTO_HOLLYWOOD, foreign: INTO_FOREIGN, frontier: INTO_FRONTIER };
@@ -70,6 +71,7 @@ export const portalWalkDone = (w: PortalWalk) => w.done;
 
 export const tickPortalWalk = (w: PortalWalk) => {
   if (w.done) return;
+  musicMoment('portal', w.land);
   w.t++;
   const t = w.t;
   // (his footsteps, getting quieter as he goes)

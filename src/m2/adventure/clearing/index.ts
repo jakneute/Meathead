@@ -308,7 +308,7 @@ const run = (ctx: FrameContext, controls: Controls): Controls => {
     if (!cl.domino && cx > ARENA_L + 60) startFight(state, cl);
   } else if (cl.fight === 'on') {
     const f = cl.f!;
-    markBossFight(state);
+    markBossFight(state, 'safari-artie');
     let out = updateFight(ctx, f, controls);
     if (f.mode === 'dead' && !cl.wiped) wipeArena(state, cl, f);
     // (the kill cam on him: out of Meathead's hands)

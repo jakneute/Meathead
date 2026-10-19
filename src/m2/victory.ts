@@ -10,6 +10,7 @@ import type { GameState } from '../m1/game/core/state';
 import { shakeScreen } from '../m1/game/core/state';
 import { playSound } from '../m1/game/platform/audio';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../m1/constants';
+import { musicMoment } from './music/moments';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -33,6 +34,7 @@ const LAND_Y = CANVAS_HEIGHT / 2;
 
 /** A frame: the next letter's stamp when it lands (the jolt, the thud, the ink), the ink flying and drying. */
 export const tickVictory = (state: GameState, v: Victory) => {
+  musicMoment('victory');
   v.t++;
   for (let i = v.stamped; i < WORD.length; i++) {
     if (v.t < i * GAP + FLY) break;

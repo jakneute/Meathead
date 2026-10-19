@@ -380,7 +380,7 @@ export const updateDemon = (ctx: FrameContext) => {
     Object.assign(d, gone()); return;
   }
   const p = state.player, f = state.frame;
-  if (d.fight === 'on') markBossFight(state);
+  if (d.fight === 'on') markBossFight(state, 'demon');
   if (d.flash > 0) d.flash--;
   // What's come out of his pool since last frame
   const e = d.e;

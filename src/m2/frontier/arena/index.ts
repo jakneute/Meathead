@@ -146,7 +146,7 @@ export const arena: FrontierSection = {
         const f = s.fight;
         if (!f) return controls;
         holdIn(state);
-        markBossFight(state);
+        markBossFight(state, 'tucker');
         const out = updateFight(ctx, f);
         if (fightOver(f)) {
           s.phase = 'won'; s.wonAt = state.frame; s.weak = killedByWeakness(f);

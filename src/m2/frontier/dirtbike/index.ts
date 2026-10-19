@@ -182,7 +182,7 @@ export const dirtbike: FrontierSection = {
   },
   update: (ctx, controls) => {
     const { state } = ctx, p = state.player, s = sideOf(state);
-    if (inChase(state)) { markBossFight(state); return updateChase(ctx, controls); }
+    if (inChase(state)) { markBossFight(state, 'teenagers'); return updateChase(ctx, controls); }
     if (s.first) {
       s.first = false;
       const fromBounty = takeBountyHandoff();

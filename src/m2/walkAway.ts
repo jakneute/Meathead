@@ -28,6 +28,7 @@ import { SPACE_QUEEN } from './walkAway/spaceQueen';
 import { STUNTMAN_STEVE } from './walkAway/stuntmanSteve';
 import { HELICOPTER_HARRY } from './walkAway/helicopterHarry';
 import { TUCKER } from './walkAway/tucker';
+import { musicMoment } from './music/moments';
 
 /** The bosses that have a walk-away (add each boss's SceneDef here). */
 export const WALK_AWAY_SCENES = { 'safari-artie': SAFARI_ARTIE, 'donnie-dracula': DONNIE_DRACULA, 'space-queen': SPACE_QUEEN, 'stuntman-steve': STUNTMAN_STEVE, 'helicopter-harry': HELICOPTER_HARRY, tucker: TUCKER } satisfies Record<string, SceneDef>;
@@ -124,6 +125,7 @@ const poseAt = (w: WalkAway): Pose => {
 /** A frame. `controls`: the stage's (A is jump); left out, only Enter counts (the dev preview reads the pad itself). */
 export const tickWalkAway = (w: WalkAway, controls?: Controls | null, padA = false) => {
   if (w.done) return;
+  musicMoment('walkaway', w.boss);
   w.t++;
   const t = w.t, u = t % CYCLE;
   // (his footsteps)

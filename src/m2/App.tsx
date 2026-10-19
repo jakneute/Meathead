@@ -50,6 +50,11 @@ import { getAudioContext } from '../m1/game/platform/audio';
 import { STAFF_SLOT, AMERICA_SLOT, landAt } from './hub/lands';
 import { getUi, subscribeUi, onTravel, setUi, goTo, takeBossKill, setStartCheckpoint } from './store';
 import { setFrameHook } from '../m1/game/core/update';
+import { disableM1Music } from '../m1/game/music';
+import { setMusicState, setMusicStage, setMusicPaused } from './music/cues';
+
+// (Meathead 2's own music: music/cues.ts; Meathead 1's never starts)
+disableM1Music();
 
 /** No weapon switching (the wheel, the shoulder buttons, the number keys, the mouse wheel, the pause menu's pick):
  *  stuck with one (the mine cart), or not his to play just now. */
@@ -171,6 +176,9 @@ const App2: React.FC = () => {
   const first = devQ?.has('adv') ? ADV_STAGE : devQ?.has('spooky') ? SPOOKY_STAGE : devQ?.has('space') ? SPACE_STAGE : devQ?.has('hollywood') ? HOLLYWOOD_STAGE : devQ?.has('foreign') ? FOREIGN_STAGE : devQ?.has('frontier') ? FRONTIER_STAGE : devQ?.has('hub') ? HUB_STAGE : devQ?.has('pen') ? PEN_STAGE : INTRO_STAGE;
   const [stage, setStage] = useState(first);
   const [status, setStatus] = useState(GameStatus.START);
+  // (the music follows where he is, and goes muffled while it's paused)
+  useEffect(() => { setMusicStage(stage); }, [stage]);
+  useEffect(() => { setMusicPaused(status === GameStatus.PAUSED); }, [status]);
   const pending = useRef<string | null>(first);
   const [fade, setFade] = useState(false);
   const [weapon, setWeapon] = useState<WeaponType>('GUN');
@@ -389,7 +397,7 @@ const App2: React.FC = () => {
           availableWeapons={arsenal()}
           initialAmmo={initialAmmo}
           cheats={stage === PEN_STAGE ? PRACTICE : { ...PLAY, invincible: cheat.god, infiniteAmmo: cheat.ammo }}
-          onState={setLiveState}
+          onState={s => { setLiveState(s); setMusicState(s); }}
           quietInvincible
           bossTauntText=""
           onPlayerUpdate={onPlayerUpdate}

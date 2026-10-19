@@ -247,7 +247,7 @@ export const updateFight = (ctx: FrameContext): Controls | null => {
   // (pure attrition: nothing drops while it's on, health or ammo; the park's drops back once it's over)
   setDropTable(F.phase === 'on' || F.phase === 'intro' ? NO_DROPS : PARK_DROPS);
   // (the set's own gear quiet and still meanwhile: bossQuiet.ts)
-  if (F.phase === 'on' || F.phase === 'intro') markBossFight(state);
+  if (F.phase === 'on' || F.phase === 'intro') markBossFight(state, 'ensemble-cast');
   // (the bodies: going over, the pool spreading under them)
   for (const b of F.bodies) { b.t++; b.fall = Math.min(1, b.fall + 1 / 16); if (b.fall >= 1) b.pool = Math.min(1, b.pool + 1 / 110); }
   if (F.phase === 'wait') {

@@ -8,6 +8,7 @@ import { ownsWeapon, subscribeProgress } from './store';
 import { setTimeOfDayOverride, timeOfDayOverride } from './timeOfDay';
 import { clearSkyCache } from './intro/art/sky';
 import { M2_PUBLIC } from './build';
+import { stepSoundTest, setSoundTest, soundTestLabel } from './music/soundTest';
 
 export interface M2Cheats { god: boolean; ammo: boolean; allWeapons: boolean; skip: boolean }
 let cheats: M2Cheats = { god: false, ammo: false, allWeapons: false, skip: false };
@@ -55,9 +56,14 @@ export const todNow = () => { const v = timeOfDayOverride(); return v === null ?
  */
 let panelOpen = false;
 /** The panel's rows, in order, and what's along each. */
-export const CHEAT_ROWS = ['god', 'ammo', 'allWeapons', 'skip', 'pants', 'tod', 'done'] as const;
+export const CHEAT_ROWS = ['god', 'ammo', 'allWeapons', 'skip', 'pants', 'tod', 'music', 'done'] as const;
 export type CheatRow = typeof CHEAT_ROWS[number];
-const rowLength = (r: CheatRow) => (r === 'pants' ? 3 : r === 'tod' ? 11 : r === 'done' ? 1 : 2);
+const rowLength = (r: CheatRow) => (r === 'pants' ? 3 : r === 'tod' ? 11 : r === 'music' ? 3 : r === 'done' ? 1 : 2);
+
+/** The sound test (music/soundTest.ts): back a song, on a song, or off. */
+export const stepMusic = (d: number) => { stepSoundTest(d); ping(); };
+export const stopMusicTest = () => { setSoundTest(null); ping(); };
+export { soundTestLabel };
 let cursor = { row: 0, col: 0 };
 export const cheatPanelOpen = () => panelOpen;
 export const cheatCursor = () => cursor;
@@ -66,6 +72,8 @@ export const setCheatPanelOpen = (open: boolean) => {
   if (M2_PUBLIC) open = false;
   if (open === panelOpen) return;
   panelOpen = open;
+  // (shut, the sound test's off: back to the game's own music)
+  if (!open) setSoundTest(null);
   // (opened on the pad: the cursor on the first row, on what's set)
   if (open) cursor = { row: 0, col: cheats.god ? 0 : 1 };
   ping();
@@ -85,6 +93,7 @@ export const activateCheat = () => {
   if (r === 'god' || r === 'ammo' || r === 'allWeapons' || r === 'skip') setCheat(r, c === 0);
   else if (r === 'pants') setPants((['normal', 'shitty', 'naked'] as Pants[])[c]);
   else if (r === 'tod') setTod(c === 0 ? null : c - 1);
+  else if (r === 'music') { if (c === 2) setSoundTest(null); else stepSoundTest(c === 0 ? -1 : 1); }
   else setCheatPanelOpen(false);
   ping();
 };

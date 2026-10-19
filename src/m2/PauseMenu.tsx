@@ -7,7 +7,7 @@ import ChordPrompt from './ChordPrompt';
 import { PLAIN_PAUSE, type PauseSkin } from './hudThemes';
 import { M2_PUBLIC } from './build';
 import { walkBackOn } from './store';
-import { getCheats, setCheat, subscribeCheats, pantsNow, setPants, todNow, setTod, setCheatPanelOpen, cheatPanelOpen, cheatCursor, CHEAT_ROWS, type Pants } from './cheats';
+import { getCheats, setCheat, subscribeCheats, pantsNow, setPants, todNow, setTod, setCheatPanelOpen, cheatPanelOpen, cheatCursor, CHEAT_ROWS, stepMusic, stopMusicTest, soundTestLabel, type Pants } from './cheats';
 
 /** The cheats (FOR NOW: out before it ships), mouse only: click to flip them. Not buttons (ENTER and SPACE would set
  *  off whichever was clicked last, along with the menu's own). */
@@ -46,7 +46,13 @@ const CheatPanel: React.FC<{ skin: PauseSkin; onClose: () => void }> = ({ skin, 
         {Array.from({ length: 10 }, (_, n) => <Chip key={n} on={tod === n} at={at(5, n + 1)} skin={skin} w={18} onClick={() => setTod(n)}>{n}</Chip>)}
       </>)}
       <div className="text-[6px] tracking-wider" style={{ color: skin.muted }}>TIME OF DAY: LANDS CLEARED (0 MORNING, 9 NIGHT). AUTO FOLLOWS THE GAME.</div>
-      <div className="mt-auto"><Chip on={false} at={at(6, 0)} skin={skin} w={80} onClick={onClose}>DONE</Chip></div>
+      {row('SOUND TEST', <>
+        <Chip on={false} at={at(CHEAT_ROWS.indexOf('music'), 0)} skin={skin} w={24} onClick={() => stepMusic(-1)}>&lt;</Chip>
+        <Chip on={false} at={at(CHEAT_ROWS.indexOf('music'), 1)} skin={skin} w={24} onClick={() => stepMusic(1)}>&gt;</Chip>
+        <Chip on={false} at={at(CHEAT_ROWS.indexOf('music'), 2)} skin={skin} w={40} onClick={stopMusicTest}>STOP</Chip>
+        <div className="self-center text-[7px] font-black tracking-wider max-w-[300px] truncate" style={{ color: skin.text }}>{soundTestLabel()}</div>
+      </>)}
+      <div className="mt-auto"><Chip on={false} at={at(CHEAT_ROWS.indexOf('done'), 0)} skin={skin} w={80} onClick={onClose}>DONE</Chip></div>
     </div>
   );
 };

@@ -14,18 +14,22 @@ import { CANVAS_WIDTH } from '../m1/constants';
 
 type SoundType = Parameters<typeof playSound>[0];
 
-const MARKED = new WeakMap<GameState, number>();
+const MARKED = new WeakMap<GameState, { at: number; name?: string }>();
 
-/** A boss or sub-boss fight is on this frame. */
-export const markBossFight = (state: GameState) => { MARKED.set(state, state.frame); };
+/** A boss or sub-boss fight is on this frame; `name` says which (the music plays its theme: music/cues.ts,
+ *  'boss:<name>'). Unnamed, the music works it out from the land and section it's in. */
+export const markBossFight = (state: GameState, name?: string) => { MARKED.set(state, { at: state.frame, name }); };
 
 /** A boss or sub-boss fight's on (marked this frame or last: whichever of the hazards and the fight updates first). */
 export const inBossFight = (state: GameState) => {
-  const at = MARKED.get(state);
-  if (at === undefined) return false;
-  const d = state.frame - at;
+  const m = MARKED.get(state);
+  if (m === undefined) return false;
+  const d = state.frame - m.at;
   return d >= 0 && d <= 1;
 };
+
+/** Which fight's on (the name it marked itself with), or null (none on, or it didn't say). */
+export const bossFightName = (state: GameState) => (inBossFight(state) ? MARKED.get(state)?.name ?? null : null);
 
 /** Where it is, on the screen or just off it (`margin` past either edge). */
 export const heard = (state: GameState, x: number, margin = 240) =>

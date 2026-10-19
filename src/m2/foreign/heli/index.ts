@@ -564,7 +564,7 @@ export const heli: ForeignSection = {
     h.t++;
     setDropTable(h.phase === 'tour' || h.phase === 'fly' || h.phase === 'end' ? FLY_DROPS : PARK_DROPS);
     // (the gauntlet's on: bossQuiet.ts)
-    if (!h.over && (h.phase === 'fly' || h.phase === 'end')) markBossFight(state);
+    if (!h.over && (h.phase === 'fly' || h.phase === 'end')) markBossFight(state, 'heli-gauntlet');
     if (h.over) { runExits(state, endExits('heli', { left: false })); return controls; }
     // (starting again at a landmark's checkpoint: straight up there, into it)
     if (h.phase === 'pad' && state.checkpoint >= 111 && state.checkpoint <= 119) { startAt(state, h, state.checkpoint - 111); return hands(); }
