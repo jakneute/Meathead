@@ -421,14 +421,18 @@ const fire = (ctx: FrameContext, f: Fight) => {
   setAct(f, 'recoil');
   if (Math.random() < 0.5) bark(f, L.TF_FIRE);
   stampede(state, f);
-  // (the commotion: the bees up out of the trees, a second swarm later)
-  const want = f.hp < HP * SECOND_SWARM ? 2 : 1;
-  if (f.swarms.filter(s => !s.gone).length < want) {
-    const p = pmid(state), fromL = p.x > state.camera.x + CANVAS_WIDTH / 2;
-    f.swarms.push({ x: fromL ? state.camera.x + 20 : state.camera.x + CANVAS_WIDTH - 20, y: GY - 300, t: 0, cd: 60, off: 0, gone: 0 });
-    playSound('chitter', 0.9, 4);
+  // (no bees: the user's, they're out of the fight; the swarm code stays dormant (BEES_ON) in case they come back)
+  if (BEES_ON) {
+    const want = f.hp < HP * SECOND_SWARM ? 2 : 1;
+    if (f.swarms.filter(s => !s.gone).length < want) {
+      const p = pmid(state), fromL = p.x > state.camera.x + CANVAS_WIDTH / 2;
+      f.swarms.push({ x: fromL ? state.camera.x + 20 : state.camera.x + CANVAS_WIDTH - 20, y: GY - 300, t: 0, cd: 60, off: 0, gone: 0 });
+      playSound('chitter', 0.9, 4);
+    }
   }
 };
+/** The bees in Tucker's fight (off: the user's). */
+const BEES_ON = false as boolean;
 
 // ---- the ball
 const tickShots = (ctx: FrameContext, f: Fight) => {
