@@ -19,6 +19,7 @@ import {
   X, Y, GY, LOBBY, PRESHOW, THEATER, FAR_WALL, DOOR_HALF, QUEUE_RAILS, RAIL_H, LEDGES, HORNS, PRESHOW_WATCHERS,
 } from './layout';
 import type { Dz } from './state';
+import { drawChip, tvBulbs, paintSockets } from './chip';
 import {
   type Ctx, type View, INK, WALL_D, NEAR_D, seenD, spanAt, levelQ, sideQ, MAROON, CARPET, INDIGO, TRUSS, GOLD, CASE, SHELL,
   lip, tubeH, tubeV, truss, chain, hungBoard, oneSheet, horn, disasterLook, rideLook, showLook, still, deep,
@@ -423,7 +424,8 @@ const paintPreshowWall = (g: Ctx, x: number, w: number) => {
   if (x < sp + 60 && x + w > sp - 60) steveCard(g, sp, GY - 175, 1.2, 1, 'poster');
 };
 
-/** CHIP CHADWICK on the big TV, hung off the ceiling (very excited; static once it's real, the set swinging). */
+/** CHIP CHADWICK on the big TV, hung off the ceiling (very excited, grossed up: chip.ts; static once it's real, the set
+ *  swinging), chaser bulbs round its bezel. */
 const bigTv = (c: Ctx, o: Dz, f: number, real: boolean) => {
   const ceil = Y(PRESHOW.ceil), tx = X(PRESHOW.tv);
   c.save(); if (real) { c.translate(tx, ceil); c.rotate(-0.08); c.translate(-tx, -ceil); }
@@ -433,7 +435,8 @@ const bigTv = (c: Ctx, o: Dz, f: number, real: boolean) => {
     box(g, -131, -1, 262, 192, INK);
     box(g, -130, 0, 260, 190, K[3]); box(g, -130, 0, 260, 3, K[5]); box(g, -130, 0, 3, 190, K[4]); box(g, 124, 0, 6, 190, K[1]); box(g, -130, 182, 260, 8, K[1]);
     box(g, -116, 12, 232, 158, INK);
-    box(g, 100, 176, 10, 4, '#4ADE80'); box(g, -120, 177, 40, 2, K[4]);
+    box(g, 104, 185, 8, 2, '#4ADE80');
+    paintSockets(g);
   });
   const sx = tx - 112, sy = ceil + 62, sw = 224, sh = 150;
   if (real) {
@@ -441,36 +444,19 @@ const bigTv = (c: Ctx, o: Dz, f: number, real: boolean) => {
     for (let i = 0; i < 70; i++) box(c, sx + ((i * 37 + f * 11) % sw), sy + ((i * 23 + f * 5) % sh), 5, 2, i % 3 ? '#E7E5E4' : '#71717A');
     box(c, sx, sy + ((f * 4) % sh), sw, 3, 'rgba(255,255,255,0.25)');
   } else {
-    // (the set behind him: a sunburst in bands, the desk)
-    bandedGradient(c, sx, sy, sw, sh, ['#C2410C', '#F97316', '#FDBA74'], 6);
-    for (let k = 0; k < 12; k += 2) { const a = k * Math.PI / 6 + f * 0.01; poly(c, [[sx + sw / 2, sy + 70], [sx + sw / 2 + Math.cos(a - 0.15) * 200, sy + 70 + Math.sin(a - 0.15) * 200], [sx + sw / 2 + Math.cos(a + 0.15) * 200, sy + 70 + Math.sin(a + 0.15) * 200]], 'rgba(253, 230, 138, 0.35)'); }
-    box(c, sx, sy + sh - 40, sw, 40, '#7C2D12'); box(c, sx, sy + sh - 40, sw, 3, '#C2410C');
-    // (Chip: the hair helmet, the huge grin, the tan, the finger guns), stamped by his mouth
-    const talk = !!o.host && f % 8 < 4, hx = sx + sw / 2, hy = sy + 70;
-    c.save(); c.beginPath(); c.rect(sx, sy, sw, sh); c.clip();
-    still(c, `chip-${talk ? 1 : 0}`, hx, hy, -76, -60, 152, 160, g => {
-      const S = ramp6('#C68A5E');
-      box(g, -52, 32, 104, 62, INK); box(g, -50, 34, 100, 60, '#1D4ED8'); box(g, -50, 34, 14, 60, '#3B6EF0'); box(g, 36, 34, 14, 60, '#14318E');
-      poly(g, [[-10, 34], [10, 34], [0, 52]], '#F8FAFC'); box(g, -3, 38, 6, 22, '#DC2626'); box(g, -3, 38, 2, 22, '#F87171');
-      g.fillStyle = INK; g.beginPath(); g.ellipse(0, 0, 36, 42, 0, 0, Math.PI * 2); g.fill();
-      g.fillStyle = S[3]; g.beginPath(); g.ellipse(0, 0, 34, 40, 0, 0, Math.PI * 2); g.fill();
-      g.fillStyle = S[4]; g.beginPath(); g.ellipse(-10, -6, 18, 26, 0, 0, Math.PI * 2); g.fill();
-      g.fillStyle = S[2]; g.beginPath(); g.ellipse(22, 8, 10, 24, 0, 0, Math.PI * 2); g.fill();
-      // (the hair: a helmet, stepped, a lit swoop)
-      g.fillStyle = INK; g.beginPath(); g.ellipse(-4, -34, 42, 20, -0.1, 0, Math.PI * 2); g.fill();
-      g.fillStyle = '#3F2A14'; g.beginPath(); g.ellipse(-4, -34, 40, 18, -0.1, 0, Math.PI * 2); g.fill();
-      g.fillStyle = '#6A4A22'; g.beginPath(); g.ellipse(-12, -40, 24, 8, -0.2, 0, Math.PI * 2); g.fill();
-      box(g, -20, -46, 14, 2, '#9A7240');
-      box(g, -18, -8, 10, 6, '#FFFFFF'); box(g, 8, -8, 10, 6, '#FFFFFF'); box(g, -15, -7, 4, 4, INK); box(g, 11, -7, 4, 4, INK);
-      box(g, -20, -14, 12, 2, '#3F2A14'); box(g, 8, -14, 12, 2, '#3F2A14');
-      box(g, -19, 11, 38, talk ? 16 : 10, INK); box(g, -18, 12, 36, talk ? 14 : 8, '#7F1D1D'); box(g, -16, 12, 32, 4, '#FFFFFF'); for (let k = -12; k < 16; k += 6) box(g, k, 12, 1, 4, '#D6D3D1');
-      for (const s of [-1, 1]) { box(g, s * 62 - 9, 39, 18, 14, INK); box(g, s * 62 - 8, 40, 16, 12, S[3]); box(g, s * 62 + (s > 0 ? 0 : -12), 42, 12, 5, INK); box(g, s * 62 + (s > 0 ? 1 : -11), 43, 10, 3, S[4]); }
+    // (Chip, grossed up on his set (chip.ts), his mouth going while the tape talks; the lower third; the tape's lines)
+    drawChip(c, sx, sy, sw, sh, f, !!o.host);
+    still(c, 'chyron', sx + sw / 2, sy + sh, -66, -26, 132, 24, g => {
+      box(g, -64, -25, 128, 22, INK); bandedGradient(g, -63, -24, 126, 20, ['#2E2470', '#1E1B4B', '#0E0A2A'], 3);
+      box(g, -63, -24, 126, 1, GOLD[5]); box(g, -63, -5, 126, 1, GOLD[2]);
+      words(g, 'CHIP CHADWICK', 0, -7, showLook(1, 2, '#FDE047', '#000000'));
     });
-    c.restore();
-    words(c, 'CHIP CHADWICK', sx + sw / 2, sy + sh - 10, showLook(1, 2, '#FDE047', '#000000'));
     c.fillStyle = 'rgba(0, 0, 0, 0.16)'; for (let yy = sy; yy < sy + sh; yy += 4) c.fillRect(sx, yy, sw, 2);
+    box(c, sx, sy, sw, 2, 'rgba(0, 0, 0, 0.28)'); box(c, sx, sy + sh - 2, sw, 2, 'rgba(0, 0, 0, 0.28)'); box(c, sx, sy, 2, sh, 'rgba(0, 0, 0, 0.22)'); box(c, sx + sw - 2, sy, 2, sh, 'rgba(0, 0, 0, 0.22)');
     poly(c, [[sx, sy], [sx + 40, sy], [sx, sy + 30]], 'rgba(255,255,255,0.12)');
   }
+  // (the chaser bulbs round the bezel, over the picture's edge)
+  tvBulbs(c, tx, ceil + 46, f, real);
   c.restore();
 };
 

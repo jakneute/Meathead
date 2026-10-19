@@ -213,3 +213,10 @@ walkAway/stuntmanSteve.ts (placeholder; his toy: the STUNT_CAR).
   seat: spriteScaleX/Y); track chunks sorted far to near, nearer-than-the-train track drawn over him. Every ride is at
   depth 1 on and near the decks, so the station, the three stops and the launch ramp are exactly as they were. The
   structure's near background row moved back past the hedge and both rows spaced out, for breathing room.
+- **Chip's pre-show tape is a gross-up; chaser bulbs round the TV (2026-10-18, the user: "gross ren & stimpy closeup
+  levels of detail", "make the lights that go around the screen look nicer").** disaster/chip.ts: Chip fills the
+  screen, painted per pixel in hard stepped bands (pores, liver spots, bloodshot eyes, gummy yellow teeth, stubble,
+  sweat, dandruff, finger guns); three mouth frames painted once each (gross.ts sprite) and swapped while the tape
+  talks, an eye twitch now and then. The set's rays are clipped to the picture (they used to spill over the bezel and
+  wall) and banded. 60 chaser bulbs in brass sockets on the bezel, a smooth clockwise chase with a flash-all every 7 s,
+  a few dead / flickering / dim; mostly dead once it's real. The name moved onto a lower-third bar. No timing changes.
