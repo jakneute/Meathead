@@ -41,10 +41,22 @@ const rowCount = (page: Page) => (page === 'main' ? MAIN.length : page === 'audi
 
 type Act = 'up' | 'down' | 'left' | 'right' | 'ok' | 'back' | 'clear';
 
-const OptionsScreen: React.FC<{ onClose: () => void }> = ({ onClose }) => {
+/** A page of the CONTROLS page's guide (Meathead 2's: more than fits on one), flipped through with left and right. */
+export interface GuidePage { title: string; body: React.ReactNode }
+/** Done up another way (Meathead 2's: the pause menu's look for wherever he is). */
+export interface OptionsLook { border?: React.CSSProperties['border']; boxShadow?: React.CSSProperties['boxShadow']; stripe: string }
+
+const OptionsScreen: React.FC<{ onClose: () => void; guidePages?: GuidePage[]; look?: OptionsLook }> = ({ onClose, guidePages, look }) => {
   const settings = useSyncExternalStore(subscribeSettings, getSettings, getSettings);
   const [page, setPage] = useState<Page>('main');
   const [cursor, setCursor] = useState(0);
+  /** CONTROLS, with guide pages: which one's showing. */
+  const [guideAt, setGuideAt] = useState(0);
+  const flipGuide = (d: number) => {
+    if (!guidePages || guidePages.length < 2) return;
+    setGuideAt(g => (g + d + guidePages.length) % guidePages.length);
+    playCursor();
+  };
   /** Keyboard page: which of the two columns (primary, secondary). */
   const [slot, setSlot] = useState(0);
   /** Keyboard page: waiting for a key (or a mouse button) to put in the highlighted slot. */
@@ -154,7 +166,7 @@ const OptionsScreen: React.FC<{ onClose: () => void }> = ({ onClose }) => {
       if (a === 'left' || a === 'right') stepVideo(cursor, a === 'left' ? -1 : 1);
       return;
     }
-    if (page === 'controls') { if (a === 'ok') { playMenuOk(); go('keyboard'); } return; }
+    if (page === 'controls') { if (a === 'ok') { playMenuOk(); go('keyboard'); } else if (a === 'left' || a === 'right') flipGuide(a === 'left' ? -1 : 1); return; }
     // the keyboard page
     if (cursor === KEY_ACTIONS.length) { if (a === 'ok') { playMenuOk(); setConfirmReset(false); } return; }
     if (a === 'left' || a === 'right') setSlot(s => Math.max(0, Math.min(KEY_SLOTS - 1, s + (a === 'left' ? -1 : 1))));
@@ -303,8 +315,8 @@ const OptionsScreen: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             return (
               <button key={s} onClick={() => { if (!idle) return; setCursor(i); setSlot(s); startCapture(); }}
                 onMouseEnter={() => { if (idle) { setCursor(i); setSlot(s); } }}
-                className={`w-[118px] h-[22px] flex items-center justify-center border-2 text-[7px] font-black ${sel ? (capturing ? 'border-red-500 bg-red-950 animate-pulse' : 'border-yellow-400 bg-zinc-800') : 'border-zinc-700 bg-zinc-900 hover:border-zinc-500'}`}>
-                {sel && capturing ? <span className="text-red-300">PRESS A KEY...</span> : code ? <BindingIcon code={code} name={keyLabel(code)} size={16} /> : <span className="text-zinc-600">--</span>}
+                className={`w-[118px] ${KEY_ACTIONS.length > 13 ? 'h-[18px]' : 'h-[22px]'} flex items-center justify-center border-2 text-[7px] font-black ${sel ? (capturing ? 'border-red-500 bg-red-950 animate-pulse' : 'border-yellow-400 bg-zinc-800') : 'border-zinc-700 bg-zinc-900 hover:border-zinc-500'}`}>
+                {sel && capturing ? <span className="text-red-300">PRESS A KEY...</span> : code ? <BindingIcon code={code} name={keyLabel(code)} size={KEY_ACTIONS.length > 13 ? 13 : 16} /> : <span className="text-zinc-600">--</span>}
               </button>
             );
           })}
@@ -321,8 +333,10 @@ const OptionsScreen: React.FC<{ onClose: () => void }> = ({ onClose }) => {
           border: '3px solid #FACC15',
           boxShadow: '0 0 0 3px #000, 0 0 40px rgba(0,0,0,0.9), inset 0 0 30px rgba(250,204,21,0.06)',
           backgroundImage: 'repeating-linear-gradient(0deg, rgba(255,255,255,0.025) 0 1px, transparent 1px 3px)',
+          // (another look: its edge, on the same dark face, so everything on it reads the same)
+          ...(look ? { border: look.border, boxShadow: look.boxShadow } : {}),
         }}>
-        <div className="absolute left-0 right-0 top-0 h-[6px]" style={{ background: 'repeating-linear-gradient(135deg, #FACC15 0 8px, #111 8px 16px)' }} />
+        <div className="absolute left-0 right-0 top-0 h-[6px]" style={{ background: look?.stripe ?? 'repeating-linear-gradient(135deg, #FACC15 0 8px, #111 8px 16px)' }} />
         <div className={`flex items-baseline justify-center gap-3 mt-1 ${page === 'keyboard' ? 'mb-1' : 'mb-3'}`}>
           {page !== 'main' && <span className="text-[9px] font-black tracking-widest text-zinc-500">OPTIONS &#9656;</span>}
           <h2 className={`${page === 'keyboard' ? 'text-lg' : 'text-2xl'} font-black italic tracking-widest text-yellow-400`} style={{ textShadow: '3px 3px 0 #7F1D1D, 5px 5px 0 #000' }}>{TITLES[page]}</h2>
@@ -353,8 +367,19 @@ const OptionsScreen: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         )}
 
         {page === 'controls' && (
-          <div className="flex flex-col gap-3 px-2 py-1">
-            <ControlsGuide />
+          <div className={`flex flex-col ${guidePages ? 'gap-2' : 'gap-3'} px-2 py-1`}>
+            {guidePages ? <>
+              <div className="flex items-center justify-center gap-2">
+                <button onClick={() => flipGuide(-1)} className="px-1 text-[10px] text-zinc-300 hover:text-white">&#9664;</button>
+                {guidePages.map((g, i) => (
+                  <button key={g.title} onClick={() => { if (i !== guideAt) { setGuideAt(i); playCursor(); } }}
+                    className={`px-2 py-[3px] text-[8px] font-black tracking-wider border-2 ${i === guideAt ? 'bg-yellow-400 text-black border-black' : 'bg-zinc-900 text-zinc-500 border-zinc-700 hover:text-zinc-200'}`}
+                    style={{ boxShadow: i === guideAt ? '2px 2px 0 #000' : undefined }}>{g.title}</button>
+                ))}
+                <button onClick={() => flipGuide(1)} className="px-1 text-[10px] text-zinc-300 hover:text-white">&#9654;</button>
+              </div>
+              {guidePages[guideAt]?.body}
+            </> : <ControlsGuide />}
             <button onMouseEnter={hover(0)} onClick={() => { playMenuOk(); go('keyboard'); }} className={rowClass(cursor === 0)} style={rowStyle(cursor === 0)}>
               {marker(cursor === 0)}
               <span className="text-[9px] font-black tracking-wider text-yellow-300">CHANGE KEYBOARD + MOUSE BUTTONS</span>
@@ -365,7 +390,7 @@ const OptionsScreen: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         )}
 
         {page === 'keyboard' && (
-          <div className="relative flex flex-col gap-[4px] px-1">
+          <div className={`relative flex flex-col ${KEY_ACTIONS.length > 13 ? 'gap-[3px]' : 'gap-[4px]'} px-1`}>
             <div className="flex pr-3 text-[6px] font-black tracking-widest text-zinc-500">
               <span className="ml-auto w-[118px] text-center">PRIMARY</span><span className="ml-2 w-[118px] text-center">SECONDARY</span>
             </div>
@@ -411,6 +436,7 @@ const OptionsScreen: React.FC<{ onClose: () => void }> = ({ onClose }) => {
           {page === 'main' && <Prompt pad={['DPAD', 'OK']} kb={['ENTER']} mouse="left" label="OPEN" size={14} />}
           {page === 'audio' && <Prompt pad={['DPAD']} kb={[LEFT, RIGHT]} mouse="left" label="VOLUME" size={14} />}
           {page === 'video' && <Prompt pad={['DPAD', 'OK']} kb={[LEFT, RIGHT]} mouse="left" label="CHANGE" size={14} />}
+          {page === 'controls' && guidePages && guidePages.length > 1 && <Prompt pad={['DPAD']} kb={[LEFT, RIGHT]} mouse="left" label="PAGE" size={14} />}
           {page === 'keyboard' && !capturing && <>
             <Prompt pad={['OK']} kb={['ENTER']} mouse="left" label="CHANGE" size={14} />
             <Prompt pad={['X']} kb={['DEL']} label="CLEAR" size={14} />

@@ -66,17 +66,19 @@ interface Props {
   weapons: WeaponType[];
   current: WeaponType;
   ammo: Partial<Record<WeaponType, number>>;
-  /** What's picked out: a weapon (its index), or RESUME (weapons.length). */
+  /** What's picked out: a weapon (its index), RESUME (weapons.length), or OPTIONS (weapons.length + 1). */
   selected: number;
   onPick: (i: number) => void;
   onResume: () => void;
-  /** In the intro: skip the rest of it (picked out as weapons.length + 1). */
+  /** OPTIONS: the options screen (Meathead 1's, OptionsScreen.tsx). */
+  onOptions: () => void;
+  /** In the intro: skip the rest of it (picked out as weapons.length + 2). */
   onSkip?: () => void;
   /** Done up for wherever he is (hudThemes.tsx). */
   skin?: PauseSkin;
   /** Stuck with the one he's holding for now (the mine cart): the rest shown, but not to be picked. */
   locked?: boolean;
-  /** Out in a land (or the break room): BACK TO HUB (picked out as weapons.length + 1), asked first. */
+  /** Out in a land (or the break room): BACK TO HUB (picked out as weapons.length + 2), asked first. */
   onHub?: () => void;
   /** ARE YOU SURE? up: which answer's picked out (0 NO, 1 YES), or null. */
   hubAsk?: 0 | 1 | null;
@@ -84,13 +86,13 @@ interface Props {
   onHubPick?: (a: 0 | 1) => void;
 }
 
-const PauseMenu: React.FC<Props> = ({ weapons, current, ammo, selected, onPick, onResume, onSkip, skin = PLAIN_PAUSE, locked = false, onHub, hubAsk = null, onHubAnswer, onHubPick }) => {
+const PauseMenu: React.FC<Props> = ({ weapons, current, ammo, selected, onPick, onResume, onOptions, onSkip, skin = PLAIN_PAUSE, locked = false, onHub, hubAsk = null, onHubAnswer, onHubPick }) => {
   const shown = selected < weapons.length ? weapons[selected] : current;
   const info = M2_WEAPON_INFO[shown];
   const full = (w: WeaponType) => maxAmmo(w);
   const left = (w: WeaponType) => (full(w) === Infinity ? null : (ammo[w] ?? full(w)) / full(w));
   const ammoText = (w: WeaponType) => (full(w) === Infinity ? 'INFINITE' : `${Math.floor(ammo[w] ?? full(w))} / ${full(w)}`);
-  const onResumeBtn = selected === weapons.length, onSkipBtn = selected === weapons.length + 1;
+  const onResumeBtn = selected === weapons.length, onOptionsBtn = selected === weapons.length + 1, onSkipBtn = selected === weapons.length + 2;
   // (open, the menu behind it is dead to the pad and the keys: App asks cheatPanelOpen(); X on the pad opens it too;
   // shut when the menu goes)
   useSyncExternalStore(subscribeCheats, getCheats);
@@ -181,6 +183,12 @@ const PauseMenu: React.FC<Props> = ({ weapons, current, ammo, selected, onPick, 
             style={{ background: skin.button, borderBottom: `4px solid ${skin.buttonEdge}`, boxShadow: onResumeBtn ? '0 0 12px rgba(250,204,21,0.6), 3px 3px 0 #000' : '3px 3px 0 #000', outline: onResumeBtn ? '2px solid #FACC15' : 'none' }}>
             {onResumeBtn && <span className="absolute left-2 text-yellow-300 animate-pulse">&#9654;</span>}
             <span className="w-4 text-center">▶</span>RESUME
+          </button>
+          <button onClick={onOptions}
+            className={`relative flex items-center gap-2 pl-6 pr-3 py-[7px] text-white text-[10px] font-black uppercase tracking-wider transition-all ${onOptionsBtn ? 'translate-x-1' : 'opacity-85 hover:opacity-100'}`}
+            style={{ background: 'linear-gradient(180deg, #3F6212, #365314)', borderBottom: '4px solid #1A2E05', boxShadow: onOptionsBtn ? '0 0 12px rgba(250,204,21,0.6), 3px 3px 0 #000' : '3px 3px 0 #000', outline: onOptionsBtn ? '2px solid #FACC15' : 'none' }}>
+            {onOptionsBtn && <span className="absolute left-2 text-yellow-300 animate-pulse">&#9654;</span>}
+            <span className="w-4 text-center">⚙</span>OPTIONS
           </button>
           {onSkip && (
             <button onClick={onSkip}

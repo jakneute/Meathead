@@ -29,7 +29,9 @@ export const DEFAULT_SETTINGS: Settings = {
   keys: DEFAULT_KEYS,
 };
 
-const STORE = 'meathead-settings';
+let STORE = 'meathead-settings';
+/** Meathead 2's settings are its own (its own keys, its own volumes): kept under its own name. Before loadSettings. */
+export const setSettingsStore = (name: string) => { STORE = name; };
 /** The title screen's old music switch (on or off): read once, if there's nothing newer. */
 const OLD_MUSIC = 'meathead-music';
 
@@ -92,7 +94,7 @@ export const loadSettings = () => {
     };
   } else {
     // (the music was switched off on the title screen, before there were options: it stays off)
-    const musicOff = storage().read(OLD_MUSIC) === 'off';
+    const musicOff = STORE === 'meathead-settings' && storage().read(OLD_MUSIC) === 'off';
     current = { ...DEFAULT_SETTINGS, music: musicOff ? 0 : 100 };
   }
   apply();

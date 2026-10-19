@@ -4,7 +4,9 @@
 // buttons are 'mouse0' (left), 'mouse1' (middle), 'mouse2' (right), 'mouse3' and 'mouse4' (the side ones). Each
 // action has two: a primary and a secondary.
 
-export type KeyAction = 'left' | 'right' | 'up' | 'down' | 'jump' | 'fire' | 'secondary' | 'special' | 'charge' | 'uppercut' | 'downSpecial' | 'prevWeapon' | 'nextWeapon';
+// (Meathead 2's grabs, 'beatdown', 'shakedown', 'airGrab': its own, listed only once it's put its profile in, setKeyProfile)
+export type KeyAction = 'left' | 'right' | 'up' | 'down' | 'jump' | 'fire' | 'secondary' | 'special' | 'charge' | 'uppercut' | 'downSpecial' | 'prevWeapon' | 'nextWeapon'
+  | 'beatdown' | 'shakedown' | 'airGrab';
 export type KeyBindings = Record<KeyAction, string[]>;
 
 /** How many keys an action can have. */
@@ -41,6 +43,25 @@ export const DEFAULT_KEYS: KeyBindings = {
   downSpecial: ['keyc'],
   prevWeapon: ['wheelup'],
   nextWeapon: ['wheeldown'],
+  beatdown: [], shakedown: [], airGrab: [],
+};
+
+/** Keys a game keeps for itself, on top of isReservedKey's (Meathead 2's P: its pause). */
+let extraReserved: string[] = [];
+
+/**
+ * Meathead 2's keyboard: its own actions (the grabs after the charge moves), its own defaults (the left button alone
+ * fires; R, T and Q grab) and P kept for its pause. Changed in place, before the settings are loaded (loadSettings):
+ * whatever imported the list or the defaults sees the new ones.
+ */
+export const setKeyProfile = (profile: 'm2') => {
+  if (profile !== 'm2') return;
+  const at = KEY_ACTIONS.findIndex(a => a.id === 'downSpecial') + 1;
+  KEY_ACTIONS.splice(at, 0, { id: 'beatdown', label: 'BEATDOWN' }, { id: 'shakedown', label: 'SHAKEDOWN' }, { id: 'airGrab', label: 'AIR GRAB' });
+  Object.assign(DEFAULT_KEYS, { fire: ['mouse0'], beatdown: ['keyr'], shakedown: ['keyt'], airGrab: ['keyq'] });
+  extraReserved = ['keyp'];
+  bindings = cloneKeys(DEFAULT_KEYS);
+  version++;
 };
 
 /** The mouse wheel's two notches: bindable, but only to the weapon cycling (a notch is a tap, never held). */
@@ -52,7 +73,7 @@ export const wheelFits = (a: KeyAction) => a === 'prevWeapon' || a === 'nextWeap
  * the F keys (the browser's: F11 is fullscreen), and the system's own.
  */
 export const isReservedKey = (code: string) =>
-  code === 'escape' || /^digit[1-9]$/.test(code) || /^f\d+$/.test(code) || code.startsWith('meta') || code.startsWith('os') || code === 'contextmenu' || code === 'unidentified' || code === '';
+  code === 'escape' || extraReserved.includes(code) || /^digit[1-9]$/.test(code) || /^f\d+$/.test(code) || code.startsWith('meta') || code.startsWith('os') || code === 'contextmenu' || code === 'unidentified' || code === '';
 
 let bindings: KeyBindings = cloneKeys(DEFAULT_KEYS);
 let version = 0;
@@ -92,7 +113,7 @@ export const sanitizeKeys = (raw: unknown): KeyBindings => {
 export const getKeyBindings = (): KeyBindings => bindings;
 export const setKeyBindings = (k: KeyBindings) => { bindings = cloneKeys(k); version++; listeners.forEach(f => f()); };
 /** The keys (and mouse buttons) bound to an action right now. */
-export const keysFor = (a: KeyAction): string[] => bindings[a].filter(Boolean);
+export const keysFor = (a: KeyAction): string[] => (bindings[a] ?? []).filter(Boolean);
 export const subscribeKeys = (fn: () => void) => { listeners.add(fn); return () => { listeners.delete(fn); }; };
 export const keysVersion = () => version;
 
@@ -139,5 +160,5 @@ export const keyLabel = (code: string): string => {
   return code.toUpperCase();
 };
 /** The action's primary key (or, if that's been cleared, its secondary), undefined if it's got neither. */
-export const primaryKey = (a: KeyAction): string | undefined => bindings[a].find(Boolean);
+export const primaryKey = (a: KeyAction): string | undefined => bindings[a]?.find(Boolean);
 export const isKeyAction = (s: string): s is KeyAction => KEY_ACTIONS.some(a => a.id === s);

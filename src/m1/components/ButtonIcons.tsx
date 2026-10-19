@@ -38,7 +38,7 @@ export const BindingIcon: React.FC<{ code?: string; name: string; size?: number 
  * confirms; its B, on the bottom, goes back). What's printed on them depends on whose controller it is: an Xbox's
  * letters, a PlayStation's shapes, a Switch's letters (the other way round to an Xbox's).
  */
-export type PadKey = 'A' | 'B' | 'X' | 'Y' | 'START' | 'LB' | 'RB' | 'DPAD' | 'DPAD_UP' | 'DPAD_DOWN' | 'DPAD_LEFT' | 'DPAD_RIGHT' | 'RSTICK' | 'OK' | 'BACK';
+export type PadKey = 'A' | 'B' | 'X' | 'Y' | 'START' | 'LB' | 'RB' | 'LT' | 'RT' | 'DPAD' | 'DPAD_UP' | 'DPAD_DOWN' | 'DPAD_LEFT' | 'DPAD_RIGHT' | 'RSTICK' | 'OK' | 'BACK';
 type Face = 'A' | 'B' | 'X' | 'Y';
 const XBOX_COLORS: Record<Face, string> = { A: '#22C55E', B: '#EF4444', X: '#3B82F6', Y: '#FACC15' };
 const PS_SHAPES: Record<Face, { shape: 'cross' | 'circle' | 'square' | 'triangle'; color: string }> = {
@@ -105,7 +105,7 @@ export const PadButton: React.FC<{ label: Face; size?: number; family?: PadFamil
 
 /** The controller's other buttons: Start (a little pill), the bumpers (a wide rounded bar), the D-pad (a cross). */
 type DpadDir = 'DPAD_UP' | 'DPAD_DOWN' | 'DPAD_LEFT' | 'DPAD_RIGHT';
-const PadOther: React.FC<{ label: 'START' | 'LB' | 'RB' | 'DPAD' | DpadDir | 'RSTICK'; size: number; family?: PadFamily }> = ({ label, size, family = 'xbox' }) => {
+const PadOther: React.FC<{ label: 'START' | 'LB' | 'RB' | 'LT' | 'RT' | 'DPAD' | DpadDir | 'RSTICK'; size: number; family?: PadFamily }> = ({ label, size, family = 'xbox' }) => {
   // (the right stick: a thumbstick seen from above, R on it, arrows up and down)
   if (label === 'RSTICK') return (
     <svg viewBox="0 0 40 40" width={size} height={size} className="inline-block align-middle shrink-0">

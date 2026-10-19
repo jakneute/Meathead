@@ -31,7 +31,7 @@ import { CANVAS_WIDTH } from '../../m1/constants';
 import { vineGrip, vineLean } from '../../m1/game/combat/muzzle';
 import { drawLeg, drawArmTo, drawTorsoFromHips } from '../../m1/game/render/player/body';
 import { drawPoseSprite, drawPoseHead, drawEnemyAt, grabBusy } from '../moves/grab';
-import { btn, keyHeld } from '../input';
+import { btn, boundHeld } from '../input';
 import { m2Kill } from '../moves/killLines';
 import { grabCallout } from '../moves/callouts';
 import { say, MEATHEAD_VOICE, pickLine } from '../../m1/game/platform/speech';
@@ -219,7 +219,7 @@ const tick = (ctx: FrameContext, input: { shoot: boolean }, equipped: boolean) =
   const ground = pl.isGrounded;
   // (on a vine: in the air, but it's as good as the ground to him for the held ones)
   const hang = !!pl.vine, footed = ground || hang;
-  const yDown = btn('y') || keyHeld('keyf');
+  const yDown = btn('y') || boundHeld('secondary');
   const xPress = input.shoot && !xWas, yRelease = !yDown && yWas;
   xWas = input.shoot; yWas = yDown;
   if (input.shoot) xHeld++; else xHeld = 0;

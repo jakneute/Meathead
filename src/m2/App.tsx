@@ -18,7 +18,7 @@ import { hasRightStick } from '../m1/game/platform/device';
 import WeaponWheel, { wheelIndexAt } from '../m1/components/WeaponWheel';
 import PauseMenu from './PauseMenu';
 import { portalArrivalPending } from './portalArrival';
-import { THEMES } from './hudThemes';
+import { THEMES, PLAIN_PAUSE } from './hudThemes';
 import GoreBag from './GoreBag';
 import { M2_WEAPONS, M2WeaponArt, weaponName, registerWeapons, ammoName } from './weapons';
 import BulkMeter from './BulkMeter';
@@ -69,7 +69,11 @@ setFrameHook(state => {
 });
 import { getCheats, subscribeCheats, availableWeapons, subscribeArsenal, setLiveState, cheatPanelOpen, setCheatPanelOpen, moveCheatCursor, activateCheat } from './cheats';
 import { attachM2Keys } from './input';
-import { setFireKeys } from '../m1/game/platform/input';
+import { setKeyProfile, keysFor } from '../m1/game/platform/keys';
+import { setSettingsStore, loadSettings, getSettings, subscribeSettings } from '../m1/game/settings';
+import OptionsScreen from '../m1/components/OptionsScreen';
+import { useOpenCloseSound } from '../m1/components/useCursorSound';
+import { M2_GUIDE_PAGES } from './ControlsGuide';
 import { setRayGun } from '../m1/game/combat/rayGun';
 import MapCard from './hub/MapCard';
 import CheckpointPicker from '../m1/components/CheckpointPicker';
@@ -107,8 +111,11 @@ registerIntro();
 loadVoicePack(voicePackUrl);
 attachM2Keys();
 cleanLines();
-// (on the keyboard and mouse, the left button fires: no fire keys)
-setFireKeys([]);
+// (the options: its own keyboard (the grabs bindable, the left button alone firing to start with, P kept for pausing),
+// its own settings, remembered apart from Meathead 1's, put into effect now: the volumes, the shake, the flashing, the keys)
+setKeyProfile('m2');
+setSettingsStore('meathead2-settings');
+loadSettings();
 setRayGun(true, m2Kill('raygun_kill'));
 registerGrabCallouts();
 registerKillLines();
@@ -167,10 +174,15 @@ const LAND_STAGES: Record<string, { stage: string; checkpoints: { name: string; 
 };
 const landOfStage = (stage: string) => Object.keys(LAND_STAGES).find(id => LAND_STAGES[id].stage === stage) ?? null;
 
+/** Scaled up to fill the window (the options' STRETCH), or by whole steps only (SHARP), as Meathead 1's is. */
 const useFitToWindow = () => {
-  const fit = () => Math.max(0.5, Math.min(window.innerWidth / 808, window.innerHeight / 608));
+  const scaling = useSyncExternalStore(subscribeSettings, () => getSettings().scaling, () => getSettings().scaling);
+  const fit = () => {
+    const f = Math.max(0.5, Math.min(window.innerWidth / 808, window.innerHeight / 608));
+    return getSettings().scaling === 'sharp' && f >= 1 ? Math.floor(f) : f;
+  };
   const [scale, setScale] = useState(fit);
-  useEffect(() => { const on = () => setScale(fit()); window.addEventListener('resize', on); return () => window.removeEventListener('resize', on); }, []);
+  useEffect(() => { const on = () => setScale(fit()); on(); window.addEventListener('resize', on); return () => window.removeEventListener('resize', on); }, [scaling]);
   return scale;
 };
 
@@ -244,7 +256,17 @@ const App2: React.FC = () => {
   live.current = { status, weapon, stage };
   /** (after RESUME: SKIP INTRO in the intro; BACK TO HUB out in a land, or the break room) */
   const canHub = () => !!landOfStage(live.current.stage) || live.current.stage === PEN_STAGE;
-  const lastPause = () => (live.current.stage === INTRO_STAGE || canHub() ? arsenal().length + 1 : arsenal().length);
+  /** (RESUME, OPTIONS, then SKIP INTRO / BACK TO HUB where there's one) */
+  const lastPause = () => (live.current.stage === INTRO_STAGE || canHub() ? arsenal().length + 2 : arsenal().length + 1);
+  /** The options screen (OPTIONS in the pause menu): while it's up, it takes every key and button; and a moment after
+   *  it's shut (the press that shut it isn't one for the pause menu too). */
+  const [optionsOpen, setOptionsOpen] = useState(false);
+  const optionsRef = useRef({ open: false, shutAt: 0 });
+  const openOptions = () => { optionsRef.current.open = true; setOptionsOpen(true); };
+  const closeOptions = () => { optionsRef.current = { open: false, shutAt: performance.now() }; setOptionsOpen(false); };
+  const inOptions = () => optionsRef.current.open || performance.now() - optionsRef.current.shutAt < 150;
+  useOpenCloseSound(optionsOpen);
+  useEffect(() => { if (status !== GameStatus.PAUSED && optionsRef.current.open) closeOptions(); }, [status]);
   const skipIntro = () => { setStatus(GameStatus.PLAYING); goTo('hub'); };
   /** BACK TO HUB, asked first: ARE YOU SURE? (null: not asking; 0 NO, 1 YES picked out, NO to start with) */
   const [hubAsk, setHubAsk] = useState<0 | 1 | null>(null);
@@ -265,14 +287,17 @@ const App2: React.FC = () => {
   /** In the pause menu: the arsenal's a grid three across, RESUME under it. */
   const movePause = (dx: number, dy: number) => setPauseSel(i => {
     const n = arsenal().length;
-    if (i >= n) { if (dx > 0) return Math.min(lastPause(), i + 1); if (dx < 0 && i > n) return n; return dy < 0 ? Math.min(n - 1, Math.floor((n - 1) / 3) * 3) : i; }
+    if (i >= n) { if (dx > 0) return Math.min(lastPause(), i + 1); if (dx < 0 && i > n) return i - 1; return dy < 0 ? Math.min(n - 1, Math.floor((n - 1) / 3) * 3) : i; }
     if (dy > 0) return i + 3 < n ? i + 3 : n;
     if (dy < 0) return i - 3 >= 0 ? i - 3 : i;
     return Math.max(0, Math.min(n - 1, i + dx));
   });
   const pauseSelRef = useRef(pauseSel);
   pauseSelRef.current = pauseSel;
-  const confirmPause = () => { const i = pauseSelRef.current; if (i === arsenal().length + 1) { if (canHub()) askHub(); else skipIntro(); } else if (i >= arsenal().length) resume(); else equip(i); };
+  const confirmPause = () => {
+    const i = pauseSelRef.current, n = arsenal().length;
+    if (i === n + 2) { if (canHub()) askHub(); else skipIntro(); } else if (i === n + 1) openOptions(); else if (i >= n) resume(); else equip(i);
+  };
 
   // Weapons: the shoulder buttons, the right stick's wheel, the number keys, the mouse wheel; START or ESC pauses
   useEffect(() => {
@@ -281,18 +306,39 @@ const App2: React.FC = () => {
     // (the mouse wheel: one weapon a notch, and a short cooldown after each, so a flick doesn't spin past three of them)
     let wheelAt = 0;
     const onWheel = (e: WheelEvent) => {
-      if (!(playing() || paused()) || (paused() && cheatPanelOpen()) || Math.abs(e.deltaY) < 1) return;
+      if (!(playing() || paused()) || (paused() && cheatPanelOpen()) || inOptions() || Math.abs(e.deltaY) < 1) return;
       const now = performance.now();
       if (now - wheelAt < WHEEL_COOLDOWN_MS) return;
+      // (whatever the notch is bound to: the weapon cycling, or nothing)
+      const code = e.deltaY > 0 ? 'wheeldown' : 'wheelup';
+      const d = keysFor('prevWeapon').includes(code) ? -1 : keysFor('nextWeapon').includes(code) ? 1 : 0;
+      if (!d) return;
       wheelAt = now;
-      // (Truelling Tragons: the wheel hops him between cars, up for the car above, down for the one below)
-      if (getUi().carHops) { if (playing()) requestCarHop(e.deltaY > 0 ? 'down' : 'up'); return; }
-      cycle(e.deltaY > 0 ? 1 : -1);
+      bump(d);
     };
+    /** The previous / next weapon buttons (the wheel's notches, keys, mouse buttons, wherever they're bound); on
+     *  Truelling Tragons, they hop him between cars: previous the car above, next the one below. */
+    const bump = (d: number) => {
+      if (getUi().carHops) { if (playing()) requestCarHop(d > 0 ? 'down' : 'up'); return; }
+      cycle(d);
+    };
+    const bumpCode = (code: string) => {
+      if (!(playing() || paused()) || (paused() && cheatPanelOpen()) || inOptions()) return false;
+      const d = keysFor('prevWeapon').includes(code) ? -1 : keysFor('nextWeapon').includes(code) ? 1 : 0;
+      if (d) bump(d);
+      return !!d;
+    };
+    // (a right-click that backed out of the options screen: its context menu, on the release, isn't one for the pause menu)
+    let rightFromOptions = false;
+    const onMouseDown = (e: MouseEvent) => { if (e.button === 2) rightFromOptions = inOptions(); bumpCode(`mouse${e.button}`); };
+    window.addEventListener('mousedown', onMouseDown);
     const onKey = (e: KeyboardEvent) => {
       // (the first key lets the sound out: the browser holds it back till then)
       getAudioContext();
       if (e.repeat) return;
+      // (the options screen up: it takes the keys itself)
+      if (inOptions()) return;
+      if (bumpCode(e.code.toLowerCase())) return;
       // (the cheat panel up: the pause menu behind it doesn't move, nor does the game unpause, till it's shut)
       if (paused() && cheatPanelOpen()) { if (e.code === 'Escape') setCheatPanelOpen(false); return; }
       // (ARE YOU SURE? up: left/right between NO and YES, ENTER answers, ESC is no)
@@ -313,7 +359,7 @@ const App2: React.FC = () => {
       else if (e.code === 'Enter' || e.code === 'Space') confirmPause();
     };
     // (right-click in the pause menu: back out of it)
-    const onContext = (e: MouseEvent) => { if (paused()) { e.preventDefault(); if (hubAskRef.current !== null) setHubAsk(null); else if (!cheatPanelOpen()) resume(); } };
+    const onContext = (e: MouseEvent) => { if (paused()) { e.preventDefault(); if (inOptions() || rightFromOptions) { rightFromOptions = false; return; } if (hubAskRef.current !== null) setHubAsk(null); else if (!cheatPanelOpen()) resume(); } };
     window.addEventListener('wheel', onWheel);
     window.addEventListener('keydown', onKey);
     window.addEventListener('contextmenu', onContext);
@@ -329,6 +375,12 @@ const App2: React.FC = () => {
         const now = performance.now();
         const btn = { lb: isButtonPressed(gp, GP_BUTTONS.LB), rb: isButtonPressed(gp, GP_BUTTONS.RB), start: isButtonPressed(gp, GP_BUTTONS.START) || isButtonPressed(gp, GP_BUTTONS.SELECT), ok: isButtonPressed(gp, menuButtons(gp).ok), back: isButtonPressed(gp, menuButtons(gp).back), x: isButtonPressed(gp, GP_BUTTONS.X) };
         const pressed = (k: keyof typeof btn) => btn[k] && !prev[k];
+        // The options screen up: it reads the pad itself (what's held as it shuts isn't a press here either)
+        if (inOptions()) {
+          Object.assign(prev, btn);
+          id = requestAnimationFrame(poll);
+          return;
+        }
         // The cheat panel (X in the pause menu): its own cursor; backing out of it is back to the weapon select
         if (paused() && cheatPanelOpen()) {
           const m = getGamepadMovement(gp, 0.25);
@@ -381,7 +433,7 @@ const App2: React.FC = () => {
       id = requestAnimationFrame(poll);
     };
     id = requestAnimationFrame(poll);
-    return () => { window.removeEventListener('wheel', onWheel); window.removeEventListener('keydown', onKey); window.removeEventListener('contextmenu', onContext); window.removeEventListener('pointerdown', onPointer); cancelAnimationFrame(id); };
+    return () => { window.removeEventListener('wheel', onWheel); window.removeEventListener('mousedown', onMouseDown); window.removeEventListener('keydown', onKey); window.removeEventListener('contextmenu', onContext); window.removeEventListener('pointerdown', onPointer); cancelAnimationFrame(id); };
   }, []);
 
   const onPlayerUpdate = (health: number, power: number, ammo?: Record<WeaponType, number>) => {
@@ -465,7 +517,7 @@ const App2: React.FC = () => {
         {/* Foreign Lands' helicopter: the flying controls, for a while once he's jacked it */}
         {status === GameStatus.PLAYING && ui.map === null && !ui.introCutscene && ui.heliTips && (
           <div className="absolute left-1/2 -translate-x-1/2 top-[132px] z-30 flex gap-4 px-3 py-2 text-[9px] text-white bg-black/75 border-2 border-zinc-600">
-            <Prompt pad={['X']} kb={['@fire']} mouse="left" label="MACHINE GUN" />
+            <Prompt pad={['X']} kb={['@fire']} label="MACHINE GUN" />
             {ROCKETS_ON && <Prompt pad={['Y']} kb={['@secondary']} label="ROCKETS" />}
             <span className="inline-flex items-center gap-1 align-middle"><Prompt pad={['DPAD']} kb={['@up', '@down', '@left', '@right']} /><span>+</span><Prompt pad={['B']} kb={['@special']} label="BOOST" /></span>
           </div>
@@ -475,8 +527,8 @@ const App2: React.FC = () => {
           // (a Genesis panel: chrome bevel, a banded navy face)
           <div className="absolute left-1/2 -translate-x-1/2 top-[132px] z-30 flex flex-col items-center gap-2 px-3 py-2 text-[9px] text-white bg-gradient-to-b from-[#1E2A70] via-[#121A4A] to-[#0A0E2A] border-4 border-t-[#F2F2FA] border-l-[#CACADA] border-b-[#3A3A48] border-r-[#62627A] shadow-[0_0_0_2px_#0A0A10]">
             <div className="flex gap-4">
-              <Prompt pad={['X']} kb={['@fire']} mouse="left" label="HIT LEFT" />
-              <Prompt pad={['B']} kb={['@charge', '@special']} mouse="right" label="HIT RIGHT" />
+              <Prompt pad={['X']} kb={['@fire']} label="HIT LEFT" />
+              <Prompt pad={['B']} kb={['@charge', '@special']} label="HIT RIGHT" />
               <Prompt pad={['A']} kb={['@jump']} label="JUMP" />
               <Prompt pad={['DPAD_UP']} kb={['@up']} label="BOOST" />
               <Prompt pad={['DPAD_DOWN']} kb={['@down']} label="BRAKE" />
@@ -487,8 +539,8 @@ const App2: React.FC = () => {
         {status === GameStatus.PLAYING && ui.map === null && !ui.introCutscene && ui.tragonTips && (
           <div className="absolute left-1/2 -translate-x-1/2 top-[132px] z-30 flex flex-col items-center gap-2 px-3 py-2 text-[9px] text-white bg-black/80 border-2 border-[#FACC15]">
             <div className="flex gap-4">
-              <Prompt pad={['RB']} mouse="wheel" label="HOP UP A CAR" />
-              <Prompt pad={['LB']} mouse="wheel" label="HOP DOWN A CAR" />
+              <Prompt pad={['RB']} kb={['@prevWeapon']} label="HOP UP A CAR" />
+              <Prompt pad={['LB']} kb={['@nextWeapon']} label="HOP DOWN A CAR" />
             </div>
             <span className="text-zinc-400">NO FIRING ON THE RIDE</span>
           </div>
@@ -497,12 +549,12 @@ const App2: React.FC = () => {
         {status === GameStatus.PLAYING && ui.map === null && !ui.introCutscene && ui.broomTips && (
           <div className="absolute left-1/2 -translate-x-1/2 top-[132px] z-30 flex flex-col items-center gap-2 px-3 py-2 text-[9px] text-white bg-black/80 border-2 border-[#F472B6]">
             <div className="flex gap-4">
-              <Prompt pad={['X']} kb={['@fire']} mouse="left" label="LASER" />
-              <span className="inline-flex items-center gap-1 align-middle"><span>HOLD</span><Prompt pad={['X']} kb={['@fire']} mouse="left" label="LOCK ON, LET GO: HOMING SHOT" /></span>
+              <Prompt pad={['X']} kb={['@fire']} label="LASER" />
+              <span className="inline-flex items-center gap-1 align-middle"><span>HOLD</span><Prompt pad={['X']} kb={['@fire']} label="LOCK ON, LET GO: HOMING SHOT" /></span>
             </div>
             <div className="flex gap-4">
               <Prompt pad={[ninPad ? 'B' : 'A']} kb={['@jump']} label="BOOST" />
-              <Prompt pad={[ninPad ? 'A' : 'B']} kb={['@charge', '@special']} mouse="right" label="BRAKE" />
+              <Prompt pad={[ninPad ? 'A' : 'B']} kb={['@charge', '@special']} label="BRAKE" />
               <Prompt pad={['Y']} kb={['@secondary']} label="INVERT PITCH" />
             </div>
             <span className="inline-flex items-center gap-1 align-middle"><Prompt pad={['DPAD_UP', 'DPAD_DOWN']} kb={['@up', '@down']} /><span>PITCH UP / DOWN</span><Prompt pad={['DPAD_LEFT', 'DPAD_RIGHT']} kb={['@left', '@right']} /><span>TURN</span></span>
@@ -526,17 +578,17 @@ const App2: React.FC = () => {
             {ui.introTip === 'grabs' && <>
               <div className="grid grid-cols-3 gap-x-4 gap-y-1">
                 <div className="flex flex-col gap-1">
-                  <ChordPrompt pad={['Y', 'B']} join="+" kb={['R']} label="BEATDOWN" />
+                  <ChordPrompt pad={['Y', 'B']} join="+" kb={['@beatdown']} label="BEATDOWN" />
                   <span className="text-green-400">PUNCHES HEAL YOU.</span>
-                  <span className="text-zinc-400"><ChordPrompt pad={['X', 'B', 'Y']} join="/" mouse="left" label="PUNCH" size={12} /> <Prompt pad={['A']} kb={['SPACE']} label="GET OFF" size={12} /></span>
+                  <span className="text-zinc-400"><ChordPrompt pad={['X', 'B', 'Y']} join="/" kb={['@fire']} label="PUNCH" size={12} /> <Prompt pad={['A']} kb={['@jump']} label="GET OFF" size={12} /></span>
                 </div>
                 <div className="flex flex-col gap-1">
-                  <ChordPrompt pad={['A', 'B']} join="+" kb={['Q']} label="AIR GRAB" />
+                  <ChordPrompt pad={['A', 'B']} join="+" kb={['@airGrab']} label="AIR GRAB" />
                   <span className="text-green-400">LEAP, GRAB, SLAM. IT HEALS.</span>
                   <span className="text-zinc-400">BACK: FLIP. FORWARD: DIVE.</span>
                 </div>
                 <div className="flex flex-col gap-1">
-                  <ChordPrompt pad={['Y', 'X']} join="+" kb={['T']} label="SHAKEDOWN" />
+                  <ChordPrompt pad={['Y', 'X']} join="+" kb={['@shakedown']} label="SHAKEDOWN" />
                   <span className="text-green-400">SHAKES AMMO OUT OF THEM.</span>
                   <span className="text-zinc-400">HOLD A DIRECTION TO THROW.</span>
                 </div>
@@ -551,7 +603,7 @@ const App2: React.FC = () => {
         )}
         {status === GameStatus.PLAYING && stage === INTRO_STAGE && !ui.introCutscene && ui.introPrompt && (
           <div className="absolute left-1/2 -translate-x-1/2 top-[132px] z-30 px-3 py-2 text-[9px] text-white bg-black/75 border-2 border-zinc-600">
-            <Prompt pad={['DPAD_UP']} kb={['W']} label={ui.introPrompt === 'ticket' ? 'SHOW YOUR TICKET' : ui.introPrompt === 'wait' ? 'WAIT YOUR TURN' : 'IN YOU GO'} />
+            <Prompt pad={['DPAD_UP']} kb={['@up']} label={ui.introPrompt === 'ticket' ? 'SHOW YOUR TICKET' : ui.introPrompt === 'wait' ? 'WAIT YOUR TURN' : 'IN YOU GO'} />
           </div>
         )}
         {ui.introTicket && <TicketCard kind={ui.introTicket} />}
@@ -569,8 +621,13 @@ const App2: React.FC = () => {
         {wheelAt !== null && status === GameStatus.PLAYING && !noSwitching() && <WeaponWheel weapons={arsenal()} index={wheelAt} current={weapon} nameOf={weaponName} Art={M2WeaponArt} />}
         {status === GameStatus.PAUSED && (
           <PauseMenu weapons={arsenal()} current={weapon} ammo={hud.ammo} selected={pauseSel} locked={!!ui.noSwitch}
-            onPick={i => { setPauseSel(i); equip(i); }} onResume={resume} onSkip={stage === INTRO_STAGE ? skipIntro : undefined}
+            onPick={i => { setPauseSel(i); equip(i); }} onResume={resume} onOptions={() => { setPauseSel(arsenal().length + 1); openOptions(); }} onSkip={stage === INTRO_STAGE ? skipIntro : undefined}
             onHub={landOfStage(stage) || stage === PEN_STAGE ? askHub : undefined} hubAsk={hubAsk} onHubAnswer={answerHub} onHubPick={a => setHubAsk(a)} skin={theme?.pause} />
+        )}
+        {/* OPTIONS: Meathead 1's options screen, with Meathead 2's controls, edged like the pause menu behind it */}
+        {optionsOpen && status === GameStatus.PAUSED && (
+          <OptionsScreen onClose={closeOptions} guidePages={M2_GUIDE_PAGES}
+            look={{ border: (theme?.pause ?? PLAIN_PAUSE).frame.border, boxShadow: (theme?.pause ?? PLAIN_PAUSE).frame.boxShadow, stripe: (theme?.pause ?? PLAIN_PAUSE).stripe }} />
         )}
         {noticeUp && ui.notice && (
           <div className="absolute left-1/2 top-[40%] -translate-x-1/2 z-40 px-4 py-3 text-[12px] text-yellow-300 bg-black/85 border-2 border-yellow-500">{ui.notice.text}</div>
