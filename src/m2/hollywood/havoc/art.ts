@@ -31,6 +31,7 @@ import { drawHavocFronts, drawLightTower, drawRideEnd, FRONTS } from './fronts';
 import { drawClimb, drawHill } from './climb';
 import { drawHavocProps, zoneFloor, zoneStreet, zoneSigns, zoneLights } from './props';
 import { drawHavocEffects } from './effects';
+import { blowMid } from './snowzone';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -57,6 +58,8 @@ export const drawHavocBack = (c: Ctx, state: GameState) => {
   drawHill(c, v, state, hv, done, 'near');
   // What stands about; the light tower; the zone's signs; the lava's heat
   drawHavocProps(c, v, state, hv, done);
+  // (the blizzard's snow blowing by between him and the hill road's far side)
+  if (!done) blowMid(c, state);
   drawLightTower(c, v, state, hv);
   zoneSigns(c, v, state, hv, done);
   if (!done) for (const l of LAVA) lavaGlow(c, v, l, f);

@@ -41,7 +41,7 @@ export interface Avalanche { k: number; phase: 'idle' | 'tell' | 'run' | 'done';
 export interface Slide { x: number; warn: number; hit: boolean }
 /** Something the tornado's torn loose (a board off a facade, a standee, a lamppost, a guest): round the funnel and up
  *  (orbit frames), then thrown out. Looks only. */
-export interface Debris { x: number; y: number; vx: number; vy: number; rot: number; w: number; h: number; col: string; orbit: number; ang: number; r: number; t: number; guest: boolean }
+export interface Debris { x: number; y: number; vx: number; vy: number; rot: number; w: number; h: number; col: string; orbit: number; ang: number; r: number; t: number; guest: boolean; gk?: number }
 
 export type FlingStep = 'off' | 'caught' | 'spin' | 'flung' | 'cut' | 'done';
 export interface Fling { step: FlingStep; t: number; all: number; lineDone: boolean; fade: number; cx: number; cy: number; ang: number; r: number }
@@ -78,9 +78,8 @@ export interface Hv {
   /** The chase's snow slides, and when the last one came (frame). */
   slides: Slide[];
   slideAt: number;
-  /** What the tornado's torn loose; the guests at the back it's taken (by their slot). */
+  /** What the tornado's torn loose (the guests it's taken among it: civilians.ts keeps who's gone). */
   debris: Debris[];
-  guestsGone: boolean[];
 }
 
 const ALL = new WeakMap<object, Hv>();
@@ -96,7 +95,7 @@ export const hvOf = (state: GameState): Hv => {
       avalanches: [],
       fling: { step: 'off', t: 0, all: 0, lineDone: false, fade: 0, cx: 0, cy: 0, ang: 0, r: 0 },
       quakeSpots: [], hitAt: new WeakMap(), crusts: [], upLatch: true, banks: [], wet: false,
-      slides: [], slideAt: 0, debris: [], guestsGone: [],
+      slides: [], slideAt: 0, debris: [],
     };
     ALL.set(k, o);
   }

@@ -15,11 +15,11 @@
 // dead, no lights.
 
 import type { GameState } from '../../../m1/game/core/state';
-import { drawPerson } from '../../adventure/temple/people';
 import { GY } from '../geometry';
 import { X, x1 as X1, ZONE, REFILL, HORNS, STEVES, WIND } from './layout';
 import type { Hv } from './state';
-import { isTorn, guestAt, GUEST_BASES } from './chase';
+import { isTorn } from './chase';
+import { drawCivilians } from './civArt';
 import {
   type Ctx, type View, INK, box, mix, hash, poly, at, atDepth, stillAt, seen, signText, FRONT_D, STEEL, STEVE, BRASS, CONCRETE, hour,
   ramp6, post, board,
@@ -28,7 +28,7 @@ import { enamel, gate } from '../../hub/letters';
 import type { Look } from '../../signLetters';
 import { paintStandee, steveCard } from '../blvd/props';
 import { paintPA, paintPosterStand } from '../lot/props';
-import { PA_D, STANDEE_D, PROP_D, SIGN_D, GUEST_D, GANTRY_D, hazard, lip, chain, truss, tubeV } from './paint';
+import { PA_D, STANDEE_D, PROP_D, SIGN_D, GANTRY_D, hazard, lip, chain, truss, tubeV } from './paint';
 
 // ---------------------------------------------------------------------------------------------------------------
 // The standing things
@@ -125,20 +125,12 @@ export const drawHavocProps = (c: Ctx, v: View, state: GameState, hv: Hv, done: 
     else if (seen(v, x - 40, x + 40, PROP_D)) all.push({ x, d: PROP_D, draw: () => stillAt(c, v, PROP_D, `hh-flier-${rx % 3}`, x, GY, -30, -170, 60, 172, g => paintFlierPost(g, rx % 3)) });
   });
   if (done && seen(v, X1 - 220, X1 + 20, SIGN_D)) all.push({ x: X1 - 100, d: SIGN_D, draw: () => stillAt(c, v, SIGN_D, 'hh-stuntery', X1 - 100, GY, -120, -180, 240, 182, paintStunterySign) });
-  // (the guests running for it, at the back of the sidewalk: what the tornado hasn't taken)
-  const people: { x: number; k: number; dir: 1 | -1 }[] = [];
-  if (!done) for (let k = 0; k < GUEST_BASES.length; k++) {
-    if (hv.guestsGone[k]) continue;
-    const g = guestAt(k, f);
-    if (seen(v, g.x - 30, g.x + 30, GUEST_D)) people.push({ x: g.x, k, dir: g.dir });
-  }
-  for (const p of people) atDepth(c, v.eye, GUEST_D, () => {
-    c.save(); c.translate(p.x, GY); c.scale(p.dir * 0.92, 0.92);
-    drawPerson(c, { seed: 900 + p.k * 37, outfit: 'guest', f, pose: 'walk', mood: 'scared', woman: p.k % 2 === 1, shorts: p.k % 3 === 0 });
-    c.restore();
-  });
+  // (the guests running for it, at the back of the sidewalk, and what the disasters have done to them: civArt.ts)
+  drawCivilians(c, v, state, hv, 'street');
   all.sort((a, b) => a.d - b.d);
   for (const s of all) s.draw();
+  // (and the ones caught out on the hill road)
+  drawCivilians(c, v, state, hv, 'hill');
   for (const [a] of WIND) windsock(c, v, a, f, done);
   tent(c, v, f);
 };

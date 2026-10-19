@@ -107,8 +107,8 @@ const tear = (state: GameState, hv: Hv, t: Tear, quiet: boolean) => {
 export const tearUpTo = (state: GameState, x: number) => { const hv = hvOf(state); for (const t of TEARS) if (X(t.x0) < x) tear(state, hv, t, true); };
 
 /** The guests running about at the back of the street: where each is (world x), by its slot. */
-// (each one's run of sidewalk clear of the lava rivers' gaps: nobody walks on air)
-export const GUEST_BASES = [300, 2000, 4200, 5200, 14700, 16800, 18900, 20500];
+// (each one's run of sidewalk clear of the lava rivers' gaps: nobody walks on air; the last, by the flood's way in)
+export const GUEST_BASES = [300, 2000, 4200, 5200, 14700, 16800, 18900, 20500, 5620];
 export const guestAt = (k: number, f: number) => {
   const span = 650, base = GUEST_BASES[k];
   const ph = (f * (1.6 + (k % 3) * 0.4) + k * 211) % (span * 2);
@@ -215,17 +215,7 @@ export const updateChase = (ctx: FrameContext): ChaseEvents => {
       }
       // (everything it comes to: torn loose and taken)
       for (const tr of TEARS) if (t.x + 140 > X(tr.x0) && t.x - 400 < X(tr.x1) && state.stageMemo[TORN_MEMO(tr.key)] !== '1') { tear(state, hv, tr, false); ev.ripped = true; }
-      // (the guests at the back)
-      for (let k = 4; k < GUEST_BASES.length; k++) {
-        if (hv.guestsGone[k]) continue;
-        const g = guestAt(k, f);
-        if (Math.abs(g.x - t.x) < 120) {
-          hv.guestsGone[k] = true;
-          const [px, py] = fromDepth(state, g.x, GY - 40, 0.935);
-          hv.debris.push({ x: px, y: py, vx: 0, vy: 0, rot: 0, w: 18, h: 40, col: '#F6DCC8', orbit: 70, ang: 0, r: 60, t: 0, guest: true });
-          playSound('screams', 0.5, 2);
-        }
-      }
+      // (the guests at the back: civilians.ts, with everything else that gets them)
     }
     zones.push({ x0: t.x - 120, x1: t.x + 260, y0: baseY - FUNNEL_H, y1: baseY + 40 });
     // (its dust and snow, whirling about its foot)

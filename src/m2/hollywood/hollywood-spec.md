@@ -220,3 +220,20 @@ walkAway/stuntmanSteve.ts (placeholder; his toy: the STUNT_CAR).
   talks, an eye twitch now and then. The set's rays are clipped to the picture (they used to spill over the bezel and
   wall) and banded. 60 chaser bulbs in brass sockets on the bezel, a smooth clockwise chase with a flash-all every 7 s,
   a few dead / flickering / dim; mostly dead once it's real. The name moved onto a lower-third bar. No timing changes.
+- **The havoc's civilians die to its hazards; the avalanche zone detailed (2026-10-18, the user: "make sure civilains
+  you otherwise cannot kill during the disaster sequence can die to hazards, like billboards falling down, etc", "make
+  the snowy avalanche zone parts look more detailed").** havoc/civilians.ts (civArt.ts draws it): the guests at the back
+  of the sidewalk (one more by the flood's way in) and one by each bunker's mouth on the hill road. Still unhurtable by
+  him; the hazards that actually reach them kill them, each its own way: a front or the billboard landing on them
+  (legs out from under it), the quake's cornice chunk (its shadow first, where they'll be), a gust shoving one off the
+  bank into the lava (burned, sinking), the wind's plywood (flung, face down), the flood's surge (floating), the
+  avalanche or a snow slide (a mound, legs up), the tornado (round it and up, their own look now). A hazard callout
+  and a scream (envSound), no kill credit, no callouts from him, no drops; never an off-screen cull. Per stage build.
+  havoc/snowzone.ts, drawing only (collision, covers, timing, hit areas untouched): drift ridges and wind-scoured crust
+  dithered across the hillside, buried things poking out frosted and dimmed (a car, a parking meter, a fake Christmas
+  tree, the plywood SKI CHALET), sculpted drifts along the road's far side, the snowpack in cross-section with stepped
+  icicles under the lit lip and frost twinkling over it, snow blowing at three depths, rime and frosted fir tips at
+  the very front; the bunkers read as cover (TAKE COVER plate in the mouth, the bulb's light pooled, icicles, drifts);
+  the signs snow-capped with icicles; the avalanche a churning wall (stepped tumbling billows, dithered bands, a shaded
+  leading face, a car, a meter, the tree, plywood, a sign carried in it, powder blown on ahead, its shadow thrown
+  forward and the ground jumping ahead of it).

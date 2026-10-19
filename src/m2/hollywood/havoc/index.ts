@@ -15,7 +15,9 @@
 // up there he rants about how a tornado launching zone can be SAFE (lines.ts SPIN).
 //
 // layout.ts lays it out; hazards.ts the disasters; chase.ts the bunkers, the avalanches and the tornado; fling.ts the
-// fling; kinds.ts its people (looters, the storm crew, Poppy the popcorn mascot); art.ts draws it; lines.ts what's said.
+// fling; kinds.ts its people (looters, the storm crew, Poppy the popcorn mascot); civilians.ts the guests (he can't hurt
+// them, the disasters can: civArt.ts draws what happens to them); art.ts draws it (snowzone.ts the blizzard's detail);
+// lines.ts what's said.
 //
 // ~22000 px of play (the climb counted by how long it plays), ~4.5 min. Checkpoints 50-59. Outdoors: the time of
 // day's light, the sky gone red.
@@ -44,6 +46,7 @@ import './kinds';
 import { buildHazards, updateHazards, updateLobs, spent } from './hazards';
 import { buildCovers, updateChase, startTornado, formTornado, coverRoof, tearUpTo } from './chase';
 import { startFling, updateFling, drawFlingHud, flinging } from './fling';
+import { updateCivilians } from './civilians';
 import { drawHavocBackdrop, drawHavocBack, drawHavocFront, havocLamps } from './art';
 import * as L from './lines';
 
@@ -144,6 +147,8 @@ export const havoc: HollywoodSection = {
     }
     // The bunkers and the avalanches, the tornado
     const ch = updateChase(ctx);
+    // The guests (he can't hurt them; the disasters can)
+    updateCivilians(ctx, ev);
     if (ch.caught) { startFling(ctx); return updateFling(ctx) ?? controls; }
     // What's said (talk less: each beat once)
     if (alive && !done) {

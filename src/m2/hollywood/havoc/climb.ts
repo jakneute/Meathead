@@ -41,6 +41,7 @@ import {
 import { win, soot } from './fronts';
 import { lavaBack } from './ground';
 import { surgeOf } from './effects';
+import { hillDetail, BURIED, BURIED_BOX, paintBuried, farDrifts, snowpack, glints, bunkerMouth, bunkerFrost, blowFar, ICICLE, type Buried } from './snowzone';
 
 // ---------------------------------------------------------------------------------------------------------------
 // The flood behind things
@@ -461,6 +462,8 @@ const bunker = (c: Ctx, v: View, k: number, f: number, done: boolean) => {
     box(c, mx - 1, under, 2, 8, '#18181B'); box(c, mx - 5, under + 8, 10, 10, on ? '#FEF3C7' : '#57534E');
     c.strokeStyle = '#18181B'; c.lineWidth = 1; c.strokeRect(mx - 6, under + 7, 12, 12);
   });
+  // (it reads as cover: the bulb's light on the floor, TAKE COVER on its plate in the mouth: snowzone.ts)
+  bunkerMouth(c, v, L, Rr, under, floorY, f, done || f % 90 > 3);
   // (the corner posts, concrete, at the front)
   for (const px of [r.x, r.x + r.w - 10]) { box(c, px - 1, under, 12, ROOF, INK); box(c, px, under, 10, ROOF, C[3]); box(c, px, under, 3, ROOF, C[4]); box(c, px + 8, under, 2, ROOF, C[1]); }
   // (the slab: its top going back (snow heaped at its back), its face with the hazard stripes, the lit lip)
@@ -470,6 +473,8 @@ const bunker = (c: Ctx, v: View, k: number, f: number, done: boolean) => {
   box(c, r.x - 4, r.y - 2, r.w + 8, r.h + 4, INK); box(c, r.x - 3, r.y - 1, r.w + 6, r.h + 2, C[3]); box(c, r.x - 3, r.y + r.h - 3, r.w + 6, 2, C[1]);
   hazard(c, r.x - 3, r.y + 6, r.w + 6, 9, 0);
   lip(c, r.x - 3, r.y - 1, r.w + 6);
+  // (icicles off the slab, frost up the posts, the drifts heaped against its outsides)
+  bunkerFrost(c, r.x, r.y, r.w, r.h, under, floorY, f);
 };
 /** The sign before a bunker: AVALANCHE ZONE (the avalanche on it), BUNKER AHEAD >, on two posts. */
 const paintAvalancheSign = (g: Ctx) => {
@@ -482,6 +487,10 @@ const paintAvalancheSign = (g: Ctx) => {
   signText(g, 'AVALANCHE ZONE', 18, -140, gate({ sx: 1, sy: 2 }, '#F8FAFC', '#7F1D1D'));
   signText(g, 'BUNKER AHEAD >', 18, -120, plain(1, 1, '#FEF3C7'));
   for (const sx of [-88, 84]) box(g, sx, -164, 3, 3, '#A1A1AA');
+  // (snow loaded along its top, overhanging, icicles off its bottom edge, frost up the posts, drifts at their feet)
+  box(g, -96, -170, 192, 6, INK); box(g, -95, -171, 190, 5, SNOW[4]); box(g, -93, -172, 150, 2, SNOW[5]); box(g, -95, -166, 190, 1, SNOW[2]);
+  for (let x = -90; x < 90; x += 6) { const l = 3 + Math.floor(hash(x * 0.61) * 9); box(g, x, -102, 3, Math.ceil(l / 2), ICICLE[2]); box(g, x + 1, -102 + Math.ceil(l / 2), 1, Math.floor(l / 2), ICICLE[2]); box(g, x, -102, 1, Math.ceil(l / 2), ICICLE[4]); }
+  for (const px of [-70, 70]) { for (let k = 0; k < 6; k++) box(g, px - 2 + (k % 2) * 2, -96 + k * 15, 2, 1, ICICLE[4]); box(g, px - 12, -8, 24, 8, SNOW[4]); box(g, px - 9, -10, 16, 3, SNOW[5]); }
 };
 
 export const drawHill = (c: Ctx, v: View, state: GameState, hv: Hv, done: boolean, part: 'back' | 'near') => {
@@ -505,15 +514,20 @@ export const drawHill = (c: Ctx, v: View, state: GameState, hv: Hv, done: boolea
   c.strokeStyle = Sn[2]; c.lineWidth = 2; c.beginPath();
   for (let x = x0, k = 0; x <= x1; x += 20, k++) { const [p, q] = at(eye, x, hillTop(R(x), SLOPE_D), SLOPE_D); k ? c.lineTo(p, q) : c.moveTo(p, q); }
   c.stroke();
-  // (firs under snow and rocks on it, the farthest first)
-  const things: { x: number; d: number; kind: number }[] = [];
+  for (let x = x0, k = 0; x <= x1; x += 4, k++) { const [p, q] = at(eye, x, hillTop(R(x), SLOPE_D), SLOPE_D); box(c, p, q + 1, 4, 1, Sn[5]); if (k % 2) box(c, p, q + 3, 2, 1, Sn[2]); }
+  // (drift ridges, the bands dithered into each other, the wind-scoured crust: snowzone.ts)
+  if (!done) hillDetail(c, v, x0, x1, ROAD_D, SLOPE_D, hillTop, Sn);
+  // (firs under snow and rocks on it, and what the snow's buried poking out of it, the farthest first)
+  const things: { x: number; d: number; kind: number; what?: Buried }[] = [];
   for (let rx = Math.floor(R(x0) / 90) * 90; rx < R(x1); rx += 90) { const hh = hash(rx * 0.013); if (hh < 0.45) continue; things.push({ x: X(rx) + hash(rx) * 50, d: SLOPE_D + 0.02 + hash(rx * 0.7) * 0.11, kind: hh > 0.8 ? 1 : 0 }); }
+  for (const [rx, d, what] of BURIED) things.push({ x: X(rx), d, kind: 2, what });
   things.sort((p, q) => p.d - q.d);
   for (const t of things) {
-    if (!seen(v, t.x - 40, t.x + 40, t.d)) continue;
+    if (!seen(v, t.x - 80, t.x + 80, t.d)) continue;
     const gy = hillTop(R(t.x), t.d);
     if (t.kind === 0) stillAt(c, v, t.d, `hh-fir-${Math.round(t.x) % 3}`, t.x, gy, -40, -110, 80, 112, g => paintFir(g, 90 + (Math.round(t.x) % 3) * 8, 0));
-    else stillAt(c, v, t.d, 'hh-rock', t.x, gy, -26, -24, 52, 26, g => paintRock(g, 44));
+    else if (t.kind === 1) stillAt(c, v, t.d, 'hh-rock', t.x, gy, -26, -24, 52, 26, g => paintRock(g, 44));
+    else { const w = t.what!, [bx, by, bw, bh] = BURIED_BOX[w]; stillAt(c, v, t.d, `hh-buried-${w}`, t.x, gy + 2, bx, by, bw, bh, g => paintBuried(g, w)); }
   }
   // The HAPPYWOOD sign along the ridge (the W and the second O gone down the hill: bare legs)
   const word = 'HAPPYWOOD';
@@ -535,6 +549,8 @@ export const drawHill = (c: Ctx, v: View, state: GameState, hv: Hv, done: boolea
     const la = X(hl.a) + 20, lb = X(hl.b) - 20, m = (la + lb) / 2;
     poly(c, [at(eye, la, hillTop(R(m), ROAD_D), ROAD_D), at(eye, lb, hillTop(R(m), ROAD_D), ROAD_D), at(eye, m + 20, hillTop(R(m), SLOPE_D), SLOPE_D), at(eye, m - 20, hillTop(R(m), SLOPE_D), SLOPE_D)], BASALT[2]);
   }
+  // (the snow blowing far back over the hillside: snowzone.ts)
+  if (!done) blowFar(c, state);
   // The road down it: packed snow going back, its ruts, ash on it
   for (const [ra, rb, h1, h2] of hillRuns) {
     const xa = X(ra), xb = X(rb), ya = Y(h1), yb = Y(h2);
@@ -543,6 +559,8 @@ export const drawHill = (c: Ctx, v: View, state: GameState, hv: Hv, done: boolea
     for (let i = 0; i < 4; i++) { const p = 1 - ((1 - ROAD_D) * i) / 4, q = 1 - ((1 - ROAD_D) * (i + 1)) / 4; poly(c, [at(eye, xa, ya, p), at(eye, xb, yb, p), at(eye, xb, yb, q), at(eye, xa, ya, q)], cols[i]); }
     for (const d of [0.986, 0.966]) { const [p0, q0] = at(eye, xa, ya, d), [p1, q1] = at(eye, xb, yb, d); c.strokeStyle = SNOW[2]; c.lineWidth = 2; c.beginPath(); c.moveTo(p0, q0); c.lineTo(p1, q1); c.stroke(); c.strokeStyle = SNOW[1]; c.lineWidth = 1; c.beginPath(); c.moveTo(p0, q0 + 1); c.lineTo(p1, q1 + 1); c.stroke(); }
     for (let x = Math.ceil(xa / 13) * 13; x < xb; x += 13) { const hh = hash(x * 0.37), d = ROAD_D + 0.004 + hh * 0.04, y = ya + ((yb - ya) * (x - xa)) / (xb - xa); if (hh > 0.55) { const [px, py] = at(eye, x, y, d); box(c, px, py, 3, 1, hh > 0.85 ? ASHY[2] : SNOW[2]); } }
+    // (the drifts the wind's sculpted along its far edge)
+    farDrifts(c, v, xa, ya, xb, yb, ROAD_D + 0.003);
   }
   // The lava trench across the road
   if (hl) lavaBack(c, v, hl, done, f, ROAD_D, true);
@@ -573,10 +591,11 @@ const hillNear = (c: Ctx, v: View, hv: Hv, f: number, done: boolean, hl: typeof 
       poly(c, [[xa, ya + s], [xb, yb + s], [xb, yb + s + 26 + k * 6], [xa, ya + s + 26 + k * 6]], mix(col, '#000000', Math.min(0.6, s / 1400)));
       if (k % 2 === 1) { c.strokeStyle = SNOW[3]; c.lineWidth = 2; c.beginPath(); c.moveTo(xa, ya + s); c.lineTo(xb, yb + s); c.stroke(); }
     }
-    // (the snow's lip over the edge, icicles off it)
-    c.strokeStyle = SNOW[4]; c.lineWidth = 6; c.beginPath(); c.moveTo(xa, ya + 4); c.lineTo(xb, yb + 4); c.stroke();
-    for (let x = Math.ceil(xa / 17) * 17; x < xb; x += 17) { const y = ya + ((yb - ya) * (x - xa)) / (xb - xa) + 7, l = 4 + hash(x * 0.9) * 10; box(c, x, y, 2, l, SNOW[3]); box(c, x, y, 1, l - 1, SNOW[5]); }
+    // (the snowpack in cross-section over the edge, icicles off it: snowzone.ts; the lit lip over it, frost twinkling
+    // just over that)
+    snowpack(c, xa, ya, xb, yb, done ? 0 : f);
     slopeLip(c, xa, ya, xb, yb);
+    if (!done) glints(c, xa, ya, xb, yb, f);
   }
   // (the lava over the face in a fall, out of the trench's mouth; spent, frozen black)
   if (hl) {

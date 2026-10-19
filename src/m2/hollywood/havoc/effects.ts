@@ -37,6 +37,7 @@ import { enamel, hillside } from '../../hub/letters';
 import { steveCard, paintStandee } from '../blvd/props';
 import { BRICK } from '../lot/paint';
 import { SNOW, ROCK } from './paint';
+import { blowNear } from './snowzone';
 import { inView } from '../blvd/paint';
 
 const TAU = Math.PI * 2;
@@ -222,7 +223,7 @@ const debris = (c: Ctx, state: GameState, hv: Hv) => {
   for (const d of hv.debris) {
     if (!inView(state, d.x - 40, d.x + 40)) continue;
     c.save(); c.translate(d.x, d.y); c.rotate(d.rot);
-    if (d.guest) { c.scale(0.8, 0.8); drawPerson(c, { seed: 900 + Math.floor(d.orbit * 7), outfit: 'guest', f, pose: 'fly', mood: 'scared', woman: Math.floor(d.orbit) % 2 === 1 }); }
+    if (d.guest) { const k = d.gk ?? Math.floor(d.orbit); c.scale(0.8, 0.8); drawPerson(c, { seed: 900 + k * 37, outfit: 'guest', f, pose: 'fly', mood: 'scared', woman: k % 2 === 1, shorts: k % 3 === 0 }); }
     else {
       const Rr = ramp6(d.col);
       box(c, -d.w / 2 - 1, -d.h / 2 - 1, d.w + 2, d.h + 2, INK); box(c, -d.w / 2, -d.h / 2, d.w, d.h, Rr[3]);
@@ -253,10 +254,30 @@ const slides = (c: Ctx, state: GameState, hv: Hv) => {
   }
 };
 
+/** A billow of snow, stepped (rows, never a smooth disc): its blue shade down-right, itself, lit up-left, a glint. */
 const billow = (c: Ctx, x: number, y: number, r: number) => {
-  c.fillStyle = SNOW[3]; c.beginPath(); c.arc(x + r * 0.18, y + r * 0.18, r, 0, TAU); c.fill();
-  c.fillStyle = SNOW[4]; c.beginPath(); c.arc(x, y, r * 0.86, 0, TAU); c.fill();
-  c.fillStyle = SNOW[5]; c.beginPath(); c.arc(x - r * 0.25, y - r * 0.25, r * 0.5, 0, TAU); c.fill();
+  const disc2 = (cx: number, cy: number, rr: number, col: string) => {
+    c.fillStyle = col;
+    for (let dy = -rr; dy < rr; dy += 3) { const hw = Math.sqrt(Math.max(0, rr * rr - (dy + 1.5) * (dy + 1.5))); c.fillRect(Math.round(cx - hw), Math.round(cy + dy), Math.round(hw * 2), 3); }
+  };
+  disc2(x + r * 0.16, y + r * 0.16, r, SNOW[3]);
+  disc2(x, y, r * 0.84, SNOW[4]);
+  disc2(x - r * 0.24, y - r * 0.24, r * 0.5, SNOW[5]);
+  c.fillStyle = '#FFFFFF'; c.fillRect(Math.round(x - r * 0.42), Math.round(y - r * 0.42), Math.max(2, Math.round(r * 0.18)), 2);
+};
+/** What the avalanche is carrying, tumbling (local, about its middle): a fir, a boulder, a buried car dug up, a parking
+ *  meter, plywood off the chalet, the fake Christmas tree, an AVALANCHE ZONE sign. */
+const avJunk = (c: Ctx, k: number) => {
+  const kind = k % 7;
+  if (kind === 0) { box(c, -4, -18, 8, 36, '#5A3A1E'); poly(c, [[0, -34], [17, 4], [-17, 4]], '#166534'); poly(c, [[0, -34], [-17, 4], [-4, 4]], '#22783E'); poly(c, [[0, -34], [8, -14], [-8, -14]], SNOW[5]); }
+  else if (kind === 1) { poly(c, [[-13, -9], [4, -13], [13, 2], [2, 11], [-11, 7]], INK); poly(c, [[-12, -8], [4, -12], [12, 2], [2, 10], [-10, 6]], ROCK[2]); poly(c, [[-12, -8], [4, -12], [0, -2], [-8, -2]], ROCK[4]); box(c, -6, -10, 8, 2, SNOW[5]); }
+  else if (kind === 2) {
+    box(c, -27, -9, 54, 18, INK); box(c, -26, -8, 52, 12, '#9A3030'); box(c, -26, -8, 52, 3, '#C85050'); box(c, -16, -15, 30, 8, INK); box(c, -15, -14, 28, 6, '#4A6888');
+    disc(c, -16, 8, 6, ['#0E0E10', '#1E1E22', '#2A2A30', '#3A3A44', '#52525B']); disc(c, 16, 8, 6, ['#0E0E10', '#1E1E22', '#2A2A30', '#3A3A44', '#52525B']); box(c, -26, -10, 30, 3, SNOW[5]);
+  } else if (kind === 3) { box(c, -2, -4, 4, 26, INK); box(c, -1, -4, 2, 26, STEEL[3]); box(c, -8, -18, 16, 15, INK); box(c, -7, -17, 14, 13, STEEL[2]); box(c, -5, -14, 10, 5, '#DC2626'); }
+  else if (kind === 4) { box(c, -22, -6, 44, 12, INK); box(c, -21, -5, 42, 10, PLY[3]); box(c, -21, -5, 42, 2, PLY[5]); box(c, -6, -5, 1, 10, PLY[1]); box(c, -21, -6, 20, 2, SNOW[5]); }
+  else if (kind === 5) { poly(c, [[0, -26], [15, 6], [-15, 6]], '#14382A'); poly(c, [[0, -26], [-15, 6], [-4, 6]], '#2E6A4E'); for (const [ox, oy, col] of [[-6, 0, '#DC2626'], [5, -6, '#FACC15'], [2, 3, '#3B82F6']] as const) box(c, ox - 2, oy - 2, 4, 4, col); box(c, -2, 6, 4, 8, '#5A3A1E'); }
+  else { box(c, -1, 0, 3, 24, STEEL[3]); box(c, -19, -14, 38, 16, INK); box(c, -18, -13, 36, 14, '#B91C1C'); box(c, -16, -11, 32, 10, '#F8FAFC'); box(c, -14, -9, 28, 6, '#B91C1C'); }
 };
 const avalanches = (c: Ctx, state: GameState, hv: Hv) => {
   const f = state.frame, cam = state.camera;
@@ -265,33 +286,63 @@ const avalanches = (c: Ctx, state: GameState, hv: Hv) => {
       // (the tell: white building up at the left of the screen in bands, the warning)
       const k = Math.min(1, av.t / AV_TELL), w = 40 + k * 200;
       for (let i = 0; i < 6; i++) { c.fillStyle = `rgba(248, 250, 252, ${((0.35 + k * 0.5) * (1 - i / 6)).toFixed(3)})`; c.fillRect(cam.x + (w * i) / 6, cam.y, w / 6 + 1, 600); }
+      // (snow shaken loose, the ground starting to jump)
+      for (let j = 0; j < 8; j++) { const px = cam.x + 60 + ((j * 97) % 700), g = Y(groundAt(R(px))), hop = Math.abs(Math.sin(f * 0.6 + j * 1.7)) * 4 * k; box(c, px, g - 3 - hop, 3, 3, SNOW[5]); }
       if (f % 16 < 10) signText(c, 'AVALANCHE!', cam.x + 400, cam.y + 260, enamel(16, '#EF4444', '#000'));
       continue;
     }
     if (av.phase !== 'run') continue;
     const tail = av.front - AV_LEN;
-    const l = Math.max(tail, cam.x - 40), r = Math.min(av.front + 70, cam.x + 840);
+    const l = Math.max(tail, cam.x - 40), r = Math.min(av.front + 260, cam.x + 840);
     if (r <= l) continue;
     const top = Math.max(cam.y - 40, Y(groundAt(R(av.front))) - AV_H), bot = cam.y + 640;
+    // Ahead of it (out in the open): its shadow thrown forward over everything, stepped, and the ground jumping, snow and
+    // grit kicked up off it
+    for (let i = 0; i < 4; i++) { const a = av.front + 60 + i * 70; if (a > cam.x + 840) break; c.fillStyle = `rgba(30, 44, 70, ${(0.16 - i * 0.035).toFixed(3)})`; c.fillRect(Math.round(Math.max(a, cam.x - 40)), cam.y - 40, 70, 680); }
+    for (let j = 0; j < 16; j++) {
+      const px = av.front + 40 + ((j * 53 + f * 5) % 360);
+      if (px > cam.x + 840 || px < cam.x - 40) continue;
+      const k = 1 - (px - av.front) / 400, g = Y(groundAt(R(px))), hop = Math.abs(Math.sin(f * 0.5 + j * 1.3)) * 12 * k;
+      box(c, px, g - 3 - hop, j % 3 ? 3 : 2, j % 3 ? 3 : 2, j % 4 === 0 ? ROCK[3] : SNOW[5]);
+    }
     c.save();
     c.beginPath(); c.rect(l, top, r - l, bot - top);
     COVERS.forEach((_, k) => { const cr = coverRoof(k); if (cr.x < r && cr.x + cr.w > l) c.rect(cr.x + 10, cr.y + cr.h, cr.w - 20, ROOF); });
     c.clip('evenodd');
     const body = Math.min(av.front, r) - l;
-    // (the body: banded snow, churning down it, blue in its shade)
-    for (let y = top - ((f * 6) % 48), i = 0; y < bot; y += 24, i++) { c.fillStyle = [SNOW[4], SNOW[5], SNOW[4], SNOW[3]][((i % 4) + 4) % 4]; c.fillRect(l, y, body, 24); }
-    for (let k = 0; k < 30; k++) {
-      const bx = tail + ((k * 263 + f * 9) % AV_LEN), by = cam.y + ((k * 151 + f * (3 + k % 4)) % 640);
-      if (bx < l - 40 || bx > r) continue;
-      billow(c, bx, by, 14 + (k % 4) * 8);
-      if (k % 7 === 0) { c.save(); c.translate(bx, by); c.rotate(f * 0.1 + k); box(c, -4, -18, 8, 36, '#5A3A1E'); poly(c, [[0, -34], [17, 4], [-17, 4]], '#166534'); poly(c, [[0, -34], [-17, 4], [-4, 4]], '#22783E'); poly(c, [[0, -34], [8, -14], [-8, -14]], SNOW[5]); c.restore(); }
-      if (k % 11 === 3) { c.save(); c.translate(bx, by); c.rotate(-f * 0.08 + k); poly(c, [[-12, -8], [4, -12], [12, 2], [2, 10], [-10, 6]], ROCK[2]); poly(c, [[-12, -8], [4, -12], [0, -2], [-8, -2]], ROCK[4]); c.restore(); }
+    // (the body: banded snow churning down it, the bands' edges dithered into each other)
+    if (body > 0) {
+      const off = (f * 6) % 48, cols = [SNOW[4], SNOW[5], SNOW[4], SNOW[3]];
+      for (let y = top - off, i = 0; y < bot; y += 24, i++) {
+        c.fillStyle = cols[i % 4]; c.fillRect(l, y, body, 24);
+        c.fillStyle = cols[(i + 1) % 4];
+        for (let x = l + ((i * 3) % 6); x < l + body; x += 6) c.fillRect(x, y + 22, 3, 2);
+      }
+      // (its leading face in shade: the light's from the upper left, the face looks right; dithered into the body)
+      const fx = Math.min(av.front, r);
+      box(c, fx - 46, top, 46, bot - top, SNOW[3]); box(c, fx - 18, top, 18, bot - top, SNOW[2]);
+      for (let y = top, k = 0; y < bot; y += 4, k++) { box(c, fx - 50 + (k % 2) * 2, y, 2, 2, SNOW[3]); box(c, fx - 22 + (k % 2) * 2, y, 2, 2, SNOW[2]); }
     }
-    // (its front: a billow of spray, stepped)
+    // (billows tumbling in it, each going round as it comes on, and what it's carrying)
+    for (let k = 0; k < 34; k++) {
+      const ox = tail + ((k * 263 + f * 9) % AV_LEN), oy = cam.y + ((k * 151 + f * (3 + (k % 4))) % 640);
+      const a = f * 0.09 + k * 1.3, bx = ox + Math.cos(a) * 10, by = oy + Math.sin(a) * 10;
+      if (bx < l - 50 || bx > Math.min(av.front, r) + 20) continue;
+      billow(c, bx, by, 14 + (k % 4) * 8);
+      if (k % 5 === 0) { c.save(); c.translate(bx + 6, by - 4); c.rotate(f * (k % 2 ? 0.1 : -0.08) + k); avJunk(c, Math.floor(k / 5)); c.restore(); }
+    }
+    // (its front: billows of spray rolling over, stepped; the powder blown on ahead of it, dithered thinner and thinner)
     for (let k = 0; k < 18; k++) {
       const y = cam.y - 20 + k * 38, bx = av.front + Math.sin(f * 0.3 + k) * 16 + ((k * 13) % 30);
       billow(c, bx, y, 30 + (k % 3) * 10);
     }
+    for (let j = 0; j < 6; j++) {
+      const x0 = av.front + 40 + j * 34, a = 0.42 * (1 - j / 6);
+      if (x0 > r) break;
+      c.fillStyle = `rgba(246, 250, 255, ${a.toFixed(3)})`;
+      for (let y = top - ((f * 4) % 8), k = 0; y < bot; y += 4, k++) if ((k + j + (f >> 1)) % 2 === 0) c.fillRect(x0 + ((k * 7) % 34), y, 4, 4);
+    }
+    for (let j = 0; j < 22; j++) { const t = ((f * 3 + j * 19) % 60) / 60, px = av.front + 20 + t * 220, py = cam.y + ((j * 89) % 620) - t * 40; if (px < r) box(c, px, py, 3 - t * 2 + 1, 3 - t * 2 + 1, SNOW[5]); }
     c.restore();
   }
 };
@@ -572,8 +623,10 @@ export const drawHavocEffects = (c: Ctx, state: GameState, hv: Hv) => {
   slides(c, state, hv);
   avalanches(c, state, hv);
   floodFront(c, state, hv);
-  // (a little of the weather in front of everything: ash, or snow on the hill and after)
+  // (a little of the weather in front of everything: ash, or snow on the hill and after; down the hill, the blizzard's
+  // nearest snow, the frost at the very front: snowzone.ts)
   if (!spent(state)) {
+    blowNear(c, state);
     const rx = R(cam.x + 400), snow = rx > CLIMB.b - 200;
     for (let k = 0; k < 14; k++) {
       const px = cam.x + ((k * 151 + f * (snow ? 3 : 1.2) + k * k) % 840) - 20, py = cam.y + ((k * 233 + f * (snow ? 3.4 : 1.5)) % 640) - 20;
