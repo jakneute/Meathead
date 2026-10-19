@@ -109,9 +109,10 @@ export const updateQte = (q: Qte, controls: Controls): 'on' | 'won' | 'lost' => 
     case 'beat': {
       b.t++;
       if (b.kind === 'mash') {
-        for (const k of presses) if (k === b.key) { b.got++; b.fill = Math.min(1, b.fill + 1 / b.need); playSound('punch', 0.25, 6 + Math.random() * 4); }
-        b.fill = Math.max(0, b.fill - 0.0032);
-        if (b.fill >= 1) beatDone(); else if (b.t >= b.dur) miss();
+        for (const k of presses) if (k === b.key) { b.got++; b.fill += 1 / b.need; playSound('punch', 0.25, 6 + Math.random() * 4); }
+        // (full counts before it drains: drained first, a full meter was always a hair short of full and could never win)
+        if (b.fill >= 1 - 1e-6) { b.fill = 1; beatDone(); }
+        else { b.fill = Math.max(0, b.fill - 0.0032); if (b.t >= b.dur) miss(); }
       } else if (b.kind === 'press') {
         const face = b.t > GRACE || b.got > 0 ? presses.filter(k => FACE.includes(k)) : [];
         if (face.length) {

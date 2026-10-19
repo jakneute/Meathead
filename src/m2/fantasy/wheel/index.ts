@@ -25,7 +25,7 @@ import { NO_CONTROLS } from '../../../m1/game/platform/input';
 import { playSound } from '../../../m1/game/platform/audio';
 import { pickFreshLine, announce } from '../../../m1/game/platform/speech';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
-import { CANVAS_WIDTH, topBand } from '../../../m1/constants';
+import { CANVAS_WIDTH, CANVAS_HEIGHT} from '../../../m1/constants';
 import { markBossFight } from '../../bossQuiet';
 import { registerHurtLines } from '../../kinds';
 import { setUi } from '../../store';
@@ -390,10 +390,11 @@ export const wheel: FantasySection = {
     }
   },
   drawHud: (c, state) => {
-    // (the trial on: a heart a suitor, broken once he's dead; up in the top band, clear of the HUD)
+    // (the trial on: a heart a suitor, broken once he's dead; along the bottom, clear of the HUD and of the words said up
+    // top (the user's: they covered the subtitles))
     const w = wheelOf(state);
     if (w.trial !== 'on' || state.player.inCutscene) return;
-    const band = topBand(), n = ROSTER.length, gap = 26, x = band.mid - ((n - 1) * gap) / 2, y = 22;
+    const n = ROSTER.length, gap = 26, x = CANVAS_WIDTH / 2 - ((n - 1) * gap) / 2, y = CANVAS_HEIGHT - 20;
     for (let i = 0; i < n; i++) {
       const hx = x + i * gap, alive = w.live.has(i);
       c.fillStyle = INK; c.beginPath(); c.moveTo(hx, y + 9); c.bezierCurveTo(hx - 13, y, hx - 8, y - 9, hx, y - 3); c.bezierCurveTo(hx + 8, y - 9, hx + 13, y, hx, y + 9); c.fill();
