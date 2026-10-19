@@ -34,8 +34,6 @@ const LOW = { rise: 62, vy: -1.2, land: 330 };
 const BLAST = { radius: 170, dmg: 140, edge: 40 };
 const MAN_SCALE = 1.4;
 const STUNTMAN = { dmg: 90, w: Math.round(18 * MAN_SCALE), h: Math.round(30 * MAN_SCALE), reach: 520 };
-/** Up there in the air (a bird, a drone). */
-const flies = (e: Enemy) => e.enemyType === 'flyer' || e.enemyType === 'drone' || e.behavior === 'fly' || e.behavior === 'hover';
 const COOLDOWN = 100, MIDBOSS_HIT = 150;
 /** The paint jobs (body, its lit top, its shadow, the stripe): never more than two of one on the screen at once. */
 const PAINT = [
@@ -188,7 +186,10 @@ const stunt = (ctx: FrameContext, p: Projectile, car: Extract<Part, { kind: 'car
   // The stuntman, launched out over the hood, every time (out on the screen, wherever it went up): if there's
   // something flying near, he goes for it, a dive, arms out, straight at it; otherwise up and on, tumbling
   const from = { x: Math.max(state.camera.x + 30, Math.min(state.camera.x + CANVAS_WIDTH - 30, front.x)), y: front.y - STUNTMAN.h };
-  const bird = state.enemies.filter(e => alive(e) && flies(e) && Math.hypot(e.pos.x + e.width / 2 - from.x, e.pos.y + e.height / 2 - from.y) < STUNTMAN.reach)
+  // (his target: whoever's left that he can see, anywhere on the screen, up, down, behind: the nearest; he homes in on
+  // them like a missile (the user's))
+  const seenNow = (e: Enemy) => e.pos.x + e.width > state.camera.x && e.pos.x < state.camera.x + CANVAS_WIDTH && e.pos.y + e.height > state.camera.y && e.pos.y < state.camera.y + 600;
+  const bird = state.enemies.filter(e => alive(e) && !e.innocent && seenNow(e))
     .sort((a, b) => Math.hypot(a.pos.x - from.x, a.pos.y - from.y) - Math.hypot(b.pos.x - from.x, b.pos.y - from.y))[0] ?? null;
   // (off the edge of the screen it went up at: thrown back in, the way he came)
   const offEdge = from.x !== front.x;
@@ -259,25 +260,29 @@ const update = (ctx: FrameContext, p: Projectile): boolean => {
     if (leaving) { stunt(ctx, p, part); return false; }
     return true;
   }
-  // The stuntman: flying, tumbling, till the first thing he hits; whatever it is, he splats on it. Going for a bird,
-  // he dives at it, steering in on it as it moves (he can still miss)
-  if (part.target && alive(part.target)) {
+  // The stuntman: a missile (the user's): homing on whoever's left that he can see, anywhere on the screen; his target
+  // gone, on to the next nearest; nobody left, he sails on off the screen
+  if (!part.target || !alive(part.target)) {
+    const cx = p.pos.x + p.width / 2, cy = p.pos.y + p.height / 2;
+    part.target = state.enemies.filter(e => alive(e) && !e.innocent && e.pos.x + e.width > state.camera.x && e.pos.x < state.camera.x + CANVAS_WIDTH && e.pos.y + e.height > state.camera.y && e.pos.y < state.camera.y + 600)
+      .sort((a, b) => Math.hypot(a.pos.x - cx, a.pos.y - cy) - Math.hypot(b.pos.x - cx, b.pos.y - cy))[0] ?? null;
+  }
+  if (part.target) {
     const t = part.target, tx = t.pos.x + t.width / 2 - (p.pos.x + p.width / 2), ty = t.pos.y + t.height / 2 - (p.pos.y + p.height / 2), d = Math.hypot(tx, ty) || 1;
-    const sp = Math.hypot(p.vel.x, p.vel.y);
-    p.vel.x += ((tx / d) * sp - p.vel.x) * 0.08; p.vel.y += ((ty / d) * sp - p.vel.y) * 0.08;
-    p.vel.y += 0.12;
-  } else { part.target = null; p.vel.y += 0.45; }
+    const sp = Math.max(14, Math.hypot(p.vel.x, p.vel.y));
+    p.vel.x += ((tx / d) * sp - p.vel.x) * 0.16; p.vel.y += ((ty / d) * sp - p.vel.y) * 0.16;
+    if (tx) part.dir = (tx > 0 ? 1 : -1);
+  } else p.vel.y += 0.45;
   const bottom0 = p.pos.y + p.height;
   p.pos.x += p.vel.x; p.pos.y += p.vel.y;
   part.spin = part.target ? Math.atan2(p.vel.y, Math.abs(p.vel.x)) * part.dir + part.dir * Math.PI / 2 : part.spin + part.dir * 0.35;
   const into = state.enemies.find(e => alive(e) && !(e.pos.x > p.pos.x + p.width || e.pos.x + e.width < p.pos.x || e.pos.y > p.pos.y + p.height || e.pos.y + e.height < p.pos.y));
   if (into) { runDown(ctx, into, part.dir, Math.abs(p.vel.x), 'stuntman'); splat(ctx, p, 'man'); return false; }
-  const floor = surfaceUnder(state, p.pos.x + p.width / 2, bottom0);
-  if (p.vel.y > 0 && p.pos.y + p.height >= floor) { p.pos.y = floor - p.height; splat(ctx, p, 'floor'); return false; }
-  if (solidAhead(state, p)) { splat(ctx, p, 'wall'); return false; }
-  // (gone off the screen: he's out of the picture)
-  const off = p.pos.x + p.width < state.camera.x - 40 || p.pos.x > state.camera.x + CANVAS_WIDTH + 40;
-  return p.pos.y < state.camera.y + 1200 && !off;
+  // (nothing else stops him (the user's): no walls, no floor: he flies on through it all till he's off the screen, or
+  // into somebody, the backup missile for whoever the blast missed)
+  void bottom0;
+  const off = p.pos.x + p.width < state.camera.x - 40 || p.pos.x > state.camera.x + CANVAS_WIDTH + 40 || p.pos.y > state.camera.y + 700;
+  return !off;
 };
 
 /** The stuntman, splatted: a burst of him, red all over what he hit (flat on the floor, a smear down a wall), the callout. */

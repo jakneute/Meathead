@@ -317,7 +317,7 @@ export const updateMill = (ctx: FrameContext) => {
 export const updateCover = (state: GameState) => {
   const covers = state.blocks.filter(b => b.tag === 'fr-cover');
   state.projectiles = state.projectiles.filter(q => {
-    if (q.thrown || q.isBoulder) return true;
+    if (q.thrown || q.isBoulder || q.custom) return true;
     const hit = covers.some(b => q.pos.x + q.width > b.x && q.pos.x < b.x + b.w && q.pos.y + q.height > b.y && q.pos.y < b.y + b.h);
     if (hit) { playSound('thud', 0.4, 10); for (let n = 0; n < 5; n++) state.particles.push({ pos: { x: q.pos.x, y: q.pos.y }, vel: { x: -Math.sign(q.vel.x) * Math.random() * 3, y: -Math.random() * 3 }, life: 16, color: '#C8A070', size: 2 }); }
     return !hit;

@@ -118,6 +118,7 @@ const saloonWalls = (state: GameState, inside: boolean) => {
   }
   let cut = false;
   for (const q of state.projectiles) {
+    if (q.custom) continue; // (his own weapon (the stunt car): it meets walls its own way, never just cut)
     const r = inSaloon(q.pos.x + q.width / 2, q.pos.y + q.height / 2), born = BORN.get(q);
     if (born === undefined) BORN.set(q, r);
     else if (born !== r) cut = true;

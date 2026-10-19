@@ -213,7 +213,7 @@ export const updateMimeWalls = (ctx: FrameContext) => {
   for (let i = list.length - 1; i >= 0; i--) {
     const w = list[i], b = w.b;
     state.projectiles = state.projectiles.filter(pr => {
-      if (pr.owner !== 'player' || w.hp <= 0) return true;
+      if (pr.owner !== 'player' || w.hp <= 0 || pr.custom) return true;
       if (pr.pos.x < b.x + b.w && pr.pos.x + pr.width > b.x && pr.pos.y < b.y + b.h && pr.pos.y + pr.height > b.y) {
         w.hp--; w.hit = state.frame; playSound('clink', 0.6, 10 - w.hp * 2);
         for (let k = 0; k < 5; k++) state.particles.push({ pos: { x: b.x + b.w / 2, y: pr.pos.y + pr.height / 2 }, vel: { x: -Math.sign(pr.vel.x || 1) * Math.random() * 3, y: (Math.random() - 0.5) * 3 }, life: 14, color: '#E0F2FE', size: 2 });

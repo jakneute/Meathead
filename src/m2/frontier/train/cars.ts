@@ -105,6 +105,7 @@ export const updateRooms = (ctx: FrameContext) => {
   for (const pj of state.projectiles) {
     const r = roomAt(tr, pj.pos.x + pj.width / 2, pj.pos.y + pj.height / 2);
     const born = BORN.get(pj);
+    if (pj.custom) continue; // (a weapon of his own (the stunt car, the stuntman): it meets walls its own way, never just cut)
     if (born === undefined) { BORN.set(pj, r); continue; }
     if (r !== born) { BORN.set(pj, -99); cut = true; }
   }
