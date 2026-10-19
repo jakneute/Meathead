@@ -415,6 +415,9 @@ const keepClear = (state: GameState, g: Grab) => {
   const p = state.player, cx = centerX(state), half = p.width / 2 + CLEAR_GAP;
   for (const e of state.enemies) {
     if (e === g.held || e === g.thrown || e.health <= 0 || e.isBlownAway || e.type === 'boss') continue;
+    // (one of the mob going in for a hit, or over the top of him: its own business, see mobbing)
+    const m = mobs.get(e);
+    if (m && (m.step === 'strike' || m.step === 'cross')) continue;
     const ex = e.pos.x + e.width / 2;
     if (Math.abs(ex - cx) >= half + e.width / 2) continue;
     if (e.pos.y > p.pos.y + p.height || e.pos.y + e.height < p.pos.y - 40) continue;
@@ -428,6 +431,113 @@ const keepClear = (state: GameState, g: Grab) => {
     if (charging) { e.facing = (-out) as 1 | -1; e.pauseTimer = Math.max(e.pauseTimer || 0, REGROUP); }
     else e.pauseTimer = Math.max(e.pauseTimer || 0, 3);
   }
+};
+
+/**
+ * The beatdown's no safe place (the user: it's for when he's got one on his own). Whoever else is about on foot keeps
+ * at him, though not their own way and never piled on top of him: each stands off a little, winds up (a step back),
+ * lunges in for a hit, backs off, then hops clean over him to the other side and goes again from there after a
+ * breather. Two at a time at most; a hit gives him his usual i-frames, so it cuts into the healing, it doesn't wipe it.
+ */
+type MobStep = 'set' | 'wind' | 'strike' | 'back' | 'cross' | 'rest';
+interface Mob { step: MobStep; t: number; side: number; from: number; to: number; y: number; hit: boolean; rest: number }
+const mobs = new Map<Enemy, Mob>();
+const MOB_RANGE_X = 420, MOB_RANGE_Y = 150, MOB_MAX = 2, MOB_STAND = 56, MOB_WALK = 2.6;
+const MOB_WIND = 20, MOB_STRIKE = 9, MOB_LUNGE = 6, MOB_BACK = 14, MOB_CROSS = 36, MOB_HOP = 74, MOB_HIT = 9;
+const MOB_REST: [number, number] = [45, 100];
+const PAUSE_HOLD = 3;
+const flier = (e: Enemy) => e.enemyType === 'flyer' || e.enemyType === 'drone' || e.behavior === 'fly' || e.behavior === 'hover';
+/** Solid ground under a point at his feet' height (somewhere to land coming over him). */
+const floorAt = (state: GameState, x: number, y: number) => state.blocks.some(b => b.type !== 'pit' && b.type !== 'door' && x > b.x && x < b.x + b.w && Math.abs(b.y - y) <= 8);
+const mobFit = (state: GameState, g: Grab, e: Enemy) => {
+  if (e === g.held || e === g.thrown || e.health <= 0 || e.isBlownAway || e.innocent || e.harmless || e.type === 'boss' || isMidBoss(e)) return false;
+  if (flier(e) || !(grabbable(e) || isCritter(e)) || (e.frozenTimer ?? 0) > 0 || e.isTased || g.flying.some(f => f.e === e)) return false;
+  const ex = e.pos.x + e.width / 2;
+  return Math.abs(ex - centerX(state)) < MOB_RANGE_X && Math.abs(e.pos.y + e.height - feetY(state)) < MOB_RANGE_Y && clearTo(state, e);
+};
+const mobbing = (ctx: FrameContext, g: Grab) => {
+  const { state } = ctx;
+  const cx = centerX(state);
+  for (const [e, m] of mobs) if (m.step !== 'cross' && !mobFit(state, g, e)) mobs.delete(e);
+  if (mobs.size < MOB_MAX) {
+    const fresh = state.enemies.filter(e => !mobs.has(e) && mobFit(state, g, e))
+      .sort((a, b) => Math.abs(a.pos.x + a.width / 2 - cx) - Math.abs(b.pos.x + b.width / 2 - cx));
+    for (const e of fresh.slice(0, MOB_MAX - mobs.size)) {
+      const side = Math.sign(e.pos.x + e.width / 2 - cx) || -g.dir;
+      // (the first in goes at him soon; the second a beat behind)
+      mobs.set(e, { step: 'set', t: 0, side, from: 0, to: 0, y: 0, hit: false, rest: mobs.size ? 30 : 0 });
+    }
+  }
+  for (const [e, m] of mobs) stepMob(ctx, e, m);
+};
+const stepMob = (ctx: FrameContext, e: Enemy, m: Mob) => {
+  const { state } = ctx;
+  const p = state.player, cx = centerX(state), fy = feetY(state);
+  const half = p.width / 2, ex = e.pos.x + e.width / 2;
+  m.t++;
+  e.pauseTimer = Math.max(e.pauseTimer || 0, PAUSE_HOLD);
+  e.melee = undefined;
+  e.facing = (cx < ex ? -1 : 1) as 1 | -1;
+  const go = (step: MobStep) => { m.step = step; m.t = 0; };
+  // (where it stands off from him, on its side)
+  const stand = cx + m.side * (half + MOB_STAND + e.width / 2);
+  switch (m.step) {
+    case 'set': {
+      const dx = stand - ex;
+      e.vel.x = Math.abs(dx) < MOB_WALK ? 0 : Math.sign(dx) * MOB_WALK;
+      if (Math.abs(dx) < 6 && m.t > m.rest) go('wind');
+      if (m.t > 160) go('wind');
+      break;
+    }
+    case 'wind':
+      // (a step back, coiled: seen coming)
+      e.vel.x = m.t < 8 ? m.side * 0.8 : 0;
+      if (m.t >= MOB_WIND) { go('strike'); m.hit = false; playSound('whoosh', 1.1 + Math.random() * 0.2, -6); }
+      break;
+    case 'strike': {
+      e.vel.x = -m.side * MOB_LUNGE;
+      const gap = m.side > 0 ? e.pos.x - (p.pos.x + p.width) : p.pos.x - (e.pos.x + e.width);
+      if (gap < 4) {
+        e.vel.x = 0;
+        if (!m.hit && !(p.invincibilityTimer > 0) && !p.untouchable && p.health > 0) {
+          m.hit = true;
+          hurtPlayer(ctx, MOB_HIT, e.kind ?? 'enemy', undefined, 0);
+          playSound('punch', 0.8, -2);
+        }
+        go('back');
+      } else if (m.t >= MOB_STRIKE) go('back');
+      break;
+    }
+    case 'back':
+      e.vel.x = m.side * 2.2;
+      if (m.t >= MOB_BACK) {
+        // Over him to the other side, if there's ground there to come down on and nothing in the way
+        const to = cx - m.side * (half + MOB_STAND * 0.7 + e.width / 2);
+        if (floorAt(state, to, fy) && !wallBetween(state, to)) { go('cross'); m.from = e.pos.x; m.to = to - e.width / 2; m.y = e.pos.y; playSound('whoosh', 0.8, -8); }
+        else { go('rest'); m.rest = MOB_REST[0] + Math.random() * (MOB_REST[1] - MOB_REST[0]); }
+      }
+      break;
+    case 'cross': {
+      const k = Math.min(1, m.t / MOB_CROSS);
+      e.pos.x = m.from + (m.to - m.from) * k;
+      e.pos.y = m.y - Math.sin(Math.PI * k) * MOB_HOP;
+      e.vel.x = 0; e.vel.y = 0;
+      e.facing = (m.to > m.from ? 1 : -1) as 1 | -1;
+      if (k >= 1) { e.pos.y = m.y; m.side = -m.side; go('rest'); m.rest = MOB_REST[0] + Math.random() * (MOB_REST[1] - MOB_REST[0]); }
+      break;
+    }
+    case 'rest': {
+      const dx = stand - ex;
+      e.vel.x = Math.abs(dx) < MOB_WALK ? 0 : Math.sign(dx) * MOB_WALK * 0.6;
+      if (m.t >= m.rest) { go('set'); m.rest = 0; }
+      break;
+    }
+  }
+};
+/** The beatdown's over: the mob's back to itself (one mid-hop comes down where it is). */
+const mobDone = () => {
+  for (const [e, m] of mobs) { if (m.step === 'cross') { e.vel.y = 0.5; } e.pauseTimer = Math.max(e.pauseTimer || 0, 10); }
+  mobs.clear();
 };
 
 /** While a grab's on, everyone shooting at him does it at a bit over half the rate (it's less of a firing squad; still not safe). */
@@ -612,6 +722,8 @@ export const updateGrab = (ctx: FrameContext, g: Grab, controls: Controls): Cont
   // (a thrown body's hits first: whoever's where it's landing gets it before they're moved out of his way)
   if (g.flying.length) flyInto(ctx, g);
   // (only once he's got hold of somebody: before that, whoever he's going for has to stay where he can get them)
+  // (the beatdown: everybody else about keeps at him, see mobbing)
+  if (g.phase === 'mount') mobbing(ctx, g); else if (mobs.size) mobDone();
   if (g.phase !== 'idle') { if (!PRE_GRAB.has(g.phase)) keepClear(ctx.state, g); easeOff(ctx.state, g); }
   // (armor, fighting-game style: through a grab, and for a moment after, with whoever he's just put down still at his
   // feet, anything that hits him hurts him, but nothing knocks him about or out of what he's doing)
