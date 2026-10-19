@@ -182,7 +182,7 @@ export const updateCut = (ctx: FrameContext) => {
   }
   // (the drift back: it's lost the engine, slowing a bit (capped: it used to run away faster and faster and leave him
   // hanging in the sky); then it blows up (the user's, 2026-10-18), whoever's still on it with it)
-  cut.v = Math.max(DRIFT_MAX, cut.v - 0.034);
+  cut.v = Math.max(DRIFT_MAX, cut.v - DRIFT_ACC);
   cut.off += cut.v;
   shiftCars(state, tr, cut.k, cut.v);
   if (cut.t % 8 === 0) for (let n = 0; n < 2; n++) state.particles.push({ pos: { x: cpx - 6, y: DECK + 2 }, vel: { x: -1 - Math.random() * 2, y: -Math.random() * 2 }, life: 16, color: '#FDE047', size: 2 });
@@ -191,7 +191,9 @@ export const updateCut = (ctx: FrameContext) => {
   if (cut.t >= BLOW_AT) derail(ctx, tr, cut.k);
 };
 /** The cut end's drift back: its top speed (px a frame back), and when it blows (frames after the cut). */
-const DRIFT_MAX = -2.6, BLOW_AT = 130;
+// (gentler and later (the playtest): the gap opens slowly, so a charged jump clears it well into the drift: about 130 px
+// by two seconds in, about 210 when it goes up)
+const DRIFT_MAX = -1.6, DRIFT_ACC = 0.02, BLOW_AT = 170;
 
 const startCut = (state: GameState, tr: Train, k: number, tell: number) => {
   tr.cut = { k, phase: 'tell', t: 0, tell, v: 0, off: 0 };
