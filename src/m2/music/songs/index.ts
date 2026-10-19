@@ -18,6 +18,8 @@ import { LAND_SPACE, SEQ_SPACE_TRAIN, SEQ_STALKER } from './space';
 import { BOSS_UFO, BOSS_SPACE_QUEEN } from './spaceBosses';
 import { LAND_HOLLYWOOD, SEQ_COASTER, SEQ_DISASTER_RIDE, SEQ_HAVOC } from './hollywood';
 import { BOSS_ENSEMBLE, BOSS_STEVE } from './hollywoodBosses';
+import { LAND_FOREIGN, SEQ_HELI } from './foreign';
+import { BOSS_HELI_GAUNTLET, BOSS_HARRY } from './foreignBosses';
 
 export const SONGS: Record<string, Song> = {
   title: TITLE,
@@ -65,4 +67,8 @@ export const SONGS: Record<string, Song> = {
   'seq:havoc': SEQ_HAVOC,
   'boss:ensemble-cast': BOSS_ENSEMBLE,
   'boss:stuntman-steve': BOSS_STEVE,
+  'land:foreign': LAND_FOREIGN,
+  'seq:heli': SEQ_HELI,
+  'boss:heli-gauntlet': BOSS_HELI_GAUNTLET,
+  'boss:helicopter-harry': BOSS_HARRY,
 };

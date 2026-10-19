@@ -121,6 +121,7 @@ const jungleOwn = (s: GameState) => ((s.stage as { s?: JungleOwn } | null)?.s ??
  *  his say on the roof, or the roof coming in. */
 const seqArrs = (s: GameState, land: string, sec: string): string[] => {
   if (land === 'hollywood') return hollywoodArrs(s, sec);
+  if (land === 'foreign') return sec === 'heli' ? [heliSeqArr(s)] : [];
   if (land === 'space') {
     // (XENOSCARE, the crater past its door; the basement's stairs' top and the disco; the star sled by where it is:
     // the dark ride, the chain lift, space, and the warehouse once the work lights are on)
@@ -152,7 +153,39 @@ const seqArrs = (s: GameState, land: string, sec: string): string[] => {
  *  spent (the revisit's wreckage: the land's 'havoc'). */
 const seqOver = (s: GameState, land: string, sec: string) =>
   (land === 'adventure' && sec === 'roof' && !!jungleOwn(s).roof?.tumbled) || (land === 'spooky' && sec === 'tower' && s.player.pos.x + s.player.width / 2 < TX0) ||
-  (land === 'hollywood' && sec === 'havoc' && havocSpent(s));
+  (land === 'hollywood' && sec === 'havoc' && havocSpent(s)) || (land === 'foreign' && sec === 'heli' && !!foreignOwn(s).heli?.over);
+
+/** Foreign Lands' sections' own state, as much as the music looks at (foreign/heli, harry). */
+interface ForeignOwn {
+  heli?: { phase?: string; over?: boolean; transit?: boolean; cur?: number; flags?: Record<string, boolean>; mechs?: { id: string; st: string }[] };
+  harry?: { f?: { crumbled?: boolean } | null };
+}
+const foreignOwn = (s: GameState) => ((s.stage as { s?: ForeignOwn } | null)?.s ?? {});
+/** The helicopter before he takes it, by the ride: the helipad and its queue (the ride's speakers); climbing in and
+ *  the lift; the tour; from the boot in Harry on (the landmarks waking). */
+const heliSeqArr = (s: GameState) => {
+  const h = foreignOwn(s).heli;
+  if (!h || h.phase === 'pad') return 'pad';
+  if (h.phase === 'board' || h.phase === 'lift') return 'board';
+  return h.flags?.shoved ? 'turn' : 'tour';
+};
+/** The gauntlet's song by the landmark up (rising, fighting, going down: its country's flavor); the goon waves
+ *  between; Harry's rocket and the fall. */
+const heliArr = (s: GameState) => {
+  const h = foreignOwn(s).heli;
+  if (!h) return 'main';
+  if (h.phase === 'end') return 'down';
+  const m = h.mechs?.[h.cur ?? -1];
+  return m && !h.transit && (m.st === 'intro' || m.st === 'fight' || m.st === 'dying') ? m.id : 'main';
+};
+/** A fight's own arrangement, by how it's going (on top of 'intro' in its cutscenes): the saucer's; the gauntlet's
+ *  landmark; Harry once the statue's come apart. */
+const bossArrs = (s: GameState, boss: string, cutscene: boolean): string[] => {
+  if (boss === 'ufo') return [ufoArr(s)];
+  if (boss === 'heli-gauntlet') return [heliArr(s)];
+  if (boss === 'helicopter-harry' && !cutscene && foreignOwn(s).harry?.f?.crumbled) return ['rage'];
+  return [];
+};
 
 /** The havoc's tornado spent (the fling's been: havoc/hazards.ts spent()). */
 const havocSpent = (s: GameState) => s.stageMemo[FLUNG_MEMO] === '1' || s.checkpoint >= 60 || isLandCleared('hollywood');
@@ -266,8 +299,8 @@ const gameWants = (s: GameState | null): Want => {
   if (boss) {
     const also = BOSS_ALSO[boss];
     return {
-      // (the saucer's song follows its fight: ufoArr)
-      cands: [{ song: `boss:${boss}`, arrs: [...(boss === 'ufo' ? [ufoArr(s)] : []), ...(cutscene ? ['intro', 'main'] : ['main'])] }, ...(also ? [{ song: also }] : []), { song: `land:${land}`, arrs: ['boss', sec, 'main'] }],
+      // (the saucer's song follows its fight, the gauntlet's its landmark, Harry's the statue: bossArrs)
+      cands: [{ song: `boss:${boss}`, arrs: [...bossArrs(s, boss, cutscene), ...(cutscene ? ['intro', 'main'] : ['main'])] }, ...(also ? [{ song: also }] : []), { song: `land:${land}`, arrs: ['boss', sec, 'main'] }],
       // (a boss's opening cutscene: its 'intro' if it has one, not quieter)
       cutscene: false,
     };
@@ -279,8 +312,8 @@ const gameWants = (s: GameState | null): Want => {
   if (moment) return { cands: [moment, theme], cutscene: false };
   const seq = SEQUENCES[land]?.[sec];
   // (Hollywood Land's rides are shows he sits through (the coaster's laps, REAL DISASTERS, the fling): their songs at
-  // full, by what's on (hollywoodArrs), not the quieter cutscene mix)
-  if (seq && !seqOver(s, land, sec)) return { cands: [{ song: `seq:${seq}`, arrs: seqArrs(s, land, sec) }, theme], cutscene: cutscene && land !== 'hollywood' };
+  // full, by what's on (hollywoodArrs), not the quieter cutscene mix; and the helicopter's tour, the ride's own tape)
+  if (seq && !seqOver(s, land, sec)) return { cands: [{ song: `seq:${seq}`, arrs: seqArrs(s, land, sec) }, theme], cutscene: cutscene && land !== 'hollywood' && land !== 'foreign' };
   return { cands: [theme], cutscene };
 };
 
