@@ -3,10 +3,10 @@
 //
 //   MASH       one button (a face button), as fast as he can: the meter fills with each press and drains on its own;
 //              fill it before the time's out.
-//   PRESS      the button shown, each in turn, before its time's out; the wrong one's a miss.
+//   PRESS      the button shown, each in turn, before its time's out; a wrong one costs time, a second's a miss.
 //   ALTERNATE  left, right, left, right (a tug of war): the same one twice does nothing; enough before the time's out.
-//   RING       a ring closes on the button: press it as the ring's on the target band; early, late or the wrong one's
-//              a miss.
+//   RING       a ring closes on the button: press it as the ring's on the target band; early or the wrong one costs
+//              time (a second's a miss), late's a miss.
 //
 // Harder the further through the roster he is (more beats, more presses, less time; the first one's a mash, to learn
 // on); a dazed suitor (hit by a rival's throw, a body) one beat fewer and slower. The panel's React's (QtePanel.tsx:
@@ -27,6 +27,8 @@ interface Beat {
   t: number; dur: number;
   /** (alternate) which of the two's due. */
   next: number;
+  /** (press, ring) wrong buttons or a ring pressed off its band so far: one's forgiven (it costs time), the next's a miss. */
+  flubs: number;
 }
 export interface Qte {
   /** Whose cart (roster index); his name. */
@@ -46,15 +48,19 @@ const downs = (c: Controls, prev: Controls) => (['A', 'B', 'X', 'Y', 'LEFT', 'RI
 
 /** The beats for one fight: `level` how many he's killed (0..7), `dazed` the suitor's reeling. (Eased a step: the user's.) */
 const beatsFor = (level: number, dazed: boolean): Beat[] => {
-  const n = Math.max(1, 1 + Math.floor(level / 3) - (dazed ? 1 : 0));
+  // (mixed up, the user's: not just bashing. Two beats at least, three, then four further on; every fight has a run of
+  // buttons in turn or a timed ring in it, and a mash no more than once)
+  const n = Math.max(dazed ? 1 : 2, 2 + Math.floor(level / 3) - (dazed ? 1 : 0));
   const slow = dazed ? 1.2 : 1;
   const out: Beat[] = [];
-  let last: Kind | null = null;
+  const kinds: Kind[] = level === 0 ? ['mash', 'press'] : [pick(['press', 'ring'] as Kind[])];
+  while (kinds.length < n) {
+    const last = kinds[kinds.length - 1];
+    kinds.push(pick((['press', 'ring', 'alternate', 'mash'] as Kind[]).filter(k => k !== last && !(k === 'mash' && kinds.includes('mash')))));
+  }
   for (let s = 0; s < n; s++) {
-    const kinds = (['mash', 'press', 'alternate', 'ring'] as Kind[]).filter(k => k !== last);
-    const kind: Kind = level === 0 && s === 0 ? 'mash' : pick(kinds);
-    last = kind;
-    const b: Beat = { kind, key: pick(FACE), seq: [], need: 0, got: 0, fill: 0, t: 0, dur: 0, next: 0 };
+    const kind = kinds[s];
+    const b: Beat = { kind, key: pick(FACE), seq: [], need: 0, got: 0, fill: 0, t: 0, dur: 0, next: 0, flubs: 0 };
     if (kind === 'mash') { b.need = 10 + Math.round(level * 1.5); b.dur = Math.round(190 * slow); }
     if (kind === 'press') { b.need = 3 + Math.floor(level / 2); b.seq = Array.from({ length: b.need }, () => pick(FACE)); b.key = b.seq[0]; b.dur = Math.round(Math.max(46, 86 - level * 4) * slow); }
     if (kind === 'alternate') { b.need = 12 + Math.round(level * 1.5); b.dur = Math.round(200 * slow); }
@@ -67,6 +73,10 @@ const beatsFor = (level: number, dazed: boolean): Beat[] => {
 /** The ring's target band (how shut the ring is when it counts). */
 const BAND: [number, number] = [0.04, 0.32];
 const LOCK = 30, PAUSE = 22;
+/** The first frames of a press or a ring: nothing counts (a press still coming off the mash before it isn't a miss). */
+const GRACE = 10;
+/** A forgiven flub's cost: this many frames off the press's or the ring's time. */
+const FLUB_COST = 14;
 
 export const startQte = (i: number, name: string, level: number, dazed: boolean, prev: Controls): Qte =>
   ({ i, name, phase: 'lock', t: 0, beats: beatsFor(level, dazed), at: 0, flash: null, prev });
@@ -79,6 +89,8 @@ export const updateQte = (q: Qte, controls: Controls): 'on' | 'won' | 'lost' => 
   const b = q.beats[q.at];
   const good = () => { q.flash = 'good'; playSound('ding', 0.5, 6); };
   const miss = () => { q.flash = 'bad'; q.phase = 'lost'; q.t = 0; playSound('alert', 0.6, -6); };
+  // (a wrong button, or a ring pressed off its band: the first's forgiven, it costs time; the second's a miss)
+  const flub = () => { b.flubs++; if (b.flubs > 1) { miss(); return; } b.t += FLUB_COST; q.flash = 'bad'; playSound('alert', 0.35, 4); };
   const beatDone = () => {
     good();
     q.at++;
@@ -95,10 +107,10 @@ export const updateQte = (q: Qte, controls: Controls): 'on' | 'won' | 'lost' => 
         b.fill = Math.max(0, b.fill - 0.0032);
         if (b.fill >= 1) beatDone(); else if (b.t >= b.dur) miss();
       } else if (b.kind === 'press') {
-        const face = presses.filter(k => FACE.includes(k));
+        const face = b.t > GRACE || b.got > 0 ? presses.filter(k => FACE.includes(k)) : [];
         if (face.length) {
-          if (face.includes(b.key) && face.length === 1) { b.got++; b.t = 0; playSound('punch', 0.4, 4); if (b.got >= b.need) beatDone(); else b.key = b.seq[b.got]; }
-          else miss();
+          if (face.includes(b.key)) { b.got++; b.t = 0; q.flash = null; playSound('punch', 0.4, 4); if (b.got >= b.need) beatDone(); else b.key = b.seq[b.got]; }
+          else flub();
         } else if (b.t >= b.dur) miss();
         b.fill = b.got / b.need;
       } else if (b.kind === 'alternate') {
@@ -108,10 +120,10 @@ export const updateQte = (q: Qte, controls: Controls): 'on' | 'won' | 'lost' => 
         if (b.got >= b.need) beatDone(); else if (b.t >= b.dur) miss();
       } else {
         const r = 1 - b.t / b.dur;
-        const face = presses.filter(k => FACE.includes(k));
+        const face = b.t > GRACE ? presses.filter(k => FACE.includes(k)) : [];
         if (face.length) {
-          if (face.length === 1 && face[0] === b.key && r >= BAND[0] && r <= BAND[1]) { b.got++; b.t = 0; playSound('punch', 0.5, 2); b.key = pick(FACE); if (b.got >= b.need) beatDone(); else { q.flash = 'good'; } }
-          else miss();
+          if (face.includes(b.key) && r >= BAND[0] && r <= BAND[1]) { b.got++; b.t = 0; playSound('punch', 0.5, 2); b.key = pick(FACE); if (b.got >= b.need) beatDone(); else { q.flash = 'good'; } }
+          else flub();
         } else if (r <= 0) miss();
         b.fill = b.got / b.need;
       }
