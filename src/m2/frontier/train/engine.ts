@@ -74,6 +74,8 @@ const scOf = (state: GameState): Scene => {
   return s;
 };
 const cut = (s: Scene) => s.step === 'close' || s.step === 'slump' || s.step === 'speed' || s.step === 'crash';
+/** Where the engine's scene is (the music follows it: music/cues.ts). */
+export const engineStep = (state: GameState): Step => scOf(state).step;
 
 const tuckerSay = (s: Scene, text: string | null, done?: () => void) => {
   if (!text) { setTimeout(() => done?.(), 0); return; }

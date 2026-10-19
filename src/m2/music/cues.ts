@@ -50,6 +50,14 @@ import { PRESHOW, THEATER, x0 as DZ_X0 } from '../hollywood/disaster/layout';
 import { hvOf, FLUNG_MEMO } from '../hollywood/havoc/state';
 import { WIND, QUAKE, CLIMB, DOWNHILL, CHASE_AT, x0 as HV_X0 } from '../hollywood/havoc/layout';
 import { realDisastersOn } from '../hollywood/section';
+import { townOf } from '../frontier/town/state';
+import { trainOf } from '../frontier/train/state';
+import { playerRoom } from '../frontier/train/where';
+import { engineStep } from '../frontier/train/engine';
+import { rideOf } from '../frontier/logride/state';
+import { zoneAt, CUTTER_FROM, x0 as LR_X0 } from '../frontier/logride/layout';
+import { arenaOf } from '../frontier/arena/state';
+import { chaseMusic } from '../frontier/dirtbike/chase';
 
 export type { Cue };
 
@@ -121,6 +129,7 @@ const jungleOwn = (s: GameState) => ((s.stage as { s?: JungleOwn } | null)?.s ??
  *  his say on the roof, or the roof coming in. */
 const seqArrs = (s: GameState, land: string, sec: string): string[] => {
   if (land === 'hollywood') return hollywoodArrs(s, sec);
+  if (land === 'frontier') return frontierArrs(s, sec);
   if (land === 'foreign') return sec === 'heli' ? [heliSeqArr(s)] : [];
   if (land === 'space') {
     // (XENOSCARE, the crater past its door; the basement's stairs' top and the disco; the star sled by where it is:
@@ -153,7 +162,65 @@ const seqArrs = (s: GameState, land: string, sec: string): string[] => {
  *  spent (the revisit's wreckage: the land's 'havoc'). */
 const seqOver = (s: GameState, land: string, sec: string) =>
   (land === 'adventure' && sec === 'roof' && !!jungleOwn(s).roof?.tumbled) || (land === 'spooky' && sec === 'tower' && s.player.pos.x + s.player.width / 2 < TX0) ||
-  (land === 'hollywood' && sec === 'havoc' && havocSpent(s)) || (land === 'foreign' && sec === 'heli' && !!foreignOwn(s).heli?.over);
+  (land === 'hollywood' && sec === 'havoc' && havocSpent(s)) || (land === 'foreign' && sec === 'heli' && !!foreignOwn(s).heli?.over) ||
+  (land === 'frontier' && sec === 'train' && trainOf(s).phase === 'still') || (land === 'frontier' && sec === 'logride' && logOver(s));
+
+/** Wilderness Land's sections as the music hears them: the town's and the log ride's stretches (the HUD's: index.ts
+ *  hudZone); the train by where he is on it (the run for the caboose, on top, in a car, in a tunnel, the engine's
+ *  scene, the crash); Timber Tumble by where the log is (the platform, the ride, the chain lift, the giant saw, the
+ *  sewer, the real river, the sluice into the chipper); the clearing after it is the woods. */
+const frontierArrs = (s: GameState, sec: string): string[] => {
+  if (sec === 'town') return [getUi().zone ?? 'gulch'];
+  if (sec === 'train') {
+    const tr = trainOf(s);
+    if (tr.phase === 'intro') return ['run'];
+    const st = engineStep(s);
+    if (st === 'close' || st === 'slump' || st === 'speed' || st === 'crash' || st === 'done') return ['crash'];
+    if (st === 'insult' || st === 'rant') return ['engine'];
+    if (tr.dark > 0.5) return ['tunnel'];
+    return [playerRoom(s, tr) >= 0 ? 'inside' : 'roof'];
+  }
+  if (sec === 'logride') {
+    if (logOver(s)) return ['woods'];
+    const r = rideOf(s), L = r.log;
+    if (L.mode === 'off' || L.mode === 'scene') return ['station'];
+    if (L.mode === 'chipper' || L.mode === 'leap' || r.chip.state !== 'idle') return ['chipper'];
+    const z = zoneAt(L.rx);
+    if (z === 'sewer') return ['sewer'];
+    if (z === 'culvert' || z === 'river') return ['river'];
+    if (z === 'sluice') return ['chipper'];
+    if (z === 'brk' || L.rx >= CUTTER_FROM) return ['break'];
+    if (z === 'lift') return ['lift'];
+    return ['ride'];
+  }
+  return [];
+};
+/** Timber Tumble done with: jumped clear of the chipper, or walked about the crew's clearing (the woods' music). */
+const logOver = (s: GameState) => {
+  const L = rideOf(s).log;
+  return L.mode === 'done' || (L.mode === 'off' && zoneAt(s.player.pos.x + s.player.width / 2 - LR_X0) === 'clearing');
+};
+/** Wilderness Land's moments inside a section: the log ride's song off its speakers in the town's queue; the saloon's
+ *  BRAWL!; the showdown's duel (the standoff, the wait for the DRAW!, then DRAW! on the call, through the posse and the
+ *  announcer's sign-off); and Tucker's fake-out (the hush before he pops, then his song from the jumpscare on, through
+ *  the axe tree: its 'intro'). */
+const frontierMoment = (s: GameState, sec: string): Cand | null => {
+  if (sec === 'town') {
+    const tw = townOf(s), d = tw.duel;
+    if (getUi().zone === 'logride') return { song: 'seq:log-ride', arrs: ['queue'] };
+    if (tw.saloon.state === 'on') return { song: 'seq:brawl' };
+    if (d.phase === 'intro') return { song: 'seq:duel', arrs: ['standoff'] };
+    if (d.phase === 'duel' && d.t < d.drawAt) return { song: 'seq:duel', arrs: ['tense'] };
+    if (d.phase === 'duel' || d.phase === 'posse' || (d.phase === 'won' && !!tw.pa)) return { song: 'seq:draw' };
+    return null;
+  }
+  if (sec === 'arena') {
+    const a = arenaOf(s);
+    if (a.phase === 'fakeout') return a.step === 'ask' || a.step === 'beat' ? { song: 'land:frontier', arrs: ['hush'] } : { song: 'boss:tucker', arrs: ['intro'] };
+    if (a.phase === 'entry' || a.phase === 'entrance') return { song: 'boss:tucker', arrs: ['intro'] };
+  }
+  return null;
+};
 
 /** Foreign Lands' sections' own state, as much as the music looks at (foreign/heli, harry). */
 interface ForeignOwn {
@@ -184,6 +251,7 @@ const bossArrs = (s: GameState, boss: string, cutscene: boolean): string[] => {
   if (boss === 'ufo') return [ufoArr(s)];
   if (boss === 'heli-gauntlet') return [heliArr(s)];
   if (boss === 'helicopter-harry' && !cutscene && foreignOwn(s).harry?.f?.crumbled) return ['rage'];
+  if (boss === 'teenagers') { const c = chaseMusic(s); return c.outro ? ['outro'] : c.last ? ['last'] : []; }
   return [];
 };
 
@@ -308,12 +376,13 @@ const gameWants = (s: GameState | null): Want => {
   // Future Land's basement: the queen stalking him in the dark (the user's: atmospheric, creepy)
   if (land === 'space' && sec === 'queen' && p.pos.y + p.height > CEIL_B + 30 && p.pos.x < STAIRS_B) return { cands: [{ song: 'seq:stalker', arrs: [stalkerArr(s)] }, { song: 'land:space', arrs: ['stalker', 'queen'] }], cutscene };
   // Spooky Land's chamber and Satan (a scene, but not quieter: it's his)
-  const moment = land === 'spooky' ? spookyMoment(s, sec) : null;
+  const moment = land === 'spooky' ? spookyMoment(s, sec) : land === 'frontier' ? frontierMoment(s, sec) : null;
   if (moment) return { cands: [moment, theme], cutscene: false };
   const seq = SEQUENCES[land]?.[sec];
   // (Hollywood Land's rides are shows he sits through (the coaster's laps, REAL DISASTERS, the fling): their songs at
-  // full, by what's on (hollywoodArrs), not the quieter cutscene mix; and the helicopter's tour, the ride's own tape)
-  if (seq && !seqOver(s, land, sec)) return { cands: [{ song: `seq:${seq}`, arrs: seqArrs(s, land, sec) }, theme], cutscene: cutscene && land !== 'hollywood' && land !== 'foreign' };
+  // full, by what's on (hollywoodArrs), not the quieter cutscene mix; and the helicopter's tour, the ride's own tape;
+  // and Wilderness Land's run for the caboose, the engine's crash, the booth's scene and the chipper's leap)
+  if (seq && !seqOver(s, land, sec)) return { cands: [{ song: `seq:${seq}`, arrs: seqArrs(s, land, sec) }, theme], cutscene: cutscene && land !== 'hollywood' && land !== 'foreign' && land !== 'frontier' };
   return { cands: [theme], cutscene };
 };
 
@@ -324,6 +393,7 @@ const warmLand = (land: string | null) => {
   const ids = [`land:${land}`, `portal:${land}`, ...Object.values(SEQUENCES[land] ?? {}).map(q => `seq:${q}`), ...Object.entries(SECTION_BOSS).filter(([k]) => k.startsWith(land + ':')).map(([, b]) => `boss:${b}`)];
   if (land === 'space') ids.push('seq:stalker');
   if (land === 'spooky') ids.push('seq:ceiling', 'seq:satan');
+  if (land === 'frontier') ids.push('seq:brawl', 'seq:duel', 'seq:draw', 'seq:road-rash');
   for (const id of ids) if (SONGS[id]) prewarm(SONGS[id]);
 };
 

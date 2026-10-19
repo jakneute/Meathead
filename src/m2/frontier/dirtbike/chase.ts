@@ -140,6 +140,8 @@ const chaseOf = (state: GameState) => frontierState<Chase>(state, 'dirtbike', ()
   quipAt: 0, bumpAt: 0, engineAt: 0, tauntAt: 0, deathLast: -1, bike: '#E5E7EB', yelp: null,
 }));
 export const inChase = (state: GameState) => chaseOf(state).phase !== 'off';
+/** The chase as the music follows it (music/cues.ts): the last stretch, the outro. */
+export const chaseMusic = (state: GameState) => { const c = chaseOf(state); return { outro: c.phase === 'outro', last: c.wave >= WAVES.length - 1 }; };
 
 /** Said the start line this visit. */
 let startVisit = -1;

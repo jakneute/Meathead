@@ -20,6 +20,8 @@ import { LAND_HOLLYWOOD, SEQ_COASTER, SEQ_DISASTER_RIDE, SEQ_HAVOC } from './hol
 import { BOSS_ENSEMBLE, BOSS_STEVE } from './hollywoodBosses';
 import { LAND_FOREIGN, SEQ_HELI } from './foreign';
 import { BOSS_HELI_GAUNTLET, BOSS_HARRY } from './foreignBosses';
+import { LAND_FRONTIER, SEQ_TRAIN, SEQ_BRAWL, SEQ_DUEL, SEQ_DRAW, SEQ_LOG_RIDE } from './frontier';
+import { SEQ_ROAD_RASH, BOSS_TUCKER } from './frontierBosses';
 
 export const SONGS: Record<string, Song> = {
   title: TITLE,
@@ -71,4 +73,14 @@ export const SONGS: Record<string, Song> = {
   'seq:heli': SEQ_HELI,
   'boss:heli-gauntlet': BOSS_HELI_GAUNTLET,
   'boss:helicopter-harry': BOSS_HARRY,
+  'land:frontier': LAND_FRONTIER,
+  'seq:train': SEQ_TRAIN,
+  'seq:brawl': SEQ_BRAWL,
+  'seq:duel': SEQ_DUEL,
+  'seq:draw': SEQ_DRAW,
+  'seq:log-ride': SEQ_LOG_RIDE,
+  // (the TEENAGERS are the Road Rash chase: one song, under both cues)
+  'seq:road-rash': SEQ_ROAD_RASH,
+  'boss:teenagers': SEQ_ROAD_RASH,
+  'boss:tucker': BOSS_TUCKER,
 };
