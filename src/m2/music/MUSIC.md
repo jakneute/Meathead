@@ -37,7 +37,8 @@ intro and the walk-away till theirs were written; cues.ts still falls back to it
 Keys and tempos the non-boss pieces have taken (land themes and sequences: pick around them where you can): title B-flat
 112 shuffle, hub F 168 waltz, intro E-flat 116 march, staff D 84 bossa, walk-away A-flat 84 soul, portal D 128 fanfare,
 Jungle Land C minor 100 beguine, its river G 120 calypso, its mine cart F-sharp minor 152 chase, its roof E-flat minor
-176.
+176, Spooky Land D minor 108 swung shuffle, its clock tower G-sharp minor 160, its ceiling / red mist C octatonic 188,
+its Satan C Phrygian 66.
 
 ## The cue registry
 
@@ -64,7 +65,7 @@ jingle would need one (moments.ts is where it'd go).
 | Cue id | Land | Sections (arrangement names) | Genre | Key | Tempo | Lead | Mood | Status |
 |---|---|---|---|---|---|---|---|---|
 | `land:adventure` | JUNGLE LAND | jungle, queue, (river), underwater, dino, temple, (cart), roof, clearing, cutscene, boss | Exotica beguine (Les Baxter) with an adventure-serial march for a B section in E-flat and a "Quiet Village" bridge in D-flat; per section: full jungle band, the queue's muffled speakers (vibes, nylon guitar), celesta under water, horns/pizz/taiko in the dino zoo, oboe snake-charmer backstage at the temple, muted trumpet after the roof, flute and timpani in the clearing | C minor | 100 | Pan flute (vibes / flute / celesta / horn / oboe / harmon trumpet by section); marimba ostinato | Mysterious, then swashbuckling | **done** ("Darkest Jungle Land", jungle.ts) |
-| `land:spooky` | SPOOKY LAND | town, castle, dungeon, tower, hell, control, ballroom | | | | | | |
+| `land:spooky` | SPOOKY LAND | town, castle, dungeon, tower (the loading bay; the climb is `seq:clock-tower`), hell, control, giftshop (the control section past SHOP_X: cues.ts asks for it), ballroom, cutscene, boss | Haunted-house kitsch to gothic dread: a swung spooky shuffle (two-beat tuba, tiptoeing harpsichord, lament bass, the chromatic creep to the raised fourth), a Victorian music-hall B in F, a D Phrygian C with choir and bells; per section: surf-horror guitar and combo organ in the town, harpsichord/pizz/pipe organ and a ticking clock in the castle, a far-off music box in the dungeon, an old hotel-lobby record in the ride's loading bay, the choir singing the hook in hell, Donnie's booth monitors (vibes, tine piano), a calliope for the gift shop chase, a wedding band's violin in the ballroom foyer | D minor | 108 (swing) | Theremin (guitar / harpsichord / music box / harmon trumpet / choir / vibes / calliope / violin / celesta by section) | Kitsch, then dread | **done** ("Grave Expectations", spooky.ts) |
 | `land:space` | FUTURE LAND | square, atom, (ride), drag, needle, (orbit), crater, queen | | | | | | |
 | `land:hollywood` | HOLLYWOOD LAND | blvd, (coaster), warehouse, lot, (disaster), (havoc), stunt | | | | | | |
 | `land:foreign` | FOREIGN LANDS | mexico, norway, china, germany, italy, japan, morocco, france, uk, canada (each pavilion its country's style: the Banjo moment), (heli), harry | | | | | | |
@@ -73,7 +74,9 @@ jingle would need one (moments.ts is where it'd go).
 (Sections in brackets have a sequence's or a boss's music of their own; the land's arrangement for them is only the
 fallback.) Under water (Jungle Land's river) everything's muffled by the engine already. A set piece's song can have
 arrangements by what's on in it (cues.ts `seqArrs`: Jungle Land's boat/underwater, the cart's ride/chase, the roof's
-artie/run), and end while he's still in its section (`seqOver`: the roof, once he's tumbled off it).
+artie/run, the clock tower's climb/down, the gift shop's giftshop), and end while he's still in its section or not
+start till he's further in (`seqOver`: the roof, once he's tumbled off it; the clock tower's loading bay). Moments
+inside a section can have their own cue too (cues.ts `spookyMoment`: the dungeon's chamber, Satan's finale).
 
 ### Special sequences
 
@@ -82,6 +85,9 @@ artie/run), and end while he's still in its section (`seqOver`: the roof, once h
 | `seq:river` | Jungle Land: the river (arrangements: boat, underwater: cues.ts picks by his swimming) | The Jungle Cruise's canned tiki calypso under Artie's set, a ba-dum-tss every eight bars; under the water the same tune dreamy (celesta, warm pad, harp, oohs) | G | 120 | Steel drum (celesta under water) | Sunny, dumb | **done** ("Backside of Water", jungle.ts) |
 | `seq:mine-cart` | Jungle Land: the mine-cart ride (arrangements: ride; chase while Artie's on his tail) | Saturday-serial mine-cart chase: galloping strings, train beat, xylophone; the chase adds the brass section, taiko, choir and trombones quoting Artie's theme | F-sharp minor (Neapolitan G in C) | 152 | Trumpet | Breakneck | **done** ("Unfriendly Guests", jungle.ts) |
 | `seq:temple-collapse` | Jungle Land: the roof, from the blowout till he's tumbled off it (arrangements: artie while Artie has his say, run) | Orchestral escape: violins running, brass stabs in threes, choir, taiko, orchestra hits | E-flat minor | 176 | Strings (violins) | Panic | **done** ("Bring the House Down", jungle.ts) |
+| `seq:clock-tower` | Spooky Land: the clock tower itself (not its loading bay: seqOver), arrangements climb, down (after the crash: cues.ts picks), cutscene (the crash) | Castlevania Bloodlines / Super Metroid tower: harpsichord sixteenths like gears, solo violin, rock organ, octave bass, woodblock ticks, the bell; a B section in B major, the Neapolitan A against G#m in half time; power chords on the way down | G-sharp minor | 160 | Violin | Climbing, swaying | **done** ("Load-Bearing", spooky.ts) |
+| `seq:ceiling` / `seq:red-mist` | Spooky Land: the dungeon's chamber of the descending ceiling (ceiling: the doors slammed, the wait; chase: the ceiling coming down); the red mist's hallway (not built yet: `seq:red-mist` is the same song, wire it up with 'chase' when it is) | Silent Hill industrial chase: palm-muted tritone ostinato, metal clank, heartbeat, minor-second string clusters swelling, tremolo violins, choir and brass stabs, the horns' motif climbing a minor third every 8 bars | C octatonic | 188 | Horns + trombone (motif) | Dread, run | **done** ("Red Mist", spooky.ts) |
+| `seq:satan` | Spooky Land: after the demon, his "daaaad", Satan up out of the lava, the geyser (arrangements whine, satan, launch: cues.ts picks by the finale's step; the whole scene only, not the vent's later rides) | A sad harmon trumpet whining over the organ's pedal, then C Phrygian dread: choir chant, horns, timpani heartbeat, gong, tremolo strings; the geyser adds taiko and orchestra hits | C Phrygian | 66 | Harmon trumpet, then horns + choir | Pathetic, then infernal | **done** ("Daddy's Home", spooky.ts) |
 | `seq:space-train` | Future Land: the hijacked train | | | | | | |
 | `seq:stalker` | Future Land: the basement, the queen stalking him in the dark | **Atmospheric, scary and creepy (the user's): no beat, drones, the dark** | | | | | |
 | `seq:coaster` | Hollywood Land: Thrones of the Stars, the toilet coaster | | | | | | |
@@ -101,8 +107,8 @@ different from every other's). Change any of it, but keep them all different.
 |---|---|---|---|---|---|---|---|---|
 | `boss:trex` | The T. rex (sub-boss) | Jungle | Orchestral stomp: tuba/cello grinding a C#-D ostinato, taiko and bass drum footsteps, choir shouts; its speaker's music-box ditty in E major winding down, slammed in C# minor by the brass (arrangements: main, intro) | C-sharp minor | 96 | Horns + taiko | Primal, huge, broken | **done** ("Animatronic Apex", jungleBosses.ts) |
 | `boss:safari-artie` | Safari Artie | Jungle | Perez Prado exotica mambo (sax riff, brass shouts, montuno, timbales, "UGH!") breaking into a swung comedy-club combo (Hammond, walking bass, harmon trumpet, rimshots); opens with a club-intro vamp in B-flat major (arrangements: main, intro) | B-flat minor | 168 | Trumpet | Brash, sweaty, heckled | **done** ("Tough Crowd", jungleBosses.ts) |
-| `boss:demon` | The hell demon (sub-boss) | Spooky | Thrash metal | E minor | 200 | Distorted lead + chugs | Furious | |
-| `boss:donnie-dracula` | Donnie Dracula | Spooky | Baroque gothic fugue (Symphony of the Night) | G minor | 138 | Pipe organ + harpsichord | Camp gothic | |
+| `boss:demon` | The hell demon, BLOATHAZAR (sub-boss) | Spooky | Thrash metal that runs out of breath: a galloping riff (flat two, flat five, a chromatic slide off the couch), twin leads in thirds, skank beat; a half-time doom slump where a tuba takes the tune (and farts down an octave); a shred solo; a double-kick breakdown with gang "HEY!"s; opens with a yawn (arrangements: main, intro) | E minor | 200 | Distorted lead (+ chugs, tuba) | Lazy, then furious | **done** ("Hell's Couch Potato", spookyBosses.ts) |
+| `boss:donnie-dracula` | Donnie Dracula | Spooky | Tacky grandeur: a toccata flourish, a real three-voice organ fugue (subject, tonal answer, countersubject, pedal entry), an 80s rock opera on the subject, a ballroom tango in C minor (accordion, castanets, pizz, violin, habanera), the subject in augmentation on brass and organ with a disco-ball glockenspiel (arrangements: main, intro) | G minor | 138 | Pipe organ + harpsichord (accordion in the tango) | Camp gothic | **done** ("Fangs for Coming", spookyBosses.ts) |
 | `boss:ufo` | The flying saucer (sub-boss, the whole orbit shooter) | Future | 60s sci-fi surf rock | A minor | 176 | Theremin | Retro panic | |
 | `boss:space-queen` | The queen (the space disco) | Future | Italo disco: 909, string stabs, slap bass | F minor | 124 | Supersaw + strings | Glittery menace | |
 | `boss:ensemble-cast` | The Ensemble Cast (sub-boss) | Hollywood | Superhero-movie march | E-flat major | 132 | Brass section | Bombastic, self-important | |

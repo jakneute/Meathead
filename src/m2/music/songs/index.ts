@@ -12,6 +12,8 @@ import { WALKAWAY, WALKAWAY_ARTIE, WALKAWAY_DONNIE, WALKAWAY_QUEEN, WALKAWAY_STE
 import { PORTAL, PORTAL_ADVENTURE, PORTAL_SPOOKY, PORTAL_SPACE, PORTAL_HOLLYWOOD, PORTAL_FOREIGN, PORTAL_FRONTIER } from './portal';
 import { LAND_ADVENTURE, SEQ_RIVER, SEQ_MINE_CART, SEQ_TEMPLE_COLLAPSE } from './jungle';
 import { BOSS_TREX, BOSS_SAFARI_ARTIE } from './jungleBosses';
+import { LAND_SPOOKY, SEQ_CLOCK_TOWER, SEQ_RED_MIST, SEQ_SATAN } from './spooky';
+import { BOSS_DEMON, BOSS_DONNIE } from './spookyBosses';
 
 export const SONGS: Record<string, Song> = {
   title: TITLE,
@@ -40,4 +42,12 @@ export const SONGS: Record<string, Song> = {
   'seq:temple-collapse': SEQ_TEMPLE_COLLAPSE,
   'boss:trex': BOSS_TREX,
   'boss:safari-artie': BOSS_SAFARI_ARTIE,
+  'land:spooky': LAND_SPOOKY,
+  'seq:clock-tower': SEQ_CLOCK_TOWER,
+  // (the red mist's hallway isn't built yet: the dungeon's descending ceiling plays it till then, and after)
+  'seq:ceiling': SEQ_RED_MIST,
+  'seq:red-mist': SEQ_RED_MIST,
+  'seq:satan': SEQ_SATAN,
+  'boss:demon': BOSS_DEMON,
+  'boss:donnie-dracula': BOSS_DONNIE,
 };

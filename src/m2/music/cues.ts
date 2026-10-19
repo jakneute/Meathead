@@ -39,6 +39,8 @@ import { HOLLYWOOD_STAGE } from '../hollywood/index';
 import { FOREIGN_STAGE } from '../foreign/index';
 import { FRONTIER_STAGE } from '../frontier/index';
 import { STAIRS_B, CEIL_B } from '../space/queen/geo';
+import { TX0 } from '../spooky/tower/layout';
+import { SHOP_X } from '../spooky/control/geo';
 
 export type { Cue };
 
@@ -50,6 +52,8 @@ const LAND_OF_STAGE: Record<string, string> = {
 export const SEQUENCES: Record<string, Record<string, string>> = {
   // (the roof's only till he's tumbled off it: seqOver)
   adventure: { river: 'river', cart: 'mine-cart', roof: 'temple-collapse' },
+  // (the clock tower itself, not its loading bay: seqOver)
+  spooky: { tower: 'clock-tower' },
   space: { ride: 'space-train' },
   hollywood: { coaster: 'coaster', disaster: 'disaster-ride', havoc: 'havoc' },
   foreign: { heli: 'heli' },
@@ -107,6 +111,12 @@ const jungleOwn = (s: GameState) => ((s.stage as { s?: JungleOwn } | null)?.s ??
 /** A sequence's arrangement by what's on in it: on the boat or under it; Artie on his tail in the cart; Artie having
  *  his say on the roof, or the roof coming in. */
 const seqArrs = (s: GameState, land: string, sec: string): string[] => {
+  if (land === 'spooky') {
+    // (the clock tower going up, or wrecked on the way down; the control section's gift shop, the chase through it)
+    if (sec === 'tower') return [spookyOwn(s).tower?.crashed ? 'down' : 'climb'];
+    if (sec === 'control' && s.player.pos.x + s.player.width / 2 >= SHOP_X) return ['giftshop'];
+    return [];
+  }
   if (land !== 'adventure') return [];
   const own = jungleOwn(s);
   if (sec === 'river') return [s.player.swimming ? 'underwater' : 'boat'];
@@ -114,8 +124,31 @@ const seqArrs = (s: GameState, land: string, sec: string): string[] => {
   if (sec === 'roof') return [own.roof?.scene === 'arrive' ? 'artie' : 'run'];
   return [];
 };
-/** A sequence that's done while he's still in its section (the roof, once he's tumbled off it: the land's again). */
-const seqOver = (s: GameState, land: string, sec: string) => land === 'adventure' && sec === 'roof' && !!jungleOwn(s).roof?.tumbled;
+/** A sequence that's done while he's still in its section (the roof, once he's tumbled off it: the land's again), or
+ *  isn't on yet (the clock tower's loading bay: the land's, the bay's old record). */
+const seqOver = (s: GameState, land: string, sec: string) =>
+  (land === 'adventure' && sec === 'roof' && !!jungleOwn(s).roof?.tumbled) || (land === 'spooky' && sec === 'tower' && s.player.pos.x + s.player.width / 2 < TX0);
+
+/** Spooky Land's sections' own state, as much as the music looks at (spooky/dungeon, tower, hell). */
+interface SpookyOwn { dungeon?: { room?: string }; tower?: { crashed?: boolean }; hell?: { fin?: { full?: boolean; step?: string } | null } }
+const spookyOwn = (s: GameState) => ((s.stage as { s?: SpookyOwn } | null)?.s ?? {});
+/** Satan's finale in hell, by its step: the demon whining for his dad and sinking; Satan up out of the lava and
+ *  talking; the geyser. (Only the whole scene: stepping on the vent again later is just the ride up.) */
+const SATAN_ARR: Record<string, string> = { whine: 'whine', sink: 'whine', leaves: 'whine', rise: 'satan', hi: 'satan', core: 'satan', parting: 'satan', glow: 'satan', launch: 'launch', fade: 'launch' };
+/** Spooky Land's moments inside a section: the dungeon's chamber (the doors slammed: its quiet dread, then the ceiling
+ *  coming down: the run), and Satan's finale. */
+const spookyMoment = (s: GameState, sec: string): Cand | null => {
+  const own = spookyOwn(s);
+  if (sec === 'dungeon') {
+    const room = own.dungeon?.room;
+    if (room === 'armed' || room === 'down') return { song: 'seq:ceiling', arrs: [room === 'armed' ? 'ceiling' : 'chase'] };
+  }
+  if (sec === 'hell') {
+    const fin = own.hell?.fin;
+    if (fin?.full && fin.step && SATAN_ARR[fin.step]) return { song: 'seq:satan', arrs: [SATAN_ARR[fin.step]] };
+  }
+  return null;
+};
 
 /** What the game wants on right now. */
 const gameWants = (s: GameState | null): Want => {
@@ -154,6 +187,9 @@ const gameWants = (s: GameState | null): Want => {
   }
   // Future Land's basement: the queen stalking him in the dark (the user's: atmospheric, creepy)
   if (land === 'space' && sec === 'queen' && p.pos.y + p.height > CEIL_B + 30 && p.pos.x < STAIRS_B) return { cands: [{ song: 'seq:stalker' }, { song: 'land:space', arrs: ['stalker', 'queen'] }], cutscene };
+  // Spooky Land's chamber and Satan (a scene, but not quieter: it's his)
+  const moment = land === 'spooky' ? spookyMoment(s, sec) : null;
+  if (moment) return { cands: [moment, theme], cutscene: false };
   const seq = SEQUENCES[land]?.[sec];
   if (seq && !seqOver(s, land, sec)) return { cands: [{ song: `seq:${seq}`, arrs: seqArrs(s, land, sec) }, theme], cutscene };
   return { cands: [theme], cutscene };
@@ -165,6 +201,7 @@ const warmLand = (land: string | null) => {
   lastLand = land;
   const ids = [`land:${land}`, `portal:${land}`, ...Object.values(SEQUENCES[land] ?? {}).map(q => `seq:${q}`), ...Object.entries(SECTION_BOSS).filter(([k]) => k.startsWith(land + ':')).map(([, b]) => `boss:${b}`)];
   if (land === 'space') ids.push('seq:stalker');
+  if (land === 'spooky') ids.push('seq:ceiling', 'seq:satan');
   for (const id of ids) if (SONGS[id]) prewarm(SONGS[id]);
 };
 
