@@ -1313,3 +1313,29 @@ later (+1 if heavyset; was 2 / 3 before playtest fixes E). Tucker's glimpsed ahe
   chrome-bevel panel; the HUD fist redrawn. The side-view stub on the woods' kit (its far off, the floor going back,
   a back rank, trees, the trail stamped and bent with its lit lip). No timings, windows, speeds, lanes, scale math or
   collision touched.
+- 2026-10-18 (SNES pass, section 7, the catch-up and Tucker's arena; art only): straight on from the woods' real side
+  (arena/art.ts on woods/paint.ts): the woods' far off (the real sky, the Rockies, the clear-cut ridge); one eye for the
+  scene: the forest floor going back banded into the haze, opening into a dry autumn meadow round the clearing and the
+  glade (ragged edges, goldenrod, asters gone to seed, a fly agaric under the trees), the back rank as a cached tile
+  (firs, spruce, gold aspens, a russet scrub oak, a snag, the brush), trees between culled by where they're drawn and
+  thinned where it opens up, the big ones by the trail with brush at their feet; a real Forest Service routed board on
+  its 4x4s before the glade (YOU ARE IN GRIZZLY COUNTRY, a bear routed in) with the county's yellow MOUNTAIN LIONS
+  ACTIVE IN AREA notice under it, stood back on its own ground. The trail stamped and bent within the section's ground,
+  its ruts fading into the clearing's sod (the stolen bike's single track on to the oak), its lit lip all along. THE
+  OAK a giant bur oak gone russet and gold (stepped clumps, limbs lit along their tops, corky furrowed bark banded and
+  dithered, the root flare, moss up its north side, the knothole, the old limb scar, its skirt of fallen leaves and
+  acorns); the branch's twig and leaves stepped, the blood under him pooled in rings; the snapped stub's break inked.
+  The wreck: the bark skinned where it hit, gas soaked into the leaves with a sheen, busted plastic, stepped smoke. The
+  axe tree a fir in stepped tiers over banded, plated bark; the stump and its ringed cut, the hinge, the chips; the
+  trunk down along the ground painted once, its top kept dull (no ledge: nothing lit to stand on), needles shaken off
+  round it; the axe's hickory lit, its head painted red, the bit ground bright. The boulder in banded granite (flecks,
+  a quartz vein, lichen rosettes, moss in its crack and heaped at its foot), its lit lip. The critters redrawn the
+  wilds' animals' way, four-frame run cycles, hurt and belly-up dead (critters.ts): cottontail, fox squirrel, raccoon,
+  skunk, wild tom, mallard drake, little brown bat. The lions and the grizzly near Tucker's grade (beasts.ts: seven-step
+  ramps, fur-stepped bands, lit muscle masses, shag and ticked fur, tapered lit legs, toes and claws, new heads; every
+  pose, the leaving lion's dead pose; every frame stamped); the close-ups' heads and paws left as they were (Tucker's
+  close-ups untouched). The fight: the flintlock's smoke in stepped puffs, the balls stepped lead with a dotted streak,
+  the swarm a dark churning cloud (dithered core, rolling lumps) over a dithered shadow, its bees fat and striped with
+  two-frame wings; the remains (the pinstriped leg, the rack of ribs, the saw's toothed blade, the cracked spectacles)
+  over a stepped pool, the torn edge and the gut stepped; the revisit's stain gone brown under blown leaves; his bar
+  brass-bound. No gameplay, timing, hit area or spawn changes.

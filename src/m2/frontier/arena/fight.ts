@@ -53,6 +53,7 @@ import { setGoreBag, goreBag, SPRAY, noBagFrom, onGlobHit } from '../../weapons/
 import { box, label, saidOver, speak, meatheadSays, byPants, hands } from '../section';
 import { TUCKER_VOICE, type ByPants } from '../talk';
 import { mix, INK, type Ctx } from '../kit';
+import { pixelBlob, checker } from '../../../m1/game/render/pixelArt';
 import { drawTucker, drawTuckerCloseup, drawTuckerCap, tuckerMuzzle, TUCKER_H, type TuckerPose, type TuckerFace, type TuckerWounds } from '../tucker';
 import { drawLion, drawGrizzly, type LionPose, type BearPose } from './beasts';
 import { kindOf, GROUND_CRITTERS, FLYING_CRITTERS, critterSpeed, isCritter, isLion, LION_KIND, type Critter } from './critters';
@@ -985,45 +986,74 @@ const drawDead = (c: Ctx, f: Fight, fr: number) => {
       c.beginPath(); if (half < 0) c.rect(f.tx - 80, cut - 200, 160, 200); else c.rect(f.tx - 80, cut, 160, 120); c.clip();
       drawTucker(c, f.tx, GY, f.facing, fr, 'hurt', { wounds: w, face: 'yell' });
       c.restore();
-      // (the torn edge: ragged meat, a knob of spine, strings of gut)
+      // (the torn edge: ragged meat in steps, a knob of spine, strings of gut)
       c.save(); c.translate(f.tx + dx, cut + dy); c.rotate(rot);
-      c.fillStyle = '#7F1D1D'; c.beginPath(); for (let i = 0; i <= 8; i++) c.lineTo(-14 + i * 3.5, (i % 2 ? 3 : -3) * half); c.lineTo(14, 0); c.closePath(); c.fill();
-      c.fillStyle = '#F5F0E6'; c.fillRect(-3, -2, 6, 4);
+      const rag = (e: number) => { c.beginPath(); for (let i = 0; i <= 8; i++) c.lineTo(-14 + i * 3.5, ((i % 2 ? 3 : -3) - e * Math.sign(i % 2 ? 3 : -3)) * half); c.lineTo(14, 0); c.closePath(); };
+      rag(-1); c.fillStyle = '#3A0606'; c.fill();
+      rag(0); c.fillStyle = '#7F1D1D'; c.fill();
+      rag(1.4); c.fillStyle = '#B82828'; c.fill();
+      box(c, -4, -2.6, 8, 5.2, INK); box(c, -3, -2, 6, 4, '#E2DAC4'); box(c, -3, -2, 6, 1, '#FFFBF0'); box(c, -1, -1, 2, 2, '#9A2020');
       c.restore();
     }
-    // (the gut strung out between them)
-    c.strokeStyle = '#C86070'; c.lineWidth = 3; c.beginPath(); c.moveTo(f.tx - k * 70, cut - lift); c.quadraticCurveTo(f.tx, cut + 20, f.tx + k * 70, cut - lift * 0.3); c.stroke();
-    c.strokeStyle = '#E890A0'; c.lineWidth = 1; c.stroke();
+    // (the gut strung out between them, stepped: its line, its pink, a wet glint)
+    c.lineCap = 'round';
+    c.strokeStyle = '#5A1A24'; c.lineWidth = 4.4; c.beginPath(); c.moveTo(f.tx - k * 70, cut - lift); c.quadraticCurveTo(f.tx, cut + 20, f.tx + k * 70, cut - lift * 0.3); c.stroke();
+    c.strokeStyle = '#C86070'; c.lineWidth = 3; c.stroke();
+    c.strokeStyle = '#F0A8B8'; c.lineWidth = 1; c.beginPath(); c.moveTo(f.tx - k * 70, cut - lift - 0.8); c.quadraticCurveTo(f.tx, cut + 19, f.tx + k * 70, cut - lift * 0.3 - 0.8); c.stroke();
+    c.lineCap = 'butt';
     return;
   }
   // (dragged off: nothing left but the blood where it happened)
-  c.fillStyle = '#7A0E0E'; c.beginPath(); c.ellipse(f.tx, GY + 1, 46, 4, 0, 0, Math.PI * 2); c.fill();
+  bloodPool(c, f.tx, 46, 4);
 };
 
 /** What the grizzly left: a blood pool, a leg (the pinstripe, the boot), ribs, the saw's blade, his spectacles, bits. */
 const drawRemains = (c: Ctx, x: number, fr: number) => {
-  c.fillStyle = '#5F0F0F'; c.beginPath(); c.ellipse(x, GY + 1, 60, 5, 0, 0, Math.PI * 2); c.fill();
-  c.fillStyle = '#7F1D1D'; c.beginPath(); c.ellipse(x - 6, GY, 44, 3.4, 0, 0, Math.PI * 2); c.fill();
-  // (a leg, torn off at the thigh)
+  bloodPool(c, x, 60, 5);
+  // (a leg, torn off at the thigh: the gray pinstripe in steps, the boot polished, the meat and the knob of bone)
   c.save(); c.translate(x + 18, GY - 4); c.rotate(-0.1);
-  c.fillStyle = '#202024'; c.fillRect(-1, -4, 28, 8); c.fillStyle = '#7A7A84'; c.fillRect(0, -3, 26, 6);
-  c.fillStyle = '#46464E'; c.fillRect(0, -1.6, 26, 0.6); c.fillRect(0, 1, 26, 0.6);
-  c.fillStyle = '#3C3C44'; c.fillRect(26, -4, 8, 9); c.fillStyle = '#050507'; c.fillRect(26, 4, 11, 2);
-  c.fillStyle = '#B91C1C'; c.beginPath(); c.ellipse(0, 0, 3, 4.4, 0, 0, Math.PI * 2); c.fill(); c.fillStyle = '#F5F0E6'; c.fillRect(-2, -1, 3, 2);
+  box(c, -1, -4.6, 29, 9.2, INK);
+  box(c, 0, -3.6, 27, 7.2, '#7A7A84'); box(c, 0, -3.6, 27, 2, '#9A9AA4'); box(c, 0, 2, 27, 1.6, '#5A5A64');
+  for (const py of [-2, 0.4, 2.4]) box(c, 0, py, 27, 0.6, '#4A4A54');
+  box(c, 8, -3.6, 1, 7.2, '#62626C');
+  box(c, 26, -4.6, 9, 10, INK); box(c, 27, -3.6, 7, 8, '#2E2E36'); box(c, 27, -3.6, 3, 2, '#6A6A78'); box(c, 26, 4, 12, 2.4, INK); box(c, 27, 4.4, 10, 1, '#3A3A44');
+  c.fillStyle = INK; c.beginPath(); c.ellipse(0, 0, 3.8, 5.2, 0, 0, Math.PI * 2); c.fill();
+  c.fillStyle = '#921616'; c.beginPath(); c.ellipse(0, 0, 3, 4.4, 0, 0, Math.PI * 2); c.fill();
+  c.fillStyle = '#C83A3A'; c.beginPath(); c.ellipse(-0.6, -1, 1.8, 2.4, 0, 0, Math.PI * 2); c.fill();
+  box(c, -2.6, -1.2, 3.6, 2.4, '#C8C0A8'); box(c, -2.6, -1.2, 3.6, 1, '#F5F0E6');
   c.restore();
-  // (ribs, gristle)
-  c.strokeStyle = '#F5F0E6'; c.lineWidth = 1.6;
-  for (let i = 0; i < 4; i++) { c.beginPath(); c.arc(x - 22 + i * 5, GY - 2, 6, Math.PI * 1.1, Math.PI * 1.8); c.stroke(); }
-  c.fillStyle = '#B91C1C'; c.fillRect(x - 26, GY - 5, 18, 3);
-  // (the saw's blade, flat in the leaves, red)
-  c.fillStyle = '#3A3C42'; c.beginPath(); c.ellipse(x - 40, GY - 1, 11, 3, 0, 0, Math.PI * 2); c.fill();
-  c.fillStyle = '#A6AAB2'; c.beginPath(); c.ellipse(x - 40, GY - 1.4, 9.6, 2.4, 0, 0, Math.PI * 2); c.fill();
-  c.fillStyle = '#7A1212'; c.fillRect(x - 46, GY - 2, 7, 1.4);
-  // (the spectacles, one lens gone)
-  c.strokeStyle = '#5E4A1C'; c.lineWidth = 1; c.beginPath(); c.ellipse(x + 2, GY - 3, 2.6, 2.2, 0, 0, Math.PI * 2); c.stroke();
-  c.beginPath(); c.moveTo(x + 4.6, GY - 3); c.lineTo(x + 8, GY - 4); c.stroke();
-  // (a slow drip of steam off it)
-  c.globalAlpha = 0.25; c.fillStyle = '#E7E5E4'; const s = (fr % 60) / 60; c.beginPath(); c.arc(x - 4, GY - 10 - s * 20, 3 + s * 5, 0, Math.PI * 2); c.fill(); c.globalAlpha = 1;
+  // (ribs: a rack of them, stepped bone, gristle red between)
+  box(c, x - 27, GY - 6, 20, 4, '#6E0E0E'); box(c, x - 26, GY - 6, 18, 1, '#B82020');
+  for (let i = 0; i < 4; i++) {
+    c.strokeStyle = INK; c.lineWidth = 2.6; c.beginPath(); c.arc(x - 22 + i * 5, GY - 2, 6, Math.PI * 1.1, Math.PI * 1.8); c.stroke();
+    c.strokeStyle = '#E2DAC4'; c.lineWidth = 1.4; c.stroke();
+    c.strokeStyle = '#FFFBF0'; c.lineWidth = 0.6; c.beginPath(); c.arc(x - 22 + i * 5, GY - 2.4, 6, Math.PI * 1.2, Math.PI * 1.5); c.stroke();
+  }
+  // (the saw's blade, flat in the leaves, its teeth, red to the hub)
+  c.fillStyle = INK; c.beginPath(); c.ellipse(x - 40, GY - 1, 11.6, 3.4, 0, 0, Math.PI * 2); c.fill();
+  c.fillStyle = '#8A8E96'; c.beginPath(); c.ellipse(x - 40, GY - 1.2, 10.4, 2.6, 0, 0, Math.PI * 2); c.fill();
+  c.fillStyle = '#C4C8D0'; c.beginPath(); c.ellipse(x - 42, GY - 2, 6, 1.2, 0, 0, Math.PI * 2); c.fill();
+  for (let i = 0; i < 9; i++) box(c, x - 51 + i * 2.6, GY - 4 + (i % 2), 1, 1, '#E8ECF0');
+  box(c, x - 41, GY - 2, 2, 1.4, '#3A3C42'); box(c, x - 47, GY - 2, 7, 1.4, '#7A1212'); box(c, x - 36, GY - 1, 5, 1, '#921616');
+  // (the spectacles, one lens gone, the other cracked)
+  c.strokeStyle = INK; c.lineWidth = 1.6; c.beginPath(); c.ellipse(x + 2, GY - 3, 2.6, 2.2, 0, 0, Math.PI * 2); c.stroke();
+  c.strokeStyle = '#B8902C'; c.lineWidth = 0.8; c.stroke();
+  c.beginPath(); c.moveTo(x + 4.6, GY - 3); c.lineTo(x + 8, GY - 4); c.moveTo(x - 0.6, GY - 3); c.lineTo(x - 4, GY - 2); c.stroke();
+  box(c, x + 1, GY - 4, 1, 1, '#E8F4FF'); box(c, x + 2, GY - 3, 1, 2, '#A8C4D8');
+  // (a slow curl of steam off it, stepped)
+  const s = (fr % 60) / 60, st = Math.floor(s * 4);
+  c.globalAlpha = [0.3, 0.24, 0.16, 0.08][st]; pixelBlob(c, Math.round(x - 4), Math.round(GY - 10 - s * 20), 3 + s * 5, 2.6 + s * 4, '#E7E5E4'); c.globalAlpha = 1;
+};
+
+/** A pool of blood on the ground at x, `w` across: stepped rings (dark rim, the body, wet and glossy at its middle), a
+ *  few spatters round it. */
+const bloodPool = (c: Ctx, x: number, w: number, h: number) => {
+  c.fillStyle = '#3A0606'; c.beginPath(); c.ellipse(x, GY + 1, w, h, 0, 0, Math.PI * 2); c.fill();
+  c.fillStyle = '#5F0F0F'; c.beginPath(); c.ellipse(x - 3, GY + 0.6, w * 0.82, h * 0.74, 0, 0, Math.PI * 2); c.fill();
+  c.fillStyle = '#7F1D1D'; c.beginPath(); c.ellipse(x - 6, GY + 0.2, w * 0.56, h * 0.5, 0, 0, Math.PI * 2); c.fill();
+  c.fillStyle = '#A82020'; c.beginPath(); c.ellipse(x - 10, GY, w * 0.22, h * 0.24, 0, 0, Math.PI * 2); c.fill();
+  box(c, Math.round(x - 14), GY - 1, 4, 1, '#E86A6A');
+  for (const [dx, dy] of [[-1.12, 2], [-1.04, -1], [1.08, 1], [1.16, 3], [0.6, 4]] as const) box(c, Math.round(x + dx * w), Math.round(GY + dy), 2, 1, '#5F0F0F');
 };
 
 const lionPose = (l: Lion): LionPose => (l.mode === 'pounce' ? 'pounce' : l.mode === 'maul' ? 'maul' : l.mode === 'drag' ? 'drag' : 'run');
@@ -1031,8 +1061,8 @@ const lionPose = (l: Lion): LionPose => (l.mode === 'pounce' ? 'pounce' : l.mode
 /** World, behind Meathead: the smoke, Tucker, the cats on him, the grizzly, the balls, the aim's line, the bees. */
 export const drawFightBack = (c: Ctx, state: GameState, f: Fight) => {
   const fr = state.frame;
-  // ---- the gun's smoke, hanging
-  for (const s of f.smoke) { const k = s.t / 70; c.globalAlpha = 0.55 * (1 - k); c.fillStyle = '#D6D3D1'; c.beginPath(); c.arc(s.x + f.facing * k * 14, s.y - k * 10, 6 + k * 18, 0, Math.PI * 2); c.fill(); c.globalAlpha = 1; }
+  // ---- the gun's smoke, hanging: black powder's thick white cloud, stepped puffs, thinning in steps as it spreads
+  for (const s of f.smoke) { const k = s.t / 70; smokePuff(c, s.x + f.facing * k * 14, s.y - k * 10, k, s.t); }
   // ---- the aim: a dotted line off the muzzle where it's pointing (blinking bright in the pan's flash)
   if (f.mode === 'on' && (f.act === 'aim' || f.act === 'pan')) {
     const m = muzzleAt(f), dx = f.facing * Math.cos(f.aim), dy = Math.sin(f.aim), pan = f.act === 'pan';
@@ -1057,13 +1087,32 @@ export const drawFightBack = (c: Ctx, state: GameState, f: Fight) => {
   const d = f.death;
   if (d?.bear) drawGrizzly(c, d.bx, GY, d.bdir, fr, d.bear, { carry: d.step === 'chunks' && d.bear === 'walk' ? 'leg' : null, bloody: d.step === 'chunks' ? 1 : undefined });
   if (d?.cap) drawTuckerCap(c, d.cap.x, d.cap.y, d.cap.rot);
-  // ---- the balls: lead, a streak of smoke behind
+  // ---- the balls: round lead, stepped, a glint; a streak of smoke behind in stepped dots, thinning
   for (const s of f.shots) {
-    c.strokeStyle = 'rgba(214, 211, 209, 0.6)'; c.lineWidth = 2; c.beginPath(); c.moveTo(s.x, s.y); c.lineTo(s.x - s.vx * 2.2, s.y - s.vy * 2.2); c.stroke();
-    c.fillStyle = INK; c.beginPath(); c.arc(s.x, s.y, 3, 0, Math.PI * 2); c.fill();
-    c.fillStyle = '#6B7280'; c.beginPath(); c.arc(s.x, s.y, 2.2, 0, Math.PI * 2); c.fill();
-    c.fillStyle = '#D1D5DB'; c.fillRect(s.x - 1, s.y - 1.4, 1, 1);
+    for (let i = 1; i <= 6; i++) {
+      const q = i / 6, sx = Math.round(s.x - s.vx * 2.4 * q), sy = Math.round(s.y - s.vy * 2.4 * q), r = Math.max(1, Math.round(2.6 - q * 1.6));
+      c.globalAlpha = 0.7 - q * 0.55; box(c, sx - r, sy - r, r * 2, r * 2, i % 2 ? '#D8D4CE' : '#B8B4AE');
+    }
+    c.globalAlpha = 1;
+    const bx = Math.round(s.x), by = Math.round(s.y);
+    box(c, bx - 3, by - 2, 6, 4, INK); box(c, bx - 2, by - 3, 4, 6, INK);
+    box(c, bx - 2, by - 2, 4, 4, '#5A5E66'); box(c, bx - 2, by - 2, 3, 2, '#8A909A'); box(c, bx - 1, by - 2, 1, 1, '#D8DCE2'); box(c, bx, by + 1, 2, 1, '#3A3C42');
   }
+};
+
+/** A puff of the flintlock's smoke at k 0..1 of its life: stepped (the shade under, the body, lit on top), thinning in
+ *  four steps, its edge broken up. */
+const smokePuff = (c: Ctx, x: number, y: number, k: number, t: number) => {
+  const step = Math.min(3, Math.floor(k * 4)), r = 6 + k * 18;
+  c.globalAlpha = [0.62, 0.46, 0.3, 0.16][step];
+  const X = Math.round(x), Y = Math.round(y);
+  pixelBlob(c, X + 1, Y + 1, r, r * 0.82, '#8E8A84');
+  pixelBlob(c, X, Y, r * 0.92, r * 0.74, '#C8C4BC');
+  pixelBlob(c, X - r * 0.22, Y - r * 0.24, r * 0.6, r * 0.46, '#E8E4DC');
+  pixelBlob(c, X - r * 0.36, Y - r * 0.4, r * 0.24, r * 0.18, '#FFFFFF');
+  // (wisps curling off its edge)
+  for (let i = 0; i < 3; i++) { const a = t * 0.05 + i * 2.1; box(c, Math.round(X + Math.cos(a) * r * 1.05), Math.round(Y + Math.sin(a) * r * 0.8), 2, 2, '#D8D4CC'); }
+  c.globalAlpha = 1;
 };
 
 /** World, in front: the bees, his words. */
@@ -1084,17 +1133,37 @@ export const drawFightFront = (c: Ctx, state: GameState, f: Fight) => {
 /** The swarm (the playtest: make the bees more noticeable): a dark, churning cloud of fat bees, a haze in it, its
  *  shadow on the ground under it. */
 const drawSwarm = (c: Ctx, x: number, y: number, t: number, a: number) => {
-  c.globalAlpha = Math.max(0, a);
-  // (its shadow on the ground, and the haze it makes)
-  c.fillStyle = 'rgba(20, 14, 6, 0.28)'; c.beginPath(); c.ellipse(x, GY - 2, 34, 6, 0, 0, Math.PI * 2); c.fill();
-  c.fillStyle = 'rgba(28, 20, 8, 0.22)'; c.beginPath(); c.ellipse(x, y, 40 + Math.sin(t * 0.13) * 5, 28 + Math.cos(t * 0.11) * 4, 0, 0, Math.PI * 2); c.fill();
-  for (let i = 0; i < 40; i++) {
-    const ang = t * (0.2 + (i % 5) * 0.03) + i * 2.3, r = 8 + (i % 5) * 7 + Math.sin(t * 0.1 + i) * 5;
+  const A = Math.max(0, a);
+  x = Math.round(x); y = Math.round(y);
+  // (its shadow on the ground under it, stepped: a dithered rim round a dark core, shifting as the cloud churns)
+  const sw = 36 + Math.round(Math.sin(t * 0.13) * 4);
+  c.save(); c.globalAlpha = A;
+  c.beginPath(); c.ellipse(x, GY - 1, sw, 6, 0, 0, Math.PI * 2); c.clip(); checker(c, x - sw, GY - 8, sw * 2, 14, '#140E06', Math.floor(t / 8) % 2, 1);
+  c.restore();
+  c.globalAlpha = A * 0.45; c.fillStyle = '#140E06'; c.beginPath(); c.ellipse(x, GY - 1, sw * 0.62, 3.6, 0, 0, Math.PI * 2); c.fill();
+  // (the haze it makes: a dark, churning cloud, lumps rolling round inside it, a dithered core so it reads at a glance)
+  c.globalAlpha = A * 0.3;
+  for (let i = 0; i < 7; i++) {
+    const an = t * 0.05 + i * 0.9, rr = 14 + (i % 3) * 7;
+    pixelBlob(c, x + Math.cos(an) * rr, y + Math.sin(an * 1.2) * rr * 0.6, 16 + (i % 3) * 5, 12 + (i % 2) * 4, i % 2 ? '#2A1E0C' : '#1C140A');
+  }
+  c.save(); c.globalAlpha = A * 0.55; c.beginPath(); c.ellipse(x, y, 30 + Math.sin(t * 0.11) * 4, 20 + Math.cos(t * 0.09) * 3, 0, 0, Math.PI * 2); c.clip();
+  checker(c, x - 40, y - 30, 80, 60, '#1A1208', Math.floor(t / 4) % 2, 1);
+  c.restore();
+  // (the bees: fat, inked, striped, the abdomen stepped yellow, a stinger, their wings a flicker of two frames)
+  c.globalAlpha = A;
+  for (let i = 0; i < 46; i++) {
+    const sp = 0.2 + (i % 5) * 0.03, ang = t * sp + i * 2.3, r = 8 + (i % 5) * 7 + Math.sin(t * 0.1 + i) * 5;
     const bx = Math.round(x + Math.cos(ang) * r), by = Math.round(y + Math.sin(ang * 1.3) * r * 0.7);
-    // (a fat bee: inked, striped, its wings a blur)
-    box(c, bx - 3, by - 2, 7, 5, '#0C0A09');
-    box(c, bx - 2, by - 1, 5, 3, '#FACC15'); box(c, bx, by - 1, 1, 3, '#1C1917'); box(c, bx + 2, by - 1, 1, 3, '#1C1917');
-    if ((t + i) % 4 < 2) { box(c, bx - 2, by - 5, 3, 2, 'rgba(255,255,255,0.85)'); box(c, bx + 1, by - 5, 3, 2, 'rgba(255,255,255,0.6)'); }
+    const dir = -Math.sin(ang) >= 0 ? 1 : -1, back = bx - dir * 3, up = (t + i) % 4 < 2;
+    // (the wings behind: up, a pale blur; down, short)
+    if (up) { box(c, bx - 2, by - 5, 3, 3, '#C8DCEC'); box(c, bx - 1, by - 5, 1, 1, '#FFFFFF'); box(c, bx + 1, by - 4, 3, 2, '#A8C0D4'); }
+    else { box(c, bx - 2, by - 3, 4, 1, '#B8CCDC'); }
+    box(c, bx - 4, by - 2, 9, 5, '#0C0A08'); box(c, bx - 3, by - 3, 7, 7, '#0C0A08');
+    box(c, bx - 3, by - 2, 7, 4, '#E0A818'); box(c, bx - 3, by - 2, 7, 1, '#F8D838'); box(c, bx - 3, by + 1, 7, 1, '#A86A10');
+    box(c, bx - 1, by - 2, 1, 4, '#1C1408'); box(c, bx + 1, by - 2, 1, 4, '#1C1408');
+    box(c, bx + dir * 3 - (dir < 0 ? 1 : 0), by - 1, 2, 2, '#1C1408'); box(c, bx + dir * 3 + (dir > 0 ? 1 : -1), by - 1, 1, 1, '#6A5A40');
+    box(c, back - (dir > 0 ? 1 : 0), by, 1, 1, '#0C0A08');
   }
   c.globalAlpha = 1;
 };
@@ -1104,10 +1173,17 @@ export const drawFightHud = (c: Ctx, state: GameState, f: Fight, band: { x1: num
   const W = CANVAS_WIDTH, H = CANVAS_HEIGHT, d = f.death;
   if (f.mode === 'on') {
     if (state.player.inCutscene) return;
-    const w = band.x2 - band.x1, k = Math.max(0, f.hp / HP);
-    box(c, band.x1, 22, w, 14, '#18181B');
-    box(c, band.x1 + 2, 24, (w - 4) * k, 10, f.iframes > 0 && Math.floor(f.iframes / 4) % 2 ? '#FCA5A5' : '#B91C1C');
-    box(c, band.x1 + 2, 24, (w - 4) * k, 2, '#F87171');
+    const w = band.x2 - band.x1, k = Math.max(0, f.hp / HP), fw = Math.round((w - 4) * k);
+    // (a brass-bound bar, his conductor's brass: the bevel lit on top, shaded under; the red in steps, lit along its
+    // top, dithered into its shade; notches every tenth)
+    box(c, band.x1 - 1, 21, w + 2, 16, INK);
+    box(c, band.x1, 22, w, 14, '#8A6A1E'); box(c, band.x1, 22, w, 1, '#F4D47A'); box(c, band.x1, 35, w, 1, '#5A4210');
+    box(c, band.x1 + 2, 24, w - 4, 10, '#18120C');
+    const flash = f.iframes > 0 && Math.floor(f.iframes / 4) % 2;
+    box(c, band.x1 + 2, 24, fw, 10, flash ? '#FCA5A5' : '#A81818');
+    box(c, band.x1 + 2, 24, fw, 3, flash ? '#FFE0E0' : '#E04040'); box(c, band.x1 + 2, 24, fw, 1, flash ? '#FFFFFF' : '#F88080');
+    box(c, band.x1 + 2, 31, fw, 3, flash ? '#E08080' : '#6E0C0C'); checker(c, band.x1 + 2, 30, fw, 1, flash ? '#E08080' : '#6E0C0C', 0, 1);
+    for (let i = 1; i < 10; i++) box(c, Math.round(band.x1 + 2 + ((w - 4) * i) / 10), 24, 1, 10, '#18120C');
     label(c, 'TUCKER', band.mid, 50, '#FDE68A', 7);
     return;
   }
