@@ -13,6 +13,7 @@ import { solid, ledge, foreignState } from '../section';
 import { SECTIONS, GY } from '../geometry';
 import { spawnCast, byPants } from '../cast';
 import { playSound } from '../../../m1/game/platform/audio';
+import { heard } from '../../bossQuiet';
 import { setHazardZones } from '../../hazardHit';
 import { hurtIn, hitCastIn, newShout, shout, drawShout, placePickups, type Shout } from '../setpiece';
 import { type Ctx, type View, postBoard, LOOKS, onScreen } from '../kit';
@@ -80,7 +81,7 @@ export const updateLouvre = (ctx: FrameContext) => {
   NOZZLES.forEach((rx, k) => {
     const j = jetAt(f, k), base = Y(tierAt(rx)), hit = lv.hit[k];
     if (j.st !== 'off') zones.push({ x0: X(rx) - JW - 10, x1: X(rx) + JW + 10, y0: base - JET_H, y1: base + 4 });
-    if (j.st === 'warn') { hit.clear(); if (j.u === 0 && near) playSound('glug', 0.4, 4); }
+    if (j.st === 'warn') { hit.clear(); if (j.u === 0 && near && heard(state, X(rx))) playSound('glug', 0.4, 4); }
     if (k === 0 && j.st === 'warn' && j.u === 0 && near) shout(state, lv.said, V.waiter.m, byPants(state, FOUNTAIN), X(4300), Y(500) - 90, 0.3);
     if (j.st !== 'jet') return;
     if (j.u > 0 && j.u < 0.25 && near && !hit.size) playSound('splash', 0.5, 8);

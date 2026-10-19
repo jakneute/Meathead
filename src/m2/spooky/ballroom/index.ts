@@ -21,6 +21,7 @@ import { drawSkipPrompt, SKIP_AFTER } from '../../../m1/game/platform/skip';
 import { goTo, markLandCleared, noteBossKill, isLandCleared } from '../../store';
 import { type Victory, startVictory, tickVictory, drawVictory, victoryDone } from '../../victory';
 import { type WalkAway, playWalkAway, tickWalkAway, drawWalkAway } from '../../walkAway';
+import { markBossFight } from '../../bossQuiet';
 import { hands } from '../section';
 import { drawBars } from '../control/cine';
 import { x0, x1, ARENA_L, ARENA_R, TRIGGER_X, CHANDELIERS, RISER } from './arena';
@@ -72,6 +73,7 @@ export const ballroom: SpookySection = {
     }
     if (b.fight === 'on' && b.f) {
       const f = b.f;
+      markBossFight(state);
       let out = updateFight(ctx, f, controls);
       if (f.cam) { p.inCutscene = true; out = hands(); }
       // (locked in)

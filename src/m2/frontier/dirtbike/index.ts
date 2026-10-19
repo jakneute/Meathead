@@ -29,6 +29,7 @@ import { takeBountyHandoff } from '../woods/scene';
 import { drawDirtBike } from '../woods/teens';
 import { drawWoodsFar } from '../woods/far';
 import { bendFloor } from '../../intro/art/kit';
+import { markBossFight } from '../../bossQuiet';
 import {
   type Ctx, type View, type TreeKind, box, checker, hash, bands, hr, INK, timeOfDay, skyAt, viewOf, at, atDepth, seen, stillAt,
   paintTree, treeBox, bush, FAR, DIRT, DUFF, LIP, GOLD, BROWN, GRANITE, BARK, NEEDLE, MOSS,
@@ -181,7 +182,7 @@ export const dirtbike: FrontierSection = {
   },
   update: (ctx, controls) => {
     const { state } = ctx, p = state.player, s = sideOf(state);
-    if (inChase(state)) return updateChase(ctx, controls);
+    if (inChase(state)) { markBossFight(state); return updateChase(ctx, controls); }
     if (s.first) {
       s.first = false;
       const fromBounty = takeBountyHandoff();

@@ -14,6 +14,7 @@ import type { FrameContext } from '../../../m1/game/core/context';
 import type { GameState } from '../../../m1/game/core/state';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { playSound } from '../../../m1/game/platform/audio';
+import { heardSpan } from '../../bossQuiet';
 import { pickLine, isTalking } from '../../../m1/game/platform/speech';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { setHazardZones, hazardVictims, hazardHit, hazardKill, boxHits } from '../../hazardHit';
@@ -96,8 +97,10 @@ export const updateEffects = (ctx: FrameContext): FxEvents => {
   // The rainstorm
   const rt = rainPhase(state);
   if (near(RAIN.a, RAIN.b)) {
-    if (rt === RAIN.tell) { playSound('thunder', 0.4, -4); ev.pour = true; }
-    if (rt === RAIN.zap) { playSound('thunder', 1, 2); playSound('taser', 0.7, -2); shakeScreen(state, 6, 3); ev.zapped = true; }
+    // (heard only from on the screen or just off it: bossQuiet.ts)
+    const hear = heardSpan(state, X(RAIN.a), X(RAIN.b));
+    if (rt === RAIN.tell) { if (hear) playSound('thunder', 0.4, -4); ev.pour = true; }
+    if (rt === RAIN.zap) { if (hear) { playSound('thunder', 1, 2); playSound('taser', 0.7, -2); shakeScreen(state, 6, 3); } ev.zapped = true; }
   }
   if (rt >= RAIN.tell - 30) zones.push({ x0: X(RAIN.a), x1: X(RAIN.b), y0: GY - 30, y1: GY + 2, ground: true });
   if (rt >= RAIN.zap && rt < RAIN.zapEnd) {
@@ -109,8 +112,9 @@ export const updateEffects = (ctx: FrameContext): FxEvents => {
   // The flash flood
   const ft = floodPhase(state);
   if (near(TANK.a, TANK.b)) {
-    if (ft === TANK.warn || ft === TANK.warn + 14) { playSound('alarm', 0.4, 0); if (ft === TANK.warn) ev.warn = true; }
-    if (ft === TANK.surge) { playSound('tsunami', 0.8, 0); playSound('splash', 0.9, -4); shakeScreen(state, 5, 3); ev.surge = true; }
+    const hear = heardSpan(state, X(TANK.a), X(TANK.b));
+    if (ft === TANK.warn || ft === TANK.warn + 14) { if (hear) playSound('alarm', 0.4, 0); if (ft === TANK.warn) ev.warn = true; }
+    if (ft === TANK.surge) { if (hear) { playSound('tsunami', 0.8, 0); playSound('splash', 0.9, -4); shakeScreen(state, 5, 3); } ev.surge = true; }
   }
   const lvl = surgeLevel(ft), top = GY - lvl;
   zones.push({ x0: X(TANK.a), x1: X(TANK.b), y0: Math.min(GY, top), y1: GY + TANK.depth, ground: true });

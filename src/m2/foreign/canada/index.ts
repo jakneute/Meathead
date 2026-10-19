@@ -22,6 +22,7 @@ import { spawnCast } from '../cast';
 import { pavilionTalk } from '../pavilion';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { playSound } from '../../../m1/game/platform/audio';
+import { heard } from '../../bossQuiet';
 import { hazardVictims, hazardHit, boxHits, setHazardZones } from '../../hazardHit';
 import { makeMover, moveMover, type Mover } from '../movers';
 import { runsAround, poolSteps, poolAt, poolZones, drawPoolBack, drawPoolFront, type Pool } from '../water';
@@ -147,7 +148,7 @@ export const canada: ForeignSection = {
     poolZones(state, 'ca-water', [POND, PLUNGE]);
     cn.logs.forEach((m, i) => moveMover(state, m, logX(i, f), logY(i, f)));
     // The flume's logs: a creak as one starts along the trough, then down the falls onto whoever's crossing
-    const fl = flumeAt(f), near = Math.abs(p.pos.x - X(FALLS.a)) < 900;
+    const fl = flumeAt(f), near = heard(state, X(FALLS.a));
     if (near && f % LOG_EVERY === 0) playSound('rumble', 0.4, 6);
     if (near && f % LOG_EVERY === LOG_SLIDE) playSound('whoosh', 0.7, -10);
     setHazardZones(state, 'ca-falls', [{ x0: X(FALLS.a), x1: X(FALLS.b), y0: Y(TOP), y1: GY + PLUNGE.surface }]);

@@ -41,6 +41,7 @@ import { adSay, castSay } from './talk';
 import { hurtTaken } from '../../../m1/game/core/resist';
 import { setHalfHooks } from '../../weapons/half';
 import { setDropTable } from '../../../m1/game/core/effects';
+import { markBossFight } from '../../bossQuiet';
 
 /** How many of them are in it (CAPTAIN AMERICANO and the rest in a shuffled order: the whole thirty). */
 const FIGHT_SIZE = CAST.length;
@@ -245,6 +246,8 @@ export const updateFight = (ctx: FrameContext): Controls | null => {
   F.doorK += ((F.phase === 'on' || F.phase === 'intro' ? 1 : 0) - F.doorK) * 0.2;
   // (pure attrition: nothing drops while it's on, health or ammo; the park's drops back once it's over)
   setDropTable(F.phase === 'on' || F.phase === 'intro' ? NO_DROPS : PARK_DROPS);
+  // (the set's own gear quiet and still meanwhile: bossQuiet.ts)
+  if (F.phase === 'on' || F.phase === 'intro') markBossFight(state);
   // (the bodies: going over, the pool spreading under them)
   for (const b of F.bodies) { b.t++; b.fall = Math.min(1, b.fall + 1 / 16); if (b.fall >= 1) b.pool = Math.min(1, b.pool + 1 / 110); }
   if (F.phase === 'wait') {

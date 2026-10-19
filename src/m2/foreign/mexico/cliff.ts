@@ -18,6 +18,7 @@ import { spawnCast } from '../cast';
 import { byPants } from '../cast';
 import { gag } from '../state';
 import { playSound } from '../../../m1/game/platform/audio';
+import { heard } from '../../bossQuiet';
 import { runsAround, poolSteps, poolAt, poolZones, drawPoolBack, drawPoolFront, type Pool } from '../water';
 import { hurtIn, hitCastIn, newShout, shout, drawShout, placePickups, type Shout } from '../setpiece';
 import {
@@ -96,13 +97,13 @@ export const updateCliff = (ctx: FrameContext) => {
   const d = diverAt(f);
   if (d.n !== cl.n) { cl.n = d.n; cl.hit.clear(); }
   // (the tell: arms up, the shout; the drop)
-  if (d.st === 'tell' && d.t === 0 && near) { playSound('horn', 0.4, 16); shout(state, cl.said, d.n % 2 ? V.luchador.f : V.luchador.m, byPants(state, DIVER), X(DX), Y(PERCH.h) - 70, 0.6); }
+  if (d.st === 'tell' && d.t === 0 && near) { if (heard(state, X(DX))) playSound('horn', 0.4, 16); shout(state, cl.said, d.n % 2 ? V.luchador.f : V.luchador.m, byPants(state, DIVER), X(DX), Y(PERCH.h) - 70, 0.6); }
   if (d.st === 'fall') {
     const top = Y(d.h) - 64;
     if (!cl.hit.has(p) && hurtIn(ctx, X(DX) - 16, top, 32, 64, 12, 'm2:fl_cliff_diver', { x: Math.sign(p.pos.x + p.width / 2 - X(DX)) * 8 || 8, y: 4 }, 26)) { cl.hit.add(p); playSound('thud', 0.8, -4); }
     hitCastIn(ctx, X(DX) - 16, top, 32, 64, 40, X(DX), 'DIVED ON!', '#67E8F9', cl.hit);
   }
-  if (d.st === 'splash' && d.t === 0 && near) playSound('splash', 0.9, -6);
+  if (d.st === 'splash' && d.t === 0 && heard(state, X(DX))) playSound('splash', 0.9, -6);
   if (d.st === 'splash' && d.t < 10) {
     const sy = GY + DIVE_POOL.surface - 30;
     if (!cl.hit.has(p) && hurtIn(ctx, X(DX) - 70, sy, 140, 70, 5, 'm2:fl_cliff_diver', { x: Math.sign(p.pos.x + p.width / 2 - X(DX)) * 7 || 7, y: -4 }, 20)) cl.hit.add(p);

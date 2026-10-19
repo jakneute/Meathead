@@ -9,6 +9,7 @@ import type { GameState } from '../../../m1/game/core/state';
 import type { Block } from '../../../m1/types';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { playSound } from '../../../m1/game/platform/audio';
+import { heard, heardSpan } from '../../bossQuiet';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { hazardVictims, hazardHit, boxHits, setHazardZones, type Zone } from '../../hazardHit';
 import { getEnemyMass } from '../../../m1/game/combat/knockback';
@@ -70,19 +71,21 @@ export const runRigs = (ctx: FrameContext, blocks: RigBlocks) => {
   const { state } = ctx, f = state.frame, p = state.player, px = p.pos.x + p.width / 2;
   const zones: Zone[] = [];
   const near = (x: number, r = 900) => Math.abs(x - px) < r;
+  // (heard only from on the screen or just off it: bossQuiet.ts)
+  const hear = (x: number) => heard(state, x);
 
   // THE THRUSTERS
   for (const t of THRUSTERS) {
     if (!crewed(state, t.post) || !near(t.x, 1100)) continue;
     const s = thrustAt(t, f), fb = flameBox(t);
     if (s.tell > 0) {
-      if (Math.floor(s.tell * 44) % 11 === 0) playSound('click', 0.4, -6);
+      if (Math.floor(s.tell * 44) % 11 === 0 && hear(t.x)) playSound('click', 0.4, -6);
       if (Math.random() < 0.4) state.particles.push({ pos: { x: t.x + (t.dir === 'left' ? -4 : (Math.random() - 0.5) * 20), y: t.y + (t.dir === 'down' ? 4 : (Math.random() - 0.5) * 10) }, vel: { x: t.dir === 'left' ? -1 - Math.random() * 2 : (Math.random() - 0.5) * 2, y: t.dir === 'down' ? 1 + Math.random() * 2 : -Math.random() }, life: 16, color: Math.random() < 0.5 ? '#FDE047' : '#FB923C', size: 2 });
     }
     if (s.fire) {
       const c = ((f + t.phase) % t.cycle + t.cycle) % t.cycle;
-      if (c === t.cycle - t.on) { playSound('flame', 1, -10); playSound('rumble', 0.8, 4); shakeScreen(state, 5, 3); }
-      if (f % 9 === 0) playSound('flame', 0.5, -12);
+      if (c === t.cycle - t.on && hear(t.x)) { playSound('flame', 1, -10); playSound('rumble', 0.8, 4); shakeScreen(state, 5, 3); }
+      if (f % 9 === 0 && hear(t.x)) playSound('flame', 0.5, -12);
       hitBox(ctx, fb, 16, 'atom_thruster', t.dir === 'left' ? t.x + 40 : t.x, 'TORCHED!', 60);
     }
     if (s.fire || s.tell > 0.3) zones.push({ x0: fb.x - 30, x1: fb.x + fb.w + 30, y0: fb.y, y1: fb.y + fb.h });
@@ -94,7 +97,7 @@ export const runRigs = (ctx: FrameContext, blocks: RigBlocks) => {
     const b = swingBall(s, f);
     // (a pass: each one had once, till it swings back the other way)
     const side = Math.sign(Math.cos(((f + s.phase) / s.period) * Math.PI * 2));
-    if (side !== lastSwingSide[i]) { lastSwingSide[i] = side; swingHad[i].clear(); if (Math.abs(b.a) < 0.2) playSound('whoosh', 0.35, -14); }
+    if (side !== lastSwingSide[i]) { lastSwingSide[i] = side; swingHad[i].clear(); if (Math.abs(b.a) < 0.2 && hear(b.x)) playSound('whoosh', 0.35, -14); }
     const box = { x: b.x - s.r, y: b.y - s.r, w: s.r * 2, h: s.r * 2 };
     hitBox(ctx, box, 18, 'atom_meteor', s.x + Math.sin(b.a - 0.4) * s.len * 2, 'METEORED!', 80, swingHad[i]);
     zones.push({ x0: b.x - s.r - 60, x1: b.x + s.r + 60, y0: b.y - s.r, y1: b.y + s.r });
@@ -105,12 +108,12 @@ export const runRigs = (ctx: FrameContext, blocks: RigBlocks) => {
     const blk = blocks.rocks[k];
     if (!winched) { blk.x = AWAY; return; }
     const s = showerAt(k, f);
-    if (s.tell > 0 && near(x) && Math.floor(s.tell * 30) % 6 === 0) playSound('clink', 0.35, 4);
+    if (s.tell > 0 && hear(x) && Math.floor(s.tell * 30) % 6 === 0) playSound('clink', 0.35, 4);
     if (s.down) { blk.x = x - SHOWER.r + 4; blk.y = GY - SHOWER.r * 2 + 6; } else blk.x = AWAY;
     if (s.falling) {
       const box = { x: x - SHOWER.r, y: s.y - SHOWER.r * 2, w: SHOWER.r * 2, h: SHOWER.r * 2 };
       hitBox(ctx, box, 18, 'atom_meteor', x, 'METEORED!', 120);
-      if (s.y >= GY - 1 && near(x)) { playSound('thud', 1, -10); playSound('crumble', 0.4, -4); shakeScreen(state, 6, 3); }
+      if (s.y >= GY - 1 && hear(x)) { playSound('thud', 1, -10); playSound('crumble', 0.4, -4); shakeScreen(state, 6, 3); }
     }
     if (s.tell > 0 || s.falling) zones.push({ x0: x - SHOWER.r - 20, x1: x + SHOWER.r + 20, y0: AIRLOCK_TOP, y1: GY });
   });
@@ -122,7 +125,7 @@ export const runRigs = (ctx: FrameContext, blocks: RigBlocks) => {
     const bottom = AIRLOCK_TOP + (GY - AIRLOCK_TOP) * s.down;
     if (s.down > 0.92) { blk.x = d.x; blk.y = AIRLOCK_TOP; blk.h = GY - AIRLOCK_TOP; } else blk.x = AWAY;
     if (!near(d.x, 1000)) return;
-    if (s.warn > 0 && s.warn < 0.05) playSound('alarm', 0.35, 6);
+    if (s.warn > 0 && s.warn < 0.05 && hear(d.x)) playSound('alarm', 0.35, 6);
     if (s.slamming) {
       const box = { x: d.x + 2, y: bottom - 60, w: d.w - 4, h: 60 };
       // (under it as it comes down: crushed, and squeezed out the nearer side)
@@ -133,14 +136,14 @@ export const runRigs = (ctx: FrameContext, blocks: RigBlocks) => {
       }
       for (const e of hazardVictims(state)) if (boxHits(e, box.x, box.y, box.w, box.h)) hazardHit(ctx, e, 300, e.pos.x + e.width / 2 < d.x + d.w / 2 ? d.x + d.w : d.x, 'SQUASHED!', { knock: 4, kill: true });
     }
-    if (s.down > 0.9 && s.down <= 1 && s.warn === 1 && !s.slamming && airlockAt(d, f - 1, locked).slamming) { playSound('slam', 1, -8); playSound('clang', 0.8, -12); shakeScreen(state, 8, 4); }
+    if (s.down > 0.9 && s.down <= 1 && s.warn === 1 && !s.slamming && airlockAt(d, f - 1, locked).slamming && hear(d.x)) { playSound('slam', 1, -8); playSound('clang', 0.8, -12); shakeScreen(state, 8, 4); }
     if (s.warn > 0 || s.down > 0) zones.push({ x0: d.x - 12, x1: d.x + d.w + 12, y0: AIRLOCK_TOP, y1: GY });
   });
   {
     const c = cannonAt(f, locked);
-    if (c.tell > 0 && near(CANNON.x, 1200) && f % 12 === 0) playSound('rumble', 0.3, 10);
+    if (c.tell > 0 && hear(CANNON.x) && f % 12 === 0) playSound('rumble', 0.3, 10);
     if (c.blow > 0 && near(CANNON.x, 1400)) {
-      if (c.blow >= 1 && f % 16 === 0) playSound('whoosh', 0.7, -16);
+      if (c.blow >= 1 && f % 16 === 0 && heardSpan(state, CANNON.from, CANNON.x)) playSound('whoosh', 0.7, -16);
       // (him: blown back down the room, his feet or not)
       if (px > CANNON.from && px < CANNON.x && p.pos.y + p.height > AIRLOCK_TOP && !p.inCutscene) p.pos.x -= CANNON.push * c.blow * (p.isGrounded ? 1 : 1.3);
       // (anybody else: the lighter, the further)
@@ -158,9 +161,9 @@ export const runRigs = (ctx: FrameContext, blocks: RigBlocks) => {
   {
     const s = floorLaserAt(f, lit), L = FLOOR_LASER;
     const y = s.high ? L.high : L.low;
-    if (s.tell > 0 && s.tell < 0.03 && near(L.x)) playSound('beep', 0.4, s.high ? 8 : -4);
+    if (s.tell > 0 && s.tell < 0.03 && hear(L.x)) playSound('beep', 0.4, s.high ? 8 : -4);
     if (s.on) {
-      if (near(L.x) && f % 20 === 0) playSound('egun', 0.25, 12);
+      if (heardSpan(state, L.from, L.x) && f % 20 === 0) playSound('egun', 0.25, 12);
       hitBox(ctx, { x: L.from, y: y - 3, w: L.x - L.from, h: 6 }, 10, 'atom_laser', L.x, 'LASERED!', 50);
     }
     if (s.on || s.tell > 0) zones.push({ x0: L.from - 20, x1: L.x, y0: y - 6, y1: y + 6 });
@@ -169,14 +172,14 @@ export const runRigs = (ctx: FrameContext, blocks: RigBlocks) => {
   if (lit && near(SWEEP_LASER.x, 1100)) {
     const sx = sweepSpot(f);
     // (on the blink: dead, nobody's hurt; it sputters before it comes back on, then it's live)
-    if (!sw.live) { if (sw.sputter && f % 4 === 0) playSound('egun', 0.12, 20); zones.push({ x0: sx - 50, x1: sx + 50, y0: SWEEP_LASER.y, y1: GY }); }
+    if (!sw.live) { if (sw.sputter && f % 4 === 0 && hear(sx)) playSound('egun', 0.12, 20); zones.push({ x0: sx - 50, x1: sx + 50, y0: SWEEP_LASER.y, y1: GY }); }
     else {
     // (down the beam, from the ceiling to the spot on the floor: whoever it passes through)
     for (let k = 0; k <= 14; k++) {
       const u = 0.45 + (k / 14) * 0.55, bx = SWEEP_LASER.x + (sx - SWEEP_LASER.x) * u, by = SWEEP_LASER.y + (GY - SWEEP_LASER.y) * u;
       hitBox(ctx, { x: bx - 3, y: by - 3, w: 6, h: 6 }, 10, 'atom_laser', bx + 30, 'LASERED!', 50);
     }
-    if (f % 30 === 0) playSound('egun', 0.2, 16);
+    if (f % 30 === 0 && hear(sx)) playSound('egun', 0.2, 16);
     zones.push({ x0: sx - 50, x1: sx + 50, y0: SWEEP_LASER.y, y1: GY });
     }
   }

@@ -12,6 +12,7 @@ import { solid, ledge, foreignState } from '../section';
 import { SECTIONS, GY } from '../geometry';
 import { spawnCast, byPants } from '../cast';
 import { playSound } from '../../../m1/game/platform/audio';
+import { heard } from '../../bossQuiet';
 import { setHazardZones } from '../../hazardHit';
 import { hurtIn, hitCastIn, newShout, shout, drawShout, placePickups, type Shout } from '../setpiece';
 import { type Ctx, type View, box, poly, at, atDepth, box3Back, still, lip, underBack, steppedGlow, board, postBoard, LOOKS, hour, ramp6, onScreen } from '../kit';
@@ -82,7 +83,7 @@ export const updateOven = (ctx: FrameContext) => {
       // (inside: floor to ceiling; the chimney: up off the roof)
       const top = off ? Y(OVEN.roof) - 150 : Y(OVEN.ceil), bot = off ? Y(OVEN.roof) : GY;
       if (fl.st !== 'out') zones.push({ x0: X(rx) - FW, x1: X(rx) + FW, y0: top, y1: bot });
-      if (fl.st === 'warn') { hit.clear(); if (fl.k === 0 && near) playSound('whoosh', 0.3, -18); }
+      if (fl.st === 'warn') { hit.clear(); if (fl.k === 0 && near && heard(state, X(rx))) playSound('whoosh', 0.3, -18); }
       if (fl.st === 'warn' && !off && fl.k === 0 && k === 0 && near) shout(state, o.said, V.pizza.m, byPants(state, FORNO), X(OVEN.a) + 60, Y(OVEN.roof) - 70, 0.4);
       if (fl.st !== 'fire') continue;
       if (fl.k > 0 && fl.k < 0.25 && near && !hit.size) playSound('flame', 0.5, -4);

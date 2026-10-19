@@ -15,6 +15,7 @@ import type { Controls } from '../../../m1/game/platform/input';
 import type { Light, SceneLight } from '../../../m1/game/render/lighting';
 import type { Block } from '../../../m1/types';
 import { playSound } from '../../../m1/game/platform/audio';
+import { heard, heardSpan } from '../../bossQuiet';
 import { silenceAll, pickLine } from '../../../m1/game/platform/speech';
 import { SKIP_AFTER, offerSkip, takeSkip } from '../../../m1/game/platform/skip';
 import { shakeScreen } from '../../../m1/game/core/state';
@@ -181,14 +182,16 @@ const tickTrams = (ctx: FrameContext, h: House) => {
     zones.push({ x0: tr.mode === 'run' ? Math.max(k0, tr.x - TRAM_W / 2 - 20) : k0, x1: k1, y0: GY - TRAM_H, y1: GY, ground: true });
     if (tr.mode === 'wait') { if (near && tr.t >= WAIT) { tr.mode = 'warn'; tr.t = 0; } continue; }
     if (tr.mode === 'warn') {
-      if (tr.t % 20 === 1 && near) playSound('ding', 0.6, 8);
-      if (tr.t >= WARN) { tr.mode = 'run'; tr.t = 0; tr.x = tr.a - 160; if (near) playSound('engine', 0.5, 2); }
+      // (heard only from on the screen or just off it: bossQuiet.ts)
+      const hear = heardSpan(state, tr.a, tr.b);
+      if (tr.t % 20 === 1 && hear) playSound('ding', 0.6, 8);
+      if (tr.t >= WARN) { tr.mode = 'run'; tr.t = 0; tr.x = tr.a - 160; if (hear) playSound('engine', 0.5, 2); }
       continue;
     }
     tr.x += TRAM_SPEED;
     // (only the part of it that's out, where it can be seen: not the bit still in the tunnel behind the hatch)
     const l = Math.max(tr.x - TRAM_W / 2, tr.a - 109), r = Math.min(tr.x + TRAM_W / 2, tr.b + 109);
-    if (near && tr.t % 14 === 0) playSound('clink', 0.3, -4);
+    if (heard(state, tr.x) && tr.t % 14 === 0) playSound('clink', 0.3, -4);
     // (him on the track: hit, flung on ahead of it)
     if (l < tr.b + 60 && r > tr.a - 60 && p.health > 0 && state.deathTimer <= 0 && p.invincibilityTimer <= 0
       && p.pos.x + p.width > l && p.pos.x < r && p.pos.y + p.height > GY - TRAM_H) {

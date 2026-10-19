@@ -23,6 +23,7 @@ import { x0, x1, VIEW_X, ARENA_L, ARENA_R, CAM_ROW, REFILL_X, WALL_W, WRECK_X, s
 import { KICK_POSE_FRAMES } from '../../../m1/constants';
 import { playSound } from '../../../m1/game/platform/audio';
 import { shakeScreen } from '../../../m1/game/core/state';
+import { markBossFight } from '../../bossQuiet';
 import { drawSky, drawScene } from './scene';
 import { torchFlame } from './liberty';
 import {
@@ -106,6 +107,7 @@ export const harry: ForeignSection = {
     }
     if (s.fight === 'on' && s.f) {
       const f = s.f;
+      markBossFight(state);
       const out = updateFight(ctx, f, controls);
       // (held in: never out of the arena, whatever sends him flying)
       const lo = ARENA_L, hi = ARENA_R - p.width;

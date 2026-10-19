@@ -20,6 +20,7 @@ import type { FrameContext } from '../../../m1/game/core/context';
 import type { GameState } from '../../../m1/game/core/state';
 import type { WaterBody } from '../../../m1/game/stages/index';
 import { playSound } from '../../../m1/game/platform/audio';
+import { heard } from '../../bossQuiet';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { pickLine } from '../../../m1/game/platform/speech';
@@ -274,7 +275,7 @@ export const updateMill = (ctx: FrameContext) => {
         const L = { belt: i, x, len: BELT_LOG, m: makeMover(state, x, beltY - 28, BELT_LOG, 'fr-belt-log'), cut: 0 };
         moveMover(state, L.m, x, beltY - 28);
         tw.beltLogs.push(L);
-        playSound('thud', 0.5, -8);
+        if (heard(state, x)) playSound('thud', 0.5, -8);
       }
     }
   });
@@ -292,7 +293,7 @@ export const updateMill = (ctx: FrameContext) => {
     const front = v > 0 ? L.x + L.len : L.x;
     if (Math.abs(front - SAW.x) < SAW.r * 0.5) {
       L.cut = 1; moveMover(state, L.m, L.x, beltY - 28, true);
-      playSound('grind', 0.9, 4);
+      if (heard(state, SAW.x)) playSound('grind', 0.9, 4);
       for (let n = 0; n < 24; n++) state.particles.push({ pos: { x: SAW.x, y: beltY - 20 }, vel: { x: (Math.random() - 0.5) * 6, y: -2 - Math.random() * 5 }, life: 40, color: n % 2 ? '#E8C890' : '#C8A070', size: 2 + Math.random() * 2 });
     }
   }

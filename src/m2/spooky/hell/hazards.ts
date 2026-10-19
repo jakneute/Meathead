@@ -23,6 +23,7 @@ import { POOLS, LAVA_DROP, CRUMBLES, JETS, SHAFT_R, WRECK_X } from './layout';
 import { LAST_CAR, FLUNG, screamer, paintFlung, paintUnderCar, paintCarArm } from './riders';
 import { hellOf, type Hell } from './state';
 import { hazardVictims, hazardKill, hazardHit, setHazardZones, boxHits, type Zone } from '../../hazardHit';
+import { inBossFight } from '../../bossQuiet';
 import { overLava, IMP_FIRE } from './kinds';
 import { HURT_LAVA, DEATH_LAVA, HURT_JET, DEATH_JET, HURT_CAR, DEATH_CAR, MH_CAR } from './lines';
 import { signText, candle, print } from '../letters';
@@ -100,7 +101,7 @@ export const updateHazards = (ctx: FrameContext, h: Hell) => {
   // The fire jets
   for (const [x, base, off] of JETS) {
     const ph = jetPhase(f, off);
-    if (!near(state, x, 300)) continue;
+    if (!near(state, x, 300) || inBossFight(state)) continue;
     if (ph === WARN) playSound('rumble', 0.25, 6);
     if (ph > WARN && ph < BLAST && ph % 6 === 0) state.particles.push({ pos: { x: x + (Math.random() - 0.5) * 16, y: base - 4 }, vel: { x: (Math.random() - 0.5) * 0.6, y: -1.2 - Math.random() }, life: 30, color: 'rgba(87, 83, 78, 0.6)', size: 5 + Math.random() * 4 });
     if (ph === BLAST) { playSound('flame', 0.7); playSound('ignite', 0.6, -4); }
@@ -126,7 +127,8 @@ export const updateHazards = (ctx: FrameContext, h: Hell) => {
     if ((floor !== null && s.y >= floor) || s.y > GY + LAVA_DROP || s.life <= 0) { burst(state, s.x, Math.min(s.y, floor ?? s.y)); return false; }
     return true;
   });
-  updateCars(ctx, h);
+  // (no car down the shaft while the demon's at him: bossQuiet.ts)
+  if (!inBossFight(state)) updateCars(ctx, h);
 };
 
 const burst = (state: GameState, x: number, y: number) => {

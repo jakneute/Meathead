@@ -25,6 +25,7 @@ import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { playSound } from '../../../m1/game/platform/audio';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { setHazardZones, hazardVictims, hazardHit, hazardKill, boxHits, type Zone } from '../../hazardHit';
+import { heard } from '../../bossQuiet';
 import { isLandCleared } from '../../store';
 import { canDrown, drownEnemy } from '../../drown';
 import { solid, teleport } from '../section';
@@ -270,7 +271,7 @@ export const updateHazards = (ctx: FrameContext): HazEvents => {
   // ---- THE WRECKING BALL
   const ball = ballAt(state);
   if (!done && Math.abs(cx - ball.x) < 900) {
-    if (Math.abs(ball.a) < 0.05 && f % 2 === 0) playSound('whoosh', 0.35, -12);
+    if (Math.abs(ball.a) < 0.05 && f % 2 === 0 && heard(state, ball.x)) playSound('whoosh', 0.35, -12);
     const dx = cx - ball.x, dy = (p.pos.y + p.height / 2) - ball.y;
     if (canHurt(state) && Math.hypot(dx, dy) < BALL.r + 24) { hurtPlayer(ctx, 15, 'm2:hwh_ball', { x: Math.sign(ball.va || dx) * 10, y: -6 }, 22); playSound('clang', 1, -10); shakeScreen(state, 8, 4); }
     for (const e of hazardVictims(state)) if (Math.hypot(e.pos.x + e.width / 2 - ball.x, e.pos.y + e.height / 2 - ball.y) < BALL.r + 24) hazardKill(ctx, e, ball.x - Math.sign(ball.va) * 40, 'DEMOLISHED!', { fling: { x: Math.sign(ball.va || 1) * 13, y: -8 } });

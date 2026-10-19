@@ -19,6 +19,7 @@ import { spawnCast } from '../cast';
 import { byPants } from '../cast';
 import { gag } from '../state';
 import { playSound } from '../../../m1/game/platform/audio';
+import { heardSpan } from '../../bossQuiet';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { runsAround, poolSteps, poolAt, poolZones, drawPoolBack, drawPoolFront, type Pool } from '../water';
 import { hurtIn, hitCastIn, newShout, shout, drawShout, placePickups, playerIn, type Shout } from '../setpiece';
@@ -106,7 +107,7 @@ export const buildToll = (state: GameState) => {
 export const updateToll = (ctx: FrameContext) => {
   const { state } = ctx, p = state.player, f = state.frame, t = tollOf(state);
   poolZones(state, 'no-trollriver', [RIVER]);
-  const near = Math.abs(p.pos.x - (RIVER.a + RIVER.b) / 2) < 1100;
+  const near = heardSpan(state, RIVER.a, RIVER.b);
   // (up on the bridge: the gang's demand, once)
   if (!t.demanded && !paid() && playerIn(state, X(DECK.a), Y(DECK.h) - 140, 300, 150)) {
     const caller = t.gang.find(e => e.health > 0);

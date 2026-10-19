@@ -19,6 +19,7 @@ import { spawnCast } from '../cast';
 import { pavilionTalk } from '../pavilion';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { playSound } from '../../../m1/game/platform/audio';
+import { heard } from '../../bossQuiet';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { hazardVictims, hazardHit, boxHits, setHazardZones } from '../../hazardHit';
 import { makeMover, moveMover, type Mover } from '../movers';
@@ -167,11 +168,11 @@ export const germany: ForeignSection = {
     updateBrewery(ctx);
     // The wheel: a sixth of a turn at a time (a clunk as each turn starts)
     g.figs.forEach((m, i) => { const q = figAt(f, i); moveMover(state, m, q.x, q.y); });
-    if (f % STEP === 0 && Math.abs(p.pos.x - X(WHEEL.cx)) < 900) playSound('clang', 0.4, -10);
+    if (f % STEP === 0 && heard(state, X(WHEEL.cx))) playSound('clang', 0.4, -10);
     // The cuckoo: the door's click, then out and pecking; its box a danger zone (the cast keep out from the click on)
     const ck = cuckooAt(f), za = X(CUCKOO.a), zb = X(CUCKOO.b), zy = Y(BATTLE.h + 120);
     if (ck.st !== 'in') setHazardZones(state, 'de-cuckoo', [{ x0: za, x1: zb, y0: zy, y1: Y(BATTLE.h) + 4 }]);
-    const near = Math.abs(p.pos.x - X(CUCKOO.x)) < 900;
+    const near = heard(state, X(CUCKOO.x));
     if (f % CUCKOO.every === 0 && near) playSound('click', 0.6, -6);
     if (f % CUCKOO.every === CUCKOO.warn && near) { playSound('horn', 0.5, 14); setTimeout(() => playSound('horn', 0.5, 10), 260); }
     if (ck.st === 'out' && ck.k > 0.7) {

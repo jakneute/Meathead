@@ -21,6 +21,7 @@
 
 import type { GameState } from '../../../m1/game/core/state';
 import { playSound } from '../../../m1/game/platform/audio';
+import { heard } from '../../bossQuiet';
 import { box, text, slab, pole, ball, bandedGradient, stamp } from '../../intro/art/kit';
 import { drawPerson } from '../../adventure/temple/people';
 import { GY } from '../geometry';
@@ -125,7 +126,8 @@ export const runRide = (state: GameState, r: Ride, crashed: boolean, ev: RideEve
   const busy = (...ph: CarPhase[]) => r.cars.some(c => ph.includes(c.phase));
   for (const c of [...r.cars]) {
     c.t++;
-    const near = Math.abs(state.player.pos.x - c.x) < 900 && Math.abs(state.player.pos.y - c.y) < 700;
+    // (its noise heard only from on the screen or just off it: bossQuiet.ts)
+    const near = heard(state, c.x) && Math.abs(state.player.pos.y - c.y) < 700;
     switch (c.phase) {
       case 'under':
         // (along the tunnel under the bay to the foot of the lift; up it once the platform's free)

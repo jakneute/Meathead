@@ -47,6 +47,7 @@ import {
   HURT_BELLY, DEATH_BELLY, HURT_BOUNCE_FIRE, DEATH_BOUNCE_FIRE, HURT_AIRBODY, DEATH_AIRBODY, type Dressed, type ByPants,
 } from './lines';
 import { since } from '../../frames';
+import { markBossFight } from '../../bossQuiet';
 
 type Ctx = CanvasRenderingContext2D;
 const pick = pickLine;
@@ -379,6 +380,7 @@ export const updateDemon = (ctx: FrameContext) => {
     Object.assign(d, gone()); return;
   }
   const p = state.player, f = state.frame;
+  if (d.fight === 'on') markBossFight(state);
   if (d.flash > 0) d.flash--;
   // What's come out of his pool since last frame
   const e = d.e;

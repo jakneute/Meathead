@@ -20,6 +20,7 @@ import { topBand } from '../../../m1/constants';
 import { goTo, markLandCleared, noteBossKill, isLandCleared } from '../../store';
 import { type Victory, startVictory, tickVictory, drawVictory, victoryDone } from '../../victory';
 import { type WalkAway, playWalkAway, tickWalkAway, drawWalkAway } from '../../walkAway';
+import { markBossFight } from '../../bossQuiet';
 import { x0, x1, ARENA_L, ARENA_R, CEIL_Y, CAM_ROW } from './arena';
 import { drawStuntBackdrop, drawStage, drawCrowd } from './art';
 import {
@@ -71,6 +72,7 @@ export const stunt: HollywoodSection = {
     }
     if (s.fight === 'on' && s.f) {
       const f = s.f;
+      markBossFight(state);
       const out = updateFight(ctx, f, controls);
       // (held in: never out of the arena, whatever sends him flying)
       const lo = ARENA_L, hi = ARENA_R - p.width;

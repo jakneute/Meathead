@@ -55,6 +55,7 @@ import { GY } from '../geometry';
 import { BASE_L, BASE_R, DOOR_X, DISCO_L, BF, CATWALK_Y, CEIL_B, STAIRS_A, STAIRS_B, LAND_X, stairsY } from './geo';
 import { drawQueen } from './art';
 import { bandedGradient } from '../../../m1/game/render/pixelArt';
+import { inBossFight } from '../../bossQuiet';
 import { type Ramp, dith } from './paint';
 import { neon, engraved, emboss, textW, stencil } from './letters';
 import { FELL_MEMO } from './show';
@@ -261,6 +262,8 @@ const vol = (state: GameState, x: number, k: number) => Math.max(0, k * (1 - Mat
 export const tickHunter = (ctx: FrameContext, h: Hunter, controls: Controls): Controls | null => {
   const { state } = ctx, p = state.player, cx = pmid(state);
   if (cx < B - 60 || cx > DOOR_X + 40 && h.door !== 'kicking') return null;
+  // (the tunnels' hum and drips never under the disco's fight, right by the door: bossQuiet.ts)
+  if (inBossFight(state)) return null;
   if (!h.init) {
     h.init = true;
     h.opened = h.opened || cx > B + 620;

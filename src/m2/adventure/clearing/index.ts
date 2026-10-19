@@ -36,6 +36,7 @@ import type { Enemy } from '../../../m1/types';
 import { type Fight, startFight as beginFight, updateFight, fightOver, endFight, resetFight, drawFightBack, drawFightFront, drawFightHud, killCamTick, killCamZoom, drawKillCam, artieInBlind, artieEntrance } from './fight';
 import { type Victory, startVictory, tickVictory, drawVictory, victoryDone } from '../../victory';
 import { type WalkAway, playWalkAway, tickWalkAway, drawWalkAway } from '../../walkAway';
+import { markBossFight } from '../../bossQuiet';
 
 const pick = pickLine;
 const dressed = (state: GameState): Dressed => (isNude(state) ? 'nude' : isShat(state) ? 'shitty' : 'clean');
@@ -307,6 +308,7 @@ const run = (ctx: FrameContext, controls: Controls): Controls => {
     if (!cl.domino && cx > ARENA_L + 60) startFight(state, cl);
   } else if (cl.fight === 'on') {
     const f = cl.f!;
+    markBossFight(state);
     let out = updateFight(ctx, f, controls);
     if (f.mode === 'dead' && !cl.wiped) wipeArena(state, cl, f);
     // (the kill cam on him: out of Meathead's hands)

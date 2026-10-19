@@ -46,6 +46,7 @@ import { shakeScreen } from '../../../m1/game/core/state';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { setHazardZones, hazardVictims, hazardKill, hazardHit, boxHits } from '../../hazardHit';
+import { heard } from '../../bossQuiet';
 import { lookOf, drawPerson } from '../../adventure/temple/people';
 import { byPants } from '../blvd/kinds';
 import { PA_VOICE } from '../blvd/lines';
@@ -473,9 +474,11 @@ const fumes = (ctx: FrameContext, co: Coaster) => {
   const tell = cyc >= tellAt && cyc < ventAt, vent = cyc >= ventAt;
   const z = { x0: cx - FUMES.reach, x1: cx + FUMES.reach, y0: Y(s.h) - 200, y1: Y(s.h) + 10 };
   setHazardZones(state, 'hwc-fumes', tell || vent ? [z] : []);
-  if (cyc === tellAt) playSound('rumble', 0.4, 10);
-  if (tell && cyc % 8 === 0) playSound('click', 0.3, 14);
-  if (cyc === ventAt) { playSound('whoosh', 0.9, -12); playSound('fart', 0.5, -6); co.fumeHit = new WeakSet(); }
+  // (heard only from on the screen or just off it: bossQuiet.ts)
+  const hear = heard(state, cx);
+  if (cyc === tellAt && hear) playSound('rumble', 0.4, 10);
+  if (tell && cyc % 8 === 0 && hear) playSound('click', 0.3, 14);
+  if (cyc === ventAt) { if (hear) { playSound('whoosh', 0.9, -12); playSound('fart', 0.5, -6); } co.fumeHit = new WeakSet(); }
   if (!vent) return;
   const k = (cyc - ventAt) / FUMES.vent;
   for (let i = 0; i < 2; i++) state.particles.push({ pos: { x: cx + (Math.random() - 0.5) * 40, y: Y(s.h) - 130 }, vel: { x: (Math.random() - 0.5) * 6, y: -0.5 - Math.random() * 1.5 }, life: 50, color: ['#84CC16', '#BEF264', '#4D7C0F'][i % 3], size: 5 + Math.random() * 6 });

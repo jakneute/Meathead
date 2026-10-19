@@ -23,6 +23,7 @@ import { spawnCast } from '../cast';
 import { pavilionTalk } from '../pavilion';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { playSound } from '../../../m1/game/platform/audio';
+import { heard } from '../../bossQuiet';
 import { hazardVictims, hazardHit, boxHits, setHazardZones } from '../../hazardHit';
 import { makeMover, moveMover, type Mover } from '../movers';
 import { runsAround, poolSteps, poolAt, poolZones, drawPoolBack, drawPoolFront, type Pool } from '../water';
@@ -156,7 +157,7 @@ export const uk: ForeignSection = {
     updateTower(ctx);
     poolZones(state, 'uk-thames', [THAMES]);
     // The bus: along its route; its front runs over whoever's in the lane (not him up on its roof)
-    const b = busAt(f), near = Math.abs(p.pos.x - b.x) < 900;
+    const b = busAt(f), near = heard(state, b.x);
     if (br.bus) moveMover(state, br.bus, b.x, Y(BUS.roof));
     const cyc = (BUS.wait + BUS.run) * 2, t = f % cyc;
     if (near && (t === BUS.wait || t === BUS.wait * 2 + BUS.run)) playSound('truckhorn', 0.5, 0);

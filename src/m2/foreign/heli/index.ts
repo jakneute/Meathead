@@ -41,6 +41,7 @@ import { DOORS } from '../geometry';
 import { registerHurts } from '../pavilion';
 import { viewIn, promenade, postBoard, onScreen, LOOKS, INK, dimmed, hour, setBack, at, topBack, ramp6, checker, still, timeOfDay, box as kbox } from '../kit';
 import { lookOf } from '../../adventure/temple/people';
+import { markBossFight } from '../../bossQuiet';
 import { heliOf, type Heli } from './state';
 import { x0, x1, X, GY, REFILL, CP_PAD, QUEUE_A, QUEUE_B, BOARD_AT, PAD_X, PAD_O, SEAT_BACK, SEAT_FRONT, CAMX, CY, Z, SW, SH, CAM_FLY, toWorld, CP_X, MEMO } from './geo';
 import { flyCopter, updateRockets, drawCopter, drawRockets, heliMeters } from './copter';
@@ -562,6 +563,8 @@ export const heli: ForeignSection = {
     const { state } = ctx, h = heliOf(state);
     h.t++;
     setDropTable(h.phase === 'tour' || h.phase === 'fly' || h.phase === 'end' ? FLY_DROPS : PARK_DROPS);
+    // (the gauntlet's on: bossQuiet.ts)
+    if (!h.over && (h.phase === 'fly' || h.phase === 'end')) markBossFight(state);
     if (h.over) { runExits(state, endExits('heli', { left: false })); return controls; }
     // (starting again at a landmark's checkpoint: straight up there, into it)
     if (h.phase === 'pad' && state.checkpoint >= 111 && state.checkpoint <= 119) { startAt(state, h, state.checkpoint - 111); return hands(); }

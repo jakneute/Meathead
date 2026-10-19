@@ -41,6 +41,7 @@ import { topBand } from '../../../m1/constants';
 import { goTo, markLandCleared, noteBossKill, isLandCleared, setWalkBack } from '../../store';
 import { startVictory, tickVictory, drawVictory, victoryDone } from '../../victory';
 import { playWalkAway, tickWalkAway, drawWalkAway } from '../../walkAway';
+import { markBossFight } from '../../bossQuiet';
 import { takeChaseHandoff } from '../dirtbike';
 import { x0, x1, GY, HANG_X, FIGHT_X, MH_PARK, BODY_NEAR, ENTRANCE_NEAR, ARENA_L, ARENA_R, CP61_X, REFILL2_X } from './layout';
 import { arenaOf, introSeen, markIntroSeen, UP_MEMO, SPLIT_MEMO, type Arena } from './state';
@@ -145,6 +146,7 @@ export const arena: FrontierSection = {
         const f = s.fight;
         if (!f) return controls;
         holdIn(state);
+        markBossFight(state);
         const out = updateFight(ctx, f);
         if (fightOver(f)) {
           s.phase = 'won'; s.wonAt = state.frame; s.weak = killedByWeakness(f);

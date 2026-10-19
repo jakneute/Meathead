@@ -15,6 +15,7 @@ import { solid, ledge, foreignState } from '../section';
 import { SECTIONS, GY } from '../geometry';
 import { spawnCast, byPants } from '../cast';
 import { playSound } from '../../../m1/game/platform/audio';
+import { heardSpan } from '../../bossQuiet';
 import { setHazardZones } from '../../hazardHit';
 import { hurtIn, hitCastIn, newShout, shout, drawShout, placePickups, type Shout } from '../setpiece';
 import { type Ctx, type View, ledge3, postBoard, hungBoard, LOOKS, onScreen } from '../kit';
@@ -103,11 +104,13 @@ export const buildBrewery = (state: GameState) => {
 export const updateBrewery = (ctx: FrameContext) => {
   const { state } = ctx, p = state.player, f = state.frame, b = brewOf(state);
   const near = p.pos.x > X(3500) && p.pos.x < X(5300);
+  // (the ramp's noise heard only from on the screen or just off it: bossQuiet.ts)
+  const hear = near && heardSpan(state, X(RAMP.a), X(RAMP.b));
   const kegs = kegsAt(f);
   // (the walkers keep out of a rolling keg's way; the dock's lip while one teeters)
   setHazardZones(state, 'de-kegs', kegs.map(k => ({ x0: X(k.rx) - 120, x1: X(k.rx) + 60, y0: Y(rampH(k.rx)) - 70, y1: Y(rampH(k.rx)) + 4, ground: true })));
-  if (f % EVERY === 0 && near) { playSound('clang', 0.4, -12); shout(state, b.said, V.barmaid.f, byPants(state, KEG), X(RAMP.b) + 20, Y(RAMP.h) - 90, 0.3); }
-  if (f % EVERY === TEETER && near) playSound('rumble', 0.5, 6);
+  if (f % EVERY === 0 && near) { if (hear) playSound('clang', 0.4, -12); shout(state, b.said, V.barmaid.f, byPants(state, KEG), X(RAMP.b) + 20, Y(RAMP.h) - 90, 0.3); }
+  if (f % EVERY === TEETER && hear) playSound('rumble', 0.5, 6);
   for (const k of kegs) {
     if (k.rx > RAMP.b) continue;
     let hit = b.hit.get(k.n);
@@ -117,7 +120,7 @@ export const updateBrewery = (ctx: FrameContext) => {
     hitCastIn(ctx, kx - KR, ky - KR, KR * 2, KR * 2, 38, kx + 40, 'KEGGED!', '#FBBF24', hit);
   }
   for (const n of b.hit.keys()) if (n < Math.floor(f / EVERY) - 4) b.hit.delete(n);
-  if (burstAt(f) === 0 && near) playSound('crash', 0.6, -4);
+  if (burstAt(f) === 0 && hear) playSound('crash', 0.6, -4);
 };
 
 // ---------------------------------------------------------------------------------------------------------------

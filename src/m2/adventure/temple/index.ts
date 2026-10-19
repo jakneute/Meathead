@@ -26,6 +26,7 @@ import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { hazardVictims, hazardHit, boxHits, setHazardZones, type Zone } from '../../hazardHit';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { playSound, stopSound } from '../../../m1/game/platform/audio';
+import { heard } from '../../bossQuiet';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { silenceAll, pickLine } from '../../../m1/game/platform/speech';
 import { SKIP_AFTER, offerSkip, takeSkip, drawSkipPrompt } from '../../../m1/game/platform/skip';
@@ -77,14 +78,14 @@ const runCatapult = (ctx: FrameContext, tp: Temple) => {
   if (crewed(state, 1) && px > T + 250 && px < CATAPULT_X + 300 && --tp.catapultT <= 0) {
     tp.catapultT = 120 + Math.floor(Math.random() * 50);
     tp.boulders.push({ x: CATAPULT_X - 30, y: GY - 130, vx: -(5.5 + Math.random() * 2.5), vy: -8 - Math.random() * 3, r: 15, rolling: false, t: 0 });
-    playSound('whoosh', 0.8, -8); playSound('clang', 0.5, -10);
+    if (heard(state, CATAPULT_X)) { playSound('whoosh', 0.8, -8); playSound('clang', 0.5, -10); }
   }
   tp.boulders = tp.boulders.filter(b => {
     b.t++;
     b.x += b.vx;
     if (!b.rolling) {
       b.vy += 0.32; b.y += b.vy;
-      if (b.y + b.r >= GY) { b.y = GY - b.r; b.rolling = true; b.vy = 0; playSound('thud', 0.8, -8); shakeScreen(state, 5, 3); }
+      if (b.y + b.r >= GY) { b.y = GY - b.r; b.rolling = true; b.vy = 0; if (heard(state, b.x)) { playSound('thud', 0.8, -8); shakeScreen(state, 5, 3); } }
     } else b.vx = Math.max(-7, b.vx * 0.995);
     if (canHurt(state) && hits(pBox(state), b.x - b.r, b.y - b.r, b.r * 2, b.r * 2)) {
       hurtPlayer(ctx, 14, 'temple_boulder', { x: -5, y: -5 });
@@ -98,7 +99,7 @@ const runCatapult = (ctx: FrameContext, tp: Temple) => {
     // (into the back of the flats at the near end: it smashes)
     if (b.x < T + 230 || b.t > 500) {
       for (let i = 0; i < 12; i++) state.particles.push({ pos: { x: b.x, y: b.y }, vel: { x: (Math.random() - 0.3) * 5, y: -2 - Math.random() * 4 }, life: 40, color: i % 2 ? '#78716C' : '#A8A29E', size: 3 + Math.random() * 4, grav: 0.3, chunk: true });
-      playSound('crumble', 0.6);
+      if (heard(state, b.x)) playSound('crumble', 0.6);
       return false;
     }
     return true;
@@ -109,11 +110,11 @@ const runDarts = (ctx: FrameContext, tp: Temple) => {
   const { state } = ctx, p = state.player, px = p.pos.x + p.width / 2;
   if (crewed(state, 2) && px > T + 1750 && px < DART_WALL) {
     tp.dartT--;
-    if (tp.dartT === DART_TELL) playSound('click', 0.5, 6);
+    if (tp.dartT === DART_TELL && heard(state, DART_WALL)) playSound('click', 0.5, 6);
     if (tp.dartT <= 0) {
       tp.dartT = DART_EVERY;
       for (let i = 0; i < 2; i++) tp.darts.push({ x: DART_WALL - 4 - i * 30, y: dartY(tp.dartHigh) });
-      playSound('whoosh', 0.7, 10); playSound('dart', 0.6);
+      if (heard(state, DART_WALL)) { playSound('whoosh', 0.7, 10); playSound('dart', 0.6); }
       tp.dartHigh = !tp.dartHigh;
     }
   }

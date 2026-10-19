@@ -40,6 +40,7 @@ import { isShat, isNude } from '../../../m1/game/player/gut';
 import { GY } from '../geometry';
 import { plate, servo } from './art/robots';
 import { rampOf } from '../../intro/art/kit';
+import { markBossFight } from '../../bossQuiet';
 import { eyeOf, prism } from './art/kit';
 import {
   HURT_REX, DEATH_REX, HURT_REX_BITE, DEATH_REX_BITE, HURT_REX_SPRINT, DEATH_REX_SPRINT, HURT_REX_TAIL, DEATH_REX_TAIL,
@@ -501,6 +502,7 @@ export const updateRex = (ctx: FrameContext) => {
   if (!r || r.fight === 'gone') return;
   // (started past the temple fence: the checkpoint's only known once the stage is built, so it's put down here)
   if (r.fight === 'wait' && state.checkpoint >= 33) retire(state, r);
+  if (r.fight === 'on') markBossFight(state);
   const p = state.player;
   // What's come out of each part since last frame
   for (const id of PARTS) {

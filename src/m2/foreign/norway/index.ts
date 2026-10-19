@@ -19,6 +19,7 @@ import { spawnCast } from '../cast';
 import { pavilionTalk } from '../pavilion';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { playSound } from '../../../m1/game/platform/audio';
+import { heardSpan } from '../../bossQuiet';
 import { hazardVictims, hazardHit, boxHits } from '../../hazardHit';
 import { makeMover, moveMover, type Mover } from '../movers';
 import { runsAround, poolSteps, poolAt, poolZones, drawPoolBack, drawPoolFront, type Pool } from '../water';
@@ -142,7 +143,7 @@ export const norway: ForeignSection = {
     // The wave machine: a wave down the pool; in the water at its crest, shoved and hurt (each once a wave)
     const cr = crestAt(f), wn = Math.floor(f / WAVE_EVERY);
     if (wn !== n.waveN) { n.waveN = wn; n.hit.clear(); }
-    if (f % WAVE_EVERY === 0 && Math.abs(p.pos.x - (POOL.a + POOL.b) / 2) < 900) playSound('splash', 0.5, -8);
+    if (f % WAVE_EVERY === 0 && heardSpan(state, POOL.a, POOL.b)) playSound('splash', 0.5, -8);
     if (cr !== null) {
       const pcx = p.pos.x + p.width / 2, inWater = pcx > POOL.a && pcx < POOL.b && p.pos.y + p.height > GY + POOL.surface - 6;
       if (inWater && Math.abs(pcx - cr) < 46 && !n.hit.has(p) && p.health > 0 && p.invincibilityTimer <= 0 && !p.inCutscene) {

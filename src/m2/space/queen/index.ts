@@ -32,6 +32,7 @@ import { playSound } from '../../../m1/game/platform/audio';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { x0, x1, ARENA_L, ARENA_R, TRIGGER_X, QUEEN_X, HOLE, BASE_L, STAIRS_X, LAND_X, DOOR_X, DISCO_L, DISCO_R, DISCO_TRIGGER, DISCO_QX, REFILL_X, BF, STAIRS_A, STAIRS_B, CEIL_B } from './geo';
 import { updateLadders, drawLadders } from '../../moves/ladders';
+import { markBossFight } from '../../bossQuiet';
 import { drawRoomBack, drawGlass, drawQueen, roomLights, drawAfterFall } from './art';
 import { type Show, makeShow, startShow, tickShow, showOn, showSkippable, drawShowQueen, drawShowSaid, drawShowFade, showHead, fell, collapsed, drawFallingSlabs, BASEMENT_CP } from './show';
 import { type Hunter, makeHunter, buildHunter, forceDoorIn, tickHunter, atDoor, startKick, doorIn, doorKicking, drawHunter, drawHides, drawHunterFront, hunterLighting, hunterZoom, drawDiscoDoor, layBasement, LADDERS, GRAVEYARD_CP } from './basement';
@@ -158,6 +159,7 @@ export const queen: SpaceSection = {
       return controls;
     }
     if (q.fight === 'on') {
+      markBossFight(state);
       let out = updateFight(ctx, f, controls);
       if (introOn(f)) p.inCutscene = true;
       const lo = DISCO_L, hi = DISCO_R - p.width;

@@ -10,8 +10,9 @@ import type { FrameContext } from '../../../m1/game/core/context';
 import type { GameState } from '../../../m1/game/core/state';
 import type { Enemy } from '../../../m1/types';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
-import { playSound } from '../../../m1/game/platform/audio';
 import { shakeScreen } from '../../../m1/game/core/state';
+import { envSound, heard, inBossFight } from '../../bossQuiet';
+import { fightOn } from './fight';
 import { setHazardZones, hazardVictims, hazardHit, boxHits } from '../../hazardHit';
 import { isMidBoss } from '../../../m1/game/combat/midBoss';
 import { box, poly } from '../blvd/kit';
@@ -43,7 +44,12 @@ const fanAt = (f: number, off: number) => {
 
 export const updateHazards = (ctx: FrameContext) => {
   const { state } = ctx, p = state.player, f = state.frame, o = whOf(state), cx = p.pos.x + p.width / 2, feet = p.pos.y + p.height;
+  // (none of it while the cast's on him: it's no part of that fight, and it ticked away, clicking and whooshing, back
+  // down the sets the whole time; bossQuiet.ts)
+  if (fightOn(state) || inBossFight(state)) { setHazardZones(state, 'hww-lights', []); setHazardZones(state, 'hww-pyro', []); return; }
   const near = (x: number) => Math.abs(cx - x) < 1400;
+  // (and heard only from on the screen or just off it)
+  const sfx = (x: number, type: Parameters<typeof envSound>[2], vol?: number, pitch?: number) => envSound(state, x, type, vol, pitch);
   // The lighting rig
   const zl: { x0: number; x1: number; y0: number; y1: number }[] = [];
   LIGHTS.forEach(([rx, off], i) => {
@@ -53,10 +59,10 @@ export const updateHazards = (ctx: FrameContext) => {
     if (L.st === 'hang') { h.hit = new WeakSet(); h.hitHim = false; }
     if (!near(x)) return;
     if (L.st === 'tell' || L.st === 'fall') zl.push({ x0: x - 54, x1: x + 54, y0: GY - 220, y1: GY });
-    if (L.st === 'tell' && f % 7 === 0) { playSound('click', 0.25, 12); state.particles.push({ pos: { x: x + (Math.random() - 0.5) * 16, y: HANG_Y - 26 }, vel: { x: (Math.random() - 0.5) * 3, y: -1 - Math.random() * 2 }, life: 12, color: '#FDE047', size: 2, grav: 0.2 }); }
-    if (L.st === 'fall' && L.k === 0) playSound('whoosh', 0.6, -4);
+    if (L.st === 'tell' && f % 7 === 0) { sfx(x, 'click', 0.25, 12); state.particles.push({ pos: { x: x + (Math.random() - 0.5) * 16, y: HANG_Y - 26 }, vel: { x: (Math.random() - 0.5) * 3, y: -1 - Math.random() * 2 }, life: 12, color: '#FDE047', size: 2, grav: 0.2 }); }
+    if (L.st === 'fall' && L.k === 0) sfx(x, 'whoosh', 0.6, -4);
     if (L.st === 'fall' && lightY(L.k) >= GY - 14 && lightY(L.k - 1) < GY - 14) {
-      playSound('crash', 0.9); playSound('glass', 0.7); shakeScreen(state, 6, 3);
+      sfx(x, 'crash', 0.9); sfx(x, 'glass', 0.7); if (heard(state, x)) shakeScreen(state, 6, 3);
       for (let k = 0; k < 14; k++) state.particles.push({ pos: { x, y: GY - 10 }, vel: { x: (Math.random() - 0.5) * 8, y: -2 - Math.random() * 5 }, life: 24, color: k % 3 ? '#E5E7EB' : '#FDE047', size: 2 + Math.random() * 2, grav: 0.35 });
     }
     // (on the way down and the moment it lands: whoever's under it)
@@ -77,7 +83,7 @@ export const updateHazards = (ctx: FrameContext) => {
     if (!near(x)) return;
     if (P.tell || P.burn) zp.push({ x0: x - PYRO_T.w / 2 - 20, x1: x + PYRO_T.w / 2 + 20, y0: GY - PYRO_T.h, y1: GY });
     if (P.tell && f % 5 === 0) state.particles.push({ pos: { x: x + (Math.random() - 0.5) * 12, y: GY - 6 }, vel: { x: (Math.random() - 0.5), y: -1 - Math.random() }, life: 26, color: 'rgba(120, 113, 108, 0.6)', size: 4 + Math.random() * 4 });
-    if (P.start) { playSound('flame', 0.8, -4); playSound('ignite', 0.6); o.hz.pyroHit[i] = new WeakSet(); }
+    if (P.start) { sfx(x, 'flame', 0.8, -4); sfx(x, 'ignite', 0.6); o.hz.pyroHit[i] = new WeakSet(); }
     if (!P.burn) return;
     const top = GY - PYRO_T.h * Math.min(1, P.k * 6) * (P.k > 0.85 ? (1 - P.k) / 0.15 : 1);
     if (f % 2 === 0) state.particles.push({ pos: { x: x + (Math.random() - 0.5) * PYRO_T.w * 0.6, y: top + 10 }, vel: { x: (Math.random() - 0.5) * 2, y: -2 - Math.random() * 3 }, life: 16, color: Math.random() < 0.5 ? '#F97316' : '#FDE047', size: 3 + Math.random() * 4 });
@@ -90,9 +96,9 @@ export const updateHazards = (ctx: FrameContext) => {
   FANS.forEach(([rx, dir, off]) => {
     const x = X(rx), F = fanAt(f, off);
     if (!near(x)) return;
-    if (F.spin && f % 9 === 0) playSound('whoosh', 0.2 + F.k * 0.3, -10);
+    if (F.spin && f % 9 === 0) sfx(x, 'whoosh', 0.2 + F.k * 0.3, -10);
     if (!F.gust) return;
-    if (f % 12 === 0) playSound('whoosh', 0.45, -12);
+    if (f % 12 === 0) sfx(x, 'whoosh', 0.45, -12);
     const inFront = (bx: number) => (bx - x) * dir > 0 && Math.abs(bx - x) < FAN.reach;
     if (f % 2 === 0) state.particles.push({ pos: { x: x + dir * (30 + Math.random() * 200), y: GY - 30 - Math.random() * 220 }, vel: { x: dir * (7 + Math.random() * 5), y: (Math.random() - 0.5) }, life: 30, color: 'rgba(241, 245, 249, 0.55)', size: 2 });
     if (p.health > 0 && !p.carried && !p.inCutscene && inFront(cx) && feet > GY - 420) p.vel.x += dir * (p.isGrounded ? 0.5 : 0.3);
