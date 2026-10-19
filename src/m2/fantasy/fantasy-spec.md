@@ -94,7 +94,7 @@ FAX = 800000. Gaps of 3000 between sections (room to grow). Every section about 
 | 1 | The town square | `square` | FAX+0 .. FAX+15000 | 0-9 | Hogsmeat Village and the storybook square; the staircases; the loudspeaker |
 | 2 | The fairy wheel (trial 1) | `wheel` | FAX+18000 .. FAX+24000 | 10-12 (of 10-19) | The gigantic wheel, eight suitors in its gondolas throwing crap, the QTEs, the kills (built) |
 | 3 | The enchanted glen | `glen` | FAX+27000 .. FAX+41000 | 20-26 (of 20-29) | The storybook forest: toadstools, briars, cauldrons, harder staircases, five new kinds; the ride's queue (built) |
-| 4 | Truelling Tragons | `tragons` | FAX+44000 .. FAX+58000 | 30-39 | The three-car coaster (fire, ice, lightning) |
+| 4 | Truelling Tragons | `tragons` | FAX+44000 .. FAX+58000 | 30-38 (of 30-39) | The three-car coaster (fire, ice, lightning): hop cars, holes, each car's obstacles, the rivals (built) |
 | 5 | The castle's base and the runway | `keep` | FAX+61000 .. FAX+73000 | 40-49 | Platforming in the castle; the runway (from x0+9000) |
 | 6 | The broomstick deathmatch (trial 3) | `broom` | FAX+76000 .. FAX+80000 | 50-59 | Behind the back, mode 7; in through the top window |
 | 7 | The bedroom and Piper | `bedroom` | FAX+83000 .. FAX+87000 | 60-69 | The door kicked in, the reveal, the fight (placeholder) |
@@ -163,6 +163,25 @@ x from the section's start; heights up from the ground line.
 - 13160 THE QUEUE (cp 26): a last crowd (a knight, a witch, a gingerbread man, a princess); the rivals in the queue's
   rails (BLAKE, RAFAEL, HANK) have their say in turn, he answers, Piper calls trial two over the ride's PA, and they go
   in; the ride's door is the section's right end (on to Truelling Tragons).
+
+### Section 4 in detail (Truelling Tragons, built: tragons/)
+
+World x from the section's start; the ride by track position `s` (the trains stand still in the world once they're
+out of the station, rears at x0+2500, and the world goes by: layout.ts wxOf). Lanes top to bottom, never crossing:
+LIGHTNING (yellow/purple), FIRE (red/orange), ICE (blue/white).
+
+- 0 THE LOAD STATION (cp 30): in from the queue; the hall (three dragon heads over it), NO FIREARMS ON THE DRAGONS; the
+  three dragons parked at three heights (Blake sat on the FIRE one, Rafael on the LIGHTNING one), the ICE one at the
+  platform (70 up: hop onto its back). On it a moment and the gate (1360) swings open and they go (back on the
+  platform before they're out: they stop and come back for him).
+- THE RIDE (~46500 of track, ~5 px a frame teaching, 6 after, 6.5 late; a little over two minutes): s 1500 THE LIFT
+  HILL (cp 31): the spiel, the rules, Piper; the first hole alone on his (a 270-frame warning, slow), another. 8000 THE
+  GAUNTLET (cp 32): duck waves, jump waves, a thrower wave, a hole. 16000 BLAKE (cp 33): the first near miss (140 apart),
+  Blake up. 22400 ONLY ONE SAFE (cp 34): holes on two lanes at once (the one next to his safe; then the far one: two
+  hops). 28700 RAFAEL (cp 35). 35000 HANK (cp 36): in on the spare dragon after an `other` hole. 40100 THE TRIPLE NEAR
+  MISS (cp 37): one safe, then another, a duck and a jump. The brakes; END_S 46500.
+- THE UNLOAD (cp 38, set as it pulls in): a deck a lane off the dragons' fronts (stepped: drop down them), the hall,
+  UNLOAD / EXIT TO THY RIGHT; the castle's gate arch at x0+4300 (on to the castle's base).
 
 ## Standing rules (all apply; check every one against new work)
 
@@ -255,3 +274,41 @@ markBossFight every frame of a boss or sub-boss fight. Voice every new line (`np
   knight cosplayer; three new voices) for the ride and the broomsticks to reuse. Not a cutscene: he keeps control; they
   speak in turn (never over each other), he answers, Piper calls trial two from the ride's horn, they go in through the
   ride's door; shots bounce off them. Gone in for good (RIVALS_MEMO in state.stageMemo).
+- (job 4, ours) Truelling Tragons is side-on, the trains standing still in the world once out of the station and the
+  world going by (the Wilderness train's way): layout.ts. Three lanes that never cross (the user's "not too tangly"),
+  top to bottom LIGHTNING, FIRE, ICE; they spread (to 540 apart) and close to near misses (140), the camera framing all
+  three always: pulled out to 0.56 as they spread, in to 1 as they close, the band under the HUD (ride.ts camTarget;
+  blended in off the engine's camera at the station, back out at the unload; culled by the real view).
+- (job 4, ours) HOPPING: next / previous weapon is a hop while riding (store.ts carHops / requestCarHop; App.tsx sends
+  the wheel and LB / RB there instead of switching): wheel up or RB the car above, wheel down or LB the one below (by
+  height: the lanes never cross, so it's always the same). A 20-frame leap (carried: no gravity, nothing to steer), a
+  32-frame cooldown from leaving (0.53 s); nothing above or below: a click. His own jump still works (and down + jump
+  drops through to the car under). No firing (shoot and alt fire taken off him; a NO_GUNS line if he tries, never twice
+  in 45 s); melee, the charge, the grabs all work; no weapon switching (noSwitch). A controls card (the real buttons,
+  live pad / keys + mouse) from the start of the first ride till his first hop (TIPS_MEMO).
+- (job 4, ours) HOLES: the script breaks the track ahead (a bang, the bits falling: Piper had bolts taken out) on `his`
+  lane, an `other`, or all but one (`safe`: next to his, or the far one). Warned every time: a flashing sign at the
+  broken end in the lane's color (an arrow at the edge while it's off screen), a countdown bar over the dragon that'll
+  run into it, its side lights flashing red, an alarm while it's his, the spiel naming the lane (SAFE: <LANE> over the
+  one that makes it). Fair: 270 frames first (slow), ~210, then 140-190. A dragon that runs onto one goes over the end
+  nose first with whoever's stood on it (him: the death screen's 'm2:fa_track_out'; rivals: TRACK OUT!); a spare
+  dragon comes down onto the track on bat wings once it's whole again (the spiel: a replacement dragon).
+- (job 4, ours) Each train its own obstacles, in waves (one on every lane at once, so whichever he's on he meets its
+  kind): DUCK (FIRE a burning hoop round the track, ICE an icicle curtain off a gantry, LIGHTNING a curtain of arcs off a
+  coil gantry: all at his head, under 44 clear), JUMP (FIRE a knee-high flame jet, ICE a frozen bar just over the back,
+  LIGHTNING a live rail: the dragon's roof shocks whoever's stood on it, throwing them up), THROWN (FIRE a dragon tower's
+  fireballs, a closing ring where they'll land; ICE a snow cannon's snowballs along the lane at chest height (duck or
+  jump); LIGHTNING a storm cloud's strikes, a glowing ring first). The ICE dragon's back is frosted: stood still on it,
+  he slides back (its tail stops him). Every one its own hurt and death lines; all hit the rivals too.
+- (job 4, ours) The rivals (rivals.ts, kinds `m2:fa_rival_<id>`, drawn from glen/rivals.ts's looks): Blake sat on the
+  FIRE dragon, Rafael on the LIGHTNING, up at their cues (or when he hits them); Hank in on the spare after the HANK
+  hole. On another dragon: a wind-up and a throw at him (Blake's protein shakers, Rafael's dumbbells, Hank's turkey
+  legs: their own hurt sources); after a couple, over onto his (a leap); on his: a fist cocked, a punch. Now and then they
+  duck or jump a hazard; they panic-hop off a dragon that's about to go over (60%). Knocked off: all the way down
+  (SPLAT!). Shots bounce off them (at the station). Dead ones stay dead this visit (keptDead; `fa-rival-dead-<id>` in
+  stageMemo for the brooms); the ones that ride it out walk off at the unload, out the exit ahead of him (not kills).
+- (job 4, ours) Voices: the ride's spiel, a cheesy herald (`m2.fantasy.tragons_spiel`, new); Piper on the PA; the
+  rivals' glen voices. Checkpoints 30-38 (39 spare): the ride's are set as it passes them; back on one, he's on a car
+  that far along (the lane in RIDE_CPS), the rivals that are up by then up on the others. One-way; the ride done is
+  DONE_MEMO: a revisit's station says RIDE CLOSED (TRACK DAMAGE), no dragons running (they're parked at the unload),
+  the ground walked between the station and the unload both ways.

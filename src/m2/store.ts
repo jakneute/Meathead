@@ -51,7 +51,17 @@ export interface M2Ui {
   bikeTips?: boolean;
   /** (Fairy Land's fairy wheel) A QTE on: what to press, how it's going (fantasy/wheel/QtePanel.tsx draws it). */
   qte?: QteUi | null;
+  /** (Fairy Land's Truelling Tragons) Next / previous weapon (the mouse wheel, LB / RB) hop him between cars instead:
+   *  requestCarHop; and the ride's controls card (the first time, till he's hopped). */
+  carHops?: boolean;
+  tragonTips?: boolean;
 }
+
+/** (Truelling Tragons) A hop asked for (wheel up or RB: the car above; wheel down or LB: the car below), taken by the
+ *  ride next frame (it keeps its own cooldown); one at a time, the last asked. */
+let carHop: 'up' | 'down' | null = null;
+export const requestCarHop = (dir: 'up' | 'down') => { carHop = dir; };
+export const takeCarHop = () => { const d = carHop; carHop = null; return d; };
 
 /** A QTE's button: the face buttons by position, or left / right. */
 export type QteKey = 'A' | 'B' | 'X' | 'Y' | 'LEFT' | 'RIGHT';

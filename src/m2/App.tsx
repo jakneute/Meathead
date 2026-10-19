@@ -49,7 +49,7 @@ import { clearSkyCache } from './intro/art/sky';
 import { canSkip, requestSkip } from '../m1/game/platform/skip';
 import { getAudioContext } from '../m1/game/platform/audio';
 import { STAFF_SLOT, AMERICA_SLOT, landAt } from './hub/lands';
-import { getUi, subscribeUi, onTravel, setUi, goTo, takeBossKill, setStartCheckpoint } from './store';
+import { getUi, subscribeUi, onTravel, setUi, goTo, takeBossKill, setStartCheckpoint, requestCarHop } from './store';
 import { setFrameHook } from '../m1/game/core/update';
 import { disableM1Music } from '../m1/game/music';
 import { setMusicState, setMusicStage, setMusicPaused } from './music/cues';
@@ -222,7 +222,7 @@ const App2: React.FC = () => {
       setHubExit(to === HUB_STAGE && stage !== PEN_STAGE && !!from);
       // (through a portal: no HUD from here till the land's opened on him, not a frame of it as it loads)
       setUi({ introTip: null, introPrompt: null, introAhead: null, introTicket: null, introCutscene: dest === 'intro' || portalArrivalPending() || hubExitPending() });
-      setUi({ near: null, map: null, nearExit: false, nearAmerica: false, noSwitch: false, heliHud: false, bikeHud: false, bikeTips: false });
+      setUi({ near: null, map: null, nearExit: false, nearAmerica: false, noSwitch: false, heliHud: false, bikeHud: false, bikeTips: false, carHops: false, tragonTips: false });
       setFade(true);
       // (into a land, everything's topped up; and back at the hub after a boss: elsewhere, what he had)
       // (the walk back after a boss: topped up there, and the boss's top-up used up on it)
@@ -280,6 +280,8 @@ const App2: React.FC = () => {
       const now = performance.now();
       if (now - wheelAt < WHEEL_COOLDOWN_MS) return;
       wheelAt = now;
+      // (Truelling Tragons: the wheel hops him between cars, up for the car above, down for the one below)
+      if (getUi().carHops) { if (playing()) requestCarHop(e.deltaY > 0 ? 'down' : 'up'); return; }
       cycle(e.deltaY > 0 ? 1 : -1);
     };
     const onKey = (e: KeyboardEvent) => {
@@ -347,8 +349,12 @@ const App2: React.FC = () => {
         }
         if (paused() && pressed('x')) { setCheatPanelOpen(true); Object.assign(prev, btn); id = requestAnimationFrame(poll); return; }
         const just = pressed;
-        if ((playing() || paused()) && just('lb')) cycle(-1);
-        if ((playing() || paused()) && just('rb')) cycle(1);
+        // (Truelling Tragons: RB the car above, LB the car below)
+        if (playing() && getUi().carHops) { if (just('lb')) requestCarHop('down'); if (just('rb')) requestCarHop('up'); }
+        else {
+          if ((playing() || paused()) && just('lb')) cycle(-1);
+          if ((playing() || paused()) && just('rb')) cycle(1);
+        }
         if (just('start')) togglePause();
         if (paused()) {
           const m = getGamepadMovement(gp, 0.25);
@@ -467,6 +473,16 @@ const App2: React.FC = () => {
               <Prompt pad={['DPAD_UP']} kb={['@up']} label="BOOST" />
               <Prompt pad={['DPAD_DOWN']} kb={['@down']} label="BRAKE" />
             </div>
+          </div>
+        )}
+        {/* Fairy Land's Truelling Tragons: hopping cars, the first ride (till he's hopped once) */}
+        {status === GameStatus.PLAYING && ui.map === null && !ui.introCutscene && ui.tragonTips && (
+          <div className="absolute left-1/2 -translate-x-1/2 top-[132px] z-30 flex flex-col items-center gap-2 px-3 py-2 text-[9px] text-white bg-black/80 border-2 border-[#FACC15]">
+            <div className="flex gap-4">
+              <Prompt pad={['RB']} mouse="wheel" label="HOP UP A CAR" />
+              <Prompt pad={['LB']} mouse="wheel" label="HOP DOWN A CAR" />
+            </div>
+            <span className="text-zinc-400">NO FIRING ON THE RIDE</span>
           </div>
         )}
         {/* Fairy Land's fairy wheel: a QTE on (in a suitor's cart) */}
