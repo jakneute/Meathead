@@ -66,6 +66,8 @@ export interface Wheel {
   fallFrom: number | null; knockedAt: number;
   /** Thrown out of a cart (a QTE lost): falling clean through the gondolas' floors till he's down on the plaza. */
   thrown: boolean;
+  /** A suitor's QTE beats already won (by roster index): losing doesn't take them back; next time in his cart, only the rest (the user's). */
+  qteDone: Map<number, number>;
   /** Which kill's next (they go round, shuffled). */
   killBag: KillKind[];
   /** The gate's opening (frames since), sparkles. */
@@ -77,5 +79,5 @@ export const wheelOf = (state: GameState) => fantasyState<Wheel>(state, 'wheel',
   t: 0, ang: Math.PI / 2, carts: [], live: new Map(), throws: [], bodies: [], trial: 'wait',
   walls: { l: null as unknown as Block, r: null as unknown as Block },
   qte: null, kill: null, lastAtHim: -999, lastBark: -999, lastBounce: -9999, piper: null, barks: new Map(),
-  fallFrom: null, knockedAt: -9999, thrown: false, killBag: [], opened: -1, said: {},
+  fallFrom: null, knockedAt: -9999, thrown: false, qteDone: new Map(), killBag: [], opened: -1, said: {},
 }));

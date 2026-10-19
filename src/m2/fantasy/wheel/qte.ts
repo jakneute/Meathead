@@ -37,6 +37,8 @@ export interface Qte {
   phase: 'lock' | 'beat' | 'pause' | 'won' | 'lost';
   t: number;
   beats: Beat[]; at: number;
+  /** Beats of his won in earlier goes (counted in the panel's step: 2/3 picks up where it left off). */
+  base: number;
   flash: 'good' | 'bad' | null;
   prev: Controls;
 }
@@ -54,9 +56,9 @@ const downs = (c: Controls, prev: Controls) => (['A', 'B', 'X', 'Y', 'LEFT', 'RI
 
 /** The beats for one fight: `level` how many he's killed (0..7), `dazed` the suitor's reeling. (Eased a step: the user's.) */
 const beatsFor = (level: number, dazed: boolean): Beat[] => {
-  // (mixed up, the user's: not just bashing. Two beats at least, three, then four further on; every fight has a run of
+  // (mixed up, the user's: not just bashing. Two beats, three for the last suitors; every fight has a run of
   // buttons in turn or a timed ring in it, and a mash no more than once)
-  const n = Math.max(dazed ? 1 : 2, 2 + Math.floor(level / 3) - (dazed ? 1 : 0));
+  const n = Math.max(dazed ? 1 : 2, 2 + Math.floor(level / 4) - (dazed ? 1 : 0));
   const slow = dazed ? 1.2 : 1;
   const out: Beat[] = [];
   const kinds: Kind[] = level === 0 ? ['mash', 'press'] : [pick(['press', 'ring'] as Kind[])];
@@ -67,25 +69,26 @@ const beatsFor = (level: number, dazed: boolean): Beat[] => {
   for (let s = 0; s < n; s++) {
     const kind = kinds[s];
     const b: Beat = { kind, key: pick(FACE), seq: [], need: 0, got: 0, fill: 0, t: 0, dur: 0, next: 0, flubs: 0 };
-    if (kind === 'mash') { b.need = 7 + level; b.dur = Math.round(220 * slow); }
-    if (kind === 'press') { b.need = 3 + Math.floor(level / 2); b.seq = Array.from({ length: b.need }, () => pick(FACE)); b.key = b.seq[0]; b.dur = Math.round(Math.max(46, 86 - level * 4) * slow); }
-    if (kind === 'alternate') { b.need = 12 + Math.round(level * 1.5); b.dur = Math.round(200 * slow); }
-    if (kind === 'ring') { b.need = 2 + Math.floor(level / 3); b.dur = Math.round(Math.max(58, 98 - level * 4) * slow); }
+    if (kind === 'mash') { b.need = 6 + Math.floor(level / 2); b.dur = Math.round(230 * slow); }
+    if (kind === 'press') { b.need = 3 + Math.floor(level / 3); b.seq = Array.from({ length: b.need }, () => pick(FACE)); b.key = b.seq[0]; b.dur = Math.round(Math.max(60, 100 - level * 3) * slow); }
+    if (kind === 'alternate') { b.need = 9 + Math.floor(level / 2); b.dur = Math.round(240 * slow); }
+    if (kind === 'ring') { b.need = 2 + Math.floor(level / 4); b.dur = Math.round(Math.max(72, 112 - level * 3) * slow); }
     out.push(b);
   }
   return out;
 };
 
 /** The ring's target band (how shut the ring is when it counts). */
-const BAND: [number, number] = [0.04, 0.32];
+const BAND: [number, number] = [0.03, 0.38];
 const LOCK = 30, PAUSE = 22;
 /** The first frames of a press or a ring: nothing counts (a press still coming off the mash before it isn't a miss). */
 const GRACE = 10;
 /** A forgiven flub's cost: this many frames off the press's or the ring's time. */
 const FLUB_COST = 14;
 
-export const startQte = (i: number, name: string, level: number, dazed: boolean, prev: Controls): Qte =>
-  ({ i, name, phase: 'lock', t: 0, beats: beatsFor(level, dazed), at: 0, flash: null, prev });
+/** `done`: beats of his already won in an earlier go (only the rest now, one at least). */
+export const startQte = (i: number, name: string, level: number, dazed: boolean, prev: Controls, done = 0): Qte =>
+  ({ i, name, phase: 'lock', t: 0, ...(b => { const k = Math.min(done, b.length - 1); return { beats: b.slice(k), base: k }; })(beatsFor(level, dazed)), at: 0, flash: null, prev });
 
 /** Each frame of it: his presses (the raw controls), and the panel. Returns what's become of it. */
 export const updateQte = (q: Qte, controls: Controls): 'on' | 'won' | 'lost' => {
@@ -145,7 +148,7 @@ export const updateQte = (q: Qte, controls: Controls): 'on' | 'won' | 'lost' => 
     kind: cur.kind, keys: cur.kind === 'alternate' ? ['LEFT', 'RIGHT'] : [cur.key], next: cur.kind === 'alternate' ? cur.next : undefined,
     fill: cur.kind === 'mash' ? cur.fill : cur.got / cur.need, time: Math.max(0, time),
     ring: cur.kind === 'ring' ? (q.phase === 'beat' ? Math.max(0, 1 - cur.t / cur.dur) : 1) : undefined, band: cur.kind === 'ring' ? BAND : undefined,
-    step: Math.min(q.at + 1, q.beats.length), steps: q.beats.length, name: q.name, flash: q.flash,
+    step: q.base + Math.min(q.at + 1, q.beats.length), steps: q.base + q.beats.length, name: q.name, flash: q.flash,
   };
   setUi({ qte: ui });
   return 'on';

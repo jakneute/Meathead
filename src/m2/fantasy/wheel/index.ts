@@ -262,6 +262,7 @@ export const wheel: FantasySection = {
         // catches him: w.thrown), heavy, but only the end of him if it's enough to take him to zero (and then it's
         // the fall's own kill cam: fall_wheel)
         const { side } = spots(w, q.i), away = -side;
+        w.qteDone.set(q.i, q.base + q.at);
         w.qte = null; letGo(state);
         const L = w.live.get(q.i); if (L) L.cool = 150;
         p.pos.x += away * 30; p.pos.y -= 8; p.isGrounded = false;
@@ -282,7 +283,7 @@ export const wheel: FantasySection = {
         for (const [i, L] of w.live) {
           const c = w.carts[ROSTER[i].cart];
           if (L.cool > 0 || Math.abs(feet - c.fy) > 3 || Math.abs(cx - c.fx) > FLOOR_W / 2 + 4) continue;
-          w.qte = startQte(i, ROSTER[i].look.name, ROSTER.length - w.live.size, L.daze > 0, controls);
+          w.qte = startQte(i, ROSTER[i].look.name, ROSTER.length - w.live.size, L.daze > 0, controls, w.qteDone.get(i) ?? 0);
           L.wind = 0;
           bark(state, w, i, byPants(state, QTE_START), true);
           playSound('slam', 0.8, -4);
