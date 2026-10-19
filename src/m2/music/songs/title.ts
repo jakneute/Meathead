@@ -1,5 +1,5 @@
-// "WELCOME TO HAPPY LAND": Meathead 2's theme (the title and menus; it stands in at the hub, the staff room and the
-// way in till theirs are written: cues.ts). The quality bar for the composers who follow: a big, catchy, slightly
+// "WELCOME TO HAPPY LAND": Meathead 2's theme (the title and menus; cues.ts's last fallback at the hub, the staff room
+// and the way in). The quality bar for the composers who follow: a big, catchy, slightly
 // sleazy theme-park anthem, the late 90s (a Conker / Banjo-Tooie big band with a strip-club sax out front).
 //
 // B-flat major, 112, an eighth-note shuffle. 32 bars: a 4-bar fanfare (once: Gb, Ab, up to the Bb, a timpani roll,

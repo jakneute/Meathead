@@ -28,7 +28,7 @@ import { SONGS } from './songs/index';
 import { soundTestCue, type Cue } from './soundTest';
 import { momentOn } from './moments';
 import { bossFightName, inBossFight } from '../bossQuiet';
-import { getUi } from '../store';
+import { getUi, walkBackOn } from '../store';
 import { HUB_STAGE } from '../hub/index';
 import { PEN_STAGE } from '../pen/index';
 import { INTRO_STAGE } from '../intro/index';
@@ -116,7 +116,8 @@ const gameWants = (s: GameState | null): Want => {
   if (stage === PEN_STAGE) return { cands: [{ song: 'staff' }, { song: 'title', arrs: ['lounge'] }], cutscene };
   if (stage === INTRO_STAGE) {
     const zone = getUi().zone ?? 'garage';
-    return { cands: [{ song: 'intro', arrs: [zone] }, { song: 'title', arrs: [INTRO_STANDIN[zone] ?? 'main'] }], cutscene: cutscene || !!getUi().introCutscene };
+    // (the walk back after Wilderness Land: its own arrangement the whole way, if the song has one)
+    return { cands: [{ song: 'intro', arrs: walkBackOn() ? ['back', zone] : [zone] },{ song: 'title', arrs: [INTRO_STANDIN[zone] ?? 'main'] }], cutscene: cutscene || !!getUi().introCutscene };
   }
   const land = LAND_OF_STAGE[stage];
   if (!land) return none;
@@ -179,6 +180,7 @@ const start = () => {
   if (timer || typeof window === 'undefined') return;
   useContext(getAudioContext);
   // (the songs everybody hears made first, in idle time: the theme, the jingles, the hub, the way in)
-  setTimeout(() => { for (const id of ['title', 'hub', 'intro', 'staff', 'jingle:death', 'jingle:victory', 'walkaway']) if (SONGS[id]) prewarm(SONGS[id]); }, 2500);
+  // (the walk-away's and the portal walk's every arrangement: the bosses' and the lands' versions are theirs)
+  setTimeout(() => { for (const id of ['title', 'hub', 'intro', 'staff', 'jingle:death', 'jingle:victory', 'walkaway', 'portal']) if (SONGS[id]) prewarm(SONGS[id]); }, 2500);
   timer = setInterval(() => { try { apply(); } catch (err) { console.error('music', err); } }, 100);
 };
