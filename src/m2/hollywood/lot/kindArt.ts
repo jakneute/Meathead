@@ -31,6 +31,9 @@ const frameFor = (e: Enemy, f: number, seed: number, pose: Pose, v = '') => {
   return frameOf(seed, f, r?.pose ?? pose, r?.md ?? moodOf(e), 0, undefined, v);
 };
 const BOX: [number, number, number, number] = [-60, -128, 132, 132];
+/** The legionary's: wider out front, for the spear's head (it ran past BOX and was cut off but for the thrust: the
+ *  playtest). */
+const SPEAR_BOX: [number, number, number, number] = [-60, -128, 180, 132];
 
 const ownHead = (g: Ctx, F: Frame, B: Body, eyes: 'open' | 'angry' | 'tired', mouth: 'flat' | 'teeth' | 'o' | 'frown') => {
   hairBack(g, B);
@@ -228,7 +231,7 @@ const paintLegionary = (g: Ctx, F: Frame) => {
 };
 export const drawLegionary = (c: Ctx, e: Enemy, f: number, seed: number) => {
   const F = frameFor(e, f, seed, poseOf(e, ['draw'], ['thrust']));
-  putFrame(c, 'hw-legion2', F, BOX, g => paintLegionary(g, F));
+  putFrame(c, 'hw-legion3', F, SPEAR_BOX, g => paintLegionary(g, F));
 };
 
 // ---------------------------------------------------------------------------------------------------------------
