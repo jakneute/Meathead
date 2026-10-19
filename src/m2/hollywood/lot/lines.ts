@@ -173,7 +173,7 @@ export const PA_DISASTER: ByPants = {
 export const HURT: Record<string, { hurt: string[]; death: string[] }> = {
   'm2:hw_guide': {
     hurt: ['THE TOUR GUIDE HIT ME!', 'STOP POINTING AT ME!', 'OW! GET YOUR LANYARD OFF ME!'],
-    death: ['BEATEN TO DEATH BY A TOUR GUIDE', 'ON YOUR LEFT: A CORPSE'],
+    death: ['BEATEN BY A TOUR GUIDE', 'ON YOUR LEFT: A CORPSE'],
   },
   'm2:hw_guide_blast': {
     hurt: ['MY EARS! THE MEGAPHONE!', 'STOP YELLING AT ME!', 'I CAN HEAR YOU! FUCK!'],
@@ -205,7 +205,7 @@ export const HURT: Record<string, { hurt: string[]; death: string[] }> = {
   },
   'm2:hw_flood': {
     hurt: ['THE FLOOD GOT ME! IT\'S FULL OF PEE!', 'FLASH FLOOD! IN MY MOUTH!', 'I SWALLOWED THE TOUR!'],
-    death: ['DROWNED IN THE FLOOD TANK', 'THE TOUR\'S MOST BELOVED EFFECT'],
+    death: ['DROWNED IN THE FLOOD TANK', 'THE TOUR\'S BEST EFFECT'],
   },
   'm2:hw_tank': {
     hurt: ['TOURIST PEE! IN MY EYES!', 'I FELL IN THE PISS TANK!', 'GET ME OUT! IT\'S CHUNKY!'],

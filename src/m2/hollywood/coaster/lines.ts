@@ -195,7 +195,7 @@ export const HURT: Record<string, { hurt: string[]; death: string[] }> = {
   },
   'm2:hwc_plunger': {
     hurt: ['A PLUNGER! ON MY FACE!', "IT'S SUCKING MY FACE OFF!", "GET IT OFF! IT'S BEEN IN THE TOILETS!"],
-    death: ['PLUNGED', 'DIED WITH A PLUNGER ON HIS FACE'],
+    death: ['PLUNGED', 'PLUNGER TO THE FACE. DEAD.'],
   },
   'm2:hwc_docent': {
     hurt: ['POKED BY A MUSEUM NERD!', "OW! THAT'S A POINTER, NOT A SWORD!", 'QUIT LECTURING ME WITH THAT STICK!'],
@@ -207,11 +207,11 @@ export const HURT: Record<string, { hurt: string[]; death: string[] }> = {
   },
   'm2:hwc_guard': {
     hurt: ['BATON TO THE KIDNEYS!', 'OW! RENT-A-COP!', 'HE HIT ME WITH THE FLASHLIGHT!'],
-    death: ['BEATEN DOWN BY THRONE SECURITY', 'SECURITY ESCORTED HIM OUT. OF LIFE'],
+    death: ['BEATEN BY THRONE SECURITY', 'ESCORTED OUT. OF LIFE.'],
   },
   'm2:hwc_throne': {
     hurt: ['MY ASS! IT BLEW UP UNDER MY ASS!'],
-    death: ['DIED ON THE THRONE. LIKE THE KING', 'BLEW UP A FAMOUS TOILET FROM THE INSIDE', 'KILLED BY HIS OWN SHIT', 'SAT THERE TOO LONG'],
+    death: ['DIED LIKE THE KING', 'BLEW UP A FAMOUS TOILET', 'KILLED BY HIS OWN SHIT', 'SAT THERE TOO LONG'],
   },
   'm2:hwc_fumes': {
     hurt: ['THE FUMES! MY EYES!', "IT'S IN MY MOUTH! SEVENTY-THREE IS IN MY MOUTH!", 'I CAN TASTE THE ROCK STAR!'],

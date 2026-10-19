@@ -250,7 +250,7 @@ export const DEATH: ByPants = {
 export const HURT: Record<string, { hurt: string[]; death: string[] }> = {
   'm2:hww_grip': { hurt: ['A C-STAND TO THE HEAD!', 'THE GRIP HIT ME WITH A LIGHT STAND!', 'OW! UNION LABOR!'], death: ['C-STANDED', 'BEATEN BY A GRIP'] },
   'm2:hww_boom': { hurt: ['BONKED BY A BOOM MIC!', 'THE FUZZY THING HIT ME!', 'GET YOUR MIC OUT OF MY FACE!'], death: ['BOOMED', 'DIED IN THE SOUND MIX'] },
-  'm2:hww_runner': { hurt: ['A PA SHOVED ME!', 'OW! THE INTERN!', 'GET OFF ME, COFFEE BOY!'], death: ['KILLED BY A PRODUCTION ASSISTANT', 'FETCHED'] },
+  'm2:hww_runner': { hurt: ['A PA SHOVED ME!', 'OW! THE INTERN!', 'GET OFF ME, COFFEE BOY!'], death: ['KILLED BY AN INTERN', 'FETCHED'] },
   'm2:hww_coffee': { hurt: ['HOT COFFEE! IN MY EYES!', "IT'S A LATTE! IT BURNS!", 'OAT MILK! I HATE OAT MILK!'], death: ['SCALDED BY A LATTE', 'KILLED ON A COFFEE RUN'] },
   'm2:hww_director': { hurt: ['THE DIRECTOR HIT ME WITH HIS MEGAPHONE!', 'OW! NOTES!', 'QUIT DIRECTING MY FACE!'], death: ['DIRECTED TO DEATH', 'CUT. PRINT. DEAD'] },
   'm2:hww_craft': { hurt: ['THE LUNCH LADY HIT ME!', 'OW! HAIRNET!', 'GET YOUR TONGS OFF ME!'], death: ['KILLED BY CRAFT SERVICES', 'SERVED'] },
@@ -258,13 +258,13 @@ export const HURT: Record<string, { hurt: string[]; death: string[] }> = {
   'm2:hww_mocap': { hurt: ['KICKED BY A GUY IN PING-PONG BALLS!', 'THE DOT MAN FLIPPED ON ME!', "OW! YOU'RE NOT EVEN A DRAGON!"], death: ['KILLED BY A MOCAP DOUBLE', 'CAPTURED'] },
   'm2:hww_stuntco': { hurt: ['TACKLED BY THE STUNT GUY!', "THAT'S NOT A SAFE FALL!", 'HE COORDINATED MY RIBS!'], death: ['TACKLED TO DEATH', 'A STUNT GONE RIGHT'] },
   'm2:hww_light': { hurt: ['A LIGHT FELL ON ME!', "THE RIG! IT'S HOT!", 'MY HEAD! THAT LIGHT WEIGHS FIFTY POUNDS!'], death: ['CRUSHED BY A STUDIO LIGHT', 'LIT'] },
-  'm2:hww_pyro': { hurt: ['PYRO! MY ASS IS ON FIRE!', "THE FIRE'S REAL! THE SET'S FAKE!", 'HOT SET! HOT SET!'], death: ['BURNED ON A HOT SET', 'SET ON FIRE FOR A FAKE SPACESHIP'] },
+  'm2:hww_pyro': { hurt: ['PYRO! MY ASS IS ON FIRE!', "THE FIRE'S REAL! THE SET'S FAKE!", 'HOT SET! HOT SET!'], death: ['BURNED ON A HOT SET', 'BURNED FOR A FAKE SPACESHIP'] },
   'm2:hww_actor': { hurt: ['A MOVIE STAR PUNCHED ME!', 'OW! THEY DO THEIR OWN STUNTS!', 'SLAPPED BY THE A-LIST!'], death: ['BEATEN BY THE A-LIST', 'KILLED BY A CELEBRITY'] },
   'm2:hww_flop': { hurt: ['HE LANDED ON ME!', "THEY CAN'T FLY! THEY CAN LAND ON ME!", 'A HERO LANDING! ON MY HEAD!'], death: ['CRUSHED BY A HERO LANDING', 'LANDED ON'] },
   // (the dogpile: one jumping on him; enough of them and he's under the pile)
   'm2:hww_pile': {
     hurt: ['GET OFF ME!', "THERE'S A MOVIE STAR ON MY LEG!", "THEY'RE CLIMBING ME!", "I'M NOT A JUNGLE GYM!", 'GET YOUR CAPE OUT OF MY MOUTH!'],
-    death: ['BURIED UNDER CELEBRITIES', 'DOGPILED BY THE A-LIST', 'CRUSHED UNDER THE ENSEMBLE CAST'],
+    death: ['BURIED UNDER CELEBRITIES', 'DOGPILED BY THE A-LIST', 'CRUSHED BY THE ENSEMBLE'],
   },
 };
 

@@ -188,7 +188,7 @@ export const HURT: Record<string, { hurt: string[]; death: string[] }> = {
   },
   'm2:hw_elvis': {
     hurt: ['HIP CHECKED BY ELVIS!', 'YOUR PELVIS IS A WEAPON, MAN!', 'OW! KARATE ELVIS!'],
-    death: ['THE KING KILLED HIM', 'MEATHEAD HAS LEFT THE BUILDING'],
+    death: ['THE KING KILLED HIM', 'MEATHEAD LEFT THE BUILDING'],
   },
   'm2:hw_hero': {
     hurt: ['YOUR ABS ARE FOAM! THAT STILL HURT!', 'GET YOUR CAPE OUT OF MY FACE!', 'OW! COSPLAY FUCKER!'],
@@ -196,11 +196,11 @@ export const HURT: Record<string, { hurt: string[]; death: string[] }> = {
   },
   'm2:hw_hero_shield': {
     hurt: ['A FOAM SHIELD! IT HAS A BRICK IN IT!', 'RIGHT IN THE TEETH! FUCKING SHIELD!', 'THAT CAME BACK AROUND!'],
-    death: ['HIT IN THE HEAD WITH A SHIELD', 'FRISBEED'],
+    death: ['SHIELD TO THE HEAD', 'FRISBEED'],
   },
   'm2:hw_pirate': {
     hurt: ['THE PIRATE SLASHED ME!', 'YOUR SWORD IS REAL, YOU DRUNK!', 'ARR! FUCK YOU!'],
-    death: ['RUN THROUGH BY A DRUNK PIRATE', 'WALKED THE PLANK'],
+    death: ['STABBED BY A DRUNK PIRATE', 'WALKED THE PLANK'],
   },
   'm2:hw_pirate_cutlass': {
     hurt: ['I CHARGED RIGHT ONTO HIS SWORD!', 'CUTLASS IN THE GUT!', 'WHO GIVES A PIRATE A REAL SWORD?!'],
@@ -208,7 +208,7 @@ export const HURT: Record<string, { hurt: string[]; death: string[] }> = {
   },
   'm2:hw_statue': {
     hurt: ['THE STATUE MOVED! THE STATUE HIT ME!', 'GOLD PAINT IN MY EYE!', 'OW! YOU WERE STANDING STILL!'],
-    death: ['KILLED BY A STATUE', 'BEATEN BY A GUY WHO DOESN\'T MOVE'],
+    death: ['KILLED BY A STATUE', 'LOST TO A GUY STANDING STILL'],
   },
   'm2:hw_tram': {
     hurt: ['HIT BY THE TOUR TRAM!', 'IT DIDN\'T EVEN HONK! IT HONKED! I DIDN\'T CARE!', 'THE TOUR RAN ME OVER!'],

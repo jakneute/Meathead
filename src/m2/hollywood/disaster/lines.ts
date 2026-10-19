@@ -175,7 +175,7 @@ export const HURT: Record<string, { hurt: string[]; death: string[] }> = {
   },
   'm2:hwd_fire': {
     hurt: ['THE HEATER\'S REAL NOW! MY ASS!', 'FIRE! ACTUAL FIRE!', 'IT\'S HOT! IT\'S FINALLY HOT!'],
-    death: ['BURNED UP ON DISASTER: THE RIDE', 'THE VOLCANO WAS REAL'],
+    death: ['DISASTER: THE DEATH', 'THE VOLCANO WAS REAL'],
   },
 };
 

@@ -172,7 +172,7 @@ export const GRAB_CAR = ['IT\'S A WHOLE CAR!', 'I CAN\'T LIFT A CAR! NOT LIKE TH
 export const HURT: Record<string, { hurt: string[]; death: string[] }> = {
   'm2:stunt_drift': {
     hurt: ['DRIFTED! RIGHT INTO ME!', 'TIRE MARKS ON MY ASS!', 'THE BACK END GOT ME!'],
-    death: ['DRIFTED INTO BY A STUNT DRIVER', 'TOKYO DRIFTED', 'SIDESWIPED AT A STUNT SHOW'],
+    death: ['DRIFTED INTO BY A STUNT CAR', 'TOKYO DRIFTED', 'SIDESWIPED AT A STUNT SHOW'],
   },
   'm2:stunt_headon': {
     hurt: ['HEAD-ON! I\'M ON FIRE!', 'BUMPER TO THE BALLS!', 'HIT BY A CAR! AGAIN!'],
@@ -180,7 +180,7 @@ export const HURT: Record<string, { hurt: string[]; death: string[] }> = {
   },
   'm2:stunt_landing': {
     hurt: ['A CAR LANDED ON ME!', 'A CAR! FROM THE SKY!', 'THROUGH THE HOOP AND ONTO MY HEAD!'],
-    death: ['A CAR JUMPED THROUGH A HULA HOOP AND LANDED ON HIM', 'CRUSHED BY A FLYING CAR', 'IT STUCK THE LANDING. ON HIM.'],
+    death: ['THROUGH THE HOOP. ONTO HIM.', 'CRUSHED BY A FLYING CAR', 'STUCK THE LANDING. ON HIM.'],
   },
   'm2:stunt_wall': {
     hurt: ['RODE IT INTO THE WALL!', 'SHOULDA GOT OFF!', 'WHO PARKS IN A WALL?!'],
@@ -188,7 +188,7 @@ export const HURT: Record<string, { hurt: string[]; death: string[] }> = {
   },
   'm2:steve_flail': {
     hurt: ['HE SLAPPED ME!', 'STOP FLAILING, GRANDPA!', 'OW! A WET SLAP!'],
-    death: ['SLAPPED TO DEATH BY A FIFTY-NINE-YEAR-OLD STUNTMAN', 'FLAILED TO DEATH', 'STUNTMAN STEVE\'S ONLY KILL'],
+    death: ['SLAPPED TO DEATH BY GRANDPA', 'FLAILED TO DEATH', 'STUNTMAN STEVE\'S ONLY KILL'],
   },
 };
 

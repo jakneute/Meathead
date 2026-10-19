@@ -108,11 +108,11 @@ export const POPPY_BARK: ByPants = {
 export const HURT: Record<string, { hurt: string[]; death: string[] }> = {
   'm2:hwh_lava': {
     hurt: ['LAVA! IN MY SHOES!', 'MY ASS IS ON FIRE! ACTUALLY!', 'HOT HOT HOT! FUCK!'],
-    death: ['MELTED IN A LAVA RIVER ON A STUDIO BACKLOT', 'HE WENT IN THE LAVA. THE LAVA WON.', 'BURNED DOWN TO THE BELT BUCKLE'],
+    death: ['MELTED IN BACKLOT LAVA', 'WENT IN THE LAVA. LAVA WON.', 'MELTED TO THE BELT BUCKLE'],
   },
   'm2:hwh_debris': {
     hurt: ['A TRASH CAN TO THE SHIN!', 'THE WIND THREW A DOOR AT ME!', 'WHO THROWS PLYWOOD? THE SKY?'],
-    death: ['KILLED BY WINDBLOWN TRASH', 'HIT BY A FLYING PORTA-POTTY DOOR', 'GONE WITH THE WIND'],
+    death: ['KILLED BY WINDBLOWN TRASH', 'HIT BY A PORTA-POTTY DOOR', 'GONE WITH THE WIND'],
   },
   'm2:hwh_falling': {
     hurt: ['SOMETHING FELL ON MY HEAD!', 'A BRICK! A REAL ONE!', 'THE SET\'S FALLING ON ME!'],
@@ -120,11 +120,11 @@ export const HURT: Record<string, { hurt: string[]; death: string[] }> = {
   },
   'm2:hwh_facade': {
     hurt: ['A WHOLE BUILDING FELL ON ME! A FAKE ONE!', 'FLATTENED BY PLYWOOD!', 'IT WAS ONLY A FRONT! IT STILL HURT!'],
-    death: ['FLATTENED BY A FACADE', 'A FAKE BUILDING. A REAL DEATH.'],
+    death: ['FLATTENED BY A FACADE', 'FAKE BUILDING. REAL DEATH.'],
   },
   'm2:hwh_billboard': {
     hurt: ['THE REVENGERS BILLBOARD FELL ON ME!', 'RESEMBLED! I GOT RESEMBLED!'],
-    death: ['CRUSHED BY A REVENGERS BILLBOARD', 'REVENGERS: RESEMBLE. HE RESEMBLES A PANCAKE.'],
+    death: ['FLATTENED BY THE REVENGERS', 'RESEMBLED. INTO A PANCAKE.'],
   },
   'm2:hwh_flood': {
     hurt: ['THE FLOOD! IT\'S UP MY ASS!', 'WATER IN MY EVERYTHING!', 'I SWALLOWED A FISH! A PLASTIC ONE!'],
@@ -132,7 +132,7 @@ export const HURT: Record<string, { hurt: string[]; death: string[] }> = {
   },
   'm2:hwh_drown': {
     hurt: ['GLUB GLUB GLUB!', 'I CAN\'T SWIM IN JEANS!'],
-    death: ['DROWNED ON A BACKLOT', 'SLEEPS WITH THE PROP FISHES', 'THE FLOOD WAS REAL. HIS SWIMMING WASN\'T.'],
+    death: ['DROWNED ON A BACKLOT', 'SLEEPS WITH THE PROP FISHES', 'REAL FLOOD. FAKE SWIMMER.'],
   },
   'm2:hwh_ball': {
     hurt: ['A WRECKING BALL! RIGHT IN THE NUTS!', 'DEMOLISHED! ME!', 'GET THAT BALL AWAY FROM MY BALLS!'],
@@ -140,7 +140,7 @@ export const HURT: Record<string, { hurt: string[]; death: string[] }> = {
   },
   'm2:hwh_avalanche': {
     hurt: ['AVALANCHE! SNOW IN MY CRACK!', 'BURIED! I\'M A SNOWMAN!', 'FROZE MY NUTS OFF! ALMOST!'],
-    death: ['BURIED BY AN AVALANCHE IN LOS ANGELES', 'FOUND IN THE SPRING', 'SHOULDA GOT IN THE BUNKER'],
+    death: ['BURIED BY AN L.A. AVALANCHE', 'FOUND IN THE SPRING', 'SHOULDA GOT IN THE BUNKER'],
   },
   'm2:hwh_snowslide': {
     hurt: ['SNOW IN MY SHORTS!', 'THE TORNADO\'S THROWING SNOW!', 'COLD! COLD BALLS!'],
@@ -150,16 +150,16 @@ export const HURT: Record<string, { hurt: string[]; death: string[] }> = {
     hurt: ['THE TORNADO\'S GOT ME!', 'IT\'S SUCKING ME UP!'],
     death: [
       'TAKEN BY THE TORNADO',
-      'TWISTED LIKE A PRETZEL. A DEAD ONE.',
-      'DON\'T STAND NEXT TO THE TORNADO',
+      'TWISTED LIKE A PRETZEL',
+      'DON\'T STAND BY THE TORNADO',
       'SKINNED BY THE WIND',
-      'STRIPPED TO THE BONE BY A TORNADO',
-      'THE TORNADO KEPT THE MEAT. IT DIDN\'T WANT THE BONES.',
+      'STRIPPED TO THE BONE',
+      'THE TORNADO KEPT THE MEAT',
     ],
   },
   'm2:hwh_thrown': {
     hurt: ['THE TORNADO THREW A COW AT ME!', 'HIT BY A LETTER! A BIG ONE!', 'THAT WAS A PORTA-POTTY! IT WAS FULL!'],
-    death: ['KILLED BY A FLYING COW', 'HIT BY A LETTER OFF THE HAPPYWOOD SIGN', 'CRUSHED BY TORNADO JUNK'],
+    death: ['KILLED BY A FLYING COW', 'HIT BY THE HAPPYWOOD SIGN', 'CRUSHED BY TORNADO JUNK'],
   },
   'm2:hwh_hail': {
     hurt: ['HAIL! ON MY BALD SPOT!', 'ICE CUBES! FROM THE SKY!', 'OW! OW! HAIL!'],
