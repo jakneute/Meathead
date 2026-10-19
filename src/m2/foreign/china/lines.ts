@@ -72,7 +72,7 @@ export const HURT: HurtTable = {
   },
   'm2:fl_dragon': {
     hurt: ['THE DRAGON BIT ME! IT HAS FELT TEETH!', 'RUN OVER BY A PARADE!', 'OW! SIX KIDS IN A BLANKET!'],
-    death: ['EATEN BY A PARADE', 'TRAMPLED BY A DRAGON (SIX COLLEGE KIDS)'],
+    death: ['EATEN BY A PARADE', 'TRAMPLED BY SIX COLLEGE KIDS'],
   },
   'm2:fl_fireworks': {
     hurt: ['HE HIT ME WITH THE LIGHTER!', 'OW! THE FIREWORKS GUY!', 'QUIT LIGHTING ME!'],

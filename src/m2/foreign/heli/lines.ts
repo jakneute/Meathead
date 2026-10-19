@@ -295,18 +295,18 @@ export const MH_SHRED = ['BLENDED.', 'CHOPPED.', 'MULCHED!', "THAT'S WHAT THE SP
 // What hurts him up here (each its own source), and what kills him
 
 export const HURT: HurtTable = {
-  'm2:fl_jetgoon': { hurt: ['THE JETPACK KID RAMMED ME!', 'GET OFF MY HELICOPTER!'], death: ['RAMMED BY A JETPACK INTERN', 'KILLED BY A KID ON HIS FIRST DAY'] },
+  'm2:fl_jetgoon': { hurt: ['THE JETPACK KID RAMMED ME!', 'GET OFF MY HELICOPTER!'], death: ['RAMMED BY A JETPACK INTERN', "KILLED ON A KID'S FIRST DAY"] },
   'm2:fl_jetgoon_shot': { hurt: ['THE KID SHOT MY HELICOPTER!', 'OW! THEY GAVE THE INTERNS GUNS?'], death: ['SHOT DOWN BY THE RIDE STAFF', 'KILLED BY MINIMUM WAGE'] },
   'm2:fl_mech_eiffel': { hurt: ['I FLEW INTO THE EIFFEL TOWER!', 'OW! THE GIRDERS!'], death: ['IMPALED ON FRANCE', 'FLEW INTO A BIG FRENCH THING'] },
   'm2:fl_mech_eiffel_shot': { hurt: ["RIVETS! IT'S SHOOTING RIVETS!", 'OW! FRENCH RIVETS!'], death: ['RIVETED', 'SHOT BY A TOWER'] },
-  'm2:fl_eiffel_beam': { hurt: ['THE SEARCHLIGHT BURNS!', "OW! IT'S A LASER! WHY IS IT A LASER?"], death: ['SEARCHLIGHTED', 'BURNED UP BY THE CITY OF LIGHT'] },
+  'm2:fl_eiffel_beam': { hurt: ['THE SEARCHLIGHT BURNS!', "OW! IT'S A LASER! WHY IS IT A LASER?"], death: ['SEARCHLIGHTED', 'BURNED BY THE CITY OF LIGHT'] },
   'm2:fl_mech_opera': { hurt: ['I FLEW INTO THE OPERA HOUSE!', 'OW! THE SAILS ARE SHARP!'], death: ['CRASHED INTO THE OPERA', 'A TRAGEDY IN ONE ACT'] },
   'm2:fl_mech_opera_shot': { hurt: ['THE NOTES HURT!', 'OW! A HIGH NOTE! RIGHT IN THE EAR!'], death: ['SUNG TO DEATH', 'KILLED BY A HIGH C'] },
   'm2:fl_opera_seagull': { hurt: ['A SEAGULL! GET IT OFF!', 'OW! THE GULL BIT ME!'], death: ['MOBBED BY SEAGULLS', 'PECKED TO DEATH OVER SYDNEY'] },
   'm2:fl_mech_redeemer': { hurt: ['I HIT THE BIG GUY!', "OW! HE'S MADE OF CONCRETE!"], death: ['FLEW INTO THE BIG GUY', 'SMASHED ON A MOUNTAIN STATUE'] },
   'm2:fl_mech_redeemer_shot': { hurt: ["OW! IT'S SHOOTING AT ME FROM ITS HANDS!", 'THE HALO! THE HALO HURTS!'], death: ['SHOT BY A STATUE', 'REDEEMED'] },
   'm2:fl_redeemer_arms': { hurt: ['HE HUGGED ME! IT HURTS!', 'OW! THE ARMS! THE BIG ARMS!'], death: ['HUGGED TO DEATH', 'CRUSHED IN A CONCRETE HUG'] },
-  'm2:fl_pisa_fall': { hurt: ['THE TOWER FELL ON ME!'], death: ['THE LEANING TOWER FELL ON HIM', 'SQUASHED BY THE ONE THING IT EVER DID'] },
+  'm2:fl_pisa_fall': { hurt: ['THE TOWER FELL ON ME!'], death: ['THE LEANING TOWER FELL', 'IT FINALLY FELL. ON HIM.'] },
   'm2:fl_mech_pisa': { hurt: ['I FLEW INTO THE TOWER!', "OW! IT'S HARD AS HELL!"], death: ['FLEW INTO A CROOKED TOWER', 'KILLED BY ITALIAN MARBLE'] },
   'm2:fl_mech_taj': { hurt: ['I HIT THE TAJ MAHAL!', 'OW! THE DOME!'], death: ['CRASHED INTO A TOMB', 'BURIED IN THE TAJ MAHAL'] },
   'm2:fl_mech_taj_shot': { hurt: ['IT SPITS MARBLES!', "OW! THE DOME'S SHOOTING!"], death: ['MARBLED', 'SHOT BY A MONUMENT TO LOVE'] },
@@ -320,7 +320,7 @@ export const HURT: HurtTable = {
   'm2:fl_mech_pyramid': { hurt: ['I HIT THE PYRAMID!', "OW! IT'S POINTY!"], death: ['CRASHED INTO A PYRAMID', 'FOUR THOUSAND YEARS OF ROCK'] },
   'm2:fl_mech_pyramid_shot': { hurt: ["BLOCKS! IT'S THROWING BLOCKS!", 'OW! SCARABS!'], death: ['HIT BY A TWO TON BLOCK', 'EATEN BY BUGS'] },
   'm2:fl_pyramid_eye': { hurt: ['THE EYE! THE EYE BEAM!', 'OW! IT SEES ME AND IT BURNS!'], death: ['SEEN BY THE ALL-SEEING EYE', 'BURNED BY A TRIANGLE'] },
-  'm2:fl_mech_moai': { hurt: ['I HIT THE BIG HEAD!', 'OW! IT HAS A BODY!'], death: ['CRASHED INTO A BIG HEAD', 'KILLED BY THE BODY NOBODY KNEW ABOUT'] },
+  'm2:fl_mech_moai': { hurt: ['I HIT THE BIG HEAD!', 'OW! IT HAS A BODY!'], death: ['CRASHED INTO A BIG HEAD', 'THE BIG HEAD HAD A BODY'] },
   'm2:fl_mech_moai_shot': { hurt: ['IT SPIT A ROCK!', 'OW! LITTLE HEADS!'], death: ['STONED', 'KILLED BY LITTLE HEADS'] },
   'm2:fl_moai_stare': { hurt: ['THE STARE! THE STARE BURNS!', 'OW! IT LOOKED AT ME!'], death: ['STARED TO DEATH', 'IT JUST LOOKED AT HIM'] },
 };

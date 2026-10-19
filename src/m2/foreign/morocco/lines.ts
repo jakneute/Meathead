@@ -79,11 +79,11 @@ export const HURT: HurtTable = {
   },
   'm2:fl_snake': {
     hurt: ['THE SNAKE BIT ME!', "IT'S A REAL SNAKE! IT'S A REAL FUCKING SNAKE!", 'SNAKE! SNAKE ON MY LEG!'],
-    death: ['SNAKEBIT', 'BITTEN BY A SNAKE IN A BASKET'],
+    death: ['SNAKEBIT', 'BITTEN BY A BASKET SNAKE'],
   },
   'm2:fl_camel': {
     hurt: ['THE CAMEL KICKED ME!', 'OW! BOTH ENDS OF THE CAMEL!', 'GET OFF ME, HUMP!'],
-    death: ['TRAMPLED BY A CAMEL', 'KILLED BY TWO GUYS IN A CAMEL'],
+    death: ['TRAMPLED BY A CAMEL', 'KILLED BY A TWO-MAN CAMEL'],
   },
   'm2:fl_camel_spit': {
     hurt: ['IT SPIT ON ME! IT SPIT IN MY MOUTH!', 'CAMEL SPIT! IN MY EYE!', 'THAT WAS A SQUIRT GUN! I SAW IT!'],

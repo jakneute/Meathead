@@ -88,7 +88,7 @@ export const HURT: HurtTable = {
   },
   'm2:fl_samurai': {
     hurt: ['THE SAMURAI SHOVED ME!', "OW! THAT ARMOR'S HARD!", 'BACK OFF, SHOGUN!'],
-    death: ['DISHONORED', 'KILLED BY A SAMURAI FROM OHIO'],
+    death: ['DISHONORED', 'KILLED BY AN OHIO SAMURAI'],
   },
   'm2:fl_samurai_blade': {
     hurt: ['I RAN RIGHT ONTO HIS SWORD!', 'THE SWORD! I CHARGED THE SWORD!', "THAT'S A POINTY FUCKING FOAM SWORD!"],

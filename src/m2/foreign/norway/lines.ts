@@ -79,7 +79,7 @@ export const HURT: HurtTable = {
   },
   'm2:fl_shieldviking': {
     hurt: ['SHIELD BASH! RIGHT IN THE TEETH!', 'THE WALL HIT ME!', 'OW! PARTY STORE SHIELD!'],
-    death: ['BASHED BY A SHIELD WALL OF ONE', 'WALLED IN'],
+    death: ['A SHIELD WALL OF ONE', 'WALLED IN'],
   },
   'm2:fl_lutefisk': {
     hurt: ['SHE HIT ME WITH THE TRAY!', "THE FISH LADY'S STRONG!", 'OW! SAMPLE TRAY!'],
@@ -92,7 +92,7 @@ export const HURT: HurtTable = {
   // (out of air, in any of the land's water (air.ts): Norway's table carries it for the whole land)
   'm2:fl_drown': {
     hurt: ["CAN'T BREATHE!", 'AIR! AIR!', 'GLUB! GLUB!', 'WATER IN MY LUNGS!'],
-    death: ['DROWNED IN A THEME PARK', 'FORGOT TO BREATHE', 'DROWNED IN THE INTERNATIONAL WATERS', 'GLUB GLUB GLUB'],
+    death: ['DROWNED IN A THEME PARK', 'FORGOT TO BREATHE', 'DIED IN INTERNATIONAL WATERS', 'GLUB GLUB GLUB'],
   },
   'm2:fl_lutefisk_fish': {
     hurt: ['LUTEFISK! IN MY MOUTH!', "OH GOD, IT'S JELLY!", "I'M GONNA PUKE!"],
@@ -100,7 +100,7 @@ export const HURT: HurtTable = {
   },
   'm2:fl_troll_hand': {
     hurt: ['THE TROLL GRABBED MY ASS!', 'A HAND! IN THE RIVER! FUCK!', 'OW! TROLL KNUCKLES!'],
-    death: ['TAKEN BY THE TROLL UNDER THE BRIDGE', "SHOULD'VE PAID THE TOLL"],
+    death: ['TAKEN BY THE BRIDGE TROLL', "SHOULD'VE PAID THE TOLL"],
   },
 };
 

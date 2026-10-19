@@ -74,7 +74,7 @@ export const BOBBY: ByPants = {
 export const HURT: HurtTable = {
   'm2:fl_guard': {
     hurt: ['THE GUARD MOVED! HE MOVED AND HE HIT ME!', 'OW! THE BAYONET!', 'BIG HAT HITS HARD!'],
-    death: ['KILLED BY A GUARD WHO WAS STANDING STILL', 'BAYONETED'],
+    death: ['KILLED BY A GUARD. HE MOVED.', 'BAYONETED'],
   },
   'm2:fl_hooligan': {
     hurt: ['THE HOOLIGAN HEADBUTTED ME!', 'OW! GET OFF ME, SOCCER BOY!', 'HE PUNCHED ME AND SANG!'],
@@ -98,7 +98,7 @@ export const HURT: HurtTable = {
   },
   'm2:fl_bus': {
     hurt: ['THE BUS HIT ME! ON THE WRONG SIDE!', "OW! IT DIDN'T EVEN STOP!", 'A BUS! A TWO-STORY BUS!'],
-    death: ['HIT BY A BUS', 'RUN OVER ON THE WRONG SIDE OF THE ROAD'],
+    death: ['HIT BY A BUS', 'WRONG SIDE OF THE ROAD'],
   },
   'm2:fl_handset': {
     hurt: ['THE PHONE HIT ME! THE TALKING PART!', 'OW! RIGHT IN THE TEETH! WITH A PHONE!', 'WHO LEFT IT OFF THE FUCKING HOOK?!'],

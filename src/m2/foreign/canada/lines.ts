@@ -91,7 +91,7 @@ export const HURT: HurtTable = {
   },
   'm2:fl_moose': {
     hurt: ['THE MOOSE RAMMED ME!', 'OW! IT SAID SORRY AND RAMMED ME!', 'GET YOUR ANTLERS OUT OF MY ASS!'],
-    death: ['KILLED BY A MOOSE', 'GORED BY A GUY IN A MOOSE SUIT'],
+    death: ['KILLED BY A MOOSE', 'GORED BY A MOOSE SUIT'],
   },
   'm2:fl_moose_antlers': {
     hurt: ['I LANDED ON THE ANTLERS!', 'OW! THE ANTLERS ARE POINTY!', 'MOOSE HORNS! IN MY FEET!'],

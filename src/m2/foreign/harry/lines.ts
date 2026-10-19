@@ -296,7 +296,7 @@ export const HURT: HurtTable = {
   },
   'm2:fl_liberty_fist': {
     hurt: ['THE STATUE PUNCHED ME!', 'OW! A FIST THE SIZE OF A CAR!', 'LADY LIBERTY! WHY?!'],
-    death: ['SMASHED BY THE STATUE OF LIBERTY', 'SHE FINALLY HIT SOMETHING', 'FREEDOM PUNCHED'],
+    death: ['SMASHED BY LADY LIBERTY', 'SHE FINALLY HIT SOMETHING', 'FREEDOM PUNCHED'],
   },
   'm2:fl_harry_sweep_down': {
     hurt: ['HE SHOT ME FROM THE WALL!', 'OW! I SHOULD HAVE STOOD UNDER HIM!', 'HE SPRAYED THE WHOLE PLACE!'],
@@ -308,7 +308,7 @@ export const HURT: HurtTable = {
   },
   'm2:fl_liberty_barf': {
     hurt: ['CONCRETE PUKE! IT BURNS!', 'OW! SHE PUKED ON ME!', "IT'S SETTING ON MY LEGS!"],
-    death: ['DROWNED IN STATUE PUKE', 'BURIED IN CONCRETE VOMIT', 'PUKED ON BY A NATIONAL MONUMENT'],
+    death: ['DROWNED IN STATUE PUKE', 'BURIED IN CONCRETE VOMIT', 'PUKED ON BY A MONUMENT'],
   },
 };
 
