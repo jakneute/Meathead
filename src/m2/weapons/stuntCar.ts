@@ -50,7 +50,7 @@ const PAINT = [
 ];
 type Paint = (typeof PAINT)[number];
 
-type Part = { kind: 'car'; dir: 1 | -1; endX: number; hit: string[]; wheel: number; wreck: number; through: number; inWall: boolean; seen?: boolean; paint: number }
+type Part = { kind: 'car'; dir: 1 | -1; endX: number; hit: string[]; wheel: number; wreck: number; through: number; inWall: boolean; seen?: boolean; paint: number; fromX?: number }
   | { kind: 'stuntman'; dir: 1 | -1; hit: string[]; spin: number; down: number; target: Enemy | null };
 const partOf = (p: Projectile) => p.customData as Part;
 
@@ -90,8 +90,20 @@ const fire = (ctx: FrameContext) => {
   // (where it comes down: off his own height, onto whatever's there at it (the platform he's up on), else lower)
   // (snapped crouching: the same way he's facing, but in low (the user's): just over his ducked head, a flatter jump,
   // coming down further out: through what's at his own height, under what's up high)
-  const J = pl.isDucking ? LOW : CAR;
-  const feet = pl.pos.y + pl.height, landY = surfaceUnder(state, px + dir * J.land, feet - 4);
+  const J0 = pl.isDucking ? LOW : CAR;
+  const feet = pl.pos.y + pl.height;
+  // (under a low ceiling (a mine, a tunnel): it comes in under it, flat, in his own lane, not into the rock over him
+  // (the playtest: it went off on the ceiling before it reached anybody))
+  const lo = Math.min(px - dir * 900, px + dir * J0.land), hi = Math.max(px - dir * 900, px + dir * J0.land);
+  let ceil = -Infinity;
+  for (const b of state.blocks) {
+    if (b.type === 'pit' || b.type === 'door' || b.oneWay || b.x + b.w < lo || b.x > hi) continue;
+    const bot = b.y + b.h;
+    if (bot <= pl.pos.y + 4 && bot > ceil) ceil = bot;
+  }
+  const room = feet - ceil - CAR.h - 6;
+  const J = room < J0.rise ? { rise: Math.max(8, room), vy: 0, land: J0.land } : J0;
+  const landY = surfaceUnder(state, px + dir * J.land, feet - 4);
   const drop = (landY < 2000 ? landY : feet) - (feet - J.rise);
   const T = (-J.vy + Math.sqrt(J.vy * J.vy + 2 * CAR.gravity * Math.max(0, drop))) / CAR.gravity;
   const startX = px + dir * J.land - dir * CAR.speed * T - CAR.w / 2;
@@ -100,7 +112,7 @@ const fire = (ctx: FrameContext) => {
   state.projectiles.push({
     id: `stuntcar-${state.frame}`, pos: { x: startX, y }, vel: { x: dir * CAR.speed, y: J.vy }, width: CAR.w, height: CAR.h,
     health: 1, maxHealth: 1, type: 'projectile', damage: 0, owner: 'player', custom: 'STUNT_CAR',
-    customData: { kind: 'car', dir, endX: px + dir * J.land, hit: [], wheel: 0, wreck: 0, through: 0, inWall: false, paint: pickPaint(state) } satisfies Part,
+    customData: { kind: 'car', dir, endX: px + dir * J.land, hit: [], wheel: 0, wreck: 0, through: 0, inWall: false, paint: pickPaint(state), fromX: px } satisfies Part,
   });
   clap = 30; clapDir = dir;
   pl.shootCooldown = COOLDOWN;
@@ -209,7 +221,13 @@ const update = (ctx: FrameContext, p: Projectile): boolean => {
     // Down: nose into the ground, and that's the stunt
     // (onto a platform as well as the ground: whatever it comes down on first)
     const floor = surfaceUnder(state, p.pos.x + p.width / 2, bottom0);
-    if (p.vel.y > 0 && p.pos.y + p.height >= floor) { p.pos.y = floor - p.height; stunt(ctx, p, part); return false; }
+    const frontNow = part.dir > 0 ? p.pos.x + p.width : p.pos.x;
+    const passed = part.fromX === undefined || (frontNow - part.fromX) * part.dir > 0;
+    if (p.vel.y > 0 && p.pos.y + p.height >= floor) {
+      // (down behind him, short of his lane: it lands driving and keeps coming, along the ground; past him, the stunt)
+      if (!passed) { p.pos.y = floor - p.height; p.vel.y = 0; }
+      else { p.pos.y = floor - p.height; stunt(ctx, p, part); return false; }
+    }
     for (const e of state.enemies) {
       if (!alive(e) || part.hit.includes(e.id)) continue;
       if (e.pos.x > p.pos.x + p.width || e.pos.x + e.width < p.pos.x || e.pos.y > p.pos.y + p.height || e.pos.y + e.height < p.pos.y) continue;
@@ -218,7 +236,11 @@ const update = (ctx: FrameContext, p: Projectile): boolean => {
     }
     // A wall (or a ceiling coming down on it): the first one, it's straight through it, bricks everywhere; the next
     // one stops it, and that's the stunt
-    const inWall = solidAhead(state, p);
+    // (behind him it's coming out of nowhere: rock or walls back there don't count; only once its front's past him, in
+    // his lane, does it meet things (the playtest: in the mine it went off in the rock behind him))
+    const frontX = part.dir > 0 ? p.pos.x + p.width : p.pos.x;
+    const pastHim = part.fromX === undefined || (frontX - part.fromX) * part.dir > 0;
+    const inWall = pastHim && solidAhead(state, p);
     if (inWall && !part.inWall) {
       if (part.through >= 1) { stunt(ctx, p, part); return false; }
       part.through++;
