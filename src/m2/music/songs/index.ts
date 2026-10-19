@@ -14,6 +14,8 @@ import { LAND_ADVENTURE, SEQ_RIVER, SEQ_MINE_CART, SEQ_TEMPLE_COLLAPSE } from '.
 import { BOSS_TREX, BOSS_SAFARI_ARTIE } from './jungleBosses';
 import { LAND_SPOOKY, SEQ_CLOCK_TOWER, SEQ_RED_MIST, SEQ_SATAN } from './spooky';
 import { BOSS_DEMON, BOSS_DONNIE } from './spookyBosses';
+import { LAND_SPACE, SEQ_SPACE_TRAIN, SEQ_STALKER } from './space';
+import { BOSS_UFO, BOSS_SPACE_QUEEN } from './spaceBosses';
 
 export const SONGS: Record<string, Song> = {
   title: TITLE,
@@ -50,4 +52,9 @@ export const SONGS: Record<string, Song> = {
   'seq:satan': SEQ_SATAN,
   'boss:demon': BOSS_DEMON,
   'boss:donnie-dracula': BOSS_DONNIE,
+  'land:space': LAND_SPACE,
+  'seq:space-train': SEQ_SPACE_TRAIN,
+  'seq:stalker': SEQ_STALKER,
+  'boss:ufo': BOSS_UFO,
+  'boss:space-queen': BOSS_SPACE_QUEEN,
 };

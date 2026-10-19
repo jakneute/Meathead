@@ -39,6 +39,8 @@ import { HOLLYWOOD_STAGE } from '../hollywood/index';
 import { FOREIGN_STAGE } from '../foreign/index';
 import { FRONTIER_STAGE } from '../frontier/index';
 import { STAIRS_B, CEIL_B } from '../space/queen/geo';
+import { HOUSE_DOOR } from '../space/crater/layout';
+import { LIFT_X0, ACT2_X } from '../space/ride/layout';
 import { TX0 } from '../spooky/tower/layout';
 import { SHOP_X } from '../spooky/control/geo';
 
@@ -111,6 +113,19 @@ const jungleOwn = (s: GameState) => ((s.stage as { s?: JungleOwn } | null)?.s ??
 /** A sequence's arrangement by what's on in it: on the boat or under it; Artie on his tail in the cart; Artie having
  *  his say on the roof, or the roof coming in. */
 const seqArrs = (s: GameState, land: string, sec: string): string[] => {
+  if (land === 'space') {
+    // (XENOSCARE, the crater past its door; the basement's stairs' top and the disco; the star sled by where it is:
+    // the dark ride, the chain lift, space, and the warehouse once the work lights are on)
+    const cx = s.player.pos.x + s.player.width / 2;
+    if (sec === 'crater' && cx >= HOUSE_DOOR) return ['xenoscare'];
+    if (sec === 'queen' && cx >= STAIRS_B) return ['disco'];
+    if (sec === 'ride') {
+      const sled = spaceOwn(s).ride;
+      if ((sled?.k ?? 0) >= 0.5) return ['warehouse'];
+      return [cx < LIFT_X0 ? 'act1' : cx < ACT2_X ? 'lift' : 'space'];
+    }
+    return [];
+  }
   if (land === 'spooky') {
     // (the clock tower going up, or wrecked on the way down; the control section's gift shop, the chase through it)
     if (sec === 'tower') return [spookyOwn(s).tower?.crashed ? 'down' : 'climb'];
@@ -150,6 +165,30 @@ const spookyMoment = (s: GameState, sec: string): Cand | null => {
   return null;
 };
 
+/** Future Land's sections' own state, as much as the music looks at (space/ride, orbit, queen). */
+interface SpaceOwn {
+  ride?: { k?: number };
+  orbit?: { quiet?: boolean; saucer?: { st?: string } | null };
+  queen?: { h?: { mode?: string; finale?: boolean; rattle?: unknown; fg?: unknown } | null };
+}
+const spaceOwn = (s: GameState) => ((s.stage as { s?: SpaceOwn } | null)?.s ?? {});
+/** The saucer's song by its fight: at it; pissed and the beam; it's got him, the blast, the fall; gone (back up here
+ *  after, nothing about). */
+const ufoArr = (s: GameState) => {
+  const o = spaceOwn(s).orbit, st = o?.saucer?.st;
+  if (!st) return o?.quiet ? 'drift' : 'main';
+  if (st === 'pissed' || st === 'beam') return 'beam';
+  if (st === 'inside' || st === 'boom' || st === 'fall' || st === 'factory' || st === 'gone') return 'down';
+  return 'main';
+};
+/** The basement's stalker song by what she's doing: away (the dark), out (near), on him (the hunt; the stairs). */
+const stalkerArr = (s: GameState) => {
+  const h = spaceOwn(s).queen?.h;
+  if (!h) return 'dark';
+  if (h.finale || ['hunt', 'crouch', 'leap', 'ambush', 'kill'].includes(h.mode ?? '')) return 'hunt';
+  return h.mode !== 'away' || h.rattle || h.fg ? 'near' : 'dark';
+};
+
 /** What the game wants on right now. */
 const gameWants = (s: GameState | null): Want => {
   const none: Want = { cands: [], cutscene: false };
@@ -180,13 +219,14 @@ const gameWants = (s: GameState | null): Want => {
   if (boss) {
     const also = BOSS_ALSO[boss];
     return {
-      cands: [{ song: `boss:${boss}`, arrs: cutscene ? ['intro', 'main'] : ['main'] }, ...(also ? [{ song: also }] : []), { song: `land:${land}`, arrs: ['boss', sec, 'main'] }],
+      // (the saucer's song follows its fight: ufoArr)
+      cands: [{ song: `boss:${boss}`, arrs: [...(boss === 'ufo' ? [ufoArr(s)] : []), ...(cutscene ? ['intro', 'main'] : ['main'])] }, ...(also ? [{ song: also }] : []), { song: `land:${land}`, arrs: ['boss', sec, 'main'] }],
       // (a boss's opening cutscene: its 'intro' if it has one, not quieter)
       cutscene: false,
     };
   }
   // Future Land's basement: the queen stalking him in the dark (the user's: atmospheric, creepy)
-  if (land === 'space' && sec === 'queen' && p.pos.y + p.height > CEIL_B + 30 && p.pos.x < STAIRS_B) return { cands: [{ song: 'seq:stalker' }, { song: 'land:space', arrs: ['stalker', 'queen'] }], cutscene };
+  if (land === 'space' && sec === 'queen' && p.pos.y + p.height > CEIL_B + 30 && p.pos.x < STAIRS_B) return { cands: [{ song: 'seq:stalker', arrs: [stalkerArr(s)] }, { song: 'land:space', arrs: ['stalker', 'queen'] }], cutscene };
   // Spooky Land's chamber and Satan (a scene, but not quieter: it's his)
   const moment = land === 'spooky' ? spookyMoment(s, sec) : null;
   if (moment) return { cands: [moment, theme], cutscene: false };
