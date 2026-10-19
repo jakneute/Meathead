@@ -42,7 +42,7 @@ import { goTo, markLandCleared, noteBossKill, isLandCleared, setWalkBack } from 
 import { startVictory, tickVictory, drawVictory, victoryDone } from '../../victory';
 import { playWalkAway, tickWalkAway, drawWalkAway } from '../../walkAway';
 import { takeChaseHandoff } from '../dirtbike';
-import { x0, x1, GY, HANG_X, FIGHT_X, MH_PARK, REFILL_X, BODY_NEAR, ENTRANCE_NEAR, ARENA_L, ARENA_R, CP61_X, REFILL2_X } from './layout';
+import { x0, x1, GY, HANG_X, FIGHT_X, MH_PARK, BODY_NEAR, ENTRANCE_NEAR, ARENA_L, ARENA_R, CP61_X, REFILL2_X } from './layout';
 import { arenaOf, introSeen, markIntroSeen, UP_MEMO, SPLIT_MEMO, type Arena } from './state';
 import { updateEntry, drawEntryHud, setFelled } from './entry';
 import { startCatchup, updateCatchup, drawCatchupHud, branchDone, setBranchMemos } from './catchup';
@@ -106,11 +106,9 @@ export const arena: FrontierSection = {
     resetFight();
     layOwn(state, [{ x1: x0 - 200, y1: GY, x2: x1 + 200, y2: GY, surface: 'dirt' }]);
     endWalls(state, 'arena');
-    // (the boss-door refills: big health, big ammo, on the way to the body, and again right before the arena; there
+    // (the boss-door refill: one big health, one big ammo, right before the arena (only the one set: the playtest); there
     // every retry)
     state.pickups.push(
-      { id: 'arena-health', pos: { x: REFILL_X - 30, y: GY - 20 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type: 'large_health', life: 1e9 },
-      { id: 'arena-ammo', pos: { x: REFILL_X + 10, y: GY - 20 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type: 'large_ammo', life: 1e9 },
       { id: 'arena-health2', pos: { x: REFILL2_X - 30, y: GY - 20 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type: 'large_health', life: 1e9 },
       { id: 'arena-ammo2', pos: { x: REFILL2_X + 10, y: GY - 20 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type: 'large_ammo', life: 1e9 },
     );
