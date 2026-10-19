@@ -11,7 +11,7 @@ the fill-ins, the rules, the section plan). Each section's index.ts header says 
 | 2 (done) | `wheel/` (and suitors.ts's tee / knight / wizard kits, ui.qte in store.ts, QtePanel in App.tsx) | wheel (10-19: 10-12 used) |
 | 3 (done) | `glen/` (and square/hazards.ts's updateThrows / drawThrows exported for the square's kinds in the glen) | glen (20-29: 20-26 used) |
 | 4 (done) | `tragons/` (and store.ts's carHops / requestCarHop / tragonTips, App.tsx's wheel and LB / RB hop routing and the controls card) | tragons (30-39: 30-38 used) |
-| 5 | `keep/` | keep (40-49) |
+| 5 (done) | `keep/` | keep (40-49: 40-46 used) |
 | 6 | `broom/` | broom (50-59) |
 | 7 | `bedroom/` (Piper's fight: when the user gives its mechanics; piper.ts's poses as it needs) | bedroom (60-69) |
 
@@ -73,6 +73,13 @@ move your DOORS entries to match; keep the way back working (revisits), or give 
   them (EXIT_X) to `DOORS.keep.start`. Back from the castle's base: `DOORS.tragons.end` (in front of that arch). A
   revisit (done): no dragons running, walk the ground between the unload and the station; its left end back to the glen.
   Which rivals died on the ride: `fa-rival-dead-<blake|rafael|hank>` in state.stageMemo (the brooms can leave them out).
+- **The castle's base -> the broomsticks** (built, keep/): the runway's scene (keep/runway.ts, a cutscene) ends in black
+  with him at `DOORS.broom.start` (one-way; `fa-keep-runway` in state.stageMemo: done for good). Who flew off with him:
+  `fa-broom-roster` in state.stageMemo (comma-separated ids: the ride's survivors, glen/rivals.ts RIVALS' 'blake' |
+  'rafael' | 'hank', and the FASTPASS boys, keep/runway.ts FASTPASS's 'chet' | 'thaddeus' | 'dmitri', always all three;
+  each a SuitorLook with its voice; the ride's survivors still in the boutique's tiaras; keep/runway.ts's drawBroom
+  draws a broom). Back from the broomsticks:
+  `DOORS.keep.end` (the deck); a revisit (done) walks off the keep's right end to `DOORS.broom.start`.
 
 ## Things that outlive a death
 

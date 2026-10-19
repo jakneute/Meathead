@@ -156,6 +156,11 @@
  },
  {
   "voice": "announcer",
+  "text": "BADA BING!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "announcer",
   "text": "BAGGED!",
   "from": "FANTASY"
  },
@@ -471,6 +476,11 @@
  },
  {
   "voice": "announcer",
+  "text": "CURTSY THIS!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "announcer",
   "text": "DAM BUSTED!",
   "from": "FRONTIER"
  },
@@ -558,6 +568,16 @@
   "voice": "announcer",
   "text": "DISINTEGRATED!",
   "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "DISMISSED FROM COURT!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "announcer",
+  "text": "DISMISSED!",
+  "from": "FANTASY"
  },
  {
   "voice": "announcer",
@@ -663,6 +683,11 @@
   "voice": "announcer",
   "text": "FACEPLANT!",
   "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "FANNED OUT!",
+  "from": "FANTASY"
  },
  {
   "voice": "announcer",
@@ -1091,6 +1116,11 @@
  },
  {
   "voice": "announcer",
+  "text": "LIGHTS OUT, MY LADY!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "announcer",
   "text": "LIKE HITTING CONCRETE!",
   "from": "SURFACE_CALLOUTS"
  },
@@ -1221,6 +1251,11 @@
  },
  {
   "voice": "announcer",
+  "text": "NO JOKE!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "announcer",
   "text": "NO LIFEGUARD ON DUTY!",
   "from": "KILL_CALLOUTS"
  },
@@ -1273,6 +1308,11 @@
   "voice": "announcer",
   "text": "OD'D!",
   "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "OFF DUTY!",
+  "from": "FANTASY"
  },
  {
   "voice": "announcer",
@@ -1486,6 +1526,11 @@
  },
  {
   "voice": "announcer",
+  "text": "PUNCHLINE!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "announcer",
   "text": "PUPPY CHOW!",
   "from": "FRONTIER"
  },
@@ -1633,6 +1678,11 @@
   "voice": "announcer",
   "text": "SHE'S NOT GETTING UP!",
   "from": "FOR_A_WOMAN"
+ },
+ {
+  "voice": "announcer",
+  "text": "SHIFT CHANGE!",
+  "from": "FANTASY"
  },
  {
   "voice": "announcer",
@@ -1841,6 +1891,11 @@
  },
  {
   "voice": "announcer",
+  "text": "STAND DOWN!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "announcer",
   "text": "STEAMROLLED!",
   "from": "KILL_CALLOUTS"
  },
@@ -2023,6 +2078,11 @@
   "voice": "announcer",
   "text": "TOTALED!",
   "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "TOUGH CROWD!",
+  "from": "FANTASY"
  },
  {
   "voice": "announcer",
@@ -6431,6 +6491,11 @@
  },
  {
   "voice": "death",
+  "text": "BOILED IN BUTTER BREW",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "death",
   "text": "BOILED IN MOTOR OIL",
   "from": "SPACE"
  },
@@ -6463,6 +6528,11 @@
   "voice": "death",
   "text": "BONED TO DEATH",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
+  "text": "BONKED BY A JESTER",
+  "from": "FANTASY"
  },
  {
   "voice": "death",
@@ -6766,6 +6836,11 @@
  },
  {
   "voice": "death",
+  "text": "BUTTERED TO DEATH",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "death",
   "text": "BUZZED TO DEATH",
   "from": "content/deaths"
  },
@@ -6903,6 +6978,11 @@
   "voice": "death",
   "text": "CHARGED A BISON. BISON WON.",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "death",
+  "text": "CHARGED A HALBERD",
+  "from": "FANTASY"
  },
  {
   "voice": "death",
@@ -7616,6 +7696,11 @@
  },
  {
   "voice": "death",
+  "text": "DIED IN A ROSE BED",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "death",
   "text": "DIED IN AN OUTHOUSE",
   "from": "FRONTIER"
  },
@@ -7657,6 +7742,11 @@
  {
   "voice": "death",
   "text": "DIED OF A HEART-SHAPED BOX",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "death",
+  "text": "DIED OF A PAPER CUT",
   "from": "FANTASY"
  },
  {
@@ -8353,6 +8443,11 @@
   "voice": "death",
   "text": "FAKE FALLS. REAL ROCKS.",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "death",
+  "text": "FANNED TO DEATH",
+  "from": "FANTASY"
  },
  {
   "voice": "death",
@@ -9061,6 +9156,11 @@
  },
  {
   "voice": "death",
+  "text": "HALBERD TO THE HEART",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "death",
   "text": "HALVED ON THE HOUR",
   "from": "SPOOKY"
  },
@@ -9756,6 +9856,11 @@
  },
  {
   "voice": "death",
+  "text": "JUGGLED TO DEATH",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "death",
   "text": "JUGULARED BY A WOLVERINE",
   "from": "content/deaths"
  },
@@ -9993,6 +10098,11 @@
   "voice": "death",
   "text": "KILLED BY A KOI",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "death",
+  "text": "KILLED BY A LADY IN WAITING",
+  "from": "FANTASY"
  },
  {
   "voice": "death",
@@ -10261,6 +10371,11 @@
  },
  {
   "voice": "death",
+  "text": "KILLED BY JUGGLING PINS",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "death",
   "text": "KILLED BY LA CUCARACHA",
   "from": "FOREIGN"
  },
@@ -10306,8 +10421,18 @@
  },
  {
   "voice": "death",
+  "text": "KILLED BY ROMANCE",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "death",
   "text": "KILLED BY SPACE JUNK",
   "from": "SPACE"
+ },
+ {
+  "voice": "death",
+  "text": "KILLED BY THE COMEDY",
+  "from": "FANTASY"
  },
  {
   "voice": "death",
@@ -11681,6 +11806,11 @@
  },
  {
   "voice": "death",
+  "text": "RAN ONTO A GUARD'S POLE",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "death",
   "text": "RAN ONTO A KNIFE",
   "from": "content/deaths"
  },
@@ -12813,6 +12943,11 @@
   "voice": "death",
   "text": "SKEWERED",
   "from": "SPACE"
+ },
+ {
+  "voice": "death",
+  "text": "SKEWERED BY A GUARD",
+  "from": "FANTASY"
  },
  {
   "voice": "death",
@@ -18131,6 +18266,11 @@
  },
  {
   "voice": "m2.fantasy.castman",
+  "text": "COVER THAT OR I POKE IT!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.castman",
   "text": "EW! YOU SMELL LIKE THE PETTING ZOO!",
   "from": "FANTASY"
  },
@@ -18142,6 +18282,26 @@
  {
   "voice": "m2.fantasy.castman",
   "text": "FOUL KNAVE! LITERALLY FOUL!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.castman",
+  "text": "HALT! PANTS REQUIRED IN THE CASTLE!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.castman",
+  "text": "HALT! THIS HALBERD IS PLASTIC! MOSTLY!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.castman",
+  "text": "HALT! WHO GOES THERE? DOESN'T MATTER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.castman",
+  "text": "HALT! YOU REEK!",
   "from": "FANTASY"
  },
  {
@@ -18186,6 +18346,11 @@
  },
  {
   "voice": "m2.fantasy.castman",
+  "text": "NO GUESTS PAST THIS POINT!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.castman",
   "text": "NO PHOTOS. ONLY PAIN.",
   "from": "FANTASY"
  },
@@ -18212,6 +18377,11 @@
  {
   "voice": "m2.fantasy.castman",
   "text": "THE QUEEN WANTS YOUR HEART. IN A BOX.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.castman",
+  "text": "THE SMELL GOES NO FURTHER!",
   "from": "FANTASY"
  },
  {
@@ -18231,6 +18401,11 @@
  },
  {
   "voice": "m2.fantasy.castwoman",
+  "text": "COVER THAT OR I POKE IT!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.castwoman",
   "text": "EW! YOU SMELL LIKE THE PETTING ZOO!",
   "from": "FANTASY"
  },
@@ -18242,6 +18417,26 @@
  {
   "voice": "m2.fantasy.castwoman",
   "text": "FOUL KNAVE! LITERALLY FOUL!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.castwoman",
+  "text": "HALT! PANTS REQUIRED IN THE CASTLE!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.castwoman",
+  "text": "HALT! THIS HALBERD IS PLASTIC! MOSTLY!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.castwoman",
+  "text": "HALT! WHO GOES THERE? DOESN'T MATTER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.castwoman",
+  "text": "HALT! YOU REEK!",
   "from": "FANTASY"
  },
  {
@@ -18286,6 +18481,11 @@
  },
  {
   "voice": "m2.fantasy.castwoman",
+  "text": "NO GUESTS PAST THIS POINT!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.castwoman",
   "text": "NO PHOTOS. ONLY PAIN.",
   "from": "FANTASY"
  },
@@ -18312,6 +18512,11 @@
  {
   "voice": "m2.fantasy.castwoman",
   "text": "THE QUEEN WANTS YOUR HEART. IN A BOX.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.castwoman",
+  "text": "THE SMELL GOES NO FURTHER!",
   "from": "FANTASY"
  },
  {
@@ -18490,6 +18695,76 @@
   "from": "FANTASY"
  },
  {
+  "voice": "m2.fantasy.courtier",
+  "text": "BACK, PEASANT!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.courtier",
+  "text": "HER GRACE SEES NO ONE. UNLESS THEY WIN.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.courtier",
+  "text": "HOW DARE YOU! THE GREAT PIXIE IS RESTING!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.courtier",
+  "text": "MY EYES! COVER IT!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.courtier",
+  "text": "PEASANT! YOU SOILED YOURSELF!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.courtier",
+  "text": "THAT IS NOT ROYAL!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.courtier",
+  "text": "UGH! THE SMELL! FAN ME!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.courtierf",
+  "text": "BACK, PEASANT!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.courtierf",
+  "text": "HER GRACE SEES NO ONE. UNLESS THEY WIN.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.courtierf",
+  "text": "HOW DARE YOU! THE GREAT PIXIE IS RESTING!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.courtierf",
+  "text": "MY EYES! COVER IT!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.courtierf",
+  "text": "PEASANT! YOU SOILED YOURSELF!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.courtierf",
+  "text": "THAT IS NOT ROYAL!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.courtierf",
+  "text": "UGH! THE SMELL! FAN ME!",
+  "from": "FANTASY"
+ },
+ {
   "voice": "m2.fantasy.dragon",
   "text": "I CAN SEE YOUR DICK THROUGH THE MOUTH HOLE.",
   "from": "FANTASY"
@@ -18697,6 +18972,76 @@
  {
   "voice": "m2.fantasy.gingerf",
   "text": "YOU SMELL WORSE THAN BURNT COOKIES!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.jester",
+  "text": "A NAKED MAN! NOW THAT'S COMEDY!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.jester",
+  "text": "HE SHAT HIS TIGHTS! HA!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.jester",
+  "text": "HEY NONNY NONNY! DIE!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.jester",
+  "text": "I HAVE A THEATER DEGREE!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.jester",
+  "text": "SMALL JOKE ON THAT ONE!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.jester",
+  "text": "WHAT SMELLS? OH, IT'S YOU!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.jester",
+  "text": "WHY DID THE GUEST CROSS THE MOAT? HE DIDN'T!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.jesterf",
+  "text": "A NAKED MAN! NOW THAT'S COMEDY!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.jesterf",
+  "text": "HE SHAT HIS TIGHTS! HA!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.jesterf",
+  "text": "HEY NONNY NONNY! DIE!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.jesterf",
+  "text": "I HAVE A THEATER DEGREE!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.jesterf",
+  "text": "SMALL JOKE ON THAT ONE!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.jesterf",
+  "text": "WHAT SMELLS? OH, IT'S YOU!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.jesterf",
+  "text": "WHY DID THE GUEST CROSS THE MOAT? HE DIDN'T!",
   "from": "FANTASY"
  },
  {
@@ -18736,6 +19081,11 @@
  },
  {
   "voice": "m2.fantasy.piper_pa",
+  "text": "ALMOST UP. KILL ANYTHING IN YOUR WAY. FOR ME.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.piper_pa",
   "text": "BLEED A LITTLE MORE FOR ME, BOYS.",
   "from": "FANTASY"
  },
@@ -18751,12 +19101,32 @@
  },
  {
   "voice": "m2.fantasy.piper_pa",
+  "text": "CLOSER NOW. I CAN SMELL THE BLOOD FROM HERE.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.piper_pa",
   "text": "EVERY BRUISE IS FOR ME. I KNOW IT.",
   "from": "FANTASY"
  },
  {
   "voice": "m2.fantasy.piper_pa",
+  "text": "FINAL TRIAL, BOYS. BROOMSTICK DEATHMATCH.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.piper_pa",
   "text": "FIRST TRIAL: THE FAIRY WHEEL. MAKE IT MESSY, BOYS.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.piper_pa",
+  "text": "FLY. AND BLEED FOR ME.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.piper_pa",
+  "text": "GO. MAKE IT RAIN, BOYS.",
   "from": "FANTASY"
  },
  {
@@ -18796,7 +19166,17 @@
  },
  {
   "voice": "m2.fantasy.piper_pa",
+  "text": "I MOVED THE STAIRS FOR YOU, DARLING. SUFFER.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.piper_pa",
   "text": "I'M PIPER. PIPER THE PIXIE.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.piper_pa",
+  "text": "I'M WATCHING FROM MY WINDOW. DON'T BORE ME.",
   "from": "FANTASY"
  },
  {
@@ -18807,6 +19187,16 @@
  {
   "voice": "m2.fantasy.piper_pa",
   "text": "KILL ANOTHER ONE, NAKED BOY.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.piper_pa",
+  "text": "KNOCK EACH OTHER OUT OF MY SKY. THE LAST ONE UP GETS IN.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.piper_pa",
+  "text": "LAST MAN FLYING GETS MY WINDOW. THE HIGHEST ONE.",
   "from": "FANTASY"
  },
  {
@@ -18827,6 +19217,11 @@
  {
   "voice": "m2.fantasy.piper_pa",
   "text": "MMM. THAT ONE SQUIRTED.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.piper_pa",
+  "text": "MY GUARDS BITE. BLEED ON MY FLAGSTONES.",
   "from": "FANTASY"
  },
  {
@@ -18867,6 +19262,11 @@
  {
   "voice": "m2.fantasy.piper_pa",
   "text": "ONE LESS. KEEP GOING, BABY.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.piper_pa",
+  "text": "ONE MORE TRIAL. MAKE IT A BLOODBATH.",
   "from": "FANTASY"
  },
  {
@@ -18936,7 +19336,17 @@
  },
  {
   "voice": "m2.fantasy.piper_pa",
+  "text": "THE BROOMS ARE WAITING. SO AM I. HUNGRY.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.piper_pa",
   "text": "THE FAIRY WHEEL. DON'T KEEP ME WAITING.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.piper_pa",
+  "text": "THE LAST TRIAL. BROOMSTICKS. TO THE DEATH.",
   "from": "FANTASY"
  },
  {
@@ -19020,6 +19430,11 @@
   "from": "FANTASY"
  },
  {
+  "voice": "m2.fantasy.piper_pa",
+  "text": "YOU'RE AT MY DOOR, BOYS. I CAN HEAR YOU BREATHING.",
+  "from": "FANTASY"
+ },
+ {
   "voice": "m2.fantasy.suitor_blake",
   "text": "BRO, YOUR DICK'S IN THE WIND!",
   "from": "FANTASY"
@@ -19036,12 +19451,22 @@
  },
  {
   "voice": "m2.fantasy.suitor_blake",
+  "text": "BRO. YOU'RE SITTING ON A BROOM NAKED.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_blake",
   "text": "CATCH, BRO!",
   "from": "FANTASY"
  },
  {
   "voice": "m2.fantasy.suitor_blake",
   "text": "COMING OVER, BRO!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_blake",
+  "text": "DON'T FLY BEHIND ME. I'M NOT BREATHING THAT.",
   "from": "FANTASY"
  },
  {
@@ -19056,12 +19481,27 @@
  },
  {
   "voice": "m2.fantasy.suitor_blake",
+  "text": "GET OUT, BRO. YOU STINK UP THE SALON.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_blake",
   "text": "HA! TICKLES!",
   "from": "FANTASY"
  },
  {
   "voice": "m2.fantasy.suitor_blake",
   "text": "HEY MEATHEAD! THIS RIDE IS MINE NOW!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_blake",
+  "text": "I GOT THE FASTEST BROOM, BRO.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_blake",
+  "text": "LAST ONE IN THE AIR. LAST TIME YOU BREATHE.",
   "from": "FANTASY"
  },
  {
@@ -19101,6 +19541,11 @@
  },
  {
   "voice": "m2.fantasy.suitor_blake",
+  "text": "SAVE IT FOR THE SKY, LOSER.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_blake",
   "text": "SEE YOU AT THE BOTTOM, MEATHEAD!",
   "from": "FANTASY"
  },
@@ -19112,6 +19557,21 @@
  {
   "voice": "m2.fantasy.suitor_blake",
   "text": "TELL PIPER I-",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_blake",
+  "text": "THE FACE MASK IS FOR HER, BRO. BACK OFF.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_blake",
+  "text": "THEY DO WAXING HERE, BRO. YOU NEED IT.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_blake",
+  "text": "YOU LIVED? THE RIDE WAS SUPPOSED TO KILL YOU.",
   "from": "FANTASY"
  },
  {
@@ -19560,6 +20020,36 @@
   "from": "FANTASY"
  },
  {
+  "voice": "m2.fantasy.suitor_chet",
+  "text": "FASTPASS, BRO. AND WE DIDN'T SHIT OURSELVES.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_chet",
+  "text": "FASTPASS. AND PANTS. WE HAVE BOTH.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_chet",
+  "text": "FASTPASS. YOU WAITED IN LINE? LOL.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_chet",
+  "text": "HA. MISSED.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_chet",
+  "text": "SAVE IT FOR THE SKY, LOSER.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_chet",
+  "text": "WE HAD FASTPASS, BRO. SKIPPED THE TRIALS.",
+  "from": "FANTASY"
+ },
+ {
   "voice": "m2.fantasy.suitor_derek",
   "text": "AAAAAAAAAAH!",
   "from": "FANTASY"
@@ -19767,6 +20257,31 @@
  {
   "voice": "m2.fantasy.suitor_derek",
   "text": "YOUR BALLS ARE ON MY BENCH!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_dmitri",
+  "text": "I PAID FOR VIP. I GET VIP. YOU GET DEAD.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_dmitri",
+  "text": "I SKIP TRIALS. I DO NOT SKIP LEG DAY.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_dmitri",
+  "text": "SAVE IT FOR THE SKY, LOSER.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_dmitri",
+  "text": "TINY. LIKE YOUR CHANCES.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_dmitri",
+  "text": "YOU SMELL LIKE LOSING, LITTLE MAN.",
   "from": "FANTASY"
  },
  {
@@ -20201,6 +20716,21 @@
  },
  {
   "voice": "m2.fantasy.suitor_hank",
+  "text": "DO NOT SIT IN THE MAKEOVER CHAIR. EVER.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_hank",
+  "text": "DON'T LOOK AT ME. MY MASK IS SETTING.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_hank",
+  "text": "FLY DOWNWIND OF ME. FAR DOWNWIND.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_hank",
   "text": "HANK CAUGHT THE NEXT DRAGON!",
   "from": "FANTASY"
  },
@@ -20246,12 +20776,27 @@
  },
  {
   "voice": "m2.fantasy.suitor_hank",
+  "text": "I GOT THE TIARA. PIPER LIKES A ROYAL.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_hank",
+  "text": "I WILL KNOCK YOU OUT OF THE SKY.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_hank",
   "text": "I'LL SHOVE YOU OFF THE TRACK MYSELF.",
   "from": "FANTASY"
  },
  {
   "voice": "m2.fantasy.suitor_hank",
   "text": "KEEP IT AWAY FROM THE LAP BAR.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_hank",
+  "text": "KEEP THAT THING OFF MY BROOM.",
   "from": "FANTASY"
  },
  {
@@ -20266,6 +20811,11 @@
  },
  {
   "voice": "m2.fantasy.suitor_hank",
+  "text": "NO MAKEOVER FIXES THAT, BUDDY.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_hank",
   "text": "NOT IN MY CAR WITH THAT OUT.",
   "from": "FANTASY"
  },
@@ -20276,12 +20826,22 @@
  },
  {
   "voice": "m2.fantasy.suitor_hank",
+  "text": "SAVE IT FOR THE SKY, LOSER.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_hank",
   "text": "SIT IN THE BACK. WAY BACK.",
   "from": "FANTASY"
  },
  {
   "voice": "m2.fantasy.suitor_hank",
   "text": "STAY OUT OF MY CAR. YOU STINK.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_hank",
+  "text": "THIS BROOM CAN HOLD ME. BARELY.",
   "from": "FANTASY"
  },
  {
@@ -20511,7 +21071,17 @@
  },
  {
   "voice": "m2.fantasy.suitor_rafael",
+  "text": "A PRINCE NEEDS HIS GLOW. YOU NEED A MIRACLE.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_rafael",
   "text": "DUMBBELL!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_rafael",
+  "text": "EVEN THE NAIL LADY LAUGHED AT IT.",
   "from": "FANTASY"
  },
  {
@@ -20521,7 +21091,17 @@
  },
  {
   "voice": "m2.fantasy.suitor_rafael",
+  "text": "HA. MISSED.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_rafael",
   "text": "I AM TOO PRETTY TO-",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_rafael",
+  "text": "I FLY FIRST CLASS. YOU FLY COACH.",
   "from": "FANTASY"
  },
  {
@@ -20556,6 +21136,11 @@
  },
  {
   "voice": "m2.fantasy.suitor_rafael",
+  "text": "NO PANTS ON A BROOM. YOU ANIMAL.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_rafael",
   "text": "NO PANTS. NO CHANCE.",
   "from": "FANTASY"
  },
@@ -20581,6 +21166,11 @@
  },
  {
   "voice": "m2.fantasy.suitor_rafael",
+  "text": "SHE'LL SEE ME FROM HER WINDOW. FLAWLESS.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_rafael",
   "text": "STAND STILL. I AM COMING.",
   "from": "FANTASY"
  },
@@ -20591,7 +21181,17 @@
  },
  {
   "voice": "m2.fantasy.suitor_rafael",
+  "text": "THE MANICURIST JUST GAGGED.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_rafael",
   "text": "THE STENCH REACHES ME UP HERE.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_rafael",
+  "text": "THE TIARA STAYS ON. FOR HER.",
   "from": "FANTASY"
  },
  {
@@ -20616,7 +21216,37 @@
  },
  {
   "voice": "m2.fantasy.suitor_rafael",
+  "text": "YOU WILL DROP OUT OF THE SKY LIKE YOUR PANTS DID.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_rafael",
   "text": "YOU? ON A DRAGON? ADORABLE.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_thaddeus",
+  "text": "DO NOT TOUCH MY BROOM. IT IS VINTAGE.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_thaddeus",
+  "text": "HA. MISSED.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_thaddeus",
+  "text": "I'VE FLOWN BROOMS AT CONVENTIONS FOR TWELVE YEARS.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_thaddeus",
+  "text": "MY BROOM IS HANDMADE. YOURS IS A RENTAL.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_thaddeus",
+  "text": "NO ROBE? ON A BROOM? AMATEUR.",
   "from": "FANTASY"
  },
  {
@@ -46281,6 +46911,11 @@
  },
  {
   "voice": "meathead",
+  "text": "A BIG STICK BETWEEN MY LEGS. TWO, ACTUALLY.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "A BOAT DOESN'T FIT IN THE MAIL. NO.",
   "from": "OSCAR_LINES"
  },
@@ -46586,6 +47221,16 @@
  },
  {
   "voice": "meathead",
+  "text": "A DRAWBRIDGE. JUST LET ME IN, LADY.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "A DRAWBRIDGE. MINE IS ALREADY UP.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "A DRONE HIT ME! AM I ON CAMERA?!",
   "from": "HAZARD_HURT"
  },
@@ -46633,6 +47278,11 @@
   "voice": "meathead",
   "text": "A FAKE TOWN FULL OF FAKE COWBOYS. GREAT.",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "A FAN! IT CAME BACK!",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -46816,6 +47466,21 @@
  },
  {
   "voice": "meathead",
+  "text": "A GIFT SHOP IN THE GATEHOUSE. OF COURSE.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "A GIFT SHOP. NO PANTS FOR SALE. JUST TIARAS.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "A GIFT SHOP. NO PANTS. JUST CAPES.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "A GLASS SLIPPER! TO THE HEAD!",
   "from": "FANTASY"
  },
@@ -46946,6 +47611,11 @@
  },
  {
   "voice": "meathead",
+  "text": "A JUGGLING PIN! TO THE FACE!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "A KEG! A FULL ONE!",
   "from": "FOREIGN"
  },
@@ -47041,6 +47711,16 @@
  },
  {
   "voice": "meathead",
+  "text": "A MAKEOVER? LOOK AT THIS. NO NOTES.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "A MAKEOVER. START WITH MY PANTS.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "A MARTIAN TO THE FACE!",
   "from": "SPACE"
  },
@@ -47103,6 +47783,11 @@
   "voice": "meathead",
   "text": "A MINE. NOBODY CAN SMELL ME DOWN HERE.",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "A MOAT. I COULD RINSE OFF. NO TIME.",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -47231,6 +47916,11 @@
  },
  {
   "voice": "meathead",
+  "text": "A PRINCESS MAKEOVER. I AM ALREADY A TEN.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "A PROP! I GOT HIT BY A PROP!",
   "from": "SPACE"
  },
@@ -47348,6 +48038,21 @@
   "voice": "meathead",
   "text": "A ROLLING HAT! IN MY SHIN!",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "A ROSE GARDEN. I WILL PICK HER ONE. MAYBE.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "A ROSE GARDEN. IT NEEDS FERTILIZER. I HAVE SOME.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "A ROYAL SLAP!",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -48591,6 +49296,11 @@
  },
  {
   "voice": "meathead",
+  "text": "BARE ASS ON A BROOMSTICK. SPLINTERS. WORTH IT.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "BARE ASS ON COLD IRON. LOVELY.",
   "from": "FRONTIER"
  },
@@ -48891,6 +49601,21 @@
  },
  {
   "voice": "meathead",
+  "text": "BOILING BUTTER BREW! AAH!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "BOILING BUTTER BREW. OUT OF A HOLE. GREAT.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "BOILING BUTTER. NAKED. NOT TODAY.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "BOLT IN THE SHOULDER! DUMB!",
   "from": "FANTASY"
  },
@@ -48938,6 +49663,11 @@
   "voice": "meathead",
   "text": "BONKED BY A BOOM MIC!",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "BONKED BY A JESTER!",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -49158,6 +49888,11 @@
   "voice": "meathead",
   "text": "BRING BACK MY LOWER HALF!",
   "from": "m1/game/player/animalDeaths.ts:123"
+ },
+ {
+  "voice": "meathead",
+  "text": "BRISTLES IN MY SHIT PANTS. LET'S GO.",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -49382,6 +50117,11 @@
  {
   "voice": "meathead",
   "text": "BUTTER BREW. THAT EXPLAINS MY PANTS.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "BUTTER FROM ABOVE. MY PANTS ARE ALREADY GREASY.",
   "from": "FANTASY"
  },
  {
@@ -49863,6 +50603,11 @@
   "voice": "meathead",
   "text": "CLIFF DIVERS. INTO SIX FEET OF WATER. FROM OHIO.",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "CLIMBING A TOWER IN SHIT PANTS. FOR LOVE.",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -50791,6 +51536,11 @@
  },
  {
   "voice": "meathead",
+  "text": "DRAWBRIDGE IS OPEN. SO ARE MY BOWELS.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "DRIFTED! RIGHT INTO ME!",
   "from": "HOLLYWOOD"
  },
@@ -51028,6 +51778,16 @@
   "voice": "meathead",
   "text": "EMPTY COFFIN. I COULD HIDE THESE PANTS IN THERE.",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "EMPTY DECK. SMELLS LIKE VICTORY. AND ME.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "EMPTY RUNWAY. NAKED VICTORY LAP.",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -51283,6 +52043,11 @@
   "voice": "meathead",
   "text": "FACE IN THE DIRT, ASS IN THE AIR. WELCOME TO MY DAY.",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "FACE MASKS? I GOT A WHOLE ASS MASK.",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -51813,6 +52578,11 @@
   "voice": "meathead",
   "text": "FORKED! LIKE A HAY BALE!",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "FORTY BUCKS FOR A TIARA. ROBBERY.",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -53251,6 +54021,16 @@
  },
  {
   "voice": "meathead",
+  "text": "HALBERD! IN THE GUT!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "HALBERD! RIGHT IN THE PECS!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "HALF A CAR! WHERE'S THE OTHER HALF?!",
   "from": "HAZARD_HURT"
  },
@@ -54076,6 +54856,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HE THREW HIS PINS AT ME!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "HE THREW HIS TOOLS AT ME! UNION RULES!",
   "from": "HAZARD_HURT"
  },
@@ -54736,6 +55521,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HIT WITH A BALLOON ON A STICK!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "HIT WITH A TURKEY LEG!",
   "from": "FANTASY"
  },
@@ -54926,7 +55716,22 @@
  },
  {
   "voice": "meathead",
+  "text": "HOT BUTTER AND NO PANTS. WATCH THE BALLS.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "HOT BUTTER BREW! MY FACE!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "HOT BUTTER ON TOP, SHIT ON THE BOTTOM. I AM A SANDWICH.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "HOT BUTTER! FROM ABOVE!",
   "from": "FANTASY"
  },
  {
@@ -55396,6 +56201,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I CHARGED A HALBERD!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "I CHARGED A PARASOL! IT STABS!",
   "from": "FRONTIER"
  },
@@ -55573,6 +56383,11 @@
   "voice": "meathead",
   "text": "I DON'T LIKE CANDLES. THEY'RE HOT AND SMALL.",
   "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "I DON'T NEED A MAKEOVER. LOOK AT THIS.",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -56001,6 +56816,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I RIDE THIS BROOM TO HER BED. SHE WILL SMELL ME COMING.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "I RODE INTO A CAR! A PARKED CAR!",
   "from": "HAZARD_HURT"
  },
@@ -56363,6 +57183,11 @@
   "voice": "meathead",
   "text": "I'M AN ASTRONAUT NOW. NASA CAN SUCK IT.",
   "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M AT HER CASTLE WITH A LOAD IN MY PANTS.",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -58196,6 +59021,11 @@
  },
  {
   "voice": "meathead",
+  "text": "LAST MAN FLYING GETS PIPER. I'M FLYING.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "LAST MAN STANDING. LAST MAN STINKING.",
   "from": "FRONTIER"
  },
@@ -58796,8 +59626,23 @@
  },
  {
   "voice": "meathead",
+  "text": "MAKE ME OVER. START WITH THE PANTS.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "MAKE ME!",
   "from": "m1/game/stages/hector/chase.ts:188"
+ },
+ {
+  "voice": "meathead",
+  "text": "MAKEOVER THIS.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "MAKEOVERS. FOR MEN WHO LOST.",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -59021,8 +59866,23 @@
  },
  {
   "voice": "meathead",
+  "text": "MORE MOVING STAIRS. HER BEDROOM BETTER BE WORTH IT.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "More people to kill? SICK! Chest day can wait!",
   "from": "m1/components/RadioCutscene.tsx:26"
+ },
+ {
+  "voice": "meathead",
+  "text": "MORE STAIRS. EVERYTHING BOUNCES.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "MORE STAIRS. MY PANTS ARE SLIDING DOWN THEM.",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -59706,6 +60566,11 @@
  },
  {
   "voice": "meathead",
+  "text": "MY SKIN! IT'S BUTTERED!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "MY SKIN! MY BEAUTIFUL SKIN!",
   "from": "m1/game/stages/tommy/sewer.ts:100"
  },
@@ -59831,6 +60696,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NAKED AT HER GATE. SAVES HER A STEP.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "NAKED GUY CUTTING THE LINE. TRY AND STOP ME.",
   "from": "FRONTIER"
  },
@@ -59842,6 +60712,11 @@
  {
   "voice": "meathead",
   "text": "NAKED IN A DRAGON CAVE. VERY HEROIC.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "NAKED IN A GIFT SHOP. SECURITY IS ASLEEP.",
   "from": "FANTASY"
  },
  {
@@ -59906,6 +60781,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NAKED ON A BROOM. VERY AERODYNAMIC.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "NAKED ON A COASTER. WIND IN MY EVERYTHING.",
   "from": "FANTASY"
  },
@@ -59931,8 +60811,18 @@
  },
  {
   "voice": "meathead",
+  "text": "NAKED ON THE WALL. THE WHOLE PARK CAN SEE.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "NAKED OVER A WATERFALL! YEAH!",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "NAKED PAST A PRINCESS SALON. THEY'RE TAKING PICTURES.",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -60281,6 +61171,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NICE TIARAS, LADIES.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "NICE TRY. I GOT NOTHING ON TO SHIT IN.",
   "from": "SPACE"
  },
@@ -60362,6 +61257,11 @@
  {
   "voice": "meathead",
   "text": "NO BRIDGE. NO PANTS. NO PROBLEM.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "NO BROOMS LEFT. NO PANTS EITHER.",
   "from": "FANTASY"
  },
  {
@@ -60458,6 +61358,11 @@
   "voice": "meathead",
   "text": "NO LINE. THAT'S NEVER GOOD.",
   "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "NO MORE BROOMS. NO MORE SUITORS.",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -62096,6 +63001,11 @@
  },
  {
   "voice": "meathead",
+  "text": "OW! ROMANTIC! OW!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "OW! ROYAL BITCH SLAP!",
   "from": "FANTASY"
  },
@@ -62486,6 +63396,11 @@
  },
  {
   "voice": "meathead",
+  "text": "PAPER CUT! A BIG ONE!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "PAPER CUT! ON MY TRAPS!",
   "from": "HAZARD_HURT"
  },
@@ -62661,6 +63576,11 @@
  },
  {
   "voice": "meathead",
+  "text": "PINS! THREE OF THEM!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "PIPE! MY HEAD!",
   "from": "FRONTIER"
  },
@@ -62746,6 +63666,11 @@
  },
  {
   "voice": "meathead",
+  "text": "POKED BY A GUARD!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "POKED BY A MUSEUM NERD!",
   "from": "HOLLYWOOD"
  },
@@ -62818,6 +63743,11 @@
   "voice": "meathead",
   "text": "PRETTY BIRD MY ASS!",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "PRINCESS MAKEOVER. I NEED A HOSE DOWN.",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -63133,6 +64063,16 @@
   "voice": "meathead",
   "text": "RAMMING SPEED FUCKHEAD",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "RAMPARTS. THE GUARDS CAN SMELL ME COMING.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "RAN RIGHT ONTO HIS POLE!",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -63651,7 +64591,32 @@
  },
  {
   "voice": "meathead",
+  "text": "ROSE BUSHES AT DICK HEIGHT. GREAT DESIGN.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "ROSE THORNS! IN MY ASS!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "ROSES! WHY ARE THEY STABBY?",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "ROSES! WITH THORNS!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "ROSES. THEY SMELL BETTER THAN ME.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "ROSES. THORNY ONES. ROMANTIC AND STABBY.",
   "from": "FANTASY"
  },
  {
@@ -64223,6 +65188,11 @@
   "voice": "meathead",
   "text": "SHE SLAPPED ME INTO NEXT WEEK!",
   "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHE SLAPPED ME!",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -64843,6 +65813,11 @@
   "voice": "meathead",
   "text": "SKY HIGH TRASH",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SLAPPED BY A LADY!",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -67486,6 +68461,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THE BRIDGE GOES UP AND DOWN. LIKE ME.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "THE BRIDGE GOES UP. WHO DESIGNED A BRIDGE THAT DOESN'T STAY?",
   "from": "FOREIGN"
  },
@@ -67501,6 +68481,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THE BRIDGE IS UP. SO AM I.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "THE BRIM GOT ME!",
   "from": "FOREIGN"
  },
@@ -67508,6 +68493,16 @@
   "voice": "meathead",
   "text": "THE BROOM IS FOR SWEEPING, YOU HAG!",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE BROOM PORT. EMPTY. I DID THAT.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE BROOMS ARE GONE. MY DIGNITY TOO.",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -67586,6 +68581,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THE CASTLE. HER BEDROOM IS IN HERE SOMEWHERE.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "THE CEILING IS LEAKING ON MY TRAPS!",
   "from": "HAZARD_HURT"
  },
@@ -67633,6 +68633,11 @@
   "voice": "meathead",
   "text": "THE CLOCK HAND GOT ME!",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE CLOWN HIT ME!",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -67808,6 +68813,11 @@
   "voice": "meathead",
   "text": "THE EYE! THE EYE BEAM!",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE FAN CUT ME!",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -68043,6 +69053,11 @@
   "voice": "meathead",
   "text": "THE GUARD MOVED! HE MOVED AND HE HIT ME!",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE GUARD STABBED ME!",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -68498,6 +69513,11 @@
   "voice": "meathead",
   "text": "THE PUDDLE'S LIVE! THE PUDDLE'S LIVE!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE RAMPARTS. EVERYBODY UP HERE HAS A POINTY STICK.",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -69406,6 +70426,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THEY POUR HOT BUTTER ON YOU. FROM THE CEILING.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "THEY PUT A GUN ON TRASH!",
   "from": "SPACE"
  },
@@ -69423,6 +70448,11 @@
   "voice": "meathead",
   "text": "THEY RAN ME OVER WITH A CANDY PAINT JOB!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THEY SELL EVERYTHING HERE BUT CLEAN UNDERWEAR.",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -69713,6 +70743,11 @@
   "voice": "meathead",
   "text": "THIS WORKS ON EVERYTHING.",
   "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "THORNS AGAIN. NAKED AGAIN. WHY.",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -70451,6 +71486,21 @@
  },
  {
   "voice": "meathead",
+  "text": "TWO TRIALS DOWN. ONE PAIR OF PANTS LOST.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "TWO TRIALS DOWN. PIPER, I'M AT YOUR GATE.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "TWO TRIALS DOWN. STILL POINTING AT THE CASTLE.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "TWO-BY-FOUR BRIDGE. HOLLYWOOD QUALITY.",
   "from": "HOLLYWOOD"
  },
@@ -70541,6 +71591,21 @@
  },
  {
   "voice": "meathead",
+  "text": "UP ON THE RAMPARTS. FLAPPING IN THE WIND.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "UP ON THE WALL. I CAN SEE HER TOWER.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "UP ON THE WALL. THE WIND IS NOT MY FRIEND.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "UP THE BACK OF A FAKE BUILDING. THIS IS THE MOST REAL THING HERE.",
   "from": "HOLLYWOOD"
  },
@@ -70558,6 +71623,16 @@
   "voice": "meathead",
   "text": "UP THE TOWER, DROP INTO HELL, OUT THROUGH THE GIFT SHOP. FINALLY, A RIDE THAT DOESN'T SUCK.",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "UP THE TOWER. CLOSER TO PIPER.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "UP THE TOWER. IT IS NOT THE ONLY THING UP.",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -72218,6 +73293,11 @@
   "voice": "meathead",
   "text": "YOU GLUED FANGS ON A HORSE. THAT IS STILL A HORSE, DUMBASS.",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOU GOT A MAKEOVER? YOU'RE STILL UGLY.",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",

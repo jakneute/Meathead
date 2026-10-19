@@ -95,7 +95,7 @@ FAX = 800000. Gaps of 3000 between sections (room to grow). Every section about 
 | 2 | The fairy wheel (trial 1) | `wheel` | FAX+18000 .. FAX+24000 | 10-12 (of 10-19) | The gigantic wheel, eight suitors in its gondolas throwing crap, the QTEs, the kills (built) |
 | 3 | The enchanted glen | `glen` | FAX+27000 .. FAX+41000 | 20-26 (of 20-29) | The storybook forest: toadstools, briars, cauldrons, harder staircases, five new kinds; the ride's queue (built) |
 | 4 | Truelling Tragons | `tragons` | FAX+44000 .. FAX+58000 | 30-38 (of 30-39) | The three-car coaster (fire, ice, lightning): hop cars, holes, each car's obstacles, the rivals (built) |
-| 5 | The castle's base and the runway | `keep` | FAX+61000 .. FAX+73000 | 40-49 | Platforming in the castle; the runway (from x0+9000) |
+| 5 | The castle's base and the runway | `keep` | FAX+61000 .. FAX+73000 | 40-46 (of 40-49) | The gate, drawbridge, gatehouse, courtyard, ramparts, tower stairs, postern; the broom port (from x0+9000) and its scene (built) |
 | 6 | The broomstick deathmatch (trial 3) | `broom` | FAX+76000 .. FAX+80000 | 50-59 | Behind the back, mode 7; in through the top window |
 | 7 | The bedroom and Piper | `bedroom` | FAX+83000 .. FAX+87000 | 60-69 | The door kicked in, the reveal, the fight (placeholder) |
 
@@ -182,6 +182,30 @@ LIGHTNING (yellow/purple), FIRE (red/orange), ICE (blue/white).
   MISS (cp 37): one safe, then another, a duck and a jump. The brakes; END_S 46500.
 - THE UNLOAD (cp 38, set as it pulls in): a deck a lane off the dragons' fronts (stepped: drop down them), the hall,
   UNLOAD / EXIT TO THY RIGHT; the castle's gate arch at x0+4300 (on to the castle's base).
+
+### Section 5 in detail (the castle's base and the runway, built: keep/)
+
+x from the section's start; heights up from the ground line.
+
+- 0 THE CASTLE GATE (cp 40): in off the ride's exit; a lone CASTLE GUARD; Piper's first horn.
+- 800 THE MOAT (drained, a long way down; 800-1200) and THE DRAWBRIDGE: pivots at the gatehouse's foot, 210 frames down
+  (level across), the tell, 70 swinging, 210 up (41 degrees), back down. Ride it up and hop off its end onto the
+  barbican's ledge (750-880, 280 up: a pickup).
+- 1260 THE GATEHOUSE (cp 41 at 1340): the passage under it (ceiling 170, roof 340), veiled till he's in it; the gift shop's
+  shelves; MURDER HOLES at 1700 (alone), 2080 / 2260 (a pair out of step, a guard between); a lady-in-waiting.
+- 2900 THE COURTYARD (cp 42 at 3000): the PRINCESS MAKEOVER BOUTIQUE (3150-3560: the ride's survivors in its chairs);
+  a jester alone at 3820; a princess, a knight, an owl; THE ROYAL ROSE GARDEN (roses 4100-4600, toadstools at 4170,
+  4380 (210) and 4540 (300: the only way up the curtain wall, 300)).
+- 4600 THE RAMPARTS (cp 43 at 4650, 300 up): machicolations at 4920 / 5030 / 5140 (a rolling wave, 150-frame cycle);
+  THE BREACH (5300-5800): two staircases in opposition (120 held, 50 swinging) to and from a pillar (5510-5590), a
+  cauldron across the far one; toadstools at the bottom (5405, 5695: 300) throw him back up; clerks casting along it.
+- 6300 THE TOWER STAIRS (cp 44 at 6260, 300 up): a zigzag of three flights (100 held, 45 swinging) from the floor to
+  landing B (6791, 458), C (6440-6560, 616), the gallery (6791-7540, 774); a cauldron across the middle flight, a murder
+  hole over C, roses on the floor under the gallery (6900-7520), a jester and a lady on the gallery.
+- 7600 THE POSTERN (cp 45 at 8420): steps down the tower's far side (130 apart: back up them too), the last crowd
+  (a guard, a jester, a unicorn, a lady), the postern gate.
+- 9000 THE BROOM PORT (cp 46 at 9150): the deck (stands, wind socks, broom racks, a scoreboard); the suitors left
+  hovering on brooms (10050 on, 110 apart); the spare broom on its cradle (9880, 40 up); the scene from 9560.
 
 ## Standing rules (all apply; check every one against new work)
 
@@ -312,3 +336,37 @@ markBossFight every frame of a boss or sub-boss fight. Voice every new line (`np
   that far along (the lane in RIDE_CPS), the rivals that are up by then up on the others. One-way; the ride done is
   DONE_MEMO: a revisit's station says RIDE CLOSED (TRACK DAMAGE), no dragons running (they're parked at the unload),
   the ground walked between the station and the unload both ways.
+- (job 5, ours) The castle's base (keep/): theme-park castle throughout (fiberglass stone, a drained moat DRAINED FOR
+  CLEANING, YE OLDE GIFT SHOPPE in the gatehouse, the PRINCESS MAKEOVER BOUTIQUE, the royal rose garden, a broom port).
+  Layout: section 5 in detail. Checkpoints 40-46; 47-49 spare. No big refill here (the boss door's in the bedroom).
+- (job 5, ours) The monument hands over: the keep's sky has no castle on a crag (fairySky with none); the same painter
+  (drawCastleAt) close up at 2.8 inside the walls (the keep and the spire towering, its foot out of the picture) and
+  2.4 on the runway (the keep beside the deck, PIPER_WINDOW lit right up over it). MONUMENT_AT.keep goes unused.
+- (job 5, ours) Two new twists, each taught alone first: THE DRAWBRIDGE (a StairDef to stairs.ts, drawn as a bridge:
+  down / tell / up on the clock; ride it up for the barbican's pickup) and THE MURDER HOLES (hazards.ts: quiet, a 50-frame
+  tell (the hole glows orange, steam, drips, a gurgle), a 56-frame pour of boiling butter brew straight down; 14 damage,
+  source m2:fa_oil; the cast too, and they keep out). Then built on: a pair, a rolling wave of three along the wall walk,
+  one over a tower landing. The glen's toadstools (planters), briars (as ROSE BEDS, m2:fa_roses) and cauldrons reused.
+- (job 5, ours) The staircases at their hardest: the breach's two in opposition (120/50, a cauldron across one, a
+  toadstool recovery under it); the tower's zigzag of three (100/45) with a cauldron across the middle flight, a pour over
+  the landing between, thorns under the top one, a jester throwing down from the gallery.
+- (job 5, ours) Three new kinds (keep/kinds.ts, costumed, men and women, seeded): CASTLE GUARD (a halberd: POINTY
+  m2:fa_halberd; levels it with a stamp (30 frames) and lunges; jumped over, chops up at him; winded after), COURT
+  JESTER (juggles all the time; faster and higher (34 frames), then all three pins thrown in a spread; up close a
+  bladder-on-a-stick bonk and a cartwheel away), LADY-IN-WAITING (the costume dept's only got the gown and the cone hat:
+  men wear it too; fans herself hard (30 frames), throws her fan flat: out and back to her hand like a boomerang, hits
+  both ways, no second throw till it's back; up close a slap). With the square's knights, princesses, clerks, owls and
+  the glen's unicorn. Kill callouts, hurt and death lines for every new hurt. Guards use the cast voices; jester and
+  courtier pairs new.
+- (job 5, ours) The suitors who lived through the ride (no `fa-rival-dead-<id>`) are at the PRINCESS MAKEOVER BOUTIQUE
+  as he passes (behind its window, in the chairs, tiaras and face masks): each has his say in turn, he answers (once a
+  visit); none left: he has a line about it. They keep the tiaras on for the runway.
+- (job 5, ours) THE RUNWAY'S SCENE (runway.ts; a cutscene: HUD hidden, no input, SKIP >> for the lot): the suitors left
+  hover on brooms over the deck: the ride's survivors plus THE FASTPASS BOYS (who paid to skip trials one and two, so
+  there's always somebody to fight: CHET (tee), THADDEUS (wizard, a convention broom flyer), DMITRI (cape); three new
+  voices). He walks up to the spare broom; the chime; Piper (the PA): the final trial, the rules (last man flying gets
+  her window, the highest one); up to two survivors and one FASTPASS boy trash-talk (in turn); he hops on the broom
+  (stood on it), it lifts, hearts, his MOUNT line (blunt, horny); Piper: go; they all shoot off up into the sky one after
+  another, him with them; black; DOORS.broom.start. For job 6: who flew is `fa-broom-roster` in state.stageMemo
+  (ids comma-separated; the looks: glen/rivals.ts RIVALS and keep/runway.ts FASTPASS). Done for good (`fa-keep-runway`):
+  a revisit's deck is empty (racks bare, NO FLIGHTS TODAY, the boutique's chairs empty) and the right end walks on.
