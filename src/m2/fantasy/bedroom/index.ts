@@ -37,7 +37,7 @@ import { x0, GY, DOOR_X, KICK_AT, REFILL_X, ARENA_L, ARENA_R, CEIL_Y, CAM_Y, LED
 import { drawHall, drawChamber, drawEndWall } from './room';
 import {
   type Fight, startFight, updateFight, fightOver, endFight, killedByWeakness, introSeen, drawFightBack, drawFightFront, drawFightHud,
-  killCamTick, killCamZoom, roomBits, keepErect, drawRemains,
+  killCamTick, killCamZoom, rangeZoom, roomBits, keepErect, drawRemains,
 } from './fight';
 import { MH_HALL } from './lines';
 
@@ -63,7 +63,7 @@ const endOf = (state: GameState): { how: 'cork' | 'balloon'; x: number } | null 
   const m = state.stageMemo[PIPER_END_MEMO];
   if (!m) return null;
   const [how, x] = m.split(':');
-  return { how: how === 'balloon' ? 'balloon' : 'cork', x: +x || R(1300) };
+  return { how: how === 'balloon' ? 'balloon' : 'cork', x: +x || R(750) };
 };
 
 const pmidX = (state: GameState) => state.player.pos.x + state.player.width / 2;
@@ -185,6 +185,6 @@ export const bedroom: FantasySection = {
     if (s.victory) drawVictory(c, s.victory);
     if (s.walk) drawWalkAway(c, s.walk);
   },
-  zoom: (state) => { const f = bedroomOf(state).f; return f ? killCamZoom(state, f) : null; },
+  zoom: (state) => { const f = bedroomOf(state).f; return f ? killCamZoom(state, f) ?? rangeZoom(state, f) : null; },
   holdTick: (ctx) => { const f = bedroomOf(ctx.state).f; return f ? killCamTick(f) : false; },
 };

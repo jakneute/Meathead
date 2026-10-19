@@ -16,7 +16,7 @@
 //               of them at him), more as the room goes. Each slam wrecks the room a stage more (room.ts), up to six.
 //   THE MAINS   Her slams tear the theme park's plumbing loose, in the user's order: the 2nd a HEAT PIPE (venting fire
 //               down to the floor), the 4th a LIQUID NITROGEN main (the park's ice effects: squirting along the floor;
-//               hit, he's FROZEN in a block of ice: MASH any button to break out, the prompt with the real buttons),
+//               hit, he's FROZEN in a block of ice: MASH A to break out (only A: the user's), the prompt with the real button),
 //               the 6th the water main and the FX POWER: LIVE WIRES IN A FLOODED PATCH (electrified). Three unsafe
 //               areas at most (these three), each on its own clock, every time telegraphed (steam and an orange glow;
 //               frost and a sputter; sparks over the water) before it goes. The 5th slam brings a chandelier down (it
@@ -64,7 +64,7 @@ import { box, label, saidOver, voice, meatheadSays, landVisit } from '../section
 import { hash } from '../kit';
 import type { ByPants } from '../talk';
 import { drawPiper, drawPiperCloseup, piperBodyW, PIPER_H, type PiperPose, type PiperFace } from '../piper';
-import { GY, DOOR_X, KICK_AT, ARENA_L, ARENA_R, ARENA_MID, CEIL_Y, CAM_Y, LEDGES, CHANDELIERS, CHAISE_X, MAX_STAGE, CP_FIGHT, R } from './layout';
+import { GY, DOOR_X, KICK_AT, ARENA_L, ARENA_R, ARENA_W, ARENA_MID, CEIL_Y, CAM_Y, LEDGES, CHANDELIERS, CHAISE_X, MAX_STAGE, CP_FIGHT, R } from './layout';
 import { drawCavity, drawChandelier, CHANDELIER_Y } from './room';
 import * as L from './lines';
 
@@ -95,11 +95,12 @@ const STUN_T = 26;
 /** Debris: the warning (dust, the shadow), how many (2 + the stage, at most). */
 const DEBRIS_WARN = 56, DEBRIS_MAX = 6;
 /** The mains' clocks: quiet, the tell, on (frames). */
-const HAZ = { heat: [130, 60, 110], nitro: [120, 60, 100], wires: [110, 50, 100] } as const;
-const HEAT_DMG = 13, NITRO_DMG = 8, SHOCK_DMG = 14;
+// (more deadly, the user's: on longer, off shorter, wider, harder)
+const HAZ = { heat: [95, 55, 150], nitro: [90, 55, 140], wires: [85, 45, 140] } as const;
+const HEAT_DMG = 24, NITRO_DMG = 14, SHOCK_DMG = 26;
 /** The heat pipe's flame (half-width), the fire on the floor under it; the nitrogen's jet (length, height); the
  *  flooded patch (half-width). */
-const HEAT_HW = 34, HEAT_FLOOR = 64, NITRO_LEN = 230, NITRO_H = 64, PUDDLE_HW = 130;
+const HEAT_HW = 44, HEAT_FLOOR = 90, NITRO_LEN = 280, NITRO_H = 70, PUDDLE_HW = 150;
 /** Her throws: how often at most, how near a loose part she has to be; their damage. */
 const THROW_GAP = 360, THROW_NEAR = 170, RIP_T = 36, THROW_T = 18, FIREBALL_DMG = 12, ICEBALL_DMG = 6, BOLT_DMG = 14;
 /** Frozen: a press's worth of the meter, its drain a frame, out on his own at the most. */
@@ -114,7 +115,7 @@ const ENTRANCE_T = 100;
 // ---------------------------------------------------------------------------------------------------------------
 // The state
 
-type Act = 'walk' | 'crouch' | 'rise' | 'hang' | 'lock' | 'fall' | 'sit' | 'rip' | 'throw' | 'bounce' | 'flop' | 'getup' | 'entrance';
+type Act = 'hop' | 'walk' | 'crouch' | 'rise' | 'hang' | 'lock' | 'fall' | 'sit' | 'rip' | 'throw' | 'bounce' | 'flop' | 'getup' | 'entrance';
 type Element = 'fire' | 'ice' | 'shock';
 type HazardKind = 'heat' | 'nitro' | 'wires';
 interface Hazard { kind: HazardKind; x: number; t: number; dir: 1 | -1; hit: boolean }
@@ -148,7 +149,11 @@ export interface Fight {
   roofHole: number | null;
   /** Him: knocked off his feet (frames left), frozen. */
   stun: number; ice: Ice | null;
+  /** Just thawed: frames his specials (the charge, the dash) stay off, so the press that broke the ice can't fire one. */
+  thawT: number;
   throwAt: number; rip: Element | null;
+  /** A hop over to a loose part to throw from it (from, to: x); the camera pulled out for a throw from far off (its scale, eased). */
+  hopFrom: number; hopTo: number; zo: number;
   e: Enemy; moveSeen: number | undefined;
   said: string | null; tauntT: number; tauntHer: boolean; hintAt: number; wrongN: number; lowSaid: boolean;
   intro: IntroStep; introT: number; skipT: number; camX: number; doorT: number | null;
@@ -222,7 +227,7 @@ const fresh = (state: GameState, e: Enemy): Fight => ({
   x: CHAISE_X, y: GY, vy: 0, facing: -1, act: 'walk', actT: 0, actLen: 160, rot: 0, ang: 0,
   slams: 0, stage: 0, slamHit: false,
   hazards: [], debris: [], rubble: [], shots: [], patches: [], splats: [], holes: [], thin: 0,
-  chand: null, chandDown: null, roofHole: null, stun: 0, ice: null, throwAt: -9999, rip: null,
+  chand: null, chandDown: null, roofHole: null, stun: 0, ice: null, thawT: 0, throwAt: -9999, rip: null, hopFrom: 0, hopTo: 0, zo: 1,
   e, moveSeen: e.hitByMove, said: null, tauntT: 0, tauntHer: true, hintAt: -9999, wrongN: 0, lowSaid: false,
   intro: 'approach', introT: 0, skipT: 0, camX: state.camera.x, doorT: null, closeup: null,
   erect: 1, death: null, deathSaid: 0, cam: null, entrance: 0,
@@ -386,18 +391,22 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
   contact(ctx, f);
   talk(ctx, f);
   sync(state, f);
-  f.thin += (f.holes.length * 0.18 - f.thin) * 0.05;
+  tickRangeZoom(state, f);
+  f.thin +=(f.holes.length * 0.18 - f.thin) * 0.05;
   return himself(ctx, f, controls);
 };
 
 /** Him: knocked off his feet, or frozen solid (mash out); else his own controls. */
 const himself = (ctx: FrameContext, f: Fight, controls: Controls): Controls => {
   const { state } = ctx, p = state.player;
+  // (frozen: nothing but A breaks it (the user's), and no dashing or charging out of it)
+  if (f.thawT > 0 && --f.thawT === 0 && !f.ice) p.noSpecials = false;
   if (f.ice) {
+    p.noSpecials = true;
     const I = f.ice;
     I.t++;
     p.vel.x = 0; p.isDucking = false;
-    const down = !!(controls.jump || controls.shoot || controls.special || controls.secondary || controls.charge);
+    const down = !!controls.jump;
     if (down && !I.prev) { I.fill += MASH_STEP; playSound('crack', 0.35, 4 + I.fill * 8); }
     I.prev = down;
     I.fill = Math.max(0, I.fill - MASH_DRAIN);
@@ -406,7 +415,8 @@ const himself = (ctx: FrameContext, f: Fight, controls: Controls): Controls => {
       playSound('glass', 0.9, 2);
       for (let k = 0; k < 18; k++) state.particles.push({ pos: { x: p.pos.x + Math.random() * p.width, y: p.pos.y + Math.random() * p.height }, vel: { x: (Math.random() - 0.5) * 7, y: -2 - Math.random() * 4 }, life: 30, color: k % 2 ? '#E0F2FE' : '#BAE6FD', size: 3 + Math.random() * 3, grav: 0.3 });
       setUi({ iceMash: null });
-      return controls;
+      f.thawT = 15;
+      return { ...NO_CONTROLS };
     }
     setUi({ iceMash: I.fill });
     return { ...NO_CONTROLS };
@@ -430,6 +440,17 @@ const freezeHim = (ctx: FrameContext, f: Fight, dmg: number, src: string) => {
 // ---------------------------------------------------------------------------------------------------------------
 // Her
 
+/** Her hop over to a loose part: how often a frame (once the throws' gap is up), how long, how high. */
+const HOP_CHANCE = 0.008, HOP_T = 46, HOP_H = 170;
+/** Ripping a bit off a loose part (near it): the shout, the element. */
+const startRip = (f: Fight, h: { kind: string; x: number }) => {
+  f.rip = h.kind === 'heat' ? 'fire' : h.kind === 'nitro' ? 'ice' : 'shock';
+  f.facing = h.x < f.x ? -1 : 1;
+  setAct(f, 'rip', RIP_T); f.throwAt = f.total;
+  herSays(f, L.ELEMENT_SHOUT[f.rip][0]);
+  playSound(f.rip === 'fire' ? 'ignite' : f.rip === 'ice' ? 'ice' : 'taser', 0.7, 4);
+};
+
 const ai = (ctx: FrameContext, f: Fight) => {
   const { state } = ctx, p = state.player, m = pmid(state);
   f.actT++;
@@ -446,12 +467,16 @@ const ai = (ctx: FrameContext, f: Fight) => {
       // (near a loose part, now and then, with nobody talking (the shout has to be heard): rip a bit off it)
       if (f.total - f.throwAt > THROW_GAP && quiet(f, state) && Math.random() < 0.03) {
         const h = f.hazards.find(z => Math.abs(z.x - f.x) < THROW_NEAR);
-        if (h) {
-          f.rip = h.kind === 'heat' ? 'fire' : h.kind === 'nitro' ? 'ice' : 'shock';
-          f.facing = h.x < f.x ? -1 : 1;
-          setAct(f, 'rip', RIP_T); f.throwAt = f.total;
-          herSays(f, L.ELEMENT_SHOUT[f.rip][0]);
-          playSound(f.rip === 'fire' ? 'ignite' : f.rip === 'ice' ? 'ice' : 'taser', 0.7, 4);
+        if (h) { startRip(f, h); break; }
+      }
+      // (now and then, the user's: she leaps over to a loose part, however far, to throw from it at range; the camera
+      // pulls out if it's far, so he sees it coming)
+      if (f.hazards.length && f.total - f.throwAt > THROW_GAP && quiet(f, state) && Math.random() < HOP_CHANCE) {
+        const h = f.hazards[Math.floor(Math.random() * f.hazards.length)];
+        if (Math.abs(h.x - f.x) >= THROW_NEAR) {
+          f.hopFrom = f.x; f.hopTo = Math.max(ARENA_L + 60, Math.min(ARENA_R - 60, h.x - Math.sign(h.x - m.x || 1) * 40));
+          f.throwAt = f.total;
+          setAct(f, 'hop', HOP_T); playSound('jump', 0.9, -8); playSound('whoosh', 0.7, -6);
           break;
         }
       }
@@ -495,6 +520,19 @@ const ai = (ctx: FrameContext, f: Fight) => {
       }
       if (f.y >= GY) { f.y = GY; land(ctx, f); }
       break;
+    case 'hop': {
+      // (an arc over to it: no slam, no quake; a thud as she lands, then she rips a bit off it)
+      const k = Math.min(1, f.actT / HOP_T);
+      f.x = f.hopFrom + (f.hopTo - f.hopFrom) * k;
+      f.y = GY - Math.sin(Math.PI * k) * HOP_H;
+      f.facing = f.hopTo < f.hopFrom ? -1 : 1;
+      if (f.actT >= HOP_T) {
+        f.y = GY; playSound('thud', 0.9, -8); shakeScreen(state, 4, 3);
+        const h = f.hazards.reduce<typeof f.hazards[number] | null>((b, z) => (!b || Math.abs(z.x - f.x) < Math.abs(b.x - f.x) ? z : b), null);
+        if (h) startRip(f, h); else setAct(f, 'walk', walkLen(f));
+      }
+      break;
+    }
     case 'sit':
       if (f.actT >= f.actLen) setAct(f, 'walk', walkLen(f));
       break;
@@ -685,7 +723,8 @@ const throwAt = (ctx: FrameContext, f: Fight, kind: Element) => {
   const sx = f.x + f.facing * 46, sy = f.y - 150;
   if (kind === 'fire') {
     // (lobbed: it lands where he is now)
-    const T = 40, g = 0.35, tx = m.x + state.player.vel.x * 12, ty = GY - 10;
+    // (from far off it takes longer, so it's seen coming)
+    const g = 0.35, tx = m.x + state.player.vel.x * 12, ty = GY - 10, T = Math.round(Math.max(40, Math.min(90, 40 + Math.abs(tx - sx) / 25)));
     f.shots.push({ kind, x: sx, y: sy, vx: (tx - sx) / T, vy: (ty - sy) / T - 0.5 * g * T, t: 0, tx, ty, hit: false });
     playSound('flame', 0.9, -2);
   } else if (kind === 'ice') {
@@ -1015,7 +1054,7 @@ const k3 = (t: number) => ['#D8C2B4', '#B49C8E', '#F45AAE', '#EDE4D8'][t % 4];
 
 /** Done with: her death played out, everybody's had their say. */
 export const fightOver = (f: Fight) => f.mode === 'dead' && !!f.death && f.deathSaid >= 4 && f.death.t > 200 && (!f.cam || f.cam.z <= 1);
-export const endFight = (state: GameState, f: Fight) => { state.player.inCutscene = false; state.cameraOverride = null; state.enemies = state.enemies.filter(o => o !== f.e); setUi({ iceMash: null }); };
+export const endFight = (state: GameState, f: Fight) => { state.player.inCutscene = false; if (f.ice || f.thawT > 0) { state.player.noSpecials = false; f.ice = null; f.thawT = 0; } state.cameraOverride = null; state.enemies = state.enemies.filter(o => o !== f.e); setUi({ iceMash: null }); };
 export const killedByWeakness = (f: Fight) => f.death?.how === 'balloon';
 
 /** The enemy, where she is. */
@@ -1049,6 +1088,25 @@ export const killCamTick = (f: Fight): boolean => {
   if (cam.acc >= 1) { cam.acc -= 1; return false; }
   return true;
 };
+/** The camera pulled out for a throw from far off (the user's: so he sees it coming): the scale it eases toward, at
+ *  most. */
+const RANGE_Z = 0.52;
+const tickRangeZoom = (state: GameState, f: Fight) => {
+  const m = pmid(state), d = Math.abs(f.x - m.x);
+  const throwing = f.mode === 'on' && (f.act === 'hop' || f.act === 'rip' || f.act === 'throw' || f.shots.length > 0);
+  const want = throwing && d > CANVAS_WIDTH * 0.55 ? Math.max(RANGE_Z, (CANVAS_WIDTH * 0.85) / (d + 200)) : 1;
+  f.zo += (want - f.zo) * (want < f.zo ? 0.08 : 0.04);
+  if (f.zo > 0.997) f.zo = 1;
+};
+export const rangeZoom = (state: GameState, f: Fight) => {
+  if (f.zo >= 1) return null;
+  const k = Math.min(1, (1 - f.zo) / (1 - RANGE_Z)), m = pmid(state);
+  const half = CANVAS_WIDTH / 2 / f.zo;
+  const want = ARENA_W > half * 2 ? Math.max(ARENA_L + half, Math.min(ARENA_R - half, (f.x + m.x) / 2)) : ARENA_MID;
+  const c0x = state.camera.x + CANVAS_WIDTH / 2, c0y = state.camera.y + CANVAS_HEIGHT / 2;
+  const cx = c0x + (want - c0x) * k, cy = c0y + (GY - CANVAS_HEIGHT / 2 / f.zo + 30 - c0y) * k;
+  return { scale: f.zo, x: cx, y: cy, shiftX: CANVAS_WIDTH / 2 - (cx - state.camera.x), shiftY: CANVAS_HEIGHT / 2 - (cy - state.camera.y) };
+};
 export const killCamZoom = (state: GameState, f: Fight) => {
   const cam = f.cam;
   if (!cam || cam.z <= 1) return null;
@@ -1068,7 +1126,7 @@ const poseOf = (f: Fight): { pose: PiperPose; sx: number; sy: number; face?: Pip
   if (f.flash > 0 && f.act !== 'bounce') return { pose: 'hurt', sx: 1, sy: 1 };
   switch (f.act) {
     case 'crouch': { const k = Math.min(1, f.actT / 12); return { pose: 'enraged', sx: 1 + 0.12 * k, sy: 1 - 0.16 * k }; }
-    case 'rise': return { pose: 'enraged', sx: 0.92, sy: 1.08 };
+    case 'rise': case 'hop': return { pose: 'enraged', sx: 0.92, sy: 1.08 };
     case 'hang': case 'lock': return { pose: 'enraged', sx: 1, sy: 1 };
     case 'fall': return { pose: 'enraged', sx: 0.9, sy: 1.12, face: 'shock' };
     case 'sit': { const k = Math.max(0, 1 - f.actT / 10); return { pose: 'enraged', sx: 1 + 0.2 * k, sy: 1 - 0.25 * k }; }

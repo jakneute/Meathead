@@ -384,9 +384,9 @@ export const drawChamber = (c: Ctx, state: GameState, look: RoomLook) => {
     box(c, x, y, 14, 3, '#7A3A5A');
   }
   // (the portraits of herself, gilt and huge; askew once it's shaking)
-  portrait(c, R(420) - 50, GY - 420, 100, 130, f, s >= 3 ? 0.12 : 0, 0.62);
-  portrait(c, R(1640) - 50, GY - 440, 100, 130, f + 40, s >= 3 ? -0.15 : 0, 0.62);
-  portrait(c, R(2060) - 40, GY - 400, 80, 104, f + 80, s >= 5 ? 0.3 : s >= 3 ? 0.06 : 0, 0.5);
+  portrait(c, R(200) - 50, GY - 420, 100, 130, f, s >= 3 ? 0.12 : 0, 0.62);
+  portrait(c, R(1010) - 50, GY - 440, 100, 130, f + 40, s >= 3 ? -0.15 : 0, 0.62);
+  portrait(c, R(1250) - 40, GY - 400, 80, 104, f + 80, s >= 5 ? 0.3 : s >= 3 ? 0.06 : 0, 0.5);
   // (the furniture)
   bed(c, s >= 3, f);
   vanity(c, VANITY_X, f, s >= 2, look.piperX);
