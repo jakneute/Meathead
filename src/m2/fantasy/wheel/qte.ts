@@ -14,6 +14,7 @@
 
 import type { Controls } from '../../../m1/game/platform/input';
 import { playSound } from '../../../m1/game/platform/audio';
+import { inputDevice } from '../../../m1/game/platform/device';
 import { setUi, type QteKey, type QteUi } from '../../store';
 
 type Kind = QteUi['kind'];
@@ -42,7 +43,12 @@ export interface Qte {
 
 const FACE: QteKey[] = ['A', 'B', 'X', 'Y'];
 const pick = <T,>(a: readonly T[]) => a[Math.floor(Math.random() * a.length)];
-const held = (c: Controls, k: QteKey) => !!(k === 'A' ? c.jump : k === 'B' ? c.special : k === 'X' ? c.shoot : k === 'Y' ? c.secondary : k === 'LEFT' ? c.left : c.right);
+// (on the keyboard the four are the directions, laid out like a pad's face buttons: down A, right B, left X, up Y
+// (WASD or the arrows, as bound); all under one hand, not space, F and the mouse's two (the user's))
+const held = (c: Controls, k: QteKey) => {
+  if (inputDevice() === 'kbm' && k !== 'LEFT' && k !== 'RIGHT') return !!(k === 'A' ? c.down : k === 'B' ? c.right : k === 'X' ? c.left : c.up);
+  return !!(k === 'A' ? c.jump : k === 'B' ? c.special : k === 'X' ? c.shoot : k === 'Y' ? c.secondary : k === 'LEFT' ? c.left : c.right);
+};
 /** Which of the QTE's buttons went down this frame. */
 const downs = (c: Controls, prev: Controls) => (['A', 'B', 'X', 'Y', 'LEFT', 'RIGHT'] as QteKey[]).filter(k => held(c, k) && !held(prev, k));
 

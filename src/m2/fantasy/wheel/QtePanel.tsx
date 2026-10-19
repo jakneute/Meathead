@@ -7,7 +7,8 @@ import { Prompt, type PadKey } from '../../../m1/components/ButtonIcons';
 import type { QteUi, QteKey } from '../../store';
 
 const PAD: Record<QteKey, PadKey> = { A: 'A', B: 'B', X: 'X', Y: 'Y', LEFT: 'DPAD_LEFT', RIGHT: 'DPAD_RIGHT' };
-const KB: Record<QteKey, string> = { A: '@jump', B: '@special', X: '@fire', Y: '@secondary', LEFT: '@left', RIGHT: '@right' };
+// (the keyboard's: the directions, laid out like the pad's face buttons (qte.ts held))
+const KB: Record<QteKey, string> = { A: '@down', B: '@right', X: '@left', Y: '@up', LEFT: '@left', RIGHT: '@right' };
 const SAY: Record<QteUi['kind'], string> = { mash: 'MASH IT!', press: 'PRESS IT!', alternate: 'BACK AND FORTH!', ring: 'WHEN THE RING HITS!' };
 
 const Key: React.FC<{ k: QteKey; size: number; dim?: boolean }> = ({ k, size, dim }) => (
