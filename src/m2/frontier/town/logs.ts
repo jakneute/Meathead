@@ -27,34 +27,52 @@ import { townOf, type PondLog } from './state';
 import { WATERS, LOGS, LADDER, X } from './layout';
 import { LADDER_UP, BIRLER_SEEN } from './lines';
 
-/** (he's been tilted with a log on the ladder: stood straight again once he's off it) */
-let tilted = false;
 const R = 14, SINK = 2, PUSH = 3.2, ANSWER = 0.08, EASE = 0.03, BACK = 260;
 const logTop = (L: PondLog) => WATERS[L.water].surface - (2 * R - SINK);
 /** Up the jack ladder: its left end and top at k (0 at the water, 1 tipped onto the deck): up the chain (kept short of
  *  the mill's works), then over onto the deck. */
 const UP = 0.8;
-/** The chain's run (its foot at the water, its head at the deck's edge): the log's middle rides R + 3 up off it. */
+/** The chain's run (its foot at the water, its head at the deck's edge). */
 const chain = () => {
   const W = WATERS.find(w => w.key === 'pondB')!;
   return { xa: W.b - 20, ya: W.surface + 30, xb: LADDER.foot + 185, yb: LADDER.topY };
 };
+/** The beam's half-thickness and the chain's dogs' height on it: the log rides on the dogs' tips (DOG up off the
+ *  chain's line, square to it), its middle R further. */
+const BEAM = 8, DOG = 13;
 /** The chain's slope (radians: negative, up to the right). */
 export const LADDER_ANGLE = (() => { const ch = chain(); return Math.atan2(ch.yb - ch.ya, ch.xb - ch.xa); })();
-/** Up the jack ladder at k: the log's middle (on the chain, lying along it) and its tilt (eased in off the water,
- *  along the chain's slope all the way up, laid flat again as it's tipped onto the deck). */
+const smooth = (k: number) => { const q = Math.max(0, Math.min(1, k)); return q * q * (3 - 2 * q); };
+/** Up the jack ladder at k: the log's middle and its tilt, continuous all the way (the playtest's: janky going up).
+ *  Measured along the chain and square off it: it starts exactly where it floated (no snap), is lifted onto the dogs
+ *  and tilted to the slope together, eased; climbs at a steady pace lying on the dogs' tips; then is laid flat and set
+ *  down on the deck, eased in and out (no kink where the chain lets go). */
 const ladderAt = (L: PondLog, k: number) => {
-  const ch = chain(), ux = Math.cos(LADDER_ANGLE), uy = Math.sin(LADDER_ANGLE), nx = uy, ny = -ux, off = R + 3;
+  const ch = chain(), ux = Math.cos(LADDER_ANGLE), uy = Math.sin(LADDER_ANGLE), nx = uy, ny = -ux, off = DOG + R;
   const len = Math.hypot(ch.xb - ch.xa, ch.yb - ch.ya);
-  // (where it starts: floating at the chain's foot; where the chain lets go of it: its back end at the chain's head)
+  // (where it floated, along the chain and off it; where the chain lets go of it: its front end at the chain's head)
   const W = WATERS[L.water], sx = W.b - 2 - L.len / 2, sy = logTop(L) + R;
-  const ex = ch.xa + ux * (len - L.len / 2) + nx * off, ey = ch.ya + uy * (len - L.len / 2) + ny * off;
+  const d0 = (sx - ch.xa) * ux + (sy - ch.ya) * uy, o0 = (sx - ch.xa) * nx + (sy - ch.ya) * ny, d1 = len - L.len / 2;
+  const on = (d: number, o: number) => ({ x: ch.xa + ux * d + nx * o, y: ch.ya + uy * d + ny * o });
   if (k < UP) {
-    const t = k / UP, tilt = LADDER_ANGLE * Math.min(1, t / 0.12);
-    return { cx: sx + (ex - sx) * t, cy: sy + (ey - sy) * t, tilt };
+    const t = k / UP, lift = smooth(t / 0.14);
+    // (eased off the water (no jerk from still), then steady up the chain)
+    const go = t < 0.1 ? (t * t) / 0.2 : t - 0.05, d = d0 + (d1 - d0) * (go / 0.95);
+    const p = on(d, o0 + (off - o0) * lift);
+    return { cx: p.x, cy: p.y, tilt: LADDER_ANGLE * lift };
   }
-  const t = (k - UP) / (1 - UP), deckX = LADDER.top + L.len / 2, deckY = LADDER.topY - R;
-  return { cx: ex + (deckX - ex) * t, cy: ey + (deckY - ey) * t, tilt: LADDER_ANGLE * (1 - t) };
+  const t = (k - UP) / (1 - UP), e = smooth(t), top = on(d1, off), deckX = LADDER.top + L.len / 2, deckY = LADDER.topY - R;
+  // (still moving up the slope as it leaves the chain: carried on along it a little, then onto the deck)
+  const fx = top.x + ux * 30 * (1 - e) * t, fy = top.y + uy * 30 * (1 - e) * t;
+  return { cx: fx + (deckX - fx) * e, cy: fy + (deckY - fy) * e, tilt: LADDER_ANGLE * (1 - e) };
+};
+/** The log he's riding up the ladder (latched: placed on it every frame; the rolling's off for the whole haul), and
+ *  where he stands along it (from its middle, along its length). */
+let ride: { L: PondLog; s: number } | null = null;
+/** The top of a log lying at `at`, s along it from its middle. */
+const topAt = (at: { cx: number; cy: number; tilt: number }, s: number) => {
+  const c = Math.cos(at.tilt), sn = Math.sin(at.tilt);
+  return { x: at.cx + s * c + R * sn, y: at.cy + s * sn - R * c };
 };
 
 export const buildLogs = (state: GameState) => {
@@ -93,14 +111,38 @@ export const updateLogs = (ctx: FrameContext, controls: Controls): Controls => {
     }
     // (on the ladder: up it, then tipped onto the deck)
     if (L.ladder > 0) {
+      const was = L.ladder;
       L.ladder = Math.min(1, L.ladder + 1 / LADDER.frames);
-      // (carried up the chain lying along it: no rolling; whoever's on it stands where its top is under him, tilted
-      // with it)
+      // (carried up the chain lying along it: the rolling's off for the whole haul (no roll, no drift, no log-roll pose).
+      // He rides it as solid footing: stood upright on its top wherever he is along it, walking a little if he likes
+      // (kept on it), placed on it every frame so nothing fights the haul; a jump (or a knock) takes him off it.)
       const at = ladderAt(L, L.ladder);
-      moveMover(state, L.m, at.cx - L.len / 2, at.cy - R);
-      if (L === on && p.health > 0) p.spriteRot = at.tilt;
+      let mine = p.health > 0 && !p.inCutscene && p.isGrounded && p.vel.y >= 0 && (ride?.L === L || L === on);
+      const fx = p.pos.x + p.width / 2, half = (L.len / 2) * Math.cos(at.tilt) - p.width / 2 + 4;
+      if (mine) {
+        if (ride?.L !== L) { const prev = ladderAt(L, was); ride = { L, s: fx - topAt(prev, 0).x }; }
+        // (where his walking's put him along it: kept on it on the way up; set down on the deck, he can step off it)
+        const r = ride!, prevTop = topAt(ladderAt(L, was), r.s), s = r.s + (fx - prevTop.x);
+        if (was >= 1 && Math.abs(s) > (L.len + p.width) / 2 - 6) mine = false;
+        else if (was >= 1) r.s = s;
+        else { r.s = Math.max(-half, Math.min(half, s)); if (Math.abs(r.s) >= half) p.vel.x = 0; }
+      }
+      if (mine) {
+        const r = ride!;
+        const ft = topAt(at, r.s);
+        moveMover(state, L.m, ft.x - L.len / 2, ft.y, false);
+        p.pos.x = ft.x - p.width / 2; p.pos.y = ft.y - p.height; p.vel.y = 0; p.isGrounded = true;
+      } else {
+        if (ride?.L === L) ride = null;
+        moveMover(state, L.m, at.cx - L.len / 2, at.cy - R);
+      }
       if (state.frame % 12 === 0) playSound('clink', 0.4, -4);
-      if (L.ladder >= 1) { L.gone = BACK; moveMover(state, L.m, at.cx - L.len / 2, at.cy - R, true); playSound('thud', 0.8, -8); shakeScreen(state, 3, 2); }
+      if (L.ladder >= 1) {
+        if (was < 1) { playSound('thud', 0.8, -8); shakeScreen(state, 3, 2); }
+        // (set down on the deck: it stays put under him till he steps off it (no drop out from under him), then it's
+        // gone (a new one floats out back home a while later))
+        if (!mine) { L.gone = BACK; moveMover(state, L.m, at.cx - L.len / 2, at.cy - R, true); if (ride?.L === L) ride = null; }
+      }
       continue;
     }
     const rider = L === on && p.health > 0 && !p.inCutscene;
@@ -165,11 +207,9 @@ export const updateLogs = (ctx: FrameContext, controls: Controls): Controls => {
       if (!jammed) out = { ...out, left: false, right: false };
     }
   }
-  if ((!on || on.ladder > 0) && p.logRoll) p.logRoll = undefined;
-  // (off the ladder's log (stepped off, or tipped onto the deck): stood up straight again)
-  const up = !!on && on.ladder > 0 && p.health > 0;
-  if (!up && tilted) p.spriteRot = 0;
-  tilted = up;
+  // (the log-roll pose only on a log in the water: never on the haul)
+  if ((!on || on.ladder > 0 || ride) && p.logRoll) p.logRoll = undefined;
+  if (ride && !tw.logs.includes(ride.L)) ride = null;
   return out;
 };
 
@@ -208,12 +248,21 @@ export const drawLadder = (c: Ctx, state: GameState) => {
   c.strokeStyle = T[3]; c.lineWidth = 12; c.stroke();
   c.strokeStyle = T[5]; c.lineWidth = 2; c.beginPath(); c.moveTo(xa, ya - 5); c.lineTo(xb, yb - 5); c.stroke();
   c.strokeStyle = T[1]; c.lineWidth = 2; c.beginPath(); c.moveTo(xa, ya + 5); c.lineTo(xb, yb + 5); c.stroke();
-  // (the chain and its dogs, crawling up; the head sprocket)
-  const len = Math.hypot(xb - xa, yb - ya), ux = (xb - xa) / len, uy = (yb - ya) / len;
-  c.strokeStyle = INK; c.lineWidth = 4; c.beginPath(); c.moveTo(xa, ya - 7); c.lineTo(xb, yb - 7); c.stroke();
+  // (the chain along the beam's top and its dogs standing square off it, crawling up at the haul's own pace: the log
+  // rides on the dogs' tips (ladderAt); the head sprocket)
+  const len = Math.hypot(xb - xa, yb - ya), ux = (xb - xa) / len, uy = (yb - ya) / len, nx = uy, ny = -ux;
+  const cx0 = xa + nx * (BEAM + 1), cy0 = ya + ny * (BEAM + 1), cx1 = xb + nx * (BEAM + 1), cy1 = yb + ny * (BEAM + 1);
+  c.strokeStyle = INK; c.lineWidth = 4; c.beginPath(); c.moveTo(cx0, cy0); c.lineTo(cx1, cy1); c.stroke();
   c.strokeStyle = S[3]; c.lineWidth = 2; c.stroke();
-  const off = (state.frame * 1.2) % 30;
-  for (let d = off; d < len; d += 10) box(c, xa + ux * d - 1, ya + uy * d - 8, 3, 2, S[5]);
-  for (let d = off; d < len; d += 30) { box(c, xa + ux * d - 4, ya + uy * d - 13, 8, 7, INK); box(c, xa + ux * d - 3, ya + uy * d - 12, 6, 5, S[4]); box(c, xa + ux * d - 3, ya + uy * d - 12, 6, 1, S[6]); }
-  c.fillStyle = INK; c.beginPath(); c.arc(xb, yb - 7, 10, 0, Math.PI * 2); c.fill(); c.fillStyle = S[3]; c.beginPath(); c.arc(xb, yb - 7, 8, 0, Math.PI * 2); c.fill(); box(c, xb - 2, yb - 9, 4, 4, S[6]);
+  const pace = (len - 60) / (LADDER.frames * UP), off = (state.frame * pace) % 30;
+  for (let d = off % 10; d < len; d += 10) box(c, cx0 + ux * d - 1, cy0 + uy * d - 1, 3, 2, S[5]);
+  for (let d = off; d < len - 4; d += 30) {
+    c.save(); c.translate(cx0 + ux * d, cy0 + uy * d); c.rotate(LADDER_ANGLE);
+    box(c, -4, -(DOG - BEAM) - 1, 8, DOG - BEAM + 2, INK); box(c, -3, -(DOG - BEAM), 6, DOG - BEAM, S[4]); box(c, -3, -(DOG - BEAM), 6, 1, S[6]); box(c, 1, -(DOG - BEAM), 2, DOG - BEAM, S[2]);
+    c.restore();
+  }
+  c.fillStyle = INK; c.beginPath(); c.arc(cx1, cy1, 10, 0, Math.PI * 2); c.fill(); c.fillStyle = S[3]; c.beginPath(); c.arc(cx1, cy1, 8, 0, Math.PI * 2); c.fill();
+  const sa = state.frame * pace / 8;
+  for (let k = 0; k < 4; k++) box(c, cx1 + Math.cos(sa + k * Math.PI / 2) * 5 - 1, cy1 + Math.sin(sa + k * Math.PI / 2) * 5 - 1, 3, 3, S[1]);
+  box(c, cx1 - 2, cy1 - 2, 4, 4, S[6]);
 };

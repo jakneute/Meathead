@@ -32,7 +32,8 @@ import { layOwn, ledge, solid, endWalls, endExits, runExits } from '../section';
 import { SECTIONS } from '../geometry';
 import { frontierSky } from '../kit';
 import { townOf } from './state';
-import { GROUND, LEDGES, SOLIDS, CRATES, CAST, PICKUPS, CHECKPOINTS, SALOON, SQUARE, X, Y, inMine, inSaloon } from './layout';
+import { GROUND, LEDGES, SOLIDS, CRATES, CAST, PICKUPS, CHECKPOINTS, SALOON, SQUARE, X, Y, inMine, inSaloon, mineDepthOf } from './layout';
+import { mix } from '../kit';
 import { givePine } from './kinds';
 import { updateThrows, drawThrows } from './throws';
 import { updateBlasts, drawBlasts, blastLights } from './blast';
@@ -93,7 +94,8 @@ export const town: FrontierSection = {
   },
   zoom: (state) => ({ scale: zoomOf(state), x: state.camera.x + CANVAS_WIDTH / 2, y: state.camera.y + 300 }),
   // (down the mine, his feet higher on the screen: what's above and below both in view)
-  cameraRow: (state) => (inMine(state.player.pos.x + state.player.width / 2, state.player.pos.y + state.player.height) ? 400 : 510),
+  // (eased by how far down he is, as the dark is: no jump at the shaft's top)
+  cameraRow: (state) => 510 - 110 * mineDepthOf(state.player.pos.x + state.player.width / 2, state.player.pos.y + state.player.height, 0, 160),
   drawBackdrop: (c, state) => drawTownBackdrop(c, state) || frontierSky(c, state),
   drawBack: (c, state) => {
     drawTownBack(c, state, wreckHere(state));
@@ -120,11 +122,19 @@ export const town: FrontierSection = {
   lighting: (state) => {
     const p = state.player, cx = p.pos.x + p.width / 2, feet = p.pos.y + p.height;
     const lamps: Light[] = [...townLamps(state), ...blastLights(state)];
-    if (inMine(cx, feet)) {
-      const deep = Math.min(1, Math.max(0, (feet - Y(0) - 40) / 200));
-      return { dark: 0.5 + 0.28 * deep, shade: [12, 9, 6], rim: 0.22, lights: lamps };
-    }
+    // (going down a shaft (or up one out of it) the dark comes on by how far down he is: eased from the hour's light at
+    // the ground line to the mine's murk well down (the playtest's: coming up out of the mine it all popped in at once))
+    const m = mineDepthOf(cx, feet, 0, 220);
+    const mine = () => { const deep = Math.min(1, Math.max(0, (feet - Y(0) - 40) / 200)); return { dark: 0.5 + 0.28 * deep, shade: [12, 9, 6] as [number, number, number], rim: 0.22, lights: lamps }; };
+    if (m >= 1) return mine();
     if (inSaloon(cx, feet)) return { dark: 0.24, shade: [30, 14, 8], rim: 0.35, lights: lamps };
-    return todLight(timeOfDay().lamps > 0.05 ? lamps : blastLights(state), 1);
+    const out = todLight(timeOfDay().lamps > 0.05 ? lamps : blastLights(state), 1);
+    if (m <= 0) return out;
+    const tod = timeOfDay(), md = mine(), od = out?.dark ?? 0, os = out?.shade ?? md.shade, lerp = (a: number, b: number) => a + (b - a) * m;
+    return {
+      dark: lerp(od, md.dark), shade: [lerp(os[0], md.shade[0]), lerp(os[1], md.shade[1]), lerp(os[2], md.shade[2])] as [number, number, number], rim: lerp(out?.rim ?? 0.6, md.rim),
+      grade: mix(out?.grade ?? '#FFFFFF', '#FFFFFF', m),
+      lights: lamps.map(l => ({ ...l, a: l.a * lerp(tod.lamps > 0.05 ? tod.lamps : 0, 1) })),
+    };
   },
 };

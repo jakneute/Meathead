@@ -45,6 +45,7 @@ import { GY } from '../geometry';
 import { townOf } from './state';
 import { X } from './layout';
 import { TOWN_VOICES, ARRIVE, STRETCHER, MEDIC } from './lines';
+import { drawImpactBack, drawImpactFront, drawYardWreck, drawCoalHeap, stoveIn, holeAt, BURST } from './impact';
 
 const TAU = Math.PI * 2;
 /** The train's speed coming in (px a frame), the frames of it before the stop. */
@@ -88,6 +89,8 @@ export const crashRunning = () => { const s = mine(); return !!s && s.phase !== 
 export const arriveSaid = () => arriveVisit === landVisit();
 /** The zoom the crash wants (null: the town's own). */
 export const crashZoom = () => { const s = mine(); return s && (s.phase === 'crash') ? CRASH_ZOOM : null; };
+/** The depot's stove in (its own drawing leaves the impact point to impact.ts): from the nose's burst on, and after. */
+export const depotStoveIn = () => { const s = mine(); return stoveIn(s && s.phase !== 'done' ? s.t : AFTER); };
 /** FIRST AID's door open (them carrying him in). */
 export const firstAidOpen = () => { const s = mine(); return !!s && (s.phase === 'carry' || (s.phase === 'in' && s.pt < 14)); };
 
@@ -165,7 +168,7 @@ const aim = (state: GameState, s: Crash) => {
 };
 
 const bits = (s: Crash, n: number, x: number, y: number, spread: number, vx: [number, number], vy: [number, number], cols: string[], size: [number, number]) => {
-  for (let i = 0; i < n && s.bits.length < 90; i++) {
+  for (let i = 0; i < n && s.bits.length < 170; i++) {
     const r = Math.random;
     s.bits.push({ x: x + (r() - 0.5) * spread, y: y - r() * spread * 0.5, vx: vx[0] + r() * (vx[1] - vx[0]), vy: vy[0] + r() * (vy[1] - vy[0]), a: r() * TAU, va: (r() - 0.5) * 0.5, w: size[0] + r() * (size[1] - size[0]), h: 3 + r() * 4, col: cols[i % cols.length], rest: false });
   }
@@ -230,10 +233,30 @@ export const updateCrash = (ctx: FrameContext, controls: Controls): Controls => 
         if (t % 6 === 0) bits(s, 3, nx - 20, GY - 10, 30, [3, 10], [-9, -4], ['#7A5A38', '#5A3A1E'], [6, 12]);
       }
       if (t === 3) playSound('crunch', 1, -12);
-      // (into the depot's front)
-      if (t === 14) {
-        playSound('crash', 1, -4); playSound('glass', 1, -2); shakeScreen(state, 20, 8);
+      // (the depot's wall bowing ahead of the nose: dust sifting out of its seams)
+      if (t >= 8 && t < BURST && t % 2 === 0) puffs(s, 1, X(380 + (t - 8) * 12), GY - 60 - Math.random() * 120, 30, '#8A7A62', 14, 0.45, 60, 0.3);
+      if (t === 10) playSound('crunch', 0.8, -14);
+      // (into the depot's front: the wall bursts, boards and studs and glass flying, the far window blowing out)
+      if (t === BURST) {
+        playSound('crash', 1, -4); playSound('glass', 1, -2); playSound('glass', 0.8, 4); shakeScreen(state, 20, 8);
         bits(s, 18, X(410), GY - 140, 160, [2, 12], [-11, -3], ['#B08A5A', '#8A6A40', '#7A6A4A', '#C8A070', '#BFE0F8'], [10, 30]);
+        bits(s, 8, X(440), GY - 120, 120, [-6, 8], [-12, -5], ['#7A6A4A', '#B08A5A', '#5E4A30'], [26, 42]);
+        bits(s, 12, X(380 + 196), GY - 122, 30, [1, 7], [-7, -2], ['#BFE0F8', '#E0F2FE', '#A8C0CE'], [2, 5]);
+        bits(s, 10, X(420), GY - 130, 80, [-4, 6], [-9, -3], ['#BFE0F8', '#E0F2FE'], [2, 4]);
+        const [hx, hy] = holeAt();
+        puffs(s, 10, hx, hy + 40, 150, '#9A8A72', 44, 0.6, 170, 0.5);
+      }
+      // (the eaves coming down over it: shingles sliding off; the dust rolling out of the hole; embers off the
+      // smoldering inside)
+      if (t > BURST && t < BURST + 26 && t % 4 === 0) bits(s, 2, X(380 + 70), GY - 276, 70, [-3, 2], [-4, -1], ['#5E3820', '#462816', '#78482A'], [8, 12]);
+      if (t > BURST && t < BURST + 60 && t % 3 === 0) {
+        const [hx, hy] = holeAt(), n = s.puffs.length;
+        puffs(s, 1, hx + 20, hy + 60 + Math.random() * 60, 60, Math.random() < 0.5 ? '#8A7A62' : '#6A5C4A', 30, 0.5, 150, 0.35);
+        for (let i = n; i < s.puffs.length; i++) s.puffs[i].vx = -1.2 - Math.random() * 1.6;
+      }
+      if (t > BURST + 16 && t % 5 === 0) {
+        const [hx] = holeAt();
+        state.particles.push({ pos: { x: hx + 40 + Math.random() * 30, y: GY - 10 }, vel: { x: -0.6 + Math.random() * 1.2, y: -1.2 - Math.random() * 1.6 }, life: 30 + Math.random() * 30, color: Math.random() < 0.5 ? '#F97316' : '#FDE047', size: 1.5 + Math.random() });
       }
       if (t === 24) playSound('ignite', 1, -6);
       // (the tender up onto the cab, the coach slewed down behind)
@@ -362,6 +385,28 @@ const drawLoco = (c: Ctx, x: number, tilt: number, crush: number, hit: boolean, 
     c.fillStyle = '#1A1410'; c.beginPath(); c.arc(-52, -269, 17, 0, TAU); c.fill();
     for (const [gx, gy] of [[-62, -280], [-48, -262], [-58, -258]] as const) poly(c, [gx, gy, gx + 5, gy - 5, gx + 8, gy + 3], '#D8E8F0');
     c.strokeStyle = INK; c.lineWidth = 2; c.beginPath(); c.moveTo(-80, -298); c.lineTo(-74, -276); c.lineTo(-82, -252); c.stroke();
+    // (the pilot beam bent up in the middle, its coupler knocked askew)
+    poly(c, [-104, -18, -62, -12, -40, -26, -10, -10, -10, -2, -40, -16, -62, -4, -104, -8], INK);
+    poly(c, [-102, -16, -62, -10, -40, -23, -12, -8, -12, -4, -40, -18, -62, -6, -102, -10], Rd[3]);
+    poly(c, [-102, -16, -62, -10, -40, -23, -40, -21, -62, -8, -102, -14], Rd[5]);
+    box(c, -60, -22, 12, 8, INK); box(c, -59, -21, 10, 6, S[3]); box(c, -59, -21, 10, 1, S[5]);
+    // (dents stove into the smokebox's side: stepped shadows, their lit lips)
+    for (const [dx, dy, r] of [[-130, -206, 11], [-118, -160, 9], [-140, -132, 7]] as const) {
+      c.fillStyle = B[0]; c.beginPath(); c.ellipse(dx, dy, r, r * 1.3, 0.3, 0, TAU); c.fill();
+      c.fillStyle = B[1]; c.beginPath(); c.ellipse(dx + 2, dy + 2, r * 0.7, r * 0.9, 0.3, 0, TAU); c.fill();
+      c.strokeStyle = B[5]; c.lineWidth = 1; c.beginPath(); c.ellipse(dx, dy, r, r * 1.3, 0.3, Math.PI * 0.9, Math.PI * 1.6); c.stroke();
+    }
+    // (a main rod snapped: its broken half hanging down off the crosshead into the dirt, its end ragged)
+    c.save(); c.translate(-236, -62); c.rotate(1.1);
+    box(c, -2, -5, 64, 10, INK); box(c, -1, -4, 62, 8, S[3]); box(c, -1, -4, 62, 2, S[5]); box(c, -1, 2, 62, 2, S[1]);
+    poly(c, [61, -4, 66, -2, 62, 0, 67, 3, 61, 4], S[6]);
+    c.fillStyle = INK; c.beginPath(); c.arc(0, 0, 7, 0, TAU); c.fill(); c.fillStyle = S[4]; c.beginPath(); c.arc(0, 0, 5, 0, TAU); c.fill();
+    c.restore();
+    // (a steam pipe burst off the boiler's side: bent out, its end split open)
+    c.lineCap = 'round';
+    for (const [w, col] of [[8, INK], [5, S[3]], [1, S[6]]] as const) { c.strokeStyle = col; c.lineWidth = w; c.beginPath(); c.moveTo(-352, -150); c.quadraticCurveTo(-338, -150, -334, -170); c.stroke(); }
+    c.lineCap = 'butt';
+    poly(c, [-340, -170, -334, -180, -328, -170], INK); poly(c, [-338, -171, -334, -177, -330, -171], '#1A1A1E');
   }
   c.restore();
 };
@@ -491,31 +536,16 @@ export const drawWreck = (c: Ctx, state: GameState) => {
   const S = N(STEEL), Ti = N(['#1A120C', '#2A1E14', '#3C2C1E', '#4E3A28', '#624A34', '#7A5E44']);
   const tie = (x: number, y: number, a: number) => { c.save(); c.translate(x, y); c.rotate(a); box(c, -1, -1, 16, 6, INK); box(c, 0, 0, 14, 4, Ti[3]); box(c, 0, 0, 14, 1, Ti[5]); box(c, 2, 0, 2, 2, '#26262C'); box(c, 10, 0, 2, 2, '#26262C'); c.restore(); };
   if (hit) {
-    for (let x = X(100); x < X(250); x += 26) tie(x + hash(x) * 10, GY - 4 + hash(x * 3) * 3, (hash(x * 7) - 0.5) * 0.8);
-    c.lineCap = 'round';
-    for (const [w, col] of [[6, INK], [4, S[3]], [1, S[6]]] as const) {
-      c.strokeStyle = col; c.lineWidth = w;
-      c.beginPath(); c.moveTo(X(96), GY - 4); c.quadraticCurveTo(X(200), GY - 8, X(236), GY - 70); c.quadraticCurveTo(X(250), GY - 104, X(226), GY - 118); c.stroke();
-      c.beginPath(); c.moveTo(X(100), GY - 2); c.quadraticCurveTo(X(180), GY - 4, X(262), GY - 34); c.quadraticCurveTo(X(300), GY - 48, X(304), GY - 30); c.stroke();
-    }
-    c.lineCap = 'butt';
+    // (the ground torn up, the buffer stop's stumps: impact.ts, a stamp)
+    drawYardWreck(c, X(NOSE_HIT));
   } else {
     for (let x = X(100); x < X(200); x += 22) tie(x, GY - 4, 0);
     box(c, X(100), GY - 6, X(200) - X(100), 5, INK); box(c, X(100), GY - 5, X(200) - X(100), 3, S[3]); box(c, X(100), GY - 5, X(200) - X(100), 1, S[6]);
   }
-  // ---- the depot's front: a hole stove in it, once the engine's into it
+  // ---- the depot's front stove in round the nose: the room inside through the hole, the attic, the eaves' far end
+  //      shoved up (impact.ts: behind the engine)
   const nose = noseAt(t);
-  if (nose > 380) {
-    const hx = Math.min(nose, NOSE_END) + 30;
-    poly(c, [X(372), GY, X(368), GY - 120, X(388), GY - 168, X(404), GY - 150, X(424), GY - 214, X(446), GY - 190, X(hx - 20), GY - 236, X(hx), GY - 200, X(hx + 12), GY - 120, X(hx + 4), GY], '#140D08');
-    poly(c, [X(380), GY, X(378), GY - 110, X(392), GY - 150, X(410), GY - 138, X(426), GY - 196, X(hx - 10), GY - 214, X(hx + 2), GY - 120, X(hx - 2), GY], '#1E140C');
-    // (the boards splintered out round the hole: inked, lit along their tops)
-    for (const [w, col] of [[4, INK], [2, '#D8B880']] as const) {
-      c.strokeStyle = col; c.lineWidth = w; c.beginPath();
-      for (const [a, b, d, e] of [[368, 120, 352, 132], [388, 168, 380, 186], [424, 214, 418, 236], [446, 190, 458, 206], [hx, 200, hx + 18, 214], [hx + 12, 120, hx + 30, 112], [404, 150, 396, 160]]) { c.moveTo(X(a), GY - b); c.lineTo(X(d), GY - e); }
-      c.stroke();
-    }
-  }
+  drawImpactBack(c, state, t);
   // ---- the canopy (behind the engine)
   const fall = hit ? clamp01((t - 2) / 12) : 0;
   drawCanopy(c, hit ? Math.max(0.01, fall) : 0);
@@ -527,18 +557,15 @@ export const drawWreck = (c: Ctx, state: GameState) => {
     for (let k = 0; k < 3; k++) { box(c, bx - 16, GY - 46 + k * 14, 34, 7, k % 2 ? '#F2F0EA' : '#C81E1E'); box(c, bx - 16, GY - 46 + k * 14, 34, 1, k % 2 ? '#FFFFFF' : '#E85A4A'); }
     for (const by of [GY - 42, GY - 14]) for (const bxx of [bx - 10, bx + 8]) { box(c, bxx, by, 3, 3, INK); box(c, bxx, by, 1, 1, S[5]); }
     box(c, bx - 6, GY - 66, 14, 14, INK); box(c, bx - 5, GY - 65, 12, 12, S[3]); box(c, bx - 3, GY - 62, 8, 7, '#E8262A'); box(c, bx - 3, GY - 62, 3, 2, '#FF9A8A');
-  } else {
-    // (smashed flat: splintered timber stumps, the striped beam's pieces lying about)
-    poly(c, [bx - 20, GY, bx - 16, GY - 22, bx - 4, GY - 30, bx + 6, GY - 16, bx + 22, GY - 26, bx + 26, GY], INK);
-    poly(c, [bx - 17, GY, bx - 14, GY - 20, bx - 4, GY - 27, bx + 5, GY - 13, bx + 20, GY - 23, bx + 23, GY], Tb[2]);
-    poly(c, [bx - 14, GY - 20, bx - 4, GY - 27, bx - 2, GY - 20, bx - 12, GY - 14], Tb[5]);
-    for (const [px, a] of [[bx + 40, 0.3], [bx + 74, -0.2]] as const) { c.save(); c.translate(px, GY - 4); c.rotate(a); box(c, -1, -4, 30, 8, INK); for (let k = 0; k < 4; k++) box(c, k * 7, -3, 7, 6, k % 2 ? '#F2F0EA' : '#C81E1E'); c.restore(); }
   }
-  // ---- the train: the coach, the tender, the engine
+  // ---- the train: the coach, the tender (the coal spilling off it in a heap), the engine; then what's left of the
+  //      depot's wall round the nose, the eaves' near end come down, the name board hanging (impact.ts: in front of it)
   const tp = carAt(TENDER, t), cp = carAt(COACH, t);
   drawCoach(c, cp, t >= COACH.th);
   drawTender(c, tp, t >= TENDER.th);
+  drawCoalHeap(c, X(-430), clamp01((t - (TENDER.th + TENDER.dur - 4)) / 30));
   drawLoco(c, X(nose), tiltAt(t), crushAt(t), hit, f);
+  drawImpactFront(c, state, t);
   if (hit) drawCanopy(c, Math.max(0.01, fall), true);
   // ---- the fires catching (the cab, the coal, the coach's front), the steam still pouring off the boiler
   const k = clamp01((t - 24) / 50);
@@ -558,6 +585,12 @@ export const drawWreck = (c: Ctx, state: GameState) => {
     // (a jet of it hissing out of a split in the boiler's side)
     const [jx, jy] = onEngine(t, -200, -100);
     for (let n = 0; n < 5; n++) { const q = ((f * 1.6 + n * 9) % 45) / 45; puff(c, jx - 6 + q * 70, jy + 4 - q * 26, 5 + q * 18, st, 0.55 * (1 - q)); }
+    // (low off a burst cylinder cock, hissing out along the dirt; and out of the split smokebox into the depot's room)
+    const [lx, ly] = onEngine(t, -125, -38);
+    for (let n = 0; n < 4; n++) { const q = ((f * 1.3 + n * 11) % 44) / 44; puff(c, lx - q * 60, ly + 2 - q * 10, 4 + q * 14, st, 0.45 * (1 - q)); }
+    const [ix, iy] = onEngine(t, -58, -120);
+    for (let n = 0; n < 4; n++) { const q = ((f * 0.6 + n * 25) % 100) / 100; puff(c, ix + q * 70, iy - q * 50, 8 + q * 22, st, 0.35 * (1 - q)); }
+    c.globalAlpha = 1;
   }
   // ---- what came down and lay where it fell: the scene's own, or (skipped) strewn as it would be
   if (s) { for (const b of s.bits) if (b.rest) bit(c, b); }
@@ -657,5 +690,7 @@ export const wreckLights = (state: GameState) => {
   const a = 0.34 * clamp01((t - 24) / 50);
   const out = [onEngine(t, -323, -134), onCar(carAt(TENDER, t), 230, -150), onCar(carAt(COACH, t), 560, -120)];
   void state;
-  return out.map(([x, y]) => ({ x, y: y - 20, r: 170, a, color: '#6A3010' }));
+  const [hx] = holeAt();
+  // (the smolder inside the depot: smaller, softer)
+  return [...out.map(([x, y]) => ({ x, y: y - 20, r: 170, a, color: '#6A3010' })), { x: hx + 48, y: GY - 30, r: 110, a: a * 0.6, color: '#6A3010' }];
 };

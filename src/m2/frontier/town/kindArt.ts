@@ -582,8 +582,10 @@ export const drawFeller = (c: Ctx, e: Enemy, f: number, seed: number) => {
   putFrame(c, 'ft-feller', F, BOX, g => paintFeller(g, F));
 };
 
-const paintBirler = (g: Ctx, F: Frame) => {
-  const B = bodyOf(F.seed, F.fr % 2 ? 'walk' : 'stand', F.fr * 3), L = B.L, shirt = pickOf(F.seed, 2, ['#1D4ED8', '#B91C1C', '#0F766E']);
+const paintBirler = (g: Ctx, F: Frame, knocked = false) => {
+  // (knocked about, flung, dying or a body: still him (his own look, the striped shirt), posed for it (the playtest's:
+  // he turned into the feller in his death))
+  const B = knocked ? bodyOf(F.seed, F.pose, F.fr) : bodyOf(F.seed, F.fr % 2 ? 'walk' : 'stand', F.fr * 3), L = B.L, shirt = pickOf(F.seed, 2, ['#1D4ED8', '#B91C1C', '#0F766E']);
   legs(g, B, { col: '#6B5A44', shoe: 'boot', shoeCol: '#3F2A14', detail: (gg, _h, knee, ft) => { px(gg, knee[0] - 4, knee[1] + 2, 9, 3, '#8A7A62'); for (let k = 0; k < 3; k++) px(gg, ft[0] - 2 + k * 3, ft[1], 1, 2, '#D4D4D8'); } });
   const H = handsAt(B, F, [-B.w / 2 - 16, B.shY + 2 + (F.fr % 2) * 4], [B.w / 2 + 16, B.shY + 2 - (F.fr % 2) * 4]);
   arm(g, B, -1, H.far[0], H.far[1], { sleeve: shirt, hand: L.skin, len: 0.6 });
@@ -601,7 +603,7 @@ export const drawBirler = (c: Ctx, e: Enemy, f: number, seed: number) => {
   const r = reaction(e);
   const F = r ? frameOf(seed, f, r.pose, r.md) : frameOf(seed, f, 'stand', moodOf(e));
   if (!r) F.fr = Math.floor(f / 8) % 2;
-  putFrame(c, 'ft-birler', F, BOX, g => (r ? paintFeller(g, F) : paintBirler(g, F)));
+  putFrame(c, 'ft-birler', F, BOX, g => paintBirler(g, F, !!r));
 };
 
 // ---------------------------------------------------------------------------------------------------------------

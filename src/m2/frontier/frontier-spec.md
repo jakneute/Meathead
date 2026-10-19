@@ -1353,3 +1353,23 @@ later (+1 if heavyset; was 2 / 3 before playtest fixes E). Tucker's glimpsed ahe
   the weakness leaves his cap, the pool and two drag marks to the lions backing off with half of him each; otherwise
   chunks of him everywhere and the grizzly's prints to it walking off with his leg. Timing, the flintlock act, HEADING
   BACK TO PARK and the walk back from the parking lot unchanged.
+- **Sawdust Gulch fixes (the user's, 2026-10-18):** THE CRASH's impact point detailed (town/impact.ts; "make sure the
+  train crash looks more detailed, especially at the building's impact point"): the wall bows ahead of the nose (seams
+  splitting, cracks, the bay window starring), then bursts board by board (each batten column broken at its own height,
+  splintered); the room inside seen from the scene's eye (faded paper, wainscot, DEPARTURES askew off one nail, a clock
+  hanging crooked, the ticket counter's grille bent, the lamp swung over, a bench on its back, litter, settling dust, a
+  soft smolder); in front of the nose the studs snapped and bent in, the top plate broken where the headlamp went up,
+  the sole plate kicked up, loose boards hanging in, the stop's striped beam carried in on the cowcatcher, dirt plowed
+  against the wall, the platform's boards buckled in a wave before the wheels, the far window shattered, glass and the
+  CLOSED sign on the ground; the eaves' left end torn off (the near piece drooped, the far shoved up on the headlamp,
+  the attic between), the name board hanging by one chain, swinging then settled; the ground's rails curled (a loop
+  thrown aside), ties scattered and on end, spikes popped, the furrow, the stop's stumps and smashed lamp; coal heaped
+  off the tender; No. 7's pilot beam bent, smokebox dented, a main rod snapped, a steam pipe burst (with the cylinder's
+  and the smokebox's steam). Static layers stamped; Tucker, the paramedics, timings, SKIP, camera and the revisit
+  unchanged. The saloon's stairs open treads on sawtooth stringers exactly on their ledges, the piano tucked under the
+  high treads between the stringers from the same eye. The jack ladder continuous (lifted off the water where it
+  floated, steady up on the dogs' tips, eased onto the deck; the chain and dogs drawn where the log rides): the log
+  roll's off for the whole haul, he rides it upright (placed on its top every frame, walks a little, a jump takes him
+  off), and set down on the deck it waits till he steps off. The birler stays himself in every knock and death (he was
+  drawn as the feller). Coming up out of the mine (or going down) the rock backdrop, the dark and the camera's row ease
+  by depth instead of popping.

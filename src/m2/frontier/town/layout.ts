@@ -263,5 +263,13 @@ export const SHAFTS: [number, number][] = [[11300, 11600], [14420, 14690]];
 
 /** Is world (x, feet y) down in the mine? (the shafts and the tunnels, under the ground line) */
 export const inMine = (x: number, y: number) => x > X(11300) && x < X(14690) && y > GY + 30;
+/** How far down into the mine world (x, y) is, 0 (at the ground line: outdoors) to 1 (well down: all mine), eased by
+ *  depth over [top, top + span] below the ground line: the backdrop and the light blend by it (no pop going up or down a
+ *  shaft). */
+export const mineDepthOf = (x: number, y: number, top = 0, span = 240) => {
+  if (x <= X(11300) || x >= X(14690)) return 0;
+  const k = Math.max(0, Math.min(1, (y - GY - top) / span));
+  return k * k * (3 - 2 * k);
+};
 /** Is world x inside the saloon? */
 export const inSaloon = (x: number, y: number) => x > SALOON.a + 8 && x < SALOON.b - 8 && y > SALOON.top;

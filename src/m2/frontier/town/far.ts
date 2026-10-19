@@ -19,7 +19,7 @@ import { signText } from '../../signLetters';
 import { drawFar } from '../wilds/far';
 import { GY } from '../geometry';
 import { type Ctx, box, checker, mix, hash, stamp, bandedGradient, hazeBands, INK, timeOfDay, farTint, skyAt, hourMix, FAR, MINE, PLY, STEEL, FIBER, NEEDLE } from './paint';
-import { inMine } from './layout';
+import { inMine, mineDepthOf } from './layout';
 import { zoomOf, viewOf } from './view';
 
 const W = CANVAS_WIDTH, H = CANVAS_HEIGHT;
@@ -137,14 +137,16 @@ const paintSkyline = (g: Ctx) => {
 
 export const drawTownBackdrop = (c: Ctx, state: GameState) => {
   const v = viewOf(state), cx = v.x + v.w / 2, cy = v.y + v.h / 2;
-  // (down the mine: the rock, banded darker going down, strata, never black)
-  if (inMine(cx, cy) && cy > GY + 160) {
+  // (down the mine: the rock, banded darker going down, strata, never black; faded in over the sky by how far down the
+  // view is (the playtest's: coming up out of the mine the sky popped in all at once), sky alone up top)
+  const m = mineDepthOf(cx, cy, -100, 300);
+  const rock = () => {
     const R = MINE;
     bandedGradient(c, 0, 0, W, H, [R[3], R[2], R[2], R[1], R[1], R[2]], 8);
     const off = -((state.camera.x * 0.3) % 160);
     for (let y = 30; y < H; y += 46) for (let x = off - 160; x < W; x += 160) { box(c, x + ((y * 7) % 60), y, 70, 2, R[3]); box(c, x + ((y * 7) % 60), y + 2, 70, 1, R[0]); }
-    return true;
-  }
+  };
+  if (m >= 1) { rock(); return true; }
   // (the wilds' far off, its ground line at the street's)
   const gl = farLine(state);
   const fake = { ...state, camera: { ...state.camera, y: GY - 252 - (gl - 252) / 0.7 } } as GameState;
@@ -152,6 +154,7 @@ export const drawTownBackdrop = (c: Ctx, state: GameState) => {
   // (the park over the roofs)
   const tod = timeOfDay();
   tile(c, `ft-skyline-${tod.key}`, state.camera.x * 0.3 + 300, gl - TH + 4, TH, TW, paintSkyline);
-  void hash;
+  if (m > 0) { c.save(); c.globalAlpha = m; rock(); c.restore(); }
+  void hash; void inMine;
   return true;
 };

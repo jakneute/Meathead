@@ -38,24 +38,31 @@ const lipAt = (c: Ctx, x: number, y: number, w: number) => { const L = hr('lip',
 // ---------------------------------------------------------------------------------------------------------------
 // The end of the line
 
-/** The depot: a clapboard station at the play plane, its bay window, its name board, the eaves on brackets. */
-export const drawDepot = (c: Ctx, v: TownView) => {
+/** The depot: a clapboard station at the play plane, its bay window, its name board, the eaves on brackets. `stoveIn`:
+ *  the crash's been through it (crash.ts draws the impact point over it: the hole and the room inside, the eaves' left
+ *  end come down, the name board hanging by one chain), so the eaves stop short of the break and the board's left off. */
+/** (where the eaves break off: crash.ts's BREAK, the same) */
+const DEPOT_BREAK = 150;
+export const drawDepot = (c: Ctx, v: TownView, stoveIn = false) => {
   const xa = X(380), w = 240, h = 260, top = GY - h, eye = v.eye;
   const R = hr7('#7A6A4A'), T = hr7('#E8D8B0'), Sh = hr('shingle', SHINGLE);
+  const e0 = stoveIn ? DEPOT_BREAK : -12;
   sideBack(c, eye, xa, -1, top, GY, 1, 0.84, R, 4);
   sideBack(c, eye, xa + w, 1, top, GY, 1, 0.84, R, 4);
-  topBack(c, eye, xa - 10, xa + w + 10, top - 24, 1, 0.84, [Sh[1], Sh[2], Sh[3], Sh[3], Sh[4]], 3);
-  still(c, 'depot', xa, GY, -16, -h - 40, w + 32, h + 42, g => {
+  topBack(c, eye, xa + Math.max(-10, e0), xa + w + 10, top - 24, 1, 0.84, [Sh[1], Sh[2], Sh[3], Sh[3], Sh[4]], 3);
+  still(c, stoveIn ? 'depot-stove' : 'depot', xa, GY, -16, -h - 40, w + 32, h + 42, g => {
     box(g, -1, -h - 1, w + 2, h + 1, INK);
     batten(g, 0, -h, w, h, R, 14, 380);
     box(g, 0, -h, 6, h, T[3]); box(g, w - 6, -h, 6, h, T[2]);
     // (the eaves overhanging on brackets, shingled)
-    box(g, -12, -h - 26, w + 24, 26, INK); box(g, -11, -h - 25, w + 22, 24, Sh[3]);
-    for (let r = 0; r < 3; r++) for (let x = -11 + (r % 2) * 6; x < w + 11; x += 12) { box(g, x, -h - 25 + r * 8, 11, 7, Sh[2 + ((x + r) & 1)]); box(g, x, -h - 19 + r * 8, 11, 1, Sh[5]); }
-    for (let x = 10; x < w - 4; x += 38) { box(g, x, -h, 6, 14, T[2]); box(g, x, -h, 2, 14, T[4]); box(g, x + 1, -h + 14, 4, 2, T[1]); }
+    box(g, e0, -h - 26, w + 12 - e0, 26, INK); box(g, e0 + 1, -h - 25, w + 11 - e0, 24, Sh[3]);
+    for (let r = 0; r < 3; r++) for (let x = -11 + (r % 2) * 6; x < w + 11; x += 12) { if (x + 11 <= e0 + 1) continue; const x0 = Math.max(x, e0 + 1); box(g, x0, -h - 25 + r * 8, x + 11 - x0, 7, Sh[2 + ((x + r) & 1)]); box(g, x0, -h - 19 + r * 8, x + 11 - x0, 1, Sh[5]); }
+    for (let x = 10; x < w - 4; x += 38) { if (x < e0) continue; box(g, x, -h, 6, 14, T[2]); box(g, x, -h, 2, 14, T[4]); box(g, x + 1, -h + 14, 4, 2, T[1]); }
     // (the name board, burned)
-    box(g, 21, -h + 15, w - 40, 34, INK); box(g, 22, -h + 16, w - 42, 32, hr('plank', PLANK)[5]); box(g, 22, -h + 16, w - 42, 2, hr('plank', PLANK)[6]);
-    signText(g, 'SAWDUST GULCH', w / 2, -h + 38, fit('SAWDUST GULCH', burned(2, 7), w - 52));
+    if (!stoveIn) {
+      box(g, 21, -h + 15, w - 40, 34, INK); box(g, 22, -h + 16, w - 42, 32, hr('plank', PLANK)[5]); box(g, 22, -h + 16, w - 42, 2, hr('plank', PLANK)[6]);
+      signText(g, 'SAWDUST GULCH', w / 2, -h + 38, fit('SAWDUST GULCH', burned(2, 7), w - 52));
+    }
     signText(g, 'DEPOT', w / 2, -h + 66, western(2, '#E8D8B0', R[0]));
     // (the bay window, the ticket window (CLOSED), the door)
     sash(g, 24, -150, 40, 56, T, warmth(), '#B8302A'); sash(g, w - 64, -150, 40, 56, T, warmth(), '#B8302A');

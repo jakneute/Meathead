@@ -23,7 +23,7 @@ import { type Ctx, type TownView, box, checker, hash, at, topBack, INK, hr, hr7,
 import { GROUND, LEDGES, SOLIDS, COVER, SIGNS, LANTERNS, LADDER, X, Y, inSaloon } from './layout';
 import { onScreen } from './view';
 import { wreckHere } from './scenes';
-import { drawWreck, drawCanopy, firstAidOpen, wreckLights } from './crash';
+import { drawWreck, drawCanopy, firstAidOpen, wreckLights, depotStoveIn } from './crash';
 import { drawGroundBack, drawGroundFloor, drawWaterBack } from './ground';
 import { drawFronts, drawBalcony, drawStores, FRONTS } from './fronts';
 import { timeOfDay } from '../../timeOfDay';
@@ -91,7 +91,7 @@ export const drawTownBack = (c: Ctx, state: GameState, wreck: boolean) => {
 /** The end of the line: the rails coming in, the depot, FIRST AID, and the crash's wreck (crash.ts) or the stop rebuilt. */
 const drawEndOfLine = (c: Ctx, state: GameState, v: TownView, wreck: boolean) => {
   drawTracks(c, v, X(-900), X(100));
-  drawDepot(c, v);
+  drawDepot(c, v, wreck && depotStoveIn());
   drawFirstAid(c, v, wreck && firstAidOpen());
   if (wreck) {
     // (the crash (crash.ts): happening, or as it ended up: the engine through the stop and stove into the depot, the

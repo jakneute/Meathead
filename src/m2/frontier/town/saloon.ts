@@ -202,27 +202,57 @@ const drawInside = (c: Ctx, state: GameState, v: TownView) => {
   topBack(c, eye, X(4260), X(4720), by, 1, BK, [Fl[2], Fl[3], Fl[4], Fl[4], Fl[5]], 3);
   underBack(c, eye, X(4260), X(4720), by + 12, 1, BK, [V[0], V[1], V[1]], 3);
   for (const px of [X(4270), X(4500), X(4710)]) { box(c, px - 5, by + 12, 10, GY - by - 12, INK); box(c, px - 4, by + 12, 8, GY - by - 12, V[3]); box(c, px - 4, by + 12, 2, GY - by - 12, V[5]); }
-  // (the stairs up: treads and risers, the stringer, the rail)
-  for (const [sa, sb, sh] of [[4840, 4892, 50], [4780, 4840, 100], [4720, 4780, 150]] as const) {
-    const y = Y(sh);
-    topBack(c, eye, X(sa), X(sb), y, 1, 0.92, [Fl[3], Fl[4], Fl[5], Fl[5], Fl[6]], 2);
-    box(c, X(sa) - 1, y - 1, X(sb) - X(sa) + 2, GY - y + 1, INK); box(c, X(sa), y, X(sb) - X(sa), GY - y, V[2]); box(c, X(sa), y, 3, GY - y, V[4]);
-    box(c, X(sa), y, X(sb) - X(sa), 1, L[3]); box(c, X(sa), y + 1, X(sb) - X(sa), 1, L[2]); box(c, X(sa), y + 2, X(sb) - X(sa), 1, L[1]);
-  }
-  c.strokeStyle = INK; c.lineWidth = 6; c.beginPath(); c.moveTo(X(4720), Y(190)); c.lineTo(X(4892), Y(88)); c.stroke();
-  c.strokeStyle = V[4]; c.lineWidth = 4; c.stroke(); c.strokeStyle = V[6]; c.lineWidth = 1; c.beginPath(); c.moveTo(X(4720), Y(192)); c.lineTo(X(4892), Y(90)); c.stroke();
-  for (let k = 0; k < 6; k++) { const x = X(4730) + k * 28, y = Y(184) + k * 17; box(c, x - 1, y, 4, 36, INK); box(c, x, y, 2, 36, V[4]); }
-  // (the piano under the stairs, its player playing on through anything)
+  // (the stairs up and the piano under them, all from the room's one eye (the playtest's: they looked off). An open
+  // stair: its treads exactly on the ledges he stands on ([4720,4780] at 150, [4780,4840] at 100, [4840,4892] at 50,
+  // the balcony's floor at 200 above them), each going back to ST_BK with its lit lip at the front, the risers' faces
+  // seen in perspective, carried on two sawtooth stringers (the far one back at ST_BK, the near one at the play plane).
+  // The piano stands on the floor between the stringers (its front at 0.95, its top and end going back to 0.9) under the
+  // high treads, clear of the low one: drawn after the far stringer, before the treads and the near one.)
+  const ST_BK = 0.92, STEPS = [[4720, 4780, 150], [4780, 4840, 100], [4840, 4892, 50]] as const;
+  const stringer = (col: string, lit: string) => {
+    // (the sawtooth under the treads; its underside a straight run from under the top tread down to the floor)
+    const pts: [number, number][] = [[X(4720), Y(200) + 12], [X(4720), Y(150) + 8], [X(4780), Y(150) + 8], [X(4780), Y(100) + 8], [X(4840), Y(100) + 8], [X(4840), Y(50) + 8], [X(4892), Y(50) + 8], [X(4892), GY], [X(4866), GY], [X(4720), Y(126)]];
+    poly(c, pts, col);
+    c.strokeStyle = INK; c.lineWidth = 2; c.lineJoin = 'miter'; c.beginPath(); c.moveTo(pts[0][0], pts[0][1]); for (const [x, y] of pts.slice(1)) c.lineTo(x, y); c.closePath(); c.stroke();
+    c.strokeStyle = lit; c.lineWidth = 1; c.beginPath(); c.moveTo(X(4720) + 1, Y(126) - 1); c.lineTo(X(4866) - 1, GY - 1); c.stroke();
+  };
+  atDepth(c, eye, ST_BK, () => stringer(V[1], V[2]));
+  // (the piano: an upright on the floor, its end and lid going back, the front cached; its player behind it, playing on
+  // through anything)
+  const pa = X(4726), pb = X(4822), pt = GY - 77;
+  sideBack(c, eye, pa, -1, pt, GY, 0.95, 0.9, [V[1], V[1], V[2], V[2], V[3]], 2, false);
+  sideBack(c, eye, pb, 1, pt, GY, 0.95, 0.9, [V[1], V[1], V[2], V[2], V[3]], 2, false);
+  topBack(c, eye, pa, pb, pt, 0.95, 0.9, [V[2], V[3], V[4], V[4], V[5]], 2);
   atDepth(c, eye, 0.95, () => {
-    drawGuest(c, X(4790), GY - 4, { seed: 517, f: f + (brawl ? f : 0), outfit: 'pianist', pose: 'sit', mood: brawl ? 'scared' : 'happy' });
-    still(c, 'saloon-piano', X(4770), GY, -2, -80, 102, 82, g => {
+    drawGuest(c, X(4746), GY - 4, { seed: 517, f: f + (brawl ? f : 0), outfit: 'pianist', pose: 'sit', mood: brawl ? 'scared' : 'happy' });
+    still(c, 'saloon-piano', pa, GY, -2, -92, 102, 94, g => {
       box(g, -1, -77, 98, 77, INK); box(g, 0, -76, 96, 76, V[2]); box(g, 0, -76, 96, 3, V[4]); box(g, 0, -76, 4, 76, V[3]);
       for (let k = 0; k < 3; k++) { box(g, 10 + k * 28, -66, 22, 22, V[1]); box(g, 10 + k * 28, -66, 22, 1, V[4]); }
       box(g, 2, -40, 92, 8, '#F5F5F4'); box(g, 2, -40, 92, 1, '#FFFFFF'); for (let k = 0; k < 11; k++) box(g, 5 + k * 8, -40, 3, 5, '#1C1917');
       box(g, 2, -32, 92, 3, V[1]); box(g, 8, -8, 6, 8, V[1]); box(g, 82, -8, 6, 8, V[1]);
-      box(g, 40, -88, 18, 12, '#E8DCB0'); box(g, 42, -86, 14, 1, '#5A4A3A'); box(g, 42, -83, 14, 1, '#5A4A3A');
+      box(g, 39, -89, 20, 13, INK); box(g, 40, -88, 18, 12, '#E8DCB0'); box(g, 42, -86, 14, 1, '#5A4A3A'); box(g, 42, -83, 14, 1, '#5A4A3A');
     });
   });
+  // (the treads' tops going back and the risers' faces (seen past their ends, from the eye), then the near stringer,
+  // the treads' fronts with their lit lips (where he stands), the rail on its balusters, the newel at the foot)
+  for (const [sa, sb, sh] of STEPS) {
+    const y = Y(sh);
+    topBack(c, eye, X(sa), X(sb), y, 1, ST_BK, [Fl[3], Fl[4], Fl[5], Fl[5], Fl[6]], 2);
+    sideBack(c, eye, X(sa), 1, Y(sh + 50), y, 1, ST_BK, [V[1], V[2], V[2], V[3], V[4]], 2, false);
+  }
+  sideBack(c, eye, X(4892), 1, Y(50), GY, 1, ST_BK, [V[1], V[2], V[2], V[3], V[4]], 2, false);
+  stringer(V[2], V[4]);
+  for (const [sa, sb, sh] of STEPS) {
+    const y = Y(sh), w = X(sb) - X(sa);
+    box(c, X(sa) - 1, y - 1, w + 2, 10, INK); box(c, X(sa), y, w, 8, V[3]); box(c, X(sa), y + 6, w, 2, V[1]); box(c, X(sb) - 3, y, 3, 8, V[2]);
+    box(c, X(sa), y, w, 1, L[3]); box(c, X(sa), y + 1, w, 1, L[2]); box(c, X(sa), y + 2, w, 1, L[1]);
+  }
+  const railY = (x: number) => Y(236 - ((x - 4720) * 150) / 172);
+  for (const [sa, sb, sh] of STEPS) for (const bx of [sa + 14, sa + 40]) { if (bx > sb - 6) continue; const x = X(bx), top = railY(bx); box(c, x - 1, top, 5, Y(sh) - top, INK); box(c, x, top, 3, Y(sh) - top, V[4]); box(c, x, top, 1, Y(sh) - top, V[6]); }
+  const nx = X(4880), nt = railY(4880) - 8;
+  box(c, nx - 4, nt, 10, Y(50) - nt, INK); box(c, nx - 3, nt + 1, 8, Y(50) - nt - 1, V[3]); box(c, nx - 3, nt + 1, 2, Y(50) - nt - 1, V[5]); box(c, nx - 5, nt - 4, 12, 6, INK); box(c, nx - 4, nt - 3, 10, 4, V[4]);
+  c.strokeStyle = INK; c.lineWidth = 6; c.beginPath(); c.moveTo(X(4716), railY(4716)); c.lineTo(X(4880), railY(4880)); c.stroke();
+  c.strokeStyle = V[4]; c.lineWidth = 4; c.stroke(); c.strokeStyle = V[6]; c.lineWidth = 1; c.beginPath(); c.moveTo(X(4716), railY(4716) - 2); c.lineTo(X(4880), railY(4880) - 2); c.stroke();
   // (the card tables: green baize going back a little, cards and chips; their legs; a chair by each)
   for (const ta of [4110, 4620]) {
     const xa = X(ta), xb = X(ta + 70), tp = Y(40), G = hr7('#1E6A3A');
