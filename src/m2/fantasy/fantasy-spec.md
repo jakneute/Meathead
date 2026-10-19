@@ -1,0 +1,151 @@
+# Fairy Land (land id `fantasy`): the spec
+
+Given to every agent working on the land. The user's brief first, verbatim; then the fill-ins (decided by us, the
+user's to overrule), the section plan, the standing rules, and the decisions log (newest last).
+
+## The user's brief (verbatim)
+
+```
+next up: fairy land
+
+the great pixie's castle is a monument that exists as a visible background element that gets progressively closer the whole stage. not mode 7 closer but a new scene, its background element is larger.
+
+we begin with a standard platforming sequence in a town square. theme it as a combination of harry potter lands in islands of adventure and fantasy land in Disney world. various primarily human enemies will be in your way. introduce a new mechanic in these sections too. i'll let you know what i think of it. surprise me.
+
+you eventually reach a loudspeaker, the speaker is a sultry sounding woman named "piper the pixie" she asks you to 'overcome trials' and 'win an audience with me'. don't spell it out explicitly, but the prize is sex. meathead gets aroused at this idea. "i'm winning these trials, losers". he thinks with his dick during this sequence. the first trial is the 'fairy wheel', it's a ferris wheel. there are other suitors who want piper. one of the lines meathead can say about her is "piper? i will pipe her. with my dick." for the fairy wheel sequence, make it gigantic and fairy themed. the other suitors are always male and they are beefy too. they sit from their fairy wheel carts and throw crap at you and each other, trying to stop you. you cannot shoot them. you need to jump to their cart. when you do, various qte sequences start that you need to pass. when you win, show a funny animation of meathead killing one of the suitors in his fairy wheel cart. smashing him into the wall, throwing him off. etc. losing the qte will knock you away for heavy damage (not kill you) unless it is enough to cause the hp value to drop to zero. when all suitors are dead, go through another fantasy themed area with escalating platforming/enemy challenges.
+
+eventually you reach a ride called "truelling tragons". a parody of dueling dragons, only there are three cars instead of two: a fire, an ice and a lightning car. you cannot fire during this section; you can press next/previous weapon to jump between cars. you often will need to because sometimes the track goes away and need to jump to one of the other three cars. sometimes only one car is safe to stand on. give a little cooldown for jumping when using the mousewheel or pressing lb/rb to hop trains. each train has somewhat different obstacles. make sure all three are shown and zoom in/out as needed. give warnings that you need to jump to another track if a hole is coming up. i'd like to keep it side viewed. not too tangly but readable in the chaos.
+
+eventually you enter the base of the great pixie's castle. go through more standard platforming stuff until you reach a 'fantasy' themed runway outside for the final trial: broomstick deathmatch. you hop on a broomstick and enter an 'free range' arena. use mode 7 style trickery here. pressing Y or alternate fire will turn on/off inverted up/down controls. X button fires. and you gotta fly around and kill all other suitors in the flying broom section. it's a behind the back section, just like the road rash section. when you kill them all, meathead flies into the highest window of the building. it will zoom in rapidly and show a fancy 'shattering glass' effect when you get in, and it will transition to outside the 'great pixie's bedroom'. if you happen to be naked, meathead will have a boner during this part. you kick down the door to her chambers and a boss fight will commence. i don't have mechanics yet, but she will be morbidly obese and meathead's boner will slowly go flaccid when he sees her. only when he's nude by the way. he will insult how fat and ugly she is, which enrages her and starts the actual boss fight.
+```
+
+The user's notes since (relayed):
+
+- "her sin is lust i suppose" (each boss has a sin: Tucker's was greed).
+- Refined: her LUST is mainly NOT sexual on her side: it's a lust for being fought over. She gets her enjoyment out of men
+  killing each other for her. The trials are her bloodsport; the promised "audience" is bait for the suitors (they, and
+  Meathead, read it as sex: keep that innuendo on their side). Her loudspeaker lines purr over the violence and the
+  rivalry (thrilled by the blood, egging them on, savoring each death), and she's coy about what the prize really is.
+
+## Fill-ins (ours; the user's to overrule)
+
+- **The land's weapon:** the SPELLBOOK (store.ts LAND_WEAPON: fantasy -> SPELLBOOK). The walk-away's placeholder hands it
+  over (walkAway/piper.ts, its act: walkAway/acts.ts's SPELLBOOK).
+- **The new mechanic (the user's "surprise me"): ENCHANTED SHIFTING STAIRCASES** (stairs.ts). Hogwarts-style: a flight of
+  stairs pivoting at one end swings on a schedule to dock at a different landing every few seconds. The tell before
+  every move: a creak and a glow (gold along the stringer, a wave of light up the treads, sparkles, a rune ring at the
+  pivot). Stood on it, he's carried round with it; he walks up and down it, times jumps on and off, rides it to reach
+  places; some swing out over drops; a 'ride' kind waits till he's on it and swings away mid-climb. Its treads stay
+  level as it turns (it's enchanted) and are lit along their tops (standable reads standable); from under, it's a
+  jump-through. Kept within ~45 degrees of level always (walkable). The cast don't use them. Taught alone in a safe spot
+  in the town square, then built on (stairs + enemies, a chain over a gorge, a tower of them). Later sections place
+  their own (makeStairs / updateStairs / drawStairs).
+- **The monument:** monument.ts, one shared painter (crude-but-readable first pass; painted once per hour and size, a
+  stamp), drawn in each section's far layer at that section's size (MONUMENT_AT: the square 0.42, the wheel 0.6, the
+  glen 0.82, the ride 1.05, the castle's base 1.75 (looming, its top out of the picture), the broomsticks and the
+  bedroom bigger still for their own views). Within a section it drifts slowly across the sky as he goes, so it's always
+  there. PIPER_WINDOW: the highest window (pink stained glass, a heart in it, glowing): the one the broomstick flies in
+  through. The walk-in and the walk-away draw it too (drawCastleAt).
+- **The parody's names (legally distinct):** HOGSMEAT VILLAGE (the snowy, crooked-roofed shopfronts), WANDS & SONS (the wand
+  shop: its clerks cast cheap pyrotechnic "spells"), BUTTER BREW $14 (the butter drink, off a cart), the FAIRY LAND EXPRESS
+  at PLATFORM 7 5/8 (the train; its brick pillar is just a wall), the PRANCING PONY CAROUSEL, the GINGERBREAD LANE
+  (Snow White / Pinocchio village), BROOMBALL (the sports fans' game: the bro's), THE GRAND STAIRCASE (the tower of
+  staircases at the square's far end), THE GREAT PIXIE'S CASTLE.
+- **The town square's cast (all new kinds, `m2:fa_*`, square/kinds.ts):** humans first (men and women of every skin, build
+  and hair, seeded; the princess and the knight on anybody), plus one animal in the air:
+  - WAND CLERK (`fa_clerk`): robes, a pointy hat, a wand: keeps back, waves the wand (the tell: sparks gathering, a
+    shouted spell name) and casts a sparkler bolt that arcs at him; up close a poke in the eye with the wand.
+  - PRINCESS (`fa_princess`): a gown, a tiara, a glass slipper: the slipper wound up and thrown (it smashes); up close a
+    twirl and a slap.
+  - KNIGHT (`fa_knight`): a tabard over foam plate, a visor, a foam lance couched out front (POINTY: no shoulder
+    charging into it from the front): lowers the lance (the tell) and charges.
+  - BROOMBALL BRO (`fa_bro`): a jersey, a backwards cap, a foam finger: whips a hard broomball that bounces; up close a
+    chest bump that sends him flying.
+  - COSTUMED TROLL (`fa_troll`): huge, a green foam suit, a horned helmet (SPIKY: no dive kicking onto the horns), a
+    foam club: up over his head (the tell), slammed down: a shockwave along the ground (jump it).
+  - DRAGON MASCOT (`fa_dragon`): a big plush dragon suit, the performer's face in its mouth: rears back, a puff of smoke
+    (the tell), then a short cone of flame (the pyro rig in the head).
+  - MAIL OWL (`fa_owl`): a real trained owl from the owl show: circles, hoots (the tell), swoops at his head.
+  Each drawn hurt, knocked about (held, flung, dazed) and dead so the engine's special deaths play out on their real
+  sprites; their deaths show the costume giving (a hat flying, the troll's head off, the dragon's head rolling).
+- **Hazards in the square:** the SNOW off the crooked roofs (the eave sheds a trickle and creaks (the tell), then the slab
+  drops: everybody under it), the BUTTER BREW KEG (hit it and it bursts: a geyser of hot foam over everybody near), the
+  GORGE (painted clouds a long way down: a fall). Every one hurts the cast too; none of the cast stand in one's way.
+- **The loudspeaker scene (the square's end):** the town's PA horn up a lamp post over the bandstand. A cutscene (HUD
+  hidden, no input, SKIP >> for the lot): the chime, PIPER THE PIXIE over the speaker (sultry; her lust is for being
+  fought over: coy about the prize, purring over the blood), the beefy suitors around the bandstand reacting (the
+  rivals of the trials: three of them introduced, fantasy/suitors.ts), Meathead aroused (hearts up off him, a boing): "PIPER?
+  I WILL PIPE HER. WITH MY DICK." and "I'M WINNING THESE TRIALS, LOSERS." (the user's lines, verbatim), then black and on
+  to the fairy wheel. From here he thinks with his dick (lines.ts HORNY: for every later section to use).
+- **Piper drawn at full detail from the first pass** (piper.ts): morbidly obese, a pixie (gossamer wings too small for
+  her, a tiara, a star wand), a glittery pink gown straining at its seams; poses for the later jobs (lounging, talking,
+  enraged, a close-up portrait). She isn't seen in the square (only heard).
+- **Piper's fight:** NOT designed (the user hasn't given mechanics): the bedroom section is a placeholder end (the
+  boss-door refill, her door, VICTORY, the walk-away, the hub). Don't invent the fight.
+- **Music:** none yet. Fairy Land's in music/cues.ts's LAND_OF_STAGE, and with no `land:fantasy` song it's quiet (the
+  music job adds the songs).
+
+## The section plan (world x; checkpoints numbered across the land)
+
+FAX = 800000. Gaps of 3000 between sections (room to grow). Every section about a fifth of the land or its time.
+
+| # | Section | id | World x | Checkpoints | What |
+|---|---|---|---|---|---|
+| 1 | The town square | `square` | FAX+0 .. FAX+15000 | 0-9 | Hogsmeat Village and the storybook square; the staircases; the loudspeaker |
+| 2 | The fairy wheel (trial 1) | `wheel` | FAX+18000 .. FAX+24000 | 10-19 | The gigantic wheel, the suitors in their carts, the QTEs |
+| 3 | The enchanted glen | `glen` | FAX+27000 .. FAX+41000 | 20-29 | Escalating platforming and enemies |
+| 4 | Truelling Tragons | `tragons` | FAX+44000 .. FAX+58000 | 30-39 | The three-car coaster (fire, ice, lightning) |
+| 5 | The castle's base and the runway | `keep` | FAX+61000 .. FAX+73000 | 40-49 | Platforming in the castle; the runway (from x0+9000) |
+| 6 | The broomstick deathmatch (trial 3) | `broom` | FAX+76000 .. FAX+80000 | 50-59 | Behind the back, mode 7; in through the top window |
+| 7 | The bedroom and Piper | `bedroom` | FAX+83000 .. FAX+87000 | 60-69 | The door kicked in, the reveal, the fight (placeholder) |
+
+(The trials: the wheel's trial one, the broomsticks' the final one; the ride's between them is "trial two" if the
+fairy wheel's job wants to call it that.)
+
+### Section 1 in detail (the town square, built: square/)
+
+x from the section's start; heights up from the ground line.
+
+- 0 THE STATION (cp 0): off the walk-in, the FAIRY LAND EXPRESS at PLATFORM 7 5/8 (its brick pillar: charge into it and
+  it's a wall), the land's sign; a lone wand clerk.
+- 1300 HOGSMEAT HIGH STREET: crooked, snowy shopfronts; the first roof shedding snow, alone; the butter brew cart and its
+  keg among a knight and a clerk; a roof shedding snow over a princess's beat.
+- 3200 WANDS & SONS: the first staircase, alone and safe (it swings up from the street to a bridge across to a ledge with
+  a pickup, and back down: ride it up to the balcony over the shop, the way on); the rooftops after.
+- 4800 THE SQUARE (cp 1): the Prancing Pony Carousel, its canopy up a staircase with a clerk casting at him from the
+  top; a bro and a princess on the cobbles; an owl.
+- 6400 THE GORGE: a chain of staircases over painted clouds (one dips down into the gorge and back, one swings up and
+  away to a reward, one swings between the far bank's ground and a gingerbread roof); an owl and a clerk.
+- 8600 GINGERBREAD LANE (cp 2): the troll by his bridge, the dragon mascot, snow off the gingerbread roofs (a bro under
+  one), knights.
+- 10600 THE GRAND STAIRCASE (cp 3): a tower of staircases swinging between landings, clerks and a bro on the landings,
+  an owl in the shaft, a 'ride' staircase that swings away mid-climb; out over the top and down.
+- 13200 THE BANDSTAND (cp 4): the last mixed crowd; the loudspeaker on its lamp post, the suitors; the scene.
+
+## Standing rules (all apply; check every one against new work)
+
+American spelling; signs readable, held up, themed lettering (storySign: a shingle off an iron bracket, gilt letters);
+dialogue blunt, short, vulgar, specific (talk less); clean / shitty / naked pools for Meathead and everybody reacting to
+him (the naked pools can play up his arousal); pickLine; no line twice within 45 s; speech text only while spoken; no
+talk-over; cutscenes hide the HUD, skip all-or-nothing, no player input; subtitles whole on screen; death-screen text 28
+characters at most; every new hurt source gets voiced hurt and death lines; never spell out that Meathead arrives
+anywhere by accident. Standable reads standable; impassable reads impassable; NO DUCK / JUMP text on obstacles; hazards
+hurt enemies too (none spawn in a hazard's path); despawned enemies never count as kills; kill callouts per kind;
+checkpoints restore world state; no backtracking after one-way sequences (free within sections); fake-3D rules (one
+shared eye, no depth layer over nearer things, cull by the real view, interiors hidden until entered, signs attached);
+lights soft; NO VOLCANOES; no walk-right-and-hold-fire stretches (mix airborne and grounded threats); M2 lean drops and
+softer hits; a boss-door refill before the boss; main bosses 666 HP, the 60-frame breather, non-weakness damage 35%;
+markBossFight every frame of a boss or sub-boss fight. Voice every new line (`npm run voices`, `npm run voices:m2`).
+
+## Decisions log
+
+- (job 1) Skeleton: seven sections at FAX = 800000 with 3000 gaps; the hub portal open; a crude walk-in
+  (walkAway/intoFantasy.ts: the cobbled lane, the cottages, the castle at the end of it); a placeholder end and walk-away
+  with the SPELLBOOK (bedroom/, walkAway/piper.ts, 'piper' in walkAway.ts); a HUD skin per section (hudSkins/fantasy.tsx:
+  fantasy, wheel, glen, tragons, keep, runway, broom, piper); ?fantasy=<checkpoint> in dev.
+- (job 1) The mechanic is the enchanted staircases (stairs.ts); the user will judge it.
+- (job 1) The castle monument is one painter at a size per section, never a zoom.
+- (job 1) Piper's voice: two cast entries, `m2.fantasy.piper` (in person) and `m2.fantasy.piper_pa` (the same voice through
+  the town's PA: radio_mild).
+- (job 1) Piper's lust is for being fought over (the user's refinement): her lines purr over the violence and the
+  rivalry and stay coy about the prize; the sex is what the suitors and Meathead read into it.

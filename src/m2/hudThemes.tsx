@@ -14,11 +14,12 @@ import { SPACE_THEMES, type SpaceZone } from './hudSkins/space';
 import { HOLLYWOOD_THEMES, type HollywoodZone } from './hudSkins/hollywood';
 import { FOREIGN_THEMES, type ForeignZone } from './hudSkins/foreign';
 import { FRONTIER_THEMES, type FrontierZone } from './hudSkins/frontier';
+import { FANTASY_THEMES, type FantasyZone } from './hudSkins/fantasy';
 
 export type Zone =
   | 'garage' | 'security' | 'america' | 'ticket' | 'hub' | 'staff'
   | 'jungle' | 'queue' | 'boat' | 'underwater' | 'dino' | 'temple' | 'cart' | 'roof' | 'clearing'
-  | SpookyZone | SpaceZone | HollywoodZone | ForeignZone | FrontierZone;
+  | SpookyZone | SpaceZone | HollywoodZone | ForeignZone | FrontierZone | FantasyZone;
 
 /** How the pause menu looks. */
 export interface PauseSkin {
@@ -372,7 +373,7 @@ export const THEMES: Record<Zone, Theme> = {
     },
   },
   // The later lands: a look per stretch of each (hudSkins/)
-  ...SPOOKY_THEMES, ...SPACE_THEMES, ...HOLLYWOOD_THEMES, ...FOREIGN_THEMES, ...FRONTIER_THEMES,
+  ...SPOOKY_THEMES, ...SPACE_THEMES, ...HOLLYWOOD_THEMES, ...FOREIGN_THEMES, ...FRONTIER_THEMES, ...FANTASY_THEMES,
 };
 
 /** The pause menu as it always looked (pink on black), where there's no theme. */

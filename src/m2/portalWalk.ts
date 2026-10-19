@@ -25,10 +25,11 @@ import { INTO_SPACE } from './walkAway/intoSpace';
 import { INTO_HOLLYWOOD } from './walkAway/intoHollywood';
 import { INTO_FOREIGN } from './walkAway/intoForeign';
 import { INTO_FRONTIER } from './walkAway/intoFrontier';
+import { INTO_FANTASY } from './walkAway/intoFantasy';
 import { musicMoment } from './music/moments';
 
 /** The lands that have a walk in (add each land's PortalDef here, by its lands.ts id). */
-export const PORTAL_SCENES: Record<string, PortalDef> = { adventure: INTO_ADVENTURE, spooky: INTO_SPOOKY, space: INTO_SPACE, hollywood: INTO_HOLLYWOOD, foreign: INTO_FOREIGN, frontier: INTO_FRONTIER };
+export const PORTAL_SCENES: Record<string, PortalDef> = { adventure: INTO_ADVENTURE, spooky: INTO_SPOOKY, space: INTO_SPACE, hollywood: INTO_HOLLYWOOD, foreign: INTO_FOREIGN, frontier: INTO_FRONTIER, fantasy: INTO_FANTASY };
 export const hasPortalWalk = (land: string) => land in PORTAL_SCENES;
 
 /** How fast the camera comes on up the path (m a frame); how much faster he goes (he pulls away from it). */
