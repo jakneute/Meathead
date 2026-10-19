@@ -86,6 +86,8 @@ const RUN_FIRE: [number, number] = [26, 46], RUN_ERR = 90;
 const ERR = { jump: 40, land: 30, step: 70, shot: 16, hit: 0 };
 /** The stampede after each bang: how many (more later), how soon the first comes, the gaps, how many fly. */
 const CRITTERS: [number, number] = [5, 8], FIRST_IN = 22, GAP: [number, number] = [6, 20], FLY_SHARE = 0.3;
+/** The most critters about at once (the user's: a lot, but limited). */
+const MAX_CRITTERS = 14;
 /** The bees: their speed, the sting (before M2's x0.65), how often, then off a while; a second swarm below this health. */
 const BEE_V: [number, number] = [1.5, 2.3], STING = 3, STING_GAP = 55, BEE_OFF = 50, SECOND_SWARM = 0.4;
 /** The weakness: how many globs of the spray on him make him showered; the lions' wait (frames after the shower), their
@@ -490,10 +492,14 @@ const tickCritters = (ctx: FrameContext, f: Fight) => {
     if (f.rustle.t % 12 === 0) playSound('chitter', 0.5, 6);
     if (--f.rustle.t <= 0) f.rustle = null;
   }
-  // (in: from just off the view's edge at their end, running)
+  // (in: from just off the view's edge at their end, running; a lot of them, but never more than MAX_CRITTERS about at
+  // once (the user's): the rest wait their turn till some are gone)
+  let about = state.enemies.reduce((n, e) => n + (isCritter(e) && e.health > 0 && !e.isBlownAway ? 1 : 0), 0);
   f.queue = f.queue.filter(q => {
     if (f.t < q.at) return true;
     if (f.mode !== 'on') return false;
+    if (about >= MAX_CRITTERS) { q.at = f.t + 6; return true; }
+    about++;
     const ex = q.dir > 0 ? state.camera.x - 30 : state.camera.x + CANVAS_WIDTH + 30;
     const e = makeKindEnemy(kindOf(q.c) as EnemyKind, ex, q.y);
     e.facing = q.dir; e.aiX = q.sp; e.aiY = q.y - e.height; e.variant = Math.floor(Math.random() * 7); e.seen = true; e.aiState = 'run';

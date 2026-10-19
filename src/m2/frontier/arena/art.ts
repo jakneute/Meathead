@@ -12,7 +12,7 @@
 // ledge, its lit lip). No park lettering out here.
 
 import type { GameState } from '../../../m1/game/core/state';
-import { signText } from '../../signLetters';
+import { signText, signW } from '../../signLetters';
 import { bendFloor } from '../../intro/art/kit';
 import { drawWoodsFar } from '../woods/far';
 import {
@@ -206,21 +206,24 @@ export const paintBearSign = (g: Ctx) => {
     box(g, px - 4, -3, 14, 3, '#3A2A18'); box(g, px - 3, -4, 12, 1, '#5A4428');
   }
   // (the routed board: FS brown, its edge chamfered light, the letters cut in and painted cream)
-  const bw = 112, top = -132, bh = 64;
+  // (sized so its words fit beside the routed bear (the playtest: they ran off it): the board as wide as its stamp
+  // allows, the big words kept bold but narrowed to a single cell wide if they still won't fit)
+  const bw = 124, top = -132, bh = 64, textL = -bw / 2 + 36, textR = bw / 2 - 5, avail = textR - textL, tx = (textL + textR) / 2;
   box(g, -bw / 2 - 1, top - 1, bw + 2, bh + 2, INK);
   box(g, -bw / 2, top, bw, bh, FS[3]); box(g, -bw / 2, top, bw, 2, FS[4]); box(g, -bw / 2, top, 2, bh, FS[4]); box(g, -bw / 2, top + bh - 2, bw, 2, FS[1]); box(g, bw / 2 - 2, top, 2, bh, FS[1]);
   for (let y = top + 5; y < top + bh - 4; y += 4) box(g, -bw / 2 + 4 + hash(y) * 30, y, 30 + hash(y + 1) * 40, 1, FS[2]);
-  const cut = printed('#E8DCB0', 1, FS[0]), big = printed('#E8DCB0', 2, FS[0]);
-  signText(g, 'YOU ARE IN', 15, top + 14, cut);
-  signText(g, 'GRIZZLY', 15, top + 34, big);
-  signText(g, 'COUNTRY', 15, top + 54, big);
+  const cut = printed('#E8DCB0', 1, FS[0]), big0 = printed('#E8DCB0', 2, FS[0]);
+  const big = Math.max(signW('GRIZZLY', big0), signW('COUNTRY', big0)) <= avail ? big0 : { ...big0, sx: 1 };
+  signText(g, 'YOU ARE IN', tx, top + 14, cut);
+  signText(g, 'GRIZZLY', tx, top + 34, big);
+  signText(g, 'COUNTRY', tx, top + 54, big);
   // (a grizzly routed in at the left: the hump, the dished face)
   const bx = -bw / 2 + 8, by = top + 38;
   g.fillStyle = FS[0]; g.beginPath(); g.moveTo(bx, by + 6); g.lineTo(bx + 2, by - 4); g.lineTo(bx + 8, by - 9); g.lineTo(bx + 14, by - 7); g.lineTo(bx + 18, by - 3); g.lineTo(bx + 21, by - 2); g.lineTo(bx + 20, by + 1); g.lineTo(bx + 17, by + 1); g.lineTo(bx + 16, by + 6); g.lineTo(bx + 13, by + 6); g.lineTo(bx + 12, by + 2); g.lineTo(bx + 6, by + 2); g.lineTo(bx + 5, by + 6); g.closePath(); g.fill();
   g.fillStyle = '#E8DCB0'; g.save(); g.translate(0, -1); g.fill(); g.restore();
   box(g, bx + 18, by - 3, 1, 1, FS[1]);
   // (bolts, a wasp nest's papery stub under the top edge)
-  for (const nx of [-37, 37]) for (const ny of [6, bh - 9]) { box(g, nx, top + ny, 3, 3, INK); box(g, nx, top + ny, 2, 2, S[5]); }
+  for (const nx of [-bw / 2 + 3, bw / 2 - 6]) for (const ny of [6, bh - 9]) { box(g, nx, top + ny, 3, 3, INK); box(g, nx, top + ny, 2, 2, S[5]); }
   box(g, 20, top + bh + 1, 6, 4, '#A89C88'); box(g, 21, top + bh + 1, 4, 1, '#C8BCA8');
   // (the county's notice under it: yellow, black letters, its corner bent; a hunter's orange tape on the far post)
   const nt = top + bh + 8, nw = 92, nh = 26;
@@ -315,7 +318,7 @@ export const drawArenaBack = (c: Ctx, state: GameState) => {
   // (deepest first: nothing stood back is drawn over anything nearer)
   drawGoingBack(c, v);
   drawTrees(c, v, 0, SIGN_D);
-  if (seen(v, SIGN_X - 70, SIGN_X + 70, SIGN_D)) atDepth(c, v.eye, SIGN_D, () => put(c, 'ar-bearsign', SIGN_X, GY, -64, -140, 128, 144, paintBearSign));
+  if (seen(v, SIGN_X - 70, SIGN_X + 70, SIGN_D)) atDepth(c, v.eye, SIGN_D, () => put(c, 'ar-bearsign', SIGN_X, GY, -66, -140, 132, 144, paintBearSign));
   drawTrees(c, v, SIGN_D, 1.01);
   // ---- the trail coming toward him; the oak at the play plane, over it (its roots aren't bent with the floor)
   drawPlayFloor(c, v);
