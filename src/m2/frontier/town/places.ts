@@ -366,13 +366,27 @@ export const drawMill = (c: Ctx, state: GameState, v: TownView) => {
     box(g, 0, t + 90, w, 4, back7(STEEL[2], 0.04)[3]);
     for (let x = 80; x < w; x += 200) { g.fillStyle = INK; g.beginPath(); g.arc(x, t + 92, 12, 0, Math.PI * 2); g.fill(); g.fillStyle = back7(STEEL[4], 0.04)[3]; g.beginPath(); g.arc(x, t + 92, 10, 0, Math.PI * 2); g.fill(); box(g, x - 2, t + 92, 4, 120, back7('#3A2A1A', 0.04)[3]); }
   });
+  // ---- the shed's floor going back from the deck's front edge to the back wall's foot (the eye over the deck sees it:
+  // it used to show the far layer through): planks laid back, their seams to the one eye, sawdust drifted along the
+  // wall's foot, the wall's shadow on the boards
+  const wa = X(9800), wb = X(10780);
+  if (topBack(c, eye, wa, wb, wt, 1, 0.88, hr('plank', PLANK).slice(1), 3)) {
+    const Pk = hr('plank', PLANK), Sd = hr('sawdust', SAWDUST);
+    c.strokeStyle = Pk[1]; c.lineWidth = 1; c.beginPath();
+    for (let x = wa + 24; x < wb; x += 24) { const [fx, fy] = at(eye, x, wt, 1), [bx, by] = at(eye, x, wt, 0.88); c.moveTo(fx, fy); c.lineTo(bx, by); }
+    c.stroke();
+    for (let k = 0; k < 9; k++) {
+      const x = wa + 40 + hash(k * 3.1 + 9) * (wb - wa - 120), w = 40 + hash(k * 5.7) * 70, d = 0.94 - hash(k * 1.9) * 0.05;
+      poly(c, [at(eye, x, wt, d + 0.006), at(eye, x + w, wt, d + 0.006), at(eye, x + w - 8, wt, d - 0.006), at(eye, x + 8, wt, d - 0.006)], Sd[2 + (k % 2)]);
+    }
+    poly(c, [at(eye, wa, wt, 0.9), at(eye, wb, wt, 0.9), at(eye, wb, wt, 0.888), at(eye, wa, wt, 0.888)], mix(Sd[2], Pk[0], 0.4));
+  }
   // ---- the shed's roof over it: its underside going back, the posts at the front, the fascia (no lip: not to stand on)
   const Tm = hr('timber', TIMBER);
   underBack(c, eye, a - 24, b + 24, top, 1, 0.88, [Tm[1], Tm[2], Tm[2]], 3);
   for (const px of [a + 10, (a + b) / 2, b - 10]) { box(c, px - 7, top, 14, wt - top, INK); box(c, px - 6, top, 12, wt - top, Tm[3]); box(c, px - 6, top, 3, wt - top, Tm[5]); box(c, px + 3, top, 3, wt - top, Tm[1]); }
   box(c, a - 25, top - 15, b - a + 50, 18, INK); box(c, a - 24, top - 14, b - a + 48, 16, hr('tar', TAR)[2]); box(c, a - 24, top - 14, b - a + 48, 2, hr('tar', TAR)[4]);
   // ---- the works under the deck: stacked lumber, stickered, a wall of it (solid), the gears turning
-  const wa = X(9800), wb = X(10780);
   still(c, 'mill-works', wa, wt, -2, -4, wb - wa + 4, GY - wt + 6, g => {
     const P = hr7('#A07848'), w = wb - wa, h = GY - wt;
     box(g, -1, 0, w + 2, h, INK); box(g, 0, 1, w, h - 1, P[1]);
