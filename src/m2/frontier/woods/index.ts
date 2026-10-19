@@ -1,13 +1,14 @@
 // THE WOODS: section 5 of Wilderness Land. Out of the woodchipper, off the crew's clearing and into real woods, outside
 // the park's bounds (the land's turn: "Wilderness Land" ends up in the ACTUAL wilderness): real trees, a dirt trail,
-// litter, a real NO TRESPASSING sign, power lines, the park's back fence glimpsed far behind (art.ts). A short walk with
+// litter, a real NO TRESPASSING sign, power lines, the park's back fence glimpsed far behind (art.ts, far.ts, ground.ts;
+// paint.ts the kit, the log ride's real side's). A short walk with
 // a couple of real hazards (hazards.ts: poison ivy, taught alone; a real bear trap), a crow or two, then the local kids'
 // dirt lot, the refill, and THE BOUNTY (scene.ts, the user's: the kick, "MINE", Tucker EXTRA BLOODIED out of the leaf
 // pile, the hijack, the apology, "20 BUCKS FOR THE FIRST ONE TO GIVE ME THAT MEATHEAD'S HEAD", the teens happily
 // oblige) and off on the kid's bike into the dirt-bike chase (DOORS.dirtbike.start; job 6's takeBountyHandoff).
 //
 // Checkpoints 40-49: the treeline (40), the dirt lot (41). The ways: in from the crew's clearing (DOORS.woods.start);
-// back off the left end onto the clearing past the chipper (DOORS.logride.end); on: the bounty's ride (once it's been,
+// no way back (one-way: the left end's a dead end, the river bank and a thicket, art.ts); on: the bounty's ride (once it's been,
 // off the right end on foot to the chase's start); back from the chase onto the lot (DOORS.woods.end). Revisits: the
 // lot's empty (the kids off chasing him), the leaf pile scattered, the kid he kicked off sulking on a stump (his lines
 // by the state of Meathead). BOUNTY_MEMO keeps it done (respawns, the checkpoint skip past it).

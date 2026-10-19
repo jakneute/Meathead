@@ -1,7 +1,8 @@
 // Where everything is in the woods (x from the section's start; the ground's flat at GY all the way: a dirt trail
 // through real woods, outside the park's back fence):
 //
-//      0  THE TREELINE (cp 40): in from the crew's clearing (its left end goes back there). The first thing: a real
+//      0  THE TREELINE (cp 40): in from the crew's clearing (one-way: its left end's a dead end, the river bank and a
+//         thicket). The first thing: a real
 //         NO TRESPASSING sign nailed to a real tree, buckshot holes in it. Power lines along the trail.
 //    500  THE TRAIL: litter (cans, a tire, a mattress, a shopping cart), a fallen tree over the trail (jump it, or stand
 //         on it); POISON IVY taught alone (a scout troop's LEAVES OF THREE, LET IT BE on a stake); a crow.

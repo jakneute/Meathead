@@ -31,6 +31,10 @@ import { woodsOf, type Scene, type Step, type Woods } from './state';
 import { X, x0, x1, GY, TRIG, PILE, LANES } from './layout';
 import { makeBike, rideBike, teenOf, drawBike, drawKid, type Bike, type Kid } from './teens';
 import { KID_HI, MINE, KID_DOWN, TUCKER_POP, TUCKER_SORRY, TUCKER_OFFER, TEENS_YES, BOUNTY_BACK } from './lines';
+import { leafAt, hr, GOLD, BROWN } from './paint';
+
+/** A flying leaf's ramp, by the color it was flung with (the brown ones dead, the rest turned gold). */
+const leafRamp = (col: string) => (col === '#92400E' || col === '#7C2D12' ? hr('brown', BROWN, 0.2) : hr('gold', GOLD, 0.2));
 
 /** The bounty's been (for good: the teens are off chasing him from here on). */
 export const BOUNTY_MEMO = 'frontier-woods-bounty';
@@ -309,7 +313,7 @@ export const tickBountyCast = (state: GameState) => {
 /** World, in front: the leaves flying; who's talking, over them. */
 export const drawBountyFront = (c: Ctx, state: GameState) => {
   const w = woodsOf(state), s = w.scene;
-  for (const l of w.leaves) { c.save(); c.translate(l.x, l.y); c.rotate(l.rot); c.fillStyle = l.col; c.beginPath(); c.ellipse(0, 0, 4, 2, 0, 0, Math.PI * 2); c.fill(); c.restore(); }
+  for (const l of w.leaves) leafAt(c, l.x, l.y, 4, l.rot, leafRamp(l.col));
   if (!s.talk || s.step === 'pop') return;
   const at = (): [number, number] => {
     switch (s.talk!.who) {
@@ -334,7 +338,7 @@ export const drawBountyHud = (c: Ctx, state: GameState) => {
     drawTuckerCloseup(c, W / 2, H / 2 + 40, 13, f, { face: 'yell', red: true, jolt, wounds: WOUNDS, talking: s.tucker.talking });
     for (let i = 0; i < 26; i++) {
       const k = ((t * 0.04 + hash(i) * 3) % 1), x = (hash(i + 9) * W + t * (12 + hash(i + 4) * 14)) % (W + 80) - 40, y = H * k;
-      c.save(); c.translate(x, y); c.rotate(t * 0.2 + i); c.fillStyle = ['#B45309', '#D97706', '#92400E', '#CA8A04'][i % 4]; c.beginPath(); c.ellipse(0, 0, 14, 7, 0, 0, Math.PI * 2); c.fill(); c.restore();
+      leafAt(c, x, y, 14, t * 0.2 + i, i % 2 ? hr('brown', BROWN, 0.2) : hr('gold', GOLD, 0.2));
     }
     // (the snap: a white frame or two, then a red one)
     if (t < 3) { c.globalAlpha = 1 - t * 0.25; box(c, 0, 0, W, H, '#FFFFFF'); c.globalAlpha = 1; }

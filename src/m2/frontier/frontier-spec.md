@@ -1253,3 +1253,34 @@ later (+1 if heavyset; was 2 / 3 before playtest fixes E). Tucker's glimpsed ahe
   Signs on their ground: FALLS AHEAD kept on open embankment (out of any tunnel, short of the cliff) and cached under
   the tilt; OUT OF SERVICE inside the cab's side (it hung off its front edge onto the boiler); WAVE AT THE TRAIN!'s
   posts down to the deck (they stopped in the air); GOLD! sat on the mine prop's header.
+- 2026-10-18 (SNES pass, section 5, the woods; art only): straight on from the log ride's real side, so its kit
+  (woods/paint.ts on logride/paint.ts: the same ramps for the hour, the same firs, spruce, aspens (gold ones now, the
+  leaf pile's leaves), snags, bushes) and its far off (woods/far.ts: the real sky, the same Rockies and clear-cut ridge,
+  power line towers on it, gold aspen stands, the ragged real pines), and behind him the park from the outside, sliding
+  away: its chain-link back fence on a berm (barbed wire, a gap torn and peeled back, a faded sign wired on), the BACKS
+  of two mountain flats (plywood courses, the 2x4 lattice and kickers, sandbags, PROP 7 / PROP 12 stenciled, the front's
+  blue lapped round the cut edge), the log ride's lift hill trestle, a light tower lit after dark. One eye for the scene
+  (woods/ground.ts): the forest floor going back (duff, needles, turned leaves, stones; the lot packed dirt with ruts),
+  the back rank as a cached tile at its far edge (firs, spruce, a gold aspen stand, a snag, undergrowth, a deadfall),
+  trees between and big ones by the trail, every one different, culled by where they're drawn; the trail coming toward
+  him stamped and bent within its own ground (none past the left end), roots across it, its lit lip. Everything stood
+  back drawn deepest first, the lot's lanes, the power line and the far trash placed so no rider ever passes in front of
+  something nearer. THE DEAD END (one-way now): the left end's bank cut down into the river (its surface going back,
+  glints riding by), willow and alder over a thicket behind, and in front of him at the very end brush up past his head
+  and a deadfall jammed in it. The power line: creosoted poles (step bolts, a tag, staples, a LOST DOG flyer), crossarms
+  with glass insulators, transformer cans, the sneakers swinging on their laces. Real-world signs only, on their own
+  posts or trunk: NO TRESPASSING printed orange plastic on a big fir (curled corner, a buckshot pattern rusting down),
+  NO DUMPING / $500 FINE on a U-channel post in the middle of the dumped trash (new, a joke), the troop's LEAVES OF THREE
+  brushed on a green plank. The trash (every kind redrawn: the tube TV kicked in, the cart with a bag snagged, the
+  stained mattress, the stacked tires, the cooler with a can still in it...). The fallen fir (root wad torn up, bark
+  plates, snapped end, moss) and the granite boulder lit along their tops. The lot: tire-scored jumps, the ramp on cinder
+  blocks (SEND IT sprayed), the burnt couch's char and springs and a scrap of its plaid, the fire ring's creek rocks and
+  cans with a thin smoke still curling, DIRT RATS sprayed (outlined, dripping) on a granite boulder with a heart, JT+KM
+  and a smiley; the lanes' sizes kept. The ivy: stepped glossy plants (red stems, notched leaflets, the shine pulsing),
+  a stepped green bloom, its spores. The bear trap: leaf springs, the jaw ring and its teeth round the pan, shut jaws
+  meshed, a chain stapled to a stump. The leaf pile and its burst cached in stepped leaves (the flung leaves too). The
+  kids: the helmeted ones in moto jerseys with stepped helmets (stripe, peak, chin bar, goggles), the rest in a ball cap
+  on backwards, a beanie or their hair; their bikes cached per color and number (frame, swingarm and shock, the
+  engine's fins, the header and silencer, shrouds, ribbed seat, gold forks, plates the right way round, mud) on live
+  spoked, knobby wheels, a shadow under, stepped exhaust. drawDirtBike's footprint and seat kept (the chase and the arena
+  use it). Tucker, his grime and the jumpscare close-up untouched. No gameplay changes.
