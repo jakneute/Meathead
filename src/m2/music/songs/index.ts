@@ -10,6 +10,8 @@ import { STAFF } from './staff';
 import { VICTORY_JINGLE, DEATH_JINGLE } from './jingles';
 import { WALKAWAY, WALKAWAY_ARTIE, WALKAWAY_DONNIE, WALKAWAY_QUEEN, WALKAWAY_STEVE, WALKAWAY_HARRY, WALKAWAY_TUCKER } from './walkaway';
 import { PORTAL, PORTAL_ADVENTURE, PORTAL_SPOOKY, PORTAL_SPACE, PORTAL_HOLLYWOOD, PORTAL_FOREIGN, PORTAL_FRONTIER } from './portal';
+import { LAND_ADVENTURE, SEQ_RIVER, SEQ_MINE_CART, SEQ_TEMPLE_COLLAPSE } from './jungle';
+import { BOSS_TREX, BOSS_SAFARI_ARTIE } from './jungleBosses';
 
 export const SONGS: Record<string, Song> = {
   title: TITLE,
@@ -32,4 +34,10 @@ export const SONGS: Record<string, Song> = {
   'portal:hollywood': PORTAL_HOLLYWOOD,
   'portal:foreign': PORTAL_FOREIGN,
   'portal:frontier': PORTAL_FRONTIER,
+  'land:adventure': LAND_ADVENTURE,
+  'seq:river': SEQ_RIVER,
+  'seq:mine-cart': SEQ_MINE_CART,
+  'seq:temple-collapse': SEQ_TEMPLE_COLLAPSE,
+  'boss:trex': BOSS_TREX,
+  'boss:safari-artie': BOSS_SAFARI_ARTIE,
 };

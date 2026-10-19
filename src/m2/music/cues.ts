@@ -48,7 +48,8 @@ const LAND_OF_STAGE: Record<string, string> = {
 };
 /** The special sequences: a land's section that's a ride or a chase of its own ('seq:<name>'). */
 export const SEQUENCES: Record<string, Record<string, string>> = {
-  adventure: { river: 'river', cart: 'mine-cart' },
+  // (the roof's only till he's tumbled off it: seqOver)
+  adventure: { river: 'river', cart: 'mine-cart', roof: 'temple-collapse' },
   space: { ride: 'space-train' },
   hollywood: { coaster: 'coaster', disaster: 'disaster-ride', havoc: 'havoc' },
   foreign: { heli: 'heli' },
@@ -100,6 +101,22 @@ const pick = (cands: Cand[], cutscene: boolean): { cue: Cue; quiet: boolean } | 
 /** The land's section he's in (every land keeps it on state.stage). */
 const sectionOf = (s: GameState) => (s.stage as { section?: string } | null)?.section ?? null;
 
+/** Jungle Land's sections' own state, as much of it as the music looks at (adventure/cart, adventure/roof). */
+interface JungleOwn { cart?: { artie?: { on?: boolean } }; roof?: { scene?: string | null; tumbled?: boolean } }
+const jungleOwn = (s: GameState) => ((s.stage as { s?: JungleOwn } | null)?.s ?? {});
+/** A sequence's arrangement by what's on in it: on the boat or under it; Artie on his tail in the cart; Artie having
+ *  his say on the roof, or the roof coming in. */
+const seqArrs = (s: GameState, land: string, sec: string): string[] => {
+  if (land !== 'adventure') return [];
+  const own = jungleOwn(s);
+  if (sec === 'river') return [s.player.swimming ? 'underwater' : 'boat'];
+  if (sec === 'cart') return [own.cart?.artie?.on ? 'chase' : 'ride'];
+  if (sec === 'roof') return [own.roof?.scene === 'arrive' ? 'artie' : 'run'];
+  return [];
+};
+/** A sequence that's done while he's still in its section (the roof, once he's tumbled off it: the land's again). */
+const seqOver = (s: GameState, land: string, sec: string) => land === 'adventure' && sec === 'roof' && !!jungleOwn(s).roof?.tumbled;
+
 /** What the game wants on right now. */
 const gameWants = (s: GameState | null): Want => {
   const none: Want = { cands: [], cutscene: false };
@@ -122,7 +139,8 @@ const gameWants = (s: GameState | null): Want => {
   const land = LAND_OF_STAGE[stage];
   if (!land) return none;
   const sec = sectionOf(s) ?? '';
-  const theme: Cand = { song: `land:${land}`, arrs: [sec, 'main'] };
+  // (a set piece's own arrangement of the theme first, if it has one: the river's 'underwater')
+  const theme: Cand = { song: `land:${land}`, arrs: [...seqArrs(s, land, sec), sec, 'main'] };
   // A boss or sub-boss
   const named = bossFightName(s);
   const boss = named ?? (inBossFight(s) || WHOLE_SECTION_FIGHTS.has(`${land}:${sec}`) ? SECTION_BOSS[`${land}:${sec}`] : undefined);
@@ -137,7 +155,7 @@ const gameWants = (s: GameState | null): Want => {
   // Future Land's basement: the queen stalking him in the dark (the user's: atmospheric, creepy)
   if (land === 'space' && sec === 'queen' && p.pos.y + p.height > CEIL_B + 30 && p.pos.x < STAIRS_B) return { cands: [{ song: 'seq:stalker' }, { song: 'land:space', arrs: ['stalker', 'queen'] }], cutscene };
   const seq = SEQUENCES[land]?.[sec];
-  if (seq) return { cands: [{ song: `seq:${seq}` }, theme], cutscene };
+  if (seq && !seqOver(s, land, sec)) return { cands: [{ song: `seq:${seq}`, arrs: seqArrs(s, land, sec) }, theme], cutscene };
   return { cands: [theme], cutscene };
 };
 

@@ -35,7 +35,9 @@ TEENAGERS to the Road Rash song); in the end, silence. (The theme, `title`, stoo
 intro and the walk-away till theirs were written; cues.ts still falls back to it there.)
 
 Keys and tempos the non-boss pieces have taken (land themes and sequences: pick around them where you can): title B-flat
-112 shuffle, hub F 168 waltz, intro E-flat 116 march, staff D 84 bossa, walk-away A-flat 84 soul, portal D 128 fanfare.
+112 shuffle, hub F 168 waltz, intro E-flat 116 march, staff D 84 bossa, walk-away A-flat 84 soul, portal D 128 fanfare,
+Jungle Land C minor 100 beguine, its river G 120 calypso, its mine cart F-sharp minor 152 chase, its roof E-flat minor
+176.
 
 ## The cue registry
 
@@ -61,7 +63,7 @@ jingle would need one (moments.ts is where it'd go).
 
 | Cue id | Land | Sections (arrangement names) | Genre | Key | Tempo | Lead | Mood | Status |
 |---|---|---|---|---|---|---|---|---|
-| `land:adventure` | JUNGLE LAND | jungle, queue, (river), dino, temple, (cart), roof, clearing | | | | | | |
+| `land:adventure` | JUNGLE LAND | jungle, queue, (river), underwater, dino, temple, (cart), roof, clearing, cutscene, boss | Exotica beguine (Les Baxter) with an adventure-serial march for a B section in E-flat and a "Quiet Village" bridge in D-flat; per section: full jungle band, the queue's muffled speakers (vibes, nylon guitar), celesta under water, horns/pizz/taiko in the dino zoo, oboe snake-charmer backstage at the temple, muted trumpet after the roof, flute and timpani in the clearing | C minor | 100 | Pan flute (vibes / flute / celesta / horn / oboe / harmon trumpet by section); marimba ostinato | Mysterious, then swashbuckling | **done** ("Darkest Jungle Land", jungle.ts) |
 | `land:spooky` | SPOOKY LAND | town, castle, dungeon, tower, hell, control, ballroom | | | | | | |
 | `land:space` | FUTURE LAND | square, atom, (ride), drag, needle, (orbit), crater, queen | | | | | | |
 | `land:hollywood` | HOLLYWOOD LAND | blvd, (coaster), warehouse, lot, (disaster), (havoc), stunt | | | | | | |
@@ -69,14 +71,17 @@ jingle would need one (moments.ts is where it'd go).
 | `land:frontier` | WILDERNESS LAND | wilds, (train), town, (logride), woods, (dirtbike), arena | | | | | | |
 
 (Sections in brackets have a sequence's or a boss's music of their own; the land's arrangement for them is only the
-fallback.) Under water (Jungle Land's river) everything's muffled by the engine already.
+fallback.) Under water (Jungle Land's river) everything's muffled by the engine already. A set piece's song can have
+arrangements by what's on in it (cues.ts `seqArrs`: Jungle Land's boat/underwater, the cart's ride/chase, the roof's
+artie/run), and end while he's still in its section (`seqOver`: the roof, once he's tumbled off it).
 
 ### Special sequences
 
 | Cue id | Where | Genre | Key | Tempo | Lead | Mood | Status |
 |---|---|---|---|---|---|---|---|
-| `seq:river` | Jungle Land: the river (the boat; under water muffled) | | | | | | |
-| `seq:mine-cart` | Jungle Land: the mine-cart ride | | | | | | |
+| `seq:river` | Jungle Land: the river (arrangements: boat, underwater: cues.ts picks by his swimming) | The Jungle Cruise's canned tiki calypso under Artie's set, a ba-dum-tss every eight bars; under the water the same tune dreamy (celesta, warm pad, harp, oohs) | G | 120 | Steel drum (celesta under water) | Sunny, dumb | **done** ("Backside of Water", jungle.ts) |
+| `seq:mine-cart` | Jungle Land: the mine-cart ride (arrangements: ride; chase while Artie's on his tail) | Saturday-serial mine-cart chase: galloping strings, train beat, xylophone; the chase adds the brass section, taiko, choir and trombones quoting Artie's theme | F-sharp minor (Neapolitan G in C) | 152 | Trumpet | Breakneck | **done** ("Unfriendly Guests", jungle.ts) |
+| `seq:temple-collapse` | Jungle Land: the roof, from the blowout till he's tumbled off it (arrangements: artie while Artie has his say, run) | Orchestral escape: violins running, brass stabs in threes, choir, taiko, orchestra hits | E-flat minor | 176 | Strings (violins) | Panic | **done** ("Bring the House Down", jungle.ts) |
 | `seq:space-train` | Future Land: the hijacked train | | | | | | |
 | `seq:stalker` | Future Land: the basement, the queen stalking him in the dark | **Atmospheric, scary and creepy (the user's): no beat, drones, the dark** | | | | | |
 | `seq:coaster` | Hollywood Land: Thrones of the Stars, the toilet coaster | | | | | | |
@@ -94,8 +99,8 @@ different from every other's). Change any of it, but keep them all different.
 
 | Cue id | Who | Land | Genre | Key | Tempo | Lead | Mood | Status |
 |---|---|---|---|---|---|---|---|---|
-| `boss:trex` | The T. rex (sub-boss) | Jungle | Orchestral stomp: low brass ostinato, taiko, choir shouts | C-sharp minor | 96 | Horns + taiko | Primal, huge | |
-| `boss:safari-artie` | Safari Artie | Jungle | Exotica big-band mambo: bongos, congas, brass shouts | B-flat minor | 168 | Trumpet | Brash, sweaty | |
+| `boss:trex` | The T. rex (sub-boss) | Jungle | Orchestral stomp: tuba/cello grinding a C#-D ostinato, taiko and bass drum footsteps, choir shouts; its speaker's music-box ditty in E major winding down, slammed in C# minor by the brass (arrangements: main, intro) | C-sharp minor | 96 | Horns + taiko | Primal, huge, broken | **done** ("Animatronic Apex", jungleBosses.ts) |
+| `boss:safari-artie` | Safari Artie | Jungle | Perez Prado exotica mambo (sax riff, brass shouts, montuno, timbales, "UGH!") breaking into a swung comedy-club combo (Hammond, walking bass, harmon trumpet, rimshots); opens with a club-intro vamp in B-flat major (arrangements: main, intro) | B-flat minor | 168 | Trumpet | Brash, sweaty, heckled | **done** ("Tough Crowd", jungleBosses.ts) |
 | `boss:demon` | The hell demon (sub-boss) | Spooky | Thrash metal | E minor | 200 | Distorted lead + chugs | Furious | |
 | `boss:donnie-dracula` | Donnie Dracula | Spooky | Baroque gothic fugue (Symphony of the Night) | G minor | 138 | Pipe organ + harpsichord | Camp gothic | |
 | `boss:ufo` | The flying saucer (sub-boss, the whole orbit shooter) | Future | 60s sci-fi surf rock | A minor | 176 | Theremin | Retro panic | |
