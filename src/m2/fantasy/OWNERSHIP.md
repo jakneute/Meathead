@@ -8,7 +8,7 @@ the fill-ins, the rules, the section plan). Each section's index.ts header says 
 | Job | Folders | Sections (checkpoint numbers) |
 |---|---|---|
 | 1 (done) | the skeleton; `square/`, `stairs.ts`, `monument.ts`, `piper.ts` | square (0-9) |
-| 2 | `wheel/` | wheel (10-19) |
+| 2 (done) | `wheel/` (and suitors.ts's tee / knight / wizard kits, ui.qte in store.ts, QtePanel in App.tsx) | wheel (10-19: 10-12 used) |
 | 3 | `glen/` | glen (20-29) |
 | 4 | `tragons/` | tragons (30-39) |
 | 5 | `keep/` | keep (40-49) |
@@ -61,6 +61,10 @@ move your DOORS entries to match; keep the way back working (revisits), or give 
 - **The loudspeaker -> the fairy wheel** (built, square/speaker.ts): the scene ends in black with him at
   `DOORS.wheel.start` (SPEAKER_MEMO in state.stageMemo: done for good). Back from the wheel's left end:
   `DOORS.square.end` (by the bandstand); on a revisit the square's right end walks on to the wheel.
+- **The fairy wheel -> the glen** (built, wheel/): walk past the plaza's gate and the trial's on (both gates shut); all
+  the suitors dead, the far gate opens and its right end walks on to `DOORS.glen.start`; the gate back stays shut the
+  rest of that visit (WHEEL_MEMO in state.stageMemo: won for good; a later visit's wheel is empty and open both ways).
+  Back from the glen: `DOORS.wheel.end` (past the far gate).
 
 ## Things that outlive a death
 

@@ -72,6 +72,7 @@ import { setRayGun } from '../m1/game/combat/rayGun';
 import MapCard from './hub/MapCard';
 import CheckpointPicker from '../m1/components/CheckpointPicker';
 import ChordPrompt from './ChordPrompt';
+import QtePanel from './fantasy/wheel/QtePanel';
 import { registerKillLines, m2Kill } from './moves/killLines';
 import { cleanLines } from './lines/clean';
 import { registerGrabCallouts } from './moves/callouts';
@@ -468,6 +469,8 @@ const App2: React.FC = () => {
             </div>
           </div>
         )}
+        {/* Fairy Land's fairy wheel: a QTE on (in a suitor's cart) */}
+        {status === GameStatus.PLAYING && ui.map === null && !ui.introCutscene && ui.zone === 'wheel' && ui.qte && <QtePanel qte={ui.qte} />}
         {/* The intro: what the panel in the corner's teaching, where he is; what up does at the ticket window; the ticket */}
         {status === GameStatus.PLAYING && stage === INTRO_STAGE && !ui.introCutscene && ui.introTip && (
           // (the grabs' sheet goes wide, three moves side by side, under the HUD: not a tall column)

@@ -20,8 +20,10 @@ export interface SuitorLook {
   name: string;
   /** Skin (light, base, shade), hair. */
   skin: [string, string, string]; hair: string;
-  /** What he's got on: 'cape' (Braxton), 'viking' (Gunnar), 'prince' (Tremaine). */
-  kit: 'cape' | 'viking' | 'prince';
+  /** What he's got on: 'cape' (Braxton), 'viking' (Gunnar), 'prince' (Tremaine); (the fairy wheel's roster) 'tee' (a
+   *  muscle tee and a backwards cap), 'knight' (cosplay: a tabard, chain, a helmet with the visor up), 'wizard' (a robe
+   *  with the sleeves torn off, a pointy hat, a beard to his belt). */
+  kit: 'cape' | 'viking' | 'prince' | 'tee' | 'knight' | 'wizard';
   /** His colors (the cape, the fur, the tank). */
   main: string; trim: string;
   /** His voice (cast.json). */
@@ -73,16 +75,28 @@ export const drawSuitor = (c: Ctx, x: number, feetY: number, facing: 1 | -1, f: 
   const bob = pose === 'flex' || pose === 'cheer' ? (Math.floor(f / 10) % 2) : 0;
   const hipY = -40, shY = -72 + bob, gut = L.gut;
   // LEGS: thick, the trunks or trousers
-  const legCol = L.kit === 'cape' ? sb : L.kit === 'viking' ? '#5A4A3A' : '#2A2A34';
+  const legCol = L.kit === 'cape' ? sb : L.kit === 'viking' ? '#5A4A3A' : L.kit === 'tee' ? '#3A4A6A' : L.kit === 'knight' ? '#8A8A94' : L.kit === 'wizard' ? L.main : '#2A2A34';
   if (pose !== 'sit') {
     limb(c, -7, hipY, -10, -4, 11, legCol); limb(c, 7, hipY, 10, -4, 12, legCol, L.kit === 'cape' ? sl : undefined);
     for (const fx of [-10, 10]) { box(c, fx - 6, -6, 14, 6, INK); box(c, fx - 5, -5, 12, 5, L.kit === 'viking' ? '#6A4A2A' : L.kit === 'prince' ? '#F4F4F5' : '#3A2A1A'); }
     if (L.kit === 'viking') for (const fx of [-10, 10]) for (let y = -30; y < -8; y += 5) box(c, fx - 6, y, 12, 2, '#8A7A60');
+  } else {
+    // (sat: thighs out in front on the bench, shins down)
+    limb(c, -4, hipY, 14, hipY + 2, 12, legCol); limb(c, 14, hipY + 2, 16, -4, 11, legCol);
+    box(c, 10, -6, 14, 6, INK); box(c, 11, -5, 12, 5, '#3A2A1A');
   }
   // TRUNKS / BELT
   if (L.kit === 'cape') { box(c, -14, hipY - 6, 28, 10, INK); box(c, -13, hipY - 5, 26, 8, L.main); box(c, -13, hipY - 5, 26, 2, L.trim); }
   if (L.kit === 'viking') { box(c, -17, hipY - 9, 34, 12, INK); box(c, -16, hipY - 8, 32, 10, '#4A3018'); box(c, -4, hipY - 7, 8, 8, '#B8B8C0'); }
   if (L.kit === 'prince') { box(c, -14, hipY - 5, 28, 8, INK); box(c, -13, hipY - 4, 26, 6, '#2A2A34'); }
+  if (L.kit === 'tee') { box(c, -14, hipY - 5, 28, 9, INK); box(c, -13, hipY - 4, 26, 7, '#3A4A6A'); box(c, -13, hipY - 4, 26, 2, '#E4E4E7'); }
+  if (L.kit === 'knight') { box(c, -15, hipY - 6, 30, 10, INK); box(c, -14, hipY - 5, 28, 8, '#8A8A94'); }
+  // (the wizard's robe, to the floor: over his legs, the sleeves torn off)
+  if (L.kit === 'wizard' && pose !== 'sit') {
+    c.fillStyle = INK; c.beginPath(); c.moveTo(-19, hipY - 18); c.lineTo(19, hipY - 18); c.lineTo(24, -2); c.lineTo(-24, -2); c.closePath(); c.fill();
+    c.fillStyle = L.main; c.beginPath(); c.moveTo(-18, hipY - 17); c.lineTo(18, hipY - 17); c.lineTo(23, -3); c.lineTo(-23, -3); c.closePath(); c.fill();
+    for (let k = 0; k < 4; k++) box(c, -14 + k * 9, -16 + (k % 2) * 8, 2, 2, L.trim);
+  }
   // THE BACK ARM (far)
   const throwing = pose === 'throw', flexing = pose === 'flex' || pose === 'cheer';
   const farHand: [number, number] = flexing ? [-26, shY - 18] : throwing ? [-30, shY - 14] : [-22, hipY - 4];
@@ -112,6 +126,22 @@ export const drawSuitor = (c: Ctx, x: number, feetY: number, facing: 1 | -1, f: 
     c.strokeStyle = '#FFF6E8'; c.lineWidth = 5; c.beginPath(); c.moveTo(-18, shY + 2); c.lineTo(14, hipY - 2); c.stroke();
     c.strokeStyle = '#E8B4C8'; c.lineWidth = 3; c.beginPath(); c.moveTo(-18, shY + 2); c.lineTo(14, hipY - 2); c.stroke();
     c.strokeStyle = L.trim; c.lineWidth = 1.5; c.beginPath(); c.arc(0, shY + 2, 9, 0.3, Math.PI - 0.3); c.stroke(); c.beginPath(); c.arc(0, shY + 4, 12, 0.4, Math.PI - 0.4); c.stroke();
+  }
+  if (L.kit === 'tee') {
+    // (a muscle tee, the arm holes cut to his hips; a stripe across it)
+    c.fillStyle = L.main; c.beginPath(); c.moveTo(-17, shY + 1); c.lineTo(-6, shY + 1); c.lineTo(0, shY + 6); c.lineTo(6, shY + 1); c.lineTo(17, shY + 1); c.lineTo(14, hipY); c.lineTo(-14, hipY); c.closePath(); c.fill();
+    box(c, -13, shY + 16, 26, 3, L.trim);
+  }
+  if (L.kit === 'knight') {
+    // (chain on the shoulders, the tabard down the front to below his hips, a cross on it)
+    box(c, -24, shY, 48, 9, '#8A8A94'); for (let k = -22; k < 22; k += 4) box(c, k, shY + 2 + (k % 8 === 0 ? 0 : 3), 2, 2, '#5A5A64');
+    box(c, -15, shY + 6, 30, hipY - shY + 10, INK); box(c, -14, shY + 7, 28, hipY - shY + 8, L.main);
+    box(c, -2, shY + 10, 4, 26, L.trim); box(c, -9, shY + 18, 18, 4, L.trim);
+  }
+  if (L.kit === 'wizard') {
+    // (the robe's top, over his chest; a rope belt)
+    c.fillStyle = L.main; c.beginPath(); c.moveTo(-20, shY + 1); c.lineTo(-6, shY + 1); c.lineTo(0, shY + 14); c.lineTo(6, shY + 1); c.lineTo(20, shY + 1); c.lineTo(15, hipY); c.lineTo(-15, hipY); c.closePath(); c.fill();
+    box(c, -15, hipY - 6, 30, 3, '#D8C890');
   }
   // THE HEAD: a thick neck, a square jaw
   box(c, -7, shY - 9, 14, 10, INK); box(c, -6, shY - 8, 12, 9, sb);
@@ -143,6 +173,30 @@ export const drawSuitor = (c: Ctx, x: number, feetY: number, facing: 1 | -1, f: 
     for (const s of [-1, 1]) { c.fillStyle = INK; c.beginPath(); c.moveTo(hx + s * 9, hy - 8); c.quadraticCurveTo(hx + s * 22, hy - 12, hx + s * 20, hy - 26); c.lineTo(hx + s * 14, hy - 12); c.closePath(); c.fill(); c.fillStyle = '#F2EAD0'; c.beginPath(); c.moveTo(hx + s * 9, hy - 9); c.quadraticCurveTo(hx + s * 20, hy - 12, hx + s * 19, hy - 23); c.lineTo(hx + s * 13, hy - 12); c.closePath(); c.fill(); }
   }
   if (L.kit === 'prince') { box(c, hx - 8, hy - 11, 18, 6, L.hair); blob(c, hx - 6, hy - 14, 5, 4, L.hair); }
+  if (L.kit === 'tee') {
+    // (a backwards cap: the dome, the brim out behind)
+    box(c, hx - 9, hy - 6, 3, 6, L.hair);
+    blob(c, hx + 1, hy - 8, 11, 6, L.main); box(c, hx - 18, hy - 7, 10, 4, INK); box(c, hx - 17, hy - 6, 9, 2, L.main);
+    box(c, hx - 9, hy - 5, 20, 2, L.trim);
+  }
+  if (L.kit === 'knight') {
+    // (the helmet, the visor up off his face, a plume)
+    blob(c, hx, hy - 6, 12, 9, '#A8A8B4'); box(c, hx - 11, hy - 6, 4, 14, INK); box(c, hx - 10, hy - 5, 3, 12, '#8A8A94');
+    box(c, hx - 2, hy - 13, 14, 4, INK); box(c, hx - 1, hy - 12, 13, 2, '#C8C8D4');
+    c.fillStyle = INK; c.beginPath(); c.ellipse(hx - 4, hy - 18, 9, 5, -0.4, 0, Math.PI * 2); c.fill();
+    c.fillStyle = L.trim; c.beginPath(); c.ellipse(hx - 4, hy - 18, 8, 4, -0.4, 0, Math.PI * 2); c.fill();
+    box(c, hx + 6, hy + 4, 4, 5, L.hair);
+  }
+  if (L.kit === 'wizard') {
+    // (a beard to his belt, a pointy hat with stars)
+    c.fillStyle = INK; c.beginPath(); c.moveTo(hx - 8, hy + 2); c.lineTo(hx + 12, hy + 2); c.lineTo(hx + 4, hy + 34); c.closePath(); c.fill();
+    c.fillStyle = L.hair; c.beginPath(); c.moveTo(hx - 7, hy + 3); c.lineTo(hx + 11, hy + 3); c.lineTo(hx + 4, hy + 32); c.closePath(); c.fill();
+    box(c, hx + 3, hy + 5, 6, 1, INK);
+    box(c, hx - 14, hy - 10, 30, 4, INK); box(c, hx - 13, hy - 9, 28, 2, L.main);
+    c.fillStyle = INK; c.beginPath(); c.moveTo(hx - 9, hy - 9); c.lineTo(hx - 6, hy - 40); c.lineTo(hx + 11, hy - 9); c.closePath(); c.fill();
+    c.fillStyle = L.main; c.beginPath(); c.moveTo(hx - 8, hy - 10); c.lineTo(hx - 6, hy - 37); c.lineTo(hx + 10, hy - 10); c.closePath(); c.fill();
+    box(c, hx - 3, hy - 22, 2, 2, L.trim); box(c, hx + 2, hy - 15, 2, 2, L.trim); box(c, hx - 6, hy - 30, 2, 2, L.trim);
+  }
   // THE NEAR ARM: a bicep the size of his head
   const nearHand: [number, number] = flexing ? [24, shY - 20] : throwing ? [30, shY - 30 + (Math.floor(f / 6) % 2) * 8] : pose === 'point' ? [36, shY + 2] : pose === 'talk' ? [24, shY + 8 + (Math.floor(f / 8) % 2) * 3] : [20, hipY - 4];
   const ex = flexing ? 28 : (16 + nearHand[0]) / 2 + 4, ey = flexing ? shY + 4 : (shY + 6 + nearHand[1]) / 2 + 2;

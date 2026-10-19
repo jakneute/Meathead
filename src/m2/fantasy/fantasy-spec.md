@@ -92,7 +92,7 @@ FAX = 800000. Gaps of 3000 between sections (room to grow). Every section about 
 | # | Section | id | World x | Checkpoints | What |
 |---|---|---|---|---|---|
 | 1 | The town square | `square` | FAX+0 .. FAX+15000 | 0-9 | Hogsmeat Village and the storybook square; the staircases; the loudspeaker |
-| 2 | The fairy wheel (trial 1) | `wheel` | FAX+18000 .. FAX+24000 | 10-19 | The gigantic wheel, the suitors in their carts, the QTEs |
+| 2 | The fairy wheel (trial 1) | `wheel` | FAX+18000 .. FAX+24000 | 10-12 (of 10-19) | The gigantic wheel, eight suitors in its gondolas throwing crap, the QTEs, the kills (built) |
 | 3 | The enchanted glen | `glen` | FAX+27000 .. FAX+41000 | 20-29 | Escalating platforming and enemies |
 | 4 | Truelling Tragons | `tragons` | FAX+44000 .. FAX+58000 | 30-39 | The three-car coaster (fire, ice, lightning) |
 | 5 | The castle's base and the runway | `keep` | FAX+61000 .. FAX+73000 | 40-49 | Platforming in the castle; the runway (from x0+9000) |
@@ -121,6 +121,20 @@ x from the section's start; heights up from the ground line.
 - 10600 THE GRAND STAIRCASE (cp 4): a tower of staircases swinging between landings, clerks and a bro on the landings,
   an owl in the shaft, a 'ride' staircase that swings away mid-climb; out over the top and down.
 - 13200 THE BANDSTAND (cp 5): the last mixed crowd; the loudspeaker on its lamp post, the suitors; the scene.
+
+### Section 2 in detail (the fairy wheel, built: wheel/)
+
+x from the section's start; heights up from the ground line.
+
+- 0 THE PLAZA (cp 10): in off the loudspeaker's scene; the wheel's sign, the ticket booth, the empty queue rails.
+- 1650 THE GATE: walk past 1760 and the trial's on (cp 11 at 1820): the rose gates shut both sides (a pink shimmer up
+  into the sky over them), boss-fight quiet, Piper on the PA. Both stay shut till every suitor's dead; the one back
+  stays shut after (this visit).
+- 3000 THE FAIRY WHEEL: its hub 790 up, its gondolas' pivots 620 out, 24 gondolas hung 112 under them (floors from
+  ~60 up to ~1300), turning clockwise about a pixel a frame at the rim (a turn a minute). Each gondola's floor a
+  moving ledge (stood on, he's carried round); level, lit along its top. Neighbors are close enough to hop across at
+  the top, the bottom and the slants; up the sides they're too far apart: ride. A suitor in every third (eight).
+- 4350 THE FAR GATE: open once they're all dead; cp 12 at 4560; the way on to the glen (its sign at 5200).
 
 ## Standing rules (all apply; check every one against new work)
 
@@ -156,3 +170,32 @@ markBossFight every frame of a boss or sub-boss fight. Voice every new line (`np
 - (job 1) The suitors drawn in suitors.ts (BRAXTON, GUNNAR, TREMAINE, and suitorOf(seed) for the crowds), each with a
   voice (`m2.fantasy.suitor_*`). After the scene he's at the wheel with a HORNY line (lines.ts).
 - (job 1) Music: none; the square's set pieces will want cues (the loudspeaker's scene: something sultry under her).
+- (job 2) The fairy wheel (wheel/): the wheel's geometry above (section 2 in detail); the x range unchanged. Carts are
+  moving one-way ledges (each frame, before he moves; stood on one, he's carried); the wheel's frame, rim and hub are
+  dimmed scenery, the gondola floors the only lit lips.
+- (job 2) The roster: eight, all male, beefy (layout.ts ROSTER): CHAD (muscle tee, backwards cap), BRAXTON, SIR DEREK
+  (knight cosplay), GUNNAR, WIZARD WAYNE (robe, sleeves torn off), DUANE (a powerlifter, a gut), LORENZO (a romance
+  cover in a tank), TREMAINE; skins light to dark, every build. suitors.ts got three more kits for them (tee, knight,
+  wizard) and legs for 'sit'. Each his own voice (five new: `m2.fantasy.suitor_chad`, `_derek`, `_wayne`, `_duane`,
+  `_lorenzo`), his own cheesy lines, a name plaque under his gondola's cap.
+- (job 2) What they throw (each its own hurt source and death screen): bouquets, heart boxes of chocolates, horseshoes,
+  love letters tied round bricks, protein shakers, wands. A 30-frame wind-up (stood up, the thing in his hand) is the
+  tell; aimed with a lead. At him if he's in range (one at a time, ~50 frames apart), else at a rival: a rival hit is
+  dazed 2.5 s (stars; can't throw) and his QTE's a beat shorter and slower. Nothing's thrown before the trial's on, or
+  at him while he's in a cart fight.
+- (job 2) Shots bounce off them (a spark and a clink; now and then Meathead's line or the suitor's laugh). He has to
+  land in the gondola: the QTE's on (qte.ts; the panel QtePanel.tsx in App.tsx, ui.qte, the real buttons live pad vs
+  keys). Kinds: MASH (one face button, the meter drains), PRESS (each shown face button in turn, in time; a wrong one's a
+  miss), ALTERNATE (left/right, tug of war), RING (press as the closing ring's on the band). Beats: 1 for the first
+  three kills, 2 for the next three, 3 for the last two; presses up, time down as he goes; the first ever's a mash.
+- (job 2) Lost: thrown out of the gondola, 46 damage (×0.65 in M2: ~30), only lethal if it takes him to zero; the suitor
+  can't be fought again for 2.5 s. Won: a kill (kills.ts), round in turn shuffled: SMASH (head into the post, three
+  times, left draped over the side), THROW (overhead, off the wheel, screaming, splat on the flower beds), FLOOR
+  (piledriven headfirst through the floor: legs up out of it, his head out of the bowl underneath, riding round like
+  that), FLING (by the ankles, round and round overhead, let go at the nearest other suitor's gondola: the body dazes
+  him, then on down to the beds), CHOKE (his own bouquet down his throat a fistful at a time, purple, roses out of his
+  mouth). Every one shits himself going. The announcer's call per kill; Piper purrs; Meathead's KILLED / HORNY line.
+- (job 2) Falling from high on the wheel to the ground (over 430 px) hurts (its own source), not after a lost QTE.
+- (job 2) The dead stay dead through his deaths (state.ts keptDead, by landVisit; the corpses where they were left);
+  won for good in state.stageMemo (WHEEL_MEMO): a later visit's wheel is empty, both gates open. Starting at cp 12 (the
+  checkpoint cheat) counts it won. A heart per suitor in the top band while it's on.

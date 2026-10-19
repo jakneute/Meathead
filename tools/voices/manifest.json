@@ -336,6 +336,11 @@
  },
  {
   "voice": "announcer",
+  "text": "CART SMASH!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "announcer",
   "text": "CAT FOOD!",
   "from": "FRONTIER"
  },
@@ -503,6 +508,11 @@
   "voice": "announcer",
   "text": "DEFLATED!",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "announcer",
+  "text": "DEFLOWERED!",
+  "from": "FANTASY"
  },
  {
   "voice": "announcer",
@@ -678,6 +688,11 @@
   "voice": "announcer",
   "text": "FLOORBOARDED!",
   "from": "SURFACE_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "FLOORED!",
+  "from": "FANTASY"
  },
  {
   "voice": "announcer",
@@ -1216,6 +1231,11 @@
  },
  {
   "voice": "announcer",
+  "text": "OFF THE WHEEL!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "announcer",
   "text": "OH DEER!",
   "from": "FRONTIER"
  },
@@ -1741,6 +1761,11 @@
  },
  {
   "voice": "announcer",
+  "text": "STOP AND SMELL THE ROSES!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "announcer",
   "text": "STRIKE!",
   "from": "KILL_CALLOUTS"
  },
@@ -1983,6 +2008,11 @@
   "voice": "announcer",
   "text": "WALL SPLAT!",
   "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "WALLED!",
+  "from": "FANTASY"
  },
  {
   "voice": "announcer",
@@ -6401,6 +6431,11 @@
  },
  {
   "voice": "death",
+  "text": "BRICKED BY A SUITOR",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "death",
   "text": "BRIEFCASED",
   "from": "content/deaths"
  },
@@ -6798,6 +6833,11 @@
   "voice": "death",
   "text": "CHILLED TO DEATH",
   "from": "m1/game/stages/ernie/quake.ts:342"
+ },
+ {
+  "voice": "death",
+  "text": "CHOCOLATED TO DEATH",
+  "from": "FANTASY"
  },
  {
   "voice": "death",
@@ -7436,6 +7476,11 @@
  },
  {
   "voice": "death",
+  "text": "DIED OF A HEART-SHAPED BOX",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "death",
   "text": "DIED OF LUTEFISK",
   "from": "FOREIGN"
  },
@@ -7448,6 +7493,11 @@
   "voice": "death",
   "text": "DIED OF POISON IVY",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "death",
+  "text": "DIED OF ROMANCE",
+  "from": "FANTASY"
  },
  {
   "voice": "death",
@@ -7723,6 +7773,11 @@
   "voice": "death",
   "text": "DRONE STRIKE",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "DROWNED IN A PROTEIN SHAKE",
+  "from": "FANTASY"
  },
  {
   "voice": "death",
@@ -8108,6 +8163,11 @@
   "voice": "death",
   "text": "FELL FOR IT",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "FELL OFF A FERRIS WHEEL",
+  "from": "FANTASY"
  },
  {
   "voice": "death",
@@ -9521,6 +9581,11 @@
  },
  {
   "voice": "death",
+  "text": "KILLED BY A BOUQUET",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "death",
   "text": "KILLED BY A BRO. BRO.",
   "from": "FANTASY"
  },
@@ -9663,6 +9728,11 @@
   "voice": "death",
   "text": "KILLED BY A LANDLINE",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "death",
+  "text": "KILLED BY A LOVE LETTER",
+  "from": "FANTASY"
  },
  {
   "voice": "death",
@@ -9818,6 +9888,11 @@
   "voice": "death",
   "text": "KILLED BY A WAITER",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "death",
+  "text": "KILLED BY A WAND TOSS",
+  "from": "FANTASY"
  },
  {
   "voice": "death",
@@ -10233,6 +10308,11 @@
   "voice": "death",
   "text": "LOST IN THE SAND",
   "from": "m1/game/stages/dale/runtime.ts:189"
+ },
+ {
+  "voice": "death",
+  "text": "LOST THE CART FIGHT",
+  "from": "FANTASY"
  },
  {
   "voice": "death",
@@ -10658,6 +10738,11 @@
   "voice": "death",
   "text": "NOT ON THE LIST",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "NOT SO LUCKY HORSESHOE",
+  "from": "FANTASY"
  },
  {
   "voice": "death",
@@ -11403,6 +11488,11 @@
   "voice": "death",
   "text": "RIGHT ON TIME",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "death",
+  "text": "RINGER TO THE SKULL",
+  "from": "FANTASY"
  },
  {
   "voice": "death",
@@ -12746,6 +12836,11 @@
  },
  {
   "voice": "death",
+  "text": "SPLATTED UNDER THE WHEEL",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "death",
   "text": "SPLATTERED ON A HULL",
   "from": "SPACE"
  },
@@ -13796,6 +13891,11 @@
  },
  {
   "voice": "death",
+  "text": "THROWN FROM A FAIRY WHEEL",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "death",
   "text": "THROWN OUT OF THE OFFICE",
   "from": "content/deaths"
  },
@@ -14161,6 +14261,11 @@
  },
  {
   "voice": "death",
+  "text": "WANDED OFF A FERRIS WHEEL",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "death",
   "text": "WANDED TO DEATH",
   "from": "FANTASY"
  },
@@ -14213,6 +14318,11 @@
   "voice": "death",
   "text": "WHERE DID YOU THINK YOU WERE GOING?",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "WHEYED DOWN",
+  "from": "FANTASY"
  },
  {
   "voice": "death",
@@ -17996,12 +18106,62 @@
  },
  {
   "voice": "m2.fantasy.piper_pa",
+  "text": "A NAKED ONE. NOTHING TO SOAK UP THE BLOOD.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.piper_pa",
+  "text": "ALL ABOARD, BOYS. ONLY ONE OF YOU GETS OFF.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.piper_pa",
+  "text": "ALL THAT BLOOD. FOR LITTLE OLD ME. NEXT TRIAL.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.piper_pa",
+  "text": "ALL THAT RED ON BARE SKIN. NEXT TRIAL, BABY.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.piper_pa",
+  "text": "ALL THAT RED. FOR ME?",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.piper_pa",
+  "text": "BLOOD AND SHIT. YOU SPOIL ME.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.piper_pa",
+  "text": "BLOOD ON BARE SKIN. MMM.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.piper_pa",
   "text": "FIRST TRIAL: THE FAIRY WHEEL. MAKE IT MESSY, BOYS.",
   "from": "FANTASY"
  },
  {
   "voice": "m2.fantasy.piper_pa",
+  "text": "HE FELL AND SPRAYED. GROSS. GOOD.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.piper_pa",
+  "text": "HE STINKS AND HE KILLS. MMM.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.piper_pa",
   "text": "HELLO, BOYS. ALL THAT MUSCLE.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.piper_pa",
+  "text": "I DO LIKE WATCHING YOU LOSE.",
   "from": "FANTASY"
  },
  {
@@ -18021,7 +18181,72 @@
  },
  {
   "voice": "m2.fantasy.piper_pa",
+  "text": "KILL ANOTHER ONE, NAKED BOY.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.piper_pa",
+  "text": "MESSY. FROM BOTH ENDS. I LOVE IT.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.piper_pa",
+  "text": "MMM. THAT ONE SQUIRTED.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.piper_pa",
+  "text": "NAKED AND FLYING. WHAT A VIEW.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.piper_pa",
+  "text": "NAKED AND KILLING. HOW PRIMAL.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.piper_pa",
+  "text": "OFF HE GOES. EVERYTHING FLAPPING.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.piper_pa",
+  "text": "OFF YOU GO, STINKY.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.piper_pa",
+  "text": "ONE LESS. KEEP GOING, BABY.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.piper_pa",
+  "text": "ONE OF YOU CAME NAKED. NOW THAT'S COMMITMENT.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.piper_pa",
+  "text": "ONE OF YOU SHAT ALREADY. I DO LOVE FEAR.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.piper_pa",
   "text": "ONLY ONE OF YOU GETS IN. FIGHT FOR ME. HARD.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.piper_pa",
+  "text": "OOH, HE BOUNCED.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.piper_pa",
+  "text": "OOH. DO IT AGAIN.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.piper_pa",
+  "text": "OOH. RIGHT IN THE FACE.",
   "from": "FANTASY"
  },
  {
@@ -18036,7 +18261,22 @@
  },
  {
   "voice": "m2.fantasy.piper_pa",
+  "text": "ROUND AND ROUND. LAST MAN BREATHING GETS ME. SORT OF.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.piper_pa",
+  "text": "SOMEBODY BROUGHT A SMELL. HOW BRAVE.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.piper_pa",
   "text": "THE FAIRY WHEEL. DON'T KEEP ME WAITING.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.piper_pa",
+  "text": "THE NAKED ONE WINS. KEEP IT OUT. NEXT TRIAL.",
   "from": "FANTASY"
  },
  {
@@ -18046,7 +18286,47 @@
  },
  {
   "voice": "m2.fantasy.piper_pa",
+  "text": "THE STINKY ONE WINS. NEXT TRIAL, STINKY.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.piper_pa",
+  "text": "THROW HARDER. FOR ME.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.piper_pa",
+  "text": "WELL DONE. I'M ALL FLUSHED. ON TO THE NEXT ONE.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.piper_pa",
   "text": "WELL, HELLO, BIG BOYS.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.piper_pa",
+  "text": "YES, BOYS. HURT EACH OTHER.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.piper_pa",
+  "text": "YES. FIGHT OVER ME.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.piper_pa",
+  "text": "YOU WON. YOU REEK. ON TO THE NEXT ONE.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_braxton",
+  "text": "AAAAAAAAAAH!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_braxton",
+  "text": "AND STAY OUT!",
   "from": "FANTASY"
  },
  {
@@ -18056,7 +18336,912 @@
  },
  {
   "voice": "m2.fantasy.suitor_braxton",
+  "text": "BACK OF THE LINE!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_braxton",
+  "text": "BULLETS? FROM A GUY WHO SHAT HIMSELF?",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_braxton",
+  "text": "CATCH, MEATBALL!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_braxton",
+  "text": "CATCH, SHIT PANTS!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_braxton",
+  "text": "EAT IT, PRETTY BOY!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_braxton",
+  "text": "GET OFF MY WHEEL!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_braxton",
+  "text": "GET OUT OF MY CART!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_braxton",
+  "text": "GLURK! PETALS!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_braxton",
+  "text": "HA! I'M SHREDDED!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_braxton",
+  "text": "HA! NICE TRY, NAKED!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_braxton",
+  "text": "HA! SHOOT ME WITH YOUR SMELL!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_braxton",
+  "text": "I CAN'T FLY! I CAN'T FLY!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_braxton",
+  "text": "I OILED UP FOR THIS. ALL OVER.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_braxton",
+  "text": "I'M GONNA PUKE!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_braxton",
+  "text": "IS THAT A GUN OR A DICK? BOTH TINY!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_braxton",
+  "text": "MMMPH! MMMPH!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_braxton",
+  "text": "MY FACE!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_braxton",
+  "text": "MY HEAD'S IN THE FLOOR!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_braxton",
+  "text": "MY OWN ROSES!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_braxton",
+  "text": "MY VENEERS!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_braxton",
+  "text": "NICE CALVES, LOSER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_braxton",
+  "text": "NOBODY WANTS TO SEE THAT!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_braxton",
+  "text": "NOT THE FACE!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_braxton",
+  "text": "OH GOD, THE SMELL! GET OUT!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_braxton",
+  "text": "OW! MY PECS!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_braxton",
+  "text": "PUT ME DOWN! PUT ME DOWN!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_braxton",
+  "text": "PUT SOME PANTS ON!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_braxton",
   "text": "SHE SAID HARD. I AM HARD.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_braxton",
+  "text": "SHE'S MINE, BRO!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_braxton",
+  "text": "SHE'S MINE, FATSO!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_braxton",
+  "text": "SHE'S MINE, LOSER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_braxton",
+  "text": "TAKE YOUR SMELL WITH YOU!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_braxton",
+  "text": "TAKE YOUR TINY DICK WITH YOU!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_braxton",
+  "text": "THAT'S A FOUL!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_braxton",
+  "text": "THIS BODY IS FOR PIPER. AND MIRRORS.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_braxton",
+  "text": "THIS IS A ONE MAN CART!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_braxton",
+  "text": "TICKLES, BRO!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_braxton",
+  "text": "WHY IS YOUR DICK IN MY CART?",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_braxton",
+  "text": "YOU SHAT IN MY CART!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_braxton",
+  "text": "YOU SMELL LIKE A BUS STATION!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_braxton",
+  "text": "YOUR BALLS ARE ON MY BENCH!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_chad",
+  "text": "AAAAAAAAAAH!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_chad",
+  "text": "AND STAY OUT!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_chad",
+  "text": "BACK OF THE LINE!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_chad",
+  "text": "BULLETS? FROM A GUY WHO SHAT HIMSELF?",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_chad",
+  "text": "CATCH, MEATBALL!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_chad",
+  "text": "CATCH, SHIT PANTS!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_chad",
+  "text": "EAT IT, PRETTY BOY!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_chad",
+  "text": "GET OFF MY WHEEL!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_chad",
+  "text": "GET OUT OF MY CART!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_chad",
+  "text": "GLURK! PETALS!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_chad",
+  "text": "HA! I'M SHREDDED!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_chad",
+  "text": "HA! NICE TRY, NAKED!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_chad",
+  "text": "HA! SHOOT ME WITH YOUR SMELL!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_chad",
+  "text": "I CAN'T FLY! I CAN'T FLY!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_chad",
+  "text": "I DID CHEST DAY TWICE TODAY.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_chad",
+  "text": "I'M GONNA PUKE!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_chad",
+  "text": "IS THAT A GUN OR A DICK? BOTH TINY!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_chad",
+  "text": "MMMPH! MMMPH!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_chad",
+  "text": "MY FACE!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_chad",
+  "text": "MY HEAD'S IN THE FLOOR!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_chad",
+  "text": "MY OWN ROSES!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_chad",
+  "text": "MY VENEERS!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_chad",
+  "text": "NICE CALVES, LOSER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_chad",
+  "text": "NOBODY WANTS TO SEE THAT!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_chad",
+  "text": "NOT THE FACE!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_chad",
+  "text": "OH GOD, THE SMELL! GET OUT!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_chad",
+  "text": "OW! MY PECS!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_chad",
+  "text": "PIPER'S GONNA LOVE THESE GUNS, BRO.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_chad",
+  "text": "PUT ME DOWN! PUT ME DOWN!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_chad",
+  "text": "PUT SOME PANTS ON!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_chad",
+  "text": "SHE'S MINE, BRO!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_chad",
+  "text": "SHE'S MINE, FATSO!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_chad",
+  "text": "SHE'S MINE, LOSER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_chad",
+  "text": "TAKE YOUR SMELL WITH YOU!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_chad",
+  "text": "TAKE YOUR TINY DICK WITH YOU!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_chad",
+  "text": "THAT'S A FOUL!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_chad",
+  "text": "THIS IS A ONE MAN CART!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_chad",
+  "text": "TICKLES, BRO!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_chad",
+  "text": "WHY IS YOUR DICK IN MY CART?",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_chad",
+  "text": "YOU SHAT IN MY CART!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_chad",
+  "text": "YOU SMELL LIKE A BUS STATION!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_chad",
+  "text": "YOUR BALLS ARE ON MY BENCH!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_derek",
+  "text": "AAAAAAAAAAH!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_derek",
+  "text": "AND STAY OUT!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_derek",
+  "text": "BACK OF THE LINE!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_derek",
+  "text": "BULLETS? FROM A GUY WHO SHAT HIMSELF?",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_derek",
+  "text": "CATCH, MEATBALL!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_derek",
+  "text": "CATCH, SHIT PANTS!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_derek",
+  "text": "EAT IT, PRETTY BOY!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_derek",
+  "text": "GET OFF MY WHEEL!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_derek",
+  "text": "GET OUT OF MY CART!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_derek",
+  "text": "GLURK! PETALS!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_derek",
+  "text": "HA! I'M SHREDDED!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_derek",
+  "text": "HA! NICE TRY, NAKED!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_derek",
+  "text": "HA! SHOOT ME WITH YOUR SMELL!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_derek",
+  "text": "I CAN'T FLY! I CAN'T FLY!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_derek",
+  "text": "I'M GONNA PUKE!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_derek",
+  "text": "IS THAT A GUN OR A DICK? BOTH TINY!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_derek",
+  "text": "M'LADY PIPER. I HAVE NINE FAIRE PASSES.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_derek",
+  "text": "MMMPH! MMMPH!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_derek",
+  "text": "MY FACE!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_derek",
+  "text": "MY HEAD'S IN THE FLOOR!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_derek",
+  "text": "MY OWN ROSES!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_derek",
+  "text": "MY SWORD IS REAL. MY CASTLE IS A CONDO.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_derek",
+  "text": "MY VENEERS!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_derek",
+  "text": "NICE CALVES, LOSER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_derek",
+  "text": "NOBODY WANTS TO SEE THAT!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_derek",
+  "text": "NOT THE FACE!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_derek",
+  "text": "OH GOD, THE SMELL! GET OUT!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_derek",
+  "text": "OW! MY PECS!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_derek",
+  "text": "PUT ME DOWN! PUT ME DOWN!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_derek",
+  "text": "PUT SOME PANTS ON!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_derek",
+  "text": "SHE'S MINE, BRO!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_derek",
+  "text": "SHE'S MINE, FATSO!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_derek",
+  "text": "SHE'S MINE, LOSER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_derek",
+  "text": "TAKE YOUR SMELL WITH YOU!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_derek",
+  "text": "TAKE YOUR TINY DICK WITH YOU!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_derek",
+  "text": "THAT'S A FOUL!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_derek",
+  "text": "THIS IS A ONE MAN CART!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_derek",
+  "text": "TICKLES, BRO!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_derek",
+  "text": "WHY IS YOUR DICK IN MY CART?",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_derek",
+  "text": "YOU SHAT IN MY CART!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_derek",
+  "text": "YOU SMELL LIKE A BUS STATION!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_derek",
+  "text": "YOUR BALLS ARE ON MY BENCH!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_duane",
+  "text": "AAAAAAAAAAH!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_duane",
+  "text": "AND STAY OUT!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_duane",
+  "text": "BACK OF THE LINE!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_duane",
+  "text": "BULLETS? FROM A GUY WHO SHAT HIMSELF?",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_duane",
+  "text": "CATCH, MEATBALL!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_duane",
+  "text": "CATCH, SHIT PANTS!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_duane",
+  "text": "EAT IT, PRETTY BOY!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_duane",
+  "text": "GET OFF MY WHEEL!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_duane",
+  "text": "GET OUT OF MY CART!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_duane",
+  "text": "GLURK! PETALS!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_duane",
+  "text": "HA! I'M SHREDDED!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_duane",
+  "text": "HA! NICE TRY, NAKED!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_duane",
+  "text": "HA! SHOOT ME WITH YOUR SMELL!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_duane",
+  "text": "I CAN'T FLY! I CAN'T FLY!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_duane",
+  "text": "I DEADLIFT FIVE HUNDRED. I CAN LIFT HER.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_duane",
+  "text": "I'M GONNA PUKE!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_duane",
+  "text": "IS THAT A GUN OR A DICK? BOTH TINY!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_duane",
+  "text": "MMMPH! MMMPH!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_duane",
+  "text": "MY FACE!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_duane",
+  "text": "MY HEAD'S IN THE FLOOR!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_duane",
+  "text": "MY OWN ROSES!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_duane",
+  "text": "MY VENEERS!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_duane",
+  "text": "NICE CALVES, LOSER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_duane",
+  "text": "NOBODY WANTS TO SEE THAT!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_duane",
+  "text": "NOT THE FACE!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_duane",
+  "text": "OH GOD, THE SMELL! GET OUT!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_duane",
+  "text": "OW! MY PECS!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_duane",
+  "text": "PIPER LIKES A BIG MAN. I AM A BIG MAN.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_duane",
+  "text": "PUT ME DOWN! PUT ME DOWN!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_duane",
+  "text": "PUT SOME PANTS ON!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_duane",
+  "text": "SHE'S MINE, BRO!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_duane",
+  "text": "SHE'S MINE, FATSO!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_duane",
+  "text": "SHE'S MINE, LOSER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_duane",
+  "text": "TAKE YOUR SMELL WITH YOU!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_duane",
+  "text": "TAKE YOUR TINY DICK WITH YOU!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_duane",
+  "text": "THAT'S A FOUL!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_duane",
+  "text": "THIS IS A ONE MAN CART!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_duane",
+  "text": "TICKLES, BRO!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_duane",
+  "text": "WHY IS YOUR DICK IN MY CART?",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_duane",
+  "text": "YOU SHAT IN MY CART!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_duane",
+  "text": "YOU SMELL LIKE A BUS STATION!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_duane",
+  "text": "YOUR BALLS ARE ON MY BENCH!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_gunnar",
+  "text": "AAAAAAAAAAH!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_gunnar",
+  "text": "AND STAY OUT!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_gunnar",
+  "text": "BACK OF THE LINE!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_gunnar",
+  "text": "BULLETS? FROM A GUY WHO SHAT HIMSELF?",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_gunnar",
+  "text": "CATCH, MEATBALL!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_gunnar",
+  "text": "CATCH, SHIT PANTS!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_gunnar",
+  "text": "EAT IT, PRETTY BOY!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_gunnar",
+  "text": "GET OFF MY WHEEL!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_gunnar",
+  "text": "GET OUT OF MY CART!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_gunnar",
+  "text": "GLURK! PETALS!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_gunnar",
+  "text": "HA! I'M SHREDDED!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_gunnar",
+  "text": "HA! NICE TRY, NAKED!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_gunnar",
+  "text": "HA! SHOOT ME WITH YOUR SMELL!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_gunnar",
+  "text": "I BENCH THREE GOATS. FOR HER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_gunnar",
+  "text": "I CAN'T FLY! I CAN'T FLY!",
   "from": "FANTASY"
  },
  {
@@ -18066,12 +19251,427 @@
  },
  {
   "voice": "m2.fantasy.suitor_gunnar",
+  "text": "I'M GONNA PUKE!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_gunnar",
   "text": "I'VE BEEN BULKING FOR THIS.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_gunnar",
+  "text": "IS THAT A GUN OR A DICK? BOTH TINY!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_gunnar",
+  "text": "MMMPH! MMMPH!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_gunnar",
+  "text": "MY FACE!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_gunnar",
+  "text": "MY HEAD'S IN THE FLOOR!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_gunnar",
+  "text": "MY OWN ROSES!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_gunnar",
+  "text": "MY VENEERS!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_gunnar",
+  "text": "NICE CALVES, LOSER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_gunnar",
+  "text": "NOBODY WANTS TO SEE THAT!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_gunnar",
+  "text": "NOT THE FACE!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_gunnar",
+  "text": "OH GOD, THE SMELL! GET OUT!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_gunnar",
+  "text": "OW! MY PECS!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_gunnar",
+  "text": "PUT ME DOWN! PUT ME DOWN!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_gunnar",
+  "text": "PUT SOME PANTS ON!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_gunnar",
+  "text": "SHE'S MINE, BRO!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_gunnar",
+  "text": "SHE'S MINE, FATSO!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_gunnar",
+  "text": "SHE'S MINE, LOSER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_gunnar",
+  "text": "TAKE YOUR SMELL WITH YOU!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_gunnar",
+  "text": "TAKE YOUR TINY DICK WITH YOU!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_gunnar",
+  "text": "THAT'S A FOUL!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_gunnar",
+  "text": "THIS IS A ONE MAN CART!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_gunnar",
+  "text": "TICKLES, BRO!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_gunnar",
+  "text": "VALHALLA IS HER BEDROOM!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_gunnar",
+  "text": "WHY IS YOUR DICK IN MY CART?",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_gunnar",
+  "text": "YOU SHAT IN MY CART!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_gunnar",
+  "text": "YOU SMELL LIKE A BUS STATION!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_gunnar",
+  "text": "YOUR BALLS ARE ON MY BENCH!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_lorenzo",
+  "text": "AAAAAAAAAAH!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_lorenzo",
+  "text": "AND STAY OUT!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_lorenzo",
+  "text": "BACK OF THE LINE!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_lorenzo",
+  "text": "BULLETS? FROM A GUY WHO SHAT HIMSELF?",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_lorenzo",
+  "text": "CATCH, MEATBALL!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_lorenzo",
+  "text": "CATCH, SHIT PANTS!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_lorenzo",
+  "text": "EAT IT, PRETTY BOY!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_lorenzo",
+  "text": "GET OFF MY WHEEL!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_lorenzo",
+  "text": "GET OUT OF MY CART!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_lorenzo",
+  "text": "GLURK! PETALS!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_lorenzo",
+  "text": "HA! I'M SHREDDED!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_lorenzo",
+  "text": "HA! NICE TRY, NAKED!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_lorenzo",
+  "text": "HA! SHOOT ME WITH YOUR SMELL!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_lorenzo",
+  "text": "I CAN'T FLY! I CAN'T FLY!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_lorenzo",
+  "text": "I WAS ON A ROMANCE NOVEL. TWICE.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_lorenzo",
+  "text": "I'M GONNA PUKE!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_lorenzo",
+  "text": "IS THAT A GUN OR A DICK? BOTH TINY!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_lorenzo",
+  "text": "MMMPH! MMMPH!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_lorenzo",
+  "text": "MY FACE!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_lorenzo",
+  "text": "MY HAIR DOES THIS NATURALLY, PIPER.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_lorenzo",
+  "text": "MY HEAD'S IN THE FLOOR!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_lorenzo",
+  "text": "MY OWN ROSES!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_lorenzo",
+  "text": "MY VENEERS!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_lorenzo",
+  "text": "NICE CALVES, LOSER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_lorenzo",
+  "text": "NOBODY WANTS TO SEE THAT!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_lorenzo",
+  "text": "NOT THE FACE!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_lorenzo",
+  "text": "OH GOD, THE SMELL! GET OUT!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_lorenzo",
+  "text": "OW! MY PECS!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_lorenzo",
+  "text": "PUT ME DOWN! PUT ME DOWN!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_lorenzo",
+  "text": "PUT SOME PANTS ON!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_lorenzo",
+  "text": "SHE'S MINE, BRO!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_lorenzo",
+  "text": "SHE'S MINE, FATSO!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_lorenzo",
+  "text": "SHE'S MINE, LOSER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_lorenzo",
+  "text": "TAKE YOUR SMELL WITH YOU!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_lorenzo",
+  "text": "TAKE YOUR TINY DICK WITH YOU!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_lorenzo",
+  "text": "THAT'S A FOUL!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_lorenzo",
+  "text": "THIS IS A ONE MAN CART!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_lorenzo",
+  "text": "TICKLES, BRO!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_lorenzo",
+  "text": "WHY IS YOUR DICK IN MY CART?",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_lorenzo",
+  "text": "YOU SHAT IN MY CART!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_lorenzo",
+  "text": "YOU SMELL LIKE A BUS STATION!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_lorenzo",
+  "text": "YOUR BALLS ARE ON MY BENCH!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_tremaine",
+  "text": "AAAAAAAAAAH!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_tremaine",
+  "text": "AND STAY OUT!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_tremaine",
+  "text": "BACK OF THE LINE!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_tremaine",
+  "text": "BULLETS? FROM A GUY WHO SHAT HIMSELF?",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_tremaine",
+  "text": "CALVES LIKE THESE DON'T LOSE.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_tremaine",
+  "text": "CATCH, MEATBALL!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_tremaine",
+  "text": "CATCH, SHIT PANTS!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_tremaine",
+  "text": "EAT IT, PRETTY BOY!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_tremaine",
+  "text": "GET OFF MY WHEEL!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_tremaine",
+  "text": "GET OUT OF MY CART!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_tremaine",
+  "text": "GLURK! PETALS!",
   "from": "FANTASY"
  },
  {
   "voice": "m2.fantasy.suitor_tremaine",
   "text": "GO HOME, MEATBALL.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_tremaine",
+  "text": "HA! I'M SHREDDED!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_tremaine",
+  "text": "HA! NICE TRY, NAKED!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_tremaine",
+  "text": "HA! SHOOT ME WITH YOUR SMELL!",
   "from": "FANTASY"
  },
  {
@@ -18086,7 +19686,142 @@
  },
  {
   "voice": "m2.fantasy.suitor_tremaine",
+  "text": "I CAN'T FLY! I CAN'T FLY!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_tremaine",
+  "text": "I'M GONNA PUKE!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_tremaine",
+  "text": "IS THAT A GUN OR A DICK? BOTH TINY!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_tremaine",
+  "text": "MMMPH! MMMPH!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_tremaine",
+  "text": "MY FACE!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_tremaine",
+  "text": "MY HEAD'S IN THE FLOOR!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_tremaine",
+  "text": "MY OWN ROSES!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_tremaine",
+  "text": "MY VENEERS!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_tremaine",
+  "text": "NICE CALVES, LOSER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_tremaine",
+  "text": "NOBODY WANTS TO SEE THAT!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_tremaine",
+  "text": "NOT THE FACE!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_tremaine",
+  "text": "OH GOD, THE SMELL! GET OUT!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_tremaine",
+  "text": "OW! MY PECS!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_tremaine",
+  "text": "PUT ME DOWN! PUT ME DOWN!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_tremaine",
+  "text": "PUT SOME PANTS ON!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_tremaine",
   "text": "PUT THAT AWAY. IT'S EMBARRASSING. FOR ALL OF US.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_tremaine",
+  "text": "SHE WANTS A PRINCE. I BOUGHT THE SASH.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_tremaine",
+  "text": "SHE'S MINE, BRO!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_tremaine",
+  "text": "SHE'S MINE, FATSO!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_tremaine",
+  "text": "SHE'S MINE, LOSER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_tremaine",
+  "text": "TAKE YOUR SMELL WITH YOU!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_tremaine",
+  "text": "TAKE YOUR TINY DICK WITH YOU!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_tremaine",
+  "text": "THAT'S A FOUL!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_tremaine",
+  "text": "THIS IS A ONE MAN CART!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_tremaine",
+  "text": "TICKLES, BRO!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_tremaine",
+  "text": "WHY IS YOUR DICK IN MY CART?",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_tremaine",
+  "text": "YOU SHAT IN MY CART!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_tremaine",
+  "text": "YOU SMELL LIKE A BUS STATION!",
   "from": "FANTASY"
  },
  {
@@ -18097,6 +19832,221 @@
  {
   "voice": "m2.fantasy.suitor_tremaine",
   "text": "YOU? WITH THAT BODY? SHE WANTS A PRINCE.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_tremaine",
+  "text": "YOUR BALLS ARE ON MY BENCH!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_wayne",
+  "text": "AAAAAAAAAAH!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_wayne",
+  "text": "AND STAY OUT!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_wayne",
+  "text": "BACK OF THE LINE!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_wayne",
+  "text": "BULLETS? FROM A GUY WHO SHAT HIMSELF?",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_wayne",
+  "text": "CATCH, MEATBALL!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_wayne",
+  "text": "CATCH, SHIT PANTS!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_wayne",
+  "text": "EAT IT, PRETTY BOY!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_wayne",
+  "text": "GET OFF MY WHEEL!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_wayne",
+  "text": "GET OUT OF MY CART!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_wayne",
+  "text": "GLURK! PETALS!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_wayne",
+  "text": "HA! I'M SHREDDED!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_wayne",
+  "text": "HA! NICE TRY, NAKED!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_wayne",
+  "text": "HA! SHOOT ME WITH YOUR SMELL!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_wayne",
+  "text": "I CAN'T FLY! I CAN'T FLY!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_wayne",
+  "text": "I CAST LEVEL NINE HORNY.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_wayne",
+  "text": "I'M GONNA PUKE!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_wayne",
+  "text": "IS THAT A GUN OR A DICK? BOTH TINY!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_wayne",
+  "text": "MMMPH! MMMPH!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_wayne",
+  "text": "MY FACE!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_wayne",
+  "text": "MY HEAD'S IN THE FLOOR!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_wayne",
+  "text": "MY OWN ROSES!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_wayne",
+  "text": "MY STAFF IS FOUR FEET LONG. THE STAFF.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_wayne",
+  "text": "MY VENEERS!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_wayne",
+  "text": "NICE CALVES, LOSER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_wayne",
+  "text": "NOBODY WANTS TO SEE THAT!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_wayne",
+  "text": "NOT THE FACE!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_wayne",
+  "text": "OH GOD, THE SMELL! GET OUT!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_wayne",
+  "text": "OW! MY PECS!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_wayne",
+  "text": "PUT ME DOWN! PUT ME DOWN!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_wayne",
+  "text": "PUT SOME PANTS ON!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_wayne",
+  "text": "SHE'S MINE, BRO!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_wayne",
+  "text": "SHE'S MINE, FATSO!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_wayne",
+  "text": "SHE'S MINE, LOSER!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_wayne",
+  "text": "TAKE YOUR SMELL WITH YOU!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_wayne",
+  "text": "TAKE YOUR TINY DICK WITH YOU!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_wayne",
+  "text": "THAT'S A FOUL!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_wayne",
+  "text": "THIS IS A ONE MAN CART!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_wayne",
+  "text": "TICKLES, BRO!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_wayne",
+  "text": "WHY IS YOUR DICK IN MY CART?",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_wayne",
+  "text": "YOU SHAT IN MY CART!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_wayne",
+  "text": "YOU SMELL LIKE A BUS STATION!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_wayne",
+  "text": "YOUR BALLS ARE ON MY BENCH!",
   "from": "FANTASY"
  },
  {
@@ -43066,6 +45016,11 @@
  },
  {
   "voice": "meathead",
+  "text": "A BOX OF CHOCOLATES! HARD!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "A BREWERY THAT SERVES BUD LIGHT. GERMANY WOULD CRY.",
   "from": "FOREIGN"
  },
@@ -43611,6 +45566,11 @@
  },
  {
   "voice": "meathead",
+  "text": "A HORSESHOE! LUCKY HIM!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "A HOT TUB IS JUST SOUP FOR PEOPLE. NO.",
   "from": "OSCAR_LINES"
  },
@@ -43718,6 +45678,11 @@
   "voice": "meathead",
   "text": "A LOG. I KNOW ALL ABOUT LOGS TODAY.",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "A LOVE LETTER! WITH A BRICK!",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -44353,6 +46318,11 @@
   "voice": "meathead",
   "text": "A VIKING SHIP. MADE IN TAIWAN.",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "A WAND! TO THE NUTS!",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -45821,8 +47791,23 @@
  },
  {
   "voice": "meathead",
+  "text": "BULLETPROOF? STEROIDS.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "BULLETPROOF. NOT SMELL PROOF.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "BULLETS AREN'T DOING ANYTHING. HE'S HIDING BEHIND A MAT.",
   "from": "m1/game/stages/gym/runtime.ts:310"
+ },
+ {
+  "voice": "meathead",
+  "text": "BULLETS BOUNCE. GUESS I GO IN NAKED.",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -46916,6 +48901,11 @@
  },
  {
   "voice": "meathead",
+  "text": "DIED SMELLING ME. RESPECT.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "DIET STARTS NEVER!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -47521,6 +49511,11 @@
  },
  {
   "voice": "meathead",
+  "text": "EVERY KILL, HARDER. THAT'S NOT WEIRD.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "EVERY SUITOR I KILL IS ONE LESS DICK IN LINE.",
   "from": "FANTASY"
  },
@@ -47821,6 +49816,11 @@
  },
  {
   "voice": "meathead",
+  "text": "FELL OFF THE WHEEL! MY ASS!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "FENCE POST TO THE NUTS!",
   "from": "FRONTIER"
  },
@@ -47898,6 +49898,11 @@
   "voice": "meathead",
   "text": "FINALLY. SOMEBODY WHO CAN'T SEE ME NAKED.",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "FINE. HAND TO HAND. DICK TO DICK.",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -49591,6 +51596,11 @@
  },
  {
   "voice": "meathead",
+  "text": "GUNS DON'T WORK ON HIM. HANDS, THEN.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "GYM CLOSED... FOREVER",
   "from": "VULGARITIES"
  },
@@ -50066,6 +52076,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HE MAILED ME A BRICK!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "HE MEASURED ME! THEN HE HIT ME!",
   "from": "FRONTIER"
  },
@@ -50336,6 +52351,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HE THREW A FORTY BUCK WAND!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "HE THREW A HOT ROCK AT ME! A HOT ONE!",
   "from": "HAZARD_HURT"
  },
@@ -50353,6 +52373,11 @@
   "voice": "meathead",
   "text": "HE THREW COAL AT ME!",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE THREW FLOWERS AT ME!",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -50393,6 +52418,11 @@
   "voice": "meathead",
   "text": "HE THREW HIS TOOLS AT ME! UNION RULES!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE THREW ME OUT!",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -51163,6 +53193,11 @@
   "voice": "meathead",
   "text": "HORNS! RIGHT IN THE GUT!",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "HORSESHOE! TO THE DOME!",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -53326,6 +55361,16 @@
  },
  {
   "voice": "meathead",
+  "text": "IT BOUNCED OFF HIS PECS.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT BOUNCED. I GOTTA GET IN THERE. SMELLING LIKE THIS.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "IT BURNED MY SHIN!",
   "from": "SPACE"
  },
@@ -53841,6 +55886,11 @@
  },
  {
   "voice": "meathead",
+  "text": "IT'S CHUNKY! WHY IS IT CHUNKY?",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "IT'S CLOGGED WITH GUYS!",
   "from": "FULL_BAG_LINES"
  },
@@ -54271,6 +56321,11 @@
  },
  {
   "voice": "meathead",
+  "text": "KICKED OUT OF THE CART!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "KILL ARROW. I DIDN'T EVEN NEED A SIGN.",
   "from": "FRONTIER"
  },
@@ -54288,6 +56343,11 @@
   "voice": "meathead",
   "text": "KILLED BY A BEDSHEET? NO!",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "KILLED HIM NAKED. STILL HARD.",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -54806,6 +56866,11 @@
  },
  {
   "voice": "meathead",
+  "text": "LOST TO A GYM RAT!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "LOST YOUR HEAD, DIDN'T YA?",
   "from": "M2_KILL_LINES"
  },
@@ -54813,6 +56878,11 @@
   "voice": "meathead",
   "text": "LOTTA PAINTINGS FOR A GUY WHO DOESN'T SHOW UP IN MIRRORS.",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "LOVE HURTS! IT'S A BRICK!",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -54903,6 +56973,11 @@
   "voice": "meathead",
   "text": "MADE IT. TOP OF THE WORLD. NOW WHAT.",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "MAGIC STICK! MY EYE!",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -55678,6 +57753,11 @@
   "voice": "meathead",
   "text": "MY KNEES!",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "MY KNEES! MY EVERYTHING!",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -57071,6 +59151,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NOUGAT! IN MY TEETH!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "NOW I GOTTA GO ALL THE WAY BACK DOWN. GREAT.",
   "from": "SPOOKY"
  },
@@ -57533,6 +59618,11 @@
   "voice": "meathead",
   "text": "ONE LEFT. UP TOP.",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "ONE LESS DICK IN LINE.",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -58816,6 +60906,11 @@
  },
  {
   "voice": "meathead",
+  "text": "PROTEIN SHAKE! IN MY EYES!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "PROTEST THIS!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -59441,6 +61536,11 @@
  },
  {
   "voice": "meathead",
+  "text": "RINGER! ON MY NECK!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "RINSED OUT. GOOD AS NEW. BASICALLY.",
   "from": "M2_GUT_LINES"
  },
@@ -59578,6 +61678,11 @@
   "voice": "meathead",
   "text": "ROPES OVER SPIKES. THANKS, SAL.",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "ROSES! WITH THORNS!",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -60221,6 +62326,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SHE'S WORTH IT. PROBABLY.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "SHEET CAKE IN MY EYES!",
   "from": "HOLLYWOOD"
  },
@@ -60298,6 +62408,11 @@
   "voice": "meathead",
   "text": "SHITTY RECOVERY... GOODBYE",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHITTY WAY TO GO. FOR HIM.",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -62756,6 +64871,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THAT'S A LONG WAY DOWN!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "THAT'S A LONG WAY DOWN. I'VE FALLEN FURTHER DRUNK.",
   "from": "ADVENTURE"
  },
@@ -62878,6 +64998,11 @@
   "voice": "meathead",
   "text": "THAT'S FIFTEEN BUCKS A FORK, DUMBASS!",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT'S FOR PIPER.",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -63888,6 +66013,11 @@
   "voice": "meathead",
   "text": "THE HAWK'S GOT MY SCALP! GET OFF!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE HEART BOX! MY HEAD!",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -65446,6 +67576,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THORNS! IN MY EYE!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "THORNS! THE ROSES HAVE THORNS!",
   "from": "SPOOKY"
  },
@@ -65923,6 +68058,21 @@
   "voice": "meathead",
   "text": "TREE!",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "TRIAL ONE. DONE. NOW WHERE'S MY PIPER?",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "TRIAL ONE. DONE. SO ARE MY PANTS.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "TRIAL ONE. DONE. STILL NAKED. STILL HARD.",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -66731,6 +68881,21 @@
  },
  {
   "voice": "meathead",
+  "text": "WHEEL'S CLEAR. PIPER, I'M COMING.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHEEL'S CLEAR. PIPER, I'M COMING. AND I REEK.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHEEL'S CLEAR. THE BONER LIVES.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "WHEN WE LOCK UP, MASH! MASH LIKE MY PROTEIN DEPENDS ON IT!",
   "from": "m1/game/stages/victor/doorman.ts:540"
  },
@@ -66803,6 +68968,11 @@
   "voice": "meathead",
   "text": "WHERE'S THE SHOWROOM? IS IT HERE? AM I IN IT?",
   "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHEY! IN MY FACE!",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",

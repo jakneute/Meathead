@@ -49,6 +49,23 @@ export interface M2Ui {
   bikeHud?: boolean;
   bikeBoost?: number;
   bikeTips?: boolean;
+  /** (Fairy Land's fairy wheel) A QTE on: what to press, how it's going (fantasy/wheel/QtePanel.tsx draws it). */
+  qte?: QteUi | null;
+}
+
+/** A QTE's button: the face buttons by position, or left / right. */
+export type QteKey = 'A' | 'B' | 'X' | 'Y' | 'LEFT' | 'RIGHT';
+/** A QTE's panel: the kind (mash one button, press each shown button in time, alternate left and right, press as the
+ *  ring closes on the target), the buttons shown (two for alternate, `next` the one due), the meter (0..1), the time
+ *  left (0..1), the ring's size (1 out wide .. 0 shut) and the target band on it, which step of how many, whose cart,
+ *  and a flash for a beat passed or failed. */
+export interface QteUi {
+  kind: 'mash' | 'press' | 'alternate' | 'ring';
+  keys: QteKey[]; next?: number;
+  fill: number; time: number;
+  ring?: number; band?: [number, number];
+  step: number; steps: number; name: string;
+  flash?: 'good' | 'bad' | null;
 }
 
 let ui: M2Ui = { near: null, map: null, nearExit: false, notice: null };
