@@ -122,7 +122,7 @@ export const frontierLayout: StageLayout = {
     if (fs.lastSec !== sec.id) { fs.lastSec = sec.id; state.viewIsScreen = false; state.camera.x = Math.max(lim.min, Math.min(lim.max, p.pos.x + p.width / 2 - CANVAS_WIDTH / 2)); }
     // (passing a checkpoint: it's his)
     for (const c of sec.checkpoints) if (!c.manual && c.cp > state.checkpoint && p.pos.x + p.width / 2 >= c.x) state.checkpoint = c.cp;
-    setUi({ near: null, map: null, nearExit: false, upPrompt: null, holdUpPrompt: null, holdDownPrompt: null });
+    setUi({ near: null, map: null, nearExit: false, upPrompt: null, holdUpPrompt: null, holdDownPrompt: null, logTip: false });
     // (in through the portal: not his till the land's opened on him)
     const arriving = !!fs.arrive && tickPortalArrival(state, fs.arrive, sec.cameraRow?.(state) ?? 550);
     if (fs.arrive && !arriving) fs.arrive = undefined;

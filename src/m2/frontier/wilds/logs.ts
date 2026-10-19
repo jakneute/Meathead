@@ -20,6 +20,7 @@ import { makeMover, moveMover, riding } from '../../foreign/movers';
 import { hazardHit } from '../../hazardHit';
 import { GY } from '../geometry';
 import { onScreen } from '../kit';
+import { setUi } from '../../store';
 import { type Ctx, box, checker, still, near, INK, NEEDLE } from './paint';
 import { LOGS, WATERS, LOW_BRANCHES, BRANCH_GAP, X, Y, groundH } from './layout';
 import { surfaceY } from './water';
@@ -123,6 +124,8 @@ export const updateLogs = (ctx: FrameContext, controls: Controls): Controls => {
     if (Math.abs(L.vx) > 1 && state.frame % 6 === 0 && onScreen(state, L.x, L.x + L.len)) splash(state, L.vx > 0 ? L.x : L.x + L.len, surfaceY(W), 2, 0.5);
     if (rider) {
       p.logRoll = { spin: L.spin, lean: L.lean };
+      // (the tip while he's on it, up on his feet: down and forward crouch-walks it (the user's))
+      if (!p.isDucking) setUi({ logTip: true });
       if (input) p.facing = input > 0 ? 1 : -1;
       // (his left and right go into the log; jammed that way, they walk him along it)
       if (!jammed) out = { ...out, left: false, right: false };

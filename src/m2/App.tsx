@@ -429,6 +429,12 @@ const App2: React.FC = () => {
               : <span className="inline-flex items-center gap-1 align-middle"><span>HOLD</span><Prompt pad={['DPAD_DOWN']} kb={['@down']} label={ui.holdDownPrompt ?? ''} /></span>}
           </div>
         )}
+        {/* Wilderness Land's rolling logs: on one, down and forward crouch-walks it */}
+        {status === GameStatus.PLAYING && ui.map === null && !ui.introCutscene && !ui.upPrompt && !ui.holdUpPrompt && !ui.holdDownPrompt && ui.logTip && (
+          <div className="absolute left-1/2 -translate-x-1/2 top-[132px] z-30 px-3 py-2 text-[9px] text-white bg-black/75 border-2 border-zinc-600">
+            <span className="inline-flex items-center gap-1 align-middle"><Prompt pad={['DPAD_DOWN']} kb={['@down']} /><span>+ FORWARD: CROUCH-WALK THE LOG</span></span>
+          </div>
+        )}
         {/* Foreign Lands' helicopter: the flying controls, for a while once he's jacked it */}
         {status === GameStatus.PLAYING && ui.map === null && !ui.introCutscene && ui.heliTips && (
           <div className="absolute left-1/2 -translate-x-1/2 top-[132px] z-30 flex gap-4 px-3 py-2 text-[9px] text-white bg-black/75 border-2 border-zinc-600">
