@@ -245,6 +245,7 @@ export const updateFight = (ctx: FrameContext, f: Fight): Controls | null => {
   tickShots(ctx, f);
   tickSmoke(f);
   tickCritters(ctx, f);
+  quietCarnage(state, f);
   // (nothing dropped off a kill in the fight: the critters give no health or ammo (the user's); the refills before the
   // arena are its own)
   if (state.pickups.some(q => q.id.startsWith('pickup-'))) state.pickups = state.pickups.filter(q => !q.id.startsWith('pickup-'));
@@ -1250,4 +1251,20 @@ const closeup = (c: Ctx, state: GameState, f: Fight, wound: 'maul' | 'lions', k:
   drawTuckerCloseup(c, cx, cy - 10, 4.4, state.frame, { face, jolt, wounds: woundsOf(f), talking: f.talking, making: { wound, k } });
   c.restore();
   if (f.said) saidOver(c, f.said, cx, y + h + 34, '#FDE68A', 340);
+};
+
+// ---- not too much at once (the playtest: sweeping a crowd of critters with the sucker was a blizzard of gore and
+// callouts): one callout every so often at most, and the particles kept to a ceiling (the oldest go first)
+const CALLOUT_GAP = 50, MAX_PARTICLES = 220;
+let lastCalloutAt = -9999;
+const quietCarnage = (state: GameState, f: Fight) => {
+  if (f.mode !== 'on') return;
+  // (Tucker's own callouts always show: only those off him are thinned)
+  const fresh = state.damageNumbers.filter(d => d.isCallout && d.life >= d.maxLife - 1 && Math.abs(d.pos.x - f.tx) > 80);
+  if (fresh.length) {
+    const keep = f.t - lastCalloutAt >= CALLOUT_GAP ? fresh[0] : null;
+    if (keep) lastCalloutAt = f.t;
+    state.damageNumbers = state.damageNumbers.filter(d => !fresh.includes(d) || d === keep);
+  }
+  if (state.particles.length > MAX_PARTICLES) state.particles.splice(0, state.particles.length - MAX_PARTICLES);
 };
