@@ -228,8 +228,11 @@ export const bendFloor = (c: Ctx, eye: { x: number }, line: number, y0: number, 
   b.drawImage(c.canvas, 0, dy0, W, h, 0, 0, W, h);
   const ex = eye.x * m.a + m.e, lineD = line * m.d + m.f, span = Math.max(1, (y1 - line) * m.d);
   const step = Math.max(1, Math.round(m.d));
+  // (its ends, unclamped: the floor's edge at each one fans out from its corner on the line just as the floor does, so
+  // the slab's side always meets its ledge's corner, wherever the eye is (the playtest: a vertical cut at x0..x1 let the
+  // fanned floor come loose of the ledge, a gap one way, an overhang the other))
+  const ex0 = Number.isFinite(x0) ? x0 * m.a + m.e : -1e9, ex1 = Number.isFinite(x1) ? x1 * m.a + m.e : 1e9;
   c.save(); c.setTransform(1, 0, 0, 1, 0, 0);
-  c.beginPath(); c.rect(dx0, dy0, dx1 - dx0, h); c.clip();
   c.imageSmoothingEnabled = false;
   for (let yd = dy0; yd < dy1; yd += step) {
     const u = Math.max(0, (yd - lineD) / span);
@@ -237,7 +240,10 @@ export const bendFloor = (c: Ctx, eye: { x: number }, line: number, y0: number, 
     const ys = Math.min(h - step, Math.max(0, Math.round(lineD + Math.pow(u, 1.3) * span - dy0)));
     const k = 1 + u * span / m.d * BEND;
     const sx = ex - ex / k, sw = W / k;
-    c.drawImage(bendBuf, sx, ys, sw, step, 0, yd, W, step);
+    // (this row's stretch of floor: its ends fanned out from the corners like everything on it)
+    const L = Math.max(0, Math.floor(ex + (ex0 - ex) * k)), R = Math.min(W, Math.ceil(ex + (ex1 - ex) * k));
+    if (R - L < 1) continue;
+    c.drawImage(bendBuf, sx + L * sw / W, ys, (R - L) * sw / W, step, L, yd, R - L, step);
   }
   c.restore();
 };
