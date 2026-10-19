@@ -27,7 +27,7 @@ import type { FrameContext } from '../../../m1/game/core/context';
 import { registerM2Kind, registerHurtLines, registerKindCallouts } from '../../kinds';
 import { stamp } from '../../../m1/game/render/stamp';
 import { mix, rampOf, part, INK } from '../wilds/paint';
-import { GY, ROCK_X, ROCK_HW, ROCK_H } from './layout';
+import { GY } from './layout';
 import { FIGHT_HURT, LION_CALLS } from './lines';
 import { drawLion } from './beasts';
 
@@ -55,13 +55,9 @@ const DEF: Record<Critter, { w: number; h: number; hp: number; dmg: number; mass
 const CRITTER_KINDS = new Set<string>(Object.keys(DEF).map(k => kindOf(k as Critter)));
 export const critterSpeed = (c: Critter) => DEF[c].speed;
 
-/** How high the ground is at x (the felled trunk and the boulder: the ground ones run up over them). */
-const humpAt = (x: number) => {
-  let h = 0;
-  const d = Math.abs(x - ROCK_X);
-  if (d < ROCK_HW + 20) h = Math.max(h, d < ROCK_HW ? ROCK_H : ROCK_H * (1 - (d - ROCK_HW) / 20));
-  return h;
-};
+/** How high the ground is at x for them: flat, always (the user's: a clear path across, nothing to collide with or
+ *  climb; they got stuck on the boulder, lifted off the ground over it and held there). They run past it. */
+const humpAt = (_x: number) => 0;
 
 // ---------------------------------------------------------------------------------------------------------------
 // The AI: flat out across, the one way (e.facing), at e.aiX px a frame; the flyers along e.aiY, bobbing

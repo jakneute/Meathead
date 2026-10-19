@@ -86,8 +86,9 @@ const RUN_FIRE: [number, number] = [26, 46], RUN_ERR = 90;
 const ERR = { jump: 40, land: 30, step: 70, shot: 16, hit: 0 };
 /** The stampede after each bang: how many (more later), how soon the first comes, the gaps, how many fly. */
 const CRITTERS: [number, number] = [5, 8], FIRST_IN = 22, GAP: [number, number] = [6, 20], FLY_SHARE = 0.3;
-/** The most critters about at once (the user's: a lot, but limited). */
-const MAX_CRITTERS = 14;
+/** The most critters about at once (the user's: a lot, but limited; and the game slowed with tons of them), and the most
+ *  of their bodies left lying (the oldest cleared away). */
+const MAX_CRITTERS = 10, MAX_CORPSES = 6;
 /** The bees: their speed, the sting (before M2's x0.65), how often, then off a while; a second swarm below this health. */
 const BEE_V: [number, number] = [1.5, 2.3], STING = 3, STING_GAP = 55, BEE_OFF = 50, SECOND_SWARM = 0.4;
 /** The weakness: how many globs of the spray on him make him showered; the lions' wait (frames after the shower), their
@@ -499,6 +500,9 @@ const tickCritters = (ctx: FrameContext, f: Fight) => {
   // (in: from just off the view's edge at their end, running; a lot of them, but never more than MAX_CRITTERS about at
   // once (the user's): the rest wait their turn till some are gone)
   let about = state.enemies.reduce((n, e) => n + (isCritter(e) && e.health > 0 && !e.isBlownAway ? 1 : 0), 0);
+  // (their bodies: only the newest few left lying; the oldest go (each a live paint when it's tumbling: the slowdown))
+  const dead = state.enemies.filter(e => isCritter(e) && (e.health <= 0 || e.isBlownAway));
+  if (dead.length > MAX_CORPSES) { const drop = new Set(dead.slice(0, dead.length - MAX_CORPSES)); state.enemies = state.enemies.filter(e => !drop.has(e)); }
   f.queue = f.queue.filter(q => {
     if (f.t < q.at) return true;
     if (f.mode !== 'on') return false;
