@@ -309,7 +309,7 @@ export const drawStationHud = (c: Ctx, state: GameState) => {
     // (behind his head: rage red in bands)
     for (let i = 0; i < 6; i++) box(c, x, y + (i * h) / 6, w, h / 6 + 1, mix('#7F1D1D', '#F97316', i / 6));
     for (let i = 0; i < 14; i++) { const a = (i / 14) * Math.PI * 2 + state.frame * 0.01; c.strokeStyle = 'rgba(254, 240, 138, 0.25)'; c.lineWidth = 6; c.beginPath(); c.moveTo(cx, cy + 40); c.lineTo(cx + Math.cos(a) * 400, cy + 40 + Math.sin(a) * 400); c.stroke(); }
-    drawTuckerCloseup(c, cx - 8, cy + 6, 5.2 * (0.7 + 0.3 * k), state.frame, { face: 'manic', talking: s.talking, red: true, jolt: s.talking ? 0.5 : 0.15 });
+    drawTuckerCloseup(c, cx - 8, cy + 6, 5.2 * (0.7 + 0.3 * k), state.frame, { face: 'angry', talking: s.talking, jolt: s.talking ? 0.3 : 0.1 });
     c.restore();
     if (s.said) saidOver(c, s.said.text, cx, y + h + 34, '#FDE68A', 320);
   }
