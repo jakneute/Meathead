@@ -25986,11 +25986,6 @@
  },
  {
   "voice": "m2.frontier.tucker",
-  "text": "A NAKED STOWAWAY. NO POCKETS. NO WALLET. NO EXCUSES.",
-  "from": "FRONTIER"
- },
- {
-  "voice": "m2.frontier.tucker",
   "text": "AAAAAGH! BOTH HALVES CAN SMELL YOU!",
   "from": "FRONTIER"
  },
@@ -26126,17 +26121,22 @@
  },
  {
   "voice": "m2.frontier.tucker",
-  "text": "ALL ABOARD! EXCEPT STINKY! YOU OWE ME A DOLLAR TEN AND A SEAT CUSHION!",
+  "text": "ALL ABOARD! EXCEPT STINKY! TICKETS ARE A DOLLAR TEN! BATHS ARE EXTRA!",
   "from": "FRONTIER"
  },
  {
   "voice": "m2.frontier.tucker",
-  "text": "ALL ABOARD! EXCEPT THE NAKED MAN! YOU OWE ME A DOLLAR TEN! WHERE WOULD YOU EVEN KEEP IT?!",
+  "text": "ALL ABOARD! EXCEPT THE NAKED MAN! TICKETS ARE A DOLLAR TEN! PANTS ARE REQUIRED!",
   "from": "FRONTIER"
  },
  {
   "voice": "m2.frontier.tucker",
-  "text": "ALL ABOARD! EXCEPT YOU! YOU OWE ME A DOLLAR TEN!",
+  "text": "ALL ABOARD! EXCEPT YOU! TICKETS ARE A DOLLAR TEN! AT THE WINDOW!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "ASSAULT. ON MY PLATFORM. I HAVE A SCHEDULE!",
   "from": "FRONTIER"
  },
  {
@@ -26751,6 +26751,11 @@
  },
  {
   "voice": "m2.frontier.tucker",
+  "text": "I DON'T HAVE TIME FOR THIS! OR FOR THAT!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
   "text": "I DON'T NEED EYES TO BALANCE A LEDGER!",
   "from": "FRONTIER"
  },
@@ -26771,17 +26776,17 @@
  },
  {
   "voice": "m2.frontier.tucker",
+  "text": "I HAVE TO WASH MY FACE! I'M BEHIND SCHEDULE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
   "text": "I HEARD IT SLAP!",
   "from": "FRONTIER"
  },
  {
   "voice": "m2.frontier.tucker",
   "text": "I HEARD THAT!",
-  "from": "FRONTIER"
- },
- {
-  "voice": "m2.frontier.tucker",
-  "text": "I SEE YOU BACK THERE. I'M OPENING A TAB.",
   "from": "FRONTIER"
  },
  {
@@ -26931,11 +26936,6 @@
  },
  {
   "voice": "m2.frontier.tucker",
-  "text": "MY SPECTACLES!",
-  "from": "FRONTIER"
- },
- {
-  "voice": "m2.frontier.tucker",
   "text": "NO FANCY STUFF ON MY LINE!",
   "from": "FRONTIER"
  },
@@ -26966,17 +26966,17 @@
  },
  {
   "voice": "m2.frontier.tucker",
+  "text": "NO ONE BOARDS MY TRAIN WITHOUT A TICKET! WRITE THAT DOWN.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
   "text": "NO PANTS IS NOT A PAYMENT METHOD.",
   "from": "FRONTIER"
  },
  {
   "voice": "m2.frontier.tucker",
   "text": "NO PANTS, NO TICKET! TIME TO ENGAGE THE BUZZSAWS!",
-  "from": "FRONTIER"
- },
- {
-  "voice": "m2.frontier.tucker",
-  "text": "NO PANTS, NO TICKET. I'M BILLING YOUR NEXT OF KIN.",
   "from": "FRONTIER"
  },
  {
@@ -27051,22 +27051,7 @@
  },
  {
   "voice": "m2.frontier.tucker",
-  "text": "NOBODY RIDES FREE! NOBODY!",
-  "from": "FRONTIER"
- },
- {
-  "voice": "m2.frontier.tucker",
-  "text": "NOBODY RIDES FREE! NOT EVEN NAKED!",
-  "from": "FRONTIER"
- },
- {
-  "voice": "m2.frontier.tucker",
   "text": "NOBODY RIDES FREE! NOT EVEN ON A STOLEN BIKE!",
-  "from": "FRONTIER"
- },
- {
-  "voice": "m2.frontier.tucker",
-  "text": "NOBODY RIDES FREE! NOT EVEN STINKY!",
   "from": "FRONTIER"
  },
  {
@@ -27141,27 +27126,12 @@
  },
  {
   "voice": "m2.frontier.tucker",
-  "text": "ONE FARE! PLUS A CLEANING FEE!",
-  "from": "FRONTIER"
- },
- {
-  "voice": "m2.frontier.tucker",
   "text": "ONE FARE! PLUS A DECENCY FINE!",
   "from": "FRONTIER"
  },
  {
   "voice": "m2.frontier.tucker",
-  "text": "ONE FARE! PLUS A DECENCY SURCHARGE!",
-  "from": "FRONTIER"
- },
- {
-  "voice": "m2.frontier.tucker",
   "text": "ONE FARE! PLUS CLEANING FEES!",
-  "from": "FRONTIER"
- },
- {
-  "voice": "m2.frontier.tucker",
-  "text": "ONE FARE! PLUS INTEREST! I'LL GET IT OUT OF YOU!",
   "from": "FRONTIER"
  },
  {
@@ -27191,17 +27161,22 @@
  },
  {
   "voice": "m2.frontier.tucker",
-  "text": "OOF!",
-  "from": "FRONTIER"
- },
- {
-  "voice": "m2.frontier.tucker",
   "text": "OOF! IT'S ON YOUR HANDS!",
   "from": "FRONTIER"
  },
  {
   "voice": "m2.frontier.tucker",
+  "text": "OOF! MY SPECTACLES. HONESTLY.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
   "text": "OOF! PUT IT AWAY!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "OOF! WELL, THAT'S RUDE.",
   "from": "FRONTIER"
  },
  {
@@ -27317,6 +27292,36 @@
  {
   "voice": "m2.frontier.tucker",
   "text": "POWDER. BALL. RAMROD. DON'T SAY IT.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "PUNCH ME, FINE! BUT RIDE FOR FREE?! YOU CUT THE LINE, YOU SON OF A BITCH!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "PUNCH ME, FINE! BUT RIDE FREE?! AND SHIT IN MY CABOOSE?! THE FARE FIRST!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "PUNCH ME, FINE! BUT RIDE FREE?! NAKED FREELOADER! I'LL BILL YOUR CORPSE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "PUNCHED BY A NAKED MAN. AND NOW I'M LATE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "PUNCHED BY A STINKY MAN. AND NOW I'M LATE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "PUNCHED. WONDERFUL. AND NOW I'M LATE!",
   "from": "FRONTIER"
  },
  {
@@ -27482,16 +27487,6 @@
  {
   "voice": "m2.frontier.tucker",
   "text": "STILL HERE! STILL SMELL YOU!",
-  "from": "FRONTIER"
- },
- {
-  "voice": "m2.frontier.tucker",
-  "text": "STOWAWAY ON THE CABOOSE. ONE FARE, PLUS A CLEANING FEE. I CAN SMELL YOU FROM THE ENGINE.",
-  "from": "FRONTIER"
- },
- {
-  "voice": "m2.frontier.tucker",
-  "text": "STOWAWAY ON THE CABOOSE. THAT'S ONE FARE, PLUS A BOARDING FEE.",
   "from": "FRONTIER"
  },
  {
@@ -27801,6 +27796,21 @@
  },
  {
   "voice": "m2.frontier.tucker",
+  "text": "YOU GOT ON MY TRAIN?! NO TICKET?! IN THOSE PANTS?! FREELOADER!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "YOU GOT ON MY TRAIN?! NO TICKET?! NO PANTS?! THE TICKET IS WORSE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
+  "text": "YOU GOT ON MY TRAIN?! WITHOUT A TICKET?! FREELOADER! FREELOADER!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.tucker",
   "text": "YOU MADE IT TO THE ENGINE. THAT'S TWENTY-TWO CARS. I CHARGE BY THE CAR.",
   "from": "FRONTIER"
  },
@@ -27812,11 +27822,6 @@
  {
   "voice": "m2.frontier.tucker",
   "text": "YOU MADE IT TO THE ENGINE. TWENTY-TWO CARS, BUCK NAKED. I CHARGE BY THE CAR.",
-  "from": "FRONTIER"
- },
- {
-  "voice": "m2.frontier.tucker",
-  "text": "YOU SHAT IN MY CABOOSE? THAT'S BILLABLE.",
   "from": "FRONTIER"
  },
  {

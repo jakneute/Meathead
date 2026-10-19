@@ -11,11 +11,12 @@ import { TUCKER_VOICE, allOf, type ByPants, type HurtTable } from '../talk';
 // ---------------------------------------------------------------------------------------------------------------
 // Tucker, over the speaking tube
 
-/** He's jumped on at the caboose. */
+/** He's jumped on at the caboose: Tucker finds out, and THIS is the meltdown (the punch was a nuisance; the free ride
+ *  is the crime). */
 export const TUBE_BOARD: ByPants = {
-  clean: ["STOWAWAY ON THE CABOOSE. THAT'S ONE FARE, PLUS A BOARDING FEE.", "I SEE YOU BACK THERE. I'M OPENING A TAB."],
-  shitty: ['STOWAWAY ON THE CABOOSE. ONE FARE, PLUS A CLEANING FEE. I CAN SMELL YOU FROM THE ENGINE.', "YOU SHAT IN MY CABOOSE? THAT'S BILLABLE."],
-  nude: ['A NAKED STOWAWAY. NO POCKETS. NO WALLET. NO EXCUSES.', "NO PANTS, NO TICKET. I'M BILLING YOUR NEXT OF KIN."],
+  clean: ["YOU GOT ON MY TRAIN?! WITHOUT A TICKET?! FREELOADER! FREELOADER!", "PUNCH ME, FINE! BUT RIDE FOR FREE?! YOU CUT THE LINE, YOU SON OF A BITCH!"],
+  shitty: ["YOU GOT ON MY TRAIN?! NO TICKET?! IN THOSE PANTS?! FREELOADER!", "PUNCH ME, FINE! BUT RIDE FREE?! AND SHIT IN MY CABOOSE?! THE FARE FIRST!"],
+  nude: ["YOU GOT ON MY TRAIN?! NO TICKET?! NO PANTS?! THE TICKET IS WORSE!", "PUNCH ME, FINE! BUT RIDE FREE?! NAKED FREELOADER! I'LL BILL YOUR CORPSE!"],
 };
 /** Now and then, while he climbs forward: the ledger. */
 export const TUBE_LEDGER: ByPants = {

@@ -1339,3 +1339,8 @@ later (+1 if heavyset; was 2 / 3 before playtest fixes E). Tucker's glimpsed ahe
   two-frame wings; the remains (the pinstriped leg, the rack of ribs, the saw's toothed blade, the cracked spectacles)
   over a stepped pool, the torn edge and the gut stepped; the revisit's stain gone brown under blown leaves; his bar
   brass-bound. No gameplay, timing, hit area or spawn changes.
+- **Tucker's anger, re-weighted (the user's, 2026-10-18):** the violence is an irritant; the unpaid boarding is what
+  sets him off. At the station, punched, he's put out (OOF: "WELL, THAT'S RUDE."), the user's "NO ONE BOARDS MY TRAIN
+  WITHOUT A TICKET!" reads as a warning, and he huffs off for his engine late for his schedule (RUN), prim from the cab
+  (tickets are a dollar ten, at the window). The meltdown is the train's first speaking-tube lines once Meathead's
+  aboard (TUBE_BOARD: "PUNCH ME, FINE! BUT RIDE FOR FREE?!"). Later pools already bill violence as line items; unchanged.

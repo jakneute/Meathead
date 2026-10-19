@@ -94,29 +94,30 @@ export const TUCKER_BLOCK: ByPants = {
   shitty: ['NO TICKET, NO TRAIN! AND NO SMELL LIKE THAT EITHER!', 'TICKETS AT THE WINDOW! WIPE FIRST!'],
   nude: ['NO TICKET, NO TRAIN! NO PANTS, NO... WELL, ALSO NO TRAIN!', 'TICKETS AT THE WINDOW! COVER UP FIRST!'],
 };
-/** Punched: on his backside (a yelp). */
+/** Punched: on his backside (a yelp: put out, not hurt). */
 export const TUCKER_OOF: ByPants = {
-  clean: ['OOF!', 'MY SPECTACLES!'],
+  clean: ['OOF! WELL, THAT\'S RUDE.', 'OOF! MY SPECTACLES. HONESTLY.'],
   shitty: ['OOF! IT\'S ON YOUR HANDS!', 'OOF! YOU TOUCHED ME!'],
   nude: ['OOF! YOU\'RE TOUCHING ME WITH THAT?!', 'OOF! PUT IT AWAY!'],
 };
-/** Furious (the close-up): the user's line, every pool. */
+/** The close-up, dusting himself off: the user's line, every pool. A warning, not yet the meltdown (that's when he
+ *  finds out Meathead got on anyway: train/lines.ts TUBE_BOARD). */
 export const TUCKER_RAGE: ByPants = {
-  clean: ['NO ONE BOARDS MY TRAIN WITHOUT A TICKET!'],
+  clean: ['NO ONE BOARDS MY TRAIN WITHOUT A TICKET!', 'NO ONE BOARDS MY TRAIN WITHOUT A TICKET! WRITE THAT DOWN.'],
   shitty: ['NO ONE BOARDS MY TRAIN WITHOUT A TICKET! OR WITH A LOAD IN HIS PANTS!'],
   nude: ['NO ONE BOARDS MY TRAIN WITHOUT A TICKET! OR WITHOUT PANTS!'],
 };
-/** Running for his engine, manic (the ledger: one unpaid fare, and it's consuming him). */
+/** Off to his engine, huffy: the punch is a nuisance; he has a schedule. */
 export const TUCKER_RUN: ByPants = {
-  clean: ['ONE FARE! PLUS INTEREST! I\'LL GET IT OUT OF YOU!', 'NOBODY RIDES FREE! NOBODY!'],
-  shitty: ['ONE FARE! PLUS A CLEANING FEE!', 'NOBODY RIDES FREE! NOT EVEN STINKY!'],
-  nude: ['ONE FARE! PLUS A DECENCY SURCHARGE!', 'NOBODY RIDES FREE! NOT EVEN NAKED!'],
+  clean: ['ASSAULT. ON MY PLATFORM. I HAVE A SCHEDULE!', 'PUNCHED. WONDERFUL. AND NOW I\'M LATE!'],
+  shitty: ['PUNCHED BY A STINKY MAN. AND NOW I\'M LATE!', 'I HAVE TO WASH MY FACE! I\'M BEHIND SCHEDULE!'],
+  nude: ['PUNCHED BY A NAKED MAN. AND NOW I\'M LATE!', 'I DON\'T HAVE TIME FOR THIS! OR FOR THAT!'],
 };
-/** From the cab, pulling out. */
+/** From the cab, pulling out (prim: the window's that way). */
 export const TUCKER_CAB: ByPants = {
-  clean: ['ALL ABOARD! EXCEPT YOU! YOU OWE ME A DOLLAR TEN!', 'I DON\'T GIVE HANDOUTS! IT\'S ALL IN THE LEDGER!'],
-  shitty: ['ALL ABOARD! EXCEPT STINKY! YOU OWE ME A DOLLAR TEN AND A SEAT CUSHION!'],
-  nude: ['ALL ABOARD! EXCEPT THE NAKED MAN! YOU OWE ME A DOLLAR TEN! WHERE WOULD YOU EVEN KEEP IT?!'],
+  clean: ['ALL ABOARD! EXCEPT YOU! TICKETS ARE A DOLLAR TEN! AT THE WINDOW!', 'I DON\'T GIVE HANDOUTS! IT\'S ALL IN THE LEDGER!'],
+  shitty: ['ALL ABOARD! EXCEPT STINKY! TICKETS ARE A DOLLAR TEN! BATHS ARE EXTRA!'],
+  nude: ['ALL ABOARD! EXCEPT THE NAKED MAN! TICKETS ARE A DOLLAR TEN! PANTS ARE REQUIRED!'],
 };
 /** Meathead, the train pulling away: after it. */
 export const CHASE: ByPants = {
