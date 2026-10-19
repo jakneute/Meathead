@@ -49,6 +49,8 @@ export const SECTION_ORDER: FantasyId[] = ['square', 'wheel', 'glen', 'tragons',
  *  one before it (start), and coming back into it from the one after it (end). Feet (x, y). */
 export const DOORS: Record<FantasyId, { start: { x: number; y: number }; end: { x: number; y: number } }> =
   Object.fromEntries(SECTION_ORDER.map(id => [id, { start: { x: SECTIONS[id].x0 + 200, y: GY }, end: { x: SECTIONS[id].x1 - 250, y: GY } }])) as Record<FantasyId, { start: { x: number; y: number }; end: { x: number; y: number } }>;
+// (back from the wheel: past the bandstand, short of the way on)
+DOORS.square.end = { x: SECTIONS.square.x1 - 120, y: GY };
 /** The section before and after one (null: the land's start, the boss's arena). */
 export const prevOf = (id: FantasyId): FantasyId | null => SECTION_ORDER[SECTION_ORDER.indexOf(id) - 1] ?? null;
 export const nextOf = (id: FantasyId): FantasyId | null => SECTION_ORDER[SECTION_ORDER.indexOf(id) + 1] ?? null;

@@ -114,13 +114,13 @@ x from the section's start; heights up from the ground line.
   a pickup, and back down: ride it up to the balcony over the shop, the way on); the rooftops after.
 - 4800 THE SQUARE (cp 1): the Prancing Pony Carousel, its canopy up a staircase with a clerk casting at him from the
   top; a bro and a princess on the cobbles; an owl.
-- 6400 THE GORGE: a chain of staircases over painted clouds (one dips down into the gorge and back, one swings up and
+- 6400 THE GORGE (cp 2): a chain of staircases over painted clouds (one dips down into the gorge and back, one swings up and
   away to a reward, one swings between the far bank's ground and a gingerbread roof); an owl and a clerk.
-- 8600 GINGERBREAD LANE (cp 2): the troll by his bridge, the dragon mascot, snow off the gingerbread roofs (a bro under
-  one), knights.
-- 10600 THE GRAND STAIRCASE (cp 3): a tower of staircases swinging between landings, clerks and a bro on the landings,
+- 8600 GINGERBREAD LANE (cp 3): the troll by his bridge, the dragon mascot, snow off the gingerbread roofs (a bro just
+  past one: shove him in), knights.
+- 10600 THE GRAND STAIRCASE (cp 4): a tower of staircases swinging between landings, clerks and a bro on the landings,
   an owl in the shaft, a 'ride' staircase that swings away mid-climb; out over the top and down.
-- 13200 THE BANDSTAND (cp 4): the last mixed crowd; the loudspeaker on its lamp post, the suitors; the scene.
+- 13200 THE BANDSTAND (cp 5): the last mixed crowd; the loudspeaker on its lamp post, the suitors; the scene.
 
 ## Standing rules (all apply; check every one against new work)
 
@@ -149,3 +149,10 @@ markBossFight every frame of a boss or sub-boss fight. Voice every new line (`np
   the town's PA: radio_mild).
 - (job 1) Piper's lust is for being fought over (the user's refinement): her lines purr over the violence and the
   rivalry and stay coy about the prize; the sex is what the suitors and Meathead read into it.
+- (job 1) The square's staircases: the tell is 54 frames (TELL); clock staircases hold ~150-210 frames a dock and swing
+  in 60-80; the Grand Staircase's last flight is a 'ride' one (40 frames on it, the tell, a 60-frame swing: a flat-out
+  run up it just makes the top landing; dawdle and it swings him back down over the pier). Mandatory heights are kept
+  out of a jump's reach (~150 px): the shop's roof 260, the canopy 240, the tower's wall 600.
+- (job 1) The suitors drawn in suitors.ts (BRAXTON, GUNNAR, TREMAINE, and suitorOf(seed) for the crowds), each with a
+  voice (`m2.fantasy.suitor_*`). After the scene he's at the wheel with a HORNY line (lines.ts).
+- (job 1) Music: none; the square's set pieces will want cues (the loudspeaker's scene: something sultry under her).

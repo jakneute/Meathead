@@ -91,7 +91,7 @@ const step = (state: GameState, s: Stair, on: boolean): string => {
       case 'rest': s.ang = a0; s.tell = 0; s.moving = false; if (s.onT >= d.ride) { s.ride = 'tell'; s.rt = 0; } return 'hold';
       case 'tell': s.ang = a0; s.tell = s.rt / TELL; if (s.rt >= TELL) { s.ride = 'out'; s.rt = 0; } return 'tell';
       case 'out': s.tell = 0; s.moving = true; s.ang = a0 + (a1 - a0) * ease(Math.min(1, s.rt / d.swing)); if (s.rt >= d.swing) { s.ride = 'away'; s.rt = 0; s.moving = false; } return 'swing';
-      case 'away': s.ang = a1; s.tell = s.rt > d.hold - TELL ? (s.rt - (d.hold - TELL)) / TELL : 0; if (s.rt >= d.hold && s.offT > 20) { s.ride = 'back'; s.rt = 0; } return s.tell > 0 ? 'tell' : 'hold';
+      case 'away': s.ang = a1; s.tell = s.rt > d.hold - TELL ? Math.min(1, (s.rt - (d.hold - TELL)) / TELL) : 0; if (s.rt >= d.hold && s.offT > 20) { s.ride = 'back'; s.rt = 0; } return s.tell > 0 ? 'tell' : 'hold';
       case 'back': s.tell = 0; s.moving = true; s.ang = a1 + (a0 - a1) * ease(Math.min(1, s.rt / d.swing)); if (s.rt >= d.swing) { s.ride = 'rest'; s.rt = 0; s.moving = false; } return 'swing';
     }
   }

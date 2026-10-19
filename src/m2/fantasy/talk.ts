@@ -3,6 +3,8 @@
 
 /** PIPER THE PIXIE's voice (cast.json): sultry (the joke's the voice against the look of her, revealed at the end). */
 export const PIPER_VOICE = 'm2.fantasy.piper';
+/** ...and the same voice over the park's PA (the town's loudspeaker horns). */
+export const PIPER_PA_VOICE = 'm2.fantasy.piper_pa';
 
 /** Clean, shat, naked: a pool for each (him, or somebody reacting to the state of him). */
 export interface ByPants { clean: string[]; shitty: string[]; nude: string[] }
