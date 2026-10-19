@@ -5446,7 +5446,7 @@
  },
  {
   "voice": "death",
-  "text": "A BLACK CAT CROSSED HIS THROAT",
+  "text": "A BLACK CAT CROSSED HIM",
   "from": "SPOOKY"
  },
  {
@@ -5456,12 +5456,12 @@
  },
  {
   "voice": "death",
-  "text": "A CAR JUMPED THROUGH A HULA HOOP AND LANDED ON HIM",
-  "from": "HOLLYWOOD"
+  "text": "A CHIMP TORE HIS FACE OFF",
+  "from": "ADVENTURE"
  },
  {
   "voice": "death",
-  "text": "A CHIMP TORE HIS FACE OFF",
+  "text": "A CHIMP. IT WASN'T CLOSE.",
   "from": "ADVENTURE"
  },
  {
@@ -5473,11 +5473,6 @@
   "voice": "death",
   "text": "A COWARD'S BULLET",
   "from": "content/deaths"
- },
- {
-  "voice": "death",
-  "text": "A FAKE BUILDING. A REAL DEATH.",
-  "from": "HOLLYWOOD"
  },
  {
   "voice": "death",
@@ -5496,13 +5491,18 @@
  },
  {
   "voice": "death",
-  "text": "A LONG WAY DOWN",
-  "from": "content/deaths"
+  "text": "A KID SAW ONE KUNG FU MOVIE",
+  "from": "FRONTIER"
  },
  {
   "voice": "death",
-  "text": "A MURDER OF CROWS. LITERALLY.",
+  "text": "A LITERAL MURDER OF CROWS",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "death",
+  "text": "A LONG WAY DOWN",
+  "from": "content/deaths"
  },
  {
   "voice": "death",
@@ -5546,8 +5546,18 @@
  },
  {
   "voice": "death",
+  "text": "A ROLL IN THE HAY. FATAL.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "death",
   "text": "A SEAGULL TOOK YOUR EYES OVER FRIES",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "A SHIELD WALL OF ONE",
+  "from": "FOREIGN"
  },
  {
   "voice": "death",
@@ -5646,11 +5656,6 @@
  },
  {
   "voice": "death",
-  "text": "ANKLE-BITTEN BY HALF AN ALIEN",
-  "from": "SPACE"
- },
- {
-  "voice": "death",
   "text": "ANTENNAED",
   "from": "SPACE"
  },
@@ -5663,6 +5668,11 @@
   "voice": "death",
   "text": "ARMORED OUT",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "ARMS INSIDE. TORSO OUTSIDE.",
+  "from": "FRONTIER"
  },
  {
   "voice": "death",
@@ -5716,6 +5726,11 @@
  },
  {
   "voice": "death",
+  "text": "BAMBI'S MOM CAME BACK",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "death",
   "text": "BAMBI'S MOM GOT REVENGE",
   "from": "FRONTIER"
  },
@@ -5743,11 +5758,6 @@
   "voice": "death",
   "text": "BARRY TURNED YOUR LIGHTS OUT",
   "from": "content/deaths"
- },
- {
-  "voice": "death",
-  "text": "BASHED BY A SHIELD WALL OF ONE",
-  "from": "FOREIGN"
  },
  {
   "voice": "death",
@@ -5796,8 +5806,8 @@
  },
  {
   "voice": "death",
-  "text": "BEAT A DEAD HORSE. IT BEAT HIM BACK.",
-  "from": "SPOOKY"
+  "text": "BEAR TRAP. NOT A BEAR.",
+  "from": "FRONTIER"
  },
  {
   "voice": "death",
@@ -5826,11 +5836,6 @@
  },
  {
   "voice": "death",
-  "text": "BEATEN BY A GUY WHO DOESN'T MOVE",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "death",
   "text": "BEATEN BY A NERD",
   "from": "content/deaths"
  },
@@ -5843,6 +5848,11 @@
   "voice": "death",
   "text": "BEATEN BY A SHIELD",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "BEATEN BY A TOUR GUIDE",
+  "from": "HOLLYWOOD"
  },
  {
   "voice": "death",
@@ -5866,6 +5876,11 @@
  },
  {
   "voice": "death",
+  "text": "BEATEN BY FAKE NASA",
+  "from": "SPACE"
+ },
+ {
+  "voice": "death",
   "text": "BEATEN BY THE A-LIST",
   "from": "HOLLYWOOD"
  },
@@ -5881,6 +5896,11 @@
  },
  {
   "voice": "death",
+  "text": "BEATEN BY THRONE SECURITY",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "death",
   "text": "BEATEN DOWN",
   "from": "SPACE"
  },
@@ -5888,11 +5908,6 @@
   "voice": "death",
   "text": "BEATEN DOWN BY A DEPUTY",
   "from": "FRONTIER"
- },
- {
-  "voice": "death",
-  "text": "BEATEN DOWN BY THRONE SECURITY",
-  "from": "HOLLYWOOD"
  },
  {
   "voice": "death",
@@ -5911,18 +5926,8 @@
  },
  {
   "voice": "death",
-  "text": "BEATEN TO DEATH BY A TOUR GUIDE",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "death",
   "text": "BEATEN TO DEATH BY MARILYN",
   "from": "HOLLYWOOD"
- },
- {
-  "voice": "death",
-  "text": "BEATEN UP BY A CHIMP. IT WASN'T CLOSE.",
-  "from": "ADVENTURE"
  },
  {
   "voice": "death",
@@ -5976,6 +5981,11 @@
  },
  {
   "voice": "death",
+  "text": "BITTEN BY A BASKET SNAKE",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "death",
   "text": "BITTEN BY A PROP",
   "from": "ADVENTURE"
  },
@@ -5986,8 +5996,8 @@
  },
  {
   "voice": "death",
-  "text": "BITTEN BY A SNAKE IN A BASKET",
-  "from": "FOREIGN"
+  "text": "BITTEN BY HALF AN ALIEN",
+  "from": "SPACE"
  },
  {
   "voice": "death",
@@ -6006,7 +6016,7 @@
  },
  {
   "voice": "death",
-  "text": "BLEW UP A FAMOUS TOILET FROM THE INSIDE",
+  "text": "BLEW UP A FAMOUS TOILET",
   "from": "HOLLYWOOD"
  },
  {
@@ -6056,7 +6066,7 @@
  },
  {
   "voice": "death",
-  "text": "BLOWN UP BY A TEENAGER HE THREW",
+  "text": "BLOWN UP BY A TEEN HE THREW",
   "from": "FRONTIER"
  },
  {
@@ -6081,7 +6091,7 @@
  },
  {
   "voice": "death",
-  "text": "BLOWN UP WITH THE CAR. HE WAS STILL ON IT.",
+  "text": "BLOWN UP. STILL ON THE CAR.",
   "from": "FRONTIER"
  },
  {
@@ -6161,7 +6171,7 @@
  },
  {
   "voice": "death",
-  "text": "BOTTLED BY A SNAKE OIL SALESMAN",
+  "text": "BOTTLED BY A SNAKE OIL MAN",
   "from": "FRONTIER"
  },
  {
@@ -6181,7 +6191,12 @@
  },
  {
   "voice": "death",
-  "text": "BOWLED OVER BY A JACK-O'-LANTERN",
+  "text": "BOUNCED. TO HEAVEN.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "death",
+  "text": "BOWLED OVER BY A PUMPKIN",
   "from": "SPOOKY"
  },
  {
@@ -6236,7 +6251,12 @@
  },
  {
   "voice": "death",
-  "text": "BUCKED OFF A LOG IN THE SEWER",
+  "text": "BROUGHT THE HOUSE DOWN",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
+  "text": "BUCKED OFF A SEWER LOG",
   "from": "FRONTIER"
  },
  {
@@ -6248,6 +6268,11 @@
   "voice": "death",
   "text": "BUG SPRAYED",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "BUILT INTO A BEAVER DAM",
+  "from": "FRONTIER"
  },
  {
   "voice": "death",
@@ -6271,7 +6296,7 @@
  },
  {
   "voice": "death",
-  "text": "BURIED BY AN AVALANCHE IN LOS ANGELES",
+  "text": "BURIED BY AN L.A. AVALANCHE",
   "from": "HOLLYWOOD"
  },
  {
@@ -6306,7 +6331,7 @@
  },
  {
   "voice": "death",
-  "text": "BURIED IN SOMEBODY'S SUITCASE",
+  "text": "BURIED IN SOMEONE'S SUITCASE",
   "from": "FRONTIER"
  },
  {
@@ -6341,7 +6366,12 @@
  },
  {
   "voice": "death",
-  "text": "BURNED DOWN TO THE BELT BUCKLE",
+  "text": "BURNED BY THE CITY OF LIGHT",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "death",
+  "text": "BURNED FOR A FAKE SPACESHIP",
   "from": "HOLLYWOOD"
  },
  {
@@ -6366,17 +6396,7 @@
  },
  {
   "voice": "death",
-  "text": "BURNED UP BY THE CITY OF LIGHT",
-  "from": "FOREIGN"
- },
- {
-  "voice": "death",
-  "text": "BURNED UP ON DISASTER: THE RIDE",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "death",
-  "text": "BURNED UP ON REENTRY, IN BITS",
+  "text": "BURNED UP ON REENTRY",
   "from": "SPACE"
  },
  {
@@ -6471,11 +6491,6 @@
  },
  {
   "voice": "death",
-  "text": "CAUGHT IN A BEAR TRAP. NOT A BEAR.",
-  "from": "FRONTIER"
- },
- {
-  "voice": "death",
   "text": "CAUGHT IN THE WORKS",
   "from": "SPOOKY"
  },
@@ -6483,11 +6498,6 @@
   "voice": "death",
   "text": "CAUGHT THE BOUQUET",
   "from": "SPOOKY"
- },
- {
-  "voice": "death",
-  "text": "CAUSE OF DEATH: THE THIRD ONE.",
-  "from": "M2_GUT_DEATH"
  },
  {
   "voice": "death",
@@ -6531,6 +6541,11 @@
  },
  {
   "voice": "death",
+  "text": "CHARGED A BISON. BISON WON.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "death",
   "text": "CHARGED INTO A CUTLASS",
   "from": "HOLLYWOOD"
  },
@@ -6541,7 +6556,7 @@
  },
  {
   "voice": "death",
-  "text": "CHARGED RIGHT INTO A STUN BATON",
+  "text": "CHARGED INTO A STUN BATON",
   "from": "SPACE"
  },
  {
@@ -6556,17 +6571,12 @@
  },
  {
   "voice": "death",
-  "text": "CHECKED IF HE WAS DONE. HE WAS.",
-  "from": "SPOOKY"
- },
- {
-  "voice": "death",
   "text": "CHECKED INTO THE BOARDS",
   "from": "content/deaths"
  },
  {
   "voice": "death",
-  "text": "CHECKED INTO THE BOARDS. THERE WERE NO BOARDS.",
+  "text": "CHECKED INTO THIN AIR",
   "from": "FRONTIER"
  },
  {
@@ -6646,6 +6656,11 @@
  },
  {
   "voice": "death",
+  "text": "CLEANED UP BY THE SHERIFF",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "death",
   "text": "CLEANUP ON AISLE SEA",
   "from": "content/deaths"
  },
@@ -6676,6 +6691,11 @@
  },
  {
   "voice": "death",
+  "text": "CLOSER THAN IT APPEARED",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "death",
   "text": "CLOTHESLINED BY A BRANCH",
   "from": "content/deaths"
  },
@@ -6696,7 +6716,7 @@
  },
  {
   "voice": "death",
-  "text": "CLUBBED TO DEATH BY A BRAKEMAN",
+  "text": "CLUBBED BY A BRAKEMAN",
   "from": "FRONTIER"
  },
  {
@@ -6758,6 +6778,11 @@
   "voice": "death",
   "text": "COOKED ON THE BIG RAY",
   "from": "SPACE"
+ },
+ {
+  "voice": "death",
+  "text": "CORNERED A DEER. BAD IDEA.",
+  "from": "FRONTIER"
  },
  {
   "voice": "death",
@@ -6871,11 +6896,6 @@
  },
  {
   "voice": "death",
-  "text": "CRUSHED BY A REVENGERS BILLBOARD",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "death",
   "text": "CRUSHED BY A SIX FOOT DROP",
   "from": "SPOOKY"
  },
@@ -6891,6 +6911,11 @@
  },
  {
   "voice": "death",
+  "text": "CRUSHED BY THE ENSEMBLE",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "death",
   "text": "CRUSHED BY THE LIGHTING RIG",
   "from": "SPACE"
  },
@@ -6903,11 +6928,6 @@
   "voice": "death",
   "text": "CRUSHED IN A CONCRETE HUG",
   "from": "FOREIGN"
- },
- {
-  "voice": "death",
-  "text": "CRUSHED UNDER THE ENSEMBLE CAST",
-  "from": "HOLLYWOOD"
  },
  {
   "voice": "death",
@@ -7111,13 +7131,8 @@
  },
  {
   "voice": "death",
-  "text": "DEER IN THE HEADLIGHTS. HE WAS THE DEER.",
+  "text": "DEER IN THE HEADLIGHTS. HIM.",
   "from": "FRONTIER"
- },
- {
-  "voice": "death",
-  "text": "DEFEATED BY NASA (UNOFFICIAL)",
-  "from": "SPACE"
  },
  {
   "voice": "death",
@@ -7151,6 +7166,16 @@
  },
  {
   "voice": "death",
+  "text": "DICED BETWEEN THE CARS",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "death",
+  "text": "DIDN'T DRINK IT. WORE IT.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
   "text": "DIED A LEECH BUFFET",
   "from": "FRONTIER"
  },
@@ -7171,12 +7196,17 @@
  },
  {
   "voice": "death",
-  "text": "DIED IN A HAY BALE. NOT A ROLL IN THE HAY.",
+  "text": "DIED IN AN OUTHOUSE",
   "from": "FRONTIER"
  },
  {
   "voice": "death",
-  "text": "DIED IN AN OUTHOUSE",
+  "text": "DIED IN INTERNATIONAL WATERS",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "death",
+  "text": "DIED IN SOMEONE ELSE'S SHIT",
   "from": "FRONTIER"
  },
  {
@@ -7192,6 +7222,11 @@
  {
   "voice": "death",
   "text": "DIED IN THE SPECIAL EFFECTS",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "death",
+  "text": "DIED LIKE THE KING",
   "from": "HOLLYWOOD"
  },
  {
@@ -7226,11 +7261,6 @@
  },
  {
   "voice": "death",
-  "text": "DIED ON THE THRONE. LIKE THE KING",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "death",
   "text": "DIED UNDER A MOOSE BUTT",
   "from": "content/deaths"
  },
@@ -7242,11 +7272,6 @@
  {
   "voice": "death",
   "text": "DIED WAITING IN LINE",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "death",
-  "text": "DIED WITH A PLUNGER ON HIS FACE",
   "from": "HOLLYWOOD"
  },
  {
@@ -7291,6 +7316,11 @@
  },
  {
   "voice": "death",
+  "text": "DISASTER: THE DEATH",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "death",
   "text": "DISCONNECTED",
   "from": "FOREIGN"
  },
@@ -7318,11 +7348,6 @@
   "voice": "death",
   "text": "DISSOLVED",
   "from": "m1/game/stages/tommy/sewer.ts:105"
- },
- {
-  "voice": "death",
-  "text": "DISSOLVED IN A NOVELTY POTION",
-  "from": "SPOOKY"
  },
  {
   "voice": "death",
@@ -7391,7 +7416,7 @@
  },
  {
   "voice": "death",
-  "text": "DON'T STAND NEXT TO THE TORNADO",
+  "text": "DON'T STAND BY THE TORNADO",
   "from": "HOLLYWOOD"
  },
  {
@@ -7446,17 +7471,12 @@
  },
  {
   "voice": "death",
-  "text": "DRAINED BY A BAT THE SIZE OF A SANDWICH",
-  "from": "SPOOKY"
- },
- {
-  "voice": "death",
   "text": "DRANK IT THROUGH HIS FACE",
   "from": "SPOOKY"
  },
  {
   "voice": "death",
-  "text": "DRIFTED INTO BY A STUNT DRIVER",
+  "text": "DRIFTED INTO BY A STUNT CAR",
   "from": "HOLLYWOOD"
  },
  {
@@ -7491,11 +7511,6 @@
  },
  {
   "voice": "death",
-  "text": "DROWNED IN A CREEK ON A DIRT BIKE",
-  "from": "FRONTIER"
- },
- {
-  "voice": "death",
   "text": "DROWNED IN A THEME PARK",
   "from": "FOREIGN"
  },
@@ -7526,6 +7541,11 @@
  },
  {
   "voice": "death",
+  "text": "DROWNED IN FOUR FEET",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "death",
   "text": "DROWNED IN MOTOR OIL",
   "from": "SPACE"
  },
@@ -7533,11 +7553,6 @@
   "voice": "death",
   "text": "DROWNED IN SECONDHAND BLOOD",
   "from": "SPOOKY"
- },
- {
-  "voice": "death",
-  "text": "DROWNED IN SOMEBODY ELSE'S SHIT FOR ONCE",
-  "from": "FRONTIER"
  },
  {
   "voice": "death",
@@ -7561,11 +7576,6 @@
  },
  {
   "voice": "death",
-  "text": "DROWNED IN THE INTERNATIONAL WATERS",
-  "from": "FOREIGN"
- },
- {
-  "voice": "death",
   "text": "DROWNED IN THE JUNGLE CRUISE",
   "from": "ADVENTURE"
  },
@@ -7586,12 +7596,12 @@
  },
  {
   "voice": "death",
-  "text": "DROWNED ON A TRAIN. STANDING UP.",
+  "text": "DROWNED ON A DIRT BIKE",
   "from": "FRONTIER"
  },
  {
   "voice": "death",
-  "text": "DROWNED. THE CREEK IS FOUR FEET DEEP.",
+  "text": "DROWNED STANDING ON A TRAIN",
   "from": "FRONTIER"
  },
  {
@@ -7716,11 +7726,6 @@
  },
  {
   "voice": "death",
-  "text": "ELECTROCUTED BY A HALLOWEEN DECORATION",
-  "from": "SPACE"
- },
- {
-  "voice": "death",
   "text": "ELECTROCUTED BY A KIDS RIDE",
   "from": "ADVENTURE"
  },
@@ -7791,6 +7796,11 @@
  },
  {
   "voice": "death",
+  "text": "ESCORTED OUT. OF LIFE.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "death",
   "text": "ET TU, EXTRA?",
   "from": "HOLLYWOOD"
  },
@@ -7851,23 +7861,23 @@
  },
  {
   "voice": "death",
-  "text": "FACE-SLAPPED TO DEATH BY A TROUT",
-  "from": "FRONTIER"
- },
- {
-  "voice": "death",
   "text": "FAILED THE TRIAL",
   "from": "content/deaths"
  },
  {
   "voice": "death",
-  "text": "FAULT LINE: YOURS",
-  "from": "m1/game/stages/ernie/quake.ts:335"
+  "text": "FAKE BUILDING. REAL DEATH.",
+  "from": "HOLLYWOOD"
  },
  {
   "voice": "death",
-  "text": "FED THROUGH A WOODCHIPPER. FEET FIRST.",
+  "text": "FAKE FALLS. REAL ROCKS.",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "death",
+  "text": "FAULT LINE: YOURS",
+  "from": "m1/game/stages/ernie/quake.ts:335"
  },
  {
   "voice": "death",
@@ -7878,11 +7888,6 @@
   "voice": "death",
   "text": "FEEDING TIME",
   "from": "ADVENTURE"
- },
- {
-  "voice": "death",
-  "text": "FELL BETWEEN THE CARS. SLICED AND DICED.",
-  "from": "FRONTIER"
  },
  {
   "voice": "death",
@@ -8046,11 +8051,6 @@
  },
  {
   "voice": "death",
-  "text": "FLATTENED BY A TRACTOR THAT WASN'T EVEN ON",
-  "from": "FRONTIER"
- },
- {
-  "voice": "death",
   "text": "FLATTENED BY AN AIRLOCK",
   "from": "SPACE"
  },
@@ -8086,7 +8086,12 @@
  },
  {
   "voice": "death",
-  "text": "FLATTENED ON A POWER LINE TOWER",
+  "text": "FLATTENED BY THE REVENGERS",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "death",
+  "text": "FLATTENED ON A POWER TOWER",
   "from": "FRONTIER"
  },
  {
@@ -8191,11 +8196,6 @@
  },
  {
   "voice": "death",
-  "text": "FORGOT TO DUCK. THE BRIDGE DIDN'T.",
-  "from": "FRONTIER"
- },
- {
-  "voice": "death",
   "text": "FORKED",
   "from": "SPOOKY"
  },
@@ -8203,6 +8203,11 @@
   "voice": "death",
   "text": "FORKED LIKE A HAY BALE",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "death",
+  "text": "FORKED. HE WAS DONE.",
+  "from": "SPOOKY"
  },
  {
   "voice": "death",
@@ -8246,6 +8251,11 @@
  },
  {
   "voice": "death",
+  "text": "FOUR-DOLLAR FARE. ONE WAY.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "death",
   "text": "FREE SAMPLE OF DEATH",
   "from": "FOREIGN"
  },
@@ -8273,6 +8283,11 @@
   "voice": "death",
   "text": "FREEZE-RAYED",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "FRIED BY A HALLOWEEN PROP",
+  "from": "SPACE"
  },
  {
   "voice": "death",
@@ -8351,6 +8366,11 @@
  },
  {
   "voice": "death",
+  "text": "GHOST TRAIN. NEW GHOST.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
   "text": "GLUB GLUB GLUB",
   "from": "ADVENTURE"
  },
@@ -8361,7 +8381,7 @@
  },
  {
   "voice": "death",
-  "text": "GNAWED TO DEATH AT THE ANKLES",
+  "text": "GNAWED OFF AT THE ANKLES",
   "from": "SPOOKY"
  },
  {
@@ -8411,13 +8431,13 @@
  },
  {
   "voice": "death",
-  "text": "GORED BY A GUY IN A MOOSE SUIT",
-  "from": "FOREIGN"
+  "text": "GORED BY A LONGHORN",
+  "from": "content/deaths"
  },
  {
   "voice": "death",
-  "text": "GORED BY A LONGHORN",
-  "from": "content/deaths"
+  "text": "GORED BY A MOOSE SUIT",
+  "from": "FOREIGN"
  },
  {
   "voice": "death",
@@ -8481,12 +8501,12 @@
  },
  {
   "voice": "death",
-  "text": "GUNNED DOWN ON MAIN STREET",
+  "text": "GUNNED DOWN ON A TRAIN ROOF",
   "from": "FRONTIER"
  },
  {
   "voice": "death",
-  "text": "GUNNED DOWN ON THE ROOF OF A TRAIN",
+  "text": "GUNNED DOWN ON MAIN STREET",
   "from": "FRONTIER"
  },
  {
@@ -8551,16 +8571,6 @@
  },
  {
   "voice": "death",
-  "text": "HE BROUGHT THE HOUSE DOWN. ON HIMSELF.",
-  "from": "SPOOKY"
- },
- {
-  "voice": "death",
-  "text": "HE CHASED HER INTO A WALL. SHE CAME BACK.",
-  "from": "FRONTIER"
- },
- {
-  "voice": "death",
   "text": "HE DID NOT STAND CLEAR",
   "from": "FRONTIER"
  },
@@ -8578,6 +8588,11 @@
   "voice": "death",
   "text": "HE HAD A LIZARD TO THINK OF",
   "from": "m1/game/stages/dale/convoy.ts:487"
+ },
+ {
+  "voice": "death",
+  "text": "HE KNOCKED DOWN THE HIVE",
+  "from": "FRONTIER"
  },
  {
   "voice": "death",
@@ -8613,11 +8628,6 @@
   "voice": "death",
   "text": "HE WAS NOT WOOD",
   "from": "FRONTIER"
- },
- {
-  "voice": "death",
-  "text": "HE WENT IN THE LAVA. THE LAVA WON.",
-  "from": "HOLLYWOOD"
  },
  {
   "voice": "death",
@@ -8701,12 +8711,12 @@
  },
  {
   "voice": "death",
-  "text": "HIT A COW. BOTH DEAD. NOBODY WON.",
+  "text": "HIT A COW. NOBODY WON.",
   "from": "FRONTIER"
  },
  {
   "voice": "death",
-  "text": "HIT A POWER LINE TOWER. SHOCKING.",
+  "text": "HIT A POWER TOWER. SHOCKING.",
   "from": "FRONTIER"
  },
  {
@@ -8721,7 +8731,7 @@
  },
  {
   "voice": "death",
-  "text": "HIT BY A BIKE WITH NOBODY ON IT",
+  "text": "HIT BY A BIKE. NOBODY ON IT.",
   "from": "FRONTIER"
  },
  {
@@ -8731,7 +8741,7 @@
  },
  {
   "voice": "death",
-  "text": "HIT BY A DUCK. HE DIDN'T DUCK.",
+  "text": "HIT BY A DUCK. DIDN'T DUCK.",
   "from": "FRONTIER"
  },
  {
@@ -8756,11 +8766,6 @@
  },
  {
   "voice": "death",
-  "text": "HIT BY A FLYING PORTA-POTTY DOOR",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "death",
   "text": "HIT BY A FLYING SPOON",
   "from": "FOREIGN"
  },
@@ -8776,18 +8781,23 @@
  },
  {
   "voice": "death",
-  "text": "HIT BY A LETTER OFF THE HAPPYWOOD SIGN",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "death",
   "text": "HIT BY A MONORAIL",
   "from": "SPACE"
  },
  {
   "voice": "death",
+  "text": "HIT BY A PORTA-POTTY DOOR",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "death",
   "text": "HIT BY A PROP METEOR",
   "from": "SPACE"
+ },
+ {
+  "voice": "death",
+  "text": "HIT BY A RIDE HE SKIPPED",
+  "from": "SPOOKY"
  },
  {
   "voice": "death",
@@ -8841,13 +8851,8 @@
  },
  {
   "voice": "death",
-  "text": "HIT BY THE LITTLE ENGINE THAT COULD",
-  "from": "SPOOKY"
- },
- {
-  "voice": "death",
-  "text": "HIT BY THE RIDE HE NEVER GOT ON",
-  "from": "SPOOKY"
+  "text": "HIT BY THE HAPPYWOOD SIGN",
+  "from": "HOLLYWOOD"
  },
  {
   "voice": "death",
@@ -8857,11 +8862,6 @@
  {
   "voice": "death",
   "text": "HIT HEAD-ON BY A STUNT CAR",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "death",
-  "text": "HIT IN THE HEAD WITH A SHIELD",
   "from": "HOLLYWOOD"
  },
  {
@@ -8921,7 +8921,7 @@
  },
  {
   "voice": "death",
-  "text": "HOSED OFF A TRAIN BY A WATER TOWER",
+  "text": "HOSED OFF BY A WATER TOWER",
   "from": "FRONTIER"
  },
  {
@@ -9006,7 +9006,7 @@
  },
  {
   "voice": "death",
-  "text": "HUGGED A TREE AT FORTY MILES AN HOUR",
+  "text": "HUGGED A TREE AT 40 MPH",
   "from": "FRONTIER"
  },
  {
@@ -9121,6 +9121,11 @@
  },
  {
   "voice": "death",
+  "text": "IT FINALLY FELL. ON HIM.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "death",
   "text": "IT JUST LOOKED AT HIM",
   "from": "FOREIGN"
  },
@@ -9141,13 +9146,8 @@
  },
  {
   "voice": "death",
-  "text": "IT RATTLED. HE DIDN'T LISTEN.",
+  "text": "IT RATTLED. HE IGNORED IT.",
   "from": "FRONTIER"
- },
- {
-  "voice": "death",
-  "text": "IT STUCK THE LANDING. ON HIM.",
-  "from": "HOLLYWOOD"
  },
  {
   "voice": "death",
@@ -9168,11 +9168,6 @@
   "voice": "death",
   "text": "IT WASN'T EVEN A FULL MOON",
   "from": "SPOOKY"
- },
- {
-  "voice": "death",
-  "text": "JABBED TO DEATH BY A PASSENGER",
-  "from": "FRONTIER"
  },
  {
   "voice": "death",
@@ -9216,13 +9211,8 @@
  },
  {
   "voice": "death",
-  "text": "KEEP ALL LIMBS INSIDE THE VEHICLE",
+  "text": "KEEP ALL LIMBS INSIDE",
   "from": "SPACE"
- },
- {
-  "voice": "death",
-  "text": "KEPT HIS ARMS INSIDE. NOT HIS TORSO.",
-  "from": "FRONTIER"
  },
  {
   "voice": "death",
@@ -9236,17 +9226,17 @@
  },
  {
   "voice": "death",
-  "text": "KICKED TO DEATH BY A DEAD HORSE",
+  "text": "KICKED DEAD BY A DEAD HORSE",
   "from": "SPOOKY"
  },
  {
   "voice": "death",
-  "text": "KICKED TO DEATH BY A DEER",
+  "text": "KICKED DEAD BY A KICK LINE",
   "from": "FRONTIER"
  },
  {
   "voice": "death",
-  "text": "KICKED TO DEATH BY A KICK LINE",
+  "text": "KICKED TO DEATH BY A DEER",
   "from": "FRONTIER"
  },
  {
@@ -9266,6 +9256,11 @@
  },
  {
   "voice": "death",
+  "text": "KILLED BY A BAT SUIT DORK",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
   "text": "KILLED BY A BEACH CHAIR",
   "from": "content/deaths"
  },
@@ -9273,6 +9268,11 @@
   "voice": "death",
   "text": "KILLED BY A BEACH UMBRELLA",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "KILLED BY A BUNNY. A BUNNY.",
+  "from": "FRONTIER"
  },
  {
   "voice": "death",
@@ -9316,8 +9316,8 @@
  },
  {
   "voice": "death",
-  "text": "KILLED BY A FISH. HE DIDN'T DUCK.",
-  "from": "FRONTIER"
+  "text": "KILLED BY A FISHBOWL HEAD",
+  "from": "SPACE"
  },
  {
   "voice": "death",
@@ -9336,6 +9336,11 @@
  },
  {
   "voice": "death",
+  "text": "KILLED BY A FLYING FISH",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "death",
   "text": "KILLED BY A FLYING PLATE",
   "from": "FOREIGN"
  },
@@ -9346,17 +9351,12 @@
  },
  {
   "voice": "death",
-  "text": "KILLED BY A FLYING WHISKEY BOTTLE",
-  "from": "FRONTIER"
- },
- {
-  "voice": "death",
   "text": "KILLED BY A FRIDGE",
   "from": "content/deaths"
  },
  {
   "voice": "death",
-  "text": "KILLED BY A FROG THE SIZE OF A GRAPE",
+  "text": "KILLED BY A GRAPE-SIZED FROG",
   "from": "ADVENTURE"
  },
  {
@@ -9366,13 +9366,8 @@
  },
  {
   "voice": "death",
-  "text": "KILLED BY A GUARD WHO WAS STANDING STILL",
+  "text": "KILLED BY A GUARD. HE MOVED.",
   "from": "FOREIGN"
- },
- {
-  "voice": "death",
-  "text": "KILLED BY A GUY IN A FISHBOWL",
-  "from": "SPACE"
  },
  {
   "voice": "death",
@@ -9391,21 +9386,6 @@
  },
  {
   "voice": "death",
-  "text": "KILLED BY A KID ON HIS FIRST DAY",
-  "from": "FOREIGN"
- },
- {
-  "voice": "death",
-  "text": "KILLED BY A KID WHO WATCHED TOO MANY KUNG FU MOVIES",
-  "from": "FRONTIER"
- },
- {
-  "voice": "death",
-  "text": "KILLED BY A KID'S BIKE CHAIN. TWENTY BUCKS.",
-  "from": "FRONTIER"
- },
- {
-  "voice": "death",
   "text": "KILLED BY A KOI",
   "from": "FOREIGN"
  },
@@ -9416,23 +9396,8 @@
  },
  {
   "voice": "death",
-  "text": "KILLED BY A LUMP OF COAL. EARLY CHRISTMAS.",
-  "from": "FRONTIER"
- },
- {
-  "voice": "death",
   "text": "KILLED BY A LUNCH PAIL",
   "from": "content/deaths"
- },
- {
-  "voice": "death",
-  "text": "KILLED BY A MAILBOX. RETURN TO SENDER.",
-  "from": "FRONTIER"
- },
- {
-  "voice": "death",
-  "text": "KILLED BY A MAN IN A BAT SUIT",
-  "from": "SPOOKY"
  },
  {
   "voice": "death",
@@ -9496,18 +9461,8 @@
  },
  {
   "voice": "death",
-  "text": "KILLED BY A PRODUCTION ASSISTANT",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "death",
   "text": "KILLED BY A PUPPET",
   "from": "ADVENTURE"
- },
- {
-  "voice": "death",
-  "text": "KILLED BY A RABBIT. A RABBIT.",
-  "from": "FRONTIER"
  },
  {
   "voice": "death",
@@ -9532,11 +9487,6 @@
  {
   "voice": "death",
   "text": "KILLED BY A SAMPLE LADY",
-  "from": "FOREIGN"
- },
- {
-  "voice": "death",
-  "text": "KILLED BY A SAMURAI FROM OHIO",
   "from": "FOREIGN"
  },
  {
@@ -9586,6 +9536,11 @@
  },
  {
   "voice": "death",
+  "text": "KILLED BY A TWO-MAN CAMEL",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "death",
   "text": "KILLED BY A WAITER",
   "from": "FOREIGN"
  },
@@ -9601,12 +9556,22 @@
  },
  {
   "voice": "death",
+  "text": "KILLED BY A WET NOODLE",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "death",
   "text": "KILLED BY AN EXTRA",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "death",
   "text": "KILLED BY AN INTERN",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "death",
+  "text": "KILLED BY AN OHIO SAMURAI",
   "from": "FOREIGN"
  },
  {
@@ -9691,11 +9656,6 @@
  },
  {
   "voice": "death",
-  "text": "KILLED BY PART OF A BALANCED BREAKFAST",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "death",
   "text": "KILLED BY POPPY THE POPCORN",
   "from": "HOLLYWOOD"
  },
@@ -9708,11 +9668,6 @@
   "voice": "death",
   "text": "KILLED BY SPACE JUNK",
   "from": "SPACE"
- },
- {
-  "voice": "death",
-  "text": "KILLED BY THE BODY NOBODY KNEW ABOUT",
-  "from": "FOREIGN"
  },
  {
   "voice": "death",
@@ -9746,13 +9701,13 @@
  },
  {
   "voice": "death",
-  "text": "KILLED BY THE WATER",
-  "from": "content/deaths"
+  "text": "KILLED BY THE THIRD ONE.",
+  "from": "M2_GUT_DEATH"
  },
  {
   "voice": "death",
-  "text": "KILLED BY TWO GUYS IN A CAMEL",
-  "from": "FOREIGN"
+  "text": "KILLED BY THE WATER",
+  "from": "content/deaths"
  },
  {
   "voice": "death",
@@ -9768,6 +9723,11 @@
   "voice": "death",
   "text": "KILLED ON A COFFEE RUN",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "death",
+  "text": "KILLED ON A KID'S FIRST DAY",
+  "from": "FOREIGN"
  },
  {
   "voice": "death",
@@ -9791,7 +9751,7 @@
  },
  {
   "voice": "death",
-  "text": "KNOCKED OFF BY A WITCH ON A BROOM",
+  "text": "KNOCKED OFF BY A WITCH",
   "from": "SPOOKY"
  },
  {
@@ -9876,7 +9836,7 @@
  },
  {
   "voice": "death",
-  "text": "LEAVES OF THREE. SHOULD HAVE LET IT BE.",
+  "text": "LEAVES OF THREE. HE DIDN'T.",
   "from": "FRONTIER"
  },
  {
@@ -9891,7 +9851,7 @@
  },
  {
   "voice": "death",
-  "text": "LEFT AT THE ALTAR. IN PIECES.",
+  "text": "LEFT AT THE ALTAR IN PIECES",
   "from": "SPOOKY"
  },
  {
@@ -9911,7 +9871,7 @@
  },
  {
   "voice": "death",
-  "text": "LICKED A POISON FROG. ON PURPOSE.",
+  "text": "LICKED A FROG. ON PURPOSE.",
   "from": "ADVENTURE"
  },
  {
@@ -10006,8 +9966,8 @@
  },
  {
   "voice": "death",
-  "text": "LOST THE SHOWDOWN. TO A GUY WITH A CONTRACT.",
-  "from": "FRONTIER"
+  "text": "LOST TO A GUY STANDING STILL",
+  "from": "HOLLYWOOD"
  },
  {
   "voice": "death",
@@ -10018,6 +9978,11 @@
   "voice": "death",
   "text": "LUCK RAN OUT",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "MAILBOXED. RETURN TO SENDER.",
+  "from": "FRONTIER"
  },
  {
   "voice": "death",
@@ -10056,13 +10021,13 @@
  },
  {
   "voice": "death",
-  "text": "MAULED BY A COUGAR",
-  "from": "FRONTIER"
+  "text": "MAULED BY A CAT-SIZED MONKEY",
+  "from": "ADVENTURE"
  },
  {
   "voice": "death",
-  "text": "MAULED BY A MONKEY THE SIZE OF A CAT",
-  "from": "ADVENTURE"
+  "text": "MAULED BY A COUGAR",
+  "from": "FRONTIER"
  },
  {
   "voice": "death",
@@ -10096,13 +10061,13 @@
  },
  {
   "voice": "death",
-  "text": "MEATHEAD HAS LEFT THE BUILDING",
-  "from": "HOLLYWOOD"
+  "text": "MEATHEAD JERKY",
+  "from": "SPACE"
  },
  {
   "voice": "death",
-  "text": "MEATHEAD JERKY",
-  "from": "SPACE"
+  "text": "MEATHEAD LEFT THE BUILDING",
+  "from": "HOLLYWOOD"
  },
  {
   "voice": "death",
@@ -10116,7 +10081,17 @@
  },
  {
   "voice": "death",
-  "text": "MELTED IN A LAVA RIVER ON A STUDIO BACKLOT",
+  "text": "MELTED BY A NOVELTY POTION",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
+  "text": "MELTED IN BACKLOT LAVA",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "death",
+  "text": "MELTED TO THE BELT BUCKLE",
   "from": "HOLLYWOOD"
  },
  {
@@ -10256,6 +10231,11 @@
  },
  {
   "voice": "death",
+  "text": "NAUGHTY LIST. LUMP OF COAL.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "death",
   "text": "NEVER BARF WHERE YOU STAND",
   "from": "m1/game/stages/dale/convoy.ts:487"
  },
@@ -10391,11 +10371,6 @@
  },
  {
   "voice": "death",
-  "text": "NOT FOR DRINKING. HE WORE IT.",
-  "from": "SPOOKY"
- },
- {
-  "voice": "death",
   "text": "NOT GETTING IN TONIGHT",
   "from": "content/deaths"
  },
@@ -10413,11 +10388,6 @@
   "voice": "death",
   "text": "NUNCHUCKED TO DEATH",
   "from": "FRONTIER"
- },
- {
-  "voice": "death",
-  "text": "OBJECTS IN MIRROR ARE CLOSER THAN THEY APPEAR",
-  "from": "ADVENTURE"
  },
  {
   "voice": "death",
@@ -10531,7 +10501,7 @@
  },
  {
   "voice": "death",
-  "text": "OUTDRAWN BY A GUY ON NINE BUCKS AN HOUR",
+  "text": "OUTDRAWN BY MINIMUM WAGE",
   "from": "FRONTIER"
  },
  {
@@ -10543,11 +10513,6 @@
   "voice": "death",
   "text": "OUTRUN BY A ROCK",
   "from": "ADVENTURE"
- },
- {
-  "voice": "death",
-  "text": "OVER THE FALLS. THE SIGN WARNED HIM.",
-  "from": "FRONTIER"
  },
  {
   "voice": "death",
@@ -10601,6 +10566,11 @@
  },
  {
   "voice": "death",
+  "text": "PART OF A BALANCED DEATH",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "death",
   "text": "PART OF THE RESERVE NOW",
   "from": "m1/game/stages/oscar/runtime.ts:181"
  },
@@ -10621,7 +10591,7 @@
  },
  {
   "voice": "death",
-  "text": "PECKED TO DEATH BY A DRONE WITH A BEAK",
+  "text": "PECKED TO DEATH BY A DRONE",
   "from": "ADVENTURE"
  },
  {
@@ -10666,7 +10636,7 @@
  },
  {
   "voice": "death",
-  "text": "PELTED TO DEATH WITH MONKEY SHIT",
+  "text": "PELTED WITH MONKEY SHIT",
   "from": "ADVENTURE"
  },
  {
@@ -10816,6 +10786,11 @@
  },
  {
   "voice": "death",
+  "text": "PLUNGER TO THE FACE. DEAD.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "death",
   "text": "PNEUMATICALLY DECEASED",
   "from": "ADVENTURE"
  },
@@ -10853,6 +10828,11 @@
   "voice": "death",
   "text": "POISONED BY A POTION",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
+  "text": "POKED TO DEATH BY GRANDMA",
+  "from": "FRONTIER"
  },
  {
   "voice": "death",
@@ -10916,13 +10896,18 @@
  },
  {
   "voice": "death",
-  "text": "PUKED ON BY A NATIONAL MONUMENT",
+  "text": "PUKED ON BY A MONUMENT",
   "from": "FOREIGN"
  },
  {
   "voice": "death",
   "text": "PUKED TO DEATH",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "PUKED UP HIS WHOLE LIFE",
+  "from": "ADVENTURE"
  },
  {
   "voice": "death",
@@ -11001,11 +10986,6 @@
  },
  {
   "voice": "death",
-  "text": "RAMMED TO DEATH BY A CORNERED DEER",
-  "from": "FRONTIER"
- },
- {
-  "voice": "death",
   "text": "RAN INTO A PARKED TRACTOR",
   "from": "FRONTIER"
  },
@@ -11066,6 +11046,11 @@
  },
  {
   "voice": "death",
+  "text": "REAL FLOOD. FAKE SWIMMER.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "death",
   "text": "REBOUNDED INTO HELLFIRE",
   "from": "SPOOKY"
  },
@@ -11096,6 +11081,11 @@
  },
  {
   "voice": "death",
+  "text": "RESEMBLED. INTO A PANCAKE.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "death",
   "text": "RESISTED TOO HARD",
   "from": "content/deaths"
  },
@@ -11103,11 +11093,6 @@
   "voice": "death",
   "text": "RETURN TO SENDER",
   "from": "content/deaths"
- },
- {
-  "voice": "death",
-  "text": "REVENGERS: RESEMBLE. HE RESEMBLES A PANCAKE.",
-  "from": "HOLLYWOOD"
  },
  {
   "voice": "death",
@@ -11261,6 +11246,11 @@
  },
  {
   "voice": "death",
+  "text": "ROUND AND ROUND. THEN DOWN.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
   "text": "ROWED TO DEATH",
   "from": "FOREIGN"
  },
@@ -11301,7 +11291,7 @@
  },
  {
   "voice": "death",
-  "text": "RUN DOWN BY A SPINNING TEACUP",
+  "text": "RUN DOWN BY A TEACUP",
   "from": "SPOOKY"
  },
  {
@@ -11411,18 +11401,8 @@
  },
  {
   "voice": "death",
-  "text": "RUN OVER ON THE WRONG SIDE OF THE ROAD",
-  "from": "FOREIGN"
- },
- {
-  "voice": "death",
   "text": "RUN OVER, THEN PEED ON",
   "from": "content/deaths"
- },
- {
-  "voice": "death",
-  "text": "RUN THROUGH BY A DRUNK PIRATE",
-  "from": "HOLLYWOOD"
  },
  {
   "voice": "death",
@@ -11546,11 +11526,6 @@
  },
  {
   "voice": "death",
-  "text": "SECURITY ESCORTED HIM OUT. OF LIFE",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "death",
   "text": "SECURITY ESCORTED YOU OUT",
   "from": "content/deaths"
  },
@@ -11591,12 +11566,7 @@
  },
  {
   "voice": "death",
-  "text": "SET ON FIRE FOR A FAKE SPACESHIP",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "death",
-  "text": "SEVEN YEARS BAD LUCK, ALL AT ONCE",
+  "text": "SEVEN YEARS BAD LUCK AT ONCE",
   "from": "SPOOKY"
  },
  {
@@ -11676,6 +11646,11 @@
  },
  {
   "voice": "death",
+  "text": "SHIELD TO THE HEAD",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "death",
   "text": "SHIELD WALL",
   "from": "content/deaths"
  },
@@ -11716,11 +11691,6 @@
  },
  {
   "voice": "death",
-  "text": "SHOCKED TO DEATH BY A WET NOODLE",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "death",
   "text": "SHOCKING LACK OF JUDGMENT",
   "from": "m1/game/combat/weapons.ts:877"
  },
@@ -11752,6 +11722,11 @@
  {
   "voice": "death",
   "text": "SHOT BY A BLIND MAN",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "death",
+  "text": "SHOT BY A CONTRACT PLAYER",
   "from": "FRONTIER"
  },
  {
@@ -11906,7 +11881,7 @@
  },
  {
   "voice": "death",
-  "text": "SHOT FULL OF QUILLS BY A PORCUPINE",
+  "text": "SHOT FULL OF QUILLS",
   "from": "FRONTIER"
  },
  {
@@ -11936,7 +11911,7 @@
  },
  {
   "voice": "death",
-  "text": "SHOT THE GAS. THE GAS SHOT BACK.",
+  "text": "SHOT THE GAS. IT SHOT BACK.",
   "from": "FRONTIER"
  },
  {
@@ -11981,11 +11956,6 @@
  },
  {
   "voice": "death",
-  "text": "SHOULD HAVE STAYED IN THE BOAT",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "death",
   "text": "SHOULD HAVE TAKEN SWIM LESSONS",
   "from": "m1/game/stages/hector/hazards.ts:420"
  },
@@ -11996,18 +11966,23 @@
  },
  {
   "voice": "death",
-  "text": "SHOULD HAVE WAITED FOR THE NEXT ONE",
-  "from": "SPOOKY"
- },
- {
-  "voice": "death",
   "text": "SHOULD HAVE WORN A HELMET",
   "from": "m1/game/stages/tommy/bike.ts:577"
  },
  {
   "voice": "death",
+  "text": "SHOULD'VE GONE INSIDE",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "death",
   "text": "SHOULD'VE PAID THE TOLL",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "death",
+  "text": "SHOULD'VE STAYED IN THE BOAT",
+  "from": "ADVENTURE"
  },
  {
   "voice": "death",
@@ -12026,12 +12001,7 @@
  },
  {
   "voice": "death",
-  "text": "SHOULDER CHARGED A BISON. THE BISON WON.",
-  "from": "FRONTIER"
- },
- {
-  "voice": "death",
-  "text": "SHOULDER CHARGED A BUCK. ANTLERS FIRST.",
+  "text": "SHOULDER CHARGED A BUCK",
   "from": "FRONTIER"
  },
  {
@@ -12062,6 +12032,11 @@
  {
   "voice": "death",
   "text": "SHOVELED TO DEATH",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "death",
+  "text": "SHOWERED ON A TRAIN. DIED.",
   "from": "FRONTIER"
  },
  {
@@ -12206,7 +12181,12 @@
  },
  {
   "voice": "death",
-  "text": "SLAPPED TO DEATH BY A FIFTY-NINE-YEAR-OLD STUNTMAN",
+  "text": "SLAPPED TO DEATH BY A TROUT",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "death",
+  "text": "SLAPPED TO DEATH BY GRANDPA",
   "from": "HOLLYWOOD"
  },
  {
@@ -12261,18 +12241,18 @@
  },
  {
   "voice": "death",
-  "text": "SMASHED BY THE STATUE OF LIBERTY",
+  "text": "SMASHED BY LADY LIBERTY",
   "from": "FOREIGN"
- },
- {
-  "voice": "death",
-  "text": "SMASHED LIKE A PUMPKIN ON NOVEMBER FIRST",
-  "from": "SPOOKY"
  },
  {
   "voice": "death",
   "text": "SMASHED ON A MOUNTAIN STATUE",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "death",
+  "text": "SMASHED. HAPPY NOVEMBER.",
+  "from": "SPOOKY"
  },
  {
   "voice": "death",
@@ -12501,11 +12481,6 @@
  },
  {
   "voice": "death",
-  "text": "SQUASHED BY THE ONE THING IT EVER DID",
-  "from": "FOREIGN"
- },
- {
-  "voice": "death",
   "text": "SQUISHED BY A BLOATER",
   "from": "content/deaths"
  },
@@ -12518,6 +12493,11 @@
   "voice": "death",
   "text": "STABBED BY A CAST MEMBER",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "death",
+  "text": "STABBED BY A DRUNK PIRATE",
+  "from": "HOLLYWOOD"
  },
  {
   "voice": "death",
@@ -12591,7 +12571,7 @@
  },
  {
   "voice": "death",
-  "text": "STOMPED BY THE NIGHT-SHIFT MONSTER",
+  "text": "STOMPED BY THE NIGHT SHIFT",
   "from": "SPOOKY"
  },
  {
@@ -12621,13 +12601,13 @@
  },
  {
   "voice": "death",
-  "text": "STONED TO DEATH WITH ASTRONAUT ICE CREAM",
-  "from": "SPACE"
+  "text": "STONED TO DEATH WITH COAL",
+  "from": "FRONTIER"
  },
  {
   "voice": "death",
-  "text": "STONED TO DEATH WITH COAL",
-  "from": "FRONTIER"
+  "text": "STONED WITH SPACE ICE CREAM",
+  "from": "SPACE"
  },
  {
   "voice": "death",
@@ -12666,7 +12646,7 @@
  },
  {
   "voice": "death",
-  "text": "STRIPPED TO THE BONE BY A TORNADO",
+  "text": "STRIPPED TO THE BONE",
   "from": "HOLLYWOOD"
  },
  {
@@ -12701,7 +12681,12 @@
  },
  {
   "voice": "death",
-  "text": "STUCK A FORK IN HIM. HE WAS DONE.",
+  "text": "STUCK THE LANDING. ON HIM.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "death",
+  "text": "STUCK WITH A FORK. DONE.",
   "from": "SPOOKY"
  },
  {
@@ -12711,18 +12696,13 @@
  },
  {
   "voice": "death",
-  "text": "STUNG TO DEATH. HE KNOCKED DOWN THE HIVE.",
-  "from": "FRONTIER"
- },
- {
-  "voice": "death",
-  "text": "STUNG TO DEATH. TOO MUCH RACKET.",
-  "from": "FRONTIER"
- },
- {
-  "voice": "death",
   "text": "STUNG, SWOLE, POPPED",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "STUNG. TOO MUCH RACKET.",
+  "from": "FRONTIER"
  },
  {
   "voice": "death",
@@ -12741,7 +12721,12 @@
  },
  {
   "voice": "death",
-  "text": "SUCKED DRY BY LEECHES. THE SIGN SAID RIDE THE LOG.",
+  "text": "SUCKED DRY BY A TINY BAT",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
+  "text": "SUCKED DRY BY LEECHES",
   "from": "FRONTIER"
  },
  {
@@ -12791,13 +12776,13 @@
  },
  {
   "voice": "death",
-  "text": "SWATTED LIKE A FLY",
-  "from": "ADVENTURE"
+  "text": "SWATTED DOWN BY A GUT",
+  "from": "SPOOKY"
  },
  {
   "voice": "death",
-  "text": "SWATTED OUT OF THE AIR BY A GUT",
-  "from": "SPOOKY"
+  "text": "SWATTED LIKE A FLY",
+  "from": "ADVENTURE"
  },
  {
   "voice": "death",
@@ -12821,7 +12806,7 @@
  },
  {
   "voice": "death",
-  "text": "SWEPT OFF A TRAIN BY A WATERFALL",
+  "text": "SWEPT OFF BY A WATERFALL",
   "from": "FRONTIER"
  },
  {
@@ -12886,13 +12871,13 @@
  },
  {
   "voice": "death",
-  "text": "TAKEN BY THE TORNADO",
-  "from": "HOLLYWOOD"
+  "text": "TAKEN BY THE BRIDGE TROLL",
+  "from": "FOREIGN"
  },
  {
   "voice": "death",
-  "text": "TAKEN BY THE TROLL UNDER THE BRIDGE",
-  "from": "FOREIGN"
+  "text": "TAKEN BY THE TORNADO",
+  "from": "HOLLYWOOD"
  },
  {
   "voice": "death",
@@ -12976,11 +12961,6 @@
  },
  {
   "voice": "death",
-  "text": "THE BEAVER BUILT A DAM OUT OF HIM",
-  "from": "FRONTIER"
- },
- {
-  "voice": "death",
   "text": "THE BEEF WON",
   "from": "FRONTIER"
  },
@@ -13001,8 +12981,8 @@
  },
  {
   "voice": "death",
-  "text": "THE BLIND CONDUCTOR COLLECTED",
-  "from": "FRONTIER"
+  "text": "THE BIG HEAD HAD A BODY",
+  "from": "FOREIGN"
  },
  {
   "voice": "death",
@@ -13011,7 +12991,12 @@
  },
  {
   "voice": "death",
-  "text": "THE BRAKEMAN PUT ON THE BRAKES",
+  "text": "THE BRAKEMAN BRAKED HIM",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "death",
+  "text": "THE BRIDGE DIDN'T DUCK",
   "from": "FRONTIER"
  },
  {
@@ -13051,8 +13036,13 @@
  },
  {
   "voice": "death",
-  "text": "THE COFFIN FINALLY GOT ITS GUY",
+  "text": "THE COFFIN GOT ITS GUY",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
+  "text": "THE CONDUCTOR COLLECTED",
+  "from": "FRONTIER"
  },
  {
   "voice": "death",
@@ -13061,7 +13051,7 @@
  },
  {
   "voice": "death",
-  "text": "THE COUGAR PLAYED WITH HIM FIRST",
+  "text": "THE COUGAR PLAYED WITH HIM",
   "from": "FRONTIER"
  },
  {
@@ -13073,6 +13063,11 @@
   "voice": "death",
   "text": "THE CREW WENT ON BREAK IN 1997",
   "from": "m1/game/stages/barry/runtime.ts:424"
+ },
+ {
+  "voice": "death",
+  "text": "THE DEAD HORSE BEAT HIM",
+  "from": "SPOOKY"
  },
  {
   "voice": "death",
@@ -13136,11 +13131,6 @@
  },
  {
   "voice": "death",
-  "text": "THE FLOOD WAS REAL. HIS SWIMMING WASN'T.",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "death",
   "text": "THE FORT FELL ON YOU",
   "from": "m1/game/stages/ernie/quake.ts:343"
  },
@@ -13153,11 +13143,6 @@
   "voice": "death",
   "text": "THE GATOR STOPPED AT THE SHORTS",
   "from": "content/deaths"
- },
- {
-  "voice": "death",
-  "text": "THE GHOST TRAIN GOT ITS GHOST",
-  "from": "SPOOKY"
  },
  {
   "voice": "death",
@@ -13206,7 +13191,7 @@
  },
  {
   "voice": "death",
-  "text": "THE JAGUAR ATE THE GOOD PARTS",
+  "text": "THE JAGUAR ATE THE GOOD BITS",
   "from": "ADVENTURE"
  },
  {
@@ -13221,8 +13206,13 @@
  },
  {
   "voice": "death",
-  "text": "THE LEANING TOWER FELL ON HIM",
+  "text": "THE LEANING TOWER FELL",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "death",
+  "text": "THE LITTLE ENGINE COULD",
+  "from": "SPOOKY"
  },
  {
   "voice": "death",
@@ -13336,7 +13326,7 @@
  },
  {
   "voice": "death",
-  "text": "THE SHERIFF CLEANED UP THE TOWN",
+  "text": "THE SIGN SAID FALLS AHEAD",
   "from": "FRONTIER"
  },
  {
@@ -13371,7 +13361,7 @@
  },
  {
   "voice": "death",
-  "text": "THE TORNADO KEPT THE MEAT. IT DIDN'T WANT THE BONES.",
+  "text": "THE TORNADO KEPT THE MEAT",
   "from": "HOLLYWOOD"
  },
  {
@@ -13381,8 +13371,13 @@
  },
  {
   "voice": "death",
-  "text": "THE TOUR'S MOST BELOVED EFFECT",
+  "text": "THE TOUR'S BEST EFFECT",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "death",
+  "text": "THE TRACTOR WASN'T EVEN ON",
+  "from": "FRONTIER"
  },
  {
   "voice": "death",
@@ -13461,18 +13456,18 @@
  },
  {
   "voice": "death",
+  "text": "THROUGH THE HOOP. ONTO HIM.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "death",
   "text": "THROUGH THE ROOF",
   "from": "ADVENTURE"
  },
  {
   "voice": "death",
-  "text": "THROWN A BONE. IN THE TEMPLE.",
+  "text": "THROWN A BONE. IN THE HEAD.",
   "from": "SPOOKY"
- },
- {
-  "voice": "death",
-  "text": "THROWN OUT OF A SALOON. TO HEAVEN.",
-  "from": "FRONTIER"
  },
  {
   "voice": "death",
@@ -13561,7 +13556,7 @@
  },
  {
   "voice": "death",
-  "text": "TOO SLOW ON THE DRAW. A HOLE CLEAN THROUGH THE FACE.",
+  "text": "TOO SLOW ON THE DRAW",
   "from": "FRONTIER"
  },
  {
@@ -13573,11 +13568,6 @@
   "voice": "death",
   "text": "TOOK A BULLET FOR NOBODY",
   "from": "content/deaths"
- },
- {
-  "voice": "death",
-  "text": "TOOK A SHOWER ON A TRAIN. DIED.",
-  "from": "FRONTIER"
  },
  {
   "voice": "death",
@@ -13608,11 +13598,6 @@
   "voice": "death",
   "text": "TOSSED BY A NINETY-POUND MAN",
   "from": "content/deaths"
- },
- {
-  "voice": "death",
-  "text": "TOSSED HIS COOKIES. AND HIS LIFE.",
-  "from": "ADVENTURE"
  },
  {
   "voice": "death",
@@ -13656,11 +13641,6 @@
  },
  {
   "voice": "death",
-  "text": "TRAMPLED BY A DRAGON (SIX COLLEGE KIDS)",
-  "from": "FOREIGN"
- },
- {
-  "voice": "death",
   "text": "TRAMPLED BY A MERRY-GO-ROUND",
   "from": "SPOOKY"
  },
@@ -13677,6 +13657,11 @@
  {
   "voice": "death",
   "text": "TRAMPLED BY RIDE CAMELS",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "death",
+  "text": "TRAMPLED BY SIX COLLEGE KIDS",
   "from": "FOREIGN"
  },
  {
@@ -13706,7 +13691,7 @@
  },
  {
   "voice": "death",
-  "text": "TRIPPED ON A LOG AT FORTY MILES AN HOUR",
+  "text": "TRIPPED ON A LOG AT 40 MPH",
   "from": "FRONTIER"
  },
  {
@@ -13726,7 +13711,12 @@
  },
  {
   "voice": "death",
-  "text": "TWISTED LIKE A PRETZEL. A DEAD ONE.",
+  "text": "TWENTY BUCKS OF BIKE CHAIN",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "death",
+  "text": "TWISTED LIKE A PRETZEL",
   "from": "HOLLYWOOD"
  },
  {
@@ -13753,11 +13743,6 @@
   "voice": "death",
   "text": "UNCORKED",
   "from": "content/deaths"
- },
- {
-  "voice": "death",
-  "text": "UNCOUPLED, BLOWN UP, SCATTERED. THE FARE WAS FOUR DOLLARS.",
-  "from": "FRONTIER"
  },
  {
   "voice": "death",
@@ -13821,6 +13806,11 @@
  },
  {
   "voice": "death",
+  "text": "WAIT FOR THE NEXT CAR",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
   "text": "WAKE BOARDED",
   "from": "content/deaths"
  },
@@ -13843,11 +13833,6 @@
   "voice": "death",
   "text": "WANTED: DEAD. GOT IT.",
   "from": "m1/game/stages/dale/runtime.ts:190"
- },
- {
-  "voice": "death",
-  "text": "WASHED OFF THE ROOF. SHOULD'VE GONE INSIDE.",
-  "from": "FRONTIER"
  },
  {
   "voice": "death",
@@ -13876,13 +13861,8 @@
  },
  {
   "voice": "death",
-  "text": "WENT OVER THE FALLS. THEY'RE FAKE. THE ROCKS ARE NOT.",
-  "from": "FRONTIER"
- },
- {
-  "voice": "death",
-  "text": "WENT ROUND AND ROUND. THEN DOWN.",
-  "from": "SPOOKY"
+  "text": "WENT IN THE LAVA. LAVA WON.",
+  "from": "HOLLYWOOD"
  },
  {
   "voice": "death",
@@ -13896,7 +13876,12 @@
  },
  {
   "voice": "death",
-  "text": "WHIPPED TO DEATH WITH A BIKE CHAIN",
+  "text": "WHIPPED WITH A BIKE CHAIN",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "death",
+  "text": "WHISKEY BOTTLE TO THE SKULL",
   "from": "FRONTIER"
  },
  {
@@ -13931,6 +13916,11 @@
  },
  {
   "voice": "death",
+  "text": "WOODCHIPPED. FEET FIRST.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "death",
   "text": "WOODEN IT BE NICE",
   "from": "SPOOKY"
  },
@@ -13953,6 +13943,11 @@
   "voice": "death",
   "text": "WRENCHED",
   "from": "SPACE"
+ },
+ {
+  "voice": "death",
+  "text": "WRONG SIDE OF THE ROAD",
+  "from": "FOREIGN"
  },
  {
   "voice": "death",
