@@ -227,7 +227,8 @@ export const PICKUPS: [number, number, 'small_health' | 'small_ammo'][] = [
   [14630, -60, 'small_health'],
 ];
 
-/** Signs: [x, the ground's height there, the words (the first line big), a warning (painted, not burned)]. */
+/** Signs: [x, the ground's height there, the words (the first line big), a warning (painted, not burned)]. Each is kept
+ *  on its stretch of ground (art.ts: never out over an edge or into a wall). */
 export const SIGNS: [number, number, string[], boolean?][] = [
   [880, 0, ['SAWDUST GULCH', 'POP. 40 (PAID STAFF)']],
   [1950, 0, ['WILD WEST SHOW 2PM', 'THE SHOWDOWN! BLEACHERS >']],
@@ -237,8 +238,10 @@ export const SIGNS: [number, number, string[], boolean?][] = [
   [10800, 0, ['LUMBER YARD', 'HARD HATS (DECORATIVE)']],
   [11080, 0, ['MOTHER LODE MINE', 'GUIDED TOURS EVERY 20 MIN']],
   [11930, FLOOR_H, ['RUNAWAY CARTS', 'BRAKES LAST CHECKED 1879'], true],
-  [12690, FLOOR_H, ['FIREDAMP', 'NO OPEN FLAMES. NO GUNS.'], true],
-  [12985, FLOOR_H, ['FLOODED', 'LONG SWIM. NO AIR POCKETS.'], true],
+  // (the gas pocket's two on its short floor between the trestle's chasm and the flooded shaft: three lines each so
+  // both fit on it, neither hanging off its edge (art.ts keeps them on it))
+  [12740, FLOOR_H, ['FIREDAMP', 'NO OPEN FLAMES.', 'NO GUNS.'], true],
+  [12935, FLOOR_H, ['FLOODED', 'LONG SWIM.', 'NO AIR POCKETS.'], true],
   [14740, 0, ['TIMBER TUMBLE', 'THE LONG LOG RIDE. LINE STARTS HERE']],
 ];
 
@@ -254,6 +257,9 @@ export const CHECKPOINTS = [
   { name: 'THE CANARY', cp: 28, x: X(12680), y: FY },
   { name: 'TIMBER TUMBLE', cp: 29, x: X(14760), y: GY },
 ];
+
+/** The mine's two shafts (open to the sky, down from the ground line to the mine's floor): [from, to]. */
+export const SHAFTS: [number, number][] = [[11300, 11600], [14420, 14690]];
 
 /** Is world (x, feet y) down in the mine? (the shafts and the tunnels, under the ground line) */
 export const inMine = (x: number, y: number) => x > X(11300) && x < X(14690) && y > GY + 30;

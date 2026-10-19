@@ -299,7 +299,10 @@ export const drawLivery = (c: Ctx, state: GameState, v: TownView) => {
   // ---- the livery barn (at the play plane): red board and batten, white trim, the gambrel roof, the loft door open on
   //      the hay (the loft a ledge), the stalls, a fiberglass horse's rump
   const xa = X(7050), xb = X(7450), top = Y(330), Bn = hr('barn', BARN), T = hr7('#F2ECE0'), Sh = hr('shingle', SHINGLE);
+  // (its left side going back stops at the showdown's gate (nearer: it used to be drawn over the gate's posts))
+  c.save(); c.beginPath(); c.rect(SQUARE.b + 24, v.top - 200, xb - SQUARE.b + 400, v.bot - v.top + 400); c.clip();
   sideBack(c, eye, xa, -1, top, GY, 1, 0.84, Bn, 4);
+  c.restore();
   sideBack(c, eye, xb, 1, top, GY, 1, 0.84, Bn, 4);
   still(c, 'livery', xa, GY, -20, Y(426) - GY, xb - xa + 40, GY - Y(426) + 2, g => {
     const w = xb - xa, t = top - GY;
@@ -327,9 +330,12 @@ export const drawLivery = (c: Ctx, state: GameState, v: TownView) => {
     box(g, 290, -150, 80, 150, INK); box(g, 291, -149, 78, 149, Bn[3]); g.strokeStyle = T[3]; g.lineWidth = 4; g.beginPath(); g.moveTo(293, -147); g.lineTo(367, -3); g.moveTo(367, -147); g.lineTo(293, -3); g.stroke(); g.strokeRect(293, -147, 74, 144);
     box(g, 0, -10, w, 10, Bn[1]); checker(g, 0, -16, w, 6, Bn[1], 0);
   });
-  // (the loft's floor going back, its lip lit)
+  // (the loft's floor going back, seen only through the loft door (it's inside the barn: it used to show on the barn's
+  // boards either side of the door); its lip lit)
   const ly = Y(170);
+  c.save(); c.beginPath(); c.rect(xa + 130, Y(270), 140, ly - Y(270) + 1); c.clip();
   topBack(c, eye, X(7120), X(7400), ly, 1, 0.9, hr('hay', HAY).slice(1), 2);
+  c.restore();
   lipAt(c, X(7120), ly, X(7400) - X(7120));
 };
 

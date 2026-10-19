@@ -214,7 +214,8 @@ export const PICKUPS: [number, number, 'small_health' | 'small_ammo'][] = [
   [19100, 150, 'small_health'],
 ];
 
-/** Signs: [x, the ground's height there, the words (the first line big), a warning (painted, not burned)]. */
+/** Signs: [x, the ground's height there, the words (the first line big), a warning (painted, not burned)]. Each is kept
+ *  on its stretch of ground (art.ts); one with no ground under it stands in the water. */
 export const SIGNS: [number, number, string[], boolean?][] = [
   [260, 0, ['WILDERNESS LAND', 'THE FRONTIER, AS GOD', 'AND THE PARK INTENDED']],
   [500, 0, ['BEAR TRAPS', 'AUTHENTIC. STEP AROUND.'], true],
@@ -227,7 +228,8 @@ export const SIGNS: [number, number, string[], boolean?][] = [
   [10380, 0, ['RAPIDS', 'LEECHES. DO NOT SWIM.'], true],
   [13180, 0, ['BISON MEADOW', 'DO NOT RIDE THE BISON']],
   [14120, 0, ['LOG PILE', 'LOGS MAY ROLL'], true],
-  [15470, 0, ['LONG RIVER', 'GET OFF BEFORE THE FALLS'], true],
+  // (planted in the river past the bank: the bank's too short for it, and it hung off both ends)
+  [15600, 0, ['LONG RIVER', 'GET OFF BEFORE THE FALLS'], true],
   [17700, 40, ['WELL DONE', 'NOT EVERYBODY GETS OFF']],
   [18900, 0, ['STATION', '1/4 MILE >']],
 ];

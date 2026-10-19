@@ -16,8 +16,8 @@
 import type { GameState } from '../../../m1/game/core/state';
 import { GY } from '../geometry';
 import { bendFloor, BEND } from '../../intro/art/kit';
-import { type Ctx, type TownView, box, checker, mix, hash, PIX, at, poly, stamp, bandedGradient, hazeBands, pixelBlob, atDepth, INK, timeOfDay, farTint, skyAt, FAR, STREET, SAWDUST, CONC, STONE, GRASS, DIRT, PLANK, POND, SUMP, TOPLIP, BRASS, STEEL, BARK, TIMBER } from './paint';
-import { GROUND, WATERS, X, Y, type Water } from './layout';
+import { type Ctx, type TownView, box, checker, mix, hash, PIX, at, poly, stamp, bandedGradient, hazeBands, pixelBlob, atDepth, INK, timeOfDay, farTint, skyAt, FAR, MINE_BK, STREET, SAWDUST, CONC, STONE, GRASS, DIRT, PLANK, POND, SUMP, TOPLIP, BRASS, STEEL, BARK, TIMBER } from './paint';
+import { GROUND, WATERS, SHAFTS, X, Y, type Water } from './layout';
 import { onScreen, viewOf } from './view';
 
 /** How far toward him the floor comes (bent), the earth under it. */
@@ -92,6 +92,19 @@ export const drawGroundBack = (c: Ctx, v: TownView) => {
       } else if (r.zone === 'mill') {
         c.fillStyle = col(k < 0.5 ? R[5] : R[2]); c.beginPath(); c.ellipse(Math.round(sx), Math.round(sy), (8 + hash(hs * 3.1) * 12) * d, 1.5 * d, 0, 0, Math.PI * 2); c.fill();
       } else if (k < 0.25) box(c, sx, sy, 3 * d, 1, col('#2A2624'));
+    }
+  }
+  // Behind the mine's shafts: the ground carrying on past their back walls (the shafts are holes, not trenches to the
+  // horizon: the far off used to show through them)
+  if (eye.y < GY - 2) for (const [sa, sb] of SHAFTS) {
+    const a = X(sa), b = X(sb);
+    if (b < v.v0 - 300 || a > v.v1 + 300) continue;
+    const R = nr(`gz-${sa < 12000 ? 'mill' : 'queue'}`, zoneR(sa < 12000 ? 'mill' : 'queue'), 0.5);
+    const cols = [R[5], R[4], R[4], R[3], R[3], R[2]], N = cols.length;
+    for (let i = 0; i < N; i++) {
+      const d0 = Math.min(MINE_BK, 1 - ((1 - FAR) * i) / N), d1 = 1 - ((1 - FAR) * (i + 1)) / N;
+      if (d1 >= MINE_BK) continue;
+      poly(c, [pt(a, GY, d0), pt(b, GY, d0), pt(b, GY, d1), pt(a, GY, d1)], mix(cols[i], haze, i * 0.04));
     }
   }
   // The island's top going back (grass over dirt; the stump)
@@ -198,9 +211,10 @@ export const drawGroundFloor = (c: Ctx, v: TownView) => {
       if (x + w < v.v0 || x > v.v1) continue;
       stamp(c, `ft-floor-${r.rx}-${i}-${tod.key}`, x, GY - 10, w, SOIL + 10, g => paintFloor(g, x, w, r.zone));
     }
-    const fan = (e: number) => Math.min(260, Math.abs(e - v.eye.x) * BAND * BEND);
-    const x0 = r.a < v.eye.x ? r.a - fan(r.a) : r.a, x1 = r.b > v.eye.x ? r.b + fan(r.b) : r.b;
-    bendFloor(c, v.eye, GY, GY, GY + BAND, Math.max(x0, v.v0 - 40), Math.min(x1, v.v1 + 40));
+    // (bent within its own ends: it used to fan out past them over the mine's shafts (over their landings, the playtest's
+    // ledges clipping in as he came up to them) and over the ponds; the near bank shows where it's cut, from its open
+    // side)
+    bendFloor(c, v.eye, GY, GY, GY + BAND, Math.max(r.a, v.v0 - 40), Math.min(r.b, v.v1 + 40));
   }
   // (the near banks: down to the pond's surface, down the mine's shafts into the dark)
   for (let i = 0; i + 1 < RUNS.length; i++) {

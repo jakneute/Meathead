@@ -10,7 +10,7 @@ import type { GameState } from '../../../m1/game/core/state';
 import { GY } from '../geometry';
 import { parkSign } from '../kit';
 import { type Ctx, type View, box, checker, mix, hash, at, poly, viewOf, still, atDepth, seen, part, post, ball, pine, clump, fiberglass, timeOfDay, farTint, skyAt, dimmed, near, INK, FAR, FLAT_D, FIBER, FIBER_LIP, STONE, STEEL, PLY, PLANK, NEEDLE, BARK, OAK, DIRT, GRASS } from './paint';
-import { LEDGES, BOULDERS, SIGNS, HIVES, X, Y } from './layout';
+import { GROUND, LEDGES, BOULDERS, SIGNS, HIVES, BED, X, Y } from './layout';
 import { drawShelf } from './hazards';
 import { drawFar } from './far';
 import { drawGoingBack, drawPlayPlane, drawTracks } from './ground';
@@ -191,6 +191,12 @@ const overhang = (c: Ctx, v: View, a: number, b: number, h: number) => {
   drawShelf(c, X(a), X(b), Y(h), false, 0, 0, v.eye);
 };
 
+/** The flat ground a sign at rx (on ground of height h) stands on: its run (world x); null in the water. */
+const signGround = (rx: number, h: number): [number, number] | null => {
+  const run = GROUND.find(([a, b, h1, h2]) => h1 === h && h2 === h && rx >= a && rx <= b);
+  return run ? [X(run[0]), X(run[1])] : null;
+};
+
 /** Props of the park's, along the way: [x, what]. */
 const PROPS: [number, 'trash' | 'speaker'][] = [
   [380, 'trash'], [1300, 'speaker'], [3950, 'trash'], [6000, 'speaker'],
@@ -220,6 +226,10 @@ export const drawWildsBack = (c: Ctx, state: GameState) => {
   // (the tracks, from the last mile on to the station)
   drawTracks(c, v, X(18700), X(19440));
   // (the signs: planks on posts, burned in (the park's), painted on (its warnings))
-  for (const [rx, h, words, warn] of SIGNS) if (seen(v, X(rx) - 150, X(rx) + 150)) parkSign(c, X(rx), Y(h), words, { warn, seed: rx, cap: rx === 260 });
+  for (const [rx, h, words, warn] of SIGNS) {
+    if (!seen(v, X(rx) - 150, X(rx) + 150)) continue;
+    const on = signGround(rx, h);
+    parkSign(c, X(rx), Y(h), words, { warn, seed: rx, cap: rx === 260, ...(on ? { within: on } : { wade: BED }) });
+  }
   void ball; void post; void hash; void skyAt; void farTint; void timeOfDay; void STONE; void DIRT; void GRASS; void FAR;
 };

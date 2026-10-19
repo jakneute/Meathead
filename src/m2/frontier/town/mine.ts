@@ -15,14 +15,21 @@
 
 import type { GameState } from '../../../m1/game/core/state';
 import { GY } from '../geometry';
-import { type Ctx, type TownView, box, checker, mix, hash, at, poly, still, stillAt, atDepth, seen, sideBack, topBack, underBack, INK, timeOfDay, farTint, hr, hr7, back7, fiberglass, ball, puff, FIBER, FIBER_LIP, MINE, TIMBER, STEEL, IRON, BRASS, ORE, COAL, NEEDLE, PLY, TOPLIP, signPaint, western } from './paint';
+import { type Ctx, type TownView, box, checker, mix, hash, at, poly, still, stillAt, atDepth, seen, sideBack, topBack, underBack, INK, timeOfDay, farTint, hr, hr7, back7, fiberglass, ball, puff, FIBER, FIBER_LIP, MINE, TIMBER, STEEL, IRON, BRASS, ORE, COAL, NEEDLE, PLY, TOPLIP, MINE_BK, signPaint, western } from './paint';
 import { signText } from '../../signLetters';
 import { townOf } from './state';
-import { LANTERNS, CANARIES, GAS, CART_RUN, RIDE, BEAMS, BEAM_GAP, CHUTES, CAVEINS, CHASM, FY, CEIL_Y, X, Y } from './layout';
+import { LANTERNS, CANARIES, GAS, CART_RUN, RIDE, BEAMS, BEAM_GAP, CHUTES, CAVEINS, CHASM, SHAFTS, FY, CEIL_Y, X, Y } from './layout';
 import { onScreen } from './view';
 
 /** The tunnels' back wall (going back from the cut at the play plane). */
-const BK = 0.86;
+const BK = MINE_BK;
+
+/** The opening a mine ledge (a..b, x from the section's start) is cut into: its shaft, or the tunnel (a world box: x0,
+ *  y0, x1, y1). What's drawn of a ledge going back stays inside it. */
+export const mineCut = (a: number, b: number): [number, number, number, number] => {
+  for (const [sa, sb] of SHAFTS) if (a >= sa && b <= sb) return [X(sa), GY - 2, X(sb), FY];
+  return [X(11600), CEIL_Y, X(13080), FY];
+};
 
 // ---------------------------------------------------------------------------------------------------------------
 // Outside: the fiberglass mountain, the headframes, the shed
@@ -37,8 +44,10 @@ const crag = (): [number, number][] => {
 const drawMountain = (c: Ctx, v: TownView) => {
   const tod = timeOfDay(), F = FIBER.map(col => farTint(col, 0.2, tod)), eye = v.eye;
   const a = X(MA), b = X(MB);
-  // (its ends going back, cut away: the shell's thickness, the steel armature behind it, struts down to footings)
+  // (its ends going back, cut away: the shell's thickness, the steel armature behind it, struts down to footings;
+  // never below the ground line: from down in the mine they used to swing down through the rock and the shafts)
   const S = hr('steel', STEEL), P = hr('ply', PLY);
+  c.save(); c.beginPath(); c.rect(v.v0 - 400, v.top - 400, v.v1 - v.v0 + 800, GY - v.top + 400); c.clip();
   for (const [e, side, top] of [[a - 20, -1, Y(420) + 60], [b + 20, 1, Y(420) + 90]] as const) {
     if ((eye.x - e) * side <= 1) continue;
     const d1 = 0.84;
@@ -50,6 +59,7 @@ const drawMountain = (c: Ctx, v: TownView) => {
     box(c, x0 - (side > 0 ? 0 : 4), t0, 4, b0 - t0, '#E8E2D2'); box(c, x0 - (side > 0 ? 0 : 4) + (side > 0 ? 3 : 0), t0, 1, b0 - t0, F[1]);
     const [fx, fy] = at(eye, e, GY, 0.92); box(c, fx - 10, fy - 6, 20, 6, P[2]);
   }
+  c.restore();
   // (the face: stamped in chunks, clipped to the outline)
   const pts = crag();
   for (let x = a - 20, i = 0; x < b + 20; x += 400, i++) {
@@ -174,12 +184,18 @@ const tunnel = (c: Ctx, v: TownView, a: number, b: number, y0: number, y1: numbe
   c.restore();
 };
 
-/** A shaft (a..b, from the ground down to y1): its cribbing on the back wall, a ladder, the cable. */
+/** A shaft (a..b, from the ground down to y1): its cribbing on the back wall, a ladder, the cable. Seen from above (from
+ *  the street), its mouth too: a hole in the ground going back to its back wall (the ground carries on behind it,
+ *  ground.ts), its sides going down dark, the back wall's top showing through it. */
 const shaft = (c: Ctx, v: TownView, a: number, b: number, y0: number, y1: number) => {
   const eye = v.eye, R = hr('mine', MINE, 0.1), T = hr('timber', TIMBER, 0.1), S = hr('steel', STEEL, 0.1);
-  c.save(); c.beginPath(); c.rect(a, y0, b - a, y1 - y0); c.clip();
-  box(c, a, y0, b - a, y1 - y0, R[1]);
-  const [ba, bt] = at(eye, a, y0, BK), [bb, bbt] = at(eye, b, y1, BK);
+  const mouth = eye.y < GY - 2, [ma, mt] = at(eye, a, GY, BK), [mb] = at(eye, b, GY, BK);
+  c.save(); c.beginPath(); c.rect(a, y0, b - a, y1 - y0);
+  if (mouth) { c.moveTo(a, GY); c.lineTo(ma, mt); c.lineTo(mb, mt); c.lineTo(b, GY); c.closePath(); }
+  c.clip();
+  const fx0 = Math.min(a, ma) - 2, ft = mouth ? Math.min(y0, mt) - 2 : y0;
+  box(c, fx0, ft, Math.max(b, mb) + 2 - fx0, y1 - ft, R[1]);
+  const [ba, bt] = at(eye, a, mouth ? GY : y0, BK), [bb, bbt] = at(eye, b, y1, BK);
   bandedGradient4(c, ba, bt, bb - ba, bbt - bt, [R[2], R[2], R[1], R[1]]);
   // (the cribbing: squared timbers laid round, their ends showing)
   for (let y = y0 + 10; y < y1; y += 44) { const [p0, py] = at(eye, a, y, BK), [p1] = at(eye, b, y, BK); box(c, p0, py, p1 - p0, 10, T[2]); box(c, p0, py, p1 - p0, 2, T[4]); box(c, p0, py + 10, p1 - p0, 2, T[0]); }
@@ -190,7 +206,8 @@ const shaft = (c: Ctx, v: TownView, a: number, b: number, y0: number, y1: number
   for (let y = lt + 8; y < lb; y += 14) box(c, l0, y, l1 - l0 + 3, 2, T[5]);
   const [cx, ct] = at(eye, lx + 30, y0, BK + 0.05), [, cb] = at(eye, lx + 30, y1 - 200, BK + 0.05); box(c, cx, ct, 2, cb - ct, S[2]);
   c.restore();
-  // (its walls' lips at the ground line)
+  // (the mouth's far edge, inked; its walls' lips at the ground line)
+  if (mouth) box(c, ma, mt - 1, mb - ma, 1, INK);
   box(c, a - 2, GY - 2, 4, y1 - GY, INK); box(c, b - 2, GY - 2, 4, y1 - GY, INK);
 };
 const bandedGradient4 = (c: Ctx, x: number, y: number, w: number, h: number, cols: string[]) => { for (let i = 0; i < cols.length; i++) box(c, x, y + (h * i) / cols.length, w, h / cols.length + 1, cols[i]); };
@@ -209,8 +226,8 @@ const lantern = (c: Ctx, x: number, y: number, f: number) => {
 export const drawMineBack = (c: Ctx, state: GameState, v: TownView) => {
   const f = state.frame, tw = townOf(state);
   drawMountain(c, v);
-  drawOutside(c, state, v);
-  // ---- the rock under the ground line (stamped in chunks), the tunnels and shafts cut in it
+  // ---- the rock under the ground line (stamped in chunks), the tunnels and shafts cut in it (the headframes after:
+  //      they stand in front of the shafts' mouths)
   const ra = X(11300), rb = X(14690), tod = timeOfDay();
   for (let x = ra, i = 0; x < rb; x += 512, i++) {
     const w = Math.min(512, rb - x);
@@ -226,6 +243,7 @@ export const drawMineBack = (c: Ctx, state: GameState, v: TownView) => {
   if (seen(v, X(14420), X(14690), 1, 100)) shaft(c, v, X(14420), X(14690), GY - 2, FY);
   tunnel(c, v, X(11600), X(13080), CEIL_Y, FY, true);
   tunnel(c, v, X(13000), X(14420), CEIL_Y, FY + 300, false);
+  drawOutside(c, state, v);
   // (the flooded shaft: its cut down to the bed, dark)
   if (seen(v, X(13000), X(14420))) { const R = hr('mine', MINE, 0.1), xa = Math.max(X(13000), v.v0 - 60), xb = Math.min(X(14420), v.v1 + 60); box(c, xa, FY, xb - xa, Y(-880) - FY, R[1]); }
   // (the side adit at the top of the cart track: where the runaways come from, timbered)

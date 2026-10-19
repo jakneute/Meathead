@@ -1231,3 +1231,13 @@ later (+1 if heavyset; was 2 / 3 before playtest fixes E). Tucker's glimpsed ahe
     frames; cougar 120 -> 140; bison (340) as it was.
   - the log ride's crew (logride/ was mid art pass: proposed, not made): logger HP 70 -> 110, contact 4 -> 5, chainsaw
     11 -> 13, its recover 36 -> 30 frames, walk 1.5 -> 1.7; the rats (critters) as they are.
+- 2026-10-18 (playtest perspective notes, sections 1 and 3; art only): the floor coming toward him is bent within its
+  own run's ends (it fanned out over the mine's shafts, over their landings, and over the ponds, the creek, the rapids
+  and the ravine, under the logs and swimmers); the mine's landings clipped to their shaft or tunnel (their tops going
+  back swung out through the rock as he came up); the shafts read as holes (a mouth going back to the back wall, the
+  ground carrying on behind it, the headframes drawn in front; the far off used to show through); the mountain's cut
+  ends never below the ground line; the rooftop stores' sides and roofs drawn before all their fronts and kept off the
+  saloon and the gate; the livery's left side kept off the gate, its loft floor seen only through the loft door; Timber
+  Tumble's sides behind the queue's rows. Signs kept on their stretch of ground (kit.ts parkSign `within`; `wade` plants
+  one in the water): FIREDAMP and FLOODED in three lines so both fit their floor, LONG RIVER planted in the river, the
+  rest nudged off the edges they hung over. The saloon's inside/outside switch left as it is (inside is inside).

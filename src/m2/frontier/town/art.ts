@@ -29,7 +29,7 @@ import { drawFronts, drawBalcony, drawStores, FRONTS } from './fronts';
 import { timeOfDay } from '../../timeOfDay';
 import { drawSaloon, drawBar } from './saloon';
 import { drawDepot, drawFirstAid, drawRebuilt, drawWaterTower, drawWagon, drawSquareBack, drawSquareFront, drawMarks, drawLivery, drawMill, drawYard } from './places';
-import { drawMineBack, drawMineRock, drawCanaries } from './mine';
+import { drawMineBack, drawMineRock, drawCanaries, mineCut } from './mine';
 import { drawQueue } from './queue';
 
 export { drawTownBackdrop } from './far';
@@ -75,7 +75,12 @@ export const drawTownBack = (c: Ctx, state: GameState, wreck: boolean) => {
   for (const s of SOLIDS) drawSolid(c, state, v, s);
   for (const [a, b, h] of COVER) if (on(a, b)) drawTrough(c, v, X(a), X(b), Y(h));
   // ---- signs (the park's planks; warnings painted on)
-  for (const [rx, h, words, warn] of SIGNS) if (words.length && on(rx - 160, rx + 160)) parkSign(c, X(rx), Y(h), words, { warn, seed: rx, tall: h < -100 ? 64 : 104 });
+  //      (each kept on its own stretch of ground: never out over an edge (the playtest: signs hanging off ledges))
+  for (const [rx, h, words, warn] of SIGNS) {
+    if (!words.length || !on(rx - 160, rx + 160)) continue;
+    const run = GROUND.find(([a, b, h1, h2]) => h1 === h && h2 === h && rx >= a && rx <= b);
+    parkSign(c, X(rx), Y(h), words, { warn, seed: rx, tall: h < -100 ? 64 + 14 * (words.length - 2) : 104, within: run ? [X(run[0]), X(run[1])] : undefined });
+  }
   // ---- the canaries in their cages
   drawCanaries(c, state);
 };
@@ -103,6 +108,14 @@ const drawEndOfLine = (c: Ctx, state: GameState, v: TownView, wreck: boolean) =>
 const drawLedge = (c: Ctx, v: TownView, a: number, b: number, h: number) => {
   if (h >= 0) return;
   const xa = X(a), xb = X(b), y = Y(h), T = hr('timber', TIMBER, 0.08), S = hr('steel', STEEL, 0.08);
+  // (kept inside the shaft or the tunnel it's in: its top going back used to swing out through the rock either side
+  // as he came up to it (the playtest's: ledges clipping into the walls before you go down))
+  const [cx0, cy0, cx1, cy1] = mineCut(a, b);
+  c.save(); c.beginPath(); c.rect(cx0, cy0, cx1 - cx0, cy1 - cy0); c.clip();
+  drawLanding(c, v, xa, xb, y, T, S);
+  c.restore();
+};
+const drawLanding = (c: Ctx, v: TownView, xa: number, xb: number, y: number, T: string[], S: string[]) => {
   topBack(c, v.eye, xa, xb, y, 1, 0.88, [T[2], T[3], T[4], T[4], T[5]], 2);
   box(c, xa - 1, y - 1, xb - xa + 2, 14, INK); box(c, xa, y, xb - xa, 12, T[3]); box(c, xa, y + 10, xb - xa, 2, T[1]);
   for (let x = xa + 4; x < xb - 4; x += 18) box(c, x, y + 3, 1, 8, T[1]);

@@ -30,6 +30,8 @@ export type Ctx = CanvasRenderingContext2D;
 
 /** Where the street's fronts stand (back from the play plane), how far back the ground goes. */
 export const FRONT_D = 0.9, FAR = 0.7;
+/** How far back the mine's shafts and tunnels go (their back walls): the ground carries on behind the shafts. */
+export const MINE_BK = 0.86;
 
 // ---------------------------------------------------------------------------------------------------------------
 // The view

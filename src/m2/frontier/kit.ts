@@ -95,26 +95,33 @@ export const onScreen = (state: GameState, x0: number, x1: number, m = 60) => x1
 const PLANK_R = ['#2A1608', '#44260E', '#603818', '#7E4E24', '#9C6834', '#BA8448', '#D8A464'];
 const fontReady = () => typeof document !== 'undefined' && !!document.fonts?.check('8px "Press Start 2P"');
 
-/** A park sign standing at (x, feetY) (world space): `lines` top to bottom (the first big). */
-export const parkSign = (c: Ctx, x: number, feetY: number, lines: string[], opts: { warn?: boolean; seed?: number; tall?: number; cap?: boolean; big?: number } = {}) => {
-  const big = opts.big ?? 2, seed = opts.seed ?? 0, warn = !!opts.warn;
+/** A park sign standing at (x, feetY) (world space): `lines` top to bottom (the first big). `within`: the stretch of
+ *  ground it stands on (a..b, world): it's kept on it, its mound never out past an edge (the playtest: signs hanging off
+ *  ledges, plain once the near bank shows as he walks away); `wade`: planted in the water instead, its posts that far
+ *  down into it (no mound). */
+export const parkSign = (c: Ctx, x: number, feetY: number, lines: string[], opts: { warn?: boolean; seed?: number; tall?: number; cap?: boolean; big?: number; within?: [number, number]; wade?: number } = {}) => {
+  const big = opts.big ?? 2, seed = opts.seed ?? 0, warn = !!opts.warn, wade = Math.max(0, Math.round(opts.wade ?? 0));
   const looks = lines.map((_, i) => (warn ? { ...painted(i ? 1 : big, i ? '#FEF3C7' : '#FDE047', '#3A0A06'), dither: true } : burned(i ? 1 : big, seed + i)));
   const w = Math.max(76, ...lines.map((l, i) => signW(l, looks[i]) + 22)), lh = lines.map((_, i) => 7 * (i ? 1 : big) + (i ? 6 : 8));
   const tall = opts.tall ?? (warn ? 82 : 94), top = -tall;
-  const key = `fsign-${lines.join('|')}-${warn ? 1 : 0}-${seed}-${tall}-${opts.cap ? 1 : 0}-${timeOfDay().key}-${fontReady() ? 'f' : 'n'}`;
+  if (opts.within) { const [a, b] = opts.within, half = w / 2 + 8; x = b - a >= half * 2 ? Math.max(a + half, Math.min(b - half, x)) : (a + b) / 2; }
+  const key = `fsign-${lines.join('|')}-${warn ? 1 : 0}-${seed}-${tall}-${opts.cap ? 1 : 0}-${wade}-${timeOfDay().key}-${fontReady() ? 'f' : 'n'}`;
   c.save(); c.translate(Math.round(x), Math.round(feetY));
-  stamp(c, key, -w / 2 - 20, top - 30, w + 40, tall + 36, g => {
+  stamp(c, key, -w / 2 - 20, top - 30, w + 40, tall + 36 + wade, g => {
     const tod = timeOfDay(), P = PLANK_R.map(col => farTint(col, 0.2, tod));
     const B = warn ? ['#2A0606', '#4A0C0A', '#6E1410', '#8E1C16', '#AE2A20', '#CC4A3A', '#E87A62'].map(col => farTint(col, 0.2, tod)) : P;
-    // (the mound the posts are sunk in, tufts round it)
-    g.fillStyle = INK; g.beginPath(); g.ellipse(0, 0, w / 2 + 8, 5, 0, Math.PI, 0); g.fill();
-    g.fillStyle = farTint('#54381C', 0.2, tod); g.beginPath(); g.ellipse(0, 0, w / 2 + 7, 4, 0, Math.PI, 0); g.fill();
+    // (the mound the posts are sunk in, tufts round it; none in the water)
+    if (!wade) {
+      g.fillStyle = INK; g.beginPath(); g.ellipse(0, 0, w / 2 + 8, 5, 0, Math.PI, 0); g.fill();
+      g.fillStyle = farTint('#54381C', 0.2, tod); g.beginPath(); g.ellipse(0, 0, w / 2 + 7, 4, 0, Math.PI, 0); g.fill();
+    }
     // (the posts: peeled logs, stepped across, a knot)
     for (const px of [-w / 2 + 10, w / 2 - 10]) {
-      box(g, px - 5, top - 4, 10, tall + 2, INK); box(g, px - 4, top - 3, 8, tall + 1, P[3]); box(g, px - 4, top - 3, 2, tall + 1, P[5]); box(g, px - 3, top - 3, 1, tall + 1, P[6]); box(g, px + 2, top - 3, 2, tall + 1, P[2]);
-      for (let y = top + 8; y < -6; y += 11) box(g, px - 2 + ((y * 7) % 4), y, 2, 3, P[1]);
+      const ph = tall + 1 + wade;
+      box(g, px - 5, top - 4, 10, ph + 1, INK); box(g, px - 4, top - 3, 8, ph, P[3]); box(g, px - 4, top - 3, 2, ph, P[5]); box(g, px - 3, top - 3, 1, ph, P[6]); box(g, px + 2, top - 3, 2, ph, P[2]);
+      for (let y = top + 8; y < -6 + wade; y += 11) box(g, px - 2 + ((y * 7) % 4), y, 2, 3, P[1]);
       box(g, px - 4, top - 3, 8, 2, P[4]);
-      for (let k = 0; k < 3; k++) { box(g, px - 7 + k * 6, -4, 1, 4, farTint('#4C7E28', 0.2, tod)); box(g, px - 6 + k * 6, -6, 1, 6, farTint('#6C9C34', 0.2, tod)); }
+      if (!wade) for (let k = 0; k < 3; k++) { box(g, px - 7 + k * 6, -4, 1, 4, farTint('#4C7E28', 0.2, tod)); box(g, px - 6 + k * 6, -6, 1, 6, farTint('#6C9C34', 0.2, tod)); }
     }
     // (the planks across them: one per line, their joints, grain, a lit top edge, a shaded foot, ragged cut ends)
     let y = top + 4;

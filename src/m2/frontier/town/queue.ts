@@ -87,10 +87,8 @@ const drawQueueFront = (c: Ctx, state: GameState, v: TownView) => {
   parkSign(c, b - 80, GY - 52, ['60 MIN', 'FROM HERE'], { seed: 60, tall: 102 });
   parkSign(c, a + 260, GY - 78, ['45 MIN', 'HANG IN THERE'], { seed: 45, tall: 96 });
   // ---- the station's front: a log lodge, its gable, the marquee, the way in
-  const sa = STATION.a, sb = STATION.b, eye = v.eye, top = Y(300);
+  const sa = STATION.a, sb = STATION.b, top = Y(300);
   const Lg = hr('bark', BARK), Sh = hr('shingle', SHINGLE);
-  sideBack(c, eye, sa, -1, top, GY, 1, 0.84, Lg, 4);
-  sideBack(c, eye, sb, 1, top, GY, 1, 0.84, Lg, 4);
   still(c, 'station', sa, GY, -30, Y(392) - GY, sb - sa + 60, GY - Y(392) + 2, g => {
     const w = sb - sa, t = top - GY;
     // (stacked logs, banded in bark, their round ends at the corners, the chinking between)
@@ -139,6 +137,11 @@ const drawQueueFront = (c: Ctx, state: GameState, v: TownView) => {
 export const drawQueue = (c: Ctx, state: GameState, v: TownView) => {
   const a = QUEUE.a, b = QUEUE.b;
   drawFlume(c, state.frame);
+  // (the station's sides going back, before the rows: the queue's front rows are nearer (its left side used to be
+  // drawn over the end of the line))
+  const Lg = hr('bark', BARK), st = Y(300);
+  sideBack(c, v.eye, STATION.a, -1, st, GY, 1, 0.84, Lg, 4);
+  sideBack(c, v.eye, STATION.b, 1, st, GY, 1, 0.84, Lg, 4);
   const top = GY - 180, key = `${a}:${b}:${timeOfDay().key}`;
   if (typeof document !== 'undefined' && (!queueLayer || queueKey !== key)) {
     queueKey = key;

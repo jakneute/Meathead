@@ -386,10 +386,15 @@ const STORES: [number, number, number, string, string, string][] = [
   [5640, 5850, 200, '#9A7A4A', 'POST OFFICE', 'PONY EXPRESS (LATE)'],
 ];
 export const drawStores = (c: Ctx, state: GameState, v: TownView) => {
-  for (const [a, b, h, col, name, sub] of STORES) {
-    const xa = X(a), xb = X(b), top = Y(h), eye = v.eye;
+  const eye = v.eye;
+  // (every store's sides and roof going back first, then the fronts over them: a side going back is behind the play
+  // plane, so the next store's front covers it (it used to be drawn over the store before's front); and none of it
+  // past the saloon's front at the left or the showdown's gate at the right, both nearer)
+  c.save(); c.beginPath(); c.rect(X(4900), v.top - 200, X(5941) - X(4900), v.bot - v.top + 400); c.clip();
+  for (const [a, b, h, col] of STORES) {
+    const xa = X(a), xb = X(b), top = Y(h);
     if (!seen(v, xa - 80, xb + 80)) continue;
-    const R = hr7(col), T = hr7('#E8D8B0'), Tr = hr('tar', TAR);
+    const R = hr7(col), Tr = hr('tar', TAR);
     // (its sides going back, its roof going back (tar paper, lit at the front), a chimney back there)
     sideBack(c, eye, xa, -1, top, GY, 1, 0.84, R, 4);
     sideBack(c, eye, xb, 1, top, GY, 1, 0.84, R, 4);
@@ -399,6 +404,12 @@ export const drawStores = (c: Ctx, state: GameState, v: TownView) => {
       const [cx, cy] = at(eye, xa + (xb - xa) * 0.75, top, 0.88);
       box(c, cx - 9, cy - 30, 18, 30, INK); box(c, cx - 8, cy - 29, 16, 29, hr('brick', BRICK)[3]); box(c, cx - 8, cy - 29, 4, 29, hr('brick', BRICK)[4]); for (let y = cy - 26; y < cy; y += 5) box(c, cx - 8, y, 16, 1, hr('brick', BRICK)[1]); box(c, cx - 10, cy - 32, 20, 4, hr('brick', BRICK)[2]);
     }
+  }
+  c.restore();
+  for (const [a, b, h, col, name, sub] of STORES) {
+    const xa = X(a), xb = X(b), top = Y(h);
+    if (!seen(v, xa - 80, xb + 80)) continue;
+    const R = hr7(col), T = hr7('#E8D8B0'), Tr = hr('tar', TAR);
     still(c, `store-${a}`, xa, GY, -8, top - GY - 10, xb - xa + 16, GY - top + 12, g => {
       const w = xb - xa, t = top - GY;
       box(g, -1, t - 1, w + 2, -t + 1, INK);

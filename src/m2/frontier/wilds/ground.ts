@@ -300,8 +300,9 @@ const paintFace = (g: Ctx, r: Run, x0: number, w: number, top: number) => {
 
 export const drawPlayPlane = (c: Ctx, v: View) => {
   const tod = timeOfDay();
-  // The floor under him (stamped in chunks, flat, then bent: each stretch on its own, out past its ends on the side
-  // away from the eye as far as its edge fans)
+  // The floor under him (stamped in chunks, flat, then bent: each stretch on its own, kept to its own ends: it used
+  // to fan out past them over the water and the ravine, under the logs, the swimmers and what's down there (the
+  // playtest's perspective notes); the near bank shows where it's cut, from the open side)
   const CH = 512;
   for (const [a, b] of FLOOR) {
     if (b < v.v0 - 200 || a > v.v1 + 200) continue;
@@ -310,9 +311,7 @@ export const drawPlayPlane = (c: Ctx, v: View) => {
       if (x + w < v.v0 || x > v.v1) continue;
       stamp(c, `fw-floor-${a}-${i}-${tod.key}`, x, GY - 10, w, SOIL + 10, g => paintFloor(g, x, w));
     }
-    const fan = (e: number) => Math.min(260, Math.abs(e - v.eye.x) * BAND * BEND);
-    const x0 = a < v.eye.x ? a - fan(a) : a, x1 = b > v.eye.x ? b + fan(b) : b;
-    bendFloor(c, v.eye, GY, GY, GY + BAND, x0, x1);
+    bendFloor(c, v.eye, GY, GY, GY + BAND, Math.max(a, v.v0 - 40), Math.min(b, v.v1 + 40));
   }
   // The raised ground's faces (stamped in chunks: the bluffs, the islands, the hill, the cliff past the falls)
   for (const r of RUNS) {
