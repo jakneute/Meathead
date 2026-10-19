@@ -27,7 +27,7 @@ import { wheel } from './wheel';
 import { glen } from './glen';
 import { tragons } from './tragons';
 import { keep } from './keep';
-import { broom } from './broom';
+import { broom, tickShatter, drawShatter } from './broom';
 import { bedroom } from './bedroom';
 import type { Zone } from '../hudThemes';
 export { FANTASY_VOICE_LINES } from './voices';
@@ -107,6 +107,8 @@ export const fantasyLayout: StageLayout = {
     if (import.meta.env.DEV) (window as unknown as { __m2: GameState }).__m2 = state;
     if (isLeaving()) { stopWeapons(); carryGut(state.player.gut); state.player.vel.x = 0; return { ...NO_CONTROLS }; }
     if (!fs) return controls;
+    // (in through Piper's window: the glass flying apart over the scene, him held a moment: broom/fight.ts)
+    tickShatter(state);
     wakeNear(state);
     const p = state.player;
     // (just back at a checkpoint: anything near holds off a moment, then it's itself again)
@@ -166,6 +168,7 @@ export const fantasyLayout: StageLayout = {
     sec.drawHud?.(c, state);
     const fs = getFantasy(state) as FantasyState | null;
     if (fs?.arrive) drawPortalArrival(c, state, fs.arrive);
+    drawShatter(c);
   },
   zoom: (state) => current(state).zoom?.(state) ?? null,
   holdTick: (ctx) => current(ctx.state).holdTick?.(ctx) ?? false,

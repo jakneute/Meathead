@@ -96,7 +96,7 @@ FAX = 800000. Gaps of 3000 between sections (room to grow). Every section about 
 | 3 | The enchanted glen | `glen` | FAX+27000 .. FAX+41000 | 20-26 (of 20-29) | The storybook forest: toadstools, briars, cauldrons, harder staircases, five new kinds; the ride's queue (built) |
 | 4 | Truelling Tragons | `tragons` | FAX+44000 .. FAX+58000 | 30-38 (of 30-39) | The three-car coaster (fire, ice, lightning): hop cars, holes, each car's obstacles, the rivals (built) |
 | 5 | The castle's base and the runway | `keep` | FAX+61000 .. FAX+73000 | 40-46 (of 40-49) | The gate, drawbridge, gatehouse, courtyard, ramparts, tower stairs, postern; the broom port (from x0+9000) and its scene (built) |
-| 6 | The broomstick deathmatch (trial 3) | `broom` | FAX+76000 .. FAX+80000 | 50-59 | Behind the back, mode 7; in through the top window |
+| 6 | The broomstick deathmatch (trial 3) | `broom` | FAX+76000 .. FAX+80000 | 50-51 (of 50-59) | Behind the back, mode 7, Star Fox 64's all-range mode simpler: the castle grounds, 6-8 suitors, the laser and the lock-on; in through the top window (built) |
 | 7 | The bedroom and Piper | `bedroom` | FAX+83000 .. FAX+87000 | 60-69 | The door kicked in, the reveal, the fight (placeholder) |
 
 (The trials: the wheel's trial one, the broomsticks' the final one; the ride's between them is "trial two" if the
@@ -206,6 +206,19 @@ x from the section's start; heights up from the ground line.
   (a guard, a jester, a unicorn, a lady), the postern gate.
 - 9000 THE BROOM PORT (cp 46 at 9150): the deck (stands, wind socks, broom racks, a scoreboard); the suitors left
   hovering on brooms (10050 on, 110 apart); the spare broom on its cradle (9880, 40 up); the scene from 9560.
+
+### Section 6 in detail (the broomstick deathmatch, built: broom/)
+
+Its own view (the side view's only a short landing for revisits: x0..x0+1400, back to the runway, on to her chambers).
+The arena (world units, a suitor ~100 tall): the castle at (0, 0) (~1700 tall; her window ~1145 up), the drained moat
+600-720 out, the ring paths (960, 2450), seven avenues, the gardens and fountains, the broom port's deck south (0,
+-2750), the glen's forest north-west, six watchtowers (2100-3200 out), twelve banner poles, five balloons, the MAGIC
+WALL at 5000 (the park beyond it: Hogsmeat's roofs, Truelling Tragons' tracks, the fairy wheel, the lake). He starts
+at (0, -3700), 520 up, heading for the castle; the roster ahead of him.
+
+- cp 50 THE DEATHMATCH (in off the runway's scene, or back here): straight up on his broom; the dead stay dead.
+- cp 51 LATE ENTRIES (set as they fly in over the wall: when the first lot's down to one, or after 70 s).
+- All dead: the barrier wilts, the zoom, the glass; outside her bedroom (DOORS.bedroom.start).
 
 ## Standing rules (all apply; check every one against new work)
 
@@ -370,3 +383,53 @@ markBossFight every frame of a boss or sub-boss fight. Voice every new line (`np
   another, him with them; black; DOORS.broom.start. For job 6: who flew is `fa-broom-roster` in state.stageMemo
   (ids comma-separated; the looks: glen/rivals.ts RIVALS and keep/runway.ts FASTPASS). Done for good (`fa-keep-runway`):
   a revisit's deck is empty (racks bare, NO FLIGHTS TODAY, the boutique's chairs empty) and the right end walks on.
+- (job 6, the user's) The broomstick deathmatch is modeled on STAR FOX 64's ALL-RANGE MODE (Fortuna, Katina, Sector
+  Z: the camera behind him, a bounded open arena round a central landmark, a forced U-turn at its edge, the suitors
+  dogfighting round the castle, the radar, everybody arrowed and marked, the charged lock-on homing shot), but simpler:
+  no wingmen, no somersault, no bombs.
+- (job 6, the user's) Controls: the d-pad / stick's up and down PITCH UP / DOWN, left and right TURN; Y or alternate
+  fire toggles inverted pitch (ours: NOT inverted to start, up climbs; the plate bottom left says which, a flash says
+  so; kept as he left it). A (jump) BOOSTS (Star Fox's: a burst, a short meter, used up it refills before it'll go
+  again); B (the game's boost button) BRAKES, held. That swap is deliberate. On a NINTENDO pad (Pro Controller, Joy-Con:
+  device.ts padFamily) boost and brake swap (an exception to positional buttons: the jump spot brakes, the B spot
+  boosts); keyboard and other pads unchanged; the controls card shows the right icons per family.
+- (job 6, the user's) Hitting the arena's edge (the park's MAGIC WALL, 5000 out) FORCES A TURNAROUND: he's swung round
+  back in (64 frames, his controls off, no damage), TURNING BACK, a line now and then.
+- (job 6, the user's) X fires the LASER on the broom's END (an emitter clamped on its tip, the pink lens): a tap is the
+  laser (unlimited; a little aim help toward whoever's nearest the middle, a pink bracket on him). HOLDING X is the Star
+  Fox lock-on: past 12 frames the reticle charges (sweeps round and grows, the lens glowing), and 26 more it snaps RED
+  onto the suitor ahead (LOCKED, a tone); let go locked and it's a HOMING shot (5 times a laser's damage); let go
+  without a lock, just the laser. On the controls card (HOLD X).
+- (job 6, ours) The arena (section 6 in detail): the castle grounds on one mode 7 texture (1024 px, 12 units a texel,
+  two averaged copies for the far rows, the hour multiplied in), sampled a row at a time into 400x300 and blown up 2x,
+  rolled a little with his bank; the haze stepped toward the horizon; the sky banded, the far hills and clouds a ring
+  that turns with his heading; everything else billboards scaled by depth and culled by the eye (the castle is
+  monument.ts's painter, at 2x, 3.6 units a px; towers, trees, banner poles, balloons). Solid: the castle (560 wide to
+  480 up, 300 to 1180, 90 to 1650) and the towers (110 to 900, 60 to 1250): fly into one and it bounces him off,
+  12 damage (m2:fa_bb_tower). Balloons boing him off, harmless. Trees are scenery. Skimming the lawn's fine (40 up).
+- (job 6, ours) The suitors: the runway's roster (`fa-broom-roster`; the FASTPASS three if it's missing) and the LATE
+  ENTRIES (new, paid cash at the gate: BRODY in a tee, SVEN the viking, SEBASTIAN the prince; three new voices), enough
+  to make 6 to 8. Each his own way: BLAKE flanks and throws protein shakers; RAFAEL hunts the other suitors first and
+  throws dumbbells; HANK charges (a glint, the broom dipped, a straight ram: his foam lance) and throws turkey legs
+  between; CHET flanks with a gift-shop wand's three-bolt bursts; THADDEUS (the convention flyer) and SEBASTIAN snipe
+  (keep away, a 52-frame charge, one fast bolt); DMITRI and SVEN charge and shoot; BRODY hunts. They fight each other as
+  much as him (hit one and he wants you back). Out of his way too long (3400 off for 7 s), they come at him: nobody's
+  ever lost. Names and health over the near ones, a diamond over the far, arrows in from the edges, the radar (heading
+  up, up / down marks), an altimeter, the suitors' bar along the top band. Shot down: a spiral, a scream and a shit,
+  into the tower or castle wall he was by (a smear down it), the lawn, or the moat's mud (GROUNDED!, WALL ART!, MUD
+  BATH!, FRIENDLY FIRE!); they lie where they fell. Piper on the PA purrs over the kills; fireworks over the grounds.
+  Their throws and bolts: their own hurt sources and death screens. Theirs to him: bolt 8, burst 6, snipe 13, shaker 10,
+  dumbbell 12, turkey 10, ram 18 (M2's x0.65 on all).
+- (job 6, ours) A sub-boss (markBossFight 'broomsticks', quiet: no music yet). Checkpoints 50 (the start) and 51 (the
+  late entries in); the dead stay dead through his deaths this visit; won for good (`fa-broom-done` in stageMemo): a
+  revisit's side view is a landing high on the castle (CONCLUDED. NO SURVIVORS.), back to the runway, on to her chambers.
+- (job 6, ours) Naked: the BONER on the broom, from behind: out past his hip on the outside of the turn, further the
+  harder he banks (the balls between his thighs too); a boing and hearts when the barrier drops.
+- (job 6, ours) The end (a cutscene: HUD hidden, no input, SKIP >> for the lot, skipped straight to the bedroom): the
+  last one's down; Piper (her window's open), his line; the rose barrier on her window wilts (petals); autopilot round
+  to the castle; the cut, square on the window, and the RAPID ZOOM (the focal length shooting up 46 times in 80
+  frames) with him flying off into it, smaller and smaller; the SMASH: the view's caught, he's put at
+  DOORS.bedroom.start (glass bits round him), and the glass breaks over the new scene: cracks spreading out from the
+  window's middle, then ~100 radial shards flying apart (out and toward us, spinning, falling, glinting), the bedroom
+  showing through (index.ts ticks and draws it: broom/fight.ts tickShatter / drawShatter). The bedroom's boner (and its
+  going flaccid) is job 7's.

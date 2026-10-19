@@ -55,6 +55,11 @@ export interface M2Ui {
    *  requestCarHop; and the ride's controls card (the first time, till he's hopped). */
   carHops?: boolean;
   tragonTips?: boolean;
+  /** (Fairy Land's broomstick deathmatch) The main HUD's his broom's: the PWR row the boost (0..1), the BROOM LASER for
+   *  the weapon; and the flying controls card (X laser, hold X lock on, A boost, B brake, Y invert, pitch and turn). */
+  broomHud?: boolean;
+  broomBoost?: number;
+  broomTips?: boolean;
 }
 
 /** (Truelling Tragons) A hop asked for (wheel up or RB: the car above; wheel down or LB: the car below), taken by the

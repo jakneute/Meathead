@@ -38,6 +38,8 @@ import { fantasyLayout, FANTASY_STAGE, FANTASY_CHECKPOINTS } from './fantasy/ind
 import { ROCKETS_ON } from './foreign/heli/copter';
 import HeliRockets from './foreign/heli/HeliRockets';
 import BikeFist from './frontier/dirtbike/BikeFist';
+import BroomWand from './fantasy/broom/BroomWand';
+import { usePadFamily } from '../m1/components/useInputDevice';
 import { SPOTS, LANDS } from './hub/lands';
 import { introLayout, INTRO_STAGE, registerIntro, introGender } from './intro/index';
 import { setGenderOf, unpaired } from '../m1/content/gender';
@@ -174,6 +176,8 @@ const useFitToWindow = () => {
 const App2: React.FC = () => {
   const scale = useFitToWindow();
   const ui = useSyncExternalStore(subscribeUi, getUi);
+  // (the broomstick's boost and brake swap on a Nintendo pad: the user's)
+  const padFam = usePadFamily(), ninPad = padFam === 'switch' || padFam === 'joycon-l' || padFam === 'joycon-r';
   // (it starts on the way in: the intro; in dev, ?adv=<checkpoint> starts in Adventure Land, ?spooky=<checkpoint> in
   // Spooky Land, ?space=<checkpoint> in Space Land, ?hollywood=<checkpoint> in Hollywood Land, ?foreign=<checkpoint> in
   // Foreign Lands, ?hub=<spot> at the hub, ?pen in the staff room)
@@ -222,7 +226,7 @@ const App2: React.FC = () => {
       setHubExit(to === HUB_STAGE && stage !== PEN_STAGE && !!from);
       // (through a portal: no HUD from here till the land's opened on him, not a frame of it as it loads)
       setUi({ introTip: null, introPrompt: null, introAhead: null, introTicket: null, introCutscene: dest === 'intro' || portalArrivalPending() || hubExitPending() });
-      setUi({ near: null, map: null, nearExit: false, nearAmerica: false, noSwitch: false, heliHud: false, bikeHud: false, bikeTips: false, carHops: false, tragonTips: false });
+      setUi({ near: null, map: null, nearExit: false, nearAmerica: false, noSwitch: false, heliHud: false, bikeHud: false, bikeTips: false, carHops: false, tragonTips: false, broomHud: false, broomTips: false });
       setFade(true);
       // (into a land, everything's topped up; and back at the hub after a boss: elsewhere, what he had)
       // (the walk back after a boss: topped up there, and the boss's top-up used up on it)
@@ -425,6 +429,9 @@ const App2: React.FC = () => {
             : ui.bikeHud
             // (on the dirt bike: the PWR row's its boost; no gun, his fists)
             ? <HUD health={hud.health} maxHealth={INITIAL_PLAYER_HEALTH} power={ui.bikeBoost ?? 0} powerCells={1} currentWeapon={weapon} ammo={Infinity} maxAmmo={Infinity} weaponName="FISTS" weaponArt={<BikeFist />} skin={theme?.hud} />
+            : ui.broomHud
+            // (on the broomstick: the PWR row's its boost; the weapon's the laser on the broom's end)
+            ? <HUD health={hud.health} maxHealth={INITIAL_PLAYER_HEALTH} power={ui.broomBoost ?? 0} powerCells={1} currentWeapon={weapon} ammo={Infinity} maxAmmo={Infinity} weaponName="BROOM LASER" weaponArt={<BroomWand />} skin={theme?.hud} />
             : <HUD health={hud.health} maxHealth={INITIAL_PLAYER_HEALTH} power={hud.power} currentWeapon={weapon} ammo={hud.ammo[weapon] ?? 0} maxAmmo={maxAmmo(weapon)} weaponName={weaponName(weapon)} weaponArt={weapon === 'GUN' ? RAYGUN_ART : undefined} weaponExtra={weapon === 'SOUL_SUCKER' ? <GoreBag /> : weapon === 'SPELLBOOK' ? <BulkMeter /> : undefined} ammoLabel={ammoName(weapon) === 'AMMO' ? undefined : ammoName(weapon)} skin={theme?.hud} />
         )}
         {/* What up does here */}
@@ -483,6 +490,22 @@ const App2: React.FC = () => {
               <Prompt pad={['LB']} mouse="wheel" label="HOP DOWN A CAR" />
             </div>
             <span className="text-zinc-400">NO FIRING ON THE RIDE</span>
+          </div>
+        )}
+        {/* Fairy Land's broomstick deathmatch: the flying controls, for a while at the start */}
+        {status === GameStatus.PLAYING && ui.map === null && !ui.introCutscene && ui.broomTips && (
+          <div className="absolute left-1/2 -translate-x-1/2 top-[132px] z-30 flex flex-col items-center gap-2 px-3 py-2 text-[9px] text-white bg-black/80 border-2 border-[#F472B6]">
+            <div className="flex gap-4">
+              <Prompt pad={['X']} kb={['@fire']} mouse="left" label="LASER" />
+              <span className="inline-flex items-center gap-1 align-middle"><span>HOLD</span><Prompt pad={['X']} kb={['@fire']} mouse="left" label="LOCK ON, LET GO: HOMING SHOT" /></span>
+            </div>
+            <div className="flex gap-4">
+              <Prompt pad={[ninPad ? 'B' : 'A']} kb={['@jump']} label="BOOST" />
+              <Prompt pad={[ninPad ? 'A' : 'B']} kb={['@charge', '@special']} mouse="right" label="BRAKE" />
+              <Prompt pad={['Y']} kb={['@secondary']} label="INVERT PITCH" />
+            </div>
+            <span className="inline-flex items-center gap-1 align-middle"><Prompt pad={['DPAD_UP', 'DPAD_DOWN']} kb={['@up', '@down']} /><span>PITCH UP / DOWN</span><Prompt pad={['DPAD_LEFT', 'DPAD_RIGHT']} kb={['@left', '@right']} /><span>TURN</span></span>
+            <span className="text-zinc-400">KILL EVERY SUITOR</span>
           </div>
         )}
         {/* Fairy Land's fairy wheel: a QTE on (in a suitor's cart) */}
