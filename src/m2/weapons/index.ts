@@ -42,7 +42,7 @@ export const M2_WEAPON_INFO: Partial<Record<WeaponType, M2Weapon>> = {
   },
   STUNT_CAR: {
     name: 'THE CLAPPING CLAPPERBOARD', from: 'HOLLYWOOD LAND',
-    controls: [{ pad: ['X'], kb: ['@fire'], label: 'ACTION!' }, { pad: ['DPAD_DOWN', 'X'], kb: ['@down', '@fire'], join: '+', label: 'DUCKING: IT COMES IN LOW' }],
+    controls: [{ pad: ['X'], kb: ['@fire'], label: 'ACTION!' }],
     description: "Snap it and yell ACTION. A stuntman in a sports car flies over your head and nose-dives into whoever's in front of you. Big fireball. He goes through the windshield into the next guy. He doesn't get up.",
   },
   MALLET: {
