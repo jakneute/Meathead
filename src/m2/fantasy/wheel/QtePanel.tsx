@@ -9,7 +9,7 @@ import type { QteUi, QteKey } from '../../store';
 const PAD: Record<QteKey, PadKey> = { A: 'A', B: 'B', X: 'X', Y: 'Y', LEFT: 'DPAD_LEFT', RIGHT: 'DPAD_RIGHT' };
 // (the keyboard's: the directions, laid out like the pad's face buttons (qte.ts held))
 const KB: Record<QteKey, string> = { A: '@down', B: '@right', X: '@left', Y: '@up', LEFT: '@left', RIGHT: '@right' };
-const SAY: Record<QteUi['kind'], string> = { mash: 'MASH IT!', press: 'PRESS IT!', alternate: 'BACK AND FORTH!', ring: 'WHEN THE RING HITS!' };
+const SAY: Record<QteUi['kind'], string> = { mash: 'MASH IT!', press: 'TAP IT!', alternate: 'BACK AND FORTH!', ring: 'TAP WHEN THE RING HITS!' };
 
 const Key: React.FC<{ k: QteKey; size: number; dim?: boolean }> = ({ k, size, dim }) => (
   <span style={{ opacity: dim ? 0.35 : 1, filter: dim ? 'none' : 'drop-shadow(0 0 4px #FEF08A)' }}><Prompt pad={[PAD[k]]} kb={[KB[k]]} size={size} /></span>

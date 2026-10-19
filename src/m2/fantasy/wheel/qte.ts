@@ -67,7 +67,7 @@ const beatsFor = (level: number, dazed: boolean): Beat[] => {
   for (let s = 0; s < n; s++) {
     const kind = kinds[s];
     const b: Beat = { kind, key: pick(FACE), seq: [], need: 0, got: 0, fill: 0, t: 0, dur: 0, next: 0, flubs: 0 };
-    if (kind === 'mash') { b.need = 10 + Math.round(level * 1.5); b.dur = Math.round(190 * slow); }
+    if (kind === 'mash') { b.need = 7 + level; b.dur = Math.round(220 * slow); }
     if (kind === 'press') { b.need = 3 + Math.floor(level / 2); b.seq = Array.from({ length: b.need }, () => pick(FACE)); b.key = b.seq[0]; b.dur = Math.round(Math.max(46, 86 - level * 4) * slow); }
     if (kind === 'alternate') { b.need = 12 + Math.round(level * 1.5); b.dur = Math.round(200 * slow); }
     if (kind === 'ring') { b.need = 2 + Math.floor(level / 3); b.dur = Math.round(Math.max(58, 98 - level * 4) * slow); }
@@ -112,7 +112,7 @@ export const updateQte = (q: Qte, controls: Controls): 'on' | 'won' | 'lost' => 
         for (const k of presses) if (k === b.key) { b.got++; b.fill += 1 / b.need; playSound('punch', 0.25, 6 + Math.random() * 4); }
         // (full counts before it drains: drained first, a full meter was always a hair short of full and could never win)
         if (b.fill >= 1 - 1e-6) { b.fill = 1; beatDone(); }
-        else { b.fill = Math.max(0, b.fill - 0.0032); if (b.t >= b.dur) miss(); }
+        else { b.fill = Math.max(0, b.fill - 0.0018); if (b.t >= b.dur) miss(); }
       } else if (b.kind === 'press') {
         const face = b.t > GRACE || b.got > 0 ? presses.filter(k => FACE.includes(k)) : [];
         if (face.length) {
