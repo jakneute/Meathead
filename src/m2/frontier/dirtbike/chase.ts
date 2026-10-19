@@ -31,15 +31,16 @@ import { isShat, isNude } from '../../../m1/game/player/gut';
 import { registerHurtLines } from '../../kinds';
 import { setUi } from '../../store';
 import { timeOfDay } from '../../timeOfDay';
-import { meatheadSays, speak, saidOver, byPants, label, box as sbox, landVisit, tuckerWoundsOf, teleport, frontierState, type Said } from '../section';
+import { meatheadSays, speak, saidOver, byPants, landVisit, tuckerWoundsOf, teleport, frontierState, type Said } from '../section';
 import { DOORS } from '../geometry';
 import { TUCKER_VOICE } from '../talk';
 import { drawTuckerCloseup } from '../tucker';
 import {
   W, H, K, SEG_L, DRAW, PLAYER_Z, CAM_H, SPR, view, PS, PX, PY, PZ, CLIP,
-  newTrack, generate, nextBiome, segAt, project, placeAt, roadYAt, drawRoad, drawBackground, type Track, type Spr,
+  newTrack, generate, nextBiome, segAt, project, placeAt, roadYAt, drawRoad, drawBackground, fogStep, type Track, type Spr,
 } from './road';
-import { drawSpr, drawTeenRider, drawTeenBody, drawTeenDangle, drawMeathead, drawMhTumble, drawBikeTumble, drawTuckerRider, drawWeapon, teenLookOf, parryHand, rearBike, PUNCH_WIND, PUNCH_LEN, ART, INK, type Weapon, type TeenLook, type RiderPose, type MhPose } from './art';
+import { drawSpr, drawTeenRider, drawTeenBody, drawTeenDangle, drawEndo, drawMeathead, drawMhTumble, drawBikeTumble, drawTuckerRider, drawWeapon, digits, teenLookOf, parryHand, PUNCH_WIND, PUNCH_LEN, ART, type Weapon, type TeenLook, type RiderPose, type MhPose } from './art';
+import { signText, signW, type Look as Letters } from '../../signLetters';
 import { HURT, MH_START, MH_AGAIN, MH_KNOCKOFF, MH_PARRY, MH_END, TEEN_TAUNT, TEEN_PARRIED, TUCKER_RAISE, TUCKER_LEDGER, TUCKER_FLEE } from './lines';
 
 for (const [source, l] of Object.entries(HURT)) registerHurtLines(source, l.hurt, l.death);
@@ -870,6 +871,8 @@ const tickOutro = (state: GameState, c: Chase) => {
 // Drawing: the road view on its own little canvas, blown up over the whole screen, then the words and the HUD bits
 
 let low: HTMLCanvasElement | null = null;
+/** The road and everything on it (the hour's light goes over this; the far layers have theirs painted in). */
+let fg: HTMLCanvasElement | null = null, mask: HTMLCanvasElement | null = null;
 const P = { n: 0, sx: 0, sy: 0, sc: 0, clip: 0 };
 interface Ent { z: number; draw: () => void }
 const buckets: Ent[][] = Array.from({ length: DRAW + 2 }, () => []);
@@ -887,15 +890,17 @@ export const drawChase = (c0: CanvasRenderingContext2D, state: GameState) => {
     while (c.deathLast < t && c.deathLast < 140) { c.deathLast++; c.speed *= 0.93; c.z += c.speed; tickLoose(null, state, c); }
   }
   if (!low) { low = document.createElement('canvas'); low.width = W; low.height = H; }
-  const g = low.getContext('2d')!;
-  g.imageSmoothingEnabled = false;
+  if (!fg) { fg = document.createElement('canvas'); fg.width = W; fg.height = H; }
+  const lg = low.getContext('2d')!, g = fg.getContext('2d')!;
+  lg.imageSmoothingEnabled = false; g.imageSmoothingEnabled = false;
+  g.clearRect(0, 0, W, H);
   // ---- the camera behind him
   // (kept over the road under the camera as well as under him: down a steep hill the road behind him is higher, and
   // the camera used to sink into it)
   const camZ = c.z - PLAYER_Z, camY = Math.max(roadYAt(c.track, c.z), roadYAt(c.track, camZ)) + CAM_H;
   project(c.track, camZ, c.x * 1000, camY);
   const pseg = segAt(c.track, Math.floor(c.z / SEG_L));
-  drawBackground(g, pseg.biome, c.bgX, 0);
+  drawBackground(lg, pseg.biome, c.bgX, 0);
   drawRoad(g, c.track);
   // ---- everything that moves, into its slot
   for (const b of buckets) b.length = 0;
@@ -946,8 +951,8 @@ export const drawChase = (c0: CanvasRenderingContext2D, state: GameState) => {
         if (q.gone) continue;
         const sc = PS[n], sx = PX[n] + sc * q.x * 1000 * K, sy = PY[n];
         if (sx < -400 || sx > W + 400 || sy - 20 > CLIP[n]) continue;
-        if (q.k === 'scorch' || q.k === 'gore') { g.fillStyle = q.k === 'gore' ? 'rgba(110,10,10,0.85)' : 'rgba(20,14,10,0.8)'; g.beginPath(); g.ellipse(sx, sy, Math.max(1, sc * 450 * K), Math.max(0.5, sc * 80 * K), 0, 0, Math.PI * 2); g.fill(); continue; }
-        drawSpr(g, q.k, q.seed, sx, sy, sc, CLIP[n], q.words, (q.k === 'cow' || q.k === 'deer' || q.k === 'deadcow' || q.k === 'deaddeer') && q.x < 0);
+        if (q.k === 'scorch' || q.k === 'gore') { if (sy <= CLIP[n] + 1) decal(g, q.k === 'gore', sx, sy, Math.max(1, sc * 450 * K), Math.max(0.5, sc * 80 * K), q.seed); continue; }
+        drawSpr(g, q.k, q.seed, sx, sy, sc, CLIP[n], q.words, (q.k === 'cow' || q.k === 'deer' || q.k === 'deadcow' || q.k === 'deaddeer') && q.x < 0, fogStep(n) >> 1, q);
       }
     }
     const b = buckets[n];
@@ -957,13 +962,22 @@ export const drawChase = (c0: CanvasRenderingContext2D, state: GameState) => {
   // (blood in the air and on the road)
   for (const q of c.parts) {
     placeAt(q.z, q.x, P); if (P.n < 1) continue;
-    const sz = Math.max(1, q.size * P.sc * K * 0.12), y = P.sy - q.h * P.sc * K;
+    const sz = Math.max(1, Math.round(q.size * P.sc * K * 0.12)), y = P.sy - q.h * P.sc * K;
     if (y > P.clip + 2) continue;
-    g.fillStyle = q.col; g.fillRect(Math.round(P.sx - sz / 2), Math.round(y - sz / 2), Math.ceil(sz), Math.ceil(sz));
+    g.fillStyle = q.col; g.fillRect(Math.round(P.sx - sz / 2), Math.round(y - sz / 2), sz, sz);
   }
-  // ---- the hour's light over it all
+  // ---- the hour's light over the road and all on it (the far layers have the hour painted in), then onto the view
   const mul = timeOfDay().mul;
-  if (mul && mul.toUpperCase() !== '#FFFFFF') { g.globalCompositeOperation = 'multiply'; g.fillStyle = mul; g.fillRect(0, 0, W, H); g.globalCompositeOperation = 'source-over'; }
+  if (mul && mul.toUpperCase() !== '#FFFFFF') {
+    // (multiplied, then cut back to what was drawn: the sky round the road stays the far layers')
+    if (!mask) { mask = document.createElement('canvas'); mask.width = W; mask.height = H; }
+    const mg = mask.getContext('2d')!;
+    mg.clearRect(0, 0, W, H); mg.drawImage(fg, 0, 0);
+    g.globalCompositeOperation = 'multiply'; g.fillStyle = mul; g.fillRect(0, 0, W, H);
+    g.globalCompositeOperation = 'destination-in'; g.drawImage(mask, 0, 0);
+    g.globalCompositeOperation = 'source-over';
+  }
+  lg.drawImage(fg, 0, 0);
   // ---- blown up onto the screen (shaken)
   c0.save();
   c0.imageSmoothingEnabled = false;
@@ -983,7 +997,29 @@ const clipAbove = (g: CanvasRenderingContext2D, sy: number, clip: number) => {
 /** How beaten up he looks on the bike: by the health he's lost (0 near full .. 1 near dead). */
 const hurtK = (state: GameState) => clamp(1 - state.player.health / Math.max(1, state.player.maxHealth), 0, 1);
 
-const shadow = (g: CanvasRenderingContext2D, x: number, y: number, s: number, clip: number) => { if (y > clip + 1) return; g.fillStyle = 'rgba(20,12,6,0.35)'; g.beginPath(); g.ellipse(x, y, 16 * s, 3.5 * s, 0, 0, Math.PI * 2); g.fill(); };
+/** A flat ellipse in pixel rows (no soft edge): (x, y) its middle, rx, ry its radii. */
+const rows = (g: CanvasRenderingContext2D, x: number, y: number, rx: number, ry: number) => {
+  const n = Math.max(1, Math.round(ry * 2)), y0 = Math.round(y - ry);
+  for (let i = 0; i < n; i++) { const v = (i + 0.5) / n * 2 - 1, half = Math.round(rx * Math.sqrt(1 - v * v)); if (half > 0) g.fillRect(Math.round(x) - half, y0 + i, half * 2, 1); }
+};
+/** A rider's shadow on the road: a stepped dark ellipse, its core darker. */
+const shadow = (g: CanvasRenderingContext2D, x: number, y: number, s: number, clip: number) => {
+  if (y > clip + 1) return;
+  g.fillStyle = 'rgba(20,12,6,0.3)'; rows(g, x, y, 17 * s, Math.max(1, 3.6 * s));
+  g.fillStyle = 'rgba(20,12,6,0.3)'; rows(g, x, y, 10 * s, Math.max(1, 2.2 * s));
+};
+/** A mark left on the road (a scorch, a red smear), banded in three rings, flecks round it. */
+const DECAL = { gore: ['#4A0808', '#7A1010', '#A01818'], scorch: ['#120E0A', '#241C14', '#3A2E22'] };
+const decal = (g: CanvasRenderingContext2D, gore: boolean, x: number, y: number, rx: number, ry: number, seed: number) => {
+  const D = gore ? DECAL.gore : DECAL.scorch;
+  for (let i = 0; i < 3; i++) { g.fillStyle = D[i]; rows(g, x - rx * 0.08 * i, y, rx * (1 - i * 0.28), Math.max(0.5, ry * (1 - i * 0.3))); }
+  if (rx > 6) for (let i = 0; i < 6; i++) { g.fillStyle = gore ? (i % 2 ? '#F0A8B0' : '#7F1D1D') : (i % 3 ? '#3A2E22' : '#F97316'); g.fillRect(Math.round(x + (((seed * 7 + i * 37) % 100) / 50 - 1) * rx * 1.1), Math.round(y + ((i % 3) - 1) * ry * 0.6), Math.max(1, Math.round(rx * 0.05)), Math.max(1, Math.round(ry * 0.25))); }
+};
+/** A burst in stepped rings (the human bomb's fireball, a run-over kid going off): no soft edges. */
+const burst = (g: CanvasRenderingContext2D, x: number, y: number, r: number, cols: readonly string[]) => {
+  for (let i = 0; i < cols.length; i++) { g.fillStyle = cols[i]; const rr = r * (1 - i * 0.19); rows(g, x - rr * 0.06 * i, y - rr * 0.06 * i, rr, rr * 0.9); }
+};
+const BLAST_FIRE = ['#7F1D1D', '#DC2626', '#F97316', '#FDE047', '#FFFBEB'] as const, BLAST_SMOKE = ['#3F3F46', '#52525B', '#71717A', '#A1A1AA', '#D4D4D8'] as const;
 const meAt = { x: W / 2, y: 180, s: 1, base: 260 };
 const sayAt: { text: string; x: number; y: number; col: string }[] = [];
 
@@ -1000,34 +1036,36 @@ const drawLoose = (g: CanvasRenderingContext2D, c: Chase, l: Loose, f: number, s
     case 'blind':
       if (l.k) {
         // (riding on blind, wearing their board round their neck, flailing)
-        drawTeenRider(g, l.k, 'skateboard', { lean: l.rot, side: 1, arm: 'none', flash: false, look: 0, hit: false, spin: l.z * 0.01, flail: true }, P.sx, P.sy, s, f);
-        g.save(); g.translate(P.sx, P.sy - 74 * s * 0.92); g.scale(s, s);
-        g.fillStyle = INK; g.fillRect(-17, -4, 34, 9); g.fillStyle = '#7C3AED'; g.fillRect(-16, -3, 32, 7); g.fillStyle = '#F5F5F4'; g.fillRect(-13, 4, 4, 2); g.fillRect(9, 4, 4, 2);
-        g.restore();
+        drawTeenRider(g, l.k, 'skateboard', { lean: l.rot, side: 1, arm: 'none', flash: false, look: 0, hit: false, spin: l.z * 0.01, flail: true, neckboard: true }, P.sx, P.sy, s, f);
       }
       break;
     case 'wreck': case 'mhbike': shadow(g, P.sx, P.sy, s * 0.8, P.clip); drawBikeTumble(g, P.sx, y, s, l.rot, l.color ?? '#888888'); break;
     case 'mh': shadow(g, P.sx, P.sy, s * 0.7, P.clip); drawMhTumble(g, P.sx, y - 10 * s, s, l.rot, nude, shat); break;
-    case 'bomb': if (l.k) { drawTeenBody(g, l.k, P.sx, y, s, l.rot, false); g.fillStyle = (f >> 2) % 2 ? '#FDE047' : '#F97316'; g.fillRect(P.sx - 2 * s, y - 34 * s, 4 * s, 4 * s); } break;
+    case 'bomb':
+      if (l.k) {
+        // (the human bomb sailing on: tumbling, a fuse spitting sparks off them)
+        drawTeenBody(g, l.k, P.sx, y, s, l.rot, false);
+        const sz = Math.max(2, Math.round(4 * s)), fx = Math.round(P.sx - sz / 2), fy = Math.round(y - 34 * s);
+        g.fillStyle = (f >> 2) % 2 ? '#FDE047' : '#F97316'; g.fillRect(fx, fy, sz, sz);
+        g.fillStyle = '#FFFFFF'; g.fillRect(fx + (f % 3) - 1, fy - sz, 1, 1); g.fillRect(fx + sz, fy + (f % 2), 1, 1);
+      }
+      break;
     case 'gore': {
-      // (a run-over kid going off: a red burst, banded dark to pink, flecks flying, fading)
-      const k = Math.min(1, l.t / 8), r = (20 + k * 70) * s, fade = l.t > 12 ? Math.max(0, 1 - (l.t - 12) / 12) : 1;
+      // (a run-over kid going off: a red burst in stepped rings, dark to pink, flecks flying; then it breaks up, the
+      // outer rings going first)
+      const k = Math.min(1, l.t / 8), r = (20 + k * 70) * s, gone = l.t > 12 ? Math.min(5, Math.floor((l.t - 12) / 2.4)) : 0;
       const cy = P.sy - r * 0.5;
-      g.globalAlpha = fade;
-      for (let i = 0; i < GORE_RINGS.length; i++) { g.fillStyle = GORE_RINGS[i]; g.beginPath(); g.arc(P.sx, cy, r * (1 - i * 0.2), 0, Math.PI * 2); g.fill(); }
-      for (let i = 0; i < 10; i++) { const a = i * 0.63 + 0.3, d = r * (0.7 + k); g.fillStyle = i % 4 ? '#7F1D1D' : '#F5F5F4'; g.fillRect(P.sx + Math.cos(a) * d, cy + Math.sin(a) * d * 0.6 - l.t * s, 3 * s, 3 * s); }
-      g.globalAlpha = 1;
+      for (let i = gone; i < GORE_RINGS.length; i++) { g.fillStyle = GORE_RINGS[i]; rows(g, P.sx, cy, r * (1 - i * 0.2), r * (1 - i * 0.2) * 0.9); }
+      if (gone < 4) for (let i = 0; i < 10; i++) { const a = i * 0.63 + 0.3, d = r * (0.7 + k), q = Math.max(1, Math.round(3 * s)); g.fillStyle = i % 4 ? '#7F1D1D' : '#F5F5F4'; g.fillRect(Math.round(P.sx + Math.cos(a) * d), Math.round(cy + Math.sin(a) * d * 0.6 - l.t * s), q, q); }
       break;
     }
     case 'blast': {
-      // (the human bomb: a banded fireball, white to yellow to orange to red, then smoke, chunks flying)
-      const k = Math.min(1, l.t / 14), r = (30 + k * 90) * s, fade = l.t > 26 ? Math.max(0, 1 - (l.t - 26) / 24) : 1;
+      // (the human bomb: a banded fireball, white to yellow to orange to red, then smoke breaking up, chunks flying)
+      const k = Math.min(1, l.t / 14), r = (30 + k * 90) * s;
       const cy = P.sy - r * 0.7;
-      g.globalAlpha = fade;
-      const rings = l.t < 26 ? ['#7F1D1D', '#DC2626', '#F97316', '#FDE047', '#FFFBEB'] : ['#3F3F46', '#52525B', '#71717A', '#A1A1AA', '#D4D4D8'];
-      rings.forEach((col, i) => { g.fillStyle = col; g.beginPath(); g.arc(P.sx, cy, r * (1 - i * 0.18), 0, Math.PI * 2); g.fill(); });
-      for (let i = 0; i < 8; i++) { const a = i * 0.8 + l.t * 0.05, d = r * (0.6 + k * 0.9); g.fillStyle = i % 3 ? '#7F1D1D' : '#F5F5F4'; g.fillRect(P.sx + Math.cos(a) * d, cy + Math.sin(a) * d * 0.6 - l.t * s * 0.6, 4 * s, 4 * s); }
-      g.globalAlpha = 1;
+      if (l.t < 26) burst(g, P.sx, cy, r, BLAST_FIRE);
+      else { const gone = Math.min(5, Math.floor((l.t - 26) / 5)); for (let i = gone; i < 5; i++) { g.fillStyle = BLAST_SMOKE[i]; const rr = r * (1 - i * 0.19); rows(g, P.sx - rr * 0.06 * i, cy - rr * 0.06 * i - (l.t - 26) * s, rr, rr * 0.9); } }
+      if (l.t < 40) for (let i = 0; i < 8; i++) { const a = i * 0.8 + l.t * 0.05, d = r * (0.6 + k * 0.9), q = Math.max(1, Math.round(4 * s)); g.fillStyle = i % 3 ? '#7F1D1D' : '#F5F5F4'; g.fillRect(Math.round(P.sx + Math.cos(a) * d), Math.round(cy + Math.sin(a) * d * 0.6 - l.t * s * 0.6), q, q); }
       break;
     }
   }
@@ -1040,9 +1078,9 @@ const drawParry = (g: CanvasRenderingContext2D, c: Chase, mx: number, my: number
   const tx = P.n >= 1 ? P.sx : mx + sd * 60 * s, ty = P.n >= 1 ? P.sy : my;
   const ts = P.n >= 1 ? artS(P.sc) : s;
   const rider = (arm: RiderPose['arm'], hit = false, extra?: Partial<RiderPose>) => drawTeenRider(g, pr.k, pr.w, { lean: sd * 0.1, side: -sd, arm, flash: false, look: -sd, hit, spin: f, ...extra }, tx, ty, ts, f);
-  const ln = (x1: number, y1: number, x2: number, y2: number, col: string, w: number) => { g.strokeStyle = col; g.lineWidth = w; g.beginPath(); g.moveTo(x1, y1); g.lineTo(x2, y2); g.stroke(); };
+  const ln = (x1: number, y1: number, x2: number, y2: number, col: string, w: number, alt?: string) => pline(g, x1, y1, x2, y2, col, w, alt);
   // (the weapon in his working fist, where art.ts's parryHand has it)
-  const held = (w: Weapon) => { const h = parryHand(pr.w, t, sd); g.save(); g.translate(mx + h.x * s, my + h.y * s); g.scale(s, s); drawWeapon(g, w, 0, 0, h.a, false, f); g.restore(); };
+  const held = (w: Weapon) => { const h = parryHand(pr.w, t, sd); drawWeapon(g, w, mx + h.x * s, my + h.y * s, h.a, false, f, s); };
   /** A bonk's squash: 1 on the frame it lands, easing off over 4. */
   const bonk = (at: number) => (t >= at && t < at + 4 ? 1 - (t - at) / 4 : 0);
   switch (pr.w) {
@@ -1051,13 +1089,13 @@ const drawParry = (g: CanvasRenderingContext2D, c: Chase, mx: number, my: number
         // (caught by the chain: yanked off their bike toward him)
         const k = t / 8, bx = tx + (mx - tx) * k * 0.6, by = ty - 50 * ts - k * 40 * s;
         rider('none');
-        ln(mx + sd * 38 * s, my - 70 * s, bx, by, '#A1A1AA', Math.max(1, s));
+        ln(mx + sd * 38 * s, my - 70 * s, bx, by, '#52525B', Math.max(2, Math.round(2 * s)), '#D4D4D8');
         drawTeenBody(g, pr.k, bx, by + 20 * s, ts, sd * k * 2, false);
       } else {
         // (whirled round over his head on the chain)
         const a = ((t - 8) / 26) * Math.PI * 3, hx = mx, hy = my - 100 * s;
         const bx = hx + Math.cos(a) * 34 * s, by = hy - 14 * s + Math.sin(a) * 9 * s;
-        ln(hx, hy, bx, by, '#A1A1AA', Math.max(1, s * 1.2));
+        ln(hx, hy, bx, by, '#52525B', Math.max(2, Math.round(2 * s)), '#D4D4D8');
         drawTeenBody(g, pr.k, bx, by + 14 * s, s * 0.85, a + Math.PI / 2, false);
       }
       break;
@@ -1076,7 +1114,7 @@ const drawParry = (g: CanvasRenderingContext2D, c: Chase, mx: number, my: number
       if (t < 10) rider(t < 5 ? 'swing' : 'none', false, { look: t >= 5 ? sd : -sd });
       const h = parryHand('crowbar', t, sd), hx = mx + h.x * s, hy = my + h.y * s;
       held('crowbar');
-      if (t >= 5 && t < 10) ln(hx, hy, tx, ty - 44 * ts, '#F4F4F4', Math.max(1, 1.5 * ts));
+      if (t >= 5 && t < 10) ln(hx, hy, tx, ty - 44 * ts, '#F4F4F4', Math.max(1, Math.round(1.5 * ts)));
       if (t >= 10) {
         const k = Math.min(1, (t - 10) / 6), dx = tx + (hx + sd * 18 * s - tx) * k, dy = (ty - 60 * ts) + (hy + 6 * s - (ty - 60 * ts)) * k;
         drawTeenDangle(g, pr.k, dx, dy, ts + (s - ts) * k, f, Math.min(1, (t - 10) / 12));
@@ -1094,8 +1132,9 @@ const drawParry = (g: CanvasRenderingContext2D, c: Chase, mx: number, my: number
       } else if (t < 30) {
         rider('none', false, { daze: true });
         // (wrapped round their neck, his fist on the other end)
-        g.strokeStyle = '#3A2A1A'; g.lineWidth = Math.max(1, 2 * ts); g.beginPath(); g.ellipse(tx, ty - 74 * ts, 7 * ts, 3 * ts, 0, 0, Math.PI * 2); g.stroke();
-        ln(hx, hy, tx, ty - 74 * ts, '#A1A1AA', Math.max(1, s));
+        const q = Math.max(1, Math.round(2 * ts));
+        for (let i = 0; i < 14; i++) { const a = (i / 14) * Math.PI * 2; g.fillStyle = i % 2 ? '#4A2E16' : '#8A5A30'; g.fillRect(Math.round(tx + Math.cos(a) * 7 * ts - q / 2), Math.round(ty - 74 * ts + Math.sin(a) * 3 * ts - q / 2), q, q); }
+        ln(hx, hy, tx, ty - 74 * ts, '#A1A1AA', Math.max(1, Math.round(s)));
       } else {
         // (slung back over his shoulder, at us, past the camera, into the pack behind)
         const k = (t - 30) / 18, sc = s * (1 + k * 3.2);
@@ -1109,39 +1148,43 @@ const drawParry = (g: CanvasRenderingContext2D, c: Chase, mx: number, my: number
       if (t < 4) { rider('swing'); held('hockey'); break; }
       // (the stick in their spokes; the bike stands up on its front wheel, the kid hanging on to the bars up in the air,
       // legs kicking at nothing, a long beat, wobbling)
-      const k = Math.min(1, (t - 4) / 5), wob = Math.sin(t * 1.1) * 0.06;
-      g.save(); g.translate(tx, ty); g.scale(ts, ts);
-      g.save(); g.translate(0, -k * 24); g.rotate(wob); rearBike(g, pr.bike, 0); g.restore();
       // (the kid: up over the bars, stretched out, upside down from here, the legs up and flapping)
-      g.save(); g.translate(0, -60 - k * 34); g.rotate(wob * 2);
-      const L = pr.k.look, kick = Math.sin(t * 0.9) * 6;
-      g.strokeStyle = L.pants; g.lineWidth = 5; g.beginPath(); g.moveTo(-4, -10); g.lineTo(-8 - kick, -32); g.moveTo(4, -10); g.lineTo(8 + kick, -30); g.stroke();
-      g.fillStyle = '#F5F5F4'; g.fillRect(-11 - kick, -36, 6, 4); g.fillRect(5 + kick, -34, 6, 4);
-      g.fillStyle = L.pants; g.fillRect(-9, -14, 18, 8); g.fillStyle = L.shirt; g.fillRect(-11, -6, 22, 16);
-      g.strokeStyle = L.skin; g.lineWidth = 3.4; g.beginPath(); g.moveTo(-9, 8); g.lineTo(-18, 22); g.moveTo(9, 8); g.lineTo(18, 22); g.stroke();
-      g.fillStyle = pr.k.helmet ?? L.skin; g.beginPath(); g.arc(0, 16, 8, 0, Math.PI * 2); g.fill();
-      g.restore();
-      g.restore();
-      ln(hx, hy, tx, ty - 14 * ts, '#D6B07A', Math.max(1, 2 * s));
+      drawEndo(g, pr.k, pr.bike, tx, ty, ts, Math.min(1, (t - 4) / 5), t);
+      ln(hx, hy, tx, ty - 14 * ts, '#A0763E', Math.max(2, Math.round(2 * s)), '#E0B67A');
       if (t < 9) star(g, tx, ty - 14 * ts, 8 * ts, '#FDE047');
       break;
     }
     case 'skateboard': {
       // (snatched; clonked on the head with it twice, eyes crossing; then brought down over their head, through it)
       const sq = Math.max(bonk(8), bonk(13));
-      rider(t < 6 ? 'swing' : 'none', sq > 0.7, { squash: sq, daze: t >= 9 });
+      rider(t < 6 ? 'swing' : 'none', sq > 0.7, { squash: sq, daze: t >= 9, neckboard: t >= 19 });
       if (t < 19) held('skateboard');
-      else { g.save(); g.translate(tx, ty - 74 * ts * 0.92); g.scale(ts, ts); g.fillStyle = INK; g.fillRect(-17, -4, 34, 9); g.fillStyle = '#7C3AED'; g.fillRect(-16, -3, 32, 7); g.restore(); if (t < 22) star(g, tx, ty - 86 * ts, 9 * ts, '#FFFFFF'); }
+      else if (t < 22) star(g, tx, ty - 86 * ts, 9 * ts, '#FFFFFF');
       if (sq > 0.7) star(g, tx, ty - 90 * ts, 9 * ts, '#FFFFFF');
       break;
     }
   }
 };
 
+/** An impact spark, the Genesis way: a hard-edged cross, its diagonals stepped, an ink ring, a white core. */
 const star = (g: CanvasRenderingContext2D, x: number, y: number, r: number, col: string) => {
-  g.fillStyle = col; g.beginPath();
-  for (let i = 0; i < 10; i++) { const a = (i / 10) * Math.PI * 2, rr = i % 2 ? r * 0.45 : r; g[i ? 'lineTo' : 'moveTo'](x + Math.cos(a) * rr, y + Math.sin(a) * rr); }
-  g.closePath(); g.fill();
+  const R = Math.max(2, Math.round(r)), t = Math.max(1, Math.round(r * 0.32)), cx = Math.round(x), cy = Math.round(y);
+  g.fillStyle = '#140C06';
+  g.fillRect(cx - R - 1, cy - t / 2 - 1, R * 2 + 2, t + 2); g.fillRect(cx - t / 2 - 1, cy - R - 1, t + 2, R * 2 + 2);
+  g.fillStyle = col;
+  g.fillRect(cx - R, cy - t / 2, R * 2, t); g.fillRect(cx - t / 2, cy - R, t, R * 2);
+  const d = Math.round(R * 0.62);
+  for (let i = 1; i <= d; i += Math.max(1, t)) for (const [sx, sy] of DIAG) g.fillRect(cx + sx * i - t / 2, cy + sy * i - t / 2, t, t);
+  g.fillStyle = '#FFFFFF'; g.fillRect(cx - t / 2, cy - t / 2, t, t);
+};
+const DIAG = [[1, 1], [-1, 1], [1, -1], [-1, -1]] as const;
+/** A line in square pixels (`w` thick), every other step in `alt` if given (a chain's links, a stick's grain). */
+const pline = (g: CanvasRenderingContext2D, x1: number, y1: number, x2: number, y2: number, col: string, w: number, alt?: string) => {
+  const n = Math.max(1, Math.ceil(Math.max(Math.abs(x2 - x1), Math.abs(y2 - y1)))), q = Math.max(1, Math.round(w));
+  for (let i = 0; i <= n; i++) {
+    g.fillStyle = alt && (i >> 1) % 2 ? alt : col;
+    g.fillRect(Math.round(x1 + ((x2 - x1) * i) / n - q / 2), Math.round(y1 + ((y2 - y1) * i) / n - q / 2), q, q);
+  }
 };
 
 /** Over the blown-up view, at full size: what's said, the sub-boss bar, the speedo, Tucker's talking head, the pops,
@@ -1152,34 +1195,132 @@ const drawOver = (c: CanvasRenderingContext2D, state: GameState, ch: Chase) => {
   for (const s of sayAt) saidOver(c, s.text, s.x, s.y, s.col, 220);
   if (ch.yelp) saidOver(c, ch.yelp.text, 400, 380, '#E0F2FE', 260);
   if (state.playerLastVulgarity && state.playerVulgarityTimer > 0 && ch.phase !== 'dead') saidOver(c, state.playerLastVulgarity, meAt.x * 2, Math.min(meAt.y * 2, 470), '#FFFFFF', 300);
-  // (Tucker's talking head, while he's yelling: a Genesis inset, his face at full detail)
+  // (Tucker's talking head, while he's yelling: a Genesis inset in its chrome frame, the woods behind him, his face at
+  // full detail, his name on a plate)
   if (ch.tucker.said) {
     const x = 612, y = 118, w = 170, h = 150;
-    sbox(c, x - 3, y - 3, w + 6, h + 6, '#0B0B0F'); sbox(c, x, y, w, h, '#2A3A5A');
+    c.drawImage(insetFrame(w, h), x - 8, y - 8);
     c.save(); c.beginPath(); c.rect(x, y, w, h); c.clip();
     drawTuckerCloseup(c, x + w / 2, y + 72, 4.2, state.frame, { wounds: tuckerWoundsOf(state), talking: true, face: 'manic', red: true, jolt: 0.3 });
     c.restore();
-    label(c, 'TUCKER', x + w / 2, y + h + 14, '#FDE68A', 7);
-    saidOver(c, ch.tucker.said.text, x + w / 2 - 120, y + h + 40, '#FDE68A', 300);
+    c.drawImage(plate('TUCKER'), Math.round(x + w / 2 - plate('TUCKER').width / 2), y + h + 2);
+    saidOver(c, ch.tucker.said.text, x + w / 2 - 120, y + h + 44, '#FDE68A', 300);
   }
   if (!cut && ch.phase !== 'dead' && !p.inCutscene) {
-    // The sub-boss bar (the top band, clear of the HUD): the teens left, pooled
-    const band = topBand(), w = band.x2 - band.x1, left = teensLeft(ch), k = left / TOTAL;
-    sbox(c, band.x1, 18, w, 14, '#18181B');
-    sbox(c, band.x1 + 2, 20, (w - 4) * k, 10, k < 0.33 ? '#EF4444' : '#F59E0B');
-    label(c, 'TEENAGERS', band.mid, 46, '#FDE68A', 7);
-    label(c, `${left} LEFT`, band.x2 - 40, 60, '#A1A1AA', 6);
-    // (the speedo, bottom right)
-    label(c, `${Math.round(ch.speed * 0.45)} MPH`, CANVAS_WIDTH - 70, CANVAS_HEIGHT - 24, ch.speed > CRUISE + 10 ? '#FDE047' : '#F5F5F4', 10);
+    // The sub-boss bar (the top band, clear of the HUD): the teens left, pooled, a cell each in a chrome frame
+    const band = topBand(), w = band.x2 - band.x1, left = teensLeft(ch);
+    subBar(c, band.x1, band.mid, w, left);
+    // (the speedo, bottom right: a dial and its needle, the LCD under)
+    speedo(c, CANVAS_WIDTH - 78, CANVAS_HEIGHT - 76, ch.speed, state.frame);
   }
-  // (the pops: PARRY!, STRIKE!, HUMAN BOMB!...)
+  // (the pops: STRIKE!, HUMAN BOMB!...: chunky, inked round, dropped shadow; they flicker out)
   for (const q of ch.pops) {
-    const k = Math.min(1, q.t / 8), y = q.y * 2 - q.t * 0.8;
-    c.save(); c.globalAlpha = q.t > 50 ? Math.max(0, 1 - (q.t - 50) / 20) : 1;
-    c.font = `${Math.round(14 + k * 6)}px "Press Start 2P"`; c.textAlign = 'center';
-    c.fillStyle = '#000000'; c.fillText(q.text, 402, y + 3); c.fillStyle = q.col; c.fillText(q.text, 400, y);
+    if (q.t > 50 && (q.t >> 1) % 2) continue;
+    const k = Math.min(1, q.t / 8), y = Math.round(q.y * 2 - q.t * 0.8);
+    c.save();
+    c.font = `${Math.round(14 + k * 6) & ~1}px "Press Start 2P"`; c.textAlign = 'center';
+    c.fillStyle = '#000000'; c.fillText(q.text, 404, y + 4);
+    c.fillStyle = '#140C06'; for (const [dx, dy] of RING8) c.fillText(q.text, 400 + dx * 2, y + dy * 2);
+    c.fillStyle = q.col; c.fillText(q.text, 400, y);
     c.restore();
   }
   if (ch.fade > 0) { c.fillStyle = `rgba(0,0,0,${ch.fade})`; c.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); }
   if (cut && ch.outro.t > SKIP_AFTER) drawSkipPrompt(c, CANVAS_WIDTH);
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// The HUD bits, the Genesis way: chrome bevels stepped from shine to shadow, hard pixel edges on a 2 px grid (the road
+// view's own pixel), pixel lettering inked round. The static parts painted once.
+
+const RING8 = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [-1, 1], [1, -1], [-1, -1]] as const;
+const CHROME = ['#1E1E28', '#3A3A48', '#62627A', '#9A9AB0', '#CACADA', '#F2F2FA'];
+const HUD_INK = '#0A0A10';
+const HUD = new Map<string, HTMLCanvasElement>();
+const hudCanvas = (key: string, w: number, h: number, paint: (g: CanvasRenderingContext2D) => void) => {
+  let cv = HUD.get(key);
+  if (!cv) { cv = document.createElement('canvas'); cv.width = w; cv.height = h; paint(cv.getContext('2d')!); HUD.set(key, cv); }
+  return cv;
+};
+const hbox = (g: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, col: string) => { g.fillStyle = col; g.fillRect(x, y, w, h); };
+/** A chrome bevel round a box: ink, the lit top and left, the shaded bottom and right, a groove inside. */
+const bevel = (g: CanvasRenderingContext2D, x: number, y: number, w: number, h: number) => {
+  hbox(g, x, y, w, h, HUD_INK);
+  hbox(g, x + 2, y + 2, w - 4, h - 4, CHROME[3]);
+  hbox(g, x + 2, y + 2, w - 4, 2, CHROME[5]); hbox(g, x + 2, y + 2, 2, h - 4, CHROME[4]);
+  hbox(g, x + 2, y + h - 4, w - 4, 2, CHROME[1]); hbox(g, x + w - 4, y + 2, 2, h - 4, CHROME[2]);
+  hbox(g, x + 4, y + 4, w - 8, h - 8, CHROME[2]); hbox(g, x + 6, y + 6, w - 12, h - 12, HUD_INK);
+};
+/** HUD lettering: chunky pixel letters, a ramp down them, inked round, a drop shadow. */
+const hudLetters = (fill: string[], cell = 2): Letters => ({ sx: cell, sy: cell, fill, ink: HUD_INK, shadow: '#000000', drop: cell });
+const GOLD_LETTERS = ['#FFF8D0', '#FDE68A', '#F5B83A', '#C2760E'];
+const STEEL_LETTERS = ['#FFFFFF', '#D4D4DE', '#A0A0B0', '#70707E'];
+
+/** Tucker's inset's frame (w x h inside): the chrome, rivets at the corners, and behind him the woods: a banded sky, the
+ *  pines' ragged line, the trail. */
+const insetFrame = (w: number, h: number) => hudCanvas(`inset${w}x${h}`, w + 16, h + 16, g => {
+  bevel(g, 0, 0, w + 16, h + 16);
+  const SKYB = ['#1E3A8A', '#2A50A8', '#3E6CC4', '#5A8AD8', '#86AEE6', '#B4CEF0'];
+  for (let i = 0; i < SKYB.length; i++) hbox(g, 8, 8 + i * 14, w, 14, SKYB[i]);
+  for (let i = 1; i < SKYB.length; i++) for (let x = 8 + (i % 2) * 2; x < w + 8; x += 4) hbox(g, x, 8 + i * 14 - 2, 2, 2, SKYB[i]);
+  hbox(g, 8, 8 + SKYB.length * 14, w, h - SKYB.length * 14, '#14301A');
+  for (let x = 8, i = 0; x < w + 8; x += 6, i++) { const th = 18 + ((i * 37) % 26); for (let k = 0; k < th; k += 2) { const half = Math.round((k / th) * 7); hbox(g, x - half + 3, 8 + SKYB.length * 14 - th + k, half * 2 + 1, 2, k % 6 < 2 ? '#1E4222' : '#14301A'); } }
+  hbox(g, 8, h - 6, w, 14, '#54381C'); hbox(g, 8, h - 6, w, 2, '#886034');
+  for (const [rx, ry] of [[3, 3], [w + 9, 3], [3, h + 9], [w + 9, h + 9]]) { hbox(g, rx, ry, 4, 4, HUD_INK); hbox(g, rx, ry, 2, 2, CHROME[5]); }
+});
+/** A name plate: chrome, the name in gold letters. */
+const plate = (text: string) => hudCanvas(`plate${text}`, signW(text, hudLetters(GOLD_LETTERS)) + 28, 30, g => {
+  const w = signW(text, hudLetters(GOLD_LETTERS)) + 28;
+  bevel(g, 0, 0, w, 30); hbox(g, 6, 6, w - 12, 18, '#1A1A2A');
+  signText(g, text, w / 2, 21, hudLetters(GOLD_LETTERS));
+});
+
+/** The TEENAGERS bar: a cell a kid in a chrome frame, the cells left lit (yellow, orange, then red as it runs down),
+ *  the name under it, the count beside. */
+const subBar = (c: CanvasRenderingContext2D, x1: number, mid: number, w: number, left: number) => {
+  const gap = 2, cw = Math.max(4, Math.floor((w - 12 - (TOTAL - 1) * gap) / TOTAL) & ~1), bw = cw * TOTAL + gap * (TOTAL - 1) + 12;
+  const x0 = Math.round(mid - bw / 2) & ~1, y0 = 14;
+  c.drawImage(hudCanvas(`subbar${bw}`, bw, 24, g => bevel(g, 0, 0, bw, 24)), x0, y0);
+  const k = left / TOTAL, R = k > 0.5 ? ['#FFF4A0', '#FACC15', '#B88A0A'] : k > 0.25 ? ['#FFD0A0', '#F97316', '#A8460A'] : ['#FFB0A0', '#EF4444', '#8E1A1A'];
+  for (let i = 0; i < TOTAL; i++) {
+    const cx = x0 + 6 + i * (cw + gap);
+    if (i < left) { hbox(c, cx, y0 + 6, cw, 12, R[1]); hbox(c, cx, y0 + 6, cw, 2, R[0]); hbox(c, cx, y0 + 16, cw, 2, R[2]); }
+    else { hbox(c, cx, y0 + 6, cw, 12, '#22222C'); hbox(c, cx, y0 + 14, cw, 4, '#16161E'); }
+  }
+  signText(c, 'TEENAGERS', mid, y0 + 44, hudLetters(GOLD_LETTERS));
+  const n = `${left} LEFT`;
+  signText(c, n, x1 + w - signW(n, hudLetters(STEEL_LETTERS, 1)) / 2 - 4, y0 + 40, hudLetters(STEEL_LETTERS, 1));
+};
+
+/** The speedometer: a chrome-ringed dial (0 to 100, the red from 80), the needle, the hub, an LCD window with the
+ *  number in it. The dial's painted once; the needle and the number each frame. */
+const DIAL_R = 46;
+const dialAng = (v: number) => ((135 + Math.max(0, Math.min(104, v)) * 2.7) * Math.PI) / 180;
+const disc = (g: CanvasRenderingContext2D, cx: number, cy: number, r: number, col: string) => {
+  g.fillStyle = col;
+  for (let y = -r; y < r; y += 2) { const half = Math.round(Math.sqrt(Math.max(0, r * r - (y + 1) * (y + 1))) / 2) * 2; g.fillRect(cx - half, cy + y, half * 2, 2); }
+};
+const dial = () => hudCanvas('speedo', DIAL_R * 2 + 8, DIAL_R * 2 + 8, g => {
+  const cx = DIAL_R + 4, cy = DIAL_R + 4;
+  disc(g, cx, cy, DIAL_R + 4, HUD_INK); disc(g, cx, cy, DIAL_R + 2, CHROME[1]); disc(g, cx - 2, cy - 2, DIAL_R, CHROME[4]); disc(g, cx, cy, DIAL_R - 1, CHROME[3]);
+  disc(g, cx, cy, DIAL_R - 5, HUD_INK); disc(g, cx, cy, DIAL_R - 7, '#141824'); disc(g, cx + 2, cy + 4, DIAL_R - 14, '#10141E');
+  for (let v = 0; v <= 100; v += 5) {
+    const a = dialAng(v), major = v % 20 === 0, red = v >= 80, r0 = DIAL_R - (major ? 18 : 13), r1 = DIAL_R - 9;
+    for (let r = r0; r <= r1; r += 2) hbox(g, Math.round((cx + Math.cos(a) * r) / 2) * 2 - 1, Math.round((cy + Math.sin(a) * r) / 2) * 2 - 1, major ? 2 : 2, 2, red ? '#F04030' : major ? '#F2F2FA' : '#8A8AA0');
+    if (major) digits(g, v, Math.round(cx + Math.cos(a) * (DIAL_R - 26)), Math.round(cy + Math.sin(a) * (DIAL_R - 26)) - 5, red ? '#FF7060' : '#D8D8E4', 2);
+  }
+  signText(g, 'MPH', cx, cy + 14, { sx: 1, sy: 1, fill: '#8A8AA0' });
+  // (the LCD window)
+  hbox(g, cx - 18, cy + 18, 36, 18, HUD_INK); hbox(g, cx - 16, cy + 20, 32, 14, '#0E2A12'); hbox(g, cx - 16, cy + 20, 32, 2, '#08200C');
+});
+const speedo = (c: CanvasRenderingContext2D, cx: number, cy: number, speed: number, f: number) => {
+  const mph = Math.round(speed * 0.45), boost = speed > CRUISE + 10;
+  c.drawImage(dial(), cx - DIAL_R - 4, cy - DIAL_R - 4);
+  // (the number, green on the LCD, its unlit segments ghosting)
+  digits(c, 888, cx, cy + 22, '#163A1C', 2);
+  digits(c, mph, cx, cy + 22, boost && (f >> 2) % 2 ? '#E8FF70' : '#7CFC7C', 2);
+  // (the needle, inked, with a shake to it at speed; the hub)
+  const a = dialAng(mph + (boost ? ((f >> 1) % 2) * 1.5 : 0)), L = DIAL_R - 12;
+  pline(c, cx, cy, cx + Math.cos(a) * L, cy + Math.sin(a) * L, HUD_INK, 4);
+  pline(c, cx, cy, cx + Math.cos(a) * L, cy + Math.sin(a) * L, '#F04030', 2);
+  disc(c, cx, cy, 6, HUD_INK); disc(c, cx, cy, 4, CHROME[3]); hbox(c, cx - 2, cy - 2, 2, 2, CHROME[5]);
 };

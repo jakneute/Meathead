@@ -1284,3 +1284,32 @@ later (+1 if heavyset; was 2 / 3 before playtest fixes E). Tucker's glimpsed ahe
   engine's fins, the header and silencer, shrouds, ribbed seat, gold forks, plates the right way round, mud) on live
   spoked, knobby wheels, a shadow under, stepped exhaust. drawDirtBike's footprint and seat kept (the chase and the arena
   use it). Tucker, his grime and the jumpscare close-up untouched. No gameplay changes.
+- 2026-10-18 (SNES pass, section 6, the dirt-bike chase; art only; the user's: "make it look like road rash on
+  genesis"): every sprite on the road is cut the Genesis way (dirtbike/art.ts): painted once, its edges thresholded hard,
+  a 1 px ink ring round it, kept in scale buckets (1/8 .. 2 of its base) and put down unsmoothed at the nearest size, so
+  things step up chunky and sharp as they come; the far ones fogged in steps with the road. The roadside redrawn as the
+  real side's country: Douglas firs, blue spruce and lodgepole (the land's pine painter), aspens gold and green and a
+  cottonwood, the teen folded round one and the blood tree, serviceberry and sage, granite with lichen and a sandstone
+  lump, split cedar posts with their wire, rural mailboxes, round bales, a board outhouse with its moon, the old
+  tractor (green or red), SLOW CHILDREN with buckshot dents, the county's routed brown signs (CREEK a yellow diamond),
+  holstein, angus and hereford cows (ear tags), mule deer and the buck, both dead on their backs, steel lattice towers,
+  creosoted poles, the red gambrel barn, the farmhouse, cattails, the fallen fir across the road, the stump, the
+  first-aid kit; scorches, smears and bursts in stepped rings (no soft edges, no fades: the rings break up). The road:
+  grass, a worn verge, the rumble, the dirt with its crown and two ruts (their lips lit up close), banded light and
+  dark, 8 fog steps; the creek's ford shallows and ripples, mud either side; the dirt jumps' run-up, lit face, lip and
+  shaded back. Behind: raster layers per hour, per stretch, cached (the woods' real sky and clouds, the Rockies with
+  their snow, a ridge: forest, the clear-cut with its towers, the open range's foothills, farm country's patchwork, the
+  last mile's dry hills; the near layer: the treeline, willows by the creek, the fence and cottonwoods, the windbreak,
+  farmhouse, silo and barn, the line's big tower and its sagging wires), crossfading between stretches; the hour's
+  light now goes over the road and everything on it but not the far layers (they carry their own). The riders, each
+  pose a cached frame with the lean baked in in steps: Meathead (the jeans' pockets and stitching, the belt, his back
+  lit in steps, deltoids and triceps, the flat-top faded, clean / shat / bare, the blood stages, the punch and the
+  profile scowl), the teens (helmets with the goggle strap round the back, jerseys with their numbers, moto pants and
+  boots, or a cap on backwards, a beanie, their hair; the woods' kids' gear seeds), their weapons redrawn, every recoil,
+  the wedgie, the endo (its own frames now), the neck board, the bodies, tumbles and wrecks; Tucker on the stolen bike
+  (coat tails, his close-up bigger on his shoulders). Pixel shadows, pixel lines for the chain, stick and waistband,
+  hard-edged impact sparks. The HUD: a chrome-beveled TEENAGERS bar (a cell a kid), a speedometer dial (needle, LCD),
+  Tucker's inset in a chrome frame with the woods behind him and a name plate, the pops inked; the controls card a
+  chrome-bevel panel; the HUD fist redrawn. The side-view stub on the woods' kit (its far off, the floor going back,
+  a back rank, trees, the trail stamped and bent with its lit lip). No timings, windows, speeds, lanes, scale math or
+  collision touched.

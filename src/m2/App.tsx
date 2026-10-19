@@ -439,7 +439,8 @@ const App2: React.FC = () => {
         )}
         {/* Wilderness Land's dirt-bike chase: the riding controls, for a while at the start */}
         {status === GameStatus.PLAYING && ui.map === null && !ui.introCutscene && ui.bikeTips && (
-          <div className="absolute left-1/2 -translate-x-1/2 top-[132px] z-30 flex flex-col items-center gap-2 px-3 py-2 text-[9px] text-white bg-black/75 border-2 border-zinc-600">
+          // (a Genesis panel: chrome bevel, a banded navy face)
+          <div className="absolute left-1/2 -translate-x-1/2 top-[132px] z-30 flex flex-col items-center gap-2 px-3 py-2 text-[9px] text-white bg-gradient-to-b from-[#1E2A70] via-[#121A4A] to-[#0A0E2A] border-4 border-t-[#F2F2FA] border-l-[#CACADA] border-b-[#3A3A48] border-r-[#62627A] shadow-[0_0_0_2px_#0A0A10]">
             <div className="flex gap-4">
               <Prompt pad={['X']} kb={['@fire']} mouse="left" label="HIT LEFT" />
               <Prompt pad={['B']} kb={['@charge', '@special']} mouse="right" label="HIT RIGHT" />
