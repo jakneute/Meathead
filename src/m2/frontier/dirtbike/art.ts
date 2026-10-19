@@ -1026,6 +1026,9 @@ const mhHead = (c: Ctx, turn: number, sd: number, blood: number, fq: number) => 
 const paintMeathead = (c: Ctx, p: MhPose, fq: number, lean: number) => {
   c.rotate(lean);
   rearBike(c, p.bike, p.spin);
+  // (the bars before him: seen from behind, his body's in front of them (the playtest); the grips still show either
+  // side of him, his hands drawn on them after)
+  rearBars(c);
   const b = p.blood;
   // (his legs down to the pegs: the jeans in steps, the seams, his boots; or bare)
   const L = p.nude ? SK : JE;
@@ -1101,7 +1104,6 @@ const paintMeathead = (c: Ctx, p: MhPose, fq: number, lean: number) => {
   // (the head: round in profile at whoever he's hitting)
   mhHead(c, pr ? 1 : sh ? sh.turn : 0, sd || 1, b, fq);
   c.restore();
-  rearBars(c);
 };
 
 /** How beaten up he is, in stages (the art's own thresholds). */
