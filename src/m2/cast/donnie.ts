@@ -14,6 +14,10 @@
 // left; `damage` 0 (fresh) .. 1 (nearly dead) beats him up as he loses health: sweat through everything, scuffs, a cut
 // cheek and a nosebleed, blood spreading on the shirt, buttons popped (more gut), a black eye, the cape's hem torn, then
 // shredded, a fang snapped, a scalp gash, the shirt ripped open over the gut, blood dripping off him.
+// His sin is gluttony: `look.bloat` swells him a step at a time as he gorges (the gut out over his belt and sagging,
+// the buttons going, the shirt splitting; the chins and the cheeks puffing out), the 'stuffed' pose holds the gut with
+// both hands, a burp coming; a drumstick in his other hand on the PA, a blood slushie off the buffet in the shop; and in
+// his last moments, his trousers down, `look.soiled` spreads the stain across the seat of his bat boxers.
 
 import { type Ctx } from './kit';
 import { smear, drip, cut, bloodFresh, bloodDark } from '../../m1/game/render/player/gore';
@@ -39,13 +43,22 @@ export type DonniePose =
   | 'fly'     // powered up: flying, the cape out like a bat's wings, his legs dangling, toes pointed
   | 'spew'    // powered up: hunched forward in the air, mouth wide, blood coming out of it (the caller draws the stream)
   | 'cower'   // down in a corner, knees up, hands clasped under his chins: begging
+  | 'stuffed' // gorged: both hands on his gut, leaning back off it, cheeks out, legs dangling (the burp; too much of it)
   | 'dead';   // lying flat on his back, arms out, tongue out (the caller lays him down: this is him standing, limp)
 
 /** What he's got on (and in his hand). Off by default: the wig, the cape, the fangs are the dress-up. */
 export interface DonnieLook {
   wig?: boolean; cape?: boolean; fangs?: boolean;
-  /** Something in his near hand: the mic, the wig (grabbed off its stand), the fangs (on their way in), the bat remote. */
-  held?: 'mic' | 'wig' | 'fangs' | 'remote' | null;
+  /** Something in his near hand: the mic, the wig (grabbed off its stand), the fangs (on their way in), the bat remote,
+   *  a blood slushie off the shop's buffet. */
+  held?: 'mic' | 'wig' | 'fangs' | 'remote' | 'slushie' | null;
+  /** Something to eat in his far hand (a fried drumstick, a bite out of it): on the PA, it's brought up in front of him. */
+  snack?: 'drumstick' | null;
+  /** How gorged he is, in whole steps: 0 as he is; 1-3 fuller (the gut out further over his belt, sagging, the buttons
+   *  going, the cheeks and chins puffing out); 4 overfull (his death: the shirt split, buttons gone, a balloon). */
+  bloat?: number;
+  /** His trousers down: how far the shit's spread across the seat of the bat boxers (0 none .. 1 all of it). */
+  soiled?: number;
   /** Satan's gift: real power. Glowing red eyes, real fangs (long, ivory, no pink plastic), a gray pallor, veins up his
    *  dome, a red aura flickering round him, the cape bigger and scalloped like a bat's wings. Still the wig, the tag. */
   powered?: boolean;
@@ -156,7 +169,8 @@ const TALKERS = new Set<DonniePose>(['talk', 'mic', 'panic', 'bite', 'run', 'fum
 
 export const drawDonnie = (c: Ctx, x: number, feetY: number, facing: number, frame: number, pose: DonniePose = 'stand', damage = 0, look: DonnieLook = {}) => {
   const f = frame, d = Math.max(0, Math.min(1, damage));
-  const L = { wig: !!look.wig, cape: !!look.cape, fangs: !!look.fangs, held: look.held ?? null, pantsDown: !!look.pantsDown, powered: !!look.powered };
+  const bl = Math.max(0, Math.min(4, Math.round(look.bloat ?? 0)));
+  const L = { wig: !!look.wig, cape: !!look.cape, fangs: !!look.fangs, held: look.held ?? null, pantsDown: !!look.pantsDown, powered: !!look.powered, snack: look.snack ?? null, bloat: bl, soiled: Math.max(0, Math.min(1, look.soiled ?? 0)) };
   c.save();
   c.translate(Math.round(x), Math.round(feetY));
   c.scale(facing < 0 ? -1 : 1, 1);
@@ -171,7 +185,7 @@ export const drawDonnie = (c: Ctx, x: number, feetY: number, facing: number, fra
   // (the bob: a fat man's run jiggles; panic, he's hopping)
   const b = pose === 'run' ? Math.abs(Math.sin(f * 0.32)) * -2.4 : pose === 'panic' ? Math.abs(Math.sin(f * 0.7)) * -2.5 : Math.sin(f * 0.05 + 2) * 0.6;
   // (the upper body's lean about the hips)
-  const lean = pose === 'cower' ? 0.32 : pose === 'spew' ? 0.25 : pose === 'fly' ? 0.08 : pose === 'fumble' ? 0.95 : pose === 'lunge' ? 0.35 : pose === 'bite' ? 0.18 : pose === 'run' ? 0.16 : pose === 'swoop' ? 0.28 : pose === 'hurt' ? -0.18 : pose === 'stunned' ? -0.12 : pose === 'reach' ? 0.4 : 0;
+  const lean = pose === 'cower' ? 0.32 : pose === 'spew' ? 0.25 : pose === 'fly' ? 0.08 : pose === 'stuffed' ? -0.16 - bl * 0.02 : pose === 'fumble' ? 0.95 : pose === 'lunge' ? 0.35 : pose === 'bite' ? 0.18 : pose === 'run' ? 0.16 : pose === 'swoop' ? 0.28 : pose === 'hurt' ? -0.18 : pose === 'stunned' ? -0.12 : pose === 'reach' ? 0.4 : 0;
   const [far, near] = armsFor(pose, f, L);
   // ---- the cape behind all of him (the back of it), or spread out as wings
   if (L.cape) {
@@ -182,15 +196,21 @@ export const drawDonnie = (c: Ctx, x: number, feetY: number, facing: number, fra
     c.restore();
   }
   // ---- the legs
-  drawLegs(c, pose, f, d, L.pantsDown);
+  drawLegs(c, pose, f, d, L.pantsDown, L.soiled);
   c.translate(0, b);
   c.translate(0, HIP_Y); c.rotate(lean); c.translate(0, -HIP_Y);
   // ---- the far arm, the body, the near lapel of the cape, the near arm, the head (and any hand up at it, over it)
-  const behind = pose !== 'pose' && pose !== 'wig' && pose !== 'cape' && pose !== 'summon';
+  // (a snack on the PA: the far hand brought round in front of him with it)
+  const behind = pose !== 'pose' && pose !== 'wig' && pose !== 'cape' && pose !== 'summon' && !(pose === 'mic' && L.snack);
   if (behind) drawArm(c, far, false, d, pose, f, L);
-  drawBody(c, pose, f, d);
+  // (gorged: the gut out over his belt and sagging, a step at a time; the shirt, its buttons, the lapel, the medallion
+  // all stretched with it)
+  c.save();
+  if (bl) { c.translate(-12, -58); c.scale(1 + bl * 0.13, 1 + bl * 0.045); c.translate(12, 58); }
+  drawBody(c, pose, f, d, bl);
   if (L.cape && !SPREAD.has(pose)) drawLapel(c, f, d);
   drawMedallion(c, pose, f, d);
+  c.restore();
   if (!behind) drawArm(c, far, false, d, pose, f, L);
   drawArm(c, near, true, d, pose, f, L);
   const hx = pose === 'stunned' ? Math.sin(f * 0.12) * 2 : 1.5, hy = pose === 'hurt' ? -71 : pose === 'stunned' ? -69 + Math.sin(f * 0.12) * 1.2 : -72;
@@ -209,7 +229,7 @@ export const drawDonnie = (c: Ctx, x: number, feetY: number, facing: number, fra
 // ---------------------------------------------------------------------------------------------------------------
 // Legs: shiny polyester tux trousers (a satin stripe down the side), patent dress shoes
 
-const drawLegs = (c: Ctx, pose: DonniePose, f: number, d: number, down = false) => {
+const drawLegs = (c: Ctx, pose: DonniePose, f: number, d: number, down = false, soiled = 0) => {
   // [hipX, hipY, kneeX, kneeY, ankleX, ankleY, shoe angle]: the far leg, then the near
   let L: number[][];
   const H = HIP_Y;
@@ -227,7 +247,7 @@ const drawLegs = (c: Ctx, pose: DonniePose, f: number, d: number, down = false) 
     L = [[-4, H, -4.5, -14 - Math.max(0, up) * 3, -5, -4 - Math.max(0, up) * 5, 0], [4, H, 5, -14 - Math.max(0, -up) * 3, 5.5, -4 - Math.max(0, -up) * 5, 0]];
   } else if (pose === 'swoop') L = [[-5, H + 4, 3, -12, -6, -4, 0], [4, H + 4, 13, -13, 9, -4, 0]];
   else if (pose === 'cower') L = [[-5, H + 6, 6, -16, -3, -4, 0], [4, H + 6, 14, -17, 8, -4, 0]];
-  else if (pose === 'fly') {
+  else if (pose === 'fly' || pose === 'stuffed') {
     // (dangling, toes pointed, swaying)
     const sw = Math.sin(f * 0.12) * 1.5;
     L = [[-4, H, -4 + sw, -13, -3 + sw * 1.6, -2, 1.1], [4, H, 6 + sw, -14, 8 + sw * 1.6, -3, 1.0]];
@@ -244,6 +264,16 @@ const drawLegs = (c: Ctx, pose: DonniePose, f: number, d: number, down = false) 
   if (down) {
     // (the bats on the boxers' seat)
     for (const [bx, by] of [[-6, H - 1], [1, H + 2], [6, H - 0.5]]) batPrint(c, bx, by);
+    // (and he's shat them: a brown stain spreading out across the seat from the middle, stepped dark to light at its rim,
+    // a wet sheen on it)
+    if (soiled > 0) {
+      const mx = (h0[0] + h1[0]) / 2, w = 2 + soiled * 7, h = 1.2 + soiled * 3;
+      ell(c, mx, H + 1, w + 0.8, h + 0.6, dith(c, '#6B4A1E'));
+      ell(c, mx, H + 1, w, h, '#5A3A12');
+      ell(c, mx - w * 0.15, H + 1.4, w * 0.62, h * 0.6, '#3E2608');
+      if (soiled > 0.4) px(c, mx - w * 0.5, H - 0.2, Math.max(0.6, w * 0.3), 0.5, '#8A6430');
+      if (soiled > 0.7) { line(c, [mx + w * 0.3, H + h, mx + w * 0.3, H + h + 1.5 + soiled * 2], 0.9, '#4A2E0C'); ell(c, mx + w * 0.3, H + h + 2 + soiled * 2, 0.7, 0.9, '#4A2E0C'); }
+    }
   }
 };
 
@@ -318,7 +348,7 @@ const torsoPath = (c: Ctx) => {
   c.quadraticCurveTo(7, -60, 3, -60.5); c.closePath();
 };
 
-const drawBody = (c: Ctx, pose: DonniePose, f: number, d: number) => {
+const drawBody = (c: Ctx, pose: DonniePose, f: number, d: number, bl = 0) => {
   // (the waistband, the cummerbund sagging under the overhang: red satin, pleated, the hook showing at the back)
   shape(c, () => c.roundRect(-13.6, -27, 21, 5, 1.5), SATIN, -13.6, 7.4, 0.8);
   shape(c, () => { c.moveTo(-14, -30); c.lineTo(8, -27.5); c.lineTo(9, -23.5); c.lineTo(-13.6, -24.4); c.closePath(); }, BOW, -14, 9, 0.8);
@@ -330,8 +360,11 @@ const drawBody = (c: Ctx, pose: DonniePose, f: number, d: number) => {
   ell(c, 6, -21, 15, 5, SHIRT[2]); ell(c, 6, -20, 13, 3.6, SHIRT[3]);
   line(c, [2, -48, 8, -49.5, 13.5, -47.5], 0.7, SHIRT[2]);
   ell(c, 12, -40, 3, 4.6, SHIRT[0]);
-  // (straining: tension lines pulling across the gut, from the buttons)
+  // (straining: tension lines pulling across the gut, from the buttons; more of them, and longer, the fuller he is)
   for (const y of [-44, -38, -32]) { const fx = frontAt(y); line(c, [fx - 3, y, fx - 9, y - 2.4], 0.5, SHIRT[3]); line(c, [fx - 3, y + 0.6, fx - 8, y + 2.6], 0.5, SHIRT[2]); }
+  if (bl >= 1) for (const y of [-47, -41, -35, -29]) { const fx = frontAt(y); line(c, [fx - 2.6, y, fx - 6 - bl * 1.6, y - 1.6 - bl * 0.4], 0.45, SHIRT[3]); }
+  // (the gut's peak, shining tight)
+  if (bl >= 2) { ell(c, 13, -36, 2.2, 3, '#FFFFFF'); px(c, 12, -40, 1, 1, '#FFFFFF'); }
   // (sweated through: the pits, down the back, under the gut; stepped, a dithered rim)
   const sw = 0.7 + d * 0.6;
   for (const [sx, sy, rx, ry] of [[-11.5, -49, 2.8 * sw, 5 * sw], [-6, -36, 3 * sw, 6 * sw], [8, -25, 6 * sw, 2.4 * sw]] as const) {
@@ -339,7 +372,8 @@ const drawBody = (c: Ctx, pose: DonniePose, f: number, d: number) => {
   }
   c.restore();
   // The placket down the front of the gut, its buttons gapping (hairy belly through the gaps); the ruffles down it
-  const popped = d >= 0.85 ? 3 : d >= 0.4 ? 1 : 0;
+  // (popped by the beating, or by what he's eaten: one a step past the first, all of them overfull)
+  const popped = Math.max(d >= 0.85 ? 3 : d >= 0.4 ? 1 : 0, bl >= 4 ? 3 : Math.max(0, bl - 1));
   const BUTTONS = [-49, -43, -37, -31];
   BUTTONS.forEach((y, i) => {
     const fx = frontAt(y) - 2.2;
@@ -353,13 +387,15 @@ const drawBody = (c: Ctx, pose: DonniePose, f: number, d: number) => {
     ell(c, fx, y, 0.9, 0.9, SHIRT[4]); ell(c, fx - 0.2, y - 0.2, 0.6, 0.6, '#FFFFFF');
   });
   drawRuffles(c, f);
-  // (the shirt ripped open over the gut, near the end: the belly out, the navel, hair)
-  if (d >= 0.85) {
+  // (the shirt ripped open over the gut, near the end (or split by it, overfull): the belly out, the navel, hair)
+  if (d >= 0.85 || bl >= 3) {
     fill(c, SHIRT[4], () => { c.moveTo(9, -40); c.lineTo(17.6, -38); c.lineTo(17, -27); c.lineTo(9, -26.5); c.lineTo(11, -33); c.closePath(); });
     fill(c, SKIN[1], () => { c.moveTo(9.8, -39); c.lineTo(17, -37.6); c.lineTo(16.4, -27.6); c.lineTo(10, -27.2); c.lineTo(11.6, -33); c.closePath(); });
     ell(c, 14.6, -31.5, 1.2, 0.8, SKIN[4]);
     for (let i = 0; i < 7; i++) px(c, 11 + ((i * 2.3) % 5.4), -37 + ((i * 3.1) % 9), 0.4, 1, HAIR[3]);
-    cut(c, 11, -35, 15.5, -33.5);
+    if (d >= 0.85) cut(c, 11, -35, 15.5, -33.5);
+    // (overfull: the belly button popped out, a stretch mark or two)
+    if (bl >= 4) { ell(c, 14.6, -31.5, 1.1, 1, SKIN[2]); line(c, [11, -29, 13.4, -28.4], 0.4, FLUSH[1]); line(c, [11.6, -37, 14, -36.2], 0.4, FLUSH[1]); }
   }
   // (the bow tie: a red clip-on, crooked, under his chins)
   c.save(); c.translate(8.4, -56.6); c.rotate(0.25 + d * 0.5);
@@ -552,7 +588,7 @@ const cycle = (keys: number[][], t: number) => {
 };
 
 /** Each pose's arms: [far, near] (in the upper body's own space). */
-const armsFor = (pose: DonniePose, f: number, _L: Required<Pick<DonnieLook, 'wig' | 'cape' | 'fangs'>>): [Arm, Arm] => {
+const armsFor = (pose: DonniePose, f: number, L: Required<Pick<DonnieLook, 'wig' | 'cape' | 'fangs'>> & Pick<DonnieLook, 'snack' | 'bloat'>): [Arm, Arm] => {
   const SX = 11.5, SY = -54;
   const far = (x: number, y: number, ux: number, uy: number) => solve(-SX + 3, SY, x, y, ux, uy);
   const near = (x: number, y: number, ux: number, uy: number) => solve(SX - 4, SY, x, y, ux, uy);
@@ -564,7 +600,16 @@ const armsFor = (pose: DonniePose, f: number, _L: Required<Pick<DonnieLook, 'wig
       const [x, y] = cycle([[22, -44], [24, -56], [21, -38], [13, -48], [25, -50]], f / 24);
       return [far(-17, -34, -1, 0.1), near(x, y, 0.2, 1)];
     }
-    case 'mic': return [far(-17, -34, -1, 0.1), near(mouthX + 3, mouthY + 3, 0, 1)];
+    case 'mic': {
+      // (a snack in the other hand: up in front of him, at his chins, between bites; to his mouth for one now and then)
+      if (L.snack) { const bite = f % 150 < 22; return [far(bite ? mouthX - 1 : 6, bite ? mouthY + 4 : -46, 1, 0.6), near(mouthX + 3, mouthY + 3, 0, 1)]; }
+      return [far(-17, -34, -1, 0.1), near(mouthX + 3, mouthY + 3, 0, 1)];
+    }
+    case 'stuffed': {
+      // (both hands on the gut, patting it, the near one round the front of it)
+      const bl = L.bloat ?? 0, pat = Math.abs(Math.sin(f * 0.18)) * 1.6;
+      return [far(16 + bl * 3, -30, 0, 1), near(20 + bl * 4 - pat, -38 - pat, 0, 1)];
+    }
     case 'panic': {
       // (both hands up by his face, flapping)
       const j = Math.sin(f * 0.9) * 2;
@@ -662,8 +707,9 @@ const hand = (c: Ctx, A: Arm, near: boolean, pose: DonniePose, f: number, L: Don
   ell(c, 2.4, 2.2, 0.7, 0.5, GOLD[2]); px(c, 2.2, 1.9, 0.4, 0.3, GOLD[0]);
   c.restore();
   // What's in it
-  if (!near) return;
-  if (L.held === 'mic') {
+  if (!near) { if (L.snack === 'drumstick') drumstick(c, x, y, f); return; }
+  if (L.held === 'slushie') slushie(c, x, y, f);
+  else if (L.held === 'mic') {
     c.save(); c.translate(x, y); c.rotate(-0.6);
     shape(c, () => c.roundRect(-1.4, -9, 2.8, 9, 0.8), PLASTIC, -1.4, 1.4, 0.7);
     shape(c, () => c.ellipse(0, -10.6, 2.6, 3, 0, 0, Math.PI * 2), ['#E4E4E7', '#A1A1AA', '#71717A', '#52525B', '#27272A'], -2.6, 2.6, 0.7);
@@ -685,12 +731,50 @@ const hand = (c: Ctx, A: Arm, near: boolean, pose: DonniePose, f: number, L: Don
   }
 };
 
+/** A fried drumstick in his fist (the hand at x, y, the forearm's angle a): the bone's knuckle out the bottom of the
+ *  fist, the meat up out of the top of it in its batter (a bite out of it, the meat showing), crumbs of the coating. */
+const FRIED: Ramp = ['#F6C877', '#E09A3A', '#B8701E', '#8A4A10', '#4A2406'];
+const BONE: Ramp = ['#FFFBEB', '#F1E6C8', '#D8C8A0', '#B8A478', '#6E5E3E'];
+const drumstick = (c: Ctx, x: number, y: number, f: number) => {
+  // (held up, the meat tipped toward his face)
+  c.save(); c.translate(x, y); c.rotate(0.35);
+  // (the knuckle of the bone, out the bottom of the fist)
+  tube(c, [0, 2, 0, 5.2], [1.6], [BONE]);
+  ell(c, -0.7, 5.8, 1.2, 1, BONE[1]); ell(c, 0.8, 5.8, 1.2, 1, BONE[1]); line(c, [-1.6, 6.6, 1.8, 6.6], 0.5, BONE[4]);
+  // (the meat, up out of the top: a fat teardrop of batter)
+  shape(c, () => { c.moveTo(-1.6, -2); c.quadraticCurveTo(-4.6, -6, -3.4, -10); c.quadraticCurveTo(-1.4, -13, 1.4, -11.6); c.quadraticCurveTo(4.4, -9.6, 3, -5.4); c.quadraticCurveTo(2.2, -2.6, 1.6, -2); c.closePath(); }, FRIED, -4.6, 4.4, 0.7);
+  // (the bite: a scallop out of its top, the pale meat in it)
+  fill(c, '#F3DDB8', () => { c.ellipse(1.6, -10.4, 1.8, 1.4, 0.4, 0, Math.PI * 2); });
+  line(c, [0.2, -11.2, 1, -9.6, 2.2, -9.4, 3, -10.2], 0.4, '#C89A6A');
+  // (the crags in the coating; a crumb dropping)
+  for (const [cx, cy] of [[-2.4, -7], [0, -5], [-1, -9.4], [1.8, -6.6]]) px(c, cx, cy, 0.8, 0.6, FRIED[3]);
+  px(c, -2.6, -8.4, 0.6, 0.5, FRIED[0]);
+  c.restore();
+  const t = (f % 50) / 50;
+  if (t < 0.6) px(c, x + 1, y + 2 + t * 14, 0.8, 0.8, FRIED[2]);
+};
+/** A blood slushie off the shop's buffet in his fist: a striped paper cup, a domed lid, the red slush heaped up in it, a
+ *  straw; it slops over the rim as he runs. */
+const slushie = (c: Ctx, x: number, y: number, f: number) => {
+  c.save(); c.translate(x + 1, y - 1);
+  const CUP: Ramp = ['#FFFFFF', '#F1EFEA', '#D6D1C2', '#ADA796', '#5E5A4E'];
+  shape(c, () => { c.moveTo(-3, -6); c.lineTo(3, -6); c.lineTo(2.2, 3); c.lineTo(-2.2, 3); c.closePath(); }, CUP, -3, 3, 0.7);
+  px(c, -2.8, -3.6, 5.4, 1.4, '#DC2626'); px(c, -2.5, -0.8, 4.8, 1.2, '#DC2626');
+  // (the slush heaped over the rim, the lid on it, the straw)
+  shape(c, () => c.ellipse(0, -6.6, 3.4, 2, 0, 0, Math.PI * 2), ['#F87171', '#B91C1C', '#8E1414', '#5C0A0A', '#2A0303'], -3.4, 3.4, 0.6);
+  px(c, -1.6, -7.6, 1.2, 0.6, '#FCA5A5');
+  line(c, [0.6, -7, 1.8, -13, 3.2, -14], 1, '#5C0A0A'); line(c, [0.6, -7, 1.8, -13, 3.2, -14], 0.6, '#F1EFEA');
+  if (f % 40 < 14) ell(c, 3, -5 + ((f % 40) / 14) * 6, 0.6, 0.9, '#B91C1C');
+  c.restore();
+};
+
 // ---------------------------------------------------------------------------------------------------------------
 // The head, in its unit space: (0,0) its middle, the face turned toward +x
 
-type Face = 'smug' | 'whine' | 'panic' | 'grit' | 'yelp' | 'dazed' | 'dead' | 'chomp' | 'strain' | 'leer' | 'spew';
+type Face = 'smug' | 'whine' | 'panic' | 'grit' | 'yelp' | 'dazed' | 'dead' | 'chomp' | 'strain' | 'leer' | 'spew' | 'queasy';
 const faceOf = (pose: DonniePose, d: number, L: DonnieLook): Face => {
   switch (pose) {
+    case 'stuffed': return 'queasy';
     case 'talk': case 'mic': return 'whine';
     case 'panic': case 'run': case 'reach': case 'fumble': return 'panic';
     case 'wig': case 'cape': case 'fangs': return 'strain';
@@ -726,7 +810,16 @@ const drawHead = (c: Ctx, pose: DonniePose, f: number, d: number, L: DonnieLook)
   const face = faceOf(pose, d, L);
   const talk = TALKERS.has(pose);
   const v = talk ? viseme(f) : { o: 0, w: 0 };
-  const flushed = face === 'panic' || face === 'strain' || face === 'yelp' || d > 0.5;
+  const flushed = face === 'panic' || face === 'strain' || face === 'yelp' || face === 'queasy' || d > 0.5 || (L.bloat ?? 0) >= 2;
+  const bl = L.bloat ?? 0;
+  // ---- gorged: the chins swelling out under the jaw, a step at a time (behind the skull: it's under it)
+  if (bl) {
+    const cw = 9 + bl * 1.8, ch = 3.4 + bl * 1.2, cy = 13.2 + bl * 0.9;
+    shape(c, () => c.ellipse(1.6, cy, cw, ch, 0, 0, Math.PI * 2), SKIN, 1.6 - cw, 1.6 + cw, 0.8);
+    line(c, [-4 - bl, cy + ch * 0.2, 1.6, cy + ch * 0.55, 7 + bl, cy + ch * 0.1], 0.6, SKIN[3]);
+    for (let i = 0; i < 6 + bl * 2; i++) px(c, -5 - bl + ((i * 3.3) % (12 + bl * 3)), cy - 1 + ((i * 1.9) % (ch + 1)), 0.6, 0.6, 'rgba(60, 50, 50, 0.32)');
+    if (L.powered) ell(c, 1.6, cy, cw, ch, 'rgba(120, 140, 170, 0.28)');
+  }
   // ---- the hair round the back and sides (a horseshoe of it, going gray), under the wig if it's on
   if (!L.wig) {
     shape(c, () => { c.moveTo(-6, -9); c.quadraticCurveTo(-11.6, -9, -11.8, -2); c.lineTo(-11, 5); c.quadraticCurveTo(-9, 7, -7.6, 3); c.lineTo(-7.2, -3); c.quadraticCurveTo(-6.2, -7, -3.6, -8); c.closePath(); }, HAIR, -11.8, -3.6, 0.7);
@@ -754,6 +847,16 @@ const drawHead = (c: Ctx, pose: DonniePose, f: number, d: number, L: DonnieLook)
   }
   c.restore();
   c.beginPath(); skullPath(c); c.strokeStyle = SKIN[4]; c.lineWidth = 0.8; c.stroke();
+  // ---- gorged (or holding a burp in): the near cheek puffed out past the jaw line, flushed, shining; up under the eye
+  const puff = face === 'queasy' ? Math.max(bl, 2) : bl;
+  if (puff) {
+    const rx = 3 + puff * 1.1, ry = 2.6 + puff * 0.8, cx = 7.4 + puff * 0.5, cy = 4.6;
+    shape(c, () => c.ellipse(cx, cy, rx, ry, -0.2, 0, Math.PI * 2), FLUSH, cx - rx, cx + rx, 0.7);
+    ell(c, cx - rx * 0.3, cy - ry * 0.35, rx * 0.35, ry * 0.25, FLUSH[0]); px(c, cx - rx * 0.4, cy - ry * 0.5, 0.8, 0.5, '#FFFFFF');
+    if (L.powered) ell(c, cx, cy, rx, ry, 'rgba(120, 140, 170, 0.2)');
+    // (the far cheek showing past the nose, too)
+    ell(c, -2.4, 5.6, 1.6 + puff * 0.5, 1.4 + puff * 0.4, dith(c, FLUSH[2]));
+  }
   // ---- the comb-over: a few long strands, from the part over his ear right across the dome, plastered down
   if (!L.wig) {
     const lift = pose === 'run' ? Math.sin(f * 0.32) * 1.5 - 2.5 : pose === 'panic' ? -1.5 : 0;
@@ -841,6 +944,11 @@ const drawEyes = (c: Ctx, face: Face, f: number, d: number, powered = false) => 
       eye(c, NEAR_EYE, EYE_Y, 1.8, 1.8, 0.4, 0.8 - s * 0.4, 0.5, true);
       return;
     }
+    case 'queasy':
+      // (bulging: something's coming up)
+      eye(c, FAR_EYE, EYE_Y - 0.5, 1.9, 2.3, 0, 0.3, 0.4, true);
+      eye(c, NEAR_EYE, EYE_Y - 0.5, 2.2, 2.6, 0, 0.3, 0.45, true);
+      return;
     case 'panic':
       // (wide, tiny pupils, darting)
       eye(c, FAR_EYE, EYE_Y - 0.3, 1.8, 2.2, 0, Math.sin(f * 0.6) * 0.4, 0.45, true);
@@ -877,7 +985,7 @@ const drawBrows = (c: Ctx, face: Face, f: number, o: number) => {
       bar(FAR_EYE - 2.6, by + 0.4, FAR_EYE + 2, by - 1.4 - up); bar(NEAR_EYE + 2.8, by + 0.4, NEAR_EYE - 2, by - 1.6 - up);
       return;
     }
-    case 'panic': case 'yelp': case 'strain': case 'dazed': case 'dead':
+    case 'panic': case 'yelp': case 'strain': case 'dazed': case 'dead': case 'queasy':
       bar(FAR_EYE - 2.6, by - 1.2, FAR_EYE + 2, by - 2.8); bar(NEAR_EYE + 2.8, by - 1.2, NEAR_EYE - 2, by - 3);
       line(c, [0, by - 4, 3, by - 4.4, 6, by - 4], 0.5, SKIN[3]); line(c, [0.6, by - 5.6, 5.4, by - 5.8], 0.5, SKIN[3]); // (forehead wrinkles)
       return;
@@ -919,6 +1027,13 @@ const drawMouth = (c: Ctx, face: Face, f: number, d: number, v: { o: number; w: 
       break;
     }
     case 'yelp': open(0.85 + Math.sin(f * 0.8) * 0.1, 0.3); break;
+    case 'queasy':
+      // (lips clamped on it in a pucker, the fang tips over the bottom one, a bead of drool)
+      fill(c, lip, () => c.ellipse(MX + 1, MY + 1, 2.2, 1.5, 0, 0, Math.PI * 2));
+      fill(c, dark, () => c.ellipse(MX + 1.2, MY + 1.1, 1, 0.5, 0, 0, Math.PI * 2));
+      if (fangs) { px(c, MX - 0.4, MY + 1.6, 0.6, 1.4, '#FFF7E0'); px(c, MX + 2.4, MY + 1.6, 0.6, 1.4, '#FFF7E0'); }
+      { const t = (f % 70) / 70; px(c, MX + 2.4, MY + 2.4 + t * 4, 0.7, 1.2, 'rgba(191, 219, 254, 0.8)'); }
+      break;
     case 'spew': open(1, 1); fill(c, bloodFresh, () => c.ellipse(MX + 1.4, MY + 2.6, 2.6, 2.4, 0, 0, Math.PI * 2)); break;
     case 'strain':
       // (teeth gritted, lips pulled back)

@@ -2,6 +2,9 @@
 // ceiling with a stain in it and one bare bulb on a cord, the wall of CRTs (the park's cameras), the console he does
 // the voice from (a gooseneck mic, a sandwich, a soda the size of a bucket, the mug the fangs live in, the foam head
 // the wig lives on), his chair (taped), the bin, the mini fridge, the pizza boxes; the coat rack and the cape; the
+// nest of junk food he lives in (his sin's gluttony): the fridge a glass-door cooler of blood bags with the takeout
+// menu on it, nine pizza boxes, a family bucket of chicken on the soda cases, the recycling gone over with two-liters,
+// an open box on the floor by his chair, bones and ketchup packets everywhere; the
 // staff door out into the shop. Light fake 3D (paint.ts): the back wall a step back, the floor's tiles going back to
 // it, the wall between the room and the shop a solid block with its near side showing.
 //
@@ -15,7 +18,7 @@ import { timeOfDay, hourMix, skyAt } from '../../timeOfDay';
 import { drawLooseWig, drawLooseFangs } from '../../cast/donnie';
 import { type Passage, passageBack, passageSide, passageFront, passageLintel } from './passage';
 import { rockWall } from './shopArt';
-import { x0, HOLE_X, DESK_X, RACK_X, ROOM_DOOR, SHOP_X, PART_L, PART_R } from './geo';
+import { x0, HOLE_X, DESK_X, RACK_X, ROOM_DOOR, SHOP_X, PART_L, PART_R, BUFFET_X, SLUSH_X } from './geo';
 import {
   INK, box, slab, pole, ball, rampOf, dark, lite, mix, checker, hazeBands, stamp, hash,
   WALL_D, CEIL, eyeOf, inDepth, at, quad, seg, shade, inked, wallRun, ceiling, tileFloor, frontFloor, plaque,
@@ -217,23 +220,161 @@ const paintBoards = (g: Ctx) => {
   plaque(g, (BANK_L + BANK_R) / 2, BANK_TOP - 30, 'PARK OPERATIONS', '#27272A', '#FDE047');
 };
 
-const paintFridge = (g: Ctx) => {
-  // (the mini fridge, a microwave on it, a coffee maker on that; pizza boxes stacked beside)
-  const fx = x0 - 6;
-  slab(g, fx, GY - 76, 58, 76, '#D9D5CB', { edge: 4 });
-  box(g, fx + 4, GY - 54, 50, 1, '#8E8A80'); box(g, fx + 48, GY - 48, 4, 18, '#8E8A80');
-  box(g, fx + 8, GY - 70, 14, 10, '#FDE047'); box(g, fx + 10, GY - 66, 10, 1, '#A16207');
-  box(g, fx + 30, GY - 40, 10, 12, '#60A5FA'); box(g, fx + 30, GY - 40, 10, 3, '#F8FAFC');
-  slab(g, fx + 2, GY - 108, 54, 32, '#2A2A2E', { edge: 2 });
-  box(g, fx + 6, GY - 104, 34, 24, '#141416'); box(g, fx + 8, GY - 102, 30, 2, '#3A3A40');
-  box(g, fx + 44, GY - 102, 8, 4, '#22C55E'); for (let i = 0; i < 6; i++) box(g, fx + 44 + (i % 2) * 5, GY - 95 + Math.floor(i / 2) * 5, 3, 3, '#52525B');
-  slab(g, fx + 12, GY - 136, 24, 28, '#1F1F22', { edge: 2 });
-  box(g, fx + 15, GY - 124, 18, 14, '#3F2A1C'); box(g, fx + 15, GY - 124, 18, 4, '#6B4A30');
-  for (let i = 0; i < 7; i++) {
-    const w = 64, y = GY - 9 - i * 9, dx = (hash(i * 3.3) - 0.5) * 8;
-    slab(g, fx + 66 + dx, y, w, 9, '#C9A06A', { edge: 2 });
-    box(g, fx + 66 + dx + 24, y + 3, 16, 3, '#B91C1C');
+// ---------------------------------------------------------------------------------------------------------------
+// His nest (his sin's gluttony): the junk food he lives on, all over the room
+
+/** A blood bag (its top left at x, y): a slumped plastic pouch, dark red, stepped; its label; the port up top; a bendy
+ *  straw stuck in it if `straw`. */
+const bloodBag = (g: Ctx, x: number, y: number, h: number, straw: boolean) => {
+  const sag = Math.round(h * 2);
+  inked(g, () => { g.moveTo(x + 1, y + 2); g.lineTo(x + 9, y + 2); g.quadraticCurveTo(x + 11, y + 10 + sag, x + 8, y + 15); g.lineTo(x + 2, y + 15); g.quadraticCurveTo(x - 1, y + 10 + sag, x + 1, y + 2); g.closePath(); }, '#8E1414', 1);
+  box(g, x + 1, y + 3, 2, 10, '#B91C1C'); box(g, x + 7, y + 5, 2, 9, '#5C0A0A');
+  box(g, x + 2, y + 6, 6, 4, '#F1EFEA'); box(g, x + 2, y + 6, 6, 1, '#DC2626'); box(g, x + 3, y + 8, 3, 1, '#9CA3AF');
+  box(g, x + 4, y, 2, 3, '#D6D3D1');
+  if (straw) { box(g, x + 5, y - 9, 2, 10, '#F1EFEA'); box(g, x + 5, y - 9, 6, 2, '#F1EFEA'); box(g, x + 6, y - 6, 1, 6, '#F472B6'); box(g, x + 7, y - 9, 3, 1, '#F472B6'); }
+};
+/** A two-liter, empty (feet at x, y; on its side if `lying`): green-tinted plastic, its red label, the cap, a brown
+ *  dreg in the bottom. */
+const twoLiter = (g: Ctx, x: number, y: number, lying = false, cap = '#DC2626') => {
+  g.save(); g.translate(x, y); if (lying) g.rotate(-Math.PI / 2);
+  inked(g, () => { g.moveTo(-5, 0); g.lineTo(-5, -20); g.quadraticCurveTo(-5, -25, -2, -27); g.lineTo(-2, -30); g.lineTo(2, -30); g.lineTo(2, -27); g.quadraticCurveTo(5, -25, 5, -20); g.lineTo(5, 0); g.closePath(); }, '#7FA894', 1);
+  box(g, -4, -20, 2, 19, '#B8D8C6'); box(g, 3, -20, 2, 19, '#5E8070');
+  box(g, -5, -15, 10, 7, cap); box(g, -5, -15, 10, 1, '#FCA5A5'); box(g, -3, -12, 6, 1, '#F8FAFC');
+  box(g, -3, -3, 6, 2, '#6B3A12');
+  box(g, -3, -33, 6, 4, cap); box(g, -3, -33, 6, 1, '#FCA5A5');
+  g.restore();
+};
+/** A ketchup packet (its middle at x, y), torn open and squeezed out if `squeezed`: a smear of it trailing off. */
+const packet = (g: Ctx, x: number, y: number, rot = 0, squeezed = false) => {
+  g.save(); g.translate(x, y); g.rotate(rot);
+  box(g, -5, -3, 10, 6, INK); box(g, -4, -2, 8, 4, '#DC2626'); box(g, -4, -2, 8, 1, '#F87171'); box(g, 2, -2, 2, 4, '#F8FAFC');
+  if (squeezed) { box(g, -10, 0, 6, 2, '#B91C1C'); box(g, -13, 1, 4, 1, '#991B1B'); box(g, -4, -2, 4, 2, '#7F1D1D'); }
+  g.restore();
+};
+/** A chicken bone, picked clean (its middle at x, y). */
+const bone = (g: Ctx, x: number, y: number, rot = 0) => {
+  g.save(); g.translate(x, y); g.rotate(rot);
+  box(g, -5, -2, 10, 4, INK); box(g, -4, -1, 8, 2, '#EDE3C8'); box(g, -4, -1, 8, 1, '#FFFBEB');
+  for (const s of [-1, 1]) { box(g, s * 5 - 2, -3, 4, 6, INK); box(g, s * 5 - 1, -2, 2, 4, '#EDE3C8'); }
+  g.restore();
+};
+/** The family bucket of chicken (feet at x, y): a red-and-white striped tub, the cartoon chicken on it, its lid off, the
+ *  drumsticks heaped up out of the top (half of them already bones). */
+const familyBucket = (g: Ctx, x: number, y: number) => {
+  const top = y - 34;
+  const tub = () => { g.moveTo(x - 14, y); g.lineTo(x - 18, top); g.lineTo(x + 18, top); g.lineTo(x + 14, y); g.closePath(); };
+  // (the heap first, behind its rim: fried drumsticks, a couple picked to the bone)
+  for (const [dx, dy, r, picked] of [[-10, -3, -0.5, false], [-2, -6, -0.1, true], [6, -4, 0.4, false], [12, -2, 0.8, true], [2, -1, 0.15, false]] as const) {
+    g.save(); g.translate(x + dx, top + dy); g.rotate(r);
+    if (picked) { box(g, -2, -12, 4, 14, INK); box(g, -1, -11, 2, 12, '#EDE3C8'); box(g, -3, -14, 6, 4, INK); box(g, -2, -13, 4, 2, '#EDE3C8'); }
+    else {
+      inked(g, () => g.ellipse(0, -7, 6, 8, 0, 0, Math.PI * 2), '#C47A22', 2);
+      box(g, -4, -12, 3, 8, '#E09A3A'); box(g, 2, -8, 3, 6, '#8A4A10');
+      for (const [cx, cy] of [[-2, -9], [1, -5], [-3, -4], [2, -11]]) box(g, cx, cy, 2, 1, '#F6C877');
+      box(g, -1, 0, 3, 4, '#EDE3C8');
+    }
+    g.restore();
   }
+  // (the tub: the stripes, darker round to the right; the rim)
+  inked(g, tub, '#F1EFEA', 2);
+  g.save(); g.beginPath(); tub(); g.clip();
+  for (let k = -3; k <= 3; k++) { g.fillStyle = '#C42A22'; g.beginPath(); g.moveTo(x + k * 6 - 2, y); g.lineTo(x + k * 7.6 - 2.4, top); g.lineTo(x + k * 7.6 + 1.4, top); g.lineTo(x + k * 6 + 1, y); g.closePath(); g.fill(); }
+  box(g, x + 8, top, 12, 34, 'rgba(40, 10, 10, 0.25)'); box(g, x - 18, top, 5, 34, 'rgba(255, 255, 255, 0.18)');
+  g.restore();
+  box(g, x - 19, top - 2, 38, 4, INK); box(g, x - 18, top - 1, 36, 2, '#E7E5E4');
+  // (the chicken: a white head in a yellow ring, a red comb, the beak)
+  ball(g, x, y - 17, 8, '#FACC15'); ball(g, x, y - 17, 6, '#F8FAFC', false);
+  box(g, x - 2, y - 25, 4, 3, '#DC2626'); box(g, x + 3, y - 18, 4, 2, '#F59E0B'); box(g, x + 1, y - 20, 2, 2, INK);
+  // (a grease stain soaked through the cardboard)
+  box(g, x - 12, y - 8, 6, 4, 'rgba(160, 110, 40, 0.35)');
+};
+
+const paintFridge = (g: Ctx) => {
+  // (the mini fridge: a glass-door cooler of blood bags (a bendy straw stuck in one), the takeout menu on its door under
+  // a magnet; a microwave on it, a coffee maker on that; the pizza boxes stacked beside, the top one open, crusts in it)
+  const fx = x0 - 6;
+  slab(g, fx, GY - 80, 60, 80, '#D9D5CB', { edge: 4 });
+  // (the glass door: dark in its frame, the light on inside up top, wire shelves, the bags slumped on them)
+  box(g, fx + 5, GY - 74, 40, 66, INK); box(g, fx + 6, GY - 73, 38, 64, '#2A1418');
+  box(g, fx + 6, GY - 73, 38, 3, '#F5E6E6'); checker(g, fx + 6, GY - 70, 38, 2, '#8A6A6A');
+  for (let row = 0; row < 3; row++) for (let k = 0; k < 3; k++) {
+    if (row === 2 && k === 2) continue;   // (one gone: in him)
+    bloodBag(g, fx + 8 + k * 12, GY - 68 + row * 20, hash(row * 3.1 + k * 1.7), row === 1 && k === 0);
+  }
+  for (const sy of [GY - 52, GY - 32]) { box(g, fx + 6, sy, 38, 2, '#9CA3AF'); box(g, fx + 6, sy + 2, 38, 1, '#3F3F46'); }
+  box(g, fx + 9, GY - 72, 2, 62, 'rgba(255, 255, 255, 0.12)'); box(g, fx + 13, GY - 72, 1, 62, 'rgba(255, 255, 255, 0.08)');
+  box(g, fx + 49, GY - 66, 4, 30, '#8E8A80'); box(g, fx + 49, GY - 66, 1, 30, '#F1EFEA');
+  // (the takeout menu: folded in three, its red header, the columns of dishes, one circled twice, the price in marker)
+  const mx = fx + 24, my = GY - 78;
+  slab(g, mx, my, 24, 34, '#F8F4E8', { edge: 1 });
+  box(g, mx + 8, my + 2, 1, 30, '#D6D0BC'); box(g, mx + 16, my + 2, 1, 30, '#D6D0BC');
+  box(g, mx + 2, my + 3, 20, 7, '#B91C1C'); signAt(g, 'MENU', mx + 12, my + 9, 6, print(6, '#FEF2F2'));
+  for (let r = 0; r < 6; r++) for (let k = 0; k < 3; k++) box(g, mx + 2 + k * 8, my + 13 + r * 3, 4 + ((r + k) % 2), 1, '#8A8478');
+  g.strokeStyle = '#DC2626'; g.lineWidth = 1; g.beginPath(); g.ellipse(mx + 13, my + 20, 6, 3, 0, 0, Math.PI * 2); g.stroke(); g.beginPath(); g.ellipse(mx + 13, my + 20, 7, 3.6, 0.1, 0, Math.PI * 2); g.stroke();
+  // (the magnet holding it: a little plastic pizza slice)
+  inked(g, () => { g.moveTo(mx + 8, my - 3); g.lineTo(mx + 16, my - 3); g.lineTo(mx + 12, my + 5); g.closePath(); }, '#F59E0B', 1);
+  box(g, mx + 10, my - 2, 2, 2, '#DC2626'); box(g, mx + 13, my - 1, 2, 2, '#DC2626');
+  // (on top: the microwave, the coffee maker)
+  slab(g, fx + 3, GY - 112, 54, 32, '#2A2A2E', { edge: 2 });
+  box(g, fx + 7, GY - 108, 34, 24, '#141416'); box(g, fx + 9, GY - 106, 30, 2, '#3A3A40');
+  box(g, fx + 45, GY - 106, 8, 4, '#22C55E'); for (let i = 0; i < 6; i++) box(g, fx + 45 + (i % 2) * 5, GY - 99 + Math.floor(i / 2) * 5, 3, 3, '#52525B');
+  // (something exploded in it: red up the inside of the glass)
+  box(g, fx + 11, GY - 100, 12, 8, 'rgba(185, 28, 28, 0.5)'); box(g, fx + 25, GY - 96, 8, 6, 'rgba(185, 28, 28, 0.35)');
+  slab(g, fx + 13, GY - 140, 24, 28, '#1F1F22', { edge: 2 });
+  box(g, fx + 16, GY - 128, 18, 14, '#3F2A1C'); box(g, fx + 16, GY - 128, 18, 4, '#6B4A30');
+  // (the pizza boxes: nine high, crooked, grease through the cardboard; the top one open, its lid up, the crusts in it)
+  for (let i = 0; i < 9; i++) {
+    const w = 64, y = GY - 9 - i * 9, dx = (hash(i * 3.3) - 0.5) * 8;
+    slab(g, fx + 66 + dx, y, w, 9, i % 3 === 1 ? '#BE9460' : '#C9A06A', { edge: 2 });
+    box(g, fx + 66 + dx + 24, y + 3, 16, 3, '#B91C1C');
+    if (hash(i * 7.7) < 0.5) box(g, fx + 70 + dx + hash(i) * 30, y + 2, 6, 4, 'rgba(120, 70, 20, 0.35)');
+  }
+  const tx = fx + 66 + (hash(8 * 3.3) - 0.5) * 8, ty = GY - 9 - 8 * 9;
+  inked(g, () => { g.moveTo(tx + 2, ty); g.lineTo(tx + 6, ty - 42); g.lineTo(tx + 60, ty - 42); g.lineTo(tx + 62, ty); g.closePath(); }, '#E2C895', 2);
+  box(g, tx + 14, ty - 34, 12, 8, 'rgba(150, 90, 30, 0.35)'); box(g, tx + 36, ty - 20, 10, 10, 'rgba(150, 90, 30, 0.3)'); box(g, tx + 26, ty - 12, 6, 4, 'rgba(150, 90, 30, 0.4)');
+  for (const [cx, w] of [[tx + 10, 14], [tx + 30, 10], [tx + 46, 12]] as const) { inked(g, () => g.ellipse(cx + w / 2, ty - 1, w / 2, 3, 0, Math.PI, Math.PI * 2), '#D6A048', 1); box(g, cx + 2, ty - 3, w - 4, 1, '#F0C878'); }
+};
+
+/** Against the wall by the fridge (wall units): soda cases, the family bucket up on them, the recycling bin gone over
+ *  with empty two-liters, one more on the floor. */
+const paintNestBack = (g: Ctx) => {
+  const bx = x0 + 150;
+  for (let k = 0; k < 2; k++) {
+    const y = GY - 18 - k * 18, dx = k * 3;
+    slab(g, bx + dx, y, 46, 18, '#B91C1C', { edge: 2 });
+    g.strokeStyle = '#F8FAFC'; g.lineWidth = 2; g.beginPath(); g.moveTo(bx + dx + 4, y + 12); g.quadraticCurveTo(bx + dx + 20, y + 2, bx + dx + 42, y + 10); g.stroke();
+    box(g, bx + dx + 30, y + 3, 10, 4, '#7F1D1D');
+  }
+  familyBucket(g, bx + 26, GY - 36);
+  bone(g, bx + 62, GY - 3, 0.3); bone(g, bx - 8, GY - 2, -0.2);
+  // (the recycling bin: blue, its arrows; two-liters jutting out of the top of it)
+  const rx = x0 + 214;
+  for (const [dx, r] of [[-8, -0.35], [2, 0.1], [11, 0.45]] as const) { g.save(); g.translate(rx + 20 + dx, GY - 30); g.rotate(r); twoLiter(g, 0, 0, false, dx > 0 ? '#16A34A' : '#DC2626'); g.restore(); }
+  slab(g, rx, GY - 40, 40, 40, '#2563EB', { edge: 3 });
+  for (let i = 0; i < 3; i++) { const a = (i / 3) * Math.PI * 2 - Math.PI / 2, ax = rx + 20 + Math.cos(a) * 7, ay = GY - 20 + Math.sin(a) * 7; box(g, ax - 2, ay - 2, 4, 4, '#E0F2FE'); }
+  twoLiter(g, x0 + 292, GY - 5, true);
+  packet(g, x0 + 140, GY - 3, 0.2, true);
+};
+
+/** At his plane, round his chair: an open pizza box on the floor, its last slice; bones; ketchup packets everywhere; a
+ *  two-liter rolled under the chair, another stood by the desk. (Low: nothing to stand on.) */
+const paintNest = (g: Ctx) => {
+  const px = x0 + 266;
+  // (the box: its base on the floor, the lid up behind it, grease all over the inside of the lid)
+  inked(g, () => { g.moveTo(px, GY - 6); g.lineTo(px + 4, GY - 44); g.lineTo(px + 40, GY - 44); g.lineTo(px + 42, GY - 6); g.closePath(); }, '#E2C895', 2);
+  box(g, px + 10, GY - 36, 10, 8, 'rgba(150, 90, 30, 0.35)'); box(g, px + 24, GY - 22, 10, 9, 'rgba(150, 90, 30, 0.3)');
+  box(g, px + 6, GY - 42, 30, 2, '#F0DCAE');
+  // (the last slice, cold, and the crusts)
+  inked(g, () => { g.moveTo(px + 6, GY - 7); g.lineTo(px + 26, GY - 12); g.lineTo(px + 24, GY - 6); g.closePath(); }, '#F0B848', 1);
+  box(g, px + 22, GY - 12, 4, 6, '#C88A30');
+  for (const [cx, cy] of [[px + 12, GY - 8], [px + 18, GY - 9]]) box(g, cx, cy, 3, 2, '#B91C1C');
+  inked(g, () => g.ellipse(px + 33, GY - 7, 6, 2, 0, Math.PI, Math.PI * 2), '#D6A048', 1);
+  slab(g, px - 2, GY - 6, 46, 6, '#C9A06A', { edge: 2 }); box(g, px + 14, GY - 4, 14, 2, '#B91C1C');
+  // (the bones, the packets, the bottles)
+  bone(g, px + 52, GY - 3, 0.4); bone(g, px - 10, GY - 2, -0.3); bone(g, x0 + 396, GY - 2, 0.1);
+  for (const [x, r, sq] of [[x0 + 318, 0.3, true], [x0 + 330, -0.2, false], [x0 + 384, 0.6, true], [x0 + 400, -0.4, false], [x0 + 444, 0.2, false], [x0 + 256, 0.1, false]] as const) packet(g, x, GY - 3, r, sq);
+  twoLiter(g, x0 + 368, GY - 5, true, '#16A34A');
+  twoLiter(g, x0 + 443, GY - 2);
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -273,6 +414,8 @@ const paintConsole = (g: Ctx) => {
   slab(g, DESK_X - 30, T - 3, 16, 3, '#27272A', { edge: 1 });
   for (let i = 0; i < 4; i++) box(g, DESK_X - 8 + i, T - 3 - i * 2, 22, 2, i % 2 ? '#E7E5E4' : '#F8FAFC');
   box(g, DESK_X - 8, T - 11, 23, 1, '#A8A29E');
+  // (between the sandwich and the mug: a picked drumstick bone, two packets; one more past the mug)
+  bone(g, DESK_X + 55, T - 2, -0.2); packet(g, DESK_X + 52, T - 6, 0.15); packet(g, DESK_X + 88, T - 2, -0.3, true);
   // (the sandwich: on its wax paper, a bite out of it)
   box(g, DESK_X + 16, T - 1, 34, 2, '#E7E2CF');
   inked(g, () => { g.moveTo(DESK_X + 20, T - 1); g.lineTo(DESK_X + 20, T - 9); g.lineTo(DESK_X + 38, T - 9); g.lineTo(DESK_X + 40, T - 6); g.lineTo(DESK_X + 44, T - 7); g.lineTo(DESK_X + 46, T - 1); g.closePath(); }, '#D6A86A', 1);
@@ -408,7 +551,8 @@ export const drawRoom = (c: Ctx, state: GameState, look: RoomLook) => {
     stamp(c, 'ctl-boards', x0 + 40, GY - 400, 230, 200, paintBoards);
     stamp(c, 'ctl-bank', BANK_L - 10, BANK_TOP - 50, BANK_R - BANK_L + 20, GY - BANK_TOP + 50, paintBank);
     for (let i = 0; i < 6; i++) feed(c, i, f, look.done || (look.burst && i === 3));
-    stamp(c, 'ctl-fridge', x0 - 10, GY - 140, 150, 140, paintFridge);
+    stamp(c, 'ctl-fridge', x0 - 10, GY - 146, 150, 146, paintFridge);
+    stamp(c, 'ctl-nest-back', x0 + 130, GY - 96, 170, 98, paintNestBack);
   });
   // The floor: tiles going back to the wall, the hole (or the hatch), the front edge
   tileFloor(c, eye, ROOM_L, PART_R, 40, ['#8E8878', '#77715F'], 3, '#4A463C');
@@ -423,7 +567,9 @@ export const drawRoom = (c: Ctx, state: GameState, look: RoomLook) => {
     const lit = Math.floor(f / 90) % 7 !== 0;
     ball(c, bx, GY - 382, 6, lit ? '#FDE68A' : '#A1A1AA');
   }
-  // At his plane: the chair, the bin, the console and its clutter, the head, the rack and the cape
+  // At his plane: his nest round the chair, the chair, the bin, the console and its clutter, the head, the rack and the
+  // cape
+  stamp(c, 'ctl-nest', x0 + 240, GY - 50, 220, 52, paintNest);
   stamp(c, 'ctl-chair', x0 + 300, GY - 140, 90, 142, paintChair);
   stamp(c, 'ctl-bin', x0 + 396, GY - 60, 60, 62, paintBin);
   consoleTop(c, eye);
@@ -527,6 +673,12 @@ export const roomLighting = (state: GameState, burst: boolean, door: number | nu
   for (let x = Math.floor((Math.max(cam, SHOP_X) - 300) / 320) * 320 + 160; x < cam + CANVAS_WIDTH + 300; x += 320) if (near(x) && x > SHOP_X) {
     lights.push({ x, y: GY - 60, r: 200, a: 0.6, color: 'rgba(234, 88, 12, 0.07)' });
     lights.push({ x: x + 160, y: GY - 330, r: 240, a: 0.6, cone: 220, color: 'rgba(254, 215, 170, 0.05)' });
+  }
+  // (the buffet's heat lamps, orange on the steam table; the slushie machine's red header)
+  if (near(BUFFET_X + 130)) {
+    const [hx, hy] = at(eye, BUFFET_X + 127, GY - 70, WALL_D), [sx, sy] = at(eye, SLUSH_X, GY - 96, WALL_D);
+    lights.push({ x: hx, y: hy, r: 170, a: 0.65, cone: 160, color: 'rgba(251, 146, 60, 0.09)' });
+    lights.push({ x: sx, y: sy, r: 90, a: 0.6, color: 'rgba(239, 68, 68, 0.08)' });
   }
   const mixN = (a: number, b: number) => Math.round(a + (b - a) * k);
   if (door !== null && near(door)) lights.push({ x: door - 20, y: GY - 70, r: 150, a: 0.6, color: 'rgba(167, 139, 250, 0.09)' });

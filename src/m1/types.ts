@@ -81,6 +81,8 @@ export type SoundType =
   | 'spawn' | 'chitter' | 'gnaw' | 'crumble'
   // (Meathead 2's crossbow of plagues: a dart loosed, somebody retching, the puke coming)
   | 'twang' | 'retch' | 'gush'
+  // (Meathead 2's Donnie Dracula, the glutton: a belch off a full gut, the last of a drink up a straw)
+  | 'burp' | 'slurp'
   // his footsteps, by what he's walking on
   | 'step_hard' | 'step_snow' | 'step_metal' | 'step_wood' | 'step_dirt' | 'step_sand' | 'step_wet';
 

@@ -10,6 +10,8 @@
 //                      teaches the arc), a small health up there; Donnie lobs his own globes back at the far end.
 //   1300  SOUVENIR HALL  two ways through: stairs up to a mezzanine (a hawker on it, a small ammo and a small health),
 //                      or the floor under it (two clerks, and Donnie's first barrel rolled back down it).
+//   2450  BUFFET       ALL-YOU-CAN-EAT against the back wall (snack bars, the steam table, the blood slushie machine:
+//                      shopArt.ts); Donnie grabs a slushie off it on the run, Meathead has his say.
 //   2500  PHOTO BOOTH  the mascot in front of the booth (over him off its roof, or through him); step into the booth and
 //                      it takes your picture: the flash, the strip of four out of the slot.
 //   3100  THE GAUNTLET Donnie all at once (a rack, globes, a barrel) with a clerk and a hawker on a shelf.
@@ -34,7 +36,8 @@ import { CLERK, HAWKER, MASCOT, throwGlobe, staffTalking, setStaffHush } from '.
 import { hazardVictims, hazardHit, boxHits, setHazardZones } from '../../hazardHit';
 import * as L from './lines';
 import { INK, box, slab, pole, ball, sign, rampOf, checker, stamp, eyeOf, at as at3, quad, inked, standTop, plaque, type Eye } from './paint';
-import { drawShopRoom, hangingSign } from './shopArt';
+import { drawShopRoom, hangingSign, drawBuffet } from './shopArt';
+import { BUFFET_X, SLUSH_X } from './geo';
 import { drawPartitionSide } from './room';
 import { signAt, signW, print, led, brand, candle, haunt } from '../letters';
 
@@ -83,7 +86,9 @@ interface Rack { x: number; kind: typeof RACKS[number]['kind']; tip: boolean; fa
 interface Barrel { x: number; vx: number; spin: number; dead: number }
 export interface Shop {
   /** Donnie, ahead: where, which way, what he's at; his next spot; his throw (frames into it). */
-  d: { x: number; facing: 1 | -1; mode: 'run' | 'jog' | 'wait' | 'throw' | 'door' | 'gone'; spot: number; throwT: number; barkAt: number; doorSaid: boolean } | null;
+  d: { x: number; facing: 1 | -1; mode: 'run' | 'jog' | 'wait' | 'throw' | 'door' | 'gone'; spot: number; throwT: number; barkAt: number; doorSaid: boolean;
+    /** A blood slushie, grabbed off the buffet on the run (he can't pass food). */
+    slushie: boolean } | null;
   said: string | null;
   racks: Rack[]; barrels: Barrel[];
   booth: { t: number; strip: number; used: boolean };
@@ -92,12 +97,12 @@ export interface Shop {
 export const makeShop = (): Shop => ({
   d: null, said: null,
   racks: RACKS.map(r => ({ x: at(r.rel), kind: r.kind, tip: r.tip, fall: 0, down: false, block: null, broken: false })),
-  barrels: [], booth: { t: -1, strip: 0, used: false }, gags: [false, false, false, false],
+  barrels: [], booth: { t: -1, strip: 0, used: false }, gags: [false, false, false, false, false],
 });
 
 /** Donnie off up ahead (`from`: where he starts; `wait`: stood looking back for him). */
 export const startChase = (state: GameState, sh: Shop, from: number, wait: boolean) => {
-  sh.d = { x: from, facing: wait ? -1 : 1, mode: wait ? 'wait' : 'run', spot: SPOTS.findIndex(s => at(s.rel) > from), throwT: 0, barkAt: state.frame + 200, doorSaid: false };
+  sh.d = { x: from, facing: wait ? -1 : 1, mode: wait ? 'wait' : 'run', spot: SPOTS.findIndex(s => at(s.rel) > from), throwT: 0, barkAt: state.frame + 200, doorSaid: false, slushie: from > SLUSH_X };
   if (sh.d.spot < 0) sh.d.spot = SPOTS.length;
   // (anything he'd already have thrown over: over)
   for (const s of SPOTS) if (at(s.rel) <= from && s.what === 'rack' && s.rack !== undefined) tipRack(state, sh.racks[s.rack], true);
@@ -235,6 +240,8 @@ const tickDonnie = (state: GameState, sh: Shop) => {
   d.mode = gap < 380 ? 'run' : gap > 680 ? 'wait' : 'jog';
   if (d.mode !== 'wait') { d.x += gap < 120 ? RUN * 1.6 : d.mode === 'run' ? RUN : JOG; d.facing = 1; } else d.facing = -1;
   if (spot && d.x > at(spot.rel)) d.x = at(spot.rel);
+  // (past the buffet's slushie machine: he can't run past food; one grabbed on the way, a slurp on it)
+  if (!d.slushie && d.x >= SLUSH_X) { d.slushie = true; if (Math.abs(gap) < 700) { playSound('slurp', 0.6, 2); playSound('pickup', 0.2, -6); } }
   // (over his shoulder, now and then: one voice at a time)
   if (state.frame >= d.barkAt && d.x < G.BALL_DOOR - 500 && !sh.said && !staffTalking()) {
     d.barkAt = state.frame + 480 + Math.floor(Math.random() * 240);
@@ -281,6 +288,8 @@ export const tickShop = (ctx: FrameContext, sh: Shop) => {
   tickBooth(state, sh);
   // (the merchandise: his say on it, each the once, as he goes by; one voice at a time)
   ([[200, 0], [540, 3], [1700, 1]] as const).forEach(([rel, i]) => { if (!sh.gags[i] && px > at(rel) && px < at(rel) + 200) { sh.gags[i] = true; if (!sh.said) meatheadSays(state, L.MEATHEAD_SHOP[i], false); } });
+  // (the buffet: his say on it, the once)
+  if (!sh.gags[4] && px > BUFFET_X + 60 && px < BUFFET_X + 240) { sh.gags[4] = true; if (!sh.said) meatheadSays(state, pick(L.MEATHEAD_BUFFET), false); }
 };
 export const shopDonnieGone = (sh: Shop) => !sh.d || sh.d.mode === 'gone';
 export const shopDonnieOut = (sh: Shop) => { if (sh.d) sh.d.mode = 'gone'; };
@@ -298,6 +307,7 @@ export const drawShop = (c: Ctx, state: GameState, sh: Shop) => {
   const L0 = Math.max(G.SHOP_X - 60, v.x - 160), R0 = Math.min(G.BALL_DOOR + 400, v.x + v.w + 160);
   if (R0 <= L0) return;
   drawShopRoom(c, state, eye, L0, R0);
+  drawBuffet(c, eye, state.frame);
   drawPartitionSide(c, state, 1);
   // The section signs, hung from the ceiling on chains
   for (const [rel, words] of [[250, 'APPAREL OF THE DAMNED'], [850, 'CHECKOUT'], [1900, 'SOUVENIR HALL'], [2780, 'PHOTO WITH SATAN'], [3300, 'CLEARANCE: EVERYTHING MUST BURN'], [3870, 'BALLROOM THIS WAY']] as const) {
@@ -559,7 +569,8 @@ export const drawShopFront = (c: Ctx, state: GameState, sh: Shop) => {
   const d = sh.d;
   if (d && d.mode !== 'gone') {
     const pose = d.mode === 'throw' ? (d.throwT < 14 ? 'reach' : 'panic') : d.mode === 'wait' || d.mode === 'door' ? 'panic' : 'run';
-    drawDonnie(c, d.x, GY, d.facing, f, pose, 0, { wig: true, cape: true, fangs: true, held: d.mode === 'throw' && d.throwT < 14 && SPOTS[d.spot]?.what === 'globes' ? null : null });
+    // (the slushie in his fist once he's grabbed it; put down for a throw)
+    drawDonnie(c, d.x, GY, d.facing, f, pose, 0, { wig: true, cape: true, fangs: true, held: d.slushie && d.mode !== 'throw' ? 'slushie' : null });
     if (sh.said) saidOver(c, sh.said, d.x, GY - DONNIE_H - 14, '#FDE68A');
   }
 };

@@ -83,7 +83,8 @@ const go = (cs: Control, s: Step) => { cs.step = s; cs.stepT = 0; };
 /** What Donnie's got on (and in hand) this far into the dress-up. */
 const dressLook = (cs: Control): { pose: DonniePose; look: DonnieLook } => {
   const t = cs.stepT;
-  if (cs.step === 'pa') return { pose: 'mic', look: { held: 'mic' } };
+  // (on the PA, eating: a drumstick out of the family bucket in his other hand, a bite between lines)
+  if (cs.step === 'pa') return { pose: 'mic', look: { held: 'mic', snack: 'drumstick' } };
   if (cs.step === 'burst' || cs.step === 'sees') return { pose: cs.said ? 'panic' : 'panic', look: {} };
   if (cs.step === 'dress') {
     if (t < 16) return { pose: 'reach', look: { held: t > 8 ? 'wig' : null } };
@@ -134,6 +135,8 @@ const reveal = (ctx: FrameContext, cs: Control): Controls => {
     case 'pa':
       // (the floor rumbling under him as he talks: something's coming up)
       if (cs.t > 60 && cs.t % 20 === 0) { shakeScreen(state, 2, 2); playSound('rumble', 0.25, -6); }
+      // (a bite of the drumstick: the art brings it up to his mouth every 150 frames)
+      if (state.frame % 150 === 10) { playSound('gnaw', 0.45, -2); playSound('crunch', 0.3, 6); }
       if (cs.t > 900) go(cs, 'burst');
       break;
     case 'burst':
@@ -144,6 +147,8 @@ const reveal = (ctx: FrameContext, cs: Control): Controls => {
         p.hidden = false; p.pos.y = GY - p.height - 4; p.vel.y = -17; p.vel.x = 1.2; p.facing = 1;
         playSound('boom', 1, -4); playSound('crash', 0.8); shakeScreen(state, 18, 10);
         for (let i = 0; i < 26; i++) state.particles.push({ pos: { x: HOLE_X + (Math.random() - 0.5) * 50, y: GY - 4 }, vel: { x: (Math.random() - 0.5) * 9, y: -4 - Math.random() * 9 }, life: 50, color: ['#57534E', '#78716C', '#F97316', '#FDE047', '#DC2626'][i % 5], size: 3 + Math.random() * 6, grav: 0.35 });
+        // (the drumstick out of his hand, flying)
+        for (let i = 0; i < 3; i++) state.particles.push({ pos: { x: cs.dx - 6, y: GY - 60 }, vel: { x: 1.5 + i, y: -5 - i }, life: 50, color: ['#B8701E', '#F1E6C8', '#E09A3A'][i], size: 4 - i, grav: 0.35 });
         cs.dfacing = -1;
       }
       if (t > 28 && t < 70 && t % 3 === 0) state.particles.push({ pos: { x: HOLE_X + (Math.random() - 0.5) * 30, y: GY - 6 }, vel: { x: (Math.random() - 0.5) * 2, y: -6 - Math.random() * 6 }, life: 30, color: Math.random() < 0.5 ? '#F97316' : '#FDE047', size: 5, grav: 0.3 });

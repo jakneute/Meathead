@@ -6,6 +6,7 @@
 // The control room and the gift shop: Donnie caught on the PA (his Dracula voice, 'm2.donnie.pa'), then Donnie himself
 // ('m2.donnie': the real voice, whiny, Jersey), the dress-up, the run for it, the chase. He's been watching Meathead on
 // the cameras the whole way (he knows everything he did, and the state of him). Never says how Meathead got here.
+// A glutton (his sin): eating into the mic when he's caught at it, a drumstick in his other hand.
 
 export type Dressed = 'clean' | 'shitty' | 'nude';
 export type ByPants = Record<Dressed, readonly string[]>;
@@ -16,19 +17,19 @@ export const all = (r: ByPants) => [...r.clean, ...r.shitty, ...r.nude];
 /** On the PA as the floor goes up (the Dracula voice): calling in the cleanup for the guest he watched go to hell. */
 export const PA_CAUGHT: ByPants = {
   clean: [
-    'ATTENTION. A GUEST FELL DOWN THE HELL SHAFT. HE VAS RUDE. GOOD RIDDANCE.',
-    'CLEANUP TO THE HELL PIT. ONE DEAD GUEST. BRING TWO MOPS.',
-    'THE BALD INTRUDER HAS BEEN DEALT VITH. BY GRAVITY. RESUME SCREAMING.',
+    'ATTENTION. *CRUNCH*. A GUEST FELL DOWN THE HELL SHAFT. HE VAS RUDE. GOOD RIDDANCE. *GULP*.',
+    'CLEANUP TO THE HELL PIT. ONE DEAD GUEST. BRING TWO MOPS. AND A BUCKET OF CHICKEN.',
+    'THE BALD INTRUDER HAS BEEN DEALT VITH. BY GRAVITY. *SLURP*. RESUME SCREAMING.',
   ],
   shitty: [
-    'ATTENTION. A GUEST FELL DOWN THE HELL SHAFT. HE VAS FULL OF SHIT. LITERALLY.',
-    'CLEANUP TO THE HELL PIT. ONE DEAD GUEST. BRING A HOSE.',
-    'THE INTRUDER VITH THE LOADED TROUSERS HAS BEEN DEALT VITH. VE VILL AIR OUT THE TOWER.',
+    'ATTENTION. *CRUNCH*. A GUEST FELL DOWN THE HELL SHAFT. HE VAS FULL OF SHIT. LITERALLY. *GULP*.',
+    'CLEANUP TO THE HELL PIT. ONE DEAD GUEST. BRING A HOSE. AND A BUCKET OF CHICKEN.',
+    'THE INTRUDER VITH THE LOADED TROUSERS HAS BEEN DEALT VITH. *SLURP*. VE VILL AIR OUT THE TOWER.',
   ],
   nude: [
-    'ATTENTION. A NAKED GUEST FELL DOWN THE HELL SHAFT. EVERYTHING BOUNCED.',
-    'CLEANUP TO THE HELL PIT. ONE DEAD NUDIST. BRING A BIG TARP.',
-    'THE NUDIST HAS BEEN DEALT VITH. YOU MAY OPEN YOUR EYES. CHILDREN, NOT YET.',
+    'ATTENTION. *CRUNCH*. A NAKED GUEST FELL DOWN THE HELL SHAFT. EVERYTHING BOUNCED. *GULP*.',
+    'CLEANUP TO THE HELL PIT. ONE DEAD NUDIST. BRING A BIG TARP. AND A BUCKET OF CHICKEN.',
+    'THE NUDIST HAS BEEN DEALT VITH. *SLURP*. YOU MAY OPEN YOUR EYES. CHILDREN, NOT YET.',
   ],
 };
 
@@ -131,6 +132,8 @@ export const MEATHEAD_SHOP = [
   'PICTURE WITH SATAN. ALREADY DID THAT. HE WAS TALLER.',
   'DEVIL HORNS. FIVE BUCKS TO LOOK LIKE A DOUCHEBAG.',
 ];
+/** Meathead, passing the shop's buffet (ALL-YOU-CAN-EAT, the blood slushies) as Donnie grabs one on the run. */
+export const MEATHEAD_BUFFET = ['ALL YOU CAN EAT. THAT EXPLAINS THE COUNT.', 'BLOOD SLUSHIES. NO WONDER HE SWEATS.'];
 /** Meathead, coming up out of the floor (the geyser). */
 export const MEATHEAD_BURST = ['HOT. HOT. HOT HOT HOT.', 'MY ASS IS ON FIRE. AGAIN.', 'WHAT FLOOR IS THIS?'];
 
@@ -154,7 +157,7 @@ export const STAFF_BARK: ByPants = {
 };
 
 export const VOICE_LINES: Record<string, string[]> = {
-  meathead: [...MEATHEAD_DOOR_KICK, ...MEATHEAD_SEES, ...MEATHEAD_AFTER, ...MEATHEAD_SHOP, ...MEATHEAD_BURST, ...HURT_PITCHFORK, ...HURT_CLERK, ...HURT_GLOBE, ...HURT_MASCOT, ...HURT_BARREL],
+  meathead: [...MEATHEAD_DOOR_KICK, ...MEATHEAD_SEES, ...MEATHEAD_AFTER, ...MEATHEAD_SHOP, ...MEATHEAD_BUFFET, ...MEATHEAD_BURST, ...HURT_PITCHFORK, ...HURT_CLERK, ...HURT_GLOBE, ...HURT_MASCOT, ...HURT_BARREL],
   death: [...DEATH_PITCHFORK, ...DEATH_CLERK, ...DEATH_GLOBE, ...DEATH_MASCOT, ...DEATH_BARREL],
   'm2.donnie.pa': [...all(PA_CAUGHT)],
   'm2.donnie': [...[DONNIE_SEES, DONNIE_DRESS, DONNIE_FLEES, DONNIE_CHASE, DONNIE_THROW, DONNIE_DOOR, DONNIE_LOCKED].flatMap(all)],

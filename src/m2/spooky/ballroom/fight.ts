@@ -16,6 +16,12 @@
 //   THE SPEW    ...hangs in the air and sprays the blood back out at Meathead like a machine gun: a stream of it, aimed,
 //               the aim dragging after him (keep moving, jump it).
 //
+//   GLUTTONY    His sin. Every gulp (Meathead's blood or a guest's) swells him a step (the gut out over his belt, the
+//               cheeks and chins puffing up), and after every drink a burp and his say ("SECONDS."). Full, he's slower
+//               and sloppier (the window: lower in the air, a longer tell, a slower swoop, a wider spray, winded
+//               longer), and thins back down over a few seconds. And he can't help himself: a guest coming near while
+//               he's at Meathead (even with his fangs in him) can pull him off it to feed (each guest the once, mostly).
+//
 // Hurting him: the ray gun and his moves in full; any other special weapon but the weakness barely does (SHARE: every land
 // boss's way); and a boss's usual breather after each hit. His weakness is the
 // SOUVENIR LAUNCHER, and only one souvenir in its bag: CHRIST THE REDEEMER. That one stuns him (down out of the air,
@@ -26,8 +32,10 @@
 //
 // Two deaths: by the Redeemer (the weakness: the kill cam, a white flash, the cut in close, slow motion; he catches
 // fire, flails, and crumbles to a pile of ash, his wig on top of it, the little statue standing in it); any other way,
-// his powers go out and he drops out of the air in a belly flop, his trousers down round his ankles, rear up in his
-// bat boxers, and the disco ball comes down on it. Satan takes his soul either way.
+// everything he's drunk catches up with him: he swells up in the air past full (the buttons popping, a burp to shake
+// the room), his powers go out and he drops out of the air in a belly flop, his trousers down round his ankles, rear up
+// in his bat boxers, the disco ball comes down on it, and he shits himself, going down like a balloon. Satan takes his
+// soul either way.
 
 import { paintSatan, drawSatanFace } from '../hell/satanArt';
 import type { GameState } from '../../../m1/game/core/state';
@@ -36,7 +44,7 @@ import type { Controls } from '../../../m1/game/platform/input';
 import type { Enemy, EnemyKind } from '../../../m1/types';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { playSound } from '../../../m1/game/platform/audio';
-import { say, silenceAll, cutVoice, pickLine } from '../../../m1/game/platform/speech';
+import { say, silenceAll, cutVoice, pickLine, pickFreshLine } from '../../../m1/game/platform/speech';
 import { SKIP_AFTER, offerSkip, takeSkip } from '../../../m1/game/platform/skip';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { isShat, isNude } from '../../../m1/game/player/gut';
@@ -115,6 +123,20 @@ const BEAT_GAP = 360;
 const ADMIRE_T = 120;
 /** At least this long between Meathead's hints about the souvenirs (frames). */
 const HINT_GAP = 600;
+/** Gluttony. How full a gulp makes him (a step is 1: drawn a whole step at a time, from the first gulp), Meathead's
+ *  blood (a drain's tick) or a guest's (a guest's gulp); the most he holds; how long he stays that full after his last
+ *  gulp, then how fast he thins back down (steps a frame: all three in four seconds). */
+const FULL_GULP = 0.25, FULL_GUEST = 0.15, FULL_MAX = 3, FULL_HOLD = 90, FULL_THIN = 1 / 80;
+/** Full, he's slower and sloppier, a step at a time (the window): his flying, his swoop and his aim this much slower
+ *  a step; the grab's tell this many frames longer a step; hanging this much lower a step (px); winded this much longer
+ *  a step; the spew's spray this much wider a step. */
+const FULL_SLOW = 0.12, FULL_TELL = 6, FULL_SAG = 22, FULL_WINDED = 0.25, FULL_SPRAY = 0.5;
+/** The burp after every drink: when it comes up (frames after), when he has his say, how long he's holding his gut. */
+const BURP_AT = 8, BURP_SAY = 34, BURP_T = 46;
+/** A guest this near (px across) while he's at Meathead pulls him off it to feed, this often (each guest the once). */
+const TEMPT_R = 260, TEMPT_CHANCE = 0.6;
+/** Eating himself to death (the usual death): how long he swells up in the air before he drops. */
+const GORGE_T = 100;
 
 /** Sources of hurt (each with its lines and its death screen). */
 const BLOOD = 'm2:donnie_blood';
@@ -129,7 +151,9 @@ export type Mode = 'intro' | 'hover' | 'aim' | 'dive' | 'drain' | 'rise' | 'hunt
 
 interface Guest { x: number; dir: 1 | -1; seed: number; state: 'run' | 'held' | 'fall' | 'husk'; y: number; vy: number; t: number; said: string | null; facing: 1 | -1;
   /** Got away from him once (he was knocked off them): he won't go after that one again. */
-  spared?: boolean }
+  spared?: boolean;
+  /** Came near him while he was at Meathead (he's had his chance to break off for them: the once). */
+  tempted?: boolean }
 interface Drop { x: number; y: number; vx: number; vy: number; r: number }
 interface Splat { x: number; w: number; t: number }
 export interface KillCam { t: number; acc: number; z: number; out: boolean }
@@ -165,7 +189,9 @@ export interface Fight {
   souvenir: { id: string } | null;
   /** The last of Meathead's moves that landed on him. */
   moveSeen: number | undefined;
-  death: { how: 'flat' | 'burn'; t: number; x: number; y: number; vy: number; facing: 1 | -1; land: number } | null;
+  /** Gluttony: how full he is (steps, 0..FULL_MAX), when he last had a gulp; the burp after a drink (frames into it). */
+  full: number; fullAt: number; burpT: number;
+  death: { how: 'flat' | 'burn'; t: number; x: number; y: number; vy: number; facing: 1 | -1; land: number; bloat: number } | null;
   deathSaid: number;
   cam: KillCam | null;
   /** Satan and Donnie's beats: the next one waiting its turn, one going now, which have gone (the once-only ones),
@@ -247,9 +273,10 @@ const greased = (ctx: FrameContext, f: Fight) => {
 /** A bark: dropped if somebody's talking. */
 /** Nobody in the fight saying anything just now (Donnie, Satan, a guest): one voice at a time, text only while said. */
 const quiet = (f: Fight) => !f.said && !f.satanSaid && !f.beatOn && !f.guests.some(g => g.said);
-const bark = (f: Fight, lines: L.ByPants) => {
-  if (!quiet(f)) return;
-  const text = pick(lines[pants()]);
+const bark = (f: Fight, lines: L.ByPants) => { if (quiet(f)) sayBark(f, pick(lines[pants()])); };
+/** A bark only if one of them's not been said lately (one that comes round a lot: never the same twice in a while). */
+const barkFresh = (f: Fight, lines: L.ByPants) => { if (!quiet(f)) return; const t = pickFreshLine(lines[pants()]); if (t) sayBark(f, t); };
+const sayBark = (f: Fight, text: string) => {
   say(text, voice('m2.donnie'), 'casual', {
     always: true,
     onShow: spoken => { f.said = text; if (!spoken) setTimeout(() => { if (f.said === text) f.said = null; }, Math.max(1600, text.length * 65)); },
@@ -278,7 +305,7 @@ export const startFight = (state: GameState): Fight => {
     intro: 'plead', introT: 0, skipT: 0, admireT: 0, circle: 0, powered: false, dive: null, mark: null, held: null,
     guests: [], guestT: 0, prey: null, drops: [], splats: [], aimX: 0, aimY: 0, stunT: 0, side: -1, redeemAt: 0, staggerAt: -99999, wrongN: 0, hintAt: -99999, knockedLoose: false,
     said: null, satanSaid: null, nagT: 0, tauntT: 0, souvenir: null, moveSeen: e.hitByMove,
-    death: null, deathSaid: 0, cam: null, wigOff: null, e,
+    death: null, deathSaid: 0, cam: null, wigOff: null, e, full: 0, fullAt: -9999, burpT: 0,
     beat: null, beatOn: false, beatEnd: -9999, beatsDone: new Set(), guestKills: 0,
   };
   live = f;
@@ -315,7 +342,11 @@ const intro = (ctx: FrameContext, f: Fight): Controls => {
       // (up out of his corner, changed: lifted, the flash, the wings out)
       f.y = GY - Math.min(1, t / 70) * HOVER_UP;
       f.x += (ARENA_MID + 140 - f.x) * 0.03;
-      if (t === 36) { f.powered = true; playSound('thunder', 1, -2); playSound('roar', 0.7, 4); shakeScreen(state, 14, 8); }
+      if (t === 36) {
+        f.powered = true; playSound('thunder', 1, -2); playSound('roar', 0.7, 4); shakeScreen(state, 14, 8);
+        // (the drumstick he'd been cowering with, dropped: he's after bigger things now)
+        for (let i = 0; i < 3; i++) state.particles.push({ pos: { x: f.x + f.facing * 14, y: f.y - 60 }, vel: { x: (Math.random() - 0.5) * 2, y: -2 - i }, life: 50, color: ['#B8701E', '#F1E6C8', '#E09A3A'][i], size: 4 - i, grav: 0.35 });
+      }
       if (t >= 80) { f.intro = 'close'; f.introT = 0; }
       break;
     case 'close':
@@ -375,22 +406,25 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
   if (!f.wigOff && f.hp < HP / 2 && f.mode !== 'dead') { f.wigOff = { x: f.x, y: f.y - 90, vy: -4 }; playSound('whoosh', 0.5, 8); }
   if (f.wigOff && f.wigOff.y < GY - 4) { f.wigOff.vy += 0.4; f.wigOff.y = Math.min(GY - 4, f.wigOff.y + f.wigOff.vy); }
   guests(ctx, f);
+  if (f.mode !== 'dead') { gorge(ctx, f); tempt(state, f); }
+  const sl = slow(f), sag = FULL_SAG * steps(f);
   switch (f.mode) {
     case 'hover': {
       // (about over the floor, off to one side of him, bobbing; showing off; Satan on at him about the soul)
+      // (full: hanging lower, heavier, slower about it)
       const px = pmid(state).x;
-      let hx = Math.max(ARENA_L + 90, Math.min(ARENA_R - 90, px + f.side * 210)), hy = GY - HOVER_UP + Math.sin(f.total * 0.05) * 14;
+      let hx = Math.max(ARENA_L + 90, Math.min(ARENA_R - 90, px + f.side * 210)), hy = GY - HOVER_UP + sag + Math.sin(f.total * 0.05) * 14;
       // (now and then a swoop: down low, across the floor past him and up the other side; he's in the line of fire)
       const sw = f.total % SWOOP_EVERY;
       if (f.admireT <= 0 && sw < SWOOP_T) {
         const k = Math.sin((sw / SWOOP_T) * Math.PI);
-        hy = GY - HOVER_UP + (HOVER_UP - SWOOP_UP) * k;
+        hy = GY - HOVER_UP + sag + (HOVER_UP - sag - SWOOP_UP) * k;
         hx = Math.max(ARENA_L + 90, Math.min(ARENA_R - 90, px - f.side * 260 + f.side * 520 * (sw / SWOOP_T)));
         if (sw === 1) playSound('whoosh', 0.7, -2);
       }
       // (the first moments: showing himself off, a big loop in the air, not after him yet)
       if (f.admireT > 0) { const a = (1 - f.admireT / ADMIRE_T) * Math.PI * 2; hx = f.x + Math.sin(a) * 40; hy = GY - HOVER_UP - (1 - Math.cos(a)) * 70; f.admireT--; if (f.admireT % 40 === 0) playSound('whoosh', 0.5, 8); }
-      f.vx = (f.vx + (hx - f.x) * 0.012) * 0.9; f.vy = (f.vy + (hy - f.y) * 0.02) * 0.88;
+      f.vx = (f.vx + (hx - f.x) * 0.012 * sl) * 0.9; f.vy = (f.vy + (hy - f.y) * 0.02 * sl) * 0.88;
       f.x += f.vx; f.y += f.vy;
       faceHim(state, f);
       if (f.admireT <= 0 && ++f.tauntT >= TAUNT_EVERY) { f.tauntT = Math.floor(Math.random() * 120); bark(f, L.DONNIE_TAUNT); }
@@ -413,14 +447,14 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
       {
         // (the marker: on him (his feet), till it locks)
         const m = pmid(state), p = state.player;
-        if (!f.mark || !f.mark.locked) f.mark = { x: m.x, y: Math.min(GY, p.pos.y + p.height), locked: f.t >= AIM_T[ph] - LOCK_T };
-        if (f.mark.locked && f.t === AIM_T[ph] - LOCK_T) playSound('click', 0.6, 8);
+        if (!f.mark || !f.mark.locked) f.mark = { x: m.x, y: Math.min(GY, p.pos.y + p.height), locked: f.t >= aimT(f) - LOCK_T };
+        if (f.mark.locked && f.t === aimT(f) - LOCK_T) playSound('click', 0.6, 8);
       }
-      if (f.t >= AIM_T[ph]) {
+      if (f.t >= aimT(f)) {
         const mk = f.mark!, tx = mk.x, ty = Math.min(GY, mk.y - 30 + 45);
-        const bx = Math.max(ARENA_L + 60, Math.min(ARENA_R - 60, tx + f.facing * DIVE_PAST)), by = GY - HOVER_UP;
-        // (a curve from him, through him at the bottom, back up the far side)
-        f.dive = { ax: f.x, ay: f.y, cx: 2 * tx - (f.x + bx) / 2, cy: 2 * ty - (f.y + by) / 2, bx, by, d: DIVE_T[ph], tx, ty };
+        const bx = Math.max(ARENA_L + 60, Math.min(ARENA_R - 60, tx + f.facing * DIVE_PAST)), by = GY - HOVER_UP + sag;
+        // (a curve from him, through him at the bottom, back up the far side; slower, full)
+        f.dive = { ax: f.x, ay: f.y, cx: 2 * tx - (f.x + bx) / 2, cy: 2 * ty - (f.y + by) / 2, bx, by, d: Math.round(DIVE_T[ph] / sl), tx, ty };
         to(f, 'dive'); playSound('whoosh', 1, -4); f.mark = null;
       }
       break;
@@ -429,7 +463,7 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
       // (homing: the bottom of the swoop dragged after him, so a little step aside isn't enough; jump it, or run)
       if (s < HOME_TILL) {
         const pm = pmid(state).x;
-        d.tx += Math.max(-HOME[ph], Math.min(HOME[ph], pm - d.tx));
+        d.tx += Math.max(-HOME[ph] * sl, Math.min(HOME[ph] * sl, pm - d.tx));
         d.bx = Math.max(ARENA_L + 60, Math.min(ARENA_R - 60, d.tx + (d.tx >= d.ax ? 1 : -1) * DIVE_PAST));
         d.cx = 2 * d.tx - (d.ax + d.bx) / 2;
       }
@@ -449,10 +483,11 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
       f.vx *= 0.85; f.x += f.vx; f.y += (GY - f.y) * 0.18;
       if (f.t === 12) playSound('land', 0.6, -2);
       if (f.t % 24 === 0) state.particles.push({ pos: { x: f.x + f.facing * 16, y: f.y - 70 }, vel: { x: f.facing * 0.6, y: -0.6 }, life: 20, color: 'rgba(230, 230, 230, 0.6)', size: 4 });
-      if (f.t >= WINDED_T[ph]) { to(f, 'rise'); f.vy = -3; }
+      // (full: puffing longer)
+      if (f.t >= WINDED_T[ph] * (1 + FULL_WINDED * steps(f))) { to(f, 'rise'); f.vy = -3; }
       break;
     case 'rise':
-      f.vy = (f.vy + (GY - HOVER_UP - f.y) * 0.03) * 0.85; f.y += f.vy; f.x += f.vx; f.vx *= 0.92;
+      f.vy = (f.vy + (GY - HOVER_UP + sag - f.y) * 0.03) * 0.85; f.y += f.vy; f.x += f.vx; f.vx *= 0.92;
       if (f.t > 40) to(f, 'hover');
       break;
     case 'hunt': {
@@ -460,7 +495,7 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
       const g = f.prey;
       if (!g || g.state !== 'run' || g.x < ARENA_L - 20 || g.x > ARENA_R + 20) { f.prey = null; to(f, 'rise'); break; }
       const tx = g.x - g.dir * 6, ty = GY - 8, dx = tx - f.x, dy = ty - f.y, dist = Math.hypot(dx, dy) || 1;
-      const sp = Math.min(dist, 9.5);
+      const sp = Math.min(dist, 9.5 * sl);
       f.x += (dx / dist) * sp; f.y += (dy / dist) * sp; f.facing = dx < 0 ? -1 : 1;
       if (dist < 16) { g.state = 'held'; g.t = 0; to(f, 'suck'); playSound('crunch', 0.8); playSound('screams', 0.6, 4); }
       break;
@@ -475,6 +510,7 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
       // (a little back with every gulp, while it lasts: a charge into him knocks the guest loose and stops it)
       if (f.t % 14 === 0 && f.hp > 0) {
         f.hp = Math.min(HP, f.hp + GUEST_HEAL);
+        eat(f, FULL_GUEST);
         for (let i = 0; i < 3; i++) state.particles.push({ pos: { x: f.x + (Math.random() - 0.5) * 30, y: f.y - 60 - Math.random() * 30 }, vel: { x: 0, y: -1.2 }, life: 24, color: '#DC2626', size: 3 });
       }
       if (f.t % 14 === 0) { playSound('suck', 0.5, 2); state.particles.push({ pos: { x: f.x + f.facing * 14, y: f.y - 70 }, vel: { x: (Math.random() - 0.5) * 2, y: -1 }, life: 20, color: '#B91C1C', size: 3, grav: 0.3 }); }
@@ -483,24 +519,26 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
         f.prey = null;
         if (++f.guestKills === 1 || f.guestKills === 3) queueBeat(f, 'guest' + f.guestKills, L.SATAN_GUEST, L.DONNIE_GUEST, false);
         playSound('crumble', 0.8);
+        // (the burp, his say after it (not the spew's): then it all back out at Meathead)
         to(f, 'spew'); f.aimX = pmid(state).x; f.aimY = pmid(state).y;
-        bark(f, L.DONNIE_SPEW);
+        burp(f);
       }
       break;
     }
     case 'spew': {
-      // (up into the air; the aim; then the stream, the aim dragging after him)
-      f.vy = (f.vy + (GY - 170 - f.y) * 0.03) * 0.85; f.y += f.vy;
+      // (up into the air; the aim; then the stream, the aim dragging after him; full, lower, his aim lazier, the spray
+      // all over the place)
+      f.vy = (f.vy + (GY - 170 + sag - f.y) * 0.03) * 0.85; f.y += f.vy;
       faceHim(state, f);
-      const m = pmid(state);
-      f.aimX += Math.max(-AIM_FOLLOW, Math.min(AIM_FOLLOW, m.x - f.aimX)); f.aimY += Math.max(-AIM_FOLLOW, Math.min(AIM_FOLLOW, m.y - f.aimY));
+      const m = pmid(state), follow = AIM_FOLLOW * sl;
+      f.aimX += Math.max(-follow, Math.min(follow, m.x - f.aimX)); f.aimY += Math.max(-follow, Math.min(follow, m.y - f.aimY));
       const firing = f.t > SPEW_AIM && (f.t - SPEW_AIM) % (BURST_ON + BURST_OFF) < BURST_ON;
       if (firing && f.t % SPEW_EVERY === 0) {
         const mx = f.x + f.facing * 14, my = f.y - 74, dx = f.aimX - mx, dy = f.aimY - my;
         // (a spray: a few at a go, spread about the aim, some bigger than others)
         const a0 = Math.atan2(dy, dx);
         for (let k = 0; k < SPRAY_N; k++) {
-          const a = a0 + (Math.random() * 2 - 1) * SPRAY_CONE, sp = BLOOD_SPEED * (0.9 + Math.random() * 0.25);
+          const a = a0 + (Math.random() * 2 - 1) * SPRAY_CONE * (1 + FULL_SPRAY * steps(f)), sp = BLOOD_SPEED * (0.9 + Math.random() * 0.25);
           f.drops.push({ x: mx, y: my, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, r: 4 + Math.random() * 4 });
         }
         if (f.t % 6 === 0) playSound('gush', 0.25, 6 + Math.random() * 4);
@@ -552,6 +590,7 @@ const drain = (ctx: FrameContext, f: Fight, controls: Controls): Controls => {
   if (h.t % DRAIN_EVERY === 0 && p.health > 0) {
     hurtPlayer(ctx, DRAIN_DMG, DRAIN, undefined, 0);
     f.hp = Math.min(HP, f.hp + DRAIN_HEAL);
+    eat(f, FULL_GULP);
     playSound('suck', 0.6, 4);
     for (let i = 0; i < 4; i++) state.particles.push({ pos: { x: p.pos.x + p.width / 2 + f.facing * -4, y: p.pos.y + 14 }, vel: { x: (Math.random() - 0.5) * 2, y: -1 - Math.random() }, life: 22, color: i % 2 ? '#B91C1C' : '#7F1D1D', size: 2 + Math.random() * 2, grav: 0.3 });
   }
@@ -562,9 +601,56 @@ const drain = (ctx: FrameContext, f: Fight, controls: Controls): Controls => {
     if (!dead) { p.vel.x = -f.facing * 6; p.vel.y = -6; p.invincibilityTimer = Math.max(p.invincibilityTimer, 62); }
     if (escaped) { bark(f, L.DONNIE_ESCAPED); f.vx = f.facing * -3; playSound('punch', 0.6, -2); }
     to(f, 'rise'); f.vy = -4;
+    if (!dead) burp(f);
     return controls;
   }
   return hands();
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// Gluttony: full, the burp, the guest he can't say no to
+
+/** How full he is, in whole steps (a step from his first gulp); how much slower that makes him. */
+const steps = (f: Fight) => Math.max(0, Math.min(FULL_MAX, Math.ceil(f.full - 0.15)));
+const slow = (f: Fight) => 1 - FULL_SLOW * steps(f);
+const aimT = (f: Fight) => AIM_T[phase(f)] + FULL_TELL * steps(f);
+/** A gulp. */
+const eat = (f: Fight, k: number) => { f.full = Math.min(FULL_MAX, f.full + k); f.fullAt = f.total; };
+/** After a drink: the burp coming up. */
+const burp = (f: Fight) => { if (f.mode !== 'dead') f.burpT = 1; };
+
+/** Each frame: thinning back down a while after his last gulp; the burp, and his say after it. */
+const gorge = (ctx: FrameContext, f: Fight) => {
+  const { state } = ctx;
+  if (f.mode !== 'drain' && f.mode !== 'suck' && f.total - f.fullAt > FULL_HOLD) f.full = Math.max(0, f.full - FULL_THIN);
+  if (f.burpT <= 0) return;
+  f.burpT++;
+  if (f.burpT === BURP_AT) {
+    const n = steps(f);
+    playSound('burp', 0.8 + n * 0.1, -n * 1.5);
+    shakeScreen(state, 2 + n, 2);
+    // (up out of him in a cloud, red-tinged, a fleck or two of something in it)
+    const mx = f.x + f.facing * 16, my = f.y - 74;
+    for (let i = 0; i < 10; i++) state.particles.push({ pos: { x: mx, y: my }, vel: { x: f.facing * (1 + Math.random() * 2.4), y: -0.6 - Math.random() * 1.2 }, life: 26 + Math.random() * 14, color: i % 4 === 0 ? 'rgba(185, 28, 28, 0.7)' : 'rgba(230, 200, 200, 0.45)', size: 4 + Math.random() * 4, grav: -0.02 });
+  }
+  if (f.burpT === BURP_SAY) barkFresh(f, L.DONNIE_GORGE);
+  if (f.burpT >= BURP_T) f.burpT = 0;
+};
+
+/** What he's doing at Meathead that a guest near enough can pull him off. */
+const TEMPTED: ReadonlySet<Mode> = new Set<Mode>(['aim', 'dive', 'spew', 'winded', 'rise', 'flinch', 'drain']);
+/** A guest coming near while he's at Meathead: he may drop it (and him) and go for them. Each guest the once. */
+const tempt = (state: GameState, f: Fight) => {
+  if (!TEMPTED.has(f.mode) || f.admireT > 0) return;
+  const g = f.guests.find(q => q.state === 'run' && !q.spared && !q.tempted && q.x > ARENA_L + 40 && q.x < ARENA_R - 40 && Math.abs(q.x - f.x) < TEMPT_R);
+  if (!g) return;
+  g.tempted = true;
+  if (Math.random() >= TEMPT_CHANCE) return;
+  // (off Meathead, if he'd got his fangs in him: dropped, and a beat to get clear)
+  if (f.held) { const p = state.player; f.held = null; p.vel.x = -f.facing * 5; p.vel.y = -5; p.invincibilityTimer = Math.max(p.invincibilityTimer, 62); }
+  f.dive = null; f.mark = null; f.prey = g;
+  to(f, 'hunt'); playSound('whoosh', 0.8, -4);
+  bark(f, L.DONNIE_TEMPTED);
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -697,8 +783,11 @@ const plainHit = (state: GameState, melee: boolean): number | null => {
 const stagger = (state: GameState, f: Fight) => {
   const dir = pmid(state).x < f.x ? 1 : -1;
   // (the guest he had, or was after, gets away; and he won't go after that one again)
+  // (knocked off a drink he'd started: it still comes up)
+  const drinking = f.mode === 'suck';
   if (f.prey) { f.prey.state = 'run'; f.prey.y = GY; f.prey.spared = true; f.prey = null; f.knockedLoose = true; bark(f, L.DONNIE_HURT); }
   f.staggerAt = f.total;
+  if (drinking) burp(f);
   f.dive = null; f.mark = null;
   f.vx = dir * 7; f.vy = -4;
   to(f, 'rise');
@@ -730,11 +819,12 @@ const die = (ctx: FrameContext, f: Fight, redeemer = false) => {
   const { state } = ctx, e = f.e;
   token++;
   to(f, 'dead');
-  f.drops = []; f.dive = null;
+  f.drops = []; f.dive = null; f.burpT = 0;
   if (f.held) { f.held = null; state.player.vel.y = -4; }
   if (f.prey) { f.prey.state = 'run'; f.prey.y = GY; f.prey = null; }
   state.enemies = state.enemies.filter(o => o !== e);
-  f.death = { how: redeemer ? 'burn' : 'flat', t: 0, x: f.x, y: f.y, vy: 0, facing: f.facing, land: f.y >= GY - 1 ? 1 : 0 };
+  // (the usual way: up off the floor to swell up first, so he always lands after it)
+  f.death = { how: redeemer ? 'burn' : 'flat', t: 0, x: f.x, y: f.y, vy: 0, facing: f.facing, land: redeemer && f.y >= GY - 1 ? 1 : 0, bloat: steps(f) };
   state.damageNumbers = [];
   f.said = null;
   if (redeemer) {
@@ -761,12 +851,29 @@ const dying = (ctx: FrameContext, f: Fight) => {
   const { state } = ctx, d = f.death!;
   d.t++;
   const t = d.t;
-  if (d.how === 'flat') {
-    // (the powers out: the eyes go dark, down he drops, flailing; a belly flop; the trousers down; the disco ball)
-    if (d.y < GY) { d.vy += 0.5; d.y = Math.min(GY, d.y + d.vy); if (d.y >= GY) { playSound('thud', 1.2, -6); playSound('splat', 0.6, -4); shakeScreen(state, 12, 6); d.land = t; } }
+  if (d.how === 'flat' && t <= GORGE_T) {
+    // (first, everything he's drunk catching up with him: up off the floor if he's low, swelling a step at a time past
+    // full, the buttons popping off him, a burp to shake the room)
+    if (d.y > GY - 70) d.y -= Math.min(2.5, d.y - (GY - 70));
+    for (const [at, k] of [[16, 2], [40, 3], [64, 4]] as const) if (t === at) {
+      d.bloat = Math.max(d.bloat, k);
+      playSound('squish', 0.9, -k); playSound('crunch', 0.4, 6);
+      shakeScreen(state, 2 + k, 3);
+      // (buttons, off like shots)
+      if (k >= 3) for (let i = 0; i < 3; i++) state.particles.push({ pos: { x: d.x + d.facing * 20, y: d.y - 50 + i * 6 }, vel: { x: d.facing * (3 + Math.random() * 4), y: -2 - Math.random() * 3 }, life: 40, color: '#F1EEE6', size: 2, grav: 0.35 });
+    }
+    if (t === 84) {
+      playSound('burp', 1.3, -6); shakeScreen(state, 8, 5);
+      for (let i = 0; i < 16; i++) state.particles.push({ pos: { x: d.x + d.facing * 16, y: d.y - 74 }, vel: { x: d.facing * (1.5 + Math.random() * 3), y: -1 - Math.random() * 1.6 }, life: 34 + Math.random() * 16, color: i % 3 === 0 ? 'rgba(185, 28, 28, 0.7)' : 'rgba(230, 200, 200, 0.5)', size: 5 + Math.random() * 5, grav: -0.02 });
+    }
+  } else if (d.how === 'flat') {
+    // (the powers out: the eyes go dark, down he drops, flailing; a belly flop (the gut bounces him); the trousers down;
+    // the disco ball; and then he shits himself, going down like a balloon)
+    if (d.y < GY) { d.vy += 0.5; d.y = Math.min(GY, d.y + d.vy); if (d.y >= GY) { playSound('thud', 1.2, -6); playSound('splat', 0.6, -4); playSound('squish', 1, -6); shakeScreen(state, 12, 6); d.land = t; } }
     if (d.land && t === d.land + 70) { playSound('whoosh', 0.6, 6); }
     if (d.land && t === d.land + 90) { playSound('bonk', 1, -2); playSound('glass', 0.5, 2); shakeScreen(state, 6, 3); }
-    if (d.land && t === d.land + 150) playSound('fart', 0.8, -2);
+    if (d.land && t === d.land + 150) { playSound('fart', 0.9, -3); playSound('poopsplat', 0.6, -2); }
+    if (d.land && t === d.land + 190) playSound('fart', 0.6, 2);
   } else {
     // (alight: flailing, then down, then ash)
     if (d.y < GY) { d.vy += 0.3; d.y = Math.min(GY, d.y + d.vy); }
@@ -775,7 +882,7 @@ const dying = (ctx: FrameContext, f: Fight) => {
     if (f.cam && t > 170) f.cam.out = true;
   }
   // (Satan takes what's his, then Meathead has his say; then it's over)
-  if (f.deathSaid === 1 && t > 160) { f.deathSaid = 2; f.circle = 0.001; line(f, 'satan', L.SATAN_CLAIM, () => { f.deathSaid = 3; meatheadSays(state, pick(d.how === 'burn' ? L.MEATHEAD_WON_WEAK : L.MEATHEAD_WON), true, tokened(() => { f.deathSaid = 4; })); }); }
+  if (f.deathSaid === 1 && t > (d.how === 'flat' ? GORGE_T + 160 : 160)) { f.deathSaid = 2; f.circle = 0.001; line(f, 'satan', L.SATAN_CLAIM, () => { f.deathSaid = 3; meatheadSays(state, pick(d.how === 'burn' ? L.MEATHEAD_WON_WEAK : L.MEATHEAD_WON), true, tokened(() => { f.deathSaid = 4; })); }); }
   if (f.deathSaid >= 2 && f.deathSaid < 4) f.circle = Math.min(0.6, f.circle + 0.02);
   if (f.deathSaid >= 4) f.circle = Math.max(0, f.circle - 0.03);
   // (it never hangs)
@@ -783,7 +890,7 @@ const dying = (ctx: FrameContext, f: Fight) => {
 };
 
 /** Done with: his death played out, everybody's had their say. */
-export const fightOver = (f: Fight) => f.mode === 'dead' && !!f.death && f.deathSaid >= 4 && f.death.t > 260 && (!f.cam || f.cam.z <= 1);
+export const fightOver = (f: Fight) => f.mode === 'dead' && !!f.death && f.deathSaid >= 4 && (f.death.how === 'burn' ? f.death.t > 260 : !!f.death.land && f.death.t > f.death.land + 270) && (!f.cam || f.cam.z <= 1);
 export const endFight = (state: GameState, f: Fight) => { state.player.inCutscene = false; f.drops = []; live = null; };
 export const killedByWeakness = (f: Fight) => f.death?.how === 'burn';
 
@@ -834,10 +941,13 @@ export const drawKillCam = (c: Ctx, f: Fight) => {
 
 /** How beaten up he looks. */
 const beaten = (f: Fight) => Math.max(0, 1 - Math.max(0, f.hp) / HP);
-const LOOK = (f: Fight) => ({ wig: !f.wigOff, cape: true, fangs: !f.powered, powered: f.powered });
+/** (cowering in the intro, a drumstick still in his fist; full, swollen a step at a time) */
+const LOOK = (f: Fight) => ({ wig: !f.wigOff, cape: true, fangs: !f.powered, powered: f.powered, bloat: steps(f), snack: f.mode === 'intro' && !f.powered ? 'drumstick' as const : null });
 
 const poseOf = (f: Fight): DonniePose => {
   if (f.flash > 0 && f.mode !== 'drain' && f.mode !== 'stunned') return 'hurt';
+  // (the burp coming up: both hands on his gut)
+  if (f.burpT > 0 && f.burpT < BURP_T - 6 && (f.mode === 'hover' || f.mode === 'rise' || f.mode === 'flinch' || (f.mode === 'spew' && f.t <= SPEW_AIM))) return 'stuffed';
   switch (f.mode) {
     case 'intro':
       if (f.intro === 'plead' || f.intro === 'reply' || f.intro === 'open' || f.intro === 'bestow') return 'cower';
@@ -975,7 +1085,7 @@ export const drawFightFront = (c: Ctx, state: GameState, f: Fight) => {
   }
   // The grab's tell: where he'll come down on (following Meathead's feet, then locked: a ring on the floor closing in)
   if (f.mode === 'aim' && f.mark) {
-    const k = Math.min(1, f.t / AIM_T[phase(f)]), r = 34 - k * 16, lk = f.mark.locked;
+    const k = Math.min(1, f.t / aimT(f)), r = 34 - k * 16, lk = f.mark.locked;
     const col = lk ? (Math.floor(fr / 3) % 2 ? '#FDE047' : '#EF4444') : '#EF4444';
     c.strokeStyle = '#1A0B06'; c.lineWidth = 4; c.beginPath(); c.ellipse(f.mark.x, f.mark.y, r, r * 0.25, 0, 0, Math.PI * 2); c.stroke();
     c.strokeStyle = col; c.lineWidth = 2; c.stroke();
@@ -1020,12 +1130,17 @@ export const drawFightFront = (c: Ctx, state: GameState, f: Fight) => {
 const drawDeath = (c: Ctx, f: Fight, fr: number) => {
   const d = f.death!, t = d.t;
   if (d.how === 'flat') {
-    if (d.y < GY) { drawDonnie(c, d.x, d.y, d.facing, fr, 'hurt', 1, { cape: true, wig: !f.wigOff }); return; }
-    // Face down, rear up, trousers round his ankles, the bat boxers; the disco ball down on him and off again
+    // (swelling up in the air, both hands on it, shaking with it; the powers still on him till he drops)
+    if (t <= GORGE_T) { const j = d.bloat >= 3 ? Math.sin(fr * 1.7) * (d.bloat - 2) : 0; drawDonnie(c, d.x + j, d.y, d.facing, fr, 'stuffed', 1, { cape: true, wig: !f.wigOff, powered: true, bloat: d.bloat }); return; }
+    if (d.y < GY) { drawDonnie(c, d.x, d.y, d.facing, fr, 'hurt', 1, { cape: true, wig: !f.wigOff, bloat: d.bloat }); return; }
+    // Face down, rear up, trousers round his ankles, the bat boxers; the disco ball down on him and off again; then
+    // the shit spreading across the seat of them, and him going down like a balloon with it, a step at a time
     const lt = d.land ? t - d.land : 0;
-    const bounce = lt < 12 ? Math.sin((lt / 12) * Math.PI) * 0.1 : 0;
-    c.save(); c.translate(d.x, GY - 22); c.rotate(d.facing * (Math.PI / 2 + 0.25 - bounce));
-    drawDonnie(c, 0, 22, d.facing, fr, 'dead', 1, { cape: true, wig: !f.wigOff, pantsDown: lt > 20 });
+    const bounce = lt < 16 ? Math.sin((lt / 16) * Math.PI) * 0.16 : 0;
+    const bloat = lt < 150 ? d.bloat : Math.max(1, d.bloat - Math.floor((lt - 150) / 25));
+    // (propped up off the floor on his gut, the fuller the higher)
+    c.save(); c.translate(d.x, GY - 22 - bloat * 4); c.rotate(d.facing * (Math.PI / 2 + 0.25 - bounce));
+    drawDonnie(c, 0, 22, d.facing, fr, 'dead', 1, { cape: true, wig: !f.wigOff, pantsDown: lt > 20, bloat, soiled: Math.max(0, Math.min(1, (lt - 150) / 40)) });
     c.restore();
     // (the disco ball: down on its snapped wire, onto his rear, a bonk, off and rolling)
     if (lt > 60) {

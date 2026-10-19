@@ -6,10 +6,11 @@
 import type { GameState } from '../../../m1/game/core/state';
 import { GY } from '../geometry';
 import {
-  INK, box, slab, pole, ball, rampOf, mix, checker, hazeBands, hash,
+  INK, box, slab, pole, ball, rampOf, mix, checker, hazeBands, hash, stamp,
   WALL_D, CEIL, inDepth, spanAt, at, quad, seg, inked, wallRun, ceiling, backFloor, frontFloor, plaque, type Eye,
 } from './paint';
-import { signAt, print, haunt, candle } from '../letters';
+import { signAt, print, haunt, candle, brand, fit } from '../letters';
+import { BUFFET_X, BUFFET_W, SLUSH_X } from './geo';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -167,6 +168,110 @@ export const drawShopRoom = (c: Ctx, state: GameState, eye: Eye, L: number, R: n
   frontFloor(c, L, R, ['#6B1515', '#5A1111', '#480D0D', '#380A0A'], '#E05050');
   // (the runner, on the near floor too)
   for (let x = Math.floor(L / 48) * 48; x < R; x += 48) { box(c, x, GY + 10, 24, 6, '#8A2A10'); box(c, x + 8, GY + 8, 8, 4, '#C2410C'); box(c, x + 10, GY + 7, 4, 1, '#F59E0B'); }
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// The ALL-YOU-CAN-EAT buffet against the back wall (wall units; Donnie's kind of place): a rack of snack bars, the
+// steam table (wings, fries, meatballs, red jello) under its sneeze guard and heat lamps, the blood slushie machine,
+// its sign up over it all on two posts. Background: dimmed a step (nothing on it to stand on), the sign kept bright.
+
+const FOODS: [string, string, string][] = [['#B45309', '#D97706', '#78350F'], ['#FACC15', '#FDE68A', '#CA8A04'], ['#7C2D12', '#9A3412', '#451A03'], ['#DC2626', '#F87171', '#7F1D1D']];
+
+const paintBuffet = (g: Ctx, x: number) => {
+  // The snack bars: a wire gondola, five shelves of bars in their wrappers, SNACKS on its header card
+  const sx = x;
+  slab(g, sx, GY - 112, 46, 112, '#27272A', { edge: 2 });
+  box(g, sx + 4, GY - 104, 38, 100, '#141416');
+  for (let s = 0; s < 5; s++) {
+    const y = GY - 100 + s * 19;
+    box(g, sx + 3, y + 13, 40, 2, '#A1A1AA'); box(g, sx + 3, y + 15, 40, 1, '#3F3F46');
+    for (let k = 0; k < 4; k++) {
+      const col = ['#7C2D12', '#DC2626', '#2563EB', '#16A34A', '#F59E0B', '#7E22CE'][(s * 2 + k) % 6], r = rampOf(col);
+      for (let j = 0; j < 2; j++) { box(g, sx + 5 + k * 9, y + 3 + j * 4, 8, 4, INK); box(g, sx + 6 + k * 9, y + 4 + j * 4, 6, 2, col); box(g, sx + 6 + k * 9, y + 4 + j * 4, 6, 1, r[3]); box(g, sx + 8 + k * 9, y + 5 + j * 4, 2, 1, '#F8FAFC'); }
+    }
+  }
+  slab(g, sx + 4, GY - 128, 38, 14, '#FDE68A', { edge: 1 }); signAt(g, 'SNACKS', sx + 23, GY - 118, 6, print(6, '#7F1D1D'));
+  box(g, sx + 21, GY - 114, 4, 2, '#3F3F46');
+  // The steam table: a stainless front (flame decals on it: it's hell's), the pans in the top, the sneeze guard, the lamps
+  const tx = x + 56, tw = 142, top = GY - 42;
+  slab(g, tx, top, tw, 42, '#71717A', { edge: 3 });
+  box(g, tx + 4, top + 10, tw - 8, 2, '#A1A1AA'); box(g, tx + 4, GY - 8, tw - 8, 6, '#3F3F46');
+  for (let k = 0; k < 5; k++) { const fx = tx + 10 + k * 26; for (const [kk, col] of [[1, '#B91C1C'], [0.65, '#EA580C'], [0.35, '#FBBF24']] as const) { g.fillStyle = col; g.beginPath(); g.moveTo(fx + 10 - 10 * kk, GY - 10); g.lineTo(fx + 10, GY - 10 - 20 * kk); g.lineTo(fx + 10 + 10 * kk, GY - 10); g.closePath(); g.fill(); } }
+  // (the pans: a hotel pan each, the food heaped in it, a serving spoon left in one)
+  for (let k = 0; k < 4; k++) {
+    const px = tx + 6 + k * 34, [c0, c1, c2] = FOODS[k];
+    box(g, px - 1, top - 7, 34, 8, INK); box(g, px, top - 6, 32, 6, '#D4D4D8'); box(g, px, top - 6, 32, 1, '#F4F4F5');
+    for (let i = 0; i < 7; i++) {
+      const fx = px + 3 + i * 4, fy = top - 8 - (i % 3);
+      if (k === 1) { box(g, fx, fy - 4, 2, 7, c2); box(g, fx, fy - 4, 1, 6, c1); }            // (fries)
+      else if (k === 3) { box(g, fx - 1, fy - 2, 4, 4, c2); box(g, fx - 1, fy - 2, 3, 3, c0); box(g, fx - 1, fy - 2, 1, 1, c1); }  // (jello, shaking)
+      else { ball(g, fx + 1, fy, 2.6, c0); box(g, fx, fy - 2, 2, 1, c1); }
+    }
+  }
+  box(g, tx + 46, top - 20, 2, 14, '#A1A1AA'); box(g, tx + 44, top - 8, 6, 3, '#A1A1AA');
+  // (the sneeze guard: glass on two posts, angled out, its edge catching the light)
+  for (const gx of [tx + 4, tx + tw - 7]) { box(g, gx, top - 40, 3, 34, '#A1A1AA'); box(g, gx, top - 40, 1, 34, '#E4E4E7'); }
+  g.fillStyle = 'rgba(186, 230, 253, 0.18)'; g.beginPath(); g.moveTo(tx + 2, top - 22); g.lineTo(tx + tw - 2, top - 22); g.lineTo(tx + tw + 4, top - 40); g.lineTo(tx - 4, top - 40); g.closePath(); g.fill();
+  box(g, tx - 4, top - 41, tw + 8, 2, '#E0F2FE'); box(g, tx + 2, top - 23, tw - 4, 1, 'rgba(224, 242, 254, 0.6)');
+  // (the heat lamps' bar, the lamps down off it)
+  box(g, tx - 2, top - 62, tw + 4, 4, INK); box(g, tx - 1, top - 61, tw + 2, 2, '#52525B');
+  for (let k = 0; k < 4; k++) { const lx = tx + 14 + k * 36; box(g, lx + 4, top - 58, 2, 6, '#3F3F46'); inked(g, () => { g.moveTo(lx, top - 44); g.lineTo(lx + 3, top - 52); g.lineTo(lx + 7, top - 52); g.lineTo(lx + 10, top - 44); g.closePath(); }, '#3F3F46', 1); }
+  // (the stack of plates at its end; a tray)
+  for (let i = 0; i < 6; i++) box(g, tx + tw + 4, GY - 6 - i * 3, 18, 3, i % 2 ? '#E7E5E4' : '#F8FAFC');
+  box(g, tx + tw + 3, GY - 24, 20, 1, INK);
+  // The blood slushie machine: a cabinet, two clear bowls of red slush (the auger's drawn live), its lit header, the taps,
+  // a drip tray with a puddle in it, the cups stacked beside
+  const mx = x + (SLUSH_X - BUFFET_X) - 24;
+  slab(g, mx, GY - 46, 48, 46, '#7F1D1D', { edge: 3 });
+  for (const bx of [mx + 3, mx + 25]) {
+    box(g, bx - 1, GY - 85, 22, 40, INK);
+    box(g, bx, GY - 84, 20, 38, '#3A0606');
+    box(g, bx, GY - 64, 20, 18, '#B91C1C'); box(g, bx, GY - 64, 20, 2, '#F87171'); checker(g, bx, GY - 62, 20, 2, '#DC2626');
+    box(g, bx + 2, GY - 82, 2, 34, 'rgba(255, 255, 255, 0.22)');
+    box(g, bx + 7, GY - 50, 6, 6, '#27272A'); box(g, bx + 9, GY - 44, 2, 4, '#52525B');
+  }
+  slab(g, mx - 2, GY - 108, 52, 24, '#18181B', { edge: 2 });
+  box(g, mx + 2, GY - 104, 44, 17, '#DC2626'); box(g, mx + 2, GY - 104, 44, 2, '#F87171');
+  signAt(g, 'BLOOD', mx + 24, GY - 96, 6, print(6, '#FEF2F2', '#7F1D1D'));
+  signAt(g, 'SLUSH', mx + 24, GY - 88, 6, print(6, '#FEF2F2', '#7F1D1D'));
+  box(g, mx + 4, GY - 30, 40, 4, '#27272A'); box(g, mx + 10, GY - 29, 14, 2, '#991B1B');
+  for (let i = 0; i < 7; i++) { box(g, mx + 52, GY - 6 - i * 4, 12, 4, INK); box(g, mx + 53, GY - 5 - i * 4, 10, 3, i % 2 ? '#F1EFEA' : '#E5E1D6'); box(g, mx + 53, GY - 4 - i * 4, 10, 1, '#DC2626'); }
+  // (background: a step down toward the room's dark, so none of it reads as a ledge)
+  g.fillStyle = 'rgba(16, 2, 2, 0.3)'; g.fillRect(x - 2, GY - 130, BUFFET_W + 6, 132);
+  // The sign: ALL-YOU-CAN-EAT burned into a board, up on two posts off the back of the table, $6.66 hung under it
+  const cx = tx + tw / 2;
+  for (const dx of [-62, 58]) { box(g, cx + dx, GY - 150, 5, 86, INK); box(g, cx + dx + 1, GY - 150, 3, 86, '#44403C'); }
+  slab(g, cx - 82, GY - 176, 164, 30, '#2A0A06', { edge: 2 });
+  signAt(g, 'ALL-YOU-CAN-EAT', cx, GY - 156, 9, fit('ALL-YOU-CAN-EAT', brand(9, '#2A0A06'), 152));
+  for (const dx of [-14, 12]) box(g, cx + dx, GY - 146, 1, 6, '#A8A29E');
+  slab(g, cx - 20, GY - 140, 42, 13, '#FDE68A', { edge: 1 });
+  signAt(g, '$6.66', cx + 1, GY - 131, 6, print(6, '#7F1D1D'));
+};
+
+/** The buffet, at the back wall: stamped, then its live bits (the lamps' glow, the slush going round, the steam). */
+export const drawBuffet = (c: Ctx, eye: Eye, f: number) => {
+  const [s0, s1] = spanAt(eye, WALL_D, 60);
+  if (BUFFET_X + BUFFET_W < s0 || BUFFET_X - 20 > s1) return;
+  inDepth(c, eye, WALL_D, () => {
+    stamp(c, 'shop-buffet', BUFFET_X - 8, GY - 182, BUFFET_W + 16, 184, g => paintBuffet(g, BUFFET_X));
+    const tx = BUFFET_X + 56, top = GY - 42;
+    // (the heat lamps: lit orange, a stepped cone of light down onto the pans)
+    for (let k = 0; k < 4; k++) {
+      const lx = tx + 14 + k * 36, fl = (Math.floor(f / 9) + k) % 5 === 0 ? 0.7 : 1;
+      box(c, lx + 2, top - 45, 6, 2, '#FDBA74');
+      for (let i = 1; i <= 3; i++) { const w = 6 + i * 6; c.fillStyle = `rgba(251, 146, 60, ${(0.07 * fl * (4 - i)).toFixed(3)})`; c.fillRect(lx + 5 - w / 2, top - 43, w, 36); }
+    }
+    // (steam off the pans, in steps)
+    for (let k = 0; k < 4; k++) { const t = ((f + k * 23) % 60) / 60, sx = tx + 20 + k * 34 + Math.sin(f * 0.05 + k) * 3; box(c, sx, top - 12 - t * 22, 4, 3, `rgba(230, 230, 230, ${(0.35 * (1 - t)).toFixed(2)})`); }
+    // (the slush going round in each bowl: the auger's blade turning, the slush churning lighter and darker)
+    const mx = SLUSH_X - 24;
+    for (const [j, bx] of [[0, mx + 3], [1, mx + 25]] as const) {
+      const ph = Math.floor(f / 6 + j * 2) % 4;
+      box(c, bx + 9, GY - 82, 2, 34, '#5C0A0A');
+      box(c, bx + 3 + ph * 3, GY - 76 + ph * 6, 14 - ph * 2, 2, '#7F1D1D');
+      box(c, bx + 2 + ((ph + 2) % 4) * 4, GY - 60 + (ph % 2) * 4, 4, 2, '#F87171');
+    }
+  });
 };
 
 /** A section's sign, hung from the ceiling on two chains. */

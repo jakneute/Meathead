@@ -8,6 +8,7 @@ import type { GameState } from '../../../m1/game/core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { meatheadSays, saidOver, voice, type Said } from '../section';
 import { say, isTalking, pickLine } from '../../../m1/game/platform/speech';
+import { playSound } from '../../../m1/game/platform/audio';
 import { isShat, isNude } from '../../../m1/game/player/gut';
 import { PA, type Dressed, type ByPants } from './lines';
 import { box } from '../section';
@@ -72,12 +73,19 @@ const sayLine = (pa: Pa, line: string) => afterQuiet(pa, () => {
   const shown = say(line, voice(PA), 'queue', {
     always: true,
     // (not recorded yet: up its usual while, then on)
-    onShow: spoken => { if (pa.gen === gen) pa.said = s; if (!spoken) setTimeout(next, Math.max(1800, line.length * 70)); },
+    onShow: spoken => { if (pa.gen === gen) pa.said = s; munch(line); if (!spoken) setTimeout(next, Math.max(1800, line.length * 70)); },
     onHide: next,
     onDropped: () => { if (!over) { over = true; if (pa.gen === gen) sayLine(pa, line); } },
   });
   if (!shown) { over = true; setTimeout(() => sayLine(pa, line), WAIT_MS); }
 });
+
+/** He's eating into the mic: a line that opens on it (a *CRUNCH*, a *SLURP*, a *GULP*) gets the real sound with it,
+ *  out of the speakers. */
+const MUNCH: [string, Parameters<typeof playSound>[0], number][] = [['*CRUNCH*', 'gnaw', 0.5], ['*SLURP*', 'slurp', 0.45], ['*GULP*', 'glug', 0.4]];
+const munch = (line: string) => {
+  for (const [m, snd, vol] of MUNCH) { const i = line.indexOf(m); if (i >= 0 && i < 8) { playSound(snd, vol, -2); if (snd === 'gnaw') setTimeout(() => playSound('crunch', 0.35, 4), 120); } }
+};
 
 /** A story (lines in order; then Meathead's `reply`). Something going: it waits its turn, after any others waiting. */
 export const paStory = (state: GameState, lines: readonly string[], reply: string | null = null, fin: (() => void) | null = null) => {

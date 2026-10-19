@@ -216,6 +216,39 @@ const SFX: Record<string, SfxDef> = {
     gain: 0.5, vary: 0.4, gap: 300,
     make: () => { const lp = lowpass(), bp = bandpass(); return render(0.65, t => (lp(rnd(), 1300) * 1.1 + bp(rnd(), 500 + 300 * Math.sin(TAU * 17 * t), 3) * 0.6) * Math.min(1, t / 0.03) * ex(Math.max(0, t - 0.35), 6)); },
   },
+  burp: {
+    // Meathead 2's Donnie Dracula after a drink: a long, low, rattling belch up out of a full gut (a croak in vocal fry,
+    // an "urr" opening out to an "aap"), and a wet little pop off the end of it
+    gain: 0.8, vary: 0.8, gap: 300, voices: 1,
+    make: () => {
+      const lp = lowpass(), f1 = bandpass(), f2 = bandpass(), air = lowpass();
+      let ph = 0;
+      return render(0.9, t => {
+        ph += (80 + 14 * Math.sin(t * 9) + 10 * rnd() - 20 * t) / SFX_SR;
+        // (the rattle: pulses, not a tone)
+        const fry = Math.pow(Math.max(0, Math.sin(TAU * ph)), 6) * 2 - 0.3;
+        const open = Math.min(1, t / 0.45);
+        const v = f1(fry, 360 + 320 * open, 2.2) * 1.2 + f2(fry, 880 + 420 * open, 3) * 0.5 + air(rnd(), 300) * 0.3;
+        const env = Math.min(1, t / 0.03) * (t < 0.62 ? 1 : Math.max(0, 1 - (t - 0.62) / 0.12));
+        const u = t - 0.76, pop = u > 0 ? Math.sin(TAU * 240 * u * (1 + u * 10)) * ex(u, 40) * 0.6 : 0;
+        return lp(v, 2400) * env + pop;
+      });
+    },
+  },
+  slurp: {
+    // ...and the last of one up a straw: a hissing, gargling suck, bubbles breaking through it, sputtering at the end
+    gain: 0.45, vary: 1, gap: 250, voices: 1,
+    make: () => {
+      const bp = bandpass(), bp2 = bandpass();
+      let gate = 1;
+      return render(0.7, (t, i) => {
+        if (i % 160 === 0) gate = Math.random() < (t < 0.45 ? 0.75 : 0.4) ? 1 : 0.15;
+        const hiss = bp(rnd(), 1800 + 900 * Math.sin(TAU * 3 * t), 2) * gate;
+        const gurgle = bp2(rnd(), 500 + 250 * Math.sin(TAU * 23 * t), 3) * 0.7;
+        return (hiss + gurgle) * Math.min(1, t / 0.04) * (t < 0.5 ? 1 : Math.max(0, 1 - (t - 0.5) / 0.2));
+      });
+    },
+  },
   squish: {
     // ...somebody squashed flat: a flat splut and an accordion's wheeze
     gain: 0.5, vary: 0.5, gap: 100,

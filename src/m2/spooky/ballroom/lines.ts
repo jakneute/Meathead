@@ -6,7 +6,8 @@
 // The ballroom: Donnie Dracula ('m2.donnie': his real voice, whiny, Jersey), cowering, then given real power by Satan
 // ('m2.satan': the omnipotent voice, out of the circle). Their two reasons, the same end: Satan wants Meathead's SOUL;
 // Donnie just wants to show off his sick new powers (and kill him doing it). Every line by either of them three ways,
-// all the same size: clean, shitty pants, naked.
+// all the same size: clean, shitty pants, naked. His sin is GLUTTONY: Satan wants a soul, Donnie wants a snack; he
+// gorges on anybody he can get his fangs in, burps after every drink, and in the end eats himself to death.
 
 import { type ByPants, all } from '../control/lines';
 export type { ByPants, Dressed } from '../control/lines';
@@ -17,8 +18,8 @@ export type { ByPants, Dressed } from '../control/lines';
 export const DONNIE_PLEAD: ByPants = {
   clean: [
     "PLEASE DON'T HURT ME! I'M NOT REALLY DRACULA! I'M DONNIE! I HAVE A CONDO!",
-    'OKAY, YOU WIN! TAKE MY EMPLOYEE DISCOUNT! TWELVE PERCENT!',
-    "DON'T HIT ME! I'M ON BLOOD THINNERS!",
+    'OKAY, YOU WIN! TAKE MY EMPLOYEE DISCOUNT! TWELVE PERCENT! TAKE MY WINGS! THE CHICKEN ONES!',
+    "DON'T HIT ME! I'M ON BLOOD THINNERS! I JUST ATE!",
   ],
   shitty: [
     "PLEASE DON'T HURT ME! I'M NOT REALLY DRACULA! I'M DONNIE! STAY OVER THERE!",
@@ -31,11 +32,12 @@ export const DONNIE_PLEAD: ByPants = {
     "DON'T HIT ME! AND DON'T STAND LIKE THAT!",
   ],
 };
-/** The circle opens: Satan gives Donnie the power and wants Meathead's soul for it (short: the rest is in the fight). */
+/** The circle opens: Satan gives Donnie the power and wants Meathead's soul for it (short: the rest is in the fight).
+ *  The fangs are for the soul; Donnie hears the fangs (and DONNIE_ENAMORED, the moment he's up: he wants a snack). */
 export const SATAN_GRANT: ByPants = {
-  clean: ['DONALD. STOP SNIVELING. TAKE MY POWER. BRING ME HIS SOUL.', 'RISE, DONALD. FANGS. WINGS. NOW FETCH ME HIS SOUL.', 'DONALD. BE WHAT YOUR NAME TAG PRETENDS. AND GET ME HIS SOUL.'],
-  shitty: ['DONALD. TAKE MY POWER. BRING ME HIS SOUL. LEAVE THE PANTS.', 'RISE, DONALD. FETCH ME HIS SOUL. HOLD YOUR NOSE.', 'DONALD. TAKE MY POWER. I WANT HIS SOUL. NOT WHAT HE SAT IN.'],
-  nude: ['DONALD. TAKE MY POWER. BRING ME HIS SOUL. JUST THE SOUL.', "RISE, DONALD. FETCH ME THE NAKED ONE'S SOUL.", 'DONALD. HE CAME TO MY HOUSE NAKED. BRING ME HIS SOUL.'],
+  clean: ['DONALD. STOP SNIVELING. TAKE MY POWER. BRING ME HIS SOUL. THE SOUL, DONALD. NOT A SNACK.', 'RISE, DONALD. FANGS. WINGS. NOW FETCH ME HIS SOUL. DO NOT EAT IT.', 'DONALD. BE WHAT YOUR NAME TAG PRETENDS. AND GET ME HIS SOUL. PUT DOWN THE CHICKEN.'],
+  shitty: ['DONALD. TAKE MY POWER. BRING ME HIS SOUL. NOT A SNACK. YOU WOULD NOT WANT HIM ANYWAY.', 'RISE, DONALD. FETCH ME HIS SOUL. HOLD YOUR NOSE. AND YOUR APPETITE.', 'DONALD. TAKE MY POWER. I WANT HIS SOUL. NOT WHAT HE SAT IN. DO NOT EAT IT.'],
+  nude: ['DONALD. TAKE MY POWER. BRING ME HIS SOUL. JUST THE SOUL. NOT A SNACK.', "RISE, DONALD. FETCH ME THE NAKED ONE'S SOUL. DO NOT EAT IT.", 'DONALD. HE CAME TO MY HOUSE NAKED. BRING ME HIS SOUL. PUT DOWN THE CHICKEN.'],
 };
 
 // ---- Satan and Donnie, mid-fight: two-line beats (Satan, then Donnie back at him), each at its moment. Their two
@@ -44,9 +46,9 @@ export const SATAN_GRANT: ByPants = {
 
 /** (now and then) Satan: the soul, Donald. (SATAN_NAG, below) ...and Donnie, showing off. */
 export const DONNIE_SHOWOFF: ByPants = {
-  clean: ['SOUL SCHMOUL! LOOK AT ME! I CAN FLY!', "RELAX! I'M KILLING HIM! I'M JUST KILLING HIM COOL!", 'YEAH, YEAH! AFTER ONE MORE LOOP!'],
-  shitty: ["SOUL SCHMOUL! IT'S CLEAN UP HERE!", "YOU WANT IT? YOU COME GET IT! I'M NOT TOUCHING HIM!", "RELAX! I'M KILLING HIM! FROM UPWIND!"],
-  nude: ["SOUL SCHMOUL! I'M NOT LOOKING DOWN THERE FOR IT!", "RELAX! I'M KILLING HIM! WITH MY EYES CLOSED!", 'YEAH, YEAH! THE NECK! I KNOW WHERE THE NECK IS!'],
+  clean: ['SOUL SCHMOUL! LOOK AT ME! I CAN FLY!', "RELAX! I'M KILLING HIM! AFTER A SNACK!", "YEAH, YEAH! I'M ON MY DINNER BREAK!"],
+  shitty: ["SOUL SCHMOUL! IT'S CLEAN UP HERE!", "YOU WANT IT? YOU COME GET IT! I'M EATING!", "RELAX! I'M KILLING HIM! FROM UPWIND!"],
+  nude: ["SOUL SCHMOUL! I'M NOT LOOKING DOWN THERE FOR IT!", "RELAX! I'M KILLING HIM! WITH MY EYES CLOSED!", 'YEAH, YEAH! THE NECK! RIGHT AFTER DESSERT!'],
 };
 /** (part way in) Satan's taunt: Donnie's soul too, one day. */
 export const SATAN_SOUL: ByPants = {
@@ -123,6 +125,18 @@ export const DONNIE_GREASED: ByPants = {
   shitty: ['GET YOUR SHITTY HANDS OFF ME! ...OH, THEY SLID OFF!', "GREASE BEATS SHIT, PAL! I'M LIKE A NONSTICK PAN!", "DON'T WIPE YOUR HANDS ON MY CAPE!"],
   nude: ['A NAKED GUY HUGGED ME! THANK GOD I SWEAT GREASE!', 'NO NAKED WRESTLING! I SLIDE RIGHT OUT!', "HANDS OFF! AND KEEP THAT OTHER THING OFF TOO!"],
 };
+/** After every drink (him, or a guest): the burp (a sound), then this. */
+export const DONNIE_GORGE: ByPants = {
+  clean: ['SECONDS.', "I'M STILL HUNGRY.", 'ONE MORE BITE.', "DON'T JUDGE ME.", 'ROOM FOR DESSERT.', 'PASS THE NAPKINS.'],
+  shitty: ['SECONDS. EVEN WITH THE STINK.', "I'M STILL HUNGRY. NOT FOR YOU.", 'ONE MORE BITE. FAR FROM THE PANTS.', "DON'T JUDGE ME. YOU SHIT YOURSELF.", 'ROOM FOR DESSERT. NOT BROWNIES.', 'PASS THE NAPKINS. AND A CLOTHESPIN.'],
+  nude: ['SECONDS. NO PEEKING.', "I'M STILL HUNGRY. PUT THE SAUSAGE AWAY.", 'ONE MORE BITE. NECK ONLY.', "DON'T JUDGE ME. YOU'RE NAKED.", 'ROOM FOR DESSERT. NOT THAT COCKTAIL WIENER.', 'PASS THE NAPKINS. COVER THAT.'],
+};
+/** A guest comes near while he's at Meathead (the tell, the swoop, the spew, got hold of him): he can't help himself. */
+export const DONNIE_TEMPTED: ByPants = {
+  clean: ['OOH! HOLD THAT THOUGHT!', 'WAIT! THAT ONE LOOKS JUICY!', "BE RIGHT BACK! DON'T MOVE!"],
+  shitty: ["HOLD THAT THOUGHT! THAT ONE DOESN'T STINK!", 'WAIT! A CLEAN ONE!', "BE RIGHT BACK! GO WASH!"],
+  nude: ['HOLD THAT THOUGHT! THAT ONE HAS PANTS!', 'WAIT! A DRESSED ONE!', 'BE RIGHT BACK! FIND A TOWEL!'],
+};
 /** A guest running past: lunch. */
 export const DONNIE_SNATCH: ByPants = {
   clean: ['OOH! TAKEOUT!', 'WATCH THIS! DRIVE-THRU!', "SORRY, PAL! I'M ON A ROLL!"],
@@ -170,9 +184,9 @@ export const DONNIE_TAUNT: ByPants = {
 };
 /** The fight's first moment: the power's in him, and he's in love with it. */
 export const DONNIE_ENAMORED: ByPants = {
-  clean: ["OH WOW. I'M FLOATING! BEST DAY OF MY LIFE!", "REAL WINGS! THEY FLAP! LOOK AT 'EM FLAP!", 'REAL FANGS! SUCK IT, DENTAL PLAN!'],
-  shitty: ["OH WOW. I'M FLOATING! I CAN'T SMELL YOU UP HERE! BEST DAY OF MY LIFE!", 'REAL WINGS! EVERY FLAP BLOWS IT BACK AT YOU!', "REAL FANGS! AND I DON'T EVEN HAVE TO GET CLOSE!"],
-  nude: ["OH WOW. I'M FLOATING! ABOVE IT ALL! BEST DAY OF MY LIFE!", 'REAL WINGS! BIG ENOUGH TO COVER MY EYES!', "REAL FANGS! I'M AIMING FOR THE NECK! ONLY THE NECK!"],
+  clean: ["REAL FANGS! KEEP THE SOUL, BIG GUY! I'M HERE FOR THE BUFFET!", 'YOU GET A SOUL! I GET A SNACK!', 'REAL FANGS! SUCK IT, DENTAL PLAN! WHO WANTS TO BE DINNER?'],
+  shitty: ["REAL FANGS! KEEP THE SOUL! I WANT A SNACK! NOT HIM!", 'YOU GET A SOUL! I GET A SNACK! A DIFFERENT SNACK!', "REAL FANGS! AND I DON'T EVEN HAVE TO GET CLOSE!"],
+  nude: ["REAL FANGS! KEEP THE SOUL! I'M HERE FOR THE BUFFET!", 'YOU GET A SOUL! I GET A SNACK! WITH PANTS ON!', "REAL FANGS! YOU GET THE SOUL! I GET THE NECK! ONLY THE NECK!"],
 };
 /** A retry (the intro seen): back up and waiting, a quick loop and a taunt before he's after him. */
 export const DONNIE_ENTRANCE: ByPants = {
@@ -182,15 +196,16 @@ export const DONNIE_ENTRANCE: ByPants = {
 };
 /** Satan, now and then, at Donnie: the soul, Donald. */
 export const SATAN_NAG: ByPants = {
-  clean: ['THE SOUL, DONALD. STOP POSING.', 'I DID NOT GIVE YOU WINGS TO SHOW OFF, DONALD.', 'DONALD. THE SOUL IS THE POINT.'],
+  clean: ['THE SOUL, DONALD. STOP POSING.', 'I DID NOT GIVE YOU WINGS TO SHOW OFF, DONALD.', 'DONALD. THE SOUL. NOT THE BUFFET.'],
   shitty: ['THE SOUL, DONALD. YES, I SMELL IT TOO. DRAIN HIM.', 'STOP HOLDING YOUR NOSE AND DRAIN HIM, DONALD.', 'DONALD. YOU WORK IN A THEME PARK. YOU HAVE SMELLED WORSE.'],
   nude: ['THE SOUL, DONALD. STOP LOOKING AWAY.', 'YOU ARE BOTH SHOWING OFF, DONALD. IT IS UNBEARABLE.', 'DONALD. EYES ON THE NECK.'],
 };
-/** Beaten (the usual way). */
+/** Beaten (the usual way): the powers out, and everything he's drunk catches up with him; he swells up, keels over and
+ *  shits himself. */
 export const DONNIE_DIES: ByPants = {
-  clean: ['MY POWERS... I HAD THEM TEN MINUTES...', 'TELL MY MOTHER... I FLEW...', 'BEST DAY OF MY LIFE... AND THE LAST...'],
-  shitty: ['AND THE LAST THING I SMELL... IS YOUR ASS...', 'TELL MY MOTHER... I FLEW... AND BURN THE CARPET...', 'BEST DAY OF MY LIFE... SMELLED LIKE THE WORST...'],
-  nude: ['AND THE LAST THING I SEE... IS THAT...', 'TELL MY MOTHER... I FLEW... AND I SAW A DICK...', 'BEST DAY OF MY LIFE... UNTIL THE DICK...'],
+  clean: ['TOO... MUCH... BLOOD...', "I SHOULDN'T HAVE HAD... THAT LAST GUY...", 'TELL MY MOTHER... I CLEANED MY PLATE...'],
+  shitty: ['TOO MUCH BLOOD... AND IT ALL TASTED LIKE YOUR ASS...', "I SHOULDN'T HAVE... EATEN... NEAR YOU...", 'TELL MY MOTHER... I CLEANED MY PLATE... BURN THE PLATE...'],
+  nude: ['TOO MUCH BLOOD... AND A DICK... WITH MY MOUTH FULL...', "I SHOULDN'T HAVE... EATEN... NEAR THAT...", 'TELL MY MOTHER... I CLEANED MY PLATE... AND I SAW A DICK...'],
 };
 /** Beaten by the little statue: he burns up. */
 export const DONNIE_BURNS: ByPants = {
@@ -225,7 +240,7 @@ export const MEATHEAD_SOUVENIR_HINT = [
   'I NEED SOMETHING CHURCHY. WHAT ELSE IS IN HERE?',
 ];
 /** Meathead, after. */
-export const MEATHEAD_WON = ['FLY THAT.', 'THE COUNT IS DOWN. AND OUT.', "SHOULD'VE KEPT BEGGING."];
+export const MEATHEAD_WON = ["SHOULD'VE SKIPPED DESSERT.", 'THE COUNT IS DOWN. AND OUT.', "SHOULD'VE KEPT BEGGING."];
 /** ...after the little statue did it. */
 export const MEATHEAD_WON_WEAK = ['NEVER LEAVE HOME WITHOUT A SOUVENIR.', 'HE REALLY HATED THAT LITTLE JESUS.', 'ASHES TO ASHES. DORK TO DUST.'];
 
@@ -243,7 +258,7 @@ export const VOICE_LINES: Record<string, string[]> = {
   meathead: [...MEATHEAD_WON, ...MEATHEAD_WON_WEAK, ...MEATHEAD_SOUVENIR_HINT, ...MEATHEAD_CHARGE_HINT, ...MEATHEAD_GREASE, ...HURT_DRAIN, ...HURT_BLOOD],
   death: [...DEATH_DRAIN, ...DEATH_BLOOD],
   'm2.donnie': [
-    ...[DONNIE_PLEAD, DONNIE_ENAMORED, DONNIE_ENTRANCE, DONNIE_SHOWOFF, DONNIE_SATAN_PANIC, DONNIE_GUEST, DONNIE_STUN, DONNIE_LOW, DONNIE_DIVE, DONNIE_DRAIN, DONNIE_ESCAPED, DONNIE_GREASED, DONNIE_SNATCH, DONNIE_SPEW, DONNIE_HURT, DONNIE_REDEEMER, DONNIE_TAUNT, DONNIE_DIES, DONNIE_BURNS].flatMap(all),
+    ...[DONNIE_PLEAD, DONNIE_ENAMORED, DONNIE_ENTRANCE, DONNIE_SHOWOFF, DONNIE_SATAN_PANIC, DONNIE_GUEST, DONNIE_STUN, DONNIE_LOW, DONNIE_DIVE, DONNIE_DRAIN, DONNIE_ESCAPED, DONNIE_GREASED, DONNIE_SNATCH, DONNIE_SPEW, DONNIE_HURT, DONNIE_REDEEMER, DONNIE_TAUNT, DONNIE_DIES, DONNIE_BURNS, DONNIE_GORGE, DONNIE_TEMPTED].flatMap(all),
   ],
   'm2.satan': [...[SATAN_GRANT, SATAN_SOUL, SATAN_NAG, SATAN_GUEST, SATAN_STUN, SATAN_LOW, SATAN_CLAIM].flatMap(all)],
   'm2.guest': [...GUEST_SCREAM],
