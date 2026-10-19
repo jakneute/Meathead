@@ -460,6 +460,19 @@ export const drawHarry = (c: Ctx, x: number, y: number, L: HarryLook) => {
   }
   // Torso: the tie-dye under the open flight jacket (the jacket in steps, its seam dithered down the shadow side)
   const tx = 0, ty = -34;
+  // Arms: the jacket's sleeves in steps, a knit cuff, his hands (the far one a step darker, in the body's shadow)
+  const shX = tx - 4, shY = ty - 22, sh2X = tx + 6;
+  const armTo = (sx: number, sy: number, ex: number, ey: number, hx: number, hy: number, fist = false, R: Ramp = JACKET_R) => {
+    tubeR(c, [sx, sy, ex, ey, hx, hy], [6.8, 6.2], [R, R]);
+    const d = Math.hypot(hx - ex, hy - ey) || 1, ux = (hx - ex) / d, uy = (hy - ey) / d;
+    lineR(c, [hx - ux * 4.2, hy - uy * 4.2, hx - ux * 2.4, hy - uy * 2.4], 5.6, '#2A1E12', 'butt');
+    hand(c, hx, hy, fist, S);
+  };
+  const FAR_R: Ramp = [JACKET_R[1], JACKET_R[2], JACKET_R[3], JACKET_R[3], JACKET_R[4]];
+  // (standing or on the jetpack, the far arm goes behind him, past his far side: the tie-dye's front stays in view)
+  const sideArms = pose === 'stand' || pose === 'jet';
+  if (pose === 'stand') armTo(tx + 8, shY, tx + 12.5, shY + 12, tx + 12, ty - 2, false, FAR_R);
+  else if (pose === 'jet') { const s = Math.sin(f * 0.7) * 3; armTo(tx + 8, shY, tx + 17, shY - 2, tx + 19, ty - 34 + s, true, FAR_R); }
   const torso = () => { c.moveTo(tx - 9, ty); c.lineTo(tx + 9, ty); c.lineTo(tx + 11, ty - 26); c.lineTo(tx - 10, ty - 26); c.closePath(); };
   shapeR(c, torso, JACKET_R, tx - 10, tx + 11, 1.2);
   tieDye(c, () => { c.moveTo(tx - 3, ty - 1); c.lineTo(tx + 8, ty - 1); c.lineTo(tx + 9, ty - 25); c.lineTo(tx - 2, ty - 25); c.closePath(); }, tx + 3, ty - 13, f);
@@ -480,15 +493,13 @@ export const drawHarry = (c: Ctx, x: number, y: number, L: HarryLook) => {
   head(c, f, mad, !!L.talking, tx + 1, ty - 37, { green: L.green });
   const steam = L.steam ?? (mad && !!L.talking && pose !== 'pilot');
   if (steam) steamOff(c, f, tx + 1, ty - 55);
-  // Arms: the jacket's sleeves in steps, a knit cuff, his hands
-  const shX = tx - 4, shY = ty - 22, sh2X = tx + 6;
-  const armTo = (sx: number, sy: number, ex: number, ey: number, hx: number, hy: number, fist = false) => {
-    tubeR(c, [sx, sy, ex, ey, hx, hy], [6.8, 6.2], [JACKET_R, JACKET_R]);
-    const d = Math.hypot(hx - ex, hy - ey) || 1, ux = (hx - ex) / d, uy = (hy - ey) / d;
-    lineR(c, [hx - ux * 4.2, hy - uy * 4.2, hx - ux * 2.4, hy - uy * 2.4], 5.6, '#2A1E12', 'butt');
-    hand(c, hx, hy, fist, S);
-  };
-  if (L.launcher || pose === 'aim' || pose === 'fire') {
+  if (sideArms) {
+    // (the near arm down his near side, clear of the shirt: on the jetpack a fist by his hip; standing, an open hand
+    //  that talks with him, out from his side, palm up, the way a hippie explains himself)
+    if (pose === 'jet') armTo(tx - 8, shY, tx - 12.5, shY + 11, tx - 13, ty - 4, true);
+    else if (L.talking && !(L.green && L.green > 0.3)) { const g = Math.sin(f * 0.3) * 2; armTo(tx - 8, shY, tx - 14, shY + 10, tx - 19, ty - 7 + g); }
+    else armTo(tx - 8, shY, tx - 12.5, shY + 12, tx - 12, ty - 2);
+  } else if (L.launcher || pose === 'aim' || pose === 'fire') {
     // (tipped up about his shoulder: he's shooting up at the sky)
     c.save(); c.translate(tx + 4, ty - 26); c.rotate(-(L.aim ?? 0)); c.translate(-(tx + 4), -(ty - 26));
     armTo(shX, shY, shX - 2, shY + 10, tx + 6, ty - 26 + 2);
@@ -519,12 +530,12 @@ export const drawHarry = (c: Ctx, x: number, y: number, L: HarryLook) => {
     const w = Math.sin(f * 0.6) * 10;
     armTo(shX, shY, shX - 9, shY - 8, tx - 12 + w * 0.3, ty - 40 - w);
     armTo(sh2X, shY, sh2X + 9, shY - 8, tx + 16 - w * 0.3, ty - 40 + w);
-  } else if (pose === 'jet' || pose === 'gloat') {
+  } else if (pose === 'gloat') {
     // (shaking his fist at him, the other hand on the jetpack's throttle)
-    const s = pose === 'gloat' ? Math.sin(f * 0.4) * 4 : Math.sin(f * 0.7) * 3;
+    const s = Math.sin(f * 0.4) * 4;
     armTo(shX, shY, shX - 3, shY + 12, tx - 6, ty - 4, true);
     armTo(sh2X, shY, sh2X + 10, shY - 4, tx + 18, ty - 34 + s, true);
-    if (pose === 'gloat') { lineR(c, [tx + 18, ty - 38 + s, tx + 18, ty - 46 + s], 3, S[4]); lineR(c, [tx + 18, ty - 38 + s, tx + 18, ty - 45.6 + s], 1.6, S[1]); }
+    { lineR(c, [tx + 18, ty - 38 + s, tx + 18, ty - 46 + s], 3, S[4]); lineR(c, [tx + 18, ty - 38 + s, tx + 18, ty - 45.6 + s], 1.6, S[1]); }
   } else {
     armTo(shX, shY, shX - 3, shY + 12, tx - 5, ty - 2);
     armTo(sh2X, shY, sh2X + 3, shY + 12, tx + 9, ty - 2);
