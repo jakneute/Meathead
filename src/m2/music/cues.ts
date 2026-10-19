@@ -360,10 +360,9 @@ const gameWants = (s: GameState | null): Want => {
   const cutscene = !!p.inCutscene;
   if (s.deathTimer > 0) return { cands: [{ song: 'jingle:death' }], cutscene: false };
   if (momentOn('victory')) return { cands: [{ song: 'jingle:victory' }], cutscene: false };
-  const walk = momentOn('walkaway');
-  if (walk) return { cands: [{ song: `walkaway:${walk.arg}` }, { song: 'walkaway' }, { song: 'title', arrs: ['cutscene'] }], cutscene: false };
-  const portal = momentOn('portal');
-  if (portal) return { cands: [{ song: `portal:${portal.arg}` }, { song: 'portal' }, { song: `land:${portal.arg}`, arrs: ['portal'] }], cutscene: false };
+  // (the walk-in through a portal and the walk-away from the wreck: no music at all (the user's): their own sounds only)
+  if (momentOn('walkaway') || momentOn('portal')) return none;
+
   // (the hub's waltz in the colors of the portal he's at: hubArr)
   if (stage === HUB_STAGE) return { cands: [{ song: 'hub', arrs: [hubArr(s), 'main'] }, { song: 'title', arrs: ['calliope'] }], cutscene };
   if (stage === PEN_STAGE) return { cands: [{ song: 'staff' }, { song: 'title', arrs: ['lounge'] }], cutscene };
@@ -444,6 +443,6 @@ const start = () => {
   useContext(getAudioContext);
   // (the songs everybody hears made first, in idle time: the theme, the jingles, the hub, the way in)
   // (the walk-away's and the portal walk's every arrangement: the bosses' and the lands' versions are theirs)
-  setTimeout(() => { for (const id of ['title', 'hub', 'intro', 'staff', 'jingle:death', 'jingle:victory', 'walkaway', 'portal']) if (SONGS[id]) prewarm(SONGS[id]); }, 2500);
+  setTimeout(() => { for (const id of ['title', 'hub', 'intro', 'staff', 'jingle:death', 'jingle:victory']) if (SONGS[id]) prewarm(SONGS[id]); }, 2500);
   timer = setInterval(() => { try { apply(); } catch (err) { console.error('music', err); } }, 100);
 };
