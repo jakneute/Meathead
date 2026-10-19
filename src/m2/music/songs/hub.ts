@@ -17,7 +17,18 @@
 //             and pizz together, the snare on the pahs, a crash every four bars.
 //
 // ARRANGEMENTS:  main (all of it); cutscene (under the hub's scenes: celesta and music box on the tune, slow strings,
-// the cello and harp in the middle).
+// the cello and harp in the middle). And one per spot round the plaza (cues.ts picks by the one he's nearest, 'main'
+// between them, crossfading as he walks): the same waltz in that land's colors, a preview of its theme:
+//   adventure  exotica: pan flute, marimba, vibes, flute in the middle, congas and a shaker, upright bass
+//   spooky     the theremin, harpsichords, the violin, the hook on the pipe organ, organ pads, choir, a ticking clock
+//   space      vibes, theremin, celesta, the oohs on the horns' line, PWM pads, DX piano pahs, upright, bongos
+//   hollywood  the studio orchestra: trumpet and horn on the tune, brass-section pahs, choir, the kit up
+//   foreign    accordion, koto, sitar in the middle, guitar afterbeats, tambourine and castanets
+//   frontier   harmonica, fiddle, banjo pahs, steel guitar, tuba, woodblock clip-clop
+//   cartoon    xylophones, clarinet, oboe, muted trumpet, trombones, a big tuba, a slide whistle, slapsticks
+//   fantasy    flute, celesta, harps, the choir singing the middle and the last hook, cello oom, a triangle
+//   america    America USA's marching band: piccolo, clarinets, bell lyre, horn afterbeats, trombones, snare
+//   staff      the staff room's muzak: DX piano, flute, Rhodes, nylon guitar, warm pad, finger bass, brushes
 
 import type { Song } from '../engine';
 
@@ -103,6 +114,47 @@ const DRUMS_B = ['_v85 {ki}4 r2', ...rep('k4 r2', 6), 'k4 r4 ?i4', ...rep('k4 r2
 const T4 = ['{kx}4 ?s4 ?s4', 'k4 ?s4 ?s4', 'k4 ?s4 ?s4', 'k4 ?s4 ?s4'];
 const DRUMS_T = ['_v110', ...T4, ...T4, ...T4, '{kx}4 ?s4 ?s4', 'k4 ?s4 ?s4', 'k4 ?s4 ?s4', 'k4 s8 s8 s8 s8'];
 
+// ---- The lands' own percussion (one part each, only in its arrangements): intro (4), A, A2, B, T (16 each) ----
+/** 16 bars: the first given, then the rest, the last given. */
+const sec16 = (first: string, bar: string, last = bar) => [first, ...rep(bar, 14), last];
+/** Jungle Land: congas and a shaker (a beguine's lilt in three). */
+const HAND = join(rest(3), ['_v80 c8 c8 d8 d8 {cd}4'],
+  sec16('_v85 {dz}8 ?c8 c8 d8 ?c8 c8', 'd8 ?c8 c8 d8 ?c8 c8'), sec16('{dz}8 ?c8 {cz}8 d8 ?c8 c8', '{dz}8 ?c8 {cz}8 d8 ?c8 c8'),
+  sec16('_v70 d4 ?c8 c8 ?c4', 'd4 ?c8 c8 ?c4', 'd8 c16 c16 d8 c8 b16 b16 b8'), sec16('_v90 {dz}8 ?c8 {cz}8 d8 ?c8 c8', '{dz}8 ?c8 {cz}8 d8 ?c8 c8', 'd8 c16 c16 d8 c8 {cd}4'));
+/** Spooky Land: a clock ticking, a gong at the sections' heads. */
+const TICK = join(['_v100 g4 r2'], rest(3),
+  sec16('_v75 {kg}4 ?e4 ?e4', 'k4 ?e4 ?e4'), sec16('{kg}4 ?e4 ?e4', 'k4 ?e4 ?e4'),
+  sec16('_v65 {kg}4 r2', 'k4 r4 ?e4', 'k4 e4 e4'), sec16('_v90 {kg}4 e4 e4', 'k4 e4 e4', 'k4 e8 e8 e8 e8'));
+/** Future Land and the staff room: brushes, a shaker, a bongo (lounge in three). */
+const LOUNGE = join(rest(2), ['_v70 ?z8 ?z8 z8 ?z8 z8 ?z8', 'z8 ?z8 z8 ?z8 m8 m8'],
+  sec16('_v80 {kz}8 ?z8 m8 ?z8 ?b8 m8', '{kz}8 ?z8 m8 ?z8 ?b8 m8'), sec16('{kz}8 ?z8 m8 ?z8 ?b8 m8', '{kz}8 ?z8 m8 ?z8 ?b8 m8'),
+  sec16('_v65 k4 ?z8 ?z8 ?z8 ?z8', 'k4 ?z8 ?z8 ?z8 ?z8', 'k4 z8 z8 m8 m8'), sec16('_v85 {kz}8 ?z8 m8 ?z8 b8 m8', '{kz}8 ?z8 m8 ?z8 b8 m8', 'k8 b8 b8 m8 m4'));
+/** Foreign Lands: a bass drum, tambourine, castanets in the middle. */
+const TAMB = join(rest(3), ['_v80 j8 j8 j8 j8 j4'],
+  sec16('_v85 {kx}4 j4 j4', 'k4 j4 j4'), sec16('{kx}4 j8 j8 j4', 'k4 j8 j8 j4'),
+  sec16('_v75 k4 (castanets)8 (castanets)8 (castanets)4', 'k4 (castanets)8 (castanets)8 (castanets)4', 'k4 j8 j8 j8 j8'),
+  [...rep('_v95 {kx}4 j8 j8 j8 j8 | k4 j8 j8 j8 j8 | k4 j8 j8 j8 j8 | k4 j8 j8 j8 j8', 4)]);
+/** Wilderness Land: the woodblocks' clip-clop. */
+const CLOP = '(woodblock)8 (woodblocklo)8 (woodblock)8 (woodblocklo)8';
+const CLIP = join(rest(2), [`_v75 r4 ${CLOP}`, `r4 ${CLOP}`],
+  sec16(`_v85 {kx}4 ${CLOP}`, `k4 ${CLOP}`), sec16(`{kx}4 ${CLOP}`, `k4 ${CLOP}`),
+  sec16('_v70 k4 r2', 'k4 r4 ?e4', `k4 ${CLOP}`), sec16(`_v95 {kx}4 ${CLOP}`, `k4 ${CLOP}`, `k4 ${CLOP}`));
+/** Cartoon Land: woodblocks, a cowbell, slapsticks at the phrase ends. */
+const TOON8 = ['k4 e4 e4', 'k4 e4 e4', 'k4 e4 w4', 'k4 e4 e4', 'k4 e4 e4', 'k4 e4 e4', 'k4 e8 e8 w4', 'k4 r4 a4'];
+const TOON = join(rest(3), ['_v90 a4 e8 e8 e4'],
+  ['_v85'], TOON8, TOON8, TOON8, TOON8,
+  sec16('_v70 k4 r4 ?e4', 'k4 r4 ?e4', 'k4 e8 e8 a4'), ['_v95'], TOON8, TOON8);
+/** Fairy Land: a triangle, the bass drum soft, a cymbal for the last hook. */
+const TRI = join(rest(3), ['_v70 r2 i4'],
+  sec16('_v70 {ki}4 r2', '?i4 r2'), sec16('{ki}4 r4 ?i4', '?i4 r4 ?i4'),
+  sec16('_v60 i4 r2', 'r2.', '?i8 ?i8 ?i8 ?i8 i4'), sec16('_v85 {kx}4 r4 ?i4', '{ki}4 r4 ?i4', 'k4 i4 i4'));
+/** America USA's marching band: bass drum, snare, the crash. */
+const MARCH = join(DRUMS_INTRO,
+  sec16('_v95 {kx}4 s4 s4', 'k4 s4 s4', 'k4 s8 s8 s8 s8'), sec16('{kx}4 s4 s4', 'k4 s4 s4', 'k4 s8 s8 s8 s8'),
+  sec16('_v75 k4 ?s4 ?s4', 'k4 ?s4 ?s4', ROLL(40, 60, 85)), [...rep('_v105 {kx}4 s8 s8 s4 | k4 s8 s8 s4 | k4 s8 s8 s4 | k4 s8 s8 s8 s8', 4)]);
+/** Cartoon Land's slide whistle: up through the held A at bar 7, down through the held D at bar 11. */
+const SLIDES = rest(16).map((r, i) => (i === 6 ? 'o5 c8 o6 c4 r4.' : i === 10 ? 'o6 a8 o5 a4 r4.' : r));
+
 export const HUB: Song = {
   title: 'Round and Round',
   bpm: 168,
@@ -132,9 +184,60 @@ export const HUB: Song = {
     },
     cello: { inst: 'cello', pan: -0.15, rev: 0.25, vol: 0.8, mml: join(rest(36), ['_v80 _q100'], B.map(c => nt(R[c][0], '2.')), rest(16)) },
     drums: { inst: 'bassdrum', drums: true, kit: 'orchestra', rev: 0.2, vol: 0.8, mml: join(DRUMS_INTRO, DRUMS_A, DRUMS_A2, DRUMS_B, DRUMS_T) },
+    // (the lands' own percussion, and Cartoon Land's slide whistle: each only in its arrangements)
+    hand: { inst: 'congahi', drums: true, pan: 0.25, rev: 0.2, vol: 0.7, only: ['adventure'], mml: HAND },
+    tick: { inst: 'woodblock', drums: true, kit: 'orchestra', pan: -0.2, rev: 0.35, vol: 0.6, only: ['spooky'], mml: TICK },
+    lounge: { inst: 'kicksoft', drums: true, kit: 'brush', pan: 0.15, rev: 0.2, vol: 0.65, only: ['space', 'staff'], mml: LOUNGE },
+    tamb: { inst: 'tamb', drums: true, kit: 'orchestra', pan: 0.2, rev: 0.2, vol: 0.65, only: ['foreign'], mml: TAMB },
+    clip: { inst: 'woodblock', drums: true, kit: 'orchestra', pan: -0.15, rev: 0.2, vol: 0.65, only: ['frontier'], mml: CLIP },
+    toon: { inst: 'woodblock', drums: true, kit: 'orchestra', pan: 0.15, rev: 0.2, vol: 0.7, only: ['cartoon'], mml: TOON },
+    tri: { inst: 'triangle', drums: true, kit: 'orchestra', pan: 0.3, rev: 0.4, vol: 0.55, only: ['fantasy'], mml: TRI },
+    march: { inst: 'snare2', drums: true, kit: 'orchestra', rev: 0.2, vol: 0.8, only: ['america'], mml: MARCH },
+    slide: { inst: 'flute', pan: 0.35, rev: 0.3, vol: 0.55, only: ['cartoon'], mml: join(rest(4), ['_g8 _m0 _v85'], SLIDES, SLIDES, rest(16), SLIDES) },
   },
   arrangements: {
     main: {},
+    // ---- Round the plaza (cues.ts hubArr): each spot's land in the waltz ----
+    adventure: {
+      inst: { flute: 'panflute', xylo: 'marimba', clar: 'vibes', violin: 'flute', trumpet: 'panflute', accordion: 'vibes', pizz: 'nylongtr', tuba: 'upright', strings: 'slowstrings' },
+      mute: ['drums', 'glock'], vol: { xylo: 0.8, strings: 0.75, flute: 1.1, trumpet: 1.1 }, rev: { flute: 0.4, trumpet: 0.4, clar: 0.35 },
+    },
+    spooky: {
+      inst: { flute: 'theremin', xylo: 'harpsichord', clar: 'harpsichord', trumpet: 'churchorgan', glock: 'musicbox', horns: 'choir', strings: 'churchorgan', oohs: 'choir', accordion: 'harpsichord' },
+      mute: ['drums'], vol: { strings: 0.5, xylo: 0.8, trumpet: 0.8, horns: 0.9 }, rev: { flute: 0.45, trumpet: 0.5, strings: 0.5, glock: 0.5 },
+    },
+    space: {
+      inst: { flute: 'vibes', xylo: 'celesta', clar: 'theremin', violin: 'theremin', trumpet: 'vibes', horns: 'oohs', strings: 'pwm', accordion: 'fmpiano', harp: 'fmpiano', tuba: 'upright', cello: 'upright' },
+      mute: ['drums'], vol: { flute: 1.15, trumpet: 1.15, horns: 1.1, strings: 0.6 }, rev: { flute: 0.4, trumpet: 0.4, clar: 0.4, violin: 0.4 },
+    },
+    hollywood: {
+      inst: { flute: 'trumpet', clar: 'horn', accordion: 'brass', oohs: 'choir' },
+      mute: ['xylo'], vol: { flute: 0.9, accordion: 0.8, strings: 1.05, drums: 1.15, horns: 1.1 }, rev: { flute: 0.3, clar: 0.3 },
+    },
+    foreign: {
+      inst: { flute: 'accordion', clar: 'koto', violin: 'sitar', pizz: 'nylongtr', harp: 'koto' },
+      mute: ['drums', 'xylo'], vol: { flute: 1.1, accordion: 0.8, clar: 1.1 },
+    },
+    frontier: {
+      inst: { flute: 'harmonica', clar: 'violin', trumpet: 'harmonica', accordion: 'banjo', pizz: 'steelgtr', harp: 'steelgtr' },
+      mute: ['drums', 'xylo', 'glock'], vol: { accordion: 0.9, trumpet: 1.05 },
+    },
+    cartoon: {
+      inst: { flute: 'xylophone', violin: 'oboe', trumpet: 'mutetrumpet', horns: 'trombone', accordion: 'marimba', cello: 'trombone' },
+      mute: ['drums'], vol: { flute: 0.9, xylo: 0.7, tuba: 1.15, strings: 0.55, oohs: 0.7 },
+    },
+    fantasy: {
+      inst: { xylo: 'celesta', clar: 'flute', violin: 'choir', trumpet: 'choir', strings: 'slowstrings', oohs: 'choir', accordion: 'harp', pizz: 'celesta', tuba: 'cello' },
+      mute: ['drums'], vol: { xylo: 0.8, violin: 0.85, trumpet: 0.85, pizz: 0.8, tuba: 0.9 }, rev: { flute: 0.4, clar: 0.4, violin: 0.5, trumpet: 0.5, harp: 0.45 },
+    },
+    america: {
+      inst: { xylo: 'glock', violin: 'horn', horns: 'trombone', accordion: 'brass', pizz: 'horn', harp: 'clarinet', cello: 'trombone' },
+      mute: ['drums', 'strings', 'oohs'], vol: { tuba: 1.1, accordion: 0.8, pizz: 0.8, harp: 0.7 }, rev: { violin: 0.25 },
+    },
+    staff: {
+      inst: { flute: 'fmpiano', clar: 'flute', violin: 'fmpiano', trumpet: 'fmpiano', horns: 'flute', strings: 'warmpad', oohs: 'warmpad', accordion: 'epiano', pizz: 'nylongtr', harp: 'vibes', tuba: 'bass', cello: 'bass' },
+      mute: ['drums', 'xylo', 'glock'], vol: { flute: 1.1, violin: 1.1, trumpet: 1.1, horns: 0.7, strings: 0.6 }, rev: { flute: 0.3, trumpet: 0.3 }, level: 0.9,
+    },
     cutscene: {
       solo: ['flute', 'clar', 'violin', 'trumpet', 'strings', 'cello', 'harp'],
       inst: { flute: 'celesta', clar: 'celesta', trumpet: 'musicbox', strings: 'slowstrings' },

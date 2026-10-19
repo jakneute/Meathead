@@ -6,7 +6,7 @@
 //
 //   'title'                  the theme (no title screen yet: it stands in at the hub, the staff room, the intro)
 //   'intro'                  the way in (arrangements: garage, security, america, ticket: the intro's zones)
-//   'hub' / 'staff'          the hub; the staff room
+//   'hub' / 'staff'          the hub (an arrangement per spot round the plaza: hubArr); the staff room
 //   'land:<id>'              a land's theme, an arrangement per section (its section ids), crossfading as he goes;
 //                            'cutscene' (if it has one) in a cutscene; 'boss' if a boss has no theme of its own
 //   'seq:<name>'             a special sequence (a ride, a chase: SEQUENCES below)
@@ -30,6 +30,8 @@ import { momentOn } from './moments';
 import { bossFightName, inBossFight } from '../bossQuiet';
 import { getUi, walkBackOn, isLandCleared } from '../store';
 import { HUB_STAGE } from '../hub/index';
+import { HUB, HUB_CIRC } from '../hub/geometry';
+import { SPOTS, LANDS } from '../hub/lands';
 import { PEN_STAGE } from '../pen/index';
 import { INTRO_STAGE } from '../intro/index';
 import { ADV_STAGE } from '../adventure/index';
@@ -337,6 +339,19 @@ const stalkerArr = (s: GameState) => {
   return h.mode !== 'away' || h.rattle || h.fg ? 'near' : 'dark';
 };
 
+/** How near a spot round the plaza he has to be for the waltz to take its colors (spots are HUB.slot apart). */
+const HUB_NEAR = 170;
+/** The hub's waltz by the spot round the plaza he's nearest: a land's portal (the land's id), America USA's way in
+ *  ('america'), the staff door ('staff'); 'main' between them. The crossfade does the rest as he walks round. */
+const hubArr = (s: GameState): string => {
+  const cx = s.player.pos.x + s.player.width / 2;
+  const round = (((cx - HUB.x0) % HUB_CIRC) + HUB_CIRC) % HUB_CIRC;
+  const f = round / HUB.slot - 0.5, i = Math.round(f);
+  if (Math.abs(f - i) * HUB.slot > HUB_NEAR) return 'main';
+  const spot = SPOTS[((i % SPOTS.length) + SPOTS.length) % SPOTS.length];
+  return spot.kind === 'land' ? LANDS[spot.land].id : spot.kind;
+};
+
 /** What the game wants on right now. */
 const gameWants = (s: GameState | null): Want => {
   const none: Want = { cands: [], cutscene: false };
@@ -349,7 +364,8 @@ const gameWants = (s: GameState | null): Want => {
   if (walk) return { cands: [{ song: `walkaway:${walk.arg}` }, { song: 'walkaway' }, { song: 'title', arrs: ['cutscene'] }], cutscene: false };
   const portal = momentOn('portal');
   if (portal) return { cands: [{ song: `portal:${portal.arg}` }, { song: 'portal' }, { song: `land:${portal.arg}`, arrs: ['portal'] }], cutscene: false };
-  if (stage === HUB_STAGE) return { cands: [{ song: 'hub' }, { song: 'title', arrs: ['calliope'] }], cutscene };
+  // (the hub's waltz in the colors of the portal he's at: hubArr)
+  if (stage === HUB_STAGE) return { cands: [{ song: 'hub', arrs: [hubArr(s), 'main'] }, { song: 'title', arrs: ['calliope'] }], cutscene };
   if (stage === PEN_STAGE) return { cands: [{ song: 'staff' }, { song: 'title', arrs: ['lounge'] }], cutscene };
   if (stage === INTRO_STAGE) {
     const zone = getUi().zone ?? 'garage';
