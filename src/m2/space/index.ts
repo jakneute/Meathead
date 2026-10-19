@@ -29,6 +29,8 @@ import { needle } from './needle';
 import { orbit } from './orbit';
 import { crater } from './crater';
 import { queen } from './queen';
+import { HOUSE_DOOR } from './crater/layout';
+import type { Zone } from '../hudThemes';
 export { SPACE_VOICE_LINES } from './voices';
 
 export const SPACE_STAGE = 'M2 Space Land';
@@ -42,6 +44,8 @@ const sectionAt = (x: number): SpaceSection => {
   return best;
 };
 const current = (state: GameState) => ALL[getSpace(state)?.section ?? 'square'];
+/** The HUD's look for where he is (hudSkins/space.tsx): the section's; in through XENOSCARE's mouth, the haunted house's. */
+const hudZone = (id: SpaceId, x: number): Zone => id === 'square' ? 'space' : id === 'crater' && x >= HOUSE_DOOR ? 'xenoscare' : id;
 /** Every checkpoint in the stage, in order (the checkpoint-skip cheat lists them all). */
 export const SPACE_CHECKPOINTS = SECTION_ORDER.flatMap(id => ALL[id].checkpoints).sort((a, b) => a.cp - b.cp);
 
@@ -129,8 +133,8 @@ export const spaceLayout: StageLayout = {
     let out = sec.update ? sec.update(ctx, controls) : controls;
     out = updateGrab(ctx, sp.grab, out);
     if (arriving) out = { ...NO_CONTROLS };
-    // (a cutscene in any section: no HUD; the HUD's look: Space Land's, everywhere in it for now)
-    setUi({ introCutscene: !!p.inCutscene, zone: 'space' });
+    // (a cutscene in any section: no HUD; the HUD's look: the stretch he's in)
+    setUi({ introCutscene: !!p.inCutscene, zone: hudZone(sec.id as SpaceId, p.pos.x + p.width / 2) });
     return out;
   },
   waterBodyAt: (state, x, y) => sectionAt(x).waterBodyAt?.(state, x, y) ?? null,

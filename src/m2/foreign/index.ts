@@ -143,7 +143,8 @@ export const foreignLayout: StageLayout = {
     let out = sec.update ? sec.update(ctx, controls) : controls;
     out = updateGrab(ctx, fs.grab, out);
     if (arriving) out = { ...NO_CONTROLS };
-    setUi({ introCutscene: !!p.inCutscene, zone: 'foreign' });
+    // (the HUD's look: the pavilion he's in (hudSkins/foreign.tsx); through the land's gate, the passport)
+    setUi({ introCutscene: !!p.inCutscene, zone: sec.id === 'mexico' && p.pos.x + p.width / 2 < SECTIONS.mexico.x0 + 600 ? 'foreign' : sec.id as ForeignId });
     return out;
   },
   waterBodyAt: (state, x, y) => sectionAt(x).waterBodyAt?.(state, x, y) ?? null,

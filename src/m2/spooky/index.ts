@@ -27,6 +27,8 @@ import { tower } from './tower';
 import { hell } from './hell';
 import { control } from './control';
 import { ballroom } from './ballroom';
+import { SHOP_X } from './control/geo';
+import type { Zone } from '../hudThemes';
 export { SPOOKY_VOICE_LINES } from './voices';
 
 export const SPOOKY_STAGE = 'M2 Spooky Land';
@@ -40,6 +42,8 @@ const sectionAt = (x: number): SpookySection => {
   return best;
 };
 const current = (state: GameState) => ALL[getSpooky(state)?.section ?? 'town'];
+/** The HUD's look for where he is (hudSkins/spooky.tsx): the section's; Donnie's room and his gift shop each their own. */
+const hudZone = (id: SpookyId, x: number): Zone => id === 'town' ? 'spooky' : id === 'control' ? (x < SHOP_X ? 'control' : 'giftshop') : id;
 /** Every checkpoint in the stage, in order (the checkpoint-skip cheat lists them all). */
 export const SPOOKY_CHECKPOINTS = SECTION_ORDER.flatMap(id => ALL[id].checkpoints).sort((a, b) => a.cp - b.cp);
 
@@ -119,8 +123,8 @@ export const spookyLayout: StageLayout = {
     let out = sec.update ? sec.update(ctx, controls) : controls;
     out = updateGrab(ctx, sp.grab, out);
     if (arriving) out = { ...NO_CONTROLS };
-    // (a cutscene in any section: no HUD; the HUD's look: Spooky Land's, everywhere in it for now)
-    setUi({ introCutscene: !!p.inCutscene, zone: 'spooky' });
+    // (a cutscene in any section: no HUD; the HUD's look: the stretch he's in)
+    setUi({ introCutscene: !!p.inCutscene, zone: hudZone(sec.id as SpookyId, p.pos.x + p.width / 2) });
     return out;
   },
   waterBodyAt: (state, x, y) => sectionAt(x).waterBodyAt?.(state, x, y) ?? null,

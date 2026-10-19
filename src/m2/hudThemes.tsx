@@ -2,15 +2,23 @@
 // security, stars and stripes down America USA, a ticket in the line, a brochure at the hub, a timecard in the staff
 // room; and in Adventure Land, a bamboo sign in the jungle, a wait-time board in the queue, a tour-boat placard on the
 // river and a brass porthole under it, a control terminal in the dino park, carved (fiberglass) stone in the temple,
-// timber in the mine, and camo out in the clearing. Same layout everywhere (and clear of the HUD zone): just the look.
+// timber in the mine, and camo out in the clearing. The later lands change it stretch by stretch the same way (their
+// skins in hudSkins/: each land's index.ts picks the zone from the section he's in). Same layout everywhere (and clear
+// of the HUD zone): just the look.
 
 import React from 'react';
 import type { HudSkin } from '../m1/components/HUD';
+import { edge, tag, rivets, PIXEL_SHADOW } from './hudKit';
+import { SPOOKY_THEMES, type SpookyZone } from './hudSkins/spooky';
+import { SPACE_THEMES, type SpaceZone } from './hudSkins/space';
+import { HOLLYWOOD_THEMES, type HollywoodZone } from './hudSkins/hollywood';
+import { FOREIGN_THEMES, type ForeignZone } from './hudSkins/foreign';
+import { FRONTIER_THEMES, type FrontierZone } from './hudSkins/frontier';
 
 export type Zone =
   | 'garage' | 'security' | 'america' | 'ticket' | 'hub' | 'staff'
   | 'jungle' | 'queue' | 'boat' | 'underwater' | 'dino' | 'temple' | 'cart' | 'roof' | 'clearing'
-  | 'spooky' | 'space' | 'hollywood' | 'foreign' | 'frontier';
+  | SpookyZone | SpaceZone | HollywoodZone | ForeignZone | FrontierZone;
 
 /** How the pause menu looks. */
 export interface PauseSkin {
@@ -34,20 +42,6 @@ export interface PauseSkin {
 }
 
 export interface Theme { hud: HudSkin; pause: PauseSkin }
-
-/** A strip down the plate's left edge. */
-const edge = (background: string, w = 4) => <div className="absolute left-0 top-0 bottom-0" style={{ width: w, background }} />;
-/** A little label stuck on (a sticker, a stamp), at the plate's corner. */
-const tag = (text: string, style: React.CSSProperties) => (
-  <div className="absolute text-[5px] font-black px-[3px] py-[1px] whitespace-nowrap" style={{ right: 4, top: -6, ...style }}>{text}</div>
-);
-/** Rivets in the four corners. */
-const rivets = (col: string, inset = 3) => (
-  <>{[[inset, inset], [inset, -1], [-1, inset], [-1, -1]].map(([l, t], i) => (
-    <div key={i} className="absolute w-[4px] h-[4px] rounded-full" style={{ background: col, boxShadow: 'inset -1px -1px 0 rgba(0,0,0,0.5)', left: l >= 0 ? l : undefined, right: l < 0 ? inset : undefined, top: t >= 0 ? t : undefined, bottom: t < 0 ? inset : undefined }} />
-  ))}</>
-);
-const PIXEL_SHADOW = '0 0 0 2px #000, 3px 3px 0 2px rgba(0,0,0,0.6)';
 
 export const THEMES: Record<Zone, Theme> = {
   // The parking garage: a concrete pillar, the curb paint, the level marker
@@ -377,106 +371,8 @@ export const THEMES: Record<Zone, Theme> = {
       button: 'linear-gradient(180deg, #EA580C, #9A3412)', buttonEdge: '#431407',
     },
   },
-  // Spooky Land (the first pass: one look for all of it): a tombstone, slime green on it
-  spooky: {
-    hud: {
-      panel: { background: 'linear-gradient(180deg, rgba(46,16,101,0.96), rgba(26,11,46,0.96))', border: '2px solid #86EFAC', boxShadow: PIXEL_SHADOW },
-      deco: <>{edge('#86EFAC', 4)}{tag('R.I.P.', { background: '#86EFAC', color: '#1A0B2E' })}</>,
-      label: '#BBF7D0', value: '#FFFFFF', name: '#86EFAC',
-      track: { background: '#1A0B2E', borderColor: '#5B21B6' },
-      slot: { background: 'rgba(26,11,46,0.6)', borderColor: '#86EFAC' },
-    },
-    pause: {
-      title: 'PAUSED', sub: 'THE GHOSTS ARE ON BREAK TOO',
-      titleStyle: { color: '#86EFAC', textShadow: '3px 3px 0 #2E1065, 5px 5px 0 #000' },
-      frame: { background: 'linear-gradient(180deg, #2E1065, #1A0B2E)', border: '4px solid #86EFAC', boxShadow: '0 0 0 3px #000, 0 0 40px rgba(0,0,0,0.9)' },
-      stripe: 'repeating-linear-gradient(135deg, #86EFAC 0 8px, #2E1065 8px 16px)',
-      accent: '#86EFAC', text: '#EDE9FE', muted: '#C4B5FD',
-      well: { background: 'rgba(26,11,46,0.6)', border: '1px solid #5B21B6' },
-      slot: 'rgba(26,11,46,0.92)', slotOn: 'rgba(134,239,172,0.8)',
-      button: 'linear-gradient(180deg, #5B21B6, #2E1065)', buttonEdge: '#1A0B2E',
-    },
-  },
-  // Space Land (the first pass: one look for all of it): a 1962 control panel, chrome and periwinkle
-  space: {
-    hud: {
-      panel: { background: 'linear-gradient(180deg, rgba(49,46,129,0.96), rgba(30,27,75,0.96))', border: '2px solid #A5B4FC', boxShadow: PIXEL_SHADOW },
-      deco: <>{edge('#F472B6', 4)}{tag('T-MINUS', { background: '#A5B4FC', color: '#1E1B4B' })}</>,
-      label: '#E0E7FF', value: '#FFFFFF', name: '#A5B4FC',
-      track: { background: '#1E1B4B', borderColor: '#4338CA' },
-      slot: { background: 'rgba(30,27,75,0.6)', borderColor: '#A5B4FC' },
-    },
-    pause: {
-      title: 'PAUSED', sub: 'THE FUTURE IS ON HOLD',
-      titleStyle: { color: '#A5B4FC', textShadow: '3px 3px 0 #312E81, 5px 5px 0 #000' },
-      frame: { background: 'linear-gradient(180deg, #312E81, #1E1B4B)', border: '4px solid #A5B4FC', boxShadow: '0 0 0 3px #000, 0 0 40px rgba(0,0,0,0.9)' },
-      stripe: 'repeating-linear-gradient(135deg, #A5B4FC 0 8px, #F472B6 8px 16px)',
-      accent: '#A5B4FC', text: '#E0E7FF', muted: '#C7D2FE',
-      well: { background: 'rgba(30,27,75,0.6)', border: '1px solid #4338CA' },
-      slot: 'rgba(30,27,75,0.92)', slotOn: 'rgba(165,180,252,0.8)',
-      button: 'linear-gradient(180deg, #4338CA, #312E81)', buttonEdge: '#1E1B4B',
-    },
-  },
-  // Hollywood Land (one look for all of it): a clapperboard, black and gold, a red carpet edge
-  hollywood: {
-    hud: {
-      panel: { background: 'linear-gradient(180deg, rgba(39,39,42,0.96), rgba(24,24,27,0.96))', border: '2px solid #FACC15', boxShadow: PIXEL_SHADOW },
-      deco: <>{edge('#B91C1C', 4)}{tag('ACTION', { background: '#FACC15', color: '#18181B' })}</>,
-      label: '#FEF3C7', value: '#FFFFFF', name: '#FACC15',
-      track: { background: '#18181B', borderColor: '#B91C1C' },
-      slot: { background: 'rgba(24,24,27,0.6)', borderColor: '#FACC15' },
-    },
-    pause: {
-      title: 'PAUSED', sub: "WE'LL FIX IT IN POST",
-      titleStyle: { color: '#FACC15', textShadow: '3px 3px 0 #B91C1C, 5px 5px 0 #000' },
-      frame: { background: 'linear-gradient(180deg, #27272A, #18181B)', border: '4px solid #FACC15', boxShadow: '0 0 0 3px #000, 0 0 40px rgba(0,0,0,0.9)' },
-      stripe: 'repeating-linear-gradient(135deg, #FAFAFA 0 8px, #18181B 8px 16px)',
-      accent: '#FACC15', text: '#FEF3C7', muted: '#FDE68A',
-      well: { background: 'rgba(24,24,27,0.6)', border: '1px solid #B91C1C' },
-      slot: 'rgba(24,24,27,0.92)', slotOn: 'rgba(250,204,21,0.8)',
-      button: 'linear-gradient(180deg, #B91C1C, #7F1D1D)', buttonEdge: '#18181B',
-    },
-  },
-  // Foreign Lands (one look for all of it): a passport, navy with a gold edge, a red customs stamp
-  foreign: {
-    hud: {
-      panel: { background: 'linear-gradient(180deg, rgba(30,58,138,0.96), rgba(23,37,84,0.96))', border: '2px solid #CA8A04', boxShadow: PIXEL_SHADOW },
-      deco: <>{edge('#B91C1C', 4)}{tag('VISA', { background: '#B91C1C', color: '#FEF2F2' })}</>,
-      label: '#DBEAFE', value: '#FFFFFF', name: '#FDE68A',
-      track: { background: '#172554', borderColor: '#CA8A04' },
-      slot: { background: 'rgba(23,37,84,0.6)', borderColor: '#CA8A04' },
-    },
-    pause: {
-      title: 'PAUSED', sub: 'NO PASSPORT ALLOWED',
-      titleStyle: { color: '#FDE68A', textShadow: '3px 3px 0 #B91C1C, 5px 5px 0 #000' },
-      frame: { background: 'linear-gradient(180deg, #1E3A8A, #172554)', border: '4px solid #CA8A04', boxShadow: '0 0 0 3px #000, 0 0 40px rgba(0,0,0,0.9)' },
-      stripe: 'repeating-linear-gradient(135deg, #B91C1C 0 8px, #F8FAFC 8px 16px, #1E40AF 16px 24px, #F8FAFC 24px 32px)',
-      accent: '#FDE68A', text: '#DBEAFE', muted: '#93C5FD',
-      well: { background: 'rgba(23,37,84,0.6)', border: '1px solid #CA8A04' },
-      slot: 'rgba(23,37,84,0.92)', slotOn: 'rgba(253,230,138,0.8)',
-      button: 'linear-gradient(180deg, #B91C1C, #7F1D1D)', buttonEdge: '#172554',
-    },
-  },
-  // Wilderness Land (one look for all of it): a pine plank, a burned brand, brass tacks, a railroad ticket's red
-  frontier: {
-    hud: {
-      panel: { background: 'linear-gradient(180deg, rgba(120,72,36,0.96), rgba(74,42,18,0.96))', border: '2px solid #FCD34D', boxShadow: PIXEL_SHADOW },
-      deco: <>{edge('#7F1D1D', 4)}{tag('TICKET', { background: '#7F1D1D', color: '#FEF3C7' })}</>,
-      label: '#FEF3C7', value: '#FFFFFF', name: '#FCD34D',
-      track: { background: '#3F2A14', borderColor: '#FCD34D' },
-      slot: { background: 'rgba(63,42,20,0.6)', borderColor: '#FCD34D' },
-    },
-    pause: {
-      title: 'PAUSED', sub: 'TICKETS, PLEASE',
-      titleStyle: { color: '#FCD34D', textShadow: '3px 3px 0 #7F1D1D, 5px 5px 0 #000' },
-      frame: { background: 'linear-gradient(180deg, #78482A, #4A2A12)', border: '4px solid #FCD34D', boxShadow: '0 0 0 3px #000, 0 0 40px rgba(0,0,0,0.9)' },
-      stripe: 'repeating-linear-gradient(135deg, #7F1D1D 0 8px, #FEF3C7 8px 16px)',
-      accent: '#FCD34D', text: '#FEF3C7', muted: '#FDE68A',
-      well: { background: 'rgba(63,42,20,0.6)', border: '1px solid #FCD34D' },
-      slot: 'rgba(63,42,20,0.92)', slotOn: 'rgba(252,211,77,0.8)',
-      button: 'linear-gradient(180deg, #7F1D1D, #450A0A)', buttonEdge: '#3F2A14',
-    },
-  },
+  // The later lands: a look per stretch of each (hudSkins/)
+  ...SPOOKY_THEMES, ...SPACE_THEMES, ...HOLLYWOOD_THEMES, ...FOREIGN_THEMES, ...FRONTIER_THEMES,
 };
 
 /** The pause menu as it always looked (pink on black), where there's no theme. */

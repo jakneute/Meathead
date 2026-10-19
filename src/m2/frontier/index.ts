@@ -29,6 +29,9 @@ import { logride } from './logride';
 import { woods } from './woods';
 import { dirtbike } from './dirtbike';
 import { arena } from './arena';
+import { SALOON } from './town/layout';
+import { inSewer, realAt } from './logride/layout';
+import type { Zone } from '../hudThemes';
 export { FRONTIER_VOICE_LINES } from './voices';
 
 export const FRONTIER_STAGE = 'M2 Wilderness Land';
@@ -42,6 +45,17 @@ const sectionAt = (x: number): FrontierSection => {
   return best;
 };
 const current = (state: GameState) => ALL[getFrontier(state)?.section ?? 'wilds'];
+/** The HUD's look for where he is (hudSkins/frontier.tsx): the section's, and the town's and the log ride's stretches. */
+const hudZone = (id: FrontierId, x: number): Zone => {
+  if (id === 'wilds') return 'frontier';
+  if (id === 'arena') return 'tucker';
+  if (id === 'town') {
+    const rx = x - SECTIONS.town.x0;
+    return x >= SALOON.a && x < SALOON.b ? 'saloon' : rx >= 14420 ? 'logride' : rx >= 11050 ? 'mine' : rx >= 8300 ? 'mill' : 'gulch';
+  }
+  if (id === 'logride') { const rx = x - SECTIONS.logride.x0; return inSewer(rx) ? 'sewer' : realAt(rx) ? 'river' : 'logride'; }
+  return id;
+};
 /** Every checkpoint in the stage, in order (the checkpoint-skip cheat lists them all). */
 export const FRONTIER_CHECKPOINTS = SECTION_ORDER.flatMap(id => ALL[id].checkpoints).sort((a, b) => a.cp - b.cp);
 
@@ -139,8 +153,8 @@ export const frontierLayout: StageLayout = {
       const scripted = out !== controls;
       out = scripted ? { ...NO_CONTROLS, left: !!out.left, right: !!out.right, up: !!out.up, down: !!out.down, jump: !!out.jump } : { ...NO_CONTROLS };
     }
-    // (a cutscene in any section: no HUD; the HUD's look: Wilderness Land's, everywhere in it)
-    setUi({ introCutscene: !!p.inCutscene, zone: 'frontier' });
+    // (a cutscene in any section: no HUD; the HUD's look: the stretch he's in)
+    setUi({ introCutscene: !!p.inCutscene, zone: hudZone(sec.id as FrontierId, p.pos.x + p.width / 2) });
     return out;
   },
   waterBodyAt: (state, x, y) => waterAt(state, x, y),

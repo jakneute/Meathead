@@ -130,8 +130,9 @@ export const hollywoodLayout: StageLayout = {
     out = updateWires(ctx, hs.wires, out);
     out = updateGrab(ctx, hs.grab, out);
     if (arriving) out = { ...NO_CONTROLS };
-    // (a cutscene in any section: no HUD; the HUD's look: Hollywood Land's, everywhere in it for now)
-    setUi({ introCutscene: !!p.inCutscene, zone: 'hollywood' });
+    // (a cutscene in any section: no HUD; the HUD's look: the stretch he's in (hudSkins/hollywood.tsx; the blvd's is
+    // the land's own))
+    setUi({ introCutscene: !!p.inCutscene, zone: sec.id === 'blvd' ? 'hollywood' : sec.id as Exclude<HollywoodId, 'blvd'> });
     return out;
   },
   waterBodyAt: (state, x, y) => sectionAt(x).waterBodyAt?.(state, x, y) ?? null,
