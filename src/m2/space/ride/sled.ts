@@ -4,7 +4,8 @@
 // ride's PA comes out of there). Drawn in two layers: `back` (the seat backs and headrests, behind whoever's sat in
 // it; `seats`: which seats' backs, to draw just those sat in by someone drawn with them) and the body (in front of them). `x` is the middle of it, `y` the rail; facing right.
 
-import { INK, box, text, rampOf, checker } from '../../intro/art/kit';
+import { INK, box, rampOf, checker } from '../../intro/art/kit';
+import { lettering } from '../square/lettering';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -81,7 +82,7 @@ export const drawSled = (c: Ctx, x: number, y: number, f: number, look: SledLook
   // (the number: right way round even when it's turned the other way)
   const m = c.getTransform(), flip = m.a * m.d - m.b * m.c < 0;
   c.save(); c.translate(-8, -21); if (flip) c.scale(-1, 1);
-  text(c, `STAR SLED ${look.num}`, 0, 0, '#111827', 5, 'center', '#F8FAFC');
+  lettering(c, `STAR SLED ${look.num}`, 0, -3, 'small', '#111827', '#F8FAFC', true);
   c.restore();
   c.restore();
 };

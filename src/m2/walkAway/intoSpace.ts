@@ -129,8 +129,12 @@ const back = (c: Ctx, t: number, sway: number) => {
   // The far skyline; Space Needle 2 off to the right going up out of sight; the giant atom over the gate
   const off = Math.round(sway * 0.3);
   c.drawImage(skylineOf(tod, false), off - 40, HOR - 66);
+  // (both stood on the far ground: the atom's stalk is painted on down 900 px, so it's cut off at the skyline's foot,
+  // not run down over the walk under him as a grey pole beside his legs)
+  c.save(); c.beginPath(); c.rect(0, 0, LW, HOR + 4); c.clip();
   drawNeedle(c, Math.round(318 + sway * 0.35), HOR + 4, 0.14, t, 1);
   drawGiantAtom(c, Math.round(176 + sway * 0.4), HOR - 36, 0.3, t, false, 1);
+  c.restore();
   c.drawImage(skylineOf(tod, true), Math.round(sway * 0.5) - 40, HOR - 64);
   hazeBands(c, 0, HOR - 12, LW, 14, skyAt(0.92, tod), 0, 0.45, 4, 1);
 };

@@ -267,7 +267,9 @@ export const drawNeedle = (c: Ctx, x: number, gy: number, s: number, t: number, 
   const far = Math.max(0, Math.min(1, 1.2 - s * 0.8));
   const T = (col: string) => mix(farTint(col, 0.3 + far * 0.6, tod), skyAt(0.85, tod), far * 0.25);
   const L = ['#5A6680', '#8A96B0', '#C4CCDC', '#EEF2F8', '#FFFFFF'].map(T);
-  const D = ['#5A0E2A', '#8E1A42', '#C8325E', '#F05A80', '#FF9AB4', '#FFD8E2'].map(T);
+  // (the decks teal, their rims chrome, the shaft's rings orange: the same needle the orbit and the blowout show up top)
+  const D = ['#083B47', '#0D4F5D', '#126775', '#1A808C', '#2A9AA3', '#49B4B8'].map(T);
+  const O = ['#A33A12', '#D2551A', '#FBA45E'].map(T);
   const waist = gy - 220 * s, deck1 = gy - 380 * s;
   // (a leg: foot to waist to the deck, a quad each way, lit down its left)
   const leg = (a: number, b: number, col: string, lit: string) => {
@@ -290,7 +292,7 @@ export const drawNeedle = (c: Ctx, x: number, gy: number, s: number, t: number, 
   box(c, x - cw / 2, -10, cw, gy + 10, L[2]);
   box(c, x - cw / 2, -10, cw * 0.25, gy + 10, L[3]); box(c, x - cw / 2 + cw * 0.12, -10, Math.max(1, px * 0.5), gy + 10, L[4]);
   box(c, x + cw / 2 - cw * 0.3, -10, cw * 0.3, gy + 10, L[1]); checker(c, x + cw / 2 - cw * 0.42, -10, cw * 0.12, gy + 10, L[1], 0, px);
-  for (let y = gy - 40 * s; y > -10; y -= 50 * s) box(c, x - cw / 2, y, cw, Math.max(1, px * 0.5), L[1]);
+  for (let y = gy - 40 * s; y > -10; y -= 50 * s) { const rh = Math.max(1, Math.round(4 * s)); box(c, x - cw / 2, y, cw, rh, O[1]); if (rh > 1) { box(c, x - cw / 2, y, cw, 1, O[2]); box(c, x - cw / 2, y + rh - 1, cw, 1, O[0]); } }
   // (the lift going up and down it)
   const lift = gy - (((t * 1.4) % 1400) / 1400) * (gy + 200);
   box(c, x - cw * 0.4, lift, cw * 0.8, 16 * s, INK); box(c, x - cw * 0.35, lift + 1, cw * 0.7, 16 * s - 2, night > 0.3 ? '#FDE68A' : '#F59E0B');
@@ -301,13 +303,13 @@ export const drawNeedle = (c: Ctx, x: number, gy: number, s: number, t: number, 
     for (let k = 0; k < 4; k++) { c.fillStyle = k ? D[k - 1] : INK; c.beginPath(); c.ellipse(x, y + r * 0.04 * (3 - k), r * (1 - k * 0.12) + (k ? 0 : 2), r * 0.24 * (1 - k * 0.2) + (k ? 0 : 2), 0, 0, Math.PI); c.fill(); }
     // the rim (a band of windows), the dome on top
     box(c, x - r - 2, y - r * 0.07 - 1, r * 2 + 4, r * 0.1 + 2, INK);
-    box(c, x - r, y - r * 0.07, r * 2, r * 0.1, D[3]); box(c, x - r, y - r * 0.07, r * 2, Math.max(1, r * 0.025), D[5]);
+    box(c, x - r, y - r * 0.07, r * 2, r * 0.1, L[2]); box(c, x - r, y - r * 0.07, r * 2, Math.max(1, r * 0.025), L[4]);
     const n = Math.max(4, Math.round(r / (8 * Math.max(0.3, s))));
     for (let i = 0; i < n; i++) { const u = (i + 0.5) / n, wx = x - r + u * 2 * r; box(c, wx - Math.max(px, r * 0.03), y - r * 0.045, Math.max(px, r * 0.06), Math.max(px, r * 0.05), night > 0.3 ? '#FEF08A' : T('#1E2A48')); }
     c.fillStyle = INK; c.beginPath(); c.ellipse(x, y - r * 0.07, r * 0.94 + 1, r * 0.2 + 1, 0, Math.PI, Math.PI * 2); c.fill();
-    c.fillStyle = L[2]; c.beginPath(); c.ellipse(x, y - r * 0.07, r * 0.94, r * 0.2, 0, Math.PI, Math.PI * 2); c.fill();
-    c.fillStyle = L[3]; c.beginPath(); c.ellipse(x - r * 0.15, y - r * 0.1, r * 0.6, r * 0.13, 0, Math.PI, Math.PI * 2); c.fill();
-    box(c, x - r * 0.5, y - r * 0.2, r * 0.3, Math.max(1, px * 0.5), L[4]);
+    c.fillStyle = D[2]; c.beginPath(); c.ellipse(x, y - r * 0.07, r * 0.94, r * 0.2, 0, Math.PI, Math.PI * 2); c.fill();
+    c.fillStyle = D[4]; c.beginPath(); c.ellipse(x - r * 0.15, y - r * 0.1, r * 0.6, r * 0.13, 0, Math.PI, Math.PI * 2); c.fill();
+    box(c, x - r * 0.5, y - r * 0.2, r * 0.3, Math.max(1, px * 0.5), D[5]);
   };
   saucer(deck1, 110 * s);
   saucer(deck1 - 520 * s, 70 * s);

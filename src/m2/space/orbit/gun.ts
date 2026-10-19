@@ -18,6 +18,7 @@ import { say } from '../../../m1/game/platform/speech';
 import { playSound } from '../../../m1/game/platform/audio';
 import { hazardVictims, hazardHit } from '../../hazardHit';
 import { voice, saidOver, box, meatheadSays } from '../section';
+import { CANVAS_HEIGHT, HUD_CLEAR_X, HUD_CLEAR_Y } from '../../../m1/constants';
 import { orbitOf } from './state';
 import { steppedGlow, checker } from '../../../m1/game/render/pixelArt';
 import { X0, W } from './geo';
@@ -160,10 +161,42 @@ export const drawGun = (c: Ctx, state: GameState) => {
 };
 /** The gun's words, a little ray gun over them (so it's the gun talking, not him), kept whole on screen. */
 export const gunWords = (c: Ctx, text: string, x: number, y: number) => {
+  // (the words' lines as saidOver wraps them, so the icon sits right over the top one; both brought down together off
+  // the top of the screen, the icon's room counted, so saidOver never moves the words out from under it)
+  c.font = '7px "Press Start 2P"';
+  let n = 1, cur = '', wide = 0;
+  for (const w of text.split(' ')) { const t = cur ? `${cur} ${w}` : w; if (c.measureText(t).width > 240 && cur) { n++; wide = Math.max(wide, c.measureText(cur).width); cur = w; } else cur = t; }
+  wide = Math.max(wide, c.measureText(cur).width);
+  const m = c.getTransform(), up = 20 + (n - 1) * 11 + 9;
+  if (m.a > 0 && m.d > 0) {
+    const k = c.canvas.height / CANVAS_HEIGHT, half = wide / 2 + 6;
+    const tx = Math.min(Math.max(x, -m.e / m.a + half), (c.canvas.width - m.e) / m.a - half);
+    y = Math.max(y, -m.f / m.d + 6 + up);
+    const hudR = (HUD_CLEAR_X * k - m.e) / m.a, hudB = (HUD_CLEAR_Y * k - m.f) / m.d;
+    if (tx - half < hudR && y - up < hudB) y = hudB + 4 + up;
+  }
   saidOver(c, text, x, y, '#F9A8D4');
   // (the icon, over the words, kept in from the edges)
-  const m = c.getTransform(), L = -m.e / m.a + 20, R = (c.canvas.width - m.e) / m.a - 20;
-  const ix = Math.max(L, Math.min(R, x)), lines = Math.ceil(text.length / 30), iy = y - lines * 11 - 10;
-  box(c, ix - 10, iy - 5, 16, 6, '#A1A1AA'); box(c, ix - 10, iy - 5, 16, 2, '#E4E4E7');
-  box(c, ix + 6, iy - 4, 6, 4, '#DB2777'); box(c, ix - 8, iy + 1, 4, 6, '#52525B');
+  const L = -m.e / m.a + 20, R = (c.canvas.width - m.e) / m.a - 20;
+  gunIcon(c, Math.round(Math.max(L, Math.min(R, x))), Math.round(y - (n - 1) * 11 - 12));
+};
+/** The talking ray gun's little picture (its middle at x, its grip's foot at y): the gun he's holding, small. A chrome
+ *  barrel in bands (lit along its top, shaded under), the pink emitter rings and the muzzle's glow, the fin on top, the
+ *  grip and its trigger guard; inked round. */
+const gunIcon = (c: Ctx, x: number, y: number) => {
+  const I = '#18181B', CH = ['#3F3F46', '#71717A', '#A1A1AA', '#D4D4D8', '#F4F4F5'], PK = ['#831843', '#DB2777', '#F472B6', '#FBCFE8'];
+  const bx = x - 12, by = y - 13;
+  // (ink first: barrel, emitter, grip, fin)
+  box(c, bx - 1, by - 1, 20, 9, I); box(c, bx + 18, by, 6, 7, I); box(c, bx + 3, by + 7, 7, 7, I); box(c, bx + 5, by - 4, 7, 4, I);
+  // (the barrel: chrome in bands, its back end rounded off)
+  box(c, bx, by, 18, 7, CH[2]); box(c, bx, by, 18, 2, CH[4]); box(c, bx, by + 2, 18, 1, CH[3]); box(c, bx, by + 5, 18, 2, CH[1]);
+  box(c, bx, by, 1, 1, I); box(c, bx, by + 6, 1, 1, I);
+  for (const rx of [bx + 9, bx + 13]) { box(c, rx, by, 2, 7, PK[1]); box(c, rx, by, 2, 1, PK[3]); box(c, rx, by + 6, 2, 1, PK[0]); }
+  // (the fin on top)
+  box(c, bx + 6, by - 3, 5, 3, CH[2]); box(c, bx + 6, by - 3, 5, 1, CH[4]); box(c, bx + 10, by - 2, 1, 2, CH[1]);
+  // (the emitter: a flared muzzle, glowing)
+  box(c, bx + 18, by + 1, 5, 5, PK[1]); box(c, bx + 18, by + 1, 5, 1, PK[2]); box(c, bx + 21, by + 2, 2, 3, PK[3]); box(c, bx + 22, by + 3, 1, 1, '#FFFFFF');
+  // (the grip, raked back, and the trigger)
+  box(c, bx + 4, by + 7, 5, 6, CH[0]); box(c, bx + 4, by + 7, 1, 6, CH[1]); box(c, bx + 4, by + 9, 5, 1, I); box(c, bx + 4, by + 11, 5, 1, I);
+  box(c, bx + 10, by + 7, 1, 3, I); box(c, bx + 11, by + 9, 2, 1, I);
 };

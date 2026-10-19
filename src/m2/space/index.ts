@@ -70,11 +70,12 @@ export const spaceLayout: StageLayout = {
     state.stage = sp;
     // (on foot to start with, whatever he was at when he died: flight's put back on by its section)
     state.player.noSpecials = false; setUi({ noSwitch: false });
-    for (const id of SECTION_ORDER) ALL[id].build(state);
-    // (the checkpoint-skip cheat: where he picked to start, the first time in)
+    // (the checkpoint-skip cheat: where he picked to start, the first time in; set before the sections build, as they
+    // read it for what's been already (the drag's smear and wreck from 30 on, the ride's breaker, the suit...))
     { const pick = takeStartCheckpoint(); if (pick !== null) state.checkpoint = pick; }
     // (in dev, ?space=<checkpoint> starts there, the first time)
     if (import.meta.env.DEV && !devStarted) { devStarted = true; const q = new URLSearchParams(location.search).get('space'); if (q) state.checkpoint = +q; }
+    for (const id of SECTION_ORDER) ALL[id].build(state);
     const cp = SPACE_CHECKPOINTS.find(c => c.cp === state.checkpoint) ?? SPACE_CHECKPOINTS[0];
     sp.section = sectionAt(cp.x).id;
     // (a boss's checkpoint: back for another go at him, nobody else about)

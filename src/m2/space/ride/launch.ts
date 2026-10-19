@@ -8,8 +8,9 @@
 
 import type { GameState } from '../../../m1/game/core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
-import { drawTodSky } from '../../timeOfDay';
-import { INK, box, mix, hash, sign, slab, rampOf, bandedGradient, hazeBands, steppedGlow, bendFloor } from '../../intro/art/kit';
+import { drawTodSky, timeOfDay } from '../../timeOfDay';
+import { lettering, letterSize } from '../square/lettering';
+import { INK, box, mix, hash, slab, rampOf, bandedGradient, hazeBands, steppedGlow, bendFloor } from '../../intro/art/kit';
 import { cyl, sphere } from '../atom/snes';
 import { lookOf } from '../../adventure/temple/people';
 
@@ -82,7 +83,11 @@ const drawAtom = (c: Ctx, t: number) => {
     if (t < 40) steppedGlow(c, HOLE[0], HOLE[1] + 20, 30 + t * 1.6, '#FDE047', 0.7 * (1 - t / 40), 0.05, 5);
   }
   ring(true);
-  sign(c, cx - 70, STREET - 84, 140, 22, '#1E3A8A', 'THE GIANT ATOM', '#F8FAFC', 7);
+  // (its name the square's way (square/sky.ts): a dark plate bolted across the middle stilt, the words in neon tubes)
+  const [lw, lh] = letterSize('THE GIANT ATOM', 'neon'), py = STREET - 73, plate = '#2A0650';
+  box(c, cx - lw / 2 - 6, py - lh / 2 - 4, lw + 12, lh + 8, INK); box(c, cx - lw / 2 - 4, py - lh / 2 - 2, lw + 8, lh + 4, plate); box(c, cx - lw / 2 - 4, py - lh / 2 - 2, lw + 8, 1, '#7A3AAE');
+  for (const bx of [cx - lw / 2 - 3, cx + lw / 2 + 1]) { box(c, bx, py - 1, 2, 2, '#4A5A70'); box(c, bx, py - 1, 1, 1, '#CDD6E2'); }
+  lettering(c, 'THE GIANT ATOM', cx, py, 'neon', timeOfDay().lamps > 0.3 ? '#F0ABFC' : '#F5D0FE', plate);
 };
 
 /** The main drag (googie fronts, their sides in perspective toward the middle of the screen; the pavement, bent). */

@@ -432,10 +432,10 @@ export const drawRideBackdrop = (c: Ctx, state: GameState) => {
   const inGaps: { i: number; mid: number }[] = [];
   GAPS.forEach(([gx, gw], i) => { const mid = gx + gw / 2 - cam; if (mid > -gw && mid < W + gw) inGaps.push({ i, mid }); });
   // (where the airlocks' ceiling crosses a gap, its scene's sat lower: its words came out under the ceiling)
-  for (const g of inGaps) {
-    const [gx, gw] = GAPS[g.i], low = gx + gw > A + 3900 && gx < A + 4860 ? 84 : 0;
-    drawTableau(c, GAP_SCENES[g.i % GAP_SCENES.length], g.mid - 120 - (g.mid - W / 2) * 0.1, ty - 24 + low, f);
-  }
+  // (sat lower, it's nearer: the far track runs behind it, not across its middle, so it's drawn after the track)
+  const isLow = (i: number) => { const [gx, gw] = GAPS[i]; return gx + gw > A + 3900 && gx < A + 4860; };
+  const tableauIn = (g: { i: number; mid: number }) => drawTableau(c, GAP_SCENES[g.i % GAP_SCENES.length], g.mid - 120 - (g.mid - W / 2) * 0.1, ty - 24 + (isLow(g.i) ? 84 : 0), f);
+  for (const g of inGaps) if (!isLow(g.i)) tableauIn(g);
   // (a haze along their foot: it's a long way back)
   hazeBands(c, 0, ty - 46, W, 44, '#2E1065', 0, 0.42, 5);
   // the track: the rail, its supports, the guide lights along it, chasing
@@ -447,6 +447,7 @@ export const drawRideBackdrop = (c: Ctx, state: GameState) => {
     const sx = ((wx % 1600) + 1600) % 1600 - 200;
     tinySled(c, sx, ty - 6, 3001 + k * 97, f, 0.5);
   }
+  for (const g of inGaps) if (isLow(g.i)) tableauIn(g);
   // (the VOYAGE TO 2010 marquee, in neon on a chrome-framed board, bulbs chasing round it)
   // (in each gap, over its scene, like the scenes: never cut off by the flats; up clear of the scenes' own words, the
   // airlock sign and the meteor rig's beam)

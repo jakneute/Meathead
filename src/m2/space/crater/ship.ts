@@ -652,6 +652,11 @@ const drawStandables = (c: Ctx, state: GameState) => {
   for (const [x, y, w] of CATWALKS) {
     if (!shown(state, x - 80, x + w + 80)) continue;
     const r = x + w;
+    // (run up to a doorway's frame, it stops at the jamb (the engine room's: the specimen bay's last catwalk ran 10 px on
+    // over its near jamb): cut off at the frame's outside edge, bolted to it)
+    const jamb = DOORWAYS.map(d => d.l - d.jw - 1).find(L => L > x && L < r + 4);
+    c.save();
+    if (jamb !== undefined) { c.beginPath(); c.rect(x - 400, -5000, jamb - x + 400, 10000); c.clip(); }
     // (its deck going back to the wall: grating, its seams converging; the rail along its back)
     const p = (px: number, py: number, d: number) => atWall(ex, px, py, d);
     poly(c, [[x, y], [r, y], p(r, y, K), p(x, y, K)], '#27272A');
@@ -670,6 +675,7 @@ const drawStandables = (c: Ctx, state: GameState) => {
       box(g, x, y, w, 2, '#D4D4D8'); box(g, x, y + 2, w, 1, '#A1A1AA');
       for (let k = x + 4; k < r; k += 30) box(g, k, y + 9, 2, 2, HAZ[4]);
     });
+    c.restore();
   }
   for (const [x, w, h] of CRATES) {
     if (!shown(state, x - 60, x + w + 60)) continue;

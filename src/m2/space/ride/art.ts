@@ -22,7 +22,7 @@ import { INK, box, mix, hash, sign, slab, rampOf, lite, dark, stamp, checker, ba
 import { GY } from '../geometry';
 import { drawTableau, TABLEAUS, tinySled, meteor, OP_SEED, planet, CARPET } from '../atom/art';
 import { drawAtomPerson } from '../atom/people';
-import { cyl, sphere, neonBar, lamp, truss, rivets, hazard, screenGlass, stencil } from '../atom/snes';
+import { cyl, sphere, neonBar, lamp, truss, rivets, hazard, screenGlass } from '../atom/snes';
 import {
   R, RUNS, GAPS, OBS, CUES, CUE_XS, TABLEAU_XS, LIFT_X0, LIFT_X1, BREAKER_X, STATION_X0, STATION_X1, FINS_X0, FINS_X1, BRAKE_X,
   CREST_X, FRONT_AT, STATION_ROOF, WORKERS, STATION_FOLK, trackY, railLine, type Ob, type Verb,
@@ -209,7 +209,8 @@ const racks = (g: Ctx) => {
       const bx = 30 + b * 72, h = 30 + ((b * 7 + r * 3) % 3) * 5, col = ['#B45309', '#A16207', '#92400E'][(b + r) % 3];
       slab(g, bx, by - h, 60, h, col);
       box(g, bx + 26, by - h, 8, h, mix(col, '#FEF3C7', 0.35));
-      if ((b + r) % 2) stencil(g, 'THIS END UP', bx + 30, by - h / 2 + 3, '#451A03', col, 5);
+      // (stenciled in the park's letters, two lines to fit the box)
+      if ((b + r) % 2) { lettering(g, 'THIS END', bx + 30, by - h / 2 - 5, 'small', '#451A03', col, true); lettering(g, 'UP', bx + 30, by - h / 2 + 5, 'small', '#451A03', col, true); }
     }
     cyl(g, 20, by, 300, 7, '#EA580C');
   }
