@@ -43,8 +43,8 @@ const lookOf = (T: (c: string) => string, base: string): RangeLook => ({ body: T
 // ---------------------------------------------------------------------------------------------------------------
 // Clouds: big stepped cumulus, lit from the upper left, flat bottoms
 
-const CW = 1100, CH = 130;
-const paintClouds = (g: Ctx, tod: TimeOfDay) => {
+export const CW = 1100, CH = 130;
+export const paintClouds = (g: Ctx, tod: TimeOfDay) => {
   const C = ['#9AA8C0', '#C2CCDC', '#E4EAF2', '#FFFFFF'].map(c => cloudTint(c, tod));
   for (let i = 0; i < 6; i++) {
     const cx = 80 + i * (CW / 6) + hash(i * 3.1) * 60, base = 70 + hash(i * 1.7) * 44, w = 90 + hash(i * 2.3) * 110;
@@ -61,9 +61,9 @@ const paintClouds = (g: Ctx, tod: TimeOfDay) => {
 // ---------------------------------------------------------------------------------------------------------------
 // The real Rockies, far off (past the park's fence: the real thing)
 
-const TW = 1024, MH = 230;
+export const TW = 1024, MH = 230;
 const mtnY = (x: number) => snap2(MH - 150 + wave(x, TW, 2.2) * 50 + jag(x, TW, 8, 3) * 10 - Math.max(0, wave(x, TW, 5.1, 2)) * 26);
-const paintRockies = (g: Ctx, tod: TimeOfDay) => {
+export const paintRockies = (g: Ctx, tod: TimeOfDay) => {
   const T = farCol(tod, 0.5), L = lookOf(T, '#7E88A8');
   range(g, TW, mtnY, MH, L, 7, { gullies: 34, d: 14, forest: [T('#3E5A5A'), T('#56706A')], forestY: x => MH - 54 + wave(x, TW, 4.4, 2) * 10 });
   // (the snow: down from every peak above the snowline, ragged at its foot, lit up the left flanks, blue in the shade)
@@ -85,7 +85,7 @@ const paintRockies = (g: Ctx, tod: TimeOfDay) => {
 // ---------------------------------------------------------------------------------------------------------------
 // The park's painted mountains: plywood flats
 
-const PW = 1400, PH = 200;
+export const PW = 1400, PH = 200;
 /** One flat's outline (a peak or two painted on a cut sheet), local to its left foot. */
 const flatPeaks = (w: number, h: number, seed: number) => {
   const pts: [number, number][] = [[0, 0]];
@@ -97,7 +97,7 @@ const flatPeaks = (w: number, h: number, seed: number) => {
   pts.push([w, 0]);
   return pts;
 };
-const paintFlats = (g: Ctx, tod: TimeOfDay) => {
+export const paintFlats = (g: Ctx, tod: TimeOfDay) => {
   const T = farCol(tod, 0.3);
   // (the painted colors: the park's, too blue, too pink in the light; the snow brushed on)
   const P = [T('#3A3C7A'), T('#4E56A0'), T('#6A78C2'), T('#9AA4DC'), T('#D4A0B8')];
@@ -164,8 +164,8 @@ const pineRow = (g: Ctx, tw: number, foot: number, hMin: number, hMax: number, R
     }, 40);
   }
 };
-const RW1 = 900, RH1 = 120, RW2 = 1000, RH2 = 160;
-const paintPines1 = (g: Ctx, tod: TimeOfDay) => {
+export const RW1 = 900, RH1 = 120, RW2 = 1000, RH2 = 160;
+export const paintPines1 = (g: Ctx, tod: TimeOfDay) => {
   const T = farCol(tod, 0.32), R = [T('#0E2018'), T('#1C3A2C'), T('#2E5442')];
   pineRow(g, RW1, RH1, 44, 84, R, 3, 22);
   fillUnder(g, RW1, () => RH1 - 4, RH1, R[1]);
@@ -177,7 +177,7 @@ const paintPines1 = (g: Ctx, tod: TimeOfDay) => {
   g.fillStyle = T('#3A2C22'); g.beginPath(); g.moveTo(lx - 18, top + 6); g.lineTo(lx, top - 4); g.lineTo(lx + 18, top + 6); g.closePath(); g.fill();
   mist(g, RW1, RH1 - 60, 60, skyAt(0.92, tod), 0, 0.45, 5);
 };
-const paintPines2 = (g: Ctx, tod: TimeOfDay) => {
+export const paintPines2 = (g: Ctx, tod: TimeOfDay) => {
   const T = farCol(tod, 0.14), R = NEEDLE.slice(1, 4).map(T);
   pineRow(g, RW2, RH2, 70, 130, [T(NEEDLE[0]), R[0], R[2]], 17, 30);
   // (the cell tower, in a fake-bough costume: a steel trunk too straight, the boughs too even, the antenna panels in

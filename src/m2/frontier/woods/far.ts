@@ -30,8 +30,8 @@ const lookOf = (T: (c: string) => string, base: string): RangeLook => ({ body: T
 // (the log ride's real sky)
 const SKY = ['#163E9C', '#2458B8', '#3E78CC', '#6C9CDC', '#A8C8E8', '#DCE6E8'];
 
-const CW = 1200, CH = 140;
-const paintClouds = (g: Ctx, tod: TimeOfDay) => {
+export const CW = 1200, CH = 140;
+export const paintClouds = (g: Ctx, tod: TimeOfDay) => {
   const C = ['#9AA8C0', '#C2CCDC', '#E4EAF2', '#FFFFFF'].map(col => cloudTint(col, tod));
   for (let i = 0; i < 5; i++) {
     const cx = 100 + i * (CW / 5) + hash(i * 4.1) * 80, base = 60 + hash(i * 2.9) * 60, w = 120 + hash(i * 1.3) * 160;
@@ -45,9 +45,9 @@ const paintClouds = (g: Ctx, tod: TimeOfDay) => {
 };
 
 // (the real Rockies: the log ride's real peaks, the same skyline)
-const RW = 1100, RH = 260;
+export const RW = 1100, RH = 260;
 const peakY = (x: number) => snap2(RH - 170 + wave(x, RW, 3.7) * 60 + jag(x, RW, 6, 5) * 14 - Math.max(0, wave(x, RW, 6.3, 2)) * 36);
-const paintPeaks = (g: Ctx, tod: TimeOfDay) => {
+export const paintPeaks = (g: Ctx, tod: TimeOfDay) => {
   const T = farCol(tod, 0.42), L = lookOf(T, '#76809E');
   range(g, RW, peakY, RH, L, 11, { gullies: 40, d: 16, forest: [T('#2E4C48'), T('#44625A')], forestY: x => RH - 70 + wave(x, RW, 2.4, 2) * 14 });
   const S = [T('#9AA8C8'), T('#C8D2E6'), T('#F4F8FE')], snowLine = RH - 130;
@@ -65,9 +65,9 @@ const paintPeaks = (g: Ctx, tod: TimeOfDay) => {
 };
 
 // (the ridge of real forest, the crew's clear-cut bitten out of it: the log ride's, seen from further down the valley)
-const FW = 1300, FH = 200;
+export const FW = 1300, FH = 200;
 const ridgeY = (x: number) => snap2(FH - 120 + wave(x, FW, 1.9) * 26 + wave(x, FW, 5.3, 2) * 10);
-const paintForestRidge = (g: Ctx, tod: TimeOfDay) => {
+export const paintForestRidge = (g: Ctx, tod: TimeOfDay) => {
   const T = farCol(tod, 0.22), N = [T('#0C1A12'), T('#14261A'), T('#1E3626'), T('#2A4632'), T('#3A5A40')];
   fillUnder(g, FW, ridgeY, FH, N[2]);
   for (let x = 0; x < FW; x += 5) {
@@ -101,8 +101,8 @@ const paintForestRidge = (g: Ctx, tod: TimeOfDay) => {
 };
 
 // (the nearer ridge of real pines, ragged, every one different, snags among them: the log ride's)
-const NW = 1000, NH = 190;
-const paintNearPines = (g: Ctx, tod: TimeOfDay) => {
+export const NW = 1000, NH = 190;
+export const paintNearPines = (g: Ctx, tod: TimeOfDay) => {
   const T = farCol(tod, 0.1), R = [T(NEEDLE[0]), T(NEEDLE[1]), T(NEEDLE[2]), T(NEEDLE[4])];
   const Au = [T('#6A4A10'), T('#9A6E18'), T('#C8962A')];
   for (let x = -20, i = 0; x < NW + 20; x += 9 + hash(i * 1.9) * 16, i++) {

@@ -197,7 +197,7 @@ const drawTrees = (c: Ctx, v: View, dMin: number, dMax: number) => {
 // routed in), the county's yellow lion notice screwed on under it, a hunter's orange tape round one post
 
 const SIGN_X = ARENA_L - 205, SIGN_D = 0.93;
-const paintBearSign = (g: Ctx) => {
+export const paintBearSign = (g: Ctx) => {
   const Wd = ['#1A120A', '#2E2214', '#46341E', '#5E482A', '#786038'], S = hr('steel', STEEL, 0.2);
   // (the posts: rough-sawn 4x4s, lit down the left, checked; sunk in a ring of dirt)
   for (const px of [-40, 34]) {
@@ -325,7 +325,7 @@ export const drawArenaBack = (c: Ctx, state: GameState) => {
 // ---------------------------------------------------------------------------------------------------------------
 // THE OAK: a giant old bur oak, gone russet and gold, at the play plane (its trunk's left face where the branch roots)
 
-const paintOak = (g: Ctx) => {
+export const paintOak = (g: Ctx) => {
   const B = hr('oakb', OAKB, 0.2), Gd = hr('gold', GOLD, 0.2), Ru = hr('russet', RUSSET, 0.2), Br = hr('brown', BROWN, 0.2), Ms = hr('moss', MOSS, 0.2);
   const w = TRUNK_W;
   const Bn = Br.map(col => mix(col, '#5A3010', 0.2)).concat([mix(Br[5], '#E0A060', 0.4)]);

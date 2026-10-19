@@ -1344,3 +1344,12 @@ later (+1 if heavyset; was 2 / 3 before playtest fixes E). Tucker's glimpsed ahe
   WITHOUT A TICKET!" reads as a warning, and he huffs off for his engine late for his schedule (RUN), prim from the cab
   (tickets are a dollar ten, at the window). The meltdown is the train's first speaking-tube lines once Meathead's
   aboard (TUBE_BOARD: "PUNCH ME, FINE! BUT RIDE FOR FREE?!"). Later pools already bill violence as line items; unchanged.
+- **The walk-in and walk-away, SNES'd (the user's, 2026-10-18: "a detailed walk in and walk out"):** the walk in
+  (walkAway/intoFrontier.ts) is the park's frontier in the wilds' own kit and far layers (wilds/far.ts painters, now
+  exported): the trail, a split-rail fence both sides, the park's signs, a bear trap, fiberglass boulders, the gate (log
+  pylons in fiberglass rock, the beam, wagon wheels, an elk rack, lanterns, the stockade on plywood, WILDERNESS / LAND
+  hung on chains). The walk-away (walkAway/tucker.ts) is the real woods (woods/far.ts painters; arena/art.ts's oak and
+  bear sign, exported): the oak and the wrecked bike behind him, real trees, stumps, the small game his ball killed;
+  the weakness leaves his cap, the pool and two drag marks to the lions backing off with half of him each; otherwise
+  chunks of him everywhere and the grizzly's prints to it walking off with his leg. Timing, the flintlock act, HEADING
+  BACK TO PARK and the walk back from the parking lot unchanged.
