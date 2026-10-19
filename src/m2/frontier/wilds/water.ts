@@ -1,7 +1,7 @@
 // The wilds' water: the pond, the creek's pools, the rapids' channels, the long river (layout.ts WATERS). He swims in it
 // (the stage's waterBodyAt); a step just under the surface at each end to climb out by; walkers keep out of it (a danger
 // zone: hazardHit.ts) and drown if they're knocked in (drown.ts). The rapids' and the river's current carries a
-// swimmer downstream; at the river's end, the log boom, and under it the pull over the falls (the falls are logs.ts's).
+// swimmer downstream; at the river's end, the pull over the falls' lip (the falls are logs.ts's).
 //
 // Drawn (peak SNES): its surface going back from the play plane to the far bank (banded paler far off, where it takes
 // the sky; glints and the current's streaks riding it; cattails and reeds along the far bank); the water's body at the
@@ -31,21 +31,21 @@ export const waterOf = (x: number) => WATERS.find(w => x > w.a && x < w.b) ?? nu
 export const layWaterSteps = (state: GameState) => {
   for (const w of WATERS) {
     ledge(state, w.a, surfaceY(w) + 26, 50, { hidden: true, tag: `${w.key}-step` });
-    if (!w.boom) ledge(state, w.b - 50, surfaceY(w) + 26, 50, { hidden: true, tag: `${w.key}-step` });
+    if (!w.lip) ledge(state, w.b - 50, surfaceY(w) + 26, 50, { hidden: true, tag: `${w.key}-step` });
   }
 };
 
 /** Walkers keep out of the water (they stop at the edge); every frame. */
 export const waterZones = (state: GameState) =>
-  setHazardZones(state, 'fr-water', WATERS.map(w => ({ x0: w.a, x1: w.boom ? (w.fallsTo ?? w.b) : w.b, y0: GY - 4, y1: GY + BED, ground: true })));
+  setHazardZones(state, 'fr-water', WATERS.map(w => ({ x0: w.a, x1: w.lip ? (w.fallsTo ?? w.b) : w.b, y0: GY - 4, y1: GY + BED, ground: true })));
 
-/** A swimmer in moving water is carried downstream (the rapids hard, the river gently, the pull at the boom hard). */
+/** A swimmer in moving water is carried downstream (the rapids hard, the river gently, the pull at the lip hard). */
 export const carrySwimmer = (state: GameState) => {
   const p = state.player;
   if (!p.swimming || p.health <= 0) return;
   const w = waterOf(p.pos.x + p.width / 2);
   if (!w || !w.current) return;
-  const pull = w.boom && p.pos.x + p.width / 2 > w.boom - 220 ? 1.7 : 0;
+  const pull = w.lip && p.pos.x + p.width / 2 > w.lip - 220 ? 1.7 : 0;
   p.pos.x += w.current * 0.8 + pull;
 };
 
@@ -76,7 +76,7 @@ export const drawWaterTop = (c: Ctx, v: View) => {
     if (w.b < v.v0 - 400 || w.a > v.v1 + 400) continue;
     const s = surfaceY(w), R = waterR(w);
     if (eye.y > s - 2) continue;
-    const xb = w.boom ? (w.fallsTo ?? w.b) : w.b;
+    const xb = w.lip ? (w.fallsTo ?? w.b) : w.b;
     const pt = (x: number, d: number) => at(eye, x, s, d);
     // (banded: darker near, paler far off where it takes the sky)
     const cols = [R[4], R[5], R[5], mix(R[6], haze, 0.2), mix(R[6], haze, 0.4), mix(R[7], haze, 0.4)], N = cols.length;
@@ -184,7 +184,7 @@ export const drawWaterBack = (c: Ctx, state: GameState) => {
     // (the steps out: a rock ledge just under the surface, its lip lit)
     const step = (x: number) => { box(c, x, s + 26, 50, 8, D[3]); box(c, x, s + 34, 50, 4, D[2]); box(c, x, s + 26, 50, 2, L[2]); box(c, x, s + 28, 50, 1, L[1]); box(c, x, s + 25, 50, 1, INK); };
     step(w.a);
-    if (!w.boom) step(w.b - 50);
+    if (!w.lip) step(w.b - 50);
   }
 };
 

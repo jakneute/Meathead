@@ -11196,6 +11196,11 @@
  },
  {
   "voice": "death",
+  "text": "RODE IT OVER THE FALLS",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "death",
   "text": "ROLLED",
   "from": "ADVENTURE"
  },
@@ -13853,6 +13858,11 @@
   "voice": "death",
   "text": "WELL DONE",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "WENT DOWN WITH THE LOG",
+  "from": "FRONTIER"
  },
  {
   "voice": "death",
@@ -62318,6 +62328,11 @@
   "voice": "meathead",
   "text": "THE LOG RIDE'S DUMPING LOGS DOWN THE FALLS. ON PURPOSE?",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE LOG! THE LOG!",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",

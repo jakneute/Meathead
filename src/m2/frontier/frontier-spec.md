@@ -1373,3 +1373,14 @@ later (+1 if heavyset; was 2 / 3 before playtest fixes E). Tucker's glimpsed ahe
   off), and set down on the deck it waits till he steps off. The birler stays himself in every knock and death (he was
   drawn as the feller). Coming up out of the mine (or going down) the rock backdrop, the dark and the camera's row ease
   by depth instead of popping.
+- **The log goes over the falls (the user's, 2026-10-18: "right before the well done sign, make sure the log you're on
+  falls down the waterfall. you can go with it if you're careless"):** the long river's log boom is snapped (no boom
+  stops a log now): its last length lies low across the water at 17460, a snag. A log drifting down hangs up on it (so
+  one still waits there for the way back from the far cliff, as before); pedaled into it (or coming faster than 0.9)
+  it rides up over with a scrape and a lurch and the current has it: no steering, his feet his own (run along it), the
+  current 1 → 2.3 px/f for the lip; it noses out over the drop, teeters 26 frames, and goes down the falls end over end
+  in front of the sheet, spray coming up out of the drop where it hits, a far splash. Still on it, he goes with it
+  (m2:fr_falls_log: its hurt and death lines). Then a fresh log's tied up at the river's start. Telegraphed: the river
+  quickening toward the snag (never enough alone to carry a log over), white streaks racing for the lip, spray off it,
+  the roar (heard on screen). The jump: from the snag ~110 px to the cliff (as off the old boom), less once it's going.
+  Layout: Water.boom became `lip` (the drop's edge, 17470, unchanged) and `snag`.

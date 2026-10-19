@@ -156,6 +156,10 @@ export const HURT: HurtTable = {
     hurt: ['OH NO. OH NO NO NO.'],
     death: ['FAKE FALLS. REAL ROCKS.', 'THE SIGN SAID FALLS AHEAD'],
   },
+  'm2:fr_falls_log': {
+    hurt: ['I SHOULD HAVE JUMPED!', 'THE LOG! THE LOG!'],
+    death: ['WENT DOWN WITH THE LOG', 'RODE IT OVER THE FALLS'],
+  },
   'm2:fr_doe': {
     hurt: ['THE DEER KICKED ME!', 'BAMBI\'S MOM HITS HARD!', 'RIGHT IN THE SHIN!'],
     death: ['KICKED TO DEATH BY A DEER', 'BAMBI\'S MOM GOT REVENGE'],

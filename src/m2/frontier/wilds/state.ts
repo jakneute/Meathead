@@ -21,6 +21,15 @@ export interface LogRun {
   /** Tied up at the near (left) bank, where he comes to it: the current doesn't take it off downstream till he's on
    *  it (or he's come at it from the far side). */
   moored: boolean;
+  /** Where it's tied up to start (a fresh one's there after it's gone over the falls). */
+  home: number;
+  /** Over the snag at the river's end: the current has it (he can't steer it; his feet are his again). */
+  taken: boolean;
+  /** Frames it's hung teetering on the falls' lip before it goes. */
+  teeter: number;
+  /** Going over the falls: where it is, its speed, its turn end over end, frames since; `plume`: frames since it hit
+   *  the bottom (the spray coming up). */
+  over: { x: number; y: number; vx: number; vy: number; ang: number; t: number; plume: number } | null;
   m: Mover;
 }
 

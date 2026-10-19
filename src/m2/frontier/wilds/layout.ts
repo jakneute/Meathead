@@ -19,7 +19,9 @@
 //          on the log; beavers, trout; leeches (swimming it is a bad idea).
 //   13100  BISON MEADOW (cp 3): a bison; a buck; up the hill against the log pile's rolling logs.
 //   15200  THE LONG RIVER: one log, a long gentle river: wolves and a cougar on the overhangs over it, a hive hanging off
-//          one, a crow, a fallen tree to duck; the log boom at the end, the falls past it: jump off to the far cliff.
+//          one, a crow, a fallen tree to duck; the boom's snapped: what's left of it a snag short of the falls (a
+//          drifting log hangs up on it); ride on over it and the current has the log, it goes over the falls: jump
+//          off to the far cliff (or go with it).
 //   17800  THE LAST MILE (cp 4): a wolf pack and traps; the gauntlet (traps under, ledges over, crows); the tracks.
 //   19300  THE STATION (cp 5): Tucker, his train, the scene (station.ts).
 //
@@ -97,15 +99,18 @@ export const BOULDERS: [number, number, number][] = [
 
 /** Water: the pond, the creek's two pools, the rapids' two channels, the long river. Its surface sits a bit under the
  *  banks (`surface` px under GY); the bed is GY+160. `current` px a frame (+ downstream, to the right); `rocks`:
- *  submerged rocks that buck a log going over them; `boom`: the log boom's x (logs stop at it; past it, the falls). */
-export interface Water { key: string; a: number; b: number; surface: number; current: number; rapids?: boolean; rocks?: number[]; boom?: number; fallsTo?: number }
+ *  submerged rocks that buck a log going over them; `lip`: the falls' edge (past it, the drop, to `fallsTo`, the far
+ *  cliff); `snag`: the log boom's snapped last length, lying low across the river short of the lip: a log drifting
+ *  down hangs up on it (and waits there); driven at it, a log rides up over it, the current has it, and it goes over
+ *  the falls (logs.ts). */
+export interface Water { key: string; a: number; b: number; surface: number; current: number; rapids?: boolean; rocks?: number[]; lip?: number; snag?: number; fallsTo?: number }
 export const WATERS: Water[] = [
   { key: 'pond', a: X(3000), b: X(3900), surface: 26, current: 0 },
   { key: 'creek1', a: X(6300), b: X(6900), surface: 26, current: 0.2 },
   { key: 'creek2', a: X(7050), b: X(7700), surface: 26, current: 0.2 },
   { key: 'rapids1', a: X(10500), b: X(11650), surface: 26, current: 1.3, rapids: true, rocks: [X(10950), X(11320)] },
   { key: 'rapids2', a: X(11800), b: X(12900), surface: 26, current: 1.3, rapids: true, rocks: [X(12150), X(12620)] },
-  { key: 'river', a: X(15500), b: X(17480), surface: 26, current: 0.55, boom: X(17470), fallsTo: X(17580) },
+  { key: 'river', a: X(15500), b: X(17480), surface: 26, current: 0.55, lip: X(17470), snag: X(17460), fallsTo: X(17580) },
 ];
 export const BED = 160;
 

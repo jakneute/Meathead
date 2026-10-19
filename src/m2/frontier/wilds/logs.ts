@@ -1,14 +1,18 @@
 // ROLLING LOGS: Wilderness Land's new traversal mechanic (as Jungle Land's vines, Spooky Land's ladders, Hollywood
 // Land's stunt wires). A log floats on the water; stand on it and it rolls under his feet: walking propels and steers it
 // (left or right: his feet pedal, the log turns, it goes), and the current adds to it; stop walking and it drifts and
-// slows to the current. It bumps into things: the banks, the island, another log, the log boom (a thunk, a jolt, a
+// slows to the current. It bumps into things: the banks, the island, another log, the snag (a thunk, a jolt, a
 // splash), and a beaver in its way (rammed). Over a submerged rock it bucks him up. When it's jammed against something
 // the way he's walking, his walking walks him along it instead (onto the bank, to its end for a jump). Simple.
 // A log on moving water waits tied up at the near (left) bank, where he arrives, till he's on it (the playtest: the
 // current had it off at the far bank before he got there); come at it from the far side and it drifts down to him.
 //
 // Also here, what goes with the logs: the fallen trees across the water to duck under (standing, they clothesline him
-// off), and the falls past the long river's log boom (in the drop, he's dead: a set-piece death, its own death screen).
+// off), and the falls at the long river's end (in the drop, he's dead: a set-piece death, its own death screen). The
+// log boom there is snapped: its last length lies low across the water short of the lip, a snag a drifting log hangs
+// up on (so one waits there for the way back). Ride on into it and the log rides up over: the current has it, racing
+// for the lip (his feet are his again: run along it, jump for the far cliff); it noses out over the drop, teeters, and
+// goes over end over end. Still on it, he goes with it (m2:fr_falls_log). Then a fresh one's tied up at the start.
 
 import type { FrameContext } from '../../../m1/game/core/context';
 import type { GameState } from '../../../m1/game/core/state';
@@ -21,6 +25,7 @@ import { hazardHit } from '../../hazardHit';
 import { GY } from '../geometry';
 import { onScreen } from '../kit';
 import { setUi } from '../../store';
+import { heard } from '../../bossQuiet';
 import { type Ctx, box, checker, still, near, INK, NEEDLE } from './paint';
 import { LOGS, WATERS, LOW_BRANCHES, BRANCH_GAP, X, Y, groundH } from './layout';
 import { surfaceY } from './water';
@@ -35,7 +40,7 @@ export const buildLogs = (state: GameState) => {
   const w = wildsOf(state);
   w.logs = LOGS.map(([key, home, len]) => {
     const wi = WATERS.findIndex(q => q.key === key), x = X(home);
-    const L: LogRun = { water: wi, len, x, vx: 0, spin: 0, lurch: 0, lurchCd: 0, lean: 0, lastVx: 0, bumpCd: 0, moored: WATERS[wi].current > 0, m: makeMover(state, x, 0, len, `fr-log-${key}`) };
+    const L: LogRun = { water: wi, len, x, vx: 0, spin: 0, lurch: 0, lurchCd: 0, lean: 0, lastVx: 0, bumpCd: 0, moored: WATERS[wi].current > 0, home: x, taken: false, teeter: 0, over: null, m: makeMover(state, x, 0, len, `fr-log-${key}`) };
     moveMover(state, L.m, x, logTop(L));
     return L;
   });
@@ -59,19 +64,30 @@ export const updateLogs = (ctx: FrameContext, controls: Controls): Controls => {
   let out = controls;
   for (const L of wl.logs) {
     const W = WATERS[L.water];
+    // (going over the falls: not on the water any more; after, a fresh one tied up at the start)
+    if (L.over) { fallLog(state, L); continue; }
+    const falls = W.lip !== undefined && W.snag !== undefined;
     const rider = L === on && p.health > 0 && !p.inCutscene;
-    const input = rider ? (controls.right ? 1 : 0) - (controls.left ? 1 : 0) : 0;
-    // (how far it can go: the banks, the boom)
-    const lo = W.a + 2, hi = (W.boom ?? W.b) - 2 - L.len;
+    // (once the current has it, his feet are his own: he can run along it for the jump)
+    const input = rider && !L.taken ? (controls.right ? 1 : 0) - (controls.left ? 1 : 0) : 0;
+    // (how far it can go: the banks; at the river's end, nothing (the snag, below), the falls)
+    const lo = W.a + 2, hi = falls ? Infinity : W.b - 2 - L.len;
     const jammed = input !== 0 && ((input > 0 && L.x >= hi - 0.5) || (input < 0 && L.x <= lo + 0.5));
     // (tied up at the near bank till he's on it, or he's over on the far side of it (it drifts down to him there))
     if (L.moored && (rider || p.pos.x + p.width / 2 > W.b)) {
       L.moored = false;
       if (rider) { playSound('crack', 0.5, 8); splash(state, L.x, surfaceY(W), 4, 0.6); }
     }
-    const current = L.moored ? 0 : W.current;
+    let current = L.moored ? 0 : W.current;
+    // (the river quickening toward the snag (never enough on its own to carry a log over it), and past it, racing
+    // for the lip)
+    if (falls && !L.moored) {
+      const front = L.x + L.len, sn = W.snag!;
+      current = L.taken ? 1 + 1.3 * clamp01((front - sn) / 90) : W.current + 0.3 * clamp01((front - (sn - 500)) / 500);
+    }
     if (input && !jammed) L.vx += (input * PUSH + current - L.vx) * ANSWER;
-    else L.vx += (current - L.vx) * EASE;
+    else L.vx += (current - L.vx) * (L.taken ? 0.06 : EASE);
+    if (L.teeter) L.vx = 0;
     let nx = L.x + L.vx;
     // (the ends: a thunk, a jolt, a splash; it stops dead there)
     L.bumpCd = Math.max(0, L.bumpCd - 1);
@@ -84,6 +100,21 @@ export const updateLogs = (ctx: FrameContext, controls: Controls): Controls => {
       L.vx = 0;
     };
     if (nx < lo) { nx = lo; bump(lo); } else if (nx > hi) { nx = hi; bump(hi + L.len); }
+    // (the snag at the river's end: drifting down, it hangs up there; pedaled into it, or coming fast, it rides up
+    // over with a scrape and a lurch, and the current has it)
+    if (falls && !L.taken) {
+      const sn = W.snag!;
+      if (L.x + L.len <= sn + 0.5 && nx + L.len > sn) {
+        if (input > 0 || L.vx > 0.9) {
+          L.taken = true; L.lurch = 8; L.lurchCd = 50;
+          playSound('crack', 0.8, -6); playSound('thud', 0.8, -8); splash(state, sn, surfaceY(W), 12, 1.3);
+          if (rider) { shakeScreen(state, 4, 2); L.lean = 1; }
+        } else { nx = sn - L.len; bump(sn); }
+      }
+    }
+    // (taken, at the lip: it noses out over the drop, hangs there teetering a moment, and goes)
+    if (L.taken && !L.teeter && nx + L.len * 0.6 > W.lip!) { L.teeter = 1; L.vx = 0; playSound('crack', 0.6, -10); playSound('grind', 0.5, -6); }
+    if (L.teeter && ++L.teeter > TEETER) { tipOver(ctx, L, rider); continue; }
     // (another log in the same water: they knock together, and pass on what they had)
     for (const O of wl.logs) {
       if (O === L || O.water !== L.water) continue;
@@ -118,11 +149,13 @@ export const updateLogs = (ctx: FrameContext, controls: Controls): Controls => {
     const dv = L.vx - L.lastVx; L.lastVx = L.vx;
     L.lean = Math.max(-1, Math.min(1, L.lean * 0.9 + dv * 3 + (rider && Math.abs(L.vx) > 0.4 ? Math.sin(state.frame * 0.13) * 0.04 : 0)));
     L.x = nx;
-    const bob = Math.sin(state.frame * 0.05 + L.water * 1.7) * 1.2;
+    // (bobbing; racing for the lip, it pitches and shudders; teetering, it rocks)
+    const bob = Math.sin(state.frame * 0.05 + L.water * 1.7) * 1.2 + (L.taken ? Math.sin(state.frame * 0.7) * (L.teeter ? 1.5 : 0.8) : 0);
+    if (L.taken && state.frame % 4 === 0 && onScreen(state, L.x, L.x + L.len)) splash(state, L.x + L.len, surfaceY(W), 2, 0.8);
     moveMover(state, L.m, L.x, logTop(L) + bob);
     // (a wake off it, going)
     if (Math.abs(L.vx) > 1 && state.frame % 6 === 0 && onScreen(state, L.x, L.x + L.len)) splash(state, L.vx > 0 ? L.x : L.x + L.len, surfaceY(W), 2, 0.5);
-    if (rider) {
+    if (rider && !L.taken) {
       p.logRoll = { spin: L.spin, lean: L.lean };
       // (the tip while he's on it, up on his feet: down and forward crouch-walks it (the user's))
       if (!p.isDucking) setUi({ logTip: true });
@@ -131,21 +164,61 @@ export const updateLogs = (ctx: FrameContext, controls: Controls): Controls => {
       if (!jammed) out = { ...out, left: false, right: false };
     }
   }
-  if (!on && p.logRoll) p.logRoll = undefined;
+  if ((!on || on.taken || on.over) && p.logRoll) p.logRoll = undefined;
   return out;
 };
 
-// ---------------------------------------------------------------------------------------------------------------
-// The falls (past the long river's log boom) and the fallen trees across the water
+const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
+/** Frames it hangs teetering on the lip (his last chance to jump). */
+const TEETER = 26;
 
-/** In the drop past the boom (or dragged under the boom swimming): over the falls. Dead. */
+/** Off the lip: out from under whoever's on it (still on it, he goes with it: dead), and down the falls. */
+const tipOver = (ctx: FrameContext, L: LogRun, rider: boolean) => {
+  const { state } = ctx, p = state.player;
+  L.over = { x: L.x, y: L.m.b.y, vx: 1.6, vy: 0.5, ang: 0, t: 0, plume: 0 };
+  moveMover(state, L.m, L.x, L.m.b.y, true);
+  playSound('whoosh', 0.8, -8); playSound('gush', 0.7, -4);
+  if (rider && p.health > 0) {
+    p.invincibilityTimer = 0;
+    playSound('screams', 0.6, 2);
+    hurtPlayer(ctx, 9999, 'm2:fr_falls_log');
+    p.isGrounded = false; p.vel.x = 1.6; p.vel.y = 1;
+  }
+};
+
+/** A log going down the falls, end over end; it hits the bottom far below (the spray coming up out of the drop, a far
+ *  boom); then a fresh one's tied up at the start of the river, so the crossing always works. */
+const fallLog = (state: GameState, L: LogRun) => {
+  const o = L.over!, W = WATERS[L.water], s = surfaceY(W);
+  o.t++;
+  if (!o.plume) {
+    o.vy = Math.min(14, o.vy + 0.45); o.y += o.vy; o.x += o.vx; o.vx *= 0.985;
+    o.ang += 0.02 + Math.min(0.1, o.t * 0.004);
+    if (o.y > s + 560) {
+      o.plume = 1;
+      if (heard(state, o.x + L.len / 2)) { playSound('splash', 0.7, -14); playSound('boom', 0.25, -16); }
+      const bottom = Math.min(s + 560, state.camera.y + 640);
+      for (let i = 0; i < 26; i++) state.particles.push({ pos: { x: o.x + L.len / 2 + (Math.random() - 0.5) * 70, y: bottom }, vel: { x: (Math.random() - 0.5) * 3, y: -7 - Math.random() * 7 }, life: 40, color: i % 3 ? '#F0F9FF' : '#BAE6FD', size: 3 + Math.random() * 4 });
+    }
+  } else if (++o.plume > 60) {
+    L.over = null; L.taken = false; L.teeter = 0;
+    L.x = L.home; L.vx = 0; L.lastVx = 0; L.lean = 0; L.lurch = 0; L.moored = W.current > 0;
+    moveMover(state, L.m, L.x, logTop(L));
+  }
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// The falls (at the long river's end) and the fallen trees across the water
+
+/** In the drop past the lip (or swept to the lip swimming): over the falls. Dead. And the falls' roar, heard. */
 export const updateFalls = (ctx: FrameContext) => {
   const { state } = ctx, p = state.player;
+  for (const W of WATERS) if (W.lip && state.frame % 70 === 0 && heard(state, W.lip, 120)) playSound('gush', 0.22, -12);
   if (p.health <= 0 || p.inCutscene) return;
   const cx = p.pos.x + p.width / 2, feet = p.pos.y + p.height;
   for (const W of WATERS) {
-    if (!W.boom || !W.fallsTo) continue;
-    const over = (cx > W.boom + 4 && cx < W.fallsTo && feet > GY + 8) || (p.swimming && cx > W.boom - 4 && cx < W.fallsTo);
+    if (!W.lip || !W.fallsTo) continue;
+    const over = (cx > W.lip + 4 && cx < W.fallsTo && feet > GY + 8) || (p.swimming && cx > W.lip - 4 && cx < W.fallsTo);
     if (over) {
       p.invincibilityTimer = 0;
       playSound('splash', 1, -6); playSound('screams', 0.6, 2);
@@ -232,7 +305,7 @@ export const drawLog = (c: Ctx, x: number, top: number, len: number, spin: numbe
 
 export const drawLogs = (c: Ctx, state: GameState) => {
   for (const L of wildsOf(state).logs) {
-    if (!onScreen(state, L.x - 60, L.x + L.len)) continue;
+    if (L.over || !onScreen(state, L.x - 60, L.x + L.len)) continue;
     // (tied up: a rope from its end to a stake in the near bank)
     if (L.moored) {
       // (a split stake driven in the bank, a rope off it in a twist, its knot round the log's end)
@@ -245,21 +318,28 @@ export const drawLogs = (c: Ctx, state: GameState) => {
       c.setLineDash([2, 3]); c.strokeStyle = '#EAD8A0'; c.lineWidth = 1; rope(); c.stroke(); c.setLineDash([]);
       box(c, sx - 4, sy - 18, 8, 4, '#8A7448'); box(c, sx - 4, sy - 18, 8, 1, '#D6C08A');
     }
-    drawLog(c, L.x, L.m.b.y, L.len, L.spin);
+    // (teetering on the lip: its nose dipping out over the drop and back, more and more)
+    const W = WATERS[L.water];
+    if (L.teeter && W.lip) {
+      const tip = (L.teeter / TEETER) * 0.1 + Math.abs(Math.sin(L.teeter * 0.5)) * 0.05;
+      c.save(); c.translate(W.lip, L.m.b.y + R); c.rotate(tip); c.translate(-W.lip, -(L.m.b.y + R));
+      drawLog(c, L.x, L.m.b.y, L.len, L.spin);
+      c.restore();
+    } else drawLog(c, L.x, L.m.b.y, L.len, L.spin);
     // (where it sits in the water: a ring of ripples along its waterline)
     const s = surfaceY(WATERS[L.water]);
     if (L.m.b.y + 2 * R > s - 2) for (let rx = L.x + 2; rx < L.x + L.len - 2; rx += 6) box(c, rx, s - 1 + ((rx + state.frame) >> 3) % 2, 4, 1, 'rgba(220, 240, 248, 0.7)');
   }
 };
 
-/** The log boom across the long river's end: a chain of short logs, orange floats, LOG BOOM on a board; the falls
- *  past it (white water pouring off the edge, the mist). And the fallen trees across the water (foliage down to the
+/** The long river's end: the river racing for the lip (streaks, spray), the snapped boom's snag, the falls (white
+ *  water pouring off the edge, the mist), a log going down it and the spray where it hits the bottom. And the fallen trees across the water (foliage down to the
  *  gap: impassable reads impassable). */
 export const drawBoomAndBranches = (c: Ctx, state: GameState) => {
   const f = state.frame;
   for (const W of WATERS) {
-    if (!W.boom || !W.fallsTo || !onScreen(state, W.boom - 40, W.fallsTo + 40)) continue;
-    const s = surfaceY(W), fw = W.fallsTo - W.boom - 2, fx0 = W.boom + 2;
+    if (!W.lip || !W.fallsTo || !onScreen(state, W.lip - 260, W.fallsTo + 40)) continue;
+    const s = surfaceY(W), fw = W.fallsTo - W.lip - 2, fx0 = W.lip + 2;
     // (the drop behind the falls: dark, wet rock going down)
     box(c, fx0, s, fw, 600, '#0E1A24');
     for (let y = s + 20; y < s + 600; y += 34) box(c, fx0, y, fw, 2, '#1A2A36');
@@ -275,16 +355,52 @@ export const drawBoomAndBranches = (c: Ctx, state: GameState) => {
     }
     for (let y = s + 60; y < s + 600; y += 22) for (let k = 0; k < fw; k += 8) if (((k + y + f * 3) >> 3) % 3 === 0) box(c, fx0 + k, y + ((f * 4) % 22), 6, 4, 'rgba(255, 255, 255, 0.7)');
     c.restore();
+    // (a log going down it, end over end, in front of the sheet: riding the water down)
+    for (const L of wildsOf(state).logs) {
+      const o = L.over;
+      if (!o || o.plume || WATERS[L.water] !== W) continue;
+      const cx = o.x + L.len / 2, cy = o.y + R;
+      c.save(); c.translate(cx, cy); c.rotate(o.ang); drawLog(c, -L.len / 2, -R, L.len, L.spin + o.t * 0.2); c.restore();
+      // (white water sheeting off it)
+      for (let k = 0; k < 4; k++) box(c, cx - 30 + k * 18 + ((f * 3 + k * 7) % 9), cy - 22 - ((f * 5 + k * 11) % 14), 4, 6, k % 2 ? FL[5] : FL[4]);
+    }
+    // (the spray coming up out of the drop where a log hit the bottom)
+    for (const L of wildsOf(state).logs) {
+      const o = L.over;
+      if (!o || !o.plume || WATERS[L.water] !== W) continue;
+      const k = o.plume / 60, px = o.x + L.len / 2;
+      c.globalAlpha = 0.5 * (1 - k); c.fillStyle = '#F0F9FF';
+      for (let i = 0; i < 6; i++) { c.beginPath(); c.arc(px + (i - 2.5) * 14, s + 200 - k * 150 - (i % 2) * 20, 12 + k * 18, 0, Math.PI * 2); c.fill(); }
+      c.globalAlpha = 1;
+    }
     // (mist rising out of it in stepped puffs)
     for (let i = 0; i < 8; i++) { const my = s + 120 - ((f * 0.6 + i * 30) % 160), mx = fx0 + fw / 2 + Math.sin(f * 0.03 + i * 1.7) * (fw * 0.6); c.globalAlpha = 0.22 * Math.min(1, (my - s + 40) / 80); c.fillStyle = '#F0F9FF'; c.beginPath(); c.arc(mx, my, 14 + (i % 3) * 6, 0, Math.PI * 2); c.fill(); c.globalAlpha = 1; }
-    // (the boom: short logs end to end across the river's last stretch, chained, orange floats on them)
-    const bx = W.boom - 10;
-    box(c, bx - 1, s - 11, 16, 20, INK); box(c, bx, s - 10, 14, 18, BARK[3]); box(c, bx, s - 10, 14, 3, BARK[5]); box(c, bx, s + 4, 14, 4, BARK[1]);
-    c.fillStyle = INK; c.beginPath(); c.ellipse(bx + 7, s - 14, 7, 6, 0, 0, Math.PI * 2); c.fill();
-    c.fillStyle = '#E2660E'; c.beginPath(); c.ellipse(bx + 7, s - 14, 6, 5, 0, 0, Math.PI * 2); c.fill();
-    c.fillStyle = '#FB923C'; c.beginPath(); c.ellipse(bx + 5, s - 16, 3, 2.5, 0, 0, Math.PI * 2); c.fill();
-    box(c, bx + 4, s - 18, 2, 1, '#FFE0C0'); box(c, bx + 2, s - 14, 10, 1, '#F8F4EC');
-    for (let k = 0; k < 3; k++) box(c, bx - 6 - k * 4, s - 4 + (k % 2), 3, 2, '#71717A');
+    // (spray flung up off the lip, in stepped pixel drops, catching the light)
+    for (let i = 0; i < 10; i++) {
+      const ph = ((f * 1.3 + i * 23) % 40) / 40, sx = W.lip - 6 + ((i * 29) % (fw + 10)), sy = s - 4 - Math.sin(ph * Math.PI) * (10 + (i % 4) * 6);
+      box(c, sx + ph * 8, sy, 2 + (i % 2), 2, i % 3 ? FL[5] : FL[4]);
+    }
+    // (the river racing for the lip: white streaks in its last stretch, quicker and longer the nearer the edge, the
+    // surface sagging toward it)
+    for (let k = 0; k < 14; k++) {
+      const span = 240, t = ((f * (1.2 + (k % 4) * 0.3) + k * 37) % span) / span, x = W.lip - span + t * t * span;
+      box(c, x, s + 1 + (k % 3) * 3, 4 + t * 16, 1, t > 0.6 ? FL[5] : FL[4]);
+    }
+    // (the snag: the log boom's snapped last length, lying low across the water short of the lip (a drifting log
+    // hangs up on it): a short log half under, a snapped chain trailing off it, its orange float knocked askew)
+    const bx = W.snag ?? W.lip - 10;
+    box(c, bx - 1, s - 7, 16, 14, INK); box(c, bx, s - 6, 14, 12, BARK[3]); box(c, bx, s - 6, 14, 2, BARK[5]); box(c, bx, s + 2, 14, 4, BARK[1]);
+    box(c, bx + 3, s - 6, 1, 1, WOOD[4]); box(c, bx + 9, s - 5, 2, 1, WOOD[3]);
+    c.save(); c.translate(bx + 10, s - 9); c.rotate(0.5);
+    c.fillStyle = INK; c.beginPath(); c.ellipse(0, 0, 7, 6, 0, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#E2660E'; c.beginPath(); c.ellipse(0, 0, 6, 5, 0, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#FB923C'; c.beginPath(); c.ellipse(-2, -2, 3, 2.5, 0, 0, Math.PI * 2); c.fill();
+    box(c, -3, -4, 2, 1, '#FFE0C0'); box(c, -5, 0, 10, 1, '#F8F4EC');
+    c.restore();
+    // (the chain: links off its far end, snapped, the last one bent open, trailing in the current)
+    for (let k = 0; k < 4; k++) box(c, bx + 15 + k * 4, s - 2 + (k % 2) + Math.round(Math.sin(f * 0.15 + k) * 0.6), 3, 2, k === 3 ? '#A1A1AA' : '#71717A');
+    // (the white water piling up against it)
+    for (let k = 0; k < 3; k++) box(c, bx - 6 - k * 5, s - 2 - ((f + k * 5) >> 3) % 2, 4, 2, FL[5]);
   }
   for (const [a, b] of LOW_BRANCHES) {
     const bx0 = X(a), bx1 = X(b);
