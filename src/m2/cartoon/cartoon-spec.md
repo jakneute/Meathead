@@ -89,9 +89,9 @@ The user's notes since (relayed):
 - **Meathead's lines:** he hates it ("there's no good rides here": the user's line, verbatim, in the carousel's pool;
   every ride gets its own lament); arrival, revisit, the tower's first lean, the pit, the mascot, the studio door.
   Never anything about his age.
-- **Stupid Dad's fight:** NOT designed (the user: "mechanics come later"): the amphitheater is a placeholder end (the
-  boss-door refill, the guard by the stage, VICTORY, the walk-away, the hub). Don't invent the fight. Sin: probably
-  sloth (proposal).
+- **Stupid Dad's fight:** NOT designed (the user: "mechanics come later"): the amphitheater, the guard's-nuts boss door
+  and his intro are built (job 7); the fight itself is a placeholder card (BOSS FIGHT COMING SOON) that still ends the
+  land (VICTORY, the walk-away, the hub). Don't invent the fight, nor his deaths. Sin: probably sloth (proposal).
 - **Music:** none yet. Cartoon Land's in music/cues.ts's LAND_OF_STAGE, and with no `land:cartoon` song it's quiet.
 
 ## The section plan (world x; checkpoints numbered across the land)
@@ -451,6 +451,90 @@ dynamite one too), `.host(f)`, `.stagehand(f)`.
 first in the arrival pool); a gag at each set piece (once a visit); the safe and the piano when they come down; a hurt
 pool and death screens for every hazard and every attack.
 
+### Section 7 in detail (STUPID DAD LIVE!, built: amphi/)
+
+THE UBX AMPHITHEATER: a concrete bowl dug into the hill, aluminum bleachers stepping down it, a band shell over the stage
+at its foot, all of it to the one eye (studio/'s way: the play plane depth 1; every floor running back to the bowl's far
+side, D_FAR 0.7; the shell 0.74; the set's wall 0.8; the furniture and the family each at their own depth). x from the
+section's start (amphi/layout.ts):
+
+- 0 THE GATE (cp 60): in from PUNCHY & KICKY's STUPID DAD LIVE! gate. THE MARQUEE on two striped steel posts (THE UBX
+  AMPHITHEATER PRESENTS, STUPID DAD in the show's lettering, LIVE! in bulbs, STARRING THE ORIGINAL STUPID DAD HIMSELF:
+  LYLE BRISCOE!, SHOWS AT 11, 1, 3, 5 AND 7; a vinyl NO OUTSIDE BEER zip-tied under it), the dad off the poster on it.
+- 560 THE BEER GARDEN: the stand (striped awning, COLD BEER 12 / LITE BEER 11 / NACHOS 9 / SODA ASK / NO REFUNDS, the
+  taps, the neon BEER buzzing, a bored vendor, a tip jar); a high-top with two regulars swaying at it; a trash can of
+  empties; the light poles.
+- 1000 THE AISLE STEPS: down the bowl (two steps a bleacher row, twelve rows: the engine's stairs, terrain.ts steps);
+  THE CROWD, what there is of it: eight people for hundreds of seats (one asleep, Zs; one passed out forward; a woman
+  knitting; a drunk with a #1 foam finger; a guy in a STUPID DAD STORE beer-can hat; a beer; popcorn; one waving his cup
+  at the stage), seeded people of every look.
+- 1960 THE PIT: the empty front row of folding chairs (one RESERVED), litter (cans, cups, popcorn); THE BOSS-DOOR REFILL
+  (a big health, a big ammo).
+- 2580 THE GUARD at the foot of the stage steps, in front of the CAST ONLY rope (a wall till he's down: the boss door).
+- 2620 THE STAGE STEPS up to the deck (cp 61 once the guard's down).
+- 2780 THE STAGE (cp 62, the fight's, set as the intro starts): the band shell (a painted sunburst of cream and blue
+  panels, chasing bulbs round its lip), the red STUPID DAD LIVE! banner hung off it on chains, the APPLAUSE sign (lit with
+  the laugh track); THE SET, the sitcom living room (mustard diamond wallpaper, wood paneling, the window onto a painted
+  street, the family portrait with a black ribbon across its corner, the clock stopped at five: IT'S FIVE O'CLOCK
+  SOMEWHERE, the kitchen's swing door), the braided rug, the Boy's steel floor track; the TV on its cart (the game: the
+  same tape every show; UBX in the corner), the couch (the poster's orange plaid, sagging, his dent in it, an afghan, the
+  remote), his pyramid of empties.
+
+**STUPID DAD** (amphi/dad.ts, boss grade: color ramps, stepped bands, dithered seams): LYLE BRISCOE, the voice of the
+dad (UBX, 1995), the only principal cast member still alive, in his seventies, a drunk. In the dad's look off the poster,
+for real: the stained ribbed tank top (yellow under the arms, a mustard drip, a cigarette hole, a beer ring), the
+blue-striped boxers, black socks pulled up (one slid down), brown terry slippers; the belly's real. Bald dome with liver
+spots and a sweat sheen, the three-hair comb-over gone white, a white fringe, big hairy ears, heavy wild grey brows,
+bloodshot half-shut eyes under heavy lids and purple bags, a drinker's nose (swollen, purple, veined), flushed cheeks,
+white stubble, jowls; a faded Navy anchor on his forearm; a skin-colored headset mic taped along his cheek (a live
+show). A can of SWILL LITE (a real beer) always in hand. Poses: sat, sipping (the can tipped back), calling for the Boy
+(turned to the kitchen, a hand cupped), reaching for the new can, shaking a fist at the TV, squinting, getting up (two
+rocks first, hands on his knees), stood (swaying), crushing the can on his forehead, shuffling. His close-up
+(drawDadCloseup). Voice `m2.cartoon.dad`.
+
+**The family** (amphi/family.ts): CHEAP ANIMATRONICS on the tapes of the dead actors' voices (`m2.cartoon.tvmom`,
+`tvboy` (a woman voicing a boy), `tvsis`, `tvgramps`; fx radio): MOM behind the couch lifting a casserole in oven mitts,
+THE BOY on his wheeled base on the floor track, SIS cross-legged on the rug facing the TV, GRAMPS nodding off in his
+recliner and jerking awake. Waxy too-shiny skin, ventriloquist seams, the jaw dropping as a block, glass eyes that
+don't track together, crooked wigs, a bolt in the neck, a cable to the floor; everything in eight-frame steps.
+Glitching (the intro): heads ticking round, eyes spinning, sparks, jaws chattering. Off (over): slumped, jaws hanging.
+
+**THE SHOW** (amphi/show.ts): on a loop (~25 s) till he walks on, its lines only once he's down in the bowl (the PA:
+from the concourse, the swigs and no words): he watches the game, a swig now and then; "BOY! GET ME ANOTHER BEER!" (the
+user's, first in the pool); THE LAUGH TRACK (a new sound, `laughtrack`; the APPLAUSE sign lit); the Boy rolls off
+jerkily to the kitchen door (it swings), a clatter, back with a can, his arm out in steps, "SURE THING, POP!"; STUPID
+DAD takes it, cracks it (`canopen`), drinks (a real swig; a belch now and then); then one more bit: a family tape and
+the laugh track, him at the TV ("TOUCHDOWN! ...NO. IT'S THE SAME TAPE."), or him off script mumbling about the dead cast
+to nobody (no laugh). The show's lines don't react to Meathead (he hasn't seen him): one pool each, the narrator's way.
+
+**THE BOSS DOOR: THE GUARD'S NUTS** (amphi/scene.ts, guard.ts; voice `m2.cartoon.bouncer`): a big man, dark skin, the
+head shaved and shining, a black goatee, an earpiece, a black SECURITY polo, the EVENT STAFF lanyard, cargo pants, a
+radio on his belt, arms folded. Up to him and it's the cutscene: a palm up, "SHOW'S IN PROGRESS. NO GUESTS ON STAGE."
+(the user's, first in every pool); a beat; the boot (the other lands' door kick: the kick pose), a punch and a bell;
+THE CLOSE-UP (a DING! burst behind his face: the eyes pop, shrink to pins and cross, water; the face goes gray; the mouth
+from a little O to every tooth; a deflating whine); out: he keels over onto his knees and over on his side, curled up
+clutching it, his line; Meathead's ("BEST DOOR I EVER KICKED."). The rope's unhooked. `ct-amphi-guard` (GUARD_DOWN) in
+state.stageMemo: down for good (a death, a checkpoint, the cheat past cp 61 all find him down). He groans as Meathead
+goes by, now and then (fresh lines only). A revisit: still down, an ice pack on it, a line once a visit.
+
+**STUPID DAD'S INTRO** (once a visit; a retry goes straight on): up onto the stage and THE SHOW STOPS DEAD (`tapestop`:
+its music winding down; the laugh track cut; the TV rolling) and the family doesn't (they glitch). Meathead to his mark
+by the TV; STUPID DAD CLOSE UP (the wallpaper banded behind him), squinting over his can, then half in character: he
+thinks it's the Boy ("BOY? THAT YOU? YOU GOT BIG."); Meathead's answer; one of the family's tapes stuck ("SURE THING,
+P-P-P-POP!") and the laugh track in the wrong place; he heaves himself up off the couch, his line; crushes the can on
+his forehead, drops it, belches; shuffles forward to the front ("MARLENE! GET MY BELT!"); Meathead's word. Every one of
+his lines (and Meathead's) in clean / shitty / naked pools.
+
+**THE PLACEHOLDER** (the fight's the user's to design): a PLEASE STAND BY card in the show's own color bars (STUPID DAD,
+BOSS FIGHT COMING SOON in bulbs, UBX in the corner) over the black; behind it the stage empties (him gone, the family
+powered down, the TV off); then VICTORY, the walk-away (walkAway/stupidDad.ts: the band shell behind him, his crushed
+cans down the path, a dropped foam finger; the MALLET), the hub, Cartoon Land cleared. NOT BUILT (waiting on the user):
+the fight, his standard death, his weakness death. Revisits: the stage empty, the family slumped and dark, the TV off,
+the bleachers empty but for the one asleep, the guard with his ice pack.
+
+**His lines** (amphi/lines.ts): arrival and revisit; the beer stand, the crowd, the show (the first "BOY! BEER!": "I SAW
+THIS SHOW. EVERY NIGHT. AT MY HOUSE."), the robots; the kick, the intro. No new hurts (nothing here hurts him yet).
+
 ## Standing rules (all apply; check every one against new work)
 
 American spelling; signs readable, held up, themed lettering (toonSign: a lumpy cloud board on a curly candy-striped
@@ -559,3 +643,23 @@ markBossFight every frame of a boss or sub-boss fight. Voice every new line (`np
   CLOSED FOR CLEANUP hangs on its chains, the robot Kicky's head hangs off by its wires, sparking (it still swings); his
   arrival line is the revisit's. Back from the amphitheater he's at DOORS.itchy.end (the default: in the way on). The way
   on is the crude right-end exit under the STUPID DAD LIVE! gate (job 7 can swap it).
+- (job 7) STUPID DAD LIVE! is built (amphi/; see Section 7 above). The way in is unchanged (itchy's right-end exit to
+  DOORS.amphi.start); the way back out the left end to DOORS.itchy.end. The bowl is a ground profile (concourse, the
+  aisle as the engine's stairs, 24 steps; the pit; the stage steps, 5; the deck), the art lighting each tread where
+  terrain.ts puts his feet.
+- (job 7) The boss door is a cutscene, the other lands' door kick on the guard (kickPose), with a screen-space close-up
+  of his face the way Piper's reveal does hers. He's a wall till kicked; GUARD_DOWN (`ct-amphi-guard`) keeps him down
+  through deaths and checkpoint starts (any start at cp 61 or later sets it).
+- (job 7) The show's lines (STUPID DAD before he's seen Meathead, the family's tapes) are one pool each (they don't react
+  to him: the narrator's precedent); everything STUPID DAD says from the intro on is by pants. No new line starts while a
+  scene's on (the show holds); the intro freezes it.
+- (job 7) The set faces the camera (the sitcom's living room as the side-scroller sees it; the bleachers face the stage
+  from the left): the couch, the family, the TV stand back at their own depths, not on the play plane (nothing on stage
+  to stand on but the deck yet: the fight's design will say what's furniture to jump on).
+- (job 7) THE PLACEHOLDER: the card (PLEASE STAND BY, BOSS FIGHT COMING SOON) stands in for the fight; markBossFight
+  ('stupid-dad') runs through the intro and the card. Checkpoint 62 (STUPID DAD, manual, clear) is set as the intro
+  starts, for the fight to come. His deaths and the fight wait for the user.
+- (job 7) New sounds (m1 sfx.ts + types.ts SoundType, appended): `laughtrack` (a canned studio audience), `canopen`,
+  `tapestop`. New voices (cast.json): m2.cartoon.bouncer (the guard; the studio's m2.cartoon.guard is another man),
+  dad, tvmom, tvboy, tvsis, tvgramps (radio: the tapes). The walk-away (walkAway/stupidDad.ts) has the band shell behind
+  him and his cans down the path; how he died won't show till the deaths exist.

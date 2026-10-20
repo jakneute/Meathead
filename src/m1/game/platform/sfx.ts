@@ -640,6 +640,34 @@ const SFX: Record<string, SfxDef> = {
 /** Their guns (the same crack, further off: quieter, and it doesn't crowd his own out). */
 SFX.egun = { ...SFX.gun, gain: 0.28, gap: 50, voices: 3 };
 
+/** Meathead 2's STUPID DAD LIVE!: the canned sitcom laugh track (a studio audience off an old tape: a dozen and more
+ *  voices, men's and women's, each its own "ha-ha-ha" at its own pace, swelling in and dying off, dulled like tape). */
+SFX.laughtrack = {
+  gain: 0.5, vary: 0.6, gap: 800, voices: 1,
+  make: () => {
+    const lp = lowpass();
+    const V = Array.from({ length: 16 }, (_, i) => ({ at: Math.random() * 0.35, dur: 1.2 + Math.random() * 0.8, f0: i % 3 ? 140 + Math.random() * 90 : 240 + Math.random() * 120, rate: 4.4 + Math.random() * 2.4, sp: Math.random(), ph: 0, a: bandpass(), b: bandpass() }));
+    return render(2.3, t => lp(V.reduce((v, s) => {
+      const u = t - s.at;
+      if (u < 0 || u > s.dur) return v;
+      const syl = Math.sin(Math.PI * ((u * s.rate + s.sp) % 1)), pulse = syl * syl * syl;
+      s.ph += (s.f0 * (1 + 0.08 * Math.sin(TAU * s.rate * u)) * (1 - 0.15 * u / s.dur)) / SFX_SR;
+      const src = ((s.ph % 1) * 2 - 1) * 0.7 + rnd() * 0.5;
+      return v + (s.a(src, 800, 2) + s.b(src, 1300, 3) * 0.5) * pulse * Math.min(1, u / 0.08) * (1 - u / s.dur);
+    }, 0), 3400));
+  },
+};
+/** ...a beer can cracked open: the tab's sharp pop, then the fizz. */
+SFX.canopen = {
+  gain: 0.5, vary: 1, gap: 200,
+  make: () => { const hp = highpass(), bp = bandpass(); return render(0.45, t => (t < 0.004 ? rnd() : 0) * 1.2 + Math.sin(TAU * 2600 * t) * ex(t, 90) * 0.6 + (t > 0.01 ? hp(rnd(), 3500) * ex(t - 0.01, 7) * 0.8 + bp(rnd(), 6000, 2) * ex(t - 0.01, 12) * 0.4 : 0)); },
+};
+/** ...the show's tape stopping dead: its music winding down to nothing. */
+SFX.tapestop = {
+  gain: 0.45, gap: 500, voices: 1,
+  make: () => { const lp = lowpass(); let p1 = 0, p2 = 0, p3 = 0; return render(0.9, t => { const k = Math.max(0, 1 - t / 0.8), sp = k * k; p1 += (220 * sp) / SFX_SR; p2 += (277 * sp) / SFX_SR; p3 += (330 * sp) / SFX_SR; const v = ((p1 % 1) * 2 - 1) + ((p2 % 1) * 2 - 1) * 0.7 + ((p3 % 1) * 2 - 1) * 0.6 + rnd() * 0.2 * sp; return lp(v, 300 + 2600 * sp) * Math.min(1, k * 4); }); },
+};
+
 // ---------------------------------------------------------------------------
 
 let ctx: AudioContext | null = null;

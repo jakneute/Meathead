@@ -85,6 +85,8 @@ export type SoundType =
   | 'twang' | 'retch' | 'gush'
   // (Meathead 2's Donnie Dracula, the glutton: a belch off a full gut, the last of a drink up a straw)
   | 'burp' | 'slurp'
+  // (Meathead 2's STUPID DAD LIVE!: the canned laugh track, a beer can cracked, the show's tape stopping)
+  | 'laughtrack' | 'canopen' | 'tapestop'
   // his footsteps, by what he's walking on
   | 'step_hard' | 'step_snow' | 'step_metal' | 'step_wood' | 'step_dirt' | 'step_sand' | 'step_wet';
 
