@@ -354,14 +354,51 @@ const paintRide = (g: Ctx) => {
   for (let x = a + 60; x < a + w; x += 80) box(g, x, -h, 1, h, C[2]);
   // (the cracks, painted on: zigzags, lit along one side)
   for (let k = 0; k < 6; k++) { let x = a + 40 + k * 86, y = -h + 10; g.strokeStyle = INK; g.lineWidth = 2; g.beginPath(); g.moveTo(x, y); for (let s = 0; s < 6; s++) { x += (hash(k * 7 + s) - 0.5) * 30; y += 16 + hash(k + s * 3) * 14; g.lineTo(x, y); } g.stroke(); }
-  // (the mural, either side of the doors: a tornado, a volcano, a wave, painted in steps)
+  // (the mural, either side of the doors: a tornado over a wave, an earthquake swallowing a bus, painted in steps)
   const mural = (mx: number, my: number, kind: number) => {
     box(g, mx - 2, my - 2, 124, 104, INK);
     const sky = [dimmed('#2A1A3A'), dimmed('#5A2A3A'), dimmed('#A8442A')];
     for (let i = 0; i < 3; i++) box(g, mx, my + i * 33, 120, 34, sky[i]);
     if (kind === 0) { for (let i = 0; i < 9; i++) { const ww = 50 - i * 5; box(g, mx + 60 - ww / 2 + Math.sin(i) * 4, my + 8 + i * 9, ww, 9, dimmed(i % 2 ? '#8A8A9A' : '#6A6A7A')); } }
-    else { poly(g, [[mx + 10, my + 100], [mx + 50, my + 30], [mx + 70, my + 30], [mx + 110, my + 100]], dimmed('#3A2A2A')); poly(g, [[mx + 50, my + 30], [mx + 70, my + 30], [mx + 62, my + 50], [mx + 56, my + 46]], dimmed('#F97316')); for (let i = 0; i < 5; i++) box(g, mx + 52 + i * 3, my + 10 - i * 4, 8, 8, dimmed('#5A4A4A')); }
-    poly(g, [[mx, my + 100], [mx + 30, my + 84], [mx + 60, my + 92], [mx + 90, my + 80], [mx + 120, my + 90], [mx + 120, my + 100]], dimmed('#1E3A6A'));
+    if (kind === 0) { poly(g, [[mx, my + 100], [mx + 30, my + 84], [mx + 60, my + 92], [mx + 90, my + 80], [mx + 120, my + 90], [mx + 120, my + 100]], dimmed('#1E3A6A')); return; }
+    // The earthquake: the city behind leaning, the street split open, a school bus going nose first down the crack
+    // (the towers: stepped, their windows; the right one leaning off, its top coming away)
+    for (const [ox, ww, hh] of [[6, 18, 40], [26, 14, 30], [92, 20, 46]] as const) {
+      box(g, mx + ox, my + 72 - hh, ww, hh, dimmed('#3A3044')); box(g, mx + ox, my + 72 - hh, 3, hh, dimmed('#54485E')); box(g, mx + ox + ww - 3, my + 72 - hh, 3, hh, dimmed('#2A2234'));
+      for (let y = my + 76 - hh; y < my + 68; y += 6) for (let x = mx + ox + 4; x < mx + ox + ww - 4; x += 4) box(g, x, y, 2, 2, dimmed((x + y) % 3 ? '#1A1424' : '#E8B04A'));
+    }
+    poly(g, [[mx + 70, my + 72], [mx + 84, my + 22], [mx + 98, my + 26], [mx + 86, my + 72]], dimmed('#4A3E54'));
+    poly(g, [[mx + 84, my + 22], [mx + 98, my + 26], [mx + 97, my + 30], [mx + 83, my + 26]], dimmed('#6A5E74'));
+    for (let i = 0; i < 4; i++) box(g, mx + 78 + i * 2, my + 34 + i * 9, 3, 3, dimmed('#E8B04A'));
+    // (the street: banded asphalt going back, the far lip of the crack lit)
+    const A = ['#2A2624', '#3A3432', '#4A4440', '#5A524C'].map(dimmed);
+    for (let i = 0; i < 4; i++) box(g, mx, my + 70 + i * 8, 120, 8, A[3 - i]);
+    for (let x = mx + 4; x < mx + 120; x += 16) box(g, x, my + 80, 8, 2, dimmed('#C8A030'));
+    // (the crack: jagged, wide at the street, deep; its walls stepped dark, the fire glowing up from the bottom)
+    const crack: [number, number][] = [[mx + 36, my + 72], [mx + 46, my + 74], [mx + 54, my + 71], [mx + 66, my + 75], [mx + 76, my + 72], [mx + 90, my + 74], [mx + 78, my + 86], [mx + 70, my + 100], [mx + 58, my + 100], [mx + 50, my + 88]];
+    poly(g, crack, INK);
+    poly(g, [[mx + 52, my + 84], [mx + 80, my + 84], [mx + 72, my + 100], [mx + 58, my + 100]], dimmed('#5A0A04'));
+    poly(g, [[mx + 58, my + 92], [mx + 74, my + 92], [mx + 71, my + 100], [mx + 60, my + 100]], dimmed('#D2380A'));
+    box(g, mx + 62, my + 97, 8, 3, dimmed('#FCA526'));
+    for (const [x0, x1, y] of [[36, 54, 72], [54, 76, 72], [76, 90, 73]] as const) box(g, mx + x0, my + y - 1, x1 - x0, 1, A[3]);
+    // (the bus: tipped nose down into it, its back end up; banded yellow, its windows, its wheels in the air)
+    const r0 = [mx + 26, my + 60], u = [0.78, 0.62], n = [0.62, -0.78];
+    const q = (s: number, t: number): [number, number] => [r0[0] + u[0] * s + n[0] * t, r0[1] + u[1] * s + n[1] * t];
+    const band = (s0: number, s1: number, t0: number, t1: number, col: string) => poly(g, [q(s0, t0), q(s1, t0), q(s1, t1), q(s0, t1)], col);
+    band(-1, 47, -1, 17, INK);
+    band(0, 46, 0, 5, dimmed('#B8780A')); band(0, 46, 5, 12, dimmed('#E8A812')); band(0, 46, 12, 16, dimmed('#FCD34D'));
+    band(0, 46, 6, 7, INK);
+    for (let s = 5; s < 40; s += 7) band(s, s + 5, 9, 14, dimmed('#2A3A4A'));
+    for (let s = 5; s < 40; s += 7) band(s, s + 2, 13, 14, dimmed('#8AA8C0'));
+    band(0, 2, 2, 14, dimmed('#7A1A10'));
+    for (const s of [9, 36]) { const [wx, wy] = q(s, -1); box(g, wx - 4, wy - 4, 8, 8, INK); box(g, wx - 2, wy - 2, 4, 4, dimmed('#5A5450')); }
+    // (the near lip: the street toward us, the crack running on through it narrower, over the bus's nose)
+    poly(g, [[mx, my + 90], [mx + 56, my + 90], [mx + 62, my + 100], [mx, my + 100]], A[1]);
+    poly(g, [[mx + 70, my + 90], [mx + 120, my + 90], [mx + 120, my + 100], [mx + 66, my + 100]], A[1]);
+    box(g, mx, my + 90, 56, 1, A[3]); box(g, mx + 70, my + 90, 50, 1, A[3]);
+    // (the dust and chunks coming up out of it)
+    for (let i = 0; i < 6; i++) box(g, mx + 40 + i * 9, my + 64 - (i % 3) * 7, 5 - (i % 2), 4, dimmed(i % 2 ? '#6A5E54' : '#8A7E70'));
+    for (let i = 0; i < 4; i++) box(g, mx + 46 + i * 11, my + 54 - (i % 2) * 6, 2, 2, dimmed('#3A3230'));
   };
   mural(a + 20, -260, 0); mural(a + w - 140, -260, 1);
   // (the marquee's box, its frame; DISASTER: and THE RIDE go on it live)

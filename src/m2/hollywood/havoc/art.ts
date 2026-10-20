@@ -1,5 +1,5 @@
 // The havoc, drawn (the final pass: peak SNES, fake 3D on the boulevard's one eye). The backdrop (far.ts): the backlot's
-// far off by the hour under the real disasters' red sky, the HAPPYWOOD hill erupting, the city and the soundstages
+// far off by the hour under the real disasters' red sky, the HAPPYWOOD hill burning, the city and the soundstages
 // burning, the storm's clouds, ash and snow and the blizzard, lightning. In the world, back to front: the street under
 // him (bent) and the lava toward us (ground.ts); the lot strip and the ground going back, the lava channels going back,
 // the SAFE TORNADO LAUNCHING ZONE painted on the pavement, the puddles; DISASTER: THE RIDE's end at the start; the fronts,

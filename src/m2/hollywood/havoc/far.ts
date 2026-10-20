@@ -1,8 +1,8 @@
 // The havoc's far off (screen space; the backdrop): the backlot's own far layers by the hour (blvd/far.ts and lot/far.ts:
 // the mountains, the HAPPYWOOD hill, the foothills, the city, the studio lot, the palms, the backlot's soundstages
 // nearest), each on its own ground where the one eye puts it and dropping away under him as he climbs, by how near it
-// is; under the real disasters' sky (the lot's: gone red with ash). The HAPPYWOOD hill far off erupting (the crater's
-// stepped glow, lava down its shoulders a cell at a time, the plume going up in stepped puffs, bombs arcing) till he's up
+// is; under the real disasters' sky (the lot's: gone red with ash). The HAPPYWOOD hill far off burning (the quake's
+// fissure across it glowing, brush fires raging across its slopes, smoke going up off them, the letters on fire) till he's up
 // on it (it sinks away behind the city as he climbs); the city burning (the lot's smoke); the backlot's soundstages
 // burning (scorched, their roofs holed, fire along them, smoke columns leaning off). The storm's clouds rolling over in
 // two banks, dark, lit red from under, painted once for the hour and slid along. The weather: ash all over; snow on the
@@ -20,7 +20,7 @@ import { type Ctx, INK, box, checker, mix, hash, hazeBands as hazeBandsOf, bande
 import { FIRE } from '../disaster/paint';
 import { R, DOWNHILL, CLIMB } from './layout';
 import { spent } from './hazards';
-import { LAVA_R, flame } from './paint';
+import { flame } from './paint';
 import { drawHwSky, drawHwHorizon, drawHwLandmarks } from '../landmarks';
 
 const W = CANVAS_WIDTH, H = CANVAS_HEIGHT;
@@ -115,54 +115,55 @@ const smokeWisp = (c: Ctx, x: number, y: number, f: number, seed: number) => {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
-// The HAPPYWOOD hill erupting
+// The HAPPYWOOD hill burning
 
 const { HW, HHT } = HILL;
-/** The crater (on the summit, by the mast) and the flows down its shoulders, along the crest then down: tile x's. */
-const SUMMIT = HW * 0.42;
-const flowPath = (dir: 1 | -1) => {
-  const pts: [number, number][] = [];
-  const end = dir < 0 ? HW * 0.08 : HW * 0.9;
-  for (let x = SUMMIT; dir < 0 ? x > end : x < end; x += dir * 4) {
-    const u = Math.abs(x - SUMMIT) / Math.abs(end - SUMMIT);
-    // (along the crest to past the letters, then down the shoulder to the foot)
-    const crest = hillY(x) + 3, down = Math.max(0, (u - 0.55) / 0.45);
-    pts.push([x, crest + down * down * (HHT - crest - 10)]);
+/** The letters' row (blvd/far.ts's: 22 apart, centered). */
+const LSTEP = 22, LLEFT = HW * 0.5 - (LSTEP * 9) / 2;
+/** The quake's fissure across the hillside, under the letters: tile x's, its y down from the crest. */
+const FISSURE: [number, number][] = [0.16, 0.22, 0.27, 0.33, 0.38, 0.45, 0.51, 0.57, 0.62, 0.68, 0.74, 0.8].map((u, i) => {
+  const x = HW * u; return [x, hillY(x) + 64 + (i % 2 ? 7 : -3) + Math.max(0, Math.abs(u - 0.48) - 0.18) * 160];
+});
+/** The brush fires: fronts burning across the slopes (tile x from, to; how far down from the crest). */
+const FRONTS: [number, number, number][] = [[HW * 0.1, HW * 0.3, 40], [HW * 0.24, HW * 0.4, 96], [HW * 0.58, HW * 0.76, 30], [HW * 0.66, HW * 0.86, 84], [HW * 0.44, HW * 0.56, 118]];
+/** The letters on fire (their index). */
+const BURNING = [0, 3, 5, 8];
+const hillFire = (c: Ctx, hx: number, foot: number, f: number) => {
+  const ox = hx - HW / 2, oy = foot - HHT;
+  // (the fissure: the hillside split, black, the fire glowing in it, stepped; heat shimmering up off it)
+  c.lineJoin = 'miter';
+  for (const [w, col] of [[6, INK], [3, FIRE[1]], [1, FIRE[4]]] as const) {
+    c.strokeStyle = col; c.lineWidth = w; c.beginPath();
+    FISSURE.forEach(([x, y], i) => (i ? c.lineTo(Math.round(ox + x), Math.round(oy + y)) : c.moveTo(Math.round(ox + x), Math.round(oy + y)))); c.stroke();
   }
-  return pts;
+  for (let i = 1; i < FISSURE.length - 1; i += 2) {
+    const [x, y] = FISSURE[i], p = Math.sin(f * 0.12 + i) > 0.3;
+    steppedGlow(c, ox + x, oy + y, 14, '#F97316', p ? 0.32 : 0.22, 0, 3);
+    box(c, Math.round(ox + x) - 1, Math.round(oy + y) - 1, 3, 2, p ? FIRE[5] : FIRE[4]);
+  }
+  // (the brush fires: a charred band behind each front, the flames along it, low and ragged; smoke going up off it)
+  FRONTS.forEach(([a, b, d], k) => {
+    for (let x = a; x < b; x += 4) { const y = Math.round(oy + hillY(x) + d); box(c, Math.round(ox + x), y - 6, 4, 6, 'rgba(24, 14, 12, 0.55)'); }
+    for (let x = a, j = 0; x < b; x += 7, j++) flame(c, ox + x, oy + hillY(x) + d + 1, 6 + hash(k * 9 + j) * 3, 8 + hash(j * 3 + k) * 8, f, k * 13 + j);
+    smoke(c, ox + (a + b) / 2, oy + hillY((a + b) / 2) + d - 4, f, k + 3);
+  });
+  // (the letters burning: fire up their faces, black smoke off the tops)
+  for (const i of BURNING) {
+    const lx = LLEFT + i * LSTEP + LSTEP / 2, base = Math.max(hillY(lx - 8), hillY(lx + 8)) + 46;
+    const fx = ox + lx, fy = oy + base;
+    flame(c, fx - 4, fy, 7, 18, f, i * 7); flame(c, fx + 4, fy - 4, 6, 22, f, i * 7 + 3);
+  }
+  smokeWisp(c, ox + LLEFT + 3 * LSTEP, oy + hillY(LLEFT + 3 * LSTEP) + 20, f, 4);
 };
-const FLOWS = [flowPath(-1), flowPath(1)];
-const eruption = (c: Ctx, hx: number, foot: number, f: number) => {
-  const ox = hx - HW / 2, oy = foot - HHT, sx = ox + SUMMIT, sy = oy + hillY(SUMMIT);
-  // (the crater's glow, stepped)
-  steppedGlow(c, sx, sy - 4, 46 + Math.sin(f * 0.1) * 4, '#F97316', 0.55, 0, 5);
-  // (the plume: stepped puffs boiling up, lit orange from under at its foot, going gray as it climbs and spreads)
-  for (let k = 0; k < 12; k++) {
-    const t = ((f * 0.35 + k * 17) % 204) / 204, r = 8 + t * 46;
-    const px = sx + Math.sin(t * 5 + k) * 8 + t * t * 90, py = sy - 10 - t * 230;
-    const a = 0.78 * (1 - t * 0.7);
-    c.fillStyle = `rgba(30, 22, 22, ${a.toFixed(2)})`; c.fillRect(Math.round(px - r), Math.round(py - r * 0.6), Math.round(r * 2), Math.round(r * 1.2));
-    c.fillStyle = `rgba(62, 48, 46, ${(a * 0.9).toFixed(2)})`; c.fillRect(Math.round(px - r * 0.75), Math.round(py - r * 0.6), Math.round(r * 1.3), Math.round(r * 0.5));
-    if (t < 0.35) { c.fillStyle = `rgba(232, 96, 30, ${(0.5 * (1 - t / 0.35)).toFixed(2)})`; c.fillRect(Math.round(px - r * 0.8), Math.round(py + r * 0.2), Math.round(r * 1.6), Math.max(2, Math.round(r * 0.35))); }
-  }
-  // (the lava down its shoulders: a cell at a time, the crust at its edges, hot in its middle, a pulse running down)
-  for (const path of FLOWS) {
-    const n = path.length;
-    for (let i = 0; i < n; i++) {
-      const [px, py] = path[i], X0 = Math.round(ox + px), Y0 = Math.round(oy + py), w = i < n * 0.5 ? 3 : 4;
-      box(c, X0 - 1, Y0 - 1, 5, w + 2, LAVA_R[1]);
-      const hot = Math.sin(i * 0.35 - f * 0.18) > 0.6;
-      box(c, X0, Y0, 3, w, hot ? LAVA_R[5] : LAVA_R[3]);
-      if (i % 3 === 0) box(c, X0 + 1, Y0, 1, 1, LAVA_R[6]);
-    }
-  }
-  // (bombs arcing out of the crater)
-  for (let k = 0; k < 5; k++) {
-    const t = ((f * 0.9 + k * 41) % 90) / 90, dir = k % 2 ? 1 : -1, vx = dir * (20 + k * 9);
-    const bx = sx + vx * t * 2, by = sy - 70 * Math.sin(Math.PI * t) - 0 * t;
-    box(c, bx - 1, by - 1, 4, 4, LAVA_R[2]); box(c, bx, by, 2, 2, LAVA_R[5]);
-    box(c, bx - dir * 3, by + 1, 2, 1, `rgba(60, 40, 40, ${(0.5 * (1 - t)).toFixed(2)})`);
-  }
+/** Spent: the slopes burned black in bands, the fissure dark, smoke thin. */
+const hillBurnt = (c: Ctx, hx: number, foot: number, f: number) => {
+  const ox = hx - HW / 2, oy = foot - HHT;
+  c.strokeStyle = INK; c.lineWidth = 4; c.lineJoin = 'miter'; c.beginPath();
+  FISSURE.forEach(([x, y], i) => (i ? c.lineTo(Math.round(ox + x), Math.round(oy + y)) : c.moveTo(Math.round(ox + x), Math.round(oy + y)))); c.stroke();
+  FRONTS.forEach(([a, b, d], k) => {
+    for (let x = a; x < b; x += 4) { const y = Math.round(oy + hillY(x) + d); box(c, Math.round(ox + x), y - 8, 4, 9, 'rgba(24, 14, 12, 0.6)'); }
+    if (k % 2 === 0) smokeWisp(c, ox + (a + b) / 2, oy + hillY((a + b) / 2) + d - 4, f, k);
+  });
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -237,13 +238,13 @@ export const drawHavocFar = (c: Ctx, state: GameState) => {
   tile(c, `hb-mtn-${tod.key}`, cam * K.mtn + 300, groundAt(K.mtn) - FAR.MH + 10 + drop(K.mtn), FAR.MH, FAR.TW, g => paintMountains(g, tod));
   // (the park's horizon past the hill, Space Needle 2's shaft lost up in the storm)
   drawHwHorizon(c, state, groundAt(0.0035) + 4 + drop(0.0035), 150);
-  // (the HAPPYWOOD hill, erupting, till he's up on it: it sinks away behind the city as he climbs)
+  // (the HAPPYWOOD hill, burning, till he's up on it: it sinks away behind the city as he climbs)
   const sink = Math.max(0, Math.min(1, (rx - 6000) / 2200)) * 330;
   if (sink < 330) {
     const hx = 560 - (cam - HWX) * K.hill, foot = groundAt(K.hill) + 6 + drop(K.hill) + sink;
     drawHill(c, hx, foot, f);
-    if (!done) eruption(c, hx, foot, f);
-    else smokeWisp(c, hx - HW / 2 + SUMMIT, foot - HHT + hillY(SUMMIT) - 6, f, 9);
+    if (!done) hillFire(c, hx, foot, f);
+    else hillBurnt(c, hx, foot, f);
   }
   tile(c, `hb-foot-${tod.key}`, cam * K.foot + 140, groundAt(K.foot) - FAR.FH + 26 + drop(K.foot), FAR.FH, FAR.TW, g => paintFoothills(g, tod));
   under(groundAt(K.foot) + 26 + drop(K.foot), 0.34, '#8A8A6A');

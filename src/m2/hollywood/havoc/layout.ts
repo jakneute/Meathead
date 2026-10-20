@@ -2,7 +2,7 @@
 // time first (teach), then stacked (escalate):
 //
 //   0      Out the hole Disaster: The Ride's far wall left (its wall lying flat on the street behind him). The red sky,
-//          ash, the HAPPYWOOD hill erupting far off. CHECKPOINT. The PA: the park's experiencing every disaster.
+//          ash, the HAPPYWOOD hill burning far off. CHECKPOINT. The PA: the park's experiencing every disaster.
 //   1300   LAVA RIVER 1 (jump it). Looters.
 //   1650   The facades of PARIS STREET fall flat on the street (the shadow, the creak: out from under), plywood and 2x4s.
 //   2520   A studio LIGHT TOWER (a lattice of 2x4s, lamps up top) on the bank of LAVA RIVER 2 (too wide to jump): close
