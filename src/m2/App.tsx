@@ -591,6 +591,12 @@ const App2: React.FC = () => {
             <Prompt pad={['DPAD_UP']} kb={['@up']} label={nearLand ? `MAP: ${nearLand.name}` : ui.nearExit ? 'BACK TO THE HUB' : ui.nearAmerica ? 'BACK TO AMERICA USA' : 'STAFF ONLY: THE STAFF ROOM'} />
           </div>
         )}
+        {/* The staff room: practice, so the ammo's free (said only once he's got a weapon that takes any) */}
+        {status === GameStatus.PLAYING && ui.map === null && stage === PEN_STAGE && owned.some(w => w !== 'GUN') && (
+          <div className="absolute left-1/2 -translate-x-1/2 top-[132px] z-30 px-3 py-1 text-[8px] tracking-wider text-[#FDE047] bg-black/75 border-2 border-zinc-600 whitespace-nowrap">
+            STAFF ROOM: UNLIMITED AMMO FOR EVERY WEAPON
+          </div>
+        )}
         {/* What up does here, in a land (a lever to pull) */}
         {status === GameStatus.PLAYING && ui.map === null && !ui.introCutscene && ui.upPrompt && (
           <div className="absolute left-1/2 -translate-x-1/2 top-[132px] z-30 px-3 py-2 text-[9px] text-white bg-black/75 border-2 border-zinc-600">
