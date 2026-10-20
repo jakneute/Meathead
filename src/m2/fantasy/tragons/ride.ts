@@ -22,7 +22,7 @@ import { PIPER_PA_VOICE, type ByPants } from '../talk';
 import { piperLine, piperMust } from '../piperLines';
 import { RIVALS } from '../glen/rivals';
 import {
-  GY, TL, LOCK, S0X, GATE_X, END_S, EXIT_X, AWAY, LANES, LANE_ID, LANE_NAME, LANE_COL, SCRIPT, RIDE_CPS, UNLOAD_CP, DONE_MEMO,
+  GY, TL, LOCK, S0X, GATE_X, END_S, EXIT_X, AWAY, LANES, LANE_NAME, LANE_COL, SCRIPT, RIDE_CPS, UNLOAD_CP, DONE_MEMO,
   TIPS_MEMO, LOOP_MEMO, DECK_X0, DECK_X1, TUNNEL, LAGOON, DROPS, laneY, rearX, speedAt, evDue, rideCp, V_TEACH, type Lane, type Ev,
 } from './layout';
 import { trackPt, proj, spinAt, type Spin } from './track';
@@ -166,8 +166,8 @@ const breakTrack = (state: GameState, ev: Extract<Ev, { k: 'gap' | 'safe' }>, si
   }
   if (silent) return;
   playSound('boom', 0.55, -4); shakeScreen(state, 6, 3);
-  if (safe !== undefined) paSay(state, 'spiel', pickLine(SPIEL.safe[LANE_ID[safe]]));
-  else paSay(state, 'spiel', pickLine(SPIEL.out[LANE_ID[lanes[0]]]));
+  // (no spiel naming the track: the warnings on screen tell it (the user's: "remove the announcer on the ride calling
+  // out the obstacles"))
   if (once(t, 'firstGap')) mSay(state, FIRST_GAP, false);
   if (once(t, 'piperGap')) paSay(state, 'piper', piperLine(PIPER_T.gap));
 };
@@ -212,13 +212,7 @@ const putSpin = (state: GameState, ev: Extract<Ev, { k: 'spin' }>, i: number, si
   });
   if (silent) return;
   playSound('alert', 0.5, 4);
-  // (the spiel names the track(s); him, if it's his; Piper the first time)
-  const odd = LANE_ID[LANES.find(l => !lanes.includes(l)) ?? 0];
-  const line = ev.kind === 'braid' ? pickLine(SPIEL.braid) : ev.kind === 'chain3' ? pickLine(SPIEL.chain3)
-    : ev.kind === 'chain' ? pickLine(SPIEL.chain[odd])
-    : lanes.length === 1 ? pickLine((ev.kind === 'cork' ? SPIEL.cork : SPIEL.loop)[LANE_ID[lanes[0]]])
-    : pickLine((ev.kind === 'cork' ? SPIEL.cork2 : SPIEL.loop2)[odd]);
-  paSay(state, 'spiel', line);
+  // (no spiel naming the track(s): the warnings on screen tell it (the user's); him, if it's his; Piper the first time)
   if (lanes.includes(his)) mSay(state, ev.kind === 'braid' ? BRAID : LOOP_SEE);
   if (once(t, 'piperLoop')) paSay(state, 'piper', piperLine(PIPER_T.loop));
 };
@@ -484,7 +478,8 @@ export const updateRide = (ctx: FrameContext, controls: Controls): Controls => {
         if (ev.what === 'piper') paSay(state, 'piper', piperLine(PIPER_T.start));
         else if (ev.what === 'piperMid') paSay(state, 'piper', piperLine(PIPER_T.mid));
         else if (ev.what === 'piperLate') paSay(state, 'piper', piperLine(PIPER_T.late));
-        else if (ev.what === 'near') { paSay(state, 'spiel', pickFreshLine(SPIEL.near)); mSay(state, NEAR); }
+        // (the near miss: the dragons' mouths glowing tell it; no spiel calling it out (the user's), just him)
+        else if (ev.what === 'near') mSay(state, NEAR);
         else paSay(state, 'spiel', pickFreshLine(SPIEL[ev.what]));
       }
     });

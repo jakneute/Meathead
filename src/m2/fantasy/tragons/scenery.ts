@@ -341,7 +341,8 @@ export const sceneryItems = (c: Ctx, state: GameState, t: Tragons, e: Eye): { d:
       const up = kind === 'crowd' ? (((f >> 4) + seed) & 1) === 1 : false;
       out.push({ d, draw: () => {
         c.save(); c.translate(x, gy); c.scale(d, d);
-        banded(c, `tg-${kind}-${seed % 12}-${up ? 1 : 0}-${tod}`, -sz.w / 2 - 70, -sz.h - 60, sz.w + 140, sz.h + 64, g => paintProp(g, kind, seed % 12, up));
+        // (six looks a kind: enough to vary a row, few enough that their pictures all stay cached)
+        banded(c, `tg-${kind}-${seed % 6}-${up ? 1 : 0}-${tod}`, -sz.w / 2 - 70, -sz.h - 60, sz.w + 140, sz.h + 64, g => paintProp(g, kind, seed % 6, up));
         c.restore();
       } });
     }

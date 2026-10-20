@@ -248,8 +248,8 @@ export const drawTragonsFar = (c: Ctx, state: GameState) => {
   tile('alps', off(0.012), hz - (MH - 6) * zs, MH, MW, g => paintAlps(g, tod));
   // (the castle on its crag, drifting across as the ride goes, its foot among the far park)
   const at = MONUMENT_AT.tragons, kk = Math.min(1, t.dist / END_S);
-  // (its size in steps of 2%: the castle's stamp is painted once a step, not every few frames of the zoom's ease)
-  drawCastleAt(c, Math.round(at.from + (at.to - at.from) * kk), Math.round(hz + 40 + G * 0.03), at.k * Math.round(zs * 50) / 50, f);
+  // (its size as the zoom has it: the engine's stamps scale the last one while a zoom's moving, never repainting)
+  drawCastleAt(c, Math.round(at.from + (at.to - at.from) * kk), Math.round(hz + 40 + G * 0.03), at.k * zs, f);
   // (the park beyond: the glen's)
   const g1 = hz + G * 0.05, top1 = g1 - (GPG - 18) * zs;
   tile('park', off(0.05, 300), top1, GPH, GPW, g => paintGlenPark(g, tod));

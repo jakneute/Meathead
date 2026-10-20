@@ -183,6 +183,10 @@ export const drawStation = (c: Ctx, state: GameState, t: Tragons, e: Eye) => {
     polyF(g, [[-50, -120], [0, -160], [50, -120]], INK); polyF(g, [[-48, -121], [0, -158], [48, -121]], SLATE.map(dimmed)[3]); polyF(g, [[-48, -121], [0, -158], [-6, -121]], SLATE.map(dimmed)[4]);
     polyF(g, [[-30, -132], [0, -158], [30, -132], [0, -146]], SNOW.map(dimmed)[4]);
   });
+  // (put back: this restore was missing, so every frame the station was on screen the booth's translate and scale
+  // stayed on, the save stack went one out of step and the engine's own restore popped the wrong state: everything
+  // drawn after it (the tracks, the dragons, the ground, him) landed a world away off the screen, a blank void)
+  c.restore();
   // (the console's lights, live)
   for (let k = 0; k < 5; k++) box(c, bx + (-30 + k * 13) * bd, by - 56 * bd, 4 * bd, 3 * bd, (f / 8 + k) % 5 < 2 ? ['#4ADE80', '#F87171', '#FDE047', '#60A5FA', '#4ADE80'][k] : '#1A1028');
   canopy(c, state, e, x0, x1 + 140);

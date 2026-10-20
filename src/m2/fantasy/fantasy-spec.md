@@ -906,6 +906,13 @@ markBossFight every frame of a boss or sub-boss fight. Voice every new line (`np
   (crest, gilt frame, tag line, bulbs), the heads big under it, a WARNING board, YOU MUST BE THIS TALL, queue rails; the
   station gets its own marquee hung low over the platform and a height board. The halls' play-plane things (and the
   castle's sign at the exit) are sorted in after the supports behind them. Drawing only, but for the hop's wrap.
+- (the user's: "entering the door to truelling tragons still has nothing render") The cause: the load station's
+  dispatch booth did a save and a translate with no restore, so any frame the station was on screen everything after it
+  (the tracks, the dragons, the ground, him) drew a world away: a blank void till the station slid off (a checkpoint
+  start on the ride never saw it). Restored. The ride's announcer no longer calls out the holes, loops or the near miss
+  (the user's: the telegraphs are obvious); the welcome, the rules, the drops, the tunnel, the splash and Piper stay.
+  Its still-art cache paints in bands of 1, 1.5, 2 and 3 (never brought down more than a third), the park's props in
+  six looks a kind so they all stay cached; the castle's left to the engine's stamps (no repaint mid-zoom).
 - (the user's: "make piper's model more detailed. when it does a closeup of her face, do a gross ren and stimpy style
   closeup"; "make the lightning and ice traps in her lair look more detailed too") PIPER, more detailed in every pose
   (piper.ts; sizes, poses and anchors unchanged): veined, glittered, straining wings (a tear, an oil-slick sheen), the
