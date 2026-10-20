@@ -37,7 +37,9 @@ export const hash = (n: number) => {
   return x - Math.floor(x);
 };
 
-const toRgb = (hex: string) => [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16));
+// (a color that isn't one (a palette read past its end somewhere) mixes as a mid gray rather than throwing: one bad
+// read was taking whole frames down (DRAW FAILED))
+const toRgb = (hex: string) => (typeof hex === 'string' && hex[0] === '#' ? [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16)) : [128, 128, 128]);
 export const mix = (a: string, b: string, t: number) => {
   const pa = toRgb(a), pb = toRgb(b);
   const k = Math.max(0, Math.min(1, t));
