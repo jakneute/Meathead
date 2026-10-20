@@ -17,7 +17,8 @@ import type { Light } from '../../../m1/game/render/lighting';
 import { CANVAS_WIDTH } from '../../../m1/constants';
 import { inDepth, at, type Eye } from '../temple/art';
 import { drawPerson } from '../temple/people';
-import { INK, box, slab, rampOf, dark, lite, checker, steppedGlow, stamp, hash } from '../../intro/art/kit';
+import { INK, box, slab, ball, rampOf, dark, lite, mix, checker, steppedGlow, stamp, hash } from '../../intro/art/kit';
+import { plywoodCrack } from './dressing';
 import { IDOLS, SNAKES, LOBS, CHASE_DOORS, trackY, artieTrackY } from './layout';
 import {
   type Tricks, type Boulder, IDOL_TELL, dartRise, DART_LEN, snakeAt, snakeDepth, SNAKE_D0, SNAKE_LOW, SNAKE_HIGH, LOB_FROM,
@@ -80,6 +81,16 @@ const paintStone = (g: Ctx, x: number, top: number, w: number, h: number, col: s
   }
 };
 
+/** The fake rock's seams (a panel's edge, jagged, bolted every so often) and a chunk knocked off showing the plywood. */
+const foamSeams = (g: Ctx, x0: number, x1: number, top: number, bottom: number, col: string, seed: number) => {
+  const r = rampOf(col);
+  for (let sx = x0 + 90 + Math.round(hash(seed) * 40); sx < x1 - 30; sx += 150) {
+    for (let y = top + 10; y < bottom; y += 8) { const jx = sx + Math.round((hash(Math.floor(y / 24) + sx * 0.01) - 0.5) * 6); box(g, jx, y, 1, 8, r[0]); box(g, jx + 1, y, 1, 8, r[3]); }
+    for (let y = top + 30; y < bottom; y += 58) { const jx = sx + Math.round((hash(Math.floor(y / 24) + sx * 0.01) - 0.5) * 6); box(g, jx - 2, y - 1, 4, 4, INK); box(g, jx - 1, y, 2, 2, '#9CA3AF'); }
+  }
+  plywoodCrack(g, x0 + (x1 - x0) * (0.2 + hash(seed * 3) * 0.6), top + 40 + hash(seed * 7) * 60, 8, (c: string) => mix(c, '#1A1420', 0.15), seed);
+};
+
 // ---------------------------------------------------------------------------------------------------------------
 // The idols
 
@@ -94,6 +105,12 @@ const drawIdol = (c: Ctx, eye: Eye, state: GameState, x: number, high: boolean, 
       paintStone(g, x - 22, colTop, 54, rail + DEEP - colTop, STONE, x);
       // (a cap stone under the head, stepped out)
       slab(g, x - 26, colTop, 62, 12, lite(STONE, 0.1), { edge: 2 });
+      // (the service hatch in the column: screwed shut, the ride's number on a sticker, a cable gland under it)
+      const hy = colTop + 54;
+      box(g, x - 8, hy - 1, 26, 32, INK); box(g, x - 7, hy, 24, 30, dark(STONE, 0.12)); box(g, x - 7, hy, 24, 1, lite(STONE, 0.2));
+      for (const [sx, sy] of [[-5, 2], [13, 2], [-5, 26], [13, 26]]) { box(g, x + sx, hy + sy, 2, 2, '#9CA3AF'); }
+      box(g, x - 2, hy + 8, 14, 8, '#E8C130'); box(g, x - 1, hy + 11, 12, 1, INK); box(g, x - 1, hy + 13, 8, 1, INK);
+      box(g, x + 3, hy + 34, 6, 4, '#2A2A2E');
     });
   });
   inDepth(c, eye, IDOL_D, () => {
@@ -132,11 +149,28 @@ const drawIdol = (c: Ctx, eye: Eye, state: GameState, x: number, high: boolean, 
     box(c, x - 6, top + 2, 12, 3, MOSS); box(c, x + 20, colTop - 6, 12, 4, MOSS);
     // (the fangs, either side of the hole)
     for (const [fx, fy, h] of [[-34, my - 4, 7], [-28, my + 6, -6]] as const) { box(c, x + fx, Math.min(fy, fy + h), 4, Math.abs(h), INK); box(c, x + fx + 1, Math.min(fy, fy + h) + 1, 2, Math.abs(h) - 2, '#F1EFEA'); }
+    // (it's fiberglass: the mold's seam over the skull and down the back of the jaw, the filler dry-brushed over it)
+    box(c, x + 9, top - 2, 1, colTop - top, r[0]); box(c, x + 10, top - 2, 1, colTop - top, r[4]);
+    for (let k = 0; k < 4; k++) box(c, x + 7, top + 6 + k * 14, 5, 2, r[3]);
+    // (the jaw's servo at its hinge: a housing bolted on, its horn, the cable off it into the hose)
+    box(c, x + 1, my - 1, 14, 12, INK); box(c, x + 2, my, 12, 10, '#4A4E56'); box(c, x + 2, my, 12, 2, '#7A808A');
+    box(c, x + 3, my + 7, 2, 2, '#9CA3AF'); box(c, x + 11, my + 7, 2, 2, '#9CA3AF');
+    ball(c, x + 8, my + 4, 3, '#2A2A2E');
+    c.strokeStyle = '#18181B'; c.lineWidth = 2; c.beginPath(); c.moveTo(x + 14, my + 6); c.quadraticCurveTo(x + 30, my + 10, x + 40, my - 2); c.stroke();
+    // (its status lamp: dead, or red with the tell)
+    box(c, x + 16, top + 10, 5, 5, INK); box(c, x + 17, top + 11, 3, 3, telling || just ? (f % 6 < 3 ? '#FF3B30' : '#B91C1C') : '#3A1414');
     // the eye, the dart hole in the mouth: dead stone, or lit (the tell)
     box(c, x - 16, top + 12, 12, 8, INK);
     box(c, x - 15, top + 13, 10, 6, glow ?? '#2A2420');
     box(c, x - 40, my - 4, 10, 8, INK); box(c, x - 39, my - 3, 8, 6, glow ?? '#0C0A08');
-    if (glow) { steppedGlow(c, x - 36, my, 26, glow, 0.4, 0.05, 3); steppedGlow(c, x - 10, top + 16, 16, glow, 0.3, 0.05, 3); }
+    if (glow) {
+      // (the glow swelling as the volley comes; the darts' tips showing in the hole at the height they'll fly)
+      const u = telling ? t / IDOL_TELL : 1;
+      steppedGlow(c, x - 36, my, 16 + 18 * u, glow, 0.25 + 0.2 * u, 0.05, 3); steppedGlow(c, x - 10, top + 16, 16, glow, 0.3, 0.05, 3);
+      if (telling && t > IDOL_TELL - 24) { box(c, x - 44, my - 2, 8, 4, INK); box(c, x - 43, my - 1, 6, 2, '#E4E8EE'); box(c, x - 45, my - 1, 2, 2, '#F8FAFC'); }
+      // (the mouth's ring lit round, so it reads at a glance which way to go)
+      c.strokeStyle = glow; c.lineWidth = 2; c.strokeRect(x - 42, my - 6, 14, 12);
+    }
     // (a puff of dust out of it, the volley going)
     if (just) for (let k = 0; k < 4; k++) box(c, x - 46 - k * 6 - (t - IDOL_TELL) * 2, my - 6 + (k % 2) * 6 - k, 5, 4, `rgba(220, 210, 190, ${0.5 - k * 0.1})`);
     // (its name, on a plaque on the column)
@@ -165,6 +199,7 @@ const drawSnakeRock = (c: Ctx, eye: Eye, state: GameState, sx: number, t: number
       for (let k = 0; k < 14; k++) { const yy = top + 10 + k * 34; box(g, sx - 150, yy, 300, 3, r[1]); box(g, sx - 150 + (k % 3) * 40, yy + 3, 120, 3, r[3]); }
       for (const [dx, dy] of lumps) { box(g, sx + dx, top + dy, 6, 70, r[3]); box(g, sx + dx + 36, top + dy + 10, 4, 60, r[1]); }
       for (let k = 0; k < 10; k++) box(g, sx - 140 + hash(k + sx) * 280, top + 30 + hash(k * 3 + sx) * 180, 6 + hash(k) * 10, 4, MOSS);
+      foamSeams(g, sx - 150, sx + 150, top, rail + DEEP, ROCK_FACE, sx);
       g.restore();
       // (a snake carved coiling round the hole: the tail, the coils)
       for (let k = 0; k < 18; k++) {
@@ -184,7 +219,11 @@ const drawSnakeRock = (c: Ctx, eye: Eye, state: GameState, sx: number, t: number
     if (s.k <= 0.02) {
       const lit = s.rear, sway = lit ? Math.sin(f * 0.6) * 3 : 0;
       for (const ex of [-16, 16]) { box(c, sx + ex - 5 + sway, hy - 8, 10, 6, INK); box(c, sx + ex - 4 + sway, hy - 7, 8, 4, lit ? (f % 4 < 2 ? '#FDE047' : '#FACC15') : '#3A2E0A'); }
-      if (lit) steppedGlow(c, sx, hy - 4, 40, '#FACC15', 0.3, 0.04, 3);
+      if (lit) {
+        steppedGlow(c, sx, hy - 4, 40, '#FACC15', 0.3, 0.04, 3);
+        // (the hiss: a fog machine's puffs out of the hole's lip, curling up)
+        for (let k = 0; k < 4; k++) { const u = ((f * 0.04 + k * 0.25) % 1); box(c, sx - 30 + k * 18 + Math.sin(f * 0.2 + k) * 4, hy + 30 - u * 70, 8 + u * 10, 5 + u * 4, `rgba(220, 230, 210, ${(0.35 * (1 - u)).toFixed(2)})`); }
+      }
     }
   });
 };
@@ -197,6 +236,13 @@ const snakeRing = (c: Ctx, eye: Eye, sx: number, hy: number, d: number, i: numbe
     box(c, sx - 25, hy - 23, 50, 46, i % 2 ? r[2] : r[1]);
     box(c, sx - 25, hy - 23, 50, 6, r[3]); box(c, sx - 25, hy - 23, 6, 46, r[3]); box(c, sx + 19, hy - 23, 6, 46, r[0]);
     checker(c, sx - 19, hy - 17, 38, 2, r[3]);
+    // (it's a rubber sleeve over a ram: every third ring a hose clamp round it, its screw; a seam down its side)
+    if (i % 3 === 0) {
+      box(c, sx - 27, hy - 25, 54, 3, '#5A5E66'); box(c, sx - 27, hy + 22, 54, 3, '#5A5E66');
+      box(c, sx - 27, hy - 25, 3, 50, '#7A808A'); box(c, sx + 24, hy - 25, 3, 50, '#4A4E56');
+      box(c, sx + 20, hy - 28, 6, 4, '#9CA3AF');
+    }
+    box(c, sx + 12, hy - 23, 1, 46, r[0]);
   });
 };
 const snakeHead = (c: Ctx, eye: Eye, f: number, sx: number, hy: number, d: number, open: number) => {
@@ -226,6 +272,14 @@ const snakeHead = (c: Ctx, eye: Eye, f: number, sx: number, hy: number, d: numbe
     // (the lower jaw)
     c.fillStyle = r[1]; c.beginPath(); c.moveTo(sx - 26, jaw + 2); c.lineTo(sx + 26, jaw + 2); c.lineTo(sx + 22, jaw + 10); c.lineTo(sx - 22, jaw + 10); c.closePath(); c.fill();
     box(c, sx - 22, jaw + 9, 44, 2, r[0]);
+    // (the animatronic showing: the mold's seam down its snout, the jaw's pistons either side, its servo at the hinge)
+    box(c, sx, top + 2, 1, hy - top - 4, r[0]); box(c, sx + 1, top + 2, 1, hy - top - 4, r[3]);
+    for (const s of [-1, 1]) {
+      const hx = sx + s * 38;
+      box(c, hx - 4, hy - 2, 8, 8, INK); box(c, hx - 3, hy - 1, 6, 6, '#4A4E56'); box(c, hx - 1, hy + 1, 2, 2, '#9CA3AF');
+      c.strokeStyle = INK; c.lineWidth = 4; c.beginPath(); c.moveTo(hx, hy + 2); c.lineTo(sx + s * 24, jaw + 6); c.stroke();
+      c.strokeStyle = '#C8CED6'; c.lineWidth = 2; c.stroke();
+    }
   });
 };
 /** The serpent out of its hole: its sleeve's rings and its head, from the hole to `upTo` (the back part, then the near). */
@@ -281,6 +335,9 @@ const drawCatapultWall = (c: Ctx, eye: Eye, state: GameState, lx: number, t: num
       signAt(g, 'BEWARE OF', x0 + w / 2, top + 97, 7, stone(7, INK, '#FFF0A0'));
       signAt(g, 'FALLING ROCKS', x0 + w / 2, top + 112, 7, stone(7, INK, '#FFF0A0'));
       box(g, x0 + 4, top + 140, w - 8, 3, MOSS);
+      // (the set's a set: the panels' seams, bolted, a chunk out of one; a stagehand's tape mark at its foot)
+      foamSeams(g, x0, x0 + w, top + 140, rail + DEEP, STONE, lx);
+      box(g, x0 + w - 60, rail - 6, 18, 3, '#E8C130');
     });
   });
 };
@@ -311,6 +368,8 @@ const drawChaseWall = (c: Ctx, eye: Eye, state: GameState, t: number) => {
       for (let k = 0; k < 22; k++) { const yy = top + 8 + k * 46; box(g, w0, yy, w1 - w0, 3, r[1]); box(g, w0 + (k % 3) * 70, yy + 3, 260, 3, r[3]); }
       for (let k = 0; k < 16; k++) { const lx = w0 + 10 + k * 32; box(g, lx, top + hash(k) * 40, 5, 120 + hash(k * 2) * 200, k % 2 ? r[3] : r[1]); }
       for (let k = 0; k < 12; k++) box(g, w0 + hash(k * 5 + 1) * 500, top + hash(k * 7) * 260, 8 + hash(k) * 14, 5, MOSS);
+      foamSeams(g, w0, x - DOOR_W - 10, top, rail + DEEP, ROCK_FACE, x);
+      foamSeams(g, x + DOOR_W + 10, w1, top, rail + DEEP, ROCK_FACE, x + 1);
       // (the doors, closed: rock-painted, their seam, their hinges)
       if (!open) {
         for (const s of [-1, 1]) {

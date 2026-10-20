@@ -7,6 +7,11 @@
 // its portal, the guest scanner (a gantry, its eyes, its readout), the fork (the switch stand, the signs, the friendly
 // track curving off into IT'S A FRIENDLY WORLD), and the ramp at the end, straight up into the temple's floor. The
 // ride's tricks along it (the idols, the serpents' rocks, the catapults' walls, the big one's doors) are trickArt.ts.
+// The SNES pass: up in the cavern's top, the ride's other track on its trestles (two of it, one further back, following
+// the hills: stamped in tiles), the roof's stalactite fringe (stamped), water coming down out of it far off; the
+// timbered wall's rock is the ride's painted foam (its panels' seams bolted, chunks off it showing the plywood); and in
+// front of it, on ledges, the set dressing (dressing.ts: crystals, the crew's work light, TNT, a boarded shaft that's a
+// painted flat, animatronic miners, a waterfall out of a pipe, an ore cart and its skeleton, the MINER'S MERCANTILE...).
 //
 // Depth is the temple's (temple/art.ts: inDepth). Indoors (underground): no time of day, its own lighting
 // (cartLighting); but the daylight through the cracks at the top of the ramp is the hour's.
@@ -25,6 +30,7 @@ import {
 import type { Cart } from './index';
 import { drawTrickSets, drawTrickActors, trickLights } from './trickArt';
 import { signAt, plank, enamel, led, dino } from '../letters';
+import { drawCartDressing, cartDressingLights, plywoodCrack } from './dressing';
 
 type Ctx = CanvasRenderingContext2D;
 type Pt = [number, number];
@@ -74,6 +80,39 @@ const paintRock = (g: Ctx, x0: number, y0: number, base: number, bright: number)
     const hx = x0 + hash(x0 * 0.13 + y0 * 0.7 + k) * TILE, hy = y0 + hash(x0 * 0.31 + y0 * 0.17 + k * 3.3) * TILE;
     box(g, hx, hy, 2 + hash(k + x0) * 10, 2, 'rgba(0, 0, 0, 0.35)');
     box(g, hx, hy - 2, 2 + hash(k + x0) * 8, 1, `rgba(255, 220, 190, ${0.04 + bright * 0.1})`);
+  }
+  if (!bright) {
+    // (the real cavern, far back: veins of something glinting through the strata, a crystal pocket here and there)
+    for (let k = 0; k < 5; k++) {
+      const vx = x0 + hash(x0 * 0.71 + y0 * 0.29 + k * 5.1) * TILE, vy = y0 + hash(x0 * 0.43 + y0 * 0.61 + k * 2.7) * TILE;
+      for (let s = 0; s < 14; s++) box(g, vx + s * 6, vy + Math.round(Math.sin(s * 0.9 + k) * 3) * 2, 6, 2, s % 3 ? '#3E3448' : '#5A4A6A');
+      if (hash(k + x0 * 0.01 + y0) > 0.5) {
+        const col = hash(k * 3 + x0) > 0.5 ? '#2E5A6E' : '#4A3A6E';
+        for (let q = 0; q < 4; q++) { const cx = vx + 20 + q * 7, h = 8 + hash(q + k) * 14; box(g, cx, vy - h, 5, h, col); box(g, cx, vy - h, 2, h, lite(col, 0.25)); box(g, cx + 1, vy - h - 2, 3, 2, lite(col, 0.4)); }
+      }
+    }
+    return;
+  }
+  // The timbered wall's rock is the ride's: painted foam on plywood. Its panels' seams (jagged, bolted every so often),
+  // dry-brushed highlights, paint runs, and here and there a chunk knocked off it showing the plywood underneath.
+  for (let px = Math.ceil(x0 / 192) * 192; px < x0 + TILE; px += 192) {
+    for (let y = y0; y < y0 + TILE; y += 8) {
+      const sx = px + Math.round((hash(Math.floor(y / 24) + px * 0.01) - 0.5) * 6);
+      box(g, sx, y, 1, 8, '#120C10'); box(g, sx + 1, y, 1, 8, lite(STRATA[2], 0.25));
+    }
+    for (let y = Math.ceil(y0 / 56) * 56; y < y0 + TILE; y += 56) {
+      const sx = px + Math.round((hash(Math.floor(y / 24) + px * 0.01) - 0.5) * 6);
+      box(g, sx - 2, y - 1, 4, 4, INK); box(g, sx - 1, y, 2, 2, '#6A6E76'); box(g, sx - 1, y, 1, 1, '#A8AEB6');
+    }
+  }
+  for (let k = 0; k < 18; k++) {
+    const hx = x0 + hash(x0 * 0.53 + y0 * 0.37 + k * 1.9) * TILE, hy = y0 + hash(x0 * 0.19 + y0 * 0.83 + k * 4.3) * TILE;
+    box(g, hx, hy, 6 + hash(k * 2 + y0) * 14, 1, lite(STRATA[k % STRATA.length], 0.3));
+    if (k % 3 === 0) box(g, hx + 4, hy + 1, 2, 6 + hash(k + x0) * 10, dark(STRATA[k % STRATA.length], 0.2));
+  }
+  for (let k = 0; k < 2; k++) {
+    if (hash(x0 * 0.07 + y0 * 0.11 + k) < 0.45) continue;
+    plywoodCrack(g, x0 + 40 + hash(x0 + y0 * 0.3 + k * 9) * (TILE - 80), y0 + 40 + hash(x0 * 0.2 + y0 + k * 7) * (TILE - 80), 6 + hash(k + x0) * 5, (col: string) => mix(col, '#1A1420', 0.3), k + x0 + y0);
   }
 };
 /** A wall of rock at depth d, tiled (stamped) over what's on screen there. */
@@ -147,22 +186,152 @@ const pillars = (c: Ctx, eye: Eye) => {
   });
 };
 
-const distantTrestle = (c: Ctx, eye: Eye, f: number) => {
-  const [s0, s1] = spanAt(eye, DISTANT_D, 40);
-  const ty = GY - 120;
-  inDepth(c, eye, DISTANT_D, () => {
-    const a = Math.floor(s0 / 80) * 80;
-    for (let x = a; x < s1; x += 80) {
-      box(c, x, ty, 6, 900, '#2A2026'); box(c, x, ty, 2, 900, '#3A2E30');
-      c.strokeStyle = '#241C22'; c.lineWidth = 3; c.beginPath(); c.moveTo(x, ty + 10); c.lineTo(x + 80, ty + 120); c.moveTo(x + 80, ty + 10); c.lineTo(x, ty + 120); c.stroke();
+/** The track's height, smoothed out over a long stretch: what the far layers up in the cavern's top follow (so they sit
+ *  in the same band of the screen however high the ride's got). */
+let SMOOTH: Float32Array | null = null;
+const S0 = X - 3000, SSTEP = 32;
+const smoothTrack = (x: number) => {
+  if (!SMOOTH) {
+    const n = Math.ceil((x1 + 6000 - S0) / SSTEP), raw = new Float64Array(n + 1);
+    for (let i = 0; i < n; i++) raw[i + 1] = raw[i] + artieTrackY(Math.max(X, Math.min(RAMP_X, S0 + i * SSTEP)));
+    SMOOTH = new Float32Array(n);
+    const R = 30;
+    for (let i = 0; i < n; i++) { const a = Math.max(0, i - R), b = Math.min(n, i + R + 1); SMOOTH[i] = (raw[b] - raw[a]) / (b - a); }
+  }
+  const u = Math.max(0, Math.min(SMOOTH.length - 1.001, (x - S0) / SSTEP)), i = Math.floor(u), k = u - i;
+  return SMOOTH[i] * (1 - k) + SMOOTH[i + 1] * k;
+};
+
+/** The ride's other track, up in the dark of the cavern's top (two of it, one further back than the other): the deck
+ *  following the hills, the bents splayed, girts and X-bracing, the ties, the rails catching the light; lanterns on it. */
+const TRESTLES = [{ d: 0.36, lift: 743, wood: '#2E242A', key: 'cart-tr-far' }, { d: DISTANT_D, lift: 580, wood: '#3A2C2C', key: 'cart-tr-near' }];
+const TT = 512;
+const paintTrestle = (g: Ctx, x0: number, lift: number, wood: string) => {
+  const R = rampOf(wood);
+  const ty = (x: number) => Math.round((smoothTrack(x) - lift) / 2) * 2;
+  // (the bents, 64 apart, from the deck down out of sight: two legs splayed, girts across every 110)
+  for (let x = Math.floor((x0 - 64) / 64) * 64; x < x0 + TT + 64; x += 64) {
+    const y = ty(x), bot = y + 900, n = ty(x + 64);
+    // (X-bracing to the next one, the top two panels)
+    for (let k = 0; k < 2; k++) {
+      seg(g, [x, y + 10 + k * 110], [x + 64, n + 120 + k * 110], R[1], 2);
+      seg(g, [x + 64, n + 10 + k * 110], [x, y + 120 + k * 110], R[0], 2);
     }
-    box(c, s0, ty - 6, s1 - s0, 8, '#3A2C26'); box(c, s0, ty - 8, s1 - s0, 2, '#6A5A50');
-    // (its lanterns)
-    for (let x = Math.floor(s0 / 480) * 480; x < s1; x += 480) { steppedGlow(c, x, ty - 30, 40, '#F59E0B', 0.2, 0.02, 3); box(c, x - 3, ty - 34, 6, 8, '#FCD34D'); }
-    // (a cart going over, now and then, tiny)
-    const period = 4200, p = (f * 3) % period;
-    const cx = Math.floor(eye.x / period) * period + p - 1000;
-    if (cx > s0 && cx < s1) { slab(c, cx - 40, ty - 40, 80, 30, '#7C2D12', { edge: 2 }); for (const w of [cx - 24, cx + 24]) ball(c, w, ty - 10, 8, '#2A2A2E'); }
+    seg(g, [x - 3, y + 6], [x - 16, bot], INK, 6); seg(g, [x - 3, y + 6], [x - 16, bot], R[2], 4); seg(g, [x - 4, y + 6], [x - 17, bot], R[3], 1);
+    seg(g, [x + 3, y + 6], [x + 16, bot], INK, 6); seg(g, [x + 3, y + 6], [x + 16, bot], R[1], 4);
+    for (let k = 1; k < 8; k++) { const s = 3 + (13 * k * 110) / 894; box(g, x - s - 1, y + k * 110, 2 * s + 2, 4, INK); box(g, x - s, y + k * 110 + 1, 2 * s, 2, R[2]); }
+    box(g, x - 5, y + 4, 10, 6, '#3A3E44'); box(g, x - 3, y + 6, 2, 2, '#7A808A'); box(g, x + 1, y + 6, 2, 2, '#7A808A');
+  }
+  // (the deck: the stringer, the ties on it, the two rails on those)
+  g.fillStyle = INK; g.beginPath(); g.moveTo(x0 - 20, ty(x0 - 20) - 1);
+  for (let x = x0 - 20; x <= x0 + TT + 20; x += 8) g.lineTo(x, ty(x) - 1);
+  for (let x = x0 + TT + 20; x >= x0 - 20; x -= 8) g.lineTo(x, ty(x) + 11);
+  g.closePath(); g.fill();
+  g.fillStyle = R[2]; g.beginPath(); g.moveTo(x0 - 20, ty(x0 - 20));
+  for (let x = x0 - 20; x <= x0 + TT + 20; x += 8) g.lineTo(x, ty(x));
+  for (let x = x0 + TT + 20; x >= x0 - 20; x -= 8) g.lineTo(x, ty(x) + 9);
+  g.closePath(); g.fill();
+  for (let x = Math.floor((x0 - 20) / 12) * 12; x < x0 + TT + 20; x += 12) { const y = ty(x); box(g, x, y - 3, 7, 3, R[3]); box(g, x, y, 7, 2, R[1]); }
+  for (const [dy, col] of [[-5, '#5A626E'], [-7, '#8A929E']] as const) {
+    g.strokeStyle = col; g.lineWidth = 2; g.beginPath(); g.moveTo(x0 - 20, ty(x0 - 20) + dy);
+    for (let x = x0 - 20; x <= x0 + TT + 20; x += 8) g.lineTo(x, ty(x) + dy);
+    g.stroke();
+  }
+  // (the lanterns' posts and housings: the flames are live)
+  for (let x = Math.ceil((x0 - 20) / 384) * 384; x < x0 + TT + 20; x += 384) { const y = ty(x); box(g, x - 2, y - 30, 4, 28, R[1]); box(g, x - 5, y - 42, 10, 12, INK); }
+};
+const trestleBox = (x0: number, lift: number) => {
+  let lo = Infinity, hi = -Infinity;
+  for (let x = x0 - 40; x <= x0 + TT + 40; x += 32) { const y = smoothTrack(x) - lift; lo = Math.min(lo, y); hi = Math.max(hi, y); }
+  return [Math.floor(lo - 60), Math.ceil(hi + 910)];
+};
+const distantTrestle = (c: Ctx, eye: Eye, f: number, which: number) => {
+  const T = TRESTLES[which], [s0, s1] = spanAt(eye, T.d, 40);
+  const ty = (x: number) => Math.round((smoothTrack(x) - T.lift) / 2) * 2;
+  inDepth(c, eye, T.d, () => {
+    for (let i = Math.floor(s0 / TT); i * TT < s1; i++) {
+      const x0 = i * TT, [top, bot] = trestleBox(x0, T.lift);
+      stamp(c, `${T.key}-${i}`, x0 - 60, top, TT + 120, bot - top, g => paintTrestle(g, x0, T.lift, T.wood));
+    }
+    // (the lanterns' flames)
+    for (let x = Math.ceil(s0 / 384) * 384; x < s1; x += 384) {
+      const y = ty(x) - 36, fl = lanternFlicker(x, f);
+      steppedGlow(c, x, y, 34 * fl, '#F59E0B', 0.18, 0.02, 3);
+      box(c, x - 3, y - 4, 6, 8, mix('#F59E0B', '#FFF4C8', 0.4 * fl)); box(c, x - 1, y - 2, 2, 4, '#FFFBEA');
+    }
+    // (a cart going over now and then, its riders' heads up, its lamp)
+    if (which === 1) {
+      const period = 4200, p = (f * 3) % period;
+      const cx = Math.floor(eye.x / period) * period + p - 1000;
+      if (cx > s0 && cx < s1) {
+        const cy = ty(cx) - 8, rot = Math.atan2(ty(cx + 20) - ty(cx - 20), 40);
+        c.save(); c.translate(cx, cy); c.rotate(rot);
+        for (const [hx, col] of [[-22, '#E8B48A'], [2, '#6E4426'], [24, '#D9A877']] as const) { ball(c, hx, -40, 7, col); box(c, hx - 7, -36, 14, 8, '#3A5A8A'); }
+        slab(c, -40, -32, 80, 26, '#7C2D12', { edge: 2 }); box(c, -38, -30, 76, 3, '#C8641A');
+        for (const w of [-24, 24]) ball(c, w, -4, 7, '#2A2A2E');
+        box(c, 40, -28, 5, 6, '#FFF4C8'); steppedGlow(c, 52, -25, 18, '#FFF4C8', 0.25, 0.02, 3);
+        c.restore();
+      }
+    }
+  });
+};
+
+/** The cavern's roof up over it all: a fringe of stalactites, their drips; the rock mass over them. */
+const CEIL_D = 0.56;
+const ceilY = (x: number) => smoothTrack(x) - 640;
+const paintCeiling = (g: Ctx, x0: number) => {
+  const r = rampOf('#2A2028');
+  const edge = (x: number) => Math.round((ceilY(x) + Math.sin(x * 0.013) * 14 + (hash(Math.floor(x / 24)) - 0.5) * 10) / 2) * 2;
+  g.fillStyle = r[1]; g.beginPath(); g.moveTo(x0 - 20, edge(x0 - 20) - 520);
+  for (let x = x0 - 20; x <= x0 + TT + 20; x += 8) g.lineTo(x, edge(x));
+  g.lineTo(x0 + TT + 20, edge(x0 + TT + 20) - 520); g.closePath(); g.fill();
+  for (let x = x0 - 20; x < x0 + TT + 20; x += 8) { const y = edge(x); box(g, x, y - 6, 8, 4, r[2]); box(g, x, y - 2, 8, 2, r[0]); if (hash(x * 0.3) > 0.7) box(g, x, y - 14, 8, 2, r[2]); }
+  // (the stalactites: tapering, stepped, lit down their left; a drip at the tip)
+  for (let x = Math.floor(x0 / 22) * 22 - 22; x < x0 + TT + 22; x += 22) {
+    const h = hash(x * 0.071), len = 18 + h * h * 120, w = 8 + h * 18, sx = x + hash(x * 0.13) * 10, y = edge(sx) - 4;
+    if (h < 0.12) continue;
+    stalactite(g, sx, y, w, len, r);
+  }
+};
+const stalactite = (g: Ctx, x: number, y: number, w: number, len: number, r: string[]) => {
+  for (let k = 0; k < len; k += 4) {
+    const u = k / len, ww = Math.max(2, Math.round((w * (1 - u) ** 1.3) / 2) * 2);
+    box(g, x - ww / 2 - 1, y + k, ww + 2, 4, INK);
+    box(g, x - ww / 2, y + k, ww, 4, r[1]);
+    box(g, x - ww / 2, y + k, Math.max(1, ww * 0.3), 4, r[3]);
+    if (ww > 6) box(g, x + ww * 0.15, y + k, 2, 4, r[0]);
+  }
+  box(g, x - 1, y + len, 2, 3, '#4A5468');
+};
+const ceiling = (c: Ctx, eye: Eye) => {
+  const [s0, s1] = spanAt(eye, CEIL_D, 40);
+  inDepth(c, eye, CEIL_D, () => {
+    for (let i = Math.floor(s0 / TT); i * TT < s1; i++) {
+      const x0 = i * TT;
+      let lo = Infinity, hi = -Infinity;
+      for (let x = x0 - 40; x <= x0 + TT + 40; x += 32) { const y = ceilY(x); lo = Math.min(lo, y); hi = Math.max(hi, y); }
+      stamp(c, `cart-ceil-${i}`, x0 - 40, Math.floor(lo - 560), TT + 80, Math.ceil(hi - lo + 720), g => paintCeiling(g, x0));
+    }
+  });
+};
+
+/** Far off, water coming down out of the roof here and there (behind the timbered wall: its top half's all you see). */
+const FALLS_D = 0.6, FAR_FALLS = [3900, 9100, 14300, 19500].map(x => X + x);
+const farFalls = (c: Ctx, eye: Eye, f: number) => {
+  const [s0, s1] = spanAt(eye, FALLS_D, 60);
+  inDepth(c, eye, FALLS_D, () => {
+    for (const fx of FAR_FALLS) {
+      const x = fx;
+      if (x < s0 || x > s1) continue;
+      const top = ceilY(fx) + 6, bot = top + 520, W = ['#4A7A9A', '#3A6A8A', '#6A9ABA', '#2E5A7A'];
+      box(c, x - 26, top - 6, 52, 10, '#2A2028'); box(c, x - 20, top - 2, 40, 4, '#3E3440');
+      for (let y = top; y < bot; y += 8) {
+        const k = Math.floor((y - top - f * 4) / 8);
+        for (let col = 0; col < 3; col++) box(c, x - 15 + col * 10, y, 10, 8, W[((k + col * 2) % 4 + 4) % 4]);
+      }
+      box(c, x - 16, top, 1, bot - top, '#1E3A4E'); box(c, x + 15, top, 1, bot - top, '#1E3A4E');
+      steppedGlow(c, x, top + 140, 70, '#6A9ABA', 0.07, 0.01, 3);
+    }
   });
 };
 
@@ -218,6 +387,13 @@ const timberSets = (c: Ctx, eye: Eye, f: number) => {
           const u0 = k / 6, u1 = (k + 1) / 6, xa = x + (n.x - x) * u0 + 10, xb = x + (n.x - x) * u1 - 2;
           const ya = capY + (ny - capY) * u0, yb = capY + (ny - capY) * u1;
           c.fillStyle = k % 2 ? '#3A2A1E' : '#33251A'; c.beginPath(); c.moveTo(xa, ya - 120); c.lineTo(xb, yb - 120); c.lineTo(xb, yb - 14); c.lineTo(xa, ya - 14); c.closePath(); c.fill();
+          // (each board's lit edge, its grain, a knot, the nails at top and bottom; the gap to the next, dark)
+          c.fillStyle = '#4A3624'; c.fillRect(xa, Math.min(ya, yb) - 120, 2, 106);
+          c.fillStyle = '#0C0806'; c.fillRect(xb, Math.min(ya, yb) - 120, 2, 106);
+          const gx = xa + (xb - xa) * (0.3 + hash(x + k) * 0.4);
+          c.fillStyle = k % 2 ? '#2E2016' : '#2A1E14'; c.fillRect(gx, Math.min(ya, yb) - 110, 1, 70 + hash(k * 3 + x) * 20);
+          if (hash(x * 0.3 + k) > 0.6) { c.fillStyle = '#22180F'; c.fillRect(gx - 2, Math.min(ya, yb) - 70, 5, 3); }
+          for (const ny of [-112, -24]) { c.fillStyle = '#5A5E66'; c.fillRect(xa + (xb - xa) * 0.5 - 1, ya + (yb - ya) * 0.5 + ny, 2, 2); }
         }
       }
       // (knee braces)
@@ -267,8 +443,18 @@ const drawPortal = (c: Ctx, eye: Eye) => {
   inDepth(c, eye, 0.9, () => stamp(c, 'cart-portal', X - 180, GY - 260, 300, 262, g => {
     const px = X - 150;
     box(g, px, GY - 200, 220, 200, '#06060A');
-    for (const [x0, w] of [[px - 22, 22], [px + 220, 22]]) { slab(g, x0, GY - 210, w, 210, TIMBER, { edge: 2 }); }
+    // (the tunnel going back in: its timber sets, each smaller and darker)
+    for (let k = 1; k < 4; k++) {
+      const s = 1 - k * 0.16, w = 220 * s, h = 200 * s, l = px + (220 - w) / 2, tp = GY - h, col = mix(TIMBER, '#06060A', 0.45 + k * 0.14);
+      box(g, l, tp, w, 5, col); box(g, l, tp, 5, h, col); box(g, l + w - 5, tp, 5, h, col);
+    }
+    for (const [x0, w] of [[px - 22, 22], [px + 220, 22]]) {
+      slab(g, x0, GY - 210, w, 210, TIMBER, { edge: 2 });
+      box(g, x0 + 3, GY - 210, 4, 210, lite(TIMBER, 0.2));
+      for (let y = GY - 190; y < GY; y += 52) { box(g, x0, y, w, 1, dark(TIMBER, 0.4)); box(g, x0 + w / 2 - 1, y + 20, 3, 3, '#9CA3AF'); }
+    }
     slab(g, px - 30, GY - 232, 280, 26, TIMBER, { edge: 4 });
+    box(g, px - 26, GY - 228, 272, 2, lite(TIMBER, 0.3));
     sign(g, px + 20, GY - 256, 180, 16, '#5A1A0C', 'LOADING STATION', '#F2C14E', 6, '#7A5224', plank(6, '#F2C14E', undefined, '#2A0A04', 2));
     // (the bit of the station you can see back in there: a lamp, the platform's yellow edge)
     box(g, px + 30, GY - 6, 160, 3, '#8A7020'); box(g, px + 90, GY - 150, 4, 30, '#2A2A2E'); box(g, px + 86, GY - 120, 12, 6, '#FCD34D');
@@ -294,9 +480,13 @@ const bent = (c: Ctx, eye: Eye, x: number, y: number, floor: number | null) => {
     box(c, a[0] - 3, a[1], 6, b[1] - a[1], col);
     box(c, a[0] - 3, a[1], 2, b[1] - a[1], lite(col, 0.2));
   }
-  // (the cross-tie across the bent, under the rails)
+  // (the cross-tie across the bent, under the rails; a girt lower down; the steel plate and bolts at the near leg's top)
   const p = at(eye, x, y + 30, RAIL_FAR - 0.01), q = at(eye, x, y + 30, RAIL_NEAR + 0.02);
-  seg(c, p, q, '#4A3420', 4);
+  seg(c, p, q, INK, 6); seg(c, p, q, '#4A3420', 4); seg(c, [p[0], p[1] - 1], [q[0], q[1] - 1], '#6A4E30', 1);
+  if (bot > y + 170) { const p2 = at(eye, x, y + 160, RAIL_FAR - 0.01), q2 = at(eye, x, y + 160, RAIL_NEAR + 0.02); seg(c, p2, q2, '#3A2818', 3); }
+  const n = at(eye, x, y + 8, RAIL_NEAR + 0.02);
+  box(c, n[0] - 5, n[1], 10, 12, INK); box(c, n[0] - 4, n[1] + 1, 8, 10, '#3A3E44');
+  box(c, n[0] - 3, n[1] + 2, 2, 2, '#9CA3AF'); box(c, n[0] + 1, n[1] + 7, 2, 2, '#9CA3AF');
 };
 
 const drawTrack = (c: Ctx, eye: Eye, L: number, R: number) => {
@@ -615,13 +805,22 @@ const drawRamp = (c: Ctx, eye: Eye, f: number) => {
   const ceil = RAIL_TOP - 160;
   const L = RAMP_X - 700, R = RAMP_X + RAMP_R + 700;
   box(c, L, ceil - 400, R - L, 400, '#140E0A');
-  for (let x = L; x < R; x += 60) { box(c, x, ceil - 30, 18, 40, '#3A2818'); box(c, x, ceil - 30, 4, 40, '#4E3826'); }
-  box(c, L, ceil - 36, R - L, 8, '#2A1C12');
+  // (the floor's boards from under, seen end on in a band; the joists under them, stepped, a nail plate on each; roots
+  // down through the gaps)
+  for (let x = L; x < R; x += 24) box(c, x, ceil - 44, 23, 8, (x / 24) % 2 ? '#22170E' : '#1C130C');
+  for (let x = L; x < R; x += 60) {
+    box(c, x - 1, ceil - 30, 20, 42, INK); box(c, x, ceil - 30, 18, 40, '#3A2818'); box(c, x, ceil - 30, 4, 40, '#4E3826'); box(c, x + 14, ceil - 30, 4, 40, '#2A1C12');
+    box(c, x + 4, ceil - 4, 10, 6, '#3A3E44'); box(c, x + 6, ceil - 2, 2, 2, '#9CA3AF'); box(c, x + 10, ceil - 2, 2, 2, '#9CA3AF');
+    if (hash(x * 0.37) > 0.6) { const rl = 30 + hash(x) * 60; for (let y = 0; y < rl; y += 3) box(c, x + 30 + Math.round(Math.sin(y * 0.2 + x) * 3), ceil - 28 + y, 2, 3, y % 9 ? '#4A3A22' : '#5E4A2C'); }
+  }
+  box(c, L, ceil - 36, R - L, 8, '#2A1C12'); box(c, L, ceil - 36, R - L, 1, '#3E2C1C');
   const day = skyAt(0.6);
   for (let k = 0; k < 6; k++) {
     const cx = RAMP_X - 300 + k * 170 + hash(k) * 60;
     box(c, cx, ceil - 36, 3 + hash(k * 3) * 6, 8, day);
     c.fillStyle = mix(day, '#000000', 0.2).replace('#', '#') ; c.globalAlpha = 0.08; c.beginPath(); c.moveTo(cx, ceil - 28); c.lineTo(cx + 6, ceil - 28); c.lineTo(cx + 40, ceil + 300); c.lineTo(cx - 20, ceil + 300); c.closePath(); c.fill(); c.globalAlpha = 1;
+    // (dust turning in it)
+    for (let q = 0; q < 5; q++) { const u = ((f * 0.004 + hash(k * 5 + q)) % 1); box(c, cx - 10 + u * 50 * 0.6 + Math.sin(f * 0.03 + q) * 4, ceil - 20 + u * 300, 1, 1, 'rgba(255, 244, 220, 0.5)'); }
   }
 };
 
@@ -634,12 +833,16 @@ export const drawCartTrack = (c: Ctx, state: GameState, cart: Cart) => {
   const f = state.frame, eye = eyeOf(state);
   rockWall(c, eye, FAR_D, 'cart-far', 0, 0);
   crystals(c, eye, f);
+  distantTrestle(c, eye, f, 0);
   haze(c, state);
-  distantTrestle(c, eye, f);
+  distantTrestle(c, eye, f, 1);
   haze(c, state);
   pillars(c, eye);
+  ceiling(c, eye);
+  farFalls(c, eye, f);
   haze(c, state);
   rockWall(c, eye, WALL_D, 'cart-wall', 2, 0.12, wallRidge);
+  drawCartDressing(c, eye, state);
   timberSets(c, eye, f);
   c.fillStyle = 'rgba(8, 10, 20, 0.18)'; c.fillRect(state.camera.x - 10, state.camera.y - 10, CANVAS_WIDTH + 20, CANVAS_HEIGHT + 20);
   drawShelf(c, eye, L, R);
@@ -677,9 +880,16 @@ export const drawCartFront = (c: Ctx, state: GameState) => {
       const k = hash(x * 0.29);
       if (k < 0.45) continue;
       const sx = x + k * 300, top = eye.y - CANVAS_HEIGHT * 0.42 / d - 10, len = 40 + k * 70;
-      c.fillStyle = '#07070B'; c.beginPath(); c.moveTo(sx - 40, top); c.lineTo(sx + 40, top); c.lineTo(sx + 8, top + len); c.lineTo(sx, top + len + 30); c.lineTo(sx - 10, top + len * 0.7); c.closePath(); c.fill();
-      c.fillStyle = '#16141C'; c.beginPath(); c.moveTo(sx - 40, top); c.lineTo(sx - 30, top); c.lineTo(sx - 6, top + len * 0.75); c.lineTo(sx - 10, top + len * 0.7); c.closePath(); c.fill();
-      box(c, sx + 1, top + len + 22, 3, 4, '#2A3040');
+      // (a big one and a little one beside it: stepped, near-black, their left edges catching a little of the light)
+      for (const [ox, w, l] of [[0, 80, len], [54 + k * 20, 34, len * 0.45]] as const) {
+        c.fillStyle = '#07070B'; c.beginPath(); c.moveTo(sx + ox - w / 2, top); c.lineTo(sx + ox + w / 2, top); c.lineTo(sx + ox + w * 0.1, top + l); c.lineTo(sx + ox, top + l + w * 0.38); c.lineTo(sx + ox - w * 0.12, top + l * 0.7); c.closePath(); c.fill();
+        c.fillStyle = '#16141C'; c.beginPath(); c.moveTo(sx + ox - w / 2, top); c.lineTo(sx + ox - w * 0.36, top); c.lineTo(sx + ox - w * 0.07, top + l * 0.75); c.lineTo(sx + ox - w * 0.12, top + l * 0.7); c.closePath(); c.fill();
+        c.fillStyle = '#24202C'; c.beginPath(); c.moveTo(sx + ox - w / 2, top); c.lineTo(sx + ox - w * 0.44, top); c.lineTo(sx + ox - w * 0.1, top + l * 0.6); c.lineTo(sx + ox - w * 0.12, top + l * 0.66); c.closePath(); c.fill();
+        for (let q = 1; q < 4; q++) box(c, sx + ox - w * 0.3 + q * w * 0.12, top + 6, 2, l * (0.5 - q * 0.08), '#0F0E14');
+      }
+      // (the drip, falling and forming again)
+      const dy = (state.frame * 2 + k * 97) % 160;
+      box(c, sx - 1, top + len + 22 + (dy > 120 ? (dy - 120) * 3 : 0), 3, 4, dy > 120 ? '#3A4458' : '#2A3040');
     }
   });
 };
@@ -718,6 +928,7 @@ export const cartLighting = (state: GameState, cart: Cart): SceneLight => {
     if (cart.mode === 'ride') lights.push({ x: cart.x + 170, y: cart.y - 40, r: 150, a: 0.55, color: 'rgba(255, 244, 200, 0.08)' });
   }
   lights.push(...trickLights(state, eye, cart.tricks));
+  lights.push(...cartDressingLights(state, eye));
   if (cart.artie.on) lights.push({ x: cart.artie.x, y: artieTrackY(cart.artie.x) - 50, r: 140, a: 0.5 });
   return { dark: 0.55, shade: [4, 6, 14], lights, rim: 0.5 };
 };
