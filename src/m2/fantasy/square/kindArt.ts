@@ -337,7 +337,8 @@ export const drawTroll = (c: Ctx, e: Enemy, f: number) => {
     }
   };
   const spin = pose === 'thrown' ? Math.sin(f * 0.6) * 0.3 : 0;
-  mascot(c, `fa-troll-${seed}-${pose}-${wf}-${md}-${isFlat ? 1 : 0}-${r ? 1 : 0}`, spin, [-90, -160, 200, 166], paint);
+  // (big enough for the club at every swing: over his head on the tell (to ~-200 up), out in front after the slam (to ~+130))
+  mascot(c, `fa-troll2-${seed}-${pose}-${wf}-${md}-${isFlat ? 1 : 0}-${r ? 1 : 0}`, spin, [-120, -225, 270, 236], paint);
 };
 
 export const drawDragon = (c: Ctx, e: Enemy, f: number) => {
