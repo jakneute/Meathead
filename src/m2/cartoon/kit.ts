@@ -34,7 +34,9 @@ export const onScreen = (state: GameState, x0: number, x1: number, m = 60) => x1
 /** A color for the hour (near: barely into the haze). */
 export const hour = (col: string, k = 0.1) => farTint(hourMix(col, mix(col, '#8A4A6A', 0.14), mix(col, '#141832', 0.34)), k);
 /** Scenery's (dimmed toward the air: none of it reads as somewhere to stand). */
-export const dimmed = (col: string) => { const tod = timeOfDay(); return mix(farTint(hourMix(col, mix(col, '#6A3A5A', 0.16), mix(col, '#0E1024', 0.42), tod), 0.4, tod), '#8E86B4', 0.2); };
+// (a missing color (a ramp read past its end somewhere) dims a neutral one instead of throwing: one bad read was
+// taking the whole frame down as he came into the land)
+export const dimmed = (col: string) => { if (typeof col !== 'string' || col[0] !== '#') col = '#9A94B4'; const tod = timeOfDay(); return mix(farTint(hourMix(col, mix(col, '#6A3A5A', 0.16), mix(col, '#0E1024', 0.42), tod), 0.4, tod), '#8E86B4', 0.2); };
 /** After dark (the lamps, the windows). */
 export const lit = () => timeOfDay().lamps > 0.35;
 /** A color's steps: shade, itself, lit. */
