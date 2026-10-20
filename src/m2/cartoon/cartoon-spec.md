@@ -105,7 +105,7 @@ CTX = 900000. Gaps of 3000 between sections (room to grow).
 | 3 | The wacky White House, part one | `whitehouse1` | CTX+30000 .. CTX+42000 | 20-29 | Redrawn as Socks; Chelsea; Perot, Falwell |
 | 4 | The wacky White House, part two | `whitehouse2` | CTX+45000 .. CTX+57000 | 30-39 | Limbaugh, Dole, Gingrich; the Clintons; the projector |
 | 5 | The big-kid rides | `bigkid` | CTX+60000 .. CTX+72000 | 40-49 | Trackless rides that ram; Stupid Dad posters |
-| 6 | The cat-and-mouse knockoff | `itchy` | CTX+75000 .. CTX+85000 | 50-59 | Stupid Dad's extended universe; hammers |
+| 6 | PUNCHY & KICKY (the cat-and-mouse knockoff) | `itchy` | CTX+75000 .. CTX+85000 | 50-59 | Stupid Dad's extended universe; Looney Tunes violence |
 | 7 | The amphitheater | `amphi` | CTX+88000 .. CTX+92000 | 60-69 | The guard's nuts; STUPID DAD (placeholder) |
 
 ### Section 1 in detail (Sillyville Square, built: kiddie/)
@@ -381,6 +381,76 @@ Dead, the costumes give (headset, rat head, cowl, paper hat, Gloppy's top; the c
 FOR PUSSIES." and the like, by pants), said now and then as a ride lines up on him (only fresh lines); he's never heard
 of STUPID DAD (the posters, the graffiti, the store, the doll, the memorial, the billboard).
 
+### Section 6 in detail (PUNCHY & KICKY, built: itchy/)
+
+The show inside STUPID DAD (the cartoon the Boy watches), a clear Itchy & Scratchy knockoff: PUNCHY the cat (ginger,
+a torn ear with a sticking plaster, stitches, a mad grin, a mallet) and KICKY the mouse (grey-tan, huge pink ears, buck
+teeth, red high-tops, a meat cleaver), smashing each other to death with hammers. The area's look is the show's: blood
+red, mustard, black, bone; cartoon gore for decor (splats, drips off every parapet, chalk outlines of a cat and a mouse on
+the path, skull lamps on bone posts); its signs a cream board with a dripping red rim on bandaged posts, a cleaver stuck
+in the top, a mallet leaning on it (art.ts pkSign), the show's lettering blood red and dripping (pkLetters). The user's
+Looney Tunes violence is the hazards (hazards.ts, drawn in hazardArt.ts), each taught alone on the flat, then in combos,
+then with the land's towers; every one telegraphed, every one hurting the cast too, every one killing him for real (its
+own hurt lines and death screen; the falling weights flatten him, the dynamite burns him black). x from the section's
+start (itchy/layout.ts):
+
+- 0 THE GATE (cp 50): in under the big-kid zone's arch; the bone arch (PUNCHY & KICKY, THE CAT. THE MOUSE. THE MALLETS.,
+  the cat's and the mouse's heads at its ends); a Punchy alone. "FINALLY, A CARTOON THAT GETS IT."
+- 650 ANVIL ALLEY: the GENERIC-CO drop gantry over the path. ANVILS on a cycle out of its trapdoors: the hatch rattles
+  and a shadow grows on the path (the tell), the anvil drops with a falling whistle, sits on the path (a step, lit) and
+  is winched back up. One alone, then three in a wave rolling left to right. A Kicky.
+- 1700 THE LAWN (KEEP OFF THE GRASS, BY ORDER OF PUNCHY): RAKES lying tines up (the rake is the tell): tread on the tines
+  and the handle comes up into the face. A Punchy who walks into one himself.
+- 2300 THE MERCH STAND (cp 51): breathing room. PUNCHY & KICKY STUFF (plush heads, SAFETY CLEAVER AGES 3 AND UP,
+  SPLATTER TEES, FOAM MALLETS); the JUMBOTRON playing the cartoon on a loop (the mouse flattens the cat's head with a
+  mallet; the cat swings, the mouse ducks, the cat's foot; an anvil on the cat; the cat's dynamite, BOOM, a skeleton; the
+  dripping title card). A stagehand laying PORTABLE HOLES (taught).
+- 3050 PUNCHY & KICKY'S KILL-O-RAMA: the attraction's front (a red-and-black cartoon castle, the marquee: SHOWS EVERY
+  30 SECONDS! NOW 40% MORE KILLING!; its doors dark and chained: nothing inside). GIANT HAMMERS: the giant animatronics on
+  their plinths behind the path, the mallet hauled back over the shoulder with a ratchet's creak and the robot's eyes lit
+  red (the tell), then down across the path; the head lies there a moment (a step), then goes back up. A Punchy alone,
+  then the pair either side of the doors (Punchy and Kicky) in turn. The host past it.
+- 4250 THE GENERIC-CO DOCK (cp 52; the warehouse: WE MAKE EVERYTHING. BADLY.): a CRATE THAT PUNCHES (it rattles, then a
+  boxing glove on a spring at chest height: duck it or jump it); BEAR TRAPS open on the floor (snap, a hold, sprung for
+  good: the run's); THE SAFE on the dock crane (the rope frays as he comes: strands snapping, its shadow; keep going
+  and it misses, stop and it doesn't; down for good, the step up to the pallet rack's pickup); the dynamite mouse up on a
+  crate stack; another punching crate.
+- 5450 CANNON ROW (cp 53; PUNCHY'S BIG TOP behind, its HUMAN CANNONBALL poster): the CIRCUS CANNON at the far end,
+  facing back along the row: the barrel dips (a low ball: jump it) or rises (a high one: duck it) and the touch hole
+  fizzes (the tell), BOOM; its carriage is the step over it. THE PIANO on its hoist halfway (it drops once as he comes;
+  its wreck stays: cover from the low balls). A Punchy, a dynamite mouse.
+- 6500 THE FUSE (cp 54; KICKY'S BLAST RANGE, a scorched wall): a giant animatronic Kicky strikes a giant match and lights
+  a long fuse along the path; the spark crawls to a TNT pile (the tell's the whole way); it goes up; a new pile rises out
+  of the trapdoor. A stagehand past it.
+- 7150 THE PAINTED CANYON (cp 55; AS SEEN IN 'MOUSE MESA': mesas painted on plywood flats, braces showing): three towers
+  across a bottomless gorge (the big-kid zone's first glop pit's geometry: proven both ways); THE CANNON ON ITS LIFT behind
+  the far rim rises to his height, fizzes and fires across (a low ball or a high one); the host on the far rim calling
+  anvils. In, and he's back where he last stood safe, hurt (a little puff of dust way down); the cast go down for good.
+- 8650 THE SET (cp 56; STAGE 9, PUNCHY & KICKY LIVE!, TAPING TODAY: drapes, the lighting grid, the APPLAUSE sign, the
+  cat and mouse's house flat): a FLOOR OF PORTABLE HOLES (in, and he drops out of one up in the air over where he last
+  stood safe, on his head); two towers across it (the big-kid zone's own spacing); a fuse along the fly rail and down a
+  line to the far tower's foot (a GENERIC-CO igniter strikes its own match): it goes up and kicks the tower. A stagehand.
+- 9650 THE WAY ON (cp 57): a mixed crowd; a rake; STUPID DAD's live-show posters; the STUPID DAD LIVE! gate (THE
+  AMPHITHEATER >): the right end, on to `amphi`.
+
+**The cast** (itchy/kinds.ts, kindArt.ts; seeded people, men and women, every look; dead, the costume heads come off:
+the sweaty performer underneath): PUNCHY (`m2:ct_punchy`: the mallet hauled up overhead (the tell) and down in front;
+off a way, a crouch with it cocked back, a leap and the mallet into the floor where he lands: stuck, tugging (his
+window)), KICKY (`m2:ct_kicky`: the cleaver held out in front, POINTY; drawn back with a glint (the tell) and flung
+spinning (it sticks in the floor), then another out of his pouch; close, up on one foot, knee up (the tell), the kick),
+the DYNAMITE KICKY (`m2:ct_kickyboom`: a match struck on his teeth, a stick lit (the tell: the fuse fizzing in his
+hand), lobbed; it lands still burning down and goes up, the cast too; fingers in his ears after; the kick), THE HOST
+(`m2:ct_host`: the live show's ringmaster, tailcoat spattered with stage blood, top hat, bullhorn, cane; the bullhorn up,
+"AND NOW... THE ANVIL!" (the tell), and an anvil's shadow follows him, stops and one comes out of the sky (it stays where
+it lands: the run's, the last six); close, the cane), the STAGEHAND (`m2:ct_stagehand`: all black, a headset, gaffer tape;
+a folded portable hole held up and wiggled (the tell), flung down short of him where it spreads out flat (a while, then
+it peels back up); close, a sandbag swung). Voices `m2.cartoon.punchy(f)`, `.kicky(f)` (mask: costume heads; the
+dynamite one too), `.host(f)`, `.stagehand(f)`.
+
+**His lines** (itchy/lines.ts): he's never seen the show and he loves it ("FINALLY, A CARTOON THAT GETS IT." the user's,
+first in the arrival pool); a gag at each set piece (once a visit); the safe and the piano when they come down; a hurt
+pool and death screens for every hazard and every attack.
+
 ## Standing rules (all apply; check every one against new work)
 
 American spelling; signs readable, held up, themed lettering (toonSign: a lumpy cloud board on a curly candy-striped
@@ -470,3 +540,22 @@ markBossFight every frame of a boss or sub-boss fight. Voice every new line (`np
   (the default: by the far gate). The way on is still the crude right-end exit (job 6 swaps it).
 - (job 5) Optional barks, his sneers and the doll only ever say a fresh line (pickFreshLine: nothing fresh, nothing
   said), so nothing repeats within 45 s however often they fire.
+- (job 6) PUNCHY & KICKY is built (itchy/; see Section 6 above). The park's machinery (the gantry's anvils, the
+  KILL-O-RAMA's hammers, the fuses, the cannons) runs as a show on a loop while he's about it (one clock per set piece,
+  so the pairs keep their turns); the props are one-shots or the cast's. Hazard zones keep the cast out of the active
+  ones (falling, swinging, burning, flying), but not out of the rakes and the bear traps: they walk into those
+  themselves (the cartoon gag), and fall in the stagehands' holes.
+- (job 6) Checkpoints restore the world as the run left it (`ct-itchy-fired` in state.stageMemo: the safe and the piano
+  down for good, each sprung bear trap, the host's anvils where they came down, the last six). The gantry's anvils and
+  the hammers' heads come and go with their cycle. Every block a hazard puts down (an anvil, a hammer's head, a wreck)
+  waits till he's clear of it: he's never shut in one.
+- (job 6) The canyon follows the land's pit rule (back where he last stood safe, hurt; the cast go down for good); the
+  set's floor of portable holes is the same rule told the cartoon way: he drops out of a hole up in the air over where
+  he last stood safe and lands on his head (hurt on landing); the cast drop out of one over where they were put.
+- (job 6) Deaths: the anvils, the hammers, the safe and the piano flatten him (the engine's `flattened`); the TNT and the
+  thrown dynamite burn him black (`burnt`); the rest, he comes apart. Every hazard and attack its own hurt pool and death
+  screens (lines.ts HURT).
+- (job 6) Revisit (`ct-itchy-done`, set going out the far gate): the KILL-O-RAMA's marquee says TODAY'S SHOW: CANCELED,
+  CLOSED FOR CLEANUP hangs on its chains, the robot Kicky's head hangs off by its wires, sparking (it still swings); his
+  arrival line is the revisit's. Back from the amphitheater he's at DOORS.itchy.end (the default: in the way on). The way
+  on is the crude right-end exit under the STUPID DAD LIVE! gate (job 7 can swap it).

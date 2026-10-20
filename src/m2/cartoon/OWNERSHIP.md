@@ -12,7 +12,7 @@ the fill-ins, the rules, the section plan). Each section's index.ts header says 
 | 3 (done) | `whitehouse1/` (the transformation, Chelsea, the pundits, the cat's death and the puffs live there); the engine's cat form (`m1/game/render/player/catBody.ts`) and cartoon kills (`m1/game/core/cartoonKills.ts`) | whitehouse1 (20-29: 20-26 used) |
 | 4 (done) | `whitehouse2/` (the West Wing, Limbaugh/Dole/Newt, the finale: the Clintons' TV, the screen's collapse, the actress; the real stage and the bodies for both halves: realStage.ts, bodies.ts); part one's real-stage mode (whitehouse1/index.ts) and Chelsea's pluggable world (whitehouse1/chelsea.ts) | whitehouse2 (30-39: 30-37 used; 37 the real stage, manual) |
 | 5 (done) | `bigkid/` (the trackless rides, the glop pits, the zone's cast, STUPID DAD's posters/store/memorial/billboard) | bigkid (40-49: 40-46 used) |
-| 6 | `itchy/` | itchy (50-59) |
+| 6 (done) | `itchy/` (PUNCHY & KICKY: the Looney Tunes hazards, the costumed cast, the show's theming) | itchy (50-59: 50-57 used) |
 | 7 | `amphi/` (and walkAway/stupidDad.ts made real) | amphi (60-69) |
 
 Inside your folders, anything goes: split into layout.ts, art.ts, kinds.ts and so on, as `kiddie/` does. Number your
@@ -78,7 +78,10 @@ move your DOORS entries to match; keep the way back working (revisits), or give 
   STUPID DAD: THE EXTENDED UNIVERSE) to `DOORS.itchy.start` (`ct-bigkid-done`: been through; a later visit's the
   revisit). Back from the knockoff area: `DOORS.bigkid.end` (the default, by that arch). Back out its left end:
   `DOORS.whitehouse2.end` (the stage door). Job 6: keep the right end's exit (or move it with your own way in).
-- **The knockoff area -> the amphitheater** (stubs): the right end.
+- **The knockoff area -> the amphitheater** (knockoff side built, itchy/): walk off its right end (under the STUPID DAD
+  LIVE! gate, THE AMPHITHEATER >) to `DOORS.amphi.start` (`ct-itchy-done`: been through; a later visit's the revisit).
+  Back from the amphitheater: `DOORS.itchy.end` (the default: in the way on, by the gate). Back out its left end:
+  `DOORS.bigkid.end`. Job 7: keep the right end's exit (or move it with your own way in).
 - **The amphitheater -> the hub** (stand-in, amphi/): walk past the guard: VICTORY, the walk-away
   (walkAway/stupidDad.ts, the MALLET), markLandCleared('cartoon'), the hub.
 
@@ -112,7 +115,16 @@ move your DOORS entries to match; keep the way back working (revisits), or give 
 - tools/voices/cast.json: m2.cartoon.rideop(f), skate(f) and gloppy(f) (mask: costume heads), flea(f), churro(f),
   daddoll (radio: the talking Stupid Dad doll, a pull-string recording; the boss's own voice is still to come).
 
+## Job 6's appends outside its folder
+
+- None in code (itchy/ only; it reads bigkid/art.ts's `poster` and `dadArt` for STUPID DAD's posters and the gate).
+- tools/voices/cast.json: m2.cartoon.punchy(f) and kicky(f) (mask: costume heads), host(f), stagehand(f).
+
 ## Things that outlive a death
+
+(PUNCHY & KICKY's memos: `ct-itchy-fired` (what the run's set off for good: the safe, the piano, each sprung bear trap,
+the host's anvils where they came down), `ct-itchy-done` (been out its far gate: the revisit); its gags are once a visit
+(itchy/state.ts saidOnce, keyed by `landVisit()`).)
 
 (The big-kid zone's memo: `ct-bigkid-done` (been out its far gate: the couch parked dead, the revisit's lines); its
 gags are once a visit (bigkid/state.ts saidOnce, keyed by `landVisit()`).)
