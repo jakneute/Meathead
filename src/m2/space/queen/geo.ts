@@ -42,13 +42,16 @@ export const BASE_R = STAIRS_A;
 export const stairsY = (x: number) => (x <= STAIRS_A ? BF : x >= STAIRS_B ? GY : BF + ((x - STAIRS_A) / (STAIRS_B - STAIRS_A)) * (GY - BF));
 
 /** The disco: its door at the top of the stairs (he kicks it in: the chase is over), the dance hall (extra wide: the
- *  camera follows him in it); the big refill and the boss's checkpoint just inside the door, well clear of where she
- *  lands. */
+ *  camera follows him in it). (REFILL_X: the first-aid cabinet's alcove just inside the door, painted; the refill itself
+ *  and the boss's checkpoint are outside the door now: DOOR_REFILL_X, DOOR_CP_X.) */
 export const DOOR_X = STAIRS_B + 160;
 export const DISCO_L = DOOR_X + 40, DISCO_R = DISCO_L + 1880;
 export const REFILL_X = DISCO_L + 70;
-/** Walking this far into the hall (back for another go), it's on. */
-export const DISCO_TRIGGER = DISCO_L + 260;
+/** The boss-door refill (big health, big ammo) and the boss's checkpoint: OUTSIDE the door, on the landing at the top
+ *  of the stairs (the user's standing rule: dead in a boss fight, he's back outside its door and walks in himself). */
+export const DOOR_REFILL_X = DOOR_X - 80, DOOR_CP_X = DOOR_X - 135;
+/** Walking this far into the hall (in through the door, himself: the first time and back for another go), it's on. */
+export const DISCO_TRIGGER = DISCO_L + 130;
 /** Her two sides in the hall (her feet's middle): the left well in from the door, the right at the far end. */
 export const DISCO_SIDES = { l: DISCO_L + 620, r: DISCO_R - 220 };
 /** Where she first stands (the right); the fire extinguisher on the wall; the DJ booth (the operators: on screen with the cutscene). */

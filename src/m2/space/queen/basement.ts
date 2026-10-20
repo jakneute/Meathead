@@ -52,7 +52,7 @@ import { hands, meatheadSays, box } from '../section';
 import { ink, limb } from '../../../m1/game/render/npc/kit';
 import { stamp } from '../../../m1/game/render/stamp';
 import { GY } from '../geometry';
-import { BASE_L, BASE_R, DOOR_X, DISCO_L, BF, CATWALK_Y, CEIL_B, STAIRS_A, STAIRS_B, LAND_X, stairsY } from './geo';
+import { BASE_L, BASE_R, DOOR_X, BF, CATWALK_Y, CEIL_B, STAIRS_A, STAIRS_B, LAND_X, stairsY } from './geo';
 import { drawQueen } from './art';
 import { bandedGradient } from '../../../m1/game/render/pixelArt';
 import { inBossFight } from '../../bossQuiet';
@@ -71,6 +71,8 @@ const rnd = (a: number, b: number) => a + Math.random() * (b - a);
 const B = BASE_L;
 /** The checkpoint half way (the graveyard). */
 export const GRAVEYARD_CP = 72;
+/** The boss's checkpoint (outside the disco's door, the refill by it): his once he's kicked the door in. */
+export const DISCO_CP = 73;
 /** How big she's drawn down here (she has to fit under the catwalks). */
 const QS = 0.85;
 
@@ -236,8 +238,11 @@ export const buildHunter = (state: GameState, h: Hunter) => {
   state.blocks.push(h.block);
 };
 export const doorIn = (h: Hunter) => h.door === 'in';
-/** In already (a fresh start inside the disco: the checkpoint's set after the build). */
+/** In already (back at the boss's checkpoint outside the disco's door, or a fresh start there: the checkpoint's set
+ *  after the build): the door down, and she's done with (the chase was over at the kick: nothing of hers on the
+ *  landing or the stairs). */
 export const forceDoorIn = (state: GameState, h: Hunter) => {
+  to(h, 'away'); h.next = 1e9; h.finale = true; h.fg = null; h.rattle = null; h.fake = null;
   if (h.door === 'in') return;
   h.door = 'in'; state.stageMemo[DOOR_MEMO] = '1';
   if (h.block) { state.blocks = state.blocks.filter(b => b !== h.block); h.block = null; }
@@ -769,7 +774,8 @@ export const hunterZoom = (state: GameState, h: Hunter) => {
 // ---------------------------------------------------------------------------------------------------------------
 // The disco's door, at the top of the stairs: up to it, the boot (the chase is over: she's held off for it)
 
-export const atDoor = (state: GameState, h: Hunter) => h.door === 'shut' && pmid(state) > DOOR_X - 150 && state.player.isGrounded && state.player.health > 0 && state.deathTimer <= 0 && h.mode !== 'kill';
+// (right up at it, walked there himself: the user's "the player has to physically walk up to the door")
+export const atDoor = (state: GameState, h: Hunter) => h.door === 'shut' && pmid(state) > DOOR_X - 100 && state.player.isGrounded && state.player.health > 0 && state.deathTimer <= 0 && h.mode !== 'kill';
 export const startKick = (state: GameState, h: Hunter) => {
   h.door = 'kicking'; h.doorT = 0;
   const p = state.player;
@@ -789,6 +795,8 @@ const kick = (ctx: FrameContext, h: Hunter): Controls => {
   if (t === 18) {
     if (h.block) { state.blocks = state.blocks.filter(b => b !== h.block); h.block = null; }
     state.stageMemo[DOOR_MEMO] = '1';
+    // (the boss's checkpoint: his now, outside the door, the refill by it)
+    state.checkpoint = Math.max(state.checkpoint, DISCO_CP);
     playSound('crash', 1, -4); playSound('boom', 0.6, 2); shakeScreen(state, 14, 7);
     for (let i = 0; i < 26; i++) state.particles.push({ pos: { x: DOOR_X - 10 + Math.random() * 20, y: GY - 20 - Math.random() * 150 }, vel: { x: 2 + Math.random() * 6, y: -2 - Math.random() * 4 }, life: 50, color: ['#C026D3', '#F472B6', '#FDE047', '#A1A1AA'][i % 4], size: 3 + Math.random() * 5, grav: 0.35 });
     // (and she's done with: the chase is over)
@@ -796,7 +804,7 @@ const kick = (ctx: FrameContext, h: Hunter): Controls => {
   }
   // (the door down flat: a slam and a puff of dust off the floor)
   if (t === 18 + DOOR_FALL) { playSound('slam', 1, -10); playSound('thud', 0.8, -8); shakeScreen(state, 8, 4); for (let i = 0; i < 16; i++) state.particles.push({ pos: { x: DOOR_X + 60 + Math.random() * 200, y: GY - 4 }, vel: { x: (Math.random() - 0.3) * 4, y: -1 - Math.random() * 2 }, life: 40, color: 'rgba(214, 211, 209, 0.6)', size: 4 + Math.random() * 6 }); }
-  if (t > 30 && pmid(state) < DISCO_L + 130) return { ...hands(), right: true } as Controls;
+  // (down: his again, to walk in himself (the user's: nobody walks him into a boss's room))
   if (t > 18 + DOOR_FALL) { h.door = 'in'; p.inCutscene = false; p.kickPose = 0; }
   return hands();
 };

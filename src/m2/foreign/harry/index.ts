@@ -47,6 +47,9 @@ interface Harry {
 const harryOf = (state: GameState) => foreignState<Harry>(state, 'harry', () => ({ fight: 'wait', wonAt: 0, f: null, walls: [], victory: null, walk: null, gate: 'up', gateT: 0, gateBlock: null }));
 /** The kick: when his boot lands (the gate starts over), and when it's down flat. */
 const KICK_HIT = 10, KICK_DONE = 34;
+/** The gate's been kicked in this run (state.stageMemo: kept across his deaths, the checkpoint world state): back at
+ *  the checkpoint it's lying down flat, and he walks back in through it. */
+const GATE_MEMO = 'foreign-harry-gate';
 
 const leave = (state: GameState, weakness: boolean) => {
   const s = harryOf(state);
@@ -66,9 +69,10 @@ export const harry: ForeignSection = {
     // (the big health and ammo, on the way in: before it starts, and on every retry)
     state.pickups.push({ id: 'hh-health', pos: { x: REFILL_X - 30, y: GY - 24 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type: 'large_health', life: 1e9 });
     state.pickups.push({ id: 'hh-ammo', pos: { x: REFILL_X + 10, y: GY - 24 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type: 'large_ammo', life: 1e9 });
-    // (the gate: shut in its doorway, a wall, till he kicks it in; once the land's done, it's down)
+    // (the gate: shut in its doorway, a wall, till he kicks it in; kicked in already this run (back at the checkpoint
+    // after dying), or the land done, it's down)
     const s = harryOf(state);
-    s.gate = isLandCleared('foreign') ? 'down' : 'up'; s.gateT = 0;
+    s.gate = isLandCleared('foreign') || state.stageMemo[GATE_MEMO] === '1' ? 'down' : 'up'; s.gateT = 0;
     s.gateBlock = s.gate === 'up' ? { x: ARENA_L - WALL_W, y: GY - 150, w: WALL_W, h: 150, type: 'wall', hidden: true, tag: 'harry-gatepanel' } as Block : null;
     if (s.gateBlock) state.blocks.push(s.gateBlock);
   },
@@ -85,6 +89,7 @@ export const harry: ForeignSection = {
         // (the kick's pose runs out on its own here: nothing else counts it down in Meathead 2)
         if ((p.kickPose ?? 0) > 0) p.kickPose!--;
         if (s.gateT === KICK_HIT) {
+          state.stageMemo[GATE_MEMO] = '1';
           if (s.gateBlock) { state.blocks = state.blocks.filter(b => b !== s.gateBlock); s.gateBlock = null; }
           playSound('clang', 1, -6); playSound('crash', 0.8, -2); shakeScreen(state, 10, 5);
           for (let i = 0; i < 12; i++) state.particles.push({ pos: { x: ARENA_L, y: GY - 20 - Math.random() * 100 }, vel: { x: 1 + Math.random() * 4, y: -1 - Math.random() * 3 }, life: 24, color: i % 2 ? '#A8A29E' : '#71717A', size: 2 + Math.random() * 3, grav: 0.3 });

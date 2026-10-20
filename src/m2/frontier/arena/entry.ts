@@ -3,10 +3,13 @@
 // tree and it falls on his head, pushing the buzzsaw in his forehead further down splitting his face up to his nose in
 // half now. then the fight begins. be sure to show a closeup of this happening.")
 //
-// Straight on from the fake-out's "NOW! ABOUT THAT FARE!", the same cutscene (no HUD, no controls; SKIP >> for all of
-// it lands on the fight's start with the tree down and him split): Tucker runs off right past the oak to the axe tree
+// Straight on from the fake-out's "NOW! ABOUT THAT FARE!", the same cutscene (no HUD, no controls; SKIP >> for it lands
+// on the walk up to the tree, him taunting past it): Tucker runs off right past the oak to the axe tree
 // (a tall pine, a lumberjack's axe stuck in its near side) and turns round just past it: MAN TO MAN (TUCKER_TAUNT).
-// Meathead walks up to the tree (MH_AXE), yanks the axe out, hoists it over his shoulder and with ONE swing (his own pose:
+// Then it's Meathead's to walk (the user's standing rule: he walks up to every boss's door himself; nobody walks him
+// there): the cutscene lets go (HUD back), Tucker stamps past the tree waiting on him, the trunk in the way (no getting
+// round it). Up at it, the scene's back on (SKIP >> for this half lands on the fight's start): his line (MH_AXE), he
+// yanks the axe out, hoists it over his shoulder and with ONE swing (his own pose:
 // Player.axeSwing) goes clean through the trunk. It creaks over, faster and faster, onto Tucker's head, still gloating.
 // THE CLOSE-UP (the mutilation rule: animated, graphic, full detail; this file's 'split' painter on tucker.ts's close-up,
 // the head itself drawn split as it goes): the trunk coming down on him, the slam onto the saw's back, the saw driven
@@ -22,6 +25,7 @@
 import type { FrameContext } from '../../../m1/game/core/context';
 import type { GameState } from '../../../m1/game/core/state';
 import type { Controls } from '../../../m1/game/platform/input';
+import type { Block } from '../../../m1/types';
 import { CANVAS_WIDTH } from '../../../m1/constants';
 import { playSound } from '../../../m1/game/platform/audio';
 import { silenceAll } from '../../../m1/game/platform/speech';
@@ -75,9 +79,19 @@ export const startEntry = (state: GameState) => {
 export const updateEntry = (ctx: FrameContext, onUp: (state: GameState) => void): Controls | null => {
   const { state } = ctx, s = arenaOf(state), p = state.player;
   if (s.phase !== 'entry') return null;
-  s.t++; s.all++;
+  s.t++;
+  // (the walk up to the tree: his, the scene let go of him)
+  if (s.step === 'walk') return walkUp(state, s);
+  s.all++;
   p.inCutscene = true;
-  if (s.all > SKIP_AFTER) { offerSkip(); if (takeSkip()) { finishEntry(state, true); onUp(state); return hands(); } }
+  // (SKIP: before the walk, onto the walk (him taunting past the tree); after it, onto the fight's start)
+  if (s.all > SKIP_AFTER) {
+    offerSkip();
+    if (takeSkip()) {
+      if (s.step === 'run' || s.step === 'taunt') { silenceAll(); skipToWalk(state); return hands(); }
+      finishEntry(state, true); onUp(state); return hands();
+    }
+  }
   tickTucker(s);
   tickTree(state, s);
   if (s.squash > 0 && !(s.step === 'close' && s.t < 40)) s.squash = Math.max(0, s.squash - 0.03);
@@ -96,13 +110,6 @@ export const updateEntry = (ctx: FrameContext, onUp: (state: GameState) => void)
       p.vel.x = 0;
       camTo(state, s, Math.max((mid + s.tx) / 2, s.tx - 330), 0.1);
       if (s.t === 8) { s.pose = 'point'; tuckerSays(state, s, TUCKER_TAUNT, () => next(s, 'walk')); }
-      break;
-    case 'walk':
-      // (Meathead walks up to the tree; Tucker stamping, waiting on him)
-      s.pose = 'furious';
-      camTo(state, s, (mid + s.tx) / 2, 0.1);
-      if (mid < MH_CHOP_X - 3) return { ...hands(), right: true } as Controls;
-      p.vel.x = 0; p.facing = 1; teleport(state, MH_CHOP_X, GY); next(s, 'mh');
       break;
     case 'mh':
       p.vel.x = 0;
@@ -168,6 +175,41 @@ export const updateEntry = (ctx: FrameContext, onUp: (state: GameState) => void)
   return hands();
 };
 
+/** The axe tree's trunk in the way while he walks up to it (no getting round it to Tucker). */
+const TREE_WALL = 'tucker-axetree';
+const layTreeWall = (state: GameState) => {
+  if (state.blocks.some(b => b.tag === TREE_WALL)) return;
+  state.blocks.push({ x: AXE_TREE_X - AXE_TR, y: -4000, w: AXE_TR * 2, h: 4000 + GY, type: 'wall', hidden: true, tag: TREE_WALL } as Block);
+};
+const dropTreeWall = (state: GameState) => { state.blocks = state.blocks.filter(b => b.tag !== TREE_WALL); };
+
+/** The walk up to the tree (the user's: he walks up to it himself): his controls, the HUD up, Tucker past it stamping
+ *  and waiting on him. At it (on his feet), the scene's back on: his line, the swing. Null while he's walking. */
+const walkUp = (state: GameState, s: Arena): Controls | null => {
+  const p = state.player;
+  tickTucker(s);
+  s.pose = 'furious'; s.face = 'manic'; s.tFacing = -1;
+  if (s.t === 1) { state.cameraOverride = null; layTreeWall(state); }
+  p.inCutscene = false;
+  if (pmid(state) >= MH_CHOP_X - 3 && p.isGrounded && p.health > 0 && state.deathTimer <= 0) {
+    dropTreeWall(state);
+    s.all = 0; s.camX = state.camera.x;
+    p.inCutscene = true; p.vel.x = 0; p.isDucking = false; p.facing = 1; teleport(state, MH_CHOP_X, GY);
+    camTo(state, s, (MH_CHOP_X + s.tx) / 2, 0.1);
+    next(s, 'mh');
+    return hands();
+  }
+  return null;
+};
+
+/** SKIP before the walk: Tucker round past the tree taunting, the walk up to it his. */
+export const skipToWalk = (state: GameState) => {
+  const s = arenaOf(state);
+  startEntry(state);
+  s.tx = TAUNT_X; s.tFacing = -1; s.pose = 'furious'; s.face = 'manic'; s.busy = false; s.said = null; s.talking = false;
+  next(s, 'walk');
+};
+
 /** ONE swing: clean through. The tree starts over. */
 const chop = (state: GameState, s: Arena) => {
   next(s, 'fall');
@@ -214,6 +256,7 @@ const land = (state: GameState, s: Arena) => {
 export const finishEntry = (state: GameState, skipped: boolean) => {
   const s = arenaOf(state), p = state.player;
   if (skipped) silenceAll();
+  dropTreeWall(state);
   setBranchMemos(state);
   state.stageMemo[UP_MEMO] = '1'; state.stageMemo[SPLIT_MEMO] = '1'; markIntroSeen();
   setFelled(state, s);
@@ -366,5 +409,5 @@ export const drawEntryHud = (c: Ctx, state: GameState) => {
     c.restore();
     if (s.said) saidOver(c, s.said, cx, y + h + 34, '#FDE68A', 340);
   }
-  if (s.all > SKIP_AFTER) drawSkipPrompt(c, CANVAS_WIDTH);
+  if (s.all > SKIP_AFTER && s.step !== 'walk') drawSkipPrompt(c, CANVAS_WIDTH);
 };

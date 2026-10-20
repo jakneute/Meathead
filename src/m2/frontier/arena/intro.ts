@@ -27,7 +27,7 @@ import { hands, saidOver } from '../section';
 import { box, mix, hash, type Ctx } from '../kit';
 import { drawTuckerCloseup } from '../tucker';
 import { GY, TREE_X, HANG_X, HANG_FEET, UP_X, ROOT, FIGHT_X } from './layout';
-import { startEntry, finishEntry } from './entry';
+import { startEntry, skipToWalk } from './entry';
 import { arenaOf, next, markIntroSeen, UP_MEMO, type Arena } from './state';
 import { tuckerSays, tuckerBarks, meatheadLine, camSnap, tickTucker, WOUNDS_ALL } from './cast';
 import { leafBurst } from './art';
@@ -63,8 +63,9 @@ export const updateFakeout = (ctx: FrameContext, onUp: (state: GameState) => voi
   if (s.phase !== 'fakeout') return null;
   s.t++; s.all++;
   p.inCutscene = true;
-  // (SKIP: all of it, the arena entry after it too: straight to the fight with the tree down and him split)
-  if (s.all > SKIP_AFTER) { offerSkip(); if (takeSkip()) { finishFakeout(state, true); finishEntry(state, true); onUp(state); return hands(); } }
+  // (SKIP: all of it, and the arena entry's run-off and taunt after it: onto the walk up to the axe tree, his to walk
+  // (the user's: he walks up to the boss's door himself))
+  if (s.all > SKIP_AFTER) { offerSkip(); if (takeSkip()) { finishFakeout(state, true); skipToWalk(state); return hands(); } }
   tickTucker(s);
   switch (s.step) {
     case 'ask':

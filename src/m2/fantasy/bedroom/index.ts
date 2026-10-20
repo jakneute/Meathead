@@ -37,7 +37,7 @@ import { drawTodSky } from '../../timeOfDay';
 import { x0, GY, DOOR_X, KICK_AT, REFILL_X, ARENA_L, ARENA_R, CEIL_Y, CAM_Y, LEDGES, CP_HALL, CP_FIGHT, MAX_STAGE, R } from './layout';
 import { drawHall, drawChamber, drawEndWall } from './room';
 import {
-  type Fight, startFight, updateFight, fightOver, endFight, killedByWeakness, introSeen, drawFightBack, drawFightFront, drawFightHud,
+  type Fight, startFight, updateFight, fightOver, endFight, killedByWeakness, introSeen, markIntroSeen, drawFightBack, drawFightFront, drawFightHud,
   killCamTick, killCamZoom, rangeZoom, roomBits, keepErect, drawRemains,
 } from './fight';
 import { MH_HALL } from './lines';
@@ -80,7 +80,9 @@ export const bedroom: FantasySection = {
   id: 'bedroom', x0, x1: ARENA_R + 400,
   checkpoints: [
     { name: "OUTSIDE PIPER'S DOOR", cp: CP_HALL, x: DOORS.bedroom.start.x, y: GY },
-    { name: 'PIPER THE PIXIE', cp: CP_FIGHT, x: ARENA_L + 160, y: GY, clear: [400, 3000], manual: true },
+    // (set as the fight starts; OUTSIDE her door, in the hall by the refill (the user's standing rule: dead in a boss
+    // fight, he's back outside its door, it lying kicked in, and walks back in himself))
+    { name: 'PIPER THE PIXIE', cp: CP_FIGHT, x: DOOR_X - 200, y: GY, clear: [400, 3000], manual: true },
   ],
   build: (state) => {
     const cleared = isLandCleared('fantasy');
@@ -105,6 +107,9 @@ export const bedroom: FantasySection = {
     if (s.fight === 'wait') {
       runExits(state, endExits('bedroom'));
       if (cleared) return controls;
+      // (a fresh start at her checkpoint (the checkpoint-skip cheat: set after the build): the world as a run there left
+      // it, her door kicked in and the intro seen; he walks in and she's waiting)
+      if (state.checkpoint >= CP_FIGHT && !introSeen()) { markIntroSeen(); state.blocks = state.blocks.filter(b => b.tag !== 'pp-door'); }
       // (naked: up since the glass, till he sees her)
       keepErect(state, introSeen() ? 0 : 1);
       if (!introSeen() && !p.inCutscene && isNude(state) && state.frame % 40 === 0) state.particles.push({ pos: { x: pmidX(state) + (Math.random() - 0.5) * 16, y: p.pos.y - 6 }, vel: { x: (Math.random() - 0.5) * 0.6, y: -1.2 }, life: 40, color: Math.random() < 0.5 ? '#F472B6' : '#FB7185', size: 4 });
@@ -112,7 +117,8 @@ export const bedroom: FantasySection = {
       if (!p.inCutscene && hallVisit !== landVisit() && !introSeen()) { hallVisit = landVisit(); meatheadSays(state, pickLine(byPants(state, MH_HALL))); }
       const me = pmidX(state);
       // (the first time: up to her door and it's the intro; after (or already through it): straight in)
-      if (!introSeen() && me < DOOR_X && me >= KICK_AT - 60 && p.isGrounded && !p.inCutscene) { s.f = startFight(state, false); s.fight = 'on'; }
+      // (right up at it, walked there himself: the user's "the player has to physically walk up to the door")
+      if (!introSeen() && me < DOOR_X && me >= KICK_AT - 8 && p.isGrounded && !p.inCutscene) { s.f = startFight(state, false); s.fight = 'on'; }
       else if (me > ARENA_L + 40 && p.health > 0) { s.f = startFight(state, true); s.fight = 'on'; }
       return controls;
     }

@@ -76,9 +76,10 @@ export const tickDoors = (ctx: FrameContext, d: Doors): Controls | null => {
       speak('m2.donnie', pick(L.DONNIE_LOCKED[dressed(state)]), s => { d.said = s?.text ?? null; }, true, () => { d.talkDone = true; });
     }
     if (d.t > 600) d.talkDone = true;
-    // (up to them, him done talking: the boot)
+    // (up to them, him done talking: the boot. Right up at them, walked there himself (the user's: no walking him to a
+    // boss's door), so the kick's step-up is next to nothing)
     const px = p.pos.x + p.width / 2;
-    if (d.talkDone && px > d.x - 70 - 140 && p.isGrounded && p.health > 0 && state.deathTimer <= 0) { d.state = 'kicking'; d.t = 0; }
+    if (d.talkDone && px > d.x - 70 - 50 && p.isGrounded && p.health > 0 && state.deathTimer <= 0) { d.state = 'kicking'; d.t = 0; }
     return null;
   }
   if (d.state === 'kicking') {

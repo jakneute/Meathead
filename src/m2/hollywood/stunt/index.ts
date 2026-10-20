@@ -5,8 +5,8 @@
 // fight, his two deaths; cars.ts: his posse; art.ts and steve.ts: the look).
 //
 // In off the fling (or on foot from the havoc), it starts as soon as he's on the stage: the walls go up (the stacked
-// tires), the camera keeps to the arena. A retry from the checkpoint (60, at the way in, a big health and ammo refill
-// there) goes straight to the fight. Beaten: VICTORY, the walk-away (walkAway/stuntmanSteve.ts), the hub, Hollywood
+// tires), the camera keeps to the arena. A retry from the checkpoint (60: outside, at the havoc's end by its big health
+// and ammo) walks back in through the way on and goes straight to the fight. Beaten: VICTORY, the walk-away (walkAway/stuntmanSteve.ts), the hub, Hollywood
 // Land cleared. Revisits: once the land's cleared, the stage stands empty (SHOW CANCELED, the wrecks).
 //
 // The way back: the left end (back to where the tornado caught him: DOORS.havoc.end). No way on (the end of the land).
@@ -43,7 +43,12 @@ const leave = (state: GameState, weakness: boolean) => {
 
 export const stunt: HollywoodSection = {
   id: 'stunt', x0, x1,
-  checkpoints: [{ name: 'THE STUNT STAGE', cp: 60, x: DOORS.stunt.start.x, y: GY, clear: [400, 3000] }],
+  // (the boss's checkpoint: OUTSIDE the stage (the user's standing rule: dead in a boss fight, he's back outside its
+  // door and walks in himself), at the havoc's end where the tornado caught him, the SAFE TORNADO LAUNCHING ZONE's big
+  // health and ammo just behind him; the tornado's spent from here on (havoc/hazards.ts spent: checkpoint 60). In
+  // through the way on (endExits) onto the stage and it's on again (a retry's entrance beat). It's set the moment he's
+  // in this section (his middle's past it), the fling's landing included)
+  checkpoints: [{ name: 'THE STUNT STAGE', cp: 60, x: DOORS.havoc.end.x, y: GY, clear: [400, 3000] }],
   build: (state) => {
     resetFight();
     layOwn(state, [{ x1: x0 - 200, y1: GY, x2: x1 + 200, y2: GY, surface: 'hard' }]);

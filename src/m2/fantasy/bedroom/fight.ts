@@ -173,6 +173,8 @@ export interface Fight {
 /** Seen the intro this visit (a retry from a checkpoint skips it: the door's already down). */
 let introVisit = -1;
 export const introSeen = () => introVisit === landVisit();
+/** Counted as seen (a fresh start at her checkpoint: the world as a run there left it). */
+export const markIntroSeen = () => { introVisit = landVisit(); };
 let game: GameState | null = null;
 const pants = (): Pants => (!game ? 'clean' : isNude(game) ? 'nude' : isShat(game) ? 'shitty' : 'clean');
 

@@ -9,7 +9,7 @@
 //                 disco's door at the top, and he kicks it in.
 //   THE DISCO     GALACTIC GROOVE (extra wide: the camera follows him in it): a shutter slams down behind him; the
 //                 extinguisher, the bonk, NOW ENTERING LESS FATAL MODE; then the boss (fight.ts). The big refill and the
-//                 boss's checkpoint just inside the door.
+//                 boss's checkpoint just OUTSIDE the door, on the landing (dead in the fight, he walks back in himself).
 //
 // Beaten: VICTORY, the walk-away (walkAway/spaceQueen.ts), the hub; Space Land's cleared. Revisits: the hold's stand
 // empty and its hole still there (in it, down he goes); the basement empty of her; the disco's door in, her dead on the
@@ -30,12 +30,12 @@ import { type WalkAway, playWalkAway, tickWalkAway, drawWalkAway } from '../../w
 import { drawBars } from '../../spooky/control/cine';
 import { playSound } from '../../../m1/game/platform/audio';
 import { shakeScreen } from '../../../m1/game/core/state';
-import { x0, x1, ARENA_L, ARENA_R, TRIGGER_X, QUEEN_X, HOLE, BASE_L, STAIRS_X, LAND_X, DOOR_X, DISCO_L, DISCO_R, DISCO_TRIGGER, DISCO_QX, REFILL_X, BF, STAIRS_A, STAIRS_B, CEIL_B } from './geo';
+import { x0, x1, ARENA_L, ARENA_R, TRIGGER_X, QUEEN_X, HOLE, BASE_L, STAIRS_X, LAND_X, DOOR_X, DISCO_L, DISCO_R, DISCO_TRIGGER, DISCO_QX, DOOR_REFILL_X, DOOR_CP_X, BF, STAIRS_A, STAIRS_B, CEIL_B } from './geo';
 import { updateLadders, drawLadders } from '../../moves/ladders';
 import { markBossFight } from '../../bossQuiet';
 import { drawRoomBack, drawGlass, drawQueen, roomLights, drawAfterFall } from './art';
 import { type Show, makeShow, startShow, tickShow, showOn, showSkippable, drawShowQueen, drawShowSaid, drawShowFade, showHead, fell, collapsed, drawFallingSlabs, BASEMENT_CP } from './show';
-import { type Hunter, makeHunter, buildHunter, forceDoorIn, tickHunter, atDoor, startKick, doorIn, doorKicking, drawHunter, drawHides, drawHunterFront, hunterLighting, hunterZoom, drawDiscoDoor, layBasement, LADDERS, GRAVEYARD_CP } from './basement';
+import { type Hunter, makeHunter, buildHunter, forceDoorIn, tickHunter, atDoor, startKick, doorIn, doorKicking, drawHunter, drawHides, drawHunterFront, hunterLighting, hunterZoom, drawDiscoDoor, layBasement, LADDERS, GRAVEYARD_CP, DISCO_CP } from './basement';
 import { type Fight, makeFight, startFight, updateFight, fightOver, endFight, queenDrops, introOn, drawQueenFight, drawQueenSaid, drawFightHud, discoLights, drawPool, poolLights, oilLights, tellLights, boothOps, introCamX, discoZoom, queenHoldTick, drawBurstFlash } from './fight';
 import { drawBasement, drawDisco, discoLighting, discoGlow, drawShutter, drawDiscoShell } from './lowerArt';
 import { type Piece, type Splat, packPieces, unpackPieces, drawPieces, drawSplats } from './burst';
@@ -74,8 +74,9 @@ export const queen: SpaceSection = {
     { name: 'THE HOLD', cp: 70, x: x0 + 300, y: GY },
     { name: 'THE BASEMENT', cp: BASEMENT_CP, x: LAND_X + 80, y: BF },
     { name: 'THE ANIMATRONIC GRAVEYARD', cp: GRAVEYARD_CP, x: BASE_L + 2780, y: BF },
-    // (inside the disco's door, the refill beside him: back for another go, nobody about)
-    { name: 'GALACTIC GROOVE', cp: 73, x: REFILL_X + 70, y: GY, clear: [600, 900] },
+    // (outside the disco's door, on the landing, the refill by it (the user's standing rule: dead in a boss fight, he's
+    // back outside its door and walks in himself): his once the door's kicked in (basement.ts), nobody about)
+    { name: 'GALACTIC GROOVE', cp: DISCO_CP, x: DOOR_CP_X, y: GY, clear: [600, 900], manual: true },
   ],
   build: (state) => {
     // The ground: the antechamber's (solid on down: the basement's west wall); the basement's floor, deep; the long
@@ -102,10 +103,10 @@ export const queen: SpaceSection = {
     if (!isLandCleared('space') && !fell(state)) { q.glassBlock = { x: QUEEN_X - 158, y: -4000, w: 16, h: 4000 + GY, type: 'wall', hidden: true, tag: 'queen-glass' } as Block; state.blocks.push(q.glassBlock); }
     // (the disco's door, till it's kicked in)
     buildHunter(state, hunterOf(state));
-    // In the disco, inside its door: the big health and the big ammo
+    // Outside the disco's door, on the landing: the big health and the big ammo (the boss-door refill, every retry)
     state.pickups.push(
-      { id: 'queen-health', pos: { x: REFILL_X - 30, y: GY - 20 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type: 'large_health', life: 1e9 },
-      { id: 'queen-ammo', pos: { x: REFILL_X + 10, y: GY - 20 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type: 'large_ammo', life: 1e9 },
+      { id: 'queen-health', pos: { x: DOOR_REFILL_X - 30, y: GY - 20 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type: 'large_health', life: 1e9 },
+      { id: 'queen-ammo', pos: { x: DOOR_REFILL_X + 10, y: GY - 20 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type: 'large_ammo', life: 1e9 },
     );
   },
   update: (ctx, controls) => {
@@ -122,7 +123,7 @@ export const queen: SpaceSection = {
       q.init = true;
       // (a fresh start at a checkpoint past the fall (it's set after the build): the floor's gone)
       if (fell(state) && s.step === 'wait') { s.step = 'done'; s.glass = false; }
-      if (state.checkpoint >= 73) forceDoorIn(state, h);
+      if (state.checkpoint >= DISCO_CP) forceDoorIn(state, h);
     }
     if (q.glassBlock && !s.glass) { state.blocks = state.blocks.filter(b => b !== q.glassBlock); q.glassBlock = null; }
     // (the floor's given: the slab over the hole's gone)
@@ -144,10 +145,8 @@ export const queen: SpaceSection = {
     // The basement: her; the door
     if (inLower(state) && cx < DOOR_X + 60 || doorKicking(h)) {
       if (!doorIn(h) && !doorKicking(h) && atDoor(state, h)) startKick(state, h);
-      const kicking = doorKicking(h);
       const out = tickHunter(ctx, h, controls);
-      // (through the door: straight into the disco's cutscene)
-      if (kicking && doorIn(h) && q.fight === 'wait' && !isLandCleared('space')) beginDisco(state, q, f);
+      // (the door down: his to walk in through himself; the disco's cutscene once he's in (below))
       if (out) return out;
     }
     // (her kids' drops while the fight's on; the park's otherwise)
@@ -284,12 +283,9 @@ const beginDisco = (state: GameState, q: Queen, f: Fight) => {
   q.fight = 'on';
   q.gate = { x: DISCO_L - 30, y: -4000, w: 30, h: 4000 + GY, type: 'wall', hidden: true, tag: 'queen-disco-gate' } as Block;
   state.blocks.push(q.gate);
-  // (the shutter down behind him: slammed (a clang, a shake, dust); on a retry it's down already)
+  // (the shutter down behind him: slammed (a clang, a shake, dust); a retry too: he's walked back in through the door)
   q.shutterTo = 1;
-  if (!f.glass) q.shutter = 1;
-  else {
-    playSound('slam', 1, -6); playSound('crash', 0.8, -8); shakeScreen(state, 10, 5);
-    for (let i = 0; i < 18; i++) state.particles.push({ pos: { x: DISCO_L - 15 + (Math.random() - 0.5) * 60, y: GY - 4 - Math.random() * 20 }, vel: { x: (Math.random() - 0.3) * 4, y: -0.5 - Math.random() * 2 }, life: 60, color: i % 2 ? '#57534E' : '#A8A29E', size: 3 + Math.random() * 5, grav: 0.03 });
-  }
+  playSound('slam', 1, -6); playSound('crash', 0.8, -8); shakeScreen(state, 10, 5);
+  for (let i = 0; i < 18; i++) state.particles.push({ pos: { x: DISCO_L - 15 + (Math.random() - 0.5) * 60, y: GY - 4 - Math.random() * 20 }, vel: { x: (Math.random() - 0.3) * 4, y: -0.5 - Math.random() * 2 }, life: 60, color: i % 2 ? '#57534E' : '#A8A29E', size: 3 + Math.random() * 5, grav: 0.03 });
   startFight(state, f);
 };
