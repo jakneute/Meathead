@@ -101,14 +101,16 @@ const DEBRIS_WARN = 80, DEBRIS_MAX = 6;
 const HAZ = { heat: [95, 55, 150], nitro: [90, 55, 140], wires: [85, 45, 140] } as const;
 const HEAT_DMG = 24, NITRO_DMG = 14, SHOCK_DMG = 26;
 /** After thawing, frames the nitrogen can't freeze him again (it's on for good: time to get clear of it). */
-const NITRO_REFREEZE = 70;
+// (just thawed: can't be frozen again for this long, by anything: no chain icing, the user's)
+const NITRO_REFREEZE = 150;
 /** The heat pipe's flame (half-width), the fire on the floor under it; the nitrogen's jet (length, height); the
  *  flooded patch (half-width). */
 const HEAT_HW = 44, HEAT_FLOOR = 90, NITRO_LEN = 280, NITRO_H = 70, PUDDLE_HW = 150;
 /** Her throws: how often at most, how near a loose part she has to be; their damage. */
 const THROW_GAP = 360, THROW_NEAR = 170, RIP_T = 36, THROW_T = 18, FIREBALL_DMG = 12, ICEBALL_DMG = 6, BOLT_DMG = 14;
 /** Frozen: a press's worth of the meter, its drain a frame, out on his own at the most. */
-const MASH_STEP = 0.11, MASH_DRAIN = 0.0035, ICE_MAX = 260;
+// (way fewer mashes, the user's: three A presses break it; it thaws on its own sooner too)
+const MASH_STEP = 0.34, MASH_DRAIN = 0.0035, ICE_MAX = 150;
 /** The bounce: how long (and longer each hole), how fast. */
 const BOUNCE_T = 150, BOUNCE_EACH = 30, BOUNCE_V = 10;
 /** Taunts; the hint's gap. */
@@ -445,6 +447,8 @@ const freezeHim = (ctx: FrameContext, f: Fight, dmg: number, src: string) => {
   const { state } = ctx;
   hurtPlayer(ctx, dmg, src, { x: 0, y: 0 }, 1);
   if (state.player.health <= 0) return;
+  // (just thawed: the cold still hurts, but no freezing again yet: the ice ball too)
+  if (f.total - f.thawedAt <= NITRO_REFREEZE) return;
   f.ice = { t: 0, fill: 0, prev: true };
   f.stun = 0;
   playSound('ice', 1, -4); playSound('glass', 0.5, 8);
