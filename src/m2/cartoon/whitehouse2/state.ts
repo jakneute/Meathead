@@ -127,7 +127,8 @@ const pundit = (id: PunditId, max: number): Pundit => ({
 });
 
 /** Their health (~40 s, ~45 s and ~60 s of concentrated hairballs: on from Perot's 3900 and Falwell's 5400). */
-export const LIMBAUGH_HP = 5000, DOLE_HP = 5800, NEWT_HP = 7400;
+// (a third of what they were, the user's: they dragged)
+export const LIMBAUGH_HP = 1670, DOLE_HP = 1930, NEWT_HP = 2470;
 
 export const wh2Of = (state: GameState) => cartoonState<Wh2>(state, 'whitehouse2', () => ({
   barks: new Map(), barkAt: -999, waves: [], drawers: [],

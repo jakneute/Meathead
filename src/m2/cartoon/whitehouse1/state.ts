@@ -93,7 +93,8 @@ const pundit = (id: PunditId, max: number): Pundit => ({
   introStep: 0, throws: [], act: 'idle', actT: 0, nextAct: 60, airborne: false, hops: 0,
 });
 
-export const PEROT_HP = 3900, FALWELL_HP = 5400;
+// (a third of what they were, the user's: they dragged)
+export const PEROT_HP = 1300, FALWELL_HP = 1800;
 
 export const whOf = (state: GameState) => cartoonState<Whitehouse>(state, 'whitehouse1', () => ({
   towers: [], throws: [], barks: new Map(), barkAt: -999, puffs: [],
