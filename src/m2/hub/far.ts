@@ -114,6 +114,8 @@ const farTrees = (g: Ctx, x0: number, x1: number, foot: number, R: string[], kin
 // The landmarks (each round its spot's middle x, its foot on Y; the stamp's box is x-270..x+270, Y-340..Y+10)
 
 export const LANDMARK_BOX = { x: -270, y: -440, w: 540, h: 450 } as const;
+/** Each land's landmark's box (as tight as it goes: what's put down every frame is its area). */
+export const landmarkBox = (id: StretchId) => { const top = id === 'space' ? -440 : id === 'fantasy' ? -400 : id === 'spooky' ? -330 : id === 'hollywood' ? -370 : -320; return { x: -270, y: top, w: 540, h: 10 - top }; };
 
 /** Dracula's OTHER CASTLE as the town has it, far off: lilac-gray dressed stone in courses, battlements, the keep's
  *  purple slate spike and its red flag, the round towers' candle-snuffer roofs, the bat banners, pointed windows lit red

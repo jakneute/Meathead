@@ -24,7 +24,7 @@ import { paintGate, paintGateSign, paintPosts, drawSwirl, drawShimmer, drawPosts
 import { timeOfDay, skyRamp, sunAt, sunTint, cloudTint, farTint, drawStars, drawMoon, lampGlow } from '../timeOfDay';
 import { noteSun, drawSunGlare } from '../sunFlare';
 import { signText, signAt, signW, enamel } from './letters';
-import { paintLandmark, paintAmericaLandmark, paintSkyline, drawFarLive, paintTreeline, paintCloud, paintBlimp, paintHotAir, LANDMARK_BOX, SKYLINE_BOX } from './far';
+import { paintLandmark, paintAmericaLandmark, paintSkyline, drawFarLive, paintTreeline, paintCloud, paintBlimp, paintHotAir, landmarkBox, SKYLINE_BOX } from './far';
 import { checker } from './kit';
 import { drawAmericaExit } from './exit';
 
@@ -104,12 +104,16 @@ const drawHubFar = (ctx: Ctx, state: GameState, each: Each) => {
   });
   // Each land's landmark on the skyline, right behind its stretch, as the land itself has it (stamped by the hour); the
   // busy band of its rides in front; what moves on them
-  const Y = top + 440, LB = LANDMARK_BOX, SB = SKYLINE_BOX;
+  const Y = top + 440, SB = SKYLINE_BOX;
   SPOTS.forEach((s, i) => {
     const bx = slotX(i), id = stretchOf(i);
-    if (s.kind === 'land') stampEach(ctx, each, `hubL2|${id}|${tod.key}`, bx + LB.x, Y + LB.y, LB.w, LB.h, g => paintLandmark(g, id, bx, Y));
-    else if (s.kind === 'america') { const fi = Math.floor(f / 12) % 10; stampEach(ctx, each, `hubL2|america|${fi}|${tod.key}`, bx - 50, Y - 350, 230, 352, g => paintAmericaLandmark(g, bx, Y, fi * 12.5)); }
-    stampEach(ctx, each, `hubS|${id}|${tod.key}`, bx + SB.x, Y - 10 + SB.y, SB.w, SB.h, g => paintSkyline(g, id, bx, Y - 10));
+    // (the landmark and the band of rides in front of it in one stamp: one put down for the lot)
+    const LB = landmarkBox(id);
+    if (s.kind === 'land') stampEach(ctx, each, `hubL2|${id}|${tod.key}`, bx + LB.x, Y + LB.y, LB.w, LB.h, g => { paintLandmark(g, id, bx, Y); paintSkyline(g, id, bx, Y - 10); });
+    else {
+      stampEach(ctx, each, `hubS|${id}|${tod.key}`, bx + SB.x, Y - 10 + SB.y, SB.w, SB.h, g => paintSkyline(g, id, bx, Y - 10));
+      if (s.kind === 'america') { const fi = Math.floor(f / 12) % 10; stampEach(ctx, each, `hubL2|america|${fi}|${tod.key}`, bx - 50, Y - 350, 230, 352, g => paintAmericaLandmark(g, bx, Y, fi * 12.5)); }
+    }
     each(bx, 280, x => drawFarLive(ctx, id, x, Y - 44, f));
   });
   // The haze down at the horizon
