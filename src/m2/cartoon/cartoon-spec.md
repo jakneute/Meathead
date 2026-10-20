@@ -739,3 +739,41 @@ markBossFight every frame of a boss or sub-boss fight. Voice every new line (`np
   Falwell's actors redone more specific and gruesome (bodies.ts), and the henchmen's actors leave their effects in the
   blood (the goon's snapped shades, the lobbyist's burst briefcase of red-soaked bills, the pollster's clipboard and
   crushed glasses). Drawing only: no layout, timing, hitbox or lighting-logic changes.
+- (SNES pass) PUNCHY & KICKY (itchy/): one eye (kit.ts); the show's paint box in itchy/paint.ts (six-step blood, gore,
+  bone, mustard, tar, cream, ginger, mousey, plywood, crate, concrete, steel, rust, velour; stepped splats, drips off
+  ledges, cartoon bones, skulls, chalk outlines, riveted plates, planks, hazard stripes). The far off cached per hour
+  (itchy/far.ts): a hot blue sky down to a coral blush, stepped cumulus with a skull cloud and a bone cloud, a red
+  biplane towing PUNCHY & KICKY: NOW 40% MORE KILLING! (live), past the berm the hills, pylons, the GENERIC-CO plant and
+  its smoke, a drive-in, a cemetery knoll, a quarry; the water tower; the rest of Cartoon Land (Sillyville, the
+  studios' logo, the White House with Socks, the big-kid zone's Hurl-A-Whirl, halfpipe, Rad Rat, bolt and slime bucket,
+  STUPID DAD LIVE!'s shell, the UBX AMPHITHEATER sign, the beer garden, a STUPID DAD LIVE! TODAY billboard, the
+  KILL-O-RAMA pylon, a gift dome); the knockoff's own roofs dripping blood with the show's giant props (a mallet
+  driven in, an anvil through one, a cleaver, the skull water tank, the inflatable Punchy X-eyed, Kicky's ears, a
+  dynamite chimney, crates, the KILL-O-COASTER's loop, searchlights, bones, a plunger), a fence of bones. The street
+  (itchy/backs.ts): the show's buildings at FRONT_D with sides going back (red, mustard, black, bone stucco; candy
+  stripes or painted bones; murals; posters; water tanks, fire escapes) and a business each (PUNCHY'S GRILL, KICKY'S
+  CHEESE HUT, FIRST AID: WE'VE SEEN WORSE, TOMCATS / LADY MICE, WHACK-A-MOUSE, PHOTO WITH PUNCHY, the STAGE BLOOD
+  DEPOT, CAST ONLY, ANVIL TOSS, LOCKERS); the alley; the cream pavers back to the eye (paw prints, splats; painted dirt
+  over the canyon back to the gorge's far rim, the stage's black boards and spike tape on the set); the furniture (FEED
+  KICKY bins, bone benches, queues of seeded guests in P&K tees, cat ears and SPLASH ZONE ponchos, CHERRY GORE
+  sno-cones, a balloon seller, the head-hole board, the topiary, the gnome with the axe in his head, hydrants,
+  payphones, poster kiosks, red trees in skull planters). The set pieces stepped with sides and tops going back: the
+  bone arch, the merch stand and the jumbotron on its lattice truss (speakers, the CRT's corners), the KILL-O-RAMA
+  (stone blocks, merlons, slated cones, pennants, gargoyles, the skull keystone, chained doors, the ticket window,
+  bulbs), the GENERIC-CO warehouse (ribs, stains, roll doors, the forklift, 0 DAYS WITHOUT AN ACCIDENT), the big top
+  (stripes shaded round, valance, guy ropes), the blast wall (dithered scorch, rebar, the bunker slit, sandbags), the
+  painted canyon (a sky cyc with a face on its sun, three rows of stratified plywood mesas on braces, cactus flats,
+  MOUSE MESA) at the set's depth with the gorge's far wall and banks going back, the soundstage (velour drapes, the
+  house flat, a tree flat, road cases, TAPING TODAY, the grid's cans), the STUPID DAD LIVE! gate. The free-floating
+  posters and the old show buildings on the play plane are gone (posters are on walls, kiosks and drapes now). The
+  play plane: cream pavers scanline-bent with chalk outlines, splats and paw prints, its blood-red edge lit along its
+  top; the lawn; the rim rocks and the set's crate steps stepped; the skull lamps on bone posts. The pit towers are
+  flagged `pit` (drawing only: a rock stack under each in the gorge, a lift's column under each on the holes). The
+  hazards stepped (anvils, banded shadows, the gantry's lattice and winch, the animatronics big and mean: riveted
+  plinths, piston knees, hoses, an open chest panel, steel jaws, glowing eyes; the hammers' barrels and hoops; rakes,
+  bear traps, the crates and their red gloves, the safe, the piano, the crane, the circus cannon, the lift, the balls,
+  the TNT and the fuses, the match-striking Kicky, the igniter, the holes, the blasts). The cast detailed (Punchy's
+  stitches, bloodshot eye, gums, zip, tail bandage; Kicky's brows, scar, ear bandage, belt and cleaver pouch; the
+  dynamite one's matchbox; the host's lapels, carnation, watch chain, skull hat pin; the stagehand's flashlight, keys,
+  tape, knee pads; dead, the suit's neck ring and a sweaty performer). Drawing only: no layout, timing or hitbox
+  changes (soft lamps added after dark for the street's windows and the sno-cone cart, the bigkid way).
