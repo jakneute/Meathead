@@ -9,7 +9,8 @@ import type { Enemy } from '../../../m1/types';
 import type { FrameContext } from '../../../m1/game/core/context';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
 import { playSound } from '../../../m1/game/platform/audio';
-import { drawPerson, drawSpear, lookOf } from './people';
+import { lookOf } from './people';
+import { drawActor, drawStagehand } from './castArt';
 import { HURT_ACTOR, DEATH_ACTOR, HURT_SPEAR, DEATH_SPEAR } from './lines';
 
 const mid = (o: { pos: { x: number; y: number }; width: number; height: number }) => ({ x: o.pos.x + o.width / 2, y: o.pos.y + o.height / 2 });
@@ -66,19 +67,14 @@ registerM2Kind({
   pointy: { source: 'm2:actor_spear', label: 'SKEWERED!' },
   gender: e => (lookOf(seedOf(e)).woman ? 'f' : 'm'),
   head: { x: 1, y: -66, r: 9 },
-  draw: (c, e, f) => {
-    const pose = e.aiState === 'thrust' ? 'thrust' : Math.abs(e.vel.x) > 0.3 ? 'walk' : 'stand';
-    drawPerson(c, { seed: seedOf(e), outfit: 'warrior', f, pose, mood: 'angry' });
-    const a = e.aiState === 'windup' ? -0.25 : 0;
-    drawSpear(c, e.aiState === 'windup' ? 0 : e.aiState === 'thrust' ? 22 : 10, -46, a);
-  },
+  draw: (c, e, f) => drawActor(c, e, f, seedOf(e)),
 });
 registerM2Kind({
   kind: 'm2:stagehand', stats: { w: 36, h: 66, hp: 60, contact: 0, mass: 190 }, ai: stagehandAI, humanoid: true,
   make: b => ({ ...b, harmless: true }),
   gender: e => (lookOf(seedOf(e)).woman ? 'f' : 'm'),
   head: { x: 1, y: -66, r: 9 },
-  draw: (c, e, f) => drawPerson(c, { seed: seedOf(e), outfit: 'stage', f, pose: e.aiState === 'cower' ? 'stand' : 'crank', mood: e.aiState === 'cower' ? 'scared' : 'bored' }),
+  draw: (c, e, f) => drawStagehand(c, e, f, seedOf(e)),
 });
 
 registerHurtLines('m2:actor', HURT_ACTOR, DEATH_ACTOR);

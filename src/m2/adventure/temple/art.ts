@@ -4,6 +4,12 @@
 // seams), the crew's clutter; then the tricks themselves at his level (the catapult, the dart trap and its leaf
 // blower, the Pepper's ghost pane and the fog machine, the snake on its ram), the scaffolds he climbs, and the loading
 // station: the long line snaking back into the dark, the operators' booth, the Jaguar Express on its track.
+// The SNES pass: the far wall's high works (the duct, a cable tray, the gallery, vents), the set's catwalk behind the
+// facade (show lights on its rail in the cue's colors, hazers, cable runs), the facade's backs worked over (wire runs,
+// the bits' speakers, foam patches, the crew's names in marker), more of the crew's corners (stacked flats, the bone
+// tote, the scenic paint table and a half-carved foam head, the ghost's projector, the spare serpent heads, the dimmer
+// racks), real boulders (stamped turns), carved dart faces, the station's gates, grouper and height check; the people
+// on costume.ts (castArt.ts).
 //
 // Depth is done the intro's way (intro/art/upper.ts): a point `d` back is drawn d of the way from where he's looking
 // (the eye) to where it'd be up front, so whole layers are just drawn under that scale (inDepth) and parallax, shrink
@@ -17,18 +23,21 @@ import { GY } from '../geometry';
 import { saidOver } from '../section';
 import { drawRideCart, JAGUAR_EXPRESS } from '../rideCart';
 import { guestAt, drawGuest, type Guest } from '../queue/crowd';
-import { drawPerson } from './people';
 import {
-  INK, box, text, slab, pole, ball, sign, rampOf, dark, lite, mix, checker, bandedGradient, steppedGlow, stamp, hash,
+  INK, box, slab, pole, ball, sign, rampOf, dark, lite, mix, checker, bandedGradient, steppedGlow, stamp, hash,
 } from '../../intro/art/kit';
 import {
   x1, T, CATAPULT_X, DART_WALL, DART_TOP, SNAKE_WALL, SNAKE_TOP, SNAKE_Y, SNAKE_REACH, STATION_X, CART_X, BOOTH_X, END_WALL,
   GHOST_X, FOG_X, LEDGES, type Temple, crewed, DART_TELL, dartY, SNAKE_CYCLE, snakeOut, GUESTS, SEAT,
 } from './layout';
-import { signAt, signText, plank, enamel, stencil, print, led } from '../letters';
+import { signAt, signText, plank, enamel, stencil, print, led, graffiti, gilt } from '../letters';
+import { drawBoneSuit, drawFlungGuest } from './castArt';
+import { drawGuest as drawParkGuest } from '../../frontier/town/people';
 
 type Ctx = CanvasRenderingContext2D;
 export interface Eye { x: number; y: number }
+/** The labels on the crew's kit: printed small in the park's letters (decals, tape, stencils), never stock type. */
+const text = (c: Ctx, s: string, x: number, y: number, col: string, size = 4, _align?: CanvasTextAlign, _shadow?: string | null) => signAt(c, s, x, y, size, print(size, col));
 
 // ---------------------------------------------------------------------------------------------------------------
 // Depth
@@ -138,6 +147,32 @@ const paintWallTile = (g: Ctx, x: number, i: number) => {
   // (conduit along it, stepped round)
   for (const cy of [GY - 520, GY - 540]) { box(g, x, cy, 512, 2, '#4A4A4E'); box(g, x, cy + 2, 512, 2, '#2E2E32'); box(g, x, cy + 4, 512, 1, '#151518'); }
   for (let k = 0; k < 4; k++) { box(g, x + 30 + k * 128, GY - 546, 6, 14, '#3A3A3E'); }
+  // (up high, the building's works: the supply duct (galvanized, banded seams, hung on straps), a cable tray under it,
+  // the gallery along the wall (its grating, the rail, a ladder up to it), louvered vents; dim, it's all way back)
+  {
+    const dy = GY - 690, dr = rampOf('#5E646C');
+    for (let k = 0; k < 4; k++) box(g, x + 40 + k * 128, GY - 760, 2, 70, '#2A2C30');
+    box(g, x, dy - 1, 512, 42, INK);
+    box(g, x, dy, 512, 6, dr[3]); box(g, x, dy + 6, 512, 14, dr[2]); box(g, x, dy + 20, 512, 12, dr[1]); box(g, x, dy + 32, 512, 8, dr[0]);
+    checker(g, x, dy + 6, 512, 1, dr[3]); checker(g, x, dy + 32, 512, 1, dr[1]);
+    for (let k = 0; k < 512; k += 64) { box(g, x + k, dy, 3, 40, dr[0]); box(g, x + k + 3, dy, 1, 40, dr[4]); }
+    // (a branch dropping off it to a diffuser, every other tile)
+    if (i % 2 === 0) { slab(g, x + 300, dy + 40, 30, 50, dr[1], { edge: 2 }); slab(g, x + 290, dy + 90, 50, 12, dr[2], { edge: 2 }); for (let k = 0; k < 4; k++) box(g, x + 294 + k * 11, dy + 94, 6, 2, '#141416'); }
+    // (the cable tray: a ladder of steel, cable bundles sagging over its rungs)
+    const ty = GY - 620;
+    box(g, x, ty, 512, 2, '#4A4E56'); box(g, x, ty + 10, 512, 2, '#3A3E46');
+    for (let k = 0; k < 512; k += 24) box(g, x + k, ty, 2, 12, '#33363E');
+    for (let k = 0; k < 512; k += 4) box(g, x + k, ty + 3 + Math.round(Math.sin((x + k) * 0.05) * 1.5), 4, 4, (k / 4) % 3 ? '#121214' : '#1E1E24');
+    // (the gallery: grating seen from below, a toe board, the rail; the ladder up to it in some)
+    const gy = GY - 820;
+    box(g, x, gy, 512, 8, '#2A2C30'); for (let k = 0; k < 512; k += 6) box(g, x + k, gy + 2, 2, 5, '#17181B');
+    box(g, x, gy - 36, 512, 3, '#4A4E56'); box(g, x, gy - 18, 512, 2, '#3A3E46'); box(g, x, gy - 8, 512, 8, '#33363E');
+    for (let k = 0; k < 512; k += 96) box(g, x + k + 10, gy - 36, 3, 36, '#4A4E56');
+    if (i % 3 === 1) { for (const lx of [x + 420, x + 446]) box(g, lx, gy, 3, 260, '#3A3E46'); for (let ly = gy + 12; ly < gy + 260; ly += 14) box(g, x + 420, ly, 29, 2, '#33363E'); }
+    // (a louvered vent, in the block)
+    const vx = x + 270 + Math.round(hash(i * 2.1) * 150), vy = GY - 470;
+    slab(g, vx, vy, 70, 44, '#2A2C30', { edge: 2 }); for (let k = 0; k < 6; k++) { box(g, vx + 4, vy + 4 + k * 6, 62, 3, '#3E424A'); box(g, vx + 4, vy + 7 + k * 6, 62, 1, '#141416'); }
+  }
   const h = hash(i * 7.3);
   if (h < 0.35) {
     // a fuse panel, a conduit down to it
@@ -303,6 +338,74 @@ const drawTruss = (c: Ctx, eye: Eye, f: number) => {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
+// The set's catwalk: just behind the facade's top, its full length: grating, rails, the hanger rods up into the dark;
+// the show's lights clamped on its rail aimed out over the set (their lenses in the show's colors), hazers on its deck
+// puffing, cable runs draped along it (stamped in 512 lengths; the lenses and the haze live)
+
+const CAT_D = 0.745, CAT_Y = GY - 520;
+const CAT_X0 = T + 100, CAT_X1 = STATION_X - 140;
+const paintCatwalk = (g: Ctx, x0: number, x1: number, i: number) => {
+  const st = rampOf('#5A6068');
+  // (the deck: seen from under, the grating's diamonds, the stringer along its edge)
+  box(g, x0, CAT_Y - 1, x1 - x0, 12, INK);
+  box(g, x0, CAT_Y, x1 - x0, 10, st[1]);
+  for (let x = x0; x < x1; x += 4) box(g, x, CAT_Y + 2 + ((x / 4) % 2), 2, 6, '#141518');
+  box(g, x0, CAT_Y, x1 - x0, 2, st[3]); box(g, x0, CAT_Y + 9, x1 - x0, 1, st[0]);
+  // (the toe board, the mid rail and the top rail; posts every 128, kicked out at the foot)
+  box(g, x0, CAT_Y - 9, x1 - x0, 9, st[2]); box(g, x0, CAT_Y - 9, x1 - x0, 1, st[4]); checker(g, x0, CAT_Y - 2, x1 - x0, 2, st[1]);
+  for (const ry of [CAT_Y - 26, CAT_Y - 46]) { box(g, x0, ry - 1, x1 - x0, 5, INK); box(g, x0, ry, x1 - x0, 3, st[2]); box(g, x0, ry, x1 - x0, 1, st[4]); }
+  for (let x = Math.ceil(x0 / 128) * 128; x < x1; x += 128) { box(g, x - 1, CAT_Y - 48, 6, 48, INK); box(g, x, CAT_Y - 47, 4, 46, st[2]); box(g, x, CAT_Y - 47, 1, 46, st[4]); }
+  // (the cable runs: two bundles draped rail to rail, zip-tied at the posts; a coil hung off one)
+  for (const [yy, col, sag] of [[CAT_Y - 40, '#121214', 7], [CAT_Y - 20, '#1E1E24', 5]] as const) {
+    g.strokeStyle = col; g.lineWidth = 3; g.beginPath();
+    for (let x = Math.floor(x0 / 128) * 128; x < x1; x += 128) { g.moveTo(Math.max(x0, x + 2), yy); g.quadraticCurveTo(x + 66, yy + sag * 2, Math.min(x1, x + 130), yy); }
+    g.stroke();
+    for (let x = Math.ceil(x0 / 128) * 128; x < x1; x += 128) box(g, x - 1, yy - 2, 6, 3, '#E7E5E4');
+  }
+  if (i % 2) { g.strokeStyle = '#18181B'; g.lineWidth = 2; for (let k = 0; k < 4; k++) { g.beginPath(); g.ellipse(x0 + 200, CAT_Y + 26 + k, 12 - k, 18, 0, 0, Math.PI * 2); g.stroke(); } box(g, x0 + 196, CAT_Y + 4, 8, 6, '#E8C130'); }
+  // (a crew tag, a sign: the load on it)
+  if (i % 3 === 0) { slab(g, x0 + 360, CAT_Y - 44, 56, 18, '#E8C130', { edge: 2 }); signAt(g, 'MAX 500 LB', x0 + 388, CAT_Y - 35, 6, stencil(6, INK)); }
+  if (i % 3 === 2) { slab(g, x0 + 120, CAT_Y - 44, 64, 18, '#F1EFEA', { edge: 2 }); signAt(g, 'TIE OFF HERE', x0 + 152, CAT_Y - 35, 6, print(6, '#B91C1C')); }
+};
+/** Where the show lights clamp on the catwalk's rail (in its own units). */
+const catLamps = (s0: number, s1: number) => { const out: number[] = []; for (let x = Math.floor(s0 / 260) * 260 + 70; x < s1; x += 260) if (x > CAT_X0 + 30 && x < CAT_X1 - 30) out.push(x); return out; };
+const drawCatwalk = (c: Ctx, eye: Eye, f: number) => {
+  const [s0, s1] = spanAt(eye, CAT_D, 60);
+  if (s1 < CAT_X0 || s0 > CAT_X1) return;
+  inDepth(c, eye, CAT_D, () => {
+    // (the hanger rods, up out of sight)
+    for (let x = Math.ceil(Math.max(s0, CAT_X0) / 512) * 512 + 40; x < Math.min(s1, CAT_X1); x += 512) { box(c, x, CHAIN_TOP, 3, CAT_Y - 46 - CHAIN_TOP, '#2E3036'); box(c, x - 3, CAT_Y - 48, 9, 4, '#3A3E46'); }
+    for (let i = Math.floor(Math.max(s0, CAT_X0) / 512); i * 512 < Math.min(s1, CAT_X1); i++) {
+      const a = Math.max(i * 512, CAT_X0), b = Math.min((i + 1) * 512, CAT_X1);
+      if (b > a) stamp(c, `tpl-cat-${i}`, a, CAT_Y - 60, b - a, 110, g => paintCatwalk(g, a, b, i));
+    }
+    // the show lights: PAR cans on yokes, hung off the top rail, tipped forward over the set; the lens in the cue's color
+    catLamps(s0, s1).forEach(x => {
+      const i = Math.floor(x / 260), col = showAt(i, f);
+      box(c, x + 6, CAT_Y - 46, 3, 10, '#2A2C30');
+      c.save(); c.translate(x + 7, CAT_Y - 30); c.rotate(0.5);
+      slab(c, -9, -6, 26, 14, '#26282E', { edge: 2 }); box(c, -7, -5, 20, 2, '#3E424A');
+      box(c, 16, -7, 3, 16, INK); box(c, 17, -6, 2, 14, mix(col, '#FFFFFF', 0.35));
+      box(c, 18, -9, 6, 3, '#1A1A1E'); box(c, 18, 7, 6, 3, '#1A1A1E');
+      c.restore();
+      steppedGlow(c, x + 22, CAT_Y - 18, 22, col, 0.18, 0.02, 3);
+    });
+    // the hazers on the deck, every so often: a box, its fan, the haze it's putting out drifting over the set
+    for (let x = Math.floor(s0 / 880) * 880 + 400; x < s1; x += 880) {
+      if (x < CAT_X0 + 40 || x > CAT_X1 - 80) continue;
+      slab(c, x, CAT_Y - 26, 40, 26, '#2A2A30', { edge: 2 }); ball(c, x + 12, CAT_Y - 13, 7, '#3A3A40'); ball(c, x + 12, CAT_Y - 13, 2, '#111114', false);
+      box(c, x + 26, CAT_Y - 20, 10, 3, '#E8C130'); box(c, x + 30, CAT_Y - 9, 3, 3, f % 50 < 25 ? '#22C55E' : '#14532D');
+      for (let k = 0; k < 5; k++) {
+        const t = ((f * 0.5 + k * 40) % 200) / 200;
+        c.fillStyle = `rgba(200, 196, 190, ${(0.1 * (1 - t)).toFixed(3)})`;
+        const r = 8 + t * 34;
+        c.fillRect(Math.round(x + 40 + t * 90 + Math.sin(f * 0.01 + k) * 6 - r), Math.round(CAT_Y - 30 + t * 50 - r * 0.4), Math.round(r * 2), Math.round(r * 0.8));
+      }
+    }
+  });
+};
+
+// ---------------------------------------------------------------------------------------------------------------
 // The set's back: fiberglass shells, raw; stud frames; kickers down to sandbags; light leaking through the seams
 
 /** The outline of a panel's top edge (how the front's shaped: stepped tiers, a jaguar's head, columns, the shrine). */
@@ -344,6 +447,34 @@ const paintPanel = (g: Ctx, p: { x: number; w: number; kind: number }, i: number
   signAt(g, '^  ^  ^', x + w / 2, GY - 136, 8, stencil(8, '#3E372C'));
   signAt(g, ['PANEL 7B', 'JAGUAR HEAD (L)', 'COLUMN SET 2', 'STEP WALL 4', 'SHRINE TOP'][kind], x + w / 2, GY - 110, 6, plank(6, '#2E2820', undefined, undefined, kind));
   if (i % 3 === 1) { box(g, x + 30, GY - 90, 56, 26, '#E7E2D2'); signAt(g, 'WET', x + 58, GY - 79, 6, print(6, '#B91C1C')); signAt(g, 'PAINT', x + 58, GY - 70, 6, print(6, '#B91C1C')); }
+  // (the works on its back: a wire run down a stud, zip-tied, to a junction box; the speaker that does this bit's
+  // sound; a hole patched with gaffer tape; a chunk of the carved foam front broken off and glued back in with spray
+  // foam; an access hatch; the crew's names in marker)
+  const sx = x + 24 + 92 * (1 + (i % 2)), top = GY - Math.min(panelTop(kind, w, (sx - x) / w), 420);
+  if (sx < x + w - 30) {
+    box(g, sx + 9, top + 20, 2, GY - 60 - top - 20, '#141416');
+    for (let y = top + 34; y < GY - 60; y += 30) box(g, sx + 8, y, 4, 2, '#E7E5E4');
+    slab(g, sx + 2, GY - 64, 18, 18, '#5B6068', { edge: 2 }); box(g, sx + 6, GY - 60, 10, 2, '#E8C130');
+  }
+  if (kind === 1 || kind === 4) {
+    const px0 = x + w * 0.5 - 22, py0 = GY - 330;
+    slab(g, px0, py0, 44, 54, '#1C1C20', { edge: 2 });
+    ball(g, px0 + 22, py0 + 20, 14, '#2E2E34'); ball(g, px0 + 22, py0 + 20, 6, '#141416', false); box(g, px0 + 17, py0 + 15, 3, 3, '#4A4A52');
+    ball(g, px0 + 22, py0 + 44, 5, '#2E2E34');
+    signAt(g, kind === 1 ? 'ROAR' : 'CHANT', px0 + 22, py0 - 6, 6, stencil(6, '#5A5048'));
+  }
+  if (i % 4 === 2) {
+    const hx = x + w - 90;
+    for (let k = 0; k < 3; k++) { box(g, hx + k * 4, GY - 250 + k * 9, 44, 8, '#8A8E96'); box(g, hx + k * 4, GY - 250 + k * 9, 44, 2, '#B8BCC4'); }
+  }
+  if (i % 4 === 0) {
+    const fx = x + 50, fy = GY - 300;
+    g.fillStyle = '#E8C66A'; g.beginPath(); g.ellipse(fx + 30, fy + 22, 38, 28, 0, 0, Math.PI * 2); g.fill();
+    for (let k = 0; k < 12; k++) ball(g, fx - 2 + hash(i + k) * 64, fy - 2 + hash(i * 3 + k) * 48, 4 + hash(k) * 4, k % 2 ? '#F2D88A' : '#D8B058', false);
+    slab(g, fx + 10, fy + 6, 42, 32, '#8E8676', { edge: 2 }); box(g, fx + 14, fy + 10, 34, 4, '#A8A090'); box(g, fx + 22, fy + 20, 12, 8, '#6E6658');
+  }
+  if (i % 3 === 0) { slab(g, x + w - 70, GY - 140, 52, 60, PLY, { edge: 2 }); box(g, x + w - 66, GY - 112, 6, 4, '#9CA3AF'); signAt(g, 'ACCESS', x + w - 44, GY - 128, 6, stencil(6, '#3E372C')); }
+  signAt(g, ['MIKE + DEB 2019', 'GARY WAS HERE', 'TONY SUCKS', 'SHOW #4000!', 'JJ <3 SID'][i % 5], x + w * 0.62, GY - 186, 6, graffiti(6, ['#E7E5E4', '#F472B6', '#FDE047', '#93C5FD', '#86EFAC'][i % 5], i));
   g.restore();
 };
 
@@ -396,15 +527,130 @@ const sandbag = (g: Ctx, x: number, i: number) => {
 // ---------------------------------------------------------------------------------------------------------------
 // The crew's clutter (props at PROPS_D): road cases, the costume rack, the incident board, ladders, the break room
 
-type Prop = { x: number; kind: 'case' | 'rack' | 'board' | 'ladder' | 'break' | 'cooler' | 'title' | 'cable' };
+type Prop = { x: number; kind: 'case' | 'rack' | 'board' | 'ladder' | 'break' | 'cooler' | 'title' | 'cable' | 'flats' | 'bones' | 'paint' | 'projector' | 'snakes' | 'dimmer' };
 const PROPS: Prop[] = [
   { x: T + 160, kind: 'break' }, { x: T + 420, kind: 'title' }, { x: T + 560, kind: 'case' }, { x: T + 820, kind: 'rack' },
-  { x: T + 1180, kind: 'cable' }, { x: T + 1900, kind: 'board' }, { x: T + 2150, kind: 'case' }, { x: T + 2420, kind: 'ladder' },
-  { x: T + 3020, kind: 'cooler' }, { x: T + 3640, kind: 'case' }, { x: T + 4240, kind: 'rack' },
+  { x: T + 1180, kind: 'cable' }, { x: T + 1400, kind: 'flats' }, { x: T + 1690, kind: 'bones' }, { x: T + 1900, kind: 'board' },
+  { x: T + 2150, kind: 'case' }, { x: T + 2420, kind: 'ladder' }, { x: T + 2560, kind: 'paint' }, { x: T + 2880, kind: 'cooler' },
+  { x: T + 3060, kind: 'projector' }, { x: T + 3640, kind: 'case' }, { x: T + 3800, kind: 'snakes' }, { x: T + 4020, kind: 'dimmer' },
+  { x: T + 4240, kind: 'rack' },
 ];
+/** Where the projector's lens is (its beam goes from there to the ghost's pane). */
+const PROJ_LENS: [number, number] = [T + 3092, GY - 313];
 const paintProp = (g: Ctx, p: Prop) => {
   const x = p.x;
   switch (p.kind) {
+    case 'flats': {
+      // scenery flats stacked against a rack: the backs (lauan on 1x3 frames, stenciled what they are), the painted
+      // stone and jungle fronts peeking past their edges
+      const fr = rampOf('#B89868');
+      box(g, x - 4, GY - 236, 6, 236, '#3A3E46'); box(g, x + 214, GY - 236, 6, 236, '#3A3E46'); box(g, x - 4, GY - 236, 224, 5, '#4A4E56');
+      for (const [dx, h, col, label, front] of [[0, 220, '#A88A5C', 'TEMPLE INT 3', '#7A7466'], [26, 200, '#B09468', 'ALTAR (L)', '#8E8676'], [52, 182, '#9C8054', 'JUNGLE 12', '#3E6B34']] as const) {
+        const fx = x + dx, fy = GY - h, fw = 150;
+        box(g, fx - 4, fy + 2, 4, h - 2, front); for (let y = fy + 6; y < GY; y += 14) box(g, fx - 4, y, 4, 4, dark(front, 0.3));
+        slab(g, fx, fy, fw, h, col, { edge: 2 });
+        for (const yy of [fy + 2, fy + h * 0.5, GY - 10]) { box(g, fx + 2, yy, fw - 4, 8, fr[3]); box(g, fx + 2, yy + 7, fw - 4, 1, fr[0]); }
+        for (const xx of [fx + 2, fx + fw - 10]) { box(g, xx, fy + 2, 8, h - 4, fr[3]); box(g, xx + 7, fy + 2, 1, h - 4, fr[0]); }
+        g.fillStyle = fr[2]; g.beginPath(); g.moveTo(fx + 10, fy + 10); g.lineTo(fx + 40, fy + 10); g.lineTo(fx + 10, fy + 40); g.closePath(); g.fill();
+        signAt(g, label, fx + fw / 2, fy + h * 0.3, 8, stencil(8, '#2A221C', undefined, dx));
+      }
+      break;
+    }
+    case 'bones': {
+      // a rolling tote of prop skeletons (bones sticking out of it every which way), and one hung up on a stand like a coat
+      for (let k = 0; k < 9; k++) {
+        const bx = x + 14 + hash(k * 3.3) * 90, by = GY - 76 - hash(k * 1.7) * 18, a = (hash(k * 5.1) - 0.5) * 1.6;
+        g.save(); g.translate(bx, by); g.rotate(a); box(g, -2, -18, 5, 26, INK); box(g, -1, -17, 3, 24, '#E7E2D2'); box(g, -3, -20, 7, 5, '#F1EDE2'); g.restore();
+      }
+      for (const [sx, sy] of [[x + 40, GY - 92], [x + 82, GY - 86]]) { ball(g, sx, sy, 9, '#EDE8DC'); box(g, sx - 5, sy - 2, 4, 4, INK); box(g, sx + 1, sy - 2, 4, 4, INK); box(g, sx - 3, sy + 4, 6, 2, '#8E8676'); }
+      slab(g, x, GY - 80, 120, 70, '#5B6068', { edge: 3 }); box(g, x + 2, GY - 80, 116, 3, '#8A9098');
+      for (let k = 0; k < 4; k++) box(g, x + 10 + k * 28, GY - 70, 2, 54, '#4A4E56');
+      box(g, x + 22, GY - 52, 76, 16, '#F1EFEA'); signAt(g, 'SKELETONS', x + 60, GY - 48, 6, print(6, '#1A0B06')); signAt(g, '(CLEAN)', x + 60, GY - 40, 6, print(6, '#B91C1C'));
+      for (const wx of [x + 10, x + 110]) ball(g, wx, GY - 5, 5, '#2A2A2E');
+      // (the one on the stand)
+      const hx = x + 160;
+      pole(g, hx, GY - 190, 4, 190, '#6B7280'); box(g, hx - 16, GY - 4, 36, 4, '#3A3E44');
+      ball(g, hx + 2, GY - 182, 10, '#EDE8DC'); box(g, hx - 3, GY - 184, 4, 4, INK); box(g, hx + 4, GY - 184, 4, 4, INK);
+      for (let k = 0; k < 5; k++) { box(g, hx - 12 + k, GY - 162 + k * 7, 28 - k * 2, 3, INK); box(g, hx - 11 + k, GY - 161 + k * 7, 26 - k * 2, 1, '#E7E2D2'); }
+      box(g, hx - 14, GY - 166, 3, 50, '#E7E2D2'); box(g, hx + 15, GY - 166, 3, 50, '#E7E2D2');
+      g.fillStyle = '#E7E2D2'; g.beginPath(); g.ellipse(hx + 2, GY - 118, 13, 6, 0, 0, Math.PI * 2); g.fill();
+      box(g, hx - 6, GY - 112, 3, 60, '#E7E2D2'); box(g, hx + 8, GY - 112, 3, 60, '#E7E2D2');
+      box(g, hx + 10, GY - 150, 20, 12, '#E8C130'); signAt(g, 'BOB', hx + 20, GY - 147, 6, print(6, INK));
+      break;
+    }
+    case 'paint': {
+      // the scenic shop's corner: a folding table of paint (STONE GRAY, MOSS, GOLD LEAF), brushes in a coffee can, a
+      // drop cloth spattered; a foam block on sawhorses, half carved into a stone head, the hot-wire bow on it
+      const r = rampOf('#7A7A80');
+      g.fillStyle = '#D8D0BC'; g.beginPath(); g.moveTo(x - 10, GY); g.lineTo(x + 250, GY); g.lineTo(x + 236, GY - 8); g.lineTo(x + 4, GY - 8); g.closePath(); g.fill();
+      for (let k = 0; k < 30; k++) box(g, x + hash(k * 2.3) * 240 - 6, GY - 7 + hash(k * 3.9) * 6, 3, 1, ['#7A7466', '#4C6B3A', '#E8B400', '#8E8676'][k % 4]);
+      box(g, x, GY - 66, 120, 6, r[3]); box(g, x, GY - 60, 120, 2, r[0]);
+      for (const lx of [x + 8, x + 106]) { box(g, lx, GY - 60, 3, 60, r[1]); box(g, lx + 3, GY - 60, 3, 60, r[0]); }
+      for (const [dx, col, lab] of [[6, '#8E8676', 'STONE'], [36, '#4C6B3A', 'MOSS'], [66, '#E8B400', 'GOLD'], [94, '#5A3A20', 'GRIME']] as const) {
+        slab(g, x + dx, GY - 92, 22, 26, '#C8CCD2', { edge: 2 }); box(g, x + dx, GY - 92, 22, 4, col); box(g, x + dx + 2, GY - 86, 18, 3, col);
+        for (let k = 0; k < 3; k++) box(g, x + dx + 4 + k * 6, GY - 88, 2, 6 + k * 3, col);
+        signAt(g, lab, x + dx + 11, GY - 76, 4, print(4, '#1A0B06'));
+      }
+      slab(g, x + 124, GY - 30, 16, 30, '#B91C1C', { edge: 2 }); for (let k = 0; k < 4; k++) { box(g, x + 126 + k * 3, GY - 48 + k, 2, 20, '#A8743A'); box(g, x + 126 + k * 3, GY - 50 + k, 2, 4, ['#8E8676', '#4C6B3A', '#E8B400', INK][k]); }
+      // (the foam block, half a stone head)
+      for (const lx of [x + 158, x + 228]) { g.strokeStyle = WOOD; g.lineWidth = 4; g.beginPath(); g.moveTo(lx - 10, GY); g.lineTo(lx, GY - 40); g.lineTo(lx + 10, GY); g.stroke(); }
+      box(g, x + 150, GY - 44, 90, 6, WOOD);
+      slab(g, x + 160, GY - 110, 70, 66, '#C8D8E0', { edge: 2 });
+      g.fillStyle = '#8E8676'; g.beginPath(); g.moveTo(x + 160, GY - 44); g.lineTo(x + 160, GY - 94); g.lineTo(x + 182, GY - 104); g.lineTo(x + 196, GY - 92); g.lineTo(x + 196, GY - 44); g.closePath(); g.fill();
+      box(g, x + 166, GY - 86, 10, 5, INK); box(g, x + 166, GY - 88, 10, 2, '#A8A090'); box(g, x + 178, GY - 76, 5, 12, '#A8A090'); box(g, x + 166, GY - 60, 24, 5, '#5A534C');
+      for (let k = 0; k < 7; k++) box(g, x + 198 + hash(k) * 30, GY - 44 + hash(k + 9) * 3, 4, 3, '#E0ECF0');
+      g.strokeStyle = '#6B7280'; g.lineWidth = 2; g.beginPath(); g.moveTo(x + 204, GY - 46); g.lineTo(x + 204, GY - 130); g.lineTo(x + 244, GY - 130); g.lineTo(x + 244, GY - 46); g.stroke();
+      g.strokeStyle = '#F87171'; g.lineWidth = 1; g.beginPath(); g.moveTo(x + 206, GY - 128); g.lineTo(x + 206, GY - 48); g.stroke();
+      break;
+    }
+    case 'projector': {
+      // the ghost's projector: on a crank-up stand (its tripod legs, the mast's sections), aimed left at the pane; the
+      // laptop running the cues on a road case at its foot, a cable up the mast
+      g.strokeStyle = INK; g.lineWidth = 4; g.beginPath(); g.moveTo(x - 30, GY); g.lineTo(x + 6, GY - 70); g.lineTo(x + 40, GY); g.moveTo(x + 6, GY - 70); g.lineTo(x + 6, GY); g.stroke();
+      g.strokeStyle = '#6B7280'; g.lineWidth = 2; g.beginPath(); g.moveTo(x - 30, GY); g.lineTo(x + 6, GY - 70); g.lineTo(x + 40, GY); g.stroke();
+      pole(g, x + 2, GY - 300, 8, 232, '#5A6068'); pole(g, x + 3, GY - 200, 6, 130, '#7D8794');
+      box(g, x - 2, GY - 210, 16, 6, '#3A3E44'); box(g, x + 12, GY - 212, 10, 4, '#B91C1C');
+      box(g, x + 8, GY - 296, 2, 226, '#141416');
+      slab(g, x - 26, GY - 326, 60, 26, '#E7E5E4', { edge: 2 }); box(g, x - 24, GY - 324, 56, 3, '#FFFFFF'); for (let k = 0; k < 6; k++) box(g, x + 4 + k * 4, GY - 318, 2, 12, '#A8A29E');
+      ball(g, PROJ_LENS[0], PROJ_LENS[1], 8, '#26262A'); ball(g, PROJ_LENS[0], PROJ_LENS[1], 4, '#93C5FD', false); box(g, PROJ_LENS[0] - 2, PROJ_LENS[1] - 3, 2, 2, '#FFFFFF');
+      box(g, x + 26, GY - 304, 4, 3, '#22C55E');
+      slab(g, x + 40, GY - 50, 80, 50, '#26262A', { edge: 2 }); for (const cx of [x + 42, x + 112]) for (const cy of [GY - 48, GY - 8]) box(g, cx, cy, 6, 6, '#9CA3AF');
+      slab(g, x + 52, GY - 58, 44, 8, '#3A3E44', { edge: 1 }); g.fillStyle = INK; g.beginPath(); g.moveTo(x + 56, GY - 58); g.lineTo(x + 52, GY - 86); g.lineTo(x + 92, GY - 86); g.lineTo(x + 92, GY - 58); g.closePath(); g.fill();
+      box(g, x + 55, GY - 84, 35, 24, '#1E3A5F'); for (let k = 0; k < 5; k++) box(g, x + 58, GY - 81 + k * 4, k === 2 ? 28 : 20, 2, k === 2 ? '#FDE047' : '#93C5FD');
+      signAt(g, 'GHOST CUE', x + 80, GY - 30, 6, stencil(6, '#E8C130'));
+      break;
+    }
+    case 'snakes': {
+      // spare serpent heads on steel shelving, eyes dead, a tag on the shelf
+      const r = rampOf('#2F7A3A');
+      for (const lx of [x, x + 156]) { box(g, lx, GY - 200, 5, 200, INK); box(g, lx + 1, GY - 200, 3, 200, '#7D8794'); }
+      for (const sy of [GY - 196, GY - 126, GY - 56]) {
+        box(g, x, sy, 161, 6, '#5A6068'); box(g, x, sy, 161, 1, '#A8B0BA');
+        if (sy < GY - 60) for (let k = 0; k < 3; k++) {
+          const hx = x + 14 + k * 48, hy = sy + 70 - 8;
+          g.fillStyle = INK; g.beginPath(); g.moveTo(hx, hy - 30); g.lineTo(hx + 40, hy - 22); g.lineTo(hx + 44, hy - 10); g.lineTo(hx, hy); g.closePath(); g.fill();
+          g.fillStyle = r[k === 1 ? 1 : 2]; g.beginPath(); g.moveTo(hx + 1, hy - 28); g.lineTo(hx + 38, hy - 21); g.lineTo(hx + 42, hy - 11); g.lineTo(hx + 1, hy - 2); g.closePath(); g.fill();
+          box(g, hx + 2, hy - 27, 30, 3, r[3]); box(g, hx + 24, hy - 22, 6, 4, '#57534E'); box(g, hx + 26, hy - 22, 2, 4, INK);
+          for (let q = 0; q < 4; q++) box(g, hx + 6 + q * 8, hy - 15 + (q % 2) * 3, 4, 2, r[0]);
+        }
+      }
+      box(g, x + 30, GY - 52, 100, 46, '#3A3E44'); box(g, x + 32, GY - 50, 96, 2, '#5A6068'); signAt(g, 'RAM PARTS', x + 80, GY - 34, 6, stencil(6, '#E8C130'));
+      box(g, x + 40, GY - 130, 84, 12, '#F1EFEA'); signAt(g, 'SPARES - DO NOT FEED', x + 82, GY - 127, 4, print(4, '#B91C1C'));
+      break;
+    }
+    case 'dimmer': {
+      // the dimmer racks and the DMX rack: black cabinets, rows of breakers, the patch bay's cables in loops; a stool
+      for (let k = 0; k < 2; k++) {
+        const rx = x + k * 56;
+        slab(g, rx, GY - 190, 52, 190, '#141416', { edge: 3 });
+        for (let y = GY - 180; y < GY - 30; y += 12) { box(g, rx + 6, y, 40, 8, '#26262A'); for (let q = 0; q < 6; q++) box(g, rx + 8 + q * 6, y + 2, 4, 4, '#3A3A42'); }
+        box(g, rx + 6, GY - 24, 40, 10, '#2A2A2E');
+      }
+      g.strokeStyle = '#2563EB'; g.lineWidth = 2; for (let k = 0; k < 4; k++) { g.beginPath(); g.moveTo(x + 64 + k * 8, GY - 150); g.quadraticCurveTo(x + 50 + k * 6, GY - 70, x + 70 + k * 10, GY - 30); g.stroke(); }
+      slab(g, x + 118, GY - 48, 26, 6, '#3A3E44', { edge: 1 }); for (const lx of [x + 120, x + 138]) box(g, lx, GY - 42, 3, 42, '#6B7280');
+      sign(g, x + 6, GY - 214, 100, 16, '#B91C1C', 'DIMMERS', '#F8FAFC', 6, INK, stencil(6, '#F8FAFC'));
+      break;
+    }
     case 'case': {
       for (const [dx, h, w, col] of [[0, 70, 90, '#2A2A2E'], [94, 50, 70, '#26262A'], [10, 40, 70, '#303036']] as const) {
         const y = dx === 10 ? GY - 110 : GY - h;
@@ -471,7 +717,7 @@ const paintProp = (g: Ctx, p: Prop) => {
     case 'title': {
       // (hung from the truss on chains, way up: the crew's own sign)
       // (its chains, up out of sight, are drawn over the stamp: drawProps)
-      sign(g, x - 10, GY - 470, 280, 28, '#5A1A0C', 'TEMPLE OF THE JAGUAR', '#F2C14E', 10, '#7A5224', plank({ sx: 2, sy: 2 }, '#F2C14E', undefined, '#2A0A04', 5));
+      sign(g, x - 10, GY - 470, 280, 28, '#5A1A0C', 'TEMPLE OF THE JAGUAR', '#F2C14E', 10, '#7A5224', gilt({ sx: 2, sy: 2 }, '#2A0A04', 5));
       sign(g, x + 10, GY - 424, 240, 30, '#E7E2D2', 'CAST AND CREW ONLY', '#1A0B06', 7, '#6B7280', enamel({ sx: 1, sy: 2 }, '#1A0B06'));
       signAt(g, 'NO FLASH PHOTOGRAPHY OF THE MAGIC', x + 130, GY - 400, 6, print(6, '#B91C1C'));
       for (const cx of [x + 30, x + 230]) for (let y = GY - 438; y < GY - 428; y += 4) box(g, cx, y, 2, 3, '#4A4A4E');
@@ -495,16 +741,23 @@ const paintProp = (g: Ctx, p: Prop) => {
 };
 const PROP_W: Record<Prop['kind'], [number, number]> = {
   case: [-6, 180], rack: [-40, 170], board: [-20, 140], ladder: [-20, 80], break: [-10, 200], cooler: [-4, 110], title: [-20, 300], cable: [-10, 190],
+  flats: [-8, 232], bones: [-4, 190], paint: [-14, 270], projector: [-36, 160], snakes: [-4, 168], dimmer: [-2, 150],
 };
-const drawProps = (c: Ctx, eye: Eye) => {
+const drawProps = (c: Ctx, eye: Eye, f: number) => {
   const [s0, s1] = spanAt(eye, PROPS_D, 40);
   inDepth(c, eye, PROPS_D, () => {
     for (const p of PROPS) {
       const [a, w] = PROP_W[p.kind];
       if (p.x + a + w < s0 || p.x + a > s1) continue;
-      const top = p.kind === 'title' ? GY - 480 : GY - 270;
+      const top = p.kind === 'title' ? GY - 480 : p.kind === 'projector' ? GY - 340 : GY - 270;
       if (p.kind === 'title') for (const cx of [p.x + 10, p.x + 250]) chain(c, cx, CHAIN_TOP, GY - 470, '#4A4A4E');
       stamp(c, `tpl-prop-${p.x}`, p.x + a, top, w, GY - top + 6, g => paintProp(g, p));
+      // (what's live on them: the dimmers' LEDs, the projector's beam to the pane while the ghost's up)
+      if (p.kind === 'dimmer') for (let k = 0; k < 2; k++) for (let y = GY - 178; y < GY - 30; y += 12) { const on = hash(y * 0.3 + k + Math.floor(f / 9) * 0.17) < 0.6; box(c, p.x + k * 56 + 44, y + 2, 2, 2, on ? '#22C55E' : '#14532D'); }
+      if (p.kind === 'projector' && f % 120 < 60) {
+        const [lx, ly] = PROJ_LENS;
+        for (let k = 0; k < 3; k++) quad(c, `rgba(200, 225, 255, ${(0.05 - k * 0.013).toFixed(3)})`, [lx + 6, ly - 3 - k * 2], [lx + 6, ly + 3 + k * 2], [lx + 200, ly + 100 + k * 22], [lx + 200, ly - 10 - k * 18]);
+      }
     }
   });
 };
@@ -632,7 +885,7 @@ const drawCatapult = (c: Ctx, eye: Eye, state: GameState, tp: Temple) => {
   box(c, 20, -6, 6, 12, '#3A3E44'); box(c, 70, -6, 6, 12, '#3A3E44');
   c.fillStyle = INK; c.beginPath(); c.arc(112, 0, 16, -Math.PI / 2, Math.PI / 2, true); c.fill();
   c.fillStyle = '#4A4E56'; c.beginPath(); c.arc(112, 0, 14, -Math.PI / 2, Math.PI / 2, true); c.fill();
-  if (manned && t > 20 && wind > 0.95) ball(c, 104, 0, 11, '#8A8178');
+  if (manned && t > 20 && wind > 0.95) drawBoulder(c, 104, 0, 11, 0);
   c.restore();
   // (the winch it's wound back with, the rope to the arm)
   slab(c, X + 50, GY - 74, 24, 40, '#5A3A20', { edge: 2 });
@@ -644,7 +897,7 @@ const drawCatapult = (c: Ctx, eye: Eye, state: GameState, tp: Temple) => {
   // (the pile of them: real ones; the placard says so, and somebody's added to it)
   for (let i = 0; i < 6; i++) {
     const bx = X + 120 + (i % 3) * 22 + (i > 2 ? 11 : 0), by = GY - 12 - (i > 2 ? 20 : 0);
-    if (i < 5) ball(c, bx, by, 12, ['#8A8178', '#7A736A', '#968C80'][i % 3]);
+    if (i < 5) drawBoulder(c, bx, by, 12, i * 1.7);
   }
   slab(c, X + 112, GY - 96, 80, 34, '#E7E2D2', { edge: 2 });
   signAt(c, 'BOULDERS', X + 152, GY - 82, 6, print(6, '#1A0B06'));
@@ -660,15 +913,25 @@ const drawDartWall = (c: Ctx, eye: Eye, state: GameState, tp: Temple) => {
   // the wall: from this side (the ride's), carved stone faces in fiberglass; the holes in their mouths
   block3d(c, eye, X, DART_TOP, 40, GY, '#7A7466', 0.86, g => {
     slab(g, X, DART_TOP, 40, GY - DART_TOP, '#7A7466', { edge: 4 });
+    // (the block courses, painted on the foam: each a lit top, a dark joint)
+    const wr = rampOf('#7A7466');
+    for (let y = DART_TOP + 8; y < GY; y += 20) { box(g, X + 2, y, 36, 1, wr[0]); box(g, X + 2, y + 1, 36, 1, wr[3]); box(g, X + 2 + ((y / 20) % 2) * 18, y - 19, 1, 19, wr[0]); }
     for (let k = 0; k < 3; k++) {
       const fy = DART_TOP + 18 + k * 60, r = rampOf('#8E8676');
-      box(g, X + 4, fy, 32, 46, r[1]); box(g, X + 6, fy + 2, 28, 42, r[2]);
-      box(g, X + 8, fy + 10, 8, 4, INK); box(g, X + 24, fy + 10, 8, 4, INK);
-      box(g, X + 8, fy + 8, 8, 2, r[3]); box(g, X + 24, fy + 8, 8, 2, r[3]);
-      box(g, X + 17, fy + 16, 6, 10, r[3]); box(g, X + 10, fy + 32, 20, 6, r[0]);
-      box(g, X + 6, fy + 2, 28, 3, '#4C6B3A');
+      // (a carved face: the slab it's on, the brow, sunk eyes, a broad nose, a grimace; lit from the upper left)
+      box(g, X + 3, fy - 1, 34, 48, INK);
+      box(g, X + 4, fy, 32, 46, r[1]); box(g, X + 6, fy + 2, 28, 42, r[2]); box(g, X + 6, fy + 2, 4, 42, r[3]); checker(g, X + 10, fy + 2, 1, 42, r[3]);
+      box(g, X + 7, fy + 6, 26, 3, r[4]); box(g, X + 7, fy + 9, 26, 1, r[0]);
+      box(g, X + 8, fy + 11, 8, 5, INK); box(g, X + 24, fy + 11, 8, 5, INK); box(g, X + 9, fy + 14, 6, 1, r[1]); box(g, X + 25, fy + 14, 6, 1, r[1]);
+      box(g, X + 16, fy + 16, 8, 11, r[3]); box(g, X + 16, fy + 16, 2, 11, r[4]); box(g, X + 22, fy + 18, 2, 9, r[1]); box(g, X + 15, fy + 26, 10, 2, r[0]);
+      box(g, X + 10, fy + 32, 20, 7, INK); box(g, X + 11, fy + 33, 18, 5, r[0]);
+      for (let q = 0; q < 4; q++) box(g, X + 12 + q * 4, fy + 33, 2, 2, r[3]);
+      box(g, X + 9, fy + 39, 22, 1, r[4]);
+      // (moss in its creases; a chip off the corner, the foam showing yellow under the paint)
+      box(g, X + 6, fy + 2, 28, 3, '#4C6B3A'); checker(g, X + 6, fy + 5, 28, 2, '#3E5A2E'); box(g, X + 30, fy + 28, 4, 10, '#3E5A2E');
+      if (k === 1) { box(g, X + 29, fy + 3, 6, 5, '#E8C66A'); box(g, X + 30, fy + 4, 4, 2, '#F2D88A'); }
     }
-    box(g, X, DART_TOP, 40, 6, '#4C6B3A');
+    box(g, X, DART_TOP, 40, 6, '#4C6B3A'); checker(g, X, DART_TOP + 6, 40, 2, '#3E5A2E');
   }, { key: 'tpl-dart-wall', part: 'front' });
   // (the holes: glowing before a volley)
   const tell = crewed(state, 2) && tp.dartT <= DART_TELL;
@@ -710,21 +973,20 @@ const drawGhost = (c: Ctx, eye: Eye, f: number) => {
   // (his spot: on when he's doing his bit)
   const on = (f % 120) < 60;
   const [sx, sy] = at(eye, GHOST_X - 70, GY - 200, 0.94);
-  if (on) for (let k = 0; k < 3; k++) quad(c, `rgba(220, 240, 255, ${0.05 - k * 0.012})`, [sx - 4 - k * 3, sy], [sx + 4 + k * 3, sy], [sx + 30 + k * 10, sy + 186], [sx - 30 - k * 10, sy + 186]);
-  // (him, in the suit: the bones painted on)
+  // (a soft wash on him from a lamp in the booth's top, not a beam: the lamp's housing, its glow round him)
+  box(c, sx - 8, sy - 2, 16, 6, '#1A1A1E'); box(c, sx - 6, sy + 4, 12, 1, on ? '#E0F2FE' : '#3A3A40');
+  if (on) steppedGlow(c, sx, sy + 110, 70, '#BAE6FD', 0.12, 0.0, 4);
+  // (him, in the suit: the bones painted on, a skull hood; arms up and waving while he's on)
   c.save(); c.translate(GHOST_X - 70, GY); c.scale(-1, 1);
-  drawPerson(c, { seed: 909, outfit: 'stage', f, pose: on ? 'fly' : 'stand', mood: 'bored' });
+  drawBoneSuit(c, f, on);
   c.restore();
-  const g = GHOST_X - 70;
-  for (let i = 0; i < 4; i++) box(c, g - 6, GY - 50 + i * 8, 12, 2, on ? '#F8FAFC' : '#A8A29E');
-  box(c, g - 1, GY - 54, 2, 34, on ? '#F8FAFC' : '#A8A29E');
   // (the pane: the frame on its stand, the glass, the light catching it in bands; his reflection on it, faint)
   c.save(); c.translate(GHOST_X, GY); c.rotate(-0.35);
   box(c, -2, -180, 4, 180, '#9CA3AF');
   c.fillStyle = 'rgba(186, 230, 253, 0.12)'; c.fillRect(2, -176, 40, 176);
   for (let k = 0; k < 4; k++) box(c, 6 + k * 9, -176, 2, 176, `rgba(224, 242, 254, ${0.16 - k * 0.03})`);
   box(c, 2, -178, 42, 3, '#9CA3AF'); box(c, 42, -180, 3, 180, '#6B7280');
-  if (on) { c.globalAlpha = 0.18; c.translate(22, -10); c.scale(0.8, 0.8); drawPerson(c, { seed: 909, outfit: 'stage', f, pose: 'fly', mood: 'bored' }); c.globalAlpha = 1; }
+  if (on) { c.globalAlpha = 0.22; c.translate(22, -10); c.scale(0.8, 0.8); drawBoneSuit(c, f, true); c.globalAlpha = 1; }
   c.restore();
   // (and the note taped to the frame)
   box(c, GHOST_X + 3, GY - 92, 46, 26, '#F1EFEA'); box(c, GHOST_X + 18, GY - 95, 16, 4, TAPE_Y);
@@ -736,11 +998,15 @@ const drawGhost = (c: Ctx, eye: Eye, f: number) => {
 };
 
 const drawFogMachine = (c: Ctx, f: number) => {
-  const X = FOG_X;
+  const X = FOG_X, r = rampOf('#2E2E34');
   slab(c, X, GY - 34, 50, 34, '#26262A', { edge: 2 });
-  for (let k = 0; k < 5; k++) box(c, X + 6 + k * 6, GY - 28, 3, 12, '#111114');
-  box(c, X + 50, GY - 24, 10, 8, '#3A3E44'); box(c, X + 58, GY - 26, 4, 12, '#52565E');
-  box(c, X + 10, GY - 40, 30, 6, '#3A3E44');
+  box(c, X + 2, GY - 32, 46, 2, r[3]); box(c, X + 2, GY - 30, 2, 28, r[3]); box(c, X + 2, GY - 6, 46, 4, r[0]);
+  for (let k = 0; k < 5; k++) { box(c, X + 6 + k * 6, GY - 28, 3, 12, '#111114'); box(c, X + 6 + k * 6, GY - 28, 3, 1, r[4]); }
+  box(c, X + 50, GY - 24, 10, 8, '#3A3E44'); box(c, X + 50, GY - 24, 10, 1, '#6A707A'); box(c, X + 58, GY - 26, 4, 12, '#52565E'); box(c, X + 58, GY - 26, 1, 12, '#8A909A');
+  box(c, X + 10, GY - 40, 30, 6, '#3A3E44'); box(c, X + 10, GY - 40, 30, 1, '#6A707A');
+  box(c, X + 4, GY - 14, 30, 8, '#E8C130'); signAt(c, 'FOG-O-MATIC', X + 19, GY - 11, 4, print(4, INK));
+  // (the DMX cable from the dimmer racks, and the remote on its cord)
+  c.strokeStyle = '#2563EB'; c.lineWidth = 2; c.beginPath(); c.moveTo(X + 50, GY - 8); c.quadraticCurveTo(X + 66, GY + 2, X + 90, GY - 2); c.stroke();
   box(c, X + 38, GY - 12, 4, 4, f % 40 < 20 ? '#EF4444' : '#450A0A');
   // (the juice, in a jug on top, its tube)
   slab(c, X + 4, GY - 62, 20, 24, '#D8E8F0', { edge: 2 }); box(c, X + 6, GY - 54, 16, 14, '#A8D0E8');
@@ -819,10 +1085,18 @@ const drawSnakeHead = (c: Ctx, state: GameState, tp: Temple) => {
   c.fillStyle = INK; c.beginPath(); c.moveTo(hx + 26, y - 30); c.lineTo(hx - 34, y - 18); c.lineTo(hx - 46, y - 4); c.lineTo(hx + 26, y + 6); c.closePath(); c.fill();
   c.fillStyle = r[2]; c.beginPath(); c.moveTo(hx + 24, y - 28); c.lineTo(hx - 33, y - 17); c.lineTo(hx - 44, y - 5); c.lineTo(hx + 24, y + 4); c.closePath(); c.fill();
   c.fillStyle = r[3]; c.beginPath(); c.moveTo(hx + 24, y - 28); c.lineTo(hx - 33, y - 17); c.lineTo(hx - 30, y - 12); c.lineTo(hx + 24, y - 20); c.closePath(); c.fill();
-  for (let k = 0; k < 6; k++) box(c, hx - 24 + k * 8, y - 14 + (k % 2) * 4, 4, 2, r[1]);
-  // (the jaw)
+  // (the scales: rows of them, each a lit lip over a shadow, staggered; the brow ridge over the eye; the nostril)
+  for (let row = 0; row < 3; row++) for (let k = 0; k < 7 - row * 2; k++) {
+    const sx = hx - 22 + row * 6 + k * 8 + (row % 2) * 4, sy = y - 22 + row * 6 + Math.round((sx - hx) * 0.08);
+    box(c, sx, sy, 6, 1, r[4]); box(c, sx, sy + 1, 6, 2, r[3]); box(c, sx + 1, sy + 3, 5, 1, r[1]);
+  }
+  checker(c, hx - 28, y - 9, 50, 2, r[1]);
+  box(c, hx - 21, y - 23, 14, 3, r[1]); box(c, hx - 21, y - 24, 14, 1, r[4]);
+  box(c, hx - 41, y - 10, 3, 2, INK);
+  // (the jaw: its belly plates, pale, banded)
   c.fillStyle = INK; c.beginPath(); c.moveTo(hx + 24, y + 4); c.lineTo(hx - 42, y + open); c.lineTo(hx - 34, y + 12 + open); c.lineTo(hx + 24, y + 26); c.closePath(); c.fill();
   c.fillStyle = r[1]; c.beginPath(); c.moveTo(hx + 22, y + 6); c.lineTo(hx - 40, y + 1 + open); c.lineTo(hx - 33, y + 10 + open); c.lineTo(hx + 22, y + 24); c.closePath(); c.fill();
+  for (let k = 0; k < 6; k++) { const bx = hx + 14 - k * 9, by = y + 20 - k * 2 + open * (k / 6); box(c, bx - 4, by, 7, 3, '#C8C27A'); box(c, bx - 4, by, 7, 1, '#E8E2A0'); box(c, bx - 4, by + 3, 7, 1, '#6E6A3A'); }
   if (open > 3) {
     c.fillStyle = '#7F1D1D'; c.beginPath(); c.moveTo(hx + 10, y + 4); c.lineTo(hx - 42, y - 4); c.lineTo(hx - 40, y + open); c.lineTo(hx + 10, y + 10); c.closePath(); c.fill();
     // fangs, a forked tongue
@@ -963,6 +1237,54 @@ const drawSwitch = (c: Ctx, eye: Eye, f: number, thrown: boolean) => {
   seg(c, at(eye, SWITCH_X + 20, GY - 2, tip), at(eye, SWITCH_X + 140, GY - 2, 1), '#D1D5DB', 2);
 };
 
+/**
+ * The loading platform's own kit, set back behind the track (GATE_D): the load gates (a row a car, numbered, their
+ * swing bars, the row plates), the grouper at her podium waving the next lot up, the height check (a carved jaguar
+ * on a post, its paw out at the line), and a lost and found bin of what the ride's shaken out of people.
+ */
+const GATE_D = 0.94;
+const drawStationDressing = (c: Ctx, eye: Eye, f: number) => {
+  const [s0, s1] = spanAt(eye, GATE_D, 80);
+  const gx0 = STATION_X + 640, gx1 = BOOTH_X - 90;
+  if (gx1 < s0 || STATION_X + 500 > s1) return;
+  inDepth(c, eye, GATE_D, () => {
+    stamp(c, 'tpl-gates', STATION_X + 480, GY - 140, gx1 - STATION_X - 470, 146, g => {
+      // the height check: a jaguar carved on a post (painted foam), its paw out level with the line
+      const hx = STATION_X + 520, st = rampOf('#8E8676');
+      slab(g, hx, GY - 120, 22, 120, '#7A7466', { edge: 2 }); box(g, hx + 2, GY - 120, 6, 120, st[3]);
+      for (let y = GY - 100; y < GY; y += 22) box(g, hx + 2, y, 18, 2, st[1]);
+      g.fillStyle = INK; g.beginPath(); g.ellipse(hx + 11, GY - 128, 15, 12, 0, 0, Math.PI * 2); g.fill();
+      g.fillStyle = '#D99A2B'; g.beginPath(); g.ellipse(hx + 11, GY - 128, 14, 11, 0, 0, Math.PI * 2); g.fill();
+      box(g, hx + 1, GY - 138, 6, 6, '#D99A2B'); box(g, hx + 16, GY - 138, 6, 6, '#D99A2B');
+      box(g, hx + 4, GY - 131, 5, 3, INK); box(g, hx + 14, GY - 131, 5, 3, INK); box(g, hx + 5, GY - 131, 2, 1, '#FDE047'); box(g, hx + 15, GY - 131, 2, 1, '#FDE047');
+      box(g, hx + 9, GY - 125, 5, 3, '#3A2008'); for (const [dx, dy] of [[-1, -122], [20, -124], [6, -136]] as const) box(g, hx + dx, GY + dy, 3, 2, '#3A2008');
+      slab(g, hx + 22, GY - 98, 30, 8, '#D99A2B', { edge: 2 }); for (let k = 0; k < 3; k++) box(g, hx + 46, GY - 97 + k * 2, 5, 1, '#F8FAFC');
+      slab(g, hx - 6, GY - 70, 34, 30, '#5A1A0C', { edge: 2 });
+      signAt(g, 'YOU MUST', hx + 11, GY - 64, 4, print(4, '#F2C14E')); signAt(g, 'BE THIS', hx + 11, GY - 57, 4, print(4, '#F2C14E')); signAt(g, 'TALL', hx + 11, GY - 50, 4, print(4, '#F2C14E'));
+      // the load gates: posts, swing bars, the row plates over them
+      for (let k = 0; k < 3; k++) {
+        const x = gx0 + k * ((gx1 - 70 - gx0) / 3);
+        for (const px0 of [x, x + 70]) { box(g, px0 - 1, GY - 52, 8, 52, INK); box(g, px0, GY - 51, 6, 51, '#B8963C'); box(g, px0, GY - 51, 2, 51, '#F2D88A'); box(g, px0 - 3, GY - 3, 12, 3, '#7A6020'); }
+        box(g, x + 6, GY - 40, 64, 5, INK); box(g, x + 6, GY - 39, 64, 3, '#E8C130'); box(g, x + 6, GY - 39, 64, 1, '#FDE68A');
+        for (let q = 0; q < 4; q++) box(g, x + 12 + q * 16, GY - 39, 6, 3, INK);
+        slab(g, x + 18, GY - 76, 40, 18, '#1A1A1A', { edge: 2 }); signAt(g, `ROW ${k + 1}`, x + 38, GY - 70, 6, enamel(6, '#F2C14E', INK));
+        box(g, x + 36, GY - 58, 3, 6, '#3A3A3E');
+      }
+      // the lost and found
+      const lx = gx1 - 8;
+      slab(g, lx - 60, GY - 50, 56, 50, '#3A5A8A', { edge: 2 }); box(g, lx - 58, GY - 50, 52, 3, '#5A7AAA');
+      for (const [dx, dy, w, h, col] of [[-54, -60, 14, 12, '#E85AA8'], [-40, -64, 18, 6, '#1C1C24'], [-24, -58, 10, 10, '#F2B02A'], [-50, -56, 8, 8, '#93C5FD'], [-18, -62, 12, 4, '#E8E2D2']] as const) slab(g, lx + dx, GY + dy, w, h, col, { edge: 1 });
+      box(g, lx - 56, GY - 34, 48, 14, '#F1EFEA'); signAt(g, 'LOST + FOUND', lx - 32, GY - 30, 4, print(4, '#1E3A8A'));
+      signAt(g, '(MOSTLY TEETH)', lx - 32, GY - 23, 4, print(4, '#B91C1C'));
+    });
+    // the grouper at her podium, pointing the next lot to their row
+    const px0 = STATION_X + 590;
+    drawParkGuest(c, px0 - 14, GY, { seed: 4417, woman: true, f, outfit: 'operator', pose: 'point', mood: 'bored' });
+    slab(c, px0, GY - 48, 26, 48, '#6B4A2C', { edge: 2 }); box(c, px0 - 2, GY - 52, 30, 5, '#3A2A1A'); box(c, px0 + 4, GY - 40, 18, 10, '#F1EFEA');
+    box(c, px0 + 10, GY - 62, 2, 10, '#18181B'); ball(c, px0 + 11, GY - 64, 3, '#26262A');
+  });
+};
+
 const drawStation = (c: Ctx, eye: Eye, state: GameState, tp: Temple) => {
   const f = state.frame;
   // the banner over the station, hung from the truss
@@ -1011,6 +1333,7 @@ const drawStation = (c: Ctx, eye: Eye, state: GameState, tp: Temple) => {
   // operators in it (behind the glass), the console, the lever in reach of her; the cable from it to the switch
   const ld = tp.loading;
   const thrown = !!ld && ld.step === 4 && ld.t >= 10;
+  drawStationDressing(c, eye, f);
   drawSwitch(c, eye, f, thrown);
   block3d(c, eye, BOOTH_X, GY - 130, 170, GY, '#6B4A2C', BOOTH_BACK, g => {
     slab(g, BOOTH_X, GY - 130, 170, 130, '#6B4A2C', { edge: 4 });
@@ -1023,10 +1346,10 @@ const drawStation = (c: Ctx, eye: Eye, state: GameState, tp: Temple) => {
     c.save(); c.beginPath(); c.rect(BOOTH_X + 8, GY - 116, 154, 54); c.clip();
     box(c, BOOTH_X + 8, GY - 116, 154, 54, '#2A3A44');
     for (const [i, seed, woman] of [[0, 818, false], [1, 1331, true]] as const) {
-      c.save(); c.translate(BOOTH_X + 50 + i * 70, GY - 30); c.scale(-1, 1);
       const voice = i ? 'm2.operator2' : 'm2.operator';
-      drawPerson(c, { seed, woman, outfit: 'operator', f, mood: i ? 'bored' : 'shocked', talking: ld?.said?.who === voice });
-      c.restore();
+      // (talking: the mouth going, a frame shut and a frame open)
+      const talk = ld?.said?.who === voice && (f >> 3) % 2 === 1;
+      drawParkGuest(c, BOOTH_X + 50 + i * 70, GY - 30, { seed, woman, f, outfit: 'operator', facing: -1, mood: i ? (talk ? 'shocked' : 'bored') : (talk ? 'angry' : 'shocked') });
     }
     // (the lever: on the console in there, at her elbow; thrown when they send him off)
     c.save(); c.translate(LEVER_X, GY - 62); c.rotate(thrown ? 0.75 : -0.35);
@@ -1082,8 +1405,9 @@ export const drawTempleBack = (c: Ctx, state: GameState, tp: Temple) => {
   };
   const layers: [number, () => void][] = [
     [TRUSS_D, () => drawTruss(c, eye, f)],
+    [CAT_D, () => drawCatwalk(c, eye, f)],
     [FACADE_D, () => drawFacade(c, eye, f)],
-    [PROPS_D, () => drawProps(c, eye)],
+    [PROPS_D, () => drawProps(c, eye, f)],
     [FAR_D, () => drawQueueFar(c, eye)],
   ];
   // (the line's rows cull themselves by where they land on screen, as do the far end and its sign)
@@ -1118,9 +1442,39 @@ export const drawTempleBack = (c: Ctx, state: GameState, tp: Temple) => {
   }
 };
 
+/**
+ * A boulder (a real one: granite): lit from the upper left in steps (the light stays put as it turns), dithered where
+ * the steps meet, inked; its cracks, chips and a lichen patch turn with it (eight frames of the turn, each stamped).
+ */
+const paintBoulder = (g: Ctx, r: number, turn: number) => {
+  const st = rampOf('#8A8178');
+  g.save();
+  g.fillStyle = INK; g.beginPath(); g.arc(0, 0, r + 1, 0, Math.PI * 2); g.fill();
+  g.save(); g.beginPath(); g.arc(0, 0, r, 0, Math.PI * 2); g.clip();
+  // (the steps: rings about a spot up and to the left)
+  const lx = -r * 0.35, ly = -r * 0.4;
+  for (const [k, col] of [[1.9, st[0]], [1.45, st[1]], [1.05, st[2]], [0.62, st[3]], [0.28, st[4]]] as const) { g.fillStyle = col; g.beginPath(); g.arc(lx, ly, r * k, 0, Math.PI * 2); g.fill(); }
+  for (let yy = -r; yy < r; yy += 2) for (let xx = -r + ((yy / 2) & 1); xx < r; xx += 2) { const d = Math.hypot(xx - lx, yy - ly) / r; if (Math.abs(d - 1.05) < 0.08 || Math.abs(d - 1.45) < 0.08) { g.fillStyle = d < 1.25 ? st[1] : st[0]; g.fillRect(xx, yy, 1, 1); } }
+  // (what turns with it: a crack and its branch, chips, flecks of mica, a lichen patch)
+  g.rotate(turn);
+  g.fillStyle = st[0]; g.fillRect(-2, -r * 0.8, 2, r * 0.75); g.fillRect(-2, -r * 0.1, r * 0.55, 2); g.fillRect(r * 0.5, -r * 0.1, 2, r * 0.4);
+  g.fillStyle = st[4]; g.fillRect(0, -r * 0.8, 1, r * 0.7);
+  for (const [cx, cy] of [[r * 0.35, r * 0.25], [-r * 0.6, r * 0.35], [r * 0.1, -r * 0.5]]) { g.fillStyle = st[0]; g.fillRect(cx, cy, 3, 2); g.fillStyle = st[4]; g.fillRect(cx, cy - 1, 3, 1); }
+  for (let k = 0; k < 5; k++) { g.fillStyle = '#E8E4DC'; g.fillRect(Math.round((hash(k * 3.1) - 0.5) * r * 1.4), Math.round((hash(k * 5.7) - 0.5) * r * 1.4), 1, 1); }
+  g.fillStyle = '#7A8A4A'; g.fillRect(-r * 0.7, -r * 0.1, 4, 3); g.fillRect(-r * 0.6, -r * 0.2, 3, 2);
+  g.restore();
+  g.restore();
+};
+const drawBoulder = (c: Ctx, x: number, y: number, r: number, turn: number) => {
+  const k = ((Math.round(turn / (Math.PI / 4)) % 8) + 8) % 8;
+  c.save(); c.translate(Math.round(x), Math.round(y));
+  stamp(c, `tpl-boulder-${r}-${k}`, -r - 2, -r - 2, r * 2 + 4, r * 2 + 4, g => paintBoulder(g, r, k * Math.PI / 4));
+  c.restore();
+};
+
 /** The cart at the station, whoever's still in it. */
 const drawCart = (c: Ctx, x: number, f: number, riders: number[]) => {
-  riders.forEach(i => { c.save(); c.translate(x + SEAT[i], GY - 12); c.scale(0.9, 0.9); drawPerson(c, { seed: GUESTS[i].seed, woman: GUESTS[i].woman, outfit: 'guest', pose: 'sit', f, mood: 'happy' }); c.restore(); });
+  riders.forEach(i => drawParkGuest(c, x + SEAT[i], GY + 4, { seed: GUESTS[i].seed, woman: GUESTS[i].woman, f, pose: 'sit', mood: 'happy', scale: 0.9 }));
   drawRideCart(c, x, GY, f, JAGUAR_EXPRESS, false);
 };
 
@@ -1132,13 +1486,27 @@ const drawForeground = (c: Ctx, eye: Eye) => {
     for (let x = Math.floor(s0 / 900) * 900; x < s1; x += 900) {
       const k = hash(x * 0.71);
       const cx = x + k * 400;
-      if (k < 0.5) {
-        // a road case, its top just in at the bottom
-        slab(c, cx, GY - 40, 160, 60, '#141416', { edge: 2 });
-        for (const bx of [cx + 2, cx + 150]) box(c, bx, GY - 38, 8, 8, '#4A4E56');
+      if (k < 0.35) {
+        // a road case, its top just in at the bottom: black ply, the aluminum edging, ball corners, a latch, stenciled
+        stamp(c, `tpl-fg-case-${x}`, cx - 4, GY - 46, 172, 70, g => {
+          slab(g, cx, GY - 40, 160, 60, '#141416', { edge: 2 });
+          box(g, cx, GY - 40, 160, 4, '#3A3E46'); box(g, cx, GY - 40, 160, 1, '#6A707A'); box(g, cx, GY - 26, 160, 3, '#2A2C32');
+          for (const bx of [cx - 2, cx + 150]) { box(g, bx, GY - 42, 12, 10, INK); box(g, bx + 1, GY - 41, 10, 8, '#4A4E56'); box(g, bx + 2, GY - 40, 4, 3, '#8A909A'); }
+          box(g, cx + 70, GY - 36, 20, 8, '#2A2C32'); box(g, cx + 72, GY - 35, 16, 2, '#6A707A');
+          signAt(g, k < 0.17 ? 'TEMPLE FX 2' : 'SPARE BONES', cx + 40, GY - 16, 6, stencil(6, '#3A3A40', undefined, x));
+        });
+      } else if (k < 0.7) {
+        // a cable hung down out of the dark (looped), a hint of light along it
+        c.strokeStyle = '#0A0A0C'; c.lineWidth = 5; c.beginPath(); c.moveTo(cx, GY - 1200); c.quadraticCurveTo(cx + 30, GY - 500, cx - 10, GY - 330); c.stroke();
+        c.strokeStyle = '#26262C'; c.lineWidth = 1; c.beginPath(); c.moveTo(cx - 1, GY - 1200); c.quadraticCurveTo(cx + 29, GY - 500, cx - 11, GY - 330); c.stroke();
+        box(c, cx - 14, GY - 334, 8, 10, '#18181B'); box(c, cx - 13, GY - 333, 6, 2, '#3A3A40');
       } else {
-        // a cable hung down out of the dark (looped)
-        c.strokeStyle = '#0A0A0C'; c.lineWidth = 4; c.beginPath(); c.moveTo(cx, GY - 1200); c.quadraticCurveTo(cx + 30, GY - 500, cx - 10, GY - 330); c.stroke();
+        // a chain hoist hung off the grid, its hook down near his head, the load chain looped
+        chain(c, cx, CHAIN_TOP, GY - 420, '#1A1A1E');
+        slab(c, cx - 14, GY - 420, 30, 34, '#2A2410', { edge: 2 }); box(c, cx - 12, GY - 418, 26, 3, '#4A4020'); box(c, cx - 4, GY - 410, 10, 6, '#141416');
+        chain(c, cx, GY - 386, GY - 300, '#1A1A1E');
+        c.strokeStyle = '#141416'; c.lineWidth = 2; c.setLineDash([4, 2]); c.beginPath(); c.moveTo(cx + 8, GY - 386); c.quadraticCurveTo(cx + 26, GY - 330, cx + 12, GY - 360); c.stroke(); c.setLineDash([]);
+        c.strokeStyle = '#1E1E22'; c.lineWidth = 4; c.beginPath(); c.arc(cx + 1, GY - 292, 7, -0.3, Math.PI * 1.1); c.stroke();
       }
     }
   });
@@ -1150,13 +1518,11 @@ export const drawTempleFront = (c: Ctx, state: GameState, tp: Temple) => {
   const eye = eyeOf(state);
   // Boulders: real ones, stepped, cracked, turning as they roll
   for (const b of tp.boulders) {
-    c.save(); c.translate(b.x, b.y);
-    c.fillStyle = 'rgba(0,0,0,0.3)'; if (b.rolling) c.fillRect(-b.r, b.r - 2, b.r * 2, 3);
-    ball(c, 0, 0, b.r, '#8A8178');
-    c.rotate(b.x * 0.06);
-    box(c, -b.r * 0.2, -b.r * 0.7, 2, b.r * 0.6, '#5A534C'); box(c, -b.r * 0.2, -b.r * 0.1, b.r * 0.5, 2, '#5A534C');
-    box(c, b.r * 0.3, b.r * 0.2, 3, 3, '#6A635A'); box(c, -b.r * 0.6, b.r * 0.3, 3, 2, '#6A635A');
-    c.restore();
+    // (its shadow on the floor: under it rolling, a smaller one under where it's coming down while it flies)
+    const sh = b.rolling ? 1 : Math.max(0.3, 1 - (GY - b.y) / 300);
+    c.fillStyle = 'rgba(0, 0, 0, 0.32)'; c.fillRect(Math.round(b.x - b.r * sh), GY - 2, Math.round(b.r * 2 * sh), 3);
+    c.fillStyle = 'rgba(0, 0, 0, 0.18)'; c.fillRect(Math.round(b.x - b.r * sh - 4), GY - 1, Math.round(b.r * 2 * sh + 8), 2);
+    drawBoulder(c, b.x, b.y, b.r, b.x * 0.06);
   }
   // Darts: a shaft, a point, red fletching
   for (const d of tp.darts) {
@@ -1177,7 +1543,7 @@ export const drawTempleFront = (c: Ctx, state: GameState, tp: Temple) => {
   c.save(); c.beginPath(); c.rect(T - 400, GY - 1000, END_WALL - T + 400, 1100); c.clip();
   drawCart(c, CART_X + (ld?.rolling ?? 0), f, riders);
   c.restore();
-  if (ld) for (const g of ld.flying) { c.save(); c.translate(g.x, g.y); c.rotate(-g.rot); drawPerson(c, { seed: g.seed, woman: g.woman, outfit: 'guest', pose: 'fly', f, mood: 'shocked' }); c.restore(); }
+  if (ld) for (const g of ld.flying) { c.save(); c.translate(g.x, g.y); c.rotate(-g.rot); drawFlungGuest(c, g.seed, g.woman, f); c.restore(); }
   drawForeground(c, eye);
   // What's being said (over whoever's saying it)
   if (ld?.said) {
@@ -1205,9 +1571,17 @@ export const templeLighting = (state: GameState, tp: Temple): SceneLight => {
     const [gx, gy] = at(eye, p.x + p.w + 11, GY - 120, FACADE_D);
     if (near(gx)) { const col = showAt(i, f); const n = parseInt(col.slice(1), 16); lights.push({ x: gx, y: gy, r: 150, a: 0.55, color: `rgba(${n >> 16}, ${(n >> 8) & 255}, ${n & 255}, 0.1)` }); }
   });
+  {
+    // (the catwalk's show lights, soft, in their cue's colors)
+    const [s0, s1] = spanAt(eye, CAT_D, 0);
+    for (const x of catLamps(s0, s1)) {
+      const [lx, ly] = at(eye, x + 22, CAT_Y - 18, CAT_D), n = parseInt(showAt(Math.floor(x / 260), f).slice(1), 16);
+      if (near(lx)) lights.push({ x: lx, y: ly, r: 120, a: 0.4, color: `rgba(${n >> 16}, ${(n >> 8) & 255}, ${n & 255}, 0.08)` });
+    }
+  }
   if (near(T)) lights.push({ x: T + 36, y: GY - 60, r: 140, a: 0.7, color: 'rgba(200, 230, 200, 0.08)' }, { x: T + 36, y: GY - 130, r: 60, a: 0.6, color: 'rgba(34, 197, 94, 0.14)' });
   if (near(CATAPULT_X)) lights.push({ x: CATAPULT_X + 20, y: GY - 300, r: 340, a: 0.7, cone: 200, color: 'rgba(255, 220, 160, 0.08)' });
-  if (near(GHOST_X) && (f % 120) < 60) lights.push({ x: GHOST_X - 70, y: GY - 200, r: 210, a: 0.8, cone: 60, color: 'rgba(200, 230, 255, 0.12)' });
+  if (near(GHOST_X) && (f % 120) < 60) lights.push({ x: GHOST_X - 70, y: GY - 90, r: 150, a: 0.7, color: 'rgba(200, 230, 255, 0.1)' });
   if (near(SNAKE_WALL)) lights.push({ x: SNAKE_WALL - 80, y: SNAKE_TOP - 40, r: 360, a: 0.7, cone: 160, color: 'rgba(190, 255, 200, 0.06)' });
   if (near(DART_WALL) && crewed(state, 2) && tp.dartT <= DART_TELL) lights.push({ x: DART_WALL - 4, y: dartY(tp.dartHigh), r: 70, a: 0.8, color: 'rgba(253, 224, 71, 0.18)' });
   if (near(STATION_X + 600)) {
