@@ -135,7 +135,7 @@ const belly = (c: Ctx, bx: number, by: number, rx: number, ry: number) => {
   for (let k = 0; k < 7; k++) px(c, bx - rx * 0.5 + k * rx * 0.16, by + ry * 0.48 + (k % 2) * 3, 0.7, 1.6, SKIN[3]);
   // (the tank top: up over most of it, riding up off the bottom)
   const hem = by + ry * 0.4;
-  c.save(); c.beginPath(); c.ellipse(bx, by, rx + 1, ry + 1, 0, 0, Math.PI * 2); c.rect(bx - rx - 2, by - ry - 30, rx * 2 + 4, ry + 30); c.clip();
+  c.save(); c.beginPath(); c.ellipse(bx, by, rx + 1, ry + 1, 0, 0, Math.PI * 2); c.clip();
   shape(c, () => { c.moveTo(bx - rx - 1, by - ry - 26); c.lineTo(bx + rx + 1, by - ry - 26); c.lineTo(bx + rx + 1, hem - 3); c.quadraticCurveTo(bx, hem + 4, bx - rx - 1, hem); c.closePath(); }, TANK, bx - rx, bx + rx);
   // (the ribbing, the stains: yellow under the arm, a mustard drip, a cigarette hole, a beer ring)
   for (let k = -rx + 4; k < rx; k += 4) line(c, [bx + k, by - ry - 20, bx + k * 1.05, hem], 0.4, TANK[2]);
