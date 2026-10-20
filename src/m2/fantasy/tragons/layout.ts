@@ -116,7 +116,8 @@ export const laneD = (lane: Lane, s: number) => keyed(D_KEYS, lane, s);
 // The ride's speed (px a frame) along it: slow for the teaching (the first hole, the first loop), up to speed, the
 // brakes at the end.
 
-export const V_TEACH = 5, V_RIDE = 6, V_LATE = 6.4;
+// (a bit quicker, the user's; the warnings are in frames, so they keep their time)
+export const V_TEACH = 5.6, V_RIDE = 7, V_LATE = 7.5;
 export const speedAt = (dist: number) => {
   if (dist < 9600) return V_TEACH;
   if (dist > END_S - 1600) return Math.max(0.6, V_RIDE * Math.sqrt(Math.max(0, END_S - dist) / 1600));
