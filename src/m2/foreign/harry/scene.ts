@@ -18,7 +18,8 @@ import type { MechId } from '../heli/lines';
 import { drawWreck3d } from '../heli/landmarks3d';
 import { DC, type Cam } from '../heli/park';
 import { smoke as wreckSmoke } from '../heli/mechArt';
-import { flame as tongue, smokeUp } from '../../hollywood/havoc/paint';
+import { flame as tongue } from '../../hollywood/havoc/paint';
+import { shoreFrom, paintMark } from '../teases';
 import { TIEDYE, dith, shapeR, ellR, lineR, GRAY_R, STEEL_R, BAND_R } from '../heli/harryArt';
 import { x0, X, GY, VIEW_X, ARENA_L, ARENA_R, WALL_W, MID, sy, WRECK_X, BERM_Y, CLING_H } from './arena';
 import { drawRubble, drawDropped, drawTorchAt, drawChunk, PAT } from './liberty';
@@ -46,50 +47,79 @@ const groundAt = (sx: number, z: number) => {
 // ---------------------------------------------------------------------------------------------------------------
 // The sky (screen space): the hour's colors through the smoke, the rest of the land far off burning
 
-/** Foreign Lands far off in the haze (the stamp's local: screen, the horizon at HOR): pavilions he walked, in
- *  silhouette, two steps each, their fires. */
+/** From the AMERICA pavilion's dig, across the lagoon: the pavilions he walked, where they are round the ring
+ *  (teases.ts: the same landmarks the streets' far shore has), and where each one's fire is. */
+const ACROSS = shoreFrom(62400).map(o => ({ ...o, x: 400 + o.dx * 0.9 }));
+const FIRES = [-60, ...ACROSS.map(o => o.x - 14), ...ACROSS.map(o => o.x + 22), 940];
+
+/** Foreign Lands far off in the haze (the stamp's local: screen, the horizon at HOR): the far bank's trees in stepped
+ *  crowns, the pavilions over them scorched and smoking, the hour's air washed over all of it in dithered steps, the
+ *  fires the gauntlet left along the shore. */
 const paintFar = (g: Ctx) => {
-  const B = dimmed('#4A3A48'), Bl = mix(B, '#FFFFFF', 0.12), Bd = mix(B, '#000000', 0.25), y = HOR + 2;
-  // (the tree line, lumpy)
-  g.fillStyle = Bd; g.beginPath(); g.moveTo(-100, y);
-  for (let x = -100; x <= 1000; x += 8) g.lineTo(x, y - 8 - hsh(x * 0.13) * 7);
-  g.lineTo(1000, y + 4); g.lineTo(-100, y + 4); g.closePath(); g.fill();
-  const sil = (pts: [number, number][], lit2 = true) => {
-    g.fillStyle = B; g.beginPath(); pts.forEach(([px, py], i) => (i ? g.lineTo(px, y - py) : g.moveTo(px, y - py))); g.closePath(); g.fill();
-    if (lit2) { g.strokeStyle = Bl; g.lineWidth = 1; g.beginPath(); pts.slice(0, Math.ceil(pts.length / 2)).forEach(([px, py], i) => (i ? g.lineTo(px, y - py) : g.moveTo(px, y - py))); g.stroke(); }
-  };
-  // (Mexico's stepped pyramid; the stave church's spires; the pagoda's five roofs; the minaret; the Arc; the Ferris
-  // wheel; the globe on its pylon by the helipad)
-  sil([[-60, 0], [-50, 10], [-40, 10], [-34, 20], [-24, 20], [-18, 30], [-2, 30], [4, 20], [14, 20], [20, 10], [30, 10], [40, 0]]);
-  sil([[90, 0], [92, 22], [100, 30], [104, 52], [108, 30], [116, 24], [120, 40], [124, 24], [130, 22], [132, 0]]);
-  for (let k = 0; k < 5; k++) { const w = 26 - k * 4, yy = 8 + k * 10; sil([[200 - w, yy], [200 + w, yy], [200 + w - 6, yy + 4], [200 - w + 6, yy + 4]]); box(g, 196, y - yy - 10, 8, 10, B); }
-  box(g, 199, y - 66, 2, 14, B);
-  sil([[300, 0], [300, 56], [298, 58], [304, 70], [310, 58], [308, 56], [308, 0]]);
-  sil([[560, 0], [560, 40], [600, 40], [600, 0], [590, 0], [590, 22], [586, 28], [574, 28], [570, 22], [570, 0]]);
-  g.strokeStyle = B; g.lineWidth = 3; g.beginPath(); g.arc(700, y - 44, 38, 0, Math.PI * 2); g.stroke();
-  g.lineWidth = 1; for (let k = 0; k < 8; k++) { const a = (k / 8) * Math.PI * 2; g.beginPath(); g.moveTo(700, y - 44); g.lineTo(700 + Math.cos(a) * 38, y - 44 + Math.sin(a) * 38); g.stroke(); }
-  sil([[690, 0], [700, 44], [710, 0]], false);
-  sil([[860, 0], [864, 40], [868, 0]], false); g.fillStyle = B; g.beginPath(); g.arc(864, y - 52, 14, 0, Math.PI * 2); g.fill();
-  g.strokeStyle = Bl; g.beginPath(); g.arc(864, y - 52, 14, Math.PI, Math.PI * 1.6); g.stroke();
-  // (the haze over it all, in two dithered steps, the hour's air)
-  const air = dimmed('#B8A0A8');
-  g.fillStyle = dith(g, air); g.fillRect(-100, y - 90, 1100, 40);
-  g.globalAlpha = 0.35; g.fillStyle = air; g.fillRect(-100, y - 50, 1100, 54); g.globalAlpha = 1;
-  // (its fires: the gauntlet left the park a burning ruin)
-  for (const fx of [-20, 120, 210, 330, 470, 590, 760, 900]) { ellR(g, fx, y - 2, 12, 4, dith(g, '#F97316')); ellR(g, fx, y - 2, 6, 2.4, '#FB923C'); box(g, fx - 1, y - 4, 2, 2, '#FDE68A'); }
+  const tod = timeOfDay(), y = HOR + 2;
+  // (the pavilions across the water, hazed: their landmarks as the streets have them)
+  for (const o of ACROSS) paintMark(g, o.id, o.x, y - 4, 0.42, 0.8, tod);
+  // (the far bank's trees in front of their feet: crowns in steps, lit up top)
+  const Tr = [dimmed('#2E2A30'), dimmed('#3E3640'), dimmed('#544850'), dimmed('#6A5C62')];
+  box(g, -100, y - 8, 1100, 12, Tr[0]);
+  for (let x = -100; x <= 1000; x += 7) { const r = 6 + hsh(x * 0.13) * 6, cy = y - 8 - r * 0.3; ellR(g, x, cy, r, r * 0.7, Tr[1]); ellR(g, x - 2, cy - 2, r * 0.66, r * 0.42, Tr[2]); box(g, x - 3, cy - r * 0.6, 3, 1, Tr[3]); }
+  // (the dusk's air over it all: a wash the fight's sky color, dithered off upward)
+  const air = dimmed('#B88A88');
+  g.save(); g.globalCompositeOperation = 'source-atop';
+  g.globalAlpha = 0.42; g.fillStyle = air; g.fillRect(-100, HOR - 170, 1100, 180);
+  g.globalAlpha = 1; g.fillStyle = dith(g, air); g.fillRect(-100, y - 70, 1100, 24);
+  g.globalAlpha = 0.22; g.fillStyle = mix(air, '#FFFFFF', 0.2); g.fillRect(-100, y - 46, 1100, 50);
+  g.restore();
+  // (scorch: the pavilions blackened from the foot up, the gauntlet's work)
+  g.save(); g.globalCompositeOperation = 'source-atop';
+  for (let k = 0; k < 4; k++) { g.globalAlpha = 0.12 + k * 0.06; g.fillStyle = '#1A0E0C'; g.fillRect(-100, y - 40 + k * 10, 1100, 10); }
+  g.restore();
+  // (the fires along the shore: banded glows, their cores)
+  for (const fx of FIRES) { ellR(g, fx, y - 2, 12, 4, dith(g, '#F97316')); ellR(g, fx, y - 2, 6, 2.4, '#FB923C'); box(g, fx - 1, y - 4, 2, 2, '#FDE68A'); }
+};
+
+/** A smoke puff, stepped round (shade under, body, lit top), painted once per size and tone. */
+const puffs = new Map<string, HTMLCanvasElement>();
+const puff = (r: number, tone: number) => {
+  const key = `${r}|${tone}`;
+  let cv = puffs.get(key);
+  if (!cv && typeof document !== 'undefined') {
+    cv = document.createElement('canvas'); cv.width = cv.height = r * 2 + 4;
+    const g = cv.getContext('2d')!;
+    const S = [['#1E1416', '#2E2224', '#46383A'], ['#3A2E2E', '#54464A', '#6E6064'], ['#5A4C4E', '#7A6C70', '#9A8C90']][tone];
+    const o = r + 2;
+    ellR(g, o + 1, o + 2, r, r * 0.78, S[0]); ellR(g, o, o, r * 0.92, r * 0.72, S[1]); ellR(g, o - r * 0.25, o - r * 0.25, r * 0.5, r * 0.36, S[2]);
+    g.fillStyle = dith(g, S[0]); g.fillRect(o - r, o + r * 0.3, r * 2, r * 0.4);
+    puffs.set(key, cv);
+  }
+  return cv;
+};
+/** A column of smoke rolling up off something and away downwind: puffs growing and thinning as they rise. */
+const smokeCol = (c: Ctx, x: number, y: number, f: number, seed: number, s: number, a: number, n: number) => {
+  // (a third again as many puffs as asked, overlapping into one billow, each wandering off the line a little as it climbs)
+  const m = Math.round(n * 1.34);
+  for (let k = 0; k < m; k++) {
+    const t = ((f * 0.5 + k * (200 / m) + seed * 37) % 200) / 200, r = Math.max(3, Math.round(((4 + t * 26) * s) / 3) * 3);
+    const px = x + (Math.sin(t * 4 + seed) * 8 + t * 58 + (hsh(k * 3.7 + seed) - 0.5) * 18 * t) * s, py = y - t * 175 * s, cv = puff(r, t < 0.25 ? 0 : t < 0.6 ? 1 : 2);
+    if (!cv) continue;
+    c.globalAlpha = a * 0.75 * (1 - t) ** 1.4;
+    c.drawImage(cv, Math.round(px - r - 2), Math.round(py - r - 2));
+  }
+  c.globalAlpha = 1;
 };
 
 export const drawSky = (c: Ctx, state: GameState) => {
   drawTodSky(c, 0, 0, 800, 600, ['#7F1D1D', '#C2410C', '#FB923C', '#FDE68A'], { horizon: HOR, sun: [620, 110], moon: [170, 90] });
   const f = state.frame, px = (state.camera.x - VIEW_X) * 0.15;
   c.save(); c.translate(-Math.round(px), 0);
-  stamp(c, `hh-far-${timeOfDay().key}`, -100, HOR - 130, 1100, 140, paintFar);
-  // (the far fires flicker)
-  for (const [i, fx] of [-20, 120, 210, 330, 470, 590, 760, 900].entries()) if (((f >> 3) + i) % 3 === 0) box(c, fx - 2, HOR - 1, 4, 2, '#FDE68A');
+  stamp(c, `hh-far2-${timeOfDay().key}`, -100, HOR - 170, 1100, 180, paintFar);
+  // (the far fires flicker; a thread of smoke off each pavilion)
+  for (const [i, fx] of FIRES.entries()) if (((f >> 3) + i) % 3 === 0) box(c, fx - 2, HOR - 1, 4, 2, '#FDE68A');
+  for (const [i, o] of ACROSS.entries()) if (i % 2 === 0) smokeCol(c, o.x - 10, HOR - 6, f * 0.4, i * 1.7, 0.5, 0.5, 4);
   c.restore();
   // (the smoke off the crash, the wrecks and the park: stepped puffs rolling up and off in the wind)
   const sp = (state.camera.x - VIEW_X) * 0.3;
-  for (let col = 0; col < 6; col++) smokeUp(c, 70 + col * 140 - sp, HOR + 20, f * 0.6, col * 3.1, 1.6 + (col % 2) * 0.4, 0.42, 8);
+  for (let col = 0; col < 6; col++) smokeCol(c, 70 + col * 140 - sp, HOR + 20, f * 0.6, col * 3.1, 1.6 + (col % 2) * 0.4, 0.5, 8);
   return true;
 };
 
@@ -341,7 +371,7 @@ const crash = (c: Ctx, f: number) => {
   ellR(c, WRECK_X + 136, GY - 5, 3.6, 4, '#E3AE86'); box(c, WRECK_X + 134, GY - 2, 4, 3, '#22C55E'); box(c, WRECK_X + 133, GY - 10, 6, 2, '#F8FAFC');
   // (its fires: banded tongues licking up out of it; the smoke rolling off)
   tongue(c, WRECK_X - 40, GY - 18, 26, 44, f, 1); tongue(c, WRECK_X + 30, GY - 44, 20, 36, f, 2); tongue(c, WRECK_X + 92, GY - 8, 14, 24, f, 3); tongue(c, WRECK_X - 90, GY - 6, 12, 20, f, 4);
-  smokeUp(c, WRECK_X - 20, GY - 60, f, 2, 1.2, 0.5, 7); smokeUp(c, WRECK_X + 40, GY - 70, f, 5, 0.9, 0.45, 6);
+  smokeCol(c, WRECK_X - 20, GY - 60, f, 2, 1.2, 0.55, 7); smokeCol(c, WRECK_X + 40, GY - 70, f, 5, 0.9, 0.5, 6);
 };
 
 /** The AMERICA pavilion going up behind the approach (set back: scenery, dimmed): its steel frame in red primer, three

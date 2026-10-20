@@ -365,12 +365,15 @@ const paintSpooky = (g: Ctx, tod: TimeOfDay) => {
   mist(g, SPW, SPH - 90, 90, skyAt(0.92, tod), 0.1, 0.5, 4);
 };
 const FTW = 200, FTH = 290;
-const paintFuture = (g: Ctx, tod: TimeOfDay) => {
+/** Future Land far off (Foreign Lands' far shore uses it too: one look for it from every land that sees it). */
+export const paintFuture = (g: Ctx, tod: TimeOfDay) => {
   const t = farCol(tod, 0.5), glow = tod.lamps > 0.3;
   const Wh = rampT(t, '#D8DCE4'), Or = rampT(t, '#E8742A'), Tl = rampT(t, '#3AA8A8'), St = rampT(t, '#7A808C');
   // (the needle: three legs tapering up, waisted, to the saucer and its halo, the spire, the beacon)
   const nx = 70, sy = 46;
-  for (const [a, b] of [[-14, -3], [14, 3], [-2, 0]] as const) poly(g, [[nx + a - 2, FTH], [nx + a + 2, FTH], [nx + b + 2, sy + 10], [nx + b - 2, sy + 10]], a ? Wh[2] : Wh[1]);
+  for (const [a, b] of [[-14, -3], [14, 3], [-2, 0]] as const) poly(g, [[nx + a - 4, FTH], [nx + a + 4, FTH], [nx + b + 3, sy + 10], [nx + b - 3, sy + 10]], INK);
+  for (const [a, b] of [[-14, -3], [14, 3], [-2, 0]] as const) poly(g, [[nx + a - 3, FTH], [nx + a + 3, FTH], [nx + b + 2, sy + 10], [nx + b - 2, sy + 10]], a < 0 ? Wh[3] : a > 0 ? Wh[1] : Wh[2]);
+  for (let y = sy + 30; y < FTH - 10; y += 26) { const u = (y - sy - 10) / (FTH - sy - 10); box(g, nx - 3 - 11 * u, y, 6 + 22 * u, 2, Wh[1]); }
   line(g, [nx - 13, FTH - 4, nx - 3, sy + 12], 1, Wh[4]);
   box(g, nx - 7, sy + 60, 14, 3, Wh[1]);
   g.fillStyle = INK; g.beginPath(); g.ellipse(nx, sy + 4, 28, 9, 0, 0, Math.PI * 2); g.fill();
@@ -395,6 +398,8 @@ const paintFuture = (g: Ctx, tod: TimeOfDay) => {
   mist(g, FTW, FTH - 80, 80, skyAt(0.92, tod), 0.1, 0.5, 4);
 };
 
+export const FUTURE_W = FTW, FUTURE_H = FTH;
+
 // ---------------------------------------------------------------------------------------------------------------
 // Where they are, drawn
 
@@ -417,6 +422,7 @@ const fontIn = () => (typeof document !== 'undefined' && document.fonts?.check('
  */
 export const drawTeases = (c: Ctx, prog: number, foot: number, f: number, layer: 'far' | 'near', opts: { outside?: boolean; train?: boolean } = {}) => {
   const tod = timeOfDay();
+  let fi = '';
   for (const s of TEASES) {
     if (s.layer !== layer || (s.hide && prog >= s.hide[0] && prog < s.hide[1])) continue;
     const cx = W / 2 + (s.lx - prog) * s.par, x0 = Math.round(cx - s.w / 2);
@@ -424,7 +430,8 @@ export const drawTeases = (c: Ctx, prog: number, foot: number, f: number, layer:
     const top = Math.round(foot + s.sink - s.h), back = opts.outside && s.back;
     const k = s.id === 'tumble' ? (back ? 0.46 : 0.28) : s.id === 'gulch' ? 0.3 : s.id === 'trestle' ? 0.26 : 0.5;
     c.save(); c.translate(x0, top);
-    stamp(c, `fr-tease-${s.id}${back ? '-back' : ''}-${tod.key}-${fontIn()}`, 0, 0, s.w, s.h, g => (back ? s.back! : s.paint)(g, tod));
+    if (!fi) fi = fontIn();
+    stamp(c, `fr-tease-${s.id}${back ? '-back' : ''}-${tod.key}-${fi}`, 0, 0, s.w, s.h, g => (back ? s.back! : s.paint)(g, tod));
     c.restore();
     const t = farCol(tod, k);
     if (s.live && !back) s.live(c, x0, top, f, t);

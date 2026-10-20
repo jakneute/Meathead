@@ -16,7 +16,8 @@
 // Up a climb (the Great Wall) the horizon sinks: more sky.
 
 import type { GameState } from '../../m1/game/core/state';
-import { drawTodSky, farTint, timeOfDay, hourMix, skyAt, type TimeOfDay } from '../timeOfDay';
+import { drawTodSky, farTint, timeOfDay, hourMix, skyAt, cloudTint, type TimeOfDay } from '../timeOfDay';
+import { drawAcross, drawTourCopter, drawGulls, ringAt } from './teases';
 import { farCol } from '../hollywood/blvd/far';
 import { mist, falls } from '../adventure/farArt';
 import { box, poly, mix, hash, checker, stamp, bandedGradient, pixelBlob, signText, plain, INK } from './kit';
@@ -914,25 +915,56 @@ const show = (c: Ctx, x: number, wl: number, f: number) => {
   }
 };
 
+// ---------------------------------------------------------------------------------------------------------------
+// The clouds: a far bank low over the shore (small heaps, hazed), the big fair-weather cumulus up high (stepped lumps
+// on flat feet, lit from the upper left), each a tile painted once for the hour, drifting
+
+const CW = 1200, CH = 120, FCW = 1000, FCH = 60;
+const cloudHeaps = (g: Ctx, tw: number, n: number, y0: number, dy: number, w0: number, dw: number, C: string[], seed: number) => {
+  for (let i = 0; i < n; i++) {
+    const cx = 60 + i * (tw / n) + hash(seed + i * 4.1) * (tw / n) * 0.5, base = y0 + hash(seed + i * 2.9) * dy, w = w0 + hash(seed + i * 1.3) * dw;
+    for (const x of [cx, cx - tw, cx + tw]) {
+      if (x + w < -10 || x - w > tw + 10) continue;
+      const m = 5 + Math.floor(hash(seed + i + 3) * 3);
+      for (let k = 0; k < m; k++) { const u = (k + 0.5) / m, r = (0.5 + Math.sin(u * Math.PI) * 0.75) * w * 0.17; pixelBlob(g, x - w / 2 + u * w, base - r * 0.6, r, r * 0.78, C[1]); }
+      for (let k = 0; k < m; k++) { const u = (k + 0.5) / m, r = (0.5 + Math.sin(u * Math.PI) * 0.75) * w * 0.17; pixelBlob(g, x - w / 2 + u * w - r * 0.2, base - r * 0.8, r * 0.74, r * 0.58, C[2]); pixelBlob(g, x - w / 2 + u * w - r * 0.36, base - r, r * 0.36, r * 0.28, C[3]); }
+      box(g, x - w / 2, base - 4, w, 6, C[0]); checker(g, x - w / 2, base - 6, w, 2, C[0]);
+    }
+  }
+};
+const paintClouds = (g: Ctx, tod: TimeOfDay) => cloudHeaps(g, CW, 5, 60, 50, 110, 150, ['#A8B4CC', '#CCD6E6', '#EAF0F8', '#FFFFFF'].map(c => cloudTint(c, tod)), 3);
+const paintFarClouds = (g: Ctx, tod: TimeOfDay) => { const sky = skyAt(0.72, tod); cloudHeaps(g, FCW, 9, 34, 18, 46, 60, ['#B4BECE', '#D2DAE6', '#ECF0F6', '#FFFFFF'].map(c => mix(cloudTint(c, tod), sky, 0.38)), 11); };
+
 export const drawStreetsBackdrop = (c: Ctx, state: GameState) => {
   const cam = state.camera, f = state.frame, tod = timeOfDay();
   // (up a climb, the horizon sinks: more sky)
   const hz = Math.round(410 - Math.min(0, cam.y) * 0.18);
   drawTodSky(c, 0, 0, W, H, SKY, { bands: 16, horizon: Math.min(H, hz), sun: [620, 110], moon: [170, 90], t: f, scroll: cam.x * 0.01 });
+  // The clouds: the far bank low over the shore, the big ones up high (both drifting); Jungle Land and Future Land out
+  // past the far shore, where they are off the ring
+  const here = ringAt(cam.x), shore = hz - SH + 4;
+  tileAt(c, `fl-fcloud-${tod.key}`, cam.x * 0.006 + f * 0.02, hz - 200, FCW, FCH, g => paintFarClouds(g, tod));
+  tileAt(c, `fl-cloud-${tod.key}`, cam.x * 0.012 + f * 0.05, 18 + (hz - 410) * 0.4, CW, CH, g => paintClouds(g, tod));
+  drawAcross(c, here, shore, 'beyond');
   // The landmarks over the far shore: the stamped ones (painted for the hour; what moves on them live), and the first
   // pass's live ones
   const mid = cam.x + W / 2;
-  for (const id of Object.keys(SECTIONS) as ForeignId[]) {
+  const still = (id: ForeignId) => {
     const S = STILLS[id], Lm = LANDMARKS[id];
-    if (!S && !Lm) continue;
+    if (!S && !Lm) return;
     const s = SECTIONS[id], cx = (s.x0 + s.x1) / 2, sx = W / 2 + (cx - mid) * K;
-    if (sx < -560 || sx > W + 560) continue;
+    if (sx < -560 || sx > W + 560) return;
     if (S) {
       const x0 = Math.round(sx - S.w / 2), top = hz + 6 - S.h, T = farCol(tod, S.k * 0.5);
       c.save(); c.translate(x0, top); stamp(c, `fl-far-${id}-${tod.key}-${fontIn()}`, 0, 0, S.w, S.h, g => S.paint(g, T, tod)); c.restore();
       S.live?.(c, x0, top, f, T);
     } else { c.save(); c.translate(Math.round(sx), 0); Lm!(c, hz, f); c.restore(); }
-  }
+  };
+  for (const id of Object.keys(SECTIONS) as ForeignId[]) if (id !== 'heli') still(id);
+  // The other pavilions across the lagoon, on the far shore where they are round the ring (their feet behind its trees);
+  // the helipad's globe and terminal in front of them (it's this side of the water, by the walk: its sign clear)
+  drawAcross(c, here, shore, 'shore');
+  still('heli');
   // The far shore's tree line along the water
   const off = cam.x * 0.035;
   for (let x = -((off % SW) + SW) % SW; x < W; x += SW) { c.save(); c.translate(Math.round(x), hz - SH + 4); stamp(c, `fl-shore-${tod.key}`, 0, 0, SW, SH, g => paintShore(g, tod)); c.restore(); }
@@ -949,7 +981,14 @@ export const drawStreetsBackdrop = (c: Ctx, state: GameState) => {
   for (let k = 0; k < 6; k++) box(c, bx - BW / 2 + 16 + Math.sin(f * 0.05 + k) * 2, wl + 1 + k * 2, BW - 40 - k * 14, 1, farTint(mix(water[0], '#000000', 0.3), 0.3));
   c.save(); c.translate(bx - BW / 2, wl - BH + 10); stamp(c, `fl-barge-${tod.key}-${fontIn()}`, 0, 0, BW, BH, g => paintBarge(g, tod)); c.restore();
   if (tod.lamps > 0.3) show(c, bx, wl, f);
+  // Over the water: the helicopter tour going round (the helipad's, at the far end), the gulls
+  drawTourCopter(c, here, hz, f);
+  drawGulls(c, f, cam.x, hz - 120);
   return true;
+};
+/** A tile `tw` wide painted once (a stamp), slid along by `off`, its top at y. */
+const tileAt = (c: Ctx, key: string, off: number, y: number, tw: number, th: number, paint: (g: Ctx) => void) => {
+  for (let x = -((off % tw) + tw) % tw; x < W; x += tw) { c.save(); c.translate(Math.round(x), Math.round(y)); stamp(c, key, 0, 0, tw, th, paint); c.restore(); }
 };
 
 /** For the walk into the land (walkAway/intoForeign.ts): the stamped landmarks, the far shore, the barge. */
