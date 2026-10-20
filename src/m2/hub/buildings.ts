@@ -423,9 +423,9 @@ const mainStreet = (g: Ctx, x0: number, w: number, col: string, name: string, li
   for (const bx of [x0 + 1, x0 + w - 5]) { box(g, bx, top, 4, 8, INK); box(g, bx + 1, top, 2, 7, T[3]); }
   // (upstairs: two tall windows with their lintels, curtains, a flag out; a painted sign between the floors)
   for (const wx of [x0 + 9, x0 + w - 23]) for (const wy of [top + 12, top + 44]) win(g, wx, wy, 14, 20, lit && hash(wx + wy) > 0.35, { frame: trim, lintel: trim, curtain: ['#B91C1C', '#1E3A8A', '#15803D'][Math.floor(hash(wx * wy) * 3)], seed: wx + wy });
-  board(g, x, B - 60, w - 12, 10, name, { sx: 1, sy: 1, fill: brick ? '#F8FAFC' : '#3A2208' }, brick ? '#1E3A8A' : '#F8FAFC', '#3A2208');
+  board(g, x, B - 58, w - 12, 10, name, { sx: 1, sy: 1, fill: brick ? '#F8FAFC' : '#3A2208' }, brick ? '#1E3A8A' : '#F8FAFC', '#3A2208');
   // (the shopfront: pilasters, a big display window, the door with its transom, the awning, a sconce, a bench)
-  awning(g, x0 - 1, x0 + w + 1, B - 48, 10, '#DC2626', '#F8FAFC', 8);
+  awning(g, x0 - 1, x0 + w + 1, B - 45, 9, '#DC2626', '#F8FAFC', 8);
   box(g, x0 + 3, B - 36, w - 6, 36, INK); box(g, x0 + 4, B - 35, w - 8, 35, T[2]);
   win(g, x0 + 7, B - 33, w - 31, 24, lit, { frame: '#3A2208', mull: 2, sill: false, seed: x0 + 1, on: true });
   // (what's in the window)

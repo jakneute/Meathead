@@ -25,7 +25,7 @@ import { timeOfDay, skyRamp, sunAt, sunTint, cloudTint, farTint, drawStars, draw
 import { noteSun, drawSunGlare } from '../sunFlare';
 import { signText, signAt, signW, enamel } from './letters';
 import { paintLandmark, paintAmericaLandmark, paintSkyline, drawFarLive, paintTreeline, paintCloud, paintBlimp, paintHotAir, landmarkBox, SKYLINE_BOX } from './far';
-import { checker } from './kit';
+import { checker, hash } from './kit';
 import { drawAmericaExit } from './exit';
 import { paintFlowerBed } from './props';
 
@@ -305,45 +305,54 @@ const drawLights = (ctx: Ctx, state: GameState, each: Each) => {
  * length, a wall air conditioner dripping into a bucket, conduit and a pipe running up it, a caged bulb flickering
  * over the door, one window, wired glass, cracked, a vent furred with grease, a NO SMOKING sign with butts round it.
  */
-const backBuilding = (ctx: Ctx, cx: number, f: number) => {
-  const x0 = cx - 90, x1 = cx + 210, top = GROUND_Y - 250;
+/** Its still parts (stamped): cinderblock in courses (each block a step of its own, grimed toward the foot), the
+ *  peeling cream in patches, the broken gutter and the rust down from it, conduit, a pipe, the wired window, the wall
+ *  unit and its bucket, the greasy vent, NO SMOKING and the butts. */
+const paintBackBuilding = (ctx: Ctx, cx: number) => {
+  const x0 = cx - 90, x1 = cx + 210, top = GROUND_Y - 250, C = ['#4E463A', '#5A5144', '#62594B', '#6B6153', '#7A7062', '#8A8072'];
   ink(ctx, () => ctx.rect(x0, top, x1 - x0, GROUND_Y - top), '#6B6256', 2);
-  bands(ctx, x0 + 2, top + 2, x1 - x0 - 4, GROUND_Y - top - 2, ['#7A7062', '#73695B', '#6B6153', '#62594B', '#5A5144']);
-  // (the blocks)
-  for (let y = top + 14; y < GROUND_Y; y += 14) { box(ctx, x0 + 2, y, x1 - x0 - 4, 1, '#4E463A'); for (let x = x0 + ((y - top) / 14 % 2 ? 14 : 0); x < x1; x += 28) box(ctx, x, y - 13, 1, 13, '#4E463A'); }
-  // (peeling paint: what's left of the theme-park cream, in patches with curled edges)
-  for (const [px, py, pw, ph] of [[x0 + 10, top + 40, 60, 40], [x0 + 150, top + 18, 80, 30], [x0 + 200, top + 120, 70, 50], [x0 + 20, top + 150, 40, 60]] as const) {
-    box(ctx, px, py, pw, ph, '#CFC3A6'); box(ctx, px, py, pw, 2, '#E8DEC4');
-    for (let k = 0; k < pw; k += 9) box(ctx, px + k, py + ph - ((k * 7) % 9), 6, 3 + ((k * 3) % 5), '#7A7062');
+  for (let y = top + 2, r = 0; y < GROUND_Y; y += 14, r++) for (let x = x0 + 2 - (r % 2 ? 14 : 0); x < x1 - 2; x += 28) {
+    const a = Math.max(x0 + 2, x), b = Math.min(x1 - 2, x + 27), t = hash(x * 0.31 + y * 0.17), grime = (y - top) / (GROUND_Y - top);
+    const col = C[Math.max(1, Math.min(5, Math.round((t > 0.8 ? 5 : t > 0.3 ? 4 : 3) - grime * 1.6)))];
+    box(ctx, a, y, b - a, 13, col); box(ctx, a, y, b - a, 1, mix(col, '#FFFFFF', 0.12)); box(ctx, a, y + 12, b - a, 1, C[1]);
+    if (t < 0.15) { box(ctx, a + 6, y + 4, 3, 2, C[0]); box(ctx, a + 7, y + 6, 1, 3, C[0]); }
   }
-  // (the gutter, a length gone; rust and water bleeding down from it)
-  box(ctx, x0, top, x1 - x0, 6, '#57534E'); box(ctx, x0 + 120, top, 40, 6, '#7A7062');
-  for (let k = 0; k < 9; k++) { const rx = x0 + 118 + k * 5, len = 60 + ((k * 31) % 90); box(ctx, rx, top + 6, 3, len, k % 3 ? 'rgba(120, 60, 20, 0.55)' : 'rgba(40, 34, 24, 0.5)'); }
-  // (conduit and a pipe up the wall)
-  box(ctx, x0 + 72, top + 6, 5, GROUND_Y - top - 6, '#6B7280'); for (let y = top + 30; y < GROUND_Y; y += 50) box(ctx, x0 + 70, y, 9, 4, '#4B5563');
-  box(ctx, x1 - 26, top + 6, 8, GROUND_Y - top - 6, '#7C2D12'); box(ctx, x1 - 26, top + 6, 2, GROUND_Y - top - 6, '#9A3412');
-  // (the window: wired glass, cracked, filthy)
+  for (let y = top + 15; y < GROUND_Y; y += 14) box(ctx, x0 + 2, y, x1 - x0 - 4, 1, C[0]);
+  box(ctx, x0 + 2, top + 2, 6, GROUND_Y - top - 2, 'rgba(255,255,255,0.08)'); box(ctx, x1 - 14, top + 2, 12, GROUND_Y - top - 2, 'rgba(26,16,40,0.18)');
+  for (const [px, py, pw, ph] of [[x0 + 10, top + 40, 60, 40], [x0 + 150, top + 18, 80, 30], [x0 + 200, top + 120, 70, 50], [x0 + 20, top + 150, 40, 60]] as const) {
+    box(ctx, px, py, pw, ph, '#CFC3A6'); box(ctx, px, py, pw, 2, '#E8DEC4'); box(ctx, px + pw - 3, py, 3, ph, '#B4A88A');
+    for (let k = 0; k < pw; k += 9) { box(ctx, px + k, py + ph - ((k * 7) % 9), 6, 3 + ((k * 3) % 5), C[4]); box(ctx, px + k, py + ph - ((k * 7) % 9) - 1, 6, 1, '#F2EAD4'); }
+    checker(ctx, px, py + ph - 8, pw, 4, '#B4A88A');
+  }
+  box(ctx, x0, top, x1 - x0, 6, '#57534E'); box(ctx, x0, top, x1 - x0, 1, '#8A8680'); box(ctx, x0 + 120, top, 40, 6, C[4]);
+  for (let k = 0; k < 9; k++) { const rx = x0 + 118 + k * 5, len = 60 + ((k * 31) % 90); box(ctx, rx, top + 6, 3, len, k % 3 ? 'rgba(120, 60, 20, 0.55)' : 'rgba(40, 34, 24, 0.5)'); box(ctx, rx + 1, top + 6 + len, 1, 3, 'rgba(120, 60, 20, 0.4)'); }
+  box(ctx, x0 + 71, top + 6, 7, GROUND_Y - top - 6, INK); box(ctx, x0 + 72, top + 6, 5, GROUND_Y - top - 6, '#6B7280'); box(ctx, x0 + 72, top + 6, 1, GROUND_Y - top - 6, '#9CA3AF');
+  for (let y = top + 30; y < GROUND_Y; y += 50) { box(ctx, x0 + 70, y, 9, 4, '#4B5563'); box(ctx, x0 + 70, y, 9, 1, '#9CA3AF'); }
+  box(ctx, x1 - 27, top + 6, 10, GROUND_Y - top - 6, INK); box(ctx, x1 - 26, top + 6, 8, GROUND_Y - top - 6, '#7C2D12'); box(ctx, x1 - 26, top + 6, 2, GROUND_Y - top - 6, '#9A3412'); box(ctx, x1 - 20, top + 6, 2, GROUND_Y - top - 6, '#5A1E0C');
   ink(ctx, () => ctx.rect(cx + 70, top + 60, 56, 40), '#3F3F46', 2);
-  box(ctx, cx + 73, top + 63, 50, 34, '#8FA3A8'); for (let k = 0; k < 6; k++) { box(ctx, cx + 73 + k * 9, top + 63, 1, 34, '#52525B'); box(ctx, cx + 73, top + 63 + k * 7, 50, 1, '#52525B'); }
+  box(ctx, cx + 73, top + 63, 50, 34, '#8FA3A8'); box(ctx, cx + 73, top + 63, 50, 12, '#A8BCC0'); for (let k = 0; k < 6; k++) { box(ctx, cx + 73 + k * 9, top + 63, 1, 34, '#52525B'); box(ctx, cx + 73, top + 63 + k * 7, 50, 1, '#52525B'); }
   ctx.strokeStyle = '#E5E7EB'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(cx + 80, top + 66); ctx.lineTo(cx + 96, top + 82); ctx.lineTo(cx + 92, top + 95); ctx.moveTo(cx + 96, top + 82); ctx.lineTo(cx + 116, top + 78); ctx.stroke();
-  box(ctx, cx + 73, top + 88, 50, 9, 'rgba(60, 50, 30, 0.6)');
-  // (the air conditioner, dripping into a bucket)
-  ink(ctx, () => ctx.rect(cx + 140, top + 120, 48, 30), '#A8A29E', 2);
-  for (let k = 0; k < 5; k++) box(ctx, cx + 144, top + 124 + k * 5, 40, 2, '#78716C');
+  box(ctx, cx + 73, top + 88, 50, 9, 'rgba(60, 50, 30, 0.6)'); box(ctx, cx + 68, top + 100, 60, 4, INK); box(ctx, cx + 69, top + 100, 58, 2, '#9A968E');
+  ink(ctx, () => ctx.rect(cx + 140, top + 120, 48, 30), '#A8A29E', 2); box(ctx, cx + 141, top + 121, 4, 28, '#D6D3D1'); box(ctx, cx + 183, top + 121, 4, 28, '#78716C');
+  for (let k = 0; k < 5; k++) { box(ctx, cx + 146, top + 124 + k * 5, 36, 2, '#57534E'); box(ctx, cx + 146, top + 124 + k * 5, 36, 1, '#D6D3D1'); }
   box(ctx, cx + 140, top + 150, 48, 4, 'rgba(120, 60, 20, 0.6)');
+  ink(ctx, () => ctx.rect(cx + 162, GROUND_Y - 22, 18, 22), '#F97316'); box(ctx, cx + 163, GROUND_Y - 21, 4, 20, '#FDBA74'); box(ctx, cx + 164, GROUND_Y - 20, 14, 3, '#5B4A2A');
+  ink(ctx, () => ctx.rect(x0 + 16, top + 96, 40, 28), '#52525B', 2); for (let k = 0; k < 5; k++) { box(ctx, x0 + 19, top + 100 + k * 5, 34, 2, '#27272A'); box(ctx, x0 + 19, top + 102 + k * 5, 34, 1, '#71717A'); }
+  box(ctx, x0 + 16, top + 124, 40, 22, 'rgba(30, 24, 12, 0.5)'); checker(ctx, x0 + 16, top + 146, 40, 10, 'rgba(30, 24, 12, 0.5)');
+  ink(ctx, () => ctx.rect(cx - 7, GROUND_Y - 146, 14, 10), '#3F3F46');
+  ink(ctx, () => ctx.rect(x0 + 2, GROUND_Y - 88, 50, 20), '#F8FAFC'); box(ctx, x0 + 3, GROUND_Y - 87, 48, 1, '#FFFFFF'); signAt(ctx, 'NO', x0 + 27, GROUND_Y - 80, 5, enamel(5, '#DC2626')); signAt(ctx, 'SMOKING', x0 + 27, GROUND_Y - 72, 5, enamel(5, '#DC2626'));
+  for (const [bx, by] of [[x0 + 4, GROUND_Y - 86], [x0 + 48, GROUND_Y - 86], [x0 + 4, GROUND_Y - 71], [x0 + 48, GROUND_Y - 71]] as const) box(ctx, bx, by, 1, 1, '#71717A');
+  for (let k = 0; k < 9; k++) box(ctx, x0 + 8 + ((k * 23) % 50), GROUND_Y - 2 - (k % 2), 4, 1, k % 3 ? '#F5F5F4' : '#D97706');
+};
+const backBuilding = (ctx: Ctx, cx: number, f: number) => {
+  const top = GROUND_Y - 250;
+  ctx.translate(cx, 0); stamp(ctx, 'hubBackBldg', -94, top - 4, 308, GROUND_Y - top + 6, g => paintBackBuilding(g, 0)); ctx.translate(-cx, 0);
+  // (live: the drip into the bucket, the caged bulb over the door flickering)
   const d = (f * 0.7) % 60; box(ctx, cx + 170, top + 154 + d * 1.6, 2, 3, '#7DD3FC');
-  ink(ctx, () => ctx.rect(cx + 162, GROUND_Y - 22, 18, 22), '#F97316'); box(ctx, cx + 164, GROUND_Y - 20, 14, 3, '#5B4A2A');
-  // (the vent, furred with grease)
-  ink(ctx, () => ctx.rect(x0 + 16, top + 96, 40, 28), '#52525B', 2); for (let k = 0; k < 5; k++) box(ctx, x0 + 19, top + 100 + k * 5, 34, 2, '#27272A');
-  box(ctx, x0 + 16, top + 124, 40, 22, 'rgba(30, 24, 12, 0.5)');
-  // (the caged bulb over the door, flickering)
   const on = (f % 97) > 6 && (f % 31) > 2;
   if (on) { ctx.fillStyle = 'rgba(253, 230, 138, 0.18)'; ctx.beginPath(); ctx.moveTo(cx - 6, GROUND_Y - 138); ctx.lineTo(cx - 60, GROUND_Y); ctx.lineTo(cx + 60, GROUND_Y); ctx.lineTo(cx + 6, GROUND_Y - 138); ctx.fill(); }
-  ink(ctx, () => ctx.rect(cx - 7, GROUND_Y - 146, 14, 10), '#3F3F46'); box(ctx, cx - 4, GROUND_Y - 142, 8, 6, on ? '#FDE68A' : '#57534E');
+  box(ctx, cx - 4, GROUND_Y - 142, 8, 6, on ? '#FDE68A' : '#57534E');
   box(ctx, cx - 7, GROUND_Y - 142, 14, 1, '#18181B'); box(ctx, cx, GROUND_Y - 146, 1, 10, '#18181B');
-  // (NO SMOKING, and the butts all round under it)
-  ink(ctx, () => ctx.rect(x0 + 2, GROUND_Y - 88, 50, 20), '#F8FAFC'); signAt(ctx, 'NO', x0 + 27, GROUND_Y - 80, 5, enamel(5, '#DC2626')); signAt(ctx, 'SMOKING', x0 + 27, GROUND_Y - 72, 5, enamel(5, '#DC2626'));
-  for (let k = 0; k < 9; k++) box(ctx, x0 + 8 + ((k * 23) % 50), GROUND_Y - 2 - (k % 2), 4, 1, k % 3 ? '#F5F5F4' : '#D97706');
 };
 
 /**
