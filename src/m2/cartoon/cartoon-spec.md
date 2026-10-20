@@ -325,6 +325,62 @@ the pen still in his hand (the Cabinet Room); and every mean man's actor he kill
 keeps its list: `ct-wh1-dead`, `ct-wh2-dead`), in his costume in his blood, claw marks; crashed blimps (they bleed).
 Meathead's lines at each, once a visit. The HUD wears the studio's skin there.
 
+### Section 5 in detail (THE BIG-KID ZONE, built: bigkid/)
+
+The park's 90s "extreme" zone for the older kids (zigzags, confetti, neon, chain-link, skate-park concrete; its signs
+jagged lightning-cut boards on hazard-striped poles, the letters slanted and dripping glop: art.ts zoneSign). Its rides
+are bigger and TRACKLESS, every one a legally distinct knockoff: they roam loose about their own patch, line up on him,
+give their tell, and go for him; each hurts him and the cast alike (hazard zones keep the cast out of their way); he
+never rides one (nothing on a ride is lit to stand on). x from the section's start (bigkid/layout.ts):
+
+- 0 THE ZONE GATE (cp 40): out of the White House's stage door; the neon arch (THE BIG-KID ZONE / NO TRACKS. NO
+  LIMITS.); a poster column; a ride op alone.
+- 820 THE POSTER WALL: a plywood fence pasted with STUPID DAD: faded, graffitied (a mustache, horns, SUCKS), CANCELED,
+  peeling.
+- 1250 COUCH DUDES' CRUISIN' COUCH: a plaid couch on a go-kart chassis (two animatronic slacker teens on it) out of its
+  garage, wandering the street; it turns to face him, headlights flash, the horn twice (the tell), then it floors it and
+  skids to a stop. Jump it, or get up on the newsstand's awning or the bus shelter's roof (the PARK SHUTTLE).
+- 2750 THE STUPID DAD STORE (cp 41): EVERYTHING 90% OFF (a NOW 95% sticker); beer-can hats, mugs, foam couches in the
+  window; the CLEARANCE! PULL MY STRING! bin of talking dolls (walk up and one goes off: `m2.cartoon.daddoll`, a
+  pull-string recording of the show's star: "BOY! GET ME A BEER!"; his say back, the first time); the awning (a pickup).
+- 3700 THE GLOP PIT (green slime, bottomless; the kiddie ball pits' rule: spat back out where he last stood safe,
+  hurt; the cast die in it): three towers, too far apart upright (lean into each gap), stacked GLOP drums on each bank
+  (solid: the way back up); Gloppy on the far bank hocking loogies at him on the lids.
+- 4900 SPAZ & STINKY'S BUMPER BASH (cp 42): a fenced rink (hazard-striped rails, a chain-link back, the electric
+  ceiling grid out of reach), three riderless bumper cars, one to each bay between the rink's two towers: they wander,
+  spin, line up (the pole's light flashes, the buzzer: the tell) and ram; they bounce off the rails and each other, and
+  ramming a tower's foot sets it swinging (with him on it: on a lid, the cars go for that tower's foot). The scorer's
+  stands up to the lids.
+- 6450 IN LOVING MEMORY (cp 43): breathing room. The faded family mural (AMERICA'S NEW FAVORITE FAMILY!); the bronze
+  plaque, THE VOICES OF STUPID DAD (MOM, THE BOY, SIS, GRAMPS, with their years, all dead 1996-1999; THEY'LL ALWAYS BE
+  FAMILY.); dead flowers; a crushed beer can somebody left on it; a bench. No causes stated (the boss tells it).
+- 7250 GIGGLES THE CLOWN'S HURL-A-WHIRL: four barf-bucket cars on arms round a clown-head hub (purple tufts, a
+  cigarette, bags under his eyes) that rolls loose about its plaza; the cars at two heights (jump the low, walk under
+  the high); every few seconds the eyes spin, the calliope honks, it shudders (the tell) and lurches over to him. A ride
+  op who sets it on him; THE FLEA past it, leaping over.
+- 8500 DETECTIVE DRAKE'S MOTION MADNESS (cp 44): the simulator pod on four hydraulic legs, kept to its plaza: crouches,
+  hisses, beacon flashing (the tell), hops at him and lands like a dropped fridge. Then THE GLOP PIT, PART 2: a harder
+  chain (taller lids, the middle tower leans further), Gloppy, a churro vendor and the Flea on the far drums.
+- 10560 RAD RAT'S TUBULAR HALFPIPE (cp 45): a giant riderless skateboard rocking in a concrete halfpipe (sloped ground
+  runs); drop in, cross, jump it at the bottom (it's always at least once).
+- 11400 THE WAY ON (cp 46): the STUPID DAD LIVE billboard (THE AMPHITHEATER, SHOWS DAILY. BEER GARDEN OPEN., THIS WAY
+  >: the boss set up); a mixed crowd; the arch to STUPID DAD: THE EXTENDED UNIVERSE (the right end: on to `itchy`).
+
+**The zone's cast** (bigkid/kinds.ts, kindArt.ts; seeded people, men and women, every look): the RIDE OP (`m2:ct_rideop`:
+a bored teen, headset, traffic wand; hand to the headset (the tell) and the ride he's in or by comes straight for him;
+no ride: a traffic cone lobbed; the wand up close), RAD RAT (`m2:ct_skatepunk`: the skate punk mascot, a rat costume
+head with a mohawk of real spikes: SPIKY; close, a crouch on the board then a rush and a bail; far, the board stomped up
+and flung skidding along the ground, then he goes and gets it), GLOPPY (`m2:ct_gloppy`: the gross-out show's slime
+monster; cheeks puffed and a gurgle, then a loogie lobbed that leaves a sticky puddle (half speed through it); a belly
+bump; too big to grab), THE FLEA (`m2:ct_flea`: the big blue superhero; fists on hips ("SPATULA!"), a leap, hangs fist
+down (the tell), dives at where he was, sticks head first in the street, legs kicking), the CHURRO VENDOR
+(`m2:ct_churro`: the sugar bag shaken (the tell), churros thrown flat; close, the cart rammed at him; winded after).
+Dead, the costumes give (headset, rat head, cowl, paper hat, Gloppy's top; the cart tipped over).
+
+**His lines** (bigkid/lines.ts): every ride its own trackless lament; TRACKLESS (the running sneer: "NO TRACK? THAT'S
+FOR PUSSIES." and the like, by pants), said now and then as a ride lines up on him (only fresh lines); he's never heard
+of STUPID DAD (the posters, the graffiti, the store, the doll, the memorial, the billboard).
+
 ## Standing rules (all apply; check every one against new work)
 
 American spelling; signs readable, held up, themed lettering (toonSign: a lumpy cloud board on a curly candy-striped
@@ -398,3 +454,19 @@ markBossFight every frame of a boss or sub-boss fight. Voice every new line (`np
   not everybody: the dead are his. The ones still alive when the screen comes down were actors: they ran (gone).
 - (job 4) Back from the big-kid rides he's put in front of the stage door (DOORS.whitehouse2.end, geometry.ts). The
   shared index switches the HUD to the studio's skin in either half once the screen's down.
+- (job 5) The big-kid zone is built (bigkid/; see Section 5 above). The rides are one little state machine each
+  (bigkid/rides.ts: roam / line up / tell / go / recover), worked out in the section's update, hurting him and the cast
+  (hazardHit, hazard zones); a ride op's headset call (`sicRide`) sets the ride whose patch he's in on him at once.
+- (job 5) The land's towers come back harder: gaps too far upright both ways (lean into every one), and in the bumper
+  rink the cars ram the towers' feet (a kick to the tower's sway: `t.vel`), so standing on a lid isn't safe from them.
+- (job 5) The glop pits use the ball pits' rule (spat back out where he last stood safe, hurt; the cast die). Pit banks
+  are stacked drums, solid (impassable reads impassable); the couch's refuges are an awning and a shelter roof on poles.
+- (job 5) STUPID DAD's setup, nothing more: the show (UBX, THIS FALL, AMERICA'S NEW FAVORITE FAMILY!, the dad's "BOY!
+  BEER!"), the dead cast's plaque (the voice actors: MOM, THE BOY, SIS, GRAMPS; dates only, no causes), the LIVE show at
+  the amphitheater on the billboard. The talking doll's voice (`m2.cartoon.daddoll`) is a pull-string recording, not
+  the boss's own (his comes with the fight).
+- (job 5) Revisit (`ct-bigkid-done`, set going out the far gate): the couch is parked dead outside its garage, OUT OF
+  ORDER on a sawhorse, smoking; his arrival line is the revisit's. Back from the knockoff area he's at DOORS.bigkid.end
+  (the default: by the far gate). The way on is still the crude right-end exit (job 6 swaps it).
+- (job 5) Optional barks, his sneers and the doll only ever say a fresh line (pickFreshLine: nothing fresh, nothing
+  said), so nothing repeats within 45 s however often they fire.

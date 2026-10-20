@@ -11,7 +11,7 @@ the fill-ins, the rules, the section plan). Each section's index.ts header says 
 | 2 (done) | `studio/` | studio (10-19: 10-15 used) |
 | 3 (done) | `whitehouse1/` (the transformation, Chelsea, the pundits, the cat's death and the puffs live there); the engine's cat form (`m1/game/render/player/catBody.ts`) and cartoon kills (`m1/game/core/cartoonKills.ts`) | whitehouse1 (20-29: 20-26 used) |
 | 4 (done) | `whitehouse2/` (the West Wing, Limbaugh/Dole/Newt, the finale: the Clintons' TV, the screen's collapse, the actress; the real stage and the bodies for both halves: realStage.ts, bodies.ts); part one's real-stage mode (whitehouse1/index.ts) and Chelsea's pluggable world (whitehouse1/chelsea.ts) | whitehouse2 (30-39: 30-37 used; 37 the real stage, manual) |
-| 5 | `bigkid/` | bigkid (40-49) |
+| 5 (done) | `bigkid/` (the trackless rides, the glop pits, the zone's cast, STUPID DAD's posters/store/memorial/billboard) | bigkid (40-49: 40-46 used) |
 | 6 | `itchy/` | itchy (50-59) |
 | 7 | `amphi/` (and walkAway/stupidDad.ts made real) | amphi (60-69) |
 
@@ -74,7 +74,11 @@ move your DOORS entries to match; keep the way back working (revisits), or give 
   goes. Back from the big-kid rides: `DOORS.whitehouse2.end` (in front of the stage door, geometry.ts). Back out part
   two's left end: `DOORS.whitehouse1.end` (the garden; the real stage there too once the screen's down). Leaving the
   White House after the screen's down sends the Chelsea actress home (`ct-wh-actress-gone`).
-- **The big-kid rides -> the knockoff area -> the amphitheater** (stubs): the right ends.
+- **The big-kid rides -> the knockoff area** (big-kid side built, bigkid/): walk off its right end (under the arch,
+  STUPID DAD: THE EXTENDED UNIVERSE) to `DOORS.itchy.start` (`ct-bigkid-done`: been through; a later visit's the
+  revisit). Back from the knockoff area: `DOORS.bigkid.end` (the default, by that arch). Back out its left end:
+  `DOORS.whitehouse2.end` (the stage door). Job 6: keep the right end's exit (or move it with your own way in).
+- **The knockoff area -> the amphitheater** (stubs): the right end.
 - **The amphitheater -> the hub** (stand-in, amphi/): walk past the guard: VICTORY, the walk-away
   (walkAway/stupidDad.ts, the MALLET), markLandCleared('cartoon'), the hub.
 
@@ -102,7 +106,16 @@ move your DOORS entries to match; keep the way back working (revisits), or give 
 - tools/voices/cast.json: m2.cartoon.limbaugh, dole, newt, bill, hillary (radio_mild: on the TV), actress, spindoc(f),
   ditto(f).
 
+## Job 5's appends outside its folder
+
+- None in code (bigkid/ only; sway.ts's towers are kicked from bigkid/rides.ts through their `vel`).
+- tools/voices/cast.json: m2.cartoon.rideop(f), skate(f) and gloppy(f) (mask: costume heads), flea(f), churro(f),
+  daddoll (radio: the talking Stupid Dad doll, a pull-string recording; the boss's own voice is still to come).
+
 ## Things that outlive a death
+
+(The big-kid zone's memo: `ct-bigkid-done` (been out its far gate: the couch parked dead, the revisit's lines); its
+gags are once a visit (bigkid/state.ts saidOnce, keyed by `landVisit()`).)
 
 (The White House's memos: `ct-wh-cat`, each pundit's (`ct-wh-perot` ... `ct-wh-newt`), `ct-wh2-globe`,
 `ct-wh-collapsed`, `ct-wh1-dead` / `ct-wh2-dead` (the actors he killed), `ct-wh-actress-gone`; see whitehouse2/state.ts.)
