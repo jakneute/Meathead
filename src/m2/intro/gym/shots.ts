@@ -130,8 +130,8 @@ const squatFig = (frame: number) => figure(`mh2-squat-${frame}`, 64, 80, 30, 78,
   q.line(hip.x - 6 + Math.sin(a3) * 6, hip.y - 6, sh.x - 7, sh.y + 4, S[6]);
   // The head: square, the flat-top, the brow down, the jaw set; the neck a stump
   const hx = sh.x + Math.sin(a3) * 5 + 3, hy = sh.y - Math.cos(a3) * 5 - 6;
-  q.form(g => { g.rect(hx - 6, hy - 6, 12, 13); }, { ramp: S, bevel: 3, amb: 0.2, ink: I });
-  q.form(g => { g.rect(hx - 7, hy - 11, 13, 6); }, { ramp: RAMP.mHair, bevel: 2, amb: 0.3, ink: I, gain: 1.2 });
+  q.form(g => { g.rect(hx - 7, hy - 7, 14, 15); }, { ramp: S, bevel: 3, amb: 0.2, ink: I });
+  q.form(g => { g.rect(hx - 8, hy - 12, 15, 6); }, { ramp: RAMP.mHair, bevel: 2, amb: 0.3, ink: I, gain: 1.2 });
   q.line(hx - 6, hy - 10, hx + 5, hy - 10, '#4a4a58');
   q.px(hx + 3, hy - 2, I); q.px(hx + 4, hy - 2, '#f4ece0'); q.line(hx + 1, hy - 4, hx + 5, hy - 3, I);
   q.px(hx + 6, hy, S[5]); q.px(hx + 6, hy + 1, S[3]);
