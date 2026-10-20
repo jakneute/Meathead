@@ -13,7 +13,7 @@
 // Dev: ?tod=<lands cleared, 0..9> (fractions go between: ?tod=6.5), or ?tod=<0..1 with a decimal point> for the day
 // progress itself (?tod=0.5). window.__tod(n) sets it live (n as ?tod takes it; null to go back to the real count).
 
-import { mix } from '../m1/game/render/backdrops/core';
+import { mix, noteBadColor } from '../m1/game/render/backdrops/core';
 import { bandedGradient } from '../m1/game/render/pixelArt';
 import type { Light, SceneLight } from '../m1/game/render/lighting';
 import { landsCleared } from './store';
@@ -144,7 +144,7 @@ export const timeOfDay = (p = dayProgress()): TimeOfDay => {
 
 const rgb = (c: string): RGB => {
   // (not a color (a palette read past its end somewhere): a mid gray, not a crash that takes the frame down)
-  if (typeof c !== 'string' || c[0] !== '#') return [128, 128, 128];
+  if (typeof c !== 'string' || c[0] !== '#') { noteBadColor('timeOfDay rgb', c); return [128, 128, 128]; }
   if (c.length === 4) return [parseInt(c[1] + c[1], 16), parseInt(c[2] + c[2], 16), parseInt(c[3] + c[3], 16)];
   return [parseInt(c.slice(1, 3), 16), parseInt(c.slice(3, 5), 16), parseInt(c.slice(5, 7), 16)];
 };

@@ -39,7 +39,18 @@ export const hash = (n: number) => {
 
 // (a color that isn't one (a palette read past its end somewhere) mixes as a mid gray rather than throwing: one bad
 // read was taking whole frames down (DRAW FAILED))
-const toRgb = (hex: string) => (typeof hex === 'string' && hex[0] === '#' ? [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16)) : [128, 128, 128]);
+/** (dev) A missing color mixed as gray: counted on window.__badColor and warned once with a stack, so the smoke test
+ *  and the console still catch a bad palette read now that it no longer throws. */
+export const noteBadColor = (where: string, v: unknown) => {
+  if (!import.meta.env.DEV || typeof window === 'undefined') return;
+  const w = window as unknown as { __badColor?: number };
+  w.__badColor = (w.__badColor ?? 0) + 1;
+  if (w.__badColor === 1) console.warn(`[color] ${where} got ${String(v)}: a palette read past its end?`, new Error().stack);
+};
+const toRgb = (hex: string) => {
+  if (typeof hex === 'string' && hex[0] === '#') return [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16));
+  noteBadColor('mix', hex); return [128, 128, 128];
+};
 // (the art mixes thousands of colours a frame, so: each colour's parsed the once (a plain #rrggbb, packed in one
 // number), and the result put together from a table, no arrays made; the same colours out as ever. Anything else,
 // the slow way, as it always was)
