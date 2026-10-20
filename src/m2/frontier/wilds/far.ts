@@ -13,7 +13,8 @@
 
 import type { GameState } from '../../../m1/game/core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
-import { GY } from '../geometry';
+import { GY, FRX } from '../geometry';
+import { drawTeases } from '../teases';
 import { drawTodSky, timeOfDay, farTint, skyAt, hourMix, cloudTint, type TimeOfDay } from '../../timeOfDay';
 import { type RangeLook, range, mist, snap2, wave, jag, fillUnder, wrapAt } from '../../adventure/farArt';
 import { type Ctx, box, checker, mix, hash, stamp, bandedGradient, hazeBands, pixelBlob, INK, FAR, NEEDLE, PLY, STEEL } from './paint';
@@ -58,6 +59,35 @@ export const paintClouds = (g: Ctx, tod: TimeOfDay) => {
   }
 };
 
+/** Hawks wheeling high over it all (live: a few V's, wings flapping now and then, gliding round slow circles). */
+export const drawBirds = (c: Ctx, f: number, cam: number, y0: number) => {
+  const col = farTint('#2A2430', 0.4);
+  for (let i = 0; i < 4; i++) {
+    const a = f * (0.004 + i * 0.0012) + i * 1.9, r = 60 + i * 24;
+    const x = Math.round(((((150 + i * 230 - cam * 0.015 + Math.cos(a) * r) % (W + 80)) + W + 80) % (W + 80)) - 40), y = Math.round(y0 + i * 22 + Math.sin(a) * r * 0.3);
+    const flap = (f + i * 37) % 120 < 24 ? ((f >> 2) + i) % 2 : 0, s = i % 2 ? 1 : 2;
+    c.fillStyle = col;
+    c.fillRect(x - 4 * s, y - (flap ? s * 2 : 0), 2 * s, s); c.fillRect(x - 2 * s, y - (flap ? s : -s * 0.5), 2 * s, s);
+    c.fillRect(x, y, s, s);
+    c.fillRect(x + s, y - (flap ? s : -s * 0.5), 2 * s, s); c.fillRect(x + 3 * s, y - (flap ? s * 2 : 0), 2 * s, s);
+  }
+};
+
+/** The far cloud bank along the horizon over the peaks: smaller, flatter heaps, hazed into the sky (behind the big ones). */
+export const FCW = 900, FCH = 70;
+export const paintFarClouds = (g: Ctx, tod: TimeOfDay) => {
+  const sky = skyAt(0.7, tod), C = ['#B4BECE', '#D2DAE6', '#ECF0F6', '#FFFFFF'].map(c => mix(cloudTint(c, tod), sky, 0.35));
+  for (let i = 0; i < 9; i++) {
+    const cx = 40 + i * (FCW / 9) + hash(i * 5.3) * 50, base = 40 + hash(i * 2.1) * 22, w = 50 + hash(i * 3.7) * 70;
+    wrapAt(FCW, cx, x => {
+      const n = 4 + Math.floor(hash(i + 7) * 3);
+      for (let k = 0; k < n; k++) { const u = (k + 0.5) / n, r = (0.45 + Math.sin(u * Math.PI) * 0.55) * w * 0.17; pixelBlob(g, x - w / 2 + u * w, base - r * 0.5, r, r * 0.6, C[1]); }
+      for (let k = 0; k < n; k++) { const u = (k + 0.5) / n, r = (0.45 + Math.sin(u * Math.PI) * 0.55) * w * 0.17; pixelBlob(g, x - w / 2 + u * w - r * 0.25, base - r * 0.7, r * 0.6, r * 0.42, C[2]); }
+      box(g, x - w / 2, base - 2, w, 4, C[0]); checker(g, x - w / 2, base - 4, w, 2, C[0]);
+    }, 120);
+  }
+};
+
 // ---------------------------------------------------------------------------------------------------------------
 // The real Rockies, far off (past the park's fence: the real thing)
 
@@ -72,12 +102,15 @@ export const paintRockies = (g: Ctx, tod: TimeOfDay) => {
   for (let x = 0; x < TW; x += 2) {
     const y = mtnY(x);
     if (y >= snowLine) continue;
-    const foot = snowLine - 8 + jag(x, TW, 6, 11) * 26 + wave(x, TW, 9.3, 3) * 10;
+    // (the snow's foot ragged in runs, not column by column (that read as streaks); lit by the slope over a wider
+    // reach, so a flank's snow is lit or shaded as a whole, dithered where it turns)
+    const foot = snowLine - 8 + jag(x, TW, 14, 11) * 14 + wave(x, TW, 9.3, 3) * 14;
     if (foot <= y) continue;
-    const lit = mtnY(x + 4) < y || (mtnY(x + 4) === y && mtnY(x - 4) > y);
+    const sl = mtnY(x + 8) - mtnY(x - 8), lit = sl < -2, turn = Math.abs(sl) <= 2;
     box(g, x, y, 2, foot - y, lit ? S[2] : S[0]);
     if (lit) box(g, x, y + (foot - y) * 0.6, 2, (foot - y) * 0.4, S[1]);
-    if ((x >> 1) % 3 === 0) box(g, x, foot, 2, 4 + hash(x) * 8, S[0]);
+    else if (turn && (x >> 1) % 2) box(g, x, y, 2, (foot - y) * 0.5, S[1]);
+    if ((x >> 1) % 3 === 0) box(g, x, foot, 2, 2 + hash(Math.floor(x / 14)) * 6, S[0]);
   }
   mist(g, TW, MH - 90, 90, skyAt(0.92, tod), 0, 0.55, 6);
 };
@@ -92,7 +125,7 @@ const flatPeaks = (w: number, h: number, seed: number) => {
   const n = 5 + Math.floor(hash(seed) * 3);
   for (let i = 1; i < n; i++) {
     const u = i / n, peak = Math.sin(u * Math.PI) * (0.6 + hash(seed + i) * 0.4);
-    pts.push([snap2(u * w), snap2(-h * (0.35 + peak * 0.65) + (i % 2 ? 0 : h * 0.22))]);
+    pts.push([snap2(u * w), snap2(-h * (0.35 + peak * 0.65) + (i % 2 ? 0 : h * 0.12))]);
   }
   pts.push([w, 0]);
   return pts;
@@ -114,7 +147,8 @@ export const paintFlats = (g: Ctx, tod: TimeOfDay) => {
     }
     // (its raw edge: the ply showing along the cut, offset a pixel right and down: the sheet's thickness)
     g.fillStyle = BR[4]; g.beginPath(); pts.forEach(([x, y], k) => (k ? g.lineTo(x + 3, y + 1) : g.moveTo(x + 3, y + 1))); g.closePath(); g.fill();
-    g.fillStyle = INK; g.beginPath(); pts.forEach(([x, y], k) => (k ? g.lineTo(x + 1, y - 1) : g.moveTo(x + 1, y - 1))); g.closePath(); g.fill();
+    // (its cut edge: a band of the paint's own darkest, not a hairline of ink (at this distance that read as scribble))
+    g.fillStyle = P[0]; g.beginPath(); pts.forEach(([x, y], k) => (k ? g.lineTo(x + 1, y - 2) : g.moveTo(x + 1, y - 2))); g.closePath(); g.fill();
     // (the paint: banded down, darker at the foot; the lit flanks painted on as brush strokes; the snow with drips)
     g.save(); g.beginPath(); pts.forEach(([x, y], k) => (k ? g.lineTo(x, y) : g.moveTo(x, y))); g.closePath(); g.clip();
     bandedGradient(g, fx, foot - fh - 4, fw, fh + 4, [P[3], P[2], P[2], P[1], P[0]], 6);
@@ -192,15 +226,25 @@ export const paintPines2 = (g: Ctx, tod: TimeOfDay) => {
 
 // ---------------------------------------------------------------------------------------------------------------
 
-export const drawFar = (c: Ctx, state: GameState) => {
+/**
+ * The wilds' far off. `prog`: how far along the land's map the view is (world x from FRX: where the teases stand
+ * from here; the wilds' own camera by default); `train`: Tucker's train may cross the far trestle.
+ */
+export const drawFar = (c: Ctx, state: GameState, prog?: number, opts: { train?: boolean } = {}) => {
   const tod = timeOfDay(), cam = state.camera.x, f = state.frame, gl = Math.round(groundLine(state));
-  const hz = gl - 6;
+  const hz = gl - 6, at = prog ?? cam + W / 2 - FRX;
   drawTodSky(c, 0, 0, W, H, SKY, { bands: 16, horizon: hz, sun: [610, 110], moon: [170, 80], t: f, scroll: cam * 0.01 });
+  tile(c, `fw-fcloud-${tod.key}`, cam * 0.006 + f * 0.02, gl - 262 - (gl - 426) * 0.3, FCH, FCW, g => paintFarClouds(g, tod));
   tile(c, `fw-cloud-${tod.key}`, cam * 0.012 + f * 0.05, 26 + (gl - 426) * 0.15, CH, CW, g => paintClouds(g, tod));
+  drawBirds(c, f, cam, 60 + (gl - 426) * 0.2);
   // (the dust along the horizon)
   hazeBands(c, 0, hz - 150, W, 150, hourMix('#E6D2A8', '#E8A878', '#2A2E4A', tod), 0, 0.22, 6);
   tile(c, `fw-rockies-${tod.key}`, cam * 0.018 + 200, gl - MH + 8 - (gl - 426) * 0.4, MH, TW, g => paintRockies(g, tod));
+  // (the neighboring lands, past the park's edge; then the painted flats; then the land's other attractions)
+  const tf = gl - (gl - 426) * 0.22;
+  drawTeases(c, at, tf, f, 'far');
   tile(c, `fw-flats-${tod.key}`, cam * 0.06 + 500, gl - PH + 20 - (gl - 426) * 0.25, PH, PW, g => paintFlats(g, tod));
+  drawTeases(c, at, tf, f, 'near', { train: opts.train });
   hazeBands(c, 0, gl - 60, W, 60, skyAt(0.94, tod), 0, 0.2, 4);
   tile(c, `fw-pines1-${tod.key}`, cam * 0.12 + 140, gl - RH1 + 16 - (gl - 426) * 0.12, RH1, RW1, g => paintPines1(g, tod));
   tile(c, `fw-pines2-${tod.key}`, cam * 0.22 + 60, gl - RH2 + 22, RH2, RW2, g => paintPines2(g, tod));

@@ -19,8 +19,9 @@ import type { GameState } from '../../../m1/game/core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { drawTodSky, cloudTint, type TimeOfDay } from '../../timeOfDay';
 import { type RangeLook, range, mist, snap2, wave, jag, fillUnder, wrapAt } from '../../adventure/farArt';
-import { drawFar, groundLine } from '../wilds/far';
-import { GY } from '../geometry';
+import { drawFar, groundLine, drawBirds } from '../wilds/far';
+import { GY, FRX } from '../geometry';
+import { drawTeases } from '../teases';
 import { type Ctx, box, checker, mix, hash, bandedGradient, hazeBands, pixelBlob, stillAt, INK, timeOfDay, farTint, skyAt, hourMix, FIBER, PLY, STEEL, NEEDLE, POOL } from './paint';
 import { zoneAt, inSewer, indoorsAt, realAt, x0 } from './layout';
 import { stamp } from '../../intro/art/kit';
@@ -222,7 +223,12 @@ const realFar = (c: Ctx, state: GameState) => {
   drawTodSky(c, 0, 0, W, H, SKY, { bands: 16, horizon: HORIZON + 60, sun: [620, 100], moon: [160, 80], t: f, scroll: cam * 0.01 });
   tile(c, `rclouds-${tod.key}`, cam * 0.012 + f * 0.04, 20, CH, CW, g => paintClouds(g, tod));
   hazeBands(c, 0, HORIZON - 120, W, 160, hourMix('#E2DCC8', '#E8A878', '#2A2E4A', tod), 0, 0.2, 6);
+  drawBirds(c, f, cam, 70);
   tile(c, `rpeaks-${tod.key}`, cam * 0.03 + 400, HORIZON - RH + 70, RH, RW, g => paintPeaks(g, tod));
+  // (the park behind him, seen from out here: Timber Tumble's back (the plywood, the armature), the neighbors' landmarks)
+  const prog = cam + W / 2 - FRX;
+  drawTeases(c, prog, HORIZON + 130, f, 'far', { outside: true });
+  drawTeases(c, prog, HORIZON + 130, f, 'near', { outside: true });
   tile(c, `rridge-${tod.key}`, cam * 0.08 + 200, HORIZON - FH + 120, FH, FW, g => paintForestRidge(g, tod));
   hazeBands(c, 0, HORIZON + 40, W, 80, skyAt(0.94, tod), 0, 0.22, 4);
   tile(c, `rnear-${tod.key}`, cam * 0.16 + 90, HORIZON - NH + 190, NH, NW, g => paintNearPines(g, tod));

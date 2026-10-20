@@ -12,7 +12,9 @@ import { drawTodSky, cloudTint, type TimeOfDay } from '../../timeOfDay';
 import { type RangeLook, range, mist, snap2, wave, jag, fillUnder, wrapAt } from '../../adventure/farArt';
 import { stamp } from '../../intro/art/kit';
 import { signText } from '../../signLetters';
-import { groundLine } from '../wilds/far';
+import { groundLine, drawBirds } from '../wilds/far';
+import { drawTeases } from '../teases';
+import { FRX } from '../geometry';
 import { type Ctx, box, checker, mix, hash, bandedGradient, hazeBands, pixelBlob, INK, timeOfDay, farTint, skyAt, hourMix, NEEDLE, PLY, STEEL, stenciled } from './paint';
 import { x0 } from './layout';
 
@@ -212,7 +214,13 @@ export const drawWoodsFar = (c: Ctx, state: GameState) => {
   drawTodSky(c, 0, 0, W, H, SKY, { bands: 16, horizon: gl - 70, sun: [620, 100], moon: [160, 80], t: f, scroll: cam * 0.01 });
   tile(c, `clouds-${tod.key}`, cam * 0.012 + f * 0.04, 20 + dy * 0.15, CH, CW, g => paintClouds(g, tod));
   hazeBands(c, 0, gl - 250, W, 160, hourMix('#E2DCC8', '#E8A878', '#2A2E4A', tod), 0, 0.2, 6);
+  drawBirds(c, f, cam, 70 + dy * 0.2);
   tile(c, `peaks-${tod.key}`, cam * 0.03 + 700, gl - RH - 61 - dy * 0.4, RH, RW, g => paintPeaks(g, tod));
+  // (the park back the way he came, where its things stand on the land's map, seen from outside: Timber Tumble's
+  // back (the plywood and the armature), the neighbors' landmarks; the ridge in front of their feet)
+  const prog = cam + W / 2 - FRX, tf = gl + 30 - dy * 0.3;
+  drawTeases(c, prog, tf, f, 'far', { outside: true });
+  drawTeases(c, prog, tf, f, 'near', { outside: true });
   tile(c, `ridge-${tod.key}`, cam * 0.08 + 900, gl - FH - 11 - dy * 0.25, FH, FW, g => paintForestRidge(g, tod));
   hazeBands(c, 0, gl - 90, W, 80, skyAt(0.94, tod), 0, 0.22, 4);
   tile(c, `near-${tod.key}`, cam * 0.16 + 90, gl - NH + 6, NH, NW, g => paintNearPines(g, tod));

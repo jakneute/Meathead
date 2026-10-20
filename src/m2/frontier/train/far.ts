@@ -17,7 +17,7 @@ import type { GameState } from '../../../m1/game/core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { signText } from '../../signLetters';
 import { burned, painted } from '../kit';
-import { GY } from '../geometry';
+import { GY, FRX, SECTIONS } from '../geometry';
 import { drawFar } from '../wilds/far';
 import { type Ctx, box, checker, mix, hash, INK, still, slab, post, fiberglass, pine, near, FIBER, PLANK, PLY, STEEL, GRASS, DIRT, NEEDLE, BRASS, timeOfDay, skyAt, bandedGradient } from './paint';
 import { trainOf } from './state';
@@ -232,7 +232,10 @@ export const drawScenery = (c: Ctx, state: GameState) => {
   // (the wilds' own far off, its ground line just behind the park's)
   const gl = base - FAR_UP, eyeS = H * 0.42;
   const fake = { ...state, camera: { ...state.camera, x: state.camera.x + tr.dist, y: GY - eyeS - (gl - eyeS) / 0.7 } } as GameState;
-  drawFar(c, fake);
+  // (the teases far off stand where they are on the land's map: the line's carried him on toward the town, by how far
+  // the world's gone by and how far up the train he's got)
+  const prog = Math.min(SECTIONS.town.x0 - FRX, SECTIONS.train.x0 - FRX + (state.camera.x + W / 2 - SECTIONS.train.x0) * 0.4 + tr.dist * 0.1);
+  drawFar(c, fake, prog, { train: false });
   // (the park's ground: its grass going back, hazy, banded down to the embankment)
   const G = near(GRASS), D = near(DIRT), tod = timeOfDay(), haze = skyAt(0.9, tod), g0 = base - PARK_UP - 14;
   bandedGradient(c, 0, g0, W, Math.max(0, H - g0), [mix(G[3], haze, 0.24), mix(G[3], haze, 0.16), mix(G[2], haze, 0.1), G[2], mix(G[1], D[2], 0.4)], 5);
