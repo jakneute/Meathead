@@ -674,7 +674,9 @@ const WH_FLOOR = 470, WH_BED = 452, WH_PLANT = WH_BED - 18;
 const WH_GL_TOP = WH_FLOOR - 74, WH_GL_H = 210;
 /** (the fairy wheel) How far the scenery's gone up past him, t frames in (faster and faster; it stops with the camera). */
 const wheelScroll = (t: number) => { const u = Math.min(t, WHEEL_STOP); return 6 * u + 0.25 * u * u; };
-const WH_SC = wheelScroll(WHEEL_STOP);
+// (worked out on use, not at load: deathAnim.ts and this file import each other round a loop, and in the dev server
+// WHEEL_STOP isn't set yet when this module first runs; a top-level read of it took the whole game down)
+const whSc = () => wheelScroll(WHEEL_STOP);
 /** A colour toward black (k < 0) or white (k > 0). */
 const tint = (hex: string, k: number) => {
   const n = parseInt(hex.slice(1), 16), to = k < 0 ? 0 : 255, a = Math.abs(k);
@@ -913,7 +915,7 @@ const bluebird = (ctx: Ctx, x: number, y: number, dir: number, flap: number, twe
  */
 const fairyWheel = (ctx: Ctx, state: GameState, d: MeatheadDeath, t: number, f: number, W: number, H: number) => {
   const cx = W / 2, s = t - WHEEL_HIT, hit = s >= 0;
-  const sc = wheelScroll(t), rest = WH_SC - sc;
+  const sc = wheelScroll(t), WH_SC = whSc(), rest = WH_SC - sc;
   const speed = t < WHEEL_STOP ? 6 + 0.5 * t : 0;
   // The sky: evening over the park, banded
   bandedGradient(ctx, 0, 0, W, H, ['#2A2F7A', '#4A4CA8', '#8A78CC', '#C8A0DC', '#F0C0D8', '#F8D8D0'], 14);

@@ -211,7 +211,8 @@ const App2: React.FC = () => {
   const [status, setStatus] = useState(GameStatus.START);
   // The title screen first (title/TitleScreen.tsx): nothing's built behind it till START GAME (the way in, as ever) or
   // CONTINUE (the hub, a file's lands put back). (In dev, a ?stage to start in skips it.)
-  const [title, setTitle] = useState(first === INTRO_STAGE);
+  // (?intro, in dev: straight into the way in, no title)
+  const [title, setTitle] = useState(first === INTRO_STAGE && !devQ?.has('intro'));
   useEffect(() => { setMusicTitle(title); }, [title]);
   const startNew = (slot: Slot | null) => {
     if (slot !== null && readFile(slot)) deleteFile(slot);

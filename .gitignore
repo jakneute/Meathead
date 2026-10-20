@@ -44,6 +44,8 @@ src/m1/generated/*.bin
 src/m2/generated/*.bin
 release-m1/
 
+# Smoke test output (tools/smoke/run.mjs)
+tools/smoke/out/
 
 # Perf harness output (tools/perf/run.mjs)
 tools/perf/out/

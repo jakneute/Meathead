@@ -39,6 +39,14 @@ const FRAME_MS = 1000 / 60;
  */
 /** A frame's drawing threw (the next one starts from a clean canvas state); it's been reported once. */
 let drawFailed = false, drawWarned = false;
+/** (dev: every failed draw / frame counted, with its last error, for the smoke test: tools/smoke/run.mjs) */
+const noteFail = (kind: 'draw' | 'frame', err: unknown) => {
+  if (!import.meta.env.DEV) return;
+  const w = window as unknown as { __smoke?: { draw: number; frame: number; lastDraw?: string; lastFrame?: string } };
+  const s = (w.__smoke ??= { draw: 0, frame: 0 });
+  const e = err as Error, msg = `${e?.message ?? String(err)} | ${String(e?.stack ?? '').split('\n').slice(1, 4).map(t => t.trim()).join(' | ')}`;
+  if (kind === 'draw') { s.draw++; s.lastDraw = msg; } else { s.frame++; s.lastFrame = msg; }
+};
 
 const GameCanvas: React.FC<GameCanvasProps> = (props) => {
   const { status, stageId, currentWeapon, initialAmmo, cheats } = props;
@@ -100,6 +108,7 @@ const GameCanvas: React.FC<GameCanvasProps> = (props) => {
       } catch (err) {
         // (a drawing bug mustn't black out the game: the frame's what it is, the next one starts clean)
         drawFailed = true;
+        noteFail('draw', err);
         if (!drawWarned) { drawWarned = true; console.error('draw failed', err); }
         // (not in the public build: the error up on screen, so it can be read off and reported)
         if (!PUBLIC_BUILD) {
@@ -167,6 +176,7 @@ const GameCanvas: React.FC<GameCanvasProps> = (props) => {
         // (one bad frame must never stop the game: say what went wrong, clear the canvas state it left behind, carry on)
         try { tick(); } catch (err) {
           console.error('frame failed', err);
+          noteFail('frame', err);
           const c = canvasRef.current?.getContext('2d') as (CanvasRenderingContext2D & { reset?: () => void }) | null | undefined;
           c?.reset?.();
         }
