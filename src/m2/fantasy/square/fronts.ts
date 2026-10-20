@@ -295,7 +295,7 @@ const paintGinger = (g: Ctx, f: Front) => {
   }
   const dx = w / 2 - 12; box(g, dx - 1, -43, 26, 43, INK); box(g, dx, -42, 24, 42, D('#4A2410')); for (let r = 0; r < 4; r++) for (let q = 0; q < 2; q++) { box(g, dx + 2 + q * 11, -40 + r * 10, 9, 8, D('#6A3418')); box(g, dx + 2 + q * 11, -40 + r * 10, 9, 1, D('#8A4A28')); }
   // (gumdrops along the band)
-  for (let k = 8; k < w - 8; k += 16) ballR(g, k, -Math.round(h * 0.55) - 3, 3, rampH(ramp6(CANDY[(k + seed) % 6]), true));
+  for (let k = 8; k < w - 8; k += 16) ballR(g, k, -Math.round(h * 0.55) - 3, 3, rampH(ramp6(CANDY[(((Math.floor(k + seed)) % 6) + 6) % 6]), true));
   // (the roof: a slab of icing over the gable, dripping, sprinkles; a peppermint rose window in the gable)
   polyF(g, [[-12, -h + 2], [peak, -h - rh - 2], [w + 12, -h + 2]], INK);
   polyF(g, [[-10, -h], [peak, -h - rh], [w + 10, -h]], G[3]);
@@ -307,9 +307,9 @@ const paintGinger = (g: Ctx, f: Front) => {
     g.strokeStyle = INK; g.lineWidth = 12; g.beginPath(); g.moveTo(x0, y0 - 4); g.lineTo(x1, y1 - 4); g.stroke();
     g.strokeStyle = I[3]; g.lineWidth = 10; g.stroke();
     g.strokeStyle = I[5]; g.lineWidth = 2; g.beginPath(); g.moveTo(x0, y0 - 8); g.lineTo(x1, y1 - 8); g.stroke();
-    for (let t = 0.05; t < 1; t += 0.09) { const x = x0 + (x1 - x0) * t, y = y0 + (y1 - y0) * t; box(g, x, y, 3, 3 + ((t * 100 + seed) % 6), I[3]); box(g, x, y - 6, 2, 1, D(CANDY[Math.floor(t * 40 + seed) % 6])); }
+    for (let t = 0.05; t < 1; t += 0.09) { const x = x0 + (x1 - x0) * t, y = y0 + (y1 - y0) * t; box(g, x, y, 3, 3 + ((t * 100 + seed) % 6), I[3]); box(g, x, y - 6, 2, 1, D(CANDY[(((Math.floor(t * 40 + seed)) % 6) + 6) % 6])); }
   }
-  ballR(g, peak, -h - rh - 8, 5, rampH(ramp6(CANDY[seed % 6]), true));
+  ballR(g, peak, -h - rh - 8, 5, rampH(ramp6(CANDY[((Math.floor(seed) % 6) + 6) % 6]), true));
 };
 
 const paintPark = (g: Ctx, f: Front) => {

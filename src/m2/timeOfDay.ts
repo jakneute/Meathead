@@ -143,6 +143,8 @@ export const timeOfDay = (p = dayProgress()): TimeOfDay => {
 // Colors
 
 const rgb = (c: string): RGB => {
+  // (not a color (a palette read past its end somewhere): a mid gray, not a crash that takes the frame down)
+  if (typeof c !== 'string' || c[0] !== '#') return [128, 128, 128];
   if (c.length === 4) return [parseInt(c[1] + c[1], 16), parseInt(c[2] + c[2], 16), parseInt(c[3] + c[3], 16)];
   return [parseInt(c.slice(1, 3), 16), parseInt(c.slice(3, 5), 16), parseInt(c.slice(5, 7), 16)];
 };
