@@ -1,29 +1,55 @@
-// The hub, painted (a first pass: blocked in with SNES-style banding and inked edges, to be brought up later).
+// The hub, painted.
 //
 //   The camera's stood in the middle of the ring, turning to follow him round, so everything goes round together, near
-//   and far (seen from inside the cylinder). Behind it all, flat: the morning sky. On the roundabout: the sun, the
-//   clouds, each land's big landmark right behind its own portal, the treeline and the monorail; the plaza floor, the
-//   low wall round the back of it, lamp posts with their banners, and the portals, each dressed as its land, swirling
-//   inside; flower beds along the front.
+//   and far (seen from inside the cylinder). Behind it all, flat: the sky. On the roundabout, back to front: the sun,
+//   the clouds, each land's big landmark right behind its own stretch, the haze, the treeline and the monorail; each
+//   land's stretch (stretch.ts: its buildings, trees and paving, running into the next land's at the seams); the
+//   promenade's crowd and the parade (crowd.ts); the portals (gates.ts), the swirl round each; the fence along the back
+//   of the walk, the gateposts; the walk's crowd, the queues, the carts; the lamp posts (signposts on them pointing
+//   both ways, string lights between); the cast. In front: the flower beds, the pigeons.
+//
+// Still art's stamped (painted once, put down with a drawImage: the stretches in half-stretch strips, each portal, each
+// signpost, each guest's frames); only what moves is drawn live; only what's on screen is drawn at all.
 
 import type { GameState } from '../../m1/game/core/state';
 import { GROUND_Y, CANVAS_WIDTH, CANVAS_HEIGHT } from '../../m1/constants';
 import { INK, dark, lite, ink } from '../../m1/game/render/npc/kit';
 import { mix } from '../../m1/game/render/backdrops/core';
+import { stamp } from '../../m1/game/render/stamp';
 import { LANDS, SPOTS, HUB_SLOTS, type Land } from './lands';
-import { HUB, HUB_CIRC, slotX } from './geometry';
-import { drawCrowd } from './crowd';
+import { HUB, HUB_CIRC, HUB_HORIZON, slotX, seamX, ROW } from './geometry';
+import { drawCrowdMid, drawCrowdWalk, drawCast, drawPigeons, drawLostBalloons } from './crowd';
+import { paintBack, paintWalk, paintPath, paintFence, drawStretchLive, stretchOf, LAND_LOOK } from './stretch';
+import { paintGate, paintPosts, drawSwirl, drawShimmer, drawPostsLive } from './gates';
 import { timeOfDay, skyRamp, skyTint, sunAt, sunTint, cloudTint, farTint, drawStars, drawMoon, lampGlow } from '../timeOfDay';
 import { noteSun, drawSunGlare } from '../sunFlare';
 import { signText, signAt, signW, gate, hillside, enamel } from './letters';
 
 type Ctx = CanvasRenderingContext2D;
+type Each = (x: number, r: number, draw: (x: number) => void) => void;
 const box = (ctx: Ctx, x: number, y: number, w: number, h: number, c: string) => { ctx.fillStyle = c; ctx.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h)); };
 /** Bands top to bottom through the colors. */
 const bands = (ctx: Ctx, x: number, y: number, w: number, h: number, cs: string[]) => { const bh = h / cs.length; cs.forEach((c, i) => box(ctx, x, y + i * bh, w, bh + 1, c)); };
-/** The horizon the roundabout's wall wraps round (index.ts's cylinder). */
-export const HUB_HORIZON = 330;
+export { HUB_HORIZON };
 const SKY = ['#4C7BE0', '#5A88E6', '#6995EB', '#7AA3EF', '#8DB1F2', '#A1BFF4', '#B7CDF4', '#CEDBF2', '#E6E3E6', '#F6E7D2'];
+
+/** What of the world's on screen (the world pass's view: the cylinder's strip, through any zoom). */
+const viewOf = (state: GameState) => state.view ?? { x: state.camera.x - 40, y: state.camera.y, w: CANVAS_WIDTH + 80, h: CANVAS_HEIGHT };
+/** Every lap's copy of something `r` either side of x that's on screen (the roundabout repeats). */
+const eachOf = (state: GameState): Each => {
+  const v = viewOf(state);
+  return (x, r, draw) => { for (let k = -1; k <= 1; k++) { const lx = x + k * HUB_CIRC; if (lx + r > v.x && lx - r < v.x + v.w) draw(lx); } };
+};
+/** Every lap's copy near enough to matter for the glow (screen-space passes that don't have the view). */
+const laps = (state: GameState, x: number, draw: (x: number) => void) => {
+  for (let k = -1; k <= 1; k++) {
+    const lx = x + k * HUB_CIRC;
+    if (lx > state.camera.x - 500 && lx < state.camera.x + CANVAS_WIDTH + 500) draw(lx);
+  }
+};
+/** A stamp put down at every lap's copy of it on screen: `paint` draws it where it is on the first lap. */
+const stampEach = (ctx: Ctx, each: Each, key: string, x0: number, y0: number, w: number, h: number, paint: (g: Ctx) => void) =>
+  each(x0 + w / 2, w / 2, lx => { const dx = lx - (x0 + w / 2); if (dx) ctx.translate(dx, 0); stamp(ctx, key, x0, y0, w, h, paint); if (dx) ctx.translate(-dx, 0); });
 
 // ---------------------------------------------------------------------------
 // Behind: the sky, the lands' landmarks, the treeline
@@ -31,36 +57,27 @@ const SKY = ['#4C7BE0', '#5A88E6', '#6995EB', '#7AA3EF', '#8DB1F2', '#A1BFF4', '
 
 /** Behind it all, flat: the sky (bands run straight across, so turning doesn't show on it), and the lawn at the bottom. */
 export const drawHubBackdrop = (ctx: Ctx, state: GameState) => {
-  // (the sky as the hour has it: timeOfDay.ts; after sundown, the stars and the moon, flat behind it all like the sky)
   const tod = timeOfDay();
   bands(ctx, 0, 0, CANVAS_WIDTH, 470, skyRamp(SKY, tod));
   drawStars(ctx, 0, 0, CANVAS_WIDTH, 400, state.frame, 0, tod);
   drawMoon(ctx, 610, 96, 20, tod);
-  // (the lawn under it all, down to the bottom: from inside the ring the plaza's wall dips at the sides, and this is
-  // what's behind it there)
   bands(ctx, 0, 472, CANVAS_WIDTH, CANVAS_HEIGHT - 472, ['#2F6B3A', '#2A6034', '#25562F', '#204C2A'].map(c => farTint(c, 0.3, tod)));
 };
 
 /**
- * The far distance, drawn on the roundabout itself (so it turns exactly with it): the camera's stood still in the middle
- * of the ring, turning to follow him round, and a turning camera sweeps everything past at the same rate, the plaza in
- * front of it and the skyline far beyond (only from inside, standing in the one spot, does it all go round together).
- * The sun, clouds, each land's landmark right behind its own portal, the haze, the treeline, the monorail. `top`: the
- * screen's top in the world.
+ * The far distance, drawn on the roundabout itself (so it turns exactly with it): the sun, clouds, each land's
+ * landmark right behind its own stretch (stamped: hazed by the hour), the haze, the treeline, the monorail.
  */
-const drawHubFar = (ctx: Ctx, state: GameState) => {
-  const f = state.frame, top = state.camera.y;
-  const x0 = state.camera.x - 1200, x1 = state.camera.x + CANVAS_WIDTH + 1200;
-  const each = (x: number, draw: (x: number) => void) => laps(state, x, draw);
-  const tod = timeOfDay();
-  // The sun, in rings, over Fantasy Land (sinking toward the skyline as the day goes: timeOfDay.ts)
+const drawHubFar = (ctx: Ctx, state: GameState, each: Each) => {
+  const f = state.frame, top = state.camera.y, v = viewOf(state);
+  const x0 = v.x - 40, x1 = v.x + v.w + 40;
+  const tod = timeOfDay(), todKey = `${tod.skyK.toFixed(2)}|${tod.haze}`;
+  // The sun, in rings, over Fairy Land (sinking toward the skyline as the day goes)
   const sun = sunAt(0, top + 92, top + 440, tod);
-  if (sun.up > 0.02) each(slotX(5) + 120, x => {
+  if (sun.up > 0.02) laps(state, slotX(5) + 120, x => {
     ctx.save(); ctx.globalAlpha = sun.up;
     for (const [r, c] of [[46, '#F8E4B0'], [38, '#FBEFC6'], [30, '#FFF7DC'], [24, '#FFFDF2']] as const) { ctx.fillStyle = sunTint(c, tod); ctx.beginPath(); ctx.arc(x, sun.y, r * (1 + Math.max(0, 0.4 - tod.sunH) * 0.4), 0, Math.PI * 2); ctx.fill(); }
     ctx.restore();
-    // (its glare, drawn on the wall with it; noted for the lens's ghosts where the wall's wrap puts it on screen (as
-    // drawHubLampGlow works it out): sunFlare.ts)
     const a = (x - state.camera.x - CANVAS_WIDTH / 2) / HUB.radius;
     if (Math.abs(a) < 1.2) {
       const sx = CANVAS_WIDTH / 2 + HUB.radius * Math.tan(a), sy = HUB_HORIZON + (sun.y - top - HUB_HORIZON) / Math.cos(a);
@@ -68,15 +85,24 @@ const drawHubFar = (ctx: Ctx, state: GameState) => {
       noteSun(null, sx, sy);
     }
   });
-  // Clouds drifting (flat-bottomed puffs, lit on top: by the hour)
+  // Clouds drifting
   const cloud = [cloudTint('#E8EEF8', tod), cloudTint('#FFFFFF', tod), cloudTint('#D3DCEB', tod)];
-  for (let i = 0; i < 9; i++) each(HUB.x0 + i * (HUB_CIRC / 9) + ((f * 0.15 + i * 97) % (HUB_CIRC / 9)), x => {
+  for (let i = 0; i < 9; i++) each(HUB.x0 + i * (HUB_CIRC / 9) + ((f * 0.15 + i * 97) % (HUB_CIRC / 9)), 90, x => {
     const y = top + 60 + (i % 3) * 46;
     for (const [dx, r] of [[-30, 16], [0, 24], [28, 18], [52, 12]] as const) { ctx.fillStyle = cloud[0]; ctx.beginPath(); ctx.arc(x + dx, y, r, Math.PI, 0); ctx.fill(); ctx.fillStyle = cloud[1]; ctx.beginPath(); ctx.arc(x + dx - 2, y - 3, r * 0.7, Math.PI, 0); ctx.fill(); }
     box(ctx, x - 46, y, 110, 4, cloud[2]);
   });
-  // Each land's landmark on the skyline, right behind its portal
-  SPOTS.forEach((s, i) => { if (s.kind === 'land') each(slotX(i), x => landmark(ctx, LANDS[s.land], x, top + 440, f)); else if (s.kind === 'america') each(slotX(i), x => americaLandmark(ctx, x, top + 440, f)); });
+  // (gulls, high up, going round)
+  for (let i = 0; i < 5; i++) each(HUB.x0 + ((i * 1100 + f * (0.6 + i * 0.1)) % HUB_CIRC), 20, x => {
+    const y = top + 140 + i * 18 + Math.sin(f * 0.03 + i) * 6, fl = ((f >> 3) + i) % 2 ? 3 : -1;
+    ctx.strokeStyle = '#3F3F46'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(x - 6, y + fl); ctx.lineTo(x, y); ctx.lineTo(x + 6, y + fl); ctx.stroke();
+  });
+  // Each land's landmark on the skyline, right behind its stretch (stamped)
+  SPOTS.forEach((s, i) => {
+    const bx = slotX(i);
+    if (s.kind === 'land') stampEach(ctx, each, `hubL|${LANDS[s.land].id}|${todKey}`, bx - 240, top + 140, 480, 310, g => landmark(g, LANDS[s.land], bx, top + 440, 0));
+    else if (s.kind === 'america') { const fi = Math.floor(f / 12) % 10; stampEach(ctx, each, `hubL|america|${fi}|${todKey}`, bx - 40, top + 120, 200, 330, g => americaLandmark(g, bx, top + 440, fi * 12.5)); }
+  });
   // The haze down at the horizon
   const [hr, hg, hb] = [1, 3, 5].map(i => parseInt(mix('#F6E7D2', tod.haze, tod.skyK).slice(i, i + 2), 16));
   for (let i = 0; i < 4; i++) { ctx.fillStyle = `rgba(${hr}, ${hg}, ${hb}, ${(0.12 + i * 0.1).toFixed(2)})`; ctx.fillRect(x0, top + 380 + i * 18, x1 - x0, 18); }
@@ -88,7 +114,8 @@ const drawHubFar = (ctx: Ctx, state: GameState) => {
   }
   box(ctx, x0, top + 400, x1 - x0, 8, '#D6D3D1'); box(ctx, x0, top + 400, x1 - x0, 2, '#F5F5F4'); box(ctx, x0, top + 406, x1 - x0, 2, '#A8A29E');
   for (let x = Math.floor(x0 / 320) * 320; x < x1; x += 320) { box(ctx, x - 4, top + 408, 8, 60, '#A8A29E'); box(ctx, x - 4, top + 408, 3, 60, '#D6D3D1'); }
-  each(HUB.x0 + HUB_CIRC - ((f * 2.2) % HUB_CIRC), x => {
+  each(HUB.x0 + HUB_CIRC - ((f * 2.2) % HUB_CIRC) + 128, 130, xx => {
+    const x = xx - 128;
     for (let c = 0; c < 4; c++) {
       const cx = x + c * 64;
       ink(ctx, () => ctx.roundRect(cx, top + 376, 60, 24, [c === 0 ? 12 : 3, c === 3 ? 12 : 3, 2, 2]), c % 2 ? '#38BDF8' : '#F8FAFC');
@@ -96,6 +123,147 @@ const drawHubFar = (ctx: Ctx, state: GameState) => {
     }
   });
   box(ctx, x0, top + 468, x1 - x0, 4, '#24542F');
+};
+
+// ---------------------------------------------------------------------------
+// On the roundabout
+// ---------------------------------------------------------------------------
+
+/** A portal going (hub/portal.ts): which spot's, how far on its swirl's been wound, how awake it is. Set every frame
+ * (slot -1: none). */
+const surge = { slot: -1, phase: 0, k: 0 };
+export const setPortalSurge = (slot: number, phase: number, k = 0) => { surge.slot = slot; surge.phase = phase; surge.k = k; };
+
+/** The stretches are stamped in strips this wide (each spot's middle and each seam well inside one). */
+const STRIP = HUB.slot / 2, STRIP0 = HUB.x0 + STRIP / 2, STRIPS = HUB_SLOTS * 2;
+
+export const drawHubBack = (ctx: Ctx, state: GameState) => {
+  const each = eachOf(state), f = state.frame;
+  drawHubFar(ctx, state, each);
+  const lit = lampGlow() > 0.35;
+  // The stretches: the lands' buildings, trees and kiosks along the back, the promenade's paving, the walk's, the
+  // portals' paths (stamped in strips)
+  for (let s = 0; s < STRIPS; s++) {
+    const a = STRIP0 + s * STRIP, b = a + STRIP;
+    stampEach(ctx, each, `hubA|${s}|${lit}`, a, 196, STRIP, CANVAS_HEIGHT - 196 + 4, g => {
+      g.save(); g.beginPath(); g.rect(a, 0, STRIP, CANVAS_HEIGHT + 10); g.clip();
+      paintBack(g, a, b, lit);
+      paintWalk(g, a, b);
+      for (let i = 0; i < HUB_SLOTS; i++) for (const k of [0, HUB_CIRC]) { const cx = slotX(i) + k; if (SPOTS[i].kind === 'land' && cx + 60 > a && cx - 60 < b) paintPath(g, cx, stretchOf(i)); }
+      g.restore();
+    });
+  }
+  // What moves in them; America USA's gate and the staff door (theirs, as they were)
+  for (let i = 0; i < HUB_SLOTS; i++) {
+    const id = stretchOf(i);
+    each(slotX(i), 280, x => {
+      drawStretchLive(ctx, x, id, f);
+    });
+  }
+  // The promenade's crowd, the parade
+  drawCrowdMid(ctx, state, each);
+  // The portals: the still part stamped, the swirl round it live
+  for (let i = 0; i < HUB_SLOTS; i++) {
+    const spot = SPOTS[i];
+    if (spot.kind !== 'land') continue;
+    const land = LANDS[spot.land], on = i === surge.slot, pf = on ? f + surge.phase : f;
+    each(slotX(i), 120, x => {
+      ctx.translate(x, 0); stamp(ctx, `hubP|${land.id}`, -110, 290, 220, 216, g => paintGate(g, land, 0)); ctx.translate(-x, 0);
+      drawShimmer(ctx, land, x, pf);
+      drawSwirl(ctx, land, x, pf, on ? surge.k : 0);
+    });
+  }
+  // The fence along the back of the walk, the gateposts at the paths
+  for (let s = 0; s < STRIPS; s++) {
+    const a = STRIP0 + s * STRIP;
+    stampEach(ctx, each, `hubC|${s}`, a, ROW.fence - 34, STRIP, 40, g => { g.save(); g.beginPath(); g.rect(a, 0, STRIP, CANVAS_HEIGHT); g.clip(); paintFence(g, a, a + STRIP); g.restore(); });
+  }
+  for (let i = 0; i < HUB_SLOTS; i++) {
+    const spot = SPOTS[i];
+    if (spot.kind !== 'land') continue;
+    const land = LANDS[spot.land];
+    each(slotX(i), 70, x => { ctx.translate(x, 0); stamp(ctx, `hubPost|${land.id}`, -70, ROW.fence - 76, 140, 82, g => paintPosts(g, land, 0)); ctx.translate(-x, 0); drawPostsLive(ctx, land, x, f); });
+  }
+  // The walk's crowd (behind him), balloons getting away
+  drawCrowdWalk(ctx, state, each);
+  // America USA's gate and the staff door (theirs, as they were: out at the front of the walk, the crowd behind them)
+  for (let i = 0; i < HUB_SLOTS; i++) {
+    const spot = SPOTS[i];
+    if (spot.kind === 'staff') each(slotX(i), 280, x => staffDoor(ctx, x, f));
+    else if (spot.kind === 'america') each(slotX(i), 140, x => americaGate(ctx, x, f));
+  }
+  drawLostBalloons(ctx, state, each);
+  // The lamp posts at the seams, the signposts on them, the string lights between
+  drawLights(ctx, state, each);
+  for (let i = 0; i < HUB_SLOTS; i++) each(seamX(i), 110, x => lamp(ctx, x, i, f));
+  // The cast, stood about
+  drawCast(ctx, state, each);
+};
+
+/** In front, along the bottom edge of the plaza: flower beds, the pigeons. */
+export const drawHubFront = (ctx: Ctx, state: GameState) => {
+  const bottom = state.camera.y + CANVAS_HEIGHT, v = viewOf(state);
+  for (let x = Math.floor((v.x - 120) / 380) * 380; x < v.x + v.w + 40; x += 380) {
+    for (const [dx, r, c] of [[0, 34, '#2F6B3A'], [44, 26, '#3F8A4A'], [80, 30, '#2F6B3A']] as const) {
+      ctx.fillStyle = c; ctx.beginPath(); ctx.arc(x + dx, bottom + 8, r, Math.PI, 0); ctx.fill();
+      ctx.fillStyle = lite(c, 0.15); ctx.beginPath(); ctx.arc(x + dx - r * 0.3, bottom + 4, r * 0.5, Math.PI, 0); ctx.fill();
+    }
+    for (let k = 0; k < 6; k++) box(ctx, x - 20 + k * 20, bottom - 22 - (k % 3) * 5, 5, 5, ['#F472B6', '#FDE047', '#F87171'][k % 3]);
+  }
+  drawPigeons(ctx, state, eachOf(state));
+};
+
+/** What a spot's called on a signpost. */
+const spotName = (slot: number) => { const s = SPOTS[((slot % HUB_SLOTS) + HUB_SLOTS) % HUB_SLOTS]; return s.kind === 'land' ? LANDS[s.land].name : s.kind === 'america' ? 'AMERICA USA' : 'STAFF ONLY'; };
+const spotLook = (slot: number) => { const id = stretchOf(slot); return LAND_LOOK[id]?.(false) ?? { sx: 1, sy: 1, fill: '#F8FAFC' }; };
+const spotBoard = (slot: number) => { const s = SPOTS[((slot % HUB_SLOTS) + HUB_SLOTS) % HUB_SLOTS]; return s.kind === 'land' ? LANDS[s.land].sign : s.kind === 'america' ? '#1E3A8A' : '#57534E'; };
+
+/** A lamp post at the seam between two stretches: the post, its glass, a banner, and the signpost on it pointing
+ * both ways (the land each way, in its own lettering, on its own color). Stamped; the glass lit live after dark. */
+const lamp = (ctx: Ctx, x: number, i: number, f: number) => {
+  const top = GROUND_Y - 230;
+  ctx.translate(x, 0);
+  stamp(ctx, `hubLamp|${i}`, -120, top - 30, 240, 236, g => {
+    box(g, -5, top, 10, 230, INK); box(g, -4, top, 8, 230, '#1F2937'); box(g, -4, top, 3, 230, '#4B5563');
+    box(g, -12, GROUND_Y - 14, 24, 14, '#111827'); box(g, -10, GROUND_Y - 12, 6, 10, '#374151');
+    box(g, -14, top - 2, 28, 4, '#111827');
+    // (the signpost: an arrow board each way)
+    for (const [dir, slot, y] of [[-1, i - 1, top + 70], [1, i, top + 92]] as const) {
+      const L = spotLook(slot), name = spotName(slot), w = signW(name, L) + 18, col = spotBoard(slot);
+      const x0 = dir < 0 ? -6 - w : 6, x1 = dir < 0 ? -6 : 6 + w, tip = dir < 0 ? x0 - 8 : x1 + 8;
+      g.beginPath(); g.moveTo(dir < 0 ? x1 : x0, y - 9); g.lineTo(dir < 0 ? x0 : x1, y - 9); g.lineTo(tip, y); g.lineTo(dir < 0 ? x0 : x1, y + 9); g.lineTo(dir < 0 ? x1 : x0, y + 9); g.closePath();
+      g.fillStyle = col; g.fill(); g.strokeStyle = INK; g.lineWidth = 1.5; g.stroke();
+      box(g, Math.min(x0, x1) + 1, y - 8, w - 2, 2, mix(col, '#FFFFFF', 0.25));
+      signText(g, name, (x0 + x1) / 2 + dir * 3, y + 4, L);
+    }
+    // (a banner: HAPPY LAND)
+    const land = LANDS[((i % LANDS.length) + LANDS.length) % LANDS.length];
+    g.fillStyle = land.sign; g.beginPath(); g.moveTo(4, top + 116); g.lineTo(34, top + 116); g.lineTo(34, top + 170); g.lineTo(19, top + 162); g.lineTo(4, top + 170); g.closePath(); g.fill();
+    g.strokeStyle = INK; g.lineWidth = 1; g.stroke();
+    signAt(g, 'HAPPY', 19, top + 134, 6, enamel(6, land.signText)); signAt(g, 'LAND', 19, top + 146, 6, enamel(6, land.signText));
+  });
+  ctx.translate(-x, 0);
+  // (its glass: lit up as it gets dark, a glow round it over the dark: drawHubLampGlow)
+  ink(ctx, () => ctx.roundRect(x - 12, top - 26, 24, 26, [10, 10, 2, 2]), mix('#FEF3C7', '#FFFBEB', lampGlow()));
+  if (lampGlow() > 0.3) box(ctx, x - 6, top - 20, 12, 14, '#FFFFFF');
+  void f;
+};
+
+/** String lights swagged lamp to lamp over the walk: bulbs in the land colors, twinkling round (brighter after dark). */
+const BULBS = ['#F87171', '#FDE047', '#4ADE80', '#60A5FA', '#F472B6', '#FB923C'];
+const drawLights = (ctx: Ctx, state: GameState, each: Each) => {
+  const f = state.frame, y0 = GROUND_Y - 226, sag = 26, night = lampGlow();
+  for (let i = 0; i < HUB_SLOTS; i++) each(seamX(i) + HUB.slot / 2, HUB.slot / 2, mx => {
+    const a = mx - HUB.slot / 2;
+    ctx.strokeStyle = '#27272A'; ctx.lineWidth = 1; ctx.beginPath();
+    for (let k = 0; k <= 12; k++) { const u = k / 12; ctx.lineTo(a + u * HUB.slot, y0 + sag * 4 * u * (1 - u)); }
+    ctx.stroke();
+    for (let k = 1; k < 30; k++) {
+      const u = k / 30, bx = a + u * HUB.slot, by = y0 + sag * 4 * u * (1 - u) + 2;
+      const on = night > 0.3 || ((k + (f >> 4)) % 6) !== 0;
+      box(ctx, bx - 1, by, 3, 3, on ? (night > 0.3 ? mix(BULBS[(k + i) % 6], '#FFFFFF', 0.4) : BULBS[(k + i) % 6]) : '#57534E');
+    }
+  });
 };
 
 /** A land's big landmark, its base on (x, y): hazed into the sky by distance (flat, with a lit edge). */
@@ -194,185 +362,6 @@ const landmark = (ctx: Ctx, land: Land, x: number, y: number, f: number) => {
       return;
     }
   }
-};
-
-// ---------------------------------------------------------------------------
-// On the roundabout
-// ---------------------------------------------------------------------------
-
-/** Every lap's copy of something near enough to be seen (the roundabout repeats). */
-const laps = (state: GameState, x: number, draw: (x: number) => void) => {
-  for (let k = -1; k <= 1; k++) {
-    const lx = x + k * HUB_CIRC;
-    if (lx > state.camera.x - 1100 && lx < state.camera.x + CANVAS_WIDTH + 1100) draw(lx);
-  }
-};
-
-/** A portal going (hub/portal.ts): which spot's, and how far on its swirl's been wound (it turns faster as it takes
- * him: its frame count, run ahead). Set every frame (slot -1: none). */
-const surge = { slot: -1, phase: 0 };
-export const setPortalSurge = (slot: number, phase: number) => { surge.slot = slot; surge.phase = phase; };
-
-export const drawHubBack = (ctx: Ctx, state: GameState) => {
-  drawHubFar(ctx, state);
-  const f = state.frame, x0 = state.camera.x - 1200, x1 = state.camera.x + CANVAS_WIDTH + 1200;
-  // The low wall round the back of the plaza: stone, a planter along its top
-  box(ctx, x0, GROUND_Y - 78, x1 - x0, 78, '#D6C7A8');
-  bands(ctx, x0, GROUND_Y - 78, x1 - x0, 12, ['#4D7C3A', '#3F6B2E']);
-  for (let x = Math.floor(x0 / 48) * 48; x < x1; x += 48) { box(ctx, x, GROUND_Y - 66, 1, 66, '#B8A889'); box(ctx, x + 24, GROUND_Y - 33, 1, 33, '#B8A889'); }
-  box(ctx, x0, GROUND_Y - 34, x1 - x0, 1, '#B8A889'); box(ctx, x0, GROUND_Y - 66, x1 - x0, 2, '#E8DCC2');
-  for (let x = Math.floor(x0 / 30) * 30; x < x1; x += 30) { const c = ['#F472B6', '#FDE047', '#F87171', '#C084FC'][(Math.abs(x / 30) | 0) % 4]; box(ctx, x + 6, GROUND_Y - 84, 6, 6, c); box(ctx, x + 18, GROUND_Y - 82, 5, 5, lite(c, 0.3)); }
-  // The plaza floor: big pavers, in bands, lit along the front edge
-  bands(ctx, x0, GROUND_Y, x1 - x0, 60, ['#E7D9BC', '#DCCCAB', '#CFBE9C', '#C2B08E']);
-  for (let x = Math.floor(x0 / 64) * 64; x < x1; x += 64) { box(ctx, x, GROUND_Y, 1, 60, '#B8A584'); box(ctx, x + 32, GROUND_Y + 20, 1, 40, '#B8A584'); }
-  box(ctx, x0, GROUND_Y + 20, x1 - x0, 1, '#B8A584'); box(ctx, x0, GROUND_Y, x1 - x0, 2, '#F5EBD6');
-  // The portals, the staff door, and the lamp posts between
-  for (let i = 0; i < HUB_SLOTS; i++) {
-    const spot = SPOTS[i];
-    const pf = i === surge.slot ? f + surge.phase : f;
-    laps(state, slotX(i), x => (spot.kind === 'staff' ? staffDoor(ctx, x, f) : spot.kind === 'america' ? americaGate(ctx, x, f) : portal(ctx, LANDS[spot.land], x, pf)));
-    laps(state, HUB.x0 + i * HUB.slot, x => lamp(ctx, x, i, f));
-  }
-  // The crowd, standing about between them
-  drawCrowd(ctx, state, (x, draw) => laps(state, x, draw));
-};
-
-/** In front, along the bottom edge of the plaza: flower beds (on the roundabout, turning with the rest). */
-export const drawHubFront = (ctx: Ctx, state: GameState) => {
-  const bottom = state.camera.y + CANVAS_HEIGHT;
-  for (let x = Math.floor((state.camera.x - 1200) / 380) * 380; x < state.camera.x + CANVAS_WIDTH + 1200; x += 380) {
-    for (const [dx, r, c] of [[0, 34, '#2F6B3A'], [44, 26, '#3F8A4A'], [80, 30, '#2F6B3A']] as const) {
-      ctx.fillStyle = c; ctx.beginPath(); ctx.arc(x + dx, bottom + 8, r, Math.PI, 0); ctx.fill();
-      ctx.fillStyle = lite(c, 0.15); ctx.beginPath(); ctx.arc(x + dx - r * 0.3, bottom + 4, r * 0.5, Math.PI, 0); ctx.fill();
-    }
-    for (let k = 0; k < 6; k++) box(ctx, x - 20 + k * 20, bottom - 22 - (k % 3) * 5, 5, 5, ['#F472B6', '#FDE047', '#F87171'][k % 3]);
-  }
-};
-
-/** A lamp post on the plaza, its banner (HAPPY LAND, in the land colors in turn) waving. */
-const lamp = (ctx: Ctx, x: number, i: number, f: number) => {
-  const top = GROUND_Y - 230;
-  box(ctx, x - 4, top, 8, 230, '#1F2937'); box(ctx, x - 4, top, 3, 230, '#4B5563');
-  box(ctx, x - 12, GROUND_Y - 14, 24, 14, '#111827');
-  // (its glass: lit up as it gets dark, a glow round it over the dark: drawHubLampGlow)
-  ink(ctx, () => ctx.roundRect(x - 12, top - 26, 24, 26, [10, 10, 2, 2]), mix('#FEF3C7', '#FFFBEB', lampGlow()));
-  if (lampGlow() > 0.3) { box(ctx, x - 6, top - 20, 12, 14, '#FFFFFF'); }
-  box(ctx, x - 14, top - 2, 28, 4, '#111827');
-  const land = LANDS[i % LANDS.length], wave = Math.sin(f * 0.06 + i) * 3;
-  ctx.fillStyle = land.sign; ctx.beginPath(); ctx.moveTo(x + 4, top + 20); ctx.lineTo(x + 40, top + 20 + wave); ctx.lineTo(x + 40, top + 90 + wave); ctx.lineTo(x + 22, top + 80 + wave * 0.5); ctx.lineTo(x + 4, top + 90); ctx.closePath(); ctx.fill();
-  signAt(ctx, 'HAPPY', x + 22, top + 42 + wave * 0.6, 6, enamel(6, land.signText)); signAt(ctx, 'LAND', x + 22, top + 54 + wave * 0.6, 6, enamel(6, land.signText));
-};
-
-/** The swirl inside a portal's arch (rings of the land's colors, turning, flecks going round). */
-const swirl = (ctx: Ctx, land: Land, cx: number, top: number, w: number, f: number) => {
-  const h = GROUND_Y - top;
-  ctx.save();
-  ctx.beginPath(); ctx.moveTo(cx - w / 2, GROUND_Y); ctx.lineTo(cx - w / 2, top + w / 2); ctx.arc(cx, top + w / 2, w / 2, Math.PI, 0); ctx.lineTo(cx + w / 2, GROUND_Y); ctx.closePath(); ctx.clip();
-  box(ctx, cx - w / 2, top, w, h, land.swirl[0]);
-  const my = top + h * 0.48;
-  for (let r = 220; r > 0; r -= 13) {
-    const c = land.swirl[(Math.floor(r / 13 + f * 0.12) % 3 + 3) % 3];
-    ctx.fillStyle = c; ctx.beginPath(); ctx.ellipse(cx, my, r * 0.62, r, Math.sin(f * 0.01) * 0.2, 0, Math.PI * 2); ctx.fill();
-  }
-  for (let k = 0; k < 10; k++) {
-    const a = f * 0.04 + k * 0.63, rr = 20 + ((k * 37 + f) % 90);
-    box(ctx, cx + Math.cos(a) * rr * 0.6, my + Math.sin(a) * rr, 3, 3, '#FFFFFF');
-  }
-  ctx.restore();
-};
-
-/** A land's portal: the arch, dressed as the land, the swirl in it, the sign over it, the path out to it. */
-const portal = (ctx: Ctx, land: Land, cx: number, f: number) => {
-  const W = 200, top = GROUND_Y - 270, pw = 30;
-  // The path out from the walkway to it: lighter pavers, edged
-  ctx.fillStyle = '#F2E6CC'; ctx.beginPath(); ctx.moveTo(cx - W / 2, GROUND_Y); ctx.lineTo(cx + W / 2, GROUND_Y); ctx.lineTo(cx + W / 2 + 40, GROUND_Y + 60); ctx.lineTo(cx - W / 2 - 40, GROUND_Y + 60); ctx.closePath(); ctx.fill();
-  for (let k = 1; k < 4; k++) box(ctx, cx - W / 2 - k * 13, GROUND_Y + k * 15, W + k * 26, 1, '#D8C9A7');
-  swirl(ctx, land, cx, top, W, f);
-  // The arch itself, by land
-  const pillar = (x: number, c: string) => { ink(ctx, () => ctx.rect(x, top + 40, pw, GROUND_Y - top - 40), c); box(ctx, x + 2, top + 42, 6, GROUND_Y - top - 44, lite(c, 0.3)); box(ctx, x + pw - 8, top + 42, 6, GROUND_Y - top - 44, dark(c, 0.25)); };
-  const arch = (c: string, thick = 26) => { ctx.strokeStyle = INK; ctx.lineWidth = thick + 2; ctx.beginPath(); ctx.arc(cx, top + W / 2, W / 2 + thick / 2, Math.PI, 0); ctx.stroke(); ctx.strokeStyle = c; ctx.lineWidth = thick; ctx.stroke(); ctx.strokeStyle = lite(c, 0.3); ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(cx, top + W / 2, W / 2 + thick - 4, Math.PI * 1.1, Math.PI * 1.6); ctx.stroke(); };
-  const L = cx - W / 2 - pw, R = cx + W / 2;
-  switch (land.id) {
-    case 'space':
-      pillar(L, '#CBD5E1'); pillar(R, '#CBD5E1'); arch('#E2E8F0');
-      for (const x of [L, R]) { for (let k = 0; k < 6; k++) box(ctx, x + 10, top + 70 + k * 34, 10, 10, (f >> 3) % 6 === k ? '#FDE047' : '#38BDF8'); ink(ctx, () => ctx.ellipse(x + pw / 2, top + 40, 24, 7, 0, 0, Math.PI * 2), '#94A3B8'); }
-      ink(ctx, () => ctx.arc(cx, top - 26, 18, 0, Math.PI * 2), '#A78BFA');
-      ctx.strokeStyle = '#FDE68A'; ctx.lineWidth = 3; ctx.beginPath(); ctx.ellipse(cx, top - 26, 32, 7, -0.25, 0, Math.PI * 2); ctx.stroke();
-      break;
-    case 'frontier':
-      for (const x of [L, R]) { pillar(x, '#92400E'); for (let k = 0; k < 8; k++) box(ctx, x + 4 + (k % 2) * 10, top + 60 + k * 26, 12, 2, '#5C2E0B'); }
-      ink(ctx, () => ctx.rect(L - 14, top - 4, R + pw - L + 28, 34), '#A16207');
-      for (let k = 0; k < 3; k++) box(ctx, L - 12, top + 4 + k * 9, R + pw - L + 24, 1, '#78350F');
-      ink(ctx, () => ctx.arc(cx, top + 60, 26, 0, Math.PI * 2), 'rgba(0,0,0,0)');
-      ctx.strokeStyle = '#78350F'; ctx.lineWidth = 3; for (let k = 0; k < 8; k++) { const a = k * Math.PI / 4 + f * 0.01; ctx.beginPath(); ctx.moveTo(cx, top + 60); ctx.lineTo(cx + Math.cos(a) * 26, top + 60 + Math.sin(a) * 26); ctx.stroke(); }
-      break;
-    case 'spooky':
-      pillar(L, '#57534E'); pillar(R, '#57534E');
-      ctx.strokeStyle = INK; ctx.lineWidth = 28; ctx.beginPath(); ctx.moveTo(L + pw / 2, top + 60); ctx.lineTo(cx, top - 40); ctx.lineTo(R + pw / 2, top + 60); ctx.stroke(); ctx.strokeStyle = '#57534E'; ctx.lineWidth = 24; ctx.stroke();
-      for (const x of [L, R]) { const fl = Math.sin(f * 0.3 + x) * 3; ink(ctx, () => ctx.rect(x + 8, top + 30, 14, 16), '#3F3F46'); ctx.fillStyle = '#86EFAC'; ctx.beginPath(); ctx.ellipse(x + 15, top + 22 + fl * 0.3, 6, 10 + fl, 0, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#F0FDF4'; ctx.beginPath(); ctx.ellipse(x + 15, top + 26, 3, 5, 0, 0, Math.PI * 2); ctx.fill(); }
-      for (let b = 0; b < 2; b++) { const bx = cx - 40 + b * 80 + Math.sin(f * 0.08 + b * 2) * 14, by = top - 30 + Math.cos(f * 0.1 + b) * 8, flap = (f >> 2) % 2 ? 4 : -2; ctx.fillStyle = '#1F1630'; ctx.beginPath(); ctx.moveTo(bx - 12, by + flap); ctx.lineTo(bx, by); ctx.lineTo(bx + 12, by + flap); ctx.lineTo(bx, by + 5); ctx.closePath(); ctx.fill(); }
-      break;
-    case 'cartoon':
-      for (const x of [L, R]) { ctx.save(); ctx.beginPath(); ctx.roundRect(x, top + 40, pw, GROUND_Y - top - 40, 14); ctx.clip(); box(ctx, x, top + 40, pw, GROUND_Y - top, '#FFFFFF'); for (let k = -4; k < 14; k++) { ctx.fillStyle = '#EC4899'; ctx.beginPath(); ctx.moveTo(x, top + 40 + k * 24); ctx.lineTo(x + pw, top + 40 + k * 24 - 16); ctx.lineTo(x + pw, top + 40 + k * 24 - 4); ctx.lineTo(x, top + 52 + k * 24); ctx.fill(); } ctx.restore(); ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.beginPath(); ctx.roundRect(x, top + 40, pw, GROUND_Y - top - 40, 14); ctx.stroke(); }
-      arch('#FDE047', 30);
-      // A cloud on top with big googly eyes looking about
-      for (const [dx, r] of [[-34, 22], [0, 30], [34, 22]] as const) ink(ctx, () => ctx.arc(cx + dx, top - 18, r, 0, Math.PI * 2), '#FFFFFF');
-      box(ctx, cx - 60, top - 14, 120, 18, '#FFFFFF');
-      for (const ex of [-12, 12]) { ink(ctx, () => ctx.arc(cx + ex, top - 24, 9, 0, Math.PI * 2), '#FFFFFF'); const look = Math.sin(f * 0.03) * 4; ctx.fillStyle = INK; ctx.beginPath(); ctx.arc(cx + ex + look, top - 22, 4, 0, Math.PI * 2); ctx.fill(); }
-      break;
-    case 'hollywood':
-      for (const x of [L, R]) { pillar(x, '#18181B'); for (let k = 0; k < 9; k++) box(ctx, x + 6, top + 60 + k * 24, pw - 12, 4, '#CA8A04'); }
-      arch('#18181B', 26);
-      ctx.strokeStyle = '#CA8A04'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(cx, top + W / 2, W / 2 + 13, Math.PI, 0); ctx.stroke();
-      // A film strip across the top, frames going by
-      ink(ctx, () => ctx.rect(L - 10, top - 30, R + pw - L + 20, 30), '#27272A');
-      for (let k = 0; k < 14; k++) { const fx = L - 6 + ((k * 20 + f) % (R + pw - L + 12)); box(ctx, fx, top - 28, 6, 4, '#F5F5F4'); box(ctx, fx, top - 6, 6, 4, '#F5F5F4'); }
-      break;
-    case 'fantasy':
-      for (const x of [L - 6, R - 4]) {
-        ink(ctx, () => ctx.rect(x, top + 30, pw + 10, GROUND_Y - top - 30), '#D6D3D1');
-        for (let k = 0; k < 10; k++) box(ctx, x + (k % 2) * 16, top + 40 + k * 22, 18, 1, '#A8A29E');
-        ink(ctx, () => { ctx.moveTo(x - 6, top + 30); ctx.lineTo(x + (pw + 10) / 2, top - 40); ctx.lineTo(x + pw + 16, top + 30); ctx.closePath(); }, '#2563EB');
-        const wave = Math.sin(f * 0.12 + x) * 3; ctx.fillStyle = '#FACC15'; ctx.beginPath(); ctx.moveTo(x + (pw + 10) / 2, top - 40); ctx.lineTo(x + (pw + 10) / 2 + 20, top - 34 + wave); ctx.lineTo(x + (pw + 10) / 2, top - 28); ctx.fill();
-      }
-      arch('#D6D3D1', 24);
-      break;
-    case 'adventure':
-      // A ruin's gateway: cracked stone pillars carved with glyphs, a stone idol's face over the arch, torches either
-      // side, vines hanging off the lot
-      for (const x of [L, R]) {
-        pillar(x, '#A8A29E');
-        for (let k = 0; k < 8; k++) { box(ctx, x, top + 60 + k * 28, pw, 2, '#78716C'); box(ctx, x + 8, top + 68 + k * 28, 6, 6, '#57534E'); box(ctx, x + 18, top + 72 + k * 28, 4, 3, '#57534E'); }
-        box(ctx, x + pw - 7, top + 120, 2, 40, '#44403C'); box(ctx, x + pw - 9, top + 150, 2, 18, '#44403C');
-      }
-      arch('#A8A29E', 24);
-      // (the idol: a square stone face, glaring, its mouth the way through)
-      ink(ctx, () => ctx.rect(cx - 34, top - 30, 68, 50), '#78716C', 2);
-      box(ctx, cx - 30, top - 26, 60, 4, '#A8A29E');
-      box(ctx, cx - 22, top - 14, 14, 8, '#292524'); box(ctx, cx + 8, top - 14, 14, 8, '#292524');
-      box(ctx, cx - 18, top - 12, 6, 4, f % 120 < 60 ? '#F59E0B' : '#FBBF24'); box(ctx, cx + 12, top - 12, 6, 4, f % 120 < 60 ? '#F59E0B' : '#FBBF24');
-      box(ctx, cx - 16, top + 4, 32, 6, '#292524'); for (let k = 0; k < 4; k++) box(ctx, cx - 14 + k * 8, top + 4, 4, 3, '#E7E5E4');
-      // (torches on the pillars, flickering)
-      for (const x of [L - 10, R + pw + 4]) { box(ctx, x, top + 80, 6, 20, '#78350F'); const fl = Math.sin(f * 0.4 + x) * 2; box(ctx, x - 2, top + 68 + fl, 10, 12, '#F97316'); box(ctx, x, top + 72 + fl, 6, 8, '#FDE047'); }
-      for (const x of [cx - W / 2 + 16, cx + W / 2 - 16]) for (let k = 0; k < 6; k++) { const sway = Math.sin(f * 0.04 + k * 0.5 + x) * 4; box(ctx, x + sway, top + 40 + k * 16, 4, 16, '#15803D'); box(ctx, x + sway - 4, top + 48 + k * 16, 6, 4, '#4ADE80'); }
-      break;
-    case 'foreign': {
-      // A pillar for each of a few countries, the way an American would do them; a flag over the lot
-      const flags = [['#0055A4', '#FFFFFF', '#EF4135'], ['#009246', '#FFFFFF', '#CE2B37']];
-      [L, R].forEach((x, j) => { ink(ctx, () => ctx.rect(x, top + 40, pw, GROUND_Y - top - 40), '#FFFFFF'); flags[j].forEach((c, k) => box(ctx, x + 1 + k * (pw - 2) / 3, top + 41, (pw - 2) / 3, GROUND_Y - top - 42, c)); });
-      arch('#1E3A8A', 26);
-      for (let s = 0; s < 7; s++) box(ctx, cx - 50, top - 60 + s * 6, 100, 6, s % 2 ? '#FFFFFF' : '#DC2626');
-      box(ctx, cx - 50, top - 60, 40, 24, '#1E3A8A');
-      for (let k = 0; k < 6; k++) box(ctx, cx - 46 + (k % 3) * 12, top - 56 + Math.floor(k / 3) * 10, 3, 3, '#FFFFFF');
-      box(ctx, cx - 52, top - 66, 3, 80, '#57534E');
-      break;
-    }
-  }
-  // The sign over it
-  const GL = gate({ sx: 1, sy: 2 }, land.signText, land.sign), tw = signW(land.name, GL) + 24;
-  ink(ctx, () => ctx.roundRect(cx - tw / 2, top + 6, tw, 24, 4), land.sign, 2);
-  box(ctx, cx - tw / 2 + 3, top + 8, tw - 6, 2, lite(land.sign, 0.25));
-  signText(ctx, land.name, cx, top + 25, GL);
 };
 
 /** Behind America USA's way in: the biggest flag in the world on the biggest pole, and a bald eagle on top of it. */

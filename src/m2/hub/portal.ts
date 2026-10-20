@@ -38,7 +38,7 @@ import { notePortalArrival } from '../portalArrival';
 import { drawMeatheadBack, type BackPose } from '../walkAway/meatheadBack';
 import { drawMeatheadFront, type Pose } from '../walkAway/meathead';
 import { LANDS, SPOTS, type Land } from './lands';
-import { slotX } from './geometry';
+import { slotX, GATE, GATE_MID, depthAt } from './geometry';
 import { setPortalSurge } from './draw';
 
 type Ctx = CanvasRenderingContext2D;
@@ -66,8 +66,9 @@ export interface Exit {
 /** Either show. */
 export type Show = Portal | Exit;
 
-/** The portal's swirl: where its middle is (world), its arch (half width, top). */
-const SWIRL_DY = 140, ARCH_W = 100, ARCH_TOP = 270;
+/** The portal's opening: where its middle is (world, up off the walk), its arch (half width, top), its foot (up its
+ * path, set back off the walk). */
+const SWIRL_DY = GROUND_Y - GATE_MID, ARCH_W = GATE.halfW, ARCH_TOP = GROUND_Y - (GATE.base - GATE.h), ARCH_FOOT = GATE.base;
 /** In: frames, from when he's got to the middle: turning round; walking up into it; being taken; the white. */
 const TURN_T = 12, IN_T = 50, PULL_T = 20, WHITE_T = 16;
 /** In: at most this long getting over to the middle of its path. */
@@ -77,11 +78,11 @@ const WALK_MAX = 34;
 const EX_WHITE = 16, EX_SPIT = 18, EX_OUT = 46, EX_TURN = 12, EX_END = EX_SPIT + EX_OUT + EX_TURN;
 const EX_HOLD = 6, EX_ZOOM_T = EX_SPIT + EX_OUT - 2, EX_SETTLE = EX_END;
 /** The push in: how far it gets by the white, and where on screen the swirl's middle ends up. */
-const ZOOM_TO = 2.6, ZOOM_SY = 300;
+const ZOOM_TO = 3.4, ZOOM_SY = 300;
 /** The whole push in, from the confirm (frames). */
 const ZOOM_T = WALK_MAX * 0.6 + TURN_T + IN_T + PULL_T + WHITE_T;
 /** His size here: the game's him, ~72 px tall, from his 186 px picture; how small he is up in the swirl. */
-const S0 = 72 / 186, DEEP = 0.58;
+const S0 = 72 / 186, DEEP = depthAt(GATE.base);
 
 const clamp = (k: number) => Math.max(0, Math.min(1, k));
 const ease = (k: number) => { const u = clamp(k); return u * u * (3 - 2 * u); };
@@ -206,13 +207,13 @@ export const portalLightAmount = (pt: Show | null | undefined) => (!shown(pt) ? 
 /** The arch's opening, as a path. */
 const archPath = (c: Ctx, cx: number) => {
   const top = GROUND_Y - ARCH_TOP;
-  c.beginPath(); c.moveTo(cx - ARCH_W, GROUND_Y); c.lineTo(cx - ARCH_W, top + ARCH_W); c.arc(cx, top + ARCH_W, ARCH_W, Math.PI, 0); c.lineTo(cx + ARCH_W, GROUND_Y); c.closePath();
+  c.beginPath(); c.moveTo(cx - ARCH_W, ARCH_FOOT); c.lineTo(cx - ARCH_W, top + ARCH_W); c.arc(cx, top + ARCH_W, ARCH_W, Math.PI, 0); c.lineTo(cx + ARCH_W, ARCH_FOOT); c.closePath();
 };
 
 const rgba = (hex: string, a: number) => `rgba(${parseInt(hex.slice(1, 3), 16)}, ${parseInt(hex.slice(3, 5), 16)}, ${parseInt(hex.slice(5, 7), 16)}, ${clamp(a).toFixed(3)})`;
 
 /** Called before the hub's back's drawn: winds its swirl on (or lets it be). */
-export const notePortalSurge = (pt: Show | null | undefined) => setPortalSurge(shown(pt) ? pt.slot : -1, pt ? pt.phase : 0);
+export const notePortalSurge = (pt: Show | null | undefined) => setPortalSurge(shown(pt) ? pt.slot : -1, pt ? pt.phase : 0, shown(pt) ? awake(pt) : 0);
 
 export const drawPortalBack = (c: Ctx, state: GameState, pt: Show | null | undefined) => {
   if (!shown(pt)) return;
@@ -225,19 +226,19 @@ export const drawPortalBack = (c: Ctx, state: GameState, pt: Show | null | undef
   // Light spilling out onto the plaza in front of it: stepped bands, brighter in
   for (let i = 0; i < 4; i++) {
     c.fillStyle = rgba(hi, (0.05 + 0.03 * i) * (0.4 + k));
-    c.beginPath(); c.ellipse(vx, GROUND_Y + 16, 170 - i * 34, 30 - i * 6, 0, 0, Math.PI * 2); c.fill();
+    c.beginPath(); c.ellipse(vx, ARCH_FOOT + 24, 80 - i * 16, 22 - i * 4, 0, 0, Math.PI * 2); c.fill();
   }
   // Inside the arch: its middle glowing (stepped), rings pulsing (in toward it going in, out of it coming back)
   archPath(c, vx); c.clip();
   const pulse = 0.85 + 0.15 * Math.sin(t * 0.4);
-  for (let i = 4; i >= 1; i--) { c.fillStyle = rgba(i > 2 ? mid : hi, 0.1 * k * pulse); c.beginPath(); c.ellipse(vx, vy, (16 + i * 20 * (0.6 + k)) * 0.66, 16 + i * 20 * (0.6 + k), 0, 0, Math.PI * 2); c.fill(); }
-  c.lineWidth = 6;
+  for (let i = 4; i >= 1; i--) { c.fillStyle = rgba(i > 2 ? mid : hi, 0.1 * k * pulse); c.beginPath(); c.ellipse(vx, vy, (8 + i * 10 * (0.6 + k)) * 0.66, 8 + i * 10 * (0.6 + k), 0, 0, Math.PI * 2); c.fill(); }
+  c.lineWidth = 3;
   for (let i = 0; i < 5; i++) {
-    const f = ((t * (0.012 + 0.03 * k) + i / 5) % 1), u = pt.kind === 'in' ? f : 1 - f, r = 190 * (1 - u);
+    const f = ((t * (0.012 + 0.03 * k) + i / 5) % 1), u = pt.kind === 'in' ? f : 1 - f, r = 90 * (1 - u);
     c.strokeStyle = rgba(i % 2 ? hi : '#FFFFFF', (0.12 + 0.4 * k) * Math.sin(u * Math.PI));
     c.beginPath(); c.ellipse(vx, vy, r * 0.64, r, Math.sin(pt.phase * 0.01) * 0.2, 0, Math.PI * 2); c.stroke();
   }
-  if (core > 0) { c.fillStyle = rgba('#FFFFFF', 0.85 * core); c.beginPath(); c.ellipse(vx, vy, 20 + 140 * core, 30 + 200 * core, 0, 0, Math.PI * 2); c.fill(); }
+  if (core > 0) { c.fillStyle = rgba('#FFFFFF', 0.85 * core); c.beginPath(); c.ellipse(vx, vy, 10 + 60 * core, 14 + 90 * core, 0, 0, Math.PI * 2); c.fill(); }
   c.restore();
   void state;
 };
@@ -249,7 +250,7 @@ const sparkles = (c: Ctx, pt: Show, vx: number, vy: number, k: number, out: bool
   c.save(); c.globalCompositeOperation = 'lighter';
   for (let i = 0; i < n; i++) {
     const L = 46 - 16 * k, f = ((pt.t + (i * L) / 40 + i * 7.3) % L) / L, u = out ? 1 - f : f;
-    const r0 = 120 + ((i * 53) % 140), a0 = i * 2.39996 + pt.phase * 0.004;
+    const r0 = 70 + ((i * 53) % 90), a0 = i * 2.39996 + pt.phase * 0.004;
     const at = (uu: number) => { const r = r0 * (1 - uu) ** 1.5, a = a0 + uu * (2.6 + 3 * k); return [vx + Math.cos(a) * r * 0.8, vy + Math.sin(a) * r] as const; };
     const [x, y] = at(u), [tx, ty] = at(out ? Math.min(1, u + 0.07) : Math.max(0, u - 0.07));
     const col = [hi, '#FFFFFF', mid][i % 3];
@@ -354,7 +355,7 @@ const streak = (c: Ctx, pt: Show, vy: number, vx: number, u: number, fromFeet: n
 export const drawPortalFront = (c: Ctx, state: GameState, show: Show | null | undefined) => {
   if (!shown(show) || typeof document === 'undefined') return;
   const { x: vx, y: vy } = swirlAt(show), hi = show.land.swirl[2], k = awake(show);
-  const feet0 = GROUND_Y - 1, deepFeet = vy + 64;
+  const feet0 = GROUND_Y - 1, deepFeet = ARCH_FOOT + 2;
   if (show.kind === 'out') {
     const t = show.t;
     // Sparkles flung back out of it; the ring off it as it spits him out
