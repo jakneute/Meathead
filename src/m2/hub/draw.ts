@@ -16,14 +16,17 @@ import { GROUND_Y, CANVAS_WIDTH, CANVAS_HEIGHT } from '../../m1/constants';
 import { INK, dark, lite, ink } from '../../m1/game/render/npc/kit';
 import { mix } from '../../m1/game/render/backdrops/core';
 import { stamp } from '../../m1/game/render/stamp';
-import { LANDS, SPOTS, HUB_SLOTS, type Land } from './lands';
+import { LANDS, SPOTS, HUB_SLOTS } from './lands';
 import { HUB, HUB_CIRC, HUB_HORIZON, slotX, seamX, ROW } from './geometry';
 import { drawCrowdMid, drawCrowdWalk, drawCast, drawPigeons, drawLostBalloons } from './crowd';
 import { paintBack, paintWalk, paintPath, paintFence, drawStretchLive, stretchOf, LAND_LOOK } from './stretch';
-import { paintGate, paintPosts, drawSwirl, drawShimmer, drawPostsLive } from './gates';
-import { timeOfDay, skyRamp, skyTint, sunAt, sunTint, cloudTint, farTint, drawStars, drawMoon, lampGlow } from '../timeOfDay';
+import { paintGate, paintGateSign, paintPosts, drawSwirl, drawShimmer, drawPostsLive } from './gates';
+import { timeOfDay, skyRamp, sunAt, sunTint, cloudTint, farTint, drawStars, drawMoon, lampGlow } from '../timeOfDay';
 import { noteSun, drawSunGlare } from '../sunFlare';
-import { signText, signAt, signW, gate, hillside, enamel } from './letters';
+import { signText, signAt, signW, enamel } from './letters';
+import { paintLandmark, paintAmericaLandmark, paintSkyline, drawFarLive, paintTreeline, paintCloud, paintBlimp, paintHotAir, LANDMARK_BOX, SKYLINE_BOX } from './far';
+import { checker } from './kit';
+import { drawAmericaExit } from './exit';
 
 type Ctx = CanvasRenderingContext2D;
 type Each = (x: number, r: number, draw: (x: number) => void) => void;
@@ -85,44 +88,54 @@ const drawHubFar = (ctx: Ctx, state: GameState, each: Each) => {
       noteSun(null, sx, sy);
     }
   });
-  // Clouds drifting
-  const cloud = [cloudTint('#E8EEF8', tod), cloudTint('#FFFFFF', tod), cloudTint('#D3DCEB', tod)];
-  for (let i = 0; i < 9; i++) each(HUB.x0 + i * (HUB_CIRC / 9) + ((f * 0.15 + i * 97) % (HUB_CIRC / 9)), 90, x => {
-    const y = top + 60 + (i % 3) * 46;
-    for (const [dx, r] of [[-30, 16], [0, 24], [28, 18], [52, 12]] as const) { ctx.fillStyle = cloud[0]; ctx.beginPath(); ctx.arc(x + dx, y, r, Math.PI, 0); ctx.fill(); ctx.fillStyle = cloud[1]; ctx.beginPath(); ctx.arc(x + dx - 2, y - 3, r * 0.7, Math.PI, 0); ctx.fill(); }
-    box(ctx, x - 46, y, 110, 4, cloud[2]);
+  // Clouds drifting (each stamped by its kind and the hour: stepped lumps on a flat foot)
+  const cloud = [cloudTint('#B8C4DC', tod), cloudTint('#D8E0EE', tod), cloudTint('#F2F5FA', tod), cloudTint('#FFFFFF', tod)];
+  for (let i = 0; i < 12; i++) each(HUB.x0 + i * (HUB_CIRC / 12) + ((f * 0.15 + i * 97) % (HUB_CIRC / 12)), 70, x => {
+    const y = top + 50 + (i % 4) * 34, kd = i % 4;
+    ctx.translate(x, y); stamp(ctx, `hubCloud|${kd}|${todKey}`, -60, -34, 124, 42, g => paintCloud(g, kd, cloud)); ctx.translate(-x, -y);
   });
+  // The park's blimp going round, hot-air balloons drifting
+  each(HUB.x0 + ((f * 0.5) % HUB_CIRC), 70, x => { const y = top + 118 + Math.sin(f * 0.01) * 6; ctx.translate(Math.round(x), Math.round(y)); stamp(ctx, `hubBlimp|${todKey}`, -62, -20, 126, 42, paintBlimp); if ((f >> 4) % 2) box(ctx, 58, -2, 2, 2, '#EF4444'); ctx.translate(-Math.round(x), -Math.round(y)); });
+  for (let i = 0; i < 6; i++) each(HUB.x0 + i * (HUB_CIRC / 6) + 200 + ((f * (0.08 + i * 0.02)) % (HUB_CIRC / 6)), 20, x => { const y = top + 170 + (i % 3) * 40 + Math.sin(f * 0.012 + i) * 8; ctx.translate(Math.round(x), Math.round(y)); stamp(ctx, `hubHot|${i % 4}|${todKey}`, -17, -19, 34, 50, g => paintHotAir(g, i)); ctx.translate(-Math.round(x), -Math.round(y)); });
   // (gulls, high up, going round)
-  for (let i = 0; i < 5; i++) each(HUB.x0 + ((i * 1100 + f * (0.6 + i * 0.1)) % HUB_CIRC), 20, x => {
-    const y = top + 140 + i * 18 + Math.sin(f * 0.03 + i) * 6, fl = ((f >> 3) + i) % 2 ? 3 : -1;
-    ctx.strokeStyle = '#3F3F46'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(x - 6, y + fl); ctx.lineTo(x, y); ctx.lineTo(x + 6, y + fl); ctx.stroke();
+  for (let i = 0; i < 7; i++) each(HUB.x0 + ((i * 1100 + f * (0.6 + i * 0.1)) % HUB_CIRC), 20, x => {
+    const y = top + 140 + i * 16 + Math.sin(f * 0.03 + i) * 6, fl = ((f >> 3) + i) % 2 ? 3 : -1;
+    ctx.fillStyle = '#3F3F46'; ctx.fillRect(Math.round(x - 6), Math.round(y + fl), 2, 1); ctx.fillRect(Math.round(x - 4), Math.round(y + fl / 2), 2, 1); ctx.fillRect(Math.round(x - 2), Math.round(y), 4, 1); ctx.fillRect(Math.round(x + 2), Math.round(y + fl / 2), 2, 1); ctx.fillRect(Math.round(x + 4), Math.round(y + fl), 2, 1);
   });
-  // Each land's landmark on the skyline, right behind its stretch (stamped)
+  // Each land's landmark on the skyline, right behind its stretch, as the land itself has it (stamped by the hour); the
+  // busy band of its rides in front; what moves on them
+  const Y = top + 440, LB = LANDMARK_BOX, SB = SKYLINE_BOX;
   SPOTS.forEach((s, i) => {
-    const bx = slotX(i);
-    if (s.kind === 'land') stampEach(ctx, each, `hubL|${LANDS[s.land].id}|${todKey}`, bx - 240, top + 140, 480, 310, g => landmark(g, LANDS[s.land], bx, top + 440, 0));
-    else if (s.kind === 'america') { const fi = Math.floor(f / 12) % 10; stampEach(ctx, each, `hubL|america|${fi}|${todKey}`, bx - 40, top + 120, 200, 330, g => americaLandmark(g, bx, top + 440, fi * 12.5)); }
+    const bx = slotX(i), id = stretchOf(i);
+    if (s.kind === 'land') stampEach(ctx, each, `hubL2|${id}|${tod.key}`, bx + LB.x, Y + LB.y, LB.w, LB.h, g => paintLandmark(g, id, bx, Y));
+    else if (s.kind === 'america') { const fi = Math.floor(f / 12) % 10; stampEach(ctx, each, `hubL2|america|${fi}|${tod.key}`, bx - 50, Y - 350, 230, 352, g => paintAmericaLandmark(g, bx, Y, fi * 12.5)); }
+    stampEach(ctx, each, `hubS|${id}|${tod.key}`, bx + SB.x, Y - 10 + SB.y, SB.w, SB.h, g => paintSkyline(g, id, bx, Y - 10));
+    each(bx, 280, x => drawFarLive(ctx, id, x, Y - 44, f));
   });
   // The haze down at the horizon
   const [hr, hg, hb] = [1, 3, 5].map(i => parseInt(mix('#F6E7D2', tod.haze, tod.skyK).slice(i, i + 2), 16));
-  for (let i = 0; i < 4; i++) { ctx.fillStyle = `rgba(${hr}, ${hg}, ${hb}, ${(0.12 + i * 0.1).toFixed(2)})`; ctx.fillRect(x0, top + 380 + i * 18, x1 - x0, 18); }
-  // The treeline, and the monorail on its beam with the train going round
-  for (let x = Math.floor(x0 / 60) * 60; x < x1; x += 60) {
-    const r = 22 + (Math.abs(x / 60) * 7) % 14;
-    ctx.fillStyle = '#2F6B3A'; ctx.beginPath(); ctx.arc(x, top + 462, r, Math.PI, 0); ctx.fill();
-    ctx.fillStyle = '#3F8A4A'; ctx.beginPath(); ctx.arc(x - r * 0.25, top + 458, r * 0.6, Math.PI, 0); ctx.fill();
+  for (let i = 0; i < 4; i++) { ctx.fillStyle = `rgba(${hr}, ${hg}, ${hb}, ${(0.08 + i * 0.07).toFixed(2)})`; ctx.fillRect(x0, top + 380 + i * 18, x1 - x0, 18); }
+  // The monorail's beam and the treeline (stamped strips), the train going round on the beam
+  for (let s = 0; s < HUB_SLOTS * 2; s++) {
+    const a = HUB.x0 + s * (HUB.slot / 2);
+    stampEach(ctx, each, `hubTree|${s}|${tod.key}`, a, top + 370, HUB.slot / 2, 104, g => { g.save(); g.beginPath(); g.rect(a, top + 300, HUB.slot / 2, 200); g.clip(); paintTreeline(g, a, a + HUB.slot / 2, top); g.restore(); });
   }
-  box(ctx, x0, top + 400, x1 - x0, 8, '#D6D3D1'); box(ctx, x0, top + 400, x1 - x0, 2, '#F5F5F4'); box(ctx, x0, top + 406, x1 - x0, 2, '#A8A29E');
-  for (let x = Math.floor(x0 / 320) * 320; x < x1; x += 320) { box(ctx, x - 4, top + 408, 8, 60, '#A8A29E'); box(ctx, x - 4, top + 408, 3, 60, '#D6D3D1'); }
-  each(HUB.x0 + HUB_CIRC - ((f * 2.2) % HUB_CIRC) + 128, 130, xx => {
-    const x = xx - 128;
-    for (let c = 0; c < 4; c++) {
-      const cx = x + c * 64;
-      ink(ctx, () => ctx.roundRect(cx, top + 376, 60, 24, [c === 0 ? 12 : 3, c === 3 ? 12 : 3, 2, 2]), c % 2 ? '#38BDF8' : '#F8FAFC');
-      for (let w = 0; w < 3; w++) box(ctx, cx + 8 + w * 16, top + 382, 10, 7, '#1E3A8A');
-    }
-  });
-  box(ctx, x0, top + 468, x1 - x0, 4, '#24542F');
+  each(HUB.x0 + HUB_CIRC - ((f * 2.2) % HUB_CIRC) + 128, 130, xx => { const x = Math.round(xx - 128); ctx.translate(x, 0); stamp(ctx, `hubTrain|${tod.key}`, -4, top + 370, 264, 32, g => paintTrain(g, top)); ctx.translate(-x, 0); });
+};
+
+/** The monorail's train: four cars, the noses rounded, a window band, a stripe, lit after dark. */
+const paintTrain = (g: Ctx, top: number) => {
+  const tod = timeOfDay(), night = tod.lamps > 0.3;
+  for (let c = 0; c < 4; c++) {
+    const cx = c * 64, body = c % 2 ? ['#0E5A86', '#1E7AB0', '#38BDF8', '#7DD3FC'] : ['#9CA3AF', '#D1D5DB', '#F1F5F9', '#FFFFFF'];
+    ink(g, () => g.roundRect(cx, top + 375, 60, 24, [c === 0 ? 12 : 3, c === 3 ? 12 : 3, 2, 2]), body[2]);
+    box(g, cx + 2, top + 377, 56, 3, body[3]); box(g, cx + 2, top + 393, 56, 4, body[1]); checker(g, cx + 2, top + 391, 56, 2, body[1]);
+    box(g, cx + 4, top + 380, 52, 9, '#0F172A');
+    for (let w = 0; w < 4; w++) { box(g, cx + 6 + w * 13, top + 381, 10, 7, night ? '#FDE68A' : '#3B5A8A'); if (!night) box(g, cx + 6 + w * 13, top + 381, 2, 7, '#9CC8E8'); }
+    box(g, cx + 2, top + 390, 56, 1, '#DC2626');
+    box(g, cx + 6, top + 397, 10, 2, '#27272A'); box(g, cx + 44, top + 397, 10, 2, '#27272A');
+  }
+  box(g, 0, top + 386, 2, 4, night ? '#FFF7C2' : '#FDE68A');
 };
 
 // ---------------------------------------------------------------------------
@@ -171,6 +184,8 @@ export const drawHubBack = (ctx: Ctx, state: GameState) => {
       ctx.translate(x, 0); stamp(ctx, `hubP|${land.id}`, -110, 290, 220, 216, g => paintGate(g, land, 0)); ctx.translate(-x, 0);
       drawShimmer(ctx, land, x, pf);
       drawSwirl(ctx, land, x, pf, on ? surge.k : 0);
+      // (its sign after the swirl: never under it)
+      ctx.translate(x, 0); stamp(ctx, `hubPS|${land.id}`, -110, 330, 220, 72, g => paintGateSign(g, land, 0)); ctx.translate(-x, 0);
     });
   }
   // The fence along the back of the walk, the gateposts at the paths
@@ -190,7 +205,7 @@ export const drawHubBack = (ctx: Ctx, state: GameState) => {
   for (let i = 0; i < HUB_SLOTS; i++) {
     const spot = SPOTS[i];
     if (spot.kind === 'staff') each(slotX(i), 280, x => staffDoor(ctx, x, f));
-    else if (spot.kind === 'america') each(slotX(i), 140, x => americaGate(ctx, x, f));
+    else if (spot.kind === 'america') each(slotX(i), 140, x => drawAmericaExit(ctx, x, f));
   }
   drawLostBalloons(ctx, state, each);
   // The lamp posts at the seams, the signposts on them, the string lights between
@@ -264,156 +279,6 @@ const drawLights = (ctx: Ctx, state: GameState, each: Each) => {
       box(ctx, bx - 1, by, 3, 3, on ? (night > 0.3 ? mix(BULBS[(k + i) % 6], '#FFFFFF', 0.4) : BULBS[(k + i) % 6]) : '#57534E');
     }
   });
-};
-
-/** A land's big landmark, its base on (x, y): hazed into the sky by distance (flat, with a lit edge). */
-const landmark = (ctx: Ctx, land: Land, x: number, y: number, f: number) => {
-  const haze = (c: string) => mix(c, skyTint('#B7CDF4', 0.8), 0.42);
-  const fill = (c: string, path: () => void) => { ctx.fillStyle = haze(c); ctx.beginPath(); path(); ctx.fill(); };
-  const rect = (rx: number, ry: number, w: number, h: number, c: string) => box(ctx, x + rx, y + ry, w, h, haze(c));
-  switch (land.id) {
-    case 'space': {
-      // The needle tower with its saucer, a rocket on its pad, a ringed planet hung over it
-      rect(-6, -260, 12, 260, '#CBD5E1'); rect(-6, -260, 4, 260, '#F1F5F9');
-      fill('#E2E8F0', () => ctx.ellipse(x, y - 250, 50, 12, 0, 0, Math.PI * 2)); fill('#94A3B8', () => ctx.ellipse(x, y - 246, 50, 6, 0, 0, Math.PI));
-      fill('#F87171', () => ctx.ellipse(x, y - 262, 18, 10, 0, Math.PI, 0));
-      fill('#E2E8F0', () => { ctx.moveTo(x + 70, y); ctx.lineTo(x + 70, y - 120); ctx.lineTo(x + 84, y - 150); ctx.lineTo(x + 98, y - 120); ctx.lineTo(x + 98, y); });
-      rect(64, -36, 40, 36, '#EF4444');
-      fill('#A78BFA', () => ctx.arc(x - 80, y - 200, 22, 0, Math.PI * 2));
-      ctx.strokeStyle = haze('#FDE68A'); ctx.lineWidth = 3; ctx.beginPath(); ctx.ellipse(x - 80, y - 200, 36, 8, -0.3, 0, Math.PI * 2); ctx.stroke();
-      return;
-    }
-    case 'frontier': {
-      // A red mesa, the flume's chute down it, a water tower
-      fill('#C2410C', () => { ctx.moveTo(x - 150, y); ctx.lineTo(x - 120, y - 150); ctx.lineTo(x + 90, y - 170); ctx.lineTo(x + 140, y); });
-      fill('#EA580C', () => { ctx.moveTo(x - 120, y - 150); ctx.lineTo(x + 90, y - 170); ctx.lineTo(x + 92, y - 158); ctx.lineTo(x - 118, y - 140); });
-      for (let k = 0; k < 4; k++) rect(-110 + k * 50, -150 + k * 36, 54, 6, '#7C2D12');
-      rect(100, -110, 6, 110, '#78350F'); rect(126, -110, 6, 110, '#78350F'); fill('#92400E', () => ctx.roundRect(x + 92, y - 150, 48, 44, 4));
-      return;
-    }
-    case 'spooky': {
-      // The haunted castle on its crag, crooked spires, a lit window, bats
-      fill('#3B3049', () => { ctx.moveTo(x - 130, y); ctx.lineTo(x - 90, y - 70); ctx.lineTo(x + 100, y - 80); ctx.lineTo(x + 130, y); });
-      rect(-70, -180, 140, 110, '#4C3D5E');
-      for (const [sx, h, lean] of [[-74, 90, -0.1], [-20, 130, 0.05], [44, 100, 0.12]] as const) {
-        rect(sx, -180 - h * 0.6, 30, h * 0.6, '#4C3D5E');
-        fill('#2E2440', () => { ctx.moveTo(x + sx - 4, y - 180 - h * 0.6); ctx.lineTo(x + sx + 15 + lean * 60, y - 180 - h); ctx.lineTo(x + sx + 34, y - 180 - h * 0.6); });
-      }
-      rect(-8, -150, 10, 14, '#BEF264');
-      for (let b = 0; b < 3; b++) { const bx = x - 40 + b * 50 + Math.sin(f * 0.05 + b) * 10, by = y - 230 + Math.cos(f * 0.07 + b) * 6; box(ctx, bx - 6, by, 12, 2, haze('#1F1630')); box(ctx, bx - 2, by - 2, 4, 4, haze('#1F1630')); }
-      return;
-    }
-    case 'cartoon': {
-      // Big round hills with faces, a wobbly candy tower, a rainbow
-      for (const [i, c] of ['#EF4444', '#F59E0B', '#FDE047', '#4ADE80', '#60A5FA'].entries()) { ctx.strokeStyle = haze(c); ctx.lineWidth = 6; ctx.beginPath(); ctx.arc(x, y - 40, 170 - i * 6, Math.PI * 1.05, Math.PI * 1.95); ctx.stroke(); }
-      fill('#86EFAC', () => ctx.arc(x - 70, y, 70, Math.PI, 0)); fill('#4ADE80', () => ctx.arc(x + 60, y, 90, Math.PI, 0));
-      rect(-70 - 12, -40, 6, 6, '#14532D'); rect(-70 + 6, -40, 6, 6, '#14532D'); rect(48, -56, 7, 7, '#14532D'); rect(68, -56, 7, 7, '#14532D');
-      for (let k = 0; k < 5; k++) fill(k % 2 ? '#F9A8D4' : '#FBCFE8', () => ctx.ellipse(x + 10 + Math.sin(k * 1.3) * 8, y - 110 - k * 30, 22 - k * 2, 16, 0, 0, Math.PI * 2));
-      fill('#FDE047', () => ctx.arc(x + 10, y - 270, 12, 0, Math.PI * 2));
-      return;
-    }
-    case 'hollywood': {
-      // The hill with its big letters, a soundstage, searchlights sweeping
-      for (const k of [-1, 1]) { ctx.fillStyle = haze('#FEF9C3'); ctx.globalAlpha = 0.35; ctx.beginPath(); const a = Math.sin(f * 0.02 + k) * 0.4 + k * 0.2; ctx.moveTo(x + k * 40, y - 60); ctx.lineTo(x + k * 40 + Math.sin(a) * 300 - 14, y - 60 - Math.cos(a) * 300); ctx.lineTo(x + k * 40 + Math.sin(a) * 300 + 14, y - 60 - Math.cos(a) * 300); ctx.fill(); ctx.globalAlpha = 1; }
-      fill('#A16207', () => { ctx.moveTo(x - 170, y); ctx.quadraticCurveTo(x, y - 190, x + 170, y); });
-      // (the big letters stood up along the crest, each on its scaffold legs down to the hill)
-      { const L = hillside({ sx: 2, sy: 3 }, haze('#FFFFFF'), haze('#A8A29E')), hw = signW('HAPPYWOOD', L) / 2;
-        for (let k = -hw + 3; k < hw; k += 9) { const t = (k + 170) / 340, foot = y - 380 * t * (1 - t); rect(k, -97, 2, foot - (y - 97) + 2, '#57534E'); }
-        signText(ctx, 'HAPPYWOOD', x, y - 96, L); }
-      rect(-90, -60, 180, 60, '#E7E5E4'); rect(-90, -60, 180, 6, '#D6D3D1'); rect(-20, -34, 40, 34, '#57534E');
-      return;
-    }
-    case 'fantasy': {
-      // The castle: blue cone roofs on round towers, pennants flying
-      rect(-90, -110, 180, 110, '#D6D3D1'); rect(-90, -110, 180, 8, '#E7E5E4');
-      for (const [tx, h] of [[-100, 170], [-40, 230], [30, 200], [86, 150]] as const) {
-        rect(tx - 14, -h, 28, h, '#E7E5E4'); rect(tx - 14, -h, 8, h, '#F5F5F4');
-        fill('#2563EB', () => { ctx.moveTo(x + tx - 20, y - h); ctx.lineTo(x + tx, y - h - 60); ctx.lineTo(x + tx + 20, y - h); });
-        const wave = Math.sin(f * 0.1 + tx) * 3;
-        fill('#FACC15', () => { ctx.moveTo(x + tx, y - h - 60); ctx.lineTo(x + tx + 18, y - h - 54 + wave); ctx.lineTo(x + tx, y - h - 48); });
-      }
-      return;
-    }
-    case 'adventure': {
-      // A stepped temple in the jungle, its top broken off, vines down it; behind a tall fence, the head of something
-      // big and hungry looking over it; a waterfall off the cliff
-      for (const [dx, dy, r] of [[-130, -40, 46], [-90, -60, 40], [120, -50, 48], [150, -30, 38]] as const) fill('#166534', () => ctx.arc(x + dx, y + dy, r, 0, Math.PI * 2));
-      for (let k = 0; k < 6; k++) rect(-80 + k * 10, -40 - k * 30, 160 - k * 20, 30, k % 2 ? '#78716C' : '#A8A29E');
-      rect(-14, -40, 28, 30, '#292524'); rect(-30, -210, 14, 30, '#A8A29E');
-      for (const vx of [-60, -20, 30, 55]) rect(vx, -150 + (vx % 3) * 10, 4, 110, '#15803D');
-      rect(95, -170, 4, 170, '#57534E'); rect(185, -170, 4, 170, '#57534E');
-      for (let k = 0; k < 5; k++) rect(95, -160 + k * 34, 94, 2, '#A8A29E');
-      const bob = Math.sin(f * 0.03) * 4;
-      fill('#4D7C0F', () => { ctx.moveTo(x + 140, y - 150 + bob); ctx.quadraticCurveTo(x + 150, y - 220 + bob, x + 190, y - 215 + bob); ctx.lineTo(x + 230, y - 200 + bob); ctx.lineTo(x + 228, y - 186 + bob); ctx.lineTo(x + 180, y - 184 + bob); ctx.quadraticCurveTo(x + 165, y - 170 + bob, x + 162, y - 150 + bob); });
-      rect(188, -208 + bob, 5, 4, '#FDE047');
-      for (let k = 0; k < 4; k++) rect(195 + k * 8, -188 + bob, 3, 4, '#F5F5F4');
-      rect(-170, -150, 18, 150, '#7DD3FC'); rect(-170, -150, 6, 150, '#E0F2FE');
-      return;
-    }
-    case 'foreign': {
-      // The world's landmarks, fixed: the Eiffel tower, a pyramid, a leaning tower, Big Ben, a big flag over all of it
-      fill('#57534E', () => { ctx.moveTo(x - 60, y); ctx.lineTo(x - 14, y - 180); ctx.lineTo(x - 6, y - 180); ctx.lineTo(x + 40, y); ctx.lineTo(x + 20, y); ctx.lineTo(x - 10, y - 120); ctx.lineTo(x - 40, y); });
-      fill('#FCD34D', () => { ctx.moveTo(x + 40, y); ctx.lineTo(x + 110, y - 90); ctx.lineTo(x + 180, y); });
-      ctx.save(); ctx.translate(x - 110, y); ctx.rotate(-0.1); box(ctx, -14, -130, 28, 130, haze('#F5F5F4')); for (let k = 0; k < 6; k++) box(ctx, -14, -130 + k * 22, 28, 2, haze('#D6D3D1')); ctx.restore();
-      rect(-170, -170, 26, 170, '#A16207'); fill('#78350F', () => { ctx.moveTo(x - 174, y - 170); ctx.lineTo(x - 157, y - 210); ctx.lineTo(x - 140, y - 170); }); fill('#FEF3C7', () => ctx.arc(x - 157, y - 150, 8, 0, Math.PI * 2));
-      rect(-12, -260, 3, 80, '#57534E');
-      for (let s = 0; s < 7; s++) rect(-9, -260 + s * 5, 54, 5, s % 2 ? '#F8FAFC' : '#DC2626');
-      rect(-9, -260, 22, 18, '#1E3A8A');
-      return;
-    }
-  }
-};
-
-/** Behind America USA's way in: the biggest flag in the world on the biggest pole, and a bald eagle on top of it. */
-const americaLandmark = (ctx: Ctx, x: number, y: number, f: number) => {
-  const haze = (c: string) => mix(c, skyTint('#B7CDF4', 0.8), 0.42);
-  box(ctx, x - 4, y - 300, 8, 300, haze('#A8A29E')); box(ctx, x - 4, y - 300, 3, 300, haze('#E7E5E4'));
-  for (let s = 0; s < 13; s++) {
-    const wave = (k: number) => Math.sin(f * 0.05 + k * 0.08) * 6;
-    for (let k = 0; k < 150; k += 6) box(ctx, x + 4 + k, y - 296 + s * 7 + wave(k), 6, 7, haze(s % 2 ? '#F8FAFC' : '#DC2626'));
-  }
-  for (let k = 0; k < 60; k += 6) for (let s = 0; s < 7; s++) box(ctx, x + 4 + k, y - 296 + s * 7 + Math.sin(f * 0.05 + k * 0.08) * 6, 6, 7, haze('#1E3A8A'));
-  // (the eagle on top, wings out)
-  ctx.fillStyle = haze('#78350F'); ctx.beginPath(); ctx.moveTo(x - 30, y - 312); ctx.lineTo(x, y - 304); ctx.lineTo(x + 30, y - 312); ctx.lineTo(x + 6, y - 298); ctx.lineTo(x - 6, y - 298); ctx.closePath(); ctx.fill();
-  ctx.fillStyle = haze('#F8FAFC'); ctx.beginPath(); ctx.arc(x, y - 310, 5, 0, Math.PI * 2); ctx.fill();
-  box(ctx, x + 4, y - 310, 5, 2, haze('#F59E0B'));
-};
-
-/**
- * Where he came in: the end of America USA's narrow street, through an arch hung with bunting. Turnstiles across it
- * that only turn one way (EXIT ONLY: NO RE-ENTRY), and down the street behind them the shopfronts, flags out.
- */
-const americaGate = (ctx: Ctx, cx: number, f: number) => {
-  const top = GROUND_Y - 230, W = 170;
-  // The street beyond, narrowing away: shopfronts either side, flags, the far end in haze
-  ctx.save(); ctx.beginPath(); ctx.rect(cx - W / 2, top + 30, W, GROUND_Y - top - 30); ctx.clip();
-  bands(ctx, cx - W / 2, top + 30, W, GROUND_Y - top - 30, ['#BFDBFE', '#DBEAFE', '#F1E8D8']);
-  for (const side of [-1, 1]) for (let k = 0; k < 4; k++) {
-    const d = 1 - k * 0.2, fx = cx + side * (W / 2 - 12 - k * 14) - (side < 0 ? 0 : 26 * d), fh = 120 * d;
-    ink(ctx, () => ctx.rect(fx, GROUND_Y - fh, 26 * d, fh), ['#FCA5A5', '#FDE68A', '#BFDBFE', '#F5F5F4'][(k + (side > 0 ? 2 : 0)) % 4]);
-    box(ctx, fx + 4 * d, GROUND_Y - fh * 0.55, 18 * d, 14 * d, '#7DD3FC');
-    box(ctx, fx, GROUND_Y - fh, 26 * d, 6 * d, (k % 2 ? '#DC2626' : '#1E3A8A'));
-  }
-  box(ctx, cx - 24, GROUND_Y - 10, 48, 10, '#E7D9BC');
-  ctx.restore();
-  // The arch, posts and bunting
-  for (const x of [cx - W / 2 - 22, cx + W / 2]) { ink(ctx, () => ctx.rect(x, top + 20, 22, GROUND_Y - top - 20), '#F8FAFC'); for (let k = 0; k < 8; k++) box(ctx, x + 2, top + 40 + k * 22, 18, 3, '#DC2626'); }
-  ink(ctx, () => ctx.rect(cx - W / 2 - 30, top, W + 60, 30), '#1E3A8A', 2);
-  for (let k = 0; k < 12; k++) box(ctx, cx - W / 2 - 24 + k * 19, top + 4, 4, 4, '#F8FAFC');
-  signAt(ctx, 'AMERICA USA', cx, top + 24, 12, gate(12, '#F8FAFC', '#7F1D1D'));
-  for (let k = 0; k < 8; k++) {
-    const bx = cx - W / 2 + k * (W / 8), sag = Math.sin(f * 0.04 + k) * 1.5;
-    ctx.fillStyle = ['#DC2626', '#F8FAFC', '#1E3A8A'][k % 3]; ctx.beginPath(); ctx.moveTo(bx, top + 32); ctx.quadraticCurveTo(bx + W / 16, top + 46 + sag, bx + W / 8, top + 32); ctx.lineTo(bx, top + 32); ctx.fill();
-  }
-  // The turnstiles across it, and the sign
-  for (let k = 0; k < 3; k++) {
-    const tx = cx - 50 + k * 50;
-    ink(ctx, () => ctx.rect(tx - 6, GROUND_Y - 44, 12, 44), '#9CA3AF');
-    const a = Math.sin(f * 0.02 + k) * 0.1;
-    for (const r of [0, 2.1, 4.2]) { ctx.strokeStyle = '#4B5563'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(tx, GROUND_Y - 32); ctx.lineTo(tx + Math.cos(r + a) * 18, GROUND_Y - 32 + Math.sin(r + a) * 6); ctx.stroke(); }
-  }
-  ink(ctx, () => ctx.rect(cx - 52, GROUND_Y - 84, 104, 26), '#DC2626', 2);
-  signAt(ctx, 'EXIT ONLY', cx, GROUND_Y - 73, 6, enamel(6, '#FFFFFF', '#7F1D1D')); signAt(ctx, 'NO RE-ENTRY', cx, GROUND_Y - 63, 6, enamel(6, '#FFFFFF', '#7F1D1D'));
 };
 
 /**

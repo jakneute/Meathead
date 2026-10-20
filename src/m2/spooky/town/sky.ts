@@ -103,7 +103,7 @@ const cone = (g: Ctx, cx: number, base: number, top: number, half: number, cols:
 
 /** The crags: a range at the edge of the world, palest of all; Dracula's FIRST castle on the highest of them (the one
  *  in town's his other one), its windows lit after dark, a few. */
-const paintCrags = (g: Ctx, tod: TimeOfDay) => {
+export const paintCrags = (g: Ctx, tod: TimeOfDay) => {
   const H = 280, K = 0.62;
   const base = hourMix('#4A4068', '#503C5A', '#231B38', tod);
   const T = (col: string) => hazeOf(col, K, tod);

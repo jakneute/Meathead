@@ -157,10 +157,14 @@ const paintFrame = (c: Ctx, land: Land, cx: number) => {
       break;
     }
   }
-  // The sign over it, in the land's lettering
+};
+
+/** The sign over a portal, in the land's lettering (its own stamp, put down after the swirl: nothing's ever over it). Its
+ *  top kept under the string lights' lowest bulbs, its foot on the frame. */
+export const paintGateSign = (c: Ctx, land: Land, cx: number) => {
   const look = LAND_LOOK[land.id](land.id !== 'hollywood');
   const big = land.id === 'hollywood' ? LAND_LOOK.hollywood(true) : look;
-  const tw = signW(land.name, big) + 14, th = (big.sy ?? 1) * 7 + 10, ty = TOP - FR - (land.id === 'adventure' ? 26 : land.id === 'spooky' ? 34 : land.id === 'cartoon' ? 22 : 8) - th;
+  const tw = signW(land.name, big) + 14, th = (big.sy ?? 1) * 7 + 10, ty = TOP - FR - (land.id === 'adventure' ? 26 : land.id === 'spooky' ? 26 : land.id === 'cartoon' ? 22 : 8) - th;
   const board = land.sign;
   box(c, cx - tw / 2 - 1, ty - 1, tw + 2, th + 2, INK);
   box(c, cx - tw / 2, ty, tw, th, board); box(c, cx - tw / 2, ty, tw, 2, mix(board, '#FFFFFF', 0.25)); box(c, cx - tw / 2, ty + th - 2, tw, 2, mix(board, '#000000', 0.3));

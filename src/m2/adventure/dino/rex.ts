@@ -967,6 +967,20 @@ export const drawRex = (c: Ctx, state: GameState) => {
   }
 };
 
+/** The rex stood idle, whole, its feet's middle at (x, gy) in c's space (the hub's look at it over the jungle's fence:
+ *  the land's own animatronic, not a copy). No state: a fresh one, posed still. */
+export const drawRexStill = (c: Ctx, x: number, gy: number, facing: 1 | -1, f = 0) => {
+  const parts = {} as Record<PartId, Part>;
+  for (const id of PARTS) parts[id] = { id, hp: PART_HP[id], max: PART_HP[id], meter: 0, live: false, lastHit: -999, flash: 0, broken: false, e: null };
+  const r: Rex = {
+    fight: 'wait', x, vx: 0, facing, st: 'idle', t: 0, stagger: 0, parts,
+    crouch: 0, hx: 0, hy: 0, jaw: 0.35, tail: 0, step: 0, biteX: 0, biteY: 0, bit: false,
+    sprintCd: 0, campT: 0, post: -1, postShake: 0, postShook: -1, shockGrace: -1, said: null, talkAt: 0, talkedAt: 0, used: [],
+    dieT: 0, head: null, fall: 0, oil: 0, minX: x, maxX: x, inX: x, outX: x, lock: null, back: null, posts: [],
+  };
+  c.save(); c.translate(x, gy); c.scale(facing, 1); drawBody(c, r, f); c.restore();
+};
+
 /** What its speaker's saying, out of its head (over everything: drawn with the park's front layer), only while it's said. */
 export const drawRexSaid = (c: Ctx, state: GameState) => {
   const r = rexOf(state);
