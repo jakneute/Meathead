@@ -51,10 +51,12 @@ import { FASTPASS } from '../keep/runway';
 import { ROSTER_MEMO } from '../keep/state';
 import type { SuitorLook } from '../suitors';
 import { hash } from '../kit';
+import { timeOfDay } from '../../timeOfDay';
 import {
   W, H, HORIZON, FOCAL, CAM_BACK, CAM_UP, WALL_R, MIN_ALT, MAX_ALT, MOAT, CASTLE_U, WINDOW, SOLIDS, TOWERS, FLAGS, BALLOONS, TREES,
   CASTLE_K, CASTLE_CX, CASTLE_CY, TOWER_PX, view, setView, project, seen, solidAt, radiusAt, topOf, balloonAt,
-  drawSky, drawGround, castleCanvas, towerCanvas, treeCanvas, flagCanvas, balloonCanvas, setSplats, type Proj, type Solid, type Splat,
+  drawSky, drawGround, castleSprite, towerSprite, treeSprite, flagSprite, balloonSprite, drawSprite, drawMipped, setSplats,
+  type Proj, type Solid, type Splat,
 } from './arena';
 import { drawMeatheadBroom, drawMeatheadFall, riderCanvas, clearRiders, drawThing, drawCorpse, RIDER_W, RIDER_H, RIDER_AX, RIDER_AY, type Thing } from './art';
 import {
@@ -1041,7 +1043,7 @@ export const drawFight = (c0: CanvasRenderingContext2D, state: GameState) => {
     const back = CAM_BACK + lap * 280, up = CAM_UP + lap * 190;
     setView(f.x - Math.sin(camYaw) * back, f.z - Math.cos(camYaw) * back, f.alt + up, camYaw, f.hy, FOCAL);
   }
-  drawSky(g, camYaw);
+  drawSky(g, camYaw, fr);
   const k = keptOf();
   // (the splatters on the ground: baked into its texture as they come)
   setSplats(k.splats);
@@ -1080,40 +1082,44 @@ export const drawFight = (c0: CanvasRenderingContext2D, state: GameState) => {
   // ---- the billboards
   project(0, 0, 0, P);
   if (P.ok) {
-    const sc = P.s * (CASTLE_U / CASTLE_K), cv = castleCanvas(), cx = P.sx, cy = P.sy, s = P.s;
-    if (cx + 360 * sc > 0 && cx - 360 * sc < W) ents.push({ d: P.d, draw: () => { g.drawImage(cv, Math.round(cx - CASTLE_CX * sc), Math.round(cy - CASTLE_CY * sc), Math.round(cv.width * sc), Math.round(cv.height * sc)); drawWindow(g, f, cx, cy, s, fr); } });
+    const sc = P.s * (CASTLE_U / CASTLE_K), cs = castleSprite(), cx = P.sx, cy = P.sy, s = P.s;
+    if (cx + CASTLE_CX * sc > 0 && cx - CASTLE_CX * sc < W && cy - CASTLE_CY * sc < H) ents.push({ d: P.d, draw: () => { drawSprite(g, cs, cx, cy, sc); drawWindow(g, f, cx, cy, s, fr); } });
   }
-  const tcv = towerCanvas();
+  const tsp = towerSprite();
   for (const t of TOWERS) {
     project(t.x, t.z, 0, P);
     const sc = P.s * TOWER_PX;
-    if (!seen(P, 32 * sc, 330 * sc)) continue;
+    if (!seen(P, 64 * sc, 660 * sc)) continue;
     const x = P.sx, y = P.sy;
-    ents.push({ d: P.d, draw: () => g.drawImage(tcv, Math.round(x - 32 * sc), Math.round(y - 328 * sc), Math.max(1, Math.round(64 * sc)), Math.max(1, Math.round(330 * sc))) });
+    ents.push({ d: P.d, draw: () => drawSprite(g, tsp, x, y, sc) });
   }
   for (const t of TREES) {
     project(t.x, t.z, 0, P);
-    const sc = P.s * 4 * (t.h / 420);
-    if (!seen(P, 32 * sc, 140 * sc) || P.d > 7000) continue;
-    const x = P.sx, y = P.sy, cv = treeCanvas(t.k);
-    ents.push({ d: P.d, draw: () => g.drawImage(cv, Math.round(x - 32 * sc), Math.round(y - 138 * sc), Math.max(1, Math.round(64 * sc)), Math.max(1, Math.round(140 * sc))) });
+    const sc = P.s * 2 * (t.h / 420);
+    if (!seen(P, 64 * sc, 280 * sc) || P.d > 7000) continue;
+    const x = P.sx, y = P.sy, sp = treeSprite(t.k ? t.v : 2 + t.v), flip = hash(t.x * 0.01) > 0.5;
+    ents.push({ d: P.d, draw: () => drawSprite(g, sp, x, y, sc, flip) });
   }
-  const fcv = flagCanvas((fr >> 4) & 1);
+  const fsp = flagSprite((fr >> 3) & 3);
   for (const fl of FLAGS) {
     project(fl.x, fl.z, 0, P);
-    const sc = P.s * 4;
-    if (!seen(P, 40 * sc, 170 * sc)) continue;
+    const sc = P.s * 2;
+    if (!seen(P, 84 * sc, 340 * sc)) continue;
     const x = P.sx, y = P.sy;
-    ents.push({ d: P.d, draw: () => g.drawImage(fcv, Math.round(x - 6 * sc), Math.round(y - 168 * sc), Math.max(1, Math.round(40 * sc)), Math.max(1, Math.round(170 * sc))) });
+    ents.push({ d: P.d, draw: () => drawSprite(g, fsp, x, y, sc) });
   }
-  const bcv = balloonCanvas();
+  const bsp = balloonSprite();
   for (const b of BALLOONS) {
     const q = balloonAt(b, fr);
     project(q.x, q.z, q.alt, P);
-    const sc = P.s * 4;
-    if (!seen(P, 40 * sc, 46 * sc, 74 * sc)) continue;
-    const x = P.sx, y = P.sy;
-    ents.push({ d: P.d, draw: () => g.drawImage(bcv, Math.round(x - 40 * sc), Math.round(y - 46 * sc), Math.max(1, Math.round(80 * sc)), Math.max(1, Math.round(120 * sc))) });
+    const sc = P.s * 2;
+    if (!seen(P, 80 * sc, 92 * sc, 150 * sc)) continue;
+    const x = P.sx, y = P.sy, bi = b.r;
+    ents.push({ d: P.d, draw: () => {
+      drawSprite(g, bsp, x, y, sc);
+      // (the burner's flame, live: it roars now and then)
+      if (((fr + bi) % 150) < 40) { const fl = Math.max(1, Math.round(5 * sc)), fy = y + 110 * sc; g.fillStyle = '#F97316'; g.fillRect(Math.round(x - fl / 2), Math.round(fy - fl * 2.2), fl, Math.max(1, Math.round(fl * 2.2))); g.fillStyle = '#FDE68A'; g.fillRect(Math.round(x - fl / 4), Math.round(fy - fl * 1.4), Math.max(1, Math.round(fl / 2)), Math.max(1, Math.round(fl * 1.4))); }
+    } });
   }
   // ---- the suitors
   if (!zooming) for (const fl of f.flyers) {
@@ -1136,7 +1142,16 @@ export const drawFight = (c0: CanvasRenderingContext2D, state: GameState) => {
       // (the laser: a beam, from where it is back along where it's been)
       project(q.x - q.vx * 2.5, q.z - q.vz * 2.5, q.alt - q.valt * 2.5, Q);
       const tx = Q.ok ? Q.sx : x, ty = Q.ok ? Q.sy : y, w = Math.max(1.5, 9 * s);
-      ents.push({ d: P.d, draw: () => { g.lineCap = 'round'; g.strokeStyle = '#F472B6'; g.lineWidth = w * 1.8; g.beginPath(); g.moveTo(tx, ty); g.lineTo(x, y); g.stroke(); g.strokeStyle = '#FFE4F2'; g.lineWidth = Math.max(1, w * 0.7); g.stroke(); } });
+      ents.push({ d: P.d, draw: () => {
+        // (stepped: a soft outer glow, the pink beam, a white-hot core, a twinkle at its head)
+        g.lineCap = 'round';
+        g.globalAlpha = 0.3; g.strokeStyle = '#F9A8D4'; g.lineWidth = w * 3; g.beginPath(); g.moveTo(tx, ty); g.lineTo(x, y); g.stroke(); g.globalAlpha = 1;
+        g.strokeStyle = '#DB2777'; g.lineWidth = w * 1.9; g.stroke();
+        g.strokeStyle = '#F472B6'; g.lineWidth = w * 1.4; g.stroke();
+        g.strokeStyle = '#FFE4F2'; g.lineWidth = Math.max(1, w * 0.6); g.stroke();
+        const tw = Math.max(2, w * 1.6);
+        if ((fr >> 1) & 1) { g.fillStyle = '#FFFFFF'; g.fillRect(Math.round(x - tw), Math.round(y), Math.round(tw * 2), 1); g.fillRect(Math.round(x), Math.round(y - tw), 1, Math.round(tw * 2)); }
+      } });
       continue;
     }
     ents.push({ d: P.d, draw: () => drawThing(g, kk, x, y, s, rot, fr) });
@@ -1206,14 +1221,34 @@ const drawWindow = (g: CanvasRenderingContext2D, f: Fight, cx: number, cy: numbe
   g.globalAlpha = 0.25 + 0.15 * Math.sin(fr * 0.06) + open * 0.3; g.fillStyle = '#FF8AC8';
   g.beginPath(); g.ellipse(wx, wy, ww * 1.4, wh * 1.0, 0, 0, Math.PI * 2); g.fill(); g.globalAlpha = 1;
   if (ww > 10) {
-    // (close up: the stained glass drawn big: the heart, the leading)
-    g.fillStyle = '#1A1028'; g.fillRect(Math.round(wx - ww / 2 - 1), Math.round(wy - wh / 2 - 1), Math.round(ww + 2), Math.round(wh + 2));
-    g.fillStyle = '#F49AC8'; g.fillRect(Math.round(wx - ww / 2), Math.round(wy - wh / 2), Math.round(ww), Math.round(wh));
-    g.fillStyle = '#FFD0E8'; g.fillRect(Math.round(wx - ww / 2), Math.round(wy - wh / 2), Math.round(ww / 3), Math.round(wh));
-    g.fillStyle = '#D8306E'; g.beginPath(); g.arc(wx - ww * 0.14, wy - wh * 0.06, ww * 0.16, 0, Math.PI * 2); g.arc(wx + ww * 0.14, wy - wh * 0.06, ww * 0.16, 0, Math.PI * 2); g.fill();
-    g.beginPath(); g.moveTo(wx - ww * 0.3, wy - wh * 0.02); g.lineTo(wx, wy + wh * 0.22); g.lineTo(wx + ww * 0.3, wy - wh * 0.02); g.closePath(); g.fill();
-    g.fillStyle = '#1A1028'; g.fillRect(Math.round(wx - ww / 2), Math.round(wy + wh * 0.3), Math.round(ww), Math.max(1, Math.round(ww * 0.05)));
-    g.fillRect(Math.round(wx - Math.max(0.5, ww * 0.025)), Math.round(wy - wh / 2), Math.max(1, Math.round(ww * 0.05)), Math.round(wh));
+    // (close up: the stained glass drawn big: a moulded stone arch in steps round it, the leaded diamonds in four
+    //  pinks (lit after dark), the gilt heart in the middle, the transom, a sheen across the panes)
+    const top = wy - wh / 2, bot = wy + wh / 2, r = ww / 2, spring = top + r;
+    const arch = (pad: number, col: string) => { g.fillStyle = col; g.beginPath(); g.moveTo(wx - r - pad, bot + pad * 0.4); g.lineTo(wx - r - pad, spring); g.arc(wx, spring, r + pad, Math.PI, 0); g.lineTo(wx + r + pad, bot + pad * 0.4); g.closePath(); g.fill(); };
+    const m = Math.max(1, ww * 0.07);
+    arch(m * 3, '#1A1028'); arch(m * 2.6, '#BEB8D8'); arch(m * 1.9, '#968EB4'); arch(m * 1.3, '#EEEAF8'); arch(m * 0.7, '#585076'); arch(m * 0.35, '#1A1028');
+    const lt = timeOfDay().lamps > 0.3, PG = lt ? ['#C83A8A', '#F06AB0', '#FF9AD0', '#FFD0EC'] : ['#9A2A6A', '#C8448E', '#E870B0', '#FFB0DA'];
+    g.save(); arch(0, PG[1]); g.clip();
+    const cell = Math.max(2, ww / 6);
+    for (let yy = top - cell; yy < bot + cell; yy += cell / 2) for (let xx = wx - r - cell; xx < wx + r + cell; xx += cell) {
+      const ox = ((Math.round((yy - top) / (cell / 2)) & 1) ? cell / 2 : 0), t = hash(Math.round(xx * 0.37 + yy * 1.7));
+      g.fillStyle = PG[t > 0.75 ? 3 : t > 0.4 ? 2 : t > 0.12 ? 1 : 0];
+      g.beginPath(); g.moveTo(xx + ox, yy - cell / 2); g.lineTo(xx + ox + cell / 2, yy); g.lineTo(xx + ox, yy + cell / 2); g.lineTo(xx + ox - cell / 2, yy); g.closePath(); g.fill();
+    }
+    g.strokeStyle = '#1A1028'; g.lineWidth = Math.max(1, ww * 0.025);
+    for (let d = -wh * 2; d < wh * 2; d += cell) { g.beginPath(); g.moveTo(wx - r + d, top); g.lineTo(wx - r + d + wh, bot); g.stroke(); g.beginPath(); g.moveTo(wx + r - d, top); g.lineTo(wx + r - d - wh, bot); g.stroke(); }
+    g.globalAlpha = lt ? 0.12 : 0.28; g.fillStyle = '#FFFFFF'; g.beginPath(); g.moveTo(wx - r, top + wh * 0.5); g.lineTo(wx - r + ww * 0.55, top); g.lineTo(wx - r + ww * 0.8, top); g.lineTo(wx - r, top + wh * 0.8); g.closePath(); g.fill(); g.globalAlpha = 1;
+    g.restore();
+    // (the heart: inked, gilt-rimmed, red, a glint)
+    const hx = wx, hy2 = wy - wh * 0.04, hs = ww * 0.17;
+    g.fillStyle = '#1A1028'; g.beginPath(); g.arc(hx - hs * 0.9, hy2, hs * 1.15, 0, Math.PI * 2); g.arc(hx + hs * 0.9, hy2, hs * 1.15, 0, Math.PI * 2); g.fill(); g.beginPath(); g.moveTo(hx - hs * 2.05, hy2 + hs * 0.2); g.lineTo(hx, hy2 + hs * 2.4); g.lineTo(hx + hs * 2.05, hy2 + hs * 0.2); g.closePath(); g.fill();
+    g.fillStyle = '#F2C84A'; g.beginPath(); g.arc(hx - hs * 0.9, hy2, hs, 0, Math.PI * 2); g.arc(hx + hs * 0.9, hy2, hs, 0, Math.PI * 2); g.fill(); g.beginPath(); g.moveTo(hx - hs * 1.85, hy2 + hs * 0.25); g.lineTo(hx, hy2 + hs * 2.15); g.lineTo(hx + hs * 1.85, hy2 + hs * 0.25); g.closePath(); g.fill();
+    g.fillStyle = '#D8306E'; g.beginPath(); g.arc(hx - hs * 0.9, hy2, hs * 0.78, 0, Math.PI * 2); g.arc(hx + hs * 0.9, hy2, hs * 0.78, 0, Math.PI * 2); g.fill(); g.beginPath(); g.moveTo(hx - hs * 1.6, hy2 + hs * 0.3); g.lineTo(hx, hy2 + hs * 1.85); g.lineTo(hx + hs * 1.6, hy2 + hs * 0.3); g.closePath(); g.fill();
+    g.fillStyle = '#FFB0D0'; g.beginPath(); g.arc(hx - hs * 1.1, hy2 - hs * 0.25, hs * 0.3, 0, Math.PI * 2); g.fill();
+    // (the transom and the mullion: stone, lit on top)
+    g.fillStyle = '#1A1028'; g.fillRect(Math.round(wx - r), Math.round(wy + wh * 0.3), Math.round(ww), Math.max(1, Math.round(ww * 0.07)));
+    g.fillStyle = '#EEEAF8'; g.fillRect(Math.round(wx - r), Math.round(wy + wh * 0.3), Math.round(ww), Math.max(1, Math.round(ww * 0.025)));
+    g.fillStyle = '#1A1028'; g.fillRect(Math.round(wx - Math.max(0.5, ww * 0.03)), Math.round(top), Math.max(1, Math.round(ww * 0.06)), Math.round(wh * 0.3 - hs * 1.6));
   }
   if (open >= 1) return;
   // (the rose barrier: a ring of thorny vine and roses round it, a shimmer across it)
@@ -1237,7 +1272,7 @@ const drawRider = (g: CanvasRenderingContext2D, fl: Flyer, x: number, y: number,
   g.save(); g.translate(x, y);
   if (fl.fall) g.rotate(fl.fall.t * 0.3 * fl.fall.spin);
   else g.rotate(clamp(fl.bank, -1, 1) * 0.25 * fl.face + (fl.mode === 'ram' ? 0.25 * fl.face : 0));
-  g.drawImage(cv, -RIDER_AX * s, -RIDER_AY * s, RIDER_W * s, RIDER_H * s);
+  drawMipped(g, cv, -RIDER_AX * s, -RIDER_AY * s, RIDER_W * s, RIDER_H * s);
   g.restore();
   if (fl.fall) return;
   const head = y - 100 * s, hand = x + fl.face * 34 * s;
@@ -1261,6 +1296,24 @@ const inked = (c: CanvasRenderingContext2D, text: string, x: number, y: number, 
   c.fillStyle = '#140C1E'; for (const [dx, dy] of RING8) c.fillText(text, x + dx, y + dy);
   c.fillStyle = col; c.fillText(text, x, y);
 };
+/** The storybook's gilt frame round a box (ink, the gold in steps, lit along its top and left), a field inside. */
+const GILT = ['#3A2408', '#6A4410', '#A06C1C', '#D09A30', '#F2C84A', '#FFF0A8'];
+const giltBox = (c: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, field = '#2A1838') => {
+  x = Math.round(x); y = Math.round(y);
+  c.fillStyle = '#140C1E'; c.fillRect(x - 3, y - 3, w + 6, h + 6);
+  c.fillStyle = GILT[2]; c.fillRect(x - 2, y - 2, w + 4, h + 4);
+  c.fillStyle = GILT[4]; c.fillRect(x - 2, y - 2, w + 4, 1); c.fillRect(x - 2, y - 2, 1, h + 4);
+  c.fillStyle = GILT[1]; c.fillRect(x - 2, y + h + 1, w + 4, 1); c.fillRect(x + w + 1, y - 2, 1, h + 4);
+  c.fillStyle = '#140C1E'; c.fillRect(x - 1, y - 1, w + 2, h + 2);
+  c.fillStyle = field; c.fillRect(x, y, w, h);
+  c.fillStyle = GILT[5]; for (const [px, py] of [[x - 2, y - 2], [x + w + 1, y - 2], [x - 2, y + h + 1], [x + w + 1, y + h + 1]]) c.fillRect(px, py, 1, 1);
+};
+/** A four-point sparkle (the storybook's star), inked. */
+const sparkle = (c: CanvasRenderingContext2D, x: number, y: number, r: number, col: string) => {
+  const pts = (k: number) => [x, y - r * k, x + r * 0.22 * k, y - r * 0.22 * k, x + r * k, y, x + r * 0.22 * k, y + r * 0.22 * k, x, y + r * k, x - r * 0.22 * k, y + r * 0.22 * k, x - r * k, y, x - r * 0.22 * k, y - r * 0.22 * k];
+  const fillP = (p: number[], colr: string) => { c.fillStyle = colr; c.beginPath(); c.moveTo(p[0], p[1]); for (let i = 2; i < p.length; i += 2) c.lineTo(p[i], p[i + 1]); c.closePath(); c.fill(); };
+  fillP(pts(1.25), '#140C1E'); fillP(pts(1), col); c.fillStyle = '#FFFFFF'; c.fillRect(Math.round(x - 1), Math.round(y - 1), 2, 2);
+};
 
 const drawOver = (c: CanvasRenderingContext2D, state: GameState, f: Fight, meX: number, meTop: number) => {
   const p = state.player, cut = p.inCutscene || f.phase !== 'fly', fr = state.frame;
@@ -1271,20 +1324,28 @@ const drawOver = (c: CanvasRenderingContext2D, state: GameState, f: Fight, meX: 
       if (q.x < -20 || q.x > CANVAS_WIDTH + 20 || q.y < -20 || q.y > CANVAS_HEIGHT + 20) continue;
       const col = fl.d.look.main;
       if (near) {
-        const bw = 40, k = Math.max(0, fl.hp / fl.d.hp);
-        c.fillStyle = '#140C1E'; c.fillRect(Math.round(q.x - bw / 2 - 1), Math.round(q.y - 9), bw + 2, 6);
-        c.fillStyle = '#3A1A2A'; c.fillRect(Math.round(q.x - bw / 2), Math.round(q.y - 8), bw, 4);
-        c.fillStyle = k > 0.5 ? '#4ADE80' : k > 0.25 ? '#FACC15' : '#EF4444'; c.fillRect(Math.round(q.x - bw / 2), Math.round(q.y - 8), Math.round(bw * k), 4);
+        // (his health in a little gilt-capped bar, stepped; his name over it)
+        const bw = 40, k = Math.max(0, fl.hp / fl.d.hp), bx = Math.round(q.x - bw / 2), by = Math.round(q.y - 9);
+        c.fillStyle = '#140C1E'; c.fillRect(bx - 2, by - 1, bw + 4, 7);
+        c.fillStyle = GILT[3]; c.fillRect(bx - 1, by, 1, 5); c.fillRect(bx + bw, by, 1, 5);
+        c.fillStyle = '#3A1A2A'; c.fillRect(bx, by + 1, bw, 4);
+        const hc = k > 0.5 ? ['#15803D', '#4ADE80', '#BBF7D0'] : k > 0.25 ? ['#A16207', '#FACC15', '#FEF08A'] : ['#991B1B', '#EF4444', '#FECACA'];
+        c.fillStyle = hc[1]; c.fillRect(bx, by + 1, Math.round(bw * k), 4); c.fillStyle = hc[2]; c.fillRect(bx, by + 1, Math.round(bw * k), 1); c.fillStyle = hc[0]; c.fillRect(bx, by + 4, Math.round(bw * k), 1);
         inked(c, fl.d.look.name, q.x, q.y - 13, '#FFFFFF', 6);
       } else {
-        // (far off: a diamond in his color over him, so he's findable)
-        c.fillStyle = '#140C1E'; c.beginPath(); c.moveTo(q.x, q.y - 12); c.lineTo(q.x + 6, q.y - 6); c.lineTo(q.x, q.y); c.lineTo(q.x - 6, q.y - 6); c.closePath(); c.fill();
-        c.fillStyle = col; c.beginPath(); c.moveTo(q.x, q.y - 10); c.lineTo(q.x + 4, q.y - 6); c.lineTo(q.x, q.y - 2); c.lineTo(q.x - 4, q.y - 6); c.closePath(); c.fill();
+        // (far off: a gilt-rimmed diamond in his color over him, so he's findable)
+        c.fillStyle = '#140C1E'; c.beginPath(); c.moveTo(q.x, q.y - 13); c.lineTo(q.x + 7, q.y - 6); c.lineTo(q.x, q.y + 1); c.lineTo(q.x - 7, q.y - 6); c.closePath(); c.fill();
+        c.fillStyle = GILT[4]; c.beginPath(); c.moveTo(q.x, q.y - 11); c.lineTo(q.x + 5, q.y - 6); c.lineTo(q.x, q.y - 1); c.lineTo(q.x - 5, q.y - 6); c.closePath(); c.fill();
+        c.fillStyle = col; c.beginPath(); c.moveTo(q.x, q.y - 9); c.lineTo(q.x + 3, q.y - 6); c.lineTo(q.x, q.y - 3); c.lineTo(q.x - 3, q.y - 6); c.closePath(); c.fill();
+        c.fillStyle = '#FFFFFF'; c.fillRect(Math.round(q.x - 1), Math.round(q.y - 8), 1, 1);
       }
       if (fl.i === f.lock) {
-        const r = Math.max(14, 60 * tgg.s * 2), cy = q.y + 40 * tgg.s * 2;
-        c.strokeStyle = (fr >> 2) % 2 ? '#F472B6' : '#FFFFFF'; c.lineWidth = 2;
-        for (const [sx, sy] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) { c.beginPath(); c.moveTo(q.x + sx * r, cy + sy * r - sy * 6); c.lineTo(q.x + sx * r, cy + sy * r); c.lineTo(q.x + sx * r - sx * 6, cy + sy * r); c.stroke(); }
+        // (the aim's on him: pink corner brackets, inked, blinking)
+        const r = Math.max(14, 60 * tgg.s * 2), cy = q.y + 40 * tgg.s * 2, col2 = (fr >> 2) % 2 ? '#F472B6' : '#FFFFFF';
+        for (const [sx, sy] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) {
+          c.strokeStyle = '#140C1E'; c.lineWidth = 4; c.beginPath(); c.moveTo(q.x + sx * r, cy + sy * r - sy * 7); c.lineTo(q.x + sx * r, cy + sy * r); c.lineTo(q.x + sx * r - sx * 7, cy + sy * r); c.stroke();
+          c.strokeStyle = col2; c.lineWidth = 2; c.stroke();
+        }
       }
     }
     for (const fl of f.flyers) {
@@ -1303,8 +1364,12 @@ const drawOver = (c: CanvasRenderingContext2D, state: GameState, f: Fight, meX: 
       if (ax < 330 && ay < 120) ax = 330;
       const a = Math.atan2(dy, dx), pulse = (fr >> 3) % 2 ? 1 : 0.85;
       c.save(); c.translate(ax, ay); c.rotate(a); c.scale(pulse, pulse);
-      c.fillStyle = '#140C1E'; c.beginPath(); c.moveTo(16, 0); c.lineTo(-8, -12); c.lineTo(-8, 12); c.closePath(); c.fill();
-      c.fillStyle = fl.d.look.main; c.beginPath(); c.moveTo(12, 0); c.lineTo(-6, -9); c.lineTo(-6, 9); c.closePath(); c.fill();
+      // (a gilt-rimmed arrowhead in his color, lit along its upper edge, a notch at its back)
+      const tri = (p: number[], colr: string) => { c.fillStyle = colr; c.beginPath(); c.moveTo(p[0], p[1]); for (let i = 2; i < p.length; i += 2) c.lineTo(p[i], p[i + 1]); c.closePath(); c.fill(); };
+      tri([18, 0, -9, -13, -4, 0, -9, 13], '#140C1E');
+      tri([15, 0, -7, -10, -3, 0, -7, 10], GILT[3]);
+      tri([11, 0, -5, -7, -2, 0, -5, 7], fl.d.look.main);
+      tri([11, 0, -5, -7, -2, 0], '#FFFFFF40');
       c.restore();
       inked(c, fl.d.look.name[0], ax - dx * 18, ay - dy * 18 + 4, '#FFFFFF', 8);
     }
@@ -1323,13 +1388,15 @@ const drawOver = (c: CanvasRenderingContext2D, state: GameState, f: Fight, meX: 
     project(f.x + Math.sin(f.yaw) * 1400, f.z + Math.cos(f.yaw) * 1400, f.alt + 22 + f.pitch * 280, P);
     if (P.ok) {
       const q = toScreen(P.sx, P.sy), ax = q.x, ay = q.y;
-      c.strokeStyle = f.lock >= 0 ? '#F472B6' : 'rgba(255,255,255,0.7)'; c.lineWidth = 2; c.beginPath(); c.moveTo(ax - 9, ay); c.lineTo(ax - 3, ay); c.moveTo(ax + 3, ay); c.lineTo(ax + 9, ay); c.moveTo(ax, ay - 9); c.lineTo(ax, ay - 3); c.moveTo(ax, ay + 3); c.lineTo(ax, ay + 9); c.stroke();
-      // (X held: the lock-on reticle charging, sweeping round and growing, till it locks)
+      // (his aim: a little four-point sparkle, pink when it's on someone, a ring of four dots round it)
+      sparkle(c, ax, ay, 7, f.lock >= 0 ? '#F472B6' : '#FFF6C8');
+      for (let i = 0; i < 4; i++) { const a = i * Math.PI / 2 + Math.PI / 4; c.fillStyle = '#140C1E'; c.fillRect(Math.round(ax + Math.cos(a) * 12) - 2, Math.round(ay + Math.sin(a) * 12) - 2, 4, 4); c.fillStyle = f.lock >= 0 ? '#F472B6' : 'rgba(255,255,255,0.8)'; c.fillRect(Math.round(ax + Math.cos(a) * 12) - 1, Math.round(ay + Math.sin(a) * 12) - 1, 2, 2); }
+      // (X held: the lock-on reticle charging: four gilt sparkles sweeping round, growing, a ring filling in, till it locks)
       if (f.hold >= HOLD_T && f.locked < 0) {
-        const k = Math.min(1, (f.hold - HOLD_T) / LOCK_T), r = 14 + k * 30, a = f.hold * 0.12;
-        c.save(); c.translate(ax, ay); c.rotate(a); c.strokeStyle = k >= 1 ? '#FDE68A' : '#FFFFFF'; c.lineWidth = 2;
-        for (let i = 0; i < 4; i++) { c.rotate(Math.PI / 2); c.beginPath(); c.moveTo(r, -6); c.lineTo(r, 6); c.moveTo(r, 0); c.lineTo(r - 6, 0); c.stroke(); }
-        c.restore();
+        const k = Math.min(1, (f.hold - HOLD_T) / LOCK_T), r = 16 + k * 30, a = f.hold * 0.12;
+        c.strokeStyle = '#140C1E'; c.lineWidth = 4; c.beginPath(); c.arc(ax, ay, r, -Math.PI / 2, -Math.PI / 2 + k * Math.PI * 2); c.stroke();
+        c.strokeStyle = k >= 1 ? '#FDE68A' : '#F9A8D4'; c.lineWidth = 2; c.stroke();
+        for (let i = 0; i < 4; i++) { const b = a + i * Math.PI / 2; sparkle(c, ax + Math.cos(b) * r, ay + Math.sin(b) * r, 4 + k * 2, k >= 1 ? GILT[5] : GILT[4]); }
       }
     }
     // (locked: the reticle snapped onto him, red, spinning tight)
@@ -1338,9 +1405,18 @@ const drawOver = (c: CanvasRenderingContext2D, state: GameState, f: Fight, meX: 
       project(o.x, o.z, o.alt + 40, P);
       if (P.ok) {
         const q = toScreen(P.sx, P.sy), snap = Math.max(0, 1 - (f.t - f.lockedAt) / 8), r = Math.max(16, 70 * P.s * 2) + snap * 40;
-        c.save(); c.translate(q.x, q.y); c.rotate(fr * 0.08); c.strokeStyle = (fr >> 2) % 2 ? '#EF4444' : '#FCA5A5'; c.lineWidth = 3;
-        c.strokeRect(-r, -r, r * 2, r * 2); c.restore();
-        inked(c, 'LOCKED', q.x, q.y - r - 8, '#EF4444', 8);
+        // (snapped on: a red square turning, inked, a heart at each corner)
+        c.save(); c.translate(q.x, q.y); c.rotate(fr * 0.08);
+        c.strokeStyle = '#140C1E'; c.lineWidth = 5; c.strokeRect(-r, -r, r * 2, r * 2);
+        c.strokeStyle = (fr >> 2) % 2 ? '#EF4444' : '#FCA5A5'; c.lineWidth = 3; c.strokeRect(-r, -r, r * 2, r * 2);
+        for (const [sx, sy] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) {
+          const hx = sx * r, hy = sy * r;
+          c.fillStyle = '#140C1E'; c.beginPath(); c.arc(hx - 3, hy - 1, 4.5, 0, Math.PI * 2); c.arc(hx + 3, hy - 1, 4.5, 0, Math.PI * 2); c.fill(); c.beginPath(); c.moveTo(hx - 7.5, hy); c.lineTo(hx, hy + 8); c.lineTo(hx + 7.5, hy); c.closePath(); c.fill();
+          c.fillStyle = '#EF4444'; c.beginPath(); c.arc(hx - 2.5, hy - 1, 3, 0, Math.PI * 2); c.arc(hx + 2.5, hy - 1, 3, 0, Math.PI * 2); c.fill(); c.beginPath(); c.moveTo(hx - 5.5, hy); c.lineTo(hx, hy + 5.5); c.lineTo(hx + 5.5, hy); c.closePath(); c.fill();
+          c.fillStyle = '#FECACA'; c.fillRect(Math.round(hx - 4), Math.round(hy - 3), 2, 2);
+        }
+        c.restore();
+        inked(c, 'LOCKED', q.x, q.y - r - 10, '#EF4444', 8);
       }
     }
     drawSuitorBar(c, f);
@@ -1370,14 +1446,20 @@ const drawSuitorBar = (c: CanvasRenderingContext2D, f: Fight) => {
   const left = shown.filter(o => o.alive).length;
   inked(c, `SUITORS: ${left} LEFT`, band.mid, y + 44, '#FDE68A', 8);
   for (const o of shown) {
-    c.fillStyle = '#140C1E'; c.fillRect(x, y, cw, 24);
-    c.fillStyle = o.alive ? o.d.look.main : '#2A2230'; c.fillRect(x + 2, y + 2, cw - 4, 12);
+    // (a gilt-framed card: his color in a banded field, his name, his health in a stepped bar; dead: dimmed, crossed out)
+    giltBox(c, x + 2, y + 2, cw - 4, 20, '#1E1428');
+    const main = o.alive ? o.d.look.main : '#2A2230';
+    c.fillStyle = main; c.fillRect(x + 2, y + 2, cw - 4, 11);
+    c.fillStyle = 'rgba(255,255,255,0.28)'; c.fillRect(x + 2, y + 2, cw - 4, 2);
+    c.fillStyle = 'rgba(0,0,0,0.25)'; c.fillRect(x + 2, y + 11, cw - 4, 2);
     const k = o.alive ? Math.max(0, o.hp / o.d.hp) : 0;
-    c.fillStyle = '#3A1A2A'; c.fillRect(x + 2, y + 16, cw - 4, 5);
-    c.fillStyle = k > 0.5 ? '#4ADE80' : k > 0.25 ? '#FACC15' : '#EF4444'; c.fillRect(x + 2, y + 16, Math.round((cw - 4) * k), 5);
-    const nm = o.d.look.name.length * 6 > cw - 4 ? o.d.look.name.slice(0, Math.floor((cw - 4) / 6)) : o.d.look.name;
-    c.font = fontPx(6); c.textAlign = 'center'; c.fillStyle = o.alive ? '#FFFFFF' : '#6A6070'; c.fillText(nm, x + cw / 2, y + 11);
-    if (!o.alive) { c.strokeStyle = '#EF4444'; c.lineWidth = 2; c.beginPath(); c.moveTo(x + 3, y + 3); c.lineTo(x + cw - 3, y + 21); c.moveTo(x + cw - 3, y + 3); c.lineTo(x + 3, y + 21); c.stroke(); }
+    c.fillStyle = '#3A1A2A'; c.fillRect(x + 3, y + 15, cw - 6, 5);
+    const hc = k > 0.5 ? ['#15803D', '#4ADE80', '#BBF7D0'] : k > 0.25 ? ['#A16207', '#FACC15', '#FEF08A'] : ['#991B1B', '#EF4444', '#FECACA'];
+    const hw = Math.round((cw - 6) * k);
+    c.fillStyle = hc[1]; c.fillRect(x + 3, y + 15, hw, 5); c.fillStyle = hc[2]; c.fillRect(x + 3, y + 15, hw, 1); c.fillStyle = hc[0]; c.fillRect(x + 3, y + 19, hw, 1);
+    const nm = o.d.look.name.length * 6 > cw - 6 ? o.d.look.name.slice(0, Math.floor((cw - 6) / 6)) : o.d.look.name;
+    c.font = fontPx(6); c.textAlign = 'center'; c.fillStyle = '#140C1E'; c.fillText(nm, x + cw / 2 + 1, y + 11); c.fillStyle = o.alive ? '#FFFFFF' : '#6A6070'; c.fillText(nm, x + cw / 2, y + 10);
+    if (!o.alive) { c.fillStyle = 'rgba(20,12,30,0.45)'; c.fillRect(x + 2, y + 2, cw - 4, 20); c.strokeStyle = '#140C1E'; c.lineWidth = 4; c.beginPath(); c.moveTo(x + 4, y + 4); c.lineTo(x + cw - 4, y + 20); c.moveTo(x + cw - 4, y + 4); c.lineTo(x + 4, y + 20); c.stroke(); c.strokeStyle = '#EF4444'; c.lineWidth = 2; c.stroke(); }
     x += cw + gap;
   }
 };
@@ -1388,38 +1470,65 @@ const drawRadar = (c: CanvasRenderingContext2D, f: Fight, fr: number) => {
   const cx = CANVAS_WIDTH - 82, cy = CANVAS_HEIGHT - 84, R = 64, k = R / 5600;
   const rel = (x: number, z: number) => { const dx = x - f.x, dz = z - f.z; return { x: cx + (dx * view.rx + dz * view.rz) * k, y: cy - (dx * view.fx + dz * view.fz) * k }; };
   c.save();
-  c.fillStyle = 'rgba(20,12,30,0.78)'; c.beginPath(); c.arc(cx, cy, R + 4, 0, Math.PI * 2); c.fill();
-  c.strokeStyle = '#F9A8D4'; c.lineWidth = 2; c.beginPath(); c.arc(cx, cy, R + 4, 0, Math.PI * 2); c.stroke();
+  // (THE MAGIC MIRROR: a gilt ring in steps (lit up and left), studs round it, a pink inner ring, the plum glass banded
+  //  darker toward its rim)
+  const ring = (r: number, col: string) => { c.fillStyle = col; c.beginPath(); c.arc(cx, cy, r, 0, Math.PI * 2); c.fill(); };
+  ring(R + 9, '#140C1E'); ring(R + 8, GILT[2]);
+  c.strokeStyle = GILT[4]; c.lineWidth = 2; c.beginPath(); c.arc(cx, cy, R + 6.5, Math.PI * 0.95, Math.PI * 1.75); c.stroke();
+  c.strokeStyle = GILT[1]; c.beginPath(); c.arc(cx, cy, R + 6.5, Math.PI * 1.95, Math.PI * 2.75); c.stroke();
+  for (let i = 0; i < 12; i++) { const a = (i / 12) * Math.PI * 2; c.fillStyle = '#140C1E'; c.fillRect(Math.round(cx + Math.cos(a) * (R + 6)) - 2, Math.round(cy + Math.sin(a) * (R + 6)) - 2, 4, 4); c.fillStyle = i % 3 ? GILT[5] : '#F472B6'; c.fillRect(Math.round(cx + Math.cos(a) * (R + 6)) - 1, Math.round(cy + Math.sin(a) * (R + 6)) - 1, 2, 2); }
+  ring(R + 3, '#140C1E'); ring(R + 2, '#F9A8D4'); ring(R + 1, '#140C1E');
+  const GL = ['#140A22', '#1C1030', '#24163E', '#2E1C4C', '#3A245A'];
+  for (let i = 0; i < GL.length; i++) ring(R * (1 - i * 0.18), GL[i]);
   c.beginPath(); c.arc(cx, cy, R, 0, Math.PI * 2); c.clip();
+  c.globalAlpha = 0.14; c.fillStyle = '#FFFFFF'; c.beginPath(); c.ellipse(cx - R * 0.35, cy - R * 0.4, R * 0.5, R * 0.22, -0.6, 0, Math.PI * 2); c.fill(); c.globalAlpha = 1;
   const o = rel(0, 0);
-  c.strokeStyle = 'rgba(244,114,182,0.8)'; c.lineWidth = 1.5; c.beginPath(); c.arc(o.x, o.y, WALL_R * k, 0, Math.PI * 2); c.stroke();
-  c.fillStyle = '#DCD2EC'; c.beginPath(); c.arc(o.x, o.y, 5, 0, Math.PI * 2); c.fill();
-  c.fillStyle = '#F472B6'; c.fillRect(Math.round(o.x - 1), Math.round(o.y - 1), 3, 3);
-  for (const t of TOWERS) { const q = rel(t.x, t.z); c.fillStyle = '#9484B4'; c.fillRect(Math.round(q.x - 2), Math.round(q.y - 2), 4, 4); }
+  // (the park's rings, the wall's pink shimmer, the castle as a little keep, the towers as blue cones)
+  c.strokeStyle = 'rgba(216,192,138,0.35)'; c.lineWidth = 1; for (const rr of [960, 2450, 3550]) { c.beginPath(); c.arc(o.x, o.y, rr * k, 0, Math.PI * 2); c.stroke(); }
+  c.strokeStyle = '#140C1E'; c.lineWidth = 3.5; c.beginPath(); c.arc(o.x, o.y, WALL_R * k, 0, Math.PI * 2); c.stroke();
+  c.strokeStyle = '#F472B6'; c.lineWidth = 1.5; c.stroke();
+  c.fillStyle = '#140C1E'; c.fillRect(Math.round(o.x - 5), Math.round(o.y - 5), 11, 10);
+  c.fillStyle = '#DCD2EC'; c.fillRect(Math.round(o.x - 4), Math.round(o.y - 3), 9, 7); c.fillRect(Math.round(o.x - 4), Math.round(o.y - 5), 2, 2); c.fillRect(Math.round(o.x), Math.round(o.y - 6), 1, 3); c.fillRect(Math.round(o.x + 3), Math.round(o.y - 5), 2, 2);
+  c.fillStyle = '#F472B6'; c.fillRect(Math.round(o.x), Math.round(o.y - 2), 1, 2);
+  for (const t of TOWERS) { const q = rel(t.x, t.z); c.fillStyle = '#140C1E'; c.beginPath(); c.moveTo(q.x, q.y - 4); c.lineTo(q.x + 3.5, q.y + 2.5); c.lineTo(q.x - 3.5, q.y + 2.5); c.closePath(); c.fill(); c.fillStyle = '#4A78D4'; c.beginPath(); c.moveTo(q.x, q.y - 2.5); c.lineTo(q.x + 2, q.y + 1.5); c.lineTo(q.x - 2, q.y + 1.5); c.closePath(); c.fill(); }
   for (const fl of f.flyers) {
     if (!fl.alive || !fl.in) continue;
     const q = rel(fl.x, fl.z), dAlt = fl.alt - f.alt;
-    c.fillStyle = '#140C1E'; c.fillRect(Math.round(q.x - 4), Math.round(q.y - 4), 8, 8);
-    c.fillStyle = fl.d.look.main; c.fillRect(Math.round(q.x - 3), Math.round(q.y - 3), 6, 6);
-    if (Math.abs(dAlt) > 300) { c.fillStyle = '#FFFFFF'; c.beginPath(); const s = dAlt > 0 ? -1 : 1; c.moveTo(q.x - 3, q.y + s * 5); c.lineTo(q.x + 3, q.y + s * 5); c.lineTo(q.x, q.y + s * 9); c.closePath(); c.fill(); }
+    c.fillStyle = '#140C1E'; c.beginPath(); c.moveTo(q.x, q.y - 5); c.lineTo(q.x + 5, q.y); c.lineTo(q.x, q.y + 5); c.lineTo(q.x - 5, q.y); c.closePath(); c.fill();
+    c.fillStyle = fl.d.look.main; c.beginPath(); c.moveTo(q.x, q.y - 3.5); c.lineTo(q.x + 3.5, q.y); c.lineTo(q.x, q.y + 3.5); c.lineTo(q.x - 3.5, q.y); c.closePath(); c.fill();
+    c.fillStyle = '#FFFFFF'; c.fillRect(Math.round(q.x - 1), Math.round(q.y - 2), 1, 1);
+    if (Math.abs(dAlt) > 300) { const s = dAlt > 0 ? -1 : 1; c.fillStyle = '#140C1E'; c.beginPath(); c.moveTo(q.x - 4, q.y + s * 5); c.lineTo(q.x + 4, q.y + s * 5); c.lineTo(q.x, q.y + s * 10); c.closePath(); c.fill(); c.fillStyle = '#FFFFFF'; c.beginPath(); c.moveTo(q.x - 2.5, q.y + s * 6); c.lineTo(q.x + 2.5, q.y + s * 6); c.lineTo(q.x, q.y + s * 9); c.closePath(); c.fill(); }
   }
   c.restore();
-  // (him in the middle, heading up)
+  // (north on the rim: a gilt N that goes round as he turns)
+  { const a = Math.atan2(-view.fz, view.rz), nx = cx + Math.cos(a) * (R + 6), ny = cy + Math.sin(a) * (R + 6); c.fillStyle = '#140C1E'; c.beginPath(); c.arc(nx, ny, 6, 0, Math.PI * 2); c.fill(); c.fillStyle = GILT[4]; c.beginPath(); c.arc(nx, ny, 5, 0, Math.PI * 2); c.fill(); c.font = fontPx(6); c.textAlign = 'center'; c.fillStyle = '#3A2408'; c.fillText('N', nx + 0.5, ny + 3); }
+  // (him in the middle, heading up: a gilt star-pointed arrow)
+  c.fillStyle = '#140C1E'; c.beginPath(); c.moveTo(cx, cy - 9); c.lineTo(cx + 7, cy + 7); c.lineTo(cx, cy + 3); c.lineTo(cx - 7, cy + 7); c.closePath(); c.fill();
   c.fillStyle = (fr >> 3) % 2 ? '#FFFFFF' : '#FDE68A'; c.beginPath(); c.moveTo(cx, cy - 7); c.lineTo(cx + 5, cy + 5); c.lineTo(cx, cy + 2); c.lineTo(cx - 5, cy + 5); c.closePath(); c.fill();
-  // (the altimeter: the lawn to the sky's limit, him on it, the suitors' heights as ticks)
-  const ax = cx - R - 22, ay0 = cy + R, ay1 = cy - R, at = (a: number) => ay0 + (ay1 - ay0) * clamp(a / MAX_ALT, 0, 1);
-  c.fillStyle = 'rgba(20,12,30,0.78)'; c.fillRect(ax - 5, ay1 - 4, 10, ay0 - ay1 + 8);
-  c.fillStyle = '#4C8A3A'; c.fillRect(ax - 3, ay0 - 4, 6, 4);
-  c.fillStyle = '#F472B6'; c.fillRect(ax - 3, Math.round(at(WINDOW.alt)) - 1, 6, 2);
-  for (const fl of f.flyers) if (fl.alive && fl.in) { c.fillStyle = fl.d.look.main; c.fillRect(ax - 3, Math.round(at(fl.alt)) - 1, 6, 2); }
-  c.fillStyle = '#FFFFFF'; c.beginPath(); const yy = at(f.alt); c.moveTo(ax + 6, yy); c.lineTo(ax + 12, yy - 4); c.lineTo(ax + 12, yy + 4); c.closePath(); c.fill();
+  c.fillStyle = GILT[2]; c.beginPath(); c.moveTo(cx, cy - 7); c.lineTo(cx + 5, cy + 5); c.lineTo(cx, cy + 2); c.closePath(); c.fill();
+  // (the altimeter: a gilt-framed slot, the sky banded down to the lawn inside, ticks up it, her window a pink heart,
+  //  the suitors' heights in their colors, him a gilt pointer)
+  const ax = cx - R - 26, ay0 = cy + R, ay1 = cy - R, at = (a: number) => ay0 + (ay1 - ay0) * clamp(a / MAX_ALT, 0, 1);
+  giltBox(c, ax - 5, ay1 - 2, 10, ay0 - ay1 + 4, '#1E1428');
+  const SB = ['#22327E', '#3A5ABA', '#6890DA', '#A0C0EE', '#DAD6F2'];
+  for (let i = 0; i < SB.length; i++) { const y0 = ay1 - 2 + ((ay0 - ay1) * i) / SB.length; c.fillStyle = SB[i]; c.fillRect(ax - 5, Math.round(y0), 10, Math.ceil((ay0 - ay1) / SB.length) + 1); }
+  c.fillStyle = '#3C702E'; c.fillRect(ax - 5, ay0 - 3, 10, 5); c.fillStyle = '#62A04C'; c.fillRect(ax - 5, ay0 - 3, 10, 1);
+  for (let a = 300; a < MAX_ALT; a += 300) { const ty = Math.round(at(a)); c.fillStyle = 'rgba(20,12,30,0.55)'; c.fillRect(ax - 5, ty, a % 900 === 0 ? 6 : 3, 1); }
+  { const hy = Math.round(at(WINDOW.alt)); c.fillStyle = '#140C1E'; c.beginPath(); c.arc(ax - 2, hy - 1, 3, 0, Math.PI * 2); c.arc(ax + 2, hy - 1, 3, 0, Math.PI * 2); c.fill(); c.beginPath(); c.moveTo(ax - 5, hy); c.lineTo(ax, hy + 5); c.lineTo(ax + 5, hy); c.closePath(); c.fill(); c.fillStyle = '#F472B6'; c.beginPath(); c.arc(ax - 1.8, hy - 1, 2, 0, Math.PI * 2); c.arc(ax + 1.8, hy - 1, 2, 0, Math.PI * 2); c.fill(); c.beginPath(); c.moveTo(ax - 3.6, hy - 0.4); c.lineTo(ax, hy + 3.4); c.lineTo(ax + 3.6, hy - 0.4); c.closePath(); c.fill(); }
+  for (const fl of f.flyers) if (fl.alive && fl.in) { const ty = Math.round(at(fl.alt)); c.fillStyle = '#140C1E'; c.fillRect(ax - 5, ty - 2, 10, 4); c.fillStyle = fl.d.look.main; c.fillRect(ax - 4, ty - 1, 8, 2); }
+  const yy = at(f.alt);
+  c.fillStyle = '#140C1E'; c.beginPath(); c.moveTo(ax + 5, yy); c.lineTo(ax + 14, yy - 6); c.lineTo(ax + 14, yy + 6); c.closePath(); c.fill();
+  c.fillStyle = GILT[4]; c.beginPath(); c.moveTo(ax + 7, yy); c.lineTo(ax + 13, yy - 4); c.lineTo(ax + 13, yy + 4); c.closePath(); c.fill();
+  c.fillStyle = GILT[5]; c.fillRect(Math.round(ax + 9), Math.round(yy - 2), 3, 1);
 };
 
 /** Bottom left: what up does right now (and whether it's inverted). */
 const drawPlate = (c: CanvasRenderingContext2D, f: Fight) => {
   const x = 16, y = CANVAS_HEIGHT - 52;
-  c.fillStyle = 'rgba(20,12,30,0.78)'; c.fillRect(x, y, 150, 36);
-  c.strokeStyle = inverted ? '#F472B6' : '#6A6070'; c.lineWidth = 2; c.strokeRect(x, y, 150, 36);
+  // (a storybook shingle: a gilt frame, the plum field (pink while inverted), a lit band along its top)
+  giltBox(c, x, y, 150, 36, inverted ? '#5A1E4A' : '#2A1838');
+  c.fillStyle = 'rgba(255,255,255,0.12)'; c.fillRect(x, y, 150, 3);
+  sparkle(c, x + 12, y + 18, 5, inverted ? '#F472B6' : GILT[4]); sparkle(c, x + 138, y + 18, 5, inverted ? '#F472B6' : GILT[4]);
   inked(c, inverted ? 'INVERTED' : 'NORMAL', x + 75, y + 14, inverted ? '#F472B6' : '#FFFFFF', 8);
   inked(c, inverted ? 'UP: DIVE' : 'UP: CLIMB', x + 75, y + 28, '#C8C0D8', 6);
   void f;

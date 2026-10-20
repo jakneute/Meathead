@@ -5,7 +5,13 @@
 // the great pixie's bedroom (naked: he's got a boner). Modeled on Star Fox 64's all-range mode (the user's), simpler.
 //
 //   arena.ts   the castle grounds as a sky to fly round (the castle in the middle, towers, balloons, the magic wall),
-//              the mode 7 floor, the sky; the billboards
+//              the eye, the solids, the mode 7 floor (its texture's copies, the park beyond's tile past its edge), the
+//              splatters baked into it
+//   world.ts   where everything stands (shared by the floor and the billboards)
+//   ground.ts  the floor's texture, painted for the hour (the grounds from above at peak SNES)
+//   sprites.ts the billboards (the castle, watchtowers, trees, banner poles, balloons), each with its chain of copies
+//   sky.ts     the sky and the rings round the horizon (stars, clouds, the Alps, the far park), sun, birds, fireworks
+//   side.ts    the side view after it's won (a wall walk high on the castle, the grounds below through the mode 7 floor)
 //   art.ts     him from behind on his broom (the laser on its end), the suitors on theirs, what flies, the dead
 //   fight.ts   the mode: flying, the laser and the lock-on, the suitors and their ways, deaths, the late entries, the
 //              window, the zoom, the shatter; its HUD bits
@@ -19,12 +25,12 @@
 import type { GameState } from '../../../m1/game/core/state';
 import { CANVAS_WIDTH } from '../../../m1/constants';
 import type { FantasySection } from '../section';
-import { layOwn, endWalls, runExits, fantasyState, hands, groundBox, type Exit } from '../section';
+import { layOwn, endWalls, runExits, fantasyState, hands, type Exit } from '../section';
 import { SECTIONS, DOORS, GY } from '../geometry';
-import { storySign, fairySky, onScreen } from '../kit';
-import { MONUMENT_AT } from '../monument';
+import { storySign, onScreen } from '../kit';
 import { markBossFight } from '../../bossQuiet';
 import { inFight, startFight, updateFight, drawFight, broomDone } from './fight';
+import { drawSideBackdrop, drawSideBack } from './side';
 
 export { tickShatter, drawShatter, BROOM_MEMO } from './fight';
 
@@ -62,11 +68,11 @@ export const broom: FantasySection = {
     return controls;
   },
   cameraX: () => ({ min: x0, max: x0 + LEN - CANVAS_WIDTH }),
-  drawBackdrop: (c, state) => (inFight(state) ? true : fairySky(c, state, MONUMENT_AT.broom)),
+  drawBackdrop: (c, state) => (inFight(state) ? true : drawSideBackdrop(c, state, x0, LEN)),
   drawBack: (c, state) => {
     if (inFight(state)) return;
-    // (after: a landing high on the castle, the sky round it empty; the way to her chambers)
-    groundBox(c, x0 - 200, x0 + LEN + 200, GY, '#8A8098', '#F4EEFA');
+    // (after: a wall walk high on the castle's crown, the grounds far below; the way to her chambers: side.ts)
+    drawSideBack(c, state, x0, LEN);
     if (onScreen(state, x0 + 200, x0 + 700)) storySign(c, x0 + 450, GY, ['BROOMSTICK DEATHMATCH', 'CONCLUDED. NO SURVIVORS.'], { board: '#6E1E4E' });
     if (onScreen(state, x0 + LEN - 400, x0 + LEN)) storySign(c, x0 + LEN - 200, GY, ["HER CHAMBERS >"], { big: 1, board: '#6E1E4E' });
   },

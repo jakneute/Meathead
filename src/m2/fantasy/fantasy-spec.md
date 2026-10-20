@@ -798,3 +798,46 @@ markBossFight every frame of a boss or sub-boss fight. Voice every new line (`np
   helmet, beveled halberd), the jester (parti hose, bell shoes, dagged collar, some in greasepaint), the lady (brocade
   bell gown, hanging sleeves, girdle, banded hennin and veil, painted fan); the same poses and deaths. Drawing only:
   no layout, timing or hitbox changes.
+- (SNES pass, the broomstick deathmatch) Inside the magic wall the Great Pixie keeps her grounds in summer (as the glen
+  is): green lawns mown in rings, flowers; outside it's the land's winter. The mode 7 floor's texture (broom/ground.ts)
+  is now 2048 px at 6 units a texel (was 1024 at 12) with four averaged copies (was two) picked per row, and past its
+  edge the park beyond's own repeating tile (and its copies) instead of a flat color; the same scanline sampler at
+  400x300. Painted once for the hour, the A Link to the Past way (lit from the north-west, shadows down and right): the
+  base a texel at a time (hard-edged rings: the lawn's mown rings with tufts and clover, gravel paths and avenues with
+  kerbs, the moat's mud in bands between its revetments, the park railway's ballast, sleepers and rails, the wall's
+  walk and merlons, the glen's moss); then the castle from above on its crag (the curtain wall's walk and merlons, the
+  courtyard's flags, the hall's and chapel's slates, the keep and its turrets' cones, the spire's cone, the drawbridge,
+  its long shadow), the moat's puddles, cart, footprints, rowboat, ladders and WET FLOOR cones, the flower border and
+  benches round it; lamp posts and strolling guests along every path, tree rows down the avenues; eight gardens (THE
+  HEDGE MAZE (a real maze, a fountain in its heart), a mirrored parterre, the rose garden and its gilt arbors, two
+  spectator lawns (blankets, umbrellas, a queue maze, a bandstand, food carts), the topiary garden and its swan pond,
+  THE FLOWER CLOCK, Piper's heart garden), lawns between with trees and beds; the broom port (stands packed in the
+  houses' colors, the deck's planks, the red runway, chevrons, landing lights, the scoreboard, hoops, wind socks, broom
+  racks, crowds); the watchtowers' plazas and long shadows; five rings of plots out to the wall (gift shops with
+  awnings, teacups, carousels, food courts, queue mazes, storybook cottages, ponds, the Flying Unicorns, show buildings
+  with their backstage roofs) with trees, beds, umbrellas and crowds between; the glen's forest (3400 trees: oaks,
+  blossom, lilac, frosted firs; the brook and its footbridge, the meadow and its plywood rainbow, the gingerbread
+  cottage, the mine's hill, the dragon lair's skull, a toadstool ring); the railway's train and station; the wall's pink
+  shimmer; beyond it Hogsmeat's snowy roofs, streets, church and clock tower, the frozen lake and its skaters, Truelling
+  Tragons' three tracks, loops, fake mountain and lagoon, the fairy wheel and its plaza, Rapunzel's tower, the
+  beanstalk, a windmill, all over the tile's snowy pine woods, paths, cottages and frozen pond. After dark the lamps,
+  the landing lights, fairy lights and windows are painted on after the hour's light. The splatters still bake in on
+  top (setSplats / paintSplat; only their patch of every copy remade), a wet glint and more gore added. The sky
+  (broom/sky.ts): banded by the hour, rings round the horizon that wrap with his heading (stars, the moon, cirrus,
+  stepped cumulus, the beanstalk's cloud castle; THE ALPS; the far park on the horizon with its landmarks at their real
+  bearings), the sun, birds by day, fireworks after dark. The billboards (broom/sprites.ts) at twice the resolution with
+  chains of averaged copies (no shimmer far off): THE CASTLE painted for the arena (monument.ts's proportions, Piper's
+  window exactly at PIPER_WINDOW: the crag in strata with moss, ivy, the switchback road and its lamps, a cascade; the
+  curtain wall, its lancets, banners, guards and gate; corner, mid and far towers; the hall and chapel; THE KEEP with
+  buttresses, lancets, rose window, banners, machicolations, pinnacles, flying buttresses; the side spires; the highest
+  spire, her balcony and window, the gilt star), the watchtowers (plinth, door, lancets, a lookout gallery with a
+  guard and lantern), four trees, banner poles in four frames, the balloons (gores, crest, basket and riders, a live
+  burner flame); the suitors through copies too. Meathead's behind view stepped (same pose: 7b18744a's), the fall, the
+  throws and bolts (the homing shot a heart), the corpses; the laser beam stepped; her window's close-up for the zoom
+  (a moulded arch, leaded diamonds, the gilt heart); the HUD bits in the storybook's gilt (the radar a magic mirror with
+  a turning N, the altimeter a gilt slot with the sky banded in it and her window a heart, the suitors' cards, the
+  plate, gilt-rimmed edge arrows and markers, a sparkle aim, sweeping sparkles for the lock-on, a turning red frame
+  with hearts when locked). The revisit's side view (broom/side.ts): a wall walk high on the castle's crown, the
+  grounds far below through the same mode 7 floor (watchtowers and balloons on it), the parapet with banners and
+  sconces, the walk's lit front edge over corbels, the stair turret, her chambers' tower and its glowing door, a snapped
+  broom, a tiara, petals and glass. Drawing only: no layout, timing or hitbox changes.
