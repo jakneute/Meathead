@@ -239,7 +239,7 @@ const App2: React.FC = () => {
       setHubExit(to === HUB_STAGE && stage !== PEN_STAGE && !!from);
       // (through a portal: no HUD from here till the land's opened on him, not a frame of it as it loads)
       setUi({ introTip: null, introPrompt: null, introAhead: null, introTicket: null, introCutscene: dest === 'intro' || portalArrivalPending() || hubExitPending() });
-      setUi({ near: null, map: null, nearExit: false, nearAmerica: false, noSwitch: false, heliHud: false, bikeHud: false, bikeTips: false, carHops: false, tragonTips: false, broomHud: false, broomTips: false, iceMash: null });
+      setUi({ near: null, map: null, nearExit: false, nearAmerica: false, noSwitch: false, heliHud: false, bikeHud: false, bikeTips: false, carHops: false, tragonTips: false, tragonHold: null, broomHud: false, broomTips: false, iceMash: null });
       setFade(true);
       // (into a land, everything's topped up; and back at the hub after a boss: elsewhere, what he had)
       // (the walk back after a boss: topped up there, and the boss's top-up used up on it)
@@ -536,15 +536,36 @@ const App2: React.FC = () => {
           </div>
         )}
         {/* Fairy Land's Truelling Tragons: hopping cars, the first ride (till he's hopped once) */}
-        {status === GameStatus.PLAYING && ui.map === null && !ui.introCutscene && ui.tragonTips && (
-          <div className="absolute left-1/2 -translate-x-1/2 top-[132px] z-30 flex flex-col items-center gap-2 px-3 py-2 text-[9px] text-white bg-black/80 border-2 border-[#FACC15]">
+        {status === GameStatus.PLAYING && ui.map === null && !ui.introCutscene && ui.tragonTips && !ui.tragonHold && (
+          <div className="absolute left-1/2 -translate-x-1/2 bottom-[10px] z-30 flex flex-col items-center gap-2 px-3 py-2 text-[9px] text-white bg-black/80 border-2 border-[#FACC15]">
             <div className="flex gap-4">
               <Prompt pad={['RB']} kb={['@prevWeapon']} label="HOP UP A CAR" />
               <Prompt pad={['LB']} kb={['@nextWeapon']} label="HOP DOWN A CAR" />
             </div>
-            <span className="text-zinc-400">NO FIRING ON THE RIDE</span>
+            <span className="text-zinc-400">NO GUNS ON THE RIDE: HANG ON</span>
           </div>
         )}
+        {/* Fairy Land's Truelling Tragons: a loop coming (which track, what it is) or on now: HOLD the real down button
+            to hang on; the first one's the teaching card. At the bottom, out from over the dragons. */}
+        {status === GameStatus.PLAYING && ui.map === null && !ui.introCutscene && ui.tragonHold && (() => {
+          const h = ui.tragonHold;
+          const tracks = h.lanes.map((l, i) => <span key={l} style={{ color: h.cols[i] }}>{l}</span>);
+          const joined = tracks.flatMap((el, i) => (i ? [<span key={`a${i}`}>{i === tracks.length - 1 ? ' AND ' : ', '}</span>, el] : [el]));
+          const hold = <span className="inline-flex items-center gap-1 align-middle"><span>HOLD</span><Prompt pad={['DPAD_DOWN']} kb={['@down']} /></span>;
+          return (
+            <div className={`absolute left-1/2 -translate-x-1/2 bottom-[10px] z-30 flex flex-col items-center gap-1 px-3 py-2 text-white bg-black/85 border-2 ${h.now ? (h.slip ? 'border-red-500 text-[12px]' : 'border-white text-[12px]') : h.teach ? 'border-[#FACC15] text-[10px]' : 'border-zinc-500 text-[9px]'}`}
+              style={!h.now ? { borderColor: h.cols[0] } : undefined}>
+              {h.now
+                ? <span className="inline-flex items-center gap-2">{hold}<span>{h.slip ? 'HANG ON!' : 'TO HANG ON!'}</span></span>
+                : h.teach
+                  ? <>
+                      <span className="inline-flex items-center gap-1">A {h.kind}: {hold}<span>TO HANG ON</span></span>
+                      <span className="text-[9px] text-zinc-300">ON THE {joined} TRACK. LET GO AND YOU FALL. HOP OFF IT TO DODGE IT.</span>
+                    </>
+                  : <span className="inline-flex items-center gap-1">{h.kind} ON {joined}{h.lanes.length > 1 ? ' TRACKS' : ' TRACK'}: {hold}{h.mine ? <span className="text-red-400"> YOURS!</span> : null}</span>}
+            </div>
+          );
+        })()}
         {/* Fairy Land's broomstick deathmatch: the flying controls, for a while at the start */}
         {status === GameStatus.PLAYING && ui.map === null && !ui.introCutscene && ui.broomTips && (
           <div className="absolute left-1/2 -translate-x-1/2 top-[132px] z-30 flex flex-col items-center gap-2 px-3 py-2 text-[9px] text-white bg-black/80 border-2 border-[#F472B6]">

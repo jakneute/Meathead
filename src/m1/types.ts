@@ -298,6 +298,12 @@ export interface Player extends Entity {
    *  leaning into it, firing, the stick yanked back (an up boost), hanging off his seatbelt (upside down), his face.
    *  Whatever sets it clears it. */
   copterSeat?: { mode: 'passenger' | 'pilot'; lean: number; fire: boolean; yank: boolean; hang: boolean; mood: 'grit' | 'snarl' | 'flinch' | 'bored' };
+  /** On a dragon coaster's back (Meathead 2's Truelling Tragons; render/player/tragonPose.ts), no gun: crouched on it
+   *  gripping its rail (`move` shuffling along), flat on it (duck), up off it (jump), leaping to another car (hop),
+   *  braced for a drop, or locked in through a loop / corkscrew hanging off the rail (loop; slip: one hand gone).
+   *  `hang` (loop, slip) the way his body goes from his fists on the rail (radians in his own frame: -PI/2 straight up
+   *  off it, PI back along it); `hurt` flinching. Whatever sets it clears it (and respawn does). */
+  tragon?: { mode: 'ride' | 'duck' | 'jump' | 'hop' | 'brace' | 'loop' | 'slip'; move: boolean; hang: number; hurt: boolean };
   /** Something he's doing takes him off the vine he's on (Meathead 2: the mallet's smash down, from one): let go of it. */
   dropVine?: boolean;
   /** Stood on a floating log he's rolling under his feet (Meathead 2's Wilderness Land, frontier/wilds/logs.ts): his

@@ -1,34 +1,37 @@
 // What's said on Truelling Tragons, by voice (fantasy/voices.ts gathers it; tools/voices records it). In the user's
 // voice: blunt, short, vulgar, specific; talk less; fit the trigger. Picked with pickLine (never twice in 45 s).
-// Meathead, and the rivals at him, in clean / shitty / naked pools; the ride's own spiel (a cheesy herald over the
-// dragons' speakers); Piper on the PA (purring over the blood, coy about the prize). Pure data.
+// A survival ride now (the user's): Meathead terrified (the drops, the loops, screaming, swearing), in clean / shitty /
+// naked pools; the ride's own spiel (a cheesy herald over the dragons' speakers, naming the track that loops); Piper on
+// the PA (purring at the thought of him letting go). The suitors aren't on the ride: glimpsed at the unload, off the
+// train ahead of his, having their say as they go. Pure data.
 
 import { allOf, PIPER_PA_VOICE, type ByPants, type HurtTable } from '../talk';
+import { GLEN_VOICES } from '../glen/lines';
 
-/** The ride's spiel (cast.json): a cheesy herald over the ride's speakers. The rivals' are the glen's. */
+/** The ride's spiel (cast.json): a cheesy herald over the ride's speakers. */
 export const SPIEL_VOICE = 'm2.fantasy.tragons_spiel';
-export const RIVAL_VOICES = { blake: 'm2.fantasy.suitor_blake', rafael: 'm2.fantasy.suitor_rafael', hank: 'm2.fantasy.suitor_hank' } as const;
+export const RIVAL_VOICES = { blake: GLEN_VOICES.blake, rafael: GLEN_VOICES.rafael, hank: GLEN_VOICES.hank } as const;
 
 // ---------------------------------------------------------------------------------------------------------------
 // Meathead
 
 /** In at the load station. */
 export const LOAD: ByPants = {
-  clean: ['THREE TRACKS. ONE WINNER. ME.', "A COASTER. AND I DIDN'T EVEN PAY."],
+  clean: ['THREE DRAGONS. NO SEATBELTS. COOL.', "A COASTER. AND I DIDN'T EVEN PAY."],
   shitty: ['A ROLLER COASTER. IN SHIT PANTS. GREAT.', 'THIS WILL END BADLY. FOR THE SEATS.'],
   nude: ['A COASTER. NAKED. WHAT COULD GO WRONG.', 'NO PANTS. NO LAP BAR. NO PROBLEM.'],
 };
 /** Off it goes. */
 export const BOARD: ByPants = {
-  clean: ['THREE DRAGONS. ONE MEATHEAD. GO.', 'ALL ABOARD THE PIPER EXPRESS.'],
+  clean: ['NO SEAT. JUST A RAIL. AWESOME.', 'HOLD ON TO WHAT? THIS?'],
   shitty: ['RIDING A DRAGON IN SHIT PANTS. CLASSY.', 'HOPE THESE DRAGONS WIPE CLEAN.'],
   nude: ['NAKED ON A COASTER. WIND IN MY EVERYTHING.', 'BALLS TO THE WIND. LITERALLY.'],
 };
-/** Fire pressed on the ride (no firing here). */
+/** Fire pressed on the ride (no guns here). */
 export const NO_GUNS: ByPants = {
-  clean: ['NO GUNS ON THE RIDE? FINE. FISTS.', "CAN'T SHOOT. STUPID RIDE RULES.", 'NO FIREARMS ON THE DRAGON. GOT IT.'],
-  shitty: ['NO GUNS. JUST FISTS AND SHIT.', "CAN'T SHOOT. CAN STILL STINK."],
-  nude: ['NO GUNS. JUST THE ONE. AND IT\'S OUT.', "CAN'T SHOOT. MY OTHER GUN'S LOADED THOUGH."],
+  clean: ["CAN'T SHOOT. BOTH HANDS ARE BUSY NOT DYING.", 'NO GUNS. JUST HANG ON, DUMBASS.'],
+  shitty: ["CAN'T SHOOT. TOO BUSY CLENCHING.", 'NO GUNS. JUST FEAR AND SHIT.'],
+  nude: ["NO GUNS. JUST THE ONE. AND IT'S FLAPPING.", 'HANDS ON THE RAIL. NOT ON IT.'],
 };
 /** The track out ahead of him, the first time. */
 export const FIRST_GAP: ByPants = {
@@ -38,7 +41,7 @@ export const FIRST_GAP: ByPants = {
 };
 /** Over to another car (the first time; now and then after). */
 export const HOPPED: ByPants = {
-  clean: ['DRAGON HOP!', 'NEW DRAGON. SAME ME.', 'MIND THE GAP, LOSERS.'],
+  clean: ['DRAGON HOP!', 'NEW DRAGON. SAME ME.', 'MIND THE GAP.'],
   shitty: ['HOP! SOMETHING SLOSHED.', 'NEW DRAGON. SORRY ABOUT THE SEAT.'],
   nude: ['HOP! MY BALLS SLAPPED MY THIGHS.', 'NAKED LEAP OF FAITH.'],
 };
@@ -48,21 +51,63 @@ export const NEAR: ByPants = {
   shitty: ['TOO CLOSE! A LITTLE CAME OUT!', 'NEAR MISS. NOT A CLEAN ONE.'],
   nude: ['CLOSE! ALMOST LOST MY DICK!', 'THAT DRAGON NEARLY CLIPPED MY BALLS!'],
 };
-/** Sliding on the ice dragon, the first time. */
-export const ICE_SLIDE: ByPants = {
-  clean: ['THE ICE ONE IS SLIPPERY! WHO DESIGNED THIS?', "I'M SLIDING OFF THE BACK!"],
-  shitty: ["ICE AND SHIT PANTS. I'M A SLED.", 'SLIDING ON MY OWN GREASE HERE.'],
-  nude: ['ICE. ON MY BARE FEET. AND MY BALLS.', 'NAKED ON ICE. EVERYTHING SHRANK.'],
+/** Over the top of a big drop. */
+export const DROP: ByPants = {
+  clean: ['OH NO. OH NO NO NO.', 'MOMMY.', 'THAT IS STRAIGHT DOWN!'],
+  shitty: ['HERE COMES THE REST OF IT!', 'MY ASS IS LEAVING WITHOUT ME!'],
+  nude: ['MY BALLS ARE IN MY THROAT!', 'EVERYTHING IS FLAPPING UP!'],
 };
-/** A rival down. */
-export const RIVAL_DOWN: ByPants = {
-  clean: ['ONE LESS DICK ON THE RIDE.', 'ENJOY THE GROUND, LOSER.', 'PIPER, THAT ONE WAS FOR YOU.'],
-  shitty: ["DOWN YOU GO. I'D SHIT MYSELF TOO.", 'SPLAT. NOW WE BOTH SMELL.'],
-  nude: ['DOWN HE GOES. MY DICK WAVES BYE.', 'GRAVITY WINS. SO DOES MY BONER.'],
+/** A loop coming on his track (its warning). */
+export const LOOP_SEE: ByPants = {
+  clean: ['A LOOP? THERE IS NO SEAT!', "UPSIDE DOWN? I'M STANDING ON IT!"],
+  shitty: ['A LOOP. THIS IS GONNA RAIN SHIT.', 'UPSIDE DOWN IN THESE PANTS? OH GOD.'],
+  nude: ['UPSIDE DOWN. NAKED. GREAT VIEW FOR SOMEBODY.', 'A LOOP. MY BALLS ARE GONNA SLAP MY FACE.'],
+};
+/** Into a loop, hanging on (screaming). */
+export const LOOP_IN: ByPants = {
+  clean: ['AAAAAAAH!', 'SHIT SHIT SHIT SHIT!', 'HOLD! HOLD! HOLD!', 'I HATE THIS RIDE!'],
+  shitty: ['IT IS ALL COMING OUT!', 'SHIT! LITERALLY! EVERYWHERE!'],
+  nude: ['MY BALLS! MY BALLS!', 'EVERYTHING IS SWINGING!'],
+};
+/** Into a corkscrew. */
+export const CORK_IN: ByPants = {
+  clean: ['WHICH WAY IS UP?!', "I'M GONNA PUKE!"],
+  shitty: ['SHIT IN MY HAIR NOW!', 'SPINNING SHIT CYCLONE!'],
+  nude: ['MY DICK IS A PROPELLER!', 'NAKED BLENDER!'],
+};
+/** Into the triple helix (all three). */
+export const BRAID: ByPants = {
+  clean: ['ALL THREE?! NO WAY AROUND IT!', 'THEY ARE TWISTING TOGETHER!'],
+  shitty: ['ALL THREE. NOWHERE TO HIDE THIS SMELL.', 'A SHIT TORNADO. STARRING ME.'],
+  nude: ['ALL THREE. NAKED. SPINNING. GREAT.', 'MY DICK IS GONNA TIE IN A KNOT!'],
+};
+/** Out of a loop, still on (now and then). */
+export const LOOP_OUT: ByPants = {
+  clean: ['STILL HERE. BARELY.', "MY HANDS. I CAN'T FEEL MY HANDS.", 'NEVER AGAIN. UNTIL THE NEXT ONE.'],
+  shitty: ['THAT WENT EVERYWHERE.', 'WHOEVER RIDES BEHIND ME, SORRY.'],
+  nude: ['STILL GOT MY BALLS. COUNTED TWICE.', 'NAKED AND ALIVE. MOSTLY.'],
+};
+/** Losing his grip (not holding down, in a loop: a moment before he's gone). */
+export const SLIP: ByPants = {
+  clean: ['MY GRIP! MY GRIP!', 'NO NO NO!'],
+  shitty: ['SLIPPING! IT IS GREASY!', 'SHIT HANDS! SHIT HANDS!'],
+  nude: ['SWEATY HANDS! SWEATY EVERYTHING!', 'SLIPPING! NAKED!'],
+};
+/** Into the fake mountain, in the dark. */
+export const TUNNEL: ByPants = {
+  clean: ['A FAKE MOUNTAIN. IN THE DARK. SURE.', "I CAN'T SEE SHIT!"],
+  shitty: ['DARK. GOOD. NOBODY SEES MY PANTS.', 'IN THE DARK WITH MY OWN SMELL.'],
+  nude: ['DARK. AT LEAST NOBODY SEES MY DICK.', 'DARK AND COLD. EVERYTHING SHRANK.'],
+};
+/** The splashdown. */
+export const SPLASH: ByPants = {
+  clean: ['WATER! IN MY EVERYTHING!', 'I AM SOAKED!'],
+  shitty: ['WELL. THAT WASHED SOME OF IT OFF.', 'FREE BATH. NOT ENOUGH.'],
+  nude: ['COLD WATER! IT WENT UP INSIDE!', 'SHRINKAGE! SHRINKAGE!'],
 };
 /** Pulled into the unload. */
 export const ARRIVE: ByPants = {
-  clean: ['TRIAL TWO. DONE. PIPER, STRETCH.', 'THAT RIDE SUCKED. I WANT TO GO AGAIN.'],
+  clean: ['STILL ALIVE. PIPER, STRETCH.', "I WANT TO GO AGAIN. NO I DON'T."],
   shitty: ['RIDE OVER. PANTS OVER TOO.', 'MADE IT. MOSTLY. SOME OF ME STAYED BACK THERE.'],
   nude: ['RIDE OVER. STILL HARD. WEIRD.', "TRIAL TWO DONE. MY DICK'S WINDBURNED."],
 };
@@ -76,10 +121,13 @@ export const CLOSED: ByPants = {
 // ---------------------------------------------------------------------------------------------------------------
 // The spiel (the ride's herald) and Piper on the PA
 
+/** By the lane that's left out (two looping: the third's the way round). */
+type ByOdd = { bolt: string[]; fire: string[]; ice: string[] };
+
 export const SPIEL = {
-  board: ['HEAR YE! STEP ONTO THE ICE DRAGON. THE OTHERS ARE TAKEN.', 'BRAVE KNIGHT! THY DRAGON AWAITS. THE LOW ONE.'],
-  welcome: ['HEAR YE! WELCOME TO TRUELLING TRAGONS! THREE DRAGONS! ONE TRUEL!', 'HARK! THREE DRAGONS ENTER. NO REFUNDS.'],
-  rules: ['NO FIREARMS UPON THE DRAGON. FISTS ONLY.', 'KEEP THY HANDS AND FEET INSIDE THE DRAGON. OR DO NOT.'],
+  board: ['HEAR YE! PICK THY DRAGON. ANY DRAGON. THERE ARE NO SEATS.', 'BRAVE KNIGHT! STEP ABOARD. GRIP THE RAIL.'],
+  welcome: ['HEAR YE! WELCOME TO TRUELLING TRAGONS! THREE DRAGONS! NO SEATS!', 'HARK! THREE DRAGONS. NO LAP BARS. NO REFUNDS.'],
+  rules: ['THROUGH THE LOOPS, HOLD ON TO THE RAIL. OR DO NOT. ONCE.', 'KEEP THY HANDS ON THE RAIL THROUGH THE LOOPS. ALL OF THEM.'],
   remain: ['PLEASE REMAIN ON THE DRAGON AT ALL TIMES!', 'SIR! GET BACK ON THE DRAGON!'],
   out: {
     bolt: ['TRACK OUT ON THE LIGHTNING DRAGON! CHANGE DRAGONS!', 'THE LIGHTNING TRACK IS GONE! HOP!'],
@@ -92,71 +140,81 @@ export const SPIEL = {
     ice: ['ONLY THE ICE DRAGON MAKES IT! GET ON IT!', 'THE ICE TRACK ALONE HOLDS! HOP TO IT!'],
   },
   spare: ['A SPARE DRAGON HATH BEEN DISPATCHED. ENJOY.', 'REPLACEMENT DRAGON INBOUND. PLEASE HOLD.'],
-  near: ['BEHOLD! THE TRUEL! THE DRAGONS FLY CLOSE!', 'MIND THY HEADS! DRAGONS PASSING!'],
+  near: ['BEHOLD! THE DRAGONS MEET HEAD ON! MIND THY HEADS!', 'MIND THY HEADS! DRAGONS PASSING!'],
+  drop: ['BEHOLD THE DROP! SCREAM IF THOU MUST!', 'AND NOW... DOWN!'],
+  tunnel: ['INTO THE MOUNTAIN! MIND THE DARK!', 'BEHOLD! A REAL FAKE MOUNTAIN!'],
+  splash: ['PREPARE TO GET WET! OR DEAD!', 'THE LAGOON APPROACHES! SPLASH ZONE!'],
+  loop: {
+    bolt: ['A LOOP ON THE LIGHTNING TRACK! HOLD ON!', 'THE LIGHTNING DRAGON LOOPS! HOLD ON TO THY RAIL!'],
+    fire: ['A LOOP ON THE FIRE TRACK! HOLD ON!', 'THE FIRE DRAGON LOOPS! HOLD ON TO THY RAIL!'],
+    ice: ['A LOOP ON THE ICE TRACK! HOLD ON!', 'THE ICE DRAGON LOOPS! HOLD ON TO THY RAIL!'],
+  } as ByOdd,
+  cork: {
+    bolt: ['THE LIGHTNING TRACK CORKSCREWS! HOLD ON!'],
+    fire: ['THE FIRE TRACK CORKSCREWS! HOLD ON!'],
+    ice: ['THE ICE TRACK CORKSCREWS! HOLD ON!'],
+  } as ByOdd,
+  /** Two lanes looping, by the one that doesn't. */
+  loop2: {
+    bolt: ['THE FIRE AND ICE TRACKS LOOP! ONLY LIGHTNING RUNS STRAIGHT!'],
+    fire: ['THE LIGHTNING AND ICE TRACKS LOOP! ONLY FIRE RUNS STRAIGHT!'],
+    ice: ['THE LIGHTNING AND FIRE TRACKS LOOP! ONLY ICE RUNS STRAIGHT!'],
+  } as ByOdd,
+  cork2: {
+    bolt: ['THE FIRE AND ICE TRACKS CORKSCREW! ONLY LIGHTNING RUNS STRAIGHT!'],
+    fire: ['THE LIGHTNING AND ICE TRACKS CORKSCREW! ONLY FIRE RUNS STRAIGHT!'],
+    ice: ['THE LIGHTNING AND FIRE TRACKS CORKSCREW! ONLY ICE RUNS STRAIGHT!'],
+  } as ByOdd,
+  chain: {
+    bolt: ['THE FIRE AND ICE LOOPS RUN THROUGH EACH OTHER! HOLD ON!'],
+    fire: ['THE LIGHTNING AND ICE LOOPS RUN THROUGH EACH OTHER! HOLD ON!'],
+    ice: ['THE LIGHTNING AND FIRE LOOPS RUN THROUGH EACH OTHER! HOLD ON!'],
+  } as ByOdd,
+  braid: ['ALL THREE TRACKS TWIST TOGETHER! HOLD ON, ALL OF YE!', 'THE TRIPLE HELIX! NO DRAGON ESCAPES IT! HOLD ON!'],
+  chain3: ['THE GRAND FINALE! ALL THREE LOOP! HOLD ON!', 'THREE LOOPS AT ONCE! HOLD ON TO THY RAIL!'],
   unload: ['THANK THEE FOR RIDING TRUELLING TRAGONS. EXIT TO THY RIGHT.', 'THE RIDE HATH ENDED. TAKE THY BELONGINGS. AND THY LIMBS.'],
 };
 
 export const PIPER_T = {
-  start: ['TRIAL TWO, BOYS. THREE DRAGONS. SHOVE EACH OTHER OFF.', 'THREE TRACKS. NOT ALL OF THEM FINISHED. HAVE FUN.'],
+  start: ["TRIAL TWO, SWEETIE. HANG ON. OR DON'T. I LIKE BOTH.", 'NO SEATS. NO BELTS. JUST YOU AND THE DROP.'],
   gap: ['OOPS. I HAD SOME BOLTS TAKEN OUT. FOR FUN.', 'THE TRACK? I NEVER SAID IT WAS FINISHED.'],
-  kill: ['OH. HE WENT ALL THE WAY DOWN. LOVELY.', 'MMM. DID YOU HEAR THAT SPLAT? AGAIN.', "ONE LESS SUITOR. I'M BLUSHING."],
-  hank: ['OH GOOD. HANK CAUGHT A LATE DRAGON.', 'HANK! YOU MADE IT. NOW MAKE A MESS.'],
+  loop: ['MMM. UPSIDE DOWN. LET GO. JUST A LITTLE.', 'IF YOU FALL, FALL PRETTY.', "I PAID EXTRA FOR THE LOOPS. DON'T WASTE THEM."],
+  mid: ['STILL ON? I HAD A BET ON THE MOUNTAIN.', 'THE LAST GUY LASTED HALF THIS LONG. I MISS HIM.'],
+  late: ['THE FINALE. I GET SO WARM WHEN THEY LET GO.', "ALL THREE LOOPS, SWEETIE. I'LL BE WATCHING YOUR HANDS."],
   end: ['STILL ALIVE? MMM. COME UP TO THE CASTLE.', "TRIAL TWO IS OVER. I'M SO WARM RIGHT NOW."],
 };
 
 // ---------------------------------------------------------------------------------------------------------------
-// The rivals (BLAKE, RAFAEL, HANK: the glen's queue)
+// The suitors at the unload (off the train ahead of his: glimpsed, having their say, out the exit)
 
-/** Sat in their dragons at the station, at him. */
-export const RIVAL_STATION: Record<'blake' | 'rafael', string[]> = {
-  blake: ['SEE YOU AT THE BOTTOM, MEATHEAD!', 'ENJOY THE BABY DRAGON, BRO!'],
-  rafael: ['THE ICE DRAGON. FOR LOSERS.', 'WAVE TO ME FROM DOWN THERE.'],
-};
-/** Up out of their seats, at him. */
-export const RIVAL_WAKE: Record<'blake' | 'rafael' | 'hank', ByPants> = {
+export const RIVAL_UNLOAD: Record<'blake' | 'rafael' | 'hank', ByPants> = {
   blake: {
-    clean: ['HEY MEATHEAD! THIS RIDE IS MINE NOW!', "PIPER'S MINE, BRO! GET OFF THE RIDE!"],
-    shitty: ['YOU SHIT YOURSELF ON A KIDDIE COASTER?', 'DUDE. THE WHOLE TRACK SMELLS LIKE YOU.'],
-    nude: ["PUT SOMETHING ON, MAN! IT'S A FAMILY RIDE!", "BRO, YOUR DICK'S IN THE WIND!"],
+    clean: ['BRO. I PUKED IN MY HELMET. I HAVE NO HELMET.', 'YOU MADE IT? LAME, BRO.'],
+    shitty: ['DUDE. WE COULD SMELL YOU FROM THE LOOPS.', 'BRO. YOU SHAT ON A DRAGON.'],
+    nude: ['BRO. WE SAW EVERYTHING. EVERY LOOP.', 'PUT IT AWAY, BRO. IT WAVED AT ME.'],
   },
   rafael: {
-    clean: ['YOU? ON A DRAGON? ADORABLE.', 'I HAVE RIDDEN DRAGONS. AND WOMEN.'],
-    shitty: ['THE STENCH REACHES ME UP HERE.', 'YOU SOILED A DRAGON. DISGUSTING.'],
-    nude: ['IS THAT YOUR... OH. OH NO.', 'NAKED ON A DRAGON. HOW DESPERATE.'],
+    clean: ['I RODE IT TWICE. I CRIED ONCE.', 'MY HAIR. LOOK WHAT IT DID TO MY HAIR.'],
+    shitty: ['YOU RODE LIKE A FLAG OF FILTH.', 'THE SMELL REACHED US IN THE MOUNTAIN.'],
+    nude: ['NAKED THROUGH THE LOOPS. HOW DESPERATE.', 'I SAW IT SWING. I CANNOT UNSEE IT.'],
   },
   hank: {
-    clean: ['HANK CAUGHT THE NEXT DRAGON!', 'HANK SMASH THE LITTLE MAN!'],
-    shitty: ['HANK SMELL POOP. HANK ANGRY.', 'LITTLE MAN SHIT HIMSELF. HANK LAUGH.'],
-    nude: ['HANK SEE TOO MUCH. HANK SMASH.', 'LITTLE MAN NAKED. LITTLE EVERYTHING.'],
+    clean: ['HANK LOVE DRAGON. HANK GO AGAIN.', 'HANK THROW UP TURKEY LEG.'],
+    shitty: ['LITTLE MAN SHIT ON RIDE. HANK LAUGH.', 'HANK SMELL LITTLE MAN.'],
+    nude: ['LITTLE MAN NAKED ON DRAGON. HANK SAW.', 'HANK SEE TOO MUCH.'],
   },
 };
-/** Throwing at him. */
-export const RIVAL_THROW: Record<'blake' | 'rafael' | 'hank', string[]> = {
-  blake: ['PROTEIN SHAKE!', 'CATCH, BRO!'],
-  rafael: ['DUMBBELL!', 'LIFT THIS!'],
-  hank: ['TURKEY LEG!', 'HANK THROW LUNCH!'],
-};
-/** Hopping over onto his dragon. */
-export const RIVAL_HOP: Record<'blake' | 'rafael' | 'hank', string[]> = {
-  blake: ['COMING OVER, BRO!', 'MAKE ROOM, LOSER!'],
-  rafael: ['MAKE ROOM FOR A PRINCE!', 'STAND STILL. I AM COMING.'],
-  hank: ['HANK COMING!', 'HANK JUMP!'],
-};
-/** Going down (knocked off, or down with a dragon). */
-export const RIVAL_FALL: Record<'blake' | 'rafael' | 'hank', string[]> = {
-  blake: ['NOT LIKE THIS, BRO!', 'TELL PIPER I-'],
-  rafael: ['NOT MY FACE!', 'I AM TOO PRETTY TO-'],
-  hank: ['HANK FALL!', 'HANK NOT FLY!'],
-};
-/** Shot at at the station (it bounces off). */
-export const RIVAL_BOUNCE: Record<'blake' | 'rafael', string> = { blake: 'BRO. THAT TICKLED.', rafael: 'YOU MISSED MY GOOD SIDE.' };
 
 // ---------------------------------------------------------------------------------------------------------------
 // What hurts him (each its own source), the death screen when it kills him (28 characters at most)
 
 export const HURT: HurtTable = {
-  'm2:fa_track_out': { hurt: ['NO TRACK! NO TRACK!', 'WE ARE GOING DOWN!'], death: ['RODE IT INTO THE GAP', 'THE TRACK RAN OUT. SO DID HE', 'DERAILED ON A DRAGON'] },
+  'm2:fa_track_fire': { hurt: ['NO TRACK! NO TRACK!', 'WE ARE GOING DOWN!'], death: ['DEEP FRIED DRAGON RIDER', 'CHARRED ON THE FIRE DRAGON', 'WELL DONE. EXTRA CRISPY'] },
+  'm2:fa_track_ice': { hurt: ['NO TRACK! NOT THE ICE!', 'ICE! ICE! ICE!'], death: ['SHATTERED LIKE A POPSICLE', 'MEATHEAD ON THE ROCKS'] },
+  'm2:fa_track_bolt': { hurt: ['THE RAIL IS LIVE!', 'ZAP! ZAP! ZAAAP!'], death: ['RODE THE LIGHTNING. ONCE', 'ELECTROCUTED, THEN DROPPED'] },
+  'm2:fa_flung': { hurt: ['MY HANDS SLIPPED!', 'I LET GO! I LET GO!'], death: ["DIDN'T HOLD ON", 'FLUNG OFF THE LOOP', 'LET GO AT THE TOP'] },
   'm2:fa_fell_ride': { hurt: ['WHOA WHOA WHOA!', 'I FELL OFF THE DRAGON!'], death: ['FELL OFF A DRAGON', "DIDN'T KEEP ARMS INSIDE"] },
+  'm2:fa_breath': { hurt: ['DRAGON BREATH! IN MY FACE!', 'MY EYEBROWS!'], death: ['KILLED BY DRAGON BREATH', 'BREATHED ON TO DEATH'] },
   'm2:fa_ring': { hurt: ["MY HAIR'S ON FIRE!", 'FLAMING HOOP! TO THE FACE!'], death: ['THROUGH THE RING OF FIRE', 'BURNED LIKE A CIRCUS LION'] },
   'm2:fa_jet': { hurt: ['FIRE UP MY LEGS!', 'MY ASS IS ON FIRE!'], death: ['ROASTED FROM THE FEET UP', 'FLAME JET TO THE CROTCH'] },
   'm2:fa_fireball': { hurt: ['FIREBALL! FIREBALL!', 'THE DRAGON SPIT ON ME!'], death: ['HIT BY A DRAGON FIREBALL', 'CHARBROILED ON A COASTER'] },
@@ -166,25 +224,22 @@ export const HURT: HurtTable = {
   'm2:fa_arc': { hurt: ['ZAPPED IN THE HEAD!', 'MY FILLINGS! MY FILLINGS!'], death: ['FRIED BY A TESLA GATE', 'ELECTROCUTED ON A RIDE'] },
   'm2:fa_strike': { hurt: ['STRUCK BY LIGHTNING!', 'THE SKY HIT ME!'], death: ['STRUCK BY FAKE LIGHTNING', 'HE WAS THE LIGHTNING ROD'] },
   'm2:fa_live_rail': { hurt: ["THE DRAGON'S LIVE! MY FEET!", 'ZAP! ZAP! ZAP!'], death: ['ELECTRIC DRAGON. CRISPY', 'GROUNDED. FOR GOOD'] },
-  'm2:fa_rival': { hurt: ['SUCKER PUNCHED ON A RIDE!', 'HE HIT ME! ON A DRAGON!'], death: ['PUNCHED OUT BY A SUITOR', 'BEATEN UP ON A KIDDIE RIDE'] },
-  'm2:fa_shaker': { hurt: ['PROTEIN SHAKE! IN MY EYE!', 'CHOCOLATE WHEY! EVERYWHERE!'], death: ['DIED OF PROTEIN SHAKE', 'SHAKEN. NOT STIRRED. DEAD'] },
-  'm2:fa_dumbbell': { hurt: ['A DUMBBELL! TO THE HEAD!', 'HE THREW HIS WEIGHTS AT ME!'], death: ['DUMBBELL TO THE HEAD', 'KILLED BY LEG DAY'] },
-  'm2:fa_turkey': { hurt: ['TURKEY LEG! SO GREASY!', 'HIT WITH A TURKEY LEG!'], death: ['BEATEN WITH A TURKEY LEG', 'KILLED BY FAIR FOOD'] },
-};
-/** The rivals' kill callouts (the announcer's). */
-export const KILL_CALLS: Record<string, Record<string, string[]>> = {
-  'm2:fa_rival_blake': { charge: ['OFF THE DRAGON!', 'BRO DOWN!'], uppercut: ['SKY HIGH!'], divekick: ['STOMPED!'] },
-  'm2:fa_rival_rafael': { charge: ['OFF THE DRAGON!', 'DETHRONED!'], uppercut: ['SKY HIGH!'], divekick: ['STOMPED!'] },
-  'm2:fa_rival_hank': { charge: ['OFF THE DRAGON!', 'TIMBER!'], uppercut: ['SKY HIGH!'], divekick: ['HANK SMASHED!'] },
 };
 
+const odd = (o: ByOdd) => [...o.bolt, ...o.fire, ...o.ice];
 export const VOICE_LINES: Record<string, string[]> = {
-  meathead: [...[LOAD, BOARD, NO_GUNS, FIRST_GAP, HOPPED, NEAR, ICE_SLIDE, RIVAL_DOWN, ARRIVE, CLOSED].flatMap(allOf), ...Object.values(HURT).flatMap(h => h.hurt)],
+  meathead: [
+    ...[LOAD, BOARD, NO_GUNS, FIRST_GAP, HOPPED, NEAR, DROP, LOOP_SEE, LOOP_IN, CORK_IN, BRAID, LOOP_OUT, SLIP, TUNNEL, SPLASH, ARRIVE, CLOSED].flatMap(allOf),
+    ...Object.values(HURT).flatMap(h => h.hurt),
+  ],
   death: Object.values(HURT).flatMap(h => h.death),
-  announcer: [...new Set(Object.values(KILL_CALLS).flatMap(k => Object.values(k).flat()))],
-  [SPIEL_VOICE]: [...SPIEL.board, ...SPIEL.welcome, ...SPIEL.rules, ...SPIEL.remain, ...Object.values(SPIEL.out).flat(), ...Object.values(SPIEL.safe).flat(), ...SPIEL.spare, ...SPIEL.near, ...SPIEL.unload],
+  [SPIEL_VOICE]: [
+    ...SPIEL.board, ...SPIEL.welcome, ...SPIEL.rules, ...SPIEL.remain, ...Object.values(SPIEL.out).flat(), ...Object.values(SPIEL.safe).flat(),
+    ...SPIEL.spare, ...SPIEL.near, ...SPIEL.drop, ...SPIEL.tunnel, ...SPIEL.splash,
+    ...odd(SPIEL.loop), ...odd(SPIEL.cork), ...odd(SPIEL.loop2), ...odd(SPIEL.cork2), ...odd(SPIEL.chain), ...SPIEL.braid, ...SPIEL.chain3, ...SPIEL.unload,
+  ],
   [PIPER_PA_VOICE]: Object.values(PIPER_T).flat(),
-  [RIVAL_VOICES.blake]: [...RIVAL_STATION.blake, ...allOf(RIVAL_WAKE.blake), ...RIVAL_THROW.blake, ...RIVAL_HOP.blake, ...RIVAL_FALL.blake, RIVAL_BOUNCE.blake],
-  [RIVAL_VOICES.rafael]: [...RIVAL_STATION.rafael, ...allOf(RIVAL_WAKE.rafael), ...RIVAL_THROW.rafael, ...RIVAL_HOP.rafael, ...RIVAL_FALL.rafael, RIVAL_BOUNCE.rafael],
-  [RIVAL_VOICES.hank]: [...allOf(RIVAL_WAKE.hank), ...RIVAL_THROW.hank, ...RIVAL_HOP.hank, ...RIVAL_FALL.hank],
+  [RIVAL_VOICES.blake]: allOf(RIVAL_UNLOAD.blake),
+  [RIVAL_VOICES.rafael]: allOf(RIVAL_UNLOAD.rafael),
+  [RIVAL_VOICES.hank]: allOf(RIVAL_UNLOAD.hank),
 };

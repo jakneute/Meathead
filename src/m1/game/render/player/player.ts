@@ -6,6 +6,7 @@ import { drawFreefall } from './freefall';
 import { drawExtinguisherPose } from './extinguisher';
 import { drawThronePose } from './throne';
 import { drawCopterSeatPose } from './copterPose';
+import { drawTragonPose } from './tragonPose';
 import { BOULDER_THROW_FRAMES, GUN_COOLDOWN, COLORS, INITIAL_PLAYER_HEALTH, PLAYER_TERMINAL_VELOCITY, PLAYER_MOVE_SPEED, PLAYER_INVINCIBILITY_FRAMES, SPECIAL_HURT_FRAMES } from '../../../constants';
 import { peeProgress } from '../../scenes/victoryPee';
 import { SLIDE_HOLD, vineGrip, vineLean, VINE_SHOULDER } from '../../combat/muzzle';
@@ -287,6 +288,16 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   if (p.copterSeat && !((p.kickPose || 0) > 0) && hurtT < 0 && !p.headless && p.health > 0) {
     const g = p.gut, shat = !!g && (g.stage === 2 || (g.stage === 3 && !g.washed));
     drawCopterSeatPose(ctx, p.copterSeat, animFrame, { nude: g?.stage === 3, shat });
+    finishBody();
+    if (shat) drawStink(ctx, anchorX - p.facing * 10, anchorY - 30, animFrame);
+    ctx.restore();
+    return;
+  }
+  // On a dragon coaster's back, no gun (Meathead 2's Truelling Tragons): its own poses, hurt or not
+  // (render/player/tragonPose.ts)
+  if (p.tragon && !p.headless && p.health > 0) {
+    const g = p.gut, shat = !!g && (g.stage === 2 || (g.stage === 3 && !g.washed));
+    drawTragonPose(ctx, { ...p.tragon, hurt: p.tragon.hurt || hurtT >= 0 }, animFrame, { nude: g?.stage === 3, shat });
     finishBody();
     if (shat) drawStink(ctx, anchorX - p.facing * 10, anchorY - 30, animFrame);
     ctx.restore();

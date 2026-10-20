@@ -67,6 +67,7 @@ import { keepOf } from '../fantasy/keep/state';
 import { wheelOf } from '../fantasy/wheel/state';
 import { tragonsOf } from '../fantasy/tragons/state';
 import { LANE_ID } from '../fantasy/tragons/layout';
+import { inLoop } from '../fantasy/tragons/ride';
 import { broomMusic } from '../fantasy/broom/fight';
 import { piperMusic } from '../fantasy/bedroom/index';
 
@@ -183,13 +184,15 @@ const seqOver = (s: GameState, land: string, sec: string) =>
   (land === 'fantasy' && sec === 'tragons' && (tragonsOf(s).phase === 'arrive' || tragonsOf(s).phase === 'done'));
 
 /** Fairy Land's sections as the music hears them: TRUELLING TRAGONS by the ride (the load hall; out of the station and
- *  up the lift hill; then the car he's on, or hopping to: fire, ice, lightning); the castle's base past the broom
+ *  up the lift hill; then the car he's on, or hopping to: fire, ice, lightning; in a loop, all three); the castle's base past the broom
  *  port (the runway); her room cleared (a revisit: wrecked). */
 const fantasyArrs = (s: GameState, sec: string): string[] => {
   if (sec === 'tragons') {
     const t = tragonsOf(s);
     if (t.phase === 'load') return ['station'];
     if (t.phase === 'dispatch' || (t.phase === 'ride' && t.dist < 4800)) return ['lift'];
+    // (locked in a loop, or his dragon in one: all three cars' parts at once)
+    if (inLoop(t)) return ['main'];
     return [LANE_ID[t.hop ? t.hop.to : t.lane]];
   }
   if (sec === 'keep' && s.player.pos.x + s.player.width / 2 - FA_SECTIONS.keep.x0 >= 9000) return ['runway'];

@@ -108,7 +108,7 @@ FAX = 800000. Gaps of 3000 between sections (room to grow). Every section about 
 | 1 | The town square | `square` | FAX+0 .. FAX+15000 | 0-9 | Hogsmeat Village and the storybook square; the staircases; the loudspeaker |
 | 2 | The fairy wheel (trial 1) | `wheel` | FAX+18000 .. FAX+24000 | 10-12 (of 10-19) | The gigantic wheel, eight suitors in its gondolas throwing crap, the QTEs, the kills (built) |
 | 3 | The enchanted glen | `glen` | FAX+27000 .. FAX+41000 | 20-26 (of 20-29) | The storybook forest: toadstools, briars, cauldrons, harder staircases, five new kinds; the ride's queue (built) |
-| 4 | Truelling Tragons | `tragons` | FAX+44000 .. FAX+58000 | 30-38 (of 30-39) | The three-car coaster (fire, ice, lightning): hop cars, holes, each car's obstacles, the rivals (built) |
+| 4 | Truelling Tragons | `tragons` | FAX+44000 .. FAX+58000 | 30-38 (of 30-39) | The three-car coaster (fire, ice, lightning): hop cars, holes, each car's obstacles, depth, loops and corkscrews (HOLD down), survival (built) |
 | 5 | The castle's base and the runway | `keep` | FAX+61000 .. FAX+73000 | 40-46 (of 40-49) | The gate, drawbridge, gatehouse, courtyard, ramparts, tower stairs, postern; the broom port (from x0+9000) and its scene (built) |
 | 6 | The broomstick deathmatch (trial 3) | `broom` | FAX+76000 .. FAX+80000 | 50-51 (of 50-59) | Behind the back, mode 7, Star Fox 64's all-range mode simpler: the castle grounds, 6-8 suitors, the laser and the lock-on; in through the top window (built) |
 | 7 | The bedroom and Piper | `bedroom` | FAX+83000 .. FAX+87000 | 60-61 (of 60-69) | The hall, the door kicked in, the reveal, the insult; her fight in her extra-wide chambers; both deaths; the land's end (built) |
@@ -181,21 +181,36 @@ x from the section's start; heights up from the ground line.
 ### Section 4 in detail (Truelling Tragons, built: tragons/)
 
 World x from the section's start; the ride by track position `s` (the trains stand still in the world once they're
-out of the station, rears at x0+2500, and the world goes by: layout.ts wxOf). Lanes top to bottom, never crossing:
-LIGHTNING (yellow/purple), FIRE (red/orange), ICE (blue/white).
+out of the station, rears at x0+2500, and the world goes by: layout.ts wxOf). Lanes, top to bottom at the station:
+LIGHTNING (yellow/purple), FIRE (red/orange), ICE (blue/white). A SURVIVAL ride (the user's rework): no suitors on it,
+no guns; each track has a height and a depth along it (track.ts: drawn about one eye), with loops, corkscrews and the
+helix spun on top; he hangs on.
 
-- 0 THE LOAD STATION (cp 30): in from the queue; the hall (three dragon heads over it), NO FIREARMS ON THE DRAGONS; the
-  three dragons parked at three heights (Blake sat on the FIRE one, Rafael on the LIGHTNING one), the ICE one at the
-  platform (70 up: hop onto its back). On it a moment and the gate (1360) swings open and they go (back on the
-  platform before they're out: they stop and come back for him).
-- THE RIDE (~46500 of track, ~5 px a frame teaching, 6 after, 6.5 late; a little over two minutes): s 1500 THE LIFT
-  HILL (cp 31): the spiel, the rules, Piper; the first hole alone on his (a 270-frame warning, slow), another. 8000 THE
-  GAUNTLET (cp 32): duck waves, jump waves, a thrower wave, a hole. 16000 BLAKE (cp 33): the first near miss (140 apart),
-  Blake up. 22400 ONLY ONE SAFE (cp 34): holes on two lanes at once (the one next to his safe; then the far one: two
-  hops). 28700 RAFAEL (cp 35). 35000 HANK (cp 36): in on the spare dragon after an `other` hole. 40100 THE TRIPLE NEAR
-  MISS (cp 37): one safe, then another, a duck and a jump. The brakes; END_S 46500.
+- 0 THE LOAD STATION (cp 30): in from the queue; the hall (three dragon heads over it), NO FIREARMS ON THE DRAGONS;
+  three empty dragons parked at three heights (the ICE one 70 up: hop onto any back). On one a moment and the gate
+  (1360) swings open and they go (back on the platform before they're out: they stop and come back for him).
+- THE RIDE (~50000 of track, 5 px a frame teaching, 6 after, 6.4 late; about two and a half minutes):
+  - s 1500 THE LIFT HILL (cp 31): up to 1000 high, away into the haze (depth 0.8); the spiel, the rules (hang on in
+    the loops), Piper; the first hole alone on his (a 280-frame warning, slow).
+  - 5150 THE FIRST DROP: all three straight down at the camera (to 40 high, depth 1.38; braced). 5700 (cp 32) THE
+    FIRST LOOP at 8100: his lane alone, slow, a 340-frame warning and the teaching card.
+  - 9600 THE GAUNTLET (cp 33): duck, jump and thrower waves at the play plane; a hole. 13850 THE SECOND DROP; 15900 a
+    loop on TWO lanes (his and another: hop to the third or hang on).
+  - 17100 THE HEAD-ON (cp 34): LIGHTNING dives as FIRE climbs, one far (0.72) one near (1.36), through each other's
+    lines; the other dragons' heads breathe across his at head height (50-frame glowing tell: duck). 20300 THE
+    CORKSCREW (his). 22700 ONLY ONE SAFE.
+  - 23650 THE MOUNTAIN (cp 35): up into a fake plaster mountain (snow-capped, no crater), down inside it in the dark
+    (his dragons' lamps soft through it). 26300 THE CHAIN: two lanes' loops through each other (his near, the other
+    far, half a loop on). The gauntlet again; ONLY ONE SAFE at 30700 and the safe lane LOOPS straight after (31600).
+  - 32700 THE SPLASHDOWN (cp 36): up to 900, down into the lagoon (spray, the camera kicked). 36000 THE TRIPLE HELIX:
+    all three wound round one line, two turns (no way round it). 39400 ONLY ONE SAFE (the far one); the near miss and
+    its breath; 41600 a double corkscrew on two lanes.
+  - 43300 THE GRAND FINALE (cp 37): 45400 three loops interlocked (far, middling, near, each 250 after the last), all
+    of them. A thrower wave. The brakes; END_S 50000.
 - THE UNLOAD (cp 38, set as it pulls in): a deck a lane off the dragons' fronts (stepped: drop down them), the hall,
-  UNLOAD / EXIT TO THY RIGHT; the castle's gate arch at x0+4300 (on to the castle's base).
+  UNLOAD / EXIT TO THY RIGHT; BLAKE, RAFAEL and HANK in the yard (off the train ahead: Blake puking, Rafael fixing his
+  hair, Hank cheering), each has his say in turn and they go out the exit; the castle's gate arch at x0+4300 (on to the
+  castle's base).
 
 ### Section 5 in detail (the castle's base and the runway, built: keep/)
 
@@ -542,3 +557,69 @@ markBossFight every frame of a boss or sub-boss fight. Voice every new line (`np
   the theme alone for the window); "It Ain't Over" for Piper (a symphonic-metal rage aria, E-flat minor, 136: purring
   for the intro, a ticking clock while he sizes her up, ENRAGED on, a theremin and slide whistle while she's a let-go
   balloon, her music box for her deaths).
+- (the user's, Truelling Tragons rework) Verbatim: "no suitors are fought on the dragon ride. throw in elements of
+  crazy depth and height changes like the toilet ride in hollywood land. when a loop is coming, you gotta hold down on
+  the handlebars to hold in place when it goes through a loop so you don't fall and die. make sure the player knows
+  about this. which track gets the loops and what button they need to press "down". you hold on the bars of the ride
+  and swing wildly. you don't have control over your guy during the big loops, corkscrews. sometimes tracks loop and
+  corkscrew into each other. make it cooler. this is less a 'fight' ride and more a 'survival' ride. adjust dialogue
+  accordingly." Then: "no gun use here. put in special poses for these parts"; "you don't slip on the ice dragon
+  automatically"; "the lightning train loses a gap when the other trains don't have a gap"; "put in a special death
+  animation based on the track (3 of them) if you fall off while riding the dragon off the edge". This supersedes the
+  job 4 entries above where they differ (the rivals on the ride, the lanes never crossing, the ICE dragon's slide).
+- (rework, ours) NO SUITORS on the ride: rivals.ts's AI, throws, hops and punches gone with their hurt sources; BLAKE,
+  RAFAEL and HANK rode the train ahead and all three live (no `fa-rival-dead-*` from the ride: keep/runway.ts's
+  survivors() gets all three, so the boutique and the broom roster do). Glimpsed at the unload: in the yard, each has
+  his say at him in turn (RIVAL_UNLOAD, their glen voices), then out the exit. The station's three dragons are empty
+  (board any). Checkpoints renamed along the new layout: 31 THE LIFT HILL, 32 THE FIRST LOOP, 33 THE GAUNTLET, 34 THE
+  HEAD-ON, 35 THE MOUNTAIN, 36 THE SPLASHDOWN, 37 THE GRAND FINALE (none inside a loop's warning); 30 and 38 as before.
+- (rework, ours) DEPTH (track.ts, the toilet coaster's way): each lane's height and depth keyed along the ride
+  (layout.ts H_KEYS / D_KEYS), every point drawn at its depth about the scene's one eye (the trains' middle); the cars
+  laid along the track a car's length of track apart (through a loop they stay a car apart), turned along it, scaled
+  with depth, squashed through a roll. The ride's physics stands him on the same projected roofs (the roof block under
+  his x: the roof's height wherever he walks, jumps or lands), and he's drawn at his dragon's depth (spriteScale).
+  Drawing far to near: what's nearer than his dragon goes over him. Lift hills go away (0.8), drops dive in (1.3-1.4),
+  the head-on passes one far and one near. Obstacles only where the tracks are at the play plane. The camera keeps
+  all three (the cars and the loops' swing) under the HUD and over the loop card, out to 0.42; kicks on the drops, the
+  loops and the splash.
+- (rework, ours) THE LOOPS: the script's `spin`s resolve as their warning starts onto `his` lane, `two` (his and one
+  more), `all`, or `safe` (the lane the last ONLY ONE SAFE left whole). Kinds: a loop (a real side-view loop: the track
+  swings round a circle on top of the ride's pace, faster through the bottom), a corkscrew (round a line, in toward the
+  viewer and away, the train rolled over), the chain (two loops through each other, one near one far), the triple helix
+  (all three round one line a third of a turn apart), the finale (three loops at three depths). His car going into one
+  (or a car steeper than 0.42 rad: a drop, braced) and he's LOCKED: carried at his place along it, turned and rolled
+  with it, no control, no hopping (and no hopping onto a dragon in one). Through a loop he must HOLD down: let go and his
+  grip slips (5 frames: the slip pose, a SLIP line) and at 16 he's flung off the way the car was going, flailing all
+  the way down (the camera with him; the roofs taken away so nothing catches him): 'm2:fa_flung', the splat. Warned
+  every time: a round sign in the lane's color with the loop drawn on it at the loop's start on its track (an arrow at
+  the edge while it's off screen), a countdown bar over each dragon going in (LIGHTNING LOOP etc.), the spiel naming
+  the track(s) (two: naming the one that runs straight), and the card at the bottom of the screen (App.tsx tragonHold:
+  "LOOP ON FIRE TRACK: HOLD [down]", the real button live pad / keys; YOURS! when it's his; in it, HOLD [down] TO HANG
+  ON!, red when slipping). The first loop is his lane alone, slow, with a long warning and the teaching card ("A LOOP:
+  HOLD [down] TO HANG ON / ON THE <LANE> TRACK. LET GO AND YOU FALL. HOP OFF IT TO DODGE IT"; LOOP_MEMO once he's been
+  through one). Escalates: two lanes, a corkscrew, the chain, a loop straight after the hop, the helix, a double
+  corkscrew on two, the finale on all three.
+- (rework, ours) POSES (the user's "no gun use here. put in special poses"): Player.tragon, render/player/tragonPose.ts:
+  crouched on the dragon's back gripping its grab rail (shuffling along it: 2.2 px a frame at most), flat on his belly
+  (duck), tucked (jump), spread-eagled (the hop), braced on the drops (leaning back, eyes wide), and in the loops hung
+  off the rail by his fists with the rest of him swung round it the way gravity has him (hanging upside down at the top,
+  laid back along the roof at the bottom, legs flailing, white knuckles, a grimace), one hand torn off when slipping;
+  no gun drawn at all; the flung fall is the freefall flail. No charge, slide, uppercut or dive kick on the ride either
+  (noSpecials): hop, duck, jump, survive.
+- (rework, the user's) The ICE dragon's frosted roof no longer slides him back: "you don't slip on the ice dragon
+  automatically". Ice matters only through its own obstacles (the icicles, the frozen bar, the snow cannon).
+- (rework, the user's report) A lone hole: always on his lane (no `other` holes now), always told (the spiel names the
+  track; the sign, the countdown over the dragon, its red lights and the alarm), the signs and countdowns kept under the
+  HUD and inside the framed band whichever lane (the top one included), at least ~200 frames of warning.
+- (rework, the user's) A death for each track's broken end (deaths.ts, own death kinds, voiced hurt and death lines):
+  FIRE, nose first into a wall of its own flames, a fireball, charred black still gripping the rail, crumbling to ash
+  but for his two fists; ICE, thrown off the front frosting over onto a frozen pond and burst into chunks that skate
+  off, his head in a cube of ice the farthest; LIGHTNING, nose into the broken live rail's end, his skeleton flashing,
+  hair on end, black and smoking, then over the end and down out of the shot. The long fall (flung, or off a dragon):
+  face down in the lawn, spread-eagled, a leg twitching, his lost boot landing on his butt.
+- (rework, ours) Set pieces: the head-on and the late near miss breathe (the other dragons' heads at his: fire,
+  frost, lightning by dragon; 'm2:fa_breath'); the fake mountain (dark inside, the lamps soft through it: drawn in screen
+  space); the splashdown (the lagoon, the spray); the drops (his DROP scream, the camera kick). Dialogue all survival:
+  his terror and swearing (drops, loops, corkscrews, the helix, the slip, the dark, the splash: clean / shitty / naked,
+  pickLine, never twice in 45 s), the spiel naming the track that loops, Piper purring at him letting go. The music:
+  in a loop, the arrangement with all three cars (`main`).

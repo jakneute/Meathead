@@ -10,7 +10,7 @@ the fill-ins, the rules, the section plan). Each section's index.ts header says 
 | 1 (done) | the skeleton; `square/`, `stairs.ts`, `monument.ts`, `piper.ts` | square (0-9) |
 | 2 (done) | `wheel/` (and suitors.ts's tee / knight / wizard kits, ui.qte in store.ts, QtePanel in App.tsx) | wheel (10-19: 10-12 used) |
 | 3 (done) | `glen/` (and square/hazards.ts's updateThrows / drawThrows exported for the square's kinds in the glen) | glen (20-29: 20-26 used) |
-| 4 (done) | `tragons/` (and store.ts's carHops / requestCarHop / tragonTips, App.tsx's wheel and LB / RB hop routing and the controls card) | tragons (30-39: 30-38 used) |
+| 4 (done; reworked: survival, depth, loops) | `tragons/` (and store.ts's carHops / requestCarHop / tragonTips / tragonHold, App.tsx's wheel and LB / RB hop routing, the controls card and the loop card; the engine's Player.tragon and render/player/tragonPose.ts, the ride's poses) | tragons (30-39: 30-38 used) |
 | 5 (done) | `keep/` | keep (40-49: 40-46 used) |
 | 6 (done) | `broom/` (and store.ts's broomHud / broomBoost / broomTips, App.tsx's broom HUD and controls card, index.ts's tickShatter / drawShatter hooks) | broom (50-59: 50-51 used) |
 | 7 (done) | `bedroom/` (and piper.ts's `thin`, render/player/body.ts's setErect, store.ts's iceMash, App.tsx's IcePanel, walkAway/piper.ts made real) | bedroom (60-69: 60-61 used) |
@@ -67,12 +67,13 @@ move your DOORS entries to match; keep the way back working (revisits), or give 
   Back from the glen: `DOORS.wheel.end` (past the far gate).
 - **The glen -> Truelling Tragons** (built, glen/): the queue at the glen's end; the ride's door is its right end, on
   to `DOORS.tragons.start`; back from the ride: `DOORS.glen.end` (in front of the queue). The rivals who go in ahead of
-  him (BLAKE, RAFAEL, HANK) are glen/rivals.ts's RIVALS (SuitorLooks with their voices): the ride's to put in its cars.
+  him (BLAKE, RAFAEL, HANK) are glen/rivals.ts's RIVALS (SuitorLooks with their voices): they ride the train ahead of his (not on the ride with him) and turn up at its unload.
 - **Truelling Tragons -> the castle's base** (built, tragons/): aboard the ICE dragon at the load station and it goes
   (one-way); pulled in at the unload (DONE_MEMO in state.stageMemo), off the decks and out the castle's gate arch past
   them (EXIT_X) to `DOORS.keep.start`. Back from the castle's base: `DOORS.tragons.end` (in front of that arch). A
   revisit (done): no dragons running, walk the ground between the unload and the station; its left end back to the glen.
-  Which rivals died on the ride: `fa-rival-dead-<blake|rafael|hank>` in state.stageMemo (the brooms can leave them out).
+  No suitors on the ride (the user's): all three live through it (glimpsed at the unload, out the exit ahead of him),
+  so nothing sets `fa-rival-dead-<id>` any more (keep/runway.ts survivors() still reads it: all three).
 - **The castle's base -> the broomsticks** (built, keep/): the runway's scene (keep/runway.ts, a cutscene) ends in black
   with him at `DOORS.broom.start` (one-way; `fa-keep-runway` in state.stageMemo: done for good). Who flew off with him:
   `fa-broom-roster` in state.stageMemo (comma-separated ids: the ride's survivors, glen/rivals.ts RIVALS' 'blake' |
