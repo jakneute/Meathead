@@ -21,6 +21,21 @@
  },
  {
   "voice": "agent",
+  "text": "And a government-issued truck.",
+  "from": "GYM"
+ },
+ {
+  "voice": "agent",
+  "text": "And a government-issued truck. And government-issued pants.",
+  "from": "GYM"
+ },
+ {
+  "voice": "agent",
+  "text": "And a government-issued truck. Sit on a towel.",
+  "from": "GYM"
+ },
+ {
+  "voice": "agent",
   "text": "And the armory. Rocket launchers, flamethrowers, anything you want. Take your pick.",
   "from": "m1/components/IntroCutscene.tsx:39"
  },
@@ -33,6 +48,11 @@
   "voice": "agent",
   "text": "Ernie Earthquake. San Francisco. An old man with some very heavy rocks. He needs help moving them. Permanently.",
   "from": "m1/components/IntroCutscene.tsx:43"
+ },
+ {
+  "voice": "agent",
+  "text": "Every goddamn Tuesday.",
+  "from": "GYM"
  },
  {
   "voice": "agent",
@@ -51,6 +71,11 @@
  },
  {
   "voice": "agent",
+  "text": "Protein delivery. Forty tubs. Double chocolate.",
+  "from": "GYM"
+ },
+ {
+  "voice": "agent",
   "text": "These are the four assholes. Very dangerous. Very weak. Extremely hurtable.",
   "from": "m1/components/IntroCutscene.tsx:43"
  },
@@ -63,6 +88,11 @@
   "voice": "agent",
   "text": "Those were interns. We sent them in first to see what you would do. We did not expect that.",
   "from": "m1/components/IntroCutscene.tsx:39"
+ },
+ {
+  "voice": "agent",
+  "text": "Uncle Sam doesn't lock up his best killer. He feeds him.",
+  "from": "GYM"
  },
  {
   "voice": "agent",
@@ -40215,6 +40245,451 @@
   "from": "FRONTIER"
  },
  {
+  "voice": "m2.gman",
+  "text": "Can't reach me up here!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gman",
+  "text": "Crawl! Crawl like your pension depends on it!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gman",
+  "text": "Crawl! Don't look up!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gman",
+  "text": "Crawl! Through the... oh God, what is that?",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gman",
+  "text": "Don't shoot! And don't come closer! God, the smell!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gman",
+  "text": "Don't shoot! And put some pants on!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gman",
+  "text": "Don't shoot! I just deliver the protein!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gman",
+  "text": "Form a wall! Breathe through your mouths!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gman",
+  "text": "Form a wall! Eyes up! Eyes UP!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gman",
+  "text": "Form a wall! He can't get through all of us!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gman",
+  "text": "Get him a diaper! Government issue!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gman",
+  "text": "He can't reach us up here!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gman",
+  "text": "He can't reach us up here! But the smell can!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gman",
+  "text": "He can't reach us up here! Great view, though! Wait, no!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gman",
+  "text": "He's jumping! It's all swinging! Huddle!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gman",
+  "text": "His pants are in the ring! Don't go in the ring!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gman",
+  "text": "Huddle up! Cover your eyes!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gman",
+  "text": "Huddle up! Strength in numbers!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gman",
+  "text": "Huddle up! Upwind! UPWIND!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gman",
+  "text": "I AM his handler! I'm calling my mom!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gman",
+  "text": "I signed up to deliver protein, not this!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gman",
+  "text": "I'm a courier! I have a clipboard!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gman",
+  "text": "I'm fine! The padding's fine!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gman",
+  "text": "Jetpack, baby! Come and get me!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gman",
+  "text": "Lock arms! Don't look down!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gman",
+  "text": "Lock arms! Human wall!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gman",
+  "text": "Lock arms! Nobody breathe!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gman",
+  "text": "Nailed it. Again, I guess.",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gman",
+  "text": "No active contract... right now. And you shit yourself.",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gman",
+  "text": "No active contract... right now. And your dick is on my back.",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gman",
+  "text": "Nobody jumps that high! Right? RIGHT?",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gman",
+  "text": "Okay, big guy. We're padded. Show us the new stuff.",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gman",
+  "text": "Okay! OKAY! Off!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gman",
+  "text": "Ow. Good one.",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gman",
+  "text": "Smell rises! Why did we come up here?",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gman",
+  "text": "Somebody call his handler!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gman",
+  "text": "Somebody call his handler! And a plumber!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gman",
+  "text": "Somebody find his pants!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gman",
+  "text": "Stay low! He can't hit us down here!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gman",
+  "text": "Stay low! No, wait, that's the worst view in the building!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gman",
+  "text": "Stay low! Oh no, it's worse down here!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gman",
+  "text": "Stay together! He only has two feet!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gman",
+  "text": "Stay together! He's shitting on us from a height!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gman",
+  "text": "Tap! I tapped! Get off!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gman",
+  "text": "That's enough! Off!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gman",
+  "text": "That's everything. Exit's that way. Please use it.",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gman",
+  "text": "Time! Get off me!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gman",
+  "text": "Wait! All-day pass! Happy Land!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gman",
+  "text": "We have... no active contract... right now.",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gman",
+  "text": "We're safe up here! From most of it!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gman",
+  "text": "Why is his dick out? Why is it always out?",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gmanf",
+  "text": "Crawl! Crawl like your pension depends on it!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gmanf",
+  "text": "Crawl! Don't look up!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gmanf",
+  "text": "Crawl! Through the... oh God, what is that?",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gmanf",
+  "text": "Don't shoot! And don't come closer! God, the smell!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gmanf",
+  "text": "Don't shoot! And put some pants on!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gmanf",
+  "text": "Don't shoot! I just deliver the protein!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gmanf",
+  "text": "Form a wall! Breathe through your mouths!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gmanf",
+  "text": "Form a wall! Eyes up! Eyes UP!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gmanf",
+  "text": "Form a wall! He can't get through all of us!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gmanf",
+  "text": "Get him a diaper! Government issue!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gmanf",
+  "text": "He can't reach us up here!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gmanf",
+  "text": "He can't reach us up here! But the smell can!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gmanf",
+  "text": "He can't reach us up here! Great view, though! Wait, no!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gmanf",
+  "text": "He's jumping! It's all swinging! Huddle!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gmanf",
+  "text": "His pants are in the ring! Don't go in the ring!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gmanf",
+  "text": "Huddle up! Cover your eyes!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gmanf",
+  "text": "Huddle up! Strength in numbers!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gmanf",
+  "text": "Huddle up! Upwind! UPWIND!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gmanf",
+  "text": "I AM his handler! I'm calling my mom!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gmanf",
+  "text": "I signed up to deliver protein, not this!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gmanf",
+  "text": "I'm a courier! I have a clipboard!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gmanf",
+  "text": "Lock arms! Don't look down!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gmanf",
+  "text": "Lock arms! Human wall!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gmanf",
+  "text": "Lock arms! Nobody breathe!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gmanf",
+  "text": "Nobody jumps that high! Right? RIGHT?",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gmanf",
+  "text": "Sign here. Officially you're rotting in Guantanamo, so sign it Guantanamo.",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gmanf",
+  "text": "Smell rises! Why did we come up here?",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gmanf",
+  "text": "Somebody call his handler!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gmanf",
+  "text": "Somebody call his handler! And a plumber!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gmanf",
+  "text": "Somebody find his pants!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gmanf",
+  "text": "Stay low! He can't hit us down here!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gmanf",
+  "text": "Stay low! No, wait, that's the worst view in the building!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gmanf",
+  "text": "Stay low! Oh no, it's worse down here!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gmanf",
+  "text": "Stay together! He only has two feet!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gmanf",
+  "text": "Stay together! He's shitting on us from a height!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gmanf",
+  "text": "We'll be quick.",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gmanf",
+  "text": "We're safe up here! From most of it!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gmanf",
+  "text": "Why is his dick out? Why is it always out?",
+  "from": "GYM"
+ },
+ {
   "voice": "m2.guard",
   "text": "CODE BROWN! CODE BROWN!",
   "from": "INTRO"
@@ -56336,6 +56811,11 @@
  },
  {
   "voice": "meathead",
+  "text": "A TRUCK?! FOR ME?!",
+  "from": "GYM"
+ },
+ {
+  "voice": "meathead",
   "text": "A TUMBLEWEED! THAT'S THE MOST HUMILIATING THING THAT'S EVER HIT ME!",
   "from": "HAZARD_HURT"
  },
@@ -63326,6 +63806,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HAPPY LAND?! THE ONE WITH THE RIDES?!",
+  "from": "GYM"
+ },
+ {
+  "voice": "meathead",
   "text": "HAPPYWOOD BOULEVARD. SMELLS LIKE PISS AND BROKEN DREAMS. MY KIND OF PLACE.",
   "from": "HOLLYWOOD"
  },
@@ -66522,7 +67007,7 @@
  {
   "voice": "meathead",
   "text": "I MUST DESTROY THEM.",
-  "from": "m1/components/IntroCutscene.tsx:45"
+  "from": "GYM"
  },
  {
   "voice": "meathead",
@@ -68856,6 +69341,11 @@
  },
  {
   "voice": "meathead",
+  "text": "IT'S LEG DAY.",
+  "from": "GYM"
+ },
+ {
+  "voice": "meathead",
   "text": "IT'S LIKE HUGGING A FRIDGE!",
   "from": "TOO_BIG_LINES"
  },
@@ -69633,6 +70123,11 @@
   "voice": "meathead",
   "text": "LET'S GO HURT SOME WEAKLINGS!",
   "from": "m1/components/IntroCutscene.tsx:45"
+ },
+ {
+  "voice": "meathead",
+  "text": "LET'S GO TO HAPPY LAND!",
+  "from": "GYM"
  },
  {
   "voice": "meathead",
@@ -72068,6 +72563,11 @@
   "voice": "meathead",
   "text": "NINETY PERCENT OFF. DO THEY SELL UNDERWEAR? NO? FUCK YOU.",
   "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "NINETY-EIGHT... NINETY-NINE...",
+  "from": "GYM"
  },
  {
   "voice": "meathead",
@@ -86986,6 +87486,11 @@
  },
  {
   "voice": "meathead",
+  "text": "YOU GUYS KEEP INTERRUPTING MY SETS. GIVE ME SOMEONE TO KILL OR I POP YOUR HEAD OFF LIKE A CORK.",
+  "from": "GYM"
+ },
+ {
+  "voice": "meathead",
   "text": "YOU HAVE THE RIGHT TO REMAIN DEAD!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -86993,6 +87498,11 @@
   "voice": "meathead",
   "text": "YOU HIT ME WITH A GOLF CART?!",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOU INTERRUPTED LEG DAY.",
+  "from": "GYM"
  },
  {
   "voice": "meathead",
@@ -88101,6 +88611,11 @@
  },
  {
   "voice": "reporter",
+  "text": "Day four hundred at Guantanamo Bay for Meathead, the man who killed the President.",
+  "from": "GYM"
+ },
+ {
+  "voice": "reporter",
   "text": "Oh my God. It was an imposter president all along!",
   "from": "m1/components/EndingCutscene.tsx:102"
  },
@@ -88108,6 +88623,11 @@
   "voice": "reporter",
   "text": "Oh my God. It was an imposter president all along! And our hero shit himself!",
   "from": "m1/components/EndingCutscene.tsx:102"
+ },
+ {
+  "voice": "reporter",
+  "text": "Sources say he cries himself to sleep.",
+  "from": "GYM"
  },
  {
   "voice": "skier",

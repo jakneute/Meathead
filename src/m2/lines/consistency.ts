@@ -11,6 +11,7 @@ import { FOREIGN_VOICE_LINES } from '../foreign/voices';
 import { FRONTIER_VOICE_LINES } from '../frontier/voices';
 import { FANTASY_VOICE_LINES } from '../fantasy/voices';
 import { CARTOON_VOICE_LINES } from '../cartoon/voices';
+import { VOICE_LINES as GYM_VOICE_LINES } from '../intro/gym/lines';
 
 const OUT_OF_PLACE = new RegExp([
   // Meathead 1's places
@@ -28,7 +29,7 @@ const OUT_OF_PLACE = new RegExp([
  * Meathead 2's own lines always fit, whatever they name: they were written for where he is (Safari Artie's name is
  * Artie; Adventure Land has its storm drain, its fake volcano). It's only Meathead 1's that are weeded out.
  */
-const OWN = new Set<string>([...ADV_VOICE_LINES, ...SPOOKY_VOICE_LINES, ...SPACE_VOICE_LINES, ...HOLLYWOOD_VOICE_LINES, ...FOREIGN_VOICE_LINES, ...FRONTIER_VOICE_LINES, ...FANTASY_VOICE_LINES, ...CARTOON_VOICE_LINES].flatMap(v => Object.values(v).flat()));
+const OWN = new Set<string>([...ADV_VOICE_LINES, ...SPOOKY_VOICE_LINES, ...SPACE_VOICE_LINES, ...HOLLYWOOD_VOICE_LINES, ...FOREIGN_VOICE_LINES, ...FRONTIER_VOICE_LINES, ...FANTASY_VOICE_LINES, ...CARTOON_VOICE_LINES, GYM_VOICE_LINES].flatMap(v => Object.values(v).flat()));
 
 /** Does this line fit where he is (Happy Land)? */
 export const fitsHappyLand = (text: string) => OWN.has(text) || !OUT_OF_PLACE.test(text);

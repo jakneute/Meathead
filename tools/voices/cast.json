@@ -22,6 +22,8 @@
   "m2.ticket": { "voice": "af_bella", "speed": 1.08, "rate": 1.02 },
   "m2.guard": { "voice": "am_eric", "speed": 1.05, "rate": 0.98 },
   "m2.guardf": { "voice": "af_sarah", "speed": 1.05, "rate": 1.0 },
+  "m2.gman": { "voice": [["am_michael", 0.6], ["am_echo", 0.4]], "speed": 1.08, "rate": 0.96 },
+  "m2.gmanf": { "voice": [["af_kore", 0.6], ["af_jessica", 0.4]], "speed": 1.0, "rate": 0.95 },
   "m2.pa": { "voice": "am_michael", "speed": 0.98, "rate": 0.95, "gain": 1.1, "fx": "announcer" },
   "m2.safari": { "voice": "bm_lewis", "speed": 1.08, "rate": 1.02 },
   "m2.operator": { "voice": "am_echo", "speed": 1.05, "rate": 1.0 },

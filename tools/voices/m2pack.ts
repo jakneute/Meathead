@@ -26,6 +26,7 @@ import { FOREIGN_VOICE_LINES } from '../../src/m2/foreign/voices';
 import { FRONTIER_VOICE_LINES } from '../../src/m2/frontier/voices';
 import { FANTASY_VOICE_LINES } from '../../src/m2/fantasy/voices';
 import { CARTOON_VOICE_LINES } from '../../src/m2/cartoon/voices';
+import { VOICE_LINES as GYM_VOICE_LINES } from '../../src/m2/intro/gym/lines';
 import { AMERICA_DENY } from '../../src/m2/lines/hubLines';
 
 const ROOT = path.resolve(__dirname, '../..');
@@ -83,6 +84,7 @@ for (const byVoice of FOREIGN_VOICE_LINES) for (const [v, lines] of Object.entri
 for (const byVoice of FRONTIER_VOICE_LINES) for (const [v, lines] of Object.entries(byVoice)) add(v, lines);
 for (const byVoice of FANTASY_VOICE_LINES) for (const [v, lines] of Object.entries(byVoice)) add(v, lines);
 for (const byVoice of CARTOON_VOICE_LINES) for (const [v, lines] of Object.entries(byVoice)) add(v, lines);
+for (const [v, lines] of Object.entries(GYM_VOICE_LINES)) add(v, lines);
 add('meathead', AMERICA_DENY);
 for (const v of ['m2.guest', 'm2.guest2']) add(v, [introLines.GUEST_HURRY, introLines.GUEST_CUT, introLines.GUEST_HIT, introLines.GUEST_REACT, introLines.GUEST_REACT_NOW]);
 // The death screens
