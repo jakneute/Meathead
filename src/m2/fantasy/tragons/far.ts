@@ -20,7 +20,8 @@ import type { GameState } from '../../../m1/game/core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { drawTodSky, timeOfDay, farTint, skyAt, hourMix, type TimeOfDay } from '../../timeOfDay';
 import { mist, snap2, wave, jag } from '../../adventure/farArt';
-import { stamp, hazeBands, pixelBlob } from '../../intro/art/kit';
+import { hazeBands, pixelBlob } from '../../intro/art/kit';
+import { banded } from './cache';
 import { box, mix, hash, checker, INK, type Ctx } from '../kit';
 import { MONUMENT_AT, drawCastleAt } from '../monument';
 import { paintAlps, MW, MH, farPine, snowfall } from '../square/far';
@@ -223,12 +224,16 @@ export const drawTragonsFar = (c: Ctx, state: GameState) => {
   const scrollX = e.x + scrollOf(t);
   const dx = Number.isFinite(slide.last) ? scrollX - slide.last : 0;
   if (Math.abs(dx) < 400) slide.acc += dx * k;
-  slide.last = scrollX;
+  // (a bad frame never sticks: a NaN here would keep every layer off the screen for good)
+  if (!Number.isFinite(slide.acc)) slide.acc = 0;
+  slide.last = Number.isFinite(scrollX) ? scrollX : NaN;
   const off = (dl: number, base = 0) => slide.acc * dl + base;
   const tile = (key: string, o: number, top: number, h: number, tw: number, paint: (g: Ctx) => void) => {
     const sw = tw * zs;
     if (top > H || top + h * zs < 0) return;
-    for (let x = -(((o % sw) + sw) % sw); x < W; x += sw) { c.save(); c.translate(Math.round(x), Math.round(top)); c.scale(zs, zs); stamp(c, `fa-tg-${key}-${tod.key}`, 0, 0, tw, h, paint); c.restore(); }
+    if (!Number.isFinite(o) || !Number.isFinite(top)) return;
+    // (cached at a whole device scale and put down scaled: the zoom easing never repaints it: cache.ts)
+    for (let x = -(((o % sw) + sw) % sw); x < W; x += sw) { c.save(); c.translate(Math.round(x), Math.round(top)); c.scale(zs, zs); banded(c, `fa-tg-${key}-${tod.key}`, 0, 0, tw, h, paint); c.restore(); }
   };
   /** Under a layer, its ground going on down a way (the next layer stands over it). */
   const under = (y: number, h: number, col: string) => { if (y < H) box(c, 0, Math.round(y) - 1, W, Math.min(H - y + 1, h), col); };
@@ -243,7 +248,8 @@ export const drawTragonsFar = (c: Ctx, state: GameState) => {
   tile('alps', off(0.012), hz - (MH - 6) * zs, MH, MW, g => paintAlps(g, tod));
   // (the castle on its crag, drifting across as the ride goes, its foot among the far park)
   const at = MONUMENT_AT.tragons, kk = Math.min(1, t.dist / END_S);
-  drawCastleAt(c, Math.round(at.from + (at.to - at.from) * kk), Math.round(hz + 40 + G * 0.03), at.k * zs, f);
+  // (its size in steps of 2%: the castle's stamp is painted once a step, not every few frames of the zoom's ease)
+  drawCastleAt(c, Math.round(at.from + (at.to - at.from) * kk), Math.round(hz + 40 + G * 0.03), at.k * Math.round(zs * 50) / 50, f);
   // (the park beyond: the glen's)
   const g1 = hz + G * 0.05, top1 = g1 - (GPG - 18) * zs;
   tile('park', off(0.05, 300), top1, GPH, GPW, g => paintGlenPark(g, tod));

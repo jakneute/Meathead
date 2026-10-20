@@ -49,8 +49,8 @@ export const pauseCard = (id: PauseCardId, nin: boolean, joycon: boolean): Pause
     ] };
     // (fantasy/tragons/ride.ts and App.tsx: LB / RB hop cars (the weapon buttons), down held in a loop hangs on)
     case 'tragons': return { title: 'TRUELLING TRAGONS', rows: [
-      one('HOP UP A CAR', ['RB'], ['@prevWeapon']),
-      one('HOP DOWN A CAR', ['LB'], ['@nextWeapon']),
+      one('HOP UP A CAR (TOP: TO THE BOTTOM)', ['RB'], ['@prevWeapon']),
+      one('HOP DOWN A CAR (BOTTOM: TO THE TOP)', ['LB'], ['@nextWeapon']),
       LR('WALK'),
       one('JUMP', ['A'], ['@jump']),
       one('DUCK', ['DPAD_DOWN'], ['@down']),

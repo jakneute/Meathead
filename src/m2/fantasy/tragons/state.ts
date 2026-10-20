@@ -48,7 +48,7 @@ export interface Shot {
 }
 
 /** His hop between cars: from where, to which lane, how far through. */
-export interface Hop { fx: number; fy: number; to: Lane; t: number; dur: number; up: boolean }
+export interface Hop { fx: number; fy: number; to: Lane; t: number; dur: number; up: boolean; wrap?: boolean }
 
 /** Locked in on a car through a loop (or a steep drop: braced): how far along the train he is (0 rear .. 1 front),
  *  whether it's a loop (hold down or he's flung) or a drop, frames into it, frames he's not been holding, his body's

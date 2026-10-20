@@ -24,7 +24,7 @@ import { mix, box, INK, IRON, SNOW, STONE, GOLD, ramp6, rampH, dimmed, polyF, po
 import { RIVALS } from '../glen/rivals';
 import { drawUnloadRivals } from './rivals';
 import { GY, TL, CAR, LANES, LANE_COL, LANE_NAME, rearX, type Lane } from './layout';
-import { trackPt, proj, type Eye } from './track';
+import { trackPt, proj, type Eye, type Pt } from './track';
 import { roofSpan } from './cars';
 import { tragonsOf, type Tragons, type Obst, type Train, type Car } from './state';
 import { toScreen, viewOf, hisTrainD, UNLOAD_SPOTS, FRAME_TOP, FRAME_BOT } from './ride';
@@ -33,7 +33,7 @@ import { viewBox, boxIn, sceneEye, fog } from './scene';
 import { paintCar } from './dragon';
 import { drawSteel, RAIL } from './steel';
 import { drawFloor, drawMountain, sceneryItems } from './scenery';
-import { drawStation, drawUnload } from './station';
+import { drawStation, drawUnload, drawStationNear, drawUnloadNear } from './station';
 import { drawTragonsFar } from './far';
 
 export { paintCar };
@@ -110,17 +110,30 @@ const drawObst = (c: Ctx, state: GameState, t: Tragons, e: Eye, o: Obst, front: 
   const post = (x: number, top: number) => { if (gl > top) postR(c, x, top, gl, 6, I); };
   if (o.kind === 'live') {
     if (front) return;
-    // (the rail live along its length: glowing in steps, sparks crawling along it, the dragon's back crackling)
+    // (the rail live along its length, unmistakable from well off (the user's): a hazard bollard in yellow and black at
+    // each end with a bolt plaque; the rail between glowing electric blue-white in a halo, a chase of white and yellow
+    // along it, arcs jumping up off it (more and taller as it comes), sparks)
+    const ahead = o.s - (t.dist + TL), warm = Math.max(0.35, Math.min(1, 1 - ahead / 1600));
+    const Q: Pt = { x: 0, y: 0, d: 1, roll: 0 };
     for (let s = o.s; s < o.s + o.len; s += 20) {
-      const q = trackPt(t.spins, t.dist, o.lane, s, { x: 0, y: 0, d: 1, roll: 0 }), p = proj(t.eye, q.x, q.y, q.d), on = (Math.floor(s / 20) + (f >> 1)) % 4;
-      box(c, p.x, p.y + (RAIL - 4) * q.d, 20 * q.d, 8 * q.d, on === 0 ? '#FFFFFF' : on === 1 ? '#FEF08A' : main);
+      const q = trackPt(t.spins, t.dist, o.lane, s, Q), p = proj(t.eye, q.x, q.y, q.d), on = (Math.floor(s / 20) + (f >> 1)) % 4, ry = p.y + (RAIL - 4) * q.d;
+      c.globalAlpha = (0.18 + 0.22 * ((f + s) % 5 < 2 ? 1 : 0.5)) * warm; box(c, p.x - 2, ry - 14 * q.d, 24 * q.d, 30 * q.d, '#7DD3FC'); c.globalAlpha = 1;
+      box(c, p.x, ry, 20 * q.d, 8 * q.d, on === 0 ? '#FFFFFF' : on === 1 ? '#FEF08A' : on === 2 ? '#BAE6FD' : main);
       box(c, p.x, p.y + (RAIL - 1) * q.d, 20 * q.d, 2 * q.d, '#6D28D9');
-      if ((s / 20 + f) % 9 === 0) { c.strokeStyle = '#FFFFFF'; c.lineWidth = 2; c.beginPath(); c.moveTo(p.x, p.y + (RAIL - 4) * q.d); c.lineTo(p.x + 4, p.y + (RAIL - 16) * q.d); c.lineTo(p.x + 9, p.y + (RAIL - 9) * q.d); c.lineTo(p.x + 13, p.y + (RAIL - 20) * q.d); c.stroke(); }
+      if ((s / 20 + f) % Math.max(3, Math.round(9 - warm * 5)) === 0) {
+        const hgt = (18 + ((s * 7 + f * 3) % 26) * warm) * q.d;
+        c.strokeStyle = '#6D28D9'; c.lineWidth = 4; c.beginPath(); c.moveTo(p.x, ry); c.lineTo(p.x + 5, ry - hgt * 0.4); c.lineTo(p.x - 2, ry - hgt * 0.65); c.lineTo(p.x + 4, ry - hgt); c.stroke();
+        c.strokeStyle = '#FFFFFF'; c.lineWidth = 2; c.stroke();
+        box(c, p.x + 3, ry - hgt - 2, 3, 3, '#FEF08A');
+      }
     }
-    const tr = t.trains[o.lane];
-    if (tr.phase === 'ok' && t.dist + TL > o.s && t.dist < o.s + o.len) for (const k of tr.cars) for (let n = 0; n < 3; n++) {
-      const x = k.x + (((f * 13 + n * 47) % CAR) - CAR / 2) * k.d;
-      c.strokeStyle = n === 1 ? '#FFFFFF' : '#FEF08A'; c.lineWidth = 2; c.beginPath(); c.moveTo(x, k.y); c.lineTo(x + 4, k.y - 10 * k.d); c.lineTo(x - 2, k.y - 16 * k.d); c.lineTo(x + 3, k.y - 22 * k.d); c.stroke();
+    for (const s of [o.s - 10, o.s + o.len + 10]) {
+      const q = trackPt(t.spins, t.dist, o.lane, s, Q), p = proj(t.eye, q.x, q.y, q.d), d0 = q.d, by = p.y + RAIL * d0;
+      box(c, p.x - 5 * d0, by - 46 * d0, 10 * d0, 46 * d0, INK);
+      for (let k = 0; k < 5; k++) box(c, p.x - 4 * d0, by - (45 - k * 9) * d0, 8 * d0, 9 * d0, k % 2 ? '#1A1028' : '#FACC15');
+      polyF(c, [[p.x, by - 66 * d0], [p.x + 13 * d0, by - 50 * d0], [p.x, by - 34 * d0], [p.x - 13 * d0, by - 50 * d0]], INK);
+      polyF(c, [[p.x, by - 63 * d0], [p.x + 10 * d0, by - 50 * d0], [p.x, by - 37 * d0], [p.x - 10 * d0, by - 50 * d0]], f % 12 < 6 ? '#FACC15' : '#FEF08A');
+      polyF(c, [[p.x + 2 * d0, by - 60 * d0], [p.x - 4 * d0, by - 49 * d0], [p.x, by - 49 * d0], [p.x - 2 * d0, by - 40 * d0], [p.x + 4 * d0, by - 52 * d0], [p.x, by - 52 * d0]], INK);
     }
     return;
   }
@@ -241,6 +254,45 @@ const drawObst = (c: Ctx, state: GameState, t: Tragons, e: Eye, o: Obst, front: 
   }
   c.restore();
 };
+/** The LIGHTNING dragon's back while it's on a live rail (where it shocks him: ride.ts, unchanged): the whole roof
+ *  crackling (a flickering electric blue-white glow along its full length, bright arcs up off it, sparks jumping off,
+ *  its lamps strobing); just before (the front car onto it), sparks spitting off the front: the tell. Off it, none:
+ *  safe reads safe. */
+const drawLiveRoof = (c: Ctx, state: GameState, t: Tragons, o: Obst) => {
+  const tr = t.trains[o.lane], f = state.frame;
+  if (tr.phase !== 'ok' || !tr.cars.length) return;
+  const live = t.dist + TL > o.s && t.dist < o.s + o.len, soon = !live && o.s - (t.dist + TL) < 260 && o.s > t.dist;
+  if (!live && !soon) return;
+  for (let i = 0; i < tr.cars.length; i++) {
+    const k = tr.cars[i];
+    if (soon && i < 2) continue;
+    const ca = Math.cos(k.a), sa = Math.sin(k.a), half = (CAR / 2) * k.d;
+    const pt = (u: number, up: number): [number, number] => [k.x + ca * u * half + sa * up * k.d, k.y + sa * u * half - ca * up * k.d];
+    if (live) {
+      // (the glow along the roof: two bands, flickering)
+      const fl = f % 6 < 2 ? 0.62 : f % 6 < 4 ? 0.42 : 0.52;
+      c.globalAlpha = fl * 0.5; polyF(c, [pt(-1.05, 14), pt(1.05, 14), pt(1.05, -5), pt(-1.05, -5)], '#7DD3FC');
+      c.globalAlpha = fl; polyF(c, [pt(-1, 4), pt(1, 4), pt(1, -2), pt(-1, -2)], f % 4 < 2 ? '#FFFFFF' : '#E0F2FE');
+      c.globalAlpha = 1;
+      // (the lamps along its side strobing)
+      for (let n = 0; n < 4; n++) { const [x, y] = pt(-0.75 + n * 0.5, -14); box(c, x - 2 * k.d, y - 2 * k.d, 4 * k.d, 4 * k.d, (f + n) % 4 < 2 ? '#FFFFFF' : '#38BDF8'); }
+    }
+    // (the arcs up off it and the sparks jumping off)
+    const arcs = live ? 3 : 1;
+    for (let n = 0; n < arcs; n++) {
+      if (!live && (f + i * 5) % 5 > 1) continue;
+      const u = ((((f * 13 + n * 37 + i * 19) % 100) / 100) * 2 - 1) * 0.95, hgt = 16 + ((f * 7 + n * 11) % 18);
+      const [x0, y0] = pt(u, 0), [x1, y1] = pt(u + 0.06, hgt * 0.4), [x2, y2] = pt(u - 0.04, hgt * 0.7), [x3, y3] = pt(u + 0.05, hgt);
+      c.strokeStyle = '#6D28D9'; c.lineWidth = 4; c.beginPath(); c.moveTo(x0, y0); c.lineTo(x1, y1); c.lineTo(x2, y2); c.lineTo(x3, y3); c.stroke();
+      c.strokeStyle = n === 1 ? '#FEF08A' : '#FFFFFF'; c.lineWidth = 2; c.stroke();
+    }
+    for (let n = 0; n < (live ? 5 : 3); n++) {
+      const life = (f * 2 + n * 9 + i * 7) % 18, u = ((n * 41 + i * 23 + Math.floor((f + n * 9) / 18) * 17) % 100) / 50 - 1;
+      const [sx, sy] = pt(u, 2), dir = n % 2 ? 1 : -1;
+      box(c, sx + dir * life * 1.6 * k.d, sy - (life * 2.2 - life * life * 0.09) * k.d, 2, 2, life % 3 ? '#FEF08A' : '#FFFFFF');
+    }
+  }
+};
 const obstD = (t: Tragons, o: Obst) => trackPt(t.spins, t.dist, o.lane, o.s, { x: 0, y: 0, d: 1, roll: 0 }).d;
 
 /** What's flying: fireballs (their target ring on the roof), strikes (the glow, the bolt), snowballs. */
@@ -330,26 +382,42 @@ let sorted: { f: number; back: Item[]; front: Item[]; e: Eye } | null = null;
 const items = (c: Ctx, state: GameState, t: Tragons): { back: Item[]; front: Item[]; e: Eye } => {
   if (sorted && sorted.f === state.frame) return sorted;
   const v = viewBox(state), back: Item[] = [], front: Item[] = [], e = sceneEye(state, t);
+  // (his depth: the car he's really on (not the train's middle: on a drop the cars' depths differ a lot), or the one
+  // he's hanging on in a loop, or landing on)
   const dHis = hisTrainD(state);
-  const put = (d: number, draw: () => void, mineFront = false) => (mineFront || d > dHis + 0.004 ? front : back).push({ d, draw });
-  // (the track that's on screen: wide enough for the farthest depth and a loop's swing either side)
+  const riding = t.phase === 'dispatch' || t.phase === 'ride';
+  /** In front of him only if it's nearer than he is (or it's his own lane's thing that hits him); `back`: never. */
+  const put = (d: number, draw: () => void, side: 'auto' | 'front' | 'back' = 'auto') => (side === 'front' || (side === 'auto' && d > dHis + 0.004) ? front : back).push({ d, draw });
+  const his = t.hop ? t.hop.to : t.lane;
+  // (the track that's on screen: wide enough for the farthest depth and a loop's swing either side). Cut into runs a
+  // depth each: short ones round the trains and through anything spun (its depth swings fast there: one depth for a
+  // long run had the far side of a corkscrew or the helix drawn over his head), long ones elsewhere.
   const ex = t.eye.x, lo = ex + (v.x - ex) / 0.62, hi = ex + (v.x + v.w - ex) / 0.62;
   const s0 = Math.max(-900, Math.floor((lo - rearX(t.dist) + t.dist - 500) / 192) * 192), s1 = hi - rearX(t.dist) + t.dist + 500;
-  for (const lane of LANES) for (let s = s0; s < s1; s += 192) {
-    const m = trackPt(t.spins, t.dist, lane, s + 96, { x: 0, y: 0, d: 1, roll: 0 }), p = proj(t.eye, m.x, m.y, m.d);
-    if (!boxIn(state, p.x - 420 * m.d, p.y - 480 * m.d, p.x + 420 * m.d, Math.max(p.y, GY) + 80)) continue;
-    // (the track's always a hair behind the dragon on it)
-    put(m.d - 0.002, () => drawSteel(c, state, t, t.eye, lane, s, s + 192));
+  const nearA = t.dist - 240, nearB = t.dist + TL + 240;
+  const M: Pt = { x: 0, y: 0, d: 1, roll: 0 };
+  for (const lane of LANES) for (let s = s0; s < s1;) {
+    const fine = (s + 192 > nearA && s < nearB) || t.spins.some(q => q.lane === lane && s + 192 > q.s0 - 60 && s < q.s0 + q.len + 60);
+    const len = fine ? 64 : 192, a = s;
+    s += len;
+    const m = trackPt(t.spins, t.dist, lane, a + len / 2, M), p = proj(t.eye, m.x, m.y, m.d), d = m.d;
+    if (!boxIn(state, p.x - (len + 330) * d, p.y - 480 * d, p.x + (len + 330) * d, Math.max(p.y, GY) + 80)) continue;
+    // (the track's always a hair behind the dragon on it; his own under his train always behind him)
+    const under = riding && lane === his && a + len > nearA + 200 && a < nearB - 200;
+    put(d - 0.002, () => drawSteel(c, state, t, t.eye, lane, a, a + len), under ? 'back' : 'auto');
   }
-  for (const tr of t.trains) put(trainD(tr), () => drawTrain(c, state, t, tr));
-  const his = t.hop ? t.hop.to : t.lane;
+  // (his own dragon always under him: he's stood on it)
+  for (const tr of t.trains) put(trainD(tr), () => drawTrain(c, state, t, tr), riding && tr.lane === his && tr.phase === 'ok' ? 'back' : 'auto');
+  // (the halls' things at the play plane: after the supports behind them)
+  put(0.999, () => { drawStationNear(c, state, t); drawUnloadNear(c, state, t); }, 'back');
   for (const o of t.obst) {
     const d = obstD(t, o);
     put(d - 0.003, () => drawObst(c, state, t, e, o, false));
-    put(d, () => drawObst(c, state, t, e, o, true), o.lane === his);
+    put(d, () => drawObst(c, state, t, e, o, true), o.lane === his ? 'front' : 'auto');
+    if (o.kind === 'live') put(trainD(t.trains[o.lane]) + 0.0015, () => drawLiveRoof(c, state, t, o), o.lane === his ? 'front' : 'auto');
   }
-  for (const q of t.shots) put(trainD(t.trains[q.lane]) + 0.001, () => drawShot(c, state, t, q), q.lane === his);
-  if (t.breath) put(9, () => drawBreath(c, state, t), true);
+  for (const q of t.shots) put(trainD(t.trains[q.lane]) + 0.001, () => drawShot(c, state, t, q), q.lane === his ? 'front' : 'auto');
+  if (t.breath) put(9, () => drawBreath(c, state, t), 'front');
   // (the park's props, in among it by depth)
   for (const it of sceneryItems(c, state, t, e)) put(it.d - 0.001, it.draw);
   back.sort((a, b) => a.d - b.d); front.sort((a, b) => a.d - b.d);
@@ -439,7 +507,9 @@ let dark: HTMLCanvasElement | null = null;
 const drawDark = (c: Ctx, state: GameState, t: Tragons) => {
   const mid = t.dist + TL / 2, a = TUNNEL.a + 60, b = TUNNEL.b - 60;
   if (t.phase !== 'ride' || mid < a - 200 || mid > b + 200 || typeof document === 'undefined') return;
-  const k = Math.min(1, (mid - (a - 200)) / 260, (b + 200 - mid) / 260) * 0.78;
+  // (in steps going in and coming out: the light going and coming back gradually, the steps not smooth: SNES)
+  const k = Math.round(Math.min(1, (mid - (a - 200)) / 420, (b + 200 - mid) / 420) * 6) / 6 * 0.78;
+  if (k <= 0) return;
   dark ??= document.createElement('canvas');
   if (dark.width !== CANVAS_WIDTH) { dark.width = CANVAS_WIDTH; dark.height = CANVAS_HEIGHT; }
   const g = dark.getContext('2d')!;
@@ -500,6 +570,22 @@ export const drawTragonsHud = (c: Ctx, state: GameState) => {
         countdown(c, p.x, p.y, bw, k, main, f % 10 < 5 && k < 0.35);
         loopSign(c, p.x - bw / 2 - 15, p.y + 3, main, f, q.kind, 8);
         text(c, `${LANE_NAME[q.lane]} ${KIND_WORD[q.kind]}`, p.x, p.y - 8, main, 6, 'center', true);
+      }
+    }
+    // The live rail coming on the LIGHTNING track (the user's: "make the electric floor more obvious"): over its dragon,
+    // a countdown to the roof going live and LIVE ROOF: JUMP!; while it's live, LIVE! flashing; off it, nothing
+    for (const o of t.obst) {
+      if (o.kind !== 'live') continue;
+      const tr = t.trains[o.lane];
+      if (tr.phase !== 'ok' || !tr.cars.length) continue;
+      const ahead = o.s - (t.dist + TL), live = ahead < 0 && t.dist < o.s + o.len;
+      const left = ahead / Math.max(1, t.v);
+      if (!live && (ahead < 0 || left > 170)) continue;
+      const [main] = LANE_COL[o.lane], p = overTrain(state, tr, 96);
+      if (live) text(c, f % 10 < 5 ? 'LIVE! JUMP!' : 'LIVE!', p.x, p.y + 6, f % 6 < 3 ? '#FFFFFF' : '#FDE047', 8, 'center', true);
+      else {
+        countdown(c, p.x, p.y, 90, Math.max(0, Math.min(1, left / 170)), f % 10 < 5 && left < 60 ? '#FFFFFF' : '#7DD3FC', false);
+        text(c, 'LIVE ROOF: JUMP!', p.x, p.y - 8, main, 6, 'center', true);
       }
     }
     // (only one dragon makes it: SAFE over that one)

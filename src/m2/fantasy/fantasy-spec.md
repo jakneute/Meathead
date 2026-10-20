@@ -890,3 +890,19 @@ markBossFight every frame of a boss or sub-boss fight. Voice every new line (`np
   dead in the carts slump (suitors.ts Slump: sat, tipped, head lolled, arms hanging to the world's down, swaying with
   the cart); thrown ones lie on the plaza on their backs, legs in the air, their hat knocked off by them, kept for good
   (stageMemo 'fantasy-wheel-corpses'). Meathead's kill and wheel-clear lines are picked once a life (piperLine).
+- (the user's playtest of TRUELLING TRAGONS) Blank and slow on the ride: the ride's zoom eases all the time and the
+  engine's stamps are keyed by exact scale, so the far park, the halls and every prop were repainted a stamp a step
+  (big canvases piling up to the budget); now cached once per whole device scale and put down scaled (tragons/
+  cache.ts), the castle in 2% steps. His depth is the car he's really on; his own dragon and the track under it never
+  go over him; the track's cut short (64) round the trains and through anything spun, so a corkscrew's or the helix's
+  far side no longer draws over his head. Hops WRAP (up off the top lands on the bottom, down off the bottom on the top:
+  a longer arc over the middle one; spun or gone trains skipped); over each dragon he's not on, the button that takes
+  him there (TragonMarks.tsx, live pad / keys, hidden while he can't hop). The live rail reads from far off: hazard
+  bollards with bolt plaques, the rail glowing and arcing more as it comes, a building crackle, a countdown and LIVE
+  ROOF: JUMP! over the dragon, its roof crackling blue-white along its length with arcs, sparks and strobing lamps while
+  it's live (timing and hitbox unchanged). The mountain's mouths: a bore cut into rock at the track's depth, going dark
+  in steps (dithered) from each mouth, black inside, the rock face round the opening with an overhang, snow and ferns
+  (no ring stuck on). The entrance: the glen's marquee re-centered so the full name is in the picture at the glen's end
+  (crest, gilt frame, tag line, bulbs), the heads big under it, a WARNING board, YOU MUST BE THIS TALL, queue rails; the
+  station gets its own marquee hung low over the platform and a height board. The halls' play-plane things (and the
+  castle's sign at the exit) are sorted in after the supports behind them. Drawing only, but for the hop's wrap.

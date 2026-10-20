@@ -10,9 +10,9 @@
 
 import type { GameState } from '../../../m1/game/core/state';
 import { timeOfDay } from '../../timeOfDay';
-import { INK, mix, box, dimmed, type Ctx } from '../kit';
+import { INK, mix, box, dimmed, polyF, checker, type Ctx } from '../kit';
 import { GY, LANE_COL, TUNNEL, type Lane } from './layout';
-import { trackPt, spinAt, type Pt } from './track';
+import { trackPt, spinAt } from './track';
 import type { Tragons } from './state';
 import { fog } from './scene';
 
@@ -22,6 +22,10 @@ export const RAIL = 48;
 const DG = 0.024, GG = 5;
 /** Between the points drawn. */
 const STEP = 12;
+/** Into the mountain: how far the bore takes to go black from each mouth. */
+const FADE = 300;
+/** How far into the mountain's dark s is (0 out, 1 black), counted from the nearer mouth. */
+const fadeIn = (s: number) => (s < TUNNEL.a || s > TUNNEL.b ? 0 : Math.min(1, (s - TUNNEL.a) / FADE, (TUNNEL.b - s) / FADE));
 
 // ---------------------------------------------------------------------------------------------------------------
 // The supports' lattice strips
@@ -73,7 +77,6 @@ const support = (c: Ctx, x: number, top: number, gy: number, d: number) => {
 // ---------------------------------------------------------------------------------------------------------------
 // The track
 
-const P: Pt = { x: 0, y: 0, d: 1, roll: 0 };
 interface Q { x: number; y: number; d: number; roll: number }
 const raw: Q[] = [];
 /** Per point: the roof's spot, the spine, the two rails (near / far), whether it's in a hole. */
@@ -84,7 +87,7 @@ const pts: Pts = { mx: [], my: [], sx: [], sy: [], nx: [], ny: [], ax: [], ay: [
 export const drawSteel = (c: Ctx, state: GameState, t: Tragons, eye: { x: number; y: number }, lane: Lane, s0: number, s1: number) => {
   const [main, light, dark] = LANE_COL[lane];
   const n = Math.round((s1 - s0) / STEP);
-  for (let k = -1; k <= n + 1; k++) { trackPt(t.spins, t.dist, lane, s0 + k * STEP, P); raw[k + 1] = { x: P.x, y: P.y, d: P.d, roll: P.roll }; }
+  for (let k = -1; k <= n + 1; k++) { const r = (raw[k + 1] ??= { x: 0, y: 0, d: 1, roll: 0 }); trackPt(t.spins, t.dist, lane, s0 + k * STEP, r); }
   const gaps = t.gaps.filter(g => g.lane === lane && g.b > s0 - STEP && g.a < s1 + STEP);
   const ex = eye.x, ey = eye.y;
   for (let k = 0; k <= n; k++) {
@@ -101,14 +104,50 @@ export const drawSteel = (c: Ctx, state: GameState, t: Tragons, eye: { x: number
     pts.bx[k] = ex + (q.x - ex) * df + nx * (off - side); pts.by[k] = ey + (q.y - ey) * df + ny * (off - side);
     pts.sx[k] = mx + nx * (off + 9 * q.d * cr); pts.sy[k] = my + ny * (off + 9 * q.d * cr);
     const s = s0 + k * STEP;
-    pts.gone[k] = gaps.some(g => s >= g.a && s < g.b);
+    pts.gone[k] = gaps.some(g => s >= g.a && s < g.b) || (t.phase !== 'done' && fadeIn(s) >= 1);
   }
   const mid = Math.floor(n / 2), dm = pts.d[mid];
   pts.flip = Math.cos(raw[mid + 1].roll) >= 0 ? 1 : -1;
 
+  // THE MOUNTAIN (the user's: "the entryways into the fake mountain should look like a natural transition"): through it
+  // the track runs in a bore cut into the mountain's rock, the rock above it (rising to a ragged ridge toward the
+  // middle: the slope going on up) and under it, at the track's own depth (so it sorts with the trains like the track).
+  // In from each mouth the bore goes dark in steps (dithered where they meet) over the first stretch, the track fading
+  // into it; past that it's black (the dragons' lamps light them: art.ts drawDark), no track to see; the same, the
+  // other way, toward the way out. At each mouth the rock face: a ragged edge, an overhang over the opening, snow and
+  // ferns along its lip (drawn last, over the track going in).
+  const inMtn = t.phase !== 'done' && s1 > TUNNEL.a && s0 < TUNNEL.b;
+  const fadeAt = fadeIn;
+  const steps = (u: number) => Math.min(1, Math.ceil(u * 5 - 1e-6) / 5);
+  if (inMtn) {
+    const Rk = ['#2A2030', '#3A2E3E', '#4E3E50', '#665464', '#7E6C7A', '#9A8894'].map(col => fog(dimmed(col), dm));
+    for (let k = 0; k < n; k++) {
+      const sa = s0 + k * STEP, sb = sa + STEP;
+      if (sb < TUNNEL.a || sa > TUNNEL.b) continue;
+      const d = pts.d[k], u = steps(fadeAt(sa + STEP / 2));
+      const xa = pts.mx[k], ya = pts.my[k], xb = pts.mx[k + 1], yb = pts.my[k + 1];
+      // (the ridge over it: low at the mouths, up toward the middle, ragged)
+      const ridge = (s: number) => (150 + 230 * Math.min(1, fadeAt(s) * 1.6)) + ((Math.floor(s / STEP) * 37) % 23) - 11;
+      // (the three bores run together into one cavity: the rock over it is the top track's, under it the bottom's)
+      const top = lane === 0, bottom = lane === 2;
+      const ta = ya - (top ? ridge(sa) : 120) * d, tb = yb - (top ? ridge(sb) : 120) * pts.d[k + 1], bot = bottom ? 96 : 62;
+      polyF(c, [[xa - 1, ta], [xb + 1, tb], [xb + 1, yb + bot * d], [xa - 1, ya + bot * d]], Rk[2]);
+      if (top) {
+        box(c, Math.min(xa, xb) - 1, Math.min(ta, tb), Math.abs(xb - xa) + 2, 3 * d, Rk[4]);
+        if ((Math.floor(sa / STEP) % 5) === 0) box(c, xa, ta + 14 * d, 18 * d, 3 * d, Rk[3]);
+      }
+      if (bottom && (Math.floor(sa / STEP) % 7) === 3) box(c, xa, yb + 70 * d, 14 * d, 3 * d, Rk[1]);
+      // (the bore: in shadow at the mouth, darker in steps going in)
+      c.fillStyle = '#0B0612'; c.globalAlpha = 0.45 + 0.55 * u;
+      polyF(c, [[xa - 1, ya - 120 * d], [xb + 1, yb - 120 * d], [xb + 1, yb + 62 * d], [xa - 1, ya + 62 * d]], '#0B0612');
+      c.globalAlpha = 1;
+      if (top) box(c, Math.min(xa, xb) - 1, Math.min(ya, yb) - 122 * d, Math.abs(xb - xa) + 2, 2 * d, Rk[0]);
+    }
+  }
+
   // The supports: every 420 of track, down to the park at their depth (none under a hole or a loop)
   for (let s = Math.ceil(s0 / 420) * 420; s < s1; s += 420) {
-    if (gaps.some(g => s >= g.a - 40 && s < g.b + 40) || spinAt(t.spins, lane, s)) continue;
+    if (gaps.some(g => s >= g.a - 40 && s < g.b + 40) || spinAt(t.spins, lane, s) || (t.phase !== 'done' && s > TUNNEL.a - 60 && s < TUNNEL.b + 60)) continue;
     const k = Math.max(0, Math.min(n, Math.round((s - s0) / STEP)));
     const d = pts.d[k], gy = ey + (GY - ey) * d;
     if (pts.sy[k] > gy - 8) continue;
@@ -152,6 +191,17 @@ export const drawSteel = (c: Ctx, state: GameState, t: Tragons, eye: { x: number
     if (night) for (const k of run) if ((s0 / STEP + k) % 8 === 0) { box(c, pts.sx[k] - 1.5 * dm, pts.sy[k] - 1.5 * dm, 3 * dm, 3 * dm, light); c.globalAlpha = 0.25; box(c, pts.sx[k] - 4 * dm, pts.sy[k] - 4 * dm, 8 * dm, 8 * dm, light); c.globalAlpha = 1; }
   }
   c.lineCap = 'butt'; c.lineJoin = 'miter';
+  // (going into the mountain: the track going dark in steps with the bore; dithered where a step meets the next)
+  if (inMtn) for (let k = 0; k < n; k++) {
+    const sa = s0 + k * STEP, u = steps(fadeAt(sa + STEP / 2));
+    if (u <= 0 || u >= 1) continue;
+    const d = pts.d[k], xa = pts.mx[k], ya = pts.my[k], xb = pts.mx[k + 1], yb = pts.my[k + 1];
+    c.globalAlpha = u * 0.85;
+    polyF(c, [[xa - 0.5, ya - 4 * d], [xb + 0.5, yb - 4 * d], [xb + 0.5, yb + 62 * d], [xa - 0.5, ya + 62 * d]], '#0B0612');
+    c.globalAlpha = 1;
+    const un = steps(fadeAt(sa + STEP * 1.5));
+    if (un !== u) checker(c, Math.min(xa, xb), Math.min(ya, yb), Math.max(2, Math.abs(xb - xa)), 62 * d, '#0B0612', 0, 2);
+  }
 
   // The broken ends: the spine torn and bent down, the rails curled off it, bolts out, sparking
   for (const g of gaps) for (const [s, dir] of [[g.a, 1], [g.b, -1]] as [number, number][]) {
@@ -171,20 +221,46 @@ export const drawSteel = (c: Ctx, state: GameState, t: Tragons, eye: { x: number
     if (f % 10 < 4) for (let b = 0; b < 4; b++) box(c, x + dir * (10 + ((f * 3 + b * 7) % 14)) * d, y + (16 + ((f + b * 5) % 12)) * d, 2, 2, b % 2 ? '#FFFFFF' : '#FDE047');
   }
 
-  // The mountain's tunnel mouths: rockwork portals round the dark the track goes into
-  for (const s of [TUNNEL.a, TUNNEL.b]) {
+  // The mountain's mouths: the rock face the bore's cut into (its ragged edge going up into the slope and down under
+  // the track, an overhang over the opening throwing its shadow in, snow along the lip, ferns hanging off it), lit up
+  // and to the left, at the track's depth
+  for (const [s, side] of [[TUNNEL.a, -1], [TUNNEL.b, 1]] as const) {
     if (s < s0 || s >= s1 || t.phase === 'done') continue;
     const k = Math.max(0, Math.min(n, Math.round((s - s0) / STEP))), x = pts.mx[k], y = pts.my[k], d = pts.d[k];
-    const R = ['#3A2E36', '#5A4A54', '#7A6A72', '#9A8A90'].map(col => fog(col, d));
-    c.fillStyle = INK; c.beginPath(); c.ellipse(x, y - 24 * d, 74 * d, 116 * d, 0, Math.PI, 0); c.lineTo(x + 74 * d, y + 70 * d); c.lineTo(x - 74 * d, y + 70 * d); c.fill();
-    c.fillStyle = R[1]; c.beginPath(); c.ellipse(x, y - 24 * d, 72 * d, 114 * d, 0, Math.PI, 0); c.lineTo(x + 72 * d, y + 68 * d); c.lineTo(x - 72 * d, y + 68 * d); c.fill();
-    // (the rockwork: stepped boulders round the arch, lit up and left)
-    for (let b = 0; b < 9; b++) {
-      const a = Math.PI + (b / 8) * Math.PI, bx = x + Math.cos(a) * 64 * d, by = y - 24 * d + Math.sin(a) * 104 * d;
-      c.fillStyle = R[b % 2 ? 2 : 1]; c.beginPath(); c.ellipse(bx, by, 14 * d, 11 * d, 0, 0, Math.PI * 2); c.fill();
-      box(c, bx - 8 * d, by - 8 * d, 7 * d, 2 * d, R[3]);
+    const R = ['#2A2030', '#3A2E3E', '#4E3E50', '#665464', '#7E6C7A', '#9A8894'].map(col => fog(dimmed(col), d));
+    const Sn = ['#C8D4EC', '#E8EEF8', '#FFFFFF'].map(col => fog(col, d)), Fn = ['#1E4A2A', '#2E6A3A', '#4A8A4A'].map(col => fog(dimmed(col), d));
+    // (the face: from the ridge down past the bore to under the track, ragged, standing out a little from the bore)
+    const o = side * 1, ex = x + o * 4 * d;
+    // (above the opening and below it: the bore's left open between, its edge in shadow)
+    const top: [number, number][] = [[ex - o * 8 * d, y - 176 * d], [ex + o * 26 * d, y - 168 * d], [ex + o * 18 * d, y - 148 * d], [ex + o * 34 * d, y - 128 * d], [ex + o * 14 * d, y - 118 * d], [ex - o * 8 * d, y - 120 * d]];
+    const bot: [number, number][] = [[ex - o * 8 * d, y + 62 * d], [ex + o * 20 * d, y + 64 * d], [ex + o * 32 * d, y + 80 * d], [ex + o * 24 * d, y + 102 * d], [ex - o * 8 * d, y + 104 * d]];
+    // (the bore's edge in shadow down the inside of the face)
+    c.globalAlpha = 0.5; polyF(c, [[ex - o * 8 * d, y - 118 * d], [ex - o * 22 * d, y - 118 * d], [ex - o * 22 * d, y + 62 * d], [ex - o * 8 * d, y + 62 * d]], '#0B0612'); c.globalAlpha = 1;
+    // (the three bores are one opening: the face over it is the top track's, under it the bottom's)
+    if (lane === 2) {
+      polyF(c, bot.map(([px, py]) => [px + o * 2, py + 1] as [number, number]), INK); polyF(c, bot, R[3]);
+      polyF(c, [bot[0], bot[1], [ex + o * 10 * d, y + 74 * d]], R[4]);
+      box(c, Math.min(ex, ex + o * 30 * d), y + 96 * d, 30 * d, 4 * d, Sn[0]);
     }
-    c.fillStyle = '#0B0612'; c.beginPath(); c.ellipse(x, y - 20 * d, 52 * d, 96 * d, 0, Math.PI, 0); c.lineTo(x + 52 * d, y + 64 * d); c.lineTo(x - 52 * d, y + 64 * d); c.fill();
-    c.fillStyle = '#1A1020'; c.beginPath(); c.ellipse(x, y - 20 * d, 52 * d, 96 * d, 0, Math.PI, Math.PI * 1.25); c.lineTo(x - 52 * d, y + 64 * d); c.fill();
+    if (lane !== 0) continue;
+    polyF(c, top.map(([px, py]) => [px + o * 2, py + 1] as [number, number]), INK); polyF(c, top, R[3]);
+    polyF(c, [top[0], top[1], top[2], [ex, y - 136 * d]], R[4]);
+    box(c, Math.min(ex - o * 8 * d, ex + o * 14 * d), y - 120 * d, 22 * d, 3 * d, R[1]);
+    // (the overhang over the opening: a lip of rock jutting out from the face over the track going in, its shadow down
+    // over the mouth)
+    const L = ex + o * 30 * d;
+    polyF(c, [[L, y - 128 * d], [L + o * 40 * d, y - 134 * d], [L + o * 70 * d, y - 124 * d], [L + o * 46 * d, y - 114 * d], [L, y - 108 * d]], INK);
+    polyF(c, [[L, y - 126 * d], [L + o * 40 * d, y - 132 * d], [L + o * 66 * d, y - 123 * d], [L + o * 44 * d, y - 116 * d], [L, y - 110 * d]], R[3]);
+    box(c, Math.min(L, L + o * 60 * d), y - 132 * d, 60 * d, 2 * d, R[5]);
+    c.globalAlpha = 0.35; polyF(c, [[L, y - 110 * d], [L + o * 44 * d, y - 115 * d], [L + o * 30 * d, y - 80 * d], [ex, y - 60 * d]], '#0B0612'); c.globalAlpha = 1;
+    // (snow along the top of the lip and the face, a drift; ferns hanging off the lip)
+    polyF(c, [[L, y - 133 * d], [L + o * 40 * d, y - 139 * d], [L + o * 66 * d, y - 128 * d], [L + o * 40 * d, y - 133 * d]], Sn[1]);
+    polyF(c, [[ex - o * 6 * d, y - 174 * d], [ex + o * 26 * d, y - 168 * d], [ex + o * 30 * d, y - 160 * d], [ex, y - 164 * d]], Sn[2]);
+    box(c, Math.min(L, L + o * 36 * d), y - 138 * d, 36 * d, 1, Sn[2]);
+    for (let f = 0; f < 5; f++) {
+      const fx = L + o * (6 + f * 12) * d, fy = y - 114 * d + (f % 2) * 3 * d, len = (10 + (f * 5) % 9) * d;
+      c.strokeStyle = Fn[f % 2]; c.lineWidth = Math.max(1, 2 * d); c.beginPath(); c.moveTo(fx, fy); c.quadraticCurveTo(fx - o * 4 * d, fy + len * 0.6, fx + o * 2 * d, fy + len); c.stroke();
+      box(c, fx + o * 2 * d - d, fy + len * 0.5, 2 * d, 2 * d, Fn[2]);
+    }
   }
 };

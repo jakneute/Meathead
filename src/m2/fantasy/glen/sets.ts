@@ -31,6 +31,7 @@ import type { GameState } from '../../../m1/game/core/state';
 import type { Light } from '../../../m1/game/render/lighting';
 import { timeOfDay, skyAt } from '../../timeOfDay';
 import { signText } from '../../signLetters';
+import { paintedOn } from '../kit';
 import { hazeBands, pixelBlob } from '../../intro/art/kit';
 import {
   type Ctx, type View, INK, box, mix, hash, checker, onScreen, gilt, at, still, stillAt, seen, polyF, sideBack, topBack, slab, postR, ballR,
@@ -703,7 +704,10 @@ const drawCrowd = (c: Ctx, v: View) => {
     for (let x = 0; x < w; x += 40) { g.strokeStyle = INK; g.lineWidth = 4; g.beginPath(); g.moveTo(x, -32); g.quadraticCurveTo(x + 20, -22, x + 40, -32); g.stroke(); g.strokeStyle = Vel[3]; g.lineWidth = 2; g.stroke(); }
   });
 };
-const HEADS: [number, string, 'fire' | 'ice' | 'bolt'][] = [[-160, '#C42828', 'fire'], [10, '#3A9AD8', 'ice'], [180, '#E0B020', 'bolt']];
+const HEADS: [number, string, 'fire' | 'ice' | 'bolt'][] = [[-150, '#C42828', 'fire'], [0, '#3A9AD8', 'ice'], [150, '#E0B020', 'bolt']];
+/** The facade's middle (the marquee's, the heads'): left of the door, so the whole of it's in the picture at the glen's
+ *  end (the camera stops at X(14000)); the marquee's width and its middle's height; the heads' height (off the ground). */
+const FACADE_C = 13780, MQ_W = 426, MQ_Y = -352, HEAD_Y = -252;
 export const paintHead = (g: Ctx, col: string, kind: 'fire' | 'ice' | 'bolt') => {
   const R = D(col), Hn = D('#F2EAD0'), M = D('#2A1A1A');
   // (a sculpted dragon's head out over the door, facing right: its snout, a jaw open, horns back, the brow, scales)
@@ -741,16 +745,36 @@ const drawRide = (c: Ctx, state: GameState, v: View) => {
     for (let k = 0; k < 4; k++) box(g, -10, -RIDE_TOP - 80 + k * 60, 20, 30, INK), box(g, -8, -RIDE_TOP - 78 + k * 60, 16, 26, G[3 + (k % 2)]);
     // (arrow slits, lit)
     for (let x = 80; x < w - 20; x += 120) for (const y of [-RIDE_TOP + 40, -RIDE_TOP + 110]) { box(g, x - 4, y, 8, 26, INK); box(g, x - 2, y + 2, 4, 22, G[3]); }
-    // (the banners between the heads: fire red, ice blue, lightning yellow, each its emblem)
-    const d = X(QUEUE.door) - a;
-    for (const [ox, col] of [[-80, '#B01C24'], [96, '#1E5AA8'], [270, '#C89A10']] as const) {
-      const Bn = rampH(ramp6(col), true), bx = d + ox - 22;
-      box(g, bx - 4, -RIDE_TOP + 4, 52, 4, Gd[3]);
-      box(g, bx - 1, -RIDE_TOP + 8, 46, 170, INK); box(g, bx, -RIDE_TOP + 8, 44, 168, Bn[3]); box(g, bx, -RIDE_TOP + 8, 8, 168, Bn[4]); box(g, bx + 36, -RIDE_TOP + 8, 8, 168, Bn[2]);
-      polyF(g, [[bx, -RIDE_TOP + 176], [bx + 22, -RIDE_TOP + 160], [bx + 44, -RIDE_TOP + 176], [bx + 44, -RIDE_TOP + 190], [bx + 22, -RIDE_TOP + 174], [bx, -RIDE_TOP + 190]], Bn[3]);
-      box(g, bx + 4, -RIDE_TOP + 12, 2, 160, Gd[3]); box(g, bx + 38, -RIDE_TOP + 12, 2, 160, Gd[3]);
-      ballR(g, bx + 22, -RIDE_TOP + 70, 10, Gd);
+    // (the banners under the marquee, between the heads: fire red, ice blue, lightning yellow, each its emblem)
+    const d = X(QUEUE.door) - a, C = X(FACADE_C) - a;
+    for (const [ox, col] of [[-75, '#B01C24'], [75, '#1E5AA8']] as const) {
+      const Bn = rampH(ramp6(col), true), bx = C + ox - 22, bt = MQ_Y + 34;
+      box(g, bx - 4, bt - 4, 52, 4, Gd[3]);
+      box(g, bx - 1, bt, 46, 150, INK); box(g, bx, bt, 44, 148, Bn[3]); box(g, bx, bt, 8, 148, Bn[4]); box(g, bx + 36, bt, 8, 148, Bn[2]);
+      polyF(g, [[bx, bt + 148], [bx + 22, bt + 134], [bx + 44, bt + 148], [bx + 44, bt + 162], [bx + 22, bt + 148], [bx, bt + 162]], Bn[3]);
+      box(g, bx + 4, bt + 4, 2, 140, Gd[3]); box(g, bx + 38, bt + 4, 2, 140, Gd[3]);
+      ballR(g, bx + 22, bt + 110, 9, Gd);
     }
+    // (the warning board on the wall: red enamel in a gilt frame, painted on; under it the queue's start)
+    const wb = X(13585) - a, wt = -146;
+    box(g, wb - 2, wt, 152, 92, INK); box(g, wb - 1, wt + 1, 150, 90, Gd[2]); box(g, wb + 3, wt + 5, 142, 82, rampH(ramp6('#9B1C1C'), true)[3]); box(g, wb + 3, wt + 5, 142, 3, rampH(ramp6('#9B1C1C'), true)[5]);
+    for (const [x, y] of [[wb + 5, wt + 7], [wb + 141, wt + 7], [wb + 5, wt + 83], [wb + 141, wt + 83]]) box(g, x, y, 2, 2, Gd[5]);
+    signText(g, 'WARNING', wb + 74, wt + 22, paintedOn(2, '#FDE68A'));
+    signText(g, 'LOOPS. CORKSCREWS.', wb + 74, wt + 40, paintedOn(1));
+    signText(g, 'MISSING TRACK.', wb + 74, wt + 52, paintedOn(1));
+    signText(g, 'NO FIREARMS. NO SEATS.', wb + 74, wt + 64, paintedOn(1));
+    signText(g, 'RIDE AT OWN RISK', wb + 74, wt + 78, paintedOn(1, '#FDE68A'));
+    // (YOU MUST BE THIS TALL: a carved post, a dragon's claw out at the line, its board over it)
+    const hb = X(13790) - a, Wd = rampH(ramp6('#6A4428'), true), Cl = rampH(ramp6('#C42828'), true);
+    postR(g, hb, -170, 0, 10, Wd);
+    for (let y = -160; y < 0; y += 20) box(g, hb - 5, y, 10, 1, Wd[1]);
+    polyF(g, [[hb + 4, -122], [hb + 46, -128], [hb + 50, -118], [hb + 4, -112]], INK); polyF(g, [[hb + 5, -121], [hb + 45, -126], [hb + 48, -119], [hb + 5, -113]], Cl[3]); box(g, hb + 6, -121, 38, 2, Cl[4]);
+    for (let k = 0; k < 3; k++) polyF(g, [[hb + 36 + k * 5, -118], [hb + 40 + k * 5, -118], [hb + 38 + k * 5, -108]], rampH(ramp6('#F2EAD0'), true)[4]);
+    box(g, hb - 40, -194, 80, 40, INK); box(g, hb - 39, -193, 78, 38, Gd[2]); box(g, hb - 36, -190, 72, 32, rampH(ramp6('#1E3A6E'), true)[3]);
+    signText(g, 'YOU MUST BE', hb, -178, paintedOn(1)); signText(g, 'THIS TALL', hb, -166, paintedOn(1, '#FDE68A'));
+    // (the queue's rails along the front: brass posts, velvet ropes)
+    for (let x = 24; x <= d - 70; x += 36) { box(g, x - 3, -40, 6, 40, INK); box(g, x - 2, -39, 4, 39, Gd[3]); box(g, x - 2, -39, 1, 39, Gd[5]); ballR(g, x, -42, 3, Gd); box(g, x - 5, -3, 10, 3, Gd[2]); }
+    for (let x = 24; x < d - 70 - 30; x += 36) { g.strokeStyle = INK; g.lineWidth = 4; g.beginPath(); g.moveTo(x, -34); g.quadraticCurveTo(x + 18, -24, x + 36, -34); g.stroke(); g.strokeStyle = rampH(ramp6('#8A1A4A'), true)[3]; g.lineWidth = 2; g.stroke(); }
     // (the door: an iron-studded arch, the portcullis up, the dark way in)
     g.fillStyle = INK; g.beginPath(); g.moveTo(d - 56, 0); g.lineTo(d - 56, -116); g.quadraticCurveTo(d + 10, -172, d + 76, -116); g.lineTo(d + 76, 0); g.closePath(); g.fill();
     g.fillStyle = Sd[4]; g.beginPath(); g.moveTo(d - 54, 0); g.lineTo(d - 54, -116); g.quadraticCurveTo(d + 10, -168, d + 74, -116); g.lineTo(d + 74, 0); g.lineTo(d + 64, 0); g.lineTo(d + 64, -110); g.quadraticCurveTo(d + 10, -156, d - 44, -110); g.lineTo(d - 44, 0); g.closePath(); g.fill();
@@ -760,18 +784,40 @@ const drawRide = (c: Ctx, state: GameState, v: View) => {
     // (the PA horn over the door: Piper calls trial two out of it)
     polyF(g, [[d + 4, -182], [d + 38, -200], [d + 38, -162]], INK); polyF(g, [[d + 6, -182], [d + 36, -197], [d + 36, -165]], rampH(ramp6('#F472B6'), true)[3]); polyF(g, [[d + 6, -182], [d + 36, -197], [d + 36, -190]], rampH(ramp6('#F472B6'), true)[5]);
     box(g, d - 2, -188, 8, 12, Ir[2]);
-    // (the three dragon heads)
-    for (const [ox, col, kind] of HEADS) { g.save(); g.translate(d + ox, -250); paintHead(g, col, kind); g.restore(); }
-    // (the name, fixed across the front on its board, in gilt)
-    const sx = d + 10, sy = -330;
-    box(g, sx - 222, sy - 24, 444, 48, INK); box(g, sx - 220, sy - 22, 440, 44, rampH(ramp6('#3B0764'), true)[3]); box(g, sx - 220, sy - 22, 440, 3, Gd[3]); box(g, sx - 220, sy + 19, 440, 3, Gd[2]);
-    for (const x of [sx - 214, sx + 210]) ballR(g, x, sy, 3, Gd);
-    signText(g, 'TRUELLING TRAGONS', sx, sy + 9, gilt(3));
+    // THE MARQUEE (the user's: the full title readable as he comes up): kept inside what the camera shows at the end of
+    // the glen (its right edge is the glen's: X(14000)), under the HUD band: a crest over it with the three tracks'
+    // pennants, a gilt frame in steps, the velvet field, the full name big in gilt, its tag line; the bulbs round it
+    // live (below)
+    const Vt = rampH(ramp6('#4A1478'), true), mw = MQ_W, x0 = C - mw / 2, y0 = MQ_Y - 30, h = 60;
+    polyF(g, [[C - 120, y0 + 2], [C - 50, y0 - 30], [C, y0 - 58], [C + 50, y0 - 30], [C + 120, y0 + 2]], INK);
+    polyF(g, [[C - 114, y0 + 1], [C - 48, y0 - 27], [C, y0 - 53], [C + 48, y0 - 27], [C + 114, y0 + 1]], rampH(ramp6('#24083C'), true)[2]);
+    polyF(g, [[C - 114, y0 + 1], [C - 48, y0 - 27], [C, y0 - 53], [C - 4, y0 + 1]], rampH(ramp6('#24083C'), true)[3]);
+    for (const s of [-1, 1]) { g.strokeStyle = Gd[3]; g.lineWidth = 2; g.beginPath(); g.moveTo(s * 114 + C, y0); g.lineTo(s * 48 + C, y0 - 27); g.lineTo(C, y0 - 53); g.stroke(); }
+    ballR(g, C, y0 - 60, 5, Gd);
+    // (the crest's emblem: three dragons' eyes in a gilt roundel, red, blue and gold)
+    g.fillStyle = INK; g.beginPath(); g.arc(C, y0 - 20, 17, 0, Math.PI * 2); g.fill(); g.fillStyle = Gd[3]; g.beginPath(); g.arc(C, y0 - 20, 15, 0, Math.PI * 2); g.fill();
+    g.fillStyle = '#1A1028'; g.beginPath(); g.arc(C, y0 - 20, 11, 0, Math.PI * 2); g.fill();
+    ([[-5, -23, '#DC2626'], [5, -23, '#38BDF8'], [0, -15, '#FACC15']] as const).forEach(([ex, ey, col]) => { box(g, C + ex - 2, y0 + ey - 1, 4, 3, col); box(g, C + ex - 1, y0 + ey - 1, 1, 1, '#FFFFFF'); });
+    ([[-90, '#C42828'], [0, '#3A8ED8'], [90, '#E2B21E']] as const).forEach(([px, col], i) => { const P = rampH(ramp6(col), true), py = y0 - (i === 1 ? 70 : 34); box(g, C + px, py - 18, 1, 18, Ir[3]); polyF(g, [[C + px + 1, py - 18], [C + px + 14, py - 14], [C + px + 1, py - 10]], P[3]); });
+    box(g, x0 - 3, y0 - 3, mw + 6, h + 6, INK);
+    box(g, x0 - 2, y0 - 2, mw + 4, h + 4, Gd[1]); box(g, x0, y0, mw, h, Gd[3]); box(g, x0, y0, mw, 2, Gd[5]); box(g, x0, y0 + h - 2, mw, 2, Gd[1]);
+    box(g, x0 + 6, y0 + 6, mw - 12, h - 12, INK); box(g, x0 + 7, y0 + 7, mw - 14, h - 14, Vt[2]);
+    for (let y = y0 + 9; y < y0 + h - 9; y += 6) box(g, x0 + 7, y, mw - 14, 2, Vt[((y - y0) / 6) % 2 ? 3 : 2]);
+    box(g, x0 + 7, y0 + 7, mw - 14, 3, Vt[4]); box(g, x0 + 7, y0 + h - 11, mw - 14, 4, Vt[1]);
+    signText(g, 'TRUELLING TRAGONS', C, y0 + 36, gilt(3));
+    signText(g, 'THREE DRAGONS. ONE SURVIVOR.', C, y0 + 50, gilt(1));
+    // (the three dragon heads, sculpted big, out over the way in under the marquee)
+    for (const [ox, col, kind] of HEADS) { g.save(); g.translate(C + ox, HEAD_Y); g.scale(1.4, 1.4); paintHead(g, col, kind); g.restore(); }
   });
+  // (the marquee's bulbs, live: chasing round it, brighter after dark)
+  const f = state.frame, C = X(FACADE_C), on = lit();
+  for (let k = 0, n = Math.floor(MQ_W / 18); k <= n; k++) {
+    const hot = (k + (f >> 3)) % 3 === 0, col = hot ? (on ? '#FFF8D8' : '#FFE9A8') : on ? '#F0A83E' : '#B08848', bx = C - MQ_W / 2 + (k * MQ_W) / n;
+    box(c, bx - 1.5, GY + MQ_Y - 35, 3, 3, col); box(c, bx - 1.5, GY + MQ_Y + 32, 3, 3, col);
+  }
   // (their breath (live): fire flickering, ice glittering, lightning sparking)
-  const f = state.frame, d = X(QUEUE.door);
   for (const [ox, , kind] of HEADS) {
-    const mx = d + ox + 58, my = GY - 250 + 8;
+    const mx = C + ox + 80, my = GY + HEAD_Y + 11;
     if (kind === 'fire') for (let k = 0; k < 4; k++) { const fx = mx + k * 8, fy = my - 4 + ((f + k * 3) % 6) - 3; box(c, fx, fy, 8 - k, 6 - (k >> 1), ['#FDE047', '#F97316', '#DC2626', '#7A1A1A'][(Math.floor(f / 4) + k) % 4]); }
     if (kind === 'ice') for (let k = 0; k < 5; k++) { box(c, mx + k * 7, my + 6 + ((f * 0.5 + k * 7) % 14), 2, 2, '#E0F2FE'); if ((f + k * 9) % 30 < 4) { box(c, mx + k * 7 - 1, my - 2, 4, 1, '#FFFFFF'); box(c, mx + k * 7, my - 3, 1, 3, '#FFFFFF'); } }
     if (kind === 'bolt' && f % 40 < 8) { c.strokeStyle = '#FEF08A'; c.lineWidth = 2; c.beginPath(); c.moveTo(mx, my); c.lineTo(mx + 10, my + 8); c.lineTo(mx + 4, my + 12); c.lineTo(mx + 18, my + 22); c.stroke(); c.strokeStyle = '#FFFFFF'; c.lineWidth = 1; c.stroke(); }
@@ -893,7 +939,7 @@ export const setLamps = (state: GameState, v: View): Light[] => {
   { const [x, y] = p(X(8080) + 30, GY - 330, HEAD_D); add(x, y, 90, 0.45); }
   for (let k = 0; X(LAIR.a - 80) + k * BAY < X(LAIR.b + 80); k += 2) { const [x, y] = p(torchOf(k)[0], torchOf(k)[1], LAIR_D); add(x, y, 130, 0.6, '#FFB060'); }
   add(X(QUEUE.door) + 10, GY - 80, 130, 0.5, '#F0ABFC');
-  add(X(QUEUE.door) - 160 + 58, GY - 242, 80, 0.4, '#FF8A3A');
+  add(X(FACADE_C) - 150 + 80, GY + HEAD_Y + 11, 80, 0.4, '#FF8A3A');
   { const [x, y] = p(X(RAINBOW.x), GY - RAINBOW.r * 0.8, 0.66); if (lit()) add(x, y, 220, 0.3, '#FFE0F0'); }
   if (onScreen(state, X(CLIFF.a), X(CLIFF.b))) add(X(CLIFF.a) + 80, GY - 14, 50, 0.4, '#F2D24A');
   return out;

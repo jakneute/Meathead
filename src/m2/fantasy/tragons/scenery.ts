@@ -19,13 +19,14 @@ import type { GameState } from '../../../m1/game/core/state';
 import { timeOfDay } from '../../timeOfDay';
 import { lookOf } from '../../adventure/temple/people';
 import {
-  INK, box, hash, checker, still, ramp6, rampH, dimmed, warmGlass, lit, polyF, ballR, postR, slab,
+  INK, box, hash, checker, ramp6, rampH, dimmed, warmGlass, lit, polyF, ballR, postR, slab,
   PLASTER, TIMBER, SLATE, SNOW, GOLD, IRON, PINE, FLAG, type Ctx,
 } from '../kit';
 import { farPine } from '../square/far';
 import { S0X, RX, TL, END_S, STATION_X, GATE_X, EXIT_X, DECK_X0, LAGOON, TUNNEL } from './layout';
 import type { Tragons } from './state';
 import { viewBox, parkX, scrollOf, fog, groundAt } from './scene';
+import { banded } from './cache';
 import type { Eye } from './track';
 
 const D = (col: string) => rampH(ramp6(col), true);
@@ -323,7 +324,7 @@ const skip = (t: Tragons, P: number, w: number) => {
 
 /** The props on screen, each with its depth and how to draw it (art.ts sorts them in with the tracks). */
 export const sceneryItems = (c: Ctx, state: GameState, t: Tragons, e: Eye): { d: number; draw: () => void }[] => {
-  const v = viewBox(state), out: { d: number; draw: () => void }[] = [], f = state.frame, sc = scrollOf(t);
+  const v = viewBox(state), out: { d: number; draw: () => void }[] = [], f = state.frame, sc = scrollOf(t), tod = timeOfDay().key;
   for (const row of ROWS) {
     const d = row.d, gy = groundAt(e, d);
     if (gy - 260 * d > v.y + v.h + 40 || gy < v.y - 40) continue;
@@ -340,7 +341,7 @@ export const sceneryItems = (c: Ctx, state: GameState, t: Tragons, e: Eye): { d:
       const up = kind === 'crowd' ? (((f >> 4) + seed) & 1) === 1 : false;
       out.push({ d, draw: () => {
         c.save(); c.translate(x, gy); c.scale(d, d);
-        still(c, `tg-${kind}-${seed % 12}-${up ? 1 : 0}`, 0, 0, -sz.w / 2 - 70, -sz.h - 60, sz.w + 140, sz.h + 64, g => paintProp(g, kind, seed % 12, up));
+        banded(c, `tg-${kind}-${seed % 12}-${up ? 1 : 0}-${tod}`, -sz.w / 2 - 70, -sz.h - 60, sz.w + 140, sz.h + 64, g => paintProp(g, kind, seed % 12, up));
         c.restore();
       } });
     }

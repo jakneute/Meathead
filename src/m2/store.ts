@@ -55,6 +55,10 @@ export interface M2Ui {
    *  requestCarHop; and the ride's controls card (the first time, till he's hopped). */
   carHops?: boolean;
   tragonTips?: boolean;
+  /** (Truelling Tragons) Over each dragon he's not on, the hop button that takes him there (the user's), by lane:
+   *  'up', 'down', 'both' or '' (none), joined with '|'; null: none shown (can't hop now). Where each sits on screen is
+   *  tragonMarkAt, moved every frame without a re-render (TragonMarks.tsx reads it on its own frame loop). */
+  tragonMarks?: string | null;
   /** (Truelling Tragons) The loop card: what's coming (or on now) on which track(s), their colors, whether his is one
    *  of them, locked in it now (HOLD!), the first one's teaching, his grip slipping. */
   tragonHold?: { kind: string; lanes: string[]; cols: string[]; mine: boolean; now: boolean; teach: boolean; slip: boolean } | null;
@@ -82,6 +86,8 @@ export type PauseCardId = 'bike' | 'heli' | 'cart' | 'tragons' | 'broom' | 'sled
 let carHop: 'up' | 'down' | null = null;
 export const requestCarHop = (dir: 'up' | 'down') => { carHop = dir; };
 export const takeCarHop = () => { const d = carHop; carHop = null; return d; };
+/** (Truelling Tragons) Where each lane's hop button sits on screen (game px), updated every frame by the ride. */
+export const tragonMarkAt: { x: number; y: number }[] = [{ x: 0, y: 0 }, { x: 0, y: 0 }, { x: 0, y: 0 }];
 
 /** A QTE's button: the face buttons by position, or left / right. */
 export type QteKey = 'A' | 'B' | 'X' | 'Y' | 'LEFT' | 'RIGHT';

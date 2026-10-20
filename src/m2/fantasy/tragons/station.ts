@@ -6,9 +6,12 @@
 //
 //   THE LOAD STATION   the three sculpted dragon heads over the hall breathing (fire, frost, sparks), the gilt name,
 //                      the guests waiting behind the velvet ropes along the back (seeded, cheering), the dispatch
-//                      booth (an operator in a headset at the console), the signs (TRUELLING TRAGONS, NO FIREARMS ON
-//                      THE DRAGONS; RIDE CLOSED on a revisit, a rope across), the gate (iron, gilt spikes) shut till it
-//                      goes. It slides off the left with the park once the trains are out.
+//                      booth (an operator in a headset at the console), THE MARQUEE hung low over the platform (the
+//                      full name read whole as he comes in, its heads and bulbs), YOU MUST BE THIS TALL, the signs
+//                      (HOLD ON IN THE LOOPS, NO FIREARMS ON THE DRAGONS; RIDE CLOSED on a revisit, a rope across),
+//                      the gate (iron, gilt spikes) shut till it goes. It slides off the left with the park once the
+//                      trains are out. Its play-plane things (and the unload's) are sorted in with the tracks (art.ts)
+//                      so no support behind them draws over them.
 //   THE UNLOAD         the decks one a lane, stepped down off the dragons' fronts (oak planks on stone piers, lit along
 //                      their tops: somewhere to stand), the hall, UNLOAD / EXIT TO THY RIGHT, the yard's flagstones,
 //                      the gate arch out to the castle's base (the castle through it), its sign.
@@ -16,9 +19,10 @@
 // The still parts (the back walls, the crowd, the booth) are painted once per hour into stamps.
 
 import type { GameState } from '../../../m1/game/core/state';
-import { signText } from '../../signLetters';
+import { signText, signW } from '../../signLetters';
+import { paintedOn } from '../kit';
 import {
-  INK, mix, box, hash, still, ramp6, rampH, dimmed, warmGlass, lit, polyF, ballR, postR, slab, gilt, storySign, sideBack,
+  INK, mix, box, hash, ramp6, rampH, dimmed, warmGlass, lit, polyF, ballR, postR, slab, gilt, storySign, sideBack,
   STONE, TIMBER, SLATE, SNOW, GOLD, IRON, FLAG, LIP, type Ctx,
 } from '../kit';
 import { paintHead } from '../glen/sets';
@@ -28,12 +32,19 @@ import { deckY } from './ride';
 import { inView, scrollOf, at } from './scene';
 import { guest, rails, lampPost, type GPose } from './scenery';
 import type { Eye } from './track';
+import { banded } from './cache';
+import { timeOfDay } from '../../timeOfDay';
 
 /** How far back the halls' back walls stand; how tall they are; the canopy's height. */
 const HALL_D = 0.84, WALL_H = 600, ROOF_H = 640;
 /** The heads' height on the wall (from its top), under the canopy where they're seen. */
 const HEAD_Y = 140;
 const D = (col: string) => rampH(ramp6(col), true);
+/** Still art for the hour (and the sign font's arrival), cached at a whole device scale (cache.ts: the ride's zoom never
+ *  repaints it). */
+const fontOk = () => (typeof document !== 'undefined' && !!document.fonts?.check('8px "Press Start 2P"') ? 'f' : 'n');
+const pic = (c: Ctx, key: string, bx: number, by: number, bw: number, bh: number, paint: (g: Ctx) => void) =>
+  banded(c, `${key}-${timeOfDay().key}-${fontOk()}`, bx, by, bw, bh, paint);
 
 // ---------------------------------------------------------------------------------------------------------------
 // A hall's back wall (local: its foot's left end at 0, 0; w wide)
@@ -137,7 +148,7 @@ export const drawStation = (c: Ctx, state: GameState, t: Tragons, e: Eye) => {
   sideBack(c, e, x0, 1, GY - WALL_H, GY, 1, HALL_D, STONE.map(dimmed), 3);
   const [wx, wy] = at(e, x0, GY, HALL_D);
   c.save(); c.translate(wx, wy); c.scale(HALL_D, HALL_D);
-  still(c, `tg-hall-load-${Math.round(w)}`, 0, 0, -80, -WALL_H - 200, w + 160, WALL_H + 204, g => paintWall(g, w, true));
+  pic(c, `tg-hall-load-${Math.round(w)}`, -80, -WALL_H - 200, w + 160, WALL_H + 204, g => paintWall(g, w, true));
   c.restore();
   // (the heads' breath, live: fire flickering, frost glittering, sparks)
   const mid = x0 + w * 0.5;
@@ -154,7 +165,7 @@ export const drawStation = (c: Ctx, state: GameState, t: Tragons, e: Eye) => {
   if (qw > 60) {
     const up = (f >> 4) & 1;
     c.save(); c.translate(qx, qy); c.scale(qd, qd);
-    still(c, `tg-hall-crowd-${Math.round(qw)}-${up}`, 0, 0, -40, -140, qw / qd + 80, 150, g => {
+    pic(c, `tg-hall-crowd-${Math.round(qw)}-${up}`, -40, -140, qw / qd + 80, 150, g => {
       const n = Math.floor(qw / qd / 30);
       for (let r = 0; r < 2; r++) for (let k = 0; k < n; k++) guest(g, 14 + k * 30 + r * 15, -r * 8, 500 + k * 5 + r * 3, (['stand', 'cheer', 'point', 'phone', 'stand'] as GPose[])[(k + r * 2) % 5], up === 1);
       rails(g, 0, qw / qd, 2);
@@ -163,7 +174,7 @@ export const drawStation = (c: Ctx, state: GameState, t: Tragons, e: Eye) => {
   }
   const bd = 0.92, [bx, by] = at(e, GATE_X - 40 - sh, GY, bd);
   c.save(); c.translate(bx, by); c.scale(bd, bd);
-  still(c, 'tg-booth', 0, 0, -60, -170, 120, 174, g => {
+  pic(c, 'tg-booth', -60, -170, 120, 174, g => {
     const Tb = TIMBER.map(dimmed), G = warmGlass();
     box(g, -40, -120, 80, 120, INK); slab(g, -39, -119, 78, 119, Tb);
     box(g, -32, -104, 64, 40, INK); box(g, -30, -102, 60, 36, G[3]); box(g, -30, -102, 60, 6, G[4]); box(g, -1, -102, 2, 36, Tb[1]);
@@ -175,7 +186,16 @@ export const drawStation = (c: Ctx, state: GameState, t: Tragons, e: Eye) => {
   // (the console's lights, live)
   for (let k = 0; k < 5; k++) box(c, bx + (-30 + k * 13) * bd, by - 56 * bd, 4 * bd, 3 * bd, (f / 8 + k) % 5 < 2 ? ['#4ADE80', '#F87171', '#FDE047', '#60A5FA', '#4ADE80'][k] : '#1A1028');
   canopy(c, state, e, x0, x1 + 140);
-  storySign(c, STATION_X + 60 - sh, GY, ['TRUELLING TRAGONS', 'THREE DRAGONS. NO SEATS.'], { tall: 170 });
+};
+
+/** The load station's play-plane things (its signs, the gate): sorted in with the tracks at the play plane (art.ts),
+ *  so no support behind them draws over them. */
+export const drawStationNear = (c: Ctx, state: GameState, t: Tragons) => {
+  const sh = scrollOf(t), x0 = STATION_X - 500 - sh, x1 = GATE_X + 60 - sh;
+  if (!inView(state, x0 - 300, x1 + 300)) return;
+  drawMarquee(c, state, S0X - 620 - sh);
+  heightBoard(c, S0X - 330 - sh);
+  storySign(c, STATION_X - 300 - sh, GY, ['HOLD ON IN THE LOOPS', 'OR FALL. ALL THE WAY.'], { warn: true, tall: 110, big: 1 });
   if (t.phase === 'done') storySign(c, S0X + 140 - sh, GY, ['RIDE CLOSED', 'TRACK DAMAGE'], { warn: true, tall: 120, big: 1 });
   else storySign(c, S0X - 150 - sh, GY, ['NO FIREARMS', 'ON THE DRAGONS'], { warn: true, tall: 120, big: 1 });
   // The gate: iron bars with gilt spikes and a crossbar, shut till the ride goes; open, swung back against its post.
@@ -192,6 +212,93 @@ export const drawStation = (c: Ctx, state: GameState, t: Tragons, e: Eye) => {
     g2rope(c, gx - 60, gx + 60, GY);
   }
 };
+
+// ---------------------------------------------------------------------------------------------------------------
+// The marquee: hung on chains from the canopy over the platform, low enough to be read whole as he comes in (under the
+// HUD band, left of the dragons): a gilt-framed velvet board, the full name big in gilt, its tag line, a gothic crest
+// with the ICE dragon's head in a roundel, the FIRE and LIGHTNING heads off its ends, the three tracks' pennants under
+// it, a chase of bulbs round the frame (live). Not to stand on: no lit top (a crest, dark).
+
+const MQ_TOP = -392, MQ_BOT = -288;
+const mqW = () => Math.max(560, signW('TRUELLING TRAGONS', gilt(3)) + 120);
+const paintMarquee = (g: Ctx, w: number) => {
+  const Gd = GOLD, I = IRON, V = D('#4A1478'), Vd = D('#24083C'), h = MQ_BOT - MQ_TOP, x0 = -w / 2;
+  // (the chains up into the canopy)
+  for (const cx of [x0 + 60, -x0 - 60]) for (let y = MQ_TOP - 300; y < MQ_TOP; y += 8) { box(g, cx - 2, y, 4, 6, INK); box(g, cx - 1, y + 1, 2, 4, Math.floor(y / 8) & 1 ? I[3] : I[4]); }
+  // (the crest: a gothic gable over the middle, the roundel in it; dark slate, gilt edged, not a ledge)
+  polyF(g, [[-150, MQ_TOP + 2], [-60, MQ_TOP - 40], [0, MQ_TOP - 76], [60, MQ_TOP - 40], [150, MQ_TOP + 2]], INK);
+  polyF(g, [[-144, MQ_TOP + 1], [-58, MQ_TOP - 37], [0, MQ_TOP - 71], [58, MQ_TOP - 37], [144, MQ_TOP + 1]], Vd[2]);
+  polyF(g, [[-144, MQ_TOP + 1], [-58, MQ_TOP - 37], [0, MQ_TOP - 71], [-6, MQ_TOP + 1]], Vd[3]);
+  for (const s of [-1, 1]) { g.strokeStyle = Gd[3]; g.lineWidth = 2; g.beginPath(); g.moveTo(s * 144, MQ_TOP); g.lineTo(s * 58, MQ_TOP - 37); g.lineTo(0, MQ_TOP - 71); g.stroke(); }
+  ballR(g, 0, MQ_TOP - 80, 6, Gd);
+  g.fillStyle = INK; g.beginPath(); g.arc(0, MQ_TOP - 26, 34, 0, Math.PI * 2); g.fill();
+  g.fillStyle = Gd[3]; g.beginPath(); g.arc(0, MQ_TOP - 26, 32, 0, Math.PI * 2); g.fill();
+  g.fillStyle = D('#1E3A6E')[2]; g.beginPath(); g.arc(0, MQ_TOP - 26, 27, 0, Math.PI * 2); g.fill();
+  g.fillStyle = D('#1E3A6E')[3]; g.beginPath(); g.arc(-4, MQ_TOP - 30, 18, 0, Math.PI * 2); g.fill();
+  g.save(); g.translate(-8, MQ_TOP - 24); g.scale(0.5, 0.5); paintHead(g, '#3A9AD8', 'ice'); g.restore();
+  // (the board: an ink edge, a gilt frame in steps, the velvet field, its nap banded, rivets)
+  box(g, x0 - 3, MQ_TOP - 3, w + 6, h + 6, INK);
+  box(g, x0 - 2, MQ_TOP - 2, w + 4, h + 4, Gd[1]); box(g, x0, MQ_TOP, w, h, Gd[3]); box(g, x0, MQ_TOP, w, 2, Gd[5]); box(g, x0, MQ_BOT - 2, w, 2, Gd[1]);
+  box(g, x0 + 7, MQ_TOP + 7, w - 14, h - 14, INK); box(g, x0 + 8, MQ_TOP + 8, w - 16, h - 16, V[2]);
+  for (let y = MQ_TOP + 10; y < MQ_BOT - 10; y += 6) box(g, x0 + 8, y, w - 16, 2, V[(y / 6) % 2 ? 3 : 2]);
+  box(g, x0 + 8, MQ_TOP + 8, w - 16, 3, V[4]); box(g, x0 + 8, MQ_BOT - 12, w - 16, 4, V[1]);
+  for (let x = x0 + 14; x < -x0 - 10; x += 32) { box(g, x, MQ_TOP + 3, 2, 2, Gd[5]); box(g, x, MQ_BOT - 5, 2, 2, Gd[0]); }
+  // (the name, big and whole, and its tag line)
+  signText(g, 'TRUELLING TRAGONS', 0, MQ_TOP + 52, gilt(3));
+  signText(g, 'THREE DRAGONS. THREE TRACKS. NO SEATS.', 0, MQ_TOP + 82, gilt(1));
+  // (the pennants of the three tracks under it, in their colors)
+  ([[-160, '#E2B21E', '#6D28D9'], [0, '#C42828', '#F97316'], [160, '#3A8ED8', '#F0F9FF']] as const).forEach(([px, col, trim]) => {
+    const P = D(col);
+    polyF(g, [[px - 22, MQ_BOT + 2], [px + 22, MQ_BOT + 2], [px + 22, MQ_BOT + 34], [px, MQ_BOT + 48], [px - 22, MQ_BOT + 34]], INK);
+    polyF(g, [[px - 20, MQ_BOT + 3], [px + 20, MQ_BOT + 3], [px + 20, MQ_BOT + 33], [px, MQ_BOT + 45], [px - 20, MQ_BOT + 33]], P[3]);
+    polyF(g, [[px - 20, MQ_BOT + 3], [px - 12, MQ_BOT + 3], [px - 12, MQ_BOT + 39], [px - 20, MQ_BOT + 33]], P[4]);
+    box(g, px - 20, MQ_BOT + 3, 40, 3, D(trim)[3]);
+    ballR(g, px, MQ_BOT + 20, 5, Gd);
+  });
+  // (the FIRE head off the left end facing out, the LIGHTNING head off the right)
+  g.save(); g.translate(x0 - 14, MQ_TOP + h / 2); g.scale(-1.3, 1.3); paintHead(g, '#C42828', 'fire'); g.restore();
+  g.save(); g.translate(-x0 + 14, MQ_TOP + h / 2); g.scale(1.3, 1.3); paintHead(g, '#E0B020', 'bolt'); g.restore();
+};
+const drawMarquee = (c: Ctx, state: GameState, cx: number) => {
+  const w = mqW(), f = state.frame;
+  c.save(); c.translate(Math.round(cx), GY);
+  pic(c, `tg-marquee-${Math.round(w)}`, -w / 2 - 110, MQ_TOP - 310, w + 220, MQ_BOT - MQ_TOP + 380, g => paintMarquee(g, w));
+  c.restore();
+  // (the chase of bulbs round the frame, live: warm by day, bright after dark)
+  const x0 = cx - w / 2, n = Math.floor(w / 20), on = lit();
+  for (let k = 0; k <= n; k++) {
+    const hot = (k + (f >> 3)) % 3 === 0, col = hot ? (on ? '#FFF8D8' : '#FFE9A8') : on ? '#F0A83E' : '#B08848';
+    box(c, x0 + k * (w / n) - 1.5, GY + MQ_TOP - 5, 3, 3, col); box(c, x0 + k * (w / n) - 1.5, GY + MQ_BOT + 2, 3, 3, col);
+  }
+  // (the heads' breath: the fire one's flicker, the lightning one's spark)
+  const fx = cx - w / 2 - 14 - 70, fy = GY + MQ_TOP + (MQ_BOT - MQ_TOP) / 2 + 12;
+  for (let k = 0; k < 4; k++) box(c, fx - k * 9, fy - 4 + (((f + k * 3) % 6) - 3), 8 - k, 6 - (k >> 1), ['#FDE047', '#F97316', '#DC2626', '#7A1A1A'][(Math.floor(f / 4) + k) % 4]);
+  if (f % 46 < 8) {
+    const lx = cx + w / 2 + 14 + 76, ly = fy;
+    c.strokeStyle = '#FEF08A'; c.lineWidth = 2; c.beginPath(); c.moveTo(lx, ly); c.lineTo(lx + 12, ly + 8); c.lineTo(lx + 5, ly + 13); c.lineTo(lx + 22, ly + 24); c.stroke(); c.strokeStyle = '#FFFFFF'; c.lineWidth = 1; c.stroke();
+  }
+};
+
+/** YOU MUST BE THIS TALL: a carved post, a dragon's claw out at the line, the board over it. */
+const heightBoard = (c: Ctx, x: number) => {
+  c.save(); c.translate(Math.round(x), GY);
+  pic(c, 'tg-tall', -70, -190, 150, 194, g => {
+    const W = D('#6A4428'), Gd = GOLD, R = D('#C42828');
+    postR(g, 0, -180, 0, 10, W);
+    for (let y = -170; y < 0; y += 20) box(g, -5, y, 10, 1, W[1]);
+    // (the claw at the line: an arm out, three talons down)
+    polyF(g, [[4, -122], [52, -128], [56, -118], [4, -112]], INK); polyF(g, [[5, -121], [51, -126], [54, -119], [5, -113]], R[3]); box(g, 6, -121, 44, 2, R[4]);
+    for (let k = 0; k < 3; k++) polyF(g, [[42 + k * 5, -118], [46 + k * 5, -118], [44 + k * 5, -108]], D('#F2EAD0')[4]);
+    box(g, 4, -112, 60, 1, '#FFFFFF');
+    // (the board: red, gilt edged, painted on)
+    box(g, -62, -192, 124, 52, INK); box(g, -61, -191, 122, 50, Gd[3]); box(g, -58, -188, 116, 44, D('#9B1C1C')[3]); box(g, -58, -188, 116, 3, D('#9B1C1C')[4]);
+    signText(g, 'YOU MUST BE', 0, -174, paintedOn(1));
+    signText(g, 'THIS TALL', 0, -162, paintedOn(1));
+    signText(g, 'TO RIDE', 0, -150, paintedOn(1, '#FDE68A'));
+  });
+  c.restore();
+};
+
 const g2rope = (c: Ctx, x0: number, x1: number, y: number) => {
   for (const x of [x0, x1]) { postR(c, x, y - 34, y, 5, GOLD); ballR(c, x, y - 37, 4, GOLD); }
   c.strokeStyle = INK; c.lineWidth = 5; c.beginPath(); c.moveTo(x0, y - 30); c.quadraticCurveTo((x0 + x1) / 2, y - 12, x1, y - 30); c.stroke(); c.strokeStyle = '#8A1A4A'; c.lineWidth = 3; c.stroke();
@@ -207,11 +314,18 @@ export const drawUnload = (c: Ctx, state: GameState, t: Tragons, e: Eye) => {
   sideBack(c, e, hx0, 1, GY - WALL_H, GY, 1, HALL_D, STONE.map(dimmed), 3);
   const [wx, wy] = at(e, hx0, GY, HALL_D);
   c.save(); c.translate(wx, wy); c.scale(HALL_D, HALL_D);
-  still(c, `tg-hall-unload-${Math.round(w)}`, 0, 0, -80, -WALL_H - 200, w + 160, WALL_H + 204, g => paintWall(g, w, false));
+  pic(c, `tg-hall-unload-${Math.round(w)}`, -80, -WALL_H - 200, w + 160, WALL_H + 204, g => paintWall(g, w, false));
   c.restore();
   // (the yard's flagstones out to the gate)
   flags(c, e, hx0, EXIT_X + off + 260);
   canopy(c, state, e, hx0, hx1);
+};
+
+/** The unload's play-plane things (the decks, its signs, the gate arch out, the lamps): sorted in with the tracks at the
+ *  play plane (art.ts), so no support behind them draws over them (the castle's sign was half behind one). */
+export const drawUnloadNear = (c: Ctx, state: GameState, t: Tragons) => {
+  const ux = wxOf(t.dist, END_S + TL) + 2, off = ux - DECK_X0;
+  if (!inView(state, ux - 400, EXIT_X + off + 400)) return;
   // The decks: oak planks on stone piers, stepped down off the dragons' fronts, lit along their tops
   const S = STONE.map(dimmed), Tb = TIMBER;
   for (const lane of LANES as Lane[]) {

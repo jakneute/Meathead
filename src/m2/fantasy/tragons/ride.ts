@@ -16,7 +16,7 @@ import { playSound } from '../../../m1/game/platform/audio';
 import { pickFreshLine, pickLine } from '../../../m1/game/platform/speech';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, HUD_CLEAR_Y } from '../../../m1/constants';
-import { setUi, takeCarHop } from '../../store';
+import { setUi, takeCarHop, tragonMarkAt } from '../../store';
 import { speak, meatheadSays, byPants, solid } from '../section';
 import { PIPER_PA_VOICE, type ByPants } from '../talk';
 import { piperLine, piperMust } from '../piperLines';
@@ -27,7 +27,7 @@ import {
 } from './layout';
 import { trackPt, proj, spinAt, type Spin } from './track';
 import { tragonsOf, type Tragons, type Train, type Obst } from './state';
-import { makeTrainBlocks, layCars, roofSpan, roofAt, carUnder, alongTrain, trainSpun, trainUnder, overTrains, trainBeyond, trainOn } from './cars';
+import { makeTrainBlocks, layCars, roofSpan, roofAt, carUnder, alongTrain, trainSpun, trainUnder, overTrains, hopTarget, trainOn } from './cars';
 import { TRACK_SRC, FLUNG_SRC, FELL_SRC, trackDeath } from './deaths';
 import { unloadSpots } from './rivals';
 import {
@@ -275,6 +275,12 @@ const updateObstacles = (ctx: FrameContext) => {
         playSound(o.lane === 0 ? 'taser' : o.lane === 1 ? 'flame' : 'glass', 0.8, 0);
       }
     }
+    // (the live rail's crackle, building as it comes and loud while the roof's live: louder on his own lane)
+    if (o.kind === 'live' && tr.phase === 'ok' && t.phase === 'ride') {
+      const ahead = o.s - (t.dist + TL), mine = hisLane(t) === o.lane ? 1 : 0.45;
+      if (ahead > 0 && ahead < 1300) { const every = 5 + Math.floor(ahead / 60); if (f % every === 0) playSound('taser', (0.12 + 0.3 * (1 - ahead / 1300)) * mine, 6); }
+      else if (ahead <= 0 && t.dist < o.s + o.len && f % 7 === 0) playSound('taser', 0.38 * mine, 2 + (f % 3));
+    }
     // The live rail: the lightning dragon's back live while it's on it (stood on it: shocked, thrown up off it)
     if (o.kind === 'live' && tr.phase === 'ok' && t.dist + TL > o.s && t.dist < o.s + o.len && pOn === tr && f - t.shockAt > 22) {
       t.shockAt = f;
@@ -397,10 +403,14 @@ export const toScreen = (state: GameState, wx: number, wy: number) => {
 };
 /** (art.ts) The depth of the dragon he's on (what's nearer than it goes over him). */
 export const hisTrainD = (state: GameState) => {
-  const t = tragonsOf(state);
+  const t = tragonsOf(state), p = state.player;
   if (t.phase !== 'dispatch' && t.phase !== 'ride') return 1;
   const tr = trainOn(t, hisLane(t));
-  return tr && tr.phase === 'ok' && tr.cars.length ? tr.cars[1].d : 1;
+  if (!tr || tr.phase !== 'ok' || !tr.cars.length) return 1;
+  // (the car he's really on: hung on in a loop, where he's held; else the one under him (on a drop the front and back
+  // cars' depths are well apart))
+  if (t.lock && !t.hop) return alongTrain(tr, t.lock.u).car.d;
+  return carUnder(tr, p.pos.x + p.width / 2).car.d;
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -586,9 +596,12 @@ export const updateRide = (ctx: FrameContext, controls: Controls): Controls => {
   if (want && t.phase === 'ride' && alive && !p.inCutscene && !t.hop && !t.lock && !t.flung) {
     const cx = p.pos.x + p.width / 2;
     const base = pOn ? roofAt(pOn, cx) : overTrains(p, t) ? p.pos.y + p.height : null;
-    const tgt = t.hopCd <= 0 && base !== null ? trainBeyond(t, base, cx, want === 'up' ? -1 : 1, pOn?.lane) : null;
-    if (tgt) {
-      t.hop = { fx: cx, fy: p.pos.y + p.height, to: tgt.lane, t: 0, dur: HOP_T, up: want === 'up' };
+    // (the next car that way; off the top or the bottom, round to the far one (the user's): a longer leap over the
+    // middle one)
+    const hit = t.hopCd <= 0 && base !== null ? hopTarget(t, base, cx, want === 'up' ? -1 : 1, pOn?.lane) : null;
+    if (hit) {
+      const tgt = hit.tr;
+      t.hop = { fx: cx, fy: p.pos.y + p.height, to: tgt.lane, t: 0, dur: hit.wrap ? HOP_T + 12 : HOP_T, up: want === 'up', wrap: hit.wrap };
       t.hopCd = HOP_CD;
       p.isDucking = false; p.carried = true; p.vel.x = 0; p.vel.y = 0;
       playSound('jump', 0.9, want === 'up' ? 2 : -2); playSound('whoosh', 0.5, 0);
@@ -602,7 +615,9 @@ export const updateRide = (ctx: FrameContext, controls: Controls): Controls => {
       const { x0, x1 } = roofSpan(tr), u = Math.min(1, h.t / h.dur), e = u * u * (3 - 2 * u);
       const x = Math.max(x0 + 22, Math.min(x1 - 40, h.fx)), ty = roofAt(tr, x);
       p.pos.x = h.fx + (x - h.fx) * e - p.width / 2;
-      p.pos.y = h.fy + (ty - h.fy) * e - Math.sin(Math.PI * u) * (h.up ? 64 : 34) - p.height;
+      // (a wrap: up off the top, a big arc up and over, down past the middle one onto the bottom; or off the bottom, a
+      // spring up past the middle one and over onto the top)
+      p.pos.y = h.fy + (ty - h.fy) * e - Math.sin(Math.PI * u) * (h.wrap ? (h.up ? 110 : 80) : h.up ? 64 : 34) - p.height;
       p.vel.x = 0; p.vel.y = 0;
       p.tragon = { mode: 'hop', move: false, hang: 0, hurt: false };
       if (h.t >= h.dur) {
@@ -668,6 +683,7 @@ export const updateRide = (ctx: FrameContext, controls: Controls): Controls => {
     t.cam.on = Math.min(1, t.cam.on + 1 / 60);
   } else t.cam.on = Math.max(0, t.cam.on - 1 / 60);
   state.viewIsScreen = t.cam.on > 0;
+  setUi({ tragonMarks: hopMarks(state) });
 
   // ---- no guns on the ride (a line if he tries); locked, hopping or flung, nothing of his own at all
   if (riding) {
@@ -680,6 +696,32 @@ export const updateRide = (ctx: FrameContext, controls: Controls): Controls => {
   }
   if (t.phase === 'done' && p.pos.x + p.width / 2 < GATE_X && p.pos.x + p.width / 2 > S0X - 200 && once(t, 'closed')) mSay(state, CLOSED);
   return controls;
+};
+
+/** Over each dragon he's not on, the button that hops him there (the user's: "show button icons on the dragon rides
+ *  you're not currently on"): worked out the hop's own way (hopTarget: the next that way, or round), so it's always
+ *  where that button really goes. Where each sits (screen, over the dragon's rear car, under the HUD band, over the
+ *  loop card) into tragonMarkAt; which button each, as a string for the React side (null: no hopping now). */
+const hopMarks = (state: GameState): string | null => {
+  const t = tragonsOf(state), p = state.player;
+  if (t.phase !== 'ride' || p.health <= 0 || p.inCutscene || t.hop || t.lock || t.flung) return null;
+  const pOn = trainUnder(p, t, 6);
+  const cx = p.pos.x + p.width / 2;
+  const base = pOn ? roofAt(pOn, cx) : overTrains(p, t) ? p.pos.y + p.height : null;
+  if (base === null) return null;
+  const up = hopTarget(t, base, cx, -1, pOn?.lane)?.tr ?? null, down = hopTarget(t, base, cx, 1, pOn?.lane)?.tr ?? null;
+  if (!up && !down) return null;
+  const out = LANES.map(l => {
+    const u = up?.lane === l, d = down?.lane === l;
+    if (!u && !d) return '';
+    const tr = t.trains[l], rear = tr.cars[0];
+    const top = Math.min(...tr.cars.map(k => k.y - 70 * k.d));
+    const s = toScreen(state, rear.x - 30 * rear.d, top);
+    tragonMarkAt[l].x = Math.max(40, Math.min(CANVAS_WIDTH - 40, s.x));
+    tragonMarkAt[l].y = Math.max(HUD_CLEAR_Y + 20, Math.min(FRAME_BOT - 24, s.y));
+    return u && d ? 'both' : u ? 'up' : 'down';
+  });
+  return out.join('|');
 };
 
 /** The loop card (App.tsx: HOLD and the real down button): locked in a loop now (HOLD!), or the next one coming,

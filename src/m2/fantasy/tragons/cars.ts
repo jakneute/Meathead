@@ -127,5 +127,24 @@ export const trainBeyond = (t: Tragons, fromY: number, x: number, dir: -1 | 1, n
   return best;
 };
 
+/** Wrapping round (the user's: up off the top one lands on the bottom one, down off the bottom on the top): the
+ *  farthest train the other way that can be landed on (null: none). */
+export const trainWrap = (t: Tragons, fromY: number, x: number, dir: -1 | 1, not?: Lane) => {
+  let best: Train | null = null, bestD = 0;
+  for (const tr of t.trains) {
+    if (tr.phase !== 'ok' || tr.lane === not || trainSpun(t, tr)) continue;
+    const { x0, x1 } = roofSpan(tr), y = roofAt(tr, Math.max(x0 + 20, Math.min(x1 - 30, x)));
+    const d = (fromY - y) * dir;
+    if (d < 30) continue;
+    if (!best || d > bestD) { best = tr; bestD = d; }
+  }
+  return best;
+};
+/** Where a hop that way takes him: the next one that way, or round to the far end. */
+export const hopTarget = (t: Tragons, fromY: number, x: number, dir: -1 | 1, not?: Lane) => {
+  const next = trainBeyond(t, fromY, x, dir, not);
+  return next ? { tr: next, wrap: false } : (() => { const w = trainWrap(t, fromY, x, dir, not); return w ? { tr: w, wrap: true } : null; })();
+};
+
 /** A lane's train. */
 export const trainOn = (t: Tragons, lane: Lane) => t.trains[lane];

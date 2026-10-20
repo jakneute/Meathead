@@ -87,6 +87,7 @@ import ChordPrompt from './ChordPrompt';
 import { pauseCard } from './PauseControls';
 import QtePanel from './fantasy/wheel/QtePanel';
 import IcePanel from './fantasy/bedroom/IcePanel';
+import TragonMarks from './fantasy/tragons/TragonMarks';
 import { registerKillLines, m2Kill } from './moves/killLines';
 import { cleanLines } from './lines/clean';
 import { registerGrabCallouts } from './moves/callouts';
@@ -274,7 +275,7 @@ const App2: React.FC = () => {
       setHubExit(to === HUB_STAGE && stage !== PEN_STAGE && !!from);
       // (through a portal: no HUD from here till the land's opened on him, not a frame of it as it loads)
       setUi({ introTip: null, introPrompt: null, introAhead: null, introTicket: null, introCutscene: dest === 'intro' || portalArrivalPending() || hubExitPending() });
-      setUi({ near: null, map: null, nearExit: false, nearAmerica: false, noSwitch: false, pauseControls: null, heliHud: false, bikeHud: false, bikeTips: false, carHops: false, tragonTips: false, tragonHold: null, broomHud: false, broomTips: false, iceMash: null });
+      setUi({ near: null, map: null, nearExit: false, nearAmerica: false, noSwitch: false, pauseControls: null, heliHud: false, bikeHud: false, bikeTips: false, carHops: false, tragonTips: false, tragonHold: null, tragonMarks: null, broomHud: false, broomTips: false, iceMash: null });
       setFade(true);
       // (into a land, everything's topped up; and back at the hub after a boss: elsewhere, what he had)
       // (the walk back after a boss: topped up there, and the boss's top-up used up on it)
@@ -595,6 +596,8 @@ const App2: React.FC = () => {
             </div>
           </div>
         )}
+        {/* Fairy Land's Truelling Tragons: over each dragon he's not on, the button that hops him there */}
+        {status === GameStatus.PLAYING && ui.map === null && !ui.introCutscene && ui.tragonMarks && <TragonMarks marks={ui.tragonMarks} />}
         {/* Fairy Land's Truelling Tragons: hopping cars, the first ride (till he's hopped once) */}
         {status === GameStatus.PLAYING && ui.map === null && !ui.introCutscene && ui.tragonTips && !ui.tragonHold && (
           // (a storybook shingle: a navy field banded down, a gilt edge, inked)
@@ -603,6 +606,7 @@ const App2: React.FC = () => {
               <Prompt pad={['RB']} kb={['@prevWeapon']} label="HOP UP A CAR" />
               <Prompt pad={['LB']} kb={['@nextWeapon']} label="HOP DOWN A CAR" />
             </div>
+            <span className="text-zinc-300">UP FROM THE TOP: ROUND TO THE BOTTOM, AND BACK</span>
             <span className="text-zinc-400">NO GUNS ON THE RIDE: HANG ON</span>
           </div>
         )}
