@@ -878,13 +878,8 @@ export const createTitleScene = () => {
       const s = sweep < 62 || sweep > 74 ? 2 : 4, x = L.x + L.w - PAD - 2, y = L.y + PAD;
       R(g, x - s, y, s * 2 + 1, 1, '#fffcf0'); R(g, x, y - s, 1, s * 2 + 1, '#fffcf0'); R(g, x - 1, y - 1, 3, 3, '#ffffff');
     }
-    // GOES TO HAPPY LAND: unfurling from the middle out, a step at a time, as the bulbs come on
-    if (beat >= INTRO_END) g.drawImage(ribbon!, 0, 0);
-    else if (beat >= TWO_AT + 0.25) {
-      const r = Math.ceil(((beat - TWO_AT - 0.25) / (INTRO_END - TWO_AT - 0.25)) * 26) * 8;
-      const x0 = Math.max(0, WX - r), x1 = Math.min(TITLE_W, WX + r);
-      if (x1 > x0) g.drawImage(ribbon!, x0, RIBBON_Y - 2, x1 - x0, 20, x0, RIBBON_Y - 2, x1 - x0, 20);
-    }
+    // (no GOES TO HAPPY LAND ribbon under the title: the user's)
+    void ribbon;
     g.restore();
   };
   return { draw };
