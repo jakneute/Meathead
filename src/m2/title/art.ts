@@ -30,6 +30,8 @@ const HORIZON = 150;
 const BUST_X = (TITLE_W - ART_W) / 2, BUST_Y = 2;
 /** The Ferris wheel's hub (behind his head) and its rim: big, so its spokes show round him like rays. */
 const WX = 200, WY = 64, WR = 128;
+/** Where the wheel's cut off (screen y): just above the logo's top, so none of it shows behind the letters. */
+const WHEEL_CUT_Y = 100;
 
 const pack = ([r, g, b]: RGB) => ((255 << 24) | (b << 16) | (g << 8) | r) >>> 0;
 const mix = (a: RGB, b: RGB, k: number): RGB => [0, 1, 2].map(i => Math.round(a[i] + (b[i] - a[i]) * k)) as RGB;
@@ -725,6 +727,8 @@ export const createTitleScene = () => {
     const rot = Math.floor(t / 3) % WHEEL_STEPS;
     if (rot !== wheelRot) { wheelRot = rot; paintWheel(wheel.getContext('2d')!, rot); }
     put(PIECES.wheel, () => {
+      // (nothing of it under the title's letters, the user's: cut off above the logo)
+      g.save(); g.beginPath(); g.rect(0, -400, TITLE_W, 400 + WHEEL_CUT_Y); g.clip();
       g.drawImage(wheel, 0, 0);
       // (its bulbs chasing round the rim)
       const a0 = (rot / WHEEL_STEPS) * Math.PI * 2, chase = Math.floor(t / 5);
@@ -733,6 +737,7 @@ export const createTitleScene = () => {
         if ((i + chase) % 4 === 0) { R(g, x, y, 2, 2, '#fff6b0'); R(g, x, y, 1, 1, '#ffffff'); }
         else R(g, x, y, 1, 1, ['#ff5aa8', '#fde047', '#5eead4'][(i + chase) % 3]);
       }
+      g.restore();
     });
     // The park, back to front (each piece where it is in its drop)
     const P = park!;
