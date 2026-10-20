@@ -726,13 +726,22 @@ const holdCard = (state: GameState) => {
   const his = hisLane(t);
   if (t.lock?.loop) {
     const q = spinAt(t.spins, t.lane, alongTrain(trainOn(t, t.lane), t.lock.u).car.s);
-    return { kind: KIND_CARD[q?.kind ?? 'loop'], lanes: [LANE_NAME[t.lane]], cols: [LANE_COL[t.lane][0]], mine: true, now: true, teach: false, slip: t.lock.off >= GRIP_SLIP };
+    return sameCard({ kind: KIND_CARD[q?.kind ?? 'loop'], lanes: [LANE_NAME[t.lane]], cols: [LANE_COL[t.lane][0]], mine: true, now: true, teach: false, slip: t.lock.off >= GRIP_SLIP });
   }
   const next = t.spins.filter(q => q.s0 > t.dist + TL - 2).sort((a, b) => a.s0 - b.s0)[0];
   if (!next) return null;
   const group = t.spins.filter(q => q.ev === next.ev);
   const lanes = [...new Set(group.map(q => q.lane))].sort();
-  return { kind: KIND_CARD[next.kind], lanes: lanes.map(l => LANE_NAME[l]), cols: lanes.map(l => LANE_COL[l][0]), mine: lanes.includes(his), now: false, teach: !!next.teach, slip: false };
+  return sameCard({ kind: KIND_CARD[next.kind], lanes: lanes.map(l => LANE_NAME[l]), cols: lanes.map(l => LANE_COL[l][0]), mine: lanes.includes(his), now: false, teach: !!next.teach, slip: false });
+};
+type HoldCard = { kind: string; lanes: string[]; cols: string[]; mine: boolean; now: boolean; teach: boolean; slip: boolean };
+let lastCard: HoldCard | null = null;
+const sameList = (a: string[], b: string[]) => a.length === b.length && a.every((v, i) => v === b[i]);
+/** The card as it was last frame if nothing on it's changed (the same object: the UI's left alone, no re-render). */
+const sameCard = (c: HoldCard) => {
+  const l = lastCard;
+  if (l && l.kind === c.kind && l.mine === c.mine && l.now === c.now && l.teach === c.teach && l.slip === c.slip && sameList(l.lanes, c.lanes) && sameList(l.cols, c.cols)) return l;
+  return (lastCard = c);
 };
 const KIND_CARD: Record<string, string> = { loop: 'LOOP', cork: 'CORKSCREW', chain: 'INTERLOCKING LOOPS', braid: 'TRIPLE HELIX', chain3: 'TRIPLE LOOP' };
 

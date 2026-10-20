@@ -26,7 +26,22 @@ export const parkX = (t: Tragons, P: number) => P - scrollOf(t);
 export const parkOfS = (s: number) => S0X + s;
 
 /** Far off: into the haze (toward the sky's blue-grey); near: a step darker. */
-export const fog = (col: string, d: number) => (d < 1 ? mix(col, '#8A9AC4', Math.min(0.55, (1 - d) * 1.4)) : d > 1 ? mix(col, '#000000', Math.min(0.3, (d - 1) * 0.6)) : col);
+export const fog = (col: string, d: number) => {
+  if (d === 1 || d !== d) return col;
+  // (remembered per color and depth to a thousandth: the same color within a channel step, mixed once)
+  const q = Math.round(d * 1000);
+  let m = fogMemo.get(col);
+  if (!m) { if (fogMemo.size > 4096) fogMemo.clear(); fogMemo.set(col, (m = new Map())); }
+  let out = m.get(q);
+  if (out === undefined) {
+    if (m.size > 2048) m.clear();
+    const dq = q / 1000;
+    out = dq < 1 ? mix(col, '#8A9AC4', Math.min(0.55, (1 - dq) * 1.4)) : dq > 1 ? mix(col, '#000000', Math.min(0.3, (dq - 1) * 0.6)) : col;
+    m.set(q, out);
+  }
+  return out;
+};
+const fogMemo = new Map<string, Map<number, string>>();
 
 /** The scene's one eye: the ride's (the trains' middle) while the camera's the ride's, the engine camera's middle (a
  *  little under it, over the ground) at the station and on the revisit's walk; blended as the camera's handed over. */

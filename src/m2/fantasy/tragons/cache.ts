@@ -18,7 +18,19 @@ let bytes = 0;
 export const banded = (c: Ctx, key: string, bx: number, by: number, bw: number, bh: number, paint: (g: Ctx) => void) => {
   const m = c.getTransform();
   const a = Math.abs(m.a);
-  if (typeof document === 'undefined' || m.b !== 0 || m.c !== 0 || !(a > 0.01) || !Number.isFinite(a) || bw <= 0 || bh <= 0) { paint(c); return; }
+  if (m.b !== 0 || m.c !== 0) { paint(c); return; }
+  const e = bandedAt(key, a, bx, by, bw, bh, paint);
+  if (!e) { paint(c); return; }
+  const sm = c.imageSmoothingEnabled;
+  c.imageSmoothingEnabled = true;
+  c.drawImage(e.cv, bx, by, e.cv.width / e.s, e.cv.height / e.s);
+  c.imageSmoothingEnabled = sm;
+};
+
+/** The cached picture behind `banded` for art shown at device scale `a` (null: paint it live instead). For a caller
+ *  putting the one picture down many times (far.ts's tiles): its canvas, and the scale it's painted at. */
+export const bandedAt = (key: string, a: number, bx: number, by: number, bw: number, bh: number, paint: (g: Ctx) => void): Entry | null => {
+  if (typeof document === 'undefined' || !(a > 0.01) || !Number.isFinite(a) || bw <= 0 || bh <= 0) return null;
   // (the band at or just over the scale shown: 1, 1.5, 2 or 3. The art's on a 2 px grid, so 1.5 still lands its cells
   // on whole pixels; and it's never brought down more than a third: a big strip scaled down hard every frame is slow)
   const s = a <= 1.02 ? 1 : a <= 1.52 ? 1.5 : a <= 2.02 ? 2 : 3;
@@ -29,7 +41,7 @@ export const banded = (c: Ctx, key: string, bx: number, by: number, bw: number, 
     const cv = document.createElement('canvas');
     cv.width = Math.max(1, Math.ceil(bw * s)); cv.height = Math.max(1, Math.ceil(bh * s));
     const g = cv.getContext('2d');
-    if (!g) { paint(c); return; }
+    if (!g) return null;
     g.imageSmoothingEnabled = false;
     g.setTransform(s, 0, 0, s, -bx * s, -by * s);
     paint(g);
@@ -41,8 +53,5 @@ export const banded = (c: Ctx, key: string, bx: number, by: number, bw: number, 
       cache.delete(oldId); bytes -= old.cv.width * old.cv.height * 4;
     }
   }
-  const sm = c.imageSmoothingEnabled;
-  c.imageSmoothingEnabled = true;
-  c.drawImage(e.cv, bx, by, e.cv.width / e.s, e.cv.height / e.s);
-  c.imageSmoothingEnabled = sm;
+  return e;
 };

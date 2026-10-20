@@ -83,18 +83,40 @@ const raw: Q[] = [];
 interface Pts { mx: number[]; my: number[]; sx: number[]; sy: number[]; nx: number[]; ny: number[]; ax: number[]; ay: number[]; bx: number[]; by: number[]; d: number[]; gone: boolean[]; flip: number }
 const pts: Pts = { mx: [], my: [], sx: [], sy: [], nx: [], ny: [], ax: [], ay: [], bx: [], by: [], d: [], gone: [], flip: 1 };
 
+/** The steel's and each lane's spine's ramps into the haze at a depth (fog's own step: a thousandth), kept per lane
+ *  while the depth holds. */
+const STEEL = ['#2E3242', '#4A5068', '#7A84A0', '#B8C2D8', '#E8EEF8'];
+const SPINE = LANE_COL.map(([main, light, dark]) => [mix(dark, INK, 0.45), mix(dark, '#000000', 0.15), main, mix(main, light, 0.55)]);
+const ramps = [0, 1, 2].map(() => new Map<number, { steel: string[]; sp: string[] }>());
+const rampsFor = (lane: Lane, d: number) => {
+  const q = Math.round(d * 1000), m = ramps[lane];
+  let r = m.get(q);
+  if (!r) {
+    if (m.size > 1024) m.clear();
+    r = { steel: STEEL.map(col => fog(col, d)), sp: SPINE[lane].map(col => fog(col, d)) };
+    m.set(q, r);
+  }
+  return r;
+};
+
 /** A run of track on a lane (s0..s1), its depth the middle's (the caller sorts on it). */
 export const drawSteel = (c: Ctx, state: GameState, t: Tragons, eye: { x: number; y: number }, lane: Lane, s0: number, s1: number) => {
-  const [main, light, dark] = LANE_COL[lane];
+  const light = LANE_COL[lane][1];
   const n = Math.round((s1 - s0) / STEP);
   for (let k = -1; k <= n + 1; k++) { const r = (raw[k + 1] ??= { x: 0, y: 0, d: 1, roll: 0 }); trackPt(t.spins, t.dist, lane, s0 + k * STEP, r); }
   const gaps = t.gaps.filter(g => g.lane === lane && g.b > s0 - STEP && g.a < s1 + STEP);
+  // (the holes in order along the track: one sweep marks the points in them, the furthest end reached so far)
+  const byA = gaps.length > 1 ? [...gaps].sort((g, h) => g.a - h.a) : gaps;
+  let gi = 0, gEnd = -Infinity;
+  const live = t.phase !== 'done';
   const ex = eye.x, ey = eye.y;
   for (let k = 0; k <= n; k++) {
     const q = raw[k + 1], p0 = raw[k], p1 = raw[k + 2];
     const mx = ex + (q.x - ex) * q.d, my = ey + (q.y - ey) * q.d;
     const ax0 = ex + (p0.x - ex) * p0.d, ay0 = ey + (p0.y - ey) * p0.d, ax1 = ex + (p1.x - ex) * p1.d, ay1 = ey + (p1.y - ey) * p1.d;
-    const a = Math.atan2(ay1 - ay0, ax1 - ax0), nx = -Math.sin(a), ny = Math.cos(a);
+    // (the normal: the chord between the neighbors turned a quarter, unit length)
+    const tx = ax1 - ax0, ty = ay1 - ay0, tl = Math.sqrt(tx * tx + ty * ty);
+    const nx = tl > 0 ? -ty / tl : 0, ny = tl > 0 ? tx / tl : 1;
     const cr = Math.cos(q.roll), sr = Math.sin(q.roll);
     const off = RAIL * q.d * cr;
     // (the rails: a gauge apart in depth, turned round the spine with the roll)
@@ -104,7 +126,8 @@ export const drawSteel = (c: Ctx, state: GameState, t: Tragons, eye: { x: number
     pts.bx[k] = ex + (q.x - ex) * df + nx * (off - side); pts.by[k] = ey + (q.y - ey) * df + ny * (off - side);
     pts.sx[k] = mx + nx * (off + 9 * q.d * cr); pts.sy[k] = my + ny * (off + 9 * q.d * cr);
     const s = s0 + k * STEP;
-    pts.gone[k] = gaps.some(g => s >= g.a && s < g.b) || (t.phase !== 'done' && fadeIn(s) >= 1);
+    while (gi < byA.length && byA[gi].a <= s) { if (byA[gi].b > gEnd) gEnd = byA[gi].b; gi++; }
+    pts.gone[k] = s < gEnd || (live && fadeIn(s) >= 1);
   }
   const mid = Math.floor(n / 2), dm = pts.d[mid];
   pts.flip = Math.cos(raw[mid + 1].roll) >= 0 ? 1 : -1;
@@ -159,13 +182,15 @@ export const drawSteel = (c: Ctx, state: GameState, t: Tragons, eye: { x: number
   let cur: number[] = [];
   for (let k = 0; k <= n; k++) { if (pts.gone[k]) { if (cur.length) runs.push(cur); cur = []; } else cur.push(k); }
   if (cur.length) runs.push(cur);
-  const steel = ['#2E3242', '#4A5068', '#7A84A0', '#B8C2D8', '#E8EEF8'].map(col => fog(col, dm));
-  const sp = [mix(dark, INK, 0.45), mix(dark, '#000000', 0.15), main, mix(main, light, 0.55)].map(col => fog(col, dm));
+  const { steel, sp } = rampsFor(lane, dm);
   const night = timeOfDay().lamps > 0.35;
   c.lineJoin = 'round'; c.lineCap = 'round';
+  const NXs = pts.nx, NYs = pts.ny;
   const path = (run: number[], X: number[], Y: number[], o = 0) => {
     c.beginPath();
-    run.forEach((k, i) => { const x = X[k] - pts.nx[k] * o, y = Y[k] - pts.ny[k] * o; if (i) c.lineTo(x, y); else c.moveTo(x, y); });
+    let k = run[0];
+    c.moveTo(X[k] - NXs[k] * o, Y[k] - NYs[k] * o);
+    for (let i = 1; i < run.length; i++) { k = run[i]; c.lineTo(X[k] - NXs[k] * o, Y[k] - NYs[k] * o); }
   };
   for (const run of runs) {
     if (run.length < 2) continue;

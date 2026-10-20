@@ -10,12 +10,18 @@ const hopRight = (secs = 40) => [[0, 'down', 'ArrowRight'], ...Array.from({ leng
 const grip = [[0, 'down', 'ArrowDown']];
 
 export const SCENARIOS = [
+  // The hub: round the whole roundabout from the staff door (walking right, a lap and a bit)
+  { name: 'hub', q: 'hub=9', keys: walk() },
   // Fairy Land: Truelling Tragons (the lift hill, the first drop, the loop; then the gauntlet)
   { name: 'tragons-lift', q: 'fantasy=31', keys: grip },
   { name: 'tragons-gauntlet', q: 'fantasy=33', keys: grip },
   { name: 'tragons-mountain', q: 'fantasy=35', keys: grip },
   { name: 'tragons-splash', q: 'fantasy=36', keys: grip },
   { name: 'tragons-finale', q: 'fantasy=37', keys: grip },
+  // (the drops (the user's: "slows down when going down hills"): the lift's top and the first drop, straight down at
+  // the camera; the second drop and the head-on's dive)
+  { name: 'tragons-drop1', q: 'fantasy=31', keys: grip, warm: 9 },
+  { name: 'tragons-drop2', q: 'fantasy=33', keys: grip, warm: 8 },
   // Foreign Lands: the helicopter (walk to it, board, the lift and pull-back, the tour; then a landmark fight)
   { name: 'heli-board', q: 'foreign=110', keys: walk() },
   // (just the tour: the lift and the camera round the park, after the walk and the hop in)

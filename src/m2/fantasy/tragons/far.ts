@@ -21,7 +21,7 @@ import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { drawTodSky, timeOfDay, farTint, skyAt, hourMix, type TimeOfDay } from '../../timeOfDay';
 import { mist, snap2, wave, jag } from '../../adventure/farArt';
 import { hazeBands, pixelBlob } from '../../intro/art/kit';
-import { banded } from './cache';
+import { banded, bandedAt } from './cache';
 import { box, mix, hash, checker, INK, type Ctx } from '../kit';
 import { MONUMENT_AT, drawCastleAt } from '../monument';
 import { paintAlps, MW, MH, farPine, snowfall } from '../square/far';
@@ -232,8 +232,16 @@ export const drawTragonsFar = (c: Ctx, state: GameState) => {
     const sw = tw * zs;
     if (top > H || top + h * zs < 0) return;
     if (!Number.isFinite(o) || !Number.isFinite(top)) return;
-    // (cached at a whole device scale and put down scaled: the zoom easing never repaints it: cache.ts)
-    for (let x = -(((o % sw) + sw) % sw); x < W; x += sw) { c.save(); c.translate(Math.round(x), Math.round(top)); c.scale(zs, zs); banded(c, `fa-tg-${key}-${tod.key}`, 0, 0, tw, h, paint); c.restore(); }
+    // (cached at a whole device scale and put down scaled: the zoom easing never repaints it: cache.ts. The one
+    // picture, fetched once a layer, put straight into each repeat's scaled spot: no transform per repeat)
+    const x0 = -(((o % sw) + sw) % sw), m = c.getTransform();
+    const e = m.b === 0 && m.c === 0 ? bandedAt(`fa-tg-${key}-${tod.key}`, Math.abs(m.a) * zs, 0, 0, tw, h, paint) : null;
+    if (!e) { for (let x = x0; x < W; x += sw) { c.save(); c.translate(Math.round(x), Math.round(top)); c.scale(zs, zs); banded(c, `fa-tg-${key}-${tod.key}`, 0, 0, tw, h, paint); c.restore(); } return; }
+    const dw = (e.cv.width / e.s) * zs, dh = (e.cv.height / e.s) * zs, ty = Math.round(top);
+    const sm = c.imageSmoothingEnabled;
+    c.imageSmoothingEnabled = true;
+    for (let x = x0; x < W; x += sw) c.drawImage(e.cv, Math.round(x), ty, dw, dh);
+    c.imageSmoothingEnabled = sm;
   };
   /** Under a layer, its ground going on down a way (the next layer stands over it). */
   const under = (y: number, h: number, col: string) => { if (y < H) box(c, 0, Math.round(y) - 1, W, Math.min(H - y + 1, h), col); };
