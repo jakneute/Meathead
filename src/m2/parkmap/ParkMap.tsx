@@ -7,6 +7,7 @@ import { playCursor } from '../../m1/game/platform/audio';
 import { boundHeld, keyHeld } from '../input';
 import { MAP_W, MAP_H, SECTORS, landMid } from './geo';
 import { ATTRACTIONS, CAST, NUMBERS, attractionOfZone } from './data';
+import { castPhotoImg, PHOTO_TILT } from './photos';
 import { VIEW_W, VIEW_H, ZOOMS, FIT, levelCanvas, drawMarker, herePoint, hereLand, landOutline, landAtPoint, type Here } from './render';
 
 // The park map (SELECT on a pad, TAB or M, MAP in the pause menu): Happy Land's brochure map, the whole park, a YOU
@@ -21,7 +22,6 @@ const PAPER = '#FFF7E0', INK = '#3B2A14';
 
 const ParkMap: React.FC<{ here: Here; onClose: () => void }> = ({ here, onClose }) => {
   const ref = useRef<HTMLCanvasElement>(null);
-  const leftRef = useRef<HTMLDivElement>(null), rightRef = useRef<HTMLDivElement>(null);
   const start = hereLand(here);
   const [focus, setFocus] = useState(start);
   const [zoomAt, setZoomAt] = useState(0);
@@ -105,7 +105,7 @@ const ParkMap: React.FC<{ here: Here; onClose: () => void }> = ({ here, onClose 
     let first = true, id = 0;
     const frame = (t: number) => {
       const gp = getActiveGamepad();
-      let mx = 0, my = 0, scroll = 0;
+      let mx = 0, my = 0;
       if (gp) {
         const m = menuButtons(gp);
         const b: Record<string, boolean> = {
@@ -123,15 +123,12 @@ const ParkMap: React.FC<{ here: Here; onClose: () => void }> = ({ here, onClose 
         Object.assign(prev, b);
         const mv = getGamepadMovement(gp, 0.22);
         mx = mv.x; my = mv.y;
-        const ry = gp.axes[3] ?? 0;
-        if (Math.abs(ry) > 0.3) scroll = ry * 6;
       }
       first = false;
       if (boundHeld('left') || keyHeld('arrowleft')) mx = -1;
       if (boundHeld('right') || keyHeld('arrowright')) mx = 1;
       if (boundHeld('up') || keyHeld('arrowup')) my = -1;
       if (boundHeld('down') || keyHeld('arrowdown')) my = 1;
-      if (scroll) { leftRef.current?.scrollBy(0, scroll); rightRef.current?.scrollBy(0, scroll); }
       if (mx || my) { v.cx += (mx * 7) / v.z; v.cy += (my * 7) / v.z; v.fly = null; clamp(); follow(); }
       if (v.fly) { v.cx += (v.fly.x - v.cx) * 0.18; v.cy += (v.fly.y - v.cy) * 0.18; clamp(); if (Math.hypot(v.fly.x - v.cx, v.fly.y - v.cy) < 1) v.fly = null; }
       // (the zoom eases to its step)
@@ -189,7 +186,7 @@ const ParkMap: React.FC<{ here: Here; onClose: () => void }> = ({ here, onClose 
       </div>
 
       {/* Left: the land's attractions (or the park's welcome) */}
-      <div ref={leftRef} className="absolute left-2 top-[34px] w-[152px] h-[516px] overflow-y-auto overflow-x-hidden parkmap-panel" style={{ background: PAPER, border: `2px solid ${INK}`, boxShadow: '2px 2px 0 rgba(0,0,0,0.45)', scrollbarWidth: 'none' }}>
+      <div className="absolute left-2 top-[34px] w-[152px] h-[516px] overflow-hidden" style={{ background: PAPER, border: `2px solid ${INK}`, boxShadow: '2px 2px 0 rgba(0,0,0,0.45)' }}>
         {land ? <AttractionsPanel landIdx={focus} /> : <WelcomePanel />}
       </div>
 
@@ -202,7 +199,7 @@ const ParkMap: React.FC<{ here: Here; onClose: () => void }> = ({ here, onClose 
       </div>
 
       {/* Right: the KEY CAST MEMBERS */}
-      <div ref={rightRef} className="absolute right-2 top-[34px] w-[152px] h-[516px] overflow-y-auto overflow-x-hidden" style={{ background: PAPER, border: `2px solid ${INK}`, boxShadow: '2px 2px 0 rgba(0,0,0,0.45)', scrollbarWidth: 'none' }}>
+      <div className="absolute right-2 top-[34px] w-[152px] h-[516px] overflow-hidden" style={{ background: PAPER, border: `2px solid ${INK}`, boxShadow: '2px 2px 0 rgba(0,0,0,0.45)' }}>
         {land ? <CastPanel landIdx={focus} /> : <CastIndex />}
       </div>
 
@@ -238,10 +235,10 @@ const AttractionsPanel: React.FC<{ landIdx: number }> = ({ landIdx }) => {
   return (
     <div>
       <LandHead landIdx={landIdx} kicker="ATTRACTIONS" />
-      <div className="px-2 pt-[6px] pb-1 text-[6px] leading-[9px] italic" style={{ color: '#7C2D12' }}>{l.blurb}</div>
-      <div className="flex flex-col gap-[7px] px-2 pb-3 pt-1">
+      <div className="px-2 pt-[5px] pb-[3px] text-[6px] leading-[9px] italic" style={{ color: '#7C2D12' }}>{l.blurb}</div>
+      <div className="flex flex-col gap-[4px] px-2 pb-2 pt-[2px]">
         {list.map(a => (
-          <div key={a.id} className="flex gap-[5px]">
+          <div key={a.id} className="flex gap-[3px]">
             {NUMBERS[a.id] ? <Badge n={NUMBERS[a.id]} /> : <span className="w-[13px] shrink-0 text-center text-[7px]" style={{ color: '#A16207' }}>✦</span>}
             <div className="flex flex-col gap-[2px] min-w-0">
               <span className="text-[6px] font-black leading-[9px]" style={{ color: INK }}>{a.name}</span>
@@ -267,8 +264,8 @@ const WelcomePanel: React.FC = () => {
       <div className="flex flex-col gap-[3px] px-2 pt-2 text-[5px] leading-[8px]" style={{ color: '#44403C' }}>
         {['PARK HOURS: 9 AM TO WHENEVER', 'TICKETS: ONE DAY $189', 'LOST CHILDREN: THE HUB', 'LOST ADULTS: ALSO THE HUB', 'FIRST AID · SECOND AID', 'RESTROOMS: SEE MAP. BRING WATER.', 'NO RE-ENTRY. NO REFUNDS.', 'OVERFLOW PARKING: NEXT STATE'].map(t => <span key={t}>· {t}</span>)}
       </div>
-      <div className="px-2 pt-3 pb-1 text-[6px] font-black tracking-widest" style={{ color: '#9D174D' }}>THE WAY IN</div>
-      <div className="flex flex-col gap-[7px] px-2 pb-3">
+      <div className="px-2 pt-2 pb-1 text-[6px] font-black tracking-widest" style={{ color: '#9D174D' }}>THE WAY IN</div>
+      <div className="flex flex-col gap-[4px] px-2 pb-2">
         {list.map(a => (
           <div key={a.id} className="flex flex-col gap-[2px]">
             <span className="text-[6px] font-black leading-[9px]" style={{ color: INK }}>{a.name}</span>
@@ -277,7 +274,18 @@ const WelcomePanel: React.FC = () => {
           </div>
         ))}
       </div>
-      <div className="px-2 pb-3 text-[5px] leading-[8px]" style={{ color: '#7C6A4A' }}>PICK A LAND FOR ITS ATTRACTIONS.</div>
+      <div className="px-2 pb-2 text-[5px] leading-[8px]" style={{ color: '#7C6A4A' }}>PICK A LAND FOR ITS ATTRACTIONS.</div>
+    </div>
+  );
+};
+
+/** The star's staff photo, taped up a little crooked (photos.ts). */
+const CastPhoto: React.FC<{ land: string }> = ({ land }) => {
+  const img = castPhotoImg(land);
+  if (!img) return null;
+  return (
+    <div className="flex justify-center pt-[6px]">
+      <img src={img.url} width={img.w} height={img.h} alt="" draggable={false} style={{ width: img.w, height: img.h, imageRendering: 'pixelated', transform: `rotate(${PHOTO_TILT[land] ?? 0}deg)` }} />
     </div>
   );
 };
@@ -288,7 +296,8 @@ const CastPanel: React.FC<{ landIdx: number }> = ({ landIdx }) => {
   return (
     <div>
       <LandHead landIdx={landIdx} kicker="KEY CAST MEMBERS" />
-      <div className="px-2 pt-2">
+      <CastPhoto land={l.id} />
+      <div className="px-2 pt-1">
         <div className="text-[5px] tracking-widest" style={{ color: '#9D174D' }}>MEET</div>
         <div className="text-[8px] font-black leading-[11px] mt-[2px]" style={{ color: l.sign, textShadow: `1px 1px 0 ${l.swirl[2]}` }}>{c.name}</div>
         <div className="text-[5px] leading-[8px] mt-[3px] tracking-wider" style={{ color: '#B91C1C' }}>{c.role}</div>

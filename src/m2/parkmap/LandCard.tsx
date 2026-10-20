@@ -5,12 +5,13 @@ import { signText, rampDown } from '../signLetters';
 import { inLand } from './geo';
 import { ATTRACTIONS, CAST, NUMBERS } from './data';
 import { ZOOMS, levelCanvas, landOutline } from './render';
+import { castPhotoImg } from './photos';
 
 // The hub's portal card, YOU ARE GOING HERE (up at a land's portal; the hub's own confirm and cancel, hub/index.ts):
 // a preview of that one land, not the park map: its corner of the brochure map close up (its landmarks, its walks,
 // its numbers), its name in its own gate lettering, YOU ARE GOING HERE on it, and its attractions down the side.
 
-const W = 420, H = 352;
+const W = 400, H = 420;
 const INK = '#3B2A14';
 
 const LandCard: React.FC<{ land: number }> = ({ land }) => {
@@ -54,13 +55,14 @@ const LandCard: React.FC<{ land: number }> = ({ land }) => {
   }, [land]);
   const list = ATTRACTIONS.filter(a => a.land === l?.id && !a.minor && (a.v ?? 0) <= 1);
   const star = CAST.find(c => c.land === l?.id);
+  const photo = star ? castPhotoImg(star.land, 'small') : null;
   return (
     <div className="absolute inset-0 z-30 flex items-center justify-center bg-black/60">
       <div className="flex flex-col items-center gap-2 p-3" style={{ background: '#3B2A14', border: '3px solid #1C1206', boxShadow: '0 0 0 2px #000, 6px 6px 0 rgba(0,0,0,0.5)' }}>
         <div className="text-[10px] text-amber-100 tracking-wide">HAPPY LAND · OFFICIAL GUEST MAP</div>
         <div className="flex gap-2">
           <canvas ref={ref} width={W} height={H} style={{ width: W, height: H, imageRendering: 'pixelated', border: `2px solid ${INK}` }} />
-          <div className="w-[200px] flex flex-col" style={{ height: H + 4, background: '#FFF7E0', border: `2px solid ${INK}` }}>
+          <div className="w-[262px] flex flex-col" style={{ height: H + 4, background: '#FFF7E0', border: `2px solid ${INK}` }}>
             <div className="px-2 pt-2 pb-[6px]" style={{ background: `linear-gradient(180deg, ${l?.swirl[1]}, ${l?.sign})`, borderBottom: `2px solid ${INK}` }}>
               <div className="text-[6px] tracking-widest" style={{ color: l?.signText }}>ATTRACTIONS</div>
               <div className="text-[6px] leading-[9px] mt-[3px] italic" style={{ color: l?.signText }}>{l?.blurb}</div>
@@ -77,7 +79,10 @@ const LandCard: React.FC<{ land: number }> = ({ land }) => {
                 </div>
               ))}
             </div>
-            {star && <div className="mt-auto px-2 py-[6px] text-[5px] leading-[8px]" style={{ color: '#44403C', borderTop: `2px dashed ${l?.swirl[1]}` }}>KEY CAST MEMBER: <span className="font-black" style={{ color: l?.sign }}>{star.name}</span><br />{star.role}</div>}
+            {star && <div className="mt-auto flex items-center gap-[6px] px-2 py-[5px] text-[5px] leading-[8px]" style={{ color: '#44403C', borderTop: `2px dashed ${l?.swirl[1]}` }}>
+              {photo && <img src={photo.url} width={photo.w} height={photo.h} alt="" draggable={false} className="shrink-0" style={{ width: photo.w, height: photo.h, imageRendering: 'pixelated', transform: 'rotate(-3deg)' }} />}
+              <div className="min-w-0">KEY CAST MEMBER:<br /><span className="font-black" style={{ color: l?.sign }}>{star.name}</span><br />{star.role}</div>
+            </div>}
           </div>
         </div>
         <div className="w-full flex items-center justify-between text-[8px] text-amber-50 px-1">
