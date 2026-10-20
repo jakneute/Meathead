@@ -319,7 +319,9 @@ export const drawKeepFar = (c: Ctx, state: GameState) => {
   tile(c, 'cu-low', cx * 0.016 + f * 0.07, Math.round(hz - 400 + up * 0.04), 160, CUW, g => paintCumulus(g, tod, 5, 0.9, 160));
   if (tod.lamps > 0.45) fireworks(c, f, up); else birds(c, f, up);
   tile(c, 'alps', cx * 0.03, hz - MH + 6, MH, MW, g => paintAlps(g, tod));
-  tile(c, 'park', cx * 0.05, hz + 18 - PG, PH, PW, g => paintPark(g, tod));
+  // (laid from the section's start: Truelling Tragons he's just come off in view as he sets off, the wheel and Hogsmeat
+  //  coming round after it)
+  tile(c, 'park', (cx - x0) * 0.05 + 1000, hz + 18 - PG, PH, PW, g => paintPark(g, tod));
   // (the castle's own grounds, from up on the walls: the near walls cover them from the ground)
   const gy = hz + 14;
   tile(c, 'grounds', cx * 0.2, gy, GH, GW, g => paintGrounds(g, tod));

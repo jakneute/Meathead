@@ -22,6 +22,7 @@ import { box, mix, hash, checker, INK, type Ctx } from '../kit';
 import { MONUMENT_AT, drawCastleAt } from '../monument';
 import { SECTIONS, GY } from '../geometry';
 import { paintAlps, MW, MH, farPine, snowfall } from '../square/far';
+import { farTragons } from '../glimpse';
 
 const W = CANVAS_WIDTH, H = CANVAS_HEIGHT;
 
@@ -115,26 +116,8 @@ const paintPark = (g: Ctx, tod: TimeOfDay) => {
     if (tod.lamps > 0.3) for (let b = 0; b < 5; b++) box(g, x - 5 + hash(i * 9 + b) * 10, PG - h * (0.3 + hash(i + b) * 0.6), 1, 1, BULB[(i + b) % 4]);
   }
   // (Truelling Tragons: three tracks on lattice legs, knotted round each other and their loops; the gothic station)
-  const t0 = 660, t1 = 1160, base = PG;
-  const trackY = (k: number, x: number) => base - 56 - Math.sin((x - t0) * 0.016 + k * 2.1) * 32 - Math.sin((x - t0) * 0.039 + k) * 14 - k * 7;
-  for (let x = t0; x < t1; x += 12) for (let k = 0; k < 3; k++) { const y = trackY(k, x); box(g, x, y, 1, base - y, T('#625C82')); if (x % 36 === 0) { g.strokeStyle = T('#544E74'); g.lineWidth = 1; g.beginPath(); g.moveTo(x, y + 6); g.lineTo(x + 12, base); g.stroke(); } }
-  const TR = ['#D8402E', '#7AC8F0', '#F2D24A'];
-  for (let k = 0; k < 3; k++) {
-    for (const [col, lw, dy] of [[mix(TR[k], INK, 0.45), 5, 1], [TR[k], 3, 0], [mix(TR[k], '#FFFFFF', 0.45), 1, -1]] as const) {
-      g.strokeStyle = T(col); g.lineWidth = lw; g.beginPath();
-      for (let x = t0; x <= t1; x += 4) (x === t0 ? g.moveTo(x, trackY(k, x) + dy) : g.lineTo(x, trackY(k, x) + dy));
-      g.stroke();
-    }
-    const lx = t0 + 100 + k * 130, ly = trackY(k, lx) - 32;
-    for (const [col, lw] of [[mix(TR[k], INK, 0.45), 5], [TR[k], 3]] as const) { g.strokeStyle = T(col); g.lineWidth = lw; g.beginPath(); g.ellipse(lx, ly, 22, 32, 0, 0, Math.PI * 2); g.stroke(); }
-    box(g, lx - 1, ly + 32, 2, base - ly - 32, T('#625C82'));
-  }
-  const sx = t1 - 30;
-  box(g, sx - 34, base - 44, 68, 44, T('#5E5480')); box(g, sx - 34, base - 44, 68, 2, T('#8E84AA')); box(g, sx + 20, base - 44, 14, 44, T('#4A426A'));
-  for (let k = 0; k < 4; k++) { box(g, sx - 28 + k * 15, base - 34, 5, 10, winLit(tod, 40 + k) ?? T('#2A2440')); }
-  poly(g, [[sx - 38, base - 44], [sx, base - 72], [sx + 38, base - 44]], T('#33304E')); poly(g, [[sx - 38, base - 44], [sx, base - 72], [sx - 6, base - 44]], T('#4A4668'));
-  box(g, sx - 38, base - 46, 76, 2, Sn);
-  poly(g, [[sx - 10, base - 56], [sx + 14, base - 62], [sx + 10, base - 52]], T('#4A8A5A')); box(g, sx + 10, base - 60, 2, 2, T('#F2D24A'));
+  const base = PG;
+  farTragons(g, T, 660, 1170, base, tod.lamps > 0.3);
   // (the teacups: a striped canopy on a ring of posts, the cups tipping round under it)
   const tx = 1240;
   box(g, tx - 40, base - 8, 80, 8, T('#8A7AA8'));
@@ -414,7 +397,9 @@ export const drawWheelFar = (c: Ctx, state: GameState) => {
   drawCastleAt(c, Math.round(at.from + (at.to - at.from) * k), Math.round(at.base - 24 + (hz - 430)), at.k, f);
   // (the park beyond, and under it its ice right down)
   const py = Math.round(hz + 26 + up * 0.1 - PH);
-  tile(c, 'park', cx * 0.06, py, PH, PW, g => paintPark(g, tod));
+  // (laid from the section's start, in the order he goes: Hogsmeat he's come from back on the left, the glen's forest
+  //  ahead, Truelling Tragons coming in past it)
+  tile(c, 'park', (cx - x0) * 0.06 + 1300, py, PH, PW, g => paintPark(g, tod));
   if (py + PH < H) box(c, 0, py + PH - 1, W, H, farCol(tod, 0.34)('#8EA8D0'));
   // (the fairground round the wheel: its rides up over the near stalls, sinking away as he climbs)
   const fy = Math.round(400 + up * 0.32 - FG), foff = cx * 0.3;

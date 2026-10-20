@@ -36,6 +36,7 @@ import { signText } from '../../signLetters';
 import { drawPiper, type PiperPose } from '../piper';
 import { drawSuitor, type SuitorLook } from '../suitors';
 import { timeOfDay, skyRamp } from '../../timeOfDay';
+import { parkView } from './view';
 import { ROOF, PALE, PINK, lip, sconce, flame, banner } from '../keep/paint';
 import { GY, HALL_L, DOOR_X, ARENA_L, ARENA_R, ARENA_W, ARENA_MID, CEIL_Y, LEDGES, CHANDELIERS, CHAISE_X, VANITY_X, TROPHY_X, R } from './layout';
 
@@ -872,22 +873,9 @@ const chaiseArt = (g: Ctx) => {
  *  leaves folded back, heavy drapes swagged either side. */
 const WIN = { l: 1360, r: 1494, top: GY - 458, bot: GY - 235 };
 const windowView = (g: Ctx) => {
-  const l = R(WIN.l) + 8, r = R(WIN.r) - 8, top = WIN.top + 8, bot = WIN.bot, w = r - l;
-  const tod = timeOfDay(), S = skyRamp(['#23307A', '#3A55B4', '#6E8EDC', '#A8C4F0', '#E8D4F0', '#F8C8D8'], tod);
-  for (let i = 0; i < S.length; i++) { const y0 = top + (i * (bot - top - 60)) / S.length; B(g, l, y0, w, (bot - top - 60) / S.length + 1, S[i]); if (i) checker(g, l, y0 - 1, w, 2, S[i], 0, 1); }
-  if (tod.stars > 0.3) for (let k = 0; k < 14; k++) B(g, l + hash(k * 3.3) * w, top + hash(k * 7.1) * 80, 1, 1, '#FFFFFF');
-  // (cumulus, stepped)
-  for (const [cx, cy, s] of [[l + 30, top + 60, 1], [l + 96, top + 92, 0.8]] as const) { ell(g, cx, cy, 22 * s, 7 * s, mix('#FFFFFF', S[2], 0.3)); ell(g, cx - 6 * s, cy - 4 * s, 12 * s, 6 * s, '#FFFFFF'); B(g, cx - 20 * s, cy + 4 * s, 40 * s, 2, mix('#FFFFFF', S[2], 0.5)); }
-  // (the Alps, snow on them)
-  const rock = mix('#6E6C96', S[3], 0.25), snow = mix('#F2F6FE', S[4], 0.2), hY = bot - 60;
-  for (let x = l; x < r; x += 2) { const y = hY - 26 - Math.abs(Math.sin((x - l) * 0.05)) * 26 - ((x - l) % 34 < 17 ? (x - l) % 17 : 17 - ((x - l) % 17)) * 0.6; B(g, x, y, 2, hY - y + 2, rock); B(g, x, y, 2, Math.min(10, hY - y), snow); }
-  // (the grounds far below: the moat iced, the hedge maze, paths, the broom port's stands and hoops, the fairy wheel)
-  B(g, l, hY, w, bot - hY, '#6A8A5A'); B(g, l, hY, w, 6, '#DCE4F2'); B(g, l, hY + 6, w, 4, '#A8C4E4');
-  for (let y = hY + 14; y < bot - 6; y += 6) for (let x = l + ((y / 6) % 2) * 4; x < l + w * 0.45; x += 8) B(g, x, y, 6, 3, '#3E6A3A');
-  B(g, l + w * 0.5, hY + 12, w * 0.35, 6, '#E8C4D8'); for (let k = 0; k < 8; k++) B(g, l + w * 0.5 + k * 6, hY + 10, 3, 2, ['#F45AAE', '#60A5FA', '#F2C84A', '#4ADE80'][k % 4]);
-  for (const hx of [l + w * 0.62, l + w * 0.78]) { g.strokeStyle = GD[4]; g.lineWidth = 1.5; g.beginPath(); g.arc(hx, hY + 32, 6, 0, Math.PI * 2); g.stroke(); B(g, hx, hY + 38, 1, 10, GD[2]); }
-  const wx = l + w * 0.86, wy = hY - 10; g.strokeStyle = '#F6D0E8'; g.lineWidth = 1; g.beginPath(); g.arc(wx, wy, 14, 0, Math.PI * 2); g.stroke(); for (let k = 0; k < 8; k++) { const a = (k / 8) * Math.PI * 2; g.beginPath(); g.moveTo(wx, wy); g.lineTo(wx + Math.cos(a) * 14, wy + Math.sin(a) * 14); g.stroke(); if (tod.lamps > 0.35) B(g, wx + Math.cos(a) * 14, wy + Math.sin(a) * 14, 1, 1, '#FFE9A8'); } B(g, wx - 1, wy, 2, 24, '#C8A8C8');
-  for (let k = 0; k < 6; k++) B(g, l + 6 + k * 20, bot - 14 + (k % 2) * 3, 2, 3, tod.lamps > 0.35 ? '#FFE9A8' : '#F4F0FA');
+  // (the whole park laid out below, from up here: view.ts)
+  const l = R(WIN.l) + 8, r = R(WIN.r) - 8, top = WIN.top + 8, bot = WIN.bot;
+  parkView(g, l, r, top, bot, Math.round(top + (bot - top) * 0.48));
 };
 const balconyArt = (g: Ctx) => {
   const l = R(WIN.l), r = R(WIN.r), top = WIN.top, bot = WIN.bot, w = r - l;
@@ -1054,11 +1042,9 @@ const WIN_X = HALL_L + 60, WIN_W = 108, WIN_TOP = GY - 386, WIN_BOT = GY - 104;
 
 /** The view out the hall's window, by the hour: the sky, the castle's other spires, the Alps, snow. */
 const hallView = (g: Ctx, l: number, r: number, top: number, bot: number) => {
-  const tod = timeOfDay(), S = skyRamp(['#23307A', '#3A55B4', '#6E8EDC', '#A8C4F0', '#E8D4F0', '#F8C8D8'], tod);
-  for (let i = 0; i < S.length; i++) { const y0 = top + (i * (bot - top)) / S.length; B(g, l, y0, r - l, (bot - top) / S.length + 1, S[i]); if (i) checker(g, l, y0 - 1, r - l, 2, S[i], 0, 1); }
-  if (tod.stars > 0.3) for (let k = 0; k < 16; k++) B(g, l + hash(k * 3.3) * (r - l), top + hash(k * 7.1) * (bot - top) * 0.6, 1, 1, '#FFFFFF');
-  const rock = mix('#6E6C96', S[3], 0.3), snow = mix('#F2F6FE', S[4], 0.2), hY = bot - 40;
-  for (let x = l; x < r; x += 2) { const y = hY - 20 - Math.abs(Math.sin((x - l) * 0.06)) * 30; B(g, x, y, 2, bot - y, rock); B(g, x, y, 2, 8, snow); }
+  const tod = timeOfDay();
+  // (the whole park laid out below, from up here: view.ts)
+  parkView(g, l, r, top, bot, Math.round(top + (bot - top) * 0.5));
   // (two of the castle's spires near: pale drums under blue cones, a lit window)
   for (const [sx, sw, sh] of [[l + 24, 18, 120], [r - 22, 14, 90]] as const) {
     const foot = bot + 10; B(g, sx - sw / 2 - 1, foot - sh, sw + 2, sh, INK); B(g, sx - sw / 2, foot - sh, sw, sh, PALE[3]); B(g, sx - sw / 2, foot - sh, 3, sh, PALE[4]); B(g, sx + sw / 2 - 4, foot - sh, 4, sh, PALE[1]);

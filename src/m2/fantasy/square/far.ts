@@ -3,9 +3,10 @@
 //
 //   the sky by the hour (a storybook winter blue down to a pink blush, banded, dithered between), stepped cumulus
 //   drifting; the ALPS far off (jagged peaks, real snowfields and rock ribs, no volcanoes); THE GREAT PIXIE'S CASTLE on
-//   its crag among them (monument.ts: the smallest it ever is, drifting as he goes); the park beyond the village (a
-//   rolling pine ridge, the frozen lake with skaters' scratches, THE FAIRY WHEEL turning its lights on after dark,
-//   TRUELLING TRAGONS' three tracks knotted round their loops, gift-shop turrets with their pennants); and nearest,
+//   its crag among them (monument.ts: the smallest it ever is, drifting as he goes); the park beyond the village (the
+//   park's neighbors peeking over a rolling pine ridge: Hollywood Land's hill back left, Jungle Land's temple ahead;
+//   the frozen lake with skaters' scratches; in the order he'll get to them, THE FAIRY WHEEL and TRUELLING TRAGONS as
+//   they really look (glimpse.ts); gift-shop turrets with their pennants); and nearest,
 //   HOGSMEAT's own roofs past the street (crooked, snow-heaped, chimneys smoking, the steeple, the clock tower, the
 //   owlery, banners), their windows lit warm. Snow coming down, far flakes behind the shopfronts.
 
@@ -17,6 +18,7 @@ import { stamp, hazeBands, pixelBlob } from '../../intro/art/kit';
 import { box, mix, hash, checker, INK, type Ctx } from '../kit';
 import { MONUMENT_AT, drawCastleAt } from '../monument';
 import { SECTIONS } from '../geometry';
+import { farWheel, farTragons, farJungle, farHollywood } from '../glimpse';
 
 const W = CANVAS_WIDTH, H = CANVAS_HEIGHT;
 
@@ -102,60 +104,17 @@ export const farPine = (g: Ctx, x: number, foot: number, h: number, P: string[],
     box(g, x - half * 0.7, y + h / 4 - 2, half * 1.1, 2, S);
   }
 };
-/** THE FAIRY WHEEL (far: the next trial). */
-const WHEEL = { x: 1260, r: 78 };
+/** THE FAIRY WHEEL (far: the next trial; glimpse.ts, the wheel as it is), its boarding house at its foot. */
+const WHEEL = { x: 560, r: 70 };
 const paintWheel = (g: Ctx, T: (c: string) => string, tod: TimeOfDay) => {
-  const cx = WHEEL.x, cy = PH - 30 - WHEEL.r - 14, r = WHEEL.r;
-  // (the A-frame legs)
-  g.strokeStyle = T('#5A4E7A'); g.lineWidth = 3;
-  g.beginPath(); g.moveTo(cx - 44, PH - 30); g.lineTo(cx, cy); g.lineTo(cx + 44, PH - 30); g.moveTo(cx - 34, PH - 30); g.lineTo(cx, cy); g.lineTo(cx + 34, PH - 30); g.stroke();
-  // (the spokes, the rim in pink and gold, the gondolas hanging plumb)
-  g.strokeStyle = T('#C8A8D8'); g.lineWidth = 1;
-  for (let i = 0; i < 16; i++) { const a = (i / 16) * Math.PI * 2; g.beginPath(); g.moveTo(cx, cy); g.lineTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r); g.stroke(); }
-  g.strokeStyle = T('#E87AB8'); g.lineWidth = 4; g.beginPath(); g.arc(cx, cy, r, 0, Math.PI * 2); g.stroke();
-  g.strokeStyle = T('#F6C84A'); g.lineWidth = 1; g.beginPath(); g.arc(cx, cy, r - 2, 0, Math.PI * 2); g.stroke(); g.beginPath(); g.arc(cx, cy, r * 0.62, 0, Math.PI * 2); g.stroke();
-  const cols = ['#F49AC8', '#9CD0F4', '#F6D365', '#B8A0F0', '#A8E8C8', '#F4A878'];
-  for (let i = 0; i < 12; i++) {
-    const a = (i / 12) * Math.PI * 2 + 0.13, gx = cx + Math.cos(a) * r, gy = cy + Math.sin(a) * r;
-    box(g, gx, gy, 1, 4, T('#4A3E6A'));
-    box(g, gx - 5, gy + 4, 11, 8, T(INK)); box(g, gx - 4, gy + 5, 9, 6, T(cols[i % 6])); box(g, gx - 4, gy + 5, 9, 2, T(mix(cols[i % 6], '#FFFFFF', 0.4))); box(g, gx - 3, gy + 3, 7, 2, T(mix(cols[i % 6], INK, 0.3)));
-    if (tod.lamps > 0.3) box(g, gx - 2, gy + 7, 5, 2, '#FFE9A8');
-  }
-  // (the bulbs round the rim after dark; the hub's gold boss and its pink heart)
-  if (tod.lamps > 0.3) for (let i = 0; i < 40; i++) { const a = (i / 40) * Math.PI * 2; box(g, cx + Math.cos(a) * r - 1, cy + Math.sin(a) * r - 1, 2, 2, i % 2 ? '#FFE9A8' : '#FFB0D8'); }
-  g.fillStyle = T('#F6C84A'); g.beginPath(); g.arc(cx, cy, 7, 0, Math.PI * 2); g.fill();
-  g.fillStyle = T('#E0408A'); g.beginPath(); g.arc(cx - 2, cy - 1, 2.4, 0, Math.PI * 2); g.arc(cx + 2, cy - 1, 2.4, 0, Math.PI * 2); g.fill();
-  g.beginPath(); g.moveTo(cx - 4.4, cy); g.lineTo(cx, cy + 4); g.lineTo(cx + 4.4, cy); g.closePath(); g.fill();
-  // (its boarding house at the foot: a pink pavilion)
-  box(g, cx - 30, PH - 44, 60, 14, T('#E8C8E0')); box(g, cx - 30, PH - 44, 60, 2, T('#FFF0F8'));
+  const cx = WHEEL.x, r = WHEEL.r, cy = PH - 30 - r - 12;
+  farWheel(g, T, cx, cy, r, PH - 30, tod.lamps > 0.3);
+  // (its boarding house at the foot: a pink pavilion, stepped)
+  box(g, cx - 31, PH - 45, 62, 15, T(INK)); box(g, cx - 30, PH - 44, 60, 14, T('#E8C8E0')); box(g, cx - 30, PH - 44, 60, 2, T('#FFF0F8')); box(g, cx + 18, PH - 42, 12, 12, T('#C8A8C4'));
+  for (let k = 0; k < 4; k++) box(g, cx - 24 + k * 14, PH - 40, 6, 8, winLit(tod, 70 + k) ?? T('#7A5A8A'));
   g.fillStyle = T('#C8508E'); g.beginPath(); g.moveTo(cx - 34, PH - 44); g.lineTo(cx, PH - 60); g.lineTo(cx + 34, PH - 44); g.closePath(); g.fill();
-};
-/** TRUELLING TRAGONS (far): three tracks, knotted round each other and their loops, on a lattice of legs. */
-const paintTragons = (g: Ctx, T: (c: string) => string) => {
-  const x0 = 290, x1 = 740, base = PH - 32;
-  const trackY = (k: number, x: number) => base - 40 - Math.sin((x - x0) * 0.018 + k * 2.1) * 26 - Math.sin((x - x0) * 0.041 + k) * 12 - k * 6;
-  // (the legs: thin gray lattice from each track down)
-  for (let x = x0; x < x1; x += 14) for (let k = 0; k < 3; k++) { const y = trackY(k, x); box(g, x, y, 1, base - y, T('#6A6488')); if (x % 28 === 0) { g.strokeStyle = T('#5A5478'); g.lineWidth = 1; g.beginPath(); g.moveTo(x, y + 6); g.lineTo(x + 14, base); g.stroke(); } }
-  const TR = ['#D8402E', '#7AC8F0', '#F2D24A'];
-  for (let k = 0; k < 3; k++) {
-    g.strokeStyle = T(mix(TR[k], INK, 0.4)); g.lineWidth = 4; g.beginPath();
-    for (let x = x0; x <= x1; x += 4) (x === x0 ? g.moveTo(x, trackY(k, x) + 1) : g.lineTo(x, trackY(k, x) + 1));
-    g.stroke();
-    g.strokeStyle = T(TR[k]); g.lineWidth = 2; g.beginPath();
-    for (let x = x0; x <= x1; x += 4) (x === x0 ? g.moveTo(x, trackY(k, x)) : g.lineTo(x, trackY(k, x)));
-    g.stroke();
-    // (its loop: a vertical ring standing up off the track)
-    const lx = x0 + 110 + k * 120, ly = trackY(k, lx) - 26;
-    g.strokeStyle = T(mix(TR[k], INK, 0.4)); g.lineWidth = 4; g.beginPath(); g.ellipse(lx, ly, 18, 26, 0, 0, Math.PI * 2); g.stroke();
-    g.strokeStyle = T(TR[k]); g.lineWidth = 2; g.beginPath(); g.ellipse(lx, ly, 18, 26, 0, 0, Math.PI * 2); g.stroke();
-    box(g, lx - 1, ly + 26, 2, base - ly - 26, T('#6A6488'));
-  }
-  // (the station: a gothic shed with a dragon's head over its door)
-  const sx = x1 - 40;
-  box(g, sx - 26, base - 34, 52, 34, T('#6A5E86')); box(g, sx - 26, base - 34, 52, 2, T('#8E84AA'));
-  g.fillStyle = T('#3A3458'); g.beginPath(); g.moveTo(sx - 30, base - 34); g.lineTo(sx, base - 56); g.lineTo(sx + 30, base - 34); g.closePath(); g.fill();
-  box(g, sx - 4, base - 18, 8, 18, T('#2A2440'));
-  g.fillStyle = T('#4A8A5A'); g.beginPath(); g.moveTo(sx - 8, base - 44); g.lineTo(sx + 12, base - 48); g.lineTo(sx + 8, base - 40); g.closePath(); g.fill();
+  g.fillStyle = T('#E87AB8'); g.beginPath(); g.moveTo(cx - 34, PH - 44); g.lineTo(cx, PH - 60); g.lineTo(cx - 6, PH - 44); g.closePath(); g.fill();
+  box(g, cx - 34, PH - 46, 68, 2, T('#F4F8FF'));
 };
 /** A gift-shop turret: a round tower, a cone roof, its pennant. */
 const turret = (g: Ctx, T: (c: string) => string, x: number, foot: number, w: number, h: number, roof: string, tod: TimeOfDay, i: number) => {
@@ -168,19 +127,25 @@ const turret = (g: Ctx, T: (c: string) => string, x: number, foot: number, w: nu
 };
 const paintPark = (g: Ctx, tod: TimeOfDay) => {
   const T = farCol(tod, 0.36), P = ['#2A4A4A', '#3E6460'].map(T), S = T('#E8EEF8');
+  // (the park's neighbors peeking over the far ridge, deep in the haze: Hollywood Land's hill back left, Jungle Land's
+  //  temple off ahead to the right)
+  const TF = farCol(tod, 0.62);
+  farHollywood(g, TF, 250, PH - 52);
+  farJungle(g, TF, 1590, PH - 50);
   // (the pine ridge behind it all)
   g.fillStyle = T('#34525A'); g.beginPath(); g.moveTo(0, PH);
   for (let x = 0; x <= PW; x += 4) g.lineTo(x, pineRidge(x));
   g.lineTo(PW, PH); g.closePath(); g.fill();
   for (let x = 4; x < PW; x += 9) { const y = pineRidge(x); farPine(g, x + hash(x) * 4, y + 6, 12 + hash(x * 1.3) * 12, P, S); }
-  paintTragons(g, T);
+  // (in the order he'll come to them, left to right: the wheel, then Truelling Tragons past the glen)
   paintWheel(g, T, tod);
-  turret(g, T, 120, PH - 30, 14, 40, '#4A78D4', tod, 1);
-  turret(g, T, 150, PH - 30, 10, 28, '#C8508E', tod, 2);
-  turret(g, T, 880, PH - 30, 16, 48, '#6A4A9A', tod, 3);
-  turret(g, T, 1010, PH - 30, 12, 34, '#4A78D4', tod, 4);
-  turret(g, T, 1540, PH - 30, 18, 56, '#C8508E', tod, 5);
-  turret(g, T, 1580, PH - 30, 11, 30, '#3A8A6A', tod, 6);
+  farTragons(g, T, 900, 1380, PH - 32, tod.lamps > 0.3);
+  turret(g, T, 110, PH - 30, 14, 40, '#4A78D4', tod, 1);
+  turret(g, T, 140, PH - 30, 10, 28, '#C8508E', tod, 2);
+  turret(g, T, 400, PH - 30, 16, 48, '#6A4A9A', tod, 3);
+  turret(g, T, 760, PH - 30, 12, 34, '#4A78D4', tod, 4);
+  turret(g, T, 1470, PH - 30, 18, 56, '#C8508E', tod, 5);
+  turret(g, T, 1680, PH - 30, 11, 30, '#3A8A6A', tod, 6);
   // (the snowy meadow down to the lake; the lake, iced over: banded, skaters' scratches, the far shore's reflection)
   box(g, 0, PH - 30, PW, 10, T('#D8E2F2')); box(g, 0, PH - 30, PW, 2, T('#F4F8FF'));
   const ICE = ['#8EA8D0', '#A6BEE0', '#BED2EC'].map(T);
@@ -309,7 +274,9 @@ export const drawSquareFar = (c: Ctx, state: GameState) => {
   // (the castle on its crag up on the far hills, drifting across the sky as he goes, standing clear over the roofs)
   const at = MONUMENT_AT.square, { x0, x1 } = SECTIONS.square, k = Math.max(0, Math.min(1, (cx - x0) / Math.max(1, x1 - x0 - W)));
   drawCastleAt(c, Math.round(at.from + (at.to - at.from) * k), Math.round(at.base - 50 + (hz - 440)), at.k, f);
-  tile(c, 'park', cx * 0.07, hz - PH + 14, PH, PW, g => paintPark(g, tod));
+  // (laid from the section's start, so the wheel's always ahead to the right as he sets off and Truelling Tragons comes
+  //  in after it)
+  tile(c, 'park', (cx - SECTIONS.square.x0) * 0.07 + 150, hz - PH + 14, PH, PW, g => paintPark(g, tod));
   // (the village's roofs past the street, their chimneys smoking; under them, its ground right down)
   const ry = hz + 18 - RG, off = cx * 0.2;
   tile(c, 'roofs', off, ry, RH, RW, g => paintRoofs(g, tod));

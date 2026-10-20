@@ -22,6 +22,7 @@ import { box, mix, hash, checker, INK, type Ctx } from '../kit';
 import { MONUMENT_AT, drawCastleAt } from '../monument';
 import { SECTIONS } from '../geometry';
 import { paintAlps, MW, MH, farPine } from '../square/far';
+import { farWheel, farTragons } from '../glimpse';
 
 const W = CANVAS_WIDTH, H = CANVAS_HEIGHT;
 
@@ -41,8 +42,8 @@ const farCol = (tod: TimeOfDay, k: number) => (col: string) => mix(farTint(hourM
 /** Four steps round a color (shade, itself, lit, highlight), for the hour. */
 const r4 = (T: (c: string) => string, col: string) => [T(mix(col, INK, 0.35)), T(col), T(mix(col, '#FFFFFF', 0.3)), T(mix(col, '#FFFFFF', 0.6))];
 const poly = (g: Ctx, pts: [number, number][], col: string) => { g.fillStyle = col; g.beginPath(); pts.forEach(([x, y], i) => (i ? g.lineTo(x, y) : g.moveTo(x, y))); g.closePath(); g.fill(); };
-const winLit = (tod: TimeOfDay, i: number) => tod.lamps > 0.3 ? (hash(i * 1.7) > 0.3 ? (hash(i * 3.1) > 0.5 ? '#FFD88A' : '#F2B060') : null) : (hash(i * 1.7) > 0.75 ? '#E8B070' : null);
 const BULB = ['#FFE9A8', '#FFB0D8', '#A8E8FF', '#C8FFB8'];
+const winLit = (tod: TimeOfDay, i: number) => tod.lamps > 0.3 ? (hash(i * 1.7) > 0.3 ? (hash(i * 3.1) > 0.5 ? '#FFD88A' : '#F2B060') : null) : (hash(i * 1.7) > 0.75 ? '#E8B070' : null);
 /** A round crown in four steps (a pixel blob each: shade under, body, lit up and left, a highlight). */
 const crown = (g: Ctx, x: number, y: number, r: number, R: string[], seed: number) => {
   const lumps = 3 + Math.floor(hash(seed) * 3);
@@ -105,17 +106,8 @@ export const paintPark = (g: Ctx, tod: TimeOfDay) => {
   checker(g, 0, PG - 6, PW, 2, HL[1], 0, 2);
   for (let x = 6; x < PW; x += 11) { const y = hills(x); if (hash(x * 0.3) > 0.35) farPine(g, x + hash(x) * 4, y + 8, 10 + hash(x * 1.3) * 12, [T('#22403E'), T('#335C52')], Sn); }
   // (THE FAIRY WHEEL, back the way he came)
-  const wx = 130, wr = 50, wy = PG - 30 - wr - 8;
-  g.strokeStyle = T('#5A4E7A'); g.lineWidth = 2;
-  g.beginPath(); g.moveTo(wx - 30, PG - 26); g.lineTo(wx, wy); g.lineTo(wx + 30, PG - 26); g.stroke();
-  g.strokeStyle = T('#C8A8D8'); g.lineWidth = 1;
-  for (let i = 0; i < 12; i++) { const a = (i / 12) * Math.PI * 2; g.beginPath(); g.moveTo(wx, wy); g.lineTo(wx + Math.cos(a) * wr, wy + Math.sin(a) * wr); g.stroke(); }
-  g.strokeStyle = T('#E87AB8'); g.lineWidth = 3; g.beginPath(); g.arc(wx, wy, wr, 0, Math.PI * 2); g.stroke();
-  g.strokeStyle = T('#F6C84A'); g.lineWidth = 1; g.beginPath(); g.arc(wx, wy, wr * 0.6, 0, Math.PI * 2); g.stroke();
-  const gc = ['#F49AC8', '#9CD0F4', '#F6D365', '#B8A0F0', '#A8E8C8', '#F4A878'];
-  for (let i = 0; i < 10; i++) { const a = (i / 10) * Math.PI * 2 + 0.2, x = wx + Math.cos(a) * wr, y = wy + Math.sin(a) * wr; box(g, x - 4, y + 2, 8, 6, T(INK)); box(g, x - 3, y + 3, 6, 4, T(gc[i % 6])); box(g, x - 3, y + 3, 6, 1, T(mix(gc[i % 6], '#FFFFFF', 0.4))); }
-  if (tod.lamps > 0.3) for (let i = 0; i < 28; i++) { const a = (i / 28) * Math.PI * 2; box(g, wx + Math.cos(a) * wr - 1, wy + Math.sin(a) * wr - 1, 2, 2, BULB[i % 2]); }
-  g.fillStyle = T('#F6C84A'); g.beginPath(); g.arc(wx, wy, 4, 0, Math.PI * 2); g.fill();
+  const wr = 52;
+  farWheel(g, T, 130, PG - 30 - wr - 8, wr, PG - 24, tod.lamps > 0.3);
   // (Hogsmeat off past it: roofs, the steeple, the clock tower)
   for (let i = 0; i < 9; i++) {
     const x = 220 + i * 26 + hash(i * 5) * 6, w = 18 + hash(i * 2) * 12, h = 14 + hash(i * 3) * 18, top = PG - 24 - h;
@@ -167,25 +159,7 @@ export const paintPark = (g: Ctx, tod: TimeOfDay) => {
     poly(g, [[mx + Math.cos(a) * 12, mtop - 4 + Math.sin(a) * 12], [ex, ey], [ex + nx, ey + ny], [mx + Math.cos(a) * 12 + nx, mtop - 4 + Math.sin(a) * 12 + ny]], T('#E8E0D0'));
   }
   // (TRUELLING TRAGONS ahead: three tracks on lattice legs, knotted round their loops; the station)
-  const t0 = 1260, t1 = 1600, base = PG - 24;
-  const trackY = (k: number, x: number) => base - 50 - Math.sin((x - t0) * 0.02 + k * 2.1) * 26 - Math.sin((x - t0) * 0.045 + k) * 10 - k * 6;
-  for (let x = t0; x < t1; x += 12) for (let k = 0; k < 3; k++) { const y = trackY(k, x); box(g, x, y, 1, base - y, T('#625C82')); }
-  const TR = ['#D8402E', '#7AC8F0', '#F2D24A'];
-  for (let k = 0; k < 3; k++) {
-    for (const [col, lw, dy] of [[mix(TR[k], INK, 0.45), 4, 1], [TR[k], 2, 0]] as const) {
-      g.strokeStyle = T(col); g.lineWidth = lw; g.beginPath();
-      for (let x = t0; x <= t1; x += 4) (x === t0 ? g.moveTo(x, trackY(k, x) + dy) : g.lineTo(x, trackY(k, x) + dy));
-      g.stroke();
-    }
-    const lx = t0 + 70 + k * 100, ly = trackY(k, lx) - 26;
-    for (const [col, lw] of [[mix(TR[k], INK, 0.45), 4], [TR[k], 2]] as const) { g.strokeStyle = T(col); g.lineWidth = lw; g.beginPath(); g.ellipse(lx, ly, 17, 26, 0, 0, Math.PI * 2); g.stroke(); }
-    box(g, lx - 1, ly + 26, 2, base - ly - 26, T('#625C82'));
-  }
-  const sx = t1 - 24;
-  box(g, sx - 26, base - 36, 52, 36, T('#5E5480')); box(g, sx - 26, base - 36, 52, 2, T('#8E84AA'));
-  for (let k = 0; k < 3; k++) box(g, sx - 20 + k * 16, base - 28, 5, 9, winLit(tod, 40 + k) ?? T('#2A2440'));
-  poly(g, [[sx - 30, base - 36], [sx, base - 58], [sx + 30, base - 36]], T('#33304E')); poly(g, [[sx - 30, base - 36], [sx, base - 58], [sx - 5, base - 36]], T('#4A4668'));
-  box(g, sx - 30, base - 38, 60, 2, Sn);
+  farTragons(g, T, 1240, 1640, PG - 24, tod.lamps > 0.3);
   turret(g, T, 470, PG - 24, 12, 40, '#4A78D4', tod, 1);
   turret(g, T, 760, PG - 24, 10, 30, '#C8508E', tod, 2);
   turret(g, T, 1020, PG - 24, 14, 46, '#6A4A9A', tod, 3);
@@ -383,7 +357,9 @@ export const drawGlenFar = (c: Ctx, state: GameState) => {
   // (the castle on its crag, drifting across as he goes, its foot lost in the trees)
   const at = MONUMENT_AT.glen, { x0, x1 } = SECTIONS.glen, k = Math.max(0, Math.min(1, (cx - x0) / Math.max(1, x1 - x0 - W)));
   drawCastleAt(c, Math.round(at.from + (at.to - at.from) * k), Math.round(at.base + (hz - 440)), at.k, f);
-  tile(c, 'park', cx * 0.06, hz - PG - 20, PH, PW, g => paintPark(g, tod));
+  // (laid from the section's start: the wheel he's come from back to the left, Truelling Tragons coming in on the right
+  //  as he nears its queue)
+  tile(c, 'park', (cx - x0) * 0.06, hz - PG - 20, PH, PW, g => paintPark(g, tod));
   tile(c, 'farwood', cx * 0.13, hz - FG + 20, FH, FW, g => paintFarForest(g, tod));
   const gy = hz - GG + 70;
   tile(c, 'wood', cx * 0.24, gy, GH, GW, g => paintForest(g, tod));
