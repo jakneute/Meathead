@@ -3,9 +3,13 @@
 // its roof caved in and the tree that went into it, both burning; the ground trampled to dirt by the stampede, hoof
 // prints all over it; the bushes chewed down to stalks; a hippo on its back, legs up; an elephant's leg, standing there
 // on its own; Artie's gift-shop parachute (I HEART JUNGLE LAND, the $9.99 tag still on it) caught on a stalk; his
-// pith helmet. And Artie: beaten, face down with his rear in the air, the flies on him, and every so often one more
-// goes out of him; or eaten by the litter (his weakness), a heap of bones in tube socks, boots and heart boxers, the
-// skull off on its own, the buck teeth out of it, a vulture picking it over, the burst little goblins round it.
+// pith helmet. The temple's the front of a show building (its stucco box behind, a rooftop unit, the giant jaguar head
+// from behind); the junior guides' camp trampled (the tent down, a spiked helmet by it), a PA pole knocked over with its
+// horn swinging off it, the fiberglass boulder the jungle's soundtrack was in split open. And Artie: gored (his standard
+// death), the heap against a block of the temple's wing, folded backward over his dead rhino's horn, the flies on him,
+// and every so often one more goes out of him; or eaten by the litter (his weakness), a heap of bones in tube socks,
+// boots and heart boxers, the skull off on its own, the buck teeth out of it, a vulture picking it over, the burst
+// little goblins round it.
 // His new toy: the CROSSBOW OF PLAGUES.
 
 import {
@@ -17,13 +21,14 @@ import { noteSun } from '../sunFlare';
 import { signText, signW, signH, print } from '../adventure/letters';
 import { snap2, wave, jag, range, mist, canopy, palm, poly as fpoly } from '../adventure/farArt';
 import { farStrip } from './farStrip';
+import { drawDeadRhino, DEAD_HORN } from '../adventure/clearing/stampede';
+import { drawSafariArtie } from '../adventure/river/artie';
 
 const STONE = rampOf('#8A7766');
 const MOSS = ['#2E3A14', '#3F5219', '#56701F'];
 const BARK = ['#24140A', '#3B2412', '#5B3A1C', '#7A5230', '#9A7048'];
 const LEAF = ['#13240F', '#1E3A16', '#2D5220', '#3F6E2A', '#5A8C38'];
 const KHAKI = rampOf('#B8A06A');
-const SHORTS = rampOf('#8C7A4A');
 const BONE = ['#6B6355', '#A8A08C', '#D6CFBA', '#EEE8D4', '#FFFFF4'];
 const HIPPO = rampOf('#8B7A99');
 const ELE = rampOf('#9CA3AF');
@@ -196,6 +201,13 @@ const paintTemple = (g: Ctx, w: number, h: number) => {
     for (let i = 0; i < 5; i++) { const vx = x0 + 6 + hash(y0 + i * 3) * (x1 - x0 - 12); box(g, vx, y0, 1, 6 + hash(i * 7) * 14, MOSS[2]); }
   };
   const L = 46, H = h;
+  // (the show building it's the front of, behind it: the box's stucco, its roof's edge, a rooftop unit and the giant
+  // jaguar head from behind, raw fiberglass on its lumber frame)
+  const ST = rampOf('#A49880'), GV = rampOf('#8E969D'), FB = rampOf('#86826A');
+  box(g, L + 22, H - 112, 158, 112, INK); box(g, L + 23, H - 111, 156, 111, ST[2]); box(g, L + 23, H - 111, 156, 2, ST[3]); box(g, L + 170, H - 111, 9, 111, ST[1]);
+  box(g, L + 30, H - 122, 26, 10, INK); box(g, L + 31, H - 121, 24, 9, GV[2]); for (let k = 0; k < 4; k++) box(g, L + 33 + k * 5, H - 119, 3, 6, GV[0]);
+  poly(g, [[L + 120, H - 111], [L + 122, H - 124], [L + 127, H - 128], [L + 132, H - 122], [L + 142, H - 126], [L + 152, H - 122], [L + 157, H - 128], [L + 162, H - 124], [L + 164, H - 111]], FB[2]);
+  box(g, L + 150, H - 124, 12, 13, FB[1]); box(g, L + 124, H - 120, 40, 1, FB[0]); box(g, L + 130, H - 126, 1, 15, '#8E6A3A'); box(g, L + 154, H - 126, 1, 15, '#8E6A3A');
   tier(L, L + 200, H - 40, H);
   tier(L + 24, L + 176, H - 74, H - 40);
   tier(L + 48, L + 152, H - 104, H - 74);
@@ -252,29 +264,97 @@ const paintStalks = (g: Ctx, w: number, h: number) => {
   g.fillStyle = '#3A2A18'; g.beginPath(); g.ellipse(w / 2, h - 1, w / 3, 2, 0, 0, Math.PI * 2); g.fill();
 };
 
-/** Artie, beaten: face down, rear up in the air (Meathead 1's standard death, his way). Side on, his head on the left. */
-const paintArtieFlat = (g: Ctx, w: number, h: number) => {
-  const gy = h - 2;
-  g.fillStyle = BLOOD[1]; g.beginPath(); g.ellipse(10, gy, 9, 2, 0, 0, Math.PI * 2); g.fill();
-  // (his arm, flopped out in front, palm up)
-  poly(g, [[4, gy - 3], [18, gy - 4], [18, gy - 1], [4, gy]], KHAKI[2]);
-  lump(g, 3, gy - 2, 3, 2, rampOf('#E8A37A'));
-  // (his back: the shirt, sloping up to his rear)
-  poly(g, [[12, gy - 1], [12, gy - 10], [22, gy - 16], [32, gy - 22], [36, gy - 14], [30, gy - 2]], KHAKI[2]);
-  box(g, 14, gy - 12, 12, 2, KHAKI[3]); box(g, 20, gy - 8, 8, 3, '#8A6A2A');
-  // (his rear, up in the air: the khaki shorts torn, the heart boxers showing)
-  lump(g, 38, gy - 24, 8, 7, SHORTS);
-  g.fillStyle = '#DC2626'; g.beginPath(); g.ellipse(40, gy - 25, 4, 3, 0.3, 0, Math.PI * 2); g.fill();
-  box(g, 39, gy - 26, 1, 1, '#FBCFE8'); box(g, 41, gy - 24, 1, 1, '#FBCFE8');
-  // (his legs folded under: knees down, the tube socks, the boots sole up)
-  poly(g, [[36, gy - 18], [44, gy - 18], [46, gy - 2], [38, gy - 2]], SHORTS[2]);
-  box(g, 44, gy - 9, 6, 7, '#F1EFEA'); box(g, 44, gy - 8, 6, 1, '#DC2626'); box(g, 44, gy - 6, 6, 1, '#1D4ED8');
-  box(g, 49, gy - 10, 6, 9, INK); box(g, 50, gy - 9, 4, 7, '#5B3A1C'); box(g, 50, gy - 9, 1, 7, '#7A5230');
-  // (his head in the dirt: the mullet, an ear, the sunburn on his neck)
-  lump(g, 11, gy - 5, 5, 4, rampOf('#D9825E'));
-  poly(g, [[8, gy - 9], [16, gy - 10], [20, gy - 6], [17, gy - 2], [12, gy - 4]], '#6B4423');
-  for (let i = 0; i < 4; i++) box(g, 14 + i * 2, gy - 3 + (i % 2), 2, 3, '#5A3A1E');
-  void w;
+/**
+ * Artie, gored (his standard death): the heap where his rhino slammed him into the temple's wing, a block of the wing
+ * stood up where it came down with them (cracked in round the horn, their blood sprayed up it and run down it), the
+ * rhino crumpled up against it (nose in the stone, a back leg stuck up), Artie folded backward over its horn, the horn
+ * out through him; the pool under them. The clearing's own drawings of the two (stampede.ts, river/artie.ts), scaled.
+ */
+const paintHeap = (g: Ctx, w: number, h: number) => {
+  const gy = h - 2, wx = w - 30, k = 0.56;
+  // (the pool, spread)
+  g.fillStyle = BLOOD[0]; g.beginPath(); g.ellipse(wx - 30, gy, 40, 4, 0, 0, Math.PI * 2); g.fill();
+  g.fillStyle = BLOOD[1]; g.beginPath(); g.ellipse(wx - 28, gy - 0.5, 32, 2.6, 0, 0, Math.PI * 2); g.fill();
+  box(g, wx - 52, gy - 1, 8, 1, BLOOD[3]);
+  // (the block of the wing: stone courses, lit up the left, the crack star round where the horn went in, the blood)
+  box(g, wx - 1, gy - 66, 32, 67, INK);
+  for (let r = 0; r < 5; r++) {
+    const y = gy - 65 + r * 13, off = r % 2 ? 8 : 0;
+    for (let x = wx - off; x < w; x += 18) {
+      const L = Math.max(wx, x), R = Math.min(w - 1, x + 18);
+      box(g, L, y, R - L, 13, STONE[0]); box(g, L + 1, y + 1, R - L - 2, 11, STONE[2]);
+      box(g, L + 1, y + 1, R - L - 2, 2, STONE[3]); box(g, L + 1, y + 1, 2, 11, STONE[3]); box(g, L + 1, y + 10, R - L - 2, 2, STONE[1]);
+    }
+  }
+  box(g, wx, gy - 66, 3, 66, STONE[4]); g.fillStyle = stipple(g, STONE[1]); g.fillRect(w - 8, gy - 66, 7, 66);
+  const hx = wx, hy = gy + DEAD_HORN.ty * k;
+  g.strokeStyle = STONE[0]; g.lineWidth = 1.5;
+  for (const [dx, dy] of [[14, -12], [20, 4], [10, 18], [12, -24], [24, -6]] as const) { g.beginPath(); g.moveTo(hx, hy); g.lineTo(hx + dx * 0.5, hy + dy * 0.4 + 2); g.lineTo(hx + dx, hy + dy); g.stroke(); }
+  for (let i = 0; i < 14; i++) { const a = -1.2 + hash(i * 3.3) * 2.2, r = 4 + hash(i * 5.1) * 16; box(g, hx + 2 + Math.cos(a) * r * 0.6, hy + Math.sin(a) * r, 2, 2, i % 3 ? BLOOD[2] : BLOOD[1]); }
+  for (const [rx, len] of [[hx + 3, 26], [hx + 8, 18], [hx + 13, 30]] as const) { box(g, rx, hy + 2, 2, Math.min(len, gy - hy - 2), BLOOD[1]); box(g, rx, hy + 2, 1, Math.min(len, gy - hy - 2) - 2, BLOOD[2]); }
+  // (the two of them, crumpled into each other against it)
+  g.save(); g.translate(wx, gy); g.scale(k, k);
+  drawDeadRhino(g, 1, 0);
+  const on = 0.75, hipX = DEAD_HORN.bx + (DEAD_HORN.tx - DEAD_HORN.bx) * on, hipY = DEAD_HORN.by + (DEAD_HORN.ty - DEAD_HORN.by) * on;
+  g.save(); g.translate(hipX, hipY); g.scale(0.8, 0.9); g.rotate(0.54);
+  drawSafariArtie(g, 0, 29, -1, 0, 'broken', 0.74);
+  g.restore();
+  // (the end of the horn out through the front of him, bloody)
+  const bx = hipX + (DEAD_HORN.tx - hipX) * 0.55, by = hipY + (DEAD_HORN.ty - hipY) * 0.55;
+  g.fillStyle = INK; g.beginPath(); g.moveTo(bx - 4, by - 3); g.lineTo(DEAD_HORN.tx, DEAD_HORN.ty); g.lineTo(bx + 3, by + 4); g.closePath(); g.fill();
+  g.fillStyle = '#E8DDBE'; g.beginPath(); g.moveTo(bx - 2.5, by - 2); g.lineTo(DEAD_HORN.tx, DEAD_HORN.ty); g.lineTo(bx + 2, by + 2.5); g.closePath(); g.fill();
+  g.fillStyle = BLOOD[2]; g.beginPath(); g.moveTo(bx - 2.5, by - 2); g.lineTo(bx + (DEAD_HORN.tx - bx) * 0.7, by + (DEAD_HORN.ty - by) * 0.7); g.lineTo(bx + 2, by + 2.5); g.closePath(); g.fill();
+  g.restore();
+};
+
+/** The junior guides' camp, trampled: the wall tent down in a heap of canvas, its pole snapped and sticking up, a
+ *  guy line trailing, a spiked helmet beside it. */
+const paintTent = (g: Ctx, w: number, h: number) => {
+  const gy = h - 1, C = rampOf('#B0A06A');
+  lump(g, w * 0.45, gy - 9, w * 0.4, 9, C);
+  for (let i = 0; i < 5; i++) { const x = w * 0.15 + i * w * 0.16; box(g, x, gy - 14 + (i % 2) * 4, 1, 10, C[1]); }
+  g.strokeStyle = INK; g.lineWidth = 3; g.beginPath(); g.moveTo(w * 0.52, gy - 10); g.lineTo(w * 0.62, gy - h + 2); g.stroke();
+  g.strokeStyle = BARK[3]; g.lineWidth = 1.5; g.beginPath(); g.moveTo(w * 0.52, gy - 10); g.lineTo(w * 0.62, gy - h + 2); g.stroke();
+  box(g, w * 0.62 - 2, gy - h + 1, 4, 2, BARK[4]);
+  g.strokeStyle = '#D6D3D1'; g.lineWidth = 1; g.beginPath(); g.moveTo(w * 0.8, gy - 6); g.quadraticCurveTo(w * 0.9, gy, w - 2, gy - 1); g.stroke();
+  // (TROOP 9, upside down on the canvas; the helmet beside it, its spikes)
+  box(g, w * 0.3, gy - 12, 12, 2, C[0]); box(g, w * 0.36, gy - 9, 6, 1, C[0]);
+  const hx = w * 0.12, hy = gy - 2;
+  g.fillStyle = INK; g.beginPath(); g.ellipse(hx, hy, 6, 4, 0, Math.PI, 0); g.fill(); g.fillStyle = KHAKI[3]; g.beginPath(); g.ellipse(hx, hy, 5, 3, 0, Math.PI, 0); g.fill();
+  box(g, hx - 7, hy, 14, 1, KHAKI[1]);
+  for (const sx of [-3, 0, 3]) box(g, hx + sx, hy - 6 - (sx ? 0 : 1), 1, 3, '#CBD5E1');
+};
+
+/** One of the park's PA poles (made up as bamboo), knocked over in the stampede: leaning, a horn speaker hanging off it
+ *  by its cable (live: swinging). */
+const paintPA = (g: Ctx, w: number, h: number) => {
+  const gy = h - 1;
+  g.save(); g.translate(w * 0.3, gy); g.rotate(0.42);
+  box(g, -3, -h + 4, 6, h - 4, INK); box(g, -2, -h + 4, 4, h - 4, '#5E8A36'); box(g, -2, -h + 4, 1, h - 4, '#8EB45A');
+  for (let y = -h + 12; y < 0; y += 12) box(g, -3, y, 6, 2, '#2E4A1E');
+  box(g, 2, -h + 6, 8, 4, '#3A3A42');
+  g.restore();
+};
+const paLive = (c: Ctx, sx: number, sy: number, s: number, t: number) => {
+  // (the horn, dangling off the pole's top by its cable, swinging)
+  const tx = sx + s * 0.95, ty = sy - s * 2.3, a = Math.sin(t * 0.05) * 0.35, L = s * 0.9;
+  const ex = tx + Math.sin(a) * L, ey = ty + Math.cos(a) * L;
+  c.strokeStyle = '#14161A'; c.lineWidth = 1; c.beginPath(); c.moveTo(tx, ty); c.lineTo(ex, ey); c.stroke();
+  const r = Math.max(2, s * 0.22);
+  c.fillStyle = INK; c.beginPath(); c.moveTo(ex - 1, ey); c.lineTo(ex - r, ey + r * 1.6); c.lineTo(ex + r, ey + r * 1.6); c.lineTo(ex + 1, ey); c.fill();
+  c.fillStyle = '#9AA2AC'; c.beginPath(); c.moveTo(ex - 0.5, ey + 0.5); c.lineTo(ex - r + 1, ey + r * 1.5); c.lineTo(ex + r - 1, ey + r * 1.5); c.lineTo(ex + 0.5, ey + 0.5); c.fill();
+};
+
+/** The fiberglass boulder the soundtrack was in, split open by a hoof: hollow, the speaker inside on its wires. */
+const paintFakeRock = (g: Ctx, w: number, h: number) => {
+  const gy = h - 1, R = rampOf('#8F877D');
+  lump(g, w * 0.3, gy - h * 0.38, w * 0.28, h * 0.38, R);
+  lump(g, w * 0.72, gy - h * 0.3, w * 0.25, h * 0.3, R);
+  // (the hollow inside each half: the shell's edge, the dark, the speaker and its cable)
+  g.fillStyle = '#1C1916'; g.beginPath(); g.ellipse(w * 0.42, gy - h * 0.3, w * 0.1, h * 0.26, 0, -Math.PI / 2, Math.PI / 2); g.fill();
+  box(g, w * 0.42, gy - h * 0.5, 2, h * 0.42, R[4]);
+  box(g, w * 0.48, gy - h * 0.42, 7, 8, INK); box(g, w * 0.48 + 1, gy - h * 0.42 + 1, 5, 6, '#3A3E44');
+  g.strokeStyle = '#14161A'; g.lineWidth = 1; g.beginPath(); g.moveTo(w * 0.48 + 4, gy - h * 0.42 + 7); g.quadraticCurveTo(w * 0.55, gy, w * 0.62, gy - 2); g.stroke();
 };
 
 /** Artie, eaten (his weakness): a heap of bones, still in his tube socks, boots and heart boxers; the goblins, burst. */
@@ -469,16 +549,21 @@ const props = (weakness: boolean): Prop[] => {
     { id: 'stalks-a', x: 3.4, z: 13, w: 1.3, h: 1, ppm: 40, paint: paintStalks },
     { id: 'stalks-b', x: -5.5, z: 2.2, w: 1.4, h: 1.1, ppm: 40, paint: paintStalks },
   ];
+  // The camp, trampled: the tent down; a PA pole knocked over, its horn swinging off it; the soundtrack's boulder split
+  out.push({ id: 'camp-tent', x: -7.6, z: 15, w: 3.2, h: 1.3, ppm: 24, paint: paintTent });
+  out.push({ id: 'pa-pole', x: 7.2, z: 11, w: 1.6, h: 3.4, ppm: 24, paint: paintPA, live: paLive });
+  out.push({ id: 'fake-rock', x: -3.8, z: 18, w: 2, h: 1, ppm: 24, paint: paintFakeRock });
   if (!weakness) {
-    // Artie, face down, rear up; the flies; and every so often, one more out of him
-    out.push({ id: 'artie-flat', x: 2.1, z: 5, w: 2.3, h: 1.1, ppm: 24, paint: paintArtieFlat, live: (c, sx, sy, s, t) => {
-      const rx = sx + s * 0.55, ry = sy - s * 1.0;
-      flies(c, rx, ry, s, t, 6, 1);
+    // Artie, gored: the heap against the block of the wing, him over the rhino's horn; the flies; and every so often,
+    // one more out of him
+    out.push({ id: 'artie-heap', x: 2.6, z: 6, w: 3.6, h: 2.4, ppm: 32, paint: paintHeap, live: (c, sx, sy, s, t) => {
+      const rx = sx - s * 0.5, ry = sy - s * 1.3;
+      flies(c, rx, ry, s, t, 7, 1);
       const u = t % 260;
       if (u < 90) {
-        const k = u / 90, r = Math.max(1, s * (0.15 + k * 0.5));
+        const k = u / 90, r = Math.max(1, s * (0.12 + k * 0.4));
         c.fillStyle = stipple(c, k < 0.5 ? '#9DB04A' : '#7E9434', u % 2);
-        c.beginPath(); c.ellipse(rx + s * (0.2 + k * 0.3), ry - s * k * 0.6, r, r * 0.8, 0, 0, Math.PI * 2); c.fill();
+        c.beginPath(); c.ellipse(rx - s * (0.2 + k * 0.3), ry - s * k * 0.5, r, r * 0.8, 0, 0, Math.PI * 2); c.fill();
       }
     } });
     out.push({ id: 'helmet', x: 0.4, z: 3.2, w: 0.7, h: 0.45, ppm: 24, paint: paintHelmet });

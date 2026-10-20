@@ -15,8 +15,11 @@
 //
 // The look (the final pass): the temple's faces in the roof's sandy stone, each face's shade stepped from the stone's
 // ramp by how it's turned to the light; block courses and staggered joints in perspective (dark joint, lit lip), a lit
-// cornice, moss along the foot, carved glyph panels, vines; the stairs with lit treads. Trees with stepped crowns,
-// the hills with lit crests, clouds going round with the loop.
+// cornice, moss along the foot, carved glyph panels, vines; the stairs with lit treads. The trees and the park's
+// fakery out there are hand-painted sprites, scaled chunky, hazed by distance band (kapoks, palms, strangler figs, the
+// park's speakers strapped up some; tiki torches along the path, fiberglass boulders, bamboo PA poles, zebras on their
+// track, the cell tower dressed as a palm). The hills with lit crests, the canopy's crowns in steps, clouds going
+// round with the loop.
 
 import type { GameState } from '../../../m1/game/core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
@@ -314,32 +317,208 @@ const inOrder = (items: OrbitItem[], cam: Pt) => {
   return out;
 };
 
-/** A jungle tree (a scaled sprite: as big as it is near, dimmer further back): a two-tone trunk, a crown in steps. */
-const LEAVES = ['#0F3A1C', '#16552A', '#22703A', '#3A8C44', '#62AE52'];
-const LOBES: [number, number, number][] = [[0, 0, 1], [-0.7, 0.45, 0.7], [0.7, 0.45, 0.7], [-0.3, -0.35, 0.6], [0.4, -0.25, 0.55]];
+// ---------------------------------------------------------------------------------------------------------------
+// Sprites out on the loop (the old 16-bit way: each thing painted once, by hand, at a size; put down scaled for how far
+// off it is, chunky; a step of haze over it for each band of distance, as the floor's fog is banded): the jungle's
+// trees (a kapok on its buttress roots, a palm, a strangler fig with its aerial roots), the park's speakers strapped up
+// some of them and an access door in a fake one's trunk; and its fakery round the loop: tiki torches along the path's
+// far edge, fiberglass boulders, PA poles made up as bamboo, a zebra on its track (the pole up its belly), and the cell
+// tower dressed as a palm, standing over everything.
+
+/** Sprite pixels to a world unit. */
+const PS = 0.6;
+/** The haze each distance band puts over a sprite (none nearest). */
+const SPR_HAZE = '#2A5A36', HAZE_K = [0.5, 0.34, 0.18, 0];
+const sprites = new Map<string, HTMLCanvasElement>();
+/** A sprite painted once (`paint` in its own pixels), hazed to its distance band. */
+const spriteOf = (key: string, w: number, h: number, band: number, paint: (g: Ctx) => void) => {
+  const id = `${key}:${band}`;
+  let cv = sprites.get(id);
+  if (!cv) {
+    cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+    const g = cv.getContext('2d')!; g.imageSmoothingEnabled = false;
+    paint(g);
+    if (HAZE_K[band] > 0) { g.globalCompositeOperation = 'source-atop'; g.globalAlpha = HAZE_K[band]; g.fillStyle = SPR_HAZE; g.fillRect(0, 0, w, h); }
+    sprites.set(id, cv);
+  }
+  return cv;
+};
+/** A distance band (0 furthest .. 3 nearest) for a depth. */
+const bandOf = (z: number) => { const d = 1.3 - z / 3000; return d > 0.9 ? 3 : d > 0.75 ? 2 : d > 0.6 ? 1 : 0; };
+/** A sprite stood on the floor at (px, pz), its foot at (fx, fy) in its pixels. */
+const putSprite = (c: Ctx, v: View, px: number, pz: number, cv: HTMLCanvasElement, fx: number, fy: number) => {
+  const b = proj(v, px, 0, pz), s = b.k / PS;
+  c.save(); c.imageSmoothingEnabled = false;
+  c.drawImage(cv, Math.round(b.x - fx * s), Math.round(b.y - fy * s), Math.round(cv.width * s), Math.round(cv.height * s));
+  c.restore();
+};
+const rect = (g: Ctx, x: number, y: number, w: number, h: number, col: string) => { g.fillStyle = col; g.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h)); };
+const blob = (g: Ctx, x: number, y: number, rx: number, ry: number, col: string) => pixelBlob(g, x, y, rx, ry, col);
+const chk = (g: Ctx, x: number, y: number, w: number, h: number, col: string) => { g.fillStyle = col; for (let yy = Math.round(y); yy < y + h; yy++) for (let xx = Math.round(x) + (yy & 1); xx < x + w; xx += 2) g.fillRect(xx, yy, 1, 1); };
+const SINK = '#1A0B06';
+const BARK_R = ['#2A1C10', '#3E2C1C', '#56402A', '#705638', '#8A6E4A'];
+const LEAF_R = ['#0F3A1C', '#16552A', '#22703A', '#3A8C44', '#62AE52'];
+
+/** A crown clump in its steps, dithered between, inked under. */
+const clump = (g: Ctx, x: number, y: number, r: number) => {
+  blob(g, x + 1, y + 2, r + 1, r * 0.78 + 1, SINK);
+  blob(g, x + r * 0.12, y + r * 0.1, r, r * 0.78, LEAF_R[0]);
+  blob(g, x, y, r * 0.92, r * 0.7, LEAF_R[1]);
+  chk(g, x - r * 0.7, y - r * 0.15, r * 1.3, 2, LEAF_R[2]);
+  blob(g, x - r * 0.18, y - r * 0.2, r * 0.66, r * 0.48, LEAF_R[2]);
+  chk(g, x - r * 0.5, y - r * 0.42, r * 0.9, 2, LEAF_R[3]);
+  blob(g, x - r * 0.32, y - r * 0.34, r * 0.34, r * 0.22, LEAF_R[3]);
+  rect(g, x - r * 0.4, y - r * 0.46, Math.max(2, r * 0.18), 2, LEAF_R[4]);
+};
+/** A trunk up from (x, foot) `h` tall, `w` wide: inked, in its steps across, bark ridges down it. */
+const trunk = (g: Ctx, x: number, foot: number, h: number, w: number) => {
+  rect(g, x - w / 2 - 1, foot - h, w + 2, h, SINK);
+  const cols = [BARK_R[3], BARK_R[4], BARK_R[3], BARK_R[2], BARK_R[2], BARK_R[1]];
+  cols.forEach((col, k) => rect(g, x - w / 2 + (k * w) / cols.length, foot - h, w / cols.length + 1, h, col));
+  for (let y = foot - h + 6; y < foot - 4; y += 9) rect(g, x - w / 2 + ((y * 7) % (w - 3)), y, 3, 1, BARK_R[0]);
+};
+/** The park's speaker strapped to a trunk at (x, y): the box, its horn, the straps, the cable down. */
+const strapped = (g: Ctx, x: number, y: number, w: number) => {
+  rect(g, x - w / 2 - 1, y + 2, w + 2, 2, SINK); rect(g, x - w / 2 - 1, y + 12, w + 2, 2, SINK);
+  rect(g, x + w / 2 - 2, y - 1, 10, 16, SINK); rect(g, x + w / 2 - 1, y, 8, 14, '#3E444C'); rect(g, x + w / 2 - 1, y, 8, 1, '#6E767E');
+  for (let k = 0; k < 3; k++) rect(g, x + w / 2 + 1, y + 3 + k * 3, 4, 1, '#1A1C20');
+  g.fillStyle = SINK; g.beginPath(); g.moveTo(x + w / 2 + 6, y + 2); g.lineTo(x + w / 2 + 16, y - 4); g.lineTo(x + w / 2 + 16, y + 16); g.lineTo(x + w / 2 + 6, y + 12); g.fill();
+  g.fillStyle = '#8A929C'; g.beginPath(); g.moveTo(x + w / 2 + 7, y + 3); g.lineTo(x + w / 2 + 15, y - 2); g.lineTo(x + w / 2 + 15, y + 14); g.lineTo(x + w / 2 + 7, y + 11); g.fill();
+  rect(g, x + w / 2 + 3, y + 15, 1, 40, '#14161A');
+};
+
+/** The tree kinds (by its number round the loop): how it's painted at height h (sprite px), and its foot. */
+const treeSprite = (i: number, band: number) => {
+  const kind = i % 3, hb = (i * 37) % 120 < 40 ? 0 : (i * 37) % 120 < 80 ? 1 : 2;
+  const extra = i % 5 === 2 ? 1 : i % 7 === 3 ? 2 : 0;
+  const h = Math.round((320 + hb * 40) * PS), W = 160, H = h + 40, fx = W / 2, fy = H - 6;
+  return { cv: spriteOf(`otree:${kind}:${hb}:${extra}`, W, H, band, g => {
+    const x = fx, foot = fy;
+    if (kind === 0) {
+      // A kapok: the buttress roots fanning out at its foot, the trunk, lianas down it, the crown up top in clumps
+      for (const s of [-1, 1]) for (const k of [0, 1]) { g.fillStyle = SINK; g.beginPath(); g.moveTo(x + s * 4, foot - 40 + k * 12); g.quadraticCurveTo(x + s * (10 + k * 4), foot - 8, x + s * (24 - k * 6), foot); g.lineTo(x + s * 2, foot); g.fill(); g.fillStyle = s < 0 ? BARK_R[3] : BARK_R[1]; g.beginPath(); g.moveTo(x + s * 4, foot - 38 + k * 12); g.quadraticCurveTo(x + s * (9 + k * 4), foot - 8, x + s * (22 - k * 6), foot - 1); g.lineTo(x + s * 3, foot - 1); g.fill(); }
+      trunk(g, x, foot, h - 30, 12);
+      for (let y = foot - h + 40; y < foot - 20; y += 3) rect(g, x - 2 + Math.round(Math.sin(y * 0.15) * 4), y, 2, 3, LEAF_R[1]);
+      for (const [dx, dy, r] of [[-30, -h + 30, 26], [30, -h + 32, 26], [0, -h + 12, 32], [-14, -h + 2, 22], [18, -h + 4, 20]] as const) clump(g, x + dx, foot + dy, r);
+      for (const vx of [-38, -18, 22, 40]) { rect(g, x + vx, foot - h + 46, 1, 20 + ((vx * 7) & 15), LEAF_R[1]); rect(g, x + vx - 1, foot - h + 62 + ((vx * 7) & 15), 3, 2, LEAF_R[3]); }
+    } else if (kind === 1) {
+      // A palm: the trunk curving up in rings, the fronds drooping off its top, the coconuts
+      const top = foot - h + 20;
+      for (let y = foot; y > top; y -= 2) { const t = (foot - y) / (foot - top), px = x + Math.round(t * t * 14); rect(g, px - 4, y - 2, 8, 2, SINK); rect(g, px - 3, y - 2, 6, 2, ((foot - y) >> 1) % 3 ? BARK_R[3] : BARK_R[1]); rect(g, px - 3, y - 2, 2, 2, BARK_R[4]); }
+      const tx = x + 14, ty = top;
+      for (const [dx, dy, len] of [[-1, 0.3, 46], [1, 0.25, 48], [-0.8, -0.5, 36], [0.8, -0.45, 36], [-0.1, -0.9, 24], [-1, 0.8, 34], [1, 0.8, 34]] as const) {
+        for (let s = 0; s < len; s += 2) {
+          const k = s / len, xx = tx + dx * s, yy = ty + dy * s + k * k * len * 0.5;
+          rect(g, xx - 1, yy - 1, 4, 3, SINK); rect(g, xx, yy, 3, 2, dy < 0 || k < 0.3 ? LEAF_R[3] : LEAF_R[2]);
+          if (s % 4 === 0 && k > 0.12) rect(g, xx + (dx > 0 ? -1 : 1), yy + 2, 2, 2 + Math.round(k * 4), LEAF_R[1]);
+        }
+      }
+      for (const [cx, cy] of [[-3, 4], [3, 5], [0, 7]] as const) { rect(g, tx + cx - 2, ty + cy - 2, 5, 5, SINK); rect(g, tx + cx - 1, ty + cy - 1, 3, 3, '#6A4A26'); }
+    } else {
+      // A strangler fig: a lattice of roots for a trunk, a wide flat crown, aerial roots hanging down out of it
+      for (let k = -2; k <= 2; k++) { rect(g, x + k * 5 - 2, foot - h + 30, 4, h - 30, SINK); rect(g, x + k * 5 - 1, foot - h + 30, 2, h - 30, k < 0 ? BARK_R[4] : BARK_R[2]); }
+      for (let y = foot - h + 40; y < foot; y += 14) rect(g, x - 12, y, 24, 2, BARK_R[1]);
+      for (const [dx, dy, r] of [[-44, -h + 34, 22], [44, -h + 34, 22], [-22, -h + 22, 28], [22, -h + 20, 28], [0, -h + 10, 26]] as const) clump(g, x + dx, foot + dy, r);
+      for (const rx of [-56, -40, -28, 30, 44, 58]) rect(g, x + rx, foot - h + 48, 1, h - 52 - ((rx * 13) & 31), BARK_R[3]);
+    }
+    if (extra === 1) strapped(g, kind === 1 ? x + 6 : x, foot - Math.round(h * 0.5), kind === 1 ? 8 : 12);
+    if (extra === 2) {
+      // (an access door in the trunk: it's fiberglass; its hinges, a vent)
+      rect(g, x - 6, foot - 30, 12, 24, SINK); rect(g, x - 5, foot - 29, 10, 22, BARK_R[2]); rect(g, x - 5, foot - 29, 10, 1, BARK_R[4]);
+      rect(g, x - 7, foot - 26, 2, 3, '#9CA3AF'); rect(g, x - 7, foot - 14, 2, 3, '#9CA3AF');
+      for (let k = 0; k < 3; k++) rect(g, x - 3, foot - 24 + k * 3, 6, 1, BARK_R[0]);
+    }
+  }), fx, fy };
+};
 const drawTree = (c: Ctx, v: View, px: number, pz: number, i: number) => {
   const b = proj(v, px, 0, pz);
-  const h = 300 + ((i * 37) % 120), t = proj(v, px, h, pz);
-  const dim = Math.max(0.5, Math.min(1, 1.3 - b.z / 3000));
+  const band = bandOf(b.z), dimK = [0.55, 0.7, 0.85, 1][band];
+  // (stood on the ground: its shadow pooled round its foot, flattened by how far off it is)
   const tw = Math.max(2, Math.round(18 * b.k));
-  // (stood on the ground: its shadow pooled round its foot, flattened by how far off it is; its roots flaring out)
-  c.fillStyle = shade('#1E3A14', dim);
+  c.fillStyle = shade('#1E3A14', dimK);
   c.beginPath(); c.ellipse(Math.round(b.x + tw * 0.6), Math.round(b.y), Math.max(3, tw * 2.4), Math.max(1, tw * 0.45), 0, 0, Math.PI * 2); c.fill();
-  c.fillStyle = shade('#3A2C1E', dim);
-  c.beginPath(); c.moveTo(b.x - tw * 1.3, b.y + 1); c.lineTo(b.x - tw / 2, b.y - tw * 1.4); c.lineTo(b.x + tw / 2, b.y - tw * 1.4); c.lineTo(b.x + tw * 1.3, b.y + 1); c.closePath(); c.fill();
-  c.fillStyle = shade('#4A3826', dim); c.fillRect(Math.round(b.x - tw / 2), Math.round(t.y), tw, Math.round(b.y - t.y));
-  c.fillStyle = shade('#6E5438', dim); c.fillRect(Math.round(b.x - tw / 2), Math.round(t.y), Math.max(1, Math.round(tw / 3)), Math.round(b.y - t.y));
-  const r = 70 * b.k;
-  // (shadow, body, lit, highlight: each lobe in steps, lit from the upper left)
-  const lobes = (col: string, ox: number, oy: number, k: number) => {
-    c.fillStyle = shade(col, dim); c.beginPath();
-    for (const [dx, dy, s] of LOBES) { const cx = t.x + dx * r + ox * r, cy = t.y + dy * r + oy * r; c.moveTo(cx + r * s * k, cy); c.arc(cx, cy, r * s * k, 0, Math.PI * 2); }
-    c.fill();
-  };
-  lobes(LEAVES[0], 0.04, 0.08, 1.05);
-  lobes(LEAVES[i % 3 ? 2 : 1], 0, 0, 0.92);
-  lobes(LEAVES[3], -0.2, -0.22, 0.5);
-  if (r > 12) { c.fillStyle = shade(LEAVES[4], dim); for (const [dx, dy, s] of LOBES) c.fillRect(Math.round(t.x + dx * r - r * s * 0.45), Math.round(t.y + dy * r - r * s * 0.5), Math.max(2, Math.round(r * s * 0.25)), Math.max(2, Math.round(r * 0.08))); }
+  const t = treeSprite(i, band);
+  putSprite(c, v, px, pz, t.cv, t.fx, t.fy);
+};
+
+/** The park's fakery out round the loop: what, where (polar: out from the loop's middle, its angle). */
+type Fake = 'torch' | 'rock' | 'pa' | 'zebra' | 'cell';
+const FAKES: { kind: Fake; r: number; a: number }[] = (() => {
+  const out: { kind: Fake; r: number; a: number }[] = [];
+  // (tiki torches along the path's far edge, all the way round its open stretch)
+  for (let a = A_START + 0.12; a < WING_A - 0.05; a += 0.3) out.push({ kind: 'torch', r: PR + 84, a });
+  out.push({ kind: 'rock', r: PR + 150, a: A_START + 0.55 }, { kind: 'rock', r: PR + 170, a: 0.35 }, { kind: 'rock', r: PR - 140, a: -0.9 });
+  out.push({ kind: 'pa', r: PR + 120, a: -0.25 }, { kind: 'pa', r: PR + 118, a: 1.05 }, { kind: 'pa', r: PR + 124, a: A_START + 1.2 });
+  out.push({ kind: 'zebra', r: PR - 170, a: -0.45 }, { kind: 'zebra', r: PR - 190, a: 0.62 });
+  out.push({ kind: 'cell', r: PR + 330, a: 0.12 });
+  return out;
+})();
+/** How tall each is (world), for putting in order. */
+const FAKE_H: Record<Fake, number> = { torch: 120, rock: 70, pa: 260, zebra: 110, cell: 640 };
+
+const fakeSprite = (kind: Fake, band: number) => {
+  if (kind === 'torch') return { cv: spriteOf('ofake:torch', 24, 80, band, g => {
+    const x = 12, f = 76;
+    rect(g, x - 2, f - 62, 4, 62, SINK); rect(g, x - 1, f - 62, 2, 62, '#8B6A3E');
+    for (let k = 0; k < 4; k++) rect(g, x - 2, f - 56 + k * 14, 4, 1, '#4A3018');
+    rect(g, x - 5, f - 70, 10, 9, SINK); rect(g, x - 4, f - 69, 8, 7, '#6B4A2A'); rect(g, x - 4, f - 69, 8, 2, '#A07A4A');
+  }), fx: 12, fy: 76 };
+  if (kind === 'rock') return { cv: spriteOf('ofake:rock', 90, 52, band, g => {
+    const R = ['#3E3A36', '#57524C', '#736C64', '#8F877D', '#ACA398'];
+    blob(g, 46, 30, 42, 22, SINK); blob(g, 45, 30, 40, 20, R[2]); blob(g, 36, 24, 24, 12, R[3]); blob(g, 30, 20, 10, 5, R[4]); blob(g, 62, 36, 18, 10, R[1]);
+    rect(g, 52, 12, 1, 36, R[0]); for (let y = 16; y < 46; y += 8) rect(g, 50, y, 2, 2, R[0]);
+    rect(g, 20, 30, 16, 12, R[0]); rect(g, 21, 31, 14, 10, R[2]); for (let k = 0; k < 4; k++) rect(g, 23, 33 + k * 2, 10, 1, R[0]);
+    rect(g, 6, 48, 80, 4, '#2A4A1E');
+  }), fx: 45, fy: 50 };
+  if (kind === 'pa') return { cv: spriteOf('ofake:pa', 60, 170, band, g => {
+    const x = 30, f = 166, h = 156;
+    rect(g, x - 4, f - h, 8, h, SINK); rect(g, x - 3, f - h, 6, h, '#5E8A36'); rect(g, x - 3, f - h, 2, h, '#7EA84A'); rect(g, x + 1, f - h, 2, h, '#466A2A');
+    for (let y = f - h + 14; y < f; y += 20) { rect(g, x - 4, y, 8, 2, '#2E4A1E'); rect(g, x - 3, y - 1, 6, 1, '#9EC860'); }
+    for (const s of [-1, 1]) { g.fillStyle = SINK; g.beginPath(); g.moveTo(x + s * 3, f - h + 2); g.lineTo(x + s * 20, f - h - 4); g.lineTo(x + s * 20, f - h + 14); g.lineTo(x + s * 3, f - h + 8); g.fill(); g.fillStyle = '#9AA2AC'; g.beginPath(); g.moveTo(x + s * 4, f - h + 3); g.lineTo(x + s * 18, f - h - 2); g.lineTo(x + s * 18, f - h + 12); g.lineTo(x + s * 4, f - h + 7); g.fill(); }
+    rect(g, x - 6, f - 46, 12, 12, SINK); rect(g, x - 5, f - 45, 10, 10, '#5A6470'); rect(g, x - 2, f - 41, 4, 2, '#E8C030');
+  }), fx: 30, fy: 166 };
+  if (kind === 'zebra') return { cv: spriteOf('ofake:zebra', 90, 76, band, g => {
+    // (the zebra, fiberglass, on its pole up out of the track in the grass: the stripes, the mane, the pole's bracket)
+    const f = 72;
+    rect(g, 6, f - 3, 78, 3, '#5A5A60'); rect(g, 6, f - 3, 78, 1, '#9AA0A8');
+    rect(g, 42, f - 26, 4, 24, SINK); rect(g, 43, f - 26, 2, 24, '#9AA0A8');
+    blob(g, 44, f - 38, 26, 12, SINK); blob(g, 44, f - 38, 24, 10, '#F2EEE4');
+    for (let k = 0; k < 7; k++) rect(g, 26 + k * 6, f - 47 + (k % 2), 3, 18, '#1C1C20');
+    for (const lx of [26, 34, 54, 62]) { rect(g, lx - 1, f - 30, 5, 24, SINK); rect(g, lx, f - 30, 3, 22, '#F2EEE4'); rect(g, lx, f - 24, 3, 2, '#1C1C20'); rect(g, lx, f - 16, 3, 2, '#1C1C20'); rect(g, lx, f - 9, 3, 3, '#1C1C20'); }
+    g.fillStyle = SINK; g.beginPath(); g.moveTo(64, f - 44); g.lineTo(80, f - 66); g.lineTo(88, f - 58); g.lineTo(72, f - 36); g.fill();
+    g.fillStyle = '#F2EEE4'; g.beginPath(); g.moveTo(65, f - 44); g.lineTo(80, f - 64); g.lineTo(86, f - 58); g.lineTo(72, f - 38); g.fill();
+    for (let k = 0; k < 4; k++) rect(g, 68 + k * 4, f - 46 - k * 5, 4, 2, '#1C1C20');
+    rect(g, 76, f - 70, 4, 6, '#1C1C20'); rect(g, 83, f - 60, 2, 2, SINK);
+    rect(g, 16, f - 44, 6, 2, '#1C1C20'); rect(g, 14, f - 42, 2, 10, '#1C1C20');
+  }), fx: 44, fy: 72 };
+  return { cv: spriteOf('ofake:cell', 150, 400, band, g => {
+    // (the cell tower made up as a palm: a dead straight steel trunk wrapped in fake bark, stiff plastic fronds all
+    // the same, the antenna panels showing through them, the beacon on top; its fenced base)
+    const x = 75, f = 394, top = 60;
+    rect(g, x - 6, top, 12, f - top, SINK); rect(g, x - 5, top, 10, f - top, '#6A5A44'); rect(g, x - 5, top, 3, f - top, '#8A7A5E'); rect(g, x + 2, top, 3, f - top, '#4A3E2E');
+    for (let y = top + 6; y < f - 30; y += 8) rect(g, x - 5, y, 10, 2, '#3E3426');
+    rect(g, x - 5, f - 30, 10, 30, '#8A929C'); rect(g, x - 5, f - 30, 10, 2, '#C4CAD2');
+    for (let k = 0; k < 12; k++) {
+      const a = (k / 12) * Math.PI * 2, dx = Math.cos(a), len = 56;
+      for (let s = 0; s < len; s += 2) { const xx = x + dx * s, yy = top + 6 + Math.abs(dx) * s * 0.25 + (1 - Math.abs(dx)) * s * 0.55; rect(g, xx - 1, yy - 1, 4, 4, SINK); rect(g, xx, yy, 3, 2, k % 2 ? '#3A8C44' : '#2E7A3A'); }
+    }
+    for (const s of [-1, 1]) { rect(g, x + s * 10 - (s < 0 ? 8 : 0), top - 4, 8, 28, SINK); rect(g, x + s * 10 - (s < 0 ? 7 : -1), top - 3, 6, 26, '#D6DADE'); rect(g, x + s * 10 - (s < 0 ? 7 : -1), top - 3, 6, 2, '#F4F6F8'); }
+    rect(g, x - 1, top - 20, 2, 18, SINK); rect(g, x - 3, top - 24, 6, 5, '#D8282A');
+    // (its base: a chain-link fence round it, a sign)
+    for (let k = x - 40; k <= x + 40; k += 2) rect(g, k, f - 26 + ((k / 2) % 2), 1, 26, '#8A929C');
+    for (const px of [x - 40, x, x + 40]) rect(g, px - 1, f - 30, 3, 30, '#5A626C');
+    rect(g, x - 40, f - 30, 81, 2, '#5A626C');
+    rect(g, x + 12, f - 22, 22, 12, SINK); rect(g, x + 13, f - 21, 20, 10, '#F2EEE4'); rect(g, x + 15, f - 18, 16, 2, '#D8282A');
+  }), fx: 75, fy: 394 };
+};
+/** The tiki torches' flames (live: they flicker), over their sprites. */
+const torchFlame = (c: Ctx, v: View, px: number, pz: number, t: number) => {
+  const p = proj(v, px, 70 / PS, pz), s = Math.max(1, p.k / PS);
+  const fl = (Math.floor(t / 5) + Math.round(px)) % 3;
+  for (const [col, w, h] of [['#B91C1C', 4, 9], ['#F97316', 3, 7], ['#FDE047', 1.5, 4]] as const) {
+    const hh = (h + (fl === 1 ? 1.5 : 0)) * s, ww = w * s;
+    c.fillStyle = col; c.beginPath(); c.moveTo(p.x - ww, p.y); c.quadraticCurveTo(p.x - ww * 0.5, p.y - hh * 0.6, p.x + (fl - 1) * s, p.y - hh); c.quadraticCurveTo(p.x + ww * 0.5, p.y - hh * 0.6, p.x + ww, p.y); c.fill();
+  }
 };
 /** The jungle round the loop (outside it: the loop's middle is open, the temple in full view), fixed in the world. */
 const TREES: { x: number; z: number }[] = (() => {
@@ -396,7 +575,7 @@ const FS = 4, FW = CANVAS_WIDTH / FS, FH = CANVAS_HEIGHT / FS;
 let floorCanvas: HTMLCanvasElement | null = null, floorImg: ImageData | null = null;
 const HAZE_DAY = [150, 196, 160];
 const mixRgb = (a: number[], b: number[], k: number) => a.map((v, i) => v + (b[i] - v) * k);
-const GRASS = [[61, 107, 26], [70, 120, 30]], GRASS_DOT = [92, 140, 40];
+const GRASS = [[61, 107, 26], [70, 120, 30]], GRASS_DOT = [92, 140, 40], GRASS_DK = [50, 92, 24];
 const DIRT = [138, 110, 75], DIRT_DK = [112, 88, 58], FOOT = [107, 90, 64], JUNGLE = [31, 77, 36];
 const hash2 = (a: number, b: number) => { const x = Math.sin(a * 127.1 + b * 311.7) * 43758.5; return x - Math.floor(x); };
 
@@ -431,7 +610,10 @@ const drawFloor = (c: Ctx, v: View) => {
         if (off < 70 && a > A_START - 0.15 && a < WING_A + 0.1) col = off > 44 && off < 52 ? DIRT_DK : DIRT;
         else {
           col = GRASS[(Math.floor(px / 90) + Math.floor(pz / 90)) & 1];
-          if (hash2(Math.floor(px / 30), Math.floor(pz / 30)) > 0.86) col = GRASS_DOT;
+          const hh = hash2(Math.floor(px / 30), Math.floor(pz / 30));
+          if (hh > 0.86) col = GRASS_DOT; else if (hh < 0.1) col = GRASS_DK;
+          // (the path's edge: grass creeping in, a ragged row)
+          else if (off < 84 && a > A_START - 0.15 && a < WING_A + 0.1 && hh < 0.5) col = GRASS_DK;
         }
       }
       const o = (ry * FW + rxi) * 4;
@@ -481,10 +663,24 @@ export const drawOrbitBackdrop = (c: Ctx, state: GameState, templeHit: boolean, 
     [[14, farTint('#3E6C50', 0.7, tod)], [32, farTint('#346046', 0.7, tod)]]);
   drawFloor(c, v);
   // The jungle's canopy round the loop (its far side)
-  band(c, v, PR + 520, a => 330 + 60 * Math.sin(9 * a) + 40 * Math.sin(23 * a + 1), '#1B5E2E', DC - 150, '#2E7A3A');
+  // (its crowns bumping along the top, lit along the crest, in darker steps going down into the shade under it)
+  band(c, v, PR + 520, a => 330 + 60 * Math.sin(9 * a) + 40 * Math.sin(23 * a + 1) + 22 * Math.abs(Math.sin(61 * a)) + 10 * Math.abs(Math.sin(149 * a + 2)), '#1B5E2E', DC - 150, '#2E7A3A',
+    [[12, '#185428'], [30, '#144822'], [56, '#103C1C']]);
   // The trees round about, the temple and its wing, back to front (the near side of the loop is the play strip's)
   const items: OrbitItem[] = [];
   TREES.forEach((p, i) => { const z = depth(v, p.x, p.z); if (z > F + 420) items.push({ foot: [p], y0: 0, y1: 370 + ((i * 37) % 120), z, draw: () => drawTree(c, v, p.x, p.z, i) }); });
+  // (the park's fakery round the loop: off the screen, not drawn at all)
+  for (const fk of FAKES) {
+    const p = polar(fk.r, fk.a), z = depth(v, p.x, p.z);
+    if (z <= F + 420) continue;
+    const sx = proj(v, p.x, 0, p.z).x;
+    if (sx < -300 || sx > CANVAS_WIDTH + 300) continue;
+    items.push({ foot: [p], y0: 0, y1: FAKE_H[fk.kind], z, draw: () => {
+      const s = fakeSprite(fk.kind, bandOf(z));
+      putSprite(c, v, p.x, p.z, s.cv, s.fx, s.fy);
+      if (fk.kind === 'torch') torchFlame(c, v, p.x, p.z, state.frame);
+    } });
+  }
   items.push(...templeItems(c, v), ...wingItems(c, v, templeHit));
   if (extra && !extra.over) items.push(extra.item);
   inOrder(items, camPos(v)).forEach(it => it.draw());

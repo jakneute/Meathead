@@ -8,7 +8,8 @@ import type { FrameContext } from '../../m1/game/core/context';
 import { registerM2Kind, registerHurtLines } from '../kinds';
 import { playSound } from '../../m1/game/platform/audio';
 import { GRAVITY } from '../../m1/constants';
-import { drawPerson, lookOf } from './temple/people';
+import { lookOf } from './temple/people';
+import { drawGuide } from './clearing/guideArt';
 
 /** What he says when a guide's stick gets him, and when he comes down on a spiked helmet; their death screens. */
 export const HURT_GUIDE = ['HE HIT ME WITH A HIKING STICK!', 'QUIT WHACKING ME, BOY SCOUT!', 'IS THAT IN THE TOUR?!'];
@@ -150,15 +151,6 @@ const guideAI = (ctx: FrameContext, e: Enemy): boolean => {
   return false;
 };
 
-/** The walking stick, held out the way he's facing (raised back in the windup, swung through in the swing). */
-const drawStick = (c: CanvasRenderingContext2D, e: Enemy) => {
-  const a = e.aiState === 'windup' ? -1.9 : e.aiState === 'swing' ? 0.1 : -0.5;
-  c.save(); c.translate(14, -42); c.rotate(a);
-  c.fillStyle = '#1C1917'; c.fillRect(-2, -2, 34, 5);
-  c.fillStyle = '#7C2D12'; c.fillRect(-1, -1, 32, 3);
-  c.restore();
-};
-
 registerM2Kind({
   kind: 'm2:guide', stats: { w: 38, h: 66, hp: 160, contact: 10, mass: 200 }, ai: guideAI, humanoid: true, grab: 'body',
   // (his own way of getting to him: approach(), above)
@@ -167,11 +159,8 @@ registerM2Kind({
   spiky: { source: 'm2:guide_spikes', label: 'SPIKED!' },
   gender: e => (lookOf(seedOf(e)).woman ? 'f' : 'm'),
   head: { x: 1, y: -64, r: 9 },
-  draw: (c, e, f) => {
-    const pose = e.aiState === 'swing' ? 'thrust' : Math.abs(e.vel.x) > 0.3 ? 'walk' : 'stand';
-    drawPerson(c, { seed: seedOf(e), outfit: 'guide', f, pose, mood: 'angry' });
-    drawStick(c, e);
-  },
+  // (the uniform, the spiked helmet, the staff: clearing/guideArt.ts)
+  draw: (c, e, f) => drawGuide(c, e, f, seedOf(e)),
 });
 registerHurtLines('m2:guide', HURT_GUIDE, DEATH_GUIDE);
 registerHurtLines('m2:guide_spikes', HURT_HAT_SPIKES, DEATH_HAT_SPIKES);

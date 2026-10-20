@@ -17,7 +17,7 @@ import { hazardZones } from '../../hazardHit';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { GUIDE_KIND } from '../guides';
 import { lay, solid, speak, meatheadSays, saidOver, hands, sectionState } from '../section';
-import { drawTentFlap, drawPath, drawCamp, drawRock, drawHuntSign, drawAidStop, drawTree, drawWing, drawFence, CAMPFIRE, SPEAKER, drawSpeaker } from './art';
+import { drawTentFlap, drawPath, drawCamp, drawRock, drawHuntSign, drawAidStop, drawTree, drawWing, drawFence, CAMPFIRE, SPEAKER, drawSpeaker, drawUnderstory, drawFogger, drawSpeakerRock, drawParrot, drawSpeakerPole } from './art';
 import { GY } from '../geometry';
 import { goTo, setUi, markLandCleared, noteBossKill } from '../../store';
 import { playSound } from '../../../m1/game/platform/audio';
@@ -102,6 +102,8 @@ const guidesOut = (state: GameState, cl: Clearing) => {
   const px = state.player.pos.x + state.player.width / 2;
   const e = makeKindEnemy(GUIDE_KIND as EnemyKind, TENT_X, GY);
   e.facing = px < TENT_X ? -1 : 1;
+  // (each one somebody else: all out of the one tent, so the seed's their place in the order, not where they came from)
+  e.variant = cl.out + 1;
   state.enemies.push(e);
   cl.flap = 24;
   for (let k = 0; k < 5; k++) state.particles.push({ pos: { x: TENT_X + (Math.random() - 0.5) * 20, y: GY - 6 }, vel: { x: (Math.random() - 0.5) * 2, y: -0.5 - Math.random() }, life: 22, color: '#B8A36A', size: 4 + Math.random() * 4 });
@@ -401,7 +403,10 @@ export const clearing: Section = {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
-// Drawing (crude)
+// Drawing (art.ts, orbit.ts, tower.ts)
+
+/** The PA poles back off the path (made up as bamboo): where, how tall. */
+const PA_POLES: [number, number][] = [[x0 + 1330, 230], [x0 + 2160, 250], [x0 + 2330, 236]];
 
 /** How his blind looks just now: in the leaves still, Artie up in it (and how), or not. */
 const blindLook = (state: GameState, cl: Clearing): BlindLook => {
@@ -420,8 +425,13 @@ const drawClearing = (c: CanvasRenderingContext2D, state: GameState) => {
   // The ground: the path (the near side of the loop: its far side's out past the temple, orbit.ts), on past both ends
   // (the strip's drawn wider than the screen, to bend round)
   drawPath(c, Math.max(x0 - 1200, v.x - 400), Math.min(x1 + 1200, v.x + v.w + 400));
+  // The understory along the back of it (dimmed: not to stand on), and the park's fakery in it: the fog nozzle, the
+  // boulder with the jungle's soundtrack in it, the animatronic macaw, the PA poles made up as bamboo (Artie's PA)
+  drawUnderstory(c, Math.max(x0 - 400, v.x - 60), Math.min(TEMPLE_X + 40, v.x + v.w + 60));
+  if (vis(x0 + 790, x0 + 1000)) { drawFogger(c, x0 + 812, f); drawSpeakerRock(c, x0 + 890, f); drawParrot(c, x0 + 975, f); }
+  for (const [px, ph] of PA_POLES) if (vis(px - 40, px + 40)) drawSpeakerPole(c, px, ph);
   // The junior guides' camp, back off the path
-  if (vis(x0 + 180, x0 + 700)) { drawCamp(c, f); drawTentFlap(c, cl.flap > 0 ? cl.flap-- : 0); drawSpeaker(c, cl.saidAt === 'speaker' && !!cl.said?.text, f); }
+  if (vis(x0 + 40, x0 + 710)) { drawCamp(c, f); drawTentFlap(c, cl.flap > 0 ? cl.flap-- : 0); drawSpeaker(c, cl.saidAt === 'speaker' && !!cl.said?.text, f); }
   // The rock (a guide up on it): its top lit, it's something to stand on
   if (vis(ROCK.x, ROCK.x + ROCK.w)) drawRock(c, ROCK.x, ROCK.w, ROCK.h);
   // The first-aid stop (the big health and ammo on its crate), the sign before the hunting area
