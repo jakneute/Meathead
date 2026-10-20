@@ -6,9 +6,12 @@
 //             the bolt out front hurts him); keeps his distance; the crossbow up to the eye and a glint off the bolt's
 //             head (the tell), then a bolt, straight and fast, wherever he's aimed it (down a staircase, off a tree
 //             stand); up close, the stock in the face
-//   witch     a wicked-witch performer on a broom, flown on wires (airborne, low): drifts and bobs; a cackle, the broom
-//             reared back and a potion bottle up (the tell), then the bottle lobbed: it smashes into a fizzing green
-//             puddle a while (it hurts the cast too)
+//   cupid     a grown cast member as Cupid (Piper's hired help, sour about it), flown on wires (airborne, low): a
+//             diaper, a toga sash, stubby little wings, a laurel or heart headband; drifts, bobs and flutters; draws
+//             the heart-tipped bow (the string back, a glint off the heart: the tell), then looses a straight arrow at
+//             him (every third draw a volley of three, fanned); the arrow's always nocked out front (POINTY: no
+//             shoulder charging into it); close and below it, now and then wings beating hard, up and back (the
+//             tell), then it swoops down on him and climbs back to its beat
 //   ginger    a gingerbread man (a big foam cookie suit, the performer's face through the mouth): runs at him; squats
 //             and shakes, crumbs falling (the tell), then LEAPS onto him; lands in a shower of crumbs and has to get
 //             up (his window)
@@ -35,8 +38,8 @@ import { lookOf } from '../../adventure/temple/people';
 import { speak, byPants } from '../section';
 import type { ByPants } from '../talk';
 import { glenOf, type GThrow } from './state';
-import { HURT, KILL_CALLS, GLEN_VOICES, HUNTSMAN_VOICES, HUNTSMAN_BARK, WITCH_BARK, GINGER_BARK, DWARF_BARK, UNICORN_BARK } from './lines';
-import { drawHuntsman, drawWitch, drawGinger, drawDwarf, drawUnicorn } from './kindArt';
+import { HURT, KILL_CALLS, GLEN_VOICES, HUNTSMAN_VOICES, HUNTSMAN_BARK, CUPID_BARK, GINGER_BARK, DWARF_BARK, UNICORN_BARK } from './lines';
+import { drawHuntsman, drawCupid, drawGinger, drawDwarf, drawUnicorn } from './kindArt';
 
 for (const [source, l] of Object.entries(HURT)) registerHurtLines(source, l.hurt, l.death);
 for (const [kind, calls] of Object.entries(KILL_CALLS)) registerKindCallouts(kind, calls);
@@ -152,40 +155,81 @@ const huntsman = (ctx: FrameContext, e: Enemy) => {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
-// The witch on her broom (flown on wires: she moves herself)
+// Cupid on the park's flying rig (flown on wires: moves itself)
 
-const witch = (ctx: FrameContext, e: Enemy) => {
-  const { state } = ctx;
+type Cupid = Enemy & { shots?: number; toX?: number; toY?: number };
+/** Where the arrow comes off the bow (the heart's tip out front). */
+const nock = (e: Enemy) => ({ x: mid(e).x + e.facing! * 30, y: e.pos.y + 24 });
+const loose = (state: GameState, e: Enemy, spread: number) => {
+  const pm = mid(state.player), n = nock(e);
+  const a = Math.atan2(pm.y - n.y, pm.x - n.x) + spread;
+  push(state, { kind: 'arrow', x: n.x, y: n.y, vx: Math.cos(a) * 8, vy: Math.sin(a) * 8, from: e });
+};
+
+const cupid = (ctx: FrameContext, e: Enemy) => {
+  const { state } = ctx, k = e as Cupid;
   tick(e);
   const pm = mid(state.player), m = mid(e);
   const hx = e.homeX ?? e.pos.x, hy = e.homeY ?? e.pos.y;
-  const vo = voice(e, GLEN_VOICES.witch, GLEN_VOICES.witchf);
+  const vo = voice(e, GLEN_VOICES.cupid, GLEN_VOICES.cupidf);
   switch (e.aiState) {
     default: {
-      // (drifting back and forth over her beat, bobbing on her wires, leaning toward him once she's seen him)
+      // (drifting back and forth over its beat, bobbing on the wires, fluttering, leaning toward him once it's seen him)
       const t = (state.frame + hx) * 0.018, chase = e.aiState === 'hunt' ? Math.max(-140, Math.min(140, pm.x - hx)) * 0.6 : 0;
       const tx = hx + chase + Math.sin(t) * 150, ty = hy + Math.sin(t * 2.3) * 18;
       e.vel.x = (tx - e.pos.x) * 0.04; e.vel.y = (ty - e.pos.y) * 0.05;
       e.facing = Math.abs(pm.x - m.x) < 500 ? dirTo(e, pm.x) : (e.vel.x < 0 ? -1 : 1);
-      if (e.aiState !== 'hunt' && sees(state, e, 520, 520)) { setState(e, 'hunt'); spotted(state, e, vo, WITCH_BARK, 0.5); }
-      if (e.aiState === 'hunt' && e.aiTimer! > 100 && sees(state, e, 460, 520)) { setState(e, 'cackle'); playSound('chitter', 0.5, -6); playSound('twinkle', 0.3, -10); bark(state, e, vo, WITCH_BARK, 0.35); }
+      if (e.aiState !== 'hunt' && sees(state, e, 520, 520)) { setState(e, 'hunt'); spotted(state, e, vo, CUPID_BARK, 0.5); }
+      if (e.aiState === 'hunt' && e.aiTimer! > 90 && sees(state, e, 460, 520)) {
+        // (close and over him, every other time: the swoop; else the bow)
+        const close = Math.abs(pm.x - m.x) < 240 && pm.y > m.y + 40;
+        if (close && (k.shots ?? 0) % 2 === 1) { setState(e, 'rear'); playSound('whoosh', 0.4, 10); }
+        else { setState(e, 'draw'); playSound('clink', 0.35, 8); }
+        bark(state, e, vo, CUPID_BARK, 0.3);
+      }
       break;
     }
-    case 'cackle':
-      // (stops in the air, the broom reared back, the bottle up: the tell)
+    case 'draw':
+      // (stops in the air, the string drawn back, a glint off the heart: the tell)
       e.vel.x *= 0.85; e.vel.y *= 0.85; e.facing = dirTo(e, pm.x);
-      if (e.aiTimer! % 6 === 0) state.particles.push({ pos: { x: m.x + e.facing! * 10, y: e.pos.y + 2 }, vel: { x: (Math.random() - 0.5), y: -0.8 }, life: 18, color: '#86EFAC', size: 2 });
-      if (e.aiTimer! > 36) { lobAt(state, e, 'potion', 32, 0.3, m.x + e.facing! * 12, e.pos.y + 8); playSound('whoosh', 0.5, 6); setState(e, 'after'); }
+      if (e.aiTimer! > 20 && e.aiTimer! % 5 === 0) state.particles.push({ pos: { x: nock(e).x, y: nock(e).y }, vel: { x: 0, y: -0.5 }, life: 10, color: '#FBCFE8', size: 2 });
+      if (e.aiTimer! > 36) {
+        // (every third draw a volley of three, fanned)
+        if ((k.shots ?? 0) % 3 === 2) { loose(state, e, -0.2); loose(state, e, 0); loose(state, e, 0.2); }
+        else loose(state, e, 0);
+        k.shots = (k.shots ?? 0) + 1;
+        playSound('twang', 0.6, 10);
+        setState(e, 'after');
+      }
       break;
     case 'after':
       e.vel.x *= 0.9; e.vel.y *= 0.9;
-      if (e.aiTimer! > 30) setState(e, 'hunt');
+      if (e.aiTimer! > 28) setState(e, 'hunt');
+      break;
+    case 'rear':
+      // (wings beating hard, up and back: the tell; then it picks its spot (where he is))
+      e.facing = dirTo(e, pm.x);
+      e.vel.x = -e.facing! * 0.9; e.vel.y = -1.1;
+      if (e.aiTimer! % 6 === 0) state.particles.push({ pos: { x: m.x - e.facing! * 14, y: e.pos.y + 14 }, vel: { x: (Math.random() - 0.5), y: 0.8 }, life: 18, color: '#FFFFFF', size: 2 });
+      if (e.aiTimer! > 22) { k.toX = pm.x; k.toY = pm.y; k.shots = (k.shots ?? 0) + 1; playSound('whoosh', 0.6, -2); setState(e, 'swoop'); }
+      break;
+    case 'swoop': {
+      const dx = (k.toX ?? pm.x) - m.x, dy = (k.toY ?? pm.y) - m.y, d = Math.hypot(dx, dy) || 1;
+      e.vel.x = (dx / d) * 6.5; e.vel.y = (dy / d) * 6.5;
+      if (strike(ctx, e, 4, 10, 'm2:fa_cupid', 7, -5, true)) { playSound('thud', 0.7, 2); setState(e, 'rise'); break; }
+      if (d < 12 || e.aiTimer! > 45) setState(e, 'rise');
+      break;
+    }
+    case 'rise':
+      // (back up to its beat)
+      e.vel.x = (hx - e.pos.x) * 0.03; e.vel.y = (hy - e.pos.y) * 0.05;
+      if (e.aiTimer! > 60 || Math.abs(hy - e.pos.y) < 10) setState(e, 'hunt');
       break;
   }
   e.pos.x += e.vel.x; e.pos.y += e.vel.y;
-  // (never down into the floor: she keeps a broom's height off it)
-  const floor = floorTopAt(state.blocks, m.x, e.pos.y + e.height, 0);
-  if (floor !== null && e.pos.y + e.height > floor - 20) e.pos.y = floor - 20 - e.height;
+  // (never down into the floor: the rig keeps it off the ground (lower in the swoop))
+  const floor = floorTopAt(state.blocks, m.x, e.pos.y + e.height, 0), clear = e.aiState === 'swoop' ? 6 : 20;
+  if (floor !== null && e.pos.y + e.height > floor - clear) e.pos.y = floor - clear - e.height;
   return true;
 };
 
@@ -341,7 +385,8 @@ person('m2:fa_dwarf', { w: 34, h: 58, hp: 85, contact: 4, mass: 150 }, dwarf, dr
 person('m2:fa_ginger', { w: 46, h: 82, hp: 150, contact: 6, mass: 260 }, ginger, drawGinger, { head: { x: 2, y: -70, r: 14 }, grab: 'body' });
 person('m2:fa_unicorn', { w: 64, h: 92, hp: 280, contact: 7, mass: 400 }, unicorn, drawUnicorn, { head: { x: 18, y: -78, r: 13 }, pointy: { source: 'm2:fa_horn', label: 'GORED!', damage: 16 }, grab: 'none' });
 registerM2Kind({
-  kind: 'm2:fa_witch', stats: { w: 40, h: 58, hp: 80, contact: 6, mass: 120, air: true }, ai: leashed(witch),
-  make: b => ({ ...b, enemyType: 'flyer', initialY: b.pos.y }), draw: (c, e, f) => drawWitch(c, e, f, seedOf(e)),
-  head: { x: 2, y: -48, r: 9 }, gender, grab: 'critter',
+  kind: 'm2:fa_cupid', stats: { w: 40, h: 58, hp: 80, contact: 6, mass: 130, air: true }, ai: leashed(cupid),
+  make: b => ({ ...b, enemyType: 'flyer', initialY: b.pos.y }), draw: (c, e, f) => drawCupid(c, e, f, seedOf(e)),
+  head: { x: 1, y: -50, r: 9 }, gender, grab: 'critter',
+  pointy: { source: 'm2:fa_pricked', label: 'PRICKED!', damage: 12 },
 });

@@ -3,7 +3,7 @@
 // forest walk (layout.ts: teach, then escalate): the land's ENCHANTED STAIRCASES harder (two in opposition over a
 // gorge, one up a cottage with a cauldron swinging across it, a faster chain of four over the mine's shaft, one that
 // rides him up the dragon's lair while he's shot at); the glen's own MUSHROOM TRAMPOLINES, BRIAR PATCHES and SWINGING
-// CAULDRONS (hazards.ts); more of the cast (kinds.ts: huntsmen, witches on brooms, gingerbread men, dwarfs, unicorns,
+// CAULDRONS (hazards.ts); more of the cast (kinds.ts: huntsmen, cupids on wires, gingerbread men, dwarfs, unicorns,
 // with the town square's); Piper over the PA now and then, him thinking with his dick; and at the end the queue for
 // TRUELLING TRAGONS, the rivals in it (rivals.ts).
 //

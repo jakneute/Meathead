@@ -1,5 +1,5 @@
 // The enchanted glen's own state (in Fairy Land's, under 'glen'): the staircases as they swing, the toadstools' squash,
-// what the cast throw (and the witches' potion puddles), who's barking what, what's been said, Piper over the PA, the
+// what the cast throw, who's barking what, what's been said, Piper over the PA, the
 // rivals in the queue. Rebuilt with the stage on every death; the rivals gone in for good is state.stageMemo's
 // (RIVALS_MEMO).
 
@@ -9,10 +9,10 @@ import type { Said } from '../section';
 import type { Stair } from '../stairs';
 import { fantasyState } from '../section';
 
-/** What the glen's cast throw: a huntsman's crossbow bolt (straight, fast), a witch's potion (lobbed: it smashes into a
- *  fizzing puddle), the puddle (on the ground a while), a dwarf's rock (lobbed, a bounce). */
+/** What the glen's cast throw: a huntsman's crossbow bolt (straight, fast), Cupid's heart-tipped arrow (straight), a
+ *  dwarf's rock (lobbed, a bounce). */
 export interface GThrow {
-  kind: 'bolt' | 'potion' | 'fizz' | 'rock';
+  kind: 'bolt' | 'arrow' | 'rock';
   x: number; y: number; vx: number; vy: number; t: number;
   from: Enemy | null; bounces: number; dead?: boolean;
 }

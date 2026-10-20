@@ -9,19 +9,19 @@
 //   2700   THE BRIAR PATCH: thorns along the ground (new: they hurt and throw him up); three toadstools across it; an
 //          owl over it, a wand clerk at its end.
 //   3900   THE STORYBOOK BRIDGE (cp 21): the bridge is out; across the misty gorge on TWO STAIRCASES SWINGING IN
-//          OPPOSITION (one docks at the middle pillar as the other drops into the gorge); a WITCH ON HER BROOM (new) over
+//          OPPOSITION (one docks at the middle pillar as the other drops into the gorge); a CUPID ON WIRES (new) over
 //          it; the troll waiting on the far bank.
 //   5500   THE WITCH'S COTTAGE (cp 22): THE SWINGING CAULDRONS (new), taught alone over the path; the candy cottage (too
 //          tall to jump), up its staircase with a cauldron swinging across the flight, another over its roof; the garden
-//          after (gingerbread men, a cauldron off a gallows, a witch).
+//          after (gingerbread men, a cauldron off a gallows, a cupid).
 //   7400   THE DWARF MINE (cp 23): a team of DWARFS (new: pickaxes, rocks, a candle on every hat); then the shaft: A
-//          CHAIN OF FOUR faster staircases across it, pillar to pillar (an owl, a witch, a dwarf throwing from the far
+//          CHAIN OF FOUR faster staircases across it, pillar to pillar (an owl, a cupid, a dwarf throwing from the far
 //          side).
 //   9600   UNICORN MEADOW (cp 24): a UNICORN (new: it charges, horn first) alone; then a briar patch with toadstools
-//          over it, a huntsman up a tree stand over that (bounce high enough and he's yours), a witch, another unicorn.
+//          over it, a huntsman up a tree stand over that (bounce high enough and he's yours), a cupid, another unicorn.
 //   11100  THE DRAGON'S LAIR (cp 25): the dragon mascot; a toadstool up to a ledge, and a staircase that RIDES him up
 //          (it waits till he's on it, then swings) over a briar floor while a huntsman shoots down it from the top
-//          landing and a witch and an owl come at him; over the lair's back wall, down the far side.
+//          landing and a cupid and an owl come at him; over the lair's back wall, down the far side.
 //   13100  THE QUEUE (cp 26): a last crowd; the rival suitors in the queue (rivals.ts), taunting him, then in; Piper; the
 //          ride's entrance (on to TRUELLING TRAGONS: its right end).
 //
@@ -138,13 +138,13 @@ export const CAST: [string, number, number][] = [
   ['m2:fa_huntsman', 1150, 0],
   ['m2:fa_owl', 2100, 400], ['m2:fa_ginger', 2620, 0],
   ['m2:fa_owl', 3250, 320], ['m2:fa_clerk', 3780, 0],
-  ['m2:fa_witch', 4120, 230], ['m2:fa_troll', 5330, 0],
-  ['m2:fa_clerk', 6060, 0], ['m2:fa_ginger', 6230, 0], ['m2:fa_witch', 6450, 400], ['m2:fa_ginger', 6740, 0], ['m2:fa_ginger', 7290, 0],
+  ['m2:fa_cupid', 4120, 230], ['m2:fa_troll', 5330, 0],
+  ['m2:fa_clerk', 6060, 0], ['m2:fa_ginger', 6230, 0], ['m2:fa_cupid', 6450, 400], ['m2:fa_ginger', 6740, 0], ['m2:fa_ginger', 7290, 0],
   ['m2:fa_dwarf', 7760, 0], ['m2:fa_dwarf', 7850, 0], ['m2:fa_dwarf', 7940, 0],
-  ['m2:fa_owl', 8700, 320], ['m2:fa_witch', 9000, 300], ['m2:fa_dwarf', GAP2.b + 140, 0],
-  ['m2:fa_unicorn', 10050, 0], ['m2:fa_huntsman', STAND.a + 70, STAND.h], ['m2:fa_witch', 10500, 380], ['m2:fa_unicorn', 11000, 0],
-  ['m2:fa_dragon', 11380, 0], ['m2:fa_owl', 11980, 300], ['m2:fa_witch', 11900, 540], ['m2:fa_huntsman', TOP.b - 60, TOP.h],
-  ['m2:fa_knight', 13330, 0], ['m2:fa_witch', 13380, 250], ['m2:fa_ginger', 13460, 0], ['m2:fa_princess', 13560, 0],
+  ['m2:fa_owl', 8700, 320], ['m2:fa_cupid', 9000, 300], ['m2:fa_dwarf', GAP2.b + 140, 0],
+  ['m2:fa_unicorn', 10050, 0], ['m2:fa_huntsman', STAND.a + 70, STAND.h], ['m2:fa_cupid', 10500, 380], ['m2:fa_unicorn', 11000, 0],
+  ['m2:fa_dragon', 11380, 0], ['m2:fa_owl', 11980, 300], ['m2:fa_cupid', 11900, 540], ['m2:fa_huntsman', TOP.b - 60, TOP.h],
+  ['m2:fa_knight', 13330, 0], ['m2:fa_cupid', 13380, 250], ['m2:fa_ginger', 13460, 0], ['m2:fa_princess', 13560, 0],
 ];
 /** Pickups (lean): [x, height, type]. */
 export const PICKUPS: [number, number, 'small_health' | 'small_ammo'][] = [

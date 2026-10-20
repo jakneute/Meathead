@@ -160,21 +160,21 @@ x from the section's start; heights up from the ground line.
 - 2700 THE BRIAR PATCH: thorns 2780-3600, three toadstools across them; an owl over them, a wand clerk after.
 - 3900 THE STORYBOOK BRIDGE (cp 21): the bridge is out over a misty gorge (4300-5100): two staircases swinging in
   opposition (left bank to the middle pillar; the pillar to the right bank; each level while the other's down in the
-  gorge); a witch over it; the troll on the far bank.
+  gorge); a cupid over it; the troll on the far bank.
 - 5500 THE WITCH'S COTTAGE (cp 22): a swinging cauldron alone over the path (5800); the candy cottage (6300-6660, roof
   200: too tall to jump) up its staircase off the roof's corner with a cauldron swinging across the flight and another
-  over the roof; the garden (a cauldron off a branch at 7000, gingerbread men, a witch); a woodpile round the back for
+  over the roof; the garden (a cauldron off a branch at 7000, gingerbread men, a cupid); a woodpile round the back for
   the way back up.
 - 7400 THE DWARF MINE (cp 23): a team of three dwarfs by the portal; the shaft (8200-9474): a chain of four faster
-  staircases (110 hold, 50 swing) between three timbered pillars (60, 120, 60 up); an owl, a witch, a dwarf throwing
+  staircases (110 hold, 50 swing) between three timbered pillars (60, 120, 60 up); an owl, a cupid, a dwarf throwing
   from the far side.
 - 9630 UNICORN MEADOW (cp 24): a unicorn alone; briars (10340-10860) with two toadstools over them under a huntsman's
-  tree stand (300 up: a toadstool bounce with jump held gets there; a pickup); a witch; a second unicorn.
+  tree stand (300 up: a toadstool bounce with jump held gets there; a pickup); a cupid; a second unicorn.
 - 11160 THE DRAGON'S LAIR (cp 25): the dragon mascot by the fiberglass skull; a toadstool up to a ledge (170), the RIDE
   staircase off it (level out over a briar floor; stood on it 30 frames, it tells and swings him up to the top landing,
-  434) with a huntsman shooting down it from the top, a witch and an owl; the lair's back wall (534) and down its far
+  434) with a huntsman shooting down it from the top, a cupid and an owl; the lair's back wall (534) and down its far
   side's shelves.
-- 13160 THE QUEUE (cp 26): a last crowd (a knight, a witch, a gingerbread man, a princess); the rivals in the queue's
+- 13160 THE QUEUE (cp 26): a last crowd (a knight, a cupid, a gingerbread man, a princess); the rivals in the queue's
   rails (BLAKE, RAFAEL, HANK) have their say in turn, he answers, Piper calls trial two over the ride's PA, and they go
   in; the ride's door is the section's right end (on to Truelling Tragons).
 
@@ -348,14 +348,17 @@ markBossFight every frame of a boss or sub-boss fight. Voice every new line (`np
   iron pot of green brew on a chain off a branch, swinging on the clock: hurt 13 and knocked; the cast too). Each its own
   hurt source and death screens (m2:fa_briars, m2:fa_cauldron).
 - (job 3, ours) Five new kinds (glen/kinds.ts, all humans in costume, men and women, seeded): HUNTSMAN (a loaded
-  crossbow: POINTY m2:fa_bolted; a 40-frame aim with a glint, a straight bolt; up close the stock), WITCH (a performer on
-  a broom flown on wires, airborne; a cackle and a bottle up, a potion lobbed that leaves a fizzing puddle 110 frames,
-  hurting him and the cast; grab: torn off her wire), GINGERBREAD MAN (runs at him, squats and shakes, leaps onto him,
+  crossbow: POINTY m2:fa_bolted; a 40-frame aim with a glint, a straight bolt; up close the stock), CUPID (replaced the
+  witch, which is Spooky Land's: a grown cast member, man or woman, flown on wires, airborne, Piper's sour hired help;
+  a diaper, a toga sash, stubby wings, a laurel or heart headband; a heart-tipped bow, the arrow always nocked out front:
+  POINTY m2:fa_pricked; a 36-frame draw with a glint, a straight arrow at him (m2:fa_cupid_shot), every third draw a
+  fanned volley of three; close and over him, now and then wings beating up and back, then a swoop (m2:fa_cupid); dead,
+  the wings off beside it and the wire snapped; grab: torn off its wire), GINGERBREAD MAN (runs at him, squats and shakes, leaps onto him,
   dazed on landing), DWARF (adults in dwarf costume, short; a lit candle on the miner's hat: SPIKY m2:fa_candle; rocks
   lobbed from range, the pickaxe up close, stuck after), UNICORN (a plush mascot: POINTY horn m2:fa_horn; paws and snorts
   glitter, charges, dizzy after). The square's kinds reused (clerks, knights, a princess, owls, the troll, the dragon);
   their throws fly in the glen through square/hazards.ts's exported updateThrows / drawThrows. Five new voice pairs
-  (witch, ginger, dwarf, unicorn: m and f; the huntsmen use the square's cast voices).
+  (cupid, ginger, dwarf, unicorn: m and f; the huntsmen use the square's cast voices).
 - (job 3, ours) Piper on the PA from toadstool-capped horns at four spots (once each, a line a spot, purring over the
   fights); half the time he answers with a HORNY line; two more HORNY thoughts on his own. Once-each gags per set piece.
 - (job 3, ours) THE QUEUE: three new rivals (glen/rivals.ts RIVALS: BLAKE in a tee, RAFAEL the gym prince, HANK the big

@@ -8,7 +8,7 @@ import { allOf, PIPER_PA_VOICE, type ByPants, type HurtTable } from '../talk';
 
 /** The glen's new voices (cast.json); the huntsmen use the square's cast voices (a man's, a woman's). */
 export const GLEN_VOICES = {
-  witch: 'm2.fantasy.witch', witchf: 'm2.fantasy.witchf',
+  cupid: 'm2.fantasy.cupid', cupidf: 'm2.fantasy.cupidf',
   ginger: 'm2.fantasy.ginger', gingerf: 'm2.fantasy.gingerf',
   dwarf: 'm2.fantasy.dwarf', dwarff: 'm2.fantasy.dwarff',
   unicorn: 'm2.fantasy.unicorn', unicornf: 'm2.fantasy.unicornf',
@@ -124,10 +124,11 @@ export const HUNTSMAN_BARK: ByPants = {
   shitty: ['I TRACKED YOU BY SMELL. EASY.', 'SOMETHING DIED IN YOUR PANTS. I HUNT THAT.'],
   nude: ['NAKED GAME! OPEN SEASON!', 'I SEE A SMALL ANIMAL. FIRING.'],
 };
-export const WITCH_BARK: ByPants = {
-  clean: ['HEH HEH HEH! I GET OVERTIME!', "I'LL GET YOU, MY PRETTY! YOU'RE NOT PRETTY!", 'APPLE? NO? POTION THEN!'],
-  shitty: ['EYE OF NEWT, SHIT OF MAN! HEH HEH!', 'I SMELL HIM FROM UP HERE!'],
-  nude: ['HEH HEH! A NAKED ONE! TINY!', 'COVER IT, MY PRETTY! COVER IT!'],
+/** Cupid: Piper's hired help, in a diaper on a wire, and sour about it. */
+export const CUPID_BARK: ByPants = {
+  clean: ['PIPER PAYS ME IN EXPOSURE. HOLD STILL.', 'I WEAR A DIAPER FOR TWELVE BUCKS AN HOUR.', 'LOVE HURTS. THIS HURTS MORE.'],
+  shitty: ['I WEAR THE DIAPER. YOU NEED IT.', 'I SMELL YOU FROM UP HERE!'],
+  nude: ["NAKED? THAT'S MY BIT!", "PUT IT AWAY. I'M AIMING FOR THE HEART."],
 };
 export const GINGER_BARK: ByPants = {
   clean: ['RUN, RUN, AS FAST AS YOU CAN!', "YOU CAN'T CATCH ME! I'LL CATCH YOU!", 'THIS SUIT IS A HUNDRED DEGREES!'],
@@ -152,8 +153,9 @@ export const HURT: HurtTable = {
   'm2:fa_huntsman': { hurt: ['CLUBBED WITH A CROSSBOW!', 'THE HUNTSMAN HIT ME!', 'STOCK TO THE FACE!'], death: ['CLUBBED BY A HUNTSMAN', 'BAGGED BY A HUNTSMAN'] },
   'm2:fa_huntsman_shot': { hurt: ['A CROSSBOW BOLT! IN ME!', 'BOLTED! RIGHT IN THE ASS!', "THAT'S NOT FOAM!"], death: ['SHOT BY A HUNTSMAN', 'BOLTED TO DEATH'] },
   'm2:fa_bolted': { hurt: ['I RAN INTO HIS CROSSBOW!', 'CHARGED A LOADED CROSSBOW!', 'BOLT IN THE SHOULDER! DUMB!'], death: ['CHARGED A LOADED CROSSBOW', 'RAN ONTO A BOLT'] },
-  'm2:fa_witch': { hurt: ['BROOM TO THE HEAD!', 'THE WITCH RAN ME OVER!', 'HIT BY A FLYING WITCH!'], death: ['RUN OVER BY A BROOM', 'KILLED BY A FLYING WITCH'] },
-  'm2:fa_witch_shot': { hurt: ['POTION! IT BURNS!', 'GREEN SHIT! ON MY FEET!', 'IT FIZZES! WHY DOES IT FIZZ?'], death: ['DISSOLVED BY A POTION', 'MELTED BY A WITCH'] },
+  'm2:fa_cupid': { hurt: ['A DIAPER! IN MY FACE!', 'CUPID BODY-SLAMMED ME!', 'HIT BY A FLYING BABY MAN!'], death: ['SAT ON BY CUPID', 'KILLED BY A GROWN-UP CUPID'] },
+  'm2:fa_cupid_shot': { hurt: ['ARROW! IN MY ASS!', "IT'S A HEART! IT STILL STABS!", 'CUPID SHOT ME!'], death: ['SHOT BY CUPID', 'LOVE HURTS. ARROWS TOO.'] },
+  'm2:fa_pricked': { hurt: ['I CHARGED A LOVE ARROW!', 'HEART ARROW! IN MY PEC!', 'RAN ONTO CUPID! DUMB!'], death: ['CHARGED A LOADED BOW', 'SKEWERED BY LOVE'] },
   'm2:fa_ginger': { hurt: ['THE GINGERBREAD MAN SAT ON ME!', 'CRUSHED BY A COOKIE!', 'HE JUMPED ON MY HEAD!'], death: ['CRUSHED BY A COOKIE', 'FLATTENED BY GINGERBREAD'] },
   'm2:fa_dwarf': { hurt: ['PICKAXE! IN MY SHIN!', 'THE DWARF GOT ME!', 'HE MINED MY KNEE!'], death: ['PICKAXED BY A DWARF', 'MINED TO DEATH'] },
   'm2:fa_dwarf_shot': { hurt: ['A ROCK! TO THE HEAD!', 'HE THREW A GEM AT ME!', 'FAKE GEM! REAL ROCK!'], death: ['STONED BY DWARFS', 'KILLED BY A FAKE GEM'] },
@@ -169,7 +171,7 @@ export const HURT: HurtTable = {
 
 export const KILL_CALLS: Record<string, Record<string, string[]>> = {
   'm2:fa_huntsman': { charge: ['HUNTED!', 'OPEN SEASON!'], uppercut: ['TROPHY!'], divekick: ['BAGGED!'] },
-  'm2:fa_witch': { charge: ['DING DONG!', 'GROUNDED!'], uppercut: ['BROOM SERVICE!'], divekick: ['MELTED!'], swim: ['MELTED!'] },
+  'm2:fa_cupid': { charge: ['HEARTBREAK!', 'LOVE STINKS!'], uppercut: ['WINGS CLIPPED!'], divekick: ['LOVE DOWN!'], swim: ['WASHED UP!'] },
   'm2:fa_ginger': { charge: ['CRUMBLED!', 'OH SNAP!'], uppercut: ['FRESH OUT THE OVEN!'], divekick: ['DUNKED!'] },
   'm2:fa_dwarf': { charge: ['HEIGH-NO!', 'SHAFTED!'], uppercut: ['OFF TO WORK!'], divekick: ['MINED OUT!'] },
   'm2:fa_unicorn': { charge: ['DEHORNED!', 'GLUE FACTORY!'], uppercut: ['OVER THE RAINBOW!'], divekick: ['NO MORE MAGIC!'] },
@@ -181,7 +183,7 @@ export const VOICE_LINES: Record<string, string[]> = {
   death: Object.values(HURT).flatMap(h => h.death),
   announcer: [...new Set(Object.values(KILL_CALLS).flatMap(k => Object.values(k).flat()))],
   [CAST_MAN]: pools(HUNTSMAN_BARK), [CAST_WOMAN]: pools(HUNTSMAN_BARK),
-  [GLEN_VOICES.witch]: pools(WITCH_BARK), [GLEN_VOICES.witchf]: pools(WITCH_BARK),
+  [GLEN_VOICES.cupid]: pools(CUPID_BARK), [GLEN_VOICES.cupidf]: pools(CUPID_BARK),
   [GLEN_VOICES.ginger]: pools(GINGER_BARK), [GLEN_VOICES.gingerf]: pools(GINGER_BARK),
   [GLEN_VOICES.dwarf]: pools(DWARF_BARK), [GLEN_VOICES.dwarff]: pools(DWARF_BARK),
   [GLEN_VOICES.unicorn]: pools(UNICORN_BARK), [GLEN_VOICES.unicornf]: pools(UNICORN_BARK),

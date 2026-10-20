@@ -311,11 +311,6 @@
  },
  {
   "voice": "announcer",
-  "text": "BROOM SERVICE!",
-  "from": "FANTASY"
- },
- {
-  "voice": "announcer",
   "text": "BUFFALO WINGS!",
   "from": "FRONTIER"
  },
@@ -563,11 +558,6 @@
   "voice": "announcer",
   "text": "DEVOURED!",
   "from": "GRAB_CALLOUTS"
- },
- {
-  "voice": "announcer",
-  "text": "DING DONG!",
-  "from": "FANTASY"
  },
  {
   "voice": "announcer",
@@ -926,6 +916,11 @@
  },
  {
   "voice": "announcer",
+  "text": "HEARTBREAK!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "announcer",
   "text": "HEIGH-NO!",
   "from": "FANTASY"
  },
@@ -1153,6 +1148,16 @@
   "voice": "announcer",
   "text": "LONG WAY DOWN!",
   "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "LOVE DOWN!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "announcer",
+  "text": "LOVE STINKS!",
+  "from": "FANTASY"
  },
  {
   "voice": "announcer",
@@ -2223,6 +2228,11 @@
   "voice": "announcer",
   "text": "WHEELIED!",
   "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "WINGS CLIPPED!",
+  "from": "FANTASY"
  },
  {
   "voice": "announcer",
@@ -7016,6 +7026,11 @@
  },
  {
   "voice": "death",
+  "text": "CHARGED A LOADED BOW",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "death",
   "text": "CHARGED A LOADED CROSSBOW",
   "from": "FANTASY"
  },
@@ -7943,11 +7958,6 @@
   "voice": "death",
   "text": "DISSOLVED",
   "from": "m1/game/stages/tommy/sewer.ts:105"
- },
- {
-  "voice": "death",
-  "text": "DISSOLVED BY A POTION",
-  "from": "FANTASY"
  },
  {
   "voice": "death",
@@ -10166,11 +10176,6 @@
  },
  {
   "voice": "death",
-  "text": "KILLED BY A FLYING WITCH",
-  "from": "FANTASY"
- },
- {
-  "voice": "death",
   "text": "KILLED BY A FRIDGE",
   "from": "content/deaths"
  },
@@ -10198,6 +10203,11 @@
   "voice": "death",
   "text": "KILLED BY A GRIEVING SPOUSE",
   "from": "SPACE"
+ },
+ {
+  "voice": "death",
+  "text": "KILLED BY A GROWN-UP CUPID",
+  "from": "FANTASY"
  },
  {
   "voice": "death",
@@ -10871,6 +10881,11 @@
  },
  {
   "voice": "death",
+  "text": "LOVE HURTS. ARROWS TOO.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "death",
   "text": "LUBED TO DEATH",
   "from": "SPACE"
  },
@@ -10988,11 +11003,6 @@
   "voice": "death",
   "text": "MELTED BY A NOVELTY POTION",
   "from": "SPOOKY"
- },
- {
-  "voice": "death",
-  "text": "MELTED BY A WITCH",
-  "from": "FANTASY"
  },
  {
   "voice": "death",
@@ -12301,11 +12311,6 @@
  },
  {
   "voice": "death",
-  "text": "RUN OVER BY A BROOM",
-  "from": "FANTASY"
- },
- {
-  "voice": "death",
   "text": "RUN OVER BY A BUFFALO",
   "from": "FRONTIER"
  },
@@ -12432,6 +12437,11 @@
  {
   "voice": "death",
   "text": "SAT ON BY A PIXIE",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "death",
+  "text": "SAT ON BY CUPID",
   "from": "FANTASY"
  },
  {
@@ -12811,6 +12821,11 @@
  },
  {
   "voice": "death",
+  "text": "SHOT BY CUPID",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "death",
   "text": "SHOT BY HELICOPTER HARRY",
   "from": "FOREIGN"
  },
@@ -13118,6 +13133,11 @@
   "voice": "death",
   "text": "SKEWERED BY AN ICICLE",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "SKEWERED BY LOVE",
+  "from": "FANTASY"
  },
  {
   "voice": "death",
@@ -18945,6 +18965,76 @@
   "from": "FANTASY"
  },
  {
+  "voice": "m2.fantasy.cupid",
+  "text": "I SMELL YOU FROM UP HERE!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.cupid",
+  "text": "I WEAR A DIAPER FOR TWELVE BUCKS AN HOUR.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.cupid",
+  "text": "I WEAR THE DIAPER. YOU NEED IT.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.cupid",
+  "text": "LOVE HURTS. THIS HURTS MORE.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.cupid",
+  "text": "NAKED? THAT'S MY BIT!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.cupid",
+  "text": "PIPER PAYS ME IN EXPOSURE. HOLD STILL.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.cupid",
+  "text": "PUT IT AWAY. I'M AIMING FOR THE HEART.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.cupidf",
+  "text": "I SMELL YOU FROM UP HERE!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.cupidf",
+  "text": "I WEAR A DIAPER FOR TWELVE BUCKS AN HOUR.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.cupidf",
+  "text": "I WEAR THE DIAPER. YOU NEED IT.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.cupidf",
+  "text": "LOVE HURTS. THIS HURTS MORE.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.cupidf",
+  "text": "NAKED? THAT'S MY BIT!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.cupidf",
+  "text": "PIPER PAYS ME IN EXPOSURE. HOLD STILL.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.cupidf",
+  "text": "PUT IT AWAY. I'M AIMING FOR THE HEART.",
+  "from": "FANTASY"
+ },
+ {
   "voice": "m2.fantasy.dragon",
   "text": "I CAN SEE YOUR DICK THROUGH THE MOUTH HOLE.",
   "from": "FANTASY"
@@ -23172,76 +23262,6 @@
  {
   "voice": "m2.fantasy.unicornf",
   "text": "YOU CALL THAT A HORN?",
-  "from": "FANTASY"
- },
- {
-  "voice": "m2.fantasy.witch",
-  "text": "APPLE? NO? POTION THEN!",
-  "from": "FANTASY"
- },
- {
-  "voice": "m2.fantasy.witch",
-  "text": "COVER IT, MY PRETTY! COVER IT!",
-  "from": "FANTASY"
- },
- {
-  "voice": "m2.fantasy.witch",
-  "text": "EYE OF NEWT, SHIT OF MAN! HEH HEH!",
-  "from": "FANTASY"
- },
- {
-  "voice": "m2.fantasy.witch",
-  "text": "HEH HEH HEH! I GET OVERTIME!",
-  "from": "FANTASY"
- },
- {
-  "voice": "m2.fantasy.witch",
-  "text": "HEH HEH! A NAKED ONE! TINY!",
-  "from": "FANTASY"
- },
- {
-  "voice": "m2.fantasy.witch",
-  "text": "I SMELL HIM FROM UP HERE!",
-  "from": "FANTASY"
- },
- {
-  "voice": "m2.fantasy.witch",
-  "text": "I'LL GET YOU, MY PRETTY! YOU'RE NOT PRETTY!",
-  "from": "FANTASY"
- },
- {
-  "voice": "m2.fantasy.witchf",
-  "text": "APPLE? NO? POTION THEN!",
-  "from": "FANTASY"
- },
- {
-  "voice": "m2.fantasy.witchf",
-  "text": "COVER IT, MY PRETTY! COVER IT!",
-  "from": "FANTASY"
- },
- {
-  "voice": "m2.fantasy.witchf",
-  "text": "EYE OF NEWT, SHIT OF MAN! HEH HEH!",
-  "from": "FANTASY"
- },
- {
-  "voice": "m2.fantasy.witchf",
-  "text": "HEH HEH HEH! I GET OVERTIME!",
-  "from": "FANTASY"
- },
- {
-  "voice": "m2.fantasy.witchf",
-  "text": "HEH HEH! A NAKED ONE! TINY!",
-  "from": "FANTASY"
- },
- {
-  "voice": "m2.fantasy.witchf",
-  "text": "I SMELL HIM FROM UP HERE!",
-  "from": "FANTASY"
- },
- {
-  "voice": "m2.fantasy.witchf",
-  "text": "I'LL GET YOU, MY PRETTY! YOU'RE NOT PRETTY!",
   "from": "FANTASY"
  },
  {
@@ -48381,6 +48401,11 @@
  },
  {
   "voice": "meathead",
+  "text": "A DIAPER! IN MY FACE!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "A DISCO? DOWN HERE? WHO DANCES IN A BASEMENT?",
   "from": "SPACE"
  },
@@ -50246,6 +50271,11 @@
  },
  {
   "voice": "meathead",
+  "text": "ARROW! IN MY ASS!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "ARTIE? LIKE ARTIE AVALANCHE?",
   "from": "ADVENTURE"
  },
@@ -51282,11 +51312,6 @@
  {
   "voice": "meathead",
   "text": "BROOM HANDLE! IN MY GUT!",
-  "from": "FANTASY"
- },
- {
-  "voice": "meathead",
-  "text": "BROOM TO THE HEAD!",
   "from": "FANTASY"
  },
  {
@@ -52418,6 +52443,16 @@
   "voice": "meathead",
   "text": "CULTURE, BITCH!",
   "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "CUPID BODY-SLAMMED ME!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "CUPID SHOT ME!",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -55461,11 +55496,6 @@
  },
  {
   "voice": "meathead",
-  "text": "GREEN SHIT! ON MY FEET!",
-  "from": "FANTASY"
- },
- {
-  "voice": "meathead",
   "text": "GREETINGS FROM YOUR FUNERAL!",
   "from": "M2_KILL_LINES"
  },
@@ -56706,6 +56736,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HEART ARROW! IN MY PEC!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "HEART EXPLODED... WORTH IT",
   "from": "VULGARITIES"
  },
@@ -57036,7 +57071,7 @@
  },
  {
   "voice": "meathead",
-  "text": "HIT BY A FLYING WITCH!",
+  "text": "HIT BY A FLYING BABY MAN!",
   "from": "FANTASY"
  },
  {
@@ -57827,6 +57862,11 @@
  {
   "voice": "meathead",
   "text": "I CHARGED A HALBERD!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "I CHARGED A LOVE ARROW!",
   "from": "FANTASY"
  },
  {
@@ -59791,11 +59831,6 @@
  },
  {
   "voice": "meathead",
-  "text": "IT FIZZES! WHY DOES IT FIZZ?",
-  "from": "FANTASY"
- },
- {
-  "voice": "meathead",
   "text": "IT FLATTENED MY BACK!",
   "from": "ADVENTURE"
  },
@@ -60093,6 +60128,11 @@
   "voice": "meathead",
   "text": "IT'S A DESK FAN. MY GRANDMA HAS THAT FAN.",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT'S A HEART! IT STILL STABS!",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -65746,11 +65786,6 @@
  },
  {
   "voice": "meathead",
-  "text": "POTION! IT BURNS!",
-  "from": "FANTASY"
- },
- {
-  "voice": "meathead",
   "text": "POULTRY! IN MY FACE!",
   "from": "FANTASY"
  },
@@ -66107,6 +66142,11 @@
  {
   "voice": "meathead",
   "text": "RAMPARTS. THE GUARDS CAN SMELL ME COMING.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "RAN ONTO CUPID! DUMB!",
   "from": "FANTASY"
  },
  {
@@ -72537,11 +72577,6 @@
  {
   "voice": "meathead",
   "text": "THE WINDOW'S OPEN. SO AM I.",
-  "from": "FANTASY"
- },
- {
-  "voice": "meathead",
-  "text": "THE WITCH RAN ME OVER!",
   "from": "FANTASY"
  },
  {

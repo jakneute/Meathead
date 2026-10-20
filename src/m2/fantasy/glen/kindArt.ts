@@ -1,10 +1,10 @@
 // The enchanted glen's new cast, drawn (a first pass: crude but readable). The huntsman and the dwarfs on Spooky Land's
 // person drawer (costume.ts: whoever's in the costume shows, their skin, build, face, man or woman; seeded, no two the
-// same; painted once a frame into a stamp); the witch, the gingerbread man and the unicorn drawn as they go (the
+// same; painted once a frame into a stamp); Cupid, the gingerbread man and the unicorn drawn as they go (the
 // performers' faces through the costumes). Each drawn hurt (eyes shut), knocked about (held, flung, dazed: reaction())
 // and dead (limp, crossed-out eyes), so the engine's special deaths play out on their real sprites; and dead, the
-// costume gives (the huntsman's cap off, the dwarf's hat and beard askew and the candle out, the witch off her broom and
-// her hat beside her, the cookie's head bitten and off, the unicorn's head off and its horn snapped). Feet at the
+// costume gives (the huntsman's cap off, the dwarf's hat and beard askew and the candle out, Cupid's wings torn off
+// beside it and its wire snapped, the cookie's head bitten and off, the unicorn's head off and its horn snapped). Feet at the
 // origin, facing right (the engine mirrors them).
 
 import type { Enemy } from '../../../m1/types';
@@ -169,55 +169,100 @@ export const drawDwarf = (c: Ctx, e: Enemy, f: number, seed: number) => {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
-// The witch on her broom, flown on wires
+// Cupid, flown on wires: a grown cast member in a diaper and a toga sash, stubby wings, a laurel or a heart headband,
+// a heart-tipped bow with the arrow always nocked out front (pointy)
 
-const DRESSES = ['#18181B', '#3B0764', '#14532D', '#1E1B4B'];
-const broom = (c: Ctx, x: number, y: number, a: number) => {
-  c.save(); c.translate(x, y); c.rotate(a);
-  stub(c, -34, 0, 30, 0, 3, '#8A5A30');
-  // (the bristles, out behind, bound)
-  c.fillStyle = INK; c.beginPath(); c.moveTo(-30, -2); c.lineTo(-52, -9); c.lineTo(-54, 9); c.lineTo(-30, 3); c.closePath(); c.fill();
-  c.fillStyle = '#CA8A04'; c.beginPath(); c.moveTo(-31, -1); c.lineTo(-51, -7); c.lineTo(-52, 7); c.lineTo(-31, 2); c.closePath(); c.fill();
-  box(c, -33, -3, 3, 6, '#7F1D1D');
+const SASHES = ['#F9A8D4', '#FFFFFF', '#FCA5A5', '#F5D0FE'];
+/** A little inked heart, its point `a` (radians) the way it points (0: forward). */
+export const heart = (c: Ctx, x: number, y: number, r: number, col: string, a = Math.PI / 2) => {
+  c.save(); c.translate(x, y); c.rotate(a - Math.PI / 2);
+  c.beginPath(); c.moveTo(0, r * 1.1);
+  c.bezierCurveTo(-r * 1.7, -r * 0.1, -r * 0.9, -r * 1.5, 0, -r * 0.5);
+  c.bezierCurveTo(r * 0.9, -r * 1.5, r * 1.7, -r * 0.1, 0, r * 1.1); c.closePath();
+  c.lineWidth = 2.5; c.strokeStyle = INK; c.stroke(); c.fillStyle = col; c.fill();
   c.restore();
 };
-export const drawWitch = (c: Ctx, e: Enemy, f: number, seed: number) => {
-  const L = lookOf(seed), dress = DRESSES[seed % DRESSES.length], face = '#7AC74F';
+/** A heart-tipped arrow pointing along `a` from (x, y) (its tip there): pink fletching, a red heart for a head. */
+export const heartArrow = (c: Ctx, x: number, y: number, a: number, len = 26) => {
+  c.save(); c.translate(x, y); c.rotate(a);
+  box(c, -len, -1.5, len - 4, 3, INK); box(c, -len + 1, -0.5, len - 6, 1, '#FEF3C7');
+  // (the fletching)
+  c.fillStyle = INK; c.beginPath(); c.moveTo(-len - 2, -5); c.lineTo(-len + 7, -1); c.lineTo(-len + 7, 1); c.lineTo(-len - 2, 5); c.closePath(); c.fill();
+  c.fillStyle = '#F472B6'; c.beginPath(); c.moveTo(-len - 1, -3.5); c.lineTo(-len + 6, -0.5); c.lineTo(-len + 6, 0.5); c.lineTo(-len - 1, 3.5); c.closePath(); c.fill();
+  heart(c, -4, 0, 4.5, '#EF4444', 0);
+  c.restore();
+};
+/** A stubby little wing off the back: fat, white, three feather tips, flapping. */
+const wing = (c: Ctx, x: number, y: number, flap: number, col: string) => {
+  c.save(); c.translate(x, y); c.rotate(-0.6 - flap);
+  oval(c, -9, 0, 11, 6, col);
+  for (let k = 0; k < 3; k++) oval(c, -17 + k * 5, 4, 3, 2.5, dk(col, 0.08));
+  c.restore();
+};
+/** The bow: a recurve, held upright out front; its string pulled back to `sx`; the arrow nocked on it. */
+const bow = (c: Ctx, bx: number, by: number, sx: number, glint: boolean) => {
+  c.lineCap = 'round';
+  for (const [w, col] of [[5, INK], [2.5, '#CA8A04']] as const) {
+    c.strokeStyle = col; c.lineWidth = w; c.beginPath(); c.moveTo(bx - 3, by - 17); c.quadraticCurveTo(bx + 9, by, bx - 3, by + 17); c.stroke();
+  }
+  c.strokeStyle = '#F5F5F4'; c.lineWidth = 1; c.beginPath(); c.moveTo(bx - 3, by - 16); c.lineTo(sx, by); c.lineTo(bx - 3, by + 16); c.stroke();
+  heartArrow(c, bx + 12, by, 0, bx + 12 - sx);
+  if (glint) { box(c, bx + 10, by - 6, 2, 12, '#FFFFFF'); box(c, bx + 5, by - 1, 12, 2, '#FFFFFF'); }
+};
+export const drawCupid = (c: Ctx, e: Enemy, f: number, seed: number) => {
+  const L = lookOf(seed), sash = SASHES[seed % SASHES.length], hearts = Math.floor(seed / 5) % 2 === 0;
+  const fat = L.heavy ? 4 : 0, man = !L.woman;
   c.save();
   const { md, isDead, pose } = laid(c, e, f, -20, -6);
-  const onBroom = !isDead && !pose;
-  const cackle = e.aiState === 'cackle', tilt = cackle ? -0.3 : Math.sin(f * 0.08) * 0.06;
-  // (the wire she's flown on, up out of the picture: dimmed, thin)
-  if (onBroom) { c.strokeStyle = 'rgba(200, 200, 220, 0.35)'; c.lineWidth = 1; c.beginPath(); c.moveTo(-2, -44); c.lineTo(-2, -700); c.stroke(); }
-  c.rotate(onBroom ? tilt : 0);
-  if (onBroom) broom(c, 0, -10, 0);
-  // (sat sideways on it: the skirt over the handle, striped stockings, pointed boots)
-  stub(c, 4, -18, 14, -4, 5, '#F5F5F4'); stub(c, -2, -18, 6, -2, 5, '#F5F5F4');
-  for (const [x, y] of [[9, -11], [2, -10]]) box(c, x, y, 5, 2, '#7C3AED');
-  box(c, 12, -6, 10, 4, INK); box(c, 3, -4, 10, 4, INK);
-  c.fillStyle = INK; c.beginPath(); c.moveTo(-16, -16); c.lineTo(18, -16); c.lineTo(10, -40); c.lineTo(-8, -40); c.closePath(); c.fill();
-  c.fillStyle = dress; c.beginPath(); c.moveTo(-15, -17); c.lineTo(17, -17); c.lineTo(9, -39); c.lineTo(-7, -39); c.closePath(); c.fill();
-  // (the arms: one on the broom, one up with the bottle (the tell) or out)
-  const bx = cackle ? 4 : 14, by = cackle ? -66 : -30;
-  stub(c, 4, -36, bx, by, 4, dress); oval(c, bx, by, 3, 3, L.skin);
-  if (cackle) { box(c, bx - 4, by - 14, 8, 12, INK); box(c, bx - 3, by - 13, 6, 10, '#22C55E'); box(c, bx - 1, by - 17, 2, 4, '#7A4A22'); }
-  stub(c, -2, -36, 10, -14, 4, dk(dress, 0.2));
-  // (the head: green makeup over whoever's under it, long stringy hair, a wart; the pointed hat (off, dead))
-  if (L.long || L.woman) { c.fillStyle = INK; c.fillRect(-12, -52, 6, 22); c.fillStyle = L.hair; c.fillRect(-11, -51, 4, 20); }
-  oval(c, 1, -46, 9, 9.5, face);
-  box(c, 8, -46, 4, 3, dk(face, 0.2)); box(c, 10, -44, 2, 2, '#4D7C0F');
-  if (md === 'dead') { box(c, 0, -49, 3, 1, INK); box(c, 1, -50, 1, 3, INK); box(c, 5, -49, 3, 1, INK); box(c, 6, -50, 1, 3, INK); }
-  else if (md === 'hurt') { box(c, 0, -49, 3, 1, INK); box(c, 5, -49, 3, 1, INK); }
-  else { box(c, 1, -50, 2, 3, INK); box(c, 6, -50, 2, 3, INK); }
-  box(c, 2, -41, cackle ? 7 : 5, cackle ? 4 : 2, INK);
+  const onWire = !isDead && !pose;
+  const draw = e.aiState === 'draw', rear = e.aiState === 'rear', swoop = e.aiState === 'swoop';
+  const flap = onWire ? Math.sin(f * (rear || swoop ? 0.9 : 0.4)) * 0.5 : 0.2;
+  // (the wire it's flown on, up out of the picture from the harness between the wings: dimmed, thin)
+  if (onWire) { c.strokeStyle = 'rgba(200, 200, 220, 0.35)'; c.lineWidth = 1; c.beginPath(); c.moveTo(-6, -40); c.lineTo(-6, -700); c.stroke(); }
+  c.rotate(onWire ? (swoop ? 0.35 : rear ? -0.25 : Math.sin(f * 0.08) * 0.05) : 0);
+  // (the wings off its back: on it alive; dead, torn off and lying beside it)
+  if (!isDead) { wing(c, -6, -42, flap + 0.25, '#E5E7EB'); wing(c, -9, -38, flap, '#FFFFFF'); }
+  // (the legs dangling, bare, knees bent, kicking a little)
+  const kick = onWire ? Math.sin(f * 0.2) * 3 : 0, lw = 6 + fat / 2;
+  stub(c, -4, -18, -8 + kick, -3, lw, dk(L.skin, 0.12)); stub(c, 4, -18, 9 - kick, -5, lw, L.skin);
+  oval(c, -6 + kick, -2, 4, 2.5, dk(L.skin, 0.12)); oval(c, 11 - kick, -4, 4, 2.5, L.skin);
+  // (the body, bare (a belly on the heavy ones, chest hair on the hairy men); a woman's in a toga top)
+  oval(c, 0, -32, 10 + fat, 13, L.skin);
+  if (man && L.face >= 1) for (const [x, y] of [[-3, -38], [1, -36], [4, -39], [-1, -33], [3, -32]]) box(c, x, y, 2, 2, dk(L.hair, 0.1));
+  // (the diaper: white, bulky, a safety pin)
+  c.fillStyle = INK; c.beginPath(); c.roundRect(-12 - fat, -27, 24 + fat * 2, 13, [3, 3, 7, 7]); c.fill();
+  c.fillStyle = '#FAFAF9'; c.beginPath(); c.roundRect(-11 - fat, -26, 22 + fat * 2, 11, [2, 2, 6, 6]); c.fill();
+  box(c, -11 - fat, -26, 22 + fat * 2, 2, '#E7E5E4'); box(c, 5 + fat, -24, 4, 2, '#A8A29E'); box(c, 8 + fat, -25, 1, 4, '#A8A29E');
+  // (the toga sash over a shoulder, across the chest; a woman's wide enough to cover)
+  stub(c, -7, -44, 9 + fat, -24, L.woman ? 8 : 5, sash);
+  if (L.woman) { box(c, -10 - fat, -41, 20 + fat * 2, 7, INK); box(c, -9 - fat, -40, 18 + fat * 2, 5, sash); }
+  // (the arms: the far one out with the bow (it always has the arrow on it: the heart out front), the near one at the
+  //  string, pulled back in the draw)
+  const bx = 18, by = -34, pull = draw ? Math.min(1, (e.aiTimer ?? 0) / 18) : 0, sx = bx - 6 - pull * 12;
+  if (!isDead) {
+    stub(c, 4, -40, bx - 2, by, 4, dk(L.skin, 0.08));
+    if (!pose) bow(c, bx, by, sx, draw && (e.aiTimer ?? 0) > 20 && f % 4 < 2);
+    stub(c, -2, -40, pose ? -14 : sx, pose ? -58 : by, 4, L.skin);
+  } else stub(c, 2, -40, 14, -22, 4, L.skin);
+  // (the head: whoever's under the headband; long hair down the back, a beard or a mustache on the men)
+  if (L.long) { box(c, -10, -56, 6, 20, INK); box(c, -9, -55, 4, 18, L.hair); }
+  oval(c, 1, -50, 8.5, 9, L.skin);
+  if (!L.bald) { box(c, -8, -60, 17, 5, INK); box(c, -7, -59, 15, 4, L.hair); }
+  if (man && L.face === 2) { box(c, -5, -46, 13, 6, INK); box(c, -4, -45, 11, 4, L.hair); }
+  if (man && L.face === 1) box(c, 1, -46, 7, 2, L.hair);
+  if (md === 'dead') { box(c, 0, -53, 3, 1, INK); box(c, 1, -54, 1, 3, INK); box(c, 5, -53, 3, 1, INK); box(c, 6, -54, 1, 3, INK); }
+  else if (md === 'hurt') { box(c, 0, -53, 3, 1, INK); box(c, 5, -53, 3, 1, INK); }
+  else { box(c, 1, -54, 2, 3, INK); box(c, 6, -54, 2, 3, INK); if (draw) box(c, 0, -56, 9, 1, INK); }
+  if (!(man && L.face === 2)) box(c, 2, -45, draw || swoop ? 5 : 4, draw ? 1 : 2, INK);
+  // (the headband: a laurel wreath, or pink with a heart on the front; askew, dead)
+  const tilt = isDead ? 3 : 0;
+  if (hearts) { box(c, -8, -57 + tilt, 18, 4, INK); box(c, -7, -56 + tilt, 16, 2, '#F472B6'); heart(c, 7, -57 + tilt, 3.5, '#EF4444'); }
+  else { for (let k = 0; k < 5; k++) oval(c, -7 + k * 4, -57 + tilt + (k % 2), 2.5, 1.5, '#4D7C0F', -0.5 + k * 0.25); }
   if (isDead) {
-    c.fillStyle = INK; c.beginPath(); c.moveTo(18, 2); c.lineTo(38, 2); c.lineTo(30, -24); c.closePath(); c.fill();
-    c.fillStyle = '#18181B'; c.beginPath(); c.moveTo(19, 1); c.lineTo(37, 1); c.lineTo(30, -22); c.closePath(); c.fill();
-    broom(c, 40, 4, 0.3);
-  } else {
-    c.fillStyle = INK; c.beginPath(); c.moveTo(-14, -52); c.lineTo(16, -52); c.lineTo(4, -86); c.lineTo(-6, -64); c.closePath(); c.fill();
-    c.fillStyle = '#18181B'; c.beginPath(); c.moveTo(-13, -53); c.lineTo(15, -53); c.lineTo(4, -84); c.lineTo(-5, -64); c.closePath(); c.fill();
-    box(c, -6, -58, 15, 3, '#7C3AED');
+    // (dead: the wings off beside it, the bow dropped, the wire snapped: a curl of it on the harness)
+    wing(c, 34, -4, 0.9, '#E5E7EB'); wing(c, 48, 0, 1.4, '#FFFFFF');
+    c.strokeStyle = '#CA8A04'; c.lineWidth = 2.5; c.beginPath(); c.moveTo(20, 4); c.quadraticCurveTo(30, -6, 40, 6); c.stroke();
+    c.strokeStyle = 'rgba(200, 200, 220, 0.6)'; c.lineWidth = 1; c.beginPath(); c.moveTo(-6, -40); c.bezierCurveTo(-18, -48, -20, -30, -10, -32); c.bezierCurveTo(-2, -34, -14, -22, -22, -26); c.stroke();
   }
   c.restore();
 };
