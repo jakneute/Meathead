@@ -4,7 +4,8 @@
 // that's been composed (songs/index.ts) plays. Nothing composed for it yet: the next candidate, and in the end
 // silence, so every later job only has to add songs.
 //
-//   'title'                  the theme (no title screen yet: it stands in at the hub, the staff room, the intro)
+//   'title'                  the theme: the title screen (setMusicTitle); and the last stand-in at the hub, the staff
+//                            room, the intro
 //   'intro'                  the way in (arrangements: garage, security, america, ticket: the intro's zones)
 //   'hub' / 'staff'          the hub (an arrangement per spot round the plaza: hubArr); the staff room
 //   'land:<id>'              a land's theme, an arrangement per section (its section ids), crossfading as he goes;
@@ -119,6 +120,9 @@ let lastLand: string | null = null;
 export const setMusicState = (s: GameState) => { state = s; start(); };
 export const setMusicStage = (id: string) => { stage = id; start(); };
 export const setMusicPaused = (on: boolean) => { paused = on; };
+/** The title screen's up (App.tsx): the theme plays, the game's own cues don't. */
+let onTitle = false;
+export const setMusicTitle = (on: boolean) => { onTitle = on; if (on) start(); };
 
 const enabled = () => { const s = getSettings(); return s.music > 0 && s.master > 0; };
 
@@ -407,6 +411,8 @@ const hubArr = (s: GameState): string => {
 /** What the game wants on right now. */
 const gameWants = (s: GameState | null): Want => {
   const none: Want = { cands: [], cutscene: false };
+  // (the title screen: the theme, whatever's behind it)
+  if (onTitle) return { cands: [{ song: 'title', arrs: ['main'] }], cutscene: false };
   if (!s || !stage) return none;
   const p = s.player;
   const cutscene = !!p.inCutscene;

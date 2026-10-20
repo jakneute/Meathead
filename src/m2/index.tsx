@@ -1,3 +1,5 @@
+// (first: in the desktop app, the saves and settings on disk are swapped in before anything reads them, as Meathead 1's)
+import '../m1/game/platform/desktop';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import '../m1/game/platform/stillMouse';

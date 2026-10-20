@@ -158,7 +158,7 @@ export const allKept = () => Object.fromEntries(kept);
 export const restoreKept = (o: Record<string, string>) => { kept.clear(); Object.entries(o).forEach(([k, v]) => kept.set(k, v)); };
 
 /** Each land's boss's weapon: clearing the land gets it him. */
-const LAND_WEAPON: Record<string, import('../m1/types').WeaponType> = {
+export const LAND_WEAPON: Record<string, import('../m1/types').WeaponType> = {
   adventure: 'CROSSBOW', frontier: 'FLINTLOCK', fantasy: 'SPELLBOOK', hollywood: 'STUNT_CAR', cartoon: 'MALLET',
   space: 'SPAWNER', spooky: 'SOUL_SUCKER', foreign: 'SOUVENIR',
 };

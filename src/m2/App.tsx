@@ -53,10 +53,12 @@ import { clearSkyCache } from './intro/art/sky';
 import { canSkip, requestSkip } from '../m1/game/platform/skip';
 import { getAudioContext } from '../m1/game/platform/audio';
 import { STAFF_SLOT, AMERICA_SLOT, landAt } from './hub/lands';
-import { getUi, subscribeUi, onTravel, setUi, goTo, takeBossKill, setStartCheckpoint, requestCarHop } from './store';
+import { getUi, subscribeUi, onTravel, setUi, goTo, takeBossKill, setStartCheckpoint, requestCarHop, restoreClearedLands, restoreKept } from './store';
+import TitleScreen from './title/TitleScreen';
+import { readFile, deleteFile, playOnFile, saveProgress, closeFile, activeSlot, type Slot } from './save';
 import { setFrameHook } from '../m1/game/core/update';
 import { disableM1Music } from '../m1/game/music';
-import { setMusicState, setMusicStage, setMusicPaused } from './music/cues';
+import { setMusicState, setMusicStage, setMusicPaused, setMusicTitle } from './music/cues';
 
 // (Meathead 2's own music: music/cues.ts; Meathead 1's never starts)
 disableM1Music();
@@ -201,6 +203,29 @@ const App2: React.FC = () => {
   const first = devQ?.has('adv') ? ADV_STAGE : devQ?.has('spooky') ? SPOOKY_STAGE : devQ?.has('space') ? SPACE_STAGE : devQ?.has('hollywood') ? HOLLYWOOD_STAGE : devQ?.has('foreign') ? FOREIGN_STAGE : devQ?.has('frontier') ? FRONTIER_STAGE : devQ?.has('fantasy') ? FANTASY_STAGE : devQ?.has('hub') ? HUB_STAGE : devQ?.has('pen') ? PEN_STAGE : INTRO_STAGE;
   const [stage, setStage] = useState(first);
   const [status, setStatus] = useState(GameStatus.START);
+  // The title screen first (title/TitleScreen.tsx): nothing's built behind it till START GAME (the way in, as ever) or
+  // CONTINUE (the hub, a file's lands put back). (In dev, a ?stage to start in skips it.)
+  const [title, setTitle] = useState(first === INTRO_STAGE);
+  useEffect(() => { setMusicTitle(title); }, [title]);
+  const startNew = (slot: Slot | null) => {
+    if (slot !== null && readFile(slot)) deleteFile(slot);
+    playOnFile(slot);
+    setTitle(false);
+  };
+  const continueFile = (slot: Slot) => {
+    const f = readFile(slot);
+    if (!f) return;
+    restoreClearedLands(f.cleared);
+    restoreKept(f.kept);
+    playOnFile(slot, f.playTimeMs);
+    // (onto the hub, where Meathead 1's goes onto the map: in off America USA's street)
+    setHubStart(AMERICA_SLOT);
+    pending.current = HUB_STAGE;
+    setTitle(false);
+  };
+  /** QUIT, from the pause menu (asked first): the file keeps what it had at the last safe point, just the time played
+   *  goes on it; and back to the title, everything as it was when the page opened. */
+  const quitToTitle = () => { closeFile(); location.reload(); };
   // (the music follows where he is, and goes muffled while it's paused)
   useEffect(() => { setMusicStage(stage); }, [stage]);
   useEffect(() => { setMusicPaused(status === GameStatus.PAUSED); }, [status]);
@@ -221,13 +246,15 @@ const App2: React.FC = () => {
 
   // Off to a stage: through black, the stage cleared, then built
   useEffect(() => {
-    if (status !== GameStatus.START || !pending.current) return;
+    if (title || status !== GameStatus.START || !pending.current) return;
     const id = pending.current;
     pending.current = null;
     setStage(id);
     setStatus(GameStatus.LEVEL_INTRO);
     setTimeout(() => setFade(false), 120);
-  }, [status]);
+  }, [status, title]);
+  // (saved at the safe points, as Meathead 1's is: onto the hub here, and a land cleared (save.ts); never mid-land)
+  useEffect(() => { if (!title && stage === HUB_STAGE) saveProgress(); }, [stage, title]);
   useEffect(() => {
     onTravel(dest => {
       // ('intro': the way in again, from the parking lot: Wilderness Land's walk back after Tucker, store.ts setWalkBack)
@@ -260,7 +287,9 @@ const App2: React.FC = () => {
   /** (after RESUME: SKIP INTRO in the intro; BACK TO HUB out in a land, or the break room) */
   const canHub = () => !!landOfStage(live.current.stage) || live.current.stage === PEN_STAGE;
   /** (RESUME, OPTIONS, then SKIP INTRO / BACK TO HUB where there's one) */
-  const lastPause = () => (live.current.stage === INTRO_STAGE || canHub() ? arsenal().length + 2 : arsenal().length + 1);
+  const lastPause = () => (live.current.stage === INTRO_STAGE || canHub() ? arsenal().length + 3 : arsenal().length + 2);
+  /** (QUIT, to the title: the last of the buttons) */
+  const quitIndex = () => lastPause();
   /** The options screen (OPTIONS in the pause menu): while it's up, it takes every key and button; and a moment after
    *  it's shut (the press that shut it isn't one for the pause menu too). */
   const [optionsOpen, setOptionsOpen] = useState(false);
@@ -275,8 +304,13 @@ const App2: React.FC = () => {
   const [hubAsk, setHubAsk] = useState<0 | 1 | null>(null);
   const hubAskRef = useRef(hubAsk);
   hubAskRef.current = hubAsk;
-  const askHub = () => setHubAsk(0);
-  const answerHub = (yes: boolean) => { setHubAsk(null); if (yes) { setStatus(GameStatus.PLAYING); goTo('hub'); } };
+  /** Which question that is: BACK TO HUB, or QUIT (to the title). */
+  const [asking, setAsking] = useState<'hub' | 'quit'>('hub');
+  const askingRef = useRef(asking);
+  askingRef.current = asking;
+  const askHub = () => { setAsking('hub'); setHubAsk(0); };
+  const askQuit = () => { setAsking('quit'); setHubAsk(0); };
+  const answerHub = (yes: boolean) => { setHubAsk(null); if (!yes) return; if (askingRef.current === 'quit') { quitToTitle(); return; } setStatus(GameStatus.PLAYING); goTo('hub'); };
   const togglePause = () => {
     const st = live.current.status;
     // (a scene that can be skipped: START / ESC skips it, rather than pausing)
@@ -301,7 +335,7 @@ const App2: React.FC = () => {
   pauseSelRef.current = pauseSel;
   const confirmPause = () => {
     const i = pauseSelRef.current, n = arsenal().length;
-    if (i === n + 2) { if (canHub()) askHub(); else skipIntro(); } else if (i === n + 1) openOptions(); else if (i >= n) resume(); else equip(i);
+    if (i === quitIndex()) askQuit(); else if (i === n + 2) { if (canHub()) askHub(); else skipIntro(); } else if (i === n + 1) openOptions(); else if (i >= n) resume(); else equip(i);
   };
 
   // Weapons: the shoulder buttons, the right stick's wheel, the number keys, the mouse wheel; START or ESC pauses
@@ -671,7 +705,8 @@ const App2: React.FC = () => {
         {status === GameStatus.PAUSED && (
           <PauseMenu weapons={arsenal()} current={weapon} ammo={hud.ammo} selected={pauseSel} locked={!!ui.noSwitch} card={card}
             onPick={i => { setPauseSel(i); equip(i); }} onResume={resume} onOptions={() => { setPauseSel(arsenal().length + 1); openOptions(); }} onSkip={stage === INTRO_STAGE ? skipIntro : undefined}
-            onHub={landOfStage(stage) || stage === PEN_STAGE ? askHub : undefined} hubAsk={hubAsk} onHubAnswer={answerHub} onHubPick={a => setHubAsk(a)} skin={theme?.pause} />
+            onHub={landOfStage(stage) || stage === PEN_STAGE ? askHub : undefined} hubAsk={hubAsk} onHubAnswer={answerHub} onHubPick={a => setHubAsk(a)} skin={theme?.pause}
+            onQuit={() => { setPauseSel(quitIndex()); askQuit(); }} quitAt={quitIndex()} asking={asking} onFile={activeSlot() !== null} />
         )}
         {/* OPTIONS: Meathead 1's options screen, with Meathead 2's controls, edged like the pause menu behind it */}
         {optionsOpen && status === GameStatus.PAUSED && (
@@ -682,6 +717,7 @@ const App2: React.FC = () => {
           <div className="absolute left-1/2 top-[40%] -translate-x-1/2 z-40 px-4 py-3 text-[12px] text-yellow-300 bg-black/85 border-2 border-yellow-500">{ui.notice.text}</div>
         )}
         <div className="absolute inset-0 z-50 bg-black pointer-events-none transition-opacity duration-200" style={{ opacity: fade || status === GameStatus.START ? 1 : 0 }} />
+        {title && <TitleScreen onNew={startNew} onContinue={continueFile} />}
       </div>
     </div>
   );

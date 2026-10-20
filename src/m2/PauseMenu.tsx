@@ -85,12 +85,19 @@ interface Props {
   hubAsk?: 0 | 1 | null;
   onHubAnswer?: (yes: boolean) => void;
   onHubPick?: (a: 0 | 1) => void;
+  /** QUIT (to the title), picked out as the last button; asked first (`asking` says which question's up). */
+  onQuit?: () => void;
+  quitAt?: number;
+  asking?: 'hub' | 'quit';
+  /** Playing on a save file (what QUIT loses is only what's since its last save) or with NO SAVE (the lot). */
+  onFile?: boolean;
   /** A stretch with its own controls and no weapon switching (the dirt bike, the broom...): its controls card, shown
    *  in place of the weapons (PauseControls.tsx); the buttons along the bottom as ever. */
   card?: PauseCard | null;
 }
 
-const PauseMenu: React.FC<Props> = ({ weapons, current, ammo, selected, onPick, onResume, onOptions, onSkip, skin = PLAIN_PAUSE, locked = false, onHub, hubAsk = null, onHubAnswer, onHubPick, card = null }) => {
+const PauseMenu: React.FC<Props> = ({ weapons, current, ammo, selected, onPick, onResume, onOptions, onSkip, skin = PLAIN_PAUSE, locked = false, onHub, hubAsk = null, onHubAnswer, onHubPick, card = null, onQuit, quitAt = -1, asking = 'hub', onFile = false }) => {
+  const onQuitBtn = selected === quitAt;
   const shown = selected < weapons.length ? weapons[selected] : current;
   const info = M2_WEAPON_INFO[shown];
   const full = (w: WeaponType) => maxAmmo(w);
@@ -121,8 +128,8 @@ const PauseMenu: React.FC<Props> = ({ weapons, current, ammo, selected, onPick, 
         {hubAsk !== null && (
           <div className="absolute inset-0 z-[20] flex items-center justify-center bg-black/70" onClick={e => e.stopPropagation()} onContextMenu={e => e.preventDefault()}>
             <div className="flex flex-col items-center gap-3 px-6 py-4 border-4 border-red-600 bg-zinc-950 shadow-[4px_4px_0_#000]">
-              <div className="text-[12px] font-black tracking-widest text-yellow-300">BACK TO THE HUB?</div>
-              <div className="text-[7px] font-black tracking-wider text-zinc-300">YOU'LL LOSE YOUR PLACE IN THIS LAND.</div>
+              <div className="text-[12px] font-black tracking-widest text-yellow-300">{asking === 'quit' ? 'QUIT TO TITLE?' : 'BACK TO THE HUB?'}</div>
+              <div className="text-[7px] font-black tracking-wider text-zinc-300">{asking === 'quit' ? (onFile ? "YOU'LL LOSE WHAT YOU'VE DONE SINCE THE LAST SAVE." : 'NO SAVE FILE: YOU LOSE EVERY LAND, EVERY WEAPON.') : "YOU'LL LOSE YOUR PLACE IN THIS LAND."}</div>
               <div className="flex gap-3">
                 {(['NO', 'YES'] as const).map((t, k) => (
                   <button key={t} onMouseEnter={() => onHubPick?.(k as 0 | 1)} onClick={() => onHubAnswer?.(k === 1)}
@@ -219,6 +226,14 @@ const PauseMenu: React.FC<Props> = ({ weapons, current, ammo, selected, onPick, 
               style={{ background: 'linear-gradient(180deg, #B91C1C, #7F1D1D)', borderBottom: '4px solid #450A0A', boxShadow: onSkipBtn ? '0 0 12px rgba(250,204,21,0.6), 3px 3px 0 #000' : '3px 3px 0 #000', outline: onSkipBtn ? '2px solid #FACC15' : 'none' }}>
               {onSkipBtn && <span className="absolute left-2 text-yellow-300 animate-pulse">&#9654;</span>}
               <span className="w-4 text-center">«</span>BACK TO HUB
+            </button>
+          )}
+          {onQuit && (
+            <button onClick={onQuit}
+              className={`relative flex items-center gap-2 pl-6 pr-3 py-[7px] text-white text-[10px] font-black uppercase tracking-wider transition-all ${onQuitBtn ? 'translate-x-1' : 'opacity-85 hover:opacity-100'}`}
+              style={{ background: 'linear-gradient(180deg, #52525B, #27272A)', borderBottom: '4px solid #09090B', boxShadow: onQuitBtn ? '0 0 12px rgba(250,204,21,0.6), 3px 3px 0 #000' : '3px 3px 0 #000', outline: onQuitBtn ? '2px solid #FACC15' : 'none' }}>
+              {onQuitBtn && <span className="absolute left-2 text-yellow-300 animate-pulse">&#9654;</span>}
+              <span className="w-4 text-center">✕</span>QUIT
             </button>
           )}
         </div>
