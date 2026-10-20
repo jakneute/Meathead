@@ -26,7 +26,8 @@ import { mid } from '../../../m1/game/enemies/kinds';
 import { hazardVictims, hazardHit, boxHits, setHazardZones, type Zone } from '../../hazardHit';
 import { envSound } from '../../bossQuiet';
 import { meatheadSays, byPants, ledge } from '../section';
-import { box, mix, onScreen, INK, type Ctx } from '../kit';
+import { box, hash, checker, polyF, ballR, onScreen, ramp6, rampH, lit, INK, IRON, LIP, type Ctx } from '../kit';
+import { stamp } from '../../intro/art/kit';
 import { timeOfDay } from '../../timeOfDay';
 import { updateThrows as updateSquareThrows, drawThrows as drawSquareThrows } from '../square/hazards';
 import { GY } from '../geometry';
@@ -150,46 +151,82 @@ const updateThrows = (ctx: FrameContext) => {
 // ---------------------------------------------------------------------------------------------------------------
 // Drawing (world space)
 
-/** A giant toadstool: a pale stalk with its skirt, the red cap with white spots, glowing a little, its top lit (it's
- *  stood on); squashed a moment after a bounce. Dimmed: the far ones behind (scenery). */
-export const drawToadstool = (c: Ctx, x: number, capY: number, w: number, squash: number, f: number, dim = 0) => {
-  const T = (col: string) => (dim ? mix(col, timeOfDay().haze, dim) : col);
-  const k = squash > 0 ? Math.sin((squash / 16) * Math.PI) : 0, sq = 1 - k * 0.3, wide = 1 + k * 0.12;
-  const capH = 26 * sq, half = (w / 2) * wide, top = capY + (26 - capH), rim = capY + 26;
-  // (its glow, soft, behind)
-  if (!dim) { c.save(); c.globalAlpha = 0.2 + 0.08 * Math.sin(f * 0.08 + x); c.fillStyle = '#FBCFE8'; c.beginPath(); c.ellipse(x, top + capH / 2, half + 12, capH + 8, 0, 0, Math.PI * 2); c.fill(); c.restore(); }
-  // (the stalk, down to the ground; its skirt)
-  const sw = w * 0.3;
-  box(c, x - sw / 2 - 1, rim - 2, sw + 2, GY - rim + 2, T(INK)); box(c, x - sw / 2, rim - 2, sw, GY - rim + 2, T('#F5EEDC'));
-  box(c, x + sw / 2 - 7, rim - 2, 6, GY - rim + 2, T('#D6CDB4'));
-  box(c, x - sw / 2 - 5, rim + 8, sw + 10, 5, T('#E8DFC6'));
-  // (the gills under the cap)
-  c.fillStyle = T('#E9D5B0'); c.beginPath(); c.ellipse(x, rim, half - 4, 6, 0, 0, Math.PI); c.fill();
-  // (the cap: flat on top (it's stood on), rounded over the edges, inked, spots)
-  c.fillStyle = T(INK); c.beginPath(); c.roundRect(x - half - 2, top - 2, half * 2 + 4, capH + 4, [14, 14, 6, 6]); c.fill();
-  c.fillStyle = T('#DC2626'); c.beginPath(); c.roundRect(x - half, top, half * 2, capH, [12, 12, 5, 5]); c.fill();
-  box(c, x + half * 0.35, top + 4, half * 0.55, capH - 6, T('#B91C1C'));
-  box(c, x - half, rim - 5, half * 2, 3, T('#991B1B'));
-  for (const [dx, dy, r] of [[-0.55, 0.45, 5], [-0.1, 0.35, 6], [0.45, 0.5, 5], [0.2, 0.7, 3.5], [-0.35, 0.75, 3]] as const) {
-    c.fillStyle = T('#FFF7ED'); c.beginPath(); c.ellipse(x + dx * half, top + dy * capH, r * wide, r * sq, 0, 0, Math.PI * 2); c.fill();
+/** A toadstool painted (its cap's top-middle at 0, 0; the ground `stalk` below the rim): the stalk in steps, its skirt
+ *  and its bulb, the gills fanned under the cap, the cap domed in steps with a flat top (it's stood on: the lit lip),
+ *  its spots shaded. `k` how squashed (0..1). Dimmed: the ones behind (scenery: no lip). */
+const paintToadstool = (g: Ctx, w: number, stalk: number, k: number, dim: boolean) => {
+  const sq = 1 - k * 0.3, wide = 1 + k * 0.12, capH = 26 * sq, half = (w / 2) * wide, top = 26 - capH, rim = 26;
+  const Cp = rampH(ramp6('#D42A2A'), dim), St = rampH(ramp6('#EEE4C8'), dim), Gi = rampH(ramp6('#E2C89C'), dim), Sp = rampH(ramp6('#FFF4E2'), dim), M = rampH(ramp6('#4E7E3A'), dim);
+  // (the stalk, down to the ground: lit left, shaded right, dithered; flecks; its skirt; the bulb at its foot)
+  const sw = w * 0.3, sx = -sw / 2, bot = rim + stalk;
+  box(g, sx - 1, rim - 2, sw + 2, bot - rim + 2, INK);
+  box(g, sx, rim - 2, sw, bot - rim + 2, St[3]); box(g, sx, rim - 2, sw * 0.28, bot - rim + 2, St[4]); box(g, sx + 1, rim - 2, 1, bot - rim + 2, St[5]);
+  box(g, sx + sw * 0.66, rim - 2, sw * 0.34, bot - rim + 2, St[2]); box(g, sx + sw - 3, rim - 2, 3, bot - rim + 2, St[1]); checker(g, sx + sw * 0.6, rim - 2, 2, bot - rim + 2, St[2], 0, 1);
+  for (let y = rim + 14; y < bot - 4; y += 7) box(g, sx + 4 + ((y * 3) % (sw - 8)), y, 2, 1, St[1]);
+  if (stalk > 30) { polyF(g, [[sx - 7, rim + 10], [sx + sw + 7, rim + 10], [sx + sw + 3, rim + 17], [sx - 3, rim + 17]], INK); polyF(g, [[sx - 6, rim + 11], [sx + sw + 6, rim + 11], [sx + sw + 2, rim + 16], [sx - 2, rim + 16]], St[3]); box(g, sx - 6, rim + 11, sw + 12, 1, St[5]); box(g, sx - 2, rim + 15, sw + 4, 1, St[1]); }
+  g.fillStyle = INK; g.beginPath(); g.ellipse(0, bot - 3, sw / 2 + 7, 7, 0, Math.PI, 0); g.fill(); g.fillStyle = St[2]; g.beginPath(); g.ellipse(0, bot - 3, sw / 2 + 6, 6, 0, Math.PI, 0); g.fill(); g.fillStyle = St[4]; g.beginPath(); g.ellipse(-sw / 4, bot - 5, sw / 4, 3, 0, Math.PI, 0); g.fill();
+  for (let fr = -3; fr <= 3; fr++) if (fr) polyF(g, [[fr * 9, bot], [fr * 13, bot - 9 + Math.abs(fr)], [fr * 11 + 2, bot]], M[2 + (fr & 1)]);
+  // (the gills under the cap, fanned)
+  g.fillStyle = INK; g.beginPath(); g.ellipse(0, rim - 1, half - 2, 8, 0, 0, Math.PI); g.fill();
+  g.fillStyle = Gi[3]; g.beginPath(); g.ellipse(0, rim - 1, half - 4, 6.5, 0, 0, Math.PI); g.fill();
+  for (let gx = -half + 8; gx < half - 6; gx += 4) box(g, gx, rim, 1, Math.max(1, 5 * Math.sqrt(Math.max(0, 1 - (gx / half) ** 2))), Gi[1]);
+  // (the cap: flat on top, rounded over its edges, in steps (lit up and left), spots shaded, inked)
+  const capPath = () => { g.beginPath(); g.roundRect(-half, top, half * 2, capH, [14, 14, 6, 6]); };
+  g.fillStyle = INK; g.beginPath(); g.roundRect(-half - 2, top - 2, half * 2 + 4, capH + 4, [15, 15, 7, 7]); g.fill();
+  g.save(); capPath(); g.clip();
+  box(g, -half, top, half * 2, capH, Cp[3]);
+  box(g, -half, top, half * 0.5, capH, Cp[4]); box(g, -half, top, half * 2, 4, Cp[4]); box(g, -half * 0.8, top + 1, half * 0.9, 2, Cp[5]);
+  box(g, half * 0.4, top + 4, half * 0.6, capH, Cp[2]); box(g, half * 0.75, top + 4, half * 0.25, capH, Cp[1]);
+  checker(g, -half * 0.5, top, 2, capH, Cp[4], 0, 1); checker(g, half * 0.38, top + 4, 2, capH, Cp[2], 1, 1);
+  box(g, -half, rim - 6, half * 2, 3, Cp[1]); box(g, -half, rim - 3, half * 2, 3, Cp[0]); checker(g, -half, rim - 8, half * 2, 2, Cp[1], 0, 1);
+  for (const [dx, dy, r] of [[-0.6, 0.5, 5], [-0.18, 0.36, 6.5], [0.38, 0.46, 5.5], [0.72, 0.62, 3.5], [0.12, 0.74, 3.5], [-0.4, 0.78, 3]] as const) {
+    const ex = dx * half, ey = top + dy * capH, rx = r * wide, ry = r * sq;
+    g.fillStyle = Sp[1]; g.beginPath(); g.ellipse(ex + 1, ey + 1, rx, ry, 0, 0, Math.PI * 2); g.fill();
+    g.fillStyle = Sp[3]; g.beginPath(); g.ellipse(ex, ey, rx, ry, 0, 0, Math.PI * 2); g.fill();
+    g.fillStyle = Sp[5]; g.beginPath(); g.ellipse(ex - rx * 0.3, ey - ry * 0.3, rx * 0.4, ry * 0.4, 0, 0, Math.PI * 2); g.fill();
   }
+  g.restore();
   // (the lit lip along its flat top)
-  if (!dim) box(c, x - half + 8, top, half * 2 - 16, 3, '#FDE68A');
+  if (!dim) { box(g, -half + 9, top, half * 2 - 18, 2, LIP[2]); box(g, -half + 9, top, half * 2 - 18, 1, LIP[3]); }
+};
+/** A giant toadstool at x, its cap's top at capY (squash: frames left of a bounce's squash). Dimmed (`dim` > 0): the
+ *  ones behind (scenery). Painted once for the hour while it's still; live while it's squashing. */
+export const drawToadstool = (c: Ctx, x: number, capY: number, w: number, squash: number, f: number, dim = 0) => {
+  const k = squash > 0 ? Math.sin((squash / 16) * Math.PI) : 0, stalk = Math.max(0, GY - capY - 26), d = dim > 0;
+  // (its glow, soft, behind, breathing)
+  if (!d) { c.save(); c.globalAlpha = (lit() ? 0.24 : 0.12) + 0.06 * Math.sin(f * 0.08 + x); c.fillStyle = '#FBCFE8'; c.beginPath(); c.ellipse(x, capY + 14, w / 2 + 14, 34, 0, 0, Math.PI * 2); c.fill(); c.globalAlpha *= 0.6; c.beginPath(); c.ellipse(x, capY + 14, w / 2 + 26, 44, 0, 0, Math.PI * 2); c.fill(); c.restore(); }
+  c.save(); c.translate(Math.round(x), Math.round(capY));
+  if (k > 0) paintToadstool(c, w, stalk, k, d);
+  else stamp(c, `fa-gl-toad-${w}-${Math.round(stalk)}-${d ? 1 : 0}-${timeOfDay().key}`, -w / 2 - 30, -4, w + 60, stalk + 34, g => paintToadstool(g, w, stalk, 0, d));
+  c.restore();
 };
 
-/** A briar patch along the ground: a dark tangle, thorns up, red berries; it reads as a thing that hurts. */
+/** A briar patch along the ground: a dark tangle in steps (the back canes dark, the front ones lit), thorns up and
+ *  pale, red berries, a few leaves; it reads as a thing that hurts. Painted once for the hour. */
 const drawBriars = (c: Ctx, state: GameState, a: number, b: number) => {
   if (!onScreen(state, X(a), X(b))) return;
-  const L = Math.max(X(a), state.camera.x - 40), R = Math.min(X(b), state.camera.x + 840);
-  for (let x = Math.floor(L / 18) * 18; x < R; x += 18) {
-    const h = 16 + ((x * 7) % 9);
-    c.strokeStyle = INK; c.lineWidth = 4; c.beginPath(); c.moveTo(x, GY); c.quadraticCurveTo(x + 10, GY - h - 6, x + 20, GY - 2); c.stroke();
-    c.strokeStyle = '#3F2A1A'; c.lineWidth = 2; c.beginPath(); c.moveTo(x, GY); c.quadraticCurveTo(x + 10, GY - h - 6, x + 20, GY - 2); c.stroke();
-    c.strokeStyle = '#365314'; c.lineWidth = 2; c.beginPath(); c.moveTo(x + 6, GY); c.quadraticCurveTo(x - 2, GY - h, x + 8, GY - h - 4); c.stroke();
-    // (the thorns)
-    for (const [tx, ty] of [[x + 4, GY - h + 2], [x + 12, GY - h - 2], [x + 17, GY - h * 0.5]]) { c.fillStyle = '#F5F0DC'; c.beginPath(); c.moveTo(tx - 2, ty); c.lineTo(tx, ty - 6); c.lineTo(tx + 2, ty); c.closePath(); c.fill(); }
-    if ((x / 18) % 3 === 0) box(c, x + 9, GY - h + 4, 3, 3, '#DC2626');
-  }
+  const w = b - a;
+  c.save(); c.translate(X(a), GY);
+  stamp(c, `fa-gl-briar-${a}-${timeOfDay().key}`, -8, -44, w + 16, 50, g => {
+    const Cn = rampH(ramp6('#4A3020')), Lf = rampH(ramp6('#3E6A24')), Th = rampH(ramp6('#EEE4C8')), Br = rampH(ramp6('#C42030'));
+    // (the back canes: dark loops, low)
+    for (let x = -4; x < w; x += 11) { const h = 12 + hash(x * 0.37 + a) * 12; g.strokeStyle = INK; g.lineWidth = 4; g.beginPath(); g.moveTo(x, 2); g.quadraticCurveTo(x + 9, -h - 6, x + 22, 0); g.stroke(); g.strokeStyle = Cn[1]; g.lineWidth = 2; g.stroke(); }
+    box(g, -4, -6, w + 8, 8, Cn[0]); checker(g, -4, -8, w + 8, 2, Cn[0], 0, 1);
+    // (leaves among them)
+    for (let x = 4; x < w; x += 17) { const y = -8 - hash(x + a) * 12; polyF(g, [[x - 4, y], [x, y - 4], [x + 5, y], [x, y + 3]], INK); polyF(g, [[x - 3, y], [x, y - 3], [x + 4, y], [x, y + 2]], Lf[2 + Math.floor(hash(x * 3) * 2)]); box(g, x - 1, y - 2, 2, 1, Lf[4]); }
+    // (the front canes: taller, lit along their tops, thorns all along them)
+    for (let x = 0; x < w; x += 16) {
+      const h = 18 + hash(x * 0.71 + a * 0.3) * 14, s = hash(x + a * 2) > 0.5 ? 1 : -1, x1 = x + 6, x2 = x + 6 + s * 14;
+      g.strokeStyle = INK; g.lineWidth = 5; g.beginPath(); g.moveTo(x1 - s * 8, 2); g.quadraticCurveTo(x1, -h - 8, x2, 0); g.stroke();
+      g.strokeStyle = Cn[2]; g.lineWidth = 3; g.stroke(); g.strokeStyle = Cn[4]; g.lineWidth = 1; g.beginPath(); g.moveTo(x1 - s * 8, 1); g.quadraticCurveTo(x1, -h - 9, x2, -1); g.stroke();
+      for (let t = 0.15; t < 0.9; t += 0.22) {
+        const px = (1 - t) * (1 - t) * (x1 - s * 8) + 2 * t * (1 - t) * x1 + t * t * x2, py = 2 * t * (1 - t) * (-h - 8) + (1 - t) * (1 - t) * 2;
+        polyF(g, [[px - 2.5, py], [px, py - 7], [px + 2.5, py]], INK); polyF(g, [[px - 1.5, py - 0.5], [px, py - 6], [px + 1.5, py - 0.5]], Th[3]); box(g, px - 1, py - 4, 1, 2, Th[5]);
+      }
+      if (hash(x * 1.3 + a) > 0.55) { const bx = x1 + s * 3, by = -h * 0.6; box(g, bx - 2, by - 2, 5, 5, INK); box(g, bx - 1, by - 1, 3, 3, Br[3]); box(g, bx - 1, by - 1, 1, 1, Br[5]); }
+    }
+  });
+  c.restore();
 };
 
 /** Behind him: the briars, the toadstools, the cauldrons' beams and chains and pots. */
@@ -201,22 +238,41 @@ export const drawHazardsBack = (c: Ctx, state: GameState) => {
     const [px, , len] = CAULDRONS[i];
     if (!onScreen(state, X(px) - len - 40, X(px) + len + 40)) continue;
     const k = cauldronAt(state, i);
-    // (the beam it hangs off: a gnarled branch, scenery (dimmed: not stood on))
-    const bc = mix('#4A3424', timeOfDay().haze, 0.3);
-    box(c, k.px - 70, k.py - 9, 140, 12, INK); box(c, k.px - 69, k.py - 8, 138, 10, bc);
-    box(c, k.px - 4, k.py - 4, 8, 8, '#3A3448');
-    // (the chain, link by link)
-    const n = Math.floor(len / 10);
-    for (let j = 1; j < n; j++) { const t = j / n, x = k.px + (k.x - k.px) * t, y = k.py + (k.y - BOB_R - k.py) * t; box(c, x - 2, y - 2, 4, 4, INK); box(c, x - 1, y - 1, 2, 2, '#9CA3AF'); }
-    // (the pot: black iron, a rim, three stubby legs, green brew bubbling over the top)
+    // (the branch it hangs off: the end of an oak's limb (art.ts draws the rest back to the trunk), scenery (dimmed:
+    //  not stood on), an iron hook bracket round it)
+    c.save(); c.translate(Math.round(k.px), Math.round(k.py));
+    stamp(c, `fa-gl-cbranch-${timeOfDay().key}`, -86, -16, 172, 32, g => {
+      const B = rampH(['#1C120C', '#30201A', '#463024', '#5E4432', '#7C5E46', '#9C7E60'], true);
+      g.fillStyle = INK; g.beginPath(); g.moveTo(-82, -8); g.quadraticCurveTo(0, -14, 82, -8); g.lineTo(82, 7); g.quadraticCurveTo(0, 2, -82, 7); g.closePath(); g.fill();
+      g.fillStyle = B[2]; g.beginPath(); g.moveTo(-81, -6); g.quadraticCurveTo(0, -12, 81, -6); g.lineTo(81, 5); g.quadraticCurveTo(0, 0, -81, 5); g.closePath(); g.fill();
+      g.strokeStyle = B[4]; g.lineWidth = 2; g.beginPath(); g.moveTo(-80, -5); g.quadraticCurveTo(0, -11, 80, -5); g.stroke();
+      for (let x = -76; x < 80; x += 9) box(g, x, -4 + Math.round(hash(x) * 4), 5, 1, B[1]);
+      ballR(g, 36, -4, 4, B, true); box(g, 34, -6, 2, 2, B[0]);
+      const I = rampH(IRON);
+      box(g, -7, -11, 14, 18, INK); box(g, -6, -10, 12, 16, I[3]); box(g, -6, -10, 3, 16, I[5]); box(g, 3, -10, 3, 16, I[1]); box(g, -2, 4, 4, 6, I[2]);
+    });
+    c.restore();
+    // (the chain, link by link, alternate links edge-on)
+    const n = Math.floor(len / 10), I = rampH(IRON);
+    for (let j = 1; j < n; j++) {
+      const t = j / n, x = k.px + (k.x - k.px) * t, y = k.py + 4 + (k.y - BOB_R - 4 - k.py) * t;
+      if (j % 2) { box(c, x - 3, y - 3, 6, 7, INK); box(c, x - 2, y - 2, 4, 5, I[4]); box(c, x - 1, y - 1, 2, 3, INK); box(c, x - 2, y - 2, 1, 2, I[5]); }
+      else { box(c, x - 1.5, y - 4, 3, 8, INK); box(c, x - 0.5, y - 3, 1, 6, I[3]); }
+    }
+    // (the pot: black iron in steps, its rim, its ear-handles, three stubby legs, green brew bubbling over the top)
     c.save(); c.translate(k.x, k.y); c.rotate(-k.a * 0.6);
-    c.fillStyle = INK; c.beginPath(); c.ellipse(0, 2, BOB_R + 2, BOB_R - 2, 0, 0, Math.PI * 2); c.fill();
-    c.fillStyle = '#2A2830'; c.beginPath(); c.ellipse(0, 2, BOB_R, BOB_R - 4, 0, 0, Math.PI * 2); c.fill();
-    c.fillStyle = '#4A4852'; c.beginPath(); c.ellipse(-6, -3, 6, 5, 0, 0, Math.PI * 2); c.fill();
-    box(c, -BOB_R - 2, -BOB_R + 4, BOB_R * 2 + 4, 5, INK); box(c, -BOB_R - 1, -BOB_R + 5, BOB_R * 2 + 2, 3, '#5A5862');
-    c.fillStyle = '#22C55E'; c.beginPath(); c.ellipse(0, -BOB_R + 5, BOB_R - 2, 4, 0, Math.PI, 0); c.fill();
-    for (let j = 0; j < 3; j++) { const bx = -10 + j * 10, by = -BOB_R + 1 - ((f * 0.4 + j * 7) % 8); c.fillStyle = '#86EFAC'; c.beginPath(); c.arc(bx, by, 2.5, 0, Math.PI * 2); c.fill(); }
-    for (const lx of [-12, 0, 12]) box(c, lx - 2, BOB_R - 4, 4, 6, INK);
+    if (lit()) { c.globalAlpha = 0.22; c.fillStyle = '#7CF29A'; c.beginPath(); c.ellipse(0, -BOB_R, BOB_R + 8, 10, 0, 0, Math.PI * 2); c.fill(); c.globalAlpha = 1; }
+    for (const lx of [-12, 0, 12]) { box(c, lx - 3, BOB_R - 6, 6, 9, INK); box(c, lx - 2, BOB_R - 5, 4, 7, I[2]); box(c, lx - 2, BOB_R - 5, 1, 7, I[4]); }
+    for (const s of [-1, 1]) { c.strokeStyle = INK; c.lineWidth = 4; c.beginPath(); c.arc(s * (BOB_R + 1), -BOB_R + 9, 5, s > 0 ? -Math.PI / 2 : Math.PI / 2, s > 0 ? Math.PI / 2 : Math.PI * 1.5); c.stroke(); c.strokeStyle = I[3]; c.lineWidth = 2; c.stroke(); }
+    ballR(c, 0, 2, BOB_R, I);
+    c.fillStyle = I[1]; c.beginPath(); c.ellipse(0, 2, BOB_R, BOB_R - 4, 0, 0.15, Math.PI - 0.15); c.fill();
+    box(c, -BOB_R - 3, -BOB_R + 3, BOB_R * 2 + 6, 7, INK); box(c, -BOB_R - 2, -BOB_R + 4, BOB_R * 2 + 4, 5, I[3]); box(c, -BOB_R - 2, -BOB_R + 4, BOB_R * 2 + 4, 1, I[5]); box(c, -BOB_R - 2, -BOB_R + 8, BOB_R * 2 + 4, 1, I[1]);
+    const Br = ['#14532D', '#16A34A', '#22C55E', '#4ADE80', '#86EFAC', '#DCFCE7'];
+    c.fillStyle = INK; c.beginPath(); c.ellipse(0, -BOB_R + 4, BOB_R, 5, 0, Math.PI, 0); c.fill();
+    c.fillStyle = Br[2]; c.beginPath(); c.ellipse(0, -BOB_R + 4, BOB_R - 1, 4, 0, Math.PI, 0); c.fill();
+    c.fillStyle = Br[4]; c.beginPath(); c.ellipse(-5, -BOB_R + 3, BOB_R * 0.5, 2, 0, Math.PI, 0); c.fill();
+    for (let j = 0; j < 4; j++) { const bx = -12 + j * 8, t = ((f * 0.4 + j * 7) % 10) / 10, by = -BOB_R + 2 - t * 9, r = 1.5 + t * 2; c.fillStyle = INK; c.beginPath(); c.arc(bx, by, r + 0.8, 0, Math.PI * 2); c.fill(); c.fillStyle = Br[3]; c.beginPath(); c.arc(bx, by, r, 0, Math.PI * 2); c.fill(); box(c, bx - r * 0.5, by - r * 0.5, 1, 1, Br[5]); }
+    for (const dx of [-BOB_R + 3, BOB_R - 6]) { box(c, dx, -BOB_R + 8, 3, 5 + (Math.floor(f / 6) + dx) % 3, Br[2]); box(c, dx, -BOB_R + 8, 1, 3, Br[4]); }
     c.restore();
   }
 };
@@ -226,18 +282,26 @@ export const drawHazardsFront = (c: Ctx, state: GameState) => {
   const g = glenOf(state);
   for (const s of g.throws) {
     if (s.kind === 'bolt') {
+      // (a crossbow bolt: an ash shaft, a steel head catching the light, red vanes)
       const a = Math.atan2(s.vy, s.vx);
       c.save(); c.translate(s.x, s.y); c.rotate(a);
-      box(c, -14, -1.5, 20, 3, INK); box(c, -13, -0.5, 18, 1, '#D6D3D1');
-      c.fillStyle = INK; c.beginPath(); c.moveTo(5, -3.5); c.lineTo(12, 0); c.lineTo(5, 3.5); c.closePath(); c.fill();
-      box(c, -14, -3, 4, 6, '#DC2626');
+      box(c, -15, -2, 22, 4, INK); box(c, -14, -1, 20, 2, '#B08A5A'); box(c, -14, -1, 20, 1, '#E0C090');
+      c.fillStyle = INK; c.beginPath(); c.moveTo(4, -4.5); c.lineTo(13, 0); c.lineTo(4, 4.5); c.closePath(); c.fill();
+      c.fillStyle = '#9CA3AF'; c.beginPath(); c.moveTo(5, -3); c.lineTo(11, 0); c.lineTo(5, 3); c.closePath(); c.fill(); box(c, 5, -2, 4, 1, '#F1F5F9');
+      for (const sy of [-1, 1]) { c.fillStyle = INK; c.beginPath(); c.moveTo(-16, sy * 1); c.lineTo(-10, sy * 1); c.lineTo(-13, sy * 5); c.lineTo(-17, sy * 5); c.closePath(); c.fill(); box(c, -15, sy > 0 ? 1 : -4, 4, 3, sy > 0 ? '#B91C1C' : '#EF4444'); }
       c.restore();
     } else if (s.kind === 'arrow') {
       heartArrow(c, s.x + Math.cos(Math.atan2(s.vy, s.vx)) * 6, s.y + Math.sin(Math.atan2(s.vy, s.vx)) * 6, Math.atan2(s.vy, s.vx), 24);
     } else {
-      c.fillStyle = INK; c.beginPath(); c.moveTo(s.x - 7, s.y); c.lineTo(s.x - 2, s.y - 7); c.lineTo(s.x + 6, s.y - 4); c.lineTo(s.x + 7, s.y + 3); c.lineTo(s.x - 1, s.y + 7); c.closePath(); c.fill();
-      c.fillStyle = '#A78BFA'; c.beginPath(); c.moveTo(s.x - 5, s.y); c.lineTo(s.x - 2, s.y - 5); c.lineTo(s.x + 4, s.y - 3); c.lineTo(s.x + 5, s.y + 2); c.lineTo(s.x - 1, s.y + 5); c.closePath(); c.fill();
-      box(c, s.x - 2, s.y - 3, 2, 2, '#EDE9FE');
+      // (a dwarf's rock: a lump of fake amethyst, faceted in steps, tumbling)
+      c.save(); c.translate(s.x, s.y); c.rotate(s.t * 0.25);
+      const R = ['#3B1A6E', '#5B2E9E', '#7C4ACF', '#A78BFA', '#C9B6FD', '#F1EBFF'];
+      c.fillStyle = INK; c.beginPath(); c.moveTo(-8, 0); c.lineTo(-3, -8); c.lineTo(6, -5); c.lineTo(8, 3); c.lineTo(-1, 8); c.closePath(); c.fill();
+      c.fillStyle = R[2]; c.beginPath(); c.moveTo(-6, 0); c.lineTo(-3, -6); c.lineTo(5, -4); c.lineTo(6, 3); c.lineTo(-1, 6); c.closePath(); c.fill();
+      c.fillStyle = R[4]; c.beginPath(); c.moveTo(-6, 0); c.lineTo(-3, -6); c.lineTo(1, -1); c.closePath(); c.fill();
+      c.fillStyle = R[1]; c.beginPath(); c.moveTo(6, 3); c.lineTo(-1, 6); c.lineTo(1, -1); c.closePath(); c.fill();
+      box(c, -3, -4, 2, 2, R[5]);
+      c.restore();
     }
   }
   drawSquareThrows(c, state);

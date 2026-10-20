@@ -694,3 +694,33 @@ markBossFight every frame of a boss or sub-boss fight. Voice every new line (`np
   the beds; the QTE panel dressed as a gondola (cap, fairy lights, gilt plaque, hearts for steps, banded fills);
   fall_wheel's kill cam got clouds and a far skyline (Alps, castle, fairground tops). The plaza's lanterns, stalls and
   the wheel's rim light the night (lamps). Drawing only.
+- (SNES pass, the enchanted glen) The glen's enchanted: green and in flower in the middle of the snow (the winter's all
+  round it far off). The far off (glen/far.ts, every layer a tile cached per hour): the banded sky and stepped cumulus,
+  the square's Alps, the castle (its foot lost in the treetops, more of it in the meadow's clearing), the park beyond
+  (snowy hills, the fairy wheel he came from, Hogsmeat's steeple and clock tower, Rapunzel's tower and braid, the
+  beanstalk up into its cloud and the giant's castle, a windmill, Tragons' tracks and station, turrets), the storybook
+  forest's far edge (oaks, blossom, lilac, frosted pines, spire trees; a thatched cottage in a clearing, a dark ride's
+  crooked front), the near forest as a colonnade of trunks (fairy doors, fungi, ivy, lanterns strung, toadstools; the
+  canopy only seen from up the lair's staircase); fireflies after dark, motes by day. Round the play plane (one eye;
+  glen/paint.ts, art.ts, sets.ts): the forest floor going back (a trodden path, moss in bands, flowers), the giants at
+  0.8 (roots, bark in steps, moss, ivy, fairy doors lit, owl hollows, carved hearts, boughs; their trunks stamp over
+  stamp out of the picture) with fairy lights strung between (twinkling), undergrowth at 0.85 in 480 px stretches each
+  with a find (a stump house, a gnome, a crowned frog, a picnic basket, a glass slipper, a nest, a boot house; ore and
+  crates in the mine's yard, foam rubble and gold in the lair), props at 0.93 (lanterns, a wishing well, a frog-prince
+  fountain, a spinning wheel roped off, log benches, a pumpkin coach, a shoe house, cookie gravestones, signposts); the
+  near floor bent. Set pieces: the gate of twisted branches and its lanterns; the cliff's strata and moss cap (lit), its
+  spring running into a pool; the bridge's gorge going back (misty depths, a waterfall pouring, clouds below), its
+  faces, newels and cut rope rails, dangling planks, sawhorses and a wheelbarrow, the pier with its broken springers;
+  the cottage in gingerbread steps (sides going back, its frosted top lit, a bite out of a wall, a peppermint chimney
+  smoking); the oaks (the first two cauldrons share one, so no trunk stands inside the cottage) and their limbs out to
+  the cauldrons' branches; the woodpile; the mine's hill and portal (the inside dark: never seen), rails, the gem cart,
+  the buffer, the head frame (its wheel turning, a bucket going up and down the shaft), the shaft (cribbing, ladders,
+  lanterns) and its timbered pillars; the meadow's clearing (round trees, a hedge, a plywood rainbow on cloud plinths
+  with bulbs lit after dark, a picket fence, unicorn photo boards) and the tree stand; the lair in fiberglass (back wall
+  panels bolted, stalactites, crystals glowing, a staff door, torches), its mouth's pillars and arch, the ribs, the
+  skull with its $4,999 tag, the foam gold round a chest; Truelling Tragons' front (turret, banners, arrow slits, the
+  three heads breathing, the gilt name, the portcullis up), its tracks and a train over it, the crowd behind velvet
+  ropes. Toadstools, briars, cauldrons (and the branch they hang off), bolts and the dwarfs' amethyst redrawn in steps;
+  the cast: the huntsman's capelet, laced jerkin, bracer, boot cuffs, quiver and walnut crossbow; the dwarf's hood,
+  buckle, stranded beard, putty nose, brass helmet and dripping candle; Cupid, the cookie and the unicorn in stepped
+  parts and stamped frames (same looks). Drawing only: no layout, timing or hitbox changes.
