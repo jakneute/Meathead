@@ -42,6 +42,7 @@ import { drawLeg, drawArmTo, drawTorsoFromHips, drawHead, type Mood } from '../.
 import { drawPlayer } from '../../m1/game/render/player/player';
 import { setCatClaws } from '../../m1/game/render/player/catBody';
 import { btn, pressed, pollM2 } from '../input';
+import { setUi } from '../store';
 import { grabCallout, type GrabCallout } from './callouts';
 import { m2Kill } from './killLines';
 import { m2Grab, m2Kind } from '../kinds';
@@ -713,11 +714,15 @@ export const grabBusy = () => busy;
 /** Who he's got hold of right now (nobody else gets to eat him). */
 let holding: Enemy | null = null;
 export const grabHolding = () => holding;
+let beatTip = false;
 export const updateGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
   tintOf = ctx.state.player;
   const out = stepGrab(ctx, g, controls);
   busy = g.phase !== 'idle' || g.yChord;
   holding = g.held;
+  // (on top of him: the punch buttons up on screen, the whole time)
+  const tip = g.phase === 'mount';
+  if (tip !== beatTip) { beatTip = tip; setUi({ beatTip: tip }); }
   // (a machine in his hands is out of the enemy list: what comes off it, punched, shaken, smashed, is scrap all the same)
   if (g.held && isMachineKind(g.held.kind)) { const p = ctx.state.player; markMachineGore(ctx.state, p.pos.x - 70, p.pos.y - 70, p.width + 140, p.height + 80, 30); }
   // (a thrown body's hits first: whoever's where it's landing gets it before they're moved out of his way)

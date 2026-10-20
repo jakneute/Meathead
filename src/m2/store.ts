@@ -41,6 +41,8 @@ export interface M2Ui {
   heliTips?: boolean;
   /** (Wilderness Land's rolling logs) On a log: the crouch-walk tip, down and forward (the user's). */
   logTip?: boolean;
+  /** (a beatdown, on top of somebody) The punch buttons (the user's: "show the buttons you need to press"). */
+  beatTip?: boolean;
   /** (the helicopter, flying) The main HUD's his helicopter's: the PWR row the rotor boost's charge (0..1), the
    *  rockets' charges beside it (0..3, fractional while one's coming back), the weapon the machine gun. */
   heliHud?: boolean;
