@@ -73,11 +73,37 @@ export interface Wheel {
   /** The gate's opening (frames since), sparkles. */
   opened: number;
   said: Record<string, boolean>;
+  /** The close-up cutscene on (closeup.ts): a kill up close before the side view takes it on, or him thrown out. */
+  cu: Closeup | null;
+  /** Who's winning the tussle, eased (-1 the suitor, 1 him), for the close-up's grapple. */
+  cuBal: number;
 }
+
+/** A close-up cutscene: whose cart, which (a kill, by its kind; or Meathead thrown out), frames in, how long. */
+export interface Closeup { kind: 'kill' | 'thrown'; i: number; how: KillKind; t: number; dur: number }
+
+// The dead on the plaza and in the carts, kept for good once the trial's won (a revisit finds them where they fell):
+// "index:how:groundX;..." in state.stageMemo.
+const CORPSE_MEMO = 'fantasy-wheel-corpses';
+const KINDS: KillKind[] = ['smash', 'throw', 'floor', 'fling', 'choke'];
+export const saveCorpses = (state: GameState, dead: Map<number, Corpse>) => {
+  state.stageMemo[CORPSE_MEMO] = [...dead].map(([i, d]) => `${i}:${KINDS.indexOf(d.how)}:${d.groundX === undefined ? '' : Math.round(d.groundX)}`).join(';');
+};
+export const loadCorpses = (state: GameState, dead: Map<number, Corpse>) => {
+  const s = state.stageMemo[CORPSE_MEMO];
+  if (!s) return;
+  for (const part of s.split(';')) {
+    const [i, k, gx] = part.split(':');
+    const how = KINDS[Number(k)], idx = Number(i);
+    if (!how || !Number.isInteger(idx) || dead.has(idx)) continue;
+    dead.set(idx, gx ? { how, groundX: Number(gx) } : { how });
+  }
+};
 
 export const wheelOf = (state: GameState) => fantasyState<Wheel>(state, 'wheel', () => ({
   t: 0, ang: Math.PI / 2, carts: [], live: new Map(), throws: [], bodies: [], trial: 'wait',
   walls: { l: null as unknown as Block, r: null as unknown as Block },
   qte: null, kill: null, lastAtHim: -999, lastBark: -999, lastBounce: -9999, piper: null, barks: new Map(),
   fallFrom: null, knockedAt: -9999, thrown: false, qteDone: new Map(), killBag: [], opened: -1, said: {},
+  cu: null, cuBal: 0,
 }));

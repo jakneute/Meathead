@@ -5,7 +5,7 @@
 //   1650   THE GATE: walk past it and the trial's on (cp 11): it shuts behind him, the far one's shut, both of them
 //          locked till every suitor's dead.
 //   3000   THE FAIRY WHEEL: gigantic (its gondolas swing round 1600 px up), turning slowly the whole time. Twenty-four
-//          gondolas, a suitor in every third (eight of them), the rest empty: ride one, hop across to the next where
+//          gondolas, a suitor in every fourth (six of them), the rest empty: ride one, hop across to the next where
 //          they're near (at the top and the bottom and the slants: up the sides they're too far apart to jump, so ride).
 //   4350   THE FAR GATE: open once they're all dead (cp 12 past it); the way on to the enchanted glen.
 
@@ -38,8 +38,8 @@ export const CHECKPOINTS = [
 ];
 
 // ---------------------------------------------------------------------------------------------------------------
-// The roster: eight beefy men (all male), each with a name, a look, a voice and his favorite things to throw. Every
-// third gondola, from the one at the bottom when the trial starts.
+// The roster: six beefy men (all male), each with a name, a look, a voice and his favorite things to throw. Every
+// fourth gondola, from the one at the bottom when the trial starts.
 
 export interface Suitor { id: RosterId; look: SuitorLook; items: Item[]; cart: number; side: 1 | -1 }
 
@@ -48,13 +48,14 @@ const PALE: SuitorLook['skin'] = ['#FFE0CC', '#F2BFA0', '#C88E70'], TAN: SuitorL
 const BROWN: SuitorLook['skin'] = ['#9A6644', '#6E4428', '#4A2A16'], OLIVE: SuitorLook['skin'] = ['#F4C8A0', '#D8A478', '#A87650'];
 const DARK: SuitorLook['skin'] = ['#6A4026', '#4A2A16', '#2E180A'];
 
+// (six, the user's "slightly reduce the number of suitors": DUANE (a second muscle tee, Chad's) and LORENZO (a second
+// prince, Tremaine's) are off the wheel: every kit on it once; a suitor in every fourth gondola. Their lines and voices
+// stay in lines.ts for the clips already recorded.)
 export const ROSTER: Suitor[] = [
   { id: 'chad', look: L('CHAD', 'tee', PALE, '#E8D090', '#E07A1E', '#FFFFFF', WHEEL_VOICES.chad, 0), items: ['shaker', 'horseshoe'], cart: 0, side: 1 },
-  { id: 'braxton', look: { name: 'BRAXTON', skin: TAN, hair: '#2A1A0E', kit: 'cape', main: '#C81E3A', trim: '#F6D365', voice: WHEEL_VOICES.braxton, gut: 0 }, items: ['shaker', 'bouquet'], cart: 3, side: -1 },
-  { id: 'derek', look: L('SIR DEREK', 'knight', BROWN, '#140A06', '#2A6ADC', '#F6D365', WHEEL_VOICES.derek, 0.4), items: ['horseshoe', 'wand'], cart: 6, side: 1 },
-  { id: 'gunnar', look: { name: 'GUNNAR', skin: PALE, hair: '#C2501E', kit: 'viking', main: '#7A5A3A', trim: '#B8B8C0', voice: WHEEL_VOICES.gunnar, gut: 0.8 }, items: ['horseshoe', 'chocolates'], cart: 9, side: -1 },
-  { id: 'wayne', look: L('WIZARD WAYNE', 'wizard', OLIVE, '#B8B8C0', '#5A2A9A', '#FEF08A', WHEEL_VOICES.wayne, 0.4), items: ['wand', 'brick'], cart: 12, side: 1 },
-  { id: 'duane', look: L('DUANE', 'tee', DARK, '#140A06', '#C81E3A', '#F6D365', WHEEL_VOICES.duane, 1.2), items: ['chocolates', 'shaker'], cart: 15, side: -1 },
-  { id: 'lorenzo', look: L('LORENZO', 'prince', OLIVE, '#2A1A0E', '#7A3AAA', '#F6D365', WHEEL_VOICES.lorenzo, 0), items: ['bouquet', 'brick'], cart: 18, side: 1 },
-  { id: 'tremaine', look: { name: 'TREMAINE', skin: BROWN, hair: '#140A06', kit: 'prince', main: '#2A6ADC', trim: '#F6D365', voice: WHEEL_VOICES.tremaine, gut: 0.1 }, items: ['bouquet', 'brick'], cart: 21, side: -1 },
+  { id: 'braxton', look: { name: 'BRAXTON', skin: TAN, hair: '#2A1A0E', kit: 'cape', main: '#C81E3A', trim: '#F6D365', voice: WHEEL_VOICES.braxton, gut: 0 }, items: ['shaker', 'bouquet'], cart: 4, side: -1 },
+  { id: 'derek', look: L('SIR DEREK', 'knight', DARK, '#140A06', '#2A6ADC', '#F6D365', WHEEL_VOICES.derek, 0.4), items: ['horseshoe', 'wand'], cart: 8, side: 1 },
+  { id: 'gunnar', look: { name: 'GUNNAR', skin: PALE, hair: '#C2501E', kit: 'viking', main: '#7A5A3A', trim: '#B8B8C0', voice: WHEEL_VOICES.gunnar, gut: 0.8 }, items: ['horseshoe', 'chocolates'], cart: 12, side: -1 },
+  { id: 'wayne', look: L('WIZARD WAYNE', 'wizard', OLIVE, '#B8B8C0', '#5A2A9A', '#FEF08A', WHEEL_VOICES.wayne, 0.4), items: ['wand', 'brick'], cart: 16, side: 1 },
+  { id: 'tremaine', look: { name: 'TREMAINE', skin: BROWN, hair: '#140A06', kit: 'prince', main: '#2A6ADC', trim: '#F6D365', voice: WHEEL_VOICES.tremaine, gut: 0.1 }, items: ['bouquet', 'brick'], cart: 20, side: -1 },
 ];

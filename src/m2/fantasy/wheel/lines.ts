@@ -7,7 +7,8 @@ import { allOf, PIPER_PA_VOICE, type ByPants, type HurtTable } from '../talk';
 import { SUITORS } from '../suitors';
 
 // ---------------------------------------------------------------------------------------------------------------
-// The roster's voices (cast.json): the three from the bandstand, and five more
+// The roster's voices (cast.json): the three from the bandstand, and five more (DUANE and LORENZO are off the wheel now
+// (layout.ts ROSTER: six); their lines stay listed for the clips recorded)
 
 export const WHEEL_VOICES = {
   braxton: SUITORS.braxton.voice, gunnar: SUITORS.gunnar.voice, tremaine: SUITORS.tremaine.voice,

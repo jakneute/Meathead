@@ -879,3 +879,14 @@ markBossFight every frame of a boss or sub-boss fight. Voice every new line (`np
   topiary, trees, roofs and cones, paths frosted with banked kerbs, the drained moat's mud partly frozen (skaters on
   its ice from the walls). The glen stays the summer gag. The broom's texture now paints in steps: the runway primes it
   a few ms a frame (arena.ts primeGround) so taking off doesn't hitch; the splatters still bake on top. Drawing only.
+- (the user's: QTE close-ups; "slightly reduce the number of suitors"; slumped dead; Piper lines once a life) THE
+  FAIRY WHEEL UP CLOSE (wheel/closeup.ts): the whole QTE shows a painted close-up box under the panel (the gondola
+  rocking, the grapple following who's winning: his palm in Meathead's face, forehead to forehead, a headlock; sweat,
+  gritted teeth, Meathead's pants as they are); a win is a ~2 s close-up kill cutscene (no HUD, SKIP >>) per kind (the
+  face into the post x3, hoisted and heaved, piledriven, swung by the ankles, the bouquet down his throat; each one
+  shits himself), then the side view takes the kill on (kills.ts RESUME); a loss is a close-up of the suitor heaving
+  Meathead over the side (his sneer, Meathead's face), then the fall. Six suitors now (DUANE and LORENZO off: every kit
+  once), every fourth gondola; the QTE level stretched over the old 0..7 so the last three still get three beats. The
+  dead in the carts slump (suitors.ts Slump: sat, tipped, head lolled, arms hanging to the world's down, swaying with
+  the cart); thrown ones lie on the plaza on their backs, legs in the air, their hat knocked off by them, kept for good
+  (stageMemo 'fantasy-wheel-corpses'). Meathead's kill and wheel-clear lines are picked once a life (piperLine).

@@ -39,13 +39,15 @@ import { HORNY } from '../lines';
 import { box, INK } from '../kit';
 import { GY } from '../geometry';
 import { X, Y, x0, x1, HUB, R, N, HANG, OMEGA, FLOOR_W, GATE_L, GATE_R, TRIGGER, FALL_HURT, CHECKPOINTS, ROSTER } from './layout';
-import { wheelOf, keptDead, wheelDone, WHEEL_MEMO, type Wheel, type Live, type Throw } from './state';
+import { wheelOf, keptDead, wheelDone, saveCorpses, loadCorpses, WHEEL_MEMO, type Wheel, type Live, type Throw } from './state';
+import { offerSkip, takeSkip, SKIP_AFTER } from '../../../m1/game/platform/skip';
+import { tickCloseup, drawCloseups, CU_DUR, THROWN_DUR } from './closeup';
 import {
   HURT, ITEM_SRC, QTE_SRC, FALL_SRC, KILL_CALLS, OWN, AT_HIM, AT_RIVAL, YELP, BOUNCE, QTE_START, QTE_WIN, SHOT_BOUNCE,
   KILLED, ALL_DEAD, PIPER_START, PIPER_KILL, PIPER_KNOCK, PIPER_RIVAL, PIPER_DONE,
 } from './lines';
 import { startQte, updateQte, qteEdge } from './qte';
-import { nextKill, updateKill, updateBodies, drawKill, drawStruggle, drawBody, drawSuitorAt, drawSplat, spots } from './kills';
+import { nextKill, updateKill, updateBodies, drawKill, drawStruggle, drawBody, drawSuitorAt, drawSplat, drawCorpseInCart, drawCorpseGround, spots, RESUME } from './kills';
 import { drawWheelBackdrop, drawWheel, drawCartBack, drawCartFloor, drawItem, drawPlaza, drawGate, drawHubHorn } from './art';
 import { fairLamps } from './fair';
 import { viewOf } from '../kit';
@@ -111,7 +113,7 @@ const updateSuitors = (ctx: FrameContext, w: Wheel, busy: boolean) => {
     if (L.cool > 0) L.cool--;
     if (L.flinch > 0) L.flinch--;
     if (L.daze > 0) { L.daze--; L.wind = 0; continue; }
-    if (w.qte?.i === i || w.kill?.i === i || w.trial !== 'on') continue;
+    if (w.qte?.i === i || w.kill?.i === i || w.cu?.i === i || w.trial !== 'on') continue;
     const st = seatOf(w, i);
     if (L.wind > 0) {
       if (--L.wind > 0) continue;
@@ -133,7 +135,7 @@ const updateSuitors = (ctx: FrameContext, w: Wheel, busy: boolean) => {
     const dHim = Math.hypot(m.x - st.x, m.y - st.chestY);
     if (!busy && p.health > 0 && dHim < 760 && state.frame - w.lastAtHim > 50 && Math.random() < 0.7) { L.at = 'him'; w.lastAtHim = state.frame; }
     else {
-      const rivals = [...w.live.keys()].filter(j => j !== i && w.qte?.i !== j && w.kill?.i !== j && Math.hypot(seatOf(w, j).x - st.x, seatOf(w, j).y - st.y) < 700);
+      const rivals = [...w.live.keys()].filter(j => j !== i && w.qte?.i !== j && w.kill?.i !== j && w.cu?.i !== j &&Math.hypot(seatOf(w, j).x - st.x, seatOf(w, j).y - st.y) < 700);
       if (!rivals.length) { L.next = 40; continue; }
       L.at = pick(rivals);
     }
@@ -157,7 +159,7 @@ const updateThrows = (ctx: FrameContext, w: Wheel, busy: boolean) => {
     }
     // (a rival: in the chest; dazed a while (easier to take), yelping; Piper loves it)
     for (const [j, L] of w.live) {
-      if (j === s.from || w.qte?.i === j || w.kill?.i === j) continue;
+      if (j === s.from || w.qte?.i === j || w.kill?.i === j || w.cu?.i === j) continue;
       const o = seatOf(w, j);
       if (Math.abs(s.x - o.chestX) < 24 && Math.abs(s.y - o.chestY) < 36) {
         L.daze = 150; L.flinch = 20; L.bruises++; L.wind = 0;
@@ -193,6 +195,33 @@ const holdHim = (state: GameState, w: Wheel, i: number) => {
 };
 const letGo = (state: GameState) => { const p = state.player; p.carried = false; p.hidden = false; p.noSpecials = false; };
 
+/** Thrown out (a QTE lost, its close-up over): clean out of the cart and off the wheel, all the way down to the plaza (no
+ *  gondola's floor catches him: w.thrown), heavy, but only the end of him if it's enough to take him to zero (and then
+ *  it's the fall's own kill cam: fall_wheel). */
+const throwOut = (ctx: FrameContext, w: Wheel, i: number) => {
+  const { state } = ctx, p = state.player;
+  const { side } = spots(w, i), away = -side;
+  letGo(state);
+  const L = w.live.get(i); if (L) L.cool = 150;
+  p.pos.x += away * 30; p.pos.y -= 8; p.isGrounded = false;
+  w.knockedAt = state.frame; w.fallFrom = null; w.thrown = true;
+  for (const c of w.carts) c.b.y = AWAY;
+  hurtPlayer(ctx, 46, QTE_SRC, { x: away * 9, y: -9 }, 40);
+  playSound('punch', 1, -10); playSound('whoosh', 1, -8);
+  if (Math.random() < 0.6) piperSays(w, byPants(state, PIPER_KNOCK));
+};
+/** A close-up cutscene's frame: no HUD, SKIP >> takes the rest of it. True once it's over. */
+const runCloseup = (ctx: FrameContext, w: Wheel) => {
+  const cu = w.cu!;
+  ctx.state.player.inCutscene = true;
+  if (cu.t > SKIP_AFTER) offerSkip();
+  const over = tickCloseup(ctx, w, cu) || (cu.t > SKIP_AFTER && takeSkip());
+  if (over) { w.cu = null; ctx.state.player.inCutscene = false; }
+  return over;
+};
+/** Meathead's say after a kill, or with the wheel clear: a line about Piper's once a life (piperLine), else nothing. */
+const mhAfter = (state: GameState, pool: string[]) => { const line = piperLine(pool); if (line) meatheadSays(state, line, true); };
+
 export const wheel: FantasySection = {
   id: 'wheel', x0, x1,
   checkpoints: CHECKPOINTS,
@@ -206,7 +235,8 @@ export const wheel: FantasySection = {
     placeCarts(state, w, false);
     // (a start past the wheel (the checkpoint-skip cheat, a later checkpoint): it's been won)
     if (!wheelDone(state) && state.checkpoint >= 12) { state.stageMemo[WHEEL_MEMO] = '1'; for (let i = 0; i < ROSTER.length; i++) if (!kept.dead.has(i)) kept.dead.set(i, { how: 'throw' }); }
-    if (wheelDone(state)) w.trial = 'won';
+    // (a revisit: the dead where they were left, kept for good)
+    if (wheelDone(state)) { loadCorpses(state, kept.dead); w.trial = 'won'; }
     else ROSTER.forEach((_, i) => { if (!kept.dead.has(i)) w.live.set(i, { i, next: 60 + ((i * 53) % 160), wind: 0, item: ROSTER[i].items[0], at: 'him', daze: 0, flinch: 0, bruises: 0, cool: 0 }); });
     setUi({ qte: null });
   },
@@ -228,7 +258,19 @@ export const wheel: FantasySection = {
     if (w.trial === 'on') markBossFight(state, 'fairy-wheel');
     let out = controls;
     // In a suitor's cart: the kill, or the QTE
-    if (w.kill) {
+    if (w.kill && w.cu) {
+      // The kill up close first (closeup.ts); then the side view takes it on from where the close-up left it
+      const k = w.kill;
+      holdHim(state, w, k.i);
+      if (runCloseup(ctx, w)) { k.t = RESUME[k.how]; k.quiet = true; }
+      out = { ...NO_CONTROLS };
+    } else if (w.cu) {
+      // Thrown out, up close; then the side view's fall
+      const i = w.cu.i;
+      holdHim(state, w, i);
+      if (runCloseup(ctx, w)) throwOut(ctx, w, i);
+      out = { ...NO_CONTROLS };
+    } else if (w.kill) {
       const k = w.kill;
       holdHim(state, w, k.i);
       const done = updateKill(ctx, w, k, () => {
@@ -240,7 +282,7 @@ export const wheel: FantasySection = {
       // (a thrown one's gone out of the cart: he's his own again while the body's still falling)
       if (done) {
         const { fx, fy } = spots(w, k.i);
-        kept.dead.set(k.i, { how: k.how });
+        kept.dead.set(k.i, { how: k.how }); saveCorpses(state, kept.dead);
         w.live.delete(k.i); w.kill = null;
         letGo(state); p.pos.y = fy - p.height;
         const call = pick(KILL_CALLS[k.how]);
@@ -248,34 +290,31 @@ export const wheel: FantasySection = {
         announce(call, 0.7);
         p.killSatisfactionTimer = 60;
         if (Math.random() < 0.8) piperSays(w, byPants(state, PIPER_KILL));
-        if (Math.random() < 0.6) { const line = pickFreshLine(byPants(state, Math.random() < 0.5 ? KILLED : HORNY)); if (line) meatheadSays(state, line, true); }
+        if (Math.random() < 0.6) mhAfter(state, byPants(state, Math.random() < 0.5 ? KILLED : HORNY));
       }
       out = { ...NO_CONTROLS };
     } else if (w.qte) {
       const q = w.qte;
       holdHim(state, w, q.i);
       const r = updateQte(q, controls);
+      // (who's winning, eased, for the close-up's grapple: a surge on each beat won or flubbed)
+      const target = Math.max(-1, Math.min(1, (qteEdge(q) - 0.2) * 2 + (q.flash === 'good' ? 0.4 : q.flash === 'bad' ? -0.5 : 0)));
+      w.cuBal += (target - w.cuBal) * 0.08;
       if (r === 'won') {
         const L = w.live.get(q.i);
         if (L) L.wind = 0;
         w.qte = null;
         w.kill = nextKill(w, q.i, w.live.size > 1);
+        w.cu = { kind: 'kill', i: q.i, how: w.kill.how, t: 0, dur: CU_DUR[w.kill.how] };
+        p.inCutscene = true;
         playSound('punch', 1, -6);
       } else if (r === 'lost') {
-        // Thrown out: clean out of the cart and off the wheel, all the way down to the plaza (no gondola's floor
-        // catches him: w.thrown), heavy, but only the end of him if it's enough to take him to zero (and then it's
-        // the fall's own kill cam: fall_wheel)
-        const { side } = spots(w, q.i), away = -side;
+        // Thrown out: up close first (his sneer, Meathead going over the side), then off (throwOut)
         w.qteDone.set(q.i, q.base + q.at);
-        w.qte = null; letGo(state);
-        const L = w.live.get(q.i); if (L) L.cool = 150;
-        p.pos.x += away * 30; p.pos.y -= 8; p.isGrounded = false;
-        w.knockedAt = f; w.fallFrom = null; w.thrown = true;
-        for (const c of w.carts) c.b.y = AWAY;
-        hurtPlayer(ctx, 46, QTE_SRC, { x: away * 9, y: -9 }, 40);
-        playSound('punch', 1, -10); playSound('whoosh', 1, -8);
+        w.qte = null;
+        w.cu = { kind: 'thrown', i: q.i, how: 'throw', t: 0, dur: THROWN_DUR };
+        p.inCutscene = true;
         bark(state, w, q.i, byPants(state, QTE_WIN), true);
-        if (Math.random() < 0.6) piperSays(w, byPants(state, PIPER_KNOCK));
       }
       out = { ...NO_CONTROLS };
     } else {
@@ -287,7 +326,11 @@ export const wheel: FantasySection = {
         for (const [i, L] of w.live) {
           const c = w.carts[ROSTER[i].cart];
           if (L.cool > 0 || Math.abs(feet - c.fy) > 3 || Math.abs(cx - c.fx) > FLOOR_W / 2 + 4) continue;
-          w.qte = startQte(i, ROSTER[i].look.name, ROSTER.length - w.live.size, L.daze > 0, controls, w.qteDone.get(i) ?? 0);
+          // (the level's how far through the roster he is, stretched over qte.ts's 0..7 (it was tuned for eight): the
+          // last fights still get the long ones)
+          const level = Math.round(((ROSTER.length - w.live.size) * 7) / Math.max(1, ROSTER.length - 1));
+          w.qte = startQte(i, ROSTER[i].look.name, level, L.daze > 0, controls, w.qteDone.get(i) ?? 0);
+          w.cuBal = -0.2;
           L.wind = 0;
           bark(state, w, i, byPants(state, QTE_START), true);
           playSound('slam', 0.8, -4);
@@ -297,7 +340,7 @@ export const wheel: FantasySection = {
         }
       }
     }
-    const busy = !!w.qte || !!w.kill;
+    const busy = !!w.qte || !!w.kill || !!w.cu;
     updateSuitors(ctx, w, busy);
     updateThrows(ctx, w, busy);
     updateBodies(ctx, w, (target, b) => {
@@ -311,7 +354,7 @@ export const wheel: FantasySection = {
     }, b => {
       const c = kept.dead.get(b.i) ?? { how: b.how };
       c.groundX = Math.max(X(GATE_L + 60), Math.min(X(GATE_R - 60), b.x));
-      kept.dead.set(b.i, c);
+      kept.dead.set(b.i, c); saveCorpses(state, kept.dead);
     });
     // Shot at: it bounces off them
     if (w.live.size) {
@@ -343,12 +386,12 @@ export const wheel: FantasySection = {
     // (thrown out of a cart: down on the plaza, the gondolas' floors are floors again)
     if (w.thrown && p.isGrounded && p.pos.y + p.height >= GY - 4) { w.thrown = false; playSound('thud', 1, -10); }
     // All of them dead (and down): won
-    if (w.trial === 'on' && !w.live.size && !w.kill && !w.bodies.length) {
+    if (w.trial === 'on' && !w.live.size && !w.kill && !w.cu && !w.bodies.length) {
       w.trial = 'won'; w.opened = 0; kept.wonHere = true;
       state.stageMemo[WHEEL_MEMO] = '1';
       playSound('clang', 1, -6); playSound('twinkle', 0.9, 4);
       piperSays(w, byPants(state, PIPER_DONE));
-      const line = pickFreshLine(byPants(state, Math.random() < 0.5 ? ALL_DEAD : HORNY)); if (line) meatheadSays(state, line, true);
+      mhAfter(state, byPants(state, Math.random() < 0.5 ? ALL_DEAD : HORNY));
       state.checkpoint = Math.max(state.checkpoint, 11);
     }
     // (glitter off the rim, near him)
@@ -360,10 +403,12 @@ export const wheel: FantasySection = {
   drawBack: (c, state) => {
     const w = wheelOf(state), kept = keptDead(), f = state.frame;
     drawPlaza(c, state);
-    // (the corpses on the flower beds)
-    for (const [i, d] of kept.dead) if (d.groundX !== undefined) {
-      drawSplat(c, d.groundX, GY, i);
-      drawSuitorAt(c, d.groundX, GY, 0, 1, 0, ROSTER[i].look, 'dead');
+    // (the corpses on the flower beds, where they came down; thrown ones with no spot kept (a start past the wheel):
+    // spread under it)
+    for (const [i, d] of kept.dead) if (d.groundX !== undefined || d.how === 'throw' || d.how === 'fling') {
+      const gx = d.groundX ?? X(HUB.x - 560 + ((i * 397) % 1120));
+      drawSplat(c, gx, GY, i);
+      drawCorpseGround(c, gx, GY, i, ROSTER[i].look);
     }
     drawWheel(c, state, w.ang);
     // (the gondolas, and who's in them: alive, sat; dead, as he was left)
@@ -373,15 +418,17 @@ export const wheel: FantasySection = {
       const L = i >= 0 ? w.live.get(i) : undefined, dead = i >= 0 ? kept.dead.get(i) : undefined;
       drawCartBack(c, f, cart.k, cart.fx, cart.fy, s?.side ?? 1, s ? s.look.name : null);
       let floorDrawn = false;
-      if (s && L && w.qte?.i !== i && w.kill?.i !== i) {
+      if (s && L && w.qte?.i !== i && w.kill?.i !== i && w.cu?.i !== i) {
         const st = seatOf(w, i), face = faceOf(state, w, i, L);
         drawSuitorAt(c, st.x, st.y, 0, face, f + i * 17, s.look, L.flinch > 0 || L.daze > 0 ? 'hurt' : L.wind > 0 ? 'throw' : w.barks.has(i) ? 'talk' : 'sit', { daze: L.daze > 0 });
         if (L.wind > 0) drawItem(c, L.item, st.x + face * 30, st.y - 104, 0);
       } else if (s && dead && w.kill?.i !== i) {
         const { sx, fy, side } = spots(w, i);
-        if (dead.how === 'smash') { drawSuitorAt(c, sx, fy, side * 1.08, (-side) as 1 | -1, 0, s.look, 'hurt'); box(c, cart.fx + side * 48 - 3, fy - 70, 6, 30, '#9B1C1C'); }
-        if (dead.how === 'choke') drawSuitorAt(c, sx + side * 4, fy + 18, side * 0.55, (-side) as 1 | -1, 0, s.look, 'sit', { purple: 1, roses: true });
-        if (dead.how === 'floor') { drawSuitorAt(c, sx - side * 2, fy - 36, Math.PI, (-side) as 1 | -1, 0, s.look, 'hurt'); drawCartFloor(c, cart.k, cart.fx, cart.fy); floorDrawn = true; if (f % 40 === 0) state.particles.push({ pos: { x: sx, y: fy + 60 }, vel: { x: 0, y: 1 }, life: 50, color: '#B91C1C', size: 2, grav: 0.2 }); }
+        // (slumped as they died, riding round: the cart's level, so down's down; their arms swing with its sway)
+        const sway = Math.sin(f * 0.045 + cart.k) * 0.08 + cart.dx * 0.12;
+        if (dead.how === 'smash') { box(c, cart.fx + side * 48 - 3, fy - 70, 6, 30, '#9B1C1C'); box(c, cart.fx + side * 48 - 1, fy - 44, 3, 26, '#7F1D1D'); }
+        if (dead.how === 'smash' || dead.how === 'choke') drawCorpseInCart(c, dead.how, sx, fy, side, s.look, sway);
+        if (dead.how === 'floor') { drawCorpseInCart(c, 'floor', sx, fy, side, s.look, sway); drawCartFloor(c, cart.k, cart.fx, cart.fy); floorDrawn = true; if (f % 40 === 0) state.particles.push({ pos: { x: sx, y: fy + 60 }, vel: { x: 0, y: 1 }, life: 50, color: '#B91C1C', size: 2, grav: 0.2 }); }
       }
       if (!floorDrawn) drawCartFloor(c, cart.k, cart.fx, cart.fy);
     }
@@ -391,6 +438,7 @@ export const wheel: FantasySection = {
   drawFront: (c, state) => {
     const w = wheelOf(state), f = state.frame;
     if (w.qte) drawStruggle(c, state, w, w.qte.i, qteEdge(w.qte), w.qte.phase === 'lock' ? w.qte.t / 30 : 1);
+    else if (w.cu?.kind === 'thrown') drawStruggle(c, state, w, w.cu.i, 0, 1);
     if (w.kill) drawKill(c, state, w, w.kill);
     for (const b of w.bodies) drawBody(c, state, b);
     for (const s of w.throws) drawItem(c, s.item, s.x, s.y, s.t * s.spin);
@@ -400,6 +448,8 @@ export const wheel: FantasySection = {
       saidOver(c, w.piper.text, X(HUB.x), Y(HUB.h) + 10, '#F9A8D4', 260);
     }
     for (const [i, s] of w.barks) {
+      // (the one up close: his words are in the close-up's box)
+      if (w.qte?.i === i || w.cu?.i === i) continue;
       const b = w.bodies.find(o => o.i === i), { fx, fy } = spots(w, i);
       if (b) saidOver(c, s.text, b.x, b.y - 70, '#FDE68A', 200); else saidOver(c, s.text, fx, fy - 130, '#FDE68A', 200);
     }
@@ -408,7 +458,10 @@ export const wheel: FantasySection = {
     // (the trial on: a heart a suitor, broken once he's dead; along the bottom, clear of the HUD and of the words said up
     // top (the user's: they covered the subtitles))
     const w = wheelOf(state);
-    if (w.trial !== 'on' || state.player.inCutscene) return;
+    if (w.trial !== 'on') return;
+    // (up close: the tussle's box under the QTE panel; a kill's or a throw's, a cutscene's)
+    drawCloseups(c, state, w);
+    if (state.player.inCutscene || w.qte) return;
     const n = ROSTER.length, gap = 26, x = CANVAS_WIDTH / 2 - ((n - 1) * gap) / 2, y = CANVAS_HEIGHT - 20;
     for (let i = 0; i < n; i++) {
       const hx = x + i * gap, alive = w.live.has(i);

@@ -22,8 +22,8 @@ import { pickLine } from '../../../m1/game/platform/speech';
 import { drawLeg, drawArmTo, drawTorsoFromHips, type Mood } from '../../../m1/game/render/player/body';
 import { drawPoseSprite, drawPoseHead } from '../../moves/grab';
 import { speak } from '../section';
-import { drawSuitor, type SuitorPose, type SuitorLook } from '../suitors';
-import { box, INK, type Ctx } from '../kit';
+import { drawSuitor, type SuitorPose, type SuitorLook, type Slump } from '../suitors';
+import { box, mix, INK, type Ctx } from '../kit';
 import { GY } from '../geometry';
 import { ROSTER, HUB, X } from './layout';
 import { DEATH, type KillKind } from './lines';
@@ -35,8 +35,14 @@ type P = [number, number];
 export interface Kill {
   /** Whose (roster index), how, frames in, how long; who a fling's at; let go (a throw, a fling). */
   i: number; how: KillKind; t: number; dur: number; target: number | null; released: boolean;
+  /** Its yell's had (in the close-up first): not again. */
+  quiet?: boolean;
 }
 const DUR: Record<KillKind, number> = { smash: 150, throw: 66, floor: 132, fling: 98, choke: 140 };
+/** Where the side view takes a kill on from after its close-up (closeup.ts showed the start up close): the last of the
+ *  smashes done (the slide down the post), just before the throw's let go, the floor going through, the fling let go,
+ *  the last fistfuls of roses. */
+export const RESUME: Record<KillKind, number> = { smash: 107, throw: 42, floor: 38, fling: 74, choke: 88 };
 
 /** The next kill (round in turn, shuffled; a fling only with somebody else to fling him at). */
 export const nextKill = (w: Wheel, i: number, anyoneElse: boolean): Kill => {
@@ -62,7 +68,7 @@ const rotP = (x: number, y: number, a: number): P => [x * Math.cos(a) - y * Math
 const lerp = (a: number, b: number, t: number) => a + (b - a) * Math.max(0, Math.min(1, t));
 
 /** The suitor's body (feet at (x, y), turned `rot` about them), the pose, Meathead's hands (world) and lean, his hop. */
-interface Frame { x: number; y: number; rot: number; pose: SuitorPose; face: 1 | -1; hands: [P, P]; lean: number; hop: number; mood: Mood; purple: number; roses: boolean; bouquet: 'him' | 'meathead' | null; floor: boolean }
+interface Frame { x: number; y: number; rot: number; pose: SuitorPose; face: 1 | -1; hands: [P, P]; lean: number; hop: number; mood: Mood; purple: number; roses: boolean; bouquet: 'him' | 'meathead' | null; floor: boolean; slump?: Slump; dead?: boolean }
 
 export const frameOf = (w: Wheel, k: Kill): Frame => {
   const { fy, side, mx, sx } = spots(w, k.i), t = k.t;
@@ -80,6 +86,12 @@ export const frameOf = (w: Wheel, k: Kill): Frame => {
       base.hands = t < 110 ? [[h[0] - side * 6, h[1] + 2], [h[0] - side * 10, h[1] - 4]] : [[mx + side * 20, fy - 40], [mx + side * 16, fy - 38]];
       base.lean = t < 110 ? 0.15 + a * 0.4 : 0;
       base.mood = t < 110 ? 'roar' : 'scowl';
+      if (t >= 110) {
+        // (let go: he slides down the post into his seat and slumps there, his head lolled on it)
+        const u = Math.min(1, (t - 110) / 24);
+        base.rot = 0; base.pose = 'sit'; base.y = fy + 18 * u;
+        base.slump = { lean: lerp(-0.42, -0.55, u), loll: lerp(0, -0.45, u), grav: 0, arm: 30 }; base.dead = u > 0.4;
+      }
       return base;
     }
     case 'throw': {
@@ -108,6 +120,12 @@ export const frameOf = (w: Wheel, k: Kill): Frame => {
       base.hop = t >= 22 && t < 40 ? Math.sin(((t - 22) / 18) * Math.PI) * 16 : 0;
       base.lean = t >= 34 && t < 60 ? 0.35 : 0;
       base.mood = t < 60 ? 'roar' : 'scowl';
+      if (t >= 100) {
+        // (the kicking's stopped: the legs flop over out of the hole)
+        const u = Math.min(1, (t - 100) / 14);
+        base.pose = 'sit'; base.x = sx - side * 2; base.y = fy - 36; base.rot = Math.PI + side * 0.22 * u;
+        base.slump = { lean: 0.15, loll: 0.5, grav: base.rot, arm: 30 }; base.dead = true;
+      }
       return base;
     }
     case 'fling': {
@@ -126,7 +144,12 @@ export const frameOf = (w: Wheel, k: Kill): Frame => {
       base.bouquet = t < 10 ? 'him' : t < 92 ? 'meathead' : null;
       base.purple = Math.min(1, Math.max(0, (t - 14) / 78));
       base.roses = t >= 24;
-      if (t >= 92) { base.pose = 'sit'; base.x = sx + side * 4; base.rot = side * Math.min(0.55, ((t - 92) / 30) * 0.55); base.y = fy + Math.min(18, ((t - 92) / 30) * 18); }
+      if (t >= 92) {
+        // (sinks back into his seat and goes, chin on his chest, the arms dropping off the bench)
+        const u = Math.min(1, (t - 92) / 30);
+        base.pose = 'sit'; base.x = sx + side * 4 * u; base.rot = 0; base.y = fy + 20 * u;
+        base.slump = { lean: 0.22 * u, loll: 0.75 * u, grav: 0, arm: 32 }; base.dead = u > 0.6;
+      }
       const mouth: P = [sx - side * 8, fy - 83];
       const jab = t >= 14 && t < 92 ? (((t - 14) % 12) < 6 ? ((t - 14) % 12) / 6 : 1 - (((t - 14) % 12) - 6) / 6) : 0;
       base.hands = t < 96 ? [[lerp(mx + side * 22, mouth[0] - side * 2, jab), lerp(fy - 56, mouth[1], jab)], [sx - side * 14, fy - 72]] : [[mx + side * 14, fy - 30], [mx + side * 6, fy - 30]];
@@ -142,8 +165,13 @@ export const frameOf = (w: Wheel, k: Kill): Frame => {
 // Each frame: what happens when (the hits, the blood, the yells, letting go)
 
 const yell = (w: Wheel, i: number, how: KillKind) => {
+  if (w.kill?.quiet) return;
   const L = ROSTER[i].look;
   speak(L.voice, pickLine(DEATH[how]), s => { if (s) w.barks.set(i, s); else w.barks.delete(i); }, false);
+};
+/** His yell, up close (closeup.ts): the side view's kill then goes quiet. */
+export const closeupYell = (w: Wheel, i: number, how: KillKind) => {
+  speak(ROSTER[i].look.voice, pickLine(DEATH[how]), s => { if (s) w.barks.set(i, s); else w.barks.delete(i); }, false);
 };
 const blood = (ctx: FrameContext, x: number, y: number, dir: number, mult = 0.4) => ctx.fx.spawnDeathShower({ x, y }, dir, mult);
 const poop = (state: GameState, x: number, y: number, up = false) => {
@@ -261,18 +289,63 @@ const drawMeathead = (c: Ctx, x: number, y: number, dir: 1 | -1, f: number, hand
 };
 
 /** A suitor turned `rot` about his feet at (x, y); purple in the face (choking), roses out of his mouth. */
-export const drawSuitorAt = (c: Ctx, x: number, y: number, rot: number, face: 1 | -1, f: number, L: SuitorLook, pose: SuitorPose, extra: { purple?: number; roses?: boolean; daze?: boolean } = {}) => {
+export const drawSuitorAt = (c: Ctx, x: number, y: number, rot: number, face: 1 | -1, f: number, L: SuitorLook, pose: SuitorPose, extra: { purple?: number; roses?: boolean; daze?: boolean; slump?: Slump; dead?: boolean } = {}) => {
   c.save(); c.translate(x, y); c.rotate(rot);
-  drawSuitor(c, 0, 0, face, f, L, pose);
-  // (his head's at (2, -89) facing right, his mouth at (6, -84))
-  const hx = 2 * face, hy = -89;
-  if (extra.purple) { c.fillStyle = `rgba(110, 40, 160, ${0.55 * extra.purple})`; c.beginPath(); c.ellipse(hx, hy, 11, 12, 0, 0, Math.PI * 2); c.fill(); }
-  if (extra.roses) {
-    const mx = 7 * face;
-    box(c, mx - 1, hy + 2, 12 * face, 3, '#2A6A2A');
-    for (const [rx, ry, col] of [[10, -2, '#E11D48'], [14, 4, '#F472B6'], [6, 6, '#FB7185']] as [number, number, string][]) { c.fillStyle = INK; c.beginPath(); c.arc(mx + rx * face, hy + ry, 4.5, 0, Math.PI * 2); c.fill(); c.fillStyle = col; c.beginPath(); c.arc(mx + rx * face, hy + ry, 3.5, 0, Math.PI * 2); c.fill(); }
+  drawSuitor(c, 0, 0, face, f, L, pose, { slump: extra.slump, dead: extra.dead });
+  // (his head's at (2, -89) facing right, his mouth at (6, -84); slumped, wherever the lean and the loll took it)
+  let hx = 2, hy = -89, turn = 0;
+  const sp = extra.slump;
+  if (sp) {
+    // (lolled about the neck (0, -74), dropped 3; then tipped about the hips (0, -40))
+    const a = sp.loll, lx = 2 * Math.cos(a) + 12 * Math.sin(a), ly = 2 * Math.sin(a) - 12 * Math.cos(a) - 74;
+    const b = sp.lean, rx = lx * Math.cos(b) - (ly + 40) * Math.sin(b), ry = lx * Math.sin(b) + (ly + 40) * Math.cos(b) - 40;
+    hx = rx; hy = ry; turn = a + b;
   }
-  if (extra.daze) for (let k = 0; k < 3; k++) { const a = f * 0.15 + (k * Math.PI * 2) / 3; box(c, hx + Math.cos(a) * 14 - 2, hy - 18 + Math.sin(a) * 4 - 2, 4, 4, '#FEF08A'); }
+  c.translate(hx * face, hy); c.rotate(turn * face);
+  if (extra.purple) { c.fillStyle = `rgba(110, 40, 160, ${0.55 * extra.purple})`; c.beginPath(); c.ellipse(0, 0, 11, 12, 0, 0, Math.PI * 2); c.fill(); }
+  if (extra.roses) {
+    const mx = 5 * face;
+    box(c, mx - 1, 2, 12 * face, 3, '#2A6A2A');
+    for (const [rx, ry, col] of [[10, -2, '#E11D48'], [14, 4, '#F472B6'], [6, 6, '#FB7185']] as [number, number, string][]) { c.fillStyle = INK; c.beginPath(); c.arc(mx + rx * face, ry, 4.5, 0, Math.PI * 2); c.fill(); c.fillStyle = col; c.beginPath(); c.arc(mx + rx * face, ry, 3.5, 0, Math.PI * 2); c.fill(); }
+  }
+  if (extra.daze) for (let k = 0; k < 3; k++) { const a = f * 0.15 + (k * Math.PI * 2) / 3; box(c, Math.cos(a) * 14 - 2, -18 + Math.sin(a) * 4 - 2, 4, 4, '#FEF08A'); }
+  c.restore();
+};
+
+/** Dead in his own gondola (the cart stays level, so down's always down): smashed, slumped back against the post at
+ *  his end, head lolled on it, arms hanging; choked, sunk in his seat, chin on his chest, roses out of his mouth;
+ *  floored, upside down through the floor, his legs flopped over out of the hole. `sway`: the cart's swing (his arms
+ *  and legs swing with it). (x, fy): his seat's spot, the floor. */
+export const drawCorpseInCart = (c: Ctx, how: KillKind, x: number, fy: number, side: 1 | -1, L: SuitorLook, sway: number) => {
+  const face = (-side) as 1 | -1;
+  if (how === 'smash') drawSuitorAt(c, x, fy + 18, 0, face, 0, L, 'sit', { slump: { lean: -0.55, loll: -0.45 + sway * 0.5, grav: sway, arm: 30 }, dead: true });
+  if (how === 'choke') drawSuitorAt(c, x + side * 4, fy + 20, 0, face, 0, L, 'sit', { slump: { lean: 0.22, loll: 0.75 + sway * 0.5, grav: sway, arm: 32 }, dead: true, purple: 1, roses: true });
+  if (how === 'floor') { const r = Math.PI + side * 0.22 + sway * 0.4; drawSuitorAt(c, x - side * 2, fy - 36, r, face, 0, L, 'sit', { slump: { lean: 0.15, loll: 0.5, grav: r, arm: 30 }, dead: true }); }
+};
+
+/** What comes off him in the fall, lying by him: the crown, the cap, the helmet, the hat, the sash. */
+const costumeBit = (c: Ctx, x: number, y: number, L: SuitorLook, dir: number) => {
+  c.save(); c.translate(Math.round(x), Math.round(y));
+  const fillPoly = (pts: number[], col: string) => { c.fillStyle = col; c.beginPath(); for (let k = 0; k < pts.length; k += 2) c.lineTo(pts[k], pts[k + 1]); c.closePath(); c.fill(); };
+  if (L.kit === 'cape') { fillPoly([-10, 0, -10, -11, -5, -5, 0, -13, 5, -5, 10, -11, 10, 0], INK); fillPoly([-9, -1, -9, -9, -5, -4, 0, -11, 5, -4, 9, -9, 9, -1], L.trim); box(c, -9, -3, 18, 2, mix(L.trim, INK, 0.3)); }
+  if (L.kit === 'tee') { c.fillStyle = INK; c.beginPath(); c.ellipse(0, -1, 11, 7, 0, Math.PI, 0); c.fill(); c.fillStyle = L.main; c.beginPath(); c.ellipse(0, -1, 10, 6, 0, Math.PI, 0); c.fill(); box(c, dir * 8, -3, dir * 10, 3, INK); box(c, dir * 9, -2, dir * 8, 1, L.main); box(c, -10, -2, 20, 1, L.trim); }
+  if (L.kit === 'knight' || L.kit === 'viking') {
+    c.fillStyle = INK; c.beginPath(); c.ellipse(0, -1, 12, 9, 0, Math.PI, 0); c.fill(); c.fillStyle = '#A8A8B4'; c.beginPath(); c.ellipse(0, -1, 11, 8, 0, Math.PI, 0); c.fill(); box(c, -6, -7, 4, 2, '#D8D8E4');
+    if (L.kit === 'viking') for (const s of [-1, 1]) { fillPoly([s * 9, -3, s * 18, -6, s * 17, -15, s * 13, -5], INK); fillPoly([s * 9, -4, s * 16, -6, s * 16, -13, s * 12, -5], '#F2EAD0'); }
+    else { c.fillStyle = INK; c.beginPath(); c.ellipse(-dir * 6, -9, 8, 4, -0.4 * dir, 0, Math.PI * 2); c.fill(); c.fillStyle = L.trim; c.beginPath(); c.ellipse(-dir * 6, -9, 7, 3, -0.4 * dir, 0, Math.PI * 2); c.fill(); }
+  }
+  if (L.kit === 'wizard') { c.rotate(dir * 1.3); fillPoly([-9, 0, -4, -30, 10, 0], INK); fillPoly([-8, -1, -4, -27, 9, -1], L.main); box(c, -3, -12, 2, 2, L.trim); box(c, 1, -6, 2, 2, L.trim); }
+  if (L.kit === 'prince') { c.strokeStyle = INK; c.lineWidth = 6; c.beginPath(); c.moveTo(-16, -1); c.quadraticCurveTo(0, -6, 16, -2); c.stroke(); c.strokeStyle = '#E8B4C8'; c.lineWidth = 4; c.stroke(); c.strokeStyle = '#FFF6E8'; c.lineWidth = 1; c.stroke(); }
+  c.restore();
+};
+
+/** Dead on the plaza where he came down: flat on his back in his blood, his legs bent up in the air (a dead bug), his
+ *  head lolled back, his arms flopped, what he had on his head knocked off beside him. (x, y): his middle, the ground. */
+export const drawCorpseGround = (c: Ctx, x: number, y: number, i: number, L: SuitorLook) => {
+  const dir = i % 2 ? 1 : -1;
+  costumeBit(c, x - dir * 74, y - 1, L, dir);
+  c.save(); c.translate(Math.round(x + dir * 50), Math.round(y - 24)); c.scale(dir, 1); c.rotate(-Math.PI / 2);
+  drawSuitor(c, 0, 0, 1, 0, L, 'sit', { slump: { lean: -0.12, loll: -0.6, grav: -Math.PI / 2, arm: 14 }, dead: true });
   c.restore();
 };
 
@@ -313,7 +386,7 @@ export const drawKill = (c: Ctx, state: GameState, w: Wheel, k: Kill) => {
       // (the swing's blur: where he was a frame or two back, faint)
       c.globalAlpha = 0.3; drawSuitorAt(c, fr.x, fr.y, fr.rot - 0.5, fr.face, f, s.look, fr.pose); c.globalAlpha = 1;
     }
-    drawSuitorAt(c, fr.x, fr.y, fr.rot, fr.face, f, s.look, fr.pose, { purple: fr.purple, roses: fr.roses });
+    drawSuitorAt(c, fr.x, fr.y, fr.rot, fr.face, f, s.look, fr.pose, { purple: fr.purple, roses: fr.roses, slump: fr.slump, dead: fr.dead });
     if (fr.floor) drawCartFloor(c, s.cart, fx, fy);
   }
   if (fr.bouquet === 'him') drawItem(c, 'bouquet', fr.x - side * 30, fy - 96, 0);

@@ -18,7 +18,7 @@ import type { Item } from './lines';
 import { drawWheelFar } from './far';
 import { drawFairBack, drawPaving } from './fair';
 
-const CAPS = ['#F49AC8', '#9EE6C8', '#C8A8F4', '#FFC8A0'];
+export const CAPS = ['#F49AC8', '#9EE6C8', '#C8A8F4', '#FFC8A0'];
 /** (the wheel's own colors, dimmed: it's scenery) */
 const D6 = (col: string) => rampH(ramp6(col), true);
 const H6 = (col: string) => rampH(ramp6(col));
