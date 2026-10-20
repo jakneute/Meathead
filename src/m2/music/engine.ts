@@ -508,6 +508,10 @@ export const stop = (fade = FADE_OUT) => {
 /** What's playing (its id and arrangement), or null. */
 export const nowPlaying = () => (current ? { id: current.id, arr: current.arrangement, done: current.done } : null);
 
+/** Where song `id` is, in beats from its top (its first pass; below 0 just before its first note), while it's the
+ *  one on; null otherwise. (The title's intro lands its hits on the theme's.) */
+export const songBeat = (id: string) => (current && ctx && current.id === id && !current.fading ? (ctx.currentTime - current.start) / current.spb : null);
+
 /** Ducked while somebody's talking; muffled while paused (or under water); quieter in a cutscene. */
 export const setMix = (talking: boolean, muffled: boolean, inCutscene = false) => {
   if (!ctx || !master || !muffleF) return;

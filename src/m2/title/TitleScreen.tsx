@@ -15,8 +15,8 @@ import { M2_PUBLIC } from '../build';
 // Meathead 2's title screen, as Meathead 1's is (src/m1/components/Overlay.tsx TitleScreen, App.tsx pickTitle): the
 // picture the whole screen (title/art.ts), the menu under the logo: CONTINUE (the file played last, while there's one),
 // START GAME (the file select: a file, or NO SAVE), OPTIONS (Meathead 2's options), and in the desktop app QUIT GAME
-// (asked first). Held back for a moment as it comes up (a button still held from before doesn't go straight through),
-// all but OPTIONS and QUIT. Up and down, confirm (or Start) and back, on the keys, the mouse or a pad (its menus'
+// (asked first). Up only once the picture's intro has played (or been skipped: a press skips it, and isn't one for
+// the menu). Up and down, confirm (or Start) and back, on the keys, the mouse or a pad (its menus'
 // confirm and back: swapped on a Nintendo pad). The cheats build saves nothing (as Meathead 1's doesn't): no CONTINUE, no
 // file select; START GAME is NO SAVE.
 
@@ -28,8 +28,6 @@ const titleOptions = (hasFile: boolean): TitleOption[] => [
   { label: 'OPTIONS', kind: 'options' },
   ...(isDesktop ? [{ label: 'QUIT GAME', kind: 'quit' as const }] : []),
 ];
-/** How long the way in holds the menu back (Meathead 1's). */
-const INPUT_LOCK_MS = 2000;
 const PAD_REPEAT_MS = 180;
 
 const TitleScreen: React.FC<{
@@ -48,7 +46,13 @@ const TitleScreen: React.FC<{
   const [quitAsk, setQuitAsk] = useState<0 | 1 | null>(null);
   /** The options screen just shut: the press that shut it isn't one for the title too. */
   const shutAt = useRef(0);
-  useEffect(() => { const id = setTimeout(() => setLocked(false), INPUT_LOCK_MS); return () => clearTimeout(id); }, []);
+  // The intro (TitleArt: the park dropping in, him, the logo stamped on, on the theme's opening): the menu comes up
+  // when it's done; any key, click or button skips it straight to the finished picture, the menu ready (that press
+  // isn't one for the menu too). It plays once as the title comes up (the options and the file select are over it:
+  // shutting them, the picture's still there as it was)
+  const [intro, setIntro] = useState(true);
+  const introRef = useRef(true);
+  const endIntro = () => { if (!introRef.current) return; introRef.current = false; setIntro(false); setLocked(false); };
   // (CONTINUE come or gone under the cursor: it stays on the same option)
   const optionsWere = useRef(options);
   useEffect(() => {
@@ -104,14 +108,18 @@ const TitleScreen: React.FC<{
       // (the first key lets the sound out: the browser holds it back till then)
       getAudioContext();
       const k = e.key.toLowerCase();
-      const a = k === 'arrowup' || k === 'w' ? 'up' : k === 'arrowdown' || k === 's' ? 'down' : k === 'arrowleft' || k === 'a' ? 'left' : k === 'arrowright' || k === 'd' ? 'right'
+      if (introRef.current) {
+        if (!e.repeat && k !== 'shift' && k !== 'control' && k !== 'alt' && k !== 'meta') { e.preventDefault(); endIntro(); }
+        return;
+      }
+      const a =k === 'arrowup' || k === 'w' ? 'up' : k === 'arrowdown' || k === 's' ? 'down' : k === 'arrowleft' || k === 'a' ? 'left' : k === 'arrowright' || k === 'd' ? 'right'
         : k === 'enter' || k === ' ' ? 'ok' : k === 'escape' || k === 'backspace' ? 'back' : null;
       if (!a || busy()) return;
       e.preventDefault();
       if (e.repeat && (a === 'ok' || a === 'back')) return;
       actRef.current(a);
     };
-    const onMouseDown = (e: MouseEvent) => { getAudioContext(); if (e.button === 2 && !busy()) actRef.current('back'); };
+    const onMouseDown = (e: MouseEvent) => { getAudioContext(); if (introRef.current) { endIntro(); return; } if (e.button === 2 && !busy()) actRef.current('back'); };
     const noMenu = (e: MouseEvent) => e.preventDefault();
     window.addEventListener('keydown', onKey);
     window.addEventListener('mousedown', onMouseDown);
@@ -123,6 +131,7 @@ const TitleScreen: React.FC<{
   useEffect(() => {
     let frame = 0, lastMove = 0;
     let prev: { ok: boolean; back: boolean; start: boolean } | null = null;
+    let prevAny: boolean | null = null;
     const poll = () => {
       const gp = getActiveGamepad();
       if (gp) {
@@ -131,7 +140,10 @@ const TitleScreen: React.FC<{
         // (whatever was held as a screen over it shut, or as it came up, isn't a press)
         const was = prev ?? now;
         const just = (k: keyof typeof now) => now[k] && !was[k];
-        if (!busy()) {
+        // (the intro: any button skips it)
+        const any = gp.buttons.some(b => b.pressed);
+        if (introRef.current) { if (any && prevAny === false) endIntro(); }
+        else if (!busy()) {
           const move = getGamepadMovement(gp, 0.25), t = Date.now();
           const dir = move.up ? 'up' : move.down ? 'down' : move.left ? 'left' : move.right ? 'right' : null;
           if (!dir) lastMove = 0;
@@ -139,8 +151,8 @@ const TitleScreen: React.FC<{
           if (just('ok') || just('start')) actRef.current('ok');
           if (just('back')) actRef.current('back');
         }
-        prev = now;
-      } else prev = null;
+        prev = now; prevAny = any;
+      } else { prev = null; prevAny = null; }
       frame = requestAnimationFrame(poll);
     };
     frame = requestAnimationFrame(poll);
@@ -151,10 +163,10 @@ const TitleScreen: React.FC<{
   return (
     <div className="absolute inset-0 z-[60] bg-black select-none" style={{ fontFamily: '"Press Start 2P", monospace' }}>
       {/* (the picture, the whole screen: the logo's in it, over his chest) */}
-      <TitleArt />
+      <TitleArt skip={!intro} onDone={endIntro} />
       <h1 className="sr-only">MEATHEAD 2: MEATHEAD GOES TO HAPPY LAND</h1>
-      {/* (the menu in the lot under the plate and its ribbon) */}
-      <div className="animate-in fade-in duration-700 absolute inset-x-0 top-[330px] bottom-0 flex flex-col items-center justify-center pb-2">
+      {/* (the menu in the lot under the plate and its ribbon, once the intro's done) */}
+      {!intro && <div className="animate-in fade-in duration-700 absolute inset-x-0 top-[330px] bottom-0 flex flex-col items-center justify-center pb-2">
         <div className="flex flex-col items-center gap-3 shrink-0">
           {options.map((o, i) => {
             const on = sel === i;
@@ -175,7 +187,7 @@ const TitleScreen: React.FC<{
         <div className="mt-5 flex items-center gap-3 shrink-0">
           {!locked && <Prompt pad={['OK']} kb={['ENTER']} mouse="left" label={current?.kind === 'new' ? 'START' : current?.kind === 'continue' ? 'CONTINUE' : current?.kind === 'quit' ? 'QUIT' : 'OPEN'} size={18} className="text-[8px] font-black text-white/85 tracking-wider [text-shadow:1px_1px_0_#000] animate-pulse" />}
         </div>
-      </div>
+      </div>}
       {/* QUIT GAME (the desktop app's): are you sure? */}
       {quitAsk !== null && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/80 z-20 animate-in fade-in duration-150">

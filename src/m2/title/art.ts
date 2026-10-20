@@ -8,8 +8,16 @@
 // sodium lamps; confetti coming down; and the plate a marquee, its bulbs chasing, MEATHEAD 2 on it, a glint going across
 // it, GOES TO HAPPY LAND on a ribbon under it. Everything that doesn't move is painted once and kept; the wheel's
 // redrawn only when it's turned a step.
+//
+// It comes up with an intro on the theme's opening (the user's: "make the title screen punchier"): the park's pieces
+// slammed down one at a time, each on a hit, with a squash, a bounce, dust and a shake; him popping up behind the
+// marquee, dumb, blinking, grinning; MEATHEAD stamped on a letter at a time, the 2 last and hardest; the bulbs on and
+// the ribbon out. Perspective: the park's pieces are cutouts standing on the horizon (the lot's on its ground), so
+// they only drop straight down (nothing slides across the scene's one eye) and squash on their own ground line; the
+// letters fly in along the line to the eye (scaled about it); the draw order never changes, so nothing nearer is ever
+// behind something further. The painted pieces stay cached: the intro only moves them.
 
-import { drawMeatheadCloseUp, ART_W, ART_H } from '../../m1/game/scenes/ending';
+import { drawMeatheadCloseUp, ART_W, ART_H, type MeatheadMood } from '../../m1/game/scenes/ending';
 import { bayer, hash2, rgbOf, type RGB } from '../../m1/game/scenes/art/raster';
 
 type Ctx = CanvasRenderingContext2D;
@@ -77,11 +85,18 @@ const buildSky = () => {
 // The park against the sky, and the cars and lamps in the lot (painted once)
 // ---------------------------------------------------------------------------
 
-/** Where Main Street's rooftop bulbs are (drawn twinkling each frame). */
-const BULBS: [number, number][] = [];
+/** Where Main Street's rooftop bulbs are (drawn twinkling each frame), and which stretch of rooftops each is on. */
+const BULBS: [number, number, number][] = [];
+/** Main Street's rooftops come down in three stretches (the intro): left, middle, right. */
+const roofChunk = (x: number) => (x < 133 ? 0 : x < 267 ? 1 : 2);
 
-const buildPark = () => {
-  const c = canvas(TITLE_W, TITLE_H), g = c.getContext('2d')!;
+/** The park, a canvas a piece (each drops in on its own in the intro; drawn in this order, back to front). */
+interface Park { trees: HTMLCanvasElement; roofs: HTMLCanvasElement[]; castle: HTMLCanvasElement; coaster: HTMLCanvasElement; lotFar: HTMLCanvasElement; lotNear: HTMLCanvasElement; lamps: HTMLCanvasElement }
+
+const buildPark = (): Park => {
+  const mk = () => canvas(TITLE_W, TITLE_H);
+  const P: Park = { trees: mk(), roofs: [mk(), mk(), mk()], castle: mk(), coaster: mk(), lotFar: mk(), lotNear: mk(), lamps: mk() };
+  let g = P.trees.getContext('2d')!;
   BULBS.length = 0;
   // The far trees in the haze along the horizon
   for (let x = 0; x < TITLE_W; x++) {
@@ -94,6 +109,8 @@ const buildPark = () => {
   // Main Street's rooftops, right along: shopfronts with false fronts and gables, windows lit, bulbs along the eaves
   for (let x = -2, i = 0; x < TITLE_W; i++) {
     const w = 12 + Math.round(hash2(i, 21) * 14), h = 7 + Math.round(hash2(i, 23) * 9), top = HORIZON - h;
+    const chunk = roofChunk(x + w / 2);
+    g = P.roofs[chunk].getContext('2d')!;
     const body = ['#2a0c34', '#320e3a', '#260a30'][i % 3];
     R(g, x, top, w, h, body);
     R(g, x, top, w, 1, '#a04070');
@@ -101,11 +118,12 @@ const buildPark = () => {
       for (let k = 1; k < w - 1; k++) { const hh = Math.floor(Math.min(k, w - 1 - k) / 2); R(g, x + k, top - hh, 1, hh, body); R(g, x + k, top - hh, 1, 1, '#a04070'); }
     }
     for (let wy = top + 3; wy < HORIZON - 2; wy += 4) for (let wx = x + 2; wx < x + w - 2; wx += 4) if (hash2(wx, wy) < 0.5) R(g, wx, wy, 2, 2, hash2(wy, wx) < 0.3 ? '#fff0a0' : '#f8b040');
-    for (let bx = x + 1; bx < x + w - 1; bx += 3) BULBS.push([bx, top - 1]);
+    for (let bx = x + 1; bx < x + w - 1; bx += 3) BULBS.push([bx, top - 1, chunk]);
     x += w + 1;
   }
 
   // The castle, on the left: a keep, its towers and their spires, flags on top, windows lit
+  g = P.castle.getContext('2d')!;
   const wall = '#5c3478', wallLit = '#9c64b0', wallDark = '#3a1e52', roof = '#22307a', roofLit = '#5a7ad8';
   const tower = (x: number, w: number, top: number, spire: number) => {
     const m = x + Math.floor(w / 2);
@@ -134,6 +152,7 @@ const buildPark = () => {
   tower(20, 9, 100, 82);
 
   // The roller coaster, on the right: the lift hill, the drop, a loop; pink steel on its supports, a train on top
+  g = P.coaster.getContext('2d')!;
   const rail = '#ec4f8a', railLit = '#ffb0d0', support = '#4a2058';
   const trackY = (x: number) => {
     if (x < 312) return HORIZON - 8;
@@ -157,6 +176,7 @@ const buildPark = () => {
   for (let k = 0; k < 3; k++) { const x = 340 + k * 5, y = Math.round(trackY(x)) - 4; R(g, x, y, 4, 3, ['#fde047', '#38bdf8', '#fde047'][k]); R(g, x, y, 4, 1, '#fffbe0'); }
 
   // The lot: a row of cars nosed in by the gate, another nearer at the sides; the lamp posts
+  g = P.lotFar.getContext('2d')!;
   const CARS = ['#b02a3a', '#2a5ab0', '#d8d0c0', '#2a8a5a', '#c8a020', '#5a3a8a', '#303038', '#a85020'];
   for (let x = 2, i = 0; x < TITLE_W - 8; i++) {
     const col = CARS[Math.floor(hash2(i, 31) * CARS.length)];
@@ -166,6 +186,7 @@ const buildPark = () => {
     }
     x += 11;
   }
+  g = P.lotNear.getContext('2d')!;
   for (const side of [0, 1]) for (let k = 0; k < 4; k++) {
     const x = side ? TITLE_W - 18 - k * 20 : 4 + k * 20, col = CARS[(k * 3 + side * 5) % CARS.length];
     R(g, x, 165, 16, 6, '#0a0610');
@@ -181,8 +202,9 @@ const buildPark = () => {
     R(g, x - hw + 4, top + (big ? 3 : 2), hw * 2 - 4, 1, '#fff2c0');
   };
   pole(74, 132, 177, false); pole(326, 132, 177, false);
+  g = P.lamps.getContext('2d')!;
   pole(23, 186, TITLE_H, true); pole(375, 186, TITLE_H, true);
-  return c;
+  return P;
 };
 
 // ---------------------------------------------------------------------------
@@ -302,7 +324,10 @@ const FACE_BOT = ['#6a0840', '#9a1260', '#cc2a84', '#ee5aa8', '#ff9ccc'].map(rgb
 const TWO_TOP = ['#f0fcff', '#b8f0ff', '#6ad8fc', '#30b0f0', '#1a84d8'].map(rgbOf);
 const TWO_BOT = ['#0a2a6a', '#12408e', '#1a62b8', '#3a8ce0', '#7ac0ff'].map(rgbOf);
 
-interface Logo { art: HTMLCanvasElement; face: HTMLCanvasElement; x: number; y: number; w: number; h: number }
+/** The logo, whole, and a letter at a time (the intro stamps them on one by one): each letter's slice of the finished
+ *  art (outline, bevel, drop shadow and all), cut between the letters along their slant, the slices adding back up to
+ *  the whole. */
+interface Logo { art: HTMLCanvasElement; face: HTMLCanvasElement; x: number; y: number; w: number; h: number; letters: HTMLCanvasElement[]; ends: number[] }
 
 const buildLogo = (): Logo => {
   const cols = [...WORD].reduce((n, ch, i) => n + GLYPHS[ch][0].length + (i ? 1 : 0), 0);
@@ -311,8 +336,11 @@ const buildLogo = (): Logo => {
   // (1 on the MEATHEAD, 2 on the 2)
   const F = new Uint8Array(w * h);
   let cx = PAD;
+  /** Each letter's columns (unslanted: its bottom row's), start and end. */
+  const spans: [number, number][] = [];
   for (const ch of WORD) {
     const gl = GLYPHS[ch], v = ch === '2' ? 2 : 1;
+    if (ch !== ' ') spans.push([cx, cx + gl[0].length * CELL_W]);
     for (let r = 0; r < 7; r++) for (let c = 0; c < gl[r].length; c++) if (gl[r][c] === '#') {
       for (let yy = 0; yy < CELL_H; yy++) {
         const y = r * CELL_H + yy, shift = Math.floor((faceH - 1 - y) / SLANT);
@@ -358,7 +386,21 @@ const buildLogo = (): Logo => {
     }
   }
   ag.putImageData(img, 0, 0); fg.putImageData(fimg, 0, 0);
-  return { art, face, x: Math.round((TITLE_W - w) / 2), y: 106, w, h };
+  // The letters' slices: cut halfway across the gap between each two, the cut leaning with the letters
+  const H5 = h + 5;
+  const letters = spans.map(([s, e], i) => {
+    const left = i === 0 ? -lean - 1 : Math.floor((spans[i - 1][1] + s) / 2);
+    const right = i === spans.length - 1 ? w + 1 : Math.floor((e + spans[i + 1][0]) / 2);
+    const c = canvas(w, H5), cg = c.getContext('2d')!;
+    const li = cg.createImageData(w, H5), lo = new Uint32Array(li.data.buffer);
+    for (let y = 0; y < H5; y++) {
+      const fy = Math.max(0, Math.min(faceH - 1, y - PAD)), sh = Math.floor((faceH - 1 - fy) / SLANT);
+      for (let x = Math.max(0, left + sh); x < Math.min(w, right + sh); x++) lo[y * w + x] = out[y * w + x];
+    }
+    cg.putImageData(li, 0, 0);
+    return c;
+  });
+  return { art, face, x: Math.round((TITLE_W - w) / 2), y: 106, w, h, letters, ends: spans.map(([, e]) => e + lean) };
 };
 
 /** The plate the logo sits on: the park's marquee right across, pointed at the ends, a pink stripe along it, gold
@@ -492,12 +534,122 @@ const drawBeam = (g: Ctx, baseX: number, ang: number) => {
   }
 };
 
+// ---------------------------------------------------------------------------
+// The intro: the park dropped in a piece at a time on the theme's opening, him popping up behind the marquee, the
+// logo stamped on a letter at a time
+// ---------------------------------------------------------------------------
+
+/** The intro's clock is the theme's beats (150 a minute: 24 frames a beat). Everything lands on a hit of its four-bar
+ *  opening (music/songs/title.ts): Meathead 1's riff on the guitars (bar 1: E E . E G A, the crash on 1, the snare on
+ *  3 and 4; bar 2: E E . E C D, the crash on 1 again), then the band crashing in on C and D (bar 3: brass stabs,
+ *  timpani and the orchestra hit on 1 and 3). */
+const BEAT_F = 24;
+/** The scene's one eye (the lot's stall lines run to it): where the logo's letters fly in from the camera along. */
+const VPX = WX, VPY = HORIZON;
+/** A piece of the park dropping in: the beat it lands on; how far it falls (screen pixels, from off the top: the same
+ *  fall time for all, so the nearer, bigger things come down faster); how hard it squashes, by depth (the far skyline
+ *  barely, the near lot and the marquee most), and whether across too (the lot's pieces span both sides: up and down
+ *  only); where it meets the ground (its squash's anchor, straight under it: it never slides sideways); where its dust
+ *  goes up; the shake it lands with. */
+interface Piece { at: number; D: number; k: number; kx: number; ax: number; ay: number; dust: [number, number][]; shake: number }
+const piece = (at: number, D: number, k: number, kx: number, ax: number, ay: number, dust: [number, number][], shake: number): Piece => ({ at, D, k, kx, ax, ay, dust, shake });
+const PIECES = {
+  castle: piece(0, 160, 0.6, 1, 39, HORIZON, [[2, 76]], 1),
+  coaster: piece(2, 160, 0.6, 1, 350, HORIZON, [[302, 398]], 1),
+  wheel: piece(4, 236, 0.9, 1, WX, HORIZON, [[WX - 92, WX - 64], [WX + 64, WX + 92]], 3),
+  lotFar: piece(6, 170, 0.7, 0, WX, HORIZON + 5, [], 0),
+  lotNear: piece(6, 210, 0.85, 0, WX, 172, [[2, 96], [304, 398]], 0),
+  lamps: piece(6, 330, 1, 0, WX, TITLE_H, [], 0),
+  flags: piece(6, 170, 0.8, 0, WX, HORIZON, [], 0),
+  plate: piece(6, 190, 1, 1, WX, PLATE_Y + PLATE_H, [], 3),
+};
+/** Main Street's three stretches: the left on the riff's second E, the middle and right on its third. */
+const ROOFS = [piece(4.5, 160, 0.5, 1, 66, HORIZON, [[0, 133]], 1), piece(5.5, 160, 0.5, 1, 200, HORIZON, [[133, 267]], 1), piece(5.5, 160, 0.5, 1, 333, HORIZON, [[267, 400]], 1)];
+/** Him popping up behind the marquee (the riff's last D); the logo's letters a sixteenth apart from the C stab, the 2
+ *  on the D stab; done (the bulbs on, the ribbon out) a beat after. */
+const FACE_AT = 7, TWO_AT = 10;
+export const INTRO_END = 11;
+const letterAt = (i: number) => (i < 8 ? 8 + i * 0.25 : TWO_AT);
+const IMPACTS: [number, number][] = [
+  ...[...Object.values(PIECES), ...ROOFS].filter(p => p.shake).map(p => [p.at, p.shake] as [number, number]),
+  [FACE_AT, 2], ...Array.from({ length: 8 }, (_, i) => [letterAt(i), 1] as [number, number]), [TWO_AT, 5],
+];
+
+/** A piece's pose, `f` frames from its landing: falling (stretched), the thud (squashed), a bounce, settling. */
+interface Pose { hide: boolean; dy: number; sx: number; sy: number }
+const REST: Pose = { hide: false, dy: 0, sx: 1, sy: 1 };
+const HIDE: Pose = { hide: true, dy: 0, sx: 1, sy: 1 };
+const FALL = 9;
+const poseOf = (f: number, p: Piece): Pose => {
+  const { D, k, kx } = p;
+  if (f < -FALL) return HIDE;
+  if (f < 0) { const q = -f / FALL; return { hide: false, dy: -Math.round((D * q * q) / 2) * 2, sx: 1 - 0.08 * k * kx, sy: 1 + 0.16 * k }; }
+  if (f < 3) return { hide: false, dy: 0, sx: 1 + 0.16 * k * kx, sy: 1 - 0.24 * k };
+  if (f < 6) return { hide: false, dy: -Math.round(5 * k), sx: 1 - 0.04 * k * kx, sy: 1 + 0.08 * k };
+  if (f < 9) return { hide: false, dy: 0, sx: 1 + 0.05 * k * kx, sy: 1 - 0.07 * k };
+  return REST;
+};
+/** Him: shooting up from behind the marquee (stretched), over the top, squashed back down, settling. */
+const popOf = (f: number): Pose => {
+  if (f < -8) return HIDE;
+  if (f < 0) { const q = -f / 8; return { hide: false, dy: Math.round(150 * q * q), sx: 0.88, sy: 1.16 }; }
+  if (f < 3) return { hide: false, dy: -8, sx: 0.92, sy: 1.1 };
+  if (f < 6) return { hide: false, dy: 3, sx: 1.12, sy: 0.88 };
+  if (f < 9) return { hide: false, dy: -1, sx: 0.97, sy: 1.04 };
+  return REST;
+};
+
+/** The thud's dust: round puffs along where it landed, rolling outward and up, going from bright to dusk and
+ *  dithering out; smaller for the far things. */
+const DUST = ['#f4dcef', '#c8a4d0', '#8a6a98'];
+const drawDust = (g: Ctx, f: number, p: Piece) => {
+  if (f < 0 || f >= 18 || !p.dust.length) return;
+  const k = p.k, col = DUST[f < 6 ? 0 : f < 12 ? 1 : 2];
+  const r = Math.min(7, Math.round(1 + f * 0.4 * k));
+  for (const [x0, x1] of p.dust) {
+    const n = Math.max(2, Math.round((x1 - x0) / 16)), mid = (x0 + x1) / 2;
+    for (let i = 0; i < n; i++) {
+      const bx = x0 + ((i + 0.5) * (x1 - x0)) / n, dir = bx < mid ? -1 : 1;
+      const x = Math.round(bx + dir * f * 0.7 * k + (hash2(i, x0) - 0.5) * 4), y = Math.round(p.ay - r - f * 0.25 * k);
+      for (let yy = -r; yy <= r; yy++) {
+        if (f >= 12 && (yy + i + f) & 1) continue;
+        const hw = Math.round(Math.sqrt(r * r - yy * yy));
+        R(g, x - hw, y + yy, hw * 2 + 1, 1, col);
+      }
+    }
+  }
+};
+/** A four-point sparkle, `f` frames in: a glint, wide, a glint, gone. */
+const sparkle = (g: Ctx, x: number, y: number, f: number, big = 1) => {
+  if (f < 0 || f >= 12) return;
+  const s = Math.round((f < 3 ? 2 : f < 7 ? 4 : 2) * big), c = f < 7 ? '#ffffff' : '#fde68a';
+  R(g, x - s, y, s * 2 + 1, 1, c); R(g, x, y - s, 1, s * 2 + 1, c);
+  if (f < 7) R(g, x - 1, y - 1, 3, 3, c);
+};
+/** The screen's shake at `beat`: the hardest thud going, dying off over 12 frames, a pixel step every 2; up and down
+ *  (and across a touch on the big ones). */
+const shakeAt = (beat: number): [number, number] => {
+  let m = 0, f0 = 0;
+  for (const [at, mag] of IMPACTS) { const f = (beat - at) * BEAT_F; if (f >= 0 && f < 12) { const v = mag * (1 - f / 12); if (v > m) { m = v; f0 = f; } } }
+  if (m < 0.5) return [0, 0];
+  const sg = Math.floor(f0 / 2) % 2 ? -1 : 1;
+  return [m >= 3 ? sg * Math.round(m / 3) : 0, sg * Math.round(m)];
+};
+/** His eyes shut a moment (a blink on the dumb look): the lids his own skin, the lashes a dark line. */
+const blink = (b: Ctx) => {
+  const px = b.getImageData(100, 70, 1, 1).data, skin = `rgb(${px[0]}, ${px[1]}, ${px[2]})`;
+  for (const ex of [111, 145]) { R(b, ex - 11, 51, 23, 10, skin); R(b, ex - 9, 56, 19, 1, '#2a1410'); R(b, ex - 8, 57, 17, 1, '#7a4030'); }
+};
+
 export const createTitleScene = () => {
-  let sky: HTMLCanvasElement | null = null, park: HTMLCanvasElement | null = null, plate: HTMLCanvasElement | null = null;
+  let sky: HTMLCanvasElement | null = null, park: Park | null = null, plate: HTMLCanvasElement | null = null;
   let ribbon: HTMLCanvasElement | null = null, flags: HTMLCanvasElement[] = [], logo: Logo | null = null;
   const wheel = canvas(TITLE_W, TITLE_H);
   let wheelRot = -1;
-  const bust = canvas(ART_W, ART_H), sil = canvas(ART_W + 8, ART_H + 8), glint = canvas(1, 1);
+  const bust = canvas(ART_W, ART_H), sil = canvas(ART_W + 8, ART_H + 8), him = canvas(ART_W + 8, ART_H + 8), glint = canvas(1, 1);
+  /** The scene's frames the 2 landed on (his fury's clock), the fireworks started, the intro finished; the confetti's
+   *  started coming down. */
+  let furyAt: number | null = null, fwAt: number | null = null, doneAt: number | null = null, confettiOn = false;
   const bits: Bit[] = [];
   const spawn = (b?: Bit, anywhere = false): Bit => {
     const n = b || ({} as Bit);
@@ -508,14 +660,40 @@ export const createTitleScene = () => {
   };
   for (let i = 0; i < 46; i++) bits.push(spawn(undefined, true));
 
-  /** Draws frame `t` (60 a second) onto `g`, a TITLE_W x TITLE_H canvas. */
-  const draw = (g: Ctx, t: number, dt = 1) => {
+  /** Draws frame `t` (60 a second) onto `g`, a TITLE_W x TITLE_H canvas; `beat` is where the intro is (the theme's
+   *  beats: below 0 nothing's come down yet), Infinity once it's done or skipped. */
+  const draw = (g: Ctx, t: number, dt = 1, beat = Infinity) => {
     g.imageSmoothingEnabled = false;
     if (!sky) {
       sky = buildSky(); park = buildPark(); plate = buildPlate(); ribbon = buildRibbon(); flags = buildFlags(); logo = buildLogo();
       glint.width = logo.w; glint.height = logo.h;
     }
+    const live = Number.isFinite(beat);
+    /** Frames since the intro's beat `at` (negative before it). */
+    const fOf = (at: number) => (beat - at) * BEAT_F;
+    // (the moments the intro hands on: skipped, they're long past)
+    if (beat >= TWO_AT && furyAt === null) furyAt = live ? t - Math.round(fOf(TWO_AT)) : t - 100;
+    if (beat >= TWO_AT - FW_RISE / BEAT_F && fwAt === null) fwAt = live ? t - Math.round(fOf(TWO_AT - FW_RISE / BEAT_F)) : t - 300;
+    if (beat >= INTRO_END && doneAt === null) doneAt = t;
+    if (beat >= TWO_AT && !confettiOn) {
+      confettiOn = true;
+      // (on the 2: a shower of it from the top; skipped, it's already coming down everywhere)
+      if (live) for (const b of bits) { spawn(b); b.y = -4 - Math.random() * 110; }
+    }
+    /** Draws a piece of the park where it is in its drop (squashed on its own ground line), then its dust. */
+    const put = (p: Piece, fn: () => void, dust = true) => {
+      const f = fOf(p.at), q = poseOf(f, p);
+      if (q.hide) return;
+      if (q === REST) fn();
+      else { g.save(); g.translate(p.ax, p.ay + q.dy); g.scale(q.sx, q.sy); g.translate(-p.ax, -p.ay); fn(); g.restore(); }
+      if (dust) drawDust(g, f, p);
+    };
+
     g.drawImage(sky, 0, 0);
+    // (everything but the sky shakes with the thuds)
+    const [shx, shy] = shakeAt(beat);
+    g.save();
+    g.translate(shx, shy);
     // (stars, out up in the night at the top, a few of them twinkling)
     for (let i = 0; i < STARS; i++) {
       const x = Math.floor(hash2(i, 3) * TITLE_W), y = Math.floor(hash2(i, 5) ** 1.6 * 54) + 1;
@@ -525,61 +703,97 @@ export const createTitleScene = () => {
       R(g, x, y, 1, 1, c);
       if (tw > 160) { R(g, x - 1, y, 3, 1, c); R(g, x, y - 1, 1, 3, c); }
     }
-    // The searchlights, swinging back and forth from behind the park
-    drawBeam(g, 46, Math.sin(t * 0.011) * 0.55 + 0.15);
-    drawBeam(g, 354, Math.sin(t * 0.009 + 2) * 0.55 - 0.15);
-    // The fireworks (each one on its own clock: two or three going at once)
-    for (let k = Math.max(0, Math.floor((t - FW_LIFE) / FW_EVERY)); k * FW_EVERY <= t; k++) {
-      const start = k * FW_EVERY + Math.floor(hash2(k, 7) * 20), age = t - start;
-      if (age >= 0 && age < FW_LIFE) drawFirework(g, k, age);
+    // The searchlights, swinging back and forth from behind the park (on with the first thud)
+    if (beat >= PIECES.castle.at) {
+      drawBeam(g, 46, Math.sin(t * 0.011) * 0.55 + 0.15);
+      drawBeam(g, 354, Math.sin(t * 0.009 + 2) * 0.55 - 0.15);
+    }
+    // The fireworks (each one on its own clock: two or three going at once; the first bursting on the 2)
+    if (fwAt !== null) {
+      const ft = t - fwAt;
+      for (let k = Math.max(0, Math.floor((ft - FW_LIFE) / FW_EVERY)); k * FW_EVERY <= ft; k++) {
+        const start = k ? k * FW_EVERY + Math.floor(hash2(k, 7) * 20) : 0, age = ft - start;
+        if (age >= 0 && age < FW_LIFE) drawFirework(g, k, age);
+      }
     }
     // The wheel, a step every three frames
     const rot = Math.floor(t / 3) % WHEEL_STEPS;
     if (rot !== wheelRot) { wheelRot = rot; paintWheel(wheel.getContext('2d')!, rot); }
-    g.drawImage(wheel, 0, 0);
-    // (its bulbs chasing round the rim)
-    const a0 = (rot / WHEEL_STEPS) * Math.PI * 2, chase = Math.floor(t / 5);
-    for (let i = 0; i < RIM_BULBS; i++) {
-      const a = a0 + (i / RIM_BULBS) * Math.PI * 2, x = Math.round(WX + Math.cos(a) * (WR - 5)), y = Math.round(WY + Math.sin(a) * (WR - 5));
-      if ((i + chase) % 4 === 0) { R(g, x, y, 2, 2, '#fff6b0'); R(g, x, y, 1, 1, '#ffffff'); }
-      else R(g, x, y, 1, 1, ['#ff5aa8', '#fde047', '#5eead4'][(i + chase) % 3]);
-    }
-    g.drawImage(park!, 0, 0);
+    put(PIECES.wheel, () => {
+      g.drawImage(wheel, 0, 0);
+      // (its bulbs chasing round the rim)
+      const a0 = (rot / WHEEL_STEPS) * Math.PI * 2, chase = Math.floor(t / 5);
+      for (let i = 0; i < RIM_BULBS; i++) {
+        const a = a0 + (i / RIM_BULBS) * Math.PI * 2, x = Math.round(WX + Math.cos(a) * (WR - 5)), y = Math.round(WY + Math.sin(a) * (WR - 5));
+        if ((i + chase) % 4 === 0) { R(g, x, y, 2, 2, '#fff6b0'); R(g, x, y, 1, 1, '#ffffff'); }
+        else R(g, x, y, 1, 1, ['#ff5aa8', '#fde047', '#5eead4'][(i + chase) % 3]);
+      }
+    });
+    // The park, back to front (each piece where it is in its drop)
+    const P = park!;
+    g.drawImage(P.trees, 0, 0);
+    for (let c = 0; c < 3; c++) put(ROOFS[c], () => g.drawImage(P.roofs[c], 0, 0));
+    put(PIECES.castle, () => g.drawImage(P.castle, 0, 0));
+    put(PIECES.coaster, () => g.drawImage(P.coaster, 0, 0));
+    put(PIECES.lotFar, () => g.drawImage(P.lotFar, 0, 0));
+    put(PIECES.lotNear, () => g.drawImage(P.lotNear, 0, 0));
+    put(PIECES.lamps, () => g.drawImage(P.lamps, 0, 0));
     // (Main Street's bulbs, twinkling)
-    for (let i = 0; i < BULBS.length; i++) {
-      const [x, y] = BULBS[i];
-      if ((Math.floor(t / 7) + i) % 6 === 0) continue;
-      R(g, x, y, 1, 1, (Math.floor(t / 20) + i) % 3 === 0 ? '#fff6c0' : '#f8c040');
-    }
+    for (let c = 0; c < 3; c++) put(ROOFS[c], () => {
+      for (let i = 0; i < BULBS.length; i++) {
+        const [x, y, chunk] = BULBS[i];
+        if (chunk !== c || (Math.floor(t / 7) + i) % 6 === 0) continue;
+        R(g, x, y, 1, 1, (Math.floor(t / 20) + i) % 3 === 0 ? '#fff6c0' : '#f8c040');
+      }
+    }, false);
     // (the coaster's beacon, blinking)
-    if (t % 80 < 40) R(g, 350, HORIZON - 84, 1, 1, '#ff3020');
-    drawFlag(g, flags, 18, 26, t, 0);
-    drawFlag(g, flags, TITLE_W - 60, 26, t, 1.3);
+    put(PIECES.coaster, () => { if (t % 80 < 40) R(g, 350, HORIZON - 84, 1, 1, '#ff3020'); }, false);
+    put(PIECES.flags, () => {
+      drawFlag(g, flags, 18, 26, t, 0);
+      drawFlag(g, flags, TITLE_W - 60, 26, t, 1.3);
+    }, false);
 
-    // Him: the close-up, fuming, flexing (a breath in and out: up a pixel, down a pixel)
-    const bctx = bust.getContext('2d')!;
-    bctx.imageSmoothingEnabled = false;
-    bctx.clearRect(0, 0, ART_W, ART_H);
-    // (past the first 12 frames, so the fury's jolt as it cuts in never comes)
-    drawMeatheadCloseUp(bctx, t + 12, false, 'fury', { bg: () => {}, medal: false, pose: 'flex' });
-    const by = BUST_Y + (t % 150 < 75 ? 0 : -1);
-    // Backlit: the park's neon round his edges in two hard rings, pink outside, near-white in
-    const sg = sil.getContext('2d')!;
-    const rim = (color: string, offs: number[][]) => {
-      sg.globalCompositeOperation = 'source-over';
-      sg.clearRect(0, 0, sil.width, sil.height);
-      for (const [dx, dy] of offs) sg.drawImage(bust, 4 + dx, 4 + dy);
-      sg.globalCompositeOperation = 'source-in';
-      sg.fillStyle = color; sg.fillRect(0, 0, sil.width, sil.height);
-      sg.globalCompositeOperation = 'source-over';
-      g.drawImage(sil, BUST_X - 4, by - 4);
-    };
-    rim(RIM_OUT, [[-2, 0], [2, 0], [0, -2], [-1, -1], [1, -1], [-1, 1], [1, 1], [0, 2]]);
-    rim(RIM_IN, [[-1, 0], [1, 0], [0, -1], [0, 1]]);
-    g.drawImage(bust, BUST_X, by);
+    // Him: the close-up, flexing (a breath in and out: up a pixel, down a pixel). In the intro: popping up behind the
+    // marquee with his dumb look, a blink, a big grin; fuming from the 2 on (the fury's jolt as it lands)
+    const fb = beat - FACE_AT, ff = fb * BEAT_F, pop = popOf(ff);
+    if (!pop.hide) {
+      const bctx = bust.getContext('2d')!;
+      bctx.imageSmoothingEnabled = false;
+      bctx.clearRect(0, 0, ART_W, ART_H);
+      const mood: MeatheadMood = beat >= TWO_AT ? 'fury' : fb < 0.65 ? 'dumb' : 'stoked';
+      drawMeatheadCloseUp(bctx, mood === 'fury' ? t - (furyAt ?? t - 100) : t, false, mood, { bg: () => {}, medal: false, pose: 'flex' });
+      if (fb >= 0.4 && fb < 0.65) blink(bctx);
+      const by = BUST_Y + (t % 150 < 75 ? 0 : -1);
+      // Backlit: the park's neon round his edges in two hard rings, pink outside, near-white in
+      const sg = sil.getContext('2d')!, hg = him.getContext('2d')!;
+      hg.clearRect(0, 0, him.width, him.height);
+      const rim = (color: string, offs: number[][]) => {
+        sg.globalCompositeOperation = 'source-over';
+        sg.clearRect(0, 0, sil.width, sil.height);
+        for (const [dx, dy] of offs) sg.drawImage(bust, 4 + dx, 4 + dy);
+        sg.globalCompositeOperation = 'source-in';
+        sg.fillStyle = color; sg.fillRect(0, 0, sil.width, sil.height);
+        sg.globalCompositeOperation = 'source-over';
+        hg.drawImage(sil, 0, 0);
+      };
+      rim(RIM_OUT, [[-2, 0], [2, 0], [0, -2], [-1, -1], [1, -1], [-1, 1], [1, 1], [0, 2]]);
+      rim(RIM_IN, [[-1, 0], [1, 0], [0, -1], [0, 1]]);
+      hg.drawImage(bust, 4, 4);
+      if (pop === REST) g.drawImage(him, BUST_X - 4, by - 4);
+      else {
+        // (behind the marquee: nothing of him below it)
+        const ax = BUST_X + ART_W / 2, ay = BUST_Y + ART_H;
+        g.save();
+        g.beginPath(); g.rect(-8, -40, TITLE_W + 16, PLATE_Y + PLATE_H - 2 + 40); g.clip();
+        g.translate(ax, ay + pop.dy); g.scale(pop.sx, pop.sy); g.translate(-ax, -ay);
+        g.drawImage(him, BUST_X - 4, by - 4);
+        g.restore();
+      }
+      sparkle(g, BUST_X + 44, 24, ff); sparkle(g, BUST_X + ART_W - 46, 30, ff - 2); sparkle(g, BUST_X + 66, 4, ff - 4);
+    }
 
-    // Confetti, coming down, fluttering (flat, edge on, flat)
-    for (const b of bits) {
+    // Confetti, coming down, fluttering (flat, edge on, flat): from the 2 on
+    if (confettiOn) for (const b of bits) {
       b.y += b.vy * dt; b.ph += dt;
       const x = Math.round(b.x + Math.sin(b.ph * 0.06) * 4);
       if (b.y > TITLE_H + 2) { spawn(b); continue; }
@@ -587,19 +801,45 @@ export const createTitleScene = () => {
       if (f === 0) R(g, x, y, 2, 1, b.col); else if (f === 2) R(g, x, y, 1, 2, b.col); else R(g, x, y, 1, 1, b.col);
     }
 
-    // The marquee across his chest, its bulbs chasing, the logo on it, a glint across the logo now and then
-    g.drawImage(plate!, 0, 0);
-    const pc = Math.floor(t / 6);
-    for (let i = 0; i < PLATE_BULBS.length; i++) {
-      const [x, y] = PLATE_BULBS[i];
-      const on = ((i >> 1) + pc) % 3 === 0;
-      R(g, x - 1, y - 1, 3, 3, '#1a0210');
-      R(g, x, y, 1, 1, on ? '#fffbe0' : '#a87a20');
-      if (on) { R(g, x - 1, y, 1, 1, '#fcd850'); R(g, x + 1, y, 1, 1, '#fcd850'); R(g, x, y - 1, 1, 1, '#fcd850'); R(g, x, y + 1, 1, 1, '#fcd850'); }
-    }
+    // The marquee across his chest (the park's gate), its bulbs chasing (off till the 2 lands, then lit from the
+    // middle out), the logo on it, a glint across the logo now and then
+    put(PIECES.plate, () => {
+      g.drawImage(plate!, 0, 0);
+      const pc = Math.floor(t / 6), lit = beat >= TWO_AT + 0.75 ? -1 : beat >= TWO_AT ? ((beat - TWO_AT) / 0.75) * 200 : 0;
+      for (let i = 0; i < PLATE_BULBS.length; i++) {
+        const [x, y] = PLATE_BULBS[i];
+        const on = lit < 0 ? ((i >> 1) + pc) % 3 === 0 : Math.abs(x - WX) < lit;
+        R(g, x - 1, y - 1, 3, 3, '#1a0210');
+        R(g, x, y, 1, 1, on ? '#fffbe0' : '#a87a20');
+        if (on) { R(g, x - 1, y, 1, 1, '#fcd850'); R(g, x + 1, y, 1, 1, '#fcd850'); R(g, x, y - 1, 1, 1, '#fcd850'); R(g, x, y + 1, 1, 1, '#fcd850'); }
+      }
+    }, false);
     const L = logo!;
-    g.drawImage(L.art, L.x, L.y);
-    const sweep = t % 240;
+    if (beat >= TWO_AT + 0.5) g.drawImage(L.art, L.x, L.y);
+    else {
+      // The letters stamped on one at a time: each flying in from the camera along the line to the eye (scaled about
+      // it, so it stays true to the scene's perspective the whole way), pressed into the plate, springing back; the 2
+      // last, from furthest out, hardest
+      const n = L.letters.length;
+      for (let i = 0; i < n; i++) {
+        const two = i === n - 1, f = fOf(letterAt(i)), F = two ? 8 : 5, s0 = two ? 4 : 2.4;
+        if (f < -F) continue;
+        let s = 1;
+        if (f < 0) { const q = -f / F; s = 1 + (s0 - 1) * q * q; }
+        else if (f < (two ? 3 : 2)) s = two ? 0.85 : 0.9;
+        else if (f < (two ? 6 : 4)) s = two ? 1.08 : 1.04;
+        const c = L.letters[i];
+        if (s === 1) g.drawImage(c, L.x, L.y);
+        else g.drawImage(c, Math.round(VPX + (L.x - VPX) * s), Math.round(VPY + (L.y - VPY) * s), Math.round(c.width * s), Math.round(c.height * s));
+      }
+    }
+    // (a sparkle off each letter as it lands; the 2's a burst of them)
+    if (live) for (let i = 0; i < L.letters.length; i++) {
+      const f = fOf(letterAt(i)), x = L.x + L.ends[i], y = L.y + PAD;
+      if (i < L.letters.length - 1) sparkle(g, x, y, f);
+      else { sparkle(g, x + 2, y - 2, f, 2); sparkle(g, x - 14, L.y + L.h - 2, f - 2); sparkle(g, L.x + 6, L.y + 4, f - 3, 1.5); sparkle(g, PLATE_X0 + 20, PLATE_Y + 12, f - 4); sparkle(g, PLATE_X1 - 20, PLATE_Y + 12, f - 4); }
+    }
+    const sweep = doneAt === null ? 999 : (t - doneAt) % 240;
     if (sweep < 60) {
       const gg = glint.getContext('2d')!;
       gg.globalCompositeOperation = 'source-over';
@@ -619,7 +859,14 @@ export const createTitleScene = () => {
       const s = sweep < 62 || sweep > 74 ? 2 : 4, x = L.x + L.w - PAD - 2, y = L.y + PAD;
       R(g, x - s, y, s * 2 + 1, 1, '#fffcf0'); R(g, x, y - s, 1, s * 2 + 1, '#fffcf0'); R(g, x - 1, y - 1, 3, 3, '#ffffff');
     }
-    g.drawImage(ribbon!, 0, 0);
+    // GOES TO HAPPY LAND: unfurling from the middle out, a step at a time, as the bulbs come on
+    if (beat >= INTRO_END) g.drawImage(ribbon!, 0, 0);
+    else if (beat >= TWO_AT + 0.25) {
+      const r = Math.ceil(((beat - TWO_AT - 0.25) / (INTRO_END - TWO_AT - 0.25)) * 26) * 8;
+      const x0 = Math.max(0, WX - r), x1 = Math.min(TITLE_W, WX + r);
+      if (x1 > x0) g.drawImage(ribbon!, x0, RIBBON_Y - 2, x1 - x0, 20, x0, RIBBON_Y - 2, x1 - x0, 20);
+    }
+    g.restore();
   };
   return { draw };
 };
