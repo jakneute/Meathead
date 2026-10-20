@@ -36,6 +36,8 @@ export const stampsForStage = (stageId: string | null | undefined) => {
 };
 
 const q = (n: number) => Math.round(n * 4096) / 4096;
+/** Inside a stamp's paint (how deep). */
+let painting = 0;
 
 /**
  * Paints `paint` into the stamp `g` (L, T its device box; cw × ch its size) at scale a, d. At a scale that isn't a
@@ -68,6 +70,8 @@ const paintClean = (g: Ctx, ctx: Ctx, a: number, d: number, L: number, T: number
  * `key` names what it looks like: the same key must always mean the same picture.
  */
 export const stamp = (ctx: Ctx, key: string, x: number, y: number, w: number, h: number, paint: (g: Ctx) => void) => {
+  // (a stamp asked for while another's being painted (a sign on a painted shopfront): just painted into that one)
+  if (painting > 0) { paint(ctx); return; }
   const m = ctx.getTransform();
   if (typeof document === 'undefined' || m.b !== 0 || m.c !== 0 || Math.abs(m.a) !== Math.abs(m.d)
     || ctx.globalCompositeOperation !== 'source-over' || ctx.filter !== 'none' || ctx.shadowBlur !== 0 || ctx.shadowOffsetX !== 0 || ctx.shadowOffsetY !== 0) {
@@ -92,9 +96,10 @@ export const stamp = (ctx: Ctx, key: string, x: number, y: number, w: number, h:
       // big stall: painted afresh only once the scale holds still (asked for again at it))
       if (near) {
         const ka = a / l!.a, kd = d / l!.d;
-        ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.imageSmoothingEnabled = true; ctx.globalAlpha = 1;
-        ctx.drawImage(l!.s.c, m.e + l!.s.L * ka, m.f + l!.s.T * kd, l!.s.c.width * ka, l!.s.c.height * kd);
-        ctx.restore(); Object.assign(ctx, l!.s.after);
+        const sm = ctx.imageSmoothingEnabled;
+        ctx.imageSmoothingEnabled = true; ctx.globalAlpha = 1;
+        ctx.drawImage(l!.s.c, (l!.s.L * ka) / m.a, (l!.s.T * kd) / m.d, (l!.s.c.width * ka) / m.a, (l!.s.c.height * kd) / m.d);
+        ctx.imageSmoothingEnabled = sm; Object.assign(ctx, l!.s.after);
         return;
       }
       if (!l) { paint(ctx); return; }
@@ -105,7 +110,9 @@ export const stamp = (ctx: Ctx, key: string, x: number, y: number, w: number, h:
     const c = document.createElement('canvas'); c.width = Math.max(1, R - L); c.height = Math.max(1, B - T);
     const g = c.getContext('2d')!;
     // (it starts from the drawing state the live art would've, and leaves the one it would've)
-    const after = paintClean(g, ctx, a, d, L, T, c.width, c.height, paint);
+    painting++;
+    let after: Leaves;
+    try { after = paintClean(g, ctx, a, d, L, T, c.width, c.height, paint); } finally { painting--; }
     s = { c, L, T, after };
     stamps.set(id, s);
     bytes += c.width * c.height * 4;
@@ -117,12 +124,13 @@ export const stamp = (ctx: Ctx, key: string, x: number, y: number, w: number, h:
     }
   }
   latest.set(lk, { s, a, d });
-  ctx.save();
-  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  // (put down through the transform as it stands, at the size that lands it one stamp pixel to one screen pixel: no
+  // save, restore or transform swapped round it, which cost more than the drawImage)
+  const sm = ctx.imageSmoothingEnabled;
   // (painted on whole device pixels; put down where the art itself would've gone, between pixels when the camera is:
   // its edges soften just the way the live art's do there)
   ctx.imageSmoothingEnabled = true; ctx.globalAlpha = 1;
-  ctx.drawImage(s.c, s.L + m.e, s.T + m.f);
-  ctx.restore();
+  ctx.drawImage(s.c, s.L / m.a, s.T / m.d, s.c.width / m.a, s.c.height / m.d);
+  ctx.imageSmoothingEnabled = sm;
   Object.assign(ctx, s.after);
 };

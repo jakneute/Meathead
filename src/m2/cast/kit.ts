@@ -2,12 +2,15 @@
 // inked round every shape, lit from the left (a lighter edge), shaded down the right; feet at (0, 0), facing right
 // (the caller mirrors them). Each character (people.ts) is these, put together and dressed their own way.
 
+import { mix } from '../../m1/game/render/backdrops/core';
+
 export type Ctx = CanvasRenderingContext2D;
 export const INK = '#1A0B06';
 
 /** A color darker (toward ink) or lighter. */
 const hex = (c: string) => [1, 3, 5].map(i => parseInt(c.slice(i, i + 2), 16));
-const mixc = (a: string, b: string, k: number) => { const A = hex(a), B = hex(b); return `#${A.map((v, i) => Math.round(v + (B[i] - v) * k).toString(16).padStart(2, '0')).join('')}`; };
+// (the engine's mix (fast, the same colors) for the usual 0..1; anything else the old way)
+const mixc = (a: string, b: string, k: number) => { if (k >= 0 && k <= 1) return mix(a, b, k); const A = hex(a), B = hex(b); return `#${A.map((v, i) => Math.round(v + (B[i] - v) * k).toString(16).padStart(2, '0')).join('')}`; };
 export const dk = (c: string, k = 0.25) => mixc(c, '#1A0B06', k);
 export const lt = (c: string, k = 0.25) => mixc(c, '#FFFFFF', k);
 

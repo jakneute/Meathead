@@ -43,3 +43,7 @@ migrated_prompt_history/
 src/m1/generated/*.bin
 src/m2/generated/*.bin
 release-m1/
+
+
+# Perf harness output (tools/perf/run.mjs)
+tools/perf/out/

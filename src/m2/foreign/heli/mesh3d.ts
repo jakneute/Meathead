@@ -180,10 +180,27 @@ const variantRgb = (rgb: number[], v: View['variant'], mul: number[]) => {
   else if (v === 'wreck' || v === 'dark') { const y = r * 0.3 + g * 0.59 + b * 0.11, k = v === 'wreck' ? 0.42 : 0.55; r = (r * 0.5 + y * 0.5 * 1.07) * k; g = (g * 0.5 + y * 0.5 * 0.92) * k; b = (b * 0.5 + y * 0.5 * 0.72) * k; }
   return [r * mul[0] / 255, g * mul[1] / 255, b * mul[2] / 255].map(x => Math.max(0, Math.min(255, Math.round(x))));
 };
+/** Each look's (variant, hour) colors by material and step (index m.id * 8 + step), no key string made per lookup: a
+ *  view keeps hold of its table while its look stays the same. */
+const stepTabs = new Map<string, string[]>();
+type TabbedView = View & { _st?: string[]; _sv?: string; _sm?: string };
 const stepCol = (m: Mat, i: number, view: View) => {
-  const key = m.id + '|' + i + '|' + view.variant + '|' + view.mulKey;
-  let s = colCache.get(key);
-  if (!s) { if (colCache.size > 4000) colCache.clear(); s = 'rgb(' + variantRgb(m.ramp[Math.max(0, Math.min(4, i))], view.variant, view.mul).join(',') + ')'; colCache.set(key, s); }
+  const tv = view as TabbedView;
+  let tab = tv._st;
+  if (!tab || tv._sv !== view.variant || tv._sm !== view.mulKey) {
+    const vk = view.variant + '|' + view.mulKey;
+    tab = stepTabs.get(vk);
+    if (!tab) { if (stepTabs.size > 64) stepTabs.clear(); tab = []; stepTabs.set(vk, tab); }
+    tv._st = tab; tv._sv = view.variant; tv._sm = view.mulKey;
+  }
+  const at = m.id * 8 + i + 1;
+  let s = tab[at];
+  if (s === undefined) {
+    const key = m.id + '|' + i + '|' + view.variant + '|' + view.mulKey;
+    s = colCache.get(key);
+    if (!s) { if (colCache.size > 4000) colCache.clear(); s = 'rgb(' + variantRgb(m.ramp[Math.max(0, Math.min(4, i))], view.variant, view.mul).join(',') + ')'; colCache.set(key, s); }
+    tab[at] = s;
+  }
   return s;
 };
 /** Two steps dithered in a 2x2 checker (the SNES way between two shades). */

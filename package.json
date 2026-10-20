@@ -17,7 +17,8 @@
     "voices:m2": "node node_modules/esbuild/bin/esbuild tools/voices/m2pack.ts --bundle --platform=node --format=cjs --outfile=tools/voices/.m2pack.cjs --log-level=error --loader:.bin=empty --loader:.png=dataurl && node tools/voices/.m2pack.cjs",
     "voices:m1": "node tools/voices/m1pack.cjs",
     "release:m1": "node tools/release/build.mjs m1",
-    "voices:prune": "node tools/voices/prune.cjs"
+    "voices:prune": "node tools/voices/prune.cjs",
+    "perf": "node tools/perf/run.mjs"
   },
   "dependencies": {
     "@fontsource/press-start-2p": "^5.3.0",
@@ -31,6 +32,7 @@
     "@types/node": "^22.14.0",
     "@vitejs/plugin-react-swc": "^4.3.3",
     "electron": "^44.7.2",
+    "playwright": "^1.64.1",
     "typescript": "~5.8.2",
     "vite": "^6.2.0",
     "vite-plugin-singlefile": "^2.3.3"

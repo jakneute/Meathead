@@ -122,6 +122,8 @@ const HELIPAD = polar(ROAD_R + 60, phiOf(-2.6) + 0.15);
 /** The fireworks barge out on the lagoon (clear of where the Opera House and the moai come up). */
 const BARGE = { r: 132, a: mechAngle(4.6) };
 const MECH_AT = MECHS.map((_, i) => polar(R_MECH, mechAngle(i)));
+/** Inside this (squared) of a plinth's middle, its paving or the gravel ring round it (groundAt). */
+const NEAR_PAD2 = (PAD_R + 9) * (PAD_R + 9);
 
 // ---------------------------------------------------------------------------------------------------------------
 // The floor: Mode 7, row by row, chunky (a quarter size, blown up); every surface in stepped ramps, dithered (a checker
@@ -192,9 +194,11 @@ const plazaAt = (id: PavId, x: number, z: number, r: number, a: number, par: num
 };
 
 interface Ruin { ax: number; az: number; dx: number; dz: number; l2: number }
+/** The lagoon's depth steps (radii). */
+const LAGOON_STEPS = [80, 135, 180, 205];
 /** The ground at world (x, z): its color. `dead[i]`: the i-th landmark's plinth scorched; `ruin` the scorched paths. */
 const groundAt = (x: number, z: number, f6: number, dead: boolean[], ruin: Ruin[], par: number): number[] => {
-  const r = Math.hypot(x, z);
+  const r = Math.sqrt(x * x + z * z);
   if (r < LAGOON_R) {
     // (the lagoon: deeper toward the middle in steps, dithered where they meet; ripples glinting, drifting; foam along
     // the coping)
@@ -202,7 +206,7 @@ const groundAt = (x: number, z: number, f6: number, dead: boolean[], ruin: Ruin[
     if (g > 0.955) return GLINT;
     if (g > 0.925) return GLINT2;
     if (r > LAGOON_R - 6) return par ? FOAM : WATER[4];
-    const edges = [80, 135, 180, 205];
+    const edges = LAGOON_STEPS;
     let i = 0; while (i < 4 && r > edges[i]) i++;
     for (let e = 0; e < 4; e++) if (Math.abs(r - edges[e]) < 6) return WATER[par ? e : e + 1];
     return WATER[i];
@@ -214,9 +218,10 @@ const groundAt = (x: number, z: number, f6: number, dead: boolean[], ruin: Ruin[
     if (r > PROM_R1 - 4) return COPING[0];
     return h > 0.85 ? PAVER[3] : h > 0.45 ? PAVER[2] : h > 0.12 ? PAVER[1] : PAVER[0];
   }
-  const a = Math.atan2(x, z);
+  // (the angle round the park only where it's wanted: the plazas, the road, the lot; not the lawn, the hedge, the fields)
   let col: number[];
   if (r < HEDGE_R0) {
+    const a = Math.atan2(x, z);
     // (the pavilions' plazas, each in its own paving, a path up its middle; a lawn strip between them, its flowerbeds)
     const { j, off } = plazaOf(a);
     if (off > 0.43) {
@@ -234,7 +239,10 @@ const groundAt = (x: number, z: number, f6: number, dead: boolean[], ruin: Ruin[
     col = LAWN[0];
     let done = false;
     for (let i = 0; i < MECH_AT.length; i++) {
-      const p = MECH_AT[i], d = Math.hypot(x - p.x, z - p.z);
+      const p = MECH_AT[i], ox = x - p.x, oz = z - p.z, d2 = ox * ox + oz * oz;
+      // (the far ones out at once, before a square root)
+      if (d2 >= NEAR_PAD2) continue;
+      const d = Math.sqrt(d2);
       if (d < PAD_R) {
         if (dead[i]) {
           const e = hash2(Math.floor(x / 12), Math.floor(z / 12) + f6 * 0.3);
@@ -246,7 +254,7 @@ const groundAt = (x: number, z: number, f6: number, dead: boolean[], ruin: Ruin[
       if (d < PAD_R + 9) { col = d > PAD_R + 6 ? GRAVEL[0] : par ? GRAVEL[1] : GRAVEL[2]; done = true; break; }
     }
     if (!done) {
-      const hx = x - HELIPAD.x, hz = z - HELIPAD.z, hp = Math.hypot(hx, hz);
+      const hx = x - HELIPAD.x, hz = z - HELIPAD.z, hp = Math.sqrt(hx * hx + hz * hz);
       if (hp < 60) col = (hp > 50 && hp < 56) || (Math.abs(hx) < 18 && Math.abs(hz) < 5) || (Math.abs(hz) < 22 && Math.abs(Math.abs(hx) - 15) < 4) ? PAD_LINE : hp > 56 ? PAD[0] : (Math.floor(hx / 20) + Math.floor(hz / 20)) & 1 ? PAD[1] : PAD[2];
       else {
         const s = r / 34, fr = s - Math.floor(s), band = Math.floor(s) & 1;
@@ -257,6 +265,7 @@ const groundAt = (x: number, z: number, f6: number, dead: boolean[], ruin: Ruin[
   } else if (r < ROAD_R - ROAD_HALF) col = r < ROAD_R - ROAD_HALF - 3 ? CURB[2] : CURB[0];
   else if (r < ROAD_R + ROAD_HALF) {
     // (the service road: asphalt in patches, the dashed yellow line down its middle, the white edge lines)
+    const a = Math.atan2(x, z);
     if (Math.abs(r - ROAD_R) < 1.6 && (Math.floor((a * ROAD_R) / 22) & 1)) col = ROAD_LINE;
     else if (Math.abs(Math.abs(r - ROAD_R) - (ROAD_HALF - 2.5)) < 1) col = ROAD_EDGE;
     else { const h = hash2(Math.floor(x / 34), Math.floor(z / 34)); col = h > 0.8 ? ROADC[2] : h > 0.3 ? ROADC[1] : ROADC[0]; }
@@ -264,7 +273,7 @@ const groundAt = (x: number, z: number, f6: number, dead: boolean[], ruin: Ruin[
   else if (r < LOT_R1) {
     // (the parking lot: rows of stalls, cars parked in some (the roof lit, the glass front and back, the shaded side);
     // the asphalt patched)
-    const row = (r - LOT_R0) % 120, al = (((a * r) % 34) + 34) % 34;
+    const a = Math.atan2(x, z), row = (r - LOT_R0) % 120, al = (((a * r) % 34) + 34) % 34;
     col = hash2(Math.floor(x / 50), Math.floor(z / 50)) > 0.7 ? LOT[2] : par && hash2(Math.floor(x / 12), Math.floor(z / 12)) > 0.8 ? LOT[0] : LOT[1];
     if (row < 3 || ((row < 46 || row > 74) && al < 1.6)) col = LOT_LINE;
     else if ((row > 8 && row < 40) || (row > 80 && row < 112)) {
@@ -316,21 +325,24 @@ const drawFloor = (c: Ctx, cam: Cam, f: number, dead: boolean[], mul: number[], 
     B.key = baseKey;
     if (B.x.length !== N) { B.x = new Float32Array(N); B.z = new Float32Array(N); B.r = new Float32Array(N); B.fog = new Float32Array(N); B.col = new Uint8Array(N * 3); B.kind = new Uint8Array(N); }
     B.kind.fill(0);
+    // (the wrecked plinths, for the pixels on them)
+    const deadAt = MECH_AT.filter((_, k) => dead[k]);
+    const onDeadPad = (x: number, z: number) => { for (const p of deadAt) { const ox = x - p.x, oz = z - p.z; if (ox * ox + oz * oz < PAD_R * PAD_R) return true; } return false; };
     for (let ry = 0; ry < FH; ry++) {
       const sy = ry * FS + FS / 2, yr = -(sy - cam.ppy) / cam.F;
       const dy = yr * cam.uy + cam.fy;
       if (dy > -0.0008) continue;
-      const dz = yr * cam.uz + cam.fz, t = -cam.hc / dy;
+      const dz = yr * cam.uz + cam.fz, t = -cam.hc / dy, dz2 = dz * dz + dy * dy;
       for (let rx = 0; rx < FW; rx++) {
         const xr = (rx * FS + FS / 2 - cam.ppx) / cam.F;
         const X = t * xr, Zp = DC + t * dz;
         const x = X * cam.cos + Zp * cam.sin, z = -X * cam.sin + Zp * cam.cos;
-        const dist = t * Math.hypot(xr, dz, dy), par = (rx + ry) & 1, i = ry * FW + rx, r = Math.hypot(x, z);
+        const dist = t * Math.sqrt(xr * xr + dz2), par = (rx + ry) & 1, i = ry * FW + rx, r = Math.sqrt(x * x + z * z);
         const col = groundAt(x, z, 0, dead, NO_RUIN, par);
         B.x[i] = x; B.z[i] = z; B.r[i] = r; B.fog[i] = fogOf(dist, par);
         B.col[i * 3] = col[0]; B.col[i * 3 + 1] = col[1]; B.col[i * 3 + 2] = col[2];
         // (1: nothing moves here; 2: it does (the lagoon's glints, a wrecked plinth's embers); 3: where a trail can go)
-        B.kind[i] = r < LAGOON_R || dead.some((dd, k) => dd && Math.hypot(x - MECH_AT[k].x, z - MECH_AT[k].z) < PAD_R) ? 2 : r >= PROM_R1 && r < LOT_R1 + 100 ? 3 : 1;
+        B.kind[i] = r < LAGOON_R || onDeadPad(x, z) ? 2 : r >= PROM_R1 && r < LOT_R1 + 100 ? 3 : 1;
       }
     }
     floorKey = '';

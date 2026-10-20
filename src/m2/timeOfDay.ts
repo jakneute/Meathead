@@ -177,10 +177,38 @@ export const skyRamp = (cols: string[], tod = timeOfDay(), top = 0, bottom = 1) 
 /** A cloud's color, lit by the hour. */
 export const cloudTint = (col: string, tod = timeOfDay()) => multiply(col, tod.cloud);
 /** Far scenery (hills, a skyline) the hour's way: into the haze a little, under its light. `k`: how much (1 = far). */
+// (asked for the same few hundred colors thousands of times a frame: each worked out once an hour's look, kept)
+let farTod: TimeOfDay | null = null;
+const farMemo = new Map<string, string>();
 export const farTint = (col: string, k = 1, tod = timeOfDay()) => {
-  const lit = multiply(col, tod.mul);
-  const hazeK = (tod.skyK - 0.1) * 0.35 * k;
-  return hazeK > 0.01 ? mix(lit, tod.haze, hazeK) : lit;
+  if (tod !== farTod) { farTod = tod; farMemo.clear(); }
+  const key = k === 1 ? col : col + '|' + k;
+  let v = farMemo.get(key);
+  if (v === undefined) {
+    const lit = multiply(col, tod.mul);
+    const hazeK = (tod.skyK - 0.1) * 0.35 * k;
+    v = hazeK > 0.01 ? mix(lit, tod.haze, hazeK) : lit;
+    if (farMemo.size > 8192) farMemo.clear();
+    farMemo.set(key, v);
+  }
+  return v;
+};
+/**
+ * A color helper that depends only on the color (and an optional number) and the hour's look (a land's `dimmed`, its
+ * `hour`), worked out once per color per look and kept: the same colors out, without the half-dozen mixes a call every
+ * time. Only for helpers that read nothing but their arguments and timeOfDay().
+ */
+export const hourly = (f: (col: string, k?: number) => string) => {
+  let at: TimeOfDay | null = null;
+  const memo = new Map<string, string>();
+  return (col: string, k?: number) => {
+    const tod = timeOfDay();
+    if (tod !== at) { at = tod; memo.clear(); }
+    const key = k === undefined ? col : col + '|' + k;
+    let v = memo.get(key);
+    if (v === undefined) { v = f(col, k); if (memo.size > 8192) memo.clear(); memo.set(key, v); }
+    return v;
+  };
 };
 /** The hour's sun, for a scene that put its sun at (x, y) over a horizon at `horizon` (screen y): where it is now
  * (sunk toward the horizon), whether it's up at all (0..1), and its colors. */

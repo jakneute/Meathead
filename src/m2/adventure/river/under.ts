@@ -14,6 +14,7 @@ import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { SECTIONS } from '../geometry';
 import { timeOfDay, type TimeOfDay } from '../../timeOfDay';
 import { box, ramp, rampOf, mix, dark, lite, checker, steppedGlow, stamp, hash, sign, INK, PIX } from '../../intro/art/kit';
+import { checkerFill } from '../../../m1/game/render/pixelArt';
 import { signAt, stencil, dino, enamel, graffiti as graffitiLook } from '../letters';
 import type { River } from './index';
 import { WS, CEIL, DOCK, FALLS, TUNNEL, POCKETS, POCKET_TOP, TANK, PIPE, BED, bedAt, roofAt, PROPS, VENTS, EELS, eelMouth, EEL_HOLE } from './course';
@@ -145,13 +146,17 @@ const wave = (c: Ctx, v: V, wx0: number, wx1: number, wy0: number, wy1: number) 
   c.save(); c.setTransform(1, 0, 0, 1, 0, 0);
   c.beginPath(); c.rect(dx0, dy0, w, h); c.clip();
   c.imageSmoothingEnabled = false;
+  // (strips next to each other shifted the same go down as one: the same picture, a fraction of the drawImages)
+  let runY = -1, runOff = 0;
+  const flush = (end: number) => { if (runY >= 0 && runOff) c.drawImage(waveBuf!, 0, runY, w, end - runY, dx0 + runOff, dy0 + runY, w, end - runY); };
   for (let y = 0; y < h; y += step) {
     const wy = (dy0 + y - m.f) / m.d, d = wy - WS;
     // (a gentle sway near the top, a little more down deep: whole pixels of the art, never in between)
     const amp = 1.6 + Math.min(1.4, d / 260);
     const off = Math.round(Math.sin(wy * 0.055 + v.f * 0.05) * amp + Math.sin(wy * 0.019 - v.f * 0.027) * 1.1) * unit;
-    if (off) c.drawImage(waveBuf, 0, y, w, Math.min(step, h - y), dx0 + off, dy0 + y, w, Math.min(step, h - y));
+    if (runY < 0 || off !== runOff) { flush(y); runY = y; runOff = off; }
   }
+  flush(h);
   c.restore();
 };
 
@@ -422,16 +427,27 @@ const drawRidges = (c: Ctx, v: V) => {
     const lit = mix(col, waterAt('open', 0.1, v.tod), 0.5), deep = mix(col, '#03121A', 0.35), deeper = mix(col, '#03121A', 0.6);
     const hAt = (u: number) => 40 + 50 * (0.5 + 0.5 * Math.sin(u * 0.006 + s * 9) * Math.cos(u * 0.0023 + s * 3)) + 14 * Math.sin(u * 0.031 + s);
     const yAt = (x: number) => Math.round((base - hAt((x - ox) / s)) * s + oy);
+    // (column by column, each layer of every column gathered into one path and filled once (the columns never overlap,
+    // so it's the same picture): a few fills, where it was well over a thousand)
+    const R0: number[] = [], R1: number[] = [], R2: number[] = [], R3: number[] = [], R4: number[] = [], R5: number[] = [], R6: number[] = [], R7: number[] = [];
     for (let x = Math.floor(a / 4) * 4; x < b; x += 4) {
       const y = yAt(x), yn = yAt(x + 4);
-      box(c, x, y, 4, v.b - y + 4, col);
+      R0.push(x, y, Math.round(v.b - y + 4));
       // (bands going down: dithered into each other)
-      box(c, x, y + 28, 4, v.b - y, deep); checker(c, x, y + 26, 4, 2, deep);
-      box(c, x, y + 64, 4, v.b - y, deeper); checker(c, x, y + 62, 4, 2, deeper);
+      R1.push(x, y + 28, Math.round(v.b - y)); R2.push(x, y + 26, 2);
+      R3.push(x, y + 64, Math.round(v.b - y)); R4.push(x, y + 62, 2);
       // (the crest: lit where it climbs to the right, a rim either way)
-      if (yn < y) { box(c, x, y, 4, 6, lit); checker(c, x, y + 6, 4, 2, lit); }
-      box(c, x, y, 4, 2, rim);
+      if (yn < y) { R5.push(x, y, 6); R6.push(x, y + 6, 2); }
+      R7.push(x, y, 2);
     }
+    const cols = (R: number[], fill: string | CanvasPattern) => {
+      if (!R.length) return;
+      c.fillStyle = fill; c.beginPath();
+      for (let i = 0; i < R.length; i += 3) c.rect(R[i], R[i + 1], 4, R[i + 2]);
+      c.fill();
+    };
+    cols(R0, col); cols(R1, deep); cols(R2, checkerFill(c, deep)); cols(R3, deeper); cols(R4, checkerFill(c, deeper));
+    cols(R5, lit); cols(R6, checkerFill(c, lit)); cols(R7, rim);
     // (boulders along the crest, kelp off it: each at a world x on this plane, so it slides with it)
     const ua = (a - ox) / s, ub = (b - ox) / s, step = 46;
     for (let u = Math.floor(ua / step) * step; u < ub + step; u += step) {

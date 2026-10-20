@@ -55,6 +55,9 @@ export const brickPattern = (ctx: Ctx, key: string, brick: number, course: numbe
   }
 });
 
+/** The checkerboard fill itself (checker's), for art that gathers many rects into one path and fills them at once. */
+export const checkerFill = (ctx: Ctx, color: string, phase = 0, px = PIX) => checkerPattern(ctx, color, phase, px);
+
 /** Fills (x, y, w, h) with a checkerboard of `color` (half the cells), for dithering one fill into another. */
 export const checker = (ctx: Ctx, x: number, y: number, w: number, h: number, color: string, phase = 0, px = PIX) => {
   if (typeof document === 'undefined') return;

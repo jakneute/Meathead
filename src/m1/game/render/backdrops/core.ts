@@ -40,10 +40,30 @@ export const hash = (n: number) => {
 // (a color that isn't one (a palette read past its end somewhere) mixes as a mid gray rather than throwing: one bad
 // read was taking whole frames down (DRAW FAILED))
 const toRgb = (hex: string) => (typeof hex === 'string' && hex[0] === '#' ? [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16)) : [128, 128, 128]);
+// (the art mixes thousands of colours a frame, so: each colour's parsed the once (a plain #rrggbb, packed in one
+// number), and the result put together from a table, no arrays made; the same colours out as ever. Anything else,
+// the slow way, as it always was)
+const HEX2 = Array.from({ length: 256 }, (_, i) => i.toString(16).padStart(2, '0'));
+const packed = new Map<string, number>();
+const SIX = /^#[0-9a-fA-F]{6}/;
+const packOf = (hex: string) => {
+  let v = packed.get(hex);
+  if (v === undefined) {
+    v = typeof hex === 'string' && SIX.test(hex) ? parseInt(hex.slice(1, 7), 16) : -1;
+    if (packed.size > 8192) packed.clear();
+    packed.set(hex, v);
+  }
+  return v;
+};
 export const mix = (a: string, b: string, t: number) => {
-  const pa = toRgb(a), pb = toRgb(b);
+  const A = packOf(a), B = packOf(b);
   const k = Math.max(0, Math.min(1, t));
-  return '#' + pa.map((v, i) => Math.round(v + (pb[i] - v) * k).toString(16).padStart(2, '0')).join('');
+  if (A < 0 || B < 0) {
+    const pa = toRgb(a), pb = toRgb(b);
+    return '#' + pa.map((v, i) => Math.round(v + (pb[i] - v) * k).toString(16).padStart(2, '0')).join('');
+  }
+  const ar = A >> 16, ag = (A >> 8) & 255, ab = A & 255, br = B >> 16, bg = (B >> 8) & 255, bb = B & 255;
+  return '#' + HEX2[Math.round(ar + (br - ar) * k)] + HEX2[Math.round(ag + (bg - ag) * k)] + HEX2[Math.round(ab + (bb - ab) * k)];
 };
 
 /** A colour picked along a list of stops (0..1). */

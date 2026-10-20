@@ -6,7 +6,7 @@
 import type { GameState } from '../../m1/game/core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../m1/constants';
 import { mix } from '../../m1/game/render/backdrops/core';
-import { drawTodSky, timeOfDay, farTint, hourMix } from '../timeOfDay';
+import { drawTodSky, timeOfDay, farTint, hourMix, hourly } from '../timeOfDay';
 import { signText, signW, type Look } from '../signLetters';
 import { box } from '../adventure/section';
 import { stamp, checker } from '../intro/art/kit';
@@ -103,9 +103,9 @@ export const PINE = ['#0A1816', '#142C28', '#1E423A', '#2A5A4C', '#3E7660', '#62
 export const LIP = ['#5A4630', '#A08058', '#F2D79A', '#FFF6D8'];
 
 /** A color for the hour, near (barely into the haze). */
-export const hour = (col: string, k = 0.12) => farTint(hourMix(col, mix(col, '#7A4A6A', 0.14), mix(col, '#141832', 0.34)), k);
+export const hour = hourly((col: string, k = 0.12) => farTint(hourMix(col, mix(col, '#7A4A6A', 0.14), mix(col, '#141832', 0.34)), k));
 /** Scenery's (dimmed a step toward the cold air: none of it reads as somewhere to stand). */
-export const dimmed = (col: string) => { const tod = timeOfDay(); return mix(mix(farTint(hourMix(col, mix(col, '#5A3A5A', 0.16), mix(col, '#0E1024', 0.4), tod), 0.35, tod), '#4A4660', 0.16), tod.haze, 0.06); };
+export const dimmed = hourly((col: string) => { const tod = timeOfDay(); return mix(mix(farTint(hourMix(col, mix(col, '#5A3A5A', 0.16), mix(col, '#0E1024', 0.4), tod), 0.35, tod), '#4A4660', 0.16), tod.haze, 0.06); });
 /** A ramp for the hour, near or dimmed. */
 export const rampH = (R: string[], scenery = false) => R.map(scenery ? dimmed : (col: string) => hour(col));
 /** After dark (the lamps, the windows). */

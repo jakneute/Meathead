@@ -23,15 +23,23 @@ export default defineConfig(({ mode }) => ({
     port: 3000,
     host: '0.0.0.0',
   },
+  // (the dev server's dependency scan: just the two games' pages, never the built ones in release-m1/ and release-m2/
+  // (100+ MB each), which it would otherwise crawl for minutes whenever its cache is stale)
+  optimizeDeps: { entries: ['index.html', 'meathead2.html'] },
   plugins: [
     ...(mode === 'steam' ? [externalVoices()] : []),
     react(), tailwindcss(),
     ...(mode === 'release' || mode === 'public' || mode === 'steam' || mode === 'm2' || mode === 'm2public' ? [viteSingleFile()] : []),
-    ...(mode === 'm2' || mode === 'm2public' ? [m2Stub()] : []),
+    ...(mode === 'm2' || mode === 'm2public' || mode === 'perf' ? [m2Stub()] : []),
   ],
+  // (`--mode perf`: tools/perf/run.mjs's Meathead 2, built as the release is (React's production build, Meathead 1's
+  // content left out) but with the dev starts (?fantasy=31 and the like) and hooks on, unminified, in loose files;
+  // each into a folder of its own under .build/perf/, never shipped)
+  ...(mode === 'perf' ? { define: { 'import.meta.env.DEV': 'true' } } : {}),
   // (`--mode m2`: Meathead 2, from meathead2.html, into a folder of its own)
   // (each into .build/<mode>/; tools/release/build.mjs moves the page into release-m1/ or release-m2/)
   build: mode === 'release' || mode === 'public' ? { outDir: `.build/${mode}`, emptyOutDir: true }
     : mode === 'steam' ? { outDir: '.steam-build/page', emptyOutDir: true }
-    : mode === 'm2' || mode === 'm2public' ? { outDir: `.build/${mode}`, emptyOutDir: true, rollupOptions: { input: 'meathead2.html' } } : {},
+    : mode === 'm2' || mode === 'm2public' ? { outDir: `.build/${mode}`, emptyOutDir: true, rollupOptions: { input: 'meathead2.html' } }
+    : mode === 'perf' ? { outDir: process.env.MEATHEAD_PERF_OUT ?? '.build/perf', emptyOutDir: true, minify: false, rollupOptions: { input: 'meathead2.html' } } : {},
 }));

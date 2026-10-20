@@ -196,6 +196,10 @@ const render = (c: Ctx, cam: Cam, id: MechId, i: number, at: { x: number; z: num
 // The still ones, painted once (till the camera or the hour moves)
 
 const cache = new Map<number, { key: string; cv: HTMLCanvasElement; x: number; y: number }>();
+/** The view each one was last asked for in: it's only painted into its picture once asked for twice running in the same
+ *  one (the camera held still); while the camera moves, every frame's view is new, and painting a picture of it only to
+ *  put it down once cost more than drawing it live. */
+const seenAt = new Map<number, string>();
 const still = (L: MechLook) => !!L.wreck || ((!!L.plinth || (!L.awake && L.legs === undefined)) && !L.sink && !L.shake && !L.flash && eyesOf(L) !== 'open');
 
 /** A landmark out on the circuit (screen space, the park's camera): at its ground point; walking in, its feet. */
@@ -203,6 +207,9 @@ export const drawLandmark = (c: Ctx, cam: Cam, id: MechId, i: number, at: { x: n
   if (still(L) && typeof document !== 'undefined') {
     const key = [cam.phi.toFixed(5), cam.hc.toFixed(2), cam.F.toFixed(2), cam.ppx.toFixed(1), cam.ppy.toFixed(1), timeOfDay().key, L.wreck ? 'w' : 'p', eyesOf(L), at.x.toFixed(1), at.z.toFixed(1)].join('|');
     let e = cache.get(i);
+    const again = seenAt.get(i) === key;
+    seenAt.set(i, key);
+    if ((!e || e.key !== key) && !again) { render(c, cam, id, i, at, { ...L, f: 0 }, undefined, 0); smokeOver(c, cam, at, L); return; }
     if (!e || e.key !== key) {
       // (its bounds on screen: put through once to find them)
       const P = emptyPrep(), view = viewOf(cam, 0), { R, F } = axesOf(i);
@@ -220,10 +227,14 @@ export const drawLandmark = (c: Ctx, cam: Cam, id: MechId, i: number, at: { x: n
       cache.set(i, e);
     }
     c.drawImage(e.cv, e.x, e.y);
-    if (L.wreck) { const q = proj(cam, at.x, 0, at.z); c.save(); c.translate(q.x, q.y); c.scale(q.k, q.k); smoke(c, L.f); c.restore(); }
+    smokeOver(c, cam, at, L);
     return;
   }
   render(c, cam, id, i, at, L, feet, L.f);
+};
+/** A wreck's smoke, over its picture. */
+const smokeOver = (c: Ctx, cam: Cam, at: { x: number; z: number }, L: MechLook) => {
+  if (L.wreck) { const q = proj(cam, at.x, 0, at.z); c.save(); c.translate(q.x, q.y); c.scale(q.k, q.k); smoke(c, L.f); c.restore(); }
 };
 
 /** The one he's fighting (world space: drawn where its boxes are, BASE). */

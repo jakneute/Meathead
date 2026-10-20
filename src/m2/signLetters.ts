@@ -12,6 +12,7 @@
 
 import { glyphDots } from './space/square/lettering';
 import { mix } from '../m1/game/render/backdrops/core';
+import { stamp } from '../m1/game/render/stamp';
 
 type Ctx = CanvasRenderingContext2D;
 export type Align = 'center' | 'left' | 'right';
@@ -141,8 +142,17 @@ const checkerOf = (col: string): CanvasPattern | null => {
 
 const h01 = (n: number) => { const s = Math.sin(n * 91.7 + 13.1) * 43758.5453; return s - Math.floor(s); };
 
-/** Sets `text` in a look: x its anchor (`align`), y its baseline. */
+/** Sets `text` in a look: x its anchor (`align`), y its baseline. A stamp of it (render/stamp: painted once, put down
+ *  with one drawImage after; a sign's hundreds of little fills were a good part of some frames), keyed by everything
+ *  that makes it look the way it does: the words, the look, and where it's set (its dither's laid on the pixel grid). */
 export const signText = (c: Ctx, text: string, x: number, y: number, L: Look, align: Align = 'center') => {
+  if (!text) return;
+  const W = signW(text, L), H = 7 * (L.sy ?? 1);
+  const x0 = Math.round(align === 'center' ? x - W / 2 : align === 'right' ? x - W : x), top = Math.round(y) - H;
+  const wob = Math.ceil(L.wobble ?? 0) * 2, pad = 6 + wob + (L.drop ?? 1), foot = L.drip ? (L.drip.len ?? (L.sy ?? 1) * 4) + 4 : 0;
+  stamp(c, `sign|${text}|${x0},${top}|${align}|${JSON.stringify(L)}`, x0 - pad, top - pad, W + pad * 2, H + pad * 2 + foot, g => setLive(g, text, x, y, L, align));
+};
+const setLive = (c: Ctx, text: string, x: number, y: number, L: Look, align: Align) => {
   const sx = L.sx ?? 1, sy = L.sy ?? 1, sl = L.slant ?? 0, seed = L.seed ?? 0;
   const { cells } = layout(text, L);
   if (!cells.length) return;

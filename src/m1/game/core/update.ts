@@ -649,18 +649,36 @@ const ammoTarget = (state: FrameContext['state']): WeaponType | null => {
   return best;
 };
 
+/** The blocks' boxes, read once a frame into one flat array (x, right, y, bottom; a pit's NaN, so nothing lands on
+ *  it) for the pickups to land on: every pickup in the stage against every block, read off the blocks themselves (all
+ *  shapes of object), was a good part of a frame in the long lands. */
+let blockBox = new Float64Array(0);
 const updatePickups = (ctx: FrameContext) => {
   const { state } = ctx;
   const { player } = state;
+  const blocks = state.blocks, nb = blocks.length;
+  if (state.pickups.length) {
+    if (blockBox.length < nb * 4) blockBox = new Float64Array(nb * 8);
+    for (let i = 0; i < nb; i++) {
+      const b = blocks[i], o = i * 4;
+      if (b.type === 'pit') { blockBox[o] = NaN; continue; }
+      blockBox[o] = b.x; blockBox[o + 1] = b.x + b.w; blockBox[o + 2] = b.y; blockBox[o + 3] = b.y + b.h;
+    }
+  }
   state.pickups = state.pickups.filter(p => {
     p.vel.y += GRAVITY;
     p.pos.x += p.vel.x;
     p.pos.y += p.vel.y;
     p.vel.x *= 0.9;
     p.life--;
-    state.blocks.forEach(b => {
-      if (b.type !== 'pit' && rectsOverlap(boundsOf(p), b)) { p.pos.y = b.y - p.height; p.vel.y = 0; }
-    });
+    // (against every block: no box made per block (a stage of thousands of blocks, a few pickups out: it added up))
+    const px = p.pos.x, pw = p.width, ph = p.height;
+    let py = p.pos.y;
+    const B = blockBox, pr = px + pw;
+    for (let o = 0; o < nb * 4; o += 4) {
+      // (a pit's NaN: every comparison with it false)
+      if (px < B[o + 1] && pr > B[o] && py < B[o + 3] && py + ph > B[o + 2]) { p.pos.y = py = B[o + 2] - ph; p.vel.y = 0; }
+    }
     // Down in lava: it melts (a hiss, a flare, a puff of smoke, gone)
     const cx = p.pos.x + p.width / 2, lava = state.groundRuns.find(r => r.surface === 'lava' && cx > r.x1 && cx < r.x2);
     if (lava && p.pos.y + p.height >= runYAt(lava, cx) - 4) {
