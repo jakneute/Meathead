@@ -14,6 +14,7 @@ import { type RangeLook, range, mist, snap2, wave, jag, palm as farPalm, fillUnd
 import { type Ctx, INK, box, checker, mix, hash, stamp, poly, bandedGradient, hazeBands, pixelBlob, signText, words, plain, deco } from './kit';
 import { hillside } from '../../hub/letters';
 import { HWX } from '../geometry';
+import { drawHwSky, drawHwHorizon, drawHwLandmarks } from '../landmarks';
 
 const W = CANVAS_WIDTH, H = CANVAS_HEIGHT;
 
@@ -393,16 +394,20 @@ export const drawFar = (c: Ctx, state: GameState, along: number) => {
   drawTodSky(c, 0, 0, W, H, SKY, { bands: 16, horizon: hz, sun: [620, 120], moon: [160, 90], t: f, scroll: cam * 0.02 });
   // (the smog: brown along the horizon, thinning upward; less after dark)
   hazeBands(c, 0, Math.round(hz - 190), W, 190, hourMix('#B89A72', '#C88A62', '#2E2C44', tod), 0, 0.3, 7);
+  // (the sky kept busy: clouds, Steve's blimp, the banner plane, the searchlights after dark)
+  drawHwSky(c, state, hz);
   tile(c, `hb-mtn-${tod.key}`, cam * 0.003 + 300, hz - MH + 30, MH, TW, g => paintMountains(g, tod));
+  // (the park's horizon past the hill: the neighbors, Space Needle 2's shaft)
+  drawHwHorizon(c, state, hz + 16);
   drawHill(c, 560 - (cam - HWX) * 0.004, hz + 18, f);
   tile(c, `hb-foot-${tod.key}`, cam * 0.008 + 140, hz - FH + 40, FH, TW, g => paintFoothills(g, tod));
   hazeBands(c, 0, Math.round(hz - 70), W, 80, hourMix('#C4A07A', '#C8865E', '#2A2840', tod), 0.04, 0.26, 5);
   tile(c, `hb-city-${tod.key}`, cam * 0.022 + 520, hz - CH + 26, CH, TW, g => paintCity(g, tod));
+  // (the land's own attractions over the rooftops: Thrones of the Stars ahead, the rest further on)
+  drawHwLandmarks(c, state, hz + 20);
   tile(c, `hb-lot-${tod.key}`, cam * 0.055 + 80, hz - SH + 48, SH, LW, g => paintLot(g, tod));
-  // (the coaster: rising out of the far end of the boulevard as he gets near it, on the lot's ground)
-  const T = farCol(tod, 0.22 * (1 - along));
-  farCoaster(c, 1280 - along * 920, hz + 26, 0.4 + along * 0.6, T('#7A8496'));
   tile(c, `hb-palms-${tod.key}`, cam * 0.11 + 400, hz - PH + 64, PH, PW, g => paintPalms(g, tod));
+  void along;
   // (under it all, down to the bottom: the far street's ground, banded darker nearer)
   const T2 = farCol(tod, 0.1), top = Math.round(hz + 64);
   if (top < H) bandedGradient(c, 0, top, W, H - top, [T2('#7A7068'), T2('#625A54'), T2('#4E4844'), T2('#3E3A38')], 6);

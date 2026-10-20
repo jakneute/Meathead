@@ -21,6 +21,7 @@ import { FIRE } from '../disaster/paint';
 import { R, DOWNHILL, CLIMB } from './layout';
 import { spent } from './hazards';
 import { LAVA_R, flame } from './paint';
+import { drawHwSky, drawHwHorizon, drawHwLandmarks } from '../landmarks';
 
 const W = CANVAS_WIDTH, H = CANVAS_HEIGHT;
 /** The camera's rest (y), the eye's line on screen at rest, how far the play plane's ground is under it. */
@@ -231,7 +232,11 @@ export const drawHavocFar = (c: Ctx, state: GameState) => {
     const T2 = farCol(tod, k);
     bandedOf(c, 0, Math.round(y), W, H - Math.round(y), [T2(base), T2(mix(base, '#3A3236', 0.18)), T2(mix(base, '#3A3236', 0.32))], 4);
   };
+  // (a news helicopter circling it all)
+  drawHwSky(c, state, hz, 'real', false);
   tile(c, `hb-mtn-${tod.key}`, cam * K.mtn + 300, groundAt(K.mtn) - FAR.MH + 10 + drop(K.mtn), FAR.MH, FAR.TW, g => paintMountains(g, tod));
+  // (the park's horizon past the hill, Space Needle 2's shaft lost up in the storm)
+  drawHwHorizon(c, state, groundAt(0.0035) + 4 + drop(0.0035), 150);
   // (the HAPPYWOOD hill, erupting, till he's up on it: it sinks away behind the city as he climbs)
   const sink = Math.max(0, Math.min(1, (rx - 6000) / 2200)) * 330;
   if (sink < 330) {
@@ -250,6 +255,8 @@ export const drawHavocFar = (c: Ctx, state: GameState) => {
     const sx = ((k * 211 + 90 - cam * K.city) % 900 + 900) % 900 - 50, sy = groundAt(K.city) + drop(K.city);
     if (done) smokeWisp(c, sx, sy, f, k); else smoke(c, sx, sy, f, k);
   }
+  // (the land's attractions round it: Disaster: The Ride and Thrones back the way he came, the Stuntery ahead)
+  drawHwLandmarks(c, state, groundAt(0.03) + drop(0.03));
   tile(c, `hb-lot-${tod.key}`, cam * K.lot + 1000, groundAt(K.lot) - (FAR.SH - FAR.SG) + drop(K.lot), FAR.SH, FAR.LW, g => paintLot(g, tod));
   under(groundAt(K.lot) + FAR.SG + drop(K.lot), 0.2, '#6A6466');
   tile(c, `hb-palms-${tod.key}`, cam * K.palms + 900, groundAt(K.palms) - (FAR.PH - FAR.PG) + drop(K.palms), FAR.PH, FAR.PW, g => paintPalms(g, tod));

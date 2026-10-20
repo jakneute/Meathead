@@ -18,6 +18,7 @@ import { drawSteve } from './steve';
 import { GY, CAM_ROW } from './arena';
 import { type Ctx, INK, box, checker, mix, hash, poly, timeOfDay, hourMix, skyAt, words, deco, plain, STEVE, bunting, wisp, EYE_UP } from './paint';
 import { hazeBands, bandedGradient, steppedGlow } from '../blvd/kit';
+import { drawHwSky, drawHwHorizon, drawHwLandmarks } from '../landmarks';
 
 const W = CANVAS_WIDTH, H = CANVAS_HEIGHT;
 /** The camera's rest (y), the eye's line on screen at rest. */
@@ -159,12 +160,17 @@ export const drawStuntFar = (c: Ctx, state: GameState) => {
     const T2 = farCol(tod, k);
     bandedGradient(c, 0, Math.round(y), W, H - Math.round(y), [T2(base), T2(mix(base, '#3A3236', 0.18)), T2(mix(base, '#3A3236', 0.32))], 4);
   };
+  drawHwSky(c, state, hz, realDisastersOn(state) && !isLandCleared('hollywood') ? 'real' : 'calm');
   tile(c, `hb-mtn-${tod.key}`, cam * K.mtn + 300, groundAt(K.mtn) - FAR.MH + 10 + drop(K.mtn), FAR.MH, FAR.TW, g => paintMountains(g, tod));
-  drawHill(c, 380 - (cam - HWX - 91600) * K.hill, groundAt(K.hill) + 6 + drop(K.hill), f);
+  drawHwHorizon(c, state, groundAt(0.0035) + 4 + drop(0.0035));
+  // (the hill where the rest of the land has it, at this end of it)
+  drawHill(c, 560 - (cam - HWX) * K.hill, groundAt(K.hill) + 6 + drop(K.hill), f);
   tile(c, `hb-foot-${tod.key}`, cam * K.foot + 140, groundAt(K.foot) - FAR.FH + 26 + drop(K.foot), FAR.FH, FAR.TW, g => paintFoothills(g, tod));
   under(groundAt(K.foot) + 26 + drop(K.foot), 0.34, '#8A8A6A');
   tile(c, `hb-city-${tod.key}`, cam * K.city + 520, groundAt(K.city) - (FAR.CH - FAR.CG) + drop(K.city), FAR.CH, FAR.TW, g => paintCity(g, tod));
   under(groundAt(K.city) + FAR.CG + drop(K.city), 0.42, '#8A8070');
+  // (the rest of the land, back the way he came: Disaster: The Ride, the backlot, Thrones of the Stars)
+  drawHwLandmarks(c, state, groundAt(0.03) + drop(0.03));
   tile(c, `hb-lot-${tod.key}`, cam * K.lot + 1000, groundAt(K.lot) - (FAR.SH - FAR.SG) + drop(K.lot), FAR.SH, FAR.LW, g => paintLot(g, tod));
   under(groundAt(K.lot) + FAR.SG + drop(K.lot), 0.2, '#6A6466');
   // (the backlot behind, where the havoc was: still smoking thin, off to the left, till the land's cleared)

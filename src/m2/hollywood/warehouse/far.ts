@@ -16,6 +16,7 @@ import { FAR, tile, farCol, rampF, paintMountains, paintFoothills, drawHill, pai
 import { HWX } from '../geometry';
 import { GY } from './layout';
 import { REST } from './paint';
+import { drawHwSky, drawHwHorizon, drawHwLandmarks } from '../landmarks';
 
 const W = CANVAS_WIDTH, H = CANVAS_HEIGHT;
 /** The camera's rest (y). */
@@ -139,12 +140,16 @@ export const drawWarehouseFar = (c: Ctx, state: GameState) => {
     const T2 = farCol(tod, k);
     bandedGradient(c, 0, Math.round(y), W, H - Math.round(y), [T2(base), T2(mix(base, '#3A3236', 0.18)), T2(mix(base, '#3A3236', 0.32))], 4);
   };
+  drawHwSky(c, state, hz);
   tile(c, `hb-mtn-${tod.key}`, cam * K.mtn + 300, groundAt(K.mtn) - FAR.MH + 10 + drop(K.mtn), FAR.MH, FAR.TW, g => paintMountains(g, tod));
+  drawHwHorizon(c, state, groundAt(0.0035) + 4 + drop(0.0035));
   drawHill(c, 560 - (cam - HWX) * 0.004, groundAt(0.004) + 6 + drop(0.004), f);
   tile(c, `hb-foot-${tod.key}`, cam * K.foot + 140, groundAt(K.foot) - FAR.FH + 26 + drop(K.foot), FAR.FH, FAR.TW, g => paintFoothills(g, tod));
   under(groundAt(K.foot) + 26 + drop(K.foot), 0.34, '#8A8A6A');
   tile(c, `hb-city-${tod.key}`, cam * K.city + 520, groundAt(K.city) - (FAR.CH - FAR.CG) + drop(K.city), FAR.CH, FAR.TW, g => paintCity(g, tod));
   under(groundAt(K.city) + FAR.CG + drop(K.city), 0.42, '#8A8070');
+  // (the land's other attractions: Thrones of the Stars back the way he flew in, the backlot and the rest ahead)
+  drawHwLandmarks(c, state, groundAt(0.03) + drop(0.03));
   tile(c, `hb-lot-${tod.key}`, cam * K.lot + 80, groundAt(K.lot) - (FAR.SH - FAR.SG) + drop(K.lot), FAR.SH, FAR.LW, g => paintLot(g, tod));
   under(groundAt(K.lot) + FAR.SG + drop(K.lot), 0.2, '#6A6466');
   tile(c, `hb-palms-${tod.key}`, cam * K.palms + 400, groundAt(K.palms) - (FAR.PH - FAR.PG) + drop(K.palms), FAR.PH, FAR.PW, g => paintPalms(g, tod));

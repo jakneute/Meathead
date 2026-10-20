@@ -47,4 +47,13 @@ export const SCENARIOS = [
   // Wilderness Land
   { name: 'wild-train', q: 'frontier=5', keys: hopRight() },
   { name: 'wild-logride', q: 'frontier=29', keys: hopRight() },
+  // Hollywood Land (the outdoor stretches: the far off, its landmarks and sky)
+  { name: 'hollywood-blvd', q: 'hollywood=0', keys: hopRight() },
+  { name: 'hollywood-lot', q: 'hollywood=30', keys: hopRight() },
+  { name: 'hollywood-havoc', q: 'hollywood=50', keys: hopRight() },
+  { name: 'hollywood-hill', q: 'hollywood=56', keys: hopRight() },
+  // Future Land
+  { name: 'future-square', q: 'space=0', keys: hopRight() },
+  { name: 'future-drag', q: 'space=30', keys: hopRight() },
+  { name: 'future-crater', q: 'space=60', keys: hopRight() },
 ];

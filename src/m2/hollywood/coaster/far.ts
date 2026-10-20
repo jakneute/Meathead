@@ -17,6 +17,7 @@ import { type Ctx, INK, box, checker, mix, hash, hazeBands, bandedGradient, pixe
 import { FAR, tile, farCol, rampF, paintMountains, paintFoothills, drawHill, paintCity, paintLot, paintPalms, streetPalm } from '../blvd/far';
 import { HWX } from '../geometry';
 import { STEVE } from '../blvd/kit';
+import { drawHwSky, drawHwHorizon, drawHwLandmarks } from '../landmarks';
 
 const W = CANVAS_WIDTH, H = CANVAS_HEIGHT;
 
@@ -199,13 +200,17 @@ export const drawCoasterFar = (c: Ctx, state: GameState) => {
     const T2 = farCol(tod, k);
     bandedGradient(c, 0, y, W, H - y, [T2(base), T2(mix(base, '#3A3236', 0.18)), T2(mix(base, '#3A3236', 0.32))], 4);
   };
+  drawHwSky(c, state, hz);
   tile(c, `hb-mtn-${tod.key}`, cam * 0.003 + 300, hz - FAR.MH + 30 + drop(K.mtn), FAR.MH, FAR.TW, g => paintMountains(g, tod));
+  drawHwHorizon(c, state, hz + 16 + drop(0.0035));
   drawHill(c, 560 - (cam - HWX) * 0.004, hz + 18 + drop(K.hill), f);
   tile(c, `hb-foot-${tod.key}`, cam * 0.008 + 140, hz - FAR.FH + 40 + drop(K.foot), FAR.FH, FAR.TW, g => paintFoothills(g, tod));
   under(hz + 40 + drop(K.foot), 0.34, '#8A8A6A');
   hazeBands(c, 0, Math.round(hz - 70), W, 80, hourMix('#C4A07A', '#C8865E', '#2A2840', tod), 0.04, 0.26, 5);
   tile(c, `hb-city-${tod.key}`, cam * 0.022 + 520, hz - FAR.CH + 26 + drop(K.city), FAR.CH, FAR.TW, g => paintCity(g, tod));
   under(hz + 26 + drop(K.city), 0.42, '#8A8070');
+  // (the land's other attractions further on: the warehouse, the backlot, Disaster: The Ride, the Stuntery)
+  drawHwLandmarks(c, state, hz + 24 + drop(0.03));
   // (the monstrosity, far: across the park, small, hazy)
   const m1h = 360, m1g = 12;
   tile(c, `hwc-mon1-${tod.key}`, cam * K.m1 + 200, hz - m1h + 34 + drop(K.m1), m1h, Math.round(MW * 0.42), g => paintMonsterRow(g, 0.42, tod, 0.3, m1h, m1g, 1));
