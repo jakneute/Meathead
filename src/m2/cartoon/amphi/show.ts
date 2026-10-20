@@ -21,7 +21,7 @@ import type { Amphi, Speaker, DadPose } from './state';
 import type { DadFace } from './dad';
 import type { Anim } from './family';
 import { VOICES, SHOW_CALL, SHOW_TAKE, SHOW_ADLIB, SHOW_TV, MOM_TAPE, BOY_TAPE, SIS_TAPE, GRAMPS_TAPE } from './lines';
-import { DAD_SEAT, DAD_FRONT } from './layout';
+import { DAD_SEAT, COUCH, COUCH_HOME } from './layout';
 
 /** Frames he watches the game between calls; the laugh track's length; the Boy's step (every 8 frames). */
 const WATCH_T = 420, LAUGH_T = 110, BOY_STEP = 0.05;
@@ -138,13 +138,17 @@ export interface StageLook {
   applause: boolean;
   /** The crowd's still in its seats. */
   crowd: boolean;
+  /** The couch (where the show has it; dragged up front at the intro's end), the mallet leaning on its arm. */
+  couch: { x: number; d: number };
+  mallet: boolean;
 }
 
 const lerp = (a: number, b: number, k: number) => a + (b - a) * k;
 
 export const stageLook = (state: GameState, s: Amphi): StageLook => {
   const f = state.frame, sh = s.show, intro = s.intro;
-  const over = isLandCleared('cartoon') || !!intro?.emptied;
+  const over = isLandCleared('cartoon');
+  const cu = intro?.couchU ?? 0, couch = { x: lerp(COUCH.x, COUCH_HOME, cu), d: lerp(COUCH.d, 1, cu) };
   const glitch = intro && !over ? (intro.step === 'walk' ? 0.4 : 1) : 0;
   const mode: Anim['mode'] = over ? 'off' : glitch >= 0.4 ? 'glitch' : 'run';
   const anim = (who: Speaker, seedF = 0): Anim => ({ mode: mode === 'glitch' && who === 'sis' && glitch < 1 ? 'run' : mode, f: f + seedF, talking: s.said.has(who) });
@@ -152,17 +156,18 @@ export const stageLook = (state: GameState, s: Amphi): StageLook => {
   if (!over) {
     const talking = s.said.has('dad');
     if (intro) {
-      const u = intro.dadU;
-      const x = lerp(DAD_SEAT.x, DAD_FRONT, u), d = lerp(DAD_SEAT.d, 1, u);
-      let p: DadPose = 'squint', t = 0;
+      let p: DadPose = 'squint', t = 0, x = DAD_SEAT.x, d = DAD_SEAT.d;
       switch (intro.step) {
         case 'walk': p = 'sit'; break;
         case 'notice': case 'close': case 'sees': case 'glitch': p = 'squint'; break;
         case 'rise': p = 'rise'; t = Math.min(1, intro.t / 100); break;
         case 'crush': p = 'crush'; t = Math.min(1, intro.t / 50); break;
-        default: p = u < 1 ? 'shuffle' : 'stand';
+        case 'fight': p = 'stand'; break;
+        // (dragging the couch up front by its arm, walking backward ahead of it; then dropped back onto it)
+        case 'drag': p = 'drag'; x = couch.x + 36; d = couch.d + 0.03; break;
+        default: p = 'sit'; x = couch.x + (DAD_SEAT.x - COUCH.x); d = couch.d + 0.0005;
       }
-      dad = { pose: p, t, x: p === 'rise' || p === 'squint' || p === 'sit' ? DAD_SEAT.x : x, d: p === 'rise' || p === 'squint' || p === 'sit' ? DAD_SEAT.d : d, talking, can: intro.crushed && intro.step !== 'crush' ? null : 'near', canFull: false, crushed: intro.step === 'crush' ? Math.max(0, (intro.t - 18) / 14) : 0, facing: -1 };
+      dad = { pose: p, t, x, d, talking, can: intro.crushed && intro.step !== 'crush' ? null : 'near', canFull: false, crushed: intro.step === 'crush' ? Math.max(0, (intro.t - 18) / 14) : 0, facing: -1 };
     } else {
       const p = sh.dad;
       dad = { pose: p, t: Math.min(1, sh.dadT / 22), x: DAD_SEAT.x, d: DAD_SEAT.d, talking, can: 'near', canFull: sh.canFull, crushed: 0, facing: -1 };
@@ -174,7 +179,8 @@ export const stageLook = (state: GameState, s: Amphi): StageLook => {
     mom: anim('mom', 11), sis: anim('sis', 37), gramps: anim('gramps', 71),
     boy: { ...anim('boy', 5), u: sh.boyU, beer: sh.boyBeer, arm: sh.boyArm },
     tv: over ? 'off' : intro ? 'roll' : 'game',
-    applause: !over && !intro && laughing(state),
+    applause: !over && laughing(state),
     crowd: !isLandCleared('cartoon'),
+    couch, mallet: !over,
   };
 };

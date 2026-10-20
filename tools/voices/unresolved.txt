@@ -2,8 +2,8 @@ m2/hub/index.ts:132 name: AMERICA_DENY
 m2/weapons/spellbook.ts:369 name: BULK_LINES
 m2/weapons/spellbook.ts:374 name: BULK_FAIL_LINES
 m2/weapons/mallet.ts:235 name: DUCK_LINES
-m2/weapons/soulSucker.ts:194 name: FULL_BAG_LINES
-m2/weapons/soulSucker.ts:335 name: EMPTY_BAG_LINES
+m2/weapons/soulSucker.ts:195 name: FULL_BAG_LINES
+m2/weapons/soulSucker.ts:346 name: EMPTY_BAG_LINES
 m2/intro/index.ts:374 name: MEATHEAD_PARKED
 m2/intro/index.ts:411 name: MEATHEAD_BACK_LOT
 m2/intro/index.ts:685 name: MEATHEAD_REENTRY
@@ -37,34 +37,34 @@ m2/intro/index.ts:769 voice: line
 m2/adventure/queue/talk.ts:33 voice: l.text
 m2/adventure/river/index.ts:438 voice: fromBag(rv, 'gkill', GUESTS_KILL)
 m2/adventure/river/index.ts:444 voice: fromBag(rv, `gsee:${d}`, GUESTS_SEE[d])
-m2/adventure/dino/index.ts:143 voice: pick(MAINT_OBLIVIOUS)
-m2/adventure/dino/rex.ts:148 voice: voice('m2.rex')
 m2/adventure/dino/guests.ts:156 voice: pickLine(pool)
-m2/adventure/temple/index.ts:166 voice: text
-m2/adventure/temple/index.ts:213 voice: g.woman ? 'm2.guest' : 'm2.guest2'
-m2/adventure/temple/index.ts:222 voice: 'm2.guest'
-m2/adventure/temple/index.ts:222 voice: 'm2.guest2'
-m2/adventure/temple/index.ts:228 voice: 'm2.operator'
-m2/adventure/temple/index.ts:228 voice: 'm2.operator2'
+m2/adventure/dino/index.ts:143 voice: pick(MAINT_OBLIVIOUS)
+m2/adventure/dino/rex.ts:151 voice: voice('m2.rex')
+m2/adventure/temple/index.ts:167 voice: text
+m2/adventure/temple/index.ts:214 voice: g.woman ? 'm2.guest' : 'm2.guest2'
+m2/adventure/temple/index.ts:223 voice: 'm2.guest'
+m2/adventure/temple/index.ts:223 voice: 'm2.guest2'
+m2/adventure/temple/index.ts:229 voice: 'm2.operator'
+m2/adventure/temple/index.ts:229 voice: 'm2.operator2'
 m2/adventure/cart/index.ts:109 voice: text
 m2/adventure/cart/index.ts:239 voice: pick(ARTIE_CHASE_START[dressed(state)])
 m2/adventure/roof/index.ts:114 voice: text
-m2/adventure/clearing/index.ts:176 voice: text
 m2/adventure/clearing/fight.ts:335 voice: voice('m2.safari')
 m2/adventure/clearing/fight.ts:341 voice: pick(lines[pants()])
+m2/adventure/clearing/index.ts:179 voice: text
 m2/adventure/section.ts:139 voice: voice(voiceId)
-m2/spooky/castle/pa.ts:72 voice: voice(PA)
+m2/spooky/castle/pa.ts:73 voice: voice(PA)
 m2/spooky/hell/satan.ts:111 voice: SATAN_CORE
 m2/spooky/hell/satan.ts:114 voice: pick(dressedPool(state))
-m2/spooky/hell/demon.ts:141 voice: voice('m2.demon')
+m2/spooky/hell/demon.ts:142 voice: voice('m2.demon')
 m2/spooky/control/staff.ts:55 voice: voice(woman ? 'm2.spooky.clerkf' : 'm2.spooky.clerk')
-m2/spooky/control/index.ts:79 voice: pick(lines[dressed(state)])
 m2/spooky/control/doors.ts:76 voice: pick(L.DONNIE_LOCKED[dressed(state)])
-m2/spooky/control/shop.ts:246 voice: true
-m2/spooky/control/shop.ts:253 voice: voice('m2.donnie')
-m2/spooky/ballroom/fight.ts:253 voice: voice('m2.donnie')
-m2/spooky/ballroom/fight.ts:263 voice: pick(lines[pants()])
-m2/spooky/ballroom/fight.ts:582 voice: voice(lookOf(g.seed).woman ? 'm2.guest' : 'm2.guest2')
+m2/spooky/control/index.ts:79 voice: pick(lines[dressed(state)])
+m2/spooky/control/shop.ts:253 voice: true
+m2/spooky/control/shop.ts:260 voice: voice('m2.donnie')
+m2/spooky/ballroom/fight.ts:280 voice: voice('m2.donnie')
+m2/spooky/ballroom/fight.ts:290 voice: pick(lines[pants()])
+m2/spooky/ballroom/fight.ts:668 voice: voice(lookOf(g.seed).woman ? 'm2.guest' : 'm2.guest2')
 m2/space/square/kinds.ts:170 voice: false
 m2/space/square/index.ts:43 voice: line
 m2/space/atom/hijack.ts:60 voice: text
@@ -82,13 +82,13 @@ m2/space/needle/index.ts:102 voice: text
 m2/space/needle/index.ts:103 voice: text
 m2/space/orbit/ufo.ts:64 voice: SAY
 m2/space/orbit/hazards.ts:190 voice: voice(female ? 'm2.space.zpilotf' : 'm2.space.zpilot')
-m2/space/orbit/gun.ts:54 voice: SAY
-m2/space/crater/house.ts:89 voice: pick(L.XENO_WELCOME)
-m2/space/crater/house.ts:91 voice: pick(L.XENO_TELEPORT)
-m2/space/crater/house.ts:130 voice: pick(L.BOO)
-m2/space/crater/house.ts:134 voice: pick(L.XENO_ARRIVED)
+m2/space/orbit/gun.ts:55 voice: SAY
 m2/space/crater/rigs.ts:167 voice: pick(L.BOO)
 m2/space/crater/kinds.ts:73 voice: voice(isWoman(e) ? 'm2.space.alienf' : 'm2.space.alien')
+m2/space/crater/house.ts:90 voice: pick(L.XENO_WELCOME)
+m2/space/crater/house.ts:92 voice: pick(L.XENO_TELEPORT)
+m2/space/crater/house.ts:131 voice: pick(L.BOO)
+m2/space/crater/house.ts:135 voice: pick(L.XENO_ARRIVED)
 m2/space/queen/show.ts:111 voice: pick(L.BOOTH_TAKEOVER[dressed(state)])
 m2/space/queen/fight.ts:265 voice: pick(lines[dressed(state)])
 m2/space/queen/fight.ts:271 voice: pick(lines[dressed(state)])
@@ -99,12 +99,12 @@ m2/hollywood/blvd/index.ts:46 voice: line
 m2/hollywood/blvd/index.ts:93 voice: false
 m2/hollywood/blvd/kinds.ts:63 voice: false
 m2/hollywood/coaster/kinds.ts:40 voice: false
-m2/hollywood/coaster/index.ts:83 voice: line
-m2/hollywood/coaster/index.ts:392 voice: false
-m2/hollywood/coaster/index.ts:431 voice: false
-m2/hollywood/coaster/index.ts:453 voice: true
-m2/hollywood/coaster/index.ts:114 name: SCRIPTS
-m2/hollywood/coaster/index.ts:524 call: coasterOf(state)
+m2/hollywood/coaster/index.ts:85 voice: line
+m2/hollywood/coaster/index.ts:400 voice: false
+m2/hollywood/coaster/index.ts:439 voice: false
+m2/hollywood/coaster/index.ts:461 voice: true
+m2/hollywood/coaster/index.ts:119 name: SCRIPTS
+m2/hollywood/coaster/index.ts:534 call: coasterOf(state)
 m2/hollywood/warehouse/kinds.ts:47 voice: false
 m2/hollywood/warehouse/kinds.ts:241 voice: false
 m2/hollywood/warehouse/talk.ts:27 voice: line
@@ -123,8 +123,8 @@ m2/hollywood/disaster/index.ts:76 voice: false
 m2/hollywood/disaster/index.ts:88 voice: line
 m2/hollywood/disaster/index.ts:180 voice: false
 m2/hollywood/disaster/index.ts:185 voice: false
+m2/hollywood/havoc/index.ts:60 voice: line
 m2/hollywood/havoc/kinds.ts:45 voice: false
-m2/hollywood/havoc/index.ts:57 voice: line
 m2/hollywood/stunt/fight.ts:183 voice: text
 m2/hollywood/stunt/fight.ts:190 voice: voice(L.STEVE_VOICE)
 m2/hollywood/stunt/fight.ts:198 voice: pick(lines[pants()])
@@ -138,36 +138,90 @@ m2/foreign/harry/fight.ts:227 voice: text
 m2/foreign/harry/fight.ts:236 voice: voice(L.HARRY)
 m2/foreign/setpiece.ts:48 voice: false
 m2/frontier/train/tube.ts:20 voice: text
-m2/frontier/train/engine.ts:74 voice: text
-m2/frontier/town/crash.ts:277 voice: pickLine(byPants(state, MEDIC))
-m2/frontier/town/scenes.ts:177 voice: pickLine(byPants(state, pool))
-m2/frontier/town/scenes.ts:197 voice: pickLine(byPants(state, SHERIFF_BARK))
+m2/frontier/train/engine.ts:83 voice: text
 m2/frontier/town/kinds.ts:106 voice: false
-m2/frontier/logride/chipper.ts:46 voice: false
-m2/frontier/logride/scene.ts:66 voice: text
-m2/frontier/logride/scene.ts:67 voice: text
-m2/frontier/logride/scene.ts:87 voice: false
-m2/frontier/logride/scene.ts:113 voice: s
-m2/frontier/logride/scene.ts:116 voice: s
-m2/frontier/logride/scene.ts:122 voice: pickLine(SPIEL_BUZZMODE)
-m2/frontier/logride/scene.ts:140 voice: s
-m2/frontier/logride/scene.ts:151 voice: s
-m2/frontier/logride/scene.ts:175 voice: true
-m2/frontier/logride/ride.ts:96 voice: true
-m2/frontier/woods/scene.ts:60 voice: text
-m2/frontier/woods/scene.ts:62 voice: who
-m2/frontier/woods/scene.ts:232 voice: 'teen'
+m2/frontier/town/crash.ts:306 voice: pickLine(byPants(state, MEDIC))
+m2/frontier/town/scenes.ts:178 voice: pickLine(byPants(state, pool))
+m2/frontier/town/scenes.ts:198 voice: pickLine(byPants(state, SHERIFF_BARK))
+m2/frontier/logride/chipper.ts:44 voice: false
+m2/frontier/logride/ride.ts:98 voice: true
+m2/frontier/logride/scene.ts:68 voice: text
+m2/frontier/logride/scene.ts:69 voice: text
+m2/frontier/logride/scene.ts:89 voice: false
+m2/frontier/logride/scene.ts:115 voice: s
+m2/frontier/logride/scene.ts:118 voice: s
+m2/frontier/logride/scene.ts:124 voice: pickLine(SPIEL_BUZZMODE)
+m2/frontier/logride/scene.ts:142 voice: s
+m2/frontier/logride/scene.ts:153 voice: s
+m2/frontier/logride/scene.ts:177 voice: true
+m2/frontier/woods/scene.ts:64 voice: text
+m2/frontier/woods/scene.ts:66 voice: who
+m2/frontier/woods/scene.ts:236 voice: 'teen'
 m2/frontier/woods/index.ts:87 voice: false
-m2/frontier/dirtbike/chase.ts:320 voice: false
-m2/frontier/dirtbike/chase.ts:408 voice: false
-m2/frontier/dirtbike/chase.ts:694 voice: true
-m2/frontier/dirtbike/chase.ts:695 voice: true
-m2/frontier/dirtbike/chase.ts:858 voice: pickLine(byPants(state, TUCKER_FLEE))
+m2/frontier/dirtbike/chase.ts:326 voice: false
+m2/frontier/dirtbike/chase.ts:414 voice: false
+m2/frontier/dirtbike/chase.ts:700 voice: true
+m2/frontier/dirtbike/chase.ts:701 voice: true
+m2/frontier/dirtbike/chase.ts:864 voice: pickLine(byPants(state, TUCKER_FLEE))
 m2/frontier/arena/cast.ts:30 voice: pickLine(byPants(state, pool))
 m2/frontier/arena/cast.ts:35 voice: pickLine(byPants(state, pool))
-m2/frontier/arena/fight.ts:181 voice: pants(lines)
-m2/frontier/arena/fight.ts:188 voice: pants(lines)
-m2/frontier/wilds/station.ts:94 voice: pickLine(byPants(state, pool))
+m2/frontier/arena/fight.ts:191 voice: pants(lines)
+m2/frontier/arena/fight.ts:198 voice: pants(lines)
+m2/frontier/wilds/station.ts:95 voice: pickLine(byPants(state, pool))
+m2/fantasy/wheel/kills.ts:170 voice: false
+m2/fantasy/wheel/kills.ts:174 voice: false
+m2/fantasy/wheel/index.ts:97 voice: true
+m2/fantasy/wheel/index.ts:103 voice: false
+m2/fantasy/glen/rivals.ts:44 voice: line
+m2/fantasy/glen/rivals.ts:57 voice: pickLine(byPants(state, RIVAL_SAY[r.id]))
+m2/fantasy/glen/rivals.ts:88 voice: false
+m2/fantasy/glen/kinds.ts:97 voice: false
+m2/fantasy/tragons/ride.ts:57 voice: line
+m2/fantasy/tragons/ride.ts:762 voice: pickLine(byPants(state, RIVAL_UNLOAD[r.id]))
+m2/fantasy/keep/kinds.ts:86 voice: false
+m2/fantasy/keep/runway.ts:63 voice: pickLine(byPants(state, SHOP_SAY[id]))
+m2/fantasy/keep/runway.ts:192 voice: text
+m2/fantasy/keep/runway.ts:197 voice: pickLine(byPants(state, RUNWAY_SAY[id as RivalId | FastId]))
+m2/fantasy/keep/runway.ts:232 voice: false
+m2/fantasy/keep/index.ts:81 voice: line
+m2/fantasy/broom/fight.ts:272 voice: line
+m2/fantasy/broom/fight.ts:384 voice: false
+m2/fantasy/broom/fight.ts:590 voice: false
+m2/fantasy/bedroom/fight.ts:205 voice: voice(L.PIPER_VOICE)
+m2/fantasy/bedroom/fight.ts:221 voice: voice(L.PIPER_VOICE)
+m2/fantasy/square/kinds.ts:93 voice: false
+m2/fantasy/square/speaker.ts:52 voice: text
+m2/cartoon/kiddie/kinds.ts:97 voice: false
+m2/cartoon/studio/pa.ts:58 voice: voice(NARRATOR)
+m2/cartoon/studio/kinds.ts:97 voice: false
+m2/cartoon/whitehouse1/kinds.ts:87 voice: false
+m2/cartoon/whitehouse1/pundits.ts:121 voice: text
+m2/cartoon/whitehouse1/pundits.ts:126 voice: q
+m2/cartoon/whitehouse1/pundits.ts:314 voice: q
+m2/cartoon/whitehouse1/pundits.ts:354 voice: q
+m2/cartoon/whitehouse1/chelsea.ts:78 voice: text
+m2/cartoon/whitehouse2/kinds.ts:83 voice: false
+m2/cartoon/whitehouse2/pundits.ts:132 voice: text
+m2/cartoon/whitehouse2/pundits.ts:136 voice: pickLine(pool)
+m2/cartoon/whitehouse2/pundits.ts:338 voice: pickLine(byPants(state, S.lines.death))
+m2/cartoon/whitehouse2/pundits.ts:378 voice: pickLine(byPants(state, S.lines.intro))
+m2/cartoon/whitehouse2/finale.ts:118 voice: pickLine(byPants(state, BILL_TV))
+m2/cartoon/whitehouse2/finale.ts:122 voice: pickLine(byPants(state, HILLARY_TV))
+m2/cartoon/whitehouse2/finale.ts:140 voice: false
+m2/cartoon/whitehouse2/finale.ts:184 voice: pickLine(byPants(state, ACTRESS_OUT))
+m2/cartoon/whitehouse2/finale.ts:214 voice: false
+m2/cartoon/bigkid/kinds.ts:98 voice: false
+m2/cartoon/bigkid/index.ts:101 voice: dollLine
+m2/cartoon/itchy/kinds.ts:100 voice: false
+m2/cartoon/amphi/show.ts:33 voice: text
+m2/cartoon/amphi/show.ts:66 voice: 'dad'
+m2/cartoon/amphi/show.ts:86 voice: 'boy'
+m2/cartoon/amphi/show.ts:110 voice: 'dad'
+m2/cartoon/amphi/show.ts:114 voice: who
+m2/cartoon/amphi/index.ts:92 voice: false
+m2/cartoon/amphi/fight.ts:227 voice: pick(byPants(state, pool))
+m2/cartoon/amphi/fight.ts:234 voice: pick(pool)
+m2/cartoon/amphi/fight.ts:756 voice: text
 m1/components/Cutscene.tsx:97 voice: p.voice
 m1/components/Cutscene.tsx:105 voice: p.voice
 m1/game/bosses/alien.ts:90 voice: text
@@ -185,19 +239,19 @@ m1/game/core/deathCause.ts:70 name: undefined
 m1/game/core/deathCause.ts:71 name: ANIMAL_DEATH_LINES
 m1/game/core/deathCause.ts:71 name: undefined
 m1/game/core/deathCause.ts:72 name: undefined
-m1/game/core/update.ts:224 name: undefined
-m1/game/core/update.ts:622 name: undefined
-m1/game/core/update.ts:622 call: pluckDeathMessage(state)
-m1/game/core/update.ts:622 call: animalDeathMessage(state)
-m1/game/core/update.ts:622 call: layout?.deathMessage?.(ctx)
-m1/game/core/update.ts:622 call: deathByCause(state)
-m1/game/core/update.ts:622 call: deathFallback(state, ctx.stageId, fell)
-m1/game/core/effects.ts:263 call: forGender(line, gender)
-m1/game/core/effects.ts:260 call: getHurtLines(hurtSource)
-m1/game/core/effects.ts:260 call: killLine(category, victim)
+m1/game/core/effects.ts:266 call: forGender(line, gender)
+m1/game/core/effects.ts:263 call: getHurtLines(hurtSource)
+m1/game/core/effects.ts:263 call: killLine(category, victim)
+m1/game/core/update.ts:225 name: undefined
+m1/game/core/update.ts:623 name: undefined
+m1/game/core/update.ts:623 call: pluckDeathMessage(state)
+m1/game/core/update.ts:623 call: animalDeathMessage(state)
+m1/game/core/update.ts:623 call: layout?.deathMessage?.(ctx)
+m1/game/core/update.ts:623 call: deathByCause(state)
+m1/game/core/update.ts:623 call: deathFallback(state, ctx.stageId, fell)
 m1/game/player/player.ts:85 call: message()
-m1/game/render/world.ts:1303 voice: 0
-m1/game/render/world.ts:1309 voice: Math.max(state.camera.y + 16 + (rows.length - 1) * 13, playe
+m1/game/render/world.ts:1306 voice: 0
+m1/game/render/world.ts:1312 voice: Math.max(state.camera.y + 16 + (rows.length - 1) * 13, playe
 m1/game/stages/artie/ski.ts:464 call: skiDeathMessage(state, ski)
 m1/game/stages/artie/ski.ts:464 name: DEATH_LINES
 m1/game/stages/artie/ski.ts:557 name: undefined

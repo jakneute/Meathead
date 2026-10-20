@@ -89,9 +89,10 @@ The user's notes since (relayed):
 - **Meathead's lines:** he hates it ("there's no good rides here": the user's line, verbatim, in the carousel's pool;
   every ride gets its own lament); arrival, revisit, the tower's first lean, the pit, the mascot, the studio door.
   Never anything about his age.
-- **Stupid Dad's fight:** NOT designed (the user: "mechanics come later"): the amphitheater, the guard's-nuts boss door
-  and his intro are built (job 7); the fight itself is a placeholder card (BOSS FIGHT COMING SOON) that still ends the
-  land (VICTORY, the walk-away, the hub). Don't invent the fight, nor his deaths. Sin: probably sloth (proposal).
+- **Stupid Dad's fight:** the user's design (2026-10-20, verbatim in Section 7 below), built (job 8: amphi/fight.ts):
+  the couch, the mallet swat, the beer runs, the puke-rocket couch, the Donkey Kong rage, the clapperboard's cars for
+  the family, the weakness death (flattened) and the standard death (ours: the SWILL LITE avalanche). Sin: probably
+  sloth (proposal).
 - **Music:** none yet. Cartoon Land's in music/cues.ts's LAND_OF_STAGE, and with no `land:cartoon` song it's quiet.
 
 ## The section plan (world x; checkpoints numbered across the land)
@@ -106,7 +107,7 @@ CTX = 900000. Gaps of 3000 between sections (room to grow).
 | 4 | The wacky White House, part two | `whitehouse2` | CTX+45000 .. CTX+57000 | 30-39 | Limbaugh, Dole, Gingrich; the Clintons; the projector |
 | 5 | The big-kid rides | `bigkid` | CTX+60000 .. CTX+72000 | 40-49 | Trackless rides that ram; Stupid Dad posters |
 | 6 | PUNCHY & KICKY (the cat-and-mouse knockoff) | `itchy` | CTX+75000 .. CTX+85000 | 50-59 | Stupid Dad's extended universe; Looney Tunes violence |
-| 7 | The amphitheater | `amphi` | CTX+88000 .. CTX+92000 | 60-69 | The guard's nuts; STUPID DAD (placeholder) |
+| 7 | The amphitheater | `amphi` | CTX+88000 .. CTX+92000 | 60-69 | The guard's nuts; STUPID DAD |
 
 ### Section 1 in detail (Sillyville Square, built: kiddie/)
 
@@ -522,18 +523,104 @@ its music winding down; the laugh track cut; the TV rolling) and the family does
 by the TV; STUPID DAD CLOSE UP (the wallpaper banded behind him), squinting over his can, then half in character: he
 thinks it's the Boy ("BOY? THAT YOU? YOU GOT BIG."); Meathead's answer; one of the family's tapes stuck ("SURE THING,
 P-P-P-POP!") and the laugh track in the wrong place; he heaves himself up off the couch, his line; crushes the can on
-his forehead, drops it, belches; shuffles forward to the front ("MARLENE! GET MY BELT!"); Meathead's word. Every one of
-his lines (and Meathead's) in clean / shitty / naked pools.
+his forehead, drops it, belches; the threat ("MARLENE! GET MY BELT!"); then he grabs the couch by its arm and drags it
+up front onto the play plane, drops back onto it ("DAD FIGHTS SITTING DOWN."), the stolen mallet leaning on its arm;
+Meathead's word; THE FIGHT. As the intro starts the living room's left-hand wall flies in from the grid behind
+Meathead (the room shut: the fight's left lock; the right-hand wall's always there, the fridge against it). Every one
+of his lines (and Meathead's) in clean / shitty / naked pools.
 
-**THE PLACEHOLDER** (the fight's the user's to design): a PLEASE STAND BY card in the show's own color bars (STUPID DAD,
-BOSS FIGHT COMING SOON in bulbs, UBX in the corner) over the black; behind it the stage empties (him gone, the family
-powered down, the TV off); then VICTORY, the walk-away (walkAway/stupidDad.ts: the band shell behind him, his crushed
-cans down the path, a dropped foam finger; the MALLET), the hub, Cartoon Land cleared. NOT BUILT (waiting on the user):
-the fight, his standard death, his weakness death. Revisits: the stage empty, the family slumped and dark, the TV off,
-the bleachers empty but for the one asleep, the guard with his ice pack.
+**THE FIGHT** (amphi/fight.ts, fightArt.ts; job 8). The user's design, VERBATIM (2026-10-20):
+
+"he sits on the couch most of the time. a giant cartoon mallet sits there. it's not normally supposed to be there, but
+he snatched one from one of the punchy and kicky animatronics to bat away annoying fans. he keeps it by him at all times
+even if it isn't canonically correct. during the fight he sits on his couch yelling at his family, drunk. side note: i
+hate sitcoms. a big reason why is it often just devolves to family members just being snarky and mean to each other in
+the living room set the whole time. that's this show, making fun of that premise. somehow he can afford a nice house
+despite the wife being stay at home and his own job being a clothing store manager. small dig on al bundy. the whole
+fight he screams at his family to get him a beer. family members cannot harm you. during the fight, one of his family
+members walks to the fridge, the animatronic and tosses a bunch of beer bottles at him. most miss but he eventually
+drinks catches one and drinks it. attempting to get close to stupid dad will have him swat you away with the mallet,
+making any charge or grab attempt potentially deadly. once again, he sits on the couch practically the whole time. one
+of two things can happen when he drinks: he pukes so hard the couch flies across the set like a missile, when it hits
+the wall, the fridge moves too. there are more bounces as the fight goes on but it does settle to its default location
+eventually. the other thing he can do when drinking is go on a 'drunken rage'. he picks up the giant cartoon mallet like
+mario in donkey kong and smashes up and down repeatedly, coming after you. he will jump randomly, making it safe to run
+under him. all charge attacks are definitely off the table during this moment. charge attacks are safe if you are
+skilled when he's puking and flying across the living room (like dive kicks). grabs won't work as usual. the projectile
+vomit will hurt you.
+
+his weakness is the car. firing it once will have a car auto target and kill one of his animatronic family members.
+there will be a bit of a cooldown before you can use it again. he gets increasingly baffled and frustrated for every
+family member you kill. the second to last one will crush his couch, forcing him to get up. his is pathetic and
+uncoordinated during this phase and won't have much resistance to face here. all his drunken attacks won't go off and
+neither will his hammer counter attacks. if you still have ammo for the clapperboard, one more use will send a final
+stuntcar onto him, flattening him and ending the fight. he will have a normal death animation if you kill him with a non
+weakness. all stuntcars are essentially a scripted homing attack that progressively destroys his tv family. the carnage
+stays with each stunt car that crashes too. you need to slightly alter the mechanics of the clapperboard so you cannot
+spam it either. he will do a drunken counter attack either by puking or the donkey kong hammer every time you kill a
+family member."
+
+As built (numbers up top in fight.ts):
+- **On the couch** (up front, the play plane, COUCH_HOME): yelling for beer (DAD_BEER), sniping at the family by name
+  (DAD_SNIPE; that one's tape snipes back, MOM_SNARK etc., and the laugh track), the Al Bundy dig (DAD_BUNDY: a clothing
+  store manager, four bedrooms, a sunroom, Marlene at home; Meathead's MH_BUNDY once), taunts. Close in (in front of him
+  or over his head): THE SWAT (the mallet, 22; a 16-frame wind-up, 7 at a charge, dive kick, uppercut, slide or grab
+  coming in), then 40 frames winding back (open). Grabs: TOO GREASY (onGrab: thrown off him, MH_TOO_GREASY, his
+  DAD_GRABBED). Family can't hurt him; their bottles don't.
+- **The beer run** (every 430-620 frames he's sat there): one of the family (the Boy half the time) jerks over to the
+  fridge on its castors / post / track base (22 px every 8 frames: Gramps scoots in his recliner, Sis slides along
+  cross-legged), opens it (its FETCH_TAPE), pitches 2-5 bottles: short, long, off the wallpaper, off his head (bonk, the
+  laugh track), the last one caught (DAD_CATCH); one he can't catch (busy) smashes and there's always another. Then he
+  drinks it, and does one of the two, in turn (the first's the puke):
+- **PUKE**: a fire hose of it the way he faces (hurts, 8 a glob); the couch rockets the other way, bouncing off the end
+  walls (each bounce 86%); its wall jolts the fridge off it (it creeps back); the kick's bigger every puke and every
+  family member gone. It settles; he scoots it back to its spot with his heels. The couch hurts (16) going fast unless
+  he's mid-move into it (charge, dive kick, uppercut, slide: the skilled way).
+- **DRUNKEN RAGE**: up off the couch, the mallet in both fists, Donkey Kong: hammering up over his head and down out in
+  front every 7 frames, after him at a stagger, hopping at random (10.5-12.5 up: run under him). All of him is the
+  hammer (18): no move lands (touch: hammered instead); only what's fired at him. 7 s, then winded (a wheeze: open), and
+  he shuffles back to the couch.
+- **Hurting him**: 666; the ray gun 25 and his moves (35 / 50) in full; anything else 35%; the 60-frame breather.
+- **THE WEAKNESS: the clapperboard** (weapons/stuntCar.ts setStuntCarHook: this fight's say over it). Each snap (the
+  clap, the ammo used) sends ONE stunt car, scripted, homing on the nearest of the family to Meathead: the flip, the
+  fireball, the animatronic flattened (knocked flat, powered down, its bits round it: an eye, the wig, a hand on its
+  wires, Mom's casserole), the wreck left on its roof burning then smoking for good, the stuntman flung into the
+  wallpaper (his splat stays, him in a heap under it). The scene then takes 7 s to reset (RECHARGE; NEXT TAKE on his
+  bar, only if he's got the clapperboard): a snap before then is a dud ("RESETTING THE SCENE", MH_DUD). Elsewhere the
+  clapperboard is unchanged. Each kill: the dying tape (DIE_TAPE), the laugh track, him baffled (hands on his head;
+  DAD_KILL by count, more fed up each time), then his counter (puke or the hammer, in turn). The third (second-to-last)
+  car hops off its wreck onto the couch and crushes it: he's thrown off, up for good, PATHETIC (no couch, no beer, no
+  puke, no hammer, no counters; double damage, half the breather; staggering after him, swinging at air, falling on
+  his face, trying to lift the mallet he drags and toppling). The fourth takes the last of them (DAD_KILL, no counter).
+  The fifth comes down on HIM: the weakness death. Meathead's hint (only if he owns the clapperboard): a non-plain hit
+  now and then before the first car (MH_HINT).
+- **The weakness death**: the kill cam (slow-mo, zoomed, Steve's); the car on him, burning; it tips off him (away from
+  Meathead) onto its roof; he's a pancake on the deck; he peels up off it, a squat paper-thin man wobbling in the draft
+  (the cartoon's accordion squash), the stuntman up out of the wreck with a thumbs-up, the laugh track; DAD_FLAT; over he
+  goes like a sheet of paper; MH_WON_WEAK.
+- **The standard death** (ours: the user left it to us): FINE, I'LL GET IT MYSELF (DAD_FRIDGE). Up for a beer at last,
+  he shuffles to the fridge (Meathead walked back out of the way), opens it: rumbling, and forty years of SWILL LITE
+  comes down on him (an avalanche of cans, a mound over him); the laugh track; under there he shits himself (the fart,
+  the seep, DAD_BURIED); one can rolls out across the deck to Meathead's feet and cracks open on its own; MH_WON.
+- Both deaths are cutscenes (no input, no HUD, SKIP >> all or nothing). Then VICTORY, the walk-away (walkAway/
+  stupidDad.ts: the band shell, his cans and cups down the path, the foam finger; the weakness leaves the last stunt car
+  dumped on its roof by the walk and half his couch, the other way more cans; the MALLET), the hub, Cartoon Land
+  cleared. Revisits: the stage empty, the family slumped and dark, the TV off, the bleachers empty but for the one
+  asleep, the guard with his ice pack.
+- **Checkpoints**: 62 (STUPID DAD: set as the intro starts; manual). The user's rule for every boss (2026-10-20): dying,
+  he's back OUTSIDE the boss door (cp 62 is at the foot of the stage steps, by the guard he kicked), and walks up onto
+  the stage himself; the intro's skipped then (once a visit): the couch is already up front, him on it, the left wall
+  flies in behind Meathead as it starts (DAD_ENTRANCE, 90 frames before he swats). No mid-fight checkpoint. The boss
+  door (the guard's nuts) goes off only once he's walked right up to the guard himself (no walking him into it).
+- **Music** (boss:stupid-dad, cues.ts stupidDadArr by amphi/index.ts stupidDadMusic): hush and intro through the intro
+  as before; main for the drag and the fight; intro again (no drums: deflated) once he's up and pathetic; hush for
+  his death.
 
 **His lines** (amphi/lines.ts): arrival and revisit; the beer stand, the crowd, the show (the first "BOY! BEER!": "I SAW
-THIS SHOW. EVERY NIGHT. AT MY HOUSE."), the robots; the kick, the intro. No new hurts (nothing here hurts him yet).
+THIS SHOW. EVERY NIGHT. AT MY HOUSE."), the robots; the kick, the intro; the fight (the hint, too greasy, the first
+puke, the first rage, the dig, each kill, the couch, the dud, both wins). New hurts (lines.ts HURT, each with death
+screens): `m2:ct_dad_swat` (the mallet), `m2:ct_dad_puke`, `m2:ct_dad_couch` (the flying couch), `m2:ct_dad_hammer`
+(the rage).
 
 ## Standing rules (all apply; check every one against new work)
 
@@ -656,13 +743,29 @@ markBossFight every frame of a boss or sub-boss fight. Voice every new line (`np
 - (job 7) The set faces the camera (the sitcom's living room as the side-scroller sees it; the bleachers face the stage
   from the left): the couch, the family, the TV stand back at their own depths, not on the play plane (nothing on stage
   to stand on but the deck yet: the fight's design will say what's furniture to jump on).
-- (job 7) THE PLACEHOLDER: the card (PLEASE STAND BY, BOSS FIGHT COMING SOON) stands in for the fight; markBossFight
-  ('stupid-dad') runs through the intro and the card. Checkpoint 62 (STUPID DAD, manual, clear) is set as the intro
-  starts, for the fight to come. His deaths and the fight wait for the user.
+- (job 7) THE PLACEHOLDER (gone: job 8 replaced it with the fight). markBossFight ('stupid-dad') runs through the intro
+  and the fight. Checkpoint 62 (STUPID DAD, manual, clear) is set as the intro starts.
+- (job 8) THE FIGHT (amphi/fight.ts, fightArt.ts; see Section 7). Decisions where the user left it open: the couch is
+  dragged up front onto the play plane at the intro's end (he fights sitting down, where Meathead can reach him; the
+  family and the TV stay back at their depths); the living room's side walls bound the arena (the right one always,
+  with the fridge against it, a little back; the left flown in from the grid as the intro starts, so nothing pops in);
+  the clapperboard's no-spam change is this fight's only (a 7 s reset between takes, a dud before then; a hook in
+  weapons/stuntCar.ts, setStuntCarHook / snapClapper; everywhere else it's unchanged); "grabs won't work as usual" is
+  TOO GREASY (beer sweat) like the pundits; charge attacks in the rage get him hammered (every move into him, from any
+  side or above); the puke is a fire hose the way he faces; the second-to-last car crushes the couch on its way (a hop
+  off its wreck), the last of the family can still be flattened in the pathetic phase (no counter), and then the last
+  car is for him; the pathetic phase does no damage at all (him swinging at air) and takes double; the bottles never
+  hurt; the standard death is ours (the SWILL LITE avalanche, he shits himself under it, the can rolled to Meathead's
+  feet). Hurts: m2:ct_dad_swat, _puke, _couch, _hammer (lines.ts HURT, voiced). The enemy's kind m2:ct_stupid_dad
+  (midBoss: no instant kills or status effects from the other weapons; touch: the rage's counter; onGrab: too greasy).
+- (job 8) Outside src/m2/cartoon: weapons/stuntCar.ts (setStuntCarHook, snapClapper; drawStuntCar, drawStuntman,
+  STUNT_PAINT, STUNT_CAR_SCALE exported for the scripted cars), music/cues.ts (stupidDadArr: the fight's moods),
+  walkAway/stupidDad.ts (the weakness's wreck and half couch, more cans otherwise), kinds.ts (registerHurtLines'
+  dev-only death-text check reads `import.meta.env?.DEV`, so the voices tool can bundle it in node again).
 - (job 7) New sounds (m1 sfx.ts + types.ts SoundType, appended): `laughtrack` (a canned studio audience), `canopen`,
   `tapestop`. New voices (cast.json): m2.cartoon.bouncer (the guard; the studio's m2.cartoon.guard is another man),
   dad, tvmom, tvboy, tvsis, tvgramps (radio: the tapes). The walk-away (walkAway/stupidDad.ts) has the band shell behind
-  him and his cans down the path; how he died won't show till the deaths exist.
+  him and his cans down the path (and how he died: job 8).
 - (SNES pass, the kiddie square) Sillyville is drawn to one eye (kit.ts's SNES kit: candy ramps, rampH, still /
   stillAt / seen, sideBack with a `bow` so a bulging cartoon wall's side bulges with it all the way back, topBack,
   drumTop, ballR / eggR, shadeAcross, bandsDown, candyStroke; FRONT_D 0.88, BACK_D 0.78; other sections can use it).

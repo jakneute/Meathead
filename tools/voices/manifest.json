@@ -6631,6 +6631,11 @@
  },
  {
   "voice": "death",
+  "text": "BATTED AWAY BY A DRUNK",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "death",
   "text": "BATTED TO DEATH",
   "from": "FRONTIER"
  },
@@ -7052,6 +7057,16 @@
  {
   "voice": "death",
   "text": "BONKED BY A ROBOT CAT",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "death",
+  "text": "BONKED FLAT",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "death",
+  "text": "BONKED OFF A SITCOM SET",
   "from": "CARTOON"
  },
  {
@@ -7901,6 +7916,11 @@
  },
  {
   "voice": "death",
+  "text": "COUCH-SURFED TO DEATH",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "death",
   "text": "COULDN'T GET PAST THE SHIELD",
   "from": "content/deaths"
  },
@@ -8381,6 +8401,11 @@
  },
  {
   "voice": "death",
+  "text": "DIED IN A PUKE SHOWER",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "death",
   "text": "DIED IN A ROSE BED",
   "from": "FANTASY"
  },
@@ -8848,6 +8873,11 @@
   "voice": "death",
   "text": "DROWNED IN CRUDE",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "DROWNED IN DAD PUKE",
+  "from": "CARTOON"
  },
  {
   "voice": "death",
@@ -10061,6 +10091,11 @@
  },
  {
   "voice": "death",
+  "text": "HAMMERED BY DONKEY DAD",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "death",
   "text": "HAMMERED FLAT",
   "from": "CARTOON"
  },
@@ -10476,6 +10511,11 @@
  },
  {
   "voice": "death",
+  "text": "HOME RUN. HE WAS THE BALL.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "death",
   "text": "HOME RUN. WITH HIS HEAD.",
   "from": "FRONTIER"
  },
@@ -10508,6 +10548,11 @@
   "voice": "death",
   "text": "HOSED DOWN",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
+  "text": "HOSED DOWN BY A DRUNK",
+  "from": "CARTOON"
  },
  {
   "voice": "death",
@@ -11078,6 +11123,11 @@
   "voice": "death",
   "text": "KILLED BY A FLYING PLATE",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "death",
+  "text": "KILLED BY A FLYING SOFA",
+  "from": "CARTOON"
  },
  {
   "voice": "death",
@@ -16356,6 +16406,11 @@
  },
  {
   "voice": "death",
+  "text": "WHACKED BY A STOLEN MALLET",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "death",
   "text": "WHERE DID YOU THINK YOU WERE GOING?",
   "from": "content/deaths"
  },
@@ -18446,12 +18501,197 @@
  },
  {
   "voice": "m2.cartoon.dad",
+  "text": "...BEST SHOW WE EVER DID. I SHIT MYSELF.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "...FLAT AS A PANCAKE. A SHITTY ONE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "...FLAT. AND I STILL SMELL YOU.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "...FLAT. AND YOU'RE STILL NAKED.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "...I SHIT MYSELF. AT LEAST I GOT SHORTS.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "...I SHIT MYSELF. DON'T SAY IT.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "...I SHIT MYSELF. STILL BETTER DRESSED THAN YOU.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "...I'M FLAT. LIKE THE RATINGS.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "...NOW I SHIT MYSELF. WE MATCH.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "...ROLL ME UP. USE ME AS PANTS.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "...SOMEBODY ROLL ME UP.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "...STILL COLD. AND I SHIT MYSELF. WORTH IT.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "A CAR? FINE. ANYTHING TO GET AWAY FROM YOU.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "A CAR? FINE. BETTER THAN THE VIEW.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "A CAR? FROM WHERE? FROM YOUR... NO.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "A CAR? ON MY FAMILY? IS THAT YOU? IT SMELLS LIKE YOU.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
   "text": "A NAKED GUY ON MY SET. EPISODE NINE ALL OVER AGAIN.",
   "from": "CARTOON"
  },
  {
   "voice": "m2.cartoon.dad",
+  "text": "A POOL, TWO CARS, ONE CLOTHING STORE SALARY. TV MATH.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "AGAIN? THOSE ROBOTS COST NINETY BUCKS!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "AH. THAT'S BETTER. NOW GET OFF MY SET.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "AIM FOR HIS WANG, NOT MY FLOOR!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "ALL GONE. AND YOU'RE STILL HERE. STINKING.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "ALL GONE. JUST ME. AND A NAKED GUY.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "ANOTHER ONE? QUIT IT, YOU SMELLY BASTARD!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "ANOTHER ONE? YOU NAKED LUNATIC!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "ATTA... WHOEVER YOU ARE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
   "text": "ATTABOY.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "BACK OFF, FAN!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "BACK! YOU SMELL LIKE THE BOY'S TRACK!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "BACK? AND YOU STILL STINK.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "BACK? SIT DOWN. THE GAME'S ON.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "BACK. STILL NAKED. MARLENE, THE BELT.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "BEER! A NAKED MAN IN MY LIVING ROOM! BEER!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "BEER! I GOTTA UNSEE THIS!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "BEER! IF I GET DRUNK ENOUGH I CAN'T SMELL HIM!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "BEER! SOMETHING DIED IN HIS PANTS!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "BEER. IT KILLS THE SMELL. FROM THE INSIDE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "BEER. NOW YOU LOOK BETTER. NOT MUCH.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "BOY, YOU'RE ON A TRACK. EVEN YOUR LIFE GOT NO CHOICES.",
   "from": "CARTOON"
  },
  {
@@ -18462,6 +18702,16 @@
  {
   "voice": "m2.cartoon.dad",
   "text": "BOY! BEER!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "BOY! BEER! DON'T LOOK AT HIM, JUST BRING IT!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "BOY! BEER! I'M BEING ATTACKED HERE!",
   "from": "CARTOON"
  },
  {
@@ -18486,6 +18736,11 @@
  },
  {
   "voice": "m2.cartoon.dad",
+  "text": "BOY! TWO BEERS! ONE TO DRINK, ONE TO POUR ON HIM!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
   "text": "BOY? DID YOU SHIT YOURSELF AGAIN?",
   "from": "CARTOON"
  },
@@ -18496,7 +18751,47 @@
  },
  {
   "voice": "m2.cartoon.dad",
+  "text": "C'MERE, STINKY! DAD'S GOT A HAMMER!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "CAN'T LIFT IT. CAN'T BREATHE NEAR YOU EITHER.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "CLOSER! THROW IT AT THE SMELLY ONE!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "COLD. FINALLY.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
   "text": "COLD. GOOD.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "COMMERCIAL'S OVER, KID. BEAT IT.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "DAD FIGHTS SITTING DOWN.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "DAD FIGHTS SITTING DOWN. EYE LEVEL WITH... OH GOD.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "DAD FIGHTS SITTING DOWN. YOU CAN'T. I CAN TELL.",
   "from": "CARTOON"
  },
  {
@@ -18506,12 +18801,272 @@
  },
  {
   "voice": "m2.cartoon.dad",
+  "text": "DON'T GRAB ME WITH THOSE HANDS!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "DON'T HUG ME NAKED!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "DON'T TOUCH ME WITH THOSE HANDS!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "FINALLY. NOW I CAN'T SMELL YOU.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "FINE. I'LL GET IT MYSELF.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "FINE. I'LL GET IT. DON'T FOLLOW ME NAKED.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "FINE. I'LL GET IT. YOU'D ONLY SHIT ON IT.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "GET YOUR POOP HANDS OFF ME!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "GET YOUR STINK OFF MY SET!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
   "text": "GO TO YOUR ROOM. AND TAKE THAT SMELL WITH YOU.",
   "from": "CARTOON"
  },
  {
   "voice": "m2.cartoon.dad",
+  "text": "GOTTA SIT. AWAY FROM YOU.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "GOTTA SIT. CAN'T LOOK AT THAT STANDING UP.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "GRAMPS, DIE ALREADY. I WANT THE RECLINER.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "GRAMPS, YOU SMELL HIM TOO? NO? YOU'RE DEAD INSIDE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "GRAMPS, YOU'RE DROOLING. HE'S NAKED, NOT A SANDWICH.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "GRAMPS! BEER! YOU'RE CLOSEST TO DEATH, MAKE YOURSELF USEFUL!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
   "text": "HAL WOULD'VE LAUGHED AT THAT ONE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "HANDS OFF! I'M BASTED IN BEER!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "HEY! I'M SEVENTY-FOUR!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "HOLD STILL. I'LL GET YOU. GIMME A SEC.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "HOO. GIMME A MINUTE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "HURK. HERE COMES THE SECOND HALF.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "I CAN SEE YOUR... HURK!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "I CAN'T FEEL MY LEGS. NEVER COULD.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "I CAN'T LIFT IT. YOU CAN'T COVER IT. WE'RE EVEN.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "I MANAGE A CLOTHING STORE AND YOU SHOW UP NAKED? INSULTING.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "I MANAGE A CLOTHING STORE. FOUR BEDROOMS. DON'T ASK.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "I MANAGE A CLOTHING STORE. I GOT PANTS IN YOUR SIZE. AND A HOSE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "I NEED A BEER. A BIG ONE. A KEG.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "I SEE A LIGHT. NO. IT'S YOUR ASS.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "I SEE THE CAST. THEY'RE WAVING.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "I SELL PANTS FOR A LIVING. YOU NEED SOME. BAD.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "I SELL PANTS, KID. FORTY PERCENT OFF. PLEASE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "I SIT. YOU STINK. THAT IS THE SHOW.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "I'LL GET MY OWN BEER. AWAY FROM YOU.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "I'LL GET MY OWN. AND A ROBE FOR YOU.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "I'LL GET YOU, STINKY. ONCE THE ROOM STOPS.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "I'LL HAMMER THE SHIT OUTTA YOU! OH. ALREADY OUT.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "I'M DYING AND IT SMELLS LIKE YOUR PANTS.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "I'M FALLING OVER IN YOUR SMELL.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "I'M GONNA HAMMER THAT THING FLAT!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "I'M OUT OF BREATH AND YOU'RE STILL NAKED.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "I'M SITTING. DON'T STAND THERE LIKE THAT.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "I'M WINDED. AND YOU STILL STINK.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "IF I DIE, THE LAST THING I SAW WAS THAT.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "IF YOU WANT SOMETHING DONE...",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "IN THE HEAD? I'M YOUR FATHER!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "MARLENE DOESN'T WORK. I SELL SLACKS. WE GOT A SUNROOM.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "MARLENE, QUIT LOOKING AT THE NAKED GUY.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "MARLENE, THAT CASSEROLE'S OLDER THAN THE BOY.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "MARLENE, THE GUEST SHIT HIMSELF. CLEAN IT. IT'S YOUR JOB.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "MARLENE! BEER! AND A TOWEL FOR THE NAKED GUY!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "MARLENE! BEER! THE GUEST SHIT HIMSELF!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "MARLENE! BEER! THERE'S A FAN IN THE HOUSE!",
   "from": "CARTOON"
  },
  {
@@ -18531,12 +19086,192 @@
  },
  {
   "voice": "m2.cartoon.dad",
+  "text": "MISSED! HIT THE NAKED ONE!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "MISSED! HIT THE STINKER NEXT TIME!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "MY COUCH! NOT THE COUCH!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "MY COUCH! NOW IT SMELLS WORSE THAN YOU!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "MY COUCH! YOU NAKED MONSTER!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "MY HANDS ARE RIGHT HERE!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "MY HEART. MY HEART'S GOING.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "NAKED? I'LL BONK YOU WHERE IT COUNTS!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "NO AUTOGRAPHS!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "NO NAKED FANS!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "NO NAKED HUGS ON A FAMILY SHOW!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
   "text": "NO SON OF MINE WALKS AROUND LIKE THAT.",
   "from": "CARTOON"
  },
  {
   "voice": "m2.cartoon.dad",
+  "text": "NOBODY LEFT. NOBODY TO COVER THEIR EYES.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "NOBODY SAID IT WAS SMELL-O-VISION.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "NOBODY TOUCHES DAD!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "NOT ON ME. NOT ON...",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "NOW THAT'S PARENTING.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "OFF MY SET!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "OH GOD, HE'S BACK. SO'S THE SMELL.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "OH NO. THAT ONE WAS SKUNKED.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "OH, COME ON.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "OH, COME ON. AT LEAST IT'LL KILL THE SMELL.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "OH, COME ON. LAST THING I SEE IS HIS WANG AND A CAR.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "OKAY. OKAY. DAD'S GOTTA SIT.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "ONE BEER IN AND YOU'RE STILL NAKED.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "OW! AND NOW I SMELL LIKE YOU!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "OW! DON'T HIT ME WITH IT OUT!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "OW! I SAW STARS. AND HIS WANG.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "OW! MY BACK!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "OW! MY HEAD!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "OW! SOMETHING SLAPPED ME. I HOPE IT WAS A HAND.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "OW! THAT'S THE SECOND WORST THING TODAY. HE'S THE FIRST.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "OW! THROW IT AT THE NAKED GUY!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "OW! THROW IT AT THE POOPY GUY!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "PUT IT AWAY AND BACK OFF!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "PUT IT AWAY OR I... HURK!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
   "text": "PUT IT AWAY. MY ROBOTS GOT MORE DIGNITY.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "QUIT IT! PUT ON PANTS AND QUIT IT!",
   "from": "CARTOON"
  },
  {
@@ -18551,7 +19286,47 @@
  },
  {
   "voice": "m2.cartoon.dad",
+  "text": "SIS, EYES ON THE TV. THAT AIN'T FOR YOU.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "SIS, QUIT STARING. HE'S NOT YOUR DATE. HE SHIT HIMSELF.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "SIS, YOU'RE THE REASON I DRINK.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "SIS! BEER! AND QUIT LOOKING AT ME LIKE THAT!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "SIT DOWN. YOU'RE BLOCKING THE GAME.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "SOMEBODY GET ME A BEER BEFORE I LOSE IT!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
   "text": "SOMETHING DIED. MARLENE, CHECK THE BOY.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "STAND STILL, NAKED. THERE'S TWO OF YOU.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "THAT COUCH WAS IN THE PILOT!",
   "from": "CARTOON"
  },
  {
@@ -18561,7 +19336,42 @@
  },
  {
   "voice": "m2.cartoon.dad",
+  "text": "THAT SMELL. THAT BEER. HURK!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "THAT WAS A GOOD BEER!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "THAT WAS THE LAST ONE. I GOT NOBODY.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "THAT'S EVERYBODY. AGAIN.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "THAT'S EVERYBODY. JUST ME AND THE SMELL NOW.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "THAT'S GONNA BRUISE!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
   "text": "THAT'S HOLDING! YOU BLIND?",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "THAT'S IT! DAD'S GOT THE HAMMER!",
   "from": "CARTOON"
  },
  {
@@ -18576,6 +19386,21 @@
  },
  {
   "voice": "m2.cartoon.dad",
+  "text": "THE COUCH! WHERE DO I SIT NOW? NOT WHERE YOU SAT!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "THE COUCH! YOU SMELLY SON OF A...!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "THE NETWORK'S GONNA PULL US. AGAIN.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
   "text": "THEY'RE ALL GONE. EVERY ONE OF THEM.",
   "from": "CARTOON"
  },
@@ -18586,7 +19411,37 @@
  },
  {
   "voice": "m2.cartoon.dad",
+  "text": "THIS CAN'T BE IT. NOT WITH THAT SMELL.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "THIS IS A FAMILY SHOW! PUT IT AWAY!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "THIS IS A FAMILY SHOW.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
   "text": "THIS IS WHY WE DON'T HAVE GUESTS.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "THIS USED TO BE LIGHTER.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "TOO HEAVY. AND YOU'RE TOO NAKED.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "TOO HEAVY. LIKE YOUR PANTS.",
   "from": "CARTOON"
  },
  {
@@ -18601,12 +19456,77 @@
  },
  {
   "voice": "m2.cartoon.dad",
+  "text": "TWO! AND THE SMELL STAYS! WHY DOES THE SMELL STAY?",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "TWO! WHO KEEPS PARKING ON MY FAMILY?!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
   "text": "WAIT TILL YOUR MOTHER GETS... OH. RIGHT. SHE'S DEAD.",
   "from": "CARTOON"
  },
  {
   "voice": "m2.cartoon.dad",
+  "text": "WHAT THE HELL WAS THAT? AND WHAT IS THAT SMELL?",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "WHAT THE HELL? WHERE'D THAT CAR COME FROM?",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "WHERE'S MY COUCH? WHO MOVED THE FLOOR?",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "WHO PARKED ON MY FAMILY?",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "WHO PARKED ON MY FAMILY? WAS IT THE NAKED GUY?",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "WHO WANTS SOME? DAD'S GOT A HAMMER!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "WHY'S THE NAKED GUY SPINNING?",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "YOU AGAIN? AT LEAST BRING PANTS.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "YOU AGAIN? MARLENE, LOCK THE DOOR.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "YOU SMELL SO BAD I... HURK!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
   "text": "YOU STINK UP MY LIVING ROOM, I STINK UP YOUR FACE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "YOU THROW LIKE YOUR MOTHER!",
   "from": "CARTOON"
  },
  {
@@ -18617,6 +19537,11 @@
  {
   "voice": "m2.cartoon.dad",
   "text": "YOU'RE NOT THE BOY. THE BOY'S GOT A KEY IN HIS BACK.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "YOU'RE STINKING UP A FAMILY SHOW!",
   "from": "CARTOON"
  },
  {
@@ -21291,6 +22216,11 @@
  },
  {
   "voice": "m2.cartoon.tvboy",
+  "text": "HERE YA GO, P...",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.tvboy",
   "text": "HERE YA GO, POP!",
   "from": "CARTOON"
  },
@@ -21301,12 +22231,52 @@
  },
  {
   "voice": "m2.cartoon.tvboy",
+  "text": "MAYBE GET A REAL JOB, POP!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.tvboy",
+  "text": "SURE THING, LOSER! I MEAN POP!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.tvboy",
   "text": "SURE THING, P-P-P-POP!",
   "from": "CARTOON"
  },
  {
   "voice": "m2.cartoon.tvboy",
+  "text": "SURE THING, P-P-P...",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.tvboy",
   "text": "SURE THING, POP!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.tvgramps",
+  "text": "HEADS UP, SONNY!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.tvgramps",
+  "text": "I SHOULD'VE LEFT YOU AT THE HOSPITAL!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.tvgramps",
+  "text": "IN MY DAAAAY...",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.tvgramps",
+  "text": "IN MY DAY WE THREW 'EM!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.tvgramps",
+  "text": "IN MY DAY, DADS WORKED!",
   "from": "CARTOON"
  },
  {
@@ -21321,6 +22291,11 @@
  },
  {
   "voice": "m2.cartoon.tvgramps",
+  "text": "WHAT'S EVERYBODY YEL-L-L...",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.tvgramps",
   "text": "WHAT'S EVERYBODY YELLING ABOUT?",
   "from": "CARTOON"
  },
@@ -21331,7 +22306,27 @@
  },
  {
   "voice": "m2.cartoon.tvmom",
+  "text": "DINNER'S IN THE OV-V-V...",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.tvmom",
   "text": "DINNER'S IN THE OVEN, SWEETIE!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.tvmom",
+  "text": "HERE YOU GO, HONEY!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.tvmom",
+  "text": "I MARRIED YOU FOR YOUR MONEY. JOKE'S ON ME!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.tvmom",
+  "text": "MAYBE IF YOU GOT OFF THE COUCH, DEAR!",
   "from": "CARTOON"
  },
  {
@@ -21351,7 +22346,22 @@
  },
  {
   "voice": "m2.cartoon.tvmom",
+  "text": "OH, HO-HO-HONEEEY...",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.tvmom",
   "text": "OH, HONEY!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.tvmom",
+  "text": "ONE COLD ONE, DEAR!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.tvsis",
+  "text": "DA-A-A-AD...",
   "from": "CARTOON"
  },
  {
@@ -21361,7 +22371,32 @@
  },
  {
   "voice": "m2.cartoon.tvsis",
+  "text": "FINE. WHATEVER.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.tvsis",
+  "text": "GRO-O-O-OSS...",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.tvsis",
+  "text": "I WISH I WAS ADOPTED!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.tvsis",
+  "text": "UGH. CATCH.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.tvsis",
   "text": "UGH. EVERY EPISODE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.tvsis",
+  "text": "YOU'RE SO EMBARRASSING!",
   "from": "CARTOON"
  },
  {
@@ -54076,6 +55111,11 @@
  },
  {
   "voice": "meathead",
+  "text": "A HAMMER AND MY BALLS OUT. GREAT COMBO.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "A HAND! IN THE RIVER! FUCK!",
   "from": "FOREIGN"
  },
@@ -56621,6 +57661,11 @@
  },
  {
   "voice": "meathead",
+  "text": "BEER PUKE! IN MY EYES!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "BEES! BEES!",
   "from": "FRONTIER"
  },
@@ -56901,6 +57946,11 @@
  },
  {
   "voice": "meathead",
+  "text": "BLOWN UP. SAME AS MY PANTS.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "BOB DOLE HAS SEEN MY DICK. BOB DOLE SAYS SO.",
   "from": "CARTOON"
  },
@@ -57018,6 +58068,11 @@
   "voice": "meathead",
   "text": "BONKED BY A JESTER!",
   "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "BONKED BY A MALLET!",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -57456,6 +58511,11 @@
  },
  {
   "voice": "meathead",
+  "text": "BURIED IN BEER. BEATS PANTS.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "BURIED! I'M A SNOWMAN!",
   "from": "HOLLYWOOD"
  },
@@ -57718,6 +58778,11 @@
   "voice": "meathead",
   "text": "CANADA. THEY'RE GONNA SAY SORRY WHILE THEY HIT ME. I CAN FEEL IT.",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "CANCELED. AGAIN.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -58061,6 +59126,11 @@
  },
  {
   "voice": "meathead",
+  "text": "CLAPPERBOARD. ROBOTS. LET'S MAKE THIS SHOW WORSE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "CLEAN AND JERKED TO DEATH!",
   "from": "M2_KILL_LINES"
  },
@@ -58237,6 +59307,11 @@
  {
   "voice": "meathead",
   "text": "COLD IN HERE. EVERYTHING ON ME JUST SHRANK.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "COLD ONE'S ON ME, DAD.",
   "from": "CARTOON"
  },
  {
@@ -58443,6 +59518,11 @@
   "voice": "meathead",
   "text": "CORROSIVE SLIME IS CATABOLIC AS FUCK!",
   "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "COUCH IS TOAST. NOBODY SITS WHERE I'VE BEEN ANYWAY.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -58733,6 +59813,11 @@
   "voice": "meathead",
   "text": "DEADLIFT, THEN DEAD!",
   "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "DEATH BY BEER. HE'D WANT IT THAT WAY.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -59143,6 +60228,11 @@
   "voice": "meathead",
   "text": "DON'T. I'M EMPTY.",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "DONKEY KONG DAD!",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -60341,6 +61431,11 @@
  },
  {
   "voice": "meathead",
+  "text": "FLAT AS MY ASS FEELS.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "FLATTENED BY A GLOBE!",
   "from": "CARTOON"
  },
@@ -60353,6 +61448,16 @@
   "voice": "meathead",
   "text": "FLATTENED LIKE A PANCAKE",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "FLATTENED. I KNOW THE FEELING. IN MY PANTS.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "FLATTER THAN ME. AND I'M NAKED.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -61956,6 +63061,11 @@
  },
  {
   "voice": "meathead",
+  "text": "GREASY! AND I'M ONE TO TALK!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "GREAT. I'M A DIFFERENT COLOR. THAT'S NOT GONNA WASH OUT.",
   "from": "FOREIGN"
  },
@@ -62146,8 +63256,18 @@
  },
  {
   "voice": "meathead",
+  "text": "HAMMER TIME. MY PANTS ALREADY KNEW.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "HAMMERED BY A BLACKSMITH!",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "HAMMERED!",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -62271,8 +63391,18 @@
  },
  {
   "voice": "meathead",
+  "text": "HE BATTED ME LIKE A FLY!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "HE BEAT ME WITH A STICK! A STICK!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE BLEW CHUNKS. I BLEW MY PANTS. WE'RE EVEN.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -62601,6 +63731,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HE HOPPED AND BONKED ME!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "HE HOSED ME WITH TOMMY'S JUICE!",
   "from": "HAZARD_HURT"
  },
@@ -62716,6 +63851,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HE PUKED SO HARD THE COUCH TOOK OFF!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "HE PULLED MY HAIR, THE BITCH!",
   "from": "ADVENTURE"
  },
@@ -62786,8 +63926,28 @@
  },
  {
   "voice": "meathead",
+  "text": "HE SELLS CLOTHES? I'LL TAKE ONE OF EVERYTHING.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE SELLS PANTS? I'M A CUSTOMER. NOW.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE SELLS PANTS. HOW'S HE GOT THIS HOUSE?",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "HE SHIT HIMSELF ON THE HORN. I SAW IT.",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE SHIT HIMSELF TOO. WELCOME TO THE CLUB.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -63131,6 +64291,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HE'S ALL BEER SWEAT!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "HE'S ALL OILED UP!",
   "from": "FOREIGN"
  },
@@ -63168,6 +64333,11 @@
   "voice": "meathead",
   "text": "HE'S GOING UP! OH. DOWN. HE'S GOING DOWN.",
   "from": "RANGE_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE'S GOT A HAMMER AND HE'S HOPPING!",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -63246,6 +64416,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HE'S PUKING AND I'M NAKED. DON'T SPLASH ME.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "HE'S PUNCHING ME! WITH HIS SKINNY LITTLE ARMS!",
   "from": "HAZARD_HURT"
  },
@@ -63268,6 +64443,11 @@
   "voice": "meathead",
   "text": "HE'S SHOOTING AND STEERING! SHOW OFF!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE'S SLIMIER THAN MY PANTS!",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -63716,6 +64896,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HIS FAMILY'S PARKED RIGHT THERE. LET'S PARK ON THEM.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "HIS GUT HIT ME LIKE A WRECKING BALL!",
   "from": "SPOOKY"
  },
@@ -63732,6 +64917,11 @@
  {
   "voice": "meathead",
   "text": "HIS MOHAWK! IT'S REAL SPIKES!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "HIS WHOLE FAMILY'S JUST STANDING THERE. I GOT A CLAPPERBOARD.",
   "from": "CARTOON"
  },
  {
@@ -63773,6 +64963,11 @@
   "voice": "meathead",
   "text": "HIT BY A FLYING BABY MAN!",
   "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "HIT BY A FLYING COUCH!",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -63983,6 +65178,11 @@
   "voice": "meathead",
   "text": "HOME RUN! INTO THE GROUND!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "HOME RUN! ME!",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -65488,6 +66688,11 @@
   "voice": "meathead",
   "text": "I SHAT MYSELF ON IMPACT. FAIR ENOUGH.",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "I SHIT MY PANTS AND HE'S STILL WINNING. CLAPPERBOARD TIME.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -67201,6 +68406,11 @@
  },
  {
   "voice": "meathead",
+  "text": "IT SMELLS LIKE HIM NOW. NOT ME. FINALLY.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "IT SPANKED ME!",
   "from": "ADVENTURE"
  },
@@ -67871,6 +69081,11 @@
  },
  {
   "voice": "meathead",
+  "text": "JET-POWERED LA-Z-BOY!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "JETPACK IN MY FACE!",
   "from": "SPACE"
  },
@@ -68493,6 +69708,11 @@
   "voice": "meathead",
   "text": "LIKE A HORSESHOE ON AN ANVIL!",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "LIKE GRABBING A WET BRATWURST!",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -69801,6 +71021,11 @@
  },
  {
   "voice": "meathead",
+  "text": "MY HEAD'S RINGING!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "MY HEART IS POUNDING AT 300 BPM, GOD DAMN IT!",
   "from": "HURT"
  },
@@ -70171,6 +71396,16 @@
  },
  {
   "voice": "meathead",
+  "text": "NAKED DONKEY KONG! WRONG GAME!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "NAKED GRAB! BAD IDEA! SO MUCH SWEAT!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "NAKED GUY CUTTING THE LINE. TRY AND STOP ME.",
   "from": "FRONTIER"
  },
@@ -70373,6 +71608,11 @@
   "voice": "meathead",
   "text": "NAKED TRAIN ROBBERY. HERE WE GO.",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "NAKED, BROKE, AND I GOT A CLAPPERBOARD. ACTION.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -70861,6 +72101,16 @@
  },
  {
   "voice": "meathead",
+  "text": "NO CAR YET. JUST A NAKED GUY CLAPPING.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "NO CAR YET. JUST ME AND MY PANTS.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "NO CAT. JUST PLYWOOD AND ME.",
   "from": "CARTOON"
  },
@@ -70883,6 +72133,11 @@
   "voice": "meathead",
   "text": "No close-ups of the pants.",
   "from": "m1/components/WeaponGetScene.tsx:227"
+ },
+ {
+  "voice": "meathead",
+  "text": "NO COUCH. NOW WE'RE BOTH EXPOSED.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -71576,6 +72831,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NOT ON MY BARE ASS! NOT ON MY BARE ASS!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "NOT ON THE HELMET, IDIOT!",
   "from": "SPOOKY"
  },
@@ -71806,6 +73066,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NOW EVERYBODY ON THIS SET'S HALF NAKED.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "NOW I GOTTA GO ALL THE WAY BACK DOWN. GREAT.",
   "from": "SPOOKY"
  },
@@ -71878,6 +73143,11 @@
   "voice": "meathead",
   "text": "NOW WE'RE BOTH SHOWING EVERYTHING.",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOW YOU GOTTA STAND, DAD.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -72383,6 +73653,11 @@
   "voice": "meathead",
   "text": "ONE PER CUSTOMER!",
   "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "ONE ROLLED OUT. NAKED KEEPERS.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -73551,6 +74826,11 @@
  },
  {
   "voice": "meathead",
+  "text": "PANCAKE DAD. NO SYRUP.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "PANTS ARE CLEAN. NOBODY HAS TO KNOW.",
   "from": "M2_GUT_LINES"
  },
@@ -73578,6 +74858,11 @@
   "voice": "meathead",
   "text": "PARK RANGERS HAVE GUNS?!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "PARKED ON. LIKE MY PANTS.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -74023,6 +75308,16 @@
   "voice": "meathead",
   "text": "PUKE AND DIE!",
   "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "PUKE-POWERED COUCH! I'VE SEEN WORSE. IN MY PANTS.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "PUKE! HOT PUKE!",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -75061,6 +76356,11 @@
  },
  {
   "voice": "meathead",
+  "text": "RUN! WADDLE! WHATEVER! RUN!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "RUN. IT MAKES IT MORE FUN.",
   "from": "SPACE"
  },
@@ -75272,6 +76572,16 @@
  {
   "voice": "meathead",
   "text": "SCALDING! IT WAS DAVE'S!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "SCENE. TAKE A BOW.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "SCENE'S NOT RESET YET.",
   "from": "CARTOON"
  },
  {
@@ -76466,6 +77776,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SKIN ON BEER SWEAT! NEVER AGAIN!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "SKIN ON SKIN. WE BOTH FELT THAT.",
   "from": "CARTOON"
  },
@@ -76731,6 +78046,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SNAP THE CLAPPERBOARD. SEE WHO GETS PARKED ON.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "SNEAKY LITTLE BITCH!",
   "from": "FOREIGN"
  },
@@ -76818,6 +78138,11 @@
   "voice": "meathead",
   "text": "SOCKS AND SANDALS? GROSS! AND DEAD!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SOFA TO THE FACE!",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -77606,6 +78931,16 @@
  },
  {
   "voice": "meathead",
+  "text": "STILL RESETTING. HURRY. I SMELL.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "STILL RESETTING. I'M STANDING HERE NAKED.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "STILL THERE. NOBODY TAKES OUT THE TRASH IN THIS TOWN.",
   "from": "HOLLYWOOD"
  },
@@ -77918,6 +79253,11 @@
   "voice": "meathead",
   "text": "STUN STICK! RIGHT IN THE TITS!",
   "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "STUNT CARS. ROBOT FAMILY. I SMELL A SEQUEL.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -79111,6 +80451,16 @@
  },
  {
   "voice": "meathead",
+  "text": "THAT'S A WRAP, DAD.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT'S A WRAP.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "THAT'S A ZORBLAX GUN! I KNOW THAT GUN!",
   "from": "SPACE"
  },
@@ -79997,6 +81347,11 @@
  {
   "voice": "meathead",
   "text": "THE COUCH DIED. GOOD.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE COUCH GOT ME!",
   "from": "CARTOON"
  },
  {
@@ -81916,6 +83271,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THERE GOES THE COUCH.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "THERE WAS A POINT ON THAT FLAG!",
   "from": "CARTOON"
  },
@@ -82388,6 +83748,11 @@
   "voice": "meathead",
   "text": "THEY'RE STILL HOLDING. MOSTLY.",
   "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "THEY'RE STILL HOSING OFF THE LAST TAKE.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -82972,6 +84337,11 @@
  {
   "voice": "meathead",
   "text": "TOO GREASY!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "TOO GREASY! HE'S MARINATED!",
   "from": "CARTOON"
  },
  {
@@ -83583,6 +84953,16 @@
   "voice": "meathead",
   "text": "UP WE GO. BALLS IN THE BREEZE.",
   "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "UP YOU GET. LOOK AT ME. I'M UP.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "UP YOU GET. WE BOTH LOST SOMETHING TODAY.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",

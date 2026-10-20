@@ -42,7 +42,7 @@ const EYE_W = '#F5E4DC', EYE_RED = '#E0707A', IRIS = '#7EA4C8', BAG = '#B98478',
 // ---------------------------------------------------------------------------------------------------------------
 // His parts (facing left, in his units, about his feet)
 
-export type DadFace = 'bleary' | 'sip' | 'yell' | 'squint' | 'angry' | 'burp' | 'strain' | 'out';
+export type DadFace = 'bleary' | 'sip' | 'yell' | 'squint' | 'angry' | 'burp' | 'strain' | 'out' | 'puke' | 'wide';
 
 /** A can of SWILL LITE (its middle at (x, y), tipped by `ang` (0 upright), crushed 0..1). */
 export const can = (c: Ctx, x: number, y: number, ang: number, crushed = 0, open = true) => {
@@ -81,13 +81,15 @@ const head = (c: Ctx, hx: number, hy: number, face: DadFace, f: number, dir: num
   shape(c, () => c.ellipse(4, 1, 3.4, 5.2, 0.1, 0, Math.PI * 2), SKIN, 0.6, 7.4);
   ell(c, 4.4, 1.4, 1.3, 2.8, SKIN[3]); px(c, 4, -1, 2, 1, HAIR[1]);
   // (the brows: grey, wild)
-  const brow = face === 'angry' || face === 'squint' ? 1.6 : face === 'yell' || face === 'strain' ? -0.6 : 0;
+  const brow = face === 'angry' || face === 'squint' ? 1.6 : face === 'yell' || face === 'strain' ? -0.6 : face === 'wide' ? -1.8 : face === 'puke' ? 1 : 0;
   line(c, [-15, -7 + brow * 0.3, -10, -8 + brow], 2, HAIR[3]); line(c, [-6, -8 + brow, -1, -7.5 + brow * 0.2], 2, HAIR[3]);
   line(c, [-14, -8 + brow * 0.3, -10, -9 + brow], 0.8, HAIR[1]); line(c, [-5, -9 + brow, -2, -8.6], 0.8, HAIR[1]);
   // (the eyes: bloodshot, half shut under heavy lids, bags under them)
   const eye = (ex: number, w: number) => {
     ell(c, ex, -2.4, w * 0.62, 1.6, BAG);
-    if (face === 'sip' || face === 'out' || face === 'yell' || face === 'strain' || face === 'burp') { line(c, [ex - w / 2, -4, ex + w / 2, -3.6], 1, SKIN[4]); if (face === 'burp') { ell(c, ex, -5.4, w / 2.4, 1.2, EYE_W); px(c, ex - 0.6, -6.6, 1.2, 1, IRIS); } return; }
+    if (face === 'sip' || face === 'out' || face === 'yell' || face === 'strain' || face === 'burp' || face === 'puke') { line(c, [ex - w / 2, -4, ex + w / 2, -3.6], 1, SKIN[4]); if (face === 'burp') { ell(c, ex, -5.4, w / 2.4, 1.2, EYE_W); px(c, ex - 0.6, -6.6, 1.2, 1, IRIS); } return; }
+    // (wide: baffled, the lids gone up for once, pinprick pupils)
+    if (face === 'wide') { ell(c, ex, -4.4, w / 2 + 0.4, 2.6, EYE_W); px(c, ex - w / 2 + 0.6, -4.6, 1.2, 0.5, EYE_RED); px(c, ex - 1.1, -4.8, 1.2, 1.2, '#1A1A1A'); line(c, [ex - w / 2 - 0.4, -7.2, ex + w / 2 + 0.4, -7.4], 0.7, SKIN[3]); return; }
     const open = face === 'squint' ? 0.8 : face === 'angry' ? 1.6 : 1.3;
     ell(c, ex, -4, w / 2, open + 0.6, EYE_W);
     px(c, ex - w / 2 + 0.6, -4.2, 1.2, 0.5, EYE_RED); px(c, ex + w / 2 - 1.6, -3.8, 1.2, 0.5, EYE_RED);
@@ -107,7 +109,12 @@ const head = (c: Ctx, hx: number, hy: number, face: DadFace, f: number, dir: num
   for (let k = 0; k < 18; k++) px(c, -14 + ((k * 7) % 20), 7 + ((k * 3) % 8), 0.7, 0.7, '#F4F4F0');
   // (the mouth)
   const flap = talking ? (Math.floor(f / 4) % 3) : 0;
-  if (face === 'yell' || face === 'burp' || flap === 2) { fill(c, '#5A1020', () => c.ellipse(-12, 10.5, 3.4, face === 'yell' || face === 'burp' ? 3.6 : 2.4, 0, 0, Math.PI * 2)); px(c, -14, 8, 4, 1, TEETH); ell(c, -12, 12.4, 2, 1, '#C24A5A'); }
+  if (face === 'puke') {
+    // (puking: the jaw dropped as far as it goes, the cheeks gone green, the lot coming up)
+    ell(c, -8, 3, 4.4, 3, dith(c, '#8FB43A'));
+    fill(c, '#5A1020', () => c.ellipse(-12.5, 11.5, 4.6, 5.2, 0, 0, Math.PI * 2)); px(c, -15, 7.4, 5, 1, TEETH);
+    ell(c, -13, 11, 3.4, 3.6, '#B8C43A'); ell(c, -14, 10, 1.6, 1.4, '#E2E87A');
+  } else if (face === 'yell' || face === 'burp' || flap === 2) { fill(c, '#5A1020', () => c.ellipse(-12, 10.5, 3.4, face === 'yell' || face === 'burp' ? 3.6 : 2.4, 0, 0, Math.PI * 2)); px(c, -14, 8, 4, 1, TEETH); ell(c, -12, 12.4, 2, 1, '#C24A5A'); }
   else if (face === 'sip') { ell(c, -13, 9.6, 2.2, 1.8, SKIN[3]); }
   else if (face === 'strain' || face === 'angry') { px(c, -16, 9, 8, 2.4, TEETH); line(c, [-16, 9, -8, 9], 0.6, SKIN[4]); line(c, [-16, 11.4, -8, 11.4], 0.6, SKIN[4]); px(c, -12.6, 9, 0.6, 2.4, SKIN[4]); }
   else if (flap === 1) { ell(c, -12, 10, 3, 1.6, '#5A1020'); px(c, -14, 9, 3, 0.8, TEETH); }
@@ -193,6 +200,8 @@ export interface DadOpts {
   can?: 'near' | 'far' | null; canFull?: boolean; crushed?: number;
   /** Swaying (stood up: drunk). */
   sway?: number;
+  /** Something in his hands (the mallet, a bottle), drawn in his own units over the near arm: his near and far hands. */
+  held?: (c: Ctx, near: number[], far: number[]) => void;
 }
 
 /** Him, his feet's point at (x, feetY): `pose` what he's doing; `opts.t` how far through it (0..1). */
@@ -201,7 +210,8 @@ export const drawDad = (c: Ctx, x: number, feetY: number, pose: DadPose, f: numb
   const t = Math.max(0, Math.min(1, o.t ?? 0)), talking = !!o.talking;
   // (he faces left in his own units; mirrored for the right)
   c.save(); c.translate(Math.round(x), Math.round(feetY)); c.scale(DAD_K * (o.facing === 1 ? -1 : 1), DAD_K);
-  const sat = pose === 'sit' || pose === 'sip' || pose === 'call' || pose === 'reach' || pose === 'tv' || pose === 'squint';
+  const sat = pose === 'sit' || pose === 'sip' || pose === 'call' || pose === 'reach' || pose === 'tv' || pose === 'squint'
+    || pose === 'swat' || pose === 'catch' || pose === 'puke' || pose === 'baffled';
   // (getting up: from sat (u 0) to stood (u 1), hands on his knees, rocking twice first)
   const up = pose === 'rise' ? Math.max(0, (t - 0.45) / 0.55) : sat ? 0 : 1;
   const rock = pose === 'rise' && t < 0.45 ? Math.sin(t * 14) * 4 : 0;
@@ -214,7 +224,7 @@ export const drawDad = (c: Ctx, x: number, feetY: number, pose: DadPose, f: numb
   const step = pose === 'shuffle' ? Math.sin(f * 0.2) * 5 : 0;
   const footN = [L(-22, -6 + step), 0], footF = [L(-12, 8 - step), L(-1, 0)];
   const bx = L(-4, -6) + sway * 0.5 + rock, by = L(-50, -66) + breathe, brx = 31, bry = L(25, 27);
-  const lean = pose === 'rise' && t < 0.6 ? 10 * (1 - up) : 0;
+  const lean = pose === 'rise' && t < 0.6 ? 10 * (1 - up) : pose === 'heave' ? 16 + Math.sin(f * 0.3) * 2 : pose === 'drag' ? -6 : 0;
   const shN = [L(-20, -22) + sway + rock - lean, L(-76, -96) + breathe + lean * 0.6], shF = [L(16, 12) + sway + rock - lean, L(-80, -100) + breathe + lean * 0.6];
   let hx = L(-8, -10) + sway * 1.2 + rock - lean * 1.2, hy = L(-98, -118) + breathe + lean;
   let tilt = 0, hdir = -1;
@@ -234,6 +244,25 @@ export const drawDad = (c: Ctx, x: number, feetY: number, pose: DadPose, f: numb
     case 'stand': handN = [-24 + sway, -80]; handF = [16 + sway, -60]; break;
     case 'shuffle': handN = [-24 + sway, -78]; handF = [18 + sway, -58]; break;
     case 'crush': { const k = Math.min(1, t * 2.2); handN = [-24 - 6 * k + sway, -80 - 42 * k]; handF = [16, -60]; tilt = -0.12 * k; face = o.face ?? (t > 0.5 ? 'angry' : 'strain'); break; }
+    // (the fight's)
+    case 'swat': {
+      // (wound back over his shoulder (t 0), swung through and down out in front (t 1))
+      const a = -2.2 + Math.min(1, t) * 2.9;
+      handN = [-6 + Math.cos(a + Math.PI / 2) * 34, -86 - Math.sin(a + Math.PI / 2) * 30]; handF = [34, -72];
+      face = o.face ?? (t < 0.4 ? 'angry' : 'yell'); break;
+    }
+    case 'catch': handN = [-14, -128]; handF = [34, -72]; tilt = -0.1; face = o.face ?? 'yell'; break;
+    case 'puke': hx -= 7; hy += 7; handN = [-8, -56]; handF = [22, -60]; face = 'puke'; break;
+    case 'baffled': handN = [hx - 7, hy - 15]; handF = [hx + 9, hy - 17]; face = o.face ?? 'wide'; break;
+    case 'drag': handN = [26 + sway, -70]; handF = [34 + sway, -66]; face = o.face ?? 'strain'; break;
+    case 'hammer': {
+      // (the Donkey Kong hammer: both fists on the handle, up over his head (t 0), slammed down out in front (t 1))
+      const k = Math.min(1, t);
+      handN = [-6 - 30 * k + sway, -146 + 76 * k]; handF = [2 - 26 * k + sway, -140 + 74 * k]; face = o.face ?? (talking ? 'yell' : 'angry'); break;
+    }
+    case 'stagger': handN = [-34 + Math.sin(f * 0.21) * 8, -96 + Math.cos(f * 0.17) * 6]; handF = [30 + Math.cos(f * 0.19) * 8, -98 + Math.sin(f * 0.23) * 6]; face = o.face ?? 'bleary'; break;
+    case 'heave': handN = [-30, -16]; handF = [-20, -14]; face = o.face ?? 'strain'; break;
+    case 'fridge': handN = [-44, -86]; handF = [16 + sway, -60]; face = o.face ?? 'bleary'; break;
   }
   if (holding === 'near') {
     canAt = pose === 'sip' ? [handN[0] - 3, handN[1] - 2] : pose === 'crush' ? [hx - 15, hy - 5] : [handN[0] - 1, handN[1] - 6];
@@ -272,6 +301,7 @@ export const drawDad = (c: Ctx, x: number, feetY: number, pose: DadPose, f: numb
   if (holding === 'near' && canAt) can(c, canAt[0], canAt[1], canAng, o.crushed ?? 0);
   // (crushing it on his forehead: the thumb over the top of it)
   if (pose === 'crush' && canAt) ell(c, canAt[0] + 3, canAt[1] - 2, 3, 2.4, SKIN[1]);
+  o.held?.(c, handN, handF);
   c.restore();
 };
 

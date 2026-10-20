@@ -7,8 +7,8 @@
 // its lip, some dead). Down the walk: his crushed cans of SWILL LITE (the show's real beer), plastic beer cups, a
 // popcorn box, a show program, the foam finger somebody dropped (#1). His new toy: the MALLET (walkAway/acts.ts).
 //
-// STUPID DAD's fight isn't designed yet (the user's, later), and so neither are his two deaths: how he went won't show
-// here till they are (the `weakness` flag's unused till then).
+// How he went shows down the path: the weakness (the last stunt car came down on him) leaves that car dumped on its roof
+// by the walk and half his couch; any other way (buried in SWILL LITE), more of the cans.
 
 import { type Ctx, type Prop, type SceneDef, HOR, box, hash, mix } from './kit';
 import { timeOfDay, hourMix } from '../timeOfDay';
@@ -113,8 +113,29 @@ const popcorn = (g: Ctx, w: number, h: number) => { box(g, 0, h - 4, w * 0.6, 4,
 /** The show's program, dropped: STUPID DAD's face on the cover. */
 const program = (g: Ctx, w: number, h: number) => { box(g, 0, h - 3, w, 3, INK); box(g, 1, h - 3, w - 2, 2, '#7C3AED'); box(g, 2, h - 3, 3, 2, '#F4B8A0'); box(g, w - 4, h - 3, 2, 1, '#FDE047'); };
 
-const props = (): Prop[] => {
+/** A stunt car on its roof (the weakness: the last one, towed out and dumped by the walk), scorched, a wheel off. */
+const wreck = (g: Ctx, w: number, h: number) => {
+  const y = h - 4;
+  box(g, 6, y - 2, w - 12, 3, 'rgba(0,0,0,0.3)');
+  box(g, 4, y - 12, w - 8, 9, INK); box(g, 5, y - 11, w - 10, 7, '#B91C1C'); box(g, 5, y - 11, w - 10, 2, '#7F1D1D'); box(g, 5, y - 6, w - 10, 1, '#F8FAFC');
+  box(g, w * 0.3, y - 3, w * 0.4, 4, INK); box(g, w * 0.31, y - 2, w * 0.38, 2, '#7DD3FC');
+  for (const x of [w * 0.22, w * 0.78]) { box(g, x - 4, y - 18, 8, 7, INK); box(g, x - 3, y - 17, 6, 5, '#27272A'); box(g, x - 1, y - 15, 2, 2, '#A1A1AA'); }
+  for (let k = 0; k < 4; k++) box(g, w * 0.4 + k * 4, y - 13 - (k % 2) * 2, 3, 2, k % 2 ? '#3A3430' : '#57534E');
+  box(g, w - 10, y - 1, 6, 6, INK); box(g, w - 9, y, 4, 4, '#27272A');
+};
+/** Half the show's couch (the weakness: the car came down on it), stuffing out. */
+const halfCouch = (g: Ctx, w: number, h: number) => {
+  box(g, 0, h - 10, w, 10, INK); box(g, 1, h - 9, w - 2, 8, '#B9561A'); box(g, 1, h - 9, w - 2, 2, '#E0752E');
+  for (let k = 0; k < 4; k++) box(g, 2 + k * (w / 4), h - 8, 2, 6, '#8E3F12');
+  box(g, w - 4, h - 12, 4, 4, '#F4EFE2'); box(g, w - 2, h - 14, 2, 2, '#FFFFFF');
+};
+
+const props = (weakness = false): Prop[] => {
   const out: Prop[] = [];
+  // (how he went, down the path: the last stunt car dumped on its roof, half his couch; any other way, the beer he went
+  // under (more of the cans))
+  if (weakness) { out.push({ id: 'wa-sd-wreck', x: 2.4, z: 11, w: 2.6, h: 1.1, ppm: 24, paint: wreck }); out.push({ id: 'wa-sd-couch', x: -2.6, z: 17, w: 1.6, h: 0.5, ppm: 24, paint: halfCouch }); }
+  else for (let k = 0; k < 10; k++) out.push({ id: 'wa-sd-can', x: (hash(k * 5.3 + 1) - 0.5) * 3.2, z: 3.4 + k * 3.1, w: 0.22, h: 0.1, ppm: 40, paint: crushed, wrap: true });
   for (let k = 0; k < 12; k++) out.push({ id: `wa-sd-oak${k % 3}`, x: (k % 2 ? 1 : -1) * (5.6 + (k % 3) * 0.9), z: 3 + k * 3.4, w: 3.4 + (k % 3) * 0.3, h: 4.4, ppm: 16, paint: oak });
   for (let k = 0; k < 10; k++) out.push({ id: 'wa-sd-post', x: (k % 2 ? -1 : 1) * 2.6, z: 3 + k * 4, w: 0.7, h: 3, ppm: 24, paint: post });
   for (let k = 0; k < 5; k++) out.push({ id: 'wa-sd-bin', x: (k % 2 ? 1 : -1) * 3.1, z: 5 + k * 7.6, w: 0.6, h: 0.9, ppm: 28, paint: can });

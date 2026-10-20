@@ -349,11 +349,14 @@ const cartoonMoment = (s: GameState, sec: string): Cand | null => {
   }
   return null;
 };
-/** STUPID DAD's song by his intro: the show stopped dead, him squinting at Meathead (hush); the family glitching, him up off
- *  the couch, the can crushed (intro); him coming on, the card (and the fight to come) (main). */
+/** STUPID DAD's song by his intro and the fight: the show stopped dead, him squinting at Meathead (hush); the family
+ *  glitching, him up off the couch, the can crushed (intro); him dragging the couch up front, the fight (main); up off
+ *  his crushed couch, pathetic, no family left (intro again: no drums, deflated); his death (hush). */
 const stupidDadArr = (s: GameState) => {
   const m = stupidDadMusic(s);
   if (!m) return 'main';
+  if (m.fight === 'dead') return 'hush';
+  if (m.fight === 'sad') return 'intro';
   if (m.intro === 'walk' || m.intro === 'close' || m.intro === 'sees') return 'hush';
   if (m.intro === 'glitch' || m.intro === 'rise' || m.intro === 'crush') return 'intro';
   return 'main';

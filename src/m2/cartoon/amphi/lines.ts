@@ -11,7 +11,7 @@
 // asks the Boy for another beer so he can watch the game, and he drinks real beer doing it. Never anything about
 // Meathead's age. Pure data.
 
-import { allOf, type ByPants } from '../talk';
+import { allOf, type ByPants, type HurtTable } from '../talk';
 
 export const VOICES = {
   guard: 'm2.cartoon.bouncer',
@@ -163,13 +163,294 @@ export const DAD_FIGHT: ByPants = {
   nude: ['NO SON OF MINE WALKS AROUND LIKE THAT.', "MARLENE! GET MY BELT! HE'S NOT WEARING ONE."],
 };
 
+/** He drags the couch up front and drops back onto it (the intro's last beat, him to the room). */
+export const DAD_SETTLE: ByPants = {
+  clean: ["AH. THAT'S BETTER. NOW GET OFF MY SET.", 'DAD FIGHTS SITTING DOWN.'],
+  shitty: ["DAD FIGHTS SITTING DOWN. YOU CAN'T. I CAN TELL.", 'I SIT. YOU STINK. THAT IS THE SHOW.'],
+  nude: ["DAD FIGHTS SITTING DOWN. EYE LEVEL WITH... OH GOD.", "I'M SITTING. DON'T STAND THERE LIKE THAT."],
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// THE FIGHT (fight.ts): STUPID DAD on his couch, drunk, the stolen mallet by him, yelling at his family for beer.
+// Everything he says is by pants (he's seen him). The family's tapes don't react to Meathead: one pool each.
+
+/** Screaming at the family for a beer (the whole fight). */
+export const DAD_BEER: ByPants = {
+  clean: [
+    'MARLENE! BEER! THERE\'S A FAN IN THE HOUSE!', 'BOY! BEER! I\'M BEING ATTACKED HERE!', 'SOMEBODY GET ME A BEER BEFORE I LOSE IT!',
+    'GRAMPS! BEER! YOU\'RE CLOSEST TO DEATH, MAKE YOURSELF USEFUL!', 'SIS! BEER! AND QUIT LOOKING AT ME LIKE THAT!',
+  ],
+  shitty: [
+    'BEER! IF I GET DRUNK ENOUGH I CAN\'T SMELL HIM!', 'MARLENE! BEER! THE GUEST SHIT HIMSELF!', 'BOY! TWO BEERS! ONE TO DRINK, ONE TO POUR ON HIM!',
+    'BEER! SOMETHING DIED IN HIS PANTS!',
+  ],
+  nude: [
+    'BEER! I GOTTA UNSEE THIS!', 'MARLENE! BEER! AND A TOWEL FOR THE NAKED GUY!', 'BOY! BEER! DON\'T LOOK AT HIM, JUST BRING IT!',
+    'BEER! A NAKED MAN IN MY LIVING ROOM! BEER!',
+  ],
+};
+/** Snark at the family (the sitcom: everybody mean to everybody, in the living room, forever). */
+export const DAD_SNIPE: ByPants = {
+  clean: [
+    'SIS, YOU\'RE THE REASON I DRINK.', 'GRAMPS, DIE ALREADY. I WANT THE RECLINER.', 'MARLENE, THAT CASSEROLE\'S OLDER THAN THE BOY.',
+    'BOY, YOU\'RE ON A TRACK. EVEN YOUR LIFE GOT NO CHOICES.',
+  ],
+  shitty: [
+    'MARLENE, THE GUEST SHIT HIMSELF. CLEAN IT. IT\'S YOUR JOB.', 'SIS, QUIT STARING. HE\'S NOT YOUR DATE. HE SHIT HIMSELF.',
+    'GRAMPS, YOU SMELL HIM TOO? NO? YOU\'RE DEAD INSIDE.',
+  ],
+  nude: [
+    'MARLENE, QUIT LOOKING AT THE NAKED GUY.', 'SIS, EYES ON THE TV. THAT AIN\'T FOR YOU.', 'GRAMPS, YOU\'RE DROOLING. HE\'S NAKED, NOT A SANDWICH.',
+  ],
+};
+/** ...and the tape fires back (the dead actors' voices; the laugh track after). */
+export const MOM_SNARK = ['MAYBE IF YOU GOT OFF THE COUCH, DEAR!', 'I MARRIED YOU FOR YOUR MONEY. JOKE\'S ON ME!'];
+export const BOY_SNARK = ['MAYBE GET A REAL JOB, POP!', 'SURE THING, LOSER! I MEAN POP!'];
+export const SIS_SNARK = ['I WISH I WAS ADOPTED!', 'YOU\'RE SO EMBARRASSING!'];
+export const GRAMPS_SNARK = ['I SHOULD\'VE LEFT YOU AT THE HOSPITAL!', 'IN MY DAY, DADS WORKED!'];
+/** The dig (the user's: a nice house on a clothing-store manager's pay, the wife at home: Al Bundy). */
+export const DAD_BUNDY: ByPants = {
+  clean: ['I MANAGE A CLOTHING STORE. FOUR BEDROOMS. DON\'T ASK.', 'MARLENE DOESN\'T WORK. I SELL SLACKS. WE GOT A SUNROOM.', 'A POOL, TWO CARS, ONE CLOTHING STORE SALARY. TV MATH.'],
+  shitty: ['I MANAGE A CLOTHING STORE. I GOT PANTS IN YOUR SIZE. AND A HOSE.', 'I SELL PANTS FOR A LIVING. YOU NEED SOME. BAD.'],
+  nude: ['I MANAGE A CLOTHING STORE AND YOU SHOW UP NAKED? INSULTING.', 'I SELL PANTS, KID. FORTY PERCENT OFF. PLEASE.'],
+};
+/** Too close: the mallet. */
+export const DAD_SWAT: ByPants = {
+  clean: ['BACK OFF, FAN!', 'NO AUTOGRAPHS!', 'OFF MY SET!'],
+  shitty: ['GET YOUR STINK OFF MY SET!', 'BACK! YOU SMELL LIKE THE BOY\'S TRACK!'],
+  nude: ['PUT IT AWAY AND BACK OFF!', 'NO NAKED FANS!'],
+};
+/** A bottle caught (one at last). */
+export const DAD_CATCH: ByPants = {
+  clean: ['NOW THAT\'S PARENTING.', 'COLD. FINALLY.', 'ATTA... WHOEVER YOU ARE.'],
+  shitty: ['BEER. IT KILLS THE SMELL. FROM THE INSIDE.', 'FINALLY. NOW I CAN\'T SMELL YOU.'],
+  nude: ['BEER. NOW YOU LOOK BETTER. NOT MUCH.', 'ONE BEER IN AND YOU\'RE STILL NAKED.'],
+};
+/** A bottle missed him (most do). */
+export const DAD_MISS: ByPants = {
+  clean: ['YOU THROW LIKE YOUR MOTHER!', 'MY HANDS ARE RIGHT HERE!', 'THAT WAS A GOOD BEER!'],
+  shitty: ['CLOSER! THROW IT AT THE SMELLY ONE!', 'MISSED! HIT THE STINKER NEXT TIME!'],
+  nude: ['MISSED! HIT THE NAKED ONE!', 'AIM FOR HIS WANG, NOT MY FLOOR!'],
+};
+/** ...off his head. */
+export const DAD_BONK: ByPants = {
+  clean: ['OW! MY HEAD!', 'IN THE HEAD? I\'M YOUR FATHER!'],
+  shitty: ['OW! THAT\'S THE SECOND WORST THING TODAY. HE\'S THE FIRST.', 'OW! THROW IT AT THE POOPY GUY!'],
+  nude: ['OW! THROW IT AT THE NAKED GUY!', 'OW! I SAW STARS. AND HIS WANG.'],
+};
+/** The beer coming back up (the couch takes off). */
+export const DAD_PUKE: ByPants = {
+  clean: ['OH NO. THAT ONE WAS SKUNKED.', 'HURK. HERE COMES THE SECOND HALF.'],
+  shitty: ['YOU SMELL SO BAD I... HURK!', 'THAT SMELL. THAT BEER. HURK!'],
+  nude: ['I CAN SEE YOUR... HURK!', 'PUT IT AWAY OR I... HURK!'],
+};
+/** The drunken rage (the mallet up, Donkey Kong). */
+export const DAD_RAGE: ByPants = {
+  clean: ['THAT\'S IT! DAD\'S GOT THE HAMMER!', 'WHO WANTS SOME? DAD\'S GOT A HAMMER!'],
+  shitty: ['C\'MERE, STINKY! DAD\'S GOT A HAMMER!', 'I\'LL HAMMER THE SHIT OUTTA YOU! OH. ALREADY OUT.'],
+  nude: ['I\'M GONNA HAMMER THAT THING FLAT!', 'NAKED? I\'LL BONK YOU WHERE IT COUNTS!'],
+};
+/** ...worn out: back to the couch. */
+export const DAD_TIRED: ByPants = {
+  clean: ['OKAY. OKAY. DAD\'S GOTTA SIT.', 'MY HEART. MY HEART\'S GOING.'],
+  shitty: ['I\'M WINDED. AND YOU STILL STINK.', 'GOTTA SIT. AWAY FROM YOU.'],
+  nude: ['I\'M OUT OF BREATH AND YOU\'RE STILL NAKED.', 'GOTTA SIT. CAN\'T LOOK AT THAT STANDING UP.'],
+};
+/** Hit (now and then). */
+export const DAD_HURT: ByPants = {
+  clean: ['OW! MY BACK!', 'THAT\'S GONNA BRUISE!', 'HEY! I\'M SEVENTY-FOUR!'],
+  shitty: ['DON\'T TOUCH ME WITH THOSE HANDS!', 'OW! AND NOW I SMELL LIKE YOU!'],
+  nude: ['OW! DON\'T HIT ME WITH IT OUT!', 'OW! SOMETHING SLAPPED ME. I HOPE IT WAS A HAND.'],
+};
+/** A family member flattened by a stunt car: more baffled, more fed up, every time (by how many: 1, 2, 3 (his couch
+ *  goes with it), 4 (the last)). */
+export const DAD_KILL: ByPants[] = [
+  {
+    clean: ['WHAT THE HELL? WHERE\'D THAT CAR COME FROM?', 'WHO PARKED ON MY FAMILY?'],
+    shitty: ['A CAR? ON MY FAMILY? IS THAT YOU? IT SMELLS LIKE YOU.', 'WHAT THE HELL WAS THAT? AND WHAT IS THAT SMELL?'],
+    nude: ['A CAR? FROM WHERE? FROM YOUR... NO.', 'WHO PARKED ON MY FAMILY? WAS IT THE NAKED GUY?'],
+  },
+  {
+    clean: ['TWO! WHO KEEPS PARKING ON MY FAMILY?!', 'AGAIN? THOSE ROBOTS COST NINETY BUCKS!'],
+    shitty: ['ANOTHER ONE? QUIT IT, YOU SMELLY BASTARD!', 'TWO! AND THE SMELL STAYS! WHY DOES THE SMELL STAY?'],
+    nude: ['ANOTHER ONE? YOU NAKED LUNATIC!', 'QUIT IT! PUT ON PANTS AND QUIT IT!'],
+  },
+  {
+    clean: ['MY COUCH! NOT THE COUCH!', 'THAT COUCH WAS IN THE PILOT!'],
+    shitty: ['MY COUCH! NOW IT SMELLS WORSE THAN YOU!', 'THE COUCH! YOU SMELLY SON OF A...!'],
+    nude: ['MY COUCH! YOU NAKED MONSTER!', 'THE COUCH! WHERE DO I SIT NOW? NOT WHERE YOU SAT!'],
+  },
+  {
+    clean: ['THAT WAS THE LAST ONE. I GOT NOBODY.', 'THAT\'S EVERYBODY. AGAIN.'],
+    shitty: ['THAT\'S EVERYBODY. JUST ME AND THE SMELL NOW.', 'ALL GONE. AND YOU\'RE STILL HERE. STINKING.'],
+    nude: ['ALL GONE. JUST ME. AND A NAKED GUY.', 'NOBODY LEFT. NOBODY TO COVER THEIR EYES.'],
+  },
+];
+/** No couch, no family: stood up, pathetic, falling over. */
+export const DAD_PATHETIC: ByPants = {
+  clean: ['HOLD STILL. I\'LL GET YOU. GIMME A SEC.', 'WHERE\'S MY COUCH? WHO MOVED THE FLOOR?', 'I CAN\'T FEEL MY LEGS. NEVER COULD.'],
+  shitty: ['I\'LL GET YOU, STINKY. ONCE THE ROOM STOPS.', 'I\'M FALLING OVER IN YOUR SMELL.'],
+  nude: ['STAND STILL, NAKED. THERE\'S TWO OF YOU.', 'WHY\'S THE NAKED GUY SPINNING?'],
+};
+/** ...trying to lift the mallet and not. */
+export const DAD_HEAVY: ByPants = {
+  clean: ['THIS USED TO BE LIGHTER.', 'HOO. GIMME A MINUTE.'],
+  shitty: ['TOO HEAVY. LIKE YOUR PANTS.', 'CAN\'T LIFT IT. CAN\'T BREATHE NEAR YOU EITHER.'],
+  nude: ['TOO HEAVY. AND YOU\'RE TOO NAKED.', 'I CAN\'T LIFT IT. YOU CAN\'T COVER IT. WE\'RE EVEN.'],
+};
+/** Sat there, at him, now and then. */
+export const DAD_TAUNT: ByPants = {
+  clean: ['SIT DOWN. YOU\'RE BLOCKING THE GAME.', 'COMMERCIAL\'S OVER, KID. BEAT IT.', 'THIS IS A FAMILY SHOW.'],
+  shitty: ['YOU\'RE STINKING UP A FAMILY SHOW!', 'NOBODY SAID IT WAS SMELL-O-VISION.'],
+  nude: ['THIS IS A FAMILY SHOW! PUT IT AWAY!', 'THE NETWORK\'S GONNA PULL US. AGAIN.'],
+};
+/** Low. */
+export const DAD_LOW: ByPants = {
+  clean: ['I NEED A BEER. A BIG ONE. A KEG.', 'I SEE THE CAST. THEY\'RE WAVING.'],
+  shitty: ['I\'M DYING AND IT SMELLS LIKE YOUR PANTS.', 'THIS CAN\'T BE IT. NOT WITH THAT SMELL.'],
+  nude: ['IF I DIE, THE LAST THING I SAW WAS THAT.', 'I SEE A LIGHT. NO. IT\'S YOUR ASS.'],
+};
+/** A retry: straight back on (him already on the couch). */
+export const DAD_ENTRANCE: ByPants = {
+  clean: ['BACK? SIT DOWN. THE GAME\'S ON.', 'YOU AGAIN? MARLENE, LOCK THE DOOR.'],
+  shitty: ['BACK? AND YOU STILL STINK.', 'OH GOD, HE\'S BACK. SO\'S THE SMELL.'],
+  nude: ['BACK. STILL NAKED. MARLENE, THE BELT.', 'YOU AGAIN? AT LEAST BRING PANTS.'],
+};
+/** A grab at him: TOO GREASY (forty years of beer sweat). */
+export const DAD_GRABBED: ByPants = {
+  clean: ['HANDS OFF! I\'M BASTED IN BEER!', 'NOBODY TOUCHES DAD!'],
+  shitty: ['DON\'T GRAB ME WITH THOSE HANDS!', 'GET YOUR POOP HANDS OFF ME!'],
+  nude: ['DON\'T HUG ME NAKED!', 'NO NAKED HUGS ON A FAMILY SHOW!'],
+};
+/** The last stunt car coming at him (stood up, nobody left). */
+export const DAD_SEES_CAR: ByPants = {
+  clean: ['OH, COME ON.', 'NOT ON ME. NOT ON...'],
+  shitty: ['OH, COME ON. AT LEAST IT\'LL KILL THE SMELL.', 'A CAR? FINE. ANYTHING TO GET AWAY FROM YOU.'],
+  nude: ['OH, COME ON. LAST THING I SEE IS HIS WANG AND A CAR.', 'A CAR? FINE. BETTER THAN THE VIEW.'],
+};
+/** The standard death: he gets up for a beer himself (the fridge overloaded: SWILL LITE buries him). */
+export const DAD_FRIDGE: ByPants = {
+  clean: ['FINE. I\'LL GET IT MYSELF.', 'IF YOU WANT SOMETHING DONE...'],
+  shitty: ['FINE. I\'LL GET IT. YOU\'D ONLY SHIT ON IT.', 'I\'LL GET MY OWN BEER. AWAY FROM YOU.'],
+  nude: ['FINE. I\'LL GET IT. DON\'T FOLLOW ME NAKED.', 'I\'LL GET MY OWN. AND A ROBE FOR YOU.'],
+};
+/** ...from under the pile (and he shits himself). */
+export const DAD_BURIED: ByPants = {
+  clean: ['...STILL COLD. AND I SHIT MYSELF. WORTH IT.', '...BEST SHOW WE EVER DID. I SHIT MYSELF.'],
+  shitty: ['...NOW I SHIT MYSELF. WE MATCH.', '...I SHIT MYSELF. DON\'T SAY IT.'],
+  nude: ['...I SHIT MYSELF. AT LEAST I GOT SHORTS.', '...I SHIT MYSELF. STILL BETTER DRESSED THAN YOU.'],
+};
+/** The weakness death: flattened under the last stunt car, like a cartoon. */
+export const DAD_FLAT: ByPants = {
+  clean: ['...I\'M FLAT. LIKE THE RATINGS.', '...SOMEBODY ROLL ME UP.'],
+  shitty: ['...FLAT. AND I STILL SMELL YOU.', '...FLAT AS A PANCAKE. A SHITTY ONE.'],
+  nude: ['...FLAT. AND YOU\'RE STILL NAKED.', '...ROLL ME UP. USE ME AS PANTS.'],
+};
+
+/** The family's tapes in the fight: off to the fridge; flattened (the tape dragging, dying). One pool each. */
+export const FETCH_TAPE: Record<'mom' | 'boy' | 'sis' | 'gramps', string[]> = {
+  mom: ['ONE COLD ONE, DEAR!', 'HERE YOU GO, HONEY!'],
+  boy: BOY_TAPE,
+  sis: ['UGH. CATCH.', 'FINE. WHATEVER.'],
+  gramps: ["IN MY DAY WE THREW 'EM!", 'HEADS UP, SONNY!'],
+};
+export const DIE_TAPE: Record<'mom' | 'boy' | 'sis' | 'gramps', string[]> = {
+  mom: ['OH, HO-HO-HONEEEY...', "DINNER'S IN THE OV-V-V..."],
+  boy: ['SURE THING, P-P-P...', 'HERE YA GO, P...'],
+  sis: ['DA-A-A-AD...', 'GRO-O-O-OSS...'],
+  gramps: ['IN MY DAAAAY...', "WHAT'S EVERYBODY YEL-L-L..."],
+};
+
+/** Meathead in the fight. */
+export const MH_HINT: ByPants = {
+  clean: ['HIS WHOLE FAMILY\'S JUST STANDING THERE. I GOT A CLAPPERBOARD.', 'STUNT CARS. ROBOT FAMILY. I SMELL A SEQUEL.', 'SNAP THE CLAPPERBOARD. SEE WHO GETS PARKED ON.'],
+  shitty: ['I SHIT MY PANTS AND HE\'S STILL WINNING. CLAPPERBOARD TIME.', 'CLAPPERBOARD. ROBOTS. LET\'S MAKE THIS SHOW WORSE.'],
+  nude: ['NAKED, BROKE, AND I GOT A CLAPPERBOARD. ACTION.', 'HIS FAMILY\'S PARKED RIGHT THERE. LET\'S PARK ON THEM.'],
+};
+export const MH_TOO_GREASY: ByPants = {
+  clean: ['HE\'S ALL BEER SWEAT!', 'LIKE GRABBING A WET BRATWURST!', 'TOO GREASY! HE\'S MARINATED!'],
+  shitty: ['HE\'S SLIMIER THAN MY PANTS!', 'GREASY! AND I\'M ONE TO TALK!'],
+  nude: ['NAKED GRAB! BAD IDEA! SO MUCH SWEAT!', 'SKIN ON BEER SWEAT! NEVER AGAIN!'],
+};
+export const MH_PUKE: ByPants = {
+  clean: ['HE PUKED SO HARD THE COUCH TOOK OFF!', 'JET-POWERED LA-Z-BOY!'],
+  shitty: ['HE BLEW CHUNKS. I BLEW MY PANTS. WE\'RE EVEN.', 'PUKE-POWERED COUCH! I\'VE SEEN WORSE. IN MY PANTS.'],
+  nude: ['NOT ON MY BARE ASS! NOT ON MY BARE ASS!', 'HE\'S PUKING AND I\'M NAKED. DON\'T SPLASH ME.'],
+};
+export const MH_RAGE: ByPants = {
+  clean: ['DONKEY KONG DAD!', 'HE\'S GOT A HAMMER AND HE\'S HOPPING!'],
+  shitty: ['HAMMER TIME. MY PANTS ALREADY KNEW.', 'RUN! WADDLE! WHATEVER! RUN!'],
+  nude: ['A HAMMER AND MY BALLS OUT. GREAT COMBO.', 'NAKED DONKEY KONG! WRONG GAME!'],
+};
+export const MH_BUNDY: ByPants = {
+  clean: ['HE SELLS PANTS. HOW\'S HE GOT THIS HOUSE?'],
+  shitty: ['HE SELLS PANTS? I\'M A CUSTOMER. NOW.'],
+  nude: ['HE SELLS CLOTHES? I\'LL TAKE ONE OF EVERYTHING.'],
+};
+export const MH_KILL: ByPants = {
+  clean: ['CUT! PRINT IT!', 'THAT\'S A WRAP.', 'RECAST THAT ONE.'],
+  shitty: ['PARKED ON. LIKE MY PANTS.', 'BLOWN UP. SAME AS MY PANTS.'],
+  nude: ['SCENE. TAKE A BOW.', 'NOW EVERYBODY ON THIS SET\'S HALF NAKED.'],
+};
+export const MH_COUCH: ByPants = {
+  clean: ['THERE GOES THE COUCH.', 'NOW YOU GOTTA STAND, DAD.'],
+  shitty: ['COUCH IS TOAST. NOBODY SITS WHERE I\'VE BEEN ANYWAY.', 'UP YOU GET. WE BOTH LOST SOMETHING TODAY.'],
+  nude: ['NO COUCH. NOW WE\'RE BOTH EXPOSED.', 'UP YOU GET. LOOK AT ME. I\'M UP.'],
+};
+/** The clapperboard snapped before the scene's reset (its recharge in the fight). */
+export const MH_DUD: ByPants = {
+  clean: ['SCENE\'S NOT RESET YET.', 'THEY\'RE STILL HOSING OFF THE LAST TAKE.'],
+  shitty: ['NO CAR YET. JUST ME AND MY PANTS.', 'STILL RESETTING. HURRY. I SMELL.'],
+  nude: ['NO CAR YET. JUST A NAKED GUY CLAPPING.', 'STILL RESETTING. I\'M STANDING HERE NAKED.'],
+};
+export const MH_WON_WEAK: ByPants = {
+  clean: ['THAT\'S A WRAP, DAD.', 'CANCELED. AGAIN.'],
+  shitty: ['FLATTENED. I KNOW THE FEELING. IN MY PANTS.', 'FLAT AS MY ASS FEELS.'],
+  nude: ['FLATTER THAN ME. AND I\'M NAKED.', 'PANCAKE DAD. NO SYRUP.'],
+};
+export const MH_WON: ByPants = {
+  clean: ['DEATH BY BEER. HE\'D WANT IT THAT WAY.', 'COLD ONE\'S ON ME, DAD.'],
+  shitty: ['HE SHIT HIMSELF TOO. WELCOME TO THE CLUB.', 'IT SMELLS LIKE HIM NOW. NOT ME. FINALLY.'],
+  nude: ['BURIED IN BEER. BEATS PANTS.', 'ONE ROLLED OUT. NAKED KEEPERS.'],
+};
+
+/** What hurts him here (by source), and the death screen (28 characters at most). The family can't hurt him (the
+ *  user's): their bottles don't. */
+export const HURT: HurtTable = {
+  'm2:ct_dad_swat': {
+    hurt: ['BONKED BY A MALLET!', 'HE BATTED ME LIKE A FLY!', 'HOME RUN! ME!'],
+    death: ['BATTED AWAY BY A DRUNK', 'HOME RUN. HE WAS THE BALL.', 'BONKED OFF A SITCOM SET'],
+  },
+  'm2:ct_dad_puke': {
+    hurt: ['PUKE! HOT PUKE!', 'IT\'S IN MY MOUTH!', 'BEER PUKE! IN MY EYES!'],
+    death: ['DROWNED IN DAD PUKE', 'HOSED DOWN BY A DRUNK', 'DIED IN A PUKE SHOWER'],
+  },
+  'm2:ct_dad_couch': {
+    hurt: ['HIT BY A FLYING COUCH!', 'THE COUCH GOT ME!', 'SOFA TO THE FACE!'],
+    death: ['RUN OVER BY A COUCH', 'KILLED BY A FLYING SOFA', 'COUCH-SURFED TO DEATH'],
+  },
+  'm2:ct_dad_hammer': {
+    hurt: ['HAMMERED!', 'HE HOPPED AND BONKED ME!', 'MY HEAD\'S RINGING!'],
+    death: ['HAMMERED BY DONKEY DAD', 'WHACKED BY A STOLEN MALLET', 'BONKED FLAT'],
+  },
+};
+
 const all = (b: ByPants) => allOf(b);
 export const VOICE_LINES: Record<string, string[]> = {
-  meathead: [ARRIVE, REVISIT, ...Object.values(GAGS), MH_KICKED, MH_SEES, MH_ON].flatMap(all),
+  meathead: [
+    ...[ARRIVE, REVISIT, ...Object.values(GAGS), MH_KICKED, MH_SEES, MH_ON].flatMap(all),
+    ...[MH_HINT, MH_TOO_GREASY, MH_PUKE, MH_RAGE, MH_BUNDY, MH_KILL, MH_COUCH, MH_DUD, MH_WON_WEAK, MH_WON].flatMap(all),
+    ...Object.values(HURT).flatMap(h => h.hurt),
+  ],
+  death: Object.values(HURT).flatMap(h => h.death),
   [VOICES.guard]: [GUARD_STOP, GUARD_DOWN_LINES, GUARD_GROAN, GUARD_LATER].flatMap(all),
-  [VOICES.dad]: [...SHOW_CALL, ...SHOW_TAKE, ...SHOW_ADLIB, ...SHOW_TV, ...[DAD_NOTICE, DAD_UP, DAD_FIGHT].flatMap(all)],
-  [VOICES.mom]: [...MOM_TAPE, ...GLITCH_TAPE.mom],
-  [VOICES.boy]: [...BOY_TAPE, ...GLITCH_TAPE.boy],
-  [VOICES.sis]: SIS_TAPE,
-  [VOICES.gramps]: [...GRAMPS_TAPE, ...GLITCH_TAPE.gramps],
+  [VOICES.dad]: [
+    ...SHOW_CALL, ...SHOW_TAKE, ...SHOW_ADLIB, ...SHOW_TV, ...[DAD_NOTICE, DAD_UP, DAD_FIGHT, DAD_SETTLE].flatMap(all),
+    ...[DAD_BEER, DAD_SNIPE, DAD_BUNDY, DAD_SWAT, DAD_CATCH, DAD_MISS, DAD_BONK, DAD_PUKE, DAD_RAGE, DAD_TIRED, DAD_HURT, ...DAD_KILL,
+      DAD_PATHETIC, DAD_HEAVY, DAD_TAUNT, DAD_LOW, DAD_ENTRANCE, DAD_GRABBED, DAD_SEES_CAR, DAD_FRIDGE, DAD_BURIED, DAD_FLAT].flatMap(all),
+  ],
+  [VOICES.mom]: [...MOM_TAPE, ...GLITCH_TAPE.mom, ...MOM_SNARK, ...FETCH_TAPE.mom, ...DIE_TAPE.mom],
+  [VOICES.boy]: [...BOY_TAPE, ...GLITCH_TAPE.boy, ...BOY_SNARK, ...DIE_TAPE.boy],
+  [VOICES.sis]: [...SIS_TAPE, ...SIS_SNARK, ...FETCH_TAPE.sis, ...DIE_TAPE.sis],
+  [VOICES.gramps]: [...GRAMPS_TAPE, ...GLITCH_TAPE.gramps, ...GRAMPS_SNARK, ...FETCH_TAPE.gramps, ...DIE_TAPE.gramps],
 };

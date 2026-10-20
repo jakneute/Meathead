@@ -13,17 +13,18 @@
 //   family.ts  the animatronic family (MOM, THE BOY on his track, SIS, GRAMPS): running, glitching, off
 //   guard.ts   the security guard (the boss door) and his close-up
 //   show.ts    the show on its loop (BOY! BEER!, the laugh track, the Boy's fetch), and what everybody's doing
-//   scene.ts   the guard's nuts (the boss door's cutscene), STUPID DAD's intro, the placeholder card
-//   lines.ts   every line: his, the guard's, the show's, the intro's, by pants
+//   scene.ts   the guard's nuts (the boss door's cutscene), STUPID DAD's intro (him dragging the couch up front)
+//   fight.ts   THE FIGHT (the user's design): the couch, the mallet swat, the beer runs, the puke, the drunken rage, the
+//              clapperboard's cars for the family, both his deaths; fightArt.ts draws what's its own
+//   lines.ts   every line: his, the guard's, the show's, the intro's, the fight's, by pants
 //
 // The flow: in at the gate (cp 60); down through the bowl (the show's lines once he's in it); the boss-door refill in
 // the pit; up to the guard and it's the cutscene (cp 61 once he's down: GUARD_DOWN in state.stageMemo, so a death or a
 // checkpoint start finds him down); up the steps onto the stage and it's STUPID DAD's intro (cp 62; once a visit: a
-// retry goes straight on); THE FIGHT ISN'T DESIGNED YET (the user's to give): the placeholder card (BOSS FIGHT COMING
-// SOON), the stage emptied behind it, VICTORY, the walk-away (walkAway/stupidDad.ts: the MALLET), the hub, Cartoon Land
-// cleared. His deaths (standard and weakness) aren't built: they wait for the fight. Revisits (the land cleared): the
-// guard still down (an ice pack on it now), the stage empty, the family slumped and powered down, the TV off, the
-// bleachers empty but for the one asleep.
+// retry goes straight on, the room already shut); THE FIGHT (fight.ts; both sides locked: the living room's walls);
+// VICTORY, the walk-away (walkAway/stupidDad.ts: the MALLET; the wreck down the path if it was the weakness), the hub,
+// Cartoon Land cleared. Revisits (the land cleared): the guard still down (an ice pack on it now), the stage empty,
+// the family slumped and powered down, the TV off, the bleachers empty but for the one asleep.
 //
 // The way back: the left end (to the knockoff area's end). No way on (the end of the land).
 
@@ -37,18 +38,24 @@ import { playWalkAway, tickWalkAway, drawWalkAway } from '../../walkAway';
 import { markBossFight } from '../../bossQuiet';
 import { DOORS } from '../geometry';
 import {
-  X, x0, x1, TOP_Y, PIT_Y, STAGE_Y, AISLE, STEPS, DECK_A, STAND, REFILL_X, GUARD_X, GUARD_WALL, MOM, SIS, GRAMPS,
-  BOY_TRACK, CP_GATE, CP_STEPS, CP_DAD,
+  X, x0, x1, TOP_Y, PIT_Y, STAGE_Y, AISLE, STEPS, DECK_A, STAND, REFILL_X, GUARD_X, GUARD_WALL, KICK_AT, MOM, SIS, GRAMPS,
+  BOY_TRACK, CP_GATE, CP_STEPS, CP_DAD, ARENA,
 } from './layout';
+import type { Block } from '../../../m1/types';
+import { playSound } from '../../../m1/game/platform/audio';
 import { amphiOf, introSeen, saidOnce, GUARD_DOWN, type Amphi } from './state';
 import { updateShow, stageLook } from './show';
 import { startKick, updateKick, guardPoseOf, startIntro, updateIntro, drawKickHud, drawIntroHud } from './scene';
+import {
+  startFight, updateFight, fightOver, endFight, resetFight, fightItems, drawPuddles, drawFightFront, drawFightHud, killCamTick,
+  killCamZoom, killedByWeakness, fightMood,
+} from './fight';
 import { drawAmphiBack, amphiLamps } from './art';
 import { drawAmphiFar } from './far';
 import { DAD_K, DAD_H, DAD_SIT_H } from './dad';
 import { guardHeadAt } from './guard';
 import { ARRIVE, REVISIT, GAGS, GUARD_GROAN, GUARD_LATER, VOICES } from './lines';
-import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
+import { CANVAS_WIDTH, CANVAS_HEIGHT, topBand } from '../../../m1/constants';
 
 export { GUARD_DOWN };
 
@@ -57,11 +64,24 @@ const pmidX = (state: GameState) => state.player.pos.x + state.player.width / 2;
 /** Over: the land's cleared, the walk-away with the MALLET, the hub. */
 const leave = (state: GameState, s: Amphi) => {
   markLandCleared('cartoon'); noteBossKill();
-  s.walk = playWalkAway(state, { boss: 'stupid-dad', onDone: () => goTo('hub') });
+  s.walk = playWalkAway(state, { boss: 'stupid-dad', weakness: !!s.fight && killedByWeakness(s.fight), onDone: () => goTo('hub') });
 };
 
-/** For the music (music/cues.ts), when it comes: the intro's step, or null. */
-export const stupidDadMusic = (state: GameState) => { const s = amphiOf(state); return s.intro ? { intro: s.intro.step, card: s.intro.step === 'card' } : null; };
+/** For the music (music/cues.ts): the intro's step, the fight's mood (on, him up and pathetic, his death), or null. */
+export const stupidDadMusic = (state: GameState) => {
+  const s = amphiOf(state);
+  if (s.intro) return { intro: s.intro.step, fight: null };
+  if (s.fight && !s.won) return { intro: null, fight: fightMood(s.fight) };
+  return null;
+};
+
+/** On: the fight, both sides shut (the living room's walls). */
+const beginFight = (state: GameState, s: Amphi, retry: boolean) => {
+  // (a retry: the left-hand wall flies in behind him as it starts (fight update), the room shut again)
+  s.fight = startFight(state, retry);
+  state.player.inCutscene = false; state.cameraOverride = null;
+  state.blocks.push({ x: X(ARENA.a) - 40, y: STAGE_Y - 6000, w: 40, h: 6000, type: 'wall', hidden: true, tag: 'amphi-arena' } as Block);
+};
 
 /** The guard groans as he goes by, now and then (a fresh line only; dropped if anybody's talking). */
 const groan = (state: GameState, s: Amphi, cleared: boolean) => {
@@ -79,9 +99,12 @@ export const amphi: CartoonSection = {
   checkpoints: [
     { name: 'STUPID DAD LIVE', cp: CP_GATE, x: DOORS.amphi.start.x, y: TOP_Y },
     { name: 'THE STAGE STEPS', cp: CP_STEPS, x: X(GUARD_X + 6), y: PIT_Y, manual: true },
-    { name: 'STUPID DAD', cp: CP_DAD, x: X(DECK_A + 60), y: STAGE_Y, clear: [400, 3000], manual: true },
+    // (the user's, every boss: dying, he's back outside the boss door (by the guard he kicked, at the foot of the stage
+    // steps) and walks up onto the stage himself to have another go)
+    { name: 'STUPID DAD', cp: CP_DAD, x: X(GUARD_X + 40), y: PIT_Y, clear: [400, 3000], manual: true },
   ],
   build: (state) => {
+    resetFight();
     const s = amphiOf(state), cleared = isLandCleared('cartoon');
     // (a start past the guard (a checkpoint, the checkpoint cheat, a save): he's down, the way a run there left him)
     if (state.checkpoint >= CP_STEPS) state.stageMemo[GUARD_DOWN] = '1';
@@ -96,6 +119,8 @@ export const amphi: CartoonSection = {
       { x1: X(STEPS.b), y1: STAGE_Y, x2: x1 + 200, y2: STAGE_Y, surface: 'wood' },
     ]);
     endWalls(state, 'amphi');
+    // (the living room's right-hand wall: the end of the stage)
+    solid(state, X(ARENA.b), STAGE_Y - 6000, 40, 6000, { hidden: true, tag: 'amphi-setwall' });
     // THE BOSS DOOR: the guard, a wall in front of him till he's down
     if (!down) s.wall = solid(state, X(GUARD_WALL.a), PIT_Y - 6000, GUARD_WALL.w, 6000, { hidden: true, tag: 'amphi-guard' });
     // (the boss-door refill: a big health, a big ammo, in the pit before him)
@@ -119,11 +144,28 @@ export const amphi: CartoonSection = {
     if (!cleared && !s.intro) updateShow(state, s, rx > AISLE.a + 40, !!s.kick, () => { if (saidOnce('show')) meatheadSays(state, pickLine(byPants(state, GAGS.show)), true); });
     // The boss door's cutscene
     if (s.kick) return updateKick(ctx, s);
-    // STUPID DAD's intro, the placeholder
-    if (s.intro && !s.won) {
+    // STUPID DAD's intro, then the fight
+    if (s.intro) {
       markBossFight(state, 'stupid-dad');
       const { out, done } = updateIntro(ctx, s);
-      if (done) { s.won = true; s.wonAt = state.frame; s.victory = startVictory(); }
+      if (done) { s.intro = null; beginFight(state, s, false); }
+      return out;
+    }
+    if (s.fight) {
+      const f = s.fight;
+      markBossFight(state, 'stupid-dad');
+      if (s.flat < 1) { s.flat = Math.min(1, s.flat + 1 / 50); if (s.flat >= 1) playSound('thud', 0.9, -10); }
+      const out = updateFight(ctx, f, controls);
+      // (held in: never out of the living room, whatever sends him flying)
+      const lo = X(ARENA.a), hi = X(ARENA.b) - p.width;
+      if (p.pos.x < lo) { p.pos.x = lo; if (p.vel.x < 0) p.vel.x = 0; }
+      if (p.pos.x > hi) { p.pos.x = hi; if (p.vel.x > 0) p.vel.x = 0; }
+      if (fightOver(f)) {
+        s.won = true; s.wonAt = state.frame;
+        endFight(state, f);
+        state.blocks = state.blocks.filter(b => b.tag !== 'amphi-arena');
+        s.victory = startVictory();
+      }
       return out;
     }
     runExits(state, endExits('amphi'));
@@ -136,13 +178,14 @@ export const amphi: CartoonSection = {
       if (rx > AISLE.b + 120 && rx < STEPS.a - 100) once('robots', byPants(state, GAGS.robots));
     }
     // Up to the guard: the boss door
-    if (s.guard === 'up' && p.health > 0 && !p.inCutscene && p.isGrounded && rx > GUARD_WALL.a - 130) { startKick(state, s); return updateKick(ctx, s); }
+    if (s.guard === 'up' && p.health > 0 && !p.inCutscene && p.isGrounded && rx > KICK_AT - 14) { startKick(state, s); return updateKick(ctx, s); }
     if (s.guard === 'down') groan(state, s, cleared);
     // Up onto the stage: STUPID DAD (the first time this visit, the intro; a retry, straight on)
     if (!cleared && s.guard === 'down' && p.health > 0 && p.isGrounded && rx > DECK_A + 70) {
-      startIntro(state, s, introSeen());
       markBossFight(state, 'stupid-dad');
-      return updateIntro(ctx, s).out;
+      if (startIntro(state, s, introSeen())) return updateIntro(ctx, s).out;
+      beginFight(state, s, true);
+      return controls;
     }
     return controls;
   },
@@ -152,11 +195,13 @@ export const amphi: CartoonSection = {
     const look = stageLook(state, s);
     const g = guardPoseOf(s);
     const u = s.show.boyU;
-    drawAmphiBack(c, state, { stage: look, guard: { ...g, ice: cleared }, cleared: cleared || !!s.intro?.emptied, doorOpen: u > 0.8 ? (u - 0.8) / 0.2 : 0 });
+    drawAmphiBack(c, state, { stage: look, guard: { ...g, ice: cleared }, cleared, doorOpen: u > 0.8 ? (u - 0.8) / 0.2 : 0, flat: s.flat, fight: s.fight ? fightItems(c, state, s.fight) : null });
+    if (s.fight) drawPuddles(c, s.fight);
   },
   drawFront: (c, state) => {
-    // (the words over whoever's saying them: the stage's at their depth, the guard's over him)
+    // (the words over whoever's saying them: the stage's at their depth, the guard's over him; the fight's its own)
     const s = amphiOf(state);
+    if (s.fight) drawFightFront(c, state, s.fight);
     if (!s.said.size) return;
     const E = { x: state.camera.x + CANVAS_WIDTH / 2, y: state.camera.y + CANVAS_HEIGHT / 2 };
     const at = (x: number, y: number, d: number) => ({ x: E.x + (x - E.x) * d, y: E.y + (y - E.y) * d });
@@ -177,9 +222,14 @@ export const amphi: CartoonSection = {
     const s = amphiOf(state);
     if (s.kick) drawKickHud(c, state, s);
     if (s.intro && !s.won) drawIntroHud(c, state, s);
+    if (s.fight && !s.won) drawFightHud(c, state, s.fight, topBand());
     if (s.victory) drawVictory(c, s.victory);
     if (s.walk) drawWalkAway(c, s.walk);
   },
+  zoom: (state) => { const f = amphiOf(state).fight; return f ? killCamZoom(state, f) : null; },
+  holdTick: (ctx) => { const f = amphiOf(ctx.state).fight; return f ? killCamTick(f) : false; },
+  // (the fight: the camera kept to the living room and the top of the steps)
+  cameraX: (state) => (amphiOf(state).fight && !amphiOf(state).won ? { min: X(ARENA.a - 120), max: x1 - CANVAS_WIDTH } : undefined),
   cameraRow: () => 500,
   outdoors: () => 1,
   lamps: (state) => amphiLamps(state),

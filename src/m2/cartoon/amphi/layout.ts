@@ -101,6 +101,12 @@ export const BOY_TRACK = { a: { x: 3418, d: 0.94 }, b: { x: KITCHEN.x, d: D_SET 
 /** Where Meathead stops for the intro; where STUPID DAD comes to, stood up, at the front (the play plane). */
 export const MARK = 3010;
 export const DAD_FRONT = 3230;
+/** THE FIGHT: the arena (the deck from the top of the steps to the living room's right-hand wall, where the left one's
+ *  flown in for it); the couch dragged up front onto the play plane (its middle); the fridge (avocado green) against
+ *  the right-hand wall, a little back. */
+export const ARENA = { a: DECK_A + 20, b: 3960 };
+export const COUCH_HOME = 3330;
+export const FRIDGE = { x: 3895, d: 0.93 };
 
 // ---------------------------------------------------------------------------------------------------------------
 // Checkpoints

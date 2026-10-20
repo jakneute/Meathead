@@ -27,10 +27,11 @@ import { bodyOf, torso, arm as cArm, headShape, faceOn, hairTop, hairBack, whisk
 import { dadArt } from '../bigkid/art';
 import {
   X, x1, TOP_Y, PIT_Y, STAGE_Y, AISLE, ROWS, ROW_W, ROW_RISE, STEPS, DECK_A, treadAt, D_FAR, D_SHELL, D_SET,
-  MARQUEE, STAND, HIGHTOP, POLES, CROWD, SLEEPER, FRONT_ROW, RESERVED, GUARD_X, SHELL, SET, COUCH, TV, MOM, GRAMPS, SIS,
-  BOY_TRACK, type Fan,
+  MARQUEE, STAND, HIGHTOP, POLES, CROWD, SLEEPER, FRONT_ROW, RESERVED, GUARD_X, SHELL, SET, TV, MOM, GRAMPS, SIS,
+  BOY_TRACK, ARENA, FRIDGE, type Fan,
 } from './layout';
-import { drawDad, drawCouch, can } from './dad';
+import { drawDad, drawCouch, can, DAD_K } from './dad';
+import { drawSideWall, drawFridge, drawMallet } from './fightArt';
 import { drawMom, drawGramps, drawSis, drawBoy } from './family';
 import { drawGuard, type GuardPose } from './guard';
 import type { StageLook } from './show';
@@ -571,7 +572,13 @@ const nearCut = (c: Ctx, state: GameState) => {
 
 // ---------------------------------------------------------------------------------------------------------------
 
-export interface AmphiLook { stage: StageLook; guard: { pose: GuardPose; t: number; ice: boolean }; cleared: boolean; doorOpen: number }
+export interface AmphiLook {
+  stage: StageLook; guard: { pose: GuardPose; t: number; ice: boolean }; cleared: boolean; doorOpen: number;
+  /** The living room's left-hand wall flown in (0 up in the grid .. 1 down: the fight's on or coming). */
+  flat?: number;
+  /** The fight's on: everything of it on the stage (fight.ts fightItems), in place of the show's couch, family and him. */
+  fight?: { d: number; x: number; draw: () => void }[] | null;
+}
 
 /** Behind him: all of it, back to front. */
 export const drawAmphiBack = (c: Ctx, state: GameState, look: AmphiLook) => {
@@ -586,6 +593,9 @@ export const drawAmphiBack = (c: Ctx, state: GameState, look: AmphiLook) => {
   for (const [sx, n, bar] of [[3130, 2, 262], [3800, 3, 330]] as const) if (seen(state, E, X(sx) - 30, X(sx) + 30, 0.76)) atDepth(c, E, 0.76, () => drawFlown(c, sx, n, bar));
   if (seen(state, E, X(SET.a) - 70, X(SET.b) + 70, D_SET)) atDepth(c, E, D_SET, () => { drawSetWall(c, look.cleared); drawSwingDoor(c, look.doorOpen); drawLaughHorn(c, f, look.stage.applause); });
   if (seen(state, E, X(3000), X(3700), 0.9) && E.y < STAGE_Y) drawRug(c, (x, d) => proj(E, x, STAGE_Y, d), BOY_TRACK);
+  // (the living room's side walls: the right-hand one, and the left flown in for the fight)
+  if (X(ARENA.b) > cam - 300 && X(ARENA.b) < cam + CANVAS_WIDTH + 300) drawSideWall(c, E, ARENA.b, SET.b, 1);
+  if ((look.flat ?? 0) > 0 && X(ARENA.a) > cam - 300 && X(ARENA.a) < cam + CANVAS_WIDTH + 300) drawSideWall(c, E, ARENA.a - 8, SET.a, look.flat ?? 0);
   // Everything else at its depth, far to near
   const items: { d: number; x: number; draw: () => void }[] = [];
   const S = look.stage;
@@ -607,13 +617,21 @@ export const drawAmphiBack = (c: Ctx, state: GameState, look: AmphiLook) => {
   const lerp = (a: number, b: number, k: number) => a + (b - a) * k;
   const bu = S.boy.u, bx = lerp(X(BOY_TRACK.a.x), X(BOY_TRACK.b.x), bu), bd = lerp(BOY_TRACK.a.d, BOY_TRACK.b.d, bu);
   const boyGone = bu > 0.97;
-  if (!boyGone) items.push({ d: bd, x: bx, draw: () => drawBoy(c, bx, STAGE_Y, S.boy, S.boy.arm, S.boy.beer) });
-  items.push({ d: MOM.d, x: X(MOM.x), draw: () => drawMom(c, X(MOM.x), STAGE_Y, S.mom) });
-  items.push({ d: COUCH.d, x: X(COUCH.x), draw: () => drawCouch(c, X(COUCH.x), STAGE_Y, f, { empty: !S.dad || S.dad.d > COUCH.d + 0.001 || S.dad.pose === 'gone' }) });
-  items.push({ d: GRAMPS.d + 0.001, x: X(GRAMPS.x), draw: () => drawGramps(c, X(GRAMPS.x), STAGE_Y, S.gramps) });
   items.push({ d: TV.d, x: X(TV.x), draw: () => drawTV(c, X(TV.x), f, S.tv) });
-  items.push({ d: SIS.d, x: X(SIS.x), draw: () => drawSis(c, X(SIS.x), STAGE_Y, S.sis) });
-  if (S.dad) { const D = S.dad; items.push({ d: D.d + 0.0005, x: X(D.x), draw: () => drawDad(c, X(D.x), STAGE_Y, D.pose, f, { t: D.t, talking: D.talking, face: D.face, can: D.can, canFull: D.canFull, crushed: D.crushed, facing: D.facing }) }); }
+  if (look.fight) items.push(...look.fight);
+  else {
+    if (!boyGone) items.push({ d: bd, x: bx, draw: () => drawBoy(c, bx, STAGE_Y, S.boy, S.boy.arm, S.boy.beer) });
+    items.push({ d: MOM.d, x: X(MOM.x), draw: () => drawMom(c, X(MOM.x), STAGE_Y, S.mom) });
+    const C = S.couch;
+    items.push({ d: C.d, x: X(C.x), draw: () => drawCouch(c, X(C.x), STAGE_Y, f, { empty: !S.dad || S.dad.d > C.d + 0.001 || S.dad.pose === 'gone' || S.dad.pose === 'drag' }) });
+    // (the mallet he took off the PUNCHY & KICKY robot, leaning on the couch's arm: always by him)
+    if (S.mallet) items.push({ d: C.d + 0.0002, x: X(C.x) - 82, draw: () => { c.save(); c.translate(X(C.x) - 82, STAGE_Y - 4); c.rotate(-0.3); c.scale(DAD_K, DAD_K); drawMallet(c); c.restore(); } });
+    items.push({ d: GRAMPS.d + 0.001, x: X(GRAMPS.x), draw: () => drawGramps(c, X(GRAMPS.x), STAGE_Y, S.gramps) });
+    items.push({ d: SIS.d, x: X(SIS.x), draw: () => drawSis(c, X(SIS.x), STAGE_Y, S.sis) });
+    if (S.dad) { const D = S.dad; items.push({ d: D.d + 0.0005, x: X(D.x), draw: () => drawDad(c, X(D.x), STAGE_Y, D.pose, f, { t: D.t, talking: D.talking, face: D.face, can: D.can, canFull: D.canFull, crushed: D.crushed, facing: D.facing }) }); }
+    // (the fridge, against the right-hand wall)
+    items.push({ d: FRIDGE.d, x: X(FRIDGE.x), draw: () => drawFridge(c, X(FRIDGE.x), STAGE_Y, f) });
+  }
   // (the empties: a pyramid of his cans by the couch; more once it's over)
   items.push({ d: 0.93, x: X(3190), draw: () => { const n = look.cleared ? 10 : 6; shadowAt(c, X(3166), STAGE_Y, 36, 0.3); for (let k = 0; k < n; k++) { const row = k < 4 ? 0 : k < 7 ? 1 : k < 9 ? 2 : 3, col = k - [0, 4, 7, 9][row]; can(c, X(3172) + col * 7 + row * 3.5, STAGE_Y - 8 - row * 13, 0, 0, false); } if (look.cleared) for (let k = 0; k < 3; k++) deadCan(c, X(3150 + k * 34), STAGE_Y, k + 40); } });
   items.sort((a, b) => a.d - b.d);

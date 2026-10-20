@@ -116,7 +116,7 @@ export const registerHurtLines = (source: string, hurt: string[], death: string[
   (BOSS_DIALOGUE.SPECIFIC_HAZARD_HURT as Record<string, string[]>)[source] = hurt;
   DEATH_LINES[source] = death;
   // (dev only: the death screen's one line, 28 characters at most (the house rule); the death screen checks too)
-  if (import.meta.env.DEV) for (const t of death) if (t.length > DEATH_TEXT_MAX) console.warn(`[death text] '${source}': "${t}" is ${t.length} characters (max ${DEATH_TEXT_MAX})`);
+  if (import.meta.env?.DEV) for (const t of death) if (t.length > DEATH_TEXT_MAX) console.warn(`[death text] '${source}': "${t}" is ${t.length} characters (max ${DEATH_TEXT_MAX})`);
 };
 
 /**

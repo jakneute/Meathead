@@ -80,7 +80,21 @@ const surfaceUnder = (state: GameState, x: number, from: number) => {
   return best;
 };
 
+/** A fight's own say over the clapperboard (STUPID DAD's: each snap's car goes for one of his TV family, with a wait
+ *  between takes so it can't be spammed): true, and it's dealt with there (no regular stunt). Elsewhere it's itself. */
+let fireHook: ((ctx: FrameContext) => boolean) | null = null;
+export const setStuntCarHook = (fn: ((ctx: FrameContext) => boolean) | null) => { fireHook = fn; };
+/** For such a hook: the clapperboard snapped over his head (ACTION!), the take's ammo used, the usual wait. */
+export const snapClapper = (ctx: FrameContext) => {
+  const pl = ctx.state.player;
+  clap = 30; clapDir = pl.facing;
+  pl.shootCooldown = COOLDOWN;
+  if (!ctx.cheats.infiniteAmmo) pl.weaponAmmo.STUNT_CAR--;
+  playSound('clap'); playSound('carroar', 1, 0);
+};
+
 const fire = (ctx: FrameContext) => {
+  if (fireHook && fireHook(ctx)) return;
   const { state, cheats } = ctx;
   const pl = state.player;
   const dir = pl.facing;
@@ -426,5 +440,8 @@ const drawHeld = (c: Ctx) => {
 
 /** Everything it was in the middle of, stopped (through a door). */
 export const stopStuntCar = () => { clap = 0; wrecks = []; stopDismember(); };
+
+/** The car and the stuntman as drawn here (for a fight's own scripted stunts: the same cars). */
+export { drawCar as drawStuntCar, drawStuntman, PAINT as STUNT_PAINT, CAR_SCALE as STUNT_CAR_SCALE };
 
 export const registerStuntCar = () => registerWeapon('STUNT_CAR', { fire: ctx => fire(ctx), update, draw, drawHeld: c => drawHeld(c), tick: ctx => tick(ctx), drawOverlay });

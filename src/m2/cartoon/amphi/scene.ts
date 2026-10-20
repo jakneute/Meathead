@@ -11,12 +11,10 @@
 //   the TV rolls) and the family doesn't (they keep going, glitching). Meathead walks to his mark; STUPID DAD, CLOSE UP,
 //   squinting at him over his can, half in character (he thinks it's the Boy); Meathead's answer; one of the family's
 //   tapes stuck and the laugh track in the wrong place; he heaves himself up off the couch (rocking twice first), his
-//   line; crushes the can on his forehead, drops it, belches; shuffles forward to the front, the threat; Meathead's word.
-//
-//   THE PLACEHOLDER (the fight's the user's to design: "mechanics come later"). A PLEASE STAND BY card (the show's own
-//   color bars: STUPID DAD, BOSS FIGHT COMING SOON) over the black; behind it the stage empties (him gone, the family
-//   powered down); then VICTORY, the walk-away with the MALLET, the hub, the land cleared. His deaths (the standard one,
-//   the weakness's) aren't built: they wait for the user.
+//   line; crushes the can on his forehead, drops it, belches; the threat; then he grabs the couch by its arm and drags it
+//   up front (dad fights sitting down), drops back onto it, the mallet leaning by him; his line; Meathead's word; THE
+//   FIGHT (fight.ts). As he walks on, the living room's left-hand wall flies in from the grid behind him (the room shut
+//   for the fight). A retry: none of it: the wall down, the couch up front, him on it, straight on.
 
 import type { GameState } from '../../../m1/game/core/state';
 import type { FrameContext } from '../../../m1/game/core/context';
@@ -31,14 +29,13 @@ import { signText } from '../../signLetters';
 import { meatheadSays, byPants, saidOver, box } from '../section';
 import { INK } from '../kit';
 import { checker } from '../../../m1/game/render/pixelArt';
-import { dadArt } from '../bigkid/art';
 import type { Amphi, Speaker } from './state';
 import { GUARD_DOWN, markIntroSeen } from './state';
-import { X, x0, x1, PIT_Y, STAGE_Y, KICK_AT, MARK, DAD_SEAT, CP_STEPS, CP_DAD } from './layout';
+import { X, x0, x1, PIT_Y, STAGE_Y, KICK_AT, MARK, DAD_SEAT, COUCH_HOME, CP_STEPS, CP_DAD } from './layout';
 import { stageSays, freezeShow, laughTrack } from './show';
 import { drawGuardCloseup, type GuardPose } from './guard';
 import { drawDadCloseup } from './dad';
-import { GUARD_STOP, GUARD_DOWN_LINES, MH_KICKED, MH_SEES, MH_ON, DAD_NOTICE, DAD_UP, DAD_FIGHT, GLITCH_TAPE } from './lines';
+import { GUARD_STOP, GUARD_DOWN_LINES, MH_KICKED, MH_SEES, MH_ON, DAD_NOTICE, DAD_UP, DAD_FIGHT, DAD_SETTLE, GLITCH_TAPE } from './lines';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -112,8 +109,9 @@ export const updateKick = (ctx: FrameContext, s: Amphi): Controls => {
   holdCamera(state, k.camX, PIT_Y);
   switch (k.step) {
     case 'walk':
-      out = walkTo(state, X(KICK_AT));
-      if (Math.abs(pmidX(state) - X(KICK_AT)) <= 3 && p.isGrounded) {
+      // (he's walked right up to the guard himself (the user's: no walking him into it): stood there, it's on)
+      p.vel.x = 0;
+      if (p.isGrounded) {
         p.facing = 1; k.step = 'warn'; k.t = 0; k.waiting = true;
         said(s, 'guard', pick(byPants(state, GUARD_STOP)), () => { k.waiting = false; k.step = 'beat'; k.t = 0; });
       }
@@ -144,29 +142,36 @@ export const updateKick = (ctx: FrameContext, s: Amphi): Controls => {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
-// STUPID DAD's intro, and the placeholder
+// STUPID DAD's intro
 
-/** The card: fade to black, up, fade back (frames). */
-const CARD_IN = 24, CARD_HOLD = 170, CARD_OUT = 24;
-export const CARD_T = CARD_IN + CARD_HOLD + CARD_OUT;
+/** The left-hand wall flying in (frames), the couch dragged up front (frames). */
+const FLY_T = 70, DRAG_T = 96;
 
+/** Up onto the stage: the intro (true), or a retry, straight on (false: the wall down, the fight's to start). */
 export const startIntro = (state: GameState, s: Amphi, retry: boolean) => {
-  s.intro = { step: retry ? 'card' : 'walk', t: 0, skipT: 0, waiting: false, camX: state.camera.x, dadU: 0, crushed: false, closeup: false, closeT: 0, cardT: 0, emptied: false };
   markIntroSeen();
   freezeShow(state, s);
   state.checkpoint = Math.max(state.checkpoint, CP_DAD);
+  if (retry) { s.intro = null; return false; }
+  s.intro = { step: 'walk', t: 0, skipT: 0, waiting: false, camX: state.camera.x, crushed: false, couchU: 0, closeup: false, closeT: 0 };
   state.player.inCutscene = true;
+  return true;
 };
 
-/** Each frame of it; true once the card's done (on to VICTORY). */
+/** Each frame of it; true once it's done (on to the fight). */
 export const updateIntro = (ctx: FrameContext, s: Amphi): { out: Controls; done: boolean } => {
   const { state } = ctx, p = state.player, i = s.intro!;
   i.t++; i.skipT++;
   p.inCutscene = true;
-  const toCard = () => { i.step = 'card'; i.t = 0; i.closeup = false; i.waiting = false; };
-  if (i.step !== 'card') {
-    if (i.skipT > SKIP_AFTER) offerSkip();
-    if (i.skipT > SKIP_AFTER && takeSkip()) { silenceAll(); state.playerVulgarityTimer = 0; s.said.clear(); s.show.token++; toCard(); }
+  // (the left-hand wall coming down out of the grid behind him, a thump as it lands)
+  if (s.flat < 1) { s.flat = Math.min(1, s.flat + 1 / FLY_T); if (s.flat >= 1) { playSound('thud', 0.9, -10); shakeScreen(state, 3, 3); } }
+  if (i.skipT > SKIP_AFTER) offerSkip();
+  if (i.skipT > SKIP_AFTER && takeSkip()) {
+    silenceAll(); state.playerVulgarityTimer = 0; s.said.clear(); s.show.token++;
+    i.closeup = false; i.couchU = 1; s.flat = 1;
+    if (Math.abs(pmidX(state) - X(MARK)) > 3) { p.pos.x = X(MARK) - p.width / 2; p.vel.x = 0; }
+    p.facing = 1;
+    return { out: { ...NO_CONTROLS }, done: true };
   }
   let out: Controls = { ...NO_CONTROLS };
   const me = pmidX(state);
@@ -202,14 +207,22 @@ export const updateIntro = (ctx: FrameContext, s: Amphi): { out: Controls; done:
       if (i.t >= 64) { i.step = 'fight'; i.t = 0; i.waiting = true; said(s, 'dad', pick(byPants(state, DAD_FIGHT)), () => { i.waiting = false; }); }
       break;
     case 'fight':
-      i.dadU = Math.min(1, i.dadU + 1 / 70);
-      if (i.dadU >= 1 && !i.waiting) { i.step = 'on'; i.t = 0; i.waiting = true; meatheadSays(state, pick(byPants(state, MH_ON)), true, () => { if (i.step !== 'on') return; i.waiting = false; toCard(); }); }
+      if (i.t >= 40 && !i.waiting) { i.step = 'drag'; i.t = 0; playSound('thud', 0.4, -12); }
       break;
-    case 'on': break;
-    case 'card':
-      i.cardT++;
-      if (i.cardT === CARD_IN) { i.emptied = true; playSound('beep', 0.4, -10); }
-      if (i.cardT >= CARD_T) return { out, done: true };
+    case 'drag':
+      // (the couch by its arm, up front, him walking backward with it, scraping; dad fights sitting down)
+      i.couchU = Math.min(1, i.t / DRAG_T);
+      if (i.t % 14 === 0) playSound('thud', 0.25, -14 + Math.random() * 3);
+      want = camFor((X(MARK) + X(COUCH_HOME)) / 2 + 60);
+      if (i.t >= DRAG_T) { i.step = 'settle'; i.t = 0; playSound('thud', 1, -12); playSound('boing', 0.5, -8); shakeScreen(state, 4, 3); i.waiting = true; said(s, 'dad', pick(byPants(state, DAD_SETTLE)), () => { i.waiting = false; }); }
+      break;
+    case 'settle':
+      want = camFor((X(MARK) + X(COUCH_HOME)) / 2 + 60);
+      if (i.t >= 30 && !i.waiting) { i.step = 'on'; i.t = 0; i.waiting = true; meatheadSays(state, pick(byPants(state, MH_ON)), true, () => { if (i.step !== 'on') return; i.waiting = false; i.t = -999; }); }
+      break;
+    case 'on':
+      want = camFor((X(MARK) + X(COUCH_HOME)) / 2 + 60);
+      if (i.t < -500) return { out, done: true };
       break;
   }
   i.camX += (want - i.camX) * 0.08;
@@ -285,40 +298,6 @@ export const drawKickHud = (c: Ctx, state: GameState, s: Amphi) => {
   if (k.skipT > SKIP_AFTER) drawSkipPrompt(c, CANVAS_WIDTH);
 };
 
-/** The PLEASE STAND BY card: the show's color bars, STUPID DAD, BOSS FIGHT COMING SOON. */
-const card = (c: Ctx, f: number) => {
-  const W = CANVAS_WIDTH, H = CANVAS_HEIGHT;
-  // (the color bars, the castellations under them, the PLUGE: each bar in two steps, a dithered seam down it)
-  const cols = ['#C0C0C0', '#C0C000', '#00C0C0', '#00C000', '#C000C0', '#C00000', '#0000C0'];
-  cols.forEach((col, i) => { const x = (i * W) / 7; box(c, x, 0, W / 7 + 1, H * 0.62, col); box(c, x + W / 7 - 6, 0, 6, H * 0.62, 'rgba(0,0,0,0.12)'); checker(c, x + W / 7 - 8, 0, 2, H * 0.62, 'rgba(0,0,0,0.12)', 0, 2); box(c, x, 0, W / 7 + 1, 8, 'rgba(255,255,255,0.12)'); });
-  ['#0000C0', '#131313', '#C000C0', '#131313', '#00C0C0', '#131313', '#C0C0C0'].forEach((col, i) => box(c, (i * W) / 7, H * 0.62, W / 7 + 1, H * 0.08, col));
-  box(c, 0, H * 0.7, W, H * 0.3, '#131313');
-  for (let i = 0; i < 3; i++) box(c, W * 0.18 + i * W * 0.1, H * 0.7, W * 0.08, H * 0.3, ['#00214C', '#FFFFFF', '#32006A'][i]);
-  for (let i = 0; i < 3; i++) box(c, W * 0.72 + i * W * 0.035, H * 0.7, W * 0.035, H * 0.3, ['#090909', '#131313', '#1D1D1D'][i]);
-  // (the board: bevelled, the show's navy banded, bulbs round it; his head off the poster in a ring of its own)
-  const bx = W / 2 - 260, by = 132, bw = 520, bh = 262;
-  box(c, bx - 6, by - 6, bw + 12, bh + 12, INK); box(c, bx - 4, by - 4, bw + 8, bh + 8, '#8A94A0'); box(c, bx - 4, by - 4, bw + 8, 2, '#E4EAEE'); box(c, bx - 4, by + bh + 2, bw + 8, 2, '#46505E');
-  ['#3A5AB8', '#2A3C80', '#1E3A8A', '#1E2A5E', '#141C40'].forEach((col, i) => { box(c, bx, by + (i * bh) / 5, bw, bh / 5 + 1, col); if (i) checker(c, bx, by + (i * bh) / 5 - 2, bw, 4, col, i % 2, 2); });
-  for (let i = 0; i < 20; i++) { const t = i / 19, lit = (i + (f >> 3)) % 2 === 0; for (const [x, y] of [[bx + t * bw, by - 1], [bx + t * bw, by + bh + 1]] as const) { box(c, x - 4, y - 4, 8, 8, INK); box(c, x - 3, y - 3, 6, 6, lit ? '#FFF4C0' : '#9A5A22'); if (lit) box(c, x - 3, y - 3, 2, 2, '#FFFFFF'); } }
-  const hx = bx + 84, hy = by + 132;
-  c.fillStyle = INK; c.beginPath(); c.arc(hx, hy, 62, 0, Math.PI * 2); c.fill();
-  ['#F59E0B', '#FDE047', '#FFF4C0'].forEach((col, i) => { c.fillStyle = col; c.beginPath(); c.arc(hx, hy, 58 - i * 6, 0, Math.PI * 2); c.fill(); });
-  c.save(); c.beginPath(); c.arc(hx, hy, 42, 0, Math.PI * 2); c.clip(); box(c, hx - 50, hy - 50, 100, 100, '#7DD3FC'); box(c, hx - 50, hy - 50, 100, 30, '#A8E0FC'); dadArt(c, hx + 4, hy + 46, 0.95, 0.04, '#7DD3FC'); c.restore();
-  const tx = bx + 330;
-  signText(c, 'STUPID DAD', tx, by + 68, { sx: 4, sy: 4, bold: true, slant: 1, fill: ['#FFFFFF', '#FDE047', '#F59E0B'], dither: true, ink: INK, shadow: '#3B0764', drop: 3 });
-  signText(c, 'BOSS FIGHT', tx, by + 128, { sx: 3, sy: 3, bold: true, fill: ['#FFFFFF', '#FECDD3'], dither: true, ink: INK, shadow: '#7F1D1D', drop: 2 });
-  signText(c, 'COMING SOON', tx, by + 176, { sx: 3, sy: 3, bold: true, fill: '#FB7185', ink: INK, bulbs: { lit: (f >> 4) % 2 === 0, col: '#FEF3C7', dim: '#7A2A10' } });
-  box(c, bx + 170, by + 204, 320, 26, INK); box(c, bx + 172, by + 206, 316, 22, '#B91C1C'); box(c, bx + 172, by + 206, 316, 3, '#DC4A40');
-  signText(c, 'PLEASE STAND BY', tx, by + 223, { sx: 1, sy: 2, bold: true, fill: '#FFFFFF' });
-  // (the tape's scanlines and the roll bar creeping up it)
-  for (let y = 0; y < H; y += 3) box(c, 0, y, W, 1, 'rgba(0,0,0,0.12)');
-  const ry = H - ((f * 1.5) % (H + 60));
-  box(c, 0, ry, W, 30, 'rgba(255,255,255,0.05)'); box(c, 0, ry + 30, W, 4, 'rgba(0,0,0,0.12)');
-  // (the network's bug in the corner)
-  box(c, W - 92, H - 52, 64, 30, 'rgba(0,0,0,0.35)');
-  signText(c, 'UBX', W - 60, H - 30, { sx: 2, sy: 2, bold: true, fill: ['#FFFFFF', '#FDE047'], ink: INK });
-};
-
 export const drawIntroHud = (c: Ctx, state: GameState, s: Amphi) => {
   const i = s.intro;
   if (!i) return;
@@ -331,12 +310,6 @@ export const drawIntroHud = (c: Ctx, state: GameState, s: Amphi) => {
     const sd = s.said.get('dad');
     if (sd) saidOver(c, sd.text, CANVAS_WIDTH / 2, 92, '#FDE047', 520);
   }
-  if (i.step === 'card') {
-    const a = i.cardT < CARD_IN ? i.cardT / CARD_IN : i.cardT > CARD_T - CARD_OUT ? (CARD_T - i.cardT) / CARD_OUT : 1;
-    c.globalAlpha = Math.max(0, Math.min(1, a)); c.fillStyle = '#000'; c.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-    if (i.cardT >= CARD_IN && i.cardT <= CARD_T - CARD_OUT) card(c, f);
-    c.globalAlpha = 1;
-  }
   bars(c, 1);
-  if (i.step !== 'card' && i.skipT > SKIP_AFTER) drawSkipPrompt(c, CANVAS_WIDTH);
+  if (i.skipT > SKIP_AFTER) drawSkipPrompt(c, CANVAS_WIDTH);
 };
