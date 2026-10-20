@@ -114,6 +114,8 @@ interface Flyer {
   d: Def; i: number;
   x: number; z: number; alt: number; yaw: number; yawRate: number; speed: number; valt: number; bank: number; face: 1 | -1;
   hp: number; mode: Mode; t: number; cool: number; shots: number;
+  /** Rammed by him boosting (his fight's frame): not again till it's worn off. */
+  rammedAt?: number;
   target: number; retarget: number; aggro: number; aggroOn: number; side: number; far: number;
   ramYaw: number; ramValt: number;
   hit: number; said: Said | null; alive: boolean; in: boolean; gone: boolean; fall: Fall | null;
@@ -193,6 +195,8 @@ const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
 const angDiff = (a: number, b: number) => Math.atan2(Math.sin(a - b), Math.cos(a - b));
 
 /** Flying (units a frame): his cruise and boost, his turn and climb; the wand bolt's speed and life. */
+/** Boosting into a suitor: how near the broom's tip (units), the hit (a laser's few), not the same one again for (frames). */
+const RAM_R = 150, RAM_DMG = 6, RAM_AGAIN = 45;
 const CRUISE = 22, BOOST = 40, BRAKE = 11, TURN = 0.04, CLIMB = 10, BOLT_V = 64, BOLT_LIFE = 60, FIRE_EVERY = 8;
 /** The lock-on: held this long it's charging (a tap's just the laser), this long more to lock; the homing shot. */
 const HOLD_T = 12, LOCK_T = 26, HOME_V = 46, HOME_DMG = 5;
@@ -743,6 +747,22 @@ export const updateFight = (ctx: FrameContext, controls: Controls): Controls => 
     for (const b of BALLOONS) {
       const q = balloonAt(b, state.frame), ex = f.x - q.x, ez = f.z - q.z, ea = f.alt + 30 - (q.alt + 60), e = Math.hypot(ex, ez, ea);
       if (e < 200) { const k = 210 / (e || 1); f.x = q.x + ex * k; f.z = q.z + ez * k; f.valt = ea >= 0 ? 9 : -9; f.speed *= 0.6; playSound('boing', 0.6, 2); }
+    }
+    // ---- boosting into a suitor (the user's: a ram's a real way to hurt them): the broom's tip through him, a
+    // knock, blood; not the same one again for a moment; a bit of the speed lost, no hurt to him
+    if (boosting || f.speed > (CRUISE + BOOST) / 2) {
+      const hx = f.x + Math.sin(f.yaw) * 60, hz = f.z + Math.cos(f.yaw) * 60;
+      for (const fl of f.flyers) {
+        if (!fl.alive || !fl.in || (fl.rammedAt !== undefined && f.t - fl.rammedAt < RAM_AGAIN)) continue;
+        if (Math.hypot(fl.x - hx, fl.z - hz, (fl.alt - f.alt) * 1.2) > RAM_R) continue;
+        fl.rammedAt = f.t;
+        const vx = Math.sin(f.yaw), vz = Math.cos(f.yaw);
+        hitFlyer(state, f, fl, RAM_DMG, -1, { vx: vx * 14, vz: vz * 14, valt: 3 });
+        if (fl.alive) { fl.x += vx * 140; fl.z += vz * 140; fl.valt = 6; fl.mode = 'fly'; fl.cool = Math.max(fl.cool, 50); }
+        f.speed *= 0.7; f.shake = Math.max(f.shake, 8);
+        playSound('slam', 0.8, -2); playSound('punch', 0.9, -4);
+        pop(f, fl.alive ? 'RAMMED!' : 'SKEWERED!', '#FCA5A5');
+      }
     }
     // ---- the broom's laser (the user's: X fires it; tap: the laser; HOLD: the lock-on (Star Fox 64's): the reticle
     // sweeps and grows, snaps red onto the suitor ahead with a tone; let go locked: a homing shot, a big one; let go
