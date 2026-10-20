@@ -8,7 +8,7 @@ the fill-ins, the rules, the section plan). Each section's index.ts header says 
 | Job | Folders | Sections (checkpoint numbers) |
 |---|---|---|
 | 1 (done) | the skeleton; `kiddie/`, `sway.ts`, `monument.ts` | kiddie (0-9: 0-5 used) |
-| 2 | `studio/` | studio (10-19) |
+| 2 (done) | `studio/` | studio (10-19: 10-15 used) |
 | 3 | `whitehouse1/` (and the Socks transformation, the cat moves, Chelsea: wherever they need to live; shared engine bits appended minimally) | whitehouse1 (20-29) |
 | 4 | `whitehouse2/` | whitehouse2 (30-39) |
 | 5 | `bigkid/` | bigkid (40-49) |
@@ -60,8 +60,11 @@ move your DOORS entries to match; keep the way back working (revisits), or give 
 - **Sillyville Square -> the studio** (built, kiddie/): walk into the studio's front door (STUDIO.door) and he's at
   `DOORS.studio.start` (`ct-kiddie-done` in state.stageMemo: been through it; a later arrival's line is the revisit's).
   Back from the studio's left end: `DOORS.kiddie.end` (in front of that door).
-- **The studio -> the White House** (stub): the right end, to `DOORS.whitehouse1.start`. The user's: "you enter behind
-  a screen" (the transformation scene is job 3's).
+- **The studio -> the White House** (built, studio/): in behind THE SCREEN at the studio's end (past studio x 9880),
+  to `DOORS.whitehouse1.start` (`ct-studio-done` in state.stageMemo: the tour's done; a later visit is the revisit).
+  The user's: "you enter behind a screen" (the transformation scene is job 3's: he arrives at whitehouse1's start as
+  himself). Back from the White House's left end: `DOORS.studio.end` (in front of the screen). Back out of the
+  studio's left end (the lobby's front doors): `DOORS.kiddie.end`.
 - **The White House, part one -> part two** (stub): the right end.
 - **The White House, part two -> the big-kid rides** (stub): the right end. The user's: "meathead then leaves the
   cartoon studio" (after the projector's collapse and the bodies).
@@ -70,6 +73,9 @@ move your DOORS entries to match; keep the way back working (revisits), or give 
   (walkAway/stupidDad.ts, the MALLET), markLandCleared('cartoon'), the hub.
 
 ## Things that outlive a death
+
+(The studio's memos: `ct-studio-lit` (which rooms' lights are on, a bit each) and `ct-studio-done`; its narrator's
+stories and Meathead's gags are once a visit, keyed by `landVisit()` in studio/pa.ts and studio/state.ts.)
 
 `state.stage` is rebuilt on every death. What has to outlive one lives in its own module, keyed by `landVisit()`
 (section.ts), which index.ts bumps only on a fresh way into the land (kiddie/state.ts's saidOnce: what he's said this

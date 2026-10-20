@@ -128,6 +128,57 @@ x from the section's start; heights up from the ground line. See kiddie/layout.t
   lids stand over the track; a vendor on the hattery's roof; down off the far end.
 - 12400 THE STUDIO DOOR (cp 5): the mascot and a mixed crowd; the studio's front; its door is the way on.
 
+### Section 2 in detail (LEARN THE MAGIC OF HOW CARTOONS ARE MADE, built: studio/)
+
+A walk-through dark ride on foot: one long building cut away along its back, the path in front behind a velvet rope,
+the rooms as dioramas drawn to one eye. Each room dim till he walks in, then its lights come up (a clunk, two flickers,
+soft fills: never a spotlight) and the NARRATOR (`m2.cartoon.narrator`, a cheesy 1994 corporate announcer on the PA,
+voiced; studio/pa.ts: one line at a time, never over anybody, each room's story once a visit) tells him about it; the
+words on screen only while said. x from the section's start (see studio/layout.ts's header):
+
+- 0 THE LOBBY (cp 10, lit from the start): the queue, the marquee (hung on chains), the front doors back out to the
+  square (its left end); a tour guide. "WELCOME, BOYS AND GIRLS..."
+- 800 1 THE VISION: Dave's office as a shrine: his portrait in oils (ponytail, round glasses, goatee, smug), the GOLDEN
+  DOODLE AWARDS, "I SEE THINGS. - DAVE", THE NAPKIN (a stick cat, a coffee ring) under glass on a marble plinth; Dave
+  himself an animatronic, feet up, jerking his mug up to his mouth. "THAT NAPKIN IS NOW INSURED FOR TWO MILLION DOLLARS."
+  An intern alone (the coffee), then a guide.
+- 1800 2 THE WRITERS' ROOM (cp 11): the whiteboard of bits (WACKY??, MEOW-VAL OFFICE), the joke jar with a dollar in
+  it, writers in backward caps (one asleep, one on a brick phone, one tossing a nerf ball). The pitch exec alone (the
+  laser), an intern.
+- 2800 3 STORYBOARDS: a wall of pinned panels; across the path THE ROLLING STORYBOARD WALL (too tall to jump): up the
+  flat file and the drafting table, over it (a pickup), down the box of pencils (and back up). Pencil Pete past it.
+- 3800 4 THE VOICE BOOTH (cp 12): egg-crate foam, gold records; in the booth the star in sunglasses at take forty of
+  "MEOW." (RECORDING lit over it); the engineer's desk, VU meters bouncing; the TALENT chair. Security, an intern, an exec.
+- 4800 5 MODEL SHEETS: Socks' turnaround (DO NOT DEVIATE), Chelsea's, the wacky faces, APPROVED stamped on everything;
+  the art director (a sweater over his shoulders) stamping. THE DRYING RACK: a cel shuttling on its overhead trolley
+  over safe floor (the moving platform taught) up to the maquette shelf (a pickup). Pencil Pete, a guide, an intern.
+- 5600 6 OVERSEAS (cp 13): the long room: three rows of light tables going back, the night shift (Korean men and women,
+  tired, drawing; one asleep on the desk with the pencil in his hand, one yawning, one on a cot under a desk; noodle
+  cups, thermoses), the clock at quarter to three, the calendar crossed off to DEADLINE, the fax from Dave (NEED 9000
+  MORE BY FRIDAY!! THX), the city at night through the windows; the park's banner over it all (OUR OVERSEAS PARTNERS!, a
+  grinning globe). Before the lights come up, only their light tables glow in the dark. THE REJECT PILE across the path
+  (crumpled drawings, deep: in, and he's coughed back up where he last stood, hurt; the staff go under for good), three
+  STACKS OF DRAWINGS in it that lean under him (the land's towers, sway.ts, drawn as bundled reams with scene labels),
+  light tables at either end as steps. An intern and a guide before it, an exec lasering from the far side, security.
+  "WHAT SUCKERS!" Meathead's say back calls it.
+- 7600 7 INK AND PAINT (cp 14): drying racks of cels, shelves of paint jars, painters at long tables; THE PAINT VAT
+  across the path (three runs of color, stirring; same rules as the pile), two cels on the overhead track shuttling
+  over it (meeting in the middle: off the low one up onto the high one). Pencil Pete, an exec, an intern.
+- 8600 8 THE CAMERA: the rostrum camera on its column, soft boxes, film cans, exposure sheets; across the path a WALL
+  OF FILM CANS (too tall): THE CAMERA CRANE's seat goes up and down to its top (a pickup), a crate down the far side
+  (and back up). Security, Pencil Pete.
+- 9200 9 PREMIERE NIGHT (cp 15): the red carpet, a step-and-repeat, cardboard press with flashbulbs, the show's big
+  promo board on its truss with chasing bulbs (CHELSEA CLINTON AND SOCKS THE CAT'S WACKY WHITE HOUSE ADVENTURES! SATURDAY
+  MORNINGS!); the narrator's line, the user's, verbatim; the mixed crowd; then THE SCREEN (the title card projected on
+  it): walk in behind it (his shadow on it) and on to whitehouse1. "THE MAGIC CONTINUES BEHIND THE SCREEN."
+
+The staff (`m2:ct_*`, studio/kinds.ts, seeded people, men and women): the TOUR GUIDE (`ct_guide`: souvenir plates
+flung flat; the flag pole jab; POINTY), the INTERN (`ct_intern`: four coffees lobbed, then a shove), the PITCH EXEC
+(`ct_exec`: the laser dot crawls up him to his eyes, stops, blinks, gets him if he's still there; the binder), PENCIL
+PETE (`ct_pencil`: the mascot, a giant number two: a corkscrew spin across the floor, dizzy after; the hip check; the
+point on top is SPIKY), STUDIO SECURITY (`ct_guard`: the whistle and a bull rush, winded after; the flashlight).
+Dead, they drop what they carried.
+
 ## Standing rules (all apply; check every one against new work)
 
 American spelling; signs readable, held up, themed lettering (toonSign: a lumpy cloud board on a curly candy-striped
@@ -158,3 +209,18 @@ markBossFight every frame of a boss or sub-boss fight. Voice every new line (`np
   area, forgiving; the cast die in them.
 - (job 1) The studio's door is the way on (walk into it), not the section's end wall; back from the studio, he's in
   front of it (DOORS.kiddie.end).
+- (job 2) The studio is built (studio/). The room lighting is the engine's lighting (dark 0.64 in the building; each
+  lit room a few big soft radial fills; blue aisle lights along the path; a soft glow round him so his words read),
+  ramping up as he walks in; which rooms are lit is in state.stageMemo (`ct-studio-lit`): kept through deaths and
+  after. Been behind the screen (`ct-studio-done`): a later visit's the revisit (house lights up, every room lit, the
+  PA silent, the staff gone home but three night guards, the night shift still drawing: they never go home).
+- (job 2) The narrator's a recording: no clean / shitty / naked pools for him (he doesn't react); Meathead's say backs
+  after some rooms (talk less) and his gags wait for a gap in the tape (said when it's quiet, or not at all).
+- (job 2) The land's mechanic comes back in the studio as STACKS OF DRAWINGS (the same sway.ts towers, drawn as paper)
+  over the reject pile; the pile and the paint vat cough him back up where he last stood (the ball pits' rule).
+- (job 2) The way on is behind THE SCREEN (walk past its middle, behind it: on to DOORS.whitehouse1.start); back from
+  the White House he's put in front of it (DOORS.studio.end = studio x0 + 9560, set in geometry.ts). Job 3 does the
+  erasing and redrawing on the other side.
+- (job 2) The fake 3D: the eye is the middle of the screen; back walls at 0.78, the tableaux' props at 0.86, the rope at
+  0.95 (studio/layout.ts D_BACK / D_PROPS / D_RAIL); partitions drawn in two halves round the props so nothing deeper
+  ever covers anything nearer.

@@ -52,6 +52,8 @@ export const DOORS: Record<CartoonId, { start: { x: number; y: number }; end: { 
   Object.fromEntries(SECTION_ORDER.map(id => [id, { start: { x: SECTIONS[id].x0 + 200, y: GY }, end: { x: SECTIONS[id].x1 - 250, y: GY } }])) as Record<CartoonId, { start: { x: number; y: number }; end: { x: number; y: number } }>;
 // (back from the studio: in front of its door, in Sillyville Square)
 DOORS.kiddie.end = { x: SECTIONS.kiddie.x0 + 13700, y: GY };
+// (back from the White House: in front of the studio's projection screen, the way he went in behind it)
+DOORS.studio.end = { x: SECTIONS.studio.x0 + 9560, y: GY };
 /** The section before and after one (null: the land's start, the boss's arena). */
 export const prevOf = (id: CartoonId): CartoonId | null => SECTION_ORDER[SECTION_ORDER.indexOf(id) - 1] ?? null;
 export const nextOf = (id: CartoonId): CartoonId | null => SECTION_ORDER[SECTION_ORDER.indexOf(id) + 1] ?? null;

@@ -291,6 +291,11 @@
  },
  {
   "voice": "announcer",
+  "text": "BOTTOM LINE!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "announcer",
   "text": "BOWLED OVER!",
   "from": "KILL_CALLOUTS"
  },
@@ -313,6 +318,11 @@
   "voice": "announcer",
   "text": "BRO DOWN!",
   "from": "FANTASY"
+ },
+ {
+  "voice": "announcer",
+  "text": "BROKEN LEAD!",
+  "from": "CARTOON"
  },
  {
   "voice": "announcer",
@@ -411,6 +421,11 @@
  },
  {
   "voice": "announcer",
+  "text": "CIRCLED BACK!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "announcer",
   "text": "CLANG!",
   "from": "SURFACE_CALLOUTS"
  },
@@ -433,6 +448,16 @@
   "voice": "announcer",
   "text": "CODE BROWN!",
   "from": "m1/game/player/gut.ts:106"
+ },
+ {
+  "voice": "announcer",
+  "text": "CODE RED!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "announcer",
+  "text": "COFFEE BREAK!",
+  "from": "CARTOON"
  },
  {
   "voice": "announcer",
@@ -616,6 +641,11 @@
  },
  {
   "voice": "announcer",
+  "text": "DOWNSIZED!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "announcer",
   "text": "DRAGON SLAIN!",
   "from": "FANTASY"
  },
@@ -658,6 +688,16 @@
   "voice": "announcer",
   "text": "ELECTRIC BATH!",
   "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "ERASED!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "announcer",
+  "text": "ESCORTED!",
+  "from": "CARTOON"
  },
  {
   "voice": "announcer",
@@ -723,6 +763,11 @@
   "voice": "announcer",
   "text": "FISH STICKS!",
   "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "FLAGGED!",
+  "from": "CARTOON"
  },
  {
   "voice": "announcer",
@@ -891,6 +936,11 @@
  },
  {
   "voice": "announcer",
+  "text": "GROUPED!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "announcer",
   "text": "GUN TO A FISTFIGHT!",
   "from": "KILL_CALLOUTS"
  },
@@ -1056,6 +1106,11 @@
  },
  {
   "voice": "announcer",
+  "text": "INTERNED!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "announcer",
   "text": "INTO THE CHEAP SEATS!",
   "from": "KILL_CALLOUTS"
  },
@@ -1183,6 +1238,11 @@
   "voice": "announcer",
   "text": "LONG WAY DOWN!",
   "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "LOST THE GROUP!",
+  "from": "CARTOON"
  },
  {
   "voice": "announcer",
@@ -1316,6 +1376,11 @@
  },
  {
   "voice": "announcer",
+  "text": "NO CREDIT!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "announcer",
   "text": "NO JOKE!",
   "from": "FANTASY"
  },
@@ -1343,6 +1408,11 @@
   "voice": "announcer",
   "text": "NO MORE RATTLE!",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "announcer",
+  "text": "NO OVERTIME!",
+  "from": "CARTOON"
  },
  {
   "voice": "announcer",
@@ -1581,6 +1651,11 @@
  },
  {
   "voice": "announcer",
+  "text": "PROMOTED!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "announcer",
   "text": "PUFF THE TRAGIC DRAGON!",
   "from": "FANTASY"
  },
@@ -1741,6 +1816,11 @@
  },
  {
   "voice": "announcer",
+  "text": "SHARPENED!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "announcer",
   "text": "SHATTERED!",
   "from": "KILL_CALLOUTS"
  },
@@ -1873,6 +1953,11 @@
   "voice": "announcer",
   "text": "SNAKE EYES!",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "announcer",
+  "text": "SNAPPED!",
+  "from": "CARTOON"
  },
  {
   "voice": "announcer",
@@ -2166,6 +2251,11 @@
  },
  {
   "voice": "announcer",
+  "text": "TOUR OVER!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "announcer",
   "text": "TOURIST TRAPPED!",
   "from": "GRAB_CALLOUTS"
  },
@@ -2213,6 +2303,11 @@
   "voice": "announcer",
   "text": "UNHORSED!",
   "from": "FANTASY"
+ },
+ {
+  "voice": "announcer",
+  "text": "UNPAID!",
+  "from": "CARTOON"
  },
  {
   "voice": "announcer",
@@ -6506,6 +6601,11 @@
  },
  {
   "voice": "death",
+  "text": "BLINDED BY A POWERPOINT",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "death",
   "text": "BLINDED BY A RAT WITH WINGS",
   "from": "content/deaths"
  },
@@ -7376,6 +7476,11 @@
  },
  {
   "voice": "death",
+  "text": "COMMEMORATED",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "death",
   "text": "COMPACTED BY A SEMI",
   "from": "content/deaths"
  },
@@ -7901,6 +8006,11 @@
  },
  {
   "voice": "death",
+  "text": "DIED IN THE REJECT PILE",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "death",
   "text": "DIED IN THE SOUND MIX",
   "from": "HOLLYWOOD"
  },
@@ -7993,6 +8103,11 @@
   "voice": "death",
   "text": "DIED WAITING IN LINE",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "death",
+  "text": "DIED WITH THE GROUP",
+  "from": "CARTOON"
  },
  {
   "voice": "death",
@@ -8161,6 +8276,11 @@
  },
  {
   "voice": "death",
+  "text": "DONE IN BY FREE LABOR",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "death",
   "text": "DONE IN BY TINFOIL",
   "from": "content/deaths"
  },
@@ -8276,8 +8396,18 @@
  },
  {
   "voice": "death",
+  "text": "DROWNED IN CEL PAINT",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "death",
   "text": "DROWNED IN CRUDE",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "DROWNED IN DAVE'S COFFEE",
+  "from": "CARTOON"
  },
  {
   "voice": "death",
@@ -8571,6 +8701,11 @@
  },
  {
   "voice": "death",
+  "text": "ESCORTED OUT. FOREVER",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "death",
   "text": "ESCORTED OUT. OF LIFE.",
   "from": "HOLLYWOOD"
  },
@@ -8753,6 +8888,11 @@
   "voice": "death",
   "text": "FLAG PLANTED",
   "from": "SPACE"
+ },
+ {
+  "voice": "death",
+  "text": "FLAGGED DOWN. FOR GOOD",
+  "from": "CARTOON"
  },
  {
   "voice": "death",
@@ -9996,6 +10136,11 @@
  },
  {
   "voice": "death",
+  "text": "IMPALED ON A PENCIL",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "death",
   "text": "IMPALED ON A TROLL HAT",
   "from": "FANTASY"
  },
@@ -10461,6 +10606,11 @@
  },
  {
   "voice": "death",
+  "text": "KILLED BY A NUMBER TWO",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "death",
   "text": "KILLED BY A PAYING CUSTOMER",
   "from": "FRONTIER"
  },
@@ -10533,6 +10683,11 @@
   "voice": "death",
   "text": "KILLED BY A SOUVENIR",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "death",
+  "text": "KILLED BY A SOUVENIR PLATE",
+  "from": "CARTOON"
  },
  {
   "voice": "death",
@@ -10791,6 +10946,11 @@
  },
  {
   "voice": "death",
+  "text": "KILLED IN A MEETING",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "death",
   "text": "KILLED ON A COFFEE RUN",
   "from": "HOLLYWOOD"
  },
@@ -10798,6 +10958,11 @@
   "voice": "death",
   "text": "KILLED ON A KID'S FIRST DAY",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "death",
+  "text": "KILLED ON A TOUR",
+  "from": "CARTOON"
  },
  {
   "voice": "death",
@@ -10898,6 +11063,11 @@
   "voice": "death",
   "text": "LAWN DARTED BY A MOOSE",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "LEAD POISONING",
+  "from": "CARTOON"
  },
  {
   "voice": "death",
@@ -11646,6 +11816,11 @@
  },
  {
   "voice": "death",
+  "text": "PAINTED OVER",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "death",
   "text": "PAINTED TO DEATH",
   "from": "CARTOON"
  },
@@ -11946,6 +12121,11 @@
  },
  {
   "voice": "death",
+  "text": "POINTED AT TO DEATH",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "death",
   "text": "POINTED AT. FATALLY",
   "from": "HOLLYWOOD"
  },
@@ -12228,6 +12408,11 @@
   "voice": "death",
   "text": "REDEEMED",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "death",
+  "text": "REJECTED",
+  "from": "CARTOON"
  },
  {
   "voice": "death",
@@ -12696,6 +12881,11 @@
  },
  {
   "voice": "death",
+  "text": "SCALDED TO DEATH",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "death",
   "text": "SCHUHPLATTLERED",
   "from": "FOREIGN"
  },
@@ -12823,6 +13013,11 @@
   "voice": "death",
   "text": "SHARKNADO",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "SHARPENED TO DEATH",
+  "from": "CARTOON"
  },
  {
   "voice": "death",
@@ -13338,6 +13533,11 @@
   "voice": "death",
   "text": "SKEWERED BY A GUARD",
   "from": "FANTASY"
+ },
+ {
+  "voice": "death",
+  "text": "SKEWERED BY A TOUR FLAG",
+  "from": "CARTOON"
  },
  {
   "voice": "death",
@@ -14183,6 +14383,11 @@
   "voice": "death",
   "text": "TACKLED BY A SUIT",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "TACKLED BY RENT-A-COP",
+  "from": "CARTOON"
  },
  {
   "voice": "death",
@@ -16835,6 +17040,406 @@
   "from": "CARTOON"
  },
  {
+  "voice": "m2.cartoon.exec",
+  "text": "AS YOU CAN SEE ON THIS SLIDE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.exec",
+  "text": "BULLET POINT ONE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.exec",
+  "text": "I SEE YOU AS MORE OF A CORPSE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.exec",
+  "text": "I'M SEEING A LOT OF YOU. I'M SEEING TOO MUCH OF YOU.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.exec",
+  "text": "LET'S CIRCLE BACK TO YOU BEING DEAD.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.exec",
+  "text": "LET'S PUT SOME PANTS ON THIS PITCH.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.exec",
+  "text": "SEE THE DOT?",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.exec",
+  "text": "THE SMELL IS OFF BRAND. LET'S LOSE THE SMELL.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.exec",
+  "text": "WHO GREENLIT THOSE PANTS?",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.exec",
+  "text": "YOU'RE NOT ON MY SCHEDULE. GET ON MY SCHEDULE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.execf",
+  "text": "AS YOU CAN SEE ON THIS SLIDE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.execf",
+  "text": "BULLET POINT ONE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.execf",
+  "text": "I SEE YOU AS MORE OF A CORPSE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.execf",
+  "text": "I'M SEEING A LOT OF YOU. I'M SEEING TOO MUCH OF YOU.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.execf",
+  "text": "LET'S CIRCLE BACK TO YOU BEING DEAD.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.execf",
+  "text": "LET'S PUT SOME PANTS ON THIS PITCH.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.execf",
+  "text": "SEE THE DOT?",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.execf",
+  "text": "THE SMELL IS OFF BRAND. LET'S LOSE THE SMELL.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.execf",
+  "text": "WHO GREENLIT THOSE PANTS?",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.execf",
+  "text": "YOU'RE NOT ON MY SCHEDULE. GET ON MY SCHEDULE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.guard",
+  "text": "CODE BROWN. I REPEAT, CODE BROWN.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.guard",
+  "text": "CODE TWELVE IN THE NAPKIN ROOM.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.guard",
+  "text": "HEY!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.guard",
+  "text": "HOLD IT!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.guard",
+  "text": "I'M NOT TOUCHING YOU, SIR. I'M BEATING YOU WITH THIS.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.guard",
+  "text": "PUT IT AWAY, SIR. I'VE SEEN BIGGER ON THE WRITERS.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.guard",
+  "text": "SIR. SIR. SIR. SIR.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.guard",
+  "text": "STOP RIGHT THERE!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.guard",
+  "text": "THIS IS A WALK-THROUGH. YOU'RE A RUN-THROUGH.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.guard",
+  "text": "WE GOT A NAKED ONE. AGAIN.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.guardf",
+  "text": "CODE BROWN. I REPEAT, CODE BROWN.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.guardf",
+  "text": "CODE TWELVE IN THE NAPKIN ROOM.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.guardf",
+  "text": "HEY!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.guardf",
+  "text": "HOLD IT!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.guardf",
+  "text": "I'M NOT TOUCHING YOU, SIR. I'M BEATING YOU WITH THIS.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.guardf",
+  "text": "PUT IT AWAY, SIR. I'VE SEEN BIGGER ON THE WRITERS.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.guardf",
+  "text": "SIR. SIR. SIR. SIR.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.guardf",
+  "text": "STOP RIGHT THERE!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.guardf",
+  "text": "THIS IS A WALK-THROUGH. YOU'RE A RUN-THROUGH.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.guardf",
+  "text": "WE GOT A NAKED ONE. AGAIN.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.guide",
+  "text": "COMMEMORATIVE PLATE! THIRTY BUCKS!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.guide",
+  "text": "GIFT SHOP!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.guide",
+  "text": "HI! WELCOME! I HATE THIS JOB!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.guide",
+  "text": "NO FLASH PHOTOGRAPHY! NO PUNCHING!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.guide",
+  "text": "SIR, THE GROUP HAS ASKED YOU TO LEAVE THE GROUP.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.guide",
+  "text": "SIR! SHIRT AND SHOES REQUIRED! AND EVERYTHING ELSE!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.guide",
+  "text": "SIR! STAY WITH THE GROUP!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.guide",
+  "text": "SOUVENIR!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.guide",
+  "text": "THIS IS A FAMILY TOUR! YOU ARE NOT DRESSED FOR FAMILY!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.guide",
+  "text": "WE HAVE RESTROOMS! YOU WALKED PAST FOUR!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.guidef",
+  "text": "COMMEMORATIVE PLATE! THIRTY BUCKS!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.guidef",
+  "text": "GIFT SHOP!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.guidef",
+  "text": "HI! WELCOME! I HATE THIS JOB!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.guidef",
+  "text": "NO FLASH PHOTOGRAPHY! NO PUNCHING!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.guidef",
+  "text": "SIR, THE GROUP HAS ASKED YOU TO LEAVE THE GROUP.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.guidef",
+  "text": "SIR! SHIRT AND SHOES REQUIRED! AND EVERYTHING ELSE!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.guidef",
+  "text": "SIR! STAY WITH THE GROUP!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.guidef",
+  "text": "SOUVENIR!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.guidef",
+  "text": "THIS IS A FAMILY TOUR! YOU ARE NOT DRESSED FOR FAMILY!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.guidef",
+  "text": "WE HAVE RESTROOMS! YOU WALKED PAST FOUR!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.intern",
+  "text": "COFFEE!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.intern",
+  "text": "DAVE TAKES HIS COFFEE BLACK! AND YOU TAKE PANTS!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.intern",
+  "text": "DON'T SPILL THEM! DON'T SPILL THEM!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.intern",
+  "text": "HOT! HOT! HOT!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.intern",
+  "text": "I HAVE A MASTERS DEGREE AND I SMELL YOU.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.intern",
+  "text": "I'M NOT EVEN PAID! I GET CREDIT!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.intern",
+  "text": "I'M NOT PAID ENOUGH TO SEE THAT! I'M NOT PAID!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.intern",
+  "text": "IT'S DECAF!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.intern",
+  "text": "OH GOD. IS THAT YOU? IT SMELLS LIKE THE CREAMER.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.intern",
+  "text": "THESE ARE FOR DAVE! THESE ARE ALL FOR DAVE!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.internf",
+  "text": "COFFEE!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.internf",
+  "text": "DAVE TAKES HIS COFFEE BLACK! AND YOU TAKE PANTS!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.internf",
+  "text": "DON'T SPILL THEM! DON'T SPILL THEM!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.internf",
+  "text": "HOT! HOT! HOT!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.internf",
+  "text": "I HAVE A MASTERS DEGREE AND I SMELL YOU.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.internf",
+  "text": "I'M NOT EVEN PAID! I GET CREDIT!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.internf",
+  "text": "I'M NOT PAID ENOUGH TO SEE THAT! I'M NOT PAID!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.internf",
+  "text": "IT'S DECAF!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.internf",
+  "text": "OH GOD. IS THAT YOU? IT SMELLS LIKE THE CREAMER.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.internf",
+  "text": "THESE ARE FOR DAVE! THESE ARE ALL FOR DAVE!",
+  "from": "CARTOON"
+ },
+ {
   "voice": "m2.cartoon.mascot",
   "text": "I CAN HEAR... COLORS...",
   "from": "CARTOON"
@@ -16935,6 +17540,131 @@
   "from": "CARTOON"
  },
  {
+  "voice": "m2.cartoon.narrator",
+  "text": "AND NOW, THE EASY PART.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.narrator",
+  "text": "AND THEN, IT'S PREMIERE NIGHT!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.narrator",
+  "text": "BY HAND. ALL NIGHT. FOR A FRACTION OF THE COST.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.narrator",
+  "text": "DAVE IS WHAT WE IN THE BUSINESS CALL A GENIUS.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.narrator",
+  "text": "EVERY CARTOON BEGINS WITH A VISION.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.narrator",
+  "text": "EVERY DRAWING IS CHECKED BY AN AMERICAN SUPERVISOR. MOST OF THEM GO IN THE BIN!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.narrator",
+  "text": "FINALLY, OUR CAMERA PHOTOGRAPHS EVERY CEL, ONE FRAME AT A TIME.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.narrator",
+  "text": "IT TOOK ELEVEN OF AMERICA'S FUNNIEST MEN SIX MONTHS TO COME UP WITH THE WORD WACKY.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.narrator",
+  "text": "IT'S EXHAUSTING WORK. HE TAKES FRIDAYS OFF.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.narrator",
+  "text": "IT'S THE MAGIC OF FREE TRADE!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.narrator",
+  "text": "MEANWHILE, OVERSEAS, OUR FRIENDS IN KOREA DRAW THE OTHER FORTY THOUSAND DRAWINGS.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.narrator",
+  "text": "NEXT, EVERY CEL IS PAINTED BY HAND. BY SOMEBODY. SOMEWHERE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.narrator",
+  "text": "NEXT, OUR WRITERS ADD THE JOKES.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.narrator",
+  "text": "OUR ART DIRECTOR APPROVES EVERY DRAWING. WITH A STAMP.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.narrator",
+  "text": "OUR STORYBOARD ARTISTS PLAN OUT EVERY SINGLE SHOT.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.narrator",
+  "text": "PLEASE STAY ON THE PATH, AND KEEP YOUR HANDS TO YOURSELF.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.narrator",
+  "text": "SOME OF THEM ARE STICK FIGURES. IN THE BUSINESS, WE CALL THAT STYLE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.narrator",
+  "text": "THE MAGIC CONTINUES BEHIND THE SCREEN. GO ON. NOBODY WILL STOP YOU.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.narrator",
+  "text": "THEN, HOLLYWOOD'S BIGGEST STARS GIVE OUR CHARACTERS THEIR VOICES.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.narrator",
+  "text": "THIS IS DAVE. IN NINETEEN NINETY THREE, DAVE DREW A CAT ON A NAPKIN. THAT NAPKIN IS NOW INSURED FOR TWO MILLION DOLLARS.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.narrator",
+  "text": "THIS IS TAKE FORTY OF THE WORD MEOW. HE GETS PAID BY THE MEOW.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.narrator",
+  "text": "THIS PROCESS WAS USED TO MAKE THIS SEASON'S HOT NEW TV SHOW: CHELSEA CLINTON AND SOCKS THE CAT'S WACKY WHITE HOUSE ADVENTURES!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.narrator",
+  "text": "TWENTY FOUR TIMES A SECOND. TAKE A BOW, CAMERA!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.narrator",
+  "text": "WELCOME, BOYS AND GIRLS, TO LEARN THE MAGIC OF HOW CARTOONS ARE MADE!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.narrator",
+  "text": "WHAT SUCKERS!",
+  "from": "CARTOON"
+ },
+ {
   "voice": "m2.cartoon.painter",
   "text": "FACE PAINTING! YOURS NEEDS IT!",
   "from": "CARTOON"
@@ -16992,6 +17722,106 @@
  {
   "voice": "m2.cartoon.painterf",
   "text": "YOU WANT A TIGER? YOU SMELL LIKE A TIGER'S ASS.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.pencil",
+  "text": "GRIND TIME!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.pencil",
+  "text": "I CAN SMELL YOU THROUGH THE FOAM!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.pencil",
+  "text": "I'LL ERASE YOU!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.pencil",
+  "text": "I'M A NUMBER TWO! YOU'RE A NUMBER TWO!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.pencil",
+  "text": "I'M PENCIL PETE! I'M A NUMBER TWO!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.pencil",
+  "text": "I'M SHARP! YOU'RE NAKED! THIS ENDS BADLY FOR YOU!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.pencil",
+  "text": "IT'S A HUNDRED DEGREES IN HERE AND I'M A PENCIL!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.pencil",
+  "text": "NOBODY TOLD ME THERE WOULD BE A NAKED GUY!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.pencil",
+  "text": "POINTY!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.pencil",
+  "text": "SHARPENING!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.pencilf",
+  "text": "GRIND TIME!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.pencilf",
+  "text": "I CAN SMELL YOU THROUGH THE FOAM!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.pencilf",
+  "text": "I'LL ERASE YOU!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.pencilf",
+  "text": "I'M A NUMBER TWO! YOU'RE A NUMBER TWO!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.pencilf",
+  "text": "I'M PENCIL PETE! I'M A NUMBER TWO!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.pencilf",
+  "text": "I'M SHARP! YOU'RE NAKED! THIS ENDS BADLY FOR YOU!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.pencilf",
+  "text": "IT'S A HUNDRED DEGREES IN HERE AND I'M A PENCIL!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.pencilf",
+  "text": "NOBODY TOLD ME THERE WOULD BE A NAKED GUY!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.pencilf",
+  "text": "POINTY!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.pencilf",
+  "text": "SHARPENING!",
   "from": "CARTOON"
  },
  {
@@ -48946,6 +49776,11 @@
  },
  {
   "voice": "meathead",
+  "text": "A CARTOON ABOUT THE WHITE HOUSE CAT. WHAT KIND OF KID WATCHES THAT?",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "A CASTLE. THE DOOR IS LOCKED. THE CLOCK IS NOT.",
   "from": "FOREIGN"
  },
@@ -49366,6 +50201,11 @@
  },
  {
   "voice": "meathead",
+  "text": "A GENIUS. HE DREW A CAT. I SHOWED A WHOLE PARK MY DICK.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "A GEYSER OF LAVA! OF COURSE!",
   "from": "HAZARD_HURT"
  },
@@ -49766,6 +50606,11 @@
  },
  {
   "voice": "meathead",
+  "text": "A MONTH OF SOMEBODY'S WORK. AND I'M STANDING ON IT.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "A MOOSE. LAST TIME I MET ONE IT HAD A PERSONAL PROBLEM WITH ME. THIS ONE'S A GUY IN A SUIT. SAME ENERGY.",
   "from": "FOREIGN"
  },
@@ -49798,6 +50643,11 @@
   "voice": "meathead",
   "text": "A MUSKET BALL! IN ME!",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "A NAPKIN. TWO MILLION BUCKS. I HATE THIS GUY.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -49838,6 +50688,11 @@
   "voice": "meathead",
   "text": "A PIANO! I HEARD IT COMING! IN C MINOR!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "A PIECE OF PLASTIC ON A HOOK. BEST RIDE IN THE BUILDING.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -50101,6 +50956,11 @@
  },
  {
   "voice": "meathead",
+  "text": "A SHOW ABOUT A CAT IN THE WHITE HOUSE. I'D SHIT MYSELF FROM BOREDOM. AGAIN.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "A SHOWDOWN. I BROUGHT A GUN TO A GUN SHOW.",
   "from": "FRONTIER"
  },
@@ -50163,6 +51023,11 @@
   "voice": "meathead",
   "text": "A SOUVENIR PITCHFORK! IN MY GUT!",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "A SOUVENIR PLATE! IN THE FACE!",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -50441,6 +51306,11 @@
  },
  {
   "voice": "meathead",
+  "text": "A WALK-THROUGH. MY FEET PAID FOR A RIDE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "A WALK-THROUGH. THAT'S NOT A RIDE. THAT'S A HALLWAY WITH A NARRATOR.",
   "from": "CARTOON"
  },
@@ -50491,6 +51361,11 @@
  },
  {
   "voice": "meathead",
+  "text": "A WHITE HOUSE CAT SHOW. I GOT NAKED FOR THIS?",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "A WHOLE BUILDING FELL ON ME! A FAKE ONE!",
   "from": "HOLLYWOOD"
  },
@@ -50528,6 +51403,11 @@
   "voice": "meathead",
   "text": "A WHOLE TOWER OF STAIRS THAT HATE ME.",
   "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "A WHOLE TUB OF PAINT!",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -50663,6 +51543,11 @@
   "voice": "meathead",
   "text": "AGAIN. THE BROOM SMELLS NOW.",
   "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "AIR CONDITIONING. MY ASS SAYS THANK YOU.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -51151,6 +52036,11 @@
  },
  {
   "voice": "meathead",
+  "text": "BACK IN THE HALLWAY. STILL SHITTY.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "BACK IN THE HOLE!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -51553,6 +52443,31 @@
   "voice": "meathead",
   "text": "BEES! BEES!",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "BEHIND THE SCREEN. FINALLY, A CURTAIN.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "BEHIND THE SCREEN. GOOD PLACE TO HIDE A SMELL.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "BEHIND THE SCREEN. NOBODY WILL SEE WHAT'S BEHIND ME.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "BEHIND THE SCREEN. SURE. WHY NOT.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "BEHIND THE SCREEN. THEY'LL JUST SEE MY SHADOW. MOST OF IT.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -52156,6 +53071,11 @@
  },
  {
   "voice": "meathead",
+  "text": "BULLET POINTED IN THE EYE!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "BULLETPROOF? STEROIDS.",
   "from": "FANTASY"
  },
@@ -52318,6 +53238,11 @@
   "voice": "meathead",
   "text": "BUZZSAWS. TOO LATE TO SHIT MYSELF.",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "BY SOMEBODY. SOMEWHERE. CLASSY.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -52861,6 +53786,11 @@
  },
  {
   "voice": "meathead",
+  "text": "CLOTHESLINED BY A TOUR!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "CLOUDS. WOW. I HAVE SEEN CLOUDS.",
   "from": "SPACE"
  },
@@ -52918,6 +53848,11 @@
   "voice": "meathead",
   "text": "COLD FRONT... INCOMING",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "COLD IN HERE. EVERYTHING ON ME JUST SHRANK.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -53038,6 +53973,11 @@
   "voice": "meathead",
   "text": "COMING THROUGH, LOSERS.",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "COMMEMORATIVE! OW!",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -53298,6 +54238,16 @@
   "voice": "meathead",
   "text": "DARK AND COLD. EVERYTHING SHRANK.",
   "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "DARK IN HERE. NOBODY CAN SEE MY PANTS. THEY CAN SMELL THEM.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "DARK IN HERE. PERFECT FOR A NAKED GUY. THAT'S THE ONLY PLUS.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -53641,8 +54591,18 @@
  },
  {
   "voice": "meathead",
+  "text": "DON'T LOOK DOWN. DON'T SQUEEZE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "DON'T OIL UP THE MERCHANDISE, MOTHERFUCKER!",
   "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "DON'T POINT THAT CAMERA AT ME. I'M NOT THAT KIND OF STAR.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -53678,6 +54638,11 @@
   "voice": "meathead",
   "text": "DON'T TASE ME, BRO! I MEAN IT!",
   "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "DON'T TIP, DON'T TIP. I'M NOT CLEAN ENOUGH TO FALL.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -54188,6 +55153,11 @@
   "voice": "meathead",
   "text": "EVERYBODY GET BACK. WAY BACK.",
   "from": "M2_GUT_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "EVERYBODY WENT HOME. EXCEPT THE GUYS DRAWING.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -54781,6 +55751,11 @@
  },
  {
   "voice": "meathead",
+  "text": "FLASHLIGHT! RIGHT ON THE HEAD!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "FLAT AS A PANCAKE!",
   "from": "M2_KILL_LINES"
  },
@@ -54951,6 +55926,16 @@
  },
  {
   "voice": "meathead",
+  "text": "FORTY TAKES OF MEOW. I COULD DO THAT NAKED. I AM.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "FORTY TAKES. IT'S ONE WORD. HE'S A CAT.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "FOUR FIRES. THAT KID RULES.",
   "from": "SPOOKY"
  },
@@ -55048,6 +56033,11 @@
   "voice": "meathead",
   "text": "FREE SAMPLES. NO REFUNDS. NO SHIT.",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "FREE TRADE. THAT'S WHEN SOMEBODY ELSE DOES IT.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -55911,6 +56901,11 @@
  },
  {
   "voice": "meathead",
+  "text": "GIVE ME THAT NAPKIN. I'LL COVER SOMETHING WITH IT.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "GIVE THOSE BACK, YOU FEATHERED BASTARD!",
   "from": "m1/game/player/deathAnim.ts:385"
  },
@@ -56061,8 +57056,18 @@
  },
  {
   "voice": "meathead",
+  "text": "GOING UP. FINALLY, A RIDE WITH SOME HEIGHT TO IT.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "GOING UP. MY LOAD IS GOING DOWN.",
   "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "GOING UP. MY SMELL IS GOING UP WITH ME.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -56441,6 +57446,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HAND PAINTED. LIKE ME, IF I FALL IN THAT TUB.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "HANDLER SAID NO SHOOTING TILL AFTER THE MEDAL.",
   "from": "m1/game/stages/whiteHouse/index.ts:62"
  },
@@ -56483,6 +57493,11 @@
   "voice": "meathead",
   "text": "HANG TEN FEET UNDER!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "HANGING OVER PAINT. MY PANTS HAVE PAINTED ENOUGH.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -56666,6 +57681,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HE DREW A CAT ON A NAPKIN. I'VE WIPED MY ASS WITH BETTER.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "HE DUCKS ANYTHING FANCY. RAY GUN, IN THE BUFF.",
   "from": "FRONTIER"
  },
@@ -56763,6 +57783,11 @@
   "voice": "meathead",
   "text": "HE HIT ME WITH A BIKE LOCK!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE HIT ME WITH A BINDER!",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -57951,6 +58976,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HIT BY MIDDLE MANAGEMENT!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "HIT BY PUBLIC TRANSIT!",
   "from": "CARTOON"
  },
@@ -58213,6 +59243,11 @@
   "voice": "meathead",
   "text": "HOT COFFEE! IN MY EYES!",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "HOT COFFEE! MY FACE!",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -58956,6 +59991,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I DON'T WANT TO LEARN. I WANT A RIDE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "I DON'T WANT TO SEE GRANDMA.",
   "from": "SPACE"
  },
@@ -59271,6 +60311,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I MAKE NOISES TOO. NOBODY RECORDS THEM.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "I MOVED THE TOWER. I MOVED A WHOLE TOWER.",
   "from": "SPOOKY"
  },
@@ -59311,6 +60356,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I NEED THAT NAPKIN MORE THAN HE DOES.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "I NEEDED THAT AIR!",
   "from": "SPACE"
  },
@@ -59338,6 +60388,11 @@
   "voice": "meathead",
   "text": "I PARKED THE BULLDOZER. SOMEBODY ELSE CAN FIND IT A SPACE.",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "I RAN INTO HER FLAG!",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -59393,6 +60448,11 @@
   "voice": "meathead",
   "text": "I SAID NO PILLS!",
   "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "I SANK IN THE REJECTS!",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -59493,6 +60553,11 @@
   "voice": "meathead",
   "text": "I STOMPED A PINEAPPLE!",
   "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "I STOMPED ON THE POINT!",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -59806,6 +60871,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I'M BLUE NOW! I'M BLUE!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "I'M BLUE NOW. OR YELLOW. WHATEVER THIS VAT WAS.",
   "from": "FOREIGN"
  },
@@ -59923,6 +60993,11 @@
   "voice": "meathead",
   "text": "I'M GOOD. I'M GOOD.",
   "from": "m1/game/stages/dale/convoy.ts:403"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M HAND PAINTED TOO. BROWN.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -60156,6 +61231,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I'M RIDING A CARTOON. THIS IS THE ONLY RIDE IN HERE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "I'M ROTISSERIE MEATHEAD NOW!",
   "from": "HAZARD_HURT"
  },
@@ -60188,6 +61268,11 @@
   "voice": "meathead",
   "text": "I'M SLIPPING ON CRUDE OIL, OSCAR YOU GREASY BASTARD!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M SMEARING SOMEBODY'S HARD WORK. SORRY.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -61021,6 +62106,11 @@
  },
  {
   "voice": "meathead",
+  "text": "IT'S A CAMERA CRANE. IT'S STILL BETTER THAN SILLYVILLE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "IT'S A CHIHUAHUA FROM HELL!",
   "from": "SPOOKY"
  },
@@ -61033,6 +62123,11 @@
   "voice": "meathead",
   "text": "IT'S A DESK FAN. MY GRANDMA HAS THAT FAN.",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT'S A HALLWAY WITH A GUY TALKING. THAT'S SCHOOL.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -61053,6 +62148,11 @@
   "voice": "meathead",
   "text": "IT'S A LONG WAY DOWN. THE POOL LOOKS LIKE A BATHTUB.",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT'S A PILE OF DRAWINGS. IT LEANS. OF COURSE IT LEANS.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -61116,6 +62216,11 @@
  },
  {
   "voice": "meathead",
+  "text": "IT'S ALL DRAWINGS DOWN THERE!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "IT'S ALREADY CLOGGED. WHAT'S ONE MORE.",
   "from": "HOLLYWOOD"
  },
@@ -61168,6 +62273,11 @@
   "voice": "meathead",
   "text": "IT'S CROWNING. STAND UP.",
   "from": "M2_GUT_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT'S DARK IN HERE. GOOD. NOBODY CAN SEE ME NOT CARING.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -61333,6 +62443,11 @@
   "voice": "meathead",
   "text": "IT'S NOT A PYRAMID, PAL. IT'S A REVERSE FUNNEL.",
   "from": "m1/game/bosses/oscar.ts:218"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT'S NOT DECAF! IT'S HOT!",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -61573,6 +62688,11 @@
   "voice": "meathead",
   "text": "KEEP MY BALLS OUT OF THAT PUDDLE.",
   "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "KEEP MY HANDS TO MYSELF. THAT LEAVES ONE PROBLEM.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -61861,6 +62981,11 @@
  },
  {
   "voice": "meathead",
+  "text": "LEANING ON ART. NAKED. VERY FRENCH.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "LEANING TOWER OF POOPSA.",
   "from": "CARTOON"
  },
@@ -62028,6 +63153,16 @@
   "voice": "meathead",
   "text": "LIGHTNING! INDOORS!",
   "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "LIGHTS ON. GREAT. NOW THE WHOLE HALLWAY SEES IT.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "LIGHTS ON. NOW EVERYBODY CAN SEE MY PANTS.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -62956,6 +64091,11 @@
  },
  {
   "voice": "meathead",
+  "text": "MY BALLS ARE SWINGING MORE THAN THIS CEL.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "MY BALLS HIT MY CHIN!",
   "from": "SPACE"
  },
@@ -63073,6 +64213,11 @@
   "voice": "meathead",
   "text": "MY EVERYTHING!",
   "from": "m1/game/stages/dale/convoy.ts:403"
+ },
+ {
+  "voice": "meathead",
+  "text": "MY EYE! THE LASER POINTER!",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -63238,6 +64383,11 @@
   "voice": "meathead",
   "text": "MY HAIR'S ON FIRE!",
   "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "MY HANDS ARE KEEPING TO MY PANTS. TRUST ME.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -63658,6 +64808,11 @@
   "voice": "meathead",
   "text": "NAKED IN A SEWER. NEW LOW.",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "NAKED IN AN EMPTY STUDIO. FINALLY SOME PRIVACY.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -64301,6 +65456,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NO KID ON EARTH WANTS THIS. I JUST CRAPPED AT THE THOUGHT.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "NO LEVERAGE DOWN HERE!",
   "from": "DUCK_LINES"
  },
@@ -64636,6 +65796,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NOBODY WANTS MY HANDS ANYWHERE. NOT TODAY.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "NOBODY. NOBODY IS DRIVING NOW.",
   "from": "m1/game/stages/dale/convoy.ts:900"
  },
@@ -64643,6 +65808,11 @@
   "voice": "meathead",
   "text": "NOBODY'S DRIVING. HOLD ON TO SOMETHING. NOT THAT.",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOBODY'S EVEN LOOKING UP. I'M NAKED. THAT'S HOW TIRED THEY ARE.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -64758,6 +65928,11 @@
   "voice": "meathead",
   "text": "NOT ON THE HELMET, IDIOT!",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOT ONE OF THEM LOOKED UP. I'M NAKED. THAT'S A DEADLINE.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -65053,6 +66228,11 @@
   "voice": "meathead",
   "text": "NOW YOU'RE PROTEIN!",
   "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "NUMBER TWO! UP MY ASS!",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -65726,6 +66906,11 @@
  },
  {
   "voice": "meathead",
+  "text": "OVER A TUB OF PAINT. NAKED. ONE SLIP AND I'M BLUE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "OVERLOADED SCUM",
   "from": "VULGARITIES"
  },
@@ -65876,6 +67061,11 @@
  },
  {
   "voice": "meathead",
+  "text": "OW! HE DOES HAVE A MASTERS!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "OW! HE HIT ME WITH THE STICK!",
   "from": "FOREIGN"
  },
@@ -65883,6 +67073,11 @@
   "voice": "meathead",
   "text": "OW! HE SAID SORRY AND THEN HE AXED ME!",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "OW! HE WEIGHS A TON!",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -66108,6 +67303,16 @@
   "voice": "meathead",
   "text": "OW! SIX KIDS IN A BLANKET!",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "OW! STAY WITH THE GROUP!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "OW! SYNERGY!",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -66431,6 +67636,21 @@
  },
  {
   "voice": "meathead",
+  "text": "PAID BY THE MEOW. I SHOULD GET PAID BY THE SHART.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "PAID BY THE MEOW. I WANT THAT JOB.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "PAID BY THE MEOW. I'D TAKE OFF MY PANTS FOR THAT. OH.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "PAID IN FULL.",
   "from": "FRONTIER"
  },
@@ -66456,12 +67676,22 @@
  },
  {
   "voice": "meathead",
+  "text": "PAINT BY HAND. I PAINTED MY PANTS BY ASS.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "PAINT ME FLEXING OR DON'T BOTHER.",
   "from": "SPOOKY"
  },
  {
   "voice": "meathead",
   "text": "PAINT! IN MY EYES!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "PAINT! IT BURNS!",
   "from": "CARTOON"
  },
  {
@@ -66493,6 +67723,11 @@
   "voice": "meathead",
   "text": "PAPER CUT! ON MY TRAPS!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "PAPER CUTS! A THOUSAND PAPER CUTS!",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -68051,6 +69286,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SCALDING! IT WAS DAVE'S!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "SCENTED CANDLES! FRANCHISE OPPORTUNITY! YOU'D BE YOUR OWN BEST CUSTOMER!",
   "from": "m1/game/bosses/oscar.ts:218"
  },
@@ -68238,6 +69478,11 @@
   "voice": "meathead",
   "text": "SHATTERED LATS",
   "from": "VULGARITIES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHAVINGS! IN MY MOUTH!",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -68903,6 +70148,11 @@
   "voice": "meathead",
   "text": "SHOVED BY A TEENAGER IN A VISOR!",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHOVED BY FREE LABOR!",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -69851,6 +71101,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SPUN INTO BY A PENCIL!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "SQUASHED LIKE A BUG",
   "from": "VULGARITIES"
  },
@@ -69983,6 +71238,11 @@
   "voice": "meathead",
   "text": "STAY IN YOUR LANE, DRAMA CLUB!",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "STAY ON THE PATH. NAKED. YEAH, I'M NOT STOPPING.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -70466,6 +71726,16 @@
  },
  {
   "voice": "meathead",
+  "text": "SUCKERS? THOSE GUYS DID ALL OF IT. PONYTAIL DREW A NAPKIN.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "SUCKERS. SAYS THE GUY ON THE TAPE. I'M THE GUY IN BROWN PANTS.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "SUCKS TO BE YOU!",
   "from": "M2_KILL_LINES"
  },
@@ -70913,6 +72183,11 @@
   "voice": "meathead",
   "text": "THAT GOAT HAS A HARDER HEAD THAN ME!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT GUY'S ASLEEP WITH THE PENCIL STILL IN HIS HAND.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -72151,6 +73426,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THE CLOCK SAYS QUARTER TO THREE. NOBODY'S LEAVING.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "THE CLOWN HIT ME!",
   "from": "FANTASY"
  },
@@ -72293,6 +73573,11 @@
   "voice": "meathead",
   "text": "THE DOT MAN FLIPPED ON ME!",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE DOT! THE DOT IS IN MY EYE!",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -72591,6 +73876,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THE GUARD TACKLED ME!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "THE GUN BIT ME!",
   "from": "SPACE"
  },
@@ -72706,6 +73996,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THE INTERN SHOVED ME!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "THE JANITOR HITS LIKE A TRUCK!",
   "from": "HOLLYWOOD"
  },
@@ -72746,6 +74041,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THE LEAD! IN MY FOOT!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "THE LIGHT TOWER FELL OVER. NOW IT'S A BRIDGE.",
   "from": "HOLLYWOOD"
  },
@@ -72753,6 +74053,11 @@
   "voice": "meathead",
   "text": "THE LIGHTNING'S REAL! THE RAIN'S FAKE AND THE LIGHTNING'S REAL!",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE LIGHTS ARE ON. THE GUY ON THE TAPE SHUT UP. BEST VERSION.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -72983,6 +74288,11 @@
   "voice": "meathead",
   "text": "THE PARTY'S OVER!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE PENCIL GOT ME!",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -73446,6 +74756,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THE TAPE SAYS GO BEHIND THE SCREEN. I'VE DONE DUMBER.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "THE TEA LADY HIT ME WITH THE POT!",
   "from": "FOREIGN"
  },
@@ -73493,6 +74808,11 @@
   "voice": "meathead",
   "text": "THE TORNADO'S THROWING SNOW!",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE TOUR FLAG! IN MY GUT!",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -73806,6 +75126,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THERE WAS A POINT ON THAT FLAG!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "THERE. NOW YOU CAN SEE ALL OF ME.",
   "from": "SPACE"
  },
@@ -73961,6 +75286,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THEY ATE NOODLES AT THEIR DESKS. I DID WORSE AT MINE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "THEY BLEW THE WHOLE BUDGET ON THIS PART.",
   "from": "SPOOKY"
  },
@@ -73981,6 +75311,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THEY COULD PAINT ME SOME PANTS. FOR PENNIES.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "THEY DIDN'T EVEN FIX THE TRACK. LAUNCH ME AGAIN.",
   "from": "HOLLYWOOD"
  },
@@ -73988,6 +75323,16 @@
   "voice": "meathead",
   "text": "THEY DIED. IT LEAKED. I'M HUNGRY.",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "THEY DON'T CARE THAT I'M NAKED. THEY'VE GOT A DEADLINE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "THEY DON'T EVEN LOOK UP. GOOD. DON'T LOOK.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -74191,6 +75536,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THEY'RE THE ONLY ONES HERE DOING ANY WORK.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "THEY'RE THROWING THE BREAK ROOM AT ME!",
   "from": "HAZARD_HURT"
  },
@@ -74201,8 +75551,23 @@
  },
  {
   "voice": "meathead",
+  "text": "THEY'RE TOO TIRED TO SEE MY DICK. RESPECT.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "THEY'VE BEEN HERE ALL NIGHT. THEY SMELL WORSE THAN ME. ALMOST.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "THIRD RAIL. I KNOW WHAT THAT IS. I PEED ON ONE ONCE.",
   "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "THIRTY BUCKS! RIGHT IN THE TEETH!",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -74228,6 +75593,11 @@
   "voice": "meathead",
   "text": "THIS HURRICANE IS BLOWING MY SWEATPANTS OFF!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THIS IS A LOT OF DRAWINGS TO HAVE MY ASS ON.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -75111,6 +76481,11 @@
  },
  {
   "voice": "meathead",
+  "text": "TWO MILLION FOR A NAPKIN. I COULD USE A NAPKIN RIGHT NOW.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "TWO MINUTES IN THE BOX! FOREVER!",
   "from": "ENEMY_KILL_LINES"
  },
@@ -75238,6 +76613,16 @@
   "voice": "meathead",
   "text": "UP HERE THE CAMELS CAN'T GET ME. NOTHING ELSE CAN EITHER.",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "UP ON A CAMERA. NAKED. THIS IS HOW IT STARTS.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "UP ON THE CRANE. NOBODY SHOOT ME FROM BELOW.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -75788,6 +77173,11 @@
   "voice": "meathead",
   "text": "WHAT IS UNDER THERE, A JET ENGINE?!",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHAT KID WATCHES THAT? I'D RATHER WATCH ME. EVERYBODY ELSE IS.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -76388,6 +77778,11 @@
   "voice": "meathead",
   "text": "WHO TURNED OFF THE LIGHTS?!",
   "from": "m1/game/player/deathAnim.ts:385"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHO WANTS THAT ON SATURDAY MORNING? WHERE'S THE ROBOTS?",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
