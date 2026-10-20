@@ -163,8 +163,11 @@ export const dino: Section = {
     { name: 'THE RAPTOR PEN', cp: 30, x: D + 200, y: GY },
     { name: 'THE VOLCANO', cp: 31, x: D + 2450, y: GY },
     // (back for another go at the T. rex: no raptors about the paddock's gate, nothing coming over from the volcano)
-    { name: 'THE T. REX PADDOCK', cp: 32, x: D + 5880, y: GY, clear: [1500, PADDOCK_IN - (D + 5880) - 10] },
-    { name: 'THE TEMPLE FENCE', cp: 33, x: D + 8800, y: GY },
+    // (down off the volcano's last step, short of the monorail over the gift shop)
+    { name: 'THE GIFT SHOP', cp: 32, x: D + 4000, y: GY },
+    { name: 'THE T. REX PADDOCK', cp: 33, x: D + 5880, y: GY, clear: [1500, PADDOCK_IN - (D + 5880) - 10] },
+    // (past the paddock: the T. rex is done for good from here on (rex.ts: REX_GONE_CP))
+    { name: 'THE TEMPLE FENCE', cp: 34, x: D + 8800, y: GY },
   ],
   build: (state) => {
     const n0 = state.blocks.length;

@@ -428,8 +428,17 @@ export const cart: Section = {
   checkpoints: [
     { name: 'THE MINE CART', cp: 50, x: X + 150, y: GY },
     { name: 'THE UNFRIENDLY TRACK', cp: 51, x: X + 5000, y: GY - 260 },
-    { name: 'THE TOUR CART', cp: 52, x: X + 11560, y: GY - 220 },
-    { name: 'THE LAST STRETCH', cp: 53, x: X + 17450, y: GY - 120 },
+    // (each one back in a cart on the rail there, rolling (board()), the ride's tricks ahead all reset and loaded, any
+    // behind never set off; past CHASE_X, Artie's straight back on his tail. Each well short of the next trick: the
+    // tricks wait till it's been rolling a while (tricks.ts) and it gets up to speed first)
+    // (down off the idols' straight, short of the Serpent of Doom)
+    { name: 'THE SERPENT OF DOOM', cp: 52, x: X + 7450, y: GY - 250 },
+    { name: 'THE TOUR CART', cp: 53, x: X + 11560, y: GY - 220 },
+    // (just over the gap past the second idol, up the rise to the low beams)
+    { name: 'THE LOW BEAMS', cp: 54, x: X + 14560, y: GY - 175 },
+    { name: 'THE LAST STRETCH', cp: 55, x: X + 17450, y: GY - 120 },
+    // (past the third serpent, the beam and the last catapults ahead, then the ramp)
+    { name: 'THE HOME STRETCH', cp: 56, x: X + 19650, y: GY - 180 },
   ],
   build: (state) => {
     // (the cave's floor, way down under the track: the gaps go down to it)

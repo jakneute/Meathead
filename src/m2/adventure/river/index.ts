@@ -453,14 +453,21 @@ export const river: Section = {
     { name: 'THE JUNGLE CRUISE', cp: 20, x: x0 + 150, y: GY },
     { name: 'UNDER THE RIVER', cp: 21, x: R(3620), y: 860 },
     { name: 'THE RIDE GRAVEYARD', cp: 22, x: R(5300), y: 900 },
-    { name: 'THE DINOSAUR TANK', cp: 23, x: R(9900), y: 900 },
+    // (the dinosaur storeroom's way in, by the bubble vent past the ticket booth: the boat's as he left it (restoreBoat:
+    // 21 on, over the side), a fresh breath of air)
+    { name: 'THE ANIMATRONICS', cp: 23, x: R(7500), y: 900 },
+    { name: 'THE DINOSAUR TANK', cp: 24, x: R(9900), y: 900 },
   ],
   build,
   update: (ctx, controls) => {
     const { state } = ctx, p = state.player;
     const rv = getRiver(state);
-    if (!rv.init) { rv.init = true; restoreBoat(state, rv); }
     const rx = p.pos.x + p.width / 2 - x0;
+    if (!rv.init) {
+      rv.init = true; restoreBoat(state, rv);
+      // (started further on, at a checkpoint under the water: what he'd have said swimming past what's behind him is said)
+      if (state.checkpoint >= 21) for (const [x, k] of CALLOUTS) if (x < rx) rv.said.add(k);
+    }
     // (back off the dock the way he came: the queue's end)
     if (rx < 40 && !p.swimming) { teleport(state, SECTIONS.queue.x1 - 220, GY); p.facing = -1; return controls; }
     updateSwim(ctx, rv);

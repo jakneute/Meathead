@@ -19,7 +19,7 @@
 // hangs, the bite's weaker. All gone: it comes apart, the head rolls, its speaker still doing the friendly bit.
 //
 // The far fence is closed off till it's down (the near one never is: back out and in again whenever). Started by
-// walking into the paddock (or shooting it). Once he's past the temple fence (checkpoint 33 on), it's gone for good.
+// walking into the paddock (or shooting it). Once he's past the temple fence (checkpoint 34 on), it's gone for good.
 
 import type { Enemy, Block, Rect } from '../../../m1/types';
 import type { FrameContext } from '../../../m1/game/core/context';
@@ -51,6 +51,8 @@ import { signAt, enamel, stencil } from '../letters';
 
 type Ctx = CanvasRenderingContext2D;
 const pick = pickLine;
+/** The temple fence's checkpoint (dino/index.ts): from it on, the T. rex is scrap. */
+const REX_GONE_CP = 34;
 
 export const REX_KIND = 'm2:rex';
 export const REX_NAME = 'TYRANNOSAURUS WRECKS';
@@ -224,7 +226,7 @@ export const buildRex = (state: GameState, o: { x: number; inX: number; outX: nu
   s.rex = r;
   placeParts(r);
   // (killed already, this go at the land (back from dying since), or started past the temple fence: it's scrap)
-  if (state.checkpoint >= 33 || state.stageMemo[REX_MEMO]) retire(state, r);
+  if (state.checkpoint >= REX_GONE_CP || state.stageMemo[REX_MEMO]) retire(state, r);
 };
 
 /** Killed: where it went down (state.stageMemo, kept across his deaths: it stays dead). */
@@ -501,7 +503,7 @@ export const updateRex = (ctx: FrameContext) => {
   const r = rexOf(state);
   if (!r || r.fight === 'gone') return;
   // (started past the temple fence: the checkpoint's only known once the stage is built, so it's put down here)
-  if (r.fight === 'wait' && state.checkpoint >= 33) retire(state, r);
+  if (r.fight === 'wait' && state.checkpoint >= REX_GONE_CP) retire(state, r);
   if (r.fight === 'on') markBossFight(state, 'trex');
   const p = state.player;
   // What's come out of each part since last frame

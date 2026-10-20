@@ -2,14 +2,16 @@
 //
 //   0      the way in: a vine up a tree to a lookout (climbing, and climbing off the top), a pit with one vine over it
 //          (swinging), the first monkey up a tree, frogs.
-//   1900   the monkey grove: the ground way (chimps, frogs, monkeys pelting down from above) or up a vine into the
+//   1900   CHECKPOINT. The monkey grove: the ground way (chimps, frogs, monkeys pelting down from above) or up a vine into the
 //          canopy (a run of branches and a vine between them, monkeys up there with him, some health).
 //   3350   CHECKPOINT. The ravine: three vines across it (and a rock to rest on), macaws coming at him on them; a gap
 //          that wants a good swing (pump it, or push it).
 //   5150   CHECKPOINT. The cliff: one long vine up it (the quick climb), a boa hung off it halfway, a monkey up top. The
-//          overlook along the top (a jaguar), and the gorge off the end of it: two long vines down and across.
+//          overlook along the top (a jaguar), and (6750: CHECKPOINT) the gorge off the end of it: two long vines down
+//          and across.
 //   7950   CHECKPOINT. Jaguar country: on the ground (jaguars, a chimp) or up in the canopy again (vines between
 //          branches, a boa over one, a monkey; ammo at the end).
+//   9650   CHECKPOINT (by the LAST VINES sign).
 //   9800   The last ravine, three vines, macaws, monkeys pelting from the far side; chimps; the Jungle Cruise sign.
 //
 // All of it goes both ways (he'll be back through here later): every vine's in reach from either side, the cliff's
@@ -97,11 +99,18 @@ export const SIGNS: [number, number, string, string, SignStyle][] = [
 /** The branches the boas hang off (stubs: dark, not to stand on). */
 export const BOA_BRANCHES = ANIMALS.filter(a => a[0] === 'm2:boa').map(a => ({ x: X(a[1]), y: Y(a[2]) }));
 
+// (nothing in the jungle changes for good: the animals are back each go, so a checkpoint here is just where he stands)
 export const CHECKPOINTS = [
   { name: 'THE JUNGLE', cp: 0, x: X(150), y: GY },
-  { name: 'THE RAVINE', cp: 1, x: X(3350), y: GY },
-  { name: 'THE CLIFF', cp: 2, x: X(5150), y: GY },
-  { name: 'JAGUAR COUNTRY', cp: 3, x: X(7950), y: GY },
+  // (at the foot of the grove's vine: the ground way or up into the canopy, his pick)
+  { name: 'THE MONKEY GROVE', cp: 1, x: X(1900), y: GY },
+  { name: 'THE RAVINE', cp: 2, x: X(3350), y: GY },
+  { name: 'THE CLIFF', cp: 3, x: X(5150), y: GY },
+  // (up on the overlook, short of its end: the gorge's two long vines ahead)
+  { name: 'THE GORGE', cp: 4, x: X(6750), y: Y(460) },
+  { name: 'JAGUAR COUNTRY', cp: 5, x: X(7950), y: GY },
+  // (by the LAST VINES sign, on the ground before the last ravine)
+  { name: 'THE LAST VINES', cp: 6, x: X(9650), y: GY },
 ];
 
 export { X, Y };
