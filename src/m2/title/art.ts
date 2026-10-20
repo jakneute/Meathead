@@ -589,10 +589,12 @@ const poseOf = (f: number, p: Piece): Pose => {
   if (f < 9) return { hide: false, dy: 0, sx: 1 + 0.05 * k * kx, sy: 1 - 0.07 * k };
   return REST;
 };
-/** Him: shooting up from behind the marquee (stretched), over the top, squashed back down, settling. */
+/** Him: shooting up from below the bottom of the screen (stretched, slowing as he gets there), over the top, squashed
+ *  back down, settling. */
+const RISE = 10;
 const popOf = (f: number): Pose => {
-  if (f < -8) return HIDE;
-  if (f < 0) { const q = -f / 8; return { hide: false, dy: Math.round(150 * q * q), sx: 0.88, sy: 1.16 }; }
+  if (f < -RISE) return HIDE;
+  if (f < 0) { const q = -f / RISE; return { hide: false, dy: Math.round((TITLE_H * q * q) / 2) * 2, sx: 0.86, sy: 1.18 }; }
   if (f < 3) return { hide: false, dy: -8, sx: 0.92, sy: 1.1 };
   if (f < 6) return { hide: false, dy: 3, sx: 1.12, sy: 0.88 };
   if (f < 9) return { hide: false, dy: -1, sx: 0.97, sy: 1.04 };
@@ -637,8 +639,7 @@ const shakeAt = (beat: number): [number, number] => {
 };
 /** His eyes shut a moment (a blink on the dumb look): the lids his own skin, the lashes a dark line. */
 const blink = (b: Ctx) => {
-  const px = b.getImageData(100, 70, 1, 1).data, skin = `rgb(${px[0]}, ${px[1]}, ${px[2]})`;
-  for (const ex of [111, 145]) { R(b, ex - 11, 51, 23, 10, skin); R(b, ex - 9, 56, 19, 1, '#2a1410'); R(b, ex - 8, 57, 17, 1, '#7a4030'); }
+  for (const ex of [111, 145]) { R(b, ex - 11, 51, 23, 10, '#d69c5c'); R(b, ex - 11, 51, 23, 2, '#e8b87c'); R(b, ex - 9, 56, 19, 1, '#3e220e'); R(b, ex - 8, 57, 17, 1, '#955a2a'); }
 };
 
 export const createTitleScene = () => {
@@ -647,6 +648,8 @@ export const createTitleScene = () => {
   const wheel = canvas(TITLE_W, TITLE_H);
   let wheelRot = -1;
   const bust = canvas(ART_W, ART_H), sil = canvas(ART_W + 8, ART_H + 8), him = canvas(ART_W + 8, ART_H + 8), glint = canvas(1, 1);
+  /** His body under the close-up as he comes up (the intro). */
+  const torso = canvas(ART_W + 8, TITLE_H + 40);
   /** The scene's frames the 2 landed on (his fury's clock), the fireworks started, the intro finished; the confetti's
    *  started coming down. */
   let furyAt: number | null = null, fwAt: number | null = null, doneAt: number | null = null, confettiOn = false;
@@ -663,6 +666,8 @@ export const createTitleScene = () => {
   /** Draws frame `t` (60 a second) onto `g`, a TITLE_W x TITLE_H canvas; `beat` is where the intro is (the theme's
    *  beats: below 0 nothing's come down yet), Infinity once it's done or skipped. */
   const draw = (g: Ctx, t: number, dt = 1, beat = Infinity) => {
+    // (a clean slate each frame, whatever the last one left)
+    g.setTransform(1, 0, 0, 1, 0, 0); g.globalAlpha = 1; g.globalCompositeOperation = 'source-over';
     g.imageSmoothingEnabled = false;
     if (!sky) {
       sky = buildSky(); park = buildPark(); plate = buildPlate(); ribbon = buildRibbon(); flags = buildFlags(); logo = buildLogo();
@@ -753,8 +758,8 @@ export const createTitleScene = () => {
       drawFlag(g, flags, TITLE_W - 60, 26, t, 1.3);
     }, false);
 
-    // Him: the close-up, flexing (a breath in and out: up a pixel, down a pixel). In the intro: popping up behind the
-    // marquee with his dumb look, a blink, a big grin; fuming from the 2 on (the fury's jolt as it lands)
+    // Him: the close-up, flexing (a breath in and out: up a pixel, down a pixel). In the intro: coming up from the
+    // bottom of the screen with his dumb look, a blink, a big grin; fuming from the 2 on (the fury's jolt as it lands)
     const fb = beat - FACE_AT, ff = fb * BEAT_F, pop = popOf(ff);
     if (!pop.hide) {
       const bctx = bust.getContext('2d')!;
@@ -781,12 +786,26 @@ export const createTitleScene = () => {
       hg.drawImage(bust, 4, 4);
       if (pop === REST) g.drawImage(him, BUST_X - 4, by - 4);
       else {
-        // (behind the marquee: nothing of him below it)
+        // (coming up out of the bottom of the screen: in front of the lot, behind the marquee; straight up, squashed
+        // on his own bottom edge)
         const ax = BUST_X + ART_W / 2, ay = BUST_Y + ART_H;
         g.save();
-        g.beginPath(); g.rect(-8, -40, TITLE_W + 16, PLATE_Y + PLATE_H - 2 + 40); g.clip();
         g.translate(ax, ay + pop.dy); g.scale(pop.sx, pop.sy); g.translate(-ax, -ay);
         g.drawImage(him, BUST_X - 4, by - 4);
+        if (ff < 0) {
+          // His body under the close-up, down off the bottom of the screen while he's coming up: the chest's last
+          // row carried on down, going into the dark in steps (out of the park's light), the neon still on his edges
+          const top = by - 4 + him.height - 8, len = Math.min(torso.height, Math.ceil((TITLE_H + 16 - (ay + pop.dy)) / pop.sy) + 12);
+          const tg = torso.getContext('2d')!;
+          tg.imageSmoothingEnabled = false;
+          tg.globalCompositeOperation = 'source-over';
+          tg.clearRect(0, 0, torso.width, torso.height);
+          tg.drawImage(him, 0, him.height - 9, him.width, 1, 0, 0, him.width, len);
+          tg.globalCompositeOperation = 'source-atop';
+          for (let k = 0; k < 6; k++) { tg.fillStyle = `rgba(14, 4, 26, ${0.12 + k * 0.15})`; tg.fillRect(0, 10 + k * 18, torso.width, k === 5 ? torso.height : 18); }
+          tg.globalCompositeOperation = 'source-over';
+          g.drawImage(torso, 0, 0, him.width, len, BUST_X - 4, top, him.width, len);
+        }
         g.restore();
       }
       sparkle(g, BUST_X + 44, 24, ff); sparkle(g, BUST_X + ART_W - 46, 30, ff - 2); sparkle(g, BUST_X + 66, 4, ff - 4);

@@ -159,8 +159,9 @@ const TitleScreen: React.FC<{
         // (the intro: any button skips it)
         const any = gp.buttons.some(b => b.pressed);
         // (the gate: a button lets it go (a pad's press may not let a browser's sound out: the intro then keeps its own time))
-        if (gateRef.current !== false) { if (any && prevAny === false) { getAudioContext(); openGate(); } }
-        else if (introRef.current) { if (any && prevAny === false) endIntro(); }
+        // (a browser only shows a pad once a button's pressed on it: that first press counts)
+        if (gateRef.current !== false) { if (any && prevAny !== true) { getAudioContext(); openGate(); } }
+        else if (introRef.current) { if (any && prevAny !== true) endIntro(); }
         else if (!busy()) {
           const move = getGamepadMovement(gp, 0.25), t = Date.now();
           const dir = move.up ? 'up' : move.down ? 'down' : move.left ? 'left' : move.right ? 'right' : null;

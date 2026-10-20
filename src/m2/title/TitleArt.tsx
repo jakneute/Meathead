@@ -13,6 +13,10 @@ const BEAT_MS = 400;
 const WAIT_MS = 1500, WAIT_SILENT_MS = 300;
 /** On its own clock: a moment of the empty dusk before the first thud. */
 const LEAD_MS = 250;
+/** The theme's clock standing still this long (the sound not actually out): its own time from there. */
+const STALL_MS = 300;
+/** However the clock's gone, the intro's done this long after it starts. */
+const CAP_MS = 9000;
 
 /** Meathead 2's title picture, behind the menu: the whole screen, pixel art at 2x (Meathead 1's TitleArt.tsx's way).
  *  Comes up with its intro (art.ts: the park dropping in, him, the logo stamped on), its hits on the theme's: it keeps
@@ -30,6 +34,7 @@ const TitleArt: React.FC<{ skip?: boolean; held?: boolean; onDone?: () => void }
     // The intro's clock: waiting on the theme, on the theme's beats, or its own
     let t0 = performance.now();
     let mode: 'wait' | 'music' | 'own' = 'wait', ownAt = 0, beat = -1, done = false;
+    let lastSb: number | null = null, lastSbAt = 0, warned = false;
     const introBeat = (now: number): number => {
       if (done) return Infinity;
       if (skipRef.current) { done = true; return Infinity; }
@@ -38,13 +43,17 @@ const TitleArt: React.FC<{ skip?: boolean; held?: boolean; onDone?: () => void }
       const sb = songBeat('title');
       if (mode === 'wait') {
         const el = now - t0, s = getSettings();
-        if (sb !== null && sb < 2) mode = 'music';
+        if (sb !== null && sb < 2 && audioRunning()) { mode = 'music'; lastSb = sb; lastSbAt = now; }
         else if (sb !== null || s.music <= 0 || s.master <= 0 || el > WAIT_MS || (el > WAIT_SILENT_MS && !audioRunning())) { mode = 'own'; ownAt = now + LEAD_MS; }
       }
       if (mode === 'music') {
         // (the theme gone, or the sound shut off: carrying on from where it was)
-        if (sb === null) { mode = 'own'; ownAt = now - beat * BEAT_MS; } else return sb;
+        // (and the theme's clock not moving: the sound held back after all, or stalled)
+        if (sb !== lastSb) { lastSb = sb; lastSbAt = now; }
+        if (sb === null || now - lastSbAt > STALL_MS) { mode = 'own'; ownAt = now - Math.max(0, beat) * BEAT_MS; } else return sb;
       }
+      // (never stuck: however its clock's gone, it's done in time)
+      if (now - t0 > CAP_MS) return INTRO_END;
       return mode === 'own' ? (now - ownAt) / BEAT_MS : -1;
     };
     const loop = (now: number) => {
@@ -57,7 +66,8 @@ const TitleArt: React.FC<{ skip?: boolean; held?: boolean; onDone?: () => void }
       if (!done && b >= INTRO_END) done = true;
       if (done && beat !== Infinity) { beat = Infinity; doneRef.current?.(); }
       const g = ref.current?.getContext('2d');
-      if (g) scene.draw(g, t, Math.max(1, steps), done ? Infinity : beat);
+      // (a frame that throws doesn't stop the next)
+      if (g) try { scene.draw(g, t, Math.max(1, steps), done ? Infinity : beat); } catch (err) { if (!warned) { warned = true; console.error('title', err); } }
     };
     raf = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(raf);
