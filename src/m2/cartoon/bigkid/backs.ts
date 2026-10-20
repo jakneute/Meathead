@@ -347,11 +347,11 @@ const paintFurn = (g: Ctx, kind: Furn, seed: number) => {
       // (a black pole, a ring of hot neon at the top round a frosted globe; banners off a bracket)
       const St = DR('#3F3F46');
       postR(g, 0, -170, 0, 6, St); box(g, -9, -8, 18, 8, ink); box(g, -8, -7, 16, 6, St[2]);
-      const C = DR(NEON[seed % 3]);
+      const C = DR(NEON[((Math.floor(seed) % 3) + 3) % 3]);
       box(g, 3, -150, 24, 3, ink); box(g, 8, -147, 18, 44, ink); box(g, 9, -146, 16, 42, C[3]); box(g, 9, -146, 4, 42, C[4]); signText(g, 'RAD!', 17, -122, { sx: 1, sy: 1, bold: true, slant: 1, fill: D('#FFFFFF') });
       g.fillStyle = ink; g.beginPath(); g.ellipse(0, -182, 18, 9, 0, 0, Math.PI * 2); g.fill();
       eggR(g, 0, -184, 9, 10, DR('#F4F0F8'), true);
-      tube(g, () => g.ellipse(0, -180, 15, 7, 0, 0, Math.PI * 2), NEON[seed % 3], 3);
+      tube(g, () => g.ellipse(0, -180, 15, 7, 0, 0, Math.PI * 2), NEON[((Math.floor(seed) % 3) + 3) % 3], 3);
       break;
     }
     case 'bin': {
@@ -457,7 +457,7 @@ export const backLamps = (v: View): Light[] => {
   for (const it of FURN) {
     if (it.kind !== 'lamp' && it.kind !== 'vend') continue;
     const [x, y] = at(v.eye, X(it.x), GY - (it.kind === 'lamp' ? 182 : 60), FURN_D);
-    if (x > v.cam.x - 200 && x < v.cam.x + 1000) out.push({ x, y, r: it.kind === 'lamp' ? 130 : 70, a: 0.5, color: it.kind === 'lamp' ? NEON[it.seed % 3] : '#FFE0E0' });
+    if (x > v.cam.x - 200 && x < v.cam.x + 1000) out.push({ x, y, r: it.kind === 'lamp' ? 130 : 70, a: 0.5, color: it.kind === 'lamp' ? NEON[((Math.floor(it.seed) % 3) + 3) % 3] : '#FFE0E0' });
   }
   for (const f of FRONTS) {
     const [x, y] = at(v.eye, X(f.x + 100), GY - 60, FRONT_D);
