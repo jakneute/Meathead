@@ -42,11 +42,10 @@ export const pauseCard = (id: PauseCardId, nin: boolean, joycon: boolean): Pause
       ...(ROCKETS_ON ? [one('ROCKETS', ['Y'], ['@secondary'])] : []),
       { label: 'BOOST', parts: [DIRS, { pad: ['B'], kb: ['@special'] }] },
     ] };
-    // (adventure/cart: the ride goes at its own pace; A jumps the cart, down ducks, his weapon fires; stuck with it)
+    // (adventure/cart: the ride goes at its own pace; A jumps the cart, down ducks; no firing (cart/index.ts: sat back, no gun out))
     case 'cart': return { title: 'THE MINE CART', rows: [
       one('JUMP', ['A'], ['@jump']),
       one('DUCK', ['DPAD_DOWN'], ['@down']),
-      one('FIRE', ['X'], ['@fire']),
     ] };
     // (fantasy/tragons/ride.ts and App.tsx: LB / RB hop cars (the weapon buttons), down held in a loop hangs on)
     case 'tragons': return { title: 'TRUELLING TRAGONS', rows: [
