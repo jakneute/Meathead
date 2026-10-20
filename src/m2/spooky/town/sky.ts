@@ -13,6 +13,8 @@ import { SECTIONS } from '../geometry';
 import { STAIRS } from './layout';
 import { type Ctx, INK, box, mix, hash, poly, stamp, checker, hazeBands, pixelBlob } from './paint';
 import { signText, candle, blood } from '../letters';
+import { farMark } from '../../parkFar';
+import { farOtherCastle } from '../teases';
 
 const { x0 } = SECTIONS.town;
 const TW = 1024;
@@ -375,6 +377,56 @@ const paintSkyline = (g: Ctx, tod: TimeOfDay) => {
   mist(g, 40, 140, skyAt(0.9, tod), 0.12, 0.0, 4);
 };
 
+/** The park on the horizon past the hills (tile y 190 its ground, on the far row of hills): Cartoon Land's water tower,
+ *  SPACE NEEDLE 2 (its shaft fading up into the gloom) and the GIANT ATOM (parkFar.ts: their own lands' painters). */
+const paintPark = (g: Ctx, tod: TimeOfDay) => {
+  wrap(260, x => farMark(g, 'cartoonTower', x, 136, 70, 0.55, tod));
+  wrap(700, x => farMark(g, 'needle', x, 138, 70, 0.6, tod));
+  wrap(770, x => farMark(g, 'atom', x, 134, 40, 0.6, tod));
+  // (the ridge they stand on, the park's trees along it: between the crags and the hills, so nothing floats)
+  const rd = hazeOf(hourMix('#3E3858', '#40304C', '#1C1630', tod), 0.5, tod), rdL = hazeOf(hourMix('#5A5276', '#5A4664', '#2C2444', tod), 0.5, tod);
+  const ry = (x: number) => snap2(130 + wave(x, 3.3) * 8 + jag(x, 8, 21) * 3);
+  fillUnder(g, ry, 200, rd);
+  flanks(g, ry, rdL, mix(rd, '#05030A', 0.2), 10);
+  for (let i = 0; i < 70; i++) { const x = snap2(i * (TW / 70) + hash(i * 2.9) * 10); pixelBlob(g, x, ry(x) + 1, 4 + hash(i) * 3, 3, mix(rd, '#05030A', 0.15)); }
+  mist(g, 80, 120, skyAt(0.95, tod), 0.0, 0.5, 5);
+};
+
+/** Bats, far off, flitting over the hills (live: a few boxes each). */
+const drawBats = (c: Ctx, f: number, camX: number, horizon: number, tod: TimeOfDay) => {
+  const col = mix(hourMix('#1E1830', '#1A1020', '#0A0612', tod), skyAt(0.8, tod), 0.25);
+  for (let i = 0; i < 5; i++) {
+    const span = CANVAS_WIDTH + 200;
+    const x = ((((i * 230 + f * (0.35 + hash(i) * 0.3) - camX * 0.03) % span) + span) % span) - 100;
+    const y = Math.round(horizon - 250 + i * 18 + Math.sin(f * 0.03 + i * 2) * 12);
+    const flap = Math.floor((f + i * 5) / 6) % 2;
+    box(c, x - 4, y - flap * 2, 3, 1, col); box(c, x - 1, y, 3, 2, col); box(c, x + 2, y - flap * 2, 3, 1, col);
+  }
+};
+
+/** Dracula's other castle, ahead: painted once an hour into a held canvas, put down live (drawn into the fog as he nears
+ *  the stairs: a stepped fade, never a pop). */
+const CASTLE_H = 168;
+let castleCv: HTMLCanvasElement | null = null, castleKey = '';
+const drawCastleTease = (c: Ctx, camX: number, horizon: number, tod: TimeOfDay) => {
+  if (typeof document === 'undefined') return;
+  const k = camX / (STAIRS.a0 - CANVAS_WIDTH / 2);
+  const fade = Math.max(0, Math.min(1, (0.92 - k) / 0.22));
+  const a = Math.round(fade * 6) / 6;
+  if (a <= 0) return;
+  const x = Math.round(860 - camX * 0.028), w = CASTLE_H;
+  if (x + w < 0 || x - w > CANVAS_WIDTH) return;
+  if (!castleCv || castleKey !== tod.key) {
+    castleKey = tod.key;
+    castleCv = document.createElement('canvas'); castleCv.width = w * 2; castleCv.height = CASTLE_H + 8;
+    const g = castleCv.getContext('2d')!;
+    farOtherCastle(g, w, CASTLE_H + 4, CASTLE_H, col => hazeOf(col, 0.38, tod), tod.lamps);
+  }
+  c.save(); c.globalAlpha = a;
+  c.drawImage(castleCv, x - w, Math.round(horizon - 30 - CASTLE_H - 4));
+  c.restore();
+};
+
 // ---------------------------------------------------------------------------------------------------------------
 // The ELEVATOR TO HELL: the clock tower, drawn live (it grows), every edge snapped to the screen's pixels
 
@@ -464,7 +516,13 @@ export const drawTownBackdrop = (c: Ctx, state: GameState) => {
   // The crags at the edge of the world (the old castle on them), the hills
   // (stood well up over the hills, so the old castle sits on a mountain, not on the hills' line)
   tile(c, `tn-crags-${tod.key}`, cx, 0.008, horizon - 350, 280, g => paintCrags(g, tod));
-  tile(c, `tn-hills-${tod.key}`, cx, 0.02, horizon - 230, 220, g => paintHills(g, tod));
+  // The park past the hills (Cartoon Land's water tower one way, Future Land's needle and atom off across the hub)
+  tile(c, `tn-park-${tod.key}`, cx, 0.013, horizon - 300, 200, g => paintPark(g, tod));  tile(c, `tn-hills-${tod.key}`, cx, 0.02, horizon - 230, 220, g => paintHills(g, tod));
+  // (bats, far off over the hills, flitting)
+  drawBats(c, state.frame, camX, horizon, tod);
+  // DRACULA'S OTHER CASTLE up on its hill ahead, where the stairs go (the fog takes it as he gets near: the real one's
+  // up there at the top of them)
+  drawCastleTease(c, camX, horizon, tod);
   // The ELEVATOR TO HELL: far off and small behind the rooftops at the gate, looming by the castle stairs
   const k = Math.max(0, Math.min(1, camX / (STAIRS.a0 - CANVAS_WIDTH / 2))), ke = k * k * (3 - 2 * k);
   const ts = 0.6 + 0.9 * ke;

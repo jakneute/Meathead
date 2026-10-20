@@ -16,6 +16,7 @@ import { GY } from '../geometry';
 import { paSaying } from './pa';
 import { drawPaHorn } from './horn';
 import { timeOfDay, skyAt } from '../../timeOfDay';
+import { drawTowerIntact } from '../../walkAway/spookyTown';
 import { drawDoorways, DOORWAYS } from './doorways';
 import {
   x0, ROOMS, CEIL, ceilOf, DY, dyAt, LEDGES, STOVES, STOVE_TOP, BURNERS, stovePhase, FIRE_H, STOVE_CYCLE, STOVE_FIRE, BED, CHAND_W, BOOKCASES, BOOK_TELL,
@@ -230,6 +231,26 @@ const gothicWindow = (c: Ctx, id: RoomId, x: number, bot: number, w = 70, h = 30
   pixelBlob(g, w * 0.6, top + 90, 30, 6, cl); pixelBlob(g, w * 0.2, top + 170, 26, 5, mix(cl, sky[2], 0.4));
   const stars = Math.round(6 * tod.stars);
   for (let k = 0; k < stars; k++) box(g, Math.floor(hash(k + w) * w), top - w / 2 + 10 + Math.floor(hash(k * 3 + h) * 120), 2, 2, '#C8D8F0');
+  // (the view out, low in the glass: the crags far off, the town's roofs below, and up over them the ELEVATOR TO
+  // HELL's clock tower: the ride after this one; all through the old glass, dimmed)
+  {
+    const hz = -Math.round(h * 0.3), sd = (k: number) => mix(skyAt(0.9, tod), '#1A1428', k);
+    const crag = sd(0.35), cragL = sd(0.25);
+    g.fillStyle = crag; g.beginPath(); g.moveTo(0, hz + 4);
+    for (let x = 0; x <= w; x += 4) g.lineTo(x, hz - 10 - Math.round((Math.sin(x * 0.11 + w) * 0.5 + 0.5) * 16 + hash(Math.floor(x / 4) + h) * 4));
+    g.lineTo(w, hz + 4); g.closePath(); g.fill();
+    for (let x = 0; x < w; x += 8) box(g, x, hz - 6 - Math.round((Math.sin(x * 0.11 + w) * 0.5 + 0.5) * 12), 2, 4, cragL);
+    drawTowerIntact(g, Math.round(w * 0.6), hz + 8, 0.15, 0);
+    const roof = sd(0.55), roofL = sd(0.45), lamp = mix('#C8923C', '#101828', 0.3);
+    for (let x = -4, i = 0; x < w + 4; i++) {
+      const rw = 12 + Math.floor(hash(i * 3.3 + w) * 4) * 2, rh = 10 + Math.floor(hash(i * 5.1 + h) * 6) * 2, rt = hz + 12 - rh;
+      box(g, x, rt, rw, -rt, roof); box(g, x, rt, 1, -rt, roofL);
+      g.fillStyle = roof; g.beginPath(); g.moveTo(x - 1, rt + 1); g.lineTo(x + rw / 2, rt - 7); g.lineTo(x + rw + 1, rt + 1); g.closePath(); g.fill();
+      for (let wy = rt + 4; wy < -4; wy += 7) for (let wx = x + 3; wx < x + rw - 3; wx += 5) box(g, wx, wy, 2, 2, tod.lamps > 0.2 && hash(wx * 0.7 + wy * 1.3) > 1 - 0.5 * tod.lamps ? lamp : sd(0.65));
+      x += rw - 1;
+    }
+    g.globalAlpha = 0.28; box(g, 0, hz - 80, w, 80 - hz, '#101828'); g.globalAlpha = 1;
+  }
   // (the leading: diamonds)
   g.strokeStyle = '#0E0C12'; g.lineWidth = 1.5; g.beginPath();
   for (let k = -h; k < w + h; k += 18) { g.moveTo(k, 0); g.lineTo(k + h + w, -h - w); g.moveTo(k, 0); g.lineTo(k - h - w, -h - w); }

@@ -25,7 +25,13 @@ import {
   CUCKOOS, GALLERY, WHOLE, WRECK, JAMS, upRight, LIFT, liftY, ROTTEN, TORN_NET, SHELF, type Piece,
 } from './layout';
 import { GY } from '../geometry';
-import { drawTodSky, timeOfDay, hourMix, skyAt, skyRamp, type TimeOfDay } from '../../timeOfDay';
+import { drawTodSky, timeOfDay, hourMix, skyAt, skyRamp, farTint, type TimeOfDay } from '../../timeOfDay';
+import { shrunk, farMark } from '../../parkFar';
+import { paintCrags } from '../town/sky';
+import { farOtherCastle } from '../teases';
+
+/** A polygon, filled. */
+const poly = (g: CanvasRenderingContext2D, pts: [number, number][], col: string) => { g.fillStyle = col; g.beginPath(); pts.forEach(([x, y], i) => (i ? g.lineTo(x, y) : g.moveTo(x, y))); g.closePath(); g.fill(); };
 import { gearAt, gearsNow, drawGear, drawPendulum } from './hazards';
 import { drawCar, drawWalkers, readyLight, type Ride } from './ride';
 import { signAt, signText, signW, signH, iron, candle, haunt, gothic, enamel, stencil, print } from '../letters';
@@ -135,10 +141,88 @@ const SKY = ['#34304E', '#423C5E', '#544A6C', '#685A78', '#7E6C82', '#94808A'];
 export const drawTowerBackdrop = (c: Ctx, state?: GameState) => {
   const tod = timeOfDay();
   drawTodSky(c, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, SKY, { bands: 12, horizon: CANVAS_HEIGHT - 40, moon: [CANVAS_WIDTH - 150, 90], sun: [CANVAS_WIDTH - 170, 120] });
-  // (far off and below: the hills, the town's roofs, its lights after dark; further down the higher he goes)
+  // (the far off at the eye's height, where it stays however high he is: the crags at the edge of the world, the park
+  // on the horizon, Dracula's other castle back on its hill, the town spread out below in its fog)
+  c.save(); c.translate(0, FAR_HZ); stamp(c, `tw-far-${tod.key}`, 0, -230, CANVAS_WIDTH, 400, g => paintFarView(g, tod)); c.restore();
+  // (and right below: the hills, the town's roofs, its lights after dark; further down the higher he goes)
   const cy = state ? state.camera.y : 0;
   const base = Math.round(CANVAS_HEIGHT - 60 - Math.min(0, cy) * 0.06);
   if (base - 130 < CANVAS_HEIGHT) { c.save(); c.translate(0, base); stamp(c, `tw-view-${tod.key}`, 0, -130, CANVAS_WIDTH, 190, g => paintView(g, tod)); c.restore(); }
+  // (bats round the tower, far off, flitting)
+  if (state) {
+    const f = state.frame, col = mix(hourMix('#1E1830', '#1A1020', '#0A0612', tod), skyAt(0.7, tod), 0.2);
+    for (let i = 0; i < 4; i++) {
+      const span = CANVAS_WIDTH + 160, x = ((((i * 260 + f * (0.4 + hash(i * 3.1) * 0.3)) % span) + span) % span) - 80;
+      const y = Math.round(FAR_HZ - 150 + i * 22 + Math.sin(f * 0.035 + i * 1.7) * 14), flap = Math.floor((f + i * 4) / 6) % 2;
+      box(c, x - 4, y - flap * 2, 3, 1, col); box(c, x - 1, y, 3, 2, col); box(c, x + 2, y - flap * 2, 3, 1, col);
+    }
+  }
+};
+
+/** Where the far off's horizon sits on screen (at his eye: it doesn't sink as he climbs). */
+const FAR_HZ = CANVAS_HEIGHT - 170;
+/**
+ * The view out from the tower at the eye's height (its horizon at 0): the crags at the edge of the world (Dracula's
+ * first castle on the highest: town/sky.ts's), the park on the horizon past them (Cartoon Land's water tower, SPACE
+ * NEEDLE 2 and the GIANT ATOM: parkFar.ts), DRACULA'S OTHER CASTLE back on its hill where he came from (teases.ts), the
+ * hills with their dead trees, then the town spread out below in rows of roofs going down into its fog (gables,
+ * spires, chimneys; lamplit windows after dark, more the darker). Farther: paler, bluer, flatter.
+ */
+const paintFarView = (g: Ctx, tod: TimeOfDay) => {
+  const W = CANVAS_WIDTH, haze = skyAt(0.92, tod);
+  const T = (col: string, k: number) => mix(col, haze, k);
+  // The crags (brought down from the town's own tile, smoothed: a touch hazier for it)
+  shrunk(g, 1024, 280, o => paintCrags(o, tod), -40, -226, 880, 240, haze, 0.1);
+  // The park on the horizon
+  farMark(g, 'cartoonTower', 560, -4, 66, 0.55, tod);
+  farMark(g, 'needle', 700, -2, 74, 0.6, tod);
+  farMark(g, 'atom', 752, -6, 40, 0.6, tod);
+  const base = hourMix('#3A3450', '#2E2038', '#0A0812', tod);
+  const win = hourMix('#3A3456', '#7A5A2A', '#B8823A', tod);
+  // The hills, rolling, dead trees along them; the castle's hill rising out of them at the left
+  const hill = T(base, 0.5), hillL = T(mix(base, '#B0A8D0', 0.18), 0.5), hillD = T(mix(base, '#05030A', 0.2), 0.5);
+  const hy = (x: number) => Math.round((-6 + Math.sin(x * 0.013 + 0.4) * 7 + Math.sin(x * 0.031) * 4 - 46 * Math.exp(-(((x - 150) / 90) ** 2))) / 2) * 2;
+  g.fillStyle = hill; g.beginPath(); g.moveTo(0, 170);
+  for (let x = 0; x <= W; x += 4) { g.lineTo(x, hy(x)); g.lineTo(x + 4, hy(x)); }
+  g.lineTo(W, 170); g.closePath(); g.fill();
+  for (let x = 0; x < W; x += 4) { if (hy(x + 4) < hy(x)) { box(g, x, hy(x), 4, 4, hillL); checker(g, x, hy(x) + 4, 4, 2, hillL); } else if (hy(x + 4) > hy(x)) box(g, x, hy(x) + 2, 4, 6, hillD); }
+  for (let i = 0; i < 30; i++) {
+    const x = Math.round(hash(i * 4.3 + 7) * W / 2) * 2, y = hy(x), h = 6 + Math.round(hash(i * 1.7) * 5);
+    if (Math.abs(x - 150) < 70) continue;
+    box(g, x, y - h, 1, h, hillD); box(g, x - 2, y - h + 2, 2, 1, hillD); box(g, x + 1, y - h + 3, 2, 1, hillD);
+  }
+  farOtherCastle(g, 150, hy(150) + 4, 116, col => T(farTint(col, 0.6, tod), 0.4), tod.lamps);
+  // The town below, in rows going down: each nearer row bigger, darker, less fogged
+  const on = (n: number, k: number) => tod.lamps > 0.2 && hash(n) > 1 - k * tod.lamps;
+  const row = (seed: number, foot: number, w0: number, wv: number, h0: number, hv: number, k: number, lights: number) => {
+    const body = T(base, k), lit = T(mix(base, '#B0A8D0', 0.16), k), dk = T(mix(base, '#000000', 0.25), k), pane = T(mix(base, '#000000', 0.35), k);
+    const glow = mix(win, body, 0.15 + k * 0.4);
+    let x = -10, i = 0;
+    while (x < W + 10) {
+      const w = w0 + Math.round(hash(seed + i * 2.1) * wv / 2) * 2, h = h0 + Math.round(hash(seed + i * 3.7) * hv / 2) * 2, top = foot - h, kind = hash(seed + i * 5.3);
+      box(g, x, top, w, 170 - top, body); box(g, x, top, 2, 170 - top, lit); box(g, x + w - 3, top, 3, 170 - top, dk);
+      if (kind < 0.6) {
+        const gh = Math.min(Math.round(w * 0.6), 20);
+        poly(g, [[x - 2, top + 1], [x + w / 2, top - gh], [x + w + 2, top + 1]], dk);
+        poly(g, [[x - 2, top + 1], [x + w / 2, top - gh], [x + w / 2, top - gh + 3], [x + 1, top + 1]], lit);
+      } else if (kind < 0.84) {
+        poly(g, [[x - 2, top + 1], [x + 3, top - 7], [x + w - 3, top - 7], [x + w + 2, top + 1]], dk);
+      } else {
+        const sx = x + w / 2;
+        box(g, sx - 3, top - 8, 6, 8, body); box(g, sx - 3, top - 8, 2, 8, lit);
+        poly(g, [[sx - 4, top - 8], [sx, top - 30], [sx + 4, top - 8]], dk); poly(g, [[sx - 4, top - 8], [sx, top - 30], [sx - 1, top - 8]], lit);
+      }
+      if (hash(seed + i * 4.9) > 0.5) { const chx = x + Math.round(w * 0.7); box(g, chx, top - 9, 3, 9, dk); }
+      for (let wy = top + 4; wy < foot + 30; wy += 8) for (let wx = x + 3; wx < x + w - 4; wx += 5) box(g, wx, wy, 2, 2, on(seed + wx * 0.37 + wy * 0.91, lights) ? glow : pane);
+      x += w + (hash(seed + i * 6.1) > 0.75 ? 5 : -1);
+      i++;
+    }
+  };
+  row(71, 24, 14, 12, 10, 12, 0.5, 0.35);
+  g.save(); g.globalCompositeOperation = 'source-atop'; hazeBands(g, 0, 0, W, 40, haze, 0.1, 0.4, 4); g.restore();
+  row(29, 64, 18, 16, 14, 16, 0.38, 0.45);
+  row(91, 116, 24, 22, 16, 22, 0.28, 0.5);
+  g.save(); g.globalCompositeOperation = 'source-atop'; hazeBands(g, 0, 40, W, 130, haze, 0.0, 0.3, 5); g.restore();
 };
 
 /**
