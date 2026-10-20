@@ -182,12 +182,16 @@ export const catTorso = (c: Ctx, frame = 0) => {
   // (the back in shadow, a rim of light over the shoulders)
   c.beginPath(); c.moveTo(-11, 2); c.quadraticCurveTo(-15, -10, -13, -21); c.lineTo(-9, -21); c.quadraticCurveTo(-11, -10, -7, 2); c.closePath(); fill(c, FUR_SH);
   c.beginPath(); c.moveTo(-6, -25); c.lineTo(8, -25); c.quadraticCurveTo(12, -25, 13, -22); c.lineTo(-6, -23); c.closePath(); fill(c, FUR_LT);
+  // (the SNES pass: a dithered seam where the back's shadow meets the fur, a lit step on the chest's curve)
+  c.fillStyle = col(FUR_SH); for (let y = -19; y < 0; y += 2) c.fillRect(-8.6 + (y > -10 ? 1 : 0), y, 1, 1);
+  c.fillStyle = col(FUR_LT); c.fillRect(13, -20, 1, 6); c.fillRect(-4, -22, 6, 1);
   // (the white bib down the front: fluffed, a jagged edge at the bottom)
   c.save();
   c.beginPath(); c.moveTo(3, -25); c.quadraticCurveTo(15, -24, 15, -14); c.quadraticCurveTo(14, -4, 9, 0);
   for (let k = 0; k < 4; k++) { c.lineTo(8 - k * 2, 3 - (k % 2) * 3); }
   c.quadraticCurveTo(-1, -10, 3, -25); c.closePath(); fill(c, WHITE);
   c.beginPath(); c.moveTo(4, -18); c.quadraticCurveTo(8, -15, 6, -8); c.lineTo(3, -10); c.closePath(); fill(c, WHITE_SH);
+  c.fillStyle = col('#FFFFFF'); c.fillRect(6, -24, 5, 1); c.fillRect(12, -21, 1, 4);
   c.strokeStyle = col(WHITE_SH); c.lineWidth = 0.9;
   for (const [x, y] of [[9, -20], [11, -15], [8, -11], [12, -9]] as Pt[]) { c.beginPath(); c.moveTo(x - 1, y - 1); c.lineTo(x + 0.5, y + 1); c.stroke(); }
   c.restore();
@@ -218,6 +222,10 @@ export const catHead = (c: Ctx, hx: number, hy: number, mood: Mood, frame: numbe
   c.beginPath(); c.roundRect(hx - 11, hy - 11, 22, 20, [2, 3, 7, 5]); fill(c, FUR);
   for (const [dx, dy] of [[-12, 1], [-12, 5], [-10, 8]] as Pt[]) { c.beginPath(); c.moveTo(hx + dx + 3, hy + dy - 3); c.lineTo(hx + dx - 2, hy + dy); c.lineTo(hx + dx + 3, hy + dy + 2); c.closePath(); fill(c, FUR); }
   c.fillStyle = col(FUR_SH); c.fillRect(hx - 11, hy - 10, 3.5, 17);
+  // (the SNES pass: the shade's dithered edge, a lit step across the brow, the jaw's underside in shadow)
+  for (let y = -9; y < 7; y += 2) c.fillRect(hx - 7.5, hy + y, 1, 1);
+  c.fillRect(hx - 6, hy + 7.4, 12, 1.4);
+  c.fillStyle = col(FUR_LT); c.fillRect(hx - 6, hy - 9.4, 9, 1); c.fillRect(hx + 8.6, hy - 8, 1, 6);
   // (the flat-top's bristles, stood up along the top)
   c.fillStyle = col(FUR_HI); for (let k = 0; k < 7; k++) c.fillRect(hx - 9 + k * 3, hy - 12.6, 1, 2);
   c.fillStyle = col(FUR_LT); c.fillRect(hx - 8, hy - 10.6, 15, 1);

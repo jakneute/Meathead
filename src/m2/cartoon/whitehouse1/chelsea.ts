@@ -19,6 +19,7 @@ import { INK, type Ctx } from '../kit';
 import { CHELSEA, NAG, HINT, OUCH, SHUT_UP } from './lines';
 import { HINT_AT, floorAt, roomAt, X, Y } from './layout';
 import { inFight, fightArena } from './pundits';
+import { toonPart, toonTop, toonFlat, toonLimb, type Rp } from './punditArt';
 
 /** Where she runs about (part one's White House by default; part two hands her its own: whitehouse2/index.ts). */
 export interface ChelseaWorld {
@@ -160,12 +161,18 @@ export const updateChelsea = (state: GameState, w: ChelseaWorld = PART_ONE) => {
 // strawberry-blonde curls with a pink headband, freckles, braces, a purple sweater with a big white collar, a plaid
 // skirt, white socks and shiny black shoes.
 
-const SKIN = '#FBD3B5', SKIN_SH = '#E8B494', HAIR = '#E8A15C', HAIR_SH = '#C9793A', SWEATER = '#8B5CF6', SWEATER_SH = '#6D3FD6', SKIRT = '#0F766E';
-const ink = (c: Ctx, path: () => void, fill: string, w = 2.2) => { c.beginPath(); path(); c.fillStyle = fill; c.fill(); c.lineJoin = 'round'; c.strokeStyle = INK; c.lineWidth = w; c.stroke(); };
-const limbTo = (c: Ctx, ax: number, ay: number, bx: number, by: number, w: number, col: string) => {
-  c.lineCap = 'round'; c.strokeStyle = INK; c.lineWidth = w + 2.4; c.beginPath(); c.moveTo(ax, ay); c.lineTo(bx, by); c.stroke();
-  c.strokeStyle = col; c.lineWidth = w; c.stroke(); c.lineCap = 'butt';
-};
+// At the pundits' grade (punditArt.ts's painters: every material its ramp in stepped bands, dithered seams, the show's
+// fat outline): the curls each a stepped ball lit from the upper left, the sweater's knit ribbing, the collar's
+// scallops, the skirt's plaid (yellow and red over teal), the knee socks' cuffs, the Mary Janes' straps and shine.
+
+const SKIN = '#FBD3B5', SWEATER = '#8B5CF6';
+const SKIN_R: Rp = ['#FFEADA', '#FBD3B5', '#E8B494', '#CC9274'];
+const HAIR_R: Rp = ['#FBC88A', '#E8A15C', '#C9793A', '#A05A26'];
+const SWEATER_R: Rp = ['#B49AFA', '#8B5CF6', '#6D3FD6', '#5228AA'];
+const SKIRT_R: Rp = ['#2EA89A', '#0F766E', '#0A5A54', '#063E3A'];
+const SOCK_R: Rp = ['#FFFFFF', '#F4F4FA', '#D6D6E4', '#B0B0C4'];
+const SHOE_R: Rp = ['#5A5E70', '#1A1C26', '#101218', '#08080C'];
+const greenR = (r: Rp, k: number): Rp => (k > 0 ? [mixHex(r[0], '#C8EAA0', k), mixHex(r[1], '#A3D977', k), mixHex(r[2], '#7CB342', k), mixHex(r[3], '#5A8A2A', k)] : r);
 
 /** Her, feet at (x, y), facing `dir`, in a pose; `talk` her mouth going; `f` the frame. */
 export const drawChelseaAt = (c: Ctx, x: number, y: number, dir: 1 | -1, pose: ChelseaPose, f: number, talk: boolean, green = 0) => {
@@ -174,67 +181,88 @@ export const drawChelseaAt = (c: Ctx, x: number, y: number, dir: 1 | -1, pose: C
   const bob = run ? -Math.abs(Math.sin(ph)) * 3 : pose === 'cheer' ? -Math.abs(Math.sin(f * 0.25)) * 8 : pose === 'cower' ? 10 : 0;
   c.translate(0, bob);
   const hunch = pose === 'queasy' ? 0.25 : pose === 'cower' ? 0.5 : 0;
-  // (legs: white socks, shiny shoes)
+  const SK = greenR(SKIN_R, green), sk = SK[1];
+  // (legs: white knee socks with a cuff, shiny black Mary Janes with a strap)
   const legA = run ? Math.sin(ph) * 9 : pose === 'cower' ? 6 : 3, legB = run ? -Math.sin(ph) * 9 : pose === 'cower' ? -6 : -3;
   for (const [lx, back] of [[legB, true], [legA, false]] as [number, boolean][]) {
-    limbTo(c, lx * 0.3, -20, lx, -3, 4.5, back ? '#E5E7EB' : '#FFFFFF');
-    ink(c, () => c.roundRect(lx - 3, -5, 9, 5, [2, 3, 1, 1]), '#111827', 1.8);
-    c.fillStyle = '#9CA3AF'; c.fillRect(lx + 2, -4.5, 2, 1);
+    toonLimb(c, lx * 0.3, -20, lx, -3, 5, back ? [SOCK_R[2], SOCK_R[2], SOCK_R[3], SOCK_R[3]] : SOCK_R, 4.4);
+    toonFlat(c, () => c.rect(lx * 0.3 + (lx - lx * 0.3) * 0.25 - 2.6, -16, 5.2, 2), back ? SOCK_R[3] : SOCK_R[2], 0.8);
+    toonTop(c, () => c.roundRect(lx - 3, -5, 9, 5, [2, 3, 1, 1]), SHOE_R, -5, 0, 1.6);
+    c.fillStyle = '#9CA3AF'; c.fillRect(lx - 1, -5, 4, 1); c.fillStyle = '#FFFFFF'; c.fillRect(lx + 3, -4, 1, 1);
   }
   c.save(); c.translate(0, -22); c.rotate(hunch);
-  // (the plaid skirt)
-  ink(c, () => { c.moveTo(-9, 0); c.lineTo(9, 0); c.lineTo(12, 9); c.lineTo(-12, 9); c.closePath(); }, SKIRT);
-  c.strokeStyle = '#FACC15'; c.lineWidth = 1; for (const sx of [-6, 0, 6]) { c.beginPath(); c.moveTo(sx, 1); c.lineTo(sx * 1.3, 8); c.stroke(); }
-  c.strokeStyle = '#DC2626'; c.beginPath(); c.moveTo(-10, 5); c.lineTo(10, 5); c.stroke();
+  // (the plaid skirt: pleats in steps, the plaid's lines over it)
+  const skirt = () => { c.moveTo(-9, 0); c.lineTo(9, 0); c.lineTo(12, 9); c.lineTo(-12, 9); c.closePath(); };
+  toonPart(c, skirt, SKIRT_R, -12, 12, 2);
+  c.save(); c.beginPath(); skirt(); c.clip();
+  c.fillStyle = '#FACC15'; for (const sx of [-6, 0, 6]) c.fillRect(sx * 1.15 - 0.5, 0, 1, 9);
+  c.fillStyle = '#DC2626'; c.fillRect(-12, 4, 24, 1); c.fillStyle = '#063E3A'; c.fillRect(-12, 7, 24, 1);
+  c.restore();
   // (the far arm)
   const armF: [number, number] = pose === 'cheer' ? [-12, -40] : pose === 'cower' ? [4, -32] : pose === 'queasy' ? [-10, -8] : pose === 'wag' ? [-11, -4] : run ? [-6 - Math.sin(ph) * 6, -10] : [-11, -6];
-  limbTo(c, -5, -20, armF[0], armF[1], 4, SWEATER_SH);
-  ink(c, () => c.arc(armF[0], armF[1], 2.8, 0, Math.PI * 2), SKIN, 1.6);
-  // (the sweater, the big white collar)
-  ink(c, () => { c.moveTo(-9, 0); c.quadraticCurveTo(-11, -12, -8, -22); c.lineTo(8, -22); c.quadraticCurveTo(11, -12, 9, 0); c.closePath(); }, SWEATER);
-  c.fillStyle = SWEATER_SH; c.fillRect(-8, -6, 16, 3);
-  ink(c, () => { c.moveTo(-8, -22); c.quadraticCurveTo(-4, -16, 0, -19); c.quadraticCurveTo(4, -16, 8, -22); c.lineTo(0, -24); c.closePath(); }, '#FFFFFF', 1.6);
-  // (the head: the hair's cloud of curls behind, the face, the headband, curls over the top)
+  toonLimb(c, -5, -20, armF[0], armF[1], 4.4, [SWEATER_R[1], SWEATER_R[2], SWEATER_R[3], '#3A1A7A'], 4);
+  toonPart(c, () => c.arc(armF[0], armF[1], 2.8, 0, Math.PI * 2), SK, armF[0] - 3, armF[0] + 3, 1.6);
+  // (the sweater in steps, its knit ribbing at the hem, the big white collar's scallops)
+  toonPart(c, () => { c.moveTo(-9, 0); c.quadraticCurveTo(-11, -12, -8, -22); c.lineTo(8, -22); c.quadraticCurveTo(11, -12, 9, 0); c.closePath(); }, SWEATER_R, -11, 11, 2.2);
+  c.fillStyle = SWEATER_R[3]; c.fillRect(-8, -4, 16, 3); c.fillStyle = SWEATER_R[0]; for (let k = -7; k < 8; k += 2) c.fillRect(k, -4, 1, 3);
+  toonFlat(c, () => { c.moveTo(-8, -22); c.quadraticCurveTo(-6, -15, -2, -17); c.quadraticCurveTo(0, -15, 2, -17); c.quadraticCurveTo(6, -15, 8, -22); c.lineTo(0, -24); c.closePath(); }, '#FFFFFF', 1.6);
+  c.fillStyle = '#D6D6E4'; c.fillRect(-6, -19, 3, 1); c.fillRect(3, -19, 3, 1);
+  // (the head: the hair's cloud of curls behind (each a stepped ball), the face, the headband and its bow, curls on top)
   const hx = 2, hy = -34;
   c.fillStyle = INK; for (const [dx, dy, r] of CURLS) { c.beginPath(); c.arc(hx + dx, hy + dy, r + 1.6, 0, Math.PI * 2); c.fill(); }
-  for (const [dx, dy, r] of CURLS) { c.beginPath(); c.arc(hx + dx, hy + dy, r, 0, Math.PI * 2); c.fillStyle = dy > 2 ? HAIR_SH : HAIR; c.fill(); }
-  const sk = green > 0 ? mixHex(SKIN, '#A3D977', green) : SKIN;
-  ink(c, () => c.ellipse(hx + 2, hy + 1, 9, 9.5, 0, 0, Math.PI * 2), sk, 2);
-  c.fillStyle = green > 0 ? mixHex(SKIN_SH, '#7CB342', green) : SKIN_SH; c.beginPath(); c.ellipse(hx + 7, hy + 4, 2.5, 1.6, 0, 0, Math.PI * 2); c.fill();
+  for (const [dx, dy, r] of CURLS) curl(c, hx + dx, hy + dy, r, dy > 2);
+  toonPart(c, () => c.ellipse(hx + 2, hy + 1, 9, 9.5, 0, 0, Math.PI * 2), SK, hx - 7, hx + 11, 2);
+  c.fillStyle = green > 0 ? mixHex('#F6A0A8', '#9AD070', green) : '#F6A0A8'; c.beginPath(); c.ellipse(hx + 7, hy + 4, 2.5, 1.6, 0, 0, Math.PI * 2); c.fill();
   // (freckles)
-  c.fillStyle = '#C2703D'; for (const [fx, fy] of [[4, 2], [6, 3], [8, 2], [5, 4]]) c.fillRect(hx + fx, hy + fy, 1, 1);
-  // (the eyes: big cartoon ovals; queasy: watering, crossed; cowering: shut tight)
+  c.fillStyle = '#C2703D'; for (const [fx, fy] of [[4, 2], [6, 3], [8, 2], [5, 4], [9, 4]]) c.fillRect(hx + fx, hy + fy, 1, 1);
+  // (the eyes: big cartoon ovals with lashes; queasy: watering, crossed; cowering: shut tight)
   if (pose === 'cower') { c.strokeStyle = INK; c.lineWidth = 1.4; for (const ex of [3, 8]) { c.beginPath(); c.moveTo(hx + ex - 2, hy - 1); c.lineTo(hx + ex + 1.5, hy); c.stroke(); } }
   else for (const ex of [3, 8.5]) {
-    ink(c, () => c.ellipse(hx + ex, hy - 1, 2.2, 3, 0, 0, Math.PI * 2), '#FFFFFF', 1.2);
-    c.fillStyle = '#1E3A8A'; c.beginPath(); c.arc(hx + ex + (pose === 'queasy' ? (ex < 5 ? 0.8 : -0.8) : 0.6), hy - 0.5, 1.3, 0, Math.PI * 2); c.fill();
+    toonFlat(c, () => c.ellipse(hx + ex, hy - 1, 2.2, 3, 0, 0, Math.PI * 2), '#FFFFFF', 1.2);
+    c.fillStyle = '#1E3A8A'; c.beginPath(); c.arc(hx + ex + (pose === 'queasy' ? (ex < 5 ? 0.8 : -0.8) : 0.6), hy - 0.5, 1.4, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#FFFFFF'; c.fillRect(hx + ex + 0.6, hy - 1.6, 0.8, 0.8);
+    c.fillStyle = INK; c.fillRect(hx + ex + 1.6, hy - 4.4, 1.2, 1); c.fillRect(hx + ex + 2.2, hy - 3.4, 1, 1);
     if (pose === 'queasy') { c.fillStyle = '#93C5FD'; c.fillRect(hx + ex - 1, hy + 2, 1, 2 + (f >> 3) % 3); }
   }
-  // (the mouth: talking, braces flashing; queasy, cheeks puffed, lips clamped, a hand over it)
+  // (the mouth: talking, braces flashing (silver with pink bands); queasy, cheeks puffed, lips clamped, a hand over it)
   if (pose === 'queasy') {
     const puff = (f >> 3) % 2;
-    c.fillStyle = sk; c.beginPath(); c.ellipse(hx + 6, hy + 5, 4 + puff, 3 + puff, 0, 0, Math.PI * 2); c.fill();
+    toonPart(c, () => c.ellipse(hx + 6, hy + 5, 4 + puff, 3 + puff, 0, 0, Math.PI * 2), SK, hx + 2, hx + 10, 0.6);
     c.strokeStyle = INK; c.lineWidth = 1.4; c.beginPath(); c.moveTo(hx + 4, hy + 5.5); c.lineTo(hx + 9, hy + 5.5); c.stroke();
   } else if (talk || pose === 'cheer') {
     const open = talk ? [3, 1.5, 4, 2][(f >> 2) % 4] : 3.5;
-    ink(c, () => c.ellipse(hx + 6, hy + 5, 3.4, open, 0, 0, Math.PI * 2), '#7F1D1D', 1.2);
-    c.fillStyle = '#E5E7EB'; c.fillRect(hx + 3, hy + 4, 6, 1.2); c.fillStyle = '#9CA3AF'; for (let k = 0; k < 3; k++) c.fillRect(hx + 3.5 + k * 2, hy + 4, 0.8, 1.2);
-  } else { c.strokeStyle = INK; c.lineWidth = 1.3; c.beginPath(); c.arc(hx + 6, hy + 3, 3, 0.3, Math.PI - 0.3); c.stroke(); }
-  // (the headband)
+    toonFlat(c, () => c.ellipse(hx + 6, hy + 5, 3.4, open, 0, 0, Math.PI * 2), '#5A0E14', 1.2);
+    c.fillStyle = '#E5E7EB'; c.fillRect(hx + 3, hy + 4, 6, 1.4); c.fillStyle = '#8A8EA0'; c.fillRect(hx + 3, hy + 4.6, 6, 0.6);
+    c.fillStyle = '#F472B6'; for (let k = 0; k < 3; k++) c.fillRect(hx + 3.5 + k * 2, hy + 4, 0.8, 1.4);
+    c.fillStyle = '#FFFFFF'; c.fillRect(hx + 4 + ((f >> 3) % 3), hy + 4, 1, 1);
+  } else { c.strokeStyle = INK; c.lineWidth = 1.3; c.beginPath(); c.arc(hx + 6, hy + 3, 3, 0.3, Math.PI - 0.3); c.stroke(); c.fillStyle = '#E5E7EB'; c.fillRect(hx + 4.5, hy + 5, 3, 0.8); }
+  // (the headband: pink, a lit edge, a bow on the side)
   c.strokeStyle = INK; c.lineWidth = 4.5; c.beginPath(); c.arc(hx + 1, hy + 1, 10.5, Math.PI * 1.08, Math.PI * 1.9); c.stroke();
-  c.strokeStyle = '#F472B6'; c.lineWidth = 2.5; c.stroke();
-  c.fillStyle = HAIR; for (const [dx, dy, r] of TOP_CURLS) { c.beginPath(); c.arc(hx + dx, hy + dy, r, 0, Math.PI * 2); c.fill(); }
+  c.strokeStyle = '#EC4899'; c.lineWidth = 2.6; c.stroke();
+  c.strokeStyle = '#FBCFE8'; c.lineWidth = 0.9; c.beginPath(); c.arc(hx + 1, hy + 0.2, 10.5, Math.PI * 1.15, Math.PI * 1.55); c.stroke();
+  for (const s of [-1, 1]) toonFlat(c, () => { c.moveTo(hx - 7, hy - 7); c.lineTo(hx - 7 + s * 5, hy - 11); c.lineTo(hx - 7 + s * 5, hy - 4); c.closePath(); }, '#EC4899', 1.2);
+  toonFlat(c, () => c.arc(hx - 7, hy - 7.5, 1.6, 0, Math.PI * 2), '#F9A8D4', 1);
+  for (const [dx, dy, r] of TOP_CURLS) curl(c, hx + dx, hy + dy, r, false, false);
   // (the near arm: pointing the way, wagging a finger, up cheering, over her mouth, over her head cowering)
   const armN: [number, number] = pose === 'point' ? [20, -30] : pose === 'wag' ? [14, -30 + ((f >> 2) % 2) * 3] : pose === 'cheer' ? [12, -42] : pose === 'queasy' ? [hx + 7, hy + 4 + 22] : pose === 'cower' ? [6, -36] : run ? [6 + Math.sin(ph) * 6, -10] : [10, -6];
-  limbTo(c, 5, -20, armN[0], armN[1], 4, SWEATER);
-  ink(c, () => c.arc(armN[0], armN[1], 3, 0, Math.PI * 2), sk, 1.6);
+  toonLimb(c, 5, -20, armN[0], armN[1], 4.4, SWEATER_R, 4);
+  toonPart(c, () => c.arc(armN[0], armN[1], 3, 0, Math.PI * 2), SK, armN[0] - 3, armN[0] + 3, 1.6);
   if (pose === 'point' || pose === 'wag') { c.strokeStyle = INK; c.lineWidth = 3.4; c.lineCap = 'round'; c.beginPath(); c.moveTo(armN[0] + 2, armN[1]); c.lineTo(armN[0] + 7, armN[1] - (pose === 'wag' ? 4 : 1)); c.stroke(); c.strokeStyle = sk; c.lineWidth = 1.8; c.stroke(); c.lineCap = 'butt'; }
   c.restore();
   // (queasy: little green wavy lines off her)
   if (pose === 'queasy') { c.strokeStyle = '#65A30D'; c.lineWidth = 1.2; for (let k = 0; k < 3; k++) { const yy = -64 - k * 6 - ((f >> 1) % 8); c.beginPath(); c.moveTo(-8 + k * 7, yy); c.quadraticCurveTo(-6 + k * 7, yy - 3, -4 + k * 7, yy); c.quadraticCurveTo(-2 + k * 7, yy + 3, 0 + k * 7, yy); c.stroke(); } }
   c.restore();
+  void SKIN; void SWEATER;
 };
-const CURLS: [number, number, number][] = [[-9, -6, 6], [-11, 2, 6], [-8, 9, 5.5], [-3, -10, 6], [4, -11, 6], [10, -8, 5], [12, -1, 4.5], [-1, 12, 4], [-6, -1, 6]];
+/** A curl: a stepped ball of strawberry blonde (lit up and left, shaded down and right; a spiral in it). */
+const curl = (c: Ctx, x: number, y: number, r: number, low: boolean, spiral = true) => {
+  const H = low ? [HAIR_R[1], HAIR_R[2], HAIR_R[3], '#7A4018'] : HAIR_R;
+  c.fillStyle = H[2]; c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2); c.fill();
+  c.fillStyle = H[1]; c.beginPath(); c.arc(x - r * 0.15, y - r * 0.15, r * 0.78, 0, Math.PI * 2); c.fill();
+  c.fillStyle = H[0]; c.beginPath(); c.arc(x - r * 0.35, y - r * 0.35, r * 0.36, 0, Math.PI * 2); c.fill();
+  if (spiral && r > 3.5) { c.strokeStyle = H[3]; c.lineWidth = 0.8; c.beginPath(); c.arc(x + 0.5, y + 0.5, r * 0.45, 0.4, Math.PI * 1.6); c.stroke(); }
+};
+const CURLS: [number, number, number][] = [[-9, -6, 6], [-11, 2, 6], [-8, 9, 5.5], [-3, -10, 6], [4, -11, 6], [10, -8, 5], [12, -1, 4.5], [-1, 12, 4], [-6, -1, 6], [-13, 7, 4], [-5, 14, 3.5]];
 const TOP_CURLS: [number, number, number][] = [[-4, -9, 3], [1, -10, 3], [6, -9, 2.6], [-8, -5, 2.8]];
 const mixHex = (a: string, b: string, k: number) => {
   const A = [1, 3, 5].map(i => parseInt(a.slice(i, i + 2), 16)), B = [1, 3, 5].map(i => parseInt(b.slice(i, i + 2), 16));

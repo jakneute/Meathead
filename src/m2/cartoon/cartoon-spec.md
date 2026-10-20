@@ -713,3 +713,29 @@ markBossFight every frame of a boss or sub-boss fight. Voice every new line (`np
   heaped round them). The cast: Gloppy stepped (wet sheen, bubbles, the zip, googly eyes, his dropped top when dead),
   the ride op's belt, walkie and visor, Rad Rat's tail, the Flea's emblem, the churro cart's churros. Drawing only: no
   layout, timing, hitbox or lighting-logic changes.
+- (SNES pass) THE WHITE HOUSE, PART ONE (whitehouse1/): its own kit in whitehouse1/paint.ts (six-step marble, gilt,
+  velvet, navy, oak; wobbly Ionic columns, pilasters, crown moldings, wainscots, wallpapers, gilt frames, the
+  presidents' cartoon portraits (Washington, Lincoln, Teddy, Nixon, Taft, JFK, FDR, Jefferson, a First Lady, the
+  beagle) hung a hair crooked, the Seal, sconces and chandeliers with live candle flames, swagged drapes, windows onto
+  the grounds by the hour, doors, a fireplace with a live fire, busts, flags, the grandfather clock's pendulum), the
+  rooms in whitehouse1/rooms.ts (each back wall painted once for the hour; ceilings coffered and floors patterned going
+  back to the one eye: the Seal inlaid in the Entrance Hall's marble, the Cross Hall's runner, parquet, rugs; the brick
+  cutaway above the ceilings; the ground floor's doors under the second floor, the house's south front under the
+  balcony), the far off past the balcony in whitehouse1/far.ts (cached per hour: cel cumulus, the show's Washington
+  (the Monument, the Jefferson Memorial, the Capitol, the Old Executive Office Building, the Treasury), the Ellipse,
+  the South Fountain, the fence and its tourists). The play plane in steps, its tops going back, lit lips kept (the
+  Steinway, the gilt chair stack, the risers, the podium and its Seal, the press gallery's ledges, the sideboard and
+  the banquet table, the stairs' runner and dimmed banister, the Lincoln bed, the bench and the rose arbor); the South
+  Portico, hedges, crabapples and the West Colonnade behind the garden. The Hoover, the chandelier, the ball return and
+  balls, the roses and sprinklers, the throws, the puffs, the pundits (Perot and Falwell at Stupid Dad's grade: their
+  ramps, dithered seams, the show's fat outline), Chelsea (stepped curls, headband bow, braces with pink bands, plaid,
+  Mary Janes), the animator's hand (cuff, watch, the eraser's worn end, the inking pen), the mean men's details
+  (argyle, lapel pins, a wad of bills) and the blimp redone; the cat's form polished (no proportion or frame changes).
+  THE REAL STAGE (whitehouse2/realStage.ts, shared by both halves): the soundstage's far wall (fly gallery, pin rail,
+  DOCK 3), velour legs, the box-truss grid with par cans, lekos and hung VIDEO-MAX projectors, the floor's cables and
+  spike tape, the flats' backs (frames, toggles, corner blocks, the cartoon paint bled round the edges, jacks with
+  sandbags and stage weights), the wings' truss towers, road cases, the mean men's costume rack, craft services and the
+  director's chair, a ladder; the plywood, plank and scaffold play plane stepped; the front row's velour. Perot's and
+  Falwell's actors redone more specific and gruesome (bodies.ts), and the henchmen's actors leave their effects in the
+  blood (the goon's snapped shades, the lobbyist's burst briefcase of red-soaked bills, the pollster's clipboard and
+  crushed glasses). Drawing only: no layout, timing, hitbox or lighting-logic changes.

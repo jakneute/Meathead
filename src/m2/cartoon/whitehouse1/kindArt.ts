@@ -19,6 +19,7 @@ import {
   moodOf, reaction,
 } from '../../spooky/costume';
 import { stamp } from '../../../m1/game/render/stamp';
+import { signText } from '../../signLetters';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -65,10 +66,16 @@ const paintGoon = (g: Ctx, F: Frame) => {
     crack ? [B.w / 2 + 7, B.shY + 10] : punch ? [B.w / 2 + 24, B.shY + 4] : rush ? [B.w / 2 + 18, B.shY + 8] : crouch ? [B.w / 2 + 12, B.shY + 22] : [B.w / 2 + 4, B.shY + 20]);
   arm(g, B, -1, H.far[0], H.far[1], { sleeve: SUIT, hand: L.skin });
   torso(g, B, SUIT, B.shY, B.hipY + 2, 4);
-  // (the white shirt's V, the skinny tie, the lapels)
+  // (the white shirt's V and its collar points, the skinny tie and its knot, the lapels lit along their edges, the one
+  // button done up, the MEAN MEN pin)
   flat(g, () => { g.moveTo(-4, B.shY + 1); g.lineTo(5, B.shY + 1); g.lineTo(0.5, B.shY + 15); g.closePath(); }, '#F8FAFC', 0.8);
-  px(g, -0.5, B.shY + 3, 2, 12, '#050505');
+  flat(g, () => { g.moveTo(-4, B.shY + 1); g.lineTo(-1, B.shY + 1); g.lineTo(-3, B.shY + 5); g.closePath(); }, '#E2E6EE', 0.5);
+  flat(g, () => { g.moveTo(5, B.shY + 1); g.lineTo(2, B.shY + 1); g.lineTo(4, B.shY + 5); g.closePath(); }, '#E2E6EE', 0.5);
+  px(g, -0.5, B.shY + 3, 2, 12, '#050505'); px(g, -1, B.shY + 2, 3, 2, '#1A1A22');
   px(g, -9, B.shY + 2, 4, 13, '#2A2A33'); px(g, 6, B.shY + 2, 4, 13, '#2A2A33');
+  px(g, -9, B.shY + 2, 1, 13, '#4A4A58'); px(g, 6, B.shY + 2, 1, 13, '#4A4A58');
+  px(g, 0, B.shY + 17, 1.6, 1.6, '#3A3A48');
+  px(g, -8, B.shY + 6, 2.4, 2.4, '#DC2626'); px(g, -8, B.shY + 6, 1, 1, '#FCA5A5');
   hairBack(g, B);
   face(g, B, F, 'angry', crack || punch || rush ? 'teeth' : 'frown');
   whiskers(g, B);
@@ -123,6 +130,9 @@ const paintLobbyist = (g: Ctx, F: Frame) => {
   flat(g, () => { g.moveTo(-4, B.shY + 1); g.lineTo(5, B.shY + 1); g.lineTo(0.5, B.shY + 14); g.closePath(); }, '#F8FAFC', 0.8);
   flat(g, () => { g.moveTo(-1.5, B.shY + 3); g.lineTo(2, B.shY + 3); g.lineTo(3, B.shY + 15); g.lineTo(0, B.shY + 18); g.lineTo(-2, B.shY + 15); g.closePath(); }, '#DC2626', 0.7);
   px(g, -10, B.shY + 4, 4, 3, '#F8FAFC');
+  // (a wad of bills out of the breast pocket, a flag pin on the lapel)
+  px(g, 5, B.shY + 4, 4, 4, '#86EFAC'); px(g, 6, B.shY + 3, 3, 2, '#4ADE80'); px(g, 5, B.shY + 7, 4, 1, '#166534');
+  px(g, -8, B.shY + 9, 3, 2, '#DC2626'); px(g, -8, B.shY + 9, 1.4, 1, '#1D4ED8'); px(g, -7, B.shY + 10, 2, 1, '#FFFFFF');
   hairBack(g, B);
   face(g, B, F, swingBack || swing ? 'angry' : 'smug', swing ? 'teeth' : 'grin');
   whiskers(g, B);
@@ -158,7 +168,15 @@ const paintPollster = (g: Ctx, F: Frame) => {
   // (the clipboard in the far hand while he ticks)
   if (tickT && !H.held) clipboard(g, H.far[0] + 4, H.far[1] - 6, 0.2);
   torso(g, B, '#93C5FD', B.shY, B.hipY + 2);
-  torso(g, B, V, B.shY + 4, B.hipY + 1, -3);
+  const vest = torso(g, B, V, B.shY + 4, B.hipY + 1, -3);
+  // (the vest's argyle: diamonds in a second tone, a dashed cross-line over them)
+  g.save(); g.beginPath(); vest(); g.clip();
+  for (let row = 0, y = B.shY + 8; y < B.hipY + 2; y += 8, row++) for (let x = -B.w / 2 + (row % 2) * 4; x < B.w / 2 + 4; x += 8) {
+    g.fillStyle = dk(V, 0.18); g.beginPath(); g.moveTo(x, y - 4); g.lineTo(x + 4, y); g.lineTo(x, y + 4); g.lineTo(x - 4, y); g.closePath(); g.fill();
+    px(g, x - 0.5, y - 4, 1, 1, lt(V, 0.4)); px(g, x + 2, y - 2, 1, 1, '#DC2626');
+  }
+  g.restore();
+  for (let y = B.shY + 8; y < B.hipY - 1; y += 4) px(g, 0, y, 1.2, 1.2, '#F8FAFC');
   flat(g, () => { g.moveTo(-3, B.shY + 4); g.lineTo(3, B.shY + 4); g.lineTo(0, B.shY + 12); g.closePath(); }, '#93C5FD', 0.7);
   // (the bow tie)
   flat(g, () => { g.moveTo(-5, B.shY); g.lineTo(0, B.shY + 2.5); g.lineTo(5, B.shY); g.lineTo(5, B.shY + 5); g.lineTo(0, B.shY + 2.5); g.lineTo(-5, B.shY + 5); g.closePath(); }, '#DC2626', 0.7);
@@ -186,16 +204,33 @@ export const drawPollster = (c: Ctx, e: Enemy, f: number, seed: number) => {
 export const drawBlimp = (c: Ctx, e: Enemy, f: number) => {
   const hatch = e.aiState === 'hatch', hurt = (e.hitFlash ?? 0) > 0;
   // (the envelope painted once; the prop, the light and the hatch live)
-  stamp(c, `ct-blimp-${hurt ? 1 : 0}`, -40, -40, 82, 44, g => {
-    // (fins at the back, the envelope, its seams, MEAN MEN, a shine)
-    for (const s of [-1, 1]) part(g, () => { g.moveTo(-24, -16); g.lineTo(-36, -16 + s * 11); g.lineTo(-30, -16 + s * 2); g.closePath(); }, '#B91C1C', -36, -28, 14, 24, 1);
-    part(g, () => g.ellipse(0, -16, 30, 12, 0, 0, Math.PI * 2), hurt ? '#F8FAFC' : '#C8CDD6', -30, -28, 60, 24, 1.4);
-    px(g, -26, -16, 52, 1, '#9AA1AD');
-    g.fillStyle = INK; g.font = '5px "Press Start 2P"'; g.textAlign = 'center'; g.fillText('MEAN MEN', 1, -12); g.textAlign = 'left';
-    g.fillStyle = 'rgba(255,255,255,0.7)'; g.beginPath(); g.ellipse(-8, -23, 12, 2.5, 0, 0, Math.PI * 2); g.fill();
-    // (the gondola and its camera)
-    part(g, () => g.roundRect(-8, -5, 16, 7, 2), '#3F3F46', -8, -5, 16, 7, 1);
-    ball(g, 9, -1, 3, '#18181B', 1); px(g, 10, -2, 1.5, 1.5, '#60A5FA');
+  stamp(c, `ct-blimp2-${hurt ? 1 : 0}`, -42, -42, 86, 50, g => {
+    const E = hurt ? ['#C8CCD8', '#E2E6EE', '#F2F4F8', '#FFFFFF', '#FFFFFF'] : ['#5E6476', '#868CA0', '#AEB4C6', '#D2D6E2', '#F2F4FA'];
+    // (the fins at the back: red, stepped, a white stripe)
+    for (const s of [-1, 1]) {
+      flat(g, () => { g.moveTo(-22, -16 + s * 4); g.lineTo(-38, -16 + s * 13); g.lineTo(-34, -16 + s * 3); g.lineTo(-26, -16); g.closePath(); }, '#B91C1C', 1.2);
+      px(g, -34, -16 + s * 8 - 0.5, 8, 1, '#FCA5A5');
+    }
+    flat(g, () => { g.moveTo(-24, -17); g.lineTo(-40, -17); g.lineTo(-40, -15); g.lineTo(-24, -15); g.closePath(); }, '#7A0E1C', 1);
+    // (the envelope: silver in bands from the top down, a lit crown, the seams' gores, the nose cone)
+    g.save(); g.beginPath(); g.ellipse(0, -16, 30, 12, 0, 0, Math.PI * 2); g.clip();
+    const bands = [E[4], E[3], E[3], E[2], E[2], E[1], E[0]];
+    bands.forEach((col, i) => { px(g, -31, -28 + i * 3.6, 62, 4, col); if (i) for (let x = -30 + (i % 2); x < 31; x += 2) px(g, x, -28 + i * 3.6, 1, 1, col); });
+    for (const gx of [-18, -6, 6, 18]) { g.strokeStyle = E[1]; g.lineWidth = 0.8; g.beginPath(); g.moveTo(gx * 0.6, -28); g.quadraticCurveTo(gx * 1.2, -16, gx * 0.6, -4); g.stroke(); }
+    px(g, 22, -22, 8, 12, E[2]); px(g, 24, -22, 4, 3, E[4]);
+    g.restore();
+    g.strokeStyle = INK; g.lineWidth = 1.6; g.beginPath(); g.ellipse(0, -16, 30, 12, 0, 0, Math.PI * 2); g.stroke();
+    px(g, -14, -26, 18, 2, '#FFFFFF'); px(g, -18, -24, 6, 1, '#FFFFFF');
+    // (MEAN MEN painted down its side: red letters, inked, a navy stripe under)
+    px(g, -26, -11, 50, 2, '#1D3A8A');
+    signText(g, 'MEAN MEN', 0, -13, { sx: 1, sy: 1, gap: 1, bold: true, fill: ['#F06A72', '#DC3442'], ink: INK });
+    // (the gondola: windows, a lit edge, the camera under it on its gimbal)
+    part(g, () => g.roundRect(-10, -5, 20, 8, 3), '#3F3F46', -10, -5, 20, 8, 1.2);
+    for (const wx of [-6, -1, 4]) { px(g, wx, -3, 3, 3, '#9CC4F0'); px(g, wx, -3, 1, 1, '#FFFFFF'); }
+    ball(g, 11, 0, 3.4, '#18181B', 1); px(g, 12, -1, 1.6, 1.6, '#60A5FA'); px(g, 12.5, -1.5, 0.8, 0.8, '#FFFFFF');
+    px(g, 7, -3, 3, 1, '#52525B');
+    // (the antenna)
+    px(g, -2, -32, 1, 5, INK); px(g, -3, -34, 3, 2, '#DC2626');
   });
   // (the prop at the back spinning; the red light; the hatch open under it)
   const k = Math.abs(Math.sin(f * 0.8));

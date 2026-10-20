@@ -37,7 +37,7 @@ import { updateChelsea, drawChelsea, drawChelseaSaid } from './chelsea';
 import { updatePundits, buildArenas, drawPunditsWorld, drawPunditsSaid, drawPunditBar, fightCam, punditScene, punditSkipShown } from './pundits';
 import { drawSkipPrompt } from '../../../m1/game/platform/skip';
 import { updatePuffs, drawPuffs } from './poof';
-import { drawPuffBit } from './punditArt';
+import { drawPuffBit, toonPart } from './punditArt';
 import { drawWhBackdrop, drawWhBack, drawWhFront } from './art';
 import { GAGS } from './lines';
 import { seedOf } from './kinds';
@@ -264,19 +264,25 @@ export const drawThrows = (c: Ctx, state: GameState) => {
   for (const t of whOf(state).throws) {
     const ink = (path: () => void, fill: string, w = 2) => { c.beginPath(); path(); c.fillStyle = fill; c.fill(); c.strokeStyle = INK; c.lineWidth = w; c.stroke(); };
     if (t.kind === 'moneybag') {
+      // (a burlap money bag in steps, its neck tied with gold cord, a fat green $)
       c.save(); c.translate(t.x, t.y); c.rotate(t.t * 0.15);
-      ink(() => { c.moveTo(-8, 6); c.quadraticCurveTo(-10, -4, -3, -6); c.lineTo(3, -6); c.quadraticCurveTo(10, -4, 8, 6); c.closePath(); }, '#C8B48A');
+      toonPart(c, () => { c.moveTo(-8, 6); c.quadraticCurveTo(-10, -4, -3, -6); c.lineTo(3, -6); c.quadraticCurveTo(10, -4, 8, 6); c.closePath(); }, ['#E8D8B0', '#C8B48A', '#A08A60', '#7A6640'], -10, 10, 2);
       ink(() => c.rect(-3, -10, 6, 4), '#A16207', 1.5);
-      c.fillStyle = '#15803D'; c.font = '7px "Press Start 2P"'; c.fillText('$', -3.5, 5);
+      c.fillStyle = '#F2C84A'; c.fillRect(-4, -7, 8, 1.5);
+      c.fillStyle = '#15803D'; c.fillRect(-1, -3, 2, 8); c.fillRect(-3, -2, 6, 1.5); c.fillRect(-3, 0.5, 6, 1.5); c.fillRect(-3, 3, 6, 1.5); c.fillStyle = '#4ADE80'; c.fillRect(-1, -3, 1, 8);
       c.restore();
     } else if (t.kind === 'clipboard') {
       c.save(); c.translate(t.x, t.y); c.scale(1, 0.35 + Math.abs(Math.sin(t.t * 0.4)) * 0.65);
-      ink(() => c.roundRect(-8, -10, 16, 20, 1.5), '#A16207');
-      c.fillStyle = '#F8FAFC'; c.fillRect(-6, -7, 12, 15);
+      toonPart(c, () => c.roundRect(-8, -10, 16, 20, 1.5), ['#D8A040', '#A16207', '#7A4A06', '#5A3404'], -8, 8, 2);
+      c.fillStyle = '#F8FAFC'; c.fillRect(-6, -7, 12, 15); c.fillStyle = '#9CA3AF'; c.fillRect(-3, -12, 6, 4);
+      for (let k = 0; k < 3; k++) { c.fillStyle = k % 2 ? '#DC2626' : '#16A34A'; c.fillRect(-5, -4 + k * 4, 2, 2); c.fillStyle = '#94A3B8'; c.fillRect(-2, -3.5 + k * 4, 6, 1); }
       c.restore();
     } else if (t.kind === 'stinkbomb') {
-      ink(() => c.arc(t.x, t.y, 5, 0, Math.PI * 2), '#65A30D');
-      c.strokeStyle = '#84CC16'; c.lineWidth = 1.2; c.beginPath(); c.moveTo(t.x, t.y - 5); c.quadraticCurveTo(t.x + 3, t.y - 10, t.x, t.y - 14); c.stroke();
+      // (a glass stink bomb: green in steps, a shine, a cork, a wisp)
+      toonPart(c, () => c.arc(t.x, t.y, 5, 0, Math.PI * 2), ['#A3E635', '#65A30D', '#3F6212', '#28400A'], t.x - 5, t.x + 5, 2);
+      c.fillStyle = '#FFFFFF'; c.fillRect(t.x - 3, t.y - 3, 2, 2);
+      ink(() => c.rect(t.x - 2, t.y - 8, 4, 3), '#A16207', 1);
+      c.strokeStyle = '#84CC16'; c.lineWidth = 1.2; c.beginPath(); c.moveTo(t.x, t.y - 8); c.quadraticCurveTo(t.x + 3, t.y - 12, t.x, t.y - 16); c.stroke();
     } else if (t.kind === 'cloud') {
       const k = Math.min(1, t.t / 10), a = t.t > 90 ? Math.max(0, 1 - (t.t - 90) / 20) : 1;
       c.save(); c.globalAlpha = 0.75 * a;

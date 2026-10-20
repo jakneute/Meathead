@@ -27,6 +27,7 @@ import { whOf, CAT_MEMO, type Scene } from './state';
 import { ERASED, REDRAWN, CHELSEA_INTRO, CHELSEA_INTRO2, SHUT_UP_FIRST, REDRAWN_AGAIN } from './lines';
 import { chelseaSays, placeChelsea, scripted, chelseaTo, setChelseaPose } from './chelsea';
 import { X, Y } from './layout';
+import { toonPart, toonTop, toonFlat, type Rp } from './punditArt';
 import { GY } from '../geometry';
 
 /** The scene's beats (frames). */
@@ -119,30 +120,48 @@ export const scribbleIn = (state: GameState) => {
 // Drawing
 
 /** The animator's hand, off the top of the picture: its fingertips (where it holds the tool) at (x, y), what it holds. */
+const HAND: Rp = ['#FCDCC0', '#F2C8A6', '#DCA482', '#BC8462'];
+const CUFF: Rp = ['#FFFFFF', '#F4F6FA', '#D2D8E4', '#A8B0C4'];
+const ERASER: Rp = ['#FFD2E4', '#F9A8C8', '#E0789E', '#B8507A'];
+const PEN: Rp = ['#4A70C8', '#1E3A8A', '#142A66', '#0A1840'];
+/** The animator's hand (the show's own: a big cartoon hand at the pundits' grade), off the top of the picture: its
+ *  fingertips (where it holds the tool) at (x, y), what it holds: a fat pink eraser (its worn end, crumbs of it, the
+ *  brand on its side) or an inking pen (a navy barrel, a gold clip and band, the steel nib wet). */
 const animatorHand = (c: Ctx, x: number, y: number, tool: 'eraser' | 'pen', f: number) => {
   c.save(); c.translate(x, y); c.rotate(-0.5);
-  // (the arm up and off the picture: a rolled-up shirt sleeve over the forearm)
-  const ink = (path: () => void, fill: string, w = 3) => { c.beginPath(); path(); c.fillStyle = fill; c.fill(); c.lineJoin = 'round'; c.strokeStyle = INK; c.lineWidth = w; c.stroke(); };
-  ink(() => c.roundRect(4, -260, 46, 220, 18), '#F2C8A6');
-  ink(() => c.roundRect(-2, -300, 58, 120, 10), '#F8FAFC');
-  c.strokeStyle = '#CBD5E1'; c.lineWidth = 2; for (let k = 0; k < 3; k++) { c.beginPath(); c.moveTo(0, -200 + k * 8); c.lineTo(54, -204 + k * 8); c.stroke(); }
+  // (the arm up and off the picture: the forearm (a few hairs), a rolled-up shirt sleeve over it, a wristwatch)
+  toonPart(c, () => c.roundRect(4, -260, 46, 220, 18), HAND, 4, 50, 3);
+  c.fillStyle = HAND[3]; for (let k = 0; k < 7; k++) c.fillRect(14 + (k * 13) % 30, -170 + k * 14, 3, 1);
+  toonPart(c, () => c.roundRect(-2, -300, 58, 120, 10), CUFF, -2, 56, 3);
+  for (let k = 0; k < 3; k++) { toonTop(c, () => c.roundRect(-4, -196 + k * 10 - 30, 62, 12, 5), CUFF, -196 + k * 10 - 30, -184 + k * 10 - 30, 2); }
+  toonFlat(c, () => c.rect(10, -290, 2, 60), '#D2D8E4', 0);
+  toonTop(c, () => c.roundRect(2, -84, 50, 12, 3), ['#6A5A3E', '#4A3A26', '#3A2C1A', '#2A1E10'], -84, -72, 2);
+  toonPart(c, () => c.arc(27, -78, 8, 0, Math.PI * 2), ['#FFF0A8', '#F2C84A', '#D09A30', '#A06C1C'], 19, 35, 2);
+  toonFlat(c, () => c.arc(27, -78, 5.5, 0, Math.PI * 2), '#FFFDF2', 1);
+  c.strokeStyle = INK; c.lineWidth = 1.2; c.beginPath(); c.moveTo(27, -78); c.lineTo(27 + Math.cos(f * 0.1) * 4, -78 + Math.sin(f * 0.1) * 4); c.moveTo(27, -78); c.lineTo(29, -81); c.stroke();
   // (the tool, held in the fingers)
   if (tool === 'eraser') {
-    ink(() => c.roundRect(-16, -14, 54, 26, 6), '#F9A8C8');
-    c.fillStyle = '#FBCFE8'; c.fillRect(-12, -10, 46, 5);
-    c.fillStyle = '#F472B6'; c.fillRect(-16, 4, 54, 4);
+    toonPart(c, () => c.roundRect(-16, -14, 54, 26, 6), ERASER, -16, 38, 3);
+    toonFlat(c, () => { c.moveTo(-16, -8); c.quadraticCurveTo(-22, 0, -16, 8); c.lineTo(-10, 8); c.lineTo(-10, -8); c.closePath(); }, ERASER[2], 2);
+    c.fillStyle = ERASER[0]; c.fillRect(-12, -10, 40, 3);
+    c.fillStyle = ERASER[3]; c.fillRect(-12, 6, 46, 3);
+    c.fillStyle = '#FFFFFF'; c.fillRect(2, -4, 26, 7); c.fillStyle = '#E0789E'; c.fillRect(4, -2, 22, 3);
   } else {
-    ink(() => { c.moveTo(-6, 0); c.lineTo(46, -10); c.lineTo(50, 4); c.lineTo(-2, 12); c.closePath(); }, '#1E3A8A');
-    ink(() => { c.moveTo(-6, 0); c.lineTo(-24, 10); c.lineTo(-2, 12); c.closePath(); }, '#D4D4D8', 2);
-    c.fillStyle = INK; c.beginPath(); c.arc(-22, 10, 2.5, 0, Math.PI * 2); c.fill();
-    c.fillStyle = '#FACC15'; c.fillRect(30, -8, 4, 16);
+    toonPart(c, () => { c.moveTo(-6, 0); c.lineTo(46, -10); c.lineTo(50, 4); c.lineTo(-2, 12); c.closePath(); }, PEN, -6, 50, 3);
+    toonFlat(c, () => { c.moveTo(-6, 0); c.lineTo(-24, 10); c.lineTo(-2, 12); c.closePath(); }, '#D4D4D8', 2);
+    c.fillStyle = '#FFFFFF'; c.fillRect(-16, 6, 6, 1); c.fillStyle = '#8A8EA0'; c.fillRect(-14, 9, 8, 1);
+    c.fillStyle = INK; c.beginPath(); c.arc(-22, 10, 2.6, 0, Math.PI * 2); c.fill();
+    if ((f >> 3) % 3 === 0) { c.beginPath(); c.ellipse(-23, 15, 1.6, 2.6, 0, 0, Math.PI * 2); c.fill(); }
+    toonFlat(c, () => c.rect(28, -8, 5, 16), '#F2C84A', 1.4); c.fillStyle = '#FFF0A8'; c.fillRect(29, -7, 1, 14);
+    toonFlat(c, () => { c.moveTo(34, -12); c.lineTo(52, -15); c.lineTo(52, -12); c.lineTo(34, -9); c.closePath(); }, '#F2C84A', 1.2);
   }
-  // (the hand: the palm and the fingers wrapped round it, a thumb over the top, knuckles)
-  ink(() => c.roundRect(0, -46, 52, 46, 16), '#F2C8A6');
-  for (let k = 0; k < 4; k++) ink(() => c.roundRect(2 + k * 12, -12, 12, 22, 6), '#F2C8A6', 2.4);
-  ink(() => c.roundRect(-8, -34, 26, 14, 7), '#F2C8A6', 2.4);
-  c.fillStyle = '#D9A07C'; for (let k = 0; k < 4; k++) c.fillRect(6 + k * 12, -14, 4, 2);
-  void f;
+  // (the hand: the palm and the fingers wrapped round it (each lit along its top), a thumb over the top, knuckles, nails)
+  toonPart(c, () => c.roundRect(0, -46, 52, 46, 16), HAND, 0, 52, 3);
+  for (let k = 0; k < 4; k++) { toonPart(c, () => c.roundRect(2 + k * 12, -12, 12, 22, 6), HAND, 2 + k * 12, 14 + k * 12, 2.4); toonFlat(c, () => c.roundRect(4 + k * 12, 3, 7, 5, 2), '#FBE6DA', 1); }
+  toonPart(c, () => c.roundRect(-8, -34, 26, 14, 7), HAND, -8, 18, 2.4);
+  toonFlat(c, () => c.roundRect(-7, -32, 7, 9, 3), '#FBE6DA', 1);
+  c.fillStyle = HAND[3]; for (let k = 0; k < 4; k++) c.fillRect(6 + k * 12, -14, 4, 2);
+  c.fillStyle = HAND[0]; c.fillRect(6, -42, 22, 2);
   c.restore();
 };
 

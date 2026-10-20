@@ -10,6 +10,7 @@ import { playSound } from '../../../m1/game/platform/audio';
 import { getCartoon } from '../section';
 import { INK, onScreen, type Ctx } from '../kit';
 import { whOf, type Puff, type PuffBit } from './state';
+import { dith } from '../amphi/paint';
 
 /** A puff where the enemy was (its middle), as big as it was. */
 export const puffAt = (state: GameState, x: number, y: number, size: number, bits?: PuffBit[]) => {
@@ -50,10 +51,15 @@ const drawPuff = (c: Ctx, p: Puff) => {
   const lumps: [number, number, number][] = [[0, 0, 0.62], [-0.55, 0.12, 0.45], [0.55, 0.1, 0.48], [-0.28, -0.42, 0.42], [0.3, -0.4, 0.44], [0, 0.34, 0.4], [-0.62, -0.18, 0.3], [0.66, -0.16, 0.3]];
   c.save(); c.globalAlpha = alpha;
   c.translate(p.x, p.y - rise);
-  // (ink round the whole cloud, then the cloud in two tones, a lit top)
+  // (ink round the whole cloud, then the cloud in stepped tones (shade, mid, lit, a highlight), dithered between)
   c.fillStyle = INK; c.beginPath(); for (const [dx, dy, r] of lumps) lump(c, dx * R, dy * R, r * R + 2.5); c.fill();
-  c.fillStyle = '#C9C4D6'; c.beginPath(); for (const [dx, dy, r] of lumps) lump(c, dx * R, dy * R, r * R); c.fill();
-  c.fillStyle = '#F4F1FA'; c.beginPath(); for (const [dx, dy, r] of lumps) lump(c, dx * R - r * R * 0.18, dy * R - r * R * 0.22, r * R * 0.78); c.fill();
+  c.fillStyle = '#9C96B4'; c.beginPath(); for (const [dx, dy, r] of lumps) lump(c, dx * R, dy * R, r * R); c.fill();
+  c.fillStyle = '#C9C4D6'; c.beginPath(); for (const [dx, dy, r] of lumps) lump(c, dx * R - r * R * 0.08, dy * R - r * R * 0.1, r * R * 0.9); c.fill();
+  c.fillStyle = dith(c, '#F4F1FA'); c.beginPath(); for (const [dx, dy, r] of lumps) lump(c, dx * R - r * R * 0.14, dy * R - r * R * 0.18, r * R * 0.84); c.fill();
+  c.fillStyle = '#F4F1FA'; c.beginPath(); for (const [dx, dy, r] of lumps) lump(c, dx * R - r * R * 0.2, dy * R - r * R * 0.24, r * R * 0.72); c.fill();
+  c.fillStyle = '#FFFFFF'; c.beginPath(); for (const [dx, dy, r] of lumps.slice(0, 5)) lump(c, dx * R - r * R * 0.36, dy * R - r * R * 0.42, r * R * 0.26); c.fill();
+  // (the burst's speed lines out of it, the first moments)
+  if (t < 0.35) { c.strokeStyle = INK; c.lineWidth = 2; for (let k = 0; k < 8; k++) { const a = (k / 8) * Math.PI * 2 + 0.2, r0 = R * 1.05 + t * 40, r1 = r0 + 10; c.beginPath(); c.moveTo(Math.cos(a) * r0, Math.sin(a) * r0 * 0.8); c.lineTo(Math.cos(a) * r1, Math.sin(a) * r1 * 0.8); c.stroke(); } }
   // (the stars flying off it, and a twinkle at the end)
   for (let k = 0; k < 5; k++) {
     const a = (k / 5) * Math.PI * 2 + 0.4, d = R * (0.7 + t * 1.3), sx = Math.cos(a) * d, sy = Math.sin(a) * d * 0.8 - t * 10, r = 5 * (1 - t * 0.6);
