@@ -24,6 +24,8 @@ interface HUDProps {
   skin?: HudSkin;
   /** How many power cells the PWR row shows (default POWER_CELLS; Meathead 2's helicopter: its one boost charge). */
   powerCells?: number;
+  /** How wide each power cell is (px; Meathead 2's: wide, three of them, fully upgraded, two-thirds of the plate). */
+  cellWidth?: number;
   /** Something on the PWR row to the right of the cells (Meathead 2's helicopter: its rockets). */
   powerExtra?: React.ReactNode;
 }
@@ -46,7 +48,7 @@ export interface HudSkin {
 }
 
 /** The in-game HUD: health, power cells and the equipped weapon on a steel plate in the corner. */
-const HUD: React.FC<HUDProps> = ({ health, maxHealth, power, currentWeapon, ammo, maxAmmo, weaponName, weaponArt, weaponExtra, ammoLabel, skin, powerCells = POWER_CELLS, powerExtra }) => {
+const HUD: React.FC<HUDProps> = ({ health, maxHealth, power, currentWeapon, ammo, maxAmmo, weaponName, weaponArt, weaponExtra, ammoLabel, skin, powerCells = POWER_CELLS, powerExtra, cellWidth }) => {
   const hp = Math.max(0, Math.min(1, health / maxHealth));
   const low = hp < 0.35;
   const limited = maxAmmo !== Infinity;
@@ -83,7 +85,7 @@ const HUD: React.FC<HUDProps> = ({ health, maxHealth, power, currentWeapon, ammo
         <div className="flex items-center gap-2">
           <span className="relative w-[26px] text-[8px] font-black text-zinc-300" style={{ color: skin?.label }}>{skin?.pwrLabel ?? 'PWR'}</span>
           <div className="flex gap-[6px]">
-            {Array.from({ length: powerCells }, (_, i) => <PowerCell key={i} fill={Math.max(0, Math.min(1, power - i))} skin={skin} />)}
+            {Array.from({ length: powerCells }, (_, i) => <PowerCell key={i} fill={Math.max(0, Math.min(1, power - i))} skin={skin} width={cellWidth} />)}
           </div>
           {powerExtra}
         </div>
@@ -115,12 +117,12 @@ const HUD: React.FC<HUDProps> = ({ health, maxHealth, power, currentWeapon, ammo
 };
 
 /** One power cell: a lightning bolt charging up; glowing when it's ready to spend. */
-const PowerCell: React.FC<{ fill: number; skin?: HudSkin }> = ({ fill, skin }) => {
+const PowerCell: React.FC<{ fill: number; skin?: HudSkin; width?: number }> = ({ fill, skin, width = 38 }) => {
   const ready = fill >= 1;
   const on = skin?.cellOn, off = skin?.cellOff;
   return (
-    <div className="relative w-[38px] h-[14px] bg-black border-2 overflow-hidden"
-      style={{ ...skin?.track, borderColor: ready ? on?.border ?? '#FACC15' : off?.border ?? '#3F3F46', boxShadow: ready ? `0 0 6px ${on?.glow ?? 'rgba(250,204,21,0.7)'}` : 'none' }}>
+    <div className="relative h-[14px] bg-black border-2 overflow-hidden"
+      style={{ width, ...skin?.track, borderColor: ready ? on?.border ?? '#FACC15' : off?.border ?? '#3F3F46', boxShadow: ready ? `0 0 6px ${on?.glow ?? 'rgba(250,204,21,0.7)'}` : 'none' }}>
       <div className="absolute inset-y-0 left-0"
         style={{ width: `${fill * 100}%`, background: ready ? on?.fill ?? 'linear-gradient(180deg, #FEF08A 0%, #FACC15 50%, #CA8A04 100%)' : off?.fill ?? 'linear-gradient(180deg, #A16207, #713F12)' }} />
       <svg viewBox="0 0 10 10" className="absolute inset-0 m-auto w-[10px] h-[10px]">
