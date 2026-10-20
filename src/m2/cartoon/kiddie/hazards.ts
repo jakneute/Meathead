@@ -14,6 +14,15 @@
 //     cast it spits out dead.
 //   What the cast throw: the hat cat's hat (out, and back), the Whatsits' kites (on their strings: a shake, a dive at
 //     him, back up), the painter's paint blobs (they splat).
+//
+// THE REVISIT (state.ts shut(): back through after the studio): the rides are shut down for the day. The carousel
+// stopped dead, its lights off, a CLOSED board hung off its rounding board; the fish all down, a CLOSED FOR THE DAY
+// board by the bowl (the goldfish belly up); the train parked behind its hedges, empty, NO MORE TRAINS TODAY; the
+// trolley put away in the hattery (the shutter down across its arch, OUT OF SERVICE, the lamp dark). Nothing runs, so
+// nothing hurts; the pits and the cast are as ever.
+//
+// Drawn at peak SNES: every beast, fish, car and kid in stepped ramps, brass poles twisted and lit, the deck's and the
+// canopy's round tops going back to the eye, the bowl's water banded, the hedges clipped topiary in steps.
 
 import type { FrameContext } from '../../../m1/game/core/context';
 import type { GameState } from '../../../m1/game/core/state';
@@ -24,9 +33,13 @@ import { mid } from '../../../m1/game/enemies/kinds';
 import { hazardVictims, hazardHit, hazardKill, boxHits, setHazardZones } from '../../hazardHit';
 import { envSound } from '../../bossQuiet';
 import { teleport } from '../section';
-import { box, mix, onScreen, hour, dimmed, toonLetters, INK, type Ctx } from '../kit';
+import {
+  box, mix, onScreen, hour, dimmed, lit, toonLetters, INK, viewOf, drumTop, ballR, eggR, ramp6, rampH, polyF, candyStroke, shadeAcross, checker,
+  BRASS, FROSTING, LILAC, BUBBLEGUM, CHERRY, LEMON, SKY, STEEL, GRASS, LIP, type Ctx,
+} from '../kit';
 import { signText } from '../../signLetters';
-import { kiddieOf } from './state';
+import { lookOf } from '../../adventure/temple/people';
+import { kiddieOf, shut } from './state';
 import { onTower } from '../sway';
 import { CAROUSEL, SPINNER, TRAIN, TROLLEY, PITS, X, Y } from './layout';
 import { GY } from '../geometry';
@@ -53,15 +66,17 @@ const rideHitsCast = (ctx: FrameContext, x: number, y: number, w: number, h: num
 // The rides' clocks (worked out from the frame: the same for drawing and for hitting)
 
 const CAR_SPEED = 0.012, CAR_N = 6;
+/** The frame the rides stopped at for the day (the revisit). */
+const PARKED = 40;
 /** The carousel's beasts: x, how high their hooves are, front (on the play plane) or not. */
 export const beasts = (f: number) => Array.from({ length: CAR_N }, (_, k) => {
   const a = f * CAR_SPEED + (k / CAR_N) * Math.PI * 2;
   return { k, a, x: X(CAROUSEL.cx) + Math.cos(a) * CAROUSEL.r, front: Math.sin(a) > 0, depth: Math.sin(a), bob: Math.sin(f * 0.05 + k * 1.3) * 10 };
 });
 const FISH_SPEED = 0.016, FISH_N = 4;
-export const fishes = (f: number) => Array.from({ length: FISH_N }, (_, k) => {
-  const a = f * FISH_SPEED + (k / FISH_N) * Math.PI * 2;
-  const h = SPINNER.lo + (SPINNER.hi - SPINNER.lo) * (0.5 + 0.5 * Math.sin(f * 0.011 + k * 1.7));
+export const fishes = (f: number, parked = false) => Array.from({ length: FISH_N }, (_, k) => {
+  const a = (parked ? PARKED : f) * FISH_SPEED + (k / FISH_N) * Math.PI * 2;
+  const h = parked ? SPINNER.lo : SPINNER.lo + (SPINNER.hi - SPINNER.lo) * (0.5 + 0.5 * Math.sin(f * 0.011 + k * 1.7));
   return { k, a, x: X(SPINNER.cx) + Math.cos(a) * SPINNER.r, h, front: Math.sin(a) > 0, depth: Math.sin(a) };
 });
 const TRAIN_V = 2.6, TRAIN_LEN = 300, TRAIN_H = 52;
@@ -92,12 +107,12 @@ export const trolleyAt = (f: number) => {
 // Each frame
 
 export const updateHazards = (ctx: FrameContext) => {
-  const { state } = ctx, f = state.frame, p = state.player;
+  const { state } = ctx, f = state.frame, p = state.player, off = shut(state);
   const zones: { x0: number; x1: number; y0: number; y1: number }[] = [];
   // The carousel
   {
     const deck = Y(CAROUSEL.deck);
-    for (const b of beasts(f)) {
+    if (!off) for (const b of beasts(f)) {
       if (!b.front || b.depth < 0.25) continue;
       const y = deck - 14 - b.bob - 56;
       // (they come at him: knocked the way they're going)
@@ -107,7 +122,7 @@ export const updateHazards = (ctx: FrameContext) => {
     zones.push({ x0: X(CAROUSEL.cx - CAROUSEL.r - 40), x1: X(CAROUSEL.cx + CAROUSEL.r + 40), y0: Y(CAROUSEL.deck + 100), y1: GY });
   }
   // The spinner
-  for (const fi of fishes(f)) {
+  if (!off) for (const fi of fishes(f)) {
     if (!fi.front || fi.depth < 0.25) continue;
     const y = Y(fi.h) - 18;
     rideHurts(ctx, fi.x - 32, y, 64, 34, 11, 'm2:ct_fish', { x: -6, y: -6 });
@@ -115,7 +130,7 @@ export const updateHazards = (ctx: FrameContext) => {
   }
   zones.push({ x0: X(SPINNER.cx - SPINNER.r - 50), x1: X(SPINNER.cx + SPINNER.r + 50), y0: Y(SPINNER.hi + 40), y1: GY });
   // The train
-  {
+  if (!off) {
     const tr = trainAt(f);
     if (tr.phase === 'whistle' && tr.t === 1) { envSound(state, tr.x, 'horn', 0.5, 18); envSound(state, tr.x, 'ding', 0.3, 10); }
     if (tr.phase === 'whistle' && tr.t % 6 === 0 && onScreen(state, tr.x - 100, tr.x + 100)) state.particles.push({ pos: { x: tr.x - 10, y: Y(70) }, vel: { x: -0.4, y: -1.2 }, life: 40, color: '#F8FAFC', size: 6 });
@@ -129,10 +144,10 @@ export const updateHazards = (ctx: FrameContext) => {
       }
       if (tr.t % 8 === 0 && onScreen(state, tr.x, tr.x + 60)) state.particles.push({ pos: { x: tr.x + 22, y: Y(76) }, vel: { x: 0.6, y: -1.4 }, life: 36, color: '#F1F5F9', size: 5 });
     }
-    zones.push({ x0: X(TRAIN.a) - 20, x1: X(TRAIN.b) + 20, y0: Y(TRAIN_H + 20), y1: GY });
   }
+  zones.push({ x0: X(TRAIN.a) - 20, x1: X(TRAIN.b) + 20, y0: Y(TRAIN_H + 20), y1: GY });
   // The trolley
-  {
+  if (!off) {
     const tl = trolleyAt(f);
     if (tl.phase === 'bell' && tl.t % 30 === 0) envSound(state, X(TROLLEY.a), 'ding', 0.55, 6);
     if (tl.phase === 'run') {
@@ -143,8 +158,8 @@ export const updateHazards = (ctx: FrameContext) => {
         rideHitsCast(ctx, x0, Y(TROLLEY.h + TROLLEY_H), tl.x - x0, TROLLEY_H, 70, x0, 'TROLLEYED!');
       }
     }
-    zones.push({ x0: X(TROLLEY.a), x1: X(TROLLEY.b) + 40, y0: Y(TROLLEY.h + TROLLEY_H), y1: Y(TROLLEY.h - 4) });
   }
+  zones.push({ x0: X(TROLLEY.a), x1: X(TROLLEY.b) + 40, y0: Y(TROLLEY.h + TROLLEY_H), y1: Y(TROLLEY.h - 4) });
   setHazardZones(state, 'ct-kiddie-rides', zones);
   // The ball pits: him (spat back out where he last stood, hurt), and the cast (spat out dead)
   const k = kiddieOf(state);
@@ -184,7 +199,7 @@ export const noteSafe = (state: GameState) => {
     if (Math.abs(feet - GY) < 4) return;
   }
   // (not on the trolley's track while the trolley's coming, not on the carousel's deck)
-  if (Math.abs(feet - Y(TROLLEY.h)) < 4 && cx > X(TROLLEY.a) && cx < X(TROLLEY.b)) {
+  if (!shut(state) && Math.abs(feet - Y(TROLLEY.h)) < 4 && cx > X(TROLLEY.a) && cx < X(TROLLEY.b)) {
     const tl = trolleyAt(state.frame);
     if (tl.phase === 'run' && tl.x > cx - 520 && tl.x - TROLLEY_LEN < cx + 60) return;
     if (tl.phase === 'bell' && cx < X(TROLLEY.a) + 420) return;
@@ -263,52 +278,62 @@ const updateThrows = (ctx: FrameContext) => {
 // ---------------------------------------------------------------------------------------------------------------
 // Drawing (world space)
 
-const BEASTS: { body: string; mane: string }[] = [
-  { body: '#F9A8D4', mane: '#7C3AED' }, { body: '#FDE047', mane: '#EF4444' }, { body: '#86EFAC', mane: '#2563EB' },
-  { body: '#93C5FD', mane: '#F97316' }, { body: '#FDBA74', mane: '#16A34A' }, { body: '#C4B5FD', mane: '#DB2777' },
+const BEASTS: { body: string; mane: string; name: string }[] = [
+  { body: '#F9A8D4', mane: '#7C3AED', name: 'zizzle-horn' }, { body: '#FDE047', mane: '#EF4444', name: 'floofalump' }, { body: '#86EFAC', mane: '#2563EB', name: 'snerg' },
+  { body: '#93C5FD', mane: '#F97316', name: 'grickle' }, { body: '#FDBA74', mane: '#16A34A', name: 'wuzzle' }, { body: '#C4B5FD', mane: '#DB2777', name: 'plonk' },
 ];
-/** One of the carousel's made-up beasts, its hooves at (x, y), facing `dir`; `dim` it's round the back. */
+/** One of the carousel's made-up beasts, its hooves at (x, y), facing `dir`; `dim` it's round the back. In steps: a
+ *  fat body lit along its back, the shade under its belly, its legs stepped, the head of whatever nonsense it is, a
+ *  curly mane in tufts, a saddle with its gilt rosette and stirrup. */
 const beast = (c: Ctx, x: number, y: number, k: number, dir: number, dim: boolean, f: number) => {
   const B = BEASTS[k % BEASTS.length], T = dim ? dimmed : (col: string) => hour(col);
-  const body = T(B.body), mane = T(B.mane);
+  const R = ramp6(T(B.body)), M = ramp6(T(B.mane)), Gd = ramp6(T(BRASS[3])), Sd = ramp6(T('#DC2626'));
   c.save(); c.translate(x, y); c.scale(dir, 1);
-  const o = (cx: number, cy: number, rx: number, ry: number, col: string, a = 0) => { c.fillStyle = INK; c.beginPath(); c.ellipse(cx, cy, rx + 2, ry + 2, a, 0, Math.PI * 2); c.fill(); c.fillStyle = col; c.beginPath(); c.ellipse(cx, cy, rx, ry, a, 0, Math.PI * 2); c.fill(); };
+  // (legs: two or four, stepped, hooves)
   const legs = (k % 2) ? 2 : 4;
-  for (let i = 0; i < legs; i++) { const lx = -14 + i * (28 / Math.max(1, legs - 1)); box(c, lx - 3, -16, 6, 16, INK); box(c, lx - 2, -15, 4, 14, mix(body, INK, 0.2)); }
+  for (let i = 0; i < legs; i++) { const lx = -14 + i * (28 / Math.max(1, legs - 1)), back = i % 2 === 0; box(c, lx - 3.5, -18, 7, 18, INK); box(c, lx - 2.5, -17, 5, 15, back ? R[2] : R[3]); box(c, lx - 2.5, -17, 1, 15, back ? R[3] : R[4]); box(c, lx + 1.5, -17, 1, 15, R[1]); box(c, lx - 3, -4, 6, 4, M[1]); box(c, lx - 2, -4, 2, 1, M[3]); }
+  // (the body)
+  eggR(c, 0, -27, 22, 13, R);
+  box(c, -14, -17, 26, 2, R[1]);
   // (each a different nonsense animal: a long neck, a trunk, a hump, a tuft...)
-  o(0, -26, 22, 13, body);
-  c.fillStyle = mix(body, '#FFFFFF', 0.4); c.beginPath(); c.ellipse(-6, -31, 10, 4, 0, 0, Math.PI * 2); c.fill();
-  if (k % 3 === 0) { c.strokeStyle = INK; c.lineWidth = 9; c.lineCap = 'round'; c.beginPath(); c.moveTo(14, -30); c.quadraticCurveTo(30, -48, 22, -62); c.stroke(); c.strokeStyle = body; c.lineWidth = 6; c.stroke(); o(24, -64, 9, 7, body); }
-  else if (k % 3 === 1) { o(22, -34, 11, 10, body); c.strokeStyle = INK; c.lineWidth = 6; c.beginPath(); c.moveTo(30, -32); c.quadraticCurveTo(40, -24, 36, -14); c.stroke(); c.strokeStyle = body; c.lineWidth = 3.5; c.stroke(); }
-  else { o(20, -40, 10, 12, body); o(-4, -40, 9, 7, mane); }
-  // (the mane: a tuft of curls; a striped tail)
-  const hx = k % 3 === 0 ? 24 : k % 3 === 1 ? 22 : 20, hy = k % 3 === 0 ? -64 : k % 3 === 1 ? -34 : -40;
-  for (let i = 0; i < 3; i++) o(hx - 6 + i * 4, hy - 8 - (i % 2) * 3, 3.5, 3.5, mane);
-  box(c, hx + 1, hy - 2, 3, 3, INK);
-  c.strokeStyle = INK; c.lineWidth = 5; c.beginPath(); c.moveTo(-20, -28); c.quadraticCurveTo(-34, -36 + Math.sin(f * 0.2 + k) * 3, -30, -48); c.stroke(); c.strokeStyle = mane; c.lineWidth = 2.5; c.stroke();
-  // (the saddle, a gold rosette)
-  o(-2, -38, 9, 4, T('#DC2626')); box(c, -3, -40, 3, 3, T('#FDE047'));
+  let hx = 20, hy = -40;
+  if (k % 3 === 0) { candyStroke(c, () => { c.moveTo(14, -30); c.quadraticCurveTo(30, -48, 22, -62); }, 6, R, null); eggR(c, 24, -64, 9, 7, R); hx = 24; hy = -64; box(c, 30, -76, 2, 9, INK); box(c, 30.5, -75, 1, 7, T('#FFF4C8')); }
+  else if (k % 3 === 1) { eggR(c, 22, -34, 11, 10, R); candyStroke(c, () => { c.moveTo(30, -32); c.quadraticCurveTo(40, -24, 36, -14); }, 4, R, null); hx = 22; hy = -34; }
+  else { eggR(c, 20, -40, 10, 12, R); eggR(c, -4, -40, 9, 7, M); }
+  // (the mane: curls in tufts; the eye, glossy; a striped tail)
+  for (let i = 0; i < 3; i++) ballR(c, hx - 6 + i * 4, hy - 8 - (i % 2) * 3, 3.5, M);
+  box(c, hx + 1, hy - 3, 4, 4, INK); box(c, hx + 2, hy - 2, 2, 2, '#FFFFFF'); box(c, hx + 3, hy - 1, 1, 1, INK);
+  candyStroke(c, () => { c.moveTo(-20, -28); c.quadraticCurveTo(-34, -36 + Math.sin(f * 0.2 + k) * 3, -30, -48); }, 3, M, null);
+  ballR(c, -30, -49, 3, M);
+  // (the saddle, its gilt rosette, the stirrup hanging)
+  eggR(c, -2, -38, 9, 4, Sd); box(c, -3, -41, 3, 3, Gd[4]); box(c, -3, -41, 1, 1, Gd[5]);
+  box(c, -3, -34, 1, 8, Gd[2]); box(c, -5, -27, 5, 2, Gd[3]);
   c.restore();
 };
-/** A fiberglass fish car, its middle at (x, y), facing `dir`, kids in it; `dim` round the back. */
-const fishCar = (c: Ctx, x: number, y: number, k: number, dir: number, dim: boolean, f: number) => {
+/** A fiberglass fish car, its middle at (x, y), facing `dir`, kids in it; `dim` round the back. Its scales in rows, the
+ *  fins and tail stepped, the eye glossy, the seat dished in its back with two kids (seeded looks) screaming. */
+const fishCar = (c: Ctx, x: number, y: number, k: number, dir: number, dim: boolean, f: number, empty = false) => {
   const cols = ['#F87171', '#60A5FA', '#FBBF24', '#34D399'], T = dim ? dimmed : (col: string) => hour(col);
-  const body = T(cols[k % 4]);
+  const R = ramp6(T(cols[k % 4]));
   c.save(); c.translate(x, y); c.scale(dir, 1);
-  // (tail, body, fins, eye, the seat dished in its back with two kids)
-  c.fillStyle = INK; c.beginPath(); c.moveTo(-28, 0); c.lineTo(-44, -14); c.lineTo(-42, 14); c.closePath(); c.fill();
-  c.fillStyle = mix(body, INK, 0.2); c.beginPath(); c.moveTo(-28, 0); c.lineTo(-41, -11); c.lineTo(-40, 11); c.closePath(); c.fill();
-  c.fillStyle = INK; c.beginPath(); c.ellipse(0, 0, 33, 18, 0, 0, Math.PI * 2); c.fill();
-  c.fillStyle = body; c.beginPath(); c.ellipse(0, 0, 31, 16, 0, 0, Math.PI * 2); c.fill();
-  c.fillStyle = mix(body, '#FFFFFF', 0.4); c.beginPath(); c.ellipse(-4, -7, 18, 4, 0, 0, Math.PI * 2); c.fill();
-  for (let i = -16; i < 18; i += 8) { c.strokeStyle = mix(body, INK, 0.3); c.lineWidth = 1.5; c.beginPath(); c.arc(i, 2, 5, -0.5, 0.9); c.stroke(); }
-  c.fillStyle = '#FFFFFF'; c.beginPath(); c.arc(20, -4, 6, 0, Math.PI * 2); c.fill(); c.fillStyle = INK; c.beginPath(); c.arc(22, -4, 3, 0, Math.PI * 2); c.fill();
+  polyF(c, [[-28, 0], [-45, -15], [-43, 15]], INK); polyF(c, [[-28, 0], [-42, -12], [-41, 12]], R[2]); polyF(c, [[-29, 0], [-42, -12], [-38, -2]], R[4]);
+  for (let i = 0; i < 3; i++) box(c, -40 + i * 3, -8 + i * 2, 1, 16 - i * 4, R[1]);
+  eggR(c, 0, 0, 32, 17, R);
+  for (let i = -18; i < 18; i += 7) for (let j = -1; j < 2; j++) { c.strokeStyle = R[1]; c.lineWidth = 1; c.beginPath(); c.arc(i + (j & 1) * 3, 2 + j * 5, 3.5, -0.4, Math.PI * 0.6); c.stroke(); }
+  polyF(c, [[-6, -15], [6, -26], [12, -15]], INK); polyF(c, [[-4, -15], [6, -24], [10, -15]], R[3]); box(c, 2, -21, 2, 5, R[4]);
+  polyF(c, [[-4, 12], [6, 20], [10, 12]], R[1]);
+  ballR(c, 20, -4, 6, ramp6(T('#F4F4F8')));
+  box(c, 21, -5, 3, 3, INK); box(c, 21, -5, 1, 1, '#FFFFFF');
   c.strokeStyle = INK; c.lineWidth = 2; c.beginPath(); c.arc(28, 4, 4, 0.2, 1.8); c.stroke();
-  // (two kids, arms up, mouths open)
-  for (const [kx, sk] of [[-10, '#F0C8A2'], [4, '#8D5A3B']] as [number, string][]) {
-    c.fillStyle = INK; c.beginPath(); c.arc(kx, -18, 6, 0, Math.PI * 2); c.fill(); c.fillStyle = dim ? dimmed(sk) : sk; c.beginPath(); c.arc(kx, -18, 4.8, 0, Math.PI * 2); c.fill();
-    box(c, kx - 1, -16, 3, 3, INK);
-    if ((f >> 4) % 2) { box(c, kx - 6, -30, 2, 9, INK); box(c, kx + 4, -30, 2, 9, INK); }
+  // (the seat, its two kids, arms up, mouths open)
+  c.fillStyle = INK; c.beginPath(); c.ellipse(-3, -14, 16, 5, 0, 0, Math.PI * 2); c.fill();
+  c.fillStyle = R[1]; c.beginPath(); c.ellipse(-3, -14, 14, 3.5, 0, 0, Math.PI * 2); c.fill();
+  if (!empty) for (const [kx, s] of [[-10, k * 7 + 1], [4, k * 7 + 4]] as [number, number][]) {
+    const L = lookOf(s), Sk = ramp6(T(L.skin));
+    box(c, kx - 4, -18, 8, 6, T(['#3B82F6', '#EF4444', '#FDE047', '#22C55E'][s % 4]));
+    ballR(c, kx, -22, 5, Sk); box(c, kx - 5, -28, 10, 3, T(L.hair));
+    box(c, kx - 1, -21, 3, 3, INK);
+    if ((f >> 4) % 2) { box(c, kx - 7, -32, 2, 10, Sk[2]); box(c, kx + 5, -32, 2, 10, Sk[2]); }
   }
   c.restore();
 };
@@ -316,120 +341,195 @@ const fishCar = (c: Ctx, x: number, y: number, k: number, dir: number, dim: bool
 /** Behind him: the carousel's deck and canopy and the beasts round its back, the spinner's hub and its back fish,
  *  the train's track, rails and the back pass behind its hedges, the trolley's track on its curly posts. */
 export const drawHazardsBack = (c: Ctx, state: GameState) => {
-  const f = state.frame;
+  const f = state.frame, v = viewOf(state), off = shut(state), cf = off ? PARKED : f;
   // The carousel
   const cx = X(CAROUSEL.cx), r = CAROUSEL.r, deck = Y(CAROUSEL.deck), can = Y(CAROUSEL.canopy);
   if (onScreen(state, cx - r - 60, cx + r + 60)) {
-    // (the center column: mirrored panels, a band organ's pipes)
-    box(c, cx - 36, can, 72, deck - can, INK); box(c, cx - 33, can, 66, deck - can, hour('#7C3AED'));
-    for (let i = 0; i < 6; i++) { box(c, cx - 28 + i * 10, can + 60, 7, 70 + (i % 3) * 10, hour('#FDE047')); box(c, cx - 28 + i * 10, can + 60, 2, 70 + (i % 3) * 10, '#FFFBEB'); }
-    for (let i = 0; i < 4; i++) { box(c, cx - 30, can + 150 + i * 14, 60, 8, hour('#BAE6FD')); }
+    const Gd = rampH(BRASS), Pu = rampH(LILAC), Pk = rampH(BUBBLEGUM), W2 = rampH(FROSTING);
+    // (the deck's top going back, round)
+    drumTop(c, v.eye, cx - r - 20, cx + r + 20, deck, 0.9, rampH(ramp6('#C86A9A')));
+    // (the center column: mirrored panels, the band organ's pipes, brass)
+    shadeAcross(c, () => c.rect(cx - 34, can, 68, deck - can), cx - 34, can, 68, deck - can, Pu);
+    box(c, cx - 36, can, 2, deck - can, INK); box(c, cx + 34, can, 2, deck - can, INK);
+    for (let i = 0; i < 6; i++) { const ph = 70 + (i % 3) * 10; box(c, cx - 29 + i * 10, can + 60, 8, ph, INK); box(c, cx - 28 + i * 10, can + 61, 6, ph - 2, Gd[3]); box(c, cx - 28 + i * 10, can + 61, 2, ph - 2, Gd[5]); box(c, cx - 23 + i * 10, can + 61, 1, ph - 2, Gd[1]); box(c, cx - 27 + i * 10, can + 61 + ph - 8, 4, 3, INK); }
+    for (let i = 0; i < 4; i++) { box(c, cx - 30, can + 150 + i * 14, 60, 9, INK); box(c, cx - 29, can + 151 + i * 14, 58, 7, hour('#BAE6FD')); box(c, cx - 29, can + 151 + i * 14, 12, 7, hour('#E8F6FE')); }
     // (the beasts round the back, dim, on their poles)
-    for (const b of beasts(f)) if (!b.front || b.depth < 0.25) {
+    for (const b of beasts(cf)) if (!b.front || b.depth < 0.25) {
       const hy = deck - 14 - b.bob;
-      box(c, b.x - 1.5, can + 30, 3, deck - can - 30, dimmed('#FDE047'));
-      beast(c, b.x, hy, b.k, -1, true, f);
+      box(c, b.x - 1.5, can + 30, 3, deck - can - 30, dimmed(BRASS[3]));
+      beast(c, b.x, hy, b.k, -1, true, cf);
     }
-    // (the deck: a fat round platform, its lit top lip, a skirt with lights)
-    c.fillStyle = INK; c.beginPath(); c.ellipse(cx, deck + 8, r + 24, 18, 0, 0, Math.PI * 2); c.fill();
-    c.fillStyle = hour('#F472B6'); c.beginPath(); c.ellipse(cx, deck + 8, r + 21, 15, 0, 0, Math.PI * 2); c.fill();
-    box(c, cx - r - 20, deck, (r + 20) * 2, 3, '#FFF1F2');
-    for (let i = 0; i < 18; i++) { const lx = cx - r + i * ((r * 2) / 17); c.fillStyle = (f >> 4) % 2 === i % 2 ? '#FEF08A' : '#FDA4AF'; c.beginPath(); c.arc(lx, deck + 16, 2.5, 0, Math.PI * 2); c.fill(); }
-    // (the canopy: a scalloped big top, striped, lit along its top lip (stand on it), the rounding board's name)
+    // (the deck's skirt: painted panels, bulbs (dark the revisit), lit along its top)
+    c.fillStyle = INK; c.beginPath(); c.ellipse(cx, deck + 8, r + 24, 18, 0, 0, Math.PI); c.fill();
+    c.fillStyle = Pk[2]; c.beginPath(); c.ellipse(cx, deck + 8, r + 21, 15, 0, 0, Math.PI); c.fill();
+    c.fillStyle = Pk[3]; c.beginPath(); c.ellipse(cx, deck + 6, r + 18, 11, 0, 0, Math.PI); c.fill();
+    box(c, cx - r - 22, deck, (r + 22) * 2, 6, INK); box(c, cx - r - 20, deck + 1, (r + 20) * 2, 4, Pk[3]);
+    box(c, cx - r - 20, deck, (r + 20) * 2, 2, LIP[2]); box(c, cx - r - 10, deck, r, 1, LIP[3]);
+    for (let i = 0; i < 18; i++) { const lx = cx - r + i * ((r * 2) / 17), ly = deck + 14 + Math.sin((i / 17) * Math.PI) * 6, on = !off && (f >> 4) % 2 === i % 2; c.fillStyle = INK; c.beginPath(); c.arc(lx, ly, 3.5, 0, Math.PI * 2); c.fill(); c.fillStyle = off ? hour('#7A5A6A') : on ? '#FFF6B0' : '#FDA4AF'; c.beginPath(); c.arc(lx, ly, 2.5, 0, Math.PI * 2); c.fill(); }
+    // (the canopy: a scalloped big top, its gores stepped, the rounding board's mirrors and bulbs, lit along its top lip
+    // (stand on it), the name)
     const top = can;
-    c.fillStyle = INK; c.beginPath(); c.moveTo(cx - r - 34, top + 2); c.quadraticCurveTo(cx, top - 70, cx + r + 34, top + 2); c.closePath(); c.fill();
-    for (let i = 0; i < 10; i++) { const a0 = cx - r - 30 + i * ((r + 30) * 2 / 10); c.fillStyle = hour(i % 2 ? '#FFF7E8' : '#EC4899'); c.beginPath(); c.moveTo(a0, top); c.lineTo(cx, top - 62); c.lineTo(a0 + (r + 30) * 2 / 10, top); c.closePath(); c.fill(); }
-    box(c, cx - r - 32, top, (r + 32) * 2, 26, INK); box(c, cx - r - 30, top + 2, (r + 30) * 2, 22, hour('#7C3AED'));
-    for (let i = 0; i < 12; i++) { const sx = cx - r - 30 + i * ((r + 30) * 2 / 12); c.fillStyle = INK; c.beginPath(); c.arc(sx + (r + 30) / 12, top + 24, (r + 30) / 12 + 1, 0, Math.PI); c.fill(); c.fillStyle = hour(i % 2 ? '#FDE047' : '#F472B6'); c.beginPath(); c.arc(sx + (r + 30) / 12, top + 24, (r + 30) / 12 - 1, 0, Math.PI); c.fill(); }
-    box(c, cx - r - 30, top, (r + 30) * 2, 3, '#FFFBEB');
-    signText(c, 'THE WUMPLE-GO-ROUND', cx, top + 19, toonLetters(1));
-    // (a flag on top)
-    box(c, cx - 1, top - 90, 3, 30, INK); c.fillStyle = hour('#22C55E'); c.beginPath(); c.moveTo(cx + 2, top - 90); c.lineTo(cx + 22 + Math.sin(f * 0.1) * 3, top - 84); c.lineTo(cx + 2, top - 78); c.fill();
+    c.fillStyle = INK; c.beginPath(); c.moveTo(cx - r - 35, top + 2); c.quadraticCurveTo(cx, top - 72, cx + r + 35, top + 2); c.closePath(); c.fill();
+    for (let i = 0; i < 10; i++) {
+      const a0 = cx - r - 30 + i * ((r + 30) * 2 / 10), a1 = a0 + (r + 30) * 2 / 10, R = i % 2 ? W2 : Pk, k = i < 5 ? 4 - Math.floor(i / 2) : 2 - Math.floor((i - 5) / 3);
+      polyF(c, [[a0, top], [cx, top - 62], [a1, top]], R[Math.max(1, Math.min(4, k))]);
+      polyF(c, [[a1 - 4, top], [cx, top - 62], [a1, top]], R[Math.max(0, Math.min(4, k) - 1)]);
+    }
+    box(c, cx - r - 32, top, (r + 32) * 2, 26, INK);
+    for (let i = 0; i < 3; i++) box(c, cx - r - 30, top + 2 + i * 7, (r + 30) * 2, 8, Pu[4 - i]);
+    for (let i = 0; i < 14; i++) { const mx = cx - r - 22 + i * ((r + 22) * 2 / 13); box(c, mx - 5, top + 5, 10, 13, Gd[2]); box(c, mx - 4, top + 6, 8, 11, i % 2 ? hour('#BAE6FD') : hour('#F9D2E6')); box(c, mx - 4, top + 6, 2, 11, '#FFFFFF'); }
+    box(c, cx - 96, top + 7, 192, 13, Pu[2]);
+    for (let i = 0; i < 12; i++) { const sx = cx - r - 30 + i * ((r + 30) * 2 / 12), rr = (r + 30) / 12; c.fillStyle = INK; c.beginPath(); c.arc(sx + rr, top + 24, rr + 1, 0, Math.PI); c.fill(); c.fillStyle = hour(i % 2 ? '#FDE047' : '#F472B6'); c.beginPath(); c.arc(sx + rr, top + 24, rr - 1, 0, Math.PI); c.fill(); c.fillStyle = hour(i % 2 ? '#FFF6B0' : '#FBC4E0'); c.beginPath(); c.arc(sx + rr - 2, top + 24, rr - 4, 0, Math.PI * 0.5); c.fill(); }
+    for (let i = 0; i < 24; i++) { const bx = cx - r - 26 + i * ((r + 26) * 2 / 23), on = !off && ((f >> 3) + i) % 3 === 0; box(c, bx - 1, top + 2, 3, 3, off ? hour('#5A4A6A') : on ? '#FFFFFF' : '#FDE68A'); }
+    box(c, cx - r - 30, top, (r + 30) * 2, 2, LIP[2]); box(c, cx - r - 20, top, r, 1, LIP[3]);
+    signText(c, 'THE WUMPLE-GO-ROUND', cx, top + 18, toonLetters(1));
+    // (a flag on top, its pole twisted brass)
+    box(c, cx - 2, top - 92, 4, 32, INK); box(c, cx - 1, top - 91, 2, 30, Gd[4]);
+    const fl = off ? 0 : Math.sin(f * 0.1) * 3;
+    polyF(c, [[cx + 2, top - 91], [cx + 24 + fl, top - 85], [cx + 2, top - 77]], INK); polyF(c, [[cx + 2, top - 90], [cx + 21 + fl, top - 85], [cx + 2, top - 79]], hour(GRASS[3])); polyF(c, [[cx + 2, top - 90], [cx + 12 + fl * 0.5, top - 87], [cx + 2, top - 85]], hour(GRASS[4]));
+    ballR(c, cx, top - 94, 3, Gd);
+    // (the revisit: a CLOSED board hung off the rounding board on two chains)
+    if (off) {
+      for (const s of [-1, 1]) for (let y = top + 26; y < top + 48; y += 4) { box(c, cx + s * 40 - 1, y, 3, 3, INK); box(c, cx + s * 40, y + 1, 1, 1, hour(STEEL[4])); }
+      box(c, cx - 56, top + 48, 112, 26, INK); box(c, cx - 54, top + 50, 108, 22, hour(CHERRY[3])); box(c, cx - 54, top + 50, 108, 3, hour(CHERRY[4])); box(c, cx - 54, top + 69, 108, 3, hour(CHERRY[1]));
+      signText(c, 'CLOSED', cx, top + 67, toonLetters(2, ['#FFFFFF', '#FFFFFF', '#FFE4E6', '#FECDD3']));
+    }
   }
   // The spinner: the hub (a fat striped column, a fish bowl on top with a goldfish in it), the back fish
   const sx = X(SPINNER.cx);
   if (onScreen(state, sx - SPINNER.r - 80, sx + SPINNER.r + 80)) {
-    for (const fi of fishes(f)) if (!fi.front || fi.depth < 0.25) {
-      c.strokeStyle = dimmed('#94A3B8'); c.lineWidth = 4; c.beginPath(); c.moveTo(sx, Y(SPINNER.hi + 60)); c.lineTo(fi.x, Y(fi.h) - 10); c.stroke();
-      fishCar(c, fi.x, Y(fi.h), fi.k, Math.cos(fi.a) > 0 ? 1 : -1, true, f);
+    const St = rampH(STEEL), Sk = rampH(SKY), W2 = rampH(FROSTING), fish = fishes(f, off);
+    for (const fi of fish) if (!fi.front || fi.depth < 0.25) {
+      c.strokeStyle = dimmed(STEEL[2]); c.lineWidth = 4; c.beginPath(); c.moveTo(sx, Y(SPINNER.hi + 60)); c.lineTo(fi.x, Y(fi.h) - 10); c.stroke();
+      fishCar(c, fi.x, Y(fi.h), fi.k, Math.cos(fi.a) > 0 ? 1 : -1, true, f, off);
     }
-    box(c, sx - 26, Y(SPINNER.hi + 70), 52, SPINNER.hi + 70, INK);
-    for (let y = Y(SPINNER.hi + 68); y < GY; y += 16) box(c, sx - 23, y, 46, 8, hour('#38BDF8'));
-    for (let y = Y(SPINNER.hi + 60); y < GY; y += 16) box(c, sx - 23, y, 46, 8, hour('#FFF7E8'));
+    // (the hub column: candy stripes, stepped round)
+    const ctop = Y(SPINNER.hi + 70);
+    c.save(); c.beginPath(); c.rect(sx - 24, ctop, 48, GY - ctop); c.clip();
+    for (let y = ctop - 16; y < GY; y += 16) { c.fillStyle = Sk[3]; c.beginPath(); c.moveTo(sx - 24, y); c.lineTo(sx + 24, y + 8); c.lineTo(sx + 24, y + 16); c.lineTo(sx - 24, y + 8); c.closePath(); c.fill(); c.fillStyle = W2[3]; c.beginPath(); c.moveTo(sx - 24, y + 8); c.lineTo(sx + 24, y + 16); c.lineTo(sx + 24, y + 24); c.lineTo(sx - 24, y + 16); c.closePath(); c.fill(); }
+    c.fillStyle = 'rgba(255,255,255,0.28)'; c.fillRect(sx - 24, ctop, 12, GY - ctop); checker(c, sx - 12, ctop, 2, GY - ctop, 'rgba(255,255,255,0.28)', 0, 1);
+    c.fillStyle = 'rgba(26,16,40,0.24)'; c.fillRect(sx + 8, ctop, 16, GY - ctop); checker(c, sx + 6, ctop, 2, GY - ctop, 'rgba(26,16,40,0.24)', 1, 1);
+    c.restore();
+    box(c, sx - 26, ctop, 2, GY - ctop, INK); box(c, sx + 24, ctop, 2, GY - ctop, INK);
+    box(c, sx - 32, ctop - 6, 64, 8, INK); box(c, sx - 31, ctop - 5, 62, 6, St[3]); box(c, sx - 31, ctop - 5, 62, 2, St[5]);
+    // (the bowl: glass, the water banded, the goldfish (belly up the revisit), bubbles, a shine)
     const by = Y(SPINNER.hi + 100);
-    c.fillStyle = INK; c.beginPath(); c.arc(sx, by, 42, 0, Math.PI * 2); c.fill();
-    c.fillStyle = hour('#BAE6FD'); c.beginPath(); c.arc(sx, by, 39, 0, Math.PI * 2); c.fill();
-    c.fillStyle = hour('#38BDF8'); c.beginPath(); c.arc(sx, by, 39, 0.15 * Math.PI, 0.85 * Math.PI); c.fill();
-    const gx = sx + Math.sin(f * 0.03) * 16;
-    c.fillStyle = hour('#FB923C'); c.beginPath(); c.ellipse(gx, by + 10, 10, 6, 0, 0, Math.PI * 2); c.fill(); c.beginPath(); c.moveTo(gx - 9, by + 10); c.lineTo(gx - 16, by + 4); c.lineTo(gx - 16, by + 16); c.fill();
-    c.fillStyle = 'rgba(255,255,255,0.6)'; c.beginPath(); c.ellipse(sx - 16, by - 18, 9, 5, -0.5, 0, Math.PI * 2); c.fill();
+    c.fillStyle = INK; c.beginPath(); c.arc(sx, by, 43, 0, Math.PI * 2); c.fill();
+    c.fillStyle = hour('#D8F0FC'); c.beginPath(); c.arc(sx, by, 40, 0, Math.PI * 2); c.fill();
+    c.save(); c.beginPath(); c.arc(sx, by, 40, 0, Math.PI * 2); c.clip();
+    for (let i = 0; i < 5; i++) box(c, sx - 41, by - 4 + i * 9, 82, 10, hour(['#7ED0F6', '#5EC0F0', '#44AEE8', '#3496D8', '#2A7EC0'][i]));
+    checker(c, sx - 41, by + 4, 82, 2, hour('#5EC0F0'), 0, 1); checker(c, sx - 41, by + 13, 82, 2, hour('#44AEE8'), 1, 1);
+    box(c, sx - 41, by - 5, 82, 2, hour('#E6F8FE'));
+    const gx = off ? sx + 6 : sx + Math.sin(f * 0.03) * 16, gy = off ? by - 6 : by + 10;
+    c.save(); c.translate(gx, gy); if (off) c.scale(1, -1);
+    eggR(c, 0, 0, 10, 6, ramp6(hour('#FB923C'))); polyF(c, [[-9, 0], [-17, -6], [-17, 6]], hour('#EA6A1A')); box(c, 4, -2, 2, 2, INK); if (off) { box(c, 3, -3, 4, 1, INK); box(c, 4, -4, 1, 3, INK); }
+    c.restore();
+    if (!off) for (let i = 0; i < 3; i++) { const bt = ((f * 0.5 + i * 20) % 60) / 60; box(c, sx + 8 + Math.sin(bt * 6 + i) * 3, by + 8 - bt * 40, 2, 2, '#FFFFFF'); }
+    c.restore();
+    c.fillStyle = 'rgba(255,255,255,0.65)'; c.beginPath(); c.ellipse(sx - 17, by - 19, 9, 5, -0.5, 0, Math.PI * 2); c.fill(); box(c, sx + 22, by - 10, 3, 8, 'rgba(255,255,255,0.5)');
     // (its name on a wavy banner over the bowl, held up on two poles)
-    for (const px of [sx - 92, sx + 92]) { box(c, px - 2, by - 70, 4, 50, INK); box(c, px - 1, by - 70, 2, 50, hour('#FDE047')); }
+    for (const px of [sx - 92, sx + 92]) { box(c, px - 2, by - 70, 4, 52, INK); box(c, px - 1, by - 69, 2, 50, hour(LEMON[4])); ballR(c, px, by - 72, 3, rampH(LEMON)); }
     c.fillStyle = INK; c.beginPath(); c.roundRect(sx - 100, by - 86, 200, 22, 8); c.fill();
-    c.fillStyle = hour('#0EA5E9'); c.beginPath(); c.roundRect(sx - 98, by - 84, 196, 18, 7); c.fill();
+    c.save(); c.beginPath(); c.roundRect(sx - 98, by - 84, 196, 18, 7); c.clip(); for (let i = 0; i < 4; i++) box(c, sx - 98, by - 84 + i * 5, 196, 6, hour(['#7ED0F6', '#0EA5E9', '#0EA5E9', '#0B7DB8'][i])); c.restore();
     signText(c, 'THE WISH-FISH SPINNER', sx, by - 71, toonLetters(1));
+    if (off) closedBoard(c, sx + 60, ['CLOSED FOR', 'THE DAY']);
   }
   // The train: the track (sleepers and rails along the ground), the back pass behind its hedge row
   const ta = X(TRAIN.a), tb = X(TRAIN.b);
   if (onScreen(state, ta - 80, tb + 80)) {
-    const tr = trainAt(f);
-    if (tr.phase === 'back') { c.save(); c.beginPath(); c.rect(ta - 30, GY - 220, tb - ta + 60, 230); c.clip(); drawTrain(c, tr.x, Y(26), 1, true, f, 0.75); c.restore(); }
-    // (the hedge row it goes round behind)
-    for (let x = ta - 60; x < tb + 60; x += 34) { c.fillStyle = INK; c.beginPath(); c.arc(x, Y(30), 22, Math.PI, 0); c.fill(); c.fillStyle = dimmed('#4ADE80'); c.beginPath(); c.arc(x, Y(30), 20, Math.PI, 0); c.fill(); }
-    box(c, ta - 80, Y(30), tb - ta + 160, 30, dimmed('#4ADE80'));
-    for (let x = ta - 40; x < tb + 40; x += 22) box(c, x, GY - 6, 14, 6, hour('#92400E'));
-    box(c, ta - 40, GY - 8, tb - ta + 80, 2, hour('#94A3B8')); box(c, ta - 40, GY - 3, tb - ta + 80, 2, hour('#94A3B8'));
+    const tr = trainAt(f), Gr = rampH(GRASS), Hd = rampH(GRASS, true);
+    if (off) { c.save(); c.beginPath(); c.rect(ta - 30, GY - 220, tb - ta + 60, 230); c.clip(); drawTrain(c, ta + 360, Y(26), 1, true, f, 0.75, true); c.restore(); }
+    else if (tr.phase === 'back') { c.save(); c.beginPath(); c.rect(ta - 30, GY - 220, tb - ta + 60, 230); c.clip(); drawTrain(c, tr.x, Y(26), 1, true, f, 0.75); c.restore(); }
+    // (the hedge row it goes round behind: clipped lumps, stepped)
+    for (let x = ta - 60; x < tb + 60; x += 34) { c.fillStyle = INK; c.beginPath(); c.arc(x, Y(30), 22, Math.PI, 0); c.fill(); c.fillStyle = Hd[2]; c.beginPath(); c.arc(x, Y(30), 20, Math.PI, 0); c.fill(); c.fillStyle = Hd[3]; c.beginPath(); c.arc(x - 4, Y(31), 14, Math.PI, 0); c.fill(); box(c, x - 12, Y(46), 6, 2, Hd[4]); }
+    box(c, ta - 80, Y(30), tb - ta + 160, 30, Hd[2]); checker(c, ta - 80, Y(30), tb - ta + 160, 2, Hd[3], 0, 1);
+    for (let x = ta - 40; x < tb + 40; x += 22) { box(c, x, GY - 7, 14, 7, INK); box(c, x + 1, GY - 6, 12, 5, hour('#92400E')); box(c, x + 1, GY - 6, 12, 1, hour('#C2742E')); }
+    for (const ry of [GY - 9, GY - 4]) { box(c, ta - 40, ry, tb - ta + 80, 3, INK); box(c, ta - 40, ry, tb - ta + 80, 1, hour(STEEL[5])); box(c, ta - 40, ry + 1, tb - ta + 80, 1, hour(STEEL[3])); }
     // (the front pass (on the track, behind him: he's on the path in front of the track), and the topiary hedges at the
     // track's ends it comes out from behind and goes round)
-    if (tr.phase === 'front') { c.save(); c.beginPath(); c.rect(ta - 30, GY - 220, tb - ta + 60, 230); c.clip(); drawTrain(c, tr.x, GY, -1, false, f); c.restore(); }
+    if (!off && tr.phase === 'front') { c.save(); c.beginPath(); c.rect(ta - 30, GY - 220, tb - ta + 60, 230); c.clip(); drawTrain(c, tr.x, GY, -1, false, f); c.restore(); }
     for (const hx of [ta - 50, tb + 50]) {
-      for (const [dx, dy, r] of HEDGE) { c.fillStyle = INK; c.beginPath(); c.arc(hx + dx, GY + dy, r + 3, 0, Math.PI * 2); c.fill(); }
-      for (const [dx, dy, r] of HEDGE) { c.fillStyle = hour('#22C55E'); c.beginPath(); c.arc(hx + dx, GY + dy, r, 0, Math.PI * 2); c.fill(); }
-      c.fillStyle = hour('#86EFAC'); c.beginPath(); c.arc(hx - 22, GY - 50, 10, 0, Math.PI * 2); c.fill();
-      for (let i = 0; i < 5; i++) { c.fillStyle = ['#F472B6', '#FDE047', '#FFFFFF'][i % 3]; c.beginPath(); c.arc(hx - 40 + i * 20, GY - 30 - (i % 2) * 18, 3, 0, Math.PI * 2); c.fill(); }
+      for (const [dx, dy, rr] of HEDGE) { c.fillStyle = INK; c.beginPath(); c.arc(hx + dx, GY + dy, rr + 3, 0, Math.PI * 2); c.fill(); }
+      for (const [dx, dy, rr] of HEDGE) ballR(c, hx + dx, GY + dy, rr, Gr, false);
+      for (let i = 0; i < 5; i++) ballR(c, hx - 40 + i * 20, GY - 30 - (i % 2) * 18, 3, rampH(ramp6(['#F472B6', '#FDE047', '#FFFFFF'][i % 3])), false);
     }
+    if (off) closedBoard(c, tb + 10, ['NO MORE TRAINS', 'TODAY']);
   }
   // The trolley's track: a beam on curly posts out over the pit (its top's the lit lip he walks on), the end station
   const ra = X(TROLLEY.a), rb = X(TROLLEY.b), ry = Y(TROLLEY.h);
   if (onScreen(state, ra - 60, rb + 200)) {
-    for (let x = ra + 120; x < rb; x += 260) {
-      c.lineCap = 'round'; c.strokeStyle = INK; c.lineWidth = 12; c.beginPath(); c.moveTo(x, GY + 20); c.bezierCurveTo(x - 20, ry + 120, x + 20, ry + 60, x, ry + 10); c.stroke();
-      c.strokeStyle = hour('#A78BFA'); c.lineWidth = 7; c.stroke();
+    const Pu = rampH(LILAC);
+    for (let x = ra + 120; x < rb; x += 260) candyStroke(c, () => { c.moveTo(x, GY + 20); c.bezierCurveTo(x - 20, ry + 120, x + 20, ry + 60, x, ry + 10); }, 8, Pu, rampH(FROSTING), 8);
+    // (the hattery's arch: the bell's lamp over it flashing while it rings; the revisit, the trolley's put away: the
+    // shutter rolled down across the arch, its slats, OUT OF SERVICE on it, the lamp dark)
+    const tl = trolleyAt(f), lampOn = !off && tl.phase === 'bell' && (tl.t >> 3) % 2 === 0;
+    ballR(c, ra - 2, ry - TROLLEY_H - 14, 8, lampOn ? ramp6('#FDE047') : rampH(ramp6('#92400E')));
+    if (lampOn) { c.fillStyle = 'rgba(253,224,71,0.25)'; c.beginPath(); c.arc(ra - 2, ry - TROLLEY_H - 14, 24, 0, Math.PI * 2); c.fill(); }
+    if (off) {
+      const St = rampH(STEEL);
+      c.save(); c.beginPath(); c.moveTo(ra - 64, ry); c.lineTo(ra - 64, ry - 68); c.quadraticCurveTo(ra - 34, ry - 102, ra - 4, ry - 68); c.lineTo(ra - 4, ry); c.closePath(); c.clip();
+      for (let y = ry - 104; y < ry; y += 6) { box(c, ra - 66, y, 64, 6, St[3]); box(c, ra - 66, y, 64, 1, St[5]); box(c, ra - 66, y + 5, 64, 1, St[1]); }
+      c.restore();
+      box(c, ra - 60, ry - 46, 52, 22, INK); box(c, ra - 59, ry - 45, 50, 20, hour('#F4E8D0'));
+      signText(c, 'OUT OF', ra - 34, ry - 37, { sx: 1, sy: 1, bold: true, fill: hour(CHERRY[2]) }); signText(c, 'SERVICE', ra - 34, ry - 28, { sx: 1, sy: 1, bold: true, fill: hour(CHERRY[2]) });
     }
     // (the end station: a little domed hut on stilts, behind)
-    const ex = rb + 20;
-    box(c, ex - 4, ry - 120, 140, 130, INK); box(c, ex, ry - 116, 132, 122, dimmed('#FDE68A'));
-    c.fillStyle = INK; c.beginPath(); c.arc(ex + 66, ry - 116, 72, Math.PI, 0); c.fill(); c.fillStyle = dimmed('#F472B6'); c.beginPath(); c.arc(ex + 66, ry - 116, 68, Math.PI, 0); c.fill();
+    const ex = rb + 20, Y2 = rampH(LEMON, true), P2 = rampH(BUBBLEGUM, true);
+    box(c, ex - 4, ry - 120, 140, 130, INK); shadeAcross(c, () => c.rect(ex, ry - 116, 132, 122), ex, ry - 116, 132, 122, Y2);
+    c.fillStyle = INK; c.beginPath(); c.arc(ex + 66, ry - 116, 72, Math.PI, 0); c.fill();
+    c.save(); c.beginPath(); c.arc(ex + 66, ry - 116, 68, Math.PI, 0); c.clip(); for (let k = 0; k < 8; k++) { c.fillStyle = k % 2 ? P2[3] : P2[4 - (k > 4 ? 2 : 0)]; c.beginPath(); c.moveTo(ex + 66, ry - 186); c.lineTo(ex - 2 + k * 17, ry - 116); c.lineTo(ex + 15 + k * 17, ry - 116); c.closePath(); c.fill(); } c.restore();
     box(c, ex - 6, ry - 92, 40, 92, '#1A1028');
+    for (let k = 0; k < 3; k++) { c.fillStyle = INK; c.beginPath(); c.arc(ex + 60 + k * 26, ry - 70, 9, 0, Math.PI * 2); c.fill(); c.fillStyle = lit() ? '#FFE08A' : dimmed('#9ACAEA'); c.beginPath(); c.arc(ex + 60 + k * 26, ry - 70, 7, 0, Math.PI * 2); c.fill(); }
   }
 };
 
+/** A sandwich board on the ground (a CLOSED notice), its feet at x. */
+const closedBoard = (c: Ctx, x: number, lines: string[]) => {
+  const W = 92, top = GY - 52, Wd = rampH(ramp6('#F4E8D0'));
+  polyF(c, [[x - 4, GY], [x + 6, top], [x + W - 6, top], [x + W + 4, GY]], INK);
+  polyF(c, [[x - 2, GY - 1], [x + 7, top + 2], [x + W - 7, top + 2], [x + W + 2, GY - 1]], Wd[3]);
+  box(c, x + 8, top + 2, W - 16, 3, Wd[5]); box(c, x, GY - 8, W, 3, Wd[1]);
+  box(c, x + 10, top + 8, W - 20, 30, hour(CHERRY[3])); box(c, x + 10, top + 8, W - 20, 2, hour(CHERRY[4]));
+  lines.forEach((l, i) => signText(c, l, x + W / 2, top + 20 + i * 12, { sx: 1, sy: 1, bold: true, fill: '#FFFFFF' }));
+};
 /** A topiary hedge's lumps: [dx, dy, r] about its foot. */
 const HEDGE: [number, number, number][] = [[-40, -20, 24], [-14, -40, 30], [16, -34, 28], [42, -18, 22], [0, -14, 30]];
-/** The train: its engine's nose at x (going left, or right `back`), sitting on y; scaled `k`. */
-const drawTrain = (c: Ctx, x: number, y: number, dir: number, dim: boolean, f: number, k = 1) => {
+/** The train: its engine's nose at x (going left, or right `back`), sitting on y; scaled `k`. A fat boiler with a
+ *  face (rosy cheeks, a grin), its funnel stack banded, the cab, brass trim, spoked wheels; three cars of screaming
+ *  kids (seeded looks), each car stepped with its scalloped trim. `empty` (parked): no kids, the face asleep. */
+const drawTrain = (c: Ctx, x: number, y: number, dir: number, dim: boolean, f: number, k = 1, empty = false) => {
   const T = dim ? dimmed : (col: string) => hour(col);
+  const Bl = ramp6(T('#3B82F6')), Rd = ramp6(T('#EF4444')), Yl = ramp6(T('#FDE047')), Pk = ramp6(T('#F472B6')), Gd = ramp6(T(BRASS[3]));
   c.save(); c.translate(x, y); c.scale(k * (dir > 0 ? -1 : 1), k);
-  // (the engine: a fat boiler with a face, a funnel stack, the cab; three cars of screaming kids)
-  const wheel = (wx: number) => { c.fillStyle = INK; c.beginPath(); c.arc(wx, -8, 9, 0, Math.PI * 2); c.fill(); c.fillStyle = T('#EF4444'); c.beginPath(); c.arc(wx, -8, 7, 0, Math.PI * 2); c.fill(); const a = f * 0.2; c.strokeStyle = INK; c.lineWidth = 1.5; c.beginPath(); c.moveTo(wx + Math.cos(a) * 6, -8 + Math.sin(a) * 6); c.lineTo(wx - Math.cos(a) * 6, -8 - Math.sin(a) * 6); c.stroke(); };
-  c.fillStyle = INK; c.beginPath(); c.roundRect(0, -46, 74, 40, 12); c.fill();
-  c.fillStyle = T('#3B82F6'); c.beginPath(); c.roundRect(2, -44, 70, 36, 10); c.fill();
-  c.fillStyle = INK; c.beginPath(); c.arc(8, -26, 16, 0, Math.PI * 2); c.fill(); c.fillStyle = T('#FDE047'); c.beginPath(); c.arc(8, -26, 14, 0, Math.PI * 2); c.fill();
-  box(c, 2, -31, 4, 4, INK); box(c, 10, -31, 4, 4, INK); c.strokeStyle = INK; c.lineWidth = 2; c.beginPath(); c.arc(8, -24, 6, 0.3, Math.PI - 0.3); c.stroke();
-  c.fillStyle = INK; c.beginPath(); c.moveTo(20, -46); c.lineTo(16, -70); c.lineTo(36, -70); c.lineTo(32, -46); c.closePath(); c.fill();
-  c.fillStyle = T('#EF4444'); c.beginPath(); c.moveTo(22, -47); c.lineTo(18, -68); c.lineTo(34, -68); c.lineTo(30, -47); c.closePath(); c.fill();
-  box(c, 46, -62, 28, 20, INK); box(c, 48, -60, 24, 16, T('#F472B6'));
-  wheel(18); wheel(54);
+  const wheel = (wx: number, R: string[]) => { c.fillStyle = INK; c.beginPath(); c.arc(wx, -8, 9.5, 0, Math.PI * 2); c.fill(); c.fillStyle = R[2]; c.beginPath(); c.arc(wx, -8, 7.5, 0, Math.PI * 2); c.fill(); c.fillStyle = R[4]; c.beginPath(); c.arc(wx - 1, -9, 5, Math.PI, Math.PI * 1.6); c.lineTo(wx - 1, -9); c.fill(); const a = empty ? 0.3 : f * 0.2; c.strokeStyle = INK; c.lineWidth = 1.5; for (const o of [0, Math.PI / 2]) { c.beginPath(); c.moveTo(wx + Math.cos(a + o) * 6, -8 + Math.sin(a + o) * 6); c.lineTo(wx - Math.cos(a + o) * 6, -8 - Math.sin(a + o) * 6); c.stroke(); } box(c, wx - 1.5, -9.5, 3, 3, Gd[4]); };
+  // (the engine)
+  c.fillStyle = INK; c.beginPath(); c.roundRect(-1, -47, 76, 42, 12); c.fill();
+  c.save(); c.beginPath(); c.roundRect(2, -44, 70, 36, 10); c.clip(); for (let i = 0; i < 5; i++) box(c, 2, -44 + i * 8, 70, 9, [Bl[4], Bl[3], Bl[3], Bl[2], Bl[1]][i]); box(c, 2, -44, 70, 1, Bl[5]); c.restore();
+  for (const bx of [24, 40]) { box(c, bx, -44, 3, 36, Gd[3]); box(c, bx, -44, 1, 36, Gd[5]); }
+  ballR(c, 8, -26, 15, Yl);
+  box(c, 2, -32, 4, 4, INK); box(c, 10, -32, 4, 4, INK);
+  if (!empty) { box(c, 3, -31, 1, 1, '#FFFFFF'); box(c, 11, -31, 1, 1, '#FFFFFF'); c.strokeStyle = INK; c.lineWidth = 2; c.beginPath(); c.arc(8, -24, 6, 0.3, Math.PI - 0.3); c.stroke(); }
+  else { box(c, 2, -30, 4, 1, Yl[0]); box(c, 10, -30, 4, 1, Yl[0]); box(c, 5, -21, 6, 1, INK); }
+  c.fillStyle = 'rgba(255,110,140,0.5)'; c.beginPath(); c.arc(0, -21, 3, 0, Math.PI * 2); c.arc(16, -21, 3, 0, Math.PI * 2); c.fill();
+  polyF(c, [[20, -46], [15, -72], [37, -72], [32, -46]], INK);
+  polyF(c, [[22, -47], [18, -70], [34, -70], [30, -47]], Rd[3]); polyF(c, [[22, -47], [18, -70], [22, -70], [25, -47]], Rd[4]); polyF(c, [[28, -47], [31, -70], [34, -70], [30, -47]], Rd[1]);
+  box(c, 15, -75, 22, 5, INK); box(c, 16, -74, 20, 3, Gd[3]); box(c, 16, -74, 20, 1, Gd[5]);
+  box(c, 45, -63, 30, 22, INK); box(c, 47, -61, 26, 18, Pk[3]); box(c, 47, -61, 26, 3, Pk[4]); box(c, 49, -57, 10, 8, T('#BAE6FD')); box(c, 49, -57, 3, 8, '#FFFFFF');
+  box(c, 43, -66, 34, 5, INK); box(c, 44, -65, 32, 3, Rd[3]);
+  wheel(18, Rd); wheel(54, Rd);
+  // (the cars: stepped, scalloped trim, the kids)
   for (let i = 0; i < 3; i++) {
-    const cx = 80 + i * 74;
-    box(c, cx, -34, 68, 28, INK); box(c, cx + 2, -32, 64, 24, T(['#22C55E', '#F97316', '#A855F7'][i]));
-    for (let j = 0; j < 3; j++) {
-      const kx = cx + 12 + j * 20, sk = ['#F6DCC8', '#A86B43', '#F0C8A2', '#6E4426'][(i + j) % 4];
-      c.fillStyle = INK; c.beginPath(); c.arc(kx, -40, 6, 0, Math.PI * 2); c.fill(); c.fillStyle = T(sk); c.beginPath(); c.arc(kx, -40, 4.8, 0, Math.PI * 2); c.fill();
-      box(c, kx - 1, -38, 3, 3, INK);
-      if (((f >> 3) + j + i) % 3 === 0) { box(c, kx - 6, -52, 2, 9, INK); box(c, kx + 4, -52, 2, 9, INK); }
+    const cx = 80 + i * 74, C = ramp6(T(['#22C55E', '#F97316', '#A855F7'][i]));
+    box(c, cx, -35, 68, 29, INK);
+    c.save(); c.beginPath(); c.rect(cx + 2, -33, 64, 25); c.clip(); for (let j = 0; j < 4; j++) box(c, cx + 2, -33 + j * 7, 64, 8, [C[4], C[3], C[2], C[1]][j]); c.restore();
+    for (let j = 0; j < 5; j++) { c.fillStyle = INK; c.beginPath(); c.arc(cx + 8 + j * 13, -33, 5, 0, Math.PI); c.fill(); c.fillStyle = Yl[3]; c.beginPath(); c.arc(cx + 8 + j * 13, -33, 3.5, 0, Math.PI); c.fill(); }
+    if (!empty) for (let j = 0; j < 3; j++) {
+      const kx = cx + 12 + j * 20, L = lookOf(i * 11 + j * 5 + 3), Sk = ramp6(T(L.skin));
+      ballR(c, kx, -41, 5.5, Sk); box(c, kx - 5, -47, 10, 3, T(L.hair));
+      box(c, kx - 1, -39, 3, 3, INK);
+      if (((f >> 3) + j + i) % 3 === 0) { box(c, kx - 7, -54, 2, 10, Sk[2]); box(c, kx + 5, -54, 2, 10, Sk[2]); }
     }
-    wheel(cx + 14); wheel(cx + 54);
+    wheel(cx + 14, Gd); wheel(cx + 54, Gd);
   }
   c.restore();
 };
@@ -437,80 +537,92 @@ const drawTrain = (c: Ctx, x: number, y: number, dir: number, dim: boolean, f: n
 /** In front: the carousel's front beasts on their poles, the spinner's front fish, the trolley, the ball pits' near
  *  lip, what the cast throw. */
 export const drawHazardsFront = (c: Ctx, state: GameState) => {
-  const f = state.frame, k = kiddieOf(state);
-  // The carousel's front beasts
-  const cx = X(CAROUSEL.cx), deck = Y(CAROUSEL.deck), can = Y(CAROUSEL.canopy);
+  const f = state.frame, k = kiddieOf(state), off = shut(state), cf = off ? PARKED : f;
+  // The carousel's front beasts (on twisted brass poles)
+  const cx = X(CAROUSEL.cx), deck = Y(CAROUSEL.deck), can = Y(CAROUSEL.canopy), Gd = rampH(BRASS);
   if (onScreen(state, cx - CAROUSEL.r - 60, cx + CAROUSEL.r + 60)) {
-    for (const b of beasts(f).filter(b => b.front && b.depth >= 0.25).sort((a, b) => a.depth - b.depth)) {
-      box(c, b.x - 2.5, can + 26, 5, deck - can - 26, INK); box(c, b.x - 1.5, can + 26, 3, deck - can - 26, hour('#FDE047'));
-      beast(c, b.x, deck - 14 - b.bob, b.k, -1, false, f);
+    for (const b of beasts(cf).filter(b => b.front && b.depth >= 0.25).sort((a, b) => a.depth - b.depth)) {
+      box(c, b.x - 3, can + 26, 6, deck - can - 26, INK); box(c, b.x - 2, can + 26, 4, deck - can - 26, Gd[3]); box(c, b.x - 2, can + 26, 1, deck - can - 26, Gd[5]); box(c, b.x + 1, can + 26, 1, deck - can - 26, Gd[1]);
+      for (let y = can + 30; y < deck; y += 8) box(c, b.x - 2, y, 4, 2, Gd[2]);
+      beast(c, b.x, deck - 14 - b.bob, b.k, -1, false, cf);
     }
   }
   // The spinner's front fish, on their arms
   const sx = X(SPINNER.cx);
   if (onScreen(state, sx - SPINNER.r - 80, sx + SPINNER.r + 80)) {
-    for (const fi of fishes(f).filter(fi => fi.front && fi.depth >= 0.25).sort((a, b) => a.depth - b.depth)) {
-      c.strokeStyle = INK; c.lineWidth = 6; c.beginPath(); c.moveTo(sx, Y(SPINNER.hi + 60)); c.lineTo(fi.x, Y(fi.h) - 10); c.stroke();
-      c.strokeStyle = hour('#CBD5E1'); c.lineWidth = 3; c.stroke();
-      fishCar(c, fi.x, Y(fi.h), fi.k, Math.cos(fi.a) > 0 ? -1 : 1, false, f);
+    for (const fi of fishes(f, off).filter(fi => fi.front && fi.depth >= 0.25).sort((a, b) => a.depth - b.depth)) {
+      c.strokeStyle = INK; c.lineWidth = 7; c.beginPath(); c.moveTo(sx, Y(SPINNER.hi + 60)); c.lineTo(fi.x, Y(fi.h) - 10); c.stroke();
+      c.strokeStyle = hour(STEEL[3]); c.lineWidth = 4; c.stroke();
+      c.strokeStyle = hour(STEEL[5]); c.lineWidth = 1; c.beginPath(); c.moveTo(sx, Y(SPINNER.hi + 60) - 1); c.lineTo(fi.x, Y(fi.h) - 11); c.stroke();
+      fishCar(c, fi.x, Y(fi.h), fi.k, Math.cos(fi.a) > 0 ? -1 : 1, false, f, off);
     }
   }
-  // The trolley (out of the hattery's wall, into the end station)
+  // The trolley (out of the hattery's wall, into the end station); the revisit: put away, the shutter down
   const tl = trolleyAt(f), ra = X(TROLLEY.a), rb = X(TROLLEY.b), ry = Y(TROLLEY.h);
   if (onScreen(state, ra - 200, rb + 200)) {
-    // (the hattery's arch: the bell's lamp over it flashing while it rings)
-    const lampOn = tl.phase === 'bell' && (tl.t >> 3) % 2 === 0;
-    c.fillStyle = INK; c.beginPath(); c.arc(ra - 2, ry - TROLLEY_H - 14, 9, 0, Math.PI * 2); c.fill();
-    c.fillStyle = lampOn ? '#FDE047' : hour('#92400E'); c.beginPath(); c.arc(ra - 2, ry - TROLLEY_H - 14, 7, 0, Math.PI * 2); c.fill();
-    if (lampOn) { c.fillStyle = 'rgba(253,224,71,0.25)'; c.beginPath(); c.arc(ra - 2, ry - TROLLEY_H - 14, 24, 0, Math.PI * 2); c.fill(); }
-    if (tl.phase === 'run') {
+    if (!off && tl.phase === 'run') {
       c.save(); c.beginPath(); c.rect(ra, ry - 200, rb - ra + 60, 220); c.clip();
-      const x0 = tl.x - TROLLEY_LEN;
+      const x0 = tl.x - TROLLEY_LEN, Bd = rampH(ramp6('#FB7185')), W2 = rampH(FROSTING), Gr = rampH(GRASS);
       // (a curly little tram: a striped awning roof, round windows with grown-ups waving, a bell, a cowcatcher)
       c.fillStyle = INK; c.beginPath(); c.roundRect(x0, ry - TROLLEY_H, TROLLEY_LEN, TROLLEY_H - 6, 14); c.fill();
-      c.fillStyle = hour('#FB7185'); c.beginPath(); c.roundRect(x0 + 3, ry - TROLLEY_H + 3, TROLLEY_LEN - 6, TROLLEY_H - 12, 12); c.fill();
-      for (let i = 0; i < 9; i++) box(c, x0 + 6 + i * 18, ry - TROLLEY_H - 6, 9, 10, hour(i % 2 ? '#FFF7E8' : '#22C55E'));
-      box(c, x0, ry - TROLLEY_H - 8, TROLLEY_LEN, 3, INK);
+      c.save(); c.beginPath(); c.roundRect(x0 + 3, ry - TROLLEY_H + 3, TROLLEY_LEN - 6, TROLLEY_H - 12, 12); c.clip(); for (let i = 0; i < 5; i++) box(c, x0, ry - TROLLEY_H + 3 + i * 14, TROLLEY_LEN, 15, [Bd[4], Bd[3], Bd[3], Bd[2], Bd[1]][i]); box(c, x0, ry - 24, TROLLEY_LEN, 4, W2[3]); box(c, x0, ry - 24, TROLLEY_LEN, 1, W2[5]); c.restore();
+      for (let i = 0; i < 9; i++) { const R = i % 2 ? W2 : Gr; box(c, x0 + 6 + i * 18, ry - TROLLEY_H - 7, 10, 11, INK); box(c, x0 + 7 + i * 18, ry - TROLLEY_H - 6, 8, 9, R[3]); box(c, x0 + 7 + i * 18, ry - TROLLEY_H - 6, 8, 2, R[4]); }
+      box(c, x0, ry - TROLLEY_H - 9, TROLLEY_LEN, 3, INK);
       for (let i = 0; i < 4; i++) {
-        const wx = x0 + 28 + i * 38;
+        const wx = x0 + 28 + i * 38, L = lookOf(i * 9 + 17);
         c.fillStyle = INK; c.beginPath(); c.arc(wx, ry - 48, 13, 0, Math.PI * 2); c.fill();
         c.fillStyle = hour('#BAE6FD'); c.beginPath(); c.arc(wx, ry - 48, 11, 0, Math.PI * 2); c.fill();
-        c.fillStyle = hour(['#F6DCC8', '#A86B43', '#F0C8A2', '#6E4426'][i]); c.beginPath(); c.arc(wx, ry - 46, 6, 0, Math.PI * 2); c.fill();
+        ballR(c, wx, ry - 46, 6, ramp6(hour(L.skin)), false); box(c, wx - 6, ry - 53, 12, 3, hour(L.hair)); box(c, wx - 2, ry - 46, 1, 1, INK); box(c, wx + 2, ry - 46, 1, 1, INK);
+        if ((f >> 4) % 2 === i % 2) box(c, wx + 6, ry - 58, 2, 8, ramp6(hour(L.skin))[2]);
+        box(c, wx - 8, ry - 56, 3, 5, 'rgba(255,255,255,0.7)');
       }
-      c.fillStyle = INK; c.beginPath(); c.moveTo(tl.x, ry - 30); c.lineTo(tl.x + 16, ry - 4); c.lineTo(tl.x, ry - 4); c.closePath(); c.fill();
-      c.fillStyle = hour('#FDE047'); c.beginPath(); c.arc(tl.x - 8, ry - 60, 6, 0, Math.PI * 2); c.fill();
-      for (const wx of [x0 + 24, tl.x - 24]) { c.fillStyle = INK; c.beginPath(); c.arc(wx, ry - 4, 8, 0, Math.PI * 2); c.fill(); c.fillStyle = hour('#94A3B8'); c.beginPath(); c.arc(wx, ry - 4, 6, 0, Math.PI * 2); c.fill(); }
+      polyF(c, [[tl.x, ry - 30], [tl.x + 17, ry - 3], [tl.x, ry - 3]], INK); for (let k2 = 0; k2 < 3; k2++) box(c, tl.x + 2 + k2 * 4, ry - 24 + k2 * 7, 2, 18 - k2 * 7, hour(STEEL[4]));
+      ballR(c, tl.x - 8, ry - 60, 6, rampH(LEMON));
+      for (const wx of [x0 + 24, tl.x - 24]) { c.fillStyle = INK; c.beginPath(); c.arc(wx, ry - 4, 8.5, 0, Math.PI * 2); c.fill(); c.fillStyle = hour(STEEL[3]); c.beginPath(); c.arc(wx, ry - 4, 6.5, 0, Math.PI * 2); c.fill(); box(c, wx - 3, ry - 8, 3, 2, hour(STEEL[5])); }
       c.restore();
     }
   }
-  // The ball pits: the near lip of the balls (over his feet as he goes in)
+  // The ball pits: the near lip of the balls (over his feet as he goes in), only what's on screen
   for (const [a, b] of PITS) {
-    if (!onScreen(state, X(a), X(b))) continue;
-    for (let x = X(a) + 6; x < X(b) - 4; x += 13) { const col = BALLS[Math.abs(Math.floor(x / 13)) % BALLS.length]; c.fillStyle = INK; c.beginPath(); c.arc(x, GY + 14, 7.5, 0, Math.PI * 2); c.fill(); c.fillStyle = hour(col); c.beginPath(); c.arc(x, GY + 14, 6, 0, Math.PI * 2); c.fill(); box(c, x - 3, GY + 10, 2, 2, '#FFFFFF'); }
+    const l = Math.max(X(a) + 6, state.camera.x - 20), r = Math.min(X(b) - 4, state.camera.x + 820);
+    if (r <= l) continue;
+    for (let x = l - ((l - X(a) - 6) % 13); x < r; x += 13) { const col = BALLS[Math.abs(Math.floor(x / 13)) % BALLS.length]; ballR(c, x, GY + 14, 6.5, ramp6(hour(col))); }
   }
   // What's thrown
   for (const s of k.throws) {
     if (s.kind === 'hat') {
+      // (the stovepipe spinning: its stripes stepped, the brim lit)
+      const Tl = ramp6('#14B8A6'), Wt = ramp6('#F8F4EC');
       c.save(); c.translate(s.x, s.y); c.rotate(s.t * 0.45);
-      box(c, -15, -2, 30, 5, INK); box(c, -14, -1, 28, 3, '#F8F4EC');
-      box(c, -9, -24, 18, 23, INK); box(c, -8, -23, 16, 22, '#F8F4EC'); for (let i = 0; i < 3; i++) box(c, -8, -20 + i * 7, 16, 3, '#14B8A6');
+      box(c, -16, -3, 32, 7, INK); box(c, -15, -2, 30, 5, Wt[3]); box(c, -15, -2, 30, 1, Wt[5]); box(c, -15, 2, 30, 1, Wt[1]);
+      box(c, -10, -25, 20, 24, INK); box(c, -9, -24, 18, 23, Wt[3]);
+      for (let i = 0; i < 3; i++) { box(c, -9, -21 + i * 7, 18, 3, Tl[3]); box(c, -9, -21 + i * 7, 4, 3, Tl[4]); box(c, 4, -21 + i * 7, 5, 3, Tl[1]); }
+      box(c, -9, -24, 3, 23, 'rgba(255,255,255,0.35)'); box(c, 4, -24, 5, 23, 'rgba(26,16,40,0.18)');
       c.restore();
     } else if (s.kind === 'kite') {
       const o = s.from, hx = mid(o).x + (o.facing ?? 1) * 10, hy = o.pos.y + 20;
       if (s.phase !== 'loose') { c.strokeStyle = 'rgba(255,255,255,0.85)'; c.lineWidth = 1; c.beginPath(); c.moveTo(hx, hy); c.quadraticCurveTo((hx + s.x) / 2 - 20, (hy + s.y) / 2 + 30, s.x, s.y + 12); c.stroke(); }
       const shake = s.phase === 'tell' ? Math.sin(f * 1.2) * 0.3 : 0, a = s.phase === 'dive' ? Math.atan2((s.ty ?? s.y) - s.y, (s.tx ?? s.x) - s.x) - Math.PI / 2 : shake;
+      const K = ramp6((o.variant ?? 1) === 2 ? '#3B82F6' : '#DC2626'), W2 = ramp6('#FFFFFF');
       c.save(); c.translate(s.x, s.y); c.rotate(a);
-      c.fillStyle = INK; c.beginPath(); c.moveTo(0, -16); c.lineTo(13, 0); c.lineTo(0, 16); c.lineTo(-13, 0); c.closePath(); c.fill();
-      c.fillStyle = (o.variant ?? 1) === 2 ? '#3B82F6' : '#DC2626'; c.beginPath(); c.moveTo(0, -14); c.lineTo(11, 0); c.lineTo(0, 14); c.lineTo(-11, 0); c.closePath(); c.fill();
-      c.fillStyle = '#FFFFFF'; c.beginPath(); c.moveTo(0, -14); c.lineTo(11, 0); c.lineTo(0, 0); c.closePath(); c.fill();
-      for (let i = 0; i < 4; i++) { c.fillStyle = ['#FDE047', '#F472B6'][i % 2]; c.fillRect(-2 + Math.sin(f * 0.3 + i) * 3, 16 + i * 6, 5, 3); }
+      polyF(c, [[0, -17], [14, 0], [0, 17], [-14, 0]], INK);
+      polyF(c, [[0, -15], [12, 0], [0, 0]], W2[4]); polyF(c, [[0, -15], [-12, 0], [0, 0]], K[4]);
+      polyF(c, [[0, 15], [12, 0], [0, 0]], K[2]); polyF(c, [[0, 15], [-12, 0], [0, 0]], W2[2]);
+      box(c, -0.5, -15, 1, 30, hour('#8A5A30')); box(c, -12, -0.5, 24, 1, hour('#8A5A30'));
+      for (let i = 0; i < 4; i++) { const tx = Math.sin(f * 0.3 + i) * 3; polyF(c, [[tx - 3, 18 + i * 7], [tx + 3, 18 + i * 7], [tx, 21 + i * 7]], ['#FDE047', '#F472B6'][i % 2]); polyF(c, [[tx - 3, 24 + i * 7], [tx + 3, 24 + i * 7], [tx, 21 + i * 7]], mix(['#FDE047', '#F472B6'][i % 2], INK, 0.3)); }
       c.restore();
     } else if (s.kind === 'paint') {
       const col = ['#EF4444', '#FDE047', '#3B82F6', '#22C55E', '#EC4899'][(s.from.initialX | 0) % 5 >= 0 ? (s.from.initialX | 0) % 5 : 0];
-      c.fillStyle = INK; c.beginPath(); c.arc(s.x, s.y, 6, 0, Math.PI * 2); c.fill(); c.fillStyle = col; c.beginPath(); c.arc(s.x, s.y, 4.5, 0, Math.PI * 2); c.fill();
+      ballR(c, s.x, s.y, 5, ramp6(col));
+      box(c, s.x - s.vx * 1.5 - 1, s.y - s.vy * 1.5 - 1, 3, 3, mix(col, '#FFFFFF', 0.2)); box(c, s.x - s.vx * 2.6 - 1, s.y - s.vy * 2.6, 2, 2, col);
     } else {
-      const col = ['#EF4444', '#FDE047', '#3B82F6', '#22C55E', '#EC4899'][Number(s.phase) || 0], a = Math.max(0, 1 - Math.max(0, s.t - 150) / 50);
-      c.globalAlpha = a; c.fillStyle = col; c.beginPath(); c.ellipse(s.x, s.y - 1, 14, 3, 0, 0, Math.PI * 2); c.fill(); c.beginPath(); c.arc(s.x + 9, s.y - 2, 3, 0, Math.PI * 2); c.fill(); c.globalAlpha = 1;
+      const col = ['#EF4444', '#FDE047', '#3B82F6', '#22C55E', '#EC4899'][Number(s.phase) || 0], R = ramp6(col), a = Math.max(0, 1 - Math.max(0, s.t - 150) / 50);
+      c.globalAlpha = a;
+      c.fillStyle = R[1]; c.beginPath(); c.ellipse(s.x, s.y - 1, 15, 3.5, 0, 0, Math.PI * 2); c.fill();
+      c.fillStyle = R[3]; c.beginPath(); c.ellipse(s.x - 1, s.y - 1.5, 12, 2.5, 0, 0, Math.PI * 2); c.fill();
+      c.fillStyle = R[3]; c.beginPath(); c.arc(s.x + 10, s.y - 3, 3, 0, Math.PI * 2); c.arc(s.x - 12, s.y - 2, 2, 0, Math.PI * 2); c.fill();
+      box(c, s.x - 6, s.y - 3, 4, 1, R[5]); box(c, s.x + 9, s.y - 5, 1, 1, R[5]);
+      c.globalAlpha = 1;
     }
   }
 };

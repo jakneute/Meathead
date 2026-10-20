@@ -35,6 +35,12 @@ export const kiddieOf = (state: GameState) => cartoonState<Kiddie>(state, 'kiddi
   towers: [], throws: [], rideHit: new WeakMap(), barks: new Map(), barkAt: -999, safe: { x: 0, y: 0 }, spat: 0,
 }));
 
+/** Been in through the studio's door (a later visit's the revisit: its arrival line, and the rides shut for the day). */
+export const KIDDIE_DONE_MEMO = 'ct-kiddie-done';
+/** The revisit: the rides shut down for the day (the carousel's CLOSED chain, the fish down, the train and the trolley
+ *  parked, nothing running), the shops' cards turned to CLOSED, the balloons popped. */
+export const shut = (state: GameState) => !!state.stageMemo[KIDDIE_DONE_MEMO];
+
 /** What he's said this visit (once each a visit: a death doesn't make him say it again). */
 let saidVisit = -1;
 const said = new Set<string>();

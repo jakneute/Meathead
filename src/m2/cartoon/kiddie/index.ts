@@ -17,16 +17,15 @@ import type { CartoonSection } from '../section';
 import { layOwn, ledge, solid, meatheadSays, byPants, runExits, saidOver } from '../section';
 import { SECTIONS, DOORS, GY } from '../geometry';
 import { makeTowers, updateTowers, drawTowers, ridingTower } from '../sway';
-import { GROUND, SOLIDS, LEDGES, TOWERS, CAST, PICKUPS, CHECKPOINTS, GAG_AT, STUDIO, X, Y } from './layout';
-import { kiddieOf, saidOnce } from './state';
+import { GROUND, SOLIDS, LEDGES, TOWERS, IN_PIT, CAST, PICKUPS, CHECKPOINTS, GAG_AT, STUDIO, X, Y } from './layout';
+import { kiddieOf, saidOnce, KIDDIE_DONE_MEMO } from './state';
 import { updateHazards, drawHazardsBack, drawHazardsFront, noteSafe } from './hazards';
-import { drawKiddieBackdrop, drawKiddieBack, kiddieLamps } from './art';
+import { drawKiddieBackdrop, drawKiddieBack, drawPitHeaps, kiddieLamps } from './art';
 import { ARRIVE, REVISIT, GAGS } from './lines';
 import './kinds';
 
 const { x0, x1 } = SECTIONS.kiddie;
-/** Been in through the studio's door (a later visit's arrival line is the revisit's). */
-export const KIDDIE_DONE_MEMO = 'ct-kiddie-done';
+export { KIDDIE_DONE_MEMO };
 
 export const kiddie: CartoonSection = {
   id: 'kiddie', x0, x1,
@@ -39,7 +38,7 @@ export const kiddie: CartoonSection = {
     for (const [a, b, top] of SOLIDS) solid(state, X(a), Y(top), b - a, GY + 40 - Y(top), { hidden: true });
     for (const [a, b, h] of LEDGES) ledge(state, X(a), Y(h), b - a, { hidden: true });
     const k = kiddieOf(state);
-    k.towers = makeTowers(state, TOWERS);
+    k.towers = makeTowers(state, TOWERS.map((d, i) => (IN_PIT.has(i) ? { ...d, pit: true } : d)));
     for (const [kind, rx, h, v] of CAST) {
       const e = makeKindEnemy(kind as EnemyKind, X(rx), Y(h));
       e.homeX ??= e.pos.x; e.homeY = e.pos.y; e.variant = v ?? Math.abs(Math.round(rx)) % 7; e.facing = -1;
@@ -75,6 +74,7 @@ export const kiddie: CartoonSection = {
     drawKiddieBack(c, state);
     drawHazardsBack(c, state);
     drawTowers(c, state, kiddieOf(state).towers);
+    drawPitHeaps(c, state);
   },
   drawFront: (c, state) => {
     drawHazardsFront(c, state);

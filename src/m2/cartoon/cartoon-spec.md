@@ -663,3 +663,20 @@ markBossFight every frame of a boss or sub-boss fight. Voice every new line (`np
   `tapestop`. New voices (cast.json): m2.cartoon.bouncer (the guard; the studio's m2.cartoon.guard is another man),
   dad, tvmom, tvboy, tvsis, tvgramps (radio: the tapes). The walk-away (walkAway/stupidDad.ts) has the band shell behind
   him and his cans down the path; how he died won't show till the deaths exist.
+- (SNES pass, the kiddie square) Sillyville is drawn to one eye (kit.ts's SNES kit: candy ramps, rampH, still /
+  stillAt / seen, sideBack with a `bow` so a bulging cartoon wall's side bulges with it all the way back, topBack,
+  drumTop, ballR / eggR, shadeAcross, bandsDown, candyStroke; FRONT_D 0.88, BACK_D 0.78; other sections can use it).
+  The far off is cached per hour (kiddie/far.ts: the sky, Seuss clouds, the patchwork hills, the water tower over the
+  park, the rest of Cartoon Land: the studios' stages, the WACKY WHITE HOUSE and STUPID DAD billboards, the KILL-O-RAMA
+  pylon, the big-kid zone's bolt, Hurl-A-Whirl, halfpipe and pod, STUPID DAD LIVE!'s band shell; the square's own
+  roofs). The square's fronts stand at FRONT_D with curvy sides (kiddie/fronts.ts: shops with their goods, names,
+  awnings, round windows, drooping roofs), the garden alley behind, the candy pavement and the street's furniture
+  (Truffula trees, curly lamps, benches, the balloon post, popcorn, the hippo bin, planters, topiary; none in a pit or
+  where a set piece's sides run back). The play plane's set pieces got their sides and tops going back; the ground
+  and the pits' near halves are scanline-bent. toonSign, the water tower (monument.ts), the stack-towers (sway.ts; a
+  `pit` flag skips the hummock) and the walk-in are SNES'd for every section that uses them. Drawing only, except:
+- (SNES pass) THE REVISIT (`ct-kiddie-done`, state.ts `shut()`): the rides are shut down for the day: nothing runs
+  or hurts (the carousel stopped, its lights off, a CLOSED board off its rounding board; the fish down, CLOSED FOR THE
+  DAY, the goldfish belly up; the train parked behind its hedges, NO MORE TRAINS TODAY; the trolley put away, the
+  shutter down across the hattery's arch, OUT OF SERVICE). The shops' cards say CLOSED; the balloon post's bunch is
+  popped, skins in a Truffula, scraps and confetti on the ground. The ball pits and the cast are as ever.

@@ -21,7 +21,7 @@ import type { FrameContext } from '../../m1/game/core/context';
 import type { GameState } from '../../m1/game/core/state';
 import type { Block } from '../../m1/types';
 import { envSound } from '../bossQuiet';
-import { INK, mix, onScreen, hour, type Ctx } from './kit';
+import { INK, onScreen, hour, box, checker, ramp6, LIP, type Ctx } from './kit';
 
 export interface TowerDef {
   /** Its foot's middle (world x) and the ground it's rooted in (y). */
@@ -34,6 +34,8 @@ export interface TowerDef {
   tiers?: string[]; lid?: string;
   /** Leans only one way (+1 right, -1 left): it won't go past upright the other way (a tower against a wall). */
   only?: 1 | -1;
+  /** It stands in a pit (balls, slime): no grassy hummock at its foot (the section heaps its own stuff round it). */
+  pit?: boolean;
 }
 
 export interface Tower {
@@ -113,7 +115,9 @@ export const ridingTower = (state: GameState, list: Tower[]) => list.find(t => t
 
 // ---------------------------------------------------------------------------------------------------------------
 // Drawing (world space, behind him): the stack as lumpy tiers along a bending spine (the lean's mostly up top: it
-// bends like a noodle), the lid on top, level-ish, lit along its top; a little dirt mound at its foot.
+// bends like a noodle), the lid on top, level-ish, lit along its top; a grassy hummock at its foot. Peak SNES: each tier
+// stepped across (lit, highlight, shade, the dark rim, dithered where they meet), its stripes and sprinkles shaded with
+// it, frosting drooping over the seams; the lid a frosted slab in steps, its lip lit.
 
 const TIERS = ['#F472B6', '#FDE047', '#60A5FA', '#34D399', '#FB923C', '#C084FC'];
 export const drawTowers = (c: Ctx, state: GameState, list: Tower[]) => {
@@ -127,37 +131,72 @@ export const drawTowers = (c: Ctx, state: GameState, list: Tower[]) => {
       const a = t.ang * Math.pow(u, 1.6);
       return { x: d.x + Math.sin(t.ang) * d.h * Math.pow(u, 1.6), y: d.y - d.h * u * (1 - (1 - Math.cos(t.ang)) * u), a };
     };
-    // (the mound at its foot)
-    c.fillStyle = INK; c.beginPath(); c.ellipse(d.x, d.y + 2, 30, 10, 0, Math.PI, 0); c.fill();
-    c.fillStyle = hour('#A3E635'); c.beginPath(); c.ellipse(d.x, d.y + 2, 27, 8, 0, Math.PI, 0); c.fill();
-    // (the tiers: lumpy drums, each a little narrower or fatter than the last, alternating colors, stripes on some)
+    // (the hummock at its foot: grass in steps, a clover or two)
+    const G = ramp6(hour('#7FD45A'));
+    if (!d.pit) {
+    c.fillStyle = INK; c.beginPath(); c.ellipse(d.x, d.y + 2, 31, 11, 0, Math.PI, 0); c.fill();
+    c.fillStyle = G[2]; c.beginPath(); c.ellipse(d.x, d.y + 2, 28, 9, 0, Math.PI, 0); c.fill();
+    c.fillStyle = G[3]; c.beginPath(); c.ellipse(d.x - 3, d.y + 1, 21, 6.5, 0, Math.PI, 0); c.fill();
+    c.fillStyle = G[4]; c.beginPath(); c.ellipse(d.x - 8, d.y, 10, 3.5, 0, Math.PI, 0); c.fill();
+    checker(c, d.x - 24, d.y - 3, 48, 2, G[2], 0, 1);
+    for (const [fx, fc] of [[-18, '#FFFFFF'], [15, '#F9A8D4']] as const) { box(c, d.x + fx, d.y - 4, 2, 2, fc); box(c, d.x + fx, d.y - 2, 1, 2, G[1]); }
+    }
+    // (the tiers: lumpy drums, each a little narrower or fatter than the last, alternating colors, each stepped across
+    // (lit down its left, shaded down its right, dithered where the steps meet), candy stripes on some (shaded with it),
+    // sprinkles on others, the frosting drooping over the seam onto the tier under it)
     for (let i = 0; i < n; i++) {
       const u0 = i / n, u1 = (i + 1) / n, p0 = at(u0), p1 = at(u1);
       const cx = (p0.x + p1.x) / 2, cy = (p0.y + p1.y) / 2, hh = Math.hypot(p1.x - p0.x, p1.y - p0.y) + 2;
       const ww = 34 + ((i * 37 + Math.round(d.x)) % 5) * 5 - i * 1.5;
-      const col = cols[(i + Math.round(d.x / 97)) % cols.length];
+      const col = cols[(i + Math.round(d.x / 97)) % cols.length], R = ramp6(col);
       c.save(); c.translate(cx, cy); c.rotate((p0.a + p1.a) / 2);
       const drum = () => { c.moveTo(-ww / 2, hh / 2); c.quadraticCurveTo(-ww / 2 - 6, 0, -ww / 2, -hh / 2); c.quadraticCurveTo(0, -hh / 2 - 5, ww / 2, -hh / 2); c.quadraticCurveTo(ww / 2 + 6, 0, ww / 2, hh / 2); c.quadraticCurveTo(0, hh / 2 + 5, -ww / 2, hh / 2); c.closePath(); };
-      c.beginPath(); drum(); c.fillStyle = col; c.fill();
+      c.beginPath(); drum(); c.fillStyle = R[3]; c.fill();
       c.save(); c.beginPath(); drum(); c.clip();
-      c.fillStyle = mix(col, '#FFFFFF', 0.35); c.fillRect(-ww / 2 - 6, -hh / 2 - 6, ww * 0.28, hh + 12);
-      c.fillStyle = mix(col, INK, 0.28); c.fillRect(ww * 0.22, -hh / 2 - 6, ww * 0.4, hh + 12);
-      if (i % 2) { c.fillStyle = 'rgba(255,255,255,0.55)'; for (let k = -ww; k < ww; k += 12) { c.beginPath(); c.moveTo(k, hh / 2 + 6); c.lineTo(k + 5, hh / 2 + 6); c.lineTo(k + 13, -hh / 2 - 6); c.lineTo(k + 8, -hh / 2 - 6); c.closePath(); c.fill(); } }
+      const X0 = -ww / 2 - 7, Y0 = -hh / 2 - 7, H0 = hh + 14;
+      const kind = (i + Math.round(d.x / 53)) % 3;
+      if (kind === 1) { c.fillStyle = 'rgba(255,250,252,0.78)'; for (let k = -ww; k < ww; k += 12) { c.beginPath(); c.moveTo(k, hh / 2 + 7); c.lineTo(k + 5, hh / 2 + 7); c.lineTo(k + 13, -hh / 2 - 7); c.lineTo(k + 8, -hh / 2 - 7); c.closePath(); c.fill(); } }
+      else if (kind === 2) { const S = ['#FFFFFF', '#F472B6', '#60A5FA', '#FDE047', '#34D399']; for (let k = 0; k < 9; k++) { const sx = -ww / 2 + 4 + ((k * 11 + i * 7) % Math.max(6, ww - 8)), sy = -hh / 2 + 5 + ((k * 7 + i * 3) % Math.max(4, hh - 10)); c.fillStyle = S[(k + i) % 5]; c.fillRect(Math.round(sx), Math.round(sy), k % 2 ? 3 : 1, k % 2 ? 1 : 3); } }
+      // (the shading over it all: lit band, highlight, the shade, the dark rim, each dithered off)
+      c.fillStyle = 'rgba(255,255,255,0.26)'; c.fillRect(X0, Y0, ww * 0.3, H0); checker(c, X0 + ww * 0.3, Y0, 2, H0, 'rgba(255,255,255,0.26)', 0, 1);
+      c.fillStyle = 'rgba(255,255,255,0.4)'; c.fillRect(X0 + 4, Y0, 3, H0);
+      c.fillStyle = 'rgba(26,16,40,0.2)'; c.fillRect(ww * 0.14, Y0, ww, H0); checker(c, ww * 0.14 - 2, Y0, 2, H0, 'rgba(26,16,40,0.2)', 1, 1);
+      c.fillStyle = 'rgba(26,16,40,0.24)'; c.fillRect(ww * 0.36, Y0, ww, H0); checker(c, ww * 0.36 - 2, Y0, 2, H0, 'rgba(26,16,40,0.24)', 0, 1);
+      // (the tier's own top rim lit, its foot in shade)
+      c.fillStyle = R[4]; c.fillRect(X0, -hh / 2 - 1, ww * 0.6 + 7, 2);
+      c.fillStyle = R[1]; c.fillRect(X0, hh / 2 - 2, ww + 14, 3);
       c.restore();
       c.beginPath(); drum(); c.strokeStyle = INK; c.lineWidth = 3; c.lineJoin = 'round'; c.stroke();
+      // (frosting drooped over its top edge, every other tier)
+      if (i % 2 === 0 && i < n - 1) {
+        const F = ramp6(hour('#FFF4FA'));
+        c.fillStyle = INK; c.beginPath(); c.moveTo(-ww / 2 - 1, -hh / 2 - 1);
+        for (let k = 0; k <= 6; k++) { const xx = -ww / 2 + (k / 6) * ww; c.quadraticCurveTo(xx - ww / 24, -hh / 2 + 6 + (k % 2) * 4, xx, -hh / 2 + 1); }
+        c.lineTo(ww / 2 + 1, -hh / 2 - 4); c.lineTo(-ww / 2 - 1, -hh / 2 - 4); c.closePath(); c.fill();
+        c.fillStyle = F[3]; c.beginPath(); c.moveTo(-ww / 2 + 1, -hh / 2 - 2);
+        for (let k = 0; k <= 6; k++) { const xx = -ww / 2 + 1 + (k / 6) * (ww - 2); c.quadraticCurveTo(xx - ww / 24, -hh / 2 + 4 + (k % 2) * 4, xx, -hh / 2); }
+        c.lineTo(ww / 2 - 1, -hh / 2 - 3); c.lineTo(-ww / 2 + 1, -hh / 2 - 3); c.closePath(); c.fill();
+        c.fillStyle = F[5]; c.fillRect(-ww / 2 + 2, -hh / 2 - 2, ww * 0.4, 1);
+        c.fillStyle = F[1]; c.fillRect(ww * 0.2, -hh / 2, ww * 0.26, 1);
+      }
       c.restore();
     }
-    // (the lid: a fat rounded slab, tilting a little with the lean, its top lit (where he stands), a cherry of a knob
-    // at one end)
-    const tilt = t.ang * 0.3, lid = hour(d.lid ?? '#FFF7E8');
+    // (the lid: a fat rounded slab of frosted cake, tilting a little with the lean: its top lit along the lip (where he
+    // stands), its front face stepped, the shade under it, sprinkles along its edge)
+    const tilt = t.ang * 0.3, L = ramp6(hour(d.lid ?? '#FFF7E8'));
     c.save(); c.translate(top.x, top.y); c.rotate(tilt);
     c.fillStyle = INK; c.beginPath(); c.roundRect(-half - 3, -3, half * 2 + 6, LID_H + 8, 7); c.fill();
-    c.fillStyle = lid; c.beginPath(); c.roundRect(-half, 0, half * 2, LID_H + 2, 5); c.fill();
-    c.fillStyle = mix(lid, INK, 0.25); c.fillRect(-half + 3, LID_H - 2, half * 2 - 6, 3);
-    for (let k = -half + 8; k < half - 6; k += 16) { c.fillStyle = cols[(k / 16 + 9) % cols.length | 0] ?? cols[0]; c.beginPath(); c.arc(k, 6, 2.2, 0, Math.PI * 2); c.fill(); }
+    c.fillStyle = L[3]; c.beginPath(); c.roundRect(-half, 0, half * 2, LID_H + 2, 5); c.fill();
+    c.fillStyle = L[4]; c.fillRect(-half + 3, 2, half * 2 - 6, 3);
+    c.fillStyle = L[2]; c.fillRect(-half + 2, LID_H - 4, half * 2 - 4, 3);
+    c.fillStyle = L[1]; c.fillRect(-half + 4, LID_H - 1, half * 2 - 8, 2);
+    checker(c, -half + 2, LID_H - 6, half * 2 - 4, 2, L[2], 0, 1);
+    c.fillStyle = L[5]; c.fillRect(-half + 1, 1, 3, LID_H - 3);
+    c.fillStyle = L[1]; c.fillRect(half - 3, 2, 2, LID_H - 3);
+    for (let k = -half + 8; k < half - 6; k += 11) { c.fillStyle = cols[(Math.floor(k / 11) + 9 + cols.length * 9) % cols.length] ?? cols[0]; c.fillRect(Math.round(k), 7 + (Math.floor(k) & 1) * 2, (k | 0) % 2 ? 3 : 1, (k | 0) % 2 ? 1 : 3); }
     // (the lit lip along the top)
-    c.fillStyle = '#FFFBEB'; c.fillRect(-half + 2, 0, half * 2 - 4, 2);
-    c.fillStyle = '#FFFFFF'; c.fillRect(-half + 6, 0, half - 4, 1);
+    c.fillStyle = LIP[2]; c.fillRect(-half + 2, 0, half * 2 - 4, 2);
+    c.fillStyle = LIP[3]; c.fillRect(-half + 6, 0, half - 4, 1);
     c.restore();
     // (the tell: bending, wobble lines off the sides; little puffs of dust off the tiers when it bangs its limit)
     if (Math.abs(t.vel) > 0.004) {
