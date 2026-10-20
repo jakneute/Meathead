@@ -27,12 +27,13 @@ import { pickLine } from '../../../m1/game/platform/speech';
 import { isNude } from '../../../m1/game/player/gut';
 import { topBand, CANVAS_WIDTH } from '../../../m1/constants';
 import type { FantasySection } from '../section';
-import { layOwn, endWalls, endExits, runExits, fantasyState, hands, ledge, solid, landVisit, meatheadSays, byPants, box } from '../section';
+import { layOwn, endWalls, endExits, runExits, fantasyState, hands, ledge, solid, landVisit, meatheadSays, byPants } from '../section';
 import { DOORS } from '../geometry';
 import { goTo, markLandCleared, noteBossKill, isLandCleared, setUi } from '../../store';
 import { type Victory, startVictory, tickVictory, drawVictory, victoryDone } from '../../victory';
 import { type WalkAway, playWalkAway, tickWalkAway, drawWalkAway } from '../../walkAway';
 import { markBossFight } from '../../bossQuiet';
+import { drawTodSky } from '../../timeOfDay';
 import { x0, GY, DOOR_X, KICK_AT, REFILL_X, ARENA_L, ARENA_R, CEIL_Y, CAM_Y, LEDGES, CP_HALL, CP_FIGHT, MAX_STAGE, R } from './layout';
 import { drawHall, drawChamber, drawEndWall } from './room';
 import {
@@ -161,7 +162,8 @@ export const bedroom: FantasySection = {
   },
   // (his feet wherever he is, the camera's top held at CAM_Y: the floor low, the ceiling up under the HUD's band)
   cameraRow: (state) => state.player.pos.y + state.player.height - CAM_Y,
-  drawBackdrop: (c) => { box(c, 0, 0, 800, 600, '#2A0E24'); return true; },
+  // (the sky by the hour: only seen round the spire's cone when the camera pulls out over the dollhouse cut)
+  drawBackdrop: (c) => { drawTodSky(c, 0, 0, CANVAS_WIDTH, 600, ['#23307A', '#3A55B4', '#6E8EDC', '#A8C4F0', '#E8D4F0', '#F8C8D8'], { horizon: 600, moon: [620, 80], sun: [160, 90] }); return true; },
   drawBack: (c, state) => {
     const s = bedroomOf(state), f = s.f, cleared = isLandCleared('fantasy') && !f;
     const end = cleared ? endOf(state) : null;
@@ -170,7 +172,7 @@ export const bedroom: FantasySection = {
       ? { stage: MAX_STAGE, doorT: 999, barrier: false, chandelierDown: 0, roofHole: end?.how === 'cork' ? end.x : null, piperX: null }
       : { ...bits, doorT: f ? f.doorT : introSeen() ? 999 : null, barrier: s.walls.length > 0 };
     drawChamber(c, state, look);
-    drawEndWall(c);
+    drawEndWall(c, state);
     drawHall(c, state, look);
     if (end) drawRemains(c, end.how, end.x, state.frame);
     if (f) drawFightBack(c, state, f);

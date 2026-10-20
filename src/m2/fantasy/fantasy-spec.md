@@ -841,3 +841,34 @@ markBossFight every frame of a boss or sub-boss fight. Voice every new line (`np
   grounds far below through the same mode 7 floor (watchtowers and balloons on it), the parapet with banners and
   sconces, the walk's lit front edge over corbels, the stair turret, her chambers' tower and its glowing door, a snapped
   broom, a tiara, petals and glass. Drawing only: no layout, timing or hitbox changes.
+- (bedroom, ours) SNES'd (room.ts; still art in stamps: the walls in 256-wide stretches, the wreck a stamp a stage, each
+  piece of furniture its own; live only what moves). THE HALL: a tall lancet in pink and lilac leaded glass, its rose
+  smashed through (shards in the cames, the sky, the Alps and two spires out the hole by the hour, a drape torn),
+  glass on the runner (glints live); striped satin paper, a cream wainscot, pink marble pilasters with gilt sconces,
+  painted lunettes under a coffered vault (the hall's ceiling was 280 up with 260 of nothing over it), portraits of her,
+  her tapestry over a console of roses, the plaque, her door (carved pink leaves, heart knockers, a crowned P on a broken
+  pediment). HER ROOM (1500 wide, the furniture where it was): rose damask in gilt-framed panels between fluted marble
+  pilasters, a rose-garland frieze, a deep crown molding, a raised-panel wainscot, the carpet in bands with gilt borders
+  and petals; the trophy wall's heads mounted (CHAD, SIR DEREK with an apple, WAYNE, HANK with his lance and a tiara,
+  BLAKE choking on his shaker, THADDEUS and his broom: X-eyed, tongues out) under the chalked scoreboard; the vanity
+  (tulle skirt, perfumes, a candelabra) under the huge crowned mirror ringed with bulbs (its glass live: the room soft in
+  it, her reflection, cracked from stage 2, a piece out from 5); the rococo wardrobes (one ajar on her gowns and a boa);
+  the chaise; the canopy bed (twisted gilt posts, a fringed valance, sheers, a plush of her) under a gilt crown corona
+  with drapes; the viewing balcony on balusters and corbels before arched doors open on the grounds by the hour; crystal
+  chandeliers (flames, glints, glow live). The wreck reads by stage: stepped cracks; holes through the cornice into the
+  crawlspace's mains with dust streaks and rubble; the damask torn in strips off bare plaster; wall holes (studs, pink
+  insulation, risers); gashes; cables with bare ends. Over the ceiling, seen when the camera pulls out: the dollhouse
+  cut (joists, the park's crawlspace with its duct, water main and valves, the lagged HEAT main, the frosted LN2 pair
+  (LN2 DO NOT LICK), the FX POWER tray, work lights; the spire's cone inside: rafters, purlins, a king post, stored merch,
+  an oculus) and the sky by the hour round it (drawBackdrop). The fight's bits: the heat pipe (bands, a nozzle glowing
+  red to white in the tell, steam roaring, the fire banded with a white core, a scorch), the nitrogen (frost crystals
+  creeping in the tell, vapor dribbling, the jet banded with fog), the live water (ripples, the burst main dribbling in,
+  the cable's frayed copper, sparks crackling at it in the tell, arcs and a glow when live); debris as cornice chunks
+  (gilt, damask, lath) with dust trickling; the chandelier's chain spitting sparks; her throws stepped (a licking fire
+  ball, a faceted ice ball); the ice block bevelled; stars; splats in drips; her holes scorched. The cork: splintered
+  boards, the closet under hers cut away (joists, a rail of her gowns) with her hem and kicking legs in glass heels, the
+  geyser banded with spray and steam, the turd a coil; the roof hole up through the cut to the sky. The balloon's heap:
+  the gown pooled, bones, her skull, the tiara, the wand. The fallen chandelier drawn by the room (a revisit had none).
+  The walk-away: the walk-in's lane and cottages, the Alps, Hogsmeat's roofs, the castle whole over them (her window
+  smashed; the cork's hole through the cone with a rafter up, or her streak), petals, a dropped tiara. Drawing only:
+  no layout, timing or hitbox changes.

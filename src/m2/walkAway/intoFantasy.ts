@@ -17,7 +17,7 @@ const COB = ['#2E2840', '#463E5C', '#5E5676', '#7A7294', '#A09AB8'];
 const OAK = ['#1E120C', '#3A2418', '#5A3A26', '#7C5638', '#A07650'];
 const IRON = ['#0C0A14', '#1E1C30', '#33304A', '#4C4A66', '#6C6A88'];
 
-const ground = (g: Ctx, w: number, h: number) => {
+export const ground = (g: Ctx, w: number, h: number) => {
   // (the verges: snow in stepped drifts, a sparkle here and there, footprints)
   box(g, 0, 0, w, h, SNOW[2]);
   for (let y = 0; y < h; y += 4) for (let x = (y / 4) % 2 ? 2 : 0; x < w; x += 4) { const t = hash(x * 0.71 + y * 1.37); if (t < 0.18) box(g, x, y, 3, 2, SNOW[1]); else if (t < 0.3) box(g, x, y, 2, 1, SNOW[3]); else if (t > 0.97) box(g, x, y, 1, 1, SNOW[4]); }
@@ -47,7 +47,7 @@ const back = (c: Ctx, t: number, sway: number) => {
   for (let x = 0; x < 400; x += 3) { const y = HOR - 6 - Math.round(Math.abs(Math.sin((x - sway * 0.25) * 0.11)) * 5); box(c, x, y, 3, HOR - y + 2, ridge); if ((x / 3) % 2) box(c, x + 1, y - 2, 1, 2, ridge); box(c, x, y, 2, 1, hourMix('#C8D4E4', '#C8A8B8', '#4A5470')); }
 };
 
-const cottage = (wall: string, roof: string, seed: number) => (g: Ctx, w: number, h: number) => {
+export const cottage = (wall: string, roof: string, seed: number) => (g: Ctx, w: number, h: number) => {
   // (crooked: the roof leans; an oak frame on plaster, a jettied upper floor, leaded windows glowing, snow heaped on the
   // slate, icicles off the eaves, a chimney)
   const W = rampOf(wall), R = rampOf(roof), rh = Math.round(h * 0.4), gf = Math.round(h * 0.3), lean = Math.round((hash(seed) - 0.5) * 6);
@@ -78,9 +78,9 @@ const cottage = (wall: string, roof: string, seed: number) => (g: Ctx, w: number
   if (seed % 2) { const cx = Math.round(peak + w * 0.18); box(g, cx - 1, rh * 0.3 - 1, 8, rh * 0.5, OAK[0]); box(g, cx, rh * 0.3, 6, rh * 0.5, '#8A4A3A'); box(g, cx, rh * 0.3, 2, rh * 0.5, '#A86A5A'); box(g, cx - 1, rh * 0.3 - 2, 8, 2, SNOW[4]); }
 };
 /** A chimney's smoke (live: drawn over its cottage). */
-const chimneySmoke = (seed: number) => (c: Ctx, sx: number, sy: number, s: number, t: number) => { if (seed % 2) smoke(c, sx + s * 0.6, sy - s * 3.4, s * 0.5, t, seed, { n: 6, rise: 0.05, size: 0.6, col: ['#C8CCDA', '#D8DCE8', '#E8ECF4', '#F4F6FA'] }); };
+export const chimneySmoke = (seed: number) => (c: Ctx, sx: number, sy: number, s: number, t: number) => { if (seed % 2) smoke(c, sx + s * 0.6, sy - s * 3.4, s * 0.5, t, seed, { n: 6, rise: 0.05, size: 0.6, col: ['#C8CCDA', '#D8DCE8', '#E8ECF4', '#F4F6FA'] }); };
 
-const lamp = (g: Ctx, w: number, h: number) => {
+export const lamp = (g: Ctx, w: number, h: number) => {
   // (a fluted iron post on its plinth, a lantern on top (lit after dark), snow on its cap)
   const m = Math.round(w / 2);
   box(g, m - 3, h - 4, 6, 4, IRON[2]); box(g, m - 3, h - 4, 6, 1, IRON[4]);
@@ -89,7 +89,7 @@ const lamp = (g: Ctx, w: number, h: number) => {
   box(g, m - 4, 1, 9, 9, IRON[0]); box(g, m - 3, 2, 7, 7, lit() ? '#FFE9A8' : '#E8D8B0'); box(g, m - 3, 2, 2, 7, lit() ? '#FFFFFF' : '#FFF4D8');
   box(g, m - 4, 0, 9, 2, SNOW[3]);
 };
-const pine = (g: Ctx, w: number, h: number) => {
+export const pine = (g: Ctx, w: number, h: number) => {
   const P = ['#0E1E1C', '#1A3632', '#284E46', '#3A6A5A'];
   box(g, w / 2 - 2, h - 10, 4, 10, OAK[2]); box(g, w / 2 - 2, h - 10, 1, 10, OAK[3]);
   for (let k = 0; k < 4; k++) {
@@ -100,7 +100,7 @@ const pine = (g: Ctx, w: number, h: number) => {
     box(g, w / 2 - half * 0.8, bot - 2, half * 1.5, 2, SNOW[3]); box(g, w / 2 - half * 0.7, bot - 3, half * 0.6, 1, SNOW[4]);
   }
 };
-const snowman = (g: Ctx, w: number, h: number) => {
+export const snowman = (g: Ctx, w: number, h: number) => {
   const S = rampOf('#E8EEF8'), m = w / 2;
   lump(g, m, h - h * 0.2, w * 0.36, h * 0.2, S); lump(g, m, h - h * 0.5, w * 0.27, h * 0.15, S); lump(g, m, h - h * 0.72, w * 0.2, h * 0.11, S);
   box(g, m - 2, h - h * 0.75, 1, 1, '#1A1028'); box(g, m + 1, h - h * 0.75, 1, 1, '#1A1028'); box(g, m, h - h * 0.72, 3, 1, '#F97316');
