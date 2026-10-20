@@ -63,14 +63,15 @@ export const glen: FantasySection = {
     for (const [k, at] of GAG_AT) if (rx > at && rx < at + 400) once(k, byPants(state, GAGS[k as keyof typeof GAGS]));
     if (onStair(state, g.stairs[RIDE_STAIR]) && g.stairs[RIDE_STAIR].moving) once('ride', byPants(state, GAGS.ride));
     // (thinking with his dick, now and then)
-    HORNY_AT.forEach((at, i) => { if (rx > at && rx < at + 500) once(`horny${i}`, byPants(state, HORNY), true); });
+    // (about Piper: once a life each, the user's; none left, he says nothing)
+    HORNY_AT.forEach((at, i) => { if (rx > at && rx < at + 500 && !g.said[`horny${i}`] && free) { g.said[`horny${i}`] = true; const l = piperLine(byPants(state, HORNY)); if (l) meatheadSays(state, l, true); } });
     // Piper over the PA as he passes each horn (once each); now and then he's got something to say back
     for (const [at, k] of PA_AT) {
       if (g.said[`pa-${k}`] || !free || rx < at - 200 || rx > at + 500) continue;
       g.said[`pa-${k}`] = true;
       // (already said this life: she says nothing, and he's nothing to answer)
       const line = piperLine(PIPER_GLEN[k]);
-      if (line) piperSays(g, line, state, X(at), () => { if (Math.random() < 0.5 && p.health > 0) meatheadSays(state, pickLine(byPants(state, HORNY)), true); });
+      if (line) piperSays(g, line, state, X(at), () => { if (Math.random() < 0.5 && p.health > 0) { const l = piperLine(byPants(state, HORNY)); if (l) meatheadSays(state, l, true); } });
     }
     // (the ways: back to the wheel off the left end, on to the ride through its door off the right)
     runExits(state, endExits('glen'));

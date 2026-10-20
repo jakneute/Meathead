@@ -386,8 +386,8 @@ const killFlyer = (state: GameState, f: Fight, fl: Flyer, by: number) => {
   const now = Date.now();
   if (by < 0) {
     if (now - f.piperAt > 7000 && rnd() < 0.6) piperSays(f, piperLine(PIPER_KILL));
-    else if (now - f.quipAt > 6000 && rnd() < 0.6) { f.quipAt = now; meatheadSays(state, pickLine(byPants(state, MH_KILL)), true); }
-  } else if (now - f.piperAt > 7000 && rnd() < 0.5) piperSays(f, piperLine(PIPER_INFIGHT), () => { if (rnd() < 0.5) meatheadSays(state, pickLine(byPants(state, MH_INFIGHT)), true); });
+    else if (now - f.quipAt > 6000 && rnd() < 0.6) { f.quipAt = now; const l = piperLine(byPants(state, MH_KILL)); if (l) meatheadSays(state, l, true); }
+  } else if (now - f.piperAt > 7000 && rnd() < 0.5) piperSays(f, piperLine(PIPER_INFIGHT), () => { if (rnd() < 0.5) { const l = piperLine(byPants(state, MH_INFIGHT)); if (l) meatheadSays(state, l, true); } });
   // (two left in her sky: him and one)
   const k = keptOf();
   if (!k.last && k.late && f.flyers.filter(o => o.alive && o.in).length === 1) { k.last = true; piperSays(f, piperLine(PIPER_LAST), () => meatheadSays(state, pickLine(byPants(state, MH_LAST)), true)); }
@@ -732,7 +732,7 @@ export const updateFight = (ctx: FrameContext, controls: Controls): Controls => 
       const now = Date.now();
       if (now - f.quipAt > 45000) {
         f.quipAt = now;
-        if (rnd() < 0.5) piperSays(f, piperLine(PIPER_WALL)); else meatheadSays(state, pickLine(byPants(state, MH_WALL)), true);
+        if (rnd() < 0.5) piperSays(f, piperLine(PIPER_WALL)); else { const l = piperLine(byPants(state, MH_WALL)); if (l) meatheadSays(state, l, true); }
       }
     }
     if (r > WALL_R - 300 && f.t % 3 === 0) sparks(f, f.x + Math.sin(f.yaw) * 160, f.z + Math.cos(f.yaw) * 160, f.alt + 40, ['#F472B6', '#FFE4F2', '#FFFFFF'], 3);

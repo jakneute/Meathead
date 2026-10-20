@@ -22,7 +22,7 @@ import { SKIP_AFTER, offerSkip, takeSkip, drawSkipPrompt } from '../../../m1/gam
 import { hands, meatheadSays, speak, saidOver, teleport, byPants, type Said } from '../section';
 import { DOORS } from '../geometry';
 import { PIPER_PA_VOICE } from '../talk';
-import { piperMust } from '../piperLines';
+import { piperMust, piperLine } from '../piperLines';
 import { HORNY } from '../lines';
 import { SUITORS, drawSuitor, SUITOR_H, type SuitorPose } from '../suitors';
 import { box, onScreen, INK, still, postR, ballR, snowCap, rampH, lit, IRON, GOLD, SNOW, type Ctx } from '../kit';
@@ -62,7 +62,8 @@ const finish = (state: GameState, s: Scene, skipped: boolean) => {
   p.inCutscene = false;
   state.cameraOverride = null;
   teleport(state, DOORS.wheel.start.x, DOORS.wheel.start.y);
-  meatheadSays(state, pickLine(byPants(state, HORNY)), true);
+  // (about Piper: once a life, the user's)
+  { const l = piperLine(byPants(state, HORNY)); if (l) meatheadSays(state, l, true); }
 };
 
 export const updateSpeaker = (ctx: FrameContext, controls: Controls): Controls => {
