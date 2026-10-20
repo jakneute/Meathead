@@ -12,8 +12,13 @@ const poly = (g: Ctx, pts: [number, number][], col: string) => { g.fillStyle = c
 const r4 = (T: Tint, col: string) => [T(mix(col, INK, 0.35)), T(col), T(mix(col, '#FFFFFF', 0.3)), T(mix(col, '#FFFFFF', 0.6))];
 
 /** Spooky Land far off: the other castle and the clock tower, their feet on `foot`, middle at x. */
-export const farSpooky = (g: Ctx, T: Tint, x: number, foot: number, lamps: boolean) => {
-  const S = r4(T, '#766A8C'), P = r4(T, '#561A8A'), win = lamps ? '#F87171' : T('#2A1A3A');
+export const farSpooky = (g: Ctx, T0: Tint, x0: number, foot0: number, lamps: boolean, s = 0.62) => {
+  // (small, and pulled down into Spooky Land's own dusk purples whatever the haze, so it never reads as the Fairy
+  //  castle: a dark spiky silhouette, the clock tower plainly beside it)
+  const T: Tint = c => mix(T0(c), '#2A1838', 0.42);
+  g.save(); g.translate(x0, foot0); g.scale(s, s);
+  const x = 0, foot = 0;
+  const S = r4(T, '#5A4E70'), P = r4(T, '#3B0764'), win = lamps ? '#F87171' : T('#1A0E28');
   // (the crag it stands on, and the dead trees)
   poly(g, [[x - 60, foot], [x - 40, foot - 10], [x - 10, foot - 14], [x + 30, foot - 12], [x + 62, foot]], T('#3E3452'));
   // (the curtain wall, battlements)
@@ -38,4 +43,5 @@ export const farSpooky = (g: Ctx, T: Tint, x: number, foot: number, lamps: boole
   box(g, cx, foot - 84, 1, 4, T(INK)); box(g, cx, foot - 80, 3, 1, T(INK));
   poly(g, [[cx - 9, foot - 92], [cx, foot - 114], [cx + 9, foot - 92]], P[0]); poly(g, [[cx - 9, foot - 92], [cx, foot - 114], [cx - 2, foot - 92]], P[1]);
   box(g, cx + 7, foot - 60, 4, 4, T('#7F1D1D'));
+  g.restore();
 };
