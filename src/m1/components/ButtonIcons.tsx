@@ -38,7 +38,7 @@ export const BindingIcon: React.FC<{ code?: string; name: string; size?: number 
  * confirms; its B, on the bottom, goes back). What's printed on them depends on whose controller it is: an Xbox's
  * letters, a PlayStation's shapes, a Switch's letters (the other way round to an Xbox's).
  */
-export type PadKey = 'A' | 'B' | 'X' | 'Y' | 'START' | 'LB' | 'RB' | 'LT' | 'RT' | 'DPAD' | 'DPAD_UP' | 'DPAD_DOWN' | 'DPAD_LEFT' | 'DPAD_RIGHT' | 'RSTICK' | 'LSTICK' | 'OK' | 'BACK';
+export type PadKey = 'A' | 'B' | 'X' | 'Y' | 'START' | 'SELECT' | 'LB' | 'RB' | 'LT' | 'RT' | 'DPAD' | 'DPAD_UP' | 'DPAD_DOWN' | 'DPAD_LEFT' | 'DPAD_RIGHT' | 'RSTICK' | 'LSTICK' | 'OK' | 'BACK';
 type Face = 'A' | 'B' | 'X' | 'Y';
 const XBOX_COLORS: Record<Face, string> = { A: '#22C55E', B: '#EF4444', X: '#3B82F6', Y: '#FACC15' };
 const PS_SHAPES: Record<Face, { shape: 'cross' | 'circle' | 'square' | 'triangle'; color: string }> = {
@@ -47,13 +47,15 @@ const PS_SHAPES: Record<Face, { shape: 'cross' | 'circle' | 'square' | 'triangle
 /** What a Switch prints on each spot (bottom B, right A, left Y, top X). */
 const SWITCH_LETTERS: Record<Face, string> = { A: 'B', B: 'A', X: 'Y', Y: 'X' };
 /** What's printed on the other buttons, by kind of controller. */
-const OTHER_NAMES: Record<PadFamily, Record<'START' | 'LB' | 'RB' | 'LT' | 'RT', string>> = {
-  xbox: { START: 'START', LB: 'LB', RB: 'RB', LT: 'LT', RT: 'RT' },
-  playstation: { START: 'OPTIONS', LB: 'L1', RB: 'R1', LT: 'L2', RT: 'R2' },
-  switch: { START: '+', LB: 'L', RB: 'R', LT: 'ZL', RT: 'ZR' },
+// (SELECT: the little button left of the logo: an Xbox's View (a 360's BACK), a PlayStation's SHARE / CREATE, a
+// Switch's −; one Joy-Con on its own hasn't got a spare one)
+const OTHER_NAMES: Record<PadFamily, Record<'START' | 'SELECT' | 'LB' | 'RB' | 'LT' | 'RT', string>> = {
+  xbox: { START: 'START', SELECT: 'VIEW', LB: 'LB', RB: 'RB', LT: 'LT', RT: 'RT' },
+  playstation: { START: 'OPTIONS', SELECT: 'SHARE', LB: 'L1', RB: 'R1', LT: 'L2', RT: 'R2' },
+  switch: { START: '+', SELECT: '−', LB: 'L', RB: 'R', LT: 'ZL', RT: 'ZR' },
   // (one Joy-Con sideways: the little SL and SR on its rail are its shoulders; it's got no triggers)
-  'joycon-l': { START: '−', LB: 'SL', RB: 'SR', LT: '', RT: '' },
-  'joycon-r': { START: '+', LB: 'SL', RB: 'SR', LT: '', RT: '' },
+  'joycon-l': { START: '−', SELECT: '', LB: 'SL', RB: 'SR', LT: '', RT: '' },
+  'joycon-r': { START: '+', SELECT: '', LB: 'SL', RB: 'SR', LT: '', RT: '' },
 };
 const isJoyCon = (f: PadFamily) => f === 'joycon-l' || f === 'joycon-r';
 const FONT = '"Press Start 2P", monospace';
@@ -68,6 +70,7 @@ export const padName = (k: string, family: PadFamily): string => {
   if (k === 'A' || k === 'B' || k === 'X' || k === 'Y') return family === 'playstation' ? ({ A: '✕', B: '○', X: '□', Y: '△' } as const)[k] : family === 'switch' ? SWITCH_LETTERS[k] : k;
   // (an Xbox One / Series pad's START is its Menu button; a 360's says START)
   if (k === 'START' && family === 'xbox') return padIs360() ? 'START' : 'MENU';
+  if (k === 'SELECT' && family === 'xbox') return padIs360() ? 'BACK' : 'VIEW';
   if (k in OTHER_NAMES.xbox) return OTHER_NAMES[family][k as keyof typeof OTHER_NAMES.xbox];
   return k;
 };
@@ -105,7 +108,7 @@ export const PadButton: React.FC<{ label: Face; size?: number; family?: PadFamil
 
 /** The controller's other buttons: Start (a little pill), the bumpers (a wide rounded bar), the D-pad (a cross). */
 type DpadDir = 'DPAD_UP' | 'DPAD_DOWN' | 'DPAD_LEFT' | 'DPAD_RIGHT';
-const PadOther: React.FC<{ label: 'START' | 'LB' | 'RB' | 'LT' | 'RT' | 'DPAD' | DpadDir | 'RSTICK' | 'LSTICK'; size: number; family?: PadFamily }> = ({ label, size, family = 'xbox' }) => {
+const PadOther: React.FC<{ label: 'START' | 'SELECT' | 'LB' | 'RB' | 'LT' | 'RT' | 'DPAD' | DpadDir | 'RSTICK' | 'LSTICK'; size: number; family?: PadFamily }> = ({ label, size, family = 'xbox' }) => {
   // (the left stick: the same, L on it, arrows all four ways)
   if (label === 'LSTICK') return (
     <svg viewBox="0 0 40 40" width={size} height={size} className="inline-block align-middle shrink-0">
@@ -143,6 +146,28 @@ const PadOther: React.FC<{ label: 'START' | 'LB' | 'RB' | 'LT' | 'RT' | 'DPAD' |
     );
   }
   const name = OTHER_NAMES[family][label];
+  // (SELECT: a Switch's − (a little round button), an Xbox's View (two windows, one over the other; a 360's BACK: round
+  // and silver, an arrow pointing left), a PlayStation's a pill with its name on it like OPTIONS)
+  if (label === 'SELECT' && family === 'switch') return (
+    <svg viewBox="0 0 40 40" width={size} height={size} className="inline-block align-middle shrink-0">
+      <circle cx="20" cy="20" r="13" fill="#27272A" stroke="#0B0B0F" strokeWidth="2" />
+      <path d="M13 20 H27" stroke="#E4E4E7" strokeWidth="3.5" strokeLinecap="round" />
+    </svg>
+  );
+  if (label === 'SELECT' && family === 'xbox') return padIs360() ? (
+    <svg viewBox="0 0 40 40" width={size} height={size} className="inline-block align-middle shrink-0">
+      <circle cx="20" cy="20" r="13" fill="#D4D4D8" stroke="#0B0B0F" strokeWidth="2" />
+      <circle cx="20" cy="19" r="10.5" fill="#E4E4E7" />
+      <path d="M24 13.5 L14 20 L24 26.5 Z" fill="#3F3F46" />
+    </svg>
+  ) : (
+    <svg viewBox="0 0 40 40" width={size} height={size} className="inline-block align-middle shrink-0">
+      <circle cx="20" cy="20" r="13" fill="#27272A" stroke="#0B0B0F" strokeWidth="2" />
+      <rect x="15" y="12" width="12" height="9" fill="none" stroke="#E4E4E7" strokeWidth="2.2" />
+      <rect x="12" y="18" width="12" height="9" fill="#27272A" stroke="#E4E4E7" strokeWidth="2.2" />
+    </svg>
+  );
+  if (label === 'SELECT' && !name) return null;
   // (a Switch's + is a little round button of its own)
   if (label === 'START' && (family === 'switch' || isJoyCon(family as PadFamily))) return (
     <svg viewBox="0 0 40 40" width={size} height={size} className="inline-block align-middle shrink-0">
@@ -163,11 +188,12 @@ const PadOther: React.FC<{ label: 'START' | 'LB' | 'RB' | 'LT' | 'RT' | 'DPAD' |
       <path d="M13 15 H27 M13 20 H27 M13 25 H27" stroke="#E4E4E7" strokeWidth="2.6" strokeLinecap="round" />
     </svg>
   );
-  const w = label === 'START' ? Math.max(60, 20 + name.length * 9) : 50;
+  const pill = label === 'START' || label === 'SELECT';
+  const w = pill ? Math.max(60, 20 + name.length * 9) : 50;
   return (
     <svg viewBox={`0 0 ${w} 40`} width={(size * w) / 40} height={size} className="inline-block align-middle shrink-0">
-      <rect x="2" y={label === 'START' ? 10 : 6} width={w - 4} height={label === 'START' ? 22 : 28} rx={label === 'START' ? 11 : 9} fill="#27272A" stroke="#0B0B0F" strokeWidth="2" />
-      <text x={w / 2} y={label === 'START' ? 26 : 25} textAnchor="middle" fontFamily={FONT} fontSize={label === 'START' ? 9 : 12} fill="#E4E4E7">{name}</text>
+      <rect x="2" y={pill ? 10 : 6} width={w - 4} height={pill ? 22 : 28} rx={pill ? 11 : 9} fill="#27272A" stroke="#0B0B0F" strokeWidth="2" />
+      <text x={w / 2} y={pill ? 26 : 25} textAnchor="middle" fontFamily={FONT} fontSize={pill ? 9 : 12} fill="#E4E4E7">{name}</text>
     </svg>
   );
 };

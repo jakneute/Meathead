@@ -3,7 +3,7 @@
 // right: the RESTROOMS block (one door OUT OF ORDER), oaks, the back of the lawn seats (LAWN, a blanket somebody left,
 // a lost cooler), a PA delay tower on its scaffold, a row of JOHNNY ON THE SPOT port-a-johns, a half-dead oak, the
 // FUNNEL CAKE trailer shuttered, a picnic table, the second delay tower, the SUMMER CONCERT SERIES billboard (CANCELED
-// across it), the dumpsters and a golf cart, the CAST ONLY fence; behind the band shell, the backstage: LYLE's
+// across it), the dumpsters and a golf cart, the CAST ONLY fence; behind the band shell, the backstage: HONK's
 // dressing room (an old RV, a star taped on its door, a lawn chair, a cooler of SWILL LITE, an extension cord), a
 // generator, road cases, the butt can by a bench, more oaks and a light tower. Scenery all of it (dimmed toward the
 // air: none of it reads as somewhere to stand).
@@ -149,7 +149,7 @@ const castFence = (g: Ctx, x: number, w: number, sign: boolean) => {
   for (let k = 0; k <= w; k += 50) { box(g, x + k - 1, -54, 4, 54, INK); box(g, x + k, -54, 2, 54, dimmed('#B2BAC4')); }
   if (sign) { box(g, x + w / 2 - 34, -38, 68, 16, INK); box(g, x + w / 2 - 33, -37, 66, 14, dimmed('#F4F1E8')); signText(g, 'CAST ONLY', x + w / 2, -27, small(dimmed('#B91C1C'))); }
 };
-/** LYLE's dressing room: an old RV, a star taped on its door, a lawn chair and a cooler of SWILL LITE by it, the
+/** HONK's dressing room: an old RV, a star taped on its door, a lawn chair and a cooler of SWILL LITE by it, the
  *  extension cord, the generator, the road cases, the butt can by a bench. */
 const backstage = (g: Ctx, x: number) => {
   const R = DC('#E8DCC0'), Str = DC('#A0522D');
@@ -160,7 +160,7 @@ const backstage = (g: Ctx, x: number) => {
   for (const wx of [x + 20, x + 100]) { box(g, wx, -96, 40, 24, dimmed('#2A3240')); box(g, wx, -96, 40, 24, dimmed('#C8A86A')); for (let k = 0; k < 40; k += 5) box(g, wx + k, -96, 2, 24, dimmed('#A88A4A')); }
   box(g, x + 66, -96, 26, 84, INK); box(g, x + 67, -95, 24, 83, R[2]); box(g, x + 86, -56, 3, 3, dimmed('#C9CDD4'));
   g.fillStyle = dimmed('#FDE047'); g.beginPath(); for (let k = 0; k < 10; k++) { const a = -Math.PI / 2 + (k * Math.PI) / 5, r = k % 2 ? 4 : 9; g.lineTo(x + 79 + Math.cos(a) * r, -80 + Math.sin(a) * r); } g.closePath(); g.fill();
-  signText(g, 'LYLE', x + 79, -64, tiny(dimmed('#1F2937')));
+  signText(g, 'HONK', x + 79, -64, tiny(dimmed('#1F2937')));
   g.fillStyle = dimmed('#2A6A8A'); g.beginPath(); g.moveTo(x + 10, -116); g.lineTo(x + 170, -116); g.lineTo(x + 176, -96); g.lineTo(x + 4, -96); g.closePath(); g.fill();
   for (let k = 0; k < 172; k += 12) box(g, x + 4 + k, -100, 6, 4, dimmed('#F4F1E8'));
   for (const wx of [x + 40, x + 170]) { g.fillStyle = INK; g.beginPath(); g.arc(wx, -10, 11, 0, Math.PI * 2); g.fill(); g.fillStyle = dimmed('#7A7A84'); g.beginPath(); g.arc(wx, -10, 4, 0, Math.PI * 2); g.fill(); }

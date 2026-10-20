@@ -67,19 +67,22 @@ interface Props {
   weapons: WeaponType[];
   current: WeaponType;
   ammo: Partial<Record<WeaponType, number>>;
-  /** What's picked out: a weapon (its index), RESUME (weapons.length), or OPTIONS (weapons.length + 1). */
+  /** What's picked out: a weapon (its index), RESUME (weapons.length), MAP (weapons.length + 1), or OPTIONS
+   *  (weapons.length + 2). */
   selected: number;
   onPick: (i: number) => void;
   onResume: () => void;
+  /** MAP: the park map (parkmap/ParkMap.tsx). */
+  onMap: () => void;
   /** OPTIONS: the options screen (Meathead 1's, OptionsScreen.tsx). */
   onOptions: () => void;
-  /** In the intro: skip the rest of it (picked out as weapons.length + 2). */
+  /** In the intro: skip the rest of it (picked out as weapons.length + 3). */
   onSkip?: () => void;
   /** Done up for wherever he is (hudThemes.tsx). */
   skin?: PauseSkin;
   /** Stuck with the one he's holding for now (the mine cart): the rest shown, but not to be picked. */
   locked?: boolean;
-  /** Out in a land (or the break room): BACK TO HUB (picked out as weapons.length + 2), asked first. */
+  /** Out in a land (or the break room): BACK TO HUB (picked out as weapons.length + 3), asked first. */
   onHub?: () => void;
   /** ARE YOU SURE? up: which answer's picked out (0 NO, 1 YES), or null. */
   hubAsk?: 0 | 1 | null;
@@ -96,14 +99,17 @@ interface Props {
   card?: PauseCard | null;
 }
 
-const PauseMenu: React.FC<Props> = ({ weapons, current, ammo, selected, onPick, onResume, onOptions, onSkip, skin = PLAIN_PAUSE, locked = false, onHub, hubAsk = null, onHubAnswer, onHubPick, card = null, onQuit, quitAt = -1, asking = 'hub', onFile = false }) => {
+const PauseMenu: React.FC<Props> = ({ weapons, current, ammo, selected, onPick, onResume, onMap, onOptions, onSkip, skin = PLAIN_PAUSE, locked = false, onHub, hubAsk = null, onHubAnswer, onHubPick, card = null, onQuit, quitAt = -1, asking = 'hub', onFile = false }) => {
   const onQuitBtn = selected === quitAt;
   const shown = selected < weapons.length ? weapons[selected] : current;
   const info = M2_WEAPON_INFO[shown];
   const full = (w: WeaponType) => maxAmmo(w);
   const left = (w: WeaponType) => (full(w) === Infinity ? null : (ammo[w] ?? full(w)) / full(w));
   const ammoText = (w: WeaponType) => (full(w) === Infinity ? 'INFINITE' : `${Math.floor(ammo[w] ?? full(w))} / ${full(w)}`);
-  const onResumeBtn = selected === weapons.length, onOptionsBtn = selected === weapons.length + 1, onSkipBtn = selected === weapons.length + 2;
+  const onResumeBtn = selected === weapons.length, onMapBtn = selected === weapons.length + 1, onOptionsBtn = selected === weapons.length + 2, onSkipBtn = selected === weapons.length + 3;
+  // (five buttons along the bottom (BACK TO HUB or SKIP, and QUIT): set a little tighter, so they fit across)
+  const tight = !!(onSkip || onHub) && !!onQuit;
+  const btnCls = tight ? 'pl-5 pr-2 text-[8px] whitespace-nowrap' : 'pl-6 pr-3 text-[10px]';
   // (open, the menu behind it is dead to the pad and the keys: App asks cheatPanelOpen(); X on the pad opens it too;
   // shut when the menu goes)
   useSyncExternalStore(subscribeCheats, getCheats);
@@ -201,20 +207,26 @@ const PauseMenu: React.FC<Props> = ({ weapons, current, ammo, selected, onPick, 
 
         <div className="flex gap-2 mt-4">
           <button onClick={onResume}
-            className={`relative flex items-center gap-2 pl-6 pr-3 py-[7px] text-white text-[10px] font-black uppercase tracking-wider transition-all ${onResumeBtn ? 'translate-x-1' : 'opacity-85 hover:opacity-100'}`}
+            className={`relative flex items-center gap-2 ${btnCls} py-[7px] text-white font-black uppercase tracking-wider transition-all ${onResumeBtn ? 'translate-x-1' : 'opacity-85 hover:opacity-100'}`}
             style={{ background: skin.button, borderBottom: `4px solid ${skin.buttonEdge}`, boxShadow: onResumeBtn ? '0 0 12px rgba(250,204,21,0.6), 3px 3px 0 #000' : '3px 3px 0 #000', outline: onResumeBtn ? '2px solid #FACC15' : 'none' }}>
             {onResumeBtn && <span className="absolute left-2 text-yellow-300 animate-pulse">&#9654;</span>}
             <span className="w-4 text-center">▶</span>RESUME
           </button>
+          <button onClick={onMap}
+            className={`relative flex items-center gap-2 ${btnCls} py-[7px] text-white font-black uppercase tracking-wider transition-all ${onMapBtn ? 'translate-x-1' : 'opacity-85 hover:opacity-100'}`}
+            style={{ background: 'linear-gradient(180deg, #0E7490, #155E75)', borderBottom: '4px solid #083344', boxShadow: onMapBtn ? '0 0 12px rgba(250,204,21,0.6), 3px 3px 0 #000' : '3px 3px 0 #000', outline: onMapBtn ? '2px solid #FACC15' : 'none' }}>
+            {onMapBtn && <span className="absolute left-2 text-yellow-300 animate-pulse">&#9654;</span>}
+            <span className="w-4 text-center">✦</span>MAP
+          </button>
           <button onClick={onOptions}
-            className={`relative flex items-center gap-2 pl-6 pr-3 py-[7px] text-white text-[10px] font-black uppercase tracking-wider transition-all ${onOptionsBtn ? 'translate-x-1' : 'opacity-85 hover:opacity-100'}`}
+            className={`relative flex items-center gap-2 ${btnCls} py-[7px] text-white font-black uppercase tracking-wider transition-all ${onOptionsBtn ? 'translate-x-1' : 'opacity-85 hover:opacity-100'}`}
             style={{ background: 'linear-gradient(180deg, #3F6212, #365314)', borderBottom: '4px solid #1A2E05', boxShadow: onOptionsBtn ? '0 0 12px rgba(250,204,21,0.6), 3px 3px 0 #000' : '3px 3px 0 #000', outline: onOptionsBtn ? '2px solid #FACC15' : 'none' }}>
             {onOptionsBtn && <span className="absolute left-2 text-yellow-300 animate-pulse">&#9654;</span>}
             <span className="w-4 text-center">⚙</span>OPTIONS
           </button>
           {onSkip && (
             <button onClick={onSkip}
-              className={`relative flex items-center gap-2 pl-6 pr-3 py-[7px] text-white text-[10px] font-black uppercase tracking-wider transition-all ${onSkipBtn ? 'translate-x-1' : 'opacity-85 hover:opacity-100'}`}
+              className={`relative flex items-center gap-2 ${btnCls} py-[7px] text-white font-black uppercase tracking-wider transition-all ${onSkipBtn ? 'translate-x-1' : 'opacity-85 hover:opacity-100'}`}
               style={{ background: 'linear-gradient(180deg, #2563EB, #1E3A8A)', borderBottom: '4px solid #172554', boxShadow: onSkipBtn ? '0 0 12px rgba(250,204,21,0.6), 3px 3px 0 #000' : '3px 3px 0 #000', outline: onSkipBtn ? '2px solid #FACC15' : 'none' }}>
               {onSkipBtn && <span className="absolute left-2 text-yellow-300 animate-pulse">&#9654;</span>}
               <span className="w-4 text-center">»</span>{walkBackOn() ? 'SKIP TO HUB' : 'SKIP INTRO'}
@@ -222,7 +234,7 @@ const PauseMenu: React.FC<Props> = ({ weapons, current, ammo, selected, onPick, 
           )}
           {onHub && (
             <button onClick={onHub}
-              className={`relative flex items-center gap-2 pl-6 pr-3 py-[7px] text-white text-[10px] font-black uppercase tracking-wider transition-all ${onSkipBtn ? 'translate-x-1' : 'opacity-85 hover:opacity-100'}`}
+              className={`relative flex items-center gap-2 ${btnCls} py-[7px] text-white font-black uppercase tracking-wider transition-all ${onSkipBtn ? 'translate-x-1' : 'opacity-85 hover:opacity-100'}`}
               style={{ background: 'linear-gradient(180deg, #B91C1C, #7F1D1D)', borderBottom: '4px solid #450A0A', boxShadow: onSkipBtn ? '0 0 12px rgba(250,204,21,0.6), 3px 3px 0 #000' : '3px 3px 0 #000', outline: onSkipBtn ? '2px solid #FACC15' : 'none' }}>
               {onSkipBtn && <span className="absolute left-2 text-yellow-300 animate-pulse">&#9654;</span>}
               <span className="w-4 text-center">«</span>BACK TO HUB
@@ -230,7 +242,7 @@ const PauseMenu: React.FC<Props> = ({ weapons, current, ammo, selected, onPick, 
           )}
           {onQuit && (
             <button onClick={onQuit}
-              className={`relative flex items-center gap-2 pl-6 pr-3 py-[7px] text-white text-[10px] font-black uppercase tracking-wider transition-all ${onQuitBtn ? 'translate-x-1' : 'opacity-85 hover:opacity-100'}`}
+              className={`relative flex items-center gap-2 ${btnCls} py-[7px] text-white font-black uppercase tracking-wider transition-all ${onQuitBtn ? 'translate-x-1' : 'opacity-85 hover:opacity-100'}`}
               style={{ background: 'linear-gradient(180deg, #52525B, #27272A)', borderBottom: '4px solid #09090B', boxShadow: onQuitBtn ? '0 0 12px rgba(250,204,21,0.6), 3px 3px 0 #000' : '3px 3px 0 #000', outline: onQuitBtn ? '2px solid #FACC15' : 'none' }}>
               {onQuitBtn && <span className="absolute left-2 text-yellow-300 animate-pulse">&#9654;</span>}
               <span className="w-4 text-center">✕</span>QUIT
@@ -239,6 +251,7 @@ const PauseMenu: React.FC<Props> = ({ weapons, current, ammo, selected, onPick, 
         </div>
         <div className="mt-3 flex items-center gap-4 text-[6px] tracking-wider px-2 py-1 bg-black/60 text-zinc-400">
           <Prompt pad={['START', 'BACK']} kb={['ESC']} mouse="right" label="RESUME" size={15} />
+          <Prompt pad={['SELECT']} kb={['@map']} label="MAP" size={15} />
           {card ? <Prompt pad={['DPAD', 'OK']} kb={['ENTER']} mouse="left" label="SELECT" size={15} />
             : locked ? <span className="text-red-400 font-black">WEAPON SWITCHING LOCKED</span>
             : <Prompt pad={['DPAD', 'OK']} kb={['1-9']} mouse="left" label="EQUIP" size={15} />}

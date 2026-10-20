@@ -460,7 +460,7 @@ section's start (amphi/layout.ts):
 
 - 0 THE GATE (cp 60): in from PUNCHY & KICKY's STUPID DAD LIVE! gate. THE MARQUEE on two striped steel posts (THE UBX
   AMPHITHEATER PRESENTS, STUPID DAD in the show's lettering, LIVE! in bulbs, STARRING THE ORIGINAL STUPID DAD HIMSELF:
-  LYLE BRISCOE!, SHOWS AT 11, 1, 3, 5 AND 7; a vinyl NO OUTSIDE BEER zip-tied under it), the dad off the poster on it.
+  HONK AZORIA!, SHOWS AT 11, 1, 3, 5 AND 7; a vinyl NO OUTSIDE BEER zip-tied under it), the dad off the poster on it.
 - 560 THE BEER GARDEN: the stand (striped awning, COLD BEER 12 / LITE BEER 11 / NACHOS 9 / SODA ASK / NO REFUNDS, the
   taps, the neon BEER buzzing, a bored vendor, a tip jar); a high-top with two regulars swaying at it; a trash can of
   empties; the light poles.
@@ -480,7 +480,7 @@ section's start (amphi/layout.ts):
   same tape every show; UBX in the corner), the couch (the poster's orange plaid, sagging, his dent in it, an afghan, the
   remote), his pyramid of empties.
 
-**STUPID DAD** (amphi/dad.ts, boss grade: color ramps, stepped bands, dithered seams): LYLE BRISCOE, the voice of the
+**STUPID DAD** (amphi/dad.ts, boss grade: color ramps, stepped bands, dithered seams): HONK AZORIA, the voice of the
 dad (UBX, 1995), the only principal cast member still alive, in his seventies, a drunk. In the dad's look off the poster,
 for real: the stained ribbed tank top (yellow under the arms, a mustard drip, a cigarette hole, a beer ring), the
 blue-striped boxers, black socks pulled up (one slid down), brown terry slippers; the belly's real. Bald dome with liver
@@ -831,7 +831,7 @@ markBossFight every frame of a boss or sub-boss fight. Voice every new line (`np
   COSTUMES quonset). Along the bowl's far rim on the grass bank (amphi/rim.ts, 400 px stamps at depth): the RESTROOMS
   (one OUT OF ORDER), oaks (one half dead), the back of the LAWN, two PA delay towers, JOHNNY ON THE SPOT port-a-johns
   (one OCC, one door hanging), the shuttered FUNNEL CAKE trailer, the SUMMER '96 CONCERT SERIES billboard CANCELED,
-  dumpsters and the UBX STAFF cart, the CAST ONLY fence, and backstage LYLE's RV (a star taped on its door, a lawn
+  dumpsters and the UBX STAFF cart, the CAST ONLY fence, and backstage HONK's RV (a star taped on its door, a lawn
   chair, a cooler of SWILL LITE, the cord to the generator, road cases). The floors (art.ts): the bank stepped with its
   hedge; the concourse's slabs banded back with joints, gum and cracks; every bleacher row's aluminum planks back to
   the far side with its concrete riser lettered A to L, cups and cans left on them; the aisle's half steps nearest with

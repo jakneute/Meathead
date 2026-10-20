@@ -95,6 +95,7 @@ const MOVES: Section[] = [
     { label: 'SWITCH WEAPON', pad: [c('/', 'LB', 'RB')], kb: [c('/', '@prevWeapon', '@nextWeapon'), one('1-9')] },
     { label: 'WEAPON WHEEL', pad: [one('RSTICK')], kb: [] },
     { label: 'PAUSE', pad: [one('START')], kb: [c('/', 'ESC', 'P')] },
+    { label: 'PARK MAP', pad: [one('SELECT')], kb: [one('@@map')] },
   ] },
 ];
 const MOVES_R: Section[] = [

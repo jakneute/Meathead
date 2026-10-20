@@ -81,7 +81,11 @@ import OptionsScreen from '../m1/components/OptionsScreen';
 import { useOpenCloseSound } from '../m1/components/useCursorSound';
 import { M2_GUIDE_PAGES } from './ControlsGuide';
 import { setRayGun } from '../m1/game/combat/rayGun';
-import MapCard from './hub/MapCard';
+// (the hub's portal card, YOU ARE GOING HERE: that land's preview, off the park map's art)
+import LandCard from './parkmap/LandCard';
+import ParkMap from './parkmap/ParkMap';
+import { openParkMap, closeParkMap, parkMapFrom, parkMapBusy, subscribeParkMap } from './parkmap/state';
+import { prewarmParkMap } from './parkmap/render';
 import CheckpointPicker from '../m1/components/CheckpointPicker';
 import ChordPrompt from './ChordPrompt';
 import { pauseCard } from './PauseControls';
@@ -293,8 +297,8 @@ const App2: React.FC = () => {
   live.current = { status, weapon, stage };
   /** (after RESUME: SKIP INTRO in the intro; BACK TO HUB out in a land, or the break room) */
   const canHub = () => !!landOfStage(live.current.stage) || live.current.stage === PEN_STAGE;
-  /** (RESUME, OPTIONS, then SKIP INTRO / BACK TO HUB where there's one) */
-  const lastPause = () => (live.current.stage === INTRO_STAGE || canHub() ? arsenal().length + 3 : arsenal().length + 2);
+  /** (RESUME, MAP, OPTIONS, then SKIP INTRO / BACK TO HUB where there's one) */
+  const lastPause = () => (live.current.stage === INTRO_STAGE || canHub() ? arsenal().length + 4 : arsenal().length + 3);
   /** (QUIT, to the title: the last of the buttons) */
   const quitIndex = () => lastPause();
   /** The options screen (OPTIONS in the pause menu): while it's up, it takes every key and button; and a moment after
@@ -318,6 +322,22 @@ const App2: React.FC = () => {
   const askHub = () => { setAsking('hub'); setHubAsk(0); };
   const askQuit = () => { setAsking('quit'); setHubAsk(0); };
   const answerHub = (yes: boolean) => { setHubAsk(null); if (!yes) return; if (askingRef.current === 'quit') { quitToTitle(); return; } setStatus(GameStatus.PLAYING); goTo('hub'); };
+  /** The park map (parkmap/): SELECT on a pad, the map keys (TAB, M), MAP in the pause menu. Out of play it pauses the
+   *  game and shutting it plays on; out of the pause menu, shutting it goes back to the menu. Never in a cutscene, or
+   *  over the hub's portal card. */
+  const mapFrom = useSyncExternalStore(subscribeParkMap, parkMapFrom);
+  const openMap = () => {
+    const st = live.current.status, u = getUi();
+    if (st === GameStatus.PLAYING) {
+      if (canSkip() || u.introCutscene || u.locked || u.map !== null || u.introTicket || u.pick) return;
+      openParkMap('play'); setStatus(GameStatus.PAUSED);
+    } else if (st === GameStatus.PAUSED && hubAskRef.current === null && !cheatPanelOpen()) openParkMap('pause');
+  };
+  const closeMap = () => { const from = parkMapFrom(); closeParkMap(); if (from === 'play' && live.current.status === GameStatus.PAUSED) setStatus(GameStatus.PLAYING); };
+  useEffect(() => { if (status !== GameStatus.PAUSED && parkMapFrom()) closeParkMap(); }, [status]);
+  useOpenCloseSound(!!mapFrom);
+  // (the map's painted ahead, in a quiet moment once the game's under way: it comes up at once)
+  useEffect(() => { if (!title) { const id = setTimeout(prewarmParkMap, 4000); return () => clearTimeout(id); } }, [title]);
   const togglePause = () => {
     const st = live.current.status;
     // (a scene that can be skipped: START / ESC skips it, rather than pausing)
@@ -342,7 +362,7 @@ const App2: React.FC = () => {
   pauseSelRef.current = pauseSel;
   const confirmPause = () => {
     const i = pauseSelRef.current, n = arsenal().length;
-    if (i === quitIndex()) askQuit(); else if (i === n + 2) { if (canHub()) askHub(); else skipIntro(); } else if (i === n + 1) openOptions(); else if (i >= n) resume(); else equip(i);
+    if (i === quitIndex()) askQuit(); else if (i === n + 3) { if (canHub()) askHub(); else skipIntro(); } else if (i === n + 2) openOptions(); else if (i === n + 1) openMap(); else if (i >= n) resume(); else equip(i);
   };
 
   // Weapons: the shoulder buttons, the right stick's wheel, the number keys, the mouse wheel; START or ESC pauses
@@ -352,7 +372,7 @@ const App2: React.FC = () => {
     // (the mouse wheel: one weapon a notch, and a short cooldown after each, so a flick doesn't spin past three of them)
     let wheelAt = 0;
     const onWheel = (e: WheelEvent) => {
-      if (!(playing() || paused()) || (paused() && cheatPanelOpen()) || inOptions() || Math.abs(e.deltaY) < 1) return;
+      if (!(playing() || paused()) || (paused() && cheatPanelOpen()) || inOptions() || parkMapBusy() || Math.abs(e.deltaY) < 1) return;
       const now = performance.now();
       if (now - wheelAt < WHEEL_COOLDOWN_MS) return;
       // (whatever the notch is bound to: the weapon cycling, or nothing)
@@ -369,7 +389,7 @@ const App2: React.FC = () => {
       cycle(d);
     };
     const bumpCode = (code: string) => {
-      if (!(playing() || paused()) || (paused() && cheatPanelOpen()) || inOptions()) return false;
+      if (!(playing() || paused()) || (paused() && cheatPanelOpen()) || inOptions() || parkMapBusy()) return false;
       const d = keysFor('prevWeapon').includes(code) ? -1 : keysFor('nextWeapon').includes(code) ? 1 : 0;
       if (d) bump(d);
       return !!d;
@@ -382,9 +402,11 @@ const App2: React.FC = () => {
       // (the first key lets the sound out: the browser holds it back till then)
       getAudioContext();
       if (e.repeat) return;
-      // (the options screen up: it takes the keys itself)
-      if (inOptions()) return;
+      // (the options screen up, or the park map: they take the keys themselves)
+      if (inOptions() || parkMapBusy()) return;
       if (bumpCode(e.code.toLowerCase())) return;
+      // (the park map's keys: TAB and M to start with; TAB never moves the browser's focus)
+      if (keysFor('map').includes(e.code.toLowerCase())) { e.preventDefault(); if (!(paused() && hubAskRef.current !== null)) openMap(); return; }
       // (the cheat panel up: the pause menu behind it doesn't move, nor does the game unpause, till it's shut)
       if (paused() && cheatPanelOpen()) { if (e.code === 'Escape') setCheatPanelOpen(false); return; }
       // (ARE YOU SURE? up: left/right between NO and YES, ENTER answers, ESC is no)
@@ -405,7 +427,7 @@ const App2: React.FC = () => {
       else if (e.code === 'Enter' || e.code === 'Space') confirmPause();
     };
     // (right-click in the pause menu: back out of it)
-    const onContext = (e: MouseEvent) => { if (paused()) { e.preventDefault(); if (inOptions() || rightFromOptions) { rightFromOptions = false; return; } if (hubAskRef.current !== null) setHubAsk(null); else if (!cheatPanelOpen()) resume(); } };
+    const onContext = (e: MouseEvent) => { if (paused()) { e.preventDefault(); if (parkMapBusy()) return; if (inOptions() || rightFromOptions) { rightFromOptions = false; return; } if (hubAskRef.current !== null) setHubAsk(null); else if (!cheatPanelOpen()) resume(); } };
     window.addEventListener('wheel', onWheel);
     window.addEventListener('keydown', onKey);
     window.addEventListener('contextmenu', onContext);
@@ -413,16 +435,18 @@ const App2: React.FC = () => {
     const onPointer = () => { getAudioContext(); };
     window.addEventListener('pointerdown', onPointer);
     let id = 0, lastMove = 0;
-    const prev = { lb: false, rb: false, start: false, ok: false, back: false, x: false };
+    const prev = { lb: false, rb: false, start: false, select: false, ok: false, back: false, x: false };
     const wheel: { at: number | null } = { at: null };
     const poll = () => {
       const gp = getActiveGamepad();
       if (gp) {
         const now = performance.now();
-        const btn = { lb: isButtonPressed(gp, GP_BUTTONS.LB), rb: isButtonPressed(gp, GP_BUTTONS.RB), start: isButtonPressed(gp, GP_BUTTONS.START) || isButtonPressed(gp, GP_BUTTONS.SELECT), ok: isButtonPressed(gp, menuButtons(gp).ok), back: isButtonPressed(gp, menuButtons(gp).back), x: isButtonPressed(gp, GP_BUTTONS.X) };
+        // (SELECT: the park map; START pauses)
+        const btn = { lb: isButtonPressed(gp, GP_BUTTONS.LB), rb: isButtonPressed(gp, GP_BUTTONS.RB), start: isButtonPressed(gp, GP_BUTTONS.START), select: isButtonPressed(gp, GP_BUTTONS.SELECT), ok: isButtonPressed(gp, menuButtons(gp).ok), back: isButtonPressed(gp, menuButtons(gp).back), x: isButtonPressed(gp, GP_BUTTONS.X) };
         const pressed = (k: keyof typeof btn) => btn[k] && !prev[k];
-        // The options screen up: it reads the pad itself (what's held as it shuts isn't a press here either)
-        if (inOptions()) {
+        // The options screen up, or the park map: they read the pad themselves (what's held as they shut isn't a press
+        // here either)
+        if (inOptions() || parkMapBusy()) {
           Object.assign(prev, btn);
           id = requestAnimationFrame(poll);
           return;
@@ -459,7 +483,9 @@ const App2: React.FC = () => {
           if ((playing() || paused()) && just('rb')) cycle(1);
         }
         if (just('start')) togglePause();
-        if (paused()) {
+        // (SELECT: the park map; in a scene that can be skipped it skips it, as it always has)
+        if (just('select')) { if (playing() && canSkip()) requestSkip(); else openMap(); }
+        if (paused() && !parkMapFrom()) {
           const m = getGamepadMovement(gp, 0.25);
           const dx = m.left ? -1 : m.right ? 1 : 0, dy = m.up ? -1 : m.down ? 1 : 0;
           if ((dx || dy) && now - lastMove > 180 && !cheatPanelOpen()) { movePause(dx, dy); lastMove = now; }
@@ -700,7 +726,7 @@ const App2: React.FC = () => {
           </div>
         )}
         {ui.introTicket && <TicketCard kind={ui.introTicket} />}
-        {ui.map !== null && <MapCard land={ui.map} />}
+        {ui.map !== null && <LandCard land={ui.map} />}
         {/* (the checkpoint-skip cheat: where in the land to start) */}
         {ui.pick && LAND_STAGES[ui.pick] && (() => {
           const cps = LAND_STAGES[ui.pick].checkpoints;
@@ -712,11 +738,15 @@ const App2: React.FC = () => {
           );
         })()}
         {wheelAt !== null && status === GameStatus.PLAYING && !noSwitching() && <WeaponWheel weapons={arsenal()} index={wheelAt} current={weapon} nameOf={weaponName} Art={M2WeaponArt} />}
-        {status === GameStatus.PAUSED && (
+        {status === GameStatus.PAUSED && !mapFrom && (
           <PauseMenu weapons={arsenal()} current={weapon} ammo={hud.ammo} selected={pauseSel} locked={!!ui.noSwitch} card={card}
-            onPick={i => { setPauseSel(i); equip(i); }} onResume={resume} onOptions={() => { setPauseSel(arsenal().length + 1); openOptions(); }} onSkip={stage === INTRO_STAGE ? skipIntro : undefined}
+            onPick={i => { setPauseSel(i); equip(i); }} onResume={resume} onMap={() => { setPauseSel(arsenal().length + 1); openMap(); }} onOptions={() => { setPauseSel(arsenal().length + 2); openOptions(); }} onSkip={stage === INTRO_STAGE ? skipIntro : undefined}
             onHub={landOfStage(stage) || stage === PEN_STAGE ? askHub : undefined} hubAsk={hubAsk} onHubAnswer={answerHub} onHubPick={a => setHubAsk(a)} skin={theme?.pause}
             onQuit={() => { setPauseSel(quitIndex()); askQuit(); }} quitAt={quitIndex()} asking={asking} onFile={activeSlot() !== null} />
+        )}
+        {/* The park map (SELECT, TAB / M, MAP in the pause menu): where he is, roughly, on the brochure's map */}
+        {status === GameStatus.PAUSED && mapFrom && (
+          <ParkMap here={{ place: stage === HUB_STAGE ? 'hub' : stage === PEN_STAGE ? 'staff' : stage === INTRO_STAGE ? 'intro' : landOfStage(stage) ?? 'hub', zone: ui.zone ?? null }} onClose={closeMap} />
         )}
         {/* OPTIONS: Meathead 1's options screen, with Meathead 2's controls, edged like the pause menu behind it */}
         {optionsOpen && status === GameStatus.PAUSED && (

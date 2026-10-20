@@ -2,7 +2,7 @@
 // Tucker, Donnie and Artie: color ramps (light, base, shade, deep, line) in stepped bands with a dithered seam between
 // them, every material its own darkest tone for an outline (paint.ts).
 //
-// Who he is (the user's): LYLE BRISCOE, the man who voiced the dad on STUPID DAD (UBX, 1995), the only one of the
+// Who he is (the user's): HONK AZORIA, the man who voiced the dad on STUPID DAD (UBX, 1995), the only one of the
 // principal cast still alive (the rest drank themselves to death or died drunk behind the wheel), in his seventies now
 // and a drunk too. He does the show live in the park's amphitheater twice a day in the dad's own look from the poster
 // (bigkid/art.ts dadArt): the stained white tank top, the striped boxers, the black socks pulled up, the slippers, the

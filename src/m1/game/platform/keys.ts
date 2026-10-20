@@ -4,9 +4,10 @@
 // buttons are 'mouse0' (left), 'mouse1' (middle), 'mouse2' (right), 'mouse3' and 'mouse4' (the side ones). Each
 // action has two: a primary and a secondary.
 
-// (Meathead 2's grabs, 'beatdown', 'shakedown', 'airGrab': its own, listed only once it's put its profile in, setKeyProfile)
+// (Meathead 2's grabs, 'beatdown', 'shakedown', 'airGrab', and its park map, 'map': its own, listed only once it's put
+// its profile in, setKeyProfile)
 export type KeyAction = 'left' | 'right' | 'up' | 'down' | 'jump' | 'fire' | 'secondary' | 'special' | 'charge' | 'uppercut' | 'downSpecial' | 'prevWeapon' | 'nextWeapon'
-  | 'beatdown' | 'shakedown' | 'airGrab';
+  | 'beatdown' | 'shakedown' | 'airGrab' | 'map';
 export type KeyBindings = Record<KeyAction, string[]>;
 
 /** How many keys an action can have. */
@@ -43,14 +44,14 @@ export const DEFAULT_KEYS: KeyBindings = {
   downSpecial: ['keyc'],
   prevWeapon: ['wheelup'],
   nextWeapon: ['wheeldown'],
-  beatdown: [], shakedown: [], airGrab: [],
+  beatdown: [], shakedown: [], airGrab: [], map: [],
 };
 
 /** Keys a game keeps for itself, on top of isReservedKey's (Meathead 2's P: its pause). */
 let extraReserved: string[] = [];
 
 /**
- * Meathead 2's keyboard: its own actions (the grabs after the charge moves), its own defaults (the left button alone
+ * Meathead 2's keyboard: its own actions (the grabs after the charge moves, the park map last), its own defaults (the left button alone
  * fires; R, T and Q grab) and P kept for its pause. Changed in place, before the settings are loaded (loadSettings):
  * whatever imported the list or the defaults sees the new ones.
  */
@@ -58,7 +59,9 @@ export const setKeyProfile = (profile: 'm2') => {
   if (profile !== 'm2') return;
   const at = KEY_ACTIONS.findIndex(a => a.id === 'downSpecial') + 1;
   KEY_ACTIONS.splice(at, 0, { id: 'beatdown', label: 'BEATDOWN' }, { id: 'shakedown', label: 'SHAKEDOWN' }, { id: 'airGrab', label: 'AIR GRAB' });
-  Object.assign(DEFAULT_KEYS, { fire: ['mouse0'], beatdown: ['keyr'], shakedown: ['keyt'], airGrab: ['keyq'] });
+  // (the park map, last: TAB and M both, to start with: the user's)
+  KEY_ACTIONS.push({ id: 'map', label: 'PARK MAP' });
+  Object.assign(DEFAULT_KEYS, { fire: ['mouse0'], beatdown: ['keyr'], shakedown: ['keyt'], airGrab: ['keyq'], map: ['tab', 'keym'] });
   extraReserved = ['keyp'];
   bindings = cloneKeys(DEFAULT_KEYS);
   version++;

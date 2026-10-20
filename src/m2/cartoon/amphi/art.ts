@@ -1,7 +1,7 @@
 // STUPID DAD LIVE!, painted (the SNES pass). THE UBX AMPHITHEATER: a concrete bowl dug into the hill, aluminum
 // bleachers stepping down it, a band shell over the stage at its foot, sad and faded. All of it to the one eye (the
 // middle of the screen: studio/art.ts's way): the far off in far.ts (cached per hour); along the bowl's far rim the back
-// of house (rim.ts: restrooms, port-a-johns, the delay towers, the FUNNEL CAKE trailer, the SUMMER '96 billboard, LYLE's
+// of house (rim.ts: restrooms, port-a-johns, the delay towers, the FUNNEL CAKE trailer, the SUMMER '96 billboard, HONK's
 // RV backstage) on the grass bank; the floors (the concourse's slabs, every bleacher row's aluminum planks and its
 // concrete riser lettered A to L, the aisle's half steps with their yellow noses, the pit, the stage's deck) running
 // back from the play plane to the bowl's far side; the light masts and the half-dead string lights between them; the
@@ -11,7 +11,7 @@
 //
 // On the play plane, inked, everything he stands on lit along its top: the concourse, the aisle steps, the pit, the
 // stage steps, the deck. The ticket booth (WINDOW CLOSED) and its turnstiles; THE MARQUEE on its two striped posts (the
-// board sun-faded, the dad off the poster, LIVE! in bulbs, LYLE BRISCOE!, NO OUTSIDE BEER zip-tied under it, its bulbs
+// board sun-faded, the dad off the poster, LIVE! in bulbs, HONK AZORIA!, NO OUTSIDE BEER zip-tied under it, its bulbs
 // chasing, some dead); the BEER GARDEN's stand (plywood, the green and white awning, the menu, the taps, the cups, the
 // tip jar, the bored vendor, the neon BEER buzzing with a dead E); the high-top and its two regulars; the trash can of
 // empties; the crowd (eight people for a few hundred seats); the empty front row (one chair RESERVED); the CAST ONLY
@@ -207,7 +207,7 @@ const marquee = (c: Ctx, f: number) => {
     signText(g, 'STUPID DAD', 60, top + 52, SHOWL(2, T));
     signText(g, 'STARRING THE ORIGINAL', 60, top + 114, { sx: 1, sy: 1, fill: T('#FFFFFF'), ink: T(INK) });
     signText(g, 'STUPID DAD HIMSELF', 60, top + 126, { sx: 1, sy: 1, fill: T('#FFFFFF'), ink: T(INK) });
-    signText(g, 'LYLE BRISCOE!', 60, top + 146, { sx: 1, sy: 2, bold: true, fill: [T('#FFFFFF'), T('#FDE047')], dither: true, ink: T(INK), shadow: T('#3B0764'), drop: 1 });
+    signText(g, 'HONK AZORIA!', 60, top + 146, { sx: 1, sy: 2, bold: true, fill: [T('#FFFFFF'), T('#FDE047')], dither: true, ink: T(INK), shadow: T('#3B0764'), drop: 1 });
     box(g, -w / 2, top + h - 30, w, 26, Nv[3]); box(g, -w / 2, top + h - 30, w, 2, Nv[5]); box(g, -w / 2, top + h - 6, w, 2, Nv[1]);
     signText(g, 'SHOWS AT 11, 1, 3, 5 AND 7', 0, top + h - 12, { sx: 1, sy: 1, bold: true, fill: T('#FDE047'), ink: T(INK) });
     // (the vinyl banner zip-tied on under it, a corner come loose and curling)

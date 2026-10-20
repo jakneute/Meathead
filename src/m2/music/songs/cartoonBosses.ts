@@ -21,7 +21,7 @@
 // ARRANGEMENTS (cues.ts bossArrs: the pundit's name): perot, falwell, limbaugh, dole, newt; main (the sound test).
 //
 // ---- "IT'S FIVE O'CLOCK SOMEWHERE" (boss:stupid-dad) ----
-// STUPID DAD LIVE!: Lyle Briscoe, drunk on the couch in front of the same tape every show. The land's sitcom theme
+// STUPID DAD LIVE!: Honk Azoria, drunk on the couch in front of the same tape every show. The land's sitcom theme
 // drunk, as a fast, heavy blues-rock shuffle (a bar band at last orders, going for it): a 12-bar blues in D with the
 // sitcom's hook slurred onto a trombone (the blue third bent in, the ends falling off), a boogie riff on the piano's
 // left hand, the bass and the power chords together, a Hammond on the fast Leslie, a heavy swung kit with fills that
