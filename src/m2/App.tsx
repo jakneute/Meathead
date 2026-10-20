@@ -78,6 +78,7 @@ import { setRayGun } from '../m1/game/combat/rayGun';
 import MapCard from './hub/MapCard';
 import CheckpointPicker from '../m1/components/CheckpointPicker';
 import ChordPrompt from './ChordPrompt';
+import { pauseCard } from './PauseControls';
 import QtePanel from './fantasy/wheel/QtePanel';
 import IcePanel from './fantasy/bedroom/IcePanel';
 import { registerKillLines, m2Kill } from './moves/killLines';
@@ -190,7 +191,7 @@ const App2: React.FC = () => {
   const scale = useFitToWindow();
   const ui = useSyncExternalStore(subscribeUi, getUi);
   // (the broomstick's boost and brake swap on a Nintendo pad: the user's)
-  const padFam = usePadFamily(), ninPad = padFam === 'switch' || padFam === 'joycon-l' || padFam === 'joycon-r';
+  const padFam = usePadFamily(), joyPad = padFam === 'joycon-l' || padFam === 'joycon-r', ninPad = padFam === 'switch' || joyPad;
   // (it starts on the way in: the intro; in dev, ?adv=<checkpoint> starts in Adventure Land, ?spooky=<checkpoint> in
   // Spooky Land, ?space=<checkpoint> in Space Land, ?hollywood=<checkpoint> in Hollywood Land, ?foreign=<checkpoint> in
   // Foreign Lands, ?hub=<spot> at the hub, ?pen in the staff room)
@@ -239,7 +240,7 @@ const App2: React.FC = () => {
       setHubExit(to === HUB_STAGE && stage !== PEN_STAGE && !!from);
       // (through a portal: no HUD from here till the land's opened on him, not a frame of it as it loads)
       setUi({ introTip: null, introPrompt: null, introAhead: null, introTicket: null, introCutscene: dest === 'intro' || portalArrivalPending() || hubExitPending() });
-      setUi({ near: null, map: null, nearExit: false, nearAmerica: false, noSwitch: false, heliHud: false, bikeHud: false, bikeTips: false, carHops: false, tragonTips: false, tragonHold: null, broomHud: false, broomTips: false, iceMash: null });
+      setUi({ near: null, map: null, nearExit: false, nearAmerica: false, noSwitch: false, pauseControls: null, heliHud: false, bikeHud: false, bikeTips: false, carHops: false, tragonTips: false, tragonHold: null, broomHud: false, broomTips: false, iceMash: null });
       setFade(true);
       // (into a land, everything's topped up; and back at the hub after a boss: elsewhere, what he had)
       // (the walk back after a boss: topped up there, and the boss's top-up used up on it)
@@ -287,6 +288,8 @@ const App2: React.FC = () => {
   /** In the pause menu: the arsenal's a grid three across, RESUME under it. */
   const movePause = (dx: number, dy: number) => setPauseSel(i => {
     const n = arsenal().length;
+    // (a controls card up in place of the weapons: just the buttons along the bottom, left and right)
+    if (getUi().noSwitch && getUi().pauseControls) { if (i < n) return n; if (dx > 0) return Math.min(lastPause(), i + 1); if (dx < 0 && i > n) return i - 1; return i; }
     if (i >= n) { if (dx > 0) return Math.min(lastPause(), i + 1); if (dx < 0 && i > n) return i - 1; return dy < 0 ? Math.min(n - 1, Math.floor((n - 1) / 3) * 3) : i; }
     if (dy > 0) return i + 3 < n ? i + 3 : n;
     if (dy < 0) return i - 3 >= 0 ? i - 3 : i;
@@ -446,6 +449,22 @@ const App2: React.FC = () => {
     });
   };
 
+  // (a stretch with its own controls and no weapon switching: its controls card, for the pause menu)
+  const cardId = ui.noSwitch ? ui.pauseControls ?? null : null;
+  const card = cardId ? pauseCard(cardId, ninPad, joyPad) : null;
+  // (and once its own controls card has gone, a few seconds of PAUSE FOR CONTROLS: once a visit to it, the user's)
+  const tipsUp = !!(ui.heliTips || ui.bikeTips || ui.broomTips || ui.tragonTips || ui.tragonHold || ui.logTip);
+  const [pausePrompt, setPausePrompt] = useState(false);
+  const promptDone = useRef<string | null>(null);
+  useEffect(() => {
+    if (!cardId) { promptDone.current = null; setPausePrompt(false); return; }
+    if (promptDone.current === cardId || tipsUp || ui.introCutscene || status !== GameStatus.PLAYING) return;
+    // (a moment in: its own card comes up first, if it's got one, and this waits till that's gone)
+    const id = setTimeout(() => { promptDone.current = cardId; setPausePrompt(true); }, 1200);
+    return () => clearTimeout(id);
+  }, [cardId, tipsUp, ui.introCutscene, status]);
+  useEffect(() => { if (!pausePrompt) return; const id = setTimeout(() => setPausePrompt(false), 4500); return () => clearTimeout(id); }, [pausePrompt]);
+
   const noticeUp = ui.notice && performance.now() - ui.notice.at < 1800;
   useEffect(() => { if (!ui.notice) return; const id = setTimeout(() => setUi({ notice: null }), 1900); return () => clearTimeout(id); }, [ui.notice]);
   const nearLand = landAt(ui.near);
@@ -574,12 +593,18 @@ const App2: React.FC = () => {
               <span className="inline-flex items-center gap-1 align-middle"><span>HOLD</span><Prompt pad={['X']} kb={['@fire']} label="LOCK ON, LET GO: HOMING SHOT" /></span>
             </div>
             <div className="flex gap-4">
-              <Prompt pad={[ninPad ? 'B' : 'A']} kb={['@jump']} label="BOOST" />
-              <Prompt pad={[ninPad ? 'A' : 'B']} kb={['@charge', '@special']} label="BRAKE" />
+              <ChordPrompt pad={[ninPad ? 'B' : 'A', 'RB', ...(joyPad ? [] : ['RT' as const])]} join="/" kb={['@jump']} label="BOOST" />
+              <ChordPrompt pad={[ninPad ? 'A' : 'B', 'LB', ...(joyPad ? [] : ['LT' as const])]} join="/" kb={['@charge', '@special']} label="BRAKE" />
               <Prompt pad={['Y']} kb={['@secondary']} label="INVERT PITCH" />
             </div>
             <span className="inline-flex items-center gap-1 align-middle"><Prompt pad={['DPAD_UP', 'DPAD_DOWN']} kb={['@up', '@down']} /><span>PITCH UP / DOWN</span><Prompt pad={['DPAD_LEFT', 'DPAD_RIGHT']} kb={['@left', '@right']} /><span>TURN</span></span>
             <span className="text-zinc-400">KILL EVERY SUITOR</span>
+          </div>
+        )}
+        {/* A stretch with its own controls: once its card's gone, where to see them again (the pause menu) */}
+        {status === GameStatus.PLAYING && ui.map === null && !ui.introCutscene && card && pausePrompt && !tipsUp && (
+          <div className="absolute left-1/2 -translate-x-1/2 top-[132px] z-30 px-2 py-1 text-[7px] text-zinc-200 bg-black/60 border border-zinc-600 pointer-events-none">
+            <Prompt pad={['START']} kb={['ESC']} label="PAUSE FOR CONTROLS" size={12} />
           </div>
         )}
         {/* Fairy Land's fairy wheel: a QTE on (in a suitor's cart) */}
@@ -641,7 +666,7 @@ const App2: React.FC = () => {
         })()}
         {wheelAt !== null && status === GameStatus.PLAYING && !noSwitching() && <WeaponWheel weapons={arsenal()} index={wheelAt} current={weapon} nameOf={weaponName} Art={M2WeaponArt} />}
         {status === GameStatus.PAUSED && (
-          <PauseMenu weapons={arsenal()} current={weapon} ammo={hud.ammo} selected={pauseSel} locked={!!ui.noSwitch}
+          <PauseMenu weapons={arsenal()} current={weapon} ammo={hud.ammo} selected={pauseSel} locked={!!ui.noSwitch} card={card}
             onPick={i => { setPauseSel(i); equip(i); }} onResume={resume} onOptions={() => { setPauseSel(arsenal().length + 1); openOptions(); }} onSkip={stage === INTRO_STAGE ? skipIntro : undefined}
             onHub={landOfStage(stage) || stage === PEN_STAGE ? askHub : undefined} hubAsk={hubAsk} onHubAnswer={answerHub} onHubPick={a => setHubAsk(a)} skin={theme?.pause} />
         )}

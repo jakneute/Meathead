@@ -105,7 +105,7 @@ const takeOff = (state: GameState, h: Heli, at: number) => {
   h.mechs.forEach((m, i) => { if (i < at) m.st = 'dead'; });
   h.cur = at; h.prog = at - RISE[at].d;
   p.inCutscene = false; p.noSpecials = true; p.spriteRot = 0;
-  setUi({ noSwitch: true });
+  setUi({ noSwitch: true, pauseControls: 'heli' });
   h.zoom = Z; h.up = 1; h.pull = 1; h.pullX = SW / 2; h.pullY = SH / 2; h.tilt = 0; p.kickPose = 0;
   holdCam(state, h, CAM_FLY.x, CAM_FLY.y);
   const spot = toWorld(TOUR_AT.x, TOUR_AT.y);
@@ -493,7 +493,7 @@ const finish = (state: GameState, h: Heli) => {
   h.shots.clear(); h.beams = []; h.drops = []; h.minions = []; h.rockets = [];
   p.carried = false; p.cartSeat = false; p.copterSeat = undefined; p.hidden = false; p.spriteRot = 0; p.inCutscene = false; p.noSpecials = false;
   p.vel.x = 0; p.vel.y = 0; p.facing = 1; p.invincibilityTimer = 0;
-  setUi({ noSwitch: false, heliTips: false });
+  setUi({ noSwitch: false, pauseControls: null, heliTips: false });
   setDropTable(PARK_DROPS);
   letCamGo(state, h);
   teleport(state, DOORS.harry.start.x, DOORS.harry.start.y);
@@ -557,7 +557,7 @@ export const heli: ForeignSection = {
     harrySaid.clear();
     setDropTable(PARK_DROPS);
     if (state.stageMemo[MEMO.done]) { h.over = true; h.phase = 'gone'; }
-    setUi({ heliTips: false, noSwitch: false });
+    setUi({ heliTips: false, noSwitch: false, pauseControls: null });
   },
   update: (ctx, controls) => {
     const { state } = ctx, h = heliOf(state);

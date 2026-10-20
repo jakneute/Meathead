@@ -8,7 +8,8 @@
 //
 // FLYING (the user's): up / down PITCH (NOT inverted to start: up climbs; Y or alternate fire flips it, the plate says
 // which, a flash says so), left / right TURN (he leans into it). A (jump) BOOSTS (a burst: a short meter, used up it
-// refills before it'll go again); B (the boost button) BRAKES while held: deliberate, not to be swapped. Skimming the
+// refills before it'll go again); B (the boost button) BRAKES while held: deliberate, not to be swapped (but for a
+// Nintendo pad); and on every pad RB and RT boost too, LB and LT brake (the user's; RT doesn't fire here). Skimming the
 // lawn is fine; the park's MAGIC WALL forces a U-turn (swung round and back in, his controls off a moment, no damage);
 // the castle and its towers are solid (fly into one: it bounces him off and hurts).
 // X fires the LASER on the broom's end (the user's): tap, a pink beam (unlimited, a little aim help toward whoever's
@@ -34,6 +35,7 @@ import { pickLine, pickFreshLine, silenceAll, announce } from '../../../m1/game/
 import { offerSkip, takeSkip, drawSkipPrompt, SKIP_AFTER } from '../../../m1/game/platform/skip';
 import { isShat, isNude } from '../../../m1/game/player/gut';
 import { inputDevice, padFamily } from '../../../m1/game/platform/device';
+import { getActiveGamepad, isButtonPressed, GP_BUTTONS } from '../../../m1/game/platform/gamepad';
 import { registerHurtLines } from '../../kinds';
 import { setUi } from '../../store';
 import { meatheadSays, speak, saidOver, byPants, landVisit, teleport, fantasyState, type Said } from '../section';
@@ -162,6 +164,13 @@ export const broomMusic = (state: GameState): 'main' | 'late' | 'win' => {
 const rnd = Math.random;
 /** Playing on a Nintendo pad (a Pro Controller, Joy-Con): the broom's boost and brake swap (the user's). */
 export const switchPad = () => { if (inputDevice() !== 'pad') return false; const fam = padFamily(); return fam === 'switch' || fam === 'joycon-l' || fam === 'joycon-r'; };
+/** The pad's shoulders and triggers held now (and X and B, to tell a trigger's share of fire and B from theirs). */
+const shoulders = () => {
+  const gp = getActiveGamepad();
+  if (!gp) return { lb: false, rb: false, lt: false, rt: false, x: false, b: false };
+  const on = (i: number) => isButtonPressed(gp, i);
+  return { lb: on(GP_BUTTONS.LB), rb: on(GP_BUTTONS.RB), lt: on(GP_BUTTONS.LT), rt: on(GP_BUTTONS.RT), x: on(GP_BUTTONS.X), b: on(GP_BUTTONS.B) };
+};
 const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
 const angDiff = (a: number, b: number) => Math.atan2(Math.sin(a - b), Math.cos(a - b));
 
@@ -217,7 +226,7 @@ export const startFight = (state: GameState) => {
   state.player.inCutscene = false;
   if (state.checkpoint < 50) state.checkpoint = 50;
   f.tips = k.tips ? 0 : 600; k.tips = true;
-  setUi({ noSwitch: true, broomHud: true, broomBoost: 1, broomTips: f.tips > 0 });
+  setUi({ noSwitch: true, pauseControls: 'broom', broomHud: true, broomBoost: 1, broomTips: f.tips > 0 });
   if (!k.said) {
     k.said = true;
     piperSays(f, pickFreshLine(PIPER_START), () => meatheadSays(state, pickLine(byPants(state, MH_START)), true));
@@ -237,7 +246,7 @@ const finish = (state: GameState, shards: HTMLCanvasElement | null) => {
   f.phase = 'off';
   state.stageMemo[BROOM_MEMO] = '1';
   holdHim(state, false);
-  setUi({ noSwitch: false, broomHud: false, broomTips: false });
+  setUi({ noSwitch: false, pauseControls: null, broomHud: false, broomTips: false });
   teleport(state, DOORS.bedroom.start.x, DOORS.bedroom.start.y);
   p.facing = 1;
   // (in through the glass: bits of it all round him on the floor)
@@ -611,7 +620,11 @@ export const updateFight = (ctx: FrameContext, controls: Controls): Controls => 
     // (on a Nintendo pad the two swap (the user's: an exception to positional buttons): the jump spot brakes, the
     // boost spot boosts; keyboard and the other pads as above)
     const nin = switchPad();
-    const boostBtn = nin ? !!(controls.special || controls.charge) : !!controls.jump, brakeBtn = nin ? !!controls.jump : !!(controls.special || controls.charge);
+    // (and the shoulders, on every pad (the user's): LB and LT brake, RB and RT boost. The game's own reading has LT as
+    // B: taken back out of it here, so on a Nintendo pad LT still brakes)
+    const sh = shoulders();
+    const bBtn = !!(controls.special || controls.charge) && !(sh.lt && !sh.b);
+    const boostBtn = (nin ? bBtn : !!controls.jump) || sh.rb || sh.rt, brakeBtn = (nin ? !!controls.jump : bBtn) || sh.lb || sh.lt;
     boosting = boostBtn && !f.spent && f.boost > 0;
     braking = !boosting && brakeBtn;
   } else if (f.phase === 'win') {
@@ -667,7 +680,9 @@ export const updateFight = (ctx: FrameContext, controls: Controls): Controls => 
     // ---- the broom's laser (the user's: X fires it; tap: the laser; HOLD: the lock-on (Star Fox 64's): the reticle
     // sweeps and grows, snaps red onto the suitor ahead with a tone; let go locked: a homing shot, a big one; let go
     // without a lock: just the laser)
-    const X = !!controls.shoot && f.uturn <= 0;
+    // (RT boosts here, never fires: the game's own reading has RT as X, taken back out of it)
+    const shN = shoulders();
+    const X = !!controls.shoot && !(shN.rt && !shN.x) && f.uturn <= 0;
     f.lock = lockOn(f);
     if (f.fireCool > 0) f.fireCool--;
     if (X && !f.prevX && f.fireCool <= 0) { fire(f); f.fireCool = FIRE_EVERY; }

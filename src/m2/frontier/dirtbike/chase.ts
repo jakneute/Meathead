@@ -182,7 +182,7 @@ export const startChase = (state: GameState, wave: number, fromBounty: boolean) 
   holdHim(state, true);
   state.player.inCutscene = false;
   if (state.checkpoint < 50 + wave) state.checkpoint = 50 + wave;
-  setUi({ noSwitch: true, bikeHud: true, bikeBoost: 1, bikeTips: c.tips > 0 });
+  setUi({ noSwitch: true, pauseControls: 'bike', bikeHud: true, bikeBoost: 1, bikeTips: c.tips > 0 });
   // (off the bounty: the pack's right behind him)
   if (fromBounty) for (let i = 0; i < 2; i++) spawnTeen(state, c, true, -1400 - i * 900);
   const first = startVisit !== landVisit();
@@ -195,7 +195,7 @@ const finishChase = (state: GameState) => {
   c.phase = 'off';
   state.stageMemo[TEENS_MEMO] = '1';
   holdHim(state, false);
-  setUi({ noSwitch: false, bikeHud: false, bikeTips: false });
+  setUi({ noSwitch: false, pauseControls: null, bikeHud: false, bikeTips: false });
   handoff = true;
   teleport(state, DOORS.arena.start.x, DOORS.arena.start.y);
   state.player.facing = 1;

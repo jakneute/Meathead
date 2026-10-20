@@ -634,7 +634,7 @@ export const updateRide = (ctx: FrameContext, controls: Controls): Controls => {
     if (!riding) { t.said.posed = false; p.tragon = undefined; }
   }
   // (no charge, slide, uppercut or dive kick on a dragon's back: survival, not a fight)
-  if (riding) { p.noSpecials = true; t.said.nospec = true; } else if (t.said.nospec) { p.noSpecials = false; t.said.nospec = false; }
+  if (riding) { p.noSpecials = true; t.said.nospec = true; setUi({ pauseControls: 'tragons' }); } else if (t.said.nospec) { p.noSpecials = false; t.said.nospec = false; setUi({ pauseControls: null }); }
 
   for (const tr of t.trains) placeBlocks(state, tr);
 

@@ -66,7 +66,14 @@ export interface M2Ui {
   /** (Fairy Land's Piper fight) Frozen solid in liquid nitrogen: how far he's mashed out of the ice (0..1), or null
    *  (fantasy/bedroom/IcePanel.tsx draws the prompt). */
   iceMash?: number | null;
+  /** A stretch with its own controls and no weapon switching (the user's): which one, while it's on (set by the
+   *  stretch, cleared as it ends; only counted while noSwitch is on). The pause menu shows its controls in place of the
+   *  weapons (PauseControls.tsx), and once its own controls card has gone a prompt says so (App.tsx). */
+  pauseControls?: PauseCardId | null;
 }
+
+/** The stretches with a pause-menu controls card (PauseControls.tsx). */
+export type PauseCardId = 'bike' | 'heli' | 'cart' | 'tragons' | 'broom' | 'sled' | 'orbit';
 
 /** (Truelling Tragons) A hop asked for (wheel up or RB: the car above; wheel down or LB: the car below), taken by the
  *  ride next frame (it keeps its own cooldown); one at a time, the last asked. */

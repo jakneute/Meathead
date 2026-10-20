@@ -364,7 +364,7 @@ const endOutro = (state: GameState, cart: Cart, skipped: boolean) => {
   if (skipped) silenceAll();
   cart.mode = 'gone'; cart.me = null; p.spriteRot = 0;
   // (out of the cart: his moves back, and his choice of weapon)
-  p.noSpecials = false; setUi({ noSwitch: false }); cart.artie.end = null; cart.artie.on = false; cart.artie.said = null;
+  p.noSpecials = false; setUi({ noSwitch: false, pauseControls: null }); cart.artie.end = null; cart.artie.on = false; cart.artie.said = null;
   (getAdv(state)!.s as Record<string, unknown>).roofArrival = true;
   state.cameraLeadX = 0; state.cameraOverride = null;
   // (still in the cutscene: the roof's carries on from here; it takes him from under the roof, in the hole)
@@ -409,10 +409,10 @@ const run = (ctx: FrameContext, controls: Controls): Controls => {
   // (handed over by the temple, or back at a checkpoint: into the cart either way. Never out of it here, walking:
   // anywhere in the mine he's in the cart)
   if (c.mode === 'off') board(state, c);
-  if (c.mode === 'gone') { p.noSpecials = false; setUi({ noSwitch: false }); return controls; }
+  if (c.mode === 'gone') { p.noSpecials = false; setUi({ noSwitch: false, pauseControls: null }); return controls; }
   // (sat in it: no charge, slide, uppercut, dive kick or grab, whatever's pressed, and stuck with the weapon he got in
   // with: the one he's holding, out and pointed the way it's going)
-  p.noSpecials = true; setUi({ noSwitch: true });
+  p.noSpecials = true; setUi({ noSwitch: true, pauseControls: 'cart' });
   // (the camera ahead of him; rolling out past the scanner, held on it and the fork a moment)
   // (the big one after him: the camera eases back to take it in behind him, then ahead again)
   const big = c.tricks.boulders.find(b => b.big && b.mode !== 'fall' && c.x - b.x < 1100);

@@ -4,6 +4,7 @@ import { maxAmmo } from '../m1/constants';
 import { Prompt } from '../m1/components/ButtonIcons';
 import { M2_WEAPON_INFO, M2WeaponArt, ammoName } from './weapons';
 import ChordPrompt from './ChordPrompt';
+import { CardRowView, type PauseCard } from './PauseControls';
 import { PLAIN_PAUSE, type PauseSkin } from './hudThemes';
 import { M2_PUBLIC } from './build';
 import { walkBackOn } from './store';
@@ -84,9 +85,12 @@ interface Props {
   hubAsk?: 0 | 1 | null;
   onHubAnswer?: (yes: boolean) => void;
   onHubPick?: (a: 0 | 1) => void;
+  /** A stretch with its own controls and no weapon switching (the dirt bike, the broom...): its controls card, shown
+   *  in place of the weapons (PauseControls.tsx); the buttons along the bottom as ever. */
+  card?: PauseCard | null;
 }
 
-const PauseMenu: React.FC<Props> = ({ weapons, current, ammo, selected, onPick, onResume, onOptions, onSkip, skin = PLAIN_PAUSE, locked = false, onHub, hubAsk = null, onHubAnswer, onHubPick }) => {
+const PauseMenu: React.FC<Props> = ({ weapons, current, ammo, selected, onPick, onResume, onOptions, onSkip, skin = PLAIN_PAUSE, locked = false, onHub, hubAsk = null, onHubAnswer, onHubPick, card = null }) => {
   const shown = selected < weapons.length ? weapons[selected] : current;
   const info = M2_WEAPON_INFO[shown];
   const full = (w: WeaponType) => maxAmmo(w);
@@ -137,6 +141,16 @@ const PauseMenu: React.FC<Props> = ({ weapons, current, ammo, selected, onPick, 
         <h2 className={`mt-1 ${skin.sub ? 'mb-1' : 'mb-3'} ${skin.title.length > 12 ? 'text-2xl' : 'text-3xl'} font-black italic tracking-widest whitespace-nowrap`} style={skin.titleStyle}>{skin.title}</h2>
         {skin.sub && <div className="mb-3 text-[7px] font-black tracking-wider" style={{ color: skin.muted }}>{skin.sub}</div>}
 
+        {card ? (
+          // A stretch with its own controls (no weapon switching there): its controls, in place of the weapons
+          <div className="flex flex-col items-center w-full">
+            <div className="text-[8px] font-black tracking-widest mb-2" style={{ color: skin.muted }}>CONTROLS</div>
+            <div className="text-[11px] font-black uppercase leading-tight mb-2" style={{ color: skin.text, textShadow: '1px 1px 0 rgba(0,0,0,0.35)' }}>{card.title}</div>
+            <div className="flex flex-col items-start gap-[6px] px-4 py-3 min-w-[300px] bg-black/60 border border-zinc-700 text-[8px] font-black text-zinc-200 tracking-wider">
+              {card.rows.map((r, i) => <CardRowView key={i} row={r} size={15} />)}
+            </div>
+          </div>
+        ) : (
         <div className="flex gap-4 w-full items-start">
           {/* The arsenal */}
           <div className="flex flex-col items-center">
@@ -176,6 +190,7 @@ const PauseMenu: React.FC<Props> = ({ weapons, current, ammo, selected, onPick, 
             ) : null}
           </div>
         </div>
+        )}
 
         <div className="flex gap-2 mt-4">
           <button onClick={onResume}
@@ -209,7 +224,8 @@ const PauseMenu: React.FC<Props> = ({ weapons, current, ammo, selected, onPick, 
         </div>
         <div className="mt-3 flex items-center gap-4 text-[6px] tracking-wider px-2 py-1 bg-black/60 text-zinc-400">
           <Prompt pad={['START', 'BACK']} kb={['ESC']} mouse="right" label="RESUME" size={15} />
-          {locked ? <span className="text-red-400 font-black">WEAPON SWITCHING LOCKED</span>
+          {card ? <Prompt pad={['DPAD', 'OK']} kb={['ENTER']} mouse="left" label="SELECT" size={15} />
+            : locked ? <span className="text-red-400 font-black">WEAPON SWITCHING LOCKED</span>
             : <Prompt pad={['DPAD', 'OK']} kb={['1-9']} mouse="left" label="EQUIP" size={15} />}
           {!M2_PUBLIC && <Prompt pad={['X']} mouse="left" label="CHEATS" size={15} />}
         </div>

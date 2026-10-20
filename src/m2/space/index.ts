@@ -73,7 +73,7 @@ export const spaceLayout: StageLayout = {
     const sp: SpaceState = { section: 'square', s: {}, flight: null, grab: createGrab(state), grace: GRACE, held: new Set(), arrive: takePortalArrival() ? startPortalArrival() : undefined };
     state.stage = sp;
     // (on foot to start with, whatever he was at when he died: flight's put back on by its section)
-    state.player.noSpecials = false; setUi({ noSwitch: false });
+    state.player.noSpecials = false; setUi({ noSwitch: false, pauseControls: null });
     // (the checkpoint-skip cheat: where he picked to start, the first time in; set before the sections build, as they
     // read it for what's been already (the drag's smear and wreck from 30 on, the ride's breaker, the suit...))
     { const pick = takeStartCheckpoint(); if (pick !== null) state.checkpoint = pick; }
@@ -124,7 +124,7 @@ export const spaceLayout: StageLayout = {
     // (free flight (the orbit's shooter: section.ts's Flight): the ray gun only, no switching, while it's on; the flying
     // itself is the section's)
     const fl = sec.flight?.(state) ?? null;
-    if (!!fl !== !!sp.flight) { p.noSpecials = !!fl; setUi({ noSwitch: !!fl }); }
+    if (!!fl !== !!sp.flight) { p.noSpecials = !!fl; setUi({ noSwitch: !!fl, pauseControls: fl ? 'orbit' : null }); }
     sp.flight = fl;
     // (in through the portal: not his till the land's opened on him)
     const arriving = !!sp.arrive && tickPortalArrival(state, sp.arrive, sec.cameraRow?.(state) ?? 550);

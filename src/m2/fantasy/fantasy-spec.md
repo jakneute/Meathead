@@ -443,7 +443,9 @@ markBossFight every frame of a boss or sub-boss fight. Voice every new line (`np
   so; kept as he left it). A (jump) BOOSTS (Star Fox's: a burst, a short meter, used up it refills before it'll go
   again); B (the game's boost button) BRAKES, held. That swap is deliberate. On a NINTENDO pad (Pro Controller, Joy-Con:
   device.ts padFamily) boost and brake swap (an exception to positional buttons: the jump spot brakes, the B spot
-  boosts); keyboard and other pads unchanged; the controls card shows the right icons per family.
+  boosts); keyboard and other pads unchanged; the controls card shows the right icons per family. And on every pad
+  (the user's) LB and LT brake too, RB and RT boost too (RT doesn't fire here: X does; a lone Joy-Con has no triggers).
+  The pause menu shows the broom's controls in place of the weapons (PauseControls.tsx).
 - (job 6, the user's) Hitting the arena's edge (the park's MAGIC WALL, 5000 out) FORCES A TURNAROUND: he's swung round
   back in (64 frames, his controls off, no damage), TURNING BACK, a line now and then.
 - (job 6, the user's) X fires the LASER on the broom's END (an emitter clamped on its tip, the pink lens): a tap is the
