@@ -23,7 +23,7 @@ import { layOwn, endWalls, endExits, runExits, solid } from '../section';
 import { DOORS } from '../geometry';
 import { x0, x1, GY, CHECKPOINTS, EXIT_X } from './layout';
 import { tragonsOf } from './state';
-import { buildRide, updateRide, viewOf, cameraLimits } from './ride';
+import { buildRide, updateRide, viewOf, cameraLimits, holdOffRide, offRideNow } from './ride';
 import { drawTragonsBackdrop, drawTragonsBack, drawTragonsFront, drawTragonsHud } from './art';
 import './deaths';
 
@@ -44,7 +44,9 @@ export const tragons: FantasySection = {
   update: (ctx, controls) => {
     const out = updateRide(ctx, controls);
     // (the ways: back off the left end to the glen's queue; on out the exit past the unload, to the castle's base)
-    runExits(ctx.state, [...endExits('tragons', { right: false }), { x0: EXIT_X + 30, x1: EXIT_X + 120, yTop: GY - 40, yBot: GY + 2, to: DOORS.keep.start }]);
+    // (off the ride: no way back left, the user's)
+    holdOffRide(ctx.state);
+    runExits(ctx.state, [...(offRideNow(ctx.state) ? [] : endExits('tragons', { right: false })), { x0: EXIT_X + 30, x1: EXIT_X + 120, yTop: GY - 40, yBot: GY + 2, to: DOORS.keep.start }]);
     return out;
   },
   drawBackdrop: (c, state) => drawTragonsBackdrop(c, state),

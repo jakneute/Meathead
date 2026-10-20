@@ -722,8 +722,23 @@ const arrive = (state: GameState) => {
 };
 
 /** The camera's limits: the station, then the whole ride and the unload to the exit. */
+/** Off the ride this visit (the unload, or back here after it): no going back left (the user's: the view's locked at
+ *  the unload deck, and so is he). */
+export const offRideNow = (state: GameState) => offRide(state);
+const offRide = (state: GameState) => {
+  const t = tragonsOf(state);
+  return t.phase === 'arrive' || (t.phase === 'done' && (!!state.stageMemo[DONE_MEMO] || state.checkpoint >= UNLOAD_CP));
+};
+const BACK_WALL = DECK_X0 - 30;
+/** (index.ts, each frame) Held to the unload's side once he's off the ride. */
+export const holdOffRide = (state: GameState) => {
+  if (!offRide(state)) return;
+  const p = state.player;
+  if (p.pos.x < BACK_WALL) { p.pos.x = BACK_WALL; if (p.vel.x < 0) p.vel.x = 0; }
+};
 export const cameraLimits = (state: GameState) => {
   const t = tragonsOf(state);
+  if (offRide(state)) return { min: BACK_WALL - 40, max: EXIT_X + 220 - CANVAS_WIDTH };
   return { min: S0X - 1000, max: t.phase === 'load' ? GATE_X + 200 - CANVAS_WIDTH / 2 : EXIT_X + 220 - CANVAS_WIDTH };
 };
 /** (index.ts) The holes coming on each lane, for the warnings. */
