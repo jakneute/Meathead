@@ -957,7 +957,8 @@ export const drawKeepBack = (c: Ctx, state: GameState, piperX: number | null, ru
   if (onScreen(state, X(SCENE.horn.x) - 60, X(SCENE.horn.x) + 80)) paHorn(c, X(SCENE.horn.x), 0, SCENE.horn.h, runwayTalk, f);
   // (the signs, on their posts)
   const signs: [number, number, string[], object?][] = [
-    [460, 0, ["THE GREAT PIXIE'S CASTLE", 'STAFF AND SUITORS ONLY']],
+    // (well clear of the moat's sign: the user's, it was half behind it)
+    [250, 0, ["THE GREAT PIXIE'S CASTLE", 'STAFF AND SUITORS ONLY']],
     [640, 0, ['THE MOAT', 'DRAINED FOR CLEANING'], { warn: true }],
     [1560, 0, ['YE OLDE GIFT SHOPPE', 'TIARAS $40']],
     [(BOUTIQUE.a + BOUTIQUE.b) / 2 - 30, 0, ['PRINCESS MAKEOVER', 'BOUTIQUE'], { tall: 270, board: '#9A2A6A' }],
