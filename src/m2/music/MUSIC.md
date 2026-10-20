@@ -59,7 +59,7 @@ Fill in the columns as you compose (and set Status to done). **Standing requests
 | `intro` | The way in: parking lot to the gate | garage, security, america, ticket (the intro's zones), back (the walk back after Wilderness Land) | Patriotic Sousa march (strains, trio in A-flat, dogfight), re-orchestrated per zone: PA muzak, nervous checkpoint, full marching band, honky-tonk ragtime, evening harmonica | E-flat | 116 | Trumpet (vibes / clarinet / piano / harmonica by zone) | Flag-waving, never stops | **done** ("America USA", intro.ts) |
 | `portal` / `portal:<land>` | The walk into a land's portal | main, plus one per land (adventure, spooky, space, hollywood, foreign, frontier; `portal:<land>` has only its own) | Harp-glissando whoosh into an orchestral fanfare (bVI-bVII-I), once, 16 beats | D | 128 | Trumpet (pan flute / pipe organ / theremin / studio brass / accordion / harmonica by land) | Off we go | **done** ("Heading In", portal.ts) |
 | `walkaway` / `walkaway:<boss>` | Walking away from the wreck with the new weapon (bosses: safari-artie, donnie-dracula, space-queen, stuntman-steve, helicopter-harry, tucker) | main, plus one per boss (artie, donnie, queen, steve, harry, tucker; `walkaway:<boss>` has only its own) | 70s soul strut (cool guys don't look at explosions), 16-bar loop | A-flat | 84 | Tenor sax (vibes / pipe organ / saw lead / distorted guitar / sitar / twang guitar by boss) | Smug, earned | **done** ("Walk It Off", walkaway.ts) |
-| `jingle:victory` | The VICTORY stamp (plays once: `once: true`) | | Heavy metal: rising power-chord stabs over chugs and double kick (an eighth = the letters' 11 frames), a shred run into the big D5 and a pinch-harmonic squeal on the Y, then "shave and a haircut" chugged and a whammy dive-bomb for "two bits" | D | 164 | Power chords, chugs, distorted lead, bass, kit | Triumphant, then crude | **done** ("VICTORY!", jingles.ts) |
+| `jingle:victory` | The VICTORY stamp (plays once: `once: true`). It starts with the VICTORY and leads in a bar before the first letter; the letters stamp on its eighths; the VICTORY holds till its 14 beats are done (victory.ts), so the walk-away's silence never cuts it off | | Orchestra hits, Turtles in Time's stage clear: a bar of lead-in (DUN, DUN-DUN, the bVI-bVII cadence, a snare roll), a hit a letter climbing C-D-E-F-G-A major, a beat's breath (trumpet run, string sweep), the biggest hit on the Y, the cadence again and the last hit, the trombone falling off it | C | 160 | Big orchestra hits (`orchstab` over `orchhit`), trumpets and brass, timpani, string sweep, bass, kit | Triumphant, a bit too pleased with itself | **done** ("VICTORY!", jingles.ts) |
 | `jingle:death` | His death (`once: true`) | | Sad-trombone slide down, cut off by the playground taunt, slapstick | G | 140 | Muted trumpet, then xylophone | Mocking | **done** ("Nyah Nyah", jingles.ts) |
 
 There's no game over in Meathead 2 (death goes back to the checkpoint), and no boss-door trigger yet: a boss-door
@@ -154,7 +154,9 @@ calliope / band organ; 48-96), `harpsichord`, `clav`, `accordion` (musette; 48-8
 
 **Mallets, tuned percussion:** `celesta` (60-108), `musicbox` (60-108), `marimba` (36-96), `vibes` (motor on;
 48-96), `glock` (72-108), `xylophone` (60-108), `chimes` (tubular bells; 60-84), `steeldrum` (48-96), `timpani`
-(pitched; 36-60), `orchhit` (a major chord on the note; 48-72).
+(pitched; 36-60), `orchhit` (a major chord on the note; 48-72), `orchstab` (the BIG early-90s arcade orchestra hit,
+Turtles in Time's: a major chord on the note, brass blatting bright and strings an octave up, a timpani thump and a
+crack; punchy; 48-72).
 
 **Strings:** `strings` (section: eight players, bows biting in; 36-96), `slowstrings` (the same, slow swell),
 `violin` (solo; 60-96), `cello` (solo, and contrabass down low; 36-72), `pizz` (section pizzicato), `harp`.

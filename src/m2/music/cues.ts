@@ -411,7 +411,9 @@ const gameWants = (s: GameState | null): Want => {
   const p = s.player;
   const cutscene = !!p.inCutscene;
   if (s.deathTimer > 0) return { cands: [{ song: 'jingle:death' }], cutscene: false };
-  if (momentOn('victory')) return { cands: [{ song: 'jingle:victory' }], cutscene: false };
+  // (the VICTORY lasts the jingle's length (victory.ts), and its last hit's ring carries the first moment of the
+  // walk-away's iris before the walk's silence fades it)
+  if (momentOn('victory', 700)) return { cands: [{ song: 'jingle:victory' }], cutscene: false };
   // (the walk-in through a portal and the walk-away from the wreck: no music at all (the user's): their own sounds only)
   if (momentOn('walkaway') || momentOn('portal')) return none;
 

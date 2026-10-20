@@ -400,6 +400,58 @@ const orchHit = custom({
   },
 });
 
+/** The BIG orchestra hit: the early-90s arcade / SNES one (Konami's: Turtles in Time). A major chord (root, fifth,
+ *  octave, tenth) on a brass section three players a note, blatting bright on the hit and settling darker, the
+ *  strings an octave over it sawing the same chord, wide; under it a timpani's thump two octaves down (its pitch
+ *  dropping as it's struck) and the crack of the whole lot landing at once. Punchy: gone in a quarter second, a little
+ *  ring after. Driven a touch so it stays loud. */
+const orchStab = custom({
+  sr: SR_MID, ch: 2, len: 1.2,
+  make: (f0, sr, seed) => {
+    const r = rng(seed);
+    const brassAmp = (m: number, cut: number, tilt: number) => (k: number) => { const hz = k * f0 * m; return Math.pow(k, -tilt) * roll(hz, cut) * (1 + 0.9 * bump(hz, 1500, 700)); };
+    const chord = [1, 1.5, 2, 2.52];
+    const n = (m: number, top: number) => harmonics(f0 * m, sr, top);
+    const bright = chord.map(m => table(`ostab|b|${Math.round(f0 * m)}`, n(m, 9000), brassAmp(m, 6500, 0.55)));
+    const dark = chord.map(m => table(`ostab|d|${Math.round(f0 * m)}`, n(m, 5000), brassAmp(m, 2400, 0.85)));
+    const strs = [2, 3, 4, 5.04];
+    const saw = strs.map(m => table(`ostab|s|${Math.round(f0 * m)}`, n(m, 9000), k => (1 / k) * roll(k * f0 * m, 7000)));
+    // (three brass players a note, a few cents apart; two string desks a note, wider)
+    const bDet = [-6, 0, 7].map(c => Math.pow(2, c / 1200)), sDet = [-11, 12].map(c => Math.pow(2, c / 1200));
+    const bPh = chord.map(() => bDet.map(() => r())), sPh = strs.map(() => sDet.map(() => r()));
+    // (the timpani: two octaves down, kept out of the mud)
+    const fl = Math.max(42, f0 * 0.25);
+    let last = 0;
+    return (i) => {
+      const t = i / sr;
+      const eb = Math.exp(-t / 0.06);
+      let l = 0, rr = 0;
+      for (let j = 0; j < chord.length; j++) for (let d = 0; d < bDet.length; d++) {
+        const ph = (i * f0 * chord[j] * bDet[d]) / sr + bPh[j][d];
+        const s = rd(bright[j], ph) * eb + rd(dark[j], ph) * (1 - eb);
+        const pan = (j + d) % 3 === 0 ? 0 : (j + d) % 3 === 1 ? -0.5 : 0.5;
+        l += s * (1 - pan * 0.6); rr += s * (1 + pan * 0.6);
+      }
+      let sl = 0, sr2 = 0;
+      for (let j = 0; j < strs.length; j++) for (let d = 0; d < sDet.length; d++) {
+        const s = rd(saw[j], (i * f0 * strs[j] * sDet[d]) / sr + sPh[j][d]) * (j === 3 ? 0.6 : 1);
+        if (d === 0) { sl += s; sr2 += s * 0.35; } else { sr2 += s; sl += s * 0.35; }
+      }
+      const atk = Math.min(1, t / 0.003);
+      const benv = atk * (0.8 * Math.exp(-t / 0.2) + 0.2 * Math.exp(-t / 0.55));
+      const senv = atk * (0.75 * Math.exp(-t / 0.16) + 0.25 * Math.exp(-t / 0.45));
+      // (the thump: its pitch falling from half again higher as it's hit)
+      const thump = Math.sin(TAU * fl * (t + 0.5 * 0.025 * (1 - Math.exp(-t / 0.025)))) * Math.exp(-t / 0.28);
+      // (the crack: a hiss, top-heavy, the first few hundredths)
+      const w = r() * 2 - 1, crack = t < 0.035 ? (w - last) * (1 - t / 0.035) * 0.5 : 0;
+      last = w;
+      const L = l * 0.1 * benv + sl * 0.07 * senv + thump * 0.75 + crack;
+      const R = rr * 0.1 * benv + sr2 * 0.07 * senv + thump * 0.75 + crack;
+      return [drive(L, 1.6), drive(R, 1.6)];
+    };
+  },
+});
+
 // Plucked
 const harpsichord = pluck({
   len: root => clamp(4 - (root - 40) * 0.04, 1.5, 4), t60: hz => clamp(9 * Math.pow(110 / hz, 0.6), 1.2, 9), bright: 0.95, hard: 1, pos: 0.08,
@@ -501,6 +553,7 @@ export const MELODIC: Record<string, InstDef> = {
   steeldrum: { family: 'mallets', desc: 'Steel drum (pan)', zones: z(48, 96), job: steelDrum, env: { a: 0.002, d: 0, s: 1, r: 0.2 }, gain: 0.45, poly: 8 },
   timpani: { family: 'orchestra', desc: 'Timpani (pitched: play the note)', zones: z(36, 60), job: timpani, env: { a: 0.001, d: 0, s: 1, r: 0.5 }, gain: 0.75, velBright: 0.5, poly: 4 },
   orchhit: { family: 'orchestra', desc: 'Orchestra hit (a major chord on the note: strings, brass, timpani)', zones: z(48, 72), job: orchHit, env: { a: 0.001, d: 0, s: 1, r: 0.2 }, gain: 0.55, poly: 4 },
+  orchstab: { family: 'orchestra', desc: 'The BIG orchestra hit (early-90s arcade, Turtles in Time): a major chord on the note, brass blatting bright and strings an octave up, a timpani thump and a crack; punchy', zones: z(48, 72), job: orchStab, env: { a: 0.001, d: 0, s: 1, r: 0.25 }, gain: 0.6, poly: 4 },
   // ---- Strings ----
   strings: { family: 'strings', desc: 'String section: eight players, bows biting in, a violin body', zones: z(36, 96), job: stringSection, env: { a: 0.08, d: 0.3, s: 0.9, r: 0.4 }, gain: 0.5, vib: [5.2, 7, 0.3], poly: 12 },
   slowstrings: { family: 'strings', desc: 'String section, slow swell (shares strings)', alias: 'strings', zones: z(36, 96), job: stringSection, env: { a: 0.7, d: 0.3, s: 0.95, r: 0.9 }, gain: 0.48, vib: [5, 6, 0.5], poly: 12 },

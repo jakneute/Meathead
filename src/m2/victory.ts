@@ -15,8 +15,22 @@ import { musicMoment } from './music/moments';
 type Ctx = CanvasRenderingContext2D;
 
 const WORD = 'VICTORY';
-/** Frames between letters; each one's flight in; the squash after the stamp; the hold, all of them down. */
-const GAP = 11, FLY = 9, SQUASH = 7, HOLD = 100;
+/** Each letter's flight in; the squash after the stamp. */
+const FLY = 9, SQUASH = 7;
+// Timed to the jingle (songs/jingles.ts: 160 to the quarter, so a beat's 22.5 frames and an eighth 11.25): it starts
+// with the VICTORY, and its first bar plays out before a letter's down (the lead-in, the user's); then a letter
+// stamps on each eighth (V I C T O R), a beat's breath, and the Y on the next bar's one. It's all down and held till
+// the jingle's last hit has rung (fourteen beats), so the walk-away (no music) never cuts it off.
+/** Frames: the jingle's first note after the VICTORY starts (the cue's poll, the player's tenth of a second). */
+const LAT = 9;
+/** Frames: the eighths' length, the lead-in (the jingle's first bar), the jingle's whole length. */
+const EIGHTH = 11.25, LEAD = 8 * EIGHTH, JINGLE = 28 * EIGHTH;
+/** Each letter's stamp, in eighths after the lead-in (the Y on the next bar's one). */
+const STAMP_AT = [0, 1, 2, 3, 4, 5, 8];
+/** When each letter starts its flight in (frames after the VICTORY starts): it lands on its eighth. */
+const startOf = (i: number) => Math.round(LAT + LEAD + STAMP_AT[i] * EIGHTH) - FLY;
+/** All down, held, and the jingle's last hit rung a moment (frames). */
+const DONE = Math.round(LAT + JINGLE) + 12;
 /** The size it lands at (Meathead 1's), and the size it comes in from. */
 const SIZE = 54, FROM = 9;
 /** How far apart the letters land (their middles: the middle of the screen, across). */
@@ -26,8 +40,8 @@ interface Splat { x: number; y: number; vx: number; vy: number; r: number; life:
 export interface Victory { t: number; splats: Splat[]; stamped: number }
 
 export const startVictory = (): Victory => ({ t: 0, splats: [], stamped: 0 });
-/** All of it down, and held a while. */
-export const victoryDone = (v: Victory) => v.t > (WORD.length - 1) * GAP + FLY + HOLD;
+/** All of it down, held, and the jingle done. */
+export const victoryDone = (v: Victory) => v.t > DONE;
 
 const landX = (i: number) => CANVAS_WIDTH / 2 + (i - (WORD.length - 1) / 2) * STEP;
 const LAND_Y = CANVAS_HEIGHT / 2;
@@ -37,7 +51,7 @@ export const tickVictory = (state: GameState, v: Victory) => {
   musicMoment('victory');
   v.t++;
   for (let i = v.stamped; i < WORD.length; i++) {
-    if (v.t < i * GAP + FLY) break;
+    if (v.t < startOf(i) + FLY) break;
     v.stamped = i + 1;
     const last = i === WORD.length - 1;
     shakeScreen(state, last ? 18 : 10, last ? 9 : 5);
@@ -63,7 +77,7 @@ export const drawVictory = (c: Ctx, v: Victory) => {
   }
   c.globalAlpha = 1;
   for (let i = 0; i < WORD.length; i++) {
-    const u = v.t - i * GAP;
+    const u = v.t - startOf(i);
     if (u < 0) break;
     let sc: number, sx = 1, sy = 1, rot = 0, alpha = 1;
     if (u < FLY) {
