@@ -16,6 +16,7 @@ import { type Ctx, type Eye, INK, box, sign, slab, pole, stamp, checker, P, eyeO
 import { D } from '../layout';
 import { signAt, enamel, print, dino } from '../../letters';
 import { GUESTS, GALLERY, BLEACHERS, guestsFled, guestMood, type DinoGuest } from '../guests';
+import { drawSafariArtie } from '../../river/artie';
 
 const atD = (c: Ctx, eye: Eye, d: number, paint: () => void) => {
   c.save(); c.translate(eye.x, eye.y); c.scale(d, d); c.translate(-eye.x, -eye.y); paint(); c.restore();
@@ -134,12 +135,26 @@ const dropped = (c: Ctx, g: DinoGuest, i: number, f: number) => {
 // ---------------------------------------------------------------------------------------------------------------
 // The far pass: the tour group behind the meadow's rail, the bleachers behind the paddock's fence
 
+/** (the user's: never called out) Artie, still after him, small on the meadow's far path: running along it one way,
+ *  stopping to shake his fist, running back, again. [x from, x to] on the path; how long a run, a stop. */
+const ARTIE_PATH = [D + 1890, D + 2350] as const, ARTIE_RUN = 210, ARTIE_STOP = 70, ARTIE_D = 0.71;
+const artieFar = (c: Ctx, f: number) => {
+  const T = (ARTIE_RUN + ARTIE_STOP) * 2, t = f % T, leg = t < ARTIE_RUN + ARTIE_STOP ? 0 : 1, u = t - leg * (ARTIE_RUN + ARTIE_STOP);
+  const [a, b] = leg === 0 ? ARTIE_PATH : [ARTIE_PATH[1], ARTIE_PATH[0]];
+  const facing = b > a ? 1 : -1;
+  if (u < ARTIE_RUN) drawSafariArtie(c, a + (b - a) * (u / ARTIE_RUN), GY, facing, f, 'run');
+  // (stopped: turned to the camera's side of things, shaking his fist at the world: the fist up and down)
+  else drawSafariArtie(c, b + ((f >> 2) % 2 ? 1 : -1), GY - ((f >> 2) % 2 ? 2 : 0), facing, f, (f >> 3) % 2 ? 'point' : 'angry');
+};
+
 export const drawZooFar = (c: Ctx, state: GameState) => {
   const eye = eyeOf(state), f = state.frame || 0, fled = guestsFled(state);
   const far = GUESTS.filter(g => g.zone === 'far' && seen(state, eye, g.x - 40, g.x + 40, g.d));
   const stands = BLEACHERS.xs.filter(bx => seen(state, eye, bx - 20, bx + BLEACHERS.w + 20, BLEACHERS.d, 120));
-  if (!far.length && !stands.length) return;
+  const artie = seen(state, eye, ARTIE_PATH[0] - 40, ARTIE_PATH[1] + 40, ARTIE_D);
+  if (!far.length && !stands.length && !artie) return;
   drawDimmed(c, 0.3, '18, 26, 20', l => {
+    if (artie) atD(l, eye, ARTIE_D, () => artieFar(l, f));
     for (const bx of stands) atD(l, eye, BLEACHERS.d, () => bleacher(l, state, bx));
     far.forEach((g) => { if (fled) atD(l, eye, g.d, () => dropped(l, g, GUESTS.indexOf(g), f)); else drawGuest(l, state, eye, g); });
     // (the bleachers' front: in front of the front row's legs)
