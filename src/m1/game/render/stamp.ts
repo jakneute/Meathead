@@ -5,20 +5,20 @@
 // where the art would've been drawn.
 //
 // Only for art that doesn't change from frame to frame (anything moving, flickering or tied to the frame count stays
-// live, drawn over it), and only where it's put down flat (no rotation, nothing see-through over the lot of it, no
+// live, drawn over it), and only where it's put down flat (no rotation, no blend mode, no
 // filter or shadow): otherwise it's just painted as before.
 
 type Ctx = CanvasRenderingContext2D;
 
 /** The drawing state a paint leaves behind (line joins, colours, the font...), which the live art after it may count on. */
-interface Leaves { lineCap: CanvasLineCap; lineJoin: CanvasLineJoin; miterLimit: number; lineWidth: number; fillStyle: Ctx['fillStyle']; strokeStyle: Ctx['strokeStyle']; font: string; textAlign: CanvasTextAlign; textBaseline: CanvasTextBaseline }
-const leaves = (g: Ctx): Leaves => ({ lineCap: g.lineCap, lineJoin: g.lineJoin, miterLimit: g.miterLimit, lineWidth: g.lineWidth, fillStyle: g.fillStyle, strokeStyle: g.strokeStyle, font: g.font, textAlign: g.textAlign, textBaseline: g.textBaseline });
+interface Leaves { globalAlpha: number; lineCap: CanvasLineCap; lineJoin: CanvasLineJoin; miterLimit: number; lineWidth: number; fillStyle: Ctx['fillStyle']; strokeStyle: Ctx['strokeStyle']; font: string; textAlign: CanvasTextAlign; textBaseline: CanvasTextBaseline }
+const leaves = (g: Ctx): Leaves => ({ globalAlpha: g.globalAlpha, lineCap: g.lineCap, lineJoin: g.lineJoin, miterLimit: g.miterLimit, lineWidth: g.lineWidth, fillStyle: g.fillStyle, strokeStyle: g.strokeStyle, font: g.font, textAlign: g.textAlign, textBaseline: g.textBaseline });
 interface Stamp { c: HTMLCanvasElement; L: number; T: number; after: Leaves }
 /** Most recently used last; the oldest are let go once they add up to more than BUDGET bytes. */
 const stamps = new Map<string, Stamp>();
 // (a busy stretch of Adventure Land wants ~100 MB of them at once: under that, the whole lot is let go and painted
 // again every frame, and the frame rate goes through the floor. Twice that, so only stamps from somewhere else go)
-const BUDGET = 192 * 1024 * 1024;
+const BUDGET = 320 * 1024 * 1024;
 let bytes = 0;
 /** Asked for once but not painted yet: a stamp's only painted the second time it's wanted at that scale (a zoom
  * sweeping through scales frame by frame never fills the cache with ones it'll never use again). */
@@ -36,8 +36,6 @@ export const stampsForStage = (stageId: string | null | undefined) => {
 };
 
 const q = (n: number) => Math.round(n * 4096) / 4096;
-/** How far (as a log of the ratio, ~±30%) a sweeping scale may get from the stamp it's scaled from before it's painted afresh. */
-const SWEEP = 0.26;
 
 /**
  * Paints `paint` into the stamp `g` (L, T its device box; cw × ch its size) at scale a, d. At a scale that isn't a
@@ -72,24 +70,29 @@ const paintClean = (g: Ctx, ctx: Ctx, a: number, d: number, L: number, T: number
 export const stamp = (ctx: Ctx, key: string, x: number, y: number, w: number, h: number, paint: (g: Ctx) => void) => {
   const m = ctx.getTransform();
   if (typeof document === 'undefined' || m.b !== 0 || m.c !== 0 || Math.abs(m.a) !== Math.abs(m.d)
-    || ctx.globalAlpha !== 1 || ctx.globalCompositeOperation !== 'source-over' || ctx.filter !== 'none' || ctx.shadowBlur !== 0 || ctx.shadowOffsetX !== 0 || ctx.shadowOffsetY !== 0) {
+    || ctx.globalCompositeOperation !== 'source-over' || ctx.filter !== 'none' || ctx.shadowBlur !== 0 || ctx.shadowOffsetX !== 0 || ctx.shadowOffsetY !== 0) {
     paint(ctx); return;
   }
-  const a = q(m.a), d = q(m.d);
-  const id = `${key}@${a},${d}`;
+  // (see-through art too: painted into the stamp at the same alpha, so it's the same pixels the live art would leave,
+  // then put down opaque; keyed by its alpha (stepped), and it leaves the alpha the live art would've)
+  const al = Math.round(ctx.globalAlpha * 64) / 64;
+  const a = q(m.a), d = q(m.d), lk = al === 1 ? key : `${key}~${al}`;
+  const id = `${lk}@${a},${d}`;
   let s = stamps.get(id);
   if (s) { stamps.delete(id); stamps.set(id, s); }
   else {
-    const l = latest.get(key);
+    const l = latest.get(lk);
     const near = !!l && Math.sign(l.a) === Math.sign(a) && Math.sign(l.d) === Math.sign(d);
     if (!asked.has(id)) {
       if (asked.size > MAX) asked.clear(); asked.add(id);
       // (a new scale (a zoom sweeping through them): the one it was last painted at, scaled to this, if it's near
       // enough. Too far off, it's painted at this scale right now and that's the one scaled from here on: never live
       // paint mid-sweep (its column seams shift every frame, and it pops against the scaled ones either side))
-      if (near && Math.abs(Math.log(a / l!.a)) < SWEEP) {
+      // (any distance while it's sweeping: a fresh paint mid-zoom (a ride's drop, the helicopter's pull-back) was the
+      // big stall: painted afresh only once the scale holds still (asked for again at it))
+      if (near) {
         const ka = a / l!.a, kd = d / l!.d;
-        ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.imageSmoothingEnabled = true;
+        ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.imageSmoothingEnabled = true; ctx.globalAlpha = 1;
         ctx.drawImage(l!.s.c, m.e + l!.s.L * ka, m.f + l!.s.T * kd, l!.s.c.width * ka, l!.s.c.height * kd);
         ctx.restore(); Object.assign(ctx, l!.s.after);
         return;
@@ -113,12 +116,12 @@ export const stamp = (ctx: Ctx, key: string, x: number, y: number, w: number, h:
       if (latest.get(ok)?.s === old) latest.delete(ok);
     }
   }
-  latest.set(key, { s, a, d });
+  latest.set(lk, { s, a, d });
   ctx.save();
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   // (painted on whole device pixels; put down where the art itself would've gone, between pixels when the camera is:
   // its edges soften just the way the live art's do there)
-  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingEnabled = true; ctx.globalAlpha = 1;
   ctx.drawImage(s.c, s.L + m.e, s.T + m.f);
   ctx.restore();
   Object.assign(ctx, s.after);
