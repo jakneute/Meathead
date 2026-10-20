@@ -817,3 +817,50 @@ markBossFight every frame of a boss or sub-boss fight. Voice every new line (`np
   dynamite one's matchbox; the host's lapels, carnation, watch chain, skull hat pin; the stagehand's flashlight, keys,
   tape, knee pads; dead, the suit's neck ring and a sweaty performer). Drawing only: no layout, timing or hitbox
   changes (soft lamps added after dark for the street's windows and the sno-cone cart, the bigkid way).
+- (SNES pass) STUPID DAD LIVE! (amphi/): sad and faded, to the one eye. Its paint box in amphi/mats.ts (six-step
+  weathered concrete, bleacher aluminum, the shell's sun-faded cream and blue over gray primer, deck boards, mustard
+  wallpaper, paneling, raw plywood, steel, brass, the banner's red; water streaks, peeling paint, rust runs, gum,
+  cracks, marquee bulbs with the dead ones dead). The far off cached per hour (amphi/far.ts): a tired blue sky down to
+  an amber blush, cumulus warm underneath, stratus lit from below, the SWILL LITE blimp (IT'S BEER. ALMOST., live);
+  past the berm the hills and a radio mast, the SWILL brewery (brewhouse, tanks, the water tank as a giant can, the
+  stack's steam, hopper cars), the interstate and its billboards, the strip (LIQUOR, LOTTO, BOWL-A-RAMA, PIZZA, PAWN),
+  a high school's football field under its lights, SERENITY OAKS, a church, cul-de-sacs; the water tower; the park
+  back the way he came (Sillyville, the studios, the White House with Socks, the big-kid zone, PUNCHY & KICKY's bone
+  arch, KILL-O-RAMA pylon, big top and bloody roofs), the back lot (PARK MAINT., the SWILL LITE truck), the main lot
+  and the big wheel; the grove along the park's back fence (maples and oaks, privacy slats, utility poles, the
+  COSTUMES quonset). Along the bowl's far rim on the grass bank (amphi/rim.ts, 400 px stamps at depth): the RESTROOMS
+  (one OUT OF ORDER), oaks (one half dead), the back of the LAWN, two PA delay towers, JOHNNY ON THE SPOT port-a-johns
+  (one OCC, one door hanging), the shuttered FUNNEL CAKE trailer, the SUMMER '96 CONCERT SERIES billboard CANCELED,
+  dumpsters and the UBX STAFF cart, the CAST ONLY fence, and backstage LYLE's RV (a star taped on its door, a lawn
+  chair, a cooler of SWILL LITE, the cord to the generator, road cases). The floors (art.ts): the bank stepped with its
+  hedge; the concourse's slabs banded back with joints, gum and cracks; every bleacher row's aluminum planks back to
+  the far side with its concrete riser lettered A to L, cups and cans left on them; the aisle's half steps nearest with
+  yellow noses; the pit's stained concrete and drain; the stage steps as a plywood unit going back; the stage's lattice
+  skirt and its deck boards with spike and gaffer tape; a floor over the eye never drawn. The light masts (lattice, two
+  floods dead) and the half-dead string lights sagging between them (one flickering); the ticket booth (WINDOW CLOSED,
+  turnstiles); the marquee rebuilt (barber-striped posts peeling, rust, the riveted board sun-faded, its bulbs
+  chasing, the NO OUTSIDE BEER vinyl's corner come loose); the BEER GARDEN's plywood hut (the awning shaded round, the
+  menu, taps, kegs under the counter, the tip jar, the vendor yawning, the neon's second E dead); the high-top's
+  pitcher and ashtray; the trash can; the crowd's cushions, the cooler, the foam finger and the beer-can hat stepped;
+  the folding chairs and the RESERVED card; the brass stanchions and velvet rope. The stage (amphi/stage.ts): the band
+  shell's rings stepping back to its dark heart, steel ribs, bolted seams bleeding rust, peeled panels, three gone
+  (the framework behind), pigeons and their streaks on the lip, its concrete pier; speaker clusters flown off it on
+  chains; the banner in vinyl (grommets, wrinkles, a torn corner, PRESENTED BY SWILL LITE); the APPLAUSE box. The set
+  as the cheap set it is: flats with their taped seams and raw tops, stage jacks and sandbags, the wallpaper's water
+  stain and clean squares where pictures hung, the fake window's painted backyard (fence, swing set, grill, REX's
+  doghouse, a crease across it), the curtains and valance, the portrait's gilt frame and black ribbon, the clock
+  stopped at five over its plaque, bowling trophies, the wall phone, the dark kitchen doorway and the swing door's
+  porthole, the LAFF horn bolted on top (it shakes with the laughs). The TV on its cart (wood grain, rabbit ears with
+  foil, the VCR flashing 12:00), the braided rug, the Boy's bolted track. STUPID DAD polished (the can's label and
+  sweat, the slippers' terry and worn toe, liver spots and hair on his hands, the boxers' fly, the headset's
+  beltpack, yellowed armholes, shoulder tufts; the close-up's neckline, mustard and cigarette hole), his couch (the
+  plaid's crossings, tufted buttons, the dark where his head goes, a burn, the ashtray smoking on the arm, the TV
+  GUIDE, the afghan's granny squares); the family's cheapness readable (mask seams, a chip in the paint, the neck's
+  gap and rod, servos showing at the joints ticking round in steps, the Boy's head hatch open with a blinking LED,
+  Sis's split hand, Gramps' motor box and duct tape); the guard's cargo pockets, laces, placket, ID, and the ice pack
+  in a bar towel. The cutscenes: the DING! burst stepped (rays, flash, speed lines, stars), his close-up's wallpaper
+  and portrait corner, the PLEASE STAND BY card (castellations, PLUGE, a bulb-lit board, his head in a ring,
+  scanlines and a roll bar). The walk-away (walkAway/stupidDad.ts): the amphitheater's concrete walk and lawn, the
+  shell's rings and banner, the light masts, the rim's hedge and oaks, oaks, light posts, UBX bins, benches, and his
+  cans, cups, popcorn, a program and the foam finger down the walk. Drawing only: no layout, timing, hitbox or
+  lighting-logic changes (soft lamps added after dark between the string lights).

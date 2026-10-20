@@ -49,10 +49,13 @@ export const can = (c: Ctx, x: number, y: number, ang: number, crushed = 0, open
   c.save(); c.translate(x, y); c.rotate(ang);
   const h = 15 - crushed * 9, w = 7 + crushed * 2;
   shape(c, () => { c.moveTo(-w / 2, -h / 2); c.lineTo(w / 2, -h / 2); c.lineTo(w / 2 - crushed, 0); c.lineTo(w / 2, h / 2); c.lineTo(-w / 2, h / 2); c.lineTo(-w / 2 + crushed, 0); c.closePath(); }, CAN, -w / 2, w / 2, 0.8);
-  px(c, -w / 2 + 0.5, -h / 2 + 3, w - 1, 3, '#F4F1E8');
-  px(c, -w / 2 + 1.5, -h / 2 + 4, w - 3, 1, '#C8102E');
-  px(c, -w / 2, -h / 2 - 1, w, 1.4, '#C9CDD4'); px(c, -w / 2, h / 2 - 0.4, w, 1.4, '#9AA0A8');
-  if (open && !crushed) px(c, -1, -h / 2 - 1.6, 2, 0.8, '#3A3A3A');
+  // (the label: the white band with SWILL's red bar across it, the blue crown, a cold sweat on the can)
+  px(c, -w / 2 + 0.5, -h / 2 + 3, w - 1, 3.4, '#F4F1E8'); px(c, w / 2 - 2, -h / 2 + 3, 1.5, 3.4, '#D8D2C2');
+  px(c, -w / 2 + 1.5, -h / 2 + 4.2, w - 3, 1, '#C8102E');
+  px(c, -0.6, -h / 2 + 7.4, 1.4, 1.2, '#2A4AA8'); px(c, -1.2, -h / 2 + 7, 0.6, 0.6, '#2A4AA8'); px(c, 0.8, -h / 2 + 7, 0.6, 0.6, '#2A4AA8');
+  if (!crushed) { px(c, -w / 2 + 1, h / 2 - 4, 0.6, 1.2, '#FFD6DC'); px(c, w / 2 - 2.4, h / 2 - 6, 0.6, 1, '#FFD6DC'); }
+  px(c, -w / 2, -h / 2 - 1, w, 1.4, '#C9CDD4'); px(c, -w / 2, -h / 2 - 1, w * 0.4, 0.6, '#F4F6FA'); px(c, -w / 2, h / 2 - 0.4, w, 1.4, '#9AA0A8');
+  if (open && !crushed) { px(c, -1, -h / 2 - 1.6, 2, 0.8, '#3A3A3A'); px(c, 0.6, -h / 2 - 2.2, 1.6, 0.6, '#B4BAC4'); }
   if (crushed > 0.3) { line(c, [-w / 2 + 1, -2, w / 2 - 1, 1], 0.6, '#5A0612'); line(c, [-w / 2 + 1, 2, w / 2 - 1, -1], 0.6, '#F7B3BD'); }
   c.restore();
 };
@@ -152,9 +155,11 @@ const leg = (c: Ctx, hip: number[], knee: number[], foot: number[], near: boolea
   const sockTop = 0.45 + (near ? sag : 0);
   limb(c, knee[0] + (ankle[0] - knee[0]) * sockTop, knee[1] + (ankle[1] - knee[1]) * sockTop, 3.6, ankle[0], ankle[1], 3.3, SOCK);
   if (near && sag > 0) line(c, [knee[0] + (ankle[0] - knee[0]) * sockTop - 3.4, knee[1] + (ankle[1] - knee[1]) * sockTop + 1, knee[0] + (ankle[0] - knee[0]) * sockTop + 3.4, knee[1] + (ankle[1] - knee[1]) * sockTop + 2], 0.8, SOCK[0]);
-  // (the slipper: brown terry, flattened at the heel)
+  // (the slipper: brown terry (its loops), flattened at the heel, the sole worn through at the toe)
   shape(c, () => { c.moveTo(foot[0] + 6, foot[1]); c.lineTo(foot[0] + 6, foot[1] - 4); c.quadraticCurveTo(foot[0] - 2, foot[1] - 7, foot[0] - 10, foot[1] - 3.6); c.quadraticCurveTo(foot[0] - 13, foot[1], foot[0] - 9, foot[1]); c.closePath(); }, dim(SLIPPER), foot[0] - 13, foot[0] + 6);
   px(c, foot[0] - 9, foot[1] - 4.6, 8, 1, SLIPPER[0]);
+  for (let k = 0; k < 5; k++) px(c, foot[0] - 9 + k * 2.6, foot[1] - 3 + (k % 2) * 1.2, 0.8, 0.8, near ? SLIPPER[2] : SLIPPER[3]);
+  px(c, foot[0] - 12, foot[1] - 1, 4, 1, SLIPPER[4]); px(c, foot[0] - 11, foot[1] - 1.6, 1.6, 0.8, SKIN[1]);
 };
 
 /** An arm from the shoulder to the hand: flabby, liver-spotted, the Navy anchor (the near one), a fat hand. */
@@ -172,7 +177,11 @@ const arm = (c: Ctx, sh: number[], hand: number[], near: boolean, fist = false) 
     ell(c, ax + 2, ay - 2, 0.9, 0.7, SPOT);
   }
   shape(c, () => c.ellipse(hand[0], hand[1], fist ? 4.4 : 4, fist ? 4 : 3.4, 0, 0, Math.PI * 2), r, hand[0] - 4.4, hand[0] + 4.4, 0.8);
-  if (!fist) for (let k = 0; k < 3; k++) px(c, hand[0] - 3 + k * 2, hand[1] - 3.6, 0.7, 2, r[3]);
+  if (!fist) for (let k = 0; k < 3; k++) { px(c, hand[0] - 3 + k * 2, hand[1] - 3.6, 0.7, 2, r[3]); px(c, hand[0] - 3 + k * 2, hand[1] - 3.8, 0.7, 0.6, '#E8D8A8'); }
+  else for (let k = 0; k < 3; k++) px(c, hand[0] - 2.6 + k * 2, hand[1] - 3.4, 1.4, 0.6, r[0]);
+  // (liver spots on the back of the hand, the hair on the forearm)
+  ell(c, hand[0] + 1, hand[1] - 1, 0.8, 0.6, SPOT); ell(c, hand[0] - 1.6, hand[1] + 0.6, 0.6, 0.5, SPOT);
+  for (let k = 0; k < 4; k++) { const t = 0.3 + k * 0.15; px(c, el[0] + (hand[0] - el[0]) * t, el[1] + (hand[1] - el[1]) * t - 3, 0.6, 1.4, HAIR[2]); }
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -235,11 +244,16 @@ export const drawDad = (c: Ctx, x: number, feetY: number, pose: DadPose, f: numb
   if (holding === 'far' && canAt) can(c, canAt[0], canAt[1], canAng, o.crushed ?? 0);
   leg(c, [hip[0] + 6, hip[1]], kneeF, footF, false);
   leg(c, [hip[0] - 6, hip[1] + 1], kneeN, footN, true, 0.2);
-  // (the boxers' seat under the belly)
+  // (the boxers' seat under the belly: the stripes, the fly's gap and its button, the waistband rolled under the gut;
+  // the headset's beltpack clipped on it, its wire up his back)
   shape(c, () => c.ellipse(hip[0], hip[1] - 2, 20, 10, 0, 0, Math.PI * 2), BOXER, hip[0] - 20, hip[0] + 20);
   c.save(); c.beginPath(); c.ellipse(hip[0], hip[1] - 2, 20, 10, 0, 0, Math.PI * 2); c.clip();
-  for (let k = -22; k < 22; k += 4) px(c, hip[0] + k, hip[1] - 12, 1.2, 20, STRIPE);
+  for (let k = -22; k < 22; k += 4) { px(c, hip[0] + k, hip[1] - 12, 1.2, 20, STRIPE); px(c, hip[0] + k + 1.2, hip[1] - 12, 0.6, 20, BOXER[0]); }
+  px(c, hip[0] - 22, hip[1] + 3, 44, 6, BOXER[3]);
   c.restore();
+  line(c, [hip[0] - 4, hip[1] - 6, hip[0] - 5, hip[1] + 2], 0.8, BOXER[4]); ell(c, hip[0] - 3.4, hip[1] - 4, 0.9, 0.9, '#F4F1E8');
+  shape(c, () => c.roundRect(hip[0] + 12, hip[1] - 12, 7, 9, 1.4), ['#4A4A52', '#2A2A30', '#1E1E24', '#141418', '#000000'], hip[0] + 12, hip[0] + 19, 0.6);
+  px(c, hip[0] + 13, hip[1] - 11, 2, 1, '#22C55E'); line(c, [hip[0] + 18, hip[1] - 12, hip[0] + 21, hip[1] - 18], 0.6, '#1A1A1A');
   // (the shoulders and the chest behind the belly: the tank top's straps, grey chest hair over its neckline)
   shape(c, () => { c.moveTo(shN[0] - 4, shN[1] + 6); c.quadraticCurveTo(shN[0], shN[1] - 4, (shN[0] + shF[0]) / 2, shN[1] - 3); c.quadraticCurveTo(shF[0], shF[1] - 4, shF[0] + 6, shF[1] + 6); c.lineTo(bx + brx * 0.6, by - bry * 0.4); c.lineTo(bx - brx * 0.7, by - bry * 0.4); c.closePath(); }, SKIN, shN[0] - 6, shF[0] + 6);
   belly(c, bx, by, brx, bry);
@@ -247,6 +261,9 @@ export const drawDad = (c: Ctx, x: number, feetY: number, pose: DadPose, f: numb
   const nx = (shN[0] + shF[0]) / 2 - 2, ny = Math.min(shN[1], shF[1]) + 6;
   shape(c, () => { c.moveTo(shN[0] + 2, shN[1] - 1); c.lineTo(shN[0] + 7, shN[1] - 2); c.quadraticCurveTo(nx, ny + 10, shF[0] - 5, shF[1] - 1); c.lineTo(shF[0], shF[1]); c.lineTo(shF[0] + 2, by - bry + 6); c.lineTo(shN[0] - 2, by - bry + 6); c.closePath(); }, TANK, shN[0], shF[0]);
   for (let k = 0; k < 6; k++) line(c, [nx - 5 + k * 2, ny + 3 + (k % 2), nx - 6 + k * 2.2, ny + 1], 0.6, HAIR[1]);
+  // (the straps gone yellow at the armholes; white hair tufting off the shoulders)
+  ell(c, shN[0] + 4, shN[1] + 9, 4, 6, dith(c, STAIN)); ell(c, shF[0] - 3, shF[1] + 9, 3.4, 5, dith(c, STAIN));
+  for (const [sx, sy] of [shN, shF]) for (let k = 0; k < 4; k++) line(c, [sx - 3 + k * 2, sy - 1, sx - 4 + k * 2.4, sy - 3.4 - (k % 2)], 0.5, HAIR[0]);
   // (the neck rolls)
   shapeTop(c, () => c.ellipse(hx + 4, hy + 15, 13, 6, 0, 0, Math.PI * 2), SKIN, hy + 9, hy + 21);
   line(c, [hx - 6, hy + 16, hx + 10, hy + 17], 0.6, SKIN[3]);
@@ -267,18 +284,21 @@ export const dadHeadAt = (x: number, feetY: number, sat: boolean) => ({ x, y: fe
 const COUCH_R: Ramp = ['#F7A15A', '#E0752E', '#B9561A', '#8E3F12', '#3E1606'];
 const COUCH_DK: Ramp = ['#D9773A', '#B95A20', '#943F12', '#6C2C0A', '#2E1004'];
 export const drawCouch = (c: Ctx, x: number, floorY: number, f: number, o: { empty?: boolean; dim?: number } = {}) => {
-  void f;
   c.save(); c.translate(Math.round(x), Math.round(floorY)); c.scale(DAD_K, DAD_K);
   const W = 190, back = -74, seat = -30;
   const plaid = (x0: number, y0: number, w: number, h: number) => {
     c.save(); c.beginPath(); c.rect(x0, y0, w, h); c.clip();
-    for (let k = x0 + 6; k < x0 + w; k += 14) { px(c, k, y0, 3, h, 'rgba(120,40,10,0.35)'); px(c, k + 5, y0, 1, h, 'rgba(255,220,160,0.3)'); }
-    for (let k = y0 + 5; k < y0 + h; k += 12) { px(c, x0, k, w, 3, 'rgba(120,40,10,0.3)'); px(c, x0, k + 4, w, 1, 'rgba(255,220,160,0.25)'); }
+    // (the plaid: brown bars both ways, their crossings darker, a cream pinstripe, a dither where they fade)
+    for (let k = x0 + 6; k < x0 + w; k += 14) { px(c, k, y0, 3, h, 'rgba(120,40,10,0.35)'); px(c, k + 5, y0, 1, h, 'rgba(255,220,160,0.3)'); px(c, k + 9, y0, 0.6, h, 'rgba(60,110,40,0.35)'); }
+    for (let k = y0 + 5; k < y0 + h; k += 12) { px(c, x0, k, w, 3, 'rgba(120,40,10,0.3)'); px(c, x0, k + 4, w, 1, 'rgba(255,220,160,0.25)'); for (let j = x0 + 6; j < x0 + w; j += 14) px(c, j, k, 3, 3, 'rgba(70,20,4,0.35)'); }
     c.restore();
   };
   // (the back: a long low hump, sagging in the middle)
   shapeTop(c, () => { c.moveTo(-W / 2, seat); c.lineTo(-W / 2 + 4, back + 6); c.quadraticCurveTo(-W / 4, back - 4, 0, back + 4); c.quadraticCurveTo(W / 4, back - 4, W / 2 - 4, back + 6); c.lineTo(W / 2, seat); c.closePath(); }, COUCH_DK, back - 4, seat);
   plaid(-W / 2, back - 6, W, seat - back + 6);
+  // (the back's buttons, tufted in; the dark where his head's rested for twenty years)
+  for (let k = 0; k < 6; k++) { const bx = -W / 2 + 22 + k * 29, by = back + 18 + (k % 2) * 6; ell(c, bx, by, 2.4, 1.8, COUCH_DK[3]); ell(c, bx - 0.6, by - 0.6, 1, 0.8, COUCH_DK[0]); line(c, [bx - 6, by - 4, bx, by, bx + 6, by - 4], 0.5, COUCH_DK[2]); }
+  ell(c, W / 4 + 4, back + 14, 16, 8, dith(c, '#6A2E0C'));
   // (the two seat cushions: his on the right sunk deep, the stain where he sits)
   for (const [cx, sink] of [[-W / 4 + 2, 1], [W / 4 - 2, o.empty ? 6 : 2]] as const) {
     shapeTop(c, () => c.roundRect(cx - W / 4 + 4, seat - 10 + sink, W / 2 - 8, 16 - sink, 5), COUCH_R, seat - 10 + sink, seat + 6);
@@ -293,9 +313,17 @@ export const drawCouch = (c: Ctx, x: number, floorY: number, f: number, o: { emp
   for (const s of [-1, 1]) shape(c, () => c.roundRect(s < 0 ? -W / 2 - 14 : W / 2 - 10, seat - 22, 24, 48, 9), COUCH_R, s < 0 ? -W / 2 - 14 : W / 2 - 10, s < 0 ? -W / 2 + 10 : W / 2 + 14);
   ell(c, -W / 2 - 2, seat - 18, 5, 3, '#F4EFE2'); ell(c, -W / 2 + 2, seat - 20, 3, 2, '#FFFFFF');
   // (a crocheted afghan thrown over the back, the remote between the cushions, empties along the back)
-  fill(c, '#3F7A4A', () => { c.moveTo(-W / 2 + 10, back + 4); c.lineTo(-W / 2 + 50, back); c.lineTo(-W / 2 + 46, seat - 6); c.lineTo(-W / 2 + 14, seat - 4); c.closePath(); });
-  for (let k = 0; k < 4; k++) px(c, -W / 2 + 16 + k * 8, back + 6 + k * 6, 6, 2, k % 2 ? '#E5C46A' : '#B8443A');
-  px(c, -4, seat - 6, 10, 4, '#2A2A2A'); px(c, -2, seat - 6, 2, 1, '#DC2626');
+  shape(c, () => { c.moveTo(-W / 2 + 10, back + 4); c.lineTo(-W / 2 + 50, back); c.lineTo(-W / 2 + 46, seat - 6); c.lineTo(-W / 2 + 14, seat - 4); c.closePath(); }, ['#6AA874', '#3F7A4A', '#2E6038', '#1E4628', '#0A2410'], -W / 2 + 10, -W / 2 + 50, 0.6);
+  // (its granny squares, zigzag rows, the fringe hanging off it)
+  for (let r = 0; r < 4; r++) for (let k = 0; k < 4; k++) { const sx = -W / 2 + 14 + k * 8 - r * 0.6, sy = back + 6 + r * 7 - k * 0.6; px(c, sx, sy, 6, 5, ['#E5C46A', '#B8443A', '#F4EEDC', '#7A3A6A'][(r + k) % 4]); px(c, sx + 1.5, sy + 1.5, 3, 2, ['#B8443A', '#F4EEDC', '#3F7A4A', '#E5C46A'][(r + k) % 4]); }
+  for (let k = 0; k < 9; k++) line(c, [-W / 2 + 15 + k * 3.6, seat - 4, -W / 2 + 15 + k * 3.6, seat + 1 + (k % 2)], 0.6, '#E5C46A');
+  px(c, -4, seat - 6, 10, 4, '#2A2A2A'); px(c, -2, seat - 6, 2, 1, '#DC2626'); for (let k = 0; k < 3; k++) px(c, 2 + k * 2, seat - 5, 1, 1, '#6A6A72');
+  // (a cigarette burn in the near cushion; the ashtray on the arm (a butt smoking), the TV GUIDE under it)
+  ell(c, -W / 4 + 12, seat - 3, 2.4, 1.2, '#2A1206'); ell(c, -W / 4 + 12, seat - 3, 3.6, 1.8, dith(c, '#5A2A0C'));
+  px(c, W / 2 - 8, seat - 25, 18, 4, '#E8E4D8'); px(c, W / 2 - 8, seat - 25, 18, 1, '#FFFFFF'); px(c, W / 2 - 6, seat - 24, 6, 1, '#C8102E');
+  shape(c, () => c.ellipse(W / 2 + 1, seat - 27, 7, 2.4, 0, 0, Math.PI * 2), ['#C8D8E8', '#9AB4CC', '#7A94AC', '#5A7490', '#1E2E40'], W / 2 - 6, W / 2 + 8, 0.6);
+  px(c, W / 2 - 2, seat - 29, 6, 1.4, '#F4F0E4'); px(c, W / 2 + 3, seat - 29.4, 1.4, 1.4, '#E06030');
+  if (!o.empty) for (let k = 0; k < 3; k++) { const u = ((f * 0.4 + k * 20) % 60) / 60; c.globalAlpha = 0.4 * (1 - u); px(c, W / 2 + 4 + Math.sin(u * 6 + k) * 2, seat - 32 - u * 18, 1.4, 1.4, '#D8DCE8'); c.globalAlpha = 1; }
   c.restore();
 };
 
@@ -312,6 +340,11 @@ export const drawDadCloseup = (c: Ctx, cx: number, cy: number, s: number, f: num
   shape(c, () => { c.moveTo(-40, 70); c.lineTo(-34, 40); c.lineTo(-26, 40); c.lineTo(-30, 70); c.closePath(); }, TANK, -40, -26, 0.6);
   shape(c, () => { c.moveTo(34, 70); c.lineTo(30, 40); c.lineTo(38, 40); c.lineTo(44, 70); c.closePath(); }, TANK, 30, 44, 0.6);
   for (let k = 0; k < 10; k++) line(c, [-16 + k * 4, 62 + (k % 3), -18 + k * 4.4, 56], 0.5, HAIR[1]);
+  // (the tank top's scooped neckline: the ribbing, a mustard drip, a cigarette hole, the straps gone yellow)
+  shape(c, () => { c.moveTo(-34, 70); c.quadraticCurveTo(4, 58, 42, 70); c.lineTo(42, 74); c.lineTo(-34, 74); c.closePath(); }, TANK, -34, 42, 0.6);
+  for (let k = -30; k < 40; k += 3) line(c, [k, 66 + Math.abs(k - 4) * 0.05, k, 74], 0.3, TANK[2]);
+  ell(c, 12, 69, 1.6, 2, MUSTARD); px(c, 11.6, 70, 0.8, 2.4, MUSTARD); ell(c, -14, 70, 1.2, 1, '#3A2A20'); ell(c, -14, 70, 1.8, 1.6, dith(c, '#8A6A40'));
+  ell(c, -32, 52, 3, 6, dith(c, STAIN)); ell(c, 37, 52, 3, 6, dith(c, STAIN));
   shapeTop(c, () => c.ellipse(2, 34, 34, 12, 0, 0, Math.PI * 2), SKIN, 22, 46, 0.6);
   // (the ears: big, red-rimmed, white hair out of them)
   for (const sx of [-34, 36]) {

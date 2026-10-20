@@ -43,7 +43,8 @@ import {
 import { amphiOf, introSeen, saidOnce, GUARD_DOWN, type Amphi } from './state';
 import { updateShow, stageLook } from './show';
 import { startKick, updateKick, guardPoseOf, startIntro, updateIntro, drawKickHud, drawIntroHud } from './scene';
-import { drawAmphiBackdrop, drawAmphiBack, amphiLamps } from './art';
+import { drawAmphiBack, amphiLamps } from './art';
+import { drawAmphiFar } from './far';
 import { DAD_K, DAD_H, DAD_SIT_H } from './dad';
 import { guardHeadAt } from './guard';
 import { ARRIVE, REVISIT, GAGS, GUARD_GROAN, GUARD_LATER, VOICES } from './lines';
@@ -145,7 +146,7 @@ export const amphi: CartoonSection = {
     }
     return controls;
   },
-  drawBackdrop: (c, state) => drawAmphiBackdrop(c, state),
+  drawBackdrop: (c, state) => { drawAmphiFar(c, state); return true; },
   drawBack: (c, state) => {
     const s = amphiOf(state), cleared = isLandCleared('cartoon');
     const look = stageLook(state, s);

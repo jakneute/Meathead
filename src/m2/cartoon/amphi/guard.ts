@@ -76,7 +76,12 @@ export const drawGuard = (c: Ctx, x: number, feetY: number, pose: GuardPose, f: 
     limb(c, s * 7, hipY, 8, kx - kneel * 6, kneeY, 7, P);
     limb(c, kx - kneel * 6, kneeY, 7, fx, fy - 6, 6, P);
     for (let k = 0; k < 2; k++) px(c, kx - kneel * 6 - 4 + k * 5, kneeY - 10, 3, 6, P[2]);
+    // (the cargo pocket on the thigh, its flap and snap)
+    const tx = (s * 7 + kx - kneel * 6) / 2, ty = (hipY + kneeY) / 2;
+    shape(c, () => c.rect(tx - 4, ty - 4, 8, 9), P, tx - 4, tx + 4, 0.6); px(c, tx - 4, ty - 4, 8, 2, P[3]); px(c, tx - 0.6, ty - 3, 1.2, 1, '#5A5E66');
     shape(c, () => c.roundRect(fx - (kneel > 0.5 ? 2 : 10), fy - 8, 15, 8, [3, 4, 1, 1]), BOOT, fx - 10, fx + 5);
+    for (let k = 0; k < 3; k++) px(c, fx - (kneel > 0.5 ? -2 : 6) + k * 2.4, fy - 7, 1.4, 0.6, '#5A5A5A');
+    px(c, fx - (kneel > 0.5 ? 2 : 10), fy - 1.4, 15, 1.4, '#3A3A3A');
   }
   // (the belt, the radio on it)
   shape(c, () => c.rect(-15, hipY - 4, 30, 6), BOOT, -15, 15);
@@ -89,6 +94,9 @@ export const drawGuard = (c: Ctx, x: number, feetY: number, pose: GuardPose, f: 
   security(c, -1, shY + 10, 30);
   line(c, [-6, shY, -2, shY + 20, 4, shY], 1, YELLOW); shape(c, () => c.rect(-5, shY + 19, 8, 10), ['#FFFFFF', '#F2F2F2', '#D6D6D6', '#B0B0B0', '#5A5A5A'], -5, 3, 0.6); px(c, -4, shY + 21, 6, 2, YELLOW);
   px(c, -6, shY - 2, 12, 3, POLO[0]);
+  // (the polo's placket and its two buttons; the ID on the lanyard: a photo, the lines; the stitched sleeve hems)
+  px(c, -1.4, shY - 1, 3, 9, POLO[2]); px(c, -0.6, shY + 2, 1.4, 1.4, '#5A5A66'); px(c, -0.6, shY + 5.4, 1.4, 1.4, '#5A5A66');
+  px(c, -4, shY + 21.4, 2.6, 3, '#74482F'); px(c, -0.8, shY + 21.6, 3, 0.8, '#5A5A5A'); px(c, -0.8, shY + 23.4, 3, 0.6, '#9A9A9A'); px(c, -4, shY + 25.6, 6, 1.4, YELLOW);
   // (the arms: folded across the chest; the stop's palm out; both down there on the hit)
   if (pose === 'stand') {
     limb(c, 16, shY + 4, 6.4, 10, shY + 22, 6, POLO); limb(c, 10, shY + 22, 5.6, -14, shY + 18, 5, SKIN);
@@ -127,7 +135,13 @@ const drawLying = (c: Ctx, f: number, k: number, ice: boolean) => {
   px(c, 18 + rock, by - 12, 16, 1, '#3A3A44');
   // (his hands down there; the ice pack on a later visit)
   limb(c, 34 + rock, by - 8, 6, 8, by - 2, 5, SKIN); ell(c, 8, by - 2, 5, 4, SKIN[1]);
-  if (ice) { shape(c, () => c.roundRect(2, by - 10, 12, 9, 3), ICE, 2, 14, 0.8); px(c, 4, by - 8, 4, 1, '#FFFFFF'); }
+  if (ice) {
+    // (the ice pack on it, wrapped in a bar towel (BEER GARDEN's), condensation dripping)
+    shape(c, () => c.roundRect(0, by - 11, 16, 7, 2), ['#FFFFFF', '#F2F2EE', '#D8D8D0', '#B4B4AC', '#5A5A54'], 0, 16, 0.6);
+    for (let k = 0; k < 3; k++) px(c, 2 + k * 5, by - 10, 1.4, 5, '#2E8A4E');
+    shape(c, () => c.roundRect(2, by - 10, 12, 9, 3), ICE, 2, 14, 0.8); px(c, 4, by - 8, 4, 1, '#FFFFFF'); px(c, 5, by - 6, 6, 1, ICE[2]);
+    const u = (f % 70) / 70; ell(c, 8, by + u * 12, 0.8, 1.2, '#DDF0FF');
+  }
   // (the head, on the floor, face toward us: eyes screwed shut, teeth gritted, a tear)
   c.save(); c.translate(52 + rock, by + 2); c.rotate(-0.25);
   head(c, 0, 0, 'pain', f, 0.6);

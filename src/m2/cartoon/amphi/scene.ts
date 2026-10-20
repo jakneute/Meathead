@@ -30,6 +30,8 @@ import { KICK_POSE_FRAMES, CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/const
 import { signText } from '../../signLetters';
 import { meatheadSays, byPants, saidOver, box } from '../section';
 import { INK } from '../kit';
+import { checker } from '../../../m1/game/render/pixelArt';
+import { dadArt } from '../bigkid/art';
 import type { Amphi, Speaker } from './state';
 import { GUARD_DOWN, markIntroSeen } from './state';
 import { X, x0, x1, PIT_Y, STAGE_Y, KICK_AT, MARK, DAD_SEAT, CP_STEPS, CP_DAD } from './layout';
@@ -218,6 +220,55 @@ export const updateIntro = (ctx: FrameContext, s: Amphi): { out: Controls; done:
 // ---------------------------------------------------------------------------------------------------------------
 // Drawn over the lot (screen space): the letterbox, the close-ups, the card, SKIP
 
+/** The DING! close-up's cartoon impact burst: rays in stepped pairs round a banded flash, dithered at their roots,
+ *  speed lines and stars thrown off it (screen space). */
+const burst = (c: Ctx, f: number) => {
+  const W = CANVAS_WIDTH, H = CANVAS_HEIGHT, cx = W / 2, cy = H / 2 + 20, jig = f % 8 < 4 ? 0.04 : 0;
+  const bands = ['#3A0A2E', '#5A1244', '#7A1E5A', '#9A2E6A'];
+  bands.forEach((col, i) => { c.fillStyle = col; c.beginPath(); c.arc(cx, cy, 900 - i * 160, 0, Math.PI * 2); c.fill(); });
+  const wedge = (a: number, w: number, col: string) => { c.fillStyle = col; c.beginPath(); c.moveTo(cx, cy); c.lineTo(cx + Math.cos(a) * 900, cy + Math.sin(a) * 900); c.lineTo(cx + Math.cos(a + w) * 900, cy + Math.sin(a + w) * 900); c.closePath(); c.fill(); };
+  for (let i = 0; i < 18; i++) {
+    const a = (i / 18) * Math.PI * 2 + jig;
+    wedge(a, 0.17, i % 2 ? '#C2700A' : '#D89A1A'); wedge(a, 0.12, i % 2 ? '#F59E0B' : '#FDE047'); wedge(a + 0.015, 0.03, '#FFF4C0');
+  }
+  ['#FDE047', '#FFF4C0', '#FFFFFF'].forEach((col, i) => { c.fillStyle = col; c.beginPath(); c.arc(cx, cy, 170 - i * 18 + (f % 4 < 2 ? 4 : 0), 0, Math.PI * 2); c.fill(); });
+  // (speed lines off the edges; stars spun out)
+  for (let i = 0; i < 26; i++) {
+    const a = hashS(i * 3.1) * Math.PI * 2, r0 = 260 + hashS(i * 5.3) * 120 + ((f * 6 + i * 40) % 160), len = 30 + hashS(i) * 50;
+    c.strokeStyle = i % 3 ? 'rgba(255,255,255,0.75)' : '#FDE047'; c.lineWidth = 2; c.beginPath(); c.moveTo(cx + Math.cos(a) * r0, cy + Math.sin(a) * r0); c.lineTo(cx + Math.cos(a) * (r0 + len), cy + Math.sin(a) * (r0 + len)); c.stroke();
+  }
+  for (let i = 0; i < 6; i++) {
+    const a = (i / 6) * Math.PI * 2 + f * 0.05, r = 220 + Math.sin(f * 0.1 + i) * 20, sx = cx + Math.cos(a) * r, sy = cy + Math.sin(a) * r * 0.6;
+    c.fillStyle = INK; c.beginPath(); for (let k = 0; k < 10; k++) { const aa = -Math.PI / 2 + (k * Math.PI) / 5 + f * 0.1, rr = k % 2 ? 6 : 14; c.lineTo(sx + Math.cos(aa) * rr, sy + Math.sin(aa) * rr); } c.closePath(); c.fill();
+    c.fillStyle = i % 2 ? '#FFFFFF' : '#FDE047'; c.beginPath(); for (let k = 0; k < 10; k++) { const aa = -Math.PI / 2 + (k * Math.PI) / 5 + f * 0.1, rr = k % 2 ? 4 : 11; c.lineTo(sx + Math.cos(aa) * rr, sy + Math.sin(aa) * rr); } c.closePath(); c.fill();
+  }
+};
+const hashS = (n: number) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
+
+/** His close-up's backdrop: the set's wallpaper in steps (the diamonds big, lit along their upper edges), the
+ *  paneling and its chair rail at the foot, a corner of the portrait with its black ribbon, a dithered vignette. */
+const wallpaperBack = (c: Ctx) => {
+  const W = CANVAS_WIDTH, H = CANVAS_HEIGHT;
+  const Wp = ['#4A3608', '#76580E', '#A07C1C', '#C9A238', '#E2C060', '#F4E09C'];
+  const bandsY = [Wp[4], Wp[3], Wp[3], Wp[3], Wp[2]];
+  bandsY.forEach((col, i) => { box(c, 0, (i * H * 0.72) / bandsY.length, W, (H * 0.72) / bandsY.length + 1, col); if (i) checker(c, 0, (i * H * 0.72) / bandsY.length - 2, W, 4, col, i % 2, 2); });
+  for (let x = 28, col = 0; x < W + 56; x += 56, col++) for (let y = 28 + (col % 2) * 28; y < H * 0.72 - 10; y += 56) {
+    c.fillStyle = Wp[1]; c.beginPath(); c.moveTo(x, y - 18); c.lineTo(x + 14, y); c.lineTo(x, y + 18); c.lineTo(x - 14, y); c.closePath(); c.fill();
+    c.fillStyle = Wp[2]; c.beginPath(); c.moveTo(x, y - 14); c.lineTo(x + 10, y); c.lineTo(x, y + 14); c.lineTo(x - 10, y); c.closePath(); c.fill();
+    c.fillStyle = Wp[5]; c.beginPath(); c.moveTo(x, y - 18); c.lineTo(x - 14, y); c.lineTo(x - 10, y); c.lineTo(x, y - 14); c.closePath(); c.fill();
+  }
+  // (the portrait's corner, top left: the gilt frame, the black ribbon across it)
+  box(c, -10, -10, 150, 120, INK); box(c, -8, -8, 144, 114, '#D09A30'); box(c, -8, 100, 144, 6, '#6A4410'); box(c, 130, -8, 6, 114, '#A06C1C'); box(c, 2, 2, 124, 94, '#7DD3FC');
+  c.fillStyle = '#1A1A1E'; c.beginPath(); c.moveTo(70, -8); c.lineTo(136, -8); c.lineTo(136, 58); c.closePath(); c.fill();
+  c.fillStyle = '#3A3A44'; c.beginPath(); c.moveTo(84, -8); c.lineTo(136, 44); c.lineTo(136, 30); c.lineTo(100, -8); c.closePath(); c.fill();
+  // (the chair rail, the paneling)
+  const Pn = ['#2A1608', '#4A2A12', '#6E421E', '#8E5A2C', '#AE7840', '#D09E62'];
+  box(c, 0, H * 0.72, W, 14, INK); box(c, 0, H * 0.72 + 2, W, 10, Pn[3]); box(c, 0, H * 0.72 + 2, W, 2, Pn[5]); box(c, 0, H * 0.72 + 10, W, 2, Pn[1]);
+  box(c, 0, H * 0.72 + 14, W, H, Pn[2]); for (let x = 0; x < W; x += 48) { box(c, x, H * 0.72 + 14, 2, H, Pn[0]); box(c, x + 2, H * 0.72 + 14, 1, H, Pn[4]); box(c, x + 18, H * 0.72 + 30, 1, 80, Pn[1]); }
+  // (the vignette: dithered in from the edges)
+  for (let i = 0; i < 4; i++) { const col = `rgba(20,10,30,${0.12 + i * 0.06})`; const m = 40 - i * 10; checker(c, 0, 0, m, H, col, i % 2, 2); checker(c, W - m, 0, m, H, col, i % 2, 2); checker(c, 0, 0, W, m * 0.6, col, i % 2, 2); }
+};
+
 const bars = (c: Ctx, k: number) => { const b = Math.round(k * 44); c.fillStyle = '#000'; c.fillRect(0, 0, CANVAS_WIDTH, b); c.fillRect(0, CANVAS_HEIGHT - b, CANVAS_WIDTH, b); };
 
 export const drawKickHud = (c: Ctx, state: GameState, s: Amphi) => {
@@ -226,12 +277,7 @@ export const drawKickHud = (c: Ctx, state: GameState, s: Amphi) => {
   if (k.step === 'close') {
     // (the close-up: a cartoon impact burst behind his face, DING)
     const t = Math.min(1, k.t / CLOSE_T), f = state.frame;
-    c.fillStyle = '#7A1E5A'; c.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-    for (let i = 0; i < 18; i++) {
-      const a = (i / 18) * Math.PI * 2 + (f % 8 < 4 ? 0.04 : 0);
-      c.fillStyle = i % 2 ? '#F59E0B' : '#FDE047'; c.beginPath(); c.moveTo(CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 20);
-      c.lineTo(CANVAS_WIDTH / 2 + Math.cos(a) * 900, CANVAS_HEIGHT / 2 + 20 + Math.sin(a) * 900); c.lineTo(CANVAS_WIDTH / 2 + Math.cos(a + 0.17) * 900, CANVAS_HEIGHT / 2 + 20 + Math.sin(a + 0.17) * 900); c.closePath(); c.fill();
-    }
+    burst(c, f);
     drawGuardCloseup(c, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 30, 3.4 + Math.min(1, k.t / 10) * 0.4, f, t);
     if (k.t < 30) signText(c, 'DING!', CANVAS_WIDTH / 2 + 220, 150, { sx: 4, sy: 4, bold: true, slant: 1, fill: ['#FFFFFF', '#FDE047'], ink: INK, shadow: '#7A1E5A', drop: 3 });
   }
@@ -242,19 +288,35 @@ export const drawKickHud = (c: Ctx, state: GameState, s: Amphi) => {
 /** The PLEASE STAND BY card: the show's color bars, STUPID DAD, BOSS FIGHT COMING SOON. */
 const card = (c: Ctx, f: number) => {
   const W = CANVAS_WIDTH, H = CANVAS_HEIGHT;
+  // (the color bars, the castellations under them, the PLUGE: each bar in two steps, a dithered seam down it)
   const cols = ['#C0C0C0', '#C0C000', '#00C0C0', '#00C000', '#C000C0', '#C00000', '#0000C0'];
-  cols.forEach((col, i) => box(c, (i * W) / 7, 0, W / 7 + 1, H * 0.62, col));
+  cols.forEach((col, i) => { const x = (i * W) / 7; box(c, x, 0, W / 7 + 1, H * 0.62, col); box(c, x + W / 7 - 6, 0, 6, H * 0.62, 'rgba(0,0,0,0.12)'); checker(c, x + W / 7 - 8, 0, 2, H * 0.62, 'rgba(0,0,0,0.12)', 0, 2); box(c, x, 0, W / 7 + 1, 8, 'rgba(255,255,255,0.12)'); });
   ['#0000C0', '#131313', '#C000C0', '#131313', '#00C0C0', '#131313', '#C0C0C0'].forEach((col, i) => box(c, (i * W) / 7, H * 0.62, W / 7 + 1, H * 0.08, col));
   box(c, 0, H * 0.7, W, H * 0.3, '#131313');
   for (let i = 0; i < 3; i++) box(c, W * 0.18 + i * W * 0.1, H * 0.7, W * 0.08, H * 0.3, ['#00214C', '#FFFFFF', '#32006A'][i]);
-  // (the board in the middle)
-  box(c, W / 2 - 250, 150, 500, 230, INK); box(c, W / 2 - 246, 154, 492, 222, '#1E3A8A');
-  signText(c, 'STUPID DAD', W / 2, 220, { sx: 5, sy: 5, bold: true, slant: 1, fill: ['#FFFFFF', '#FDE047', '#F59E0B'], ink: INK, shadow: '#3B0764', drop: 3 });
-  signText(c, 'BOSS FIGHT', W / 2, 284, { sx: 3, sy: 3, bold: true, fill: ['#FFFFFF', '#FECDD3'], ink: INK, shadow: '#7F1D1D', drop: 2 });
-  signText(c, 'COMING SOON', W / 2, 330, { sx: 3, sy: 3, bold: true, fill: '#FB7185', ink: INK, bulbs: { lit: (f >> 4) % 2 === 0, col: '#FEF3C7', dim: '#7A2A10' } });
-  signText(c, 'PLEASE STAND BY', W / 2, 362, { sx: 1, sy: 2, bold: true, fill: '#FFFFFF' });
+  for (let i = 0; i < 3; i++) box(c, W * 0.72 + i * W * 0.035, H * 0.7, W * 0.035, H * 0.3, ['#090909', '#131313', '#1D1D1D'][i]);
+  // (the board: bevelled, the show's navy banded, bulbs round it; his head off the poster in a ring of its own)
+  const bx = W / 2 - 260, by = 132, bw = 520, bh = 262;
+  box(c, bx - 6, by - 6, bw + 12, bh + 12, INK); box(c, bx - 4, by - 4, bw + 8, bh + 8, '#8A94A0'); box(c, bx - 4, by - 4, bw + 8, 2, '#E4EAEE'); box(c, bx - 4, by + bh + 2, bw + 8, 2, '#46505E');
+  ['#3A5AB8', '#2A3C80', '#1E3A8A', '#1E2A5E', '#141C40'].forEach((col, i) => { box(c, bx, by + (i * bh) / 5, bw, bh / 5 + 1, col); if (i) checker(c, bx, by + (i * bh) / 5 - 2, bw, 4, col, i % 2, 2); });
+  for (let i = 0; i < 20; i++) { const t = i / 19, lit = (i + (f >> 3)) % 2 === 0; for (const [x, y] of [[bx + t * bw, by - 1], [bx + t * bw, by + bh + 1]] as const) { box(c, x - 4, y - 4, 8, 8, INK); box(c, x - 3, y - 3, 6, 6, lit ? '#FFF4C0' : '#9A5A22'); if (lit) box(c, x - 3, y - 3, 2, 2, '#FFFFFF'); } }
+  const hx = bx + 84, hy = by + 132;
+  c.fillStyle = INK; c.beginPath(); c.arc(hx, hy, 62, 0, Math.PI * 2); c.fill();
+  ['#F59E0B', '#FDE047', '#FFF4C0'].forEach((col, i) => { c.fillStyle = col; c.beginPath(); c.arc(hx, hy, 58 - i * 6, 0, Math.PI * 2); c.fill(); });
+  c.save(); c.beginPath(); c.arc(hx, hy, 42, 0, Math.PI * 2); c.clip(); box(c, hx - 50, hy - 50, 100, 100, '#7DD3FC'); box(c, hx - 50, hy - 50, 100, 30, '#A8E0FC'); dadArt(c, hx + 4, hy + 46, 0.95, 0.04, '#7DD3FC'); c.restore();
+  const tx = bx + 330;
+  signText(c, 'STUPID DAD', tx, by + 68, { sx: 4, sy: 4, bold: true, slant: 1, fill: ['#FFFFFF', '#FDE047', '#F59E0B'], dither: true, ink: INK, shadow: '#3B0764', drop: 3 });
+  signText(c, 'BOSS FIGHT', tx, by + 128, { sx: 3, sy: 3, bold: true, fill: ['#FFFFFF', '#FECDD3'], dither: true, ink: INK, shadow: '#7F1D1D', drop: 2 });
+  signText(c, 'COMING SOON', tx, by + 176, { sx: 3, sy: 3, bold: true, fill: '#FB7185', ink: INK, bulbs: { lit: (f >> 4) % 2 === 0, col: '#FEF3C7', dim: '#7A2A10' } });
+  box(c, bx + 170, by + 204, 320, 26, INK); box(c, bx + 172, by + 206, 316, 22, '#B91C1C'); box(c, bx + 172, by + 206, 316, 3, '#DC4A40');
+  signText(c, 'PLEASE STAND BY', tx, by + 223, { sx: 1, sy: 2, bold: true, fill: '#FFFFFF' });
+  // (the tape's scanlines and the roll bar creeping up it)
+  for (let y = 0; y < H; y += 3) box(c, 0, y, W, 1, 'rgba(0,0,0,0.12)');
+  const ry = H - ((f * 1.5) % (H + 60));
+  box(c, 0, ry, W, 30, 'rgba(255,255,255,0.05)'); box(c, 0, ry + 30, W, 4, 'rgba(0,0,0,0.12)');
   // (the network's bug in the corner)
-  signText(c, 'UBX', W - 60, H - 30, { sx: 2, sy: 2, bold: true, fill: '#FDE047', ink: INK });
+  box(c, W - 92, H - 52, 64, 30, 'rgba(0,0,0,0.35)');
+  signText(c, 'UBX', W - 60, H - 30, { sx: 2, sy: 2, bold: true, fill: ['#FFFFFF', '#FDE047'], ink: INK });
 };
 
 export const drawIntroHud = (c: Ctx, state: GameState, s: Amphi) => {
@@ -262,10 +324,8 @@ export const drawIntroHud = (c: Ctx, state: GameState, s: Amphi) => {
   if (!i) return;
   const f = state.frame;
   if (i.closeup) {
-    // (his close-up: the set's wallpaper behind him in bands, banded down to the paneling)
-    const bands = ['#D9B45A', '#CBA44C', '#B8923C', '#7A4A2A', '#5E361C'];
-    bands.forEach((col, k) => { c.fillStyle = col; c.fillRect(0, (k * CANVAS_HEIGHT) / bands.length, CANVAS_WIDTH, CANVAS_HEIGHT / bands.length + 1); });
-    c.fillStyle = 'rgba(122,74,42,0.35)'; for (let x = 20; x < CANVAS_WIDTH; x += 56) for (let y = 30; y < CANVAS_HEIGHT * 0.6; y += 56) { c.beginPath(); c.moveTo(x, y - 12); c.lineTo(x + 10, y); c.lineTo(x, y + 12); c.lineTo(x - 10, y); c.closePath(); c.fill(); }
+    // (his close-up: the set's wallpaper behind him, the portrait's corner, the paneling)
+    wallpaperBack(c);
     const k = Math.min(1, i.closeT / 14), talking = s.said.has('dad');
     drawDadCloseup(c, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 40, 3.6 + k * 0.4, f, { face: talking ? 'bleary' : 'squint', talking });
     const sd = s.said.get('dad');

@@ -31,8 +31,10 @@ const offRamp = (r: Ramp, a: Anim): Ramp => (a.mode === 'off' ? rampMix(r, '#3A3
 const face = (c: Ctx, hx: number, hy: number, r: number, a: Anim, o: { cheeks?: string; braces?: boolean; freckles?: boolean; glasses?: boolean; smile?: boolean; seed: number }) => {
   const W = offRamp(WAX, a), f = stepF(a.f, 6);
   shape(c, () => c.ellipse(hx, hy, r, r * 1.06, 0, 0, Math.PI * 2), W, hx - r, hx + r);
-  // (the shine: too much of it)
+  // (the shine: too much of it; the mask's seam round the face's edge; a chip in the paint showing the gray under)
   ell(c, hx - r * 0.35, hy - r * 0.45, r * 0.32, r * 0.16, 'rgba(255,255,255,0.55)', -0.4);
+  c.strokeStyle = W[3]; c.lineWidth = 0.5; c.beginPath(); c.ellipse(hx - r * 0.12, hy + r * 0.05, r * 0.82, r * 0.9, 0, Math.PI * 0.55, Math.PI * 1.45); c.stroke();
+  px(c, hx + r * 0.42, hy - r * 0.5, 2, 1.4, '#9A9AA4'); px(c, hx + r * 0.42, hy - r * 0.5 + 1.4, 2, 0.5, W[4]);
   if (o.cheeks && a.mode !== 'off') ell(c, hx - r * 0.5, hy + r * 0.25, r * 0.22, r * 0.14, o.cheeks);
   if (o.freckles) for (let k = 0; k < 5; k++) px(c, hx - r * 0.7 + k * r * 0.18, hy + r * 0.1 + (k % 2), 0.8, 0.8, '#B5774E');
   // (the glass eyes: big, round, a fixed stare; the far one off on its own (it never looks where the near one does))
@@ -63,10 +65,24 @@ const face = (c: Ctx, hx: number, hy: number, r: number, a: Anim, o: { cheeks?: 
   px(c, hx - r * 0.6, jy + drop, jw - 1, 0.8, W[2]);
   if (o.braces && smile && drop < 0.5) px(c, hx - r * 0.5, jy - r * 0.04, r * 0.36, 0.8, '#C9CDD4');
 };
-/** The bolt in the neck, the cable out the back (down to the floor), sparks off it glitching. */
+/** A hobby servo showing where the skin doesn't cover it: a gray case, its label, the horn on top ticking round in
+ *  steps, two wires off it. */
+const SERVO: Ramp = ['#C4C8D0', '#9AA0AA', '#787E88', '#5A5E66', '#22262C'];
+const servo = (c: Ctx, x: number, y: number, a: Anim, seed: number) => {
+  shape(c, () => c.rect(x - 3.4, y - 2.4, 6.8, 4.8), SERVO, x - 3.4, x + 3.4, 0.6);
+  px(c, x - 2.6, y - 0.6, 3.6, 1.2, '#E8E4D8');
+  const turn = a.mode === 'off' ? 0 : (Math.floor((a.f + seed * 7) / (a.mode === 'glitch' ? 3 : 8)) % 4) * (Math.PI / 4);
+  line(c, [x + 1.6, y - 2.6, x + 1.6 + Math.cos(turn) * 2.4, y - 2.6 + Math.sin(turn) * 1.2], 0.9, '#F4F4F0');
+  line(c, [x - 3.4, y + 1.6, x - 5.4, y + 4], 0.5, '#C83A3A'); line(c, [x - 3.4, y + 2, x - 5, y + 4.6], 0.5, '#1A1A1A');
+};
+/** The bolt in the neck, the gap round the neck where the skin stops (the steel rod in it), the cable out the back
+ *  (down to the floor), sparks off it glitching. */
 const hardware = (c: Ctx, nx: number, ny: number, a: Anim, floorDy: number) => {
-  ell(c, nx, ny, 1.8, 1.8, BOLT); px(c, nx - 0.6, ny - 1.4, 1.2, 2.8, '#5A5E66');
+  px(c, nx - 9, ny - 1, 8, 2.4, '#1A1416'); px(c, nx - 6, ny - 1, 2, 2.4, SERVO[1]); px(c, nx - 6, ny - 1, 0.6, 2.4, SERVO[0]);
+  ell(c, nx, ny, 1.8, 1.8, BOLT); px(c, nx - 0.6, ny - 1.4, 1.2, 2.8, '#5A5E66'); px(c, nx - 1, ny - 1.2, 0.6, 0.6, '#E8ECF2');
   c.strokeStyle = CABLE; c.lineWidth = 1.4; c.beginPath(); c.moveTo(nx + 3, ny + 2); c.quadraticCurveTo(nx + 14, ny + floorDy * 0.5, nx + 10, ny + floorDy); c.stroke();
+  c.strokeStyle = '#3A3A44'; c.lineWidth = 0.5; c.beginPath(); c.moveTo(nx + 2.6, ny + 1.6); c.quadraticCurveTo(nx + 13.4, ny + floorDy * 0.5, nx + 9.4, ny + floorDy); c.stroke();
+  px(c, nx + 8, ny + floorDy * 0.6, 4, 2.4, '#C8B048');
   if (a.mode === 'glitch' && (a.f % 9) < 4) sparks(c, nx + 1, ny, a.f);
 };
 /** A glitching head's tick (a jolt off to one side, held, then snapped back), or the slump's droop. */
@@ -90,7 +106,9 @@ export const drawMom = (c: Ctx, x: number, floorY: number, a: Anim) => {
   for (const s of [-1, 1]) limb(c, s * 15, -82, 4.4, s * 10 - 12, hy, 3.8, offRamp(SWEATER, a));
   shape(c, () => c.roundRect(-30, hy - 7, 30, 10, 3), ['#F2E6D0', '#E4D2AE', '#C9B48A', '#A89268', '#5A4A2A'], -30, 0);
   px(c, -28, hy - 8, 26, 2, off ? '#5A3A1A' : '#9A5A2A'); ell(c, -15, hy - 9, 8, 2, off ? '#6A3A2A' : '#C24A2A'); px(c, -20, hy - 10, 3, 1, '#F2C94C');
-  for (const s of [-1, 1]) ell(c, -15 + s * 15, hy - 2, 5, 4, '#3F7A4A');
+  for (const s of [-1, 1]) { ell(c, -15 + s * 15, hy - 2, 5, 4, '#3F7A4A'); ell(c, -16 + s * 15, hy - 3, 2.4, 1.6, '#6AA874'); for (let k = 0; k < 3; k++) px(c, -18 + s * 15 + k * 2.4, hy - 1, 0.6, 2, '#2E5A36'); }
+  // (the elbows' servos, where the sweater's split at the seam)
+  for (const s of [-1, 1]) servo(c, s * 12 - 6, (-82 + hy) / 2, a, s + 2);
   // (the head: the perm, a wig on a bit crooked; her face)
   c.save(); c.translate(0, -100); c.rotate(headTurn(a, 1) * 0.4);
   for (let k = 0; k < 11; k++) { const a2 = (k / 11) * Math.PI * 2; shapeTop(c, () => c.ellipse(Math.cos(a2) * 13 + 2, Math.sin(a2) * 12 - 4, 7, 7, 0, 0, Math.PI * 2), offRamp(PERM, a), -24, 14, 0.8); }
@@ -113,6 +131,9 @@ export const drawGramps = (c: Ctx, x: number, floorY: number, a: Anim) => {
   px(c, -10, -22, 34, 22, R[3]); px(c, -46, -24, 4, 24, R[4]);
   shape(c, () => c.rect(28, -84, 10, 10), ['#D8D8D0', '#BDBDB4', '#A0A098', '#80807A', '#40403C'], 28, 38);
   shape(c, () => c.roundRect(-26, -54, 40, 12, 4), R, -26, 14);
+  // (the duct-tape patch on the back, the motor box under the seat, its label)
+  px(c, 30, -70, 9, 8, '#B4B8C0'); px(c, 30, -70, 9, 1.4, '#D4D8E0'); px(c, 31, -66, 7, 0.6, '#8A8E96');
+  shape(c, () => c.rect(-6, -22, 22, 14), SERVO, -6, 16, 0.6); px(c, -3, -18, 12, 3, '#E8E4D8'); px(c, -2, -17, 6, 1, '#C83A3A');
   // (him: slacks out along the footrest, the cardigan, the newspaper)
   limb(c, -6, -38, 6, -48, -38, 4.6, offRamp(SLACKS, a)); limb(c, 0, -42, 6, -46, -44, 4.6, offRamp(SLACKS, a));
   for (const fy of [-40, -46]) shape(c, () => c.roundRect(-58, fy - 3, 10, 6, 2), ['#6A4A2A', '#4A321C', '#3A2614', '#2A1A0E', '#120A04'], -58, -48);
@@ -144,6 +165,9 @@ export const drawSis = (c: Ctx, x: number, floorY: number, a: Anim) => {
   shape(c, () => { c.moveTo(-12, -10); c.lineTo(12, -10); c.lineTo(10, -40); c.quadraticCurveTo(0, -46, -10, -40); c.closePath(); }, offRamp(SIS_TOP, a), -12, 12);
   ell(c, 0, -26, 4, 4, '#FDE047'); px(c, -1.6, -27.4, 1, 1, '#1A1A1A'); px(c, 0.8, -27.4, 1, 1, '#1A1A1A');
   for (const s of [-1, 1]) limb(c, s * 9, -38, 3.4, s * 14, -14, 3, offRamp(SIS_TOP, a));
+  // (the near hand's skin split, the steel fingers showing; a servo at the shoulder through a torn seam)
+  px(c, -16, -16, 4, 3, SERVO[2]); for (let k = 0; k < 3; k++) px(c, -17 + k * 1.4, -14, 0.8, 2.4, SERVO[0]);
+  servo(c, 8, -36, a, 9);
   // (the head: turned to the TV, round to her dad on her line; the ponytail swinging in steps)
   const turn = off ? 0.6 : a.talking ? -0.5 : headTurn(a, 7) * 0.3;
   c.save(); c.translate(0, -54); c.rotate(turn * 0.4); if (a.talking && !off) c.scale(-1, 1);
@@ -166,6 +190,7 @@ export const drawBoy = (c: Ctx, x: number, floorY: number, a: Anim, arm: number,
   shape(c, () => c.roundRect(-14, -10, 28, 8, 2), ['#B8BCC4', '#8E949E', '#6E747E', '#50565E', '#22262C'], -14, 14);
   for (const s of [-1, 1]) ell(c, s * 9, -2, 2.6, 2.6, '#222222');
   if (a.mode === 'run') px(c, 8, -12, 2, 2, (a.f % 30) < 15 ? '#22C55E' : '#14532D');
+  for (let k = 0; k < 4; k++) px(c, -12 + k * 6, -8, 3, 1, '#C8B048'); px(c, -12, -6, 14, 1.2, '#3A3E46');
   // (the legs on their post: jeans, sneakers bolted to the base)
   for (const s of [-1, 1]) { limb(c, s * 5, -46, 5, s * 5, -14, 4.4, offRamp(JEANS, a)); shape(c, () => c.roundRect(s * 5 - 8, -15, 13, 5, 2), ['#FFFFFF', '#F0F0F0', '#D4D4D4', '#A8A8A8', '#4A4A4A'], s * 5 - 8, s * 5 + 5); }
   // (the striped shirt)
@@ -189,7 +214,12 @@ export const drawBoy = (c: Ctx, x: number, floorY: number, a: Anim, arm: number,
   face(c, 0, 0, 11, a, { freckles: true, cheeks: '#F49AA0', seed: 5 });
   fill(c, off ? '#5A4A3A' : '#7A5A3A', () => { c.moveTo(-11, -3); c.quadraticCurveTo(-8, -13, 2, -12); c.quadraticCurveTo(11, -11, 11, -2); c.quadraticCurveTo(4, -8, -11, -3); c.closePath(); });
   for (let k2 = 0; k2 < 8; k2++) px(c, -8 + k2 * 2.4, -10 + (k2 % 2), 0.8, 0.8, '#5A3E26');
+  // (the access hatch on the back of his head hanging open: the board in there, a blinking LED, wires)
+  shape(c, () => c.rect(5, -6, 7, 7), SERVO, 5, 12, 0.6); px(c, 6, -5, 5, 5, '#1E5A2E'); px(c, 7, -4, 1, 1, '#C8B048'); px(c, 9, -2, 1, 2, '#C8B048');
+  px(c, 10, -4, 1, 1, a.mode === 'off' ? '#3A1A1A' : (a.f % 24) < 12 ? '#FF4040' : '#5A1A1A');
+  line(c, [12, -6, 15, -9, 14, -11], 0.6, '#9AA0AA'); line(c, [12, 0, 15, 2], 0.6, '#C83A3A');
   c.restore();
+  servo(c, -10, -64, a, 5);
   hardware(c, 6, -74, a, 64);
   c.restore();
 };
