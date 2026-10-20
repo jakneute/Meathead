@@ -1,246 +1,51 @@
-// Truelling Tragons, drawn (crude first pass: flat colors in a few steps, readable shapes). The sky and the castle
-// going by (rising and sinking with the drops); the park far below, the lagoon, the fake mountain; the three tracks
-// (steel box beams with their lane's stripe, no lit tops: not to stand on), their pylons dimmed, through the loops,
-// corkscrews and the helix; the holes (bent, broken ends); the dragons (three cars each, along their track: the head up
-// over the front car, the tail curled up off the back, the back lit along its top with a grab rail over it), going over
-// a broken end, or coming down onto the track on bat wings (a spare); each lane's obstacles; the breath at the near
-// misses; the load station and the unload, the suitors glimpsed off the train ahead.
+// Truelling Tragons, drawn. The far off (far.ts: screen space, cached per hour, its horizon at the scene's eye); the park
+// round the ride (scenery.ts: the ground going back, the lagoon, the props at three depths, the fake mountain); the
+// load station and the unload (station.ts); the three tracks (steel.ts: real rails a gauge apart in depth, ties, the
+// lane's box spine, lattice supports) through the loops, corkscrews and the helix; the holes (torn, sparking ends); the
+// dragons (dragon.ts: three cars each along their track, the head up off the front car, the tail curled off the back,
+// wings folded, the handlebar), going over a broken end, or coming down onto the track on bat wings (a spare); each
+// lane's obstacles; the breath at the near misses; the suitors glimpsed off the train ahead at the unload.
 //
 // THE DEPTH (layout.ts, track.ts): everything on a track is put at that track's depth there about the scene's one eye
-// (cars.ts / track.ts proj: what the ride's physics stands him on too), scaled with it, and drawn far to near: what's
-// nearer than his dragon goes over him (drawTragonsFront), the rest under (drawTragonsBack). Culled by where it lands on
-// the screen, never by where it'd be flat (no pop-in).
+// (cars.ts / track.ts proj: what the ride's physics stands him on too), scaled with it, and drawn far to near with the
+// park's props sorted in among it: what's nearer than his dragon goes over him (drawTragonsFront), the rest under
+// (drawTragonsBack). Culled by where it lands on the screen, never by where it'd be flat (no pop-in). The sorted list's
+// worked out once a frame (the back and the front share it).
 //
-// Over it all in screen space: the dark inside the mountain (his dragons' lamps soft through it), the warnings (a
-// flashing sign at every hole and loop coming, in its lane's color, an arrow at the edge while it's off the screen, a
+// Over it all in screen space: the dark inside the mountain (his dragons' lamps soft through it), the warnings (an
+// enamel plaque at every hole and loop coming, in its lane's color, an arrow at the edge while it's off the screen, a
 // countdown over the dragon that's going into it, SAFE over the one that won't), the PA's words in the top band.
 
 import type { GameState } from '../../../m1/game/core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, topBand } from '../../../m1/constants';
-import { saidOver, box, groundBox, ledgeBox } from '../section';
-import { storySign, fairySky, mix, INK, type Ctx } from '../kit';
-import { drawCastleAt, MONUMENT_AT } from '../monument';
+import { drawFireball } from '../../../m1/game/render/fx/fireball';
+import { saidOver } from '../section';
+import { mix, box, INK, IRON, SNOW, STONE, GOLD, ramp6, rampH, dimmed, polyF, postR, checker, type Ctx } from '../kit';
 import { RIVALS } from '../glen/rivals';
 import { drawUnloadRivals } from './rivals';
-import {
-  GY, TL, CAR, S0X, STATION_X, GATE_X, LOCK, END_S, DECK_X0, DECK_X1, EXIT_X, LANES, LANE_COL, LANE_NAME, TUNNEL, LAGOON,
-  wxOf, rearX, type Lane,
-} from './layout';
-import { trackPt, proj, spinAt, type Pt } from './track';
+import { GY, TL, CAR, LANES, LANE_COL, LANE_NAME, rearX, type Lane } from './layout';
+import { trackPt, proj, type Eye } from './track';
 import { roofSpan } from './cars';
 import { tragonsOf, type Tragons, type Obst, type Train, type Car } from './state';
-import { toScreen, viewOf, deckY, hisTrainD, UNLOAD_SPOTS, FRAME_TOP, FRAME_BOT } from './ride';
+import { toScreen, viewOf, hisTrainD, UNLOAD_SPOTS, FRAME_TOP, FRAME_BOT } from './ride';
+import { TUNNEL } from './layout';
+import { viewBox, boxIn, sceneEye, fog } from './scene';
+import { paintCar } from './dragon';
+import { drawSteel, RAIL } from './steel';
+import { drawFloor, drawMountain, sceneryItems } from './scenery';
+import { drawStation, drawUnload } from './station';
+import { drawTragonsFar } from './far';
 
-/** Under a dragon's roof: its wheels on the rail this far down. */
-const RAIL = 48;
+export { paintCar };
 const FONT = '"Press Start 2P"';
 
-/** What of the world's on screen as drawn. */
-const viewBox = (state: GameState) => state.view ?? { x: state.camera.x, y: state.camera.y, w: CANVAS_WIDTH, h: CANVAS_HEIGHT };
-const inView = (state: GameState, x0: number, x1: number, m = 80) => { const v = viewBox(state); return x1 > v.x - m && x0 < v.x + v.w + m; };
-const boxIn = (state: GameState, x0: number, y0: number, x1: number, y1: number, m = 60) => { const v = viewBox(state); return x1 > v.x - m && x0 < v.x + v.w + m && y1 > v.y - m && y0 < v.y + v.h + m; };
-/** The station's offset (it goes off the left as the ride gets going; back where it was on a revisit). */
-const stationShift = (t: Tragons) => (t.phase === 'done' ? 0 : Math.max(0, t.dist - LOCK));
-/** How far the track's come along under the world (for things on the ground going by). */
-const groundS = (t: Tragons) => (t.phase === 'done' ? 0 : t.dist);
-/** Far off: into the haze (toward the sky's blue-grey); near: a step darker. */
-const fog = (col: string, d: number) => (d < 1 ? mix(col, '#8A9AC4', Math.min(0.55, (1 - d) * 1.4)) : d > 1 ? mix(col, '#000000', Math.min(0.3, (d - 1) * 0.6)) : col);
+// ---------------------------------------------------------------------------------------------------------------
+// Screen space: the far off
+
+export const drawTragonsBackdrop = (c: Ctx, state: GameState) => drawTragonsFar(c, state);
 
 // ---------------------------------------------------------------------------------------------------------------
-// Screen space: the sky
-
-export const drawTragonsBackdrop = (c: Ctx, state: GameState) => {
-  const t = tragonsOf(state);
-  // (the far hills going by with the ride; the castle drifting across as it goes, sinking as the ride climbs and
-  // rising up as it drops)
-  const virt = { ...state, camera: { ...state.camera, x: state.camera.x + groundS(t) * 0.6 } } as GameState;
-  fairySky(c, virt, null, { near: '#2A2E4A' });
-  const at = MONUMENT_AT.tragons, k = Math.min(1, t.dist / END_S);
-  const lift = t.cam.on > 0 ? Math.max(-80, Math.min(140, (viewOf(state).cy - (GY - 480)) * -0.1)) : 0;
-  drawCastleAt(c, Math.round(at.from + (at.to - at.from) * k), at.base + lift, at.k, state.frame);
-  return true;
-};
-
-// ---------------------------------------------------------------------------------------------------------------
-// World space
-
-/** The park far below: grass, paths, flower beds and lamp posts going by; the station's stone floor; the lagoon. */
-const drawGround = (c: Ctx, state: GameState, t: Tragons) => {
-  const v = viewBox(state), sh = stationShift(t), gs = groundS(t);
-  if (v.y + v.h < GY - 40) return;
-  const end = GATE_X + 30 - sh;
-  groundBox(c, v.x - 40, v.x + v.w + 40, GY, '#3E5A34', '#6E9A50');
-  if (end > v.x) groundBox(c, Math.max(v.x - 40, STATION_X - 600 - sh), Math.min(end, v.x + v.w + 40), GY, '#5A5466', '#B8B0C8');
-  const step = 260, first = Math.floor((v.x + gs - 200) / step) * step;
-  for (let s = first; s < v.x + v.w + gs + 200; s += step) {
-    const x = s - gs;
-    if (x < end + 20) continue;
-    const n = Math.abs(Math.floor(s / step)) % 5;
-    if (n === 0 || n === 3) { box(c, x, GY + 6, 70, 10, '#6B3A2A'); for (let i = 0; i < 6; i++) box(c, x + 4 + i * 11, GY + 3, 6, 6, ['#F472B6', '#FDE047', '#A78BFA'][i % 3]); }
-    if (n === 1) { box(c, x, GY - 70, 4, 70, '#2E2A3A'); box(c, x - 4, GY - 78, 12, 9, '#FDE68A'); }
-    if (n === 4) box(c, x - 30, GY + 20, 120, 6, '#8A7A5A');
-  }
-  // (the lagoon at the bottom of the splashdown: water across the park, ripples, a lily pad or two)
-  if (t.phase !== 'done') {
-    const a = wxOf(t.dist, LAGOON.a), b = wxOf(t.dist, LAGOON.b);
-    if (inView(state, a, b)) {
-      box(c, a, GY - 6, b - a, 60, '#1E3A8A'); box(c, a, GY - 6, b - a, 4, '#7DD3FC'); box(c, a, GY - 2, b - a, 3, '#3B82F6');
-      for (let x = a + 30; x < b - 30; x += 90) { const w = 20 + ((x * 7) % 30); box(c, x + ((state.frame >> 3) % 6), GY + 8 + ((x >> 4) % 3) * 8, w, 2, '#60A5FA'); }
-      for (let x = a + 120; x < b - 60; x += 340) { c.fillStyle = '#16A34A'; c.beginPath(); c.ellipse(x, GY - 3, 12, 4, 0, 0, Math.PI * 2); c.fill(); box(c, x + 2, GY - 9, 4, 4, '#F9A8D4'); }
-    }
-  }
-};
-
-/** THE FAKE MOUNTAIN (a painted plaster peak, snow on top: no crater, no lava, a coaster's mountain): behind the
- *  tracks, far back, the tracks diving into its tunnel mouths. */
-const drawMountain = (c: Ctx, state: GameState, t: Tragons) => {
-  const d = 0.92, mid = (TUNNEL.a + TUNNEL.b) / 2;
-  const base = proj(t.eye, wxOf(t.dist, mid), GY, d), w = (TUNNEL.b - TUNNEL.a + 900) * d, h = 1250 * d;
-  if (!boxIn(state, base.x - w / 2, base.y - h, base.x + w / 2, base.y)) return;
-  const x0 = base.x - w / 2, x1 = base.x + w / 2, top = base.y - h;
-  const rock = fog('#6B5A64', d), rockD = fog('#4A3C48', d), snow = fog('#F1F5F9', d);
-  c.fillStyle = INK; c.beginPath(); c.moveTo(x0 - 4, base.y); c.lineTo(base.x - w * 0.12, top - 4); c.lineTo(base.x + w * 0.06, top + h * 0.08); c.lineTo(x1 + 4, base.y); c.closePath(); c.fill();
-  c.fillStyle = rock; c.beginPath(); c.moveTo(x0, base.y); c.lineTo(base.x - w * 0.12, top); c.lineTo(base.x + w * 0.06, top + h * 0.1); c.lineTo(x1, base.y); c.closePath(); c.fill();
-  // (the shaded side, stepped)
-  c.fillStyle = rockD; c.beginPath(); c.moveTo(base.x - w * 0.12, top); c.lineTo(base.x + w * 0.06, top + h * 0.1); c.lineTo(x1, base.y); c.lineTo(base.x + w * 0.1, base.y); c.closePath(); c.fill();
-  // (the snow cap, its ragged edge)
-  c.fillStyle = snow; c.beginPath(); c.moveTo(base.x - w * 0.12, top);
-  const sx0 = base.x - w * 0.2, sy = top + h * 0.2;
-  c.lineTo(base.x + w * 0.05, top + h * 0.11); c.lineTo(base.x + w * 0.02, sy - 20 * d);
-  for (let k = 0; k < 6; k++) c.lineTo(base.x - k * w * 0.03, sy + (k % 2 ? 24 : -6) * d);
-  c.lineTo(sx0, sy + 10 * d); c.closePath(); c.fill();
-  // (plaster seams, a painted waterfall, a maintenance door: it's fake)
-  c.strokeStyle = rockD; c.lineWidth = 2 * d;
-  for (let k = 1; k < 6; k++) { c.beginPath(); c.moveTo(x0 + k * w * 0.15, base.y); c.lineTo(x0 + k * w * 0.15 + 40 * d, base.y - h * 0.3); c.stroke(); }
-  box(c, base.x - w * 0.3, top + h * 0.45, 18 * d, h * 0.4, fog('#93C5FD', d));
-  box(c, base.x + w * 0.3, base.y - 70 * d, 34 * d, 70 * d, fog('#3A3A3A', d)); box(c, base.x + w * 0.3 + 4 * d, base.y - 66 * d, 26 * d, 62 * d, fog('#71717A', d));
-};
-
-/** A run of track on a lane (s0..s1), at its depths: the points, each off the roof along its normal (rolled), its
- *  pylons down to the park at their own depth (not under a loop). */
-const P: Pt = { x: 0, y: 0, d: 1, roll: 0 };
-const trackRun = (t: Tragons, lane: Lane, s0: number, s1: number) => {
-  const pts: { x: number; y: number; d: number }[] = [];
-  let prev: { x: number; y: number } | null = null;
-  for (let s = s0; s <= s1 + 0.01; s += 16) {
-    trackPt(t.spins, t.dist, lane, s, P);
-    const m = proj(t.eye, P.x, P.y, P.d);
-    const nx = trackPt(t.spins, t.dist, lane, s + 6, { x: 0, y: 0, d: 1, roll: 0 });
-    const n = proj(t.eye, nx.x, nx.y, nx.d);
-    const a = Math.atan2(n.y - m.y, n.x - m.x), off = RAIL * P.d * Math.cos(P.roll);
-    pts.push({ x: m.x - Math.sin(a) * off, y: m.y + Math.cos(a) * off, d: P.d });
-    prev = m;
-  }
-  void prev;
-  return pts;
-};
-
-const drawChunk = (c: Ctx, state: GameState, t: Tragons, lane: Lane, s0: number, s1: number) => {
-  const [main, light, dark] = LANE_COL[lane];
-  const gaps = t.gaps.filter(g => g.lane === lane && g.b > s0 && g.a < s1);
-  const pts = trackRun(t, lane, s0, s1);
-  if (!pts.length) return;
-  const dm = pts[Math.floor(pts.length / 2)].d;
-  // (pylons: every 420 of track, down to the park at their depth; none under a hole or a loop)
-  const gy = t.eye.y + (GY - t.eye.y) * dm, post = fog(mix('#3A3550', '#7A8AB4', 0.25), dm);
-  for (let s = Math.ceil(s0 / 420) * 420, i = 0; s < s1; s += 420, i++) {
-    if (gaps.some(g => s >= g.a - 40 && s < g.b + 40) || spinAt(t.spins, lane, s)) continue;
-    const k = Math.round((s - s0) / 16), p = pts[Math.min(pts.length - 1, k)];
-    if (p.y > gy) continue;
-    box(c, p.x - 4 * dm, p.y + 6 * dm, 8 * dm, gy - p.y - 6 * dm, post);
-    c.strokeStyle = post; c.lineWidth = 3 * dm; c.beginPath();
-    for (let yy = p.y + 30 * dm; yy < gy - 20 * dm; yy += 70 * dm) { c.moveTo(p.x - 18 * dm, yy); c.lineTo(p.x + 18 * dm, yy + 35 * dm); }
-    c.stroke();
-  }
-  // (the beam, its holes left out)
-  const runs: { x: number; y: number }[][] = [];
-  let cur: { x: number; y: number }[] = [];
-  pts.forEach((p, i) => {
-    const s = s0 + i * 16;
-    if (gaps.some(g => s >= g.a && s < g.b)) { if (cur.length) runs.push(cur); cur = []; return; }
-    cur.push(p);
-  });
-  if (cur.length) runs.push(cur);
-  c.lineJoin = 'round'; c.lineCap = 'round';
-  for (const run of runs) {
-    if (run.length < 2) continue;
-    const line = (w: number, col: string) => { c.strokeStyle = col; c.lineWidth = Math.max(1, w * dm); c.beginPath(); run.forEach(({ x, y }, i) => (i ? c.lineTo(x, y) : c.moveTo(x, y))); c.stroke(); };
-    line(14, INK); line(10, fog(mix(dark, '#000000', 0.35), dm)); line(4, fog(main, dm)); line(1.5, fog(mix(light, dark, 0.5), dm));
-  }
-  c.lineCap = 'butt';
-  // (the broken ends: torn steel, bent down, sparking)
-  for (const g of gaps) for (const [s, dir] of [[g.a, 1], [g.b, -1]] as [number, number][]) {
-    if (s < s0 || s >= s1) continue;
-    const p = pts[Math.min(pts.length - 1, Math.round((s - s0) / 16))];
-    c.strokeStyle = mix(dark, '#000000', 0.3); c.lineWidth = 6 * dm;
-    c.beginPath(); c.moveTo(p.x - dir * 4 * dm, p.y + 3 * dm); c.lineTo(p.x + dir * 18 * dm, p.y + 22 * dm); c.lineTo(p.x + dir * 12 * dm, p.y + 40 * dm); c.stroke();
-    if (state.frame % 10 < 3) box(c, p.x + dir * 10 * dm, p.y + 20 * dm, 3, 3, '#FDE047');
-  }
-  // (the tunnel's mouths: dark arches the track goes into)
-  for (const s of [TUNNEL.a, TUNNEL.b]) {
-    if (s < s0 || s >= s1 || t.phase === 'done') continue;
-    const p = pts[Math.min(pts.length - 1, Math.round((s - s0) / 16))];
-    c.fillStyle = fog('#3A2E36', dm); c.beginPath(); c.ellipse(p.x, p.y - 30 * dm, 62 * dm, 110 * dm, 0, Math.PI, 0); c.lineTo(p.x + 62 * dm, p.y + 20 * dm); c.lineTo(p.x - 62 * dm, p.y + 20 * dm); c.fill();
-    c.fillStyle = '#0B0612'; c.beginPath(); c.ellipse(p.x, p.y - 26 * dm, 48 * dm, 96 * dm, 0, Math.PI, 0); c.lineTo(p.x + 48 * dm, p.y + 16 * dm); c.lineTo(p.x - 48 * dm, p.y + 16 * dm); c.fill();
-  }
-};
-
-/** A dragon's car at the origin (its roof's middle at 0,0, the front off to +x): car 0 the rear (its tail), 2 the
- *  front (the head). `danger` its side lights flashing red; `wings` (a spare coming down) bat wings beating; `char`
- *  burnt black. */
-export const paintCar = (c: Ctx, lane: Lane, i: number, f: number, opts: { danger?: boolean; wings?: boolean; char?: boolean } = {}) => {
-  const [main0, light0, dark0] = LANE_COL[lane];
-  const ch = (col: string) => (opts.char ? mix(col, '#140C08', 0.85) : col);
-  const main = ch(main0), light = ch(light0), dark = ch(dark0);
-  const x = -CAR / 2;
-  if (opts.wings && i === 1) {
-    const a = Math.sin(f * 0.45) * 0.6;
-    for (const side of [-1, 1]) {
-      c.save(); c.translate(side * 30, -6); c.rotate(side * (0.4 + a));
-      c.fillStyle = INK; c.beginPath(); c.moveTo(0, 0); c.lineTo(side * 150, -60); c.lineTo(side * 120, -10); c.lineTo(side * 90, -30); c.lineTo(side * 60, 4); c.closePath(); c.fill();
-      c.fillStyle = mix(dark, '#000000', 0.2); c.beginPath(); c.moveTo(4 * side, -2); c.lineTo(side * 144, -56); c.lineTo(side * 118, -12); c.lineTo(side * 90, -28); c.lineTo(side * 62, 0); c.closePath(); c.fill();
-      c.restore();
-    }
-  }
-  if (i === 0) {
-    // (the tail: curled up off the back)
-    c.fillStyle = INK; c.beginPath(); c.moveTo(x + 14, 6); c.quadraticCurveTo(x - 26, 4, x - 18, -26); c.lineTo(x - 8, -24); c.quadraticCurveTo(x - 12, -4, x + 14, -6); c.closePath(); c.fill();
-    c.fillStyle = main; c.beginPath(); c.moveTo(x + 12, 3); c.quadraticCurveTo(x - 22, 2, x - 16, -22); c.lineTo(x - 10, -21); c.quadraticCurveTo(x - 12, -6, x + 12, -3); c.closePath(); c.fill();
-    box(c, x, -24, 12, 24, INK); box(c, x + 1, -23, 10, 22, main); box(c, x + 1, -23, 10, 2, light);
-  }
-  // (the car: its scaled body, the lights down the side, the wheels on the rail)
-  box(c, x + 3, -1, CAR - 6, 44, INK);
-  box(c, x + 4, 0, CAR - 8, 42, dark);
-  box(c, x + 4, 0, CAR - 8, 20, main);
-  for (let r = 0; r < 2; r++) for (let k = 0; k < 7; k++) { c.fillStyle = mix(main, light, 0.35); c.beginPath(); c.arc(x + 12 + k * 12 + r * 6, 8 + r * 8, 4, 0, Math.PI); c.fill(); }
-  for (let k = 0; k < 4; k++) {
-    const on = opts.danger ? f % 12 < 6 : (f / 6 + k + i * 4) % 8 < 4;
-    box(c, x + 14 + k * 22, 28, 6, 6, opts.char ? '#1C1917' : opts.danger ? (on ? '#EF4444' : '#450A0A') : on ? light : mix(dark, '#000000', 0.3));
-  }
-  for (const wx of [x + 18, x + CAR - 18]) { c.fillStyle = INK; c.beginPath(); c.arc(wx, 44, 6, 0, Math.PI * 2); c.fill(); c.fillStyle = '#71717A'; c.beginPath(); c.arc(wx, 44, 4, 0, Math.PI * 2); c.fill(); }
-  // (the dragon's back, lit along its top: where he stands; the grab rail over it on its posts (dim: not a step))
-  box(c, x + 2, -3, CAR - 4, 4, INK); box(c, x + 3, -2, CAR - 6, 3, light);
-  const rail = opts.char ? '#292524' : '#8A6A2A';
-  for (const px of [x + 12, x + CAR / 2, x + CAR - 12]) box(c, px - 1, -16, 2, 14, rail);
-  box(c, x + 8, -17, CAR - 16, 3, rail);
-  if (i === 2) {
-    // (the head: the neck up off the front, the head out ahead, horns, an eye; its breath)
-    const hx = x + CAR - 16;
-    box(c, hx - 1, -47, 18, 47, INK); box(c, hx, -46, 16, 46, main); box(c, hx, -46, 16, 3, light);
-    c.fillStyle = INK; c.beginPath(); c.moveTo(hx, -50); c.lineTo(hx + 44, -42); c.lineTo(hx + 48, -30); c.lineTo(hx + 22, -24); c.lineTo(hx, -26); c.closePath(); c.fill();
-    c.fillStyle = main; c.beginPath(); c.moveTo(hx + 1, -48); c.lineTo(hx + 42, -41); c.lineTo(hx + 45, -31); c.lineTo(hx + 22, -26); c.lineTo(hx + 1, -28); c.closePath(); c.fill();
-    box(c, hx + 22, -32, 22, 3, dark);
-    c.fillStyle = light; c.beginPath(); c.moveTo(hx + 4, -48); c.lineTo(hx - 8, -64); c.lineTo(hx + 10, -50); c.fill();
-    c.beginPath(); c.moveTo(hx + 12, -47); c.lineTo(hx + 6, -62); c.lineTo(hx + 18, -47); c.fill();
-    box(c, hx + 24, -44, 5, 4, opts.char ? '#F8FAFC' : opts.danger && f % 12 < 6 ? '#EF4444' : '#FEF08A');
-    if (!opts.char && f % 30 < 14) {
-      const bx = hx + 50, by = -36;
-      if (lane === 1) for (let k = 0; k < 3; k++) box(c, bx + k * 6, by - 2 + ((f + k) % 3), 5, 4, ['#FDE047', '#F97316', '#DC2626'][k]);
-      else if (lane === 2) for (let k = 0; k < 3; k++) box(c, bx + k * 7, by - k * 2, 5, 5, '#E0F2FE');
-      else { c.strokeStyle = '#FEF08A'; c.lineWidth = 2; c.beginPath(); c.moveTo(bx, by); c.lineTo(bx + 6, by - 6); c.lineTo(bx + 10, by + 2); c.lineTo(bx + 18, by - 4); c.stroke(); }
-    }
-  }
-};
+// The dragons
 
 /** A car put where it is: turned along the track, scaled with its depth, squashed through its roll (upside down past
  *  a quarter turn). */
@@ -276,91 +81,161 @@ const drawTrain = (c: Ctx, state: GameState, t: Tragons, tr: Train) => {
   tr.cars.forEach((k, i) => putCar(c, k, tr.lane, i, f, { danger }));
 };
 
-/** An obstacle on the track, its back (the posts, the towers, the clouds: behind) or its front (what hurts), at the
- *  origin (its foot on the track's top), drawn at its depth; `gl` the park's level, there (local). */
-const drawObst = (c: Ctx, state: GameState, t: Tragons, o: Obst, front: boolean) => {
+// ---------------------------------------------------------------------------------------------------------------
+// Each lane's obstacles
+
+/** Stepped flames up from (x, y): `h` tall, `w` wide, licking. */
+const flames = (c: Ctx, x: number, y: number, w: number, h: number, f: number, seed = 0) => {
+  const F = ['#7A1A1A', '#DC2626', '#F97316', '#FDE047', '#FFF6B0'];
+  const n = Math.max(3, Math.round(w / 4));
+  for (let L = 0; L < 4; L++) {
+    const k = 1 - L * 0.22;
+    for (let i = 0; i < n; i++) {
+      const u = (i + 0.5) / n, lick = Math.sin(f * 0.4 + i * 1.7 + seed) * 0.25 + 0.75, hh = h * k * lick * Math.sin(u * Math.PI) ** 0.6;
+      box(c, x - w / 2 + (u - 0.5) * w * (k - 1) + i * (w / n) * k + (w * (1 - k)) / 2, y - hh, Math.max(1, (w / n) * k), hh, F[L + 1]);
+    }
+  }
+  box(c, x - w / 2, y - 2, w, 2, F[0]);
+};
+
+/** An obstacle on the track, its back (what's behind the dragon: posts, the far half of a hoop, towers, clouds) or its
+ *  front (what hurts: the near half, the icicles, the arcs, the jet, the bar), at the origin (its foot on the track's
+ *  top), drawn at its depth; `gl` the park's level there (local). Where it hurts is unchanged (ride.ts BOXES). */
+const drawObst = (c: Ctx, state: GameState, t: Tragons, e: Eye, o: Obst, front: boolean) => {
   const f = state.frame;
-  const at = trackPt(t.spins, t.dist, o.lane, o.s, { x: 0, y: 0, d: 1, roll: 0 }), pp = proj(t.eye, at.x, at.y, at.d), d = at.d;
-  const gl = (t.eye.y + (GY - t.eye.y) * d - pp.y) / d;
-  const [main] = LANE_COL[o.lane];
-  const post = fog(mix('#3A3550', '#7A8AB4', 0.2), d);
+  const a = trackPt(t.spins, t.dist, o.lane, o.s, { x: 0, y: 0, d: 1, roll: 0 }), pp = proj(t.eye, a.x, a.y, a.d), d = a.d;
+  const gl = (e.y + (GY - e.y) * d - pp.y) / d;
+  const [main, light] = LANE_COL[o.lane];
+  const I = IRON.map(col => fog(dimmed(col), d));
+  const post = (x: number, top: number) => { if (gl > top) postR(c, x, top, gl, 6, I); };
   if (o.kind === 'live') {
     if (front) return;
-    // (the rail live along its length: glowing, sparks crawling along it)
+    // (the rail live along its length: glowing in steps, sparks crawling along it, the dragon's back crackling)
     for (let s = o.s; s < o.s + o.len; s += 20) {
-      const q = trackPt(t.spins, t.dist, o.lane, s, { x: 0, y: 0, d: 1, roll: 0 }), p = proj(t.eye, q.x, q.y, q.d);
-      box(c, p.x, p.y + (RAIL - 3) * q.d, 20 * q.d, 6 * q.d, f % 6 < 3 ? '#FEF08A' : main);
-      if ((s / 20 + f) % 9 === 0) { c.strokeStyle = '#FFFFFF'; c.lineWidth = 2; c.beginPath(); c.moveTo(p.x, p.y + (RAIL - 4) * q.d); c.lineTo(p.x + 4, p.y + (RAIL - 14) * q.d); c.lineTo(p.x + 9, p.y + (RAIL - 8) * q.d); c.stroke(); }
+      const q = trackPt(t.spins, t.dist, o.lane, s, { x: 0, y: 0, d: 1, roll: 0 }), p = proj(t.eye, q.x, q.y, q.d), on = (Math.floor(s / 20) + (f >> 1)) % 4;
+      box(c, p.x, p.y + (RAIL - 4) * q.d, 20 * q.d, 8 * q.d, on === 0 ? '#FFFFFF' : on === 1 ? '#FEF08A' : main);
+      box(c, p.x, p.y + (RAIL - 1) * q.d, 20 * q.d, 2 * q.d, '#6D28D9');
+      if ((s / 20 + f) % 9 === 0) { c.strokeStyle = '#FFFFFF'; c.lineWidth = 2; c.beginPath(); c.moveTo(p.x, p.y + (RAIL - 4) * q.d); c.lineTo(p.x + 4, p.y + (RAIL - 16) * q.d); c.lineTo(p.x + 9, p.y + (RAIL - 9) * q.d); c.lineTo(p.x + 13, p.y + (RAIL - 20) * q.d); c.stroke(); }
     }
     const tr = t.trains[o.lane];
-    if (tr.phase === 'ok' && t.dist + TL > o.s && t.dist < o.s + o.len) for (const k of tr.cars) for (let n = 0; n < 2; n++) {
+    if (tr.phase === 'ok' && t.dist + TL > o.s && t.dist < o.s + o.len) for (const k of tr.cars) for (let n = 0; n < 3; n++) {
       const x = k.x + (((f * 13 + n * 47) % CAR) - CAR / 2) * k.d;
-      c.strokeStyle = '#FEF08A'; c.lineWidth = 2; c.beginPath(); c.moveTo(x, k.y); c.lineTo(x + 4, k.y - 10 * k.d); c.lineTo(x - 2, k.y - 16 * k.d); c.stroke();
+      c.strokeStyle = n === 1 ? '#FFFFFF' : '#FEF08A'; c.lineWidth = 2; c.beginPath(); c.moveTo(x, k.y); c.lineTo(x + 4, k.y - 10 * k.d); c.lineTo(x - 2, k.y - 16 * k.d); c.lineTo(x + 3, k.y - 22 * k.d); c.stroke();
     }
     return;
   }
   c.save(); c.translate(pp.x, pp.y); c.scale(d, d);
   switch (o.kind) {
-    case 'ring':
-      if (!front) { box(c, -3, -20, 6, RAIL + 20, post); break; }
-      c.strokeStyle = INK; c.lineWidth = 9; c.beginPath(); c.ellipse(0, 2, 13, 56, 0, 0, Math.PI * 2); c.stroke();
-      c.strokeStyle = '#B45309'; c.lineWidth = 5; c.beginPath(); c.ellipse(0, 2, 13, 56, 0, 0, Math.PI * 2); c.stroke();
-      for (let k = 0; k < 10; k++) { const a = (k / 10) * Math.PI * 2 + f * 0.05, fx = Math.cos(a) * 13, fy = 2 + Math.sin(a) * 56; box(c, fx - 3, fy - 6 - ((f + k * 3) % 6), 6, 8, ['#FDE047', '#F97316', '#DC2626'][(k + (f >> 2)) % 3]); }
+    case 'ring': {
+      // (a burning hoop round the track on a gantry post: the far half behind the dragon, the near half over him)
+      const ring = (a0: number, a1: number) => {
+        c.lineCap = 'round';
+        c.strokeStyle = INK; c.lineWidth = 10; c.beginPath(); c.ellipse(0, 2, 14, 56, 0, a0, a1); c.stroke();
+        c.strokeStyle = I[2]; c.lineWidth = 7; c.stroke(); c.strokeStyle = '#F97316'; c.lineWidth = 3; c.stroke(); c.strokeStyle = '#FDE047'; c.lineWidth = 1; c.stroke();
+        c.lineCap = 'butt';
+        for (let k = 0; k < 10; k++) { const an = a0 + ((k + 0.5) / 10) * (a1 - a0) + Math.sin(f * 0.05) * 0.05, fx = Math.cos(an) * 14, fy = 2 + Math.sin(an) * 56; flames(c, fx, fy, 8, 10 + ((f + k * 5) % 8), f, k); }
+      };
+      if (!front) { post(0, 58); box(c, -10, 54, 20, 6, INK); box(c, -9, 55, 18, 4, I[3]); ring(Math.PI / 2, Math.PI * 1.5); break; }
+      ring(-Math.PI / 2, Math.PI / 2);
       break;
-    case 'icicles':
-      if (!front) { box(c, -46, -124, 6, 124 + RAIL, post); box(c, 40, -124, 6, 124 + RAIL, post); break; }
-      box(c, -48, -128, 96, 12, INK); box(c, -47, -127, 94, 10, '#BAE6FD'); box(c, -47, -127, 94, 3, '#F0F9FF');
+    }
+    case 'icicles': {
+      if (!front) { post(-46, -124); post(46, -124); break; }
+      // (an icicle curtain off a frosted gantry beam: snow along its top, the icicles in steps, dripping)
+      const Ic = ['#3A7AC0', '#7DD3FC', '#BAE6FD', '#E0F2FE', '#FFFFFF'];
+      box(c, -50, -130, 100, 14, INK); box(c, -49, -129, 98, 12, I[3]); box(c, -49, -129, 98, 2, I[5]);
+      for (let x = -46; x < 46; x += 12) box(c, x, -125, 2, 2, I[1]);
+      const Sn = SNOW;
+      box(c, -51, -136, 102, 7, INK); box(c, -50, -135, 100, 6, Sn[4]); box(c, -50, -135, 100, 1, Sn[5]); for (let x = -48; x < 48; x += 7) box(c, x, -137 + ((x * 3) & 1), 5, 2, Sn[5]);
       for (let k = 0; k < 9; k++) {
-        const x = -40 + k * 10, len = 58 + ((k * 7) % 4) * 6;
-        c.fillStyle = INK; c.beginPath(); c.moveTo(x - 4, -117); c.lineTo(x + 4, -117); c.lineTo(x, -117 + len + 2); c.fill();
-        c.fillStyle = k % 2 ? '#E0F2FE' : '#7DD3FC'; c.beginPath(); c.moveTo(x - 3, -117); c.lineTo(x + 3, -117); c.lineTo(x, -117 + len); c.fill();
+        const x = -40 + k * 10, len = 56 + ((k * 7) % 4) * 6;
+        polyF(c, [[x - 5, -117], [x + 5, -117], [x, -117 + len + 2]], INK);
+        polyF(c, [[x - 4, -117], [x + 4, -117], [x, -117 + len]], Ic[1 + (k % 2)]);
+        polyF(c, [[x - 4, -117], [x, -117], [x, -117 + len]], Ic[3]);
+        box(c, x - 2, -116, 1, len * 0.5, Ic[4]);
+        const dr = (f * 0.7 + k * 13) % 40;
+        if (dr < 20) box(c, x, -117 + len + dr * 0.8, 1, 2, Ic[2]);
       }
       break;
-    case 'arc':
-      if (!front) { box(c, -30, -124, 6, 124 + RAIL, post); box(c, 24, -124, 6, 124 + RAIL, post); break; }
-      box(c, -34, -128, 68, 10, INK); box(c, -33, -127, 66, 8, '#52525B');
-      for (const cx of [-26, 26]) { c.fillStyle = INK; c.beginPath(); c.arc(cx, -130, 8, 0, Math.PI * 2); c.fill(); c.fillStyle = '#C4B5FD'; c.beginPath(); c.arc(cx, -130, 6, 0, Math.PI * 2); c.fill(); }
+    }
+    case 'arc': {
+      if (!front) { post(-28, -112); post(28, -112); break; }
+      // (two tesla coils on the gantry: copper windings, toroids, the arcs crackling down between them to his head)
+      const Cu = rampH(ramp6('#B8682A'), true);
+      box(c, -36, -118, 72, 8, INK); box(c, -35, -117, 70, 6, I[3]); box(c, -35, -117, 70, 1, I[5]);
+      for (const cx of [-28, 28]) {
+        box(c, cx - 6, -150, 12, 34, INK); box(c, cx - 5, -149, 10, 32, Cu[3]); for (let y = -148; y < -118; y += 3) box(c, cx - 5, y, 10, 1, Cu[1]); box(c, cx - 5, -149, 3, 32, Cu[4]);
+        c.fillStyle = INK; c.beginPath(); c.ellipse(cx, -154, 12, 6, 0, 0, Math.PI * 2); c.fill();
+        c.fillStyle = I[4]; c.beginPath(); c.ellipse(cx, -154, 11, 5, 0, 0, Math.PI * 2); c.fill(); box(c, cx - 7, -157, 6, 2, I[5]);
+        if (f % 6 < 3) box(c, cx - 2, -164, 4, 4, '#FFFFFF');
+      }
       for (let k = 0; k < 3; k++) {
         c.strokeStyle = k === 1 ? '#FFFFFF' : f % 4 < 2 ? main : '#C4B5FD'; c.lineWidth = k === 1 ? 2 : 3;
         c.beginPath(); let y = -118; c.moveTo(-6 + k * 6, y);
-        while (y < -46) { y += 10; c.lineTo(-6 + k * 6 + ((((f + y + k * 7) >> 2) % 3) - 1) * 6, Math.min(y, -46)); }
+        while (y < -46) { y += 10; c.lineTo(-6 + k * 6 + ((((f + y + k * 7) >> 2) % 3) - 1) * 7, Math.min(y, -46)); }
         c.stroke();
       }
+      c.globalAlpha = 0.2; box(c, -18, -118, 36, 72, '#C4B5FD'); c.globalAlpha = 1;
       break;
-    case 'jet':
-      if (!front) { box(c, -8, 2, 16, RAIL - 2, INK); box(c, -7, 3, 14, RAIL - 4, '#57534E'); break; }
-      for (let k = 0; k < 8; k++) { const h = 18 + ((f * 3 + k * 11) % 14); box(c, -12 + k * 3, -h, 4, h, ['#DC2626', '#F97316', '#FDE047'][(k + (f >> 1)) % 3]); }
+    }
+    case 'jet': {
+      if (!front) {
+        // (the burner housing on the track's side: riveted steel, its nozzle glowing)
+        box(c, -11, 2, 22, RAIL - 2, INK); box(c, -10, 3, 20, RAIL - 4, I[2]); box(c, -10, 3, 20, 2, I[4]); for (let y = 8; y < RAIL; y += 8) { box(c, -8, y, 2, 2, I[5]); box(c, 6, y, 2, 2, I[5]); }
+        box(c, -7, -2, 14, 5, INK); box(c, -6, -1, 12, 3, '#F97316');
+        break;
+      }
+      flames(c, 0, 0, 22, 26 + ((f * 3) % 8), f, 3);
       break;
-    case 'bar':
-      if (!front) { box(c, -12, -30, 6, 30 + RAIL, post); box(c, 6, -30, 6, 30 + RAIL, post); break; }
-      box(c, -9, -29, 18, 24, INK); box(c, -8, -28, 16, 22, '#7DD3FC'); box(c, -8, -28, 16, 4, '#F0F9FF');
+    }
+    case 'bar': {
+      if (!front) { post(-12, -30); post(12, -30); break; }
+      // (a bar of ice across the back on its posts: stepped, frosted, its edges catching the light)
+      const Ic = ['#2A5A9A', '#5AA8E8', '#9ADCFC', '#D8F2FF', '#FFFFFF'];
+      box(c, -16, -30, 32, 26, INK); box(c, -15, -29, 30, 24, Ic[2]); box(c, -15, -29, 30, 5, Ic[3]); box(c, -15, -29, 30, 1, Ic[4]); box(c, -15, -9, 30, 4, Ic[1]); box(c, 9, -29, 6, 24, Ic[1]);
+      checker(c, -15, -12, 30, 2, Ic[1], 0, 1);
+      box(c, -10, -24, 3, 10, Ic[4]); box(c, -4, -20, 2, 6, Ic[4]);
       break;
+    }
     case 'tower': {
       if (front) break;
-      const top = -150;
-      box(c, -22, top, 44, gl - top, fog(mix('#4A3A3A', '#7A8AB4', 0.2), d));
-      box(c, -26, top - 6, 52, 10, INK);
+      // (a dragon tower down on the park: stone in courses, a crenellated top, a dragon's head out of it spitting)
+      const top = -150, St = STONE.map(col => fog(dimmed(col), d)), B = rampH(ramp6('#C42828'), true);
+      box(c, -24, top, 48, gl - top, INK); box(c, -23, top, 46, gl - top, St[3]); box(c, -23, top, 10, gl - top, St[4]); box(c, 13, top, 10, gl - top, St[1]);
+      for (let y = top + 14; y < gl; y += 14) box(c, -23, y, 46, 1, St[1]);
+      for (let x = -24; x < 24; x += 12) { box(c, x, top - 12, 8, 12, INK); box(c, x + 1, top - 11, 6, 11, St[3]); }
       const glow = t.trains[o.lane].phase === 'ok' && o.shots < 2 && (f - o.lastShot) % 52 > 30;
-      c.fillStyle = INK; c.beginPath(); c.moveTo(14, top - 6); c.lineTo(-40, top - 22); c.lineTo(-44, top - 8); c.lineTo(14, top + 2); c.fill();
-      c.fillStyle = main; c.beginPath(); c.moveTo(12, top - 6); c.lineTo(-38, top - 20); c.lineTo(-41, top - 9); c.lineTo(12, top); c.fill();
-      if (glow) { c.fillStyle = '#FDE047'; c.beginPath(); c.arc(-40, top - 14, 6, 0, Math.PI * 2); c.fill(); }
+      polyF(c, [[14, top - 4], [-40, top - 22], [-46, top - 8], [14, top + 4]], INK);
+      polyF(c, [[12, top - 4], [-38, top - 20], [-43, top - 9], [12, top + 2]], B[3]); polyF(c, [[12, top - 4], [-38, top - 20], [-30, top - 14], [12, top - 2]], B[4]);
+      polyF(c, [[0, top - 10], [10, top - 26], [8, top - 8]], rampH(ramp6('#F2E6C8'), true)[3]);
       box(c, -18, top - 18, 4, 4, '#FEF08A');
+      if (glow) { c.globalAlpha = 0.35; c.fillStyle = '#F97316'; c.beginPath(); c.arc(-42, top - 14, 12, 0, Math.PI * 2); c.fill(); c.globalAlpha = 1; flames(c, -44, top - 8, 10, 12, f, 7); }
+      box(c, -10, top + 30, 8, 14, INK); box(c, -9, top + 31, 6, 12, '#FFB060');
       break;
     }
     case 'cannon': {
       if (front) break;
-      const y = -54;
-      box(c, -6, y + 8, 12, gl - y, fog(mix('#3A4A5A', '#7A8AB4', 0.2), d));
-      box(c, -30, y - 9, 42, 18, INK); box(c, -29, y - 8, 40, 16, '#E0F2FE'); box(c, -29, y - 8, 40, 4, '#FFFFFF');
-      box(c, -32, y - 6, 4, 12, '#1E3A8A');
-      if (f - o.lastShot < 10) for (let k = 0; k < 4; k++) box(c, -40 - k * 6, y - 6 + k * 3, 6, 6, '#F8FAFC');
+      // (a snow cannon up on its post: the hopper heaped with snow, the barrel, a puff when it fires)
+      const y = -54, Wh = rampH(ramp6('#E0F2FE'), true);
+      postR(c, 0, y + 8, gl, 10, I);
+      box(c, -32, y - 10, 46, 20, INK); box(c, -31, y - 9, 44, 18, Wh[3]); box(c, -31, y - 9, 44, 4, Wh[4]); box(c, -31, y + 5, 44, 4, Wh[1]);
+      for (const bx of [-24, -8, 6]) box(c, bx, y - 9, 2, 18, Wh[2]);
+      box(c, -36, y - 7, 6, 14, INK); box(c, -35, y - 6, 4, 12, rampH(ramp6('#1E3A8A'), true)[3]);
+      box(c, 6, y - 22, 16, 13, INK); box(c, 7, y - 21, 14, 12, I[3]); box(c, 5, y - 26, 18, 6, SNOW[4]);
+      if (f - o.lastShot < 12) for (let k = 0; k < 5; k++) box(c, -42 - k * 7, y - 7 + k * 3 - ((f - o.lastShot) % 4), 7, 7, k % 2 ? '#FFFFFF' : '#E0F2FE');
       break;
     }
     case 'cloud': {
       if (front) break;
-      const y = -250;
-      for (const [dx, r] of [[-40, 26], [-10, 34], [26, 28], [50, 20]]) { c.fillStyle = '#3B2A5A'; c.beginPath(); c.arc(dx, y, r, 0, Math.PI * 2); c.fill(); }
-      for (const [dx, r] of [[-30, 18], [0, 22], [30, 16]]) { c.fillStyle = f % 40 < 3 ? '#C4B5FD' : '#5B4A8A'; c.beginPath(); c.arc(dx, y - 6, r, 0, Math.PI * 2); c.fill(); }
+      // (a storm cloud: stepped dark billows, lit inside when it's about to strike)
+      const y = -250, flash = f % 40 < 3;
+      const C = ['#1E1636', '#2E2250', '#3E3068', '#5A4A8A', '#8A78C0'];
+      for (const [dx, dy, r] of [[-44, 6, 26], [-14, -6, 34], [22, -2, 30], [50, 6, 20], [6, 10, 26]] as const) { c.fillStyle = INK; c.beginPath(); c.arc(dx, y + dy, r + 1, 0, Math.PI * 2); c.fill(); }
+      for (const [dx, dy, r] of [[-44, 6, 26], [-14, -6, 34], [22, -2, 30], [50, 6, 20], [6, 10, 26]] as const) { c.fillStyle = C[1]; c.beginPath(); c.arc(dx, y + dy, r, 0, Math.PI * 2); c.fill(); }
+      for (const [dx, dy, r] of [[-34, -2, 18], [-8, -14, 22], [26, -10, 18]] as const) { c.fillStyle = flash ? '#C4B5FD' : C[3]; c.beginPath(); c.arc(dx, y + dy, r, 0, Math.PI * 2); c.fill(); c.fillStyle = flash ? '#FFFFFF' : C[4]; c.beginPath(); c.arc(dx - r * 0.3, y + dy - r * 0.3, r * 0.4, 0, Math.PI * 2); c.fill(); }
+      checker(c, -60, y + 22, 120, 2, C[0], 0, 2);
+      box(c, -50, y + 26, 100, 4, C[0]);
+      if (f % 9 < 2) { c.strokeStyle = light; c.lineWidth = 1; c.beginPath(); c.moveTo(-20, y + 20); c.lineTo(-14, y + 30); c.lineTo(-18, y + 34); c.stroke(); }
       break;
     }
   }
@@ -373,24 +248,35 @@ const drawShot = (c: Ctx, state: GameState, t: Tragons, q: Tragons['shots'][numb
   const f = state.frame, tr = t.trains[q.lane], d = tr.cars[1]?.d ?? 1;
   if (q.kind === 'fireball') {
     const u = q.t / q.dur, gy = q.ty ?? q.sy + 400;
-    if (tr.phase === 'ok') { c.strokeStyle = f % 8 < 4 ? '#F97316' : '#FDE047'; c.lineWidth = 3; c.beginPath(); c.ellipse(q.tx, gy - 2, 34 * d * (1 - u * 0.5), 6 * d, 0, 0, Math.PI * 2); c.stroke(); }
+    if (tr.phase === 'ok') {
+      // (where it'll land: a closing ring, hatched)
+      c.strokeStyle = INK; c.lineWidth = 5; c.beginPath(); c.ellipse(q.tx, gy - 2, 34 * d * (1 - u * 0.5), 6 * d, 0, 0, Math.PI * 2); c.stroke();
+      c.strokeStyle = f % 8 < 4 ? '#F97316' : '#FDE047'; c.lineWidth = 3; c.stroke();
+    }
     const x = q.sx + (q.tx - q.sx) * u, y = q.sy + (gy - q.sy) * u - Math.sin(Math.PI * u) * 110 * d;
-    c.fillStyle = INK; c.beginPath(); c.arc(x, y, 12 * d, 0, Math.PI * 2); c.fill();
-    c.fillStyle = '#F97316'; c.beginPath(); c.arc(x, y, 10 * d, 0, Math.PI * 2); c.fill();
-    c.fillStyle = '#FDE047'; c.beginPath(); c.arc(x - 2, y - 2, 5 * d, 0, Math.PI * 2); c.fill();
+    for (let k = 1; k < 5; k++) { const uu = Math.max(0, u - k * 0.04), tx = q.sx + (q.tx - q.sx) * uu, ty = q.sy + (gy - q.sy) * uu - Math.sin(Math.PI * uu) * 110 * d; c.globalAlpha = 0.5 - k * 0.1; box(c, tx - (6 - k) * d, ty - (6 - k) * d, (12 - k * 2) * d, (12 - k * 2) * d, k % 2 ? '#F97316' : '#78716C'); }
+    c.globalAlpha = 1;
+    drawFireball(c, x, y, 12 * d, f);
   } else if (q.kind === 'strike') {
     if (tr.phase !== 'ok') return;
     const u = q.t / q.dur, gy = q.ty ?? 0;
-    if (q.t < q.dur - 6) { c.strokeStyle = f % 6 < 3 ? '#FACC15' : '#FFFFFF'; c.lineWidth = 3; c.beginPath(); c.ellipse(q.tx, gy - 2, 26 * d * (1.2 - u * 0.6), 6 * d, 0, 0, Math.PI * 2); c.stroke(); }
-    else {
-      c.strokeStyle = '#FFFFFF'; c.lineWidth = 6; c.beginPath(); let y = gy - 330 * d; c.moveTo(q.tx, y);
-      while (y < gy) { y += 30 * d; c.lineTo(q.tx + ((y * 7) % 30) - 15, Math.min(y, gy)); }
-      c.stroke(); c.strokeStyle = '#FACC15'; c.lineWidth = 2; c.stroke();
+    if (q.t < q.dur - 6) {
+      c.strokeStyle = INK; c.lineWidth = 5; c.beginPath(); c.ellipse(q.tx, gy - 2, 26 * d * (1.2 - u * 0.6), 6 * d, 0, 0, Math.PI * 2); c.stroke();
+      c.strokeStyle = f % 6 < 3 ? '#FACC15' : '#FFFFFF'; c.lineWidth = 3; c.stroke();
+      if (u > 0.6 && f % 4 < 2) { c.globalAlpha = 0.25; box(c, q.tx - 3, gy - 330 * d, 6, 330 * d, '#E9D5FF'); c.globalAlpha = 1; }
+    } else {
+      c.strokeStyle = '#6D28D9'; c.lineWidth = 10; c.beginPath(); let y = gy - 330 * d; c.moveTo(q.tx, y);
+      const pts: [number, number][] = [[q.tx, y]];
+      while (y < gy) { y += 30 * d; pts.push([q.tx + ((y * 7) % 30) - 15, Math.min(y, gy)]); }
+      pts.forEach(([x, yy], i) => (i ? c.lineTo(x, yy) : c.moveTo(x, yy))); c.stroke();
+      c.strokeStyle = '#FACC15'; c.lineWidth = 5; c.stroke(); c.strokeStyle = '#FFFFFF'; c.lineWidth = 2; c.stroke();
     }
   } else {
     c.fillStyle = INK; c.beginPath(); c.arc(q.sx, q.sy, 10 * d, 0, Math.PI * 2); c.fill();
-    c.fillStyle = '#F8FAFC'; c.beginPath(); c.arc(q.sx, q.sy, 9 * d, 0, Math.PI * 2); c.fill();
-    c.fillStyle = '#BAE6FD'; c.beginPath(); c.arc(q.sx + 2, q.sy + 3, 4 * d, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#C8E4F8'; c.beginPath(); c.arc(q.sx, q.sy, 9 * d, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#F8FAFC'; c.beginPath(); c.arc(q.sx - 1.5 * d, q.sy - 1.5 * d, 6.5 * d, 0, Math.PI * 2); c.fill();
+    box(c, q.sx - 4 * d, q.sy - 5 * d, 2 * d, 2 * d, '#FFFFFF');
+    for (let k = 1; k < 4; k++) box(c, q.sx + k * 8 * d, q.sy + ((f + k) % 3 - 1) * 2, 3 * d, 2 * d, '#E0F2FE');
   }
 };
 
@@ -405,11 +291,12 @@ const drawBreath = (c: Ctx, state: GameState, t: Tragons) => {
   for (const lane of b.from) {
     const tr = t.trains[lane];
     if (tr.phase !== 'ok' || !tr.cars.length) continue;
-    const h = tr.cars[2], m = { x: h.x + Math.cos(h.a) * 80 * h.d - Math.sin(h.a) * -36 * h.d, y: h.y + Math.sin(h.a) * 80 * h.d + Math.cos(h.a) * -36 * h.d };
+    const h = tr.cars[2], m = { x: h.x + Math.cos(h.a) * 84 * h.d - Math.sin(h.a) * -35 * h.d, y: h.y + Math.sin(h.a) * 84 * h.d + Math.cos(h.a) * -35 * h.d };
     const [w, mid, deep] = BREATH_COL[lane];
     if (k < 50) {
-      // (the tell: the mouth glowing brighter and brighter)
-      const r = (4 + k * 0.18) * h.d;
+      // (the tell: the mouth glowing brighter and brighter, in rings)
+      const r = (4 + k * 0.2) * h.d;
+      c.globalAlpha = 0.3; c.fillStyle = deep; c.beginPath(); c.arc(m.x, m.y, r * 2.2, 0, Math.PI * 2); c.fill(); c.globalAlpha = 1;
       c.fillStyle = deep; c.beginPath(); c.arc(m.x, m.y, r + 3, 0, Math.PI * 2); c.fill();
       c.fillStyle = f % 6 < 3 ? w : mid; c.beginPath(); c.arc(m.x, m.y, r, 0, Math.PI * 2); c.fill();
       continue;
@@ -417,67 +304,32 @@ const drawBreath = (c: Ctx, state: GameState, t: Tragons) => {
     if (k > 86) continue;
     // (the stream: from its mouth across his dragon's back, at his head)
     const { x0, x1 } = roofSpan(to), ty = (to.cars[0].y + to.cars[2].y) / 2 - 62 * to.cars[1].d;
-    for (let n = 0; n < 26; n++) {
+    if (lane === 0) {
+      for (let n = 0; n < 4; n++) {
+        const tx = x0 + (x1 - x0) * ((n + ((k >> 2) % 2) * 0.5) / 4);
+        c.strokeStyle = n % 2 ? '#FFFFFF' : '#FACC15'; c.lineWidth = n % 2 ? 2 : 3; c.beginPath(); c.moveTo(m.x, m.y);
+        for (let s = 1; s <= 6; s++) { const u = s / 6; c.lineTo(m.x + (tx - m.x) * u + ((f * 7 + n * 13 + s * 29) % 17) - 8, m.y + (ty - m.y) * u + ((f * 5 + s * 11 + n) % 13) - 6); }
+        c.stroke();
+      }
+    }
+    for (let n = 0; n < 30; n++) {
       const u = ((n * 37 + k * 9) % 100) / 100, tx = x0 + (x1 - x0) * ((n * 13) % 26) / 26;
       const x = m.x + (tx - m.x) * u, y = m.y + (ty - m.y) * u + Math.sin(n + f * 0.4) * 10 * u;
-      const r = (3 + u * 9) * to.cars[1].d;
+      const r = (3 + u * 10) * to.cars[1].d;
       c.fillStyle = [w, mid, deep][n % 3]; c.fillRect(x - r / 2, y - r / 2, r, r);
+      if (lane === 2 && n % 4 === 0) { c.fillStyle = '#FFFFFF'; c.fillRect(x - r * 0.7, y - 0.5, r * 1.4, 1); c.fillRect(x - 0.5, y - r * 0.7, 1, r * 1.4); }
     }
   }
 };
 
-/** The load station: the hall behind (dimmed), the board, its signs, the gate (shut till the ride goes). */
-const drawStation = (c: Ctx, state: GameState, t: Tragons) => {
-  const sh = stationShift(t), x0 = STATION_X - 500 - sh, x1 = GATE_X + 60 - sh;
-  if (!inView(state, x0, x1 + 200)) return;
-  const wall = mix('#3A2A4A', '#7A8AB4', 0.25), trim = mix('#6A4A2A', '#7A8AB4', 0.2);
-  box(c, x0, GY - 560, x1 - x0, 560, wall);
-  for (let x = x0 + 40; x < x1 - 60; x += 120) { box(c, x, GY - 520, 70, 140, mix(wall, '#000000', 0.3)); c.fillStyle = mix(wall, '#000000', 0.3); c.beginPath(); c.arc(x + 35, GY - 520, 35, Math.PI, 0); c.fill(); }
-  box(c, x0 - 10, GY - 580, x1 - x0 + 20, 24, trim);
-  ([1, 2, 0] as Lane[]).forEach((lane, i) => {
-    const hx = x0 + 160 + i * 220, hy = GY - 610, [main, light] = LANE_COL[lane];
-    c.fillStyle = INK; c.beginPath(); c.moveTo(hx - 40, hy + 30); c.lineTo(hx + 40, hy + 10); c.lineTo(hx + 46, hy + 28); c.lineTo(hx - 40, hy + 40); c.fill();
-    c.fillStyle = main; c.beginPath(); c.moveTo(hx - 38, hy + 30); c.lineTo(hx + 38, hy + 12); c.lineTo(hx + 43, hy + 27); c.lineTo(hx - 38, hy + 38); c.fill();
-    box(c, hx + 16, hy + 14, 5, 4, light);
-  });
-  storySign(c, STATION_X + 60 - sh, GY, ['TRUELLING TRAGONS', 'THREE DRAGONS. NO SEATS.'], { tall: 170 });
-  if (t.phase === 'done') storySign(c, S0X + 140 - sh, GY, ['RIDE CLOSED', 'TRACK DAMAGE'], { warn: true, tall: 120, big: 1 });
-  else storySign(c, S0X - 150 - sh, GY, ['NO FIREARMS', 'ON THE DRAGONS'], { warn: true, tall: 120, big: 1 });
-  const gx = GATE_X - sh, open = t.phase !== 'load';
-  if (!open) {
-    box(c, gx, GY - 320, 20, 320, INK);
-    for (let y = GY - 316; y < GY; y += 4) box(c, gx + 2, y, 16, 1, '#2E2A3A');
-    for (let k = 0; k < 4; k++) box(c, gx + 2 + k * 5, GY - 330, 3, 330, '#4A445A');
-    for (let k = 0; k < 4; k++) { c.fillStyle = '#E0AE3A'; c.beginPath(); c.moveTo(gx + 3 + k * 5, GY - 338); c.lineTo(gx + k * 5, GY - 330); c.lineTo(gx + 6 + k * 5, GY - 330); c.fill(); }
-  } else { box(c, gx - 2, GY - 320, 6, 320, INK); box(c, gx - 1, GY - 318, 4, 316, '#4A445A'); }
-};
-
-/** The unload: decks a lane (lit along their tops: off the dragons' fronts and down), the hall, the signs, the way out
- *  to the castle's base. */
-const drawUnload = (c: Ctx, state: GameState, t: Tragons) => {
-  const ux = wxOf(t.dist, END_S + TL) + 2, off = ux - DECK_X0;
-  if (!inView(state, ux - 300, EXIT_X + off + 300)) return;
-  const wall = mix('#3A2A4A', '#7A8AB4', 0.25);
-  box(c, ux - 120, GY - 620, DECK_X1 - DECK_X0 + 240, 620, wall);
-  box(c, ux - 130, GY - 640, DECK_X1 - DECK_X0 + 260, 24, mix('#6A4A2A', '#7A8AB4', 0.2));
-  for (const lane of LANES) {
-    const w = DECK_X1 - DECK_X0 - (2 - lane) * 80, y = deckY(lane);
-    box(c, ux + 20, y + 14, 8, GY - y - 14, mix('#2E2A3A', '#7A8AB4', 0.2));
-    ledgeBox(c, ux, y, w, mix(LANE_COL[lane][2], '#2A2A34', 0.5), LANE_COL[lane][1]);
-  }
-  storySign(c, ux + 360, GY, ['UNLOAD', 'EXIT TO THY RIGHT'], { tall: 130 });
-  storySign(c, EXIT_X - 200 + off, GY, ["THE GREAT PIXIE'S CASTLE", 'THIS WAY >'], { tall: 150, board: '#2E5A3A' });
-  const ex = EXIT_X + off;
-  box(c, ex - 10, GY - 260, 140, 260, INK); box(c, ex - 6, GY - 256, 132, 256, mix('#6A6478', '#7A8AB4', 0.2));
-  box(c, ex + 20, GY - 190, 72, 190, '#120A1E'); c.fillStyle = '#120A1E'; c.beginPath(); c.arc(ex + 56, GY - 190, 36, Math.PI, 0); c.fill();
-};
-
 // ---------------------------------------------------------------------------------------------------------------
-// Back to front, split at his dragon's depth
+// Back to front, split at his dragon's depth (worked out once a frame)
 
 type Item = { d: number; draw: () => void };
-const items = (c: Ctx, state: GameState, t: Tragons): { back: Item[]; front: Item[] } => {
-  const v = viewBox(state), back: Item[] = [], front: Item[] = [];
+let sorted: { f: number; back: Item[]; front: Item[]; e: Eye } | null = null;
+const items = (c: Ctx, state: GameState, t: Tragons): { back: Item[]; front: Item[]; e: Eye } => {
+  if (sorted && sorted.f === state.frame) return sorted;
+  const v = viewBox(state), back: Item[] = [], front: Item[] = [], e = sceneEye(state, t);
   const dHis = hisTrainD(state);
   const put = (d: number, draw: () => void, mineFront = false) => (mineFront || d > dHis + 0.004 ? front : back).push({ d, draw });
   // (the track that's on screen: wide enough for the farthest depth and a loop's swing either side)
@@ -487,62 +339,93 @@ const items = (c: Ctx, state: GameState, t: Tragons): { back: Item[]; front: Ite
     const m = trackPt(t.spins, t.dist, lane, s + 96, { x: 0, y: 0, d: 1, roll: 0 }), p = proj(t.eye, m.x, m.y, m.d);
     if (!boxIn(state, p.x - 420 * m.d, p.y - 480 * m.d, p.x + 420 * m.d, Math.max(p.y, GY) + 80)) continue;
     // (the track's always a hair behind the dragon on it)
-    put(m.d - 0.002, () => drawChunk(c, state, t, lane, s, s + 192));
+    put(m.d - 0.002, () => drawSteel(c, state, t, t.eye, lane, s, s + 192));
   }
   for (const tr of t.trains) put(trainD(tr), () => drawTrain(c, state, t, tr));
   const his = t.hop ? t.hop.to : t.lane;
   for (const o of t.obst) {
     const d = obstD(t, o);
-    put(d - 0.003, () => drawObst(c, state, t, o, false));
-    put(d, () => drawObst(c, state, t, o, true), o.lane === his);
+    put(d - 0.003, () => drawObst(c, state, t, e, o, false));
+    put(d, () => drawObst(c, state, t, e, o, true), o.lane === his);
   }
   for (const q of t.shots) put(trainD(t.trains[q.lane]) + 0.001, () => drawShot(c, state, t, q), q.lane === his);
   if (t.breath) put(9, () => drawBreath(c, state, t), true);
+  // (the park's props, in among it by depth)
+  for (const it of sceneryItems(c, state, t, e)) put(it.d - 0.001, it.draw);
   back.sort((a, b) => a.d - b.d); front.sort((a, b) => a.d - b.d);
-  return { back, front };
+  sorted = { f: state.frame, back, front, e };
+  return sorted;
 };
 
 export const drawTragonsBack = (c: Ctx, state: GameState) => {
   const t = tragonsOf(state);
-  drawGround(c, state, t);
-  drawStation(c, state, t);
-  drawUnload(c, state, t);
-  drawUnloadRivals(c, state, t, UNLOAD_SPOTS);
+  sorted = null;
+  const it = items(c, state, t), e = it.e;
+  drawFloor(c, state, t, e);
   // (the fake mountain: far back, behind every track whatever their depth)
-  if (t.phase !== 'done') drawMountain(c, state, t);
-  for (const it of items(c, state, t).back) it.draw();
+  drawMountain(c, state, t, e);
+  drawStation(c, state, t, e);
+  drawUnload(c, state, t, e);
+  drawUnloadRivals(c, state, t, UNLOAD_SPOTS);
+  for (const x of it.back) x.draw();
 };
 
 export const drawTragonsFront = (c: Ctx, state: GameState) => {
   const t = tragonsOf(state);
-  for (const it of items(c, state, t).front) it.draw();
+  for (const x of items(c, state, t).front) x.draw();
 };
 
 // ---------------------------------------------------------------------------------------------------------------
 // Screen space: the dark in the mountain, the warnings, the PA, the suitors' words
 
-/** A flashing warning sign (a triangle in the lane's color, the !), its middle at (x, y). */
+/** A hole's warning: an enamel shield in the lane's color, a gilt rim, the broken track on it (two rails, the gap, the
+ *  drop), flashing. Its middle at (x, y). */
 const warnSign = (c: Ctx, x: number, y: number, col: string, f: number, r = 15) => {
-  const on = f % 16 < 10;
-  c.fillStyle = INK; c.beginPath(); c.moveTo(x, y - r - 3); c.lineTo(x + r + 4, y + r * 0.8 + 2); c.lineTo(x - r - 4, y + r * 0.8 + 2); c.closePath(); c.fill();
-  c.fillStyle = on ? col : mix(col, '#000000', 0.4); c.beginPath(); c.moveTo(x, y - r); c.lineTo(x + r, y + r * 0.8); c.lineTo(x - r, y + r * 0.8); c.closePath(); c.fill();
-  c.fillStyle = INK; c.fillRect(x - 2, y - r * 0.45, 4, r * 0.75); c.fillRect(x - 2, y + r * 0.42, 4, 4);
+  const on = f % 16 < 10, C = on ? col : mix(col, '#000000', 0.45);
+  const shield = (s: number): [number, number][] => [[x - r * s, y - r * s], [x + r * s, y - r * s], [x + r * s, y + r * 0.2 * s], [x, y + r * 1.15 * s], [x - r * s, y + r * 0.2 * s]];
+  polyF(c, shield(1.25), INK); polyF(c, shield(1.12), on ? GOLD[4] : GOLD[2]); polyF(c, shield(0.96), C);
+  polyF(c, [[x - r * 0.9, y - r * 0.9], [x + r * 0.9, y - r * 0.9], [x + r * 0.9, y - r * 0.7], [x - r * 0.9, y - r * 0.7]], mix(C, '#FFFFFF', 0.35));
+  const s = r / 15;
+  box(c, x - 11 * s, y - 4 * s, 8 * s, 4 * s, INK); box(c, x + 3 * s, y - 4 * s, 8 * s, 4 * s, INK);
+  box(c, x - 11 * s, y - 3 * s, 7 * s, 2 * s, '#F8FAFC'); box(c, x + 4 * s, y - 3 * s, 7 * s, 2 * s, '#F8FAFC');
+  polyF(c, [[x - 3 * s, y + 1 * s], [x + 3 * s, y + 1 * s], [x + 3 * s, y + 5 * s], [x + 6 * s, y + 5 * s], [x, y + 11 * s], [x - 6 * s, y + 5 * s], [x - 3 * s, y + 5 * s]], INK);
 };
-/** A loop's sign: a round sign in the lane's color with the loop drawn on it (a corkscrew: a coil; the helix: three). */
+/** A loop's warning: a round enamel medallion in the lane's color with a gilt rim, the loop drawn on it (a corkscrew:
+ *  a coil; the helix: three strands). */
 const loopSign = (c: Ctx, x: number, y: number, col: string, f: number, kind: string, r = 15) => {
-  const on = f % 16 < 10;
-  c.fillStyle = INK; c.beginPath(); c.arc(x, y, r + 3, 0, Math.PI * 2); c.fill();
-  c.fillStyle = on ? col : mix(col, '#000000', 0.4); c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2); c.fill();
-  c.strokeStyle = INK; c.lineWidth = 3;
-  if (kind === 'cork' || kind === 'braid') { c.beginPath(); for (let k = 0; k <= 24; k++) { const u = k / 24, xx = x - r * 0.7 + u * r * 1.4, yy = y + Math.sin(u * Math.PI * 4) * r * 0.45; if (k) c.lineTo(xx, yy); else c.moveTo(xx, yy); } c.stroke(); }
-  else { c.beginPath(); c.arc(x, y - 2, r * 0.45, 0.5 * Math.PI + 0.4, 2.5 * Math.PI - 0.4); c.stroke(); c.beginPath(); c.moveTo(x - r * 0.7, y + r * 0.5); c.lineTo(x + r * 0.7, y + r * 0.5); c.stroke(); }
+  const on = f % 16 < 10, C = on ? col : mix(col, '#000000', 0.45);
+  c.fillStyle = INK; c.beginPath(); c.arc(x, y, r + 4, 0, Math.PI * 2); c.fill();
+  c.fillStyle = on ? GOLD[4] : GOLD[2]; c.beginPath(); c.arc(x, y, r + 2.5, 0, Math.PI * 2); c.fill();
+  c.fillStyle = C; c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2); c.fill();
+  c.fillStyle = mix(C, '#FFFFFF', 0.35); c.beginPath(); c.arc(x - r * 0.3, y - r * 0.35, r * 0.45, 0, Math.PI * 2); c.fill();
+  const glyph = (w: number, col2: string) => {
+    c.strokeStyle = col2; c.lineWidth = w; c.lineCap = 'round';
+    if (kind === 'braid') { for (let n = 0; n < 3; n++) { c.beginPath(); for (let k = 0; k <= 20; k++) { const u = k / 20, xx = x - r * 0.7 + u * r * 1.4, yy = y + Math.sin(u * Math.PI * 3 + n * 2.1) * r * 0.4; if (k) c.lineTo(xx, yy); else c.moveTo(xx, yy); } c.stroke(); } }
+    else if (kind === 'cork') { c.beginPath(); for (let k = 0; k <= 24; k++) { const u = k / 24, xx = x - r * 0.7 + u * r * 1.4, yy = y + Math.sin(u * Math.PI * 4) * r * 0.45; if (k) c.lineTo(xx, yy); else c.moveTo(xx, yy); } c.stroke(); }
+    else { c.beginPath(); c.arc(x, y - 2, r * 0.45, 0.5 * Math.PI + 0.4, 2.5 * Math.PI - 0.4); c.stroke(); c.beginPath(); c.moveTo(x - r * 0.7, y + r * 0.5); c.lineTo(x + r * 0.7, y + r * 0.5); c.stroke(); }
+    c.lineCap = 'butt';
+  };
+  glyph(4, INK); glyph(2, '#F8FAFC');
 };
-const text = (c: Ctx, s: string, x: number, y: number, col: string, size = 7, align: CanvasTextAlign = 'center') => {
+/** A label on a little banner (dark, gilt-edged). */
+const text = (c: Ctx, s: string, x: number, y: number, col: string, size = 7, align: CanvasTextAlign = 'center', plate = false) => {
   c.font = `${size}px ${FONT}`; c.textAlign = align;
+  if (plate) {
+    const w = c.measureText(s).width + 8, x0 = align === 'center' ? x - w / 2 : align === 'left' ? x - 4 : x - w + 4;
+    box(c, x0 - 1, y - size - 4, w + 2, size + 8, INK); box(c, x0, y - size - 3, w, size + 6, '#1A1028'); box(c, x0, y - size - 3, w, 1, GOLD[3]); box(c, x0, y + 2, w, 1, GOLD[1]);
+  }
   c.fillStyle = '#000'; c.fillText(s, x + 1, y + 1); c.fillStyle = col; c.fillText(s, x, y);
   c.textAlign = 'left';
 };
 const KIND_WORD: Record<string, string> = { loop: 'LOOP', cork: 'CORKSCREW', chain: 'LOOP', braid: 'HELIX', chain3: 'LOOP' };
+/** A countdown bar: a gilt frame, the dark inside, the lane's color in two steps, notched. */
+const countdown = (c: Ctx, x: number, y: number, bw: number, k: number, col: string, hot: boolean) => {
+  box(c, x - bw / 2 - 3, y - 3, bw + 6, 12, INK); box(c, x - bw / 2 - 2, y - 2, bw + 4, 10, GOLD[2]); box(c, x - bw / 2 - 2, y - 2, bw + 4, 1, GOLD[4]);
+  box(c, x - bw / 2, y, bw, 6, '#140C1E');
+  const fill = hot ? '#FFFFFF' : col;
+  box(c, x - bw / 2, y, bw * k, 6, fill); box(c, x - bw / 2, y, bw * k, 2, mix(fill, '#FFFFFF', 0.45)); box(c, x - bw / 2, y + 4, bw * k, 2, mix(fill, '#000000', 0.3));
+  for (let n = 1; n < 6; n++) box(c, x - bw / 2 + (bw * n) / 6, y, 1, 6, '#140C1E');
+};
 
 /** Over a dragon's top, on screen (kept out from under the HUD and off the top). */
 const overTrain = (state: GameState, tr: Train, up: number) => {
@@ -569,6 +452,9 @@ const drawDark = (c: Ctx, state: GameState, t: Tragons) => {
   const p = state.player, pp = toScreen(state, p.pos.x + p.width / 2, p.pos.y + p.height / 2); hole(pp.x, pp.y, 90 * s);
   g.globalCompositeOperation = 'source-over';
   c.drawImage(dark, 0, 0);
+  // (the plaster inside caught in the lamps: a few painted rocks and a STAFF ONLY door going by)
+  const f = state.frame;
+  for (let n = 0; n < 6; n++) { const x = ((n * 173 - f * 7) % (CANVAS_WIDTH + 200) + CANVAS_WIDTH + 200) % (CANVAS_WIDTH + 200) - 100, y = 120 + ((n * 97) % 380); c.globalAlpha = 0.12 * k; box(c, x, y, 40, 4, '#9A8894'); c.globalAlpha = 1; }
 };
 
 export const drawTragonsHud = (c: Ctx, state: GameState) => {
@@ -585,15 +471,14 @@ export const drawTragonsHud = (c: Ctx, state: GameState) => {
       const off = at.x > CANVAS_WIDTH - 34;
       const sx = Math.min(CANVAS_WIDTH - 34, at.x), sy = Math.max(FRAME_TOP + 22, Math.min(FRAME_BOT - 30, at.y));
       warnSign(c, sx, sy, main, f);
-      text(c, 'TRACK OUT', sx, sy + 28, main, 6);
+      text(c, 'TRACK OUT', sx, sy + 32, main, 6, 'center', true);
       if (off && f % 16 < 10) text(c, '>>', sx + 22, sy + 4, main, 8, 'left');
       const tr = t.trains[g.lane];
       if (tr.phase === 'ok' && tr.cars.length) {
         const p = overTrain(state, tr, 92);
         const bw = 90, k = Math.max(0, Math.min(1, left / total));
-        box(c, p.x - bw / 2 - 2, p.y - 2, bw + 4, 10, INK);
-        box(c, p.x - bw / 2, p.y, bw * k, 6, f % 10 < 5 && k < 0.35 ? '#EF4444' : main);
-        warnSign(c, p.x - bw / 2 - 14, p.y + 3, main, f, 8);
+        countdown(c, p.x, p.y, bw, k, f % 10 < 5 && k < 0.35 ? '#EF4444' : main, false);
+        warnSign(c, p.x - bw / 2 - 15, p.y + 3, main, f, 8);
       }
     }
     // The loops coming (by event: its lanes together)
@@ -606,16 +491,15 @@ export const drawTragonsHud = (c: Ctx, state: GameState) => {
       const off = at.x > CANVAS_WIDTH - 34;
       const sx = Math.min(CANVAS_WIDTH - 34, at.x), sy = Math.max(FRAME_TOP + 22, Math.min(FRAME_BOT - 30, at.y));
       loopSign(c, sx, sy, main, f, q.kind);
-      text(c, KIND_WORD[q.kind], sx, sy + 28, main, 6);
+      text(c, KIND_WORD[q.kind], sx, sy + 32, main, 6, 'center', true);
       if (off && f % 16 < 10) text(c, '>>', sx + 22, sy + 4, main, 8, 'left');
       const tr = t.trains[q.lane];
       if (tr.phase === 'ok' && tr.cars.length) {
         const p = overTrain(state, tr, 112);
         const bw = 90;
-        box(c, p.x - bw / 2 - 2, p.y - 2, bw + 4, 10, INK);
-        box(c, p.x - bw / 2, p.y, bw * k, 6, f % 10 < 5 && k < 0.35 ? '#FFFFFF' : main);
-        loopSign(c, p.x - bw / 2 - 14, p.y + 3, main, f, q.kind, 8);
-        text(c, `${LANE_NAME[q.lane]} ${KIND_WORD[q.kind]}`, p.x, p.y - 6, main, 6);
+        countdown(c, p.x, p.y, bw, k, main, f % 10 < 5 && k < 0.35);
+        loopSign(c, p.x - bw / 2 - 15, p.y + 3, main, f, q.kind, 8);
+        text(c, `${LANE_NAME[q.lane]} ${KIND_WORD[q.kind]}`, p.x, p.y - 8, main, 6, 'center', true);
       }
     }
     // (only one dragon makes it: SAFE over that one)
@@ -623,8 +507,9 @@ export const drawTragonsHud = (c: Ctx, state: GameState) => {
     if (safe !== undefined && t.trains[safe].phase === 'ok' && t.trains[safe].cars.length) {
       const p = overTrain(state, t.trains[safe], 128);
       const bob = Math.sin(f * 0.2) * 3;
-      text(c, `SAFE: ${LANE_NAME[safe]}`, p.x, p.y + bob, f % 20 < 14 ? '#4ADE80' : '#BBF7D0', 8);
-      c.fillStyle = '#4ADE80'; c.beginPath(); c.moveTo(p.x - 7, p.y + 6 + bob); c.lineTo(p.x + 7, p.y + 6 + bob); c.lineTo(p.x, p.y + 14 + bob); c.fill();
+      text(c, `SAFE: ${LANE_NAME[safe]}`, p.x, p.y + bob, f % 20 < 14 ? '#4ADE80' : '#BBF7D0', 8, 'center', true);
+      c.fillStyle = INK; c.beginPath(); c.moveTo(p.x - 9, p.y + 7 + bob); c.lineTo(p.x + 9, p.y + 7 + bob); c.lineTo(p.x, p.y + 17 + bob); c.fill();
+      c.fillStyle = '#4ADE80'; c.beginPath(); c.moveTo(p.x - 7, p.y + 8 + bob); c.lineTo(p.x + 7, p.y + 8 + bob); c.lineTo(p.x, p.y + 15 + bob); c.fill();
     }
   }
   // (the suitors' words over them at the unload)
@@ -634,7 +519,7 @@ export const drawTragonsHud = (c: Ctx, state: GameState) => {
     const p = toScreen(state, UNLOAD_SPOTS[i] + t.unload.walk, GY - 110);
     saidOver(c, s.text, p.x, p.y, '#FDE68A', 220);
   });
-  // (the PA: the ride's spiel, or Piper, in the top band)
+  // (the PA: the ride's spiel, or Piper, in the top band: a dark plate, a gilt rule, her pink or the herald's gold)
   if (t.pa) {
     const band = topBand(), who = t.paWho === 'piper' ? 'PIPER (PA):' : 'THE RIDE:';
     const col = t.paWho === 'piper' ? '#F9A8D4' : '#FDE68A';
@@ -645,9 +530,11 @@ export const drawTragonsHud = (c: Ctx, state: GameState) => {
     for (const w of words) { const s = cur ? `${cur} ${w}` : w; if (c.measureText(s).width > wide && cur) { lines.push(cur); cur = w; } else cur = s; }
     if (cur) lines.push(cur);
     const h = 20 + lines.length * 11;
-    c.fillStyle = 'rgba(10,8,20,0.78)'; c.fillRect(band.x1, 8, band.x2 - band.x1, h);
+    c.fillStyle = 'rgba(10,8,20,0.8)'; c.fillRect(band.x1, 8, band.x2 - band.x1, h);
     c.fillStyle = col; c.fillRect(band.x1, 8, 3, h);
+    c.fillStyle = GOLD[3]; c.fillRect(band.x1 + 3, 8 + h - 1, band.x2 - band.x1 - 3, 1);
     text(c, who, band.x1 + 10, 20, col, 6, 'left');
     lines.forEach((l, i) => text(c, l, band.x1 + 10, 32 + i * 11, '#FFFFFF', 7, 'left'));
   }
 };
+

@@ -25,7 +25,7 @@ import { shakeScreen } from '../../../m1/game/core/state';
 import { PARTICLE_PALETTES } from '../../../m1/constants';
 import { registerHurtLines } from '../../kinds';
 import { HURT } from './lines';
-import { paintCar } from './art';
+import { paintCar } from './dragon';
 import { CAR, type Lane } from './layout';
 
 type Ctx = CanvasRenderingContext2D;
@@ -92,10 +92,26 @@ registerDeathDraw(FIRE, (c, state, d, weapon, t, f) => {
   const char = clamp01((t - FIRE_DROP) / 20);
   const crumble = clamp01((t - FIRE_CRUMBLE) / 26);
   rig(c, state, d, weapon, f, { dy, rot, char, clip: crumble > 0 ? crumble : undefined });
-  // (crumbled: just his two black fists left on the rail, and a heap of ash on the car's nose)
+  // (crumbling: the ash pouring off him in steps; crumbled, just his two black fists left on the rail, the ash heaped
+  // on the car's back under them, embers winking in it)
+  const ca = Math.cos(k.a + rot), sa = Math.sin(k.a + rot), along = ((d.x - k.cx) * Math.cos(k.a) + (d.y - k.cy) * Math.sin(k.a)) / k.d;
+  const W = (lx: number, ly: number): [number, number] => [k.cx + (lx * ca - ly * sa) * k.d, k.cy + dy + (lx * sa + ly * ca) * k.d];
+  if (crumble > 0) {
+    const heap = Math.min(1, crumble * 1.4);
+    for (let n = 0; n < 7; n++) {
+      const [hx, hy] = W(along - 14 + n * 4.5, -2 - Math.sin((n / 6) * Math.PI) * 9 * heap);
+      c.fillStyle = ['#3F3A36', '#57524C', '#78716C'][n % 3]; c.fillRect(hx - 3 * k.d, hy - 2 * k.d, 6 * k.d, 4 * k.d + 9 * heap * k.d * Math.sin((n / 6) * Math.PI));
+    }
+    if (crumble < 1) for (let n = 0; n < 8; n++) { const [px, py] = W(along - 8 + ((n * 7) % 18), -50 + crumble * 50 + ((t * 3 + n * 11) % 30)); c.fillStyle = n % 2 ? '#57524C' : '#A8A29E'; c.fillRect(px, py, 2, 2); }
+    for (let n = 0; n < 4; n++) if ((t + n * 13) % 20 < 8) { const [ex, ey] = W(along - 10 + n * 6, -4); c.fillStyle = n % 2 ? '#F97316' : '#FDE047'; c.fillRect(ex, ey, 2, 2); }
+  }
   if (crumble >= 1) {
-    const ca = Math.cos(k.a + rot), sa = Math.sin(k.a + rot), along = ((d.x - k.cx) * Math.cos(k.a) + (d.y - k.cy) * Math.sin(k.a)) / k.d;
-    for (const ox of [6, 14]) { const lx = along + ox, ly = -16; c.fillStyle = '#1C1917'; c.beginPath(); c.arc(k.cx + (lx * ca - ly * sa) * k.d, k.cy + dy + (lx * sa + ly * ca) * k.d, 5 * k.d, 0, Math.PI * 2); c.fill(); }
+    for (const ox of [6, 14]) {
+      const [fx, fy] = W(along + ox, -16);
+      c.fillStyle = '#0C0A09'; c.beginPath(); c.arc(fx, fy, 5.6 * k.d, 0, Math.PI * 2); c.fill();
+      c.fillStyle = '#292524'; c.beginPath(); c.arc(fx - 1, fy - 1, 4 * k.d, 0, Math.PI * 2); c.fill();
+      c.fillStyle = '#57534E'; c.fillRect(fx - 2 * k.d, fy - 3 * k.d, 2, 1);
+    }
   }
   // (in it: flames all over the dragon and him; the fireball as it goes in)
   if (t >= FIRE_DROP - 6 && t < FIRE_OUT + 10) drawFlameLicks(c, k.cx + 20, k.cy + dy + 40, 260 * k.d, 140 * k.d * (1 - clamp01((t - FIRE_OUT) / 10)), f, { seed: 3, n: 7, k: 1 });
@@ -131,9 +147,17 @@ registerDeathAnim(ICE, {
 });
 registerDeathDraw(ICE, (c, state, d, weapon, t, f) => {
   const k = trackDeath, py = pondY(d);
-  // The pond: ice, snow on its banks, a crack where things hit it
-  c.fillStyle = '#E0F2FE'; c.fillRect(d.x - 420, py, 840, 40); c.fillStyle = '#7DD3FC'; c.fillRect(d.x - 420, py, 840, 3); c.fillStyle = '#BAE6FD'; c.fillRect(d.x - 420, py + 10, 840, 2);
-  c.fillStyle = '#F8FAFC'; for (const sx of [-430, 410]) { c.beginPath(); c.ellipse(d.x + sx, py + 4, 40, 14, 0, Math.PI, 0); c.fill(); }
+  // The pond: ice in bands (the far shore's reflection, scratches, frosted patches), snow banked on its shores in steps,
+  // frosted pines, a crack where things hit it
+  const ICE = ['#5AA8E0', '#8CC8F0', '#B4DCF8', '#D6EEFC', '#EEF8FF'];
+  for (let i = 0; i < 5; i++) { c.fillStyle = ICE[4 - i]; c.fillRect(d.x - 420, py + i * 8, 840, 8); }
+  for (let i = 0; i < 5; i++) for (let x = d.x - 420 + (i % 2) * 2; x < d.x + 420; x += 4) { c.fillStyle = ICE[Math.max(0, 3 - i)]; c.fillRect(x, py + i * 8 + 7, 2, 1); }
+  c.fillStyle = '#3A7AC0'; c.fillRect(d.x - 420, py, 840, 2);
+  for (let n = 0; n < 18; n++) { c.fillStyle = 'rgba(255,255,255,0.7)'; c.fillRect(d.x - 400 + ((n * 97) % 800), py + 6 + ((n * 37) % 28), 10 + (n % 4) * 8, 1); }
+  for (const sx of [-460, 420]) {
+    for (const [dx, dy, rw, rh, col] of [[0, 6, 60, 22, '#B8C4E0'], [-4, 2, 52, 18, '#D6E0F2'], [-8, -1, 34, 10, '#FFFFFF']] as const) { c.fillStyle = col; c.beginPath(); c.ellipse(d.x + sx + 20 + dx, py + dy, rw, rh, 0, Math.PI, 0); c.fill(); }
+    for (let n = 0; n < 3; n++) { const tx = d.x + sx + n * 22, th = 70 + n * 16; c.fillStyle = '#1E423A'; c.beginPath(); c.moveTo(tx, py - th); c.lineTo(tx + 16, py - 6); c.lineTo(tx - 16, py - 6); c.fill(); c.fillStyle = '#ECF2FC'; for (let r = 0; r < 3; r++) c.fillRect(tx - 6 - r * 3, py - th + 18 + r * 18, 10 + r * 4, 3); }
+  }
   const hx = d.x + 90;
   if (t >= ICE_HIT) {
     c.strokeStyle = '#38BDF8'; c.lineWidth = 2;
@@ -157,10 +181,17 @@ registerDeathDraw(ICE, (c, state, d, weapon, t, f) => {
   for (const [dx, r, sp, col] of CHUNKS) {
     const x = hx + dx * e, y = py - r - (s < 12 ? Math.sin((s / 12) * Math.PI) * 30 : 0);
     c.save(); c.translate(x, y); c.rotate(s * sp * (1 - e));
+    // (a chunk of him frozen in a jagged shell of ice: inked, the shell lit up and left, the meat dark inside)
+    c.fillStyle = '#1A1028'; c.fillRect(-r - 3, -r - 3, r * 2 + 6, r * 2 + 6);
     c.fillStyle = '#7DD3FC'; c.fillRect(-r - 2, -r - 2, r * 2 + 4, r * 2 + 4);
+    c.fillStyle = '#E0F2FE'; c.fillRect(-r - 2, -r - 2, r * 2 + 4, 2); c.fillRect(-r - 2, -r - 2, 2, r * 2 + 4);
     c.fillStyle = col; c.fillRect(-r, -r, r * 2, r * 2);
-    c.fillStyle = 'rgba(255,255,255,0.6)'; c.fillRect(-r, -r, r, 2);
+    c.fillStyle = 'rgba(30, 58, 138, 0.35)'; c.fillRect(-r, 0, r * 2, r);
+    if (col !== '#E0F2FE') { c.fillStyle = '#7F1D1D'; c.fillRect(-r, r - 2, r * 2, 2); }
+    c.fillStyle = 'rgba(255,255,255,0.7)'; c.fillRect(-r, -r, r, 2);
     c.restore();
+    // (its scratch across the ice behind it)
+    if (s > 4) { c.fillStyle = 'rgba(255,255,255,0.8)'; c.fillRect(Math.min(hx, x), py + 1, Math.abs(x - hx), 1); }
   }
   // (the head: his own, frozen, in a cube of ice, spinning to a stop)
   const hxx = hx + 230 * e, hyy = py - 14;
@@ -212,6 +243,11 @@ registerDeathDraw(BOLT, (c, state, d, weapon, t, f) => {
     c.fillStyle = '#0C1A3A'; c.fillRect(d.x - 18 + shake, d.y - 60, 40, 60);
     bones(c, d.x + shake, d.y);
   }
+  // (the flash round him while he's lit, in soft rings)
+  if (t < BOLT_ZAP && t % 3 !== 2) {
+    for (const [r, a] of [[90, 0.12], [60, 0.18], [36, 0.25]] as const) { c.globalAlpha = a; c.fillStyle = t % 6 < 3 ? '#E9D5FF' : '#FEF9C3'; c.beginPath(); c.arc(d.x + shake, d.y - 30, r, 0, Math.PI * 2); c.fill(); }
+    c.globalAlpha = 1;
+  }
   // (the arc off the rail's end into the dragon's nose)
   if (t < BOLT_ZAP) {
     const nx = k.cx + 150 * k.d * Math.cos(k.a), ny = k.cy + 44 * k.d;
@@ -245,8 +281,12 @@ registerDeathAnim(SPLAT, {
   },
 });
 registerDeathDraw(SPLAT, (c, state, d, weapon, t, f) => {
-  // (his dent in the lawn, the blood out round him)
+  // (his dent in the lawn: the turf thrown up round it in clods, its shade in steps, grass and flowers flattened)
+  c.fillStyle = '#3A5A30'; c.beginPath(); c.ellipse(d.x, d.y + 2, 58, 10, 0, 0, Math.PI * 2); c.fill();
   c.fillStyle = '#2E4426'; c.beginPath(); c.ellipse(d.x, d.y + 2, 46, 7, 0, 0, Math.PI * 2); c.fill();
+  c.fillStyle = '#1E3018'; c.beginPath(); c.ellipse(d.x, d.y + 3, 34, 4, 0, 0, Math.PI * 2); c.fill();
+  for (let n = 0; n < 10; n++) { const a = (n / 10) * Math.PI * 2, cx = d.x + Math.cos(a) * 60, cy = d.y + 2 + Math.sin(a) * 11; c.fillStyle = n % 2 ? '#4A3428' : '#5A8A42'; c.fillRect(cx - 3, cy - 3, 6, 4); c.fillStyle = '#6E9A50'; c.fillRect(cx - 3, cy - 4, 6, 1); }
+  for (let n = 0; n < 7; n++) { const fx = d.x - 70 + n * 23; c.fillStyle = ['#F472B6', '#FDE047', '#A78BFA'][n % 3]; c.fillRect(fx, d.y + 4 + (n % 2) * 3, 3, 2); c.fillStyle = '#3E6A34'; c.fillRect(fx + 3, d.y + 5 + (n % 2) * 3, 4, 1); }
   pool(c, d.x, d.y, Math.min(48, 14 + t * 0.6));
   splatter(c, d.x, d.y - 2, 60, 91, 0.3);
   // (face down, spread-eagled, a leg twitching)

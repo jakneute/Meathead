@@ -704,7 +704,7 @@ const drawCrowd = (c: Ctx, v: View) => {
   });
 };
 const HEADS: [number, string, 'fire' | 'ice' | 'bolt'][] = [[-160, '#C42828', 'fire'], [10, '#3A9AD8', 'ice'], [180, '#E0B020', 'bolt']];
-const paintHead = (g: Ctx, col: string, kind: 'fire' | 'ice' | 'bolt') => {
+export const paintHead = (g: Ctx, col: string, kind: 'fire' | 'ice' | 'bolt') => {
   const R = D(col), Hn = D('#F2EAD0'), M = D('#2A1A1A');
   // (a sculpted dragon's head out over the door, facing right: its snout, a jaw open, horns back, the brow, scales)
   const head: [number, number][] = [[-46, -30], [10, -38], [54, -18], [60, -4], [52, 4], [20, 6], [50, 18], [44, 28], [-6, 22], [-44, 36]];

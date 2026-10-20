@@ -724,3 +724,39 @@ markBossFight every frame of a boss or sub-boss fight. Voice every new line (`np
   the cast: the huntsman's capelet, laced jerkin, bracer, boot cuffs, quiver and walnut crossbow; the dwarf's hood,
   buckle, stranded beard, putty nose, brass helmet and dripping candle; Cupid, the cookie and the unicorn in stepped
   parts and stamped frames (same looks). Drawing only: no layout, timing or hitbox changes.
+- (SNES pass, Truelling Tragons) One eye for the whole scene (tragons/scene.ts sceneEye: the ride's own, the trains'
+  middle, while the camera's the ride's; the engine camera's at the station and on the revisit's walk, blended) and the
+  park's own coordinates under the ride (a thing at park x P is at P - scroll; the track's s at S0X + s). The far off
+  (tragons/far.ts, every layer a tile cached per hour) has its horizon at the eye, its layers standing at their depths
+  between it and the park round the ride (climbing spreads them down the picture, the drops close them up; zoomed out,
+  a little smaller; their slide summed frame to frame so a zoom never swings them): the banded sky, clouds at four
+  heights (the cirrus and tall cumulus only once the ride climbs), birds / fireworks, balloons, snow; the Alps; the
+  castle; the glen's park beyond (exported from glen/far.ts, with its forest edge); the rest of Truelling Tragons across
+  the park (its station and heads, the lift hill, the loops, the helix, a corkscrew, the fake mountain with no crater,
+  the lagoon's spray); the park near the ride (shops, turrets, queue canopies of guests, a carousel, topiary, lamps,
+  banners, crowds on the paths). Round the ride (tragons/scenery.ts): the ground going back from 0.5 to 1.7 (banded
+  lawns, mowed stripes running to the eye, the promenade and a near path with snow banked, flower beds), the lagoon
+  (banded water going back, its kerb, ripples, lily pads, a rowboat), and props at 0.6 / 0.73 / 0.87 slid along under
+  the ride and sorted in among the tracks by depth (gift shops, a carousel, the teacups, a gatehouse, pines; queue mazes,
+  dragon topiary, bare trees with fairy lights, the ON-RIDE PHOTO kiosk; crowds looking up (two frames), carts, benches,
+  urns, a balloon seller, lamp posts with banners), none in the lagoon, the mountain or the halls; the fake mountain in
+  stepped plaster (snow cap, strata, seams, a painted waterfall, a staff door, pines). The steel (tragons/steel.ts): two
+  rails a gauge apart in depth (open from above and below the eye, twisting round the spine through a roll), ties, the
+  lane's box spine in steps with its stripe lit, running lights after dark, lattice supports from a strip cached per
+  hour and haze band (one drawImage each) on concrete footings, torn broken ends, rockwork tunnel portals. The dragons
+  (tragons/dragon.ts): scaled hulls, gilt trim, belly plates, folded veined wings, gem lamps, the chassis and wheels, the
+  lit back, the handlebar on brass posts with leather grips; the tail and its tip and the head (jaws open, teeth, a slit
+  eye, frills) per dragon (FIRE ivory horns and a flame tip, ICE crystal horns, an icicle beard and a spade, LIGHTNING
+  zigzag antlers and a bolt); painted once per lane, car and hour into a sprite (one drawImage a car), the lamps, eye,
+  breath and a spare's wings live. The halls (tragons/station.ts): back walls at 0.84 (stained glass in the dragons'
+  colors, banners, lanterns, a snowy roof, turrets), flagstones going back, the canopy's underside and its carved
+  fascia with lanterns; the load station's three heads breathing and the gilt name, the guests waiting behind ropes,
+  the dispatch booth, the iron gate (a rope across it on the revisit); the unload's decks in oak on stone piers, lit
+  along their tops, the yard, the gate arch out to the castle. The obstacles redrawn (the hoop's far half behind him, its
+  near half over; the icicle gantry snowed on and dripping; tesla coils; the burner; the ice bar; the stone dragon tower;
+  the snow cannon; the stepped storm cloud), the throws (a fireball's trail, the strike's tell and bolt), the breath; the
+  warnings as enamel plaques with gilt rims (a broken-track shield, a loop medallion), labels on little banners, gilt
+  countdowns; the loop and controls cards as storybook shingles. Kill cams: the ash heap and embers under his fists, the
+  pond's banded ice and snowbanks and pines, chunks in ice shells skating, the lightning's soft flash, the splat's dent and
+  clods. His ride poses: wind streaming off him braced and in the loops. Performance: the sorted list worked out once a
+  frame (it was twice), each track point worked out once. Drawing only: no layout, timing or hitbox changes.

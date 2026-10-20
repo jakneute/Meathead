@@ -106,9 +106,20 @@ export const drawFig = (ctx: Ctx, q: Fig, frame: number, pants: LadderPants) => 
   if (q.white) for (const [x, y] of q.freeF ? [fN] : [fN, fB]) { ctx.fillStyle = '#FFFFFF'; ctx.fillRect(x - 2, y - 3, 1.4, 1.4); ctx.fillRect(x + 0.4, y - 3.4, 1.4, 1.4); ctx.fillRect(x + 2.6, y - 2.8, 1.4, 1.4); }
 };
 
+/** The wind tearing past him (braced on a drop, hung on through a loop): a few streaks streaming back off him. */
+const wind = (ctx: Ctx, frame: number, y0: number, n: number) => {
+  for (let i = 0; i < n; i++) {
+    const u = ((frame * 0.11 + i * 0.37) % 1), y = y0 + ((i * 17) % 40), x = 14 - u * 46, len = 10 + (i % 3) * 6;
+    ctx.globalAlpha = 0.55 * (1 - u); ctx.fillStyle = '#F8FAFC';
+    ctx.fillRect(Math.round(x - len), Math.round(y), len, 1);
+  }
+  ctx.globalAlpha = 1;
+};
+
 /** Him on the dragon (local frame, facing +x). */
 export const drawTragonPose = (ctx: Ctx, q: Pose, frame: number, pants: LadderPants) => {
   const R = -TRAGON_RAIL, ow = q.hurt ? 0.35 : 0;
+  if (q.mode === 'brace') wind(ctx, frame, -62, 5);
   const mood: Mood = q.hurt ? 'yell' : 'grit';
   switch (q.mode) {
     case 'ride': {
@@ -152,6 +163,7 @@ export const drawTragonPose = (ctx: Ctx, q: Pose, frame: number, pants: LadderPa
       // (the near fist on the rail just ahead of where he'd stand; the body turned off it: standing's fist-to-feet is
       // straight down the screen, PI/2)
       ctx.translate(6, R); ctx.rotate(q.hang - Math.PI / 2); ctx.translate(-FN[0], -FN[1]);
+      wind(ctx, frame, -70, slip ? 7 : 4);
       drawFig(ctx, fig, frame, pants);
       ctx.restore();
       return;

@@ -558,7 +558,8 @@ const App2: React.FC = () => {
         )}
         {/* Fairy Land's Truelling Tragons: hopping cars, the first ride (till he's hopped once) */}
         {status === GameStatus.PLAYING && ui.map === null && !ui.introCutscene && ui.tragonTips && !ui.tragonHold && (
-          <div className="absolute left-1/2 -translate-x-1/2 bottom-[10px] z-30 flex flex-col items-center gap-2 px-3 py-2 text-[9px] text-white bg-black/80 border-2 border-[#FACC15]">
+          // (a storybook shingle: a navy field banded down, a gilt edge, inked)
+          <div className="absolute left-1/2 -translate-x-1/2 bottom-[10px] z-30 flex flex-col items-center gap-2 px-3 py-2 text-[9px] text-white bg-gradient-to-b from-[#2A4A8A] via-[#1E3A6E] to-[#0E1A3A] border-4 border-[#E0AE3A] shadow-[0_0_0_2px_#1A1028,inset_0_0_0_2px_#7A5418]">
             <div className="flex gap-4">
               <Prompt pad={['RB']} kb={['@prevWeapon']} label="HOP UP A CAR" />
               <Prompt pad={['LB']} kb={['@nextWeapon']} label="HOP DOWN A CAR" />
@@ -574,7 +575,7 @@ const App2: React.FC = () => {
           const joined = tracks.flatMap((el, i) => (i ? [<span key={`a${i}`}>{i === tracks.length - 1 ? ' AND ' : ', '}</span>, el] : [el]));
           const hold = <span className="inline-flex items-center gap-1 align-middle"><span>HOLD</span><Prompt pad={['DPAD_DOWN']} kb={['@down']} /></span>;
           return (
-            <div className={`absolute left-1/2 -translate-x-1/2 bottom-[10px] z-30 flex flex-col items-center gap-1 px-3 py-2 text-white bg-black/85 border-2 ${h.now ? (h.slip ? 'border-red-500 text-[12px]' : 'border-white text-[12px]') : h.teach ? 'border-[#FACC15] text-[10px]' : 'border-zinc-500 text-[9px]'}`}
+            <div className={`absolute left-1/2 -translate-x-1/2 bottom-[10px] z-30 flex flex-col items-center gap-1 px-3 py-2 text-white bg-gradient-to-b from-[#2A4A8A] via-[#1E3A6E] to-[#0E1A3A] shadow-[0_0_0_2px_#1A1028,inset_0_0_0_2px_#E0AE3A] border-4 ${h.now ? (h.slip ? 'border-red-500 text-[12px]' : 'border-white text-[12px]') : h.teach ? 'border-[#FACC15] text-[10px]' : 'border-zinc-500 text-[9px]'}`}
               style={!h.now ? { borderColor: h.cols[0] } : undefined}>
               {h.now
                 ? <span className="inline-flex items-center gap-2">{hold}<span>{h.slip ? 'HANG ON!' : 'TO HANG ON!'}</span></span>

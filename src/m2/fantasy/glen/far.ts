@@ -79,7 +79,7 @@ const paintClouds = (g: Ctx, tod: TimeOfDay) => {
 // The park beyond the forest: snowy hills, the wheel, Hogsmeat, Rapunzel's tower, the beanstalk, a windmill,
 // Truelling Tragons, turrets
 
-const PW = 1800, PH = 270, PG = PH - 40;
+export const PW = 1800, PH = 270, PG = PH - 40;
 const hills = (x: number) => snap2(PG - 30 + wave(x, PW, 1.7, 2) * 14 + jag(x, PW, 8, 13) * 4);
 
 const turret = (g: Ctx, T: (c: string) => string, x: number, foot: number, w: number, h: number, roof: string, tod: TimeOfDay, i: number) => {
@@ -94,7 +94,7 @@ const turret = (g: Ctx, T: (c: string) => string, x: number, foot: number, w: nu
   poly(g, [[x + 1, foot - h - w * 1.5 - 9], [x + 10, foot - h - w * 1.5 - 7], [x + 1, foot - h - w * 1.5 - 5]], T(i % 2 ? '#F49AC8' : '#F6D365'));
 };
 
-const paintPark = (g: Ctx, tod: TimeOfDay) => {
+export const paintPark = (g: Ctx, tod: TimeOfDay) => {
   const T = farCol(tod, 0.4), Sn = T('#E8EEF8'), SnL = T('#FFFFFF');
   // (the snowy hills: snow on their crowns, banded down into blue shade, pines along them)
   const HL = ['#5E6C98', '#7482AE', '#93A0C8', '#B8C4E0'].map(T);
@@ -199,7 +199,7 @@ const paintPark = (g: Ctx, tod: TimeOfDay) => {
 // ---------------------------------------------------------------------------------------------------------------
 // The storybook forest's far edge
 
-const FW = 1600, FH = 230, FG = FH - 20;
+export const FW = 1600, FH = 230, FG = FH - 20;
 interface FarTree { x: number; r: number; y: number; kind: 'oak' | 'blossom' | 'lilac' | 'pine' | 'spire'; seed: number }
 const FAR_TREES: FarTree[] = (() => {
   const out: FarTree[] = [];
@@ -214,7 +214,7 @@ const FAR_TREES: FarTree[] = (() => {
   }
   return out;
 })();
-const paintFarForest = (g: Ctx, tod: TimeOfDay) => {
+export const paintFarForest = (g: Ctx, tod: TimeOfDay) => {
   const T = farCol(tod, 0.26);
   const OAK = r4(T, '#2E5E3E'), OAK2 = r4(T, '#3E6A34'), BLO = r4(T, '#C27AA4'), LIL = r4(T, '#8A78C0'), PIN = [T('#1A3634'), T('#2A4E46')], Sn = T('#E4ECF6');
   // (the forest's dark floor behind it all)

@@ -51,8 +51,8 @@ const BULB = ['#FFE9A8', '#FFB0D8', '#A8E8FF', '#C8FFB8'];
 // ---------------------------------------------------------------------------------------------------------------
 // The sky's clouds: cirrus streaks high up, stepped cumulus (`seed` a set of them, `s` their size)
 
-const CIW = 1200, CIH = 70;
-const paintCirrus = (g: Ctx, tod: TimeOfDay) => {
+export const CIW = 1200, CIH = 70;
+export const paintCirrus =(g: Ctx, tod: TimeOfDay) => {
   const C = ['#C8D0EE', '#E4E8F8', '#FFFFFF'].map(c => cloudTint(c, tod));
   for (let i = 0; i < 16; i++) {
     const x = hash(i * 4.7) * CIW, y = 8 + hash(i * 2.9) * (CIH - 20), w = 60 + hash(i * 1.3) * 160;
@@ -62,8 +62,8 @@ const paintCirrus = (g: Ctx, tod: TimeOfDay) => {
     }
   }
 };
-const CUW = 1100;
-const paintCumulus = (g: Ctx, tod: TimeOfDay, seed: number, s0: number, h: number) => {
+export const CUW = 1100;
+export const paintCumulus =(g: Ctx, tod: TimeOfDay, seed: number, s0: number, h: number) => {
   const C = ['#8C96C0', '#B4BEE0', '#DCE2F6', '#FFFFFF'].map(c => cloudTint(c, tod));
   const n = 7;
   for (let i = 0; i < n; i++) {
@@ -349,7 +349,7 @@ const liveFair = (c: Ctx, off: number, y: number, f: number, tod: TimeOfDay) => 
   });
 };
 
-const birds = (c: Ctx, f: number, climb: number) => {
+export const birds = (c: Ctx, f: number, climb: number) => {
   c.fillStyle = farTint('#2A2840', 0.4);
   for (let fl = 0; fl < 3; fl++) {
     const bx = ((f * (0.25 + fl * 0.1) + fl * 500) % (W + 300)) - 150, by = 110 + fl * 70 + Math.sin(f * 0.01 + fl) * 10 + climb * 0.18;
@@ -362,7 +362,7 @@ const birds = (c: Ctx, f: number, climb: number) => {
 };
 
 const FW_COLS = [['#FFE9A8', '#F6C84A'], ['#FFB0D8', '#F472B6'], ['#A8E8FF', '#60A5FA'], ['#C8FFB8', '#4ADE80'], ['#E8C8FF', '#C084FC']];
-const fireworks = (c: Ctx, f: number, climb: number) => {
+export const fireworks = (c: Ctx, f: number, climb: number) => {
   for (let n = 0; n < 4; n++) {
     const per = 110 + n * 23, t = (f + n * 41) % per, id = Math.floor((f + n * 41) / per) * 4 + n;
     if (t > 70) continue;
@@ -380,7 +380,7 @@ const fireworks = (c: Ctx, f: number, climb: number) => {
   }
 };
 
-const balloons = (c: Ctx, f: number, cx: number, climb: number) => {
+export const balloons = (c: Ctx, f: number, cx: number, climb: number) => {
   const cols = ['#F472B6', '#FDE047', '#60A5FA', '#4ADE80', '#C084FC', '#FB7185'];
   for (let i = 0; i < 7; i++) {
     const sp = 0.25 + hash(i * 3.1) * 0.25, span = H + 900;
