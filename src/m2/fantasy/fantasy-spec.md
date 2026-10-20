@@ -760,3 +760,41 @@ markBossFight every frame of a boss or sub-boss fight. Voice every new line (`np
   pond's banded ice and snowbanks and pines, chunks in ice shells skating, the lightning's soft flash, the splat's dent and
   clods. His ride poses: wind streaming off him braced and in the loops. Performance: the sorted list worked out once a
   frame (it was twice), each track point worked out once. Drawing only: no layout, timing or hitbox changes.
+- (SNES pass, the castle's base and the runway) He's AT the castle, so the monument hands over to keep/far.ts: THE INNER
+  WARD painted close at the screen's own pixels (no more drawCastleAt blown up 2.8x), cached per hour, on the horizon
+  over every wall he climbs: its curtain wall and round towers, the chapel (rose window, star spire), the great hall
+  (slates, dormers, chimneys, bell turret), a clock tower, THE KEEP (buttresses, three tiers of lancets, a big rose
+  window, long banners, a machicolated crown, corner turrets under blue cones) and THE HIGHEST SPIRE with PIPER'S WINDOW
+  (pink stained glass, a gilt heart, a balcony) glowing, sparkles round it; out on the runway the same ward off to his
+  left. Under it the sky, cirrus and cumulus (the high ones from up the tower), birds or fireworks, the Alps, the glen's
+  park, and the castle's own grounds (only from up on the walls: the frozen outer moat and its skaters, the hedge maze,
+  paths of guests, queue canopies, the broom port's stands far off). keep/paint.ts: the castle's ramps and parts
+  (ashlar, merlons, slits, lancets, banners, cone roofs, drums, sconces and live flames, stand slabs, hoardings, lamp
+  posts, topiary, seeded guests); keep/view.ts: the run-of-stamps helper. One eye (art.ts): the barbican's yard wall and
+  its flagstones, its gateway (portcullis up, the ride's glow), a knight in a niche, the Great Pixie's statue fountain,
+  topiary, lamp posts, the barbican tower (its ledge corbelled out, lit); the moat going down out of the picture (faces
+  going back, the old water line, a drain dribbling, a bucket on a rope, a WET FLOOR cone) with the castle's front wall
+  along its far rim; the gatehouse (bartizans, portcullis, gilt crest, machicolations, its roof lit) and, veiled till
+  he's in it, the passage (red runner, beams) and YE OLDE GIFT SHOPPE (shelves of merch, a rack of gowns and a mirror,
+  a barrel of wands, plush Pipers, snow globes, the till and its bored cashier); the veil a shopfront (leaded bays
+  glowing, window boxes, striped awnings). The courtyard's far wall (an arcade with lanterns, lancets, banners, towers
+  under cones), a well, the rose garden (lawn, a sundial, a rose trellis, urns). The curtain wall's face (buttresses,
+  niches with a fairy and a unicorn, sconces, banners), the walk's top and the parapet (not over the breach); the
+  breach (broken ends going back, rubble, scaffold poles and a PARDON OUR PIXIE DUST banner (no planks: nothing to read
+  as a platform), and through it the outside: the frozen moat, pines, guests at a rope staring in); the hoardings in
+  timber and pink shingle. The tower's inside up out of the picture at every height (lancets, tapestries, portraits,
+  banners, crests and sconces, shields and swords, beams), iron chandeliers on chains, its shell either side, the
+  landings and gallery on corbels (a balustrade behind, dimmed); its outside behind the steps (lancets, banners, a
+  gargoyle, ivy); the postern yard backstage (CAST MEMBERS ONLY, kegs, a costume rack of spare tiaras, bins, a hay cart,
+  a knight on his break, helmet off) and the postern gate's wall seen end on. The boutique with its sides going back,
+  pilasters, a gilt crown, a scalloped awning (dimmed), the salon inside (heart wallpaper, bulb-ringed mirrors, a
+  chandelier, chrome dryer hoods, pink chairs). The broom port (keep/port.ts): stands of seeded guests waving pennants
+  and foam fingers, house-colored hoardings, a striped canopy, stand towers in house drapes with boxes of guests up
+  top, bunting, the scoreboard (FINAL TRIAL / LAST MAN FLYING GETS THE HIGHEST WINDOW; NO FLIGHTS TODAY on the revisit,
+  the stands empty), two sets of gold hoops, the deck going back (planks, a dashed center line, chevrons, landing
+  lights), wind socks with lanterns, broom racks (bare after). The drawbridge (planks, straps, linked chains, the winch
+  turning on the tell), the murder holes in stone surrounds (the pour in steps, a crown of splash, steam), the rose beds
+  in bloom, the cauldrons in iron steps; brooms and the cradle. The cast: the guard (mail, quartered tabard, kettle
+  helmet, beveled halberd), the jester (parti hose, bell shoes, dagged collar, some in greasepaint), the lady (brocade
+  bell gown, hanging sleeves, girdle, banded hennin and veil, painted fan); the same poses and deaths. Drawing only:
+  no layout, timing or hitbox changes.

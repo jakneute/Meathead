@@ -26,7 +26,8 @@ import { DOORS } from '../geometry';
 import { PIPER_PA_VOICE } from '../talk';
 import { drawSuitor, SUITOR_H, type SuitorLook } from '../suitors';
 import { RIVALS } from '../glen/rivals';
-import { box, onScreen, INK, type Ctx } from '../kit';
+import { box, onScreen, INK, viewOf, sideBack, topBack, still, rampH, ramp6, GOLD, TIMBER, lit, checker, polyF, type Ctx } from '../kit';
+import { LEAVES as LEAF } from './paint';
 import { keepOf, RUNWAY_MEMO, ROSTER_MEMO, runwayDone, shopDone, setShopDone, type Flyer, type Keep } from './state';
 import { BOUTIQUE, SCENE, X, Y } from './layout';
 import { KEEP_VOICES, SHOP_SAY, SHOP_RETORT, RUNWAY_SAY, RUNWAY_BOUNCE, MOUNT, EMPTY, GAGS, PIPER_FINAL, PIPER_RULES, PIPER_GO } from './lines';
@@ -77,33 +78,87 @@ const sitSuitor = (c: Ctx, x: number, feetY: number, face: 1 | -1, f: number, L:
   if (crowned) tiara(c, x + face * (astride ? 12 : 2), feetY - (astride ? 102 : 104));
 };
 
-/** The boutique's front (behind him): its window, the chairs behind it, whoever's in them; its sign. */
+/** The boutique's front (behind him): pink plaster in steps, its sides going back (one eye), pilasters and a gilt
+ *  cornice, a striped scalloped awning (dimmed: it's not stood on), the window (the salon inside: heart wallpaper,
+ *  vanity mirrors ringed with bulbs, a chandelier, pink chairs under chrome dryer hoods, whoever's in them), a glass
+ *  door with its OPEN heart. */
+const BQ_H = 230;
 export const drawBoutique = (c: Ctx, state: GameState) => {
   const a = X(BOUTIQUE.a), b = X(BOUTIQUE.b);
-  if (!onScreen(state, a - 40, b + 40)) return;
-  const k = keepOf(state), f = state.frame, gy = Y(0);
-  // (the shopfront: pink plaster, a striped awning (dimmed: it's not stood on), the door)
-  box(c, a - 1, gy - 231, b - a + 2, 231, INK); box(c, a, gy - 230, b - a, 230, '#E8A8C8'); box(c, a, gy - 230, b - a, 8, '#F4C8DC');
-  for (let x = a; x < b; x += 24) { box(c, x, gy - 196, 12, 22, '#C86A9A'); box(c, x + 12, gy - 196, 12, 22, '#F4E4EC'); }
-  box(c, a, gy - 176, b - a, 3, '#9A4A74');
-  // (the window: the salon inside, its chairs, the suitors in them)
-  const wa = a + 40, wb = b - 90, wt = gy - 160, wbot = gy - 20;
-  box(c, wa - 3, wt - 3, wb - wa + 6, wbot - wt + 6, INK); box(c, wa, wt, wb - wa, wbot - wt, '#FBE4F0');
-  for (let x = wa + 10; x < wb; x += 40) box(c, x, wt + 10, 22, 30, '#E8D0F0');
-  c.save(); c.beginPath(); c.rect(wa, wt, wb - wa, wbot - wt); c.clip();
-  const who = inShop(state);
+  if (!onScreen(state, a - 120, b + 120)) return;
+  const k = keepOf(state), f = state.frame, gy = Y(0), v = viewOf(state);
+  const Pk = rampH(ramp6('#E8A8C8')), Pd = rampH(ramp6('#E8A8C8'), true);
+  // (its sides and roof going back)
+  sideBack(c, v.eye, a, -1, gy - BQ_H, gy, 1, 0.88, Pd, 3);
+  sideBack(c, v.eye, b, 1, gy - BQ_H, gy, 1, 0.88, Pd, 3);
+  topBack(c, v.eye, a, b, gy - BQ_H, 1, 0.88, rampH(ramp6('#9A6A8A'), true), 2);
+  const wa = a + 40, wb = b - 90, wt = gy - 160, wbot = gy - 20, ww = wb - wa;
+  // (the salon inside, live: who's in the chairs changes)
+  still(c, 'kp-salon', wa, wt, 0, 0, ww, wbot - wt, g => {
+    const W = rampH(ramp6('#F4C8DC'), true), Gd = rampH(GOLD), Ch = rampH(ramp6('#C8CCD8'));
+    box(g, 0, 0, ww, wbot - wt, W[3]);
+    for (let y = 4; y < wbot - wt; y += 14) for (let x = ((y / 14) % 2) * 9; x < ww; x += 18) { box(g, x, y, 2, 2, W[2]); box(g, x + 2, y, 2, 2, W[2]); box(g, x + 1, y + 2, 2, 2, W[2]); }
+    box(g, 0, 70, ww, 70, W[2]); box(g, 0, 70, ww, 2, W[5]); for (let x = 6; x < ww; x += 16) box(g, x, 76, 10, 56, W[1]);
+    // (vanity mirrors ringed with bulbs over each chair)
+    for (const sx of BOUTIQUE.seats) { const mx = X(sx) - wa; box(g, mx - 22, 10, 44, 50, INK); box(g, mx - 21, 11, 42, 48, Gd[3]); box(g, mx - 18, 14, 36, 42, '#C8DCF0'); box(g, mx - 18, 14, 10, 42, '#E4F0FA'); for (let k2 = 0; k2 < 5; k2++) { box(g, mx - 20 + k2 * 9, 9, 3, 3, lit() ? '#FFF6C8' : '#F4ECD8'); box(g, mx - 23, 16 + k2 * 9, 3, 3, lit() ? '#FFF6C8' : '#F4ECD8'); box(g, mx + 20, 16 + k2 * 9, 3, 3, lit() ? '#FFF6C8' : '#F4ECD8'); } }
+    // (a chandelier)
+    const cx = ww / 2; box(g, cx, 0, 1, 8, INK); box(g, cx - 14, 8, 28, 3, Gd[3]); for (let k2 = -2; k2 <= 2; k2++) { box(g, cx + k2 * 6 - 1, 4, 2, 4, '#F4ECD8'); box(g, cx + k2 * 6 - 1, 2, 2, 2, '#FDE68A'); box(g, cx + k2 * 6, 11, 1, 4, '#E4F0FA'); }
+    // (the chairs' backs and the dryer hoods on their stalks)
+    for (const sx of BOUTIQUE.seats) { const mx = X(sx) - wa; box(g, mx + 4, 50, 3, 40, INK); box(g, mx + 5, 50, 1, 40, Ch[4]); g.fillStyle = INK; g.beginPath(); g.ellipse(mx - 4, 40, 19, 13, 0, Math.PI, 0); g.fill(); box(g, mx - 23, 40, 38, 6, INK); g.fillStyle = Ch[3]; g.beginPath(); g.ellipse(mx - 4, 40, 17, 11, 0, Math.PI, 0); g.fill(); box(g, mx - 21, 40, 34, 4, Ch[2]); box(g, mx - 14, 32, 8, 3, Ch[5]); }
+  });
+  c.save(); c.beginPath(); c.rect(wa, wt, ww, wbot - wt); c.clip();
+  const who = inShop(state), Ch = rampH(ramp6('#C86A9A')), Cr = rampH(ramp6('#C8CCD8'));
   BOUTIQUE.seats.forEach((sx, i) => {
-    // (the chair: a pink salon chair, a dryer hood over it)
-    box(c, X(sx) - 16, gy - 70, 34, 50, '#C86A9A'); box(c, X(sx) - 20, gy - 132, 30, 18, '#D4D4D8');
+    // (the chair: pink vinyl, buttoned, on a chrome base)
+    const x = X(sx);
+    box(c, x - 18, gy - 72, 36, 54, INK); box(c, x - 17, gy - 71, 34, 52, Ch[3]); box(c, x - 17, gy - 71, 6, 52, Ch[4]); box(c, x + 10, gy - 71, 7, 52, Ch[2]);
+    for (const [bx, by] of [[-6, -60], [4, -60], [-6, -44], [4, -44]]) box(c, x + bx, gy + by, 2, 2, Ch[1]);
+    box(c, x - 4, gy - 20, 8, 6, Cr[3]); box(c, x - 14, gy - 16, 28, 4, INK); box(c, x - 13, gy - 15, 26, 2, Cr[4]);
     const id = who[i];
-    if (id) sitSuitor(c, X(sx), gy - 10, -1, f + i * 17, LOOK[id], k.shop.who === id && !!k.shop.said, true);
+    if (id) sitSuitor(c, x, gy - 10, -1, f + i * 17, LOOK[id], k.shop.who === id && !!k.shop.said, true);
   });
   c.restore();
-  // (the glass: a shine across it; the sill)
-  c.save(); c.globalAlpha = 0.18; c.fillStyle = '#FFFFFF'; c.beginPath(); c.moveTo(wa + 20, wt); c.lineTo(wa + 70, wt); c.lineTo(wa + 20, wbot); c.lineTo(wa - 30, wbot); c.closePath(); c.fill(); c.restore();
-  box(c, wa - 6, wbot, wb - wa + 12, 6, '#9A4A74');
-  // (the door)
-  box(c, b - 70, gy - 120, 50, 120, INK); box(c, b - 67, gy - 117, 44, 117, '#9A4A74'); box(c, b - 30, gy - 62, 4, 4, '#F6D365');
+  // (the shopfront over it, the window and the door cut out of it)
+  still(c, 'kp-boutique', a, gy, -14, -BQ_H - 30, b - a + 28, BQ_H + 34, g => {
+    const w = b - a, Gd = rampH(GOLD), Aw = rampH(ramp6('#C86A9A'), true), Wh = rampH(ramp6('#F4E4EC'), true), Dr = rampH(ramp6('#9A4A74'));
+    g.save(); g.beginPath(); g.rect(-14, -BQ_H - 30, w + 28, BQ_H + 34); g.rect(wa - a, wt - gy, ww, wbot - wt); g.rect(w - 67, -117, 44, 117); g.clip('evenodd');
+    box(g, -1, -BQ_H - 1, w + 2, BQ_H + 1, INK); box(g, 0, -BQ_H, w, BQ_H, Pk[3]);
+    for (let y = -BQ_H + 6; y < 0; y += 9) for (let x = (Math.floor(y / 9) % 2) * 5; x < w; x += 10) box(g, x, y, 3, 1, Pk[2]);
+    box(g, 0, -BQ_H, 3, BQ_H, Pk[5]); box(g, w - 6, -BQ_H, 6, BQ_H, Pk[1]); box(g, w - 10, -BQ_H, 4, BQ_H, Pk[2]);
+    // (pilasters with gilt capitals)
+    for (const px2 of [8, wa - a - 14, wb - a + 4, w - 84, w - 18]) { box(g, px2 - 1, -BQ_H + 30, 12, BQ_H - 30, INK); box(g, px2, -BQ_H + 30, 10, BQ_H - 30, Pk[4]); box(g, px2, -BQ_H + 30, 2, BQ_H - 30, Pk[5]); box(g, px2 + 7, -BQ_H + 30, 3, BQ_H - 30, Pk[2]); box(g, px2 - 2, -BQ_H + 28, 14, 5, Gd[3]); box(g, px2 - 2, -8, 14, 8, Pk[2]); }
+    // (the cornice: gilt, dentils, a crown over the middle)
+    box(g, -6, -BQ_H - 8, w + 12, 12, INK); box(g, -5, -BQ_H - 7, w + 10, 10, Pk[4]); box(g, -5, -BQ_H - 7, w + 10, 2, Pk[5]); box(g, -5, -BQ_H + 1, w + 10, 2, Gd[3]);
+    for (let x = -4; x < w + 4; x += 6) box(g, x, -BQ_H + 3, 3, 3, Pk[2]);
+    const cx = w / 2; g.fillStyle = INK; g.beginPath(); g.moveTo(cx - 30, -BQ_H - 7); g.lineTo(cx - 30, -BQ_H - 24); g.lineTo(cx - 16, -BQ_H - 14); g.lineTo(cx, -BQ_H - 30); g.lineTo(cx + 16, -BQ_H - 14); g.lineTo(cx + 30, -BQ_H - 24); g.lineTo(cx + 30, -BQ_H - 7); g.closePath(); g.fill();
+    g.fillStyle = Gd[3]; g.beginPath(); g.moveTo(cx - 28, -BQ_H - 8); g.lineTo(cx - 28, -BQ_H - 21); g.lineTo(cx - 16, -BQ_H - 12); g.lineTo(cx, -BQ_H - 27); g.lineTo(cx + 16, -BQ_H - 12); g.lineTo(cx + 28, -BQ_H - 21); g.lineTo(cx + 28, -BQ_H - 8); g.closePath(); g.fill();
+    box(g, cx - 2, -BQ_H - 20, 4, 4, '#F472B6'); box(g, cx - 28, -BQ_H - 10, 56, 2, Gd[2]);
+    // (the awning: pink and white stripes, scalloped, its shadow under (dimmed: not stood on))
+    box(g, -8, -200, w + 16, 26, INK);
+    for (let x = -7; x < w + 8; x += 24) { box(g, x, -199, 12, 22, Aw[3]); box(g, x + 12, -199, 12, 22, Wh[3]); box(g, x, -199, 12, 2, Aw[5]); box(g, x + 12, -199, 12, 2, Wh[5]); g.fillStyle = INK; g.beginPath(); g.arc(x + 6, -177, 6, 0, Math.PI); g.arc(x + 18, -177, 6, 0, Math.PI); g.fill(); g.fillStyle = Aw[3]; g.beginPath(); g.arc(x + 6, -177, 5, 0, Math.PI); g.fill(); g.fillStyle = Wh[3]; g.beginPath(); g.arc(x + 18, -177, 5, 0, Math.PI); g.fill(); }
+    box(g, 0, -170, w, 4, Pk[1]); checker(g, 0, -166, w, 4, Pk[1], 0, 1);
+    // (the window's frame: a gilt moulding, mullions, a sill with a box of roses)
+    g.restore();
+    const fx = wa - a, fy2 = wt - gy;
+    box(g, fx - 5, fy2 - 5, ww + 10, 5, INK); box(g, fx - 4, fy2 - 4, ww + 8, 3, Gd[3]); box(g, fx - 5, fy2, 5, wbot - wt, INK); box(g, fx - 4, fy2, 3, wbot - wt, Gd[3]); box(g, fx + ww, fy2, 5, wbot - wt, INK); box(g, fx + ww + 1, fy2, 3, wbot - wt, Gd[2]);
+    for (let k2 = 1; k2 < 3; k2++) { box(g, fx + (ww * k2) / 3 - 1, fy2, 3, 40, INK); box(g, fx + (ww * k2) / 3, fy2, 1, 40, Gd[3]); }
+    box(g, fx, fy2 + 40, ww, 3, INK); box(g, fx, fy2 + 41, ww, 1, Gd[3]);
+    for (let k2 = 0; k2 < 6; k2++) { const lx = fx + 4 + k2 * ((ww - 8) / 6); g.fillStyle = INK; g.beginPath(); g.arc(lx + (ww - 8) / 12, fy2 + 20, 8, 0, Math.PI * 2); g.fill(); g.fillStyle = '#FBE4F0'; g.beginPath(); g.arc(lx + (ww - 8) / 12, fy2 + 20, 7, 0, Math.PI * 2); g.fill(); g.fillStyle = '#F472B6'; g.beginPath(); g.arc(lx + (ww - 8) / 12 - 2, fy2 + 19, 2.5, 0, Math.PI * 2); g.arc(lx + (ww - 8) / 12 + 2, fy2 + 19, 2.5, 0, Math.PI * 2); g.fill(); }
+    box(g, fx - 8, wbot - gy, ww + 16, 7, INK); box(g, fx - 7, wbot - gy + 1, ww + 14, 5, Pk[5]); box(g, fx - 7, wbot - gy + 5, ww + 14, 1, Pk[1]);
+    box(g, fx - 2, wbot - gy + 7, ww + 4, 12, INK); box(g, fx - 1, wbot - gy + 8, ww + 2, 10, Dr[2]);
+    for (let x = fx; x < fx + ww; x += 7) { box(g, x, wbot - gy + 2, 6, 6, LEAF[3]); box(g, x + 1, wbot - gy + 1, 3, 3, (x / 7) % 2 ? '#E11D48' : '#F472B6'); }
+    // (the door: glass panes in a pink frame, a brass handle, its OPEN heart hung in it)
+    box(g, w - 70, -120, 50, 120, INK); box(g, w - 69, -119, 48, 119, Dr[3]); box(g, w - 69, -119, 2, 119, Dr[5]);
+    box(g, w - 63, -112, 36, 60, INK); box(g, w - 62, -111, 34, 58, '#C8DCF0'); box(g, w - 62, -111, 10, 58, '#E4F0FA'); box(g, w - 45, -111, 1, 58, INK);
+    box(g, w - 63, -46, 36, 40, Dr[2]); box(g, w - 63, -46, 36, 1, Dr[4]);
+    box(g, w - 30, -64, 5, 4, Gd[3]); box(g, w - 30, -64, 5, 1, Gd[5]);
+    g.fillStyle = INK; g.beginPath(); g.arc(w - 50, -86, 8, 0, Math.PI * 2); g.arc(w - 40, -86, 8, 0, Math.PI * 2); g.fill(); polyF(g, [[w - 59, -84], [w - 45, -68], [w - 31, -84]], INK);
+    g.fillStyle = '#F472B6'; g.beginPath(); g.arc(w - 50, -86, 7, 0, Math.PI * 2); g.arc(w - 40, -86, 7, 0, Math.PI * 2); g.fill(); polyF(g, [[w - 57, -84], [w - 45, -70], [w - 33, -84]], '#F472B6');
+    box(g, w - 53, -88, 16, 4, '#FFFFFF'); box(g, w - 52, -87, 14, 2, '#F472B6');
+    box(g, w - 76, -6, 62, 6, INK); box(g, w - 75, -5, 60, 4, Pk[2]);
+  });
+  // (the glass: a shine across the window)
+  c.save(); c.beginPath(); c.rect(wa, wt, ww, wbot - wt); c.clip(); c.globalAlpha = 0.16; c.fillStyle = '#FFFFFF'; c.beginPath(); c.moveTo(wa + 20, wt + 42); c.lineTo(wa + 70, wt + 42); c.lineTo(wa + 20, wbot); c.lineTo(wa - 30, wbot); c.closePath(); c.fill(); c.restore();
 };
 /** What they're saying, over them (in front of everything). */
 export const drawBoutiqueFront = (c: Ctx, state: GameState) => {
@@ -278,12 +333,23 @@ export const updateRunway = (ctx: FrameContext, controls: Controls): Controls =>
 /** A broom: the handle (its front to `face`), bound bristles out the back; a sparkle trail flying. */
 export const drawBroom = (c: Ctx, x: number, y: number, face: 1 | -1, f: number, flying = false) => {
   const tip = x + face * 40, bind = x - face * 22, end = x - face * 50;
-  box(c, Math.min(tip, bind) - 1, y - 3, Math.abs(tip - bind) + 2, 6, INK);
-  box(c, Math.min(tip, bind), y - 2, Math.abs(tip - bind), 4, '#8A5A30'); box(c, Math.min(tip, bind), y - 2, Math.abs(tip - bind), 1, '#B8864A');
-  c.fillStyle = INK; c.beginPath(); c.moveTo(bind, y - 5); c.lineTo(end, y - 10); c.lineTo(end, y + 10); c.lineTo(bind, y + 5); c.closePath(); c.fill();
-  c.fillStyle = '#D8B060'; c.beginPath(); c.moveTo(bind, y - 4); c.lineTo(end + face, y - 8); c.lineTo(end + face, y + 8); c.lineTo(bind, y + 4); c.closePath(); c.fill();
-  for (let k = -6; k <= 6; k += 3) box(c, Math.min(bind, end) + 4, y + k, Math.abs(end - bind) - 6, 1, '#A8803A');
-  box(c, bind - (face > 0 ? 4 : 0), y - 5, 4, 10, '#B91C1C');
+  const l = Math.min(tip, bind), w = Math.abs(tip - bind);
+  // (the handle: polished ash in steps, a knob at its tip, a leather grip)
+  box(c, l - 1, y - 3, w + 2, 7, INK);
+  box(c, l, y - 2, w, 5, '#8A5A30'); box(c, l, y - 2, w, 1, '#C8965A'); box(c, l, y - 1, w, 1, '#A87440'); box(c, l, y + 2, w, 1, '#5A3A1E');
+  for (let k = 0; k < w; k += 9) box(c, l + k, y, 3, 1, '#6A4422');
+  c.fillStyle = INK; c.beginPath(); c.arc(tip, y, 4, 0, Math.PI * 2); c.fill(); c.fillStyle = '#A87440'; c.beginPath(); c.arc(tip, y, 3, 0, Math.PI * 2); c.fill(); box(c, tip - 2, y - 2, 1, 1, '#E8C080');
+  const gx = x + face * 6; box(c, gx - 7, y - 3, 14, 7, INK); box(c, gx - 6, y - 2, 12, 5, '#4A2A14'); for (let k = -6; k < 6; k += 3) box(c, gx + k, y - 2, 1, 5, '#2A160A');
+  // (the bristles: straw bound tight at the handle, flaring out the back in steps, strands, a clipped end)
+  c.fillStyle = INK; c.beginPath(); c.moveTo(bind, y - 5); c.quadraticCurveTo((bind + end) / 2, y - 12, end, y - 11); c.lineTo(end, y + 11); c.quadraticCurveTo((bind + end) / 2, y + 12, bind, y + 5); c.closePath(); c.fill();
+  c.fillStyle = '#C8A050'; c.beginPath(); c.moveTo(bind, y - 4); c.quadraticCurveTo((bind + end) / 2, y - 11, end + face, y - 10); c.lineTo(end + face, y + 10); c.quadraticCurveTo((bind + end) / 2, y + 11, bind, y + 4); c.closePath(); c.fill();
+  c.fillStyle = '#E8C878'; c.beginPath(); c.moveTo(bind, y - 4); c.quadraticCurveTo((bind + end) / 2, y - 11, end + face, y - 10); c.lineTo(end + face, y - 4); c.quadraticCurveTo((bind + end) / 2, y - 4, bind, y - 1); c.closePath(); c.fill();
+  c.fillStyle = '#9A7A34'; c.beginPath(); c.moveTo(bind, y + 2); c.quadraticCurveTo((bind + end) / 2, y + 5, end + face, y + 5); c.lineTo(end + face, y + 10); c.quadraticCurveTo((bind + end) / 2, y + 11, bind, y + 4); c.closePath(); c.fill();
+  for (let k = -8; k <= 8; k += 2) { const sx = Math.min(bind, end) + 4, sw = Math.abs(end - bind) - 6 - Math.abs(k) * 0.6; box(c, face > 0 ? sx : sx + Math.abs(k) * 0.6, y + k, sw, 1, k % 4 ? '#A8803A' : '#F4DC98'); }
+  for (let k = -9; k <= 9; k += 3) box(c, end - face * (1 + (k & 1)), y + k, 2, 1, '#F4DC98');
+  // (its bindings: copper bands, a red ribbon in a bow)
+  for (const o of [0, 5]) { box(c, bind - face * o - 2, y - 6, 4, 12, INK); box(c, bind - face * o - 1, y - 5, 2, 10, '#C87A3A'); box(c, bind - face * o - 1, y - 5, 1, 10, '#F0A868'); }
+  box(c, bind - face * 10 - 2, y - 7, 4, 4, '#B91C1C'); box(c, bind - face * 13 - 2, y - 9, 4, 3, '#DC2626'); box(c, bind - face * 7 - 2, y - 9, 4, 3, '#DC2626');
   if (flying || f % 6 < 3) sparkle(c, end, y, f);
 };
 const sparkle = (c: Ctx, x: number, y: number, f: number) => {
@@ -294,9 +360,16 @@ const sparkle = (c: Ctx, x: number, y: number, f: number) => {
 export const drawRunway = (c: Ctx, state: GameState) => {
   const s = keepOf(state).scene, f = state.frame;
   if (!onScreen(state, X(SCENE.cradle.x) - 300, X(SCENE.spots[SCENE.spots.length - 1]) + 400) && s.step !== 'launch' && s.step !== 'fade') return;
-  // (the cradle: a little wooden stand, BROOM 7 on it)
-  const cx = X(SCENE.cradle.x), ch = Y(SCENE.cradle.h);
-  for (const dx of [-26, 22]) { box(c, cx + dx - 1, ch, 6, Y(0) - ch, INK); box(c, cx + dx, ch + 1, 4, Y(0) - ch - 1, '#7A5230'); }
+  // (the cradle: a little oak stand, its two forked posts, a gilt plate: BROOM 7)
+  const cx = X(SCENE.cradle.x);
+  still(c, 'kp-cradle', cx, Y(0), -40, -SCENE.cradle.h - 10, 80, SCENE.cradle.h + 14, g => {
+    const Tm = rampH(TIMBER), Gd = rampH(GOLD), h = SCENE.cradle.h;
+    box(g, -36, -6, 72, 6, INK); box(g, -35, -5, 70, 4, Tm[3]); box(g, -35, -5, 70, 1, Tm[5]);
+    for (const dx of [-26, 22]) { box(g, dx - 1, -h, 7, h, INK); box(g, dx, -h, 5, h, Tm[3]); box(g, dx, -h, 1, h, Tm[5]); box(g, dx + 4, -h, 1, h, Tm[1]); box(g, dx - 3, -h - 4, 3, 6, INK); box(g, dx + 5, -h - 4, 3, 6, INK); box(g, dx - 2, -h - 3, 1, 4, Tm[4]); box(g, dx + 6, -h - 3, 1, 4, Tm[4]); }
+    box(g, -14, -26, 28, 10, INK); box(g, -13, -25, 26, 8, Gd[3]); box(g, -13, -25, 26, 1, Gd[5]);
+    for (let k = 0; k < 5; k++) box(g, -10 + k * 4, -22, 3, 3, '#3A2208');
+    box(g, 9, -23, 2, 4, '#3A2208');
+  });
   if (s.broom) drawBroom(c, s.broom.x + 36, s.broom.y + 4, 1, f, s.step === 'launch' || s.step === 'fade');
   for (const fl of s.flyers) {
     if (fl.gone) continue;

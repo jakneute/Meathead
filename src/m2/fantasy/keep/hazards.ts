@@ -30,8 +30,7 @@ import { mid } from '../../../m1/game/enemies/kinds';
 import { hazardVictims, hazardHit, boxHits, setHazardZones, type Zone } from '../../hazardHit';
 import { envSound } from '../../bossQuiet';
 import { meatheadSays, byPants, ledge } from '../section';
-import { box, mix, onScreen, INK, type Ctx } from '../kit';
-import { timeOfDay } from '../../timeOfDay';
+import { box, hash, checker, onScreen, rampH, TIMBER, IRON, GOLD, LIP, INK, type Ctx } from '../kit';
 import { endAt, type Stair } from '../stairs';
 import { updateThrows as updateSquareThrows, drawThrows as drawSquareThrows } from '../square/hazards';
 import { drawToadstool } from '../glen/hazards';
@@ -188,70 +187,105 @@ const updateThrows = (ctx: FrameContext) => {
 
 /** The drawbridge (a stair to stairs.ts): planks, iron straps, its lit top; the chains up to the winch over the gate. */
 export const drawDrawbridge = (c: Ctx, state: GameState, s: Stair) => {
-  const d = s.d, e = endAt(d, s.ang);
+  const d = s.d, e = endAt(d, s.ang), f = state.frame;
   if (!onScreen(state, Math.min(d.px, e.x) - 60, Math.max(d.px, e.x) + 60)) return;
-  const winch = { x: d.px + 10, y: Y(250) };
-  // (the chains: from the winch to the bridge's end, taut)
-  for (const [ox] of [[0], [6]]) { c.strokeStyle = INK; c.lineWidth = 3; c.beginPath(); c.moveTo(winch.x - ox, winch.y); c.lineTo(e.x + 8 - ox, e.y + 2); c.stroke(); c.strokeStyle = '#8A8494'; c.lineWidth = 1.4; c.stroke(); }
+  const Tm = rampH(TIMBER), Ir = rampH(IRON), Gd = rampH(GOLD);
+  const winch = { x: d.px + 12, y: Y(250) }, shake = s.tell > 0 || s.moving ? (f % 4 < 2 ? 1 : -1) : 0;
+  // (the chains: link by link from the winch to the bridge's end, taut)
+  for (const ox of [0, 7]) {
+    const x0 = winch.x - ox, y0 = winch.y + 6, x1 = e.x + 10 - ox, y1 = e.y + 2, n = Math.max(4, Math.floor(Math.hypot(x1 - x0, y1 - y0) / 6));
+    for (let k = 0; k < n; k++) { const t = k / n, lx = x0 + (x1 - x0) * t, ly = y0 + (y1 - y0) * t; if (k % 2) { box(c, lx - 2, ly - 1, 4, 3, INK); box(c, lx - 1, ly, 2, 1, Ir[5]); } else { box(c, lx - 1, ly - 2, 3, 5, INK); box(c, lx, ly - 1, 1, 3, Ir[4]); } }
+  }
   c.save(); c.translate(d.px, d.py); c.rotate(s.ang - Math.PI);
-  // (the deck, pointing left from the pivot: -len..0 along it; its underside, the planks, the straps)
+  // (the deck, pointing left from the pivot: -len..0 along it. Its edge beam in steps, the planks' ends along it,
+  //  iron straps with rivets, the cross beams under it; its lit top: it's stood on)
   const L = d.len;
-  box(c, -L - 1, -2, L + 2, 18, INK);
-  box(c, -L, -1, L, 16, '#7A5230');
-  for (let x = -L + 4; x < -2; x += 16) box(c, x, 1, 1, 13, '#5A3A1E');
-  for (const x of [-L + 20, -L / 2, -26]) { box(c, x, -1, 6, 16, '#3A3448'); box(c, x + 1, 2, 2, 2, '#8A8494'); }
-  box(c, -L, 12, L, 3, '#4A3018');
-  // (its lit top: it's stood on)
-  box(c, -L + 2, -1, L - 4, 2, s.tell > 0 && Math.floor(state.frame / 4) % 2 ? '#FFE27A' : '#F6E7C0');
+  box(c, -L - 1, -2, L + 2, 20, INK);
+  box(c, -L, -1, L, 17, Tm[3]); box(c, -L, -1, L, 3, Tm[4]); box(c, -L, 11, L, 5, Tm[2]); checker(c, -L, 9, L, 2, Tm[2], 0, 1);
+  for (let x = -L + 2; x < -2; x += 12) { box(c, x, 2, 10, 8, Tm[(Math.floor(x / 12) & 1) ? 3 : 4]); box(c, x, 2, 10, 1, Tm[5]); box(c, x + 10, 2, 1, 9, Tm[0]); if (hash(x) > 0.6) box(c, x + 3, 5, 3, 1, Tm[1]); }
+  for (const x of [-L + 18, -L * 0.66, -L * 0.33, -24]) { box(c, x - 1, -1, 8, 18, INK); box(c, x, 0, 6, 16, Ir[3]); box(c, x, 0, 2, 16, Ir[5]); box(c, x + 2, 3, 2, 2, Ir[1]); box(c, x + 2, 11, 2, 2, Ir[1]); }
+  box(c, -L, 15, L, 2, Tm[0]);
+  for (let x = -L + 30; x < -10; x += 70) { box(c, x - 1, 16, 10, 8, INK); box(c, x, 16, 8, 7, Tm[1]); }
+  box(c, -L + 2, -1, L - 4, 2, s.tell > 0 && Math.floor(f / 4) % 2 ? '#FFE27A' : LIP[2]); box(c, -L + 2, -1, L - 4, 1, LIP[3]);
+  // (the end's iron cap and its ring for the chains)
+  box(c, -L - 2, -2, 6, 20, INK); box(c, -L - 1, -1, 4, 18, Ir[4]);
   c.restore();
-  // (the hinge at the gatehouse's foot)
-  c.fillStyle = INK; c.beginPath(); c.arc(d.px, d.py + 8, 8, 0, Math.PI * 2); c.fill();
-  c.fillStyle = '#3A3448'; c.beginPath(); c.arc(d.px, d.py + 8, 6, 0, Math.PI * 2); c.fill();
-  // (the winch's tell: it rattles)
-  if (s.tell > 0 || s.moving) { const j = state.frame % 4 < 2 ? 1 : -1; box(c, winch.x - 14 + j, winch.y - 10, 28, 20, INK); box(c, winch.x - 12 + j, winch.y - 8, 24, 16, '#5A546A'); }
-  else { box(c, winch.x - 14, winch.y - 10, 28, 20, INK); box(c, winch.x - 12, winch.y - 8, 24, 16, '#5A546A'); }
-  box(c, winch.x - 3, winch.y - 3, 6, 6, '#E0AE3A');
+  // (the hinge at the gatehouse's foot: a big iron knuckle, bolted)
+  c.fillStyle = INK; c.beginPath(); c.arc(d.px, d.py + 8, 9, 0, Math.PI * 2); c.fill();
+  c.fillStyle = Ir[2]; c.beginPath(); c.arc(d.px, d.py + 8, 7, 0, Math.PI * 2); c.fill();
+  c.fillStyle = Ir[4]; c.beginPath(); c.arc(d.px - 2, d.py + 6, 3, 0, Math.PI * 2); c.fill(); box(c, d.px - 1, d.py + 7, 2, 2, Ir[0]);
+  // (the winch on the gatehouse's front: a drum wound with chain, its gear and pawl, the crank; it rattles on the tell)
+  const wx = winch.x + shake, wy = winch.y;
+  box(c, wx - 20, wy - 14, 40, 28, INK); box(c, wx - 19, wy - 13, 38, 26, Tm[2]); box(c, wx - 19, wy - 13, 38, 2, Tm[4]);
+  c.fillStyle = INK; c.beginPath(); c.arc(wx, wy, 11, 0, Math.PI * 2); c.fill();
+  const rot = s.moving ? f * 0.3 : s.tell > 0 ? f * 0.05 : 0;
+  for (let k = 0; k < 10; k++) { const a = rot + (k / 10) * Math.PI * 2; box(c, wx + Math.cos(a) * 11 - 2, wy + Math.sin(a) * 11 - 2, 4, 4, Ir[2]); }
+  c.fillStyle = Ir[3]; c.beginPath(); c.arc(wx, wy, 9, 0, Math.PI * 2); c.fill();
+  for (let k = -7; k <= 7; k += 3) box(c, wx - 8, wy + k, 16, 2, k % 2 ? Ir[4] : Ir[2]);
+  c.fillStyle = Gd[3]; c.beginPath(); c.arc(wx, wy, 3, 0, Math.PI * 2); c.fill(); box(c, wx - 1, wy - 1, 1, 1, Gd[5]);
+  const ca = rot * 0.5; c.strokeStyle = INK; c.lineWidth = 3; c.beginPath(); c.moveTo(wx, wy); c.lineTo(wx + Math.cos(ca) * 16, wy + Math.sin(ca) * 16); c.stroke(); c.strokeStyle = Ir[4]; c.lineWidth = 1.4; c.stroke();
+  if (s.tell > 0) { c.save(); c.globalAlpha = 0.35 + 0.25 * Math.sin(f * 0.6); c.fillStyle = '#FFE27A'; c.fillRect(wx - 22, wy - 16, 44, 2); c.restore(); }
 };
 
-/** The rose beds: a hedge of thorny canes, pink and red roses on them, thorns up (it reads as a thing that hurts). */
+/** The rose beds: a hedge of thorny canes in steps, leaves, pink and red roses in bloom, thorns pointed up (it reads as
+ *  a thing that hurts). */
 const drawRoses = (c: Ctx, state: GameState, a: number, b: number, h: number) => {
   if (!onScreen(state, X(a), X(b))) return;
   const L = Math.max(X(a), state.camera.x - 40), R = Math.min(X(b), state.camera.x + 840), fy = Y(h);
+  const Lv = ['#0E2214', '#18361E', '#244C2A', '#346838', '#4E8A4A', '#78AE66'], Rd = ['#5A0A1E', '#9A1230', '#E11D48', '#FB5A7A', '#FFB0C0'], Pk = ['#7A1E4E', '#C83A82', '#F472B6', '#F9A8D4', '#FFE4F0'];
+  // (the bed's soil and its stone edging)
+  box(c, L, fy - 4, R - L, 4, '#3A2618'); checker(c, L, fy - 6, R - L, 2, '#3A2618', 0, 1);
   for (let x = Math.floor(L / 18) * 18; x < R; x += 18) {
-    const hh = 16 + ((x * 7) % 9);
-    c.strokeStyle = INK; c.lineWidth = 4; c.beginPath(); c.moveTo(x, fy); c.quadraticCurveTo(x + 10, fy - hh - 6, x + 20, fy - 2); c.stroke();
-    c.strokeStyle = '#2F5A1A'; c.lineWidth = 2; c.beginPath(); c.moveTo(x, fy); c.quadraticCurveTo(x + 10, fy - hh - 6, x + 20, fy - 2); c.stroke();
-    c.strokeStyle = '#365314'; c.lineWidth = 2; c.beginPath(); c.moveTo(x + 6, fy); c.quadraticCurveTo(x - 2, fy - hh, x + 8, fy - hh - 4); c.stroke();
-    for (const [tx, ty] of [[x + 4, fy - hh + 2], [x + 12, fy - hh - 2], [x + 17, fy - hh * 0.5]]) { c.fillStyle = '#F5F0DC'; c.beginPath(); c.moveTo(tx - 2, ty); c.lineTo(tx, ty - 6); c.lineTo(tx + 2, ty); c.closePath(); c.fill(); }
-    if ((x / 18) % 2 === 0) { const rc = (x / 18) % 4 === 0 ? '#E11D48' : '#F472B6'; c.fillStyle = INK; c.beginPath(); c.arc(x + 9, fy - hh - 1, 4, 0, Math.PI * 2); c.fill(); c.fillStyle = rc; c.beginPath(); c.arc(x + 9, fy - hh - 1, 3, 0, Math.PI * 2); c.fill(); box(c, x + 8, fy - hh - 2, 2, 1, '#FFE4F0'); }
+    const hh = 18 + ((x * 7) % 9);
+    // (canes: inked, two greens; leaves in clusters, stepped)
+    for (const [lw, col] of [[4, INK], [2, '#2F5A1A']] as const) { c.strokeStyle = col; c.lineWidth = lw; c.beginPath(); c.moveTo(x, fy); c.quadraticCurveTo(x + 10, fy - hh - 6, x + 20, fy - 2); c.moveTo(x + 6, fy); c.quadraticCurveTo(x - 2, fy - hh, x + 8, fy - hh - 4); c.stroke(); }
+    for (const [lx, ly] of [[x + 3, fy - hh * 0.5], [x + 15, fy - hh * 0.7], [x + 9, fy - hh * 0.3]]) { box(c, lx - 3, ly - 2, 7, 5, INK); box(c, lx - 2, ly - 1, 5, 3, Lv[3]); box(c, lx - 2, ly - 1, 2, 1, Lv[5]); box(c, lx + 1, ly + 1, 2, 1, Lv[1]); }
+    // (thorns)
+    for (const [tx, ty] of [[x + 4, fy - hh + 2], [x + 12, fy - hh - 2], [x + 17, fy - hh * 0.5], [x + 1, fy - hh * 0.7]]) { c.fillStyle = INK; c.beginPath(); c.moveTo(tx - 3, ty + 1); c.lineTo(tx, ty - 7); c.lineTo(tx + 3, ty + 1); c.closePath(); c.fill(); c.fillStyle = '#F5F0DC'; c.beginPath(); c.moveTo(tx - 1.5, ty); c.lineTo(tx, ty - 5); c.lineTo(tx + 1.5, ty); c.closePath(); c.fill(); }
+    // (a rose, open: petals in steps, a curl at its heart)
+    if ((x / 18) % 2 === 0) {
+      const P = (x / 18) % 4 === 0 ? Rd : Pk, rx = x + 9, ry = fy - hh - 1;
+      c.fillStyle = INK; c.beginPath(); c.arc(rx, ry, 5, 0, Math.PI * 2); c.fill();
+      c.fillStyle = P[1]; c.beginPath(); c.arc(rx, ry, 4, 0, Math.PI * 2); c.fill();
+      c.fillStyle = P[2]; c.beginPath(); c.arc(rx - 0.5, ry - 0.5, 3, 0, Math.PI * 2); c.fill();
+      box(c, rx - 2, ry - 3, 3, 2, P[3]); box(c, rx - 1, ry - 1, 2, 1, P[0]); box(c, rx - 2, ry - 3, 1, 1, P[4]);
+    } else if ((x / 18) % 4 === 1) { box(c, x + 9, fy - hh - 2, 3, 4, INK); box(c, x + 10, fy - hh - 1, 1, 2, Rd[2]); }
   }
 };
 
-/** A murder hole: the slot in the ceiling (a hoarding's floor), glowing on the tell; the pour, a column of molten
- *  butter brew, wobbling, splashing at the floor. */
+/** A murder hole: a slot in the ceiling (a hoarding's floor) in its stone surround, glowing on the tell; the pour, a
+ *  column of molten butter brew in steps, wobbling, steaming, splashing in a crown at the floor. */
 const drawHole = (c: Ctx, state: GameState, i: number) => {
   const [hx, top, floor] = HOLES[i], x = X(hx), f = state.frame;
   if (!onScreen(state, x - 40, x + 40)) return;
-  const s = holeAt(state, i), ty = Y(top);
-  // (the hole itself)
-  box(c, x - HOLE_HALF - 2, ty - 4, HOLE_HALF * 2 + 4, 6, INK);
-  box(c, x - HOLE_HALF, ty - 3, HOLE_HALF * 2, 4, s.s === 'idle' ? '#2A1E14' : '#7A3A0A');
+  const s = holeAt(state, i), ty = Y(top), St = rampH(['#272140', '#3E375A', '#585076', '#766E94', '#968EB4', '#BEB8D8']);
+  // (the surround: a corbelled lip round the slot, dark inside)
+  box(c, x - HOLE_HALF - 6, ty - 5, HOLE_HALF * 2 + 12, 9, INK); box(c, x - HOLE_HALF - 5, ty - 4, HOLE_HALF * 2 + 10, 7, St[3]); box(c, x - HOLE_HALF - 5, ty + 2, HOLE_HALF * 2 + 10, 1, St[1]); box(c, x - HOLE_HALF - 5, ty - 4, HOLE_HALF * 2 + 10, 1, St[5]);
+  box(c, x - HOLE_HALF, ty - 3, HOLE_HALF * 2, 4, s.s === 'idle' ? '#140E0A' : '#7A3A0A');
   if (s.s === 'tell') {
     c.save(); c.globalAlpha = 0.25 + 0.35 * s.k * (0.6 + 0.4 * Math.sin(f * 0.6)); c.fillStyle = '#FB923C';
-    c.beginPath(); c.ellipse(x, ty + 4, 22 + s.k * 6, 10, 0, 0, Math.PI * 2); c.fill(); c.restore();
-    box(c, x - HOLE_HALF, ty - 3, HOLE_HALF * 2, 2, '#FCD34D');
+    c.beginPath(); c.ellipse(x, ty + 4, 22 + s.k * 6, 10, 0, 0, Math.PI * 2); c.fill(); c.globalAlpha *= 0.5; c.beginPath(); c.ellipse(x, ty + 6, 34 + s.k * 8, 14, 0, 0, Math.PI * 2); c.fill(); c.restore();
+    box(c, x - HOLE_HALF, ty - 3, HOLE_HALF * 2, 2, '#FCD34D'); box(c, x - HOLE_HALF + 2, ty - 1, HOLE_HALF * 2 - 4, 1, '#FEF3C7');
+    // (a drip forming on the lip)
+    const dk2 = (f % 20) / 20; box(c, x - 4 + (i % 3) * 3, ty + 2, 2, 2 + dk2 * 4, '#F59E0B');
   }
   if (s.s === 'pour') {
     const fy = Y(floor), w = HOLE_HALF * 2 * (s.k < 0.1 ? s.k / 0.1 : s.k > 0.9 ? (1 - s.k) / 0.1 : 1);
-    c.save(); c.globalAlpha = 0.18; c.fillStyle = '#FDE68A'; c.fillRect(Math.round(x - w / 2 - 8), Math.round(ty), Math.round(w + 16), Math.round(fy - ty)); c.restore();
-    for (let y = ty; y < fy; y += 6) {
-      const wob = Math.sin(y * 0.15 + f * 0.6) * 2;
-      box(c, x - w / 2 + wob, y, w, 6, (y / 6 + f) % 3 < 1 ? '#FCD34D' : '#F59E0B');
-      box(c, x - w / 2 + wob + 2, y, Math.max(1, w * 0.2), 6, '#FEF3C7');
+    c.save(); c.globalAlpha = 0.16; c.fillStyle = '#FDE68A'; c.fillRect(Math.round(x - w / 2 - 10), Math.round(ty), Math.round(w + 20), Math.round(fy - ty)); c.globalAlpha = 0.1; c.fillRect(Math.round(x - w / 2 - 20), Math.round(ty), Math.round(w + 40), Math.round(fy - ty)); c.restore();
+    const BR = ['#9A4A06', '#D07408', '#F59E0B', '#FCD34D', '#FEF3C7', '#FFFFFF'];
+    for (let y = ty; y < fy; y += 4) {
+      const wob = Math.round(Math.sin(y * 0.15 + f * 0.6) * 2);
+      box(c, x - w / 2 + wob - 1, y, w + 2, 4, BR[1]);
+      box(c, x - w / 2 + wob, y, w, 4, (y / 4 + f) % 4 < 2 ? BR[3] : BR[2]);
+      box(c, x - w / 2 + wob + 2, y, Math.max(1, w * 0.18), 4, BR[4]);
+      box(c, x + w / 2 + wob - Math.max(1, w * 0.2), y, Math.max(1, w * 0.2), 4, BR[1]);
+      if ((y / 4 + f) % 9 === 0) box(c, x - w / 2 + wob + w * 0.4, y, 2, 2, BR[5]);
     }
-    // (the splash at the floor: a puddle)
-    c.fillStyle = '#F59E0B'; c.beginPath(); c.ellipse(x, fy - 1, w / 2 + 14, 4, 0, 0, Math.PI * 2); c.fill();
-    c.fillStyle = '#FCD34D'; c.beginPath(); c.ellipse(x - 3, fy - 2, w / 2 + 6, 2, 0, 0, Math.PI * 2); c.fill();
+    // (the splash at the floor: a crown of drops over a spreading puddle; steam curling up off it)
+    c.fillStyle = BR[1]; c.beginPath(); c.ellipse(x, fy - 1, w / 2 + 16, 5, 0, 0, Math.PI * 2); c.fill();
+    c.fillStyle = BR[3]; c.beginPath(); c.ellipse(x - 3, fy - 2, w / 2 + 8, 3, 0, 0, Math.PI * 2); c.fill();
+    for (let k = -3; k <= 3; k++) { const hgt = 6 + ((f + k * 5) % 7); box(c, x + k * (w / 6 + 3), fy - 2 - hgt, 2, hgt, BR[3]); box(c, x + k * (w / 6 + 3), fy - 4 - hgt, 2, 2, BR[4]); }
+    c.save(); for (let k = 0; k < 4; k++) { const t = ((f * 0.03 + k * 0.25) % 1), sx = x + Math.sin(t * 6 + k) * 10, sy = fy - 10 - t * 60; c.globalAlpha = 0.35 * (1 - t); c.fillStyle = '#F5F5F4'; c.fillRect(Math.round(sx - 4), Math.round(sy - 3), 8, 6); } c.restore();
   }
 };
 
@@ -265,20 +299,28 @@ export const drawHazardsBack = (c: Ctx, state: GameState) => {
     const [px, , len] = CAULDRONS[i];
     if (!onScreen(state, X(px) - len - 40, X(px) + len + 40)) continue;
     const q = cauldronAt(state, i);
-    // (the beam it hangs off: a hoarding's joist, scenery (dimmed: not stood on))
-    const bc = mix('#5A3A1E', timeOfDay().haze, 0.3);
-    box(c, q.px - 70, q.py - 9, 140, 12, INK); box(c, q.px - 69, q.py - 8, 138, 10, bc);
-    box(c, q.px - 4, q.py - 4, 8, 8, '#3A3448');
-    const n = Math.floor(len / 10);
-    for (let j = 1; j < n; j++) { const t = j / n, x = q.px + (q.x - q.px) * t, y = q.py + (q.y - BOB_R - q.py) * t; box(c, x - 2, y - 2, 4, 4, INK); box(c, x - 1, y - 1, 2, 2, '#9CA3AF'); }
-    // (the pot: black iron, golden butter brew bubbling over the top)
+    // (the beam it hangs off: a hoarding's joist, scenery (dimmed: not stood on)), its iron bracket
+    const Bm = rampH(TIMBER, true), Ir = rampH(IRON);
+    box(c, q.px - 70, q.py - 10, 140, 13, INK); box(c, q.px - 69, q.py - 9, 138, 11, Bm[3]); box(c, q.px - 69, q.py - 9, 138, 2, Bm[5]); box(c, q.px - 69, q.py - 1, 138, 2, Bm[1]);
+    for (const bx of [q.px - 60, q.px + 52]) box(c, bx, q.py - 9, 2, 11, Bm[0]);
+    box(c, q.px - 6, q.py - 6, 12, 12, INK); box(c, q.px - 5, q.py - 5, 10, 10, Ir[3]); box(c, q.px - 5, q.py - 5, 10, 2, Ir[5]); box(c, q.px - 1, q.py - 1, 2, 2, Ir[0]);
+    // (the chain, link by link)
+    const n = Math.floor(len / 6);
+    for (let j = 1; j < n; j++) { const t = j / n, x = q.px + (q.x - q.px) * t, y = q.py + (q.y - BOB_R - q.py) * t; if (j % 2) { box(c, x - 2, y - 3, 4, 6, INK); box(c, x - 1, y - 2, 1, 4, Ir[4]); } else { box(c, x - 3, y - 1, 6, 3, INK); box(c, x - 2, y, 4, 1, Ir[5]); } }
+    // (the pot: black iron in steps, its rim and lugs, golden butter brew bubbling over the top, a drip down the side)
     c.save(); c.translate(q.x, q.y); c.rotate(-q.a * 0.6);
     c.fillStyle = INK; c.beginPath(); c.ellipse(0, 2, BOB_R + 2, BOB_R - 2, 0, 0, Math.PI * 2); c.fill();
-    c.fillStyle = '#2A2830'; c.beginPath(); c.ellipse(0, 2, BOB_R, BOB_R - 4, 0, 0, Math.PI * 2); c.fill();
-    c.fillStyle = '#4A4852'; c.beginPath(); c.ellipse(-6, -3, 6, 5, 0, 0, Math.PI * 2); c.fill();
-    box(c, -BOB_R - 2, -BOB_R + 4, BOB_R * 2 + 4, 5, INK); box(c, -BOB_R - 1, -BOB_R + 5, BOB_R * 2 + 2, 3, '#5A5862');
-    c.fillStyle = '#F59E0B'; c.beginPath(); c.ellipse(0, -BOB_R + 5, BOB_R - 2, 4, 0, Math.PI, 0); c.fill();
-    for (let j = 0; j < 3; j++) { const bx = -10 + j * 10, by = -BOB_R + 1 - ((f * 0.4 + j * 7) % 8); c.fillStyle = '#FDE68A'; c.beginPath(); c.arc(bx, by, 2.5, 0, Math.PI * 2); c.fill(); }
+    c.fillStyle = Ir[1]; c.beginPath(); c.ellipse(0, 2, BOB_R, BOB_R - 4, 0, 0, Math.PI * 2); c.fill();
+    c.fillStyle = Ir[2]; c.beginPath(); c.ellipse(-2, 1, BOB_R - 3, BOB_R - 6, 0, 0, Math.PI * 2); c.fill();
+    c.fillStyle = Ir[3]; c.beginPath(); c.ellipse(-6, -2, 8, 7, 0, 0, Math.PI * 2); c.fill();
+    c.fillStyle = Ir[5]; c.beginPath(); c.ellipse(-9, -5, 3, 2, 0, 0, Math.PI * 2); c.fill();
+    for (const s of [-1, 1]) { box(c, s * (BOB_R + 1) - 3, -BOB_R + 6, 6, 5, INK); box(c, s * (BOB_R + 1) - 2, -BOB_R + 7, 4, 3, Ir[3]); }
+    box(c, -BOB_R - 2, -BOB_R + 3, BOB_R * 2 + 4, 6, INK); box(c, -BOB_R - 1, -BOB_R + 4, BOB_R * 2 + 2, 4, Ir[3]); box(c, -BOB_R - 1, -BOB_R + 4, BOB_R * 2 + 2, 1, Ir[5]);
+    for (let k = -2; k <= 2; k++) box(c, k * 6 - 1, BOB_R - 3, 3, 3, INK);
+    c.fillStyle = '#D07408'; c.beginPath(); c.ellipse(0, -BOB_R + 5, BOB_R - 2, 4, 0, Math.PI, 0); c.fill();
+    c.fillStyle = '#F59E0B'; c.beginPath(); c.ellipse(-1, -BOB_R + 5, BOB_R - 5, 3, 0, Math.PI, 0); c.fill();
+    box(c, BOB_R - 6, -BOB_R + 8, 3, 6 + ((f >> 3) % 4), '#F59E0B');
+    for (let j = 0; j < 3; j++) { const bx = -10 + j * 10, by = -BOB_R + 1 - ((f * 0.4 + j * 7) % 8); c.fillStyle = '#FDE68A'; c.beginPath(); c.arc(bx, by, 2.5, 0, Math.PI * 2); c.fill(); box(c, bx - 1, by - 1, 1, 1, '#FFFFFF'); }
     c.restore();
   }
 };
