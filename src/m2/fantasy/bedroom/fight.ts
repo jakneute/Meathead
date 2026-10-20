@@ -94,7 +94,7 @@ const SLAM_DMG = 22, BODY_DMG = 10, BOUNCE_DMG = 14, DEBRIS_DMG = 11, CHANDELIER
 /** The quake: knocked off his feet this long (no hurt). */
 const STUN_T = 26;
 /** Debris: the warning (dust, the shadow), how many (2 + the stage, at most). */
-const DEBRIS_WARN = 56, DEBRIS_MAX = 6;
+const DEBRIS_WARN = 80, DEBRIS_MAX = 6;
 /** The mains' clocks: quiet, the tell, on (frames). */
 // (more deadly, the user's: on longer, off shorter, wider, harder)
 const HAZ = { heat: [95, 55, 150], nitro: [90, 55, 140], wires: [85, 45, 140] } as const;
@@ -631,10 +631,11 @@ const loosen = (ctx: FrameContext, f: Fight, kind: HazardKind) => {
 // The mains (they never hurt her)
 
 const hazPhase = (h: Hazard) => {
-  // (once loose they stay on for good, the user's: no more in and out; the tell once, as it comes loose)
-  const tl = HAZ[h.kind][1], t = h.t;
-  if (t < tl) return { s: 'tell' as const, k: t / tl };
-  return { s: 'on' as const, k: Math.min(1, (t - tl) / 60) };
+  // (in and out (the user's): quiet (a gap to cross), the tell, on; round again. The tell's still safe)
+  const [q, tl, on] = HAZ[h.kind], t = h.t % (q + tl + on);
+  if (t < q) return { s: 'quiet' as const, k: t / q };
+  if (t < q + tl) return { s: 'tell' as const, k: (t - q) / tl };
+  return { s: 'on' as const, k: (t - q - tl) / on };
 };
 
 const tickHazards = (ctx: FrameContext, f: Fight) => {
@@ -689,7 +690,9 @@ const tickDebris = (ctx: FrameContext, f: Fight) => {
   for (const d of f.debris) {
     d.t++;
     if (d.t < DEBRIS_WARN) {
-      if (d.t % 5 === 0) state.particles.push({ pos: { x: d.x + (Math.random() - 0.5) * 20, y: CEIL_Y + 8 }, vel: { x: 0, y: 1 + Math.random() }, life: 40, color: 'rgba(240, 232, 224, 0.9)', size: 2 + Math.random() * 2, grav: 0.1 });
+      // (the tell (the user's: telegraphed): plaster sifting down in a stream, the bit shaking loose up there, creaking)
+      if (d.t % 3 === 0) state.particles.push({ pos: { x: d.x + (Math.random() - 0.5) * d.size * 0.6, y: CEIL_Y + 10 }, vel: { x: 0, y: 1.5 + Math.random() }, life: 60, color: 'rgba(240, 232, 224, 0.9)', size: 2 + Math.random() * 2, grav: 0.12 });
+      if (d.t % 20 === 10) playSound('crack', 0.2, 8 + Math.random() * 6);
       if (d.t === 1) playSound('crack', 0.25, 6 + Math.random() * 6);
       continue;
     }
@@ -1286,7 +1289,7 @@ const drawHazard = (c: Ctx, h: Hazard, fr: number) => {
     const glow = ph.s === 'tell' ? ph.k : ph.s === 'on' ? 1 : 0;
     if (glow > 0) { c.globalAlpha = 0.25 * glow; c.fillStyle = '#FDBA74'; c.beginPath(); c.arc(h.x, CEIL_Y + 44, 26 + glow * 10, 0, Math.PI * 2); c.fill(); c.globalAlpha = 1; box(c, h.x - 6, CEIL_Y + 40, 12, 4, fr % 4 < 2 ? '#FDE047' : '#F97316'); }
     // (steam: a roar of it in the tell, as it comes loose)
-    const puffs = ph.s === 'tell' ? 4 : 0;
+    const puffs = ph.s === 'quiet' ? 1 : ph.s === 'tell' ? 4 : 0;
     for (let k = 0; k < puffs; k++) { const tt = ((fr * 1.5 + k * 13) % 40) / 40; c.globalAlpha = 0.6 * (1 - tt); c.fillStyle = '#F4F4F8'; c.fillRect(h.x - 6 - tt * 14 + k * 3, CEIL_Y + 44 + tt * 40, 10 + tt * 16, 8 + tt * 8); c.globalAlpha = 1; }
     if (ph.s === 'on') {
       // (the fire: a column down to the floor, licking, banded; burning on the carpet under it)
@@ -1351,7 +1354,20 @@ export const drawFightBack = (c: Ctx, state: GameState, f: Fight) => {
   for (const d of f.debris) {
     const k = Math.min(1, d.t / DEBRIS_WARN);
     c.fillStyle = `rgba(20, 6, 14, ${(0.15 + 0.35 * k).toFixed(2)})`; c.beginPath(); c.ellipse(d.x, d.land - 1, d.size * (0.5 + 0.5 * k), d.size * 0.15, 0, 0, Math.PI * 2); c.fill();
-    if (d.t >= DEBRIS_WARN || d.t % 10 < 5) { c.strokeStyle = '#F87171'; c.lineWidth = 1; if (d.t < DEBRIS_WARN) { c.beginPath(); c.ellipse(d.x, d.land - 1, d.size * 0.7, d.size * 0.2, 0, 0, Math.PI * 2); c.stroke(); } }
+    if (d.t < DEBRIS_WARN) {
+      // (the tell, the user's: the bit hanging off the ceiling, shaking loose, cracks round it; a faint line of dust
+      // down to where it'll land; the spot ringed in red, flashing faster as it comes)
+      const jig = (fr >> 1) % 2 ? 1 : -1, sag = k * 6;
+      c.fillStyle = '#F6EADA'; c.fillRect(d.x - d.size / 2 + jig, CEIL_Y + 2 + sag, d.size, d.size * 0.5);
+      c.fillStyle = '#C8B8A8'; c.fillRect(d.x - d.size / 2 + jig, CEIL_Y + 2 + sag + d.size * 0.35, d.size, d.size * 0.15);
+      c.strokeStyle = '#3A2A30'; c.lineWidth = 1.5; c.beginPath();
+      c.moveTo(d.x - d.size * 0.6, CEIL_Y + 2); c.lineTo(d.x - d.size * 0.3, CEIL_Y + 8); c.lineTo(d.x - d.size * 0.8, CEIL_Y + 12);
+      c.moveTo(d.x + d.size * 0.6, CEIL_Y + 2); c.lineTo(d.x + d.size * 0.35, CEIL_Y + 9); c.lineTo(d.x + d.size * 0.85, CEIL_Y + 14); c.stroke();
+      c.fillStyle = `rgba(240, 232, 224, ${(0.08 + 0.12 * k).toFixed(2)})`; c.fillRect(d.x - 2, CEIL_Y + 10, 4, d.land - CEIL_Y - 10);
+      const blink = d.t % Math.max(4, Math.round(14 - 10 * k)) < 3;
+      c.strokeStyle = blink ? '#FCA5A5' : '#DC2626'; c.lineWidth = 2;
+      c.beginPath(); c.ellipse(d.x, d.land - 1, d.size * 0.9, d.size * 0.26, 0, 0, Math.PI * 2); c.stroke();
+    }
     if (d.t >= DEBRIS_WARN) { c.fillStyle = '#F6EADA'; c.fillRect(d.x - d.size / 2, d.y - d.size, d.size, d.size); c.fillStyle = '#C8B8A8'; c.fillRect(d.x - d.size / 2, d.y - d.size * 0.35, d.size, d.size * 0.35); c.fillStyle = '#E890B8'; c.fillRect(d.x - d.size / 2, d.y - d.size, d.size, 4); }
   }
   // (the chandelier swinging loose, then falling)
