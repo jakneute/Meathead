@@ -774,6 +774,62 @@ const flower = (ctx: Ctx, x: number, base: number, h: number, kind: number) => {
   else { ctx.fillStyle = '#7C6CC4'; ctx.fillRect(x - 4, y - 4, 10, 8); ctx.fillStyle = '#C4B5FD'; ctx.fillRect(x - 4, y - 6, 10, 6); ctx.fillStyle = '#EDE9FE'; ctx.fillRect(x - 2, y - 6, P, P); ctx.fillStyle = '#7C6CC4'; ctx.fillRect(x - 4, y + 2, P, P); ctx.fillRect(x + 4, y + 2, P, P); }
 };
 
+/** The far off behind the wheel (a layer of its own, its foot at WH_SKY_H): the Alps in snow (no volcanoes), the Great
+ *  Pixie's castle on its crag with Piper's pink window, and the fairground's tops (a big top, the drop tower, the
+ *  helter-skelter, the swing ride) with bunting between, snowy pines along the bottom; all in the evening's haze. */
+const WH_SKY_H = 300;
+const paintWheelSkyline = (W: number) => (g: Ctx) => {
+  const foot = WH_SKY_H;
+  const fill = (col: string, pts: number[]) => { g.fillStyle = col; g.beginPath(); g.moveTo(pts[0], pts[1]); for (let i = 2; i < pts.length; i += 2) g.lineTo(pts[i], pts[i + 1]); g.closePath(); g.fill(); };
+  // (the Alps: jagged, lit faces and shade, snow down from the peaks)
+  const peak = (x: number) => { let t = 0; for (const [px, h] of [[60, 150], [190, 196], [330, 140], [470, 210], [610, 160], [740, 188], [880, 150]] as const) t = Math.max(t, h - Math.abs(x - px) * 1.1); return foot - 70 - Math.max(20, t) + (hash(Math.floor(x / 6)) - 0.5) * 6; };
+  for (let x = 0; x < W; x += P) {
+    const y = peak(x), lit = peak(x + 2) < peak(x - 2);
+    g.fillStyle = lit ? '#7E78AE' : '#625C92'; g.fillRect(x, snap(y), P, foot - y);
+    const sl = foot - 150 + Math.sin(x * 0.03) * 14;
+    if (sl > y) { g.fillStyle = lit ? '#E4DAF4' : '#B8B0DC'; g.fillRect(x, snap(y), P, snap(sl - y)); }
+  }
+  hazeBands(g, 0, foot - 160, W, 160, '#C8A0DC', 0.1, 0.55, 5);
+  // (the castle on its crag)
+  const cx = W * 0.3, base = foot - 60;
+  fill('#5A527E', [cx - 80, base + 40, cx - 50, base - 20, cx - 10, base - 34, cx + 40, base - 18, cx + 86, base + 40]);
+  const tower = (x: number, top: number, w: number, roofH: number) => {
+    g.fillStyle = WH_INK; g.fillRect(snap(x - w / 2 - 1), snap(top - 1), w + 2, base - top + 2);
+    g.fillStyle = '#C8BCE0'; g.fillRect(snap(x - w / 2), snap(top), w, base - top); g.fillStyle = '#E6DCF4'; g.fillRect(snap(x - w / 2), snap(top), Math.max(P, snap(w * 0.3)), base - top); g.fillStyle = '#9A8EC0'; g.fillRect(snap(x + w * 0.2), snap(top), Math.max(P, snap(w * 0.3)), base - top);
+    fill(WH_INK, [x - w / 2 - 3, top, x, top - roofH - 2, x + w / 2 + 3, top]); fill('#4A78D4', [x - w / 2 - 2, top - 1, x, top - roofH, x + w / 2 + 2, top - 1]); fill('#7AA8F0', [x - w / 2 - 2, top - 1, x, top - roofH, x - w * 0.1, top - 1]);
+    g.fillStyle = '#F2C84A'; g.fillRect(snap(x - w / 2 - 2), snap(top - 4), w + 4, P);
+    g.fillStyle = '#FFE9A8'; g.fillRect(snap(x - 1), snap(top + 8), P, 6);
+  };
+  tower(cx - 40, base - 70, 14, 30); tower(cx + 44, base - 64, 14, 26); tower(cx - 18, base - 110, 18, 40); tower(cx + 20, base - 104, 16, 36); tower(cx, base - 160, 22, 54);
+  g.fillStyle = '#FF8AC8'; g.fillRect(snap(cx - 3), snap(base - 150), 6, 10); g.fillStyle = '#FFD0E8'; g.fillRect(snap(cx - 3), snap(base - 150), P, 4);
+  g.fillStyle = '#B8ACD4'; g.fillRect(snap(cx - 56), snap(base - 30), 112, 30); for (let k = 0; k < 14; k++) g.fillRect(snap(cx - 56 + k * 8), snap(base - 36), 4, 6);
+  // (the fairground's tops along the bottom)
+  const fair = foot - 10;
+  // (a big top)
+  for (let k = 0; k < 8; k++) fill(k % 2 ? '#F4E8F0' : '#D8508E', [W * 0.55 + k * 18, fair, W * 0.55 + 72, fair - 90, W * 0.55 + (k + 1) * 18, fair]);
+  // (the drop tower and its star)
+  const tx = W * 0.82; g.fillStyle = '#5A527E'; g.fillRect(snap(tx - 7), snap(fair - 230), 14, 230); g.fillStyle = '#8A80B0'; g.fillRect(snap(tx - 7), snap(fair - 230), 4, 230);
+  for (let y = fair - 220; y < fair; y += 16) { g.fillStyle = '#4A4270'; g.fillRect(snap(tx - 7), snap(y), 14, P); }
+  fill('#F2C84A', [tx, fair - 262, tx + 5, fair - 248, tx + 16, fair - 246, tx + 7, fair - 238, tx + 10, fair - 226, tx, fair - 234, tx - 10, fair - 226, tx - 7, fair - 238, tx - 16, fair - 246, tx - 5, fair - 248]);
+  // (the helter-skelter)
+  const hx = W * 0.7; for (let k = 0; k < 8; k++) { g.fillStyle = k % 2 ? '#F49AC8' : '#FFF0F8'; g.fillRect(snap(hx - 10 - k), snap(fair - 140 + k * 17), 20 + k * 2, 17); }
+  fill('#9EE6C8', [hx - 14, fair - 140, hx, fair - 172, hx + 14, fair - 140]);
+  // (bunting slung between them; snowy pines along the bottom)
+  const flags = ['#E0408A', '#F6D365', '#4A78D4', '#9EE6C8'];
+  for (let k = 0; k < 20; k++) { const t = k / 20, x = hx + (tx - hx) * t, y = fair - 130 + (fair - 200 - (fair - 130)) * t + Math.sin(t * Math.PI) * 24; fill(flags[k % 4], [x - 3, y, x + 3, y, x, y + 6]); }
+  for (let x = 0; x < W; x += 16) { const h = 24 + hash(x) * 22; for (let k = 0; k < 3; k++) fill(k % 2 ? '#2C4E50' : '#1E3A3E', [x - 4 - k * 4, foot - h + k * h / 3 + h / 3, x, foot - h + k * h / 3, x + 4 + k * 4, foot - h + k * h / 3 + h / 3]); g.fillStyle = '#E8ECF8'; g.fillRect(snap(x - 6), snap(foot - h + h / 3), 8, P); }
+  g.fillStyle = '#1E3A3E'; g.fillRect(0, foot - 6, W, 6);
+  hazeBands(g, 0, foot - 120, W, 120, '#C8A0DC', 0.05, 0.25, 4);
+};
+/** Clouds the camera falls past (stepped puffs), y in the fall's scroll. */
+const wheelClouds = (ctx: Ctx, W: number, rest: number) => {
+  for (let i = 0; i < 9; i++) {
+    const x = hash(i * 3.3) * W, y = -200 + i * 150 + rest * 0.55 - 300, s = 0.7 + hash(i * 1.7) * 0.8;
+    if (y < -80 || y > 520) continue;
+    for (const [col, dy, k] of [['#9A88C8', 4, 1], ['#C8B4E4', 0, 0.9], ['#F0DCF4', -4, 0.7], ['#FFFFFF', -7, 0.35]] as const) for (let p = 0; p < 5; p++) pixelBlob(ctx, x + (p - 2) * 22 * s, y - Math.sin((p / 4) * Math.PI) * 16 * s + dy * s, 20 * s * k, 11 * s * k, col);
+  }
+};
+
 /** The plaza under the wheel (in a layer of its own, WH_GL_TOP its top): the hedge along the back, the cobbles, the
  *  raised flower bed in the middle (its soil at WH_BED) with its flowers and toadstools (none where he goes in). */
 const paintWheelGround = (W: number) => (g: Ctx) => {
@@ -861,6 +917,15 @@ const fairyWheel = (ctx: Ctx, state: GameState, d: MeatheadDeath, t: number, f: 
   const speed = t < WHEEL_STOP ? 6 + 0.5 * t : 0;
   // The sky: evening over the park, banded
   bandedGradient(ctx, 0, 0, W, H, ['#2A2F7A', '#4A4CA8', '#8A78CC', '#C8A0DC', '#F0C0D8', '#F8D8D0'], 14);
+  // The far off coming up into the shot as he falls (the Alps, the castle, the fairground's tops), clouds whipping past
+  {
+    const sy = WH_GL_TOP + 24 - WH_SKY_H + rest * 0.3;
+    wheelClouds(ctx, W, rest);
+    if (sy < H) {
+      if (typeof document === 'undefined') { ctx.save(); ctx.translate(0, sy); paintWheelSkyline(W)(ctx); ctx.restore(); }
+      else ctx.drawImage(stillCanvas('wheel-skyline', W, WH_SKY_H, paintWheelSkyline(W)), 0, snap(sy));
+    }
+  }
   // The wheel, far: its rim and spokes and lights turning slow, its gondolas round it, the A-frame down to the plaza
   {
     const hx = cx + 120, hy = 30 + rest * 0.35, ang = t * 0.004, R0 = 380;

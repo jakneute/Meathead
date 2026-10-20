@@ -673,3 +673,24 @@ markBossFight every frame of a boss or sub-boss fight. Voice every new line (`np
   rotate-to-lie sank them into the cobbles), snow hazards and throws, the staircases, the suitors (stepped shading,
   same looks), the castle (more spires, banners, a road up its crag), the loudspeaker (letterbox framing) and the
   walk-in. Drawing only: no layout, timing or hitbox changes.
+- (SNES pass, the fairy wheel) The user: "the fairy wheel is lacking in detail in the background". The camera climbs
+  1300 px, so the far off (wheel/far.ts, every layer a tile cached per hour) slides down by nearness as he climbs: the
+  banded sky, cirrus and cumulus at three heights (the tallest only from up the wheel), birds by day / fireworks after
+  dark, balloons got away, the square's Alps (exported from square/far.ts), the castle, the park (the glen's forest,
+  Tragons' tracks and station, teacups, flying pixies, Hogsmeat's roofs and steeple, turrets, the frozen lake with
+  skaters), and the fairground's rides standing up over the near stalls (a big top, THE WAND drop tower with its seats
+  going up and dropping, the helter-skelter, the swing ride's chairs flying round, the galleon swing, the dark ride's
+  castle front, the gift shop turret, flag masts, bunting slung between the tops, lit trees, crowds). Round the play
+  plane (wheel/fair.ts, one eye): the plaza's flags going back, the hedge with topiary and the trees at 0.72, the
+  midway at 0.8 with sides going back (game booths with plush, food stalls with their wares big on the roofs, MADAME
+  FAE's tent, the strongman's bell, gift shops, the wheel's BOARD HERE pavilion behind its feet), and at 0.92 lamp
+  posts with fairy lights strung between, seeded crowds behind rope rails (bobbing, cheering), topiary, benches, candy
+  carts, and the fountain (Piper in bronze, water live); the paving bent, its kerb lit. The wheel (art.ts): lattice
+  truss A-frame on stone plinths (a stamp), stepped rims laced between, braced spokes, gilt bosses, two rings of
+  pixie lights with halos after dark, a two-tier flower hub with a heart gem, the PA horn in stepped brass; the
+  gondolas stamped (petal backs, tufted benches, banded spotted toadstool caps with frilled gills, gilt plaques) with
+  veined wings and twinkling lights live; floors' warm lips; the kiosk, the velvet-rope queue, the flower beds, the
+  gate posts and rose gates; the throws redrawn. The kills got impact bursts, sweat, teeth, speed lines and a splat on
+  the beds; the QTE panel dressed as a gondola (cap, fairy lights, gilt plaque, hearts for steps, banded fills);
+  fall_wheel's kill cam got clouds and a far skyline (Alps, castle, fairground tops). The plaza's lanterns, stalls and
+  the wheel's rim light the night (lamps). Drawing only.

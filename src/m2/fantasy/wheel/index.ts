@@ -45,8 +45,11 @@ import {
   KILLED, ALL_DEAD, PIPER_START, PIPER_KILL, PIPER_KNOCK, PIPER_RIVAL, PIPER_DONE,
 } from './lines';
 import { startQte, updateQte, qteEdge } from './qte';
-import { nextKill, updateKill, updateBodies, drawKill, drawStruggle, drawBody, drawSuitorAt, spots } from './kills';
+import { nextKill, updateKill, updateBodies, drawKill, drawStruggle, drawBody, drawSuitorAt, drawSplat, spots } from './kills';
 import { drawWheelBackdrop, drawWheel, drawCartBack, drawCartFloor, drawItem, drawPlaza, drawGate, drawHubHorn } from './art';
+import { fairLamps } from './fair';
+import { viewOf } from '../kit';
+import { timeOfDay } from '../../timeOfDay';
 
 for (const [source, l] of Object.entries(HURT)) registerHurtLines(source, l.hurt, l.death);
 // (killed thrown out of a cart, or by a fall off the wheel: the fall's own kill cam, not coming apart in mid-air)
@@ -359,7 +362,7 @@ export const wheel: FantasySection = {
     drawPlaza(c, state);
     // (the corpses on the flower beds)
     for (const [i, d] of kept.dead) if (d.groundX !== undefined) {
-      c.fillStyle = '#7F1D1D'; c.beginPath(); c.ellipse(d.groundX, GY - 1, 44, 5, 0, 0, Math.PI * 2); c.fill();
+      drawSplat(c, d.groundX, GY, i);
       drawSuitorAt(c, d.groundX, GY, 0, 1, 0, ROSTER[i].look, 'dead');
     }
     drawWheel(c, state, w.ang);
@@ -416,4 +419,17 @@ export const wheel: FantasySection = {
   },
   cameraRow: () => 430,
   outdoors: () => 1,
+  lamps: (state) => {
+    // (after dark: the plaza's lanterns and stalls, and the wheel's pixie lights round its rim and on the gondolas)
+    const out = fairLamps(state, viewOf(state));
+    if (out.length || timeOfDay().lamps > 0.05) {
+      const w = wheelOf(state), hx = X(HUB.x), hy = Y(HUB.h), cx = state.camera.x, cy = state.camera.y;
+      for (let k = 0; k < N; k++) {
+        const a = w.ang + (k * Math.PI * 2) / N, lx = hx + Math.cos(a) * R, ly = hy + Math.sin(a) * R;
+        if (lx > cx - 150 && lx < cx + 950 && ly > cy - 150 && ly < cy + 750) out.push({ x: lx, y: ly + HANG - 84, r: 110, a: 0.45, color: k % 2 ? '#FFD0E8' : '#FFF0B0' });
+      }
+      if (hx > cx - 200 && hx < cx + 1000 && hy > cy - 200 && hy < cy + 800) out.push({ x: hx, y: hy, r: 160, a: 0.5, color: '#FFB0D8' });
+    }
+    return out;
+  },
 };

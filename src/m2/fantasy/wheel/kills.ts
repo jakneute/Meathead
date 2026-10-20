@@ -163,6 +163,8 @@ export const updateKill = (ctx: FrameContext, w: Wheel, k: Kill, pickTarget: () 
         const [hx, hy] = rotP(0, -80, fr.rot);
         playSound('crunch', 1, -4 + t / 20); playSound('clang', 0.5, -8); shakeScreen(state, 8, 4);
         blood(ctx, fr.x + hx + side * 6, fr.y + hy, side, 0.35);
+        // (a tooth or two)
+        for (let i = 0; i < 2; i++) state.particles.push({ pos: { x: fr.x + hx + side * 6, y: fr.y + hy + 6 }, vel: { x: -side * (1 + Math.random() * 2), y: -3 - Math.random() * 2 }, life: 50, color: '#FFFBEA', size: 2, grav: 0.3 });
       }
       if (t === 48) yell(w, k.i, 'smash');
       if (t === 128) poop(state, sx, fy - 30);
@@ -274,17 +276,66 @@ export const drawSuitorAt = (c: Ctx, x: number, y: number, rot: number, face: 1 
   c.restore();
 };
 
+/** An impact: a stepped starburst (white, yellow, pink at the tips), `u` 0..1 through its few frames. */
+const burst = (c: Ctx, x: number, y: number, r: number, u: number) => {
+  const k = 1 - u, rr = r * (0.6 + u * 0.6);
+  for (const [s, col] of [[1.12, INK], [1, '#F472B6'], [0.75, '#FEF08A'], [0.42, '#FFFFFF']] as const) {
+    c.fillStyle = col; c.beginPath();
+    for (let i = 0; i < 16; i++) { const a = (i * Math.PI) / 8 + 0.2, q = (i % 2 ? 0.45 : 1) * rr * s * (0.7 + k * 0.3); c.lineTo(x + Math.cos(a) * q, y + Math.sin(a) * q); }
+    c.closePath(); c.fill();
+  }
+};
+/** Effort: sweat flying off a head (`n` drops, stepped blue-white), now and then. */
+const sweat = (c: Ctx, x: number, y: number, f: number, seed: number) => {
+  for (let i = 0; i < 3; i++) {
+    const t = ((f + seed * 7 + i * 9) % 26) / 26, dir = i % 2 ? 1 : -1, px = x + dir * (6 + t * 16), py = y - 6 - Math.sin(t * Math.PI) * 12 + t * 8;
+    if (t > 0.85) continue;
+    box(c, px - 1, py - 2, 4, 5, INK); box(c, px, py - 1, 2, 3, '#A5F3FC'); box(c, px, py - 1, 1, 1, '#FFFFFF');
+  }
+};
+/** Speed lines behind something moving at (vx, vy). */
+const speedLines = (c: Ctx, x: number, y: number, vx: number, vy: number, seed: number) => {
+  const sp = Math.hypot(vx, vy); if (sp < 3) return;
+  const ux = -vx / sp, uy = -vy / sp, nx = -uy, ny = ux;
+  for (let i = 0; i < 5; i++) {
+    const o = (hashN(seed + i) - 0.5) * 50, l = 18 + hashN(seed * 3 + i) * 26, sx = x + nx * o + ux * 26, sy = y + ny * o + uy * 26;
+    c.strokeStyle = 'rgba(255,255,255,0.7)'; c.lineWidth = 2; c.beginPath(); c.moveTo(sx, sy); c.lineTo(sx + ux * l, sy + uy * l); c.stroke();
+  }
+};
+const hashN = (n: number) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
+
 /** The kill on now (world space, in front of everything in the gondola): the suitor, the floor over him if he's through
- *  it, Meathead. */
+ *  it, Meathead; the hits' bursts, the sweat, the splinters. */
 export const drawKill = (c: Ctx, state: GameState, w: Wheel, k: Kill) => {
-  const f = state.frame, s = ROSTER[k.i], fr = frameOf(w, k), { fx, fy, side, mx } = spots(w, k.i);
+  const f = state.frame, s = ROSTER[k.i], fr = frameOf(w, k), { fx, fy, side, mx, sx } = spots(w, k.i), t = k.t;
   if (!(k.released && (k.how === 'throw' || k.how === 'fling'))) {
+    if (k.how === 'fling' && t >= 16 && t < 80) {
+      // (the swing's blur: where he was a frame or two back, faint)
+      c.globalAlpha = 0.3; drawSuitorAt(c, fr.x, fr.y, fr.rot - 0.5, fr.face, f, s.look, fr.pose); c.globalAlpha = 1;
+    }
     drawSuitorAt(c, fr.x, fr.y, fr.rot, fr.face, f, s.look, fr.pose, { purple: fr.purple, roses: fr.roses });
     if (fr.floor) drawCartFloor(c, s.cart, fx, fy);
   }
   if (fr.bouquet === 'him') drawItem(c, 'bouquet', fr.x - side * 30, fy - 96, 0);
   if (fr.bouquet === 'meathead') drawItem(c, 'bouquet', fr.hands[0][0], fr.hands[0][1] - 4, side * 1.2);
   drawMeathead(c, mx, fy, side, f, fr.hands, fr.lean, fr.mood, fr.hop);
+  // (the hits)
+  if (k.how === 'smash') for (const hit of [46, 76, 106]) if (t >= hit && t < hit + 6) { const [hx, hy] = rotP(0, -80, fr.rot); burst(c, fr.x + hx + side * 8, fr.y + hy, 18, (t - hit) / 6); }
+  if (k.how === 'floor' && t >= 40 && t < 47) { burst(c, sx, fy + 4, 24, (t - 40) / 7); for (let i = 0; i < 6; i++) { const a = (i / 6) * Math.PI + 0.2, d = (t - 40) * 5; box(c, sx + Math.cos(a) * d - 3, fy + 4 - Math.sin(a) * d * 0.6, 6, 2, i % 2 ? '#A85A98' : '#6E2A6E'); } }
+  if (k.how === 'choke' && t >= 14 && t < 92 && (t - 14) % 12 < 3) burst(c, sx - side * 10, fy - 84, 9, ((t - 14) % 12) / 3);
+  if (k.how === 'throw' && t >= 26 && t < 44) sweat(c, mx, fy - 64, f, 1);
+  if (k.how === 'smash' && t < 110) sweat(c, fr.x + rotP(0, -80, fr.rot)[0], fr.y + rotP(0, -80, fr.rot)[1], f, 2);
+};
+
+/** A body come down on the flower beds: a pool in steps, the flowers flattened round him, petals. */
+export const drawSplat = (c: Ctx, x: number, y: number, seed: number) => {
+  c.fillStyle = INK; c.beginPath(); c.ellipse(x, y - 1, 48, 6, 0, 0, Math.PI * 2); c.fill();
+  c.fillStyle = '#5A0E0E'; c.beginPath(); c.ellipse(x, y - 1, 46, 5, 0, 0, Math.PI * 2); c.fill();
+  c.fillStyle = '#7F1D1D'; c.beginPath(); c.ellipse(x - 4, y - 1.5, 36, 3.5, 0, 0, Math.PI * 2); c.fill();
+  c.fillStyle = '#B91C1C'; c.beginPath(); c.ellipse(x - 10, y - 2, 16, 1.5, 0, 0, Math.PI * 2); c.fill();
+  for (let i = 0; i < 9; i++) { const px = x - 60 + hashN(seed * 11 + i) * 120, py = y - 3 - hashN(seed * 7 + i) * 8; box(c, px, py, 3, 2, ['#F472B6', '#FEF08A', '#E11D48', '#A5F3FC'][i % 4]); }
+  for (let i = 0; i < 5; i++) { const px = x - 50 + hashN(seed * 5 + i) * 100; box(c, px, y - 2, 6, 2, '#2A6A2A'); box(c, px + 2, y - 3, 3, 1, '#3A8A3A'); }
+  for (let i = 0; i < 6; i++) { const px = x - 30 + hashN(seed * 13 + i) * 60; box(c, px, y - 5 - hashN(seed + i) * 6, 2, 2, '#991B1B'); }
 };
 
 /** Meathead in a suitor's cart for the QTE: grappling him, leaning in as he wins it, shoved back as he loses it. */
@@ -295,10 +346,16 @@ export const drawStruggle = (c: Ctx, state: GameState, w: Wheel, i: number, edge
   drawSuitorAt(c, sx + side * Math.max(0, push), fy, rot, (-side) as 1 | -1, f, s.look, edge > 0.55 ? 'hurt' : lock < 1 ? 'talk' : 'flex');
   const [hx, hy] = rotP(0, -64, rot);
   drawMeathead(c, mx + side * push * 0.5, fy, side, f, [[sx + hx - side * 8, fy + hy + jig], [sx + hx - side * 12, fy + hy - 6 - jig]], 0.18 + edge * 0.1, edge > 0.5 ? 'roar' : 'grit');
+  // (straining: sweat off them both, a little burst where they're locked together every so often)
+  const [qx, qy] = rotP(0, -86, rot);
+  sweat(c, sx + side * Math.max(0, push) + qx, fy + qy, f, i);
+  sweat(c, mx + side * push * 0.5, fy - 70, f + 13, i + 4);
+  if (f % 20 < 3) burst(c, (mx + sx) / 2, fy - 62, 8, (f % 20) / 3);
 };
 
-/** A body in the air (thrown, flung). */
+/** A body in the air (thrown, flung): speed lines behind him. */
 export const drawBody = (c: Ctx, state: GameState, b: Body) => {
+  speedLines(c, b.x, b.y, b.vx, b.vy, b.i * 5 + Math.floor(state.frame / 3));
   c.save(); c.translate(b.x, b.y); c.rotate(b.rot);
   drawSuitor(c, 0, 46, 1, state.frame, ROSTER[b.i].look, 'hurt');
   c.restore();

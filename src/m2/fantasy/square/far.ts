@@ -59,7 +59,7 @@ const paintClouds = (g: Ctx, tod: TimeOfDay) => {
 // ---------------------------------------------------------------------------------------------------------------
 // The Alps, far off
 
-const MW = 1100, MH = 250;
+export const MW = 1100, MH = 250;
 const PEAKS: [number, number, number][] = [[60, 170, 1.1], [190, 205, 1.3], [300, 150, 0.9], [420, 230, 1.4], [540, 175, 1.0], [640, 196, 1.2], [770, 140, 0.8], [880, 214, 1.35], [1000, 160, 1.0]];
 const ridge = (x: number) => {
   let top = 0;
@@ -67,7 +67,7 @@ const ridge = (x: number) => {
   return snap2(MH - Math.max(30, top) + jag(x, MW, 6, 3) * 6);
 };
 const snowLine = (x: number) => snap2(MH - 112 + wave(x, MW, 2.2, 2) * 18 + jag(x, MW, 10, 7) * 10);
-const paintAlps = (g: Ctx, tod: TimeOfDay) => {
+export const paintAlps = (g: Ctx, tod: TimeOfDay) => {
   const T = farCol(tod, 0.5);
   const ROCK = ['#4E4A6E', '#62608A', '#7A78A2', '#9694BC'].map(T), SN = ['#9CA8CC', '#BCC8E6', '#DCE6F6', '#F6FAFF'].map(T);
   for (let x = 0; x < MW; x += 2) {
@@ -94,7 +94,7 @@ const paintAlps = (g: Ctx, tod: TimeOfDay) => {
 
 const PW = 1700, PH = 190;
 const pineRidge = (x: number) => snap2(PH - 60 + wave(x, PW, 4.4, 2) * 10 + jag(x, PW, 8, 11) * 4);
-const farPine = (g: Ctx, x: number, foot: number, h: number, P: string[], S: string) => {
+export const farPine = (g: Ctx, x: number, foot: number, h: number, P: string[], S: string) => {
   for (let k = 0; k < 4; k++) {
     const y = foot - h + (k * h) / 4, half = 2 + (k + 1) * (h / 9);
     g.fillStyle = P[0]; g.beginPath(); g.moveTo(x, y - 2); g.lineTo(x + half, y + h / 4); g.lineTo(x - half, y + h / 4); g.closePath(); g.fill();
