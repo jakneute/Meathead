@@ -19,6 +19,8 @@
 // reaction, the fight's taunts).
 // opts.thin (her fight's flintlock holes, the deflated balloon: bedroom/): 0 her .. 1 a SUPERMODEL .. 2 skin and bone.
 
+import { drawGrossUp } from './piperGross';
+
 type Ctx = CanvasRenderingContext2D;
 
 export type PiperPose =
@@ -87,6 +89,29 @@ const dith = (c: Ctx, color: string): CanvasPattern | string => {
   dithers.set(color, p);
   return p;
 };
+/** Her textures, painted the once each as a little tile and laid over a shape (clipped to it) as a pattern: the
+ *  cellulite's dimples, the stubble on her legs, the sequins on the satin, the glitter stuck in her sweat. */
+const textures = new Map<string, CanvasPattern | null>();
+const tex = (c: Ctx, key: string, w: number, h: number, paint: (g: Ctx) => void): CanvasPattern | null => {
+  if (textures.has(key)) return textures.get(key)!;
+  if (typeof document === 'undefined') return null;
+  const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+  paint(cv.getContext('2d')!);
+  const p = c.createPattern(cv, 'repeat');
+  textures.set(key, p);
+  return p;
+};
+const dots = (g: Ctx, col: string, pts: number[]) => { g.fillStyle = col; for (let i = 0; i < pts.length; i += 2) g.fillRect(pts[i], pts[i + 1], 1, 1); };
+const CELLULITE = (c: Ctx) => tex(c, 'cellulite', 9, 7, (g) => { dots(g, 'rgba(110, 50, 42, 0.42)', [1, 1, 2, 1, 6, 4, 3, 5, 4, 5]); dots(g, 'rgba(255, 244, 232, 0.4)', [1, 2, 2, 2, 6, 5, 3, 6, 4, 6]); });
+const STUBBLE = (c: Ctx) => tex(c, 'stubble', 5, 4, (g) => { dots(g, 'rgba(50, 26, 18, 0.55)', [0, 0, 3, 2]); dots(g, 'rgba(50, 26, 18, 0.3)', [1, 3, 4, 0]); });
+const SEQUINS = (c: Ctx) => tex(c, 'sequins', 6, 6, (g) => { dots(g, 'rgba(255, 214, 238, 0.6)', [0, 0, 3, 3]); dots(g, 'rgba(110, 8, 56, 0.35)', [1, 1, 4, 4]); dots(g, 'rgba(255, 255, 255, 0.55)', [3, 0]); });
+const GREASE = (c: Ctx) => tex(c, 'grease', 11, 9, (g) => { dots(g, '#FFFFFF', [2, 1]); dots(g, '#FFE070', [8, 4]); dots(g, '#FFB0E0', [5, 7]); dots(g, 'rgba(255, 255, 255, 0.45)', [9, 0, 0, 5]); });
+/** A texture laid over a shape (`k` how strongly). */
+const overlay = (c: Ctx, path: () => void, pat: CanvasPattern | null, k = 1) => {
+  if (!pat || k <= 0) return;
+  c.save(); c.beginPath(); path(); c.clip(); c.globalAlpha *= k; c.fillStyle = pat; c.fillRect(-400, -400, 800, 800); c.restore();
+};
+
 /** A shape in its ramp: the base, a lit band down its left, a shade band then a deep one down its right (stepped, a
  *  dithered seam between each), outlined in its line tone. */
 const shape = (c: Ctx, path: () => void, r: Ramp, x0: number, x1: number, lw = 1) => {
@@ -137,6 +162,7 @@ const fatLimb = (c: Ctx, x1: number, y1: number, r1: number, x2: number, y2: num
     c.arc(x1, y1, r1, Math.atan2(-ny, -nx), Math.atan2(ny, nx));
   };
   shape(c, path, r, Math.min(x1, x2) - Math.max(r1, r2), Math.max(x1, x2) + Math.max(r1, r2));
+  return path;
 };
 /** A star (the wand's, the glitter's). */
 const star = (c: Ctx, x: number, y: number, r: number, col: string, rot = 0) => fill(c, col, () => {
@@ -150,15 +176,24 @@ const sparkle = (c: Ctx, x: number, y: number, s: number, col: string) => { px(c
 
 /** The wings: little gossamer things on her back (`buzz`: blurred, beating; `crumple`: bent, down). */
 const wings = (c: Ctx, x: number, y: number, f: number, buzz: boolean, crumple = false) => {
-  const beat = buzz ? Math.sin(f * 2.2) * 0.5 : Math.sin(f * 0.08) * 0.08;
+  // (straining: a tremble in them even at rest, like they're holding her up)
+  const beat = buzz ? Math.sin(f * 2.2) * 0.5 : Math.sin(f * 0.08) * 0.08 + Math.sin(f * 0.9) * 0.025;
   for (const [k, sc] of [[0, 1], [1, 0.8]] as const) {
     c.save(); c.translate(x - k * 4, y + k * 6); c.rotate(-0.5 - beat - k * 0.3 + (crumple ? 1.1 : 0)); c.scale(sc, sc);
     c.globalAlpha = buzz ? 0.55 : 0.85;
     const path = () => { c.moveTo(0, 0); c.bezierCurveTo(-8, -18, -26, -26, -30, -12); c.bezierCurveTo(-30, -2, -14, 4, 0, 0); };
     shape(c, path, WING, -30, 0);
+    // (an oil-slick sheen across the membrane)
+    c.save(); c.beginPath(); path(); c.clip(); c.globalAlpha *= 0.4;
+    ell(c, -18, -13, 10, 3, '#B8F4FF', -0.4); ell(c, -21, -8, 8, 2.5, '#FFC8F0', -0.4); ell(c, -10, -6, 6, 2, '#FFF4B8', -0.4);
+    c.restore();
     c.globalAlpha = 1;
-    // (the veins, and a glint)
+    // (the veins, branching, the cells between them; a ragged tear in the near one; glitter stuck on; a glint)
     line(c, [0, 0, -18, -14, -26, -14], 0.7, WING[3]); line(c, [-8, -4, -20, -4], 0.6, WING[3]);
+    line(c, [-10, -8, -12, -18], 0.5, WING[3]); line(c, [-18, -14, -22, -21], 0.5, WING[3]); line(c, [-14, -4, -17, 0], 0.5, WING[3]); line(c, [-22, -4, -28, -8], 0.5, WING[3]);
+    line(c, [-5, -7, -9, -12], 0.4, WING[4]);
+    if (!k) { line(c, [-29, -9, -25, -9, -27, -6, -24, -5], 0.6, WING[4]); px(c, -26, -8, 1, 1, '#FFFFFF'); }
+    for (let i = 0; i < 5; i++) { const gx = -5 - ((i * 7) % 22), gy = -3 - ((i * 5) % 14); px(c, gx, gy, 1, 1, (f + i * 11 + k * 5) % 30 < 4 ? '#FFFFFF' : i % 2 ? '#FFD6F4' : '#FFF0A0'); }
     px(c, -22, -18, 2, 1, '#FFFFFF');
     c.restore();
   }
@@ -171,8 +206,12 @@ const foot = (c: Ctx, x: number, y: number, near: boolean) => {
   shape(c, () => { c.moveTo(x - 6, y); c.lineTo(x - 6, y - 5); c.quadraticCurveTo(x + 2, y - 8, x + 12, y - 3); c.lineTo(x + 12, y); c.closePath(); }, r, x - 6, x + 12, 0.8);
   px(c, x - 6, y - 1, 2, 4, r[3]);
   px(c, x - 2, y - 6, 4, 1, '#FFFFFF');
-  // (the ankle spilling over the top)
-  shapeTop(c, () => c.ellipse(x + 2, y - 8, 8, 4, 0, 0, Math.PI * 2), near ? SKIN : ([SKIN[1], SKIN[2], SKIN[3], SKIN[3], SKIN[4]] as const), y - 12, y - 4, 0.8);
+  // (the glass cracking under her: a crack up the side, the heel bowed)
+  line(c, [x + 4, y - 5, x + 6, y - 3, x + 5, y - 1], 0.5, '#FFFFFF'); line(c, [x + 4.6, y - 5, x + 6.6, y - 3], 0.4, r[4]);
+  // (the ankle spilling over the top, its fat hanging in a ring)
+  const ankle = () => c.ellipse(x + 2, y - 8, 8, 4, 0, 0, Math.PI * 2);
+  shapeTop(c, ankle, near ? SKIN : ([SKIN[1], SKIN[2], SKIN[3], SKIN[3], SKIN[4]] as const), y - 12, y - 4, 0.8);
+  overlay(c, ankle, STUBBLE(c), 0.8);
 };
 
 /** The beehive: platinum, towering, the tiara jammed in its front (`mess` brings it down in loose loops). */
@@ -184,12 +223,24 @@ const beehive = (c: Ctx, hx: number, hy: number, mess: number, f: number) => {
   // (the swirl lines of the backcombing)
   for (let k = 0; k < 4; k++) { c.strokeStyle = HAIR[3]; c.lineWidth = 0.8; c.beginPath(); c.arc(0, -16 - k * 8 + mess * 10, 14 - k * 2, Math.PI * 1.1, Math.PI * 1.9); c.stroke(); }
   px(c, -10, -40 + mess * 20, 6, 2, HAIR[0]);
+  c.save(); c.beginPath(); path(); c.clip();
+  // (the backcombed strands; the hairspray's sheen, dithered; the black roots coming through the bleach at its base)
+  for (let k = 0; k < 7; k++) line(c, [-17 + k * 6, 4, -15 + k * 5, -14 - (k % 3) * 9 + mess * 10, -12 + k * 4, -26 - (k % 2) * 8 + mess * 14], 0.5, k % 2 ? HAIR[2] : HAIR[0]);
+  c.fillStyle = dith(c, HAIR[0]); c.fillRect(-13, -47 + mess * 20, 7, 12);
+  c.fillStyle = dith(c, '#6A4A26'); c.fillRect(-24, 0, 48, 3); px(c, -24, 3, 48, 4, '#5A3E1E');
+  c.restore();
+  // (frizz flying off it; bobby pins jammed in, a couple working loose)
+  line(c, [-21, -26 + mess * 12, -26, -30 + mess * 12, -25, -35 + mess * 12], 0.5, HAIR[1]); line(c, [20, -18, 25, -22, 24, -27], 0.5, HAIR[1]);
+  line(c, [-18, -8, -12, -13], 0.9, '#1A1A22'); line(c, [13, -24, 19, -19], 0.9, '#1A1A22'); line(c, [-4, -44 + mess * 20, 2, -48 + mess * 20], 0.9, '#1A1A22');
   // (loose loops falling out of it, the worse it's got)
-  if (mess > 0.2) for (let k = 0; k < Math.round(mess * 5); k++) { c.strokeStyle = HAIR[2]; c.lineWidth = 1.4; c.beginPath(); c.arc(-14 + k * 7, 2 + (k % 2) * 6, 5, 0, Math.PI * 1.6); c.stroke(); }
-  // (the tiara, jammed in the front of it: gold, three points, a pink heart stone)
+  if (mess > 0.2) for (let k = 0; k < Math.round(mess * 5); k++) { c.strokeStyle = HAIR[2]; c.lineWidth = 1.4; c.beginPath(); c.arc(-14 + k * 7, 2 + (k % 2) * 6, 5, 0, Math.PI * 1.6); c.stroke(); c.strokeStyle = HAIR[4]; c.lineWidth = 0.5; c.beginPath(); c.arc(-14 + k * 7, 2 + (k % 2) * 6, 3.6, 0.3, Math.PI * 1.4); c.stroke(); }
+  // (the tiara, jammed in the front of it: gold, three points, a pink heart stone, a blue one, a socket gone empty)
   c.save(); c.translate(6, -2); c.rotate(0.15 + mess * 0.6);
   shape(c, () => { c.moveTo(-10, 0); c.lineTo(-10, -6); c.lineTo(-6, -3); c.lineTo(-2, -11); c.lineTo(2, -3); c.lineTo(6, -7); c.lineTo(8, 0); c.closePath(); }, GOLD, -10, 8, 0.8);
   ell(c, -2, -4, 2, 2, '#F43F8E'); px(c, -3, -5, 1, 1, '#FFFFFF');
+  ell(c, -8, -2, 1, 1, '#4AB4F4'); ell(c, 5, -2, 1, 1, '#2A1A08');
+  for (let k = 0; k < 4; k++) px(c, -9 + k * 5, -1, 1, 1, GOLD[0]);
+  if ((f + 7) % 26 < 4) sparkle(c, -2, -11, 1.5, '#FFFFFF');
   c.restore();
   c.restore();
   // (glitter coming off it)
@@ -204,10 +255,27 @@ const head = (c: Ctx, hx: number, hy: number, face: PiperFace, f: number, talkin
   // (the chins: three rolls, under and round the jaw; leaked away one by one; a neck under them once they're gone)
   const chins = Math.round(3 * (1 - t1));
   if (chins < 3) shape(c, () => c.rect(hx - 6 + t2 * 2, hy + 10, 12 - t2 * 4, 18), sk, hx - 6, hx + 6, 0.9);
-  for (let k = chins - 1; k >= 0; k--) shapeTop(c, () => c.ellipse(hx + 2, hy + 12 + k * 6, 16 + k * 2, 7, 0, 0, Math.PI * 2), sk, hy + 5 + k * 6, hy + 19 + k * 6, 0.9);
+  for (let k = chins - 1; k >= 0; k--) {
+    const chin = () => c.ellipse(hx + 2, hy + 12 + k * 6, 16 + k * 2, 7, 0, 0, Math.PI * 2);
+    shapeTop(c, chin, sk, hy + 5 + k * 6, hy + 19 + k * 6, 0.9);
+    // (stubble on them; a sweat crease in the fold)
+    overlay(c, chin, STUBBLE(c), 0.7);
+    line(c, [hx - 8 - k * 2, hy + 17 + k * 6, hx + 2, hy + 18.5 + k * 6, hx + 12 + k * 2, hy + 17 + k * 6], 0.5, sk[3]);
+  }
+  // (a long hair off the bottom chin)
+  if (chins) line(c, [hx + 8, hy + 12 + chins * 6, hx + 9, hy + 15 + chins * 6, hx + 7, hy + 17 + chins * 6], 0.5, '#3A1A10');
   // (the face itself: round, the cheeks puffing out; slimmer as she leaks, a jaw, then hollow)
   const fw = 17 - t1 * 4 - t2 * 3;
-  shape(c, () => c.ellipse(hx, hy, fw, 16 - t2 * 1, 0, 0, Math.PI * 2), sk, hx - fw, hx + fw);
+  const faceP = () => c.ellipse(hx, hy, fw, 16 - t2 * 1, 0, 0, Math.PI * 2);
+  shape(c, faceP, sk, hx - fw, hx + fw);
+  // (the foundation caked on, stopping in a line at her jaw; cracking; glitter stuck in the grease)
+  if (face !== 'rage' && t2 < 0.3) line(c, [hx - fw + 3, hy + 9, hx - 4, hy + 14, hx + 6, hy + 14, hx + fw - 3, hy + 9], 0.6, '#E8A878');
+  line(c, [hx - 8, hy - 12, hx - 5, hy - 13, hx - 4, hy - 11], 0.4, sk[3]); line(c, [hx + 10, hy + 1, hx + 12, hy + 3], 0.4, sk[3]);
+  overlay(c, faceP, GREASE(c), 0.9);
+  // (sweat: beads on her temple and her forehead, catching the light)
+  ell(c, hx - 12, hy - 7 + ((f >> 3) % 12) * 0.5, 0.9, 1.3, 'rgba(255, 255, 255, 0.75)');
+  ell(c, hx + 2, hy - 13, 0.8, 1, 'rgba(255, 255, 255, 0.7)'); ell(c, hx + 9, hy - 12, 0.7, 0.9, 'rgba(255, 255, 255, 0.7)');
+  if (face === 'rage') { line(c, [hx - 3, hy - 15, hx - 5, hy - 12, hx - 3, hy - 9], 1, '#9A3A8A'); line(c, [hx - 3.5, hy - 15, hx - 5.5, hy - 12], 0.4, '#F0A0D8'); line(c, [hx + 14, hy - 10, hx + 15, hy - 6], 0.9, '#9A3A8A'); }
   if (t1 > 0.6) line(c, [hx - fw + 3, hy + 6, hx + 2, hy + 14, hx + fw - 2, hy + 7], 0.8, sk[3]);
   if (t2 > 0) {
     // (sunken: the cheeks hollowed under the bones, the eyes in pits)
@@ -220,19 +288,30 @@ const head = (c: Ctx, hx: number, hy: number, face: PiperFace, f: number, talkin
   ell(c, hx - 7, hy + 5, 4 - t1 * 2, 2.5, face === 'rage' ? '#E83A3A' : BLUSH);
   // (the eyes: the eyeshadow up to the brows, the lashes, the irises (bulging when she's furious))
   const eye = (ex: number, near: boolean) => {
-    const sh = face === 'rage' ? '#3A5AC8' : SHADOW_EYE;
-    ell(c, ex, hy - 4, near ? 5 : 4, 4, sh);
+    const sh = face === 'rage' ? '#3A5AC8' : SHADOW_EYE, o = near ? 1 : -1;
+    // (the eyeshadow: violet troweled up to the brows, blue in the crease, dithered off at the edges)
+    ell(c, ex, hy - 7, near ? 5.5 : 4.5, 3.4, '#A868D8'); ell(c, ex, hy - 9.5, near ? 5 : 4, 1.6, dith(c, '#A868D8'));
+    ell(c, ex, hy - 4, near ? 5 : 4, 4, sh); ell(c, ex - o * 1.5, hy - 6, 2.4, 1.2, '#8AB4F8');
+    // (the mascara smudged under it)
+    px(c, ex - 3, hy + 1, 7, 1, dith(c, '#3A2A48'));
     if (face === 'out') { line(c, [ex - 3, hy - 6, ex + 3, hy - 2], 1.2, LASH); line(c, [ex - 3, hy - 2, ex + 3, hy - 6], 1.2, LASH); return; }
     const shut = face === 'hurt' || (face === 'sultry' && f % 200 < 8);
-    if (shut) { line(c, [ex - 4, hy - 3, ex + 4, hy - 3], 1.4, LASH); return; }
+    if (shut) { line(c, [ex - 4, hy - 3, ex + 4, hy - 3], 1.4, LASH); for (let k = -1; k <= 1; k++) line(c, [ex + k * 2.5, hy - 3, ex + k * 3, hy - 1], 0.8, LASH); return; }
     const bulge = face === 'rage' || face === 'shock' ? 1.3 : 1;
     const lid = face === 'sultry' || face === 'gloat' ? 1.6 : 0;
     ell(c, ex, hy - 3, 3.4 * bulge, 3 * bulge, '#FFFFFF');
+    // (bloodshot: red threads in from the corners)
+    px(c, ex - 3 * bulge, hy - 3, 1.4, 0.6, '#E0404A'); px(c, ex + 2 * bulge, hy - 2, 1.4, 0.6, '#E0404A');
+    if (bulge > 1) { px(c, ex - 2, hy - 5, 0.6, 1.4, '#C8303A'); px(c, ex + 3, hy - 4, 0.6, 1.4, '#C8303A'); }
     ell(c, ex + 1, hy - 3 + lid * 0.4, 1.8, 2, face === 'rage' ? '#7A1E1E' : '#2A6A4A');
+    px(c, ex + 1, hy - 3 + lid * 0.4, 0.9, 0.9, '#0A0A0A');
     px(c, ex + 1, hy - 4, 1, 1, '#FFFFFF');
-    if (lid) px(c, ex - 4, hy - 7, 8, lid + 2, sh);
-    // (the lashes: three long false ones)
-    for (let k = -1; k <= 1; k++) line(c, [ex + k * 2, hy - 6 + lid, ex + k * 3 + 1, hy - 10 + lid], 1, LASH);
+    if (lid) { px(c, ex - 4, hy - 7, 8, lid + 2, sh); px(c, ex - 3, hy - 6, 3, 1, '#B8D8FF'); }
+    // (the liner, flicked out past the outer corner)
+    line(c, [ex - 4, hy - 5 + lid, ex + 4, hy - 5 + lid, ex + o * 6.5, hy - 8 + lid], 0.9, LASH);
+    // (the lashes: long false ones, clumped with mascara at the tips)
+    for (let k = -1; k <= 1; k++) { line(c, [ex + k * 2, hy - 6 + lid, ex + k * 3 + 1, hy - 10 + lid], 1, LASH); ell(c, ex + k * 3 + 1, hy - 10 + lid, 0.8, 0.8, LASH); }
+    line(c, [ex + o * 4, hy - 5 + lid, ex + o * 6, hy - 9 + lid], 0.8, LASH);
   };
   eye(hx + 7, true); eye(hx - 5, false);
   // (the brows: drawn on, arched; down in a V when she's furious)
@@ -240,27 +319,38 @@ const head = (c: Ctx, hx: number, hy: number, face: PiperFace, f: number, talkin
   else { line(c, [hx + 3, hy - 11, hx + 8, hy - 13, hx + 12, hy - 11], 1.2, HAIR[4]); line(c, [hx - 2, hy - 11, hx - 6, hy - 12, hx - 9, hy - 10], 1.2, HAIR[4]); }
   // (the button nose, the beauty mark)
   ell(c, hx + 4, hy + 2, 2.4, 2, sk[2]); px(c, hx + 3, hy + 1, 1, 1, sk[0]);
-  ell(c, hx + 12, hy + 8, 1, 1, '#3A1A1A');
-  // (the mouth)
+  ell(c, hx + 12, hy + 8, 1, 1, '#3A1A1A'); line(c, [hx + 12, hy + 8, hx + 14, hy + 5, hx + 13.5, hy + 3.5], 0.4, '#2A1008');
+  // (the nose: a blackhead or two, a nostril)
+  px(c, hx + 3, hy + 3, 0.8, 0.8, '#3A1A12'); px(c, hx + 5.5, hy + 2, 0.8, 0.8, '#3A1A12'); px(c, hx + 5, hy + 3.4, 1.2, 0.8, sk[4]);
+  // (the mouth: the hairs on her upper lip over it)
   const mx = hx + 3, my = hy + 9;
+  for (const dx of [-3, -1, 1.5, 3.5]) px(c, mx + dx, my - 3 - (dx > 0 ? 0.4 : 0), 0.6, 1.1, 'rgba(70, 40, 26, 0.75)');
   const open = talking ? [0, 2, 4, 1][Math.floor(f / 5) % 4] : 0;
   if (face === 'rage' || face === 'shock') {
     const h = face === 'rage' ? 7 + open : 5;
-    ell(c, mx, my + h / 2, 6, h / 2 + 1, '#3A0A14'); px(c, mx - 5, my, 10, 2, '#FFFFFF'); ell(c, mx, my + h - 1, 3, 1.4, '#E8607A');
+    ell(c, mx, my + h / 2, 6, h / 2 + 1, '#3A0A14'); px(c, mx - 5, my, 10, 2, '#F4EAC0'); ell(c, mx, my + h - 1, 3, 1.4, '#E8607A');
+    // (gaps, a gold one, her lipstick on them)
+    px(c, mx - 1, my, 1, 2, '#3A0A14'); px(c, mx + 3, my, 1.4, 2, GOLD[1]); px(c, mx - 4, my, 2, 0.8, LIPS);
     line(c, [mx - 6, my - 1, mx + 6, my - 1], 1.4, LIPS);
+    // (spit flying off it in the rage)
+    if (face === 'rage') for (let k = 0; k < 3; k++) { const t = (f + k * 5) % 15; px(c, mx + 6 + t * 0.8, my + 1 - t * 0.5 + k * 2, 1, 1, '#E8F0FA'); }
   } else if (face === 'gloat') {
-    // (a grin, delighted, her tongue at her teeth)
+    // (a grin, delighted, her tongue at her teeth, lipstick on them)
     fill(c, LIPS, () => { c.moveTo(mx - 7, my); c.quadraticCurveTo(mx, my + 7, mx + 7, my - 1); c.quadraticCurveTo(mx, my + 3, mx - 7, my); });
-    px(c, mx - 4, my + 1, 8, 2, '#FFFFFF');
+    px(c, mx - 4, my + 1, 8, 2, '#F8F0D0'); px(c, mx - 2, my + 1, 2, 1, LIPS); px(c, mx + 2, my + 1, 1, 2, '#5A0A14'); px(c, mx - 4, my + 1, 1, 2, GOLD[1]);
   } else if (face === 'out' || face === 'hurt') { ell(c, mx, my + 1, 3, 2.4, '#3A0A14'); line(c, [mx - 4, my - 1, mx + 4, my - 1], 1.2, LIPS); }
   else {
     // (the pout: full red lips, a highlight; parted when she talks)
     ell(c, mx, my, 5.5, 2.2 + open * 0.3, LIPS); ell(c, mx, my + 2.4 + open * 0.6, 5, 2.4, LIPS);
-    if (open) ell(c, mx, my + 1.2 + open * 0.3, 3.2, open * 0.6, '#3A0A14');
-    px(c, mx - 2, my - 1, 3, 1, LIPS_HI);
+    if (open) { ell(c, mx, my + 1.2 + open * 0.3, 3.2, open * 0.6, '#3A0A14'); px(c, mx - 2, my + 0.4, 4, 1, '#F4EAC0'); px(c, mx - 1, my + 0.4, 1.4, 0.8, LIPS); }
+    px(c, mx - 2, my - 1, 3, 1, LIPS_HI); px(c, mx - 1, my + 3.4 + open * 0.6, 2, 0.8, LIPS_HI);
   }
-  // (her earrings: gold hoops)
-  c.strokeStyle = GOLD[2]; c.lineWidth = 1.2; c.beginPath(); c.arc(hx - 15, hy + 8, 3, 0, Math.PI * 2); c.stroke();
+  // (the lipstick smeared past her lips, off a corner and up over the bow)
+  if (face !== 'out') { ell(c, mx + 6, my + 1.5, 2.2, 1.2, dith(c, LIPS)); px(c, mx - 4, my - 2.4, 3, 0.8, dith(c, LIPS)); }
+  // (her earrings: gold hoops, the lobe dragged down by them)
+  ell(c, hx - 15, hy + 5, 1.4, 2, sk[2]);
+  c.strokeStyle = GOLD[3]; c.lineWidth = 1.4; c.beginPath(); c.arc(hx - 15, hy + 9, 3, 0, Math.PI * 2); c.stroke();
+  c.strokeStyle = GOLD[1]; c.lineWidth = 0.7; c.beginPath(); c.arc(hx - 15, hy + 9, 3, Math.PI * 0.9, Math.PI * 1.6); c.stroke();
   void mess;
 };
 
@@ -283,11 +373,27 @@ const body = (c: Ctx, j: number, f: number, thin = 0) => {
     px(c, -30 + k * 6, y - 7, 18, 1, SATIN_HI);
     c.restore();
   }
-  // (the seams, straining: stitches pulled into ladders; one split up her near thigh, skin in it)
+  // (the satin's sequins all over it; the belly button dented through it; a sweat stain spreading under the arm)
+  overlay(c, path, SEQUINS(c));
+  c.save(); c.beginPath(); path(); c.clip();
+  c.strokeStyle = GOWN[3]; c.lineWidth = 0.9; c.beginPath(); c.arc(10, -71 + jig * 0.8, 2.2, Math.PI * 0.1, Math.PI * 0.9); c.stroke();
+  px(c, 9, -69 + jig * 0.8, 2, 1, GOWN[4]);
+  ell(c, 46, -104, 9, 7, dith(c, GOWN[3])); ell(c, 46, -106, 6, 4, GOWN[3]);
+  c.restore();
+  // (the seams, straining: stitches pulled into ladders, both sides; one split up her near thigh, skin in it (dimpled,
+  // stretch marks); another under her arm, a roll bulging out of it)
   line(c, [44, -114, 58, -78, 46, -26], 0.8, GOWN[4]);
   for (let y = -104; y < -34; y += 6) line(c, [52 - (y + 80) * 0.05, y, 56 - (y + 80) * 0.05, y + 2], 0.6, GOWN[0]);
+  line(c, [-36, -114, -50, -80, -40, -26], 0.8, GOWN[4]);
+  for (let y = -104; y < -34; y += 7) line(c, [-46 + (y + 80) * 0.04, y, -42 + (y + 80) * 0.04, y + 2], 0.6, GOWN[0]);
   fill(c, SKIN[4], () => { c.moveTo(24, -18); c.lineTo(30, -46); c.lineTo(38, -18); c.closePath(); });
-  fill(c, SKIN[1], () => { c.moveTo(25, -19); c.lineTo(30, -44); c.lineTo(36, -19); c.closePath(); });
+  const split = () => { c.moveTo(25, -19); c.lineTo(30, -44); c.lineTo(36, -19); c.closePath(); };
+  fill(c, SKIN[1], split);
+  overlay(c, split, CELLULITE(c)); overlay(c, split, STUBBLE(c), 0.5);
+  line(c, [28, -26, 29, -32], 0.5, '#F8E0D8'); line(c, [32, -24, 33, -30], 0.5, '#F8E0D8');
+  for (let y = -40; y < -20; y += 4) line(c, [28 + (y + 46) * 0.05, y, 33 - (y + 46) * 0.05, y + 1], 0.4, GOWN[4]);
+  shapeTop(c, () => c.ellipse(52, -98, 5, 4, 0.4, 0, Math.PI * 2), SKIN, -102, -94, 0.7);
+  line(c, [48, -103, 50, -101, 48, -99], 0.5, GOWN[4]); line(c, [56, -96, 54, -94, 56, -92], 0.5, GOWN[4]);
   // (the sequins: a scatter that twinkles in turn)
   for (let i = 0; i < 16; i++) {
     const sx = -40 + ((i * 37) % 96), sy = -104 + ((i * 53) % 82);
@@ -296,9 +402,15 @@ const body = (c: Ctx, j: number, f: number, thin = 0) => {
     if (on) sparkle(c, sx, sy, 1.5, '#FFFFFF');
   }
   // (the chest: the neckline, cleavage like a canyon, the straps biting into her shoulders)
-  shapeTop(c, () => { c.moveTo(-26, -112); c.quadraticCurveTo(-10, -122, 4, -114); c.quadraticCurveTo(18, -124, 36, -112); c.quadraticCurveTo(14, -106, 4, -110); c.quadraticCurveTo(-10, -104, -26, -112); }, SKIN, -124, -104, 1);
+  const chest = () => { c.moveTo(-26, -112); c.quadraticCurveTo(-10, -122, 4, -114); c.quadraticCurveTo(18, -124, 36, -112); c.quadraticCurveTo(14, -106, 4, -110); c.quadraticCurveTo(-10, -104, -26, -112); };
+  shapeTop(c, chest, SKIN, -124, -104, 1);
+  overlay(c, chest, GREASE(c));
   line(c, [4, -114, 4, -108], 1, SKIN[3]);
-  for (const sx of [-24, 30]) line(c, [sx, -126, sx + 2, -112], 2, GOWN[2]);
+  // (stretch marks over the top; a bead of sweat running down into the canyon)
+  for (const [sx, sy] of [[-14, -116], [-10, -117], [20, -118], [24, -117]]) line(c, [sx, sy, sx + 2, sy - 2], 0.4, '#F8E2DA');
+  ell(c, 4, -116 + ((f >> 2) % 8) * 0.8, 0.8, 1.1, 'rgba(255, 255, 255, 0.8)');
+  // (the straps biting into her shoulders, flesh bulging either side)
+  for (const sx of [-24, 30]) { line(c, [sx - 2, -126, sx, -112], 0.6, SKIN[3]); line(c, [sx + 4, -126, sx + 4, -112], 0.6, SKIN[0]); line(c, [sx, -126, sx + 2, -112], 2, GOWN[2]); line(c, [sx - 0.6, -126, sx + 1.4, -112], 0.5, SATIN_HI); }
 };
 
 /** The body leaking down (`thin` 0..2): the gown taken in to her (the rolls going flat, the seams easing), a slim
@@ -315,6 +427,7 @@ const bodyThin = (c: Ctx, f: number, thin: number) => {
     c.lineTo(34, -114); c.quadraticCurveTo(56, -104, 60 - waist, -76); c.quadraticCurveTo(66 - waist * 0.4, -46, 40, -18); c.closePath();
   };
   shape(c, path, GOWN, -58, 66, 1.4 / bw);
+  overlay(c, path, SEQUINS(c));
   // (the rolls going flat)
   if (t1 < 1) for (let k = 0; k < 3; k++) {
     const y = -86 + k * 16, w = 52 - k * 4;
@@ -348,19 +461,43 @@ const armTo = (c: Ctx, sx: number, sy: number, hx: number, hy: number, near: boo
   const sk = enraged ? RAGE : t2 > 0.3 ? GAUNT : SKIN, r = near ? sk : ([sk[1], sk[2], sk[3], sk[3], sk[4]] as const);
   const ex = (sx + hx) / 2 + (near ? 6 : -6), ey = (sy + hy) / 2 + 10;
   const lf = 1 - 0.45 * t1 - 0.3 * t2;
-  fatLimb(c, sx, sy, 10 * lf, ex, ey, 8 * lf, r, 7 * (1 - t1));
-  fatLimb(c, ex, ey, 8 * lf, hx, hy, Math.max(2, 5.5 * lf), r, 2 * (1 - t1));
-  // (the hand)
-  if (hand === 'fist') { shape(c, () => c.ellipse(hx, hy, 6.5, 6, 0, 0, Math.PI * 2), r, hx - 7, hx + 7); line(c, [hx - 2, hy - 3, hx - 2, hy + 3], 0.8, r[3]); line(c, [hx + 2, hy - 3, hx + 2, hy + 3], 0.8, r[3]); }
-  else { shape(c, () => c.ellipse(hx, hy, 6, 5, 0, 0, Math.PI * 2), r, hx - 6, hx + 6); for (let k = -1; k <= 1; k++) fill(c, r[1], () => c.ellipse(hx + 6, hy + k * 2.4, 3, 1.3, 0, 0, Math.PI * 2)); px(c, hx + 7, hy - 3, 2, 1, LIPS); }
-  // (the rings: gold, a pink stone)
-  px(c, hx + 2, hy - 1, 2, 3, GOLD[1]); px(c, hx + 2, hy - 1, 1, 1, '#F43F8E');
+  const upper = fatLimb(c, sx, sy, 10 * lf, ex, ey, 8 * lf, r, 7 * (1 - t1));
+  // (the flab hanging off it dimpled with cellulite)
+  overlay(c, upper, CELLULITE(c), 1 - t1);
+  const fore = fatLimb(c, ex, ey, 8 * lf, hx, hy, Math.max(2, 5.5 * lf), r, 2 * (1 - t1));
+  overlay(c, fore, STUBBLE(c), 0.35);
+  // (the elbow dimpled)
+  line(c, [ex - 1, ey + 1, ex + 1, ey + 2], 0.6, r[3]);
+  // (the hand: sausage fingers, the nails long and pink, chipped)
+  const POLISH = '#E8287A';
+  if (hand === 'fist') {
+    shape(c, () => c.ellipse(hx, hy, 6.5, 6, 0, 0, Math.PI * 2), r, hx - 7, hx + 7); line(c, [hx - 2, hy - 3, hx - 2, hy + 3], 0.8, r[3]); line(c, [hx + 2, hy - 3, hx + 2, hy + 3], 0.8, r[3]);
+    for (const kx of [-4, 0, 4]) px(c, hx + kx - 0.5, hy - 5.4, 1, 1, r[0]);
+    px(c, hx + 4, hy + 1, 2, 1.6, POLISH); px(c, hx + 5, hy + 1, 1, 0.8, r[1]);
+  } else {
+    shape(c, () => c.ellipse(hx, hy, 6, 5, 0, 0, Math.PI * 2), r, hx - 6, hx + 6);
+    for (let k = -1; k <= 1; k++) {
+      fill(c, r[1], () => c.ellipse(hx + 6, hy + k * 2.4, 3, 1.3, 0, 0, Math.PI * 2));
+      line(c, [hx + 4, hy + k * 2.4 + 1.2, hx + 8, hy + k * 2.4 + 1.2], 0.4, r[3]);
+      px(c, hx + 8.4, hy + k * 2.4 - 0.9, 1.8, 1.4, POLISH);
+      if (k === 0) px(c, hx + 9.4, hy - 0.9, 0.8, 0.8, r[1]); // (a chip out of it)
+      if (k === 1) px(c, hx + 8.4, hy + 2.4 - 0.9, 0.6, 0.6, '#FFFFFF');
+    }
+  }
+  // (the rings, sunk in her fingers, the flesh bulging either side: gold, a pink stone, a blue)
+  px(c, hx + 1.4, hy - 1.4, 0.6, 3.4, r[0]); px(c, hx + 4, hy - 1.4, 0.6, 3.4, r[3]);
+  px(c, hx + 2, hy - 1, 2, 3, GOLD[1]); px(c, hx + 2, hy - 1, 1, 1, '#F43F8E'); px(c, hx + 3.4, hy, 0.6, 2, GOLD[3]);
+  px(c, hx + 5, hy + 1.6, 1.2, 1.6, GOLD[2]); px(c, hx + 5, hy + 1.6, 0.8, 0.8, '#4AB4F4');
   if (hand === 'wand') {
     line(c, [hx, hy, hx + 22, hy - 26], 2.6, GOLD[4]); line(c, [hx, hy, hx + 22, hy - 26], 1.6, GOLD[1]);
+    line(c, [hx + 2, hy - 3, hx + 20, hy - 24], 0.5, GOLD[0]);
+    // (a pink ribbon off the star, trailing)
+    const rw = Math.sin(f * 0.12) * 2;
+    line(c, [hx + 21, hy - 25, hx + 16 + rw, hy - 18, hx + 19 - rw, hy - 11, hx + 15 + rw, hy - 5], 1.2, '#FF7AC0'); line(c, [hx + 21, hy - 25, hx + 26 - rw, hy - 17, hx + 24 + rw, hy - 11], 1, '#E04A9A');
     star(c, hx + 24, hy - 29, 7.5, GOLD[4], f * 0.03); star(c, hx + 24, hy - 29, 6, GOLD[1], f * 0.03); star(c, hx + 23, hy - 30, 2.6, GOLD[0], f * 0.03);
     if (f % 20 < 10) sparkle(c, hx + 30 + (f % 6), hy - 36 - (f % 5), 2, '#FFFFFF');
   }
-  if (hand === 'bonbon') { ell(c, hx + 5, hy - 5, 4, 4, '#5A2A12'); px(c, hx + 3, hy - 8, 3, 1, '#F6D365'); }
+  if (hand === 'bonbon') { ell(c, hx + 5, hy - 5, 4, 4, '#5A2A12'); px(c, hx + 3, hy - 8, 3, 1, '#F6D365'); px(c, hx + 6, hy - 4, 1, 1, '#8A4A22'); px(c, hx + 7, hy + 1, 2, 1, '#5A2A12'); px(c, hx + 6, hy + 3, 1, 1, '#5A2A12'); }
 };
 
 /** The legs: thick, the knees dimpled, the calves (hidden by the gown down to the shins), the ankles, the heels. */
@@ -370,7 +507,11 @@ const legs = (c: Ctx, step: number, thin = 0) => {
     const lx = lx0 * bw, w = bw < 1 ? 0.5 + bw * 0.5 : 1;
     const lift = near ? Math.max(0, step) * 4 : Math.max(0, -step) * 4;
     const r = near ? sk : ([sk[1], sk[2], sk[3], sk[3], sk[4]] as const);
-    shape(c, () => { c.moveTo(lx - 12 * w, -22); c.quadraticCurveTo(lx - 14 * w, -12 - lift, lx - 4 * w, -8 - lift); c.lineTo(lx + 8 * w, -8 - lift); c.quadraticCurveTo(lx + 16 * w, -14 - lift, lx + 12 * w, -22); c.closePath(); }, r, lx - 14 * w, lx + 16 * w);
+    const leg = () => { c.moveTo(lx - 12 * w, -22); c.quadraticCurveTo(lx - 14 * w, -12 - lift, lx - 4 * w, -8 - lift); c.lineTo(lx + 8 * w, -8 - lift); c.quadraticCurveTo(lx + 16 * w, -14 - lift, lx + 12 * w, -22); c.closePath(); };
+    shape(c, leg, r, lx - 14 * w, lx + 16 * w);
+    // (stubble: a week since she shaved; the cellulite; a varicose vein up the near shin)
+    overlay(c, leg, STUBBLE(c)); overlay(c, leg, CELLULITE(c), bw);
+    if (near) line(c, [lx + 6 * w, -9 - lift, lx + 4 * w, -13 - lift, lx + 7 * w, -16 - lift, lx + 5 * w, -21], 0.6, '#7A86C8');
     foot(c, lx - 2, -lift, near);
   }
 };
@@ -437,11 +578,18 @@ const lounge = (c: Ctx, f: number, face: PiperFace, talking: boolean, mess: numb
   const breathe = Math.sin(f * 0.06);
   c.save(); c.translate(0, -56);
   wings(c, -10, -46 + breathe, f, false);
-  shape(c, () => { c.moveTo(-60, 4); c.quadraticCurveTo(-64, -30, -30, -42 - breathe); c.quadraticCurveTo(10, -60 - breathe, 50, -34); c.quadraticCurveTo(86, -26, 96, -4); c.lineTo(96, 6); c.closePath(); }, GOWN, -64, 96, 1.4);
+  const gown = () => { c.moveTo(-60, 4); c.quadraticCurveTo(-64, -30, -30, -42 - breathe); c.quadraticCurveTo(10, -60 - breathe, 50, -34); c.quadraticCurveTo(86, -26, 96, -4); c.lineTo(96, 6); c.closePath(); };
+  shape(c, gown, GOWN, -64, 96, 1.4);
   for (let k = 0; k < 3; k++) shapeTop(c, () => c.ellipse(-14 + k * 26, -8, 18, 10, 0, 0, Math.PI * 2), GOWN, -18, 2, 0.8);
+  overlay(c, gown, SEQUINS(c));
+  // (the seam over the hip straining in ladders)
+  line(c, [-20, -46, 20, -50, 60, -30], 0.8, GOWN[4]);
+  for (let x = -16; x < 56; x += 6) line(c, [x, -48 + (x > 20 ? (x - 20) * 0.45 : 0) - 1, x + 1, -46 + (x > 20 ? (x - 20) * 0.45 : 0)], 0.6, GOWN[0]);
   for (let i = 0; i < 10; i++) { const on = (f + i * 11) % 44 < 6; const sx = -40 + i * 12, sy = -30 + ((i * 7) % 20); px(c, sx, sy, 1, 1, on ? '#FFFFFF' : GOWN[0]); if (on) sparkle(c, sx, sy, 1.5, '#FFFFFF'); }
-  // (the legs out the end, the heels crossed)
-  shape(c, () => { c.moveTo(90, -6); c.lineTo(112, -4); c.lineTo(112, 4); c.lineTo(90, 6); c.closePath(); }, SKIN, 90, 112);
+  // (the legs out the end, the heels crossed: stubbled, dimpled)
+  const shin = () => { c.moveTo(90, -6); c.lineTo(112, -4); c.lineTo(112, 4); c.lineTo(90, 6); c.closePath(); };
+  shape(c, shin, SKIN, 90, 112);
+  overlay(c, shin, STUBBLE(c)); overlay(c, shin, CELLULITE(c));
   foot(c, 114, 4, true);
   // (the far arm propping her head; the head; the near arm with the bonbon)
   armTo(c, -44, -30, -56, -62, false, 'open', f, false);
@@ -454,9 +602,11 @@ const lounge = (c: Ctx, f: number, face: PiperFace, talking: boolean, mess: numb
 /** Down: on her back, a mountain range of pink, the wings crumpled, the wand rolled off. */
 const flat = (c: Ctx, f: number) => {
   wings(c, -40, -10, f, false, true);
-  shape(c, () => { c.moveTo(-70, 0); c.quadraticCurveTo(-60, -40, -20, -52); c.quadraticCurveTo(20, -66, 50, -40); c.quadraticCurveTo(76, -28, 80, 0); c.closePath(); }, GOWN, -70, 80, 1.4);
+  const gown = () => { c.moveTo(-70, 0); c.quadraticCurveTo(-60, -40, -20, -52); c.quadraticCurveTo(20, -66, 50, -40); c.quadraticCurveTo(76, -28, 80, 0); c.closePath(); };
+  shape(c, gown, GOWN, -70, 80, 1.4);
   for (let k = 0; k < 3; k++) shapeTop(c, () => c.ellipse(-10 + k * 22, -40 + k * 6, 16, 8, 0, 0, Math.PI * 2), GOWN, -48 + k * 6, -32 + k * 6, 0.8);
-  for (const [lx, ly] of [[78, -10], [86, -2]] as const) { shape(c, () => c.ellipse(lx, ly, 10, 6, 0.3, 0, Math.PI * 2), SKIN, lx - 10, lx + 10); foot(c, lx + 14, ly - 6, true); }
+  overlay(c, gown, SEQUINS(c));
+  for (const [lx, ly] of [[78, -10], [86, -2]] as const) { const leg = () => c.ellipse(lx, ly, 10, 6, 0.3, 0, Math.PI * 2); shape(c, leg, SKIN, lx - 10, lx + 10); overlay(c, leg, STUBBLE(c)); overlay(c, leg, CELLULITE(c)); foot(c, lx + 14, ly - 6, true); }
   beehive(c, -78, -14, 0.9, f);
   head(c, -78, -12, 'out', f, false, 0.9);
   star(c, 30, -2, 6, GOLD[1], 0.4);
@@ -465,19 +615,8 @@ const flat = (c: Ctx, f: number) => {
 // ---------------------------------------------------------------------------------------------------------------
 // The close-up
 
-/** Her face at close-up size: (cx, cy) the middle of her face, `scale` how many times her figure's size. For the
- *  reveal (the door kicked in), the insult landing, the fight's taunts. */
-export const drawPiperCloseup = (c: Ctx, cx: number, cy: number, scale: number, f: number, opts: { face?: PiperFace; talking?: boolean; mess?: number; jolt?: number } = {}) => {
-  const face = opts.face ?? 'sultry', mess = opts.mess ?? (face === 'rage' ? 0.35 : 0);
-  const jolt = (opts.jolt ?? 0) * (f % 4 < 2 ? 1 : -1);
-  c.save(); c.translate(Math.round(cx + jolt * scale), Math.round(cy)); c.scale(scale, scale);
-  // (her shoulders and the gown's neckline under the chins, the wings' tips peeking up behind)
-  wings(c, -30, 20, f, face === 'rage');
-  shape(c, () => { c.moveTo(-56, 60); c.quadraticCurveTo(-52, 26, -24, 22); c.lineTo(28, 22); c.quadraticCurveTo(58, 26, 62, 60); c.closePath(); }, face === 'rage' ? RAGE : SKIN, -56, 62);
-  shape(c, () => { c.moveTo(-50, 60); c.quadraticCurveTo(-30, 40, 4, 46); c.quadraticCurveTo(36, 40, 56, 60); c.closePath(); }, GOWN, -50, 56);
-  line(c, [4, 34, 4, 46], 1, SKIN[3]);
-  beehive(c, 0, -4, mess, f);
-  head(c, 0, 0, face, f, !!opts.talking, mess);
-  if (face === 'rage') for (let k = 0; k < 4; k++) { const a = -0.9 + k * 0.6; line(c, [Math.cos(a) * 30, -20 + Math.sin(a) * 30, Math.cos(a) * 38, -20 + Math.sin(a) * 38], 1.4, '#FFFFFF'); }
-  c.restore();
-};
+/** Her face close up, the REN & STIMPY GROSS-UP (piperGross.ts: painted, cached): (cx, cy) the middle of her face on
+ *  screen, `scale` 3.6 the hold (the whole screen her face), less as it lurches in. 'rage' her furious face; any other
+ *  the sultry one (`talking` her mouth going). For the reveal (the door kicked in) and the insult landing. */
+export const drawPiperCloseup = (c: Ctx, cx: number, cy: number, scale: number, f: number, opts: { face?: PiperFace; talking?: boolean; mess?: number; jolt?: number } = {}) =>
+  drawGrossUp(c, cx, cy, scale / 3.6, f, opts.face === 'rage', !!opts.talking, opts.jolt ?? 0);

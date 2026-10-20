@@ -62,11 +62,12 @@ import { registerM2Kind, registerHurtLines } from '../../kinds';
 import { TOO_BIG_BY_KIND } from '../../lines/weaponLines';
 import { setUi } from '../../store';
 import { box, label, saidOver, voice, meatheadSays, landVisit } from '../section';
-import { hash, checker, polyF, GOLD as GD } from '../kit';
+import { hash, polyF, GOLD as GD } from '../kit';
 import type { ByPants } from '../talk';
 import { drawPiper, drawPiperCloseup, piperBodyW, PIPER_H, type PiperPose, type PiperFace } from '../piper';
 import { GY, DOOR_X, KICK_AT, ARENA_L, ARENA_R, ARENA_W, ARENA_MID, CEIL_Y, CAM_Y, LEDGES, CHANDELIERS, CHAISE_X, MAX_STAGE, CP_FIGHT, R } from './layout';
-import { drawCavity, drawChandelier, CHANDELIER_Y } from './room';
+import { drawChandelier, CHANDELIER_Y } from './room';
+import { drawMain, drawPatch, drawFireball, drawIceball, drawBolt, drawIceBlock, type MainDims } from './mains';
 import * as L from './lines';
 
 type Ctx = CanvasRenderingContext2D;
@@ -1174,7 +1175,6 @@ const FAT = ['#6A4A14', '#9A7424', '#C8A040', '#E8CC6A', '#F6E4A0', '#FFF8D8'];
 const PLAS = ['#4A3E38', '#7A6A60', '#A89888', '#D0C2B0', '#EAE0D0', '#FAF4EA'];
 const PAPER = ['#5A1A3E', '#8A2E5E', '#B44C82', '#D86EA4', '#EE98C2', '#FFC8E2'];
 const WOODS = ['#1C100C', '#301E16', '#462C20', '#5E3E2A', '#7C5638', '#9E744E'];
-const ICE = ['#1E4A7A', '#3A72AA', '#5AA0D8', '#9ACCF0', '#D0ECFF', '#FFFFFF'];
 
 /** A hole in her: a scorched ragged ring of fat in steps, the puncture, the ooze down her (or the jet out, bouncing). */
 const drawHoles = (c: Ctx, f: Fight, fr: number, jet: boolean) => {
@@ -1376,96 +1376,8 @@ const drawMark = (c: Ctx, f: Fight, fr: number) => {
 };
 
 /** A main, torn loose: the pipe and its hole, and what it's doing (quiet, the tell, on). */
-const drawHazard = (c: Ctx, h: Hazard, fr: number) => {
-  const ph = hazPhase(h);
-  const puff = (x: number, y: number, r: number, a: number, col = '#F4F4F8') => { c.globalAlpha = a; ell(c, x, y, r, r * 0.8, mix2(col, '#9A98B0', 0.25)); ell(c, x - r * 0.2, y - r * 0.2, r * 0.75, r * 0.6, col); box(c, x - r * 0.4, y - r * 0.4, Math.max(1, r * 0.3), 1, '#FFFFFF'); c.globalAlpha = 1; };
-  if (h.kind === 'heat') {
-    // (the hole through the cornice, the heat main's end hanging out of it bent down: lagging torn, silver bands, the
-    // flanged nozzle; it glows red to yellow-white in the tell, steam roaring off it)
-    drawCavity(c, h.x, CEIL_Y + 20, 96, 44, 51, fr);
-    const glow = ph.s === 'tell' ? ph.k : ph.s === 'on' ? 1 : 0;
-    box(c, h.x - 10, CEIL_Y - 20, 20, 60, '#1A0A06'); box(c, h.x - 8, CEIL_Y - 20, 16, 58, '#C84A1E'); box(c, h.x - 8, CEIL_Y - 20, 4, 58, '#EE7A3A'); box(c, h.x - 7, CEIL_Y - 20, 1, 58, '#FFB078'); box(c, h.x + 4, CEIL_Y - 20, 4, 58, '#9A3214');
-    for (let y = CEIL_Y - 14; y < CEIL_Y + 34; y += 12) { box(c, h.x - 9, y, 18, 3, '#9098A6'); box(c, h.x - 9, y, 18, 1, '#C4CAD6'); }
-    polyF(c, [[h.x + 8, CEIL_Y + 18], [h.x + 18, CEIL_Y + 26], [h.x + 8, CEIL_Y + 32]], '#C84A1E'); box(c, h.x + 8, CEIL_Y + 26, 6, 2, '#E8C8A0');
-    const hot = glow > 0.66 ? ['#FFF4C8', '#FDE047'] : glow > 0.33 ? ['#FDBA74', '#F97316'] : glow > 0 ? ['#F97316', '#B8401E'] : ['#6A707E', '#4A505C'];
-    box(c, h.x - 13, CEIL_Y + 36, 26, 8, '#1A0A06'); box(c, h.x - 12, CEIL_Y + 37, 24, 6, hot[1]); box(c, h.x - 12, CEIL_Y + 37, 24, 2, hot[0]); box(c, h.x - 6, CEIL_Y + 42, 12, 2, '#1A0A06');
-    if (glow > 0) for (let i = 0; i < 3; i++) { c.globalAlpha = (0.1 + 0.05 * Math.sin(fr * 0.4)) * glow; c.fillStyle = ['#FDBA74', '#FB923C', '#FDE047'][i]; c.beginPath(); c.arc(h.x, CEIL_Y + 44, (40 - i * 12) * (0.7 + glow * 0.3), 0, Math.PI * 2); c.fill(); c.globalAlpha = 1; }
-    const puffs = ph.s === 'quiet' ? 1 : ph.s === 'tell' ? 6 : 0;
-    for (let k = 0; k < puffs; k++) { const tt = ((fr * (ph.s === 'tell' ? 2.2 : 1) + k * 9) % 40) / 40; puff(h.x - 4 + (k % 2 ? 1 : -1) * tt * 26, CEIL_Y + 46 + tt * 44, 4 + tt * 12, 0.65 * (1 - tt)); }
-    if (ph.s === 'tell' && fr % 4 < 2) box(c, h.x - 1 + ((fr * 5) % 9) - 4, CEIL_Y + 46, 2, 2, '#FDE047');
-    if (ph.s === 'on') {
-      // (the fire: a column to the floor, licking, banded in steps, a white-hot core, tongues off its edges; the carpet
-      // burning under it on a scorch)
-      ell(c, h.x, GY + 1, HEAT_FLOOR + 10, 6, '#1A0A06'); ell(c, h.x, GY + 1, HEAT_FLOOR - 10, 4, '#3A1A0A');
-      for (let y = CEIL_Y + 44; y < GY; y += 8) {
-        const w = HEAT_HW * (0.6 + 0.4 * Math.sin(y * 0.09 + fr * 0.5)) + (y - CEIL_Y) * 0.03, band = (y + fr * 3) % 24;
-        box(c, h.x - w - 2, y, w * 2 + 4, 8, '#7A1A0A');
-        box(c, h.x - w, y, w * 2, 8, band < 8 ? '#FDE047' : band < 16 ? '#F97316' : '#DC2626');
-        box(c, h.x - w * 0.55, y, w * 1.1, 8, band < 8 ? '#FFF7D6' : '#FDE047');
-        box(c, h.x - w * 0.25, y, w * 0.5, 8, '#FFFDF0');
-        if ((y / 8 + Math.floor(fr / 3)) % 3 === 0) { const s = (y / 8) % 2 ? 1 : -1; polyF(c, [[h.x + s * w, y], [h.x + s * (w + 10), y - 6], [h.x + s * w, y + 8]], '#F97316'); }
-      }
-      for (let k = 0; k < 7; k++) { const fx = h.x - HEAT_FLOOR + k * (HEAT_FLOOR / 3), fh = 10 + ((fr + k * 7) % 12); polyF(c, [[fx - 9, GY], [fx, GY - fh - 2], [fx + 9, GY]], '#B8401E'); polyF(c, [[fx - 7, GY], [fx, GY - fh], [fx + 7, GY]], k % 2 ? '#F97316' : '#FDE047'); polyF(c, [[fx - 3, GY], [fx, GY - fh * 0.5], [fx + 3, GY]], '#FFF7D6'); }
-      for (let k = 0; k < 4; k++) { const tt = ((fr + k * 11) % 30) / 30; box(c, h.x - HEAT_FLOOR + hash(k * 3 + Math.floor((fr + k * 11) / 30)) * HEAT_FLOOR * 2, GY - 6 - tt * 50, 2, 2, tt < 0.5 ? '#FDE047' : '#F97316'); }
-    }
-  } else if (h.kind === 'nitro') {
-    // (the main burst out of a hole low in the wall: a frosted blue pipe, its end split open (jagged), frost crusted on
-    // it; in the tell frost crystals creep over the wall and the vapor dribbles off it and rolls along the floor)
-    drawCavity(c, h.x, GY - 50, 90, 70, 63, fr);
-    const frost = ph.s === 'tell' ? ph.k : ph.s === 'on' ? 1 : 0.15;
-    for (let k = 0; k < Math.round(4 + frost * 14); k++) {
-      const a = hash(k * 2.3) * Math.PI * 2, r = 30 + hash(k * 4.1) * (30 + frost * 50), cx = h.x + Math.cos(a) * r, cy = GY - 44 + Math.sin(a) * r * 0.55;
-      if (cy > GY - 2) continue;
-      const s = 2 + hash(k) * 3;
-      box(c, cx - s, cy, s * 2 + 1, 1, ICE[4]); box(c, cx, cy - s, 1, s * 2 + 1, ICE[4]); box(c, cx - s * 0.6, cy - s * 0.6, 1, 1, ICE[5]); box(c, cx + s * 0.6, cy + s * 0.6, 1, 1, ICE[5]); box(c, cx, cy, 1, 1, '#FFFFFF');
-    }
-    c.globalAlpha = 0.35 * frost; ell(c, h.x, GY - 40, 56 + frost * 40, 28 + frost * 18, ICE[4]); c.globalAlpha = 1;
-    box(c, h.x - 42, GY - 48, 84, 18, '#0E1A2A'); box(c, h.x - 41, GY - 47, 82, 16, ICE[1]); box(c, h.x - 41, GY - 47, 82, 4, ICE[3]); box(c, h.x - 41, GY - 47, 82, 1, ICE[5]); box(c, h.x - 41, GY - 35, 82, 4, ICE[0]);
-    for (let k = 0; k < 9; k++) { box(c, h.x - 38 + k * 9, GY - 50, 4, 3, '#FFFFFF'); box(c, h.x - 36 + k * 9, GY - 48, 1, 2, ICE[4]); }
-    const ex = h.x + h.dir * 41;
-    polyF(c, [[ex, GY - 48], [ex + h.dir * 10, GY - 52], [ex + h.dir * 6, GY - 42], [ex + h.dir * 12, GY - 34], [ex, GY - 30]], ICE[2]); polyF(c, [[ex, GY - 44], [ex + h.dir * 5, GY - 42], [ex, GY - 36]], '#0E1A2A');
-    if (ph.s !== 'on') { const n = ph.s === 'tell' ? 4 : 1; for (let k = 0; k < n; k++) { const tt = ((fr * (ph.s === 'tell' ? 1.6 : 0.6) + k * 10) % 40) / 40; puff(ex + h.dir * (4 + tt * 30), GY - 40 + tt * 34, 3 + tt * 8, 0.55 * (1 - tt * 0.6), '#E8F6FF'); } }
-    if (ph.s === 'tell' && fr % 8 < 4) { box(c, ex + h.dir * 4 - 3, GY - 43, 6, 6, '#FFFFFF'); box(c, ex + h.dir * 4 - 1, GY - 46, 2, 12, '#FFFFFF'); }
-    if (ph.s === 'on') {
-      // (the squirt: a white jet along the floor in bands, its core hard white, fog rolling off it, frost on the carpet)
-      const len = NITRO_LEN * Math.min(1, ph.k * 6), a = h.x, b = h.x + h.dir * len;
-      ell(c, (a + b) / 2, GY, Math.abs(b - a) / 2 + 10, 5, '#C8E8FF');
-      for (let x = 0; x < len; x += 8) {
-        const xx = a + h.dir * x, hh = NITRO_H * (0.4 + 0.6 * (x / NITRO_LEN)) * (0.8 + 0.2 * Math.sin(x * 0.2 + fr * 0.6));
-        c.fillStyle = 'rgba(160, 210, 245, 0.55)'; c.fillRect(xx - 4, GY - hh, 8, hh);
-        c.fillStyle = 'rgba(224, 242, 254, 0.8)'; c.fillRect(xx - 4, GY - hh * 0.8, 8, hh * 0.65);
-        c.fillStyle = 'rgba(255, 255, 255, 0.95)'; c.fillRect(xx - 4, GY - hh * 0.55, 8, hh * 0.22);
-        if ((x / 8 + Math.floor(fr / 2)) % 4 === 0) puff(xx, GY - hh - 4, 5 + (x / NITRO_LEN) * 6, 0.5, '#F0FAFF');
-      }
-      box(c, Math.min(a, b), GY - 2, Math.abs(b - a), 3, '#F0FAFF'); checker(c, Math.min(a, b), GY - 4, Math.abs(b - a), 2, '#FFFFFF', 0, 1);
-    }
-  } else {
-    // (the water main burst: water dribbling out of the hole into a flooded patch (banded, ripples, the room's light in
-    // it); the FX POWER cable down out of the hole into it, its end frayed copper; sparks crackling over the water in
-    // the tell, arcs all over it and a blue glow while it's live)
-    drawCavity(c, h.x + 20, CEIL_Y + 20, 80, 40, 71, fr);
-    for (let k = 0; k < 6; k++) { const tt = ((fr * 2 + k * 23) % 80) / 80; box(c, h.x + 30 + (k % 2) * 3, CEIL_Y + 34 + tt * (GY - CEIL_Y - 36), 2, 5, '#9ACCE8'); }
-    ell(c, h.x, GY + 2, PUDDLE_HW + 4, 10, '#1E3A5A'); ell(c, h.x, GY + 1, PUDDLE_HW, 8, '#3A72AA'); ell(c, h.x - 10, GY, PUDDLE_HW * 0.8, 6, '#4A90C8'); ell(c, h.x - 24, GY - 1, PUDDLE_HW * 0.55, 3.5, '#8AC8F0');
-    for (let k = 0; k < 3; k++) { const rr = ((fr * 0.5 + k * 20) % 60) / 60; c.strokeStyle = `rgba(223, 244, 255, ${(0.7 * (1 - rr)).toFixed(2)})`; c.lineWidth = 1; c.beginPath(); c.ellipse(h.x + 30, GY + 1, 6 + rr * 50, 1.5 + rr * 4, 0, 0, Math.PI * 2); c.stroke(); }
-    for (let k = 0; k < 5; k++) box(c, h.x - PUDDLE_HW + 20 + ((fr * 0.5 + k * 53) % (PUDDLE_HW * 2 - 40)), GY - 1, 8, 1, '#DFF4FF');
-    const sway = Math.sin(fr * 0.05) * 8, endX = h.x + 10 + sway * 0.5;
-    c.strokeStyle = '#050505'; c.lineWidth = 6; c.beginPath(); c.moveTo(h.x + 20, CEIL_Y + 24); c.quadraticCurveTo(h.x + 30 + sway, (CEIL_Y + GY) / 2, endX, GY - 2); c.stroke();
-    c.strokeStyle = '#2A2A30'; c.lineWidth = 4; c.stroke();
-    c.strokeStyle = '#E8C020'; c.lineWidth = 1; c.stroke();
-    for (let k = -2; k <= 2; k++) { c.strokeStyle = k % 2 ? '#D88A3A' : '#FFD08A'; c.lineWidth = 1; c.beginPath(); c.moveTo(endX, GY - 4); c.lineTo(endX + k * 3, GY + 1); c.stroke(); }
-    const n = ph.s === 'tell' ? 4 : ph.s === 'on' ? 10 : fr % 60 < 2 ? 1 : 0;
-    for (let k = 0; k < n; k++) {
-      let x = (k === 0 ? endX : h.x - PUDDLE_HW + Math.random() * PUDDLE_HW * 2), y = GY - 2;
-      const pts: [number, number][] = [[x, y]];
-      for (let m = 0; m < 4; m++) { x += (Math.random() - 0.5) * 30; y -= 6 + Math.random() * (ph.s === 'on' ? 14 : 6); pts.push([x, y]); }
-      for (const [w, col] of [[6, 'rgba(165, 243, 252, 0.25)'], [3, '#67E8F9'], [1, '#FFFFFF']] as const) { c.strokeStyle = col; c.lineWidth = w; c.beginPath(); pts.forEach(([px, py], j) => (j ? c.lineTo(px, py) : c.moveTo(px, py))); c.stroke(); }
-      box(c, pts[4][0] - 1, pts[4][1] - 1, 3, 3, '#FFFFFF');
-    }
-    if (ph.s === 'tell') for (let k = 0; k < 3; k++) if ((fr + k * 5) % 6 < 3) { box(c, endX - 6 + k * 6, GY - 8 - ((fr + k) % 5), 2, 2, '#FDE047'); box(c, endX - 5 + k * 6, GY - 7 - ((fr + k) % 5), 1, 1, '#FFFFFF'); }
-    if (ph.s === 'on') for (let i = 0; i < 2; i++) { c.globalAlpha = (0.12 + 0.08 * Math.sin(fr)) * (1 - i * 0.4); c.fillStyle = '#A5F3FC'; c.beginPath(); c.ellipse(h.x, GY - 6, PUDDLE_HW + 10 + i * 20, 22 + i * 14, 0, 0, Math.PI * 2); c.fill(); c.globalAlpha = 1; }
-  }
-};
-const mix2 = (a: string, b: string, k: number) => { const p = (s: string) => [1, 3, 5].map(i => parseInt(s.slice(i, i + 2), 16)); const A = p(a), Bb = p(b); return `#${A.map((v, i) => Math.round(v + (Bb[i] - v) * k).toString(16).padStart(2, '0')).join('')}`; };
+const MAIN_DIMS: MainDims = { heatHW: HEAT_HW, heatFloor: HEAT_FLOOR, nitroLen: NITRO_LEN, nitroH: NITRO_H, puddleHW: PUDDLE_HW };
+const drawHazard = (c: Ctx, h: Hazard, fr: number) => drawMain(c, h.kind, h.x, h.dir, hazPhase(h), fr, MAIN_DIMS);
 
 /** World space, behind him: the leak on the carpet, the rubble, the mains, her mark, the chandelier coming, her. */
 export const drawFightBack = (c: Ctx, state: GameState, f: Fight) => {
@@ -1493,11 +1405,7 @@ export const drawFightBack = (c: Ctx, state: GameState, f: Fight) => {
     box(c, r.x + w * 0.4, r.y - w * 0.3, 8, 2, WOODS[4]); box(c, r.x - w * 0.5, r.y - 3, w, 3, PLAS[2]);
   }
   for (const h of f.hazards) drawHazard(c, h, fr);
-  for (const q of f.patches) {
-    ell(c, q.x, GY + 1, 40, 4, '#1A0A06'); ell(c, q.x, GY + 1, 28, 2.5, '#3A1A0A');
-    for (let k = 0; k < 5; k++) { const fx = q.x - 32 + k * 16, fh = 8 + ((fr + k * 5) % 10); polyF(c, [[fx - 8, GY], [fx, GY - fh - 2], [fx + 8, GY]], '#B8401E'); polyF(c, [[fx - 6, GY], [fx, GY - fh], [fx + 6, GY]], k % 2 ? '#F97316' : '#FDE047'); polyF(c, [[fx - 2, GY], [fx, GY - fh * 0.45], [fx + 2, GY]], '#FFF7D6'); }
-    if (fr % 9 < 3) box(c, q.x - 20 + ((fr * 7) % 40), GY - 14 - (fr % 9) * 3, 1, 2, '#FDE047');
-  }
+  for (const q of f.patches) drawPatch(c, q.x, fr);
   drawMark(c, f, fr);
   // (the debris coming: the shadow on what it'll land on, growing; the bit itself once it's falling)
   for (const d of f.debris) {
@@ -1558,45 +1466,12 @@ export const drawFightBack = (c: Ctx, state: GameState, f: Fight) => {
 export const drawFightFront = (c: Ctx, state: GameState, f: Fight) => {
   const fr = state.frame, p = state.player;
   for (const s of f.shots) {
-    if (s.kind === 'fire') {
-      // (a ball of fire in stepped rings, tongues licking off it, sparks behind)
-      for (let k = 0; k < 4; k++) { const a = fr * 0.5 + k * 1.6; polyF(c, [[s.x + Math.cos(a) * 8, s.y + Math.sin(a) * 8], [s.x + Math.cos(a + 0.3) * 17, s.y + Math.sin(a + 0.3) * 17], [s.x + Math.cos(a + 0.6) * 8, s.y + Math.sin(a + 0.6) * 8]], k % 2 ? '#F97316' : '#DC2626'); }
-      ell(c, s.x, s.y, 12, 12, '#7A1A0A'); ell(c, s.x, s.y, 11, 11, '#DC2626'); ell(c, s.x - 1, s.y - 1, 8.5, 8.5, '#F97316'); ell(c, s.x - 2, s.y - 2, 5.5, 5.5, '#FDE047'); ell(c, s.x - 3, s.y - 3, 2.5, 2.5, '#FFF7D6');
-      for (let k = 1; k < 4; k++) box(c, s.x - k * 7 * Math.sign(s.vx || 1) + ((fr + k) % 3) - 1, s.y + ((fr * k) % 5) - 2, 2, 2, k % 2 ? '#FDE047' : '#F97316');
-    } else if (s.kind === 'ice') {
-      // (a faceted lump of it, stepped, glinting, a frost trail)
-      for (let k = 1; k < 4; k++) { c.globalAlpha = 0.5 / k; ell(c, s.x - k * 6 * Math.sign(s.vx || 1), s.y, 6 - k, 5 - k, ICE[4]); c.globalAlpha = 1; }
-      const hx = (k: number, r: number): [number, number] => [s.x + Math.cos(k * Math.PI / 3 + fr * 0.08) * r, s.y + Math.sin(k * Math.PI / 3 + fr * 0.08) * r];
-      polyF(c, [0, 1, 2, 3, 4, 5].map(k => hx(k, 11.5)), ICE[0]); polyF(c, [0, 1, 2, 3, 4, 5].map(k => hx(k, 10)), ICE[2]);
-      polyF(c, [[s.x, s.y], hx(3, 10), hx(4, 10), hx(5, 10)], ICE[3]); polyF(c, [[s.x, s.y], hx(4, 10), hx(5, 10)], ICE[4]);
-      box(c, s.x - 4, s.y - 5, 2, 2, '#FFFFFF'); if (fr % 10 < 4) { box(c, s.x + 3, s.y - 8, 1, 5, '#FFFFFF'); box(c, s.x + 1, s.y - 6, 5, 1, '#FFFFFF'); }
-    } else {
-      // (the aim: a thin flickering line off the cable's end; then the bolt down it)
-      const dx = s.tx - s.x, dy = s.ty - s.y, d = Math.hypot(dx, dy) || 1, len = 1400, ex = s.x + (dx / d) * len, ey = s.y + (dy / d) * len;
-      if (s.t < AIM_T) { if (fr % 4 < 2) { c.strokeStyle = 'rgba(165, 243, 252, 0.6)'; c.lineWidth = 1; c.beginPath(); c.moveTo(s.x, s.y); c.lineTo(ex, ey); c.stroke(); } }
-      else if (s.t < AIM_T + STRIKE_T) {
-        const pts: [number, number][] = [];
-        for (let k = 0; k <= 30; k++) { const u = k / 30; pts.push([s.x + (ex - s.x) * u + (k && k < 30 ? (Math.random() - 0.5) * 16 : 0), s.y + (ey - s.y) * u + (k && k < 30 ? (Math.random() - 0.5) * 16 : 0)]); }
-        for (const [w, col] of [[8, 'rgba(165, 243, 252, 0.3)'], [3, '#67E8F9'], [1.4, '#FFFFFF']] as const) { c.strokeStyle = col; c.lineWidth = w; c.beginPath(); pts.forEach(([px, py], j) => (j ? c.lineTo(px, py) : c.moveTo(px, py))); c.stroke(); }
-      }
-    }
+    if (s.kind === 'fire') drawFireball(c, s.x, s.y, s.vx, s.vy, fr);
+    else if (s.kind === 'ice') drawIceball(c, s.x, s.y, s.vx, fr);
+    else drawBolt(c, s.x, s.y, s.tx, s.ty, s.t, AIM_T, STRIKE_T, fr);
   }
   // (frozen: him in a block of ice; knocked off his feet: stars round his head)
-  if (f.ice) {
-    const x = p.pos.x - 8, y = p.pos.y - 8, w = p.width + 16, h = p.height + 12;
-    // (a block of ice: bevelled faces in steps (lit top and left, shaded right and foot), frost crusted on its edges)
-    c.fillStyle = 'rgba(186, 230, 253, 0.5)'; c.fillRect(x, y, w, h);
-    c.fillStyle = 'rgba(224, 242, 254, 0.55)'; c.fillRect(x, y, w, 5); c.fillRect(x, y, 5, h);
-    c.fillStyle = 'rgba(58, 114, 170, 0.45)'; c.fillRect(x + w - 5, y + 5, 5, h - 5); c.fillRect(x + 5, y + h - 5, w - 5, 5);
-    c.fillStyle = 'rgba(255, 255, 255, 0.65)'; c.fillRect(x + 7, y + 7, 3, h - 16); c.fillRect(x + 7, y + 7, w - 18, 2);
-    c.globalAlpha = 0.3; polyF(c, [[x + 8, y + h * 0.6], [x + w * 0.6, y + 8], [x + w * 0.8, y + 8], [x + 8, y + h * 0.8]], '#FFFFFF'); c.globalAlpha = 1;
-    c.strokeStyle = '#E0F2FE'; c.lineWidth = 2; c.strokeRect(x, y, w, h);
-    for (let k = 0; k < w; k += 4) { box(c, x + k, y - 2 + (k % 8 ? 0 : 1), 3, 2, '#FFFFFF'); box(c, x + k, y + h - 1, 3, 2 + (k % 8 ? 0 : 1), '#F0FAFF'); }
-    // (cracks as he mashes)
-    c.strokeStyle = '#FFFFFF'; c.lineWidth = 1; c.beginPath();
-    for (let k = 0; k < Math.floor(f.ice.fill * 8); k++) { const cx = x + hash(k * 3.3) * w, cy = y + hash(k * 5.1) * h; c.moveTo(cx, cy); c.lineTo(cx + (hash(k) - 0.5) * 24, cy + (hash(k * 2) - 0.5) * 24); }
-    c.stroke();
-  }
+  if (f.ice) drawIceBlock(c, p.pos.x - 8, p.pos.y - 8, p.width + 16, p.height + 12, f.ice.fill, fr);
   if (f.stun > 0) for (let k = 0; k < 3; k++) { const a = fr * 0.2 + (k * Math.PI * 2) / 3, sx = Math.round(p.pos.x + p.width / 2 + Math.cos(a) * 16), sy = Math.round(p.pos.y - 8 + Math.sin(a) * 4); box(c, sx - 3, sy - 1, 7, 3, '#7A5212'); box(c, sx - 1, sy - 3, 3, 7, '#7A5212'); box(c, sx - 2, sy, 5, 1, '#FDE047'); box(c, sx, sy - 2, 1, 5, '#FDE047'); box(c, sx - 1, sy - 1, 3, 3, '#FDE047'); box(c, sx, sy, 1, 1, '#FFFFFF'); }
   // (her words over her head)
   if (f.said && !f.closeup) {
@@ -1617,7 +1492,7 @@ export const drawFightHud = (c: Ctx, state: GameState, f: Fight, band: { x1: num
       const bands = rage ? ['#5A0A14', '#7A1420', '#9A1E2A', '#B82A34'] : ['#3A1030', '#5A1A48', '#7A2A62', '#9A3A7A'];
       bands.forEach((col, i) => { c.fillStyle = col; c.fillRect(0, (i * CANVAS_HEIGHT) / bands.length, CANVAS_WIDTH, CANVAS_HEIGHT / bands.length + 1); });
       const k = Math.min(1, f.closeup.t / 12);
-      drawPiperCloseup(c, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 30, 3.2 + k * 0.4, fr, { face: rage ? 'rage' : f.said ? 'talk' : 'sultry', talking: !!f.said, mess: rage ? 0.5 : 0, jolt: rage ? 1.5 : 0 });
+      drawPiperCloseup(c, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 30,3.2 + k * 0.4, fr, { face: rage ? 'rage' : f.said ? 'talk' : 'sultry', talking: !!f.said, mess: rage ? 0.5 : 0, jolt: rage ? 1.5 : 0 });
       if (f.said) saidOver(c, f.said, CANVAS_WIDTH / 2, 92, '#F9A8D4', 520);
     }
     bars(Math.min(1, f.skipT / 20));

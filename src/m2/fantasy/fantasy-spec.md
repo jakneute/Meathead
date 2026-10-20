@@ -906,3 +906,20 @@ markBossFight every frame of a boss or sub-boss fight. Voice every new line (`np
   (crest, gilt frame, tag line, bulbs), the heads big under it, a WARNING board, YOU MUST BE THIS TALL, queue rails; the
   station gets its own marquee hung low over the platform and a height board. The halls' play-plane things (and the
   castle's sign at the exit) are sorted in after the supports behind them. Drawing only, but for the hop's wrap.
+- (the user's: "make piper's model more detailed. when it does a closeup of her face, do a gross ren and stimpy style
+  closeup"; "make the lightning and ice traps in her lair look more detailed too") PIPER, more detailed in every pose
+  (piper.ts; sizes, poses and anchors unchanged): veined, glittered, straining wings (a tear, an oil-slick sheen), the
+  beehive's roots, strands, bobby pins and frizz, a stone gone from the tiara; two-tone eyeshadow, liner, clumped lashes,
+  bloodshot eyes, foundation caked to a line at the jaw, glitter in the sweat, smeared lipstick (on her teeth too), lip
+  hairs, stubble on the chins, a haired beauty mark; sequins all over the gown, both seams laddered, a split under the
+  arm, the thigh split dimpled, a sweat stain, the straps biting; cellulite and stubble (patterns, painted once) on her
+  arms and legs, a varicose vein, chipped polish, rings sunk in her fingers, a ribbon off the wand. The CLOSE-UP is now a
+  John K GROSS-UP (piperGross.ts): her face filling the screen, painted per pixel in long stepped ramps with ordered
+  dither (pores, blackheads, a cold sore, nose hairs, a haired wart, cracking foundation, mascara clumped and running,
+  gaps, gold teeth, lipstick on them, bloodshot eyes, three chins), cached per face, mouth shape and eyelid twitch; live
+  over it: glitter twinkling, sweat running, drool (sultry) or spittle and throbbing veins (rage), the tic, a lurch and
+  jitter; same timing. The traps (bedroom/mains.ts, same places, sizes and timings): real plumbing stamped once per
+  look (lagging, silver bands, bolted flanges, valves; scorched and glowing for the heat main; frost-rimed with icicles,
+  torn foam and a hazard band for the nitrogen; a burst copper water main and a frayed three-core cable for the wires),
+  stepped fire with smoke and embers, frost ferns over wall and floor, the nitrogen plume with fog rolling along the
+  carpet, arcs crawling over the flood with steam; her fire ball, ice crystal, forked bolt and the ice block redone.
