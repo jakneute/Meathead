@@ -42,6 +42,7 @@ import { HOLLYWOOD_STAGE } from '../hollywood/index';
 import { FOREIGN_STAGE } from '../foreign/index';
 import { FRONTIER_STAGE } from '../frontier/index';
 import { FANTASY_STAGE } from '../fantasy/index';
+import { CARTOON_STAGE } from '../cartoon/index';
 import { STAIRS_B, CEIL_B } from '../space/queen/geo';
 import { HOUSE_DOOR } from '../space/crater/layout';
 import { LIFT_X0, ACT2_X } from '../space/ride/layout';
@@ -78,6 +79,8 @@ export type { Cue };
 const LAND_OF_STAGE: Record<string, string> = {
   [ADV_STAGE]: 'adventure', [SPOOKY_STAGE]: 'spooky', [SPACE_STAGE]: 'space', [HOLLYWOOD_STAGE]: 'hollywood', [FOREIGN_STAGE]: 'foreign', [FRONTIER_STAGE]: 'frontier',
   [FANTASY_STAGE]: 'fantasy',
+  // (Cartoon Land's songs aren't written yet: no 'land:cartoon' in SONGS, so pick() finds nothing and it's quiet there)
+  [CARTOON_STAGE]: 'cartoon',
 };
 /** The special sequences: a land's section that's a ride or a chase of its own ('seq:<name>'). */
 export const SEQUENCES: Record<string, Record<string, string>> = {
