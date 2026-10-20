@@ -151,10 +151,23 @@ const door = (c: Ctx, t: Tree, f: number) => {
 /** Where the door's lamp is (for the night's light). */
 export const doorLamp = () => { const t = TREES.find(q => q.door)!; return { x: t.x + t.w / 2, y: t.base - 84 }; };
 
-/** The trees going back (behind everything at the play plane). */
-export const drawBackTrees = (c: Ctx, v: View) => {
+/** A speaker strapped up a trunk (a real jungle!): a green box, its grille, two straps round the bark, its cable down. */
+const treeSpeaker = (g: Ctx, t: { x: number; w: number; base: number }, pal: string[]) => {
+  const y = t.base - 210, x = t.x + t.w / 2 - 12;
+  g.fillStyle = pal[1]; g.fillRect(Math.round(t.x + t.w / 2 + 6), Math.round(y + 26), 2, Math.round(t.base - y - 26));
+  for (const sy of [y + 4, y + 20]) { box(g, t.x - 1, sy, t.w + 2, 3, INK); box(g, t.x, sy, t.w, 2, pal[0]); box(g, t.x + t.w * 0.2, sy, 3, 1, pal[5]); }
+  box(g, x - 1, y - 1, 26, 30, INK); box(g, x, y, 24, 28, mix(pal[3], '#3A5A2A', 0.6)); box(g, x, y, 24, 2, mix(pal[5], '#6A8A4A', 0.5));
+  box(g, x + 3, y + 5, 18, 18, mix(pal[0], '#141A12', 0.4));
+  for (let k = 0; k < 5; k++) box(g, x + 4, y + 7 + k * 3, 16, 1, mix(pal[2], '#3A3E36', 0.6));
+  box(g, x + 18, y + 2, 4, 2, '#3A3E44');
+};
+
+/** The trees going back (behind everything at the play plane); `between(d)` puts down whatever else stands further
+ *  back than each one (the set dressing), so the nearer of them stand in front. */
+export const drawBackTrees = (c: Ctx, v: View, between?: (d: number) => void) => {
   const tod = timeOfDay(), haze = skyAt(0.9, tod);
   for (const t of BACK) {
+    between?.(t.d);
     // (where it is on screen, roughly: off it, skip it)
     const sx = v.eye.x + (t.x - v.eye.x) * t.d;
     if (sx + t.w * 2 < v.v0 || sx - t.w * 2 > v.v1) continue;
@@ -164,6 +177,7 @@ export const drawBackTrees = (c: Ctx, v: View) => {
     atDepth(c, v.eye, t.d, () => {
       const topY = v.eye.y + (v.top - v.eye.y) / t.d;
       trunk(c, v, t, pal, `b${Math.round(t.d * 100)}-${tod.key}`, topY);
+      if (t.seed % 5 === 3) stamp(c, `jg-tspk-${t.seed}-${tod.key}`, t.x - 4, t.base - 216, t.w + 30, 220, g => treeSpeaker(g, t, pal));
       // (a crown up in the leaves, if it's that low)
       const lf = LEAF.map(col => mix(farTint(col, 0.5, tod), haze, k * 0.5));
       const cy = t.base - 640 - hash(t.seed) * 160;

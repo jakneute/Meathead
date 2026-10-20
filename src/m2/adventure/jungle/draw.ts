@@ -8,6 +8,7 @@ import { viewOf } from './art/paint';
 import { drawGoingBack, drawPlayPlane } from './art/ground';
 import { drawBackTrees, drawTrees } from './art/trees';
 import { drawSigns, drawProps, drawLife, drawExitView } from './art/props';
+import { drawDressing, drawRavineDressing, startDressing } from './art/dressing';
 
 export { drawJungleBackdrop } from './art/backdrop';
 export { drawJungleFront } from './art/front';
@@ -20,7 +21,10 @@ export const drawJungleBack = (c: Ctx, state: GameState) => {
   const v = viewOf(state);
   drawExitView(c, v);
   drawGoingBack(c, v);
-  drawBackTrees(c, v);
+  drawRavineDressing(c, v);
+  startDressing();
+  drawBackTrees(c, v, d => drawDressing(c, v, d));
+  drawDressing(c, v, 1);
   drawPlayPlane(c, v);
   drawTrees(c, v);
   drawSigns(c, v);

@@ -11,6 +11,7 @@ import type { Enemy } from '../../../m1/types';
 import { stamp } from '../../../m1/game/render/stamp';
 import { mix } from '../../../m1/game/render/backdrops/core';
 import { INK, ink, eye, limb, lite, dark } from '../../../m1/game/render/npc/kit';
+import { reaction } from '../../spooky/costume';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -51,7 +52,8 @@ const tongue = (g: Ctx, x: number, y: number, len = 5) => { ink(g, () => g.ellip
 
 /** What it's doing, for its look. */
 type Mood = 'ok' | 'hurt' | 'dead';
-const mood = (e: Enemy): Mood => (e.health <= 0 ? 'dead' : (e.hitFlash ?? 0) > 0 ? 'hurt' : 'ok');
+/** (knocked about: grabbed, flung, dazed, a body in the engine's special deaths: it shows, eyes screwed shut) */
+const mood = (e: Enemy): Mood => reaction(e)?.md ?? (e.health <= 0 ? 'dead' : (e.hitFlash ?? 0) > 0 ? 'hurt' : 'ok');
 /** Puts a frame down: painted once for this key. */
 const put = (c: Ctx, key: string, x: number, y: number, w: number, h: number, paint: (g: Ctx) => void) => stamp(c, `jga-${key}`, x, y, w, h, paint);
 
@@ -82,6 +84,9 @@ const paintMonkey = (g: Ctx, v: number, pose: string, fr: number, md: Mood) => {
   part(g, () => g.ellipse(0, by, 9, 11 - sq, -0.1, 0, Math.PI * 2), fur, -9, by - 11, 18, 22);
   tick(g, -6, by - 8, 12, 14, fur, 14, v + 1);
   ink(g, () => g.ellipse(3, by - 6, 5, 4, 0, 0, Math.PI * 2), cream, 0.8);
+  // (the cream ruff ticked darker at its edge, the belly's bare patch)
+  g.fillStyle = dark(cream, 0.2); for (let k = 0; k < 4; k++) g.fillRect(-1 + k * 2, by - 2 + (k % 2), 1, 1);
+  g.fillStyle = lite(fur, 0.25); g.fillRect(2, by + 2, 3, 4);
   // The head: the cap, the ears, the cream face, the eyes, the muzzle
   const hx = 4, hy = -27 + bob + sq * 1.5;
   for (const ex of [hx - 7, hx + 7]) ink(g, () => g.arc(ex, hy + 1, 3, 0, Math.PI * 2), cream, 0.8);
@@ -141,10 +146,12 @@ const paintChimp = (g: Ctx, v: number, pose: string, fr: number, md: Mood) => {
   const backHand = md === 'dead' ? { x: -16, y: -2 } : armUp ? { x: -14, y: pose === 'leap' ? -50 : -58 + (fr % 2) * 4 } : { x: -12 - step, y: -2 };
   limb(g, -4, -38 + squash, (backHand.x - 4) / 2 - 2, (backHand.y - 38) / 2 + 2, 8, dark(fur, 0.2)); limb(g, (backHand.x - 4) / 2 - 2, (backHand.y - 38) / 2 + 2, backHand.x, backHand.y, 7, dark(fur, 0.2));
   ink(g, () => g.arc(backHand.x, backHand.y, 3.5, 0, Math.PI * 2), skinD, 0.8);
-  // The body: hunched, broad shoulders, lit along the back
+  // The body: hunched, broad shoulders, lit along the back; the shaggy fringe at the forearm and the gray of an old one
   const by = -30 + squash - stretch;
   part(g, () => g.ellipse(0, by, 16, 17 - squash * 0.6 + stretch, pose === 'leap' ? -0.3 : 0.15, 0, Math.PI * 2), fur, -16, by - 17, 32, 34, 1.2);
   tick(g, -12, by - 12, 24, 22, fur, 30, v + 7);
+  g.fillStyle = lite(fur, 0.3); for (let k = 0; k < 6; k++) g.fillRect(-10 + k * 3, by - 15 + Math.abs(k - 2.5), 2, 1);
+  if (v % 3 === 1) { g.fillStyle = '#6A6460'; for (let k = 0; k < 5; k++) g.fillRect(-6 + k * 3, by + 8 + (k % 2), 1, 2); }
   // The head: brow ridge, the bare face, ears; hooting (lips out, an O), snarling on the leap
   const hx = 11, hy = -44 + squash - stretch;
   for (const ex of [hx - 9]) ink(g, () => g.ellipse(ex, hy + 1, 3.4, 4.4, 0, 0, Math.PI * 2), skin, 0.8);
@@ -243,6 +250,10 @@ const paintJaguar = (g: Ctx, v: number, pose: string, fr: number, md: Mood) => {
     g.strokeStyle = INK; g.lineWidth = 0.8; g.beginPath(); g.moveTo(hx + 1, hy - 6); g.lineTo(hx + 7, hy - 4.6); g.stroke();
   }
   g.strokeStyle = '#F8FAFC'; g.lineWidth = 0.5; for (const k of [-1, 0, 1]) { g.beginPath(); g.moveTo(hx + 9, hy + 3 + k); g.lineTo(hx + 16, hy + 2 + k * 2); g.stroke(); }
+  // (the whisker pad's dots, the cheek ruff ticked in, a lit rim along the back of the neck)
+  g.fillStyle = spot; for (const [wx, wy] of [[7, 2], [9, 3], [7, 4.5]]) g.fillRect(hx + wx, hy + wy, 1, 1);
+  if (md !== 'dead') tick(g, hx - 9, hy - 2, 8, 9, gold, 10, v + 3);
+  g.fillStyle = lite(gold, 0.4); g.fillRect(hx - 9, hy - 7, 4, 1);
 };
 
 export const drawJaguarArt = (c: Ctx, e: Enemy, f: number) => {
@@ -332,6 +343,9 @@ const paintMacaw = (g: Ctx, pose: string, fr: number, md: Mood) => {
     g.fillStyle = dark(yellow, sh); g.beginPath(); g.moveTo(-2 + dx, -12); g.lineTo((tipX + dx) / 2, (tipY - 12) / 2); g.lineTo(4 + dx, -11); g.fill();
     g.fillStyle = dark(red, sh); g.fillRect(-2 + dx, -13, 6, 2);
     g.fillStyle = lite(blue, 0.35); g.fillRect(Math.min(tipX, -2 + dx) + 2, Math.min(tipY, -13) + 1, 3, 1);
+    // (the flight feathers: their edges stepped along the trailing edge, darker)
+    g.fillStyle = dark(blue, sh + 0.25);
+    for (let k = 1; k < 4; k++) { const fx = -4 + dx + (tipX - (-4 + dx)) * (k / 4), fy = -12 + (tipY + 1 - -12) * (k / 4); g.fillRect(Math.round(fx), Math.round(fy), 2, 1); g.fillRect(Math.round(fx) + 1, Math.round(fy) + 1, 1, 2); }
   };
   wing(-3, 0.3);
   part(g, () => g.ellipse(0, -11, 11, 7, swoop ? 0.35 : md === 'dead' ? 1.2 : 0, 0, Math.PI * 2), red, -11, -18, 22, 14);

@@ -418,6 +418,21 @@ const drawVinesIn = (c: Ctx, state: GameState, defs: VineDef[]) => {
       leaf(c, p1.x, p1.y, 9 + ((k * 7 + i) % 4) * 2, ang + side * (Math.PI / 2 - 0.5) + stir, LEAF, side > 0 ? 4 : 3);
       if (k % 3 === 0) leaf(c, p1.x, p1.y, 7, ang - side * (Math.PI / 2 - 0.7) + stir, LEAF, 3);
     }
+    // (a flower now and then off a knot: a pink bloom in steps, its yellow eye; aerial roots dangling off others)
+    for (let k = 5; k < n - 3; k += 7) {
+      const p = pts[k], s = (k + i) % 2 ? 1 : -1;
+      if ((k * 3 + i) % 4 === 0) {
+        const fx = Math.round(p.x + s * 6), fy = Math.round(p.y - 2);
+        c.fillStyle = INK; c.fillRect(fx - 4, fy - 4, 9, 8);
+        c.fillStyle = '#B8306A'; c.fillRect(fx - 3, fy - 3, 7, 6);
+        c.fillStyle = '#E8609A'; c.fillRect(fx - 3, fy - 3, 4, 3); c.fillRect(fx + 1, fy - 1, 3, 1);
+        c.fillStyle = '#FFB0D0'; c.fillRect(fx - 2, fy - 3, 2, 1);
+        c.fillStyle = '#F8D840'; c.fillRect(fx, fy - 1, 2, 2);
+      } else if ((k + i) % 3 === 0) {
+        const len = 8 + ((k * 5 + i) % 4) * 4;
+        c.fillStyle = LIANA[0]; for (let d = 0; d < len; d += 2) c.fillRect(Math.round(p.x + s * 3 + Math.sin(d * 0.4 + f * 0.04) * 1), Math.round(p.y + d), 1, 2);
+      }
+    }
     // (a climbing one's tendrils, gripping the trunk or the rock beside it)
     if (climb) for (let k = 2; k < n; k += 2) {
       const p = pts[k], s = k % 4 ? 1 : -1;
