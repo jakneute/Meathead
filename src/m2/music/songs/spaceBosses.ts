@@ -8,11 +8,12 @@
 // offbeats, a driving surf kit, a tape echo on everything. A theremin swoops in at the ends of phrases (the saucer),
 // a "B" that lifts to the relative major like Telstar's, a half-time menace with the Neapolitan B-flat under a low
 // horn motif and the choir, and a Misirlou surf break (E Phrygian dominant, the guitar tremolo-picking, the toms
-// galloping) to bring it round.
-// A minor, 176. 44 bars: a 4-bar intro (once: the guitar's tremolo, the theremin's swoops, the snare roll), then:
+// galloping) to bring it round. The Mega Man pass (the user's: "give it more of a high energy mega man vibe") pushed it
+// faster, put a second square a third under the tune and power chords under the twang.
+// A minor, 180. 44 bars: a 4-bar intro (once: the guitar's tremolo, the theremin's swoops, the snare roll), then:
 //   A  (8)  Am - Am - F - G - Am - Am - F - E7: the clavioline's tune, the guitar riff, the organ's offbeats.
-//   A2 (8)  ... Am - C - Dm E7 - Am.
-//   B  (8)  C - G - Am - Em - F - C - Dm - E7: the ride cymbal, the "ooh"s.
+//   A2 (8)  ... Am - C - Dm E7 - Am, the second square in thirds.
+//   B  (8)  C - G - Am - Em - F - C - Dm - E7: the ride cymbal, the "ooh"s, the thirds.
 //   C  (8)  Am - Bb - Am - Bb - F - E7 - F - E7 in half time: the theremin's line, the low horns, the choir, timpani.
 //   D  (8)  E - F - E - F - E - F - Dm - E7: the surf break.
 // ARRANGEMENTS (cues.ts picks by the saucer): main (at it), beam (pissed, and THE BEAM: the brass section doubles the
@@ -24,8 +25,10 @@
 // Gazebo, Kano, the 1983 Euro dance floor). A supersaw lead with a hook you can hum, a resonant synth bass bouncing
 // octaves in sixteenths, the 909 four on the floor with open hats and claps, Simmons toms in the fills, string stabs,
 // a PWM pad, a DX bell arpeggio, the choir "vocoder", orchestra hits, and a breakdown where the impregnator ray
-// sweeps up on a saw lead before it drops back in.
-// F minor, 124. 44 bars: a 4-bar intro (once: the kick alone, the pad swelling, the claps and the snare roll), then:
+// sweeps up on a saw lead before it drops back in. The Mega Man pass (the user's: "give it more of a high energy mega
+// man vibe") took it to Eurobeat speed, a Mega Man X boss in a disco: a saw lead a third under the hook the second
+// time and at the drop, the strings' stabs in the drop too.
+// F minor, 148. 44 bars: a 4-bar intro (once: the kick alone, the pad swelling, the claps and the snare roll), then:
 //   A  (8)  Fm - Db - Eb - Cm (i - VI - VII - v, twice): the hook.
 //   A2 (8)  the hook, the string stabs, ending on C7.
 //   B  (8)  Bbm7 - Eb - Abmaj7 - Dbmaj7 - Bbm7 - C7 - Fm - C7: the chorus, the strings in unison, the choir.
@@ -36,6 +39,7 @@
 
 import type { Song } from '../engine';
 import { type Bar, join, rest, rep, up, nt, hi, chord, bars } from './jungle';
+import { scale, harm, riff as powerRiff } from './mega';
 
 const ROLL = (n: string) => `o2 _v50 [${n}32]8 _v70 [${n}32]8 _v90 [${n}32]8 _v110 [${n}32]8`;
 
@@ -55,6 +59,7 @@ const U_B: Bar[] = ['C', 'G', 'Am', 'Em', 'F', 'C', 'Dm', 'E7'];
 const U_C: Bar[] = ['Am', 'Bb', 'Am', 'Bb', 'F', 'E7', 'F', 'E7'];
 const U_D: Bar[] = ['E', 'F', 'E', 'F', 'E', 'F', 'Dm', 'E7'];
 
+const AM = scale('a', 'minor');
 const uPads = (prog: Bar[]) => bars(prog, (c, b) => chord(VU[c], b === 4 ? '1' : '2'));
 /** The guitar's low riff: the root twice, up the chord and back. */
 const riff = (prog: Bar[]) => bars(prog, (c, b) => {
@@ -114,13 +119,15 @@ const sec = (open: string, groove: string) => [open, ...rep(groove, 6), UFILL];
 
 export const BOSS_UFO: Song = {
   title: 'Mourning Star',
-  bpm: 176,
+  bpm: 180,
   loopFrom: 16,
   reverb: 'spring',
   reverbMix: 0.8,
   delay: { beats: 0.75, feedback: 0.35, tone: 2600 },
   parts: {
     lead: { inst: 'squarelead', pan: 0, rev: 0.25, dly: 0.2, mml: join(rest(4), ['_v100'], UL_A, UL_A2, ['_v105'], UL_B, rest(16)) },
+    harmony: { inst: 'squarelead', pan: 0.35, rev: 0.25, dly: 0.15, vol: 0.45, not: ['down', 'drift'], mml: join(rest(4), rest(8), ['_v95'], harm(UL_A2, AM, -2), harm(UL_B, AM, -2), rest(16)) },
+    power: { inst: 'powerchord', pan: 0.45, rev: 0.06, vol: 0.38, not: ['down', 'drift'], mml: join(rest(4), ['_v100'], powerRiff(U_A, c => RU[c][0], '! x . x x . x x'), powerRiff(U_A2, c => RU[c][0], '! x . x x . x x'), powerRiff(U_B, c => RU[c][0], '! - - x - - x -'), powerRiff(U_C, c => RU[c][0], '! - - - x - - -'), powerRiff(U_D, c => RU[c][0], 'x x x x x x x x')) },
     brassLead: { inst: 'brass', pan: -0.2, rev: 0.25, vol: 0.5, only: ['beam'], mml: join(rest(4), ['_v105'], up(UL_A, -1), up(UL_A2, -1), up(UL_B, -1), rest(16)) },
     theremin: { inst: 'theremin', pan: 0.3, rev: 0.4, dly: 0.25, vol: 0.55, mml: join(UT_IN, rest(7), ['_v85 ' + UT_SWOOP], rest(8), rest(7), [UT_SWOOP], UT_C, rest(8)) },
     gtr: {
@@ -171,6 +178,7 @@ const Q_B: Bar[] = ['Bbm7', 'Eb', 'Abmaj7', 'Dbmaj7', 'Bbm7', 'C7', 'Fm', 'C7'];
 const Q_C: Bar[] = ['Dbmaj7', 'Eb', 'Fm', 'Fm', 'Dbmaj7', 'Eb', 'C7sus', 'C7'];
 const Q_LOOP: Bar[] = [...Q_A, ...Q_A2, ...Q_B, ...Q_C, ...Q_A2];
 
+const FM = scale('f', 'minor');
 const qPads = (prog: Bar[]) => bars(prog, (c, b) => chord(VQ[c], b === 4 ? '1' : '2'));
 /** The string stabs: the chord an octave up, short, pushed. */
 const qStabs = (prog: Bar[]) => bars(prog, c => { const x = chord(VQ[c].map(hi), '8'); return `${x} r4 ${x} r8 ${x} r4`; });
@@ -204,13 +212,14 @@ const SNROLL = '_v60 [s16]4 _v80 [s16]4 _v100 [s16]4 _v120 [s16]4';
 
 export const BOSS_SPACE_QUEEN: Song = {
   title: 'Less Fatal Mode',
-  bpm: 124,
+  bpm: 148,
   loopFrom: 16,
   reverb: 'plate',
   reverbMix: 0.7,
   delay: { beats: 0.75, feedback: 0.35, tone: 3500 },
   parts: {
     lead: { inst: 'supersaw', pan: 0, rev: 0.25, dly: 0.18, mml: join(rest(4), ['_v100'], QL_A, QL_A2, ['_v105'], QL_B, rest(8), ['_v110'], QL_A2) },
+    harmony: { inst: 'sawlead', pan: -0.3, rev: 0.25, dly: 0.15, vol: 0.4, mml: join(rest(4), rest(8), ['_v95'], harm(QL_A2, FM, -2), rest(16), ['_v100'], harm(QL_A2, FM, -2)) },
     violins: { inst: 'strings', pan: 0.25, rev: 0.35, vol: 0.45, mml: join(rest(4), rest(16), ['_v90'], QL_B, ['_v95'], QL_C, ['_v95'], up(QL_A2, -1)) },
     stabs: { inst: 'strings', pan: -0.35, rev: 0.25, vol: 0.35, mml: join(['q3'], rest(4), rest(8), ['_v105'], qStabs(Q_A2), rest(16), qStabs(Q_A2)) },
     pad: { inst: 'pwm', pan: 0.1, rev: 0.4, vol: 0.38, mml: join(['_v85 _e30 _e127/1^1^1 ' + chord(VQ.Fm, '1'), chord(VQ.Fm, '1'), chord(VQ.Db, '1'), chord(VQ.C7sus, '1'), '_e127'], ['_v75'], qPads(Q_LOOP)) },
