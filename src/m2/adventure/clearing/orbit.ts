@@ -28,6 +28,7 @@ import { x0, TEMPLE_X } from './arena';
 import { timeOfDay, skyRamp, farTint, sunAt, drawSun, drawStars, drawMoon, cloudTint } from '../../timeOfDay';
 import { pixelBlob, mix } from '../../intro/art/kit';
 import { STONE as SR, MOSS } from '../roof/stone';
+import { drawParkRing } from './far';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -659,6 +660,8 @@ export const drawOrbitBackdrop = (c: Ctx, state: GameState, templeHit: boolean, 
     [[10, hzd('#6A889C', 0.45)], [26, hzd('#5E7C90', 0.5)]]);
   band(c, v, 4200, a => 700 + 260 * Math.sin(3 * a) + 140 * Math.sin(7 * a + 1) + 60 * Math.sin(17 * a + 2) + 30 * jagA(a, 240, 7), hzd('#6E9C96', 0.15), 600, hzd('#94BEB6', 0.15),
     [[12, hzd('#5E8C84', 0.15)], [28, hzd('#527E76', 0.18)], [50, hzd('#48706A', 0.22)]]);
+  // (the park out past the hills: the cruise, the dino park, the other lands: far.ts)
+  drawParkRing(c, v, state.frame);
   band(c, v, 3000, a => 380 + 120 * Math.sin(5 * a + 2) + 70 * Math.sin(13 * a) + 26 * Math.abs(Math.sin(70 * a)), farTint('#4A7A5E', 0.7, tod), 600, farTint('#6A9A6E', 0.7, tod),
     [[14, farTint('#3E6C50', 0.7, tod)], [32, farTint('#346046', 0.7, tod)]]);
   drawFloor(c, v);

@@ -8,12 +8,14 @@
 
 import type { GameState } from '../../../../m1/game/core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../../m1/constants';
-import { GY } from '../../geometry';
+import { GY, SECTIONS } from '../../geometry';
 import { timeOfDay, skyRamp, sunAt, sunTint, cloudTint, farTint, drawStars, drawMoon, hourMix, type TimeOfDay } from '../../../timeOfDay';
 import { snap2, wave, jag, range, mist, falls, canopy, banded, fillUnder, flanks, wrapAt, poly, palm as farPalm } from '../../farArt';
 import { noteSun } from '../../../sunFlare';
 import { type Ctx, box, mix, hash, checker, bandedGradient, steppedGlow, pixelBlob, PIX } from './kit';
 import { pixelRidge } from '../../../../m1/game/render/pixelArt';
+import { farTemple, farCruise } from '../../teases';
+import { farMark } from '../../../parkFar';
 
 const W = CANVAS_WIDTH, H = CANVAS_HEIGHT;
 /** The horizon: where the eye is (see kit's eyeOf), always the same height on screen. */
@@ -71,6 +73,7 @@ export const drawDinoBackdrop = (c: Ctx, state: GameState) => {
   // The mountains, the hills, the far paddocks, the tree line: each its own depth
   const layers: [string, number, number, number, (g: Ctx) => void][] = [
     ['dmtn', 0.03, 1200, 190, g => paintMountains(g, 1200, 190)],
+    ['dpark', PARK_D, PARK_W, 300, g => paintPark(g, PARK_W, 300)],
     ['dhill', 0.12, 960, 180, g => paintHills(g, 960, 180)],
     ['dpad', 0.3, 1100, 150, g => paintPaddocks(g, 1100, 150)],
     ['dtree', 0.5, 880, 170, g => paintTreeLine(g, 880, 170)],
@@ -85,7 +88,29 @@ export const drawDinoBackdrop = (c: Ctx, state: GameState) => {
     if (key === 'dhill') brachio(c, cam, camY, f);
   }
 };
-const GROUND: Record<string, string> = { dmtn: '#4E6A5A', dhill: '#4A6B34', dpad: '#5E7A34', dtree: '#4F6A2A' };
+const GROUND: Record<string, string> = { dmtn: '#4E6A5A', dpark: '#4E6A5A', dhill: '#4A6B34', dpad: '#5E7A34', dtree: '#4F6A2A' };
+
+// ---------------------------------------------------------------------------------------------------------------
+// The park past the hills: one panorama (wide enough it never comes round again in the park's length), so each thing
+// in it keeps its own direction as he goes: the Jungle Cruise back the way he came (the queue house's thatch, the
+// boathouse, the lookout), the other lands on the horizon (the Great Pixie's castle, SPACE NEEDLE 2 and the GIANT ATOM,
+// the World Showcase's castle on its hill: parkFar.ts), and ahead, past the paddocks, the Temple of the Jaguar and its
+// show building (where he's headed). Its feet are down behind the hills.
+
+const PARK_D = 0.07, PARK_W = 2400;
+/** The panorama's tile x of a spot `p` px along it (0: the left edge of the view as he comes into the park). */
+const parkX = (p: number) => (((p + (SECTIONS.dino.x0 + W / 2) * PARK_D) % PARK_W) + PARK_W) % PARK_W;
+const paintPark = (g: Ctx, tw: number, th: number) => {
+  const tod = timeOfDay(), base = th - 24, hz = skyRamp(SKY, tod)[7];
+  const at = (p: number, draw: (x: number) => void) => wrapAt(tw, parkX(p), draw, 300);
+  at(80, x => farCruise(g, x, base - 6, col => hazed(col, 0.34, 1, tod), tod.lamps));
+  at(330, x => farMark(g, 'fairyCastle', x, base - 18, 118, 0.48, tod));
+  at(590, x => farMark(g, 'needle', x, base - 22, 120, 0.5, tod));
+  at(660, x => farMark(g, 'atom', x, base - 26, 64, 0.5, tod));
+  at(1000, x => farMark(g, 'showcase', x, base - 20, 84, 0.52, tod));
+  at(1360, x => farTemple(g, x, base - 4, 230, col => hazed(col, 0.3, 1, tod), tod.lamps));
+  mist(g, tw, base - 80, 80, hz, 0.0, 0.42, 5);
+};
 
 // ---------------------------------------------------------------------------------------------------------------
 // The sky

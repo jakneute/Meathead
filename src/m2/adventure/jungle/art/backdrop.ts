@@ -10,6 +10,8 @@ import { noteSun } from '../../../sunFlare';
 import { stamp, bandedGradient, hazeBands, steppedGlow, pixelBlob } from '../../../intro/art/kit';
 import { type Ctx, INK, box, mix, hash, poly, clump, fern, bigLeaf, bark, leaf, plank, lashing, LEAF, BARK, MOSS } from './paint';
 import { snap2, wave, jag, range, falls, mist, canopy, crown, banded, checker } from '../../farArt';
+import { farTemple, farCruise, farWaterTower } from '../../teases';
+import { farMark } from '../../../parkFar';
 
 const TW = 1024;
 
@@ -44,46 +46,16 @@ const paintFar = (g: Ctx, tod: TimeOfDay) => {
     falls(g, fx, top, top + 58, 6, { rock: L.deep, water: hazeOf('#B8D8E0', K * 0.8, tod), lit: hazeOf('#F0FAFF', K * 0.7, tod), spray: hazeOf('#DCECF0', K * 0.7, tod) });
     mist(g, TW, 250, 120, sky, 0.05, 0.6, 6);
   }
-  // The temple: a stepped pyramid, its stair up the front, the shrine on top, vines and moss down it
-  wrap(700, x => {
-    const K = 0.46, S = ['#3E3A2E', '#57523F', '#6E6A54', '#8A8468', '#A8A080'].map(c => hazeOf(c, K, tod));
-    const moss = hazeOf('#4A6A34', K, tod), mossL = hazeOf('#6A8A44', K, tod);
-    const tiers = 6, th = 18;
-    for (let i = 0; i < tiers; i++) {
-      const w = 150 - i * 22, y = 300 - i * th, l = x - w / 2;
-      // (the tier's face: lit at its left end, its shade dithered in at the right; a dark line under the tread over it)
-      box(g, l, y, w, th, S[2]);
-      box(g, l, y, 6, th, S[3]); box(g, l, y, 2, th, S[4]); checker(g, l + 6, y, 2, th, S[3]);
-      box(g, l + w - 12, y, 12, th, S[1]); checker(g, l + w - 14, y, 2, th, S[1]);
-      box(g, l, y, w, 2, S[0]);
-      // (block courses, the joints staggered)
-      for (let cy = y + 7; cy < y + th; cy += 6) {
-        box(g, l + 2, cy, w - 4, 1, S[1]);
-        for (let jx = l + 6 + ((cy >> 1) % 2) * 6; jx < l + w - 6; jx += 12) box(g, jx, cy - 5, 1, 5, S[1]);
-      }
-      // (moss creeping along under the tread, dripping)
-      for (let mx = l + 4; mx < l + w - 4; mx += 6) if (hash(mx * 0.7 + i) > 0.45) { box(g, mx, y + 2, 4, 2, moss); if (hash(mx + i * 3) > 0.6) box(g, mx + 1, y + 4, 2, 2 + Math.round(hash(mx * 1.3) * 4), moss); }
-    }
-    // (the stair up the middle: its treads in shade, its edges lit; the walls either side of it)
-    const sw = 22, sTop = 300 - (tiers - 1) * th;
-    box(g, x - sw / 2 - 3, sTop, 3, 318 - sTop, S[3]); box(g, x + sw / 2, sTop, 3, 318 - sTop, S[1]);
-    for (let y = sTop; y < 318; y += 4) { box(g, x - sw / 2, y, sw, 2, S[2]); box(g, x - sw / 2, y + 2, sw, 2, S[1]); }
-    // (the shrine on top: its walls, the dark doorway, the roof comb over it pierced)
-    const sy = 170;
-    box(g, x - 18, sy, 36, 30, S[2]); box(g, x - 18, sy, 3, 30, S[4]); box(g, x + 12, sy, 6, 30, S[1]); checker(g, x + 10, sy, 2, 30, S[1]);
-    box(g, x - 7, sy + 10, 14, 20, S[0]); box(g, x - 5, sy + 8, 10, 2, S[0]);
-    box(g, x - 22, sy - 4, 44, 4, S[1]); box(g, x - 22, sy, 44, 1, S[0]);
-    box(g, x - 12, sy - 22, 24, 18, S[2]); box(g, x - 12, sy - 22, 2, 18, S[3]); box(g, x + 8, sy - 22, 4, 18, S[1]);
-    for (let k = 0; k < 3; k++) box(g, x - 8 + k * 6, sy - 18, 3, 6, S[0]);
-    box(g, x - 4, sy - 26, 8, 4, S[1]);
-    // (vines down it: green strands from the shrine and the tiers, leafy)
-    for (let i = 0; i < 7; i++) {
-      const vx = x - 60 + i * 20 + Math.round(hash(i * 2.7) * 6), dx = Math.abs(vx - x);
-      // (hung off the highest tier that's under it)
-      const vy = Math.max(210 + hash(i) * 30, 300 - Math.max(0, Math.floor((142 - 2 * dx) / 22)) * 18 + 4), len = 30 + hash(i * 1.9) * 50;
-      for (let y = vy; y < Math.min(318, vy + len); y += 2) { box(g, vx + Math.round(Math.sin(y * 0.15 + i) * 1.5), y, 2, 2, (y >> 1) % 3 ? moss : mossL); }
-    }
-  });
+  // The park past the trees, on the horizon: Future Land's SPACE NEEDLE 2 (its shaft on up into the sky), the Great
+  // Pixie's castle on its crag over in Fairy Land (parkFar.ts: their own lands' painters), hazed
+  farMark(g, 'fairyCastle', 150, 300, 104, 0.5, tod);
+  farMark(g, 'needle', 520, 302, 96, 0.52, tod);
+  // The Temple of the Jaguar up out of the trees ahead (its show building behind it, the jaguar head on that), the
+  // Jungle Cruise's boathouse and lookout nearer the river, the dino park's water tower off past the temple
+  const tT = (c: string) => hazeOf(c, 0.44, tod);
+  wrap(700, x => farTemple(g, x, 320, 230, tT, tod.lamps));
+  wrap(300, x => farCruise(g, x, 316, (c: string) => hazeOf(c, 0.4, tod), tod.lamps));
+  wrap(930, x => farWaterTower(g, x, 318, (c: string) => hazeOf(c, 0.48, tod), tod.lamps));
   // The giants: bare trunks up over the canopy, lit down the left, forking; umbrella crowns in stepped lumps
   const GR = ['#1E4430', '#2C5A3A', '#467A46', '#6A9A58'].map(c => hazeOf(c, 0.46, tod));
   const tr = BARK.map(c => hazeOf(c, 0.5, tod));

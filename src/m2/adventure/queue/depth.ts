@@ -9,6 +9,8 @@ import { drawTodSky, farTint, timeOfDay, skyTint, cloudTint, type TimeOfDay } fr
 import { snap2, wave, jag, range, mist, kabooma, falls, canopy, palm, wrapAt, banded, pixelBlob } from '../farArt';
 import { type Ctx, INK, rampOf, box, checker, hazeBands, PIX, hash, mix, dark, lite, stamp, tilePattern, text } from '../../intro/art/kit';
 import { signAt, stencil as stencilLook } from '../letters';
+import { farTemple, farWaterTower, farMonorailBeam, drawMonorail, drawBirds } from '../teases';
+import { farMark } from '../../parkFar';
 
 export { INK, rampOf, box, checker, hazeBands, PIX, hash, mix, dark, lite, stamp, tilePattern, text };
 export type { Ctx };
@@ -247,6 +249,22 @@ const paintRidge = (g: Ctx, tod: TimeOfDay, H: number, y0: number, amp: number, 
   mist(g, TW, y0 - amp, r * 4 + amp, skyTint('#B4E0F0', 0.9, tod), 0.0, 0.18 + k * 0.3, 4);
 };
 
+/** The park between the far ranges and the canopy (tile space, y 0 is PARK_TOP over the horizon, its feet down behind
+ *  the first canopy ridge): the other lands on the horizon (the World Showcase's castle on its hill, the Great Pixie's
+ *  castle, SPACE NEEDLE 2 and the GIANT ATOM: parkFar.ts), then Jungle Land's own ahead of the river, nearer: the Temple
+ *  of the Jaguar and its show building, the dino park's water tower and the monorail's beam (its train's live). */
+const PARK_TOP = 220, PARK_H = 240, PARK_FOOT = 214, MONO_A = 650, MONO_B = 1016, MONO_Y = 150;
+const paintPark = (g: Ctx, tod: TimeOfDay) => {
+  farMark(g, 'fairyCastle', 196, PARK_FOOT - 26, 96, 0.52, tod);
+  farMark(g, 'needle', 548, PARK_FOOT - 30, 88, 0.54, tod);
+  farMark(g, 'atom', 612, PARK_FOOT - 34, 56, 0.54, tod);
+  const T = (c: string) => hazeOf(c, 0.36, tod);
+  farTemple(g, 372, PARK_FOOT, 190, T, tod.lamps);
+  farMonorailBeam(g, MONO_A, MONO_B, MONO_Y, PARK_FOOT, T, 120);
+  farWaterTower(g, 900, PARK_FOOT - 8, T, tod.lamps);
+  mist(g, TW, PARK_FOOT - 90, 90, skyTint('#B4E0F0', 0.9, tod), 0.0, 0.4, 5);
+};
+
 /** A tile slid along at `k` of the camera's pace; under it (if it doesn't reach), its bottom color on down. */
 const layer = (c: Ctx, key: string, scroll: number, k: number, y: number, h: number, paint: (g: Ctx) => void, under?: string) => {
   let x = -((((scroll * k) % TW) + TW) % TW);
@@ -274,6 +292,19 @@ export const drawJungleBackdrop = (c: Ctx, state: GameState, horizon: number, sc
       for (let y = top; y < horizon + 4; y += 2) { const k = ((y - (f >> 1)) >> 2) % 4; if (k === 0) box(c, x - 3 + (((y >> 3) & 1) << 1), y, 2, 2, wc); }
     }
   }
+  // The park between (the other lands, the temple, the dino park), the monorail going by on its beam (live)
+  const pk = layer(c, `jc-park-${tod.key}`, scroll, 0.085, horizon - PARK_TOP, PARK_H, g => paintPark(g, tod));
+  {
+    const span = MONO_B - MONO_A, T = (col: string) => hazeOf(col, 0.36, tod), y = horizon - PARK_TOP + MONO_Y;
+    for (let x = pk; x < W; x += TW) {
+      const a = x + MONO_A, b = x + MONO_B;
+      if (b < 0 || a > W) continue;
+      c.save(); c.beginPath(); c.rect(a, y - 20, span, 20); c.clip();
+      drawMonorail(c, a + ((f * 0.5) % (span + 160)), y, T, tod.lamps);
+      c.restore();
+    }
+  }
+  drawBirds(c, f, W * 0.5, horizon - 150, W * 0.45, 4, hazeOf('#1F2937', 0.3, tod));
   // The canopy: two ridges, each nearer, darker, bumpier, quicker; palms up off them
   layer(c, `jc-r1-${tod.key}`, scroll, 0.12, horizon - 200, 360, g => paintRidge(g, tod, 360, 150, 14, 14, 0.4, 2.1, 6));
   layer(c, `jc-r2-${tod.key}`, scroll, 0.22, horizon - 150, 360, g => paintRidge(g, tod, 360, 176, 18, 22, 0.2, 4.7, 5), hazeOf('#163E26', 0.2, tod));

@@ -35,6 +35,8 @@ import { GY } from '../geometry';
 import { sunBehind } from '../../sunFlare';
 import { signAt, stencil, stone, routed, print } from '../letters';
 import { snap2, wave, jag, range, mist, kabooma, canopy } from '../farArt';
+import { farMark, farTreeline } from '../../parkFar';
+import type { TimeOfDay } from '../../timeOfDay';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -112,129 +114,24 @@ const canopyStrip = (g: Ctx, w: number, h: number, seed: number, ramp: string[],
 };
 
 /**
- * The other lands' landmarks along the skyline (as from Adventure Land: off over the hub), hazed by the distance, each
- * in its own ramp (lit at the left, its shade dithered in at the right): the castle (curtain wall, crenels, round towers
- * in bands under stepped blue cones, pennants, the gate), the needle tower (its saucer, a ring of windows, the beacon),
- * the haunted castle on its crag (snuffer roofs, a sick green window), the mesa in its strata (the water tower by it),
- * the Ferris wheel by the hub's gate; windows lit after dark (more the darker it gets), the wheel's bulbs on. The hub's
- * treeline along their feet. Painted 1:1 (on the art's grid), y = h the ground.
+ * The other lands along the skyline (as from Jungle Land: off over the hub), each by its own land's painter now
+ * (parkFar.ts: the Great Pixie's castle on its crag, SPACE NEEDLE 2 with its shaft going on up into the sky and the
+ * GIANT ATOM, the ELEVATOR TO HELL's clock tower, the Wilderness's real Rockies, THRONES OF THE STARS, Cartoon Land's
+ * water tower, the World Showcase's castle on its hill), hazed by the distance; the hub's treeline along their feet.
+ * y = h the ground.
  */
-const skyline = (g: Ctx, w: number, h: number, haze: (c: string) => string, lamps: number) => {
+const skyline = (g: Ctx, w: number, h: number, tod: TimeOfDay) => {
   const y = h;
-  /** A ramp of a color, hazed: deep, shade, body, lit, highlight. */
-  const R = (col: string) => [haze(mix(col, '#0A0A14', 0.36)), haze(mix(col, '#0A0A14', 0.18)), haze(col), haze(mix(col, '#FFFFFF', 0.2)), haze(mix(col, '#FFFFFF', 0.4))];
-  const lampCol = haze(mix('#FFD27A', '#FFFFFF', 0.1)), lit = (n: number) => lamps > 0.1 && r1(n, 7) > 0.9 - 0.5 * lamps;
-  const quadP = (pts: [number, number][], col: string) => { g.fillStyle = col; g.beginPath(); pts.forEach(([px, py], i) => (i ? g.lineTo(px, py) : g.moveTo(px, py))); g.closePath(); g.fill(); };
-  /** A round thing standing (a tower): in bands across, lit at the left. */
-  const round = (x: number, top: number, ww: number, P: string[]) => {
-    const order = [3, 3, 2, 2, 2, 1, 1, 0];
-    for (let k = 0; k < order.length; k++) box(g, x + Math.floor((k * ww) / order.length), top, Math.ceil(ww / order.length) + 1, y - top, P[order[k]]);
-    checker(g, x + Math.floor((2 * ww) / order.length) - 1, top, 2, y - top, P[2]);
-    checker(g, x + Math.floor((5 * ww) / order.length) - 1, top, 2, y - top, P[1]);
-  };
-  /** A cone (a tower's roof): stepped across in `P`'s steps, lit at the left. */
-  const cone = (cx: number, base: number, top: number, half: number, cols: string[]) => {
-    const n = cols.length;
-    for (let i = 0; i < n; i++) { const a = -half + (2 * half * i) / n, b = -half + (2 * half * (i + 1)) / n; quadP([[cx + a, base], [cx + a * 0.08, top], [cx + b * 0.08, top], [cx + b, base]], cols[i]); }
-  };
-  const win = (x: number, wy: number, ww: number, hh: number, n: number, dark: string) => box(g, x, wy, ww, hh, lit(n) ? lampCol : dark);
-
-  // The castle (fantasy)
-  {
-    const cx = 220, S = R('#D6D3D1'), T = R('#E7E5E4'), B = R('#2563EB'), F = R('#DC2626');
-    // (the curtain wall: lit at its left, its shade dithered in, crenels along its top, the gate's arch)
-    box(g, cx - 30, y - 30, 60, 30, S[2]); box(g, cx - 30, y - 30, 4, 30, S[3]); box(g, cx + 22, y - 30, 8, 30, S[1]); checker(g, cx + 20, y - 30, 2, 30, S[1]);
-    for (let k = 0; k < 60; k += 6) box(g, cx - 30 + k, y - 34, 4, 4, S[2]);
-    box(g, cx - 6, y - 16, 12, 16, S[0]); box(g, cx - 4, y - 18, 8, 2, S[0]);
-    for (let k = 0; k < 4; k++) win(cx - 24 + k * 14 + (k > 1 ? 8 : 0), y - 24, 2, 4, cx + k, S[0]);
-    // (the towers: round, in bands; stepped blue cones; pennants)
-    for (const [tx, th, tw] of [[-34, 46, 10], [-14, 66, 12], [6, 58, 12], [26, 42, 10]] as const) {
-      const x = cx + tx;
-      round(x, y - th, tw, T);
-      box(g, x - 1, y - th - 2, tw + 2, 2, T[1]);
-      cone(x + tw / 2, y - th - 2, y - th - 22, tw / 2 + 3, [B[4], B[3], B[2], B[1], B[0]]);
-      box(g, x + tw / 2 - 1, y - th - 30, 1, 8, T[0]); box(g, x + tw / 2, y - th - 30, 5, 3, F[2]); box(g, x + tw / 2, y - th - 28, 3, 1, F[1]);
-      for (let wy = y - th + 8; wy < y - 34; wy += 12) win(x + tw / 2 - 1, wy, 2, 4, x * 3 + wy, T[0]);
-    }
-  }
-  // The needle tower (space)
-  {
-    const cx = 632, S = R('#CBD5E1'), D = R('#F87171');
-    // (its legs flaring at the foot, the shaft in bands)
-    quadP([[cx - 12, y], [cx - 3, y - 30], [cx + 3, y - 30], [cx + 12, y]], S[1]); quadP([[cx - 12, y], [cx - 3, y - 30], [cx - 1, y - 30], [cx - 8, y]], S[3]);
-    box(g, cx - 3, y - 84, 2, 84, S[3]); box(g, cx - 1, y - 84, 2, 84, S[2]); box(g, cx + 1, y - 84, 2, 84, S[1]);
-    for (let k = y - 80; k < y - 30; k += 10) box(g, cx - 3, k, 6, 1, S[0]);
-    // (the saucer: its top lit, its underside in shade, a ring of windows round its rim)
-    const sy = y - 84;
-    g.fillStyle = S[1]; g.beginPath(); g.ellipse(cx, sy + 2, 17, 4, 0, 0, Math.PI * 2); g.fill();
-    g.fillStyle = S[3]; g.beginPath(); g.ellipse(cx, sy, 17, 3, 0, Math.PI, 0); g.fill();
-    g.fillStyle = S[4]; g.beginPath(); g.ellipse(cx - 4, sy - 1, 8, 1.5, 0, Math.PI, 0); g.fill();
-    box(g, cx - 16, sy + 1, 32, 1, S[0]);
-    for (let k = -14; k <= 12; k += 4) box(g, cx + k, sy + 2, 2, 2, lamps > 0.1 ? lampCol : S[0]);
-    // (the dome on top, the beacon)
-    g.fillStyle = D[2]; g.beginPath(); g.ellipse(cx, sy - 2, 6, 4, 0, Math.PI, 0); g.fill();
-    g.fillStyle = D[3]; g.beginPath(); g.ellipse(cx - 2, sy - 3, 3, 2, 0, Math.PI, 0); g.fill();
-    box(g, cx, sy - 12, 1, 6, S[0]); box(g, cx - 1, sy - 14, 3, 2, lamps > 0.1 ? '#FF6A5A' : D[1]);
-  }
-  // The haunted castle (spooky), on its crag
-  {
-    const cx = 1017, C = R('#3B3049'), K = R('#4C3D5E'), Rf = R('#2E2440');
-    // (the crag: its left face lit, its right in shade, a seam or two down it)
-    quadP([[cx - 40, y], [cx - 26, y - 22], [cx + 28, y - 26], [cx + 40, y]], C[2]);
-    quadP([[cx - 40, y], [cx - 26, y - 22], [cx - 14, y - 23], [cx - 26, y]], C[3]);
-    quadP([[cx + 14, y], [cx + 20, y - 25], [cx + 28, y - 26], [cx + 40, y]], C[1]);
-    for (const sx of [-6, 6]) for (let k = 0; k < 18; k += 2) box(g, cx + sx + Math.round(Math.sin(k) * 1), y - 20 + k, 1, 2, C[0]);
-    // (the keep and its towers, snuffer roofs; one sick green window)
-    box(g, cx - 20, y - 56, 40, 34, K[2]); box(g, cx - 20, y - 56, 3, 34, K[3]); box(g, cx + 14, y - 56, 6, 34, K[1]); checker(g, cx + 12, y - 56, 2, 34, K[1]);
-    for (let k = 0; k < 40; k += 6) box(g, cx - 20 + k, y - 60, 4, 4, K[2]);
-    for (const [sx, th] of [[-22, 28], [-6, 42], [12, 32]] as const) {
-      round(cx + sx, y - 56 - th + 22, 9, K);
-      cone(cx + sx + 4.5, y - 56 - th + 22, y - 56 - th + 2, 7, [Rf[3], Rf[2], Rf[1], Rf[0]]);
-    }
-    box(g, cx - 3, y - 46, 3, 4, haze('#BEF264')); box(g, cx - 4, y - 47, 5, 1, mix(haze('#BEF264'), K[2], 0.5));
-    for (let k = 0; k < 3; k++) win(cx - 14 + k * 12, y - 36, 2, 4, cx * 2 + k, K[0]);
-  }
-  // The mesa (frontier), in its strata; the water tower by it
-  {
-    const cx = 1320, M = R('#C2410C'), N = R('#EA580C');
-    quadP([[cx - 48, y], [cx - 38, y - 46], [cx + 28, y - 52], [cx + 46, y]], M[2]);
-    g.save(); g.beginPath(); g.moveTo(cx - 48, y); g.lineTo(cx - 38, y - 46); g.lineTo(cx + 28, y - 52); g.lineTo(cx + 46, y); g.closePath(); g.clip();
-    // (the strata: bands across, dithered between)
-    for (let k = 0; k < 5; k++) { const by = y - 44 + k * 10, col = k % 2 ? N[1] : M[1]; box(g, cx - 50, by, 100, 4, col); checker(g, cx - 50, by + 4, 100, 2, col); }
-    // (its left face lit, the right in shade)
-    quadP([[cx - 48, y], [cx - 38, y - 46], [cx - 30, y - 47], [cx - 40, y]], N[3]);
-    quadP([[cx + 20, y], [cx + 22, y - 52], [cx + 28, y - 52], [cx + 46, y]], M[0]);
-    g.restore();
-    // (the water tower: legs, the tank lit at the left)
-    const T = R('#92400E');
-    for (const lx of [32, 40]) box(g, cx + lx, y - 32, 2, 32, T[1]);
-    box(g, cx + 29, y - 46, 15, 14, T[2]); box(g, cx + 29, y - 46, 3, 14, T[3]); box(g, cx + 40, y - 46, 4, 14, T[1]);
-    quadP([[cx + 28, y - 46], [cx + 36, y - 51], [cx + 45, y - 46]], T[1]);
-  }
-  // The Ferris wheel by the hub's gate: its rim, the spokes, gondolas, its A-frame; bulbs round the rim after dark
-  {
-    const cx = 1529, cy = y - 40, rr = 28, S = R('#E5E7EB'), Fr = R('#9CA3AF');
-    quadP([[cx - 17, y], [cx - 1, cy], [cx + 1, cy], [cx - 13, y]], Fr[3]); quadP([[cx + 13, y], [cx - 1, cy], [cx + 1, cy], [cx + 17, y]], Fr[1]);
-    g.strokeStyle = S[1]; g.lineWidth = 1;
-    for (let k = 0; k < 16; k++) { const a = (k / 16) * Math.PI * 2; g.beginPath(); g.moveTo(cx, cy); g.lineTo(cx + Math.cos(a) * rr, cy + Math.sin(a) * rr); g.stroke(); }
-    g.strokeStyle = S[2]; g.lineWidth = 2; g.beginPath(); g.arc(cx, cy, rr, 0, Math.PI * 2); g.stroke();
-    g.strokeStyle = S[3]; g.lineWidth = 1; g.beginPath(); g.arc(cx, cy, rr - 1, Math.PI * 0.9, Math.PI * 1.6); g.stroke();
-    g.strokeStyle = S[1]; g.beginPath(); g.arc(cx, cy, rr * 0.55, 0, Math.PI * 2); g.stroke();
-    box(g, cx - 2, cy - 2, 4, 4, S[0]);
-    const GC = ['#EF4444', '#FACC15', '#3B82F6'].map(R);
-    for (let k = 0; k < 8; k++) { const a = (k / 8) * Math.PI * 2, gx = Math.round(cx + Math.cos(a) * rr), gy = Math.round(cy + Math.sin(a) * rr); const P = GC[k % 3]; box(g, gx - 2, gy + 1, 5, 4, P[2]); box(g, gx - 2, gy + 1, 2, 4, P[3]); box(g, gx, gy - 1, 1, 2, S[0]); }
-    if (lamps > 0.1) for (let k = 0; k < 24; k++) { const a = (k / 24) * Math.PI * 2 + 0.13; box(g, Math.round(cx + Math.cos(a) * rr) - 1, Math.round(cy + Math.sin(a) * rr) - 1, 2, 2, k % 2 ? lampCol : haze('#FF9AD0')); }
-  }
-  // (the hub's own treeline along their feet: crowns in steps, lit up the left)
-  const TR = R('#2F5A3A');
-  box(g, 0, y - 6, w, 6, TR[1]);
-  for (let x = 0; x < w; x += 8) {
-    const hh = 6 + r1(x, 3) * 8;
-    pixelBlob(g, x + 4, y - hh * 0.5, 7, hh * 0.6, TR[1]);
-    pixelBlob(g, x + 2, y - hh * 0.6, 4, hh * 0.35, TR[3]);
-  }
+  farMark(g, 'rockies', 1180, y - 4, 54, 0.6, tod);
+  farMark(g, 'showcase', 90, y - 2, 64, 0.55, tod);
+  farMark(g, 'fairyCastle', 250, y, 96, 0.5, tod);
+  farMark(g, 'needle', 560, y, 92, 0.52, tod);
+  farMark(g, 'atom', 640, y - 4, 52, 0.52, tod);
+  farMark(g, 'thrones', 820, y, 60, 0.55, tod);
+  farMark(g, 'clockTower', 1010, y, 84, 0.5, tod);
+  farMark(g, 'cartoonTower', 1440, y, 62, 0.52, tod);
+  farTreeline(g, 0, w, y - 14, mix(farTint('#2F5A3A', 1, tod), skyAt(0.9, tod), 0.5), 3);
 };
-
 /** A ramp from a color through `T` (the hour's haze for the layer): deep, shade, body, lit, highlight. */
 const rampT = (T: (c: string) => string, col: string) => [T(mix(col, '#0A0A14', 0.4)), T(mix(col, '#0A0A14', 0.2)), T(col), T(mix(col, '#FFFFFF', 0.22)), T(mix(col, '#FFFFFF', 0.45))];
 /** Thatch over a pitched roof (left x0, right x1, eaves at y, peak at top): bands of straw, lit up the left. */
@@ -451,7 +348,7 @@ export const drawRoofBackdrop = (c: Ctx, state: GameState) => {
       { gullies: 30, d: 12, forest: [T('#3E6E52'), T('#5A8A60')], forestY: x => yAt(x) + 22 + wave(x, 1600, 3.3, 3) * 6 });
     mist(g, 1600, 30, 70, sky(0.9), 0.0, 0.4, 5);
   });
-  strip(c, `rfSky:${tod.key}`, hz - 100, 1600, 104, cam.x * 0.06, g => skyline(g, 1600, 100, col => mix(farTint(col, 1, tod), sky(0.9), 0.5), tod.lamps));
+  strip(c, `rfSky:${tod.key}`, hz - 196, 1600, 200, cam.x * 0.06, g => skyline(g, 1600, 196, tod));
   // MOUNT KABOOMA, over in the dino park: nearer than the other lands, steaming
   strip(c, `rfKab:${tod.key}`, hz - 236, 2400, 276, cam.x * 0.08, g => {
     const KC = '#6A5A4E', T = (col: string, k = 0.32) => mix(farTint(col, 1, tod), sky(0.9), k);
