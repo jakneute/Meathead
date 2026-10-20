@@ -18,6 +18,7 @@ import { timeOfDay, hourMix, farTint, skyAt } from '../timeOfDay';
 import { type Far, type RangeLook, skyline as farSkyline, monorail, parkGround, range, mist, snap2, wave, jag } from '../space/farArt';
 import { drawGiantAtom, drawNeedle } from '../space/square/sky';
 import { farStrip } from './farStrip';
+import { drawTeaseStrip } from './teases';
 import { spawner as drawSpawner } from './toys';
 import { glyphDots } from '../space/square/lettering';
 
@@ -124,6 +125,8 @@ const skyline = (c: Ctx, t: number, sway: number) => {
   const [body, lit] = sky3();
   const ox = sway * 0.15;
   const tod = timeOfDay(), gy = HOR - SKY_FOOT;
+  // (out past the land's edge, the neighbors: the World Showcase's castle on its hill, the Wilderness's real Rockies)
+  drawTeaseStrip(c, 'space', 'far', sway, true, 10);
   c.drawImage(farStrip('wa-sq-park', SKY_W, SKY_H, paintFarPark), -SKY_M + Math.round(ox), HOR + 1 - SKY_H);
   // SPACE NEEDLE 2 and THE GIANT ATOM, the square's own (space/square/sky.ts), stood on the park's ground
   c.save(); c.beginPath(); c.rect(0, 0, 400, gy + 1); c.clip();

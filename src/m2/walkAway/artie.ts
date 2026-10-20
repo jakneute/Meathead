@@ -21,6 +21,7 @@ import { noteSun } from '../sunFlare';
 import { signText, signW, signH, print } from '../adventure/letters';
 import { snap2, wave, jag, range, mist, canopy, palm, poly as fpoly } from '../adventure/farArt';
 import { farStrip } from './farStrip';
+import { drawTeaseStrip } from './teases';
 import { drawDeadRhino, DEAD_HORN } from '../adventure/clearing/stampede';
 import { drawSafariArtie } from '../adventure/river/artie';
 
@@ -118,7 +119,11 @@ const back = (c: Ctx, t: number, sway: number) => {
   // The hills, far off (a pale range misted at the back, wooded hills in front), the coaster's loop up on them; then
   // the jungle, a gap in it where the trees went down like dominoes. Each painted once for the hour (farStrip.ts:
   // Adventure Land's far kit), slid by his sway.
+  // (behind the hills, the neighbors past the park's edge; over the treeline, the land's own back toward the hub: the
+  // temple, the cruise's boathouse, the paddock's water tower)
+  drawTeaseStrip(c, 'adventure', 'far', sway);
   c.drawImage(farStrip('artie-hills', SW, HILLS_H, g => paintHills(g, H)), -MARGIN + Math.round(sway * 0.15), HOR + 1 - HILLS_H);
+  drawTeaseStrip(c, 'adventure', 'near', sway, true);
   c.drawImage(farStrip('artie-jungle', SW, JUNGLE_H, g => paintJungle(g, H)), -MARGIN + Math.round(sway * 0.35), HOR + 2 - JUNGLE_H);
 };
 

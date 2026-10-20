@@ -14,6 +14,7 @@
 
 import { type Ctx, type Prop, type SceneDef, INK, HOR, LW, box, hash, smoke, fire, mix } from './kit';
 import { farStrip } from './farStrip';
+import { paintLandTeases } from './teases';
 import { timeOfDay } from '../timeOfDay';
 import { slate } from './toys';
 import { drawSteve, drawSteveAsh, drawSteveBrace } from '../hollywood/stunt/steve';
@@ -73,8 +74,11 @@ const paintFar = (g: Ctx) => {
   const tod = timeOfDay(), base = FAR_H * 4, tiles = [0, FAR.TW, FAR.TW * 2];
   g.save(); g.scale(0.5, 0.5);
   for (const ox of tiles) { g.save(); g.translate(ox - 200, base - FAR.MH - 20); paintMountains(g, tod); g.restore(); }
+  // (the neighbors past the land's edge; the hill; the foothills; THRONES OF THE STARS back toward the boulevard)
+  paintLandTeases(g, 'hollywood', 'far', SW * 4, base - 56, true, tod);
   drawHill(g, 1080, base - 30, 0);
   for (const ox of tiles) { g.save(); g.translate(ox - 80, base - FAR.FH + 6); paintFoothills(g, tod); g.restore(); }
+  paintLandTeases(g, 'hollywood', 'near', SW * 4, base - 28, true, tod);
   for (const ox of tiles) { g.save(); g.translate(ox - 360, base - FAR.CH + 30); paintCity(g, tod); g.restore(); }
   g.restore();
 };

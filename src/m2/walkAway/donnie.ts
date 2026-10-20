@@ -14,6 +14,7 @@ import { type Ctx, type Prop, type SceneDef, INK, HOR, F, CAM_H, VP_X, ME_X, SPE
 import { spriteOf, fogAt, wobble } from './screen';
 import { timeOfDay } from '../timeOfDay';
 import { signText, signW, print } from '../spooky/letters';
+import { drawTeaseStrip } from './teases';
 import { STONE, LIP, COBBLE, LEFT_SIDE, RIGHT_SIDE, layoutOf, drawTownSky, drawTowerWrecked, drawStreetWalls, lampProp, lanternUp, bladeProp, cobbles, litter, TOWER_TOP } from './spookyTown';
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -119,7 +120,7 @@ const TS = 0.23, LEAN = 0.12;
 
 const back = (c: Ctx, t: number, sway: number) => {
   const travel = SPEED * t;
-  drawTownSky(c, t, sway * 4, { moonX: 322, sunX: 262 });
+  drawTownSky(c, t, sway * 4, { moonX: 322, sunX: 262, beyond: () => drawTeaseStrip(c, 'spooky', 'far', sway), under: () => drawTeaseStrip(c, 'spooky', 'near', sway, true) });
   // (what's along the street past its end, in the square: behind the tower)
   const items = furnitureOf(travel);
   drawFurniture(c, items, sway, D_END, 400);

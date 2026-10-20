@@ -10,6 +10,7 @@
 import { type Ctx, type Prop, type PortalDef, HOR, LW, box, hash } from './kit';
 import { canvas } from './screen';
 import { timeOfDay, hourMix, skyRamp, sunAt, drawStars, drawMoon, farTint, skyAt, cloudTint, type TimeOfDay } from '../timeOfDay';
+import { drawTeaseStrip } from './teases';
 import { mix, checker, bandedGradient, hazeBands, pixelBlob, PAVE, PINK, TEAL, INK, ramp6, poly } from '../space/square/paint';
 import { drawGiantAtom, drawNeedle } from '../space/square/sky';
 import { paintShopFront, type Shop } from '../space/square/buildings';
@@ -126,6 +127,9 @@ const back = (c: Ctx, t: number, sway: number) => {
   c.fillStyle = B[0]; c.beginPath(); c.ellipse(bx, by, 14, 4, 0, 0, Math.PI * 2); c.fill();
   c.fillStyle = B[1]; c.beginPath(); c.ellipse(bx - 1, by - 1, 12, 2.5, 0, 0, Math.PI * 2); c.fill();
   box(c, bx - 14, by, 28, 1, farTint('#E8659E', 0.8, tod)); box(c, bx - 2, by + 4, 5, 2, B[0]);
+  // (out past the land's edge, the neighbors: the World Showcase's castle on its hill off left, the Wilderness's real
+  // Rockies off right)
+  drawTeaseStrip(c, 'space', 'far', sway, false, 8);
   // The far skyline; Space Needle 2 off to the right going up out of sight; the giant atom over the gate
   const off = Math.round(sway * 0.3);
   c.drawImage(skylineOf(tod, false), off - 40, HOR - 66);

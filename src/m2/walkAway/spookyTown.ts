@@ -151,7 +151,7 @@ const paintSkyline = (g: Ctx, tod: TimeOfDay) => {
  * far layers (parallax: hills least, the skyline most); `skyline` false leaves the roofs out (a street's walls cover
  * them anyway); `moonX` where the moon (and the sun) hang.
  */
-export const drawTownSky = (c: Ctx, t: number, pan: number, o: { skyline?: boolean; skylineY?: number; moonX?: number; sunX?: number; under?: () => void } = {}) => {
+export const drawTownSky = (c: Ctx, t: number, pan: number, o: { skyline?: boolean; skylineY?: number; moonX?: number; sunX?: number; under?: () => void; beyond?: () => void } = {}) => {
   const tod = timeOfDay();
   c.drawImage(skyOfTown(tod), 0, 0);
   drawStars(c, 0, 0, LW, HOR - 10, t, 0, tod, 1);
@@ -168,6 +168,8 @@ export const drawTownSky = (c: Ctx, t: number, pan: number, o: { skyline?: boole
     c.restore();
   }
   across(c, tileOf('clouds', 40, paintClouds), pan * 0.05 + t * 0.04, 46);
+  // (past the town's hills: whatever's out past the land's edge, the neighbors)
+  o.beyond?.();
   across(c, tileOf('hills', 40, paintHills), pan * 0.1, HOR + 2);
   o.under?.();
   if (o.skyline !== false) across(c, tileOf('skyline', 64, paintSkyline), pan * 0.3, o.skylineY ?? HOR + 4);

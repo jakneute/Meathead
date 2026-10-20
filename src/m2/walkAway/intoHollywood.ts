@@ -9,6 +9,7 @@
 
 import { type Ctx, type Prop, type PortalDef, HOR, LW, box, hash, mix } from './kit';
 import { farStrip } from './farStrip';
+import { paintLandTeases } from './teases';
 import { timeOfDay, hourMix } from '../timeOfDay';
 import { FAR, paintMountains, paintFoothills, paintCity, paintPalms, drawHill } from '../hollywood/blvd/far';
 import { FRONTS, paintFront } from '../hollywood/blvd/fronts';
@@ -51,9 +52,13 @@ const paintFar = (g: Ctx) => {
   const tod = timeOfDay(), base = FAR_H * 4, tiles = [0, FAR.TW, FAR.TW * 2];
   g.save(); g.scale(0.5, 0.5);
   for (const ox of tiles) { g.save(); g.translate(ox - 300, base - FAR.MH - 26); paintMountains(g, tod); g.restore(); }
+  // (in front of the mountains, the neighbors past the land's edge: Cartoon Land's water tower, Fairy Land's castle)
+  paintLandTeases(g, 'hollywood', 'far', SW * 4, base - 60, false, tod);
   // (the HAPPYWOOD hill at the far end of the boulevard, over the path)
   drawHill(g, (200 + 20) * 4, base - 34, 0);
   for (const ox of tiles) { g.save(); g.translate(ox - 140, base - FAR.FH + 4); paintFoothills(g, tod); g.restore(); }
+  // (over the foothills, up ahead off right: THRONES OF THE STARS)
+  paintLandTeases(g, 'hollywood', 'near', SW * 4, base - 30, false, tod);
   for (const ox of tiles) { g.save(); g.translate(ox - 520, base - FAR.CH + 26); paintCity(g, tod); g.restore(); }
   for (const ox of [0, FAR.PW, FAR.PW * 2]) { g.save(); g.translate(ox - 400, base - FAR.PH + 52); paintPalms(g, tod); g.restore(); }
   g.restore();

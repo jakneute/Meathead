@@ -20,6 +20,7 @@
 import { type Ctx, type Prop, type PortalDef, HOR, LW, F, CAM_H, ME_D, box, hash, mix } from './kit';
 import { canvas } from './screen';
 import { farStrip } from './farStrip';
+import { paintLandTeases } from './teases';
 import { timeOfDay, hourMix, sunAt, drawStars, drawMoon, skyAt } from '../timeOfDay';
 import { hazeBands, checker } from '../../m1/game/render/pixelArt';
 import { signText, signW } from '../signLetters';
@@ -113,7 +114,10 @@ const paintFar = (g: Ctx) => {
   };
   g.save(); g.scale(0.5, 0.5);
   layer(-180, TW, base - MH - 74, g2 => paintRockies(g2, tod));
+  // (the neighbors past the park's edge; the flats; up ahead the land's own: the trestle, the Gulch, Timber Tumble)
+  paintLandTeases(g, 'frontier', 'far', span, base - 40, false, tod);
   layer(-420, PW, base - PH - 34, g2 => paintFlats(g2, tod));
+  paintLandTeases(g, 'frontier', 'near', span, base - 22, false, tod);
   layer(-100, RW1, base - RH1 - 10, g2 => paintPines1(g2, tod));
   layer(-260, RW2, base - RH2 + 6, g2 => paintPines2(g2, tod));
   g.restore();

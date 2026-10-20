@@ -9,6 +9,7 @@
 
 import { type Ctx, type Prop, type PortalDef, HOR, box, hash, rampOf, lump, smoke } from './kit';
 import { timeOfDay, hourMix } from '../timeOfDay';
+import { drawTeaseStrip } from './teases';
 import { drawCastleAt } from '../fantasy/monument';
 
 const lit = () => timeOfDay().lamps > 0.3;
@@ -42,6 +43,8 @@ const back = (c: Ctx, t: number, sway: number) => {
     box(c, x, y, 2, HOR - y, rock);
     if (sl > y) box(c, x, y, 2, sl - y, lit2 ? snow : shade);
   }
+  // (in front of the Alps, the neighbors past the land's edge: THRONES OF THE STARS off left, Jungle Land's temple off right)
+  drawTeaseStrip(c, 'fantasy', 'far', sway);
   drawCastleAt(c, Math.round(200 + sway * 0.45), HOR - 4, 0.17, t);
   const ridge = hourMix('#2E4A50', '#3A3A50', '#121A26');
   for (let x = 0; x < 400; x += 3) { const y = HOR - 6 - Math.round(Math.abs(Math.sin((x - sway * 0.25) * 0.11)) * 5); box(c, x, y, 3, HOR - y + 2, ridge); if ((x / 3) % 2) box(c, x + 1, y - 2, 1, 2, ridge); box(c, x, y, 2, 1, hourMix('#C8D4E4', '#C8A8B8', '#4A5470')); }

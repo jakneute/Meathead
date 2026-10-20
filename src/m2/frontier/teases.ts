@@ -353,6 +353,14 @@ const TEASES: Tease[] = [
   { id: 'tumble', lx: 61000, par: 0.02, w: TTW, h: TTH, layer: 'near', sink: 24, paint: paintTumble(false), back: paintTumble(true), live: liveTumble, hide: [55800, 66500] },
 ];
 
+/** One tease painted straight into `g` (for a backdrop's own strip: the walk in), its foot's middle at (x, foot). */
+export const paintTeaseAt = (g: Ctx, id: 'trestle' | 'gulch' | 'tumble' | 'future' | 'spooky', x: number, foot: number, outside = false, tod = timeOfDay()) => {
+  const s = TEASES.find(t => t.id === id)!;
+  g.save(); g.translate(Math.round(x - s.w / 2), Math.round(foot + s.sink - s.h));
+  (outside && s.back ? s.back : s.paint)(g, tod);
+  g.restore();
+};
+
 const fontIn = () => (typeof document !== 'undefined' && document.fonts?.check('8px "Press Start 2P"') ? 'f' : 'n');
 
 /**

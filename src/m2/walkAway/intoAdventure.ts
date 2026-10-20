@@ -11,6 +11,7 @@ import { SIGNS } from '../adventure/jungle/layout';
 import { LEAF, BARK, MOSS, EARTH, clump, fern, bigLeaf, bark, roots } from '../adventure/jungle/art/paint';
 import { snap2, wave, jag, range, mist, canopy, palm } from '../adventure/farArt';
 import { farStrip } from './farStrip';
+import { drawTeaseStrip } from './teases';
 
 /** The jungle's own world pixels a meter, here (him: 70 px in the game; 2.4 m in this picture). */
 const PPM = 29;
@@ -73,6 +74,9 @@ const back = (c: Ctx, t: number, sway: number) => {
   noteSun(c, sp.x, sp.y, low ? 1 : 0.35, low ? 0.8 : 0, 0.5);
   // Far off down the gap: the peaks past the jungle, in their mist (Adventure Land's far kit: farStrip.ts)
   c.drawImage(farStrip('pw-adv-peaks', SW, PEAKS_H, g => paintPeaks(g, H)), -MARGIN + Math.round(sway * 0.1), HOR + 1 - PEAKS_H);
+  // (the neighbors past the park's edge, the land's own up ahead through the gap: the temple, the water tower, the cruise)
+  drawTeaseStrip(c, 'adventure', 'far', sway);
+  drawTeaseStrip(c, 'adventure', 'near', sway);
   // The far jungle: three walls of it, each nearer one darker and taller, a gap in the middle where the path goes;
   // each painted once for the hour (stepped crowns, palms up out of it, mist at its foot), slid by his sway
   WALLS.forEach((w, wi) => {

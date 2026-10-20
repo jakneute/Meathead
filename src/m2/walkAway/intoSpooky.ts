@@ -8,6 +8,7 @@
 
 import { type Ctx, type Prop, type PortalDef, HOR, box, hash } from './kit';
 import { timeOfDay, hourMix } from '../timeOfDay';
+import { drawTeaseStrip } from './teases';
 import { INK, STONE, IRON, mix, drawTownSky, drawTowerIntact, lampProp, gateProp, shopProp, cobbles, litter } from './spookyTown';
 
 /** The town's px a meter here (him: 70 of them in the town; a touch over 2 m in this picture). */
@@ -37,7 +38,10 @@ const back = (c: Ctx, t: number, sway: number) => {
     moonX: 128, sunX: 96, skylineY: HOR + 18,
     // (the tower: far off over the town's roofs, over the gap in the square where the street goes on; the ride going
     // up it and dropping)
-    under: () => drawTowerIntact(c, Math.round(222 + sway * 0.4), HOR + 2, 0.19, t),
+    under: () => { drawTeaseStrip(c, 'spooky', 'near', sway); drawTowerIntact(c, Math.round(222 + sway * 0.4), HOR + 2, 0.19, t); },
+    // (out past the hills, the neighbors: the Wilderness's real Rockies, Cartoon Land's water tower; then over the roofs
+    // the land's own: Dracula's OTHER castle off to the left)
+    beyond: () => drawTeaseStrip(c, 'spooky', 'far', sway),
   });
 };
 

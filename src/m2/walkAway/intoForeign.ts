@@ -25,6 +25,8 @@ import { paintCast, type Costume } from '../foreign/cast';
 import { frameOf } from '../spooky/costume';
 import { lookOf } from '../adventure/temple/people';
 import { FAR_STILLS, paintShore, paintBarge, SHORE_W, SHORE_H, BARGE_W, BARGE_H } from '../foreign/backdrop';
+import { paintMark } from '../foreign/teases';
+import { drawTeaseStrip } from './teases';
 import { farCol } from '../hollywood/blvd/far';
 
 /** The streets' px a meter (him: ~70 of them; a touch under 2 m). The gate's a touch smaller, so the lagoon's coping
@@ -144,7 +146,15 @@ const farStripOf = (tod: TimeOfDay) => {
     const w = (f.b - f.a) * FAR_K, h = S.h * FAR_K;
     g.drawImage(big, f.a, 0, f.b - f.a, S.h, Math.round(f.cx - FAR_OFF - w / 2), Math.round(FAR_H - 2 - h), Math.round(w), Math.round(h));
   }
-  // (the far shore's tree line along the water, over the landmarks' feet)
+  // (the other pavilions round the lagoon on the far shore, small (foreign/teases.ts: the streets' own far-shore
+  // landmarks), between the big far ones; out past them the neighbors: Jungle Land's temple off left, Future Land's
+  // needle off right)
+  const mk = (paint: (o: Ctx) => void, w: number, h: number, cx: number, k: number) => {
+    const big = canvas(w, h), o = big.getContext('2d')!; paint(o);
+    g.drawImage(big, Math.round(cx - FAR_OFF - (w * k) / 2), Math.round(FAR_H - 4 - h * k), Math.round(w * k), Math.round(h * k));
+  };
+  for (const [id, cx] of [['norway', 82], ['japan', 160], ['morocco', 246], ['italy', 330]] as const) mk(o => paintMark(o, id, 80, 150, 0.42, 1, tod), 160, 152, cx, 0.3);
+  // (the shore's line of trees in front of their feet)
   const shore = canvas(SHORE_W, SHORE_H);
   paintShore(shore.getContext('2d')!, tod);
   const sw = SHORE_W * SHORE_K, sh = SHORE_H * SHORE_K;
@@ -215,6 +225,7 @@ const back = (c: Ctx, t: number, sway: number) => {
   }
   // Across the lagoon: the landmarks and the far shore; London-ish's wheel turning
   const off = Math.round(sway * 0.3), fy = HOR + 1 - FAR_H;
+  drawTeaseStrip(c, 'foreign', 'far', sway, false, 6);
   c.drawImage(farStripOf(tod), off + FAR_OFF, fy);
   const uk = FAR.find(f => f.id === 'uk')!, U = FAR_STILLS.uk!;
   c.save();

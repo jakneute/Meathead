@@ -21,6 +21,7 @@ import { drawRevolverAt, drawTorchAt, PAT, CONC, PUKE } from '../foreign/harry/l
 import { MEMO_DEATH, MEMO_CRUMBLED } from '../foreign/harry/fight';
 import { TIEDYE, dith, shapeR, ellR, lineR, SKIN_R, DENIM_R, SOCK_R, LEATHER_R, GRAY_R, BAND_R, type Ramp } from '../foreign/heli/harryArt';
 import { drawWreck3d } from '../foreign/heli/landmarks3d';
+import { shoreFrom, paintMark } from '../foreign/teases';
 import { DC, type Cam } from '../foreign/heli/park';
 import type { MechId } from '../foreign/heli/lines';
 
@@ -73,15 +74,15 @@ const FAR_H = 70;
 const paintFar = (g: Ctx) => {
   const W2 = SW * 2, B = FAR_H * 2, tod = timeOfDay();
   const base = mix('#4A3A48', '#141832', tod.lamps * 0.5), lt = mix(base, '#FFFFFF', 0.14), air = mix('#B8A0A8', '#2A2440', tod.lamps * 0.6);
-  // (the tree line, then Foreign Lands' skyline: the pyramid, the stave church, the pagoda, the minaret, the Ferris wheel)
-  g.fillStyle = mix(base, INK, 0.2); g.beginPath(); g.moveTo(0, B); for (let x = 0; x <= W2; x += 6) g.lineTo(x, B - 12 - hash(x * 0.21) * 8); g.lineTo(W2, B); g.closePath(); g.fill();
-  const sil = (pts: [number, number][]) => { g.fillStyle = base; g.beginPath(); pts.forEach(([px, py], i) => (i ? g.lineTo(px, B - py) : g.moveTo(px, B - py))); g.closePath(); g.fill(); g.strokeStyle = lt; g.lineWidth = 2; g.beginPath(); pts.slice(0, Math.ceil(pts.length / 2)).forEach(([px, py], i) => (i ? g.lineTo(px, B - py) : g.moveTo(px, B - py))); g.stroke(); };
-  sil([[60, 0], [72, 14], [84, 14], [92, 28], [104, 28], [112, 42], [132, 42], [140, 28], [152, 28], [160, 14], [172, 14], [184, 0]]);
-  sil([[250, 0], [252, 30], [262, 40], [266, 72], [272, 40], [282, 32], [286, 54], [290, 32], [298, 30], [300, 0]]);
-  for (let k = 0; k < 5; k++) { const w = 34 - k * 6, yy = 10 + k * 13; sil([[620 - w, yy], [620 + w, yy], [620 + w - 8, yy + 5], [620 - w + 8, yy + 5]]); g.fillStyle = base; g.fillRect(614, B - yy - 13, 12, 13); }
-  sil([[720, 0], [720, 76], [717, 79], [726, 96], [735, 79], [732, 76], [732, 0]]);
-  g.strokeStyle = base; g.lineWidth = 4; g.beginPath(); g.arc(810, B - 56, 48, 0, Math.PI * 2); g.stroke();
-  g.lineWidth = 2; for (let k = 0; k < 8; k++) { const a = (k / 8) * Math.PI * 2; g.beginPath(); g.moveTo(810, B - 56); g.lineTo(810 + Math.cos(a) * 48, B - 56 + Math.sin(a) * 48); g.stroke(); }
+  // (Foreign Lands across the water from the dig, where they are round the ring (foreign/teases.ts: the same landmarks
+  // the streets' far shore and the fight have), scorched from the foot up; the far bank's trees in steps in front)
+  for (const o of shoreFrom(62400)) paintMark(g, o.id, W2 / 2 + o.dx * 0.95, B - 8, 0.42, 0.62, tod);
+  g.save(); g.globalCompositeOperation = 'source-atop';
+  for (let k = 0; k < 4; k++) { g.globalAlpha = 0.12 + k * 0.06; g.fillStyle = '#1A0E0C'; g.fillRect(0, B - 40 + k * 10, W2, 10); }
+  g.globalAlpha = 0.16; g.fillStyle = base; g.fillRect(0, 0, W2, B);
+  g.restore();
+  for (let x = 0; x <= W2; x += 6) { const r = 5 + hash(x * 0.21) * 5, cy = B - 10 - r * 0.3; ellR(g, x, cy, r, r * 0.7, mix(base, INK, 0.2)); ellR(g, x - 2, cy - 2, r * 0.6, r * 0.4, base); box(g, x - 3, cy - r * 0.6, 3, 1, lt); }
+  box(g, 0, B - 10, W2, 10, mix(base, INK, 0.2));
   // (the pavilion's steel going up, its crane with the flag on the jib)
   const px = 380;
   for (let k = 0; k <= 4; k++) { g.fillStyle = mix(base, '#9A3A22', 0.3); g.fillRect(px + k * 40 - 3, B - (k < 3 ? 90 : 60), 6, k < 3 ? 90 : 60); }
@@ -89,8 +90,11 @@ const paintFar = (g: Ctx) => {
   g.fillStyle = mix(base, '#E0A82E', 0.35); g.fillRect(px + 140, B - 150, 8, 150); g.fillRect(px + 30, B - 154, 160, 6);
   for (let k = 0; k < 5; k++) { g.fillStyle = k % 2 ? mix(base, '#F1F5F9', 0.4) : mix(base, '#B91C1C', 0.4); g.fillRect(px + 34, B - 170 + k * 3, 22, 3); }
   // (the haze over it, dithered, and its fires)
-  g.fillStyle = dith(g, air); g.fillRect(0, B - 110, W2, 50);
-  g.globalAlpha = 0.35; g.fillStyle = air; g.fillRect(0, B - 60, W2, 60); g.globalAlpha = 1;
+  // (only over what's painted: no band of haze across the open sky)
+  g.save(); g.globalCompositeOperation = 'source-atop';
+  g.fillStyle = dith(g, air); g.fillRect(0, B - 110, W2, 30);
+  g.globalAlpha = 0.28; g.fillStyle = air; g.fillRect(0, B - 80, W2, 80);
+  g.restore();
   for (const fx of [40, 150, 270, 520, 700, 860]) { g.fillStyle = dith(g, '#F97316'); g.beginPath(); g.ellipse(fx, B - 3, 16, 5, 0, 0, Math.PI * 2); g.fill(); g.fillStyle = '#FB923C'; g.fillRect(fx - 4, B - 5, 8, 3); }
 };
 

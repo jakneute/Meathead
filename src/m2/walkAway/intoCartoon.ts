@@ -8,8 +8,9 @@
 // studios' arched stages, the band shell, the neon bolt), and THE CARTOON LAND WATER TOWER (cartoon/monument.ts: the
 // smallest it ever is), its propeller turning. The sky by the hour. Timing, lines and skip unchanged.
 
-import { type Ctx, type Prop, type PortalDef, HOR, box, hash, rampOf, lump } from './kit';
+import { type Ctx, type Prop, type PortalDef, HOR, box, hash, rampOf, lump, mix } from './kit';
 import { timeOfDay, hourMix } from '../timeOfDay';
+import { drawTeaseStrip } from './teases';
 import { drawTowerAt } from '../cartoon/monument';
 
 const INK = '#1A1028';
@@ -38,6 +39,8 @@ const back = (c: Ctx, t: number, sway: number) => {
   const fields = [hourMix('#7CC864', '#8AA060', '#1E3A2A', tod), hourMix('#B4DC6E', '#A8A060', '#26402A', tod), hourMix('#E8E07A', '#C8A868', '#2E4030', tod), hourMix('#D8C0E8', '#B898B0', '#2A2A44', tod)];
   const hedge = hourMix('#3E7A48', '#4A5A3A', '#0E1E16', tod);
   const ridge = (x: number) => HOR - 9 - Math.sin(x * 0.03 + 1) * 5 - Math.sin(x * 0.011) * 4;
+  // (out past the hills, the neighbors: the ELEVATOR TO HELL's clock tower off left, THRONES OF THE STARS off right)
+  drawTeaseStrip(c, 'cartoon', 'far', sway);
   for (let x = 0; x < 400; x += 2) {
     const xx = x - sway * 0.12, y0 = Math.round(ridge(xx));
     for (let y = y0; y < HOR + 2; y += 2) { const band = Math.floor((xx * 0.5 + (y - y0) * 3 + 400) / 10); box(c, x, y, 2, 2, fields[Math.floor(band / 3) % 4]); if (band % 3 === 0 && y > y0) box(c, x, y, 2, 1, hedge); }
@@ -45,9 +48,19 @@ const back = (c: Ctx, t: number, sway: number) => {
   }
   // (the rest of Cartoon Land's tops: the studios' arched stages, the band shell, the neon bolt)
   const far = hourMix('#A89EC2', '#9A7E9E', '#2A2A48', tod), far2 = hourMix('#C8C0DC', '#B49AB0', '#36365A', tod), bx = Math.round(sway * 0.3);
-  for (let k = 0; k < 3; k++) { const sx = 40 + k * 22 + bx; c.fillStyle = far; c.beginPath(); c.moveTo(sx, HOR - 6); c.lineTo(sx, HOR - 18); c.quadraticCurveTo(sx + 9, HOR - 26, sx + 18, HOR - 18); c.lineTo(sx + 18, HOR - 6); c.closePath(); c.fill(); box(c, sx + 1, HOR - 18, 2, 12, far2); }
-  c.fillStyle = far2; c.beginPath(); c.ellipse(320 + bx, HOR - 6, 18, 16, 0, Math.PI, 0); c.fill();
-  c.fillStyle = far; c.beginPath(); c.ellipse(320 + bx, HOR - 6, 12, 10, 0, Math.PI, 0); c.fill();
+  // (each stage's barrel roof lit down its left, shaded down its right, its number board, the big door; the band shell's
+  // rings stepping back)
+  const farD = mix(far, '#141228', 0.3), farL = mix(far2, '#FFFFFF', 0.25);
+  for (let k = 0; k < 3; k++) {
+    const sx = 40 + k * 22 + bx;
+    c.fillStyle = farD; c.beginPath(); c.moveTo(sx - 1, HOR - 5); c.lineTo(sx - 1, HOR - 18); c.quadraticCurveTo(sx + 9, HOR - 27, sx + 19, HOR - 18); c.lineTo(sx + 19, HOR - 5); c.closePath(); c.fill();
+    c.fillStyle = far; c.beginPath(); c.moveTo(sx, HOR - 6); c.lineTo(sx, HOR - 18); c.quadraticCurveTo(sx + 9, HOR - 26, sx + 18, HOR - 18); c.lineTo(sx + 18, HOR - 6); c.closePath(); c.fill();
+    box(c, sx + 1, HOR - 18, 3, 12, far2); box(c, sx + 1, HOR - 19, 6, 1, farL); box(c, sx + 14, HOR - 18, 3, 12, farD);
+    box(c, sx + 6, HOR - 16, 6, 4, farL); box(c, sx + 7, HOR - 15, 4, 2, farD);
+    box(c, sx + 5, HOR - 10, 8, 4, farD); for (let y = HOR - 10; y < HOR - 6; y += 2) box(c, sx + 5, y, 8, 1, far);
+  }
+  for (let k = 0; k < 4; k++) { c.fillStyle = k % 2 ? far : far2; c.beginPath(); c.ellipse(320 + bx, HOR - 6, 18 - k * 4, 16 - k * 3.5, 0, Math.PI, 0); c.fill(); }
+  c.fillStyle = farL; c.fillRect(303 + bx, HOR - 7, 6, 1);
   c.fillStyle = lit() ? '#C8FF7A' : hourMix('#B6F23A', '#A8B060', '#3A4A2A', tod); c.beginPath(); c.moveTo(360 + bx, HOR - 30); c.lineTo(372 + bx, HOR - 30); c.lineTo(366 + bx, HOR - 22); c.lineTo(372 + bx, HOR - 22); c.lineTo(360 + bx, HOR - 10); c.lineTo(364 + bx, HOR - 19); c.lineTo(358 + bx, HOR - 19); c.closePath(); c.fill();
   box(c, 365 + bx, HOR - 10, 1, 6, far);
   drawTowerAt(c, Math.round(200 + sway * 0.45), HOR - 2, 0.16, t);

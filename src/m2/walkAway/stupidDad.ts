@@ -12,6 +12,7 @@
 
 import { type Ctx, type Prop, type SceneDef, HOR, box, hash, mix } from './kit';
 import { timeOfDay, hourMix } from '../timeOfDay';
+import { drawTeaseStrip } from './teases';
 import { mallet } from './toys';
 import { drawTowerAt } from '../cartoon/monument';
 
@@ -40,6 +41,8 @@ const back = (c: Ctx, t: number, sway: number) => {
   const tod = timeOfDay(), H = (day: string, dusk: string, night: string) => hourMix(day, dusk, night, tod);
   // (the hills, two bands, a lit ridge)
   const h1 = H('#86A890', '#8A8A9A', '#1E2E34'), h2 = H('#6A9A6A', '#7A7A6A', '#16261E');
+  // (out past the hills, the neighbors: the ELEVATOR TO HELL's clock tower, THRONES OF THE STARS)
+  drawTeaseStrip(c, 'cartoon', 'far', sway);
   for (let x = 0; x < 400; x += 2) { const xx = x - sway * 0.1, y = Math.round(HOR - 14 - Math.sin(xx * 0.02 + 1) * 6 - Math.sin(xx * 0.07) * 2); box(c, x, y, 2, HOR - y, h1); box(c, x, y, 2, 1, mix(h1, '#FFFFFF', 0.2)); }
   drawTowerAt(c, Math.round(296 + sway * 0.45), HOR - 2, 0.17, t);
   for (let x = 0; x < 400; x += 2) { const xx = x - sway * 0.2, y = Math.round(HOR - 6 - Math.sin(xx * 0.035 + 2) * 3); box(c, x, y, 2, HOR - y + 2, h2); }

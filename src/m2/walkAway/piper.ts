@@ -11,6 +11,7 @@
 
 import { type Ctx, type Prop, type SceneDef, HOR, box, hash } from './kit';
 import { timeOfDay, hourMix } from '../timeOfDay';
+import { drawTeaseStrip } from './teases';
 import { bookShut } from './toys';
 import { drawCastleAt, PIPER_WINDOW } from '../fantasy/monument';
 import { ground, cottage, chimneySmoke, lamp, pine, snowman } from './intoFantasy';
@@ -28,6 +29,8 @@ const back = (c: Ctx, t: number, sway: number, weakness: boolean) => {
     if (sl > y) box(c, x, y, 2, sl - y, lit2 ? snow : shade);
     if (hash(Math.floor(xx / 2) * 0.7) > 0.86) box(c, x, sl, 1, Math.min(10, HOR - sl), rib);
   }
+  // (in front of the Alps, the neighbors past the land's edge: THRONES OF THE STARS, Jungle Land's temple)
+  drawTeaseStrip(c, 'fantasy', 'far', sway);
   // (the castle over the village, her window at the top smashed in)
   const x = Math.round(300 + sway * 0.4), k = 0.2, base = HOR + 4;
   drawCastleAt(c, x, base, k, t);
