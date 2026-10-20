@@ -108,12 +108,14 @@ const T = (rx: number, h: number, extra: Partial<TowerDef> = {}): TowerDef => ({
 const PK = (a: string, b: string, c: string) => [a, b, a, b, c, b, a];
 export const TOWERS: TowerDef[] = [
   // (the canyon: too far apart upright; lean into each gap)
-  T(7590, 230, { tiers: PK('#DC2626', '#FACC15', '#1F2937'), lid: '#FEF3C7' }),
-  T(7950, 260, { tiers: PK('#1F2937', '#DC2626', '#FACC15'), lid: '#FEF3C7' }),
-  T(8260, 220, { tiers: PK('#FACC15', '#7F1D1D', '#F5F5F4'), lid: '#FEF3C7' }),
+  // (`pit`: drawing only: no grassy hummock at their feet, art.ts stands each on a rock stack down into the gorge, or
+  // a stage lift's column down through the holes)
+  T(7590, 230, { tiers: PK('#DC2626', '#FACC15', '#1F2937'), lid: '#FEF3C7', pit: true }),
+  T(7950, 260, { tiers: PK('#1F2937', '#DC2626', '#FACC15'), lid: '#FEF3C7', pit: true }),
+  T(8260, 220, { tiers: PK('#FACC15', '#7F1D1D', '#F5F5F4'), lid: '#FEF3C7', pit: true }),
   // (the set: over the holes)
-  T(9010, 230, { tiers: PK('#7F1D1D', '#F5F5F4', '#FACC15'), lid: '#FEF3C7' }),
-  T(9370, 220, { tiers: PK('#FACC15', '#DC2626', '#1F2937'), lid: '#FEF3C7' }),
+  T(9010, 230, { tiers: PK('#7F1D1D', '#F5F5F4', '#FACC15'), lid: '#FEF3C7', pit: true }),
+  T(9370, 220, { tiers: PK('#FACC15', '#DC2626', '#1F2937'), lid: '#FEF3C7', pit: true }),
 ];
 /** The set's towers (their index in TOWERS): the fuse's tower counts from here. */
 export const SET_TOWER0 = 3;
