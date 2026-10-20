@@ -12,7 +12,7 @@
 // falls, the flames, the flags) drawn live over them (`drawStretchLive`).
 
 import { GROUND_Y } from '../../m1/constants';
-import { type Ctx, INK, mix, hash, checker, box, R6, inked, crown, flag } from './kit';
+import { type Ctx, INK, mix, hash, checker, box, R6, crown, flag } from './kit';
 import { SPOTS, HUB_SLOTS, LANDS } from './lands';
 import { HUB, HUB_CIRC, slotX, seamX, ROW, GATE, PATH, HUB_HORIZON, depthAt } from './geometry';
 import { puffTree } from '../cartoon/kit';
@@ -40,17 +40,19 @@ interface Ground { base: string; joint: string; lit: string; fleck?: string; pai
 const COURSES = [[B, 6], [B + 6, 7], [B + 13, 8], [B + 21, 9]] as const;
 /** Paving in courses across [x0, x1): each stone a step of its own, its joint, a lit lip. */
 const courses = (g: Ctx, x0: number, x1: number, G: Ground, w0 = 18, seed = 0) => {
-  box(g, x0, B, x1 - x0, FY - B, G.base);
+  box(g, x0, B, x1 - x0, FY - B, G.joint);
+  const sh = mix(G.base, G.joint, 0.45), hi = mix(G.lit, '#FFFFFF', 0.3);
   COURSES.forEach(([y, h], r) => {
     const w = w0 * (1 + r * 0.18), off = (r % 2) * w * 0.5;
     for (let x = Math.floor((x0 - off) / w) * w + off; x < x1; x += w) {
-      const t = hash(Math.round(x) * 0.13 + r * 7 + seed);
-      if (t > 0.7) box(g, x + 1, y + 1, w - 2, h - 2, mix(G.base, G.lit, 0.35));
-      else if (t < 0.18) box(g, x + 1, y + 1, w - 2, h - 2, mix(G.base, G.joint, 0.25));
-      box(g, x, y, 1, h, G.joint);
-      box(g, x + 1, y + 1, w - 2, 1, G.lit);
+      const t = hash(Math.round(x) * 0.13 + r * 7 + seed), col = t > 0.7 ? mix(G.base, G.lit, 0.35) : t < 0.18 ? mix(G.base, G.joint, 0.25) : G.base;
+      box(g, x + 1, y + 1, w - 2, h - 2, col);
+      box(g, x + 1, y + 1, w - 2, 1, G.lit); box(g, x + 1, y + 1, 1, h - 2, mix(col, G.lit, 0.5));
+      box(g, x + 1, y + h - 2, w - 2, 1, sh); box(g, x + w - 2, y + 2, 1, h - 3, sh);
+      checker(g, x + 2, y + h - 4, w - 4, 2, sh, 0, 1);
+      if (t > 0.92) box(g, x + 3, y + 2, 2, 1, hi);
+      if (t < 0.07 && w > 10) { box(g, x + w * 0.4, y + 2, 1, h - 4, G.joint); box(g, x + w * 0.4 + 1, y + h / 2, 2, 1, G.joint); }
     }
-    box(g, x0, y + h - 1, x1 - x0, 1, G.joint);
   });
   if (G.fleck) for (let x = x0; x < x1; x += 7) box(g, x + hash(x) * 6, B + hash(x + 3) * (FY - B - 2), 1, 1, G.fleck);
 };
@@ -135,107 +137,169 @@ const paintGround = (g: Ctx, id: StretchId, x0: number, x1: number) => {
 // Trees, by land: each stood on the back row's ground at x
 
 type TreeFn = (g: Ctx, x: number, seed: number, s: number) => void;
+/** A frond: its rib curving from (x0, y0) through (cx, cy) to (x1, y1), leaflets off both sides (lit ones over shaded),
+ *  drooping at the tip. */
+const frond = (g: Ctx, x0: number, y0: number, cx: number, cy: number, x1: number, y1: number, R: string[], len = 7) => {
+  const P = (t: number): [number, number] => [(1 - t) * (1 - t) * x0 + 2 * t * (1 - t) * cx + t * t * x1, (1 - t) * (1 - t) * y0 + 2 * t * (1 - t) * cy + t * t * y1];
+  for (let k = 1; k <= 12; k++) {
+    const t = k / 12, [px, py] = P(t), [qx, qy] = P(Math.max(0, t - 0.05)), dx = px - qx, dy = py - qy, l = Math.hypot(dx, dy) || 1, nx = -dy / l, ny = dx / l, L = len * (1 - t * 0.55);
+    for (const sd of [1, -1]) { g.strokeStyle = sd > 0 ? R[1] : R[3]; g.lineWidth = 2; g.beginPath(); g.moveTo(px, py); g.lineTo(px + nx * L * sd + dx * 0.6, py + ny * L * sd + Math.abs(L) * 0.5); g.stroke(); }
+  }
+  g.strokeStyle = INK; g.lineWidth = 3; g.beginPath(); g.moveTo(x0, y0); g.quadraticCurveTo(cx, cy, x1, y1); g.stroke();
+  g.strokeStyle = R[4]; g.lineWidth = 1; g.stroke();
+};
+/** A trunk in rings (each ring lit at its left, shaded right), leaning `lean` px by its top, tapering. */
+const ringTrunk = (g: Ctx, x: number, h: number, w0: number, w1: number, lean: number, R: string[], step = 4, curve = 1) => {
+  for (let k = 0; k < h; k += step) {
+    const t = k / h, cxk = x + lean * Math.pow(t, curve), w = w0 + (w1 - w0) * t, y = B - k - step;
+    box(g, cxk - w / 2 - 1, y, w + 2, step, INK);
+    box(g, cxk - w / 2, y, w, step, R[(k / step) % 2 ? 2 : 3]); box(g, cxk - w / 2, y, Math.max(1, w * 0.3), step, R[4]); box(g, cxk + w / 2 - Math.max(1, w * 0.25), y, Math.max(1, w * 0.25), step, R[1]);
+    box(g, cxk - w / 2, y + step - 1, w, 1, R[1]);
+  }
+  return [x + lean, B - h] as const;
+};
+/** A trunk with bark (furrows up it, a knot), lit at its left. */
+const barkTrunk = (g: Ctx, x: number, top: number, w: number, R: string[]) => {
+  box(g, x - w / 2 - 1, top, w + 2, B - top, INK);
+  for (let u = 0; u < w; u++) box(g, x - w / 2 + u, top, 1, B - top, R[u < w * 0.25 ? 4 : u < w * 0.6 ? 3 : u < w * 0.85 ? 2 : 1]);
+  for (let k = 0; k < (B - top) / 6; k++) box(g, x - w / 2 + 1 + hash(k + x) * (w - 2), top + k * 6, 1, 4, R[1]);
+  box(g, x - w / 2 - 3, B - 3, w + 6, 3, R[1]); box(g, x - w / 2 - 3, B - 3, 3, 3, R[0]); box(g, x + w / 2, B - 3, 3, 3, R[0]);
+};
 const pineTree: TreeFn = (g, x, seed, s) => {
-  const h = (70 + hash(seed) * 30) * s, R = R6('#2F6B3A');
-  box(g, x - 2, B - 10 * s, 4, 10 * s, '#5E3E22');
-  for (let k = 0; k < 4; k++) {
-    const y = B - 8 * s - k * h * 0.22, w = (26 - k * 5) * s;
-    inked(g, () => { g.moveTo(x - w, y); g.lineTo(x, y - h * 0.34); g.lineTo(x + w, y); g.closePath(); }, R[2]);
-    box(g, x - w * 0.6, y - 3, w * 0.5, 2, R[3]); box(g, x + w * 0.2, y - 4, w * 0.6, 3, R[1]);
+  const h = (74 + hash(seed) * 30) * s, R = R6('#2F6B3A');
+  barkTrunk(g, x, B - 12 * s, Math.max(4, 5 * s), R6('#6A4428'));
+  for (let k = 0; k < 5; k++) {
+    const y = B - 8 * s - k * h * 0.17, w = (26 - k * 4.4) * s, top = y - h * 0.3;
+    const pts: [number, number][] = [[x - w, y]];
+    for (let j = 1; j < 6; j++) { const t = j / 6; pts.push([x - w + w * t, y - (y - top) * t + (j % 2 ? 3 : 0)]); }
+    pts.push([x, top]); for (let j = 5; j > 0; j--) { const t = j / 6; pts.push([x + w - w * t, y - (y - top) * t + (j % 2 ? 3 : 0)]); } pts.push([x + w, y]);
+    for (let j = 0; j <= 6; j++) pts.push([x + w - (2 * w * j) / 6, y + (j % 2 ? 3 : 0)]);
+    g.beginPath(); pts.forEach(([px, py], i) => (i ? g.lineTo(px, py) : g.moveTo(px, py))); g.closePath(); g.fillStyle = R[2]; g.fill(); g.strokeStyle = INK; g.lineWidth = 1; g.stroke();
+    g.save(); g.clip();
+    box(g, x - w, top, w * 0.55, y - top + 4, R[3]); checker(g, x - w * 0.45, top, 2, y - top + 4, R[3]);
+    box(g, x + w * 0.35, top, w * 0.65, y - top + 4, R[1]); checker(g, x + w * 0.33, top, 2, y - top + 4, R[1], 1);
+    box(g, x - w * 0.7, y - 4, w * 0.4, 2, R[4]); box(g, x - 2, top + 3, 2, 3, R[4]);
+    g.restore();
   }
 };
 const TREES: Record<StretchId, TreeFn> = {
   space: (g, x, seed, s) => {
-    // (a Googie tree: a slim pole, discs stacked up it, teal and white, a bulb on top)
-    const h = (80 + hash(seed) * 30) * s;
-    box(g, x - 3, B - h, 6, h, INK); box(g, x - 2, B - h, 4, h, '#CBD5E1'); box(g, x - 2, B - h, 1, h, '#F1F5F9');
+    // (a Googie tree: a chrome pole banded across, saucer discs stacked up it (their rims lit, undersides stepped), a
+    // bulb on top)
+    const h = (80 + hash(seed) * 30) * s, C = ['#2A3248', '#4A5670', '#7A88A4', '#AEBAD0', '#DCE4F0', '#FFFFFF'];
+    box(g, x - 4, B - h, 8, h, INK); for (let u = 0; u < 6; u++) box(g, x - 3 + u, B - h, 1, h, C[[4, 5, 4, 3, 2, 1][u]]);
+    for (let y = B - h + 6; y < B; y += 10) box(g, x - 3, y, 6, 1, C[2]);
+    box(g, x - 8, B - 4, 16, 4, INK); box(g, x - 7, B - 3, 14, 3, C[3]);
     for (let k = 0; k < 3; k++) {
-      const y = B - h * (0.45 + k * 0.22), r = (22 - k * 5) * s, col = k % 2 ? '#F1F5F9' : '#22BCAC';
-      inked(g, () => g.ellipse(x, y, r, r * 0.28, 0, 0, Math.PI * 2), col);
-      box(g, x - r * 0.7, y - 1, r * 0.6, 1, mix(col, '#FFFFFF', 0.5)); box(g, x - r * 0.8, y + 2, r * 1.6, 1, mix(col, INK, 0.3));
+      const y = B - h * (0.45 + k * 0.22), r = (22 - k * 5) * s, col = k % 2 ? '#F1F5F9' : '#22BCAC', R = R6(col);
+      g.fillStyle = INK; g.beginPath(); g.ellipse(x, y, r + 1, r * 0.28 + 1, 0, 0, Math.PI * 2); g.fill();
+      g.fillStyle = R[1]; g.beginPath(); g.ellipse(x, y + 1, r, r * 0.28, 0, 0, Math.PI * 2); g.fill();
+      g.fillStyle = R[3]; g.beginPath(); g.ellipse(x, y - 1, r, r * 0.22, 0, 0, Math.PI * 2); g.fill();
+      g.fillStyle = R[5]; g.beginPath(); g.ellipse(x - r * 0.3, y - 2, r * 0.4, r * 0.08, 0, 0, Math.PI * 2); g.fill();
+      box(g, x - r, y, r * 2, 1, R[2]);
     }
-    inked(g, () => g.arc(x, B - h - 4, 4, 0, Math.PI * 2), '#E8659E');
+    g.fillStyle = INK; g.beginPath(); g.arc(x, B - h - 4, 5, 0, Math.PI * 2); g.fill();
+    for (const [k, col] of [[1, '#B83A6E'], [0.7, '#E8659E'], [0.35, '#FFB8D6']] as const) { g.fillStyle = col; g.beginPath(); g.arc(x - (1 - k) * 2, B - h - 4 - (1 - k) * 2, 4 * k, 0, Math.PI * 2); g.fill(); }
   },
   frontier: (g, x, seed, s) => {
     if (hash(seed + 9) < 0.35) {
-      // (a saguaro)
-      const h = (60 + hash(seed) * 20) * s, R = R6('#4D7C3A');
-      inked(g, () => g.roundRect(x - 6, B - h, 12, h, 6), R[3]); box(g, x - 4, B - h + 4, 2, h - 6, R[4]); box(g, x + 3, B - h + 4, 2, h - 6, R[1]);
-      inked(g, () => { g.roundRect(x - 20, B - h * 0.7, 8, h * 0.35, 4); }, R[3]); inked(g, () => g.rect(x - 16, B - h * 0.4, 12, 6), R[3]);
-      inked(g, () => { g.roundRect(x + 12, B - h * 0.85, 8, h * 0.3, 4); }, R[3]); inked(g, () => g.rect(x + 4, B - h * 0.58, 12, 6), R[3]);
+      // (a saguaro: ribbed columns, each rib a step of its own, spines dotted, arms with their elbows, a flower)
+      const h = (62 + hash(seed) * 20) * s, R = R6('#4D7C3A');
+      const col = (x0: number, top: number, bot: number, w: number) => {
+        box(g, x0 - w / 2 - 1, top + w / 2, w + 2, bot - top - w / 2, INK);
+        g.fillStyle = INK; g.beginPath(); g.arc(x0, top + w / 2, w / 2 + 1, Math.PI, 0); g.fill();
+        g.save(); g.beginPath(); g.rect(x0 - w / 2, top + w / 2, w, bot - top - w / 2); g.arc(x0, top + w / 2, w / 2, Math.PI, 0); g.clip();
+        for (let u = 0; u < w; u += 2) box(g, x0 - w / 2 + u, top, 2, bot - top, R[[4, 5, 3, 3, 2, 1, 1][Math.min(6, Math.floor((u / w) * 7))]]);
+        for (let u = 2; u < w; u += 3) box(g, x0 - w / 2 + u, top + 2, 1, bot - top, R[1]);
+        for (let y = top + 4; y < bot; y += 5) box(g, x0 - w / 2 + ((y / 5) % 3) * 3, y, 1, 1, '#F5F0D8');
+        g.restore();
+      };
+      const ax = 18 * s, ay = h * 0.6;
+      col(x - ax + 2, B - ay - 20 * s, B - ay * 0.55, 8 * s); box(g, x - ax + 2, B - ay * 0.55 - 6, ax - 4, 7, INK); box(g, x - ax + 3, B - ay * 0.55 - 5, ax - 6, 5, R[3]); box(g, x - ax + 3, B - ay * 0.55 - 5, ax - 6, 1, R[5]);
+      col(x + ax - 2, B - ay - 30 * s, B - ay * 0.7, 8 * s); box(g, x + 2, B - ay * 0.7 - 6, ax - 4, 7, INK); box(g, x + 3, B - ay * 0.7 - 5, ax - 6, 5, R[2]);
+      col(x, B - h, B, 12 * s);
+      g.fillStyle = INK; g.beginPath(); g.arc(x, B - h + 1, 3, 0, Math.PI * 2); g.fill(); box(g, x - 2, B - h - 1, 4, 3, '#F5F0D8'); box(g, x - 1, B - h, 2, 1, '#FDE047');
       return;
     }
     pineTree(g, x, seed, s);
   },
   spooky: (g, x, seed, s) => {
-    // (a dead tree: a twisted black trunk, its branches clawing out)
+    // (a dead tree: a twisted trunk, its bark furrowed, branches clawing out; lit along one side; a knot hole)
     const h = (80 + hash(seed) * 30) * s;
     g.lineCap = 'round';
+    const segs: [number, number, number, number, number][] = [];
     const branch = (x0: number, y0: number, a: number, len: number, w: number, d: number) => {
       const x1 = x0 + Math.cos(a) * len, y1 = y0 + Math.sin(a) * len;
-      g.strokeStyle = INK; g.lineWidth = w + 2; g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y1); g.stroke();
-      g.strokeStyle = '#3B3049'; g.lineWidth = w; g.stroke();
+      segs.push([x0, y0, x1, y1, w]);
       if (d > 0) { branch(x1, y1, a - 0.5 - hash(seed + d) * 0.3, len * 0.7, w * 0.65, d - 1); branch(x1, y1, a + 0.45 + hash(seed - d) * 0.3, len * 0.66, w * 0.6, d - 1); }
     };
     branch(x, B, -Math.PI / 2 + (hash(seed) - 0.5) * 0.3, h * 0.45, 7 * s, 3);
+    for (const [x0, y0, x1, y1, w] of segs) { g.strokeStyle = INK; g.lineWidth = w + 2; g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y1); g.stroke(); }
+    for (const [x0, y0, x1, y1, w] of segs) { g.strokeStyle = '#2E2440'; g.lineWidth = w; g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y1); g.stroke(); }
+    for (const [x0, y0, x1, y1, w] of segs) if (w > 2) { g.strokeStyle = '#4C3D5E'; g.lineWidth = Math.max(1, w * 0.35); g.beginPath(); g.moveTo(x0 - w * 0.25, y0); g.lineTo(x1 - w * 0.25, y1); g.stroke(); }
+    g.lineCap = 'butt';
+    box(g, x - 5, B - 3, 10, 3, '#1A1428'); box(g, x - 2, B - h * 0.25, 3, 4, '#0A0614');
   },
   cartoon: (g, x, seed, s) => puffTree(g, x, B, (70 + hash(seed) * 30) * s, ['#4CC89C', '#FA9ACA', '#86CAF4', '#FCE880'][Math.floor(hash(seed + 1) * 4)], seed),
-  america: (g, x, seed, s) => { box(g, x - 3, B - 30 * s, 6, 30 * s, '#5E3E22'); crown(g, x, B - 50 * s, 22 * s, R6('#3F8A4A')); },
+  america: (g, x, seed, s) => {
+    barkTrunk(g, x, B - 34 * s, Math.max(5, 6 * s), R6('#5E3E22'));
+    crown(g, x, B - 52 * s, 22 * s, R6('#3F8A4A'));
+    box(g, x - 10, B - 2, 20, 2, INK); for (let k = 0; k < 5; k++) box(g, x - 9 + k * 4, B - 2, 2, 1, '#57534E');
+  },
   hollywood: (g, x, seed, s) => {
-    // (a tall Washingtonia palm: the skinny trunk in rings, the shag under the crown)
+    // (a tall Washingtonia: the skinny trunk in rings, the dead fronds' shag skirt under the crown, the fronds)
     const h = (120 + hash(seed) * 30) * s, lean = (hash(seed + 2) - 0.5) * 16;
-    for (let k = 0; k < h; k += 3) box(g, x + (lean * k) / h - 2, B - k - 3, 4, 3, (k / 3) % 3 ? '#8A6A4A' : '#6A4E34');
-    const tx = x + lean, ty = B - h;
-    box(g, tx - 4, ty, 8, 10, '#7A5A34');
-    for (let k = 0; k < 7; k++) {
-      const a = Math.PI + (k / 6) * Math.PI, ex = tx + Math.cos(a) * 26 * s, ey = ty + Math.sin(a) * 12 * s + 10;
-      g.strokeStyle = INK; g.lineWidth = 5; g.beginPath(); g.moveTo(tx, ty); g.quadraticCurveTo((tx + ex) / 2, ty - 10, ex, ey); g.stroke();
-      g.strokeStyle = k % 2 ? '#3F7A3A' : '#4F9A46'; g.lineWidth = 3; g.stroke();
-    }
+    const [tx, ty] = ringTrunk(g, x, h, 5, 4, lean, R6('#8A6A4A'), 3);
+    for (let k = 0; k < 12; k++) { const a = Math.PI * 0.2 + (k / 11) * Math.PI * 0.6; g.strokeStyle = k % 2 ? '#6A4E2A' : '#8A6A3A'; g.lineWidth = 2; g.beginPath(); g.moveTo(tx, ty); g.lineTo(tx + Math.cos(a) * 9, ty + Math.sin(a) * 16); g.stroke(); }
+    const R = R6('#4F9A46');
+    for (let k = 0; k < 7; k++) { const a = Math.PI + (k / 6) * Math.PI, ex = tx + Math.cos(a) * 28 * s, ey = ty + Math.sin(a) * 12 * s + 12; frond(g, tx, ty, (tx + ex) / 2, ty - 10, ex, ey, R, 5); }
   },
   fantasy: (g, x, seed, s) => {
     const kind = Math.floor(hash(seed + 5) * 3);
-    box(g, x - 2, B - 10 * s, 4, 10 * s, '#5E3E22');
-    inked(g, () => g.roundRect(x - 10 * s, B - 12 * s, 20 * s, 10 * s, 2), '#B45309');
-    if (kind === 0) { for (let k = 0; k < 3; k++) crown(g, x, B - 22 * s - k * 20 * s, (13 - k * 2.5) * s, R6('#2F7A4A')); }
-    else if (kind === 1) {
-      // (a spiral topiary)
-      const h = 80 * s;
-      for (let k = 0; k < 6; k++) { const y = B - 14 * s - k * h / 7, r = (16 - k * 2.2) * s; crown(g, x + (k % 2 ? 2 : -2), y - r * 0.4, r, R6('#2F7A4A')); }
-    } else crown(g, x, B - 38 * s, 22 * s, R6('#3A8A54'));
+    barkTrunk(g, x, B - 12 * s, 4, R6('#5E3E22'));
+    // (the pot: terracotta, its rim, a band)
+    const T = R6('#B45309');
+    g.fillStyle = INK; g.beginPath(); g.moveTo(x - 11 * s, B - 13 * s); g.lineTo(x + 11 * s, B - 13 * s); g.lineTo(x + 8 * s, B); g.lineTo(x - 8 * s, B); g.closePath(); g.fill();
+    g.fillStyle = T[3]; g.beginPath(); g.moveTo(x - 10 * s, B - 12 * s); g.lineTo(x + 10 * s, B - 12 * s); g.lineTo(x + 7 * s, B - 1); g.lineTo(x - 7 * s, B - 1); g.closePath(); g.fill();
+    box(g, x - 9 * s, B - 12 * s, 4 * s, 11 * s, T[4]); box(g, x + 4 * s, B - 12 * s, 4 * s, 11 * s, T[1]);
+    box(g, x - 12 * s, B - 15 * s, 24 * s, 4 * s, INK); box(g, x - 11 * s, B - 14 * s, 22 * s, 2 * s, T[4]);
+    if (kind === 0) { for (let k = 0; k < 3; k++) crown(g, x, B - 24 * s - k * 20 * s, (13 - k * 2.5) * s, R6('#2F7A4A')); }
+    else if (kind === 1) { const h = 80 * s; for (let k = 0; k < 6; k++) { const y = B - 16 * s - k * h / 7, r = (16 - k * 2.2) * s; crown(g, x + (k % 2 ? 2 : -2), y - r * 0.4, r, R6('#2F7A4A')); } }
+    else crown(g, x, B - 40 * s, 22 * s, R6('#3A8A54'));
   },
   adventure: (g, x, seed, s) => {
     if (hash(seed + 3) < 0.5) {
-      // (a coconut palm, leaning)
+      // (a coconut palm, leaning: the trunk in rings curving over, the fronds, the coconuts in stepped shells)
       const h = (90 + hash(seed) * 30) * s, lean = (hash(seed + 2) - 0.5) * 40;
-      for (let k = 0; k < h; k += 3) { const t = k / h; box(g, x + lean * t * t - 3, B - k - 3, 6, 3, (k / 3) % 2 ? '#8A6A44' : '#A0805A'); }
-      const tx = x + lean, ty = B - h;
-      for (let k = 0; k < 8; k++) {
-        const a = (k / 8) * Math.PI * 2, ex = tx + Math.cos(a) * 34 * s, ey = ty + Math.abs(Math.sin(a)) * 12 * s + (Math.sin(a) < 0 ? -6 : 14) * s;
-        g.strokeStyle = INK; g.lineWidth = 6; g.beginPath(); g.moveTo(tx, ty); g.quadraticCurveTo((tx + ex) / 2, ty - 14 * s, ex, ey); g.stroke();
-        g.strokeStyle = k % 2 ? '#3F6212' : '#65A30D'; g.lineWidth = 4; g.stroke();
-      }
-      for (const dx of [-3, 3]) inked(g, () => g.arc(tx + dx, ty + 4, 3, 0, Math.PI * 2), '#5E3E22');
+      const [tx, ty] = ringTrunk(g, x, h, 7, 5, lean, R6('#9A7A52'), 3, 2);
+      const R = R6('#4D8A16');
+      for (let k = 0; k < 8; k++) { const a = (k / 8) * Math.PI * 2, ex = tx + Math.cos(a) * 34 * s, ey = ty + Math.abs(Math.sin(a)) * 12 * s + (Math.sin(a) < 0 ? -6 : 14) * s; frond(g, tx, ty, (tx + ex) / 2, ty - 14 * s, ex, ey, R, 6); }
+      for (const dx of [-3, 3, 0]) { const cy = ty + 4 + (dx === 0 ? 3 : 0); g.fillStyle = INK; g.beginPath(); g.arc(tx + dx, cy, 3.5, 0, Math.PI * 2); g.fill(); g.fillStyle = '#5E3E22'; g.beginPath(); g.arc(tx + dx, cy, 2.5, 0, Math.PI * 2); g.fill(); box(g, tx + dx - 1, cy - 2, 1, 1, '#A07444'); }
       return;
     }
     // (broadleaf jungle, heaped, a fern at its foot)
-    box(g, x - 3, B - 40 * s, 6, 40 * s, '#5E3E22');
+    barkTrunk(g, x, B - 40 * s, 6, R6('#5E3E22'));
     for (const [dx, dy, r] of [[-14, -46, 18], [14, -50, 18], [0, -66, 22]] as const) crown(g, x + dx * s, B + dy * s, r * s, R6('#2F6B22'));
-    for (let k = 0; k < 5; k++) { const a = Math.PI + 0.3 + k * 0.6; g.strokeStyle = '#4D7C0F'; g.lineWidth = 3; g.beginPath(); g.moveTo(x, B); g.quadraticCurveTo(x + Math.cos(a) * 10, B - 14, x + Math.cos(a) * 20, B - 4 + Math.sin(a) * 4); g.stroke(); }
+    const F = R6('#4D7C0F');
+    for (let k = 0; k < 5; k++) { const a = Math.PI + 0.3 + k * 0.6; frond(g, x, B, x + Math.cos(a) * 10, B - 14, x + Math.cos(a) * 20, B - 4 + Math.sin(a) * 4, F, 4); }
   },
   foreign: (g, x, seed, s) => {
     if (hash(seed + 4) < 0.6) {
-      // (a cypress: tall, narrow, dark)
+      // (a cypress: tall, a flame of stepped lobes, dark)
       const h = (90 + hash(seed) * 30) * s, R = R6('#24502E');
-      inked(g, () => g.ellipse(x, B - h / 2 - 4, 9 * s, h / 2, 0, 0, Math.PI * 2), R[2]);
-      box(g, x - 5 * s, B - h * 0.8, 3, h * 0.6, R[3]); box(g, x + 3 * s, B - h * 0.7, 3, h * 0.5, R[1]);
+      g.fillStyle = INK; g.beginPath(); g.ellipse(x, B - h / 2 - 4, 10 * s, h / 2 + 1, 0, 0, Math.PI * 2); g.fill();
+      g.save(); g.beginPath(); g.ellipse(x, B - h / 2 - 4, 9 * s, h / 2, 0, 0, Math.PI * 2); g.clip();
+      box(g, x - 10 * s, B - h - 4, 20 * s, h, R[2]); box(g, x - 9 * s, B - h - 4, 6 * s, h, R[3]); box(g, x + 4 * s, B - h - 4, 6 * s, h, R[1]);
+      for (let y = B - h; y < B; y += 6) { box(g, x - 7 * s + ((y / 6) % 2) * 3, y, 5, 3, R[4]); box(g, x + 2, y + 3, 5, 2, R[0]); }
+      checker(g, x - 3 * s, B - h - 4, 2, h, R[3]); g.restore();
+      box(g, x - 2, B - 4, 4, 4, '#5E4A32');
       return;
     }
-    box(g, x - 3, B - 26 * s, 6, 26 * s, '#6B5E4A'); crown(g, x, B - 42 * s, 20 * s, R6('#6B8A4A'));
+    barkTrunk(g, x, B - 26 * s, 5, R6('#6B5E4A')); crown(g, x, B - 42 * s, 20 * s, R6('#6B8A4A'));
   },
   staff: (g, x, seed, s) => {
     // (a scrubby thing that came up through a crack)
-    box(g, x - 2, B - 26 * s, 3, 26 * s, '#5E4A32');
+    barkTrunk(g, x, B - 26 * s, 3, R6('#5E4A32'));
     for (const [dx, dy, r] of [[-8, -30, 10], [8, -34, 9], [0, -42, 11]] as const) crown(g, x + dx * s, B + dy * s, r * s, R6('#5A6E34'));
   },
 };
@@ -330,68 +394,129 @@ const kiosk = (g: Ctx, x: number, kind: Kiosk, a: StretchId, b: StretchId, lit: 
 // The fence along the back of the walk (the promenade behind it), by land; a plain shared box hedge where two meet
 
 type FenceFn = (g: Ctx, x0: number, x1: number) => void;
+/** A post in stepped columns (lit left, shaded right), inked. */
+const post = (g: Ctx, x: number, top: number, w: number, R: string[]) => { box(g, x - 1, top - 1, w + 2, FY - top + 1, INK); for (let u = 0; u < w; u++) box(g, x + u, top, 1, FY - top, R[u < w * 0.3 ? 4 : u < w * 0.65 ? 3 : u < w * 0.85 ? 2 : 1]); };
+/** A rail across, lit along its top, shaded under. */
+const rail = (g: Ctx, x0: number, x1: number, y: number, h: number, R: string[]) => { box(g, x0, y - 1, x1 - x0, h + 2, INK); box(g, x0, y, x1 - x0, h, R[3]); box(g, x0, y, x1 - x0, 1, R[5]); box(g, x0, y + h - 1, x1 - x0, 1, R[1]); };
 const hedge: FenceFn = (g, x0, x1) => {
+  // (clipped box hedge: its top a row of lumps in steps, the face banded and dithered, leaf flecks, a flower or two)
   const R = R6('#3F7A3A');
-  box(g, x0, FY - 16, x1 - x0, 1, INK); box(g, x0, FY - 15, x1 - x0, 15, R[2]); box(g, x0, FY - 15, x1 - x0, 4, R[3]); checker(g, x0, FY - 11, x1 - x0, 2, R[3]);
-  box(g, x0, FY - 4, x1 - x0, 4, R[1]);
-  for (let x = Math.floor(x0 / 6) * 6; x < x1; x += 6) { box(g, x, FY - 16 + (Math.abs(x / 6) % 2), 3, 1, R[4]); if (hash(x) > 0.75) box(g, x + 1, FY - 10, 2, 2, ['#F472B6', '#FDE047', '#F8FAFC'][Math.floor(hash(x + 1) * 3)]); }
+  box(g, x0, FY - 17, x1 - x0, 17, INK);
+  box(g, x0, FY - 16, x1 - x0, 16, R[2]); box(g, x0, FY - 16, x1 - x0, 5, R[3]); checker(g, x0, FY - 11, x1 - x0, 2, R[3]);
+  box(g, x0, FY - 5, x1 - x0, 5, R[1]); checker(g, x0, FY - 7, x1 - x0, 2, R[1]);
+  for (let x = Math.floor(x0 / 6) * 6; x < x1; x += 6) {
+    g.fillStyle = INK; g.beginPath(); g.arc(x + 3, FY - 16, 4, Math.PI, 0); g.fill();
+    g.fillStyle = R[3]; g.beginPath(); g.arc(x + 3, FY - 16, 3, Math.PI, 0); g.fill(); box(g, x + 2, FY - 18, 2, 1, R[5]);
+    if (hash(x) > 0.5) box(g, x + hash(x * 3) * 5, FY - 13 + hash(x * 7) * 8, 1, 1, hash(x * 9) > 0.5 ? R[4] : R[0]);
+    if (hash(x) > 0.8) { box(g, x + 1, FY - 11, 2, 2, ['#F472B6', '#FDE047', '#F8FAFC'][Math.floor(hash(x + 1) * 3)]); box(g, x + 1, FY - 11, 1, 1, '#FFFFFF'); }
+  }
 };
 const FENCES: Record<StretchId, FenceFn> = {
   space: (g, x0, x1) => {
-    box(g, x0, FY - 14, x1 - x0, 4, INK); box(g, x0, FY - 13, x1 - x0, 2, '#E2E8F0'); box(g, x0, FY - 12, x1 - x0, 1, '#94A3B8');
-    for (let x = Math.floor(x0 / 30) * 30; x < x1; x += 30) { inked(g, () => g.roundRect(x - 3, FY - 18, 6, 18, 3), '#CBD5E1'); box(g, x - 1, FY - 16, 1, 14, '#F8FAFC'); inked(g, () => g.arc(x, FY - 20, 3, 0, Math.PI * 2), Math.abs(x / 30) % 2 ? '#22BCAC' : '#E8659E'); }
+    // (a chrome rail on Googie pylons, each capped with a teal or pink bulb)
+    const C = ['#2A3248', '#4A5670', '#7A88A4', '#AEBAD0', '#DCE4F0', '#FFFFFF'];
+    rail(g, x0, x1, FY - 14, 3, C);
+    rail(g, x0, x1, FY - 6, 2, C);
+    for (let x = Math.floor(x0 / 30) * 30; x < x1; x += 30) {
+      g.fillStyle = INK; g.beginPath(); g.moveTo(x - 4, FY); g.lineTo(x - 2, FY - 19); g.lineTo(x + 2, FY - 19); g.lineTo(x + 4, FY); g.fill();
+      for (let u = -3; u < 3; u++) box(g, x + u, FY - 18 + Math.abs(u), 1, 18 - Math.abs(u), C[[4, 5, 4, 3, 2, 1][u + 3]]);
+      const col = R6(Math.abs(x / 30) % 2 ? '#22BCAC' : '#E8659E');
+      g.fillStyle = INK; g.beginPath(); g.arc(x, FY - 21, 4, 0, Math.PI * 2); g.fill(); g.fillStyle = col[3]; g.beginPath(); g.arc(x, FY - 21, 3, 0, Math.PI * 2); g.fill(); box(g, x - 2, FY - 23, 1, 1, col[5]);
+    }
   },
   frontier: (g, x0, x1) => {
-    // (split rail, zigzagging)
+    // (split rail zigzagging: each rail split-faced, lit along its top, its end grain; the posts weathered)
+    const W = R6('#9A6A3E');
     for (let x = Math.floor(x0 / 34) * 34; x < x1; x += 34) {
-      for (const y of [FY - 18, FY - 9]) { g.strokeStyle = INK; g.lineWidth = 5; g.beginPath(); g.moveTo(x, y + 4); g.lineTo(x + 36, y); g.stroke(); g.strokeStyle = '#9A6A3E'; g.lineWidth = 3; g.stroke(); g.strokeStyle = '#C08A54'; g.lineWidth = 1; g.beginPath(); g.moveTo(x + 2, y + 2.5); g.lineTo(x + 34, y - 1.5); g.stroke(); }
-      box(g, x - 2, FY - 22, 4, 22, '#6A4428');
+      for (const y of [FY - 18, FY - 9]) {
+        g.strokeStyle = INK; g.lineWidth = 6; g.beginPath(); g.moveTo(x, y + 4); g.lineTo(x + 36, y); g.stroke();
+        g.strokeStyle = W[3]; g.lineWidth = 4; g.stroke();
+        g.strokeStyle = W[5]; g.lineWidth = 1; g.beginPath(); g.moveTo(x + 2, y + 2); g.lineTo(x + 34, y - 2); g.stroke();
+        g.strokeStyle = W[1]; g.beginPath(); g.moveTo(x + 2, y + 5); g.lineTo(x + 34, y + 1); g.stroke();
+        box(g, x + 14, y + 1, 4, 1, W[2]);
+      }
+      post(g, x - 2, FY - 23, 5, R6('#6A4428')); box(g, x - 2, FY - 23, 5, 1, '#8A6038');
     }
   },
   spooky: (g, x0, x1) => {
-    box(g, x0, FY - 20, x1 - x0, 2, '#18141F'); box(g, x0, FY - 6, x1 - x0, 2, '#18141F');
-    for (let x = Math.floor(x0 / 6) * 6; x < x1; x += 6) { box(g, x, FY - 22, 2, 22, '#18141F'); box(g, x - 1, FY - 24, 4, 2, '#18141F'); box(g, x, FY - 26, 2, 2, '#18141F'); }
-    for (let x = Math.floor(x0 / 48) * 48; x < x1; x += 48) { box(g, x - 3, FY - 26, 6, 26, '#18141F'); box(g, x - 4, FY - 30, 8, 4, '#2A2438'); }
-    // (pumpkins along it)
-    for (let x = Math.floor(x0 / 42) * 42 + 20; x < x1; x += 42) if (hash(x) > 0.35) { inked(g, () => g.ellipse(x, FY - 4, 7, 5, 0, 0, Math.PI * 2), '#EA580C'); box(g, x - 1, FY - 4, 1, 4, '#9A3412'); box(g, x - 4, FY - 6, 2, 2, '#FDBA74'); box(g, x - 1, FY - 11, 2, 3, '#3F6212'); }
+    // (wrought iron: spear-topped pickets, two rails, piers with their stone caps every so often; pumpkins along it)
+    const I = R6('#2A2438');
+    rail(g, x0, x1, FY - 20, 2, I); rail(g, x0, x1, FY - 7, 2, I);
+    for (let x = Math.floor(x0 / 6) * 6; x < x1; x += 6) { box(g, x, FY - 22, 2, 22, '#18141F'); box(g, x, FY - 22, 1, 22, I[4]); box(g, x - 1, FY - 24, 4, 2, '#18141F'); box(g, x, FY - 27, 2, 3, '#18141F'); box(g, x, FY - 26, 1, 1, I[5]); }
+    for (let x = Math.floor(x0 / 48) * 48; x < x1; x += 48) { post(g, x - 4, FY - 28, 8, R6('#6E6684')); box(g, x - 6, FY - 31, 12, 4, INK); box(g, x - 5, FY - 30, 10, 2, '#8A8494'); box(g, x - 5, FY - 30, 10, 1, '#B4AEBE'); }
+    for (let x = Math.floor(x0 / 42) * 42 + 20; x < x1; x += 42) if (hash(x) > 0.35) {
+      g.fillStyle = INK; g.beginPath(); g.ellipse(x, FY - 4, 8, 6, 0, 0, Math.PI * 2); g.fill();
+      for (const [k, col] of [[1, '#9A3412'], [0.8, '#C2410C'], [0.55, '#EA580C'], [0.25, '#FDBA74']] as const) { g.fillStyle = col; g.beginPath(); g.ellipse(x - (1 - k) * 3, FY - 4 - (1 - k) * 2, 7 * k, 5 * k, 0, 0, Math.PI * 2); g.fill(); }
+      box(g, x - 1, FY - 9, 1, 9, '#9A3412'); box(g, x - 1, FY - 12, 2, 3, '#3F6212'); box(g, x + 1, FY - 12, 3, 1, '#4D7C0F');
+    }
   },
   cartoon: (g, x0, x1) => {
-    box(g, x0, FY - 12, x1 - x0, 3, '#1A1028'); box(g, x0, FY - 11, x1 - x0, 1, '#FFFFFF');
-    for (let x = Math.floor(x0 / 10) * 10; x < x1; x += 10) { const col = ['#FA9ACA', '#86CAF4', '#FCE880', '#8AE4BE'][Math.abs(x / 10) % 4]; inked(g, () => g.roundRect(x, FY - 20, 7, 20, [3.5, 3.5, 0, 0]), col, 1.5); box(g, x + 1, FY - 18, 2, 14, '#FFFFFF'); }
+    // (a picket fence of candy: round-topped pickets in pastels, each lit up its left, a white rail)
+    rail(g, x0, x1, FY - 13, 3, R6('#FFFFFF'));
+    for (let x = Math.floor(x0 / 10) * 10; x < x1; x += 10) {
+      const R = R6(['#FA9ACA', '#86CAF4', '#FCE880', '#8AE4BE'][Math.abs(x / 10) % 4]);
+      g.fillStyle = INK; g.beginPath(); g.roundRect(x - 1, FY - 21, 9, 21, [4.5, 4.5, 0, 0]); g.fill();
+      g.save(); g.beginPath(); g.roundRect(x, FY - 20, 7, 20, [3.5, 3.5, 0, 0]); g.clip();
+      box(g, x, FY - 20, 7, 20, R[3]); box(g, x, FY - 20, 2, 20, R[5]); box(g, x + 5, FY - 20, 2, 20, R[2]); box(g, x, FY - 4, 7, 4, R[1]);
+      g.restore();
+    }
   },
   america: (g, x0, x1) => {
-    box(g, x0, FY - 12, x1 - x0, 2, '#E7E5E4');
-    for (let x = Math.floor(x0 / 8) * 8; x < x1; x += 8) { inked(g, () => { g.moveTo(x, FY); g.lineTo(x, FY - 16); g.lineTo(x + 2.5, FY - 19); g.lineTo(x + 5, FY - 16); g.lineTo(x + 5, FY); }, '#F8FAFC'); }
+    // (a white picket fence: pointed pickets, two rails, each lit and shaded)
+    const W = R6('#F4F2EE');
+    rail(g, x0, x1, FY - 13, 2, W); rail(g, x0, x1, FY - 6, 2, W);
+    for (let x = Math.floor(x0 / 8) * 8; x < x1; x += 8) {
+      g.fillStyle = INK; g.beginPath(); g.moveTo(x - 1, FY); g.lineTo(x - 1, FY - 16); g.lineTo(x + 2.5, FY - 20); g.lineTo(x + 6, FY - 16); g.lineTo(x + 6, FY); g.fill();
+      box(g, x, FY - 16, 5, 16, W[3]); box(g, x, FY - 16, 1, 16, W[5]); box(g, x + 4, FY - 16, 1, 16, W[2]); box(g, x + 1, FY - 18, 3, 2, W[4]); box(g, x, FY - 3, 5, 3, W[1]);
+    }
   },
   hollywood: (g, x0, x1) => {
-    // (brass stanchions, red velvet rope swagged between)
+    // (brass stanchions, red velvet rope swagged between: the rope banded, lit along its top)
     for (let x = Math.floor(x0 / 36) * 36; x < x1; x += 36) {
-      g.strokeStyle = INK; g.lineWidth = 4; g.beginPath(); g.moveTo(x, FY - 16); g.quadraticCurveTo(x + 18, FY - 6, x + 36, FY - 16); g.stroke();
-      g.strokeStyle = '#B91C1C'; g.lineWidth = 2; g.stroke();
-      box(g, x - 2, FY - 18, 4, 18, INK); box(g, x - 1, FY - 18, 2, 18, '#E0B84A'); inked(g, () => g.arc(x, FY - 19, 3, 0, Math.PI * 2), '#FDE68A'); box(g, x - 5, FY - 2, 10, 2, '#C9A227');
+      g.strokeStyle = INK; g.lineWidth = 5; g.beginPath(); g.moveTo(x, FY - 16); g.quadraticCurveTo(x + 18, FY - 6, x + 36, FY - 16); g.stroke();
+      g.strokeStyle = '#991B1B'; g.lineWidth = 3; g.stroke(); g.strokeStyle = '#EF4444'; g.lineWidth = 1; g.beginPath(); g.moveTo(x + 2, FY - 16); g.quadraticCurveTo(x + 18, FY - 7.5, x + 34, FY - 16); g.stroke();
+      const Au = R6('#D09A30');
+      post(g, x - 2, FY - 18, 4, Au);
+      g.fillStyle = INK; g.beginPath(); g.arc(x, FY - 19, 4, 0, Math.PI * 2); g.fill(); g.fillStyle = Au[3]; g.beginPath(); g.arc(x, FY - 19, 3, 0, Math.PI * 2); g.fill(); box(g, x - 2, FY - 21, 1, 1, Au[5]);
+      box(g, x - 6, FY - 3, 12, 3, INK); box(g, x - 5, FY - 2, 10, 2, Au[3]); box(g, x - 5, FY - 2, 10, 1, Au[5]);
     }
   },
   fantasy: (g, x0, x1) => {
     hedge(g, x0, x1);
-    for (let x = Math.floor(x0 / 54) * 54 + 27; x < x1; x += 54) { box(g, x - 4, FY - 22, 8, 8, '#2F6B2A'); crown(g, x, FY - 26, 7, R6('#3A8A44')); }
+    for (let x = Math.floor(x0 / 54) * 54 + 27; x < x1; x += 54) { box(g, x - 5, FY - 23, 10, 8, INK); box(g, x - 4, FY - 22, 8, 7, '#2F6B2A'); crown(g, x, FY - 27, 7, R6('#3A8A44')); }
   },
   adventure: (g, x0, x1) => {
-    for (let x = Math.floor(x0 / 5) * 5; x < x1; x += 5) { const h = 18 + (Math.abs(x / 5) % 3) * 2; box(g, x, FY - h, 4, h, INK); box(g, x, FY - h + 1, 3, h - 1, Math.abs(x / 5) % 2 ? '#B4CC5C' : '#9AB048'); box(g, x, FY - h + 7, 3, 1, '#6A8A28'); }
-    box(g, x0, FY - 13, x1 - x0, 2, '#A27E44'); box(g, x0, FY - 6, x1 - x0, 2, '#A27E44');
+    // (bamboo poles lashed in a row: each banded at its nodes, lit up its left; rope lashings across)
+    const Bm = R6('#B4CC5C');
+    for (let x = Math.floor(x0 / 5) * 5; x < x1; x += 5) {
+      const h = 18 + (Math.abs(x / 5) % 3) * 2;
+      box(g, x, FY - h, 5, h, INK); box(g, x, FY - h + 1, 4, h - 1, Bm[Math.abs(x / 5) % 2 ? 3 : 2]); box(g, x, FY - h + 1, 1, h - 1, Bm[5]); box(g, x + 3, FY - h + 1, 1, h - 1, Bm[1]);
+      for (const ny of [FY - h + 7, FY - h + 15]) { box(g, x, ny, 4, 1, Bm[1]); box(g, x, ny + 1, 4, 1, Bm[4]); }
+      g.fillStyle = INK; g.beginPath(); g.ellipse(x + 2, FY - h + 1, 2.5, 1, 0, 0, Math.PI * 2); g.fill();
+    }
+    for (const y of [FY - 13, FY - 6]) { box(g, x0, y, x1 - x0, 2, '#7A5A2A'); box(g, x0, y, x1 - x0, 1, '#C8A060'); }
   },
   foreign: (g, x0, x1) => {
-    stucco(g, x0, FY - 12, x1 - x0, 12, R6('#F2E6D0'), 4);
-    box(g, x0, FY - 12, x1 - x0, 12, '#EDE0C8'); box(g, x0, FY - 12, x1 - x0, 1, INK);
-    barrelTile(g, x0, FY - 16, x1 - x0, 5, R6('#C2410C'), 5);
-    for (let x = Math.floor(x0 / 30) * 30; x < x1; x += 30) { inked(g, () => g.rect(x, FY - 26, 14, 9), '#B45309'); for (let k = 0; k < 4; k++) box(g, x + 1 + k * 3, FY - 30 - (k % 2) * 2, 3, 3, ['#DC2626', '#F8FAFC', '#FDE047', '#DC2626'][k]); }
+    // (a low stucco wall under barrel tile, pots of geraniums on it)
+    const W = R6('#F2E6D0');
+    box(g, x0, FY - 13, x1 - x0, 13, INK); box(g, x0, FY - 12, x1 - x0, 12, W[3]);
+    stucco(g, x0, FY - 12, x1 - x0, 12, W, 4); box(g, x0, FY - 3, x1 - x0, 3, W[1]); checker(g, x0, FY - 5, x1 - x0, 2, W[1]);
+    barrelTile(g, x0, FY - 17, x1 - x0, 5, R6('#C2410C'), 5); box(g, x0, FY - 17, x1 - x0, 1, INK);
+    for (let x = Math.floor(x0 / 30) * 30; x < x1; x += 30) {
+      const T = R6('#B45309');
+      g.fillStyle = INK; g.beginPath(); g.moveTo(x - 1, FY - 27); g.lineTo(x + 15, FY - 27); g.lineTo(x + 13, FY - 17); g.lineTo(x + 1, FY - 17); g.fill();
+      box(g, x, FY - 26, 14, 9, T[3]); box(g, x, FY - 26, 3, 9, T[4]); box(g, x + 11, FY - 26, 3, 9, T[1]); box(g, x - 1, FY - 27, 16, 2, T[4]);
+      for (let k = 0; k < 5; k++) { box(g, x + 1 + k * 3, FY - 31 - (k % 2) * 2, 3, 3, ['#DC2626', '#F87171', '#B91C1C'][k % 3]); box(g, x + 1 + k * 3, FY - 28, 2, 2, '#2F6B2A'); }
+    }
   },
   staff: (g, x0, x1) => {
-    // (chain link on pipe posts, a privacy slat or two gone)
-    box(g, x0, FY - 24, x1 - x0, 2, '#9CA3AF');
-    g.strokeStyle = 'rgba(156, 163, 175, 0.8)'; g.lineWidth = 1; g.beginPath();
+    // (chain link on galvanized pipe posts, its top rail, the mesh in diamonds, a privacy slat or two gone)
+    const S = R6('#9CA3AF');
+    rail(g, x0, x1, FY - 25, 2, S);
+    g.strokeStyle = 'rgba(156, 163, 175, 0.85)'; g.lineWidth = 1; g.beginPath();
     for (let x = Math.floor(x0 / 6) * 6; x < x1; x += 6) { g.moveTo(x, FY - 22); g.lineTo(x + 6, FY); g.moveTo(x + 6, FY - 22); g.lineTo(x, FY); }
     g.stroke();
-    for (let x = Math.floor(x0 / 60) * 60; x < x1; x += 60) box(g, x - 2, FY - 26, 4, 26, '#6B7280');
+    for (let x = Math.floor(x0 / 60) * 60; x < x1; x += 60) { post(g, x - 2, FY - 27, 4, S); box(g, x - 3, FY - 28, 6, 2, S[1]); }
   },
 };
 
@@ -450,9 +575,12 @@ export const paintWalk = (g: Ctx, x0: number, x1: number) => {
     const base = W[Math.min(3, r >> 1)], w = 26 * (1 + r * 0.14), off = (r % 2) * w * 0.5;
     box(g, x0, y, x1 - x0, h, base);
     for (let x = Math.floor((x0 - off) / w) * w + off; x < x1; x += w) {
-      const t = hash(Math.round(x) * 0.07 + r * 3);
-      if (t > 0.72) box(g, x + 1, y + 1, w - 2, h - 2, mix(base, '#FFFFFF', 0.18)); else if (t < 0.2) box(g, x + 1, y + 1, w - 2, h - 2, mix(base, '#8A7650', 0.12));
-      box(g, x, y, 1, h, '#B8A584'); box(g, x + 1, y + 1, w - 2, 1, mix(base, '#FFFFFF', 0.35));
+      const t = hash(Math.round(x) * 0.07 + r * 3), col = t > 0.72 ? mix(base, '#FFFFFF', 0.18) : t < 0.2 ? mix(base, '#8A7650', 0.12) : base, sh = mix(col, '#8A7650', 0.28);
+      box(g, x + 1, y + 1, w - 2, h - 2, col);
+      box(g, x, y, 1, h, '#B8A584'); box(g, x + 1, y + 1, w - 2, 1, mix(col, '#FFFFFF', 0.4)); box(g, x + 1, y + 1, 1, h - 2, mix(col, '#FFFFFF', 0.2));
+      box(g, x + 1, y + h - 2, w - 2, 1, sh); box(g, x + w - 2, y + 2, 1, h - 3, sh); checker(g, x + 2, y + h - 4, w - 4, 2, sh, 0, 1);
+      if (t < 0.06) { box(g, x + w * 0.5, y + 2, 1, h - 4, '#B8A584'); box(g, x + w * 0.5 - 2, y + h / 2, 2, 1, '#B8A584'); }
+      if (t > 0.95) { box(g, x + w * 0.3, y + h * 0.4, 3, 2, 'rgba(90, 70, 40, 0.25)'); }
     }
     box(g, x0, y + h - 1, x1 - x0, 1, '#B8A584');
   });
@@ -498,8 +626,10 @@ export const paintPath = (g: Ctx, cx: number, id: StretchId) => {
   g.restore();
   // (the curbs)
   for (const s of [-1, 1]) {
-    g.strokeStyle = INK; g.lineWidth = 3; g.beginPath(); g.moveTo(cx + s * hw(top), top); g.lineTo(cx + s * hw(bottom), bottom); g.stroke();
-    g.strokeStyle = mix(G.lit, '#FFFFFF', 0.3); g.lineWidth = 1; g.beginPath(); g.moveTo(cx + s * hw(top) - s, top); g.lineTo(cx + s * hw(bottom) - s, bottom); g.stroke();
+    g.strokeStyle = INK; g.lineWidth = 5; g.beginPath(); g.moveTo(cx + s * hw(top), top); g.lineTo(cx + s * hw(bottom), bottom); g.stroke();
+    g.strokeStyle = '#B4AEA4'; g.lineWidth = 3; g.stroke();
+    g.strokeStyle = s < 0 ? '#E7E5E4' : '#8A8680'; g.lineWidth = 1; g.beginPath(); g.moveTo(cx + s * hw(top) - s, top); g.lineTo(cx + s * hw(bottom) - s, bottom); g.stroke();
+    for (let y = top + 6; y < bottom; y += Math.max(4, Math.round(10 * depthAt(y)))) box(g, cx + s * hw(y) - 1, y, 2, 1, '#6E6A62');
   }
 };
 

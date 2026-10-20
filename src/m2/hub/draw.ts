@@ -33,7 +33,6 @@ type Ctx = CanvasRenderingContext2D;
 type Each = (x: number, r: number, draw: (x: number) => void) => void;
 const box = (ctx: Ctx, x: number, y: number, w: number, h: number, c: string) => { ctx.fillStyle = c; ctx.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h)); };
 /** Bands top to bottom through the colors. */
-const bands = (ctx: Ctx, x: number, y: number, w: number, h: number, cs: string[]) => { const bh = h / cs.length; cs.forEach((c, i) => box(ctx, x, y + i * bh, w, bh + 1, c)); };
 export { HUB_HORIZON };
 const SKY = ['#4C7BE0', '#5A88E6', '#6995EB', '#7AA3EF', '#8DB1F2', '#A1BFF4', '#B7CDF4', '#CEDBF2', '#E6E3E6', '#F6E7D2'];
 
@@ -62,10 +61,18 @@ const stampEach = (ctx: Ctx, each: Each, key: string, x0: number, y0: number, w:
 /** Behind it all, flat: the sky (bands run straight across, so turning doesn't show on it), and the lawn at the bottom. */
 export const drawHubBackdrop = (ctx: Ctx, state: GameState) => {
   const tod = timeOfDay();
-  bands(ctx, 0, 0, CANVAS_WIDTH, 470, skyRamp(SKY, tod));
+  dithered(ctx, 0, 0, CANVAS_WIDTH, 470, skyRamp(SKY, tod));
   drawStars(ctx, 0, 0, CANVAS_WIDTH, 400, state.frame, 0, tod);
   drawMoon(ctx, 610, 96, 20, tod);
-  bands(ctx, 0, 472, CANVAS_WIDTH, CANVAS_HEIGHT - 472, ['#2F6B3A', '#2A6034', '#25562F', '#204C2A'].map(c => farTint(c, 0.3, tod)));
+  const lawn = ['#3A7A44', '#2F6B3A', '#2A6034', '#25562F', '#204C2A'].map(c => farTint(c, 0.3, tod));
+  dithered(ctx, 0, 472, CANVAS_WIDTH, CANVAS_HEIGHT - 472, lawn);
+  ctx.fillStyle = lawn[0]; for (let x = 0; x < CANVAS_WIDTH; x += 5) ctx.fillRect(x + ((x * 7) % 3), 471 + ((x * 13) % 3), 1, 2);
+};
+/** Bands top to bottom through the colors, a row of dither at each seam (each band reaching into the one above). */
+const dithered = (ctx: Ctx, x: number, y: number, w: number, h: number, cs: string[]) => {
+  const bh = h / cs.length;
+  cs.forEach((c, i) => box(ctx, x, y + i * bh, w, bh + 1, c));
+  for (let i = 1; i < cs.length; i++) { checker(ctx, x, Math.round(y + i * bh) - 2, w, 2, cs[i]); checker(ctx, x, Math.round(y + i * bh), w, 2, cs[i - 1], 1); }
 };
 
 /**
@@ -79,8 +86,16 @@ const drawHubFar = (ctx: Ctx, state: GameState, each: Each) => {
   // The sun, in rings, over Fairy Land (sinking toward the skyline as the day goes)
   const sun = sunAt(0, top + 92, top + 440, tod);
   if (sun.up > 0.02) laps(state, slotX(5) + 120, x => {
-    ctx.save(); ctx.globalAlpha = sun.up;
-    for (const [r, c] of [[46, '#F8E4B0'], [38, '#FBEFC6'], [30, '#FFF7DC'], [24, '#FFFDF2']] as const) { ctx.fillStyle = sunTint(c, tod); ctx.beginPath(); ctx.arc(x, sun.y, r * (1 + Math.max(0, 0.4 - tod.sunH) * 0.4), 0, Math.PI * 2); ctx.fill(); }
+    ctx.save(); ctx.globalAlpha = sun.up; ctx.translate(Math.round(x), Math.round(sun.y));
+    const k = 1 + Math.max(0, 0.4 - tod.sunH) * 0.4;
+    stamp(ctx, `hubSun|${tod.key}`, -70, -70, 140, 140, g => {
+      const rings = [[46, '#F8E4B0'], [38, '#FBEFC6'], [30, '#FFF7DC'], [24, '#FFFDF2']] as const;
+      rings.forEach(([r, c], i) => {
+        g.fillStyle = sunTint(c, tod); g.beginPath(); g.arc(0, 0, r * k, 0, Math.PI * 2); g.fill();
+        if (i < rings.length - 1) { g.save(); g.beginPath(); g.arc(0, 0, r * k, 0, Math.PI * 2); g.arc(0, 0, (rings[i + 1][0] + 0.5) * k + 2, 0, Math.PI * 2, true); g.clip(); checker(g, -r * k, -r * k, r * k * 2, r * k * 2, sunTint(rings[i + 1][1], tod)); g.restore(); }
+      });
+      g.fillStyle = '#FFFFFF'; g.beginPath(); g.arc(-6 * k, -6 * k, 8 * k, 0, Math.PI * 2); g.fill();
+    });
     ctx.restore();
     const a = (x - state.camera.x - CANVAS_WIDTH / 2) / HUB.radius;
     if (Math.abs(a) < 1.2) {
@@ -360,14 +375,15 @@ const backBuilding = (ctx: Ctx, cx: number, f: number) => {
  * down from under the lid; the lid propped up on the trash bags it can't shut on, more bags heaped on top and split,
  * more dumped on the ground round it, a leak from under it gone into a puddle; flies. `x0` its left end.
  */
-const dumpster = (ctx: Ctx, x0: number, f: number) => {
+const paintDumpster = (ctx: Ctx, x0: number) => {
   const W = 128, H = 66, top = GROUND_Y - H;
   // The puddle it's leaking into
   ctx.fillStyle = '#5B4A2A'; ctx.beginPath(); ctx.ellipse(x0 + W * 0.55, GROUND_Y + 6, 72, 7, 0, 0, Math.PI * 2); ctx.fill();
   ctx.fillStyle = '#7A6436'; ctx.beginPath(); ctx.ellipse(x0 + W * 0.5, GROUND_Y + 5, 40, 3, 0, 0, Math.PI * 2); ctx.fill();
   // The bin: banded green steel, a darker skirt, wheels, a dent
   ink(ctx, () => { ctx.moveTo(x0, top + 6); ctx.lineTo(x0 + W, top); ctx.lineTo(x0 + W - 6, GROUND_Y - 6); ctx.lineTo(x0 + 6, GROUND_Y - 6); ctx.closePath(); }, '#2F5D3A', 2);
-  bands(ctx, x0 + 6, top + 10, W - 14, H - 18, ['#3B6E46', '#336240', '#2B5638', '#244B30']);
+  dithered(ctx, x0 + 6, top + 10, W - 14, H - 18, ['#3B6E46', '#336240', '#2B5638', '#244B30']);
+  box(ctx, x0 + 6, top + 10, 4, H - 18, '#4C8159'); box(ctx, x0 + W - 14, top + 10, 6, H - 18, '#1E3F27');
   box(ctx, x0 + 4, top + 8, W - 8, 4, '#4C8159');
   for (let k = 1; k < 4; k++) box(ctx, x0 + k * (W / 4), top + 10, 2, H - 18, '#1E3F27');
   ctx.fillStyle = '#1E3F27'; ctx.beginPath(); ctx.ellipse(x0 + 38, top + 34, 10, 6, 0.3, 0, Math.PI * 2); ctx.fill();
@@ -376,13 +392,14 @@ const dumpster = (ctx: Ctx, x0: number, f: number) => {
   for (let k = 0; k < 9; k++) box(ctx, x0 + 8 + k * 13, top + 12, 2, 6 + (k * 7) % 14, 'rgba(30, 24, 12, 0.55)');
   box(ctx, x0 + 82, top + 26, 26, 14, '#F5F5F4'); box(ctx, x0 + 82, top + 26, 26, 3, '#DC2626'); box(ctx, x0 + 96, top + 30, 12, 10, '#336240');
   for (const wx of [x0 + 14, x0 + W - 22]) { ink(ctx, () => ctx.arc(wx, GROUND_Y - 4, 5, 0, Math.PI * 2), '#18181B'); box(ctx, wx - 1, GROUND_Y - 5, 2, 2, '#52525B'); }
-  // The leak, dripping
-  const drip = (f * 0.6) % 10;
-  box(ctx, x0 + 60, GROUND_Y - 6, 3, 4, '#5B4A2A'); box(ctx, x0 + 61, GROUND_Y - 2 + drip * 0.4, 2, 2, '#7A6436');
+  box(ctx, x0 + 60, GROUND_Y - 6, 3, 4, '#5B4A2A');
   // The bags: heaped over the rim and propping the lid up, split, a few dumped on the ground
   const bag = (bx: number, by: number, r: number, c: string, split = false) => {
     ink(ctx, () => { ctx.ellipse(bx, by, r, r * 0.82, 0, 0, Math.PI * 2); }, c);
-    box(ctx, bx - r * 0.5, by - r * 0.55, r * 0.5, 2, lite(c, 0.25));
+    ctx.fillStyle = dark(c, 0.25); ctx.beginPath(); ctx.ellipse(bx + r * 0.2, by + r * 0.15, r * 0.75, r * 0.6, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = c; ctx.beginPath(); ctx.ellipse(bx - r * 0.15, by - r * 0.12, r * 0.6, r * 0.48, 0, 0, Math.PI * 2); ctx.fill();
+    box(ctx, bx - r * 0.5, by - r * 0.55, r * 0.5, 2, lite(c, 0.3)); box(ctx, bx - r * 0.45, by - r * 0.4, 2, 2, lite(c, 0.5));
+    for (let k = 0; k < 3; k++) box(ctx, bx - r * 0.3 + k * r * 0.3, by + r * 0.2, 1, r * 0.4, dark(c, 0.4));
     ctx.fillStyle = dark(c, 0.4); ctx.beginPath(); ctx.moveTo(bx - 3, by - r * 0.8); ctx.lineTo(bx, by - r * 1.05); ctx.lineTo(bx + 3, by - r * 0.8); ctx.fill();
     if (split) { box(ctx, bx - 4, by + 1, 8, 4, '#E7E5E4'); box(ctx, bx + 2, by + 3, 5, 3, '#F59E0B'); box(ctx, bx - 6, by + 4, 4, 2, '#65A30D'); }
   };
@@ -396,6 +413,13 @@ const dumpster = (ctx: Ctx, x0: number, f: number) => {
   ink(ctx, () => ctx.rect(x0 + W - 4, GROUND_Y - 4, 26, 4), '#D6A35C'); box(ctx, x0 + W + 2, GROUND_Y - 3, 8, 1, '#B91C1C');
   box(ctx, x0 + 24, GROUND_Y - 2, 8, 2, '#FACC15'); box(ctx, x0 + 22, GROUND_Y - 4, 3, 2, '#FACC15'); box(ctx, x0 + 31, GROUND_Y - 4, 3, 2, '#A16207');
   ink(ctx, () => ctx.rect(x0 + W + 44, GROUND_Y - 9, 6, 9), '#F8FAFC'); box(ctx, x0 + W + 44, GROUND_Y - 9, 6, 2, '#DC2626');
+};
+const dumpster = (ctx: Ctx, x0: number, f: number) => {
+  const W = 128, H = 66, top = GROUND_Y - H;
+  ctx.translate(x0, 0); stamp(ctx, 'hubDumpster', -30, top - 50, W + 90, H + 64, g => paintDumpster(g, 0)); ctx.translate(-x0, 0);
+  // The leak, dripping
+  const drip = (f * 0.6) % 10;
+  box(ctx, x0 + 61, GROUND_Y - 2 + drip * 0.4, 2, 2, '#7A6436');
   // The stink, coming up off it, and the flies round it
   for (let k = 0; k < 3; k++) { const t = ((f * 0.5 + k * 40) % 120) / 120; ctx.strokeStyle = `rgba(132, 204, 22, ${(0.45 * (1 - t)).toFixed(2)})`; ctx.lineWidth = 2; ctx.beginPath(); const sx = x0 + 30 + k * 34; for (let j = 0; j <= 6; j++) ctx.lineTo(sx + Math.sin(j * 1.3 + f * 0.05 + k) * 5, top - 20 - t * 40 - j * 6); ctx.stroke(); }
   for (let k = 0; k < 7; k++) { const a = f * (0.09 + k * 0.012) + k * 2.1; box(ctx, x0 + W / 2 + Math.cos(a) * (40 + k * 5), top - 18 + Math.sin(a * 1.7) * 18, 2, 2, '#0A0A0A'); }

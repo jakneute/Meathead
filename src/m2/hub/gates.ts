@@ -120,12 +120,25 @@ const paintVista = (c: Ctx, land: Land, cx: number) => {
 
 /** The frame round the opening, by land (stamped), and its name over it. */
 const paintFrame = (c: Ctx, land: Land, cx: number) => {
-  const ring = (cols: string[], w: number = FR) => {
+  const ring = (cols: string[], w: number = FR, joints = false) => {
     // (the frame round the opening: stepped bands out from it, inked both edges; the opening itself left be)
     const band = (outer: number, inner: number, col: string) => { c.beginPath(); openingPath(c, cx, outer); openingPath(c, cx, inner); c.fillStyle = col; c.fill('evenodd'); };
     band(w + 1, w, INK);
     cols.forEach((col, i) => band(w - (i * w) / cols.length, w - ((i + 1) * w) / cols.length, col));
     band(1, 0, INK);
+    // (the light on it: lit round its upper left, shaded down its right, a dither row between; the joints across it)
+    c.save(); c.beginPath(); openingPath(c, cx, w); openingPath(c, cx, 0); c.clip('evenodd');
+    c.fillStyle = 'rgba(255, 255, 255, 0.22)'; c.fillRect(cx - HW - w - 2, TOP - w - 2, HW * 0.7, H + w + 4);
+    checker(c, cx - HW - w - 2 + HW * 0.7, TOP - w - 2, 2, H + w + 4, 'rgba(255, 255, 255, 0.22)');
+    c.fillStyle = 'rgba(26, 16, 40, 0.28)'; c.fillRect(cx + HW * 0.45, TOP - w - 2, HW * 0.55 + w + 2, H + w + 4);
+    checker(c, cx + HW * 0.45 - 2, TOP - w - 2, 2, H + w + 4, 'rgba(26, 16, 40, 0.28)');
+    if (joints) {
+      c.strokeStyle = 'rgba(26, 16, 40, 0.55)'; c.lineWidth = 1; c.beginPath();
+      for (let k = 0; k <= 10; k++) { const a = Math.PI + (k / 10) * Math.PI, r0 = HW, r1 = HW + w; c.moveTo(cx + Math.cos(a) * r0, TOP + HW + Math.sin(a) * r0); c.lineTo(cx + Math.cos(a) * r1, TOP + HW + Math.sin(a) * r1); }
+      for (let y = TOP + HW + 10; y < BASE; y += 12) { c.moveTo(cx - HW - w, y); c.lineTo(cx - HW, y); c.moveTo(cx + HW, y); c.lineTo(cx + HW + w, y); }
+      c.stroke();
+    }
+    c.restore();
   };
 
   const L = cx - HW - FR, Rr = cx + HW;
@@ -147,7 +160,7 @@ const paintFrame = (c: Ctx, land: Land, cx: number) => {
       break;
     }
     case 'spooky': {
-      ring(['#3F3A4C', '#57506A', '#6E6684', '#57506A']);
+      ring(['#3F3A4C', '#57506A', '#6E6684', '#57506A'], FR, true);
       // (a crooked pointed gable over it, a skull in the keystone)
       c.strokeStyle = INK; c.lineWidth = 10; c.beginPath(); c.moveTo(L - 4, TOP + 22); c.lineTo(cx + 3, TOP - 30); c.lineTo(Rr + FR + 4, TOP + 20); c.stroke();
       c.strokeStyle = '#57506A'; c.lineWidth = 7; c.stroke();
@@ -170,14 +183,14 @@ const paintFrame = (c: Ctx, land: Land, cx: number) => {
       break;
     }
     case 'fantasy': {
-      ring(['#A8A29E', '#D6D3D1', '#E7E5E4', '#D6D3D1'], FR + 1);
+      ring(['#A8A29E', '#D6D3D1', '#E7E5E4', '#D6D3D1'], FR + 1, true);
       for (const s of [-1, 1]) { const x = s < 0 ? L - 14 : Rr + FR + 2; slab(c, x, BASE - 74, 12, 74, R6('#D6D3D1')); inked(c, () => { c.moveTo(x - 3, BASE - 74); c.lineTo(x + 6, BASE - 100); c.lineTo(x + 15, BASE - 74); c.closePath(); }, '#2563EB'); }
       // (a gilded crown in the keystone)
       inked(c, () => { c.moveTo(cx - 9, TOP - FR + 2); c.lineTo(cx - 9, TOP - FR - 8); c.lineTo(cx - 4, TOP - FR - 3); c.lineTo(cx, TOP - FR - 10); c.lineTo(cx + 4, TOP - FR - 3); c.lineTo(cx + 9, TOP - FR - 8); c.lineTo(cx + 9, TOP - FR + 2); c.closePath(); }, '#F6D365');
       break;
     }
     case 'adventure': {
-      ring(['#78716C', '#A8A29E', '#D6D3D1', '#A8A29E'], FR + 1);
+      ring(['#78716C', '#A8A29E', '#D6D3D1', '#A8A29E'], FR + 1, true);
       for (let k = 0; k < 6; k++) box(c, cx - HW - FR + 1 + (k % 2) * 2, TOP + 30 + k * 10, 4, 4, '#57534E');
       for (let k = 0; k < 6; k++) box(c, cx + HW + 2 + (k % 2) * 2, TOP + 34 + k * 10, 4, 4, '#57534E');
       // (the idol's face over it: glaring)
@@ -188,7 +201,7 @@ const paintFrame = (c: Ctx, land: Land, cx: number) => {
       break;
     }
     case 'foreign': {
-      ring(['#1E3A8A', '#F8FAFC', '#1E40AF', '#DC2626'], FR + 1);
+      ring(['#1E3A8A', '#F8FAFC', '#1E40AF', '#DC2626'], FR + 1, true);
       // (tiles round it: the mosaic)
       for (let a = 0; a < 9; a++) { const t = Math.PI + (a / 8) * Math.PI; box(c, cx + Math.cos(t) * (HW + FR / 2) - 1, TOP + HW + Math.sin(t) * (HW + FR / 2) - 1, 3, 3, a % 2 ? '#FDE047' : '#F8FAFC'); }
       break;
@@ -217,7 +230,7 @@ export const paintPosts = (c: Ctx, land: Land, cx: number) => {
   for (const s of [-1, 1]) {
     const x = cx + s * hw;
     switch (land.id) {
-      case 'space': inked(c, () => c.roundRect(x - 4, y - 46, 8, 46, 4), '#CBD5E1'); box(c, x - 2, y - 42, 2, 38, '#F8FAFC'); inked(c, () => c.ellipse(x, y - 46, 9, 3, 0, 0, Math.PI * 2), '#22BCAC'); break;
+      case 'space': { const C = ['#2A3248', '#4A5670', '#7A88A4', '#AEBAD0', '#DCE4F0', '#FFFFFF']; box(c, x - 5, y - 46, 10, 46, INK); for (let u = 0; u < 8; u++) box(c, x - 4 + u, y - 45, 1, 45, C[[4, 5, 5, 4, 3, 3, 2, 1][u]]); for (let k = 0; k < 4; k++) box(c, x - 4, y - 38 + k * 10, 8, 1, C[2]); c.fillStyle = INK; c.beginPath(); c.ellipse(x, y - 46, 10, 4, 0, 0, Math.PI * 2); c.fill(); c.fillStyle = '#1A808C'; c.beginPath(); c.ellipse(x, y - 45, 9, 3, 0, 0, Math.PI * 2); c.fill(); c.fillStyle = '#49B4B8'; c.beginPath(); c.ellipse(x - 1, y - 47, 8, 2, 0, 0, Math.PI * 2); c.fill(); break; }
       case 'frontier': slab(c, x - 4, y - 44, 8, 44, R6('#7A4E2A')); inked(c, () => c.rect(x - 5, y - 54, 10, 10), '#3F3F46'); box(c, x - 3, y - 52, 6, 6, '#FDE68A'); break;
       case 'spooky': slab(c, x - 7, y - 34, 14, 34, R6('#6E6684')); inked(c, () => c.ellipse(x, y - 40, 9, 7, 0, 0, Math.PI * 2), '#EA580C'); box(c, x - 1, y - 49, 2, 3, '#3F6212'); box(c, x - 5, y - 42, 3, 2, INK); box(c, x + 2, y - 42, 3, 2, INK); box(c, x - 4, y - 38, 8, 2, INK); break;
       case 'cartoon': {
@@ -229,11 +242,12 @@ export const paintPosts = (c: Ctx, land: Land, cx: number) => {
       case 'fantasy': slab(c, x - 6, y - 38, 12, 38, R6('#D6D3D1')); inked(c, () => c.arc(x, y - 43, 6, 0, Math.PI * 2), '#F6D365'); box(c, x - 3, y - 46, 2, 2, '#FFFBEB'); break;
       case 'adventure': {
         // (a tiki torch: lashed bamboo, the cup)
-        box(c, x - 2, y - 50, 5, 50, INK); box(c, x - 1, y - 50, 3, 50, '#B4CC5C'); for (let k = 0; k < 4; k++) box(c, x - 2, y - 44 + k * 12, 5, 1, '#6A8A28');
+        box(c, x - 2, y - 50, 5, 50, INK); box(c, x - 1, y - 50, 3, 50, '#B4CC5C'); box(c, x - 1, y - 50, 1, 50, '#E0F0A0'); box(c, x + 1, y - 50, 1, 50, '#7A9A30'); for (let k = 0; k < 4; k++) { box(c, x - 2, y - 44 + k * 12, 5, 1, '#6A8A28'); box(c, x - 1, y - 43 + k * 12, 3, 1, '#D8E890'); }
+        for (let k = 0; k < 3; k++) box(c, x - 3, y - 54 + k * 2, 7, 1, '#C8A060');
         inked(c, () => { c.moveTo(x - 6, y - 56); c.lineTo(x + 6, y - 56); c.lineTo(x + 3, y - 48); c.lineTo(x - 3, y - 48); c.closePath(); }, '#8A5A32');
         break;
       }
-      case 'foreign': box(c, x - 1, y - 60, 3, 60, '#57534E'); inked(c, () => c.arc(x, y - 61, 3, 0, Math.PI * 2), '#C9A227'); break;
+      case 'foreign': box(c, x - 2, y - 60, 5, 60, INK); box(c, x - 1, y - 60, 3, 60, '#78716C'); box(c, x - 1, y - 60, 1, 60, '#D6D3D1'); box(c, x - 5, y - 4, 11, 4, INK); box(c, x - 4, y - 3, 9, 3, '#A8A29E'); c.fillStyle = INK; c.beginPath(); c.arc(x, y - 62, 4, 0, Math.PI * 2); c.fill(); c.fillStyle = '#D09A30'; c.beginPath(); c.arc(x, y - 62, 3, 0, Math.PI * 2); c.fill(); box(c, x - 2, y - 64, 1, 1, '#FFF0A8'); break;
     }
   }
 };
@@ -243,12 +257,13 @@ export const queueSpan = (cx: number) => { const hw = (PATH.far / depthAt(GATE.b
 /** A queue rail (one run of it, feet at ry): posts, the rope swagged between, and at its head (`sign`) the wait. */
 export const paintQueueRail = (c: Ctx, land: Land, cx: number, ry: number, sign: boolean) => {
   const [qx0, qx1] = queueSpan(cx);
-  for (let x = qx0; x <= qx1 + 1; x += 32) { box(c, x - 1, ry - 15, 3, 15, INK); box(c, x, ry - 15, 1, 15, '#D6D3D1'); box(c, x - 3, ry - 2, 7, 2, '#57534E'); }
-  c.strokeStyle = INK; c.lineWidth = 3; c.beginPath(); for (let x = qx0; x < qx1; x += 32) { c.moveTo(x, ry - 12); c.quadraticCurveTo(x + 16, ry - 7, x + 32, ry - 12); } c.stroke();
-  c.strokeStyle = land.swirl[1]; c.lineWidth = 1.5; c.stroke();
+  for (let x = qx0; x <= qx1 + 1; x += 32) { box(c, x - 2, ry - 16, 5, 16, INK); box(c, x - 1, ry - 15, 1, 15, '#F5F5F4'); box(c, x, ry - 15, 1, 15, '#A8A29E'); box(c, x + 1, ry - 15, 1, 15, '#57534E'); box(c, x - 2, ry - 17, 5, 2, '#D6D3D1'); box(c, x - 4, ry - 3, 9, 3, INK); box(c, x - 3, ry - 2, 7, 2, '#71717A'); box(c, x - 3, ry - 2, 7, 1, '#D6D3D1'); }
+  c.strokeStyle = INK; c.lineWidth = 4; c.beginPath(); for (let x = qx0; x < qx1; x += 32) { c.moveTo(x, ry - 12); c.quadraticCurveTo(x + 16, ry - 7, x + 32, ry - 12); } c.stroke();
+  c.strokeStyle = mix(land.swirl[1], INK, 0.25); c.lineWidth = 2; c.stroke();
+  c.strokeStyle = mix(land.swirl[1], '#FFFFFF', 0.35); c.lineWidth = 1; c.beginPath(); for (let x = qx0; x < qx1; x += 32) { c.moveTo(x + 2, ry - 12.5); c.quadraticCurveTo(x + 16, ry - 8, x + 30, ry - 12.5); } c.stroke();
   if (!sign) return;
   box(c, qx1 + 1, ry - 34, 2, 20, INK);
-  box(c, qx1 - 20, ry - 46, 44, 14, INK); box(c, qx1 - 19, ry - 45, 42, 12, land.sign);
+  box(c, qx1 - 20, ry - 46, 44, 14, INK); box(c, qx1 - 19, ry - 45, 42, 12, land.sign); box(c, qx1 - 19, ry - 45, 42, 1, mix(land.sign, '#FFFFFF', 0.3)); box(c, qx1 - 19, ry - 35, 42, 2, mix(land.sign, '#000000', 0.3));
   signText(c, 'WAIT 5 MIN', qx1 + 2, ry - 36, { sx: 1, sy: 1, fill: land.signText });
 };
 
