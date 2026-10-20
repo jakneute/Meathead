@@ -603,6 +603,15 @@ const land = (ctx: FrameContext, f: Fight) => {
 };
 
 /** Where a bit of ceiling comes to rest at x: the top of the furniture under it, or the floor. */
+/** Her bouncing into the ceiling or a wall: `n` bits knocked loose up there, about the room (no more than
+ *  DEBRIS_BOUNCE coming down at once), each with the slams' telegraph. */
+const DEBRIS_BOUNCE = 7;
+const shakeLoose = (f: Fight, n: number) => {
+  for (let i = 0; i < n && f.debris.length < DEBRIS_BOUNCE; i++) {
+    const x = ARENA_L + 80 + Math.random() * (ARENA_R - ARENA_L - 160);
+    f.debris.push({ x, y: CEIL_Y + 8, land: debrisFloor(f, x), vy: 0, t: 0, size: 16 + Math.random() * 12, seed: Math.random() * 100, hit: false });
+  }
+};
 const debrisFloor = (f: Fight, x: number) => {
   let y = GY;
   for (const [lx, w, h, what] of LEDGES) {
@@ -869,9 +878,10 @@ const bounce = (ctx: FrameContext, f: Fight, endless = false) => {
   f.x += Math.cos(f.ang) * S; f.y += Math.sin(f.ang) * S;
   f.rot += 0.22 * (Math.cos(f.ang) >= 0 ? 1 : -1);
   const boing = () => { playSound('boing', 0.5, -4 + Math.random() * 6); playSound('thud', 0.5, -6); shakeScreen(state, 4, 3); };
-  if (f.x < ARENA_L + 60) { f.x = ARENA_L + 60; f.ang = Math.PI - f.ang; boing(); wallSplat(f, -1); }
-  if (f.x > ARENA_R - 60) { f.x = ARENA_R - 60; f.ang = Math.PI - f.ang; boing(); wallSplat(f, 1); }
-  if (f.y - EH < CEIL_Y + 6) { f.y = CEIL_Y + 6 + EH; f.ang = -f.ang; boing(); }
+  if (f.x < ARENA_L + 60) { f.x = ARENA_L + 60; f.ang = Math.PI - f.ang; boing(); wallSplat(f, -1); shakeLoose(f, 1); }
+  if (f.x > ARENA_R - 60) { f.x = ARENA_R - 60; f.ang = Math.PI - f.ang; boing(); wallSplat(f, 1); shakeLoose(f, 1); }
+  // (into the ceiling, the walls: she knocks stuff loose up there (the user's): a bit or two coming down, telegraphed like the slams')
+  if (f.y - EH < CEIL_Y + 6) { f.y = CEIL_Y + 6 + EH; f.ang = -f.ang; boing(); shakeLoose(f, 2); }
   if (f.y > GY) {
     f.y = GY;
     if (ending) { setAct(f, 'flop', 50); f.rot = 0; playSound('thud', 1.2, -10); playSound('squish', 0.8, -8); shakeScreen(state, 8, 5); if (!state.enemies.includes(f.e)) state.enemies.push(f.e); return; }
