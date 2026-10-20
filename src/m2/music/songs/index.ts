@@ -24,6 +24,8 @@ import { LAND_FRONTIER, SEQ_TRAIN, SEQ_BRAWL, SEQ_DUEL, SEQ_DRAW, SEQ_LOG_RIDE }
 import { SEQ_ROAD_RASH, BOSS_TUCKER } from './frontierBosses';
 import { LAND_FANTASY, SEQ_TRAGONS } from './fantasy';
 import { BOSS_FAIRY_WHEEL, BOSS_BROOMSTICKS, BOSS_PIPER } from './fantasyBosses';
+import { LAND_CARTOON } from './cartoon';
+import { BOSS_PUNDITS, BOSS_STUPID_DAD } from './cartoonBosses';
 
 export const SONGS: Record<string, Song> = {
   title: TITLE,
@@ -90,4 +92,12 @@ export const SONGS: Record<string, Song> = {
   'boss:fairy-wheel': BOSS_FAIRY_WHEEL,
   'boss:broomsticks': BOSS_BROOMSTICKS,
   'boss:piper': BOSS_PIPER,
+  'land:cartoon': LAND_CARTOON,
+  // (the five pundits are one show's villains: one march, an arrangement each, under each one's cue)
+  'boss:perot': BOSS_PUNDITS,
+  'boss:falwell': BOSS_PUNDITS,
+  'boss:limbaugh': BOSS_PUNDITS,
+  'boss:dole': BOSS_PUNDITS,
+  'boss:newt': BOSS_PUNDITS,
+  'boss:stupid-dad': BOSS_STUPID_DAD,
 };

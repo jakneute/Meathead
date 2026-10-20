@@ -72,15 +72,16 @@ import { LANE_ID } from '../fantasy/tragons/layout';
 import { inLoop } from '../fantasy/tragons/ride';
 import { broomMusic } from '../fantasy/broom/fight';
 import { piperMusic } from '../fantasy/bedroom/index';
+import { whOf, COLLAPSED_MEMO } from '../cartoon/whitehouse1/state';
+import { wh2Of } from '../cartoon/whitehouse2/state';
+import { stupidDadMusic } from '../cartoon/amphi/index';
 
 export type { Cue };
 
 /** Each land's stage, by its lands.ts id. */
 const LAND_OF_STAGE: Record<string, string> = {
   [ADV_STAGE]: 'adventure', [SPOOKY_STAGE]: 'spooky', [SPACE_STAGE]: 'space', [HOLLYWOOD_STAGE]: 'hollywood', [FOREIGN_STAGE]: 'foreign', [FRONTIER_STAGE]: 'frontier',
-  [FANTASY_STAGE]: 'fantasy',
-  // (Cartoon Land's songs aren't written yet: no 'land:cartoon' in SONGS, so pick() finds nothing and it's quiet there)
-  [CARTOON_STAGE]: 'cartoon',
+  [FANTASY_STAGE]: 'fantasy', [CARTOON_STAGE]: 'cartoon',
 };
 /** The special sequences: a land's section that's a ride or a chase of its own ('seq:<name>'). */
 export const SEQUENCES: Record<string, Record<string, string>> = {
@@ -102,7 +103,11 @@ export const SECTION_BOSS: Record<string, string> = {
   'space:orbit': 'ufo', 'space:queen': 'space-queen', 'hollywood:warehouse': 'ensemble-cast', 'hollywood:stunt': 'stuntman-steve',
   'foreign:heli': 'heli-gauntlet', 'foreign:harry': 'helicopter-harry', 'frontier:dirtbike': 'teenagers', 'frontier:arena': 'tucker',
   'fantasy:wheel': 'fairy-wheel', 'fantasy:broom': 'broomsticks', 'fantasy:bedroom': 'piper',
+  // (the five pundits name themselves (pundits.ts markBossFight): two in the White House's first half, three in its second)
+  'cartoon:amphi': 'stupid-dad',
 };
+/** Cartoon Land's pundits: one march between them, an arrangement each (named for him). */
+const PUNDITS = new Set(['perot', 'falwell', 'limbaugh', 'dole', 'newt']);
 /** Fights whose music is a sequence's (the TEENAGERS are the Road Rash chase), and sections that are all one fight. */
 const BOSS_ALSO: Record<string, string> = { teenagers: 'seq:road-rash', 'heli-gauntlet': 'seq:heli' };
 const WHOLE_SECTION_FIGHTS = new Set(['space:orbit']);
@@ -154,6 +159,7 @@ const seqArrs = (s: GameState, land: string, sec: string): string[] => {
   if (land === 'hollywood') return hollywoodArrs(s, sec);
   if (land === 'frontier') return frontierArrs(s, sec);
   if (land === 'fantasy') return fantasyArrs(s, sec);
+  if (land === 'cartoon') return cartoonArrs(s, sec);
   if (land === 'foreign') return sec === 'heli' ? [heliSeqArr(s)] : [];
   if (land === 'space') {
     // (XENOSCARE, the crater past its door; the basement's stairs' top and the disco; the star sled by where it is:
@@ -313,7 +319,44 @@ const bossArrs = (s: GameState, boss: string, cutscene: boolean): string[] => {
   if (boss === 'fairy-wheel') return wheelOf(s).qte ? ['qte'] : [];
   if (boss === 'broomsticks') return [broomMusic(s)];
   if (boss === 'piper') return [piperArr(s)];
+  if (PUNDITS.has(boss)) return [boss];
+  if (boss === 'stupid-dad') return [stupidDadArr(s)];
   return [];
+};
+
+/** Cartoon Land's sections as the music hears them: the White House once the screen's down (the bare soundstage, both
+ *  halves: 'real'); the amphitheater once the land's cleared (nobody there: 'empty'). */
+const cartoonArrs = (s: GameState, sec: string): string[] => {
+  if ((sec === 'whitehouse1' || sec === 'whitehouse2') && s.stageMemo[COLLAPSED_MEMO]) return ['real'];
+  if (sec === 'amphi' && isLandCleared('cartoon')) return ['empty'];
+  return [];
+};
+/** Cartoon Land's moments inside a section, at full (not the cutscene mix): the transformation (rubbed out, the cutscene's;
+ *  drawn back in as the cat, the show's theme); the finale by its step (the Clintons on the cartoon TV; the snow and the
+ *  shake; the screen coming down and the cat sliding off him; the bare stage after). */
+const FINALE_ARR: Record<string, string> = {
+  queasy: 'tv', tvdown: 'tv', bill: 'tv', hillary: 'tv', reply: 'tv', tvoff: 'judder', shake: 'judder', fall: 'down', catslip: 'down', spark: 'down',
+  look: 'real', actress: 'real', answer: 'real',
+};
+const cartoonMoment = (s: GameState, sec: string): Cand | null => {
+  if (sec === 'whitehouse1') {
+    const st = whOf(s).scene?.step;
+    if (st === 'draw' || st === 'look' || st === 'chelsea') return { song: 'land:cartoon', arrs: ['whitehouse1'] };
+  }
+  if (sec === 'whitehouse2') {
+    const st = wh2Of(s).finale?.step;
+    if (st && FINALE_ARR[st]) return { song: 'land:cartoon', arrs: [FINALE_ARR[st]] };
+  }
+  return null;
+};
+/** STUPID DAD's song by his intro: the show stopped dead, him squinting at Meathead (hush); the family glitching, him up off
+ *  the couch, the can crushed (intro); him coming on, the card (and the fight to come) (main). */
+const stupidDadArr = (s: GameState) => {
+  const m = stupidDadMusic(s);
+  if (!m) return 'main';
+  if (m.intro === 'walk' || m.intro === 'close' || m.intro === 'sees') return 'hush';
+  if (m.intro === 'glitch' || m.intro === 'rise' || m.intro === 'crush') return 'intro';
+  return 'main';
 };
 
 /** The havoc's tornado spent (the fling's been: havoc/hazards.ts spent()). */
@@ -454,7 +497,7 @@ const gameWants = (s: GameState | null): Want => {
   // Future Land's basement: the queen stalking him in the dark (the user's: atmospheric, creepy)
   if (land === 'space' && sec === 'queen' && p.pos.y + p.height > CEIL_B + 30 && p.pos.x < STAIRS_B) return { cands: [{ song: 'seq:stalker', arrs: [stalkerArr(s)] }, { song: 'land:space', arrs: ['stalker', 'queen'] }], cutscene };
   // Spooky Land's chamber and Satan (a scene, but not quieter: it's his)
-  const moment = land === 'spooky' ? spookyMoment(s, sec) : land === 'frontier' ? frontierMoment(s, sec) : land === 'fantasy' ? fantasyMoment(s, sec) : null;
+  const moment = land === 'spooky' ? spookyMoment(s, sec) : land === 'frontier' ? frontierMoment(s, sec) : land === 'fantasy' ? fantasyMoment(s, sec) : land === 'cartoon' ? cartoonMoment(s, sec) : null;
   if (moment) return { cands: [moment, theme], cutscene: false };
   const seq = SEQUENCES[land]?.[sec];
   // (Hollywood Land's rides are shows he sits through (the coaster's laps, REAL DISASTERS, the fling): their songs at
@@ -473,6 +516,7 @@ const warmLand = (land: string | null) => {
   if (land === 'space') ids.push('seq:stalker');
   if (land === 'spooky') ids.push('seq:ceiling', 'seq:satan');
   if (land === 'frontier') ids.push('seq:brawl', 'seq:duel', 'seq:draw', 'seq:road-rash');
+  if (land === 'cartoon') ids.push('boss:perot');
   for (const id of ids) if (SONGS[id]) prewarm(SONGS[id]);
 };
 
