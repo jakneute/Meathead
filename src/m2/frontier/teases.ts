@@ -27,6 +27,7 @@ import { type Ctx, box, checker, mix, hash, poly, stamp, bandedGradient, pixelBl
 import { hourMix, type TimeOfDay } from '../timeOfDay';
 import { mist } from '../adventure/farArt';
 import { signText } from '../signLetters';
+import { farMark, farTreeline } from '../parkFar';
 
 const W = CANVAS_WIDTH;
 type T = (c: string) => string;
@@ -324,78 +325,18 @@ const liveTumble = (c: Ctx, x0: number, top: number, f: number, t: T) => {
 // ---------------------------------------------------------------------------------------------------------------
 // The neighbors: Spooky Land, Future Land
 
-const SPW = 220, SPH = 244, CRAG_UP = 56;
+// (each painted by parkFar.ts's farMark, its own land's pen: the same look from every land that sees it)
+const SPW = 200, SPH = 250;
 const paintSpooky = (g: Ctx, tod: TimeOfDay) => {
-  const t = farCol(tod, 0.5), glow = tod.lamps > 0.3;
-  const S = rampT(t, '#766A8C'), P = rampT(t, '#561A8A'), Rd = t('#B91C1C'), win = glow ? t('#C04A28') : S[0];
-  // (its crag under it: dark rock in steps, dead trees along the top)
-  const C = rampT(t, '#3A3046');
-  poly(g, [[0, SPH], [20, SPH - 96], [60, SPH - 108], [120, SPH - 114], [170, SPH - 102], [220, SPH - 86], [220, SPH]], C[1]);
-  for (let y = SPH - 100; y < SPH; y += 12) box(g, 10, y, 200, 1, C[(y >> 2) % 2 ? 0 : 2]);
-  poly(g, [[20, SPH - 96], [60, SPH - 108], [70, SPH - 60], [30, SPH - 40]], C[2]);
-  for (let i = 0; i < 12; i++) { const x = 14 + i * 17, y = SPH - 102 - hash(i) * 8; line(g, [x, y, x, y - 8, x - 3, y - 11], 1, rampT(t, '#2A2238')[1]); line(g, [x, y - 6, x + 3, y - 9], 1, rampT(t, '#2A2238')[1]); }
-  g.save(); g.translate(0, -CRAG_UP);
-  // (the keep: coursed stone, battlements, the purple spike and its red flag)
-  const kx = 92, kw = 30, kt = SPH - 128, base = SPH - 54;
-  box(g, kx - 1, kt - 1, kw + 2, base - kt + 1, INK);
-  for (let y = kt, r = 0; y < base; y += 4, r++) for (let x = kx + (r % 2) * 3; x < kx + kw; x += 6) { box(g, x, y, Math.min(5, kx + kw - x), 3, S[hash(x + y) > 0.6 ? 3 : 2]); box(g, x, y, Math.min(5, kx + kw - x), 1, S[3]); }
-  box(g, kx, kt, 3, base - kt, S[4]); box(g, kx + kw - 4, kt, 4, base - kt, S[1]);
-  for (const lx of [kx + 8, kx + 19]) { box(g, lx, kt + 12, 4, 10, INK); box(g, lx + 1, kt + 13, 2, 8, win); }
-  poly(g, [[kx - 4, kt], [kx + kw / 2, kt - 44], [kx + kw + 4, kt]], INK); poly(g, [[kx - 2, kt - 1], [kx + kw / 2, kt - 41], [kx + kw + 2, kt - 1]], P[2]); poly(g, [[kx - 2, kt - 1], [kx + kw / 2, kt - 41], [kx + kw * 0.25, kt - 1]], P[3]);
-  box(g, kx + kw / 2 - 1, kt - 56, 2, 14, INK); poly(g, [[kx + kw / 2 + 1, kt - 56], [kx + kw / 2 + 12, kt - 53], [kx + kw / 2 + 1, kt - 49]], Rd);
-  // (the curtain wall, battlements, the round towers' snuffer roofs)
-  const wl = 50, wr = 150, wt = SPH - 82;
-  box(g, wl - 1, wt - 1, wr - wl + 2, base - wt + 1, INK);
-  for (let y = wt, r = 0; y < base; y += 5, r++) for (let x = wl + (r % 2 ? -4 : 0); x < wr; x += 9) { const a = Math.max(wl, x), b = Math.min(wr, x + 9); box(g, a, y, b - a - 1, 4, S[hash(x * 0.3 + y) > 0.7 ? 3 : 2]); box(g, a, y, b - a - 1, 1, S[3]); }
-  for (let x = wl; x < wr; x += 10) { box(g, x, wt - 6, 6, 6, INK); box(g, x + 1, wt - 5, 4, 5, S[3]); }
-  for (const wx of [wl + 18, wl + 66, wl + 82]) { box(g, wx, wt + 10, 4, 9, INK); box(g, wx + 1, wt + 11, 2, 7, win); }
-  for (const [tx, th] of [[wl - 4, 62], [wr + 4, 70]] as const) {
-    const tw = 18, tt = base - th;
-    box(g, tx - tw / 2 - 1, tt - 1, tw + 2, th + 1, INK); for (let u = 0; u < tw; u += 2) box(g, tx - tw / 2 + u, tt, 2, th, S[u < 4 ? 4 : u < 10 ? 3 : u < 14 ? 2 : 1]);
-    box(g, tx - 1, tt + 14, 3, 7, win);
-    poly(g, [[tx - tw / 2 - 4, tt + 1], [tx, tt - 30], [tx + tw / 2 + 4, tt + 1]], INK); poly(g, [[tx - tw / 2 - 2, tt], [tx, tt - 28], [tx + tw / 2 + 2, tt]], P[2]); poly(g, [[tx - tw / 2 - 2, tt], [tx, tt - 28], [tx - 2, tt]], P[4]);
-  }
-  // (the clock tower by it: tall, the clock face lit after dark, its spire)
-  const cx = 196, ct = SPH - 150;
-  box(g, cx - 9, ct - 1, 18, SPH - 30 - ct + 1, INK); for (let u = 0; u < 16; u += 2) box(g, cx - 8 + u, ct, 2, SPH - 30 - ct, S[u < 4 ? 4 : u < 8 ? 3 : u < 12 ? 2 : 1]);
-  g.fillStyle = INK; g.beginPath(); g.arc(cx, ct + 18, 7, 0, Math.PI * 2); g.fill(); g.fillStyle = glow ? t('#F2D27A') : t('#E8E0C8'); g.beginPath(); g.arc(cx, ct + 18, 5.5, 0, Math.PI * 2); g.fill();
-  line(g, [cx, ct + 18, cx, ct + 14], 1, INK); line(g, [cx, ct + 18, cx + 3, ct + 19], 1, INK);
-  poly(g, [[cx - 12, ct + 1], [cx, ct - 30], [cx + 12, ct + 1]], INK); poly(g, [[cx - 10, ct], [cx, ct - 28], [cx + 10, ct]], P[1]); poly(g, [[cx - 10, ct], [cx, ct - 28], [cx - 2, ct]], P[3]);
-  g.restore();
-  mist(g, SPW, SPH - 90, 90, skyAt(0.92, tod), 0.1, 0.5, 4);
+  farMark(g, 'clockTower', 100, SPH - 10, 220, 0.45, tod);
+  farTreeline(g, 0, SPW, SPH - 22, farCol(tod, 0.45)('#2A3A2A'), 7);
 };
-const FTW = 200, FTH = 290;
-/** Future Land far off (Foreign Lands' far shore uses it too: one look for it from every land that sees it). */
+const FTW = 240, FTH = 470;
+/** Future Land far off: SPACE NEEDLE 2 (its shaft going on up) and the GIANT ATOM (Foreign Lands' far shore uses it too). */
 export const paintFuture = (g: Ctx, tod: TimeOfDay) => {
-  const t = farCol(tod, 0.5), glow = tod.lamps > 0.3;
-  const Wh = rampT(t, '#D8DCE4'), Or = rampT(t, '#E8742A'), Tl = rampT(t, '#3AA8A8'), St = rampT(t, '#7A808C');
-  // (the needle: three legs tapering up, waisted, to the saucer and its halo, the spire, the beacon)
-  const nx = 70, sy = 46;
-  for (const [a, b] of [[-14, -3], [14, 3], [-2, 0]] as const) poly(g, [[nx + a - 4, FTH], [nx + a + 4, FTH], [nx + b + 3, sy + 10], [nx + b - 3, sy + 10]], INK);
-  for (const [a, b] of [[-14, -3], [14, 3], [-2, 0]] as const) poly(g, [[nx + a - 3, FTH], [nx + a + 3, FTH], [nx + b + 2, sy + 10], [nx + b - 2, sy + 10]], a < 0 ? Wh[3] : a > 0 ? Wh[1] : Wh[2]);
-  for (let y = sy + 30; y < FTH - 10; y += 26) { const u = (y - sy - 10) / (FTH - sy - 10); box(g, nx - 3 - 11 * u, y, 6 + 22 * u, 2, Wh[1]); }
-  line(g, [nx - 13, FTH - 4, nx - 3, sy + 12], 1, Wh[4]);
-  box(g, nx - 7, sy + 60, 14, 3, Wh[1]);
-  g.fillStyle = INK; g.beginPath(); g.ellipse(nx, sy + 4, 28, 9, 0, 0, Math.PI * 2); g.fill();
-  g.fillStyle = Or[2]; g.beginPath(); g.ellipse(nx, sy + 4, 27, 8, 0, 0, Math.PI * 2); g.fill();
-  g.fillStyle = Or[3]; g.beginPath(); g.ellipse(nx - 4, sy + 2, 20, 4, 0, 0, Math.PI * 2); g.fill();
-  box(g, nx - 22, sy + 6, 44, 2, glow ? '#FFE7A0' : t('#3A4A60'));
-  g.fillStyle = Wh[2]; g.beginPath(); g.ellipse(nx, sy - 2, 12, 6, 0, Math.PI, 0); g.fill();
-  box(g, nx - 1, sy - 30, 2, 26, St[2]); box(g, nx - 1, sy - 34, 2, 4, glow ? '#FF6B6B' : Or[2]);
-  // (the giant atom: a ball, three orbit rings round it)
-  const ax = 140, ay = 150;
-  g.fillStyle = INK; g.beginPath(); g.arc(ax, ay, 12, 0, Math.PI * 2); g.fill(); g.fillStyle = Tl[2]; g.beginPath(); g.arc(ax, ay, 11, 0, Math.PI * 2); g.fill(); g.fillStyle = Tl[4]; g.beginPath(); g.arc(ax - 4, ay - 4, 4, 0, Math.PI * 2); g.fill();
-  for (const r of [0, 1.05, -1.05]) { g.strokeStyle = St[3]; g.lineWidth = 2; g.beginPath(); g.ellipse(ax, ay, 30, 9, r, 0, Math.PI * 2); g.stroke(); }
-  line(g, [ax, ay + 12, ax - 8, FTH, ax + 8, FTH], 2, St[2]); box(g, ax - 1, ay + 12, 2, FTH - ay - 12, St[1]);
-  // (a rocket on its gantry: fins, its band, the nose)
-  const rx = 178, rb = FTH - 6;
-  box(g, rx + 9, rb - 92, 2, 92, St[1]); for (let y = rb - 88; y < rb; y += 10) line(g, [rx + 9, y, rx + 15, y + 10], 1, St[1]);
-  box(g, rx - 5, rb - 66, 10, 60, INK); box(g, rx - 4, rb - 65, 8, 59, Wh[2]); box(g, rx - 4, rb - 65, 2, 59, Wh[4]); box(g, rx - 4, rb - 40, 8, 6, Or[2]);
-  poly(g, [[rx - 5, rb - 66], [rx, rb - 84], [rx + 5, rb - 66]], Or[2]); poly(g, [[rx - 5, rb - 16], [rx - 11, rb], [rx - 5, rb - 6]], Or[1]); poly(g, [[rx + 5, rb - 16], [rx + 11, rb], [rx + 5, rb - 6]], Or[1]);
-  // (a dome and the low, swoopy roofs at its feet)
-  g.fillStyle = INK; g.beginPath(); g.arc(30, FTH, 24, Math.PI, 0); g.fill(); g.fillStyle = Wh[1]; g.beginPath(); g.arc(30, FTH, 23, Math.PI, 0); g.fill(); g.fillStyle = Wh[3]; g.beginPath(); g.arc(24, FTH - 4, 12, Math.PI, Math.PI * 1.6); g.fill();
-  poly(g, [[90, FTH], [100, FTH - 14], [130, FTH - 22], [118, FTH - 12], [120, FTH]], Tl[1]);
-  mist(g, FTW, FTH - 80, 80, skyAt(0.92, tod), 0.1, 0.5, 4);
+  farMark(g, 'needle', 80, FTH - 10, 190, 0.45, tod);
+  farMark(g, 'atom', 176, FTH - 10, 110, 0.45, tod);
+  farTreeline(g, 0, FTW, FTH - 22, farCol(tod, 0.45)('#2A3A2A'), 3);
 };
 
 export const FUTURE_W = FTW, FUTURE_H = FTH;

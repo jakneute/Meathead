@@ -111,14 +111,21 @@ const CAST = C('#9CA3AF'), CAST_D = C('#7B828E');
 
 const AV_R = (RX + RY) / 2;
 
-/** The ground, painted once. */
-export const paintTerrain = (): HTMLCanvasElement => {
+/** The ground, painted in row bands: `step(until)` paints rows till performance.now() passes `until` (true once it's
+ *  all down, on `cv`). So it can be done a slice at a time in idle moments during play (no hitch), or all at once. */
+export const terrainJob = () => {
   const cv = document.createElement('canvas'); cv.width = MAP_W; cv.height = MAP_H;
   const g = cv.getContext('2d')!;
   const img = g.createImageData(MAP_W, MAP_H), d = img.data;
   const walks = WALKS, rivers = RIVERS.flatMap(r => r.segs.map(s => ({ s, kind: r.kind })));
   const frontier = SECTORS.find(s => s.land === L('frontier'))!;
-  for (let y = 0; y < MAP_H; y++) for (let x = 0; x < MAP_W; x++) {
+  let row = 0, done = false;
+  const step = (until: number): boolean => {
+  if (done) return true;
+  for (; row < MAP_H; row++) {
+  if ((row & 7) === 0 && performance.now() > until) return false;
+  const y = row;
+  for (let x = 0; x < MAP_W; x++) {
     const { q, ang } = polar(x, y);
     const e = edgeQ(ang), chk = (x + y) & 1, h = hashI(x, y);
     let c: RGB = GRASS[0];
@@ -213,9 +220,15 @@ export const paintTerrain = (): HTMLCanvasElement => {
     const o = (y * MAP_W + x) * 4;
     d[o] = c[0]; d[o + 1] = c[1]; d[o + 2] = c[2]; d[o + 3] = 255;
   }
+  }
   g.putImageData(img, 0, 0);
-  return cv;
+  done = true;
+  return true;
+  };
+  return { cv, step };
 };
+/** The ground, painted once (all at once). */
+export const paintTerrain = (): HTMLCanvasElement => { const j = terrainJob(); j.step(Infinity); return j.cv; };
 
 const shade = (c: RGB, k: number): RGB => [c[0] * k + 20 * (1 - k), c[1] * k + 14 * (1 - k), c[2] * k + 40 * (1 - k)];
 const hashI = (x: number, y: number) => { let n = (x * 374761393 + y * 668265263) | 0; n = (n ^ (n >>> 13)) * 1274126177 | 0; return ((n ^ (n >>> 16)) >>> 0) / 4294967296; };

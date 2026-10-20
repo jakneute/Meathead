@@ -8,8 +8,8 @@ import { LANDS } from '../hub/lands';
 import { signText, signW, rampDown, type Look } from '../signLetters';
 import { MAP_W, MAP_H, HC, RX, RY, SECTORS, inLand, edgeQ, fromPolar, Q_RING, sectorOfLand, landMid } from './geo';
 import { ATTRACTIONS, NUMBERS, attractionOfZone, landIndex } from './data';
-import { paintTerrain, attractionAt } from './terrain';
-import { paintFeatures, paintDetails, ICONS, numberBadge, LEGEND } from './global';
+import { paintTerrain, terrainJob, attractionAt } from './terrain';
+import { paintFeatures, featureTasks, paintDetails, ICONS, numberBadge, LEGEND } from './global';
 import { R, hl, vl, ell, ramp, type Ctx } from './paint';
 
 /** The map's window on screen (game px). */
@@ -23,8 +23,21 @@ const levels: (HTMLCanvasElement | null)[] = ZOOMS.map(() => null);
 
 const canvas = (w: number, h: number) => { const c = document.createElement('canvas'); c.width = Math.ceil(w); c.height = Math.ceil(h); return c; };
 
+/** The ground being painted ahead of time, a slice per idle moment (prewarmParkMap); finished at once if the map's
+ *  opened before it's done. */
+let job: ReturnType<typeof terrainJob> | null = null;
+/** The landmarks still to paint onto the prewarmed ground (null: not started). */
+let tasks: (() => void)[] | null = null;
 const baseArt = () => {
   if (base) return base;
+  if (job) {
+    job.step(Infinity);
+    const g = job.cv.getContext('2d')!;
+    g.imageSmoothingEnabled = false;
+    for (const t of tasks ?? featureTasks(g)) t();
+    base = job.cv; job = null; tasks = null;
+    return base;
+  }
   const c = paintTerrain();
   const g = c.getContext('2d')!;
   g.imageSmoothingEnabled = false;
@@ -144,9 +157,25 @@ export const levelCanvas = (i: number): HTMLCanvasElement => {
 };
 
 /** Paints the base and the far level ahead of time (an idle moment after the game's up), so the map comes up at once. */
+// (the ground a few rows at a time in each idle moment (never more than a few ms: no hitch in play), then the
+// landmarks, then the far level, each in an idle moment of its own)
 export const prewarmParkMap = () => {
-  const idle = (f: () => void) => ((window as unknown as { requestIdleCallback?: (f: () => void) => void }).requestIdleCallback ?? ((h: () => void) => setTimeout(h, 50)))(f);
-  idle(() => { baseArt(); idle(() => { levelCanvas(0); }); });
+  type Idle = (f: (d?: { timeRemaining(): number }) => void) => void;
+  const idle: Idle = (window as unknown as { requestIdleCallback?: Idle }).requestIdleCallback ?? (h => setTimeout(() => h(), 50));
+  if (base || job) return;
+  job = terrainJob();
+  const slice = (d?: { timeRemaining(): number }) => {
+    if (base || !job) return;
+    const until = performance.now() + Math.min(4, Math.max(1, (d?.timeRemaining() ?? 4) - 1));
+    if (!job.step(until)) { idle(slice); return; }
+    // (then the landmarks, a few per idle moment, each one whole)
+    if (!tasks) { const g = job.cv.getContext('2d')!; g.imageSmoothingEnabled = false; tasks = featureTasks(g); }
+    do { tasks.shift()?.(); } while (tasks.length && performance.now() < until);
+    if (tasks.length) { idle(slice); return; }
+    base = job.cv; job = null; tasks = null;
+    idle(() => { levelCanvas(0); });
+  };
+  idle(slice);
 };
 
 // ---- where he is

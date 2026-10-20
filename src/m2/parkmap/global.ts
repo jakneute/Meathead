@@ -197,18 +197,14 @@ export const numberBadge = (g: Ctx, x: number, y: number, n: number) => {
 };
 
 /** The base art (the ground's painted under it): everything that's the map at any zoom. */
-export const paintFeatures = (g: Ctx) => {
-  monorail(g);
-  scatterTrees(g);
-  hubPlaza(g);
-  americaStreet(g);
-  wayIn(g);
-  waterPark(g);
-  castLot(g);
+export const paintFeatures = (g: Ctx) => { for (const t of featureTasks(g)) t(); };
+/** paintFeatures in its pieces, in order (so it can be painted a piece per idle moment during play). */
+export const featureTasks = (g: Ctx): (() => void)[] => [
+  () => monorail(g), () => scatterTrees(g), () => hubPlaza(g), () => americaStreet(g), () => wayIn(g), () => waterPark(g), () => castLot(g),
   // (the landmarks, back to front)
-  [...ATTRACTIONS].map(a => ({ a, p: attractionAt(a) })).sort((m, n) => m.p.y - n.p.y).forEach(({ a, p }) => LANDMARKS[a.art]?.(g, p.x, p.y));
-  title(g); compass(g); legend(g);
-};
+  ...[...ATTRACTIONS].map(a => ({ a, p: attractionAt(a) })).sort((m, n) => m.p.y - n.p.y).map(({ a, p }) => () => LANDMARKS[a.art]?.(g, p.x, p.y)),
+  () => { title(g); compass(g); legend(g); },
+];
 
 /** The details: guests on the walks, benches and lamps (only up close). */
 export const paintDetails = (g: Ctx) => {
