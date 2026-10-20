@@ -176,7 +176,7 @@ const ParkMap: React.FC<{ here: Here; onClose: () => void }> = ({ here, onClose 
   }, []);
 
   const land = focus >= 0 ? LANDS[focus] : null;
-  const hereAttraction = attractionOfZone(here.zone);
+  const hereAttraction = here.place === 'hub' ? null : attractionOfZone(here.zone);
   const hereName = here.place === 'staff' ? 'THE STAFF ROOM (NOT ON MAP)' : [here.place === 'hub' || here.place === 'intro' ? null : LANDS[hereLand(here)]?.name, hereAttraction?.name].filter(Boolean).join(' · ') || 'THE HAPPY HUB';
   const zoomName = ['WHOLE PARK', 'CLOSER', 'CLOSE', 'UP CLOSE'][zoomAt];
 

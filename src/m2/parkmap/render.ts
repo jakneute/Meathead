@@ -155,7 +155,9 @@ export interface Here { place: string; zone: string | null }
 export const herePoint = (h: Here): { x: number; y: number } => {
   const a = attractionOfZone(h.zone);
   if (h.place === 'staff') return { x: 450, y: 52 };
-  if (a && (a.land === h.place || a.land === 'hub')) return attractionAt(a);
+  // (the hub's own stage is the hub: a zone left over from the way in (the gates) doesn't count)
+  if (h.place === 'hub') return { x: HC.x, y: HC.y + 26 };
+  if (a &&(a.land === h.place || a.land === 'hub')) return attractionAt(a);
   const li = landIndex(h.place);
   if (li >= 0) return landMid(li);
   if (h.place === 'intro') return { x: HC.x, y: 840 };
