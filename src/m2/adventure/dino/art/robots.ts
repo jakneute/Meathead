@@ -258,6 +258,14 @@ const paintRaptor = (c: Ctx, g: RaptorRig, wear: number, fl: boolean) => {
   leg(g.feet[0], true);
 };
 
+/** A raptor standing about (no enemy behind it: the booth's window view): idle, breathing, its eye lamp. */
+export const drawRaptorIdle = (c: Ctx, f: number, mode: Mode) => {
+  const k = Math.floor(f / 16) % 4, g = raptorRig('idle', k);
+  stamp(c, `m2rap:idle:${k}:0:0`, -72, -64, 132, 70, gg => paintRaptor(gg, g, 0, false));
+  const [ex, ey] = raptorHeadPt(g, [9.5, -4]);
+  eyeLamp(c, ex, ey, 1.6, mode.friendly, f, true, false);
+};
+
 export const drawRaptorBot = (c: Ctx, e: Enemy, f: number, mode: Mode) => {
   const [pose0, k0] = raptorPose(e, f), hit = sinceHit(e, f);
   // (friendly: it stands about doing its bit; just hit: it recoils a moment)

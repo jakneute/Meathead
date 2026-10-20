@@ -29,6 +29,7 @@ import {
   TEMPLE_L, TEMPLE_R, TIERS, TIER_H, TEMPLE_DOOR_X, LEDGES,
 } from '../layout';
 import { signAt, carved, routed, plank, enamel, stencil, print, dino } from '../../letters';
+import { drawDinoDressing } from './dressing';
 
 /** What the park's art needs to know of its state. */
 export interface DinoLook { hostile: boolean; doorKicked: boolean; kick: number; switching: boolean }
@@ -61,6 +62,8 @@ export const drawDinoWorld = (c: Ctx, state: GameState, look: DinoLook, drawRex:
   const visAt = (a: number, b: number, d: number) => vis(eye.x + (a - eye.x) * d, eye.x + (b - eye.x) * d);
   // The ground going back, and what stands along the back of it
   backGround(c, eye, v);
+  // (the set dressing furthest back: the meadow's, behind its rail and its tour group: dressing.ts)
+  drawDinoDressing(c, state, 0.705, true, look.hostile);
   // (the park's guests well back, behind the meadow's rail and the paddock's fence: zoo.ts)
   zoo?.far();
   if (visAt(D - 100, FENCE_X + 200, 0.7)) atDepth(c, eye, 0.7, () => penBackWall(c, state));
@@ -68,6 +71,8 @@ export const drawDinoWorld = (c: Ctx, state: GameState, look: DinoLook, drawRex:
   if (visAt(D + 3880, D + 5920, 0.76)) atDepth(c, eye, 0.76, () => plazaBack(c, state, f));
   if (visAt(PADDOCK_IN - 60, PADDOCK_OUT + 80, PAD_BACK)) atDepth(c, eye, PAD_BACK, () => paddockBack(c, state, eye, f));
   if (visAt(D + 8600, LAST_FENCE + 100, 0.72)) atDepth(c, eye, 0.72, () => jungleBack(c, state));
+  // (the rest of the dressing: the pen's floor, the plaza's, the paddock's, the last stretch's)
+  drawDinoDressing(c, state, 1, false, look.hostile);
   // (the rest of them, the gallery, their rails, the park's signs: zoo.ts)
   zoo?.near();
   // The ground toward him (bent: the rows nearer, wider)
@@ -219,8 +224,17 @@ const penBackWall = (c: Ctx, state: GameState) => {
 /** The meadow's back: a split-rail fence, posts and two rails (well back: not something to stand on). */
 const meadowRail = (c: Ctx, state: GameState) => {
   chunked(c, state, 'dmeadow-rail', D + 1000, D + 2500, GY - 80, 80, (g, a, b) => {
-    for (let x = Math.floor(a / 110) * 110; x < b; x += 110) { box(g, x, GY - 70, 8, 70, '#5A3E22'); box(g, x, GY - 70, 2, 70, '#7A5A34'); }
-    for (const y of [GY - 60, GY - 34]) { box(g, a, y, b - a, 6, '#6A4A2A'); box(g, a, y, b - a, 1, '#8A6A44'); box(g, a, y + 5, b - a, 1, '#3E2A16'); }
+    for (let x = Math.floor(a / 110) * 110; x < b; x += 110) {
+      box(g, x - 1, GY - 72, 10, 72, '#2A1C0E'); box(g, x, GY - 70, 8, 70, '#5A3E22'); box(g, x, GY - 70, 2, 70, '#7A5A34'); box(g, x + 6, GY - 70, 2, 70, '#4A321A');
+      box(g, x, GY - 72, 8, 2, '#6A4A2A'); for (let y = GY - 62; y < GY; y += 9) box(g, x + 3, y, 1, 4, '#4A321A');
+      // (grass and a fern at its foot)
+      for (let k = -8; k < 16; k += 3) box(g, x + k, GY - 4 - ((k * 7) & 7), 2, 4 + ((k * 7) & 7), (k & 4) ? '#467A2C' : '#5E9636');
+    }
+    for (const y of [GY - 60, GY - 34]) {
+      box(g, a, y, b - a, 6, '#6A4A2A'); box(g, a, y + 1, b - a, 1, '#7A5834'); box(g, a, y + 5, b - a, 1, '#3E2A16');
+      // (the grain along it, a knot now and then)
+      for (let x = Math.floor(a / 23) * 23; x < b; x += 23) { box(g, x, y + 3, 9, 1, '#5A3E22'); if (hash(x + y) > 0.8) { box(g, x + 12, y + 2, 3, 3, '#3E2A16'); box(g, x + 12, y + 2, 1, 1, '#8A6A44'); } }
+    }
   });
 };
 
@@ -300,14 +314,36 @@ const paddockBack = (c: Ctx, state: GameState, eye: Eye, f: number) => {
 
 /** The last stretch's back: jungle (fake rocks, real-ish ferns), the odd speaker hidden in a rock. */
 const jungleBack = (c: Ctx, state: GameState) => {
-  chunked(c, state, 'djungle-back', D + 8600, LAST_FENCE + 100, GY - 220, 220, (g, a, b) => {
+  chunked(c, state, 'djungle-back2', D + 8600, LAST_FENCE + 100, GY - 260, 260, (g, a, b) => {
+    const L = ['#1E3418', '#2A4420', '#365628', '#466A32', '#5A8040'];
+    // (trunks going up out of it into the canopy above, banded bark, lit up their left)
+    for (let x = Math.floor(a / 170) * 170 + 40; x < b + 40; x += 170) {
+      const tx = x + Math.round(hash(x * 1.3) * 60), w = 12 + Math.round(hash(x) * 8);
+      box(g, tx - 1, GY - 260, w + 2, 260, '#1A140E'); box(g, tx, GY - 260, w, 260, '#4A3826'); box(g, tx, GY - 260, 3, 260, '#6A5238'); box(g, tx + w - 3, GY - 260, 3, 260, '#33261A');
+      for (let y = GY - 250; y < GY; y += 14) box(g, tx + 2, y, w - 4, 1, '#33261A');
+      // (a liana down it)
+      for (let y = GY - 220; y < GY - 40; y += 3) box(g, tx + w + Math.round(Math.sin(y * 0.08 + x) * 3), y, 2, 3, (y >> 2) % 3 ? '#3A6A2A' : '#5A8A3A');
+      // (its crown, up top: stepped, lit along its top-left)
+      const cx = tx + w / 2;
+      pixelBlob(g, cx, GY - 228, 58, 26, L[1]); pixelBlob(g, cx - 6, GY - 234, 44, 18, L[2]); pixelBlob(g, cx - 14, GY - 242, 24, 9, L[3]); pixelBlob(g, cx - 18, GY - 246, 10, 4, L[4]);
+      for (let k = -40; k < 40; k += 8) box(g, cx + k, GY - 206 + Math.abs(k) * 0.2, 4, 6 + (k & 8), L[1]);
+    }
+    // (the undergrowth: crowns of stepped leaf, each lit along its top-left, its shade under; fronds out of them)
     for (let x = Math.floor(a / 60) * 60; x < b; x += 60) {
-      const h = 60 + hash(x) * 90;
-      pixelBlob(g, x + 30, GY - h * 0.5, 40, h * 0.5, '#2A4420');
-      pixelBlob(g, x + 24, GY - h * 0.6, 26, h * 0.32, '#3A5A2A');
+      const h = 60 + hash(x) * 90, cx = x + 30;
+      pixelBlob(g, cx, GY - h * 0.5, 40, h * 0.5, L[1]);
+      pixelBlob(g, cx - 4, GY - h * 0.58, 32, h * 0.38, L[2]);
+      pixelBlob(g, cx - 10, GY - h * 0.7, 18, h * 0.18, L[3]);
+      pixelBlob(g, cx - 14, GY - h * 0.76, 8, h * 0.07, L[4]);
+      box(g, cx - 34, GY - 10, 68, 10, L[0]); checker(g, cx - 34, GY - 14, 68, 2, L[0]);
+      for (let i = 0; i < 4; i++) {
+        const ang = -Math.PI / 2 + (i - 1.5) * 0.5, len = 26 + hash(x + i) * 18, ox = cx + (i - 1.5) * 10, oy = GY - h * 0.4;
+        for (let s = 0; s < len; s += 3) { const k = s / len; box(g, ox + Math.cos(ang) * s, oy + Math.sin(ang) * s + k * k * len * 0.4, 3, 2, L[k < 0.5 ? 3 : 4]); }
+      }
     }
     for (let x = Math.floor(a / 330) * 330 + 100; x < b; x += 330) {
       slab(g, x, GY - 50, 70, 50, '#7A7262', { ink: false });
+      box(g, x + 4, GY - 50, 40, 2, '#9A9282'); box(g, x + 50, GY - 44, 18, 40, '#5E574A'); checker(g, x + 48, GY - 44, 2, 40, '#5E574A');
       // (a rock with a speaker grille in it: the jungle noises come from somewhere)
       box(g, x + 24, GY - 36, 22, 14, '#3A3630'); for (let k = 0; k < 5; k++) box(g, x + 26 + k * 4, GY - 34, 2, 10, '#1A1814');
     }

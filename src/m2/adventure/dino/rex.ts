@@ -39,7 +39,7 @@ import { say, cutVoice, pickLine } from '../../../m1/game/platform/speech';
 import { isShat, isNude } from '../../../m1/game/player/gut';
 import { GY } from '../geometry';
 import { plate, servo } from './art/robots';
-import { rampOf } from '../../intro/art/kit';
+import { rampOf, mix, checker } from '../../intro/art/kit';
 import { markBossFight } from '../../bossQuiet';
 import { eyeOf, prism } from './art/kit';
 import {
@@ -813,15 +813,79 @@ const updateDeath = (ctx: FrameContext, r: Rex) => {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
-// Drawing (crude: the first pass) — world space, behind him (the dino park's back layer calls it)
+// Drawing (the SNES pass) — world space, behind him (the dino park's back layer calls it). An animatronic T. rex at
+// sub-boss detail: molded fiberglass skin over a steel frame, every part a plate in its own ramp (the park's robots':
+// art/robots.ts), tiger-striped, its back ridged, a pale scuted belly; the seams riveted, a service hatch stenciled
+// REX-01, rubber bellows at each joint of its segmented tail, hydraulic rams bare down the backs of its legs and its
+// throat, servos at the knees and ankles; the skull's opening a speaker grille. Hurt, it shows the machine (scuffed
+// through to white fiberglass, then panels gone: the ribs, wires, a gear sparking; the skin torn off its snout down to
+// the steel skull); wrecked, charred. Drawn live (its pose is smooth, not in frames).
 
-const REX = '#5C5348', REX_LO = '#3E372F', REX_HI = '#7A7064', INK = '#1A0B06', METAL = '#3F3F46';
-/** A part of it, shaded the way the park's other robots are (art/robots.ts): its color's ramp, lit rim, dark rim, ink. */
+type V = [number, number];
+const INK = '#1A0B06';
+const SKIN = '#5E5446', SKIN_FAR = '#463E34', STRIPE = '#352C24', BELLY = '#9C8A68', GUM = '#8A2E2A', STEEL = '#6A727E', CLAWC = '#2E2A2C', FIBERGLASS = '#D8D0BE';
 const ramps = new Map<string, string[]>();
-const poly = (c: Ctx, pts: number[], col: string, belly = 0.3, inside?: () => void) => {
-  let r = ramps.get(col);
-  if (!r) { r = rampOf(col); ramps.set(col, r); }
-  plate(c, pts, r, belly, inside, 1.6);
+const rampFor = (col: string) => { let r = ramps.get(col); if (!r) { r = rampOf(col); ramps.set(col, r); } return r; };
+/** A part's ramp of a color: wrecked, charred; just hit, flashed white. */
+const rp = (p: Part, col: string) => rampFor(p.broken ? mix(col, '#26211C', 0.72) : p.flash > 0 ? mix(col, '#FFFFFF', 0.66) : col);
+/** A part of it, shaded the way the park's other robots are (art/robots.ts): its ramp, lit rim, dark rim, ink. */
+const poly = (c: Ctx, pts: number[], r: string[], belly = 0.3, inside?: () => void) => plate(c, pts, r, belly, inside, 1.6);
+/** A limb's outline from a to b, by a profile of [along 0..1, width], bowed out to the side by `bow`. */
+const limb = (a: V, b: V, prof: [number, number][], bow = 0) => {
+  const dx = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dx, dy) || 1, nx = -dy / l, ny = dx / l;
+  const L: number[] = [], R: number[] = [];
+  for (const [t, w] of prof) {
+    const s = bow * Math.sin(Math.PI * t), cx = a[0] + dx * t + nx * s, cy = a[1] + dy * t + ny * s;
+    L.push(cx + nx * w / 2, cy + ny * w / 2); R.unshift(cy - ny * w / 2); R.unshift(cx - nx * w / 2);
+  }
+  return [...L, ...R];
+};
+const lerpV = (a: V, b: V, u: number): V => [a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u];
+const unit = (a: V, b: V): V => { const dx = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dx, dy) || 1; return [dx / l, dy / l]; };
+/** A panel seam along a line (a dark groove, its lower lip lit), riveted. */
+const seamLine = (c: Ctx, pts: number[], r: string[], rivets = 0) => {
+  c.lineWidth = 1;
+  for (const [col, o] of [[r[0], 0], [r[3], 1]] as const) { c.strokeStyle = col; c.beginPath(); c.moveTo(pts[0] + o, pts[1] + o); for (let i = 2; i < pts.length; i += 2) c.lineTo(pts[i] + o, pts[i + 1] + o); c.stroke(); }
+  if (rivets) for (let i = 0; i + 3 < pts.length; i += 2) for (let k = 1; k <= rivets; k++) { const u = k / (rivets + 1); bolts(c, [pts[i] + (pts[i + 2] - pts[i]) * u + 3, pts[i + 1] + (pts[i + 3] - pts[i + 1]) * u]); }
+};
+/** The bony ridge along its back: a row of low osteoderm bumps (lit up their left), from a to b, along the top. */
+const ridge = (c: Ctx, a: V, b: V, n: number, h: number, r: string[]) => {
+  const [ux, uy] = unit(a, b), nx = uy, ny = -ux;
+  for (let i = 0; i < n; i++) {
+    const t = (i + 0.5) / n, x = a[0] + (b[0] - a[0]) * t, y = a[1] + (b[1] - a[1]) * t, hh = h * (0.7 + 0.3 * Math.sin(t * Math.PI));
+    const p = [x - ux * 4, y - uy * 4, x + nx * hh, y + ny * hh, x + ux * 4, y + uy * 4];
+    c.fillStyle = INK; c.beginPath(); c.moveTo(p[0] - ux, p[1] - uy); c.lineTo(p[2] + nx, p[3] + ny); c.lineTo(p[4] + ux, p[5] + uy); c.closePath(); c.fill();
+    c.fillStyle = r[2]; c.beginPath(); c.moveTo(p[0], p[1]); c.lineTo(p[2], p[3]); c.lineTo(p[4], p[5]); c.closePath(); c.fill();
+    c.fillStyle = r[4]; c.beginPath(); c.moveTo(p[0], p[1]); c.lineTo(p[2], p[3]); c.lineTo(x, y); c.closePath(); c.fill();
+  }
+};
+/** A rubber bellows boot over a joint (at p, the limb going along `tan`, w across): dark, ribbed. */
+const bellows = (c: Ctx, p: V, tan: V, w: number) => {
+  const nx = -tan[1], ny = tan[0], h = w / 2;
+  for (let k = -2; k <= 2; k++) {
+    const x = p[0] + tan[0] * k * 1.6, y = p[1] + tan[1] * k * 1.6, hh = h * (k % 2 ? 0.92 : 1);
+    c.strokeStyle = k % 2 ? '#2A2622' : '#141210'; c.lineWidth = 2;
+    c.beginPath(); c.moveTo(x + nx * hh, y + ny * hh); c.lineTo(x - nx * hh, y - ny * hh); c.stroke();
+  }
+  c.strokeStyle = '#4A4440'; c.lineWidth = 1; c.beginPath(); c.moveTo(p[0] + nx * h * 0.9 + tan[0], p[1] + ny * h * 0.9 + tan[1]); c.lineTo(p[0] + tan[0], p[1] + tan[1]); c.stroke();
+};
+/** A hydraulic ram between two points: the sleeve, the polished rod, a fitting at each end. */
+const ramLine = (c: Ctx, a: V, b: V, near = true) => {
+  const mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2;
+  c.lineCap = 'round';
+  c.strokeStyle = INK; c.lineWidth = 6; c.beginPath(); c.moveTo(a[0], a[1]); c.lineTo(b[0], b[1]); c.stroke();
+  c.strokeStyle = near ? '#4C545E' : '#323840'; c.lineWidth = 4; c.beginPath(); c.moveTo(a[0], a[1]); c.lineTo(mx, my); c.stroke();
+  c.strokeStyle = near ? '#9AA2AE' : '#5A626C'; c.lineWidth = 2.4; c.beginPath(); c.moveTo(mx, my); c.lineTo(b[0], b[1]); c.stroke();
+  c.strokeStyle = near ? '#E4E8EE' : '#868E9A'; c.lineWidth = 1; c.beginPath(); c.moveTo(mx, my - 0.8); c.lineTo(b[0], b[1] - 0.8); c.stroke();
+  c.lineCap = 'butt';
+  bolts(c, [a[0], a[1], b[0], b[1]]);
+};
+/** A fang (at tx, from the gum line ty, `len` long, pointing down (1) or up (-1)): inked, lit down its front. */
+const fang = (c: Ctx, tx: number, ty: number, len: number, dir: number, w = 4) => {
+  c.fillStyle = INK; c.beginPath(); c.moveTo(tx - 1, ty); c.lineTo(tx + w * 0.55, ty + dir * (len + 1.5)); c.lineTo(tx + w + 1, ty); c.closePath(); c.fill();
+  c.fillStyle = '#C8C2B0'; c.beginPath(); c.moveTo(tx, ty); c.lineTo(tx + w * 0.55, ty + dir * len); c.lineTo(tx + w, ty); c.closePath(); c.fill();
+  c.fillStyle = '#F4F0E4'; c.beginPath(); c.moveTo(tx, ty); c.lineTo(tx + w * 0.5, ty + dir * len * 0.8); c.lineTo(tx + w * 0.5, ty); c.closePath(); c.fill();
+  c.fillStyle = '#FFFFFF'; c.fillRect(tx + 0.5, ty + (dir > 0 ? 0 : -2), 1, 2);
 };
 const bolts = (c: Ctx, pts: number[]) => { for (let i = 0; i < pts.length; i += 2) { c.fillStyle = '#1A0B06'; c.fillRect(pts[i] - 1.5, pts[i + 1] - 1.5, 3, 3); c.fillStyle = '#8A929C'; c.fillRect(pts[i] - 1, pts[i + 1] - 1, 2, 2); c.fillStyle = '#E4E8EE'; c.fillRect(pts[i] - 1, pts[i + 1] - 1, 1, 1); } };
 /** A panel gone (dark inside, wires). */
@@ -835,7 +899,24 @@ const hole = (c: Ctx, x: number, y: number, w: number, h: number, f: number) => 
 };
 /** How beaten up it looks: 0 fine .. 3 wrecked. */
 const wear = (p: Part) => (p.broken ? 3 : p.hp < p.max * 0.33 ? 2 : p.hp < p.max * 0.66 ? 1 : 0);
-const tint = (p: Part, col: string) => (p.broken ? '#2E2924' : p.flash > 0 ? '#D6D3D1' : col);
+/** A scuffed patch: the paint worn through to the white fiberglass, scratched. */
+const scuffed = (c: Ctx, x: number, y: number, w: number, h: number) => {
+  c.fillStyle = INK; c.fillRect(x - 1, y - 1, w + 2, h + 2);
+  c.fillStyle = '#A8A090'; c.fillRect(x, y, w, h); c.fillStyle = FIBERGLASS; c.fillRect(x, y, w - 2, h - 2); c.fillStyle = '#F4F0E6'; c.fillRect(x, y, w - 2, 1);
+  c.strokeStyle = '#8A8274'; c.lineWidth = 1; for (let i = 0; i < 3; i++) { c.beginPath(); c.moveTo(x + 2 + i * 4, y + h - 1); c.lineTo(x + 6 + i * 4, y + 1); c.stroke(); }
+};
+/** Claw marks raked across it (three, the groove and its lit lip). */
+const raked = (c: Ctx, x: number, y: number, r: string[]) => {
+  for (let k = 0; k < 3; k++) { c.lineWidth = 1.5; c.strokeStyle = r[0]; c.beginPath(); c.moveTo(x + k * 5, y); c.lineTo(x + k * 5 + 12, y + 16); c.stroke(); c.lineWidth = 1; c.strokeStyle = r[4]; c.beginPath(); c.moveTo(x + k * 5 + 1.5, y); c.lineTo(x + k * 5 + 13.5, y + 16); c.stroke(); }
+};
+/** Charred (a wrecked part): soot blotches, a scorch dithered round them. */
+const charred = (c: Ctx, x: number, y: number, w: number, h: number, seed: number) => {
+  for (let i = 0; i < 4; i++) {
+    const px = x + ((seed * 37 + i * 53) % 100) / 100 * w, py = y + ((seed * 71 + i * 29) % 100) / 100 * h;
+    c.fillStyle = 'rgba(12, 10, 9, 0.45)'; c.beginPath(); c.ellipse(px, py, 9, 6, 0, 0, Math.PI * 2); c.fill();
+    checker(c, Math.round(px - 12), Math.round(py - 8), 24, 2, 'rgba(12, 10, 9, 0.4)');
+  }
+};
 
 /** The rex, its parts in place (the same numbers as their boxes). */
 export const drawRex = (c: Ctx, state: GameState) => {
@@ -917,25 +998,49 @@ const lockGate = (c: Ctx, x: number, f: number, l1: string, l2: string, side: nu
 
 /** Lying dead: how far down its belly comes (the body's bottom edge: 5 off the ground). */
 const SLUMP = 78;
-/** Between two poses' points (a polygon's, or a line's), u of the way. */
-const lerpPts = (a: number[], b: number[], u: number) => a.map((v, i) => v + (b[i] - v) * u);
-/** A leg laid out dead (facing right, from its feet): thigh, shin, foot, its three claws, the ram (from, to), the knee
- *  servo. Thrown out in front of it along the ground, the foot up, toes in the air; the far one kicked up higher. */
-const DEAD_LEG = (s: number) => {
-  // (the far one: the same, swung up about the hip)
+/** A leg's joints (facing right, from its feet): hip, knee, ankle, the ball of the foot, which way the toes point. */
+interface LegJ { H: V; K: V; A: V; T: V; toe: V }
+/** A leg laid out dead: thrown out in front of it along the ground, the foot up, toes in the air; the far one (s < 0)
+ *  swung up higher about the hip. */
+const DEAD_LEG = (s: number): LegJ => {
   const a = s < 0 ? -0.38 : 0, ca = Math.cos(a), sa = Math.sin(a), hx = -10, hy = -44;
-  const o = (pts: number[]) => pts.map((v, i) => {
-    const x = i % 2 ? pts[i - 1] : v, y = i % 2 ? v : pts[i + 1];
-    return i % 2 ? hy + (x - hx) * sa + (y - hy) * ca : hx + (x - hx) * ca - (y - hy) * sa;
+  const o = ([x, y]: V): V => [hx + (x - hx) * ca - (y - hy) * sa, hy + (x - hx) * sa + (y - hy) * ca];
+  const A = o([92, -10]), T = o([96, -42]);
+  return { H: o([-10, -44]), K: o([44, -16]), A, T, toe: unit(A, T) };
+};
+const lerpLeg = (a: LegJ, b: LegJ, u: number): LegJ => {
+  const toe = lerpV(a.toe, b.toe, u), l = Math.hypot(toe[0], toe[1]) || 1;
+  return { H: lerpV(a.H, b.H, u), K: lerpV(a.K, b.K, u), A: lerpV(a.A, b.A, u), T: lerpV(a.T, b.T, u), toe: [toe[0] / l, toe[1] / l] };
+};
+/** A leg: the ram down the back of it, the great thigh (a lit lobe of muscle up its front, striped, a seam over the
+ *  knee), the shin, the long foot bone, three toes and their claws; servos bare at the knee and the ankle. */
+const drawLeg = (c: Ctx, j: LegJ, S: string[], near: boolean, f: number, w: number) => {
+  const { H, K, A, T, toe } = j;
+  const ST = rampFor(near ? STRIPE : mix(STRIPE, INK, 0.3));
+  // (the ram, behind the thigh's back edge, down to the heel)
+  ramLine(c, [H[0] - 16, H[1] + 10], [A[0] - 5, A[1] - 3], near);
+  poly(c, limb(H, K, [[0, 40], [0.3, 46], [0.7, 30], [1, 19]], 3), S, 0.35, () => {
+    const m = lerpV(H, K, 0.32);
+    c.fillStyle = S[3]; c.beginPath(); c.ellipse(m[0] + 7, m[1] - 4, 10, 15, -0.3, 0, Math.PI * 2); c.fill();
+    checker(c, Math.round(m[0] - 4), Math.round(m[1] + 10), 18, 2, S[3]);
+    for (const [t, o] of [[0.15, -12], [0.5, -10]] as const) { const p = lerpV(H, K, t); c.fillStyle = ST[1]; c.beginPath(); c.moveTo(p[0] + o, p[1] - 6); c.lineTo(p[0] + o + 10, p[1] - 4); c.lineTo(p[0] + o + 2, p[1] + 6); c.closePath(); c.fill(); }
+    const s0 = lerpV(H, K, 0.8);
+    seamLine(c, [s0[0] - 14, s0[1] + 2, s0[0] + 12, s0[1] - 3], S, near ? 1 : 0);
+    if (near && w >= 1) scuffed(c, Math.round(m[0] - 2), Math.round(m[1] + 2), 9, 7);
   });
-  return {
-    thigh: o([-26, -42, 6, -50, 50, -24, 40, -8]),
-    shin: o([44, -24, 44, -4, 92, -6, 92, -18]),
-    foot: o([92, -4, 92, -46, 101, -48, 101, -4]),
-    claws: [0, 1, 2].map(t => o([93 + t * 3, -46, 95 + t * 3, -55, 98 + t * 3, -46])),
-    ram: o([-10, -34, 60, -16]),
-    knee: o([44, -14]),
-  };
+  poly(c, limb(K, A, [[0, 19], [1, 13]]), S, 0.25, () => { const m = lerpV(K, A, 0.5); c.fillStyle = S[3]; c.fillRect(Math.round(m[0] + 2), Math.round(m[1] - 6), 3, 8); });
+  poly(c, limb(A, T, [[0, 12], [1, 9]]), rampFor(near ? mix(S[2], INK, 0.12) : mix(S[2], INK, 0.2)), 0.3);
+  // (the toes, the far one first, and their claws)
+  const nx = -toe[1], ny = toe[0];
+  for (const s of [-1, 1, 0]) {
+    const b: V = [T[0] + nx * s * 3.5, T[1] + ny * s * 3.5], len = 13 - Math.abs(s) * 3, tip: V = [b[0] + toe[0] * len + nx * s * 1.5, b[1] + toe[1] * len + ny * s * 1.5];
+    poly(c, limb(b, tip, [[0, 8], [1, 6]]), s === 0 ? S : rampFor(mix(S[2], INK, 0.18)), 0.3);
+    const cl = rampFor(CLAWC);
+    plate(c, [tip[0] + nx * 3, tip[1] + ny * 3, tip[0] + toe[0] * 7 + nx * 0.5, tip[1] + toe[1] * 7 + ny * 0.5, tip[0] - nx * 3, tip[1] - ny * 3], cl, 0, undefined, 1);
+  }
+  servo(c, K[0], K[1], 6, near ? undefined : DARK_STEEL);
+  servo(c, A[0], A[1], 4, near ? undefined : DARK_STEEL);
+  void f;
 };
 const drawBody = (c: Ctx, r: Rex, f: number) => {
   const P = r.parts;
@@ -944,88 +1049,208 @@ const drawBody = (c: Ctx, r: Rex, f: number) => {
   const cr = r.crouch + (SLUMP - r.crouch) * u;
   const st = Math.sin(r.step) * (1 - u);
   const lw = wear(P.legs), bw = wear(P.body), tw = wear(P.tail);
-  // Legs: far, then near (a wrecked pair: one knee buckled, sparking)
-  for (const [s, col] of [[-1, REX_LO], [1, REX]] as const) {
-    const k = st * s * 12;
-    const knee = P.legs.broken && s > 0 ? 10 : 0;
-    const hipY = -82 + r.crouch * 0.5;
-    const dead = DEAD_LEG(s);
-    const at = (stand: number[], down: number[]) => (u > 0 ? lerpPts(stand, down, u) : stand);
-    poly(c, at([-28 + k * 0.4, hipY, 14 + k * 0.4, hipY, 16 + k, -36 + knee, -12 + k, -36 + knee], dead.thigh), tint(P.legs, col));
-    poly(c, at([-8 + k, -40 + knee, 12 + k, -40 + knee, 8 + k, -8, -6 + k, -8], dead.shin), tint(P.legs, col));
-    poly(c, at([-14 + k, -9, 28 + k, -9, 30 + k, 0, -14 + k, 0], dead.foot), METAL, 0.4);
-    // (the toe claws, the ram down the shin, the knee servo)
-    for (let t = 0; t < 3; t++) poly(c, at([22 + k + t * 4, -9, 27 + k + t * 4, -13, 30 + k + t * 4, -6], dead.claws[t]), '#3E3E46', 0);
-    const [r0, r1, r2, r3] = at([-18 + k * 0.4, hipY + 14, -2 + k, -14], dead.ram);
-    c.strokeStyle = INK; c.lineWidth = 5; c.beginPath(); c.moveTo(r0, r1); c.lineTo(r2, r3); c.stroke();
-    c.strokeStyle = s > 0 ? '#8A929E' : '#545C68'; c.lineWidth = 3; c.beginPath(); c.moveTo(r0, r1); c.lineTo(r2, r3); c.stroke();
-    const [kx, ky] = at([2 + k, -38 + knee], dead.knee);
-    servo(c, kx, ky, 6, s > 0 ? undefined : DARK_STEEL);
-    if (lw >= 2 && s > 0 && u < 0.5) hole(c, -20 + k * 0.4, hipY + 10, 26, 18, f);
-  }
-  // Tail (raised to whip, slammed down, or wrecked: on the ground, dragging, in bits)
-  const tailCol = tint(P.tail, REX_LO);
+  const moving = Math.abs(r.vx) > 0.1 && u <= 0;
+  const hipY = -82 + r.crouch * 0.5;
+  const legJ = (s: number): LegJ => {
+    const k = st * s * 12, knee = P.legs.broken && s > 0 ? 10 : 0;
+    // (the foot coming forward is up off the ground)
+    const lift = moving ? Math.max(0, Math.cos(r.step) * s) * 7 : 0;
+    const stand: LegJ = { H: [-6 + k * 0.3, hipY + 4], K: [8 + k * 0.8, -42 + knee - lift * 0.6], A: [-4 + k, -16 - lift], T: [18 + k, -6 - lift], toe: [1, 0.06] };
+    return u > 0 ? lerpLeg(stand, DEAD_LEG(s), u) : stand;
+  };
+  // The far leg (a wrecked pair: the near knee buckled, sparking)
+  drawLeg(c, legJ(-1), rp(P.legs, SKIN_FAR), false, f, lw);
+  // Tail: segments on a curve, rubber bellows at each joint, striped, ridged (raised to whip, slammed down; wrecked: on
+  // the ground in two, wires out of the break)
+  const TS = rp(P.tail, mix(SKIN, INK, 0.1)), TST = rp(P.tail, STRIPE);
+  const tailRun = (a: V, ctl: V, b: V, w0: number, w1: number, n: number, holeAt = -1) => {
+    const Q = (t: number): V => [(1 - t) * (1 - t) * a[0] + 2 * t * (1 - t) * ctl[0] + t * t * b[0], (1 - t) * (1 - t) * a[1] + 2 * t * (1 - t) * ctl[1] + t * t * b[1]];
+    const W = (t: number) => w1 + (w0 - w1) * Math.pow(1 - t, 1.1);
+    const D = (t: number): V => unit([0, 0], [2 * (1 - t) * (ctl[0] - a[0]) + 2 * t * (b[0] - ctl[0]), 2 * (1 - t) * (ctl[1] - a[1]) + 2 * t * (b[1] - ctl[1])]);
+    for (let i = n - 1; i >= 0; i--) {
+      const t0 = i / n, t1 = (i + 1) / n, pts: number[] = [], bot: number[] = [];
+      for (let k = 0; k <= 4; k++) {
+        const t = t0 + (t1 - t0) * (k / 4), p = Q(t), d = D(t), w = W(t) / 2, nx = -d[1], ny = d[0];
+        pts.push(p[0] + nx * w, p[1] + ny * w); bot.unshift(p[1] - ny * w); bot.unshift(p[0] - nx * w);
+      }
+      poly(c, [...pts, ...bot], TS, 0.35, () => {
+        // (a stripe over the top of each, the seam round it)
+        const m = Q((t0 + t1) / 2), w = W((t0 + t1) / 2);
+        c.fillStyle = TST[1]; c.beginPath(); c.moveTo(m[0] - 5, m[1] - w / 2 - 2); c.lineTo(m[0] + 5, m[1] - w / 2 - 2); c.lineTo(m[0] + 1, m[1] - w / 2 + w * 0.45); c.closePath(); c.fill();
+        if (i === holeAt && tw >= 2) hole(c, m[0] - 10, m[1] - 6, 20, 12, f);
+      });
+      // (the joint: a bellows boot, between this segment and the one nearer the body)
+      if (i > 0) bellows(c, Q(t0), D(t0), W(t0) * 0.92);
+    }
+    // (its ridge along the top: run from the tip's end, so the bumps stand up off it)
+    ridge(c, Q(0.7), Q(0.02), 6, 5, TS);
+    return Q;
+  };
+  const cr2 = -126 + cr;
   if (P.tail.broken) {
-    poly(c, [-62, -150 + cr, -120, -40, -128, -30, -64, -110 + cr], tailCol);
-    poly(c, [-130, -26, -205, -8, -208, 0, -134, -14], tailCol);
-    c.strokeStyle = '#DC2626'; c.lineWidth = 1.5; c.beginPath(); c.moveTo(-128, -30); c.lineTo(-134, -18); c.stroke();
+    tailRun([-60, cr2], [-96, (cr2 - 36) / 2], [-124, -34], 52, 30, 3);
+    tailRun([-132, -18], [-170, -14], [-208, -4], 28, 6, 3);
+    // (the wires out of the break, its sparks)
+    for (const [col, dy] of [['#DC2626', 0], ['#2563EB', 3], ['#FACC15', 6]] as const) { c.strokeStyle = col; c.lineWidth = 1.5; c.beginPath(); c.moveTo(-122, -36 + dy); c.quadraticCurveTo(-128, -22 + dy, -134, -16 + dy * 0.5); c.stroke(); }
+    if (f % 37 < 4) for (let i = 0; i < 4; i++) { c.fillStyle = i % 2 ? '#FFFFFF' : '#FDE047'; c.fillRect(-126 + Math.cos(i * 1.7) * (3 + (f % 37) * 2), -30 + Math.sin(i * 1.7) * (3 + (f % 37) * 2), 2, 2); }
   } else {
     const ty = r.tail * 70, sw = Math.sin(f * 0.06) * 6;
     const tip = r.tail > 0.4 ? -20 : -130 + ty;
-    poly(c, [-62, -155 + cr, -205, tip - 6 + sw, -210, tip + 2 + sw, -62, -98 + cr], tailCol);
-    c.strokeStyle = REX; c.lineWidth = 1; for (const x of [-100, -140, -175]) { const y = -128 + cr + (tip + 130) * ((-62 - x) / 148); c.beginPath(); c.moveTo(x, y - 12); c.lineTo(x, y + 10); c.stroke(); }
-    if (tw >= 2) hole(c, -120, -140 + cr + (tip + 130) * 0.4, 22, 14, f);
+    tailRun([-60, cr2], [-140, (cr2 + tip) / 2 + 8 + sw * 0.4], [-208, tip - 2 + sw], 56, 6, 6, 2);
   }
-  // Body
+  // Body: the barrel of it in plates, the back ridged and tiger-striped, the pale belly in scutes, the seams riveted, the
+  // service hatch stenciled REX-01, claw marks raked across a flank (the raptors'), and the more it's hurt, the more of
+  // the machine shows
   const by = -165 + cr;
-  poly(c, [-72, by + 18, -40, by, 40, by - 2, 62, by + 20, 56, by + 80, -66, by + 82], tint(P.body, REX), 0.3, () => {
-    // (its hide's stripes, the pale belly, its number stenciled on the flank)
-    for (let x = -56; x < 40; x += 18) { c.fillStyle = 'rgba(30, 24, 18, 0.35)'; c.beginPath(); c.moveTo(x, by + 2); c.lineTo(x + 8, by + 2); c.lineTo(x + 2, by + 30); c.closePath(); c.fill(); }
-    c.fillStyle = 'rgba(200, 180, 140, 0.35)'; c.fillRect(-60, by + 64, 116, 10);
-    const tag = stencil(6, 'rgba(230, 220, 200, 0.6)'); if (c.getTransform().a < 0) { c.save(); c.scale(-1, 1); signAt(c, 'REX-01', 52 - 36, by + 56, 6, tag, 'left'); c.restore(); } else signAt(c, 'REX-01', -52, by + 56, 6, tag, 'left');
+  const S = rp(P.body, SKIN), BST = rp(P.body, STRIPE), BL = rp(P.body, BELLY);
+  const BODY = [-76, by + 30, -62, by + 8, -34, by - 2, -4, by - 5, 24, by - 3, 44, by + 4, 58, by + 18, 64, by + 38, 60, by + 60, 46, by + 76, 14, by + 86, -26, by + 84, -56, by + 74, -74, by + 56];
+  poly(c, BODY, S, 0.18, () => {
+    // (the belly: a pale curve up under the chest, in scutes stepping across, banded darker down)
+    c.fillStyle = BL[2]; c.beginPath(); c.moveTo(-80, by + 64); c.quadraticCurveTo(0, by + 70, 70, by + 30); c.lineTo(70, by + 96); c.lineTo(-80, by + 96); c.closePath(); c.fill();
+    checker(c, -80, by + 62, 152, 2, BL[2]);
+    c.fillStyle = BL[1]; c.fillRect(-80, by + 80, 152, 12);
+    for (let i = 0; i <= 12; i++) {
+      const t = i / 12, x = -80 * (1 - t) * (1 - t) + 0 * 2 * t * (1 - t) + 70 * t * t, y = (by + 64) * (1 - t) * (1 - t) + (by + 70) * 2 * t * (1 - t) + (by + 30) * t * t;
+      c.fillStyle = BL[0]; c.fillRect(Math.round(x), Math.round(y + 3), 1, 30); c.fillStyle = BL[3]; c.fillRect(Math.round(x) + 1, Math.round(y + 3), 1, 30);
+    }
+    c.fillStyle = BL[3]; c.beginPath(); c.moveTo(-80, by + 64); c.quadraticCurveTo(0, by + 70, 70, by + 30); c.lineTo(70, by + 32); c.quadraticCurveTo(0, by + 72, -80, by + 66); c.closePath(); c.fill();
+    // (the tiger stripes down from the back)
+    for (const [x, l] of [[-60, 26], [-44, 34], [-28, 30], [-12, 36], [4, 30], [20, 26], [36, 20]] as const) {
+      c.fillStyle = BST[1]; c.beginPath(); c.moveTo(x, by - 6); c.lineTo(x + 10, by - 6); c.lineTo(x + 5, by + l); c.lineTo(x + 1, by + l - 6); c.closePath(); c.fill();
+      c.fillStyle = BST[0]; c.fillRect(x + 2, by - 4, 2, l - 8);
+    }
+    // (the shoulder: a lit lobe over the chest)
+    c.fillStyle = S[3]; c.beginPath(); c.ellipse(40, by + 26, 16, 14, 0.4, 0, Math.PI * 2); c.fill(); checker(c, 26, by + 38, 30, 2, S[3]);
+    // (the seams, riveted)
+    seamLine(c, [-46, by - 2, -48, by + 40, -44, by + 86], S, 2);
+    seamLine(c, [-12, by - 5, -14, by + 44, -10, by + 88], S, 2);
+    seamLine(c, [26, by - 3, 30, by + 40, 24, by + 86], S, 1);
+    // (the hatch, its hinge, the stencil under it)
+    c.fillStyle = INK; c.fillRect(-40, by + 26, 24, 18); c.fillStyle = S[1]; c.fillRect(-39, by + 27, 22, 16); c.fillStyle = S[3]; c.fillRect(-39, by + 27, 22, 1); c.fillStyle = S[0]; c.fillRect(-39, by + 42, 22, 1);
+    c.fillStyle = '#8A929C'; c.fillRect(-21, by + 33, 3, 4); bolts(c, [-37, by + 29, -37, by + 40]);
+    const tag = stencil(6, 'rgba(232, 222, 200, 0.7)'); if (c.getTransform().a < 0) { c.save(); c.scale(-1, 1); signAt(c, 'REX-01', 52 - 40, by + 56, 6, tag, 'left'); c.restore(); } else signAt(c, 'REX-01', -52, by + 56, 6, tag, 'left');
+    // (a little yellow warning label by the hatch)
+    c.fillStyle = INK; c.fillRect(-12, by + 28, 12, 9); c.fillStyle = '#E8B400'; c.fillRect(-11, by + 29, 10, 7); c.fillStyle = INK; c.fillRect(-7, by + 30, 2, 3); c.fillRect(-7, by + 34, 2, 1);
+    raked(c, 6, by + 18, S);
+    if (bw >= 1) { scuffed(c, -30, by + 10, 12, 8); scuffed(c, 34, by + 44, 10, 7); }
+    if (P.body.broken) charred(c, -70, by, 130, 80, 3);
   });
-  c.fillStyle = P.body.broken ? '#3F3A35' : REX_HI; c.fillRect(-60, by + 6, 90, 4);
-  for (const x of [-40, -10, 22]) { c.strokeStyle = REX_LO; c.lineWidth = 1.5; c.beginPath(); c.moveTo(x, by + 4); c.lineTo(x, by + 80); c.stroke(); c.strokeStyle = REX_HI; c.lineWidth = 1; c.beginPath(); c.moveTo(x + 1.5, by + 4); c.lineTo(x + 1.5, by + 80); c.stroke(); }
-  servo(c, -8, by + 76, 9);
-  bolts(c, [-50, by + 20, -24, by + 18, 6, by + 16, -50, by + 70, -24, by + 70, 6, by + 70, 40, by + 50]);
-  if (bw >= 1) { c.fillStyle = 'rgba(0,0,0,0.3)'; c.fillRect(-36, by + 30, 20, 14); }
+  ridge(c, [-70, by + 20], [44, by + 2], 11, 6, S);
   if (bw >= 2) hole(c, -8, by + 24, 28, 30, f);
-  if (bw >= 3) { hole(c, -60, by + 30, 22, 36, f); hole(c, 24, by + 36, 22, 26, f); }
-  // The silly little arm
-  poly(c, [50, by + 46, 64, by + 56, 62, by + 61, 48, by + 54], tint(P.body, REX_LO));
+  if (bw >= 3) {
+    // (panels off: the steel ribs bare)
+    hole(c, -60, by + 30, 22, 36, f); hole(c, 24, by + 36, 22, 26, f);
+    for (const x of [-56, -48]) { c.fillStyle = '#5A626C'; c.fillRect(x, by + 32, 3, 32); c.fillStyle = '#A8B0BA'; c.fillRect(x, by + 32, 1, 32); }
+  }
+  // The near leg
+  drawLeg(c, legJ(1), rp(P.legs, SKIN), true, f, lw);
+  if (lw >= 2 && u < 0.5) { const m = lerpV(legJ(1).H, legJ(1).K, 0.35); hole(c, m[0] - 13, m[1] - 6, 26, 16, f); }
+  if (P.legs.broken) { const m = lerpV(legJ(1).H, legJ(1).K, 0.5); charred(c, m[0] - 20, m[1] - 20, 40, 40, 7); }
   // Neck, into the head (off and rolling, dying: a stump, wires out of it)
-  if (r.head) { poly(c, [26, by + 6, 52, by - 4, 64, by - 30, 40, by - 34], tint(P.body, REX)); hole(c, 40, by - 34, 22, 8, f); return; }
-  const hx = 48 + r.hx, hy = -218 + cr + r.hy;
-  poly(c, [26, by + 6, 52, by - 4, hx + 12, hy + HEAD_H - 4, hx + 4, hy + 18], tint(P.body, REX));
-  drawHead(c, r, f, hx, hy, false);
+  const NS = rp(P.body, SKIN);
+  if (r.head) {
+    poly(c, [16, by + 10, 34, by - 6, 62, by - 30, 70, by - 20, 66, by + 30], NS, 0.35);
+    hole(c, 46, by - 32, 24, 12, f);
+    for (const [col, dx] of [['#DC2626', 0], ['#2563EB', 5], ['#FACC15', 10]] as const) { c.strokeStyle = col; c.lineWidth = 1.5; c.beginPath(); c.moveTo(50 + dx, by - 26); c.quadraticCurveTo(58 + dx, by - 44, 64 + dx * 1.4, by - 36 + Math.sin(f * 0.12 + dx) * 3); c.stroke(); }
+  } else {
+    const hx = 48 + r.hx, hy = -218 + cr + r.hy;
+    const NECK = [16, by + 10, 30, by - 4, hx + 2, hy + 12, hx + 12, hy + 30, hx + 26, hy + HEAD_H - 2, 66, by + 34];
+    poly(c, NECK, NS, 0.4, () => {
+      // (the throat's folds, across the underside)
+      for (let k = 1; k < 5; k++) {
+        const a = lerpV([66, by + 34], [hx + 26, hy + HEAD_H - 2], k / 5), b = lerpV([30, by - 4], [hx + 2, hy + 12], k / 5), m = lerpV(a, b, 0.4);
+        c.strokeStyle = NS[1]; c.lineWidth = 1.5; c.beginPath(); c.moveTo(a[0], a[1]); c.lineTo(m[0], m[1]); c.stroke();
+        c.strokeStyle = NS[3]; c.lineWidth = 1; c.beginPath(); c.moveTo(a[0] + 1, a[1] + 1.5); c.lineTo(m[0] + 1, m[1] + 1.5); c.stroke();
+      }
+      // (a stripe or two down the back of it)
+      for (const t of [0.3, 0.65]) { const p = lerpV([30, by - 4], [hx + 2, hy + 12], t); c.fillStyle = BST[1]; c.beginPath(); c.moveTo(p[0] - 5, p[1] - 2); c.lineTo(p[0] + 6, p[1] + 2); c.lineTo(p[0] + 6, p[1] + 16); c.closePath(); c.fill(); }
+    });
+    ridge(c, [24, by + 2], [hx + 2, hy + 14], 5, 5, NS);
+    // (the ram up its throat: what works the head)
+    ramLine(c, [56, by + 34], [hx + 22, hy + HEAD_H - 4]);
+    drawHead(c, r, f, hx, hy, false);
+  }
+  // The silly little arm (two fingers, a servo at the elbow), over the chest
+  const AS = rp(P.body, mix(SKIN, INK, 0.12)), sw2 = Math.sin(f * 0.07) * 1.5;
+  const sh: V = [50, by + 46], el: V = [60, by + 60 + sw2], hd: V = [72, by + 54 + sw2];
+  poly(c, limb(sh, el, [[0, 10], [1, 7]]), AS, 0.3);
+  poly(c, limb(el, hd, [[0, 7], [1, 5]]), AS, 0.3);
+  servo(c, el[0], el[1], 2.6);
+  for (const dy of [-1.5, 2]) plate(c, [hd[0] - 1, hd[1] + dy - 1.5, hd[0] + 6, hd[1] + dy + 2, hd[0] - 1, hd[1] + dy + 1.5], rampFor(CLAWC), 0, undefined, 1);
 };
 
 /** The head at (x, y) (its box's corner): skull, jaw (open by r.jaw; hanging off, wrecked), teeth, the eye. */
 const drawHead = (c: Ctx, r: Rex, f: number, x: number, y: number, off: boolean) => {
   const P = r.parts.head;
-  const broken = P.broken || off;
+  const broken = P.broken || off, w = Math.max(wear(P), off ? 3 : 0);
   const open = broken ? 22 + Math.sin(f * 0.2) * 3 : r.jaw * 26;
-  const col = tint(P, REX);
-  poly(c, [x, y + 4, x + 70, y, x + 95, y + 10, x + 95, y + 26, x, y + 32], col);
-  c.fillStyle = broken ? '#3F3A35' : REX_HI; c.fillRect(x + 4, y + 3, 64, 3);
-  // jaw (hinged at the back; wrecked, hanging off one hinge)
-  const jy = y + 32;
-  poly(c, [x + 4, jy, x + 92, jy - 6 + open, x + 88, jy + 8 + open, x + 6, jy + 12], tint(P, REX_LO));
-  if (open > 2) { c.fillStyle = '#5A1414'; c.beginPath(); c.moveTo(x + 8, y + 30); c.lineTo(x + 92, y + 28); c.lineTo(x + 90, jy - 6 + open); c.lineTo(x + 8, jy + 2); c.closePath(); c.fill(); }
-  for (let i = 0; i < 10; i++) {
-    const tx = x + 16 + i * 7.5;
-    const tooth = (ty: number, d: number) => { c.fillStyle = INK; c.beginPath(); c.moveTo(tx - 0.5, ty); c.lineTo(tx + 1.5, ty + d * 7); c.lineTo(tx + 3.5, ty); c.fill(); c.fillStyle = '#EEECE4'; c.beginPath(); c.moveTo(tx, ty); c.lineTo(tx + 1.5, ty + d * 5.5); c.lineTo(tx + 3, ty); c.fill(); c.fillStyle = '#FFFFFF'; c.fillRect(tx, ty, 1, d * 2); };
-    tooth(y + 26, 1);
-    if (!(broken && i % 3 === 1)) tooth(jy - 6 + open * ((tx - x) / 92) + 6, -1);
+  const S = rp(P, SKIN), SD = rp(P, mix(SKIN, INK, 0.22)), ST = rp(P, STRIPE), G = rp(P, GUM), M = rp(P, STEEL);
+  // The lower jaw, hinged at the back of the skull (wrecked: hanging off it), its teeth up along it
+  const ja = Math.atan2(open, 88), jx = x + 10, jy = y + 32;
+  // (the mouth's inside, behind it all: the gums, the tongue)
+  if (open > 2) {
+    const fx = jx + Math.cos(ja) * 84 + Math.sin(ja) * 6, fy = jy + Math.sin(ja) * 84 - Math.cos(ja) * 6;
+    c.fillStyle = INK; c.beginPath(); c.moveTo(x + 10, y + 26); c.lineTo(x + 95, y + 25); c.lineTo(fx + 2, fy + 2); c.lineTo(x + 10, y + 40); c.closePath(); c.fill();
+    c.fillStyle = '#3A0C0C'; c.beginPath(); c.moveTo(x + 12, y + 28); c.lineTo(x + 92, y + 27); c.lineTo(fx, fy); c.lineTo(x + 12, y + 38); c.closePath(); c.fill();
+    c.fillStyle = '#5A1616'; c.beginPath(); c.moveTo(x + 14, y + 30); c.lineTo(x + 60, y + 30); c.lineTo(x + 14, y + 34); c.closePath(); c.fill();
   }
-  bolts(c, [x + 8, y + 12, x + 26, y + 20, x + 60, y + 22]);
-  // (the brow ridge over the eye, the nostril, the jaw's servo)
-  poly(c, [x + 22, y + 6, x + 48, y + 3, x + 46, y + 9, x + 24, y + 10], tint(P, REX_HI), 0);
-  c.fillStyle = INK; c.fillRect(x + 86, y + 8, 4, 3);
-  servo(c, x + 8, y + 30, 6);
-  if (wear(P) >= 2 || broken) hole(c, x + 40, y + 8, 18, 12, f);
-  // the eye: red and glowing; wrecked, dead (a flicker now and then)
+  c.save(); c.translate(jx, jy); c.rotate(ja);
+  if (open > 2) { c.fillStyle = G[1]; c.beginPath(); c.ellipse(36, -3, 30, 4 + open * 0.1, -0.04, 0, Math.PI * 2); c.fill(); c.fillStyle = G[3]; c.fillRect(14, -6, 36, 2); }
+  for (let i = 0; i < 9; i++) if (!(broken && i % 3 === 1)) fang(c, 10 + i * 8.4, -4.6 - i * 0.3, [5, 6, 7, 6, 7, 6, 5, 5, 4][i], -1, 4);
+  poly(c, [-6, -4, 30, -6, 82, -9, 88, -3, 84, 6, 60, 11, 26, 13, 2, 11], SD, 0.4, () => {
+    // (the gum line along its top, the chin lit, a stripe, the seam)
+    c.fillStyle = G[2]; c.fillRect(-6, -6, 96, 3); for (let k = 2; k < 88; k += 8) { c.fillStyle = G[1]; c.fillRect(k, -3, 4, 1); }
+    c.fillStyle = SD[3]; c.fillRect(62, 4, 20, 2);
+    for (const x0 of [18, 44]) { c.fillStyle = ST[1]; c.beginPath(); c.moveTo(x0, 13); c.lineTo(x0 + 9, 13); c.lineTo(x0 + 4, 2); c.closePath(); c.fill(); }
+    seamLine(c, [52, -6, 50, 12], SD, 0);
+    if (w >= 2) scuffed(c, 64, -1, 10, 6);
+  });
+  c.restore();
+  // The skull: the long snout, the brow's horn over the eye, the cheek's muscle, the opening behind the eye a speaker
+  // grille (it's where the voice comes out), the stripes over the top, the lip's scalloped gum line, a scar, the seams
+  const SK = [x - 4, y + 24, x, y + 8, x + 14, y, x + 30, y - 3, x + 46, y + 1, x + 70, y + 2, x + 86, y + 7, x + 95, y + 15, x + 96, y + 27, x + 60, y + 31, x + 28, y + 33, x + 8, y + 37];
+  poly(c, SK, S, 0.22, () => {
+    // (the cheek: a lit bulge of muscle over the jaw's hinge)
+    c.fillStyle = S[3]; c.beginPath(); c.ellipse(x + 12, y + 22, 13, 11, 0, 0, Math.PI * 2); c.fill();
+    c.fillStyle = S[4]; c.fillRect(x + 4, y + 13, 8, 2);
+    checker(c, x + 2, y + 32, 22, 2, S[3]);
+    // (the stripes over the top of it)
+    for (const sx of [x + 4, x + 18, x + 54, x + 66, x + 78]) { c.fillStyle = ST[1]; c.beginPath(); c.moveTo(sx, y - 4); c.lineTo(sx + 8, y - 4); c.lineTo(sx + 3, y + 12); c.closePath(); c.fill(); }
+    // (the fenestra: the hole behind the snout, a speaker grille set in it)
+    c.fillStyle = INK; c.beginPath(); c.ellipse(x + 60, y + 17, 11, 6, -0.08, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#1E2228'; c.beginPath(); c.ellipse(x + 60, y + 17, 10, 5, -0.08, 0, Math.PI * 2); c.fill();
+    for (let k = -8; k <= 8; k += 3) { c.fillStyle = '#4C545E'; c.fillRect(x + 60 + k, y + 13, 1, 9); }
+    c.fillStyle = S[4]; c.fillRect(x + 50, y + 10, 18, 1);
+    // (the lip: its edge lit, the gum showing in scallops under it)
+    c.fillStyle = S[3]; c.fillRect(x + 24, y + 27, 70, 1);
+    for (let k = x + 20; k < x + 94; k += 8) { c.fillStyle = G[2]; c.beginPath(); c.ellipse(k + 4, y + 31, 4, 2, 0, 0, Math.PI); c.fill(); }
+    // (a scar over the snout, three raked lines; the seams, bolted)
+    raked(c, x + 70, y + 2, S);
+    seamLine(c, [x + 46, y + 1, x + 44, y + 32], S, 1);
+    seamLine(c, [x + 4, y + 6, x + 22, y + 2, x + 40, y + 1], S, 0);
+    if (w >= 1) scuffed(c, x + 22, y + 22, 10, 6);
+    // (hurt enough: the skin torn off the snout, the steel skull under it, lightening holes, the skin's ragged edge)
+    if (w >= 2 || broken) {
+      c.fillStyle = M[2]; c.beginPath(); c.moveTo(x + 74, y - 2); c.lineTo(x + 100, y + 10); c.lineTo(x + 100, y + 30); c.lineTo(x + 70, y + 30); c.lineTo(x + 76, y + 22); c.lineTo(x + 70, y + 14); c.lineTo(x + 76, y + 6); c.closePath(); c.fill();
+      c.fillStyle = M[3]; c.fillRect(x + 76, y + 6, 20, 2); c.fillStyle = M[1]; c.fillRect(x + 76, y + 26, 20, 3);
+      for (const [hx2, hy2] of [[x + 82, y + 15], [x + 90, y + 17]]) { c.fillStyle = INK; c.beginPath(); c.arc(hx2, hy2, 3, 0, Math.PI * 2); c.fill(); c.fillStyle = M[4]; c.fillRect(hx2 - 3, hy2 - 3, 2, 1); }
+      bolts(c, [x + 78, y + 24, x + 94, y + 24]);
+      c.strokeStyle = INK; c.lineWidth = 1.2; c.beginPath(); c.moveTo(x + 74, y - 2); c.lineTo(x + 76, y + 6); c.lineTo(x + 70, y + 14); c.lineTo(x + 76, y + 22); c.lineTo(x + 70, y + 30); c.stroke();
+      c.strokeStyle = S[4]; c.lineWidth = 1; c.beginPath(); c.moveTo(x + 73, y - 1); c.lineTo(x + 75, y + 6); c.lineTo(x + 69, y + 14); c.lineTo(x + 75, y + 22); c.lineTo(x + 69, y + 30); c.stroke();
+    }
+    if (P.broken) charred(c, x, y, 70, 30, 11);
+  });
+  // (the upper teeth, down from the lip: irregular, the front ones biggest; a couple snapped off, wrecked)
+  for (let i = 0; i < 10; i++) if (!(broken && i % 4 === 2)) fang(c, x + 18 + i * 7.4, y + 29.5 - i * 0.2, [5, 6, 8, 7, 9, 8, 10, 8, 7, 5][i], 1, i > 3 ? 5 : 4);
+  // (the brow's horn over the eye, lit; the nostril; the jaw's servo; the bolts)
+  poly(c, [x + 24, y + 2, x + 33, y - 9, x + 38, y - 8, x + 44, y + 2, x + 34, y + 6], rp(P, mix(SKIN, '#FFFFFF', 0.12)), 0.2);
+  c.fillStyle = INK; c.fillRect(x + 86, y + 9, 5, 4); c.fillStyle = S[1]; c.fillRect(x + 86, y + 8, 5, 1);
+  servo(c, jx, jy, 6);
+  bolts(c, [x + 8, y + 10, x + 26, y + 20, x + 52, y + 26]);
+  if (w >= 2 || broken) hole(c, x + 40, y + 8, 18, 12, f);
+  // the eye: a deep socket; the lamp red and glowing; wrecked, dead (a flicker now and then)
   const ex = x + 34, ey = y + 12;
+  c.fillStyle = INK; c.fillRect(ex - 6, ey - 5, 12, 10); c.fillStyle = S[0]; c.fillRect(ex - 5, ey - 4, 10, 8);
   const lit = !broken || (f % 50 < 4);
   if (lit) {
     c.fillStyle = broken ? 'rgba(239,68,68,0.2)' : `rgba(239, 68, 68, ${0.35 + 0.15 * Math.sin(f * 0.3)})`;

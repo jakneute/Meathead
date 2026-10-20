@@ -11,6 +11,7 @@ import { skyTint, farTint } from '../../../timeOfDay';
 import { drawPerson } from '../../temple/people';
 import { type Ctx, INK, box, text, sign, slab, pole, ball, rampOf, checker, steppedGlow, stamp, bandedGradient } from './kit';
 import { signAt, signText, enamel, print, led } from '../../letters';
+import { drawRaptorIdle } from './robots';
 
 export const PIP = { w: 340, h: 220 };
 const CUT_SCALE = CANVAS_WIDTH / PIP.w;
@@ -120,28 +121,59 @@ const windowView = (c: Ctx, f: number) => {
   c.fillStyle = farTint('#6A5A48', 0.8); c.beginPath(); c.moveTo(60, 88); c.lineTo(84, 62); c.lineTo(92, 62); c.lineTo(112, 88); c.closePath(); c.fill();
   box(c, 84, 60, 8, 3, '#F88A1A');
   for (let i = 0; i < 2; i++) { const kk = ((f * 0.5 + i * 30) % 60) / 60; c.fillStyle = `rgba(240,240,244,${(0.5 * (1 - kk)).toFixed(2)})`; c.fillRect(86 + kk * 4, 56 - kk * 16, 4 + kk * 6, 3 + kk * 3); }
-  box(c, 18, 82, 88, 28, farTint('#4F6A2A', 0.4));
-  box(c, 18, 82, 88, 2, farTint('#6E8A3A', 0.4));
-  // (the fence: posts and wires)
-  for (let x = 22; x < 106; x += 18) box(c, x, 70, 2, 30, '#4A525C');
-  for (const wy of [74, 82, 90]) box(c, 18, wy, 88, 1, '#3A3E44');
-  // (a raptor in the pen, doing its friendly-mode bob)
-  const b = Math.round(Math.sin(f * 0.08) * 1);
-  box(c, 34, 92 + b, 18, 7, '#5B6E58'); box(c, 50, 86 + b, 8, 5, '#5B6E58'); box(c, 28, 94 + b, 8, 3, '#3F4F3D');
-  box(c, 38, 99, 2, 8, '#3F4F3D'); box(c, 46, 99, 2, 8, '#3F4F3D'); box(c, 55, 87 + b, 1, 1, '#60A5FA');
+  // (the jungle along the far side: crowns in two steps, a palm)
+  for (let x = 14; x < 110; x += 9) { const h = 6 + ((x * 7) % 9); box(c, x, 82 - h, 10, h, farTint('#2E5A30', 0.55)); box(c, x + 1, 82 - h, 5, 2, farTint('#4E7A3E', 0.55)); }
+  box(c, 30, 60, 2, 22, farTint('#5A4A36', 0.5)); for (const [dx, dy] of [[-8, 2], [6, 1], [-5, -2], [5, -3]]) box(c, 31 + Math.min(0, dx), 60 + dy, Math.abs(dx) + 1, 2, farTint('#3E7434', 0.5));
+  // (the pen's dirt, banded, its prints)
+  box(c, 18, 82, 88, 28, farTint('#7A5634', 0.35)); box(c, 18, 82, 88, 2, farTint('#946C44', 0.35)); box(c, 18, 96, 88, 14, farTint('#5C4026', 0.35));
+  checker(c, 18, 94, 88, 2, farTint('#5C4026', 0.35));
+  for (const [px, py] of [[30, 90], [60, 100], [90, 92]]) { box(c, px, py, 4, 2, farTint('#3E2A18', 0.35)); box(c, px - 2, py - 2, 2, 2, farTint('#3E2A18', 0.35)); box(c, px + 4, py - 2, 2, 2, farTint('#3E2A18', 0.35)); }
+  // (a raptor in the pen, doing its friendly-mode bit; a second one further off)
+  c.save(); c.translate(86, 92); c.scale(-0.26, 0.26); drawRaptorIdle(c, f + 40, { friendly: true }); c.restore();
+  c.save(); c.translate(46, 106); c.scale(0.4, 0.4); drawRaptorIdle(c, f, { friendly: true }); c.restore();
+  // (the pen's fence, between: steel posts, insulators, the wires)
+  for (let x = 24; x < 106; x += 22) { box(c, x - 1, 62, 4, 48, INK); box(c, x, 62, 2, 48, '#6B7480'); box(c, x, 62, 1, 48, '#9AA4AE'); for (const wy of [66, 76, 86, 96]) box(c, x - 2, wy - 1, 6, 2, '#E8E0C8'); }
+  for (const wy of [66, 76, 86, 96]) box(c, 18, wy, 88, 1, '#2A2E34');
+  // (the glass: a glint across it, a smear)
+  c.fillStyle = 'rgba(220, 236, 255, 0.16)'; c.beginPath(); c.moveTo(24, 110); c.lineTo(36, 110); c.lineTo(64, 38); c.lineTo(52, 38); c.closePath(); c.fill();
+  c.fillStyle = 'rgba(220, 236, 255, 0.08)'; c.beginPath(); c.moveTo(70, 110); c.lineTo(76, 110); c.lineTo(100, 38); c.lineTo(94, 38); c.closePath(); c.fill();
   c.restore();
 };
 
 const paintRoom = (g: Ctx) => {
   const W = PIP.w;
-  // (cinder block, painted green, the courses in steps)
-  box(g, 0, 0, W, 170, '#7E9A80');
-  for (let y = 0; y < 170; y += 12) { box(g, 0, y, W, 1, '#6A866C'); for (let x = (y / 12) % 2 ? 0 : 12; x < W; x += 24) box(g, x, y, 1, 12, '#6A866C'); box(g, 0, y + 1, W, 1, '#90AC92'); }
-  checker(g, 0, 0, W, 2, '#6A866C');
-  // (the floor: linoleum checks, scuffed)
-  box(g, 0, 170, W, 50, '#8A8478');
-  for (let y = 170; y < 220; y += 10) for (let x = (y / 10) % 2 ? 0 : 10; x < W; x += 20) box(g, x, y, 10, 10, '#6A665C');
-  box(g, 0, 168, W, 3, '#4A463E');
+  // (cinder block, painted institutional green: each block lit along its top, shaded along its foot, the mortar
+  // dark; the wall darker in bands toward the floor and the corners, lighter where the window's light falls)
+  const WALL = ['#4E6A52', '#5E7A62', '#6E8A72', '#7E9A80', '#90AC92', '#A4C0A4'];
+  const lit = (x: number, y: number) => { const dx = (x - 60) / 140, dy = (y - 60) / 120; const k = 3.4 - Math.sqrt(dx * dx + dy * dy) * 1.6 - Math.max(0, (y - 120) / 60); return Math.max(1, Math.min(4, Math.round(k))); };
+  for (let y = 0; y < 170; y += 12) for (let x = (y / 12) % 2 ? -12 : 0; x < W; x += 24) {
+    const k = lit(x + 12, y + 6), bw = 23, bh = 11;
+    box(g, x, y, bw, bh, WALL[k]); box(g, x, y, bw, 1, WALL[k + 1]); box(g, x, y + bh - 2, bw, 2, WALL[k - 1]); box(g, x + bw - 1, y, 1, bh, WALL[k - 1]);
+    box(g, x + bw, y, 1, 12, WALL[0]); box(g, x, y + bh, 24, 1, WALL[0]);
+    // (a chip, a scuff, here and there)
+    if (((x * 7 + y * 13) & 31) === 5) box(g, x + 6, y + 4, 3, 2, WALL[k - 1]);
+  }
+  // (a skirting band of darker paint along the foot, scuffed by chair wheels)
+  box(g, 0, 150, W, 18, WALL[1]); box(g, 0, 150, W, 1, WALL[3]); checker(g, 0, 148, W, 2, WALL[1]);
+  for (let x = 60; x < 180; x += 14) box(g, x, 158, 8, 1, WALL[0]);
+  // (the floor: linoleum checks in two tones, darker going toward us, the window's light lying on it, scuffs)
+  const FL = ['#4A463E', '#6A665C', '#8A8478', '#A8A294', '#C4BEB0'];
+  for (let y = 170; y < 220; y += 10) for (let x = 0; x < W; x += 10) {
+    const odd = ((x + y) / 10) % 2 === 1, band = y < 190 ? 2 : y < 205 ? 1 : 1;
+    box(g, x, y, 10, 10, odd ? FL[band - 1 < 0 ? 0 : band - 1] : FL[band]);
+  }
+  checker(g, 0, 188, W, 2, FL[1]);
+  g.fillStyle = 'rgba(255, 246, 214, 0.16)'; g.beginPath(); g.moveTo(20, 170); g.lineTo(108, 170); g.lineTo(150, 220); g.lineTo(40, 220); g.closePath(); g.fill();
+  box(g, 0, 168, W, 3, '#3A362E'); box(g, 0, 171, W, 1, FL[3]);
+  for (const [sx, sy] of [[200, 196], [240, 184], [70, 206]]) box(g, sx, sy, 12, 1, FL[0]);
+  // (a poster: SAFETY FIRST, a cartoon raptor in a hard hat; its corner curling)
+  slab(g, 120, 46, 44, 58, '#F1EFEA');
+  box(g, 122, 48, 40, 10, '#15803D'); signText(g, 'SAFETY', 142, 56, print(4, '#FFFFFF'));
+  box(g, 128, 64, 22, 14, '#6ABA4A'); box(g, 146, 58, 12, 10, '#6ABA4A'); box(g, 154, 62, 4, 2, '#1A0B06'); box(g, 146, 56, 12, 4, '#F2C23A'); box(g, 148, 54, 8, 2, '#F2C23A');
+  box(g, 132, 78, 3, 10, '#4A8A34'); box(g, 142, 78, 3, 10, '#4A8A34'); box(g, 122, 68, 8, 4, '#4A8A34');
+  signText(g, 'FIRST', 142, 100, print(4, '#B91C1C'));
+  box(g, 158, 98, 6, 6, '#C8C4B8'); box(g, 158, 98, 6, 1, '#8A8478');
+  box(g, 121, 46, 2, 2, '#8A8E96'); box(g, 161, 46, 2, 2, '#8A8E96');
   // The window (its frame; the view's drawn live)
   slab(g, 12, 32, 100, 84, '#D6D3D1');
   box(g, 16, 36, 92, 76, INK);
