@@ -260,6 +260,8 @@ export const startFight = (state: GameState, retry: boolean): Fight => {
 };
 
 /** On: out of the cutscene, her in the world, the doorway shut behind him. */
+/** How far off her he is at the least as it starts. */
+const START_GAP = 460;
 const beginFight = (state: GameState, f: Fight) => {
   token++; introVisit = landVisit();
   f.said = null; f.closeup = null;
@@ -267,6 +269,9 @@ const beginFight = (state: GameState, f: Fight) => {
   const p = state.player;
   p.inCutscene = false; p.isDucking = false; p.kickPose = 0;
   f.mode = 'on'; f.act = 'walk'; f.actT = 0; f.actLen = walkLen(f); f.doorT = 999;
+  // (never starting on top of him (the user's): a good way off, on whichever side has the room)
+  { const me = pmid(state).x;
+    if (Math.abs(f.x - me) < START_GAP) f.x = me + START_GAP <= ARENA_R - 80 ? me + START_GAP : Math.max(ARENA_L + 80, me - START_GAP); }
   f.erect = 0;
   state.checkpoint = Math.max(state.checkpoint, CP_FIGHT);
   if (!state.enemies.includes(f.e)) state.enemies.push(f.e);

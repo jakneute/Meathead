@@ -37,7 +37,7 @@ export const LEDGES: [number, number, number, 'canopy' | 'wardrobe' | 'ottoman' 
 export const CHANDELIERS = [360, 1080];
 /** Where she lounges for the reveal (her chaise: near the door, so the two of them share the shot), her vanity, the
  *  trophy wall. */
-export const CHAISE_X = R(240), VANITY_X = R(400), TROPHY_X = R(700);
+export const CHAISE_X = R(720), VANITY_X = R(400), TROPHY_X = R(150);
 /** How many slams wreck the room as far as it goes (and what each one does: room.ts). */
 export const MAX_STAGE = 6;
 
