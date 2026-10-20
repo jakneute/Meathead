@@ -103,54 +103,96 @@ const plateFace = (c: Ctx, x: number, y: number, r: number) => {
   tiny(c, '45', x - 3, y + Math.round(r * 0.45), '#6a6a74');
 };
 
-/** Him in the squat, side on, facing right, `k` how far down (0 stood, 1 rock bottom): three frames, painted once. */
-const squatFig = (frame: number) => figure(`mh2-squat-${frame}`, 64, 80, 30, 78, q => {
+/** Where his joints are in the squat, by frame (0 stood, 1 halfway, 2 rock bottom): side on, facing right, the anchor
+ *  between his boots. `at(u, v)`: a point on his torso (u up the spine from the hip, v forward of it). */
+const squatPose = (frame: number) => {
   const k = frame / 2;
-  const a1 = k * 0.78, a2 = -k * 1.5, a3 = k * 0.62;
+  const a1 = k * 0.72, a2 = k * 1.45, a3 = k * 0.6;
   const ankle = { x: 0, y: -4 };
-  const knee = { x: ankle.x + Math.sin(a1) * 17, y: ankle.y - Math.cos(a1) * 17 };
-  const hip = { x: knee.x + Math.sin(a2) * 17, y: knee.y - Math.cos(a2) * 17 };
-  const sh = { x: hip.x + Math.sin(a3) * 22, y: hip.y - Math.cos(a3) * 22 };
-  // The boots
-  q.form(g => { g.moveTo(-4, -5); g.lineTo(5, -5); g.lineTo(9, -2); g.lineTo(9, 0); g.lineTo(-5, 0); g.closePath(); }, { ramp: BOOT, bevel: 1.5, amb: 0.25, ink: I });
-  q.line(-3, -4, 6, -4, BOOT[4]);
-  // The jeans: the shin, the thigh (thick), the seat
-  q.stroke(g => { g.moveTo(ankle.x, ankle.y); g.lineTo(knee.x, knee.y); }, 10, { ramp: DENIM, bevel: 3, amb: 0.2, ink: I, inkIn: DENIM[0] });
-  q.stroke(g => { g.moveTo(knee.x, knee.y); g.lineTo(hip.x, hip.y); }, 15, { ramp: DENIM, bevel: 5, amb: 0.2, ink: I, inkIn: DENIM[0] });
-  q.form(g => { g.ellipse(hip.x - 2, hip.y + 1, 9, 8, 0, 0, Math.PI * 2); }, { ramp: DENIM, bevel: 4, amb: 0.2, ink: I, inkIn: DENIM[1] });
-  // (the seam down the thigh, the crease behind the knee)
-  q.line(knee.x - 1, knee.y - 3, hip.x + 1, hip.y - 3, DENIM[5]);
-  // The belt, the torso (bare, leaning into it), the lats out
-  q.stroke(g => { g.moveTo(hip.x, hip.y); g.lineTo(sh.x, sh.y); }, 22, { ramp: S, bevel: 7, amb: 0.14, ink: I, inkIn: S[1] });
-  // (the pecs out front, the lats out behind)
-  q.form(g => { g.ellipse(sh.x + 6 + Math.sin(a3) * -4, sh.y + 7, 7, 6, a3, 0, Math.PI * 2); }, { ramp: S, bevel: 4, amb: 0.2, ink: I, inkIn: S[2] });
-  q.form(g => { g.save(); g.translate(hip.x, hip.y); g.rotate(a3); g.rect(-9, -3, 18, 4); g.restore(); }, { ramp: ['#2a1004', '#4a1e08', '#6c300c', '#8c4618', '#aa6028'], bevel: 1, amb: 0.3, ink: I });
-  // (the abs down his front, the lat's edge down his back)
-  for (let j = 0; j < 3; j++) { const u = 0.3 + j * 0.18; q.line(hip.x + Math.sin(a3) * 22 * u + 6, hip.y - Math.cos(a3) * 22 * u, hip.x + Math.sin(a3) * 22 * u + 8, hip.y - Math.cos(a3) * 22 * u, S[3]); }
-  q.line(hip.x - 6 + Math.sin(a3) * 6, hip.y - 6, sh.x - 7, sh.y + 4, S[6]);
-  // The head: square, the flat-top, the brow down, the jaw set; the neck a stump
-  const hx = sh.x + Math.sin(a3) * 5 + 3, hy = sh.y - Math.cos(a3) * 5 - 6;
-  q.form(g => { g.rect(hx - 7, hy - 7, 14, 15); }, { ramp: S, bevel: 3, amb: 0.2, ink: I });
-  q.form(g => { g.rect(hx - 8, hy - 12, 15, 6); }, { ramp: RAMP.mHair, bevel: 2, amb: 0.3, ink: I, gain: 1.2 });
-  q.line(hx - 6, hy - 10, hx + 5, hy - 10, '#4a4a58');
-  q.px(hx + 3, hy - 2, I); q.px(hx + 4, hy - 2, '#f4ece0'); q.line(hx + 1, hy - 4, hx + 5, hy - 3, I);
-  q.px(hx + 6, hy, S[5]); q.px(hx + 6, hy + 1, S[3]);
-  q.line(hx + 2, hy + 4, hx + 5, hy + 4, '#7a1e10');
-  q.px(hx - 3, hy, S[2]); q.px(hx - 3, hy + 1, S[2]);
-  // The arm back to the bar: upper arm out behind, the forearm up, the fist round the bar; the wristband
-  const bx = sh.x - 3, by = sh.y + 1;
-  q.stroke(g => { g.moveTo(sh.x + 1, sh.y + 2); g.lineTo(sh.x - 9, sh.y + 10); }, 12, { ramp: S, bevel: 4.5, amb: 0.2, ink: I, inkIn: S[1] });
-  q.stroke(g => { g.moveTo(sh.x - 9, sh.y + 10); g.lineTo(bx - 4, by - 1); }, 9, { ramp: S, bevel: 3.5, amb: 0.25, ink: I, inkIn: S[1] });
-  q.line(sh.x - 6, sh.y + 6, sh.x - 2, sh.y + 4, S[7]);
-  q.form(g => { g.ellipse(bx - 4, by - 2, 3.5, 3.5, 0, 0, Math.PI * 2); }, { ramp: S, bevel: 2, amb: 0.25, ink: I });
-  q.line(bx - 9, by + 3, bx - 6, by + 0, BOOT[3]);
+  const knee = { x: ankle.x + Math.sin(a1) * 18, y: ankle.y - Math.cos(a1) * 18 };
+  const hip = { x: knee.x - Math.sin(a2) * 19, y: knee.y - Math.cos(a2) * 19 };
+  const up = { x: Math.sin(a3), y: -Math.cos(a3) }, fwd = { x: Math.cos(a3), y: Math.sin(a3) };
+  const at = (u: number, v: number) => ({ x: hip.x + up.x * u + fwd.x * v, y: hip.y + up.y * u + fwd.y * v });
+  // (the bar: on his traps, behind his neck)
+  return { k, a3, ankle, knee, hip, at, bar: at(25, -3) };
+};
+
+type Pt = { x: number; y: number };
+const poly = (pts: Pt[]) => (g: Ctx) => { g.moveTo(pts[0].x, pts[0].y); for (const p of pts.slice(1)) g.lineTo(p.x, p.y); g.closePath(); };
+/** The unit normal of a→b (to the left of it, going along). */
+const perp = (a: Pt, b: Pt) => { const dx = b.x - a.x, dy = b.y - a.y, l = Math.hypot(dx, dy) || 1; return { x: -dy / l, y: dx / l }; };
+const off = (p: Pt, n: Pt, d: number) => ({ x: p.x + n.x * d, y: p.y + n.y * d });
+
+/** Him in the squat, side on, facing right: boots, jeans, the lifting belt, bare and leaning into it, the flat-top, the
+ *  near arm back to the bar (the plate goes on over it). Three frames, painted once. */
+const squatFig = (frame: number) => figure(`mh2-squat-b${frame}`, 80, 98, 38, 94, q => {
+  const { k, a3, ankle, knee, hip, at } = squatPose(frame);
+  const BELTR = ['#1e0c04', '#3a1a08', '#5a2a0e', '#7c3e16', '#9c5624', '#b87038'];
+  const L = (a: Pt, b: Pt, col: string) => q.line(a.x, a.y, b.x, b.y, col);
+  // The boot: the heel, the sole, the toe out front, laced
+  q.form(g => { g.moveTo(-5, -10); g.lineTo(3, -10); g.lineTo(5, -6); g.lineTo(11, -4.5); g.bezierCurveTo(13.5, -4, 13.5, -1, 12.5, 0); g.lineTo(-6, 0); g.lineTo(-6, -6); g.closePath(); }, { ramp: BOOT, bevel: 2, amb: 0.22, ink: I });
+  q.line(-6, -1, 12, -1, '#3a3a44'); q.px(4, -7, BOOT[4]); q.px(6, -6, BOOT[4]); q.px(8, -5, BOOT[3]); q.px(-4, -8, BOOT[4]);
+  // The shin (the calf swelling out behind), up to the knee
+  {
+    const n = perp(ankle, knee); // (n: the back of the leg)
+    const mid = { x: (ankle.x + knee.x) / 2, y: (ankle.y + knee.y) / 2 };
+    q.form(poly([off(ankle, n, -4.5), off(ankle, n, 4), off(mid, n, 7), off(knee, n, 5.5), off(knee, n, -5.5), off(mid, n, -4.5)]), { ramp: DENIM, bevel: 3.5, amb: 0.2, ink: I, inkIn: DENIM[0] });
+    L(off(ankle, n, -2.5), off(knee, n, -3.5), DENIM[5]);
+    L(off(ankle, n, 1), off(knee, n, 1), DENIM[2]);
+  }
+  // The thigh, thick, the quad bulging up front; the seat round behind; the pocket on it
+  {
+    const n = perp(knee, hip);
+    const mid = { x: (knee.x + hip.x) / 2, y: (knee.y + hip.y) / 2 };
+    q.form(poly([off(knee, n, 6), off(mid, n, 9.5), off(hip, n, 8.5), off(hip, n, -8.5), off(mid, n, -8), off(knee, n, -6)]), { ramp: DENIM, bevel: 5, amb: 0.2, ink: I, inkIn: DENIM[0] });
+    q.form(g => { g.ellipse(hip.x - 4 - k * 2, hip.y + 1 - k, 9.5, 9, a3, 0, Math.PI * 2); }, { ramp: DENIM, bevel: 5, amb: 0.18, ink: I, inkIn: DENIM[1] });
+    // (the seam down the thigh, the light along its top, the crease behind the knee)
+    L(off(knee, n, -1), off(hip, n, -1), DENIM[2]);
+    L(off(knee, n, -4), off(mid, n, -6), DENIM[6]);
+    const pk = { x: Math.round(hip.x - 9 - k * 2), y: Math.round(hip.y - 3) };
+    q.line(pk.x, pk.y, pk.x + 6, pk.y + Math.round(k * 2), DENIM[1]); q.line(pk.x, pk.y + 1, pk.x + 1, pk.y + 6, DENIM[1]);
+    if (k > 0) L(off(knee, n, 5), off(knee, n, 1), DENIM[0]);
+  }
+  // The torso: the lats out behind, the chest out front, the traps up to his ears
+  q.form(poly([at(0, -7.5), at(8, -9.5), at(15, -13), at(21, -12), at(25, -8.5), at(28.5, -3), at(28.5, 3), at(25.5, 8.5), at(21.5, 13), at(16, 12), at(11, 8.5), at(5, 7.5), at(0, 6.5)]), { ramp: S, bevel: 7, amb: 0.14, ink: I, inkIn: S[1] });
+  // (the pec's shelf, the shadow under it; the abs stacked down his front; the serratus; the lat's edge, lit)
+  L(at(16.5, 10.5), at(16, 3), S[2]); L(at(17.5, 10), at(17, 4), S[3]);
+  L(at(23, 9.5), at(22, 3.5), S[7]); L(at(24, 8), at(23.5, 4), S[6]);
+  for (const u of [5, 8.5, 12]) { L(at(u, 7), at(u, 3.5), S[3]); L(at(u + 1, 6.5), at(u + 1, 4), S[6]); }
+  for (const u of [12.5, 14.5]) L(at(u, 1.5), at(u - 1.5, -0.5), S[3]);
+  L(at(9, -8.5), at(20, -9.5), S[6]); L(at(10, -6.5), at(19, -7.5), S[3]);
+  // The lifting belt, wide, cinched, its buckle out front
+  q.form(poly([at(0.5, -8.5), at(7, -9), at(7, 8.5), at(0.5, 7.5)]), { ramp: BELTR, bevel: 1.5, amb: 0.3, ink: I });
+  L(at(3.8, -8), at(3.8, 7.5), BELTR[4]);
+  { const bk = at(4, 7.5); q.form(g => { g.rect(bk.x - 1.5, bk.y - 2.5, 3, 5); }, { ramp: RAMP.gold, bevel: 1.5, ink: '#5c3c00' }); }
+  // The neck, a stump, the traps sloping into it; the head square and upright (he looks ahead)
+  const hc = { x: at(28, 0).x + 3 + k * 2, y: at(28, 0).y - 9 };
+  q.form(poly([at(25, -6), at(29, -4.5), { x: hc.x - 4, y: hc.y + 3 }, { x: hc.x + 4, y: hc.y + 6 }, at(29.5, 5), at(25.5, 6.5)]), { ramp: S, bevel: 3, amb: 0.14, ink: I, inkIn: S[1] });
+  q.form(g => { g.moveTo(hc.x - 7, hc.y - 6); g.lineTo(hc.x + 6, hc.y - 6); g.lineTo(hc.x + 7.5, hc.y - 1); g.lineTo(hc.x + 9, hc.y + 1.5); g.lineTo(hc.x + 7.5, hc.y + 2.5); g.lineTo(hc.x + 7.5, hc.y + 6); g.lineTo(hc.x + 4, hc.y + 8.5); g.lineTo(hc.x - 4, hc.y + 8.5); g.lineTo(hc.x - 7, hc.y + 4); g.closePath(); }, { ramp: S, bevel: 3.5, amb: 0.2, ink: I });
+  // (the flat-top: dead flat and lit on top, square at the back, the bristles)
+  q.form(g => { g.rect(hc.x - 8, hc.y - 12, 15, 7); }, { ramp: RAMP.mHair, bevel: 2, amb: 0.3, ink: I, gain: 1.2 });
+  for (let x = Math.round(hc.x - 7); x < hc.x + 6; x++) { q.px(x, Math.round(hc.y - 11), x < hc.x ? '#5a5a68' : '#44444e'); if ((x & 1) === 0) q.line(x, Math.round(hc.y - 9), x, Math.round(hc.y - 6), '#2a2a32'); }
+  // (the ear; the brow down; the eye fixed ahead; the nose; the jaw set in a grin; the stubble)
+  q.form(g => { g.ellipse(hc.x - 2.5, hc.y + 1, 2, 3, 0, 0, Math.PI * 2); }, { ramp: S, bevel: 1.5, amb: 0.2, ink: I });
+  q.px(hc.x - 2, hc.y + 1, S[2]);
+  q.line(hc.x + 2, hc.y - 3, hc.x + 6, hc.y - 3, I); q.line(hc.x + 2, hc.y - 4, hc.x + 5, hc.y - 4, I);
+  q.px(hc.x + 4, hc.y - 1, I); q.px(hc.x + 5, hc.y - 1, '#f4ece0'); q.px(hc.x + 4, hc.y, S[3]);
+  q.px(hc.x + 8, hc.y + 1, S[6]); q.px(hc.x + 7, hc.y + 2, S[3]);
+  q.line(hc.x + 3, hc.y + 5, hc.x + 6, hc.y + 4, '#7a1e10'); q.px(hc.x + 5, hc.y + 4, '#f4ecdc'); q.px(hc.x + 4, hc.y + 5, '#f4ecdc');
+  for (const [dx, dy] of [[0, 7], [2, 7], [4, 7], [6, 6], [1, 5], [-3, 5], [-1, 6]]) q.px(hc.x + dx, hc.y + dy, '#8c5c30');
+  q.line(hc.x - 6, hc.y - 5, hc.x + 5, hc.y - 5, S[7]);
+  // The near arm: the upper arm back and down off the shoulder to the elbow, the forearm up to the bar, the fist round it
+  const sh = at(22, -1.5), el = at(13, -11), fist = at(24, -6.5);
+  q.stroke(g => { g.moveTo(sh.x, sh.y); g.lineTo(el.x, el.y); }, 10, { ramp: S, bevel: 4, amb: 0.2, ink: I, inkIn: S[1] });
+  q.stroke(g => { g.moveTo(el.x, el.y); g.lineTo(fist.x, fist.y); }, 8, { ramp: S, bevel: 3.5, amb: 0.22, ink: I, inkIn: S[2] });
+  { const n = perp(sh, el), m = { x: (sh.x + el.x) / 2, y: (sh.y + el.y) / 2 }; L(off(m, n, 3), off(sh, n, 3), S[7]); L(off(el, n, -2), off(m, n, -3), S[2]); }
+  L(at(20.5, -8.5), at(21.5, -5), BOOT[2]); L(at(21, -8.5), at(22, -5), BOOT[3]);
+  q.form(g => { g.ellipse(fist.x, fist.y, 3.5, 3.5, 0, 0, Math.PI * 2); }, { ramp: S, bevel: 2, amb: 0.25, ink: I });
+  // (the delt capped round over the top of it)
+  q.form(g => { g.ellipse(sh.x, sh.y + 1, 6, 5.5, a3, 0, Math.PI * 2); }, { ramp: S, bevel: 3, amb: 0.2, ink: I, inkIn: S[2] });
 });
 /** Where the bar sits on him, by frame (for the plate in front). */
-const barAt = (frame: number) => {
-  const k = frame / 2, a1 = k * 0.78, a2 = -k * 1.5, a3 = k * 0.62;
-  const kx = Math.sin(a1) * 17, ky = -4 - Math.cos(a1) * 17, hx = kx + Math.sin(a2) * 17, hy = ky - Math.cos(a2) * 17;
-  return { x: hx + Math.sin(a3) * 22 - 3, y: hy - Math.cos(a3) * 22 + 1 };
-};
+const barAt = (frame: number) => squatPose(frame).bar;
 
 /** Leg day, wide: the rack, him squatting in it (`k` 0..1 how deep), a drop of sweat at the bottom of each rep. */
 const squatter = (c: Ctx, t: number, k: number, x = 104, base = 134) => {
@@ -160,7 +202,7 @@ const squatter = (c: Ctx, t: number, k: number, x = 104, base = 134) => {
   c.fillStyle = 'rgba(0,0,0,0.35)'; c.beginPath(); c.ellipse(x + 2, base + 1, 18, 2.5, 0, 0, Math.PI * 2); c.fill();
   squatFig(frame)(c, x, base);
   const b = barAt(frame);
-  plateFace(c, x + b.x - 2, base + b.y + 2, 10);
+  plateFace(c, x + b.x, base + b.y, 9);
   if (frame === 2) for (let i = 0; i < 3; i++) R(c, x + b.x + 10 + hash(t + i) * 8, base + b.y - 12 - hash(t * 3 + i) * 8, 1, 2, '#9cdcfc');
 };
 
@@ -176,53 +218,121 @@ const tvShell = (key: string, w: number, h: number) => painting(key, w + 8, h + 
   p.form(g => { g.roundRect(3, 9, w + 2, h + 2, 4); }, { ramp: ['#040406', '#0a0a0e', '#121218'], bevel: 2, amb: 0.4, ink: null });
 });
 
-/** The news on it: the set, the anchor (`talking`), the over-the-shoulder graphic (him behind bars), the lower third. */
-const newsPicture = (c: Ctx, x: number, y: number, w: number, h: number, t: number, talking: boolean) => {
+/** The news's still part, painted once at the big TV's size (196 x 116; the small sets get it shrunk): the studio, the
+ *  graphic over her shoulder (his mugshot, the orange jumpsuit, behind bars), the anchor (blazer, pearls, the helmet of
+ *  blonde, the smile that's seen it all). Her mouth goes on over it (NEWS_MOUTH). */
+const NEWS_W = 196, NEWS_H = 116;
+const NEWS_MOUTH = { x: 58, y: 51 };
+const newsStill = () => painting('gym2-news', NEWS_W, NEWS_H, (p: Painter) => {
+  const W = NEWS_W, H = NEWS_H;
+  const SK = ['#4a2418', '#6c3826', '#925236', '#b46e4a', '#d08e64', '#e6ae84', '#f6ceaa'];
+  const HAIR = ['#5a3c0c', '#7c5814', '#a07a1e', '#c49c30', '#dcbc50', '#eed67c', '#faf0b8'];
+  const BLAZER = ['#2c060c', '#480c18', '#681424', '#8a1e30', '#aa2c40', '#c84458'];
+  const MS = ['#2a1006', '#46200e', '#6a3418', '#8c4a24', '#ae6432', '#c87e44', '#dc9a5a', '#ecb878'];
+  const JUMP = ['#5a1c04', '#8a3008', '#b8480c', '#dc6418', '#f08834', '#f8ac64'];
+  // The graphic, over her shoulder: the box, the height chart, him, the bars
+  const gx = 110, gy = 12, gw = 74, gh = 50;
+  p.rect(gx - 2, gy - 2, gw + 4, gh + 4, '#0a0e1c'); p.rect(gx - 1, gy - 1, gw + 2, gh + 2, '#e8ecf4');
+  for (let y = 0; y < gh; y++) { const band = Math.floor((y / gh) * 4); p.rect(gx, gy + y, gw, 1, ['#8a929e', '#7c8490', '#6e7682', '#626a76'][band]); }
+  for (let k = 0; k < 6; k++) { const y = gy + 4 + k * 8; p.rect(gx + 2, y, gw - 4, 1, '#4a525c'); p.rect(gx + 2, y + 1, 4, 1, '#a8b0bc'); }
+  // (him: the jumpsuit's shoulders, the neck, the square head, the flat-top, the scowl)
+  const fx = gx + gw / 2 - 2;
+  p.form(g => { g.moveTo(gx + 6, gy + gh); g.bezierCurveTo(gx + 10, gy + 38, gx + 20, gy + 35, fx, gy + 35); g.bezierCurveTo(fx + 18, gy + 35, gx + gw - 10, gy + 38, gx + gw - 4, gy + gh); g.closePath(); }, { ramp: JUMP, bevel: 6, amb: 0.2, ink: I });
+  p.form(g => { g.moveTo(fx - 7, gy + 35); g.lineTo(fx + 7, gy + 35); g.lineTo(fx, gy + 43); g.closePath(); }, { ramp: MS, bevel: 2, amb: 0.2, ink: null });
+  p.line(fx - 7, gy + 35, fx, gy + 43, JUMP[1]); p.line(fx + 7, gy + 35, fx, gy + 43, JUMP[1]);
+  p.form(g => { g.rect(fx - 6, gy + 29, 12, 8); }, { ramp: MS, bevel: 3, amb: 0.15, ink: I, inkIn: MS[1] });
+  p.form(g => { g.moveTo(fx - 9, gy + 12); g.lineTo(fx + 9, gy + 12); g.lineTo(fx + 9, gy + 28); g.lineTo(fx + 6, gy + 32); g.lineTo(fx - 6, gy + 32); g.lineTo(fx - 9, gy + 28); g.closePath(); }, { ramp: MS, bevel: 4, amb: 0.2, ink: I });
+  for (const s of [-1, 1]) p.form(g => { g.ellipse(fx + s * 10, gy + 21, 2, 3.5, 0, 0, Math.PI * 2); }, { ramp: MS, bevel: 1.5, amb: 0.2, ink: I });
+  p.form(g => { g.rect(fx - 10, gy + 5, 20, 8); }, { ramp: RAMP.mHair, bevel: 2, amb: 0.3, ink: I, gain: 1.2 });
+  for (let x = fx - 9; x < fx + 9; x++) { p.px(x, gy + 6, x < fx ? '#5a5a68' : '#44444e'); if ((x & 1) === 0) p.line(x, gy + 8, x, gy + 11, '#2a2a32'); }
+  for (const s of [-1, 1]) { p.line(fx + s * 2, gy + 16 + (s < 0 ? 0 : 0), fx + s * 7, gy + 15, I); p.line(fx + s * 2, gy + 17, fx + s * 7, gy + 16, I); p.px(fx + s * 4, gy + 19, I); p.px(fx + s * 4 + (s < 0 ? -1 : 1), gy + 19, '#f4ece0'); }
+  p.line(fx, gy + 18, fx - 1, gy + 23, MS[6]); p.line(fx, gy + 23, fx + 1, gy + 23, MS[2]);
+  p.line(fx - 4, gy + 27, fx + 4, gy + 27, '#5a1408'); p.px(fx - 4, gy + 26, '#5a1408'); p.px(fx + 4, gy + 26, '#5a1408');
+  for (const [dx, dy] of [[-6, 28], [-4, 30], [-1, 30], [2, 30], [5, 29], [-7, 26], [7, 26]]) p.px(fx + dx, gy + dy, MS[2]);
+  // (the placard he's holding: his number)
+  p.rect(fx - 12, gy + gh - 9, 24, 8, I); p.rect(fx - 11, gy + gh - 8, 22, 6, '#f4f1e4');
+  tinyP(p, '00001', fx - 9, gy + gh - 7, '#20242c');
+  // (the bars over it all)
+  for (let k = 0; k < 6; k++) { const bx = gx + 3 + Math.round(k * (gw - 8) / 5); p.rect(bx - 1, gy, 4, gh, '#14161c'); p.rect(bx, gy, 2, gh, '#5c636e'); p.rect(bx, gy, 1, gh, '#b6bec8'); }
+  p.rect(gx, gy + 2, gw, 3, '#14161c'); p.rect(gx, gy + 3, gw, 1, '#868e9a');
+  // The anchor: the blazer's shoulders, the blouse, the pearls; the neck, the face; the hair
+  const ax = 58, hy = 42;
+  p.form(g => { g.moveTo(14, H); g.bezierCurveTo(16, 82, 30, 72, 46, 69); g.lineTo(70, 69); g.bezierCurveTo(86, 72, 100, 82, 102, H); g.closePath(); }, { ramp: BLAZER, bevel: 10, amb: 0.15, ink: I });
+  p.form(g => { g.moveTo(48, 69); g.lineTo(68, 69); g.lineTo(58, 90); g.closePath(); }, { ramp: ['#a8a29a', '#c8c2b8', '#e2ddd2', '#f4f0e8', '#fffcf6'], bevel: 4, amb: 0.35, ink: I, inkIn: BLAZER[0] });
+  // (the lapels: the blazer folding back, lit along their edge)
+  for (const s of [-1, 1]) p.form(g => { g.moveTo(ax + s * 10, 69); g.lineTo(ax + s * 17, 70); g.lineTo(ax + s * 6, 96); g.lineTo(ax + s * 1, 90); g.closePath(); }, { ramp: BLAZER, bevel: 3, amb: s < 0 ? 0.3 : 0.15, ink: I, inkIn: BLAZER[0] });
+  p.line(ax - 10, 70, ax - 2, 89, BLAZER[5]);
+  p.form(g => { g.moveTo(ax - 6, 58); g.lineTo(ax + 6, 58); g.lineTo(ax + 7, 70); g.lineTo(ax, 74); g.lineTo(ax - 7, 70); g.closePath(); }, { ramp: SK, bevel: 4, amb: 0.15, ink: I, inkIn: SK[1] });
+  p.line(ax - 5, 60, ax + 5, 60, SK[1]);
+  for (let k = 0; k < 9; k++) { const u = k / 8, x = ax - 7 + u * 14, y = 69 + Math.sin(u * Math.PI) * 4; p.disc(x, y, 1.2, 1.2, '#d8d4cc'); p.px(x - 0.5, y - 0.5, '#ffffff'); }
+  // (the hair behind her head: the bob, down to the jaw)
+  p.form(g => { g.moveTo(ax - 17, 54); g.bezierCurveTo(ax - 21, 34, ax - 16, 18, ax, 18); g.bezierCurveTo(ax + 16, 18, ax + 21, 34, ax + 17, 54); g.bezierCurveTo(ax + 12, 58, ax - 12, 58, ax - 17, 54); g.closePath(); }, { ramp: HAIR, bevel: 6, amb: 0.25, ink: I, spec: '#fffbe0', wet: 0.6 });
+  // (the face: an oval, the jaw soft; the ears tucked under the hair)
+  p.form(g => { g.moveTo(ax - 12, hy - 4); g.bezierCurveTo(ax - 12, hy - 18, ax + 12, hy - 18, ax + 12, hy - 4); g.bezierCurveTo(ax + 12, hy + 8, ax + 6, hy + 17, ax, hy + 17); g.bezierCurveTo(ax - 6, hy + 17, ax - 12, hy + 8, ax - 12, hy - 4); g.closePath(); }, { ramp: SK, bevel: 7, amb: 0.2, ink: I, inkIn: HAIR[0] });
+  // (the fringe swept across, the shine on it)
+  p.form(g => { g.moveTo(ax - 14, hy - 2); g.bezierCurveTo(ax - 15, hy - 22, ax + 15, hy - 24, ax + 15, hy - 4); g.bezierCurveTo(ax + 10, hy - 12, ax - 2, hy - 14, ax - 8, hy - 9); g.bezierCurveTo(ax - 11, hy - 6, ax - 12, hy - 4, ax - 14, hy - 2); g.closePath(); }, { ramp: HAIR, bevel: 5, amb: 0.3, ink: I, spec: '#fffbe0', wet: 0.7 });
+  p.line(ax - 8, hy - 16, ax + 6, hy - 17, HAIR[6]); p.line(ax - 6, hy - 11, ax + 8, hy - 13, HAIR[2]);
+  // (the brows, the eyes: lashes, blue shadow, the whites, the irises; the nose; the cheeks rouged; the earrings)
+  for (const s of [-1, 1]) {
+    const ex = ax + s * 5.5;
+    p.line(ex - 3, hy - 6, ex + 3, hy - 6 - (s < 0 ? 1 : 0) + (s < 0 ? 0 : 0), HAIR[1]);
+    p.rect(ex - 3, hy - 4, 6, 1, '#6c88c8');
+    p.rect(ex - 2, hy - 3, 5, 2, '#f8f4ee'); p.rect(ex - 1 + (s < 0 ? 0 : 0), hy - 3, 2, 2, '#2c5aa8'); p.px(ex - 1, hy - 3, '#0a0e1c');
+    p.line(ex - 3, hy - 3, ex + 3, hy - 4, I); p.px(ex + (s < 0 ? -3 : 3), hy - 4, I);
+    p.disc(ex, hy + 4, 3, 1.5, '#e07872', 0.55);
+    p.disc(ax + s * 13, hy + 6, 1.5, 1.5, RAMP.gold[4]); p.px(ax + s * 13 - 0.5, hy + 5.5, '#fffbe0');
+  }
+  p.line(ax + 1, hy - 1, ax + 1, hy + 4, SK[3]); p.px(ax, hy + 5, SK[2]); p.px(ax + 2, hy + 5, SK[2]); p.px(ax - 1, hy + 2, SK[6]);
+  // (the lips: lipstick, the smile)
+  p.line(ax - 4, hy + 9, ax + 4, hy + 9, '#9c1c34'); p.px(ax - 5, hy + 8, '#9c1c34'); p.px(ax + 5, hy + 8, '#9c1c34');
+  p.line(ax - 3, hy + 10, ax + 3, hy + 10, '#c8384c'); p.px(ax - 1, hy + 10, '#e87080');
+  // The desk across the bottom: glossy, the network's stripe
+  p.form(g => { g.rect(0, H - 30, W * 0.62, 30); }, { ramp: ['#0a1430', '#122048', '#1a2c60', '#243a78', '#34508e'], bevel: 3, amb: 0.3, ink: I });
+  p.rect(0, H - 30, Math.round(W * 0.62), 1, '#6c88c8'); p.rect(0, H - 26, Math.round(W * 0.62), 2, '#b01818');
+}, g => {
+  // (the studio: the blue, the skyline backdrop, its lit windows, the spotlights)
+  bands(g, 0, 0, NEWS_W, NEWS_H, ['#081440', '#0a1a4c', '#0e2260', '#122a74', '#183488', '#1e3e9a']);
+  for (let k = 0; k < 11; k++) {
+    const bw = NEWS_W / 11, top = Math.round(NEWS_H * 0.22 + hash(k) * NEWS_H * 0.22);
+    g.fillStyle = '#0a143a'; g.fillRect(Math.round(k * bw), top, Math.ceil(bw) - 1, NEWS_H);
+    g.fillStyle = '#16204c'; g.fillRect(Math.round(k * bw), top, 1, NEWS_H);
+    for (let j = 0; j < 8; j++) if (hash(k * 9 + j) > 0.45) { g.fillStyle = hash(k + j * 3) > 0.7 ? '#f8e8a0' : '#c89c40'; g.fillRect(Math.round(k * bw) + 2 + (j % 2) * 5, top + 4 + Math.floor(j / 2) * 6, 2, 3); }
+  }
+  for (let r = 4; r >= 1; r--) { g.fillStyle = `rgba(120, 160, 255, ${0.05 * (5 - r)})`; g.beginPath(); g.ellipse(58, 40, r * 14, r * 12, 0, 0, Math.PI * 2); g.fill(); }
+});
+
+/** The 3x5 font, onto a Painter. */
+const tinyP = (p: Painter, s: string, x: number, y: number, col: string) => {
+  [...s.toUpperCase()].forEach((ch, i) => { const gl = GLYPH[ch] ?? GLYPH[' ']; for (let k = 0; k < 15; k++) if (gl[k] === '1') p.px(x + i * 4 + (k % 3), y + Math.floor(k / 3), col); });
+};
+
+/** The news on it: the painted still (the anchor `talking`, the graphic), the lower third, the ticker, the logo, the
+ *  scanlines. Small sets (the wide shots) get it shrunk and leave the words off (too small to read). */
+export const newsPicture = (c: Ctx, x: number, y: number, w: number, h: number, t: number, talking: boolean) => {
   c.save(); c.beginPath(); c.rect(x, y, w, h); c.clip();
-  bands(c, x, y, w, h, ['#0a1a4a', '#0e2260', '#122a74', '#183488', '#1e3e9a', '#16307c']);
-  // (the studio's skyline backdrop, lit windows)
-  for (let k = 0; k < 9; k++) { const bw = w / 9; R(c, x + k * bw, y + h * 0.25 + hash(k) * h * 0.2, bw - 1, h, '#0a143a'); for (let j = 0; j < 5; j++) if (hash(k * 9 + j) > 0.5) R(c, x + k * bw + 2 + (j % 2) * 4, y + h * 0.35 + j * 4, 2, 2, '#e8c860'); }
-  const s = w / 150;
-  // The graphic, over her shoulder: his mugshot behind bars, GUANTANAMO BAY
-  const gx = x + w * 0.55, gy = y + h * 0.1, gw = w * 0.38, gh = h * 0.42;
-  R(c, gx - 1, gy - 1, gw + 2, gh + 2, '#f8fafc');
-  bands(c, gx, gy, gw, gh, ['#5c6470', '#6c7480', '#7c8490', '#6c7480']);
-  for (let k = 0; k < 4; k++) R(c, gx + 2, gy + 4 + k * (gh / 5), gw - 4, 1, '#3c444e'); // (the height lines)
-  // (his face in it: the square head, the flat-top, a scowl)
-  const fx = gx + gw / 2, fy = gy + gh * 0.55, fs = gh / 30;
-  R(c, fx - 7 * fs, fy + 5 * fs, 14 * fs, 8 * fs, S[4]);
-  R(c, fx - 5 * fs, fy - 6 * fs, 10 * fs, 11 * fs, S[5]); R(c, fx + 2 * fs, fy - 6 * fs, 3 * fs, 11 * fs, S[3]);
-  R(c, fx - 6 * fs, fy - 9 * fs, 12 * fs, 4 * fs, '#101014');
-  R(c, fx - 3 * fs, fy - 2 * fs, 2 * fs, 1 * fs, I); R(c, fx + 1 * fs, fy - 2 * fs, 2 * fs, 1 * fs, I); R(c, fx - 2 * fs, fy + 2 * fs, 4 * fs, 1 * fs, '#7a1e10');
-  for (let k = 0; k < 5; k++) { R(c, gx + 2 + k * (gw - 4) / 4, gy, 2, gh, '#2c2c34'); R(c, gx + 2 + k * (gw - 4) / 4, gy, 1, gh, '#8c8c98'); }
-  // The anchor: blazer, blouse, the helmet of hair, the smile that's seen it all
-  const ax = x + w * 0.3, ay = y + h * 0.95;
-  c.fillStyle = '#7a1a2a'; c.beginPath(); c.moveTo(ax - 26 * s, ay); c.quadraticCurveTo(ax - 24 * s, ay - 30 * s, ax, ay - 32 * s); c.quadraticCurveTo(ax + 24 * s, ay - 30 * s, ax + 26 * s, ay); c.fill();
-  c.fillStyle = '#a42638'; c.fillRect(ax - 22 * s, ay - 28 * s, 6 * s, 26 * s);
-  c.fillStyle = '#f4ece4'; c.beginPath(); c.moveTo(ax - 6 * s, ay - 31 * s); c.lineTo(ax + 6 * s, ay - 31 * s); c.lineTo(ax, ay - 18 * s); c.fill();
-  c.fillStyle = '#e8b890'; c.fillRect(ax - 4 * s, ay - 38 * s, 8 * s, 8 * s);
-  c.fillStyle = '#f0c8a0'; c.beginPath(); c.ellipse(ax, ay - 46 * s, 10 * s, 12 * s, 0, 0, Math.PI * 2); c.fill();
-  c.fillStyle = '#d8a478'; c.fillRect(ax + 4 * s, ay - 56 * s, 6 * s, 20 * s);
-  c.fillStyle = '#e8c048'; c.beginPath(); c.ellipse(ax - 1 * s, ay - 52 * s, 13 * s, 10 * s, 0, Math.PI, 0); c.fill();
-  c.fillRect(ax - 14 * s, ay - 52 * s, 6 * s, 16 * s); c.fillRect(ax + 8 * s, ay - 52 * s, 6 * s, 16 * s);
-  c.fillStyle = '#c89c28'; c.fillRect(ax - 14 * s, ay - 44 * s, 6 * s, 2 * s);
-  R(c, ax - 5 * s, ay - 48 * s, 3 * s, 2 * s, '#2a1a10'); R(c, ax + 2 * s, ay - 48 * s, 3 * s, 2 * s, '#2a1a10');
-  const open = talking && t % 10 < 5;
-  R(c, ax - 3 * s, ay - 41 * s, 6 * s, (open ? 3 : 1) * s, open ? '#5a1010' : '#b04050');
-  if (open) R(c, ax - 2 * s, ay - 41 * s, 4 * s, 1 * s, '#f8f0e8');
+  const big = w >= 150, s = w / NEWS_W;
+  c.imageSmoothingEnabled = !big;
+  c.drawImage(newsStill(), x, y, w, h);
+  c.imageSmoothingEnabled = false;
+  if (big && talking && t % 10 < 5) { R(c, x + NEWS_MOUTH.x - 3, y + NEWS_MOUTH.y - 1, 7, 3, '#4a0a14'); R(c, x + NEWS_MOUTH.x - 2, y + NEWS_MOUTH.y - 1, 5, 1, '#f8f0e8'); R(c, x + NEWS_MOUTH.x - 3, y + NEWS_MOUTH.y + 2, 7, 1, '#c8384c'); }
   // The lower third: GUANTANAMO BAY, DAY 400; the ticker under it
-  const ly = y + h - 18 * s;
-  R(c, x, ly, w, 10 * s, '#b01818'); R(c, x, ly, w, 1 * s, '#f87070');
-  tiny(c, 'GUANTANAMO BAY: DAY 400', x + 4 * s, ly + 2.5 * s, '#ffffff', Math.max(1, Math.round(s)));
-  R(c, x, ly + 10 * s, w, 8 * s, '#f8fafc');
-  const tick = 'PRESIDENT KILLER STILL MISERABLE ... HAPPY LAND RECORD ATTENDANCE ... GAS UP 40 CENTS ... ';
-  c.save(); c.beginPath(); c.rect(x, ly + 10 * s, w, 8 * s); c.clip();
-  tiny(c, tick + tick, x + w - ((t * 1.2) % (tinyW(tick) * Math.max(1, Math.round(s)))), ly + 11.5 * s, '#0a1a4a', Math.max(1, Math.round(s)));
-  c.restore();
-  // (the logo in the corner)
-  R(c, x + 3 * s, y + 3 * s, 18 * s, 8 * s, '#f8fafc'); tiny(c, 'MNN', x + 5 * s, y + 4.5 * s, '#b01818', Math.max(1, Math.round(s)));
+  const ly = y + h - Math.round(22 * s);
+  bands(c, x, ly, w, Math.round(12 * s), ['#d02020', '#b81818', '#a01414', '#881010']);
+  R(c, x, ly, w, Math.max(1, Math.round(s)), '#f87070');
+  R(c, x, ly + Math.round(12 * s), w, Math.round(10 * s), '#f8fafc');
+  R(c, x, ly + Math.round(12 * s), w, Math.max(1, Math.round(s)), '#a8b0bc');
+  if (big) {
+    R(c, x, ly, 34, 12, '#f8fafc'); tiny(c, 'LIVE', x + 3, ly + 4, '#b01818'); R(c, x + 21, ly + 5, 3, 3, '#e01818');
+    tiny(c, 'GUANTANAMO BAY: DAY 400', x + 40, ly + 4, '#000000'); tiny(c, 'GUANTANAMO BAY: DAY 400', x + 39, ly + 3, '#ffffff');
+    const tick = 'PRESIDENT KILLER STILL MISERABLE ... HAPPY LAND RECORD ATTENDANCE ... GAS UP 40 CENTS ... ';
+    c.save(); c.beginPath(); c.rect(x, ly + 12, w, 10); c.clip();
+    tiny(c, tick + tick, x - ((t * 1.2) % (tinyW(tick) + 1)), ly + 15, '#0a1a4a');
+    c.restore();
+    // (the logo in the corner)
+    R(c, x + 4, y + 4, 21, 10, '#0a0e1c'); R(c, x + 5, y + 5, 19, 8, '#f8fafc'); R(c, x + 5, y + 11, 19, 2, '#b01818'); tiny(c, 'MNN', x + 9, y + 6, '#0a1a4a');
+  }
   // Scanlines, a roll of brighter lines down it
-  c.fillStyle = 'rgba(0,0,0,0.22)'; for (let yy = y; yy < y + h; yy += 2) c.fillRect(x, yy, w, 1);
+  c.fillStyle = 'rgba(0,0,0,0.2)'; for (let yy = y; yy < y + h; yy += 2) c.fillRect(x, yy, w, 1);
   const roll = y + ((t * 1.5) % (h + 20)) - 10;
   c.fillStyle = 'rgba(255,255,255,0.06)'; c.fillRect(x, roll, w, 6);
   c.restore();
@@ -330,17 +440,40 @@ export const shotDoorway = (who: 'him' | 'her' | 'none', settled = false) => (c:
   if (t < 14) for (let i = 0; i < 8; i++) R(c, 214 + hash(i) * 6, 33 + hash(i + 9) * 70 + t, 1, 1, '#d8d0b0');
 };
 
+/** His hand up into the shot from the bottom: the sleeve, the cuff, the fist, one finger up for the key ring. */
+const keysHand = () => painting('m2-keys-hand', ART_W, ART_H, (p: Painter) => {
+  p.form(g => { g.moveTo(164, 144); g.lineTo(168, 128); g.lineTo(196, 126); g.lineTo(200, 144); g.closePath(); }, { ramp: SUIT, bevel: 6, amb: 0.12, ink: I });
+  p.line(169, 129, 172, 143, SUIT[5]);
+  p.form(g => { g.moveTo(169, 122); g.lineTo(195, 120); g.lineTo(196, 128); g.lineTo(168, 130); g.closePath(); }, { ramp: RAMP.shirt, bevel: 2.5, amb: 0.3, ink: I });
+  p.rect(190, 123, 2, 2, '#9a9aa8');
+  p.form(g => { g.roundRect(171, 106, 22, 18, 6); }, { ramp: A, bevel: 6, amb: 0.2, ink: I });
+  // (the curled fingers' knuckles across it, the thumb tucked over them)
+  for (let k = 0; k < 3; k++) { p.form(g => { g.ellipse(174 + k * 6, 110, 3.4, 3.8, 0, 0, Math.PI * 2); }, { ramp: A, bevel: 2, amb: 0.22, ink: I, inkIn: A[1] }); p.px(173 + k * 6, 108, A[5]); }
+  p.form(g => { g.moveTo(171, 116); g.bezierCurveTo(176, 112, 184, 113, 189, 116); g.lineTo(188, 119); g.bezierCurveTo(182, 117, 176, 118, 172, 120); g.closePath(); }, { ramp: A, bevel: 2.5, amb: 0.25, ink: I, inkIn: A[1] });
+  // (the finger up, the nail)
+  p.form(g => { g.roundRect(181, 95, 6, 16, 3); }, { ramp: A, bevel: 2.5, amb: 0.22, ink: I, inkIn: A[1] });
+  p.rect(182, 96, 4, 3, A[5]); p.line(182, 104, 186, 104, A[2]);
+});
+
 /** The agent up close (Meathead 1's: the shades, the earpiece, the gym behind him), talking. */
 export const shotAgent = (keys = false) => (c: Ctx, t: number, talking: boolean) => {
   drawAgent(c, t, talking, 'gym');
   if (keys) {
     // (the truck's keys, dangled up into the shot off one finger, swinging)
-    const sw = Math.sin(t * 0.12) * 4;
-    R(c, 176, 144 - 30, 14, 30, A[3]); R(c, 176, 114, 3, 30, A[4]); R(c, 186, 114, 4, 30, A[1]);
-    R(c, 180, 104, 5, 14, A[3]); R(c, 180, 104, 1, 14, A[5]);
-    c.strokeStyle = '#c8c8d0'; c.lineWidth = 2; c.beginPath(); c.arc(182 + sw * 0.3, 108, 5, 0, Math.PI * 2); c.stroke();
-    for (const [dx, dy] of [[-6, 10], [4, 14]]) { R(c, 182 + sw + dx, 110 + dy, 3, 10, '#d4d4dc'); R(c, 182 + sw + dx, 110 + dy, 1, 10, '#ffffff'); R(c, 182 + sw + dx + 3, 114 + dy, 1, 2, '#d4d4dc'); }
-    slab(c, 170 + sw, 112, 10, 14, ['#0c0c10', '#18181e', '#24242c', '#30303a'], { b: 1 }); tiny(c, 'US', 172 + sw, 116, '#e8e8f0');
+    const sw = Math.round(Math.sin(t * 0.12) * 4);
+    c.drawImage(keysHand(), 0, 0);
+    // (the ring round his finger, the two keys and the fob swinging off it)
+    c.strokeStyle = I; c.lineWidth = 3; c.beginPath(); c.arc(183.5 + sw * 0.3, 104.5, 5, 0, Math.PI * 2); c.stroke();
+    c.strokeStyle = '#c8c8d0'; c.lineWidth = 1.5; c.beginPath(); c.arc(183.5 + sw * 0.3, 104.5, 5, 0, Math.PI * 2); c.stroke();
+    R(c, 181 + sw * 0.3, 99, 2, 1, '#ffffff');
+    for (const [dx, dy] of [[-5, 10], [5, 12]]) {
+      const kx = 183 + sw + dx, ky = 106 + dy;
+      R(c, kx - 3, ky - 3, 7, 6, I); R(c, kx - 2, ky - 2, 5, 4, '#b8b8c4'); R(c, kx - 2, ky - 2, 4, 1, '#f4f4fa'); R(c, kx, ky - 1, 1, 1, I);
+      R(c, kx - 1, ky + 3, 3, 10, I); R(c, kx, ky + 3, 1, 9, '#e4e4ec'); R(c, kx + 1, ky + 6, 2, 1, I); R(c, kx + 1, ky + 9, 2, 2, I); R(c, kx + 1, ky + 9, 1, 1, '#b8b8c4');
+    }
+    R(c, 169 + sw, 113, 12, 16, I); slab(c, 170 + sw, 114, 10, 14, ['#0c0c10', '#18181e', '#24242c', '#30303a', '#44444e'], { b: 1 });
+    R(c, 171 + sw, 115, 8, 5, '#1c2a5c'); R(c, 171 + sw, 115, 3, 3, '#e8e8f0'); for (let k = 0; k < 2; k++) R(c, 174 + sw, 116 + k * 2, 5, 1, '#b01818');
+    tiny(c, 'US', 172 + sw, 122, '#e8e8f0');
   }
   if (dressed !== 'clean') { flies(c, 70, 110, 14, 2); stink(c, 40, 140, 3, 26, 9); }
 };
@@ -364,6 +497,11 @@ const agentFStill = () => painting('m2-agentf-close', ART_W, ART_H, p => {
   // The shades
   p.form(g => { g.roundRect(104, 48, 22, 13, 3); g.roundRect(130, 48, 22, 13, 3); }, { ramp: ['#000000', '#05050a', '#0c0c16', '#161624', '#222236', '#34344e'], bevel: 3, amb: 0.3, ink: I });
   p.rect(126, 52, 4, 2, I);
+  // (the brows over the shades, arched and unimpressed; the lenses' shine; the jaw's shadow; the nose's bridge lit)
+  for (const s of [-1, 1]) { const bx = 128 + s * 13; p.line(bx - 8, 44 + (s < 0 ? 1 : 0), bx + 8, 44 + (s < 0 ? 0 : 1), HAIR[1]); p.line(bx - 6, 43, bx + 6, 43, HAIR[0]); }
+  for (const lx of [106, 132]) { p.line(lx + 3, 50, lx + 8, 50, '#4a4a6a'); p.px(lx + 2, 51, '#6a6a8c'); }
+  p.line(110, 82, 120, 92, AFC[2]); p.line(146, 82, 136, 92, AFC[2]);
+  p.line(127, 62, 127, 70, AFC[6]);
   // The nose's shadow, the lips (a flat line, a little lipstick), the earpiece and its coil
   p.line(128, 64, 126, 74, AFC[3]); p.line(125, 74, 129, 75, AFC[2]);
   p.rect(120, 81, 16, 3, '#7a2a30'); p.line(120, 81, 135, 81, '#a43c44');
@@ -491,10 +629,29 @@ const chokeStill = (stage: number) => painting(`m2-choke-${stage}`, ART_W, ART_H
   p.form(g => { g.rect(84, ay - 8, 12, 19); }, { ramp: ['#020204', '#0a0a10', '#16161e', '#24242e', '#383844'], bevel: 2, amb: 0.3, ink: I });
   for (const sx of [88, 92]) for (const sy of [ay - 4, ay + 4]) { p.rect(sx, sy, 2, 2, '#b0b0c0'); p.px(sx, sy, '#ffffff'); }
   for (let v = 0; v <= stage; v++) { const y0 = ay - 6 + v * 5; for (let x = 104; x < 186; x += 2) p.px(x, y0 + Math.round(Math.sin(x * 0.12 + v) * 1.5), v % 2 ? '#82301e' : '#b0502c'); }
-  p.form(g => { g.ellipse(70, ay + 2, 16, 14, 0, 0, Math.PI * 2); }, { ramp: MS, bevel: 8, amb: 0.2, ink: I });
-  for (let k = 0; k < 3; k++) p.line(60, ay - 6 + k * 6, 76, ay - 4 + k * 6, MS[2]);
-  // (the G-man's hands, clawing at the forearm)
-  for (const hx of [120, 156]) { p.form(g => { g.ellipse(hx, ay + 14, 8, 6, 0, 0, Math.PI * 2); }, { ramp: F, bevel: 4, amb: 0.2, ink: I }); for (let k = 0; k < 3; k++) p.line(hx - 5 + k * 4, ay + 8, hx - 5 + k * 4, ay + 2, F[2]); }
+  // (the light along the top of the forearm, the shadow under it, the ridge of the muscle down it)
+  p.line(100, ay - 10, 190, ay - 11, MS[7]); p.line(104, ay - 9, 186, ay - 10, MS[6]);
+  p.line(100, ay + 8, 192, ay + 11, MS[2]);
+  for (let x = 120; x < 180; x += 3) p.px(x, ay - 3 + Math.round(Math.sin(x * 0.05) * 1.5), MS[4]);
+  // The fist on the end of it, locking it in: knuckles to us, the fingers curled, the thumb over the top
+  p.form(g => { g.roundRect(54, ay - 12, 32, 28, 9); }, { ramp: MS, bevel: 8, amb: 0.2, ink: I });
+  for (let k = 0; k < 4; k++) {
+    const fy = ay - 9 + k * 6.5;
+    p.form(g => { g.ellipse(60, fy + 3, 7.5, 3.6, 0.08, 0, Math.PI * 2); }, { ramp: MS, bevel: 3, amb: 0.22, ink: I, inkIn: MS[1] });
+    p.px(56, fy + 1, MS[7]); p.px(57, fy + 1, MS[7]); p.line(55, fy + 6, 64, fy + 6, MS[1]);
+  }
+  p.form(g => { g.moveTo(60, ay - 14); g.bezierCurveTo(70, ay - 18, 86, ay - 16, 90, ay - 9); g.lineTo(86, ay - 5); g.bezierCurveTo(80, ay - 9, 70, ay - 10, 62, ay - 8); g.closePath(); }, { ramp: MS, bevel: 3.5, amb: 0.22, ink: I, inkIn: MS[1] });
+  p.line(64, ay - 13, 82, ay - 14, MS[7]); p.form(g => { g.ellipse(87, ay - 9, 3, 2.5, 0.4, 0, Math.PI * 2); }, { ramp: ['#8c4a24', '#c88a6a', '#e8b8a0', '#f8dcc8'], bevel: 1.5, amb: 0.3, ink: MS[1] });
+  // (the G-man's hands clawing at the forearm: the palms under it, the fingers hooked up over it)
+  for (const hx of [120, 156]) {
+    p.form(g => { g.ellipse(hx, ay + 15, 9, 6.5, 0, 0, Math.PI * 2); }, { ramp: F, bevel: 4, amb: 0.2, ink: I });
+    for (let k = 0; k < 4; k++) {
+      const fx0 = hx - 7 + k * 4.6, sp = (k - 1.5) * 0.8;
+      p.form(p.strokeMask(g => { g.moveTo(fx0, ay + 13); g.quadraticCurveTo(fx0 + sp, ay + 5, fx0 + sp + 2.5, ay + 1); }, 4.6), { ramp: F, bevel: 2, amb: 0.25, ink: I, inkIn: F[1] });
+      p.px(fx0 + sp + 2, ay + 1, '#f4e4d8'); p.px(fx0 + sp - 1, ay + 7, F[5]);
+    }
+    p.line(hx - 7, ay + 18, hx + 6, ay + 18, F[1]);
+  }
 });
 
 export const shotChoke = (stage: number) => (c: Ctx, t: number, talking: boolean) => {
@@ -514,13 +671,31 @@ export const shotChoke = (stage: number) => (c: Ctx, t: number, talking: boolean
 
 /** The ticket: held up in his shaking hand, a light from heaven down on it, sparkles. */
 const ticketStill = () => painting('m2-ticket-insert', ART_W, ART_H, (p: Painter) => {
-  // The hand from the bottom left: the cuff, the fingers pinching the stub
-  p.form(g => { g.moveTo(0, 144); g.lineTo(0, 104); g.lineTo(46, 92); g.lineTo(62, 118); g.lineTo(30, 144); g.closePath(); }, { ramp: SUIT, bevel: 10, amb: 0.1, ink: I });
-  p.form(g => { g.moveTo(34, 96); g.lineTo(46, 92); g.lineTo(56, 112); g.lineTo(44, 118); g.closePath(); }, { ramp: RAMP.shirt, bevel: 3, amb: 0.3, ink: I });
-  p.form(g => { g.ellipse(70, 92, 20, 14, -0.5, 0, Math.PI * 2); }, { ramp: A, bevel: 8, amb: 0.2, ink: I });
-  p.form(g => { g.ellipse(82, 74, 7, 12, 0.3, 0, Math.PI * 2); }, { ramp: A, bevel: 4, amb: 0.2, ink: I });
-  // The ticket: tilted, the stub perforated, rainbow banded, HAPPY LAND, ALL-DAY PASS, the castle
-  p.form(g => { g.save(); g.translate(150, 62); g.rotate(-0.12); g.roundRect(-78, -34, 156, 68, 6); g.restore(); }, { ramp: ['#8a5c08', '#b8820c', '#dca81c', '#f0c840', '#fce07c', '#fff4c0'], bevel: 6, amb: 0.4, ink: I });
+  // The hand from the bottom left: the sleeve, the shirt cuff, the back of the hand, the fingers curled round the
+  // ticket's edge (behind it), the thumb pressed on its face (in front)
+  p.form(g => { g.moveTo(0, 144); g.lineTo(0, 112); g.lineTo(34, 100); g.lineTo(52, 124); g.lineTo(38, 144); g.closePath(); }, { ramp: SUIT, bevel: 10, amb: 0.1, ink: I });
+  p.line(4, 116, 32, 104, SUIT[5]);
+  p.form(g => { g.moveTo(30, 102); g.lineTo(40, 97); g.lineTo(55, 117); g.lineTo(47, 124); g.closePath(); }, { ramp: RAMP.shirt, bevel: 3, amb: 0.3, ink: I });
+  p.rect(44, 110, 2, 2, '#c8c8d0');
+  p.form(g => { g.ellipse(58, 104, 16, 12, -0.7, 0, Math.PI * 2); }, { ramp: A, bevel: 7, amb: 0.2, ink: I });
+  for (const [fx, fy] of [[71, 101], [69, 109], [64, 116]]) { p.form(g => { g.ellipse(fx, fy, 6.5, 4.2, -0.35, 0, Math.PI * 2); }, { ramp: A, bevel: 3, amb: 0.22, ink: I, inkIn: A[1] }); p.px(fx - 3, fy - 2, A[5]); }
+  p.form(g => { g.ellipse(72, 90, 7.5, 5, -0.45, 0, Math.PI * 2); }, { ramp: A, bevel: 3, amb: 0.22, ink: I, inkIn: A[1] });
+  p.line(50, 96, 62, 92, A[5]); p.line(52, 112, 60, 108, A[1]);
+  // The ticket: tilted, gold foil, the stub perforated
+  const TK = (draw: (g: Ctx) => void) => (g: Ctx) => { g.save(); g.translate(150, 62); g.rotate(-0.12); draw(g); g.restore(); };
+  p.form(TK(g => g.roundRect(-78, -34, 156, 68, 6)), { ramp: ['#8a5c08', '#b8820c', '#dca81c', '#f0c840', '#fce07c', '#fff4c0'], bevel: 6, amb: 0.4, ink: I });
+  // (the castle on the stub: the keep, its towers, the spires, the gate; lit from the left)
+  const CASTLE = ['#2c1044', '#46206a', '#60308e', '#7c44b0', '#9c64cc', '#c090e4'], ROOF = ['#5a0c18', '#8a1424', '#b82034', '#dc3c4c', '#f46c78'];
+  p.form(TK(g => { g.rect(43, -16, 24, 28); g.rect(36, -11, 9, 23); g.rect(65, -11, 9, 23); g.rect(49, -29, 12, 14); }), { ramp: CASTLE, bevel: 3, amb: 0.25, ink: '#2c1044' });
+  p.form(TK(g => { for (const [cx, w, top, base] of [[40.5, 6, -21, -11], [69.5, 6, -21, -11], [55, 8, -43, -29]]) { g.moveTo(cx - w, base); g.lineTo(cx, top); g.lineTo(cx + w, base); g.closePath(); } }), { ramp: ROOF, bevel: 2.5, amb: 0.25, ink: '#3a0610' });
+  const rot = (x: number, y: number): [number, number] => { const cs = Math.cos(-0.12), sn = Math.sin(-0.12); return [150 + x * cs - y * sn, 62 + x * sn + y * cs]; };
+  for (let k = 0; k < 6; k++) { const [x, y] = rot(43 + k * 4 + 1, -17); p.rect(x, y, 2, 2, CASTLE[3]); }
+  for (const [x0, y0] of [[52, -24], [57, -24], [39, -6], [68, -6], [47, -8], [61, -8]]) { const [x, y] = rot(x0, y0); p.rect(x, y, 2, 3, '#1c0830'); p.px(x, y, '#f8d860'); }
+  for (let yy = 2; yy < 12; yy++) for (let xx = 51; xx < 59; xx++) { if (yy < 5 && Math.hypot(xx - 54.5, yy - 5) > 3.6) continue; const [x, y] = rot(xx, yy); p.px(x, y, '#1c0830'); }
+  // (the thumb, pressed flat on its face, the nail)
+  p.form(p.strokeMask(g => { g.moveTo(60, 92); g.quadraticCurveTo(68, 84, 78, 80); }, 8), { ramp: A, bevel: 3, amb: 0.22, ink: I });
+  p.form(g => { g.ellipse(77, 80, 3, 2.4, -0.4, 0, Math.PI * 2); }, { ramp: ['#a47a58', '#d8b49a', '#f0d4c0', '#fcece0'], bevel: 1.5, amb: 0.3, ink: A[1] });
+  p.line(63, 87, 71, 82, A[5]);
 });
 export const shotTicket = (c: Ctx, t: number) => {
   // (the light from heaven: rays turning, banded gold)
@@ -540,12 +715,8 @@ export const shotTicket = (c: Ctx, t: number) => {
   const RB = ['#e83c3c', '#f08c28', '#f8d838', '#58c040', '#3c8ce8', '#9050d8'];
   RB.forEach((col, i) => R(c, -70, -26 + i * 3, 104, 3, col));
   dither(c, -70, -8, 104, 2, '#9050d8');
-  // (the castle, a silhouette on the right, its flags)
-  c.fillStyle = '#7a3ca8';
-  c.fillRect(42, -18, 26, 30); c.fillRect(38, -10, 6, 22); c.fillRect(66, -10, 6, 22); c.fillRect(50, -28, 10, 12);
-  c.beginPath(); c.moveTo(48, -28); c.lineTo(55, -38); c.lineTo(62, -28); c.fill();
-  R(c, 54, -44, 1, 8, '#3c1c58'); R(c, 55, -44, 5, 3, '#e83c3c');
-  R(c, 52, 0, 6, 12, '#3c1c58');
+  // (the flags on the castle's spires, flapping; the castle's painted on the ticket)
+  for (const [fx, fy] of [[55, -42], [40, -20], [70, -20]]) { R(c, fx, fy - 6, 1, 6, '#3c1c58'); R(c, fx + 1, fy - 6, 4 + (Math.floor(t / 8 + fx) % 2), 2, '#e83c3c'); R(c, fx + 1, fy - 4, 3, 1, '#a01c1c'); }
   // (the lettering)
   tiny(c, 'HAPPY LAND', -57, -2, '#7a1c1c', 2); tiny(c, 'HAPPY LAND', -58, -3, '#fff8e0', 2);
   tiny(c, 'ALL-DAY PASS', -66, 12, '#5c3c08', 2);

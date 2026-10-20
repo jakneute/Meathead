@@ -13,6 +13,7 @@ import { stamp } from '../../../m1/game/render/stamp';
 import { bandedGradient, checker, steppedGlow } from '../../../m1/game/render/pixelArt';
 import { INK, ink, shaded, shadedTop, dark, lite } from '../../../m1/game/render/npc/kit';
 import { drawSouvenir } from '../../../m1/game/garage/draw';
+import { newsPicture } from './shots';
 import { X0, Y, LEFT, RIGHT, CEIL_Y, LEDGES, DUCT, MEZZ, MEZZ_Y, RING, EXIT_X, SOUVENIR_SPOTS, WALL_SHELVES, SQUAT_X, TRUCK_X, FRONT_DOOR_X } from './course';
 
 type Ctx = CanvasRenderingContext2D;
@@ -85,15 +86,8 @@ const tv = (c: Ctx, x: number, y: number, f: number) => {
   steel(c, x - 3, y - 50, 6, 50, '#3F3F46');
   ink(c, () => c.roundRect(x - 44, y - 4, 88, 60, 5), '#1C1C22', 1);
   c.fillStyle = '#0A0A0E'; c.fillRect(x - 38, y + 2, 76, 46);
-  bandedGradient(c, x - 36, y + 4, 72, 42, ['#0e2260', '#183488', '#1e3e9a'], 4);
-  c.fillStyle = '#7C8490'; c.fillRect(x + 4, y + 8, 28, 22); for (let k = 0; k < 5; k++) c.fillRect(x + 4 + k * 7, y + 8, 1.4, 22);
-  c.fillStyle = '#D69C5C'; c.fillRect(x + 12, y + 14, 12, 12); c.fillStyle = '#101014'; c.fillRect(x + 11, y + 11, 14, 4);
-  c.fillStyle = '#7a1a2a'; c.beginPath(); c.ellipse(x - 18, y + 46, 14, 12, 0, Math.PI, 0); c.fill();
-  c.fillStyle = '#F0C8A0'; c.beginPath(); c.arc(x - 18, y + 26, 7, 0, Math.PI * 2); c.fill();
-  c.fillStyle = '#E8C048'; c.fillRect(x - 25, y + 18, 14, 5);
-  c.fillStyle = '#B01818'; c.fillRect(x - 36, y + 38, 72, 7);
-  c.fillStyle = '#FFFFFF'; c.font = 'bold 4px monospace'; c.fillText('GUANTANAMO BAY: DAY 400', x - 34, y + 43);
-  c.fillStyle = 'rgba(0,0,0,0.25)'; for (let yy = y + 4; yy < y + 46; yy += 2) c.fillRect(x - 36, yy, 72, 1);
+  // (the news on it: the cutscene's own picture, shrunk)
+  newsPicture(c, x - 36, y + 4, 72, 42, f, false);
   if ((f >> 3) % 17 === 0) { c.fillStyle = 'rgba(255,255,255,0.12)'; c.fillRect(x - 36, y + 4, 72, 42); }
   c.fillStyle = '#E11D48'; c.fillRect(x + 34, y + 50, 2, 2);
 };
