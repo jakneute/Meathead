@@ -1,5 +1,7 @@
-// The studio's staff, drawn (a first pass: crude but clean, on Spooky Land's person drawer, costume.ts, so whoever's in
-// the uniform shows: their skin, build and face, man or woman). Each seeded: no two the same. Each drawn hurt (eyes
+// The studio's staff, drawn (on Spooky Land's person drawer, costume.ts, every part in steps and inked, so whoever's in
+// the uniform shows: their skin, build and face, man or woman; the SNES pass added the uniforms' detail: the guide's
+// pin and buttons, the exec's pinstripes and pocket square, the guard's keys and patch, the interns' lidded coffees in
+// their pulp carrier, Pencil Pete's stepped facets, gold-foil band and stenciled name, his shavings on the wind-up). Each seeded: no two the same. Each drawn hurt (eyes
 // shut), knocked about (held, flung, dazed) and dead (limp, crossed-out eyes), so the engine's special deaths all play
 // out on their real sprites; dead, what they carried's dropped by them (the flag, the tray and cups, the binder, the
 // pencil's point snapped off, the guard's cap). Feet at the origin, facing right (the engine mirrors them). Each frame
@@ -23,6 +25,7 @@ import {
   bodyOf, flailHands, legs, torso, arm, headShape, faceOn, whiskers, glasses, hairTop, hairBack, frameOf, putFrame, pickOf,
   moodOf, reaction,
 } from '../../spooky/costume';
+import { signText } from '../../signLetters';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -77,7 +80,10 @@ const paintGuide = (g: Ctx, F: Frame) => {
   // (the white shirt's V, the lapels, the name tag)
   flat(g, () => { g.moveTo(-5, B.shY + 1); g.lineTo(5, B.shY + 1); g.lineTo(0, B.shY + 13); g.closePath(); }, '#F8FAFC', 0.8);
   px(g, -9, B.shY + 2, 4, 12, dk(BLAZER, 0.25)); px(g, 5, B.shY + 2, 4, 12, dk(BLAZER, 0.25));
-  px(g, 3, B.shY + 15, 8, 5, '#F8FAFC'); px(g, 4, B.shY + 16, 6, 1, '#DC2626');
+  px(g, 3, B.shY + 15, 8, 5, '#F8FAFC'); px(g, 4, B.shY + 16, 6, 1, '#DC2626'); px(g, 4, B.shY + 18, 5, 1, '#64748B');
+  // (the studio's star pin on the near lapel; the blazer's gold buttons)
+  px(g, -8, B.shY + 4, 3, 3, '#F2C84A'); px(g, -7, B.shY + 3, 1, 1, '#FFF0A8');
+  px(g, -1, B.shY + 18, 2, 2, '#E5B53A'); px(g, -1, B.shY + 23, 2, 2, '#E5B53A');
   hairBack(g, B);
   face(g, B, F, poke || pokeBack ? 'angry' : 'smug', poke || pokeBack ? 'teeth' : 'grin');
   whiskers(g, B); glasses(g, B); hairTop(g, B);
@@ -101,10 +107,12 @@ export const drawGuide = (c: Ctx, e: Enemy, f: number, seed: number) => {
 // The intern
 
 const SHIRT = '#BFDBFE', KHAKI = '#C8B48A';
+/** A to-go coffee: a paper cup, a cardboard sleeve, a white lid with its sip hole. */
 const cup = (g: Ctx, x: number, y: number) => {
   part(g, () => { g.moveTo(x - 3.5, y); g.lineTo(x - 2.5, y + 9); g.lineTo(x + 2.5, y + 9); g.lineTo(x + 3.5, y); g.closePath(); }, '#F5F5F4', x - 4, y, 8, 9, 0.8);
-  px(g, x - 4, y - 2, 8, 2.5, '#5B3A1E');
-  px(g, x - 3, y + 3, 6, 2, '#B45309');
+  px(g, x - 3.5, y + 3, 7, 3, '#B07A4A'); px(g, x - 3.5, y + 3, 7, 1, '#D8A672'); px(g, x - 1, y + 4, 2, 1, '#7A4A22');
+  part(g, () => g.roundRect(x - 4.5, y - 3, 9, 3, 1), '#F8FAFC', x - 4.5, y - 3, 9, 3, 0.7);
+  px(g, x + 1, y - 3, 2, 1, '#3A2A1A');
 };
 const paintIntern = (g: Ctx, F: Frame) => {
   const B = bodyOf(F.seed, F.pose, F.fr), L = B.L;
@@ -129,8 +137,11 @@ const paintIntern = (g: Ctx, F: Frame) => {
   // (the tray of coffees, held out in both hands; wobbling; dead: down and spilled by him)
   const tray = (x: number, y: number, a: number, n: number) => {
     g.save(); g.translate(x, y); g.rotate(a);
-    part(g, () => g.rect(-14, 0, 28, 4), '#A47148', -14, 0, 28, 4, 1);
     for (let k = 0; k < n; k++) cup(g, -10 + k * 6.6, -9);
+    // (the molded pulp carrier: its cups' collars, the side lit)
+    part(g, () => g.rect(-15, -3, 30, 7), '#A47148', -15, -3, 30, 7, 1);
+    for (let k = 0; k < 4; k++) px(g, -13 + k * 6.6, -3, 5, 2, k < n ? '#8A5A30' : '#6A4422');
+    px(g, -14, 0, 28, 1, '#C89A68');
     g.restore();
   };
   if (dead(F)) { tray(B.hx + 26, -4, 0.5, 1); px(g, B.hx + 16, -2, 22, 2, '#7C4A1E'); }
@@ -166,6 +177,9 @@ const paintExec = (g: Ctx, F: Frame) => {
   if (!H.held) binder(g, H.far[0] + 2, H.far[1] - 4, swatBack ? -1.2 : swat ? 0.4 : 0.1);
   // (the suit: shoulders out to here; the lapels, the white V, the power tie, the brick phone)
   torso(g, B, SUIT, B.shY - 1, B.hipY + 2, 6);
+  // (pinstripes; a silk square in the pocket)
+  for (let k = -B.w / 2 - 1; k < B.w / 2 + 2; k += 4) px(g, k, B.shY + 2, 1, B.hipY - B.shY - 2, lt(SUIT, 0.16));
+  px(g, 6, B.shY + 9, 5, 3, '#F472B6'); px(g, 7, B.shY + 8, 2, 1, '#F9A8D4');
   flat(g, () => { g.moveTo(-5, B.shY + 1); g.lineTo(5, B.shY + 1); g.lineTo(0, B.shY + 16); g.closePath(); }, '#F8FAFC', 0.8);
   flat(g, () => { g.moveTo(-1.5, B.shY + 3); g.lineTo(1.5, B.shY + 3); g.lineTo(2.5, B.shY + 15); g.lineTo(0, B.shY + 18); g.lineTo(-2.5, B.shY + 15); g.closePath(); }, '#DC2626', 0.7);
   px(g, -12, B.shY + 2, 5, 14, dk(SUIT, 0.3)); px(g, 7, B.shY + 2, 5, 14, dk(SUIT, 0.3));
@@ -204,12 +218,16 @@ const foamPencil = (g: Ctx, B: Body, F: Frame, sq: number, faceOn_: boolean, sna
   // (the six sides: three we can see, the middle one widest)
   part(g, () => g.rect(-w, top, w * 2, -42 - top), YEL, -w, top, w * 2, -42 - top, 1.4);
   if (sq > 0.5) { px(g, -w * 0.35, top + 1, 1.5, -44 - top, dk(YEL, 0.2)); px(g, w * 0.35, top + 1, 1.5, -44 - top, dk(YEL, 0.3)); }
-  // (NO. 2 on the side, in its gold foil; PENCIL PETE down the side)
-  if (sq > 0.7 && !faceOn_) { px(g, -6, -60, 12, 2, '#B45309'); }
-  if (sq > 0.7) {
-    g.fillStyle = INK; g.font = '5px "Press Start 2P"'; g.textAlign = 'center';
-    g.fillText('NO.2', w * 0.45, -48); g.textAlign = 'left';
+  // (the facets in steps: a lit edge down the near one, a shade down the far; a gold-foil band; NO. 2 stamped on)
+  if (sq > 0.5) {
+    px(g, -w + 1, top + 1, 2, -44 - top, lt(YEL, 0.45)); px(g, w - 4, top + 1, 3, -44 - top, dk(YEL, 0.35));
+    for (let y = top + 3; y < -46; y += 4) px(g, -w * 0.35 + 2, y, 1, 1, lt(YEL, 0.3));
+    px(g, -w + 1, -52, w * 2 - 2, 3, '#1E7A3A'); px(g, -w + 1, -52, w * 2 - 2, 1, '#3AAA5A');
   }
+  if (sq > 0.7 && !faceOn_) { px(g, -6, -60, 12, 2, '#B45309'); }
+  if (sq > 0.7) signText(g, 'NO.2', w * 0.45, -44, { sx: 1, sy: 1, fill: '#7A5A10' });
+  // (PETE, stenciled down the side above the face)
+  if (sq > 0.8) signText(g, 'PETE', 2, -90, { sx: 1, sy: 1, fill: '#7A5A10' });
   // (the wooden cone, shaved, and the lead)
   if (!snapped) {
     part(g, () => { g.moveTo(-w, top); g.lineTo(w, top); g.lineTo(w * 0.28, cone); g.lineTo(-w * 0.28, cone); g.closePath(); }, WOOD, -w, cone, w * 2, top - cone, 1.2);
@@ -269,6 +287,13 @@ export const drawPencil = (c: Ctx, e: Enemy, f: number, seed: number) => {
     c.strokeStyle = 'rgba(26,11,6,0.6)'; c.lineWidth = 2;
     for (let k = 0; k < 3; k++) { const y = -96 + k * 26; c.beginPath(); c.moveTo(-34, y); c.quadraticCurveTo(-40, y + 8, -34, y + 16); c.stroke(); c.beginPath(); c.moveTo(34, y); c.quadraticCurveTo(40, y + 8, 34, y + 16); c.stroke(); }
   }
+  if (st === 'wind' && e.health > 0) {
+    // (wood shavings curling off his point as he winds up)
+    for (let i = 0; i < 3; i++) {
+      const t = ((f + i * 9) % 27) / 27, sx = -6 + i * 6 + Math.round(t * (i - 1) * 14), sy = -128 - Math.round(t * 18) + Math.round(t * t * 30);
+      c.fillStyle = INK; c.fillRect(sx - 1, sy - 1, 5, 4); c.fillStyle = '#E8C28A'; c.fillRect(sx, sy, 3, 2); c.fillStyle = '#B45309'; c.fillRect(sx + 2, sy, 1, 1);
+    }
+  }
   if (st === 'dizzy' && e.health > 0) {
     for (let i = 0; i < 3; i++) { const a = f * 0.2 + (i / 3) * Math.PI * 2; c.fillStyle = INK; c.fillRect(Math.round(Math.cos(a) * 16) - 2, -142 + Math.round(Math.sin(a) * 4) - 2, 5, 5); c.fillStyle = '#FDE047'; c.fillRect(Math.round(Math.cos(a) * 16) - 1, -142 + Math.round(Math.sin(a) * 4) - 1, 3, 3); }
   }
@@ -311,7 +336,11 @@ const paintGuard = (g: Ctx, F: Frame) => {
   flat(g, () => { g.moveTo(5, B.shY + 6); g.lineTo(11, B.shY + 6); g.lineTo(11, B.shY + 11); g.lineTo(8, B.shY + 14); g.lineTo(5, B.shY + 11); g.closePath(); }, '#E5C158', 0.8);
   px(g, -10, B.shY + 7, 7, 4, dk(UNIFORM, 0.18));
   part(g, () => g.rect(-B.hipW / 2 - 3, B.hipY - 2, B.hipW + 8, 5), '#111827', -B.hipW / 2 - 3, B.hipY - 2, B.hipW + 8, 5, 1);
-  px(g, 0, B.hipY - 2, 5, 5, '#D4D4D8');
+  px(g, 0, B.hipY - 2, 5, 5, '#D4D4D8'); px(g, 1, B.hipY - 1, 2, 1, '#FFFFFF');
+  // (the keys on their ring off the belt; a pouch; the shoulder patch)
+  ball(g, -B.hipW / 2 + 2, B.hipY + 5, 2.4, '#A1A1AA', 0.6); px(g, -B.hipW / 2 + 1, B.hipY + 6, 1, 4, '#D4D4D8'); px(g, -B.hipW / 2 + 3, B.hipY + 7, 1, 3, '#E5C158');
+  part(g, () => g.roundRect(B.hipW / 2 - 4, B.hipY - 2, 6, 7, 1), '#111827', B.hipW / 2 - 4, B.hipY - 2, 6, 7, 0.7);
+  px(g, -B.w / 2 + 1, B.shY + 5, 5, 6, '#1E3A8A'); px(g, -B.w / 2 + 2, B.shY + 6, 3, 2, '#E5C158');
   // (the radio on his shoulder)
   part(g, () => g.roundRect(-B.w / 2 + 1, B.shY - 4, 6, 9, 1), '#18181B', -B.w / 2 + 1, B.shY - 4, 6, 9, 0.9);
   px(g, -B.w / 2 + 2, B.shY - 10, 1, 6, '#18181B');

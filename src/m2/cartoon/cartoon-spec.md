@@ -680,3 +680,15 @@ markBossFight every frame of a boss or sub-boss fight. Voice every new line (`np
   DAY, the goldfish belly up; the train parked behind its hedges, NO MORE TRAINS TODAY; the trolley put away, the
   shutter down across the hattery's arch, OUT OF SERVICE). The shops' cards say CLOSED; the balloon post's bunch is
   popped, skins in a Truffula, scraps and confetti on the ground. The ball pits and the cast are as ever.
+- (SNES pass) THE STUDIO (studio/): its own kit in studio/paint.ts (six-step materials: fake-wood paneling, walnut,
+  cork, beige plastic, steel, institutional block, egg-crate foam, velvet and blackout drape; CRTs, fax machines, desk
+  phones, water coolers, filing cabinets, ficus, wall clocks, motivational posters, pinned sheets, troffers), the rooms
+  in studio/rooms.ts (every wall full: the lobby's Memphis wall, TV bank and the square through the doors by the hour;
+  Dave's walnut shrine, lit portrait, awards cabinet, TV GUIDE cover, VISION poster; the writers' whiteboard, episode
+  cards, TEAMWORK, Nerf hoop, TV cart; storyboards in sequences with red yarn; headshots, bass traps, the booth's
+  reel-to-reel and waveform CRT; the pegboard and STAY ON MODEL!; Overseas' night city with its tower, radiators, coats,
+  family photos, the kettle, AIR FREIGHT boxes; ink and paint's color chart and smocks; the camera room's drapes and
+  can racks; the premiere's velvet swags and WORLD PREMIERE), the people in studio/people.ts. The drop ceilings' troffers
+  light with their room; each room its own floor going back. The path's theater carpet; everything he stands on lit
+  along its top. The staff's coffees and plates are drawn in flight now (they weren't), the puddles steam. No layout,
+  timing or lighting logic changed (two small soft accents added: the lobby's TV bank and EXIT sign).
