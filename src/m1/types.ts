@@ -304,6 +304,10 @@ export interface Player extends Entity {
    *  `hang` (loop, slip) the way his body goes from his fists on the rail (radians in his own frame: -PI/2 straight up
    *  off it, PI back along it); `hurt` flinching. Whatever sets it clears it (and respawn does). */
   tragon?: { mode: 'ride' | 'duck' | 'jump' | 'hop' | 'brace' | 'loop' | 'slip'; move: boolean; hang: number; hurt: boolean };
+  /** Astride a broomstick, side on (Meathead 2's Fairy Land runway; render/player/broomPose.ts): sat on its shaft 4
+   *  under his feet' line, knees bent, boots back toward the bristles, both fists on it ahead; `lean` 0 sat up .. 1
+   *  tucked low (taking off). Whatever sets it clears it (and respawn does). */
+  broomRide?: { lean: number };
   /** Something he's doing takes him off the vine he's on (Meathead 2: the mallet's smash down, from one): let go of it. */
   dropVine?: boolean;
   /** Stood on a floating log he's rolling under his feet (Meathead 2's Wilderness Land, frontier/wilds/logs.ts): his

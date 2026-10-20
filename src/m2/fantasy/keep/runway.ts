@@ -6,8 +6,8 @@
 // brooms hovering over the deck (the ride's survivors (glen/rivals.ts RIVALS, still in their tiaras) and the FASTPASS
 // boys, who paid to skip trials one and two: CHET, THADDEUS, DMITRI); he walks up to the spare broom on its cradle; the
 // chime; Piper over the broom port's PA: the final trial, the rules (last man flying gets the highest window); the
-// suitors trash-talk him (one at a time, never over each other); he hops on (standing on it: he doesn't sit); it lifts
-// him; his line, blunt and horny; Piper says go; they all shoot off up into the sky, him with them; black; on to the
+// suitors trash-talk him (one at a time, never over each other); he hops on (astride it, sat on the shaft, fists on
+// it ahead: Player.broomRide, render/player/broomPose.ts; the suitors ride theirs the same way); it lifts him; his line, blunt and horny; Piper says go; they all shoot off up into the sky, him with them; black; on to the
 // broomstick deathmatch (DOORS.broom.start). Who flew off is in state.stageMemo (ROSTER_MEMO) for job 6.
 //
 // Done for good once it's run (RUNWAY_MEMO): a revisit's deck is empty, the brooms gone, the racks bare.
@@ -70,10 +70,10 @@ const tiara = (c: Ctx, x: number, top: number) => {
   box(c, x, top - 2, 3, 3, '#F472B6');
 };
 /** A suitor sat (in a makeover chair, on a broom), his tiara on; a face mask too, at the boutique. */
-const sitSuitor = (c: Ctx, x: number, feetY: number, face: 1 | -1, f: number, L: SuitorLook, talking: boolean, mask: boolean, crowned = true) => {
-  drawSuitor(c, x, feetY, face, f, L, talking ? 'talk' : 'sit', { talking });
+const sitSuitor = (c: Ctx, x: number, feetY: number, face: 1 | -1, f: number, L: SuitorLook, talking: boolean, mask: boolean, crowned = true, astride = false) => {
+  drawSuitor(c, x, feetY, face, f, L, astride ? 'ride' : talking ? 'talk' : 'sit', { talking });
   if (mask) { c.save(); c.globalAlpha = 0.85; c.fillStyle = '#86EFAC'; c.beginPath(); c.ellipse(x + face * 6, feetY - 89, 8, 9, 0, 0, Math.PI * 2); c.fill(); c.restore(); box(c, x + face * 4 - 3, feetY - 92, 4, 4, '#BBF7D0'); box(c, x + face * 9 - 3, feetY - 92, 4, 4, '#BBF7D0'); }
-  if (crowned) tiara(c, x + face * 2, feetY - 104);
+  if (crowned) tiara(c, x + face * (astride ? 12 : 2), feetY - (astride ? 102 : 104));
 };
 
 /** The boutique's front (behind him): its window, the chairs behind it, whoever's in them; its sign. */
@@ -152,7 +152,7 @@ const finish = (state: GameState, skipped: boolean) => {
   if (s.broom) { s.broom.y = AWAY; s.broom = null; }
   for (const e of state.enemies) if (e.puppet && Math.abs(e.pos.x - X(SCENE.cam)) < 1600) e.puppet = false;
   const p = state.player;
-  p.inCutscene = false;
+  p.inCutscene = false; p.broomRide = undefined;
   state.cameraOverride = null;
   teleport(state, DOORS.broom.start.x, DOORS.broom.start.y);
 };
@@ -210,6 +210,8 @@ export const updateRunway = (ctx: FrameContext, controls: Controls): Controls =>
   const b = s.broom;
   const carry = (dx: number, dy: number) => { if (!b) return; b.x += dx; b.y += dy; if (s.mounted) { p.pos.x += dx; p.pos.y += dy; p.vel.x = 0; p.vel.y = 0; } };
   if (s.mounted && s.lift > 0) { s.lift--; carry(0, -1); }
+  // (astride it, sat on the shaft (render/player/broomPose.ts): sat up hovering, tucked low as it shoots off)
+  if (s.mounted) p.broomRide = { lean: s.step === 'launch' ? Math.min(1, 0.15 + s.t / 16) : s.step === 'fade' ? 1 : 0.15 };
   switch (s.step) {
     case 'walk':
       p.facing = 1;
@@ -299,7 +301,7 @@ export const drawRunway = (c: Ctx, state: GameState) => {
     if (fl.gone) continue;
     const face: 1 | -1 = s.step === 'launch' || s.step === 'fade' ? 1 : -1;
     drawBroom(c, fl.x, fl.y, face, f, s.step === 'launch' || s.step === 'fade');
-    sitSuitor(c, fl.x - face * 4, fl.y + 34, face, f + fl.x, LOOK[fl.id], !!fl.said, false, RIVALS.some(r => r.id === fl.id));
+    sitSuitor(c, fl.x - face * 4, fl.y + 34, face, f + fl.x, LOOK[fl.id], !!fl.said, false, RIVALS.some(r => r.id === fl.id), true);
   }
 };
 /** What's being said: Piper's out of the PA, a suitor's over him. */

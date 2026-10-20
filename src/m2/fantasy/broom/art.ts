@@ -1,9 +1,10 @@
-// The broomstick deathmatch's figures (crude-but-readable first pass): MEATHEAD from behind, stood on his broom (as he
-// got on it at the runway: he doesn't sit), arms out for balance, leaning into his turns, the bristles fanned under the
-// screen and the sparkle trail off them; his jeans' seat or his bare backside (shat: the stain; naked: the balls between
-// his thighs and the BONER poking out past his hip, further the harder he banks). The suitors side-on on their brooms
-// (fantasy/suitors.ts sat, keep/runway.ts's broom, the ride's survivors still in their boutique tiaras), painted once
-// per look and facing and scaled by depth. Their throws, the wand bolts, the dead on the lawn.
+// The broomstick deathmatch's figures (crude-but-readable first pass): MEATHEAD from behind, riding his broom (astride
+// the shaft as he got on it at the runway, his fists on it ahead, knees out, boots tucked back by the bristles), the
+// rig leaning into his turns, tucked low on a boost, sat up braking, the bristles fanned under him and the sparkle
+// trail off them; his jeans' seat or his bare backside (shat: the stain; naked: the balls over the shaft and the BONER
+// poking out past his hip, further the harder he banks). The suitors side-on astride their brooms (fantasy/suitors.ts
+// 'ride', keep/runway.ts's broom, the ride's survivors still in their boutique tiaras), painted once per look and
+// facing and scaled by depth. Their throws, the wand bolts, the dead on the lawn.
 
 import { drawSuitor, type SuitorLook } from '../suitors';
 import { drawBroom } from '../keep/runway';
@@ -24,17 +25,23 @@ const JE = ['#0A1028', '#13204A', '#1E3A8A', '#2C50AA', '#4468C0', '#6A8AD4'];
 const BUM = ['#B8805A', '#D8A07A', '#EEC4A0', '#F8DCC0'];
 const HAIR = '#18181B';
 
-export interface MhLook { bank: number; pitch: number; nude: boolean; shat: boolean; boost: boolean; fire: number; blink: boolean; f: number; charge?: number; locked?: boolean }
+export interface MhLook { bank: number; pitch: number; nude: boolean; shat: boolean; boost: boolean; brake?: boolean; fire: number; blink: boolean; f: number; charge?: number; locked?: boolean }
 
-/** Him on his broom, from behind: feet at (x, y) on the view (400x300 space), the broom's tip off up toward the
- *  horizon, the bristles fanned toward us. `bank` -1..1 (leaning into the turn), `fire` frames since a shot. */
+/** Him on his broom, from behind, RIDING it: sat astride the shaft at (x, y) on the view (400x300 space), the shaft
+ *  between his legs running off ahead (up the screen: it points away) to the laser on its tip, his fists on it ahead
+ *  of him, his knees out and bent, boots tucked back by the bristles (their soles at us), the bristles fanned toward
+ *  us under him. `bank` -1..1 (the whole rig leans into the turn), `pitch` (climbing tilts the tip up and sits him
+ *  back), `boost` (tucked low, head down), `brake` (sat up, fists pulled in), `fire` frames since a shot. */
 export const drawMeatheadBroom = (c: Ctx, x: number, y: number, k: number, L: MhLook) => {
   if (L.blink && (L.f >> 2) % 2) return;
   c.save(); c.translate(x, y); c.scale(k, k);
-  // THE BROOM: the handle off ahead of him (up the screen: it points away), the bristles toward us
-  c.save(); c.rotate(L.bank * 0.18);
-  const tipY = -34 - L.pitch * 6;
-  poly(c, INK, [-4, 4, 4, 4, 2, tipY, -2, tipY]); poly(c, '#8A5A30', [-3, 4, 3, 4, 1.4, tipY + 1, -1.4, tipY + 1]); box(c, -2, tipY + 1, 1, -tipY + 2, '#B8864A');
+  const tuck = L.boost ? 1 : 0, up = L.brake && !L.boost ? 1 : 0, pt = Math.max(-1, Math.min(1, L.pitch));
+  // (the whole rig leans into the turn about his seat)
+  c.rotate(L.bank * 0.3);
+  // THE BROOM: the shaft from the binding under him (toward us) off ahead between his legs to the tip
+  c.save();
+  const tipY = -104 - pt * 12 + tuck * 6;
+  poly(c, INK, [-4, 12, 4, 12, 2.2, tipY, -2.2, tipY]); poly(c, '#8A5A30', [-3, 12, 3, 12, 1.4, tipY + 1, -1.4, tipY + 1]); box(c, -2, tipY + 1, 1, 11 - tipY, '#B8864A');
   // (the LASER on its end (the user's): a steel emitter clamped on, cooling rings, the pink lens glowing; a flash
   // when it fires; X held, it charges, glowing bigger)
   box(c, -4, tipY - 1, 8, 6, INK); box(c, -3, tipY, 6, 4, '#8A8AA0'); box(c, -3, tipY, 2, 4, '#CACADA'); box(c, -4, tipY + 2, 8, 1, '#3A3A48');
@@ -43,60 +50,70 @@ export const drawMeatheadBroom = (c: Ctx, x: number, y: number, k: number, L: Mh
   if (ch > 0) { c.globalAlpha = 0.5 + 0.3 * ((L.f >> 1) % 2); ell(c, 0, tipY - 2, 3 + ch * 6, 3 + ch * 6, L.locked ? '#EF4444' : '#F472B6'); c.globalAlpha = 1; ell(c, 0, tipY - 2, 2.5, 2.5, '#FFFFFF'); }
   if (L.fire < 4) { ell(c, 0, tipY - 2, 9 - L.fire * 2, 9 - L.fire * 2, '#FFE4F2'); ell(c, 0, tipY - 2, 5, 5, '#FFFFFF'); }
   // (the binding, the bristles fanned out toward us, a sparkle trail off them)
-  box(c, -9, 4, 18, 5, INK); box(c, -8, 5, 16, 3, '#B91C1C');
-  poly(c, INK, [-10, 8, 10, 8, 30, 40, -30, 40]); poly(c, '#D8B060', [-9, 9, 9, 9, 28, 39, -28, 39]);
-  for (let s = -6; s <= 6; s += 2) line(c, '#A8803A', 1, [s * 1.2, 10, s * 4.4, 38]);
-  poly(c, '#F0D080', [-9, 9, -3, 9, -12, 39, -28, 39]);
-  for (let i = 0; i < 6; i++) { const sx = Math.sin(L.f * 0.31 + i * 1.7) * 22, sy = 42 + ((L.f * 2 + i * 9) % 26); box(c, sx - 1, sy, 3, 1, i % 2 ? '#FFF6C8' : '#FFC8E8'); box(c, sx, sy - 1, 1, 3, i % 2 ? '#FFF6C8' : '#FFC8E8'); }
-  if (L.boost) for (let i = 0; i < 5; i++) { const sx = (i - 2) * 9 + Math.sin(L.f + i) * 3; line(c, '#FDE68A', 2, [sx, 44, sx * 1.4, 60 + (L.f * 3 + i * 7) % 14]); }
+  box(c, -9, 12, 18, 5, INK); box(c, -8, 13, 16, 3, '#B91C1C');
+  poly(c, INK, [-10, 16, 10, 16, 30, 48, -30, 48]); poly(c, '#D8B060', [-9, 17, 9, 17, 28, 47, -28, 47]);
+  for (let s = -6; s <= 6; s += 2) line(c, '#A8803A', 1, [s * 1.2, 18, s * 4.4, 46]);
+  poly(c, '#F0D080', [-9, 17, -3, 17, -12, 47, -28, 47]);
+  for (let i = 0; i < 6; i++) { const sx = Math.sin(L.f * 0.31 + i * 1.7) * 22, sy = 50 + ((L.f * 2 + i * 9) % 26); box(c, sx - 1, sy, 3, 1, i % 2 ? '#FFF6C8' : '#FFC8E8'); box(c, sx, sy - 1, 1, 3, i % 2 ? '#FFF6C8' : '#FFC8E8'); }
+  if (L.boost) for (let i = 0; i < 5; i++) { const sx = (i - 2) * 9 + Math.sin(L.f + i) * 3; line(c, '#FDE68A', 2, [sx, 52, sx * 1.4, 68 + (L.f * 3 + i * 7) % 14]); }
   c.restore();
-  // HIM: leaning into the turn from his feet
-  c.rotate(L.bank * 0.32);
   const Lg = L.nude ? SK : JE;
-  // (legs: ski stance on the shaft, knees out, his boots one behind the other)
+  // HIS LEGS, straddling it: thighs out from the seat to the knees (bent, out to the sides and forward), shins back in
+  // and down to his boots, tucked back by the binding, their soles at us
+  const kx = 19 + tuck * 2 - up * 2, ky = -4 - tuck * 3;
   for (const s of [-1, 1]) {
-    line(c, INK, 9, [s * 7, -36, s * 11, -18, s * 3, -2]);
-    line(c, Lg[2], 7, [s * 7, -36, s * 11, -18, s * 3, -2]); line(c, Lg[4], 2, [s * 6, -35, s * 10, -19]);
-    if (!L.nude) line(c, '#B8862E', 0.8, [s * 8, -34, s * 12, -18]);
+    line(c, INK, 11, [s * 7, -6, s * kx, ky]);
+    line(c, s < 0 ? Lg[3] : Lg[2], 9, [s * 7, -6, s * kx, ky]); line(c, Lg[4], 2, [s * 7, -9, s * (kx - 2), ky - 3]);
+    if (!L.nude) line(c, '#B8862E', 0.8, [s * 8, -4, s * (kx - 1), ky + 2]);
   }
-  box(c, -6, -5, 12, 6, '#1A120C'); box(c, -5, -9, 10, 4, '#1A120C'); box(c, -6, -5, 12, 1, '#4A3A2E');
-  // (the seat: jeans, the belt; or bare; the stain; the balls between his thighs)
+  for (const s of [-1, 1]) {
+    const fx = s * 12, fy = 12;
+    line(c, INK, 10, [s * kx, ky, fx, fy]);
+    line(c, s < 0 ? Lg[3] : Lg[2], 8, [s * kx, ky, fx, fy]);
+    // (the boot from behind: its heel and sole at us)
+    box(c, fx - 5, fy - 2, 10, 9, INK); box(c, fx - 4, fy - 1, 8, 7, '#1A120C'); box(c, fx - 4, fy + 4, 8, 2, '#4A3A2E'); box(c, fx - 3, fy - 1, 3, 2, '#3A2E26');
+  }
+  // THE SEAT on the shaft: jeans (the belt, the pockets) or bare; the stain; the balls hung over the shaft
   if (L.nude) {
-    ell(c, -5, -38, 6.5, 6, BUM[2]); ell(c, 5, -38, 6.5, 6, BUM[1]); ell(c, -7, -40, 3, 2.4, BUM[3]); box(c, -0.5, -43, 1, 8, '#8A5A3A');
-    ell(c, -1.6, -30, 2.6, 2.8, SK[2]); ell(c, 1.8, -30.5, 2.6, 2.8, SK[1]); ell(c, -2, -31, 1, 1, SK[4]);
-    if (L.shat) { ell(c, 0, -35, 4.5, 3.2, '#5C3A16'); box(c, -1, -33, 2, 3 + ((L.f >> 3) % 3), '#5C3A16'); }
-    // THE BONER: out past his hip on the outside of the turn, further the harder he banks; pink, a darker head
-    const side = L.bank > 0.04 ? -1 : 1, len = 7 + Math.min(1, Math.abs(L.bank)) * 9;
-    const bx = side * 10, by = -32;
-    line(c, INK, 5, [side * 4, by + 1, bx + side * len, by - 3 - len * 0.35]);
-    line(c, '#E89A86', 3.4, [side * 4, by + 1, bx + side * len, by - 3 - len * 0.35]);
-    ell(c, bx + side * (len + 1), by - 4 - len * 0.35, 2.6, 2.2, '#C8505A');
+    ell(c, -6, -9, 7, 6.5, BUM[2]); ell(c, 6, -9, 7, 6.5, BUM[1]); ell(c, -8, -12, 3, 2.4, BUM[3]); box(c, -0.5, -15, 1, 10, '#8A5A3A');
+    ell(c, -2, -1, 2.8, 3, SK[2]); ell(c, 2, -0.6, 2.8, 3, SK[1]); ell(c, -2.4, -2, 1, 1, SK[4]);
+    if (L.shat) { ell(c, 0, -7, 4.5, 3.2, '#5C3A16'); box(c, -1, -5, 2, 3 + ((L.f >> 3) % 3), '#5C3A16'); }
   } else {
-    box(c, -12, -44, 24, 11, JE[3]); box(c, -12, -44, 4, 11, JE[4]); box(c, 8, -44, 4, 11, JE[2]); box(c, -0.6, -42, 1.2, 9, JE[1]);
-    for (const s of [-1, 1]) { box(c, s * 6 - 4, -41, 8, 6, JE[2]); box(c, s * 6 - 4, -41, 8, 1, '#B8862E'); }
-    if (L.shat) { ell(c, 0, -37, 8.5, 4.8, '#6A4418'); ell(c, 0, -36, 5, 3, '#4A2E0E'); box(c, -2, -33, 2, 3 + ((L.f >> 3) % 3), '#5C3A16'); }
-    box(c, -13, -46, 26, 5, '#5A2A0C'); box(c, -13, -46, 26, 1, '#8A4A1C'); box(c, -2, -46, 4, 3, '#C8A040');
+    box(c, -14, -17, 28, 13, JE[3]); box(c, -14, -17, 4, 13, JE[4]); box(c, 10, -17, 4, 13, JE[2]); box(c, -0.6, -15, 1.2, 11, JE[1]);
+    for (const s of [-1, 1]) { box(c, s * 7 - 4, -14, 8, 6, JE[2]); box(c, s * 7 - 4, -14, 8, 1, '#B8862E'); }
+    if (L.shat) { ell(c, 0, -9, 9, 5, '#6A4418'); ell(c, 0, -8, 5, 3, '#4A2E0E'); box(c, -2, -5, 2, 3 + ((L.f >> 3) % 3), '#5C3A16'); }
   }
-  // (his bare back, lit from the upper left; the spine's groove; the shoulder blades)
-  poly(c, INK, [-18, -67, 18, -67, 20, -58, 15, -45, -15, -45, -20, -58]);
-  poly(c, SK[3], [-17, -66, 17, -66, 19, -58, 14, -46, -14, -46, -19, -58]);
-  poly(c, SK[4], [-17, -66, -2, -66, -2, -46, -14, -46, -19, -58]);
-  poly(c, SK[2], [12, -65, 17, -66, 19, -58, 14, -46, 10, -46, 13, -57]);
-  box(c, -1, -64, 2, 18, SK[2]);
-  ell(c, -7.5, -59, 5, 3.6, SK[5]); ell(c, 7, -59, 4.6, 3.4, SK[4]);
-  // (arms out for balance (thrown back on a boost), a flap of them as he banks)
-  const lift = L.boost ? 6 : 0;
+  // (THE BONER, naked: poking out past his hip on the outside of the turn, further the harder he banks)
+  if (L.nude) {
+    const side = L.bank > 0.04 ? -1 : 1, len = 7 + Math.min(1, Math.abs(L.bank)) * 10;
+    const bx = side * 12, by = -6;
+    line(c, INK, 5, [side * 5, by + 1, bx + side * len, by - 3 - len * 0.35]);
+    line(c, '#E89A86', 3.4, [side * 5, by + 1, bx + side * len, by - 3 - len * 0.35]);
+    ell(c, bx + side * (len + 1), by - 4 - len * 0.35, 2.6, 2.2, '#C8505A');
+  }
+  // HIS BACK, leaned forward over the shaft (shorter the lower he's tucked; taller sat up or climbing)
+  const torsoH = 30 - tuck * 8 + up * 9 + pt * 3, wY = -15, sY = wY - torsoH;
+  const hy = sY - 7 + tuck * 3 - up * 2, handY = up ? sY + 2 : hy - 14 - tuck * 2;
+  // (his arms: elbows out, forearms in to both fists on the shaft ahead of him; sat up they're pulled in to his chest)
   for (const s of [-1, 1]) {
-    const up = -s * L.bank * 8;
-    line(c, INK, 8, [s * 16, -63, s * 28, -56 + up + lift, s * 38, -64 + up + lift]);
-    line(c, s < 0 ? SK[4] : SK[3], 6, [s * 16, -63, s * 28, -56 + up + lift, s * 38, -64 + up + lift]);
-    ell(c, s * 39, -65 + up + lift, 3.6, 3.6, INK); ell(c, s * 39, -65 + up + lift, 2.8, 2.8, SK[3]);
+    const ex = s * (27 - up * 3 + tuck * 2), ey = sY - 4 + up * 8 - L.bank * s * 3, fx = s * (up ? 7 : 3.5), fy = handY - (s > 0 && !up ? 4 : 0);
+    line(c, INK, 8, [s * 16, sY + 3, ex, ey, fx, fy]);
+    line(c, s < 0 ? SK[4] : SK[3], 6, [s * 16, sY + 3, ex, ey, fx, fy]);
+    if (!up) { ell(c, fx, fy, 4.2, 3.6, INK); ell(c, fx, fy, 3.4, 2.8, SK[3]); box(c, fx - 2, fy - 1, 4, 1, SK[2]); }
   }
-  // (his neck and the back of his head: the short dark hair, the ears)
-  box(c, -5, -72, 10, 7, SK[2]);
-  ell(c, 0, -79, 9, 10, INK); ell(c, 0, -79, 8, 9, SK[3]);
-  ell(c, 0, -82, 8, 7, HAIR); box(c, -8, -82, 16, 3, HAIR);
-  ell(c, -8.5, -78, 2, 3, SK[2]); ell(c, 8.5, -78, 2, 3, SK[2]);
+  if (!L.nude) { box(c, -15, wY - 3, 30, 5, '#5A2A0C'); box(c, -15, wY - 3, 30, 1, '#8A4A1C'); box(c, -2, wY - 3, 4, 3, '#C8A040'); }
+  poly(c, INK, [-14, wY - 1, 14, wY - 1, 20, sY + 8, 18, sY - 1, -18, sY - 1, -20, sY + 8]);
+  poly(c, SK[3], [-13, wY - 2, 13, wY - 2, 19, sY + 8, 17, sY, -17, sY, -19, sY + 8]);
+  poly(c, SK[4], [-13, wY - 2, -1, wY - 2, -1, sY, -17, sY, -19, sY + 8]);
+  poly(c, SK[2], [9, wY - 2, 13, wY - 2, 19, sY + 8, 17, sY, 13, sY, 14, sY + 8]);
+  box(c, -1, sY + 2, 2, wY - sY - 4, SK[2]);
+  ell(c, -8, sY + 6, 5, 3.4, SK[5]); ell(c, 7.5, sY + 6, 4.6, 3.2, SK[4]);
+  // (his neck and the back of his head, ducked down on a boost: the short dark hair, the ears)
+  box(c, -5, hy + 4, 10, sY - hy - 2, SK[2]);
+  ell(c, 0, hy, 9, 10, INK); ell(c, 0, hy, 8, 9, SK[3]);
+  ell(c, 0, hy - 3, 8, 7, HAIR); box(c, -8, hy - 3, 16, 3, HAIR);
+  ell(c, -8.5, hy + 1, 2, 3, SK[2]); ell(c, 8.5, hy + 1, 2, 3, SK[2]);
+  if (L.boost) for (let i = 0; i < 3; i++) box(c, -6 + i * 5, hy - 10 - ((L.f + i * 3) % 4), 2, 3, HAIR);
   c.restore();
 };
 
@@ -130,8 +147,8 @@ export const riderCanvas = (id: string, L: SuitorLook, tiara: boolean, face: 1 |
   cv = document.createElement('canvas'); cv.width = RIDER_W; cv.height = RIDER_H;
   const g = cv.getContext('2d')!;
   drawBroom(g, RIDER_AX, RIDER_AY, face, 1, true);
-  drawSuitor(g, RIDER_AX - face * 4, RIDER_AY + 34, face, 0, L, 'sit');
-  if (tiara) TIARA(g, RIDER_AX - face * 4 + face * 2, RIDER_AY + 34 - 104);
+  drawSuitor(g, RIDER_AX - face * 4, RIDER_AY + 34, face, 0, L, 'ride');
+  if (tiara) TIARA(g, RIDER_AX - face * 4 + face * 12, RIDER_AY + 34 - 102);
   if (hit) { g.globalCompositeOperation = 'source-atop'; g.fillStyle = 'rgba(255,240,240,0.75)'; g.fillRect(0, 0, RIDER_W, RIDER_H); g.globalCompositeOperation = 'source-over'; }
   riders.set(key, cv);
   return cv;

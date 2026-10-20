@@ -14,7 +14,7 @@
 
 type Ctx = CanvasRenderingContext2D;
 
-export type SuitorPose = 'stand' | 'flex' | 'talk' | 'point' | 'cheer' | 'throw' | 'sit' | 'hurt' | 'dead';
+export type SuitorPose = 'stand' | 'flex' | 'talk' | 'point' | 'cheer' | 'throw' | 'sit' | 'hurt' | 'dead' | 'ride';
 
 export interface SuitorLook {
   name: string;
@@ -65,7 +65,8 @@ const limb = (c: Ctx, x1: number, y1: number, x2: number, y2: number, w: number,
 };
 
 /**
- * A suitor, standing (or sat in a cart: 'sit', his feet at feetY as if stood, cut off by whatever's in front of him).
+ * A suitor, standing (or sat in a cart: 'sit', his feet at feetY as if stood, cut off by whatever's in front of him;
+ * or astride a broom: 'ride', its shaft 34 over feetY, fists on it ahead).
  * `opts.talking`: his mouth going; `opts.hold`: what's in his throwing hand ('throw').
  */
 export const drawSuitor = (c: Ctx, x: number, feetY: number, facing: 1 | -1, f: number, L: SuitorLook, pose: SuitorPose, opts: { talking?: boolean } = {}) => {
@@ -76,7 +77,14 @@ export const drawSuitor = (c: Ctx, x: number, feetY: number, facing: 1 | -1, f: 
   const hipY = -40, shY = -72 + bob, gut = L.gut;
   // LEGS: thick, the trunks or trousers
   const legCol = L.kit === 'cape' ? sb : L.kit === 'viking' ? '#5A4A3A' : L.kit === 'tee' ? '#3A4A6A' : L.kit === 'knight' ? '#8A8A94' : L.kit === 'wizard' ? L.main : '#2A2A34';
-  if (pose !== 'sit') {
+  if (pose === 'ride') {
+    // (astride a broom (its shaft 6 under his hips): knees bent forward, boots tucked back toward the bristles; the
+    // far leg in shadow; his upper body leaned forward over the shaft, both fists on it ahead: see below)
+    limb(c, -4, hipY, 8, hipY + 13, 11, sd); limb(c, 8, hipY + 13, -7, hipY + 27, 10, sd);
+    limb(c, 2, hipY, 14, hipY + 14, 12, legCol); limb(c, 14, hipY + 14, -1, hipY + 30, 11, legCol);
+    box(c, -10, hipY + 26, 13, 6, INK); box(c, -9, hipY + 27, 11, 5, L.kit === 'viking' ? '#6A4A2A' : L.kit === 'prince' ? '#F4F4F5' : '#3A2A1A');
+    c.translate(0, hipY); c.rotate(0.2); c.translate(0, -hipY);
+  } else if (pose !== 'sit') {
     limb(c, -7, hipY, -10, -4, 11, legCol); limb(c, 7, hipY, 10, -4, 12, legCol, L.kit === 'cape' ? sl : undefined);
     for (const fx of [-10, 10]) { box(c, fx - 6, -6, 14, 6, INK); box(c, fx - 5, -5, 12, 5, L.kit === 'viking' ? '#6A4A2A' : L.kit === 'prince' ? '#F4F4F5' : '#3A2A1A'); }
     if (L.kit === 'viking') for (const fx of [-10, 10]) for (let y = -30; y < -8; y += 5) box(c, fx - 6, y, 12, 2, '#8A7A60');
@@ -92,14 +100,14 @@ export const drawSuitor = (c: Ctx, x: number, feetY: number, facing: 1 | -1, f: 
   if (L.kit === 'tee') { box(c, -14, hipY - 5, 28, 9, INK); box(c, -13, hipY - 4, 26, 7, '#3A4A6A'); box(c, -13, hipY - 4, 26, 2, '#E4E4E7'); }
   if (L.kit === 'knight') { box(c, -15, hipY - 6, 30, 10, INK); box(c, -14, hipY - 5, 28, 8, '#8A8A94'); }
   // (the wizard's robe, to the floor: over his legs, the sleeves torn off)
-  if (L.kit === 'wizard' && pose !== 'sit') {
+  if (L.kit === 'wizard' && pose !== 'sit' && pose !== 'ride') {
     c.fillStyle = INK; c.beginPath(); c.moveTo(-19, hipY - 18); c.lineTo(19, hipY - 18); c.lineTo(24, -2); c.lineTo(-24, -2); c.closePath(); c.fill();
     c.fillStyle = L.main; c.beginPath(); c.moveTo(-18, hipY - 17); c.lineTo(18, hipY - 17); c.lineTo(23, -3); c.lineTo(-23, -3); c.closePath(); c.fill();
     for (let k = 0; k < 4; k++) box(c, -14 + k * 9, -16 + (k % 2) * 8, 2, 2, L.trim);
   }
   // THE BACK ARM (far)
   const throwing = pose === 'throw', flexing = pose === 'flex' || pose === 'cheer';
-  const farHand: [number, number] = flexing ? [-26, shY - 18] : throwing ? [-30, shY - 14] : [-22, hipY - 4];
+  const farHand: [number, number] = pose === 'ride' ? [32, hipY - 3] : flexing ? [-26, shY - 18] : throwing ? [-30, shY - 14] : [-22, hipY - 4];
   limb(c, -16, shY + 6, (-16 + farHand[0]) / 2 - 4, (shY + 6 + farHand[1]) / 2 + (flexing ? 4 : 0), 12, sd);
   limb(c, (-16 + farHand[0]) / 2 - 4, (shY + 6 + farHand[1]) / 2 + (flexing ? 4 : 0), farHand[0], farHand[1], 11, sd);
   blob(c, farHand[0], farHand[1], 5, 5, sd);
@@ -198,7 +206,7 @@ export const drawSuitor = (c: Ctx, x: number, feetY: number, facing: 1 | -1, f: 
     box(c, hx - 3, hy - 22, 2, 2, L.trim); box(c, hx + 2, hy - 15, 2, 2, L.trim); box(c, hx - 6, hy - 30, 2, 2, L.trim);
   }
   // THE NEAR ARM: a bicep the size of his head
-  const nearHand: [number, number] = flexing ? [24, shY - 20] : throwing ? [30, shY - 30 + (Math.floor(f / 6) % 2) * 8] : pose === 'point' ? [36, shY + 2] : pose === 'talk' ? [24, shY + 8 + (Math.floor(f / 8) % 2) * 3] : [20, hipY - 4];
+  const nearHand: [number, number] = pose === 'ride' ? [26, hipY - 2] : flexing ? [24, shY - 20] : throwing ? [30, shY - 30 + (Math.floor(f / 6) % 2) * 8] : pose === 'point' ? [36, shY + 2] : pose === 'talk' ? [24, shY + 8 + (Math.floor(f / 8) % 2) * 3] : [20, hipY - 4];
   const ex = flexing ? 28 : (16 + nearHand[0]) / 2 + 4, ey = flexing ? shY + 4 : (shY + 6 + nearHand[1]) / 2 + 2;
   limb(c, 16, shY + 6, ex, ey, 13, sb, sl);
   limb(c, ex, ey, nearHand[0], nearHand[1], 11, sb, sl);

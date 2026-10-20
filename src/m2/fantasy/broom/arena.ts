@@ -188,9 +188,78 @@ const paintGround = (g: Ctx) => {
   ring(WALL_R, 70, '#F472B6'); ring(WALL_R, 24, '#FFE4F2');
 };
 
-/** The texture and its two smaller copies, multiplied by the hour's light. */
-interface Ground { key: string; mips: Uint32Array[]; out: number; far: number }
+// ---------------------------------------------------------------------------------------------------------------
+// The blood on the ground: a BIG SPLATTER under each dead suitor (the user's: "big blood splatter on the ground with
+// the dead bodies"), baked into the ground texture (not sprites: it costs nothing to draw however many pile up). A
+// starburst: a wet core, spikes all round, long streaks and drops thrown the way he was going when he hit, gore bits.
+// Big enough to read from altitude (the core ~250 units across, the spikes out to ~400, the streaks ~800 ahead).
+
+/** A splatter on the ground: where, the way he was going when he hit (a yaw), in the moat's mud or not, its seed. */
+export interface Splat { x: number; z: number; dir: number; mud: boolean; seed: number }
+let splats: Splat[] = [];
+let splatKey = '';
+const keyOf = (l: Splat[]) => l.map(s => `${Math.round(s.x)},${Math.round(s.z)};`).join('');
+/** The splatters that should be on the ground now (the fight's, oldest first: new ones are only ever added on). */
+export const setSplats = (list: Splat[]) => { const k = keyOf(list); if (k !== splatKey) { splatKey = k; splats = list.slice(); } };
+
+const paintSplat = (g: Ctx, s: Splat, tod: TimeOfDay): [number, number, number, number] => {
+  const [u, v] = T(s.x, s.z), du = Math.sin(s.dir), dv = -Math.cos(s.dir), rot = Math.atan2(dv, du);
+  const M = (c: string) => multiply(c, tod.mul);
+  const core = R(115 + hash(s.seed * 1.7) * 30);
+  const passes: [string, number][] = s.mud
+    ? [[M('#2A0C06'), 1.18], [M('#4A140A'), 1], [M('#6E1A0E'), 0.55]]
+    : [[M('#3A0404'), 1.18], [M('#7A0C0C'), 1], [M('#A81414'), 0.55]];
+  for (const [col, sc] of passes) {
+    let n = s.seed * 97 + 13;
+    const r = () => { n = (n * 16807 + 11) % 2147483647; return n / 2147483647; };
+    g.fillStyle = col;
+    // (the core: a lumpy blob)
+    for (let i = 0; i < 8; i++) { const a = r() * Math.PI * 2, d = r() * core * 0.5; g.beginPath(); g.arc(u + Math.cos(a) * d, v + Math.sin(a) * d, core * (0.45 + r() * 0.35) * sc, 0, Math.PI * 2); g.fill(); }
+    // (spikes all round: longer the way he was going)
+    for (let i = 0; i < 18; i++) {
+      const a = (i / 18) * Math.PI * 2 + r() * 0.3, fwd = Math.max(0, Math.cos(a - rot)), len = core * (1.2 + r() * 1.3 + fwd * 1.6) * (sc > 1 ? 1.04 : sc < 1 ? 0.7 : 1), w = core * (0.12 + r() * 0.1) * sc;
+      const ca = Math.cos(a), sa = Math.sin(a);
+      g.beginPath(); g.moveTo(u - sa * w, v + ca * w); g.lineTo(u + ca * len, v + sa * len); g.lineTo(u + sa * w, v - ca * w); g.closePath(); g.fill();
+      g.beginPath(); g.arc(u + ca * len * 0.96, v + sa * len * 0.96, w * 0.5, 0, Math.PI * 2); g.fill();
+    }
+    // (the long streaks thrown ahead, and the drops along them)
+    for (let i = 0; i < 5; i++) {
+      const a = rot + (r() - 0.5) * 0.7, d = core * (1.4 + r() * 1.6), L = core * (0.9 + r() * 0.9);
+      g.beginPath(); g.ellipse(u + Math.cos(a) * d, v + Math.sin(a) * d, L * sc, core * (0.14 + r() * 0.08) * sc, a, 0, Math.PI * 2); g.fill();
+      for (let k = 0; k < 4; k++) { const dd = d + L + core * (0.3 + k * 0.45 + r() * 0.2); g.beginPath(); g.arc(u + Math.cos(a) * dd, v + Math.sin(a) * dd, core * (0.12 - k * 0.02) * sc, 0, Math.PI * 2); g.fill(); }
+    }
+    // (spatter all round)
+    for (let i = 0; i < 26; i++) { const a = r() * Math.PI * 2, d = core * (1 + r() * 2.4) * (1 + Math.max(0, Math.cos(a - rot))), rr = core * (0.04 + r() * 0.08) * sc; g.beginPath(); g.arc(u + Math.cos(a) * d, v + Math.sin(a) * d, Math.max(0.5, rr), 0, Math.PI * 2); g.fill(); }
+  }
+  // (gore: bits of him, and bone)
+  let n = s.seed * 31 + 7;
+  const r = () => { n = (n * 16807 + 11) % 2147483647; return n / 2147483647; };
+  for (let i = 0; i < 9; i++) {
+    const a = rot + (r() - 0.5) * 2.4, d = core * (0.3 + r() * 1.8), x = u + Math.cos(a) * d, y = v + Math.sin(a) * d, w = 1 + Math.round(r() * 2);
+    g.fillStyle = M(i % 3 === 0 ? '#EEE6D6' : i % 3 === 1 ? '#C86A6A' : '#5A0808'); g.fillRect(Math.round(x), Math.round(y), w, Math.max(1, w - 1));
+  }
+  const ext = core * 7.5;
+  return [u - ext, v - ext, u + ext, v + ext];
+};
+
+/** The texture and its two smaller copies, multiplied by the hour's light (the splatters painted on it as they come). */
+interface Ground { key: string; mips: Uint32Array[]; out: number; far: number; g: Ctx; splatKey: string; nSplats: number }
 let ground: Ground | null = null;
+/** Copy a region of the painted texture back into the top copy and remake the two smaller ones over it. */
+const refresh = (G: Ground, x0: number, y0: number, x1: number, y1: number) => {
+  const ax = Math.max(0, Math.floor(x0) & ~3), ay = Math.max(0, Math.floor(y0) & ~3), bx = Math.min(TS, (Math.ceil(x1) + 3) & ~3), by = Math.min(TS, (Math.ceil(y1) + 3) & ~3);
+  if (bx <= ax || by <= ay) return;
+  const w = bx - ax, h = by - ay, src = new Uint32Array(G.g.getImageData(ax, ay, w, h).data.buffer.slice(0)), m0 = G.mips[0];
+  for (let y = 0; y < h; y++) m0.set(src.subarray(y * w, y * w + w), (ay + y) * TS + ax);
+  for (let lvl = 1; lvl <= 2; lvl++) {
+    const n = TS >> (lvl - 1), m = n >> 1, s = G.mips[lvl - 1], d = G.mips[lvl];
+    for (let y = ay >> lvl; y < by >> lvl; y++) for (let x = ax >> lvl; x < bx >> lvl; x++) {
+      let r = 0, gg = 0, b = 0;
+      for (let k = 0; k < 4; k++) { const p = s[(y * 2 + (k >> 1)) * n + x * 2 + (k & 1)]; r += p & 0xff; gg += (p >> 8) & 0xff; b += (p >> 16) & 0xff; }
+      d[y * m + x] = (0xff << 24) | (((b >> 2) & 0xff) << 16) | (((gg >> 2) & 0xff) << 8) | ((r >> 2) & 0xff);
+    }
+  }
+};
 const pack = (hex: string) => { const n = parseInt(hex.slice(1), 16); return (0xff << 24) | ((n & 0xff) << 16) | (n & 0xff00) | (n >> 16); };
 const shrink = (src: Uint32Array, n: number) => {
   const m = n >> 1, out = new Uint32Array(m * m);
@@ -202,16 +271,24 @@ const shrink = (src: Uint32Array, n: number) => {
   return out;
 };
 const groundFor = (tod: TimeOfDay): Ground => {
-  if (ground && ground.key === tod.key) return ground;
+  if (ground && ground.key === tod.key && (ground.splatKey === splatKey || splatKey.startsWith(ground.splatKey))) {
+    // (new splatters since: painted on, and just their patch of the copies remade)
+    if (ground.splatKey !== splatKey) {
+      for (let i = ground.nSplats; i < splats.length; i++) { const [a, b, c, d] = paintSplat(ground.g, splats[i], tod); refresh(ground, a, b, c, d); }
+      ground.nSplats = splats.length; ground.splatKey = splatKey;
+    }
+    return ground;
+  }
   const cv = document.createElement('canvas'); cv.width = TS; cv.height = TS;
-  const g = cv.getContext('2d')!;
+  const g = cv.getContext('2d', { willReadFrequently: true })!;
   g.imageSmoothingEnabled = false;
   paintGround(g);
   // (the hour's light over it: multiplied in)
   if (tod.mul && tod.mul.toUpperCase() !== '#FFFFFF') { g.globalCompositeOperation = 'multiply'; g.fillStyle = tod.mul; g.fillRect(0, 0, TS, TS); g.globalCompositeOperation = 'source-over'; }
+  for (const s of splats) paintSplat(g, s, tod);
   const m0 = new Uint32Array(g.getImageData(0, 0, TS, TS).data.buffer.slice(0));
   const m1 = shrink(m0, TS), m2 = shrink(m1, TS >> 1);
-  ground = { key: tod.key, mips: [m0, m1, m2], out: pack(multiply('#3C6634', tod.mul)), far: pack(mix(multiply('#4A6A44', tod.mul), skyAt(0.95, tod), 0.55)) };
+  ground = { key: tod.key, mips: [m0, m1, m2], out: pack(multiply('#3C6634', tod.mul)), far: pack(mix(multiply('#4A6A44', tod.mul), skyAt(0.95, tod), 0.55)), g, splatKey, nSplats: splats.length };
   return ground;
 };
 

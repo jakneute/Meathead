@@ -625,3 +625,33 @@ markBossFight every frame of a boss or sub-boss fight. Voice every new line (`np
   his terror and swearing (drops, loops, corkscrews, the helix, the slip, the dark, the splash: clean / shitty / naked,
   pickLine, never twice in 45 s), the spiel naming the track that loops, Piper purring at him letting go. The music:
   in a loop, the arrangement with all three cars (`main`).
+- (the user's, broomsticks) Verbatim: "adjust meathead's pose on the broomstick. make it look like he's actually riding
+  one. on the side view and the shooting view"; "make sure the mode 7 fight looks bloodier. when you win, meathead
+  flies in circles around the castle before eventually flying into the window. i want to see big blood splatter on the
+  ground with the dead bodies as you kill more people during the broomstick part". Supersedes "stood on it" above.
+- (broomsticks, ours) RIDING: from behind (broom/art.ts drawMeatheadBroom) he's sat astride the shaft, the shaft
+  between his legs off ahead to the laser on its tip, both fists on it ahead of him (over his head's line), elbows out,
+  knees out and bent, his boots tucked back by the binding (soles at us), the bristles fanned under him; the whole rig
+  leans into a turn, climbing tilts the tip up and sits him back, a boost tucks him low (head down, hair whipping), a
+  brake sits him up with his fists pulled in to his chest. Naked: the balls over the shaft, the boner out past the hip
+  on the outside of the turn. Side on (the runway's mount and takeoff): Player.broomRide (render/player/broomPose.ts,
+  tragonPose.ts's drawFig): sat on the shaft, knees forward, boots back toward the bristles, fists on it ahead, leaning
+  more as it shoots off; naked, the balls hung over the shaft and the boner laid along it. The suitors ride the same
+  way (suitors.ts 'ride': straddling, leaned forward, both fists on the shaft; the runway's and the deathmatch's).
+- (broomsticks, ours) BLOOD: every hit on a suitor sprays (out the way the shot was going, some back, a puff of mist;
+  bigger the harder the hit), all in the world and scaled by depth; a kill bursts him (a cloud of blood, mist, chunks
+  of him and bone raining down onto the grounds); his death spiral leaves a trail of blood hanging in the air; a wall
+  hit bursts again and leaves a smear with spatter and drips. Him hit: blood off his back at us (screen space with his
+  figure). Up to 900 bits in the air (the oldest go).
+- (broomsticks, ours) THE SPLATTERS: each suitor down lies in a BIG SPLATTER (broom/arena.ts setSplats / paintSplat),
+  painted into the mode 7 ground texture where he hit (only its patch of the copies remade: no sprites, no cost however
+  many): a lumpy wet core (~250 units across), spikes all round, long streaks and drops thrown the way he was going (out
+  from the wall he slid down), spatter, gore bits; in the moat's mud, darker. They pile up and stay for the visit
+  (`splats` in the kept state: through his deaths; anybody still falling when he died is down where he was); his body
+  on its snapped broom lies in it. The revisit's side view is a landing high on the castle (no grounds in it).
+- (broomsticks, ours) THE VICTORY LAP (a cutscene: HUD hidden, no input, SKIP >> to the bedroom as before): the last
+  one down, Piper and his lines as before and the barrier wilting while he flies circles round the castle on autopilot
+  (two laps the way he was already going, spiraling in to 1350 out and up to 200 over her window, past the towers'
+  tops), the camera swung out behind him and up (looking in at the castle and down at the bloody grounds; him drawn
+  where it has him, by his depth), Piper's fireworks faster; laps done and the talking over, he breaks off at the top,
+  banks in for her window (the camera back in behind him), then the cut and the rapid zoom and the glass as before.

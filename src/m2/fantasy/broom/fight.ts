@@ -20,10 +20,14 @@
 // the LATE ENTRIES (paid cash at the gate: they fly in over the wall when the first lot's down to one, or after a
 // while), 6 to 8 in all, each his own way on a broom: FLANKERS (get behind or beside, throw / shoot), CHARGERS (a
 // glint, then a straight ram: Hank's foam lance), SNIPERS (keep away, a long aim, one fast bolt), HUNTERS (go after the
-// other suitors first). They fight each other as much as him (hit one and he wants you back). Shot down: a spiral, a
-// scream and a shit, into the lawn, a tower or the drained moat; dead for good (through his deaths, this visit).
-// All dead: the rose barrier on her window wilts, he's flown at it (a cutscene: the rapid zoom), the glass breaks
-// over the screen in shards, and he's outside the Great Pixie's bedroom.
+// other suitors first). They fight each other as much as him (hit one and he wants you back). Every hit sprays blood;
+// shot down: he bursts (a cloud of blood, chunks of him raining down), a spiral trailing blood, a scream and a shit,
+// into the lawn, a tower or the drained moat, where he lies in a BIG SPLATTER baked into the ground (the user's: they
+// pile up); dead for good (bodies and splatters through his deaths, this visit).
+// All dead: the rose barrier on her window wilts, and the VICTORY LAP (the user's; a cutscene): circles round the
+// castle on autopilot, spiraling up past the towers, the camera swung out behind him over the bloody grounds; then he
+// breaks off at the top for her window (the rapid zoom), the glass breaks over the screen in shards, and he's outside
+// the Great Pixie's bedroom.
 
 import type { FrameContext } from '../../../m1/game/core/context';
 import type { GameState } from '../../../m1/game/core/state';
@@ -49,7 +53,7 @@ import { hash } from '../kit';
 import {
   W, H, HORIZON, FOCAL, CAM_BACK, CAM_UP, WALL_R, MIN_ALT, MAX_ALT, MOAT, CASTLE_U, WINDOW, SOLIDS, TOWERS, FLAGS, BALLOONS, TREES,
   CASTLE_K, CASTLE_CX, CASTLE_CY, TOWER_PX, view, setView, project, seen, solidAt, radiusAt, topOf, balloonAt,
-  drawSky, drawGround, castleCanvas, towerCanvas, treeCanvas, flagCanvas, balloonCanvas, type Proj, type Solid,
+  drawSky, drawGround, castleCanvas, towerCanvas, treeCanvas, flagCanvas, balloonCanvas, setSplats, type Proj, type Solid, type Splat,
 } from './arena';
 import { drawMeatheadBroom, drawMeatheadFall, riderCanvas, clearRiders, drawThing, drawCorpse, RIDER_W, RIDER_H, RIDER_AX, RIDER_AY, type Thing } from './art';
 import {
@@ -114,16 +118,22 @@ interface Flyer {
   hit: number; said: Said | null; alive: boolean; in: boolean; gone: boolean; fall: Fall | null;
 }
 interface Shot { k: Thing; x: number; z: number; alt: number; vx: number; vz: number; valt: number; g: number; life: number; owner: number; dmg: number; foe: number; src: string; rot: number; home?: number }
-interface Part { x: number; z: number; alt: number; vx: number; vz: number; valt: number; g: number; life: number; col: string; size: number }
+/** Something in the air: `kind` gore (a chunk of him: two-tone, tumbling) or mist (a puff of blood, see-through). */
+interface Part { x: number; z: number; alt: number; vx: number; vz: number; valt: number; g: number; life: number; col: string; size: number; kind?: 'gore' | 'mist' }
 interface Pop { text: string; t: number; col: string }
+/** Blood off him when he's hit (screen space about his figure, in its own units: it's drawn with him). */
+interface Gush { x: number; y: number; vx: number; vy: number; life: number; size: number; col: string }
 
-/** What outlives his deaths (this visit): who's dead and where they came down, the late entries in, what's been said. */
-interface Corpse { x: number; z: number; kind: 'ground' | 'wall' | 'moat'; smear: { x: number; z: number; alt: number } | null }
-const kept = { visit: -1, dead: new Map<FlyerId, Corpse>(), late: false, said: false, tips: false, last: false };
+/** What outlives his deaths (this visit): who's dead and where they came down (and the splatter they left on the
+ *  ground: `splats`, oldest first), the late entries in, what's been said. */
+interface Corpse { x: number; z: number; kind: 'ground' | 'wall' | 'moat'; smear: { x: number; z: number; alt: number } | null; landed: boolean }
+const kept = { visit: -1, dead: new Map<FlyerId, Corpse>(), splats: [] as Splat[], late: false, said: false, tips: false, last: false };
 const keptOf = () => {
-  if (kept.visit !== landVisit()) { kept.visit = landVisit(); kept.dead.clear(); kept.late = false; kept.said = false; kept.tips = false; kept.last = false; }
+  if (kept.visit !== landVisit()) { kept.visit = landVisit(); kept.dead.clear(); kept.splats = []; kept.late = false; kept.said = false; kept.tips = false; kept.last = false; }
   return kept;
 };
+/** His splatter on the ground where he came down (the way he was going), for good this visit. */
+const splatAt = (x: number, z: number, dir: number, mud: boolean) => { const k = keptOf(); k.splats.push({ x, z, dir, mud, seed: 1 + k.splats.length * 7 + Math.floor(rnd() * 1000) }); };
 /** Up / down inverted: his to flip (Y / alternate fire); kept as he left it. */
 let inverted = false;
 
@@ -141,17 +151,24 @@ interface Fight {
   /** The boost used up: none till its meter's full again (Star Fox's). */
   spent: boolean;
   piper: Said | null; piperAt: number; quipAt: number; wallAt: number; tauntAt: number; fwAt: number;
-  win: { t: number; step: 'talk' | 'go'; open: number; said: boolean };
+  gush: Gush[];
+  /** Braking this frame (he sits up on it). */
+  braking: boolean;
+  /** The end: the talk, the barrier, and the VICTORY LAP (the user's: circles round the castle before the window):
+   *  his angle round it `th` (the way round `dir`), where the spiral started (`alt0`, `r0`), how far through the laps
+   *  `u` (0..1), the lap camera eased in `cam`, the break-off for the window (`brk` frames into it, -1 not yet). */
+  win: { t: number; step: 'talk' | 'go'; open: number; said: boolean; th: number; dir: number; alt0: number; r0: number; u: number; cam: number; brk: number };
   zoom: { t: number; cx: number; cz: number; yaw: number };
   deathLast: number; fallY: number; fallRot: number;
 }
+const newWin = (): Fight['win'] => ({ t: 0, step: 'talk', open: 0, said: false, th: 0, dir: 1, alt0: 0, r0: 0, u: 0, cam: 0, brk: -1 });
 const fightOf = (state: GameState) => fantasyState<Fight>(state, 'broom', () => ({
   phase: 'off', t: 0, x: 0, z: 0, alt: 500, yaw: 0, yawRate: 0, valt: 0, speed: 0, boost: 1, bank: 0, pitch: 0,
   fireCool: 0, fired: 99, inv: 0, shake: 0, fade: 0, tips: 0, flash: 0, hy: HORIZON,
   flyers: [], shots: [], parts: [], pops: [], prevY: false, lock: -1,
   hold: 0, locked: -1, lockedAt: 0, prevX: false, uturn: 0, uturnDir: 1, spent: false,
-  piper: null, piperAt: -999, quipAt: -999, wallAt: -999, tauntAt: -999, fwAt: 0,
-  win: { t: 0, step: 'talk', open: 0, said: false }, zoom: { t: 0, cx: 0, cz: 0, yaw: 0 },
+  piper: null, piperAt: -999, quipAt: -999, wallAt: -999, tauntAt: -999, fwAt: 0, gush: [], braking: false,
+  win: newWin(), zoom: { t: 0, cx: 0, cz: 0, yaw: 0 },
   deathLast: -1, fallY: 0, fallRot: 0,
 }));
 export const inFight = (state: GameState) => fightOf(state).phase !== 'off';
@@ -204,10 +221,18 @@ export const startFight = (state: GameState) => {
   f.phase = 'fly'; f.t = 0;
   f.x = 0; f.z = -3700; f.alt = 520; f.yaw = 0; f.yawRate = 0; f.valt = 0; f.speed = CRUISE; f.boost = 1; f.bank = 0; f.pitch = 0;
   f.inv = 90; f.fade = 1; f.shake = 0; f.flash = 0; f.fireCool = 20; f.hy = HORIZON;
-  f.shots = []; f.parts = []; f.pops = []; f.lock = -1; f.piper = null;
+  f.shots = []; f.parts = []; f.pops = []; f.gush = []; f.lock = -1; f.piper = null;
   f.hold = 0; f.locked = -1; f.prevX = false; f.uturn = 0; f.spent = false;
-  f.win = { t: 0, step: 'talk', open: 0, said: false };
+  f.win = newWin();
   clearRiders();
+  // (anybody who was still on his way down when he died: down now, his splatter where he'd have hit)
+  for (const c of k.dead.values()) if (!c.landed) {
+    c.landed = true;
+    if (c.smear) { c.x = c.smear.x; c.z = c.smear.z; c.kind = 'wall'; }
+    const r = Math.hypot(c.x, c.z);
+    if (c.kind !== 'wall') c.kind = r > MOAT[0] - 30 && r < MOAT[1] + 30 ? 'moat' : 'ground';
+    splatAt(c.x, c.z, rnd() * Math.PI * 2, c.kind === 'moat');
+  }
   const defs = rosterOf(state), first = defs.filter(d => !d.late).length;
   f.flyers = defs.map((d, i): Flyer => {
     const dead = k.dead.has(d.id);
@@ -282,11 +307,36 @@ const pickTarget = (f: Fight, fl: Flyer) => {
 // ---------------------------------------------------------------------------------------------------------------
 // Hits and deaths
 
+/** How much can be in the air at once (the oldest go first). */
+const MAX_PARTS = 900;
+const addPart = (f: Fight, q: Part) => { if (f.parts.length >= MAX_PARTS) f.parts.shift(); f.parts.push(q); };
+const BLOOD = ['#B91C1C', '#991B1B', '#7F1D1D', '#DC2626'];
+const red = () => BLOOD[Math.floor(rnd() * BLOOD.length)];
 const blood = (f: Fight, x: number, z: number, alt: number, n: number, mud = false) => {
   for (let i = 0; i < n; i++) {
-    if (f.parts.length > 420) f.parts.shift();
-    f.parts.push({ x, z, alt, vx: (rnd() - 0.5) * 10, vz: (rnd() - 0.5) * 10, valt: 2 + rnd() * 8, g: 0.45, life: 26 + rnd() * 24, col: mud ? (rnd() < 0.5 ? '#5C4424' : '#7A5A34') : rnd() < 0.7 ? '#B91C1C' : '#7F1D1D', size: 7 + rnd() * 8 });
+    addPart(f, { x, z, alt, vx: (rnd() - 0.5) * 10, vz: (rnd() - 0.5) * 10, valt: 2 + rnd() * 8, g: 0.45, life: 26 + rnd() * 24, col: mud ? (rnd() < 0.5 ? '#5C4424' : '#7A5A34') : red(), size: 7 + rnd() * 8 });
   }
+};
+/** A laser hit: blood sprayed out the far side the way the shot was going (and some back at us), a puff of it. */
+const spray = (f: Fight, x: number, z: number, alt: number, vx: number, vz: number, va: number, n: number) => {
+  const m = Math.hypot(vx, vz, va) || 1, ux = vx / m, uz = vz / m, ua = va / m;
+  for (let i = 0; i < n; i++) {
+    const back = i % 4 === 0 ? -0.5 : 1, v = 5 + rnd() * 10;
+    addPart(f, { x, z, alt, vx: ux * v * back + (rnd() - 0.5) * 7, vz: uz * v * back + (rnd() - 0.5) * 7, valt: ua * v * back + 1 + rnd() * 6, g: 0.4, life: 28 + rnd() * 26, col: red(), size: 5 + rnd() * 9 });
+  }
+  for (let i = 0; i < 2; i++) addPart(f, { x: x + ux * 20, z: z + uz * 20, alt, vx: ux * 3, vz: uz * 3, valt: 0.5, g: 0.02, life: 18 + rnd() * 8, col: '#B91C1C', size: 34 + rnd() * 20, kind: 'mist' });
+};
+/** A kill: he bursts, a cloud of blood and chunks of him that rain down onto the grounds. */
+const burst = (f: Fight, x: number, z: number, alt: number) => {
+  for (let i = 0; i < 46; i++) {
+    const a = rnd() * Math.PI * 2, b = (rnd() - 0.3) * Math.PI * 0.8, v = 4 + rnd() * 13;
+    addPart(f, { x, z, alt, vx: Math.cos(a) * Math.cos(b) * v, vz: Math.sin(a) * Math.cos(b) * v, valt: Math.sin(b) * v + 3, g: 0.32, life: 50 + rnd() * 50, col: red(), size: 6 + rnd() * 12 });
+  }
+  for (let i = 0; i < 16; i++) {
+    const a = rnd() * Math.PI * 2, v = 3 + rnd() * 9;
+    addPart(f, { x, z, alt, vx: Math.cos(a) * v, vz: Math.sin(a) * v, valt: 4 + rnd() * 9, g: 0.45, life: 140, col: i % 4 === 0 ? '#EEE6D6' : i % 4 === 1 ? '#C86A6A' : '#8A1414', size: 11 + rnd() * 10, kind: 'gore' });
+  }
+  for (let i = 0; i < 7; i++) addPart(f, { x: x + (rnd() - 0.5) * 80, z: z + (rnd() - 0.5) * 80, alt: alt + (rnd() - 0.5) * 60, vx: (rnd() - 0.5) * 2, vz: (rnd() - 0.5) * 2, valt: -0.3, g: 0.01, life: 50 + rnd() * 30, col: rnd() < 0.5 ? '#991B1B' : '#B91C1C', size: 70 + rnd() * 60, kind: 'mist' });
 };
 const sparks = (f: Fight, x: number, z: number, alt: number, cols: string[], n: number) => {
   for (let i = 0; i < n; i++) f.parts.push({ x, z, alt, vx: (rnd() - 0.5) * 14, vz: (rnd() - 0.5) * 14, valt: (rnd() - 0.3) * 12, g: 0.2, life: 14 + rnd() * 10, col: cols[i % cols.length], size: 5 });
@@ -302,11 +352,13 @@ const firework = (f: Fight, x: number, z: number, alt: number) => {
 };
 const pop = (f: Fight, text: string, col = '#FDE68A') => { f.pops.push({ text, t: 0, col }); if (f.pops.length > 3) f.pops.shift(); };
 
-const hitFlyer = (state: GameState, f: Fight, fl: Flyer, n: number, by: number) => {
+const hitFlyer = (state: GameState, f: Fight, fl: Flyer, n: number, by: number, dir?: { vx: number; vz: number; valt: number }) => {
   if (!fl.alive) return;
   fl.hp -= n; fl.hit = 6;
   if (by !== fl.i) { fl.aggroOn = by; fl.aggro = 300; if (fl.target !== by && rnd() < 0.6) { fl.target = by; fl.retarget = 160; } }
-  blood(f, fl.x, fl.z, fl.alt + 40, by < 0 ? 4 : 6);
+  // (every hit sprays: out the way the shot was going; a homing shot or a ram, a lot more)
+  if (dir) spray(f, fl.x, fl.z, fl.alt + 40, dir.vx, dir.vz, dir.valt, 10 + n * 3);
+  else blood(f, fl.x, fl.z, fl.alt + 40, 10 + n * 2);
   if (by < 0) playSound('gunhit', 0.35, 4);
   // (a rough one: he's knocked out of his line)
   if (fl.mode === 'aim' || fl.mode === 'wind') { if (rnd() < 0.25) { fl.mode = 'fly'; fl.cool = 40; } }
@@ -319,7 +371,8 @@ const killFlyer = (state: GameState, f: Fight, fl: Flyer, by: number) => {
   let wall: Solid | null = null, best = 750;
   for (const s of SOLIDS) { const d = Math.hypot(s.x - fl.x, s.z - fl.z) - radiusAt(s, fl.alt); if (radiusAt(s, fl.alt) > 0 && d < best) { best = d; wall = s; } }
   fl.fall = { t: 0, by, wall, splat: false, spin: rnd() < 0.5 ? -1 : 1, kind: 'ground' };
-  keptOf().dead.set(fl.d.id, { x: fl.x, z: fl.z, kind: 'ground', smear: null });
+  keptOf().dead.set(fl.d.id, { x: fl.x, z: fl.z, kind: 'ground', smear: null, landed: false });
+  burst(f, fl.x, fl.z, fl.alt + 40);
   playSound('screams', 0.8, rnd() * 4); playSound('fart', 0.8, -2);
   speak(fl.d.look.voice, pickLine(DIE[fl.d.id]), s => { fl.said = s; }, false);
   firework(f, (rnd() - 0.5) * 1400, (rnd() - 0.5) * 1400, 2100 + rnd() * 500);
@@ -338,15 +391,20 @@ const tickFall = (f: Fight, fl: Flyer) => {
   const F = fl.fall!;
   F.t++;
   fl.yaw += 0.22 * F.spin;
-  if (F.t % 3 === 0) f.parts.push({ x: fl.x, z: fl.z, alt: fl.alt + 20, vx: 0, vz: 0, valt: -2, g: 0.3, life: 40, col: rnd() < 0.5 ? '#5C3A16' : '#7A5222', size: 9 });
-  if (F.t % 5 === 0) f.parts.push({ x: fl.x, z: fl.z, alt: fl.alt + 50, vx: 0, vz: 0, valt: 1.5, g: -0.02, life: 30, col: '#6B6B78', size: 16 });
+  if (F.t % 3 === 0) addPart(f, { x: fl.x, z: fl.z, alt: fl.alt + 20, vx: 0, vz: 0, valt: -2, g: 0.3, life: 40, col: rnd() < 0.5 ? '#5C3A16' : '#7A5222', size: 9 });
+  if (F.t % 5 === 0) addPart(f, { x: fl.x, z: fl.z, alt: fl.alt + 50, vx: 0, vz: 0, valt: 1.5, g: -0.02, life: 30, col: '#6B6B78', size: 16 });
+  // (a trail of blood in the air behind his spiral: it hangs there and drifts down)
+  if (!F.splat) {
+    addPart(f, { x: fl.x + (rnd() - 0.5) * 20, z: fl.z + (rnd() - 0.5) * 20, alt: fl.alt + 30 + (rnd() - 0.5) * 20, vx: (rnd() - 0.5) * 1.5, vz: (rnd() - 0.5) * 1.5, valt: -0.4, g: 0.03, life: 80 + rnd() * 30, col: red(), size: 10 + rnd() * 8 });
+    if (F.t % 2 === 0) addPart(f, { x: fl.x, z: fl.z, alt: fl.alt + 40, vx: (rnd() - 0.5) * 6, vz: (rnd() - 0.5) * 6, valt: 1 + rnd() * 3, g: 0.35, life: 40, col: red(), size: 6 + rnd() * 6 });
+  }
   if (F.wall && !F.splat) {
     const s = F.wall, dx = s.x - fl.x, dz = s.z - fl.z, d = Math.hypot(dx, dz) || 1;
     fl.x += (dx / d) * 26; fl.z += (dz / d) * 26; fl.alt = Math.max(60, fl.alt - 3);
     if (d < radiusAt(s, fl.alt) + 30 || F.t > 90) {
       F.splat = true; F.kind = 'wall';
       playSound('splat', 0.9); playSound('poopsplat', 0.7); playSound('crunch', 0.6);
-      blood(f, fl.x, fl.z, fl.alt + 30, 22);
+      blood(f, fl.x, fl.z, fl.alt + 30, 40); burst(f, fl.x, fl.z, fl.alt + 30);
       const c = keptOf().dead.get(fl.d.id);
       if (c) c.smear = { x: fl.x, z: fl.z, alt: fl.alt + 40 };
     }
@@ -366,9 +424,12 @@ const tickFall = (f: Fight, fl: Flyer) => {
     fl.alt = 0; fl.gone = true;
     const r = Math.hypot(fl.x, fl.z);
     if (!F.splat) F.kind = r > MOAT[0] - 30 && r < MOAT[1] + 30 ? 'moat' : 'ground';
-    if (!F.splat) { playSound('splat', 0.9); playSound('poopsplat', 0.7); blood(f, fl.x, fl.z, 20, 18, F.kind === 'moat'); }
+    if (!F.splat) { playSound('splat', 0.9); playSound('poopsplat', 0.7); blood(f, fl.x, fl.z, 20, 40, F.kind === 'moat'); }
     const c = keptOf().dead.get(fl.d.id);
-    if (c) { c.x = fl.x; c.z = fl.z; c.kind = F.kind; }
+    if (c) { c.x = fl.x; c.z = fl.z; c.kind = F.kind; c.landed = true; }
+    // (THE SPLATTER: big, on the ground for good; thrown the way he was going, or out from the wall he slid down)
+    const dir = F.splat && F.wall ? Math.atan2(fl.x - F.wall.x, fl.z - F.wall.z) : fl.yaw;
+    splatAt(fl.x, fl.z, dir, F.kind === 'moat');
     const pool = F.by >= 0 ? KILL_CALLS.infight : KILL_CALLS[F.kind];
     const call = pool[Math.floor(rnd() * pool.length)];
     pop(f, call, F.kind === 'moat' ? '#C8A060' : '#FCA5A5');
@@ -381,7 +442,13 @@ const hurtHim = (ctx: FrameContext, f: Fight, dmg: number, src: string) => {
   if (f.inv > 0 || f.phase !== 'fly') return false;
   hurtPlayer(ctx, dmg, src, { x: 0, y: 0 });
   f.inv = 50; f.shake = Math.max(f.shake, 10);
-  blood(f, f.x, f.z, f.alt + 40, 8);
+  blood(f, f.x, f.z, f.alt + 40, 16);
+  // (blood off him, at us: out of his back and shoulders, flying off and falling)
+  const n = 10 + Math.round(dmg * 0.8);
+  for (let i = 0; i < n; i++) {
+    const a = -Math.PI / 2 + (rnd() - 0.5) * 2.8, v = 1.5 + rnd() * 4;
+    f.gush.push({ x: (rnd() - 0.5) * 26, y: -40 - rnd() * 20, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 22 + rnd() * 18, size: 2 + rnd() * 3, col: red() });
+  }
   if (ctx.state.player.health <= 0) die(ctx.state, f);
   return true;
 };
@@ -576,7 +643,7 @@ const updateShots = (ctx: FrameContext, f: Fight) => {
     // (his: into a suitor)
     for (const o of f.flyers) {
       if (!o.alive || !o.in || o.i === s.owner) continue;
-      if (Math.hypot(o.x - s.x, o.z - s.z, o.alt + 40 - s.alt) < 80) { hitFlyer(state, f, o, s.foe, s.owner); gone = true; break; }
+      if (Math.hypot(o.x - s.x, o.z - s.z, o.alt + 40 - s.alt) < 80) { hitFlyer(state, f, o, s.foe, s.owner, s); gone = true; break; }
     }
     if (gone) continue;
     // (theirs: into him)
@@ -627,23 +694,22 @@ export const updateFight = (ctx: FrameContext, controls: Controls): Controls => 
     const boostBtn = (nin ? bBtn : !!controls.jump) || sh.rb || sh.rt, brakeBtn = (nin ? !!controls.jump : bBtn) || sh.lb || sh.lt;
     boosting = boostBtn && !f.spent && f.boost > 0;
     braking = !boosting && brakeBtn;
-  } else if (f.phase === 'win') {
-    // (the autopilot: round to the castle, level with her window)
-    const want = Math.atan2(-f.x, -f.z);
-    steer = clamp(angDiff(want, f.yaw) * 3, -1, 1);
-    climb = clamp((WINDOW.alt - CAM_UP - f.alt) * 0.02, -1, 1);
   }
+  // (the victory lap flies him itself: tickWin)
+  if (f.phase !== 'win') {
   f.yawRate += (steer * TURN * (f.uturn > 0 ? 1.6 : 1) - f.yawRate) * 0.18;
   f.yaw += f.yawRate;
   f.valt += (climb * CLIMB - f.valt) * 0.15;
   f.alt += f.valt;
   if (f.alt < MIN_ALT) { f.alt = MIN_ALT; f.valt = Math.max(0, f.valt); }
   if (f.alt > MAX_ALT) { f.alt = MAX_ALT; f.valt = Math.min(0, f.valt); }
-  f.speed += ((f.phase === 'win' ? 16 : boosting ? BOOST : braking ? BRAKE : CRUISE) - f.speed) * (boosting ? 0.12 : 0.07);
+  f.speed += ((boosting ? BOOST : braking ? BRAKE : CRUISE) - f.speed) * (boosting ? 0.12 : 0.07);
   if (boosting) { f.boost = Math.max(0, f.boost - 1 / 75); if (f.boost <= 0) f.spent = true; if (f.t % 20 === 0) playSound('whoosh', 0.35, -4); }
   else f.boost = Math.min(1, f.boost + 1 / 220);
   f.bank = f.yawRate / TURN; f.pitch = f.valt / CLIMB;
   if (f.phase !== 'zoom') { f.x += Math.sin(f.yaw) * f.speed; f.z += Math.cos(f.yaw) * f.speed; }
+  }
+  f.braking = braking;
   // (skimming the lawn: petals and grass kicked up)
   if (flying && f.alt < 70 && f.t % 3 === 0) f.parts.push({ x: f.x + (rnd() - 0.5) * 60, z: f.z, alt: 6, vx: (rnd() - 0.5) * 6, vz: 0, valt: 4 + rnd() * 4, g: 0.35, life: 20, col: rnd() < 0.6 ? '#6EAA4A' : '#F9A8D4', size: 6 });
   if (flying) {
@@ -708,6 +774,9 @@ export const updateFight = (ctx: FrameContext, controls: Controls): Controls => 
   updateShots(ctx, f);
   for (const q of f.parts) { q.x += q.vx; q.z += q.vz; q.valt -= q.g; q.alt += q.valt; q.vx *= 0.97; q.vz *= 0.97; q.life--; }
   f.parts = f.parts.filter(q => q.life > 0 && q.alt > -10);
+  if (f.parts.length > MAX_PARTS) f.parts.splice(0, f.parts.length - MAX_PARTS);
+  for (const q of f.gush) { q.x += q.vx; q.y += q.vy; q.vy += 0.3; q.life--; }
+  f.gush = f.gush.filter(q => q.life > 0);
   // (Piper's fireworks, now and then, beyond the castle)
   if (state.frame >= f.fwAt) { f.fwAt = state.frame + 200 + Math.floor(rnd() * 160); const a = rnd() * Math.PI * 2, r = 1800 + rnd() * 2400; firework(f, Math.sin(a) * r, Math.cos(a) * r, 2000 + rnd() * 700); }
   // ---- the late entries: over the wall when the first lot's down to one (or it's gone on a while)
@@ -736,9 +805,17 @@ export const updateFight = (ctx: FrameContext, controls: Controls): Controls => 
 // ---------------------------------------------------------------------------------------------------------------
 // The end: the barrier wilts, the window, the zoom, the glass
 
+/** The victory lap (the user's: he flies circles round the castle before he eventually flies into the window): the
+ *  spiral's end radius (clear of the castle, inside the watchtowers), his speed round it, how many laps, and how high
+ *  over her window he tops out before he breaks off for it. */
+const LAP_R = 1350, LAP_V = 30, LAPS = 2, LAP_TOP = 200, BREAK_T = 40;
+
 const startWin = (state: GameState, f: Fight) => {
-  f.phase = 'win'; f.win = { t: 0, step: 'talk', open: 0, said: false };
+  f.phase = 'win'; f.win = newWin();
+  const w = f.win;
+  w.th = Math.atan2(f.x, f.z); w.dir = angDiff(f.yaw, w.th) >= 0 ? 1 : -1; w.alt0 = f.alt; w.r0 = Math.hypot(f.x, f.z);
   state.player.inCutscene = true;
+  f.hold = 0; f.locked = -1; f.uturn = 0; f.inv = 0;
   f.shots = [];
   setUi({ broomHud: false, broomTips: false });
   piperSays(f, pickFreshLine(PIPER_WIN), () => {
@@ -758,7 +835,34 @@ const tickWin = (state: GameState, f: Fight) => {
     f.parts.push({ x: Math.cos(a) * side + (rnd() - 0.5) * 60, z: -Math.sin(a) * side + (rnd() - 0.5) * 60, alt: WINDOW.alt + (rnd() - 0.3) * 80, vx: (rnd() - 0.5) * 3, vz: (rnd() - 0.5) * 3, valt: -1 - rnd() * 2, g: 0.05, life: 90, col: rnd() < 0.5 ? '#F472B6' : '#DC2626', size: 10 });
   }
   if (isNude(state) && w.t % 9 === 0 && w.t < 200) f.parts.push({ x: f.x, z: f.z, alt: f.alt + 90, vx: (rnd() - 0.5) * 2, vz: (rnd() - 0.5) * 2, valt: 2.4, g: -0.01, life: 40, col: rnd() < 0.5 ? '#F472B6' : '#FB7185', size: 10 });
-  if ((w.step === 'go' && w.open >= 1 && w.t > 120) || w.t > 900) startZoom(f);
+  // THE VICTORY LAP (on autopilot): round and round the castle, spiraling in and up past the towers' tops, the bloody
+  // grounds under him, the camera swung out behind him looking in at it; laps done and the talking over, he breaks off
+  // at the top and turns in for her window (then the cut and the zoom)
+  const altTop = WINDOW.alt + LAP_TOP, prevAlt = f.alt;
+  if (w.brk < 0) {
+    const R = w.r0 + (LAP_R - w.r0) * Math.min(1, w.u * 2.5), om = LAP_V / Math.max(600, R);
+    w.th += w.dir * om; w.u = Math.min(1, w.u + om / (LAPS * Math.PI * 2));
+    const e = w.u * w.u * (3 - 2 * w.u);
+    f.x = Math.sin(w.th) * R; f.z = Math.cos(w.th) * R;
+    f.yawRate = w.dir * om; f.yaw = w.th + w.dir * Math.PI / 2;
+    f.alt = w.alt0 + (altTop - w.alt0) * e;
+    f.bank += (w.dir * 0.75 - f.bank) * 0.08;
+    w.cam = Math.min(1, w.cam + 1 / 60);
+    if ((w.u >= 1 && w.step === 'go' && w.open >= 1) || w.t > 1800) { w.brk = 0; playSound('whoosh', 0.7, -6); }
+  } else {
+    // (the break-off: banked hard in toward her window, the camera back in behind him)
+    w.brk++;
+    const want = Math.atan2(-f.x, -f.z);
+    f.yawRate = clamp(angDiff(want, f.yaw) * 0.12, -0.07, 0.07); f.yaw += f.yawRate;
+    f.x += Math.sin(f.yaw) * LAP_V; f.z += Math.cos(f.yaw) * LAP_V;
+    f.alt += (WINDOW.alt - f.alt) * 0.06;
+    f.bank += (clamp(f.yawRate / TURN, -1, 1) - f.bank) * 0.2;
+    w.cam = Math.max(0, w.cam - 1 / BREAK_T);
+    if (w.brk >= BREAK_T) { startZoom(f); return; }
+  }
+  f.speed = LAP_V; f.valt = f.alt - prevAlt; f.pitch = clamp(f.valt / CLIMB, -1, 1);
+  // (Piper's fireworks over the castle for him, faster now)
+  if (w.t % 45 === 0) { const a = rnd() * Math.PI * 2; firework(f, Math.sin(a) * 700, Math.cos(a) * 700, 2000 + rnd() * 400); }
 };
 
 const ZOOM_LEN = 80;
@@ -902,16 +1006,25 @@ export const drawFight = (c0: CanvasRenderingContext2D, state: GameState) => {
   // ---- the eye
   const zooming = f.phase === 'zoom';
   const zk = zooming ? zoomK(f.zoom.t) : 0;
-  f.hy += (HORIZON + (zooming ? 0 : f.pitch * 46) - f.hy) * 0.15;
+  // (the victory lap's camera: swung out behind him and up, looking in at the castle and down at the grounds)
+  const lap = f.phase === 'win' ? f.win.cam * f.win.cam * (3 - 2 * f.win.cam) : 0;
+  f.hy += (HORIZON - lap * 30 + (zooming ? 0 : f.pitch * 46) - f.hy) * 0.15;
+  let camYaw = f.yaw;
   if (zooming) {
     // (the eye square on her window: the focal length shooting up, toward it a little)
     const yaw = f.zoom.yaw, push = zk * 700;
+    camYaw = yaw;
     setView(f.zoom.cx + Math.sin(yaw) * push, f.zoom.cz + Math.cos(yaw) * push, WINDOW.alt, yaw, H / 2, FOCAL * (1 + zk * 46));
-  } else setView(f.x - Math.sin(f.yaw) * CAM_BACK, f.z - Math.cos(f.yaw) * CAM_BACK, f.alt + CAM_UP, f.yaw, f.hy, FOCAL);
-  const camYaw = zooming ? f.zoom.yaw : f.yaw;
+  } else {
+    camYaw = f.yaw + f.win.dir * 0.34 * lap;
+    const back = CAM_BACK + lap * 280, up = CAM_UP + lap * 190;
+    setView(f.x - Math.sin(camYaw) * back, f.z - Math.cos(camYaw) * back, f.alt + up, camYaw, f.hy, FOCAL);
+  }
   drawSky(g, camYaw);
-  drawGround(g);
   const k = keptOf();
+  // (the splatters on the ground: baked into its texture as they come)
+  setSplats(k.splats);
+  drawGround(g);
   // ---- on the ground: the shadows, the dead (and the smears up the walls they hit)
   if (!zooming) {
     shadow(g, f.x, f.z, 46, 0.4 - Math.min(0.25, f.alt / 8000));
@@ -928,7 +1041,19 @@ export const drawFight = (c0: CanvasRenderingContext2D, state: GameState) => {
     ents.push({ d: d + 5, draw: () => drawCorpse(g, riderCanvas(fl.d.id, fl.d.look, fl.d.tiara, 1, false), sx, sy, s, view.calt / Math.max(1, d), c.kind === 'moat') });
     if (c.smear) {
       project(c.smear.x, c.smear.z, c.smear.alt, Q);
-      if (Q.ok) { const top = Q.sy, x = Q.sx, s2 = Q.s; project(c.smear.x, c.smear.z, 0, Q); const bot = Q.sy; ents.push({ d: d - 2, draw: () => { g.fillStyle = '#8A1414'; g.fillRect(Math.round(x - 14 * s2), Math.round(top - 20 * s2), Math.max(1, Math.round(28 * s2)), Math.max(1, Math.round(bot - top + 20 * s2))); g.fillStyle = '#B91C1C'; g.fillRect(Math.round(x - 8 * s2), Math.round(top - 26 * s2), Math.max(1, Math.round(16 * s2)), Math.max(1, Math.round(30 * s2))); } }); }
+      if (Q.ok) {
+        const top = Q.sy, x = Q.sx, s2 = Q.s; project(c.smear.x, c.smear.z, 0, Q); const bot = Q.sy, sd = fl.i * 3.7;
+        // (the smear down the wall he hit: a burst where he struck, the long slide to its foot, drips off it)
+        ents.push({ d: d - 2, draw: () => {
+          const R2 = (v: number) => Math.round(v), w = Math.max(1, 28 * s2);
+          g.fillStyle = '#5A0A0A'; g.fillRect(R2(x - w / 2 - 2 * s2), R2(top - 22 * s2), R2(w + 4 * s2), Math.max(1, R2(bot - top + 22 * s2)));
+          g.fillStyle = '#8A1414'; g.fillRect(R2(x - w / 2), R2(top - 20 * s2), R2(w), Math.max(1, R2(bot - top + 20 * s2)));
+          g.fillStyle = '#B91C1C'; g.fillRect(R2(x - 8 * s2), R2(top - 26 * s2), Math.max(1, R2(16 * s2)), Math.max(1, R2(30 * s2)));
+          for (let i = 0; i < 9; i++) { const a = (i / 9) * Math.PI * 2, r = (30 + hash(sd + i) * 34) * s2; g.fillRect(R2(x + Math.cos(a) * r - 3 * s2), R2(top - 10 * s2 + Math.sin(a) * r - 3 * s2), Math.max(1, R2(7 * s2)), Math.max(1, R2(7 * s2))); }
+          g.fillStyle = '#7F1D1D';
+          for (let i = 0; i < 4; i++) { const dx = (-w / 2) - 10 * s2 + i * (w + 20 * s2) / 3; g.fillRect(R2(x + dx), R2(top), Math.max(1, R2(4 * s2)), Math.max(1, R2((bot - top) * (0.4 + hash(sd * 2 + i) * 0.5)))); }
+        } });
+      }
     }
   }
   // ---- the billboards
@@ -997,9 +1122,18 @@ export const drawFight = (c0: CanvasRenderingContext2D, state: GameState) => {
   }
   for (const q of f.parts) {
     project(q.x, q.z, q.alt, P);
-    if (!P.ok || P.sx < -10 || P.sx > W + 10 || P.sy < -10 || P.sy > H + 10) continue;
-    const sz = Math.max(1, Math.round(q.size * P.s)), x = P.sx, y = P.sy, col = q.col;
-    ents.push({ d: P.d, draw: () => { g.fillStyle = col; g.fillRect(Math.round(x - sz / 2), Math.round(y - sz / 2), sz, sz); } });
+    if (!P.ok) continue;
+    const sz = Math.max(1, Math.round(q.size * P.s)), x = P.sx, y = P.sy, col = q.col, mg = 10 + sz / 2;
+    if (x < -mg || x > W + mg || y < -mg || y > H + mg) continue;
+    if (q.kind === 'mist') {
+      // (a puff of blood: see-through, thinning as it goes)
+      const a = Math.min(0.55, q.life / 40) * 0.8;
+      ents.push({ d: P.d, draw: () => { g.globalAlpha = a; g.fillStyle = col; g.beginPath(); g.arc(x, y, sz / 2, 0, Math.PI * 2); g.fill(); g.globalAlpha = 1; } });
+    } else if (q.kind === 'gore') {
+      // (a chunk of him, tumbling: a dark rim, its color, a wet glint)
+      const sp = (q.life >> 2) % 2 ? 1 : 0.6, w = Math.max(1, Math.round(sz * sp)), h = Math.max(1, Math.round(sz * (1.6 - sp)));
+      ents.push({ d: P.d, draw: () => { g.fillStyle = '#3A0404'; g.fillRect(Math.round(x - w / 2) - 1, Math.round(y - h / 2) - 1, w + 2, h + 2); g.fillStyle = col; g.fillRect(Math.round(x - w / 2), Math.round(y - h / 2), w, h); if (w > 2) { g.fillStyle = '#FFE4E4'; g.fillRect(Math.round(x - w / 2), Math.round(y - h / 2), 1, 1); } } });
+    } else ents.push({ d: P.d, draw: () => { g.fillStyle = col; g.fillRect(Math.round(x - sz / 2), Math.round(y - sz / 2), sz, sz); } });
   }
   ents.sort((a, b) => b.d - a.d);
   for (const e of ents) e.draw();
@@ -1014,17 +1148,30 @@ export const drawFight = (c0: CanvasRenderingContext2D, state: GameState) => {
   c0.restore();
   // ---- him (not rolled: he leans himself), at full size
   const p = state.player, nude = isNude(state), shat = isShat(state);
-  const meY = f.hy + (CAM_UP * FOCAL) / CAM_BACK + 8;
+  let meY = f.hy + (CAM_UP * FOCAL) / CAM_BACK + 8;
   let meX = W / 2 + f.bank * 5, meS = 0.84;
+  if (lap > 0) {
+    // (the victory lap: wherever the swung-out camera has him, scaled by his depth)
+    project(f.x, f.z, f.alt, Q);
+    if (Q.ok) {
+      const q = toScreen(Q.sx, Q.sy + 8 * Q.s / 0.958), ls = 0.877 * Q.s * ZOOMIN;
+      meX += (q.x / 2 + f.bank * 5 - meX) * lap; meY += (q.y / 2 - meY) * lap; meS += (ls - meS) * lap;
+    }
+  }
   c0.save(); c0.scale(2, 2); c0.imageSmoothingEnabled = false;
   if (f.phase === 'dead') drawMeatheadFall(c0, meX, meY - 30 + f.fallY, meS, f.fallRot, nude);
   else if (zooming) {
     // (him off into her window: up the middle and away, smaller and smaller)
     const u = zk; meX = W / 2; meS = 0.84 * (1 - u) + 0.04;
     if (u < 0.97) drawMeatheadBroom(c0, meX, meY + (H / 2 - meY) * Math.min(1, u * 1.4), meS, { bank: 0, pitch: 0, nude, shat, boost: true, fire: 99, blink: false, f: fr });
-  } else drawMeatheadBroom(c0, meX, meY, meS, { bank: f.bank, pitch: f.pitch, nude, shat, boost: f.speed > CRUISE + 4, fire: f.fired, blink: f.inv > 0 && f.inv < 50 && f.phase === 'fly', f: fr, charge: f.hold >= HOLD_T ? Math.min(1, (f.hold - HOLD_T) / LOCK_T) : 0, locked: f.locked >= 0 });
+  } else drawMeatheadBroom(c0, meX, meY, meS, { bank: f.bank, pitch: f.pitch, nude, shat, boost: f.speed > CRUISE + 4, brake: f.braking && f.phase === 'fly', fire: f.fired, blink: f.inv > 0 && f.inv < 50 && f.phase === 'fly', f: fr, charge: f.hold >= HOLD_T ? Math.min(1, (f.hold - HOLD_T) / LOCK_T) : 0, locked: f.locked >= 0 });
+  // (his blood, off him at us when he's hit)
+  if (f.phase !== 'zoom') for (const q of f.gush) {
+    const gx = meX + q.x * meS, gy = meY + q.y * meS, gs = Math.max(1, q.size * meS);
+    c0.fillStyle = q.col; c0.fillRect(Math.round(gx - gs / 2), Math.round(gy - gs / 2), Math.ceil(gs), Math.ceil(gs));
+  }
   c0.restore();
-  drawOver(c0, state, f, meX * 2, (meY - 92) * 2);
+  drawOver(c0, state, f, meX * 2, (meY - 80 * meS / 0.84) * 2);
   void p;
 };
 

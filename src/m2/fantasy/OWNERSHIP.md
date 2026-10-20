@@ -12,7 +12,7 @@ the fill-ins, the rules, the section plan). Each section's index.ts header says 
 | 3 (done) | `glen/` (and square/hazards.ts's updateThrows / drawThrows exported for the square's kinds in the glen) | glen (20-29: 20-26 used) |
 | 4 (done; reworked: survival, depth, loops) | `tragons/` (and store.ts's carHops / requestCarHop / tragonTips / tragonHold, App.tsx's wheel and LB / RB hop routing, the controls card and the loop card; the engine's Player.tragon and render/player/tragonPose.ts, the ride's poses) | tragons (30-39: 30-38 used) |
 | 5 (done) | `keep/` | keep (40-49: 40-46 used) |
-| 6 (done) | `broom/` (and store.ts's broomHud / broomBoost / broomTips, App.tsx's broom HUD and controls card, index.ts's tickShatter / drawShatter hooks) | broom (50-59: 50-51 used) |
+| 6 (done) | `broom/` (and store.ts's broomHud / broomBoost / broomTips, App.tsx's broom HUD and controls card, index.ts's tickShatter / drawShatter hooks; the riding poses: suitors.ts's 'ride', the engine's Player.broomRide and render/player/broomPose.ts, keep/runway.ts's mount) | broom (50-59: 50-51 used) |
 | 7 (done) | `bedroom/` (and piper.ts's `thin`, render/player/body.ts's setErect, store.ts's iceMash, App.tsx's IcePanel, walkAway/piper.ts made real) | bedroom (60-69: 60-61 used) |
 
 Inside your folders, anything goes: split into layout.ts, art.ts, kinds.ts and so on, as `square/` does. Number your

@@ -7,6 +7,7 @@ import { drawExtinguisherPose } from './extinguisher';
 import { drawThronePose } from './throne';
 import { drawCopterSeatPose } from './copterPose';
 import { drawTragonPose } from './tragonPose';
+import { drawBroomRidePose } from './broomPose';
 import { BOULDER_THROW_FRAMES, GUN_COOLDOWN, COLORS, INITIAL_PLAYER_HEALTH, PLAYER_TERMINAL_VELOCITY, PLAYER_MOVE_SPEED, PLAYER_INVINCIBILITY_FRAMES, SPECIAL_HURT_FRAMES } from '../../../constants';
 import { peeProgress } from '../../scenes/victoryPee';
 import { SLIDE_HOLD, vineGrip, vineLean, VINE_SHOULDER } from '../../combat/muzzle';
@@ -298,6 +299,15 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   if (p.tragon && !p.headless && p.health > 0) {
     const g = p.gut, shat = !!g && (g.stage === 2 || (g.stage === 3 && !g.washed));
     drawTragonPose(ctx, { ...p.tragon, hurt: p.tragon.hurt || hurtT >= 0 }, animFrame, { nude: g?.stage === 3, shat });
+    finishBody();
+    if (shat) drawStink(ctx, anchorX - p.facing * 10, anchorY - 30, animFrame);
+    ctx.restore();
+    return;
+  }
+  // Astride a broomstick (Meathead 2's Fairy Land runway): its own pose (render/player/broomPose.ts)
+  if (p.broomRide && !p.headless && p.health > 0) {
+    const g = p.gut, shat = !!g && (g.stage === 2 || (g.stage === 3 && !g.washed));
+    drawBroomRidePose(ctx, p.broomRide, animFrame, { nude: g?.stage === 3, shat }, hurtT >= 0);
     finishBody();
     if (shat) drawStink(ctx, anchorX - p.facing * 10, anchorY - 30, animFrame);
     ctx.restore();

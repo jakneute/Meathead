@@ -55,14 +55,14 @@ const leg = (ctx: Ctx, hip: Pt, kn: Pt, foot: Pt, toe: number, far: boolean, pan
 
 /** A figure: where his hips are and how far his upper body leans about them (radians, + forward), his fists, his
  *  feet (knees found), his face. */
-interface Fig {
+export interface Fig {
   hip: Pt; lean: number; fN: Pt; fF: Pt; tN: Pt; tF: Pt; kneeFwd: boolean;
   mood: Mood; eyes?: 'wide' | 'shut' | 'plates'; white?: boolean; headBack?: number; freeF?: boolean;
 }
 /** The standing figure's hips (his torso's drawn about them). */
 const HIP: Pt = [0, -26];
 
-const drawFig = (ctx: Ctx, q: Fig, frame: number, pants: LadderPants) => {
+export const drawFig = (ctx: Ctx, q: Fig, frame: number, pants: LadderPants) => {
   const c = Math.cos(q.lean), s = Math.sin(q.lean);
   const T = (x: number, y: number): Pt => { const vx = x - HIP[0], vy = y - HIP[1]; return [q.hip[0] + vx * c - vy * s, q.hip[1] + vx * s + vy * c]; };
   const sB = T(-8, -45), sF = T(6, -45);
