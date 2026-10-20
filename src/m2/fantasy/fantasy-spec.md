@@ -872,3 +872,10 @@ markBossFight every frame of a boss or sub-boss fight. Voice every new line (`np
   The walk-away: the walk-in's lane and cottages, the Alps, Hogsmeat's roofs, the castle whole over them (her window
   smashed; the cork's hole through the cone with a rafter up, or her streak), petals, a dropped tiara. Drawing only:
   no layout, timing or hitbox changes.
+- (the user's: "snowy and green. combination of both") THE CASTLE GROUNDS are both, the same from the broom (broom/
+  ground.ts, so the revisit's side.ts too) and from the castle's walls (keep/far.ts): green lawns, mowing stripes and
+  beds in bloom (the Great Pixie's magic) with the land's winter on them: patchy snow (thawed green between, dithered
+  edges, the stripes reading in it), drifts along the wall, the moat's rim, hedges and the deck, snow caps on the maze,
+  topiary, trees, roofs and cones, paths frosted with banked kerbs, the drained moat's mud partly frozen (skaters on
+  its ice from the walls). The glen stays the summer gag. The broom's texture now paints in steps: the runway primes it
+  a few ms a frame (arena.ts primeGround) so taking off doesn't hitch; the splatters still bake on top. Drawing only.

@@ -2,7 +2,11 @@
 // from above at peak SNES (the A Link to the Past way: lit from the upper left (north-west), everything casting its
 // shadow down and right, materials in stepped ramps, hard-edged rings, dithered seams). Painted once for the hour.
 //
-// Inside the MAGIC WALL the Great Pixie keeps it summer (as in the glen): lawns mown in rings round the castle, the ring
+// Inside the MAGIC WALL it's both (the user's: "snowy and green. combination of both"): the Great Pixie's magic keeps
+// the lawns green and the beds in bloom, but the land's winter gets in: patchy snow over the lawns (thawed green showing
+// through, dithered edges, the mowing stripes still reading in the snow), drifts along the wall and the moat's rim,
+// snow caps on the hedges, the topiary and every roof, the paths frosted, the moat's mud partly frozen, the blooms
+// poking up through the snow. (The glen stays the summer gag it is.) Lawns mown in rings round the castle, the ring
 // paths and avenues in gravel with kerbs, tree rows and lamp posts down them, crowds along them; the castle from above
 // on its crag (the curtain wall's walk and merlons, round towers' cones, the courtyard's flags, the great hall's and the
 // chapel's slates, the keep and the spire); the drained moat (mud in bands, puddles with the sky in them, the cleaning
@@ -18,6 +22,9 @@
 // fake mountain, the fairy wheel, Rapunzel's tower, the beanstalk, a windmill. No volcanoes.
 //
 // After dark the lamps along the paths and the lit windows are painted on after the hour's light (they glow).
+//
+// It's painted in steps (paintGroundSteps, a generator) so the runway can paint it a few milliseconds a frame before
+// he takes off (arena.ts primeGround); paintGround runs the steps straight through.
 
 import { type TimeOfDay } from '../../timeOfDay';
 import { hash, mix, SNOW, SLATE, BRICK, GOLD, STONE, FLAG } from '../kit';
@@ -70,6 +77,14 @@ const shOf = (th: number, s: number): [number, number] => [s * (Math.cos(th) + M
 /** Is a local direction (ax, ay) in a frame turned th facing the light (north-west)? */
 const litDir = (th: number, ax: number, ay: number) => { const tx = ax * Math.cos(th) - ay * Math.sin(th), ty = ax * Math.sin(th) + ay * Math.cos(th); return -tx - ty > 0; };
 const lamp = (u: number, v: number, warm = true) => { bx(u + 1, v + 1, 1, 1, SHADOW); bx(u, v, 1, 1, '#2A2638'); lights.push([u, v, 2.2, warm ? '#FFD88A' : '#FFB0D8']); };
+/** Inside the wall (not the glen): the winter gets in (snow caps on trees, hedges, roofs, cones; beds in snow). */
+let frost = false;
+/** A patch of snow (a drift): a core in steps, lit up-left, its rim dithered out into what's under it. */
+const snowPatch = (u: number, v: number, rx: number, ry: number, s: number) => {
+  const n = Math.ceil((rx + ry) * 3);
+  for (let k = 0; k < n; k++) { const a = (k / n) * 6.283, w = 1 + (hash(s + k * 0.7) - 0.5) * 0.3, x = Math.round(u + Math.cos(a) * (rx * w + 1)), y = Math.round(v + Math.sin(a) * (ry * w + 1)); if (((x + y) & 1) === 0) bx(x, y, 1, 1, SNOW[3]); }
+  el(u, v, rx, ry, 0, SNOW[3]); el(u - rx * 0.12, v - ry * 0.12, rx * 0.82, ry * 0.8, 0, SNOW[4]); el(u - rx * 0.3, v - ry * 0.3, rx * 0.4, ry * 0.35, 0, SNOW[5]);
+};
 
 /** A guest from above (a dot of coat, a head, a shadow), seeded. */
 const person = (u: number, v: number, s: number) => {
@@ -88,6 +103,8 @@ const treeTop = (u: number, v: number, r: number, R: string[], blossom = false) 
   dsc(u, v, r + 0.6, R[0]); dsc(u, v, r, R[1]); dsc(u - r * 0.14 * sx, v - r * 0.14 * sy, r * 0.82, R[2]); dsc(u - r * 0.3 * sx, v - r * 0.3 * sy, r * 0.56, R[3]); dsc(u - r * 0.44 * sx, v - r * 0.44 * sy, r * 0.26, R[4]);
   if (r > 3) for (let k = 0; k < r * 1.4; k++) { const a = hash(u * 3.1 + v + k) * Math.PI * 2, d = hash(u + v * 1.7 + k * 3.3) * r * 0.8; bx(u + Math.cos(a) * d, v + Math.sin(a) * d, 1, 1, k % 3 ? R[1] : R[4]); }
   if (blossom) for (let k = 0; k < r * 1.6; k++) { const a = hash(u * 1.3 + v * 2.1 + k) * Math.PI * 2, d = hash(u * 2.2 + v + k * 1.7) * r * 0.85; bx(u + Math.cos(a) * d, v + Math.sin(a) * d, 1, 1, k % 2 ? '#FFD6EA' : '#F49AC8'); }
+  // (snow lying on the canopy's lit top, in clumps)
+  if (frost) for (let k = 0; k < r * 1.3 + 1; k++) { const a = hash(u * 2.9 + v * 0.7 + k) * Math.PI * 2, d = hash(u * 0.9 + v * 3.1 + k * 2.3) * r * 0.5, x = u - r * 0.3 * sx + Math.cos(a) * d, y = v - r * 0.3 * sy + Math.sin(a) * d; bx(x, y, 1, 1, k % 3 ? SNOW[4] : SNOW[5]); if (r > 3 && k % 2 === 0) bx(x + 1, y, 1, 1, SNOW[3]); }
 };
 /** A conifer from above: a star of boughs, stepped, frosted with snow on its lit side if `snow`. */
 const pineTop = (u: number, v: number, r: number, R: string[], snow: boolean) => {
@@ -114,6 +131,16 @@ const roof = (u: number, v: number, w: number, h: number, th: number, R: string[
   } else { bx(-w / 2, -h / 2, w, h / 2, A[0]); bx(-w / 2, 0, w, h / 2, A[1]); }
   if (!opts.snow) for (let y = -h / 2 + 2; y < h / 2 - 1; y += 2) if (Math.abs(y) > 1) bx(-w / 2 + (opts.hip ? Math.abs(Math.abs(y) - h / 2) : 0), y, w - (opts.hip ? 2 * Math.abs(Math.abs(y) - h / 2) : 0), 1, y < 0 ? (topLit ? R[3] : R[1]) : (topLit ? R[1] : R[3]));
   else { for (let x = -w / 2; x < w / 2; x += 2) if (hash(x + u) > 0.7) bx(x, -h / 2 + hash(x * 1.7 + v) * h, 1, 1, SNOW[3]); }
+  // (inside the wall: the roof's own color at the eaves, snow lying over the rest, its lower edge dithered)
+  if (frost && !opts.snow && w > 5 && h > 4) {
+    const e = h > 9 ? 2 : 1, S0 = SNOW[topLit ? 4 : 2], S1 = SNOW[topLit ? 2 : 4];
+    if (opts.hip) {
+      pl([-w / 2 + e + 1, -h / 2 + e, w / 2 - e - 1, -h / 2 + e, w / 2 - h / 2, 0, -w / 2 + h / 2, 0], S0); pl([-w / 2 + e + 1, h / 2 - e, w / 2 - e - 1, h / 2 - e, w / 2 - h / 2, 0, -w / 2 + h / 2, 0], S1);
+      pl([-w / 2 + e, -h / 2 + e + 1, -w / 2 + h / 2, 0, -w / 2 + e, h / 2 - e - 1], litDir2(-1, 0) ? SNOW[5] : SNOW[2]);
+      pl([w / 2 - e, -h / 2 + e + 1, w / 2 - h / 2, 0, w / 2 - e, h / 2 - e - 1], litDir2(1, 0) ? SNOW[5] : SNOW[2]);
+    } else { bx(-w / 2 + 1, -h / 2 + e, w - 2, h / 2 - e, S0); bx(-w / 2 + 1, 0, w - 2, h / 2 - e, S1); }
+    for (let x = -w / 2 + 1; x < w / 2 - 1; x += 2) { bx(x, -h / 2 + e - 1, 1, 1, S0); bx(x + 1, h / 2 - e, 1, 1, S1); }
+  }
   bx(-w / 2 + (opts.hip ? h / 2 : 0), -0.5, w - (opts.hip ? h : 0), 1, opts.ridge ?? (opts.snow ? SNOW[5] : R[5]));
   if (opts.dormers) for (let k = 0; k < opts.dormers; k++) { const dx = -w / 2 + ((k + 0.5) * w) / opts.dormers; bx(dx - 1.5, -h / 2 + 0.5, 3, h / 2 - 1.5, '#1A1028'); bx(dx - 1, -h / 2 + 1, 2, h / 2 - 2.5, A[0]); bx(dx - 0.5, -h / 2, 1, 1, '#FFE9A8'); }
   if (opts.chimney) { const cx = w * 0.28, cy = -h * 0.22; bx(cx - 1.5 + sx * 0.4, cy - 1.5 + sy * 0.4, 3, 3, SHADOW); bx(cx - 1.5, cy - 1.5, 3, 3, '#1A1028'); bx(cx - 1, cy - 1, 2, 2, BRICK[3]); bx(cx - 1, cy - 1, 1, 1, BRICK[5]); }
@@ -129,6 +156,12 @@ const coneTop = (u: number, v: number, r: number, R: string[], pennant = '#F472B
     const a0 = (k / n) * Math.PI * 2, a1 = ((k + 1) / n) * Math.PI * 2, mid = (a0 + a1) / 2 + baseRot, lt = -Math.cos(mid) - Math.sin(mid);
     g.fillStyle = R[lt > 0.9 ? 5 : lt > 0.3 ? 4 : lt > -0.3 ? 3 : lt > -0.9 ? 2 : 1];
     g.beginPath(); g.moveTo(u, v); g.arc(u, v, r, a0, a1); g.closePath(); g.fill();
+  }
+  // (inside the wall: snow lodged round the cone's skirt on its lit side, dithered toward the tip)
+  if (frost && r > 3) for (let k = 0; k < r * 5; k++) {
+    const a = (k / (r * 5)) * Math.PI * 2, lt = -Math.cos(a + baseRot) - Math.sin(a + baseRot);
+    if (lt < -0.2) continue;
+    for (const f of [0.92, 0.8, 0.68]) if (f > 0.75 || (k & 1)) bx(u + Math.cos(a) * r * f, v + Math.sin(a) * r * f, 1, 1, lt > 0.6 ? SNOW[5] : SNOW[3]);
   }
   g.strokeStyle = GOLD[3]; g.lineWidth = 1; g.beginPath(); g.arc(u, v, r * 0.62, 0, Math.PI * 2); g.stroke();
   dsc(u, v, Math.max(1, r * 0.16), GOLD[4]); bx(u, v, 1, 1, GOLD[5]);
@@ -148,13 +181,17 @@ const pond = (u: number, v: number, rx: number, ry: number, rot: number, swans: 
   el(u, v, rx, ry, rot, WATER[3]); el(u + 0.5, v + 0.5, rx * 0.75, ry * 0.75, rot, WATER[2]); el(u + 1, v + 1, rx * 0.45, ry * 0.45, rot, WATER[1]);
   for (let k = 0; k < 6; k++) { const a = hash(s + k) * 6.28, d = 0.4 + hash(s * 2 + k) * 0.5; bx(u + Math.cos(a) * rx * d, v + Math.sin(a) * ry * d, 2, 1, WATER[5]); }
   for (let k = 0; k < 8; k++) { const a = hash(s * 3 + k) * 6.28; dsc(u + Math.cos(a) * rx * 0.85, v + Math.sin(a) * ry * 0.85, 1.2, HEDGE[4]); if (k % 3 === 0) bx(u + Math.cos(a) * rx * 0.85, v + Math.sin(a) * ry * 0.85, 1, 1, '#F9A8D4'); }
+  // (inside the wall: a skin of ice round its edge, cracked, the middle kept open by the magic)
+  if (frost) { g.save(); g.strokeStyle = ICE[3]; g.lineWidth = 2; g.beginPath(); g.ellipse(u, v, Math.max(1, rx - 1), Math.max(1, ry - 1), rot, 0, Math.PI * 2); g.stroke(); g.strokeStyle = ICE[5]; g.lineWidth = 1; g.beginPath(); g.ellipse(u, v, Math.max(1, rx - 1.5), Math.max(1, ry - 1.5), rot, 3.4, 5.6); g.stroke(); g.restore(); for (let k = 0; k < 10; k++) { const a = hash(s * 11 + k) * 6.28; bx(u + Math.cos(a) * (rx - 2.5), v + Math.sin(a) * (ry - 2.5), 1, 1, ICE[1]); } }
   for (let k = 0; k < swans; k++) { const a = hash(s * 5 + k) * 6.28, d = 0.5 * hash(s * 7 + k); const x = u + Math.cos(a) * rx * d, y = v + Math.sin(a) * ry * d; bx(x - 1, y, 3, 2, '#F4F4F5'); bx(x + 1, y - 1, 1, 1, '#F4F4F5'); bx(x + 2, y - 1, 1, 1, '#FB923C'); bx(x - 1, y + 2, 3, 1, WATER[1]); }
 };
 /** A flower bed (a rounded rect of earth packed with blooms in rows), turned th. */
 const bed = (u: number, v: number, w: number, h: number, th: number, cols: string[], s: number) => {
   g.save(); g.translate(u, v); g.rotate(th);
-  bx(-w / 2 - 1, -h / 2 - 1, w + 2, h + 2, HEDGE[2]); bx(-w / 2, -h / 2, w, h, MUD[3]);
-  for (let y = -h / 2 + 0.5; y < h / 2; y += 1.5) for (let x = -w / 2 + 0.5; x < w / 2; x += 1.5) { const c = cols[(Math.floor((y + h) / 3) + (hash(s + x * 0.37 + y) > 0.85 ? 1 : 0)) % cols.length]; bx(x, y, 1, 1, hash(s + x + y * 3.1) > 0.25 ? c : HEDGE[3]); }
+  // (inside the wall the bed's under snow, the blooms poking up through it: the park's magic)
+  bx(-w / 2 - 1, -h / 2 - 1, w + 2, h + 2, frost ? SNOW[2] : HEDGE[2]); bx(-w / 2, -h / 2, w, h, frost ? SNOW[4] : MUD[3]);
+  if (frost) bx(-w / 2, -h / 2, w, 1, SNOW[5]);
+  for (let y = -h / 2 + 0.5; y < h / 2; y += 1.5) for (let x = -w / 2 + 0.5; x < w / 2; x += 1.5) { const c = cols[(Math.floor((y + h) / 3) + (hash(s + x * 0.37 + y) > 0.85 ? 1 : 0)) % cols.length], t = hash(s + x + y * 3.1); if (frost && t < 0.4) continue; bx(x, y, 1, 1, t > 0.25 ? c : HEDGE[3]); if (frost && t > 0.8) bx(x, y + 1, 1, 1, HEDGE[3]); }
   g.restore();
 };
 /** A bench, a striped umbrella, a picnic blanket, a food cart. */
@@ -176,41 +213,81 @@ const pack = (hex: string) => { const n = parseInt(hex.slice(1), 16); return (0x
 const P = (R: string[]) => R.map(pack);
 const hh = (i: number, j: number) => { let h = (i * 374761393 + j * 668265263) | 0; h = Math.imul(h ^ (h >>> 13), 1274126177); return ((h ^ (h >>> 16)) >>> 0) / 4294967296; };
 
-const paintBase = (img: ImageData) => {
+/** THE SNOW's lie (where it's lying over the grounds, where it's thawed): smooth noise in three octaves at half the
+ *  texture's resolution (0..255), made once (it doesn't change with the hour), a step at a time. */
+const SM = TS >> 1;
+let snowMask: Uint8Array | null = null;
+function* makeSnowMask(): Generator<void> {
+  if (snowMask) return;
+  const acc = new Float32Array(SM * SM);
+  for (const [n, w, s] of [[20, 0.62, 1], [56, 0.28, 2], [150, 0.1, 3]] as const) {
+    const step = SM / n, N = n + 2, grid = new Float32Array(N * N), fxs = new Float32Array(SM), x0s = new Int32Array(SM);
+    for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) grid[y * N + x] = hh(x + s * 1013, y);
+    for (let i = 0; i < SM; i++) { const gx = i / step, x0 = gx | 0, f = gx - x0; x0s[i] = x0; fxs[i] = f * f * (3 - 2 * f); }
+    for (let j = 0; j < SM; j++) {
+      const gy = j / step, y0 = gy | 0, fy0 = gy - y0, fy = fy0 * fy0 * (3 - 2 * fy0), r0 = y0 * N, r1 = r0 + N, o = j * SM;
+      for (let i = 0; i < SM; i++) {
+        const x0 = x0s[i], fx = fxs[i], a = grid[r0 + x0], b = grid[r0 + x0 + 1], c = grid[r1 + x0], e = grid[r1 + x0 + 1];
+        acc[o + i] += w * ((a + (b - a) * fx) * (1 - fy) + (c + (e - c) * fx) * fy);
+      }
+      if ((j & 255) === 255) yield;
+    }
+  }
+  // (stretched out so it's lying or thawed in clear patches, not a gray middle everywhere)
+  const m = new Uint8Array(SM * SM);
+  for (let k = 0; k < SM * SM; k++) m[k] = Math.max(0, Math.min(255, Math.round((0.5 + (acc[k] - 0.5) * 2.4) * 255)));
+  snowMask = m;
+}
+
+function* paintBase(img: ImageData): Generator<void> {
+  yield* makeSnowMask();
+  const sm = snowMask!;
   const d = new Uint32Array(img.data.buffer);
   const Lw = P(LAWN), Gr = P(GRAVEL), Md = P(MUD), St = P(STONE), Fl = P(FLAG), Ms = P(MOSS), Bl = P(['#2A2420', '#3E3630', '#544A40', '#6A5E52', '#867868', '#A69886']);
+  const Sn = P(SNOW), Ic = P(ICE);
   const steel = pack('#9AA2B8'), steelD = pack('#4A4E62'), tie = pack('#4A3420'), tieL = pack('#6A4C30');
   const lx = -Math.SQRT1_2, lz = Math.SQRT1_2;
   const avA = [0, 1, 2, 3, 4, 5, 6].map(k => [Math.sin((k * Math.PI) / 4), Math.cos((k * Math.PI) / 4)]);
   const R1 = WALL_R + 70, i0 = Math.max(0, Math.floor(U(-R1))), i1 = Math.min(TS, Math.ceil(U(R1))), j0 = Math.max(0, Math.floor(V(R1))), j1 = Math.min(TS, Math.ceil(V(-R1)));
+  /** Snow lying at `v` against a threshold `t`: 2 solid, 1 a dithered texel of its thin edge (checker, then sparser), 0 none. */
+  const lay = (v: number, t: number, i: number, j: number) => (v > t ? 2 : v > t - 0.05 ? ((i + j) & 1) : v > t - 0.09 ? (i & j & 1) : 0);
   for (let j = j0; j < j1; j++) {
     const z = HALF - (j + 0.5) * TEXEL;
+    if (((j - j0) & 63) === 63) yield;
     for (let i = i0; i < i1; i++) {
       const x = (i + 0.5) * TEXEL - HALF, r = Math.sqrt(x * x + z * z);
       if (r > R1) continue;
-      const n = hh(i, j), o = j * TS + i;
+      const n = hh(i, j), o = j * TS + i, sv = sm[(j >> 1) * SM + (i >> 1)] / 255;
       if (r < 588) { const lo = hh(i >> 2, j >> 2); d[o] = St[(lo > 0.7 ? 2 : 1) + (n > 0.85 ? 1 : n < 0.1 ? -1 : 0)]; continue; }
       const nx = x / r, nz = z / r, face = nx * lx + nz * lz;
-      // (the moat: its inner revetment, the mud in bands deeper in the middle, the outer revetment)
-      if (r < 604) { d[o] = r < 596 ? St[n > 0.9 ? 5 : 4] : face > 0 ? St[3] : St[1]; if (((Math.atan2(x, z) * 640) | 0) % 7 === 0 && r < 596) d[o] = St[2]; continue; }
-      if (r < 716) { const k = Math.abs(r - 660) / 56; let c = k < 0.3 ? 1 : k < 0.65 ? 2 : 3; if (n < 0.12) c--; else if (n > 0.93) c++; if (hh(i >> 3, j >> 1) < 0.05) c = 5; d[o] = Md[Math.max(0, Math.min(5, c))]; continue; }
-      if (r < 732) { d[o] = r < 724 ? (face < 0 ? St[3] : St[1]) : St[n > 0.9 ? 5 : 4]; if (((Math.atan2(x, z) * 900) | 0) % 9 === 0 && r >= 724) d[o] = St[2]; continue; }
-      // (the park's wall: its inner face, the walk along its top, the merlons on its outer edge)
+      // (the moat: its inner revetment (snow along its top), the mud in bands deeper in the middle, partly frozen over
+      // (ice in bands, cracked, its edge dithered into the mud), the outer revetment (snow along its top))
+      if (r < 604) { d[o] = r < 596 ? St[n > 0.9 ? 5 : 4] : face > 0 ? St[3] : St[1]; if (((Math.atan2(x, z) * 640) | 0) % 7 === 0 && r < 596) d[o] = St[2]; if (r < 596) { const s = lay(sv + 0.2, 0.5, i, j); if (s) d[o] = Sn[s === 2 ? (n > 0.9 ? 5 : 4) : 3]; } continue; }
+      if (r < 716) {
+        const k = Math.abs(r - 660) / 56, iv = sm[(i >> 1) * SM + (j >> 1)] / 255, s = lay(iv, 0.52, i, j);
+        if (s === 2) { let c = k < 0.3 ? 1 : k < 0.65 ? 2 : 3; if (iv < 0.56) c = 4; if (n > 0.975) c = 5; else if (hh(i >> 2, j) < 0.025 || hh(i, j >> 2) < 0.025) c = 0; d[o] = Ic[c]; continue; }
+        if (s === 1) { d[o] = Ic[4]; continue; }
+        let c = k < 0.3 ? 1 : k < 0.65 ? 2 : 3; if (n < 0.12) c--; else if (n > 0.93) c++; if (hh(i >> 3, j >> 1) < 0.05) c = 5; d[o] = Md[Math.max(0, Math.min(5, c))]; continue;
+      }
+      if (r < 732) { d[o] = r < 724 ? (face < 0 ? St[3] : St[1]) : St[n > 0.9 ? 5 : 4]; if (((Math.atan2(x, z) * 900) | 0) % 9 === 0 && r >= 724) d[o] = St[2]; if (r >= 724) { const s = lay(sv + 0.25, 0.5, i, j); if (s) d[o] = Sn[s === 2 ? (n > 0.9 ? 5 : 4) : 3]; } continue; }
+      // (the park's wall: its inner face, the walk along its top (snow lying on its flags), the merlons capped in snow)
       if (r > WALL_R - 10) {
         if (r < WALL_R) { d[o] = face < 0 ? St[3] : St[1]; continue; }
-        if (r < WALL_R + 46) { const bl = ((Math.atan2(x, z) * WALL_R) / 36) | 0, rr = (((r - WALL_R) / 12) | 0); d[o] = Fl[(n > 0.9 ? 4 : 3) - ((bl + rr) % 2)]; if (r > WALL_R + 42) d[o] = Fl[1]; continue; }
+        if (r < WALL_R + 46) { const bl = ((Math.atan2(x, z) * WALL_R) / 36) | 0, rr = (((r - WALL_R) / 12) | 0), s = lay(sv + 0.2, 0.5, i, j); d[o] = s === 2 ? Sn[(n > 0.9 ? 5 : 4) - ((bl + rr) % 2)] : s ? Sn[3] : Fl[(n > 0.9 ? 4 : 3) - ((bl + rr) % 2)]; if (r > WALL_R + 42) d[o] = Fl[1]; continue; }
         const m = (((Math.atan2(x, z) * WALL_R) / 40) | 0) % 2 === 0;
-        d[o] = m ? (r < WALL_R + 52 ? St[5] : St[3]) : St[1];
+        d[o] = m ? (r < WALL_R + 52 ? Sn[5] : Sn[3]) : St[1];
         continue;
       }
-      // (the park railway: ballast, sleepers, two steel rails)
+      // (the park railway: ballast (snow in it), sleepers, two steel rails)
       if (Math.abs(r - RAIL_R) < 26) {
-        const q = Math.abs(r - RAIL_R), tieOn = (((Math.atan2(x, z) * RAIL_R) / 15) | 0) % 2 === 0;
-        if (q > 20) d[o] = Bl[n > 0.6 ? 2 : 1];
+        const q = Math.abs(r - RAIL_R), tieOn = (((Math.atan2(x, z) * RAIL_R) / 15) | 0) % 2 === 0, s = lay(sv + 0.1, 0.5, i, j);
+        if (q > 20) d[o] = s === 2 ? Sn[n > 0.6 ? 3 : 2] : Bl[n > 0.6 ? 2 : 1];
         else if (Math.abs(q - 9) < 3) d[o] = r > RAIL_R ? steelD : steel;
-        else d[o] = tieOn ? (n > 0.5 ? tieL : tie) : Bl[n > 0.7 ? 4 : n > 0.3 ? 3 : 2];
+        else d[o] = tieOn ? (n > 0.5 ? tieL : tie) : s ? Sn[n > 0.5 ? 3 : 2] : Bl[n > 0.7 ? 4 : n > 0.3 ? 3 : 2];
         continue;
       }
+      // (drifts: deeper along the park's wall and against the moat's outer rim)
+      const drift = (r > WALL_R - 260 ? ((r - (WALL_R - 260)) / 250) * 0.5 : 0) + (r < 900 ? (1 - (r - 732) / 168) * 0.42 : 0);
       // (the ring paths and the avenues: gravel, a darker edge, a stone kerb)
       let path = -1;
       for (const R of RINGS) { const hw = R === 960 ? 60 : R === 2450 ? 46 : 40, q = Math.abs(r - R); if (q < hw) { path = q > hw - 4 ? 0 : q > hw - 12 ? 2 : 4; break; } }
@@ -220,8 +297,13 @@ const paintBase = (img: ImageData) => {
         if (q < 55) { path = q > 51 ? 0 : q > 43 ? 2 : 4; break; }
       }
       if (path >= 0) {
-        if (path === 0) d[o] = St[n > 0.5 ? 4 : 3];
-        else { let c = path; if (n < 0.14) c--; else if (n > 0.9) c++; else if (n > 0.47 && n < 0.49) c -= 2; d[o] = Gr[Math.max(0, Math.min(5, c))]; }
+        // (frosted: snow banked on the kerbs where it's been shoveled off, trodden snow where it hasn't, frost in the gravel)
+        const s = lay(sv + drift, 0.68, i, j);
+        if (path === 0) d[o] = Sn[n > 0.5 ? 4 : 3];
+        else if (path === 2 && lay(sv + drift + 0.25, 0.5, i, j)) d[o] = Sn[n > 0.6 ? 3 : 2];
+        else if (s === 2) d[o] = n < 0.12 ? Gr[path] : Sn[n > 0.85 ? 3 : 2];
+        else if (s === 1) d[o] = Sn[2];
+        else { let c = path; if (n < 0.14) c--; else if (n > 0.9) c++; else if (n > 0.47 && n < 0.49) c -= 2; d[o] = n > 0.82 && n < 0.9 ? Sn[3] : Gr[Math.max(0, Math.min(5, c))]; }
         continue;
       }
       // (the glen's forest floor: moss and leaf litter, under the canopy painted on later)
@@ -230,14 +312,19 @@ const paintBase = (img: ImageData) => {
         if (b > GLEN.a0 && b < GLEN.a1) { const lo = hh(i >> 2, j >> 2); d[o] = Ms[(lo > 0.6 ? 3 : 2) + (n > 0.88 ? 1 : n < 0.12 ? -1 : 0)]; continue; }
       }
       // (THE LAWN: mown in rings round the castle, a dithered seam between them; tufts and clover patches)
-      const stripe = ((r / 48) | 0) & 1, seam = r % 48 < 2.5 && ((i + j) & 1) === 1;
-      let c = (stripe ^ (seam ? 1 : 0)) ? 4 : 3;
+      // Under patchy snow: lying deep (the stripes still reading in it), thinning to its edge in steps and a dither,
+      // thawed green between
+      const stripe = ((r / 48) | 0) & 1, seam = r % 48 < 2.5 && ((i + j) & 1) === 1, lit = stripe ^ (seam ? 1 : 0), sw = sv + drift;
+      const s = lay(sw, 0.55, i, j);
+      if (s === 2) { d[o] = sw > 0.62 ? Sn[n > 0.975 ? 5 : n < 0.03 ? 2 : lit ? 4 : 3] : Sn[lit ? 3 : 2]; continue; }
+      if (s === 1) { d[o] = Sn[2]; continue; }
+      let c = lit ? 4 : 3;
       if (hh(i >> 3, j >> 3) < 0.09) c--;
       if (n < 0.06) c--; else if (n > 0.965) c++;
       d[o] = Lw[c];
     }
   }
-};
+}
 
 // ---------------------------------------------------------------------------------------------------------------
 // The castle from above
@@ -255,9 +342,15 @@ const castleTop = () => {
   g.strokeStyle = PALE[4]; g.lineWidth = L(30); g.beginPath(); g.arc(cu, cv, L(532), 0, 6.283); g.stroke();
   for (let k = 0; k < 96; k++) { const a = (k / 96) * 6.283, u = cu + Math.cos(a) * L(566), v = cv + Math.sin(a) * L(566); if (k % 2 === 0) { bx(u - 1, v - 1, 2, 2, PALE[5]); bx(u, v, 1, 1, PALE[2]); } }
   for (let k = 0; k < 48; k++) { const a = (k / 48) * 6.283; bx(cu + Math.cos(a) * L(520), cv + Math.sin(a) * L(520), 1, 1, PALE[2]); }
+  // (snow along the walk: lying deep in stretches, swept in others, the merlons capped)
+  for (let k = 0; k < 360; k++) { const a = (k / 360) * 6.283, t = hash(Math.floor(k / 9) * 3.7); if (t < 0.35) continue; for (const rr of [548, 540, 532, 556]) if (t > 0.6 || ((k + rr / 8) & 1)) bx(cu + Math.cos(a) * L(rr), cv + Math.sin(a) * L(rr), 1, 1, rr === 556 ? SNOW[3] : SNOW[4]); }
+  for (let k = 0; k < 96; k += 2) { const a = (k / 96) * 6.283; bx(cu + Math.cos(a) * L(566) - 1, cv + Math.sin(a) * L(566) - 1, 1, 1, SNOW[5]); }
   // (the courtyard: flagstones in courses, a well, banners' shadows; guards on the walk)
   dsc(cu, cv, L(505), PALE[1]); dsc(cu, cv, L(500), FLAG[3]);
   for (let y = -L(500); y < L(500); y += 3) for (let x = -L(500); x < L(500); x += 4) { if (x * x + y * y > L(495) ** 2) continue; const o = ((y / 3) | 0) % 2 ? 2 : 0; bx(cu + x + o, cv + y, 1, 3, FLAG[2]); bx(cu + x + o, cv + y, 4, 1, FLAG[2]); if (hash(x * 1.3 + y) > 0.85) bx(cu + x + o + 1, cv + y + 1, 3, 2, FLAG[4]); }
+  // (snow in the courtyard: drifted against the curtain wall's foot all round, patches across the flags)
+  for (let k = 0; k < 220; k++) { const a = (k / 220) * 6.283; for (let q = 0; q < 3; q++) if (q < 2 || (k & 1)) bx(cu + Math.cos(a) * (L(500) - 1 - q), cv + Math.sin(a) * (L(500) - 1 - q), 1, 1, q ? SNOW[4] : SNOW[3]); }
+  for (let k = 0; k < 9; k++) { const a = hash(k * 6.1 + 2) * 6.28, d = L(150 + hash(k * 2.7) * 300); snowPatch(cu + Math.cos(a) * d, cv + Math.sin(a) * d, 3 + hash(k * 1.9) * 5, 2 + hash(k * 3.1) * 3, k * 5.3); }
   for (let k = 0; k < 14; k++) { const a = hash(k * 4.4) * 6.28; person(cu + Math.cos(a) * L(540), cv + Math.sin(a) * L(540), k * 3.3); }
   crowd(cu - L(250), cv + L(250), L(60), L(60), 26, 11.1);
   fountain(cu + L(300), cv + L(150), 4);
@@ -272,6 +365,9 @@ const castleTop = () => {
   bx(cu - L(170), cv - L(170), L(340), L(340), PALE[4]);
   bx(cu - L(150), cv - L(150), L(300), L(300), SLATE[2]);
   for (let y = -L(150); y < L(150); y += 2) bx(cu - L(150), cv + y, L(300), 1, SLATE[y < 0 ? 3 : 1]);
+  // (snow on the keep's roof: lying over the slates, their courses showing through toward the parapet, drifted at its foot)
+  for (let y = -L(146); y < L(146); y++) { const e = Math.min(y + L(146), L(146) - y); bx(cu - L(146) + (e < 3 ? (y & 1) : 0), cv + y, L(292), 1, e < 3 && (y & 1) ? SLATE[2] : y < 0 ? SNOW[4] : SNOW[2]); }
+  for (let k = 0; k < L(292); k += 2) { bx(cu - L(146) + k, cv - L(146), 1, 1, SNOW[5]); bx(cu - L(146), cv - L(146) + k, 1, 1, SNOW[5]); }
   for (let k = 0; k < L(340); k += 3) { bx(cu - L(170) + k, cv - L(170), 2, 2, PALE[5]); bx(cu - L(170) + k, cv + L(170) - 2, 2, 2, PALE[3]); bx(cu - L(170), cv - L(170) + k, 2, 2, PALE[5]); bx(cu + L(170) - 2, cv - L(170) + k, 2, 2, PALE[3]); }
   for (const [sx, sy] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) coneTop(cu + sx * L(165), cv + sy * L(165), L(55), ROOF, sx < 0 ? '#F472B6' : '#FDE047');
   for (let k = 0; k < 6; k++) { const a = ((k * 60 + 30 - 90) * Math.PI) / 180; coneTop(cu + Math.cos(a) * L(530), cv + Math.sin(a) * L(530), L(72), ROOF, k % 2 ? '#F472B6' : '#FDE047'); }
@@ -291,7 +387,10 @@ const moatAndPaths = () => {
   // (the moat: puddles with the sky in them, the cleaning cart, footprints, a stranded rowboat, a ladder, a WET FLOOR cone)
   for (let i = 0; i < 46; i++) {
     const a = (i / 46) * 6.283 + hash(i) * 0.1, r = L(630 + hash(i * 2.2) * 60), u = cu + Math.cos(a) * r, v = cv + Math.sin(a) * r, rx = 2 + hash(i * 3) * 5, ry = 1 + hash(i * 4) * 2;
-    el(u, v, rx + 1, ry + 1, a + 1.57, MUD[1]); el(u, v, rx, ry, a + 1.57, WATER[3]); el(u - 0.5, v - 0.5, rx * 0.6, ry * 0.5, a + 1.57, WATER[5]);
+    // (every third iced over, a crack across it)
+    const iced = i % 3 === 0;
+    el(u, v, rx + 1, ry + 1, a + 1.57, MUD[1]); el(u, v, rx, ry, a + 1.57, iced ? ICE[3] : WATER[3]); el(u - 0.5, v - 0.5, rx * 0.6, ry * 0.5, a + 1.57, iced ? ICE[5] : WATER[5]);
+    if (iced && rx > 3) ln([u - Math.cos(a + 1.57) * rx * 0.7, v - Math.sin(a + 1.57) * rx * 0.7, u + 0.5, v - 0.5, u + Math.cos(a + 1.57) * rx * 0.6, v + Math.sin(a + 1.57) * rx * 0.6], 0.6, ICE[1]);
   }
   for (let k = 0; k < 220; k += 2) { const a = 2.2 + k * 0.006, r = L(660) + Math.sin(k * 0.5) * 0.8; bx(cu + Math.cos(a) * r, cv + Math.sin(a) * r, 1, 1, MUD[0]); }
   local(at(130, 660).x, at(130, 660).z, 130, th => { const [sx, sy] = shOf(th, 2); bx(-5 + sx, -4 + sy, 10, 8, SHADOW); bx(-5, -4, 10, 8, '#1A1028'); bx(-4, -3, 8, 6, '#F2C84A'); bx(-4, -3, 8, 1, '#FFF0A8'); bx(-3, -1, 3, 3, '#4A84C4'); bx(1, -1, 2, 2, '#9AA2B8'); for (const wx of [-4, 3]) { bx(wx, 3, 2, 2, '#1A1028'); bx(wx, -5, 2, 2, '#1A1028'); } });
@@ -300,7 +399,8 @@ const moatAndPaths = () => {
   for (const b of [95, 330]) { const p = at(b, 608); local(p.x, p.z, b, () => { for (let k = 0; k < 6; k++) bx(-2, -k * 2, 4, 1, DECK[4]); bx(-2, -11, 1, 12, DECK[2]); bx(1, -11, 1, 12, DECK[2]); }); }
   for (let i = 0; i < 18; i++) { const a = hash(i * 9.1) * 6.283, r = L(620 + hash(i * 1.4) * 80); bx(cu + Math.cos(a) * r, cv + Math.sin(a) * r, 2, 1, i % 2 ? '#C8D0DA' : '#E8A030'); }
   // (the lawn by the moat: a flower border round it in bands, benches facing the castle)
-  for (let k = 0; k < 900; k++) { const a = (k / 900) * 6.283, r = L(752 + (k % 3) * 6); bx(cu + Math.cos(a) * r, cv + Math.sin(a) * r, 1, 1, FLOWERS[(Math.floor(k / 9) + (k % 3)) % FLOWERS.length]); }
+  // (the border under snow, the blooms poking up through it)
+  for (let k = 0; k < 900; k++) { const a = (k / 900) * 6.283, r = L(752 + (k % 3) * 6), u = cu + Math.cos(a) * r, v = cv + Math.sin(a) * r; if (hash(k * 0.37) < 0.3) { bx(u, v, 1, 1, SNOW[k % 2 ? 4 : 3]); continue; } bx(u, v, 1, 1, FLOWERS[(Math.floor(k / 9) + (k % 3)) % FLOWERS.length]); if (k % 4 === 0) bx(u + 1, v, 1, 1, SNOW[4]); }
   g.strokeStyle = HEDGE[3]; g.lineWidth = 1; g.beginPath(); g.arc(cu, cv, L(744), 0, 6.283); g.stroke(); g.beginPath(); g.arc(cu, cv, L(778), 0, 6.283); g.stroke();
   for (let k = 0; k < 24; k++) { const b = k * 15 + 7.5, p = at(b, 820); local(p.x, p.z, b, () => { bx(-3, 0, 6, 2, DECK[3]); bx(-3, 0, 6, 1, DECK[5]); bx(-3, 2, 6, 1, SHADOW); }); if (k % 3 === 0) person(U(p.x), V(p.z) + 1, k); }
   // (the ring paths: lamp posts along both kerbs, guests strolling)
@@ -363,10 +463,20 @@ const gardens = () => {
       if (!wall[y * N + x]) { if (hash(x * 3.1 + y * 7.7) > 0.9) person(cu - half + x * cell + 2, cv - half + y * cell + 2, x + y * 31); continue; }
       const u = cu - half + x * cell, v = cv - half + y * cell;
       bx(u, v, cell, cell, HEDGE[3]);
-      if (y === 0 || !wall[(y - 1) * N + x]) bx(u, v, cell, 1, HEDGE[5]);
-      if (x === 0 || !wall[y * N + x - 1]) bx(u, v, 1, cell, HEDGE[4]);
+      // (snow capping the hedge tops: thick along the lit edges, clumps across, the shaded edge left green)
+      const topOpen = y === 0 || !wall[(y - 1) * N + x], leftOpen = x === 0 || !wall[y * N + x - 1];
+      bx(u, v, cell, 1, topOpen ? SNOW[5] : SNOW[4]); if (topOpen) bx(u, v + 1, cell, 1, SNOW[4]);
+      if (leftOpen) bx(u, v, 1, cell - 1, SNOW[4]);
+      for (let k = 0; k < 3; k++) if (hash(x * 3.3 + y * 1.1 + k) > 0.45) bx(u + 1 + hash(x + y * 5 + k) * (cell - 2), v + 2 + hash(x * 2 + y + k) * (cell - 3), 1, 1, SNOW[k ? 3 : 4]);
       if (y === N - 1 || !wall[(y + 1) * N + x]) bx(u, v + cell - 1, cell, 1, HEDGE[1]);
-      if (hash(x * 1.7 + y * 2.9) > 0.6) bx(u + 2, v + 2, 1, 1, HEDGE[4]);
+      if (hash(x * 1.7 + y * 2.9) > 0.6) bx(u + 3, v + 3, 1, 1, HEDGE[4]);
+    }
+    // (drifts in the lanes, piled against the hedges' south-east sides)
+    for (let y = 0; y < N - 1; y++) for (let x = 0; x < N - 1; x++) {
+      if (!wall[y * N + x]) continue;
+      const u = cu - half + x * cell, v = cv - half + y * cell;
+      if (!wall[(y + 1) * N + x]) { bx(u + 2, v + cell + 2, cell - 2, 1, SNOW[3]); for (let k = 0; k < cell; k += 2) bx(u + 2 + k, v + cell + 3, 1, 1, SNOW[3]); }
+      if (!wall[y * N + x + 1]) bx(u + cell + 2, v + 2, 1, cell - 2, SNOW[3]);
     }
     fountain(cu + 2, cv + 2, 7);
     crowd(cu - half - 8, cv + half, 6, 4, 14, 3.1);
@@ -385,7 +495,9 @@ const gardens = () => {
       g.beginPath(); g.moveTo(6, s * 0.95); g.quadraticCurveTo(s * 0.18, s * 0.18, s * 0.95, 6); g.stroke();
       g.beginPath(); g.moveTo(s * 0.2, s * 0.98); g.bezierCurveTo(s * 0.4, s * 0.7, s * 0.7, s * 1.0, s * 0.98, s * 0.6); g.stroke();
       g.beginPath(); g.moveTo(s * 0.98, s * 0.2); g.bezierCurveTo(s * 0.7, s * 0.4, s * 1.0, s * 0.7, s * 0.6, s * 0.98); g.stroke();
-      g.strokeStyle = HEDGE[5]; g.lineWidth = 0.8; g.beginPath(); g.arc(s * 0.5 - 0.6, s * 0.5 - 0.6, s * 0.36, 3.4, 5.6); g.stroke();
+      g.strokeStyle = SNOW[5]; g.lineWidth = 0.8; g.beginPath(); g.arc(s * 0.5 - 0.6, s * 0.5 - 0.6, s * 0.36, 3.4, 5.6); g.stroke();
+      // (snow lying on the box hedges' scrolls, dotted along their tops)
+      for (let k = 0; k < 40; k++) { const t = k / 40, a = (1 - t) * (1 - t), b = 2 * t * (1 - t), c = t * t; bx(a * 6 + b * s * 0.18 + c * s * 0.95 - 0.5, a * s * 0.95 + b * s * 0.18 + c * 6 - 0.5, 1, 1, k % 3 ? SNOW[4] : SNOW[5]); }
       for (let k = 0; k < 6; k++) { const a = k * 1.05; bx(s * 0.5 + Math.cos(a) * s * 0.27, s * 0.5 + Math.sin(a) * s * 0.27, 1, 1, '#FDE047'); }
       g.restore();
     }
@@ -397,9 +509,13 @@ const gardens = () => {
   {
     const p = at(112.5, 1680), cu = U(p.x), cv = V(p.z);
     dsc(cu, cv, 62, GRAVEL[3]);
+    for (let k = 0; k < 420; k++) { const a = hash(k * 1.71) * 6.283, d = Math.sqrt(hash(k * 2.33)) * 61; bx(cu + Math.cos(a) * d, cv + Math.sin(a) * d, 1, 1, k % 4 ? SNOW[3] : SNOW[4]); }
     for (const [r, cols] of [[56, ['#DC2626', '#F472B6']], [44, ['#F4F4F5', '#FDE047']], [32, ['#E11D48', '#F9A8D4']], [20, ['#FB923C', '#DC2626']]] as const) {
       g.strokeStyle = HEDGE[2]; g.lineWidth = 6; g.beginPath(); g.arc(cu, cv, r, 0, 6.283); g.stroke();
       g.strokeStyle = HEDGE[3]; g.lineWidth = 4; g.stroke();
+      // (snow along the hedge ring's top, thickest on its lit side)
+      g.strokeStyle = SNOW[4]; g.lineWidth = 1.4; g.beginPath(); g.arc(cu - 0.5, cv - 0.5, r - 0.8, 2.8, 6.0); g.stroke();
+      for (let k = 0; k < r * 2; k++) { const a = (k / (r * 2)) * 6.283; if (k % 3 === 0) bx(cu + Math.cos(a) * (r + 1), cv + Math.sin(a) * (r + 1), 1, 1, SNOW[3]); }
       for (let k = 0; k < r * 5; k++) { const a = (k / (r * 5)) * 6.283; if (Math.abs(((a * 4 / 6.283) % 1) - 0.5) < 0.04) continue; const rr = r + (hash(k + r) - 0.5) * 3.6; bx(cu + Math.cos(a) * rr, cv + Math.sin(a) * rr, 1, 1, hash(k * 1.3 + r) > 0.35 ? cols[k % 2] : HEDGE[4]); }
     }
     for (let k = 0; k < 4; k++) { const a = k * 1.571 + 0.785; for (const r of [26, 38, 50]) { const u = cu + Math.cos(a) * r, v = cv + Math.sin(a) * r; g.save(); g.translate(u, v); g.rotate(a); bx(-1, -3, 3, 7, SHADOW); bx(-1.5, -3.5, 3, 7, GOLD[3]); bx(-1.5, -3.5, 1, 7, GOLD[5]); bx(-0.5, -2.5, 1, 5, '#F472B6'); g.restore(); } }
@@ -439,8 +555,8 @@ const gardens = () => {
       const a = (i / 24) * 6.283, u = cu + 18 + Math.cos(a) * 46, v = cv - 6 + Math.sin(a) * 34;
       const kind = i % 3;
       if (kind === 0) treeTop(u, v, 3.5, HEDGE);
-      else if (kind === 1) { dsc(u - 1.5 + 1, v + 1, 2.4, SHADOW); dsc(u + 1.5 + 1, v + 1, 2.4, SHADOW); dsc(u - 1.5, v, 2.4, HEDGE[3]); dsc(u + 1.5, v, 2.4, HEDGE[3]); pl([u - 3.8, v + 0.5, u, v + 4.5, u + 3.8, v + 0.5], HEDGE[3]); bx(u - 2, v - 1, 1, 1, HEDGE[5]); }
-      else { bx(u - 3 + 1, v - 1 + 1, 6, 3, SHADOW); bx(u - 3, v - 1, 6, 3, HEDGE[3]); bx(u + 2, v - 3, 2, 3, HEDGE[3]); bx(u + 3, v - 4, 1, 1, '#F6D365'); bx(u - 3, v - 1, 6, 1, HEDGE[5]); }
+      else if (kind === 1) { dsc(u - 1.5 + 1, v + 1, 2.4, SHADOW); dsc(u + 1.5 + 1, v + 1, 2.4, SHADOW); dsc(u - 1.5, v, 2.4, HEDGE[3]); dsc(u + 1.5, v, 2.4, HEDGE[3]); pl([u - 3.8, v + 0.5, u, v + 4.5, u + 3.8, v + 0.5], HEDGE[3]); bx(u - 2, v - 2, 2, 1, SNOW[5]); bx(u + 1, v - 2, 2, 1, SNOW[4]); bx(u - 3, v - 1, 1, 1, SNOW[4]); }
+      else { bx(u - 3 + 1, v - 1 + 1, 6, 3, SHADOW); bx(u - 3, v - 1, 6, 3, HEDGE[3]); bx(u + 2, v - 3, 2, 3, HEDGE[3]); bx(u + 3, v - 4, 1, 1, '#F6D365'); bx(u - 3, v - 1, 6, 1, SNOW[5]); bx(u + 2, v - 3, 1, 1, SNOW[4]); bx(u - 3, v, 1, 1, SNOW[4]); }
     }
     crowd(cu + 18, cv - 6, 54, 42, 30, 8.8);
   }
@@ -450,7 +566,7 @@ const gardens = () => {
     dsc(cu + 2, cv + 2, r + 3, SHADOW); dsc(cu, cv, r + 3, PALE[1]); dsc(cu, cv, r + 2, PALE[4]);
     for (const [rr, cols] of [[r, ['#FDE047', '#FB923C']], [r * 0.8, ['#F4F4F5', '#A78BFA']], [r * 0.55, ['#F472B6', '#DC2626']], [r * 0.3, ['#60A5FA', '#F4F4F5']]] as const) {
       dsc(cu, cv, rr, HEDGE[3]);
-      for (let y = -rr; y < rr; y += 1.5) for (let x = -rr; x < rr; x += 1.5) { const q = x * x + y * y; if (q > rr * rr || q < (rr - 9) * (rr - 9)) continue; if (hash(x * 1.3 + y * 2.7 + rr) > 0.3) bx(cu + x, cv + y, 1, 1, cols[(Math.floor((Math.atan2(y, x) + 3.15) * 6 / 3.1416)) % 2]); }
+      for (let y = -rr; y < rr; y += 1.5) for (let x = -rr; x < rr; x += 1.5) { const q = x * x + y * y; if (q > rr * rr || q < (rr - 9) * (rr - 9)) continue; const t = hash(x * 1.3 + y * 2.7 + rr); if (t > 0.3) bx(cu + x, cv + y, 1, 1, cols[(Math.floor((Math.atan2(y, x) + 3.15) * 6 / 3.1416)) % 2]); else if (t < 0.2) bx(cu + x, cv + y, 1, 1, SNOW[t < 0.08 ? 5 : 4]); }
     }
     for (let k = 0; k < 12; k++) { const a = (k / 12) * 6.283 - 1.571, u = cu + Math.cos(a) * r * 0.9, v = cv + Math.sin(a) * r * 0.9; bx(u - 1.5, v - 1.5, 3, 3, '#1A1028'); bx(u - 1, v - 1, 2, 2, GOLD[4]); }
     ln([cu, cv, cu + Math.cos(-1.571 + 0.52) * r * 0.5, cv + Math.sin(-1.571 + 0.52) * r * 0.5], 3, '#1A1028');
@@ -462,7 +578,9 @@ const gardens = () => {
   {
     const p = at(337.5, 1680), cu = U(p.x), cv = V(p.z), s = 3.2;
     const heart = (k: number, col: string, ox = 0, oy = 0) => { g.save(); g.translate(cu + ox, cv + oy); g.scale(s * k, s * k); fill(col); g.beginPath(); g.moveTo(0, 6); g.bezierCurveTo(-14, -2, -10, -14, 0, -7); g.bezierCurveTo(10, -14, 14, -2, 0, 6); g.fill(); g.restore(); };
-    heart(1.08, SHADOW, 3, 3); heart(1.08, HEDGE[1]); heart(1, HEDGE[3]); heart(0.86, '#F472B6'); heart(0.7, '#F9A8D4'); heart(0.5, '#DC2626'); heart(0.32, '#FFE4F2');
+    heart(1.08, SHADOW, 3, 3); heart(1.08, HEDGE[1]); heart(1, HEDGE[3]);
+    // (snow lying on the heart hedge's top, its lit side thickest)
+    heart(0.97, SNOW[3], -0.6, -0.6); heart(0.93, HEDGE[3], 0.6, 0.6); heart(0.86, '#F472B6'); heart(0.7, '#F9A8D4'); heart(0.5, '#DC2626'); heart(0.32, '#FFE4F2');
     for (let k = 0; k < 120; k++) { const u = cu + (hash(k * 1.1) - 0.5) * 60, v = cv + (hash(k * 2.3) - 0.5) * 50; bx(u, v, 1, 1, '#FFD0E8'); }
     fountain(cu, cv - 2, 5);
     roof(cu + 46, cv + 30, 12, 12, 0.3, PINK, { hip: true });
@@ -505,6 +623,8 @@ const port = () => {
   bx(cu - L(60), cv - L(210), L(120), L(420), '#7F1D1D'); bx(cu - L(50), cv - L(210), L(100), L(420), '#B91C1C'); bx(cu - L(50), cv - L(210), 1, L(420), '#DC2626');
   for (let y = 0; y < L(420); y += 8) bx(cu - 0.5, cv - L(210) + y, 1, 4, '#FFF6C8');
   for (let k = 0; k < 4; k++) { const y = cv - L(200) + k * 6; ln([cu - 6, y + 4, cu, y, cu + 6, y + 4], 1.2, '#F6D365'); }
+  // (the deck's swept, the snow shoveled into banks along its edges)
+  for (let y = 0; y < L(420); y++) for (const [x, s] of [[-L(380), 1], [L(380) - 2, -1]] as const) { bx(cu + x, cv - L(210) + y, 2, 1, SNOW[4]); if ((y + (s > 0 ? 0 : 1)) & 1) bx(cu + x + (s > 0 ? 2 : -1), cv - L(210) + y, 1, 1, SNOW[3]); }
   for (let y = 0; y < L(420); y += 6) for (const x of [-L(70), L(70)]) { bx(cu + x - 1, cv - L(210) + y, 2, 2, '#1A1028'); bx(cu + x - 0.5, cv - L(210) + y + 0.5, 1, 1, '#FDE68A'); lights.push([cu + x, cv - L(210) + y, 2, '#FDE68A']); }
   // (the scoreboard at its far end, the hoops, wind socks, broom racks; officials and riders milling)
   bx(cu - L(120), cv + L(214), L(240), L(30), '#1A1028'); bx(cu - L(118), cv + L(216), L(236), L(26), '#2A1A3A');
@@ -524,6 +644,9 @@ const towerPlazas = () => {
     dsc(u, v, r + 1, '#1A1028'); dsc(u, v, r, FLAG[3]);
     for (let k = 0; k < 4; k++) { g.strokeStyle = FLAG[2]; g.lineWidth = 1; g.beginPath(); g.arc(u, v, r * (0.35 + k * 0.17), 0, 6.283); g.stroke(); }
     for (let k = 0; k < 24; k++) { const a = (k / 24) * 6.283; ln([u + Math.cos(a) * r * 0.35, v + Math.sin(a) * r * 0.35, u + Math.cos(a) * r, v + Math.sin(a) * r], 1, FLAG[2]); }
+    // (snow swept to the plaza's rim in a bank, dithered in)
+    g.strokeStyle = SNOW[3]; g.lineWidth = 2; g.beginPath(); g.arc(u, v, r - 1.5, 0, 6.283); g.stroke();
+    for (let k = 0; k < r * 6; k++) { const a = (k / (r * 6)) * 6.283; if (k & 1) bx(u + Math.cos(a) * (r - 3.5), v + Math.sin(a) * (r - 3.5), 1, 1, SNOW[3]); }
     g.strokeStyle = FLAG[5]; g.lineWidth = 1; g.beginPath(); g.arc(u, v, r - 0.5, 3.4, 5.9); g.stroke();
     // (its foot: the drum's top seen in steps, the roof's cone from above)
     coneTop(u, v, L(122), ROOF, t.i % 2 ? '#F472B6' : '#FDE047');
@@ -577,7 +700,7 @@ const queueMaze: Plot = (th, s) => {
 const cottages: Plot = (th, s) => {
   for (let k = 0; k < 4; k++) {
     const x = -18 + (k % 2) * 30 + hash(s + k) * 6, y = -14 + Math.floor(k / 2) * 26 + hash(s * 2 + k) * 4, R = [THATCH, BRICK, PINK, ROOF][(k + Math.floor(s * 3)) % 4];
-    bx(x - 9, y - 7, 18, 16, LAWN[4]); for (let px = x - 9; px < x + 9; px += 2) { bx(px, y - 8, 1, 1, '#F4F0FA'); bx(px, y + 9, 1, 1, '#F4F0FA'); }
+    bx(x - 9, y - 7, 18, 16, LAWN[4]); snowPatch(x - 3, y + 2, 5, 3, s + k * 3); for (let px = x - 9; px < x + 9; px += 2) { bx(px, y - 8, 1, 1, '#F4F0FA'); bx(px, y + 9, 1, 1, '#F4F0FA'); }
     for (let f = 0; f < 10; f++) bx(x - 8 + hash(f + k + s) * 16, y + 5 + hash(f * 2 + k) * 3, 1, 1, FLOWERS[f % 8]);
     roof(x, y - 1, 12, 9, hash(s + k * 3) > 0.5 ? 0 : 1.571, R, { chimney: true });
     person(x + 6, y + 6, k + s);
@@ -607,8 +730,9 @@ const showBuilding: Plot = (th, s) => {
 const RED_R = ['#2E0810', '#561020', '#821C30', '#B02A42', '#D2506A', '#EE8A9E'];
 const PLOTS: Plot[] = [giftShop, teacups, carousel, foodCourt, queueMaze, cottages, pondPlot, spinner, showBuilding, giftShop, carousel, foodCourt];
 
-const lands = () => {
+function* lands(): Generator<void> {
   for (const [r, step] of [[2800, 520], [3200, 560], [3920, 560], [4320, 560], [4790, 580]] as const) {
+    yield;
     const n = Math.floor((r * 6.283) / step);
     for (let k = 0; k < n; k++) {
       const b = (k / n) * 360 + (r % 7) * 3;
@@ -623,7 +747,11 @@ const lands = () => {
       local(p.x, p.z, bb, th => {
         // (the plot's own ground: a paved apron, the lawn round it, a little path to the ring)
         bx(-36, -32, 72, 64, LAWN[3]);
-        ln([0, 30, 0, 44], 3, GRAVEL[4]);
+        // (snow lying in patches on it, drifted along its back edge; the path to the ring trodden through)
+        for (let x = -36; x < 36; x++) { const dh = 2 + Math.round(hash(s + x * 0.3) * 2); bx(x, -32, 1, dh, SNOW[x & 1 ? 4 : 3]); if (x & 1) bx(x, -32 + dh, 1, 1, SNOW[3]); }
+        for (let k = 0; k < 3; k++) snowPatch(-26 + hash(s * 3 + k) * 52, -16 + hash(s * 5 + k) * 40, 5 + hash(s + k * 7) * 6, 3 + hash(s * 2 + k) * 4, s + k * 13);
+        ln([0, 30, 0, 44], 3, SNOW[2]);
+        ln([0, 30, 0, 44], 1.5, GRAVEL[4]);
         PLOTS[Math.floor(hash(s) * PLOTS.length)](th, s);
         for (const [x, y] of [[-34, -30], [34, -30], [-34, 30], [34, 30]]) treeTop(x, y, 3.4, hash(x + y + s) > 0.75 ? BLOSSOM : OAK, hash(x + y + s) > 0.75);
       });
@@ -631,6 +759,7 @@ const lands = () => {
   }
   // (between the plots: little paths, beds and trees so there's no bare lawn)
   for (let i = 0; i < 950; i++) {
+    if (i % 240 === 0) yield;
     const b = hash(i * 1.37) * 360, r = 2520 + hash(i * 2.71) * 2420, p = at(b, r);
     if (Math.abs(r - RAIL_R) < 40) continue;
     if (b > 360 + GLEN.a0 && b < 360 + GLEN.a1) continue;
@@ -642,12 +771,12 @@ const lands = () => {
     else if (t < 0.85) bed(U(p.x), V(p.z), 8, 3, b * D2R, [FLOWERS[i % 8], FLOWERS[(i + 2) % 8]], i);
     else umbrella(U(p.x), V(p.z), 2.6, FLOWERS[i % 8], '#F4F0FA');
   }
-};
+}
 
 /** The glen's forest from above: canopy on canopy (oaks, blossom, lilac, frosted pines and spire trees), the brook
  *  winding through it, clearings (a toadstool ring, the gingerbread cottage, the meadow's plywood rainbow, the mine's
  *  hill and its head frame, the dragon lair's fiberglass skull). */
-const glen = () => {
+function* glen(): Generator<void> {
   // (the brook first, under the canopy's edges)
   const brook: number[] = [];
   for (let k = 0; k <= 40; k++) { const t = k / 40, b = GLEN.a0 + 6 + t * (GLEN.a1 - GLEN.a0 - 12), r = 3800 + Math.sin(t * 9) * 420; const p = at(b, r); brook.push(U(p.x), V(p.z)); }
@@ -674,6 +803,7 @@ const glen = () => {
   { local(bridge.x, bridge.z, -50, () => { bx(-3, -9, 6, 18, '#1A1028'); bx(-2, -9, 4, 18, DECK[3]); for (let y = -9; y < 9; y += 2) bx(-2, y, 4, 1, DECK[2]); }); }
   // (the canopy: thousands of trees, the big ones first, never in the clearings)
   for (let i = 0; i < 3400; i++) {
+    if (i % 600 === 0) yield;
     const b = GLEN.a0 + 1 + hash(i * 2.7) * (GLEN.a1 - GLEN.a0 - 2), r = GLEN.r0 + 20 + hash(i * 1.3) * (WALL_R - 80 - GLEN.r0 - 20), p = at(b, r);
     if (clear.some(([x, z, rr]) => Math.hypot(p.x - x, p.z - z) < rr)) continue;
     if (Math.abs(r - RAIL_R) < 40) continue;
@@ -686,7 +816,7 @@ const glen = () => {
   // (fairy lights strung in the canopy along the brook (lit after dark), lanterns at the clearings)
   for (let k = 0; k < brook.length; k += 2) lights.push([brook[k] + (hash(k) - 0.5) * 8, brook[k + 1] + (hash(k * 3) - 0.5) * 8, 1.6, k % 4 ? '#FFE9A8' : '#FFB0D8']);
   for (const [x, z, rr] of clear) for (let k = 0; k < 6; k++) { const a = k * 1.05; lamp(U(x) + Math.cos(a) * L(rr - 20), V(z) + Math.sin(a) * L(rr - 20)); }
-};
+}
 
 /** The park railway's train and its station; the wall's pink shimmer. */
 const railAndWall = () => {
@@ -800,27 +930,41 @@ const beyond = () => {
 
 /** Paints the whole texture onto `gg` (TS square) for the hour: the park beyond's tile under it all, the base a texel at
  *  a time, everything on it, the hour's light multiplied over, then the lamps glowing after dark. */
-export const paintGround = (gg: Ctx, tile: HTMLCanvasElement, tod: TimeOfDay) => {
-  g = gg; lights = []; seed = 1;
+export function* paintGroundSteps(gg: Ctx, tile: HTMLCanvasElement, tod: TimeOfDay): Generator<void> {
+  const mine: typeof lights = [];
+  // (between steps something else may have painted with this module (the park beyond's tile): take it back)
+  const back = () => { g = gg; lights = mine; };
+  back(); seed = 1; frost = false;
   g.imageSmoothingEnabled = false;
   g.fillStyle = g.createPattern(tile, 'repeat')!; g.fillRect(0, 0, TS, TS);
   const img = g.getImageData(0, 0, TS, TS);
-  paintBase(img);
+  yield; back();
+  for (const _ of paintBase(img)) { yield; back(); }
   g.putImageData(img, 0, 0);
+  yield; back();
   beyond();
+  yield; back(); frost = true;
   railAndWall();
-  glen();
-  lands();
+  frost = false;
+  for (const _ of glen()) { yield; back(); }
+  frost = true;
+  for (const _ of lands()) { yield; back(); frost = true; }
   towerPlazas();
+  yield; back(); frost = true;
   gardens();
+  yield; back(); frost = true;
   port();
   moatAndPaths();
+  yield; back(); frost = true;
   castleTop();
+  frost = false;
   if (tod.mul && tod.mul.toUpperCase() !== '#FFFFFF') { g.globalCompositeOperation = 'multiply'; g.fillStyle = tod.mul; g.fillRect(0, 0, TS, TS); g.globalCompositeOperation = 'source-over'; }
   if (tod.lamps > 0.3) {
     for (const [u, v, r, col] of lights) { g.globalAlpha = 0.25 * tod.lamps; dsc(u, v, r * 1.6, col); g.globalAlpha = 1; bx(u - 0.5, v - 0.5, 1, 1, col); }
   }
-};
+}
+/** The whole texture in one go (paintGroundSteps straight through). */
+export const paintGround = (gg: Ctx, tile: HTMLCanvasElement, tod: TimeOfDay) => { const it = paintGroundSteps(gg, tile, tod); while (!it.next().done); };
 
 /** The outside tile's own copy for the hour (multiplied by its light). */
 export const outsideFor = (tod: TimeOfDay) => {

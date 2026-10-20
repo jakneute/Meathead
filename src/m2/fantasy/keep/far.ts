@@ -6,8 +6,9 @@
 //   the sky by the hour (banded, dithered between), cirrus and stepped cumulus (the high ones only seen from up the
 //   tower); birds by day, fireworks after dark; THE ALPS on the horizon (no volcanoes); the park beyond (the glen's: the
 //   fairy wheel he came from, Hogsmeat, Rapunzel's tower, the beanstalk, Truelling Tragons); the castle's own grounds
-//   (only seen from up on the walls: the frozen outer moat with skaters, snowy lawns, the hedge maze, paths of guests
-//   between lamp posts, queue canopies, the broom port's stands far off, flower beds, a carousel); and THE INNER WARD
+//   (only seen from up on the walls, as from the broom: green lawns under patchy snow, the drained moat partly frozen
+//   with skaters on its ice, the hedge maze capped in snow, frosted paths of guests between lamp posts, queue
+//   canopies, the broom port's stands far off, flower beds blooming through the snow, a carousel); and THE INNER WARD
 //   over it all: its curtain wall and round towers, the chapel and its star spire, the great hall's slates and dormers,
 //   the clock tower, THE KEEP (buttressed, three tiers of lancets, a rose window, long banners, a machicolated crown,
 //   corner turrets under blue cones) and up out of it THE HIGHEST SPIRE with PIPER'S WINDOW lit pink up near its top.
@@ -48,39 +49,75 @@ const winLit = (tod: TimeOfDay, i: number) => (tod.lamps > 0.3 ? (hash(i * 1.7) 
 const GW = 1600, GH = 260;
 const paintGrounds = (g: Ctx, tod: TimeOfDay) => {
   const T = farCol(tod, 0.3), Sn = T('#E8EEF8'), SnL = T('#FFFFFF');
-  const lawn = [T('#7A8CB0'), T('#9AAACC'), T('#C8D4EA'), T('#E4ECF8')];
-  // (the snowy lawns going back, banded: mown stripes)
-  for (let y = 0; y < GH; y += 2) { const band = Math.floor(y / (6 + y * 0.08)) % 2; box(g, 0, y, GW, 2, lawn[(y < 90 ? 2 : 1) + band]); }
+  // (the lawns going back, green (the Great Pixie's magic) under the land's snow: banded, mown stripes)
+  const lawn = [T('#24481E'), T('#305C26'), T('#3C702E'), T('#4A843A')];
+  const snow = [T('#B8C4E0'), T('#D6E0F2'), T('#ECF2FC')];
+  for (let y = 0; y < GH; y += 2) { const band = Math.floor(y / (6 + y * 0.08)) % 2; box(g, 0, y, GW, 2, lawn[(y < 90 ? 1 : 2) + band]); }
   checker(g, 0, 0, GW, 4, lawn[1], 0, 2);
+  // (patchy snow lying over them: wider patches nearer, the mown stripes still reading in it, a dithered edge where it
+  // thins to the green; drifted deep along the far edge)
+  const vn = (x: number, y: number) => { const x0 = Math.floor(x), y0 = Math.floor(y), fx = x - x0, fy = y - y0, sx = fx * fx * (3 - 2 * fx), sy = fy * fy * (3 - 2 * fy), h = (a: number, b: number) => hash(a * 57.31 + b * 131.7); const a = h(x0, y0), b = h(x0 + 1, y0), c = h(x0, y0 + 1), d = h(x0 + 1, y0 + 1); return (a + (b - a) * sx) * (1 - sy) + (c + (d - c) * sx) * sy; };
+  for (let y = 0; y < GH; y += 2) {
+    const sc = 0.012 / (0.35 + y / GH), band = Math.floor(y / (6 + y * 0.08)) % 2, deep = Math.max(0, 1 - y / 26) * 0.5;
+    // (solid stretches go down as one run each; the dithered edge a texel at a time)
+    let run = -1, rx0 = 0;
+    const flush = (x: number) => { if (run >= 0) box(g, rx0, y, x - rx0, 2, run === 2 ? snow[1 + band] : snow[0]); run = -1; };
+    for (let x = 0; x < GW; x += 2) {
+      const v = 0.5 + (vn(x * sc, y * sc * 2.2) * 0.7 + vn(x * sc * 3 + 40, y * sc * 6) * 0.3 - 0.5) * 2.4 + deep;
+      const k = v > 0.6 ? 2 : v > 0.55 ? 1 : -1;
+      if (k !== run) { flush(x); if (k >= 0) { run = k; rx0 = x; } }
+      if (k < 0 && v > 0.5) { box(g, x + ((y >> 1) & 1), y, 1, 1, snow[0]); box(g, x + 1 - ((y >> 1) & 1), y + 1, 1, 1, snow[0]); }
+      else if (k < 0 && v > 0.46 && ((x + y) & 3) === 0) box(g, x, y, 1, 1, snow[0]);
+    }
+    flush(GW);
+  }
   // (the far rank: a row of pines and a wall of hedge, a carousel, the broom port's stands far off)
   for (let x = 4; x < GW; x += 9) { const h = 8 + hash(x) * 8; polyF(g, [[x, 6 - h], [x + 4, 6], [x - 4, 6]], T('#22403E')); box(g, x - 3, 4 - h * 0.5, 4, 1, Sn); }
   const cx = 300;
   box(g, cx - 22, -6, 44, 10, T('#C8B8D8')); for (let k = 0; k < 8; k++) box(g, cx - 20 + k * 5, -4, 2, 6, T(['#F49AC8', '#F6D365', '#9CD0F4'][k % 3]));
   polyF(g, [[cx - 26, -6], [cx, -22], [cx + 26, -6]], T('#D8609E')); for (let k = 0; k < 6; k++) polyF(g, [[cx - 26 + k * 9, -6], [cx - 21 + k * 9, -6], [cx, -22]], T(k % 2 ? '#F4F0FA' : '#D8609E'));
+  polyF(g, [[cx - 8, -16], [cx, -22], [cx + 8, -16]], Sn); for (let k = 0; k < 52; k += 3) box(g, cx - 26 + k, -7, 2, 1, Sn);
   const sx = 1180;
-  for (let r = 0; r < 4; r++) box(g, sx - 60 + r * 4, -4 - r * 5, 120 - r * 8, 5, T(r % 2 ? '#5A4A7A' : '#6A5A8C'));
+  for (let r = 0; r < 4; r++) { box(g, sx - 60 + r * 4, -4 - r * 5, 120 - r * 8, 5, T(r % 2 ? '#5A4A7A' : '#6A5A8C')); box(g, sx - 60 + r * 4, -4 - r * 5, 120 - r * 8, 1, Sn); }
   for (let k = 0; k < 40; k++) box(g, sx - 56 + hash(k * 2.3) * 112, -18 + hash(k * 1.1) * 14, 1, 2, T(['#F472B6', '#FDE68A', '#A8C8F0', '#F4F4F5'][k % 4]));
   for (const tx of [sx - 66, sx + 62]) { box(g, tx, -40, 6, 40, T('#6A5A8C')); polyF(g, [[tx - 2, -40], [tx + 3, -50], [tx + 8, -40]], T('#C8283E')); }
   for (const hx of [sx - 20, sx + 24]) { box(g, hx, -46, 1, 30, T('#4A4060')); g.strokeStyle = T('#F2C84A'); g.lineWidth = 1; g.beginPath(); g.arc(hx, -50, 4, 0, Math.PI * 2); g.stroke(); }
-  // (the frozen outer moat across the middle: stone banks, ice in bands, skaters)
+  // (the drained moat across the middle (the same as from the broom): stone banks capped in snow, the mud in bands,
+  // partly frozen over (sheets of ice with dithered ends), skaters on the ice, puddles in the mud)
   const my = 34;
-  box(g, 0, my - 3, GW, 3, T('#9C96B0')); box(g, 0, my, GW, 14, T('#A8C8E8')); box(g, 0, my + 2, GW, 2, T('#D8ECFA')); box(g, 0, my + 8, GW, 1, T('#88A8CC')); box(g, 0, my + 14, GW, 3, T('#7A7490'));
-  for (let i = 0; i < 26; i++) { const x = hash(i * 3.7) * GW, y = my + 4 + hash(i * 1.9) * 7; box(g, x, y - 5, 2, 5, T(['#C8283E', '#2E5AAE', '#E0AE3A', '#7A3AAA'][i % 4])); box(g, x, y - 7, 2, 2, T('#F2C8A0')); box(g, x - 2, y, 6, 1, T('#5A6A8A')); }
+  box(g, 0, my - 3, GW, 3, T('#9C96B0')); box(g, 0, my - 4, GW, 1, Sn);
+  box(g, 0, my, GW, 14, T('#4A321A')); box(g, 0, my + 2, GW, 3, T('#5E4224')); box(g, 0, my + 8, GW, 2, T('#362412')); box(g, 0, my + 14, GW, 3, T('#7A7490')); box(g, 0, my + 14, GW, 1, Sn);
+  const ice: [number, number][] = [];
+  for (let x = 0; x < GW;) { const w = 60 + hash(x * 0.37) * 180, gap = 30 + hash(x * 0.91) * 120; ice.push([x, w]); x += w + gap; }
+  for (const [x, w] of ice) {
+    box(g, x, my + 1, w, 12, T('#A8C8E8')); box(g, x, my + 2, w, 2, T('#D8ECFA')); box(g, x, my + 8, w, 1, T('#88A8CC'));
+    for (const e of [x - 1, x + w]) { const d = e < x ? -1 : 1; for (let yy = my + 1; yy < my + 13; yy++) { if ((yy & 1) === 0) box(g, e, yy, 1, 1, T('#A8C8E8')); if ((yy & 3) === 0) box(g, e + d * 2, yy, 1, 1, T('#A8C8E8')); } }
+    for (let k = 0; k < 3; k++) { const cx = x + hash(x + k * 7.1) * w; box(g, cx, my + 5 + k * 2, 5, 1, T('#F4FAFF')); }
+  }
+  for (let i = 0; i < 40; i++) { const x = hash(i * 5.3) * GW; if (ice.some(([a, w]) => x > a - 4 && x < a + w + 4)) continue; box(g, x, my + 4 + hash(i * 2.9) * 7, 4 + hash(i) * 6, 1, T('#5A7AAA')); }
+  for (let i = 0; i < 26; i++) { const [ix, iw] = ice[i % ice.length], x = ix + 4 + hash(i * 3.7) * Math.max(1, iw - 8), y = my + 4 + hash(i * 1.9) * 7; box(g, x, y - 5, 2, 5, T(['#C8283E', '#2E5AAE', '#E0AE3A', '#7A3AAA'][i % 4])); box(g, x, y - 7, 2, 2, T('#F2C8A0')); box(g, x - 2, y, 6, 1, T('#5A6A8A')); }
   // (the hedge maze: rows going back, paths between, a fountain in its heart)
   const mx0 = 520, mx1 = 980;
   for (let r = 0; r < 6; r++) {
     const y = 60 + r * 11, hh = 5 + r;
     for (let x = mx0; x < mx1; x += 2) { if (hash(Math.floor(x / 26) * 7 + r * 13) > 0.78) continue; box(g, x, y - hh, 2, hh, T(r % 2 ? '#2E5A3A' : '#3A6A44')); }
     box(g, mx0, y - hh, mx1 - mx0, 1, T('#5A8A5A')); box(g, mx0, y - hh - 1, mx1 - mx0, 1, Sn);
+    // (snow capping the hedge tops in clumps, drifted along their feet)
+    for (let x = mx0; x < mx1; x += 3) if (hash(x * 0.29 + r) > 0.45) box(g, x, y - hh, 2, 1, SnL);
+    box(g, mx0, y, mx1 - mx0, 1, Sn); for (let x = mx0 + (r & 1); x < mx1; x += 2) box(g, x, y + 1, 1, 1, Sn);
   }
   box(g, 742, 84, 16, 6, T('#B8B2C8')); box(g, 748, 76, 4, 8, T('#B8B2C8')); box(g, 744, 84, 12, 2, T('#A8D0F0'));
   // (paths of guests between lamp posts, queue canopies, flower beds; the nearest rank biggest)
   for (const [y, s, n] of [[118, 0.8, 70], [170, 1.1, 60], [232, 1.5, 46]] as const) {
     box(g, 0, y - 2, GW, 10 * s, T('#B0AAC2')); box(g, 0, y - 2, GW, 1, T('#D0CADA')); box(g, 0, y - 3, GW, 1, Sn);
+    // (frosted: rime in the gravel, snow banked along the near kerb where it's been shoveled)
+    for (let x = 0; x < GW; x += 5) box(g, x + hash(x * 0.7 + y) * 4, y + hash(x * 1.3 + y) * (10 * s - 3), 1, 1, T('#D6E0F2'));
+    box(g, 0, y - 2 + 10 * s, GW, 1, Sn); for (let x = (y & 1); x < GW; x += 2) box(g, x, y - 1 + 10 * s, 1, 1, Sn);
     for (let i = 0; i < n; i++) guest(g, hash(i * 1.37 + y) * GW, y + 6 * s, i * 7 + y, s * 0.8, T);
     for (let x = 60; x < GW; x += 210) { const h = 30 * s; box(g, x, y - h, 2, h, T('#2A2638')); box(g, x - 3, y - h - 4, 7, 5, tod.lamps > 0.3 ? '#FFD88A' : T('#C8C6D6')); }
-    for (let x = 160 + y; x < GW; x += 380) { const w = 70 * s; box(g, x, y - 18 * s, w, 3, T('#D8609E')); for (let k = 0; k < w; k += 8) box(g, x + k, y - 18 * s, 4, 3, T('#F4F0FA')); for (const px of [x, x + w - 2]) box(g, px, y - 15 * s, 2, 15 * s, T('#3A3448')); for (let k = 4; k < w - 4; k += 5) box(g, x + k, y - 6 * s, 2, 6 * s, T(['#C8283E', '#2E5AAE', '#F4F0FA'][k % 3])); }
-    for (let x = 40 + y * 2; x < GW; x += 300) { box(g, x, y - 6, 60 * s, 5, T('#3E6A34')); for (let k = 0; k < 60 * s; k += 4) box(g, x + k, y - 7, 2, 2, T(['#F472B6', '#FDE68A', '#E11D48'][k % 3])); }
+    for (let x = 160 + y; x < GW; x += 380) { const w = 70 * s; box(g, x, y - 18 * s, w, 3, T('#D8609E')); for (let k = 0; k < w; k += 8) box(g, x + k, y - 18 * s, 4, 3, T('#F4F0FA')); box(g, x, y - 18 * s - 1, w, 1, SnL); for (const px of [x, x + w - 2]) box(g, px, y - 15 * s, 2, 15 * s, T('#3A3448')); for (let k = 4; k < w - 4; k += 5) box(g, x + k, y - 6 * s, 2, 6 * s, T(['#C8283E', '#2E5AAE', '#F4F0FA'][k % 3])); }
+    // (the flower beds under snow, the blooms poking up through it (the park's magic))
+    for (let x = 40 + y * 2; x < GW; x += 300) { box(g, x, y - 6, 60 * s, 5, T('#3E6A34')); box(g, x, y - 5, 60 * s, 4, Sn); box(g, x, y - 6, 60 * s, 1, SnL); for (let k = 0; k < 60 * s; k += 4) { box(g, x + k, y - 7, 2, 2, T(['#F472B6', '#FDE68A', '#E11D48'][k % 3])); box(g, x + k, y - 5, 1, 2, T('#3E6A34')); } }
   }
   for (let x = 0; x < GW; x += 37) if (hash(x * 0.71) > 0.6) { box(g, x, 100 + hash(x) * 120, 3, 1, SnL); }
   hazeBands(g, 0, 0, GW, 40, skyAt(0.9, tod), 0.45, 0.0, 4);

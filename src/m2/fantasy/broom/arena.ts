@@ -18,7 +18,7 @@ import { timeOfDay, multiply, skyAt, type TimeOfDay } from '../../timeOfDay';
 import { mix, hash } from '../kit';
 import { PIPER_WINDOW } from '../monument';
 import { W, H, FOCAL, TOWERS } from './world';
-import { TS, TEXEL, HALF, OS, paintGround, outsideFor, outsideRaw } from './ground';
+import { TS, TEXEL, HALF, OS, paintGroundSteps, outsideFor, outsideRaw } from './ground';
 import { drawSky as skyDraw } from './sky';
 
 export { W, H, HORIZON, FOCAL, WALL_R, MIN_ALT, MAX_ALT, MOAT, TOWERS, FLAGS, TREES } from './world';
@@ -181,24 +181,46 @@ const shrink = (src: Uint32Array, n: number) => {
   return out;
 };
 const chain = (m0: Uint32Array, n: number) => { const out = [m0]; for (let i = 1; i < LEVELS; i++) out.push(shrink(out[i - 1], n >> (i - 1))); return out; };
-const groundFor = (tod: TimeOfDay): Ground => {
-  if (ground && ground.key === tod.key && (ground.splatKey === splatKey || splatKey.startsWith(ground.splatKey))) {
-    // (new splatters since: painted on, and just their patch of the copies remade)
-    if (ground.splatKey !== splatKey) {
-      for (let i = ground.nSplats; i < splats.length; i++) { const [a, b, c, d] = paintSplat(ground.g, splats[i], tod); refresh(ground, a, b, c, d); }
-      ground.nSplats = splats.length; ground.splatKey = splatKey;
-    }
-    return ground;
-  }
-  if (!rawTile) rawTile = outsideRaw();
-  const cv = ground?.g.canvas ?? document.createElement('canvas'); cv.width = TS; cv.height = TS;
+/** The texture and its copies for the hour, a step at a time (no splatters yet: they go on after, as new ones do). */
+function* buildSteps(tod: TimeOfDay): Generator<void, Ground> {
+  if (!rawTile) { rawTile = outsideRaw(); yield; }
+  const cv = document.createElement('canvas'); cv.width = TS; cv.height = TS;
   const g = cv.getContext('2d', { willReadFrequently: true })!;
   g.imageSmoothingEnabled = false;
-  paintGround(g, rawTile, tod);
-  for (const s of splats) paintSplat(g, s, tod);
+  yield* paintGroundSteps(g, rawTile, tod);
   const m0 = new Uint32Array(g.getImageData(0, 0, TS, TS).data.buffer.slice(0));
+  yield;
+  const mips = [m0];
+  for (let i = 1; i < LEVELS; i++) { mips.push(shrink(mips[i - 1], TS >> (i - 1))); if (i < 3) yield; }
   const tile = outsideFor(tod), o0 = new Uint32Array(tile.getContext('2d')!.getImageData(0, 0, OS, OS).data.buffer.slice(0));
-  ground = { key: tod.key, mips: chain(m0, TS), omips: chain(o0, OS), far: pack(mix(multiply('#B8C4E0', tod.mul), skyAt(0.95, tod), 0.55)), g, splatKey, nSplats: splats.length };
+  return { key: tod.key, mips, omips: chain(o0, OS), far: pack(mix(multiply('#B8C4E0', tod.mul), skyAt(0.95, tod), 0.55)), g, splatKey: '', nSplats: 0 };
+}
+/** A build under way ahead of the fight (primeGround), for the hour it was started at. */
+let job: { key: string; it: Generator<void, Ground> } | null = null;
+/** Paint the ground's texture a few milliseconds at a time before it's needed (the runway calls this every frame on
+ *  the way to the deathmatch), so taking off doesn't hitch on painting it all at once. */
+export const primeGround = (budgetMs = 3) => {
+  const tod = timeOfDay();
+  if (ground && ground.key === tod.key) return;
+  if (!job || job.key !== tod.key) job = { key: tod.key, it: buildSteps(tod) };
+  const t0 = performance.now();
+  while (performance.now() - t0 < budgetMs) { const r = job.it.next(); if (r.done) { ground = r.value; splatsOn(ground, tod); job = null; return; } }
+};
+/** New splatters since: painted on, and just their patch of the copies remade. */
+const splatsOn = (G: Ground, tod: TimeOfDay) => {
+  if (G.splatKey === splatKey) return;
+  for (let i = G.nSplats; i < splats.length; i++) { const [a, b, c, d] = paintSplat(G.g, splats[i], tod); refresh(G, a, b, c, d); }
+  G.nSplats = splats.length; G.splatKey = splatKey;
+};
+const groundFor = (tod: TimeOfDay): Ground => {
+  if (ground && ground.key === tod.key && (ground.splatKey === splatKey || splatKey.startsWith(ground.splatKey))) { splatsOn(ground, tod); return ground; }
+  // (a fresh build: the one under way for this hour finished, or one straight through; then every splatter on it)
+  if (!job || job.key !== tod.key) job = { key: tod.key, it: buildSteps(tod) };
+  let r = job.it.next();
+  while (!r.done) r = job.it.next();
+  job = null;
+  ground = r.value;
+  splatsOn(ground, tod);
   return ground;
 };
 
