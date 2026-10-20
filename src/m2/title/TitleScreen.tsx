@@ -5,7 +5,7 @@ import { Prompt } from '../../m1/components/ButtonIcons';
 import OptionsScreen from '../../m1/components/OptionsScreen';
 import { useCursorSound, useOpenCloseSound } from '../../m1/components/useCursorSound';
 import { getActiveGamepad, isButtonPressed, getGamepadMovement, GP_BUTTONS, menuButtons } from '../../m1/game/platform/gamepad';
-import { getAudioContext, playMenuOk } from '../../m1/game/platform/audio';
+import { getAudioContext, audioRunning, playMenuOk } from '../../m1/game/platform/audio';
 import { isDesktop, quitToDesktop } from '../../m1/game/platform/desktop';
 import { anyFile, latestSlot, closeFile, subscribeFiles, filesVersion, type Slot } from '../save';
 import { M2_GUIDE_PAGES } from '../ControlsGuide';
@@ -53,6 +53,18 @@ const TitleScreen: React.FC<{
   const [intro, setIntro] = useState(true);
   const introRef = useRef(true);
   const endIntro = () => { if (!introRef.current) return; introRef.current = false; setIntro(false); setLocked(false); };
+  // Before it: a browser holds the sound back till the first key or click, so with it held there's PRESS ANY BUTTON
+  // over the empty dusk first; that press lets the sound out and starts the intro (in time with the theme from its
+  // top), it doesn't skip it. With the sound already allowed (the desktop app), straight into the intro. (null: still
+  // finding out, the first moment)
+  const [gate, setGate] = useState<boolean | null>(null);
+  const gateRef = useRef<boolean | null>(null);
+  const openGate = () => { gateRef.current = false; setGate(false); };
+  useEffect(() => {
+    getAudioContext();
+    const id = setTimeout(() => { if (gateRef.current === null) { gateRef.current = !audioRunning(); setGate(gateRef.current); } }, 300);
+    return () => clearTimeout(id);
+  }, []);
   // (CONTINUE come or gone under the cursor: it stays on the same option)
   const optionsWere = useRef(options);
   useEffect(() => {
@@ -108,6 +120,10 @@ const TitleScreen: React.FC<{
       // (the first key lets the sound out: the browser holds it back till then)
       getAudioContext();
       const k = e.key.toLowerCase();
+      if (gateRef.current !== false) {
+        if (!e.repeat && k !== 'shift' && k !== 'control' && k !== 'alt' && k !== 'meta') { e.preventDefault(); openGate(); }
+        return;
+      }
       if (introRef.current) {
         if (!e.repeat && k !== 'shift' && k !== 'control' && k !== 'alt' && k !== 'meta') { e.preventDefault(); endIntro(); }
         return;
@@ -119,7 +135,7 @@ const TitleScreen: React.FC<{
       if (e.repeat && (a === 'ok' || a === 'back')) return;
       actRef.current(a);
     };
-    const onMouseDown = (e: MouseEvent) => { getAudioContext(); if (introRef.current) { endIntro(); return; } if (e.button === 2 && !busy()) actRef.current('back'); };
+    const onMouseDown = (e: MouseEvent) => { getAudioContext(); if (gateRef.current !== false) { openGate(); return; } if (introRef.current) { endIntro(); return; } if (e.button === 2 && !busy()) actRef.current('back'); };
     const noMenu = (e: MouseEvent) => e.preventDefault();
     window.addEventListener('keydown', onKey);
     window.addEventListener('mousedown', onMouseDown);
@@ -142,7 +158,9 @@ const TitleScreen: React.FC<{
         const just = (k: keyof typeof now) => now[k] && !was[k];
         // (the intro: any button skips it)
         const any = gp.buttons.some(b => b.pressed);
-        if (introRef.current) { if (any && prevAny === false) endIntro(); }
+        // (the gate: a button lets it go (a pad's press may not let a browser's sound out: the intro then keeps its own time))
+        if (gateRef.current !== false) { if (any && prevAny === false) { getAudioContext(); openGate(); } }
+        else if (introRef.current) { if (any && prevAny === false) endIntro(); }
         else if (!busy()) {
           const move = getGamepadMovement(gp, 0.25), t = Date.now();
           const dir = move.up ? 'up' : move.down ? 'down' : move.left ? 'left' : move.right ? 'right' : null;
@@ -163,7 +181,14 @@ const TitleScreen: React.FC<{
   return (
     <div className="absolute inset-0 z-[60] bg-black select-none" style={{ fontFamily: '"Press Start 2P", monospace' }}>
       {/* (the picture, the whole screen: the logo's in it, over his chest) */}
-      <TitleArt skip={!intro} onDone={endIntro} />
+      <TitleArt skip={!intro} held={gate !== false} onDone={endIntro} />
+      {/* PRESS ANY BUTTON (the sound held back till then), where the gate's marquee will come down */}
+      {gate === true && (
+        <div className="absolute inset-x-0 top-[236px] flex flex-col items-center gap-4 animate-in fade-in duration-500 pointer-events-none">
+          <div className="text-[#fde047] text-[18px] tracking-[0.2em] [text-shadow:2px_2px_0_#be185d,4px_4px_0_#12041a] animate-pulse">PRESS ANY BUTTON</div>
+          <Prompt pad={['OK']} kb={['ENTER']} mouse="left" size={22} className="text-[9px] text-[#ffd8ee] tracking-wider [text-shadow:1px_1px_0_#000]" />
+        </div>
+      )}
       <h1 className="sr-only">MEATHEAD 2: MEATHEAD GOES TO HAPPY LAND</h1>
       {/* (the menu in the lot under the plate and its ribbon, once the intro's done) */}
       {!intro && <div className="animate-in fade-in duration-700 absolute inset-x-0 top-[330px] bottom-0 flex flex-col items-center justify-center pb-2">

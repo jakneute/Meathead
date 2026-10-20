@@ -18,19 +18,23 @@ const LEAD_MS = 250;
  *  Comes up with its intro (art.ts: the park dropping in, him, the logo stamped on), its hits on the theme's: it keeps
  *  the theme's time while the theme's playing from its top, or its own. `skip` jumps it to the finished picture;
  *  `onDone` when it's played out. */
-const TitleArt: React.FC<{ skip?: boolean; onDone?: () => void }> = ({ skip = false, onDone }) => {
+const TitleArt: React.FC<{ skip?: boolean; held?: boolean; onDone?: () => void }> = ({ skip = false, held = false, onDone }) => {
   const ref = React.useRef<HTMLCanvasElement>(null);
   const skipRef = React.useRef(skip); skipRef.current = skip;
+  /** Held: the empty dusk, the intro not started (TitleScreen's PRESS ANY BUTTON, the sound let out first). */
+  const heldRef = React.useRef(held); heldRef.current = held;
   const doneRef = React.useRef(onDone); doneRef.current = onDone;
   React.useEffect(() => {
     const scene = createTitleScene();
     let raf = 0, last = 0, t = 0;
     // The intro's clock: waiting on the theme, on the theme's beats, or its own
-    const t0 = performance.now();
+    let t0 = performance.now();
     let mode: 'wait' | 'music' | 'own' = 'wait', ownAt = 0, beat = -1, done = false;
     const introBeat = (now: number): number => {
       if (done) return Infinity;
       if (skipRef.current) { done = true; return Infinity; }
+      // (held: the wait for the theme starts when it's let go)
+      if (heldRef.current) { t0 = now; return -1; }
       const sb = songBeat('title');
       if (mode === 'wait') {
         const el = now - t0, s = getSettings();
