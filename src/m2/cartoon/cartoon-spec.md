@@ -592,7 +592,9 @@ As built (numbers up top in fight.ts):
   car hops off its wreck onto the couch and crushes it: he's thrown off, up for good, PATHETIC (no couch, no beer, no
   puke, no hammer, no counters; double damage, half the breather; staggering after him, swinging at air, falling on
   his face, trying to lift the mallet he drags and toppling). The fourth takes the last of them (DAD_KILL, no counter).
-  The fifth comes down on HIM: the weakness death. Meathead's hint (only if he owns the clapperboard): a non-plain hit
+  The fifth comes down on HIM: the weakness death. No car, crash, wreck or flung stuntman ever touches his health
+  (the cars only go for the family); once the family's all gone and the couch is crushed (him up, flailing), ANY hit
+  from any weapon or move kills him in one, whatever his health (fight.ts doomed()). Meathead's hint (only if he owns the clapperboard): a non-plain hit
   now and then before the first car (MH_HINT).
 - **The weakness death**: the kill cam (slow-mo, zoomed, Steve's); the car on him, burning; it tips off him (away from
   Meathead) onto its roof; he's a pancake on the deck; he peels up off it, a squat paper-thin man wobbling in the draft
@@ -967,3 +969,11 @@ markBossFight every frame of a boss or sub-boss fight. Voice every new line (`np
   shell's rings and banner, the light masts, the rim's hedge and oaks, oaks, light posts, UBX bins, benches, and his
   cans, cups, popcorn, a program and the foam finger down the walk. Drawing only: no layout, timing, hitbox or
   lighting-logic changes (soft lamps added after dark between the string lights).
+- (the user's rule change, 2026-10-20, verbatim: "the thing about the stupid dad fight is the stunt cars themselves
+  won't do any damage to him unless everything else is destroyed. if everything else is gone, the stunt car will ohko
+  him no matter what, even at full health. in fact, all weapons will ohko him now that i think about it. only if all
+  other parts are gone and he flails around.") The cars already never touched his health (they only flatten the
+  family; the fifth, once nobody's left, is the pancake whatever his health). New: fight.ts doomed() (family all down,
+  couch crushed): any hit from anything kills him in one (no breather in the way), the normal SWILL LITE death unless
+  it's the car. Before that the regular boss rules stand (666, non-weakness 35%, double once the couch is crushed), so
+  he can still be worn down the long way.

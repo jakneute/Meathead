@@ -24,7 +24,9 @@
 //                 with each, and each sets off his counter (a puke or the hammer). The second-to-last one's car comes on
 //                 down onto his couch and crushes it: he's up, pathetic, no couch, no counters, no puking, no hammer, and
 //                 hardly any fight (double damage). The last of the family goes the same way; then one more snap and the
-//                 last car comes down on HIM: the weakness death (a short slow-mo; flattened like a cartoon).
+//                 last car comes down on HIM: the weakness death (a short slow-mo; flattened like a cartoon). No car
+//                 touches his health while any of the family's up (the user's); once they're all gone and the couch is
+//                 crushed (him up, flailing), ANY hit from anything kills him in one, whatever his health (doomed()).
 //
 // Two deaths. The weakness: the kill cam, the car on him, burning; it tips off and he's a pancake on the deck, fluttering
 //   at the edges, the stuntman up out of the wreck with a thumbs-up, the laugh track, his last words, Meathead's. Any other
@@ -766,6 +768,8 @@ const chatter = (ctx: FrameContext, f: Fight) => {
 // ---------------------------------------------------------------------------------------------------------------
 // Hits on him
 
+/** Nothing left but him: the family all flattened, the couch crushed, him up flailing (any hit's the last). */
+const doomed = (f: Fight) => f.mode === 'on' && f.couch.crushed && !alive(f).length;
 const plainHit = (state: GameState, melee: boolean): number | null => {
   const p = state.player;
   if (melee) return p.isUppercutting || p.isDivekicking ? BOSS_UPPERCUT_DAMAGE : BOSS_CHARGE_DAMAGE;
@@ -777,7 +781,9 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
   e.health = BIG; e.maxHealth = BIG;
   const melee = e.hitByMove !== f.moveSeen;
   f.moveSeen = e.hitByMove;
-  if (dealt <= 0 || !state.enemies.includes(e) || f.iframes > 0) return;
+  // (the user's rule: once the family's all gone and the couch is crushed, him up flailing, anything kills him in one)
+  const done = doomed(f);
+  if (dealt <= 0 || !state.enemies.includes(e) || (f.iframes > 0 && !done)) return;
   // (in the rage nothing lands but what's fired at him (the moves get him hammered: touch above))
   if (melee && (f.act === 'rage' || f.act === 'rise')) return;
   const plain = plainHit(state, melee);
@@ -785,7 +791,7 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
   if (plain === null && state.player.availableWeapons.includes('STUNT_CAR') && state.player.currentWeapon !== 'STUNT_CAR' && f.kills === 0 && (++f.wrongN === 2 || f.wrongN % 5 === 0) && f.t - f.hintAt > HINT_GAP) {
     f.hintAt = f.t; meathead(state, L.MH_HINT);
   }
-  const dmg = (plain ?? Math.max(1, dealt * SHARE)) * (f.sad ? SAD_MULT : 1);
+  const dmg = done ? Math.max(1, f.hp) : (plain ?? Math.max(1, dealt * SHARE)) * (f.sad ? SAD_MULT : 1);
   f.hp -= dmg; f.iframes = f.sad ? SAD_IFRAMES : IFRAMES; f.flash = 8;
   const cx = X(f.x), feet = STAGE_Y - f.y;
   for (let i = 0; i < 4; i++) state.particles.push({ pos: { x: cx, y: feet - 60 }, vel: { x: (Math.random() - 0.5) * 3, y: -1 - Math.random() * 2 }, life: 18, color: '#B91C1C', size: 2 + Math.random() * 2, grav: 0.3 });
@@ -799,7 +805,7 @@ const sync = (state: GameState, f: Fight) => {
   const e = f.e;
   e.pos.x = X(f.x) - e.width / 2; e.pos.y = STAGE_Y - f.y - e.height - 2;
   e.vel.x = 0; e.vel.y = 0; e.facing = f.facing; e.initialY = e.pos.y;
-  e.hitCooldown = f.iframes;
+  e.hitCooldown = doomed(f) ? 0 : f.iframes;
   e.pauseTimer = 0; e.frozenTimer = 0; e.isTased = false; e.sludgeTimer = 0; e.returnHome = false; e.puppet = false;
   void state;
 };
