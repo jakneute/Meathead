@@ -247,6 +247,84 @@ HELL..."; SKIP >>; the scene's once a visit, straight to the fight after). Death
 with his costume flung off out of it (his head mask, his ears / glasses, charts, Bible, pulpit); Chelsea queasy;
 Meathead's say. Their real deaths are job 4's backtrack.
 
+### Section 4 in detail (THE WACKY WHITE HOUSE, part two, built: whitehouse2/)
+
+The West Wing, one floor, the same cartoon look and eye as part one (whitehouse2/layout.ts, art.ts). x from the
+section's start:
+
+- 0 THE WEST COLONNADE (cp 30, outdoors: the Rose Garden behind): a goon, then a SPIN DOCTOR alone (taught).
+- 1100 THE WEST WING OFFICES: THE FILING CABINETS (too tall to jump; impassable): their drawers burst out of both
+  faces top first, stay out, and slam shut bottom first (each a ledge while it's out: a staircase, a race up it before
+  the bottom ones shut; whichever drawer he's on, the one above is already out); one bursting out into him shoves him
+  off, hurt. A short one alone (one drawer), then a tall one (four), the spy blimp over the gap; a pollster and a
+  DITTOHEAD (taught) past it.
+- 2300 THE ROOSEVELT ROOM (cp 31), done up as the EIB studio (ON AIR lit): a lobbyist, pickups, then RUSH LIMBAUGH
+  (arena 2650..3450: his broadcast desk, two shelves).
+- 3600 THE KITCHENS (cp 32): THE RANGE across the way (a step up; four burners on top: the ring glows and ticks, then
+  a column of fire, in turn); THE JELLY MOLD (land on it: it throws him up) to THE POT RACK over the range (a pickup, a
+  way over the fire); a goon, the blimp over the range, a dittohead, a spin doctor.
+- 5000 THE CABINET ROOM (cp 33): pickups, a goon, then BOB DOLE (arena 5450..6250: the cabinet table, two shelves).
+- 6400 THE MAP ROOM (cp 34): THE GLOBE on its stand; past it, it wobbles, drops off and rolls after him (faster and
+  faster, never quite as fast as him), flattening the pollster in the way; up the step onto the map cabinet; it smashes
+  on the step and splits in two (GLOBE_MEMO: stays split). A dittohead past it.
+- 7800 THE SITUATION ROOM (cp 35): SECURITY LASERS: two blinking beams alone (they flicker first), a goon, then THE
+  SWEEPING BEAM (across the room, up and down: over it low, under it high) between two more blinkers; a spin doctor.
+- 9300 THE OUTER OVAL (cp 36): breathing room, three pickups, the Oval Office's door.
+- 9950 THE OVAL OFFICE: NEWT GINGRICH (arena 10000..10800: the Resolute desk, two shelves). Its far wall is the end of
+  the show's White House till the screen's down; then the wings past it (backstage) and the STAGE DOOR (lit EXIT sign)
+  at the far right: on to the big-kid rides (his line as he goes).
+
+**The new mean men** (whitehouse2/kinds.ts, kindArt.ts; seeded people, men and women): the SPIN DOCTOR (`m2:ct_spindoc`:
+a lab coat over a pinstripe suit; turns on the spot faster and faster (the tell), then a whirlwind across the floor that
+bounces off a wall once and spins the other mean men in its way too; dizzy after (his window); a slap up close), the
+DITTOHEAD (`m2:ct_ditto`: a red EIB cap, a DITTOS T-shirt, a transistor radio; antenna up and the dial cranked (the
+tell), then a sound wave rolling along the floor at him (over it); another dittohead near enough does the same a moment
+later; a shove up close). Part one's goons, lobbyists, pollsters and the spy blimp are about too.
+
+**The pundits, part two** (pundits.ts, punditArt.ts; voices `m2.cartoon.limbaugh`, `.dole`, `.newt`): part one's rules
+(Mario bosses, midBoss, TOO GREASY, own health: Limbaugh 5000, Dole 5800, Newt 7400 (about 40, 45 and 60 s of
+hairballs); both sides lock; markBossFight; memos `ct-wh-limbaugh` / `-dole` / `-newt`; the scene once a visit; the reel,
+the last words, the puff with the costume flung off; Chelsea queasy). Each has a window (no special attacks: a beat
+where he's down): LIMBAUGH (big, heavy leaps) puffs his cigar (a smoke ring: the tell) and lobs it lit (three below
+half), or holds the golden EIB mic up (ON AIR: the tell) and flings it out on its cord and reels it back (it hurts both
+ways); winded on the floor after some heavy landings ("COMMERCIAL BREAK!"). DOLE (lean, springy; his right hand always
+holds his pen) holds a pineapple up in his left (the tell) and lobs it (it bursts in chunks below half) or flings a BOB
+DOLE campaign button flat; the pratfall off a leap now and then, flat on his face ("BOB DOLE IS OKAY!"). NEWT holds the
+Contract with America up (the tell) and lobs it (two in a row below half) or bangs his gavel on his palm and flings it;
+below half, now and then, a tantrum on his back about the back of the plane. Their talking points played straight as
+Saturday morning taunts (the radio show, dittos, talent on loan from God; third person, where's the outrage, the 15% tax
+cut; the Contract, the shutdown, Air Force One); Meathead baffled.
+
+**The finale** (finale.ts; one cutscene from Newt's puff, no input, no HUD, SKIP >> for the lot): Chelsea green but in
+character ("LOOK, SOCKS! IT'S MOM AND DAD! ON TV!"), him; a cartoon TV swings down out of the ceiling: BILL and HILLARY
+(`m2.cartoon.bill`, `.hillary`) at the UN thank Socks for his service stopping those bad men (by the state of him);
+"WHO THE FUCK ARE YOU TWO?"; snow, off. The picture judders (Chelsea: the walls are wobbly); the actress's own voice
+breaks through; THE SCREEN COMES DOWN (the cartoon falls away from the top, squashing down as the cloth heaps over the
+stage's lip); the real stage behind. The projector (a 1994 three-lens video projector up on a truss tower at the stage's
+corner) still paints the cat on him a moment, flickering, then it slides off him like a decal: he's himself ("I WASN'T A
+CAT. IT WAS A FUCKING PROJECTOR."); the projector sparks and dies; the work lights clank on. The NEWT ACTOR in front of
+the desk, FLAYED (every player sees him); "OH. SO THAT'S WHAT A POOF LOOKS LIKE."; THE ACTRESS who played Chelsea
+(`m2.cartoon.actress`: a grown woman in the costume, the wig half off) on her knees being sick, nonstop: "GET OUT. JUST
+GET OUT OF HERE."; his answer. Sets `ct-wh-collapsed` and checkpoint 37 (the real stage). After it, while he's about,
+she's still at it (and at him to go, now and then); once he's left the White House, she's gone for good
+(`ct-wh-actress-gone`: her wig and her mess where she knelt).
+
+**The real stage** (realStage.ts, bodies.ts; both halves once `ct-wh-collapsed`): no cat, no cartoon, no Chelsea, no
+puffs, no hazards (blood's back); a black-box soundstage: black drapes, the pipe grid and its lights, scenery flats'
+backs stenciled with the rooms, floor tape, the show's TV cameras in the wings; everything he stands on plywood (black
+boxes stenciled PIANO, PODIUM, DESK, STOVE..., planks on stands, scaffold stairs and a scaffold deck for part one's
+second floor; the drawers plywood steps out for good, the jelly mold a stunt trampoline, the globe a split fiberglass
+ball); the fallen screen heaped along the lip; the empty front row below it (popcorn, a foam finger). Part one's chair
+stack and topiary tower were the show's: scaffold steps down off the deck's end instead (the way back up). The dead,
+static, brutal, specific to how a cartoon kill really ends a person: NEWT flayed (the Oval Office); PEROT face down over
+the podium, the rubber ears torn off with his own, the pointer snapped off in his back (part one's press room); FALWELL
+on the Lincoln bed, choked on hairballs, blue, his mouth crammed with black fur (part one); LIMBAUGH hanged by his own
+mic cord off the studio's boom over his desk, the ON AIR light lit, his cigar still smoking (the Roosevelt Room);
+DOLE on his back across the cabinet table, a pineapple split into his skull, campaign buttons pinned into his chest,
+the pen still in his hand (the Cabinet Room); and every mean man's actor he killed, where he killed them (each half
+keeps its list: `ct-wh1-dead`, `ct-wh2-dead`), in his costume in his blood, claw marks; crashed blimps (they bleed).
+Meathead's lines at each, once a visit. The HUD wears the studio's skin there.
+
 ## Standing rules (all apply; check every one against new work)
 
 American spelling; signs readable, held up, themed lettering (toonSign: a lumpy cloud board on a curly candy-striped
@@ -308,3 +386,15 @@ markBossFight every frame of a boss or sub-boss fight. Voice every new line (`np
   `m2:ct_perot`, `m2:ct_falwell`; their fight code in pundits.ts is reusable for Limbaugh, Dole and Gingrich (a Spec each).
 - (job 3) The vacuum, the chandelier, the bowling balls, the sprinklers and the rose bushes all hurt the mean men too
   (hazardHit); none of the mean men idles in one (hazard zones). The bowling balls only roll while he's on the stairs.
+- (job 4) The White House, part two, is built (whitehouse2/; see Section 4 above). Chelsea's world is pluggable now
+  (chelsea.ts ChelseaWorld: her floor, her hints, where she cowers; part one's the default); part two hands her its own.
+  The pundits' fight code is copied into whitehouse2/pundits.ts (its own state; each pundit a Spec, plus a window: the
+  flop). Part one's mean men's throws and barks are drawn and run from part two too (whitehouse1 exports drawThrows).
+- (job 4) The screen's collapse is one memo (`ct-wh-collapsed`); `presetMemos` (whitehouse2/state.ts, called first by
+  both halves' builds) gives a fresh start along the way (the checkpoint cheat, a save) the world a run that got there
+  left: redrawn as the cat past cp 21, each pundit dead past his room, the globe split past cp 35, the screen down from
+  cp 37. Beaten Newt but the screen not down (left mid-scene): into the Oval Office and the finale runs again.
+- (job 4) The bodies of the mean men's actors are only the ones he killed (by each half's CAST index, kept in a memo),
+  not everybody: the dead are his. The ones still alive when the screen comes down were actors: they ran (gone).
+- (job 4) Back from the big-kid rides he's put in front of the stage door (DOORS.whitehouse2.end, geometry.ts). The
+  shared index switches the HUD to the studio's skin in either half once the screen's down.

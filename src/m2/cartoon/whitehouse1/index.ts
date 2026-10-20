@@ -40,10 +40,72 @@ import { updatePuffs, drawPuffs } from './poof';
 import { drawPuffBit } from './punditArt';
 import { drawWhBackdrop, drawWhBack, drawWhFront } from './art';
 import { GAGS } from './lines';
+import { seedOf } from './kinds';
+import type { Enemy, Block } from '../../../m1/types';
+import type { Tower } from '../sway';
+import { todLight } from '../../timeOfDay';
+import { presetMemos, deadList, markDead, saidOnce as saidOnce2, DEAD1_MEMO } from '../whitehouse2/state';
+import { drawStageBackdrop, drawStageShell, drawStageProps, drawSeats, drawFallenScreen, stageLights, realLight, type StagePlan } from '../whitehouse2/realStage';
+import { drawPerotBody, drawFalwellBody, drawDeadActor } from '../whitehouse2/bodies';
+import { STAGE_WH1, BODY_LINES } from '../whitehouse2/lines';
+import { PIANO, CHAIRS, RISER, PODIUM, SIDEBOARD, BED, BENCH, TABLE, ARBOR, PEROT_ARENA, FALWELL_ARENA, BALCONY_EDGE, F2, floorAt } from './layout';
 import './kinds';
 import './catDeath';
 
 const { x0, x1 } = SECTIONS.whitehouse1;
+
+// ---------------------------------------------------------------------------------------------------------------
+// The real stage (job 4's: once the screen's down in part two, COLLAPSED_MEMO, this half is the stage behind it: no
+// cat, no cartoon, no Chelsea, no hazards (the vacuum, the wax, the chandelier, the bowling balls, the sprinklers, the
+// roses were the projection's); everything he stands on is plywood (whitehouse2/realStage.ts); where Perot and Falwell
+// were fought their actors lie dead (whitehouse2/bodies.ts), and the mean men's actors he killed where he killed them.
+// The chair stack and the topiary tower were the show's; in their place, scaffold steps down off the deck's end into
+// the garden's stretch (the way back up).
+
+/** The steps down off the second floor's deck where the balcony was: [from, to, top height]. */
+const STAGE_STEPS: [number, number, number][] = [0, 1, 2, 3, 4].map(i => [BALCONY_EDGE + i * 46, BALCONY_EDGE + (i + 1) * 46, F2 - (i + 1) * 50]);
+const PLAN1: StagePlan = {
+  a: x0 - 200, b: x1 + 200, floorAt: x => Y(floorAt(x - x0)),
+  boxes: [
+    [X(PIANO.a), X(PIANO.b), Y(PIANO.h), 'PIANO'], [X(PODIUM.a), X(PODIUM.b), Y(PODIUM.h), 'PODIUM'], [X(SIDEBOARD.a), X(SIDEBOARD.b), Y(SIDEBOARD.h), 'SIDEBRD'],
+    [X(BED.a), X(BED.b), Y(BED.h), 'BED'], [X(BENCH.a), X(BENCH.b), Y(BENCH.h), ''],
+    ...STAGE_STEPS.map(([a, b, h]) => [X(a), X(b), Y(h), ''] as [number, number, number, string]),
+  ],
+  planks: [[X(TABLE.a), X(TABLE.b), Y(TABLE.h)], [X(ARBOR.a), X(ARBOR.b), Y(ARBOR.h)], ...[PEROT_ARENA, FALWELL_ARENA].flatMap(A => A.ledges.map(([a, b, h]) => [X(a), X(b), Y(h)] as [number, number, number]))],
+  stairs: { a: X(STAIRS.a), b: X(STAIRS.b), n: STAIRS.steps, top: Y(F2) },
+  decks: [[X(STAIRS.b), X(BALCONY_EDGE), Y(F2)]],
+  flats: [[X(1100), 'WH-02 CROSS'], [X(2200), 'WH-03 EAST'], [X(3700), 'WH-04 PRESS'], [X(5000), 'WH-05 DINING'], [X(6400), 'WH-06 STAIR'], [X(10300), 'WH-11 GARDEN']],
+  marks: [[X(500), 'ENTRANCE'], [X(1600), 'CROSS HALL'], [X(2900), 'EAST RM'], [X(4300), 'PRESS RM'], [X(5700), 'DINING'], [X(11000), 'ROSE GDN']],
+  cameras: [X(1000), X(5900), X(11900)],
+};
+/** The cast as built this stage, by its place in CAST (a kill marks the actor dead). */
+const castOf = new WeakMap<object, Map<Enemy, number>>();
+/** This stage's turned to the real stage (the cartoon's bits taken out). */
+const realDone = new WeakSet<object>();
+const seeds1 = new Map<number, number>();
+const seed1 = (ix: number) => {
+  let s = seeds1.get(ix);
+  if (s === undefined) { const [kind, rx, h, v] = CAST[ix]; const e = makeKindEnemy(kind as EnemyKind, X(rx), Y(h)); e.variant = v ?? Math.abs(Math.round(rx)) % 7; s = seedOf(e); seeds1.set(ix, s); }
+  return s;
+};
+/** Turn this stage's part one into the real stage (once: on a build after the screen's down, or the first frame back in
+ *  here after it came down this stage): the hazards' blocks away, the cast gone, the steps down off the deck put in. */
+const toRealStage = (state: GameState) => {
+  const key = state.stage as object;
+  if (realDone.has(key)) return;
+  realDone.add(key);
+  const s = whOf(state);
+  const away = (b: Block | null) => { if (b) b.x = -1e7; };
+  away(s.chand.b); s.chand.b = null;
+  for (const t of s.towers as Tower[]) away(t.b);
+  s.towers = [];
+  for (const b of state.blocks) if (b.tag === `wh1-solid-${CHAIRS.a}` || b.tag === `wh1-solid-${RISER.a}`) away(b);
+  state.groundOil = (state.groundOil ?? []).filter(o => !(o as { wax?: boolean }).wax);
+  const cast = castOf.get(key);
+  if (cast) state.enemies = state.enemies.filter(e => !cast.has(e) || e.health <= 0);
+  s.balls = []; s.throws = []; s.scene = null;
+  for (const [a, b, h] of STAGE_STEPS) solid(state, X(a), Y(h), b - a, h + 40, { hidden: true, tag: 'wh1-stage-step' });
+};
 
 /** Is the White House the show (the projection's up: he's the cat, kills are puffs)? Not once the projector's come
  *  down (job 4's COLLAPSED_MEMO). Part two (job 4's) uses the same. */
@@ -58,27 +120,36 @@ export const whitehouse1: CartoonSection = {
   id: 'whitehouse1', x0, x1,
   checkpoints: CHECKPOINTS,
   build: (state) => {
+    // (a fresh start along: the world as a run that got there left it (job 4's: whitehouse2/state.ts))
+    presetMemos(state);
     layOwn(state, GROUND.map(([a, b, ha, hb]) => ({ x1: X(a), y1: Y(ha), x2: X(b), y2: Y(hb), surface: 'wood', steps: a === STAIRS.a ? { n: STAIRS.steps } : undefined })));
     state.blocks.push({ x: x0 - 40, y: -6000, w: 40, h: 6000 + GY + 600, type: 'wall', hidden: true, tag: 'whitehouse1-start' });
     state.blocks.push({ x: x1, y: -6000, w: 40, h: 6000 + GY + 600, type: 'wall', hidden: true, tag: 'whitehouse1-end' });
-    for (const [a, b, top] of SOLIDS) solid(state, X(a), Y(top), b - a, Math.min(GY + 40 - Y(top), top + 40), { hidden: true });
+    for (const [a, b, top] of SOLIDS) solid(state, X(a), Y(top), b - a, Math.min(GY + 40 - Y(top), top + 40), { hidden: true, tag: `wh1-solid-${a}` });
     for (const [a, b, h] of LEDGES) ledge(state, X(a), Y(h), b - a, { hidden: true });
     const s = whOf(state);
     s.towers = makeTowers(state, [TOPIARY]);
     makeChandelier(state);
     layWax(state);
     buildArenas(state);
-    for (const [kind, rx, h, v] of CAST) {
+    const cast = new Map<Enemy, number>();
+    CAST.forEach(([kind, rx, h, v], ix) => {
       const e = makeKindEnemy(kind as EnemyKind, X(rx), Y(h));
       e.homeX ??= e.pos.x; e.homeY = e.pos.y; e.variant = v ?? Math.abs(Math.round(rx)) % 7; e.facing = -1;
-      state.enemies.push(e);
-    }
+      state.enemies.push(e); cast.set(e, ix);
+    });
+    castOf.set(state.stage as object, cast);
+    // (the screen's down: the real stage)
+    if (!projectionUp(state)) toRealStage(state);
     for (const [rx, h, type] of PICKUPS) state.pickups.push({ id: `wh1-${Math.round(rx)}`, pos: { x: X(rx) - 10, y: Y(h) - 24 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type, life: 1e9 });
     builtAt.set(state.stage as object, { cp: state.checkpoint, seen: false, last: 0 });
   },
   update: (ctx, controls) => {
     const { state } = ctx, p = state.player, s = whOf(state);
     const up = projectionUp(state);
+    if (!up) return updateReal(state, controls);
+    // (a mean man's actor killed: his body lies there once the screen's down)
+    for (const [e, ix] of castOf.get(state.stage as object) ?? []) if (e.health <= 0) markDead(state, DEAD1_MEMO, ix);
     // (the projection's up: no blood, no bodies, the puffs; he's the cat, once he's been drawn in)
     state.cartoonKills = up;
     if (!s.scene) p.catForm = catActive(state);
@@ -110,14 +181,22 @@ export const whitehouse1: CartoonSection = {
     runExits(state, [{ x0: x1 - 60, x1, yTop: GY - 40, yBot: GY + 2, to: DOORS.whitehouse2.start }]);
     return out;
   },
-  drawBackdrop: (c, state) => drawWhBackdrop(c, state),
+  drawBackdrop: (c, state) => (projectionUp(state) ? drawWhBackdrop(c, state) : drawStageBackdrop(c, state)),
   drawBack: (c, state) => {
+    if (!projectionUp(state)) { drawReal1(c, state); return; }
     drawWhBack(c, state);
     drawTowers(c, state, whOf(state).towers);
     drawPunditsWorld(c, state);
     if (projectionUp(state)) drawChelsea(c, state);
   },
   drawFront: (c, state) => {
+    if (!projectionUp(state)) {
+      // (the empty front row; the screen heaped over the stage's lip, all along)
+      drawSeats(c, state, x0 - 200, x1 + 200);
+      const seg = 880, v0 = state.camera.x - seg, v1 = state.camera.x + CANVAS_WIDTH + seg;
+      for (let a = Math.floor(Math.max(x0 - 200, v0) / seg) * seg; a < Math.min(x1 + 200, v1); a += seg) drawFallenScreen(c, a + 20, a + seg - 20, GY + 6);
+      return;
+    }
     drawWhFront(c, state);
     drawThrows(c, state);
     drawPuffs(c, state, drawPuffBit);
@@ -136,14 +215,51 @@ export const whitehouse1: CartoonSection = {
       if (punditSkipShown(state)) drawSkipPrompt(c, CANVAS_WIDTH);
     }
   },
-  outdoors: (state) => (roomAt(state.player.pos.x + state.player.width / 2 - x0).outdoors ? 1 : 0),
+  outdoors: (state) => (projectionUp(state) && roomAt(state.player.pos.x + state.player.width / 2 - x0).outdoors ? 1 : 0),
+  // (the real stage's work lights once the screen's down; else, outdoors, the time of day's; indoors none)
+  lighting: (state) => {
+    if (!projectionUp(state)) return realLight(state, stageLights(state, x0 - 200, x1 + 200));
+    return roomAt(state.player.pos.x + state.player.width / 2 - x0).outdoors ? todLight([], 1) : null;
+  },
   cameraX: (state) => fightCam(state),
 };
+
+/** Part one, the screen down: no cat, no hazards, no Chelsea; his lines at what he left; the ways out. */
+const updateReal = (state: GameState, controls: Parameters<NonNullable<CartoonSection['update']>>[1]) => {
+  const p = state.player;
+  toRealStage(state);
+  state.cartoonKills = false; p.catForm = false;
+  const alive = !p.inCutscene && p.health > 0, cx = p.pos.x + p.width / 2;
+  const once = (key: string, pool: string[]) => { if (alive && saidOnce2(key)) meatheadSays(state, pickLine(pool), false); };
+  const near = (x: number, r: number) => Math.abs(cx - x) < r && Math.abs(p.pos.y + p.height - Y(floorAt(x - x0))) < 160;
+  once('wh1-real', byPants(state, STAGE_WH1));
+  if (near(X((PODIUM.a + PODIUM.b) / 2), 200)) once('body-perot', byPants(state, BODY_LINES.perot));
+  if (near(X((BED.a + BED.b) / 2), 220)) once('body-falwell', byPants(state, BODY_LINES.falwell));
+  if ([...deadList(state, DEAD1_MEMO)].some(ix => near(X(CAST[ix][1]), 120))) once('body-staff', byPants(state, BODY_LINES.staff));
+  runExits(state, [{ x0, x1: x0 + 60, yTop: GY - 40, yBot: GY + 2, to: DOORS.studio.end }]);
+  runExits(state, [{ x0: x1 - 60, x1, yTop: GY - 40, yBot: GY + 2, to: DOORS.whitehouse2.start }]);
+  return controls;
+};
+/** Part one's real stage (world, behind him): the shell, the plywood, Perot and Falwell's actors, the dead he left. */
+const drawReal1 = (c: Ctx, state: GameState) => {
+  drawStageShell(c, state, PLAN1);
+  drawStageProps(c, state, PLAN1);
+  if (onScreenX(state, X(PODIUM.a) - 200, X(PODIUM.b) + 200)) drawPerotBody(c, X(PODIUM.a), X(PODIUM.b), Y(PODIUM.h), GY);
+  if (onScreenX(state, X(BED.a) - 200, X(BED.b) + 200)) drawFalwellBody(c, X(BED.a), X(BED.b), Y(BED.h), Y(F2));
+  for (const ix of deadList(state, DEAD1_MEMO)) {
+    const [kind, rx, h] = CAST[ix];
+    if (!onScreenX(state, X(rx) - 160, X(rx) + 160)) continue;
+    const fy = kind === 'm2:ct_blimp' ? Y(floorAt(rx)) : Y(h);
+    drawDeadActor(c, kind, seed1(ix), X(rx), fy, ix % 2 === 1, state.frame);
+  }
+};
+const onScreenX = (state: GameState, a: number, b: number) => b > state.camera.x - 60 && a < state.camera.x + CANVAS_WIDTH + 60;
 
 // ---------------------------------------------------------------------------------------------------------------
 // What the mean men throw, drawn
 
-const drawThrows = (c: Ctx, state: GameState) => {
+/** (part two draws the mean men's throws with this too) */
+export const drawThrows = (c: Ctx, state: GameState) => {
   const f = state.frame;
   for (const t of whOf(state).throws) {
     const ink = (path: () => void, fill: string, w = 2) => { c.beginPath(); path(); c.fillStyle = fill; c.fill(); c.strokeStyle = INK; c.lineWidth = w; c.stroke(); };

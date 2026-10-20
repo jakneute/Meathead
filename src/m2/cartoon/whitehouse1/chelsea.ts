@@ -20,6 +20,25 @@ import { CHELSEA, NAG, HINT, OUCH, SHUT_UP } from './lines';
 import { HINT_AT, floorAt, roomAt, X, Y } from './layout';
 import { inFight, fightArena } from './pundits';
 
+/** Where she runs about (part one's White House by default; part two hands her its own: whitehouse2/index.ts). */
+export interface ChelseaWorld {
+  /** The floor's top (world y) under world x. */
+  floorY: (x: number) => number;
+  /** Her hints, once each a visit: [key, from world x, to world x, the pool]. */
+  hints: [string, number, number, string[]][];
+  /** A fight on: where she cowers (by the wall: world x, the floor's y). */
+  cower: (state: GameState) => { x: number; y: number } | null;
+  /** Nothing nagged here (a pundit's room). */
+  hush?: (x: number) => boolean;
+}
+const PART_ONE: ChelseaWorld = {
+  floorY: x => Y(floorAt(x - X(0))),
+  hints: HINT_AT.map(([k, a, b]) => [k, X(a), X(b), HINT[k as keyof typeof HINT]]),
+  cower: state => { const f = inFight(state) ? fightArena(state) : null; return f ? { x: X(f.a) + 34, y: Y(f.floor) } : null; },
+  hush: x => roomAt(x - X(0)).id === 'press',
+};
+let world: ChelseaWorld = PART_ONE;
+
 type Mode = 'follow' | 'scripted' | 'queasy' | 'cower';
 export type ChelseaPose = 'run' | 'stand' | 'point' | 'cheer' | 'queasy' | 'cower' | 'wag';
 interface Chelsea {
@@ -66,7 +85,7 @@ export const chelseaTo = (state: GameState, x: number, speed = 4.5) => {
   const c = chelseaOf(state), d = x - c.x;
   if (Math.abs(d) < speed) { c.x = x; c.vx = 0; c.pose = c.pose === 'run' ? 'stand' : c.pose; return true; }
   c.vx = Math.sign(d) * speed; c.facing = d < 0 ? -1 : 1; c.x += c.vx; c.pose = 'run';
-  c.y = Y(floorAt(c.x - X(0)));
+  c.y = world.floorY(c.x);
   return false;
 };
 export const setChelseaPose = (state: GameState, pose: ChelseaPose) => { const c = chelseaOf(state); c.pose = pose; c.poseT = 0; };
@@ -79,10 +98,12 @@ export const queasy = (state: GameState, line: string, after?: () => void) => {
 };
 
 const NAG_EVERY = [900, 1300];
-export const updateChelsea = (state: GameState) => {
+/** Each frame she's up: `w` where she is (part one's, unless a section hands her its own). */
+export const updateChelsea = (state: GameState, w: ChelseaWorld = PART_ONE) => {
+  world = w;
   const c = chelseaOf(state), p = state.player;
-  const px = p.pos.x + p.width / 2, rx = px - X(0);
-  if (!c.placed) { c.x = px - p.facing * 60; c.y = Y(floorAt(c.x - X(0))); c.placed = true; c.nagAt = state.frame + 600; }
+  const px = p.pos.x + p.width / 2;
+  if (!c.placed) { c.x = px - p.facing * 60; c.y = world.floorY(c.x); c.placed = true; c.nagAt = state.frame + 600; }
   c.poseT++;
   if (c.hey > 0) c.hey--;
   if (c.mode === 'scripted') return;
@@ -92,13 +113,13 @@ export const updateChelsea = (state: GameState) => {
     return;
   }
   // In a fight: back by the wall she came in by, cowering
-  const fight = fightArena(state);
-  if (fight && inFight(state)) {
+  const fight = world.cower(state);
+  if (fight) {
     c.mode = 'cower';
-    const spot = X(fight.a) + 34;
+    const spot = fight.x;
     if (Math.abs(c.x - spot) > 400) { c.x = spot; c.zip = 14; }
     if (!chelseaTo(state, spot, 5)) return;
-    c.pose = 'cower'; c.facing = 1; c.y = Y(fight.floor);
+    c.pose = 'cower'; c.facing = 1; c.y = fight.y;
     return;
   }
   c.mode = 'follow';
@@ -108,12 +129,12 @@ export const updateChelsea = (state: GameState) => {
   const ahead = c.lead > 0 && Math.abs(p.vel.x) > 0.5;
   const tx = px + (ahead ? 1 : -1) * p.facing * (ahead ? 110 : 70);
   // (too far, or he's up somewhere above the floor she can't get to and moving on: zip over)
-  const floorY = Y(floorAt(tx - X(0)));
+  const floorY = world.floorY(tx);
   if (Math.abs(c.x - px) > 520) { c.x = tx; c.zip = 14; playSound('whoosh', 0.3, 12); }
   const d = tx - c.x, speed = Math.min(6.5, Math.max(0, Math.abs(d) - 12) * 0.08 + (Math.abs(d) > 40 ? 2 : 0));
   if (Math.abs(d) > 14 && speed > 0.2) { c.vx = Math.sign(d) * speed; c.x += c.vx; c.facing = c.vx < 0 ? -1 : 1; c.pose = 'run'; }
   else { c.vx = 0; c.facing = px < c.x ? -1 : 1; if (c.pose === 'run') { c.pose = ahead ? 'point' : 'stand'; c.poseT = 0; } }
-  c.y += (Y(floorAt(c.x - X(0))) - c.y) * 0.5;
+  c.y += (world.floorY(c.x) - c.y) * 0.5;
   if (Math.abs(c.y - floorY) > 200) c.y = floorY;
   if (c.zip > 0) c.zip--;
   if (c.pose === 'wag' && c.poseT > 50 && !c.said) c.pose = 'stand';
@@ -125,9 +146,9 @@ export const updateChelsea = (state: GameState) => {
   c.lastHp = p.health;
   if (!free) return;
   // (the first time he gets to each thing: her hint)
-  for (const [k, a, b] of HINT_AT) if (rx > a && rx < b && hintOnce(k)) { chelseaSays(state, pickLine(HINT[k as keyof typeof HINT])); c.nagAt = state.frame + NAG_EVERY[0]; return; }
+  for (const [k, a, b, pool] of world.hints) if (px > a && px < b && hintOnce(k)) { chelseaSays(state, pickLine(pool)); c.nagAt = state.frame + NAG_EVERY[0]; return; }
   // (every so often, a nag; about every other one, he tells her to shut up)
-  if (state.frame > c.nagAt && roomAt(rx).id !== 'press') {
+  if (state.frame > c.nagAt && !world.hush?.(px)) {
     c.nagAt = state.frame + NAG_EVERY[0] + Math.floor(Math.random() * (NAG_EVERY[1] - NAG_EVERY[0]));
     const reply = c.shutNext; c.shutNext = !c.shutNext;
     chelseaSays(state, pickLine(byPants(state, NAG)), () => { if (reply && state.player.health > 0 && !state.player.inCutscene) meatheadSays(state, pickLine(byPants(state, SHUT_UP)), true); });

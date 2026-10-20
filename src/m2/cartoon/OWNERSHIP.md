@@ -10,7 +10,7 @@ the fill-ins, the rules, the section plan). Each section's index.ts header says 
 | 1 (done) | the skeleton; `kiddie/`, `sway.ts`, `monument.ts` | kiddie (0-9: 0-5 used) |
 | 2 (done) | `studio/` | studio (10-19: 10-15 used) |
 | 3 (done) | `whitehouse1/` (the transformation, Chelsea, the pundits, the cat's death and the puffs live there); the engine's cat form (`m1/game/render/player/catBody.ts`) and cartoon kills (`m1/game/core/cartoonKills.ts`) | whitehouse1 (20-29: 20-26 used) |
-| 4 | `whitehouse2/` | whitehouse2 (30-39) |
+| 4 (done) | `whitehouse2/` (the West Wing, Limbaugh/Dole/Newt, the finale: the Clintons' TV, the screen's collapse, the actress; the real stage and the bodies for both halves: realStage.ts, bodies.ts); part one's real-stage mode (whitehouse1/index.ts) and Chelsea's pluggable world (whitehouse1/chelsea.ts) | whitehouse2 (30-39: 30-37 used; 37 the real stage, manual) |
 | 5 | `bigkid/` | bigkid (40-49) |
 | 6 | `itchy/` | itchy (50-59) |
 | 7 | `amphi/` (and walkAway/stupidDad.ts made real) | amphi (60-69) |
@@ -69,8 +69,11 @@ move your DOORS entries to match; keep the way back working (revisits), or give 
   out its left end to `DOORS.studio.end` (himself again out there); in again, a scribble back into the cat.
 - **The White House, part one -> part two** (part one built, whitehouse1/): walk off the West Colonnade at the garden's
   right end to `DOORS.whitehouse2.start`; back from part two, `DOORS.whitehouse1.end` (in the garden).
-- **The White House, part two -> the big-kid rides** (stub): the right end. The user's: "meathead then leaves the
-  cartoon studio" (after the projector's collapse and the bodies).
+- **The White House, part two -> the big-kid rides** (built, whitehouse2/): only once the screen's down
+  (`ct-wh-collapsed`): out the STAGE DOOR at the far right (rx 11760..11900) to `DOORS.bigkid.start`, his line as he
+  goes. Back from the big-kid rides: `DOORS.whitehouse2.end` (in front of the stage door, geometry.ts). Back out part
+  two's left end: `DOORS.whitehouse1.end` (the garden; the real stage there too once the screen's down). Leaving the
+  White House after the screen's down sends the Chelsea actress home (`ct-wh-actress-gone`).
 - **The big-kid rides -> the knockoff area -> the amphitheater** (stubs): the right ends.
 - **The amphitheater -> the hub** (stand-in, amphi/): walk past the guard: VICTORY, the walk-away
   (walkAway/stupidDad.ts, the MALLET), markLandCleared('cartoon'), the hub.
@@ -89,7 +92,20 @@ move your DOORS entries to match; keep the way back working (revisits), or give 
 - Shared here: index.ts (clears catForm / cartoonKills each frame before the section's update; `catHud`).
 - tools/voices/cast.json: m2.cartoon.chelsea, perot, falwell, goon(f), lobbyist(f), pollster(f).
 
+## Job 4's appends outside its folder (for whoever touches them next)
+
+- whitehouse1/index.ts: part one's real-stage mode (`toRealStage`, `updateReal`, `drawReal1`, its lighting); kill
+  tracking (`ct-wh1-dead`); `drawThrows` exported; `presetMemos` first in its build. whitehouse1/chelsea.ts: ChelseaWorld
+  (`updateChelsea(state, world)`).
+- Shared: geometry.ts (DOORS.whitehouse2.end); index.ts (the HUD's studio skin in the White House once the screen's
+  down).
+- tools/voices/cast.json: m2.cartoon.limbaugh, dole, newt, bill, hillary (radio_mild: on the TV), actress, spindoc(f),
+  ditto(f).
+
 ## Things that outlive a death
+
+(The White House's memos: `ct-wh-cat`, each pundit's (`ct-wh-perot` ... `ct-wh-newt`), `ct-wh2-globe`,
+`ct-wh-collapsed`, `ct-wh1-dead` / `ct-wh2-dead` (the actors he killed), `ct-wh-actress-gone`; see whitehouse2/state.ts.)
 
 (The studio's memos: `ct-studio-lit` (which rooms' lights are on, a bit each) and `ct-studio-done`; its narrator's
 stories and Meathead's gags are once a visit, keyed by `landVisit()` in studio/pa.ts and studio/state.ts.)

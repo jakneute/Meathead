@@ -54,6 +54,8 @@ export const DOORS: Record<CartoonId, { start: { x: number; y: number }; end: { 
 DOORS.kiddie.end = { x: SECTIONS.kiddie.x0 + 13700, y: GY };
 // (back from the White House: in front of the studio's projection screen, the way he went in behind it)
 DOORS.studio.end = { x: SECTIONS.studio.x0 + 9560, y: GY };
+// (back from the big-kid rides: on the real stage, in front of the stage door he went out by)
+DOORS.whitehouse2.end = { x: SECTIONS.whitehouse2.x0 + 11640, y: GY };
 /** The section before and after one (null: the land's start, the boss's arena). */
 export const prevOf = (id: CartoonId): CartoonId | null => SECTION_ORDER[SECTION_ORDER.indexOf(id) - 1] ?? null;
 export const nextOf = (id: CartoonId): CartoonId | null => SECTION_ORDER[SECTION_ORDER.indexOf(id) + 1] ?? null;

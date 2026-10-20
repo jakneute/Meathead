@@ -144,7 +144,9 @@ export const cartoonLayout: StageLayout = {
       out = scripted ? { ...NO_CONTROLS, left: !!out.left, right: !!out.right, up: !!out.up, down: !!out.down, jump: !!out.jump } : { ...NO_CONTROLS };
     }
     // (a cutscene in any section: no HUD; the HUD's look: the section he's in)
-    setUi({ introCutscene: !!p.inCutscene, zone: hudZone(sec.id as CartoonId) });
+    // (the White House once its screen's down (job 4's): the studio's look, not the cartoon's)
+    const zone = hudZone(sec.id as CartoonId);
+    setUi({ introCutscene: !!p.inCutscene, zone: zone === 'whitehouse' && state.stageMemo['ct-wh-collapsed'] ? 'studio' : zone });
     return out;
   },
   waterBodyAt: (state, x, y) => sectionAt(x).waterBodyAt?.(state, x, y) ?? null,
