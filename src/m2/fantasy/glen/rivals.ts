@@ -8,7 +8,8 @@
 import type { FrameContext } from '../../../m1/game/core/context';
 import type { GameState } from '../../../m1/game/core/state';
 import { playSound } from '../../../m1/game/platform/audio';
-import { pickFreshLine, pickLine } from '../../../m1/game/platform/speech';
+import { pickLine } from '../../../m1/game/platform/speech';
+import { piperMust } from '../piperLines';
 import { speak, meatheadSays, byPants, saidOver } from '../section';
 import { PIPER_PA_VOICE } from '../talk';
 import { drawSuitor, SUITOR_H, type SuitorLook } from '../suitors';
@@ -57,7 +58,7 @@ export const updateRivals = (ctx: FrameContext) => {
         return;
       }
       if (i === RIVALS.length) { meatheadSays(state, pickLine(byPants(state, RETORT)), true, () => say(i + 1)); return; }
-      piperSays(g, pickFreshLine(PIPER_GLEN.queue), state, RIDE_HORN(), () => { if (g.queue === 'talk') { g.queue = 'in'; g.queueT = 0; } });
+      piperSays(g, piperMust(PIPER_GLEN.queue), state, RIDE_HORN(), () => { if (g.queue === 'talk') { g.queue = 'in'; g.queueT = 0; } });
     };
     say(0);
   }

@@ -50,6 +50,7 @@ import { NO_CONTROLS } from '../../../m1/game/platform/input';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { playSound } from '../../../m1/game/platform/audio';
 import { say, silenceAll, pickLine } from '../../../m1/game/platform/speech';
+import { piperLine, piperMust } from '../piperLines';
 import { SKIP_AFTER, offerSkip, takeSkip, drawSkipPrompt } from '../../../m1/game/platform/skip';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { isShat, isNude } from '../../../m1/game/player/gut';
@@ -205,10 +206,15 @@ const herSays = (f: Fight, text: string, onDone?: () => void) => {
     onDropped: () => { if (tok === token) onDone?.(); },
   });
 };
-const herLine = (f: Fight, lines: ByPants, onDone?: () => void) => herSays(f, pick(lines[pants()]), onDone);
-/** A bark of hers: dropped if anybody's talking. */
-const bark = (f: Fight, state: GameState, text: string) => {
+/** A scripted line of hers (a beat waits on it): one she hasn't said this life (piperLines.ts), else pickLine. */
+const herLine = (f: Fight, lines: ByPants, onDone?: () => void) => herSays(f, piperMust(lines[pants()]), onDone);
+/** A now-and-then line of hers: nothing if she's said them all this life (and whatever waited on it goes straight on). */
+const herMaybe = (f: Fight, lines: ByPants, onDone?: () => void) => { const t = piperLine(lines[pants()]); if (t) herSays(f, t, onDone); else onDone?.(); };
+/** A bark of hers: dropped if anybody's talking, or if she's said every one of them this life. */
+const bark = (f: Fight, state: GameState, pool: readonly string[]) => {
   if (!quiet(f, state)) return;
+  const text = piperLine(pool);
+  if (!text) return;
   say(text, voice(L.PIPER_VOICE), 'casual', {
     always: true,
     onShow: spoken => { f.said = text; if (!spoken) setTimeout(() => { if (f.said === text) f.said = null; }, Math.max(1400, text.length * 65)); },
@@ -449,7 +455,9 @@ const startRip = (f: Fight, h: { kind: string; x: number }) => {
   f.rip = h.kind === 'heat' ? 'fire' : h.kind === 'nitro' ? 'ice' : 'shock';
   f.facing = h.x < f.x ? -1 : 1;
   setAct(f, 'rip', RIP_T); f.throwAt = f.total;
-  herSays(f, L.ELEMENT_SHOUT[f.rip][0]);
+  // (a shout she hasn't used this life; all used, she throws without one)
+  const shout = piperLine(L.ELEMENT_SHOUT[f.rip]);
+  if (shout) herSays(f, shout);
   playSound(f.rip === 'fire' ? 'ignite' : f.rip === 'ice' ? 'ice' : 'taser', 0.7, 4);
 };
 
@@ -484,7 +492,7 @@ const ai = (ctx: FrameContext, f: Fight) => {
       }
       if (f.actT >= f.actLen) {
         setAct(f, 'crouch', CROUCH_T);
-        if (Math.random() < 0.55) bark(f, state, pick(L.PIPER_LEAP[pants()]));
+        if (Math.random() < 0.55) bark(f, state, L.PIPER_LEAP[pants()]);
         playSound('whoosh', 0.4, -8);
       }
       break;
@@ -821,7 +829,7 @@ const hurt = (ctx: FrameContext, f: Fight, dmg: number) => {
   for (let i = 0; i < 5; i++) state.particles.push({ pos: { x: f.x, y: f.y - 90 }, vel: { x: (Math.random() - 0.5) * 3, y: -1 - Math.random() * 2 }, life: 18, color: i % 2 ? '#B91C1C' : '#F6E7A8', size: 2 + Math.random() * 2, grav: 0.3 });
   playSound('gunhit', 0.5, -2);
   ctx.fx.spawnDamageNumber({ x: f.x - 10, y: f.y - PIPER_H - 10 }, Math.max(1, Math.round(dmg)), dmg > 40);
-  if (Math.random() < 0.15) bark(f, state, pick(L.PIPER_HURT[pants()]));
+  if (Math.random() < 0.15) bark(f, state, L.PIPER_HURT[pants()]);
   if (f.hp <= 0) die(ctx, f, false);
 };
 
@@ -840,7 +848,7 @@ const hole = (ctx: FrameContext, f: Fight) => {
   f.ang = -Math.PI / 2 + (Math.random() < 0.5 ? -0.7 : 0.7);
   state.enemies = state.enemies.filter(o => o !== f.e);
   token++; f.said = null;
-  herLine(f, L.PIPER_HOLE, tokened(() => hisLine(state, L.MH_HOLE)));
+  herMaybe(f, L.PIPER_HOLE, tokened(() => hisLine(state, L.MH_HOLE)));
 };
 
 /** Round the room like a let-go balloon: a jet of her out of every hole, off the walls and the ceiling. */
@@ -888,7 +896,7 @@ const talk = (ctx: FrameContext, f: Fight) => {
   if (!f.lowSaid && f.hp < HP * 0.33 && quiet(f, state)) { f.lowSaid = true; herLine(f, L.PIPER_LOW); return; }
   if (f.tauntT > TAUNT_EVERY && quiet(f, state) && f.act !== 'bounce' && f.act !== 'rip') {
     f.tauntT = 0; f.tauntHer = !f.tauntHer;
-    if (f.tauntHer) herLine(f, L.PIPER_TAUNT); else hisLine(state, L.MH_TAUNT);
+    if (f.tauntHer) herMaybe(f, L.PIPER_TAUNT); else hisLine(state, L.MH_TAUNT);
   }
 };
 
@@ -964,7 +972,7 @@ const cork = (ctx: FrameContext, f: Fight, d: Death) => {
       if (t - d.at >= 170 && quiet(f, state)) {
         d.step = 'pop'; d.at = t; d.vy = -30;
         playSound('boom', 1.3, -6); playSound('boing', 1.2, -10); playSound('splash', 1.2, -6); shakeScreen(state, 20, 10);
-        herSays(f, pick(L.PIPER_POP));
+        herSays(f, piperMust(L.PIPER_POP));
       }
       break;
     }
@@ -1040,7 +1048,7 @@ const balloon = (ctx: FrameContext, f: Fight, d: Death) => {
       if (t % 18 === 0) playSound('suck', 0.3, 2 - k * 8);
       if (k > 0.4 && !d.said.has('thin')) { d.said.add('thin'); herLine(f, L.PIPER_TOO_THIN, tokened(() => hisLine(state, L.MH_TOO_THIN))); }
       if (d.said.has('thin') && f.erect > 0) f.erect = Math.max(0, f.erect - 0.015);
-      if (k >= 1 && !d.said.has('last')) { d.said.add('last'); herSays(f, pick(L.PIPER_CRUMBLE), tokened(() => { d.step = 'crumble'; d.at = d.t; playSound('crumble', 1.2, -4); playSound('crumble', 0.8, 2); })); }
+      if (k >= 1 && !d.said.has('last')) { d.said.add('last'); herSays(f, piperMust(L.PIPER_CRUMBLE), tokened(() => { d.step = 'crumble'; d.at = d.t; playSound('crumble', 1.2, -4); playSound('crumble', 0.8, 2); })); }
       break;
     }
     case 'crumble':

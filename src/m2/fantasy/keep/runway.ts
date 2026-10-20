@@ -18,7 +18,8 @@ import type { Controls } from '../../../m1/game/platform/input';
 import type { Block } from '../../../m1/types';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { playSound } from '../../../m1/game/platform/audio';
-import { pickLine, pickFreshLine, silenceAll } from '../../../m1/game/platform/speech';
+import { pickLine, silenceAll } from '../../../m1/game/platform/speech';
+import { piperMust } from '../piperLines';
 import { SKIP_AFTER, offerSkip, takeSkip, drawSkipPrompt } from '../../../m1/game/platform/skip';
 import { hands, meatheadSays, speak, saidOver, teleport, byPants } from '../section';
 import { DOORS } from '../geometry';
@@ -226,8 +227,8 @@ export const updateRunway = (ctx: FrameContext, controls: Controls): Controls =>
       const next = () => { s.line = -1; };
       const after = (n: number) => () => { s.line = n; };
       const nT = s.talkers.length;
-      if (s.line === 1) { next(); piperSays(k, pickFreshLine(PIPER_FINAL), after(2)); }
-      else if (s.line === 2) { next(); piperSays(k, pickFreshLine(PIPER_RULES), after(3)); }
+      if (s.line === 1) { next(); piperSays(k, piperMust(PIPER_FINAL), after(2)); }
+      else if (s.line === 2) { next(); piperSays(k, piperMust(PIPER_RULES), after(3)); }
       else if (s.line >= 3 && s.line < 3 + nT) { const i = s.line - 3; next(); suitorSays(state, k, s.talkers[i], after(4 + i)); }
       else if (s.line === 3 + nT) {
         // (the hop onto the spare broom)
@@ -245,7 +246,7 @@ export const updateRunway = (ctx: FrameContext, controls: Controls): Controls =>
             meatheadSays(state, pickLine(byPants(state, MOUNT)), true, () => { s.line = 101; });
           }
         } else s.line = 101;
-      } else if (s.line === 101) { next(); piperSays(k, pickFreshLine(PIPER_GO), () => { s.step = 'launch'; s.t = 0; }); }
+      } else if (s.line === 101) { next(); piperSays(k, piperMust(PIPER_GO), () => { s.step = 'launch'; s.t = 0; }); }
       return hands();
     }
     case 'launch': {

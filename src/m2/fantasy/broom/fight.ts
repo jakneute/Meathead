@@ -35,7 +35,7 @@ import type { Controls } from '../../../m1/game/platform/input';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, topBand } from '../../../m1/constants';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { playSound } from '../../../m1/game/platform/audio';
-import { pickLine, pickFreshLine, silenceAll, announce } from '../../../m1/game/platform/speech';
+import { pickLine, silenceAll, announce } from '../../../m1/game/platform/speech';
 import { offerSkip, takeSkip, drawSkipPrompt, SKIP_AFTER } from '../../../m1/game/platform/skip';
 import { isShat, isNude } from '../../../m1/game/player/gut';
 import { inputDevice, padFamily } from '../../../m1/game/platform/device';
@@ -45,6 +45,7 @@ import { setUi } from '../../store';
 import { meatheadSays, speak, saidOver, byPants, landVisit, teleport, fantasyState, type Said } from '../section';
 import { DOORS } from '../geometry';
 import { PIPER_PA_VOICE } from '../talk';
+import { piperLine, piperMust } from '../piperLines';
 import { RIVALS } from '../glen/rivals';
 import { FASTPASS } from '../keep/runway';
 import { ROSTER_MEMO } from '../keep/state';
@@ -254,7 +255,7 @@ export const startFight = (state: GameState) => {
   setUi({ noSwitch: true, pauseControls: 'broom', broomHud: true, broomBoost: 1, broomTips: f.tips > 0 });
   if (!k.said) {
     k.said = true;
-    piperSays(f, pickFreshLine(PIPER_START), () => meatheadSays(state, pickLine(byPants(state, MH_START)), true));
+    piperSays(f, piperLine(PIPER_START), () => meatheadSays(state, pickLine(byPants(state, MH_START)), true));
   } else if (rnd() < 0.4) setTimeout(() => meatheadSays(state, pickLine(byPants(state, MH_AGAIN)), false), 700);
 };
 
@@ -378,12 +379,12 @@ const killFlyer = (state: GameState, f: Fight, fl: Flyer, by: number) => {
   firework(f, (rnd() - 0.5) * 1400, (rnd() - 0.5) * 1400, 2100 + rnd() * 500);
   const now = Date.now();
   if (by < 0) {
-    if (now - f.piperAt > 7000 && rnd() < 0.6) piperSays(f, pickFreshLine(PIPER_KILL));
+    if (now - f.piperAt > 7000 && rnd() < 0.6) piperSays(f, piperLine(PIPER_KILL));
     else if (now - f.quipAt > 6000 && rnd() < 0.6) { f.quipAt = now; meatheadSays(state, pickLine(byPants(state, MH_KILL)), true); }
-  } else if (now - f.piperAt > 7000 && rnd() < 0.5) piperSays(f, pickFreshLine(PIPER_INFIGHT), () => { if (rnd() < 0.5) meatheadSays(state, pickLine(byPants(state, MH_INFIGHT)), true); });
+  } else if (now - f.piperAt > 7000 && rnd() < 0.5) piperSays(f, piperLine(PIPER_INFIGHT), () => { if (rnd() < 0.5) meatheadSays(state, pickLine(byPants(state, MH_INFIGHT)), true); });
   // (two left in her sky: him and one)
   const k = keptOf();
-  if (!k.last && k.late && f.flyers.filter(o => o.alive && o.in).length === 1) { k.last = true; piperSays(f, pickFreshLine(PIPER_LAST), () => meatheadSays(state, pickLine(byPants(state, MH_LAST)), true)); }
+  if (!k.last && k.late && f.flyers.filter(o => o.alive && o.in).length === 1) { k.last = true; piperSays(f, piperLine(PIPER_LAST), () => meatheadSays(state, pickLine(byPants(state, MH_LAST)), true)); }
 };
 
 /** Down he goes: spinning, screaming, shitting; into the wall he was by, or the lawn (or the moat's mud). */
@@ -725,7 +726,7 @@ export const updateFight = (ctx: FrameContext, controls: Controls): Controls => 
       const now = Date.now();
       if (now - f.quipAt > 45000) {
         f.quipAt = now;
-        if (rnd() < 0.5) piperSays(f, pickFreshLine(PIPER_WALL)); else meatheadSays(state, pickLine(byPants(state, MH_WALL)), true);
+        if (rnd() < 0.5) piperSays(f, piperLine(PIPER_WALL)); else meatheadSays(state, pickLine(byPants(state, MH_WALL)), true);
       }
     }
     if (r > WALL_R - 300 && f.t % 3 === 0) sparks(f, f.x + Math.sin(f.yaw) * 160, f.z + Math.cos(f.yaw) * 160, f.alt + 40, ['#F472B6', '#FFE4F2', '#FFFFFF'], 3);
@@ -792,7 +793,7 @@ export const updateFight = (ctx: FrameContext, controls: Controls): Controls => 
     }
     if (state.checkpoint < 51) state.checkpoint = 51;
     pop(f, 'LATE ENTRIES!', '#F9A8D4');
-    piperSays(f, pickFreshLine(PIPER_LATE), () => meatheadSays(state, pickLine(byPants(state, MH_LATE)), true));
+    piperSays(f, piperLine(PIPER_LATE), () => meatheadSays(state, pickLine(byPants(state, MH_LATE)), true));
   }
   // ---- all dead (down and still): her window
   if (flying && k.late && f.flyers.every(o => !o.alive && o.gone)) startWin(state, f);
@@ -818,7 +819,7 @@ const startWin = (state: GameState, f: Fight) => {
   f.hold = 0; f.locked = -1; f.uturn = 0; f.inv = 0;
   f.shots = [];
   setUi({ broomHud: false, broomTips: false });
-  piperSays(f, pickFreshLine(PIPER_WIN), () => {
+  piperSays(f, piperMust(PIPER_WIN), () => {
     if (isNude(state)) { playSound('boing', 0.9, -6); f.win.said = true; }
     meatheadSays(state, pickLine(byPants(state, MH_WIN)), true, () => { f.win.step = 'go'; });
   });

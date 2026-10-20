@@ -22,6 +22,7 @@ import { SKIP_AFTER, offerSkip, takeSkip, drawSkipPrompt } from '../../../m1/gam
 import { hands, meatheadSays, speak, saidOver, teleport, byPants, type Said } from '../section';
 import { DOORS } from '../geometry';
 import { PIPER_PA_VOICE } from '../talk';
+import { piperMust } from '../piperLines';
 import { HORNY } from '../lines';
 import { SUITORS, drawSuitor, SUITOR_H, type SuitorPose } from '../suitors';
 import { box, onScreen, INK, type Ctx } from '../kit';
@@ -107,11 +108,11 @@ export const updateSpeaker = (ctx: FrameContext, controls: Controls): Controls =
       if (s.t === 56 && s.line === 0) s.line = 1;
       const next = () => { s.line = -1; };
       switch (s.line) {
-        case 1: next(); voiceLine(state, s,'piper', pickLine(PIPER_HELLO), 2); break;
-        case 2: next(); voiceLine(state, s,'piper', pickLine(PIPER_NAME), 3); break;
-        case 3: next(); voiceLine(state, s,'piper', pickLine(PIPER_TRIALS), 4); break;
-        case 4: next(); voiceLine(state, s,'piper', pickLine(PIPER_BLOOD), 5); break;
-        case 5: next(); voiceLine(state, s,'piper', pickLine(PIPER_WHEEL), 6); break;
+        case 1: next(); voiceLine(state, s,'piper', piperMust(PIPER_HELLO), 2); break;
+        case 2: next(); voiceLine(state, s,'piper', piperMust(PIPER_NAME), 3); break;
+        case 3: next(); voiceLine(state, s,'piper', piperMust(PIPER_TRIALS), 4); break;
+        case 4: next(); voiceLine(state, s,'piper', piperMust(PIPER_BLOOD), 5); break;
+        case 5: next(); voiceLine(state, s,'piper', piperMust(PIPER_WHEEL), 6); break;
         case 6: next(); voiceLine(state, s,'braxton', pickLine(BRAXTON_SAY), 7); break;
         case 7: next(); voiceLine(state, s,'gunnar', pickLine(GUNNAR_SAY), 8); break;
         case 8: next(); s.hearts = 150; playSound('boing', 0.8, -6); meatheadSays(state, PIPE_HER, true, () => { s.line = 9; }); break;

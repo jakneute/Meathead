@@ -21,6 +21,7 @@ import { takePortalArrival, startPortalArrival, tickPortalArrival, drawPortalArr
 import { SECTIONS, SECTION_ORDER, type FantasyId } from './geometry';
 import { getFantasy, newLandVisit, type Fantasy, type FantasySection } from './section';
 import { fairySky } from './kit';
+import { clearPiperLines } from './piperLines';
 import { MONUMENT_AT } from './monument';
 import { square } from './square';
 import { wheel } from './wheel';
@@ -78,6 +79,8 @@ export const fantasyLayout: StageLayout = {
     // landVisit, for what has to outlive a death but not a new visit)
     const fresh = isLeaving() || (import.meta.env.DEV && !devStarted);
     if (fresh) newLandVisit();
+    // (a new life: Piper's lines all sayable again (piperLines.ts))
+    clearPiperLines();
     arrived(); stopWeapons();
     { const g = takeGut(); if (g) state.player.gut = g; }
     const fs: FantasyState = { section: 'square', s: {}, grab: createGrab(state), grace: GRACE, held: new Set(), arrive: takePortalArrival() ? startPortalArrival() : undefined };

@@ -15,7 +15,8 @@
 // Checkpoints 40-46 (47-49 spare). Way back: the left end to the ride's exit (DOORS.tragons.end); on: the runway's
 // scene to DOORS.broom.start (one-way); a revisit (the scene done) walks off the right end on to the broomsticks.
 
-import { pickLine, pickFreshLine } from '../../../m1/game/platform/speech';
+import { pickLine } from '../../../m1/game/platform/speech';
+import { piperLine } from '../piperLines';
 import type { EnemyKind } from '../../../m1/types';
 import { makeKindEnemy, mid } from '../../../m1/game/enemies/kinds';
 import type { FantasySection } from '../section';
@@ -70,7 +71,7 @@ export const keep: FantasySection = {
     for (const [at, h, key] of PA_AT) {
       if (k.said[`pa-${key}`] || !free || rx < at - 200 || rx > at + 500) continue;
       k.said[`pa-${key}`] = true;
-      const line = pickFreshLine(PIPER_KEEP[key]);
+      const line = piperLine(PIPER_KEEP[key]);
       if (!line) continue;
       k.piperX = X(at); k.piperY = Y(h);
       speak(PIPER_PA_VOICE, line, s => { k.piper = s; }, true, () => { if (Math.random() < 0.5 && p.health > 0 && !p.inCutscene) meatheadSays(state, pickLine(byPants(state, HORNY)), true); });

@@ -10,7 +10,8 @@
 // Checkpoints 20-26. Way back: the left end to the wheel's end (DOORS.wheel.end); on: its right end, the ride's door
 // (DOORS.tragons.start).
 
-import { pickLine, pickFreshLine } from '../../../m1/game/platform/speech';
+import { pickLine } from '../../../m1/game/platform/speech';
+import { piperLine } from '../piperLines';
 import type { EnemyKind } from '../../../m1/types';
 import { makeKindEnemy, mid } from '../../../m1/game/enemies/kinds';
 import type { FantasySection } from '../section';
@@ -67,7 +68,9 @@ export const glen: FantasySection = {
     for (const [at, k] of PA_AT) {
       if (g.said[`pa-${k}`] || !free || rx < at - 200 || rx > at + 500) continue;
       g.said[`pa-${k}`] = true;
-      piperSays(g, pickFreshLine(PIPER_GLEN[k]), state, X(at), () => { if (Math.random() < 0.5 && p.health > 0) meatheadSays(state, pickLine(byPants(state, HORNY)), true); });
+      // (already said this life: she says nothing, and he's nothing to answer)
+      const line = piperLine(PIPER_GLEN[k]);
+      if (line) piperSays(g, line, state, X(at), () => { if (Math.random() < 0.5 && p.health > 0) meatheadSays(state, pickLine(byPants(state, HORNY)), true); });
     }
     // (the ways: back to the wheel off the left end, on to the ride through its door off the right)
     runExits(state, endExits('glen'));

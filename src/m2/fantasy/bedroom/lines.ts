@@ -4,7 +4,8 @@
 // naked ones play up the boner: hard in the hall, dead at the sight of her, hopeful at the supermodel, dead again).
 //
 // Her LUST was for men killing each other for her; now one's at her door insulting her, and it's soured into rage.
-// The elemental shouts are the user's words, as they are ("FIRE BALL!", "ICE BALL!", "LIGHTNING BOLT!"). Pure data.
+// The elemental shouts lead with the user's words ("FIRE BALL!", "ICE BALL!", "LIGHTNING BOLT!"). Every Piper line here
+// goes through piperLines.ts (never twice in one life). Pure data.
 
 import { allOf, PIPER_VOICE, type ByPants, type HurtTable } from '../talk';
 
@@ -112,8 +113,13 @@ export const PIPER_LOW: ByPants = {
   shitty: ['I WILL NOT DIE TO A MAN WHO SMELLS LIKE THAT!', 'NOT LIKE THIS! NOT TO SHITTY PANTS!'],
   nude: ['I WILL NOT DIE TO A LIMP NAKED MAN!', 'NOT TO A NAKED NOBODY!'],
 };
-/** The elemental throws: the user's shouts, as they are. */
-export const ELEMENT_SHOUT = { fire: ['FIRE BALL!'], ice: ['ICE BALL!'], shock: ['LIGHTNING BOLT!'] } as const;
+/** The elemental throws: the user's shouts first, as they are, then variants (she never says one twice in a life; with
+ *  a pool used up, she throws without a word). */
+export const ELEMENT_SHOUT = {
+  fire: ['FIRE BALL!', 'EAT FIRE!', 'BURN, SHRIMP!', 'HOT ONE, BABY!', 'FIRE! OPEN WIDE!', 'ROAST, LITTLE MAN!', 'FIRE IN THE HOLE!', 'COOK FOR MOMMA!'],
+  ice: ['ICE BALL!', 'FREEZE, SHRIMP!', 'CHILL OUT!', 'ICE COLD, BABY!', 'FREEZE FOR MOMMA!', 'ICE! HOLD STILL!', 'HAVE AN ICE BALL!', 'COLD ONE COMING!'],
+  shock: ['LIGHTNING BOLT!', 'ZAP!', 'FRY, SHRIMP!', 'LIGHT HIM UP!', 'FEEL THE BUZZ!', 'LIGHTNING, BABY!', 'SHOCKING, ISN\'T IT?', 'BOLT FOR MOMMA!'],
+} as const;
 
 /** Him, now and then. */
 export const MH_TAUNT: ByPants = {

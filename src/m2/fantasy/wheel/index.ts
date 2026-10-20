@@ -34,6 +34,7 @@ import type { Grab } from '../../moves/grab';
 import type { FantasySection } from '../section';
 import { layOwn, ledge, endWalls, endExits, runExits, meatheadSays, speak, saidOver, byPants, getFantasy } from '../section';
 import { PIPER_PA_VOICE } from '../talk';
+import { piperLine } from '../piperLines';
 import { HORNY } from '../lines';
 import { box, INK } from '../kit';
 import { GY } from '../geometry';
@@ -88,7 +89,7 @@ const placeCarts = (state: GameState, w: Wheel, carry: boolean) => {
 // ---------------------------------------------------------------------------------------------------------------
 // Talk
 
-const piperSays = (w: Wheel, pool: string[]) => { const line = pickFreshLine(pool); if (line) speak(PIPER_PA_VOICE, line, s => { w.piper = s; }, true); };
+const piperSays = (w: Wheel, pool: string[]) => { const line = piperLine(pool); if (line) speak(PIPER_PA_VOICE, line, s => { w.piper = s; }, true); };
 const bark = (state: GameState, w: Wheel, i: number, pool: string[], force = false) => {
   if (!force && state.frame - w.lastBark < 180) return;
   const line = pickFreshLine(pool);

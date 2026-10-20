@@ -44,6 +44,7 @@ FAX = 800000. Need more x room? Widen your x1 into the gap after it (re-read geo
 - `monument.ts` (THE GREAT PIXIE'S CASTLE: MONUMENT_AT per section, drawMonument, drawCastleAt, PIPER_WINDOW)
 - `stairs.ts` (THE ENCHANTED STAIRCASES: makeStairs, updateStairs, drawStairs, stairEnd, onStair, ridingAny)
 - `talk.ts` (ByPants, HurtTable, PIPER_VOICE: pure data, node-safe), `lines.ts` (land-wide lines: HORNY, Piper's PA voice)
+- `piperLines.ts` (Piper never repeats a line in one life: piperLine (null when used up: ambient barks go quiet), piperMust (scripted beats, falls back to pickLine); cleared in index.ts build. Every Piper pick goes through it)
 - `stub.ts` (the stand-in sections), `voices.ts` (FANTASY_VOICE_LINES: gathers every section's lines.ts)
 - `suitors.ts` (the beefy suitors, drawn: everybody draws them from here; the trials' rivals)
 - `piper.ts` (PIPER THE PIXIE, drawn at full detail: everybody draws her from here)
