@@ -304,13 +304,13 @@ const paintRoofs = (g: Ctx, tod: TimeOfDay) => {
   const T = farCol(tod, 0.14), lamps = tod.lamps > 0.3;
   box(g, 0, RG - 10, RW, RH - RG + 10, T('#9A94B4'));
   for (const r of ROOFS) {
-    const x = r.x, w = r.w, top = RG - r.h, wall = ZWALLS[r.seed % ZWALLS.length], band = ZBANDS[(r.seed * 3) % ZBANDS.length], Wl = st3(T, wall), Bd = st3(T, band);
+    const x = r.x, w = r.w, top = RG - r.h, wall = ZWALLS[((Math.floor(r.seed) % ZWALLS.length) + ZWALLS.length) % ZWALLS.length], band = ZBANDS[((Math.floor(r.seed * 3) % ZBANDS.length) + ZBANDS.length) % ZBANDS.length], Wl = st3(T, wall), Bd = st3(T, band);
     // (the box: inked, lit down its left, shaded right, a parapet, a zigzag band, squiggles and confetti)
     box(g, x - 1, top - 1, w + 2, r.h + 1, T(INK)); box(g, x, top, w, r.h, Wl[1]);
     box(g, x, top, 4, r.h, Wl[2]); box(g, x + w - 10, top, 10, r.h, Wl[0]); checker(g, x + w - 12, top, 2, r.h, Wl[0], 0, 1);
     const zy = top + r.h * 0.42;
     for (let k = 0; k < w; k += 2) { const zz = Math.abs(((k / 2 + r.seed) % 12) - 6); box(g, x + k, zy + zz, 2, 7, Bd[1]); box(g, x + k, zy + zz, 2, 1, Bd[2]); }
-    g.strokeStyle = T(['#1F2937', '#DB2777', '#0D9488', '#7C3AED'][r.seed % 4]); g.lineWidth = 2; g.beginPath();
+    g.strokeStyle = T(['#1F2937', '#DB2777', '#0D9488', '#7C3AED'][((Math.floor(r.seed) % 4) + 4) % 4]); g.lineWidth = 2; g.beginPath();
     for (let k = 0; k <= 8; k++) { const sx = x + 8 + (k * (w - 16)) / 8, sy = top + r.h * 0.22 + (k % 2 ? -5 : 5); if (k) g.lineTo(sx, sy); else g.moveTo(sx, sy); } g.stroke();
     for (let k = 0; k < 10; k++) box(g, x + 4 + hash(r.seed + k * 3.1) * (w - 10), top + 6 + hash(r.seed * 2 + k) * (r.h - 16), 3, 2, T(['#FDE047', '#22D3EE', '#F472B6', '#A3E635'][k % 4]));
     // (windows along the bottom row, lit after dark; the parapet with its coping)
@@ -423,7 +423,7 @@ const paintRoofs = (g: Ctx, tod: TimeOfDay) => {
     }
     // (a rooftop billboard on some, behind the prop)
     if (r.seed % 5 === 2) {
-      const bw = Math.min(w - 10, 96), bx = x + 5, by = top - 46, labels = ['GAME ZONE', 'PIZZA PIT', 'RAD!', 'GNARLY', 'BOO-YAH!'], L = labels[r.seed % labels.length];
+      const bw = Math.min(w - 10, 96), bx = x + 5, by = top - 46, labels = ['GAME ZONE', 'PIZZA PIT', 'RAD!', 'GNARLY', 'BOO-YAH!'], L = labels[((Math.floor(r.seed) % labels.length) + labels.length) % labels.length];
       box(g, bx + 10, by + 30, 3, 14, T('#5A5470')); box(g, bx + bw - 13, by + 30, 3, 14, T('#5A5470'));
       box(g, bx - 1, by - 1, bw + 2, 32, T(INK)); box(g, bx, by, bw, 30, Bd[1]); box(g, bx, by, bw, 2, Bd[2]);
       signText(g, L, bx + bw / 2, by + 20, { sx: 1, sy: 2, bold: true, slant: 1, fill: [T('#FFFFFF'), T('#FDE047')], ink: T(INK) });

@@ -189,7 +189,7 @@ const paintExt = (g: Ctx, kind: CarKind, len: number) => {
     box(g, a, Dk - 26, w, 26, Bd[1]); checker(g, a, Dk - 30, w, 4, Bd[2], 0);
     // (the clerestory's panes)
     box(g, a + 6, Cl + 5, w - 12, 12, INK);
-    for (let x = a + 8; x < a + w - 12; x += 16) { box(g, x, Cl + 6, 13, 10, ['#B8862C', '#6A9A5A', '#B84A3A', '#5A7AA8'][Math.floor(x / 16) % 4]); box(g, x, Cl + 6, 13, 2, '#F2E2A8'); box(g, x + 13, Cl + 6, 3, 10, Bd[2]); }
+    for (let x = a + 8; x < a + w - 12; x += 16) { box(g, x, Cl + 6, 13, 10, ['#B8862C', '#6A9A5A', '#B84A3A', '#5A7AA8'][((Math.floor(x / 16) % 4) + 4) % 4]); box(g, x, Cl + 6, 13, 2, '#F2E2A8'); box(g, x + 13, Cl + 6, 3, 10, Bd[2]); }
     // (the letterboard)
     box(g, a + 8, Cl + 22, w - 16, 28, INK); box(g, a + 9, Cl + 23, w - 18, 26, Bd[2]); box(g, a + 9, Cl + 23, w - 18, 1, Bd[4]); box(g, a + 9, Cl + 48, w - 18, 1, Bd[0]);
     box(g, a + 12, Cl + 26, w - 24, 1, GOLD); box(g, a + 12, Cl + 45, w - 24, 1, GOLD);
@@ -447,7 +447,7 @@ const fitting = (g: Ctx, ft: Fit, seed: number) => {
       boards(g, fx, top, ft.w, h, P, 8, seed + ft.x);
       g.strokeStyle = INK; g.lineWidth = 3; g.beginPath(); g.moveTo(fx + 4, top + 4); g.lineTo(fx + ft.w - 4, top + h - 4); g.stroke(); g.strokeStyle = P[4]; g.lineWidth = 1; g.stroke();
       for (const [cx, cy] of [[fx, top], [fx + ft.w - 6, top], [fx, top + h - 6], [fx + ft.w - 6, top + h - 6]]) { box(g, cx, cy, 6, 6, S[2]); box(g, cx + 1, cy + 1, 1, 1, S[5]); }
-      const st = ['THIS SIDE UP', 'FRAGILE', 'W.L.R.R.', 'GIFT SHOP'][(seed + ft.x) % 4];
+      const st = ['THIS SIDE UP', 'FRAGILE', 'W.L.R.R.', 'GIFT SHOP'][((Math.floor(seed + ft.x) % 4) + 4) % 4];
       if (ft.w > 50) signText(g, st, fx + ft.w / 2, top + h / 2 + 4, { sx: 1, sy: 1, fill: '#2A1608' });
       lip(g, fx, top, ft.w);
       break;
@@ -514,7 +514,7 @@ const paintInt = (g: Ctx, kind: CarKind, len: number) => {
     // (the ceiling's curve: banded darker up into it, its ribs; the clerestory's little panes in the coaches and diners)
     for (let i = 0; i < 4; i++) box(g, a, Cl + i * 4, w, 4, mix(Cr[3], Cr[1], 1 - i / 4));
     for (let k = a + 30; k < a + w; k += 60) { box(g, k, Cl, 4, 18, Cr[1]); box(g, k, Cl, 1, 18, Cr[4]); }
-    if (kind !== 'caboose') for (let x = a + 8; x < a + w - 12; x += 16) { box(g, x, Cl + 2, 12, 8, ['#B8862C', '#6A9A5A', '#B84A3A', '#5A7AA8'][Math.floor(x / 16) % 4]); box(g, x, Cl + 2, 12, 1, '#F2E2A8'); }
+    if (kind !== 'caboose') for (let x = a + 8; x < a + w - 12; x += 16) { box(g, x, Cl + 2, 12, 8, ['#B8862C', '#6A9A5A', '#B84A3A', '#5A7AA8'][((Math.floor(x / 16) % 4) + 4) % 4]); box(g, x, Cl + 2, 12, 1, '#F2E2A8'); }
     if (kind === 'coach') {
       // (the seats: plush benches facing each other, low, brass-capped arms; the aisle runner)
       for (let k = 60; k < w - 40; k += 90) {

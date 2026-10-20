@@ -73,7 +73,7 @@ const COSTUME: Costume = {
       return;
     }
     // (a leather aviator cap: stepped, its seams, the ear flaps; the goggles up on the forehead, or down over the eyes)
-    const Lc = LEATHER[F.seed % 3];
+    const Lc = LEATHER[((Math.floor(F.seed) % 3) + 3) % 3];
     px(g, hx - rx - 1, hy - ry - 2, rx * 2 + 2, ry + 3, INK); px(g, hx - rx, hy - ry - 1, rx * 2, ry + 1, Lc[1]); px(g, hx - rx, hy - ry - 1, rx * 2, 2, Lc[2]);
     px(g, hx - rx, hy - ry + 1, 2, ry - 1, Lc[2]); px(g, hx, hy - ry - 1, 1, ry, Lc[0]);
     px(g, hx - rx - 1, hy - 1, 4, 8, INK); px(g, hx - rx, hy - 1, 3, 7, Lc[1]); px(g, hx - rx, hy + 5, 3, 1, Lc[0]);

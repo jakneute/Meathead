@@ -148,7 +148,7 @@ export const drawTowers = (c: Ctx, state: GameState, list: Tower[]) => {
       const u0 = i / n, u1 = (i + 1) / n, p0 = at(u0), p1 = at(u1);
       const cx = (p0.x + p1.x) / 2, cy = (p0.y + p1.y) / 2, hh = Math.hypot(p1.x - p0.x, p1.y - p0.y) + 2;
       const ww = 34 + ((i * 37 + Math.round(d.x)) % 5) * 5 - i * 1.5;
-      const col = cols[(i + Math.round(d.x / 97)) % cols.length], R = ramp6(col);
+      const col = cols[((Math.floor(i + Math.round(d.x / 97)) % cols.length) + cols.length) % cols.length], R = ramp6(col);
       c.save(); c.translate(cx, cy); c.rotate((p0.a + p1.a) / 2);
       const drum = () => { c.moveTo(-ww / 2, hh / 2); c.quadraticCurveTo(-ww / 2 - 6, 0, -ww / 2, -hh / 2); c.quadraticCurveTo(0, -hh / 2 - 5, ww / 2, -hh / 2); c.quadraticCurveTo(ww / 2 + 6, 0, ww / 2, hh / 2); c.quadraticCurveTo(0, hh / 2 + 5, -ww / 2, hh / 2); c.closePath(); };
       c.beginPath(); drum(); c.fillStyle = R[3]; c.fill();

@@ -314,7 +314,7 @@ const paintProp = (g: Ctx, kind: Prop, seed: number) => {
     case 'rack': {
       // (a costume rack: a rail of spare gowns and tabards, a shelf of tiaras on top, on castors)
       box(g, -40, -120, 4, 112, INK); box(g, 36, -120, 4, 112, INK); box(g, -40, -122, 80, 4, INK); box(g, -39, -121, 78, 2, Ir[4]);
-      for (let k = 0; k < 8; k++) { const col = ['#F49AC8', '#A8C8F0', '#C8A8F0', '#F6D365', '#D8609E', '#2E52A8', '#9AE6B4', '#C81E3A'][(k + seed) % 8], Cc = RC(col); polyF(g, [[-34 + k * 9, -118], [-28 + k * 9, -118], [-25 + k * 9, -40], [-37 + k * 9, -40]], INK); polyF(g, [[-33 + k * 9, -117], [-29 + k * 9, -117], [-26 + k * 9, -41], [-36 + k * 9, -41]], Cc[3]); box(g, -33 + k * 9, -117, 1, 76, Cc[5]); }
+      for (let k = 0; k < 8; k++) { const col = ['#F49AC8', '#A8C8F0', '#C8A8F0', '#F6D365', '#D8609E', '#2E52A8', '#9AE6B4', '#C81E3A'][((Math.floor(k + seed) % 8) + 8) % 8], Cc = RC(col); polyF(g, [[-34 + k * 9, -118], [-28 + k * 9, -118], [-25 + k * 9, -40], [-37 + k * 9, -40]], INK); polyF(g, [[-33 + k * 9, -117], [-29 + k * 9, -117], [-26 + k * 9, -41], [-36 + k * 9, -41]], Cc[3]); box(g, -33 + k * 9, -117, 1, 76, Cc[5]); }
       for (let k = 0; k < 5; k++) { const tx = -32 + k * 16; polyF(g, [[tx - 5, -124], [tx - 4, -132], [tx - 1, -127], [tx + 1, -134], [tx + 3, -127], [tx + 6, -132], [tx + 7, -124]], Gd[3]); box(g, tx, -129, 2, 2, PINK[4]); }
       for (const px of [-36, 36]) { box(g, px - 4, -8, 8, 8, INK); box(g, px - 3, -7, 6, 6, Ir[2]); }
       break;
@@ -373,7 +373,7 @@ const item = (g: Ctx, kind: typeof ITEMS[number], x: number, y: number, seed: nu
     case 'wand': for (let k = 0; k < 3; k++) { box(g, x + k * 4, y - 16, 2, 16, Tm[3 + (k % 2)]); box(g, x + k * 4, y - 17, 2, 2, Gd[4]); } box(g, x - 1, y - 6, 12, 6, Tm[2]); break;
     case 'globe': g.fillStyle = INK; g.beginPath(); g.arc(x + 6, y - 9, 6, 0, Math.PI * 2); g.fill(); g.fillStyle = '#C8E0F8'; g.beginPath(); g.arc(x + 6, y - 9, 5, 0, Math.PI * 2); g.fill(); box(g, x + 4, y - 9, 4, 4, R(PALE)[4]); box(g, x + 5, y - 11, 2, 2, Pk[3]); box(g, x + 3, y - 12, 1, 1, '#FFFFFF'); box(g, x + 1, y - 3, 10, 3, Gd[2]); break;
     case 'mug': box(g, x, y - 10, 9, 10, INK); box(g, x + 1, y - 9, 7, 9, seed % 2 ? '#F4F0FA' : Pk[4]); box(g, x + 8, y - 8, 3, 5, INK); box(g, x + 2, y - 6, 4, 2, Pk[2]); break;
-    case 'book': box(g, x, y - 14, 10, 14, INK); box(g, x + 1, y - 13, 8, 13, ['#6E0E1C', '#1E3A6E', '#2E5A3A'][seed % 3]); box(g, x + 2, y - 11, 6, 1, Gd[4]); box(g, x + 2, y - 4, 6, 1, Gd[4]); break;
+    case 'book': box(g, x, y - 14, 10, 14, INK); box(g, x + 1, y - 13, 8, 13, ['#6E0E1C', '#1E3A6E', '#2E5A3A'][((Math.floor(seed) % 3) + 3) % 3]); box(g, x + 2, y - 11, 6, 1, Gd[4]); box(g, x + 2, y - 4, 6, 1, Gd[4]); break;
     case 'hat': polyF(g, [[x, y], [x + 12, y], [x + 7, y - 18], [x + 5, y - 18]], INK); polyF(g, [[x + 1, y - 1], [x + 11, y - 1], [x + 7, y - 17], [x + 5, y - 17]], Pk[3]); box(g, x + 5, y - 20, 2, 3, '#FFFFFF'); break;
     case 'cup': box(g, x + 2, y - 12, 8, 7, INK); box(g, x + 3, y - 11, 6, 5, Gd[3]); box(g, x + 5, y - 6, 2, 4, Gd[2]); box(g, x + 2, y - 2, 8, 2, Gd[2]); break;
   }
@@ -507,7 +507,7 @@ const paintVeil = (g: Ctx, w: number, sx: number) => {
     if (x < -90 || x > w + 90) continue;
     box(g, x - 46, -128, 92, 82, INK); box(g, x - 44, -126, 88, 78, Tm[3]); box(g, x - 40, -122, 80, 70, G[2]);
     for (let k = 0; k < 4; k++) box(g, x - 40, -122 + k * 18, 80, 9, G[3 + (k % 2)]);
-    for (let i = 0; i < 5; i++) item(g, ITEMS[(i + Math.floor(rx / 240)) % ITEMS.length], x - 36 + i * 15, -56, i);
+    for (let i = 0; i < 5; i++) item(g, ITEMS[((Math.floor(i + Math.floor(rx / 240)) % ITEMS.length) + ITEMS.length) % ITEMS.length], x - 36 + i * 15, -56, i);
     for (let k = 0; k < 6; k++) box(g, x - 40 + k * 16, -122, 1, 70, INK); for (let k = 0; k < 5; k++) box(g, x - 40, -122 + k * 17, 80, 1, INK);
     g.globalAlpha = 0.25; polyF(g, [[x - 40, -96], [x - 14, -122], [x, -122], [x - 40, -80]], '#FFFFFF'); g.globalAlpha = 1;
     box(g, x - 48, -46, 96, 6, INK); box(g, x - 47, -45, 94, 4, S[5]);

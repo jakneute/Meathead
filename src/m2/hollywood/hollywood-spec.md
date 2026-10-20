@@ -198,10 +198,8 @@ stays on REAL, the room wrecked, the narrator still looping over the real thing.
 **Stunt** (the arena, the boss): STUNTMAN STEVE'S STUPENDOUS STUNTERY. The stunt-show set (grandstands half empty, a
 ramp, a car on a cable, a fire ring, crash mats, a giant banner of Steve's face, a monitor looping his few frames from a
 real film). Steve: a washed-up 80s stunt double, still has his balls, lost his athleticism (sidestepping an oncoming
-car is the show). **The fight isn't designed yet: don't design it.** Build the stage, its look, his entrance as a
-cutscene beat when the time comes; keep the skeleton's stand-in (VICTORY -> walk-away -> hub, markLandCleared
-('hollywood')) till the user gives the fight. A big health + ammo refill before the stage's door. The walk-away is
-walkAway/stuntmanSteve.ts (placeholder; his toy: the STUNT_CAR).
+car is the show). The fight is built now, to the user's design (see the decisions log). A big health + ammo refill
+before the stage's door. The walk-away is walkAway/stuntmanSteve.ts (his toy: the STUNT_CAR).
 
 ## Decisions log
 

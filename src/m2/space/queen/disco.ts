@@ -131,7 +131,7 @@ const pillar = (g: Ctx, x: number, w = 30) => {
   const bw = w / bands.length;
   bands.forEach((col, i) => px(g, x + i * bw, GY - 600, Math.ceil(bw), 600, col));
   // (the hall's colors caught in it, down its shine)
-  for (let y = GY - 560; y < GY - 20; y += 34) px(g, x + bw * 4, y, bw, 6, ['#F9A8D4', '#A5F3FC', '#C4B5FD', '#FEF08A'][Math.floor(y / 34) % 4]);
+  for (let y = GY - 560; y < GY - 20; y += 34) px(g, x + bw * 4, y, bw, 6, ['#F9A8D4', '#A5F3FC', '#C4B5FD', '#FEF08A'][((Math.floor(y / 34) % 4) + 4) % 4]);
   for (const [y, h] of [[GY - 24, 24], [GY - 600, 16]] as const) { px(g, x - 6, y, w + 12, h, '#18181B'); px(g, x - 5, y + 1, w + 10, h - 2, '#71717A'); px(g, x - 5, y + 1, w + 10, 2, '#D4D4D8'); }
 };
 

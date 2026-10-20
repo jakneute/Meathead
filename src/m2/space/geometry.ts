@@ -37,7 +37,7 @@ export const SECTIONS = {
   orbit: { x0: SPX + 58000, x1: SPX + 78000 },
   /** The impact site (dead aliens, escaping ones), then the space haunted house. */
   crater: { x0: SPX + 81000, x1: SPX + 93500 },
-  /** The haunted house's showpiece room: the queen alien behind glass; the placeholder boss. */
+  /** The haunted house's showpiece room: the queen alien behind glass; the boss fight. */
   queen: { x0: SPX + 96500, x1: SPX + 106000 },
 } as const;
 export type SpaceId = keyof typeof SECTIONS;

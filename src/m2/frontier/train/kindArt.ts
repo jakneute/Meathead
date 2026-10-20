@@ -270,7 +270,7 @@ const GALLOP: [number, number][][] = [
 const LIFT = [[6, 2, 4, 0], [0, 6, 0, 4], [2, 0, 6, 2], [4, 0, 2, 6]];
 const horseBob = (f: number) => [0, -3, -1, -2][Math.floor(f / 4) % 4];
 const paintHorse = (g: Ctx, seed: number, fr: number) => {
-  const C = COATS[seed % COATS.length], coat = C.coat, mane = C.mane, blanket = pickOf(seed, 4, ['#B91C1C', '#1D4ED8', '#CA8A04', '#15803D']);
+  const C = COATS[((Math.floor(seed) % COATS.length) + COATS.length) % COATS.length], coat = C.coat, mane = C.mane, blanket = pickOf(seed, 4, ['#B91C1C', '#1D4ED8', '#CA8A04', '#15803D']);
   const leg = (hx: number, hy: number, kx: number, fx: number, lift: number, far: boolean, sock: boolean) => {
     const col = far ? dk(coat, 0.22) : coat, ky = -20 - lift * 0.5, fy = -3 - lift;
     stroke(g, hx, hy, hx + kx * 0.5, ky, far ? 7 : 8, col);

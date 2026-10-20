@@ -45,7 +45,7 @@ const steveFace = (g: Ctx, x: number, y: number, s: number) => {
 /** A Steve card (a flier taped up, a poster in a frame), its middle at (x, y), `s` its scale. */
 export const steveCard = (g: Ctx, x: number, y: number, s: number, seed: number, kind: 'flier' | 'poster' = 'flier') => {
   const w = Math.round(44 * s), h = Math.round(60 * s), l = Math.round(x - w / 2), t = Math.round(y - h / 2);
-  const Y = STEVE, paper = [Y[3], Y[4], Y[3]][seed % 3];
+  const Y = STEVE, paper = [Y[3], Y[4], Y[3]][((Math.floor(seed) % 3) + 3) % 3];
   if (kind === 'poster') { box(g, l - 4, t - 4, w + 8, h + 8, INK); box(g, l - 3, t - 3, w + 6, h + 6, BRASS[2]); box(g, l - 3, t - 3, w + 6, 1, BRASS[5]); box(g, l - 3, t - 3, 1, h + 6, BRASS[4]); }
   box(g, l - 1, t - 1, w + 2, h + 2, INK);
   box(g, l, t, w, h, paper); box(g, l, t, w, Math.max(1, 2 * s), Y[5]); box(g, l, t, Math.max(1, 2 * s), h, Y[5]);

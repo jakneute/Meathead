@@ -581,7 +581,7 @@ const walkers = (c: Ctx, cam: number, f: number, r: number, y: number) => {
     const x = Math.round(((((hash(seed * 4.1) * 1400 + f * v - cam * par) % 1400) + 1400) % 1400) - 200);
     if (x < -10 || x > W + 10) continue;
     const step = Math.floor(f * Math.abs(v) * 0.5 + i) % 2;
-    const skin = H(['#E0B48A', '#8A5A3A', '#C68E62', '#F0C8A0'][(seed * 3) % 4]), shirt = H(['#B91C1C', '#F8FAFC', '#1E3A8A', '#CA8A04', '#166534'][seed % 5]);
+    const skin = H(['#E0B48A', '#8A5A3A', '#C68E62', '#F0C8A0'][((Math.floor(seed * 3) % 4) + 4) % 4]), shirt = H(['#B91C1C', '#F8FAFC', '#1E3A8A', '#CA8A04', '#166534'][((Math.floor(seed) % 5) + 5) % 5]);
     const hgt = 14 * s;
     box(c, x - 3 * s, y - 1, 7 * s, 2, 'rgba(14, 12, 18, 0.3)');
     box(c, x - s, y - hgt * 0.42, Math.max(1, 1.5 * s), hgt * 0.42 - (step ? 1 : 0), H('#2A3550'));

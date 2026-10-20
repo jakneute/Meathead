@@ -6,6 +6,7 @@
 // Shared file (see OWNERSHIP.md): section owners may only append minimally, and must re-read it before editing.
 
 import { sleepFar, wakeNear } from '../dormant';
+import { fenced } from '../../m1/game/render/fence';
 import { drownLanders } from '../drown';
 import type { StageLayout } from '../../m1/game/stages/index';
 import type { GameState } from '../../m1/game/core/state';
@@ -162,21 +163,21 @@ export const frontierLayout: StageLayout = {
   footstep: (_state, floor) => (floor.oneWay ? 'wood' : 'dirt'),
   drawBackdrop: (c, state) => {
     const sec = current(state);
-    if (sec.drawBackdrop?.(c, state)) return true;
+    if (sec.drawBackdrop && fenced(c, sec.id, () => sec.drawBackdrop!(c, state), 'drawBackdrop')) return true;
     return frontierSky(c, state);
   },
-  drawBack: (c, state) => { for (const id of near(state)) ALL[id].drawBack?.(c, state); },
+  drawBack: (c, state) => { for (const id of near(state)) { const s = ALL[id]; if (s.drawBack) fenced(c, id, () => s.drawBack!(c, state), 'drawBack'); } },
   drawFront: (c, state) => {
     // (a grab's in the play plane: anything the sections draw in front of him goes in front of it too)
     const fs = getFrontier(state) as FrontierState | null;
     if (fs) drawGrab(c, state, fs.grab);
-    for (const id of near(state)) ALL[id].drawFront?.(c, state);
+    for (const id of near(state)) { const s = ALL[id]; if (s.drawFront) fenced(c, id, () => s.drawFront!(c, state), 'drawFront'); }
     drawAir(c, state);
   },
   drawHud: (c, state) => {
     const sec = current(state);
     drawNotedSunFlare(c, sec.outdoors?.(state) ?? 0, sec.cylinder ? undefined : state);
-    sec.drawHud?.(c, state);
+    if (sec.drawHud) fenced(c, sec.id, () => sec.drawHud!(c, state), 'drawHud');
     const fs = getFrontier(state) as FrontierState | null;
     if (fs?.arrive) drawPortalArrival(c, state, fs.arrive);
   },

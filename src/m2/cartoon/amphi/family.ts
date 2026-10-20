@@ -86,7 +86,7 @@ const hardware = (c: Ctx, nx: number, ny: number, a: Anim, floorDy: number) => {
   if (a.mode === 'glitch' && (a.f % 9) < 4) sparks(c, nx + 1, ny, a.f);
 };
 /** A glitching head's tick (a jolt off to one side, held, then snapped back), or the slump's droop. */
-const headTurn = (a: Anim, seed: number) => (a.mode === 'off' ? 0.5 : a.mode === 'glitch' ? [0, 0.6, -0.4, 1.4, 0, -0.9, 2.6, 0.2][Math.floor((a.f + seed * 5) / 7) % 8] : 0);
+const headTurn = (a: Anim, seed: number) => (a.mode === 'off' ? 0.5 : a.mode === 'glitch' ? [0, 0.6, -0.4, 1.4, 0, -0.9, 2.6, 0.2][((Math.floor((a.f + seed * 5) / 7) % 8) + 8) % 8] : 0);
 
 // ---------------------------------------------------------------------------------------------------------------
 

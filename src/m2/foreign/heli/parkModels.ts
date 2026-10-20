@@ -234,7 +234,7 @@ const canada = (b: MB) => {
   // (the carved poles: plywood, painted in bands, the wings bolted across the top)
   for (const [x, z, n] of [[-20, -16, 4], [6, -24, 3]] as const) {
     const cols = [PLY, LACQ, SKYB, OCH];
-    for (let k = 0; k < n; k++) { b.begin(cols[(k + (x < 0 ? 0 : 1)) % 4]); box(b, x, x + 8, k * 14, k * 14 + 14, z, z + 6, { front: { k: 'panel' } }); }
+    for (let k = 0; k < n; k++) { b.begin(cols[((Math.floor(k + (x < 0 ? 0 : 1)) % 4) + 4) % 4]); box(b, x, x + 8, k * 14, k * 14 + 14, z, z + 6, { front: { k: 'panel' } }); }
     b.begin(PLY, 0, true); box(b, x - 8, x + 16, n * 14 - 4, n * 14, z + 1, z + 4);
   }
   // (THE FALLS: the rock in strata, the snow on its top, the water down its face, the pool at its foot)

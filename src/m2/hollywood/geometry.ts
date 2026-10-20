@@ -37,7 +37,7 @@ export const SECTIONS = {
   /** Every disaster at once: wind, lava rivers, crumbling buildings, the flood climb, the tornado chase, the fling. */
   // (x1 widened into the gap: the blizzard downhill made longer, the tornado chase after it)
   havoc: { x0: HWX + 69000, x1: HWX + 91000 },
-  /** STUNTMAN STEVE'S STUPENDOUS STUNTERY: the stunt stage, the boss (the skeleton's stand-in for now). */
+  /** STUNTMAN STEVE'S STUPENDOUS STUNTERY: the stunt stage, the boss fight. */
   stunt: { x0: HWX + 91500, x1: HWX + 94500 },
 } as const;
 export type HollywoodId = keyof typeof SECTIONS;

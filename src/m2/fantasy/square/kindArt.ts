@@ -70,7 +70,7 @@ const wand = (g: Ctx, x: number, y: number, a: number, lit: boolean) => {
   g.restore();
 };
 const paintClerk = (g: Ctx, F: Frame) => {
-  const B = bodyOf(F.seed, F.pose, F.fr), L = B.L, [robe, trim] = HOUSES[F.seed % 4];
+  const B = bodyOf(F.seed, F.pose, F.fr), L = B.L, [robe, trim] = HOUSES[((Math.floor(F.seed) % 4) + 4) % 4];
   const robeCol = '#24222E';
   legs(g, B, { col: '#3A3440', shoe: 'shoe', shoeCol: '#18181B' });
   const cast = F.pose === 'tell', poke = F.pose === 'strike';
@@ -158,7 +158,7 @@ export const drawPrincess = (c: Ctx, e: Enemy, f: number, seed: number) => {
 const TABARDS: [string, string][] = [['#1E40AF', '#F6D365'], ['#B91C1C', '#F8FAFC'], ['#166534', '#F6D365'], ['#7C3AED', '#F8FAFC']];
 const PLATE = '#A8AEB8';
 const paintKnight = (g: Ctx, F: Frame) => {
-  const B = bodyOf(F.seed, F.pose, F.fr), [tab, stripe] = TABARDS[(F.seed >> 1) % 4];
+  const B = bodyOf(F.seed, F.pose, F.fr), [tab, stripe] = TABARDS[((Math.floor(F.seed >> 1) % 4) + 4) % 4];
   const couched = F.v === 'couch';
   legs(g, B, { col: PLATE, shoe: 'boot', shoeCol: '#6A707A', detail: (g2, _h, knee) => { ball(g2, knee[0], knee[1], 3, PLATE, 1); px(g2, knee[0] - 1, knee[1] - 1, 1, 1, '#FFFFFF'); } });
   const H = handsAt(B, F, [-B.w / 2 - 4, B.shY + 16], couched ? [B.w / 2 + 6, B.shY + 14] : [B.w / 2 + 8, B.shY + 12]);
@@ -211,7 +211,7 @@ export const drawKnight = (c: Ctx, e: Enemy, f: number, seed: number) => {
 
 const JERSEYS: [string, string][] = [['#DC2626', '#F8FAFC'], ['#1D4ED8', '#FACC15'], ['#15803D', '#F8FAFC'], ['#7E22CE', '#FACC15'], ['#EA580C', '#18181B']];
 const paintBro = (g: Ctx, F: Frame) => {
-  const B = bodyOf(F.seed, F.pose, F.fr), L = B.L, [jer, num] = JERSEYS[(F.seed >> 2) % 5];
+  const B = bodyOf(F.seed, F.pose, F.fr), L = B.L, [jer, num] = JERSEYS[((Math.floor(F.seed >> 2) % 5) + 5) % 5];
   const wind = F.pose === 'tell', bump = F.pose === 'strike', fin = num === '#18181B' ? '#FACC15' : num;
   legs(g, B, { col: '#3F3F46', shoe: 'sneaker', shoeCol: '#F4F4F5', bareBelow: true, detail: (g2, _h, knee, _f, near) => { if (near) px(g2, knee[0] - 3, knee[1] + 3, 6, 2, '#F4F4F5'); } });
   const H = handsAt(B, F, wind ? [-B.w / 2 - 14, B.shY + 2] : [-B.w / 2 - 8, B.shY - 10], wind ? [-B.w / 2 - 2, B.shY - 8] : bump ? [B.w / 2 + 4, B.shY + 4] : [B.w / 2 + 6, B.shY + 16]);
@@ -345,7 +345,7 @@ export const drawDragon = (c: Ctx, e: Enemy, f: number) => {
   const r = reaction(e), md = r?.md ?? moodOf(e), isDead = md === 'dead';
   const pose = r?.pose ?? moving(e);
   const seed = seedOfE(e);
-  const SUIT = ['#4CA84A', '#8A4ACF', '#D0402E'][seed % 3], BELLY = '#F2D98A', WING = ['#6A2E8A', '#E07A2A', '#2E6A8A'][seed % 3];
+  const SUIT = ['#4CA84A', '#8A4ACF', '#D0402E'][((Math.floor(seed) % 3) + 3) % 3], BELLY = '#F2D98A', WING = ['#6A2E8A', '#E07A2A', '#2E6A8A'][((Math.floor(seed) % 3) + 3) % 3];
   const isFlat = pose === 'limp' || (isDead && !r), hurt = md === 'hurt';
   const rear = e.aiState === 'rear', breathe = e.aiState === 'breathe';
   const wf = pose === 'walk' ? Math.floor(f / 5) % 6 : 0, walk = pose === 'walk' ? Math.sin((wf / 6) * Math.PI * 2) * 5 : 0;

@@ -317,7 +317,7 @@ const totem = (g: Ctx, x: number, foot: number, t: T, seed: number) => {
   stepped(g, l, foot - h, w, h, W, [3, 4, 3, 2, 2, 2, 1, 1, 0]);
   const paint = ['#B8382A', '#2A8A8A', '#D8A82A'];
   for (let k = 0; k < 3; k++) {
-    const fy = foot - h + 8 + k * 50, col = t(paint[(k + seed) % 3]);
+    const fy = foot - h + 8 + k * 50, col = t(paint[((Math.floor(k + seed) % 3) + 3) % 3]);
     // (the brow band, painted)
     box(g, l, fy, w, 6, col); box(g, l, fy, w, 1, t('#FFF0C8')); for (let c = 0; c < w; c += 5) if (hash(seed + c + k) > 0.6) box(g, l + c, fy + 2, 3, 3, W[2]);
     // (the eyes: big ovals, bored; the nose; the mouth: teeth or a tongue out)

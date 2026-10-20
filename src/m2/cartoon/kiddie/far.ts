@@ -111,7 +111,7 @@ const paintHills = (g: Ctx, tod: TimeOfDay) => {
     let last = -1;
     for (let y = y0; y < HH; y += 2) {
       const band = Math.floor((x * 0.45 + (y - y0) * 2.4 + Math.sin(x * 0.011) * 40 + 2000) / 18), fi = Math.floor(band / 4) % FIELDS.length;
-      const f = F[(fi + Math.floor(x / 160)) % F.length];
+      const f = F[((Math.floor(fi + Math.floor(x / 160)) % F.length) + F.length) % F.length];
       box(g, x, y, 2, 2, (band + (y >> 1)) % 4 === 0 ? f[1] : f[0]);
       if (last >= 0 && fi !== last) box(g, x, y, 2, 2, hedge);
       last = fi;
@@ -335,11 +335,11 @@ const paintRoofs = (g: Ctx, tod: TimeOfDay) => {
   const T = farCol(tod, 0.16);
   box(g, 0, RG - 10, RW, RH - RG + 10, T('#B4A4CC'));
   for (const r of ROOFS) {
-    const x = r.x, w = r.w, top = RG - r.h, wall = WALLS[r.seed % WALLS.length], roof = TOPS[(r.seed * 3) % TOPS.length];
+    const x = r.x, w = r.w, top = RG - r.h, wall = WALLS[((Math.floor(r.seed) % WALLS.length) + WALLS.length) % WALLS.length], roof = TOPS[((Math.floor(r.seed * 3) % TOPS.length) + TOPS.length) % TOPS.length];
     if (r.kind === 'truffula') {
       const bend = (hash(r.seed) - 0.5) * 18, cx = x + w / 2;
       for (let y = 0; y < r.h; y += 2) box(g, cx + bend * (y / r.h) ** 2 - 1, RG - y - 2, 3, 2, (y >> 1) % 3 ? T('#F6EEDC') : T('#4A3A5A'));
-      const tc = ['#F472B6', '#FDE047', '#C084FC', '#5EEAD4', '#FB923C'][r.seed % 5];
+      const tc = ['#F472B6', '#FDE047', '#C084FC', '#5EEAD4', '#FB923C'][((Math.floor(r.seed) % 5) + 5) % 5];
       pixelBlob(g, cx + bend, RG - r.h - 8, 15, 11, T(mix(tc, INK, 0.3))); pixelBlob(g, cx + bend - 1, RG - r.h - 10, 13, 9, T(tc)); pixelBlob(g, cx + bend - 5, RG - r.h - 13, 5, 4, T(mix(tc, '#FFFFFF', 0.45)));
       for (let k = 0; k < 6; k++) box(g, cx + bend - 12 + k * 5, RG - r.h - 2 + (k % 2) * 2, 2, 3, T(mix(tc, INK, 0.3)));
       continue;
@@ -370,9 +370,9 @@ const paintRoofs = (g: Ctx, tod: TimeOfDay) => {
       g.fillStyle = R[2]; g.beginPath(); g.moveTo(tx - w / 2 - 3, top + 1); g.quadraticCurveTo(tx - w * 0.1, top - w * 1.1, tx - w * 0.05, top - w * 0.8); g.lineTo(tx - w * 0.2, top); g.closePath(); g.fill();
       g.fillStyle = T('#FFFFFF'); g.beginPath(); g.arc(tx + f * w * 0.8, top - w * 0.8, 4, 0, Math.PI * 2); g.fill();
     } else if (r.kind === 'balls') {
-      for (let k = 0; k < 3; k++) { const rr = w / 2 - k * 6, cy = top - 6 - k * 13, col = TOPS[(r.seed + k) % TOPS.length]; g.fillStyle = T(INK); g.beginPath(); g.ellipse(tx, cy, rr + 1, 8, 0, 0, Math.PI * 2); g.fill(); g.fillStyle = T(col); g.beginPath(); g.ellipse(tx, cy, rr, 7, 0, 0, Math.PI * 2); g.fill(); g.fillStyle = T(mix(col, '#FFFFFF', 0.4)); g.beginPath(); g.ellipse(tx - rr * 0.3, cy - 3, rr * 0.4, 2, 0, 0, Math.PI * 2); g.fill(); }
+      for (let k = 0; k < 3; k++) { const rr = w / 2 - k * 6, cy = top - 6 - k * 13, col = TOPS[((Math.floor(r.seed + k) % TOPS.length) + TOPS.length) % TOPS.length]; g.fillStyle = T(INK); g.beginPath(); g.ellipse(tx, cy, rr + 1, 8, 0, 0, Math.PI * 2); g.fill(); g.fillStyle = T(col); g.beginPath(); g.ellipse(tx, cy, rr, 7, 0, 0, Math.PI * 2); g.fill(); g.fillStyle = T(mix(col, '#FFFFFF', 0.4)); g.beginPath(); g.ellipse(tx - rr * 0.3, cy - 3, rr * 0.4, 2, 0, 0, Math.PI * 2); g.fill(); }
     } else if (r.kind === 'cake') {
-      for (let k = 0; k < 3; k++) { const ww = w - k * 10, hh = 12, cy = top - k * hh; box(g, tx - ww / 2 - 1, cy - hh - 1, ww + 2, hh + 2, T(INK)); box(g, tx - ww / 2, cy - hh, ww, hh, T(TOPS[(r.seed + k * 2) % TOPS.length])); box(g, tx - ww / 2, cy - hh, ww, 3, T('#FFF4FA')); for (let d = tx - ww / 2 + 3; d < tx + ww / 2 - 2; d += 6) box(g, d, cy - hh + 3, 3, 2 + ((d | 0) % 3), T('#FFF4FA')); }
+      for (let k = 0; k < 3; k++) { const ww = w - k * 10, hh = 12, cy = top - k * hh; box(g, tx - ww / 2 - 1, cy - hh - 1, ww + 2, hh + 2, T(INK)); box(g, tx - ww / 2, cy - hh, ww, hh, T(TOPS[((Math.floor(r.seed + k * 2) % TOPS.length) + TOPS.length) % TOPS.length])); box(g, tx - ww / 2, cy - hh, ww, 3, T('#FFF4FA')); for (let d = tx - ww / 2 + 3; d < tx + ww / 2 - 2; d += 6) box(g, d, cy - hh + 3, 3, 2 + ((d | 0) % 3), T('#FFF4FA')); }
       g.fillStyle = T('#E2283E'); g.beginPath(); g.arc(tx, top - 40, 4, 0, Math.PI * 2); g.fill();
     } else if (r.kind === 'corkscrew') {
       for (let y = 0; y < w * 1.6; y += 2) { const ww = (w / 2 + 4) * (1 - y / (w * 1.6)); box(g, tx - ww, top - y - 2, ww * 2, 2, ((y + (r.seed % 6)) >> 2) % 2 ? R[1] : T('#FFF4F8')); box(g, tx + ww * 0.4, top - y - 2, ww * 0.6, 2, ((y + (r.seed % 6)) >> 2) % 2 ? R[0] : T('#D8C8DC')); box(g, tx - ww, top - y - 2, 2, 2, R[2]); }

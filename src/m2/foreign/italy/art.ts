@@ -154,7 +154,7 @@ export const laundry = (c: Ctx, x0: number, y0: number, x1: number, y1: number, 
   const n = Math.max(2, Math.floor(Math.abs(x1 - x0) / 34));
   const COLS = ['#F8FAFC', '#DC2626', '#60A5FA', '#FDE68A', '#F472B6', '#16A34A', '#F8FAFC'];
   for (let i = 0; i < n; i++) {
-    const [fx, fy] = pt((i + 0.5) / n), x = Math.round(fx), y = Math.round(fy), kind = Math.floor(hash(seed + i * 3.7) * 4), R = T(COLS[(seed + i) % COLS.length]);
+    const [fx, fy] = pt((i + 0.5) / n), x = Math.round(fx), y = Math.round(fy), kind = Math.floor(hash(seed + i * 3.7) * 4), R = T(COLS[((Math.floor(seed + i) % COLS.length) + COLS.length) % COLS.length]);
     const cloth = (pts: [number, number][]) => { poly(c, pts.map(([a, b]) => [x + a + (a < 0 ? -1 : 1), y + b + (b > 2 ? 1 : 0)] as [number, number]), INK); poly(c, pts.map(([a, b]) => [x + a, y + b] as [number, number]), R[3]); };
     if (kind === 0) {
       // (a T-shirt)
@@ -661,7 +661,7 @@ const paintHillTown = (g: Ctx, w: number, h: number, seed: number) => {
   const COLS = ['#E8A85C', '#E2725B', '#F2E6CC', '#D98C7A', '#F4A259'];
   const n = Math.max(1, Math.round(w / 110));
   for (let i = 0; i < n; i++) {
-    const hw = w / n + 10, hx = i * (w / n) - 5, hh = Math.round(h * (0.45 + 0.55 * ((i + 0.5) / n)) * (0.85 + hash(seed + i) * 0.15)), R = ramp6(dimmed(COLS[(seed + i) % COLS.length]));
+    const hw = w / n + 10, hx = i * (w / n) - 5, hh = Math.round(h * (0.45 + 0.55 * ((i + 0.5) / n)) * (0.85 + hash(seed + i) * 0.15)), R = ramp6(dimmed(COLS[((Math.floor(seed + i) % COLS.length) + COLS.length) % COLS.length]));
     box(g, hx - 1, -hh - 1, hw + 2, hh + 1, INK); slab(g, hx, -hh, hw, hh, R, true); stucco(g, hx, -hh, hw, hh, R, seed + i);
     poly(g, [[hx - 8, -hh + 2], [hx + hw / 2, -hh - 30], [hx + hw + 8, -hh + 2]], INK);
     g.save(); g.beginPath(); g.moveTo(hx - 7, -hh + 1); g.lineTo(hx + hw / 2, -hh - 29); g.lineTo(hx + hw + 7, -hh + 1); g.closePath(); g.clip(); barrelTile(g, hx - 8, -hh - 30, hw + 16, 32, Rf, 5); box(g, hx + hw / 2, -hh - 30, hw / 2 + 8, 32, 'rgba(28, 16, 20, 0.2)'); g.restore();

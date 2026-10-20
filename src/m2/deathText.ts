@@ -13,6 +13,11 @@ import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../m1/constants';
 type Ctx = CanvasRenderingContext2D;
 const FONT = '"Press Start 2P"';
 
+/** The house rule: a death screen's text is one line, 28 characters at most (checked in dev: here, and as each
+ *  source's lines are registered, kinds.ts registerHurtLines). */
+export const DEATH_TEXT_MAX = 28;
+const warnedLong = new Set<string>();
+
 /** Frames between letters dropping in; each one's drop; when the bleeding starts (after its letter's landed). */
 const GAP = 2, DROP = 10, BLEED_AFTER = 8;
 /** The blood, in steps: its darkest edge up to the wet glint. */
@@ -155,6 +160,11 @@ const begin = (ctx: Ctx, text: string, frame: number): Shown => {
 
 export const drawM2DeathMessage = (ctx: Ctx, state: GameState, text: string) => {
   const frame = state.frame;
+  // (dev only: over the house rule's length, said once per text, whatever it came from)
+  if (import.meta.env.DEV && text.length > DEATH_TEXT_MAX && !warnedLong.has(text)) {
+    warnedLong.add(text);
+    console.warn(`[death text] "${text}" is ${text.length} characters (max ${DEATH_TEXT_MAX})`);
+  }
   // (a new death, or the clock gone back (a new stage): from the top)
   if (!shown || shown.text !== text || frame < shown.last || frame - shown.last > 30) shown = begin(ctx, text, frame);
   const S = shown;

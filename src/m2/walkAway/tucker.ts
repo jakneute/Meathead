@@ -286,8 +286,8 @@ const paintDrag = (dir: number, seed: number) => (g: Ctx, w: number, h: number) 
   for (let x = 0; x < w; x += 2) {
     const u = x / w, y = h * 0.5 + Math.sin(u * 3 + seed) * h * 0.12;
     // (the leaves heaped along the furrows' edges)
-    box(g, x, y - h * 0.34, 2, 1, [GOLD[5], RUSSET[5], BROWN[4]][(x >> 1) % 3]);
-    box(g, x, y + h * 0.3, 2, 1, [GOLD[4], RUSSET[4], BROWN[3]][(x >> 1) % 3]);
+    box(g, x, y - h * 0.34, 2, 1, [GOLD[5], RUSSET[5], BROWN[4]][((Math.floor(x >> 1) % 3) + 3) % 3]);
+    box(g, x, y + h * 0.3, 2, 1, [GOLD[4], RUSSET[4], BROWN[3]][((Math.floor(x >> 1) % 3) + 3) % 3]);
     // (the earth, dark, gouged)
     box(g, x, y - h * 0.24, 2, h * 0.18, DUFF[1]); box(g, x, y + h * 0.06, 2, h * 0.18, DUFF[1]);
     box(g, x, y - h * 0.24, 2, 1, DUFF[0]); box(g, x, y + h * 0.06, 2, 1, DUFF[0]);

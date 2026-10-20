@@ -249,10 +249,12 @@ export const temple: Section = {
   id: 'temple', x0, x1,
   checkpoints: [
     { name: 'THE TEMPLE (BACKSTAGE)', cp: 40, x: T + 150, y: GY },
-    { name: 'SMOKE AND MIRRORS', cp: 41, x: T + 3050, y: GY },
+    // (past the catapult's crew, short of the darts' run (they fall at T + 1750): halfway to the snake)
+    { name: 'THE DART TRAP', cp: 41, x: T + 1720, y: GY },
+    { name: 'SMOKE AND MIRRORS', cp: 42, x: T + 3050, y: GY },
     // (down off the snake's scaffold, past its reach (it only runs short of here): the station ahead; the loading
     // scene still to come, as it would be (it's never been, this far on: it hands him straight to the cart))
-    { name: 'THE LOADING STATION', cp: 42, x: T + 4300, y: GY },
+    { name: 'THE LOADING STATION', cp: 43, x: T + 4300, y: GY },
   ],
   build: (state) => {
     const n0 = state.blocks.length;

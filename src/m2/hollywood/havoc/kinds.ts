@@ -81,7 +81,7 @@ const looter = (ctx: FrameContext, e: Enemy) => {
         const hv = hvOf(state), T = 44, sx = m.x + e.facing * 10, sy = e.pos.y + 6;
         const tx = p.x + pl.vel.x * 18, ty = pl.pos.y + pl.height - 30, g = 0.35;
         const kinds = ['globe', 'mug', 'plush'] as const;
-        hv.lobs.push({ x: sx, y: sy, vx: (tx - sx) / T, vy: (ty - sy - 0.5 * g * T * T) / T, kind: kinds[(seedOf(e) + e.aiTimer + state.frame) % 3], rot: 0, dead: false });
+        hv.lobs.push({ x: sx, y: sy, vx: (tx - sx) / T, vy: (ty - sy - 0.5 * g * T * T) / T, kind: kinds[((Math.floor(seedOf(e) + e.aiTimer + state.frame) % 3) + 3) % 3], rot: 0, dead: false });
         playSound('whoosh', 0.5, 6);
         setState(e, 'toss');
       }

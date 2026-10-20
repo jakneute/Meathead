@@ -8,6 +8,7 @@
 // Shared file (see OWNERSHIP.md): section owners may only append minimally, and must re-read it before editing.
 
 import { sleepFar, wakeNear } from '../dormant';
+import { fenced } from '../../m1/game/render/fence';
 import type { StageLayout } from '../../m1/game/stages/index';
 import type { GameState } from '../../m1/game/core/state';
 import type { Enemy } from '../../m1/types';
@@ -138,13 +139,13 @@ export const hollywoodLayout: StageLayout = {
   waterBodyAt: (state, x, y) => sectionAt(x).waterBodyAt?.(state, x, y) ?? null,
   drawBackdrop: (c, state) => {
     const sec = current(state);
-    if (sec.drawBackdrop?.(c, state)) return true;
+    if (sec.drawBackdrop && fenced(c, sec.id, () => sec.drawBackdrop!(c, state), 'drawBackdrop')) return true;
     c.fillStyle = '#0B0B1E'; c.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
     return true;
   },
   drawBack: (c, state) => {
     // (the ones either side too, so walking from one into the next there's no gap)
-    for (const id of SECTION_ORDER) { const s = ALL[id]; if (s.x1 > state.camera.x - 200 && s.x0 < state.camera.x + CANVAS_WIDTH + 200) s.drawBack?.(c, state); }
+    for (const id of SECTION_ORDER) { const s = ALL[id]; if (s.x1 > state.camera.x - 200 && s.x0 < state.camera.x + CANVAS_WIDTH + 200) s.drawBack && fenced(c, id, () => s.drawBack!(c, state), 'drawBack'); }
     drawWires(c, state, getHollywood(state)?.wires ?? []);
     for (const id of SECTION_ORDER) { const s = ALL[id]; if (s.x1 > state.camera.x - 200 && s.x0 < state.camera.x + CANVAS_WIDTH + 200) s.drawOverWires?.(c, state); }
   },
@@ -152,12 +153,12 @@ export const hollywoodLayout: StageLayout = {
     // (a grab's in the play plane: anything the sections draw in front of him goes in front of it too)
     const hs = getHollywood(state) as HollywoodState | null;
     if (hs) drawGrab(c, state, hs.grab);
-    for (const id of SECTION_ORDER) { const s = ALL[id]; if (s.x1 > state.camera.x - 200 && s.x0 < state.camera.x + CANVAS_WIDTH + 200) s.drawFront?.(c, state); }
+    for (const id of SECTION_ORDER) { const s = ALL[id]; if (s.x1 > state.camera.x - 200 && s.x0 < state.camera.x + CANVAS_WIDTH + 200) s.drawFront && fenced(c, id, () => s.drawFront!(c, state), 'drawFront'); }
   },
   drawHud: (c, state) => {
     const sec = current(state);
     drawNotedSunFlare(c, sec.outdoors?.(state) ?? 0, sec.cylinder ? undefined : state);
-    sec.drawHud?.(c, state);
+    if (sec.drawHud) fenced(c, sec.id, () => sec.drawHud!(c, state), 'drawHud');
     const hs = getHollywood(state) as HollywoodState | null;
     if (hs?.arrive) drawPortalArrival(c, state, hs.arrive);
   },

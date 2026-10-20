@@ -55,8 +55,8 @@ export const FRONTS: Front[] = (() => {
 })();
 const WALLS = ['#F8C8DC', '#FCE69A', '#BEDCF6', '#C2ECCE', '#DCCCF6', '#FCD2B0', '#F4F0E4'];
 const ROOFC = ['#E2465E', '#7C5CC8', '#24A69C', '#F2822A', '#3E76DE', '#D8408A', '#E8B020'];
-const wallOf = (f: Front) => WALLS[f.seed % WALLS.length];
-const roofOf = (f: Front) => ROOFC[(f.seed * 3 + 1) % ROOFC.length];
+const wallOf = (f: Front) => WALLS[((Math.floor(f.seed) % WALLS.length) + WALLS.length) % WALLS.length];
+const roofOf = (f: Front) => ROOFC[((Math.floor(f.seed * 3 + 1) % ROOFC.length) + ROOFC.length) % ROOFC.length];
 /** The front's outline's edge at height t (0 foot..1 top), out from its foot corner (+ outward): the same curve the
  *  front's own outline takes (paintFront's quadratics), so the side meets it all the way up. */
 const bowL = (f: Front) => (t: number) => 2 * t * (1 - t) * (2 * f.bulge - f.lean * 0.5) - t * t * f.lean;
@@ -175,11 +175,11 @@ const roof = (g: Ctx, f: Front, cx: number, top: number, w: number) => {
     g.restore();
     ballR(g, cx + flip * w * 0.82, top - w * 0.78, 6, rampH(FROSTING, true));
   } else if (f.roof === 'balls') {
-    for (let k = 0; k < 3; k++) { const rr = w / 2 - k * 9 + 4, cy = top - 8 - k * 16, col = ROOFC[(f.seed + k * 2) % ROOFC.length]; eggR(g, cx, cy, rr, 10, rampH(ramp6(col), true)); }
+    for (let k = 0; k < 3; k++) { const rr = w / 2 - k * 9 + 4, cy = top - 8 - k * 16, col = ROOFC[((Math.floor(f.seed + k * 2) % ROOFC.length) + ROOFC.length) % ROOFC.length]; eggR(g, cx, cy, rr, 10, rampH(ramp6(col), true)); }
     ballR(g, cx, top - 62, 6, rampH(BRASS, true));
   } else if (f.roof === 'cake') {
     for (let k = 0; k < 3; k++) {
-      const ww = w + 8 - k * 18, hh = 16, cy = top - k * hh, C = rampH(ramp6(ROOFC[(f.seed + k * 3) % ROOFC.length]), true);
+      const ww = w + 8 - k * 18, hh = 16, cy = top - k * hh, C = rampH(ramp6(ROOFC[((Math.floor(f.seed + k * 3) % ROOFC.length) + ROOFC.length) % ROOFC.length]), true);
       box(g, cx - ww / 2 - 2, cy - hh - 2, ww + 4, hh + 3, INK); box(g, cx - ww / 2, cy - hh, ww, hh, C[3]); box(g, cx - ww / 2, cy - hh, 3, hh, C[4]); box(g, cx + ww / 2 - 4, cy - hh, 4, hh, C[1]);
       box(g, cx - ww / 2, cy - hh, ww, 4, W2[3]); box(g, cx - ww / 2, cy - hh, ww, 1, W2[5]);
       for (let d = cx - ww / 2 + 3; d < cx + ww / 2 - 3; d += 7) { box(g, d, cy - hh + 4, 4, 2 + ((d | 0) % 4), W2[3]); box(g, d + 3, cy - hh + 4, 1, 2 + ((d | 0) % 4), W2[1]); }
@@ -223,9 +223,9 @@ const paintFront = (g: Ctx, f: Front, closed: boolean) => {
   g.beginPath(); outline(); g.strokeStyle = INK; g.lineWidth = 3; g.lineJoin = 'round'; g.stroke();
   // (the shop: the door, the bay of a window under its awning, the name board up over them)
   const dw = 26, dx = f.seed % 2 ? w - dw - 16 : 16, sx = f.seed % 2 ? 14 : dw + 30, sww = w - dw - 46;
-  door(g, dx, 0, dw, 50, ['#7C3AED', '#E2465E', '#2AA69C', '#F2822A', '#3E76DE'][f.seed % 5], closed);
-  if (sww > 30) { shopWindow(g, sx, -66, sww, 54, f.goods, f.seed); awning(g, sx - 4, -82, sww + 8, ROOFC[(f.seed + 2) % ROOFC.length], f.seed); }
-  if (f.name) nameBoard(g, w / 2 + lean * 0.25, -112, f.name, ROOFC[(f.seed + 4) % ROOFC.length]);
+  door(g, dx, 0, dw, 50, ['#7C3AED', '#E2465E', '#2AA69C', '#F2822A', '#3E76DE'][((Math.floor(f.seed) % 5) + 5) % 5], closed);
+  if (sww > 30) { shopWindow(g, sx, -66, sww, 54, f.goods, f.seed); awning(g, sx - 4, -82, sww + 8, ROOFC[((Math.floor(f.seed + 2) % ROOFC.length) + ROOFC.length) % ROOFC.length], f.seed); }
+  if (f.name) nameBoard(g, w / 2 + lean * 0.25, -112, f.name, ROOFC[((Math.floor(f.seed + 4) % ROOFC.length) + ROOFC.length) % ROOFC.length]);
   // (the round windows up the floors, in a wiggle)
   for (let k = 0; ; k++) {
     const wy = -140 - k * 40; if (wy < -h + 22) break;
@@ -260,7 +260,7 @@ const paintFurn = (g: Ctx, kind: Furn, seed: number, popped: boolean) => {
   const T = (c: string) => dimmed(c);
   if (kind === 'truffula') {
     // (a Truffula: a thin trunk banded like a barber pole, bent, a shaggy tuft (stepped, its fringe hanging))
-    const h = 150 + Math.floor(hash(seed) * 70), bend = (hash(seed * 2) - 0.5) * 50, col = TUFTS[seed % TUFTS.length], R = rampH(ramp6(col), true);
+    const h = 150 + Math.floor(hash(seed) * 70), bend = (hash(seed * 2) - 0.5) * 50, col = TUFTS[((Math.floor(seed) % TUFTS.length) + TUFTS.length) % TUFTS.length], R = rampH(ramp6(col), true);
     for (let y = 0; y < h; y += 3) { const bx = bend * (y / h) ** 2; box(g, bx - 4, -y - 3, 8, 3, INK); box(g, bx - 3, -y - 3, 6, 3, ((y / 3) | 0) % 4 < 2 ? T('#F6EEDC') : T('#3A2E4A')); box(g, bx + 1, -y - 3, 2, 3, ((y / 3) | 0) % 4 < 2 ? T('#D8CCB8') : T('#22182E')); }
     const tx = bend, ty = -h - 18;
     for (let k = 0; k < 14; k++) { const a = (k / 14) * Math.PI * 2, rx = tx + Math.cos(a) * 24, ry = ty + Math.sin(a) * 16; g.fillStyle = INK; g.beginPath(); g.arc(rx, ry, 11, 0, Math.PI * 2); g.fill(); }

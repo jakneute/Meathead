@@ -795,7 +795,7 @@ const ground = (c: Ctx, state: GameState, v: View) => {
     const G = NR(GRASSY);
     box(c, la, GY - 4, lb - la, 6, G[3]); box(c, la, GY - 4, lb - la, 2, G[4]); box(c, la, GY + 1, lb - la, 1, G[1]);
     for (let x = la + 6; x < lb; x += 10) { const hh = 8 + hash(x) * 6; c.fillStyle = G[(x / 10) % 2 ? 2 : 3]; c.beginPath(); c.moveTo(x, GY - 2); c.lineTo(x + 3, GY - hh); c.lineTo(x + 6, GY - 2); c.closePath(); c.fill(); box(c, x + 2, GY - hh + 2, 1, 2, G[5]); }
-    for (let x = la + 40; x < lb; x += 130) { box(c, x, GY - 12, 1, 10, G[1]); box(c, x - 2, GY - 15, 5, 4, hour(['#F472B6', '#FDE047', '#FFFFFF'][(x / 130 | 0) % 3])); box(c, x - 1, GY - 14, 3, 2, hour('#FFFFFF')); }
+    for (let x = la + 40; x < lb; x += 130) { box(c, x, GY - 12, 1, 10, G[1]); box(c, x - 2, GY - 15, 5, 4, hour(['#F472B6', '#FDE047', '#FFFFFF'][((Math.floor(x / 130) % 3) + 3) % 3])); box(c, x - 1, GY - 14, 3, 2, hour('#FFFFFF')); }
   }
 };
 

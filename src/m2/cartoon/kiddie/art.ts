@@ -147,7 +147,7 @@ export const drawPitHeaps = (c: Ctx, state: GameState) => {
 // The toadstools, the balconies, the gumdrop, the trolley beam
 
 const toadstool = (c: Ctx, v: View, a: number, b: number, h: number, seed: number) => {
-  const xa = X(a), xb = X(b), top = Y(h), mx = (xa + xb) / 2, w = xb - xa, capCol = ['#E2283E', '#A855F7', '#F2822A', '#E2468A'][seed % 4];
+  const xa = X(a), xb = X(b), top = Y(h), mx = (xa + xb) / 2, w = xb - xa, capCol = ['#E2283E', '#A855F7', '#F2822A', '#E2468A'][((Math.floor(seed) % 4) + 4) % 4];
   // (the cap's top going back round, spotted)
   if (drumTop(c, v.eye, xa, xb, top, 0.95, rampH(ramp6(capCol)))) {
     const [sx, sy] = at(v.eye, mx - w * 0.2, top, 0.975), [tx, ty] = at(v.eye, mx + w * 0.22, top, 0.965);

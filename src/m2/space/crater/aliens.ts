@@ -35,7 +35,7 @@ export interface AlienLook {
 
 /** The hide's tints (by seed): olive, greyer, bluer. */
 const TINTS = [ALIEN.hide[5], '#6E7F58', '#557E6C', '#62853F'];
-const hideOf = (seed: number) => TINTS[Math.abs(seed) % TINTS.length];
+const hideOf = (seed: number) => TINTS[((Math.floor(Math.abs(seed)) % TINTS.length) + TINTS.length) % TINTS.length];
 const BELLY = ALIEN.belly[4];
 
 /** A limb with its shading (the final pass): inked, its shade down the underside, a lit line along the top (lit from

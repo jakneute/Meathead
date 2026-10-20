@@ -97,7 +97,7 @@ export const slit = (g: Ctx, x: number, y: number, h: number, S: string[]) => {
 /** A lancet window (x the middle, y its top, w across, h tall): a moulded frame, tracery, stained glass in panes
  *  (`col` its glass), a sill. Lit after dark. */
 export const lancet = (g: Ctx, x: number, y: number, w: number, h: number, S: string[], col: string, seed = 0) => {
-  const r = w / 2, Gl = glass(col), G2 = glass(['#3A6ACC', '#C8306E', '#2E9A6A', '#E0AE3A'][seed % 4]);
+  const r = w / 2, Gl = glass(col), G2 = glass(['#3A6ACC', '#C8306E', '#2E9A6A', '#E0AE3A'][((Math.floor(seed) % 4) + 4) % 4]);
   const arch = (dx: number, rr: number, col2: string) => { g.fillStyle = col2; g.beginPath(); g.moveTo(x - rr + dx, y + h); g.lineTo(x - rr + dx, y + r); g.quadraticCurveTo(x - rr + dx, y - r * 0.4 + (r - rr), x + dx, y - r * 0.5 + (r - rr)); g.quadraticCurveTo(x + rr + dx, y - r * 0.4 + (r - rr), x + rr + dx, y + r); g.lineTo(x + rr + dx, y + h); g.closePath(); g.fill(); };
   arch(0, r + 4, INK); arch(0, r + 3, S[4]); arch(1, r + 2, S[2]); arch(0, r + 1, INK); arch(0, r, Gl[1]);
   g.save(); arch(0, r, Gl[1]); g.clip();

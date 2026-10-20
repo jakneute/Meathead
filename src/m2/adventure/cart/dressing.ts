@@ -128,7 +128,7 @@ const prism = (g: Ctx, bx: number, by: number, ang: number, len: number, w: numb
 };
 const CRYSTAL = ['#4FB8D8', '#9A6ADA', '#E07AB0'];
 const crystals = (g: Ctx, x: number, foot: number, t: T, seed: number) => {
-  const col = CRYSTAL[seed % 3], R = rT(col, t), B = rT('#4A3E3A', t);
+  const col = CRYSTAL[((Math.floor(seed) % 3) + 3) % 3], R = rT(col, t), B = rT('#4A3E3A', t);
   // (the base: a lump of rock they grow out of)
   inked(g, [x - 60, foot, x - 46, foot - 18, x - 18, foot - 28, x + 20, foot - 26, x + 50, foot - 14, x + 62, foot], B[2], t);
   fill(g, [x - 46, foot - 18, x - 18, foot - 28, x - 10, foot - 20, x - 40, foot - 10], B[3]);
@@ -146,7 +146,7 @@ const crystals = (g: Ctx, x: number, foot: number, t: T, seed: number) => {
   signAt(g, 'CRYSTAL', x - 85, foot - 33, 4, gilt(4, t('#2A0A04'))); signAt(g, 'CAVERN', x - 85, foot - 26, 4, gilt(4, t('#2A0A04')));
 };
 const crystalsLive = (c: Ctx, x: number, foot: number, f: number, seed: number) => {
-  const col = CRYSTAL[seed % 3], k = 0.1 + 0.04 * Math.sin(f * 0.04 + seed);
+  const col = CRYSTAL[((Math.floor(seed) % 3) + 3) % 3], k = 0.1 + 0.04 * Math.sin(f * 0.04 + seed);
   steppedGlow(c, x, foot - 60, 70, col, k, 0.01, 4);
   // (a glint running up one of them now and then)
   const p = (f + seed * 37) % 160;

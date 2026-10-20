@@ -294,7 +294,7 @@ const paintRoofs = (g: Ctx, tod: TimeOfDay) => {
   const T = farCol(tod, 0.14), lamps = tod.lamps > 0.3, BL = st3(T, '#9A1A20');
   box(g, 0, RG - 10, RW, RH - RG + 10, T('#8A7E8E'));
   for (const r of ROOFS) {
-    const x = r.x, w = r.w, top = RG - r.h, wall = RWALLS[r.seed % RWALLS.length], band = RBANDS[(r.seed * 3) % RBANDS.length], Wl = st3(T, wall), Bd = st3(T, band);
+    const x = r.x, w = r.w, top = RG - r.h, wall = RWALLS[((Math.floor(r.seed) % RWALLS.length) + RWALLS.length) % RWALLS.length], band = RBANDS[((Math.floor(r.seed * 3) % RBANDS.length) + RBANDS.length) % RBANDS.length], Wl = st3(T, wall), Bd = st3(T, band);
     // (the box: inked, lit down its left, shaded right; a striped band; a mural of the heads on some; windows)
     box(g, x - 1, top - 1, w + 2, r.h + 1, T(INK)); box(g, x, top, w, r.h, Wl[1]);
     box(g, x, top, 4, r.h, Wl[2]); box(g, x + w - 10, top, 10, r.h, Wl[0]); checker(g, x + w - 12, top, 2, r.h, Wl[0], 0, 1);
@@ -387,7 +387,7 @@ const paintRoofs = (g: Ctx, tod: TimeOfDay) => {
     }
     // (a rooftop billboard on some)
     if (r.seed % 5 === 3) {
-      const bw = Math.min(w - 10, 100), bx = x + 5, by = top - 48, labels = ['SPLATTER TEES', 'AS SEEN ON STUPID DAD!', 'THEY FIGHT!', 'OW!', 'P&K'], L = labels[r.seed % labels.length];
+      const bw = Math.min(w - 10, 100), bx = x + 5, by = top - 48, labels = ['SPLATTER TEES', 'AS SEEN ON STUPID DAD!', 'THEY FIGHT!', 'OW!', 'P&K'], L = labels[((Math.floor(r.seed) % labels.length) + labels.length) % labels.length];
       box(g, bx + 10, by + 30, 3, 18, T('#5A5470')); box(g, bx + bw - 13, by + 30, 3, 18, T('#5A5470'));
       box(g, bx - 1, by - 1, bw + 2, 32, T(INK)); box(g, bx, by, bw, 30, T('#F4ECD8')); box(g, bx, by, bw, 2, T('#FFFFFF')); box(g, bx, by + 26, bw, 4, BL[1]);
       signText(g, L, bx + bw / 2, by + 18, { sx: 1, sy: L.length > 12 ? 1 : 2, bold: true, fill: [T('#E8474A'), T('#9A1A20')], ink: T(INK) });

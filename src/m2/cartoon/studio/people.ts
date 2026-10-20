@@ -24,7 +24,7 @@ export const officeChair = (g: Ctx, col = '#3F3F46') => {
  *  desk (`reach` px), the head bent (`nod` 0..1; 1 asleep on the desk). `drawing` a pencil in the hand. */
 export const sitter = (g: Ctx, seed: number, o: { shirt: string; pants?: string; reach?: number; nod?: number; asian?: boolean; drawing?: boolean; hand?: number; yawn?: boolean; cap?: string; cardigan?: string; chair?: string }) => {
   const B = bodyOf(seed, 'stand', 0);
-  if (o.asian) { B.L.skin = ASIAN_SKIN[seed % ASIAN_SKIN.length]; B.L.hair = ASIAN_HAIR[(seed >> 2) % ASIAN_HAIR.length]; B.L.bald = false; if (B.L.face === 1 || B.L.face === 2) B.L.face = (seed % 2) ? 3 : 0; }
+  if (o.asian) { B.L.skin = ASIAN_SKIN[((Math.floor(seed) % ASIAN_SKIN.length) + ASIAN_SKIN.length) % ASIAN_SKIN.length]; B.L.hair = ASIAN_HAIR[((Math.floor(seed >> 2) % ASIAN_HAIR.length) + ASIAN_HAIR.length) % ASIAN_HAIR.length]; B.L.bald = false; if (B.L.face === 1 || B.L.face === 2) B.L.face = (seed % 2) ? 3 : 0; }
   const L = B.L, nod = o.nod ?? 0.3;
   g.save();
   officeChair(g, o.chair ?? '#3F3F46');

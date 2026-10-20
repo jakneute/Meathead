@@ -39,7 +39,7 @@ export const SECTIONS = {
   woods: { x0: FRX + 68000, x1: FRX + 71000 },
   /** THE DIRT-BIKE CHASE: the TEENAGERS sub-boss, in a Genesis road-racer's view. */
   dirtbike: { x0: FRX + 74000, x1: FRX + 84000 },
-  /** THE CATCH-UP and TUCKER's arena: the tree branch, the fake-out, the jumpscare; the fight (not designed yet). */
+  /** THE CATCH-UP and TUCKER's arena: the tree branch, the fake-out, the jumpscare; the fight (arena/fight.ts). */
   arena: { x0: FRX + 87000, x1: FRX + 91000 },
 } as const;
 export type FrontierId = keyof typeof SECTIONS;

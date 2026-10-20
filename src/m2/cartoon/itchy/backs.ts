@@ -52,7 +52,7 @@ export const FRONTS: Front[] = (() => {
   return out;
 })();
 const WALLS = ['#C8323A', '#E8B424', '#3A3040', '#EADFC0', '#F0D8B8', '#D86A3A', '#8A1A22'];
-const wallOf = (f: Front) => WALLS[f.seed % WALLS.length];
+const wallOf = (f: Front) => WALLS[((Math.floor(f.seed) % WALLS.length) + WALLS.length) % WALLS.length];
 const D = (col: string) => dimmed(col);
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -328,10 +328,10 @@ export const FURN: { x: number; kind: Furn; seed: number }[] = (() => {
  *  splattered red from the SPLASH ZONE, cat ears on a headband, a foam mallet up. */
 const person = (g: Ctx, x: number, seed: number, h: number) => {
   const L = lookOf(seed), ink = D(INK);
-  const shirt = ['#B01C22', '#1F1A24', '#E8B424', '#F4ECD8', '#2563EB', '#16A34A', '#7C3AED', '#F472B6'][seed % 8], pants = ['#1E3A8A', '#3F3F46', '#78716C', '#2563EB', '#111827'][(seed >> 2) % 5];
+  const shirt = ['#B01C22', '#1F1A24', '#E8B424', '#F4ECD8', '#2563EB', '#16A34A', '#7C3AED', '#F472B6'][((Math.floor(seed) % 8) + 8) % 8], pants = ['#1E3A8A', '#3F3F46', '#78716C', '#2563EB', '#111827'][((Math.floor(seed >> 2) % 5) + 5) % 5];
   const wide = L.heavy ? 1.3 : 0.88 + hash(seed * 1.3) * 0.2, sw = Math.round(h * 0.26 * wide), hd = Math.round(h * 0.14);
   const top = -h, headY = top + hd, shY = top + hd * 2 + 2, hipY = -h * 0.42;
-  for (const s of [-1, 1]) { box(g, x + s * sw * 0.22 - 3, hipY, 6, -hipY - 3, ink); box(g, x + s * sw * 0.22 - 2, hipY, 4, -hipY - 3, D(pants)); box(g, x + s * sw * 0.22 - 4, -4, 8, 4, D(['#F8FAFC', '#111827', '#DC2626'][seed % 3])); }
+  for (const s of [-1, 1]) { box(g, x + s * sw * 0.22 - 3, hipY, 6, -hipY - 3, ink); box(g, x + s * sw * 0.22 - 2, hipY, 4, -hipY - 3, D(pants)); box(g, x + s * sw * 0.22 - 4, -4, 8, 4, D(['#F8FAFC', '#111827', '#DC2626'][((Math.floor(seed) % 3) + 3) % 3])); }
   box(g, x - sw / 2 - 1, shY - 1, sw + 2, hipY - shY + 4, ink); box(g, x - sw / 2, shY, sw, hipY - shY + 2, D(shirt)); box(g, x - sw / 2, shY, 2, hipY - shY + 2, D(mix(shirt, '#FFFFFF', 0.3))); box(g, x + sw / 2 - 2, shY, 2, hipY - shY + 2, D(mix(shirt, INK, 0.3)));
   const style = seed % 4;
   if (style === 0) { g.fillStyle = D('#B01C22'); g.beginPath(); g.arc(x, shY + (hipY - shY) * 0.45, sw * 0.22, 0, Math.PI * 2); g.fill(); }

@@ -609,13 +609,13 @@ const rinkBack = (c: Ctx, state: GameState, v: View) => {
 /** One of the crowd behind the rink's fence, head and shoulders (seeded), bobbing a little. */
 const crowdHead = (c: Ctx, x: number, feet: number, seed: number, h: number, f: number) => {
   const skins = ['#F2C9A0', '#E8B48A', '#C68A5A', '#8A5A3A', '#5A3A2A', '#F6D8B8'], hairs = ['#2A1A10', '#6A3A1A', '#C89A4A', '#1A1A1A', '#8A2A1A', '#E8D8A8'];
-  const sk = dimmed(skins[seed % 6]), hr = dimmed(hairs[(seed >> 1) % 6]), sh = dimmed(['#2563EB', '#DC2626', '#16A34A', '#7C3AED', '#F59E0B', '#0D9488'][(seed >> 2) % 6]);
+  const sk = dimmed(skins[((Math.floor(seed) % 6) + 6) % 6]), hr = dimmed(hairs[((Math.floor(seed >> 1) % 6) + 6) % 6]), sh = dimmed(['#2563EB', '#DC2626', '#16A34A', '#7C3AED', '#F59E0B', '#0D9488'][((Math.floor(seed >> 2) % 6) + 6) % 6]);
   const bob = Math.sin(f * 0.08 + seed) > 0.7 ? -2 : 0, top = feet - h + bob;
   box(c, x - 8, top + 14, 16, h - 14, dimmed(INK)); box(c, x - 7, top + 15, 14, h - 16, sh);
   c.fillStyle = dimmed(INK); c.beginPath(); c.ellipse(x, top + 7, 6, 7.5, 0, 0, Math.PI * 2); c.fill();
   c.fillStyle = sk; c.beginPath(); c.ellipse(x, top + 7, 5, 6.5, 0, 0, Math.PI * 2); c.fill();
   c.fillStyle = hr; c.beginPath(); c.ellipse(x, top + 3, 5.5, 4, 0, Math.PI, 0); c.fill();
-  if (seed % 3 === 0) { box(c, x - 6, top + 1, 12, 3, dimmed(['#DC2626', '#1F2937', '#0D9488'][seed % 3])); box(c, x - 10, top + 3, 5, 2, dimmed(['#DC2626', '#1F2937', '#0D9488'][seed % 3])); }
+  if (seed % 3 === 0) { box(c, x - 6, top + 1, 12, 3, dimmed(['#DC2626', '#1F2937', '#0D9488'][((Math.floor(seed) % 3) + 3) % 3])); box(c, x - 10, top + 3, 5, 2, dimmed(['#DC2626', '#1F2937', '#0D9488'][((Math.floor(seed) % 3) + 3) % 3])); }
   if (seed % 4 === 1) { box(c, x + 8, top + 2 + bob, 4, 14, dimmed(INK)); box(c, x + 9, top + 3 + bob, 2, 12, sk); }
 };
 /** The rink's rails (hazard-striped barriers, solid: their tops going back, lit). */

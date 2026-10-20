@@ -11,6 +11,7 @@
 // Shared file (see OWNERSHIP.md): section owners may only append minimally, and must re-read it before editing.
 
 import { sleepFar, wakeNear } from '../dormant';
+import { fenced } from '../../m1/game/render/fence';
 import { updateSwimAir, drawAir } from './air';
 import { drownLanders } from '../drown';
 import type { StageLayout } from '../../m1/game/stages/index';
@@ -150,14 +151,14 @@ export const foreignLayout: StageLayout = {
   waterBodyAt: (state, x, y) => sectionAt(x).waterBodyAt?.(state, x, y) ?? null,
   drawBackdrop: (c, state) => {
     const sec = current(state);
-    if (sec.drawBackdrop?.(c, state)) return true;
+    if (sec.drawBackdrop && fenced(c, sec.id, () => sec.drawBackdrop!(c, state), 'drawBackdrop')) return true;
     return drawStreetsBackdrop(c, state);
   },
-  drawBack: (c, state) => { for (const id of near(state)) ALL[id].drawBack?.(c, state); },
+  drawBack: (c, state) => { for (const id of near(state)) { const s = ALL[id]; if (s.drawBack) fenced(c, id, () => s.drawBack!(c, state), 'drawBack'); } },
   drawFront: (c, state) => {
     const fs = getForeign(state) as ForeignState | null;
     if (fs) drawGrab(c, state, fs.grab);
-    for (const id of near(state)) ALL[id].drawFront?.(c, state);
+    for (const id of near(state)) { const s = ALL[id]; if (s.drawFront) fenced(c, id, () => s.drawFront!(c, state), 'drawFront'); }
     // (the streets' shared: what's flying, who's saying what over their heads, the PA's words up top)
     drawShots(c, state);
     drawAir(c, state);
@@ -168,7 +169,7 @@ export const foreignLayout: StageLayout = {
   drawHud: (c, state) => {
     const sec = current(state);
     drawNotedSunFlare(c, sec.outdoors?.(state) ?? 0, sec.cylinder ? undefined : state);
-    sec.drawHud?.(c, state);
+    if (sec.drawHud) fenced(c, sec.id, () => sec.drawHud!(c, state), 'drawHud');
     const fs = getForeign(state) as ForeignState | null;
     if (fs?.arrive) drawPortalArrival(c, state, fs.arrive);
   },

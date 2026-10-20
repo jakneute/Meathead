@@ -10,6 +10,7 @@ import { registerKind, type KindStats } from '../m1/game/enemies/kinds';
 import { registerKindDrawer, KIND_HEAD } from '../m1/game/render/enemies';
 import { BOSS_DIALOGUE, KIND_CALLOUTS } from '../m1/content/dialogue';
 import { DEATH_LINES } from '../m1/content/deaths';
+import { DEATH_TEXT_MAX } from './deathText';
 import { registerMidBossKind } from '../m1/game/combat/midBoss';
 import { registerHalfKind } from './weapons/half';
 import { beforeAI, afterAI } from './hazardHit';
@@ -114,6 +115,8 @@ export const m2Grab = (e: Enemy): 'body' | 'critter' | 'none' | null => {
 export const registerHurtLines = (source: string, hurt: string[], death: string[]) => {
   (BOSS_DIALOGUE.SPECIFIC_HAZARD_HURT as Record<string, string[]>)[source] = hurt;
   DEATH_LINES[source] = death;
+  // (dev only: the death screen's one line, 28 characters at most (the house rule); the death screen checks too)
+  if (import.meta.env.DEV) for (const t of death) if (t.length > DEATH_TEXT_MAX) console.warn(`[death text] '${source}': "${t}" is ${t.length} characters (max ${DEATH_TEXT_MAX})`);
 };
 
 /**

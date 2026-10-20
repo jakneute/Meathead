@@ -98,7 +98,7 @@ export const paintTreeFoot = (g: Ctx, w: number, kind: TreeKind, seed: number, R
   const feat = seed % 4;
   if (feat === 0 && w > 70) {
     // (a fairy door: an arched door in a painted frame, its round window lit, a step of pebbles, a lantern on a hook)
-    const D = rampH(ramp6(['#8A2A5A', '#2A6A6A', '#6A3A8A', '#2A4A8A'][seed % 4]), scenery), G = warmGlass();
+    const D = rampH(ramp6(['#8A2A5A', '#2A6A6A', '#6A3A8A', '#2A4A8A'][((Math.floor(seed) % 4) + 4) % 4]), scenery), G = warmGlass();
     const dx = -6, dy = -92, dw = 26, dh = 40;
     g.fillStyle = INK; g.beginPath(); g.moveTo(dx - dw / 2 - 3, dy); g.lineTo(dx - dw / 2 - 3, dy - dh + dw / 2); g.arc(dx, dy - dh + dw / 2, dw / 2 + 3, Math.PI, 0); g.lineTo(dx + dw / 2 + 3, dy); g.closePath(); g.fill();
     g.fillStyle = R[1]; g.beginPath(); g.moveTo(dx - dw / 2 - 2, dy); g.lineTo(dx - dw / 2 - 2, dy - dh + dw / 2); g.arc(dx, dy - dh + dw / 2, dw / 2 + 2, Math.PI, 0); g.lineTo(dx + dw / 2 + 2, dy); g.closePath(); g.fill();

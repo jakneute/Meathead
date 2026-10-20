@@ -182,7 +182,7 @@ export const steveFlier = (c: Ctx, x: number, y: number, kind: 'flier' | 'poster
     box(c, left + w / 2 + 12, top + h + 4, 16, 8, '#E7B48F'); box(c, left + w / 2 + 24, top + h - 4, 5, 10, '#E7B48F');
   }
   // (everything of his is YELLOW, like his suit: the paper, the poster's board)
-  const paper = ['#FACC15', '#FDE047', '#FEF08A'][seed % 3];
+  const paper = ['#FACC15', '#FDE047', '#FEF08A'][((Math.floor(seed) % 3) + 3) % 3];
   box(c, left - 1, top - 1, w + 2, h + 2, '#000000');
   box(c, left, top, w, h, kind === 'poster' ? '#FACC15' : paper);
   const inner = '#18181B';

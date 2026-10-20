@@ -53,6 +53,7 @@ import { drawBossDoor, drawLairFacade } from './bossDoors';
 import { drawTommyShaftBack } from './bosses/lairs/tommy';
 import { drawFrozenShell, drawOnFire, drawTasedFx, drawTaserBeam, isTasedNow, statusTint, tasedJitter } from './statusFx';
 import { stampsForStage } from './stamp';
+import { fenced } from './fence';
 import { shakeScale, flashAlpha } from '../settings';
 
 export interface WorldView {
@@ -101,7 +102,7 @@ const drawWorldAt = (ctx: CanvasRenderingContext2D, state: GameState, view: Worl
     drawRing(ctx, state.frame || 0);
   } else if (isRange) {
     drawRangeVoid(ctx, state.frame || 0);
-  } else if (getStageLayout(stageId)?.drawBackdrop?.(ctx, state)) {
+  } else if (getStageLayout(stageId)?.drawBackdrop && fenced(ctx, 'drawBackdrop', () => getStageLayout(stageId)!.drawBackdrop!(ctx, state))) {
     // (a stage that changes its own sky: Hector's beach going from sunny to hurricane, the inside of the storm)
   } else if (!drawBackdrop(ctx, stageId, state.camera.x, state.camera.y, state.frame || 0)) {
     ctx.fillStyle = colors.bg;
@@ -129,10 +130,10 @@ const drawWorldAt = (ctx: CanvasRenderingContext2D, state: GameState, view: Worl
       ? { x: zoom.x + (camX - (zoom.shiftX ?? 0) - zoom.x) / zoom.scale, y: zoom.y + (camY - (zoom.shiftY ?? 0) - zoom.y) / zoom.scale, w: (CANVAS_WIDTH + shiftX * 2) / zoom.scale, h: CANVAS_HEIGHT / zoom.scale }
       : { x: camX, y: camY, w: CANVAS_WIDTH + shiftX * 2, h: CANVAS_HEIGHT };
 
-    layout?.drawBack?.(wctx, state);
+    if (layout?.drawBack) fenced(wctx, 'drawBack', () => layout.drawBack!(wctx, state));
     if (!isRing) drawGroundProfile(wctx, state.groundRuns, stageId, state.frame || 0, state.view);
     if (!isRing && !drawTerrain(wctx, state.blocks, stageId, state.frame || 0, state.doorOpenAmount)) drawBlocks(wctx, state, colors);
-    layout?.drawMid?.(wctx, state);
+    if (layout?.drawMid) fenced(wctx, 'drawMid', () => layout.drawMid!(wctx, state));
     if (state.groundSmears?.length) drawGroundSmears(wctx, state);
     // The boss arena is drawn whenever any of it is on screen: from the moment the door
     // opens onto it, through the fight, his death and the victory lap
@@ -188,7 +189,7 @@ const drawWorldAt = (ctx: CanvasRenderingContext2D, state: GameState, view: Worl
     if (state.sewerNuke) drawSewerNukeInside(wctx, state);
     if (state.volcanoFinale) drawVolcanoFinaleInside(wctx, state);
     for (const [, w] of customWeapons()) w.drawOverlay?.(wctx, state);
-    layout?.drawFront?.(wctx, state);
+    if (layout?.drawFront) fenced(wctx, 'drawFront', () => layout.drawFront!(wctx, state));
     if (state.waterStains?.length) drawWaterStains(wctx, state);
     // (the numbers and the callouts go over everything too: no door or wall of the stage's in front of them)
     drawDamageNumbers(wctx, state);
@@ -212,12 +213,12 @@ const drawWorldAt = (ctx: CanvasRenderingContext2D, state: GameState, view: Worl
   // (what his shadow goes by next frame: the light on him, the walls it can go up, where there's water)
   noteShadowStage(stageId, scene, layout?.shadowWalls?.(state), layout?.waterBodyAt ? (x, y) => !!layout.waterBodyAt!(state, x, y) : undefined);
   if (scene) drawSceneLighting(ctx, state, cylinder ? { ...scene, flat: true } : scene, { camX: state.camera.x, camY: state.camera.y, zoom: layout?.zoom?.(state) });
-  layout?.drawHud?.(ctx, state);
+  if (layout?.drawHud) fenced(ctx, 'drawHud', () => layout.drawHud!(ctx, state));
   // (a boss's meter up top, as the mid-bosses get: not a bar over his head)
   drawBossHud(ctx, state, stageId);
 
   // Screen space: the stage's weather over the level (not inside the boss arenas)
-  if (state.camera.x < ARENA_LEFT - CANVAS_WIDTH / 2 && !layout?.drawBackdropFront?.(ctx, state)) drawBackdropFront(ctx, stageId, state.camera.x, state.camera.y, state.frame || 0);
+  if (state.camera.x < ARENA_LEFT - CANVAS_WIDTH / 2 && !(layout?.drawBackdropFront && fenced(ctx, 'drawBackdropFront', () => layout.drawBackdropFront!(ctx, state)))) drawBackdropFront(ctx, stageId, state.camera.x, state.camera.y, state.frame || 0);
   if (state.victoryString && (status === GameStatus.PLAYING || status === GameStatus.VICTORY)) drawVictoryText(ctx, state.victoryString);
   if (state.checkpointBanner && state.deathTimer <= 0) drawCheckpointBanner(ctx, state.checkpointBanner, state.frame);
   drawBlindness(ctx, state, CANVAS_WIDTH, CANVAS_HEIGHT);

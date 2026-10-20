@@ -4,6 +4,7 @@
 // The first pass is a crude one on purpose (prototype boxes and words, to get the feel of it before the real look).
 
 import { sleepFar, wakeNear } from '../dormant';
+import { fenced } from '../../m1/game/render/fence';
 import type { StageLayout } from '../../m1/game/stages/index';
 import type { GameState } from '../../m1/game/core/state';
 import type { Enemy } from '../../m1/types';
@@ -124,16 +125,16 @@ export const advLayout: StageLayout = {
   waterBodyAt: (state, x, y) => sectionAt(x).waterBodyAt?.(state, x, y) ?? null,
   drawBackdrop: (c, state) => {
     const sec = current(state);
-    if (sec.drawBackdrop?.(c, state)) return true;
+    if (sec.drawBackdrop && fenced(c, sec.id, () => sec.drawBackdrop!(c, state), 'drawBackdrop')) return true;
     c.fillStyle = '#1F2937'; c.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
     return true;
   },
   drawBack: (c, state) => {
     // (the ones either side too, so walking from one into the next there's no gap)
-    for (const id of SECTION_ORDER) { const s = ALL[id]; if (s.x1 > state.camera.x - 200 && s.x0 < state.camera.x + CANVAS_WIDTH + 200) s.drawBack?.(c, state); }
+    for (const id of SECTION_ORDER) { const s = ALL[id]; if (s.x1 > state.camera.x - 200 && s.x0 < state.camera.x + CANVAS_WIDTH + 200) s.drawBack && fenced(c, id, () => s.drawBack!(c, state), 'drawBack'); }
   },
   drawFront: (c, state) => {
-    for (const id of SECTION_ORDER) { const s = ALL[id]; if (s.x1 > state.camera.x - 200 && s.x0 < state.camera.x + CANVAS_WIDTH + 200) s.drawFront?.(c, state); }
+    for (const id of SECTION_ORDER) { const s = ALL[id]; if (s.x1 > state.camera.x - 200 && s.x0 < state.camera.x + CANVAS_WIDTH + 200) s.drawFront && fenced(c, id, () => s.drawFront!(c, state), 'drawFront'); }
     const adv = getAdv(state) as AdvState | null;
     if (adv) drawGrab(c, state, adv.grab);
   },
@@ -141,7 +142,7 @@ export const advLayout: StageLayout = {
   drawHud: (c, state) => {
     const sec = current(state);
     drawNotedSunFlare(c, sec.outdoors?.(state) ?? 0, sec.cylinder ? undefined : state);
-    sec.drawHud?.(c, state);
+    if (sec.drawHud) fenced(c, sec.id, () => sec.drawHud!(c, state), 'drawHud');
     const adv = getAdv(state) as AdvState | null;
     if (adv?.arrive) drawPortalArrival(c, state, adv.arrive);
   },

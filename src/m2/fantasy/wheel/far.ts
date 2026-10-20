@@ -306,7 +306,7 @@ const paintFair = (g: Ctx, tod: TimeOfDay) => {
     const n = Math.max(4, Math.floor(Math.abs(bx - ax) / 12));
     const P = (t: number): [number, number] => [ax + (bx - ax) * t, ay + (by - ay) * t + Math.sin(t * Math.PI) * sag];
     g.strokeStyle = T('#4A4060'); g.lineWidth = 1; g.beginPath(); for (let i = 0; i <= n; i++) { const [x, y] = P(i / n); i ? g.lineTo(x, y) : g.moveTo(x, y); } g.stroke();
-    for (let i = 0; i < n; i++) { const [x, y] = P((i + 0.5) / n); poly(g, [[x - 4, y], [x + 4, y], [x, y + 8]], T(['#E0408A', '#F6D365', '#4A78D4', '#9EE6C8', '#FFF4F8'][(i + seed) % 5])); if (night && i % 2) box(g, x, y - 1, 2, 2, BULB[i % 4]); }
+    for (let i = 0; i < n; i++) { const [x, y] = P((i + 0.5) / n); poly(g, [[x - 4, y], [x + 4, y], [x, y + 8]], T(['#E0408A', '#F6D365', '#4A78D4', '#9EE6C8', '#FFF4F8'][((Math.floor(i + seed) % 5) + 5) % 5])); if (night && i % 2) box(g, x, y - 1, 2, 2, BULB[i % 4]); }
   };
   sling(155, FG - 196, TOWER.x - 12, FG - 300, 30, 1);
   sling(TOWER.x + 12, FG - 280, 590, FG - 260, 24, 2);

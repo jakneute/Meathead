@@ -625,12 +625,12 @@ export const bookstall = (c: Ctx, v: View, a: number, b: number, top: number, se
   const [la, ly] = at(v.eye, a, top, 0.95), [lb] = at(v.eye, b, top, 0.95), D = ramp6(dimmed('#166534'));
   c.save(); c.beginPath(); c.rect(la - 4, ly - 60, lb - la + 8, top - (ly - 60)); c.clip();
   box(c, la - 1, ly - 52, lb - la + 2, 53, INK); box(c, la, ly - 51, lb - la, 51, D[3]); box(c, la, ly - 51, lb - la, 2, D[5]);
-  for (let k = 0; k < 3; k++) { const px0 = la + 6 + k * ((lb - la - 12) / 3), pw = (lb - la - 12) / 3 - 6, PC = ramp6(dimmed(['#F4EFE4', '#E8D8A8', '#D8E4EC'][(seed + k) % 3])); box(c, px0 - 1, ly - 45, pw + 2, 32, INK); box(c, px0, ly - 44, pw, 30, PC[3]); box(c, px0 + 3, ly - 40, pw - 6, 14, PC[1]); box(c, px0 + 3, ly - 22, pw - 8, 1, PC[0]); box(c, px0 + pw / 2 - 1, ly - 46, 2, 2, dimmed('#DC2626')); }
+  for (let k = 0; k < 3; k++) { const px0 = la + 6 + k * ((lb - la - 12) / 3), pw = (lb - la - 12) / 3 - 6, PC = ramp6(dimmed(['#F4EFE4', '#E8D8A8', '#D8E4EC'][((Math.floor(seed + k) % 3) + 3) % 3])); box(c, px0 - 1, ly - 45, pw + 2, 32, INK); box(c, px0, ly - 44, pw, 30, PC[3]); box(c, px0 + 3, ly - 40, pw - 6, 14, PC[1]); box(c, px0 + 3, ly - 22, pw - 8, 1, PC[0]); box(c, px0 + pw / 2 - 1, ly - 46, 2, 2, dimmed('#DC2626')); }
   c.restore();
   // (the books inside going back: their tops in a row)
   if (v.eye.y < top - 1) {
     const BK = ['#7F1D1D', '#1E3A8A', '#A16207', '#14532D', '#57534E', '#E7E5E4'];
-    for (let x = a + 4, k = 0; x < b - 6; x += 7, k++) { const [p0, q0] = at(v.eye, x, top, 0.99), [p1, q1] = at(v.eye, x + 6, top, 0.955); poly(c, [[p0, q0], [p0 + 6 * 0.99, q0], [p1, q1], [p1 - 6 * 0.955, q1]], hour(BK[(k + seed) % BK.length])); }
+    for (let x = a + 4, k = 0; x < b - 6; x += 7, k++) { const [p0, q0] = at(v.eye, x, top, 0.99), [p1, q1] = at(v.eye, x + 6, top, 0.955); poly(c, [[p0, q0], [p0 + 6 * 0.99, q0], [p1, q1], [p1 - 6 * 0.955, q1]], hour(BK[((Math.floor(k + seed) % BK.length) + BK.length) % BK.length])); }
   }
   still(c, `fr-bookstall-${w}x${h}`, a, top, -2, -1, w + 4, h + 2, g => {
     box(g, -1, 0, w + 2, h + 1, INK); slab(g, 0, 0, w, h, G, true);

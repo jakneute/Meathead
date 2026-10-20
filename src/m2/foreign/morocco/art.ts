@@ -150,7 +150,7 @@ const goodsIn = (g: Ctx, x: number, y: number, w: number, h: number, kind: Goods
   if (kind === 'rugs') {
     const COLS = ['#9F1D1D', '#1E2F6A', '#7C3A1A', '#1F4A2E', '#5B2A6E'];
     for (let k = 0, rx = x + 2; rx < x + w - 6; k++) {
-      const rw = 9 + Math.floor(hash(seed + k) * 6), R = D(COLS[(seed + k) % COLS.length]), top = y + 4 + (k % 2) * 4;
+      const rw = 9 + Math.floor(hash(seed + k) * 6), R = D(COLS[((Math.floor(seed + k) % COLS.length) + COLS.length) % COLS.length]), top = y + 4 + (k % 2) * 4;
       box(g, rx - 1, top - 1, rw + 2, h - 10, INK); box(g, rx, top, rw, h - 12, R[3]); box(g, rx, top, 2, h - 12, R[4]); box(g, rx + rw - 2, top, 2, h - 12, R[1]);
       for (let yy = top + 6; yy < top + h - 18; yy += 8) { box(g, rx + 2, yy, rw - 4, 2, D('#F2C14E')[3]); box(g, rx + rw / 2 - 1, yy + 3, 2, 2, D('#F4EFE4')[3]); }
       for (let fx = rx; fx < rx + rw; fx += 2) box(g, fx, top + h - 12, 1, 3, D('#F4EFE4')[3]);
@@ -162,11 +162,11 @@ const goodsIn = (g: Ctx, x: number, y: number, w: number, h: number, kind: Goods
     for (let k = 0; k < Math.floor(w / 10); k++) { const R = D(BRASS); box(g, x + 3 + k * 10, foot - 22, 7, 8, INK); box(g, x + 4 + k * 10, foot - 21, 5, 7, R[3]); box(g, x + 4 + k * 10, foot - 21, 2, 7, R[5]); }
   } else if (kind === 'pots') {
     // (painted plates up the back, tagines on the shelves)
-    for (let k = 0; k < Math.floor(w / 13); k++) { const px0 = x + 7 + k * 13, py0 = y + 12, R = D(['#1E50A8', '#E8B04A', '#15803D', '#B91C1C'][(seed + k) % 4]); g.fillStyle = INK; g.beginPath(); g.arc(px0, py0, 6, 0, Math.PI * 2); g.fill(); g.fillStyle = R[3]; g.beginPath(); g.arc(px0, py0, 5, 0, Math.PI * 2); g.fill(); g.fillStyle = D(LIME)[3]; g.beginPath(); g.arc(px0, py0, 2.5, 0, Math.PI * 2); g.fill(); box(g, px0 - 3, py0 - 4, 2, 1, R[5]); }
+    for (let k = 0; k < Math.floor(w / 13); k++) { const px0 = x + 7 + k * 13, py0 = y + 12, R = D(['#1E50A8', '#E8B04A', '#15803D', '#B91C1C'][((Math.floor(seed + k) % 4) + 4) % 4]); g.fillStyle = INK; g.beginPath(); g.arc(px0, py0, 6, 0, Math.PI * 2); g.fill(); g.fillStyle = R[3]; g.beginPath(); g.arc(px0, py0, 5, 0, Math.PI * 2); g.fill(); g.fillStyle = D(LIME)[3]; g.beginPath(); g.arc(px0, py0, 2.5, 0, Math.PI * 2); g.fill(); box(g, px0 - 3, py0 - 4, 2, 1, R[5]); }
     for (const sy of [foot - 30, foot - 8]) {
       box(g, x, sy, w, 3, D(CEDAR)[3]); box(g, x, sy, w, 1, D(CEDAR)[5]);
       for (let k = 0; k < Math.floor(w / 14); k++) {
-        const tx = x + 8 + k * 14, R = D([CLAY, '#1E50A8', '#B45309', TILEGREEN][Math.abs(seed + k + sy) % 4]);
+        const tx = x + 8 + k * 14, R = D([CLAY, '#1E50A8', '#B45309', TILEGREEN][((Math.floor(Math.abs(seed + k + sy)) % 4) + 4) % 4]);
         box(g, tx - 6, sy - 3, 13, 3, INK); box(g, tx - 5, sy - 3, 11, 2, R[2]);
         poly(g, [[tx - 5, sy - 3], [tx, sy - 13], [tx + 5, sy - 3]], INK); poly(g, [[tx - 4, sy - 3], [tx, sy - 12], [tx + 4, sy - 3]], R[3]); poly(g, [[tx - 4, sy - 3], [tx, sy - 12], [tx - 1, sy - 3]], R[4]);
         box(g, tx - 1, sy - 15, 2, 3, R[4]);
@@ -176,7 +176,7 @@ const goodsIn = (g: Ctx, x: number, y: number, w: number, h: number, kind: Goods
     for (let r = 0; r < 4; r++) {
       const sy = y + 12 + r * ((h - 16) / 4);
       box(g, x, sy + 5, w, 2, D(CEDAR)[3]);
-      for (let k = 0; k < Math.floor(w / 9); k++) { const R = D(['#EAB308', '#B91C1C', '#F4EFE4', '#1E50A8'][(r + k + seed) % 4]), sx = x + 2 + k * 9; poly(g, [[sx, sy + 5], [sx + 2, sy], [sx + 7, sy + 2], [sx + 8, sy + 5]], INK); poly(g, [[sx + 1, sy + 4], [sx + 2, sy + 1], [sx + 6, sy + 2], [sx + 7, sy + 4]], R[3]); box(g, sx + 2, sy + 1, 2, 1, R[5]); }
+      for (let k = 0; k < Math.floor(w / 9); k++) { const R = D(['#EAB308', '#B91C1C', '#F4EFE4', '#1E50A8'][((Math.floor(r + k + seed) % 4) + 4) % 4]), sx = x + 2 + k * 9; poly(g, [[sx, sy + 5], [sx + 2, sy], [sx + 7, sy + 2], [sx + 8, sy + 5]], INK); poly(g, [[sx + 1, sy + 4], [sx + 2, sy + 1], [sx + 6, sy + 2], [sx + 7, sy + 4]], R[3]); box(g, sx + 2, sy + 1, 2, 1, R[5]); }
     }
   } else {
     // (fezzes stacked up in a pyramid, their tassels)
@@ -366,7 +366,7 @@ export const drawCrate = (c: Ctx, v: View, a: number, b: number, top: number, se
     g.strokeStyle = F[3]; g.lineWidth = 4; g.beginPath(); g.moveTo(5, 5); g.lineTo(w - 5, h - 5); g.stroke();
     g.strokeStyle = F[5]; g.lineWidth = 1; g.beginPath(); g.moveTo(5, 3); g.lineTo(w - 5, h - 7); g.stroke();
     for (const [nx, ny] of [[2, 2], [w - 4, 2], [2, h - 4], [w - 4, h - 4]] as const) box(g, nx, ny, 2, 2, INK);
-    words(g, ['RUGS', 'FRAGILE', 'LAMPS'][seed % 3], w / 2, h * 0.38, plain(1, 1, hour('#3A2208')));
+    words(g, ['RUGS', 'FRAGILE', 'LAMPS'][((Math.floor(seed) % 3) + 3) % 3], w / 2, h * 0.38, plain(1, 1, hour('#3A2208')));
   });
   lip(c, a, top, w);
 };
@@ -548,7 +548,7 @@ export const drawRackArt = (c: Ctx, v: View, a: number, b: number, y: number, se
   c.strokeStyle = INK; c.lineWidth = 4; c.beginPath(); c.moveTo(a + 6, y + 40); c.lineTo(b - 6, y + 40); c.stroke(); c.strokeStyle = Wd[2]; c.lineWidth = 2; c.beginPath(); c.moveTo(a + 6, y + 40); c.lineTo(b - 6, y + 40); c.stroke();
   ledge3(c, v, a, y, b - a, '#8A5A30', 8, 'plank');
   for (let k = 0; k < 4; k++) {
-    const hx = Math.round(a + 30 + k * ((b - a - 60) / 3)), R = ramp6(hour(HIDES[(seed + k) % HIDES.length])), hy = y + 8, sw = Math.sin(f * 0.03 + k) * 1.5;
+    const hx = Math.round(a + 30 + k * ((b - a - 60) / 3)), R = ramp6(hour(HIDES[((Math.floor(seed + k) % HIDES.length) + HIDES.length) % HIDES.length])), hy = y + 8, sw = Math.sin(f * 0.03 + k) * 1.5;
     const hide: [number, number][] = [[hx - 15, hy], [hx + 15, hy], [hx + 19 + sw, hy + 10], [hx + 16 + sw, hy + 16], [hx + 20 + sw, hy + 34], [hx + 12 + sw, hy + 40], [hx + 6 + sw, hy + 50], [hx - 6 + sw, hy + 50], [hx - 12 + sw, hy + 40], [hx - 20 + sw, hy + 34], [hx - 16 + sw, hy + 16], [hx - 19 + sw, hy + 10]];
     poly(c, hide.map(([px, py]) => [px + (px < hx ? -1 : 1), py + 1] as [number, number]), INK);
     poly(c, hide, R[3]);
@@ -697,11 +697,11 @@ export const drawSoukWall = (c: Ctx, v: View, x: number, w: number, h: number) =
 /** A stall's goods (at 0.96: behind the awning's posts, under it): its back panel hung with goods, a table of them. */
 const paintStall = (g: Ctx, w: number, h: number, seed: number) => {
   const Wd = ramp6(dimmed(CEDAR)), KINDS: Goods[] = ['slippers', 'lamps', 'pots', 'rugs', 'fez'];
-  box(g, 0, -h, w, h, INK); goodsIn(g, 1, -h + 1, w - 2, h - 32, KINDS[seed % KINDS.length], seed);
+  box(g, 0, -h, w, h, INK); goodsIn(g, 1, -h + 1, w - 2, h - 32, KINDS[((Math.floor(seed) % KINDS.length) + KINDS.length) % KINDS.length], seed);
   // (the table out front: a cloth over it, its goods)
-  box(g, 4, -36, w - 8, 36, INK); box(g, 5, -35, w - 10, 35, ramp6(dimmed(['#9F1D1D', '#1E2F6A', '#1F4A2E'][seed % 3]))[3]);
+  box(g, 4, -36, w - 8, 36, INK); box(g, 5, -35, w - 10, 35, ramp6(dimmed(['#9F1D1D', '#1E2F6A', '#1F4A2E'][((Math.floor(seed) % 3) + 3) % 3]))[3]);
   for (let x = 8; x < w - 8; x += 6) box(g, x, -35, 3, 2, dimmed('#F2C14E'));
-  for (let x = 10, k = 0; x < w - 14; x += 16, k++) { const R = ramp6(dimmed([BRASS, '#1E50A8', CLAY, TILEGREEN][(k + seed) % 4])); box(g, x - 1, -48, 12, 13, INK); box(g, x, -47, 10, 12, R[3]); box(g, x, -47, 3, 12, R[5]); box(g, x + 2, -51, 6, 3, R[2]); }
+  for (let x = 10, k = 0; x < w - 14; x += 16, k++) { const R = ramp6(dimmed([BRASS, '#1E50A8', CLAY, TILEGREEN][((Math.floor(k + seed) % 4) + 4) % 4])); box(g, x - 1, -48, 12, 13, INK); box(g, x, -47, 10, 12, R[3]); box(g, x, -47, 3, 12, R[5]); box(g, x + 2, -51, 6, 3, R[2]); }
   box(g, 0, -h, w, 4, Wd[1]);
 };
 /** A stall under its awning: the goods behind, the poles, the striped canvas (its stripes in steps, scalloped and

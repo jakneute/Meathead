@@ -20,8 +20,8 @@ const star = (c: Ctx, x: number, y: number, r: number, col: string) => {
 /** Who this one is, from the seed: the same every time it's drawn. */
 const lookOf = (seed: number) => ({
   woman: Math.floor(seed / 4) % 5 < 2,
-  skin: SKINS[seed % SKINS.length],
-  hair: HAIR[Math.floor(seed / 7) % HAIR.length],
+  skin: SKINS[((Math.floor(seed) % SKINS.length) + SKINS.length) % SKINS.length],
+  hair: HAIR[((Math.floor(seed / 7) % HAIR.length) + HAIR.length) % HAIR.length],
   heavy: seed % 3 === 0,
   face: Math.floor(seed / 3) % 4, // 0 plain, 1 mustache, 2 beard, 3 glasses
   bald: Math.floor(seed / 11) % 6 === 0,

@@ -244,7 +244,7 @@ const helmet = (c: Ctx, hx: number, hy: number, col: string) => {
 };
 /** A helmetless kid's headgear, by the seed: a ball cap on backwards, a beanie, or just their hair. */
 const headgear = (c: Ctx, hx: number, hy: number, seed: number) => {
-  const kind = Math.floor(seed / 5) % 3, col = CAPS[Math.floor(seed / 7) % CAPS.length], R = rampOf(col);
+  const kind = Math.floor(seed / 5) % 3, col = CAPS[((Math.floor(seed / 7) % CAPS.length) + CAPS.length) % CAPS.length], R = rampOf(col);
   if (kind === 0) {
     c.fillStyle = INK; c.beginPath(); c.arc(hx, hy - 3, 9.6, Math.PI, Math.PI * 2); c.closePath(); c.fill();
     c.fillStyle = R[3]; c.beginPath(); c.arc(hx, hy - 3, 8.6, Math.PI, Math.PI * 2); c.closePath(); c.fill();
@@ -261,7 +261,7 @@ const headgear = (c: Ctx, hx: number, hy: number, seed: number) => {
 /** A kid (not on a bike): their feet at the origin, facing right; the pose people.ts has. */
 export const drawTeenPerson = (c: Ctx, k: Teen, f: number, pose: Pose, mood: Kid['mood'], talking: boolean, s = 1) => {
   c.save(); c.scale(s * 0.9, s * 0.9);
-  const look = { face: k.seed % 4 === 3 ? 3 : 0, bald: false, kid: true, ...(k.helmet ? { shirt: JERSEYS[Math.floor(k.seed / 2) % JERSEYS.length] } : {}) };
+  const look = { face: k.seed % 4 === 3 ? 3 : 0, bald: false, kid: true, ...(k.helmet ? { shirt: JERSEYS[((Math.floor(k.seed / 2) % JERSEYS.length) + JERSEYS.length) % JERSEYS.length] } : {}) };
   drawPerson(c, { seed: k.seed, woman: k.woman, outfit: 'guest', f, pose, mood, talking, look });
   const hy = -66 + (pose === 'sit' ? 18 : 0);
   if (k.helmet) helmet(c, 1, hy, k.helmet); else headgear(c, 1, hy, k.seed);

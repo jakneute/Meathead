@@ -252,7 +252,7 @@ const paintPainter = (g: Ctx, F: Frame) => {
   // (the smock, down to the knees, spattered; a pocket of brushes)
   part(g, () => { g.moveTo(-B.w / 2, B.shY + 2); g.lineTo(B.w / 2, B.shY + 2); g.lineTo(B.w / 2 + 5, -18); g.lineTo(-B.w / 2 - 5, -18); g.closePath(); }, SMOCK, -B.w / 2 - 5, B.shY + 2, B.w + 10, -20 - B.shY);
   const spots = ['#EF4444', '#FDE047', '#3B82F6', '#22C55E', '#EC4899'];
-  for (let k = 0; k < 9; k++) { const sx = -B.w / 2 + ((k * 11 + F.seed) % (B.w - 2)), sy = B.shY + 6 + ((k * 13 + F.seed * 3) % 34), col = spots[(k + F.seed) % 5]; px(g, sx, sy, 3, 2, col); px(g, sx + 1, sy + 2, 1, 2, col); }
+  for (let k = 0; k < 9; k++) { const sx = -B.w / 2 + ((k * 11 + F.seed) % (B.w - 2)), sy = B.shY + 6 + ((k * 13 + F.seed * 3) % 34), col = spots[((Math.floor(k + F.seed) % 5) + 5) % 5]; px(g, sx, sy, 3, 2, col); px(g, sx + 1, sy + 2, 1, 2, col); }
   px(g, B.w / 2 - 10, B.hipY - 4, 8, 7, dk(SMOCK, 0.12)); px(g, B.w / 2 - 10, B.hipY - 4, 8, 1, dk(SMOCK, 0.3));
   for (let k = 0; k < 3; k++) { px(g, B.w / 2 - 9 + k * 3, B.hipY - 12, 1, 9, '#92400E'); px(g, B.w / 2 - 9 + k * 3, B.hipY - 13, 1, 2, spots[(k + 2) % 5]); }
   hairBack(g, B);
@@ -268,7 +268,7 @@ const paintPainter = (g: Ctx, F: Frame) => {
     g.save(); g.translate(H.near[0], H.near[1]); g.rotate(dip ? 2.4 : smear ? 0.1 : -0.8);
     part(g, () => g.rect(-2, -1.5, 14, 3), '#92400E', -2, -1.5, 14, 3, 0.8);
     part(g, () => g.rect(12, -1.8, 4, 3.6), '#C8C8D0', 12, -1.8, 4, 3.6, 0.6);
-    const tip = spots[(F.seed + F.fr) % 5];
+    const tip = spots[((Math.floor(F.seed + F.fr) % 5) + 5) % 5];
     part(g, () => { g.moveTo(16, -2); g.lineTo(23, 0); g.lineTo(16, 2); g.closePath(); }, tip, 16, -2, 7, 4, 0.8);
     g.restore();
   }
@@ -332,7 +332,7 @@ const cup = (g: Ctx, col: string, x0: number, yb: number, yt: number, wb: number
 export const drawMascot = (c: Ctx, e: Enemy, f: number) => {
   const r = reaction(e), md = r?.md ?? moodOf(e), isDead = md === 'dead';
   const seed = seedOfE(e);
-  const CUP = ['#F9A8D4', '#93C5FD', '#C4B5FD'][seed % 3], FROST = ['#FBCFE8', '#FEF3C7', '#BFDBFE'][(seed >> 1) % 3];
+  const CUP = ['#F9A8D4', '#93C5FD', '#C4B5FD'][((Math.floor(seed) % 3) + 3) % 3], FROST = ['#FBCFE8', '#FEF3C7', '#BFDBFE'][((Math.floor(seed >> 1) % 3) + 3) % 3];
   const crash = e.aiState === 'crash', rev = e.aiState === 'rev', air = e.aiState === 'leap';
   const pose = r?.pose ?? (rev ? 'tell' : moving(e));
   const isFlat = pose === 'limp' || (isDead && !r);

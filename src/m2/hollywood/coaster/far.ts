@@ -156,7 +156,7 @@ const paintPark = (g: Ctx, tod: TimeOfDay) => {
       // a striped queue canopy on its poles
       const h = 40, R = ['#B4243A', '#F4EEE2'];
       for (let k = x + 6; k < x + w; k += 34) box(g, k, f - h, 2, h, T('#3A3438'));
-      for (let k = 0; k < w; k += 10) { g.fillStyle = T(R[(k / 10) % 2]); g.beginPath(); g.moveTo(x + k, f - h); g.lineTo(x + k + 5, f - h - 12); g.lineTo(x + k + 10, f - h); g.closePath(); g.fill(); }
+      for (let k = 0; k < w; k += 10) { g.fillStyle = T(R[((Math.floor(k / 10) % 2) + 2) % 2]); g.beginPath(); g.moveTo(x + k, f - h); g.lineTo(x + k + 5, f - h - 12); g.lineTo(x + k + 10, f - h); g.closePath(); g.fill(); }
       box(g, x, f - h, w, 3, T('#7A1424'));
       for (let k = x + 4; k < x + w - 4; k += 5) box(g, k, f - 6 - (hash(k) > 0.5 ? 1 : 0), 2, 6, T(['#B4243A', '#3A6AB8', '#F4EEE2', '#2A8A4A', '#E8C25A'][Math.floor(hash(k * 1.3) * 5)]));
     } else {

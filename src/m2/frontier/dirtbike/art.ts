@@ -646,12 +646,12 @@ export interface TeenLook extends Teen {
 const TEEN_HAIR = ['#1F1611', '#4A2E1A', '#A16207', '#F5D27A', '#7F1D1D', '#111827', '#E8C070'];
 export const teenLookOf = (seed: number): TeenLook => {
   const t = teenOf(seed), look = lookOf(seed, t.woman);
-  const shirt = t.helmet ? JERSEYS[Math.floor(t.seed / 2) % JERSEYS.length] : look.shirt;
-  const pants = t.helmet ? MOTO_PANTS[Math.floor(t.seed / 11) % MOTO_PANTS.length] : look.pants;
+  const shirt = t.helmet ? JERSEYS[((Math.floor(t.seed / 2) % JERSEYS.length) + JERSEYS.length) % JERSEYS.length] : look.shirt;
+  const pants = t.helmet ? MOTO_PANTS[((Math.floor(t.seed / 11) % MOTO_PANTS.length) + MOTO_PANTS.length) % MOTO_PANTS.length] : look.pants;
   return {
-    ...t, look: { ...look, shirt, pants, hair: TEEN_HAIR[Math.floor(seed / 7) % TEEN_HAIR.length], kid: true, bald: false },
+    ...t, look: { ...look, shirt, pants, hair: TEEN_HAIR[((Math.floor(seed / 7) % TEEN_HAIR.length) + TEEN_HAIR.length) % TEEN_HAIR.length], kid: true, bald: false },
     bike: bikeColor(seed), heavy: look.heavy, pony: t.woman && Math.floor(seed / 13) % 2 === 0,
-    gear: Math.floor(t.seed / 5) % 3, cap: CAPS[Math.floor(t.seed / 7) % CAPS.length], num: 2 + (Math.abs(t.seed * 13) % 97),
+    gear: Math.floor(t.seed / 5) % 3, cap: CAPS[((Math.floor(t.seed / 7) % CAPS.length) + CAPS.length) % CAPS.length], num: 2 + (Math.abs(t.seed * 13) % 97),
   };
 };
 

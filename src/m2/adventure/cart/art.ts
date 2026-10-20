@@ -605,7 +605,7 @@ const drawFriendly = (c: Ctx, eye: Eye, f: number, L: number, R: number) => {
 const postSign = (c: Ctx, x: number, foot: number, h: number, w: number, words: string, face: string, ink: string, size = 7, arrow: 'right' | 'up' | null = null) => {
   const top = foot - h;
   for (const px of [x - w / 2 + 10, x + w / 2 - 14]) pole(c, px, top, 4, h, '#6A4A2A');
-  sign(c, x - w / 2, top - 22, w, 20, face, words, ink, size, '#4A3420');
+  sign(c, x - w / 2, top - 22, w, 20, face, words, ink, size, '#4A3420', plank(size, ink, undefined, '#140A04', 2));
   if (arrow === 'right') {
     c.fillStyle = INK; c.beginPath(); c.moveTo(x + w / 2 + 8, top - 24); c.lineTo(x + w / 2 + 26, top - 12); c.lineTo(x + w / 2 + 8, top); c.closePath(); c.fill();
     c.fillStyle = ink; c.beginPath(); c.moveTo(x + w / 2 + 10, top - 20); c.lineTo(x + w / 2 + 22, top - 12); c.lineTo(x + w / 2 + 10, top - 4); c.closePath(); c.fill();

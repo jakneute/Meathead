@@ -17,6 +17,8 @@ const listeners = new Set<() => void>();
 const ping = () => { cheats = { ...cheats }; listeners.forEach(l => l()); };
 export const getCheats = () => cheats;
 export const setCheat = (k: keyof M2Cheats, on: boolean) => { if (cheats[k] === on) return; cheats = { ...cheats, [k]: on }; listeners.forEach(l => l()); };
+// (dev only: the perf harness (tools/perf/run.mjs) turns god mode on from outside)
+if (import.meta.env.DEV) (window as unknown as { __m2SetCheat: typeof setCheat }).__m2SetCheat = setCheat;
 export const subscribeCheats = (l: () => void) => { listeners.add(l); return () => { listeners.delete(l); }; };
 
 /** What he can pick from: what he's got this playthrough (store.ts), or the lot (the cheat). In arsenal order. */

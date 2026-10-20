@@ -129,7 +129,7 @@ const paintBackWall = (g: Ctx) => {
   // (the stage's proscenium, its red velvet curtain in folds, CAN-CAN up top)
   const sx = X(3840) - a, sw = 230;
   box(g, sx - 4, Y(262) - GY - 4, sw + 8, Y(36) - Y(262) + 4, INK);
-  for (let k = 0; k < sw; k += 10) { const col = ['#5E0C14', '#8A1426', '#B4243A', '#8A1426'][(k / 10) % 4]; box(g, sx + k, Y(248) - GY, 10, Y(36) - Y(248), col); box(g, sx + k + 1, Y(248) - GY, 2, Y(36) - Y(248), (k / 10) % 4 === 2 ? '#D84A5A' : col); }
+  for (let k = 0; k < sw; k += 10) { const col = ['#5E0C14', '#8A1426', '#B4243A', '#8A1426'][((Math.floor(k / 10) % 4) + 4) % 4]; box(g, sx + k, Y(248) - GY, 10, Y(36) - Y(248), col); box(g, sx + k + 1, Y(248) - GY, 2, Y(36) - Y(248), (k / 10) % 4 === 2 ? '#D84A5A' : col); }
   for (let k = 0; k < sw; k += 14) { g.fillStyle = '#C8962E'; g.beginPath(); g.arc(sx + k + 7, Y(248) - GY, 7, 0, Math.PI); g.fill(); }
   box(g, sx - 6, Y(266) - GY, sw + 12, 22, T[3]); box(g, sx - 6, Y(266) - GY, sw + 12, 3, T[5]); box(g, sx - 6, Y(266) - GY + 19, sw + 12, 3, T[1]);
   signText(g, 'CAN-CAN', sx + sw / 2, Y(266) - GY + 16, western(1, '#7F1D1D', T[1]));

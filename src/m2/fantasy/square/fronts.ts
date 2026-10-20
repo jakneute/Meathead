@@ -154,7 +154,7 @@ const chimney = (g: Ctx, x: number, y: number, h: number, seed: number) => {
 
 const paintHog = (g: Ctx, f: Front) => {
   const { w, h, seed } = f, { lean, rh, peak } = roofOf(f);
-  const P = rampH(ramp6(['#CDBCA6', '#C8B4A8', '#D8C6A0', '#BCB0B4', '#D2BC9C'][seed % 5]), true), T = rampH(TIMBER, true), F = rampH(FLAG, true), S = rampH(SNOW, true), SL = rampH(SLATE, true);
+  const P = rampH(ramp6(['#CDBCA6', '#C8B4A8', '#D8C6A0', '#BCB0B4', '#D2BC9C'][((Math.floor(seed) % 5) + 5) % 5]), true), T = rampH(TIMBER, true), F = rampH(FLAG, true), S = rampH(SNOW, true), SL = rampH(SLATE, true);
   const gf = 74, floors = Math.max(1, Math.floor((h - gf) / 60)), fh = (h - gf) / floors;
   // GROUND FLOOR: a stone plinth, the plaster, the bay window and the door, the fascia
   box(g, -1, -gf - 1, w + 2, gf + 1, INK);
@@ -188,7 +188,7 @@ const paintHog = (g: Ctx, f: Front) => {
     base = top;
   }
   // (the shop's name on its gilt fascia, over the bay, under the jetty)
-  if (f.name) fascia(g, bayX + bayW / 2, -gf + 4, f.name, ['#1E3A6E', '#5A1E2A', '#1E4A3A', '#3A2A5A'][seed % 4]);
+  if (f.name) fascia(g, bayX + bayW / 2, -gf + 4, f.name, ['#1E3A6E', '#5A1E2A', '#1E4A3A', '#3A2A5A'][((Math.floor(seed) % 4) + 4) % 4]);
   // THE ROOF: a steep crooked gable (slate hung in its face, a carved bargeboard), snow heaped along both slopes
   const eave = base, ex0 = -10 + lean, ex1 = w + 10 + lean;
   polyF(g, [[ex0 - 2, eave + 2], [peak, eave - rh - 3], [ex1 + 2, eave + 2]], INK);
@@ -214,8 +214,8 @@ const paintHog = (g: Ctx, f: Front) => {
 
 const paintStory = (g: Ctx, f: Front) => {
   const { w, h, seed } = f, { rh, peak } = roofOf(f);
-  const wallCol = ['#F0DCC0', '#E2D2EE', '#F4D2C4', '#D6E6D4', '#F2E6B8'][seed % 5], trim = ['#4A78D4', '#B04A7A', '#3A8A6A', '#7A4AB0', '#C86A2A'][(seed >> 1) % 5];
-  const P = rampH(ramp6(wallCol), true), T = rampH(ramp6(trim), true), F = rampH(FLAG, true), S = rampH(SNOW, true), R = rampH(ramp6(['#4A78D4', '#8A3A5A', '#6A4A8A', '#3A7A5A'][(seed >> 2) % 4]), true);
+  const wallCol = ['#F0DCC0', '#E2D2EE', '#F4D2C4', '#D6E6D4', '#F2E6B8'][((Math.floor(seed) % 5) + 5) % 5], trim = ['#4A78D4', '#B04A7A', '#3A8A6A', '#7A4AB0', '#C86A2A'][((Math.floor(seed >> 1) % 5) + 5) % 5];
+  const P = rampH(ramp6(wallCol), true), T = rampH(ramp6(trim), true), F = rampH(FLAG, true), S = rampH(SNOW, true), R = rampH(ramp6(['#4A78D4', '#8A3A5A', '#6A4A8A', '#3A7A5A'][((Math.floor(seed >> 2) % 4) + 4) % 4]), true);
   box(g, -1, -h - 1, w + 2, h + 1, INK);
   slab(g, 0, -h, w, h, P);
   box(g, 0, -12, w, 12, F[2]); box(g, 0, -12, w, 1, F[4]);
@@ -290,7 +290,7 @@ const paintGinger = (g: Ctx, f: Front) => {
     const wx = Math.round(((k + 0.5) * w) / wins - 10);
     if (wy > -40 && Math.abs(wx + 10 - w / 2) < 22) continue;
     box(g, wx - 3, wy - 3, 26, 28, I[3]); box(g, wx - 3, wy - 3, 26, 1, I[5]);
-    for (let q = 0; q < 4; q++) box(g, wx + (q % 2) * 10, wy + Math.floor(q / 2) * 11, 10, 11, D(lit() ? ['#FFE07A', '#FF9A6A', '#FFC8E8', '#A8F0B8'][(q + k + seed) % 4] : mix(CANDY[(q + k + seed) % 6], '#3A2A4A', 0.35)));
+    for (let q = 0; q < 4; q++) box(g, wx + (q % 2) * 10, wy + Math.floor(q / 2) * 11, 10, 11, D(lit() ? ['#FFE07A', '#FF9A6A', '#FFC8E8', '#A8F0B8'][((Math.floor(q + k + seed) % 4) + 4) % 4] : mix(CANDY[((Math.floor(q + k + seed) % 6) + 6) % 6], '#3A2A4A', 0.35)));
     box(g, wx + 9, wy, 2, 22, I[4]); box(g, wx, wy + 10, 20, 2, I[4]);
   }
   const dx = w / 2 - 12; box(g, dx - 1, -43, 26, 43, INK); box(g, dx, -42, 24, 42, D('#4A2410')); for (let r = 0; r < 4; r++) for (let q = 0; q < 2; q++) { box(g, dx + 2 + q * 11, -40 + r * 10, 9, 8, D('#6A3418')); box(g, dx + 2 + q * 11, -40 + r * 10, 9, 1, D('#8A4A28')); }

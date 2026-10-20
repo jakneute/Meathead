@@ -339,7 +339,7 @@ whitehouse2 (30-37), bigkid (40-46), itchy (50-57, Punchy & Kicky), amphi (60-62
 | Player feel | m1/constants.ts:95-162 | `PLAYER_INVINCIBILITY_FRAMES 75`, `JUMP_HOLD_FRAMES 15`, coyote 7 / buffer 5, `POWER_CELLS 2` (:156), `POWER_CELL_RECHARGE 30` |
 | Ammo | m1/constants.ts:187-215 `MAX_AMMO` | e.g. MALLET 100, SPELLBOOK 100 |
 | Boss reference values | m1/constants.ts | `WEAKNESS_DAMAGE 100` (:408), `BOSS_CHARGE_DAMAGE 35`, `BOSS_UPPERCUT_DAMAGE 50`, `BULLET_DAMAGE 25` |
-| Death text sizing | deathText.ts:69-85 | Fits to the canvas width minus 80: one line at 48 px, otherwise wraps at 30 (16 at minimum). **The 28-character rule is not enforced in code**, so keep to it yourself. |
+| Death text sizing | deathText.ts:69-85 | Fits to the canvas width minus 80: one line at 48 px, otherwise wraps at 30 (16 at minimum). The 28-character rule is checked in dev only (a console warning: kinds.ts registerHurtLines, deathText.ts), so keep to it yourself. |
 | Line cooldown | m1/game/platform/speech.ts:39 | `LINE_REPEAT_COOLDOWN_MS = 45_000` |
 
 The 666 / 35% rule has **no shared constant**: each boss's `fight.ts` keeps its own copy. To change it everywhere,
@@ -412,10 +412,8 @@ Labels: **[DECIDE]** is a design call for you, **[BUG]** needs fixing, **[UNTEST
 | [NOT BUILT] | Stupid Dad's two deaths (weakness and standard) wait on the fight (cartoon-spec.md:531). |
 | [DECIDE] | **Broom fight grounds:** green summer lawn inside the magic wall, snowy outside (fantasy/broom/ground.ts:5-17, fantasy-spec.md:801). It was deliberate, but it clashes with the snowy castle base. Choose green or snowy. |
 | [BUG] | **Broom texture hitch:** a stutter as the fight starts. The likely cause is the 2048 px mode-7 floor (`TS` in broom/ground.ts), the sky and the billboards all painted at once on the first frame. Fix by painting them earlier, during the runway or the mount. |
-| [BUG] | **Jungle temple: checkpoint 40 to 41 gap.** cp 40 is at T+150 and cp 41 at T+3050, about 2900 px apart (adventure/temple/index.ts:251-252). Add one between them (the range 40-49 is free). |
-| [UNTESTED] | Jungle Land's SNES pass (jungle, cruise, dino, temple, mine cart: 2026-10-20) and its new checkpoint layout (dd03d669: 22 checkpoints became 31, with world-state restores at the new spots). |
-| [NOT BUILT] | Jungle Land's roof and clearing SNES work was **uncommitted** in the working tree on 2026-10-20 (roof/art.ts, clearing/index.ts, guides.ts, new clearing/guideArt.ts). Commit or discard it. |
-| [BUG] | The mine cart's signs (FRIENDLY GUESTS / UNFRIENDLY GUESTS / GAP AHEAD) still use the stock font: adventure/cart/art.ts:633, 634, 856. That breaks the themed-sign rule. |
+| [UNTESTED] | Jungle Land's SNES pass (jungle, cruise, dino, temple, mine cart: 2026-10-20) and its new checkpoint layout (dd03d669: 22 checkpoints became 31, with world-state restores at the new spots). The temple got one more on 2026-10-20: **THE DART TRAP** (cp 41, T+1720, between the catapult and the darts; the old 41/42 are now 42/43). Test a death past it and a CHECKPOINT SKIP to it. |
+| [UNTESTED] | The mine cart's post signs (FRIENDLY / UNFRIENDLY GUESTS, GAP AHEAD, LOW BEAM, KEEP SEATED) now letter in the park's painted-plank sign style (`plank`, adventure/letters.ts) rather than the plain plate. Check they read well. |
 | [UNTESTED] | Fairy Land's whole SNES pass, the Tragons survival rework (fantasy-spec.md:565-600), the Piper fight after its rebuild, and the keep/runway section. |
 | [UNTESTED] | Cartoon Land's music, the Sillyville revisit (rides shut), and the title screen and save files (a6dca958). |
 | [DECIDE] | Tucker's bees are off (`BEES_ON false`, frontier/arena/fight.ts:438). Open Wilderness questions: whether the gore bag empties at fight start, whether Tucker's blood goes in the bag, whether bees and critters hurt Tucker. |
@@ -426,8 +424,9 @@ Labels: **[DECIDE]** is a design call for you, **[BUG]** needs fixing, **[UNTEST
 | [UNTESTED] | Voice lines listed in `tools/voices/unresolved.txt` (e.g. intro MEATHEAD_* lines, some weapon pools) may play as text only. |
 | [NOT BUILT] | The M2 icon is only a draft (tools/icon/render-m2.ts); the M2 .exe / Steam build isn't started. |
 | [NOT BUILT] | Planned for later: hidden areas (leave room for them), hard / very hard variants, weapon upgrades, the real endgame and the necromancer boss rush. |
-| [CLEANUP] | Stale comments: frontier/geometry.ts:42 says Tucker is "not designed yet"; space/geometry.ts:40 and hollywood/geometry.ts:40 call their bosses placeholders; hollywood-spec.md:204 calls Steve's walk-away a placeholder. All of these are built now. |
-| [GIT] | On 2026-10-20 `master` was about 190 commits ahead of `origin/master`. **Push it** (`git push`) so there's a backup. |
+| [UNTESTED] | **Draw hooks are fenced** (2026-10-20, after the Tragons blank void, an unbalanced `save()`): every stage hook the engine calls (drawBackdrop, drawBack, drawMid, drawFront, drawHud, drawBackdropFront: m1/game/render/world.ts) and every land's per-section draw calls (each land's index.ts) run between a save and a restore (`fenced`, m1/game/render/fence.ts). One leaked save or transform can no longer throw the rest of the frame off screen. In dev, a hook that leaves the transform changed warns once in the console (`[draw] <section>.<hook> ...`). Watch the dev console for those warnings. |
+| [CLEANUP] | Palette picks by seed are safe now: every `ARRAY[seed % n]` / `ARRAY[(k + seed) % n]` style pick in src/m2 whose index could be fractional or negative (seeds, positions) uses a whole, non-negative index (`((Math.floor(x) % n) + n) % n`). That's the bug that crashed Fairy and Cartoon Land. Write new picks that way. tragons/* was not swept (another agent owns it). |
+| [CLEANUP] | Death text over 28 characters now warns in dev: as a source's lines are registered (`registerHurtLines`, kinds.ts) and when the death screen shows one (deathText.ts, `DEATH_TEXT_MAX`). No M2 death pool was over the limit. Some of Meathead 1's shared pools (m1/content/deaths.ts: a few pluck and animal lines, and the M1 tram's backtrack lines) are over it. Those are M1 content, left as is. If one ever shows in M2, the warning names it. |
 
 Before relying on this list, read each land's `*-spec.md` decisions log (its last entries) and `git log --since=2026-10-15`:
 commit bodies note "what to check" items.

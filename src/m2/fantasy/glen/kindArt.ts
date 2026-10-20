@@ -266,7 +266,7 @@ const bow = (g: Ctx, bx: number, by: number, sx: number, glint: boolean) => {
 };
 interface CupidLook { seed: number; isDead: boolean; md: string; pose: string | null; onWire: boolean; draw: boolean; swoop: boolean; rear: boolean; flap: number; kick: number; pull: number; glint: boolean }
 const paintCupid = (g: Ctx, P: CupidLook) => {
-  const L = lookOf(P.seed), sash = SASHES[P.seed % SASHES.length], hearts = Math.floor(P.seed / 5) % 2 === 0;
+  const L = lookOf(P.seed), sash = SASHES[((Math.floor(P.seed) % SASHES.length) + SASHES.length) % SASHES.length], hearts = Math.floor(P.seed / 5) % 2 === 0;
   const fat = L.heavy ? 4 : 0, man = !L.woman, { isDead, md, pose } = P;
   // (the wings off its back: on it alive; dead, torn off and lying beside it)
   if (!isDead) { wing(g, -6, -43, P.flap + 0.25, '#E5E7EB'); wing(g, -9, -38, P.flap, '#FFFFFF'); }
@@ -417,7 +417,7 @@ const horn = (g: Ctx, x: number, y: number, a: number, len = 26) => {
   g.restore();
 };
 const paintUnicorn = (g: Ctx, seed: number, P: { paw: boolean; charge: boolean; dizzy: boolean; walk: number; pawK: number; hurt: boolean; isDead: boolean; tail: number }, f: number) => {
-  const coat = COATS[seed % COATS.length], { paw, charge, dizzy, walk, pawK, hurt, isDead } = P;
+  const coat = COATS[((Math.floor(seed) % COATS.length) + COATS.length) % COATS.length], { paw, charge, dizzy, walk, pawK, hurt, isDead } = P;
   // (the tail: a rainbow swish out behind, in strands)
   for (let k = 0; k < 5; k++) { for (const [w, col] of [[5, INK], [3, MANE[k]]] as const) { g.strokeStyle = col; g.lineWidth = w; g.beginPath(); g.moveTo(-22, -50 + k * 2); g.quadraticCurveTo(-46, -44 + k * 3 + P.tail, -40, -22 + k * 3); g.stroke(); } }
   for (let k = 0; k < 5; k++) { g.strokeStyle = lt(MANE[k], 0.4); g.lineWidth = 1; g.beginPath(); g.moveTo(-24, -51 + k * 2); g.quadraticCurveTo(-46, -46 + k * 3 + P.tail, -41, -24 + k * 3); g.stroke(); }

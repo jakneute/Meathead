@@ -111,7 +111,7 @@ const paintGuide = (g: Ctx, F: Frame) => {
   // (the sash, shoulder to hip, a seeded row of badges)
   g.save(); g.translate(B.lean, 0);
   part(g, () => { g.moveTo(-B.w / 2 - 2, B.shY + 1); g.lineTo(-B.w / 2 + 5, B.shY - 1); g.lineTo(B.hipW / 2 + 3, B.hipY - 2); g.lineTo(B.hipW / 2 - 4, B.hipY + 2); g.closePath(); }, SASH, -B.w / 2 - 2, B.shY - 1, B.w + 6, B.hipY - B.shY + 3, 0.9);
-  for (let k = 0; k < 4; k++) { const t = 0.12 + k * 0.24, bx = -B.w / 2 + 2 + (B.hipW / 2 + B.w / 2 - 2) * t, by = B.shY + 1 + (B.hipY - B.shY - 1) * t; px(g, bx - 1.5, by - 1.5, 4, 4, INK); px(g, bx - 1, by - 1, 3, 3, BADGES[(F.seed + k * 3) % BADGES.length]); px(g, bx - 1, by - 1, 1, 1, '#FFFFFF'); }
+  for (let k = 0; k < 4; k++) { const t = 0.12 + k * 0.24, bx = -B.w / 2 + 2 + (B.hipW / 2 + B.w / 2 - 2) * t, by = B.shY + 1 + (B.hipY - B.shY - 1) * t; px(g, bx - 1.5, by - 1.5, 4, 4, INK); px(g, bx - 1, by - 1, 3, 3, BADGES[((Math.floor(F.seed + k * 3) % BADGES.length) + BADGES.length) % BADGES.length]); px(g, bx - 1, by - 1, 1, 1, '#FFFFFF'); }
   g.restore();
   px(g, B.w / 2 - 3 + B.lean, B.shY + 2, 2, B.hipY - B.shY, dk(KHAKI, 0.32));
   g.restore();

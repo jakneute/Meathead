@@ -183,7 +183,7 @@ const paintFront = (g: Ctx, F: Front) => {
   const n = F.win ?? 2, uy = top + bh + 40;
   if (uy + 50 < belt - 6) for (let i = 0; i < n; i++) {
     const ww = 30, cx = 18 + ((w - 36) * (i + 0.5)) / n - ww / 2;
-    sash(g, cx, uy, ww, 44, T, warm, ['#B8302A', '#E8D8B0', '#3A6A9A', '#5A8A4A'][(i + F.rx) % 4]);
+    sash(g, cx, uy, ww, 44, T, warm, ['#B8302A', '#E8D8B0', '#3A6A9A', '#5A8A4A'][((Math.floor(i + F.rx) % 4) + 4) % 4]);
   } else {
     // (no upstairs on a short one: a louvered diamond vent where it'd be, and a painted price board either side)
     const vy = (top + bh + 34 + belt) / 2, vx = w / 2;

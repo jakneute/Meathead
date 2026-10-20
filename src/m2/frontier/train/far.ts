@@ -205,7 +205,7 @@ const SKINS = ['#F2CDA8', '#E0AC80', '#B87A50', '#8A5434', '#5E3820', '#F6DCC4']
 const SHIRTS = ['#D83A3A', '#3A6AD8', '#E8A020', '#2E9A5A', '#D84A9A', '#F2F2EE', '#6A4AB0', '#E86A2A'];
 const HAIRS = ['#1C120A', '#4A2A12', '#8A5A2A', '#D8B060', '#E8E0D0', '#2A1A10'];
 const guest = (c: Ctx, x: number, y: number, seed: number, f: number) => {
-  const skin = SKINS[seed % SKINS.length], shirt = near([SHIRTS[(seed * 3) % SHIRTS.length]])[0], hair = HAIRS[(seed * 5) % HAIRS.length];
+  const skin = SKINS[((Math.floor(seed) % SKINS.length) + SKINS.length) % SKINS.length], shirt = near([SHIRTS[((Math.floor(seed * 3) % SHIRTS.length) + SHIRTS.length) % SHIRTS.length]])[0], hair = HAIRS[((Math.floor(seed * 5) % HAIRS.length) + HAIRS.length) % HAIRS.length];
   const kid = seed % 5 === 3, h = kid ? 0.72 : 1, woman = seed % 2 === 0;
   const top = y - 44 * h, up = Math.sin(f * 0.22 + seed * 1.7) > 0;
   c.save(); c.globalAlpha = 1;

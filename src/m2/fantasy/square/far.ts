@@ -221,7 +221,7 @@ const paintRoofs = (g: Ctx, tod: TimeOfDay) => {
     const x = r.x, w = r.w, top = RG - r.h;
     if (r.kind === 'pine') { farPine(g, x + w / 2, RG, r.h, [T('#1E3A36'), T('#2E524A')], SN[2]); continue; }
     if (r.kind === 'house') {
-      const wall = T(WALL[((Math.floor(r.seed) % 5) + 5) % 5]), roof = T(RF[r.seed % 4]), lean = (hash(r.seed * 9) - 0.5) * 8;
+      const wall = T(WALL[((Math.floor(r.seed) % 5) + 5) % 5]), roof = T(RF[((Math.floor(r.seed) % 4) + 4) % 4]), lean = (hash(r.seed * 9) - 0.5) * 8;
       box(g, x, top, w, r.h, wall); box(g, x + w - 6, top, 6, r.h, T(mix(WALL[((Math.floor(r.seed) % 5) + 5) % 5], INK, 0.25)));
       // (timbers on some)
       if (r.seed % 3 === 0) { box(g, x, top + r.h * 0.45, w, 2, TB); for (let k = x + 6; k < x + w - 4; k += 12) box(g, k, top, 2, r.h, TB); }
