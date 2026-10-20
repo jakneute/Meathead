@@ -1,6 +1,7 @@
 // THE SUITORS: the other men who want Piper (the user's: "always male and they are beefy too"). Introduced round the
 // bandstand at the loudspeaker (square/speaker.ts); the fairy wheel's carts and the broomstick deathmatch are full of
-// them. Drawn here (a first pass: crude but readable; everybody draws them from here), each his own man: a build out of
+// them. Drawn here (the SNES finish from the square's pass: every limb, blob and torso in steps, lit from the upper left,
+// shaded to the lower right, inked; everybody draws them from here), each his own man: a build out of
 // a gym, a look, a voice (cast.json).
 //
 //   BRAXTON   a bodybuilder, oiled and tanned to leather, a red cape and a cardboard crown, posing trunks and a
@@ -53,15 +54,29 @@ export const SUITOR_H = 92;
 
 const INK = '#1A1028';
 const box = (c: Ctx, x: number, y: number, w: number, h: number, col: string) => { c.fillStyle = col; c.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h)); };
+// (the SNES finish: every part in steps, lit from the upper left, shaded to the lower right, inked)
+const hx2 = (c: string) => [1, 3, 5].map(i => parseInt(c.slice(i, i + 2), 16));
+const mixS = (a: string, b: string, k: number) => { const A = hx2(a), B = hx2(b); return `#${A.map((v, i) => Math.round(v + (B[i] - v) * k).toString(16).padStart(2, '0')).join('')}`; };
+const shadeOf = (col: string, k = 0.28) => mixS(col, INK, k);
+const liteOf = (col: string, k = 0.28) => mixS(col, '#FFFFFF', k);
 const blob = (c: Ctx, x: number, y: number, rx: number, ry: number, col: string, line = true) => {
   if (line) { c.fillStyle = INK; c.beginPath(); c.ellipse(x, y, rx + 1, ry + 1, 0, 0, Math.PI * 2); c.fill(); }
-  c.fillStyle = col; c.beginPath(); c.ellipse(x, y, Math.max(0.5, rx), Math.max(0.5, ry), 0, 0, Math.PI * 2); c.fill();
+  rx = Math.max(0.5, rx); ry = Math.max(0.5, ry);
+  c.fillStyle = shadeOf(col, 0.3); c.beginPath(); c.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2); c.fill();
+  c.fillStyle = col; c.beginPath(); c.ellipse(x - rx * 0.12, y - ry * 0.12, rx * 0.86, ry * 0.86, 0, 0, Math.PI * 2); c.fill();
+  if (rx > 3) { c.fillStyle = liteOf(col, 0.3); c.beginPath(); c.ellipse(x - rx * 0.38, y - ry * 0.38, rx * 0.32, ry * 0.26, 0, 0, Math.PI * 2); c.fill(); }
 };
 const limb = (c: Ctx, x1: number, y1: number, x2: number, y2: number, w: number, col: string, lit?: string) => {
+  const dx = x2 - x1, dy = y2 - y1, d = Math.hypot(dx, dy) || 1;
+  let nx = -dy / d, ny = dx / d;
+  if (nx < -0.01 || (Math.abs(nx) <= 0.01 && ny < 0)) { nx = -nx; ny = -ny; }
   c.lineCap = 'round';
   c.strokeStyle = INK; c.lineWidth = w + 2; c.beginPath(); c.moveTo(x1, y1); c.lineTo(x2, y2); c.stroke();
   c.strokeStyle = col; c.lineWidth = w; c.beginPath(); c.moveTo(x1, y1); c.lineTo(x2, y2); c.stroke();
-  if (lit) { c.strokeStyle = lit; c.lineWidth = Math.max(1, w * 0.3); c.beginPath(); c.moveTo(x1 - w * 0.2, y1 - 1); c.lineTo(x2 - w * 0.2, y2 - 1); c.stroke(); }
+  c.lineCap = 'butt';
+  const o = w * 0.3;
+  c.strokeStyle = shadeOf(col, 0.26); c.lineWidth = w * 0.36; c.beginPath(); c.moveTo(x1 + nx * o, y1 + ny * o); c.lineTo(x2 + nx * o, y2 + ny * o); c.stroke();
+  c.strokeStyle = lit ?? liteOf(col, 0.22); c.lineWidth = Math.max(1, w * 0.22); c.beginPath(); c.moveTo(x1 - nx * o, y1 - ny * o); c.lineTo(x2 - nx * o, y2 - ny * o); c.stroke();
 };
 
 /**
@@ -112,13 +127,25 @@ export const drawSuitor = (c: Ctx, x: number, feetY: number, facing: 1 | -1, f: 
   limb(c, (-16 + farHand[0]) / 2 - 4, (shY + 6 + farHand[1]) / 2 + (flexing ? 4 : 0), farHand[0], farHand[1], 11, sd);
   blob(c, farHand[0], farHand[1], 5, 5, sd);
   // THE CAPE (behind his torso, down his back)
-  if (L.kit === 'cape') { c.fillStyle = INK; c.beginPath(); c.moveTo(-18, shY); c.lineTo(-30, -10); c.lineTo(-4, -16); c.lineTo(8, shY); c.closePath(); c.fill(); c.fillStyle = L.main; c.beginPath(); c.moveTo(-17, shY + 1); c.lineTo(-28, -12); c.lineTo(-5, -17); c.lineTo(6, shY + 1); c.closePath(); c.fill(); }
+  if (L.kit === 'cape') { c.fillStyle = INK; c.beginPath(); c.moveTo(-18, shY); c.lineTo(-30, -10); c.lineTo(-4, -16); c.lineTo(8, shY); c.closePath(); c.fill(); c.fillStyle = L.main; c.beginPath(); c.moveTo(-17, shY + 1); c.lineTo(-28, -12); c.lineTo(-5, -17); c.lineTo(6, shY + 1); c.closePath(); c.fill();
+    // (its folds: shaded troughs, a lit crest, the lining's edge in gold)
+    c.strokeStyle = shadeOf(L.main, 0.35); c.lineWidth = 2; c.beginPath(); c.moveTo(-12, shY + 4); c.lineTo(-20, -14); c.moveTo(-4, shY + 4); c.lineTo(-11, -16); c.stroke();
+    c.strokeStyle = liteOf(L.main, 0.25); c.lineWidth = 1; c.beginPath(); c.moveTo(-15, shY + 4); c.lineTo(-24, -13); c.stroke();
+    c.strokeStyle = L.trim; c.beginPath(); c.moveTo(-28, -12); c.lineTo(-5, -17); c.stroke(); }
   // THE TORSO: a V of shoulders, pecs, abs (or the gut)
   c.fillStyle = INK; c.beginPath(); c.moveTo(-25, shY - 1); c.lineTo(25, shY - 1); c.quadraticCurveTo(21 + gut * 8, (shY + hipY) / 2 + 4, 14 + gut * 4, hipY + 1); c.lineTo(-14 - gut * 2, hipY + 1); c.quadraticCurveTo(-21, (shY + hipY) / 2, -25, shY - 1); c.closePath(); c.fill();
   c.fillStyle = sb; c.beginPath(); c.moveTo(-24, shY); c.lineTo(24, shY); c.quadraticCurveTo(20 + gut * 8, (shY + hipY) / 2 + 4, 13 + gut * 4, hipY); c.lineTo(-13 - gut * 2, hipY); c.quadraticCurveTo(-20, (shY + hipY) / 2, -24, shY); c.closePath(); c.fill();
-  box(c, -22, shY + 1, 8, 20, sl);
+  // (the torso in steps: lit down the left, shaded down the right and under the pecs, dithered where they meet)
+  c.save(); c.beginPath(); c.moveTo(-24, shY); c.lineTo(24, shY); c.quadraticCurveTo(20 + gut * 8, (shY + hipY) / 2 + 4, 13 + gut * 4, hipY); c.lineTo(-13 - gut * 2, hipY); c.quadraticCurveTo(-20, (shY + hipY) / 2, -24, shY); c.closePath(); c.clip();
+  box(c, 12, shY, 16, hipY - shY, sd); box(c, 18, shY, 12, hipY - shY, shadeOf(sd, 0.2));
+  for (let y = Math.floor(shY); y < hipY; y += 2) { box(c, 11, y, 1, 1, sd); box(c, 17, y + 1, 1, 1, shadeOf(sd, 0.2)); box(c, -15, y, 1, 1, sl); }
+  box(c, -24, hipY - 5, 48, 5, sd);
+  c.restore();
+  box(c, -22, shY + 1, 8, 20, sl); box(c, -21, shY + 2, 3, 8, liteOf(sl, 0.3));
   // (pecs, abs or the gut's shine)
   box(c, -12, shY + 12, 11, 2, sd); box(c, 3, shY + 12, 11, 2, sd); box(c, 0, shY + 4, 1, 12, sd);
+  box(c, -11, shY + 5, 7, 2, sl); box(c, 4, shY + 5, 6, 2, sl); box(c, -10, shY + 5, 2, 1, liteOf(sl, 0.4));
+  box(c, -12, shY + 14, 11, 1, shadeOf(sd, 0.25)); box(c, 3, shY + 14, 11, 1, shadeOf(sd, 0.25));
   if (gut < 0.5) for (let k = 0; k < 3; k++) { box(c, -6, shY + 18 + k * 6, 5, 1, sd); box(c, 2, shY + 18 + k * 6, 5, 1, sd); }
   else blob(c, 6, hipY - 10, 14 + gut * 4, 10, sb, false);
   if (L.kit === 'cape') { box(c, -12, shY + 6, 3, 2, '#FFF6E8'); box(c, 8, shY + 8, 3, 1, '#FFF6E8'); }

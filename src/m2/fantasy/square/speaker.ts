@@ -25,7 +25,8 @@ import { PIPER_PA_VOICE } from '../talk';
 import { piperMust } from '../piperLines';
 import { HORNY } from '../lines';
 import { SUITORS, drawSuitor, SUITOR_H, type SuitorPose } from '../suitors';
-import { box, onScreen, INK, type Ctx } from '../kit';
+import { box, onScreen, INK, still, postR, ballR, snowCap, rampH, lit, IRON, GOLD, SNOW, type Ctx } from '../kit';
+import { signText } from '../../signLetters';
 import { squareOf } from './state';
 import { SPEAKER, SUITOR_SPOTS, X, Y } from './layout';
 import { PIPER_HELLO, PIPER_NAME, PIPER_TRIALS, PIPER_BLOOD, PIPER_WHEEL, BRAXTON_SAY, GUNNAR_SAY, TREMAINE_SAY, PIPE_HER, WINNING } from './lines';
@@ -137,17 +138,36 @@ export const updateSpeaker = (ctx: FrameContext, controls: Controls): Controls =
 export const drawSpeakerBack = (c: Ctx, state: GameState) => {
   if (!onScreen(state, X(SPEAKER.post) - 200, X(SPEAKER.stand.b) + 100)) return;
   const s = squareOf(state).scene, f = state.frame, px = X(SPEAKER.post), hy = Y(SPEAKER.hornH);
-  // (the post: wrought iron, fluted, a lantern near the top; the horn on its bracket)
-  box(c, px - 5, hy - 6, 10, Y(0) - hy + 6, INK); box(c, px - 3, hy - 4, 6, Y(0) - hy + 4, '#2E2A3A'); box(c, px - 3, hy - 4, 2, Y(0) - hy + 4, '#5A546A');
-  box(c, px - 10, Y(0) - 12, 20, 12, INK); box(c, px - 9, Y(0) - 11, 18, 11, '#3A3448');
-  box(c, px - 8, hy + 30, 16, 18, INK); box(c, px - 6, hy + 32, 12, 14, '#FFE9A8');
-  box(c, px, hy - 2, 26, 4, INK);
+  // (the post: wrought iron on a stepped plinth, fluted, a collar, its lantern (lit after dark), the scrolled bracket
+  // the horn hangs off, its wire running down the post, a little enamel plate; painted once)
+  const I = rampH(IRON), Gd = rampH(GOLD), S = rampH(SNOW), ph = Y(0) - hy;
+  still(c, 'sq-speakerpost', px, Y(0), -24, -ph - 30, 60, ph + 34, g => {
+    box(g, -12, -14, 24, 14, INK); box(g, -11, -13, 22, 13, I[3]); box(g, -11, -13, 22, 2, I[5]); box(g, -8, -18, 16, 5, I[2]); box(g, -8, -18, 16, 1, I[4]);
+    postR(g, 0, -ph - 6, -18, 7, I);
+    for (let y = -ph + 20; y < -24; y += 30) { box(g, -5, y, 10, 3, I[2]); box(g, -5, y, 10, 1, I[4]); }
+    box(g, -6, -ph + 52, 12, 4, Gd[3]); box(g, -6, -ph + 52, 12, 1, Gd[5]);
+    box(g, 4, -ph + 8, 1, ph - 26, '#2A2A30');
+    box(g, -9, -ph + 30, 18, 20, INK); box(g, -8, -ph + 31, 16, 18, lit() ? '#FFE9A8' : '#E8D8A8'); box(g, -8, -ph + 31, 5, 18, lit() ? '#FFFFFF' : '#FFF4D8'); box(g, -1, -ph + 31, 2, 18, I[2]);
+    box(g, -10, -ph + 28, 20, 3, I[3]); box(g, -10, -ph + 49, 20, 3, I[3]);
+    g.strokeStyle = INK; g.lineWidth = 3; g.beginPath(); g.moveTo(0, -ph - 2); g.lineTo(24, -ph - 2); g.moveTo(4, -ph + 12); g.quadraticCurveTo(16, -ph + 10, 18, -ph - 2); g.stroke();
+    g.strokeStyle = I[4]; g.lineWidth = 1; g.stroke();
+    ballR(g, 0, -ph - 9, 4, Gd);
+    snowCap(g, -10, -ph + 28, 20, 2, 11, S, false);
+    box(g, -14, -60, 28, 12, INK); box(g, -13, -59, 26, 10, '#1E3A6E'); box(g, -13, -59, 26, 1, '#4A6AA0');
+    signText(g, 'PA', 0, -51, { sx: 1, sy: 1, fill: GOLD[4] });
+  });
   const talking = s.who === 'piper' && !!s.said, jig = talking && f % 4 < 2 ? 1 : 0;
-  // (the horn: brass, flaring right)
-  c.fillStyle = INK; c.beginPath(); c.moveTo(px + 20, hy - 5 + jig); c.lineTo(px + 52, hy - 22 + jig); c.lineTo(px + 52, hy + 18 + jig); c.lineTo(px + 20, hy + 5 + jig); c.closePath(); c.fill();
-  c.fillStyle = '#E0AE3A'; c.beginPath(); c.moveTo(px + 21, hy - 3 + jig); c.lineTo(px + 50, hy - 19 + jig); c.lineTo(px + 50, hy + 15 + jig); c.lineTo(px + 21, hy + 3 + jig); c.closePath(); c.fill();
-  c.fillStyle = '#FFF0A0'; c.fillRect(px + 22, hy - 3 + jig, 24, 2);
-  c.fillStyle = '#7A5A1E'; c.beginPath(); c.ellipse(px + 51, hy - 2 + jig, 4, 19, 0, 0, Math.PI * 2); c.fill();
+  // (the horn: brass in steps, flaring right, its bell's dark mouth, a rim catching the light; while she talks it
+  // buzzes and soft pink rings come out of it)
+  if (talking) { c.globalAlpha = 0.16; c.fillStyle = '#FF9AD0'; c.beginPath(); c.arc(px + 54, hy - 2, 34, 0, Math.PI * 2); c.fill(); c.beginPath(); c.arc(px + 54, hy - 2, 20, 0, Math.PI * 2); c.fill(); c.globalAlpha = 1; }
+  const y0 = hy + jig;
+  c.fillStyle = INK; c.beginPath(); c.moveTo(px + 18, y0 - 6); c.quadraticCurveTo(px + 40, y0 - 8, px + 53, y0 - 23); c.lineTo(px + 53, y0 + 19); c.quadraticCurveTo(px + 40, y0 + 4, px + 18, y0 + 6); c.closePath(); c.fill();
+  const bandsH = [Gd[5], Gd[4], Gd[3], Gd[3], Gd[2], Gd[1]];
+  for (let i = 0; i < 6; i++) { const t0 = i / 6, t1 = (i + 1) / 6; c.fillStyle = bandsH[i]; c.beginPath(); c.moveTo(px + 19, y0 - 4 + 8 * t0); c.quadraticCurveTo(px + 40, y0 - 6 + 10 * t0, px + 51, y0 - 20 + 36 * t0); c.lineTo(px + 51, y0 - 20 + 36 * t1); c.quadraticCurveTo(px + 40, y0 - 6 + 10 * t1, px + 19, y0 - 4 + 8 * t1); c.closePath(); c.fill(); }
+  c.fillStyle = INK; c.beginPath(); c.ellipse(px + 52, y0 - 2, 5, 21, 0, 0, Math.PI * 2); c.fill();
+  c.fillStyle = Gd[2]; c.beginPath(); c.ellipse(px + 52, y0 - 2, 4, 20, 0, 0, Math.PI * 2); c.fill();
+  c.fillStyle = '#2A1A0A'; c.beginPath(); c.ellipse(px + 53, y0 - 2, 2.5, 16, 0, 0, Math.PI * 2); c.fill();
+  box(c, px + 51, y0 - 20, 1, 12, Gd[5]); box(c, px + 14, y0 - 4, 6, 8, I[2]);
   if (talking) for (let k = 0; k < 3; k++) { const r = 10 + ((f * 1.5 + k * 14) % 42); c.strokeStyle = `rgba(244, 114, 182, ${Math.max(0, 1 - r / 52)})`; c.lineWidth = 2; c.beginPath(); c.arc(px + 52, hy - 2, r, -0.7, 0.7); c.stroke(); }
   // (the suitors, till they're off to the wheel)
   if (s.step === 'done' || state.stageMemo[SPEAKER_MEMO] === '1') return;
@@ -171,6 +191,14 @@ export const drawSpeakerFront = (c: Ctx, state: GameState) => {
 /** Screen space: the fade to black, SKIP >>. */
 export const drawSpeakerHud = (c: Ctx, state: GameState) => {
   const s = squareOf(state).scene;
+  // (the scene's framing: letterbox bars easing in as he walks up to the post, a soft pink vignette while she purrs)
+  const on = s.step === 'walk' || s.step === 'talk' || s.step === 'fade';
+  if (on) {
+    const k = Math.min(1, s.all / 24), bh = Math.round(36 * k * k * (3 - 2 * k));
+    if (s.who === 'piper' && s.said) { c.globalAlpha = 0.07; c.fillStyle = '#FF7AC0'; c.fillRect(0, bh, CANVAS_WIDTH, 26); c.fillRect(0, CANVAS_HEIGHT - bh - 26, CANVAS_WIDTH, 26); c.globalAlpha = 1; }
+    c.fillStyle = '#05030A'; c.fillRect(0, 0, CANVAS_WIDTH, bh); c.fillRect(0, CANVAS_HEIGHT - bh, CANVAS_WIDTH, bh);
+    c.fillStyle = '#2A1830'; c.fillRect(0, bh, CANVAS_WIDTH, 1); c.fillRect(0, CANVAS_HEIGHT - bh - 1, CANVAS_WIDTH, 1);
+  }
   if (s.fade > 0) { c.fillStyle = `rgba(0, 0, 0, ${s.fade})`; c.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); }
   if ((s.step === 'walk' || s.step === 'talk' || s.step === 'fade') && s.all > SKIP_AFTER) drawSkipPrompt(c, CANVAS_WIDTH);
 };

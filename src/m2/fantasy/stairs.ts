@@ -157,6 +157,11 @@ export const ridingAny = (state: GameState, list: Stair[]) => list.find(s => onS
 // the iron pivot; the tell's glow and sparkles, a trail off the free end while it swings.
 
 const INK = '#1A1028';
+/** A stone's steps (shadow, shade, under, itself, lit), off its one color. */
+const hexOf = (c: string) => [1, 3, 5].map(i => parseInt(c.slice(i, i + 2), 16));
+const mixC = (a: string, b: string, k: number) => { const A = hexOf(a), B = hexOf(b); return `#${A.map((v, i) => Math.round(v + (B[i] - v) * k).toString(16).padStart(2, '0')).join('')}`; };
+const shadeCache = new Map<string, string[]>();
+const shades = (c: string) => { let s = shadeCache.get(c); if (!s) { s = [mixC(c, INK, 0.62), mixC(c, INK, 0.36), mixC(c, INK, 0.14), c, mixC(c, '#FFFFFF', 0.3)]; shadeCache.set(c, s); } return s; };
 export const drawStairs = (c: Ctx, state: GameState, list: Stair[]) => {
   const f = state.frame;
   for (const s of list) {
@@ -164,34 +169,56 @@ export const drawStairs = (c: Ctx, state: GameState, list: Stair[]) => {
     if (!onScreen(state, Math.min(d.px, e.x) - 40, Math.max(d.px, e.x) + 40)) continue;
     const dir = dirOf(s.ang), stone = d.stone ?? '#8E84A8', lip = d.lip ?? '#F2E2B8';
     const at = (u: number, up = 0) => ({ x: d.px + dir.x * u, y: d.py + dir.y * u - up });
-    // (the balustrade: posts up off the stringer, the handrail along their tops)
-    c.strokeStyle = INK; c.lineWidth = 4; c.beginPath(); c.moveTo(at(4, 34).x, at(4, 34).y); c.lineTo(at(d.len - 4, 34).x, at(d.len - 4, 34).y); c.stroke();
-    c.strokeStyle = '#6A4A6A'; c.lineWidth = 2; c.stroke();
-    for (let u = 8; u < d.len; u += 32) { const q = at(u); c.fillStyle = INK; c.fillRect(Math.round(q.x - 2), Math.round(q.y - 34), 4, 34); c.fillStyle = '#7A5A7A'; c.fillRect(Math.round(q.x - 1), Math.round(q.y - 33), 2, 32); }
-    // (the stringer: a stone band under the line, its lit top edge, a faint enchanted glow under it)
+    const S = shades(stone), OAK = ['#2A1A12', '#4A2E1E', '#6E4A30', '#946A44', '#BA9264'];
+    const band = (o0: number, o1: number, col: string) => { c.fillStyle = col; c.beginPath(); c.moveTo(d.px, d.py + o0); c.lineTo(e.x, e.y + o0); c.lineTo(e.x, e.y + o1); c.lineTo(d.px, d.py + o1); c.closePath(); c.fill(); };
+    // (the balustrade: turned balusters up off the stringer, an oak handrail along their tops, lit along its top, a
+    // newel post at each end with a gold cap)
+    for (let u = 12; u < d.len - 6; u += 16) {
+      const q = at(u), x = Math.round(q.x), y = Math.round(q.y);
+      c.fillStyle = INK; c.fillRect(x - 2, y - 33, 4, 31); c.fillRect(x - 3, y - 22, 6, 8);
+      c.fillStyle = OAK[2]; c.fillRect(x - 1, y - 32, 2, 29); c.fillStyle = OAK[3]; c.fillRect(x - 2, y - 21, 4, 6); c.fillStyle = OAK[4]; c.fillRect(x - 2, y - 21, 1, 6);
+    }
+    c.lineCap = 'butt';
+    c.strokeStyle = INK; c.lineWidth = 6; c.beginPath(); c.moveTo(at(0, 35).x, at(0, 35).y); c.lineTo(at(d.len, 35).x, at(d.len, 35).y); c.stroke();
+    c.strokeStyle = OAK[2]; c.lineWidth = 4; c.stroke();
+    c.strokeStyle = OAK[4]; c.lineWidth = 1; c.beginPath(); c.moveTo(at(0, 37).x, at(0, 37).y); c.lineTo(at(d.len, 37).x, at(d.len, 37).y); c.stroke();
+    for (const u of [2, d.len - 2]) { const q = at(u); c.fillStyle = INK; c.fillRect(Math.round(q.x - 4), Math.round(q.y - 42), 8, 40); c.fillStyle = OAK[2]; c.fillRect(Math.round(q.x - 3), Math.round(q.y - 41), 6, 38); c.fillStyle = OAK[4]; c.fillRect(Math.round(q.x - 3), Math.round(q.y - 41), 2, 38); c.fillStyle = INK; c.beginPath(); c.arc(q.x, q.y - 44, 4, 0, Math.PI * 2); c.fill(); c.fillStyle = '#F2C84A'; c.beginPath(); c.arc(q.x, q.y - 44, 3, 0, Math.PI * 2); c.fill(); c.fillStyle = '#FFF0A8'; c.fillRect(Math.round(q.x - 2), Math.round(q.y - 46), 1, 1); }
+    // (the stringer: carved stone in steps (lit along its top, shaded under), sunk panels with a gold line through
+    // them, a faint enchanted glow under it (gold in the tell))
     const glowA = 0.12 + s.tell * 0.5 * (0.6 + 0.4 * Math.sin(f * 0.5));
-    c.save(); c.globalAlpha = glowA; c.strokeStyle = s.tell > 0 ? '#FFE27A' : '#B9A2FF'; c.lineWidth = 22; c.lineCap = 'round';
-    c.beginPath(); c.moveTo(d.px, d.py + 8); c.lineTo(e.x, e.y + 8); c.stroke(); c.restore();
-    c.fillStyle = INK; c.beginPath(); c.moveTo(d.px, d.py - 1); c.lineTo(e.x, e.y - 1); c.lineTo(e.x, e.y + 17); c.lineTo(d.px, d.py + 17); c.closePath(); c.fill();
-    c.fillStyle = stone; c.beginPath(); c.moveTo(d.px, d.py + 1); c.lineTo(e.x, e.y + 1); c.lineTo(e.x, e.y + 15); c.lineTo(d.px, d.py + 15); c.closePath(); c.fill();
-    c.fillStyle = '#5A507A'; c.beginPath(); c.moveTo(d.px, d.py + 11); c.lineTo(e.x, e.y + 11); c.lineTo(e.x, e.y + 15); c.lineTo(d.px, d.py + 15); c.closePath(); c.fill();
-    // (the treads: level whatever the angle, each lit along its top; the tell picks them out in gold, in a wave)
+    c.save(); c.globalAlpha = glowA; c.strokeStyle = s.tell > 0 ? '#FFE27A' : '#B9A2FF'; c.lineWidth = 24; c.lineCap = 'round';
+    c.beginPath(); c.moveTo(d.px, d.py + 10); c.lineTo(e.x, e.y + 10); c.stroke(); c.restore();
+    band(-1, 19, INK); band(1, 17, S[3]); band(1, 4, S[4]); band(12, 17, S[1]); band(15, 17, S[0]);
+    for (let u = 20; u < d.len - 24; u += 46) {
+      const p0 = at(u), p1 = at(u + 30);
+      c.fillStyle = S[2]; c.beginPath(); c.moveTo(p0.x, p0.y + 6); c.lineTo(p1.x, p1.y + 6); c.lineTo(p1.x, p1.y + 11); c.lineTo(p0.x, p0.y + 11); c.closePath(); c.fill();
+      c.fillStyle = s.tell > 0 ? '#FFE27A' : '#E0AE3A'; c.beginPath(); c.moveTo(p0.x + 2, p0.y + 8); c.lineTo(p1.x - 2, p1.y + 8); c.lineTo(p1.x - 2, p1.y + 9); c.lineTo(p0.x + 2, p0.y + 9); c.closePath(); c.fill();
+    }
+    // (the treads: level whatever the angle, stone in steps, each lit along its top; the tell picks them out in gold,
+    // in a wave)
     const stepW = Math.max(10, Math.min(18, Math.abs(dir.x) * 16 + 4));
     for (let u = 7; u < d.len - 3; u += 14) {
       const q = at(u), x = Math.round(q.x - stepW / 2), y = Math.round(q.y);
-      c.fillStyle = INK; c.fillRect(x - 1, y - 2, stepW + 2, 8);
-      c.fillStyle = '#B4A8CC'; c.fillRect(x, y - 1, stepW, 6);
+      c.fillStyle = INK; c.fillRect(x - 1, y - 2, stepW + 2, 9);
+      c.fillStyle = S[3]; c.fillRect(x, y - 1, stepW, 7);
+      c.fillStyle = S[4]; c.fillRect(x, y + 1, 2, 4);
+      c.fillStyle = S[1]; c.fillRect(x, y + 5, stepW, 1); c.fillRect(x + stepW - 2, y + 1, 2, 4);
       const wave = s.tell > 0 && Math.sin(u * 0.08 - f * 0.4) > 0.3;
       c.fillStyle = wave ? '#FFE27A' : lip; c.fillRect(x, y - 1, stepW, 2);
-      c.fillStyle = '#6E6290'; c.fillRect(x, y + 4, stepW, 1);
+      c.fillStyle = wave ? '#FFFFFF' : '#FFF6D8'; c.fillRect(x + 1, y - 1, Math.max(2, stepW - 6), 1);
     }
-    // (the pivot: an iron hub with a gold boss; a rune ring round it while it moves or tells)
-    c.fillStyle = INK; c.beginPath(); c.arc(d.px, d.py + 8, 9, 0, Math.PI * 2); c.fill();
-    c.fillStyle = '#3A3448'; c.beginPath(); c.arc(d.px, d.py + 8, 7, 0, Math.PI * 2); c.fill();
-    c.fillStyle = '#E0AE3A'; c.beginPath(); c.arc(d.px, d.py + 8, 3, 0, Math.PI * 2); c.fill();
+    // (the pivot: an iron hub, its bolts, a gold boss; a rune ring round it while it moves or tells)
+    c.fillStyle = INK; c.beginPath(); c.arc(d.px, d.py + 8, 10, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#26243C'; c.beginPath(); c.arc(d.px, d.py + 8, 8.5, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#4C4A66'; c.beginPath(); c.arc(d.px - 1.5, d.py + 6.5, 6, 0, Math.PI * 2); c.fill();
+    for (let k = 0; k < 6; k++) { const a = s.ang + (k * Math.PI) / 3; c.fillStyle = '#8A88A8'; c.fillRect(Math.round(d.px + Math.cos(a) * 6), Math.round(d.py + 8 + Math.sin(a) * 6), 1, 1); }
+    c.fillStyle = '#A06C1C'; c.beginPath(); c.arc(d.px, d.py + 8, 3.5, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#F2C84A'; c.beginPath(); c.arc(d.px - 0.8, d.py + 7.2, 2.2, 0, Math.PI * 2); c.fill();
     if (s.tell > 0 || s.moving) {
-      c.strokeStyle = s.moving ? '#B9A2FF' : '#FFE27A'; c.lineWidth = 1.5;
-      c.beginPath(); c.arc(d.px, d.py + 8, 13 + Math.sin(f * 0.3) * 2, f * 0.1, f * 0.1 + Math.PI * 1.5); c.stroke();
+      const col = s.moving ? '#B9A2FF' : '#FFE27A', r = 14 + Math.sin(f * 0.3) * 2;
+      c.strokeStyle = col; c.lineWidth = 1.5;
+      c.beginPath(); c.arc(d.px, d.py + 8, r, f * 0.1, f * 0.1 + Math.PI * 1.5); c.stroke();
+      for (let k = 0; k < 8; k++) { const a = -f * 0.08 + (k * Math.PI) / 4; c.fillStyle = k % 2 ? col : '#FFFFFF'; c.fillRect(Math.round(d.px + Math.cos(a) * (r + 4)) - 1, Math.round(d.py + 8 + Math.sin(a) * (r + 4)) - 1, 2, 2); }
     }
     // (the tell: sparkles off the treads; swinging: a trail off the free end)
     if (s.tell > 0 && f % 3 === 0) {

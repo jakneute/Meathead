@@ -63,8 +63,12 @@ const tower = (g: Ctx, P: ReturnType<typeof pal>, cx: number, foot: number, w: n
   const x = cx - w / 2, top = foot - h, S = P.stone;
   box(g, x - 1, top - 1, w + 2, h + 1, INK);
   box(g, x, top, w, h, S[1]); box(g, x, top, w * 0.22, h, S[0]); box(g, x + w * 0.62, top, w * 0.2, h, S[2]); box(g, x + w * 0.82, top, w * 0.18, h, S[3]);
-  // (the courses: a mortar line every so often)
-  for (let y = top + 6; y < foot - 2; y += 7) box(g, x, y, w, 1, S[2]);
+  // (the steps' seams dithered, round as a tower is)
+  for (let y = top + 1; y < foot; y += 2) { box(g, x + w * 0.22, y, 1, 1, S[0]); box(g, x + w * 0.62 - 1, y + 1, 1, 1, S[2]); box(g, x + w * 0.82 - 1, y, 1, 1, S[3]); }
+  // (the courses: a mortar line every so often; a block picked out lighter here and there)
+  for (let y = top + 6; y < foot - 2; y += 7) { box(g, x, y, w, 1, S[2]); if (w > 18) box(g, x + ((y * 7) % Math.max(1, Math.floor(w - 8))), y - 5, 5, 4, S[0]); }
+  // (a ring of arrow slits under the top on the big ones)
+  if (h > 90) for (let k = 0; k < 3; k++) box(g, x + w * (0.2 + k * 0.3), top + 6, 1, 4, INK);
   // (a corbelled band under the roof)
   box(g, x - 3, top - 4, w + 6, 5, INK); box(g, x - 2, top - 3, w + 4, 3, S[0]); box(g, x - 2, top, w + 4, 1, S[3]);
   // (windows: tall, arched, lit after dark)
@@ -80,6 +84,10 @@ const tower = (g: Ctx, P: ReturnType<typeof pal>, cx: number, foot: number, w: n
   poly(g, R[0], [cx - rw, rb, cx, rb - roofH, cx - rw * 0.45, rb]);
   poly(g, R[2], [cx + rw * 0.35, rb, cx, rb - roofH, cx + rw, rb]);
   if (!opts.slate) for (const k of [0.3, 0.62]) { const yb = rb - roofH * k, hw = rw * (1 - k); box(g, cx - hw, yb, hw * 2, 2, P.gold[1]); box(g, cx - hw, yb, hw * 0.6, 1, P.gold[0]); }
+  // (snow lying on the roof's brim, a little down its lit side; its slates in rows)
+  for (let k = 0.12; k < 0.95; k += 0.14) { const yb = rb - roofH * k, hw = rw * (1 - k); box(g, cx - hw * 0.9, yb, hw * 0.7, 1, R[opts.slate ? 2 : 3] ?? R[2]); }
+  box(g, cx - rw - 1, rb - 2, rw * 2 + 2, 2, P.snow[0]); box(g, cx - rw * 0.6, rb - 4, rw * 0.5, 2, P.snow[1]);
+  poly(g, P.snow[1], [cx - rw * 0.15, rb - roofH * 0.82, cx, rb - roofH, cx - rw * 0.04, rb - roofH * 0.78]);
   box(g, cx - 1, rb - roofH - 7, 2, 7, P.gold[2]); g.fillStyle = P.gold[1]; g.beginPath(); g.arc(cx, rb - roofH - 8, 2, 0, Math.PI * 2); g.fill();
   if (opts.flag !== false) { poly(g, P.pink[1], [cx + 1, rb - roofH - 14, cx + 14, rb - roofH - 11, cx + 1, rb - roofH - 8]); box(g, cx, rb - roofH - 16, 1, 10, INK); }
 };
@@ -94,12 +102,27 @@ const paintCastle = (g: Ctx, tod: TimeOfDay) => {
   poly(g, P.rock[2], [60, -84, 110, -64, 148, -36, 170, 0, 90, 0, 80, -40]);
   poly(g, P.rock[3], [120, -40, 148, -36, 170, 0, 136, 0]);
   for (const [x, y, w] of [[-140, -42, 30], [-104, -68, 40], [-56, -82, 60], [40, -84, 46], [100, -64, 28]]) { box(g, x, y, w, 4, P.snow[0]); box(g, x + 4, y + 4, w - 10, 2, P.snow[1]); }
+  // (the crag's strata, cracks, more snow caught on its ledges)
+  for (const [x0, y0, x1, y1] of [[-150, -30, -96, -46], [-120, -14, -40, -30], [30, -40, 120, -22], [60, -66, 130, -44], [-40, -60, 20, -64]]) { g.strokeStyle = P.rock[3]; g.lineWidth = 1; g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y1); g.stroke(); }
+  for (const [x, y, w] of [[-126, -22, 18], [-70, -40, 22], [70, -36, 20], [120, -18, 16], [-10, -50, 14]]) { box(g, x, y, w, 2, P.snow[1]); box(g, x + 2, y - 1, w - 6, 1, P.snow[0]); }
+  // (the road up it to the gate: switchbacks, lamps along them)
+  g.strokeStyle = P.snow[2]; g.lineWidth = 3; g.beginPath(); g.moveTo(-150, 0); g.lineTo(-40, -22); g.lineTo(-110, -44); g.lineTo(-20, -66); g.lineTo(0, -84); g.stroke();
+  g.strokeStyle = P.snow[0]; g.lineWidth = 1; g.beginPath(); g.moveTo(-150, -1); g.lineTo(-40, -23); g.lineTo(-110, -45); g.lineTo(-20, -67); g.stroke();
+  for (const [x, y] of [[-96, -9], [-58, -18], [-80, -38], [-60, -55], [-30, -64]]) { box(g, x, y - 5, 1, 5, INK); box(g, x - 1, y - 7, 3, 2, P.window[0]); }
+  // (snowy pines round its foot)
+  for (const [x, h] of [[-166, 22], [-150, 30], [-134, 18], [134, 24], [150, 32], [166, 20], [-60, 14], [90, 16]]) {
+    for (let k = 0; k < 3; k++) { const y = -h + (k * h) / 3, half = 3 + k * (h / 7); poly(g, P.rock[3], [x, y - 3, x + half, y + h / 3, x - half, y + h / 3]); box(g, x - half * 0.6, y + h / 3 - 1, half * 1.2, 1, P.snow[0]); }
+  }
   // THE CURTAIN WALL: crenellated, the gate in the middle
   const wy = -84, wallH = 46, S = P.stone;
   box(g, -131, wy - wallH - 1, 262, wallH + 2, INK);
   box(g, -130, wy - wallH, 260, wallH, S[1]); box(g, -130, wy - wallH, 260, 4, S[0]); box(g, -130, wy - 6, 260, 6, S[2]);
   for (let y = wy - wallH + 8; y < wy - 4; y += 8) for (let x = -130 + ((y / 8) % 2) * 9; x < 128; x += 18) box(g, x, y, 1, 7, S[2]);
-  for (let x = -130; x < 130; x += 12) { box(g, x - 1, wy - wallH - 9, 8, 9, INK); box(g, x, wy - wallH - 8, 6, 8, S[0]); box(g, x + 4, wy - wallH - 8, 2, 8, S[2]); }
+  for (let x = -130; x < 130; x += 12) { box(g, x - 1, wy - wallH - 9, 8, 9, INK); box(g, x, wy - wallH - 8, 6, 8, S[0]); box(g, x + 4, wy - wallH - 8, 2, 8, S[2]); box(g, x, wy - wallH - 9, 6, 1, P.snow[0]); }
+  // (the wall's windows in a row, lit after dark; arrow slits; a gallery of arches along its top; pink banners)
+  for (let x = -118; x < 118; x += 16) { if (Math.abs(x) < 26) continue; box(g, x - 1, wy - wallH + 12, 5, 9, INK); box(g, x, wy - wallH + 13, 3, 7, P.window[(x / 16) & 1]); }
+  for (let x = -124; x < 124; x += 10) box(g, x, wy - 18, 1, 5, INK);
+  for (const bx of [-80, -40, 36, 76]) { box(g, bx, wy - wallH + 2, 8, 22, P.pink[1]); box(g, bx, wy - wallH + 2, 2, 22, P.pink[0]); poly(g, P.pink[1], [bx, wy - wallH + 24, bx + 4, wy - wallH + 20, bx + 8, wy - wallH + 24]); box(g, bx + 3, wy - wallH + 8, 2, 2, P.gold[1]); }
   // (the gate: an arch, the portcullis, a gold crest over it)
   g.fillStyle = INK; g.beginPath(); g.moveTo(-17, wy); g.lineTo(-17, wy - 26); g.arc(0, wy - 26, 17, Math.PI, 0); g.lineTo(17, wy); g.closePath(); g.fill();
   g.fillStyle = P.slate[2]; g.beginPath(); g.moveTo(-14, wy); g.lineTo(-14, wy - 26); g.arc(0, wy - 26, 14, Math.PI, 0); g.lineTo(14, wy); g.closePath(); g.fill();
@@ -119,6 +142,14 @@ const paintCastle = (g: Ctx, tod: TimeOfDay) => {
   g.fillStyle = P.pink[2]; g.beginPath(); g.arc(0, kTop + 38, 13, 0, Math.PI * 2); g.fill();
   g.fillStyle = P.window[0]; for (let a = 0; a < 8; a++) { g.beginPath(); g.arc(Math.cos(a * Math.PI / 4) * 7, kTop + 38 + Math.sin(a * Math.PI / 4) * 7, 3, 0, Math.PI * 2); g.fill(); }
   for (const wx of [-30, 22]) for (const wyy of [kTop + 70, kTop + 106]) { box(g, wx - 1, wyy - 1, 10, 24, INK); box(g, wx, wyy, 8, 22, P.window[1]); box(g, wx, wyy, 4, 22, P.window[0]); g.fillStyle = INK; g.beginPath(); g.arc(wx + 4, wyy, 5, Math.PI, 0); g.fill(); g.fillStyle = P.window[1]; g.beginPath(); g.arc(wx + 4, wyy + 1, 4, Math.PI, 0); g.fill(); }
+  // (the keep's corner pinnacles, its long pink banner with a gold heart on it, flying buttresses down to the wall)
+  for (const px of [kx - 2, kx + kw - 6]) { box(g, px - 1, kTop - 22, 10, 16, INK); box(g, px, kTop - 21, 8, 15, S[0]); box(g, px + 5, kTop - 21, 3, 15, S[2]); poly(g, INK, [px - 2, kTop - 21, px + 4, kTop - 42, px + 10, kTop - 21]); poly(g, P.roof[1], [px - 1, kTop - 22, px + 4, kTop - 40, px + 9, kTop - 22]); poly(g, P.snow[0], [px - 1, kTop - 22, px + 4, kTop - 40, px + 2, kTop - 22]); }
+  box(g, -9, kTop + 56, 18, 60, INK); box(g, -8, kTop + 57, 16, 58, P.pink[1]); box(g, -8, kTop + 57, 4, 58, P.pink[0]); box(g, 4, kTop + 57, 4, 58, P.pink[2]);
+  poly(g, P.pink[1], [-8, kTop + 115, 0, kTop + 107, 8, kTop + 115, 8, kTop + 122, 0, kTop + 114, -8, kTop + 122]);
+  g.fillStyle = P.gold[1]; g.beginPath(); g.arc(-2, kTop + 80, 2.6, 0, Math.PI * 2); g.arc(2, kTop + 80, 2.6, 0, Math.PI * 2); g.fill(); poly(g, P.gold[1], [-4.6, kTop + 81, 0, kTop + 87, 4.6, kTop + 81]);
+  for (const s of [-1, 1]) { g.strokeStyle = INK; g.lineWidth = 4; g.beginPath(); g.moveTo(s * 44, kTop + 40); g.quadraticCurveTo(s * 70, kTop + 60, s * 82, wy - wallH); g.stroke(); g.strokeStyle = S[1]; g.lineWidth = 2; g.stroke(); }
+  // (two slender spires either side of the keep, for the skyline)
+  for (const [sx2, sh] of [[-30, 130], [40, 112]]) { const t = kTop - 20; box(g, sx2 - 4, t - sh + 60, 8, sh - 60 + 20, INK); box(g, sx2 - 3, t - sh + 61, 6, sh - 61 + 20, S[1]); box(g, sx2 - 3, t - sh + 61, 2, sh - 61 + 20, S[0]); box(g, sx2 - 1, t - sh + 76, 2, 5, P.window[1]); poly(g, INK, [sx2 - 6, t - sh + 62, sx2, t - sh, sx2 + 6, t - sh + 62]); poly(g, P.roof[1], [sx2 - 5, t - sh + 61, sx2, t - sh + 2, sx2 + 5, t - sh + 61]); poly(g, P.roof[0], [sx2 - 5, t - sh + 61, sx2, t - sh + 2, sx2 - 1, t - sh + 61]); box(g, sx2 - 6, t - sh + 60, 12, 2, P.snow[0]); box(g, sx2, t - sh - 8, 1, 8, P.gold[2]); poly(g, P.pink[1], [sx2 + 1, t - sh - 8, sx2 + 10, t - sh - 6, sx2 + 1, t - sh - 4]); }
   // (the near round towers, either side of the keep, and the wall's corner towers)
   tower(g, P, -62, wy - wallH + 4, 26, 150, 46);
   tower(g, P, 62, wy - wallH + 4, 26, 132, 42);

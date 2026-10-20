@@ -21,8 +21,7 @@ import { makeKindEnemy, mid } from '../../../m1/game/enemies/kinds';
 import { hazardVictims, hazardHit, boxHits, setHazardZones } from '../../hazardHit';
 import { envSound } from '../../bossQuiet';
 import { meatheadSays, byPants } from '../section';
-import { box, mix, onScreen, INK, type Ctx } from '../kit';
-import { timeOfDay } from '../../timeOfDay';
+import { box, onScreen, checker, still, polyF, rampH, SNOW as SNOW_R, SLATE, TIMBER, INK, type Ctx } from '../kit';
 import { squareOf, type Snow, type Throw } from './state';
 import { SNOW, CART, X, Y } from './layout';
 import { KEG_BURST } from './lines';
@@ -141,33 +140,89 @@ export const drawHazardsBack = (c: Ctx, state: GameState) => {
   for (const s of sq.snows) {
     if (!onScreen(state, s.x - 60, s.x + 60)) continue;
     const ey = Y(s.eave);
-    // (the eave it sits on: a roof's edge jutting out over the street on brackets (scenery: dimmed, it's not stood on))
-    const roofCol = mix('#4A4458', timeOfDay().haze, 0.3);
-    c.fillStyle = INK; c.beginPath(); c.moveTo(s.x - SLAB_W / 2 - 12, ey + 1); c.lineTo(s.x + SLAB_W / 2 + 12, ey + 1); c.lineTo(s.x + SLAB_W / 2 + 4, ey - 40); c.lineTo(s.x - SLAB_W / 2 - 4, ey - 40); c.closePath(); c.fill();
-    c.fillStyle = roofCol; c.beginPath(); c.moveTo(s.x - SLAB_W / 2 - 10, ey); c.lineTo(s.x + SLAB_W / 2 + 10, ey); c.lineTo(s.x + SLAB_W / 2 + 3, ey - 38); c.lineTo(s.x - SLAB_W / 2 - 3, ey - 38); c.closePath(); c.fill();
-    for (const bx of [s.x - SLAB_W / 2 + 4, s.x + SLAB_W / 2 - 8]) { box(c, bx, ey, 4, 18, INK); box(c, bx + 1, ey, 2, 17, mix('#5A3A1E', timeOfDay().haze, 0.3)); }
-    // (the cornice on the eave: built back up while it's idle)
+    // (the eave it sits on: a slate roof's edge jutting out over the street on carved brackets (scenery: dimmed, it's
+    // not stood on), painted once)
+    still(c, `sq-eave-${Math.round(s.x)}`, s.x, ey, -SLAB_W / 2 - 16, -46, SLAB_W + 32, 70, g => {
+      const Sl = rampH(SLATE, true), T = rampH(TIMBER, true), w = SLAB_W / 2;
+      polyF(g, [[-w - 13, 1], [w + 13, 1], [w + 5, -42], [-w - 5, -42]], INK);
+      polyF(g, [[-w - 11, 0], [w + 11, 0], [w + 4, -40], [-w - 4, -40]], Sl[3]);
+      for (let y = -4, r = 0; y > -40; y -= 6, r++) { const k = (-y) / 40, half = w + 11 - k * 7; box(g, -half, y, half * 2, 1, Sl[1]); for (let x = -half + (r % 2) * 5; x < half; x += 10) box(g, x, y - 5, 1, 5, Sl[2]); box(g, -half, y - 1, half * 2, 1, Sl[4]); }
+      box(g, -w - 11, -2, SLAB_W + 22, 3, T[3]); box(g, -w - 11, -2, SLAB_W + 22, 1, T[4]);
+      for (const bx of [-w + 4, w - 8]) { polyF(g, [[bx - 1, 1], [bx + 5, 1], [bx + 5, 20], [bx + 2, 20], [bx - 1, 8]], INK); polyF(g, [[bx, 1], [bx + 4, 1], [bx + 4, 19], [bx + 2, 19], [bx, 8]], T[3]); box(g, bx, 1, 1, 7, T[4]); }
+    });
+    // (the cornice on the eave: built back up while it's idle; snow in steps, its lumpy front, icicles)
     const t = (state.frame + s.phase) % PERIOD;
     const built = s.state === 'idle' ? Math.min(1, t / IDLE + 0.3) : s.state === 'tell' ? 1 : 0;
-    if (built > 0) { const h = SLAB_H * built; box(c, s.x - SLAB_W / 2 - 1, ey - 1, SLAB_W + 2, h + 2, INK); box(c, s.x - SLAB_W / 2, ey, SLAB_W, h, '#F4F8FF'); box(c, s.x - SLAB_W / 2, ey + h - 3, SLAB_W, 3, '#C4CCE4'); for (let k = -SLAB_W / 2 + 6; k < SLAB_W / 2; k += 12) box(c, s.x + k, ey + h, 3, 4 + (k % 3), '#DCEBFA'); }
-    if (s.state === 'tell') { const j = (state.frame % 4 < 2 ? 1 : -1); box(c, s.x - SLAB_W / 2 + j, ey + SLAB_H - 2, SLAB_W, 2, '#A8B4D8'); }
-    if (s.state === 'heap') { const k = 1 - s.t / 70; c.fillStyle = INK; c.beginPath(); c.ellipse(s.x, GY, SLAB_W / 2 + 4, 16 * k + 1, 0, Math.PI, 0); c.fill(); c.fillStyle = '#F4F8FF'; c.beginPath(); c.ellipse(s.x, GY, SLAB_W / 2 + 3, 15 * k, 0, Math.PI, 0); c.fill(); }
+    if (built > 0) {
+      const h = Math.round(SLAB_H * built), S = rampH(SNOW_R), x0 = s.x - SLAB_W / 2;
+      box(c, x0 - 1, ey - 1, SLAB_W + 2, h + 2, INK);
+      box(c, x0, ey, SLAB_W, h, S[4]); box(c, x0, ey, SLAB_W, 2, S[5]); box(c, x0, ey + h - 4, SLAB_W, 4, S[2]); checker(c, x0, ey + h - 6, SLAB_W, 2, S[2], 0, 1);
+      box(c, x0 + SLAB_W - 6, ey, 6, h, S[3]);
+      for (let k = 4; k < SLAB_W - 2; k += 9) { const l = 3 + ((k * 7 + Math.round(s.x)) % 6); box(c, x0 + k, ey + h, 2, l, S[2]); box(c, x0 + k, ey + h, 1, l - 1, S[5]); }
+    }
+    if (s.state === 'tell') { const j = (state.frame % 4 < 2 ? 1 : -1); box(c, s.x - SLAB_W / 2 + j, ey + SLAB_H - 2, SLAB_W, 2, '#A8B4D8'); box(c, s.x - 6 + j * 2, ey + 4, 1, SLAB_H - 6, '#8A96BC'); box(c, s.x + 14 - j, ey + 8, 1, SLAB_H - 10, '#8A96BC'); }
+    if (s.state === 'heap') {
+      const k = 1 - s.t / 70, S = rampH(SNOW_R);
+      c.fillStyle = INK; c.beginPath(); c.ellipse(s.x, GY, SLAB_W / 2 + 4, 16 * k + 1, 0, Math.PI, 0); c.fill();
+      c.fillStyle = S[3]; c.beginPath(); c.ellipse(s.x, GY, SLAB_W / 2 + 3, 15 * k, 0, Math.PI, 0); c.fill();
+      c.fillStyle = S[5]; c.beginPath(); c.ellipse(s.x - 8, GY - 6 * k, SLAB_W / 3, 6 * k, 0, Math.PI, 0); c.fill();
+      for (let q = -SLAB_W / 2; q < SLAB_W / 2; q += 11) box(c, s.x + q, GY - 3 * k - ((q * 13) & 3), 4, 2, S[2]);
+    }
   }
 };
 
 /** In front: the falling slabs, what's thrown. */
 export const drawHazardsFront = (c: Ctx, state: GameState) => {
   const sq = squareOf(state);
-  for (const s of sq.snows) if (s.state === 'fall') { box(c, s.x - SLAB_W / 2 - 1, s.y - SLAB_H - 1, SLAB_W + 2, SLAB_H + 2, INK); box(c, s.x - SLAB_W / 2, s.y - SLAB_H, SLAB_W, SLAB_H, '#F4F8FF'); box(c, s.x - SLAB_W / 2, s.y - 5, SLAB_W, 5, '#C4CCE4'); }
+  const S = rampH(SNOW_R);
+  for (const s of sq.snows) if (s.state === 'fall') {
+    // (the slab coming down: a lumpy block of packed snow in steps, bits breaking off it)
+    const x0 = s.x - SLAB_W / 2, y0 = s.y - SLAB_H;
+    box(c, x0 - 1, y0 - 1, SLAB_W + 2, SLAB_H + 2, INK);
+    for (let k = 0; k < SLAB_W; k += 8) box(c, x0 + k, y0 - 3 - ((k * 5) % 4), 8, 4, INK);
+    box(c, x0, y0, SLAB_W, SLAB_H, S[4]);
+    for (let k = 0; k < SLAB_W; k += 8) { box(c, x0 + k + 1, y0 - 2 - ((k * 5) % 4), 6, 4, S[5]); }
+    box(c, x0, y0, 3, SLAB_H, S[5]); box(c, x0 + SLAB_W - 7, y0, 7, SLAB_H, S[3]); checker(c, x0 + SLAB_W - 11, y0, 4, SLAB_H, S[3], 0, 1);
+    box(c, x0, s.y - 6, SLAB_W, 6, S[2]); checker(c, x0, s.y - 8, SLAB_W, 2, S[2], 1, 1);
+    for (let k = 0; k < 3; k++) box(c, x0 + 10 + k * 22, y0 - 10 - ((state.frame + k * 5) % 9), 4, 4, S[4]);
+  }
   drawThrows(c, state);
 };
 /** What the cast throw (exported for the glen, job 3: the square's cast turn up there too). */
 export const drawThrows = (c: Ctx, state: GameState) => {
   const sq = squareOf(state), f = state.frame;
   for (const s of sq.throws) {
-    if (s.kind === 'spark') { c.fillStyle = INK; c.beginPath(); c.arc(s.x, s.y, 6, 0, Math.PI * 2); c.fill(); c.fillStyle = f % 4 < 2 ? '#FDE047' : '#F0ABFC'; c.beginPath(); c.arc(s.x, s.y, 4.5, 0, Math.PI * 2); c.fill(); box(c, s.x - 1, s.y - 8, 2, 16, '#FFFFFF'); box(c, s.x - 8, s.y - 1, 16, 2, '#FFFFFF'); }
-    else if (s.kind === 'slipper') { c.save(); c.translate(s.x, s.y); c.rotate(s.t * 0.3); box(c, -8, -3, 16, 7, INK); box(c, -7, -2, 14, 5, '#CFF4FF'); box(c, -6, -2, 4, 2, '#FFFFFF'); c.restore(); }
-    else if (s.kind === 'ball') { c.fillStyle = INK; c.beginPath(); c.arc(s.x, s.y, 7, 0, Math.PI * 2); c.fill(); c.fillStyle = '#F97316'; c.beginPath(); c.arc(s.x, s.y, 5.5, 0, Math.PI * 2); c.fill(); box(c, s.x - 3, s.y - 3, 2, 2, '#FED7AA'); }
-    else if (s.kind === 'wave') { c.strokeStyle = '#E7E5E4'; c.lineWidth = 3; c.beginPath(); c.arc(s.x, s.y, 14 + (s.t % 6), Math.PI, 0); c.stroke(); c.strokeStyle = '#78716C'; c.lineWidth = 2; c.beginPath(); c.arc(s.x, s.y, 8 + (s.t % 6), Math.PI, 0); c.stroke(); }
+    if (s.kind === 'spark') {
+      // (a sparkler star: an inked four-point burst, its core flicking gold and pink, a trail of embers behind)
+      const tw = f % 4 < 2, col = tw ? '#FDE047' : '#F0ABFC';
+      for (let k = 1; k < 4; k++) box(c, s.x - s.vx * k * 1.6 - 1, s.y - s.vy * k * 1.6 - 1, 3 - (k > 2 ? 1 : 0), 3 - (k > 2 ? 1 : 0), k % 2 ? '#FDE047' : '#F97316');
+      polyF(c, [[s.x, s.y - 11], [s.x + 3, s.y - 3], [s.x + 11, s.y], [s.x + 3, s.y + 3], [s.x, s.y + 11], [s.x - 3, s.y + 3], [s.x - 11, s.y], [s.x - 3, s.y - 3]], INK);
+      polyF(c, [[s.x, s.y - 9], [s.x + 2, s.y - 2], [s.x + 9, s.y], [s.x + 2, s.y + 2], [s.x, s.y + 9], [s.x - 2, s.y + 2], [s.x - 9, s.y], [s.x - 2, s.y - 2]], col);
+      box(c, s.x - 2, s.y - 2, 4, 4, '#FFFFFF'); box(c, s.x - 1, s.y - 6, 1, 3, '#FFFFFF');
+    }
+    else if (s.kind === 'slipper') {
+      // (a glass slipper end over end: pale blue glass in steps, a glint, the heel)
+      c.save(); c.translate(s.x, s.y); c.rotate(s.t * 0.3);
+      polyF(c, [[-9, 4], [8, 4], [9, -1], [3, -2], [-2, -6], [-8, -4]], INK);
+      polyF(c, [[-8, 3], [7, 3], [8, -1], [3, -1], [-2, -5], [-7, -3]], '#A8DCF0');
+      polyF(c, [[-7, 1], [6, 1], [7, -1], [3, -1], [-2, -4], [-6, -2]], '#CFF4FF');
+      box(c, -6, -3, 4, 1, '#FFFFFF'); box(c, 5, 3, 3, 3, '#8ACAE8');
+      c.restore();
+    }
+    else if (s.kind === 'ball') {
+      // (the broomball: orange in steps, its seam, a highlight; spinning)
+      c.fillStyle = INK; c.beginPath(); c.arc(s.x, s.y, 7.5, 0, Math.PI * 2); c.fill();
+      for (const [col, r, o] of [['#C2410C', 6.5, 0], ['#F97316', 5.4, -0.8], ['#FDBA74', 3, -2.2]] as const) { c.fillStyle = col; c.beginPath(); c.arc(s.x + o, s.y + o, r, 0, Math.PI * 2); c.fill(); }
+      const a = s.t * 0.4; c.strokeStyle = '#7C2D12'; c.lineWidth = 1; c.beginPath(); c.arc(s.x, s.y, 6, a, a + Math.PI * 0.9); c.stroke();
+      box(c, s.x - 3, s.y - 4, 2, 1, '#FFFFFF');
+    }
+    else if (s.kind === 'wave') {
+      // (the club's shockwave along the ground: a ring of churned snow and cobble grit, chunks flung up)
+      const r = 14 + (s.t % 6), S = rampH(SNOW_R);
+      c.strokeStyle = INK; c.lineWidth = 5; c.beginPath(); c.arc(s.x, s.y, r, Math.PI, 0); c.stroke();
+      c.strokeStyle = S[3]; c.lineWidth = 3; c.stroke();
+      c.strokeStyle = '#78716C'; c.lineWidth = 2; c.beginPath(); c.arc(s.x, s.y, r * 0.55, Math.PI, 0); c.stroke();
+      for (let k = 0; k < 4; k++) { const ang = Math.PI + 0.4 + k * 0.7, d = r + 3 + ((s.t + k * 3) % 5); box(c, s.x + Math.cos(ang) * d - 1, s.y + Math.sin(ang) * d - 1, 3, 3, k % 2 ? S[5] : '#5A5068'); }
+    }
   }
 };

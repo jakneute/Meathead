@@ -20,7 +20,7 @@ import { makeStairs, updateStairs, drawStairs, ridingAny } from '../stairs';
 import { GROUND, SOLIDS, LEDGES, STAIRS, CAST, PICKUPS, CHECKPOINTS, GAG_AT, PILLAR, X, Y } from './layout';
 import { squareOf } from './state';
 import { buildHazards, updateHazards, drawHazardsBack, drawHazardsFront } from './hazards';
-import { drawSquareBackdrop, drawSquareBack, squareLamps } from './art';
+import { drawSquareBackdrop, drawSquareBack, drawSquareSnow, squareLamps } from './art';
 import { updateSpeaker, drawSpeakerBack, drawSpeakerFront, drawSpeakerHud, speakerDone } from './speaker';
 import { ARRIVE, REVISIT, GAGS } from './lines';
 import './kinds';
@@ -75,6 +75,7 @@ export const square: FantasySection = {
   },
   drawFront: (c, state) => {
     drawHazardsFront(c, state);
+    drawSquareSnow(c, state);
     // (the cast's barks, over their heads)
     for (const [e, s] of squareOf(state).barks) if (e.health > 0) saidOver(c, s.text, mid(e).x, e.pos.y - 12, '#FDE68A', 220);
     drawSpeakerFront(c, state);

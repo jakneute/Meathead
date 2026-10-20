@@ -658,3 +658,18 @@ markBossFight every frame of a boss or sub-boss fight. Voice every new line (`np
   tops), the camera swung out behind him and up (looking in at the castle and down at the bloody grounds; him drawn
   where it has him, by his depth), Piper's fireworks faster; laps done and the talking over, he breaks off at the top,
   banks in for her window (the camera back in behind him), then the cut and the rapid zoom and the glass as before.
+- (SNES pass, the town square) One eye over the scene; the land's SNES kit in kit.ts (six-step material ramps: plaster,
+  timber, slate, snow, cobble, flag, stone, brick, iron, gold, gingerbread, icing, pine, the lit lip; hour / dimmed
+  tints; still / stillAt / seen / sideBack / topBack / snowCap; FRONT_D 0.86, BACK_D 0.76): later sections use it.
+  The far off cached per hour (square/far.ts: banded sky, stepped cumulus, the Alps (no volcanoes), the castle up on
+  the far hills clear of the roofs, the park beyond (the fairy wheel, Truelling Tragons' three tracks, turrets, the iced
+  lake), Hogsmeat's roofs with smoking chimneys, far snow). The fronts at FRONT_D with real sides and snowy roof slopes
+  running back (square/fronts.ts: Hogsmeat half-timber with goods in glowing bays, storybook cottages, gingerbread, the
+  station, the park hedge and the fairy wheel gate), the pavement and back alley, street furniture on the pavement. The
+  play plane (square/art.ts): bent cobbles, the train back on its track bed, the cart, WANDS & SONS / the pillar / the
+  columns / the far wall with sides and tops going back, the carousel's drums, the gorge as a chasm going back (cliff
+  faces, frozen falls, clouds below), the tower's hall (portraits' eyes follow him, torches), the bandstand; balconies
+  on brackets under 200 high, enchanted floating slabs above. Enemies redrawn (mascots lie down properly dead: the old
+  rotate-to-lie sank them into the cobbles), snow hazards and throws, the staircases, the suitors (stepped shading,
+  same looks), the castle (more spires, banners, a road up its crag), the loudspeaker (letterbox framing) and the
+  walk-in. Drawing only: no layout, timing or hitbox changes.
