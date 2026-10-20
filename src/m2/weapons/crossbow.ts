@@ -15,6 +15,7 @@
 // half the darts' extra hurt, and half as many heaves; it dies its own fight's way (never puked to death).
 
 import type { Enemy, Projectile } from '../../m1/types';
+import { poofEnemy } from '../../m1/game/core/cartoonKills';
 import { shieldStops, clang } from './shield';
 import type { FrameContext } from '../../m1/game/core/context';
 import type { GameState } from '../../m1/game/core/state';
@@ -211,6 +212,13 @@ const pukedToDeath = (ctx: FrameContext, e: Enemy) => {
   // (facing whoever he was being sick on; otherwise whichever way he's drawn facing)
   const face = (e.pose?.face ?? (e.kind ? kindFacing(e, state) : e.facing ?? 1)) as 1 | -1;
   e.health = 0; e.pose = undefined;
+  // (cartoon kills: a puff, no body)
+  if (state.cartoonKills) {
+    poofEnemy(state, e);
+    fx.spawnPickup(e.pos); fx.speakVulgarity(m2Kill('plague_kill')); fx.spawnKillCallout(e, grabCallout('plague'));
+    state.player.killSatisfactionTimer = 60;
+    return;
+  }
   state.enemies = state.enemies.filter(o => o !== e);
   e.isBlownAway = true;
   corpses.push({ e, x: e.pos.x + e.width / 2, y: e.pos.y + e.height, vy: 0, t: 0, face, animal: !!e.kind && !isHumanoidKind(e.kind) });

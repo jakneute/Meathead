@@ -20,6 +20,7 @@ import { COLORS, GRAVITY } from '../../constants';
 import type { GameState } from '../core/state';
 import { floorTopAt } from '../core/terrain';
 import { isMidBoss } from '../combat/midBoss';
+import { poofEnemy } from '../core/cartoonKills';
 import { kindHead, isHumanoidKind } from '../render/enemies/index';
 import { GunDeath, GunMode, startGunDeath, updateGunDeath, updateEjected } from './gunDeaths';
 import { type Drown, updateDrowned } from './drownDeath';
@@ -118,6 +119,8 @@ export const startGunKill = (state: GameState, e: Enemy, mode: GunMode, vel: Vec
 export const startEnemyDeath = (state: GameState, e: Enemy, kind: EnemyDeathKind, vel?: Vector2) => {
   if (isMidBoss(e)) return; // (a mid-boss leaves its own corpse)
   if (e.kind === 'tenant') return; // (a tenant always goes out of his window: the stage sees to it)
+  // (cartoon kills: no body, a puff of smoke)
+  if (state.cartoonKills) { poofEnemy(state, e); return; }
   state.enemyDeaths.push({
     kind,
     x: e.pos.x, y: e.pos.y, w: e.width, h: e.height,

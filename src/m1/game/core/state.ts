@@ -73,6 +73,9 @@ export interface GameState {
   /** Oil on the ground (Oscar's stage): a slick you slide about on, or tar that holds your feet. From x1 to x2 along the ground line;
    *  `notKinds`: enemy kinds it doesn't take the feet out from under (Meathead 2's queen's kin, on her own oil). */
   groundOil?: { x1: number; x2: number; kind: 'slick' | 'tar'; notKinds?: string[] }[];
+  /** Cartoon kills (Meathead 2's cartoon White House, set by the stage each frame): no blood, no gore, no bodies; what
+   *  dies goes up in a cartoon puff of smoke (core/cartoonKills.ts). */
+  cartoonKills?: boolean;
   /** The weapons he's got right now (from the game's progress). */
   availableWeapons?: WeaponType[];
 
@@ -539,8 +542,10 @@ export const resetStageState = (s: GameState) => {
   p.skiSpeed = 0;
   p.hidden = false;
   p.inCutscene = false;
+  p.catForm = undefined;
   p.noSpecials = false;
   s.cameraLeadX = 0;
   s.lockWeapon = undefined;
   s.groundOil = undefined;
+  s.cartoonKills = undefined;
 };

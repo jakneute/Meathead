@@ -40,6 +40,7 @@ import { beginSprite, endSprite } from '../../m1/game/render/player/spriteOutlin
 import { playerTint } from '../../m1/game/render/player/player';
 import { drawLeg, drawArmTo, drawTorsoFromHips, drawHead, type Mood } from '../../m1/game/render/player/body';
 import { drawPlayer } from '../../m1/game/render/player/player';
+import { setCatClaws } from '../../m1/game/render/player/catBody';
 import { btn, pressed, pollM2 } from '../input';
 import { grabCallout, type GrabCallout } from './callouts';
 import { m2Kill } from './killLines';
@@ -1034,6 +1035,8 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
         aftershock(ctx, g, centerX(state), feetY(state), dmg);
         for (let i = 0; i < 6; i++) state.particles.push({ pos: { x: hx, y: hy }, vel: { x: (Math.random() - 0.5) * 5, y: -2 - Math.random() * 4 }, life: 22, color: i % 2 ? '#8B0000' : '#B91C1C', size: 2 + Math.random() * 2 });
         playSound('punch', 0.9 + Math.random() * 0.3, Math.random() * 4 - 2);
+        // (a cat: it's not punches, it's claws raked down him, a tuft of fur and stuffing off him)
+        if (p.catForm) { playSound('scratch', 1, Math.random() * 4 - 2); for (let i = 0; i < 5; i++) state.particles.push({ pos: { x: hx, y: hy - 4 }, vel: { x: (Math.random() - 0.5) * 4, y: -1.5 - Math.random() * 3 }, life: 26, color: ['#F8FAFC', '#CBD5E1', '#FDE68A'][i % 3], size: 2 + Math.random() * 2 }); }
         shakeScreen(state, 4, 3);
         // Bulked up, the last one's not a punch: both fists up over his head, and down
         if (e.health <= 0 && bulked()) { g.phase = 'smash'; g.t = 0; g.punchT = 0; playSound('whoosh', 1.1, -6); return hold(); }
@@ -1941,9 +1944,17 @@ export const drawGrab = (ctx: Ctx, state: GameState, g: Grab) => {
         drawPinned(ctx, e, state, x, y, g.dir, landed ? 1 : 0, squirm);
       }
       const right = g.punchN % 2 === 0;
+      // (a cat: claws out, raking him; three white streaks down him where each one lands)
+      if (p.catForm) setCatClaws(true);
       sprite(ctx, x, y, g.dir, c => mountPose(c, f, g.phase === 'kill' ? 0.2 : k, right, g.punchT > 0 && g.punchT >= PUNCH_FRAMES - 2));
+      setCatClaws(false);
+      if (p.catForm && g.punchT > 0 && k >= 0.45) {
+        const bx = x + g.dir * 42, by = y - 14;
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)'; ctx.lineWidth = 2;
+        for (let i = 0; i < 3; i++) { ctx.beginPath(); ctx.moveTo(bx - g.dir * 8 + i * 5 * g.dir, by - 12); ctx.quadraticCurveTo(bx + i * 5 * g.dir, by - 2, bx + g.dir * 6 + i * 5 * g.dir, by + 8); ctx.stroke(); }
+      }
       // (the landing: a burst where it went in)
-      if (landed && g.punchT === PUNCH_FRAMES - 2) {
+      else if (landed && g.punchT === PUNCH_FRAMES - 2) {
         const bx = x + g.dir * 46, by = y - 9;
         ctx.fillStyle = '#FFFFFF';
         for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4 + 0.3; ctx.fillRect(Math.round(bx + Math.cos(a) * 9) - 1, Math.round(by + Math.sin(a) * 6) - 1, i % 2 ? 2 : 3, i % 2 ? 2 : 3); }

@@ -8,6 +8,7 @@ import { drawThronePose } from './throne';
 import { drawCopterSeatPose } from './copterPose';
 import { drawTragonPose } from './tragonPose';
 import { drawBroomRidePose } from './broomPose';
+import { drawCatPlayer, setCatBody } from './catBody';
 import { BOULDER_THROW_FRAMES, GUN_COOLDOWN, COLORS, INITIAL_PLAYER_HEALTH, PLAYER_TERMINAL_VELOCITY, PLAYER_MOVE_SPEED, PLAYER_INVINCIBILITY_FRAMES, SPECIAL_HURT_FRAMES } from '../../../constants';
 import { peeProgress } from '../../scenes/victoryPee';
 import { SLIDE_HOLD, vineGrip, vineLean, VINE_SHOULDER } from '../../combat/muzzle';
@@ -80,6 +81,8 @@ export const STAB_WOUND = { x: 13, y: -34 };
 export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: GameState, { currentWeapon, showFilthShield, invincibilityEnabled, footTap = 0, surf = false, castShadow = false, hold }: PlayerDrawOptions) => {
   // (talking, in whatever pose: the heads drawn for the moves work their jaws too)
   setTalking(state.playerVulgarityTimer > 0 && !!state.playerLastVulgarity && !p.hidden);
+  // (Meathead 2's cat form: every body part drawn after this is the cat's, the grabs' and the weapons' poses too)
+  setCatBody(!!p.catForm);
   // (blown to bits by the third one: the mess, and the heap of him, over the death screen too)
   if (p.gut?.remains) { drawBlowout(ctx, p.gut, state.frame); drawRemains(ctx, p.gut.remains, state.frame); return; }
   if ((state.deathTimer > 0 && !p.headless && !p.shownDead) || p.hidden) return;
@@ -253,6 +256,21 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   const airStretch = !p.isGrounded && !isSpecial && !p.swimming && !vine ? Math.min(1, Math.abs(p.vel.y) / PLAYER_TERMINAL_VELOCITY) * 0.1 : 0;
   const squash = p.squash || 0;
   ctx.scale(1 + squash * 0.25 - airStretch * 0.5, 1 - squash * 0.25 + airStretch);
+
+  // A cartoon tuxedo cat (Meathead 2's cartoon White House): his own frames for all of it (render/player/catBody.ts);
+  // the gun's a hairball (nothing in his paw), any other weapon held in his paw
+  if (p.catForm && !p.headless) {
+    const g = p.gut, shat = !!g && (g.stage === 2 || (g.stage === 3 && !g.washed));
+    const armed = !isUnarmed && !outOfRocks(p, currentWeapon) && !((p.throwTimer || 0) > 0);
+    drawCatPlayer(ctx, p, state, {
+      frame: animFrame, hairball: currentWeapon === 'GUN', hurt: isHurt, angry: isAngry,
+      hold: armed ? (c, x, y) => (hold ? hold(c, x, y) : drawHeldWeapon(c, currentWeapon, x, y, p.flameAngle || 0, animFrame)) : null,
+    });
+    finishBody();
+    if (shat && !p.swimming) drawStink(ctx, p.pos.x + p.width / 2 - p.facing * 14, anchorY - 22, animFrame);
+    ctx.restore();
+    return;
+  }
 
   // Hauling on a lever over his head with both hands: seen from behind, his fists on its grip, the weapon put away
   // (render/player/ladder.ts)

@@ -160,6 +160,17 @@ export const registerDeathAnim = (kind: `own:${string}`, def: OwnDeath) => {
   if (def.airOk) AIR_OK.add(kind);
 };
 
+/** In cat form (Meathead 2's cartoon White House), whatever killed him, the cat's own cartoon death (its game registers
+ *  it as 'own:cat'). False if there isn't one. */
+export const startCatDeath = (ctx: FrameContext): boolean => {
+  const { state } = ctx, p = state.player;
+  if (!p.catForm || !OWN_DEATHS.has('own:cat')) return false;
+  const x = p.pos.x + p.width / 2, y = p.pos.y + p.height;
+  state.meatheadDeath = { kind: 'own:cat', x, y, facing: p.facing === -1 ? -1 : 1, floor: floorTopAt(state.blocks, x, y, 0) ?? y };
+  state.deathScene = { t: 0, len: MEATHEAD_DEATH_FRAMES['own:cat'], voiced: false };
+  return true;
+};
+
 /** Another game's hurt (Meathead 2's stampeding animals) dies one of these deaths. */
 export const registerDeathKind = (source: string, kind: MeatheadDeathKind) => { BY_SOURCE[source] = kind; };
 

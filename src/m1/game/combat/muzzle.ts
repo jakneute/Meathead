@@ -69,6 +69,15 @@ export const muzzlePoint = (player: Player, weapon: WeaponType) => {
   return { x: player.pos.x + player.width / 2 + player.facing * lx, y: player.pos.y + player.height + drop + ly };
 };
 
+/** In cat form (Meathead 2's cartoon White House: render/player/catPose.ts), his mouth: where the hairball comes out
+ *  (standing, ducked, sliding), in his local frame. */
+export const CAT_MOUTH = { x: 12, y: -55 }, CAT_MOUTH_DUCK = { x: 18, y: -44 }, CAT_MOUTH_SLIDE = { x: -13, y: -40 };
+export const catMouthPoint = (player: Player) => {
+  const m = player.isSliding ? CAT_MOUTH_SLIDE : player.isDucking ? CAT_MOUTH_DUCK : CAT_MOUTH;
+  const drop = stanceDrop(player.stance, !player.isSliding && !player.isDucking && !player.isCharging);
+  return { x: player.pos.x + player.width / 2 + player.facing * m.x, y: player.pos.y + player.height + drop + m.y };
+};
+
 /** The flamethrower's nozzle, following the barrel as it's aimed up or down. */
 export const flamethrowerNozzle = (player: Player) => {
   const pivot = muzzlePoint(player, 'FLAMETHROWER');

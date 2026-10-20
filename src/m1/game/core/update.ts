@@ -41,6 +41,7 @@ import { getStageLayout } from '../stages';
 import { groundLineAt, floorTopAt, runYAt } from './terrain';
 import { landOnFloor } from './splatSurface';
 import { scrapMachineGore } from '../enemies/machineGore';
+import { purgeCartoonGore } from './cartoonKills';
 
 const INTRO_JUMP_START = 80;
 const INTRO_JUMP_FRAMES = 60;
@@ -694,6 +695,8 @@ const updateParticles = (ctx: FrameContext) => {
   const { state, stageId } = ctx;
   // (a game's own machines don't bleed: what comes off them is scrap, sparks and oil)
   scrapMachineGore(state);
+  // (cartoon kills: no blood made anywhere gets drawn)
+  purgeCartoonGore(state);
   // Tommy's arena floor is a sludge pool: blood just sinks into it
   const bloodSplatsOnFloor = !(state.arenaLocked && getBossDef(stageId)?.arena?.floorless);
   const waterAt = getStageLayout(stageId)?.waterBodyAt;

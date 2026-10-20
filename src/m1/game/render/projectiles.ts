@@ -48,6 +48,7 @@ const streak = (ctx: Ctx, x0: number, len: number, h: number, colors: string[], 
 /** Meathead's gun: a hot tracer round with a streak behind it, stepping down yellow to orange as it fades. */
 export const drawBullet = (ctx: Ctx, p: Projectile) => {
   if (p.isRay) { drawRayBolt(ctx, p); return; }
+  if (p.isHairball) { drawHairball(ctx, p); return; }
   const { x, y } = centerOf(p);
   ctx.save();
   ctx.translate(x, y);
@@ -59,6 +60,33 @@ export const drawBullet = (ctx: Ctx, p: Projectile) => {
   ctx.fillStyle = '#F59E0B'; ctx.beginPath(); ctx.ellipse(2, 0, 7, 3.5, 0, 0, Math.PI * 2); ctx.fill();
   ctx.fillStyle = '#FDE047'; ctx.beginPath(); ctx.ellipse(2.5, -0.3, 6, 2.6, 0, 0, Math.PI * 2); ctx.fill();
   ctx.fillStyle = '#FFFFFF'; ctx.beginPath(); ctx.ellipse(3.5, -0.4, 3.5, 1.4, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+};
+
+/** Meathead 2's cat form's hairball: a wet wad of gray-brown fur, inked like a cartoon, tumbling, tufts sticking out,
+ *  a shine of spit on it, a couple of loose hairs and drool drops trailing. */
+const drawHairball = (ctx: Ctx, p: Projectile) => {
+  const { x, y } = centerOf(p);
+  const spin = (p.pos.x * 0.12) * Math.sign(p.vel.x || 1);
+  ctx.save();
+  ctx.translate(x, y);
+  // (the trail: loose hairs and a drool drop or two behind it)
+  const back = -Math.sign(p.vel.x || 1);
+  ctx.strokeStyle = 'rgba(74, 63, 55, 0.7)'; ctx.lineWidth = 1;
+  for (let k = 0; k < 3; k++) { ctx.beginPath(); ctx.moveTo(back * 5, -2 + k * 2); ctx.quadraticCurveTo(back * 11, -4 + k * 3, back * (14 + k * 2), -1 + k * 2); ctx.stroke(); }
+  ctx.fillStyle = 'rgba(215, 242, 247, 0.85)'; ctx.beginPath(); ctx.arc(back * 10, 4, 1.4, 0, Math.PI * 2); ctx.fill();
+  ctx.rotate(spin);
+  // (the ink, then the wad in steps, tufts poking out all round)
+  ctx.fillStyle = '#1A1028';
+  ctx.beginPath(); for (let k = 0; k < 10; k++) { const a = (k / 10) * Math.PI * 2, r = k % 2 ? 7.4 : 9; ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r); } ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#6B5B4E';
+  ctx.beginPath(); for (let k = 0; k < 10; k++) { const a = (k / 10) * Math.PI * 2, r = k % 2 ? 5.8 : 7.4; ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r); } ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#8A7766'; ctx.beginPath(); ctx.arc(-1.5, -1.5, 4.2, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#4A3F37'; ctx.fillRect(1, 1, 3, 2); ctx.fillRect(-4, 2, 2, 2);
+  ctx.strokeStyle = '#4A3F37'; ctx.lineWidth = 0.8; ctx.beginPath(); ctx.moveTo(-3, -3); ctx.lineTo(2, 0); ctx.moveTo(-2, 3); ctx.lineTo(3, -2); ctx.stroke();
+  ctx.rotate(-spin);
+  // (the spit shine, kept up top whichever way it's turning)
+  ctx.fillStyle = 'rgba(255,255,255,0.75)'; ctx.beginPath(); ctx.ellipse(-2.5, -3.5, 2.2, 1.1, -0.4, 0, Math.PI * 2); ctx.fill();
   ctx.restore();
 };
 

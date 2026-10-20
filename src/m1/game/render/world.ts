@@ -853,6 +853,8 @@ const drawEnemies = (ctx: CanvasRenderingContext2D, state: GameState, { status, 
   const enemies = state.enemies.some(e => e.hyper) ? [...state.enemies.filter(e => !e.hyper), ...state.enemies.filter(e => e.hyper)] : state.enemies;
   enemies.forEach(live => {
     // (a tenant's dead as he falls, but he's still to be seen going)
+    // (gone up in a cartoon puff)
+    if (live.poofed) return;
     if (live.health <= 0 && !live.isBlownAway && !(live.kind === 'tenant' && (live.aiState === 'fall' || live.aiState === 'splat'))) return;
     // (the animal that's killing him: his death draws it, doing it)
     if (animalInDeath(state, live)) return;

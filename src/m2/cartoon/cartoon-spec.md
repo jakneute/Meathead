@@ -179,6 +179,74 @@ PETE (`ct_pencil`: the mascot, a giant number two: a corkscrew spin across the f
 point on top is SPIKY), STUDIO SECURITY (`ct_guard`: the whistle and a bull rush, winded after; the flashlight).
 Dead, they drop what they carried.
 
+### Section 3 in detail (THE WACKY WHITE HOUSE, part one, built: whitehouse1/)
+
+The show's White House as a Saturday morning cartoon draws it (flat bright colors, fat black outlines, wobbly
+columns and frames; rooms cut away along their backs to the one eye). x from the section's start (whitehouse1/layout.ts):
+
+- 0 THE ENTRANCE HALL (cp 20): THE TRANSFORMATION the first time in (transform.ts: a cutscene, no input, no HUD, SKIP >>
+  for the lot): the animator's giant hand rubs him out with a pink eraser, stroke by stroke from the flat-top down
+  ("HEY. HEY! WHAT THE FUCK?"); a beat of nothing; the hand draws him back in with a pen, an ink line along the edge, as
+  SOCKS THE CAT / MEATHEAD; his line; CHELSEA runs in with the briefing (UN summit, mean men) and he tells her to shut
+  up. Memo `ct-wh-cat`; a later way in from the studio is a quick scribble back into the cat and his line. The title
+  banner hung off the ceiling; a lone goon past it (the hairball taught on him).
+- 1100 THE CROSS HALL: THE RUNAWAY VACUUM (a 1990s upright, nobody pushing it) up and down the carpet, alone: in front of
+  it, it drags him toward it; run into, it sucks him in and spits him out (hurt). A goon at the far end.
+- 2200 THE EAST ROOM (cp 21): JUST WAXED (the engine's slick, state.groundOil: he slides, so do they; the yellow A-frame
+  sign); a lobbyist, a goon on the wax, the spy blimp; the STEINWAY (a step), THE SWINGING CHANDELIER (a one-way ledge on
+  its top ring) up over THE CHAIR STACK (too tall), down the risers (and back up them).
+- 3700 THE PRESS ROOM (cp 22): pickups, then ROSS PEROT (arena 3900..4700).
+- 5000 THE STATE DINING ROOM (cp 23): the mean men eating the state dinner, up and down the banquet table; mixed.
+- 6400 THE GRAND STAIRCASE (cp 24): BOWLING BALLS out of the presidential bowling lane's ball return on the landing (its
+  light and the pins rattling first), bouncing down the stairs step by step, into the return grate at the bottom.
+- 7600 THE CENTER HALL (second floor): mixed.
+- 8450 THE LINCOLN BEDROOM (cp 25): JERRY FALWELL (arena 8500..9300: the Lincoln bed, two ledges).
+- 9350 THE WEST SITTING HALL (the fan window), 9950 THE TRUMAN BALCONY: drop off into
+- 10300 THE ROSE GARDEN (cp 26): THE SPRINKLERS (pop up, sputter, a column of water: cats hate water), THE ROSE BUSHES
+  (thorns), the mean men, a topiary STACK-TOWER (sway.ts) up off the arbor back onto the balcony (the way back); the
+  West Colonnade and TO THE WEST WING at the far end: on to part two (the right end; stub).
+
+**Socks-Meathead** (Player.catForm, set every frame by the section; the shared cartoon index clears it each frame before
+the section's update): the engine's render/player/catBody.ts: the same brute (barrel chest, slab shoulders, square jaw,
+the flat-top as a flat-topped head of black fur, the crushed brows and scowl, stubble on a white muzzle, his jeans and
+belt), black fur, the white bib, white socks fore and hind (barefoot cat feet), cat ears, whiskers, a pink nose,
+yellow-green slit eyes, a long tail out of his jeans, a spiked collar. His own frames for everything drawPlayer draws:
+idle (tail swish, ear flick), walk, jump/fall, duck (crouched to pounce), the charge (claws out, raking, hissing), the
+slide (feet first, hind claws out), the uppercut (a claw swipe straight up), the dive kick (a pounce, hind claws
+leading), hurt (fur puffed, tail bottle-brushed), his weapon in his paw. body.ts's primitives hand over to the cat's
+while it's on, so the grabs' poses (the beatdown: claws raked down him, a scratch sound, white streaks) and the weapons'
+own poses are the cat too. The GUN is a HAIRBALL (combat/weapons.ts: hacked up out of his mouth, muzzle.ts's CAT_MOUTH;
+the gun's damage, slower, drooping; a wet fur splat; its own sounds `hairball` / `hairsplat`; its own kill pool
+`hairball_kill`; the HUD says HAIRBALL). NO wall climbing (the user's). His death in cat form is the cat's own
+(catDeath.ts, `own:cat`): rigid, up in the air yowling, flat on his back legs up X'd out, his ghost floats off.
+
+**Cartoon kills** (state.cartoonKills, set by the section while the projection's up: core/cartoonKills.ts): no blood
+particles, no gore, no bodies; whatever dies goes up in a cartoon puff (poof.ts: the cloud, stars, a twinkle; sound
+`poof`); bodies he flings still fly and bowl people over, and puff where they land. The M2 weapons that leave their own
+bodies (the gore slide, the spawner, the crossbow, the soul sucker's grinder, the stunt car) puff instead.
+
+**Chelsea** (chelsea.ts, voice `m2.cartoon.chelsea`): the show's cartoon Chelsea (curls, headband, braces, purple
+sweater, plaid skirt), really the adult actress doing a kid's voice: runs after him, darts ahead to point the way,
+nags every 15-22 s (clean/shitty/naked), a hint the first time he reaches each thing, "SOCKS! ARE YOU OKAY?" now and
+then when he's hurt; he tells her to shut up about every other nag. Not an enemy: nothing touches her. In a fight she
+cowers by the wall; after each pundit's puff she's green, a hand over her mouth, about to be sick, then excitedly hurries
+him on (queasy()).
+
+**The mean men** (`m2:ct_goon` the henchman: knuckle-crack swing, crouch-and-tackle; `m2:ct_lobbyist`: the briefcase
+pops open, a money bag lobbed; `m2:ct_pollster`: licks the pencil, a clipboard flung flat; `m2:ct_blimp`: the spy blimp,
+the hatch beeps, a stink bomb and its green cloud). Seeded people (men and women, every look).
+
+**The pundits** (pundits.ts, punditArt.ts; voices `m2.cartoon.perot`, `m2.cartoon.falwell`): Mario bosses, midBoss,
+`grab: 'none'` with "TOO GREASY" (they squirt out of his paws); own health (Perot 3900, Falwell 5400: ~30 s / ~45 s of
+hairballs) on a big engine pool; both sides lock till dead; markBossFight every frame ('perot' / 'falwell': no songs yet,
+quiet); memos `ct-wh-perot` / `ct-wh-falwell` (never back once beaten). PEROT hops, leaps onto the ledges and the
+podium gliding down on his flapping ears, lobs pie charts (split in three below half). FALWELL: heavier leaps (a thud),
+puts his little pulpit down and thumps the Bible on it (the tell), lobs a Bible or flings a collection plate (two in a
+row below half). Each fight opens with a short scene (Chelsea names him, his entrance and piece, Meathead's "WHO THE
+HELL..."; SKIP >>; the scene's once a visit, straight to the fight after). Death: he reels saying his last, then a puff
+with his costume flung off out of it (his head mask, his ears / glasses, charts, Bible, pulpit); Chelsea queasy;
+Meathead's say. Their real deaths are job 4's backtrack.
+
 ## Standing rules (all apply; check every one against new work)
 
 American spelling; signs readable, held up, themed lettering (toonSign: a lumpy cloud board on a curly candy-striped
@@ -224,3 +292,19 @@ markBossFight every frame of a boss or sub-boss fight. Voice every new line (`np
 - (job 2) The fake 3D: the eye is the middle of the screen; back walls at 0.78, the tableaux' props at 0.86, the rope at
   0.95 (studio/layout.ts D_BACK / D_PROPS / D_RAIL); partitions drawn in two halves round the props so nothing deeper
   ever covers anything nearer.
+- (job 3) The White House, part one, is built (whitehouse1/; see Section 3 above). The cat form is an engine feature
+  (Player.catForm; render/player/catBody.ts; the hairball in combat/weapons.ts + projectiles.ts; the cat's death via
+  player/deathAnim.ts startCatDeath, drawn by whitehouse1/catDeath.ts), as are cartoon kills (state.cartoonKills;
+  core/cartoonKills.ts: poofEnemy, purgeCartoonGore; hooked in effects.ts, enemies/deaths.ts, enemies/enemies.ts,
+  render/world.ts, core/update.ts and the M2 weapons that keep their own bodies). The shared cartoon index clears both
+  every frame before the section's update; a section that wants them sets them in its update.
+- (job 3) FOR JOB 4 (whitehouse2): set `p.catForm = catActive(state)` and `state.cartoonKills = projectionUp(state)`
+  every frame in your update (both exported from whitehouse1/index.ts), and put up Chelsea the same way (chelsea.ts:
+  updateChelsea / drawChelsea / drawChelseaSaid / chelseaSays / queasy; the puffs: poof.ts updatePuffs / drawPuffs with
+  punditArt's drawPuffBit). The projector's collapse sets `ct-wh-collapsed` (whitehouse1/state.ts COLLAPSED_MEMO): after
+  that whitehouse1 stops the cat, the cartoon kills and Chelsea, but still draws the cartoon set and runs its hazards and
+  mean men: the revealed plain stage and the four backtrack bodies (Perot in the press room arena, Falwell in the
+  Lincoln Bedroom arena) are job 4's to put into whitehouse1 (its art.ts / index.ts, under that memo). Pundits' kinds:
+  `m2:ct_perot`, `m2:ct_falwell`; their fight code in pundits.ts is reusable for Limbaugh, Dole and Gingrich (a Spec each).
+- (job 3) The vacuum, the chandelier, the bowling balls, the sprinklers and the rose bushes all hurt the mean men too
+  (hazardHit); none of the mean men idles in one (hazard zones). The bowling balls only roll while he's on the stairs.

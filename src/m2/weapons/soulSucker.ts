@@ -12,6 +12,7 @@
 // comes, the whole way, in and through the grinder (no body left), but only one of them at a time: the nearest.
 
 import type { Enemy, Particle, Projectile } from '../../m1/types';
+import { poofEnemy } from '../../m1/game/core/cartoonKills';
 import type { FrameContext } from '../../m1/game/core/context';
 import type { GameState } from '../../m1/game/core/state';
 import { registerWeapon } from '../../m1/game/combat/customWeapons';
@@ -280,6 +281,16 @@ const grind = (ctx: FrameContext, s: Swallow) => {
   const pl = state.player, mouth = muzzlePoint(pl, 'SOUL_SUCKER');
   setGore(gore + poiseMax(s.e));
   s.e.health = 0;
+  // (cartoon kills: through the grinder in a puff of smoke, nothing out the intake)
+  if (state.cartoonKills) {
+    playSound('grind');
+    s.e.pos = { x: mouth.x - s.e.width / 2, y: mouth.y - s.e.height / 2 };
+    poofEnemy(state, s.e);
+    fx.spawnKillCallout(s.e, grabCallout('shred'));
+    fx.speakVulgarity(m2Kill('shred_kill'));
+    pl.killSatisfactionTimer = 60;
+    return;
+  }
   playSound('grind'); playSound('splat', 0.9, -3); playSound('crunch', 0.8, -4);
   // (it all comes back out the intake as it goes through: a gusher of blood and bits, up and out and all over the floor)
   fx.spawnDeathShower({ x: mouth.x, y: mouth.y }, pl.facing, 2.6, false, 70);

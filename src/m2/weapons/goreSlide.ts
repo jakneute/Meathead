@@ -7,6 +7,7 @@
 // A body's taken out of the enemies when it starts (it's not one any more), and moved and drawn here.
 
 import type { Enemy, Block } from '../../m1/types';
+import { poofEnemy } from '../../m1/game/core/cartoonKills';
 import type { FrameContext } from '../../m1/game/core/context';
 import type { GameState } from '../../m1/game/core/state';
 import { CANVAS_HEIGHT } from '../../m1/constants';
@@ -56,6 +57,8 @@ export const startGoreSlide = (ctx: FrameContext, e: Enemy): boolean => {
   fx.spawnPickup(e.pos, false);
   fx.speakVulgarity(m2Kill('gore_kill'));
   fx.spawnKillCallout(e, grabCallout('gorespray'));
+  // (cartoon kills: a puff, no body)
+  if (state.cartoonKills) { poofEnemy(state, e); return true; }
   const x = e.pos.x + e.width / 2, feet = e.pos.y + e.height;
   const floor = floorUnder(state, x, feet);
   const grounded = floor !== null && floor - feet < 4;

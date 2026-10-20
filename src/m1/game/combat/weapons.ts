@@ -23,7 +23,7 @@ import { playSound } from '../platform/audio';
 import { icicleBounds, meltIcicle } from '../bosses/artie';
 import { pushEnemy } from './knockback';
 import { isMidBoss, midBossDamage, MIDBOSS_DAMAGE, MIDBOSS_SPLASH_DAMAGE, MIDBOSS_NUKE_DAMAGE } from './midBoss';
-import { muzzlePoint, flamethrowerNozzle } from './muzzle';
+import { muzzlePoint, flamethrowerNozzle, catMouthPoint } from './muzzle';
 import { detonateSewerNuke, TOXIC_TOMMY } from '../scenes/sewerNuke';
 import { killPlayer } from '../player/player';
 import { getFinale } from '../stages/finale/state';
@@ -81,6 +81,20 @@ export const fireWeapon = (ctx: FrameContext, input: WeaponInput) => {
 
   switch (currentWeapon) {
     case 'GUN':
+      // (cat form: a hairball hacked up and spat, out of his mouth; the gun's damage, slower, drooping a little)
+      if (player.catForm) {
+        const m = catMouthPoint(player);
+        addProjectile({
+          id: `hb-${Date.now()}-${Math.random()}`,
+          pos: { x: m.x - 6, y: m.y - 6 },
+          vel: { x: facing * GUN_VELOCITY * 0.72 + player.vel.x * 0.3, y: -0.9 },
+          width: 12, height: 12, health: 1, maxHealth: 1,
+          type: 'projectile', damage: BULLET_DAMAGE, owner: 'player', fromX: pos.x + width / 2, isHairball: true,
+        });
+        player.shootCooldown = GUN_COOLDOWN;
+        fx.playGunSound('hairball');
+        break;
+      }
       addProjectile({
         id: `p-${Date.now()}`,
         pos: fromMuzzle(16, 6),

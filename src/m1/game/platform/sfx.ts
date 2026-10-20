@@ -109,6 +109,28 @@ const SFX: Record<string, SfxDef> = {
     gain: 0.16, vary: 1, gap: 40,
     make: () => { let ph = 0; return render(0.11, t => { ph += (1500 * ex(t, 30) + 520) / SFX_SR; return Math.sin(TAU * ph) * Math.min(1, t / 0.004) * ex(t, 26); }); },
   },
+  hairball: {
+    // Meathead 2's cat form spitting a hairball (the ray gun's place): a throaty hack (a rough growl rising), a wet
+    // "ptoo" pop out of the mouth at the end (it goes off a lot: short, mid volume)
+    gain: 0.3, vary: 1.2, gap: 40,
+    make: () => { const bp = bandpass(), lp = lowpass(); let ph = 0; return render(0.2, t => { ph += (95 + 120 * t) / SFX_SR; const hack = t < 0.11 ? (bp(rnd(), 900 + 2400 * t, 0.7) * 0.9 + lp(Math.sign(Math.sin(TAU * ph)), 600) * 0.5) * Math.min(1, t / 0.01) * (0.6 + 0.4 * Math.sin(TAU * 40 * t)) : 0; const pop = t > 0.12 ? Math.sin(TAU * (700 - 2400 * (t - 0.12)) * (t - 0.12)) * ex(t - 0.12, 50) * 1.2 : 0; return hack + pop; }); },
+  },
+  hairsplat: {
+    // ...and it landing: a soft wet slap
+    gain: 0.3, vary: 2, gap: 40, voices: 3,
+    make: () => { const bp = bandpass(); return render(0.14, t => bp(rnd(), 900 * ex(t, 12) + 300, 0.6) * ex(t, 26) * 1.3 + Math.sin(TAU * 140 * t) * ex(t, 30) * 0.5); },
+  },
+  poof: {
+    // A cartoon puff of smoke (what's killed in the cartoon White House goes up in one): a soft airy burst with a
+    // little pop at the front and a twinkle on the tail
+    gain: 0.42, vary: 1.5, gap: 50, voices: 3,
+    make: () => { const lp = lowpass(); return render(0.45, t => (t < 0.004 ? rnd() * 0.8 : 0) + lp(rnd(), 1800 * ex(t, 10) + 300) * Math.min(1, t / 0.01) * ex(t, 9) * 1.2 + (t > 0.12 ? (Math.sin(TAU * 2350 * t) + Math.sin(TAU * 3140 * t)) * 0.12 * ex(t - 0.12, 9) : 0)); },
+  },
+  scratch: {
+    // Claws raked across somebody (the cat form's beatdown): three quick rips of noise, each swept down
+    gain: 0.34, vary: 2, gap: 45, voices: 3,
+    make: () => { const bp = bandpass(); return render(0.16, t => { const k = Math.floor(t / 0.05), u = t - k * 0.05; return k < 3 ? bp(rnd(), 4200 - 30000 * u, 1.4) * Math.sin(Math.PI * Math.min(1, u / 0.04)) : 0; }); },
+  },
   souvenir: {
     // Meathead 2's souvenir launcher: a hollow pop out of a plastic pipe (a low thump, a puff of air), and the junk in
     // the bag rattling after it (cheap plastic clicks)

@@ -10,6 +10,7 @@
 // heap.
 
 import type { Enemy } from '../../m1/types';
+import { poofEnemy } from '../../m1/game/core/cartoonKills';
 import type { FrameContext } from '../../m1/game/core/context';
 import type { GameState } from '../../m1/game/core/state';
 import { registerWeapon } from '../../m1/game/combat/customWeapons';
@@ -424,6 +425,13 @@ export const devour = (ctx: FrameContext, e: Enemy) => eatenAlive(ctx, e);
 const eatenAlive = (ctx: FrameContext, e: Enemy) => {
   const { state, fx } = ctx;
   e.health = 0;
+  // (cartoon kills: a puff, no skeleton)
+  if (state.cartoonKills) {
+    poofEnemy(state, e);
+    fx.spawnPickup(e.pos); fx.speakVulgarity(m2Kill('alien_kill')); fx.spawnKillCallout(e, grabCallout('alien'));
+    state.player.killSatisfactionTimer = 60;
+    return;
+  }
   state.enemies = state.enemies.filter(o => o !== e);
   e.isBlownAway = true;
   const face = (isHumanoidKind(e.kind) ? (state.player.pos.x + state.player.width / 2 > e.pos.x + e.width / 2 ? 1 : -1) : (e.facing ?? 1)) as 1 | -1;

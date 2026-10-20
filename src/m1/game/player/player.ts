@@ -16,7 +16,7 @@ import {
   SWIM_GRAVITY_MULT, SWIM_MAX_SINK, SWIM_STROKE, SWIM_LEAP, SWIM_SPEED_MULT, LEDGE_DROP_FRAMES,
 } from '../../constants';
 import { FrameContext } from '../core/context';
-import { startMeatheadDeath, meatExplosion } from './deathAnim';
+import { startMeatheadDeath, meatExplosion, startCatDeath } from './deathAnim';
 import { footsteps } from './footsteps';
 import { announceDeath, silenceAll } from '../platform/speech';
 import { SKIP_AFTER, offerSkip, takeSkip } from '../platform/skip';
@@ -109,6 +109,8 @@ export const killPlayer = (ctx: FrameContext, message: string, gore = true) => {
   const fin = getFinale(state);
   if (fin) fin.beam = null;
   // (what got him gets him its own way; anything else, he comes apart)
+  // (Meathead 2's cat form: whatever it was, the cat's cartoon death, no gore)
+  if (!state.deathScene) startCatDeath(ctx);
   if (gore && !state.deathScene && !startMeatheadDeath(ctx)) meatExplosion(ctx);
   // (not a word out of him: the death announcer reads out the screen, over whoever was talking)
   // (a stage's own death scene goes first: it's read out when that's over)

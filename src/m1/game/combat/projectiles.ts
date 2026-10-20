@@ -1,7 +1,7 @@
 // Projectile movement, bouncing/lingering physics and all projectile hit resolution.
 
 import { submerged } from '../enemies/kinds/victor';
-import { Enemy, Projectile } from '../../types';
+import { Enemy, Projectile, VulgarityType } from '../../types';
 import { BOTTLE_GRAVITY, PARTICLE_PALETTES } from '../../constants';
 import { playGlassShatterSound, playSound } from '../platform/audio';
 import {
@@ -105,6 +105,16 @@ export const updateProjectile = (ctx: FrameContext, p: Projectile): boolean => {
     p.pos.x += p.vel.x;
     p.pos.y += p.vel.y;
     if (p.life !== undefined && --p.life <= 0) return false;
+    // (Meathead 2's cat form's hairball: drooping a little as it goes; it slaps wet onto the first wall or floor)
+    if (p.isHairball && p.owner === 'player') {
+      p.vel.y = Math.min(4, p.vel.y + 0.07);
+      const box = boundsOf(p);
+      if (state.blocks.some(b => b.type !== 'pit' && !b.grating && (b.type !== 'platform' && !b.oneWay ? true : p.vel.y > 0 && p.pos.y + p.height - p.vel.y <= b.y + 2) && rectsOverlap(box, b))) {
+        hairSplat(state, p.pos.x + p.width / 2, p.pos.y + p.height / 2);
+        fx.playGunSound('hairsplat');
+        return false;
+      }
+    }
     // (Meathead 2's ray gun: no shooting through walls; it fizzles out on the first one, in pink sparks)
     if (p.isRay && p.owner === 'player') {
       const box = boundsOf(p);
@@ -120,6 +130,12 @@ export const updateProjectile = (ctx: FrameContext, p: Projectile): boolean => {
   if (p.pos.x < state.camera.x - 400 || p.pos.x > state.camera.x + CANVAS_WIDTH + 400) return false;
 
   return p.owner === 'player' ? resolvePlayerProjectileHits(ctx, p) : resolveEnemyProjectileHit(ctx, p);
+};
+
+/** A hairball bursting (on a wall, the floor, somebody): tufts of gray-brown fur and a spit of drool. */
+const hairSplat = (state: GameState, x: number, y: number) => {
+  for (let i = 0; i < 9; i++) state.particles.push({ pos: { x, y }, vel: { x: (Math.random() - 0.5) * 4, y: -1 - Math.random() * 2.5 }, life: 22 + Math.random() * 16, color: ['#6B5B4E', '#8A7766', '#4A3F37', '#B9AC9C'][i % 4], size: 2 + Math.random() * 2, grav: 0.18 } as typeof state.particles[number]);
+  for (let i = 0; i < 4; i++) state.particles.push({ pos: { x, y }, vel: { x: (Math.random() - 0.5) * 3, y: -0.5 - Math.random() * 1.5 }, life: 14, color: '#D7F2F7', size: 1.5, grav: 0.25 } as typeof state.particles[number]);
 };
 
 /** Something thrown: up and over, end over end, and it smashes (or splats, or bursts) on the ground, a wall, or him. */
@@ -810,6 +826,8 @@ const resolvePlayerProjectileHits = (ctx: FrameContext, p: Projectile): boolean 
     if (p.isIce) { if (!wasFrozen) enemy.frozeAt = state.frame; enemy.frozenTimer = inFinale(ctx.stageId) ? FINALE_FREEZE_TIME : SHOTGUN_FREEZE_TIME; }
     fx.spawnDamageNumber(enemy.pos, p.damage, p.isBoulder);
     if (p.isIce) spawnIceMist(state, p, 8);
+    // (a hairball: a wet slap of fur off him)
+    if (p.isHairball) { hairSplat(state, p.pos.x + p.width / 2, p.pos.y + p.height / 2); fx.playGunSound('hairsplat'); }
     if (isBullet(p) && enemy.health > 0 && !wasFrozen && !(BLOODLESS.has(enemy.kind || '') || isMachineKind(enemy.kind))) bulletBlood(ctx, p, enemy);
     if (enemy.health <= 0) {
       // (the plain pistol: a person through the forehead, an animal its own stupid way: see gunDeaths.ts)
@@ -821,7 +839,8 @@ const resolvePlayerProjectileHits = (ctx: FrameContext, p: Projectile): boolean 
       else if (gunMode) startGunKill(state, enemy, gunMode, p.vel);
       else fx.spawnDeathShower(enemy.pos, 0, 1.2);
       fx.spawnPickup(enemy.pos);
-      fx.speakVulgarity(p.isBoulder ? 'boulder_kill' : (p.isIce ? 'shotgun_kill' : (p.isSludge ? 'sludge_kill' : p.isRay ? rayKillLine() : 'gun_kill')));
+      // (a hairball kill: Meathead 2's own pool, put in the table at its startup)
+      fx.speakVulgarity(p.isBoulder ? 'boulder_kill' : (p.isIce ? 'shotgun_kill' : (p.isSludge ? 'sludge_kill' : p.isRay ? rayKillLine() : p.isHairball ? 'hairball_kill' as VulgarityType : 'gun_kill')));
       player.killSatisfactionTimer = 60;
     }
     if (p.isBoulder) shatterBoulder(ctx, p);

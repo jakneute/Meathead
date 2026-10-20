@@ -79,6 +79,8 @@ export const createFx = (state: GameState) => {
   };
 
   const spawnExplosion = (pos: Vector2, color: string, count: number, baseVelX: number = 0, spread: number = 15, isGlass: boolean = false, isBossGore: boolean = false) => {
+    // (cartoon kills: no blood, ever)
+    if (state.cartoonKills && (isGoreColor(color) || isBossGore || color === '#8B0000')) return;
     for (let i = 0; i < count; i++) {
       if (state.particles.length > MAX_PARTICLES) break;
       state.particles.push({
@@ -151,6 +153,7 @@ export const createFx = (state: GameState) => {
 
   const spawnDeathShower = (pos: Vector2, facing: number = 0, multiplier: number = 1, isBossDeath: boolean = false, spreadOverride?: number) => {
     const spread = spreadOverride !== undefined ? spreadOverride : (isBossDeath ? 45 : 35);
+    if (state.cartoonKills) return;
     PARTICLE_PALETTES.FLESH.forEach(c => spawnExplosion(pos, c, Math.ceil(8 * multiplier), facing * 18, spread, false, isBossDeath));
     PARTICLE_PALETTES.GORE.forEach(c => spawnExplosion(pos, c, Math.ceil(12 * multiplier), facing * 22, spread + 10, false, isBossDeath));
     if (!isBossDeath) {
@@ -355,7 +358,8 @@ export const createFx = (state: GameState) => {
     if (spared(e)) { e.health = e.maxHealth; return; }
     e.isBlownAway = true; e.vel = vel; e.frozenTimer = 0;
     spawnDeathShower(e.pos, showerDir, showerMult);
-    playSound('splat');
+    // (cartoon kills: it flies, it bowls over whoever it hits, it goes up in a puff where it comes down; no splat)
+    playSound(state.cartoonKills ? 'whoosh' : 'splat');
     spawnPickup(e.pos, category === 'tsunami_kill');
     speakVulgarity(category);
   };

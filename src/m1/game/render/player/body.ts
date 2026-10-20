@@ -4,6 +4,8 @@
 
 import { getGore, drawTorsoBlood, drawHeadBlood, drawBeatenUp } from './gore';
 import { markEyes } from './spriteOutline';
+// (Meathead 2's cat form: while it's on, the arms, legs, head and torso here are the cat's: catBody.ts)
+import { catBodyOn, catArm, catLeg, catHead, catTorso } from './catBody';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -193,6 +195,7 @@ export const drawBelt = (ctx: Ctx, beltY: number, beltH: number) => {
  * `shade` down the back of each part, `light` along the top of the deltoid and the bicep.
  */
 export const drawArm = (ctx: Ctx, sx: number, sy: number, ex: number, ey: number, wx: number, wy: number, skin: string, shade: string, light: string, fistX?: number, fistR = 5) => {
+  if (catBodyOn()) { catArm(ctx, sx, sy, ex, ey, wx, wy, skin !== skinTone, fistR); return; }
   const seg = (ax: number, ay: number, bx: number, by: number, ra: number, rb: number, color: string) => {
     const a = Math.atan2(by - ay, bx - ax), nx = -Math.sin(a), ny = Math.cos(a);
     ctx.fillStyle = color;
@@ -381,6 +384,7 @@ export const drawArmTo = (ctx: Ctx, shoulder: [number, number], elbow: [number, 
  * along `toeAngle` (steel toe on the near foot).
  */
 export const drawLeg = (ctx: Ctx, hip: [number, number], knee: [number, number], foot: [number, number], toeAngle: number, back: boolean) => {
+  if (catBodyOn()) { catLeg(ctx, hip, knee, foot, toeAngle, back); return; }
   const color = back ? pantsShadow : pantsColor, w = back ? 10 : 11;
   const seg = (a: [number, number], b: [number, number], width: number, pocket: boolean, singeAt?: number) => {
     const len = Math.hypot(b[0] - a[0], b[1] - a[1]);
@@ -425,6 +429,7 @@ export const drawTalkingMouth = (ctx: Ctx, hx: number, my: number, frame: number
 };
 
 export const drawHead = (ctx: Ctx, hx: number, hy: number, mood: Mood, frame: number) => {
+  if (catBodyOn()) { catHead(ctx, hx, hy, mood, frame); return; }
   ctx.fillStyle = skinTone;
   ctx.beginPath(); ctx.roundRect(hx - 10, hy - 12, 20, 20, [4, 4, 3, 3]); ctx.fill();
   ctx.fillStyle = 'rgba(150, 90, 35, 0.35)'; ctx.fillRect(hx - 10, hy - 11, 3.5, 18);
@@ -487,6 +492,7 @@ export const drawHead = (ctx: Ctx, hx: number, hy: number, mood: Mood, frame: nu
 
 /** The torso from the hips (0,0) up to the shoulders (y = -26), with the belt: the same body as standing, set on his hips. */
 export const drawTorsoFromHips = (ctx: Ctx) => {
+  if (catBodyOn()) { catTorso(ctx); return; }
   ctx.save(); ctx.translate(0, 24);
   drawTorso(ctx, -50, 24, -48);
   drawBelt(ctx, -27, 7);

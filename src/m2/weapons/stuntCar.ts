@@ -9,6 +9,7 @@
 
 import { dismember, tickDismember, drawDismember, stopDismember } from './dismember';
 import type { Enemy, Projectile } from '../../m1/types';
+import { poofEnemy } from '../../m1/game/core/cartoonKills';
 import type { FrameContext } from '../../m1/game/core/context';
 import type { GameState } from '../../m1/game/core/state';
 import { shakeScreen } from '../../m1/game/core/state';
@@ -136,6 +137,13 @@ const runDown = (ctx: FrameContext, e: Enemy, dir: number, speed: number, how: '
   }
   e.health = 0;
   // (the car's: burst on the spot, the moment it hits, not knocked anywhere: meat on the bonnet and all over the road)
+  if (how === 'car' && state.cartoonKills) {
+    // (cartoon kills: a puff of smoke where the car hit him)
+    poofEnemy(state, e);
+    fx.spawnPickup(e.pos); fx.speakVulgarity(m2Kill('stunt_kill')); fx.spawnKillCallout(e, grabCallout('stunt'));
+    playSound('crunch', 1, -2); shakeScreen(state, 8, 5);
+    return;
+  }
   if (how === 'car') {
     const at = { x: e.pos.x + e.width / 2, y: e.pos.y + e.height / 2 };
     fx.spawnDeathShower(e.pos, dir, 2.2);

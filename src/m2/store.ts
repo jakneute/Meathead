@@ -63,6 +63,8 @@ export interface M2Ui {
   broomHud?: boolean;
   broomBoost?: number;
   broomTips?: boolean;
+  /** (Cartoon Land's White House) He's the cat: the gun's a HAIRBALL on the HUD. */
+  catHud?: boolean;
   /** (Fairy Land's Piper fight) Frozen solid in liquid nitrogen: how far he's mashed out of the ice (0..1), or null
    *  (fantasy/bedroom/IcePanel.tsx draws the prompt). */
   iceMash?: number | null;

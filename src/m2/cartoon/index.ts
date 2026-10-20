@@ -131,7 +131,10 @@ export const cartoonLayout: StageLayout = {
     const arriving = !!cs.arrive && tickPortalArrival(state, cs.arrive, sec.cameraRow?.(state) ?? 550);
     if (cs.arrive && !arriving) cs.arrive = undefined;
     if (arriving) controls = { ...NO_CONTROLS };
+    // (the cat form and cartoon kills (job 3's): off unless the section he's in turns them on, every frame)
+    p.catForm = undefined; state.cartoonKills = undefined;
     let out = sec.update ? sec.update(ctx, controls) : controls;
+    setUi({ catHud: !!p.catForm });
     out = updateGrab(ctx, cs.grab, out);
     if (arriving) out = { ...NO_CONTROLS };
     // (a cutscene in any section: none of his own controls get through (no shooting, no moves); only what the scene

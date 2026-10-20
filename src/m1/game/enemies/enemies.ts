@@ -27,6 +27,7 @@ import { getAttackHitbox, harmlessBounce, recoilOff, getContactHurtSource } from
 import { shakeScreen } from '../core/state';
 import type { GameState } from '../core/state';
 import { startEnemyDeath } from './deaths';
+import { poofEnemy } from '../core/cartoonKills';
 import { ejectLowriderCrew } from './gunDeaths';
 import { getEnemyMass, enemyGrip, massRatio } from '../combat/knockback';
 import { floorTopAt, groundLineAt } from '../core/terrain';
@@ -69,7 +70,11 @@ export const updateEnemy = (ctx: FrameContext, e: Enemy, enemies: Enemy[]): bool
   // A stage's mid-boss runs itself
   const special = e.kind ? getStageLayout(ctx.stageId)?.updateSpecialEnemy?.(ctx, e) : undefined;
   if (special !== undefined) return special;
+  // (cartoon kills: gone in its puff; and anything just killed outright (shot, frozen, whatever) goes up in one)
+  if (e.poofed) return false;
+  if (state.cartoonKills && e.health <= 0 && !e.isBlownAway && e.type !== 'boss' && !isMidBoss(e) && e.kind !== 'tenant') { poofEnemy(state, e); return false; }
   if (e.isBlownAway) {
+    if (state.cartoonKills && e.overdosed) { poofEnemy(state, e); return false; }
     if (e.overdosed) return flyOverdosedBody(ctx, e, enemies);
     // Dead bodies tumble off-screen (one he sent flying with a move of his takes out whoever it hits on the way)
     e.pos.x += e.vel.x;

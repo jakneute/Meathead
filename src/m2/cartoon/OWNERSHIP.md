@@ -9,7 +9,7 @@ the fill-ins, the rules, the section plan). Each section's index.ts header says 
 |---|---|---|
 | 1 (done) | the skeleton; `kiddie/`, `sway.ts`, `monument.ts` | kiddie (0-9: 0-5 used) |
 | 2 (done) | `studio/` | studio (10-19: 10-15 used) |
-| 3 | `whitehouse1/` (and the Socks transformation, the cat moves, Chelsea: wherever they need to live; shared engine bits appended minimally) | whitehouse1 (20-29) |
+| 3 (done) | `whitehouse1/` (the transformation, Chelsea, the pundits, the cat's death and the puffs live there); the engine's cat form (`m1/game/render/player/catBody.ts`) and cartoon kills (`m1/game/core/cartoonKills.ts`) | whitehouse1 (20-29: 20-26 used) |
 | 4 | `whitehouse2/` | whitehouse2 (30-39) |
 | 5 | `bigkid/` | bigkid (40-49) |
 | 6 | `itchy/` | itchy (50-59) |
@@ -65,12 +65,29 @@ move your DOORS entries to match; keep the way back working (revisits), or give 
   The user's: "you enter behind a screen" (the transformation scene is job 3's: he arrives at whitehouse1's start as
   himself). Back from the White House's left end: `DOORS.studio.end` (in front of the screen). Back out of the
   studio's left end (the lobby's front doors): `DOORS.kiddie.end`.
-- **The White House, part one -> part two** (stub): the right end.
+- **The studio -> the White House** (built both sides): the transformation at whitehouse1's start the first time; back
+  out its left end to `DOORS.studio.end` (himself again out there); in again, a scribble back into the cat.
+- **The White House, part one -> part two** (part one built, whitehouse1/): walk off the West Colonnade at the garden's
+  right end to `DOORS.whitehouse2.start`; back from part two, `DOORS.whitehouse1.end` (in the garden).
 - **The White House, part two -> the big-kid rides** (stub): the right end. The user's: "meathead then leaves the
   cartoon studio" (after the projector's collapse and the bodies).
 - **The big-kid rides -> the knockoff area -> the amphitheater** (stubs): the right ends.
 - **The amphitheater -> the hub** (stand-in, amphi/): walk past the guard: VICTORY, the walk-away
   (walkAway/stupidDad.ts, the MALLET), markLandCleared('cartoon'), the hub.
+
+## Job 3's appends outside src/m2/cartoon (for whoever touches them next)
+
+- Player.catForm, Enemy.poofed, Projectile.isHairball (m1/types.ts); GameState.cartoonKills (core/state.ts, cleared with
+  the stage); the sounds `hairball`, `hairsplat`, `poof`, `scratch` (platform/sfx.ts).
+- The cat: render/player/catBody.ts (new); body.ts's drawArm / drawLeg / drawHead / drawTorsoFromHips hand over to it while
+  it's on (setCatBody, set at the top of drawPlayer); drawPlayer's own branch for it; player/deathAnim.ts startCatDeath
+  (called from player/player.ts killPlayer); combat/weapons.ts (the GUN's hairball), combat/muzzle.ts (catMouthPoint),
+  combat/projectiles.ts (its droop, splat, kill line), render/projectiles.ts (drawHairball); moves/grab.ts (claws and the
+  scratch in the beatdown); moves/killLines.ts (`hairball_kill`); App.tsx + store.ts (`catHud`: HAIRBALL on the HUD).
+- Cartoon kills: core/cartoonKills.ts (new); core/effects.ts, enemies/deaths.ts, enemies/enemies.ts, render/world.ts,
+  core/update.ts; weapons/goreSlide.ts, spawner.ts, crossbow.ts, soulSucker.ts, stuntCar.ts.
+- Shared here: index.ts (clears catForm / cartoonKills each frame before the section's update; `catHud`).
+- tools/voices/cast.json: m2.cartoon.chelsea, perot, falwell, goon(f), lobbyist(f), pollster(f).
 
 ## Things that outlive a death
 

@@ -65,6 +65,8 @@ export type SoundType =
   | 'alienCharge' | 'alienBeam' | 'sadBolt'
   // (Meathead 2's ray gun)
   | 'raygun'
+  // (Meathead 2's cat form: the hairball spat and landing; the cartoon puff a kill goes up in; claws raked)
+  | 'hairball' | 'hairsplat' | 'poof' | 'scratch'
   // (Meathead 2's souvenir launcher: a hollow pop out of a tube, junk rattling)
   | 'souvenir'
   // (Meathead 2's soul sucker: the vacuum, the grinder, the gore bag emptying)
@@ -308,6 +310,9 @@ export interface Player extends Entity {
    *  under his feet' line, knees bent, boots back toward the bristles, both fists on it ahead; `lean` 0 sat up .. 1
    *  tucked low (taking off). Whatever sets it clears it (and respawn does). */
   broomRide?: { lean: number };
+  /** Drawn as a cartoon tuxedo cat (Meathead 2's cartoon White House: render/player/catPose.ts): every pose his own
+   *  cat frames, the same moves; the gun's a hairball he spits. Set by the stage every frame he's in it. */
+  catForm?: boolean;
   /** Something he's doing takes him off the vine he's on (Meathead 2: the mallet's smash down, from one): let go of it. */
   dropVine?: boolean;
   /** Stood on a floating log he's rolling under his feet (Meathead 2's Wilderness Land, frontier/wilds/logs.ts): his
@@ -515,6 +520,8 @@ export interface Enemy extends Entity {
   /** A tenant: what he's got in his hand to throw (see drawHouseholdItem). */
   heldItem?: number;
   isBlownAway?: boolean;
+  /** Gone up in a cartoon puff of smoke (state.cartoonKills): dead, not drawn, off the list next frame. */
+  poofed?: boolean;
   rotation?: number;
   pauseTimer?: number;
   /** A practice dummy: bumping into it doesn't hurt. */
@@ -742,6 +749,8 @@ export interface Projectile extends Entity {
   visualOnly?: boolean;
   /** One of the beaten alien's sad little bolts (slow, droopy, barely hurts): drawn by the finale stage. */
   sadBolt?: boolean;
+  /** Meathead 2's cat form's gun: a hairball he spits (the ray gun's damage, a slower shot that droops a little). */
+  isHairball?: boolean;
   isOilRocket?: boolean;
   /** A round out of the machine gun. */
   isLmg?: boolean;

@@ -4,6 +4,7 @@ import HUD from '../m1/components/HUD';
 /** The PWR row's cells, wide (the user's): three of them, fully upgraded, two-thirds of the HUD plate. */
 const M2_CELL_W = 54;
 import { RAYGUN_ART } from '../m1/components/WeaponIcon';
+import { HAIRBALL_ART } from './cartoon/whitehouse1/HairballArt';
 import { Prompt } from '../m1/components/ButtonIcons';
 import { GameStatus, WeaponType } from '../m1/types';
 import { setGutBlowout, setGutLines, setGutDeathLines } from '../m1/game/player/gut';
@@ -544,7 +545,7 @@ const App2: React.FC = () => {
             : ui.broomHud
             // (on the broomstick: the PWR row's its boost; the weapon's the laser on the broom's end)
             ? <HUD health={hud.health} maxHealth={INITIAL_PLAYER_HEALTH} power={ui.broomBoost ?? 0} powerCells={1} currentWeapon={weapon} ammo={Infinity} maxAmmo={Infinity} weaponName="BROOM LASER" weaponArt={<BroomWand />} skin={theme?.hud} cellWidth={M2_CELL_W} />
-            : <HUD health={hud.health} maxHealth={INITIAL_PLAYER_HEALTH} power={hud.power} currentWeapon={weapon} ammo={hud.ammo[weapon] ?? 0} maxAmmo={maxAmmo(weapon)} weaponName={weaponName(weapon)} weaponArt={weapon === 'GUN' ? RAYGUN_ART : undefined} weaponExtra={weapon === 'SOUL_SUCKER' ? <GoreBag /> : weapon === 'SPELLBOOK' ? <BulkMeter /> : undefined} ammoLabel={ammoName(weapon) === 'AMMO' ? undefined : ammoName(weapon)} skin={theme?.hud} cellWidth={M2_CELL_W} />
+            : <HUD health={hud.health} maxHealth={INITIAL_PLAYER_HEALTH} power={hud.power} currentWeapon={weapon} ammo={hud.ammo[weapon] ?? 0} maxAmmo={maxAmmo(weapon)} weaponName={weapon === 'GUN' && ui.catHud ? 'HAIRBALL' : weaponName(weapon)} weaponArt={weapon === 'GUN' ? (ui.catHud ? HAIRBALL_ART : RAYGUN_ART) : undefined} weaponExtra={weapon === 'SOUL_SUCKER' ? <GoreBag /> : weapon === 'SPELLBOOK' ? <BulkMeter /> : undefined} ammoLabel={ammoName(weapon) === 'AMMO' ? undefined : ammoName(weapon)} skin={theme?.hud} cellWidth={M2_CELL_W} />
         )}
         {/* What up does here */}
         {status === GameStatus.PLAYING && ui.map === null && (nearLand || ui.near === STAFF_SLOT || ui.nearExit || ui.nearAmerica) && (
