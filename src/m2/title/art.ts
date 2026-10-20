@@ -17,7 +17,7 @@
 // letters fly in along the line to the eye (scaled about it); the draw order never changes, so nothing nearer is ever
 // behind something further. The painted pieces stay cached: the intro only moves them.
 
-import { drawMeatheadCloseUp, ART_W, ART_H, type MeatheadMood } from '../../m1/game/scenes/ending';
+import { drawTitleMeathead, blinkTitleMeathead, ART_W, ART_H, type TitleMood } from './meathead';
 import { bayer, hash2, rgbOf, type RGB } from '../../m1/game/scenes/art/raster';
 
 type Ctx = CanvasRenderingContext2D;
@@ -639,11 +639,6 @@ const shakeAt = (beat: number): [number, number] => {
   const sg = Math.floor(f0 / 2) % 2 ? -1 : 1;
   return [m >= 3 ? sg * Math.round(m / 3) : 0, sg * Math.round(m)];
 };
-/** His eyes shut a moment (a blink on the dumb look): the lids his own skin, the lashes a dark line. */
-const blink = (b: Ctx) => {
-  for (const ex of [111, 145]) { R(b, ex - 11, 51, 23, 10, '#d69c5c'); R(b, ex - 11, 51, 23, 2, '#e8b87c'); R(b, ex - 9, 56, 19, 1, '#3e220e'); R(b, ex - 8, 57, 17, 1, '#955a2a'); }
-};
-
 export const createTitleScene = () => {
   let sky: HTMLCanvasElement | null = null, park: Park | null = null, plate: HTMLCanvasElement | null = null;
   let ribbon: HTMLCanvasElement | null = null, flags: HTMLCanvasElement[] = [], logo: Logo | null = null;
@@ -770,9 +765,9 @@ export const createTitleScene = () => {
       const bctx = bust.getContext('2d')!;
       bctx.imageSmoothingEnabled = false;
       bctx.clearRect(0, 0, ART_W, ART_H);
-      const mood: MeatheadMood = beat >= TWO_AT ? 'fury' : fb < 0.65 ? 'dumb' : 'stoked';
-      drawMeatheadCloseUp(bctx, mood === 'fury' ? t - (furyAt ?? t - 100) : t, false, mood, { bg: () => {}, medal: false, pose: 'flex' });
-      if (fb >= 0.4 && fb < 0.65) blink(bctx);
+      const mood: TitleMood = beat >= TWO_AT ? 'fury' : fb < 0.65 ? 'dumb' : 'stoked';
+      drawTitleMeathead(bctx, t, mood, t - (furyAt ?? t - 100));
+      if (fb >= 0.4 && fb < 0.65) blinkTitleMeathead(bctx);
       const by = BUST_Y + (t % 150 < 75 ? 0 : -1);
       // Backlit: the park's neon round his edges in two hard rings, pink outside, near-white in
       const sg = sil.getContext('2d')!, hg = him.getContext('2d')!;
