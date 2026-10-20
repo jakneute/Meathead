@@ -93,7 +93,7 @@ export const LEDGES: [number, number, number][] = [...STANDS, NEWSSTAND, SHELTER
 // ---------------------------------------------------------------------------------------------------------------
 // The towers (world coordinates)
 
-const T = (rx: number, h: number, extra: Partial<TowerDef> = {}): TowerDef => ({ x: X(rx), y: GY, h, ...extra });
+const T = (rx: number, h: number, extra: Partial<TowerDef> = {}): TowerDef => ({ x: X(rx), y: GY, h, pit: PITS.some(([a, b]) => rx > a && rx < b), ...extra });
 /** The zone's stacks: 90s colors (teal, purple, lime, hot pink, orange) and a black-and-white checker lid. */
 const ZT = (a: string, b: string, c: string) => [a, b, a, b, c, b, a];
 export const TOWERS: TowerDef[] = [

@@ -692,3 +692,24 @@ markBossFight every frame of a boss or sub-boss fight. Voice every new line (`np
   light with their room; each room its own floor going back. The path's theater carpet; everything he stands on lit
   along its top. The staff's coffees and plates are drawn in flight now (they weren't), the puddles steam. No layout,
   timing or lighting logic changed (two small soft accents added: the lobby's TV bank and EXIT sign).
+- (SNES pass) THE BIG-KID ZONE (bigkid/): one eye (kit.ts). The far off cached per hour (bigkid/far.ts): a hot 90s
+  sky banded to a peach blush, stepped cumulus and jet streaks, the park blimp (CARTOON LAND, trailing SEE STUPID DAD
+  LIVE!, live), the suburbs past the berm (hazy hills, a radio mast, the interstate on its viaduct with billboards and
+  cars, VIDEO BARN's strip mall, cul-de-sacs), the water tower, the rest of Cartoon Land (Sillyville's domes, the
+  studios, the cartoon White House with Socks, the KILL-O-RAMA pylon, the bone arch, STUPID DAD LIVE!'s shell, a
+  STUPID DAD billboard CANCELED), the zone's own roofs with their giant props (soda, pizza, hi-top, boombox, the
+  tipping slime bucket, the inflatable Rad Rat, a Gloppy statue, neon bolts, dishes, water-slide tubes, a giant board,
+  light towers). The zone's show buildings stand at FRONT_D, boxy and straight, sides going back (bigkid/backs.ts:
+  Memphis bands, neon tubes, tags, posters; GAME ZONE, SLIME TIME SNACKS, PIZZA PIT, RAD RAT'S SKATE SHOP, RIDE PHOTOS,
+  RESTROOMS (DUDES / BETTIES), LOCKERS, T-SHIRTS, OUCH! first aid, show buildings), the alley, the skate-park concrete
+  going back (cut short at the pits' rims, the pipe and the rink), the furniture (neon lamps, GLOP IT! bins, soda
+  machines, picnic tables, palms, payphones, souvenir carts, queue rails with seeded crowds, benches; none where a set
+  piece's sides run back). The set pieces got sides and tops going back (the gates, the garage and COUCH FUEL's pump,
+  the newsstand, the shelter, the STUPID DAD STORE and its standee, the memorial wall and stone, Giggles' booth, Drake's
+  quonset, the halfpipe's curve, back wall and coping); the rink's floor, back fence (scoreboard, crowd) and canopy
+  grid go back to the eye; the glop pits go back to a railed rim (NO LIFEGUARD. EVER); the ground's slabs and the
+  slime are scanline-bent. dadArt and poster are stepped now (itchy/ and amphi/ use them too). The rides are drawn in
+  bigkid/rideArt.ts (stamped per hour, moving bits live); the towers in the pits are flagged `pit` (no hummock; glop
+  heaped round them). The cast: Gloppy stepped (wet sheen, bubbles, the zip, googly eyes, his dropped top when dead),
+  the ride op's belt, walkie and visor, Rad Rat's tail, the Flea's emblem, the churro cart's churros. Drawing only: no
+  layout, timing, hitbox or lighting-logic changes.

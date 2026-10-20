@@ -82,10 +82,18 @@ const paintRideOp = (g: Ctx, F: Frame) => {
   part(g, () => g.rect(-6, B.shY + 15, 9, 6), '#F8FAFC', -6, B.shY + 15, 9, 6, 0.8);
   px(g, -5, B.shY + 17, 7, 1, '#1D4ED8');
   px(g, 5, B.shY + 6, 4, 3, '#FDE047');
+  // (the belt, the walkie on it (its stubby antenna), a ring of keys)
+  part(g, () => g.rect(-B.hipW / 2 - 1, B.hipY - 3, B.hipW + 2, 4), '#3F2A1A', -B.hipW / 2 - 1, B.hipY - 3, B.hipW + 2, 4, 0.8);
+  px(g, -1, B.hipY - 3, 3, 4, '#D4D4D8');
+  part(g, () => g.roundRect(B.hipW / 2 - 6, B.hipY - 10, 7, 12, 1.5), '#27272A', B.hipW / 2 - 6, B.hipY - 10, 7, 12, 0.8);
+  px(g, B.hipW / 2 - 4, B.hipY - 16, 2, 6, '#18181B'); px(g, B.hipW / 2 - 5, B.hipY - 7, 4, 2, '#22C55E');
+  g.strokeStyle = '#A1A1AA'; g.lineWidth = 1; g.beginPath(); g.arc(-B.hipW / 2 + 3, B.hipY + 4, 3, 0, Math.PI * 2); g.stroke(); px(g, -B.hipW / 2 + 2, B.hipY + 6, 2, 4, '#D4D4D8');
   hairBack(g, B);
   face(g, B, F, radio ? 'tired' : jab ? 'angry' : 'tired', radio ? 'o' : jab ? 'teeth' : 'flat');
   whiskers(g, B); glasses(g, B);
   hairTop(g, B);
+  // (the zone's teal visor on some, its brim out front)
+  if (F.seed % 3 === 0 && !dead(F)) { part(g, () => { g.moveTo(B.hx - B.rx, B.hy - B.ry * 0.45); g.lineTo(B.hx + B.rx, B.hy - B.ry * 0.45); g.lineTo(B.hx + B.rx, B.hy - B.ry * 0.2); g.lineTo(B.hx - B.rx, B.hy - B.ry * 0.2); g.closePath(); }, POLO, B.hx - B.rx, B.hy - B.ry * 0.45, B.rx * 2, B.ry * 0.25, 0.8); part(g, () => { g.moveTo(B.hx + B.rx * 0.2, B.hy - B.ry * 0.25); g.quadraticCurveTo(B.hx + B.rx + 8, B.hy - B.ry * 0.3, B.hx + B.rx + 10, B.hy - B.ry * 0.05); g.lineTo(B.hx + B.rx * 0.2, B.hy - B.ry * 0.12); g.closePath(); }, lt(POLO, 0.15), B.hx, B.hy - B.ry * 0.3, B.rx + 10, B.ry * 0.25, 0.8); }
   if (dead(F)) headset(g, B.hx + 30, -6, 2.6);
   else headset(g, B.hx, B.hy, 0);
   arm(g, B, 1, H.near[0], H.near[1], { sleeve: POLO, hand: L.skin, len: 0.4 });
@@ -146,6 +154,14 @@ const paintSkate = (g: Ctx, F: Frame) => {
   if (riding || crouch || rush) g.translate(0, -9);
   if (crouch) { g.translate(0, 6); g.scale(1, 0.9); }
   if (rush) g.rotate(0.14);
+  // (the costume's tail: a long pink rat's tail off the back of the shorts, curling up, ringed)
+  {
+    const tail = () => { g.beginPath(); g.moveTo(-B.hipW / 2, B.hipY + 2); g.bezierCurveTo(-B.w / 2 - 20, B.hipY + 16, -B.w / 2 - 34, B.hipY - 2, -B.w / 2 - 26, B.hipY - 20 + (F.fr % 2) * 3); };
+    tail(); g.strokeStyle = INK; g.lineWidth = 5; g.lineCap = 'round'; g.stroke();
+    tail(); g.strokeStyle = '#F9A8D4'; g.lineWidth = 3; g.stroke();
+    g.save(); g.translate(-1, -1); tail(); g.strokeStyle = '#FCE7F3'; g.lineWidth = 1; g.stroke(); g.restore();
+    g.setLineDash([1, 3]); tail(); g.strokeStyle = '#DB7AA8'; g.lineWidth = 3; g.stroke(); g.setLineDash([]);
+  }
   legs(g, B, { col: SHORTS, shoe: 'sneaker', shoeCol: '#111827', bareBelow: true, stripe: undefined });
   const H = handsAt(B, F, pop ? [-B.w / 2 - 2, B.shY + 16] : rush ? [-B.w / 2 - 14, B.shY + 2] : [-B.w / 2 - 4, B.shY + 18], pop ? [B.w / 2 + 2, B.shY - 10] : rush ? [B.w / 2 + 14, B.shY + 2] : [B.w / 2 + 7, B.shY + 16]);
   arm(g, B, -1, H.far[0], H.far[1], { sleeve: TEE, hand: '#E5E7EB', len: 0.45 });
@@ -212,6 +228,10 @@ const paintFlea = (g: Ctx, F: Frame) => {
   px(g, -B.hipW / 2 - 4, B.hipY - 2, B.hipW + 8, 4, '#111827'); px(g, -2, B.hipY - 2, 5, 4, '#FDE047');
   ball(g, 3, B.shY + 18, 5, '#FDE047', 1);
   part(g, () => g.ellipse(3, B.shY + 18, 3, 2, 0, 0, Math.PI * 2), RED, 0, B.shY + 16, 6, 4, 0.6);
+  // (the flea's legs on the emblem, the suit's padded abs, the shine on the chest)
+  g.strokeStyle = INK; g.lineWidth = 0.7; for (const s of [-1, 1]) for (let k = 0; k < 3; k++) { g.beginPath(); g.moveTo(3 + s * 2, B.shY + 17 + k); g.lineTo(3 + s * 5, B.shY + 15 + k * 3); g.stroke(); }
+  for (let k = 0; k < 3; k++) { px(g, -4, B.shY + 25 + k * 5, 4, 1, dk(SUIT, 0.3)); px(g, 2, B.shY + 25 + k * 5, 4, 1, dk(SUIT, 0.3)); }
+  px(g, -8, B.shY + 4, 6, 2, lt(SUIT, 0.45));
   // (the head: the cowl over the top half, white lenses; the performer's square jaw under it)
   if (dead(F)) {
     hairBack(g, B); face(g, B, F, 'open', 'o'); whiskers(g, B); hairTop(g, B);
@@ -265,6 +285,12 @@ const cart = (g: Ctx, x: number, f: number, tipped: boolean, squeak: boolean) =>
   // (a big churro painted on its side, a sugar sparkle)
   g.save(); g.translate(8, -30); g.rotate(-0.15); part(g, () => g.roundRect(0, -4, 38, 8, 4), '#C2853F', 0, -4, 38, 8, 1); g.restore();
   for (let k = 0; k < 4; k++) px(g, 12 + k * 8, -36, 2, 2, '#FFFFFF');
+  // (on top: churros stood up in their paper cup, the cinnamon-sugar shaker, the tongs)
+  if (!tipped) {
+    for (let k = 0; k < 5; k++) { g.save(); g.translate(14 + k * 3, -44); g.rotate(-0.25 + k * 0.12); part(g, () => g.roundRect(-2, -18, 4, 18, 2), '#C2853F', -2, -18, 4, 18, 0.8); px(g, -1, -16, 1, 1, '#FFF7ED'); px(g, 0, -10, 1, 1, '#FFF7ED'); g.restore(); }
+    part(g, () => { g.moveTo(10, -48); g.lineTo(32, -48); g.lineTo(30, -42); g.lineTo(12, -42); g.closePath(); }, '#F8FAFC', 10, -48, 22, 6, 0.8); px(g, 10, -46, 22, 1, STRIPE);
+    part(g, () => g.roundRect(38, -52, 7, 10, 1.5), '#E5E7EB', 38, -52, 7, 10, 0.8); px(g, 38, -54, 7, 2, '#A1A1AA'); px(g, 40, -49, 3, 4, '#C2853F');
+  }
   // (the awning on its poles)
   for (const pxx of [3, 51]) { limb(g, pxx, -42, pxx, -76, 2.5, '#D4D4D8'); }
   g.save(); g.beginPath(); g.moveTo(-6, -74); g.lineTo(60, -74); g.lineTo(56, -84); g.lineTo(-2, -84); g.closePath(); g.clip();
@@ -323,10 +349,21 @@ export const drawChurro = (c: Ctx, e: Enemy, f: number, seed: number) => {
 // ---------------------------------------------------------------------------------------------------------------
 // Gloppy (drawn as he goes)
 
-const GLOP = '#65D11B', GLOP_DK = '#3F8A0E', GLOP_LT = '#B5F05A';
+const GLOP = '#65D11B', GLOP_DK = '#3F8A0E';
+/** The slime's steps, darkest first (a wet green: shadow, shade, under, itself, sheen, glint). */
+const GLOPR = ['#1E4A06', '#2F6A0A', '#4A8E10', '#65D11B', '#9CE84A', '#E2FCB0'];
+const GLOPR_DK = ['#173A05', '#244F08', '#326E0C', '#3F8A0E', '#62B020', '#A8E070'];
+/** A lump of slime, stepped: ink, shade, itself up and left, the sheen, a wet glint. */
 const blob = (c: Ctx, x: number, y: number, rx: number, ry: number, col: string, rot = 0) => {
+  const R = col === GLOP_DK ? GLOPR_DK : col === GLOP ? GLOPR : null;
   c.fillStyle = INK; c.beginPath(); c.ellipse(x, y, rx + 1.8, ry + 1.8, rot, 0, Math.PI * 2); c.fill();
-  c.fillStyle = col; c.beginPath(); c.ellipse(x, y, Math.max(0.5, rx), Math.max(0.5, ry), rot, 0, Math.PI * 2); c.fill();
+  if (!R) { c.fillStyle = col; c.beginPath(); c.ellipse(x, y, Math.max(0.5, rx), Math.max(0.5, ry), rot, 0, Math.PI * 2); c.fill(); return; }
+  const el = (dx: number, dy: number, a: number, b: number, cc: string) => { c.fillStyle = cc; c.beginPath(); c.ellipse(x + dx, y + dy, Math.max(0.5, a), Math.max(0.5, b), rot, 0, Math.PI * 2); c.fill(); };
+  el(0, 0, rx, ry, R[1]); el(-rx * 0.08, -ry * 0.1, rx * 0.88, ry * 0.86, R[2]); el(-rx * 0.18, -ry * 0.2, rx * 0.68, ry * 0.64, R[3]);
+  el(-rx * 0.34, -ry * 0.4, rx * 0.3, ry * 0.22, R[4]);
+  if (rx > 5) { c.fillStyle = R[5]; c.fillRect(Math.round(x - rx * 0.5), Math.round(y - ry * 0.56), Math.max(2, Math.round(rx * 0.16)), 2); c.fillRect(Math.round(x - rx * 0.62), Math.round(y - ry * 0.4), 1, Math.max(1, Math.round(ry * 0.14))); }
+  // (the rim of shade along its foot, dithered off)
+  c.fillStyle = R[0]; c.beginPath(); c.ellipse(x + rx * 0.1, y + ry * 0.72, rx * 0.6, ry * 0.18, rot, 0, Math.PI * 2); c.fill();
 };
 const performerFace = (c: Ctx, e: Enemy, x: number, y: number, r: number, md: 'ok' | 'hurt' | 'dead', puff: boolean) => {
   const L = lookOf(Math.abs(Math.round(e.initialX || 0)) + (e.variant ?? 0) * 31);
@@ -356,32 +393,52 @@ export const drawGloppy = (c: Ctx, e: Enemy, f: number) => {
   blob(c, -12 - walk, -8, 11, 9, GLOP_DK); blob(c, 14 + walk, -8, 11, 9, GLOP);
   // (the far arm: a drippy stub)
   blob(c, -30, -48 + wob, 9, 15, GLOP_DK, 0.4);
-  // (the body: a big lump, lighter down the left, drips off it)
+  // (the body: a big lump in steps, bubbles caught in it, the costume's zip up the far side, drips off it)
   blob(c, 0, -46, 30 + (hock ? 2 : 0), 34 + wob, GLOP);
-  c.fillStyle = GLOP_LT; c.beginPath(); c.ellipse(-12, -58, 9, 14, -0.3, 0, Math.PI * 2); c.fill();
-  c.fillStyle = GLOP_DK; c.beginPath(); c.ellipse(16, -36, 9, 16, 0.2, 0, Math.PI * 2); c.fill();
-  for (let i = 0; i < 4; i++) { const dx = -20 + i * 13, len = 6 + ((f / 4 + i * 7 + seed) % 14); c.fillStyle = INK; c.fillRect(dx - 2, -16, 6, len + 1); c.fillStyle = GLOP; c.fillRect(dx - 1, -16, 4, len); c.beginPath(); c.arc(dx + 1, -16 + len, 3, 0, Math.PI * 2); c.fill(); }
+  c.fillStyle = GLOPR[1]; c.beginPath(); c.ellipse(18, -36, 8, 16, 0.2, 0, Math.PI * 2); c.fill();
+  for (const [bx, by, br] of [[-14, -40, 3], [6, -62, 2], [10, -28, 2.5], [-4, -24, 1.5]] as [number, number, number][]) { c.strokeStyle = GLOPR[4]; c.lineWidth = 1; c.beginPath(); c.arc(bx, by + wob * 0.5, br, Math.PI * 0.9, Math.PI * 1.9); c.stroke(); c.fillStyle = GLOPR[5]; c.fillRect(bx - br * 0.6, by - br * 0.6 + wob * 0.5, 1, 1); }
+  c.strokeStyle = GLOPR[0]; c.lineWidth = 1; c.beginPath(); c.moveTo(24, -70); c.quadraticCurveTo(28, -46, 22, -20); c.stroke();
+  for (let k = 0; k < 6; k++) { c.fillStyle = '#A1A1AA'; c.fillRect(Math.round(24 + Math.sin(k) * 1.5), -66 + k * 8, 2, 2); }
+  for (let i = 0; i < 4; i++) {
+    const dx = -20 + i * 13, len = 6 + ((f / 4 + i * 7 + seed) % 14);
+    c.fillStyle = INK; c.fillRect(dx - 2, -16, 7, len + 1); c.fillStyle = GLOPR[3]; c.fillRect(dx - 1, -16, 5, len); c.fillStyle = GLOPR[4]; c.fillRect(dx - 1, -16, 1, len - 2); c.fillStyle = GLOPR[2]; c.fillRect(dx + 3, -16, 1, len);
+    c.fillStyle = INK; c.beginPath(); c.arc(dx + 1.5, -16 + len, 4, 0, Math.PI * 2); c.fill(); c.fillStyle = GLOPR[3]; c.beginPath(); c.arc(dx + 1.5, -16 + len, 3, 0, Math.PI * 2); c.fill(); c.fillStyle = GLOPR[5]; c.fillRect(dx, -17 + len, 1, 1);
+  }
   // (the head: the top lump, its eye stalks (or off, lying by him: dead), the mouth hole with the performer in it)
   if (isDead) {
+    // (the top lump's come off: lying by him, its eye stalks flopped; the performer's sweaty head out of the neck hole)
     blob(c, 52, -14, 18, 12, GLOP);
+    for (const [sx, ex] of [[46, 34], [58, 70]] as [number, number][]) { c.strokeStyle = INK; c.lineWidth = 5; c.lineCap = 'round'; c.beginPath(); c.moveTo(sx, -20); c.quadraticCurveTo((sx + ex) / 2, -30, ex, -6); c.stroke(); c.strokeStyle = GLOPR[3]; c.lineWidth = 3; c.stroke(); c.fillStyle = INK; c.beginPath(); c.arc(ex, -5, 5, 0, Math.PI * 2); c.fill(); c.fillStyle = '#F4F4F5'; c.beginPath(); c.arc(ex, -5, 4, 0, Math.PI * 2); c.fill(); c.fillStyle = INK; c.fillRect(ex - 2, -6, 3, 1); c.fillRect(ex - 1, -7, 1, 3); }
+    c.fillStyle = INK; c.beginPath(); c.ellipse(2, -76, 14, 5, 0, 0, Math.PI * 2); c.fill(); c.fillStyle = GLOPR[1]; c.beginPath(); c.ellipse(2, -76, 12, 3.5, 0, 0, Math.PI * 2); c.fill();
     performerFace(c, e, 2, -84, 9, 'dead', false);
     c.fillStyle = lookOf(seed).hair; c.fillRect(-7, -96, 16, 4);
+    c.fillStyle = '#BFE8FF'; c.fillRect(10, -88, 2, 3); c.fillRect(-8, -82, 1, 3);
   } else {
     const hy = -78 + wob;
     blob(c, 0, hy, 24, 18, GLOP);
-    c.fillStyle = GLOP_LT; c.beginPath(); c.ellipse(-8, hy - 8, 8, 5, -0.3, 0, Math.PI * 2); c.fill();
     for (const [sx, ph] of [[-10, 0], [10, 1.7]] as [number, number][]) {
       const ex = sx + Math.sin(f * 0.12 + ph) * 4, ey = hy - 30;
-      c.strokeStyle = INK; c.lineWidth = 6; c.lineCap = 'round'; c.beginPath(); c.moveTo(sx * 0.6, hy - 12); c.quadraticCurveTo(sx * 1.2, hy - 22, ex, ey); c.stroke();
-      c.strokeStyle = GLOP; c.lineWidth = 3.5; c.stroke();
-      c.fillStyle = INK; c.beginPath(); c.arc(ex, ey, 7, 0, Math.PI * 2); c.fill(); c.fillStyle = '#FFFFFF'; c.beginPath(); c.arc(ex, ey, 5.8, 0, Math.PI * 2); c.fill();
-      const a = f * 0.25 + ph * 2; c.fillStyle = INK; c.beginPath(); c.arc(ex + Math.cos(a) * 2.5, ey + Math.sin(a) * 2.5, 2.4, 0, Math.PI * 2); c.fill();
+      // (the stalk: a wet tube, shaded down its right, lit up its left)
+      c.strokeStyle = INK; c.lineWidth = 7; c.lineCap = 'round'; c.beginPath(); c.moveTo(sx * 0.6, hy - 12); c.quadraticCurveTo(sx * 1.2, hy - 22, ex, ey); c.stroke();
+      c.strokeStyle = GLOPR[2]; c.lineWidth = 4.5; c.stroke();
+      c.save(); c.translate(-1, 0); c.strokeStyle = GLOPR[4]; c.lineWidth = 1.5; c.beginPath(); c.moveTo(sx * 0.6, hy - 12); c.quadraticCurveTo(sx * 1.2, hy - 22, ex, ey); c.stroke(); c.restore();
+      // (the googly eye: stepped white, the pupil rolling, a glint)
+      c.fillStyle = INK; c.beginPath(); c.arc(ex, ey, 7.5, 0, Math.PI * 2); c.fill();
+      c.fillStyle = '#D4D4D8'; c.beginPath(); c.arc(ex, ey, 6.3, 0, Math.PI * 2); c.fill();
+      c.fillStyle = '#FFFFFF'; c.beginPath(); c.arc(ex - 0.8, ey - 0.8, 5.2, 0, Math.PI * 2); c.fill();
+      const a = f * 0.25 + ph * 2; c.fillStyle = INK; c.beginPath(); c.arc(ex + Math.cos(a) * 2.5, ey + Math.sin(a) * 2.5, 2.6, 0, Math.PI * 2); c.fill();
+      c.fillStyle = '#FFFFFF'; c.fillRect(Math.round(ex - 3), Math.round(ey - 4), 2, 2);
+      if (md === 'hurt') { c.fillStyle = '#F87171'; c.fillRect(Math.round(ex + 2), Math.round(ey - 1), 2, 1); c.fillRect(Math.round(ex - 4), Math.round(ey + 2), 2, 1); }
     }
-    // (the mouth hole: the performer's face in there, cheeks puffed in the tell; a string of drool)
-    c.fillStyle = INK; c.beginPath(); c.ellipse(4, hy + 4, 15, 11, 0, 0, Math.PI * 2); c.fill();
-    c.fillStyle = '#7F1D1D'; c.beginPath(); c.ellipse(4, hy + 4, 13, 9, 0, 0, Math.PI * 2); c.fill();
+    // (the mouth hole: a lip of slime round it, the performer's face in there, cheeks puffed in the tell; drool)
+    c.fillStyle = INK; c.beginPath(); c.ellipse(4, hy + 4, 16, 12, 0, 0, Math.PI * 2); c.fill();
+    c.fillStyle = GLOPR[4]; c.beginPath(); c.ellipse(3, hy + 2, 15, 10.5, 0, Math.PI, Math.PI * 1.9); c.fill();
+    c.fillStyle = '#5A0E14'; c.beginPath(); c.ellipse(4, hy + 4, 13, 9, 0, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#7F1D1D'; c.beginPath(); c.ellipse(5, hy + 6, 11, 6, 0, 0, Math.PI * 2); c.fill();
     performerFace(c, e, 4, hy + 4, 8, md === 'hurt' ? 'hurt' : 'ok', hock);
-    c.fillStyle = GLOP_LT; c.fillRect(14, hy + 12, 3, 6 + (f % 30) * 0.4);
+    const dl = 6 + (f % 30) * 0.4;
+    c.fillStyle = INK; c.fillRect(13, hy + 12, 5, dl + 1); c.fillStyle = GLOPR[4]; c.fillRect(14, hy + 12, 3, dl); c.fillStyle = GLOPR[5]; c.fillRect(14, hy + 12, 1, dl - 1);
+    c.fillStyle = GLOPR[3]; c.beginPath(); c.arc(15.5, hy + 12 + dl, 2.5, 0, Math.PI * 2); c.fill();
   }
   // (the near arm: up in the bump, a hand at his mouth in the hock)
   const ax = hock ? 18 : bump ? 34 : 30, ay = hock ? -70 : bump ? -58 : -46 + wob;

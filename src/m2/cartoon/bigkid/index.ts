@@ -23,8 +23,9 @@ import { SECTIONS, GY } from '../geometry';
 import { makeTowers, updateTowers, drawTowers, ridingTower, onTower } from '../sway';
 import { GROUND, PIPE_RUNS, SOLIDS, LEDGES, TOWERS, CAST, PICKUPS, CHECKPOINTS, GAG_AT, SHACK, X, Y } from './layout';
 import { bigkidOf, saidOnce } from './state';
-import { makeRides, updateRides, drawRidesBack, drawRidesFront, noteSafe, inPuddle, onSneer, COUCH_DONE_MEMO } from './rides';
-import { drawBigkidBackdrop, drawBigkidBack, bigkidLamps } from './art';
+import { makeRides, updateRides, noteSafe, inPuddle, onSneer, COUCH_DONE_MEMO } from './rides';
+import { drawRidesBack, drawRidesFront } from './rideArt';
+import { drawBigkidBackdrop, drawBigkidBack, drawGlopHeaps, bigkidLamps } from './art';
 import { ARRIVE, REVISIT, GAGS, TRACKLESS, DOLL_LINES, CAST_VOICES } from './lines';
 import './kinds';
 
@@ -111,6 +112,7 @@ export const bigkid: CartoonSection = {
     const k = bigkidOf(state);
     drawBigkidBack(c, state, !!k.doll);
     drawTowers(c, state, k.towers);
+    drawGlopHeaps(c, state);
     drawRidesBack(c, state);
   },
   drawFront: (c, state) => {
