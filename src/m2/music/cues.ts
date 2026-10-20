@@ -35,6 +35,7 @@ import { HUB, HUB_CIRC } from '../hub/geometry';
 import { SPOTS, LANDS } from '../hub/lands';
 import { PEN_STAGE } from '../pen/index';
 import { INTRO_STAGE } from '../intro/index';
+import { GYM_STAGE } from '../intro/gym/course';
 import { ADV_STAGE } from '../adventure/index';
 import { SPOOKY_STAGE } from '../spooky/index';
 import { SPACE_STAGE } from '../space/index';
@@ -475,6 +476,8 @@ const gameWants = (s: GameState | null): Want => {
   // (the hub's waltz in the colors of the portal he's at: hubArr)
   if (stage === HUB_STAGE) return { cands: [{ song: 'hub', arrs: [hubArr(s), 'main'] }, { song: 'title', arrs: ['calliope'] }], cutscene };
   if (stage === PEN_STAGE) return { cands: [{ song: 'staff' }, { song: 'title', arrs: ['lounge'] }], cutscene };
+  // (his gym, the opening: its own; its cutscenes the same tune, soft)
+  if (stage === GYM_STAGE) { const sc = cutscene || !!getUi().introCutscene; return { cands: [{ song: 'gym', arrs: sc ? ['cutscene', 'main'] : ['main'] }, { song: 'staff' }], cutscene: sc }; }
   if (stage === INTRO_STAGE) {
     const zone = getUi().zone ?? 'garage';
     // (the walk back after Wilderness Land: its own arrangement the whole way, if the song has one)

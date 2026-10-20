@@ -7,6 +7,7 @@ import { TITLE } from './title';
 import { HUB } from './hub';
 import { INTRO } from './intro';
 import { STAFF } from './staff';
+import { GYM } from './gym';
 import { VICTORY_JINGLE, DEATH_JINGLE } from './jingles';
 import { WALKAWAY, WALKAWAY_ARTIE, WALKAWAY_DONNIE, WALKAWAY_QUEEN, WALKAWAY_STEVE, WALKAWAY_HARRY, WALKAWAY_TUCKER } from './walkaway';
 import { PORTAL, PORTAL_ADVENTURE, PORTAL_SPOOKY, PORTAL_SPACE, PORTAL_HOLLYWOOD, PORTAL_FOREIGN, PORTAL_FRONTIER } from './portal';
@@ -32,6 +33,7 @@ export const SONGS: Record<string, Song> = {
   hub: HUB,
   intro: INTRO,
   staff: STAFF,
+  gym: GYM,
   'jingle:victory': VICTORY_JINGLE,
   'jingle:death': DEATH_JINGLE,
   walkaway: WALKAWAY,
