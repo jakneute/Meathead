@@ -309,27 +309,49 @@ const paintPortal = (g: Ctx, uS: number, top: number, bot: number, zl: Zone, zr:
   }
 };
 
-/** The prop storage: an old ride's painted backdrop (a jungle, a volcano, the sunrise), peeling off the concrete. */
+/** The prop storage: an old ride's painted backdrop (a jungle, a temple, the sunrise), peeling off the concrete. */
 const paintStoreChunk = (g: Ctx, i: number, u0: number, top: number, bot: number) => {
   const F = (c: string) => fogged(c, 0.42);
   // (the painted sky, banded the way a scenic painter would)
   const sky = ['#E8A05A', '#D88A50', '#C07048', '#985448', '#704048'];
   for (let k = 0; k < 5; k++) box(g, u0, top + k * 22, CHUNK, 23, F(sky[k]));
   for (let k = 1; k < 5; k++) checker(g, u0, top + k * 22 - 2, CHUNK, 2, F(sky[k]));
-  // (the painted volcano, in one chunk: smoke painted on)
+  // (the painted sun, low in it, in rings; the painted birds)
+  if (i % 3 === 1) {
+    const sx = u0 + 90 + hash(i * 5) * 140, sy = top + 72;
+    for (const [r, col] of [[34, '#F0B060'], [26, '#F8C870'], [18, '#FCE0A0']] as [number, string][]) { g.fillStyle = F(col); g.beginPath(); g.arc(sx, sy, r, 0, Math.PI * 2); g.fill(); }
+    for (let k = 0; k < 3; k++) { const bx = sx - 60 + k * 26, by = top + 30 + k * 8; box(g, bx, by, 4, 2, F('#5A3A38')); box(g, bx + 4, by + 2, 2, 2, F('#5A3A38')); box(g, bx + 6, by, 4, 2, F('#5A3A38')); }
+  }
+  // (a painted range far off: rolling jungle hills in a dusky mauve, their lit flanks stepped)
+  for (let x = u0; x < u0 + CHUNK; x += 4) {
+    const h = 30 + 24 * Math.sin((x + i * 37) * 0.017) + 10 * Math.sin((x + i * 11) * 0.06), y = Math.round(top + 132 - Math.max(0, h));
+    box(g, x, y, 4, top + 170 - y, F('#6A5A6A')); box(g, x, y, 4, 2, F('#9A8A88'));
+    if (Math.sin((x + 4 + i * 37) * 0.017) > Math.sin((x + i * 37) * 0.017)) checker(g, x, y + 2, 4, 6, F('#8A7A80'));
+  }
+  // (the painted temple in one chunk of five: a stepped ruin, a waterfall painted pouring off its side)
   if (i % 5 === 2) {
-    g.fillStyle = F('#5A3A30'); g.beginPath(); g.moveTo(u0 + 30, top + 200); g.lineTo(u0 + 140, top + 60); g.lineTo(u0 + 180, top + 60); g.lineTo(u0 + 300, top + 200); g.fill();
-    box(g, u0 + 140, top + 56, 40, 6, F('#E8602A'));
-    for (let k = 0; k < 5; k++) box(g, u0 + 150 + k * 6, top + 30 - k * 6, 18, 14, F('#8A7A78'));
+    const tx = u0 + 70, tb = top + 176;
+    for (let k = 0; k < 5; k++) { const w = 180 - k * 30, y = tb - (k + 1) * 22; box(g, tx + k * 15, y, w, 22, F(k % 2 ? '#8A7A5A' : '#9A8A68')); box(g, tx + k * 15, y, w, 3, F('#C8B888')); box(g, tx + k * 15 + w - 6, y, 6, 22, F('#6A5A44')); }
+    box(g, tx + 76, tb - 132, 28, 22, F('#3A2A24')); box(g, tx + 72, tb - 136, 36, 4, F('#C8B888'));
+    for (let y = tb - 66; y < tb + 40; y += 4) { box(g, tx + 182, y, 10, 4, F(y % 8 ? '#9AD0E0' : '#D8F0F8')); box(g, tx + 184, y, 2, 4, F('#F8FCFF')); }
   }
-  // (the painted jungle: rounded canopies, two greens, stepped)
-  for (let k = 0; k < 6; k++) {
-    const cx = u0 + 20 + k * 56 + hash(i * 9 + k) * 20, cy = top + 120 + hash(i + k * 3) * 30;
-    g.fillStyle = F('#2E5A30'); g.beginPath(); g.arc(cx, cy, 34, 0, Math.PI * 2); g.fill();
-    g.fillStyle = F('#3E7038'); g.beginPath(); g.arc(cx - 6, cy - 8, 22, 0, Math.PI * 2); g.fill();
-    box(g, cx - 3, cy + 20, 6, 120, F('#4A3420'));
-  }
+  // (the painted jungle: crowns in stepped clumps (dark under, lit up and to the left), trunks banded, palms leaning)
   box(g, u0, top + 150, CHUNK, bot - top - 150, F('#264A28'));
+  for (let k = 0; k < 7; k++) {
+    const cx = Math.round(u0 + 10 + k * 48 + hash(i * 9 + k) * 20), cy = Math.round(top + 124 + hash(i + k * 3) * 30);
+    box(g, cx - 3, cy + 14, 6, 140, F('#4A3420')); box(g, cx - 3, cy + 14, 2, 140, F('#6A4C2E'));
+    for (let y = cy + 24; y < cy + 150; y += 14) box(g, cx - 3, y, 6, 2, F('#2E2014'));
+    if (hash(i * 3 + k) > 0.6) {
+      // (a palm: fronds out in stepped strokes, drooping)
+      for (let fr = 0; fr < 6; fr++) { const a = -Math.PI + (fr / 5) * Math.PI, len = 26; for (let t = 0; t < 1; t += 0.12) box(g, cx + Math.cos(a) * len * t, cy + 12 + Math.sin(a) * len * t * 0.6 + t * t * 14, 4, 3, F(fr % 2 ? '#2E6A30' : '#3E8038')); }
+    } else {
+      for (const [dx, dy, r, col] of [[0, 4, 30, '#1E4422'], [-2, 0, 26, '#2E5A30'], [-7, -6, 17, '#3E7038'], [-11, -10, 8, '#5A9048']] as [number, number, number, string][]) {
+        g.fillStyle = F(col); g.beginPath();
+        for (let y = -r; y < r; y += 4) { const hw = Math.round(Math.sqrt(r * r - y * y) / 2) * 2; g.rect(cx + dx - hw, cy + dy + y, hw * 2, 4); }
+        g.fill();
+      }
+    }
+  }
   // (the title, painted across the top of the backdrop: in two chunks)
   if (i % 5 === 0) signAt(g, 'DINO-SAFARI', u0 + CHUNK / 2, top + 34, 14, dino(14, [F('#FFF2B0'), F('#F2D04A'), F('#E8A41E'), F('#B8641A')], F('#5A2A10'), F('#2A1406')));
   if (i % 5 === 0) signAt(g, 'EST. 1979', u0 + CHUNK / 2, top + 52, 7, enamel(7, F('#F2D04A'), F('#5A2A10')));
@@ -391,15 +413,42 @@ const drawFarJunk = (c: Ctx, v: V) => {
 const drawRidges = (c: Ctx, v: V) => {
   const a = Math.max(R(DOCK), v.l - 4), b = Math.min(R(TUNNEL.x1), v.r + 4);
   if (b <= a) return;
-  for (const [s, k] of [[S_RIDGE2, 0.75], [S_RIDGE, 0.55]] as [number, number][]) {
+  // (each ridge: its crest stepped, lit along the top where it faces up the river (the light's from above and the left),
+  // its body in bands going down into the murk (each seam dithered), boulders heaped along it, kelp standing up off it
+  // in silhouette, swaying a step at a time; the nearer ridge darker against the further)
+  for (const [s, k, seed] of [[S_RIDGE2, 0.75, 1], [S_RIDGE, 0.55, 2]] as [number, number, number][]) {
     const ox = offX(v, s), oy = offY(v, s), base = BOTTOM - 140;
     const col = mix(waterAt('open', 0.7, v.tod), '#06202A', k * 0.6), rim = mix(col, waterAt('open', 0.25, v.tod), 0.35);
+    const lit = mix(col, waterAt('open', 0.1, v.tod), 0.5), deep = mix(col, '#03121A', 0.35), deeper = mix(col, '#03121A', 0.6);
+    const hAt = (u: number) => 40 + 50 * (0.5 + 0.5 * Math.sin(u * 0.006 + s * 9) * Math.cos(u * 0.0023 + s * 3)) + 14 * Math.sin(u * 0.031 + s);
+    const yAt = (x: number) => Math.round((base - hAt((x - ox) / s)) * s + oy);
     for (let x = Math.floor(a / 4) * 4; x < b; x += 4) {
-      const u = (x - ox) / s;
-      const hgt = 40 + 50 * (0.5 + 0.5 * Math.sin(u * 0.006 + s * 9) * Math.cos(u * 0.0023 + s * 3)) + 14 * Math.sin(u * 0.031 + s);
-      const y = Math.round((base - hgt) * s + oy);
+      const y = yAt(x), yn = yAt(x + 4);
       box(c, x, y, 4, v.b - y + 4, col);
+      // (bands going down: dithered into each other)
+      box(c, x, y + 28, 4, v.b - y, deep); checker(c, x, y + 26, 4, 2, deep);
+      box(c, x, y + 64, 4, v.b - y, deeper); checker(c, x, y + 62, 4, 2, deeper);
+      // (the crest: lit where it climbs to the right, a rim either way)
+      if (yn < y) { box(c, x, y, 4, 6, lit); checker(c, x, y + 6, 4, 2, lit); }
       box(c, x, y, 4, 2, rim);
+    }
+    // (boulders along the crest, kelp off it: each at a world x on this plane, so it slides with it)
+    const ua = (a - ox) / s, ub = (b - ox) / s, step = 46;
+    for (let u = Math.floor(ua / step) * step; u < ub + step; u += step) {
+      const h = hash(u * 0.013 + seed * 7);
+      const x = Math.round(u * s + ox), y = yAt(x);
+      if (h < 0.3) {
+        const w = Math.round((14 + h * 30) * s), hh = Math.round(w * 0.6);
+        box(c, x - 1, y - hh + 2, w + 2, hh, mix(col, '#03121A', 0.3)); box(c, x, y - hh + 2, w, 2, rim); box(c, x, y - hh + 4, Math.round(w * 0.4), 2, lit);
+      } else if (h > 0.55) {
+        // (a kelp stalk: a stem stepped up, swaying more toward its tip, its blades off alternate sides)
+        const len = Math.round((50 + hash(u) * 90) * s), kc = mix(col, '#0E3A26', 0.35), kl = mix(kc, waterAt('open', 0.3, v.tod), 0.3);
+        for (let i = 0; i < len; i += 4) {
+          const t = i / len, sw = Math.round(Math.sin(v.f * 0.02 + u * 0.1 + t * 2) * t * t * 8 * s);
+          box(c, x + sw, y - i - 4, 2, 4, kc);
+          if ((i >> 2) % 3 === 1) { const d = (i >> 3) % 2 ? 1 : -1; box(c, x + sw + (d > 0 ? 2 : -4), y - i - 3, 4, 2, kc); box(c, x + sw + (d > 0 ? 4 : -4), y - i - 4, 2, 1, kl); }
+        }
+      }
     }
   }
 };

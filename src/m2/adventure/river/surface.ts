@@ -16,6 +16,7 @@ import {
 } from '../queue/depth';
 import { signAt, carved, plank, enamel } from '../letters';
 import { drawLaunch } from './boat';
+import { drawGags } from './gags';
 import { WS, DOCK, BOAT, FALLS, roofAt, PIPE } from './course';
 
 const { x0 } = SECTIONS.river;
@@ -288,19 +289,28 @@ const hippo = (c: Ctx, x: number, f: number, waterY: number) => {
 const gorilla = (c: Ctx, x: number, f: number, i: number) => {
   const T = (f >> 4) + i * 2, sw = (T % 2) * 5, fy = WS - 22 - (i === 1 ? 6 : 0);
   const F = ['#141214', '#24202A', '#363040', '#4A4458', '#625C70'].map(g => farTint(g, 0.25)), skin = farTint('#6A6070', 0.25);
-  // (legs, body, arms swinging (one at a time), head)
-  for (const lx of [-12, 2]) { box(c, x + lx - 1, fy - 26, 12, 26, INK); box(c, x + lx, fy - 25, 10, 25, F[1]); }
-  c.fillStyle = INK; c.beginPath(); c.ellipse(x, fy - 46, 22, 26, 0, 0, Math.PI * 2); c.fill();
-  c.fillStyle = F[2]; c.beginPath(); c.ellipse(x, fy - 46, 20, 24, 0, 0, Math.PI * 2); c.fill();
-  c.fillStyle = F[3]; c.beginPath(); c.ellipse(x - 5, fy - 54, 11, 12, 0, 0, Math.PI * 2); c.fill();
+  // (legs, body, arms swinging (one at a time), head: the fur banded, ragged at the edges, the suit sagging)
+  for (const lx of [-12, 2]) { box(c, x + lx - 1, fy - 26, 12, 26, INK); box(c, x + lx, fy - 25, 10, 25, F[1]); box(c, x + lx, fy - 25, 3, 25, F[2]); for (let y = fy - 22; y < fy; y += 6) box(c, x + lx + 9, y, 2, 3, F[0]); box(c, x + lx - 1, fy - 3, 12, 3, skin); }
+  banded(c, ell(c, x, fy - 46, 21, 25), x - 22, x + 22, fy - 72, fy - 20, F, [4, 3, 2, 2, 1, 0]);
+  c.save(); ell(c, x, fy - 46, 21, 25)(); c.clip();
+  for (let y = fy - 68; y < fy - 22; y += 5) for (let k = -18; k < 18; k += 6) box(c, x + k + ((y >> 2) % 2) * 3, y, 2, 3, F[1]);
+  c.restore();
+  // (the chest: the leather of it, molded in two pecs, lit up the left)
+  c.fillStyle = INK; c.beginPath(); c.ellipse(x + 3, fy - 44, 10, 13, 0, 0, Math.PI * 2); c.fill();
   c.fillStyle = skin; c.beginPath(); c.ellipse(x + 3, fy - 44, 9, 12, 0, 0, Math.PI * 2); c.fill();
-  for (const [ax, d] of [[-24, sw], [16, 5 - sw]] as const) { box(c, x + ax - 1, fy - 62 + d, 11, 46, INK); box(c, x + ax, fy - 61 + d, 9, 44, F[2]); box(c, x + ax, fy - 61 + d, 3, 44, F[3]); box(c, x + ax - 1, fy - 18 + d, 11, 6, skin); }
+  box(c, x - 3, fy - 52, 5, 6, mix(skin, '#FFFFFF', 0.15)); box(c, x + 3, fy - 50, 1, 10, mix(skin, INK, 0.3));
+  for (const [ax, d] of [[-24, sw], [16, 5 - sw]] as const) {
+    box(c, x + ax - 1, fy - 62 + d, 11, 46, INK); box(c, x + ax, fy - 61 + d, 9, 44, F[2]); box(c, x + ax, fy - 61 + d, 3, 44, F[3]); box(c, x + ax + 7, fy - 61 + d, 2, 44, F[1]);
+    for (let y = fy - 56 + d; y < fy - 22 + d; y += 7) { box(c, x + ax - 2, y, 2, 3, F[2]); box(c, x + ax + 9, y + 3, 2, 3, F[1]); }
+    box(c, x + ax - 1, fy - 18 + d, 11, 6, skin); for (let k = 0; k < 3; k++) box(c, x + ax + k * 3, fy - 13 + d, 2, 2, mix(skin, INK, 0.35));
+  }
   const hy = fy - 78;
   c.fillStyle = INK; c.beginPath(); c.arc(x, hy, 13, 0, Math.PI * 2); c.fill();
-  c.fillStyle = F[2]; c.beginPath(); c.arc(x, hy, 12, 0, Math.PI * 2); c.fill();
+  banded(c, () => { c.beginPath(); c.arc(x, hy, 12, 0, Math.PI * 2); }, x - 13, x + 13, hy - 12, hy + 12, F, [4, 3, 2, 1]);
   box(c, x - 4, hy - 13, 8, 4, F[3]);
-  box(c, x - 6, hy - 3, 13, 11, skin); box(c, x - 6, hy - 4, 13, 2, F[0]);
-  box(c, x - 4, hy - 1, 3, 2, INK); box(c, x + 2, hy - 1, 3, 2, INK); box(c, x - 3, hy + 5, 7, 1, INK);
+  box(c, x - 6, hy - 3, 13, 11, skin); box(c, x - 6, hy - 3, 13, 2, mix(skin, '#FFFFFF', 0.15)); box(c, x - 7, hy - 5, 15, 3, F[0]);
+  box(c, x - 4, hy - 1, 3, 2, INK); box(c, x + 2, hy - 1, 3, 2, INK); box(c, x - 3, hy + 1, 1, 1, '#FFFFFF');
+  box(c, x - 2, hy + 2, 2, 2, mix(skin, INK, 0.4)); box(c, x + 1, hy + 2, 2, 2, mix(skin, INK, 0.4)); box(c, x - 3, hy + 5, 7, 1, INK);
   // (the costume's zipper, where it's come undone at the neck; somebody's skin showing)
   box(c, x - 1, fy - 70, 2, 30, '#B8B8C0'); box(c, x - 2, fy - 72, 4, 4, farTint('#E8B890', 0.25));
 };
@@ -310,9 +320,32 @@ const placard = (c: Ctx, x: number, name: string, y = WS - 24) => {
   sign(c, x - 24, y - 42, 48, 16, '#E8DCB8', '', '#000', 5, '#5A3A1A');
   signAt(c, name, x, y - 31, 5, carved(5, '#3A1A08', '#F8F0D8', x));
 };
+/** Gerald: Artie's best friend, a rock. A proper one: courses of it stepped back, lit up its left, moss over its crown,
+ *  lichen in spots, a crack, the river's tide line round its foot. */
+const gerald = (c: Ctx, gx: number) => {
+  const gy = WS - 22, rr = rampOf(farTint('#6A665E', 0.3)), moss = rampOf(farTint('#4A6A2A', 0.3));
+  const shape = () => { c.beginPath(); c.moveTo(gx - 50, gy); c.lineTo(gx - 46, gy - 22); c.lineTo(gx - 34, gy - 40); c.lineTo(gx - 12, gy - 50); c.lineTo(gx + 14, gy - 48); c.lineTo(gx + 36, gy - 36); c.lineTo(gx + 48, gy - 18); c.lineTo(gx + 52, gy); c.closePath(); };
+  banded(c, shape, gx - 54, gx + 54, gy - 52, gy, rr, [4, 3, 3, 2, 2, 1, 0]);
+  c.save(); shape(); c.clip();
+  // (its facets: the left faces lit, the right in shade, a seam of shadow between)
+  for (const [x, y, w, h] of [[-40, -36, 18, 14], [-20, -46, 22, 12], [-44, -18, 20, 12]] as const) { box(c, gx + x, gy + y, w, h, rr[3]); box(c, gx + x, gy + y, w, 2, rr[4]); }
+  for (const [x, y, w, h] of [[18, -40, 20, 16], [30, -20, 20, 18], [4, -24, 16, 12]] as const) { box(c, gx + x, gy + y, w, h, rr[1]); checker(c, gx + x, gy + y, 2, h, rr[2]); }
+  for (let y = -44; y < -4; y += 2) box(c, gx + 2 + Math.round(Math.sin(y * 0.3) * 3), gy + y, 2, 2, rr[0]);
+  // (the moss over its crown, dithered off down its sides; the lichen, the tide line)
+  box(c, gx - 34, gy - 52, 64, 8, moss[2]); box(c, gx - 30, gy - 52, 40, 3, moss[3]); checker(c, gx - 40, gy - 44, 78, 4, moss[2]); checker(c, gx - 44, gy - 40, 86, 2, moss[1], 1);
+  for (const [x, y] of [[-30, -26], [-8, -34], [22, -28], [-38, -10], [12, -14]]) { box(c, gx + x, gy + y, 4, 3, farTint('#C8C070', 0.3)); box(c, gx + x + 1, gy + y + 1, 2, 1, farTint('#E8E0A0', 0.3)); }
+  box(c, gx - 52, gy - 6, 106, 6, rr[0]); checker(c, gx - 52, gy - 8, 106, 2, rr[0]);
+  c.restore();
+};
 const drawShow = (c: Ctx, state: GameState, eye: Eye) => {
   const f = state.frame;
   const [, waterY] = P(eye, 0, WS, 0.91);
+  // (the crocodiles, the party up the tree, Trader Stan's: gags.ts)
+  const gags: { croc?: number; party?: number; stan?: number } = {};
+  if (seen(state, P(eye, R(720), 0, BANK_S)[0], P(eye, R(1100), 0, BANK_S)[0])) gags.croc = R(860);
+  if (seen(state, P(eye, R(1170), 0, BANK_S)[0], P(eye, R(1430), 0, BANK_S)[0])) gags.party = R(1300);
+  if (seen(state, P(eye, R(1630), 0, BANK_S)[0], P(eye, R(1890), 0, BANK_S)[0])) gags.stan = R(1760);
+  if (gags.croc !== undefined || gags.party !== undefined || gags.stan !== undefined) { atDepth(c, eye, BANK_S); drawGags(c, f, gags); c.restore(); }
   if (seen(state, R(1900), R(2200))) { atDepth(c, eye, BANK_S); elephant(c, R(2050), f); c.restore(); }
   if (seen(state, R(2280), R(2480))) { const [hx] = P(eye, R(2380), 0, 0.91); hippo(c, hx, f, waterY); }
   if (seen(state, R(2560), R(2860))) {
@@ -323,13 +356,8 @@ const drawShow = (c: Ctx, state: GameState, eye: Eye) => {
   }
   if (seen(state, R(3120), R(3320))) {
     atDepth(c, eye, BANK_S);
-    const gx = R(3200), gy = WS - 22;
-    const rr = rampOf(farTint('#6A665E', 0.3));
-    c.fillStyle = INK; c.beginPath(); c.ellipse(gx, gy - 20, 48, 28, 0, Math.PI, 0); c.fill();
-    c.fillStyle = rr[1]; c.beginPath(); c.ellipse(gx, gy - 20, 46, 26, 0, Math.PI, 0); c.fill();
-    c.fillStyle = rr[2]; c.beginPath(); c.ellipse(gx - 6, gy - 24, 34, 18, 0, Math.PI, 0); c.fill();
-    c.fillStyle = rr[3]; c.beginPath(); c.ellipse(gx - 14, gy - 34, 14, 7, 0, 0, Math.PI * 2); c.fill();
-    box(c, gx - 48, gy - 20, 96, 20, rr[1]); box(c, gx - 48, gy - 4, 96, 4, rr[0]);
+    const gx = R(3200);
+    gerald(c, gx);
     placard(c, gx + 64, 'GERALD', WS - 2);
     c.restore();
   }

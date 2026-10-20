@@ -1,6 +1,7 @@
-// The river, drawn (crude, the first pass: boxes, shapes and words). Behind: the sky, the far bank and its fake
-// animals, the water's depths, the cave, the rides on the bed, the animatronic dinosaurs, the tank's gallery behind
-// its glass, the boat and Artie, the rock. In front: the water over everything in it, the bubbles, what's said, his air.
+// The river, drawn (put together: the art's in surface.ts, gags.ts, boat.ts, under*.ts). Behind: the sky, the far bank
+// and its fake animals, the water's depths, the ride's works under the open river, the culvert, the rides on the bed,
+// the animatronic dinosaurs, the tank's gallery behind its glass, the boat and Artie, the rock. In front: the water over
+// everything in it, the bubbles, what's said, his air.
 
 import type { GameState } from '../../../m1/game/core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
@@ -13,6 +14,7 @@ import { WS, DOCK, BOAT, PIPE, roofAt, GALLERY } from './course';
 import { drawFallsRock, drawUnderWater, drawUnderWave, drawRays, drawWeeds, drawRockAndBed, drawVents, drawEelHoles, drawUnderFront } from './under';
 import { drawProps, drawYard, drawDinos } from './under-scenery';
 import { drawTank, drawTankBack } from './under-tank';
+import { drawRideWorks } from './under-ride';
 
 type Ctx = CanvasRenderingContext2D;
 const { x0, x1 } = SECTIONS.river;
@@ -55,6 +57,7 @@ export const drawRiverBack = (c: Ctx, state: GameState, rv: River) => {
   // (kept under the waterline: from above it, nothing down there shows over the surface)
   c.save(); c.beginPath(); c.rect(R(DOCK), WS, PIPE.x2 - DOCK, 3000); c.clip();
   drawUnderWater(c, state);
+  drawRideWorks(c, state);
   c.restore();
   drawTankBack(c, state);
   drawUnderWave(c, state);

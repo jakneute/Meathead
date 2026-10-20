@@ -68,12 +68,21 @@ const paintBoat = (c: Ctx, x: number, y: number, w: number, h: number) => {
   pole(c, x + 10, y - 58, 4, 58, '#A8A29E'); pole(c, x + w - 16, y - 26, 4, 26, '#A8A29E');
   for (let k = 0; k < 5; k++) { box(c, x + 14, y - 58 + k * 9, 16 - k * 2, 9, k % 2 ? '#E8E0D0' : '#B02020'); }
   // (the last skipper, at the stern: it ran out of gas on him too)
-  const sx = x + w - 52, sy = y;
-  box(c, sx - 6, sy - 22, 12, 14, '#E8E4D8'); box(c, sx - 6, sy - 22, 12, 2, '#FFFFFF');
-  for (let k = 0; k < 3; k++) box(c, sx - 5, sy - 18 + k * 4, 10, 1, '#5A5A50');
-  box(c, sx - 1, sy - 8, 2, 8, '#E8E4D8');
-  box(c, sx - 6, sy - 34, 12, 11, '#F0ECE0'); box(c, sx - 4, sy - 30, 3, 3, INK); box(c, sx + 1, sy - 30, 3, 3, INK); box(c, sx - 3, sy - 25, 6, 1, INK);
-  box(c, sx - 9, sy - 38, 18, 4, '#E8D8A0'); box(c, sx - 6, sy - 42, 12, 5, '#E8D8A0'); box(c, sx - 6, sy - 39, 12, 1, '#7A3A1A');
+  // (his bones, slumped against the wheel's post: the ribs in steps, the spine, an arm over the gunwale, the skull
+  // lolled to one side with its jaw hung open, his skipper's hat still on, weed growing up him)
+  const sx = x + w - 52, sy = y, BN = rampOf('#E0DAC4');
+  box(c, sx + 10, sy - 30, 4, 30, INK); box(c, sx + 11, sy - 30, 2, 30, '#6A6A60');
+  box(c, sx - 2, sy - 24, 3, 22, INK); box(c, sx - 1, sy - 24, 1, 22, BN[2]);
+  for (let k = 0; k < 4; k++) { box(c, sx - 8, sy - 22 + k * 4, 16, 3, INK); box(c, sx - 7, sy - 21 + k * 4, 14 - k, 1, k ? BN[2] : BN[3]); box(c, sx + 5 - k, sy - 21 + k * 4, 2, 1, BN[1]); }
+  box(c, sx - 8, sy - 6, 16, 5, INK); box(c, sx - 7, sy - 5, 14, 3, BN[2]); box(c, sx - 7, sy - 5, 14, 1, BN[3]);
+  box(c, sx - 18, sy - 22, 12, 3, INK); box(c, sx - 17, sy - 21, 10, 1, BN[3]); box(c, sx - 20, sy - 20, 3, 18, INK); box(c, sx - 19, sy - 19, 1, 16, BN[2]);
+  for (let k = 0; k < 3; k++) box(c, sx - 21 + k * 2, sy - 2, 1, 4, BN[2]);
+  const hx = sx - 4, hy = sy - 38;
+  box(c, hx - 1, hy - 1, 14, 13, INK); box(c, hx, hy, 12, 11, BN[2]); box(c, hx, hy, 12, 3, BN[3]); box(c, hx + 9, hy + 2, 3, 9, BN[1]);
+  box(c, hx + 2, hy + 4, 3, 3, INK); box(c, hx + 7, hy + 4, 3, 3, INK); box(c, hx + 5, hy + 7, 2, 2, BN[0]);
+  box(c, hx + 1, hy + 11, 10, 5, INK); box(c, hx + 2, hy + 11, 8, 3, BN[1]); for (let k = 0; k < 4; k++) box(c, hx + 2 + k * 2, hy + 10, 1, 2, '#F8F4E8');
+  box(c, hx - 4, hy - 4, 20, 4, INK); box(c, hx - 3, hy - 3, 18, 2, '#E8D8A0'); box(c, hx, hy - 8, 12, 5, INK); box(c, hx + 1, hy - 7, 10, 4, '#E8D8A0'); box(c, hx + 1, hy - 5, 10, 1, '#7A3A1A'); box(c, hx + 1, hy - 7, 10, 1, '#F8ECC0');
+  for (let k = 0; k < 3; k++) for (let yy = 0; yy < 10 + k * 4; yy += 2) box(c, sx - 10 + k * 8 + ((yy >> 2) % 2), sy - 2 - yy, 2, 2, yy % 6 ? '#2E5A26' : '#4A7A3A');
   lipOn(c, x - 6, y, w + 16, '#F0C890');
 };
 

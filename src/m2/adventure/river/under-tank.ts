@@ -233,11 +233,34 @@ const paintMural = (g: Ctx, i: number, a: number) => {
   const sky = ['#3A2A5A', '#5A3A6A', '#8A4A6A', '#C06A5A', '#E8984A', '#F2C060'];
   const top = HALL_CEIL, hz = WS - 120, bh = (hz - top) / sky.length;
   sky.forEach((col, k) => { box(g, a, Math.round(top + k * bh), 400, Math.ceil(bh) + 1, col); if (k) checker(g, a, Math.round(top + k * bh) - 2, 400, 2, col); });
-  // (the painted sea, the painted volcano, a painted plesiosaur's neck out of it, a pterosaur)
-  box(g, a, hz, 400, WS - hz, '#2A5A7A'); for (let y = hz + 6; y < WS; y += 10) box(g, a + (y % 20), y, 400, 2, '#3A7090');
-  if (i % 3 === 0) { g.fillStyle = '#3A2420'; g.beginPath(); g.moveTo(a + 120, hz); g.lineTo(a + 220, hz - 150); g.lineTo(a + 250, hz - 150); g.lineTo(a + 360, hz); g.fill(); box(g, a + 218, hz - 156, 34, 8, '#F0702A'); for (let k = 0; k < 4; k++) box(g, a + 226 + k * 8, hz - 186 - k * 10, 20, 14, '#6A5A60'); }
-  if (i % 3 === 1) { g.strokeStyle = '#1A3A4A'; g.lineWidth = 8; g.beginPath(); g.moveTo(a + 200, hz + 30); g.quadraticCurveTo(a + 210, hz - 60, a + 250, hz - 70); g.stroke(); g.fillStyle = '#1A3A4A'; g.beginPath(); g.ellipse(a + 258, hz - 72, 14, 7, 0, 0, Math.PI * 2); g.fill(); }
-  if (i % 3 === 2) { g.fillStyle = '#2A1A2A'; g.beginPath(); g.moveTo(a + 100, top + 80); g.lineTo(a + 160, top + 66); g.lineTo(a + 220, top + 80); g.lineTo(a + 160, top + 74); g.fill(); }
+  // (the painted sea in bands, the sun's path on it; sea stacks, a painted plesiosaur's neck out of it, a pterosaur)
+  const sea = ['#3A6A8A', '#2E5E7E', '#245270', '#1C4662'];
+  sea.forEach((col, k) => { const y = hz + Math.round(k * (WS - hz) / 4); box(g, a, y, 400, Math.ceil((WS - hz) / 4) + 1, col); if (k) checker(g, a, y - 2, 400, 2, col); });
+  for (let y = hz + 6; y < WS; y += 10) for (let x = a + ((y * 7) % 30); x < a + 400; x += 30 + ((x + y) % 17)) box(g, x, y, 10 + ((x * 3) % 8), 2, '#5A8AA6');
+  for (let y = hz + 2; y < WS; y += 6) box(g, a + 186 - (y - hz) * 0.3, y, 28 + (y - hz) * 0.6, 2, '#E8A860');
+  const stack = (x: number, w: number, h: number) => {
+    for (let k = 0; k < h; k += 6) { const ww = Math.round(w * (1 - k / h * 0.5)); box(g, x - ww / 2, hz - k - 6, ww, 6, k % 12 ? '#4A3A44' : '#3A2C36'); box(g, x - ww / 2, hz - k - 6, 4, 6, '#7A5A5A'); }
+    box(g, x - w * 0.25, hz - h - 4, w * 0.5, 4, '#2E5A3A'); box(g, x - w * 0.25, hz - h - 4, w * 0.3, 2, '#4A7A4A');
+  };
+  if (i % 3 === 0) {
+    stack(a + 120, 70, 110); stack(a + 190, 44, 70); stack(a + 300, 56, 50);
+    // (a palm off the tall one's top, leaning)
+    box(g, a + 124, hz - 150, 4, 40, '#3A2A20'); for (let fr = 0; fr < 5; fr++) { const an = -Math.PI + (fr / 4) * Math.PI; for (let t = 0; t < 1; t += 0.15) box(g, a + 126 + Math.cos(an) * 22 * t, hz - 152 + Math.sin(an) * 12 * t + t * t * 10, 4, 3, '#2E5A3A'); }
+  }
+  if (i % 3 === 1) {
+    // (the plesiosaur: its neck in stepped segments up out of the sea, lit along its front, the little head, the eye)
+    for (let k = 0; k < 14; k++) { const t = k / 13, x = a + 200 + t * 50 - Math.sin(t * 2.4) * 10, y = hz + 20 - t * 92; box(g, x - 6, y - 4, 12, 8, '#1A3A4A'); box(g, x + 2, y - 4, 4, 8, '#2E5A6A'); }
+    box(g, a + 240, hz - 80, 30, 12, '#1A3A4A'); box(g, a + 240, hz - 80, 30, 3, '#2E5A6A'); box(g, a + 262, hz - 76, 3, 3, '#F0C060'); box(g, a + 252, hz - 70, 16, 1, '#0A1A22');
+    for (let k = 0; k < 3; k++) box(g, a + 160 + k * 34, hz + 12 + k * 2, 22, 6, '#1A3A4A');
+    stack(a + 360, 40, 40);
+  }
+  if (i % 3 === 2) {
+    // (the pterosaur, wings out, banded; a far stack under it)
+    stack(a + 80, 50, 60);
+    g.fillStyle = '#2A1A2A'; g.beginPath(); g.moveTo(a + 100, top + 84); g.lineTo(a + 160, top + 64); g.lineTo(a + 220, top + 84); g.lineTo(a + 160, top + 74); g.fill();
+    g.fillStyle = '#4A2A3A'; g.beginPath(); g.moveTo(a + 116, top + 80); g.lineTo(a + 160, top + 66); g.lineTo(a + 160, top + 71); g.fill();
+    box(g, a + 156, top + 62, 8, 10, '#2A1A2A'); box(g, a + 160, top + 60, 16, 4, '#2A1A2A'); box(g, a + 148, top + 58, 10, 3, '#2A1A2A'); box(g, a + 162, top + 61, 2, 2, '#F0C060');
+  }
   // (the backdrop's sheets: seams; the light from the rig falling off down it)
   box(g, a, top, 2, WS - top, '#1A1018'); box(g, a + 200, top, 2, WS - top, '#1A1018');
   // (the truss, up under the dark of the ceiling)
