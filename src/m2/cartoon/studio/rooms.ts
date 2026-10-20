@@ -55,6 +55,45 @@ const wallTop = (g: Ctx, a: number, b: number, R: string[]) => {
 // ---------------------------------------------------------------------------------------------------------------
 // 0. The lobby
 
+/** Sillyville Square through the lobby's glass doors (x, y the doors' top left, w across both, h tall), by the hour:
+ *  the land's water tower up over the square (its pink tank, the face, the beanie), a striped onion dome and a floppy
+ *  cone in their ramps, a Truffula tuft and puff trees, the candy cobbles banded toward the doors. */
+const squareView = (g: Ctx, x: number, y: number, w: number, h: number, tod: ReturnType<typeof timeOfDay>) => {
+  const T = (c: string) => farTint(c, 0.32, tod), R3 = (c: string) => [T(mix(c, INK, 0.3)), T(c), T(mix(c, '#FFFFFF', 0.35))];
+  const foot = y + h - 40;
+  // (THE WATER TOWER far off up on its hill: bandy lilac legs, the pink tank, its face, the beanie)
+  { const tx = x + 132, ty = y + 70, L = R3('#B8A4DC'), P = R3('#F49AC8');
+    for (const s of [-1, 1]) { box(g, tx + s * 9 - 1, ty + 18, 3, 40, L[1]); box(g, tx + s * 9 - 1, ty + 18, 1, 40, L[2]); }
+    for (let k = 0; k < 3; k++) { g.strokeStyle = L[0]; g.lineWidth = 1; g.beginPath(); g.moveTo(tx - 9, ty + 22 + k * 12); g.lineTo(tx + 9, ty + 32 + k * 12); g.stroke(); }
+    box(g, tx - 15, ty - 2, 30, 24, T(INK)); box(g, tx - 14, ty - 1, 28, 22, P[1]); box(g, tx - 14, ty - 1, 6, 22, P[2]); box(g, tx + 8, ty - 1, 6, 22, P[0]);
+    box(g, tx - 14, ty + 14, 28, 4, T('#7C3AED')); box(g, tx - 14, ty + 14, 28, 1, T('#F2C84A'));
+    for (const s of [-1, 1]) { box(g, tx + s * 5 - 3, ty + 3, 6, 6, T('#FFFFFF')); box(g, tx + s * 5 - 1, ty + 5, 2, 3, T(INK)); }
+    box(g, tx - 3, ty + 10, 6, 3, T('#FFFFFF')); box(g, tx, ty + 10, 1, 3, T('#C8C4D8'));
+    const B = ['#EF4444', '#FDE047', '#22C55E', '#3B82F6'];
+    for (let k = 0; k < 4; k++) { g.fillStyle = T(B[k]); g.beginPath(); g.moveTo(tx, ty - 14); g.lineTo(tx - 15 + k * 7.5, ty - 2); g.lineTo(tx - 7.5 + k * 7.5, ty - 2); g.closePath(); g.fill(); }
+    box(g, tx - 1, ty - 18, 2, 4, T(INK)); box(g, tx - 7, ty - 19, 14, 2, T('#E2E8F0')); }
+  // (the domes: a pink-and-cream striped onion, a floppy blue cone drooping over)
+  { const ox = x + 46, oy = foot - 60;
+    g.save(); g.beginPath(); g.moveTo(ox - 34, foot); g.lineTo(ox - 34, oy); g.bezierCurveTo(ox - 44, oy - 30, ox - 6, oy - 36, ox, oy - 64); g.bezierCurveTo(ox + 6, oy - 36, ox + 44, oy - 30, ox + 34, oy); g.lineTo(ox + 34, foot); g.closePath(); g.clip();
+    for (let k = -40; k < 40; k += 10) { box(g, ox + k, oy - 70, 5, 140, T('#F472B6')); box(g, ox + k + 5, oy - 70, 5, 140, T('#FFF1F7')); }
+    box(g, ox + 14, oy - 70, 26, 140, 'rgba(40,16,48,0.16)'); box(g, ox - 34, oy - 70, 6, 140, 'rgba(255,255,255,0.18)'); g.restore();
+    box(g, ox - 36, oy, 72, 4, T('#F2C84A')); box(g, ox - 1, oy - 72, 2, 9, T('#5A4A6A')); box(g, ox + 1, oy - 72, 7, 4, T('#5EC4F4'));
+    const C = R3('#4A7AE0'), cx2 = x + 112, cy2 = foot - 48;
+    g.fillStyle = C[1]; g.beginPath(); g.moveTo(cx2 - 26, foot); g.lineTo(cx2 - 22, cy2); g.quadraticCurveTo(cx2 - 4, cy2 - 70, cx2 + 30, cy2 - 54); g.quadraticCurveTo(cx2 + 4, cy2 - 40, cx2 + 22, cy2); g.lineTo(cx2 + 26, foot); g.closePath(); g.fill();
+    g.fillStyle = C[2]; g.beginPath(); g.moveTo(cx2 - 22, cy2); g.quadraticCurveTo(cx2 - 4, cy2 - 70, cx2 + 30, cy2 - 54); g.quadraticCurveTo(cx2 - 8, cy2 - 52, cx2 - 12, cy2); g.closePath(); g.fill();
+    for (let k = 0; k < 3; k++) box(g, cx2 - 22 + k * 2, cy2 + 6 + k * 14, 44 - k * 4, 3, T('#FDE047'));
+    box(g, cx2 - 24, cy2, 48, foot - cy2, T('#FCEBB0')); box(g, cx2 + 14, cy2, 10, foot - cy2, T('#E8D090'));
+    for (let k = 0; k < 2; k++) { box(g, cx2 - 14 + k * 18, cy2 + 10, 8, 10, T(INK)); box(g, cx2 - 13 + k * 18, cy2 + 11, 6, 8, tod.lamps > 0.3 ? '#FFE08A' : T('#7AA6D8')); } }
+  // (a Truffula tuft and puff trees)
+  { const fx = x + 86; for (let yy = 0; yy < 70; yy += 3) box(g, fx + Math.sin(yy * 0.06) * 3, foot - yy, 3, 3, (yy / 3) % 3 ? T('#F4ECD8') : T('#2A2638'));
+    const Tf = R3('#FDE047'); for (const [dx, dy, r, c] of [[0, -76, 12, 0], [-2, -78, 9, 1], [-5, -81, 4, 2]] as const) { g.fillStyle = Tf[c]; g.beginPath(); g.arc(fx + dx, foot + dy, r, 0, Math.PI * 2); g.fill(); }
+    const Pf = R3('#34D399'); for (const tx of [x + 12, x + 162]) { box(g, tx - 1, foot - 40, 3, 40, T('#6A4A3A')); for (const [dx, dy, r, c] of [[0, -48, 14, 0], [-2, -50, 11, 1], [-6, -54, 4, 2]] as const) { g.fillStyle = Pf[c]; g.beginPath(); g.arc(tx + dx, foot + dy, r, 0, Math.PI * 2); g.fill(); } } }
+  // (the candy cobbles: rows banded toward the doors, the joints dithered)
+  const COB = ['#FAD27A', '#F9A8D4', '#A7F3D0', '#C4B5FD', '#FDBA74'];
+  for (let r = 0; r < 5; r++) { const ry = foot + r * 8, rh = 8; for (let k = 0; k * 14 < w + 14; k++) { const cx = x + k * 14 - (r % 2) * 7; box(g, cx, ry, 13, rh - 1, T(COB[(k + r * 2) % 5])); box(g, cx, ry, 13, 1, T(mix(COB[(k + r * 2) % 5], '#FFFFFF', 0.4))); } box(g, x, ry + rh - 1, w, 1, T('#B88A6A')); }
+  box(g, x, foot - 2, w, 3, T('#E2465E')); checker(g, x, foot - 2, w, 3, T('#FFFFFF'), 0, 4);
+};
+
 const paintLobby = (g: Ctx, r: Room) => {
   const a = X(r.a), b = X(r.b);
   memphis(g, a, WALL_TOP, b - a, GY - 130 - WALL_TOP, 11);
@@ -70,12 +109,9 @@ const paintLobby = (g: Ctx, r: Room) => {
   for (const k of [0, 1]) {
     const gx = dx + k * 92, gy = GY - 250, gw = 84, gh = 244;
     bands(g, gx, gy, gw, gh, skyRamp(['#5AA6E8', '#86C4F0', '#B6DCF6', '#E2F2FA'], tod));
-    // (the square out there: a striped wobbly roof, a puff tree, the path)
-    g.fillStyle = farTint('#F472B6', 0.4); g.beginPath(); g.moveTo(gx + (k ? 0 : 20), gy + gh - 70); g.quadraticCurveTo(gx + 40, gy + gh - 120, gx + gw + 4, gy + gh - 84); g.lineTo(gx + gw, gy + gh); g.lineTo(gx + (k ? 0 : 20), gy + gh); g.closePath(); g.fill();
-    for (let s = 0; s < 4; s++) box(g, gx + 26 + s * 14 - k * 20, gy + gh - 100 + s * 4, 6, 96, farTint('#FFF4E8', 0.4));
-    g.fillStyle = farTint('#4CC89C', 0.4); for (let i = 0; i < 4; i++) { g.beginPath(); g.arc(gx + (k ? 60 : 10) + i * 7, gy + gh - 130 - (i % 2) * 10, 14, 0, Math.PI * 2); g.fill(); }
-    box(g, gx + (k ? 66 : 14), gy + gh - 120, 4, 60, farTint('#FFF4E8', 0.4));
-    bands(g, gx, gy + gh - 40, gw, 40, [farTint('#FAD27A', 0.3), farTint('#F2A85A', 0.3)]);
+    // (Sillyville Square out there, one picture across both doors: the water tower up over it, the domes, the trees, the
+    //  candy cobbles)
+    g.save(); g.beginPath(); g.rect(gx, gy, gw, gh); g.clip(); squareView(g, dx, gy, 176, gh, tod); g.restore();
     // (the glass: a tint, two glints, the frame, the push bar)
     g.fillStyle = 'rgba(160,200,240,0.22)'; g.fillRect(gx, gy, gw, gh);
     box(g, gx + 8, gy + 6, 14, gh - 12, 'rgba(255,255,255,0.22)'); box(g, gx + 26, gy + 6, 4, gh - 12, 'rgba(255,255,255,0.16)');

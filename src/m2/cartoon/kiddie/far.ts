@@ -21,6 +21,11 @@ import { snap2, wave, mist } from '../../adventure/farArt';
 import { signText, type Look } from '../../signLetters';
 import { box, mix, hash, checker, stamp, INK, type Ctx } from '../kit';
 import { MONUMENT_AT, drawMonument } from '../monument';
+import { SECTIONS } from '../geometry';
+import { farSpooky, farHollywood } from '../glimpse';
+
+/** How far the hills, the park and the water tower stand up over the horizon (so they show over the roofs). */
+const LIFT = 130;
 
 const W = CANVAS_WIDTH, H = CANVAS_HEIGHT;
 
@@ -91,6 +96,10 @@ const frontRidge = (x: number) => snap2(HH - 48 + wave(x, HW, 2.7) * 20 - Math.a
 const FIELDS = [['#7CC864', '#6AB65A'], ['#B4DC6E', '#A0CC60'], ['#E8E07A', '#D6CC66'], ['#9AD482', '#86C474'], ['#D8C0E8', '#C6ACDA']];
 const paintHills = (g: Ctx, tod: TimeOfDay) => {
   const Tb = farCol(tod, 0.58), Tf = farCol(tod, 0.36);
+  // (the park's neighbors far off over the hills, deep in the haze: Spooky Land's castle and clock tower back left,
+  //  Hollywood Land's hill and its letters off to the right)
+  farSpooky(g, farCol(tod, 0.66), 150, 104, tod.lamps > 0.3);
+  farHollywood(g, farCol(tod, 0.66), 1130, 104);
   // (the back row: round hazy hills, lit on the faces turned up left; three knolls with a path spiralling up them)
   const BR = ['#7A94AE', '#90AABA', '#A6C2C4', '#C2D8CE'].map(Tb);
   for (let x = 0; x < HW; x += 2) {
@@ -429,11 +438,16 @@ export const drawKiddieFar = (c: Ctx, state: GameState) => {
   drawTodSky(c, 0, 0, W, H, SKY, { horizon: hz, sun: [640, 110], moon: [150, 84], t: f, scroll: cx * 0.01 });
   tile(c, 'clouds', cx * 0.015 + f * 0.06, hz - 410, CH, CW, g => paintClouds(g, tod));
   strays(c, state, hz);
-  tile(c, 'hills', cx * 0.03, hz - HH + 8, HH, HW, g => paintHills(g, tod));
-  tile(c, 'park', cx * 0.07, hz - PH + 22, PH, PW, g => paintPark(g, tod));
+  // (the land rises behind the square: the hills, the rest of the park and the water tower stand up high enough to
+  //  show over Sillyville's roofs and the shopfronts; the park laid from the section's start, so the studios (next) are
+  //  ahead to the right as he sets off and the rest comes in after them in the order he'll get there)
+  const up = LIFT, sx = cx - SECTIONS.kiddie.x0;
+  tile(c, 'hills', sx * 0.03, hz - HH + 8 - up, HH, HW, g => paintHills(g, tod));
+  tile(c, 'park', sx * 0.07 - 250, hz - PH + 22 - up, PH, PW, g => paintPark(g, tod));
+  box(c, 0, hz + 21 - up, W, H, farCol(tod, 0.3)('#5A9E58'));
   // (the water tower up on its hill over the park, drifting across the sky as he goes: the landmark, kept clear)
   const m = MONUMENT_AT.kiddie;
-  if (m) drawMonument(c, state, m, m.foot - 40 + (hz - 440));
+  if (m) drawMonument(c, state, m, m.foot - 40 + (hz - 440) - up);
   // (the square's own roofs, their chimneys smoking; under them, the ground right down)
   const ry = hz + 30 - RG, off = cx * 0.18;
   tile(c, 'roofs', off, ry, RH, RW, g => paintRoofs(g, tod));

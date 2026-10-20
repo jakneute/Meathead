@@ -22,6 +22,11 @@ import { snap2, wave, mist } from '../../adventure/farArt';
 import { signText, type Look } from '../../signLetters';
 import { box, mix, hash, checker, stamp, INK, type Ctx } from '../kit';
 import { MONUMENT_AT, drawMonument } from '../monument';
+import { SECTIONS } from '../geometry';
+import { farSpooky, farHollywood } from '../glimpse';
+
+/** How far the country, the park and the water tower stand up over the horizon (so they show over the grove). */
+const LIFT = 50;
 
 const W = CANVAS_WIDTH, H = CANVAS_HEIGHT;
 
@@ -131,6 +136,9 @@ const backRidge = (x: number) => snap2(HH - 100 + wave(x, HW, 2.3) * 24 + wave(x
 const midRidge = (x: number) => snap2(HH - 58 + wave(x, HW, 3.7) * 12 - Math.abs(wave(x, HW, 1.1, 3)) * 5);
 const paintCountry = (g: Ctx, tod: TimeOfDay) => {
   const Tb = farCol(tod, 0.62), Tm = farCol(tod, 0.42), lamps = tod.lamps > 0.3;
+  // (the park's neighbors far off over the hills, deep in the haze: Spooky Land back left, Hollywood Land on the right)
+  farSpooky(g, farCol(tod, 0.7), 330, HH - 92, lamps);
+  farHollywood(g, farCol(tod, 0.7), 760, HH - 94);
   const BR = ['#8C86A8', '#9E9AB8', '#B4B2C8', '#CCCAD6'].map(Tb);
   for (let x = 0; x < HW; x += 2) { const y = backRidge(x), lt = backRidge(x + 4) < backRidge(x - 4); box(g, x, y, 2, HH - y, BR[lt ? 2 : 1]); if (lt) box(g, x, y, 2, 2, BR[3]); else checker(g, x, y + 2, 2, 4, BR[0], 0, 1); }
   // (the radio mast on the back ridge, its guy wires; the light on top)
@@ -364,11 +372,16 @@ export const drawAmphiFar = (c: Ctx, state: GameState) => {
   drawTodSky(c, 0, 0, W, H, SKY, { horizon: hz, sun: [610, 120], moon: [170, 90], t: f, scroll: cx * 0.01 });
   tile(c, 'clouds', cx * 0.015 + f * 0.04, hz - 430, CH, CW, g => paintClouds(g, tod));
   drawBlimp(c, state);
-  tile(c, 'country', cx * 0.03, hz - HH + 12, HH, HW, g => paintCountry(g, tod));
-  tile(c, 'park', cx * 0.07, hz - PH + 26, PH, PW, g => paintPark(g, tod));
+  // (the land rises behind the bowl: the country and the rest of the park stand up high enough to show over the grove
+  //  and the bowl's rim; the park laid from the section's start, everywhere he's been, back the way he came: the
+  //  studios, the White House, the big-kid zone, PUNCHY & KICKY)
+  const up = LIFT, sx = cx - SECTIONS.amphi.x0;
+  tile(c, 'country', sx * 0.03, hz - HH + 12 - up, HH, HW, g => paintCountry(g, tod));
+  tile(c, 'park', sx * 0.07 + 350, hz - PH + 26 - up, PH, PW, g => paintPark(g, tod));
+  box(c, 0, hz + 25 - up, W, H, farCol(tod, 0.3)('#6A9658'));
   // (the water tower on its hill over the park: the landmark, kept clear)
   const m = MONUMENT_AT.amphi;
-  if (m) drawMonument(c, state, m, hz + 6);
+  if (m) drawMonument(c, state, m, hz + 6 - up);
   const gy = hz + 40 - GG;
   tile(c, 'grove', cx * 0.2, gy, GH, GW, g => paintGrove(g, tod));
   box(c, 0, gy + GH - 1, W, H, farCol(tod, 0.12)('#3C6232'));

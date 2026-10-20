@@ -21,6 +21,11 @@ import { snap2, wave, mist } from '../../adventure/farArt';
 import { signText, type Look } from '../../signLetters';
 import { box, mix, hash, checker, stamp, INK, type Ctx } from '../kit';
 import { MONUMENT_AT, drawMonument } from '../monument';
+import { SECTIONS } from '../geometry';
+import { farSpooky, farHollywood } from '../glimpse';
+
+/** How far the suburbs, the park and the water tower stand up over the horizon (so they show over the roofs). */
+const LIFT = 110;
 
 const W = CANVAS_WIDTH, H = CANVAS_HEIGHT;
 
@@ -117,6 +122,9 @@ const backRidge = (x: number) => snap2(HH - 96 + wave(x, HW, 2.1) * 24 + wave(x,
 const midRidge = (x: number) => snap2(HH - 62 + wave(x, HW, 3.7) * 14 - Math.abs(wave(x, HW, 0.9, 3)) * 5);
 const paintSuburbs = (g: Ctx, tod: TimeOfDay) => {
   const Tb = farCol(tod, 0.6), Tm = farCol(tod, 0.42), lamps = tod.lamps > 0.3;
+  // (the park's neighbors far off over the hills, deep in the haze: Spooky Land back left, Hollywood Land on the right)
+  farSpooky(g, farCol(tod, 0.68), 130, HH - 88, lamps);
+  farHollywood(g, farCol(tod, 0.68), 1100, HH - 90);
   // (the back hills: hazy, lit on the faces turned up left)
   const BR = ['#7A8EB0', '#8EA4BE', '#A4BCCA', '#BED4D6'].map(Tb);
   for (let x = 0; x < HW; x += 2) { const y = backRidge(x), lt = backRidge(x + 4) < backRidge(x - 4); box(g, x, y, 2, HH - y, BR[lt ? 2 : 1]); if (lt) box(g, x, y, 2, 2, BR[3]); else checker(g, x, y + 2, 2, 4, BR[0], 0, 1); }
@@ -448,11 +456,16 @@ export const drawBigkidFar = (c: Ctx, state: GameState) => {
   drawTodSky(c, 0, 0, W, H, SKY, { horizon: hz, sun: [600, 104], moon: [180, 84], t: f, scroll: cx * 0.01 });
   tile(c, 'clouds', cx * 0.015 + f * 0.05, hz - 420, CH, CW, g => paintClouds(g, tod));
   drawBlimp(c, state);
-  tile(c, 'suburbs', cx * 0.03, hz - HH + 10, HH, HW, g => paintSuburbs(g, tod));
-  tile(c, 'park', cx * 0.07, hz - PH + 24, PH, PW, g => paintPark(g, tod));
+  // (the land rises behind the zone: the suburbs, the rest of the park and the water tower stand up high enough to show
+  //  over the zone's own roofs and the fronts; the park laid from the section's start, in the order he's been and is
+  //  going: the studios and the White House back left, PUNCHY & KICKY (next) ahead, STUPID DAD LIVE! coming in last)
+  const up = LIFT, sx = cx - SECTIONS.bigkid.x0;
+  tile(c, 'suburbs', sx * 0.03, hz - HH + 10 - up, HH, HW, g => paintSuburbs(g, tod));
+  tile(c, 'park', sx * 0.07 + 300, hz - PH + 24 - up, PH, PW, g => paintPark(g, tod));
+  box(c, 0, hz + 23 - up, W, H, farCol(tod, 0.3)('#5A9658'));
   // (the water tower up on its hill over the park, drifting across as he goes: the landmark, kept clear)
   const m = MONUMENT_AT.bigkid;
-  if (m) drawMonument(c, state, m, m.foot - 36 + (hz - 440));
+  if (m) drawMonument(c, state, m, m.foot - 36 + (hz - 440) - up);
   const ry = hz + 34 - RG;
   tile(c, 'roofs', cx * 0.17, ry, RH, RW, g => paintRoofs(g, tod));
   box(c, 0, ry + RH - 1, W, H, farCol(tod, 0.14)('#9A94B4'));
