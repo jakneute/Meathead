@@ -17,6 +17,7 @@ import { drawSky, drawClouds, drawBlimp, drawFarHills, drawFarSkyline, drawGiant
 import { drawGoingBack, drawPlayPlane, drawPitDressing, type Ground } from './ground';
 import { type Shop, type Block, drawSides, drawShopFront, shopBlocks } from './buildings';
 import { drawLamp, drawSpeaker, drawBigSign, paintGate, paintTrashCan, paintPlanter } from './props';
+import { drawFlSkyBits, drawFlHorizon, drawFlXeno } from '../landmarks';
 
 type Ctx2 = Ctx;
 const { x0, x1 } = SECTIONS.square;
@@ -31,8 +32,13 @@ export const drawSquareBackdrop = (c: Ctx2, state: GameState) => {
   const hz = horizonY(state);
   drawClouds(c, state);
   drawBlimp(c, state);
+  drawFlSkyBits(c, state, hz);
   drawFarHills(c, state);
+  // (the park's horizon: Foreign Lands' showcase one way, Wilderness Land's mesa the other)
+  drawFlHorizon(c, state, hz - 56);
   drawFarSkyline(c, state, 0.03, 0.45, 3);
+  // (XENOSCARE, way off across the park where the land ends)
+  drawFlXeno(c, state, hz + 6);
   // Space Needle 2, far off to the right (it goes up out of sight)
   drawNeedle(c, 770 - (cam - x0) * 0.004, hz + 4, 0.26, t);
   // The giant atom: further along, nearer and bigger, till it's over everything at the doors

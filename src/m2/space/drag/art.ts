@@ -15,6 +15,7 @@ import { drawGoingBack, drawPlayPlane, drawPitDressing, type Ground } from '../s
 import { type Shop, type Block, drawSides, drawShopFront, shopBlocks } from '../square/buildings';
 import { drawLamp, drawSpeaker, drawBigSign } from '../square/props';
 import { X, Y, T1, T2, LEDGES, LAMPS, SPEAKERS, LIFT_X } from './layout';
+import { drawFlSkyBits, drawFlHorizon, drawFlXeno } from '../landmarks';
 
 const { x0, x1 } = SECTIONS.drag;
 
@@ -25,8 +26,13 @@ export const drawDragBackdrop = (c: Ctx, state: GameState) => {
   const hz = horizonY(state);
   drawClouds(c, state);
   drawBlimp(c, state);
+  drawFlSkyBits(c, state, hz);
   drawFarHills(c, state);
+  // (the park's horizon: Foreign Lands' showcase one way, Wilderness Land's mesa the other)
+  drawFlHorizon(c, state, hz - 56);
   drawFarSkyline(c, state, 0.03, 0.45, 11);
+  // (XENOSCARE across the park ahead, past the needle, where the land ends)
+  drawFlXeno(c, state, hz + 6);
   // The giant atom, behind him now (receding off to the left), the hole in it smoking
   const as = 1.1 - prog * 0.6;
   drawGiantAtom(c, 120 - prog * 260, hz - 120 * as - 40, as, t, true);

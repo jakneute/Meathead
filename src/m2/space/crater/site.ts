@@ -16,6 +16,7 @@ import { drawCorpse, slimePool, drawRag, type CorpseKind } from './aliens';
 import { drawCheapGreen } from './green';
 import { lettering, letterSize } from '../square/lettering';
 import { drawGiantAtom, drawNeedle } from '../square/sky';
+import { drawFlSkyBits, drawFlHorizon } from '../landmarks';
 import { type Far, type Piece, type RangeLook, skyline, piece, monorail, parkGround, mist, range, snap2, wave, jag } from '../farArt';
 import { D, x0, BOWL, WRECK_X, CART, PYLON, CHUNK_X, HOUSE_DOOR, MOUTH_X, CEIL } from './layout';
 import {
@@ -49,10 +50,13 @@ export const drawImpactBackdrop = (c: Ctx, state: GameState) => {
   const tod = timeOfDay(), cam = state.camera.x - D, hz = horizonY(state);
   drawTodSky(c, 0, 0, W, H, SKY, { horizon: hz, sun: [600, 110], moon: [140, 90], t: state.frame, scroll: cam * 0.02 });
   layer(c, `xc-clouds-${tod.key}`, -cam * 0.03 - state.frame * 0.04, 0, 1400, 10, 240, paintClouds);
+  drawFlSkyBits(c, state, hz);
   // (the hills and the far side of the park; then the two big things, the same as from the square (the atom with the
   // hole he came out of, smoking; the needle going up out of sight); then this side of the park in front of their feet)
   const sx = Math.round(-cam * 0.1);
   c.save(); c.translate(sx, hz + 2); stamp(c, `xc-skyback-${tod.key}`, -130, -260, 1660, 266, paintSkyBack); c.restore();
+  // (the park's horizon over the far side: Foreign Lands' showcase, Wilderness Land's mesa)
+  drawFlHorizon(c, state, hz - 44);
   if (sx + 70 > -200 && sx + 70 < W + 200) drawNeedle(c, sx + 70, hz + 2, 0.4, state.frame);
   const as = 0.36;
   if (sx + 440 > -120 && sx + 440 < W + 120) drawGiantAtom(c, sx + 440, hz + 2 - 120 * as - 40, as, state.frame, true);
