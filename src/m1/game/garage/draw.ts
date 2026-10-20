@@ -287,3 +287,7 @@ const DRAW: Record<string, (ctx: Ctx, t: number) => void> = {
     ctx.fillStyle = '#78350F'; ctx.fillRect(-10 + ((t * 0.5) % 30), -12, 3, 2); // a cricket
   },
 };
+
+/** One souvenir on its own, about its anchor (a hung one's middle, a standing one's bottom middle): Meathead 2's gym
+ *  has them about the place as an easter egg (src/m2/intro/gym). */
+export const drawSouvenir = (ctx: Ctx, id: string, t: number) => DRAW[id]?.(ctx, t);

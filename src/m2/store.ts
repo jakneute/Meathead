@@ -17,6 +17,8 @@ export interface M2Ui {
   introAhead?: number | null;
   introTicket?: 'clean' | 'shitty' | 'nude' | null;
   introCutscene?: boolean;
+  /** (the Iron Pit, the opening tutorial: intro/gym) What its card up top is teaching right now. */
+  gymTip?: import('./intro/gym/index').GymTip | null;
   /** (the checkpoint-skip cheat) A land picked on the map: where in it to start, being asked. */
   pick?: string | null;
   /** (the hub) At the way back out to America USA. */

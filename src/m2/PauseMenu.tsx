@@ -78,6 +78,8 @@ interface Props {
   onOptions: () => void;
   /** In the intro: skip the rest of it (picked out as weapons.length + 3). */
   onSkip?: () => void;
+  /** What that button says, if not SKIP INTRO (the gym's, in the cheats build: SKIP STAGE). */
+  skipLabel?: string;
   /** Done up for wherever he is (hudThemes.tsx). */
   skin?: PauseSkin;
   /** Stuck with the one he's holding for now (the mine cart): the rest shown, but not to be picked. */
@@ -99,7 +101,7 @@ interface Props {
   card?: PauseCard | null;
 }
 
-const PauseMenu: React.FC<Props> = ({ weapons, current, ammo, selected, onPick, onResume, onMap, onOptions, onSkip, skin = PLAIN_PAUSE, locked = false, onHub, hubAsk = null, onHubAnswer, onHubPick, card = null, onQuit, quitAt = -1, asking = 'hub', onFile = false }) => {
+const PauseMenu: React.FC<Props> = ({ weapons, current, ammo, selected, onPick, onResume, onMap, onOptions, onSkip, skipLabel, skin = PLAIN_PAUSE, locked = false, onHub, hubAsk = null, onHubAnswer, onHubPick, card = null, onQuit, quitAt = -1, asking = 'hub', onFile = false }) => {
   const onQuitBtn = selected === quitAt;
   const shown = selected < weapons.length ? weapons[selected] : current;
   const info = M2_WEAPON_INFO[shown];
@@ -229,7 +231,7 @@ const PauseMenu: React.FC<Props> = ({ weapons, current, ammo, selected, onPick, 
               className={`relative flex items-center gap-2 ${btnCls} py-[7px] text-white font-black uppercase tracking-wider transition-all ${onSkipBtn ? 'translate-x-1' : 'opacity-85 hover:opacity-100'}`}
               style={{ background: 'linear-gradient(180deg, #2563EB, #1E3A8A)', borderBottom: '4px solid #172554', boxShadow: onSkipBtn ? '0 0 12px rgba(250,204,21,0.6), 3px 3px 0 #000' : '3px 3px 0 #000', outline: onSkipBtn ? '2px solid #FACC15' : 'none' }}>
               {onSkipBtn && <span className="absolute left-2 text-yellow-300 animate-pulse">&#9654;</span>}
-              <span className="w-4 text-center">»</span>{walkBackOn() ? 'SKIP TO HUB' : 'SKIP INTRO'}
+              <span className="w-4 text-center">»</span>{skipLabel ?? (walkBackOn() ? 'SKIP TO HUB' : 'SKIP INTRO')}
             </button>
           )}
           {onHub && (

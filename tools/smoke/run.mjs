@@ -92,6 +92,7 @@ const visits = [];
   }, LANDS);
   await ctx.close();
   visits.push({ id: 'title', url: '', kind: 'title' });
+  visits.push({ id: 'gym', url: 'gym' });
   visits.push({ id: 'intro', url: 'intro' });
   for (const s of [0, 4, 9]) visits.push({ id: `hub:${s}`, url: `hub=${s}` });
   // (each land in through its portal at the hub: the portal walk, the land opening on him; hub/lands.ts's slots: four

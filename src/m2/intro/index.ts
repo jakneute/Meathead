@@ -779,8 +779,8 @@ const tipAt = (state: GameState, intro: Intro): IntroTip => {
   if (intro.scene) return null;
   // (the walk back: he knows all that by now; just the line's count)
   if (walkingBack() && x < QUEUE_START - 300) return null;
-  if (x < 1300) return 'postal';
-  if (x > 3700 && x < CHECK_END) return 'grabs';
+  // (no lesson cards on security, or the grabs, any more: the gym before it teaches all that (the user's); just the
+  // line's count at the window)
   if (x > QUEUE_START - 300 && !intro.admitted) return 'line';
   return null;
 };

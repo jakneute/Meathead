@@ -60,7 +60,7 @@ const drawWall = (ctx: Ctx, state: GameState, x1: number, x2: number) => {
   drawTubeLights(ctx, state, x1, x2);
 };
 const WALL_CHUNK = 256;
-const drawWallStill = (ctx: Ctx, x1: number, x2: number) => {
+export const drawWallStill = (ctx: Ctx, x1: number, x2: number) => {
   // (the ceiling: a drop ceiling, its tiles gone yellow and water-stained in the grid, one missing (the dark up
   // through it), a duct running along under it, the trim where it meets the wall)
   ctx.fillStyle = '#6E685A'; ctx.fillRect(x1, 0, x2 - x1, 70);
@@ -98,7 +98,7 @@ const drawWallStill = (ctx: Ctx, x1: number, x2: number) => {
   // (the rubber floor's skirting)
   ctx.fillStyle = '#111'; ctx.fillRect(x1, Y - 8, x2 - x1, 8);
 };
-const drawTubeLights = (ctx: Ctx, state: GameState, x1: number, x2: number) => {
+export const drawTubeLights = (ctx: Ctx, state: GameState, x1: number, x2: number) => {
   const f = state.frame;
   // (the tube lights, one flickering)
   for (let x = Math.floor(x1 / 320) * 320 - 220; x < x2 + 90; x += 320) {
@@ -122,18 +122,18 @@ const drawTubeLights = (ctx: Ctx, state: GameState, x1: number, x2: number) => {
 };
 
 /** How far a prop reaches either side of its x (a mirror or a window hangs off to the right of it; the rest are about it). */
-const propSpan = (p: Prop): [number, number] =>
+export const propSpan = (p: Prop): [number, number] =>
   p.look === 'mirror' ? [p.x - 4, p.x + 304] : p.look === 'window' ? [p.x - 4, p.x + 124] : p.look === 'poster' ? [p.x - 160, p.x + 160] : [p.x - 90, p.x + 90];
 
 /** A plate seen edge-on on a bar at (x, y): rh its radius, w its thickness; the rubber shaded, the rim lit, the hub. */
-const plate = (ctx: Ctx, x: number, y: number, w: number, rh: number, color: string) => {
+export const plate = (ctx: Ctx, x: number, y: number, w: number, rh: number, color: string) => {
   shaded(ctx, () => ctx.roundRect(x - w / 2, y - rh, w, rh * 2, Math.min(w / 2, 2)), color, x - w / 2, y - rh, w, rh * 2, 0.9);
   ctx.fillStyle = lite(color, 0.35); ctx.fillRect(x - w / 2 + 0.6, y - rh + 1.4, 1, rh * 2 - 4);
   ctx.fillStyle = dark(color, 0.45); ctx.fillRect(x - w / 2 + 0.4, y - 1.6, w - 0.8, 3.2);
 };
 
 /** A steel tube from (x, y), w x h, lit along its top or its left (whichever's the long side). */
-const steel = (ctx: Ctx, x: number, y: number, w: number, h: number, color = '#52525B') => {
+export const steel = (ctx: Ctx, x: number, y: number, w: number, h: number, color = '#52525B') => {
   if (w >= h) shadedTop(ctx, () => ctx.rect(x, y, w, h), color, x, y, w, h, 0.9);
   else shaded(ctx, () => ctx.rect(x, y, w, h), color, x, y, w, h, 0.9);
   ctx.fillStyle = lite(color, 0.45);
@@ -141,34 +141,34 @@ const steel = (ctx: Ctx, x: number, y: number, w: number, h: number, color = '#5
 };
 
 /** A chrome bar from x1 to x2 at y: thin, a glint down its length. */
-const bar = (ctx: Ctx, x1: number, x2: number, y: number) => {
+export const bar = (ctx: Ctx, x1: number, x2: number, y: number) => {
   ink(ctx, () => ctx.rect(x1, y - 1.6, x2 - x1, 3.2), '#A1A1AA', 0.8);
   ctx.fillStyle = '#F4F4F5'; ctx.fillRect(x1 + 2, y - 1, x2 - x1 - 4, 0.8);
   ctx.fillStyle = '#71717A'; ctx.fillRect(x1 + 1, y + 0.6, x2 - x1 - 2, 0.8);
 };
 
 /** A padded seat or bench top, (x, y, w, h): red vinyl, the stitching, a split taped over. */
-const pad = (ctx: Ctx, x: number, y: number, w: number, h: number, color = '#991B1B') => {
+export const pad = (ctx: Ctx, x: number, y: number, w: number, h: number, color = '#991B1B') => {
   shadedTop(ctx, () => ctx.roundRect(x, y, w, h, 2.4), color, x, y, w, h);
   ctx.fillStyle = lite(color, 0.4); ctx.fillRect(x + 3, y + 1, w - 6, 1);
   ctx.strokeStyle = dark(color, 0.4); ctx.lineWidth = 0.6; ctx.setLineDash([1.4, 1.4]); ctx.beginPath(); ctx.moveTo(x + 2, y + h - 2); ctx.lineTo(x + w - 2, y + h - 2); ctx.stroke(); ctx.setLineDash([]);
 };
 
 /** A shadow on the rubber floor under something, w wide at x. */
-const floorShadow = (ctx: Ctx, x: number, w: number) => {
+export const floorShadow = (ctx: Ctx, x: number, w: number) => {
   ctx.fillStyle = 'rgba(0, 0, 0, 0.3)'; ctx.fillRect(x - w / 2, Y - 3, w, 3);
   ctx.fillStyle = 'rgba(0, 0, 0, 0.15)'; ctx.fillRect(x - w / 2 - 4, Y - 2, w + 8, 2);
 };
 
 /** Pixel lettering on a sign: dark drop shadow under it, `fg` over. */
-const signText = (ctx: Ctx, text: string, x: number, y: number, font: string, fg: string, shadow = 'rgba(0,0,0,0.35)') => {
+export const signText = (ctx: Ctx, text: string, x: number, y: number, font: string, fg: string, shadow = 'rgba(0,0,0,0.35)') => {
   ctx.font = font; ctx.textAlign = 'center';
   ctx.fillStyle = shadow; ctx.fillText(text, x + 1, y + 1);
   ctx.fillStyle = fg; ctx.fillText(text, x, y);
   ctx.textAlign = 'left';
 };
 
-const drawProp = (ctx: Ctx, state: GameState, p: Prop) => {
+export const drawProp = (ctx: Ctx, state: GameState, p: Prop) => {
   const { x, y } = p;
   switch (p.look) {
     case 'mirror': {
@@ -532,7 +532,7 @@ const drawHalfWall = (ctx: Ctx) => {
   ctx.fillStyle = '#111'; ctx.font = 'bold 3px monospace'; ctx.fillText('RE-RACK', x + 9, top + 21.6); ctx.fillText('YOUR WTS', x + 8, top + 25);
 };
 
-const drawLedge = (ctx: Ctx, l: Ledge) => {
+export const drawLedge = (ctx: Ctx, l: Ledge) => {
   if (l.look === 'step') {
     // A stack of plyo boxes up to it: plywood, the edge grain, the height stenciled on, the corners scuffed
     for (let k = 0; k < 2; k++) {

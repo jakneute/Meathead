@@ -51,6 +51,10 @@ import { m2KindGender } from './kinds';
 import { KILL_LINES, GENERIC_KILL_LINES, KILL_CALLOUTS, ENEMY_KILL_LINES } from '../m1/content/dialogue';
 import { M2_ENEMY_KINDS } from './roster';
 import TicketCard from './intro/TicketCard';
+import { gymLayout, GYM_STAGE, requestGymSkip } from './intro/gym/index';
+import { registerGmen } from './intro/gym/gman';
+import GymTips from './intro/gym/GymTips';
+import { M2_PUBLIC } from './build';
 import { clearSkyCache } from './intro/art/sky';
 import { canSkip, requestSkip } from '../m1/game/platform/skip';
 import { getAudioContext } from '../m1/game/platform/audio';
@@ -100,7 +104,7 @@ import { registerGrabCallouts } from './moves/callouts';
 // test pen behind the staff door (try out the beatdown and the shakedown on whoever walks in).
 
 // (in Meathead 2, what's thrown up off the top of the screen comes back down: no "TO THE MOON")
-for (const l of [hubLayout, penLayout, advLayout, spookyLayout, spaceLayout, hollywoodLayout, foreignLayout, frontierLayout, fantasyLayout, cartoonLayout, introLayout]) l.noMoonKills = true;
+for (const l of [hubLayout, penLayout, advLayout, spookyLayout, spaceLayout, hollywoodLayout, foreignLayout, frontierLayout, fantasyLayout, cartoonLayout, introLayout, gymLayout]) l.noMoonKills = true;
 // (and the camera glides where it'd jump in the lands: out of a cutscene's view, onto a fight's arena)
 advLayout.smoothCameraSnaps = true;
 spookyLayout.smoothCameraSnaps = true;
@@ -121,7 +125,9 @@ registerStageLayout(FRONTIER_STAGE, frontierLayout);
 registerStageLayout(FANTASY_STAGE, fantasyLayout);
 registerStageLayout(CARTOON_STAGE, cartoonLayout);
 registerStageLayout(INTRO_STAGE, introLayout);
+registerStageLayout(GYM_STAGE, gymLayout);
 registerIntro();
+registerGmen();
 loadVoicePack(voicePackUrl);
 attachM2Keys();
 cleanLines();
@@ -210,13 +216,14 @@ const App2: React.FC = () => {
   // Spooky Land, ?space=<checkpoint> in Space Land, ?hollywood=<checkpoint> in Hollywood Land, ?foreign=<checkpoint> in
   // Foreign Lands, ?hub=<spot> at the hub, ?pen in the staff room)
   const devQ = import.meta.env.DEV ? new URLSearchParams(location.search) : null;
-  const first = devQ?.has('adv') ? ADV_STAGE : devQ?.has('spooky') ? SPOOKY_STAGE : devQ?.has('space') ? SPACE_STAGE : devQ?.has('hollywood') ? HOLLYWOOD_STAGE : devQ?.has('foreign') ? FOREIGN_STAGE : devQ?.has('frontier') ? FRONTIER_STAGE : devQ?.has('fantasy') ? FANTASY_STAGE : devQ?.has('cartoon') ? CARTOON_STAGE :devQ?.has('hub') ? HUB_STAGE : devQ?.has('pen') ? PEN_STAGE : INTRO_STAGE;
+  const first = devQ?.has('adv') ? ADV_STAGE : devQ?.has('spooky') ? SPOOKY_STAGE : devQ?.has('space') ? SPACE_STAGE : devQ?.has('hollywood') ? HOLLYWOOD_STAGE : devQ?.has('foreign') ? FOREIGN_STAGE : devQ?.has('frontier') ? FRONTIER_STAGE : devQ?.has('fantasy') ? FANTASY_STAGE : devQ?.has('cartoon') ? CARTOON_STAGE :devQ?.has('hub') ? HUB_STAGE : devQ?.has('pen') ? PEN_STAGE : devQ?.has('intro') ? INTRO_STAGE : GYM_STAGE;
   const [stage, setStage] = useState(first);
   const [status, setStatus] = useState(GameStatus.START);
   // The title screen first (title/TitleScreen.tsx): nothing's built behind it till START GAME (the way in, as ever) or
   // CONTINUE (the hub, a file's lands put back). (In dev, a ?stage to start in skips it.)
-  // (?intro, in dev: straight into the way in, no title)
-  const [title, setTitle] = useState(first === INTRO_STAGE && !devQ?.has('intro'));
+  // (a new game starts in his gym: the Iron Pit, intro/gym; ?gym in dev: straight into it, no title; ?intro: straight
+  // into the way in after it)
+  const [title, setTitle] = useState(first === GYM_STAGE && !devQ?.has('gym'));
   useEffect(() => { setMusicTitle(title); }, [title]);
   const startNew = (slot: Slot | null) => {
     if (slot !== null && readFile(slot)) deleteFile(slot);
@@ -269,7 +276,7 @@ const App2: React.FC = () => {
   useEffect(() => {
     onTravel(dest => {
       // ('intro': the way in again, from the parking lot: Wilderness Land's walk back after Tucker, store.ts setWalkBack)
-      const to = dest === 'pen' ? PEN_STAGE : dest === 'hub' ? HUB_STAGE : dest === 'intro' ? INTRO_STAGE : LAND_STAGES[dest]?.stage ?? null;
+      const to = dest === 'pen' ? PEN_STAGE : dest === 'hub' ? HUB_STAGE : dest === 'intro' ? INTRO_STAGE : dest === 'gym' ? GYM_STAGE : LAND_STAGES[dest]?.stage ?? null;
       if (!to) return;
       clearSkyCache();
       // (back at the hub where he left it: the staff door, the land's portal, or America USA's way in)
@@ -279,7 +286,7 @@ const App2: React.FC = () => {
       // (back from a land, its boss beaten or BACK TO HUB: out of its portal he comes; not from the break room or the way in)
       setHubExit(to === HUB_STAGE && stage !== PEN_STAGE && !!from);
       // (through a portal: no HUD from here till the land's opened on him, not a frame of it as it loads)
-      setUi({ introTip: null, introPrompt: null, introAhead: null, introTicket: null, introCutscene: dest === 'intro' || portalArrivalPending() || hubExitPending() });
+      setUi({ gymTip: null, introTip: null, introPrompt: null, introAhead: null, introTicket: null, introCutscene: dest === 'intro' || portalArrivalPending() || hubExitPending() });
       setUi({ near: null, map: null, nearExit: false, nearAmerica: false, noSwitch: false, pauseControls: null, heliHud: false, bikeHud: false, bikeTips: false, carHops: false, tragonTips: false, tragonHold: null, tragonMarks: null, broomHud: false, broomTips: false, iceMash: null });
       setFade(true);
       // (into a land, everything's topped up; and back at the hub after a boss: elsewhere, what he had)
@@ -297,8 +304,11 @@ const App2: React.FC = () => {
   live.current = { status, weapon, stage };
   /** (after RESUME: SKIP INTRO in the intro; BACK TO HUB out in a land, or the break room) */
   const canHub = () => !!landOfStage(live.current.stage) || live.current.stage === PEN_STAGE;
+  /** (the cheats build only: SKIP STAGE in the gym, to its closing cutscene) */
+  const canGymSkip = () => live.current.stage === GYM_STAGE && !M2_PUBLIC;
+  const skipGym = () => { setStatus(GameStatus.PLAYING); requestGymSkip(); };
   /** (RESUME, MAP, OPTIONS, then SKIP INTRO / BACK TO HUB where there's one) */
-  const lastPause = () => (live.current.stage === INTRO_STAGE || canHub() ? arsenal().length + 4 : arsenal().length + 3);
+  const lastPause = () => (live.current.stage === INTRO_STAGE || canGymSkip() || canHub() ? arsenal().length + 4 : arsenal().length + 3);
   /** (QUIT, to the title: the last of the buttons) */
   const quitIndex = () => lastPause();
   /** The options screen (OPTIONS in the pause menu): while it's up, it takes every key and button; and a moment after
@@ -362,7 +372,7 @@ const App2: React.FC = () => {
   pauseSelRef.current = pauseSel;
   const confirmPause = () => {
     const i = pauseSelRef.current, n = arsenal().length;
-    if (i === quitIndex()) askQuit(); else if (i === n + 3) { if (canHub()) askHub(); else skipIntro(); } else if (i === n + 2) openOptions(); else if (i === n + 1) openMap(); else if (i >= n) resume(); else equip(i);
+    if (i === quitIndex()) askQuit(); else if (i === n + 3) { if (canHub()) askHub(); else if (canGymSkip()) skipGym(); else if (live.current.stage === INTRO_STAGE) skipIntro(); } else if (i === n + 2) openOptions(); else if (i === n + 1) openMap(); else if (i >= n) resume(); else equip(i);
   };
 
   // Weapons: the shoulder buttons, the right stick's wheel, the number keys, the mouse wheel; START or ESC pauses
@@ -540,7 +550,7 @@ const App2: React.FC = () => {
   // (the HUD and the pause menu, done up for wherever he is)
   // (in dev, ?zone=<zone> shows that one's look anywhere)
   const devZone = import.meta.env.DEV ? (new URLSearchParams(location.search).get('zone') as keyof typeof THEMES | null) : null;
-  const zone = devZone ?? (stage === HUB_STAGE ? 'hub' : stage === PEN_STAGE ? 'staff' : stage === INTRO_STAGE || landOfStage(stage) ? ui.zone : undefined);
+  const zone = devZone ?? (stage === HUB_STAGE ? 'hub' : stage === PEN_STAGE ? 'staff' : stage === INTRO_STAGE || stage === GYM_STAGE || landOfStage(stage) ? ui.zone : undefined);
   const theme = zone ? THEMES[zone] : undefined;
 
   return (
@@ -725,6 +735,8 @@ const App2: React.FC = () => {
             <Prompt pad={['DPAD_UP']} kb={['@up']} label={ui.introPrompt === 'ticket' ? 'SHOW YOUR TICKET' : ui.introPrompt === 'wait' ? 'WAIT YOUR TURN' : 'IN YOU GO'} />
           </div>
         )}
+        {/* The Iron Pit (the opening tutorial): the lesson card for the room he's in */}
+        {status === GameStatus.PLAYING && stage === GYM_STAGE && !ui.introCutscene && ui.gymTip && <GymTips tip={ui.gymTip} />}
         {ui.introTicket && <TicketCard kind={ui.introTicket} />}
         {ui.map !== null && <LandCard land={ui.map} />}
         {/* (the checkpoint-skip cheat: where in the land to start) */}
@@ -740,13 +752,13 @@ const App2: React.FC = () => {
         {wheelAt !== null && status === GameStatus.PLAYING && !noSwitching() && <WeaponWheel weapons={arsenal()} index={wheelAt} current={weapon} nameOf={weaponName} Art={M2WeaponArt} />}
         {status === GameStatus.PAUSED && !mapFrom && (
           <PauseMenu weapons={arsenal()} current={weapon} ammo={hud.ammo} selected={pauseSel} locked={!!ui.noSwitch} card={card}
-            onPick={i => { setPauseSel(i); equip(i); }} onResume={resume} onMap={() => { setPauseSel(arsenal().length + 1); openMap(); }} onOptions={() => { setPauseSel(arsenal().length + 2); openOptions(); }} onSkip={stage === INTRO_STAGE ? skipIntro : undefined}
+            onPick={i => { setPauseSel(i); equip(i); }} onResume={resume} onMap={() => { setPauseSel(arsenal().length + 1); openMap(); }} onOptions={() => { setPauseSel(arsenal().length + 2); openOptions(); }} onSkip={stage === INTRO_STAGE ? skipIntro : stage === GYM_STAGE && !M2_PUBLIC ? skipGym : undefined} skipLabel={stage === GYM_STAGE ? 'SKIP STAGE' : undefined}
             onHub={landOfStage(stage) || stage === PEN_STAGE ? askHub : undefined} hubAsk={hubAsk} onHubAnswer={answerHub} onHubPick={a => setHubAsk(a)} skin={theme?.pause}
             onQuit={() => { setPauseSel(quitIndex()); askQuit(); }} quitAt={quitIndex()} asking={asking} onFile={activeSlot() !== null} />
         )}
         {/* The park map (SELECT, TAB / M, MAP in the pause menu): where he is, roughly, on the brochure's map */}
         {status === GameStatus.PAUSED && mapFrom && (
-          <ParkMap here={{ place: stage === HUB_STAGE ? 'hub' : stage === PEN_STAGE ? 'staff' : stage === INTRO_STAGE ? 'intro' : landOfStage(stage) ?? 'hub', zone: ui.zone ?? null }} onClose={closeMap} />
+          <ParkMap here={{ place: stage === HUB_STAGE ? 'hub' : stage === PEN_STAGE ? 'staff' : stage === INTRO_STAGE || stage === GYM_STAGE ? 'intro' : landOfStage(stage) ?? 'hub', zone: ui.zone ?? null }} onClose={closeMap} />
         )}
         {/* OPTIONS: Meathead 1's options screen, with Meathead 2's controls, edged like the pause menu behind it */}
         {optionsOpen && status === GameStatus.PAUSED && (
