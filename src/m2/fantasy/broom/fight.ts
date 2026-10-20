@@ -718,7 +718,7 @@ export const updateFight = (ctx: FrameContext, controls: Controls): Controls => 
   }
   f.braking = braking;
   // (skimming the lawn: petals and grass kicked up)
-  if (flying && f.alt < 70 && f.t % 3 === 0) f.parts.push({ x: f.x + (rnd() - 0.5) * 60, z: f.z, alt: 6, vx: (rnd() - 0.5) * 6, vz: 0, valt: 4 + rnd() * 4, g: 0.35, life: 20, col: rnd() < 0.6 ? '#6EAA4A' : '#F9A8D4', size: 6 });
+  if (flying && f.alt < 70 && f.t % 3 === 0) f.parts.push({ x: f.x + (rnd() - 0.5) * 60, z: f.z, alt: 6, vx: (rnd() - 0.5) * 6, vz: 0, valt: 4 + rnd() * 4, g: 0.35, life: 20, col: ((r) => r < 0.5 ? '#F4F8FF' : r < 0.8 ? '#6EAA4A' : '#F9A8D4')(rnd()), size: 6 }); // (snow kicked up with the grass and petals: the grounds are both)
   if (flying) {
     // ---- the park's magic wall: it swings him back round
     const r = Math.hypot(f.x, f.z);
