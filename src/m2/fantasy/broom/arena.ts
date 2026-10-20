@@ -20,6 +20,7 @@ import { PIPER_WINDOW } from '../monument';
 import { W, H, FOCAL, TOWERS } from './world';
 import { TS, TEXEL, HALF, OS, paintGroundSteps, outsideFor, outsideRaw } from './ground';
 import { drawSky as skyDraw } from './sky';
+import { Mode7 } from '../../gl/mode7';
 
 export { W, H, HORIZON, FOCAL, WALL_R, MIN_ALT, MAX_ALT, MOAT, TOWERS, FLAGS, TREES } from './world';
 export { castleSprite, towerSprite, treeSprite, flagSprite, balloonSprite, drawSprite, drawMipped, CASTLE_K, CASTLE_CX, CASTLE_CY, TOWER_PX, BALLOON_AX, BALLOON_AY } from './sprites';
@@ -154,7 +155,7 @@ const paintSplat = (g: Ctx, s: Splat, tod: TimeOfDay): [number, number, number, 
 
 /** The texture and its smaller copies, multiplied by the hour's light (the splatters painted on it as they come), and
  *  the park beyond's tile and its copies. */
-interface Ground { key: string; mips: Uint32Array[]; omips: Uint32Array[]; far: number; g: Ctx; splatKey: string; nSplats: number }
+interface Ground { key: string; mips: Uint32Array[]; omips: Uint32Array[]; far: number; g: Ctx; splatKey: string; nSplats: number; n: number; on: number; dirty: [number, number, number, number][] }
 let ground: Ground | null = null;
 let rawTile: HTMLCanvasElement | null = null;
 const avg4 = (s: Uint32Array, n: number, x: number, y: number) => {
@@ -167,6 +168,8 @@ const refresh = (G: Ground, x0: number, y0: number, x1: number, y1: number) => {
   const al = (1 << LEVELS) - 1;
   const ax = Math.max(0, Math.floor(x0) & ~al), ay = Math.max(0, Math.floor(y0) & ~al), bx = Math.min(TS, (Math.ceil(x1) + al) & ~al), by = Math.min(TS, (Math.ceil(y1) + al) & ~al);
   if (bx <= ax || by <= ay) return;
+  // (the patch, for the GPU's copy: gl/mode7.ts sends just it up)
+  G.dirty.push([ax, ay, bx, by]);
   const w = bx - ax, h = by - ay, src = new Uint32Array(G.g.getImageData(ax, ay, w, h).data.buffer.slice(0)), m0 = G.mips[0];
   for (let y = 0; y < h; y++) m0.set(src.subarray(y * w, y * w + w), (ay + y) * TS + ax);
   for (let lvl = 1; lvl < LEVELS; lvl++) {
@@ -193,7 +196,7 @@ function* buildSteps(tod: TimeOfDay): Generator<void, Ground> {
   const mips = [m0];
   for (let i = 1; i < LEVELS; i++) { mips.push(shrink(mips[i - 1], TS >> (i - 1))); if (i < 3) yield; }
   const tile = outsideFor(tod), o0 = new Uint32Array(tile.getContext('2d')!.getImageData(0, 0, OS, OS).data.buffer.slice(0));
-  return { key: tod.key, mips, omips: chain(o0, OS), far: pack(mix(multiply('#B8C4E0', tod.mul), skyAt(0.95, tod), 0.55)), g, splatKey: '', nSplats: 0 };
+  return { key: tod.key, mips, omips: chain(o0, OS), far: pack(mix(multiply('#B8C4E0', tod.mul), skyAt(0.95, tod), 0.55)), g, splatKey: '', nSplats: 0, n: TS, on: OS, dirty: [] };
 }
 /** A build under way ahead of the fight (primeGround), for the hour it was started at. */
 let job: { key: string; it: Generator<void, Ground> } | null = null;
@@ -201,11 +204,14 @@ let job: { key: string; it: Generator<void, Ground> } | null = null;
  *  the way to the deathmatch), so taking off doesn't hitch on painting it all at once. */
 export const primeGround = (budgetMs = 3) => {
   const tod = timeOfDay();
-  if (ground && ground.key === tod.key) return;
+  // (built: its GPU copy sent up now too, rather than on the first frame of the fight)
+  if (ground && ground.key === tod.key) { m7.sync(ground); return; }
   if (!job || job.key !== tod.key) job = { key: tod.key, it: buildSteps(tod) };
   const t0 = performance.now();
   while (performance.now() - t0 < budgetMs) { const r = job.it.next(); if (r.done) { ground = r.value; splatsOn(ground, tod); job = null; return; } }
 };
+/** The floor on the GPU (gl/mode7.ts), the view's size; the software sampler below if it can't. */
+const m7 = new Mode7(W, H, TEXEL, FAR);
 /** New splatters since: painted on, and just their patch of the copies remade. */
 const splatsOn = (G: Ground, tod: TimeOfDay) => {
   if (G.splatKey === splatKey) return;
@@ -231,6 +237,7 @@ let gcv: HTMLCanvasElement | null = null, gimg: ImageData | null = null, out32: 
 /** The ground onto `g` (the view), row by row under the horizon, then the haze stepped in toward it. */
 export const drawGround = (g: Ctx) => {
   const tod = timeOfDay(), G = groundFor(tod);
+  if (m7.draw(g, G, view)) { haze(g, tod); return; }
   if (!gcv) { gcv = document.createElement('canvas'); gcv.width = W; gcv.height = H; gimg = gcv.getContext('2d')!.createImageData(W, H); out32 = new Uint32Array(gimg.data.buffer); }
   const o = out32!, { cx, cz, calt, fx, fz, rx, rz, hy, F } = view;
   const y0 = Math.max(0, Math.min(H, Math.floor(hy) + 1));
@@ -253,9 +260,12 @@ export const drawGround = (g: Ctx) => {
   }
   gcv.getContext('2d')!.putImageData(gimg!, 0, 0);
   g.drawImage(gcv, 0, 0);
-  // (the haze, in steps toward the horizon: SNES bands, a dithered row at each step)
-  const haze = skyAt(0.95, tod);
-  g.fillStyle = haze;
+  haze(g, tod);
+};
+/** The haze over the floor, in steps toward the horizon: SNES bands, a dithered row at each step. */
+const haze = (g: Ctx, tod: TimeOfDay) => {
+  const { calt, hy, F } = view, y0 = Math.max(0, Math.min(H, Math.floor(hy) + 1));
+  g.fillStyle = skyAt(0.95, tod);
   const steps = [[2600, 0.1], [3800, 0.2], [5200, 0.32], [7000, 0.46], [FAR, 0.62]] as const;
   for (let n = 0; n < steps.length; n++) {
     const dNear = steps[n][0], dFar = n + 1 < steps.length ? steps[n + 1][0] : 1e9;

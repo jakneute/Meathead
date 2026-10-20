@@ -9,6 +9,8 @@
 // a matrix each frame: an arm swinging, the tower leaning, the head rising) and PARTS (each primitive: the bits that
 // fly off as it's blown apart).
 
+import { beginMesh, endMesh, patternColors } from '../../gl/pen';
+
 type Ctx = CanvasRenderingContext2D;
 export interface V3 { x: number; y: number; z: number }
 /** A 3x4 matrix, row by row: (x, y, z) -> (m0 x + m1 y + m2 z + m3, ...). */
@@ -215,6 +217,8 @@ const ditherOf = (c: Ctx, m: Mat, i: number, view: View): CanvasPattern | string
     const cv = document.createElement('canvas'); cv.width = 2; cv.height = 2;
     const g = cv.getContext('2d')!; g.fillStyle = a; g.fillRect(0, 0, 2, 2); g.fillStyle = b; g.fillRect(0, 0, 1, 1); g.fillRect(1, 1, 1, 1);
     p = c.createPattern(cv, 'repeat') ?? a;
+    // (its two colors, for the GPU's pen: gl/pen.ts)
+    if (typeof p !== 'string') patternColors.set(p, [a, b]);
   }
   patCache.set(key, p);
   return p;
@@ -290,10 +294,18 @@ export const prepare = (c: Ctx, mesh: Mesh, pl: Place, view: View, out: Prepared
   return { toWorld, scr, mats };
 };
 
-/** Paints what's been prepared: the silhouette inked, then each face back to front, then their decals and wear. */
+/** Paints what's been prepared: the silhouette inked, then each face back to front, then their decals and wear. On the
+ *  GPU where it can (gl/pen.ts: the same painting, as triangles), else on the 2D canvas. */
 export const paint = (c: Ctx, P: Prepared, view: View, ink = '#1A0B06', inkW = 2.5) => {
   const items = P.items.sort((a, b) => b.z - a.z);
   if (!items.length) return;
+  // (a handful of faces (a far pavilion, details dropped) is cheaper the 2D way than a trip to the GPU and back)
+  const m = Math.max(0, inkW) + 2, pen = items.length >= 16 ? beginMesh(c, P.x0 - m, P.y0 - m, P.x1 + m, P.y1 + m) : null;
+  if (pen) {
+    if (inkW > 0) for (const it of items) pen.inkPoly(it.pts);
+    paintFaces(pen as unknown as Ctx, items, view);
+    if (endMesh(ink, inkW)) return;
+  }
   c.lineJoin = 'round';
   // (the ink: every face, thick, under it all)
   if (inkW > 0) {
@@ -301,6 +313,11 @@ export const paint = (c: Ctx, P: Prepared, view: View, ink = '#1A0B06', inkW = 2
     for (const it of items) { const p = it.pts; c.moveTo(p[0].x, p[0].y); for (let i = 1; i < p.length; i++) c.lineTo(p[i].x, p[i].y); c.closePath(); }
     c.strokeStyle = ink; c.lineWidth = inkW * 2; c.stroke(); c.fillStyle = ink; c.fill();
   }
+  paintFaces(c, items, view);
+};
+/** Each face back to front: filled, edged, its decal and its cracks. */
+const paintFaces = (c: Ctx, items: Item[], view: View) => {
+  c.lineJoin = 'round';
   c.lineWidth = 1;
   const wear = view.wear ?? 0;
   for (const it of items) {

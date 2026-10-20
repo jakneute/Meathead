@@ -38,6 +38,7 @@ import { mechLook } from './mechArt';
 import { drawLandmark, viewOf, type FootW } from './landmarks3d';
 import { prepare, paint, emptyPrep, scl, type Place } from './mesh3d';
 import { parkModel, type ParkModel } from './parkModels';
+import { ParkFloor } from './floorGl';
 
 type Ctx = CanvasRenderingContext2D;
 type P3 = { x: number; y: number; z: number };
@@ -312,8 +313,23 @@ const fogOf = (dist: number, par: number) => {
   return FOG_K[i];
 };
 
+/** The floor on the GPU (floorGl.ts: the same rules, per pixel), made the first time it's wanted. */
+let floorGl: ParkFloor | null = null;
+const glFloor = () => (floorGl ??= new ParkFloor({
+  FS, FW, FH, DC, LAGOON_R, PROM_R0, PROM_R1, HEDGE_R0, HEDGE_R1, PAD_R, ROAD_R, ROAD_HALF, LOT_R0, LOT_R1, LAGOON_STEPS, FOG_AT, FOG_K, HELIPAD, MECH_AT, A0,
+  WATER, GLINT, GLINT2, FOAM, COPING, PAVER, HEDGE, LAWN, FLOWERS, GRAVEL, PLINTH, SCORCH, EMBER, EMBER2, ROADC, ROAD_LINE, ROAD_EDGE, CURB, LOT, LOT_LINE, CAR, CAR_GLASS, CAR_GLINT,
+  FIELD, CLUMP, PAD, PAD_LINE, PLAZA: PAV_IDS.map(id => PLAZA[id]), UK_FLAG, hash2,
+}));
+
 const drawFloor = (c: Ctx, cam: Cam, f: number, dead: boolean[], mul: number[], segs: Seg[]) => {
   if (typeof document === 'undefined') return;
+  {
+    // (on the GPU where it can: the haze and the still layer's key as the software floor has them)
+    const tod = timeOfDay(), haze = rgbOf(tod.haze), hazeDay = [176, 200, 214];
+    const H = haze.map((v, i) => hazeDay[i] + (v - hazeDay[i]) * Math.min(1, tod.skyK));
+    const baseKey = [cam.phi.toFixed(5), cam.hc.toFixed(2), cam.F.toFixed(2), cam.ppx.toFixed(1), cam.ppy.toFixed(1), tod.key, dead.map(d => (d ? 1 : 0)).join('')].join('|');
+    if (glFloor().draw(c, cam, f, dead, mul, H, segs, baseKey, SW, SH)) return;
+  }
   if (!floorCanvas) { floorCanvas = document.createElement('canvas'); floorCanvas.width = FW; floorCanvas.height = FH; floorImg = floorCanvas.getContext('2d')!.createImageData(FW, FH); }
   const tod = timeOfDay(), f6 = Math.floor(f / 6), N = FW * FH;
   // (two steps: where each pixel is on the ground, its fog and its color with nothing moving on it, worked out once the
