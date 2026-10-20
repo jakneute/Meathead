@@ -26,12 +26,14 @@ import type { Enemy } from '../../../m1/types';
 import { drawGoon, drawLobbyist, drawPollster, drawBlimp } from '../whitehouse1/kindArt';
 import { paintDeadNew } from './kindArt';
 import { cigar, goldMic, pineapple, campaignButton, contract, gavel } from './punditArt';
-import { shape, shapeTop, rampOf } from '../amphi/paint';
+import { shape, shapeTop, rampOf, limb } from '../amphi/paint';
+import { stamp } from '../kit';
+import { signText } from '../../signLetters';
 
 type Ctx = CanvasRenderingContext2D;
 
 const BLOOD = ['#3F0606', '#5B0A0A', '#7F1010', '#9B1515'];
-const MUSCLE = '#9F1D2A', MUSCLE_DK = '#6B0F1A', MUSCLE_LT = '#C23B45', FASCIA = '#E9C9BD', FAT = '#E8C987', BONE = '#EDE6D6';
+const MUSCLE = '#9F1D2A', FASCIA = '#E9C9BD', FAT = '#E8C987';
 const hash = (n: number) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
 
 /** A pool of blood on the floor (its middle at x, the floor y), w wide: lumpy, dark at the middle, a wet shine. */
@@ -72,17 +74,6 @@ export const clawMarks = (c: Ctx, x: number, y: number, len: number, a: number, 
   c.lineCap = 'butt';
   c.restore();
 };
-const muscleLimb = (c: Ctx, ax: number, ay: number, bx: number, by: number, w: number) => {
-  c.lineCap = 'round';
-  c.strokeStyle = MUSCLE_DK; c.lineWidth = w + 2; c.beginPath(); c.moveTo(ax, ay); c.lineTo(bx, by); c.stroke();
-  c.strokeStyle = MUSCLE; c.lineWidth = w; c.stroke();
-  // (the muscle's grain along it, a tendon at the end)
-  c.strokeStyle = MUSCLE_LT; c.lineWidth = 1;
-  const dx = bx - ax, dy = by - ay, L = Math.hypot(dx, dy), nx = -dy / L, ny = dx / L;
-  for (const o of [-w * 0.25, w * 0.15]) { c.beginPath(); c.moveTo(ax + nx * o, ay + ny * o); c.lineTo(bx + nx * o * 0.6, by + ny * o * 0.6); c.stroke(); }
-  c.strokeStyle = FASCIA; c.lineWidth = 1.4; c.beginPath(); c.moveTo(ax + dx * 0.75, ay + dy * 0.75); c.lineTo(bx, by); c.stroke();
-  c.lineCap = 'butt';
-};
 /** A strip of flayed skin lying curled on the floor. */
 const skinStrip = (c: Ctx, x: number, y: number, len: number, a: number, skin: string) => {
   c.save(); c.translate(x, y); c.rotate(a);
@@ -97,55 +88,84 @@ const skinStrip = (c: Ctx, x: number, y: number, len: number, a: number, skin: s
 // ---------------------------------------------------------------------------------------------------------------
 // Newt, flayed
 
-/** The Newt actor, flayed, on his back on the floor (feet y), his head at x (left), his feet off to the right. */
+/** The Newt actor, flayed, on his back on the floor (feet y), his head at x (left), his feet off to the right. Part
+ *  two's SNES pass, painted once (a stamp): the lake of blood with the claws' gouges through it and the drag of him; the
+ *  skin in curled strips all round (its fat side yellow, its edges red); the rubber Newt face and the white helmet wig
+ *  peeled off and dropped, the Contract soaked through, the gavel; the shirt's collar and the red tie still knotted
+ *  round his bare neck; the chest skinned (the pectorals in their grain, the ribs white between the intercostals, the
+ *  belly's six rows), the arms flung out skinned to the finger bones, the trousers in ribbons over raw shins, a shoe off,
+ *  a sock; the head a lidless, lipless red mask (the cheek muscles' grain, the eyes staring out of their sockets, the
+ *  teeth bare in both rows, the nose a black hole, the ears gone, the skull white at the crown). */
 export const drawNewtBody = (c: Ctx, x: number, y: number) => {
-  const SKIN = '#E9B9A0';
-  bloodPool(c, x + 44, y, 170, 11);
-  clawMarks(c, x - 40, y + 3, 40, 0.08); clawMarks(c, x + 120, y + 4, 34, -0.1);
-  // (strips of his skin everywhere round him)
-  for (let k = 0; k < 9; k++) skinStrip(c, x - 50 + k * 22 + hash(k) * 10, y - 1 - hash(k * 3) * 3, 10 + hash(k * 5) * 10, (hash(k * 7) - 0.5) * 1.4, SKIN);
-  // (the rubber Newt face, peeled off and dropped, and the white helmet wig)
-  c.save(); c.translate(x - 62, y - 7); c.rotate(-0.3);
-  c.fillStyle = '#F5BFA5'; c.beginPath(); c.ellipse(0, 0, 13, 8, 0, 0, Math.PI * 2); c.fill();
-  c.fillStyle = '#2A1A16'; c.fillRect(-7, -3, 4, 3); c.fillRect(3, -3, 4, 3); c.fillRect(-3, 3, 7, 2);
-  c.fillStyle = BLOOD[2]; c.fillRect(-12, 3, 8, 2);
+  c.save(); c.translate(Math.round(x), Math.round(y));
+  stamp(c, 'wh2-body-newt', -130, -64, 340, 76, paintNewtBody);
   c.restore();
-  c.save(); c.translate(x + 154, y - 8); c.rotate(0.4);
-  c.fillStyle = '#F1F5F9'; c.beginPath(); c.ellipse(0, 0, 14, 8, 0, Math.PI, 0); c.fill(); c.fillStyle = '#CBD5E1'; c.fillRect(-12, -2, 24, 2);
-  c.fillStyle = BLOOD[1]; c.fillRect(-6, -1, 9, 2);
+};
+const MUSC = rampOf('#A8222E'), FAT_R = rampOf('#E8C987'), BONE_R = rampOf('#EDE6D6'), SKIN_R = rampOf('#E9B9A0'), NAVYS = rampOf('#1E3A8A');
+const paintNewtBody = (c: Ctx) => {
+  bloodPool(c, 44, 0, 200, 11); bloodPool(c, -60, 0, 60, 19);
+  // (the drag: smears back toward the desk, the claws' gouges through the blood)
+  c.fillStyle = BLOOD[1]; for (let k = 0; k < 4; k++) c.fillRect(-100 + k * 6, -2 + k, 50, 1.5);
+  clawMarks(c, -40, 3, 44, 0.08); clawMarks(c, 120, 4, 38, -0.1); clawMarks(c, 64, 5, 30, 0.05, BLOOD[3]);
+  // (the skin in curled strips everywhere round him)
+  for (let k = 0; k < 12; k++) skinStrip(c, -64 + k * 20 + hash(k) * 10, -1 - hash(k * 3) * 3, 10 + hash(k * 5) * 12, (hash(k * 7) - 0.5) * 1.4, SKIN_R[1]);
+  // (the rubber Newt face peeled off and dropped: its eyeholes, its grin; the white helmet wig in its curls)
+  c.save(); c.translate(-74, -8); c.rotate(-0.3);
+  shapeTop(c, () => c.ellipse(0, 0, 15, 9, 0, 0, Math.PI * 2), rampOf('#F5BFA5'), -9, 9);
+  c.fillStyle = '#2A1A16'; c.fillRect(-8, -3, 5, 3); c.fillRect(3, -3, 5, 3); c.fillRect(-4, 3, 9, 2);
+  c.fillStyle = BLOOD[2]; c.fillRect(-14, 3, 10, 2); c.fillStyle = '#F2A08A'; c.fillRect(-10, -6, 6, 2);
   c.restore();
-  // (the legs: the trousers shredded, raw shins showing, a shoe off)
-  muscleLimb(c, x + 70, y - 12, x + 128, y - 8, 10); muscleLimb(c, x + 70, y - 8, x + 124, y - 3, 10);
-  c.fillStyle = '#1E2A4A'; c.fillRect(x + 66, y - 18, 34, 18);
-  for (let k = 0; k < 5; k++) { c.fillStyle = '#1E2A4A'; c.beginPath(); c.moveTo(x + 98 + k * 2, y - 18 + k * 4); c.lineTo(x + 110 + hash(k) * 8, y - 16 + k * 4); c.lineTo(x + 98 + k * 2, y - 14 + k * 4); c.fill(); }
-  c.fillStyle = '#0B0B0F'; c.fillRect(x + 124, y - 14, 10, 7);
-  c.fillStyle = BONE; c.fillRect(x + 120, y - 4, 7, 4);
-  // (the torso: the suit jacket torn open and in rags, the chest skinned: muscle, the ribs white through it)
-  c.fillStyle = MUSCLE_DK; c.beginPath(); c.ellipse(x + 40, y - 14, 34, 15, 0, 0, Math.PI * 2); c.fill();
-  c.fillStyle = MUSCLE; c.beginPath(); c.ellipse(x + 40, y - 15, 31, 12, 0, 0, Math.PI * 2); c.fill();
-  c.strokeStyle = BONE; c.lineWidth = 2;
-  for (let k = 0; k < 6; k++) { const rx = x + 20 + k * 7; c.beginPath(); c.moveTo(rx, y - 24); c.quadraticCurveTo(rx + 3, y - 15, rx, y - 7); c.stroke(); }
-  c.strokeStyle = MUSCLE_LT; c.lineWidth = 1; for (let k = 0; k < 6; k++) { const rx = x + 23 + k * 7; c.beginPath(); c.moveTo(rx, y - 22); c.lineTo(rx + 1, y - 9); c.stroke(); }
-  c.fillStyle = FAT; c.fillRect(x + 8, y - 26, 4, 2); c.fillRect(x + 66, y - 22, 3, 10);
-  // (the suit's rags, either side, the tie hanging off him)
-  c.fillStyle = '#1E3A8A';
-  c.beginPath(); c.moveTo(x + 8, y - 4); c.lineTo(x + 16, y - 28); c.lineTo(x + 22, y - 20); c.lineTo(x + 18, y - 4); c.closePath(); c.fill();
-  c.beginPath(); c.moveTo(x + 60, y - 2); c.lineTo(x + 70, y - 26); c.lineTo(x + 74, y - 4); c.closePath(); c.fill();
-  c.fillStyle = '#DC2626'; c.beginPath(); c.moveTo(x + 30, y - 26); c.lineTo(x + 50, y - 2); c.lineTo(x + 44, y - 1); c.lineTo(x + 26, y - 24); c.closePath(); c.fill();
-  // (the arms, flung out, skinned to the wrists)
-  muscleLimb(c, x + 18, y - 22, x - 4, y - 38, 8); muscleLimb(c, x + 60, y - 22, x + 82, y - 34, 8);
-  c.fillStyle = MUSCLE; c.beginPath(); c.arc(x - 6, y - 40, 4.5, 0, Math.PI * 2); c.fill(); c.beginPath(); c.arc(x + 84, y - 36, 4.5, 0, Math.PI * 2); c.fill();
-  c.fillStyle = BONE; for (let k = 0; k < 4; k++) { c.fillRect(x - 12 + k * 2, y - 46 + (k % 2), 1.5, 5); c.fillRect(x + 86 + k * 2, y - 42 + (k % 2), 1.5, 5); }
-  // (the head: lidless, lipless, the face a red mask, the teeth bare in a grin, the eyes staring; the scalp raw)
-  const hx = x, hy = y - 14;
-  c.fillStyle = MUSCLE_DK; c.beginPath(); c.ellipse(hx, hy, 15, 14, 0, 0, Math.PI * 2); c.fill();
-  c.fillStyle = MUSCLE; c.beginPath(); c.ellipse(hx, hy - 1, 13.5, 12.5, 0, 0, Math.PI * 2); c.fill();
-  c.strokeStyle = MUSCLE_LT; c.lineWidth = 1; for (let k = -2; k <= 2; k++) { c.beginPath(); c.moveTo(hx - 10, hy + k * 4); c.quadraticCurveTo(hx, hy + k * 4 - 2, hx + 10, hy + k * 4); c.stroke(); }
-  for (const ey of [-5, 5]) { c.fillStyle = '#F8F4EC'; c.beginPath(); c.arc(hx - 4, hy + ey, 3.6, 0, Math.PI * 2); c.fill(); c.fillStyle = '#3B2A1A'; c.beginPath(); c.arc(hx - 5, hy + ey, 1.4, 0, Math.PI * 2); c.fill(); c.strokeStyle = '#C2410C'; c.lineWidth = 0.6; c.beginPath(); c.arc(hx - 4, hy + ey, 3.2, 0.2, 1.4); c.stroke(); }
-  c.fillStyle = BONE; c.fillRect(hx + 6, hy - 6, 4, 12);
-  c.fillStyle = MUSCLE_DK; for (let k = 0; k < 5; k++) c.fillRect(hx + 6, hy - 5 + k * 2.5, 4, 0.8);
-  c.fillStyle = '#3F0606'; c.beginPath(); c.ellipse(hx + 1, hy, 1.5, 2.6, 0, 0, Math.PI * 2); c.fill();
-  splatter(c, hx - 14, hy + 6, 16, 10, 41);
+  c.save(); c.translate(160, -9); c.rotate(0.4);
+  shapeTop(c, () => c.ellipse(0, 0, 16, 9, 0, Math.PI, 0), rampOf('#F1F5F9'), -9, 0);
+  c.strokeStyle = '#94A3B8'; c.lineWidth = 1; for (let k = 0; k < 4; k++) { c.beginPath(); c.arc(-9 + k * 6, -4, 3, Math.PI * 1.1, Math.PI * 1.9); c.stroke(); }
+  c.fillStyle = BLOOD[1]; c.fillRect(-8, -2, 12, 2);
+  c.restore();
+  // (the Contract, soaked through; the gavel)
+  c.save(); c.translate(-100, -5); c.rotate(0.15); shapeTop(c, () => c.rect(-14, -4, 28, 6), rampOf('#FEF3C7'), -4, 2); c.fillStyle = BLOOD[2]; c.fillRect(-4, -4, 18, 6); c.fillStyle = BLOOD[1]; c.fillRect(2, -3, 8, 3); c.restore();
+  c.save(); c.translate(196, -6); c.rotate(-0.5); c.fillStyle = '#6E2E0A'; c.fillRect(-1.5, 0, 3, 16); shape(c, () => c.roundRect(-9, -6, 18, 8, 2), rampOf('#92400E'), -9, 9); c.restore();
+  // (the legs: the trousers in ribbons, the shins skinned, a knee's bone, a shoe off, the sock)
+  limb(c, 70, -12, 6, 128, -8, 5, MUSC, 1); limb(c, 70, -8, 6, 124, -3, 5, MUSC, 1);
+  for (const [lx, ly] of [[100, -12], [96, -6]]) { c.strokeStyle = MUSC[0]; c.lineWidth = 1; c.beginPath(); c.moveTo(lx, ly - 2); c.lineTo(lx + 22, ly); c.stroke(); }
+  shape(c, () => c.ellipse(108, -10, 4, 3, 0, 0, Math.PI * 2), BONE_R, 104, 112);
+  shapeTop(c, () => c.rect(64, -20, 36, 20), NAVYS, -20, 0);
+  for (let k = 0; k < 6; k++) { c.fillStyle = k % 2 ? NAVYS[1] : NAVYS[2]; c.beginPath(); c.moveTo(98 + k * 2, -20 + k * 3.4); c.lineTo(112 + hash(k) * 10, -18 + k * 3.4); c.lineTo(98 + k * 2, -16 + k * 3.4); c.fill(); }
+  shapeTop(c, () => c.roundRect(122, -15, 13, 8, [2, 4, 1, 1]), rampOf('#1F2430'), -15, -7);
+  shapeTop(c, () => c.roundRect(122, -6, 10, 6, 2), rampOf('#E2E6EE'), -6, 0);
+  c.fillStyle = BLOOD[2]; c.fillRect(124, -3, 6, 2);
+  // (the torso: skinned; the pectorals' grain, the ribs white between the intercostals, the belly's rows; fat at the
+  // cut edges; the suit's rags either side; the collar and the red tie knotted round the bare neck)
+  shapeTop(c, () => c.ellipse(40, -14, 35, 16, 0, 0, Math.PI * 2), MUSC, -30, 2);
+  c.save(); c.beginPath(); c.ellipse(40, -14, 33, 14, 0, 0, Math.PI * 2); c.clip();
+  for (let k = 0; k < 7; k++) { const rx = 16 + k * 7.5; shape(c, () => { c.moveTo(rx, -27); c.quadraticCurveTo(rx + 4, -15, rx, -3); c.lineTo(rx + 2.4, -3); c.quadraticCurveTo(rx + 6.4, -15, rx + 2.4, -27); c.closePath(); }, BONE_R, rx, rx + 6); }
+  for (let k = 0; k < 6; k++) { const rx = 20 + k * 7.5; c.strokeStyle = MUSC[0]; c.lineWidth = 1; c.beginPath(); c.moveTo(rx, -24); c.lineTo(rx + 1, -6); c.stroke(); }
+  for (let r = 0; r < 3; r++) for (let k = 0; k < 2; k++) shapeTop(c, () => c.roundRect(58 + k * 8, -24 + r * 7, 7, 6, 2), MUSC, -24 + r * 7, -18 + r * 7);
+  c.restore();
+  c.fillStyle = FAT_R[1]; c.fillRect(6, -27, 6, 2); c.fillRect(70, -22, 3, 12); c.fillRect(12, -4, 50, 1.5);
+  c.fillStyle = FAT_R[0]; c.fillRect(6, -27, 6, 1);
+  for (const [px, py, s] of [[10, -4, 1], [70, -2, -1]] as [number, number, number][]) { c.fillStyle = NAVYS[2]; c.beginPath(); c.moveTo(px, py); c.lineTo(px + s * 8, py - 26); c.lineTo(px + s * 14, py - 18); c.lineTo(px + s * 10, py); c.closePath(); c.fill(); c.fillStyle = NAVYS[0]; c.fillRect(px + s * 6 - 1, py - 22, 2, 14); }
+  c.fillStyle = '#F2F2F8'; c.beginPath(); c.moveTo(8, -24); c.lineTo(16, -30); c.lineTo(16, -18); c.closePath(); c.fill(); c.beginPath(); c.moveTo(8, -6); c.lineTo(16, 0); c.lineTo(16, -12); c.closePath(); c.fill();
+  shape(c, () => { c.moveTo(14, -16); c.lineTo(40, -2); c.lineTo(36, 0); c.lineTo(12, -12); c.closePath(); }, rampOf('#C81E2E'), 12, 40);
+  shape(c, () => c.roundRect(10, -18, 7, 8, 2), rampOf('#C81E2E'), 10, 17);
+  // (the arms flung out, skinned to the finger bones)
+  limb(c, 18, -22, 5, -4, -38, 4, MUSC, 1); limb(c, 60, -22, 5, 82, -34, 4, MUSC, 1);
+  for (const [hx0, hy0, s] of [[-6, -40, -1], [84, -36, 1]] as [number, number, number][]) {
+    shapeTop(c, () => c.arc(hx0, hy0, 4.6, 0, Math.PI * 2), MUSC, hy0 - 5, hy0 + 5);
+    for (let k = 0; k < 4; k++) { c.fillStyle = BONE_R[1]; c.fillRect(hx0 + s * 3 + (k - 1.5) * 2.2 - 0.7, hy0 - 9 - (k % 2), 1.5, 6); c.fillStyle = BONE_R[0]; c.fillRect(hx0 + s * 3 + (k - 1.5) * 2.2 - 0.7, hy0 - 10 - (k % 2), 1.5, 1.4); }
+    c.strokeStyle = FASCIA; c.lineWidth = 1.2; c.beginPath(); c.moveTo(hx0 - s * 10, hy0 + s * 6); c.lineTo(hx0 - s * 3, hy0 + s * 2); c.stroke();
+  }
+  // (the head: the face a red mask, its grain; the eyes staring out of their sockets; the teeth bare in both rows; the
+  // nose a black hole; the ears gone; the skull white at the crown)
+  const hx = 0, hy = -14;
+  shapeTop(c, () => c.ellipse(hx, hy, 15.5, 14.5, 0, 0, Math.PI * 2), MUSC, hy - 15, hy + 15);
+  c.strokeStyle = MUSC[0]; c.lineWidth = 1; for (let k = -2; k <= 2; k++) { c.beginPath(); c.moveTo(hx - 11, hy + k * 4); c.quadraticCurveTo(hx - 2, hy + k * 4 - 2, hx + 7, hy + k * 4); c.stroke(); }
+  shape(c, () => c.ellipse(hx - 11, hy, 4.5, 7, 0, 0, Math.PI * 2), BONE_R, hx - 15, hx - 7);
+  c.fillStyle = BLOOD[0]; c.beginPath(); c.ellipse(hx - 11, hy, 2, 3.5, 0, 0, Math.PI * 2); c.fill();
+  for (const ey of [-5, 5]) { c.fillStyle = BLOOD[0]; c.beginPath(); c.arc(hx - 3, hy + ey, 4.8, 0, Math.PI * 2); c.fill(); shape(c, () => c.arc(hx - 3, hy + ey, 3.8, 0, Math.PI * 2), rampOf('#F8F4EC'), hx - 7, hx + 1); c.fillStyle = '#5A3A1A'; c.beginPath(); c.arc(hx - 4, hy + ey, 1.6, 0, Math.PI * 2); c.fill(); c.fillStyle = '#111'; c.fillRect(hx - 4.5, hy + ey - 0.5, 1, 1); c.strokeStyle = '#C2410C'; c.lineWidth = 0.6; c.beginPath(); c.arc(hx - 3, hy + ey, 3.4, 0.2, 1.4); c.stroke(); }
+  c.fillStyle = '#1A0404'; c.beginPath(); c.moveTo(hx + 2, hy - 2); c.lineTo(hx + 5, hy); c.lineTo(hx + 2, hy + 2); c.closePath(); c.fill();
+  c.fillStyle = BLOOD[0]; c.fillRect(hx + 6, hy - 8, 6, 16);
+  for (let k = 0; k < 6; k++) { c.fillStyle = BONE_R[k % 2 ? 1 : 0]; c.fillRect(hx + 6.5, hy - 7.5 + k * 2.6, 2.4, 2.2); c.fillRect(hx + 9.3, hy - 7.5 + k * 2.6, 2.4, 2.2); }
+  c.fillStyle = MUSC[3]; c.fillRect(hx + 8.9, hy - 8, 0.6, 16);
+  splatter(c, hx - 14, hy + 6, 18, 12, 41);
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -300,42 +320,84 @@ export const drawFalwellBody = (c: Ctx, a: number, b: number, top: number, fy: n
 /** The Limbaugh actor hanged off his studio's boom by the mic cord over his desk (its left a, right b, top y); the boom's
  *  stand on the floor fy. The ON AIR light (lit) over it. */
 export const drawLimbaughBody = (c: Ctx, a: number, b: number, top: number, fy: number, f: number) => {
-  const SUIT = '#1E2A4A', mx = (a + b) / 2;
-  // (the boom: a stand behind the desk, the arm out over it)
-  c.strokeStyle = '#3F3F46'; c.lineWidth = 5; c.beginPath(); c.moveTo(b + 20, fy); c.lineTo(b + 20, top - 200); c.lineTo(mx, top - 220); c.stroke();
-  c.strokeStyle = '#71717A'; c.lineWidth = 2; c.stroke();
-  c.fillStyle = '#27272A'; c.fillRect(b + 6, fy - 4, 30, 4);
-  // (the cord down to his neck)
-  c.strokeStyle = '#18181B'; c.lineWidth = 2.5; c.beginPath(); c.moveTo(mx, top - 220); c.lineTo(mx + 2, top - 154); c.stroke();
-  // (the cigar on the desk still smoking; blood dripped on the desk)
-  cigar(c, a + 18, top - 3, 0, true);
-  c.strokeStyle = 'rgba(214,211,209,0.6)'; c.lineWidth = 1.5; for (let k = 0; k < 3; k++) { const t = ((f + k * 20) % 60) / 60; c.beginPath(); c.arc(a + 28 + Math.sin(t * 5) * 3, top - 8 - t * 40, 1.5 + t * 3, 0, Math.PI * 2); c.stroke(); }
-  bloodPool(c, mx + 6, top, 50, 31);
-  drips(c, b - 30, top + 2, top + 30, 26, 3, 33);
-  // (him: the big body hanging limp, feet off the desk, the shoes dangling)
-  const ny = top - 152;
-  c.strokeStyle = SUIT; c.lineWidth = 10; c.lineCap = 'round';
-  c.beginPath(); c.moveTo(mx - 6, ny + 74); c.lineTo(mx - 8, ny + 112); c.stroke(); c.beginPath(); c.moveTo(mx + 8, ny + 74); c.lineTo(mx + 10, ny + 114); c.stroke();
-  c.lineCap = 'butt';
-  c.fillStyle = '#0B0B0F'; c.fillRect(mx - 14, ny + 110, 12, 7); c.fillRect(mx + 6, ny + 112, 12, 7);
-  c.fillStyle = SUIT; c.beginPath(); c.ellipse(mx, ny + 46, 24, 32, 0, 0, Math.PI * 2); c.fill();
-  c.fillStyle = '#F8FAFC'; c.beginPath(); c.moveTo(mx - 5, ny + 16); c.lineTo(mx + 6, ny + 16); c.lineTo(mx, ny + 34); c.closePath(); c.fill();
-  c.fillStyle = '#F59E0B'; c.fillRect(mx - 2, ny + 18, 5, 26);
-  clawMarks(c, mx - 6, ny + 50, 30, 0.9); clawMarks(c, mx + 8, ny + 34, 22, -0.7);
-  // (the arms hanging, the golden mic still in his fist)
-  c.strokeStyle = SUIT; c.lineWidth = 8; c.lineCap = 'round'; c.beginPath(); c.moveTo(mx - 20, ny + 26); c.lineTo(mx - 26, ny + 70); c.stroke(); c.beginPath(); c.moveTo(mx + 20, ny + 26); c.lineTo(mx + 26, ny + 70); c.stroke(); c.lineCap = 'butt';
-  c.fillStyle = '#E8BC9E'; c.beginPath(); c.arc(mx - 26, ny + 73, 4.4, 0, Math.PI * 2); c.arc(mx + 26, ny + 73, 4.4, 0, Math.PI * 2); c.fill();
-  goldMic(c, mx + 28, ny + 82, 2.8);
-  // (the head: lolled over, purple, the tongue out, the eyes half shut, the cord biting into the neck)
-  const hx = mx + 6, hy = ny - 2;
-  c.save(); c.translate(hx, hy); c.rotate(0.45);
-  c.fillStyle = '#8E5A86'; c.beginPath(); c.ellipse(0, 0, 15, 16, 0, 0, Math.PI * 2); c.fill();
-  c.fillStyle = '#3F2A1E'; c.beginPath(); c.ellipse(-2, -12, 14, 6, 0, Math.PI, 0); c.fill();
-  c.fillStyle = '#5E3A58'; c.fillRect(-6, -4, 5, 2); c.fillRect(4, -4, 5, 2);
-  c.fillStyle = '#B5677A'; c.beginPath(); c.ellipse(3, 10, 4, 6, 0.2, 0, Math.PI * 2); c.fill();
+  const w = Math.round(b - a), yt = Math.round(top - fy), mx = w / 2;
+  c.save(); c.translate(Math.round(a), Math.round(fy));
+  stamp(c, `wh2-body-limbaugh-${w}-${yt}`, -40, yt - 290, w + 170, -yt + 296, g => paintLimbaugh(g, w, yt));
+  // (live: the cigar still smoking in the ashtray; a drip off his shoe now and then; the ON AIR light's buzz)
+  for (let k = 0; k < 4; k++) { const t = ((f + k * 17) % 68) / 68; c.fillStyle = `rgba(200,196,206,${0.55 * (1 - t)})`; c.beginPath(); c.arc(30 + Math.sin(t * 5 + k) * 4, yt - 8 - t * 50, 1.5 + t * 4, 0, Math.PI * 2); c.fill(); }
+  const dt = (f % 70) / 70; if (dt < 0.5) { c.fillStyle = BLOOD[2]; c.fillRect(mx + 9, yt - 34 + dt * 60, 2, 3); }
+  if (f % 240 < 3) { c.fillStyle = 'rgba(10,8,12,0.7)'; c.fillRect(w + 44, yt - 192, 58, 22); }
   c.restore();
-  c.strokeStyle = '#18181B'; c.lineWidth = 3; c.beginPath(); c.ellipse(mx + 2, ny + 12, 12, 4, 0, 0, Math.PI * 2); c.stroke();
-  c.fillStyle = BLOOD[2]; c.fillRect(mx - 6, ny + 14, 2, 8);
+};
+/** (local: x from the desk's left, the floor at 0; the desk top at yt) Part two's SNES pass: the studio's boom stand
+ *  behind the desk (a tripod, the counterweight, the arm out over it), his own mic cord knotted off its end and round
+ *  his neck; the ON AIR light clamped to the stand, lit; him hanging, feet off the desk: the fat suit slashed through to
+ *  its yellow foam and to him, blood down the trousers and off the shoes onto the desk; the arms hanging, the golden mic
+ *  still in his fist; the headphones tangled in the cord; the head lolled, purple, the tongue out, the eyes bulging half
+ *  shut, the cord biting in; on the desk his rubber caricature head (empty, its grin), the cigar in the ashtray, a DITTO
+ *  mug knocked over. */
+const paintLimbaugh = (c: Ctx, w: number, yt: number) => {
+  const SUIT = rampOf('#26324A'), FOAM = rampOf('#E8C860'), PURP = rampOf('#8E5A86'), STEEL = rampOf('#3F3F46'), mx = w / 2;
+  // (the boom stand: the tripod, the pole, the arm, the counterweight)
+  for (const s of [-1, 0, 1]) { c.strokeStyle = STEEL[4]; c.lineWidth = 5; c.beginPath(); c.moveTo(w + 30, -40); c.lineTo(w + 30 + s * 22, 0); c.stroke(); c.strokeStyle = STEEL[1]; c.lineWidth = 2.5; c.stroke(); }
+  c.strokeStyle = STEEL[4]; c.lineWidth = 6; c.beginPath(); c.moveTo(w + 30, 0); c.lineTo(w + 30, yt - 200); c.lineTo(mx, yt - 226); c.stroke();
+  c.strokeStyle = STEEL[1]; c.lineWidth = 3; c.stroke(); c.strokeStyle = STEEL[0]; c.lineWidth = 1; c.beginPath(); c.moveTo(w + 29, -2); c.lineTo(w + 29, yt - 200); c.stroke();
+  c.strokeStyle = STEEL[4]; c.lineWidth = 5; c.beginPath(); c.moveTo(w + 30, yt - 200); c.lineTo(w + 70, yt - 186); c.stroke(); shape(c, () => c.roundRect(w + 64, yt - 194, 16, 18, 3), STEEL, w + 64, w + 80);
+  shape(c, () => c.roundRect(w + 24, yt - 206, 12, 12, 2), STEEL, w + 24, w + 36);
+  // (the ON AIR light clamped to the pole: its box, the letters lit red, the glow round it)
+  c.fillStyle = 'rgba(220,38,38,0.22)'; c.beginPath(); c.ellipse(w + 73, yt - 181, 46, 22, 0, 0, Math.PI * 2); c.fill();
+  shape(c, () => c.rect(w + 40, yt - 196, 66, 30), rampOf('#2A2830'), w + 40, w + 106);
+  c.fillStyle = '#B91C1C'; c.fillRect(w + 44, yt - 192, 58, 22); c.fillStyle = '#DC2626'; c.fillRect(w + 44, yt - 192, 58, 6); c.fillStyle = '#F87171'; c.fillRect(w + 44, yt - 192, 58, 2);
+  signText(c, 'ON AIR', w + 73, yt - 175, { sx: 1, sy: 1, bold: true, fill: ['#FFFFFF', '#FEE2E2'] });
+  c.fillStyle = STEEL[3]; c.fillRect(w + 32, yt - 186, 8, 6);
+  // (on the desk: the blood off him, the ashtray and the cigar, the rubber head, the knocked-over mug)
+  bloodPool(c, mx + 10, yt, 64, 31);
+  drips(c, mx - 10, yt + 2, yt + 40, 36, 4, 33); drips(c, w - 18, yt + 2, -6, 10, 2, 37);
+  shapeTop(c, () => c.ellipse(28, yt - 2, 12, 3.5, 0, 0, Math.PI * 2), rampOf('#9CA3AF'), yt - 5, yt + 1);
+  cigar(c, 30, yt - 5, -0.1, true);
+  c.save(); c.translate(w - 14, yt - 13); c.rotate(0.6);
+  shape(c, () => c.ellipse(0, 0, 15, 14, 0, 0, Math.PI * 2), rampOf('#F6C3AA'), -15, 15);
+  shapeTop(c, () => { c.moveTo(-15, -2); c.quadraticCurveTo(-16, -18, 2, -18); c.quadraticCurveTo(16, -18, 14, -6); c.quadraticCurveTo(0, -10, -15, -2); c.closePath(); }, rampOf('#3F2A1E'), -18, -2);
+  c.fillStyle = '#1A1010'; c.fillRect(-8, -4, 5, 4); c.fillRect(4, -4, 5, 4); c.fillStyle = '#5A0E14'; c.fillRect(-4, 5, 11, 4); c.fillStyle = '#FFFFFF'; c.fillRect(-3, 5, 9, 1.4);
+  c.restore();
+  c.save(); c.translate(52, yt - 4); c.rotate(1.57); shape(c, () => c.roundRect(-5, -6, 10, 12, 2), rampOf('#F8F8F0'), -5, 5); c.fillStyle = '#DC2626'; c.fillRect(-4, -2, 8, 3); c.restore();
+  c.fillStyle = '#5A3A1A'; c.beginPath(); c.ellipse(64, yt - 1, 8, 1.6, 0, 0, Math.PI * 2); c.fill();
+  // (him: hanging, the feet off the desk, the trousers bloody, the shoes dangling)
+  const ny = yt - 154;
+  limb(c, mx - 7, ny + 74, 6, mx - 9, ny + 114, 5, SUIT, 0, 1); limb(c, mx + 8, ny + 74, 6, mx + 10, ny + 116, 5, SUIT, 0, 1);
+  c.fillStyle = BLOOD[1]; c.fillRect(mx + 6, ny + 92, 5, 24); c.fillRect(mx - 11, ny + 100, 3, 14);
+  shapeTop(c, () => c.roundRect(mx - 16, ny + 110, 13, 8, [2, 4, 1, 1]), rampOf('#1F2430'), ny + 110, ny + 118);
+  shapeTop(c, () => c.roundRect(mx + 5, ny + 112, 13, 8, [2, 4, 1, 1]), rampOf('#1F2430'), ny + 112, ny + 120);
+  // (the fat suit, slashed through: the foam bulging out yellow, him under it bleeding)
+  shape(c, () => c.ellipse(mx, ny + 46, 25, 33, 0, 0, Math.PI * 2), SUIT, mx - 25, mx + 25);
+  c.fillStyle = '#F2F2F8'; c.beginPath(); c.moveTo(mx - 5, ny + 15); c.lineTo(mx + 6, ny + 15); c.lineTo(mx, ny + 34); c.closePath(); c.fill();
+  shape(c, () => { c.moveTo(mx - 2.5, ny + 17); c.lineTo(mx + 3, ny + 17); c.lineTo(mx + 4, ny + 44); c.lineTo(mx, ny + 48); c.lineTo(mx - 4, ny + 44); c.closePath(); }, rampOf('#F59E0B'), mx - 4, mx + 4);
+  for (const [sx, sy, len, ang] of [[mx - 8, ny + 52, 30, 0.9], [mx + 10, ny + 36, 24, -0.7], [mx - 2, ny + 66, 20, 0.3]] as [number, number, number, number][]) {
+    c.save(); c.translate(sx, sy); c.rotate(ang);
+    for (let k = -1; k <= 1; k++) { c.fillStyle = BLOOD[0]; c.fillRect(-len / 2, k * 5 - 2, len, 4); shapeTop(c, () => c.ellipse(0, k * 5, len / 2 - 2, 2.2, 0, 0, Math.PI * 2), FOAM, k * 5 - 2, k * 5 + 2); c.fillStyle = BLOOD[2]; c.fillRect(-len / 4, k * 5 + 1, len / 2, 1); }
+    c.restore();
+  }
+  drips(c, mx - 18, ny + 50, ny + 90, 30, 4, 39);
+  // (the arms hanging, the golden mic still in his fist)
+  limb(c, mx - 20, ny + 26, 5, mx - 26, ny + 70, 4.5, SUIT, 0, 1); limb(c, mx + 20, ny + 26, 5, mx + 26, ny + 70, 4.5, SUIT, 0, 1);
+  for (const hx0 of [mx - 26, mx + 26]) { c.fillStyle = '#F2F2F8'; c.fillRect(hx0 - 3, ny + 66, 6, 3); shape(c, () => c.arc(hx0, ny + 74, 4.6, 0, Math.PI * 2), rampOf('#C8A0A8'), hx0 - 5, hx0 + 5); }
+  goldMic(c, mx + 28, ny + 84, 2.8);
+  // (the cord: off the boom's end, knotted, round his neck; the headphones tangled in it)
+  c.strokeStyle = '#0C0B10'; c.lineWidth = 3; c.beginPath(); c.moveTo(mx, yt - 226); c.lineTo(mx + 1, ny + 6); c.stroke();
+  for (let k = 0; k < 4; k++) { c.fillStyle = '#18181B'; c.beginPath(); c.ellipse(mx + 1, yt - 222 + k * 5, 3.5, 2.5, 0, 0, Math.PI * 2); c.fill(); }
+  c.strokeStyle = '#2A2830'; c.lineWidth = 1.2; c.beginPath(); c.moveTo(mx + 26, ny + 80); c.quadraticCurveTo(mx + 40, ny + 40, mx + 6, ny + 14); c.stroke();
+  c.strokeStyle = '#0C0B10'; c.lineWidth = 3; c.beginPath(); c.arc(mx - 4, ny + 20, 11, Math.PI * 1.2, Math.PI * 1.9); c.stroke();
+  shape(c, () => c.roundRect(mx - 18, ny + 12, 7, 10, 2), rampOf('#2A2830'), mx - 18, mx - 11);
+  // (the head: lolled over, purple, the tongue out, the eyes bulging half shut, the cord biting into the neck)
+  c.save(); c.translate(mx + 6, ny - 2); c.rotate(0.45);
+  shape(c, () => c.ellipse(0, 0, 15, 16, 0, 0, Math.PI * 2), PURP, -15, 15);
+  shapeTop(c, () => c.ellipse(-2, -10, 14, 7, 0, Math.PI, 0), rampOf('#3F2A1E'), -17, -10);
+  for (const ex of [-5, 6]) { c.fillStyle = '#F2E2E2'; c.beginPath(); c.ellipse(ex, -3, 3.4, 2.6, 0, 0, Math.PI * 2); c.fill(); c.fillStyle = '#C81E2E'; c.fillRect(ex - 3, -3, 6, 0.8); c.fillStyle = PURP[3]; c.fillRect(ex - 4, -6, 8, 2.6); c.fillStyle = '#111'; c.fillRect(ex, -2, 1.5, 1.5); }
+  shape(c, () => c.ellipse(3, 11, 4.5, 7, 0.2, 0, Math.PI * 2), rampOf('#B5677A'), -1, 8);
+  c.fillStyle = '#3A1A2A'; c.fillRect(-4, 6, 12, 2);
+  c.restore();
+  c.strokeStyle = '#0C0B10'; c.lineWidth = 3.4; c.beginPath(); c.ellipse(mx + 2, ny + 12, 12, 4, 0, 0, Math.PI * 2); c.stroke();
+  c.fillStyle = BLOOD[2]; c.fillRect(mx - 6, ny + 14, 2, 9); c.fillRect(mx + 9, ny + 15, 1.5, 6);
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -343,39 +405,62 @@ export const drawLimbaughBody = (c: Ctx, a: number, b: number, top: number, fy: 
 
 /** The Dole actor on his back across the cabinet table (its left a, right b, top y), the floor fy. */
 export const drawDoleBody = (c: Ctx, a: number, b: number, top: number, fy: number) => {
-  const SUIT = '#6B7280', mx = (a + b) / 2;
-  bloodPool(c, mx - 30, top, 150, 41);
-  drips(c, a + 40, top + 2, fy - 4, 120, 6, 43);
-  bloodPool(c, mx - 10, fy, 120, 47);
-  // (the legs over the far end, the shoes)
-  c.strokeStyle = SUIT; c.lineWidth = 8; c.lineCap = 'round';
-  c.beginPath(); c.moveTo(mx + 40, top - 10); c.lineTo(b + 10, top - 4); c.lineTo(b + 18, top + 30); c.stroke();
-  c.beginPath(); c.moveTo(mx + 40, top - 6); c.lineTo(b - 4, top - 2); c.stroke();
-  c.lineCap = 'butt';
-  c.fillStyle = '#111827'; c.fillRect(b + 12, top + 28, 12, 7); c.fillRect(b - 6, top - 8, 7, 12);
-  // (the long body, the buttons pinned into his chest, blood at each)
-  c.fillStyle = SUIT; c.beginPath(); c.ellipse(mx + 6, top - 12, 40, 13, 0, 0, Math.PI * 2); c.fill();
-  c.fillStyle = '#F8FAFC'; c.beginPath(); c.moveTo(mx - 26, top - 18); c.lineTo(mx - 6, top - 22); c.lineTo(mx - 12, top - 10); c.closePath(); c.fill();
-  c.fillStyle = '#B91C1C'; c.fillRect(mx - 24, top - 16, 22, 3);
-  for (const [dx, dy] of [[-6, -18], [10, -14], [24, -20]] as [number, number][]) { campaignButton(c, mx + dx, top + dy, 0.6); c.fillStyle = BLOOD[2]; c.fillRect(mx + dx - 1, top + dy + 3, 2, 6); }
-  clawMarks(c, mx + 4, top - 10, 34, 0.15);
-  // (the right arm off the near edge, the pen still in the hand)
-  c.strokeStyle = SUIT; c.lineWidth = 7; c.lineCap = 'round'; c.beginPath(); c.moveTo(mx - 20, top - 6); c.lineTo(mx - 24, top + 30); c.stroke(); c.lineCap = 'butt';
-  c.fillStyle = '#E8BC9E'; c.beginPath(); c.arc(mx - 24, top + 33, 4, 0, Math.PI * 2); c.fill();
-  c.strokeStyle = '#1F2937'; c.lineWidth = 2.5; c.beginPath(); c.moveTo(mx - 26, top + 31); c.lineTo(mx - 20, top + 42); c.stroke();
-  // (the head off the near end of the table, the pineapple split down into the skull, the crown up out of it)
-  const hx = a + 10, hy = top - 8;
-  c.fillStyle = '#E8BC9E'; c.beginPath(); c.ellipse(hx, hy, 14, 13, 0, 0, Math.PI * 2); c.fill();
-  c.fillStyle = '#D1D5DB'; c.beginPath(); c.ellipse(hx + 4, hy - 4, 10, 9, 0, Math.PI * 1.1, Math.PI * 1.9); c.fill();
-  c.fillStyle = '#3F0606'; c.beginPath(); c.moveTo(hx - 12, hy - 10); c.lineTo(hx + 2, hy + 2); c.lineTo(hx + 12, hy - 12); c.closePath(); c.fill();
-  pineapple(c, hx, hy - 12, -0.15, 1.1);
-  c.fillStyle = '#EDE6D6'; c.fillRect(hx - 9, hy - 6, 3, 2); c.fillRect(hx + 7, hy - 7, 3, 2);
-  c.fillStyle = '#F8F4EC'; c.beginPath(); c.arc(hx - 6, hy + 3, 2.6, 0, Math.PI * 2); c.arc(hx + 4, hy + 3, 2.6, 0, Math.PI * 2); c.fill();
-  c.fillStyle = '#111'; c.fillRect(hx - 6.5, hy + 2.5, 1.5, 1.5); c.fillRect(hx + 4, hy + 3, 1.5, 1.5);
-  splatter(c, hx, hy - 8, 30, 16, 53);
-  drips(c, hx - 10, top + 2, fy - 2, 14, 3, 57);
-  // (a pineapple's chunks on the floor, a button rolled off)
-  campaignButton(c, a - 30, fy - 4, 0.3); pineapple(c, b + 40, fy - 10, 1.4, 0.8);
+  const w = Math.round(b - a), yt = Math.round(top - fy);
+  c.save(); c.translate(Math.round(a), Math.round(fy));
+  stamp(c, `wh2-body-dole-${w}-${yt}`, -80, yt - 60, w + 150, -yt + 70, g => paintDole(g, w, yt));
+  c.restore();
+};
+/** (local: x from the table's left, the floor at 0; the table's top at yt) Part two's SNES pass: on his back across the
+ *  table, his head off the near end: the pineapple split down into his skull to the crown (the bone's edges white, the
+ *  brain showing, juice and blood), the gray wig knocked half off his own thin hair, the rubber chin peeled and hanging;
+ *  the suit slashed; BOB DOLE buttons pinned into his chest (each bleeding through the shirt); the right arm hanging off
+ *  the edge, the pen still in his fist; the legs over the far end; the blood across the table and down its front in
+ *  sheets, a pool on the floor, pineapple chunks in it, a button rolled off. */
+const paintDole = (c: Ctx, w: number, yt: number) => {
+  const SUIT = rampOf('#7A808C'), SKIN = rampOf('#E2B496'), mx = w / 2;
+  bloodPool(c, mx - 40, yt, 170, 41);
+  drips(c, 20, yt + 2, -4, 120, 7, 43); drips(c, 160, yt + 2, yt + 40, 60, 3, 45);
+  bloodPool(c, mx - 50, 0, 150, 47);
+  // (the legs over the far end, the shoes; a sock)
+  limb(c, mx + 40, yt - 10, 5, w + 10, yt - 4, 4.5, SUIT, 0, 1); limb(c, w + 10, yt - 4, 4.5, w + 18, yt + 30, 4, SUIT, 0, 1);
+  limb(c, mx + 40, yt - 6, 5, w - 4, yt - 2, 4.5, SUIT, 0, 1);
+  shapeTop(c, () => c.roundRect(w + 11, yt + 28, 14, 7, [2, 4, 1, 1]), rampOf('#1F2430'), yt + 28, yt + 35);
+  shape(c, () => c.roundRect(w - 7, yt - 9, 8, 13, 2), rampOf('#1F2430'), w - 7, w + 1);
+  // (the long body in steps, slashed; the shirt open, the tie askew; the buttons pinned in, each bleeding)
+  shapeTop(c, () => c.ellipse(mx + 6, yt - 12, 41, 13.5, 0, 0, Math.PI * 2), SUIT, yt - 26, yt + 2);
+  c.fillStyle = '#F2F2F8'; c.beginPath(); c.moveTo(mx - 28, yt - 18); c.lineTo(mx - 4, yt - 23); c.lineTo(mx - 12, yt - 8); c.closePath(); c.fill();
+  c.fillStyle = BLOOD[2]; c.fillRect(mx - 20, yt - 20, 8, 6);
+  shape(c, () => { c.moveTo(mx - 26, yt - 16); c.lineTo(mx - 2, yt - 18); c.lineTo(mx - 2, yt - 14); c.lineTo(mx - 24, yt - 12); c.closePath(); }, rampOf('#B91C1C'), mx - 26, mx - 2);
+  for (const [dx, dy] of [[-6, -19], [10, -15], [24, -21], [36, -14]] as [number, number][]) { c.fillStyle = BLOOD[1]; c.beginPath(); c.ellipse(mx + dx, yt + dy + 4, 4, 2.6, 0, 0, Math.PI * 2); c.fill(); campaignButton(c, mx + dx, yt + dy, 0.6); c.fillStyle = '#9CA3AF'; c.fillRect(mx + dx + 6, yt + dy - 1, 4, 1); c.fillStyle = BLOOD[2]; c.fillRect(mx + dx - 1, yt + dy + 3, 2, 7); }
+  for (const [sx, sy, len, ang] of [[mx + 4, yt - 9, 36, 0.15], [mx + 30, yt - 18, 22, -0.3]] as [number, number, number, number][]) { c.save(); c.translate(sx, sy); c.rotate(ang); for (let k = -1; k <= 1; k++) { c.fillStyle = BLOOD[0]; c.fillRect(-len / 2, k * 4 - 1.5, len, 3); c.fillStyle = MUSCLE; c.fillRect(-len / 2 + 2, k * 4 - 0.5, len - 4, 1.4); c.fillStyle = SUIT[0]; c.fillRect(-len / 2, k * 4 - 2.5, len, 1); } c.restore(); }
+  // (the right arm off the near edge, the pen still in his fist)
+  limb(c, mx - 22, yt - 6, 4.5, mx - 26, yt + 30, 4, SUIT, 0, 1);
+  c.fillStyle = '#F2F2F8'; c.fillRect(mx - 29, yt + 27, 6, 3);
+  shape(c, () => c.arc(mx - 26, yt + 34, 4.2, 0, Math.PI * 2), SKIN, mx - 31, mx - 21);
+  c.strokeStyle = '#0C0B10'; c.lineWidth = 3.4; c.beginPath(); c.moveTo(mx - 29, yt + 31); c.lineTo(mx - 21, yt + 44); c.stroke(); c.strokeStyle = '#2A2830'; c.lineWidth = 1.6; c.stroke(); c.fillStyle = '#C8961E'; c.fillRect(mx - 28, yt + 31, 2, 2);
+  // (the head off the near end: the face up, the skull split by the pineapple wedged in it (bone white at the edges, the
+  // brain gray-pink, juice in the blood), the gray wig knocked half off his own thin hair, the rubber chin peeled)
+  const hx = 10, hy = yt - 8;
+  shape(c, () => c.ellipse(hx, hy, 14.5, 13.5, 0, 0, Math.PI * 2), SKIN, hx - 15, hx + 15);
+  c.fillStyle = '#5A4A3A'; c.beginPath(); c.ellipse(hx - 9, hy - 2, 6, 9, 0, 0, Math.PI * 2); c.fill();
+  c.save(); c.translate(hx - 20, hy - 14); c.rotate(-0.9);
+  shapeTop(c, () => { c.moveTo(-12, 4); c.quadraticCurveTo(-14, -10, 2, -10); c.quadraticCurveTo(14, -10, 12, 2); c.quadraticCurveTo(0, -2, -12, 4); c.closePath(); }, rampOf('#C8CCD4'), -10, 4);
+  c.fillStyle = '#9CA3AF'; c.fillRect(-8, -3, 14, 1); c.fillStyle = BLOOD[1]; c.fillRect(-2, 0, 8, 3);
+  c.restore();
+  c.fillStyle = BLOOD[0]; c.beginPath(); c.moveTo(hx - 13, hy - 11); c.lineTo(hx + 2, hy + 3); c.lineTo(hx + 13, hy - 13); c.closePath(); c.fill();
+  c.fillStyle = '#C8A0A0'; c.beginPath(); c.moveTo(hx - 9, hy - 10); c.lineTo(hx + 1, hy - 1); c.lineTo(hx + 9, hy - 11); c.closePath(); c.fill();
+  c.fillStyle = '#A88080'; for (let k = 0; k < 3; k++) c.fillRect(hx - 6 + k * 4, hy - 8 + (k % 2), 3, 1);
+  for (const [bx, by] of [[-12, -10], [10, -12], [-6, -12], [6, -13]] as [number, number][]) { c.fillStyle = '#EDE6D6'; c.fillRect(hx + bx, hy + by, 3, 2); c.fillStyle = '#FFFFFF'; c.fillRect(hx + bx, hy + by, 1, 1); }
+  pineapple(c, hx, hy - 14, -0.15, 1.15);
+  c.fillStyle = 'rgba(252,211,77,0.55)'; c.beginPath(); c.ellipse(hx + 2, hy - 2, 7, 3, 0, 0, Math.PI * 2); c.fill();
+  for (const ex of [-6, 4]) { c.fillStyle = '#F8F4EC'; c.beginPath(); c.arc(hx + ex, hy + 3, 2.8, 0, Math.PI * 2); c.fill(); c.fillStyle = '#C81E2E'; c.fillRect(hx + ex - 2, hy + 2, 4, 0.7); c.fillStyle = '#111'; c.fillRect(hx + ex - 0.5, hy + 2.5, 1.5, 1.5); }
+  c.fillStyle = '#3A0A0A'; c.beginPath(); c.ellipse(hx - 1, hy + 9, 4, 2.4, 0, 0, Math.PI * 2); c.fill();
+  c.save(); c.translate(hx + 6, hy + 14); c.rotate(0.5); shapeTop(c, () => c.roundRect(-6, 0, 12, 14, [2, 2, 6, 6]), rampOf('#F2C4A4'), 0, 14); c.fillStyle = BLOOD[2]; c.fillRect(-6, 0, 12, 2); c.restore();
+  splatter(c, hx, hy - 8, 34, 20, 53);
+  drips(c, hx - 10, yt + 2, -2, 16, 4, 57);
+  // (on the floor: pineapple chunks in the blood, a button rolled off, the spare pineapple)
+  for (let k = 0; k < 5; k++) { const cx = -60 + k * 22 + hash(k) * 10; c.fillStyle = '#E2A818'; c.beginPath(); c.moveTo(cx - 4, -1); c.lineTo(cx, -7); c.lineTo(cx + 4, -1); c.closePath(); c.fill(); c.fillStyle = '#FFF0A8'; c.fillRect(cx - 1, -5, 1, 2); }
+  campaignButton(c, -40, -4, 0.3); pineapple(c, w + 50, -10, 1.4, 0.8);
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -425,14 +510,33 @@ export const drawDeadActor = (c: Ctx, kind: string, seed: number, x: number, fy:
     c.restore();
     c.strokeStyle = '#1A1028'; c.lineWidth = 1.2; c.beginPath(); c.arc(hx + s * 14, fy - 3, 2.6, 0, Math.PI); c.arc(hx + s * 21, fy - 3, 2.6, Math.PI * 0.2, Math.PI * 1.1); c.stroke();
     c.fillStyle = '#FACC15'; c.fillRect(hx - s * 18, fy - 2, 9, 2); c.fillStyle = '#1A1028'; c.fillRect(hx - s * 18 + (s > 0 ? 0 : 8), fy - 2, 1, 2);
+  } else if (kind === 'm2:ct_spindoc') {
+    // (the head mirror cracked on the floor, the press releases soaked red round him, his pens)
+    c.fillStyle = '#9AA4B4'; c.beginPath(); c.arc(hx + s * 20, fy - 3, 4, 0, Math.PI * 2); c.fill(); c.strokeStyle = '#3A3A48'; c.lineWidth = 0.8; c.beginPath(); c.moveTo(hx + s * 18, fy - 6); c.lineTo(hx + s * 21, fy - 3); c.lineTo(hx + s * 19, fy); c.stroke();
+    for (let k = 0; k < 6; k++) { const ux = x + (hash(seed + k * 5) - 0.4) * 110 * s, red = k % 2 === 0; c.fillStyle = red ? '#C8A0A0' : '#F8F8F0'; c.fillRect(ux, fy - 2, 11, 3); c.fillStyle = red ? BLOOD[1] : '#6A6A7A'; c.fillRect(ux + 2, fy - 2, red ? 6 : 7, 1); }
+    c.fillStyle = '#DC2626'; c.fillRect(x + s * 36, fy - 2, 8, 1.6); c.fillStyle = '#2563EB'; c.fillRect(x + s * 46, fy - 1, 7, 1.6);
+  } else if (kind === 'm2:ct_ditto') {
+    // (the transistor radio smashed, its batteries out, its antenna bent; the red cap)
+    const rx = x + s * 42;
+    c.fillStyle = '#8A94A4'; c.fillRect(rx - 10, fy - 9, 20, 9); c.fillStyle = '#C0C6CF'; c.fillRect(rx - 10, fy - 9, 20, 2); c.fillStyle = '#3A4250'; c.fillRect(rx - 8, fy - 6, 8, 5);
+    c.strokeStyle = '#E5E7EB'; c.lineWidth = 1; c.beginPath(); c.moveTo(rx + 8, fy - 9); c.lineTo(rx + 14, fy - 16); c.lineTo(rx + 22, fy - 14); c.stroke();
+    for (let k = 0; k < 2; k++) { c.fillStyle = '#1A1A22'; c.fillRect(rx - 26 + k * 9, fy - 3, 7, 3); c.fillStyle = '#D8B040'; c.fillRect(rx - 26 + k * 9, fy - 3, 2, 3); }
+    c.fillStyle = '#B91C1C'; c.beginPath(); c.ellipse(hx - s * 20, fy - 3, 8, 4, 0, Math.PI, 0); c.fill(); c.fillStyle = '#991B1B'; c.fillRect(hx - s * 20 + (s > 0 ? 4 : -12), fy - 2, 8, 2);
   }
 };
 
 /** The Chelsea actress's wig and her mess (a later visit: she's gone). */
 export const drawWigAndMess = (c: Ctx, x: number, fy: number) => {
+  // (her mess dried at the edges, banded, chunks in it; the wig dropped in it, its curls stepped, the wig cap's mesh;
+  // the pink headband; a Mary Jane kicked off; the costume's white collar torn off)
+  c.fillStyle = '#7A6A2A'; c.beginPath(); c.ellipse(x + 20, fy + 1, 37, 5, 0, 0, Math.PI * 2); c.fill();
   c.fillStyle = '#B9A548'; c.beginPath(); c.ellipse(x + 20, fy, 34, 4, 0, 0, Math.PI * 2); c.fill();
   c.fillStyle = '#CFC066'; c.beginPath(); c.ellipse(x + 14, fy - 1, 20, 2.5, 0, 0, Math.PI * 2); c.fill();
-  for (const [dx, dy, r] of [[-12, -6, 5], [-6, -9, 5.5], [1, -7, 5], [-9, -3, 4.5], [5, -4, 4]] as [number, number, number][]) { c.fillStyle = '#C9793A'; c.beginPath(); c.arc(x + dx - 20, fy + dy, r, 0, Math.PI * 2); c.fill(); c.fillStyle = '#E8A15C'; c.beginPath(); c.arc(x + dx - 21, fy + dy - 1, r * 0.6, 0, Math.PI * 2); c.fill(); }
-  c.fillStyle = '#F472B6'; c.fillRect(x - 30, fy - 12, 16, 3);
+  for (let k = 0; k < 5; k++) { c.fillStyle = k % 2 ? '#8A6A2A' : '#E8D88A'; c.fillRect(x + 4 + k * 9, fy - 1 + (k % 2), 3, 2); }
+  c.fillStyle = '#D8D0C0'; c.fillRect(x - 14, fy - 1, 14, 2); for (let k = 0; k < 6; k++) c.fillRect(x - 14 + k * 2, fy - 2, 1, 1);
+  for (const [dx, dy, r] of [[-12, -6, 5], [-6, -9, 5.5], [1, -7, 5], [-9, -3, 4.5], [5, -4, 4], [-16, -2, 4]] as [number, number, number][]) { c.fillStyle = '#8A4A1E'; c.beginPath(); c.arc(x + dx - 20, fy + dy + 1, r + 1, 0, Math.PI * 2); c.fill(); c.fillStyle = '#C9793A'; c.beginPath(); c.arc(x + dx - 20, fy + dy, r, 0, Math.PI * 2); c.fill(); c.fillStyle = '#E8A15C'; c.beginPath(); c.arc(x + dx - 21, fy + dy - 1, r * 0.65, 0, Math.PI * 2); c.fill(); c.fillStyle = '#FFD2A0'; c.fillRect(x + dx - 23, fy + dy - 3, 2, 1); }
+  c.fillStyle = '#D9468E'; c.fillRect(x - 31, fy - 13, 18, 3); c.fillStyle = '#F9A8D4'; c.fillRect(x - 30, fy - 13, 10, 1);
+  c.fillStyle = '#1A1A24'; c.fillRect(x - 60, fy - 5, 12, 5); c.fillStyle = '#3A3A48'; c.fillRect(x - 58, fy - 5, 5, 1); c.fillRect(x - 54, fy - 7, 1, 3);
+  c.fillStyle = '#F8FAFC'; c.beginPath(); c.moveTo(x + 52, fy); c.quadraticCurveTo(x + 60, fy - 6, x + 70, fy); c.closePath(); c.fill();
 };
 export { contract, gavel };

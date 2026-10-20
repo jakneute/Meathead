@@ -416,14 +416,60 @@ export const drawSeats = (c: Ctx, state: GameState, a: number, b: number) => {
 /** The stage door (the way out, far right): a steel door, a push bar, the EXIT sign lit red over it, STAGE DOOR
  *  stenciled. */
 export const drawStageDoor = (c: Ctx, a: number, b: number, fy: number) => {
-  const w = b - a;
-  slab(c, a - 10, fy - 220, w + 20, 220, BLK);
-  slab(c, a, fy - 200, w, 200, ramp6('#4B5563')); box(c, a + w / 2 - 1, fy - 200, 2, 200, '#374151');
-  slab(c, a + 12, fy - 100, w - 24, 8, ramp6('#9CA3AF'));
-  signText(c, 'STAGE DOOR', a + w / 2, fy - 150, STENCIL);
-  // (the EXIT sign: a lit red box over it)
-  box(c, a + w / 2 - 34, fy - 262, 68, 28, '#7F1D1D'); box(c, a + w / 2 - 31, fy - 259, 62, 22, '#B91C1C');
-  signText(c, 'EXIT', a + w / 2, fy - 243, { sx: 2, sy: 2, fill: ['#FEE2E2', '#FCA5A5'] });
+  still(c, `door-${Math.round(b - a)}`, a, fy, -150, -300, b - a + 300, 302, g => paintStageDoor(g, b - a));
+};
+/** (local: x from the door's left, its foot at 0) The stage door: a steel frame in the cinderblock, two steel leaves in
+ *  steps (a wired-glass light in one, the push bars, kick plates, a closer arm), STAGE DOOR stenciled, CAST & CREW ONLY,
+ *  the EXIT sign lit red over it; beside it the call board (the sign-in sheet, a pencil on a string, the show's call
+ *  times), a fire extinguisher, NO SMOKING, the light switches, a coat hook with a crew jacket. */
+const paintStageDoor = (g: Ctx, w: number) => {
+  const DR = ramp6('#5A6270'), FR = ramp6('#3A3F4A');
+  // (the cinderblock round it, a lit course edge on each block)
+  for (let row = 0, y = -296; y < 0; y += 16, row++) for (let x = -140 - (row % 2) * 20; x < w + 150; x += 40) { const k = hash(x * 0.13 + row * 3.7); box(g, x + 1, y + 1, 38, 14, k < 0.2 ? '#22202A' : '#1A1922'); box(g, x + 1, y + 1, 38, 1, '#2C2A34'); }
+  // (the frame, the leaves)
+  slab(g, -10, -224, w + 20, 224, FR);
+  for (let k = 0; k < 2; k++) {
+    const lx = k * (w / 2), lw = w / 2;
+    slab(g, lx + 2, -214, lw - 4, 214, DR);
+    box(g, lx + 8, -206, lw - 16, 2, DR[4]); box(g, lx + 8, -24, lw - 16, 18, DR[1]); box(g, lx + 8, -24, lw - 16, 2, DR[4]);
+    slab(g, lx + 8, -116, lw - 16, 10, ramp6('#B8BEC8')); box(g, lx + 10, -112, lw - 20, 2, '#E8ECF2');
+    if (k === 0) { box(g, lx + 18, -186, lw - 36, 50, '#0A090C'); box(g, lx + 19, -185, lw - 38, 48, '#3A4A5A'); for (let yy = -184; yy < -136; yy += 6) box(g, lx + 19, yy, lw - 38, 1, '#5A6A7A'); for (let xx = lx + 22; xx < lx + lw - 18; xx += 6) box(g, xx, -185, 1, 48, '#5A6A7A'); }
+  }
+  box(g, w / 2 - 1, -214, 2, 214, '#1A1C22');
+  slab(g, w - 40, -222, 30, 6, ramp6('#8A909A')); box(g, w - 30, -216, 4, 12, '#6A707A');
+  signText(g, 'STAGE DOOR', w / 2, -196, STENCIL);
+  signText(g, 'CAST & CREW', w / 2 + w / 4, -70, STENCIL); signText(g, 'ONLY', w / 2 + w / 4, -60, STENCIL);
+  // (the EXIT sign over it: its box, the letters lit red, the glow spilling down the block)
+  box(g, w / 2 - 38, -266, 76, 32, '#0A090C'); box(g, w / 2 - 36, -264, 72, 28, '#5A0A0A'); box(g, w / 2 - 33, -261, 66, 22, '#B91C1C'); box(g, w / 2 - 33, -261, 66, 4, '#DC2626');
+  signText(g, 'EXIT', w / 2, -244, { sx: 2, sy: 2, fill: ['#FFFFFF', '#FEE2E2'] });
+  checker(g, w / 2 - 40, -232, 80, 6, 'rgba(220,38,38,0.35)', 0, 1);
+  // (the call board: cork, the sign-in sheet, call times, a pencil on a string)
+  slab(g, -136, -210, 104, 120, PLYR);
+  box(g, -130, -204, 92, 108, '#8A6A44'); checker(g, -130, -204, 92, 108, '#7A5A36', 0, 1);
+  box(g, -126, -198, 40, 54, '#F8F4EC'); for (let k = 0; k < 9; k++) { box(g, -122, -192 + k * 5, 32, 1, '#9CA3AF'); if (k < 6) box(g, -120 + (k % 3) * 4, -193 + k * 5, 10 + (k * 7) % 12, 1, '#1E3A8A'); }
+  signText(g, 'SIGN IN', -106, -146, STENCIL_DK);
+  box(g, -80, -196, 38, 26, '#FDE68A'); for (let k = 0; k < 4; k++) box(g, -77, -191 + k * 5, 30 - (k % 2) * 8, 1, '#5A4A2A');
+  box(g, -80, -164, 38, 30, '#FFFFFF'); signText(g, 'CALL 6AM', -61, -152, { sx: 1, sy: 1, fill: ['#991B1B'] });
+  for (const [px, py] of [[-106, -199], [-61, -197], [-61, -165]] as [number, number][]) box(g, px - 1, py - 1, 3, 3, '#DC2626');
+  g.strokeStyle = '#D6D3D1'; g.lineWidth = 1; g.beginPath(); g.moveTo(-90, -144); g.quadraticCurveTo(-94, -110, -86, -96); g.stroke(); box(g, -88, -96, 2, 12, '#FACC15');
+  // (the extinguisher on its hook, its sign; NO SMOKING; the switches)
+  box(g, -60, -86, 16, 10, '#B91C1C'); signText(g, 'FIRE', -52, -78, { sx: 1, sy: 1, fill: ['#FFFFFF'] });
+  c2(g, -60, -70);
+  box(g, w + 30, -200, 64, 40, '#F8F8F0'); box(g, w + 32, -198, 60, 36, '#FFFFFF');
+  g.strokeStyle = '#B91C1C'; g.lineWidth = 3; g.beginPath(); g.arc(w + 50, -180, 12, 0, Math.PI * 2); g.moveTo(w + 42, -188); g.lineTo(w + 58, -172); g.stroke();
+  box(g, w + 64, -184, 22, 3, '#1A1A1A'); signText(g, 'NO', w + 74, -170, { sx: 1, sy: 1, fill: ['#B91C1C'] });
+  slab(g, w + 30, -120, 26, 40, ramp6('#9CA3AF')); for (let k = 0; k < 3; k++) box(g, w + 36 + k * 6, -106, 3, 10, k === 1 ? '#DC2626' : '#2A2830');
+  // (a coat hook, a crew jacket on it: black, CREW on the back)
+  box(g, w + 110, -190, 6, 6, '#6B7280');
+  g.fillStyle = '#121116'; g.beginPath(); g.moveTo(w + 113, -186); g.lineTo(w + 132, -176); g.lineTo(w + 136, -100); g.lineTo(w + 92, -100); g.lineTo(w + 96, -176); g.closePath(); g.fill();
+  box(g, w + 94, -176, 42, 2, '#2A2830'); signText(g, 'CREW', w + 114, -146, { sx: 1, sy: 1, fill: ['#E5E7EB'] });
+};
+/** A fire extinguisher (local: its top-left x, its top y). */
+const c2 = (g: Ctx, x: number, y: number) => {
+  const E = ramp6('#C81E1E');
+  box(g, x, y + 4, 16, 48, E[1]); box(g, x + 2, y + 4, 10, 48, E[3]); box(g, x + 3, y + 6, 3, 44, E[5]);
+  box(g, x + 4, y - 4, 8, 8, '#2A2830'); box(g, x + 10, y - 2, 10, 3, '#2A2830');
+  box(g, x + 2, y + 20, 12, 10, '#F8F8F0'); box(g, x + 4, y + 23, 8, 1, '#3A3844');
 };
 
 /** The fallen screen: its aluminum frame bent, the white fabric heaped over the stage's lip into the pit (world, in
@@ -451,28 +497,49 @@ export const drawFallenScreen = (c: Ctx, a: number, b: number, fy: number) => {
  *  blue). `on` its lenses lit; `broken` knocked crooked and smoking. */
 export const drawProjectorRig = (c: Ctx, x: number, fy: number, f: number, on: boolean, broken: boolean) => {
   const h = 380;
-  // (the truss tower)
-  for (const dx of [-16, 16]) tube(c, x + dx, fy - h, x + dx, fy, 4);
-  for (let y = fy; y > fy - h; y -= 30) { tube(c, x - 16, y, x + 16, y - 30, 2); tube(c, x + 16, y, x - 16, y - 30, 2); }
-  slab(c, x - 26, fy - 8, 52, 8, STL);
-  // (the projector: a big black box on a yoke, three fat lenses in a row)
+  // (the truss tower: a box truss on a steel base plate weighted with sandbags, its lacing, a safety chain; the snake of
+  // cables down it to a road case at its foot)
+  still(c, 'rig-tower', x, fy, -70, -h - 20, 140, h + 22, g => {
+    for (const dx of [-16, 16]) tube(g, dx, -h, dx, 0, 5);
+    for (const dx of [-10, 10]) tube(g, dx, -h, dx, 0, 2, ramp6('#5A6070'));
+    for (let y = 0; y > -h; y -= 30) { tube(g, -16, y, 16, y - 30, 2); tube(g, 16, y, -16, y - 30, 2); box(g, -18, y - 2, 36, 3, STL[2]); box(g, -18, y - 2, 36, 1, STL[4]); }
+    slab(g, -40, -10, 80, 10, STL);
+    for (const sx of [-34, 18]) { slab(g, sx, -24, 18, 14, ramp6('#8A7A52')); box(g, sx + 2, -20, 14, 1, '#6A5A3A'); box(g, sx + 6, -26, 6, 3, '#5A4A2A'); }
+    c3(g, -14, -h + 6);
+    // (the snake: a fat bundle of cable taped every so often, down the tower to the floor, off to a road case)
+    g.strokeStyle = '#0A090C'; g.lineWidth = 7; g.beginPath(); g.moveTo(-22, -h + 40); g.quadraticCurveTo(-30, -h / 2, -24, -30); g.quadraticCurveTo(-26, -6, -60, -4); g.stroke();
+    g.strokeStyle = '#2A2830'; g.lineWidth = 3; g.stroke();
+    for (let y = -h + 60; y < -40; y += 46) { box(g, -30, y, 12, 4, '#9CA3AF'); box(g, -30, y, 12, 1, '#D1D5DB'); }
+    signText(g, 'VIDEO', 0, -h / 2 + 14, STENCIL);
+  });
+  // (the projector: a 1994 three-gun CRT projector, a black steel case on a yoke clamped to the truss: vents, the
+  // handles, VIDEO-MAX 3000, three fat lenses (red, green, blue) in a row; knocked crooked and smoking once it's blown)
   c.save(); c.translate(x, fy - h - 30); c.rotate(broken ? 0.35 : 0.12);
-  slab(c, -40, -26, 90, 52, BLK);
+  tube(c, -20, 22, -20, 34, 4); tube(c, 20, 22, 20, 34, 4); tube(c, -30, 22, 30, 22, 4);
+  slab(c, -46, -30, 98, 56, BLK);
+  box(c, -44, -28, 94, 3, '#3A3844'); box(c, -46, 22, 98, 4, '#08070A');
+  for (let k = 0; k < 8; k++) { box(c, -38 + k * 6, -20, 3, 16, '#08070A'); box(c, -38 + k * 6, -20, 1, 16, '#3A3844'); }
+  for (const hx of [-30, 20]) { box(c, hx, -36, 14, 3, '#5A5866'); box(c, hx, -36, 2, 6, '#5A5866'); box(c, hx + 12, -36, 2, 6, '#5A5866'); }
+  signText(c, 'VIDEO-MAX 3000', 2, 16, STENCIL);
+  box(c, 34, -22, 6, 3, on ? '#22C55E' : '#14532D');
   for (let k = 0; k < 3; k++) {
-    const ly = -14 + k * 14, col = ['#EF4444', '#22C55E', '#3B82F6'][k];
-    box(c, 50, ly - 6, 12, 12, '#0A0A0D');
-    c.fillStyle = on ? col : mix(col, '#0A0A0D', 0.75); c.beginPath(); c.arc(60, ly, 5, 0, Math.PI * 2); c.fill();
-    if (on) { c.fillStyle = '#FFFFFF'; c.beginPath(); c.arc(61, ly - 1, 1.5, 0, Math.PI * 2); c.fill(); }
+    const ly = -16 + k * 15, col = ['#EF4444', '#22C55E', '#3B82F6'][k];
+    box(c, 52, ly - 7, 16, 14, '#08070A'); box(c, 52, ly - 7, 16, 2, '#3A3844'); box(c, 66, ly - 6, 4, 12, '#121116');
+    c.fillStyle = on ? col : mix(col, '#0A0A0D', 0.78); c.beginPath(); c.arc(68, ly, 6, 0, Math.PI * 2); c.fill();
+    c.fillStyle = on ? mix(col, '#FFFFFF', 0.5) : mix(col, '#0A0A0D', 0.6); c.beginPath(); c.arc(68, ly, 3.5, 0, Math.PI * 2); c.fill();
+    if (on) { c.fillStyle = '#FFFFFF'; c.fillRect(68, ly - 3, 2, 2); c.fillStyle = `rgba(255,255,255,${0.18 + 0.06 * Math.sin(f * 0.3 + k)})`; c.beginPath(); c.arc(70, ly, 11, 0, Math.PI * 2); c.fill(); }
+    if (broken && k === 1) { c.strokeStyle = '#D1D5DB'; c.lineWidth = 0.8; c.beginPath(); c.moveTo(64, ly - 4); c.lineTo(68, ly); c.lineTo(66, ly + 4); c.moveTo(68, ly); c.lineTo(72, ly - 3); c.stroke(); }
   }
-  for (let k = 0; k < 6; k++) box(c, -34 + k * 6, -18, 3, 12, '#0A0A0D');
-  signText(c, 'VIDEO-MAX 3000', 4, 16, STENCIL);
   c.restore();
   if (broken) {
-    // (smoke off it, a spark now and then)
-    for (let k = 0; k < 4; k++) { const t = ((f + k * 17) % 68) / 68; c.fillStyle = `rgba(120,116,128,${0.5 * (1 - t)})`; c.beginPath(); c.arc(x + 20 + Math.sin(t * 4 + k) * 8, fy - h - 50 - t * 90, 6 + t * 14, 0, Math.PI * 2); c.fill(); }
-    if (f % 90 < 4) { c.fillStyle = '#FDE68A'; for (let k = 0; k < 5; k++) c.fillRect(x + 50 + hash(f + k) * 20, fy - h - 40 + hash(f * 3 + k) * 20, 2, 2); }
+    // (smoke off it, a spark now and then, a melted cable end dangling)
+    for (let k = 0; k < 5; k++) { const t = ((f + k * 14) % 70) / 70; c.fillStyle = `rgba(110,106,118,${0.55 * (1 - t)})`; c.beginPath(); c.arc(x + 24 + Math.sin(t * 4 + k) * 9, fy - h - 54 - t * 100, 6 + t * 16, 0, Math.PI * 2); c.fill(); }
+    if (f % 90 < 5) { for (let k = 0; k < 6; k++) { c.fillStyle = k % 2 ? '#FDE68A' : '#FFFFFF'; c.fillRect(x + 50 + hash(f + k) * 24, fy - h - 44 + hash(f * 3 + k) * 24, 2, 2); } }
+    c.strokeStyle = '#0A090C'; c.lineWidth = 2; c.beginPath(); c.moveTo(x - 30, fy - h - 4); c.quadraticCurveTo(x - 40, fy - h + 30 + Math.sin(f * 0.05) * 3, x - 34, fy - h + 50); c.stroke(); box(c, x - 36, fy - h + 49, 4, 4, '#3A2A1A');
   }
 };
+/** A safety chain down a truss (local x, top y). */
+const c3 = (g: Ctx, x: number, y: number) => { for (let k = 0; k < 10; k++) { box(g, x - 1 + (k % 2), y + k * 5, 3, 4, '#8A909A'); box(g, x + (k % 2), y + k * 5 + 1, 1, 2, '#2A2830'); } };
 
 /** The real stage's lighting (the work lights up: soft, all over; a glow about him). */
 export const realLight = (state: GameState, lights: Light[]) => {

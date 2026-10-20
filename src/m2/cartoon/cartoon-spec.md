@@ -739,6 +739,46 @@ markBossFight every frame of a boss or sub-boss fight. Voice every new line (`np
   Falwell's actors redone more specific and gruesome (bodies.ts), and the henchmen's actors leave their effects in the
   blood (the goon's snapped shades, the lobbyist's burst briefcase of red-soaked bills, the pollster's clipboard and
   crushed glasses). Drawing only: no layout, timing, hitbox or lighting-logic changes.
+- (SNES pass) THE WHITE HOUSE, PART TWO (whitehouse2/): on part one's kit (whitehouse1/paint.ts) and its rooms'
+  approach: the West Wing's rooms in whitehouse2/rooms.ts (each back wall painted once for the hour; ceilings coffered,
+  drop-tiled with fluorescents (the offices, the kitchens) or dark with spots (the Situation Room); floors going back to
+  the one eye: carpet, checker, rugs, the raised floor's tiles; the brick cutaway above; doorways with the next room lit
+  through them), every wall full: the offices (binders, the water cooler, desks of beige computers, the corkboard, blinds
+  onto the grounds, the copier, the fax spitting paper, DAYS WITHOUT A SCANDAL: 0), the Roosevelt Room as the EIB studio
+  (Teddy over the fireplace, the moose, the producer's booth, egg-crate foam, the banner, ON AIR live, gold records,
+  TALENT ON LOAN FROM GOD, the DITTO LINES lit), the kitchens (tile, the fridge with Socks drawn on it, cans, the hood,
+  the utensil rail, the menu, the sink, a mop), the Cabinet Room (French windows in gold swags, the fireplace and eagle,
+  portraits, a bust, the flags), the Map Room (oak, the war map's pins and yarn to MEAN MEN HQ?, FDR, a ship's wheel, a
+  telescope, a compass rose), the Situation Room (the monitors live: radar, blips, MEAN MEN ALERT crawling, the big
+  screen's TARGET: SOCKS; DEFCON 1; the world's clocks; the hotline; the beacon), the Outer Oval (the secretary's
+  desk, the grandfather clock, the Oval's door under its eagle); THE OVAL OFFICE the grandest: its walls curving round
+  to the one eye (niches of shelves, a door each side, sconces), three tall windows onto the Rose Garden in gold drapes,
+  the flags, the credenza's photos (Socks's among them), the ceiling's plaster Seal, the oval rug with the Seal going
+  back. The West Colonnade out of doors on part one's far (whitehouse1/far.ts): the Residence's west end, crabapples and
+  magnolias, hedges and beds of tree roses, the lawn in mowed stripes, the colonnade's Doric run and lanterns (lit after
+  dark), the West Wing's end wall going back (a French door out, the office's paper in). The play plane stepped, tops
+  going back, lit lips kept: the filing cabinets (government steel, label cards, the drawers' manila folders), the EIB
+  desk (its board, a DITTO mug), the studio shelves, the jelly mold (lime in steps, fruit set in it, the cherry), the
+  range (stainless, the oven windows, the burners' rings and stepped fire), the pot rack (copper on chains), the cabinet
+  table (mahogany, the chairs' backs dimmed, name plates), the globe on its carved stand (its continents turning, the
+  brass meridian; split: hollow halves), the library step, the map chest, the footstool, the lasers (dark housings,
+  stepped beams), the Resolute desk (the Seal on its kneehole, THE BUCK STOPS HERE), gilt shelves (books, a model ship, a
+  bust); the Oval's far wall the house's brick, cut. Limbaugh, Dole and Newt at Perot's and Falwell's grade (part one's
+  toon kit: ramps, dithered seams, the fat outline; Limbaugh's double-breasted strain and paisley, Dole's crease, cleft and
+  pen, Newt's curls), their throws and puffs; the spin doctor (pinstripes, pens, a head mirror; the whirl stepped, press
+  releases flying) and the dittohead (the radio's grille and dial, DITTOS, a belt) detailed, the sound wave stepped.
+  The finale: the Clintons' TV (telescoping arm, wood cabinet, dials, rabbit ears, the UN emblem and flags, scan lines;
+  Bill and Hillary on the toon kit), the cloth's hem and grommets falling, the actress (a grown woman in the costume, the
+  wig half off its pins, her own hair under its cap, the mascara run) in real ramps. The real stage, part two: the
+  VIDEO-MAX 3000 on its truss tower (sandbags, a safety chain, the cable snake; three lenses, cracked and smoking when
+  blown), the stage door (wired glass, push bars, the call board and sign-in sheet, the extinguisher, a crew jacket, the
+  EXIT lit), the stunt trampoline, dead gas rings and a tank, the laser rig's tripods, the fiberglass globe's halves; the
+  bodies (bodies.ts, painted once): NEWT flayed (ribs, the belly's rows, finger bones, lidless eyes, both rows of teeth,
+  the tie still knotted round the bare neck), LIMBAUGH hanged off the boom stand by his mic cord (the ON AIR light lit,
+  the fat suit slashed to its foam, the rubber head on the desk, the cigar smoking), DOLE across the table (the skull
+  split round the pineapple, the buttons bleeding through his shirt, the pen in his fist); the spin doctors' and
+  dittoheads' actors leave their head mirrors, press releases and smashed radios in their blood; the actress's wig and
+  mess redone. Drawing only: no layout, timing, hitbox or lighting-logic changes.
 - (SNES pass) PUNCHY & KICKY (itchy/): one eye (kit.ts); the show's paint box in itchy/paint.ts (six-step blood, gore,
   bone, mustard, tar, cream, ginger, mousey, plywood, crate, concrete, steel, rust, velour; stepped splats, drips off
   ledges, cartoon bones, skulls, chalk outlines, riveted plates, planks, hazard stripes). The far off cached per hour

@@ -28,7 +28,7 @@ import { todLight } from '../../timeOfDay';
 import type { CartoonSection } from '../section';
 import { layOwn, ledge, solid, meatheadSays, byPants, runExits, saidOver } from '../section';
 import { SECTIONS, DOORS, GY } from '../geometry';
-import { toonSky } from '../kit';
+import { drawWhFar } from '../whitehouse1/far';
 import { projectionUp, catActive, drawThrows } from '../whitehouse1';
 import { CAT_MEMO } from '../whitehouse1/state';
 import { whOf } from '../whitehouse1/state';
@@ -57,6 +57,7 @@ import {
   drawStageBackdrop, drawStageShell, drawStageProps, drawSeats, drawStageDoor, drawFallenScreen, drawProjectorRig, stageLights, stageBox,
   type StagePlan,
 } from './realStage';
+import { trampoline, deadBurner, tank, laserStand, globeHalf } from './stageBits';
 import { drawNewtBody, drawLimbaughBody, drawDoleBody, drawDeadActor, drawWigAndMess, bloodPool } from './bodies';
 import { HINT2, GLOBE_RUN, GAGS2, BODY_LINES, STAGE_AGAIN, LEAVING } from './lines';
 import './kinds';
@@ -179,7 +180,7 @@ export const whitehouse2: CartoonSection = {
   drawBackdrop: (c, state) => {
     const s = wh2Of(state);
     if (s.real || (s.finale && s.finale.step === 'fall')) return drawStageBackdrop(c, state);
-    return toonSky(c, state, null, { hill: '#A7D8A0' });
+    return drawWhFar(c, state);
   },
   drawBack: (c, state) => {
     const s = wh2Of(state), F = s.finale;
@@ -246,12 +247,12 @@ const drawReal = (c: CanvasRenderingContext2D, state: GameState) => {
   // (the drawers, out for good: plywood steps)
   for (const d of s.drawers) if (d.b.x > -1e6) stageBox(c, d.b.x, d.b.x + d.b.w, d.b.y, d.b.y + 30, '');
   // (the jelly mold was a stunt trampoline; the burners dead rings; the laser emitters dark on their stands)
-  { const a = X(JELLO.a), b = X(JELLO.b), top = Y(JELLO.h); c.fillStyle = '#3F3F46'; c.fillRect(a, top + 4, b - a, GY - top - 4); c.fillStyle = '#111827'; c.fillRect(a + 4, top, b - a - 8, 5); c.fillStyle = '#E7E2D6'; c.fillRect(a + 4, top, b - a - 8, 1); }
-  for (const rx of BURNERS) { c.fillStyle = '#111827'; c.beginPath(); c.ellipse(X(rx), Y(RANGE.h) - 1, 16, 3, 0, 0, Math.PI * 2); c.fill(); }
-  for (const [rx] of BLINKERS) { c.fillStyle = '#27272A'; c.fillRect(X(rx) - 10, GY - 14, 20, 14); c.fillStyle = '#7F1D1D'; c.fillRect(X(rx) - 2, GY - 16, 4, 2); }
+  trampoline(c, X(JELLO.a), X(JELLO.b), Y(JELLO.h), GY);
+  BURNERS.forEach((rx, k) => deadBurner(c, X(rx), Y(RANGE.h), k));
+  tank(c, X(RANGE.a) - 22, GY);
+  for (const [rx] of BLINKERS) laserStand(c, X(rx), GY);
   // (the globe: a split fiberglass ball)
-  const g = s.globe;
-  for (const h of g.halves) { c.save(); c.translate(h.x, GY); c.rotate(h.rock); c.fillStyle = '#D6D3D1'; c.beginPath(); c.arc(0, 0, 56, Math.PI, 0); c.closePath(); c.fill(); c.fillStyle = '#A8A29E'; c.fillRect(-56, -3, 112, 3); c.restore(); }
+  s.globe.halves.forEach((h, i) => globeHalf(c, h.x, GY, h.rock, i));
   // (the dead: Limbaugh, Dole, Newt, the mean men's actors he killed)
   drawLimbaughBody(c, X(DESK_EIB.a), X(DESK_EIB.b), Y(DESK_EIB.h), GY, f);
   drawDoleBody(c, X(CAB_TABLE.a), X(CAB_TABLE.b), Y(CAB_TABLE.h), GY);

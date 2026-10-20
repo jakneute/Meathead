@@ -35,6 +35,8 @@ import { signText } from '../../signLetters';
 import { speak, meatheadSays, byPants, hands, saidOver } from '../section';
 import { GY } from '../geometry';
 import { INK, toonLetters, box, type Ctx } from '../kit';
+import { toonPart, toonTop, toonFlat, toonRamp, type Rp } from '../whitehouse1/punditArt';
+import { shape, shapeTop, limb, rampOf } from '../amphi/paint';
 import { chelseaSays, scripted, chelseaTo, setChelseaPose, chelseaOf } from '../whitehouse1/chelsea';
 import { wh2Of, COLLAPSED_MEMO, ACTRESS_GONE_MEMO, type Finale } from './state';
 import { NEWT_ARENA, RESOLUTE, CEIL, OVAL_WALL, X, Y } from './layout';
@@ -215,46 +217,59 @@ export const updateActress = (state: GameState) => {
 /** She's gone (he's left the White House): a later visit has her wig and her mess. */
 export const actressLeaves = (state: GameState) => { if (state.stageMemo[COLLAPSED_MEMO]) state.stageMemo[ACTRESS_GONE_MEMO] = '1'; };
 
-const SKIN = '#E7B796', WIG = '#E8A15C', WIG_SH = '#C9793A', SWEATER = '#7C5CC4', SKIRT = '#0F766E';
-/** The actress (world): a grown woman in the show's Chelsea costume, on her knees, one hand on the floor, being sick. */
+const SKIN = rampOf('#E2AE8C'), WIG = rampOf('#E8A15C'), SWEATER = rampOf('#7C5CC4'), SKIRT = rampOf('#0F766E'), SOCK = rampOf('#F1F5F9'), SHOE = rampOf('#1A1A24'), OWN_HAIR = rampOf('#3B2A22'), BILE = rampOf('#C8B858');
+/** The actress (world): a grown woman in the show's Chelsea costume (the purple sweater, its white collar, the plaid,
+ *  the white knee socks, the Mary Janes), on her knees, one hand braced on the floor, being sick. The orange curly wig
+ *  half off (pinned at one side, hanging), her own dark hair flat under its cap, the pink headband askew, the stage
+ *  freckles painted on, the mascara run; the puddle growing in front of her. Real, under the work lights: no cartoon ink. */
 export const drawActress = (c: Ctx, state: GameState) => {
   const a = wh2Of(state).actress, f = state.frame;
   if (!a.x || state.stageMemo[ACTRESS_GONE_MEMO]) return;
   const x = a.x, y = a.y, h = a.heave > 0, lurch = h ? Math.sin(f * 0.6) * 2 : Math.sin(f * 0.05);
-  // (the puddle in front of her, growing)
-  c.fillStyle = '#9C8C3A'; c.beginPath(); c.ellipse(x + 44, y, 26 + a.puddle * 40, 4 + a.puddle * 2, 0, 0, Math.PI * 2); c.fill();
-  c.fillStyle = '#CFC066'; c.beginPath(); c.ellipse(x + 40, y - 1, 16 + a.puddle * 26, 2.5, 0, 0, Math.PI * 2); c.fill();
+  // (the puddle in front of her, growing: banded, chunks in it, a wet shine)
+  const pw = 26 + a.puddle * 40;
+  c.fillStyle = BILE[3]; c.beginPath(); c.ellipse(x + 44, y + 1, pw + 3, 5 + a.puddle * 2, 0, 0, Math.PI * 2); c.fill();
+  c.fillStyle = BILE[1]; c.beginPath(); c.ellipse(x + 44, y, pw, 4 + a.puddle * 2, 0, 0, Math.PI * 2); c.fill();
+  c.fillStyle = BILE[0]; c.beginPath(); c.ellipse(x + 40, y - 1, pw * 0.6, 2.2, 0, 0, Math.PI * 2); c.fill();
+  for (let k = 0; k < 5; k++) { c.fillStyle = k % 2 ? '#8A6A2A' : '#E8D88A'; c.fillRect(x + 30 + ((k * 13) % Math.max(8, pw)), y - 1 + (k % 2), 3, 2); }
+  c.fillStyle = 'rgba(255,255,240,0.6)'; c.fillRect(x + 34, y - 2, 8, 1);
   c.save(); c.translate(x, y);
-  // (kneeling: the shins flat on the floor behind, white knee socks, black shoes)
-  box(c, -34, -8, 30, 8, '#F1F5F9'); box(c, -42, -9, 10, 7, '#111827');
-  box(c, -8, -24, 14, 18, SKIN);
-  // (the plaid skirt, the thighs under it)
-  c.fillStyle = SKIRT; c.beginPath(); c.moveTo(-14, -18); c.lineTo(12, -18); c.lineTo(16, -34); c.lineTo(-10, -38); c.closePath(); c.fill();
-  c.fillStyle = '#FACC15'; c.fillRect(-8, -30, 18, 1); c.fillStyle = '#DC2626'; c.fillRect(-4, -36, 1, 18); c.fillRect(6, -34, 1, 16);
-  // (the body bent over, the purple sweater (stained), the big white collar)
+  // (kneeling: the shins flat on the floor behind, the white knee socks, the Mary Janes and their straps)
+  shapeTop(c, () => c.roundRect(-36, -9, 30, 9, 3), SOCK, -9, 0);
+  shapeTop(c, () => c.roundRect(-46, -10, 12, 8, [3, 1, 1, 3]), SHOE, -10, -2); c.fillStyle = '#5A5A66'; c.fillRect(-44, -9, 6, 1);
+  limb(c, -6, -10, 6, -2, -26, 6.5, SKIN, 0, 1);
+  // (the plaid skirt: teal, the yellow and red lines across)
+  shape(c, () => { c.moveTo(-15, -18); c.lineTo(13, -18); c.lineTo(17, -35); c.lineTo(-10, -39); c.closePath(); }, SKIRT, -15, 17);
+  c.fillStyle = '#FACC15'; c.fillRect(-10, -31, 22, 1); c.fillRect(-12, -24, 26, 1); c.fillStyle = '#DC2626'; c.fillRect(-4, -37, 1, 19); c.fillRect(6, -35, 1, 17);
+  // (the body bent over: the purple sweater in steps, stained, the big white collar)
   c.save(); c.translate(0, -36 + lurch * 0.5); c.rotate(0.85 + (h ? 0.12 : 0));
-  c.fillStyle = SWEATER; c.beginPath(); c.roundRect(-10, -30, 22, 32, 6); c.fill();
-  c.fillStyle = '#5E44A0'; c.fillRect(-10, -6, 22, 4);
-  c.fillStyle = '#F8FAFC'; c.beginPath(); c.moveTo(-10, -30); c.quadraticCurveTo(0, -22, 12, -30); c.lineTo(10, -34); c.lineTo(-8, -34); c.closePath(); c.fill();
-  c.fillStyle = '#B9A548'; c.fillRect(-2, -26, 8, 3); c.fillRect(2, -20, 5, 2);
+  shape(c, () => c.roundRect(-11, -31, 24, 34, 7), SWEATER, -11, 13);
+  c.fillStyle = SWEATER[3]; c.fillRect(-11, -6, 24, 4); for (let k = 0; k < 6; k++) c.fillRect(-9 + k * 4, -4, 1, 4);
+  shapeTop(c, () => { c.moveTo(-11, -31); c.quadraticCurveTo(0, -22, 13, -31); c.lineTo(11, -35); c.lineTo(-9, -35); c.closePath(); }, rampOf('#F8FAFC'), -35, -24);
+  c.fillStyle = BILE[1]; c.fillRect(-2, -27, 9, 3); c.fillRect(2, -20, 6, 2); c.fillStyle = BILE[0]; c.fillRect(-1, -27, 3, 1);
   c.restore();
-  // (the arm braced on the floor)
-  c.strokeStyle = SWEATER; c.lineWidth = 7; c.lineCap = 'round'; c.beginPath(); c.moveTo(14, -46); c.lineTo(22, -4); c.stroke(); c.lineCap = 'butt';
-  c.fillStyle = SKIN; c.beginPath(); c.ellipse(24, -2, 5, 3, 0, 0, Math.PI * 2); c.fill();
-  // (the head down over the puddle: the wig half off, her own dark hair in its cap, the pink headband askew, the stage
-  // makeup smeared, freckles drawn on, the mouth open, retching)
+  // (the arm braced on the floor, the cuff, the hand splayed)
+  limb(c, 14, -46, 4.5, 22, -6, 4, SWEATER, 0, 1);
+  shapeTop(c, () => c.ellipse(24, -2, 5.5, 3, 0, 0, Math.PI * 2), SKIN, -5, 1);
+  // (the head down over the puddle)
   const hx = 26, hy = -46 + lurch;
-  c.fillStyle = '#3B2A22'; c.beginPath(); c.ellipse(hx - 4, hy - 6, 11, 9, 0.4, 0, Math.PI * 2); c.fill();
-  c.fillStyle = SKIN; c.beginPath(); c.ellipse(hx, hy, 10, 11, 0.5, 0, Math.PI * 2); c.fill();
+  shapeTop(c, () => c.ellipse(hx - 4, hy - 6, 11.5, 9.5, 0.4, 0, Math.PI * 2), OWN_HAIR, hy - 15, hy + 3);
+  c.fillStyle = '#C8B8A8'; c.fillRect(hx - 10, hy - 12, 10, 2);
+  shape(c, () => c.ellipse(hx, hy, 10.5, 11.5, 0.5, 0, Math.PI * 2), SKIN, hx - 11, hx + 11);
   c.fillStyle = '#E88A8A'; c.beginPath(); c.ellipse(hx + 3, hy + 2, 3.5, 2, 0.4, 0, Math.PI * 2); c.fill();
-  c.fillStyle = '#B5652E'; for (const [dx, dy] of [[1, -1], [4, 0], [6, 1], [3, 2]]) c.fillRect(hx + dx, hy + dy, 1, 1);
-  c.fillStyle = '#1F1A2E'; c.fillRect(hx + 1, hy - 5, 4, 1.5); c.fillRect(hx + 2, hy - 2, 1, 4); c.fillRect(hx + 3, hy - 1, 1, 6);
-  c.fillStyle = '#3F0606'; c.beginPath(); c.ellipse(hx + 7, hy + 7, 3, h ? 4 : 2, 0.4, 0, Math.PI * 2); c.fill();
+  c.fillStyle = '#A0522A'; for (const [dx, dy] of [[1, -1], [4, 0], [6, 1], [3, 2], [5, 3]]) c.fillRect(hx + dx, hy + dy, 1, 1);
+  // (the eye squeezed shut, the mascara run down the cheek)
+  c.fillStyle = '#1F1A2E'; c.fillRect(hx + 1, hy - 5, 5, 1.5); c.fillRect(hx + 2, hy - 3, 1, 5); c.fillRect(hx + 4, hy - 3, 1, 7);
+  // (the mouth open, retching)
+  c.fillStyle = '#3F0606'; c.beginPath(); c.ellipse(hx + 7, hy + 7, 3.2, h ? 4.2 : 2, 0.4, 0, Math.PI * 2); c.fill();
   c.fillStyle = '#E5E7EB'; c.fillRect(hx + 5, hy + 5, 4, 1);
-  for (const [dx, dy, r] of [[-12, -14, 6], [-16, -6, 6], [-10, -20, 5], [-4, -18, 5], [-18, 2, 5]] as [number, number, number][]) { c.fillStyle = WIG_SH; c.beginPath(); c.arc(hx + dx - 6, hy + dy + 4, r, 0, Math.PI * 2); c.fill(); c.fillStyle = WIG; c.beginPath(); c.arc(hx + dx - 7, hy + dy + 3, r * 0.65, 0, Math.PI * 2); c.fill(); }
-  c.strokeStyle = '#F472B6'; c.lineWidth = 3; c.beginPath(); c.arc(hx - 8, hy - 4, 12, Math.PI * 1.2, Math.PI * 1.75); c.stroke();
+  // (the wig half off, hanging off its pins at one side: orange curls in steps)
+  for (const [dx, dy, r] of [[-12, -14, 6.5], [-17, -6, 6.5], [-10, -21, 5.5], [-4, -19, 5.5], [-19, 3, 5.5], [-22, 11, 5], [-15, 9, 5]] as [number, number, number][]) { c.fillStyle = WIG[3]; c.beginPath(); c.arc(hx + dx - 6, hy + dy + 4, r, 0, Math.PI * 2); c.fill(); c.fillStyle = WIG[1]; c.beginPath(); c.arc(hx + dx - 7, hy + dy + 3, r * 0.75, 0, Math.PI * 2); c.fill(); c.fillStyle = WIG[0]; c.fillRect(hx + dx - 9, hy + dy + 1, 2, 2); }
+  c.fillStyle = '#9CA3AF'; c.fillRect(hx - 8, hy - 9, 3, 1); c.fillRect(hx - 12, hy - 4, 3, 1);
+  c.strokeStyle = '#D9468E'; c.lineWidth = 3.4; c.beginPath(); c.arc(hx - 9, hy - 3, 12, Math.PI * 1.2, Math.PI * 1.75); c.stroke();
+  c.strokeStyle = '#F9A8D4'; c.lineWidth = 1.2; c.beginPath(); c.arc(hx - 9, hy - 4, 12, Math.PI * 1.25, Math.PI * 1.6); c.stroke();
   // (the stream, while she heaves)
-  if (h) { c.strokeStyle = '#CFC066'; c.lineWidth = 4; c.beginPath(); c.moveTo(hx + 8, hy + 8); c.quadraticCurveTo(hx + 18, hy + 20, hx + 20, -2); c.stroke(); c.strokeStyle = '#E2D27A'; c.lineWidth = 1.5; c.stroke(); }
+  if (h) { c.strokeStyle = BILE[2]; c.lineWidth = 5; c.beginPath(); c.moveTo(hx + 8, hy + 8); c.quadraticCurveTo(hx + 18, hy + 20, hx + 20, -2); c.stroke(); c.strokeStyle = BILE[0]; c.lineWidth = 2; c.stroke(); }
   c.restore();
 };
 /** Her words (screen space: over the work lights). */
@@ -268,53 +283,92 @@ export const drawActressSaid = (c: Ctx, state: GameState) => {
 
 const TV_TOP = Y(CEIL);
 const tvBox = (F: Finale) => { const drop = 190 * F.tv; return { x: TV_X - TV_W / 2, y: TV_TOP - TV_H + drop + 20, w: TV_W, h: TV_H }; };
-const inkd = (c: Ctx, path: () => void, fill: string, w = 2.4) => { c.beginPath(); path(); c.fillStyle = fill; c.fill(); c.lineJoin = 'round'; c.strokeStyle = INK; c.lineWidth = w; c.stroke(); };
+// (the show's people on the TV are cartoons: part one's toon kit, inked fat)
+const SKIN_B: Rp = ['#FFE0CC', '#F6C3AA', '#E0A088', '#C07A62'];
+const SUIT_B: Rp = ['#4A64B4', '#22408E', '#182E6A', '#0E1E4A'];
+const HAIR_B: Rp = ['#F2F4F8', '#CBD5E1', '#A0A8B8', '#7A8294'];
+const PINK_H: Rp = ['#FBCFE8', '#F472B6', '#DB2777', '#9D174D'];
+const BLOND: Rp = ['#FFF6C8', '#FDE68A', '#E8C060', '#B8903A'];
 const drawBill = (c: Ctx, x: number, y: number, talk: boolean, f: number) => {
-  inkd(c, () => { c.moveTo(x - 30, y + 60); c.quadraticCurveTo(x - 30, y + 18, x, y + 16); c.quadraticCurveTo(x + 30, y + 18, x + 30, y + 60); c.closePath(); }, '#1E3A8A');
-  inkd(c, () => { c.moveTo(x - 4, y + 18); c.lineTo(x + 4, y + 18); c.lineTo(x + 2, y + 44); c.lineTo(x - 2, y + 44); c.closePath(); }, '#DC2626', 1.4);
-  inkd(c, () => c.ellipse(x, y - 4, 19, 21, 0, 0, Math.PI * 2), '#F6C3AA');
-  // (the big puffy gray hair, the big red nose, the grin)
-  inkd(c, () => { c.moveTo(x - 20, y - 4); c.quadraticCurveTo(x - 26, y - 34, x, y - 32); c.quadraticCurveTo(x + 26, y - 34, x + 20, y - 4); c.quadraticCurveTo(x + 12, y - 20, x, y - 20); c.quadraticCurveTo(x - 12, y - 20, x - 20, y - 4); c.closePath(); }, '#CBD5E1');
-  for (const ex of [-7, 7]) { c.fillStyle = INK; c.beginPath(); c.arc(x + ex, y - 6, 2, 0, Math.PI * 2); c.fill(); }
-  inkd(c, () => c.ellipse(x, y + 2, 7, 6, 0, 0, Math.PI * 2), '#E05A5A', 2);
+  // (the navy suit, the red tie, a saxophone pin; the thumbs up, bobbing as he talks)
+  toonPart(c, () => { c.moveTo(x - 30, y + 60); c.quadraticCurveTo(x - 30, y + 18, x, y + 16); c.quadraticCurveTo(x + 30, y + 18, x + 30, y + 60); c.closePath(); }, SUIT_B, x - 30, x + 30, 2.4);
+  toonFlat(c, () => { c.moveTo(x - 6, y + 16); c.lineTo(x + 6, y + 16); c.lineTo(x, y + 28); c.closePath(); }, '#F2F2F8', 1.2);
+  toonPart(c, () => { c.moveTo(x - 3.5, y + 18); c.lineTo(x + 3.5, y + 18); c.lineTo(x + 2.5, y + 44); c.lineTo(x, y + 47); c.lineTo(x - 2.5, y + 44); c.closePath(); }, toonRamp('#DC2626'), x - 3.5, x + 3.5, 1.4);
+  c.fillStyle = '#E2B33C'; c.fillRect(x - 18, y + 26, 2, 6); c.fillRect(x - 18, y + 31, 4, 2);
+  toonPart(c, () => c.ellipse(x, y - 4, 19, 21, 0, 0, Math.PI * 2), SKIN_B, x - 19, x + 19, 2.4);
+  // (the big puffy gray hair in steps, the big red nose, the grin, the bags under the eyes)
+  toonTop(c, () => { c.moveTo(x - 20, y - 4); c.quadraticCurveTo(x - 27, y - 35, x, y - 33); c.quadraticCurveTo(x + 27, y - 35, x + 20, y - 4); c.quadraticCurveTo(x + 12, y - 20, x, y - 20); c.quadraticCurveTo(x - 12, y - 20, x - 20, y - 4); c.closePath(); }, HAIR_B, y - 35, y - 4, 2.4);
+  c.strokeStyle = HAIR_B[3]; c.lineWidth = 1; for (let k = 0; k < 4; k++) { c.beginPath(); c.arc(x - 12 + k * 8, y - 24, 5, Math.PI * 1.1, Math.PI * 1.9); c.stroke(); }
+  for (const ex of [-7, 7]) { c.fillStyle = INK; c.beginPath(); c.arc(x + ex, y - 6, 2.2, 0, Math.PI * 2); c.fill(); c.fillStyle = '#FFFFFF'; c.fillRect(x + ex, y - 7, 1, 1); c.fillStyle = SKIN_B[2]; c.fillRect(x + ex - 3, y - 2, 6, 1); }
+  toonPart(c, () => c.ellipse(x, y + 2, 7.5, 6.5, 0, 0, Math.PI * 2), toonRamp('#E05A5A'), x - 7.5, x + 7.5, 2);
+  c.fillStyle = '#FFFFFF'; c.fillRect(x - 3, y - 1, 2, 2);
   const open = talk ? [2, 6, 3, 7][(f >> 2) % 4] : 3;
-  inkd(c, () => c.ellipse(x, y + 11, 9, open / 2 + 1, 0, 0, Math.PI * 2), '#7F1D1D', 1.6); c.fillStyle = '#FFFFFF'; c.fillRect(x - 6, y + 9, 12, 1.5);
-  // (the thumbs up)
-  inkd(c, () => c.roundRect(x + 30, y + 22 - (talk ? (f >> 4) % 2 * 3 : 0), 12, 12, 3), '#F6C3AA', 1.8);
-  inkd(c, () => c.roundRect(x + 33, y + 12 - (talk ? (f >> 4) % 2 * 3 : 0), 5, 12, 2), '#F6C3AA', 1.6);
+  toonFlat(c, () => c.ellipse(x, y + 11, 9, open / 2 + 1, 0, 0, Math.PI * 2), '#5A0E14', 1.6); c.fillStyle = '#FFFFFF'; c.fillRect(x - 6, y + 9, 12, 1.5);
+  const bob = talk ? ((f >> 4) % 2) * 3 : 0;
+  toonPart(c, () => c.roundRect(x + 29, y + 22 - bob, 13, 13, 3), SKIN_B, x + 29, x + 42, 1.8);
+  toonPart(c, () => c.roundRect(x + 32, y + 11 - bob, 5.5, 13, 2), SKIN_B, x + 32, x + 37.5, 1.6);
 };
 const drawHillary = (c: Ctx, x: number, y: number, talk: boolean, f: number) => {
-  inkd(c, () => { c.moveTo(x - 26, y + 60); c.quadraticCurveTo(x - 26, y + 18, x, y + 16); c.quadraticCurveTo(x + 26, y + 18, x + 26, y + 60); c.closePath(); }, '#F472B6');
-  c.fillStyle = '#FFFFFF'; for (let k = -3; k <= 3; k++) { c.beginPath(); c.arc(x + k * 4, y + 21 + Math.abs(k), 2, 0, Math.PI * 2); c.fill(); }
-  inkd(c, () => c.ellipse(x, y - 2, 16, 19, 0, 0, Math.PI * 2), '#F6C3AA');
-  // (the blonde bob, the black headband)
-  inkd(c, () => { c.moveTo(x - 20, y + 10); c.quadraticCurveTo(x - 24, y - 30, x, y - 26); c.quadraticCurveTo(x + 24, y - 30, x + 20, y + 10); c.lineTo(x + 14, y + 10); c.quadraticCurveTo(x + 14, y - 10, x, y - 14); c.quadraticCurveTo(x - 14, y - 10, x - 14, y + 10); c.closePath(); }, '#FDE68A');
+  // (the pink suit, the pearls; the blonde bob, the black headband)
+  toonPart(c, () => { c.moveTo(x - 26, y + 60); c.quadraticCurveTo(x - 26, y + 18, x, y + 16); c.quadraticCurveTo(x + 26, y + 18, x + 26, y + 60); c.closePath(); }, PINK_H, x - 26, x + 26, 2.4);
+  toonFlat(c, () => { c.moveTo(x - 5, y + 17); c.lineTo(x - 12, y + 30); c.lineTo(x - 2, y + 40); c.closePath(); }, PINK_H[0], 1.2);
+  toonFlat(c, () => { c.moveTo(x + 5, y + 17); c.lineTo(x + 12, y + 30); c.lineTo(x + 2, y + 40); c.closePath(); }, PINK_H[2], 1.2);
+  for (let k = -3; k <= 3; k++) { c.fillStyle = INK; c.beginPath(); c.arc(x + k * 4, y + 21 + Math.abs(k), 2.6, 0, Math.PI * 2); c.fill(); c.fillStyle = '#FFFFFF'; c.beginPath(); c.arc(x + k * 4, y + 21 + Math.abs(k), 1.8, 0, Math.PI * 2); c.fill(); }
+  toonPart(c, () => c.ellipse(x, y - 2, 16, 19, 0, 0, Math.PI * 2), SKIN_B, x - 16, x + 16, 2.4);
+  toonTop(c, () => { c.moveTo(x - 20, y + 10); c.quadraticCurveTo(x - 25, y - 31, x, y - 27); c.quadraticCurveTo(x + 25, y - 31, x + 20, y + 10); c.lineTo(x + 14, y + 10); c.quadraticCurveTo(x + 14, y - 10, x, y - 14); c.quadraticCurveTo(x - 14, y - 10, x - 14, y + 10); c.closePath(); }, BLOND, y - 31, y + 10, 2.4);
+  c.strokeStyle = BLOND[3]; c.lineWidth = 1; for (const s of [-1, 1]) { c.beginPath(); c.moveTo(x + s * 16, y - 12); c.quadraticCurveTo(x + s * 20, y, x + s * 17, y + 8); c.stroke(); }
   c.strokeStyle = INK; c.lineWidth = 4; c.beginPath(); c.arc(x, y - 6, 18, Math.PI * 1.15, Math.PI * 1.85); c.stroke();
-  for (const ex of [-6, 6]) { c.fillStyle = INK; c.beginPath(); c.arc(x + ex, y - 3, 2, 0, Math.PI * 2); c.fill(); }
+  for (const ex of [-6, 6]) { c.fillStyle = INK; c.beginPath(); c.arc(x + ex, y - 3, 2.1, 0, Math.PI * 2); c.fill(); c.fillStyle = '#FFFFFF'; c.fillRect(x + ex, y - 4, 1, 1); c.fillStyle = INK; c.fillRect(x + ex - 3, y - 7, 6, 1); }
+  c.fillStyle = '#F29A9A'; c.fillRect(x - 11, y + 3, 4, 2); c.fillRect(x + 7, y + 3, 4, 2);
   const open = talk ? [2, 6, 3, 7][(f >> 2) % 4] : 2;
-  inkd(c, () => c.ellipse(x, y + 9, 7, open / 2 + 1, 0, 0, Math.PI * 2), '#BE185D', 1.6); c.fillStyle = '#FFFFFF'; c.fillRect(x - 5, y + 7, 10, 1.5);
+  toonFlat(c, () => c.ellipse(x, y + 9, 7, open / 2 + 1, 0, 0, Math.PI * 2), '#9D174D', 1.6); c.fillStyle = '#FFFFFF'; c.fillRect(x - 5, y + 7, 10, 1.5);
 };
-/** The TV (world, over the set): its arm, the cabinet, the screen: the Clintons at the UN; snow; off. */
+/** The TV (world, over the set): its telescoping arm out of the ceiling; the cabinet (wood grain in steps, the dials,
+ *  the speaker grille, rabbit ears); the screen's bulge: the Clintons at the UN (the emblem in its laurels, the flags,
+ *  the banner), scan lines; snow; off. */
 const drawTv = (c: Ctx, state: GameState, F: Finale) => {
   if (F.tv <= 0) return;
   const B = tvBox(F), f = state.frame;
-  c.strokeStyle = INK; c.lineWidth = 8; c.beginPath(); c.moveTo(TV_X, TV_TOP); c.lineTo(TV_X, B.y); c.stroke(); c.strokeStyle = '#9CA3AF'; c.lineWidth = 4; c.stroke();
-  inkd(c, () => c.roundRect(B.x - 14, B.y - 12, B.w + 28, B.h + 24, 14), '#7C4A1E', 4);
-  for (let k = 0; k < 3; k++) box(c, B.x + B.w + 2, B.y + 20 + k * 22, 8, 8, '#E2B33C');
+  // (the arm: three sleeves telescoping, a ceiling plate)
+  const STL: Rp = ['#D8DCE6', '#9CA3AF', '#6B7280', '#4B5563'];
+  for (let k = 0; k < 3; k++) { const y0 = TV_TOP + ((B.y - 30 - TV_TOP) * k) / 3, y1 = TV_TOP + ((B.y - 30 - TV_TOP) * (k + 1)) / 3 + 4, w = 10 - k * 2; toonPart(c, () => c.rect(TV_X - w / 2, y0, w, y1 - y0), STL, TV_X - w / 2, TV_X + w / 2, 2); }
+  toonTop(c, () => c.roundRect(TV_X - 24, TV_TOP - 4, 48, 10, 3), STL, TV_TOP - 4, TV_TOP + 6, 2);
+  toonPart(c, () => c.roundRect(TV_X - 30, B.y - 34, 60, 22, 4), STL, TV_X - 30, TV_X + 30, 2);
+  // (the rabbit ears)
+  for (const s of [-1, 1]) { c.strokeStyle = INK; c.lineWidth = 3; c.beginPath(); c.moveTo(B.x + B.w * 0.75, B.y - 12); c.lineTo(B.x + B.w * 0.75 + s * 34, B.y - 48); c.stroke(); c.strokeStyle = '#D8DCE6'; c.lineWidth = 1.2; c.stroke(); c.fillStyle = INK; c.beginPath(); c.arc(B.x + B.w * 0.75 + s * 34, B.y - 48, 3, 0, Math.PI * 2); c.fill(); }
+  toonTop(c, () => c.ellipse(B.x + B.w * 0.75, B.y - 12, 12, 5, 0, Math.PI, 0), ['#5A5866', '#2A2830', '#1A1820', '#0C0B10'], B.y - 17, B.y - 12, 1.6);
+  // (the cabinet: wood grain in steps, a gilt trim, the dials and the grille down the side)
+  const WOODR: Rp = ['#C27A3E', '#8A5226', '#6A3C18', '#4A280E'];
+  toonTop(c, () => c.roundRect(B.x - 16, B.y - 14, B.w + 64, B.h + 28, 16), WOODR, B.y - 14, B.y + B.h + 14, 4);
+  c.strokeStyle = WOODR[2]; c.lineWidth = 1; for (let k = 0; k < 6; k++) { c.beginPath(); c.moveTo(B.x - 8, B.y - 6 + k * 30); c.quadraticCurveTo(B.x + B.w / 2, B.y - 2 + k * 30 + (k % 2) * 6, B.x + B.w + 40, B.y - 6 + k * 30); c.stroke(); }
+  const px0 = B.x + B.w + 8;
+  toonPart(c, () => c.roundRect(px0, B.y + 4, 32, B.h - 8, 6), ['#5A5866', '#2A2830', '#1A1820', '#0C0B10'], px0, px0 + 32, 2);
+  for (let k = 0; k < 2; k++) { const dy = B.y + 22 + k * 34; toonPart(c, () => c.arc(px0 + 16, dy, 10, 0, Math.PI * 2), toonRamp('#E2B33C'), px0 + 6, px0 + 26, 2); c.strokeStyle = INK; c.lineWidth = 2; c.beginPath(); c.moveTo(px0 + 16, dy); c.lineTo(px0 + 16 + Math.cos(k * 2 + 0.6) * 8, dy + Math.sin(k * 2 + 0.6) * 8); c.stroke(); }
+  for (let y = B.y + 80; y < B.y + B.h - 12; y += 5) { c.fillStyle = '#0C0B10'; c.fillRect(px0 + 6, y, 20, 2); }
+  c.fillStyle = F.step === 'tvoff' && F.t > 30 ? '#4A0A0A' : '#EF4444'; c.fillRect(px0 + 12, B.y + B.h - 12, 8, 4);
+  // (the screen's bezel, its glass bulging)
+  toonFlat(c, () => c.roundRect(B.x - 4, B.y - 4, B.w + 8, B.h + 8, 16), '#1A1820', 2.4);
   const off = F.step === 'tvoff' && F.t > 30 || ['shake', 'fall'].includes(F.step);
-  c.save(); c.beginPath(); c.roundRect(B.x, B.y, B.w, B.h, 12); c.clip();
-  if (off) box(c, B.x, B.y, B.w, B.h, '#111827');
+  c.save(); c.beginPath(); c.roundRect(B.x, B.y, B.w, B.h, 14); c.clip();
+  if (off) { box(c, B.x, B.y, B.w, B.h, '#0E1018'); if (F.step === 'tvoff' && F.t < 44) { c.fillStyle = '#FFFFFF'; c.fillRect(B.x + B.w / 2 - 3, B.y + B.h / 2 - 2, 6, 4); } }
   else if (F.step === 'tvoff' || F.step === 'tvdown' && F.t < 54) { for (let y = B.y; y < B.y + B.h; y += 3) for (let x = B.x; x < B.x + B.w; x += 6) box(c, x, y, 6, 3, ((x * 7 + y * 13 + f * 31) % 97) < 48 ? '#E5E7EB' : '#4B5563'); }
   else {
-    // (the UN: a blue wall, the laurels, a banner; Bill and Hillary in front)
-    box(c, B.x, B.y, B.w, B.h, '#60A5FA');
-    c.strokeStyle = '#F8FAFC'; c.lineWidth = 3; c.beginPath(); c.arc(B.x + B.w / 2, B.y + 40, 26, 0, Math.PI * 2); c.stroke();
-    c.beginPath(); c.arc(B.x + B.w / 2, B.y + 40, 34, Math.PI * 0.6, Math.PI * 1.4); c.stroke(); c.beginPath(); c.arc(B.x + B.w / 2, B.y + 40, 34, -Math.PI * 0.4, Math.PI * 0.4); c.stroke();
-    signText(c, 'U.N. SUMMIT', B.x + B.w / 2, B.y + 14, toonLetters(1, ['#FFFFFF', '#FFFFFF', '#FDE68A', '#FDE047']));
+    // (the UN: a banded blue wall, the emblem (the globe in its laurels), the banner, the flags along the bottom)
+    const BL = ['#3A7AD8', '#4A8AE2', '#5A9AEA', '#6AAAF0', '#7AB8F4'];
+    BL.forEach((col, i) => box(c, B.x, B.y + (i * B.h) / 5, B.w, B.h / 5 + 1, col));
+    const ex = B.x + B.w / 2, ey = B.y + 46;
+    c.strokeStyle = '#F8FAFC'; c.lineWidth = 2.4; c.beginPath(); c.arc(ex, ey, 22, 0, Math.PI * 2); c.stroke();
+    c.lineWidth = 1.2; c.beginPath(); c.moveTo(ex - 22, ey); c.lineTo(ex + 22, ey); c.moveTo(ex, ey - 22); c.lineTo(ex, ey + 22); c.stroke(); c.beginPath(); c.arc(ex, ey, 12, 0, Math.PI * 2); c.stroke();
+    for (const s of [-1, 1]) for (let k = 0; k < 6; k++) { const a = Math.PI / 2 + s * (0.5 + k * 0.32); c.fillStyle = '#F8FAFC'; c.beginPath(); c.ellipse(ex + Math.cos(a) * 30, ey + Math.sin(a) * 30, 4, 2, a, 0, Math.PI * 2); c.fill(); }
+    toonFlat(c, () => c.roundRect(B.x + 40, B.y + 6, B.w - 80, 14, 3), '#1E3A8A', 1.6);
+    signText(c, 'U.N. SUMMIT', B.x + B.w / 2, B.y + 17, toonLetters(1, ['#FFFFFF', '#FFFFFF', '#FDE68A', '#FDE047']));
+    for (let k = 0; k < 9; k++) { const fx = B.x + 6 + k * 26; c.fillStyle = INK; c.fillRect(fx, B.y + B.h - 34, 1, 34); c.fillStyle = ['#DC2626', '#FFFFFF', '#16A34A', '#FDE047', '#1D4ED8'][k % 5]; c.fillRect(fx + 1, B.y + B.h - 34, 12, 8); c.fillStyle = ['#1D4ED8', '#DC2626', '#FFFFFF', '#16A34A', '#FFFFFF'][k % 5]; c.fillRect(fx + 1, B.y + B.h - 30, 12, 3); }
     drawBill(c, B.x + 64, B.y + 92, F.talking === 'bill', f);
     drawHillary(c, B.x + B.w - 64, B.y + 94, F.talking === 'hillary', f);
   }
-  c.fillStyle = 'rgba(255,255,255,0.15)'; c.fillRect(B.x + 10, B.y + 8, 40, B.h - 16);
+  for (let y = B.y; y < B.y + B.h; y += 3) { c.fillStyle = 'rgba(0,0,0,0.14)'; c.fillRect(B.x, y, B.w, 1); }
+  c.fillStyle = 'rgba(255,255,255,0.16)'; c.beginPath(); c.ellipse(B.x + 40, B.y + 30, 34, 22, -0.5, 0, Math.PI * 2); c.fill();
+  c.fillStyle = 'rgba(255,255,255,0.08)'; c.fillRect(B.x + 8, B.y + 8, 30, B.h - 16);
   c.restore();
 };
 
@@ -332,12 +386,14 @@ export const drawFalling = (c: Ctx, state: GameState, F: Finale, cartoon: () => 
   c.translate(0, GY + 30); c.scale(1, k); c.translate(0, -(GY + 30));
   cartoon();
   c.restore();
-  // (the cloth's edge: rolled, folding over, a tear down from one corner)
-  const x0 = state.camera.x - 20, x1 = state.camera.x + CANVAS_WIDTH + 20;
-  c.fillStyle = '#E8E6EC'; c.beginPath(); c.moveTo(x0, edge + 8);
-  for (let x = x0; x <= x1; x += 40) c.quadraticCurveTo(x + 20, edge - 6 - Math.sin(x * 0.05 + F.t) * 4, x + 40, edge + 6);
-  c.lineTo(x1, edge + 16); c.lineTo(x0, edge + 16); c.closePath(); c.fill();
-  c.fillStyle = '#B9B5C2'; c.fillRect(x0, edge + 12, x1 - x0, 4);
+  // (the cloth's edge: the screen's top batten, its rolled hem folding over in steps, grommets and the ties torn off them,
+  // the cloth's raw back showing gray under the picture)
+  const x0 = state.camera.x - 20, x1 = state.camera.x + CANVAS_WIDTH + 20, CL = ['#8A8696', '#B9B5C2', '#D8D6DE', '#ECEAF0', '#FFFFFF'];
+  const hem = (dy: number, amp: number, col: string) => { c.fillStyle = col; c.beginPath(); c.moveTo(x0, edge + 18); c.lineTo(x0, edge + 8 + dy); for (let x = x0; x <= x1; x += 40) c.quadraticCurveTo(x + 20, edge - amp + dy - Math.sin(x * 0.05 + F.t * 0.3) * 4, x + 40, edge + 6 + dy); c.lineTo(x1, edge + 18); c.closePath(); c.fill(); };
+  hem(-2, 8, INK); hem(0, 6, CL[1]); hem(2, 4, CL[2]); hem(4, 2, CL[3]);
+  c.fillStyle = CL[0]; c.fillRect(x0, edge + 14, x1 - x0, 4);
+  c.fillStyle = INK; c.fillRect(x0, edge + 18, x1 - x0, 6); c.fillStyle = '#5A4A3A'; c.fillRect(x0, edge + 19, x1 - x0, 4); c.fillStyle = '#7A6A5A'; c.fillRect(x0, edge + 19, x1 - x0, 1);
+  for (let x = Math.floor(x0 / 60) * 60; x < x1; x += 60) { c.fillStyle = INK; c.beginPath(); c.arc(x, edge + 10, 3, 0, Math.PI * 2); c.fill(); c.fillStyle = '#C8CCD4'; c.beginPath(); c.arc(x, edge + 10, 2, 0, Math.PI * 2); c.fill(); c.strokeStyle = '#2A2830'; c.lineWidth = 1; c.beginPath(); c.moveTo(x, edge + 8); c.lineTo(x + 3, edge - 6 - (x % 120 ? 4 : 0)); c.stroke(); }
 };
 /** The shake: the cartoon judders (the screen going). */
 export const shakeOffset = (state: GameState, F: Finale | null) => (F && F.step === 'shake' ? { x: (Math.random() - 0.5) * 6, y: (Math.random() - 0.5) * 4 } : null);
