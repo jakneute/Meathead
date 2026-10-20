@@ -25,42 +25,79 @@ export const openingPath = (c: Ctx, cx: number, grow = 0) => {
   c.moveTo(cx - w, BASE); c.lineTo(cx - w, top + w); c.arc(cx, top + w, w, Math.PI, 0); c.lineTo(cx + w, BASE); c.closePath();
 };
 
-/** What's seen through it: the land, the path running on into it. */
+/** A ball in stepped shells (the vistas' round things). */
+const vball = (c: Ctx, x: number, y: number, r: number, R: string[]) => { for (const [k, col] of [[1, R[1]], [0.78, R[2]], [0.5, R[3]], [0.22, R[4]]] as const) { c.fillStyle = col; c.beginPath(); c.arc(x - r * (1 - k) * 0.4, y - r * (1 - k) * 0.4, r * k, 0, Math.PI * 2); c.fill(); } };
+const vpoly = (c: Ctx, pts: number[], col: string) => { c.fillStyle = col; c.beginPath(); c.moveTo(pts[0], pts[1]); for (let i = 2; i < pts.length; i += 2) c.lineTo(pts[i], pts[i + 1]); c.closePath(); c.fill(); };
+/** What's seen through it: the land, the path running on into it (each the land as it looks now, small). */
 const VISTA: Record<string, { sky: string[]; ground: string; path: string; paint: (c: Ctx, cx: number) => void }> = {
   space: { sky: ['#2A1A5A', '#5A3A9A', '#E8659E', '#FBC4A0'], ground: '#C2D0E0', path: '#F1F5F9', paint: (c, cx) => {
-    box(c, cx - 4, TOP + 22, 3, 40, '#CBD5E1'); inked(c, () => c.ellipse(cx - 3, TOP + 24, 12, 3, 0, 0, Math.PI * 2), '#E2E8F0');
-    inked(c, () => c.arc(cx + 14, TOP + 26, 5, 0, Math.PI * 2), '#A78BFA');
-    for (let k = 0; k < 6; k++) box(c, cx - 22 + k * 9, TOP + 10 + (k * 7) % 12, 1, 1, '#FFFFFF');
+    for (let k = 0; k < 10; k++) box(c, cx - 24 + (k * 37) % 48, TOP + 6 + (k * 13) % 26, 1, 1, '#FFFFFF');
+    // (the needle and its saucer deck, the atom over the skyline, domes along the ground)
+    const C = R6('#CBD5E1');
+    box(c, cx - 5, TOP + 18, 3, 52, C[3]); box(c, cx - 5, TOP + 18, 1, 52, C[5]);
+    c.fillStyle = INK; c.beginPath(); c.ellipse(cx - 4, TOP + 22, 13, 4, 0, 0, Math.PI * 2); c.fill(); c.fillStyle = '#1A808C'; c.beginPath(); c.ellipse(cx - 4, TOP + 22, 12, 3, 0, 0, Math.PI * 2); c.fill(); box(c, cx - 14, TOP + 21, 20, 1, '#FFD87A');
+    vball(c, cx + 14, TOP + 32, 6, R6('#C8B4E8')); c.strokeStyle = C[4]; c.lineWidth = 1; c.beginPath(); c.ellipse(cx + 14, TOP + 32, 10, 3, 0.5, 0, Math.PI * 2); c.ellipse(cx + 14, TOP + 32, 10, 3, -0.5, 0, Math.PI * 2); c.stroke();
+    for (const [dx, r] of [[-18, 8], [8, 6], [20, 9]] as const) { c.fillStyle = INK; c.beginPath(); c.arc(cx + dx, BASE - 26, r + 1, Math.PI, 0); c.fill(); c.fillStyle = C[3]; c.beginPath(); c.arc(cx + dx, BASE - 26, r, Math.PI, 0); c.fill(); c.fillStyle = C[5]; c.beginPath(); c.arc(cx + dx - 2, BASE - 28, r * 0.4, Math.PI, 0); c.fill(); }
   } },
   frontier: { sky: ['#F59E0B', '#FBBF24', '#FDE68A', '#FEF3C7'], ground: '#C08A54', path: '#9A6A3E', paint: (c, cx) => {
-    c.fillStyle = '#C2410C'; c.beginPath(); c.moveTo(cx - HW, BASE - 26); c.lineTo(cx - 16, BASE - 52); c.lineTo(cx + 10, BASE - 54); c.lineTo(cx + 18, BASE - 26); c.fill();
-    box(c, cx - 16, BASE - 52, 26, 3, '#EA580C');
+    // (the Rockies far off, snow on them; the fiberglass mountain and its flume; pines)
+    vpoly(c, [cx - HW, BASE - 40, cx - 14, BASE - 72, cx - 4, BASE - 56, cx + 8, BASE - 76, cx + HW, BASE - 44, cx + HW, BASE - 26, cx - HW, BASE - 26], '#9AA8C8');
+    vpoly(c, [cx - 18, BASE - 64, cx - 14, BASE - 72, cx - 10, BASE - 64], '#F2F6FC'); vpoly(c, [cx + 3, BASE - 68, cx + 8, BASE - 76, cx + 13, BASE - 68], '#F2F6FC');
+    vpoly(c, [cx - 6, BASE - 26, cx + 8, BASE - 58, cx + 24, BASE - 26], '#B0805A'); vpoly(c, [cx - 6, BASE - 26, cx + 8, BASE - 58, cx + 6, BASE - 26], '#D0A07A');
+    c.strokeStyle = '#4CA8D8'; c.lineWidth = 2; c.beginPath(); c.moveTo(cx + 8, BASE - 56); c.quadraticCurveTo(cx + 18, BASE - 44, cx + 26, BASE - 28); c.stroke();
+    for (const px of [cx - 22, cx - 14, cx + 20]) for (let k = 0; k < 3; k++) vpoly(c, [px - 5 + k, BASE - 26 - k * 6, px, BASE - 36 - k * 6, px + 5 - k, BASE - 26 - k * 6], k % 2 ? '#2F6B3A' : '#24542F');
   } },
   spooky: { sky: ['#0E0A1E', '#1E1438', '#3B2A5A', '#5B21B6'], ground: '#2A2438', path: '#4C4560', paint: (c, cx) => {
-    inked(c, () => c.arc(cx + 12, TOP + 22, 7, 0, Math.PI * 2), '#F5F5DC');
-    c.fillStyle = '#0A0614'; c.beginPath(); c.moveTo(cx - 20, BASE - 30); c.lineTo(cx - 16, BASE - 60); c.lineTo(cx - 12, BASE - 30); c.moveTo(cx - 10, BASE - 30); c.lineTo(cx - 10, BASE - 48); c.lineTo(cx + 4, BASE - 48); c.lineTo(cx + 4, BASE - 30); c.fill();
-    box(c, cx - 6, BASE - 44, 3, 4, '#BEF264');
+    vball(c, cx + 13, TOP + 22, 7, ['#8A8A70', '#C8C8A8', '#E8E8D0', '#F5F5DC', '#FFFFFF']);
+    // (the crag, Dracula's other castle on it: towers, purple spires, a lit window; the clock tower; bats)
+    vpoly(c, [cx - HW, BASE - 26, cx - 20, BASE - 40, cx + 6, BASE - 44, cx + HW, BASE - 30, cx + HW, BASE - 26], '#1A1428');
+    box(c, cx - 16, BASE - 58, 22, 16, '#3B3049'); for (let k = 0; k < 4; k++) box(c, cx - 16 + k * 6, BASE - 61, 4, 3, '#3B3049');
+    for (const [tx, h] of [[-19, 26], [3, 30]] as const) { box(c, cx + tx, BASE - 42 - h, 7, h, '#4C3D5E'); vpoly(c, [cx + tx - 2, BASE - 42 - h, cx + tx + 3.5, BASE - 54 - h, cx + tx + 9, BASE - 42 - h], '#561A8A'); }
+    box(c, cx - 7, BASE - 54, 3, 4, '#BEF264'); box(c, cx + 5, BASE - 64, 2, 3, '#BEF264');
+    box(c, cx + 14, BASE - 74, 8, 34, '#2E2440'); vpoly(c, [cx + 13, BASE - 74, cx + 18, BASE - 84, cx + 23, BASE - 74], '#1A1428'); box(c, cx + 16, BASE - 70, 4, 4, '#CDB878');
+    for (const [bx, by] of [[cx - 14, TOP + 16], [cx - 4, TOP + 24]] as const) vpoly(c, [bx - 4, by + 1, bx, by - 1, bx + 4, by + 1, bx, by + 2], '#0A0614');
   } },
   cartoon: { sky: ['#86CAF4', '#C6E8FC', '#FFD2E8', '#FFF8C8'], ground: '#6CCC6A', path: '#FFF1F6', paint: (c, cx) => {
     for (const [i, col] of ['#EF4444', '#F59E0B', '#FDE047', '#4ADE80', '#60A5FA'].entries()) { c.strokeStyle = col; c.lineWidth = 2; c.beginPath(); c.arc(cx, BASE - 20, 30 - i * 2, Math.PI * 1.1, Math.PI * 1.9); c.stroke(); }
-    c.fillStyle = '#4CC89C'; c.beginPath(); c.arc(cx - 16, BASE - 24, 12, Math.PI, 0); c.fill(); c.beginPath(); c.arc(cx + 18, BASE - 24, 14, Math.PI, 0); c.fill();
+    // (the pink water tower with its face, round hills, lollipop trees)
+    for (const lx of [-6, 6]) box(c, cx + lx - 1, BASE - 50, 2, 26, '#9476DE');
+    c.fillStyle = INK; c.beginPath(); c.roundRect(cx - 12, BASE - 70, 24, 22, 6); c.fill(); c.fillStyle = '#EE62A8'; c.beginPath(); c.roundRect(cx - 11, BASE - 69, 22, 20, 5); c.fill(); box(c, cx - 11, BASE - 69, 4, 20, '#FA9ACA');
+    box(c, cx - 6, BASE - 63, 4, 4, '#FFFFFF'); box(c, cx + 2, BASE - 63, 4, 4, '#FFFFFF'); box(c, cx - 5, BASE - 62, 2, 2, INK); box(c, cx + 3, BASE - 62, 2, 2, INK); box(c, cx - 3, BASE - 55, 6, 2, INK);
+    vpoly(c, [cx - 13, BASE - 70, cx, BASE - 80, cx + 13, BASE - 70], '#4CA8E8');
+    for (const [dx, r, col] of [[-16, 12, '#4CC89C'], [18, 14, '#3CAA4C']] as const) { c.fillStyle = col; c.beginPath(); c.arc(cx + dx, BASE - 24, r, Math.PI, 0); c.fill(); c.fillStyle = 'rgba(255,255,255,0.3)'; c.beginPath(); c.arc(cx + dx - 3, BASE - 27, r * 0.5, Math.PI, 0); c.fill(); }
+    for (const [lx, col] of [[-22, '#F472B6'], [22, '#FDE047']] as const) { box(c, cx + lx, BASE - 36, 1, 10, '#FFFFFF'); c.fillStyle = col; c.beginPath(); c.arc(cx + lx, BASE - 37, 3, 0, Math.PI * 2); c.fill(); }
   } },
   hollywood: { sky: ['#0F172A', '#1E293B', '#4C1D95', '#BE185D'], ground: '#3F3F46', path: '#B91C1C', paint: (c, cx) => {
-    c.fillStyle = '#A16207'; c.beginPath(); c.moveTo(cx - HW, BASE - 26); c.quadraticCurveTo(cx, BASE - 60, cx + HW, BASE - 26); c.fill();
-    for (let k = 0; k < 6; k++) box(c, cx - 15 + k * 5, BASE - 46, 3, 4, '#F8FAFC');
-    c.fillStyle = 'rgba(254, 249, 195, 0.25)'; c.beginPath(); c.moveTo(cx - 6, BASE - 30); c.lineTo(cx - 24, TOP); c.lineTo(cx - 12, TOP); c.fill();
+    // (the HAPPYWOOD hill, its letters on their legs; a searchlight; the soundstages along the ground)
+    c.fillStyle = 'rgba(254, 249, 195, 0.22)'; c.beginPath(); c.moveTo(cx - 6, BASE - 30); c.lineTo(cx - 24, TOP); c.lineTo(cx - 12, TOP); c.fill();
+    vpoly(c, [cx - HW, BASE - 26, cx - 10, BASE - 56, cx + 10, BASE - 54, cx + HW, BASE - 30, cx + HW, BASE - 26], '#A16207'); vpoly(c, [cx - HW, BASE - 26, cx - 10, BASE - 56, cx - 4, BASE - 55, cx - 16, BASE - 30], '#C88A2A');
+    for (let k = 0; k < 7; k++) { box(c, cx - 17 + k * 5, BASE - 50 + Math.abs(k - 3), 3, 4, '#F8FAFC'); box(c, cx - 16 + k * 5, BASE - 46 + Math.abs(k - 3), 1, 3, '#78716C'); }
+    for (const [sx, w] of [[-26, 16], [-6, 14], [12, 15]] as const) { box(c, cx + sx, BASE - 38, w, 12, '#D6CDB8'); box(c, cx + sx, BASE - 40, w, 2, '#A8A29E'); box(c, cx + sx + 3, BASE - 32, 5, 6, '#57534E'); }
   } },
   fantasy: { sky: ['#1E3A8A', '#3B82F6', '#93C5FD', '#FDE68A'], ground: '#4E7A4C', path: '#A8A2C0', paint: (c, cx) => {
-    box(c, cx - 14, BASE - 54, 28, 26, '#E7E5E4');
-    for (const [tx, h] of [[-14, 36], [0, 50], [14, 40]] as const) { box(c, cx + tx - 4, BASE - 28 - h, 8, h, '#F5F5F4'); c.fillStyle = '#2563EB'; c.beginPath(); c.moveTo(cx + tx - 6, BASE - 28 - h); c.lineTo(cx + tx, BASE - 42 - h); c.lineTo(cx + tx + 6, BASE - 28 - h); c.fill(); }
+    // (the Great Pixie's castle: lavender stone, blue cones banded gold, pink pennants, Piper's window glowing)
+    const S = ['#6A5A8C', '#9484B4', '#BCAED6', '#DCD2EC', '#F4EEFA'];
+    box(c, cx - 16, BASE - 46, 32, 20, S[2]); box(c, cx - 16, BASE - 46, 4, 20, S[4]); for (let k = 0; k < 5; k++) box(c, cx - 16 + k * 7, BASE - 49, 4, 3, S[2]);
+    for (const [tx, h] of [[-16, 30], [-4, 50], [8, 40], [16, 26]] as const) {
+      box(c, cx + tx - 4, BASE - 26 - h, 8, h, S[3]); box(c, cx + tx - 4, BASE - 26 - h, 2, h, S[4]); box(c, cx + tx + 2, BASE - 26 - h, 2, h, S[1]);
+      vpoly(c, [cx + tx - 6, BASE - 26 - h, cx + tx, BASE - 40 - h, cx + tx + 6, BASE - 26 - h], '#2E52A8'); vpoly(c, [cx + tx - 6, BASE - 26 - h, cx + tx, BASE - 40 - h, cx + tx - 1, BASE - 26 - h], '#7AA8F0');
+      box(c, cx + tx - 4, BASE - 30 - h, 8, 1, '#F2C84A'); vpoly(c, [cx + tx, BASE - 40 - h, cx + tx + 5, BASE - 38 - h, cx + tx, BASE - 36 - h], '#F49AC8');
+    }
+    box(c, cx - 5, BASE - 66, 2, 3, '#FF8AC8'); box(c, cx - 2, BASE - 38, 4, 12, '#3A3060');
   } },
   adventure: { sky: ['#14532D', '#3F6212', '#A3B53A', '#FDE68A'], ground: '#4D6B22', path: '#9C7A52', paint: (c, cx) => {
-    for (let k = 0; k < 4; k++) box(c, cx - 14 + k * 3, BASE - 30 - k * 8, 28 - k * 6, 8, k % 2 ? '#78716C' : '#A8A29E');
-    for (const [dx, r] of [[-20, 12], [20, 14], [-6, 9]] as const) { c.fillStyle = '#166534'; c.beginPath(); c.arc(cx + dx, BASE - 52 + r * 0.3, r, 0, Math.PI * 2); c.fill(); }
+    // (the temple stepped up out of the canopy, vines down it, a dark doorway; palms)
+    for (const [dx, r] of [[-20, 12], [20, 14], [-6, 9], [10, 10]] as const) vball(c, cx + dx, BASE - 48 + r * 0.3, r, R6('#2F6B22'));
+    for (let k = 0; k < 5; k++) { const w = 34 - k * 6, y = BASE - 30 - k * 8; box(c, cx - w / 2, y, w, 8, k % 2 ? '#78716C' : '#A8A29E'); box(c, cx - w / 2, y, w, 1, '#D6D3D1'); box(c, cx + w / 2 - 3, y, 3, 8, '#57534E'); }
+    box(c, cx - 3, BASE - 70, 6, 6, '#1C1917'); for (const vx of [-12, 6]) box(c, cx + vx, BASE - 64, 2, 24, '#3F6212');
+    for (const px of [cx - 22, cx + 22]) { box(c, px, BASE - 50, 2, 24, '#8A6A44'); for (let k = -2; k <= 2; k++) vpoly(c, [px + 1, BASE - 50, px + k * 6, BASE - 46 + Math.abs(k), px + k * 5, BASE - 49], '#4D7C0F'); }
   } },
   foreign: { sky: ['#7C2D12', '#C2410C', '#FB923C', '#FDE68A'], ground: '#B8A684', path: '#E8DCC4', paint: (c, cx) => {
-    c.fillStyle = '#57534E'; c.beginPath(); c.moveTo(cx - 20, BASE - 26); c.lineTo(cx - 12, BASE - 70); c.lineTo(cx - 4, BASE - 26); c.lineTo(cx - 8, BASE - 26); c.lineTo(cx - 12, BASE - 50); c.lineTo(cx - 16, BASE - 26); c.fill();
-    c.fillStyle = '#FCD34D'; c.beginPath(); c.moveTo(cx + 2, BASE - 26); c.lineTo(cx + 14, BASE - 44); c.lineTo(cx + 26, BASE - 26); c.fill();
+    // (the mountain, snow on its cap; the cathedral's towers; an onion dome; flags)
+    vpoly(c, [cx - HW, BASE - 30, cx - 2, BASE - 76, cx + HW, BASE - 32, cx + HW, BASE - 26, cx - HW, BASE - 26], '#7A8AA8'); vpoly(c, [cx - 10, BASE - 64, cx - 2, BASE - 76, cx + 7, BASE - 64, cx + 2, BASE - 62, cx - 3, BASE - 66], '#F2F6FC');
+    for (const tx of [cx + 8, cx + 20]) { box(c, tx, BASE - 54, 8, 28, '#C8BFAE'); box(c, tx + 2, BASE - 50, 2, 6, '#3A4A8A'); box(c, tx - 1, BASE - 56, 10, 2, '#A89E8A'); }
+    box(c, cx - 22, BASE - 40, 12, 14, '#F2E6D0'); c.fillStyle = '#2E7D5B'; c.beginPath(); c.moveTo(cx - 17, BASE - 40); c.bezierCurveTo(cx - 26, BASE - 44, cx - 20, BASE - 52, cx - 16, BASE - 56); c.bezierCurveTo(cx - 12, BASE - 52, cx - 6, BASE - 44, cx - 15, BASE - 40); c.fill();
+    for (const [fx, col] of [[cx - 6, '#DC2626'], [cx + 4, '#1E40AF']] as const) { box(c, fx, BASE - 44, 1, 18, '#57534E'); box(c, fx + 1, BASE - 44, 6, 4, col); }
   } },
 };
 

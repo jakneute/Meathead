@@ -22,6 +22,8 @@ import { LANDS, SPOTS, HUB_SLOTS, type Land } from './lands';
 import { HUB, HUB_CIRC, slotX, seamX, ROW, personScale } from './geometry';
 import { queueSpan, paintQueueRail } from './gates';
 import { stretchOf } from './stretch';
+import { paintMascot, paintCart, paintBench, paintBin, paintFloat, type Mascot, type Cart } from './props';
+import { PATH } from './geometry';
 
 // ---------------------------------------------------------------------------------------------------------------
 // The cast, standing about by the portals (as before)
@@ -160,41 +162,7 @@ const guest = (c: Ctx, x: number, y: number, facing: 1 | -1, seed: number, pose:
 // ---------------------------------------------------------------------------------------------------------------
 // Costumed characters, stamped by frame
 
-type Mascot = 'bear' | 'robot' | 'skeleton' | 'knight' | 'beaver' | 'parrot' | 'star' | 'globe' | 'dog';
 const MASCOT_OF: Record<string, Mascot> = { space: 'robot', frontier: 'beaver', spooky: 'skeleton', cartoon: 'dog', america: 'bear', hollywood: 'star', fantasy: 'knight', adventure: 'parrot', foreign: 'globe', staff: 'bear' };
-const paintMascot = (g: Ctx, kind: Mascot, fi: number) => {
-  const wave = fi % 2 ? -20 : -8;
-  const body = { bear: '#8A5A32', robot: '#CBD5E1', skeleton: '#18181B', knight: '#A8A29E', beaver: '#7A4E2A', parrot: '#DC2626', star: '#FACC15', globe: '#1E40AF', dog: '#F8FAFC' }[kind];
-  const lite = mix(body, '#FFFFFF', 0.3), shade = mix(body, INK, 0.3);
-  // (legs, the body, the big head)
-  for (const s of [-1, 1]) inked(g, () => g.roundRect(s * 7 - 5, -24, 10, 24, 4), shade);
-  for (const s of [-1, 1]) inked(g, () => g.ellipse(s * 8, -2, 9, 4, 0, 0, Math.PI * 2), kind === 'robot' ? '#64748B' : '#27272A');
-  inked(g, () => g.roundRect(-16, -62, 32, 42, 12), body);
-  box(g, -12, -58, 5, 34, lite);
-  // (arms: one down, one waving)
-  inked(g, () => g.roundRect(-24, -58, 9, 30, 4), body);
-  g.save(); g.translate(18, -56); g.rotate(wave * 0.06); inked(g, () => g.roundRect(-4, -28, 9, 30, 4), body); inked(g, () => g.arc(0, -28, 6, 0, Math.PI * 2), kind === 'skeleton' ? '#F5F5F4' : '#F8FAFC'); g.restore();
-  const hx = 0, hy = -80;
-  switch (kind) {
-    case 'bear': case 'beaver': case 'dog': {
-      if (kind !== 'beaver') for (const s of [-1, 1]) inked(g, () => g.arc(hx + s * 16, hy - 16, 8, 0, Math.PI * 2), kind === 'dog' ? '#27272A' : body);
-      inked(g, () => g.arc(hx, hy, 22, 0, Math.PI * 2), body);
-      inked(g, () => g.ellipse(hx + 4, hy + 8, 12, 9, 0, 0, Math.PI * 2), kind === 'dog' ? '#F8FAFC' : '#E8C89A');
-      box(g, hx + 1, hy + 2, 7, 5, INK);
-      for (const ex of [-8, 10]) { inked(g, () => g.ellipse(hx + ex, hy - 6, 5, 6, 0, 0, Math.PI * 2), '#FFFFFF'); box(g, hx + ex, hy - 6, 3, 4, INK); }
-      if (kind === 'beaver') { box(g, hx, hy + 14, 8, 6, '#F8FAFC'); inked(g, () => g.roundRect(hx - 20, hy - 26, 40, 12, 5), '#8A6A44'); box(g, hx + 18, hy - 22, 16, 5, '#5E4A32'); }
-      if (kind === 'bear') { inked(g, () => { g.moveTo(-8, -62); g.lineTo(8, -54); g.lineTo(8, -62); g.lineTo(-8, -54); g.closePath(); }, '#DC2626'); }
-      if (kind === 'dog') box(g, hx + 8, hy - 18, 6, 8, '#27272A');
-      break;
-    }
-    case 'robot': inked(g, () => g.roundRect(hx - 18, hy - 18, 36, 34, 4), '#E2E8F0'); box(g, hx - 12, hy - 8, 24, 10, '#1E3A8A'); box(g, hx - 8, hy - 6, 5, 5, '#7DF9FF'); box(g, hx + 4, hy - 6, 5, 5, '#7DF9FF'); box(g, hx - 1, hy - 30, 2, 12, '#57534E'); inked(g, () => g.arc(hx, hy - 30, 4, 0, Math.PI * 2), fi % 2 ? '#EF4444' : '#FDE047'); break;
-    case 'skeleton': inked(g, () => g.arc(hx, hy, 20, 0, Math.PI * 2), '#F5F5F4'); box(g, hx - 10, hy - 6, 7, 8, INK); box(g, hx + 4, hy - 6, 7, 8, INK); for (let k = 0; k < 5; k++) box(g, hx - 7 + k * 3, hy + 10, 2, 4, INK); for (let k = 0; k < 4; k++) box(g, -10, -56 + k * 8, 20, 2, '#F5F5F4'); break;
-    case 'knight': inked(g, () => g.roundRect(hx - 16, hy - 20, 32, 38, [14, 14, 4, 4]), '#D6D3D1'); box(g, hx - 10, hy - 4, 20, 3, INK); box(g, hx - 2, hy - 4, 2, 12, INK); for (let k = 0; k < 4; k++) inked(g, () => g.ellipse(hx - 4 + k * 3, hy - 26 - k * 2, 4, 9, 0.4, 0, Math.PI * 2), k % 2 ? '#DC2626' : '#2563EB'); break;
-    case 'parrot': inked(g, () => g.arc(hx, hy, 20, 0, Math.PI * 2), '#DC2626'); inked(g, () => { g.moveTo(hx + 10, hy - 4); g.quadraticCurveTo(hx + 30, hy, hx + 14, hy + 16); g.closePath(); }, '#FDE047'); inked(g, () => g.arc(hx - 2, hy - 6, 6, 0, Math.PI * 2), '#FFFFFF'); box(g, hx - 1, hy - 7, 3, 3, INK); for (let k = 0; k < 3; k++) inked(g, () => g.ellipse(hx - 6 + k * 6, hy - 24, 3, 8, 0, 0, Math.PI * 2), ['#22C55E', '#3B82F6', '#FDE047'][k]); break;
-    case 'star': inked(g, () => { for (let k = 0; k < 10; k++) { const a = -Math.PI / 2 + (k * Math.PI) / 5, r = k % 2 ? 12 : 26; g.lineTo(hx + Math.cos(a) * r, hy + Math.sin(a) * r); } g.closePath(); }, '#FACC15'); for (const ex of [-6, 6]) box(g, hx + ex - 2, hy - 4, 4, 5, INK); g.strokeStyle = INK; g.lineWidth = 2; g.beginPath(); g.arc(hx, hy + 4, 6, 0.3, Math.PI - 0.3); g.stroke(); inked(g, () => g.rect(hx - 12, hy - 8, 24, 4), '#18181B'); break;
-    case 'globe': inked(g, () => g.arc(hx, hy, 22, 0, Math.PI * 2), '#3B82F6'); for (const [dx, dy, w, h] of [[-12, -10, 12, 9], [4, -2, 12, 14], [-6, 8, 8, 6]] as const) box(g, hx + dx, hy + dy, w, h, '#22C55E'); for (const ex of [-7, 7]) { inked(g, () => g.arc(hx + ex, hy - 4, 5, 0, Math.PI * 2), '#FFFFFF'); box(g, hx + ex, hy - 4, 3, 3, INK); } g.strokeStyle = INK; g.lineWidth = 2; g.beginPath(); g.arc(hx, hy + 6, 8, 0.2, Math.PI - 0.2); g.stroke(); break;
-  }
-};
 const mascot = (c: Ctx, x: number, y: number, facing: 1 | -1, kind: Mascot, fi: number) => {
   const s = Math.round(personScale(y) * 50) / 50;
   c.save(); c.translate(Math.round(x), Math.round(y));
@@ -207,28 +175,14 @@ const mascot = (c: Ctx, x: number, y: number, facing: 1 | -1, kind: Mascot, fi: 
 // ---------------------------------------------------------------------------------------------------------------
 // Props: benches, carts, a trash can, the parade float
 
-type Cart = 'balloons' | 'popcorn' | 'icecream' | 'churros';
-const paintCart = (g: Ctx, kind: Cart) => {
-  const body = { balloons: '#F8FAFC', popcorn: '#DC2626', icecream: '#F9A8D4', churros: '#F59E0B' }[kind];
-  for (const wx of [-22, 22]) inked(g, () => g.arc(wx, -8, 8, 0, Math.PI * 2), '#27272A');
-  inked(g, () => g.roundRect(-34, -44, 68, 34, 3), body);
-  box(g, -32, -42, 64, 3, mix(body, '#FFFFFF', 0.4)); box(g, -32, -14, 64, 3, mix(body, INK, 0.3));
-  if (kind === 'popcorn') { inked(g, () => g.rect(-26, -80, 52, 36), 'rgba(224, 242, 254, 0.7)'); for (let k = 0; k < 20; k++) box(g, -24 + (k * 13) % 48, -54 - (k * 7) % 14, 4, 4, k % 3 ? '#FEF08A' : '#FFFFFF'); for (let k = 0; k < 6; k++) box(g, -30 + k * 12, -88, 6, 8, k % 2 ? '#F8FAFC' : '#DC2626'); box(g, -32, -40, 64, 8, '#FDE047'); }
-  if (kind === 'icecream' || kind === 'churros') {
-    box(g, -1, -110, 3, 66, '#57534E');
-    for (let k = 0; k < 6; k++) inked(g, () => { g.moveTo(0, -116); g.lineTo(-40 + k * 13.3, -96); g.lineTo(-26.7 + k * 13.3, -96); g.closePath(); }, k % 2 ? '#F8FAFC' : kind === 'icecream' ? '#38BDF8' : '#DC2626');
-    if (kind === 'icecream') for (let k = 0; k < 3; k++) { inked(g, () => g.arc(-14 + k * 14, -50, 6, Math.PI, 0), ['#FBCFE8', '#FEF3C7', '#92400E'][k]); }
-    else for (let k = 0; k < 5; k++) box(g, -20 + k * 9, -60, 4, 16, '#C2741A');
-  }
-  if (kind === 'balloons') { box(g, -2, -90, 3, 46, '#57534E'); }
-};
 /** The balloon man's bunch (live: bobbing). */
 const balloonBunch = (c: Ctx, x: number, y: number, s: number, f: number) => {
   for (let k = 0; k < 9; k++) {
     const bx = x + (k % 3 - 1) * 14 * s + Math.sin(f * 0.05 + k) * 2 * s, by = y - (100 + Math.floor(k / 3) * 14 + (k % 2) * 6) * s + Math.cos(f * 0.04 + k) * 2 * s;
     c.strokeStyle = 'rgba(87, 83, 78, 0.8)'; c.lineWidth = 1; c.beginPath(); c.moveTo(x, y - 88 * s); c.lineTo(bx, by + 10 * s); c.stroke();
     inked(c, () => c.ellipse(bx, by, 8 * s, 10 * s, 0, 0, Math.PI * 2), BALLOON[k % BALLOON.length]);
-    box(c, bx - 4 * s, by - 5 * s, 2, 3, '#FFFFFF');
+    c.fillStyle = mix(BALLOON[k % BALLOON.length], INK, 0.3); c.beginPath(); c.ellipse(bx + 2 * s, by + 2 * s, 5 * s, 7 * s, 0, -0.6, 1.9); c.fill();
+    box(c, bx - 4 * s, by - 5 * s, 2, 3, '#FFFFFF'); box(c, bx - 1, by + 10 * s, 2, 2, mix(BALLOON[k % BALLOON.length], INK, 0.4));
   }
 };
 const cart = (c: Ctx, x: number, y: number, kind: Cart, f: number) => {
@@ -243,37 +197,11 @@ const cart = (c: Ctx, x: number, y: number, kind: Cart, f: number) => {
     c.fillStyle = `rgba(255, 255, 255, ${(0.55 * (1 - t)).toFixed(2)})`; c.beginPath(); c.arc(px, py, (3 + t * 6) * s, 0, Math.PI * 2); c.fill();
   }
 };
-const paintBench = (g: Ctx) => {
-  for (const lx of [-30, 26]) box(g, lx, -12, 4, 12, '#27272A');
-  inked(g, () => g.rect(-36, -16, 72, 5), '#7A5232'); box(g, -35, -15, 70, 1, '#A07444');
-  inked(g, () => g.rect(-36, -34, 72, 4), '#7A5232'); inked(g, () => g.rect(-36, -27, 72, 4), '#7A5232');
-  for (const lx of [-32, 28]) box(g, lx, -36, 3, 22, '#27272A');
-};
 const bench = (c: Ctx, x: number, y: number) => {
   const s = Math.round(personScale(y) * 50) / 50;
   c.save(); c.translate(Math.round(x), Math.round(y)); c.scale(s, s); stamp(c, 'hubBench', -40, -40, 80, 44, paintBench); c.restore();
 };
-const paintBin = (g: Ctx) => { inked(g, () => g.roundRect(-11, -32, 22, 32, 2), '#2F6B3A'); for (let k = 0; k < 3; k++) box(g, -9 + k * 7, -28, 3, 26, '#3F8A4A'); inked(g, () => g.ellipse(0, -32, 13, 4, 0, 0, Math.PI * 2), '#24542F'); box(g, -6, -38, 8, 6, '#F8FAFC'); box(g, 3, -36, 5, 4, '#DC2626'); };
 const bin = (c: Ctx, x: number, y: number) => { const s = Math.round(personScale(y) * 50) / 50; c.save(); c.translate(Math.round(x), Math.round(y)); c.scale(s, s); stamp(c, 'hubBin', -16, -40, 32, 44, paintBin); c.restore(); };
-
-/** The parade float: a tiered cake on a scalloped skirt, the bear up top waving (two frames). */
-const paintFloat = (g: Ctx, kind: number, fi: number) => {
-  const skirt = ['#EC4899', '#2563EB'][kind], top = ['#FDE68A', '#E2E8F0'][kind];
-  inked(g, () => g.rect(-90, -34, 180, 30), skirt);
-  for (let k = 0; k < 12; k++) inked(g, () => g.arc(-82 + k * 15, -6, 7, 0, Math.PI), mix(skirt, '#FFFFFF', 0.4));
-  box(g, -88, -32, 176, 4, mix(skirt, '#FFFFFF', 0.3));
-  if (kind === 0) {
-    for (let t = 0; t < 3; t++) { const w = 70 - t * 18, y = -34 - (t + 1) * 22; inked(g, () => g.rect(-w, y, w * 2, 22), t % 2 ? '#FBCFE8' : top); for (let k = -w; k < w; k += 10) inked(g, () => g.arc(k + 5, y + 2, 4, 0, Math.PI), '#FFFFFF'); }
-    for (let k = 0; k < 5; k++) { box(g, -20 + k * 10, -124, 3, 10, '#F8FAFC'); box(g, -20 + k * 10, -128 - (k + fi) % 2, 3, 4, '#FDE047'); }
-  } else {
-    // (a rocket on its gantry, puffing)
-    inked(g, () => { g.moveTo(-14, -34); g.lineTo(-14, -110); g.lineTo(0, -140); g.lineTo(14, -110); g.lineTo(14, -34); g.closePath(); }, '#F8FAFC');
-    inked(g, () => { g.moveTo(0, -140); g.lineTo(-9, -122); g.lineTo(9, -122); g.closePath(); }, '#DC2626');
-    for (const s of [-1, 1]) inked(g, () => { g.moveTo(s * 14, -34); g.lineTo(s * 28, -34); g.lineTo(s * 14, -64); g.closePath(); }, '#DC2626');
-    inked(g, () => g.arc(0, -90, 6, 0, Math.PI * 2), '#38BDF8');
-    for (let k = 0; k < 3; k++) { g.fillStyle = '#F8FAFC'; g.beginPath(); g.arc(-40 + k * 40, -40 - ((k + fi) % 2) * 4, 10, 0, Math.PI * 2); g.fill(); }
-  }
-};
 
 // ---------------------------------------------------------------------------------------------------------------
 // Who's where (built once, deterministically)
@@ -354,8 +282,8 @@ const MID_THINGS: Thing[] = [];
       });
     }
     // Two more stood about, chatting (one points at something)
-    add(cx - 60 + (i % 3) * 8, ROW.walk1 - 6, (c, x, f) => guest(c, x, ROW.walk1 - 6, 1, sd + 801, (f + sd) % 400 < 120 ? 'point' : 'stand', Math.floor(f / 60) % 2, i % 2 ? 'map' : 'none'));
-    add(cx - 36 + (i % 3) * 8, ROW.walk1 - 5, (c, x, f) => guest(c, x, ROW.walk1 - 5, -1, sd + 802, 'stand', Math.floor((f + 30) / 60) % 2, i % 3 === 0 ? 'balloon' : 'none'));
+    add(cx - 112 + (i % 3) * 8, ROW.walk1 - 6, (c, x, f) => guest(c, x, ROW.walk1 - 6, 1, sd + 801, (f + sd) % 400 < 120 ? 'point' : 'stand', Math.floor(f / 60) % 2, i % 2 ? 'map' : 'none'));
+    add(cx - 88 + (i % 3) * 8, ROW.walk1 - 5, (c, x, f) => guest(c, x, ROW.walk1 - 5, -1, sd + 802, 'stand', Math.floor((f + 30) / 60) % 2, i % 3 === 0 ? 'balloon' : 'none'));
     // On the promenade behind: a few stood looking at things, a mascot or two signing autographs
     MID_THINGS.push({ x: cx - 120, y: ROW.mid1, draw: (c, x, f) => guest(c, x, ROW.mid1, 1, sd + 901, 'stand', Math.floor(f / 90) % 2, 'camera') });
     MID_THINGS.push({ x: cx - 100, y: ROW.mid1, draw: (c, x, f) => guest(c, x, ROW.mid1, -1, sd + 902, 'point', Math.floor(f / 90) % 2) });
@@ -434,14 +362,33 @@ export const drawCrowdMid = (c: Ctx, state: GameState, each: (x: number, r: numb
   drawParade(c, state, each);
 };
 
+/** The clear ground in front of each portal (nobody stands or walks across its path: the way in reads at a glance):
+ *  half its width. The walk's walkers go back and forth between two portals' clear ground, turning at its edge. */
+const CLEAR = PATH.near + 16;
+const PORTALS = SPOTS.map((s, i) => (s.kind === 'land' ? slotX(i) : null)).filter((x): x is number => x !== null);
+const segOf = (x0: number) => {
+  const u = wrapX(x0);
+  let L = PORTALS[PORTALS.length - 1] - HUB_CIRC, R = PORTALS[0];
+  for (let k = 0; k < PORTALS.length; k++) { const a = PORTALS[k], b = k + 1 < PORTALS.length ? PORTALS[k + 1] : PORTALS[0] + HUB_CIRC; if (u >= a && u < b) { L = a; R = b; } }
+  if (u < PORTALS[0]) { L = PORTALS[PORTALS.length - 1] - HUB_CIRC; R = PORTALS[0]; }
+  return { a: L + CLEAR, span: R - L - CLEAR * 2, u };
+};
+const SEG = new Map<Walker, { a: number; span: number; u: number }>();
+/** Where a walk walker is now, and which way it's going. */
+const walkAt = (w: Walker, f: number): [number, 1 | -1] => {
+  let sg = SEG.get(w); if (!sg) { sg = segOf(w.x0); SEG.set(w, sg); }
+  const pos = sg.u - sg.a + w.v * f, P = sg.span * 2, ph = ((pos % P) + P) % P;
+  return [wrapX(sg.a + (ph < sg.span ? ph : P - ph)), ((w.v > 0 ? 1 : -1) * (ph < sg.span ? 1 : -1)) as 1 | -1];
+};
+
 /** The walk's crowd (in front of the fence, behind him): walkers, the queues, the benches, the carts, the mascots. */
 export const drawCrowdWalk = (c: Ctx, state: GameState, each: (x: number, r: number, draw: (x: number) => void) => void) => {
   const f = state.frame;
   const list: [number, () => void][] = [];
   for (const w of WALKERS) {
     if (w.mid) continue;
-    const x = wrapX(w.x0 + w.v * f);
-    each(x, 50, xx => list.push([w.y, () => guest(c, xx, w.y, w.v > 0 ? 1 : -1, w.seed, 'walk', Math.floor((f * Math.abs(w.v) * 0.6 + w.seed) / 5) % 4, w.extra)]));
+    const [x, dir] = walkAt(w, f);
+    each(x, 50, xx => list.push([w.y, () => guest(c, xx, w.y, dir, w.seed, 'walk', Math.floor((f * Math.abs(w.v) * 0.6 + w.seed) / 5) % 4, w.extra)]));
   }
   for (const t of THINGS) each(t.x, 180, xx => list.push([t.y, () => t.draw(c, xx, f)]));
   list.sort((a, b) => a[0] - b[0]);

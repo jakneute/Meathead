@@ -27,6 +27,7 @@ import { signText, signAt, signW, enamel } from './letters';
 import { paintLandmark, paintAmericaLandmark, paintSkyline, drawFarLive, paintTreeline, paintCloud, paintBlimp, paintHotAir, landmarkBox, SKYLINE_BOX } from './far';
 import { checker } from './kit';
 import { drawAmericaExit } from './exit';
+import { paintFlowerBed } from './props';
 
 type Ctx = CanvasRenderingContext2D;
 type Each = (x: number, r: number, draw: (x: number) => void) => void;
@@ -223,11 +224,8 @@ export const drawHubBack = (ctx: Ctx, state: GameState) => {
 export const drawHubFront = (ctx: Ctx, state: GameState) => {
   const bottom = state.camera.y + CANVAS_HEIGHT, v = viewOf(state);
   for (let x = Math.floor((v.x - 120) / 380) * 380; x < v.x + v.w + 40; x += 380) {
-    for (const [dx, r, c] of [[0, 34, '#2F6B3A'], [44, 26, '#3F8A4A'], [80, 30, '#2F6B3A']] as const) {
-      ctx.fillStyle = c; ctx.beginPath(); ctx.arc(x + dx, bottom + 8, r, Math.PI, 0); ctx.fill();
-      ctx.fillStyle = lite(c, 0.15); ctx.beginPath(); ctx.arc(x + dx - r * 0.3, bottom + 4, r * 0.5, Math.PI, 0); ctx.fill();
-    }
-    for (let k = 0; k < 6; k++) box(ctx, x - 20 + k * 20, bottom - 22 - (k % 3) * 5, 5, 5, ['#F472B6', '#FDE047', '#F87171'][k % 3]);
+    const kd = Math.abs(Math.round(x / 380)) % 3;
+    ctx.translate(x, bottom); stamp(ctx, `hubBed|${kd}`, -40, -30, 160, 40, g => paintFlowerBed(g, kd)); ctx.translate(-x, -bottom);
   }
   drawPigeons(ctx, state, eachOf(state));
 };
@@ -243,22 +241,38 @@ const lamp = (ctx: Ctx, x: number, i: number, f: number) => {
   const top = GROUND_Y - 230;
   ctx.translate(x, 0);
   stamp(ctx, `hubLamp|${i}`, -120, top - 30, 240, 236, g => {
-    box(g, -5, top, 10, 230, INK); box(g, -4, top, 8, 230, '#1F2937'); box(g, -4, top, 3, 230, '#4B5563');
-    box(g, -12, GROUND_Y - 14, 24, 14, '#111827'); box(g, -10, GROUND_Y - 12, 6, 10, '#374151');
-    box(g, -14, top - 2, 28, 4, '#111827');
+    // (the post: cast iron, fluted, banded; its stepped plinth; the crown under the lantern, its arms)
+    const I = ['#0B0F17', '#151B26', '#1F2937', '#374151', '#4B5563', '#6B7280'];
+    box(g, -5, top, 10, 230, INK);
+    for (let u = 0; u < 8; u += 2) box(g, -4 + u, top, 2, 230, I[[4, 5, 3, 2][u / 2]]);
+    for (let y = top + 30; y < GROUND_Y - 30; y += 3) box(g, -1, y, 1, 2, I[2]);
+    for (const y of [top + 24, top + 108, GROUND_Y - 44]) { box(g, -7, y, 14, 5, INK); box(g, -6, y + 1, 12, 3, I[3]); box(g, -6, y + 1, 12, 1, I[5]); }
+    box(g, -12, GROUND_Y - 30, 24, 30, INK); box(g, -11, GROUND_Y - 29, 22, 29, I[2]); box(g, -11, GROUND_Y - 29, 4, 29, I[4]); box(g, 6, GROUND_Y - 29, 5, 29, I[1]);
+    box(g, -15, GROUND_Y - 8, 30, 8, INK); box(g, -14, GROUND_Y - 7, 28, 7, I[3]); box(g, -14, GROUND_Y - 7, 28, 1, I[5]);
+    box(g, -9, GROUND_Y - 24, 18, 10, I[1]); box(g, -8, GROUND_Y - 23, 16, 8, '#C9A227'); signText(g, 'HL', 0, GROUND_Y - 16, { sx: 1, sy: 1, fill: '#1F2937' });
+    box(g, -10, top - 4, 20, 6, INK); box(g, -9, top - 3, 18, 4, I[3]); box(g, -9, top - 3, 18, 1, I[5]);
+    for (const s2 of [-1, 1]) { g.strokeStyle = INK; g.lineWidth = 3; g.beginPath(); g.moveTo(0, top + 18); g.quadraticCurveTo(s2 * 14, top + 16, s2 * 10, top + 2); g.stroke(); g.strokeStyle = I[4]; g.lineWidth = 1; g.stroke(); }
+    // (string-light hooks)
+    box(g, -8, top + 4, 16, 2, I[1]);
     // (the signpost: an arrow board each way)
     for (const [dir, slot, y] of [[-1, i - 1, top + 70], [1, i, top + 92]] as const) {
       const L = spotLook(slot), name = spotName(slot), w = signW(name, L) + 18, col = spotBoard(slot);
       const x0 = dir < 0 ? -6 - w : 6, x1 = dir < 0 ? -6 : 6 + w, tip = dir < 0 ? x0 - 8 : x1 + 8;
       g.beginPath(); g.moveTo(dir < 0 ? x1 : x0, y - 9); g.lineTo(dir < 0 ? x0 : x1, y - 9); g.lineTo(tip, y); g.lineTo(dir < 0 ? x0 : x1, y + 9); g.lineTo(dir < 0 ? x1 : x0, y + 9); g.closePath();
       g.fillStyle = col; g.fill(); g.strokeStyle = INK; g.lineWidth = 1.5; g.stroke();
-      box(g, Math.min(x0, x1) + 1, y - 8, w - 2, 2, mix(col, '#FFFFFF', 0.25));
+      box(g, Math.min(x0, x1) + 1, y - 8, w - 2, 2, mix(col, '#FFFFFF', 0.28)); box(g, Math.min(x0, x1) + 1, y + 6, w - 2, 2, mix(col, '#000000', 0.3));
+      for (let k = 0; k < 3; k++) box(g, Math.min(x0, x1) + 4 + k * 13, y - 4 + (k % 2) * 6, 7, 1, mix(col, '#000000', 0.14));
+      for (const bx of [Math.min(x0, x1) + 2, Math.max(x0, x1) - 4]) { box(g, bx, y - 1, 2, 2, mix(col, '#000000', 0.45)); box(g, bx, y - 1, 1, 1, mix(col, '#FFFFFF', 0.5)); }
+      box(g, dir < 0 ? -6 : 4, y - 3, 2, 6, '#1F2937');
       signText(g, name, (x0 + x1) / 2 + dir * 3, y + 4, L);
     }
     // (a banner: HAPPY LAND)
     const land = LANDS[((i % LANDS.length) + LANDS.length) % LANDS.length];
     g.fillStyle = land.sign; g.beginPath(); g.moveTo(4, top + 116); g.lineTo(34, top + 116); g.lineTo(34, top + 170); g.lineTo(19, top + 162); g.lineTo(4, top + 170); g.closePath(); g.fill();
     g.strokeStyle = INK; g.lineWidth = 1; g.stroke();
+    box(g, 5, top + 117, 4, 44, mix(land.sign, '#FFFFFF', 0.25)); box(g, 29, top + 117, 4, 44, mix(land.sign, '#000000', 0.3)); checker(g, 9, top + 117, 2, 44, mix(land.sign, '#FFFFFF', 0.25));
+    box(g, 2, top + 113, 34, 3, INK); box(g, 3, top + 114, 32, 1, '#9CA3AF'); box(g, 0, top + 112, 4, 5, '#C9A227'); box(g, 34, top + 112, 4, 5, '#C9A227');
+    box(g, 5, top + 120, 28, 1, '#C9A227'); box(g, 5, top + 154, 28, 1, '#C9A227');
     signAt(g, 'HAPPY', 19, top + 134, 6, enamel(6, land.signText)); signAt(g, 'LAND', 19, top + 146, 6, enamel(6, land.signText));
   });
   ctx.translate(-x, 0);

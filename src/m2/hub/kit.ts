@@ -41,15 +41,18 @@ export const pane = (c: Ctx, x: number, y: number, w: number, h: number, frame: 
   box(c, x, y + h - Math.max(2, Math.round(h * 0.35)), w, Math.max(2, Math.round(h * 0.35)), lit ? '#F0A83E' : mix(glass, '#1E3A5A', 0.3));
   if (!lit) box(c, x + 1, y + 1, 1, Math.max(1, h - 3), '#FFFFFF');
 };
-/** A tree's round crown in stepped shells (shade, body, lit, a highlight), each lumped. */
+/** A tree's crown: a heap of leafy lumps, each in stepped shells (shade, body, lit, a highlight), the dark of the ones
+ *  behind showing between; leaf tufts round the edge, a row of dither at each step. */
 export const crown = (c: Ctx, x: number, y: number, r: number, R: string[]) => {
   const blob = (cx: number, cy: number, rr: number, col: string) => { c.fillStyle = col; c.beginPath(); c.arc(cx, cy, rr, 0, Math.PI * 2); c.fill(); };
-  blob(x, y, r + 1, INK);
-  blob(x + r * 0.1, y + r * 0.1, r, R[1]);
-  blob(x - r * 0.12, y - r * 0.12, r * 0.78, R[2]);
-  blob(x - r * 0.3, y - r * 0.3, r * 0.45, R[3]);
-  checker(c, x - r * 0.75, y - r * 0.1, r * 1.2, 2, R[2]);
-  blob(x - r * 0.4, y - r * 0.42, r * 0.18, R[4]);
+  const lumps: [number, number, number][] = [[0, 0.12, 0.78], [-0.42, 0.2, 0.55], [0.44, 0.22, 0.52], [-0.22, -0.32, 0.56], [0.26, -0.3, 0.5], [0, -0.55, 0.42]];
+  for (const [dx, dy, k] of lumps) blob(x + dx * r, y + dy * r, r * k + 1, INK);
+  for (const [dx, dy, k] of lumps) blob(x + dx * r + r * 0.06, y + dy * r + r * 0.06, r * k, R[1]);
+  for (const [dx, dy, k] of lumps) blob(x + dx * r - r * k * 0.12, y + dy * r - r * k * 0.14, r * k * 0.74, R[2]);
+  for (const [dx, dy, k] of lumps) blob(x + dx * r - r * k * 0.28, y + dy * r - r * k * 0.32, r * k * 0.42, R[3]);
+  for (const [dx, dy, k] of lumps) checker(c, x + dx * r - r * k * 0.7, y + dy * r + r * k * 0.05, r * k * 1.2, 2, R[2]);
+  for (const [dx, dy, k] of lumps) blob(x + dx * r - r * k * 0.38, y + dy * r - r * k * 0.42, Math.max(1, r * k * 0.14), R[4]);
+  for (let i = 0; i < 10; i++) { const a = (i / 10) * Math.PI * 2, rr = r * (0.86 + hash(i + x * 0.1) * 0.12); c.fillStyle = i % 2 ? R[1] : R[2]; c.fillRect(Math.round(x + Math.cos(a) * rr), Math.round(y + Math.sin(a) * rr * 0.92), 2, 2); }
 };
 /** A flag on its pole, waving (live: it's never still). */
 export const flag = (c: Ctx, x: number, top: number, w: number, h: number, cols: string[], f: number, seed = 0) => {

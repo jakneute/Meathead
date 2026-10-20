@@ -12,7 +12,7 @@
 // falls, the flames, the flags) drawn live over them (`drawStretchLive`).
 
 import { GROUND_Y } from '../../m1/constants';
-import { type Ctx, INK, mix, hash, checker, box, R6, inked, slab, crown, flag } from './kit';
+import { type Ctx, INK, mix, hash, checker, box, R6, inked, crown, flag } from './kit';
 import { SPOTS, HUB_SLOTS, LANDS } from './lands';
 import { HUB, HUB_CIRC, slotX, seamX, ROW, GATE, PATH, HUB_HORIZON, depthAt } from './geometry';
 import { puffTree } from '../cartoon/kit';
@@ -20,6 +20,7 @@ import { COBBLE } from '../fantasy/kit';
 import { stucco, barrelTile } from '../foreign/kit';
 import { signText, type Look } from '../signLetters';
 import { FACADES } from './buildings';
+import { wall, clapboard, flatTop, gableBack, awning, board, bulbs, poly, polyI, seg } from './bkit';
 
 /** Which kind of stretch a spot is: a land's id, America USA's street, or the back of the staff building. */
 export type StretchId = 'space' | 'frontier' | 'spooky' | 'cartoon' | 'america' | 'hollywood' | 'fantasy' | 'adventure' | 'foreign' | 'staff';
@@ -259,42 +260,67 @@ export const LAND_LOOK: Record<string, (big: boolean) => Look> = {
 
 type Kiosk = 'snacks' | 'fountain' | 'gazebo' | 'souvenir' | 'info';
 const KIOSKS: Kiosk[] = ['snacks', 'fountain', 'souvenir', 'gazebo', 'info', 'snacks', 'souvenir', 'fountain', 'gazebo', 'info'];
-const kiosk = (g: Ctx, x: number, kind: Kiosk, a: StretchId, b: StretchId) => {
-  const awning = (cols: [string, string]) => { for (let k = 0; k < 8; k++) inked(g, () => { g.moveTo(x - 36 + k * 9, B - 54); g.lineTo(x - 27 + k * 9, B - 54); g.lineTo(x - 31.5 + k * 9, B - 46); g.closePath(); }, mix(cols[k % 2], '#4A4458', 0.25)); };
+const kiosk = (g: Ctx, x: number, kind: Kiosk, a: StretchId, b: StretchId, lit: boolean) => {
   switch (kind) {
     case 'snacks': case 'souvenir': {
-      slab(g, x - 30, B - 46, 60, 46, R6(kind === 'snacks' ? '#F1E8D8' : '#DDE6F2'));
-      box(g, x - 26, B - 40, 52, 16, INK); box(g, x - 25, B - 39, 50, 14, '#3A2A1A');
-      if (kind === 'snacks') for (let k = 0; k < 5; k++) { box(g, x - 22 + k * 10, B - 36, 6, 10, ['#F59E0B', '#EF4444', '#FDE68A'][k % 3]); }
-      else for (let k = 0; k < 6; k++) inked(g, () => g.arc(x - 20 + k * 8, B - 32, 3, 0, Math.PI * 2), ['#EF4444', '#3B82F6', '#FDE047'][k % 3]);
-      box(g, x - 32, B - 24, 64, 4, '#A8A29E');
-      awning(kind === 'snacks' ? ['#DC2626', '#F8FAFC'] : ['#2563EB', '#F8FAFC']);
-      box(g, x - 36, B - 62, 72, 9, INK); box(g, x - 35, B - 61, 70, 7, '#F8FAFC');
-      signText(g, kind === 'snacks' ? 'SNACKS' : 'SOUVENIRS', x, B - 55, { sx: 1, sy: 1, fill: kind === 'snacks' ? '#B91C1C' : '#1E40AF' });
+      // (a little stand: its roof going back, a striped awning, the counter with what's sold, the board on top)
+      const body = R6(kind === 'snacks' ? '#F1E8D8' : '#DDE6F2'), aw = kind === 'snacks' ? ['#DC2626', '#F8FAFC'] : ['#2563EB', '#F8FAFC'];
+      flatTop(g, x - 34, x + 34, B - 58, x, 0.9, R6('#8A8680'));
+      wall(g, x - 30, B - 58, 60, 58, body); clapboard(g, x - 27, B - 58, 50, 58, body, x, 4); box(g, x - 30, B - 58, 3, 58, body[4]);
+      box(g, x - 27, B - 42, 54, 20, INK); box(g, x - 26, B - 41, 52, 18, lit ? '#5A3A1A' : '#3A2A1A'); box(g, x - 26, B - 41, 52, 2, '#1A1008');
+      if (kind === 'snacks') for (let k = 0; k < 5; k++) { box(g, x - 23 + k * 10, B - 34, 7, 11, INK); box(g, x - 22 + k * 10, B - 33, 5, 10, ['#F59E0B', '#EF4444', '#FDE68A'][k % 3]); box(g, x - 22 + k * 10, B - 33, 5, 2, '#FFFFFF'); }
+      else for (let k = 0; k < 6; k++) { const bx = x - 20 + k * 8; g.fillStyle = INK; g.beginPath(); g.arc(bx, B - 31, 3.5, 0, Math.PI * 2); g.fill(); g.fillStyle = ['#EF4444', '#3B82F6', '#FDE047'][k % 3]; g.beginPath(); g.arc(bx, B - 31, 2.5, 0, Math.PI * 2); g.fill(); box(g, bx - 1, B - 33, 1, 1, '#FFFFFF'); box(g, bx, B - 28, 1, 6, '#57534E'); }
+      box(g, x - 33, B - 24, 66, 5, INK); box(g, x - 32, B - 23, 64, 3, '#C8C2B8'); box(g, x - 32, B - 23, 64, 1, '#F5F5F4');
+      awning(g, x - 32, x + 32, B - 52, 9, aw[0], aw[1], 8);
+      board(g, x, B - 72, 66, 11, kind === 'snacks' ? 'SNACKS' : 'SOUVENIRS', { sx: 1, sy: 1, fill: kind === 'snacks' ? ['#B91C1C', '#7F1D1D'] : ['#1E40AF', '#142A66'], dither: true }, '#F8FAFC', '#3A2208');
+      bulbs(g, x - 32, B - 59, x + 32, B - 59, 2, lit);
       return;
     }
     case 'fountain': {
-      inked(g, () => g.ellipse(x, B - 6, 44, 8, 0, 0, Math.PI * 2), '#D6CDB8');
-      inked(g, () => g.ellipse(x, B - 8, 38, 5, 0, 0, Math.PI * 2), '#4CA8D8');
-      box(g, x - 30, B - 9, 18, 1, '#C6E8FC');
-      slab(g, x - 5, B - 36, 10, 30, R6('#D6CDB8'));
-      inked(g, () => g.ellipse(x, B - 36, 18, 4, 0, 0, Math.PI * 2), '#D6CDB8');
+      // (a two-tier fountain: the basin's stone rim in steps, banded water, the column, the bowl, the jet's top)
+      const S = R6('#D6CDB8');
+      g.fillStyle = INK; g.beginPath(); g.ellipse(x, B - 6, 45, 9, 0, 0, Math.PI * 2); g.fill();
+      for (const [k, col] of [[1, S[2]], [0.92, S[3]], [0.8, S[4]]] as const) { g.fillStyle = col; g.beginPath(); g.ellipse(x - (1 - k) * 8, B - 7, 44 * k, 8 * k, 0, 0, Math.PI * 2); g.fill(); }
+      box(g, x - 44, B - 7, 88, 7, S[2]); box(g, x - 44, B - 7, 88, 1, S[4]); for (let k = -40; k < 44; k += 11) box(g, x + k, B - 6, 1, 6, S[1]);
+      g.fillStyle = INK; g.beginPath(); g.ellipse(x, B - 9, 38, 5, 0, 0, Math.PI * 2); g.fill();
+      for (const [k, col] of [[1, '#2A7AA8'], [0.8, '#4CA8D8'], [0.5, '#86CAF4'], [0.22, '#C6E8FC']] as const) { g.fillStyle = col; g.beginPath(); g.ellipse(x - (1 - k) * 6, B - 9, 37 * k, 4.5 * k, 0, 0, Math.PI * 2); g.fill(); }
+      wall(g, x - 5, B - 38, 10, 30, S);
+      g.fillStyle = INK; g.beginPath(); g.ellipse(x, B - 38, 19, 5, 0, 0, Math.PI * 2); g.fill(); g.fillStyle = S[3]; g.beginPath(); g.ellipse(x, B - 38, 18, 4, 0, 0, Math.PI * 2); g.fill(); g.fillStyle = '#4CA8D8'; g.beginPath(); g.ellipse(x, B - 39, 14, 2.5, 0, 0, Math.PI * 2); g.fill();
+      box(g, x - 1, B - 50, 3, 12, S[4]); g.fillStyle = INK; g.beginPath(); g.arc(x, B - 51, 3, 0, Math.PI * 2); g.fill(); g.fillStyle = '#D09A30'; g.beginPath(); g.arc(x, B - 51, 2, 0, Math.PI * 2); g.fill();
+      for (const dx of [-16, 16]) { g.strokeStyle = '#C6E8FC'; g.lineWidth = 1; g.beginPath(); g.moveTo(x + dx * 0.9, B - 38); g.quadraticCurveTo(x + dx * 1.3, B - 30, x + dx * 1.5, B - 11); g.stroke(); }
+      for (let k = 0; k < 6; k++) box(g, x - 28 + k * 11, B - 10 - (k % 2), 2, 1, '#FFFFFF');
       return;
     }
     case 'gazebo': {
-      for (const px of [-28, -10, 10, 28]) box(g, x + px - 2, B - 50, 4, 50, '#F8FAFC');
-      box(g, x - 32, B - 14, 64, 3, '#F8FAFC'); for (let k = 0; k < 10; k++) box(g, x - 30 + k * 6.5, B - 14, 1, 14, '#E7E5E4');
-      inked(g, () => { g.moveTo(x - 40, B - 50); g.lineTo(x, B - 80); g.lineTo(x + 40, B - 50); g.closePath(); }, mix('#7A9ABE', '#4A4458', 0.2));
-      box(g, x - 1, B - 92, 2, 12, '#57534E');
+      // (a bandstand: white posts, a railing with its balusters, the roof's slopes going back, a finial, bunting)
+      const W = R6('#F4F2EE'), Rf = R6(mix('#7A9ABE', '#4A4458', 0.15));
+      gableBack(g, x - 42, x + 42, B - 52, x, B - 82, x, 0.9, Rf, 5);
+      flatTop(g, x - 34, x + 34, B - 14, x, 0.92, R6('#C8BFAE'));
+      for (const px of [-30, -10, 10, 30]) { box(g, x + px - 3, B - 52, 6, 52, INK); box(g, x + px - 2, B - 52, 4, 52, W[3]); box(g, x + px - 2, B - 52, 1, 52, W[5]); box(g, x + px + 1, B - 52, 1, 52, W[2]); }
+      box(g, x - 33, B - 16, 66, 4, INK); box(g, x - 32, B - 15, 64, 2, W[4]);
+      for (let k = 0; k < 13; k++) { box(g, x - 31 + k * 5, B - 13, 2, 13, W[2]); box(g, x - 31 + k * 5, B - 13, 1, 13, W[4]); }
+      box(g, x - 34, B - 3, 68, 3, W[1]);
+      polyI(g, [[x - 42, B - 52], [x, B - 82], [x + 42, B - 52]], Rf[3]);
+      for (let k = 1; k < 5; k++) { const t = k / 5; seg(g, [x - 42 * (1 - t), B - 52 - 30 * t], [x + 42 * (1 - t), B - 52 - 30 * t], Rf[1]); }
+      poly(g, [[x - 41, B - 53], [x, B - 81], [x - 10, B - 53]], Rf[4]);
+      for (let k = 0; k < 8; k++) { g.fillStyle = ['#DC2626', '#F8FAFC', '#1E3A8A'][k % 3]; g.beginPath(); g.arc(x - 35 + k * 10, B - 52, 5, 0, Math.PI); g.fill(); }
+      box(g, x - 43, B - 53, 86, 2, INK);
+      box(g, x - 1, B - 96, 2, 14, '#57534E'); g.fillStyle = INK; g.beginPath(); g.arc(x, B - 96, 3, 0, Math.PI * 2); g.fill(); g.fillStyle = '#D09A30'; g.beginPath(); g.arc(x, B - 96, 2, 0, Math.PI * 2); g.fill();
       return;
     }
     case 'info': {
-      slab(g, x - 14, B - 70, 28, 70, R6('#2F6B3A'));
-      box(g, x - 10, B - 64, 20, 14, '#F8FAFC'); signText(g, 'i', x, B - 53, { sx: 2, sy: 1, fill: '#1E40AF' });
-      // (the map board: both lands on it, the way it's drawn on the guide map)
-      box(g, x - 40, B - 46, 80, 30, INK); box(g, x - 39, B - 45, 39, 28, mix(GROUNDS[a].base, '#FFFFFF', 0.2)); box(g, x, B - 45, 39, 28, mix(GROUNDS[b].base, '#FFFFFF', 0.2));
-      box(g, x - 34, B - 36, 66, 2, '#DC2626'); inked(g, () => g.arc(x, B - 31, 3, 0, Math.PI * 2), '#DC2626');
-      box(g, x - 36, B - 16, 3, 16, '#3F3F46'); box(g, x + 33, B - 16, 3, 16, '#3F3F46');
+      // (the info pylon, a big i; the map board, both lands on it the way the guide map has them, under its little roof)
+      const P = R6('#2F6B3A');
+      wall(g, x - 14, B - 74, 28, 74, P); box(g, x - 14, B - 74, 28, 3, P[5]);
+      box(g, x - 11, B - 68, 22, 16, INK); box(g, x - 10, B - 67, 20, 14, '#F8FAFC'); signText(g, 'i', x, B - 55, { sx: 2, sy: 1, fill: ['#1E40AF', '#142A66'], dither: true });
+      box(g, x - 42, B - 49, 84, 34, INK); box(g, x - 41, B - 48, 82, 32, '#5E3E22');
+      box(g, x - 39, B - 46, 39, 28, mix(GROUNDS[a].base, '#FFFFFF', 0.2)); box(g, x, B - 46, 39, 28, mix(GROUNDS[b].base, '#FFFFFF', 0.2));
+      checker(g, x - 39, B - 46, 78, 28, 'rgba(255,255,255,0.18)');
+      for (let k = 0; k < 6; k++) box(g, x - 34 + k * 12, B - 42 + (k % 2) * 10, 6, 5, k % 2 ? '#8A5A32' : '#57534E');
+      box(g, x - 36, B - 32, 72, 2, '#DC2626'); g.fillStyle = INK; g.beginPath(); g.arc(x, B - 31, 4, 0, Math.PI * 2); g.fill(); g.fillStyle = '#DC2626'; g.beginPath(); g.arc(x, B - 31, 3, 0, Math.PI * 2); g.fill();
+      signText(g, 'YOU ARE HERE', x, B - 21, { sx: 1, sy: 1, fill: '#1A1028' });
+      for (const px of [x - 38, x + 34]) { box(g, px, B - 16, 4, 16, INK); box(g, px + 1, B - 16, 2, 16, '#71717A'); }
+      polyI(g, [[x - 46, B - 49], [x - 40, B - 56], [x + 40, B - 56], [x + 46, B - 49]], '#3F3F46'); box(g, x - 40, B - 56, 80, 1, '#71717A');
       return;
     }
   }
@@ -389,7 +415,7 @@ for (let i = 0; i < HUB_SLOTS; i++) {
   BACK_ITEMS.push({ x: nx + 104, r: 60, paint: (g, x) => TREES[next](g, x, seed + 1, 1) });
   BACK_ITEMS.push({ x: nx - 58, r: 60, paint: (g, x) => TREES[next](g, x, seed + 2, 0.82) });
   BACK_ITEMS.push({ x: nx + 58, r: 60, paint: (g, x) => TREES[id](g, x, seed + 3, 0.82) });
-  BACK_ITEMS.push({ x: nx, r: 48, paint: (g, x) => kiosk(g, x, KIOSKS[i], id, next) });
+  BACK_ITEMS.push({ x: nx, r: 48, paint: (g, x, lit) => kiosk(g, x, KIOSKS[i], id, next, lit) });
 }
 
 /** The back row from x0 to x1 (a stamp's worth): the promenade's paving (dithered one land into the next across each
