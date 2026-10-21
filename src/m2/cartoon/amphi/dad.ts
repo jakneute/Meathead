@@ -17,6 +17,7 @@
 // sagging, the dent he's worn in it), his seat on it at DAD_SEAT.
 
 import { mix } from '../kit';
+import { drawDadGross } from './dadGross';
 import type { DadPose } from './state';
 import { type Ctx, type Ramp, shape, shapeTop, ell, px, line, limb, fill, dith } from './paint';
 
@@ -147,17 +148,37 @@ const belly = (c: Ctx, bx: number, by: number, rx: number, ry: number) => {
   c.beginPath(); c.ellipse(bx, by, rx, ry, 0, 0, Math.PI * 2); c.strokeStyle = TANK[4]; c.lineWidth = 1; c.stroke();
 };
 
-/** A leg from the hip to the knee to the foot: boxer leg, then the bare shin (veins), the sock, the slipper. */
+const dimR = (r: Ramp, near: boolean): Ramp => (near ? r : [r[1], r[2], r[3], r[3], r[4]]);
+/** A knee: the bare kneecap (a knob, lit on top, the wrinkles round it, a liver spot), the thigh's skin above it out
+ *  of the boxers' cuff. Drawn with the leg, and again over the belly when he's sat (his knees stick out past the gut). */
+const kneecap = (c: Ctx, hip: number[], knee: number[], near: boolean) => {
+  const r = dimR(SKIN, near);
+  const dx = knee[0] - hip[0], dy = knee[1] - hip[1], d = Math.hypot(dx, dy) || 1, ux = dx / d, uy = dy / d;
+  shape(c, () => c.ellipse(knee[0] + ux * 0.6, knee[1] + uy * 0.6 - 0.4, 5, 4.4, Math.atan2(uy, ux), 0, Math.PI * 2), r, knee[0] - 5, knee[0] + 5, 0.8);
+  ell(c, knee[0] + ux * 1.2 - 1, knee[1] + uy * 1.2 - 1.8, 2, 1.2, r[0]);
+  line(c, [knee[0] - uy * 3 + ux * 2.6, knee[1] + ux * 3 + uy * 2.6, knee[0] + ux * 3.6, knee[1] + uy * 3.6 + 0.6, knee[0] + uy * 3 + ux * 2.6, knee[1] - ux * 3 + uy * 2.6], 0.5, r[3]);
+  line(c, [knee[0] - uy * 2.4 - ux * 2.2, knee[1] + ux * 2.4 - uy * 2.2, knee[0] - ux * 3, knee[1] - uy * 3 + 0.4], 0.45, r[2]);
+  ell(c, knee[0] - ux * 0.4 + 1.4, knee[1] - uy * 0.4 - 0.6, 0.8, 0.6, SPOT);
+};
+
+/** A leg from the hip to the knee to the foot: boxer leg (the cuff above the knee), the bare knee, the bare shin
+ *  (veins), the sock, the slipper. */
 const leg = (c: Ctx, hip: number[], knee: number[], foot: number[], near: boolean, sag = 0) => {
-  const dim = (r: Ramp): Ramp => (near ? r : [r[1], r[2], r[3], r[3], r[4]]);
-  // (the boxer leg: baggy, striped)
-  limb(c, hip[0], hip[1], 8, knee[0], knee[1], 6.4, dim(BOXER));
-  c.save(); c.beginPath(); c.moveTo(hip[0], hip[1] - 8); c.lineTo(knee[0], knee[1] - 6); c.lineTo(knee[0], knee[1] + 6); c.lineTo(hip[0], hip[1] + 8); c.closePath(); c.clip();
-  for (let k = -12; k <= 12; k += 4) line(c, [hip[0] + k, hip[1] - 10, knee[0] + k, knee[1] - 8, knee[0] + k, knee[1] + 8], 1, near ? STRIPE : mix(STRIPE, '#000000', 0.2));
+  const dim = (r: Ramp): Ramp => dimR(r, near);
+  // (the bare thigh between the cuff and the knee, then the boxer leg over it: baggy, striped, the cuff a little short
+  // of the knee)
+  const cuff = [hip[0] + (knee[0] - hip[0]) * 0.74, hip[1] + (knee[1] - hip[1]) * 0.74];
+  limb(c, cuff[0], cuff[1], 5.4, knee[0], knee[1], 4.6, dim(SKIN));
+  limb(c, hip[0], hip[1], 8, cuff[0], cuff[1], 7.2, dim(BOXER));
+  c.save(); c.beginPath(); c.moveTo(hip[0], hip[1] - 9); c.lineTo(cuff[0], cuff[1] - 8); c.lineTo(cuff[0], cuff[1] + 8); c.lineTo(hip[0], hip[1] + 9); c.closePath(); c.clip();
+  for (let k = -12; k <= 12; k += 4) line(c, [hip[0] + k, hip[1] - 10, cuff[0] + k, cuff[1] - 8, cuff[0] + k, cuff[1] + 8], 1, near ? STRIPE : mix(STRIPE, '#000000', 0.2));
   c.restore();
+  // (the cuff's hem: a dark fold across the end of the boxer leg)
+  { const dx = knee[0] - hip[0], dy = knee[1] - hip[1], d = Math.hypot(dx, dy) || 1, nx = -dy / d, ny = dx / d; line(c, [cuff[0] + nx * 7, cuff[1] + ny * 7, cuff[0] - nx * 7, cuff[1] - ny * 7], 1.1, dim(BOXER)[3]); }
   // (the shin: thin, pale, a varicose vein; the black sock pulled up (the near one's slid down))
   const ankle = [foot[0] + 2, foot[1] - 4];
   limb(c, knee[0], knee[1], 4.2, ankle[0], ankle[1], 3, dim(SKIN));
+  kneecap(c, hip, knee, near);
   line(c, [knee[0] - 1, knee[1] + 4, (knee[0] + ankle[0]) / 2 - 1.5, (knee[1] + ankle[1]) / 2, ankle[0] - 1, ankle[1] - 6], 0.6, VEIN);
   const sockTop = 0.45 + (near ? sag : 0);
   limb(c, knee[0] + (ankle[0] - knee[0]) * sockTop, knee[1] + (ankle[1] - knee[1]) * sockTop, 3.6, ankle[0], ankle[1], 3.3, SOCK);
@@ -169,13 +190,42 @@ const leg = (c: Ctx, hip: number[], knee: number[], foot: number[], near: boolea
   px(c, foot[0] - 12, foot[1] - 1, 4, 1, SLIPPER[4]); px(c, foot[0] - 11, foot[1] - 1.6, 1.6, 0.8, SKIN[1]);
 };
 
-/** An arm from the shoulder to the hand: flabby, liver-spotted, the Navy anchor (the near one), a fat hand. */
-const arm = (c: Ctx, sh: number[], hand: number[], near: boolean, fist = false) => {
+/** His upper arm and forearm (units): every pose's hand is put within their reach, and the elbow worked out from it. */
+export const UPPER_ARM = 25, FOREARM = 25;
+/** The elbow for a hand (two-bone: the hand pulled in to his reach if it's past it): it bends down and back when the
+ *  hand's low, forward when it's up over his shoulder (raising a beer, the hammer over his head). */
+export const elbowOf = (sh: readonly number[], hand: readonly number[]) => {
+  let dx = hand[0] - sh[0], dy = hand[1] - sh[1], d = Math.hypot(dx, dy) || 1;
+  const reach = UPPER_ARM + FOREARM - 0.5;
+  let h2 = [hand[0], hand[1]];
+  if (d > reach) { h2 = [sh[0] + (dx / d) * reach, sh[1] + (dy / d) * reach]; dx = h2[0] - sh[0]; dy = h2[1] - sh[1]; d = reach; }
+  const dd = Math.max(4, d);
+  const a = (UPPER_ARM * UPPER_ARM - FOREARM * FOREARM + dd * dd) / (2 * dd), h = Math.sqrt(Math.max(0, UPPER_ARM * UPPER_ARM - a * a));
+  const mx = sh[0] + (dx / dd) * a, my = sh[1] + (dy / dd) * a, nx = -dy / dd, ny = dx / dd;
+  const e1 = [mx + nx * h, my + ny * h], e2 = [mx - nx * h, my - ny * h];
+  const up = h2[1] < sh[1] - 4;
+  const score = (e: number[]) => e[1] + (up ? -e[0] : e[0]) * 0.6;
+  return { el: score(e1) >= score(e2) ? e1 : e2, hand: h2 };
+};
+
+/** An arm from the shoulder to the hand: the round of the shoulder, the flabby upper arm (the bingo wing sagging off
+ *  it), the elbow (a wrinkled knob), the forearm (liver spots, the Navy anchor on the near one, the hair), a fat hand.
+ *  Returns where the hand ended up (pulled in to his reach). */
+const arm = (c: Ctx, sh: number[], handIn: number[], near: boolean, fist = false) => {
   const r: Ramp = near ? SKIN : [SKIN[1], SKIN[2], SKIN[3], SKIN[3], SKIN[4]];
-  const dx = hand[0] - sh[0], dy = hand[1] - sh[1], d = Math.hypot(dx, dy) || 1;
-  const el = [sh[0] + dx * 0.5 + (dy / d) * 4, sh[1] + dy * 0.5 - (dx / d) * 4 + 3];
-  limb(c, sh[0], sh[1], 6.6, el[0], el[1], 5.2, r, 2.4);
-  limb(c, el[0], el[1], 5, hand[0], hand[1], 3.8, r);
+  const { el, hand } = elbowOf(sh, handIn);
+  // (the shoulder: a soft round where the arm comes off him)
+  shape(c, () => c.ellipse(sh[0], sh[1] + 1, 7.4, 6.6, 0, 0, Math.PI * 2), r, sh[0] - 7.4, sh[0] + 7.4, 0.8);
+  limb(c, sh[0], sh[1], 6.6, el[0], el[1], 4.8, r, 2.4);
+  limb(c, el[0], el[1], 4.6, hand[0], hand[1], 3.8, r);
+  // (the elbow: the knob, wrinkled, a touch darker; the crease on the inside of the bend)
+  {
+    const ux = (el[0] - sh[0]) / UPPER_ARM, uy = (el[1] - sh[1]) / UPPER_ARM, vx = (hand[0] - el[0]) / FOREARM, vy = (hand[1] - el[1]) / FOREARM;
+    const ox = ux - vx, oy = uy - vy, ol = Math.hypot(ox, oy) || 1;
+    ell(c, el[0] + (ox / ol) * 2, el[1] + (oy / ol) * 2, 3.4, 3, r[2]);
+    for (let k = -1; k <= 1; k++) line(c, [el[0] + (ox / ol) * 3 - (oy / ol) * (k * 1.4) - (ox / ol) * Math.abs(k) * 0.6, el[1] + (oy / ol) * 3 + (ox / ol) * (k * 1.4) - (oy / ol) * Math.abs(k) * 0.6, el[0] + (ox / ol) * 4.4 - (oy / ol) * (k * 1.6), el[1] + (oy / ol) * 4.4 + (ox / ol) * (k * 1.6)], 0.4, r[3]);
+    if (ol > 0.3) line(c, [el[0] - (ox / ol) * 2.6 - (oy / ol) * 1.6, el[1] - (oy / ol) * 2.6 + (ox / ol) * 1.6, el[0] - (ox / ol) * 3.4, el[1] - (oy / ol) * 3.4], 0.5, r[3]);
+  }
   ell(c, (sh[0] + el[0]) / 2 + 1, (sh[1] + el[1]) / 2 - 1, 1.2, 0.9, SPOT);
   if (near) {
     // (the anchor, faded, on the forearm)
@@ -189,6 +239,44 @@ const arm = (c: Ctx, sh: number[], hand: number[], near: boolean, fist = false) 
   // (liver spots on the back of the hand, the hair on the forearm)
   ell(c, hand[0] + 1, hand[1] - 1, 0.8, 0.6, SPOT); ell(c, hand[0] - 1.6, hand[1] + 0.6, 0.6, 0.5, SPOT);
   for (let k = 0; k < 4; k++) { const t = 0.3 + k * 0.15; px(c, el[0] + (hand[0] - el[0]) * t, el[1] + (hand[1] - el[1]) * t - 3, 0.6, 1.4, HAIR[2]); }
+  return hand;
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// The mallet in his hands (the fight's hits are worked out from these, so they land where it's drawn)
+
+/** The mallet (fightArt drawMallet, in his units): the head's middle this far up the handle from the grip, its half
+ *  length along the handle and across it. */
+export const MALLET_HEAD = { off: 88, along: 17, across: 28 };
+const lerp2 = (a: readonly number[], b: readonly number[], k: number) => [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k];
+/** The Donkey Kong hammer, both fists on the handle (k 0: up over his head, tipped back; 1: slammed down onto the deck
+ *  out in front): the near hand (the mallet's grip), the far one up the handle, the mallet's angle. */
+export const hammerGrip = (k: number) => {
+  const g = lerp2([-14, -130], [-44, -80], k), ang = 0.3 + (-2.3 - 0.3) * k;
+  const ux = Math.sin(ang), uy = -Math.cos(ang);
+  return { near: g, far: [g[0] - ux * 9, g[1] - uy * 9], ang };
+};
+/** The swat from the couch (t 0: grabbing it up off the couch's arm .. 0.35 wound back over his shoulder .. 1 swung
+ *  through, out in front and down): his hand round the grip, the mallet's angle. The arc's about his shoulder. */
+export const swatGrip = (t: number) => {
+  const sh = [-20, -76];
+  if (t < 0.35) {
+    const e = t / 0.35, k = e * e * (3 - 2 * e);
+    const back = [sh[0] + Math.cos(-0.9) * 40, sh[1] + Math.sin(-0.9) * 40];
+    return { near: lerp2([-30, -58], back, k), ang: -0.3 + (0.67 + 0.3) * k };
+  }
+  const e = Math.min(1, (t - 0.35) / 0.65), k = 1 - (1 - e) * (1 - e);
+  const phi = -0.9 - 2.44 * k;
+  return { near: [sh[0] + Math.cos(phi) * 40, sh[1] + Math.sin(phi) * 40], ang: phi + Math.PI / 2 - 0.25 * k };
+};
+/** Where the mallet's head is (his units): its middle and its half-size each way (a box round it, a touch inside the
+ *  corners: it's a barrel). */
+export const malletHead = (grip: readonly number[], ang: number) => {
+  const ux = Math.sin(ang), uy = -Math.cos(ang), M = MALLET_HEAD;
+  return {
+    x: grip[0] + ux * M.off, y: grip[1] + uy * M.off,
+    hx: (M.along * Math.abs(ux) + M.across * Math.abs(uy)) * 0.85, hy: (M.along * Math.abs(uy) + M.across * Math.abs(ux)) * 0.85,
+  };
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -202,6 +290,8 @@ export interface DadOpts {
   sway?: number;
   /** Something in his hands (the mallet, a bottle), drawn in his own units over the near arm: his near and far hands. */
   held?: (c: Ctx, near: number[], far: number[]) => void;
+  /** Stood up: his knees bent (0..1), the tell before a hop and the give as he lands. */
+  crouch?: number;
 }
 
 /** Him, his feet's point at (x, feetY): `pose` what he's doing; `opts.t` how far through it (0..1). */
@@ -218,15 +308,17 @@ export const drawDad = (c: Ctx, x: number, feetY: number, pose: DadPose, f: numb
   const L = (a: number, b: number) => a + (b - a) * up;
   const sway = (o.sway ?? (sat ? 0 : Math.sin(f * 0.04) * 2.4)) * (sat ? 0 : 1);
   const breathe = Math.sin(f * 0.05) * 0.8;
-  // The skeleton: sat (the couch's seat at -30) to stood
-  const hip = [L(8, 0) + rock * 0.3, L(-32, -44)];
-  const kneeN = [L(-18, -4 + sway * 0.3), L(-30, -24)], kneeF = [L(-8, 6 + sway * 0.3), L(-32, -24)];
+  // (stood: the knees bent, everything over them down with it)
+  const cr = up < 1 ? 0 : Math.max(0, Math.min(1, o.crouch ?? 0)), dropY = cr * 11;
+  // The skeleton: sat (the couch's seat at -30; the knees out past the gut) to stood
+  const hip = [L(8, 0) + rock * 0.3, L(-32, -44) + dropY];
+  const kneeN = [L(-28, -4 + sway * 0.3) - cr * 9, L(-31, -24) + cr * 3], kneeF = [L(-20, 6 + sway * 0.3) - cr * 9, L(-33, -24) + cr * 3];
   const step = pose === 'shuffle' ? Math.sin(f * 0.2) * 5 : 0;
-  const footN = [L(-22, -6 + step), 0], footF = [L(-12, 8 - step), L(-1, 0)];
-  const bx = L(-4, -6) + sway * 0.5 + rock, by = L(-50, -66) + breathe, brx = 31, bry = L(25, 27);
-  const lean = pose === 'rise' && t < 0.6 ? 10 * (1 - up) : pose === 'heave' ? 16 + Math.sin(f * 0.3) * 2 : pose === 'drag' ? -6 : 0;
-  const shN = [L(-20, -22) + sway + rock - lean, L(-76, -96) + breathe + lean * 0.6], shF = [L(16, 12) + sway + rock - lean, L(-80, -100) + breathe + lean * 0.6];
-  let hx = L(-8, -10) + sway * 1.2 + rock - lean * 1.2, hy = L(-98, -118) + breathe + lean;
+  const footN = [L(-26, -6 + step), 0], footF = [L(-17, 8 - step), L(-1, 0)];
+  const bx = L(-4, -6) + sway * 0.5 + rock, by = L(-50, -66) + breathe + dropY, brx = 31, bry = L(25, 27);
+  const lean = pose === 'rise' && t < 0.6 ? 10 * (1 - up) : pose === 'heave' ? 16 + Math.sin(f * 0.3) * 2 : pose === 'drag' ? -6 : pose === 'hammer' ? 7 * Math.min(1, t) : 0;
+  const shN = [L(-20, -22) + sway + rock - lean, L(-76, -96) + breathe + lean * 0.6 + dropY], shF = [L(16, 12) + sway + rock - lean, L(-80, -100) + breathe + lean * 0.6 + dropY];
+  let hx = L(-8, -10) + sway * 1.2 + rock - lean * 1.2, hy = L(-98, -118) + breathe + lean + dropY;
   let tilt = 0, hdir = -1;
   let face: DadFace = o.face ?? 'bleary';
   // The hands, by pose
@@ -241,25 +333,26 @@ export const drawDad = (c: Ctx, x: number, feetY: number, pose: DadPose, f: numb
     case 'tv': handN = [-46 + Math.sin(f * 0.5) * 3, -84 + Math.cos(f * 0.5) * 2]; handF = [34, -72]; face = o.face ?? (talking ? 'yell' : 'angry'); break;
     case 'squint': handN = [-16, -50]; handF = [34, -72]; hx -= 3; hy += 2; face = o.face ?? 'squint'; break;
     case 'rise': handN = [L(kneeN[0] + 2, -24), L(kneeN[1] - 6, -78)]; handF = [L(kneeF[0] + 4, 14), L(kneeF[1] - 6, -64)]; face = o.face ?? 'strain'; break;
-    case 'stand': handN = [-24 + sway, -80]; handF = [16 + sway, -60]; break;
-    case 'shuffle': handN = [-24 + sway, -78]; handF = [18 + sway, -58]; break;
+    case 'stand': handN = [-30 + sway, -50]; handF = [16 + sway, -52]; break;
+    case 'shuffle': handN = [-30 + sway + step * 0.6, -50]; handF = [16 + sway - step * 0.6, -52]; break;
     case 'crush': { const k = Math.min(1, t * 2.2); handN = [-24 - 6 * k + sway, -80 - 42 * k]; handF = [16, -60]; tilt = -0.12 * k; face = o.face ?? (t > 0.5 ? 'angry' : 'strain'); break; }
     // (the fight's)
     case 'swat': {
-      // (wound back over his shoulder (t 0), swung through and down out in front (t 1))
-      const a = -2.2 + Math.min(1, t) * 2.9;
-      handN = [-6 + Math.cos(a + Math.PI / 2) * 34, -86 - Math.sin(a + Math.PI / 2) * 30]; handF = [34, -72];
+      // (grabbed up, wound back over his shoulder, swung through round it and down out in front: swatGrip)
+      handN = swatGrip(t).near; handF = [34, -72];
       face = o.face ?? (t < 0.4 ? 'angry' : 'yell'); break;
     }
-    case 'catch': handN = [-14, -128]; handF = [34, -72]; tilt = -0.1; face = o.face ?? 'yell'; break;
+    case 'catch': handN = [-14, -124]; handF = [34, -72]; tilt = -0.1; face = o.face ?? 'yell'; break;
     case 'puke': hx -= 7; hy += 7; handN = [-8, -56]; handF = [22, -60]; face = 'puke'; break;
     case 'baffled': handN = [hx - 7, hy - 15]; handF = [hx + 9, hy - 17]; face = o.face ?? 'wide'; break;
     case 'drag': handN = [26 + sway, -70]; handF = [34 + sway, -66]; face = o.face ?? 'strain'; break;
     case 'hammer': {
-      // (the Donkey Kong hammer: both fists on the handle, up over his head (t 0), slammed down out in front (t 1))
-      const k = Math.min(1, t);
-      handN = [-6 - 30 * k + sway, -146 + 76 * k]; handF = [2 - 26 * k + sway, -140 + 74 * k]; face = o.face ?? (talking ? 'yell' : 'angry'); break;
+      // (the Donkey Kong hammer: both fists on the handle, up over his head (t 0), slammed down out in front (t 1),
+      // leaning into it: hammerGrip)
+      const g = hammerGrip(Math.min(1, t));
+      handN = [g.near[0], g.near[1] + dropY]; handF = [g.far[0], g.far[1] + dropY]; face = o.face ?? (talking ? 'yell' : 'angry'); break;
     }
+    case 'cower': handN = [hx - 16, hy - 26]; handF = [hx + 6, hy - 30]; face = o.face ?? 'wide'; break;
     case 'stagger': handN = [-34 + Math.sin(f * 0.21) * 8, -96 + Math.cos(f * 0.17) * 6]; handF = [30 + Math.cos(f * 0.19) * 8, -98 + Math.sin(f * 0.23) * 6]; face = o.face ?? 'bleary'; break;
     case 'heave': handN = [-30, -16]; handF = [-20, -14]; face = o.face ?? 'strain'; break;
     case 'fridge': handN = [-44, -86]; handF = [16 + sway, -60]; face = o.face ?? 'bleary'; break;
@@ -268,8 +361,9 @@ export const drawDad = (c: Ctx, x: number, feetY: number, pose: DadPose, f: numb
     canAt = pose === 'sip' ? [handN[0] - 3, handN[1] - 2] : pose === 'crush' ? [hx - 15, hy - 5] : [handN[0] - 1, handN[1] - 6];
     canAng = pose === 'sip' ? (o.canFull === false ? 2.4 : 1.85) : pose === 'tv' ? -0.3 : 0;
   } else if (holding === 'far') { canAt = [handF[0] + 1, handF[1] - 6]; canAng = 0.1; }
-  // Drawing, back to front: the far arm, the far leg, the near leg, the belly, the near arm, the head, the can
-  arm(c, shF, handF, false, pose === 'call');
+  // Drawing, back to front: the far arm, the far leg, the near leg, the belly (sat: the knees over it), the near arm,
+  // the head, the can
+  handF = arm(c, shF, handF, false, pose === 'call');
   if (holding === 'far' && canAt) can(c, canAt[0], canAt[1], canAng, o.crushed ?? 0);
   leg(c, [hip[0] + 6, hip[1]], kneeF, footF, false);
   leg(c, [hip[0] - 6, hip[1] + 1], kneeN, footN, true, 0.2);
@@ -286,6 +380,8 @@ export const drawDad = (c: Ctx, x: number, feetY: number, pose: DadPose, f: numb
   // (the shoulders and the chest behind the belly: the tank top's straps, grey chest hair over its neckline)
   shape(c, () => { c.moveTo(shN[0] - 4, shN[1] + 6); c.quadraticCurveTo(shN[0], shN[1] - 4, (shN[0] + shF[0]) / 2, shN[1] - 3); c.quadraticCurveTo(shF[0], shF[1] - 4, shF[0] + 6, shF[1] + 6); c.lineTo(bx + brx * 0.6, by - bry * 0.4); c.lineTo(bx - brx * 0.7, by - bry * 0.4); c.closePath(); }, SKIN, shN[0] - 6, shF[0] + 6);
   belly(c, bx, by, brx, bry);
+  // (sat (or getting up), his knees stick out past the gut: the kneecaps over its edge)
+  if (up < 0.6) { kneecap(c, [hip[0] + 6, hip[1]], kneeF, false); kneecap(c, [hip[0] - 6, hip[1] + 1], kneeN, true); }
   // (the tank top's neckline and straps up over the shoulders, a tuft of white chest hair)
   const nx = (shN[0] + shF[0]) / 2 - 2, ny = Math.min(shN[1], shF[1]) + 6;
   shape(c, () => { c.moveTo(shN[0] + 2, shN[1] - 1); c.lineTo(shN[0] + 7, shN[1] - 2); c.quadraticCurveTo(nx, ny + 10, shF[0] - 5, shF[1] - 1); c.lineTo(shF[0], shF[1]); c.lineTo(shF[0] + 2, by - bry + 6); c.lineTo(shN[0] - 2, by - bry + 6); c.closePath(); }, TANK, shN[0], shF[0]);
@@ -296,7 +392,7 @@ export const drawDad = (c: Ctx, x: number, feetY: number, pose: DadPose, f: numb
   // (the neck rolls)
   shapeTop(c, () => c.ellipse(hx + 4, hy + 15, 13, 6, 0, 0, Math.PI * 2), SKIN, hy + 9, hy + 21);
   line(c, [hx - 6, hy + 16, hx + 10, hy + 17], 0.6, SKIN[3]);
-  arm(c, shN, handN, true, pose === 'tv' || pose === 'crush');
+  handN = arm(c, shN, handN, true, pose === 'tv' || pose === 'crush' || pose === 'hammer');
   head(c, hx, hy, face, f, hdir, tilt, talking);
   if (holding === 'near' && canAt) can(c, canAt[0], canAt[1], canAng, o.crushed ?? 0);
   // (crushing it on his forehead: the thumb over the top of it)
@@ -313,9 +409,9 @@ export const dadHeadAt = (x: number, feetY: number, sat: boolean) => ({ x, y: fe
 
 const COUCH_R: Ramp = ['#F7A15A', '#E0752E', '#B9561A', '#8E3F12', '#3E1606'];
 const COUCH_DK: Ramp = ['#D9773A', '#B95A20', '#943F12', '#6C2C0A', '#2E1004'];
-export const drawCouch = (c: Ctx, x: number, floorY: number, f: number, o: { empty?: boolean; dim?: number } = {}) => {
+export const drawCouch = (c: Ctx, x: number, floorY: number, f: number, o: { empty?: boolean; dim?: number; w?: number } = {}) => {
   c.save(); c.translate(Math.round(x), Math.round(floorY)); c.scale(DAD_K, DAD_K);
-  const W = 190, back = -74, seat = -30;
+  const W = o.w ?? 190, back = -74, seat = -30;
   const plaid = (x0: number, y0: number, w: number, h: number) => {
     c.save(); c.beginPath(); c.rect(x0, y0, w, h); c.clip();
     // (the plaid: brown bars both ways, their crossings darker, a cream pinstripe, a dither where they fade)
@@ -327,7 +423,8 @@ export const drawCouch = (c: Ctx, x: number, floorY: number, f: number, o: { emp
   shapeTop(c, () => { c.moveTo(-W / 2, seat); c.lineTo(-W / 2 + 4, back + 6); c.quadraticCurveTo(-W / 4, back - 4, 0, back + 4); c.quadraticCurveTo(W / 4, back - 4, W / 2 - 4, back + 6); c.lineTo(W / 2, seat); c.closePath(); }, COUCH_DK, back - 4, seat);
   plaid(-W / 2, back - 6, W, seat - back + 6);
   // (the back's buttons, tufted in; the dark where his head's rested for twenty years)
-  for (let k = 0; k < 6; k++) { const bx = -W / 2 + 22 + k * 29, by = back + 18 + (k % 2) * 6; ell(c, bx, by, 2.4, 1.8, COUCH_DK[3]); ell(c, bx - 0.6, by - 0.6, 1, 0.8, COUCH_DK[0]); line(c, [bx - 6, by - 4, bx, by, bx + 6, by - 4], 0.5, COUCH_DK[2]); }
+  const nb = Math.max(2, Math.round((W - 44) / 29) + 1);
+  for (let k = 0; k < nb; k++) { const bx = -W / 2 + 22 + k * ((W - 44) / (nb - 1)), by = back + 18 + (k % 2) * 6; ell(c, bx, by, 2.4, 1.8, COUCH_DK[3]); ell(c, bx - 0.6, by - 0.6, 1, 0.8, COUCH_DK[0]); line(c, [bx - 6, by - 4, bx, by, bx + 6, by - 4], 0.5, COUCH_DK[2]); }
   ell(c, W / 4 + 4, back + 14, 16, 8, dith(c, '#6A2E0C'));
   // (the two seat cushions: his on the right sunk deep, the stain where he sits)
   for (const [cx, sink] of [[-W / 4 + 2, 1], [W / 4 - 2, o.empty ? 6 : 2]] as const) {
@@ -358,88 +455,38 @@ export const drawCouch = (c: Ctx, x: number, floorY: number, f: number, o: { emp
 };
 
 // ---------------------------------------------------------------------------------------------------------------
-// The close-up (screen space): the intro's, him squinting at Meathead, the can at his lips
+// The signs (the posters, the billboard, the gate, the store, the mural, the portrait on the set: bigkid/art.ts dadArt
+// calls this): him as the fight draws him, on a short couch, yelling for a beer with the can up
 
-/** His face close up, the middle of it at (cx, cy), `s` px a unit (the head's 60 units across). */
-export const drawDadCloseup = (c: Ctx, cx: number, cy: number, s: number, f: number, o: { face?: DadFace; talking?: boolean } = {}) => {
-  const face = o.face ?? 'squint', talking = !!o.talking;
-  const flap = talking ? Math.floor(f / 4) % 3 : 0;
-  c.save(); c.translate(cx, cy); c.scale(s, s);
-  // (the far shoulder and the tank top's strap; the neck rolls)
-  shape(c, () => { c.moveTo(-70, 70); c.quadraticCurveTo(-60, 30, -20, 34); c.lineTo(40, 34); c.quadraticCurveTo(76, 36, 80, 70); c.closePath(); }, SKIN, -70, 80, 0.6);
-  shape(c, () => { c.moveTo(-40, 70); c.lineTo(-34, 40); c.lineTo(-26, 40); c.lineTo(-30, 70); c.closePath(); }, TANK, -40, -26, 0.6);
-  shape(c, () => { c.moveTo(34, 70); c.lineTo(30, 40); c.lineTo(38, 40); c.lineTo(44, 70); c.closePath(); }, TANK, 30, 44, 0.6);
-  for (let k = 0; k < 10; k++) line(c, [-16 + k * 4, 62 + (k % 3), -18 + k * 4.4, 56], 0.5, HAIR[1]);
-  // (the tank top's scooped neckline: the ribbing, a mustard drip, a cigarette hole, the straps gone yellow)
-  shape(c, () => { c.moveTo(-34, 70); c.quadraticCurveTo(4, 58, 42, 70); c.lineTo(42, 74); c.lineTo(-34, 74); c.closePath(); }, TANK, -34, 42, 0.6);
-  for (let k = -30; k < 40; k += 3) line(c, [k, 66 + Math.abs(k - 4) * 0.05, k, 74], 0.3, TANK[2]);
-  ell(c, 12, 69, 1.6, 2, MUSTARD); px(c, 11.6, 70, 0.8, 2.4, MUSTARD); ell(c, -14, 70, 1.2, 1, '#3A2A20'); ell(c, -14, 70, 1.8, 1.6, dith(c, '#8A6A40'));
-  ell(c, -32, 52, 3, 6, dith(c, STAIN)); ell(c, 37, 52, 3, 6, dith(c, STAIN));
-  shapeTop(c, () => c.ellipse(2, 34, 34, 12, 0, 0, Math.PI * 2), SKIN, 22, 46, 0.6);
-  // (the ears: big, red-rimmed, white hair out of them)
-  for (const sx of [-34, 36]) {
-    shape(c, () => c.ellipse(sx, -2, 7, 12, sx < 0 ? -0.15 : 0.15, 0, Math.PI * 2), SKIN, sx - 7, sx + 7, 0.6);
-    ell(c, sx + (sx < 0 ? 1 : -1), -1, 3, 7, SKIN[3]);
-    for (let k = 0; k < 3; k++) line(c, [sx + (sx < 0 ? 2 : -2), -2 + k, sx + (sx < 0 ? 6 : -6) + k, -6 + k * 2], 0.4, HAIR[0]);
+const signCache = new Map<string, HTMLCanvasElement>();
+/** Him on the couch for a sign, in its units: the couch's foot-middle at (0, 0), about 90 tall, facing right (his
+ *  mouth at the speech balloon); `fade` pulls it toward the paper (the sun, the years). Painted off to one side at the
+ *  sign's own resolution, faded there, then laid on. */
+export const drawDadSign = (g: Ctx, fade: number, paper: string) => {
+  const S = 0.79 / DAD_K, X0 = -70, Y0 = -132, W = 140, H = 138;
+  const tf = g.getTransform(), ds = Math.min(6, Math.max(0.5, Math.hypot(tf.a, tf.b) || 1));
+  const key = `${ds.toFixed(2)}|${fade.toFixed(3)}|${paper}`;
+  let cv = signCache.get(key);
+  if (!cv) {
+    if (typeof document === 'undefined') return;
+    cv = document.createElement('canvas'); cv.width = Math.ceil(W * ds); cv.height = Math.ceil(H * ds);
+    const o = cv.getContext('2d')!;
+    o.scale(ds, ds); o.translate(-X0, -Y0);
+    o.save(); o.translate(-15, 0); o.scale(-S, S);
+    drawCouch(o, -15.2, 0, 0, { w: 106 });
+    drawDad(o, 0, 0, 'tv', 0, { face: 'yell', can: 'near', canFull: true });
+    o.restore();
+    if (fade > 0) { o.setTransform(1, 0, 0, 1, 0, 0); o.globalCompositeOperation = 'source-atop'; o.globalAlpha = Math.min(1, fade); o.fillStyle = paper; o.fillRect(0, 0, cv.width, cv.height); }
+    if (signCache.size > 40) signCache.clear();
+    signCache.set(key, cv);
   }
-  // (the jowls and chins)
-  shapeTop(c, () => { c.moveTo(-30, 6); c.quadraticCurveTo(-34, 30, -12, 34); c.quadraticCurveTo(2, 38, 16, 34); c.quadraticCurveTo(36, 30, 32, 6); c.closePath(); }, face === 'angry' ? FLUSH : SKIN, 6, 36, 0.6);
-  line(c, [-16, 31, 0, 34, 18, 31], 0.5, SKIN[3]);
-  // (the skull: the dome, its sheen, the liver spots)
-  shape(c, () => c.ellipse(0, -10, 32, 32, 0, 0, Math.PI * 2), SKIN, -32, 32, 0.6);
-  ell(c, -12, -32, 8, 4, dith(c, '#FFFFFF'), -0.3); ell(c, -14, -33, 4, 2, '#FFFFFF', -0.3);
-  for (const [sx, sy, r] of [[8, -30, 3], [-4, -24, 2], [18, -18, 2.4], [-20, -14, 1.6], [12, -36, 1.4]] as const) { ell(c, sx, sy, r, r * 0.8, SPOT); ell(c, sx - 0.4, sy - 0.4, r * 0.5, r * 0.4, mix(SPOT, '#FFFFFF', 0.25)); }
-  // (the fringe round the sides, white; the comb-over, three strands, sweat-plastered, one come loose and standing up)
-  for (const sx of [-1, 1]) fill(c, HAIR[2], () => { c.moveTo(sx * 26, -18); c.quadraticCurveTo(sx * 34, -10, sx * 32, 6); c.lineTo(sx * 28, 6); c.quadraticCurveTo(sx * 28, -6, sx * 22, -14); c.closePath(); });
-  for (const sx of [-1, 1]) for (let k = 0; k < 5; k++) line(c, [sx * (24 + k), -14 + k * 3, sx * (30 + k), -12 + k * 3.4], 0.4, HAIR[0]);
-  for (let k = 0; k < 3; k++) line(c, [26, -16 + k * 2, 8, -34 + k * 2, -16, -30 + k * 3.4], 1, k === 1 ? HAIR[0] : HAIR[2]);
-  line(c, [-2, -36, -6, -46 + Math.sin(f * 0.1) * 1.5, -2, -50], 0.7, HAIR[1]);
-  // (the brows: big, grey, wiry)
-  const b = face === 'angry' || face === 'squint' ? 3 : 0;
-  for (const sx of [-1, 1]) { fill(c, HAIR[3], () => { c.moveTo(sx * 4, -16 + b * (sx < 0 ? 1 : 0.3)); c.quadraticCurveTo(sx * 13, -22 + b * 0.2, sx * 22, -16); c.lineTo(sx * 20, -13); c.quadraticCurveTo(sx * 13, -17, sx * 5, -12 + b); c.closePath(); }); for (let k = 0; k < 4; k++) line(c, [sx * (8 + k * 3.4), -18, sx * (10 + k * 3.4), -22 + (k % 2) * 2], 0.4, HAIR[1]); }
-  // (the eyes: bloodshot, watery, the lids heavy; the squint shuts one; bags, purple, sagging)
-  for (const sx of [-1, 1]) {
-    const ex = sx * 13, ey = -6;
-    fill(c, BAG, () => c.ellipse(ex, ey + 6, 9, 4, 0, 0, Math.PI));
-    line(c, [ex - 8, ey + 7, ex, ey + 10, ex + 8, ey + 7], 0.5, SKIN[4]);
-    const shut = face === 'out' || face === 'sip' || face === 'burp' || (face === 'squint' && sx < 0);
-    if (shut) { line(c, [ex - 7, ey, ex, ey + 1.6, ex + 7, ey], 1, SKIN[4]); line(c, [ex - 6, ey - 1.6, ex + 6, ey - 1.6], 0.5, SKIN[3]); continue; }
-    const open = face === 'squint' ? 2.6 : face === 'angry' ? 3.6 : 3.4;
-    ell(c, ex, ey, 7, open, EYE_W);
-    for (let k = 0; k < 4; k++) line(c, [ex - 7 + (k > 1 ? 11 : 0), ey + (k % 2) - 0.5, ex - 4 + (k > 1 ? 9 : 0), ey + (k % 2 ? 1 : -1)], 0.35, EYE_RED);
-    ell(c, ex - sx * 1.5, ey + 0.4, 2.8, Math.min(2.8, open), IRIS); ell(c, ex - sx * 1.5, ey + 0.4, 1.2, Math.min(1.2, open), '#141414'); px(c, ex - sx * 1.5 - 1.4, ey - 1.2, 1, 1, '#FFFFFF');
-    // (the heavy lid, a watery glint on the lower rim)
-    fill(c, SKIN[2], () => { c.moveTo(ex - 8, ey + 0.4); c.quadraticCurveTo(ex, ey - open * 2.6 + (face === 'angry' ? 1.6 : 0), ex + 8, ey + 0.4); c.lineTo(ex + 8, ey - 2.6); c.quadraticCurveTo(ex, ey - 9, ex - 8, ey - 2.6); c.closePath(); });
-    line(c, [ex - 7, ey + 0.2, ex, ey - open + 0.6 + (face === 'angry' ? 1.6 : 0), ex + 7, ey + 0.2], 0.7, SKIN[4]);
-    px(c, ex - 3, ey + open - 0.4, 6, 0.5, '#E8F4FF');
-  }
-  // (the nose: the drinker's, big, bulbous, bumpy, purple at the tip, the veins on it)
-  shape(c, () => { c.moveTo(-5, -10); c.quadraticCurveTo(-8, 0, -12, 6); c.quadraticCurveTo(-16, 14, -6, 16); c.quadraticCurveTo(0, 18, 6, 16); c.quadraticCurveTo(16, 14, 12, 6); c.quadraticCurveTo(8, 0, 5, -10); c.closePath(); }, FLUSH, -14, 14, 0.6);
-  ell(c, 0, 10, 8, 5, dith(c, FLUSH[2]));
-  for (const [vx, vy] of [[-6, 4], [4, 2], [0, 12], [7, 10]] as const) line(c, [vx, vy, vx + 2, vy + 1.4, vx + 1, vy + 3], 0.35, FLUSH[3]);
-  for (const [bx, by] of [[-8, 10], [6, 6], [9, 12]] as const) ell(c, bx, by, 1.4, 1.2, FLUSH[0]);
-  ell(c, -4, 14, 2, 1.2, FLUSH[4]); ell(c, 4, 14, 2, 1.2, FLUSH[4]); ell(c, -3, 4, 2, 1.4, '#FFD6DC');
-  // (the cheeks, flushed with broken veins)
-  for (const sx of [-1, 1]) { ell(c, sx * 20, 8, 7, 4, dith(c, FLUSH[1])); for (let k = 0; k < 3; k++) line(c, [sx * (16 + k * 3), 6 + k, sx * (18 + k * 3), 8 + k], 0.35, FLUSH[2]); }
-  // (white stubble, everywhere under the nose)
-  for (let k = 0; k < 90; k++) { const a = (k * 2.39996) % (Math.PI * 2), r = 10 + ((k * 7) % 20); const sx = Math.cos(a) * r * 1.05, sy = 22 + Math.sin(a) * r * 0.45; if (sy > 14 && Math.abs(sx) < 28) px(c, sx, sy, 0.6, 0.6, k % 3 ? '#F4F4EE' : '#C9C9C2'); }
-  // (the mouth: slack, the bottom lip hanging; teeth gone yellow, one missing; foam on the lip)
-  if (face === 'yell' || face === 'burp' || flap === 2) {
-    fill(c, '#4A0E1A', () => c.ellipse(0, 25, 10, face === 'burp' ? 8 : 6.4, 0, 0, Math.PI * 2));
-    px(c, -8, 19.4, 16, 2.4, TEETH); px(c, -2, 19.4, 2.4, 2.4, '#4A0E1A'); ell(c, 0, 29, 6, 2.4, '#C24A5A');
-  } else if (face === 'angry') {
-    px(c, -10, 22, 20, 4.4, TEETH); px(c, 3, 22, 2.4, 4.4, '#4A0E1A'); line(c, [-10, 22, 10, 22], 0.6, SKIN[4]); line(c, [-10, 26.4, 10, 26.4], 0.6, SKIN[4]);
-    for (let k = -6; k <= 6; k += 4) line(c, [k, 22, k, 26.4], 0.35, '#A89A6A');
-  } else if (flap === 1) {
-    fill(c, '#4A0E1A', () => c.ellipse(0, 24, 8, 3, 0, 0, Math.PI * 2)); px(c, -6, 21.6, 12, 1.4, TEETH);
-  } else {
-    line(c, [-10, 22, -3, 24, 4, 23.4, 10, 21], 1, SKIN[4]);
-    shapeTop(c, () => c.ellipse(1, 26, 8, 2.6, 0, 0, Math.PI * 2), FLUSH, 23.4, 28.6, 0.5);
-  }
-  for (let k = 0; k < 4; k++) ell(c, -6 + k * 3.6, 23 + (k % 2) * 0.6, 1.4, 0.8, '#FFFDF2');
-  // (the headset mic: the boom along his cheek from the ear, the foam ball at the corner of his mouth, tape on it)
-  line(c, [34, 2, 20, 14, 12, 22], 1.6, MIC); px(c, 24, 9, 5, 3, '#EDE3D2'); ell(c, 10, 23, 3, 3, '#1E1E1E'); ell(c, 9, 22, 1, 1, '#4A4A4A');
-  // (sweat beading on the dome)
-  for (let k = 0; k < 3; k++) { const u = ((f * 0.5 + k * 40) % 120) / 120; ell(c, -18 + k * 16, -36 + k * 6 + u * 20, 1.2, 1.8, '#E8F4FF'); px(c, -18.4 + k * 16, -37 + k * 6 + u * 20, 0.6, 0.6, '#FFFFFF'); }
-  c.restore();
+  g.drawImage(cv, X0, Y0, W, H);
 };
+
+// ---------------------------------------------------------------------------------------------------------------
+// The close-up (screen space): the intro's, him squinting at Meathead: a gross-up, Ren & Stimpy style (dadGross.ts)
+
+/** His face close up, the middle of it about (cx, cy), `s` 3.6 the hold (the screen all face), more as it lurches in;
+ *  'squint' one eye screwed shut, peering at Meathead; anything else bleary (`talking`: his mouth going). */
+export const drawDadCloseup = (c: Ctx, cx: number, cy: number, s: number, f: number, o: { face?: DadFace; talking?: boolean } = {}) =>
+  drawDadGross(c, cx, cy - 52, s / 3.6, f, (o.face ?? 'squint') === 'squint', !!o.talking);

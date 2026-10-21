@@ -46,6 +46,7 @@ import {
   ballR, eggR, ramp6, rampH, shadeAcross, bandsDown, postR, LIP, STEEL, BRASS, GRASS,
 } from '../kit';
 import { GY } from '../geometry';
+import { drawDadSign } from '../amphi/dad';
 import { drawBigkidFar } from './far';
 import { drawAlley, drawFronts, drawPavement, drawFurniture, backLamps, PIT_D, PIPE_D, RINK_D } from './backs';
 import {
@@ -167,38 +168,8 @@ export const dadArt = (g: Ctx, x: number, y: number, k: number, fade: number, pa
     g.fillStyle = F('#E5E7EB'); g.fillRect(-71, -52, 3, 4); g.fillRect(-58, -52, 3, 4);
     for (let i = 0; i < 4; i++) { g.fillStyle = F('#78350F'); g.fillRect(-69, -36 + i * 8, 10, 2); }
   }
-  // (the couch: saggy, a plaid throw, a cushion's split seam, the stuffing coming out)
-  r(-40, -48, 80, 24, '#9A3412'); r(-40, -26, 80, 26, '#C2410C');
-  for (const cx of [-24, 6]) r(cx, -34, 26, 10, '#EA580C');
-  g.fillStyle = F('#7C2D12'); for (let i = 0; i < 6; i++) g.fillRect(-38 + i * 13, -24, 2, 22);
-  g.fillStyle = F('#FEF3C7'); g.beginPath(); g.arc(14, -30, 2.5, 0, Math.PI * 2); g.arc(17, -31, 2, 0, Math.PI * 2); g.fill();
-  o(-40, -28, 7, 12, '#9A3412'); o(40, -28, 7, 12, '#9A3412');
-  // (his legs, the black socks, the boxers)
-  r(-18, -24, 7, 22, '#F4B8A0'); r(-4, -24, 7, 22, '#F4B8A0'); r(-18, -10, 7, 10, '#18181B'); r(-4, -10, 7, 10, '#18181B');
-  g.fillStyle = F('#3F3F46'); g.fillRect(-18, -10, 7, 1.5); g.fillRect(-4, -10, 7, 1.5);
-  r(-20, -34, 26, 12, '#93C5FD'); for (let i = 0; i < 4; i++) { g.fillStyle = F('#FFFFFF'); g.fillRect(-18 + i * 6, -34, 2, 12); }
-  // (the belly: a stained white tank top, its hem riding up, the belly button, chest hair over the neckline)
-  o(-6, -48, 18, 16, '#F8FAFC');
-  g.fillStyle = F('#FDE68A'); g.beginPath(); g.ellipse(-2, -44, 6, 4, 0.4, 0, Math.PI * 2); g.fill();
-  g.fillStyle = F('#D6B98A'); g.beginPath(); g.ellipse(6, -52, 3, 2, 0, 0, Math.PI * 2); g.fill();
-  o(-6, -34, 14, 4, '#F4B8A0', 1); g.fillStyle = F('#9A6A5A'); g.fillRect(-7, -35, 2, 2);
-  g.fillStyle = F('#F4B8A0'); g.fillRect(-20, -62, 7, 5); g.fillRect(2, -62, 7, 5);
-  g.fillStyle = F('#57534E'); for (let i = 0; i < 6; i++) g.fillRect(-12 + i * 3, -61 + (i % 2), 1, 2);
-  // (the arms: one slumped, one with the beer up, the can sweating)
-  r(-28, -54, 7, 18, '#F4B8A0'); r(8, -62, 16, 7, '#F4B8A0');
-  r(20, -74, 9, 14, '#DC2626'); g.fillStyle = F('#D4D4D8'); g.fillRect(20, -76, 9, 3); g.fillStyle = F('#FFFFFF'); g.fillRect(22, -72, 2, 8); g.fillStyle = F('#FDE047'); g.fillRect(23, -68, 4, 3);
-  // (the head: pink, bald, the comb-over, ears, stubble, half-shut eyes, a bulb nose, the mouth open)
-  o(-18, -70, 3, 4, '#F4B8A0'); o(6, -70, 3, 4, '#F4B8A0');
-  o(-6, -72, 12, 12, '#F4B8A0');
-  g.fillStyle = F('#FFE4E6'); g.fillRect(-12, -82, 6, 3);
-  g.strokeStyle = F(INK); g.lineWidth = 1; for (let i = 0; i < 3; i++) { g.beginPath(); g.moveTo(-14 + i * 2, -80 + i); g.quadraticCurveTo(-6, -88 + i, 4, -80 + i * 2); g.stroke(); }
-  g.fillStyle = F('#A8A29E'); for (let i = 0; i < 12; i++) g.fillRect(-15 + (i % 6) * 4 + (i > 5 ? 2 : 0), -66 + (i > 5 ? 3 : 0), 1, 1);
-  g.fillStyle = F(INK); g.fillRect(-11, -75, 5, 1.5); g.fillRect(-2, -75, 5, 1.5); g.fillRect(-9, -74, 2, 2); g.fillRect(0, -74, 2, 2);
-  g.fillStyle = F('#E8A090'); g.fillRect(-11, -77, 5, 1); g.fillRect(-2, -77, 5, 1);
-  o(-3, -70, 3, 2.5, '#FB7185', 1);
-  g.fillStyle = F(INK); g.beginPath(); g.ellipse(-4, -64, 4.6, 3.6, 0, 0, Math.PI * 2); g.fill();
-  g.fillStyle = F('#7F1D1D'); g.beginPath(); g.ellipse(-4, -64, 4, 3, 0, 0, Math.PI * 2); g.fill();
-  g.fillStyle = F('#F87171'); g.fillRect(-6, -63, 4, 1.5); g.fillStyle = F('#FFFFFF'); g.fillRect(-6, -67, 3, 1);
+  // (him on the couch: the fight's model of him (amphi/dad.ts), so the signs look like the man on the stage)
+  drawDadSign(g, fade, paper);
   if (graffiti) {
     // (somebody's been at him: a curly mustache, devil horns, a blacked-out tooth)
     g.strokeStyle = '#18181B'; g.lineWidth = 2; g.lineCap = 'round';

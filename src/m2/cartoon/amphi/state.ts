@@ -24,7 +24,9 @@ export type DadPose = 'sit' | 'sip' | 'call' | 'reach' | 'tv' | 'squint' | 'rise
   // (the fight's: sat, the mallet swat (t: wound back 0 .. swung through 1), catching a bottle, puking, baffled (hands on
   // his head); stood: dragging the couch, the Donkey Kong hammer (t: up 0 .. down 1), staggering, lifting the mallet
   // and not, opening the fridge)
-  | 'swat' | 'catch' | 'puke' | 'baffled' | 'drag' | 'hammer' | 'stagger' | 'heave' | 'fridge';
+  | 'swat' | 'catch' | 'puke' | 'baffled' | 'drag' | 'hammer' | 'stagger' | 'heave' | 'fridge'
+  // (his standard death: arms up over his head as the fridge comes down on him)
+  | 'cower';
 export interface Show {
   phase: ShowPhase; t: number; waiting: boolean; token: number;
   boyU: number; boyBeer: boolean; boyArm: number;
