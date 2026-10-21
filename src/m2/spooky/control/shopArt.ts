@@ -23,8 +23,14 @@ const rock = (g: Ctx, cx: number, cy: number, rw: number, rh: number, col: strin
   const path = (k: number, dx = 0, dy = 0) => { g.beginPath(); pts.forEach(([x, y], i) => { const px = cx + (x - cx) * k + dx, py = cy + (y - cy) * k + dy; if (i) g.lineTo(px, py); else g.moveTo(px, py); }); g.closePath(); };
   path(1); g.fillStyle = INK; g.fill();
   path(0.94); g.fillStyle = r[1]; g.fill();
+  // (each step dithered into the next: the body's color in a checker out past its edge, the highlight's likewise)
+  g.save(); path(0.94); g.clip(); path(0.9, -rw * 0.06, -rh * 0.08); g.clip(); checker(g, cx - rw, cy - rh, rw * 2, rh * 2, col); g.restore();
   path(0.8, -rw * 0.08, -rh * 0.1); g.fillStyle = col; g.fill();
+  g.save(); path(0.56, -rw * 0.28, -rh * 0.32); g.clip(); checker(g, cx - rw, cy - rh, rw * 2, rh * 2, mix(col, r[3], 0.55)); g.restore();
   path(0.42, -rw * 0.32, -rh * 0.38); g.fillStyle = mix(col, r[3], 0.55); g.fill();
+  // (a glint up top, a chip knocked out of it showing the white fiberglass under the paint)
+  box(g, Math.round(cx - rw * 0.42), Math.round(cy - rh * 0.55), 4, 2, mix(col, '#FFD8B0', 0.45));
+  if (hash(seed * 3.3) < 0.25) { const qx = Math.round(cx + rw * 0.2), qy = Math.round(cy + rh * 0.1); box(g, qx - 1, qy - 1, 6, 5, INK); box(g, qx, qy, 4, 3, '#D8CDBE'); box(g, qx, qy, 4, 1, '#F2EADC'); }
 };
 
 /** A stretch of the fiberglass rock (x0..x1, top..bottom): the gaps dark, lumps in rows, a seam at its left, the
@@ -71,8 +77,9 @@ const paintShopTile = (g: Ctx, x: number, v: number) => {
   }
   // (the panels' seams, straight up, screwed down: it's fiberglass)
   for (const sx of [x + 6, x + 166]) { box(g, sx, CEIL, 2, GY - CEIL, '#140302'); box(g, sx + 2, CEIL, 1, GY - CEIL, '#7A2A18'); for (let y = CEIL + 30; y < GY - 40; y += 64) { box(g, sx - 2, y, 2, 2, '#A8A29E'); box(g, sx + 3, y, 2, 2, '#A8A29E'); } }
-  // (dark up under the ceiling)
+  // (dark up under the ceiling; the painted lava's glow coming up the wall from the foot, in bands)
   hazeBands(g, x, CEIL, W, 160, '#0A0303', 0.7, 0, 6);
+  hazeBands(g, x, GY - 210, W, 180, '#E2580F', 0, 0.2, 6);
   // (plastic stalactites off the top)
   for (let k = 0; k < 6; k++) {
     const sx = x + 14 + k * 52 + hash(v * 9 + k) * 12, len = 26 + hash(v * 3 + k * 2) * 34, w = 14 + hash(k + v) * 8;
