@@ -56,7 +56,9 @@ const pick = pickLine;
 const dressed = (state: GameState): Dressed => (isNude(state) ? 'nude' : isShat(state) ? 'shitty' : 'clean');
 
 /** Somebody in line: who they are (the cast), their place in it (lower first), what they're up to. */
-export interface Guest { who: CastMember; number: number; state: 'arrive' | 'line' | 'served' | 'flee'; line?: string; voice: typeof GUEST_VOICE; reacted?: Dressed[] }
+export interface Guest { who: CastMember; number: number; state: 'arrive' | 'line' | 'served' | 'flee'; line?: string; voice: typeof GUEST_VOICE; reacted?: Dressed[];
+  /** (him in the line: whether they're stood behind him, settled with some give so nobody flips back and forth) */
+  behind?: boolean }
 /** Who's talking right now, over their head (only while the voice is going). */
 interface Said { text: string }
 
@@ -566,39 +568,61 @@ const line = (ctx: FrameContext, intro: Intro) => {
   const { state } = ctx;
   const p = state.player, px = p.pos.x + p.width / 2;
   // (he joins the line on reaching it: behind everybody already in it)
-  if (intro.me === null && !intro.admitted && px > R(QUEUE_START)) intro.me = intro.nextNumber++;
-  // (back behind somebody who was behind him: they're ahead of him now, he's behind them; and off out of the line
-  // altogether, behind everybody and past where it starts, he's lost his place: they all move up, nobody waits)
-  if (intro.me !== null && !intro.admitted && p.isGrounded) {
-    for (const e of inLine(state)) {
-      const g = guests.get(e)!;
-      if (g.number > intro.me && e.pos.x + e.width / 2 > px + 12) intro.me = g.number + 0.5;
-    }
-    const behind = inLine(state).some(e => guests.get(e)!.number > intro.me!);
-    if (!behind && px < R(QUEUE_START) - 80) intro.me = null;
+  // (he joins the line on reaching it: behind everybody stood ahead of him, ahead of anybody stood behind him)
+  if (intro.me === null && !intro.admitted && px > R(QUEUE_START)) {
+    const back = inLine(state).filter(e => e.pos.x + e.width / 2 < px).map(e => guests.get(e)!.number);
+    intro.me = back.length ? Math.min(...back) - 0.5 : intro.nextNumber++;
+    for (const e of inLine(state)) guests.get(e)!.behind = e.pos.x + e.width / 2 < px;
   }
-  // Everybody's place: in number order (him too, if he's in it), from the window back
+  const inIt = intro.me !== null && !intro.admitted;
+  // Who's stood ahead of him and who's behind: settled from where they stand, but only changed once he's clearly past
+  // them (so nobody flickers in and out of his spot). Back past somebody who was behind him, he's lost his place to
+  // them (behind them in the order now); past somebody ahead of him (over them, or shouldered through), that's cutting:
+  // his place in the order stays, they wait behind him till he backs off (and she won't serve him with them owed it)
+  const HYST = 18;
+  for (const e of inLine(state)) {
+    const g = guests.get(e)!, cx = e.pos.x + e.width / 2;
+    if (!inIt) { g.behind = undefined; continue; }
+    if (g.behind === undefined) g.behind = cx < px;
+    else if (g.behind && cx > px + HYST && p.isGrounded) { g.behind = false; if (g.number > intro.me!) intro.me = g.number + 0.5; }
+    else if (!g.behind && cx < px - HYST && p.isGrounded) g.behind = true;
+  }
+  // (off out of the line altogether, behind everybody and past where it starts, he's lost his place: they all move up,
+  // nobody waits)
+  if (inIt && p.isGrounded) {
+    const behind = inLine(state).some(e => guests.get(e)!.number > intro.me! || guests.get(e)!.behind);
+    if (!behind && px < R(QUEUE_START) - 80) { intro.me = null; for (const e of inLine(state)) guests.get(e)!.behind = undefined; }
+  }
+  // Everybody's place, in number order (him too, if he's in it): for who's served next
   const members: { n: number; e: Enemy | null }[] = inLine(state).map(e => ({ n: guests.get(e)!.number, e }));
   if (intro.me !== null && !intro.admitted) members.push({ n: intro.me, e: null });
   members.sort((a, b) => a.n - b.n);
   const meRank = members.findIndex(m => !m.e);
-  members.forEach((m, rank) => {
-    if (!m.e) return;
-    const e = m.e, g = guests.get(e)!;
+  // Where they stand: those ahead of him from the window back, then his spot, then those behind him back from wherever
+  // he's actually stood (a definite gap, never in him)
+  const order = members.filter(m => m.e).map(m => m.e!);
+  const ahead = order.filter(e => !(inIt && guests.get(e)!.behind)), behindMe = order.filter(e => inIt && guests.get(e)!.behind);
+  const spots = new Map<Enemy, number>();
+  ahead.forEach((e, i) => spots.set(e, R(FRONT_X - i * SPACING)));
+  behindMe.forEach((e, i) => spots.set(e, Math.min(R(FRONT_X - (ahead.length + 1 + i) * SPACING), px - (i + 1) * SPACING)));
+  for (const e of order) {
+    const g = guests.get(e)!;
     e.harmless = true; e.puppet = true; e.shootTimer = 0;
-    if ((e.pauseTimer || 0) > 2 || Math.abs(e.vel.y) > 0.5) return;
+    if ((e.pauseTimer || 0) > 2 || Math.abs(e.vel.y) > 0.5) continue;
     e.pauseTimer = 2;
-    // (their place: so far back from the window; behind him, so far back from wherever he's actually stood)
-    let want = R(FRONT_X - rank * SPACING);
-    if (meRank >= 0 && rank > meRank) want = Math.min(want, px - (rank - meRank) * SPACING);
-    const cx = e.pos.x + e.width / 2;
-    if (Math.abs(want - cx) > 1.5) { e.pos.x += Math.sign(want - cx) * 1.3; e.facing = 1; }
+    const want = spots.get(e)!, cx = e.pos.x + e.width / 2;
+    if (Math.abs(want - cx) > 1.5) {
+      const step = Math.sign(want - cx) * 1.3;
+      // (nobody walks into him: those ahead don't back up into him, those behind don't come up into him)
+      const intoHim = inIt && (g.behind ? step > 0 && cx + step > px - SPACING * 0.8 : step < 0 && cx + step < px + SPACING * 0.8 && cx > px);
+      if (!intoHim) { e.pos.x += step; e.facing = 1; }
+    }
     else if (g.state === 'arrive') g.state = 'line';
     // (they don't let him walk through them: he can push in with his shoulder, or jump over, but not stroll through)
-    if (intro.me !== null && g.number < intro.me && !p.isCharging && !grabbing(intro.grab) && p.isGrounded && px < cx && p.pos.x + p.width > e.pos.x + 6) {
+    if (inIt && !g.behind && !p.isCharging && !grabbing(intro.grab) && p.isGrounded && px < cx && p.pos.x + p.width > e.pos.x + 6) {
       p.pos.x = e.pos.x + 6 - p.width; if (p.vel.x > 0) p.vel.x = 0;
     }
-  });
+  }
   // The window: the one at the front, served (if he's in the line; till he turns up, it's waiting on its people)
   const front = members[0];
   if (intro.me !== null && front?.e && intro.lady.ko <= 0) {
@@ -626,9 +650,9 @@ const line = (ctx: FrameContext, intro: Intro) => {
       if (e.pos.x < state.camera.x - 200) state.enemies = state.enemies.filter(o => o !== e);
     }
   }
-  // People turning up for it, all the time, whether he's in it or not (as long as it's not out past where it starts):
-  // in from off the screen, walking up to the back of it
-  if (!intro.admitted && ++intro.arriveT >= ARRIVE) {
+  // People turning up for it, all the time once he's in it (not before: the back of it would grow out to where he
+  // joins, and stand in him): in from off the screen, walking up to the back of it
+  if (inIt && ++intro.arriveT >= ARRIVE) {
     intro.arriveT = 0;
     if (members.length < LINE_MAX) {
       const back = Math.min(meRank >= 0 ? px : Infinity, R(FRONT_X - members.length * SPACING));
