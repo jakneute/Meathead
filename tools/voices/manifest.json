@@ -55591,6 +55591,11 @@
  },
  {
   "voice": "meathead",
+  "text": "A CAT FIGHTING JERRY. WHERE IS TOM?",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "A CAT IN THE GARDEN. NAKED. NATURE.",
   "from": "CARTOON"
  },
@@ -56461,6 +56466,11 @@
  },
  {
   "voice": "meathead",
+  "text": "A LIZARD WITH A GAVEL. SURE. WHY NOT.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "A LOBBY. EVERYBODY IN IT LOOKS LIKE THEY HATE ME ALREADY.",
   "from": "m1/game/stages/barry/runtime.ts:330"
  },
@@ -56716,6 +56726,16 @@
  },
  {
   "voice": "meathead",
+  "text": "A NEWT? LIZARDS DON'T SHIT THEIR PANTS. I DO.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "A NEWT? NEWTS ARE NAKED TOO. WE'RE EVEN.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "A NIGHTCLUB IN A VOLCANO? FINALLY, A SAUNA HOT ENOUGH FOR MY PUMP.",
   "from": "INTRO_QUOTES"
  },
@@ -56857,6 +56877,11 @@
  {
   "voice": "meathead",
   "text": "A PREACHER JUMPING ON LINCOLN'S BED. SATURDAY MORNING.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "A PREACHER? ARE YOU THE POPE?",
   "from": "CARTOON"
  },
  {
@@ -58236,6 +58261,41 @@
  },
  {
   "voice": "meathead",
+  "text": "ARE YOU SOMEBODY'S GRANDPA? WHERE'S YOUR NURSE?",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "ARE YOU SOMEBODY'S UNCLE? WHOSE UNCLE?",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "ARE YOU THE BABYSITTER? I NEED A ROBE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "ARE YOU THE BABYSITTER? YOU'RE FIRED.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "ARE YOU THE GUY ON THE PINEAPPLE CAN?",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "ARE YOU THE POPE? BLESS MY PANTS.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "ARE YOU THE POPE? THE POPE DOESN'T STARE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "ARE YOU TRYING TO SHRINK ME?",
   "from": "VULGARITIES"
  },
@@ -59222,6 +59282,11 @@
  {
   "voice": "meathead",
   "text": "BOB DOLE WON'T SHUT UP ABOUT MY PANTS.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "BOB DOLE? LIKE THE PINEAPPLES?",
   "from": "CARTOON"
  },
  {
@@ -60288,6 +60353,26 @@
   "voice": "meathead",
   "text": "CHECKED BY A HOCKEY GOON! PENALTY! PENALTY!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "CHELSEA? LIKE THE SOCCER TEAM?",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "CHELSEA? LIKE THE SOCCER TEAM? SHUT UP.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "CHELSEA? LIKE THE SOCCER TEAM? THEY GOT SPARE SHORTS?",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "CHELSEA. LIKE THE SOCCER TEAM. SMELLS LIKE THEIR LOCKER ROOM.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -64141,6 +64226,11 @@
  },
  {
   "voice": "meathead",
+  "text": "GO NAG YOUR OWN PARENTS. WHOEVER THEY ARE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "GO PUT OUT A FIRE, HOSE BOY!",
   "from": "HAZARD_HURT"
  },
@@ -67626,6 +67716,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I DON'T KNOW YOU. YOU KNOW MY PANTS. NOT FAIR.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "I DON'T KNOW YOU. YOU'RE DESCRIBING MY DICK.",
   "from": "CARTOON"
  },
@@ -67638,6 +67733,11 @@
   "voice": "meathead",
   "text": "I DON'T LIKE CANDLES. THEY'RE HOT AND SMALL.",
   "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "I DON'T LISTEN TO THE RADIO. I DON'T KNOW YOU.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -68352,6 +68452,11 @@
  {
   "voice": "meathead",
   "text": "I STILL DON'T KNOW WHO THAT WAS.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "I STILL DON'T KNOW WHO YOU ARE, EARS.",
   "from": "CARTOON"
  },
  {
@@ -69288,6 +69393,11 @@
   "voice": "meathead",
   "text": "I'VE HEARD OF IT NOW. AND YES.",
   "from": "m1/game/stages/ernie/jetski.ts:142"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'VE MET A THOUSAND BOB DOLES. ALL DADS.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -70711,6 +70821,16 @@
  },
  {
   "voice": "meathead",
+  "text": "JERRY THE MOUSE SMELLS ME. GOOD.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "JERRY? LIKE THE MOUSE?",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "JET-POWERED LA-Z-BOY!",
   "from": "CARTOON"
  },
@@ -71433,6 +71553,11 @@
   "voice": "meathead",
   "text": "LIVING SLUDGE! IN MY SOCK!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "LIZARDS SMELL WITH THEIR TONGUES. GOOD LUCK, LIZARD.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -73552,6 +73677,11 @@
  {
   "voice": "meathead",
   "text": "NEWT FLATTENED ME!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "NEWT? LIKE THE LIZARD?",
   "from": "CARTOON"
  },
  {
@@ -76766,6 +76896,11 @@
  },
  {
   "voice": "meathead",
+  "text": "PEROT. IS THAT A CAR? YOU SOUND LIKE A CAR.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "PEST CONTROL, BITCH!",
   "from": "M2_KILL_LINES"
  },
@@ -78171,6 +78306,21 @@
  },
  {
   "voice": "meathead",
+  "text": "ROSS WHO? YOU GOT A ROBE IN THOSE CHARTS?",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "ROSS WHO? YOU SELL CARS?",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "ROSS WHO? YOU SELL PANTS? I NEED PANTS.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "ROT IN FILTH",
   "from": "VULGARITIES"
  },
@@ -78343,6 +78493,21 @@
   "voice": "meathead",
   "text": "RUSH HOUR'S OVER, PAL!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "RUSH? I HAD A RUSH. IT WENT DOWN MY LEG.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "RUSH? LIKE THE BAND?",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "RUSH? LIKE THE BAND? QUIT STARING, BAND.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -79091,6 +79256,16 @@
  },
  {
   "voice": "meathead",
+  "text": "SHE'S THE CAT'S OWNER. OR THE BABYSITTER. OR AN INTERN.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHE'S THE STAR AND I DON'T KNOW WHO SHE IS.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "SHE'S TOUGH. HER KIDS AREN'T. THROW ONE AT MOMMY.",
   "from": "SPACE"
  },
@@ -79571,6 +79746,16 @@
  },
  {
   "voice": "meathead",
+  "text": "SHUT UP, BABYSITTER. GO GET WIPES.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHUT UP, CHELSEA. WHO'S CHELSEA?",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "SHUT UP, DOLL. YOU'RE WEARING MORE THAN ME.",
   "from": "CARTOON"
  },
@@ -79578,6 +79763,36 @@
   "voice": "meathead",
   "text": "SHUT UP, HIPPIE.",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHUT UP, INTERN.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHUT UP, INTERN. FETCH ME PANTS.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHUT UP, INTERN. GO FIND ME PANTS.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHUT UP, KELSEY.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHUT UP, KELSEY. GET ME A TOWEL.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHUT UP, KELSEY. I KNOW I STINK.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -79662,6 +79877,11 @@
  {
   "voice": "meathead",
   "text": "SHUT UP. IT'S A SPRINKLER.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHUT UP. WHO ARE YOU?",
   "from": "CARTOON"
  },
  {
@@ -80256,6 +80476,16 @@
  },
  {
   "voice": "meathead",
+  "text": "SOME KID'S CAT. NO PANTS. WHOSE KID IS SHE?",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "SOME LIZARD IS POINTING AT MY DICK.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "SOME OF IT IS.",
   "from": "INTRO"
  },
@@ -80358,6 +80588,11 @@
   "voice": "meathead",
   "text": "SOMEBODY'S PURSE! RIGHT IN THE TEETH!",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "SOMEBODY'S UNCLE IS LOOKING AT MY DICK.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -80963,6 +81198,76 @@
   "voice": "meathead",
   "text": "STILL ALIVE. PIPER, STRETCH.",
   "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "STILL DON'T KNOW YOU, CHURCH LADY.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "STILL DON'T KNOW YOU, CHURCH LADY. EYES UP.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "STILL DON'T KNOW YOU, CHURCH LADY. HOLY WATER MY PANTS.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "STILL DON'T KNOW YOU, EARS. YOU KNOW MY DICK.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "STILL DON'T KNOW YOU, EARS. YOU KNOW MY PANTS.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "STILL DON'T KNOW YOU, LIZARD.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "STILL DON'T KNOW YOU, LIZARD. GET OUT OF MY SWAMP.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "STILL DON'T KNOW YOU, WEATHER GUY. HUMID IN MY PANTS.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "STILL DON'T KNOW YOU. EVERY DAD SMELLS LIKE THIS ANYWAY.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "STILL DON'T KNOW YOU. IT'S COLD. SAY THAT ON THE RADIO.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "STILL DON'T KNOW YOU. JUST DO THE WEATHER.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "STILL DON'T KNOW YOU. NAKED LIZARD, NAKED CAT.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "STILL DON'T KNOW YOU. SOMEBODY'S DAD SAW MY DICK.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "STILL DON'T KNOW YOU. YOU LOOK LIKE A DAD AT TEE BALL.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -81898,6 +82203,16 @@
   "voice": "meathead",
   "text": "THANKS FOR THE RIDE, BUDDY.",
   "from": "m1/game/stages/barry/runtime.ts:404"
+ },
+ {
+  "voice": "meathead",
+  "text": "THANKS FOR WHAT? WHO ARE YOU?",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "THANKS FOR WHAT? WHO ARE YOU? WHERE IS YOUR BATHROOM?",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -84146,6 +84461,21 @@
  },
  {
   "voice": "meathead",
+  "text": "THE KID'S PARENTS ARE AT THE UN. WHO ARE THE KID'S PARENTS?",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE KID'S PARENTS? I DON'T KNOW THE KID EITHER.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE KID'S PARENTS? STILL DON'T KNOW THE KID. GOT PANTS?",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "THE KIDS LOVED THAT. ALL NINE OF THEM.",
   "from": "CARTOON"
  },
@@ -84506,6 +84836,16 @@
  },
  {
   "voice": "meathead",
+  "text": "THE PINEAPPLE GUY? EYES ON THE FRUIT.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE PINEAPPLE GUY? I DON'T WANT FRUIT.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "THE PINK SHIT STINGS!",
   "from": "SPACE"
  },
@@ -84548,6 +84888,11 @@
   "voice": "meathead",
   "text": "THE POPCORN MASCOT JUMPED ME!",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE POPE IS STARING AT MY DICK. OR WHOEVER YOU ARE.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -84966,6 +85311,21 @@
  },
  {
   "voice": "meathead",
+  "text": "THE SPEAKER? LIKE A STEREO?",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE SPEAKER? LIKE A STEREO? TURN IT DOWN.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE SPEAKER? STOP POINTING, STEREO.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "THE SPIN DOCTOR SPUN ME!",
   "from": "CARTOON"
  },
@@ -85358,6 +85718,16 @@
   "voice": "meathead",
   "text": "THE WAVE MACHINE! IN MY NOSE!",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE WEATHER GUY? COLD FRONT. ON MY BALLS.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE WEATHER GUY? FORECAST: SHITTY.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -87681,6 +88051,11 @@
  },
  {
   "voice": "meathead",
+  "text": "WEATHER GUY. SHRINKAGE ADVISORY. SHUT UP.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "WELL DONE MOTHERFUCKER",
   "from": "VULGARITIES"
  },
@@ -87941,6 +88316,11 @@
  },
  {
   "voice": "meathead",
+  "text": "WHAT'S THE FIVE DAY, WEATHER GUY?",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "WHAT'S THE LESSON? CATS HATE LOBBYISTS?",
   "from": "CARTOON"
  },
@@ -88066,6 +88446,11 @@
  },
  {
   "voice": "meathead",
+  "text": "WHERE'S YOUR TAIL, NEWT? I GOT ONE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "WHEY! IN MY FACE!",
   "from": "FANTASY"
  },
@@ -88121,6 +88506,26 @@
  },
  {
   "voice": "meathead",
+  "text": "WHO ARE THESE PEOPLE AND WHY ARE THEY THANKING A NAKED GUY?",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHO ARE THESE PEOPLE AND WHY ARE THEY THANKING ME?",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHO ARE THESE PEOPLE AND WHY ARE THEY THANKING ME? I SHIT ON THEIR RUG.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHO ARE YOU? A LEPRECHAUN WITH A BANK?",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "WHO ARE YOU? AND DO NOT PUT MY PANTS ON THE RADIO.",
   "from": "CARTOON"
  },
@@ -88136,7 +88541,32 @@
  },
  {
   "voice": "meathead",
+  "text": "WHO ARE YOU? AND YEAH. IT WAS ME.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHO ARE YOU? GO GET ME A TOWEL.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "WHO ARE YOU? THE CARPET'S FINE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHO ARE YOU? THE CAT LADY? GO GET PANTS.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHO ARE YOU? THE CAT'S OWNER?",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHO ARE YOU? THE MATTRESS STORE GUY?",
   "from": "CARTOON"
  },
  {
@@ -88731,8 +89161,43 @@
  },
  {
   "voice": "meathead",
+  "text": "WHO'S THE CHURCH LADY?",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHO'S THE CHURCH LADY? AND YEAH, I'M THE SIN.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHO'S THE CHURCH LADY? QUIT LOOKING.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHO'S THE EARS GUY?",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHO'S THE EARS GUY? AND YEAH, THAT'S ME.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHO'S THE EARS GUY? EYES UP, EARS.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "WHO'S THE PEST NOW?!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHO'S THIS? THE WEATHER GUY?",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -88796,8 +89261,48 @@
  },
  {
   "voice": "meathead",
+  "text": "WHOEVER THIS KID IS, SHE'S NOT CHANGING ME.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHOEVER YOUR PARENTS ARE, I SHIT ON THEIR RUG.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "WHOO! I'M AN ASTRONAUT!",
   "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHOSE DAD ARE YOU?",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHOSE DAD ARE YOU? DON'T TELL MINE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHOSE DAD ARE YOU? GO HOME. I'M BUSY SHITTING.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHOSE DAD ARE YOU? GO PICK UP YOUR OWN KID.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHOSE DAD ARE YOU? YOU'RE SEEING TOO MUCH.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHOSE KID IS THIS? SHUT UP.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -88808,6 +89313,11 @@
   "voice": "meathead",
   "text": "WHOSE SIDE ARE YOU ON?!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHOSE UNCLE ARE YOU? GO GET ME WIPES.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -89651,6 +90161,11 @@
  },
  {
   "voice": "meathead",
+  "text": "YOU'RE ON TV AT FOUR IN THE MORNING, RIGHT? YOU LOOK IT.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "YOU'RE OUT TO SEA BITCH",
   "from": "VULGARITIES"
  },
@@ -89783,6 +90298,11 @@
   "voice": "meathead",
   "text": "YOUR MANAGER'S A STEAL? CALL THE COPS ON HIM.",
   "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOUR MOM NAMED YOU AFTER A LIZARD?",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
