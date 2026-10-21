@@ -248,11 +248,14 @@ registerM2Kind({
     }
     return { said: true, free: true };
   },
-  // (the drunken rage: nothing he does to him lands; a move into him gets him hammered)
+  // (the drunken rage: nothing he does to him lands; and only the hammer's real head or his real body hurts: a charge
+  // or a slide under him while he's up in a hop passes clean (the user's: "it still seems impossible to run under him
+  // when he jumps", "the hammer ... seems to hit me when i'm not close": this used to hammer any move that touched his
+  // box at all, wherever the hammer was))
   touch: (ctx) => {
     const f = live;
     if (!f || f.mode !== 'on' || (f.act !== 'rage' && f.act !== 'rise')) return false;
-    if (attacking(ctx.state)) hammered(ctx, f);
+    if (attacking(ctx.state) && f.y <= 0) hammer(ctx, f);
     return true;
   },
 });
