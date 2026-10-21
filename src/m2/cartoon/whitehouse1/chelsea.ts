@@ -41,7 +41,9 @@ const PART_ONE: ChelseaWorld = {
 let world: ChelseaWorld = PART_ONE;
 
 type Mode = 'follow' | 'scripted' | 'queasy' | 'cower';
-export type ChelseaPose = 'run' | 'stand' | 'point' | 'cheer' | 'queasy' | 'cower' | 'wag';
+export type ChelseaPose = 'run' | 'stand' | 'point' | 'cheer' | 'queasy' | 'cower' | 'wag' | 'leap';
+/** A big cartoon leap up or down a ledge (the floor's step at the balcony's edge...): from, to, frames in, frames long. */
+interface Leap { x0: number; y0: number; x1: number; y1: number; t: number; T: number; prev: ChelseaPose }
 interface Chelsea {
   x: number; y: number; vx: number; facing: 1 | -1; mode: Mode;
   pose: ChelseaPose; poseT: number;
@@ -52,12 +54,15 @@ interface Chelsea {
   /** A burst over her head as she starts in (frames left). */
   hey: number;
   placed: boolean;
+  leap: Leap | null;
+  /** Frames till she'll leap again (no hopping back and forth over an edge he's stood by). */
+  leapCd?: number;
 }
 const ALL = new WeakMap<object, Chelsea>();
 export const chelseaOf = (state: GameState): Chelsea => {
   const key = state.stage as object;
   let c = ALL.get(key);
-  if (!c) { c = { x: 0, y: 0, vx: 0, facing: 1, mode: 'follow', pose: 'stand', poseT: 0, said: null, nagAt: 0, ouchAt: -9999, lastHp: 999, shutNext: true, lead: 0, zip: 0, q: 0, hey: 0, placed: false }; ALL.set(key, c); }
+  if (!c) { c = { x: 0, y: 0, vx: 0, facing: 1, mode: 'follow', pose: 'stand', poseT: 0, said: null, nagAt: 0, ouchAt: -9999, lastHp: 999, shutNext: true, lead: 0, zip: 0, q: 0, hey: 0, placed: false, leap: null }; ALL.set(key, c); }
   return c;
 };
 
@@ -78,15 +83,52 @@ export const chelseaSays = (state: GameState, text: string, after?: () => void, 
   speak(CHELSEA, text, s => { c.said = s; }, queue, after);
 };
 /** Put her at a spot (feet), facing a way. */
-export const placeChelsea = (state: GameState, x: number, y: number, facing: 1 | -1) => { const c = chelseaOf(state); c.x = x; c.y = y; c.vx = 0; c.facing = facing; c.placed = true; c.nagAt = state.frame + 900; };
+export const placeChelsea = (state: GameState, x: number, y: number, facing: 1 | -1) => { const c = chelseaOf(state); c.x = x; c.y = y; c.vx = 0; c.facing = facing; c.placed = true; c.leap = null; c.nagAt = state.frame + 900; };
+
+/** More than this between the floor where she is and where she's going: not a step, a ledge (she leaps it). */
+const LEDGE = 14;
+/** Put her straight down at x (a zip, a placing): on the floor there, no leap going. */
+const setAt = (c: Chelsea, x: number) => { c.x = x; c.y = world.floorY(x); c.leap = null; };
+/** Moves her along the floor to x: up or down a ledge she goes in a big cartoon leap (sprung up and over, or off the
+ *  edge in a hop and down), landing well clear of the edge, never snapping or sliding up a wall. */
+const stepTo = (c: Chelsea, x: number) => {
+  if (c.leap) return;
+  const fy = world.floorY(x);
+  if (Math.abs(fy - c.y) <= LEDGE) { c.x = x; c.y = fy; return; }
+  if ((c.leapCd ?? 0) > 0 && c.mode !== 'scripted') { c.vx = 0; if (c.pose === 'run') c.pose = 'stand'; return; }
+  const dir = Math.sign(x - c.x) || c.facing, x1 = c.x + dir * 64, y1 = world.floorY(x1), dh = Math.abs(y1 - c.y);
+  c.leap = { x0: c.x, y0: c.y, x1, y1, t: 0, T: Math.round(24 + dh * 0.05), prev: c.pose };
+  c.facing = dir as 1 | -1;
+  playSound(y1 < c.y ? 'jump' : 'whoosh', 0.3, 10);
+};
+/** The leap going (each frame), true while she's in the air. Up: sprung straight up first, over the lip, then across
+ *  onto it; down: a hop off the edge, then dropping, gathering speed. */
+const leapOn = (c: Chelsea) => {
+  const L = c.leap;
+  if (!L) return false;
+  L.t++;
+  const k = Math.min(1, L.t / L.T);
+  if (L.y1 < L.y0) {
+    const top = L.y1 - 26, kk = k / 0.7;
+    c.y = k < 0.7 ? L.y0 + (top - L.y0) * (1 - (1 - kk) * (1 - kk)) : top + (L.y1 - top) * ((k - 0.7) / 0.3) ** 2;
+    c.x = L.x0 + (L.x1 - L.x0) * Math.max(0, (k - 0.3) / 0.7);
+  } else {
+    c.x = L.x0 + (L.x1 - L.x0) * k;
+    c.y = L.y0 + (L.y1 - L.y0) * k * k - 30 * Math.sin(Math.PI * Math.min(1, k * 1.6)) * (1 - k);
+  }
+  c.pose = 'leap';
+  if (k >= 1) { c.x = L.x1; c.y = L.y1; c.pose = L.prev === 'leap' ? 'stand' : L.prev; c.leap = null; c.poseT = 0; c.leapCd = 120; playSound('stomp', 0.25, 8); return false; }
+  return true;
+};
 /** The scene's running her (it moves her: chelseaTo). */
 export const scripted = (state: GameState, on: boolean) => { chelseaOf(state).mode = on ? 'scripted' : 'follow'; };
 /** Run her toward x (the scene's), true once she's there. */
 export const chelseaTo = (state: GameState, x: number, speed = 4.5) => {
   const c = chelseaOf(state), d = x - c.x;
-  if (Math.abs(d) < speed) { c.x = x; c.vx = 0; c.pose = c.pose === 'run' ? 'stand' : c.pose; return true; }
-  c.vx = Math.sign(d) * speed; c.facing = d < 0 ? -1 : 1; c.x += c.vx; c.pose = 'run';
-  c.y = world.floorY(c.x);
+  if (c.leap) return false;
+  if (Math.abs(d) < speed) { stepTo(c, x); if (c.leap) return false; c.vx = 0; c.pose = c.pose === 'run' ? 'stand' : c.pose; return true; }
+  c.vx = Math.sign(d) * speed; c.facing = d < 0 ? -1 : 1; c.pose = 'run';
+  stepTo(c, c.x + c.vx);
   return false;
 };
 export const setChelseaPose = (state: GameState, pose: ChelseaPose) => { const c = chelseaOf(state); c.pose = pose; c.poseT = 0; };
@@ -104,9 +146,12 @@ export const updateChelsea = (state: GameState, w: ChelseaWorld = PART_ONE) => {
   world = w;
   const c = chelseaOf(state), p = state.player;
   const px = p.pos.x + p.width / 2;
-  if (!c.placed) { c.x = px - p.facing * 60; c.y = world.floorY(c.x); c.placed = true; c.nagAt = state.frame + 600; }
+  if (!c.placed) { setAt(c, px - p.facing * 60); c.placed = true; c.nagAt = state.frame + 600; }
   c.poseT++;
   if (c.hey > 0) c.hey--;
+  // (mid leap: nothing else till she lands)
+  if (c.leapCd) c.leapCd--;
+  if (leapOn(c)) return;
   if (c.mode === 'scripted') return;
   if (c.mode === 'queasy') {
     c.q++; c.vx = 0;
@@ -118,7 +163,7 @@ export const updateChelsea = (state: GameState, w: ChelseaWorld = PART_ONE) => {
   if (fight) {
     c.mode = 'cower';
     const spot = fight.x;
-    if (Math.abs(c.x - spot) > 400) { c.x = spot; c.zip = 14; }
+    if (Math.abs(c.x - spot) > 400) { setAt(c, spot); c.zip = 14; }
     if (!chelseaTo(state, spot, 5)) return;
     c.pose = 'cower'; c.facing = 1; c.y = fight.y;
     return;
@@ -130,13 +175,10 @@ export const updateChelsea = (state: GameState, w: ChelseaWorld = PART_ONE) => {
   const ahead = c.lead > 0 && Math.abs(p.vel.x) > 0.5;
   const tx = px + (ahead ? 1 : -1) * p.facing * (ahead ? 110 : 70);
   // (too far, or he's up somewhere above the floor she can't get to and moving on: zip over)
-  const floorY = world.floorY(tx);
-  if (Math.abs(c.x - px) > 520) { c.x = tx; c.zip = 14; playSound('whoosh', 0.3, 12); }
+  if (Math.abs(c.x - px) > 520) { setAt(c, tx); c.zip = 14; playSound('whoosh', 0.3, 12); }
   const d = tx - c.x, speed = Math.min(6.5, Math.max(0, Math.abs(d) - 12) * 0.08 + (Math.abs(d) > 40 ? 2 : 0));
-  if (Math.abs(d) > 14 && speed > 0.2) { c.vx = Math.sign(d) * speed; c.x += c.vx; c.facing = c.vx < 0 ? -1 : 1; c.pose = 'run'; }
+  if (Math.abs(d) > 14 && speed > 0.2) { c.vx = Math.sign(d) * speed; c.facing = c.vx < 0 ? -1 : 1; c.pose = 'run'; stepTo(c, c.x + c.vx); }
   else { c.vx = 0; c.facing = px < c.x ? -1 : 1; if (c.pose === 'run') { c.pose = ahead ? 'point' : 'stand'; c.poseT = 0; } }
-  c.y += (world.floorY(c.x) - c.y) * 0.5;
-  if (Math.abs(c.y - floorY) > 200) c.y = floorY;
   if (c.zip > 0) c.zip--;
   if (c.pose === 'wag' && c.poseT > 50 && !c.said) c.pose = 'stand';
   if (c.pose === 'point' && c.poseT > 90) c.pose = 'stand';
@@ -183,12 +225,17 @@ export const drawChelseaAt = (c: Ctx, x: number, y: number, dir: 1 | -1, pose: C
   const hunch = pose === 'queasy' ? 0.25 : pose === 'cower' ? 0.5 : 0;
   const SK = greenR(SKIN_R, green), sk = SK[1];
   // (legs: white knee socks with a cuff, shiny black Mary Janes with a strap)
-  const legA = run ? Math.sin(ph) * 9 : pose === 'cower' ? 6 : 3, legB = run ? -Math.sin(ph) * 9 : pose === 'cower' ? -6 : -3;
+  const leap = pose === 'leap';
+  const legA = run ? Math.sin(ph) * 9 : pose === 'cower' ? 6 : leap ? 8 : 3, legB = run ? -Math.sin(ph) * 9 : pose === 'cower' ? -6 : leap ? -7 : -3;
   for (const [lx, back] of [[legB, true], [legA, false]] as [number, boolean][]) {
-    toonLimb(c, lx * 0.3, -20, lx, -3, 5, back ? [SOCK_R[2], SOCK_R[2], SOCK_R[3], SOCK_R[3]] : SOCK_R, 4.4, -0.08);
+    // (leaping: the knees tucked up, the front foot reaching, the back one kicked up behind)
+    const fy = leap ? (back ? -9 : -5) : 0;
+    c.save(); c.translate(0, fy);
+    toonLimb(c, lx * 0.3, -20 - fy, lx, -3, 5, back ? [SOCK_R[2], SOCK_R[2], SOCK_R[3], SOCK_R[3]] : SOCK_R, 4.4, leap ? -0.2 : -0.08);
     toonFlat(c, () => c.rect(lx * 0.3 + (lx - lx * 0.3) * 0.25 - 2.6, -16, 5.2, 2), back ? SOCK_R[3] : SOCK_R[2], 0.8);
     toonTop(c, () => c.roundRect(lx - 3, -5, 9, 5, [2, 3, 1, 1]), SHOE_R, -5, 0, 1.6);
     c.fillStyle = '#9CA3AF'; c.fillRect(lx - 1, -5, 4, 1); c.fillStyle = '#FFFFFF'; c.fillRect(lx + 3, -4, 1, 1);
+    c.restore();
   }
   c.save(); c.translate(0, -22); c.rotate(hunch);
   // (the plaid skirt: pleats in steps, the plaid's lines over it)
@@ -199,7 +246,7 @@ export const drawChelseaAt = (c: Ctx, x: number, y: number, dir: 1 | -1, pose: C
   c.fillStyle = '#DC2626'; c.fillRect(-12, 4, 24, 1); c.fillStyle = '#063E3A'; c.fillRect(-12, 7, 24, 1);
   c.restore();
   // (the far arm)
-  const armF: [number, number] = pose === 'cheer' ? [-12, -40] : pose === 'cower' ? [4, -32] : pose === 'queasy' ? [-10, -8] : pose === 'wag' ? [-11, -4] : run ? [-6 - Math.sin(ph) * 6, -10] : [-11, -6];
+  const armF: [number, number] = pose === 'cheer' || pose === 'leap' ? [-12, -40] : pose === 'cower' ? [4, -32] : pose === 'queasy' ? [-10, -8] : pose === 'wag' ? [-11, -4] : run ? [-6 - Math.sin(ph) * 6, -10] : [-11, -6];
   toonLimb(c, -5, -20, armF[0], armF[1], 4.4, [SWEATER_R[1], SWEATER_R[2], SWEATER_R[3], '#3A1A7A'], 4);
   toonPart(c, () => c.arc(armF[0], armF[1], 2.8, 0, Math.PI * 2), SK, armF[0] - 3, armF[0] + 3, 1.6);
   // (the sweater in steps, its knit ribbing at the hem, the big white collar's scallops)
@@ -229,7 +276,7 @@ export const drawChelseaAt = (c: Ctx, x: number, y: number, dir: 1 | -1, pose: C
     const puff = (f >> 3) % 2;
     toonPart(c, () => c.ellipse(hx + 6, hy + 5, 4 + puff, 3 + puff, 0, 0, Math.PI * 2), SK, hx + 2, hx + 10, 0.6);
     c.strokeStyle = INK; c.lineWidth = 1.4; c.beginPath(); c.moveTo(hx + 4, hy + 5.5); c.lineTo(hx + 9, hy + 5.5); c.stroke();
-  } else if (talk || pose === 'cheer') {
+  } else if (talk || pose === 'cheer' || pose === 'leap') {
     const open = talk ? [3, 1.5, 4, 2][(f >> 2) % 4] : 3.5;
     toonFlat(c, () => c.ellipse(hx + 6, hy + 5, 3.4, open, 0, 0, Math.PI * 2), '#5A0E14', 1.2);
     c.fillStyle = '#E5E7EB'; c.fillRect(hx + 3, hy + 4, 6, 1.4); c.fillStyle = '#8A8EA0'; c.fillRect(hx + 3, hy + 4.6, 6, 0.6);
@@ -244,7 +291,7 @@ export const drawChelseaAt = (c: Ctx, x: number, y: number, dir: 1 | -1, pose: C
   toonFlat(c, () => c.arc(hx - 7, hy - 7.5, 1.6, 0, Math.PI * 2), '#F9A8D4', 1);
   for (const [dx, dy, r] of TOP_CURLS) curl(c, hx + dx, hy + dy, r, false, false);
   // (the near arm: pointing the way, wagging a finger, up cheering, over her mouth, over her head cowering)
-  const armN: [number, number] = pose === 'point' ? [20, -30] : pose === 'wag' ? [14, -30 + ((f >> 2) % 2) * 3] : pose === 'cheer' ? [12, -42] : pose === 'queasy' ? [hx + 7, hy + 4 + 22] : pose === 'cower' ? [6, -36] : run ? [6 + Math.sin(ph) * 6, -10] : [10, -6];
+  const armN: [number, number] = pose === 'point' ? [20, -30] : pose === 'wag' ? [14, -30 + ((f >> 2) % 2) * 3] : pose === 'cheer' || pose === 'leap' ? [12, -42] : pose === 'queasy' ? [hx + 7, hy + 4 + 22] : pose === 'cower' ? [6, -36] : run ? [6 + Math.sin(ph) * 6, -10] : [10, -6];
   toonLimb(c, 5, -20, armN[0], armN[1], 4.4, SWEATER_R, 4);
   toonPart(c, () => c.arc(armN[0], armN[1], 3, 0, Math.PI * 2), SK, armN[0] - 3, armN[0] + 3, 1.6);
   if (pose === 'point' || pose === 'wag') { c.strokeStyle = INK; c.lineWidth = 3.4; c.lineCap = 'round'; c.beginPath(); c.moveTo(armN[0] + 2, armN[1]); c.lineTo(armN[0] + 7, armN[1] - (pose === 'wag' ? 4 : 1)); c.stroke(); c.strokeStyle = sk; c.lineWidth = 1.8; c.stroke(); c.lineCap = 'butt'; }
