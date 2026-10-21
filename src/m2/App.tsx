@@ -12,7 +12,7 @@ import { setGutBlowout, setGutLines, setGutDeathLines } from '../m1/game/player/
 import { setFootstepVolume } from '../m1/game/player/footsteps';
 import { setHurtScale, setShoveSetDistance, setWallSplatDeath } from '../m1/game/core/resist';
 import { setDeathMessageDrawer } from '../m1/game/render/world';
-import { drawM2DeathMessage } from './deathText';
+import { drawM2DeathMessage, prewarmDeathText } from './deathText';
 import { installCanvasSafety } from './canvasSafety';
 import { setDropTable } from '../m1/game/core/effects';
 import { M2_GUT_LINES, M2_GUT_DEATH } from './lines/gutLines';
@@ -362,7 +362,7 @@ const App2: React.FC = () => {
   useEffect(() => { if (!title) { const id = setTimeout(prewarmParkMap, 4000); return () => clearTimeout(id); } }, [title]);
   // (and the portal cards' photos, once he's at the hub: a boss dead since, his remains then; and the bosses' gross-ups,
   // a step at a time, so none stops to paint itself as its close-up cuts in)
-  useEffect(() => { if (!title && stage === HUB_STAGE) { const id = setTimeout(() => { prewarmLandCards(); warmGrossUps(); }, 1500); return () => clearTimeout(id); } }, [title, stage]);
+  useEffect(() => { if (!title && stage === HUB_STAGE) { const id = setTimeout(() => { prewarmLandCards(); warmGrossUps(); prewarmDeathText(); }, 1500); return () => clearTimeout(id); } }, [title, stage]);
   const togglePause = () => {
     const st = live.current.status;
     // (a scene that can be skipped: START / ESC skips it, rather than pausing)

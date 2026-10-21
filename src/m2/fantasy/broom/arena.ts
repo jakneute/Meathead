@@ -191,11 +191,14 @@ function* buildSteps(tod: TimeOfDay): Generator<void, Ground> {
   const g = cv.getContext('2d', { willReadFrequently: true })!;
   g.imageSmoothingEnabled = false;
   yield* paintGroundSteps(g, rawTile, tod);
-  const m0 = new Uint32Array(g.getImageData(0, 0, TS, TS).data.buffer.slice(0));
-  yield;
+  // (read back in bands, a step each: the whole 2048 square at once was a long frame on its own)
+  const m0 = new Uint32Array(TS * TS), BAND = 256;
+  for (let y = 0; y < TS; y += BAND) { m0.set(new Uint32Array(g.getImageData(0, 0 + y, TS, BAND).data.buffer), y * TS); yield; }
   const mips = [m0];
-  for (let i = 1; i < LEVELS; i++) { mips.push(shrink(mips[i - 1], TS >> (i - 1))); if (i < 3) yield; }
-  const tile = outsideFor(tod), o0 = new Uint32Array(tile.getContext('2d')!.getImageData(0, 0, OS, OS).data.buffer.slice(0));
+  for (let i = 1; i < LEVELS; i++) { mips.push(shrink(mips[i - 1], TS >> (i - 1))); yield; }
+  const tile = outsideFor(tod);
+  yield;
+  const o0 = new Uint32Array(tile.getContext('2d')!.getImageData(0, 0, OS, OS).data.buffer.slice(0));
   return { key: tod.key, mips, omips: chain(o0, OS), far: pack(mix(multiply('#B8C4E0', tod.mul), skyAt(0.95, tod), 0.55)), g, splatKey: '', nSplats: 0, n: TS, on: OS, dirty: [] };
 }
 /** A build under way ahead of the fight (primeGround), for the hour it was started at. */

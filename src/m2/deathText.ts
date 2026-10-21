@@ -9,6 +9,7 @@
 
 import type { GameState } from '../m1/game/core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../m1/constants';
+import { idleTasks } from '../m1/game/scenes/art/raster';
 
 type Ctx = CanvasRenderingContext2D;
 const FONT = '"Press Start 2P"';
@@ -120,6 +121,14 @@ const feetOf = (ch: string, size: number) => {
   }
   feetCache.set(key, out);
   return out;
+};
+/** The letters' feet at the usual size, read ahead one letter per idle moment once the font's in (the first death
+ *  read them all off the letters the moment it came up: a stall as he died). */
+export const prewarmDeathText = () => {
+  if (typeof document === 'undefined') return;
+  const go = () => idleTasks([...'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!?.,-'].map(ch => () => { feetOf(ch, 30); }));
+  const fonts = (document as Document & { fonts?: FontFaceSet }).fonts;
+  if (fonts) fonts.load(`bold 30px ${FONT}`).then(go, () => {}); else go();
 };
 
 const begin = (ctx: Ctx, text: string, frame: number): Shown => {
