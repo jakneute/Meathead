@@ -49,3 +49,6 @@ tools/smoke/out/
 
 # Perf harness output (tools/perf/run.mjs)
 tools/perf/out/
+
+# headless close-up renders (agents' scratch images)
+close/
