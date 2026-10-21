@@ -66,14 +66,20 @@ export const line = (c: Ctx, pts: number[], w: number, color: string, cap: Canva
 };
 /** A limb: a tapered tube from (x1, y1) r1 to (x2, y2) r2, in its ramp, `sag` flab hanging off its underside. */
 export const limb = (c: Ctx, x1: number, y1: number, r1: number, x2: number, y2: number, r2: number, r: Ramp, sag = 0, lw = 1) => {
-  const dx = x2 - x1, dy = y2 - y1, d = Math.hypot(dx, dy) || 1, nx = -dy / d, ny = dx / d;
-  const s = ny > 0 ? 1 : -1;
+  const dx = x2 - x1, dy = y2 - y1, d = Math.hypot(dx, dy) || 1, ux = dx / d, uy = dy / d;
+  // (the side facing down takes the sag, whichever way the limb points; the end caps round the OUTSIDE of each end:
+  // the old path's bulge crossed over the tube when it pointed up or left, and its caps curled inside it, so limbs
+  // drew as bow ties)
+  let nx = -uy, ny = ux;
+  if (ny < 0 || (ny === 0 && nx < 0)) { nx = -nx; ny = -ny; }
+  const upA = Math.atan2(-ny, -nx), dnA = Math.atan2(ny, nx), ccw = !(ny * ux - nx * uy > 0), rm = (r1 + r2) / 2;
   const path = () => {
-    c.moveTo(x1 + nx * r1, y1 + ny * r1);
-    c.lineTo(x2 + nx * r2, y2 + ny * r2);
-    c.arc(x2, y2, r2, Math.atan2(ny, nx), Math.atan2(-ny, -nx));
-    c.quadraticCurveTo((x1 + x2) / 2 - nx * (r1 + sag) * s, (y1 + y2) / 2 - ny * (r1 + sag) * s + sag, x1 - nx * r1, y1 - ny * r1);
-    c.arc(x1, y1, r1, Math.atan2(-ny, -nx), Math.atan2(ny, nx));
+    c.moveTo(x1 - nx * r1, y1 - ny * r1);
+    c.lineTo(x2 - nx * r2, y2 - ny * r2);
+    c.arc(x2, y2, r2, upA, dnA, ccw);
+    c.quadraticCurveTo((x1 + x2) / 2 + nx * (rm + sag * 1.5), (y1 + y2) / 2 + ny * (rm + sag * 1.5), x1 + nx * r1, y1 + ny * r1);
+    c.arc(x1, y1, r1, dnA, upA, ccw);
+    c.closePath();
   };
   shape(c, path, r, Math.min(x1, x2) - Math.max(r1, r2), Math.max(x1, x2) + Math.max(r1, r2), lw);
 };
