@@ -96,10 +96,8 @@ export const stamp = (ctx: Ctx, key: string, x: number, y: number, w: number, h:
       // big stall: painted afresh only once the scale holds still (asked for again at it))
       if (near) {
         const ka = a / l!.a, kd = d / l!.d;
-        const sm = ctx.imageSmoothingEnabled;
-        ctx.imageSmoothingEnabled = true; ctx.globalAlpha = 1;
-        ctx.drawImage(l!.s.c, (l!.s.L * ka) / m.a, (l!.s.T * kd) / m.d, (l!.s.c.width * ka) / m.a, (l!.s.c.height * kd) / m.d);
-        ctx.imageSmoothingEnabled = sm; Object.assign(ctx, l!.s.after);
+        putDown(ctx, m, l!.s.c, l!.s.L * ka, l!.s.T * kd, l!.s.c.width * ka, l!.s.c.height * kd);
+        Object.assign(ctx, l!.s.after);
         return;
       }
       if (!l) { paint(ctx); return; }
@@ -124,13 +122,23 @@ export const stamp = (ctx: Ctx, key: string, x: number, y: number, w: number, h:
     }
   }
   latest.set(lk, { s, a, d });
-  // (put down through the transform as it stands, at the size that lands it one stamp pixel to one screen pixel: no
-  // save, restore or transform swapped round it, which cost more than the drawImage)
-  const sm = ctx.imageSmoothingEnabled;
   // (painted on whole device pixels; put down where the art itself would've gone, between pixels when the camera is:
   // its edges soften just the way the live art's do there)
-  ctx.imageSmoothingEnabled = true; ctx.globalAlpha = 1;
-  ctx.drawImage(s.c, s.L / m.a, s.T / m.d, s.c.width / m.a, s.c.height / m.d);
-  ctx.imageSmoothingEnabled = sm;
+  putDown(ctx, m, s.c, s.L, s.T, s.c.width, s.c.height);
   Object.assign(ctx, s.after);
+};
+
+/**
+ * A stamp put down over the device box (x, y, w, h), relative to the transform's own offset (m.e, m.f). Unmirrored:
+ * through the transform as it stands, sized to land one stamp pixel to one screen pixel (no save, restore or transform
+ * swapped round it, which cost more than the drawImage). Mirrored (the transform's scale negative: anything facing
+ * left): the stamp's already painted mirrored, so it goes down unturned (drawn through the mirrored transform it'd be
+ * turned back round: every enemy facing left drawn facing right, its back to him).
+ */
+const putDown = (ctx: Ctx, m: DOMMatrix, img: HTMLCanvasElement, x: number, y: number, w: number, h: number) => {
+  const sm = ctx.imageSmoothingEnabled;
+  ctx.imageSmoothingEnabled = true; ctx.globalAlpha = 1;
+  if (m.a > 0 && m.d > 0) ctx.drawImage(img, x / m.a, y / m.d, w / m.a, h / m.d);
+  else { ctx.save(); ctx.setTransform(1, 0, 0, 1, m.e, m.f); ctx.drawImage(img, x, y, w, h); ctx.restore(); }
+  ctx.imageSmoothingEnabled = sm;
 };
