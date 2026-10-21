@@ -7,8 +7,10 @@
 
 import type { GameState } from '../../../m1/game/core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
-import { drawStuntCar, drawStuntman, STUNT_PAINT, STUNT_CAR_SCALE } from '../../weapons/stuntCar';
-import { type Ctx, type Ramp, shape, ell, px, line, fill, sparks } from './paint';
+import { drawStuntCar, drawStuntman, STUNT_PAINT, STUNT_CAR_SCALE, STUNT_ART_K } from '../../weapons/stuntCar';
+import { drawWreckArt } from '../../weapons/stuntCarArt';
+import { drawCarnage, drawDadGore, drawTray } from './carnage';
+import { type Ctx, type Ramp, shape, ell, px, line, fill } from './paint';
 import { DAD_K, drawCouch, drawDad, can } from './dad';
 import { drawMom, drawGramps, drawSis, drawBoy, type Anim } from './family';
 import { X, STAGE_Y, D_SET } from './layout';
@@ -163,20 +165,14 @@ export const drawCarAt = (c: Ctx, x: number, y: number, dir: 1 | -1, wheel: numb
   drawStuntCar(c, 0, 0, dir, wheel, rot, STUNT_PAINT[paint % STUNT_PAINT.length], driver);
   c.restore();
 };
-export const drawWreck = (c: Ctx, x: number, floorY: number, dir: 1 | -1, paint: number, t: number, f: number) => {
-  drawCarAt(c, x, floorY - 16 * STUNT_CAR_SCALE * CAR_K, dir, 0, Math.PI, paint, false);
-  // (burning a while: stepped flames off the underside; then just a curl of smoke now and then (the particles))
-  if (t < 260) {
-    const n = t < 140 ? 5 : 2;
-    for (let k = 0; k < n; k++) {
-      const fx = x - 40 + k * 20 + Math.sin(f * 0.3 + k) * 3, h = 10 + ((f * 3 + k * 17) % 12);
-      fill(c, '#F97316', () => { c.moveTo(fx - 5, floorY - 30); c.lineTo(fx, floorY - 30 - h); c.lineTo(fx + 5, floorY - 30); c.closePath(); });
-      fill(c, '#FDE047', () => { c.moveTo(fx - 2.4, floorY - 30); c.lineTo(fx, floorY - 30 - h * 0.55); c.lineTo(fx + 2.4, floorY - 30); c.closePath(); });
-    }
-  }
+/** A wreck on its roof (stamped: weapons/stuntCarArt.ts), burning a while, then smoking for good (the particles);
+ *  `bloody`: the one that came down on him (its grille dripping). */
+export const drawWreck = (c: Ctx, x: number, floorY: number, dir: 1 | -1, paint: number, t: number, f: number, bloody = false) => {
+  drawWreckArt(c, x, floorY, STUNT_CAR_SCALE * STUNT_ART_K * CAR_K, dir, paint % STUNT_PAINT.length, STUNT_PAINT[paint % STUNT_PAINT.length], { t, f, bloody, burn: t < 140 ? 1 : t < 260 ? 0.5 : 0 });
 };
-export const drawStuntmanAt = (c: Ctx, x: number, y: number, dir: 1 | -1, rot: number, pose: 'tumble' | 'down' | 'up' | 'dive') => {
-  c.save(); c.translate(x, y); c.scale(0.8, 0.8); drawStuntman(c, 0, 0, dir, rot, pose); c.restore();
+/** The stuntman (`f` the frame: his thumbs-up and wave). */
+export const drawStuntmanAt = (c: Ctx, x: number, y: number, dir: 1 | -1, rot: number, pose: 'tumble' | 'down' | 'up' | 'dive', f = 0) => {
+  c.save(); c.translate(x, y); c.scale(0.8, 0.8); drawStuntman(c, 0, 0, dir, rot, pose, f); c.restore();
 };
 /** A stuntman's splat on the set's wallpaper (world, at the wall's depth: drawn there by the caller). */
 export const drawWallSplat = (c: Ctx, x: number, y: number, seed: number) => {
@@ -186,30 +182,19 @@ export const drawWallSplat = (c: Ctx, x: number, y: number, seed: number) => {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
-// What's left of one of the family after a stunt car: the animatronic knocked flat (powered down, jaw hanging), its
-// bits round it (a glass eye, the wig, a hand on its wires, the cable sparking), MOM's casserole all over the floor
+// What's left of one of the family after a stunt car: a set piece of carnage each (carnage.ts)
 
 export type Member = 'mom' | 'boy' | 'sis' | 'gramps';
-const WIGS: Record<Member, string> = { mom: '#8A4A1C', boy: '#7A5A3A', sis: '#C2873A', gramps: '#F4F4F0' };
 export const drawMember = (c: Ctx, who: Member, x: number, floorY: number, a: Anim, arm = 0, beer = false) => {
   if (who === 'mom') drawMom(c, x, floorY, a);
   else if (who === 'gramps') drawGramps(c, x, floorY, a);
   else if (who === 'sis') drawSis(c, x, floorY, a);
   else drawBoy(c, x, floorY, a, arm, beer);
 };
-export const drawDeadMember = (c: Ctx, who: Member, x: number, floorY: number, f: number, dir: 1 | -1) => {
-  const off: Anim = { mode: 'off', f: 0, talking: false };
-  c.save(); c.translate(x + dir * 30, floorY - 4); c.rotate(dir * 1.45); c.translate(0, 0);
-  drawMember(c, who, 0, 0, off);
-  c.restore();
-  // (the bits)
-  const bx = x - dir * 36;
-  ell(c, bx, floorY - 3, 3.4, 3.4, '#FBFBF8'); ell(c, bx - 0.6, floorY - 3, 1.6, 1.6, '#2A4A6A');
-  ell(c, bx + dir * 70, floorY - 3, 9, 4, WIGS[who]); ell(c, bx + dir * 68, floorY - 5, 5, 2, '#FFFFFF33');
-  line(c, [bx - dir * 20, floorY - 2, bx - dir * 30, floorY - 10, bx - dir * 26, floorY - 4], 1.4, '#1C1C1C');
-  if (who === 'mom') { ell(c, bx + dir * 20, floorY - 1, 16, 3, '#C24A2A'); ell(c, bx + dir * 14, floorY - 2, 6, 2, '#F2C94C'); }
-  if ((f + x) % 50 < 6) sparks(c, bx - dir * 28, floorY - 10, f);
-};
+/** What a stunt car left of one of them: its own set piece of carnage (carnage.ts, stamped; sparks, a twitching hand,
+ *  a fire and its smoke live). */
+export const drawDeadMember = (c: Ctx, who: Member, x: number, floorY: number, f: number, dir: 1 | -1) => drawCarnage(c, who, x, floorY, f, dir);
+export { drawDadGore };
 
 // ---------------------------------------------------------------------------------------------------------------
 // The living room's side walls: plywood flats, wallpapered inside, the paneling at the foot, running back from the play
@@ -258,9 +243,13 @@ export const drawPancake = (c: Ctx, x: number, floorY: number, f: number, flutte
   c.restore();
   // (the edges lifting in the draft, his head the size of a dinner plate, the eyes two dots, the can flat too)
   if (flutter > 0) for (let k = 0; k < 3; k++) { const ex = x - 80 + k * 80, lift = Math.max(0, Math.sin(f * 0.25 + k * 2)) * 4 * flutter; px(c, ex - 8, floorY - 4 - lift, 16, 2, '#EFBFA6'); }
-  ell(c, x - facing * 64, floorY - 4, 14, 3, '#EFBFA6'); px(c, x - facing * 68, floorY - 5, 1.6, 1.6, '#1A1A1A'); px(c, x - facing * 61, floorY - 5, 1.6, 1.6, '#1A1A1A');
+  // (one eye out of it (popped: it's out on the deck, carnage.ts), its socket red; teeth gone out of his grin)
+  ell(c, x - facing * 64, floorY - 4, 14, 3, '#EFBFA6'); ell(c, x - facing * 68, floorY - 4.6, 1.6, 1.2, '#7F1D1D'); px(c, x - facing * 61, floorY - 5, 1.6, 1.6, '#1A1A1A');
+  px(c, x - facing * 66, floorY - 2.6, 6, 1, '#5A0A10'); px(c, x - facing * 65, floorY - 2.6, 1, 1, '#F4EDD6');
   c.save(); c.translate(x + facing * 90, floorY - 2); c.rotate(facing * Math.PI / 2); c.scale(DAD_K, DAD_K); drawMallet(c, 0.25); c.restore();
   can(c, x + facing * 30, floorY - 2, Math.PI / 2, 1);
+  // (the TV dinner's tray, stuck to his gut, tipped up off it)
+  drawTray(c, x + facing * 6, floorY - 6, -facing * 0.22);
 };
 
 /** A can in the avalanche (world). */

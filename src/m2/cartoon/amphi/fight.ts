@@ -73,7 +73,7 @@ import { drawDad, DAD_K, DAD_H, DAD_SIT_H, type DadFace, hammerGrip, swatGrip, m
 import { pantsOf } from '../section';
 import {
   type P, type Member, type PileCan, eyeOf, proj, drawMallet, drawFridge, drawBottle, drawDrop, drawPuddle, drawCouchAt,
-  drawCarAt, drawWreck, drawStuntmanAt, drawWallSplat, drawMember, drawDeadMember, drawPancake, drawPile, drawSeep, drawBlood,
+  drawCarAt, drawWreck, drawStuntmanAt, drawWallSplat, drawMember, drawDeadMember, drawDadGore, drawPancake, drawPile, drawSeep, drawBlood,
 } from './fightArt';
 import type { Anim } from './family';
 import * as L from './lines';
@@ -1472,7 +1472,7 @@ export const fightItems = (c: Ctx, state: GameState, f: Fight): Item[] => {
       });
     } else at(fm.d - 0.0004, X(fm.x), () => drawDeadMember(c, m, X(fm.x), STAGE_Y, fr, (fm.x > f.x ? 1 : -1) as 1 | -1));
   }
-  for (const w of f.wrecks) at(w.onCouch ? 1.0012 : w.d + 0.0002, X(w.x), () => drawWreck(c, X(w.x), STAGE_Y - (w.onCouch ? 26 : 0), w.dir, w.paint, w.t, fr));
+  for (const w of f.wrecks) at(w.onCouch ? 1.0012 : w.d + 0.0002, X(w.x), () => drawWreck(c, X(w.x), STAGE_Y - (w.onCouch ? 26 : 0), w.dir, w.paint, w.t, fr, f.death?.how === 'flat' && w === f.wrecks[f.wrecks.length - 1]));
   // (the stuntmen, flung at the wall: splatted on the wallpaper, down in a heap under it)
   for (const s of f.flung) {
     if (s.stuck) at(D_SET + 0.003, s.x, () => { drawWallSplat(c, s.x, s.y, s.seed); drawStuntmanAt(c, s.x + 6, STAGE_Y - 4, s.dir, 0, 'down'); });
@@ -1499,6 +1499,7 @@ export const fightItems = (c: Ctx, state: GameState, f: Fight): Item[] => {
   if (d?.how === 'flat') {
     // (under the car, then a pancake once it's tipped off him, then up on end like a sheet of paper and down again;
     // the stuntman up out of the wreck)
+    items.push({ d: 1.0001, x: X(f.x), draw: () => drawDadGore(c, X(f.x), STAGE_Y, fr, f.facing, d.t) });
     if (d.step === 'tip' || d.step === 'flat') items.push({ d: 1.0004, x: X(f.x), draw: () => drawPancake(c, X(f.x), STAGE_Y, fr, d.step === 'flat' ? 1 : 0, f.facing) });
     else if (d.step !== 'start') {
       const pp = paperOf(d);
@@ -1513,7 +1514,7 @@ export const fightItems = (c: Ctx, state: GameState, f: Fight): Item[] => {
       } });
     }
     const s = d.stunt;
-    if (s) items.push({ d: 1.0013, x: s.x, draw: () => drawStuntmanAt(c, s.x, s.y, -1, 0, s.up ? 'up' : 'tumble') });
+    if (s) items.push({ d: 1.0013, x: s.x, draw: () => drawStuntmanAt(c, s.x, s.y, -1, 0, s.up ? 'up' : 'tumble', fr) });
   } else {
     const crushed = d?.how === 'fridge' && (d.step === 'crushed' || d.step === 'roll' || d.step === 'done');
     if (crushed) {

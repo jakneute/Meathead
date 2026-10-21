@@ -20,6 +20,7 @@ import { playSound } from '../../m1/game/platform/audio';
 import { groundLineAt } from '../../m1/game/core/terrain';
 import { CANVAS_WIDTH } from '../../m1/constants';
 import { m2Kill } from '../moves/killLines';
+import { ART_K, drawCarArt, drawWreckArt, drawStuntmanArt, type StuntPose } from './stuntCarArt';
 import { grabCallout } from '../moves/callouts';
 
 type Ctx = CanvasRenderingContext2D;
@@ -336,73 +337,28 @@ const tick = (ctx: FrameContext) => {
 // ---------------------------------------------------------------------------------------------------------------
 // Drawing
 
-/** The car: a low red sports car, a white racing stripe, the stunt driver's helmet in it, wheels spinning; speed lines. */
-const drawCar = (c: Ctx, x: number, y: number, dir: number, wheel: number, rot: number, paint: Paint, driver = true) => {
-  c.save(); c.translate(x, y); c.scale(dir * CAR_SCALE, CAR_SCALE); c.rotate(rot);
-  const W = 112, H = 34;
-  // (speed lines behind)
-  if (Math.abs(rot) < Math.PI / 2) { c.fillStyle = 'rgba(255, 255, 255, 0.6)'; for (let i = 0; i < 4; i++) c.fillRect(-W / 2 - 30 - i * 14, -H / 2 + 4 + i * 6, 24, 2); }
-  const body = () => { c.beginPath(); c.moveTo(-W / 2, -2); c.lineTo(-W / 2 + 4, -14); c.lineTo(-18, -16); c.lineTo(-6, -28); c.lineTo(22, -28); c.lineTo(36, -16); c.lineTo(W / 2 - 2, -12); c.lineTo(W / 2, -2); c.lineTo(W / 2 - 4, 6); c.lineTo(-W / 2 + 2, 6); c.closePath(); };
-  // (the body and its glass the right way round: the long hood out front, the way it's going, the cabin set back)
-  c.save(); c.scale(-1, 1);
-  body(); c.fillStyle = INK; c.lineWidth = 3; c.strokeStyle = INK; c.stroke();
-  body(); c.fillStyle = paint.body; c.fill();
-  c.save(); body(); c.clip(); c.fillStyle = paint.top; c.fillRect(-W / 2, -30, W, 6); c.fillStyle = paint.low; c.fillRect(-W / 2, 0, W, 8); c.fillStyle = paint.stripe; c.fillRect(-W / 2, -9, W, 3); c.restore();
-  // windows
-  c.fillStyle = '#7DD3FC'; c.beginPath(); c.moveTo(-3, -26); c.lineTo(20, -26); c.lineTo(31, -16); c.lineTo(-14, -16); c.closePath(); c.fill();
-  c.restore();
-  // the driver in his helmet, looking where he's going (not in the wreck: he's been thrown out of it)
-  if (driver) { c.fillStyle = '#F8FAFC'; c.beginPath(); c.arc(-8, -19, 5.5, 0, Math.PI * 2); c.fill(); c.fillStyle = '#18181B'; c.fillRect(-7, -21, 5, 3); }
-  // lights
-  c.fillStyle = '#FEF08A'; c.fillRect(W / 2 - 7, -9, 5, 3); c.fillStyle = '#B91C1C'; c.fillRect(-W / 2 + 1, -10, 4, 3);
-  // wheels
-  for (const wx of [-W / 2 + 22, W / 2 - 22]) {
-    c.fillStyle = INK; c.beginPath(); c.arc(wx, 4, 10, 0, Math.PI * 2); c.fill();
-    c.fillStyle = '#27272A'; c.beginPath(); c.arc(wx, 4, 8.5, 0, Math.PI * 2); c.fill();
-    c.fillStyle = '#A1A1AA'; c.beginPath(); c.arc(wx, 4, 4, 0, Math.PI * 2); c.fill();
-    c.strokeStyle = '#52525B'; c.lineWidth = 1.5; c.beginPath(); c.moveTo(wx + Math.cos(wheel) * 4, 4 + Math.sin(wheel) * 4); c.lineTo(wx - Math.cos(wheel) * 4, 4 - Math.sin(wheel) * 4); c.stroke();
-  }
-  c.restore();
+/** The car (weapons/stuntCarArt.ts: a muscle car, drawn ART_K bigger than the box it hits with), its middle at (x, y),
+ *  wheels spinning, `dents` from what it's been through. */
+const drawCar = (c: Ctx, x: number, y: number, dir: number, wheel: number, rot: number, paint: Paint, driver = true, dents = 0) => {
+  const i = Math.max(0, PAINT.indexOf(paint));
+  drawCarArt(c, x, y, CAR_SCALE * ART_K, dir, wheel, rot, i, paint, { driver, dents });
 };
 
-/** The stuntman: red jumpsuit, white helmet, arms and legs everywhere. `pose`: tumbling, down, or up (thumbs up). */
-const drawStuntman = (c: Ctx, x: number, y: number, dir: number, rot: number, pose: 'tumble' | 'down' | 'up' | 'dive') => {
-  c.save(); c.translate(x, y); c.scale(dir * MAN_SCALE, MAN_SCALE); c.rotate(rot);
-  const limb = (x0: number, y0: number, x1: number, y1: number, col: string) => { c.strokeStyle = INK; c.lineWidth = 6; c.lineCap = 'round'; c.beginPath(); c.moveTo(x0, y0); c.lineTo(x1, y1); c.stroke(); c.strokeStyle = col; c.lineWidth = 4; c.stroke(); };
-  if (pose === 'dive') {
-    // (Superman: arms out straight ahead of him, fists together, body behind, legs together trailing; head first along -y)
-    limb(-3, 8, -4, 20, '#B91C1C'); limb(3, 8, 4, 20, '#DC2626');
-    c.fillStyle = INK; c.fillRect(-6, -8, 12, 17); c.fillStyle = '#DC2626'; c.fillRect(-5, -7, 10, 15); c.fillStyle = '#FFFFFF'; c.fillRect(-1, -7, 2, 15);
-    limb(-4, -6, -2, -24, '#DC2626'); limb(4, -6, 2, -24, '#DC2626');
-    c.fillStyle = INK; c.beginPath(); c.arc(0, -12, 7, 0, Math.PI * 2); c.fill(); c.fillStyle = '#F8FAFC'; c.beginPath(); c.arc(0, -12, 6, 0, Math.PI * 2); c.fill();
-    c.fillStyle = '#18181B'; c.fillRect(-3, -16, 6, 3);
-  } else if (pose === 'down') {
-    limb(-12, -2, 12, -2, '#DC2626'); limb(10, -2, 18, 0, '#DC2626'); limb(-6, -3, -2, -10, '#DC2626');
-    c.fillStyle = INK; c.beginPath(); c.arc(-15, -4, 6, 0, Math.PI * 2); c.fill(); c.fillStyle = '#F8FAFC'; c.beginPath(); c.arc(-15, -4, 5, 0, Math.PI * 2); c.fill();
-  } else {
-    const t = pose === 'tumble';
-    limb(-3, -12, t ? -10 : -4, t ? -2 : 0, '#B91C1C'); limb(3, -12, t ? 12 : 4, t ? -4 : 0, '#DC2626');
-    c.fillStyle = INK; c.fillRect(-6, -28, 12, 17); c.fillStyle = '#DC2626'; c.fillRect(-5, -27, 10, 15); c.fillStyle = '#FFFFFF'; c.fillRect(-1, -27, 2, 15);
-    limb(-5, -24, t ? -14 : -9, t ? -32 : -14, '#DC2626');
-    if (pose === 'up') { limb(5, -24, 11, -34, '#DC2626'); c.fillStyle = '#F2C29B'; c.fillRect(10, -40, 3, 5); }
-    else limb(5, -24, 14, -18, '#DC2626');
-    c.fillStyle = INK; c.beginPath(); c.arc(0, -34, 7, 0, Math.PI * 2); c.fill(); c.fillStyle = '#F8FAFC'; c.beginPath(); c.arc(0, -34, 6, 0, Math.PI * 2); c.fill();
-    c.fillStyle = '#18181B'; c.fillRect(1, -36, 6, 3);
-  }
-  c.restore();
-};
+/** The stuntman (weapons/stuntCarArt.ts). `pose`: tumbling, down, up (thumbs up, then a wave: `f` the frame), diving. */
+const drawStuntman = (c: Ctx, x: number, y: number, dir: number, rot: number, pose: StuntPose, f = 0) => drawStuntmanArt(c, x, y, MAN_SCALE, dir, rot, pose, f);
 
 const draw = (c: Ctx, p: Projectile, frame: number) => {
   const part = partOf(p);
-  if (part.kind === 'car') { drawCar(c, p.pos.x + p.width / 2, p.pos.y + p.height - 6 * CAR_SCALE, part.dir, part.wheel, Math.atan2(p.vel.y, Math.abs(p.vel.x)) * 0.8, PAINT[part.paint]); return; }
+  // (the art's bigger than the box: its wheels' bottoms kept to the box's bottom)
+  if (part.kind === 'car') { drawCar(c, p.pos.x + p.width / 2, p.pos.y + p.height - 15 * CAR_SCALE * ART_K + 4, part.dir, part.wheel, Math.atan2(p.vel.y, Math.abs(p.vel.x)) * 0.8, PAINT[part.paint], true, Math.min(3, part.hit.length + part.through)); return; }
   if (part.target && alive(part.target)) {
     // (the one he's going for, marked: a red reticle closing on it)
     const t = part.target, tx = t.pos.x + t.width / 2, ty = t.pos.y + t.height / 2, r = 14 + Math.sin(frame * 0.5) * 3;
     c.strokeStyle = INK; c.lineWidth = 4; c.beginPath(); c.arc(tx, ty, r, 0, Math.PI * 2); c.stroke();
     c.strokeStyle = '#EF4444'; c.lineWidth = 2; c.beginPath(); c.arc(tx, ty, r, 0, Math.PI * 2); c.stroke();
     for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { c.beginPath(); c.moveTo(tx + dx * (r - 5), ty + dy * (r - 5)); c.lineTo(tx + dx * (r + 6), ty + dy * (r + 6)); c.stroke(); }
-    drawStuntman(c, p.pos.x + p.width / 2, p.pos.y + p.height / 2, part.dir, part.spin, 'dive');
-  } else drawStuntman(c, p.pos.x + p.width / 2, p.pos.y + p.height - 14 * MAN_SCALE, part.dir, part.spin, 'tumble');
+    drawStuntman(c, p.pos.x + p.width / 2, p.pos.y + p.height / 2, part.dir, part.spin, 'dive', frame);
+  } else drawStuntman(c, p.pos.x + p.width / 2, p.pos.y + p.height - 14 * MAN_SCALE, part.dir, part.spin, 'tumble', frame);
 };
 
 const drawOverlay = (c: Ctx, state: GameState) => {
@@ -410,7 +366,7 @@ const drawOverlay = (c: Ctx, state: GameState) => {
   // The wrecks: on their roofs, burning
   for (const w of wrecks) {
     if (w.t > 170 && w.t % 4 < 2) continue;
-    drawCar(c, w.x, w.y - 16 * CAR_SCALE, w.dir, 0, Math.PI, PAINT[w.paint], false);
+    drawWreckArt(c, w.x, w.y, CAR_SCALE * ART_K, w.dir, w.paint, PAINT[w.paint], { t: w.t, f: state.frame, burn: w.t < 140 ? 1 : 0.5 });
   }
   // The clapperboard over his head: the clapper snapping down, ACTION!
   if (clap > 0) {
@@ -442,6 +398,6 @@ const drawHeld = (c: Ctx) => {
 export const stopStuntCar = () => { clap = 0; wrecks = []; stopDismember(); };
 
 /** The car and the stuntman as drawn here (for a fight's own scripted stunts: the same cars). */
-export { drawCar as drawStuntCar, drawStuntman, PAINT as STUNT_PAINT, CAR_SCALE as STUNT_CAR_SCALE };
+export { drawCar as drawStuntCar, drawStuntman, PAINT as STUNT_PAINT, CAR_SCALE as STUNT_CAR_SCALE, ART_K as STUNT_ART_K };
 
 export const registerStuntCar = () => registerWeapon('STUNT_CAR', { fire: ctx => fire(ctx), update, draw, drawHeld: c => drawHeld(c), tick: ctx => tick(ctx), drawOverlay });
