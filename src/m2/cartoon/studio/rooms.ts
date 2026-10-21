@@ -25,6 +25,7 @@ import { sitter, behind, socks, chelsea, paintDaveStill, paintStar, ASIAN_SKIN, 
 import { CEIL, X, Y, type Room, type RoomId } from './layout';
 import { WALL_EXTRAS, PROP_EXTRAS } from './clutter';
 import { grossSocks, grossChelsea, grossBack } from './gross';
+import { paintDavePortrait } from './daveGross';
 import { GY } from '../geometry';
 
 /** The park's letters (fat, bouncing). */
@@ -193,26 +194,16 @@ const paintVision = (g: Ctx, r: Room) => {
   rail(g, a, WALL_TOP + 6, b - a, GOLD); rail(g, a, GY - 128, b - a, WALNUT);
   wallTop(g, a, b, WALNUT);
   baseboard(g, a, GY - 18, b - a, 18, WALNUT);
-  // (THE PORTRAIT: Dave in oils, arms crossed, smug, a gilt frame, a picture light, the brass plate)
+  // (THE PORTRAIT: Dave in oils, arms crossed, smug, a Ren & Stimpy gross-up, a gilt frame, a picture light, the brass plate)
   const px0 = X(980), py0 = CEIL + 90;
   gilt(g, px0, py0, 200, 250);
   bands(g, px0, py0, 200, 250, ['#141A30', '#1E2646', '#2A3458', '#3A4466']);
   // (the painter's sky behind him: a brushy glow)
   g.fillStyle = 'rgba(242,200,74,0.18)'; g.beginPath(); g.ellipse(px0 + 100, py0 + 110, 80, 90, 0, 0, Math.PI * 2); g.fill();
-  part(g, () => { g.moveTo(px0 + 24, py0 + 250); g.quadraticCurveTo(px0 + 100, py0 + 120, px0 + 176, py0 + 250); g.closePath(); }, '#141414', px0 + 24, py0 + 120, 152, 130, 1.4);
-  part(g, () => g.roundRect(px0 + 82, py0 + 138, 36, 16, 5), '#1E1E1E', px0 + 82, py0 + 138, 36, 16, 1);
-  ball(g, px0 + 100, py0 + 102, 42, '#F0C8A2', 1.6);
-  part(g, () => g.ellipse(px0 + 100, py0 + 70, 44, 18, 0, Math.PI, 0), '#5B4636', px0 + 56, py0 + 52, 88, 18, 1.4);
-  part(g, () => g.ellipse(px0 + 56, py0 + 104, 9, 26, 0.3, 0, Math.PI * 2), '#5B4636', px0 + 47, py0 + 78, 18, 52, 1.2);
-  for (const ex of [84, 116]) { g.strokeStyle = SINK; g.lineWidth = 3; g.beginPath(); g.arc(px0 + ex, py0 + 100, 10, 0, Math.PI * 2); g.stroke(); px(g, px0 + ex - 2, py0 + 99, 4, 4, '#1A1A1A'); px(g, px0 + ex - 5, py0 + 95, 3, 2, 'rgba(255,255,255,0.7)'); }
-  flat(g, () => { g.moveTo(px0 + 72, py0 + 86); g.lineTo(px0 + 92, py0 + 90); }, '#3A2A1A', 2); flat(g, () => { g.moveTo(px0 + 108, py0 + 90); g.lineTo(px0 + 128, py0 + 84); }, '#3A2A1A', 2);
-  px(g, px0 + 95, py0 + 110, 10, 4, '#C4936A');
-  part(g, () => { g.moveTo(px0 + 86, py0 + 126); g.quadraticCurveTo(px0 + 100, py0 + 152, px0 + 114, py0 + 126); g.closePath(); }, '#5B4636', px0 + 86, py0 + 126, 28, 26, 1);
-  g.strokeStyle = SINK; g.lineWidth = 2; g.beginPath(); g.moveTo(px0 + 88, py0 + 120); g.quadraticCurveTo(px0 + 104, py0 + 127, px0 + 116, py0 + 115); g.stroke();
-  limb(g, px0 + 46, py0 + 200, px0 + 154, py0 + 206, 24, '#1F1F1F'); limb(g, px0 + 154, py0 + 194, px0 + 46, py0 + 210, 22, '#262626');
-  ball(g, px0 + 52, py0 + 206, 7, '#F0C8A2', 1); ball(g, px0 + 148, py0 + 198, 7, '#F0C8A2', 1);
+  // (Dave himself, grossed up: daveGross.ts)
+  paintDavePortrait(g);
   // (the varnish's sheen, and the brushwork's dabs)
-  for (let i = 0; i < 40; i++) { const t = hash(i * 3.3), u = hash(i * 7.1); px(g, px0 + 6 + t * 188, py0 + 6 + u * 120, 2, 1, 'rgba(255,255,255,0.12)'); }
+  for (let i = 0; i < 40; i++) { const t = hash(i * 3.3), u = hash(i * 7.1); px(g, px0 + 6 + t * 188, py0 + 6 + u * 40, 2, 1, 'rgba(255,255,255,0.12)'); }
   pictureLight(g, px0 + 100, py0 - 10, 90);
   slab(g, px0 + 40, py0 + 272, 120, 22, GOLD);
   txt(g, 'DAVE. VISIONARY.', px0 + 100, py0 + 287, PRINT('#3B2A10'));

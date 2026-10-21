@@ -32,6 +32,7 @@ import {
   GOLD, VELVET, LIP, PURPLE, TEAL,
 } from './paint';
 import { socks, drawDave, drawArtDirector, steam } from './people';
+import { drawDavePortraitLive } from './daveGross';
 import {
   SHELLS, BACKS, PROPS, backKey, park, drawWritersLive, drawVoiceLive, OVERSEAS_ROWS, lightTable, nightShift, paintBanner,
   PROMO, paintPromo, drawPromoBulbs, paintPaparazzi, drawPaparazziLive, placardX, placardW, paintPlacard, paintMarquee,
@@ -502,7 +503,7 @@ export const drawStudioBack = (c: Ctx, state: GameState, talking: boolean) => {
   // The rooms, back to front: shells; the back walls' tableaux; the partitions' far halves; the props; their near halves
   for (const r of vis) {
     shellBack(c, E, r, s.light[ROOMS.indexOf(r)]);
-    atDepth(c, E, D_BACK, () => stamp(c, `ct-st2-back-${r.id}-${backKey(r.id)}`, X(r.a), CEIL, r.b - r.a, CEIL_H, g => BACKS[r.id](g, r)));
+    atDepth(c, E, D_BACK, () => { stamp(c, `ct-st2-back-${r.id}-${backKey(r.id)}`, X(r.a), CEIL, r.b - r.a, CEIL_H, g => BACKS[r.id](g, r)); if (r.id === 'vision') drawDavePortraitLive(c, f); });
   }
   const walls = ROOMS.slice(1).map((r, i) => ({ x: X(r.a), left: ROOMS[i], right: r }));
   const facing = (w: typeof walls[number]) => (w.x < E.x ? w.right : w.left);
