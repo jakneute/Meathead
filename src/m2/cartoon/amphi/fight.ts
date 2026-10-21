@@ -124,7 +124,7 @@ const SCOOT = 3.4;
 const PUKE_DMG = 8, COUCH_DMG = 16, COUCH_HURTS = 3.4;
 /** The rage: getting up, how long, the hammer's beat (frames up / down), his walk, his hops (how hard, how often), the
  *  gravity; the hurt; winded after. */
-const RISE_T = 30, RAGE_T = 420, HAMMER_BEAT = 7, RAGE_WALK = 1.5, HOP_VY = [-10.5, -12.5], HOP_GAP = [40, 110], G = 0.45, HAMMER_DMG = 18, TIRED_T = 90;
+const RISE_T = 30, RAGE_T = 420, HAMMER_BEAT = 7, RAGE_WALK = 1.5, HOP_VY = [-11.5, -13.5], HOP_GAP = [40, 110], G = 0.45, HAMMER_DMG = 18, TIRED_T = 60, RETURN_V = 3.4;
 /** The hop's tell (frames of knee bend before he goes), the give as he lands. */
 const HOP_TELL = 16, LAND_GIVE = 10;
 /** Baffled (each one of the family flattened), the clapperboard's reset in this fight; the cars' flight. */
@@ -531,7 +531,10 @@ const dad = (ctx: FrameContext, f: Fight) => {
       airborne(state, f);
       const to = seatX(f);
       f.facing = (to < f.x ? -1 : 1) as 1 | -1;
-      f.x += Math.sign(to - f.x) * Math.min(1.6, Math.abs(to - f.x));
+      // (back to the couch at a winded waddle-run, twice his old shuffle (the user's: "he moves more quickly back to the
+      // couch after the hammer phase"))
+      f.x += Math.sign(to - f.x) * Math.min(RETURN_V, Math.abs(to - f.x));
+      if (f.actT % 10 === 0) playSound('snort', 0.4, 4);
       if (Math.abs(to - f.x) < 0.5 && f.y <= 0) { f.seated = true; f.couch.squash = 1; playSound('thud', 0.8, -10); setAct(f, 'sit'); f.callAt = Math.max(f.callAt, f.t + 180); }
       break;
     }
@@ -616,14 +619,21 @@ const polyHits = (r: R, poly: P[]) => {
 };
 /** The swat's pose (0..1) at its frame `t` (poseOf draws the same). */
 const swatT = (f: Fight, t: number) => (t < f.swatWind ? (Math.max(0, t) / f.swatWind) * 0.35 : Math.min(1, 0.35 + ((t - f.swatWind) / 5) * 0.65));
+/** Only him down at the couch's level (his feet within this of the deck: on it, on the cushions, on the couch's back)
+ *  sets the swat off or gets swatted (the user's: "make it safe to single jump shoulder charge over him. as of now it
+ *  triggers his bonk range"): up in a jump's arc over him he's clear. */
+const SWAT_BAND = 66;
+const lowEnough = (state: GameState) => state.player.pos.y + state.player.height > STAGE_Y - SWAT_BAND;
 /** The mallet's head swept from pose `a` to `b`: does it touch him? */
 const swatSweep = (f: Fight, state: GameState, a: number, b: number) => {
+  if (!lowEnough(state)) return false;
   const pr = pRect(state);
   for (let k = 0; k <= 4; k++) { const g = swatGrip(a + ((b - a) * k) / 4); if (polyHits(pr, headPoly(f, g.near, g.ang))) return true; }
   return false;
 };
 /** Where the swat reaches (its head's whole swing, and `pad` more round it), to start one. */
 const swatZone = (f: Fight, state: GameState, pad: number) => {
+  if (!lowEnough(state)) return false;
   const pr = pRect(state);
   for (let k = 0; k <= 8; k++) {
     const g = swatGrip(0.35 + (0.65 * k) / 8), r = headRect(f, g.near, g.ang);
@@ -641,7 +651,10 @@ const hammerKAt = (t: number) => {
   if (p < 11) { const e = (p - 7) / 3; return e * e; }
   return 1;
 };
-const hammerK = (f: Fight) => hammerKAt(f.actT);
+/** The swing this frame (`dt` frames back): held up over his head while he's off the deck (the user's: "when i run
+ *  under him when he jumps, i get hurt despite his hitbox being above me": the hammer used to keep swinging down below
+ *  his feet in the air; up there it's held overhead, so under him is safe all the way). */
+const hammerK = (f: Fight, dt = 0) => (f.y > 0 ? 0 : hammerKAt(f.actT - dt));
 /** His knees bending for a hop (0..1): the tell before it, the give as he lands. */
 const hopTell = (f: Fight) => {
   if (f.act !== 'rage' || f.y > 0) return 0;
@@ -665,7 +678,7 @@ const hammer = (ctx: FrameContext, f: Fight) => {
   const cx = X(f.x), feet = STAGE_Y - f.y, pr = pRect(state);
   const body: R = { x0: cx - 17, x1: cx + 17, y0: feet - 92, y1: feet };
   if (hits(pr, body)) { hammered(ctx, f); return; }
-  const k1 = hammerKAt(f.actT), k0 = hammerKAt(f.actT - 1), n = Math.abs(k1 - k0) > 0.01 ? 3 : 0;
+  const k1 = hammerK(f), k0 = f.y > 0 ? 0 : hammerK(f, 1), n = Math.abs(k1 - k0) > 0.01 ? 3 : 0;
   for (let i = 0; i <= n; i++) if (polyHits(pr, hammerPoly(f, k1 + ((k0 - k1) * i) / Math.max(1, n)))) { hammered(ctx, f); return; }
 };
 const hammered = (ctx: FrameContext, f: Fight) => {

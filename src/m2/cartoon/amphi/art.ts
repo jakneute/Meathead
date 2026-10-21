@@ -430,12 +430,27 @@ const floors = (c: Ctx, state: GameState, E: P) => {
   const dB = D_FAR - 0.02;
   const l = Math.max(X(-260), cam - 260), r = Math.min(x1 + 260, camR + 300);
   if (r > l) {
-    // (its foot meets the floors' far edge, so nothing of the far off shows between)
-    const top = (x: number) => proj(E, x, BANK_Y, dB), foot = (x: number) => proj(E, x, Math.max(BANK_Y + 2, treadAt(x - X(0))), D_FAR + 0.002);
+    // (its foot meets the floors' far edge, so nothing of the far off shows between: along the bleachers it's the row's
+    // planks (a row's level all along it; the aisle's half steps are nearer, in front), elsewhere the ground; a little
+    // under it, the floors drawn over that. Its outline's laid on a fixed world grid plus both sides of every step's
+    // edge: it used to be sampled every 20 px from the screen's left edge, so it cut diagonally across the steps, the
+    // cuts sliding as he scrolled, and the far backdrop's grove flickered through the wedges (the user's "glitchy" gap))
+    const ground = (x: number) => {
+      const rx = x - X(0);
+      if (rx >= AISLE.a && rx < AISLE.b) return rowY(Math.min(ROWS - 1, Math.floor((rx - AISLE.a) / ROW_W)));
+      return treadAt(rx);
+    };
+    const top = (x: number) => proj(E, x, BANK_Y, dB), foot = (x: number) => proj(E, x, Math.max(BANK_Y + 2, ground(x) + 4), D_FAR + 0.002);
+    const xs: number[] = [];
+    for (let x = Math.floor(l / 20) * 20; x <= r + 20; x += 20) xs.push(x);
+    const edges = [AISLE.b, STEPS.a, STEPS.b, ...Array.from({ length: ROWS + 1 }, (_, k) => AISLE.a + k * ROW_W)];
+    for (let k = 1; k < STEPS.n; k++) edges.push(STEPS.a + (k * (STEPS.b - STEPS.a)) / STEPS.n);
+    for (const e of edges) { const x = X(e); if (x > l - 20 && x < r + 20) xs.push(x - 0.01, x); }
+    xs.sort((p, q) => p - q);
     const strip = (k0: number, k1: number, col: string) => {
       c.beginPath();
-      for (let x = l; x <= r; x += 20) { const t = top(x), f2 = foot(x), y = t.y + (f2.y - t.y) * k0; if (x === l) c.moveTo(t.x, y); else c.lineTo(t.x, y); }
-      for (let x = r; x >= l; x -= 20) { const t = top(x), f2 = foot(x); c.lineTo(t.x, t.y + (f2.y - t.y) * k1 + 1); }
+      xs.forEach((x, i) => { const t = top(x), f2 = foot(x), y = t.y + (f2.y - t.y) * k0; if (!i) c.moveTo(t.x, y); else c.lineTo(t.x, y); });
+      for (let i = xs.length - 1; i >= 0; i--) { const x = xs[i], t = top(x), f2 = foot(x); c.lineTo(t.x, t.y + (f2.y - t.y) * k1 + 1); }
       c.closePath(); c.fillStyle = col; c.fill();
     };
     strip(0, 0.18, G[3]); strip(0.16, 0.5, G[2]); strip(0.48, 1, G[1]);

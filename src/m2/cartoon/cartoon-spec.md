@@ -676,6 +676,11 @@ As built (numbers up top in fight.ts):
     while it's moving, the in-betweens since the last (held up over him or held down on the deck it's only where it
     is); his body 34 px wide, shoulders to feet (was 48 wide, his whole height); the enemy box he's touched by 44 x 92
     (was 56 x 96). The swat uses the same exact head.
+  - UNDER HIM, OVER HIM (the user's, 2026-10-21): off the deck in a hop he holds the hammer up over his head (it used to
+    keep swinging down below his feet), so running under him is safe all the way; the hops a touch higher (11.5-13.5
+    up). Seated, the swat only counts him at the couch's level (his feet within 66 px of the deck): a jump and an air
+    shoulder charge over him are safe; into him on the ground still gets swatted. After the rage he's winded 60 frames
+    (was 90) and waddle-runs back to the couch at 3.4 px a frame (was 1.6).
   - THE CLAPPERBOARD'S RESET: snapped before it's ready (a dud, no ammo used): the stunt coordinator on the walkie
     (m2.hollywood.stuntco, off-stage; WALKIE: under the boss bar) with an excuse (CREW_EXCUSE: "THE NEW DRIVERS ARE SLOW
     AS SHIT." word for word, the union break, a car that still runs, the driver who quit, insurance, the stuntman
