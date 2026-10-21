@@ -27,6 +27,7 @@ import { CANVAS_WIDTH } from '../../../m1/constants';
 import { playSound, audioRunning, getAudioContext } from '../../../m1/game/platform/audio';
 import { pickLine } from '../../../m1/game/platform/speech';
 import { isShat, isNude } from '../../../m1/game/player/gut';
+import { setGlasses } from '../../../m1/game/render/player/body';
 import { setUi, goTo, isLeaving, arrived, carryGut, takeGut } from '../../store';
 import { stopWeapons } from '../../weapons';
 import { createGrab, updateGrab, drawGrab, type Grab } from '../../moves/grab';
@@ -39,12 +40,12 @@ import { registerGmen, gstate, gOf, isWomanG, GMAN, GCRAWL, GPAD, GJET, type Pos
 import { updateThings, drawThing, drawDebris, type Thing, type Debris } from './obstacles';
 import { drawGymBackdrop, drawGymBack, drawGymMid, drawRingFront, setExitOpen } from './art';
 import { createScene, tickScene, drawScene, sfx, type Scene, type Beat } from './scene';
-import { shotSquat, shotTv, shotDoorway, shotAgent, shotAgentF, shotMeathead, shotArrival, shotTicket, shotToddler, setShotDress } from './shots';
+import { shotSquat, shotTv, shotDoorway, shotAgent, shotAgentF, shotMeathead, shotArrival, shotTicket, shotToddler, shotGlasses, shotGlassesOn, setShotDress } from './shots';
 import { grossChoke, grossTruck, prewarmGross } from './gross';
 import {
   AGENT_VOICE, AGENTF_VOICE, GMAN_VOICE, ANCHOR_VOICE, OPEN_TV, OPEN_REPS, OPEN_AGENT_1, OPEN_AGENTF_1, OPEN_AGENT_2, OPEN_MH_1, OPEN_AGENTF_2, OPEN_MH_2, OPEN_MH_3,
   OPEN_AGENT_3, ROOM_LINES, RING_HELLO, RING_SHOVE, RING_THROWN, RING_JET, RING_DONE, CLOSE_MH_CORK, CLOSE_NO_CONTRACT, CLOSE_TICKET, CLOSE_MH_HAPPY, CLOSE_TRUCK,
-  CLOSE_MH_TRUCK, CLOSE_MH_GO, type Room,
+  CLOSE_MH_TRUCK, CLOSE_GUANTANAMO, CLOSE_DISGUISE, CLOSE_MH_GLASSES, CLOSE_NOT_HOW, CLOSE_MH_GO, type Room,
 } from './lines';
 
 export { GYM_STAGE };
@@ -125,12 +126,22 @@ const CLOSING = (d: Dressed): Beat[] => [
   // (and there it is: the truck, up close, nobody talking over it; the engine turning over, the horn)
   { shot: grossTruck, res: 3, hold: 170, enter: () => { playSound('carroar', 0.7, -2); setTimeout(() => playSound('truckhorn', 0.6), 1500); } },
   { shot: shotToddler(1), who: 'MEATHEAD', voice: 'meathead', text: CLOSE_MH_TRUCK, hold: 12 },
-  { shot: shotToddler(2), who: 'MEATHEAD', voice: 'meathead', text: CLOSE_MH_GO, hold: 40 },
+  // (the disguise: he's meant to be rotting in Guantanamo, and he's off to a theme park in public; the nerd glasses he
+  // wears from here on)
+  { shot: shotAgentF, who: 'G-WOMAN', voice: AGENTF_VOICE, text: CLOSE_GUANTANAMO },
+  { shot: shotAgent(), who: 'G-MAN', voice: AGENT_VOICE, text: CLOSE_DISGUISE[d], hold: 10 },
+  { shot: shotGlasses, hold: 80, enter: sfx('ding', 0.8, 2) },
+  { shot: shotGlassesOn, hold: 64, enter: () => setTimeout(() => playSound('clink', 0.8, 6), 560) },
+  { shot: shotGlassesOn, who: 'MEATHEAD', voice: 'meathead', text: CLOSE_MH_GLASSES, hold: 16 },
+  { shot: shotAgentF, who: 'G-WOMAN', voice: AGENTF_VOICE, text: CLOSE_NOT_HOW, hold: 14 },
+  { shot: shotToddler(2, true), who: 'MEATHEAD', voice: 'meathead', text: CLOSE_MH_GO, hold: 40 },
 ];
 
 const startClosing = (state: GameState, gym: Gym) => {
   const d = dressed(state);
   setShotDress(d);
+  // (he's handed the glasses in it: on him from here, every drawing of him, for good)
+  setGlasses(true);
   gym.phase = 'closing';
   gym.scene = createScene(CLOSING(d));
   state.projectiles = [];
@@ -158,6 +169,8 @@ export const gymLayout: StageLayout = {
   collateralOnScreenOnly: true,
   build: (state) => {
     registerGmen();
+    // (no glasses on him in here: he's handed them in the closing)
+    setGlasses(false);
     arrived(); stopWeapons();
     { const g = takeGut(); if (g) state.player.gut = g; }
     const runs: GroundRun[] = [

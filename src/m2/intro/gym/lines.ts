@@ -87,15 +87,25 @@ export const CLOSE_TRUCK: Record<Dressed, string> = {
   nude: 'And a government-issued truck. And government-issued pants.',
 };
 export const CLOSE_MH_TRUCK = 'A TRUCK?! FOR ME?!';
+// (the disguise: he's meant to be in Guantanamo, and he's off to a theme park in public; the nerd glasses he wears from
+// here on, every sprite of him)
+export const CLOSE_GUANTANAMO = "One problem. The whole country thinks you're in Guantanamo.";
+export const CLOSE_DISGUISE: Record<Dressed, string> = {
+  clean: 'So you wear a disguise.',
+  shitty: 'So you wear a disguise. And take a shower.',
+  nude: 'So you wear a disguise. And pants.',
+};
+export const CLOSE_MH_GLASSES = 'I CAN READ NOW.';
+export const CLOSE_NOT_HOW = "That's not how glasses work.";
 export const CLOSE_MH_GO = "LET'S GO TO HAPPY LAND!";
 
 /** Every line, by voice. */
 const all = (v: Record<Dressed, string[] | string>) => Object.values(v).flat();
 export const VOICE_LINES: Record<string, string[]> = {
-  meathead: [OPEN_REPS, OPEN_MH_1, OPEN_MH_2, OPEN_MH_3, CLOSE_MH_CORK, CLOSE_MH_HAPPY, CLOSE_MH_TRUCK, CLOSE_MH_GO],
+  meathead: [OPEN_REPS, OPEN_MH_1, OPEN_MH_2, OPEN_MH_3, CLOSE_MH_CORK, CLOSE_MH_HAPPY, CLOSE_MH_TRUCK, CLOSE_MH_GLASSES, CLOSE_MH_GO],
   [ANCHOR_VOICE]: OPEN_TV,
-  [AGENT_VOICE]: [OPEN_AGENT_1, OPEN_AGENT_2, OPEN_AGENT_3, ...all(CLOSE_TRUCK)],
+  [AGENT_VOICE]: [OPEN_AGENT_1, OPEN_AGENT_2, OPEN_AGENT_3, ...all(CLOSE_TRUCK), ...all(CLOSE_DISGUISE)],
   // (the women among the G-men say the rooms' lines in her voice)
-  [AGENTF_VOICE]: [OPEN_AGENTF_1, OPEN_AGENTF_2, ...Object.values(ROOM_LINES).flatMap(all)],
+  [AGENTF_VOICE]: [OPEN_AGENTF_1, OPEN_AGENTF_2, CLOSE_GUANTANAMO, CLOSE_NOT_HOW, ...Object.values(ROOM_LINES).flatMap(all)],
   [GMAN_VOICE]: [...Object.values(ROOM_LINES).flatMap(all), RING_HELLO, ...RING_SHOVE, ...RING_THROWN, ...RING_JET, RING_DONE, ...all(CLOSE_NO_CONTRACT), CLOSE_TICKET],
 };

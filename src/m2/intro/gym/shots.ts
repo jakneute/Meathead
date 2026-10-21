@@ -19,9 +19,9 @@ import { gymBg, drawAgent } from '../../../m1/game/scenes/intro';
 import { agentFig, agentTalk, DOOR_RIM, SUIT } from '../../../m1/game/scenes/suits';
 import { RAMP, shaded, bands, layer } from '../../../m1/game/scenes/art/snes';
 import { slab, tubeFixture, DOOR_GREEN, SET_INK } from '../../../m1/game/scenes/art/props';
-import { painting, type Painter } from '../../../m1/game/scenes/art/raster';
+import { painting, rgbOf, type Painter } from '../../../m1/game/scenes/art/raster';
 import { flies, stink } from '../../../m1/game/scenes/shatLook';
-import { drawTitleMeathead, type TitleMood } from '../../title/meathead';
+import { drawTitleMeathead, drawTitleGlasses, type TitleMood } from '../../title/meathead';
 import { ART_W, ART_H } from './scene';
 
 type Ctx = CanvasRenderingContext2D;
@@ -542,9 +542,9 @@ const blurGym = (c: Ctx, red = 0) => {
   }
 };
 
-export const shotMeathead = (mood: TitleMood, red = 0) => (c: Ctx, t: number, talking: boolean) => {
+export const shotMeathead = (mood: TitleMood, red = 0, glasses = false) => (c: Ctx, t: number, talking: boolean) => {
   blurGym(c, red > 0 ? Math.min(red, 0.4 + 0.3 * Math.sin(t * 0.3)) : 0);
-  drawTitleMeathead(c, t, mood, t);
+  drawTitleMeathead(c, t, mood, t, glasses);
   // (his mouth going as he says it: the jaw's working)
   if (talking && t % 8 < 4 && mood === 'dumb') { R(c, 116, 86, 24, 3, '#3a0606'); R(c, 118, 86, 20, 1, '#f4ecdc'); }
   if (dressed !== 'clean') { flies(c, 60, 120, 16, 3); stink(c, 200, 140, 3, 30, 10); }
@@ -737,7 +737,7 @@ export const shotTicket = (c: Ctx, t: number) => {
 
 /** Him gone to mush: bouncing on his toes, the eyes huge and shining, the blush, hearts and stars round him. `giddy`
  *  0..2: how far gone (the truck tips him over). */
-export const shotToddler = (giddy: number) => (c: Ctx, t: number, talking: boolean) => {
+export const shotToddler = (giddy: number, glasses = false) => (c: Ctx, t: number, talking: boolean) => {
   // (pink and yellow, rays turning: a cereal ad)
   bands(c, 0, 0, ART_W, ART_H, ['#f8a8d0', '#f8b8d8', '#fcc8e0', '#fcd8e8', '#fcc8e0', '#f8b8d8']);
   for (let k = 0; k < 16; k++) {
@@ -754,18 +754,20 @@ export const shotToddler = (giddy: number) => (c: Ctx, t: number, talking: boole
   // Him: bouncing on his toes
   const hop = Math.abs(Math.sin(t * (0.18 + giddy * 0.06))) * (4 + giddy * 3);
   c.save(); c.translate(0, Math.round(-hop + 4));
-  drawTitleMeathead(c, t, 'stoked', t);
-  // (the eyes: huge, wet, shining, two catchlights in each)
+  drawTitleMeathead(c, t, 'stoked', t, false);
+  // (the eyes: huge, wet, shining, two catchlights in each; behind the glasses, blown up to fill the lenses)
+  const ey = glasses ? 58 : 55, sy = glasses ? 0.7 : 1;
   for (const ex of [111, 145]) {
-    c.fillStyle = I; c.beginPath(); c.ellipse(ex, 55, 11, 12, 0, 0, Math.PI * 2); c.fill();
-    c.fillStyle = '#f8f8ff'; c.beginPath(); c.ellipse(ex, 55, 10, 11, 0, 0, Math.PI * 2); c.fill();
-    c.fillStyle = '#3a2410'; c.beginPath(); c.ellipse(ex, 57, 7, 8.5, 0, 0, Math.PI * 2); c.fill();
-    c.fillStyle = '#5c3c1c'; c.beginPath(); c.ellipse(ex, 59, 5, 5.5, 0, 0, Math.PI * 2); c.fill();
-    c.fillStyle = I; c.beginPath(); c.ellipse(ex, 57, 3.5, 4.5, 0, 0, Math.PI * 2); c.fill();
-    R(c, ex - 5, 50, 4, 4, '#ffffff'); R(c, ex + 2, 59, 2, 2, '#ffffff');
+    c.fillStyle = I; c.beginPath(); c.ellipse(ex, ey, 11, 12 * sy, 0, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#f8f8ff'; c.beginPath(); c.ellipse(ex, ey, 10, 11 * sy, 0, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#3a2410'; c.beginPath(); c.ellipse(ex, ey + 2 * sy, 7, 8.5 * sy, 0, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#5c3c1c'; c.beginPath(); c.ellipse(ex, ey + 4 * sy, 5, 5.5 * sy, 0, 0, Math.PI * 2); c.fill();
+    c.fillStyle = I; c.beginPath(); c.ellipse(ex, ey + 2 * sy, 3.5, 4.5 * sy, 0, 0, Math.PI * 2); c.fill();
+    R(c, ex - 5, ey - 5 * sy, 4, 4, '#ffffff'); R(c, ex + 2, ey + 4 * sy, 2, 2, '#ffffff');
     // (welling up)
-    R(c, ex - 9, 64, 18, 1, '#a8e0f8');
+    R(c, ex - 9, ey + 9 * sy, 18, 1, '#a8e0f8');
   }
+  if (glasses) drawTitleGlasses(c);
   // (the blush, dithered on his cheeks)
   for (const cx of [98, 158]) { c.fillStyle = 'rgba(248, 100, 140, 0.45)'; c.beginPath(); c.ellipse(cx, 70, 9, 5, 0, 0, Math.PI * 2); c.fill(); dither(c, cx - 7, 68, 14, 4, 'rgba(255, 140, 170, 0.6)'); for (let k = 0; k < 3; k++) R(c, cx - 5 + k * 4, 69, 1, 3, '#d0405c'); }
   // (a string of drool, at full giddy)
@@ -774,4 +776,122 @@ export const shotToddler = (giddy: number) => (c: Ctx, t: number, talking: boole
   if (talking && t % 6 < 3) { R(c, 112, 84, 32, 6, '#5a0a0a'); R(c, 120, 88, 16, 2, '#e05060'); }
   c.restore();
   if (dressed !== 'clean') flies(c, 60, 40, 14, 3);
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// The disguise: the public thinks he's in Guantanamo, so the agent hands him a pair of thick black nerd glasses
+
+/** The glasses, close: held up by one arm in the agent's hand (in from the bottom left), the rims huge and glossy, the
+ *  glass catching the light, a government property tag hung off the bridge. Painted once. */
+const GL_FRAME = ['#020204', '#07070b', '#101016', '#1a1a24', '#282836', '#3c3c50', '#5a5a74', '#7c7c9c'];
+/** A cheap ordered threshold (0..1) for the dithers in here. */
+const bayerish = (x: number, y: number) => [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5][(y & 3) * 4 + (x & 3)] / 16;
+/** A light on see-through glass: the colour put down outright, at least `a` opaque (a blend would keep the glass's
+ *  faint alpha and lose the streak). */
+const onGlass = (p: Painter, x: number, y: number, col: string, a: number) => {
+  x = Math.round(x); y = Math.round(y);
+  if (x < 0 || y < 0 || x >= p.w || y >= p.h) return;
+  const o = (y * p.w + x) * 4, c = rgbOf(col);
+  p.d[o] = c[0]; p.d[o + 1] = c[1]; p.d[o + 2] = c[2]; p.d[o + 3] = Math.max(p.d[o + 3], Math.round(255 * a));
+};
+const glassesInsertStill = () => painting('m2-glasses-insert', ART_W, ART_H, (p: Painter) => {
+  const rims = [{ x0: 70, x1: 136 }, { x0: 144, x1: 210 }], y0 = 38, y1 = 86;
+  // The far arm, back off the right hinge (foreshortened: going away from us, thinner), its tip curled down
+  p.form(p.strokeMask(g => { g.moveTo(206, 48); g.lineTo(230, 34); g.quadraticCurveTo(236, 31, 238, 38); }, 4), { ramp: GL_FRAME, bevel: 1.5, amb: 0.25, ink: I });
+  // The near arm, down off the left hinge to his fingers
+  p.form(p.strokeMask(g => { g.moveTo(74, 50); g.lineTo(48, 86); g.quadraticCurveTo(44, 92, 46, 98); }, 6), { ramp: GL_FRAME, bevel: 2, amb: 0.25, ink: I, spec: '#dcdcf4', wet: 0.6 });
+  // (the glass: a cold tint, see-through)
+  for (const r of rims) for (let y = y0 + 7; y < y1 - 5; y++) for (let x = r.x0 + 7; x < r.x1 - 6; x++) p.px(x, y, (x + y) & 1 ? '#c4dcf0' : '#d8e8f8', 0.22);
+  // The rims: thick acetate, the brow bar heavy across the top, the corners eased; the keyhole bridge
+  const outer = p.mask(g => { for (const r of rims) g.roundRect(r.x0, y0, r.x1 - r.x0, y1 - y0, 10); g.rect(132, 46, 16, 10); });
+  const inner = p.mask(g => { for (const r of rims) g.roundRect(r.x0 + 7, y0 + 8, r.x1 - r.x0 - 13, y1 - y0 - 13, 6); g.moveTo(136, 56); g.quadraticCurveTo(140, 50, 144, 56); g.closePath(); });
+  p.form(p.minus(outer, inner), { ramp: GL_FRAME, bevel: 4, amb: 0.25, ink: I, spec: '#f0f0ff', wet: 0.85 });
+  for (const r of rims) {
+    // (the bar's top lit hard, a stepped shine; the hinge's two studs)
+    for (let x = r.x0 + 8; x < r.x1 - 8; x++) { p.px(x, y0 + 1, GL_FRAME[6]); if ((x & 1) === 0) p.px(x, y0 + 2, GL_FRAME[5]); }
+    p.rect(r.x0 + 6, y0 + 2, 10, 2, GL_FRAME[7]);
+    const hx = r.x0 < 140 ? r.x0 + 2 : r.x1 - 5;
+    for (const hy of [44, 50]) { p.rect(hx, hy, 3, 3, '#8a8aa0'); p.px(hx, hy, '#ffffff'); p.px(hx + 2, hy + 2, '#3a3a4c'); }
+    // (the light streaked across the glass: a broad band and a thin one; the gold light dithered in low on the far side)
+    for (let k = 0; k < 26; k++) {
+      const x = r.x0 + 12 + k, y = y0 + 34 - k;
+      for (let w = 0; w < 5; w++) onGlass(p, x + w, y, '#ffffff', w < 3 ? 0.6 : 0.3);
+      if (k > 4 && k < 18) { onGlass(p, x + 10, y + 3, '#ffffff', 0.55); onGlass(p, x + 11, y + 3, '#ffffff', 0.3); }
+    }
+    for (let y = y1 - 16; y < y1 - 7; y++) for (let x = r.x1 - 22; x < r.x1 - 8; x++) if (bayerish(x, y) < 0.3) onGlass(p, x, y, '#fff4c0', 0.45);
+  }
+  // The tag off the bridge on its string: GOVT ISSUE
+  p.line(140, 56, 142, 74, '#c8c0a0'); p.line(141, 56, 143, 74, '#8a8268');
+  p.form(g => { g.save(); g.translate(144, 84); g.rotate(0.18); g.roundRect(-14, -9, 28, 18, 2); g.restore(); }, { ramp: ['#a8a088', '#c8c0a4', '#e0d8bc', '#f4eed6'], bevel: 2, amb: 0.4, ink: I });
+  p.disc(143, 77, 1.5, 1.5, I);
+  tinyP(p, 'GOVT', 136, 80, '#20242c'); tinyP(p, 'ISSUE', 134, 87, '#b01818');
+  // The hand from the bottom left: the sleeve, the cuff, the fingers pinching the arm's tip
+  p.form(g => { g.moveTo(0, 144); g.lineTo(0, 116); g.lineTo(24, 104); g.lineTo(40, 126); g.lineTo(30, 144); g.closePath(); }, { ramp: SUIT, bevel: 9, amb: 0.1, ink: I });
+  p.line(3, 118, 22, 108, SUIT[5]);
+  p.form(g => { g.moveTo(22, 105); g.lineTo(31, 100); g.lineTo(43, 118); g.lineTo(36, 125); g.closePath(); }, { ramp: RAMP.shirt, bevel: 3, amb: 0.3, ink: I });
+  p.rect(34, 113, 2, 2, '#c8c8d0');
+  p.form(g => { g.ellipse(46, 106, 13, 10, -0.6, 0, Math.PI * 2); }, { ramp: A, bevel: 6, amb: 0.2, ink: I });
+  // (the forefinger under the tip, the thumb pressed down over it)
+  p.form(g => { g.ellipse(53, 100, 7, 4, -0.5, 0, Math.PI * 2); }, { ramp: A, bevel: 3, amb: 0.22, ink: I, inkIn: A[1] });
+  p.form(p.strokeMask(g => { g.moveTo(40, 98); g.quadraticCurveTo(44, 92, 52, 92); }, 7), { ramp: A, bevel: 3, amb: 0.22, ink: I, inkIn: A[1] });
+  p.form(g => { g.ellipse(52, 92, 2.6, 2.2, -0.2, 0, Math.PI * 2); }, { ramp: ['#a47a58', '#d8b49a', '#f0d4c0', '#fcece0'], bevel: 1.5, amb: 0.3, ink: A[1] });
+  p.line(38, 108, 50, 112, A[1]); p.px(44, 100, A[5]);
+});
+
+/** The glasses, held up: a light from heaven on them (as on the ticket), a glint running along the rims, sparkles. */
+export const shotGlasses = (c: Ctx, t: number) => {
+  bands(c, 0, 0, ART_W, ART_H, ['#0c1424', '#121c30', '#18243c', '#1e2c48', '#18243c', '#121c30']);
+  for (let k = 0; k < 12; k++) {
+    const a = (k / 12) * Math.PI * 2 + t * 0.008;
+    c.fillStyle = k % 2 ? 'rgba(200, 220, 255, 0.10)' : 'rgba(252, 240, 200, 0.07)';
+    c.beginPath(); c.moveTo(140, 62); c.lineTo(140 + Math.cos(a) * 300, 62 + Math.sin(a) * 300); c.lineTo(140 + Math.cos(a + 0.24) * 300, 62 + Math.sin(a + 0.24) * 300); c.fill();
+  }
+  for (let r = 5; r >= 1; r--) { c.fillStyle = `rgba(220, 235, 255, ${0.04 * (6 - r)})`; c.beginPath(); c.ellipse(140, 62, r * 24, r * 14, 0, 0, Math.PI * 2); c.fill(); }
+  // (held up, turning a touch in the light: a bob)
+  const by = Math.round(Math.sin(t * 0.08) * 1.5);
+  c.drawImage(glassesInsertStill(), 0, by);
+  // (the glint running along the brow bars)
+  const gx = (t * 3) % 220;
+  if (gx < 136) for (let k = 0; k < 4; k++) R(c, 74 + gx + k, 39 + by + (k >> 1), 1, 2, '#ffffff');
+  for (let k = 0; k < 6; k++) {
+    const ph = (t + k * 17) % 56;
+    if (ph > 20) continue;
+    const x = 70 + hash(k + 3) * 150, y = 30 + hash(k + 11) * 70, r = ph < 10 ? ph / 2 : (20 - ph) / 2;
+    R(c, x - r, y, r * 2 + 1, 1, '#f4f8ff'); R(c, x, y - r, 1, r * 2 + 1, '#f4f8ff'); R(c, x, y, 1, 1, '#ffffff');
+  }
+};
+
+/** The agent's hand, in from the left edge pinching an arm of the glasses at its right end (90, 14): the sleeve, the
+ *  cuff, the fingers. Mirrored for the other side. Painted once. */
+const dressHand = () => painting('m2-glasses-hand', 96, 30, (p: Painter) => {
+  const ox = 90, oy = 14;
+  p.form(g => { g.rect(0, oy - 9, ox - 26, 18); }, { ramp: SUIT, bevel: 6, amb: 0.12, ink: I });
+  p.line(0, oy - 7, ox - 28, oy - 7, SUIT[5]);
+  p.form(g => { g.rect(ox - 28, oy - 8, 6, 16); }, { ramp: RAMP.shirt, bevel: 2, amb: 0.3, ink: I });
+  p.form(g => { g.ellipse(ox - 14, oy + 1, 10, 7, 0, 0, Math.PI * 2); }, { ramp: A, bevel: 5, amb: 0.2, ink: I });
+  p.form(g => { g.ellipse(ox - 3, oy + 3, 5, 3, 0.2, 0, Math.PI * 2); }, { ramp: A, bevel: 2.5, amb: 0.22, ink: I, inkIn: A[1] });
+  p.form(g => { g.ellipse(ox - 4, oy - 3, 5, 3, -0.2, 0, Math.PI * 2); }, { ramp: A, bevel: 2.5, amb: 0.22, ink: I, inkIn: A[1] });
+  p.px(ox - 5, oy - 5, A[5]); p.px(ox - 4, oy + 1, A[5]); p.line(ox - 20, oy + 5, ox - 10, oy + 6, A[1]);
+});
+
+/** On they go: him up close (the dumb look), the agent's two hands in from the sides putting the glasses on him like
+ *  he's a kid, down onto his nose; the hands out again; and him in them. */
+export const shotGlassesOn = (c: Ctx, t: number, talking: boolean) => {
+  blurGym(c);
+  const k = clamp01(t / 34), land = 1 - (1 - k) * (1 - k);
+  const dy = Math.round(-70 * (1 - land));
+  const on = t >= 34;
+  drawTitleMeathead(c, t, 'dumb', t, on);
+  if (!on) drawTitleGlasses(c, dy);
+  // (the hands: down with them, a beat holding them on, then off out of the shot)
+  const out = clamp01((t - 46) / 16), hx = Math.round(out * 110);
+  if (out < 1) {
+    const hy = 52 + dy;
+    c.drawImage(dressHand(), 84 - 90 - hx, hy - 14);
+    c.save(); c.translate(ART_W, 0); c.scale(-1, 1); c.drawImage(dressHand(), ART_W - 173 - 90 - hx, hy - 14); c.restore();
+  }
+  // (the click as they seat: a twinkle off each lens)
+  if (t >= 34 && t < 46) for (const x of [104, 138]) { const r = t < 40 ? 3 : 1; R(c, x - r, 52, r * 2 + 1, 1, '#ffffff'); R(c, x, 52 - r, 1, r * 2 + 1, '#ffffff'); }
+  if (talking && t % 8 < 4) { R(c, 116, 86, 24, 3, '#3a0606'); R(c, 118, 86, 20, 1, '#f4ecdc'); }
+  if (dressed !== 'clean') { flies(c, 60, 120, 16, 3); stink(c, 200, 140, 3, 30, 10); }
 };

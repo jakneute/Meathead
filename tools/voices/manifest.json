@@ -76,6 +76,21 @@
  },
  {
   "voice": "agent",
+  "text": "So you wear a disguise.",
+  "from": "GYM"
+ },
+ {
+  "voice": "agent",
+  "text": "So you wear a disguise. And pants.",
+  "from": "GYM"
+ },
+ {
+  "voice": "agent",
+  "text": "So you wear a disguise. And take a shower.",
+  "from": "GYM"
+ },
+ {
+  "voice": "agent",
   "text": "These are the four assholes. Very dangerous. Very weak. Extremely hurtable.",
   "from": "m1/components/IntroCutscene.tsx:43"
  },
@@ -41131,6 +41146,11 @@
  },
  {
   "voice": "m2.gmanf",
+  "text": "One problem. The whole country thinks you're in Guantanamo.",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gmanf",
   "text": "Sign here. Officially you're rotting in Guantanamo, so sign it Guantanamo.",
   "from": "GYM"
  },
@@ -41177,6 +41197,11 @@
  {
   "voice": "m2.gmanf",
   "text": "Stay together! He's shitting on us from a height!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gmanf",
+  "text": "That's not how glasses work.",
   "from": "GYM"
  },
  {
@@ -67038,6 +67063,11 @@
   "voice": "meathead",
   "text": "I CAN PUT YOU IN A CERTIFIED PRE-OWNED DERRICK TODAY!",
   "from": "m1/game/bosses/oscar.ts:218"
+ },
+ {
+  "voice": "meathead",
+  "text": "I CAN READ NOW.",
+  "from": "GYM"
  },
  {
   "voice": "meathead",

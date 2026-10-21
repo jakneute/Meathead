@@ -57,7 +57,12 @@ Dying in the gym (only the gut's third blowout can do it) puts him back at its s
 - **The exit** is chained shut till the three grabs are done (the door reads shut); then EXIT lights with its arrow.
 - **Closing**: the arrival wide, the chokehold close-up (his LEFT arm round the neck; three squeeze stages: the arm
   higher, the face red then purple), the ticket insert, the toddler (his own close-up gone to mush: huge shining eyes,
-  blush, bouncing, hearts), the agent dangling the truck keys, giddier, "LET'S GO TO HAPPY LAND!". Lines by his state:
+  blush, bouncing, hearts), the agent dangling the truck keys, giddier; then the disguise (the user's, 2026-10-21: "meathead
+  is supposed to be at guantanamo bay yet he is publicly going to a theme park"): she says the whole country thinks he's in
+  Guantanamo, the agent says he wears a disguise, the glasses close up (thick black nerd frames, a GOVT ISSUE tag), the
+  agent's hands put them on him like a kid, "I CAN READ NOW." / "That's not how glasses work.", then "LET'S GO TO HAPPY
+  LAND!" in them. From that beat on he wears them in every Meathead 2 drawing (body.ts setGlasses: off in the gym before
+  it, on everywhere else; Meathead 1 never). Lines by his state:
   the G-man's and the agent's lines change if he's shit himself or is naked; flies on him in every shot then.
 - **Cheats build**: SKIP STAGE in the pause menu (where SKIP INTRO is in the way in) jumps to the closing cutscene,
   not past it (the cutscene is the payoff and is skippable itself).

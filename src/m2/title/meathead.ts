@@ -447,11 +447,66 @@ const drip = (ctx: Ctx, t: number) => {
   }
 };
 
+// ---------------------------------------------------------------------------
+// The disguise (the gym's closing: the public thinks he's in Guantanamo): thick black nerd glasses, worn from then on
+// ---------------------------------------------------------------------------
+
+/** The frames' acetate: near black, a cold sheen on the lit edges. */
+const FRAME = ['#020204', '#07070b', '#101016', '#1a1a24', '#282836', '#3c3c50', '#5a5a74'];
+/** Where the lenses sit (their outer rims), the bridge between them over his nose. */
+const LENS = [{ x0: 94, x1: 127 }, { x0: 129, x1: 162 }];
+const LENS_Y0 = 46, LENS_Y1 = 69;
+
+/** A light on see-through glass: the colour put down outright, at least `a` opaque (a blend would keep the glass's
+ *  faint alpha and lose the streak). */
+const onGlass = (p: Painter, x: number, y: number, col: string, a: number) => {
+  x = Math.round(x); y = Math.round(y);
+  if (x < 0 || y < 0 || x >= p.w || y >= p.h) return;
+  const o = (y * p.w + x) * 4, c = rgbOf(col);
+  p.d[o] = c[0]; p.d[o + 1] = c[1]; p.d[o + 2] = c[2]; p.d[o + 3] = Math.max(p.d[o + 3], Math.round(255 * a));
+};
+/** The glasses, painted once: the two rims (the brow bar heavy across the top), the keyhole bridge, the arms back to his
+ *  ears, the glass a faint blue over his eyes with the light streaked across it, the shadow they throw on his cheeks. */
+const glassesStill = () => painting('m2-title-glasses', ART_W, ART_H, p => {
+  // (the shadow under the rims on his cheeks: a dithered step down)
+  for (const l of LENS) for (let x = l.x0 + 3; x < l.x1 - 2; x++) { p.px(x, LENS_Y1 + 1, SK[3], 0.55); if (bayer(x, LENS_Y1 + 2) + 0.5 < 0.45) p.px(x, LENS_Y1 + 2, SK[4], 0.5); }
+  // (the arms first, under the rims' ends: back along his temples to the tops of his ears)
+  p.form(g => { g.rect(83, 50, 13, 4); g.rect(160, 50, 14, 4); }, { ramp: FRAME, bevel: 1.5, amb: 0.3, ink: INK, spec: '#c8c8e4', wet: 0.6 });
+  // (the glass: a faint cold tint, see-through)
+  for (const l of LENS) for (let y = LENS_Y0 + 4; y < LENS_Y1 - 3; y++) for (let x = l.x0 + 4; x < l.x1 - 3; x++) p.px(x, y, '#b4d4f0', 0.14);
+  // The rims: thick, square-cornered with the corners eased, the top a heavy brow bar
+  const outer = p.mask(g => { for (const l of LENS) g.roundRect(l.x0, LENS_Y0, l.x1 - l.x0, LENS_Y1 - LENS_Y0, 5); g.rect(125, 51, 6, 5); });
+  const inner = p.mask(g => { for (const l of LENS) g.roundRect(l.x0 + 4, LENS_Y0 + 4, l.x1 - l.x0 - 8, LENS_Y1 - LENS_Y0 - 7, 3); });
+  p.form(p.minus(outer, inner), { ramp: FRAME, bevel: 2.5, amb: 0.28, ink: INK, spec: '#dcdcf4', wet: 0.75 });
+  // (the bar's top edge lit hard; the hinges' studs; the pink neon caught round the outer bottom corners)
+  for (const l of LENS) {
+    for (let x = l.x0 + 4; x < l.x1 - 4; x++) p.px(x, LENS_Y0 + 1, (x & 1) ? FRAME[5] : FRAME[6]);
+    p.rect(l.x0 + 3, LENS_Y0 + 2, 6, 1, FRAME[6]);
+    const hx = l.x0 < 128 ? l.x0 + 1 : l.x1 - 3;
+    p.rect(hx, 51, 2, 2, '#9a9ab0'); p.px(hx, 51, '#ffffff');
+    const ox = l.x0 < 128 ? l.x0 + 1 : l.x1 - 2;
+    for (let k = 0; k < 6; k++) p.px(ox, LENS_Y1 - 8 + k, '#ff5aa8', 0.6);
+  }
+  // (the light streaked across the glass: a broad stripe and a thin one, up and to the left; a dither off them)
+  for (const l of LENS) {
+    const x0 = l.x0 + 6;
+    for (let k = 0; k < 12; k++) {
+      const x = x0 + k, y = LENS_Y0 + 16 - k;
+      onGlass(p, x, y, '#ffffff', 0.6); onGlass(p, x + 1, y, '#ffffff', 0.45); onGlass(p, x + 2, y, '#e8f4ff', 0.25);
+      if (k < 7) onGlass(p, x + 5, y + 2, '#ffffff', 0.45);
+    }
+    for (let y = LENS_Y1 - 9; y < LENS_Y1 - 5; y++) for (let x = l.x1 - 12; x < l.x1 - 5; x++) if (bayer(x, y) + 0.5 < 0.3) onGlass(p, x, y, '#ffc0e2', 0.45);
+  }
+});
+
+/** The glasses on him (`dy` off where they sit: the gym's closing puts them on him from above). */
+export const drawTitleGlasses = (ctx: Ctx, dy = 0) => { ctx.drawImage(glassesStill(), 0, Math.round(dy)); };
+
 /**
  * Him, frame `t`, onto a 256 x 144 canvas (cleared: nothing behind him), `mood` his face; `ft` the frames since the fury
- * came on (its jolt and its clock).
+ * came on (its jolt and its clock); `glasses`: the disguise on (Meathead 2 from the gym's closing on: the title too).
  */
-export const drawTitleMeathead = (ctx: Ctx, t: number, mood: TitleMood, ft = t) => {
+export const drawTitleMeathead = (ctx: Ctx, t: number, mood: TitleMood, ft = t, glasses = true) => {
   const pump = t % 20 < 10 ? 1 : 0;
   // (fury: the camera jolts in on him as it cuts)
   const jolt = mood === 'fury' && ft < 12 ? (ft % 4 < 2 ? 2 : -2) : 0;
@@ -475,6 +530,7 @@ export const drawTitleMeathead = (ctx: Ctx, t: number, mood: TitleMood, ft = t) 
     cuEye(ctx, 111, 57, 9, 3, { lid: 1 }); cuEye(ctx, 145, 57, 9, 3, { lid: 1 });
     cuLine(ctx, 114, 142, 87, k => Math.round(Math.sin(k * Math.PI) * -0.6));
   }
+  if (glasses) drawTitleGlasses(ctx);
   drip(ctx, t);
   for (const [x, y, ph] of GLINTS) twinkle(ctx, x, y - (y < 80 && y > 60 ? pump * 2 : 0), (t + ph * 3) % 90);
   if (jolt) ctx.restore();
@@ -486,6 +542,8 @@ export const drawTitleMeathead = (ctx: Ctx, t: number, mood: TitleMood, ft = t) 
 };
 
 /** His eyes shut a moment (the blink on the dumb look): the lids his own skin, the lashes a dark line. */
-export const blinkTitleMeathead = (ctx: Ctx) => {
+export const blinkTitleMeathead = (ctx: Ctx, glasses = true) => {
   for (const ex of [111, 145]) { R(ctx, ex - 11, 51, 23, 10, S[4]); R(ctx, ex - 11, 51, 23, 2, S[5]); R(ctx, ex - 9, 56, 19, 1, INK); R(ctx, ex - 8, 57, 17, 1, S[2]); }
+  // (the glasses back on over the lids)
+  if (glasses) drawTitleGlasses(ctx);
 };
