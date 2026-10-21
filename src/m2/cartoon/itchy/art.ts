@@ -376,12 +376,18 @@ const warehouse = (c: Ctx, v: View) => {
   const xa = X(4280), w = 1080, top = Y(320), Cg = DC('#A8A4B4');
   sideBack(c, v.eye, xa, -1, top - 14, GY, 1, SET_D, Cg, 3); sideBack(c, v.eye, xa + w, 1, top - 14, GY, 1, SET_D, Cg, 3);
   topBack(c, v.eye, xa - 10, xa + w + 10, top - 14, 1, SET_D, DR(TAR), 2);
-  still(c, 'pk-warehouse3', xa, 0, -12, top - 54, w + 24, GY - top + 58, g => {
+  still(c, 'pk-warehouse4', xa, 0, -12, top - 54, w + 24, GY - top + 58, g => {
     const ink = dimmed(INK), M = DR(MUSTARD), S = DR(STEELP), Cr = DR(CRATE);
     box(g, -2, top, w + 4, GY - top, ink);
     // (corrugated: ribs in steps, a stain down from the gutter here and there, rust at the foot)
     for (let x = 0; x < w; x += 10) { box(g, x, top + 2, 5, GY - top - 2, Cg[4]); box(g, x + 5, top + 2, 3, GY - top - 2, Cg[3]); box(g, x + 8, top + 2, 2, GY - top - 2, Cg[1]); box(g, x, top + 2, 1, GY - top - 2, Cg[5]); }
     for (let k = 0; k < 8; k++) { const sx = 40 + hash(k * 3.3) * (w - 80), l = 40 + hash(k) * 120; g.globalAlpha = 0.35; box(g, sx, top + 2, 8, l, Cg[0]); g.globalAlpha = 1; }
+    // (the sheets lapped in courses, a rivet line along each lap, a run of clerestory windows up high, vents, rust weeping
+    // from the rivets and a dent or two where something backed into it)
+    for (const ly of [top + 88, top + 176]) { box(g, 0, ly, w, 3, Cg[1]); box(g, 0, ly + 3, w, 1, Cg[5]); for (let x = 4; x < w; x += 10) { box(g, x, ly - 3, 2, 2, Cg[0]); if (hash(x * 0.9 + ly) > 0.86) for (let y = 0; y < 26; y += 2) box(g, x, ly + y, 2, 2, `rgba(140,60,20,${(0.4 * (1 - y / 26)).toFixed(2)})`); } }
+    for (let x = 560; x < w - 60; x += 96) { box(g, x - 2, top + 18, 64, 26, ink); box(g, x, top + 20, 60, 22, lit() ? dimmed('#FCD88A') : dimmed('#5E7894')); for (let k = 1; k < 4; k++) box(g, x + k * 15, top + 20, 2, 22, ink); box(g, x, top + 20, 60, 3, lit() ? dimmed('#FFF0C0') : dimmed('#8EA8C4')); checker(g, x, top + 30, 60, 12, 'rgba(26,16,40,0.18)', 0, 2); }
+    for (const vx of [86, 610, 1050]) { box(g, vx - 1, top + 110, 30, 22, ink); box(g, vx, top + 111, 28, 20, S[2]); for (let k = 0; k < 5; k++) { box(g, vx + 2, top + 113 + k * 4, 24, 2, S[0]); box(g, vx + 2, top + 113 + k * 4, 24, 1, S[4]); } }
+    for (const [dx2, dy2] of [[300, GY - 70], [700, GY - 120]] as [number, number][]) { g.fillStyle = 'rgba(26,16,40,0.25)'; g.beginPath(); g.ellipse(dx2, dy2, 16, 10, 0.3, 0, Math.PI * 2); g.fill(); box(g, dx2 - 10, dy2 - 8, 8, 1, Cg[5]); }
     box(g, 0, GY - 14, w, 14, DR(RUST)[2]); checker(g, 0, GY - 18, w, 4, DR(RUST)[2], 0, 2);
     box(g, -10, top - 14, w + 20, 16, ink); box(g, -8, top - 12, w + 16, 12, S[2]); box(g, -8, top - 12, w + 16, 2, S[4]);
     // (the sign: mustard board, GENERIC-CO stenciled, the slogan; left of the dock crane's mast (hazardArt.ts: at
@@ -579,6 +585,17 @@ const gorgeNear = (c: Ctx, state: GameState) => {
   const R = ['#1A0602', '#2A0E04', '#3E1606', '#5A2208'].map(s => hour(s));
   for (let i = 0; i < 4; i++) { box(c, l, GY + i * 40, r - l, 41, R[3 - i]); if (i) checker(c, l, GY + i * 40 - 1, r - l, 2, R[3 - i], i % 2, 2); }
   box(c, l, GY + 160, r - l, 600, R[0]);
+  // (the strata: ledges lit along their lips, cracks, rocks stuck in the bands, a cartoon bone or two (the coyote's
+  // last fall), roots off the top, each by its world column so nothing swims)
+  const Lp = ['#7C2D12', '#9A3E16', '#C25A26', '#E07A3E'].map(s2 => hour(s2));
+  for (let x = Math.floor(l / 52) * 52; x < r; x += 52) {
+    const k = hash(x * 0.29), k2 = hash(x * 0.71 + 3), ly = GY + 18 + Math.floor(k * 4) * 34;
+    box(c, x, ly, 22 + k2 * 24, 3, Lp[3 - Math.min(3, Math.floor((ly - GY) / 50))]); box(c, x, ly + 3, 22 + k2 * 24, 2, R[0]);
+    if (k2 > 0.55) { const cy = GY + 30 + k * 90; c.strokeStyle = R[0]; c.lineWidth = 1; c.beginPath(); c.moveTo(x + 30, cy); c.lineTo(x + 34, cy + 9); c.lineTo(x + 31, cy + 16); c.lineTo(x + 36, cy + 26); c.stroke(); }
+    if (k > 0.6) { const rx = x + 10 + k2 * 20, ry = GY + 54 + k2 * 60; c.fillStyle = R[0]; c.beginPath(); c.ellipse(rx, ry, 7, 5, 0, 0, Math.PI * 2); c.fill(); c.fillStyle = Lp[1]; c.beginPath(); c.ellipse(rx - 1, ry - 1, 5, 3.5, 0, 0, Math.PI * 2); c.fill(); box(c, rx - 3, ry - 3, 2, 1, Lp[3]); }
+    if (k < 0.12) { const bx = x + 14, by = GY + 100 + k2 * 30; box(c, bx, by, 16, 3, hour('#E8E0CC')); for (const ex of [bx - 3, bx + 15]) { box(c, ex, by - 2, 4, 3, hour('#F4EEDC')); box(c, ex, by + 2, 4, 3, hour('#D8CEB4')); } }
+    if (k2 < 0.3) for (let j = 0; j < 3; j++) { c.strokeStyle = hour('#4A2A10'); c.lineWidth = 1; c.beginPath(); c.moveTo(x + 6 + j * 5, GY + 2); c.quadraticCurveTo(x + 2 + j * 7, GY + 12, x + 8 + j * 4, GY + 18 + j * 5); c.stroke(); }
+  }
   for (const [ex, s] of [[a, 1], [b, -1]] as [number, number][]) {
     if (ex < l - 30 || ex > r + 30) continue;
     c.fillStyle = INK; c.beginPath(); c.moveTo(ex, GY); c.lineTo(ex + s * 18, GY + 120); c.lineTo(ex + s * 6, GY + 260); c.lineTo(ex - s * 6, GY + 260); c.lineTo(ex - s * 6, GY); c.closePath(); c.fill();
