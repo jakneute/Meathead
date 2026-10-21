@@ -41,31 +41,69 @@ const SKY: LayerSpec = {
 
 /** The far wall: rock in great columns, the lava falls down it (their flow's drawn live over: see FALLS). */
 const FALLS = [70, 250, 470];
+/** How near a fall a far-wall column stands (0 far .. 1 right by it): the falls light the rock round them. */
+const nearFall = (x: number) => Math.max(0, ...FALLS.map(fx => 1 - Math.abs(x - fx) / 70));
 const WALL: LayerSpec = {
-  key: 'hell-wall', parallax: 0.08,
+  key: 'hell-wall3', parallax: 0.08,
   paint: (g, w, h) => {
-    // (columns of rock, each lit a little on its left by the falls)
+    // (columns of basalt, each a stepped ramp: lit on its left by the falls, its face, then its shade going round to the
+    // dark on its right, dithered between; fractured across in courses, each break inked with its lower lip lit)
     for (let x = 0; x < w; x += 22) {
-      const k = hash(x * 0.37), top = 20 + k * 40;
-      const col = far(BASALT[3], 0.6 + k * 0.08);
-      g.fillStyle = col; g.fillRect(x, top, 22, h - top);
-      g.fillStyle = far(BASALT[4], 0.72); g.fillRect(x, top, 2, h - top);
-      g.fillStyle = far(BASALT[2], 0.6); g.fillRect(x + 19, top, 3, h - top);
-      // (its top broken off: a jag)
-      g.fillStyle = col; g.beginPath(); g.moveTo(x, top); g.lineTo(x + 8 + k * 6, top - 8 - k * 10); g.lineTo(x + 22, top); g.fill();
+      const k = hash(x * 0.37), top = 20 + k * 40, glow = nearFall(x + 11);
+      const tint = (col: string, f: number) => mix(far(col, f), '#7A2A0E', glow * 0.32);
+      const face = tint(BASALT[3], 0.58 + k * 0.08), lit = tint(BASALT[5], 0.6), lit2 = tint(BASALT[4], 0.62), shade = tint(BASALT[2], 0.55), deep = tint(BASALT[1], 0.4);
+      g.fillStyle = face; g.fillRect(x, top, 22, h - top);
+      // (its broken top: a jag, the facet catching the light)
+      g.beginPath(); g.moveTo(x, top); g.lineTo(x + 8 + k * 6, top - 8 - k * 10); g.lineTo(x + 22, top); g.fill();
+      g.fillStyle = lit2; g.beginPath(); g.moveTo(x, top); g.lineTo(x + 8 + k * 6, top - 8 - k * 10); g.lineTo(x + 6 + k * 6, top); g.fill();
+      g.fillStyle = lit; g.fillRect(x, top, 2, h - top);
+      g.fillStyle = lit2; g.fillRect(x + 2, top, 3, h - top);
+      checker(g, x + 5, top, 2, h - top, lit2, 0, 1);
+      g.fillStyle = shade; g.fillRect(x + 15, top, 4, h - top);
+      checker(g, x + 13, top, 2, h - top, shade, 1, 1);
+      g.fillStyle = deep; g.fillRect(x + 19, top, 3, h - top);
+      g.fillStyle = far(INK, 0.35); g.fillRect(x + 21, top, 1, h - top);
+      // (the courses: breaks across the column every so often)
+      for (let y = top + 10 + hash(x * 1.7) * 22; y < h - 8; y += 24 + hash(x + y) * 26) {
+        const yy = Math.round(y), tilt = hash(x * 3 + y) < 0.5 ? 1 : 0;
+        g.fillStyle = deep; g.fillRect(x + 1, yy, 20, 1); g.fillRect(x + 11, yy + tilt, 10, 1);
+        g.fillStyle = lit2; g.fillRect(x + 2, yy + 1 + tilt, 12, 1);
+        // (now and then a chip out of the edge)
+        if (hash(x + y * 3.1) < 0.3) { g.fillStyle = deep; g.fillRect(x + 18, yy - 3, 4, 3); g.fillStyle = shade; g.fillRect(x + 17, yy - 3, 1, 3); }
+      }
+      // (soot streaks running down from the top, faint)
+      if (k > 0.55) { g.fillStyle = far(BASALT[1], 0.5); g.fillRect(x + 8 + Math.floor(k * 6), top + 4, 1, 30 + k * 60); }
     }
-    // (the falls: out of a crack, down the wall into a dull pool of glow at the bottom)
+    // (the falls: out of a crack, down the wall into a dull pool of glow at the bottom: crust edges, a stepped core)
     for (const fx of FALLS) {
       const top = 40 + hash(fx) * 50;
-      g.fillStyle = far('#1A0503', 0.2); g.fillRect(fx - 7, top - 6, 18, 8);
+      // (the glow they throw on the wall round them: stepped bands)
+      for (let i = 3; i >= 1; i--) {
+        const r = 10 + i * 9;
+        g.fillStyle = `rgba(150, 46, 14, ${(0.1 + (3 - i) * 0.06).toFixed(2)})`; g.fillRect(fx + 2 - r, top, r * 2, h - top);
+      }
+      // (the crack it pours out of, inked, its lip lit)
+      g.fillStyle = far(INK, 0.1); g.fillRect(fx - 9, top - 7, 22, 9);
+      g.fillStyle = '#3A0E06'; g.fillRect(fx - 7, top - 5, 18, 5);
+      g.fillStyle = '#C2561A'; g.fillRect(fx - 5, top - 2, 14, 2);
+      // (the flow: dark crust either side, then up the ramp to its hot middle)
+      g.fillStyle = '#2E0A04'; g.fillRect(fx - 6, top, 16, h - top);
       g.fillStyle = '#5A1808'; g.fillRect(fx - 4, top, 12, h - top);
-      g.fillStyle = '#74220A'; g.fillRect(fx - 2, top, 8, h - top);
-      g.fillStyle = '#8E2E0E'; g.fillRect(fx, top, 3, h - top);
-      checker(g, fx - 6, top, 2, h - top, '#5A1808', 0, 1);
-      checker(g, fx + 8, top, 2, h - top, '#5A1808', 1, 1);
-      // (where it lands: the splash, the glow up the wall)
-      g.fillStyle = '#6A1E0A'; g.fillRect(fx - 14, h - 18, 32, 18);
-      checker(g, fx - 20, h - 22, 44, 4, '#6A1E0A', 0, 1);
+      g.fillStyle = '#7E260B'; g.fillRect(fx - 2, top, 8, h - top);
+      g.fillStyle = '#A6380F'; g.fillRect(fx, top, 4, h - top);
+      g.fillStyle = '#C8561C'; g.fillRect(fx + 1, top, 1, h - top);
+      checker(g, fx - 4, top, 2, h - top, '#7E260B', 0, 1);
+      checker(g, fx + 6, top, 2, h - top, '#7E260B', 1, 1);
+      checker(g, fx - 8, top, 2, h - top, '#5A1808', 1, 1);
+      checker(g, fx + 10, top, 2, h - top, '#5A1808', 0, 1);
+      // (crust lumps hanging off its edges)
+      for (let y = top + 8; y < h - 20; y += 14 + hash(fx + y) * 18) { g.fillStyle = '#2E0A04'; g.fillRect(fx + (hash(y + fx) < 0.5 ? -7 : 9), Math.round(y), 2, 3); }
+      // (where it lands: the splash pool, banded, the glow up the wall)
+      g.fillStyle = '#4A1406'; g.fillRect(fx - 22, h - 14, 48, 14);
+      g.fillStyle = '#6A1E0A'; g.fillRect(fx - 16, h - 18, 36, 18);
+      g.fillStyle = '#8E2E0E'; g.fillRect(fx - 10, h - 16, 24, 4);
+      g.fillStyle = '#C2561A'; g.fillRect(fx - 4, h - 16, 12, 1);
+      checker(g, fx - 26, h - 20, 56, 4, '#6A1E0A', 0, 1);
     }
     // (the glow off the lava, low down: in bands)
     hazeBands(g, 0, h - 90, w, 90, '#7A2208', 0, 0.28, 6, 1);
@@ -73,47 +111,71 @@ const WALL: LayerSpec = {
 };
 
 const STALACTITES: LayerSpec = {
-  key: 'hell-stalactites', parallax: 0.15,
+  key: 'hell-stalactites3', parallax: 0.15,
   paint: (g, w) => {
-    for (let i = 0; i < 18; i++) {
-      const x = (i * 37 + hash(i) * 20) % w, len = 30 + hash(i * 3.1) * 70, half = 6 + hash(i * 5.3) * 10;
+    // (the roof itself first: a ragged band of rock along the top, lit underneath)
+    for (let x = 0; x < w; x += 6) {
+      const d = 8 + Math.floor(hash(x * 0.9) * 8);
+      g.fillStyle = far(BASALT[1], 0.2); g.fillRect(x, 0, 6, d);
+      g.fillStyle = far(BASALT[3], 0.35); g.fillRect(x, d - 1, 6, 1);
+    }
+    checker(g, 0, 16, w, 2, far(BASALT[1], 0.2), 0, 1);
+    const cone = (ox: number, l: number, hf: number) => {
+      const tri = (pts: [number, number][], col: string) => { g.fillStyle = col; g.beginPath(); pts.forEach(([a, b], i) => (i ? g.lineTo(a, b) : g.moveTo(a, b))); g.closePath(); g.fill(); };
+      // (ink round it, then its body, lit down its left from below, shaded down its right, a drip at its tip)
+      tri([[ox - hf - 1, 0], [ox + hf + 1, 0], [ox + 1, l + 2]], far(INK, 0.15));
+      tri([[ox - hf, 0], [ox + hf, 0], [ox + 1, l]], far(BASALT[2], 0.3));
+      tri([[ox - hf, 0], [ox - hf + 3, 0], [ox + 1, l], [ox, l - 2]], far(BASALT[4], 0.4));
+      tri([[ox - hf + 3, 0], [ox - hf + 5, 0], [ox + 1, l - 4]], far(BASALT[3], 0.38));
+      tri([[ox + hf - 3, 0], [ox + hf, 0], [ox + 1, l]], far(BASALT[1], 0.2));
+      // (rings where it's grown, faint)
+      for (let y = 8; y < l - 8; y += 9) { const ww = hf * (1 - y / l); g.fillStyle = far(BASALT[1], 0.3); g.fillRect(Math.round(ox - ww + 2), y, Math.max(1, Math.round(ww)), 1); }
+      g.fillStyle = far('#7A2A10', 0.35); g.fillRect(ox, l - 3, 2, 2);
+      g.fillStyle = far('#C2561A', 0.45); g.fillRect(ox, l - 1, 1, 1);
+    };
+    for (let i = 0; i < 24; i++) {
+      const x = (i * 29 + hash(i) * 20) % w, len = 26 + hash(i * 3.1) * 74, half = 5 + hash(i * 5.3) * 10, twin = hash(i * 7.7) < 0.35;
       for (const dx of [-w, 0, w]) {
-        const cx = x + dx;
-        g.fillStyle = far(BASALT[2], 0.3); g.beginPath(); g.moveTo(cx - half, 0); g.lineTo(cx + half, 0); g.lineTo(cx + 1, len); g.closePath(); g.fill();
-        // (lit down its left side, from below)
-        g.fillStyle = far(BASALT[4], 0.4); g.beginPath(); g.moveTo(cx - half, 0); g.lineTo(cx - half + 3, 0); g.lineTo(cx + 1, len); g.lineTo(cx, len - 2); g.closePath(); g.fill();
-        g.fillStyle = far(BASALT[1], 0.2); g.beginPath(); g.moveTo(cx + half - 3, 0); g.lineTo(cx + half, 0); g.lineTo(cx + 1, len); g.closePath(); g.fill();
-        g.fillStyle = far('#7A2A10', 0.35); g.fillRect(cx, len - 3, 2, 2);
+        cone(x + dx, len, half);
+        if (twin) cone(x + dx + half + 4, len * 0.45, half * 0.5);
       }
     }
-    // (the roof itself, a band of rock along the top)
-    g.fillStyle = far(BASALT[1], 0.2); g.fillRect(0, 0, w, 8);
-    checker(g, 0, 8, w, 2, far(BASALT[1], 0.2), 0, 1);
   },
 };
 
 /** Rock spires going back: the far row (lit from under, dim), then a nearer, darker one. */
 const spires = (g: CanvasRenderingContext2D, w: number, h: number, seed: number, base: number, amp: number, col: string, lit: string) => {
+  // (each inked, its left flank lit up from the lava in two steps dithered into its face, its right in shade, strata
+  // breaking across it)
+  const mid = mix(col, lit, 0.45), dk = mix(col, '#000000', 0.35), ink = mix(col, '#000000', 0.6);
+  const fill = (p: [number, number][], c: string) => { g.fillStyle = c; g.beginPath(); p.forEach(([a, b], i) => (i ? g.lineTo(a, b) : g.moveTo(a, b))); g.closePath(); g.fill(); };
   for (const dx of [-w, 0, w]) {
     let x = 0;
     while (x < w) {
       const k = hash(seed + x * 0.13), sw = 26 + k * 50, sh = base + hash(seed + x * 0.71) * amp, cx = x + dx;
-      g.fillStyle = col; g.beginPath(); g.moveTo(cx - 4, h); g.lineTo(cx + sw * 0.35, h - sh); g.lineTo(cx + sw * 0.5, h - sh - 6); g.lineTo(cx + sw * 0.62, h - sh + 4); g.lineTo(cx + sw + 4, h); g.closePath(); g.fill();
-      // (the lava's light up its left flank, stepped)
-      g.fillStyle = lit; g.beginPath(); g.moveTo(cx - 4, h); g.lineTo(cx + sw * 0.35, h - sh); g.lineTo(cx + sw * 0.35 + 3, h - sh + 4); g.lineTo(cx + 2, h); g.closePath(); g.fill();
+      const pts: [number, number][] = [[cx - 4, h], [cx + sw * 0.35, h - sh], [cx + sw * 0.5, h - sh - 6], [cx + sw * 0.62, h - sh + 4], [cx + sw + 4, h]];
+      fill([[cx - 5, h], [cx + sw * 0.35, h - sh - 1], [cx + sw * 0.5, h - sh - 7], [cx + sw * 0.62, h - sh + 3], [cx + sw + 5, h]], ink);
+      fill(pts, col);
+      fill([[cx + sw * 0.5, h - sh - 6], [cx + sw * 0.62, h - sh + 4], [cx + sw + 4, h], [cx + sw * 0.72, h]], dk);
+      fill([[cx - 4, h], [cx + sw * 0.35, h - sh], [cx + sw * 0.35 + 7, h - sh + 10], [cx + 10, h]], mid);
+      fill([[cx - 4, h], [cx + sw * 0.35, h - sh], [cx + sw * 0.35 + 3, h - sh + 4], [cx + 2, h]], lit);
+      g.save(); g.beginPath(); pts.forEach(([a, b], i) => (i ? g.lineTo(a, b) : g.moveTo(a, b))); g.closePath(); g.clip();
+      checker(g, cx + 8, h - sh * 0.7, 4, sh * 0.7, mid, 0, 1);
+      for (let s = 1; s < 4; s++) { const y = Math.round(h - sh * (s / 4) + hash(seed + x + s) * 6); g.fillStyle = dk; g.fillRect(cx, y, sw, 1); g.fillStyle = mid; g.fillRect(cx + 2, y + 1, Math.round(sw * 0.4), 1); }
+      g.restore();
       x += sw * 0.7;
     }
   }
 };
 const RIDGE_FAR: LayerSpec = {
-  key: 'hell-ridge-far', parallax: 0.32,
+  key: 'hell-ridge-far3', parallax: 0.32,
   paint: (g, w, h) => {
     spires(g, w, h, 11, 60, 80, '#1E0806', '#3A1209');
     hazeBands(g, 0, h - 50, w, 50, '#6A1C08', 0, 0.22, 5, 1);
   },
 };
 const RIDGE_NEAR: LayerSpec = {
-  key: 'hell-ridge-near', parallax: 0.55,
+  key: 'hell-ridge-near3', parallax: 0.55,
   paint: (g, w, h) => {
     spires(g, w, h, 37, 30, 60, '#120404', '#2A0C07');
   },
