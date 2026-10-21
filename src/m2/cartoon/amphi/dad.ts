@@ -203,9 +203,12 @@ export const elbowOf = (sh: readonly number[], hand: readonly number[]) => {
   const a = (UPPER_ARM * UPPER_ARM - FOREARM * FOREARM + dd * dd) / (2 * dd), h = Math.sqrt(Math.max(0, UPPER_ARM * UPPER_ARM - a * a));
   const mx = sh[0] + (dx / dd) * a, my = sh[1] + (dy / dd) * a, nx = -dy / dd, ny = dx / dd;
   const e1 = [mx + nx * h, my + ny * h], e2 = [mx - nx * h, my - ny * h];
-  const up = h2[1] < sh[1] - 4;
-  const score = (e: number[]) => e[1] + (up ? -e[0] : e[0]) * 0.6;
-  return { el: score(e1) >= score(e2) ? e1 : e2, hand: h2 };
+  // (the way an elbow bends: the forearm swings toward the front of the upper arm, never back past it. He faces left
+  // in his units (mirrored for the right), so hanging down the forearm comes forward, -x: from the upper arm's way
+  // round to the forearm's is clockwise on screen (y down), the cross product positive. That side of the
+  // shoulder-to-hand line, whatever the pose)
+  const bend = (e: number[]) => (e[0] - sh[0]) * (h2[1] - e[1]) - (e[1] - sh[1]) * (h2[0] - e[0]);
+  return { el: bend(e1) >= bend(e2) ? e1 : e2, hand: h2 };
 };
 
 /** An arm from the shoulder to the hand: the round of the shoulder, the flabby upper arm (the bingo wing sagging off
@@ -326,12 +329,12 @@ export const drawDad = (c: Ctx, x: number, feetY: number, pose: DadPose, f: numb
   let canAt: number[] | null = null, canAng = 0;
   const holding = o.can === undefined ? 'near' : o.can;
   switch (pose) {
-    case 'sit': handN = [-16 + Math.sin(f * 0.02), -50]; handF = [34, -72]; break;
-    case 'sip': handN = [-22, -94]; handF = [34, -72]; tilt = 0.28; face = o.face ?? 'sip'; break;
-    case 'call': handN = [-16, -50]; handF = [12, -96]; hdir = 1; tilt = 0.12; face = o.face ?? (talking ? 'yell' : 'bleary'); break;
-    case 'reach': handN = [-16, -50]; handF = [46 + t * 18, -58]; hdir = 1; break;
-    case 'tv': handN = [-46 + Math.sin(f * 0.5) * 3, -84 + Math.cos(f * 0.5) * 2]; handF = [34, -72]; face = o.face ?? (talking ? 'yell' : 'angry'); break;
-    case 'squint': handN = [-16, -50]; handF = [34, -72]; hx -= 3; hy += 2; face = o.face ?? 'squint'; break;
+    case 'sit': handN = [-24 + Math.sin(f * 0.02), -38]; handF = [8, -48]; break;
+    case 'sip': handN = [-22, -94]; handF = [8, -48]; tilt = 0.28; face = o.face ?? 'sip'; break;
+    case 'call': handN = [-24, -38]; handF = [12, -96]; hdir = 1; tilt = 0.12; face = o.face ?? (talking ? 'yell' : 'bleary'); break;
+    case 'reach': handN = [-24, -38]; handF = [46 + t * 18, -58]; hdir = 1; break;
+    case 'tv': handN = [-46 + Math.sin(f * 0.5) * 3, -84 + Math.cos(f * 0.5) * 2]; handF = [8, -48]; face = o.face ?? (talking ? 'yell' : 'angry'); break;
+    case 'squint': handN = [-24, -38]; handF = [8, -48]; hx -= 3; hy += 2; face = o.face ?? 'squint'; break;
     case 'rise': handN = [L(kneeN[0] + 2, -24), L(kneeN[1] - 6, -78)]; handF = [L(kneeF[0] + 4, 14), L(kneeF[1] - 6, -64)]; face = o.face ?? 'strain'; break;
     case 'stand': handN = [-30 + sway, -50]; handF = [16 + sway, -52]; break;
     case 'shuffle': handN = [-30 + sway + step * 0.6, -50]; handF = [16 + sway - step * 0.6, -52]; break;
@@ -339,11 +342,11 @@ export const drawDad = (c: Ctx, x: number, feetY: number, pose: DadPose, f: numb
     // (the fight's)
     case 'swat': {
       // (grabbed up, wound back over his shoulder, swung through round it and down out in front: swatGrip)
-      handN = swatGrip(t).near; handF = [34, -72];
+      handN = swatGrip(t).near; handF = [8, -48];
       face = o.face ?? (t < 0.4 ? 'angry' : 'yell'); break;
     }
-    case 'catch': handN = [-14, -124]; handF = [34, -72]; tilt = -0.1; face = o.face ?? 'yell'; break;
-    case 'puke': hx -= 7; hy += 7; handN = [-8, -56]; handF = [22, -60]; face = 'puke'; break;
+    case 'catch': handN = [-14, -124]; handF = [8, -48]; tilt = -0.1; face = o.face ?? 'yell'; break;
+    case 'puke': hx -= 7; hy += 7; handN = [-8, -56]; handF = [8, -48]; face = 'puke'; break;
     case 'baffled': handN = [hx - 7, hy - 15]; handF = [hx + 9, hy - 17]; face = o.face ?? 'wide'; break;
     case 'drag': handN = [26 + sway, -70]; handF = [34 + sway, -66]; face = o.face ?? 'strain'; break;
     case 'hammer': {
@@ -353,7 +356,7 @@ export const drawDad = (c: Ctx, x: number, feetY: number, pose: DadPose, f: numb
       handN = [g.near[0], g.near[1] + dropY]; handF = [g.far[0], g.far[1] + dropY]; face = o.face ?? (talking ? 'yell' : 'angry'); break;
     }
     case 'cower': handN = [hx - 16, hy - 26]; handF = [hx + 6, hy - 30]; face = o.face ?? 'wide'; break;
-    case 'stagger': handN = [-34 + Math.sin(f * 0.21) * 8, -96 + Math.cos(f * 0.17) * 6]; handF = [30 + Math.cos(f * 0.19) * 8, -98 + Math.sin(f * 0.23) * 6]; face = o.face ?? 'bleary'; break;
+    case 'stagger': handN = [-46 + Math.sin(f * 0.21) * 8, -104 + Math.cos(f * 0.17) * 6]; handF = [36 + Math.cos(f * 0.19) * 8, -114 + Math.sin(f * 0.23) * 6]; face = o.face ?? 'bleary'; break;
     case 'heave': handN = [-30, -16]; handF = [-20, -14]; face = o.face ?? 'strain'; break;
     case 'fridge': handN = [-44, -86]; handF = [16 + sway, -60]; face = o.face ?? 'bleary'; break;
   }
