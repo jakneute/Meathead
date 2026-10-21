@@ -57,10 +57,9 @@ export const ATTRACTIONS: Attraction[] = [
   // ---- Future Land
   { id: 'futureSquare', land: 'space', name: 'TOMORROW SQUARE', u: -0.1, v: 0.14, zones: ['space', 'drag'], art: 'futureSquare',
     blurb: 'THE WORLD OF TOMORROW! (SINCE 1962). SPACE FOOD STICKS AND $14 ICE CREAM.', info: 'ANY HEIGHT · THE FUTURE IS STILL LOADING' },
-  { id: 'atom', land: 'space', name: 'ENTER THE ATOM', u: 0.28, v: 0.36, zones: ['atom'], art: 'atom',
-    blurb: 'SHRINK DOWN TO THE SIZE OF AN ATOM! ALL EFFECTS SIMULATED.', info: 'HARD HATS PROVIDED · EARS RECOMMENDED' },
-  { id: 'voyage', land: 'space', name: 'VOYAGE TO 2010', u: -0.3, v: 0.44, zones: ['ride'], art: 'voyage',
-    blurb: 'PRESENTED BY PROGRESSCO. SEE THE AMAZING WORLD OF 2010! NO TRAFFIC!', info: 'THIS RIDE INSPECTED: 1990 · THRILL 3/5' },
+  // (the Voyage to 2010 is the ride inside the giant atom: one attraction, the user's)
+  { id: 'atom', land: 'space', name: 'THE ATOM: VOYAGE TO 2010', u: 0.28, v: 0.36, zones: ['atom', 'ride'], art: 'atom',
+    blurb: 'INSIDE THE GIANT ATOM: RIDE PROGRESSCO\'S VOYAGE TO 2010! NO TRAFFIC! ALL EFFECTS SIMULATED.', info: 'THIS RIDE INSPECTED: 1990 · THRILL 3/5' },
   { id: 'needle', land: 'space', name: 'SPACE NEEDLE 2', u: 0.05, v: 0.62, zones: ['needle', 'orbit'], art: 'needle',
     blurb: 'AN ELEVATOR TO ACTUAL OUTER SPACE. GUESTS CALL IT "FINE."', info: 'MUST HOLD BREATH 6 HOURS · ASTRONAUT SUIT: DO NOT TOUCH' },
   { id: 'xenoscare', land: 'space', name: 'XENOSCARE', u: 0.3, v: 0.84, zones: ['crater', 'xenoscare'], art: 'xenoscare',
