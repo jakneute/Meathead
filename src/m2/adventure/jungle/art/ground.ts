@@ -6,8 +6,7 @@
 
 import { GROUND_Y } from '../../../../m1/constants';
 import { timeOfDay, farTint, skyAt } from '../../../timeOfDay';
-import { stamp, bandedGradient, hazeBands, pixelBlob, bendFloor, BEND } from '../../../intro/art/kit';
-import { GROUND, X, Y } from '../layout';
+import { stamp, bandedGradient, hazeBands, pixelBlob, bendFloor, BEND } from '../../../intro/art/kit';import { GROUND, X, Y } from '../layout';
 import { type Ctx, type View, INK, box, checker, mix, hash, poly, at, clump, fern, bigLeaf, rockFace, LEAF, MOSS, EARTH, ROCK, RAVINE, BARK, PIX } from './paint';
 
 const GY = GROUND_Y;
@@ -76,6 +75,30 @@ export const drawGoingBack = (c: Ctx, v: View) => {
     const R = RAVINE.map(col => mix(farTint(col, 0.4, tod), '#000000', 0));
     const span = Math.max(40, v.bot - topY + 4);
     bandedGradient(c, Math.min(p.a, ax) - 4, topY - 2, Math.max(p.b, bx) - Math.min(p.a, ax) + 8, span, [mix(R[0], haze, 0.12), R[1], R[2], R[3], R[4], R[4], R[4]], 12);
+    // (the ravine's far end, a way back: boulders and fissures going down into the dark, vines and roots hung down it
+    // off the jungle's edge, banded off to black the deeper it goes)
+    atDepth(c, eye, FAR, () => {
+      const wt = Math.min(p.ya, p.yb), ww = p.b - p.a;
+      c.save(); c.translate(p.a, wt);
+      stamp(c, `jg-ravwall-${Math.round(p.a)}-${tod.key}`, -6, -4, ww + 12, 720, g => {
+        const rk = ROCK.map(col => mix(mix(farTint(col, 0.5, tod), RAVINE[0], 0.62), haze, 0.06));
+        rockFace(g, -6, 0, ww + 12, 700, Math.round(p.a) * 0.01 + 3, rk);
+        // (the jungle's edge along its top: earth, a lip of moss)
+        box(g, -6, 0, ww + 12, 14, mix(farTint(EARTH[3], 0.5, tod), haze, 0.08)); box(g, -6, 0, ww + 12, 3, mix(farTint(MOSS[3], 0.5, tod), haze, 0.1));
+        checker(g, -6, 14, ww + 12, PIX, mix(farTint(EARTH[3], 0.5, tod), haze, 0.08));
+        // (vines and roots hanging down it)
+        const lf = LEAF.map(col => mix(farTint(col, 0.5, tod), RAVINE[0], 0.35));
+        for (let i = 0; i < ww / 26; i++) {
+          const vx = 6 + hash(p.a * 0.01 + i * 4.4) * (ww - 12), len = 40 + hash(p.a + i * 7) * 220, root = hash(p.a + i * 2.2) < 0.35;
+          for (let y = 4; y < len; y += 4) box(g, Math.round(vx + Math.sin(y * 0.05 + i) * 3), y, root ? 2 : 3, 4, root ? mix(farTint(BARK[3], 0.5, tod), RAVINE[0], 0.3) : lf[2 + (y % 12 === 0 ? 1 : 0)]);
+          if (!root) for (let y = 14; y < len; y += 18) box(g, Math.round(vx + Math.sin(y * 0.05 + i) * 3) - 3, y, 4, 3, lf[3]);
+        }
+        // (the dark coming up out of it: in bands, off to black)
+        hazeBands(g, -6, 16, ww + 12, 380, '#020604', 0.3, 0.97, 8);
+        box(g, -6, 396, ww + 12, 324, '#020604');
+      });
+      c.restore();
+    });
     // (mist lying in it, in layers, the deeper the fainter)
     for (let k = 0; k < 3; k++) {
       const my = GY + 40 + k * 90;
