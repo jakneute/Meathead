@@ -127,6 +127,15 @@ const PadOther: React.FC<{ label: 'START' | 'SELECT' | 'LB' | 'RB' | 'LT' | 'RT'
       <path d="M20 1 l3 4 h-6 Z M20 39 l3 -4 h-6 Z" fill="#A1A1AA" />
     </svg>
   );
+  // (SELECT on a PlayStation pad: the touchpad (M2 reads its click as SELECT): the wide pad, a press dot on it)
+  if (label === 'SELECT' && family === 'playstation') return (
+    <svg viewBox="0 0 56 40" width={size * 1.4} height={size} className="inline-block align-middle shrink-0">
+      <path d="M6 6 H50 Q53 6 52 10 L48 32 Q47 35 44 35 H12 Q9 35 8 32 L4 10 Q3 6 6 6 Z" fill="#27272A" stroke="#0B0B0F" strokeWidth="2" />
+      <path d="M9 10 H47" stroke="#52525B" strokeWidth="2" />
+      <circle cx="28" cy="21" r="5" fill="#A1A1AA" />
+      <circle cx="28" cy="21" r="8.5" fill="none" stroke="#71717A" strokeWidth="1.5" />
+    </svg>
+  );
   if (label === 'DPAD') return (
     <svg viewBox="0 0 40 40" width={size} height={size} className="inline-block align-middle shrink-0">
       <path d="M15 4 H25 V15 H36 V25 H25 V36 H15 V25 H4 V15 H15 Z" fill="#27272A" stroke="#0B0B0F" strokeWidth="2" />

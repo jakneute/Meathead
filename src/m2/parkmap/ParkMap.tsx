@@ -4,7 +4,7 @@ import { Prompt } from '../../m1/components/ButtonIcons';
 import { getActiveGamepad, isButtonPressed, GP_BUTTONS, getGamepadMovement, menuButtons } from '../../m1/game/platform/gamepad';
 import { keysFor } from '../../m1/game/platform/keys';
 import { playCursor } from '../../m1/game/platform/audio';
-import { boundHeld, keyHeld } from '../input';
+import { boundHeld, keyHeld, mapButton } from '../input';
 import { MAP_W, MAP_H, SECTORS, landMid } from './geo';
 import { ATTRACTIONS, CAST, NUMBERS, attractionOfZone } from './data';
 import { castPhotoImg, PHOTO_TILT } from './photos';
@@ -112,7 +112,7 @@ const ParkMap: React.FC<{ here: Here; onClose: () => void }> = ({ here, onClose 
         const m = menuButtons(gp);
         const b: Record<string, boolean> = {
           lb: isButtonPressed(gp, GP_BUTTONS.LB) || isButtonPressed(gp, GP_BUTTONS.LT), rb: isButtonPressed(gp, GP_BUTTONS.RB) || isButtonPressed(gp, GP_BUTTONS.RT),
-          close: isButtonPressed(gp, GP_BUTTONS.SELECT) || isButtonPressed(gp, GP_BUTTONS.START) || isButtonPressed(gp, m.back), ok: isButtonPressed(gp, m.ok), y: isButtonPressed(gp, GP_BUTTONS.Y),
+          close: mapButton(gp) || isButtonPressed(gp, GP_BUTTONS.START) || isButtonPressed(gp, m.back), ok: isButtonPressed(gp, m.ok), y: isButtonPressed(gp, GP_BUTTONS.Y),
         };
         // (whatever's held as it comes up isn't a press: the SELECT that opened it)
         if (first) Object.assign(prev, b);

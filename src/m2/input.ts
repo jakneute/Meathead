@@ -3,6 +3,12 @@
 // (confirm/back, swapped on a Switch pad like every menu).
 
 import { getActiveGamepad, isButtonPressed, GP_BUTTONS, menuButtons } from '../m1/game/platform/gamepad';
+import { padFamily } from '../m1/game/platform/device';
+
+/** The park map's button (SELECT): on a PlayStation pad the touchpad's click too (the browser's button 17), the user's;
+ *  SHARE / CREATE still works. */
+export const mapButton = (gp: Gamepad | null) =>
+  isButtonPressed(gp, GP_BUTTONS.SELECT) || (padFamily() === 'playstation' && isButtonPressed(gp, 17));
 import { keysFor, type KeyAction } from '../m1/game/platform/keys';
 
 /** Keys held (KeyboardEvent.code, lowercase) and mouse buttons ('mouse0' ...), as the key bindings name them. */

@@ -80,7 +80,7 @@ setFrameHook(state => {
   setUi({ locked: !!p.inCutscene || state.deathTimer > 0 || p.health <= 0 || !!p.hidden || !!p.leverPull || !!p.freefall || portalArrivalPending(), killCam: isKillCam(state) });
 });
 import { getCheats, subscribeCheats, availableWeapons, subscribeArsenal, setLiveState, cheatPanelOpen, setCheatPanelOpen, moveCheatCursor, activateCheat } from './cheats';
-import { attachM2Keys } from './input';
+import { attachM2Keys, mapButton } from './input';
 import { setKeyProfile, keysFor } from '../m1/game/platform/keys';
 import { setSettingsStore, loadSettings, getSettings, subscribeSettings } from '../m1/game/settings';
 import OptionsScreen from '../m1/components/OptionsScreen';
@@ -463,7 +463,7 @@ const App2: React.FC = () => {
       if (gp) {
         const now = performance.now();
         // (SELECT: the park map; START pauses)
-        const btn = { lb: isButtonPressed(gp, GP_BUTTONS.LB), rb: isButtonPressed(gp, GP_BUTTONS.RB), start: isButtonPressed(gp, GP_BUTTONS.START), select: isButtonPressed(gp, GP_BUTTONS.SELECT), ok: isButtonPressed(gp, menuButtons(gp).ok), back: isButtonPressed(gp, menuButtons(gp).back), x: isButtonPressed(gp, GP_BUTTONS.X) };
+        const btn = { lb: isButtonPressed(gp, GP_BUTTONS.LB), rb: isButtonPressed(gp, GP_BUTTONS.RB), start: isButtonPressed(gp, GP_BUTTONS.START), select: mapButton(gp), ok: isButtonPressed(gp, menuButtons(gp).ok), back: isButtonPressed(gp, menuButtons(gp).back), x: isButtonPressed(gp, GP_BUTTONS.X) };
         const pressed = (k: keyof typeof btn) => btn[k] && !prev[k];
         // The options screen up, or the park map: they read the pad themselves (what's held as they shut isn't a press
         // here either)
