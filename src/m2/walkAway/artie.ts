@@ -40,36 +40,67 @@ const GOB = ['#14532D', '#3F7A1E', '#6CB33A', '#A3E35A'];
 // The ground: trampled dirt, the path down the middle, hoof prints, flattened grass, blood
 
 const ground = (g: Ctx, w: number, h: number) => {
-  box(g, 0, 0, w, h, '#6E5034');
-  // (grass, what's left of it: flattened, in the stampede's direction)
-  for (let i = 0; i < 70; i++) {
-    const x = hash(i * 3.1) * w, y = hash(i * 7.7) * h;
-    if (Math.abs(x - w / 2) < 26) continue;
-    g.fillStyle = i % 3 ? '#4A5F26' : '#5B7330';
-    g.beginPath(); g.ellipse(x, y, 6 + hash(i) * 12, 4 + hash(i + 9) * 7, 0, 0, Math.PI * 2); g.fill();
-    for (let k = 0; k < 6; k++) box(g, x - 8 + k * 3, y - 3 + (k % 2) * 3, 4, 1, '#3A4A1C');
+  const D = ['#3E2A18', '#5A4029', '#634830', '#6E5034', '#7E5E3E', '#8E6E48', '#A8865A'];
+  box(g, 0, 0, w, h, D[3]);
+  // (the dirt churned in patches: hollows a step down, humps a step up, dithered at their edges)
+  for (let i = 0; i < 46; i++) {
+    const x = Math.round(hash(i * 6.7) * w), y = Math.round(hash(i * 8.9) * h), rw = 8 + Math.round(hash(i * 2.4) * 16), rh = 3 + Math.round(hash(i * 5.2) * 5);
+    const col = i % 2 ? D[2] : D[4];
+    box(g, x - rw, y - rh, rw * 2, rh * 2, col);
+    for (let k = -rw; k < rw; k += 2) { box(g, x + k + ((k >> 1) & 1), y - rh - 1, 1, 1, col); box(g, x + k + 1 - ((k >> 1) & 1), y + rh, 1, 1, col); }
+    if (i % 2 === 0) box(g, x - rw + 2, y - rh, rw * 2 - 4, 1, D[5]);
   }
   // (speckled dirt)
   for (let i = 0; i < 900; i++) box(g, hash(i * 1.37) * w, hash(i * 2.91) * h, 1 + (i % 3 === 0 ? 1 : 0), 1, ['#5C422A', '#7E5E3E', '#634830', '#8A6A48'][i % 4]);
-  // The path: lighter, packed, the edges broken up
-  box(g, w / 2 - 20, 0, 40, h, '#8E6E48');
-  for (let y = 0; y < h; y += 2) { box(g, w / 2 - 22 + hash(y) * 3, y, 3, 2, '#7A5C3C'); box(g, w / 2 + 19 + hash(y + 5) * 3, y, 3, 2, '#7A5C3C'); }
-  for (let i = 0; i < 160; i++) box(g, w / 2 - 18 + hash(i * 5.3) * 36, hash(i * 9.1) * h, 1, 1, i % 2 ? '#A8865A' : '#7A5C3C');
-  // Ruts: the stampede's way across
-  for (let i = 0; i < 5; i++) { const y = hash(i * 13) * h; box(g, 0, y, w, 2, '#5A4029'); box(g, 0, y + 2, w, 1, '#8E6E48'); }
-  // Hoof prints, all over
-  for (let i = 0; i < 120; i++) {
-    const x = hash(i * 4.3 + 1) * w, y = hash(i * 6.1 + 2) * h, big = hash(i * 8.8) > 0.6;
-    g.fillStyle = '#3E2A18'; g.beginPath(); g.ellipse(x, y, big ? 4 : 2.5, big ? 3 : 2, 0, 0, Math.PI * 2); g.fill();
-    g.fillStyle = '#86663F'; g.fillRect(Math.round(x - 1), Math.round(y + (big ? 3 : 2)), big ? 4 : 2, 1);
-    if (big) { g.fillStyle = '#3E2A18'; g.fillRect(Math.round(x + 5), Math.round(y - 1), 2, 2); }
+  // (grass, what's left of it: tufts flattened in the stampede's direction, each blade dark at its root, lit at its tip;
+  //  torn sod turned over, its roots up)
+  for (let i = 0; i < 70; i++) {
+    const x = Math.round(hash(i * 3.1) * w), y = Math.round(hash(i * 7.7) * h);
+    if (Math.abs(x - w / 2) < 26) continue;
+    if (i % 5 === 4) {
+      box(g, x - 7, y - 3, 14, 6, D[0]); box(g, x - 6, y - 3, 12, 4, '#4A3220'); box(g, x - 6, y - 3, 12, 1, D[5]);
+      for (let k = 0; k < 5; k++) box(g, x - 5 + k * 3, y - 5 - (k % 2), 1, 2, '#B8A070');
+      continue;
+    }
+    g.fillStyle = 'rgba(30, 20, 10, 0.4)'; g.beginPath(); g.ellipse(x + 2, y + 2, 9, 3, 0, 0, Math.PI * 2); g.fill();
+    const n = 7 + (i % 4);
+    for (let k = 0; k < n; k++) {
+      const bx = x - 7 + k * 2, len = 6 + Math.round(hash(i + k * 0.37) * 6), by = y - 2 + (k % 3);
+      box(g, bx, by, 2, 2, '#2E3A14'); box(g, bx + 2, by - 1, Math.round(len * 0.5), 1, '#4A5F26'); box(g, bx + 2 + Math.round(len * 0.5), by - 2, Math.round(len * 0.5), 1, k % 2 ? '#5B7330' : '#7A8E40');
+    }
   }
-  // Blood, here and there
+  // The path: packed in steps (its edges darker, its crown lighter), dithered where they meet, the edges broken up
+  const cx = w / 2;
+  box(g, cx - 21, 0, 42, h, D[4]); box(g, cx - 16, 0, 32, h, D[5]); box(g, cx - 8, 0, 16, h, '#9A7A50');
+  for (let y = 0; y < h; y += 2) {
+    const o = (y >> 1) & 1;
+    for (const [ex, col] of [[cx - 17, D[4]], [cx + 15, D[4]], [cx - 9, D[5]], [cx + 7, D[5]]] as const) box(g, ex + o, y, 1, 1, col);
+    box(g, cx - 23 + hash(y) * 3, y, 3, 2, '#7A5C3C'); box(g, cx + 20 + hash(y + 5) * 3, y, 3, 2, '#7A5C3C');
+  }
+  for (let i = 0; i < 160; i++) box(g, cx - 18 + hash(i * 5.3) * 36, hash(i * 9.1) * h, 1, 1, i % 2 ? D[6] : '#7A5C3C');
+  // Ruts: the stampede's way across (each a shaded near wall, a dark floor, a lit far lip, the dirt kicked up along it)
+  for (let i = 0; i < 5; i++) {
+    const y = Math.round(hash(i * 13) * h);
+    box(g, 0, y - 1, w, 1, D[1]); box(g, 0, y, w, 2, D[0]); box(g, 0, y + 2, w, 1, D[2]); box(g, 0, y + 3, w, 1, D[6]);
+    for (let x = 0; x < w; x += 3) if (hash(x * 0.3 + i) > 0.6) box(g, x, y + 4 + Math.round(hash(x + i) * 2), 2, 1, D[5]);
+  }
+  // Hoof prints, all over: pressed in (the near side's shadow inside, the far rim lit), the big ones cloven
+  for (let i = 0; i < 120; i++) {
+    const x = Math.round(hash(i * 4.3 + 1) * w), y = Math.round(hash(i * 6.1 + 2) * h), big = hash(i * 8.8) > 0.6;
+    const rw = big ? 4 : 2.5, rh = big ? 3 : 2;
+    g.fillStyle = D[5]; g.beginPath(); g.ellipse(x, y + 1, rw + 1, rh + 1, 0, 0, Math.PI * 2); g.fill();
+    g.fillStyle = D[0]; g.beginPath(); g.ellipse(x, y, rw, rh, 0, 0, Math.PI * 2); g.fill();
+    g.fillStyle = D[1]; g.fillRect(x - 1, y, Math.round(rw), Math.round(rh) - 1);
+    if (big) { box(g, x, y - rh, 1, rh * 2, D[2]); box(g, x + 5, y - 1, 2, 2, D[0]); box(g, x + 5, y + 1, 2, 1, D[6]); }
+  }
+  // Blood, here and there: a darker rim, the wet middle, a glint, the spatter round it
   for (let i = 0; i < 9; i++) {
-    const x = hash(i * 17.3) * w, y = hash(i * 23.9) * h;
-    g.fillStyle = BLOOD[1]; g.beginPath(); g.ellipse(x, y, 7 + hash(i) * 6, 4 + hash(i + 1) * 3, 0, 0, Math.PI * 2); g.fill();
-    g.fillStyle = BLOOD[2]; g.beginPath(); g.ellipse(x - 1, y - 1, 4, 2, 0, 0, Math.PI * 2); g.fill();
-    for (let k = 0; k < 4; k++) box(g, x + (hash(i + k) - 0.5) * 30, y + (hash(i * 2 + k) - 0.5) * 14, 2, 1, BLOOD[1]);
+    const x = Math.round(hash(i * 17.3) * w), y = Math.round(hash(i * 23.9) * h), rw = 7 + hash(i) * 6, rh = 4 + hash(i + 1) * 3;
+    g.fillStyle = BLOOD[0]; g.beginPath(); g.ellipse(x, y, rw + 1, rh + 1, 0, 0, Math.PI * 2); g.fill();
+    g.fillStyle = BLOOD[1]; g.beginPath(); g.ellipse(x, y, rw, rh, 0, 0, Math.PI * 2); g.fill();
+    g.fillStyle = BLOOD[2]; g.beginPath(); g.ellipse(x - 1, y - 1, rw * 0.55, rh * 0.5, 0, 0, Math.PI * 2); g.fill();
+    box(g, x - 3, y - 2, 3, 1, BLOOD[3]); box(g, x - 2, y - 2, 1, 1, '#F0A0A0');
+    for (let k = 0; k < 6; k++) { const sx = x + (hash(i + k) - 0.5) * 34, sy = y + (hash(i * 2 + k) - 0.5) * 16; box(g, sx, sy, 2, 1, BLOOD[1]); box(g, sx, sy, 1, 1, BLOOD[2]); }
   }
 };
 
@@ -210,6 +241,14 @@ const paintTemple = (g: Ctx, w: number, h: number) => {
   // jaguar head from behind, raw fiberglass on its lumber frame)
   const ST = rampOf('#A49880'), GV = rampOf('#8E969D'), FB = rampOf('#86826A');
   box(g, L + 22, H - 112, 158, 112, INK); box(g, L + 23, H - 111, 156, 111, ST[2]); box(g, L + 23, H - 111, 156, 2, ST[3]); box(g, L + 170, H - 111, 9, 111, ST[1]);
+  // (the stucco: a lit band up under the parapet, dithered off; panel joints scored down it; stipple; rain streaks
+  //  and soot from the fire running down)
+  box(g, L + 23, H - 109, 147, 12, mix(ST[2], ST[3], 0.5)); g.fillStyle = stipple(g, mix(ST[2], ST[3], 0.5)); g.fillRect(L + 23, H - 97, 147, 2);
+  g.fillStyle = stipple(g, ST[1]); g.fillRect(L + 166, H - 109, 4, 109);
+  for (let x = L + 55; x < L + 168; x += 34) { box(g, x, H - 109, 1, 109, ST[1]); box(g, x + 1, H - 109, 1, 109, ST[3]); }
+  for (let i = 0; i < 160; i++) box(g, L + 24 + hash(i * 1.7) * 144, H - 108 + hash(i * 2.3) * 106, 1, 1, i % 3 ? ST[1] : ST[4]);
+  for (let k = 0; k < 6; k++) { const sx = L + 30 + hash(k * 4.4) * 130, len = 14 + hash(k * 7.1) * 40; for (let y = 0; y < len; y += 2) box(g, sx + ((y >> 1) & 1), H - 108 + y, 2, 2, y < len * 0.6 ? ST[1] : ST[0]); }
+  g.fillStyle = stipple(g, '#2A2220'); g.fillRect(L + 100, H - 111, 40, 18);
   box(g, L + 30, H - 122, 26, 10, INK); box(g, L + 31, H - 121, 24, 9, GV[2]); for (let k = 0; k < 4; k++) box(g, L + 33 + k * 5, H - 119, 3, 6, GV[0]);
   poly(g, [[L + 120, H - 111], [L + 122, H - 124], [L + 127, H - 128], [L + 132, H - 122], [L + 142, H - 126], [L + 152, H - 122], [L + 157, H - 128], [L + 162, H - 124], [L + 164, H - 111]], FB[2]);
   box(g, L + 150, H - 124, 12, 13, FB[1]); box(g, L + 124, H - 120, 40, 1, FB[0]); box(g, L + 130, H - 126, 1, 15, '#8E6A3A'); box(g, L + 154, H - 126, 1, 15, '#8E6A3A');
@@ -253,7 +292,14 @@ const paintTemple = (g: Ctx, w: number, h: number) => {
   for (const [x, y, r] of [[tx - 22, ty - 4, 14], [tx + 4, ty - 14, 16], [tx + 26, ty - 6, 12], [tx - 6, ty + 6, 11], [tx + 14, ty + 4, 10]] as const) lump(g, x, y, r, r * 0.75, LEAF);
   for (let i = 0; i < 10; i++) box(g, tx - 30 + hash(i * 2.2) * 60, ty - 20 + hash(i * 4.4) * 26, 3, 2, i % 3 ? '#7A5A20' : '#9A7030');
   // The other trees, down at its foot (the dominoes), lying in a row
-  for (let i = 0; i < 3; i++) { const y = H - 4 - i * 2; box(g, 0, y - 4, 50 - i * 8, 6, INK); box(g, 1, y - 3, 48 - i * 8, 4, BARK[2]); box(g, 1, y - 3, 48 - i * 8, 1, BARK[3]); }
+  for (let i = 0; i < 3; i++) {
+    // (each log inked, its bark in steps, lit along the top, ridged, its cut end showing rings)
+    const y = H - 4 - i * 2, lw = 48 - i * 8;
+    box(g, 0, y - 4, lw + 2, 6, INK); box(g, 1, y - 3, lw, 4, BARK[2]); box(g, 1, y, lw, 1, BARK[1]); box(g, 1, y - 3, lw, 1, BARK[4]); box(g, 1, y - 2, lw, 1, BARK[3]);
+    for (let x = 4 + i * 3; x < lw - 2; x += 5) box(g, x, y - 2, 2, 1, BARK[1]);
+    for (let k = 0; k < 3; k++) if (hash(i * 7 + k) > 0.4) box(g, 6 + Math.round(hash(i + k * 3.3) * (lw - 12)), y - 4, 3, 1, MOSS[2]);
+    box(g, lw - 1, y - 3, 3, 4, '#C8A070'); box(g, lw, y - 2, 1, 2, BARK[3]);
+  }
   void w;
 };
 

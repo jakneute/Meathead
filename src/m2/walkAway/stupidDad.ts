@@ -24,17 +24,37 @@ const CONC = ['#57524F', '#7A7369', '#9E968A', '#C0B8AA', '#E0D9CA'];
 const ground = (g: Ctx, w: number, h: number) => {
   // (the lawn: banded in tufts, clover, a dandelion here and there)
   box(g, 0, 0, w, h, GRASS[2]);
-  for (let i = 0; i < 160; i++) { const x = hash(i * 3.3) * w, y = hash(i * 5.9) * h, k = i % 3; box(g, x, y, 2, 2, GRASS[k === 0 ? 1 : k === 1 ? 3 : 4]); box(g, x + 1, y - 1, 1, 1, GRASS[3]); }
-  for (let i = 0; i < 18; i++) { const x = hash(i * 7.1) * w, y = hash(i * 2.3) * h; box(g, x, y, 3, 2, GRASS[3]); box(g, x + 1, y - 1, 1, 1, '#FFFFFF'); }
-  for (let i = 0; i < 6; i++) { const x = hash(i * 9.7) * w, y = hash(i * 4.4) * h; box(g, x, y, 2, 2, '#FDE047'); box(g, x, y + 2, 1, 1, GRASS[0]); }
-  // (the walk: concrete slabs, the joints, gum, a crack, a curb along each side lit along its top)
+  // (mowing stripes: bands a step apart, dithered at their edges)
+  for (let x = 0; x < w; x += 32) { box(g, x, 0, 16, h, GRASS[1]); for (let y = 0; y < h; y += 2) { box(g, x + 16 + ((y >> 1) & 1), y, 1, 1, GRASS[1]); box(g, x - 1 + ((y >> 1) & 1), y, 1, 1, GRASS[2]); } }
+  // (tufts: blades in steps, dark at the root, lit at the tip, a shadow under)
+  for (let i = 0; i < 160; i++) {
+    const x = Math.round(hash(i * 3.3) * w), y = Math.round(hash(i * 5.9) * h), k = i % 3;
+    box(g, x - 1, y + 2, 5, 1, GRASS[0]);
+    box(g, x, y, 1, 2, GRASS[1]); box(g, x + 1, y - 1, 1, 3, GRASS[k === 0 ? 2 : 3]); box(g, x + 2, y, 1, 2, GRASS[1]); box(g, x + 1, y - 2, 1, 1, GRASS[4]);
+  }
+  // (clover patches: trefoils, lit; a white flower in some; dandelions)
+  for (let i = 0; i < 18; i++) {
+    const x = Math.round(hash(i * 7.1) * w), y = Math.round(hash(i * 2.3) * h);
+    for (const [dx, dy] of [[0, 0], [3, 1], [1, 3]] as const) { box(g, x + dx, y + dy, 3, 2, GRASS[1]); box(g, x + dx, y + dy, 2, 1, GRASS[3]); }
+    box(g, x + 2, y + 1, 1, 1, '#FFFFFF');
+  }
+  for (let i = 0; i < 6; i++) { const x = hash(i * 9.7) * w, y = hash(i * 4.4) * h; box(g, x, y, 2, 2, '#FDE047'); box(g, x, y, 1, 1, '#FFF8C0'); box(g, x + 1, y + 2, 1, 2, GRASS[0]); }
+  // (the walk: concrete slabs, each its own tone, lit along the joint over it, shaded under; worn in the middle where
+  //  feet go, dithered; gum, cracks, a beer stain; the grass creeping in at the joints; a curb along each side)
   const a = w / 2 - 46, b = w / 2 + 46;
   box(g, a, 0, b - a, h, CONC[2]);
-  for (let y = 0; y < h; y += 32) { box(g, a, y, b - a, 1, CONC[0]); box(g, a, y + 1, b - a, 1, CONC[4]); box(g, w / 2, y, 1, 32, CONC[1]); }
-  for (let i = 0; i < 14; i++) { const x = a + 4 + hash(i * 1.7) * (b - a - 8), y = hash(i * 8.3) * h; box(g, x, y, 3, 2, i % 2 ? '#3A3640' : '#5A4A5A'); }
-  for (let y = 40, x = a + 30; y < 74; y += 2) { box(g, x, y, 1, 2, CONC[0]); x += hash(y) > 0.5 ? 1 : -1; }
-  for (let i = 0; i < 4; i++) { const y = hash(i * 3.9) * h; box(g, a + 10 + hash(i) * 50, y, 14, 3, 'rgba(150,100,30,0.3)'); }
-  for (const x of [a - 4, b]) { box(g, x, 0, 4, h, CONC[3]); box(g, x + (x < w / 2 ? 0 : 3), 0, 1, h, CONC[4]); box(g, x + (x < w / 2 ? 3 : 0), 0, 1, h, CONC[0]); }
+  for (let y = 0, r = 0; y < h; y += 32, r++) for (const [x0, x1] of [[a, w / 2], [w / 2 + 1, b]] as const) {
+    const t = hash(r * 3.1 + x0 * 0.01);
+    box(g, x0, y, x1 - x0, 32, t > 0.66 ? mix(CONC[2], CONC[3], 0.4) : t < 0.3 ? mix(CONC[2], CONC[1], 0.35) : CONC[2]);
+    for (let yy = y + 8; yy < y + 26; yy += 2) for (let xx = x0 + 8 + ((yy >> 1) & 1) * 2; xx < x1 - 8; xx += 4) box(g, xx, yy, 1, 1, CONC[3]);
+    box(g, x0, y + 2, x1 - x0, 1, CONC[3]); box(g, x0, y + 30, x1 - x0, 1, CONC[1]);
+    for (let xx = x0; xx < x1; xx += 3) if (hash(xx * 0.7 + r) > 0.7) box(g, xx, y, 2, 1, GRASS[1]);
+  }
+  for (let y = 0; y < h; y += 32) { box(g, a, y, b - a, 1, CONC[0]); box(g, a, y + 1, b - a, 1, CONC[4]); box(g, w / 2, y, 1, 32, CONC[1]); box(g, w / 2 + 1, y, 1, 32, CONC[3]); }
+  for (let i = 0; i < 14; i++) { const x = a + 4 + hash(i * 1.7) * (b - a - 8), y = hash(i * 8.3) * h; box(g, x, y, 3, 2, i % 2 ? '#3A3640' : '#5A4A5A'); box(g, x, y, 1, 1, '#7A6A7A'); }
+  for (const [cx0, cy0, cy1] of [[a + 30, 40, 74], [b - 22, 140, 170]] as const) for (let y = cy0, x = cx0; y < cy1; y += 2) { box(g, x, y, 1, 2, CONC[0]); box(g, x + 1, y, 1, 2, CONC[4]); x += hash(y) > 0.5 ? 1 : -1; }
+  for (let i = 0; i < 4; i++) { const y = hash(i * 3.9) * h, sx = a + 10 + hash(i) * 50; box(g, sx, y, 14, 3, 'rgba(150,100,30,0.3)'); box(g, sx + 2, y + 3, 9, 1, 'rgba(150,100,30,0.2)'); }
+  for (const x of [a - 4, b]) { box(g, x, 0, 4, h, CONC[3]); box(g, x + (x < w / 2 ? 0 : 3), 0, 1, h, CONC[4]); box(g, x + (x < w / 2 ? 3 : 0), 0, 1, h, CONC[0]); for (let y = 0; y < h; y += 48) box(g, x, y, 4, 1, CONC[1]); }
 };
 
 const back = (c: Ctx, t: number, sway: number) => {

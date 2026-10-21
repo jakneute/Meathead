@@ -4,6 +4,7 @@
 // and red through the gap at the end of the path by sundown, moonbeams and fireflies after dark; a morpho by day.
 
 import { type Ctx, type Prop, type PortalDef, INK, LW, HOR, box, hash, stipple, mix } from './kit';
+import { checker } from '../intro/art/kit';
 import { timeOfDay, hourMix, sunAt, drawStars, drawMoon } from '../timeOfDay';
 import { noteSun } from '../sunFlare';
 import { gateSign } from '../adventure/jungle/art/props';
@@ -26,28 +27,88 @@ const ground = (g: Ctx, w: number, h: number) => {
   box(g, 0, 0, w, h, EARTH[3]);
   // (leaf litter: flecks of green, brown, rust)
   for (let i = 0; i < 1400; i++) box(g, hash(i * 1.37) * w, hash(i * 2.91) * h, 1 + (i % 4 === 0 ? 1 : 0), 1, [EARTH[2], EARTH[4], '#5A4A1C', '#3A4A18', '#6A3A18', EARTH[5]][i % 6]);
-  // (low plants either side of the path: fronds lying over, clumps of moss)
+  // (the loam in soft patches: darker hollows, lighter humps, dithered at their edges)
+  for (let i = 0; i < 40; i++) {
+    const x = Math.round(hash(i * 6.1) * w), y = Math.round(hash(i * 8.3) * h), rw = 10 + Math.round(hash(i * 2.2) * 18), rh = 4 + Math.round(hash(i * 4.9) * 6);
+    const col = i % 2 ? EARTH[2] : EARTH[4];
+    box(g, x - rw, y - rh, rw * 2, rh * 2, col);
+    for (let k = -rw; k < rw; k += 2) { box(g, x + k, y - rh - 2 + ((k >> 1) & 1), 1, 1, col); box(g, x + k + 1, y + rh + ((k >> 1) & 1), 1, 1, col); }
+  }
+  // (leaf litter: flecks of green, brown, rust)
+  for (let i = 0; i < 1400; i++) box(g, hash(i * 1.37) * w, hash(i * 2.91) * h, 1 + (i % 4 === 0 ? 1 : 0), 1, [EARTH[2], EARTH[4], '#5A4A1C', '#3A4A18', '#6A3A18', EARTH[5]][i % 6]);
+  // (fallen leaves, whole: a midrib, lit down one side)
+  for (let i = 0; i < 70; i++) {
+    const x = Math.round(hash(i * 9.7) * w), y = Math.round(hash(i * 3.9) * h), col = ['#6A4A1C', '#8A5A20', '#5A6A1C', '#7A3A18'][i % 4];
+    if (Math.abs(x - w / 2) < 18) continue;
+    box(g, x - 3, y, 7, 3, mix(col, '#000000', 0.35)); box(g, x - 2, y - 1, 5, 3, col); box(g, x - 2, y - 1, 2, 1, mix(col, '#FFFFFF', 0.3)); box(g, x - 3, y, 6, 1, mix(col, '#000000', 0.2));
+  }
+  // (low plants either side of the path: leafy clumps, each leaf dark at its foot, lit up and left, a shadow under;
+  //  moss cushions)
   for (let i = 0; i < 90; i++) {
-    const x = hash(i * 3.1) * w, y = hash(i * 7.7) * h;
+    const x = Math.round(hash(i * 3.1) * w), y = Math.round(hash(i * 7.7) * h);
     if (Math.abs(x - w / 2) < 30) continue;
-    g.fillStyle = [LEAF[1], LEAF[2], MOSS[1]][i % 3];
-    g.beginPath(); g.ellipse(x, y, 5 + hash(i) * 10, 3 + hash(i + 9) * 6, 0, 0, Math.PI * 2); g.fill();
-    for (let k = 0; k < 5; k++) box(g, x - 7 + k * 3, y - 2 + (k % 2) * 3, 3, 1, LEAF[3]);
+    if (i % 3 === 2) {
+      const mw = 6 + Math.round(hash(i) * 8);
+      box(g, x - mw, y + 2, mw * 2, 2, EARTH[1]);
+      box(g, x - mw, y - 2, mw * 2, 4, MOSS[1]); box(g, x - mw + 2, y - 4, mw * 2 - 4, 2, MOSS[2]);
+      for (let k = -mw + 2; k < mw - 2; k += 2) if (hash(i + k) > 0.5) box(g, x + k, y - 4, 1, 1, MOSS[4]);
+      continue;
+    }
+    const n = 4 + (i % 3);
+    g.fillStyle = 'rgba(10, 8, 4, 0.45)'; g.beginPath(); g.ellipse(x + 2, y + 3, 9, 3, 0, 0, Math.PI * 2); g.fill();
+    for (let k = 0; k < n; k++) {
+      const a = -Math.PI * 0.95 + (k / (n - 1)) * Math.PI * 0.9, lx = Math.round(x + Math.cos(a) * 7), ly = Math.round(y + Math.sin(a) * 4);
+      g.fillStyle = INK; g.beginPath(); g.ellipse(lx, ly, 4, 2.5, a, 0, Math.PI * 2); g.fill();
+    }
+    for (let k = 0; k < n; k++) {
+      const a = -Math.PI * 0.95 + (k / (n - 1)) * Math.PI * 0.9, lx = Math.round(x + Math.cos(a) * 7), ly = Math.round(y + Math.sin(a) * 4);
+      g.fillStyle = LEAF[2]; g.beginPath(); g.ellipse(lx, ly, 3, 1.6, a, 0, Math.PI * 2); g.fill();
+      box(g, lx - 1, ly - 1, 2, 1, LEAF[4]); box(g, lx, ly + 1, 2, 1, LEAF[1]);
+    }
+    box(g, x - 1, y - 1, 2, 2, LEAF[5]);
   }
-  // The path: packed dirt, lighter, its edges ragged, the worn middle lighter still
-  box(g, w / 2 - 22, 0, 44, h, '#7A5E3E');
-  box(g, w / 2 - 10, 0, 20, h, '#8A6C48');
-  for (let y = 0; y < h; y += 2) { box(g, w / 2 - 25 + hash(y) * 4, y, 4, 2, EARTH[4]); box(g, w / 2 + 21 + hash(y + 5) * 4, y, 4, 2, EARTH[4]); }
-  for (let i = 0; i < 200; i++) box(g, w / 2 - 20 + hash(i * 5.3) * 40, hash(i * 9.1) * h, 1, 1, i % 3 ? '#9C7C54' : '#5E4630');
-  // (footprints, boots and bare: the cast going to work)
-  for (let i = 0; i < 26; i++) { const x = w / 2 - 12 + (i % 2) * 14 + hash(i) * 4, y = hash(i * 4.4) * h; box(g, x, y, 4, 6, '#6A4E32'); box(g, x + 1, y + 7, 2, 2, '#6A4E32'); }
-  // Roots across it, lit along the top
+  // The path: packed dirt in steps (the edges darker, the worn middle lighter), dithered where they meet; its edges
+  // ragged, the loam crumbled over them
+  const P = ['#5E4630', '#6E553A', '#7A5E3E', '#856745', '#8F714C', '#9C7C54'];
+  const cx = w / 2;
+  box(g, cx - 24, 0, 48, h, P[1]); box(g, cx - 20, 0, 40, h, P[2]); box(g, cx - 14, 0, 28, h, P[3]); box(g, cx - 8, 0, 16, h, P[4]);
+  for (let y = 0; y < h; y += 2) {
+    const o = (y >> 1) & 1;
+    for (const [ex, col] of [[cx - 21, P[1]], [cx + 19, P[1]], [cx - 15, P[2]], [cx + 13, P[2]], [cx - 9, P[3]], [cx + 7, P[3]]] as const) box(g, ex + o, y, 1, 1, col);
+    box(g, cx - 26 + hash(y) * 4, y, 4, 2, EARTH[4]); box(g, cx + 22 + hash(y + 5) * 4, y, 4, 2, EARTH[4]);
+    if (hash(y * 0.7) > 0.8) box(g, cx - 24 + hash(y * 1.3) * 3, y, 3, 1, EARTH[2]);
+    if (hash(y * 0.9) > 0.8) box(g, cx + 21 + hash(y * 1.7) * 3, y, 3, 1, EARTH[2]);
+  }
+  // (the two ruts the carts wore: a shaded near wall, a lit far lip)
+  for (const rx of [cx - 13, cx + 9]) { box(g, rx, 0, 4, h, P[1]); box(g, rx, 0, 1, h, P[0]); box(g, rx + 4, 0, 1, h, P[5]); }
+  for (let i = 0; i < 200; i++) box(g, cx - 20 + hash(i * 5.3) * 40, hash(i * 9.1) * h, 1, 1, i % 3 ? P[5] : P[0]);
+  // (pebbles: inked, lit on top)
+  for (let i = 0; i < 26; i++) {
+    const x = Math.round(cx - 22 + hash(i * 7.3) * 44), y = Math.round(hash(i * 5.1) * h), s = 2 + (i % 2);
+    box(g, x - 1, y - 1, s + 2, s + 1, EARTH[0]); box(g, x, y - 1, s, s, '#8A8478'); box(g, x, y - 1, s, 1, '#C0B8A8');
+  }
+  // (footprints, boots and bare: the cast going to work; pressed in: the heel side shaded, the toe's rim lit)
+  for (let i = 0; i < 26; i++) {
+    const x = Math.round(cx - 12 + (i % 2) * 14 + hash(i) * 4), y = Math.round(hash(i * 4.4) * h);
+    box(g, x, y, 4, 6, P[1]); box(g, x, y, 4, 1, P[0]); box(g, x, y + 6, 4, 1, P[5]);
+    box(g, x + 1, y + 7, 2, 2, P[1]); box(g, x + 1, y + 7, 2, 1, P[0]); box(g, x + 1, y + 9, 2, 1, P[5]);
+  }
+  // Roots across it: inked under, the bark in steps, lit along the top, moss on the humps
   for (let i = 0; i < 4; i++) {
-    const y = Math.round(hash(i * 13) * h), x0 = w / 2 - 50 - hash(i) * 30, x1 = w / 2 + 50 + hash(i + 2) * 30;
-    for (let x = x0; x < x1; x += 2) { const yy = y + Math.round(Math.sin(x * 0.08 + i) * 2); box(g, x, yy, 2, 3, BARK[2]); box(g, x, yy, 2, 1, BARK[4]); }
+    const y = Math.round(hash(i * 13) * h), x0 = Math.round(w / 2 - 50 - hash(i) * 30), x1 = Math.round(w / 2 + 50 + hash(i + 2) * 30);
+    for (let x = x0; x < x1; x += 2) {
+      const yy = y + Math.round(Math.sin(x * 0.08 + i) * 2), th = 3 + (Math.abs(x - (x0 + x1) / 2) < 30 ? 1 : 0);
+      box(g, x, yy + th, 2, 1, EARTH[0]); box(g, x, yy, 2, th, BARK[2]); box(g, x, yy + th - 1, 2, 1, BARK[1]); box(g, x, yy, 2, 1, BARK[4]);
+      if (Math.sin(x * 0.08 + i) < -0.85) box(g, x, yy - 1, 2, 1, MOSS[3]);
+    }
   }
-  // (puddles in the ruts, the sky in them)
-  for (let i = 0; i < 3; i++) { const x = w / 2 - 14 + hash(i * 7) * 20, y = hash(i * 17) * h; g.fillStyle = '#2E3A2A'; g.beginPath(); g.ellipse(x, y, 7, 3, 0, 0, Math.PI * 2); g.fill(); box(g, x - 3, y - 1, 4, 1, '#6E8A74'); }
+  // (puddles in the ruts: an inked rim, the sky in them in bands, a glint)
+  for (let i = 0; i < 3; i++) {
+    const x = Math.round(cx - 14 + hash(i * 7) * 20), y = Math.round(hash(i * 17) * h);
+    g.fillStyle = P[0]; g.beginPath(); g.ellipse(x, y, 8, 4, 0, 0, Math.PI * 2); g.fill();
+    g.fillStyle = '#2E3A2A'; g.beginPath(); g.ellipse(x, y, 7, 3, 0, 0, Math.PI * 2); g.fill();
+    box(g, x - 5, y - 1, 10, 1, '#4A5E4A'); box(g, x - 3, y - 2, 4, 1, '#6E8A74'); box(g, x + 2, y + 1, 2, 1, '#9AB49E'); box(g, x - 6, y + 3, 12, 1, P[5]);
+  }
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -173,7 +234,15 @@ const paintTree = (seed: number) => (g: Ctx, w: number, h: number) => {
   clump(g, w * 0.3, h * 0.2, w * 0.3, h * 0.07, seed + 5, LEAF, 1);
   clump(g, w * 0.7, h * 0.17, w * 0.3, h * 0.07, seed + 7, LEAF, 1);
   // (a limb out over the path, a fern on it)
-  if (hash(seed * 2.2) > 0.4) { const ly = h * 0.36; box(g, tx - w * 0.3, ly, w * 0.3 + 4, 6, BARK[3]); box(g, tx - w * 0.3, ly, w * 0.3 + 4, 2, BARK[5]); fern(g, tx - w * 0.18, ly, 18, seed + 9); }
+  if (hash(seed * 2.2) > 0.4) {
+    // (inked, the bark in steps, lit along the top, moss along it, a knot)
+    const ly = Math.round(h * 0.36), lx = Math.round(tx - w * 0.3), lw = Math.round(w * 0.3 + 4);
+    box(g, lx - 1, ly - 1, lw + 1, 9, INK); box(g, lx, ly, lw, 7, BARK[3]); box(g, lx, ly + 4, lw, 3, BARK[1]); checker(g, lx, ly + 3, lw, 1, BARK[2]);
+    box(g, lx, ly, lw, 1, BARK[5]); box(g, lx, ly + 1, lw, 1, BARK[4]);
+    for (let x = lx; x < lx + lw; x += 3) if (hash(seed + x) > 0.45) box(g, x, ly - 1, 2 + (x % 2), 2, MOSS[3 + (x % 2)]);
+    box(g, lx + Math.round(lw * 0.4), ly + 2, 3, 3, BARK[0]); box(g, lx + Math.round(lw * 0.4), ly + 2, 3, 1, BARK[4]);
+    fern(g, tx - w * 0.18, ly, 18, seed + 9);
+  }
 };
 const paintFern = (seed: number) => (g: Ctx, w: number, h: number) => fern(g, w / 2, h - 1, h * 0.95, seed, (hash(seed) - 0.5) * 0.3);
 const paintEars = (seed: number) => (g: Ctx, w: number, h: number) => {

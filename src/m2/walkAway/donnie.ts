@@ -10,7 +10,7 @@
 // dropping in). In the foreground, a little of the ballroom's carnage: gift-shop junk strewn about, a dropped HELLO MY
 // NAME IS DONNIE sticker; killed by his weakness, a trail of his ash. His new toy: the SOUL SUCKER.
 
-import { type Ctx, type Prop, type SceneDef, INK, HOR, F, CAM_H, VP_X, ME_X, SPEED, box, hash, lump, smoke, fire, project } from './kit';
+import { type Ctx, type Prop, type SceneDef, INK, HOR, F, CAM_H, VP_X, ME_X, SPEED, box, hash, lump, smoke, fire, project, mix } from './kit';
 import { spriteOf, fogAt, wobble } from './screen';
 import { timeOfDay } from '../timeOfDay';
 import { signText, signW, print } from '../spooky/letters';
@@ -50,8 +50,20 @@ const ground = (g: Ctx, w: number, h: number) => {
     for (let y = 0, r = 0; y < h; y += 14, r++) for (let x = x0 + (r % 2) * 8, k = 0; x < x1; x += 16, k++) {
       const ww = Math.min(15, x1 - x - 1);
       if (ww < 2) continue;
-      box(g, x, y, ww, 13, STONE[[3, 2, 3, 4][(k + r * 2) % 4]]); box(g, x, y, ww, 1, STONE[5]); box(g, x, y + 12, ww, 1, STONE[1]);
+      const t = hash(x * 0.37 + y * 0.71 + sd), col = STONE[[3, 2, 3, 4][(k + r * 2) % 4]];
+      box(g, x, y, ww, 13, col); box(g, x, y, ww, 1, STONE[5]); box(g, x, y + 12, ww, 1, STONE[1]);
+      // (each flag worn: a dithered dip down its middle; one in a few cracked across, one sunk and stained)
+      if (ww > 6) { for (let yy = y + 4; yy < y + 10; yy += 2) for (let xx = x + 3 + ((yy >> 1) & 1); xx < x + ww - 3; xx += 2) box(g, xx, yy, 1, 1, STONE[2]); }
+      if (t > 0.82 && ww > 8) { let cy = y + 2; for (let xx = x + 1; xx < x + ww - 1; xx += 2) { box(g, xx, cy, 2, 1, STONE[0]); box(g, xx, cy + 1, 2, 1, STONE[4]); cy += hash(xx + y) < 0.5 ? 1 : 0; if (cy > y + 10) break; } }
+      else if (t < 0.1 && ww > 8) { box(g, x + 2, y + 3, ww - 4, 7, mix(col, COBBLE[0], 0.5)); box(g, x + 2, y + 3, ww - 4, 1, STONE[1]); }
     }
+    // (the gutter: wet, a glint run down it, leaves caught; a drain grate every so often)
+    const gx2 = sd < 0 ? m - road - 3 : m + road;
+    for (let y = 0; y < h; y += 4) if (hash(y * 0.3 + sd) > 0.55) box(g, gx2 + 1, y, 1, 2, COBBLE[5]);
+    for (let y = 30; y < h; y += 96) { box(g, gx2 - 1, y, 5, 14, INK); for (let k = 0; k < 6; k++) box(g, gx2, y + 1 + k * 2, 3, 1, STONE[2]); }
+    for (let i = 0; i < 6; i++) box(g, gx2, Math.round(hash(i * 2.7 + sd) * h), 3, 2, ['#6A3A18', '#8A5A20', '#4A3A1A'][i % 3]);
+    // (the curb's chips: a bite out of its lit edge here and there)
+    for (let y = 8; y < h; y += 24) if (hash(y + sd * 3) > 0.5) box(g, sd < 0 ? cx + 3 : cx, y + Math.round(hash(y) * 12), 2, 2, STONE[1]);
   }
   litter(g, m - road, m + road, h, 8);
   litter(g, 0, w, h, 4);

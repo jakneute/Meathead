@@ -9,26 +9,115 @@
 // castle from her window, and the lane strewn with drips of it. Rose petals blow down the lane either way. His new toy:
 // the SPELLBOOK (its walk-away act: walkAway/acts.ts).
 
-import { type Ctx, type Prop, type SceneDef, HOR, box, hash } from './kit';
+import { type Ctx, type Prop, type SceneDef, HOR, box, hash, mix, stipple } from './kit';
+import { farStrip } from './farStrip';
 import { timeOfDay, hourMix } from '../timeOfDay';
 import { drawTeaseStrip } from './teases';
 import { bookShut } from './toys';
 import { drawCastleAt, PIPER_WINDOW } from '../fantasy/monument';
 import { ground, cottage, chimneySmoke, lamp, pine, snowman } from './intoFantasy';
 
-const lit = () => timeOfDay().lamps > 0.3;
+
+/** The far strips: the picture's width and a margin either side (for the sway); the Alps' and the village's heights. */
+const M = 24, SW = 400 + M * 2, AH = 72, VH = 52;
+const PEAKS: [number, number][] = [[-30, 34], [30, 56], [88, 38], [140, 62], [206, 44], [262, 66], [326, 40], [384, 58], [440, 32]];
+/** The Alps' top (picture y over the horizon) at picture x, and which way the face there looks (the sun's from the left). */
+const alpsTop = (x: number) => Math.max(6, ...PEAKS.map(([px, h]) => h - Math.abs(x - px) * 0.9));
+const facesSun = (x: number) => alpsTop(x - 1) < alpsTop(x + 1) ? 1 : 0;
+
+/** The Alps (painted once for the hour, in picture px at twice the size: farStrip.ts): each flank's rock in steps (the
+ *  sun side lit, the far side shaded), banded down toward the haze and dithered between; the snowfields over them,
+ *  their ragged foot dithered into the rock, a lit cornice along the ridge; ribs and gullies down the flanks, snow
+ *  caught in them; the haze lying along the foot. */
+const paintAlps = (g: Ctx) => {
+  g.scale(2, 2);
+  const H = (d: string, s: string, n: string) => hourMix(d, s, n);
+  const rockL = [H('#8A88B0', '#9A6E96', '#323650'), H('#7A78A2', '#86628A', '#2A2E48')], rockS = [H('#5E5C88', '#664C78', '#1E2238'), H('#504E7A', '#583E6A', '#181C30')];
+  const snowL = [H('#FFFFFF', '#FFE6EC', '#8A94B8'), H('#E8EEF8', '#F2D8E0', '#7A84A8')], snowS = [H('#C8D2E8', '#D8B8CC', '#545C80'), H('#B0BAD4', '#C0A0B8', '#464E70')];
+  const rib = H('#3E3C64', '#4A3258', '#12162A'), haze = mix(timeOfDay().haze, H('#DCE4F4', '#F0C8D8', '#2A3058'), 0.5);
+  for (let x = 0; x < SW; x++) {
+    const xx = x - M, top = AH - Math.round(alpsTop(xx)), lit = facesSun(xx);
+    const sl = Math.max(top, AH - 24 + Math.round(Math.sin(xx * 0.07) * 4) + Math.round(hash(Math.floor(xx / 3) * 0.37) * 3));
+    const R = lit ? rockL : rockS, S = lit ? snowL : snowS;
+    // (the rock, in two bands down toward the foot, dithered where they meet)
+    const mid = sl + Math.round((AH - sl) * 0.45);
+    box(g, x, sl, 1, mid - sl, R[0]); box(g, x, mid, 1, AH - mid, R[1]);
+    if (x % 2) box(g, x, mid - 1, 1, 1, R[1]); else box(g, x, mid, 1, 1, R[0]);
+    // (the snow, its foot ragged and dithered into the rock, a cornice lit along the ridge)
+    if (sl > top) {
+      const sm = top + Math.round((sl - top) * 0.5);
+      box(g, x, top, 1, sm - top, S[0]); box(g, x, sm, 1, sl - sm, S[1]);
+      if (x % 2) box(g, x, sm - 1, 1, 1, S[1]);
+      box(g, x, sl + (x % 2), 1, 1, S[1]); if (hash(x * 0.53) > 0.6) box(g, x, sl + 2, 1, 1 + (x % 3), S[1]);
+      box(g, x, top, 1, 1, lit ? '#FFFFFF' : S[0]);
+    }
+  }
+  // (ribs and gullies down the flanks: dark rock lines falling from near each summit, snow lodged in their tops)
+  for (const [px, ph] of PEAKS) for (const sd of [-1, 1]) for (let k = 0; k < 3; k++) {
+    let x = px + M + sd * (4 + k * 9), y = AH - ph + 6 + k * 8;
+    const len = 10 + k * 4 + Math.round(hash(px + sd * 3 + k) * 8);
+    for (let n = 0; n < len && y < AH - 2; n++) {
+      if (x >= 0 && x < SW && y > AH - alpsTop(x - M)) { box(g, x, y, 1, 2, rib); if (y < AH - 22) box(g, x - sd, y, 1, 1, sd < 0 ? snowL[1] : snowS[1]); }
+      x += sd; y += 1 + (n % 2);
+    }
+  }
+  // (the haze along the foot: banded, dithered)
+  for (let k = 0; k < 3; k++) { g.fillStyle = stipple(g, haze, k % 2); g.fillRect(0, AH - 14 + k * 4, SW, 4); }
+  box(g, 0, AH - 2, SW, 2, haze);
+};
+
+/** Where Hogsmeat's roofs stand (picture x of each at no sway), how wide, how tall. */
+const ROOFS = Array.from({ length: 16 }, (_, i) => ({ rx: Math.round(-10 + i * 27 + (hash(i) - 0.5) * 8), rw: 18 + Math.round(hash(i * 2.1) * 10), rh: 6 + Math.round(hash(i * 3.3) * 5), i }));
+/** Hogsmeat's roofs at the lane's far end (painted once for the hour): plaster walls lit down one side, a timber or two,
+ *  windows framed (lit after dark), slate roofs inked along the eaves, snow heaped on them lit on the sun side, chimneys
+ *  capped with snow; the steeple (louvered, a cross), the clock tower (its face, its hands). */
+const paintVillage = (g: Ctx) => {
+  g.scale(2, 2);
+  const H = (d: string, s: string, n: string) => hourMix(d, s, n);
+  const roofC = H('#4A4A6A', '#5A3E5A', '#1E2034'), roofD = mix(roofC, '#0A0814', 0.35), wall = H('#CDBCA6', '#C8A898', '#3E3A4A'), wallD = mix(wall, '#1A1028', 0.3), wallL = mix(wall, '#FFFFFF', 0.25);
+  const snow = H('#E8EEF8', '#F2D8E0', '#7A84A8'), snowL = H('#FFFFFF', '#FFE6EC', '#8A94B8'), snowS = H('#B8C2DC', '#C8A8C0', '#4A5276');
+  const glow = timeOfDay().lamps > 0.3 ? '#FFD87A' : '#8E7A6A', timber = H('#5A3A26', '#4A2E2A', '#1A1218'), INKC = '#1A1028';
+  const B = VH - 2;
+  for (const { rx: px, rw, rh, i } of ROOFS) {
+    const rx = px + M;
+    if (Math.abs(px + rw / 2 - 300) < 16) continue;
+    box(g, rx - 1, B - rh - 1, rw + 2, rh + 3, INKC);
+    box(g, rx, B - rh, rw, rh + 2, wall); box(g, rx, B - rh, 1, rh + 2, wallL); box(g, rx + rw - 2, B - rh, 2, rh + 2, wallD);
+    if (i % 2) { box(g, rx + Math.round(rw / 2), B - rh, 1, rh + 2, timber); box(g, rx, B - Math.round(rh / 2), rw, 1, timber); }
+    for (const wx of [rx + 3, ...(hash(i * 5) > 0.5 ? [rx + rw - 6] : [])]) { box(g, wx - 1, B - rh + 2, 4, 4, timber); box(g, wx, B - rh + 3, 2, 2, glow); }
+    const ey = B - rh, pk = rx + Math.round(rw / 2);
+    g.fillStyle = INKC; g.beginPath(); g.moveTo(rx - 3, ey + 1); g.lineTo(pk, ey - 9); g.lineTo(rx + rw + 3, ey + 1); g.closePath(); g.fill();
+    g.fillStyle = roofC; g.beginPath(); g.moveTo(rx - 2, ey); g.lineTo(pk, ey - 8); g.lineTo(rx + rw + 2, ey); g.closePath(); g.fill();
+    g.fillStyle = roofD; g.beginPath(); g.moveTo(pk, ey - 8); g.lineTo(rx + rw + 2, ey); g.lineTo(pk, ey); g.closePath(); g.fill();
+    // (the snow on it: the sun side bright, the far side shaded, a ragged lip over the eaves)
+    g.fillStyle = snowL; g.beginPath(); g.moveTo(rx - 2, ey - 1); g.lineTo(pk, ey - 9); g.lineTo(pk, ey - 6); g.lineTo(rx, ey); g.closePath(); g.fill();
+    g.fillStyle = snowS; g.beginPath(); g.moveTo(pk, ey - 9); g.lineTo(rx + rw + 2, ey - 1); g.lineTo(rx + rw, ey); g.lineTo(pk, ey - 6); g.closePath(); g.fill();
+    for (let x = rx - 1; x < rx + rw + 2; x += 2) box(g, x, ey, 1, 1 + ((x + i) % 3 === 0 ? 1 : 0), snow);
+    if (i % 3 === 1) { const cx = rx + rw - 6; box(g, cx - 1, ey - 13, 5, 7, INKC); box(g, cx, ey - 12, 3, 6, '#7A4A3A'); box(g, cx, ey - 12, 1, 6, '#9A6A5A'); box(g, cx - 1, ey - 14, 5, 2, snowL); }
+  }
+  // (the steeple: its tower, louvers, the spire with snow down its sun side, a cross)
+  const sx = 70 + M;
+  box(g, sx - 4, B - 30, 8, 32, INKC); box(g, sx - 3, B - 29, 6, 31, wall); box(g, sx - 3, B - 29, 1, 31, wallL); box(g, sx + 2, B - 29, 1, 31, wallD);
+  box(g, sx - 1, B - 26, 2, 4, glow); for (let k = 0; k < 2; k++) box(g, sx - 1, B - 18 + k * 2, 2, 1, timber);
+  g.fillStyle = INKC; g.beginPath(); g.moveTo(sx - 5, B - 29); g.lineTo(sx, B - 47); g.lineTo(sx + 5, B - 29); g.closePath(); g.fill();
+  g.fillStyle = roofC; g.beginPath(); g.moveTo(sx - 4, B - 30); g.lineTo(sx, B - 46); g.lineTo(sx + 4, B - 30); g.closePath(); g.fill();
+  g.fillStyle = snowL; g.beginPath(); g.moveTo(sx - 4, B - 30); g.lineTo(sx, B - 46); g.lineTo(sx - 1, B - 30); g.closePath(); g.fill();
+  box(g, sx, B - 51, 1, 5, timber); box(g, sx - 1, B - 50, 3, 1, timber);
+  // (the clock tower: its face, numerals as ticks, the hands; snow on its cap)
+  const cx = 170 + M;
+  box(g, cx - 5, B - 26, 10, 28, INKC); box(g, cx - 4, B - 25, 8, 27, wall); box(g, cx - 4, B - 25, 1, 27, wallL); box(g, cx + 3, B - 25, 1, 27, wallD);
+  box(g, cx - 3, B - 24, 6, 6, INKC); box(g, cx - 3, B - 23, 6, 5, '#F4F0E0'); box(g, cx, B - 23, 1, 3, INKC); box(g, cx, B - 21, 2, 1, INKC);
+  for (const [dx, dy] of [[0, -23], [2, -21], [0, -19], [-2, -21]] as const) box(g, cx + dx, B + dy, 1, 1, '#8A7A6A');
+  box(g, cx - 2, B - 14, 4, 5, timber); box(g, cx - 1, B - 13, 2, 3, glow);
+  g.fillStyle = INKC; g.beginPath(); g.moveTo(cx - 7, B - 25); g.lineTo(cx, B - 37); g.lineTo(cx + 7, B - 25); g.closePath(); g.fill();
+  g.fillStyle = roofC; g.beginPath(); g.moveTo(cx - 6, B - 26); g.lineTo(cx, B - 36); g.lineTo(cx + 6, B - 26); g.closePath(); g.fill();
+  g.fillStyle = snowL; g.beginPath(); g.moveTo(cx - 6, B - 26); g.lineTo(cx, B - 36); g.lineTo(cx, B - 33); g.lineTo(cx - 4, B - 26); g.closePath(); g.fill();
+  box(g, cx - 6, B - 27, 12, 1, snow);
+};
 
 const back = (c: Ctx, t: number, sway: number, weakness: boolean) => {
-  // (the Alps: jagged, snowfields on their tops lit on the sun side, rock ribs)
-  const rock = hourMix('#6E6C96', '#7A5A86', '#262A44'), snow = hourMix('#E8EEF8', '#F2D8E0', '#7A84A8'), shade = hourMix('#B8C2DC', '#C8A8C0', '#4A5276'), rib = hourMix('#4E4C76', '#5A3E66', '#181C30');
-  const peaks: [number, number][] = [[-30, 34], [30, 56], [88, 38], [140, 62], [206, 44], [262, 66], [326, 40], [384, 58], [440, 32]];
-  const yAt = (x: number) => HOR - Math.max(6, ...peaks.map(([px, h]) => h - Math.abs(x - px) * 0.9));
-  for (let x = 0; x < 400; x += 2) {
-    const xx = x - sway * 0.1, y = Math.round(yAt(xx)), lit2 = yAt(xx + 2) < yAt(xx - 2), sl = Math.max(y, HOR - 24 + Math.round(Math.sin(xx * 0.07) * 4));
-    box(c, x, y, 2, HOR - y, rock);
-    if (sl > y) box(c, x, y, 2, sl - y, lit2 ? snow : shade);
-    if (hash(Math.floor(xx / 2) * 0.7) > 0.86) box(c, x, sl, 1, Math.min(10, HOR - sl), rib);
-  }
+  // (the Alps: painted once for the hour, slid by his sway)
+  c.drawImage(farStrip('wa-pp-alps', SW, AH, paintAlps), -M + Math.round(sway * 0.1), HOR - AH);
   // (in front of the Alps, the neighbors past the land's edge: THRONES OF THE STARS, Jungle Land's temple)
   drawTeaseStrip(c, 'fantasy', 'far', sway);
   // (the castle over the village, her window at the top smashed in)
@@ -53,20 +142,13 @@ const back = (c: Ctx, t: number, sway: number, weakness: boolean) => {
   const ridge = hourMix('#2E4A50', '#3A3A50', '#121A26'), rsnow = hourMix('#C8D4E4', '#C8A8B8', '#4A5470');
   for (let px = 0; px < 400; px += 3) { const y = HOR - 6 - Math.round(Math.abs(Math.sin((px - sway * 0.25) * 0.11)) * 5); box(c, px, y, 3, HOR - y + 2, ridge); if ((px / 3) % 2) box(c, px + 1, y - 2, 1, 2, ridge); box(c, px, y, 2, 1, rsnow); }
   // (Hogsmeat's roofs at the lane's far end: snowy slates, a steeple, the clock tower, chimneys, a window lit here and there)
-  const roofC = hourMix('#4A4A6A', '#5A3E5A', '#1E2034'), wall = hourMix('#CDBCA6', '#C8A898', '#3E3A4A'), glow = lit() ? '#FFD87A' : '#8E7A6A';
-  for (let i = 0; i < 16; i++) {
-    const rx = Math.round(-10 + i * 27 + (hash(i) - 0.5) * 8 + sway * 0.3), rw = 18 + Math.round(hash(i * 2.1) * 10), rh = 6 + Math.round(hash(i * 3.3) * 5);
-    if (Math.abs(rx + rw / 2 - (300 + sway * 0.4)) < 16) continue;
-    box(c, rx, HOR - 2 - rh, rw, rh + 4, wall); box(c, rx + 3, HOR - rh + 1, 2, 2, glow); if (hash(i * 5) > 0.5) box(c, rx + rw - 6, HOR - rh + 1, 2, 2, glow);
-    c.fillStyle = roofC; c.beginPath(); c.moveTo(rx - 2, HOR - 2 - rh); c.lineTo(rx + rw / 2, HOR - 2 - rh - 8); c.lineTo(rx + rw + 2, HOR - 2 - rh); c.closePath(); c.fill();
-    c.fillStyle = snow; c.beginPath(); c.moveTo(rx - 2, HOR - 2 - rh); c.lineTo(rx + rw / 2, HOR - 2 - rh - 8); c.lineTo(rx + rw / 2, HOR - rh - 7); c.lineTo(rx, HOR - rh - 1); c.closePath(); c.fill();
-    if (i % 3 === 1) { box(c, rx + rw - 6, HOR - rh - 12, 3, 6, '#7A4A3A'); const u = ((t * 0.3 + i * 5) % 20) / 20; c.globalAlpha = 0.4 * (1 - u); box(c, rx + rw - 6 + u * 4, HOR - rh - 14 - u * 10, 2 + u * 2, 2, '#D8DCE8'); c.globalAlpha = 1; }
+  const vx = Math.round(sway * 0.3);
+  c.drawImage(farStrip('wa-pp-village', SW, VH, paintVillage), -M + vx, HOR + 2 - VH);
+  // (the chimneys' smoke, live over them)
+  for (const { rx, rw, rh, i } of ROOFS) {
+    if (i % 3 !== 1 || Math.abs(rx + rw / 2 - 300) < 16) continue;
+    const u = ((t * 0.3 + i * 5) % 20) / 20; c.globalAlpha = 0.4 * (1 - u); box(c, rx + vx + rw - 6 + u * 4, HOR - rh - 14 - u * 10, 2 + u * 2, 2, '#D8DCE8'); c.globalAlpha = 1;
   }
-  const sx = Math.round(70 + sway * 0.3);
-  box(c, sx - 3, HOR - 30, 6, 30, wall); c.fillStyle = roofC; c.beginPath(); c.moveTo(sx - 4, HOR - 30); c.lineTo(sx, HOR - 46); c.lineTo(sx + 4, HOR - 30); c.closePath(); c.fill(); box(c, sx - 1, HOR - 26, 2, 3, glow);
-  const cx = Math.round(170 + sway * 0.3);
-  box(c, cx - 4, HOR - 26, 8, 26, wall); box(c, cx - 3, HOR - 24, 6, 6, '#F4F0E0'); box(c, cx, HOR - 23, 1, 3, '#1A1028'); box(c, cx, HOR - 21, 2, 1, '#1A1028');
-  c.fillStyle = roofC; c.beginPath(); c.moveTo(cx - 6, HOR - 26); c.lineTo(cx, HOR - 36); c.lineTo(cx + 6, HOR - 26); c.closePath(); c.fill(); box(c, cx - 6, HOR - 27, 12, 1, snow);
 };
 
 /** A rose petal on the cobbles; a drip of her (the balloon); a dropped tiara glinting on the verge. */
