@@ -30,15 +30,38 @@ export const plaque = (c: Ctx, x: number, y: number, words: string, face = '#272
  *  left, shaded under and right, mortar dark between. */
 export const blockFill = (c: Ctx, key: string, col: string) => {
   const R = rampOf(col);
-  return tilePattern(c, `dBlock:${key}`, 80, 80, t => {
-    t.fillStyle = mix(R[0], INK, 0.4); t.fillRect(0, 0, 80, 80);
-    for (const [x, y, w] of [[0, 0, 38], [40, 0, 38], [-20, 40, 38], [20, 40, 38], [60, 40, 38]] as const) {
-      const k = hash(x * 3.1 + y * 7.7), b = k < 0.33 ? R[1] : k < 0.66 ? R[2] : mix(R[1], R[2], 0.5);
-      t.fillStyle = b; t.fillRect(x, y, w, 38);
-      t.fillStyle = R[3]; t.fillRect(x, y, w, 2); t.fillRect(x, y, 2, 38);
-      t.fillStyle = R[0]; t.fillRect(x, y + 35, w, 3); t.fillRect(x + w - 2, y, 2, 38);
-      t.fillStyle = mix(b, R[0], 0.5); for (let p = 0; p < 6; p++) t.fillRect(x + 4 + Math.floor(hash(x + y + p) * (w - 8)), y + 6 + Math.floor(hash(x * 2 + y + p * 5) * 26), 2, 2);
-    }
+  // (four courses of blocks in a 240 x 160 repeat, every block its own: its tone, a stepped bevel lit along its top and
+  // left and shaded under and right (dithered between), a knocked corner, pits, now and then a crack, saltpeter
+  // weeping white out of a joint, or a dark old stain)
+  const TW = 240, TH = 160;
+  return tilePattern(c, `dBlock2:${key}`, TW, TH, t => {
+    const mortar = mix(R[0], INK, 0.4);
+    t.fillStyle = mortar; t.fillRect(0, 0, TW, TH);
+    const rows = [[58, 62, 54, 66], [46, 70, 60, 64], [64, 52, 68, 56], [50, 60, 72, 58]];
+    let i = 0;
+    rows.forEach((ws, r) => {
+      const y = r * 40;
+      for (let x0 = [0, -28, -14, -40][r], k = 0; x0 < TW; k++, i++) {
+        const w = ws[k % ws.length], kk = hash(i * 3.1 + r * 7.7);
+        const b = kk < 0.3 ? R[1] : kk < 0.6 ? R[2] : kk < 0.85 ? mix(R[1], R[2], 0.5) : mix(R[2], '#5A4A3A', 0.25);
+        for (const ox of [0, -TW, TW]) {
+          const x = x0 + ox; if (x > TW || x + w < 0) continue;
+          const bw = w - 2, bh = 38;
+          t.fillStyle = b; t.fillRect(x, y, bw, bh);
+          t.fillStyle = R[3]; t.fillRect(x, y, bw, 2); t.fillRect(x, y, 2, bh);
+          t.fillStyle = mix(b, R[3], 0.5); t.fillRect(x + 2, y + 2, bw - 4, 2);
+          checker(t, x + 2, y + 4, bw - 4, 2, mix(b, R[3], 0.5)); checker(t, x + 2, y + 2, 2, bh - 6, mix(b, R[3], 0.5));
+          t.fillStyle = R[0]; t.fillRect(x, y + bh - 3, bw, 3); t.fillRect(x + bw - 2, y, 2, bh);
+          checker(t, x + 2, y + bh - 5, bw - 4, 2, mix(b, R[0], 0.5), 1);
+          t.fillStyle = mortar; t.fillRect(x, y, 2, 2); if (kk > 0.55) { t.fillRect(x + bw - 5, y + bh - 5, 5, 5); t.fillStyle = R[0]; t.fillRect(x + bw - 7, y + bh - 5, 2, 2); }
+          t.fillStyle = mix(b, R[0], 0.5); for (let p = 0; p < 7; p++) t.fillRect(x + 4 + Math.floor(hash(i + p * 1.3) * (bw - 8)), y + 6 + Math.floor(hash(i * 2 + p * 5) * 26), 2, 2);
+          if (hash(i * 9.7 + 0.31) < 0.09) { let cx = x + 8 + Math.floor(hash(i * 2.2) * (bw * 0.5)); for (let cy = y + 4; cy < y + bh - 6; cy += 4) { t.fillStyle = INK; t.fillRect(cx, cy, 2, 4); t.fillStyle = R[3]; t.fillRect(cx + 2, cy + 2, 1, 2); cx += hash(cy + i) < 0.5 ? 2 : -2; } }
+          if (hash(i * 6.1) < 0.14) { checker(t, x + 6, y + bh - 2, 10, 20, 'rgba(200, 196, 180, 0.35)'); t.fillStyle = 'rgba(200, 196, 180, 0.3)'; t.fillRect(x + 8, y + bh - 2, 4, 12); }
+          if (hash(i * 4.4) < 0.1) { checker(t, x + 10, y + 8, bw - 20, bh - 16, 'rgba(40, 8, 6, 0.35)'); }
+        }
+        x0 += w;
+      }
+    });
   });
 };
 
@@ -53,9 +76,22 @@ export const plateFill = (c: Ctx) => tilePattern(c, 'dPlate', 60, 40, t => {
 });
 
 /** Rough rock (the mass the stairs are cut through). */
-export const rockFill = (c: Ctx) => tilePattern(c, 'dRock', 64, 64, t => {
-  t.fillStyle = '#100C0A'; t.fillRect(0, 0, 64, 64);
-  for (let k = 0; k < 18; k++) { const x = Math.floor(hash(k * 1.3) * 60), y = Math.floor(hash(k * 2.9) * 60), w = 4 + Math.floor(hash(k * 4.1) * 10); t.fillStyle = k % 3 ? '#18120F' : '#1E1713'; t.fillRect(x, y, w, 4); t.fillStyle = '#261D18'; t.fillRect(x, y, w, 1); }
+export const rockFill = (c: Ctx) => tilePattern(c, 'dRock2', 128, 128, t => {
+  // (rough rock: lumps of it heaped, each lit along its top, shaded under, flecked; seams of dark between)
+  t.fillStyle = '#0C0908'; t.fillRect(0, 0, 128, 128);
+  for (let k = 0; k < 30; k++) {
+    const x = Math.floor(hash(k * 1.3) * 128), y = Math.floor(hash(k * 2.9) * 128), w = 14 + Math.floor(hash(k * 4.1) * 22), h = 10 + Math.floor(hash(k * 5.7) * 12);
+    const col = ['#16110E', '#1A1411', '#1E1713', '#151210'][k % 4];
+    for (const [ox, oy] of [[0, 0], [-128, 0], [0, -128], [-128, -128]]) {
+      const sx = x + ox, sy = y + oy;
+      t.fillStyle = '#080605'; t.beginPath(); t.roundRect(sx - 1, sy - 1, w + 2, h + 2, 4); t.fill();
+      t.fillStyle = col; t.beginPath(); t.roundRect(sx, sy, w, h, 4); t.fill();
+      t.fillStyle = '#2A211B'; t.fillRect(sx + 3, sy + 1, w - 7, 1); t.fillStyle = '#231B16'; t.fillRect(sx + 2, sy + 2, w - 5, 2);
+      checker(t, sx + 2, sy + 4, w - 5, 2, '#231B16');
+      t.fillStyle = '#0E0B09'; t.fillRect(sx + 2, sy + h - 3, w - 4, 2);
+      t.fillStyle = '#2E241E'; t.fillRect(sx + 4 + Math.floor(hash(k) * (w - 8)), sy + 5 + Math.floor(hash(k * 3) * (h - 8)), 1, 1);
+    }
+  }
 });
 
 /** One spike (point up, its foot at y, its tip at tip): lit on its left face, shaded on its right, an ink edge. */

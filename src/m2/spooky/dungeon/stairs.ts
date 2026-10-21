@@ -11,6 +11,7 @@ import type { GroundRun } from '../../../m1/game/core/terrain';
 import type { Light } from '../../../m1/game/render/lighting';
 import { meatheadSays } from '../section';
 import { INK, box, checker, plaque, rockFill, blockFill, stoneLedge, torch, STONE, IRON } from './paint';
+import { hash } from '../../intro/art/kit';
 import { SECTIONS, GY } from '../geometry';
 import { spawnStaff } from '../castle/staff';
 import { paStory, paBusy, byPants, pick } from '../castle/pa';
@@ -114,6 +115,12 @@ export const drawStairs = (c: CanvasRenderingContext2D, state: GameState) => {
       box(c, x, y, w, 60, STONE[1]); box(c, x + w - 3, y, 3, 60, STONE[0]);
       box(c, x, y, w, 2, STONE[4]); box(c, x, y + 2, w, 2, STONE[3]); checker(c, x, y + 4, w, 2, STONE[2]);
       box(c, x + 6, y + 1, w - 12, 1, STONE[2]);
+      // (the step's face under its nosing: shadowed in steps, chipped here and there, a crack now and then)
+      box(c, x, y + 6, w, 4, STONE[0]); checker(c, x, y + 10, w, 2, STONE[0]);
+      box(c, x + 2, y + 14, w - 6, 1, STONE[2]);
+      const kk = hash(x * 0.37);
+      if (kk < 0.3) { box(c, x + 4 + Math.floor(kk * 30), y + 4, 4, 2, STONE[0]); }
+      if (kk > 0.8) { box(c, x + 10, y + 16, 2, 6, INK); box(c, x + 12, y + 20, 2, 6, INK); box(c, x + 14, y + 18, 1, 6, STONE[3]); }
     }
   }
   // (a skull on the second landing, for the look of it)
