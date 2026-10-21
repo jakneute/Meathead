@@ -88,7 +88,7 @@ import { useOpenCloseSound } from '../m1/components/useCursorSound';
 import { M2_GUIDE_PAGES } from './ControlsGuide';
 import { setRayGun } from '../m1/game/combat/rayGun';
 // (the hub's portal card, YOU ARE GOING HERE: that land's preview, off the park map's art)
-import LandCard from './parkmap/LandCard';
+import LandCard, { prewarmLandCards } from './parkmap/LandCard';
 import ParkMap from './parkmap/ParkMap';
 import { openParkMap, closeParkMap, parkMapFrom, parkMapBusy, subscribeParkMap } from './parkmap/state';
 import { prewarmParkMap } from './parkmap/render';
@@ -359,6 +359,8 @@ const App2: React.FC = () => {
   useOpenCloseSound(!!mapFrom);
   // (the map's painted ahead, in a quiet moment once the game's under way: it comes up at once)
   useEffect(() => { if (!title) { const id = setTimeout(prewarmParkMap, 4000); return () => clearTimeout(id); } }, [title]);
+  // (and the portal cards' photos, once he's at the hub: a boss dead since, his remains then)
+  useEffect(() => { if (!title && stage === HUB_STAGE) { const id = setTimeout(prewarmLandCards, 1500); return () => clearTimeout(id); } }, [title, stage]);
   const togglePause = () => {
     const st = live.current.status;
     // (a scene that can be skipped: START / ESC skips it, rather than pausing)

@@ -24,7 +24,7 @@ import type { GameState } from '../../m1/game/core/state';
 import { getAudioContext } from '../../m1/game/platform/audio';
 import { getSettings } from '../../m1/game/settings';
 import { isTalking } from '../../m1/game/platform/speech';
-import { play, stop, setMix, useContext, prewarm, nowPlaying } from './engine';
+import { play, stop, setMix, useContext, prewarm, prewarmRooms, nowPlaying } from './engine';
 import { SONGS } from './songs/index';
 import { soundTestCue, type Cue } from './soundTest';
 import { momentOn } from './moments';
@@ -557,6 +557,6 @@ const start = () => {
   useContext(getAudioContext);
   // (the songs everybody hears made first, in idle time: the theme, the jingles, the hub, the way in)
   // (the walk-away's and the portal walk's every arrangement: the bosses' and the lands' versions are theirs)
-  setTimeout(() => { for (const id of ['title', 'hub', 'intro', 'staff', 'jingle:death', 'jingle:victory']) if (SONGS[id]) prewarm(SONGS[id]); }, 2500);
+  setTimeout(() => { for (const id of ['title', 'hub', 'intro', 'staff', 'jingle:death', 'jingle:victory']) if (SONGS[id]) prewarm(SONGS[id]); prewarmRooms(); }, 2500);
   timer = setInterval(() => { try { apply(); } catch (err) { console.error('music', err); } }, 100);
 };

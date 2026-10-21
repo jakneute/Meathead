@@ -275,7 +275,10 @@ export const prewarmParkMap = () => {
     do { tasks.shift()?.(); } while (tasks.length && performance.now() < until);
     if (tasks.length) { idle(slice); return; }
     base = job.cv; job = null; tasks = null;
-    idle(() => { levelCanvas(0); });
+    // (then the far level; then the up-close details and the 1:1 level the hub's portal card shows (painted the moment
+    // a card came up, they stalled it), each in an idle moment of its own)
+    const one = ZOOMS.indexOf(1);
+    idle(() => { levelCanvas(0); idle(() => { detailArt(); if (one >= 0) idle(() => { levelCanvas(one); }); }); });
   };
   idle(slice);
 };

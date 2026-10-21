@@ -16,6 +16,7 @@ import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { timeOfDay, skyRamp, farTint, type TimeOfDay } from '../../timeOfDay';
 import { bandedGradient, hazeBands, checker, steppedGlow } from '../../../m1/game/render/pixelArt';
 import { drawGiantAtom } from '../square/sky';
+import { idleJob } from '../../../m1/game/scenes/art/raster';
 import { type Far, type Piece, type RangeLook, skyline as skylineStrip, piece, monorail, parkGround, mist, range, snap2, wave, jag } from '../farArt';
 
 type Ctx = CanvasRenderingContext2D;
@@ -70,7 +71,7 @@ const LAND = ['#24481F', '#2E5E2A', '#3D7A33', '#55903A', '#7E9A48', '#A8955A', 
 const CLOUD = ['#9FB3CC', '#C9D6E8', '#E6EEF8', '#FFFFFF'];
 const HAZE = '#A5D8F5';
 let earth: HTMLCanvasElement | null = null;
-const paintEarth = () => {
+function* earthRows(): Generator<void, HTMLCanvasElement> {
   const c = canvas(EW, EH), g = c.getContext('2d')!, img = g.createImageData(EW, EH), d = img.data;
   const CELL = 120;
   for (let j = 0; j < EH; j++) {
@@ -103,10 +104,11 @@ const paintEarth = () => {
       const v = rgb(col), o = (j * EW + i) * 4;
       d[o] = v[0]; d[o + 1] = v[1]; d[o + 2] = v[2]; d[o + 3] = 255;
     }
+    yield;
   }
   g.putImageData(img, 0, 0);
   return c;
-};
+}
 /** The atmosphere over the limb, in steps of blue (painted the once: the limb's curve doesn't move). */
 const ATMO_UP = 34, ATMO_DOWN = 4;
 const ATMO = ['#F0F9FF', '#CFEFFF', '#9EDCFA', '#6CC5F2', '#3F9FE6', '#2A6FD0', '#2449A6', '#1E2F78', '#1A1F52', '#141436'];
@@ -141,7 +143,7 @@ const getLimb = () => {
   p.lineTo(W + 10, H + 400); p.lineTo(-10, H + 400); p.closePath();
   return (limbPath = p);
 };
-const ensureEarth = () => { earth ??= paintEarth(); atmo ??= paintAtmo(); };
+const ensureEarth = () => { earth ??= finish('earth', earthRows); atmo ??= paintAtmo(); };
 
 /**
  * The Earth below, its limb's middle at screen y `L`, panned `pan` px (its nearest band; further ones less: depth).
@@ -252,7 +254,7 @@ const NW = 900, NH = 300;
 const NEB_A = ['#160A26', '#24103E', '#381656', '#521C6C', '#72247E', '#963088', '#BC4A92', '#E07AAE', '#FBB8D2'];
 const NEB_B = ['#06121F', '#0A2034', '#0E304A', '#124462', '#185C78', '#22788C', '#3A98A2', '#6CBCBC', '#B2E6DA'];
 let nebula: HTMLCanvasElement | null = null;
-const paintNebula = () => {
+function* nebulaRows(): Generator<void, HTMLCanvasElement> {
   const c = canvas(NW, NH), g = c.getContext('2d')!, img = g.createImageData(NW, NH), d = img.data;
   const P = 9;
   for (let j = 0; j < NH; j++) {
@@ -279,6 +281,7 @@ const paintNebula = () => {
       const v = rgb(col);
       d[o] = v[0]; d[o + 1] = v[1]; d[o + 2] = v[2]; d[o + 3] = 255;
     }
+    yield;
   }
   g.putImageData(img, 0, 0);
   // (young stars in the thick of it: bright, a cross of light on the biggest)
@@ -290,12 +293,12 @@ const paintNebula = () => {
     if (big) { g.fillStyle = 'rgba(255, 220, 240, 0.55)'; g.fillRect(x - 2, y, 5, 1); g.fillRect(x, y - 2, 1, 5); }
   }
   return c;
-};
+}
 /** The nebulae, `pan` screen px across (their own slow drift already put in: pass the camera's), at `alpha`, the
  *  tile's middle at screen y `cy`. */
 export const drawNebula = (c: Ctx, pan: number, cy = H * 0.42, alpha = 1) => {
   if (typeof document === 'undefined' || alpha <= 0) return;
-  nebula ??= paintNebula();
+  nebula ??= finish('nebula', nebulaRows);
   const tile = NW * PX;
   const off = Math.round(-((((pan * 0.12) % tile) + tile) % tile) / PX) * PX;
   c.save(); c.imageSmoothingEnabled = false; c.globalAlpha = alpha;
@@ -566,8 +569,40 @@ export const drawOrbitBack = (c: Ctx, state: GameState, pan: number, L = 470) =>
   drawEarth(c, L, pan * 0.6 + state.frame * 0.15, 140);
 };
 
-/** Paints everything up front (the stage's build), so the first look out isn't a hitch. */
+/** The big per-pixel paintings part done (prewarmSky's slices), each where it's got to. */
+const jobs = new Map<string, Generator<void, HTMLCanvasElement>>();
+/** The rest of a painting, now (it's wanted this frame). */
+const finish = (key: string, make: () => Generator<void, HTMLCanvasElement>) => {
+  const j = jobs.get(key) ?? make();
+  let r = j.next();
+  while (!r.done) r = j.next();
+  jobs.delete(key);
+  return r.value;
+};
+/** A few rows more of one, till `until`: the canvas once it's done, else null. */
+const slice = (key: string, make: () => Generator<void, HTMLCanvasElement>, until: number) => {
+  let j = jobs.get(key);
+  if (!j) { j = make(); jobs.set(key, j); }
+  for (;;) { const r = j.next(); if (r.done) { jobs.delete(key); return r.value; } if (performance.now() >= until) return null; }
+};
+let warming = false;
+/** Paints everything ahead (from the land's build), a few rows per idle moment (a few ms: no stall loading Space Land,
+ *  where every section's built at once, and no hitch in play), so the first look out isn't a hitch. Wanted before it's
+ *  done, the rest's painted then (finish). */
 export const prewarmSky = () => {
-  if (typeof document === 'undefined') return;
-  ensureEarth(); ensureStars(); moon ??= paintMoon(); sun ??= paintSun(); nebula ??= paintNebula();
+  if (typeof document === 'undefined' || warming) return;
+  warming = true;
+  const steps: ((until: number) => boolean)[] = [
+    u => !!(earth ??= slice('earth', earthRows, u)),
+    () => !!(atmo ??= paintAtmo()),
+    () => !!(starsFar ??= paintStars(false)),
+    () => !!(starsNear ??= paintStars(true)),
+    () => !!(moon ??= paintMoon()),
+    () => !!(sun ??= paintSun()),
+    u => !!(nebula ??= slice('nebula', nebulaRows, u)),
+  ];
+  idleJob(until => {
+    while (steps.length) { if (!steps[0](until)) return false; steps.shift(); if (performance.now() >= until) break; }
+    return !steps.length;
+  });
 };

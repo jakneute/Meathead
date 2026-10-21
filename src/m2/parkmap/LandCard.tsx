@@ -8,6 +8,7 @@ import { ZOOMS, levelCanvas, landOutline } from './render';
 import { castPhotoImg } from './photos';
 import { remainsPhotoImg } from './remains';
 import { bossDeath } from '../store';
+import { idleTasks } from '../../m1/game/scenes/art/raster';
 
 // The hub's portal card, YOU ARE GOING HERE (up at a land's portal; the hub's own confirm and cancel, hub/index.ts):
 // a preview of that one land, not the park map: its corner of the brochure map close up (its landmarks, its walks,
@@ -15,6 +16,13 @@ import { bossDeath } from '../store';
 
 const W = 400, H = 420;
 const INK = '#3B2A14';
+
+/** The cards' photos (each a portrait painted then encoded for an <img>: a stall the moment a card came up), made ahead
+ *  one per idle moment. */
+export const prewarmLandCards = () => idleTasks(CAST.map(c => () => {
+  const dead = bossDeath(c.land);
+  if (dead) remainsPhotoImg(c.land, dead, 'small'); else castPhotoImg(c.land, 'small');
+}));
 
 const LandCard: React.FC<{ land: number }> = ({ land }) => {
   const ref = useRef<HTMLCanvasElement>(null);

@@ -17,6 +17,7 @@ import { mixOut } from '../../m1/game/platform/mixer';
 import { INSTRUMENTS, sampleAt, keyOf, zoneFor, want, isMade } from './bank/index';
 import { parseMML, type NoteEv, type CtrlEv } from './mml';
 import { reverbIR, type ReverbKind } from './fx';
+import { idleTasks } from '../../m1/game/scenes/art/raster';
 
 export interface Part {
   /** The instrument (bank/: MUSIC.md lists them). */
@@ -159,6 +160,14 @@ export const samplesFor = (song: Song, arr?: string): Set<string> => {
 };
 /** Starts making a song's samples in idle time (so it's ready when it's wanted). */
 export const prewarm = (song: Song) => { void want(samplesFor(song), false); };
+/** Makes the rooms' impulse responses in idle time, one a moment (a cathedral's ~6 s of tail, made the moment a song
+ *  in it started, landed in the next stage's fade-in as a stall). */
+export const prewarmRooms = () => {
+  if (!getCtx) return;
+  const c = getCtx();
+  if (c.state === 'closed') return;
+  idleTasks((['hall', 'room', 'plate', 'spring', 'cave', 'cathedral'] as ReverbKind[]).map(k => () => { reverbIR(c, k); }));
+};
 export const isReady = (song: Song) => [...samplesFor(song)].every(isMade);
 
 // ---- The chain ----
