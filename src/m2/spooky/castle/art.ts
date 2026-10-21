@@ -86,6 +86,10 @@ const LOOK: Record<RoomId, RoomLook> = {
 };
 
 const FLEUR = ['...#...', '..###..', '.#.#.#.', '##.#.##', '.#####.', '...#...', '..###..', '.#...#.'];
+/** The foyer's damask medallion, and its lit and shaded pixels. */
+const DAMASK = ['.....#.....', '....###....', '..#.###.#..', '.##..#..##.', '.###.#.###.', '..#######..', '....###....', '..#######..', '.###.#.###.', '.##..#..##.', '..#.###.#..', '....###....', '.....#.....'];
+const DAMASK_LIT = ['.....#.....', '....#......', '..#.#...#..', '.#.........', '.#...#.....', '..#........', '....#......', '..#........', '.#...#.....', '.#.........', '..#.#...#..', '....#......', '...........'];
+const DAMASK_SH = ['...........', '......#....', '........#..', '..#.....##.', '...#.....#.', '........#..', '......#....', '........#..', '...#.....#.', '..#.....##.', '........#..', '......#....', '...........'];
 const ROSE = ['.##.', '####', '####', '.##.', '..#.', '.##.'];
 const STAR = ['..#..', '.###.', '#####', '.#.#.'];
 const MOON = ['.##', '##.', '#..', '##.', '.##'];
@@ -94,13 +98,44 @@ const MOON = ['.##', '##.', '#..', '##.', '.##'];
 const paperFill = (g: Ctx, r: Room): CanvasPattern | string | null => {
   const W = rampOf(r.wall), kind = LOOK[r.id].paper;
   switch (kind) {
-    case 'damask': return tilePattern(g, `cPaper:${r.id}`, 32, 40, t => { for (const [x, y] of [[9, 4], [-7, 24], [25, 24]]) { bits(t, FLEUR, x, y + 2, W[0]); bits(t, FLEUR, x, y, mix(W[2], W[3], 0.6)); } });
+    case 'damask': return tilePattern(g, `cPaper:${r.id}`, 40, 64, t => {
+      // (flocked damask: the ground's pile in soft streaks, dithered; a big medallion raised on it in three tones, its
+      //  shadow dropped under, its lit pixels up and left; a small fleur between, half-dropped)
+      const o = [2, 2, 1, 2, 2, 2, 3, 2, 2, 1]; o.forEach((k, i) => { t.fillStyle = mix(W[k], W[2], 0.35); t.fillRect(i * 4, 0, 4, 64); });
+      t.fillStyle = W[1]; for (let y = 0; y < 64; y += 2) for (let x = (y >> 1) & 1; x < 40; x += 8) t.fillRect(x, y, 1, 1);
+      const med = (x: number, y: number) => {
+        bits(t, DAMASK, x + 1, y + 2, W[0]);
+        bits(t, DAMASK, x, y, mix(W[2], W[3], 0.85));
+        bits(t, DAMASK_LIT, x, y, mix(W[3], W[4], 0.55));
+        bits(t, DAMASK_SH, x, y, W[1]);
+      };
+      med(9, 4); med(-11, 36); med(29, 36);
+      bits(t, FLEUR, 16, 42, W[0]); bits(t, FLEUR, 16, 40, mix(W[2], W[3], 0.5));
+      bits(t, FLEUR, -4, 8, W[0]); bits(t, FLEUR, 36, 8, W[0]); bits(t, FLEUR, -4, 6, mix(W[2], W[3], 0.5)); bits(t, FLEUR, 36, 6, mix(W[2], W[3], 0.5));
+    });
     case 'rose': return tilePattern(g, `cPaper:${r.id}`, 28, 32, t => { for (const [x, y] of [[4, 4], [18, 20]]) { bits(t, ROSE, x, y + 2, W[0]); bits(t, ROSE.slice(0, 4), x, y, mix(W[2], '#C0506A', 0.35)); t.fillStyle = mix(W[2], '#3A6A3A', 0.5); t.fillRect(x + 4, y + 8, 2, 4); } });
     case 'moons': return tilePattern(g, `cPaper:${r.id}`, 48, 48, t => {
       t.fillStyle = mix(W[2], W[3], 0.4); for (let x = 0; x < 48; x += 24) t.fillRect(x, 0, 10, 48);
       bits(t, STAR, 13, 6, mix(W[2], '#E8D890', 0.4)); bits(t, MOON, 37, 30, mix(W[2], '#E8D890', 0.4));
     });
-    case 'stripe': return tilePattern(g, `cPaper:${r.id}`, 32, 8, t => { t.fillStyle = mix(W[2], W[3], 0.45); t.fillRect(0, 0, 12, 8); t.fillStyle = W[1]; t.fillRect(14, 0, 2, 8); t.fillRect(28, 0, 2, 8); t.fillStyle = mix(W[2], '#C9A227', 0.25); t.fillRect(20, 0, 2, 8); });
+    case 'stripe': return tilePattern(g, `cPaper:${r.id}`, 32, 24, t => {
+      // (Regency stripe: the wide stripe paler, its edges dithered, a little diamond-and-dot vine printed down it; the
+      //  ground between with a fine moiré; gilt pinstripes, each lit down one side and shadowed down the other)
+      t.fillStyle = W[2]; t.fillRect(0, 0, 32, 24);
+      t.fillStyle = mix(W[2], W[1], 0.5); for (let y = 0; y < 24; y += 2) for (let x = 16 + ((y >> 1) & 1) * 2; x < 32; x += 4) t.fillRect(x, y, 1, 1);
+      t.fillStyle = mix(W[2], W[3], 0.6); t.fillRect(1, 0, 12, 24);
+      t.fillStyle = mix(W[2], W[3], 0.3); for (let y = 0; y < 24; y += 2) { t.fillRect(((y >> 1) & 1) ? 0 : 13, y, 1, 1); t.fillRect(((y >> 1) & 1) ? 13 : 0, y + 1, 1, 1); }
+      t.fillStyle = W[1]; t.fillRect(6, 4, 2, 2); t.fillRect(5, 5, 4, 1); t.fillRect(6, 16, 2, 1);
+      t.fillStyle = mix(W[3], W[4], 0.5); t.fillRect(6, 3, 2, 1); t.fillRect(5, 4, 1, 1); t.fillRect(6, 15, 2, 1);
+      t.fillStyle = mix(W[2], '#3A6A4A', 0.35); t.fillRect(7, 8, 1, 6); t.fillRect(8, 10, 2, 1); t.fillRect(5, 12, 2, 1);
+      for (const px of [15, 28]) {
+        t.fillStyle = W[0]; t.fillRect(px - 1, 0, 1, 24);
+        t.fillStyle = mix(W[2], '#C9A227', 0.45); t.fillRect(px, 0, 2, 24);
+        t.fillStyle = mix('#F2D27A', W[3], 0.3); t.fillRect(px, 0, 1, 24);
+        t.fillStyle = W[0]; t.fillRect(px + 2, 0, 1, 24);
+      }
+      t.fillStyle = mix(W[2], '#C9A227', 0.3); for (let y = 2; y < 24; y += 6) t.fillRect(22, y, 1, 2);
+    });
     case 'velvet': return tilePattern(g, `cPaper:${r.id}`, 40, 48, t => {
       // (flocked velvet: the pile in soft vertical folds, a flocked fleur raised on it, its shadow under)
       const o = [1, 2, 2, 3, 2, 2, 1, 1, 0, 1]; o.forEach((k, i) => { t.fillStyle = W[k]; t.fillRect(i * 4, 0, 4, 48); });
@@ -125,6 +160,77 @@ const pilaster = (g: Ctx, x: number, top: number, bot: number, trim: string) => 
   // (its capital and its base)
   box(g, x - 19, top, 38, 14, T[1]); box(g, x - 19, top, 38, 3, T[3]); box(g, x - 17, top + 14, 34, 4, T[0]);
   box(g, x - 19, bot - 14, 38, 14, T[1]); box(g, x - 19, bot - 14, 38, 2, T[2]);
+};
+
+/** The wear down where it's seen (the band over the chair rail at his height): the damp tide line up from the rail,
+ *  a pale rub where shoulders and coats brush, the paper torn off in patches showing the plaster and the lath under,
+ *  a strip peeling and curling, a sconce's ghost and its screw holes, scuffs and scratches. */
+const lowWear = (g: Ctx, tx: number, W: string[], seed: number) => {
+  const PL = ['#4A3C34', '#6A584A', '#8A7662', '#A8947A', '#C4B094'];
+  // (the damp: up from the rail in a ragged tide line, dithered, its edge darker)
+  const damp = mix(W[1], '#2A2010', 0.4);
+  for (let x = tx; x < tx + TW; x += 4) {
+    const hgt = 26 + Math.round(Math.sin(x * 0.031 + seed) * 10 + hash(seed + x * 0.13) * 8);
+    checker(g, x, RAIL - 14 - hgt, 4, 8, damp);
+    box(g, x, RAIL - 14 - hgt + 8, 4, hgt - 8, damp);
+    box(g, x, RAIL - 14 - hgt, 4, 1, mix(damp, '#000000', 0.35));
+  }
+  // (a pale rub at shoulder height, dithered at both ends)
+  {
+    const rx = tx + 40 + Math.floor(hash(seed * 2.3) * (TW - 200)), rw = 90 + Math.floor(hash(seed * 4.1) * 70), ry = RAIL - 112;
+    const rub = mix(W[2], W[3], 0.45);
+    checker(g, rx, ry, rw, 14, rub); box(g, rx + 10, ry + 2, rw - 20, 10, rub); checker(g, rx + 10, ry + 2, rw - 20, 10, mix(rub, '#FFFFFF', 0.08), 1);
+  }
+  // (torn patches: the paper's edge inked and lit, the plaster under it stepped, its cracks, the lath showing in the
+  //  worst of them)
+  for (let i = 0; i < 2; i++) {
+    if (hash(seed + i * 6.1) < 0.35) continue;
+    const px = tx + 30 + Math.floor(hash(seed + i * 2.9) * (TW - 110)), py = RAIL - 60 - Math.floor(hash(seed + i * 3.7) * 150);
+    const pw = 26 + Math.floor(hash(seed + i * 1.3) * 30), ph = 18 + Math.floor(hash(seed + i * 9.7) * 22);
+    g.fillStyle = INK; g.beginPath();
+    g.moveTo(px, py + ph * 0.3); g.lineTo(px + pw * 0.3, py - 2); g.lineTo(px + pw * 0.7, py + 3); g.lineTo(px + pw + 2, py + ph * 0.4);
+    g.lineTo(px + pw * 0.8, py + ph + 2); g.lineTo(px + pw * 0.35, py + ph - 2); g.lineTo(px - 2, py + ph * 0.7); g.closePath(); g.fill();
+    g.fillStyle = PL[2]; g.beginPath();
+    g.moveTo(px + 2, py + ph * 0.3); g.lineTo(px + pw * 0.3, py); g.lineTo(px + pw * 0.7, py + 5); g.lineTo(px + pw - 1, py + ph * 0.4);
+    g.lineTo(px + pw * 0.8, py + ph); g.lineTo(px + pw * 0.35, py + ph - 4); g.lineTo(px + 1, py + ph * 0.7); g.closePath(); g.fill();
+    box(g, px + 4, py + Math.round(ph * 0.3), Math.round(pw * 0.5), 2, PL[3]); box(g, px + Math.round(pw * 0.3), py + 1, Math.round(pw * 0.3), 2, PL[4]);
+    checker(g, px + 4, py + ph - 8, pw - 8, 4, PL[1]);
+    if (hash(seed + i * 8.3) < 0.5) {
+      // (the lath: dark slats behind a hole in the plaster)
+      const lx = px + Math.round(pw * 0.35), ly = py + Math.round(ph * 0.35), lw = Math.max(8, Math.round(pw * 0.35)), lh = Math.max(8, Math.round(ph * 0.4));
+      box(g, lx - 1, ly - 1, lw + 2, lh + 2, PL[0]); box(g, lx, ly, lw, lh, '#1A100A');
+      for (let ly2 = ly + 1; ly2 < ly + lh - 1; ly2 += 4) { box(g, lx, ly2, lw, 2, '#5A3E26'); box(g, lx, ly2, lw, 1, '#7A5636'); }
+    }
+    // (a crack running off it)
+    let cx = px + pw, cy = py + Math.round(ph * 0.4);
+    for (let k = 0; k < 6; k++) { box(g, cx, cy, 2, 1, W[0]); cx += 2; cy += hash(seed + i + k * 0.7) < 0.5 ? 1 : -1; }
+    // (the paper's torn edge, curled back, its pale back)
+    box(g, px + Math.round(pw * 0.3), py - 3, Math.round(pw * 0.4), 2, mix(W[3], '#C8B89A', 0.55));
+  }
+  // (a strip peeling down at a seam, curled, its shadow on the wall under it)
+  {
+    const sx = tx + 64 - (tx % 64) + 64 * Math.floor(hash(seed * 5.3) * 4), sy = RAIL - 190 + Math.floor(hash(seed * 6.7) * 60);
+    if (sx < tx + TW - 24 && hash(seed * 7.9) < 0.7) {
+      box(g, sx + 2, sy + 4, 14, 40, mix(W[1], '#000000', 0.3));
+      g.fillStyle = INK; g.beginPath(); g.moveTo(sx + 1, sy); g.lineTo(sx + 14, sy + 4); g.lineTo(sx + 18, sy + 38); g.lineTo(sx + 1, sy + 30); g.closePath(); g.fill();
+      g.fillStyle = mix(W[3], '#C8B89A', 0.55); g.beginPath(); g.moveTo(sx + 2, sy + 2); g.lineTo(sx + 13, sy + 6); g.lineTo(sx + 16, sy + 35); g.lineTo(sx + 2, sy + 28); g.closePath(); g.fill();
+      box(g, sx + 3, sy + 3, 8, 1, mix(W[4], '#FFFFFF', 0.3)); checker(g, sx + 4, sy + 24, 10, 6, mix(W[2], '#8A7A60', 0.5));
+      box(g, sx + 12, sy + 34, 6, 3, mix(W[3], '#C8B89A', 0.3)); box(g, sx + 12, sy + 37, 6, 1, INK);
+    }
+  }
+  // (a sconce's ghost: the paper unfaded in its shape, two screw holes, a soot plume up from where the candle was)
+  if (hash(seed * 8.7) < 0.55) {
+    const gx = tx + 120 + Math.floor(hash(seed * 3.1) * (TW - 240)), gy = RAIL - 150;
+    box(g, gx - 7, gy, 14, 26, mix(W[2], W[3], 0.6)); checker(g, gx - 9, gy, 2, 26, mix(W[2], W[3], 0.6)); checker(g, gx + 7, gy, 2, 26, mix(W[2], W[3], 0.6));
+    box(g, gx - 1, gy + 5, 2, 2, INK); box(g, gx - 1, gy + 19, 2, 2, INK);
+    for (let k = 0; k < 5; k++) checker(g, gx - 4 - k, gy - 10 - k * 10, 8 + k * 2, 10, mix(W[1], '#000000', 0.25 - k * 0.04));
+  }
+  // (scuffs and scratches where chairs and luggage knock)
+  for (let i = 0; i < 9; i++) {
+    const sx = tx + Math.floor(hash(seed + i * 4.7) * (TW - 12)), sy = RAIL - 18 - Math.floor(hash(seed + i * 5.9) * 70);
+    const col = i % 3 ? mix(W[1], W[0], 0.5) : mix(W[3], '#C8B89A', 0.35);
+    for (let k = 0; k < 4 + (i % 4); k++) box(g, sx + k * 2, sy + (i % 2 ? k : -k), 2, 1, col);
+  }
 };
 
 /** One tile of a room's wall (x from tx to tx + TW, ceiling to floor). */
@@ -170,6 +276,7 @@ const paintWall = (g: Ctx, r: Room, tx: number) => {
       for (let k = 0; k < sw; k += 4) box(g, sx + k, top + 80 + sh * 0.6, 2, 6 + Math.floor(hash(sx + k) * sh * 0.4), stain);
       box(g, sx + 4, top + 80 + sh * 0.45, sw - 8, 2, mix(stain, '#000000', 0.3));
     }
+    if (r.id === 'foyer' || r.id === 'dining') lowWear(g, tx, W, seed);
     // (grime along the top of the chair rail, where hands and dust go)
     checker(g, tx, RAIL - 14, TW, 6, mix(W[1], W[0], 0.5)); box(g, tx, RAIL - 8, TW, 6, mix(W[1], W[0], 0.4));
     // (where a picture hung once: the paper unfaded behind it, the nail still in)
