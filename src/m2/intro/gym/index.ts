@@ -77,7 +77,7 @@ interface Gym {
   ductDir: number;
   /** The rooms whose G-men haven't come yet; who's coming down through the ceiling, where and when (frames); the
    *  tiles knocked out up there (till when). */
-  pending: Set<Room>;
+  pending: Set<number>;
   drops: { s: typeof SPAWNS[number]; i: number; x: number; at: number }[];
   holes: { x: number; until: number }[];
   /** What a trainer's saying, over his head. */
@@ -186,7 +186,7 @@ export const gymLayout: StageLayout = {
       things: OBSTACLES.map(o => ({ kind: o.kind, x: o.x, broken: 0, shots: 0 })), debris: [], rooms: new Map(), barked: new Set(),
       moved: false, spawnX: START_X, pad: null as unknown as Enemy, jet: null as unknown as Enemy,
       done: new Set(), shove: -1, punchesSeen: 0, mountBase: null, shover: null, sawShake: false, sawArc: false, ringHello: false, exitOpen: 0, ringSaid: null, ductDir: 0,
-      pending: new Set(ROOM_ORDER), drops: [], holes: [],
+      pending: new Set(SPAWNS.map((_, i) => i)), drops: [], holes: [],
     };
     state.stage = gym;
     setExitOpen(0);
@@ -310,19 +310,22 @@ const duct = (state: GameState, gym: Gym, controls: Controls): Controls => {
 
 /**
  * The G-men come room by room, where he can see them come (the user's: none pops in, or waits off the screen to be
- * knocked down by a body he never saw): once a room's whole lot would be on the screen at once, a ceiling tile rattles
- * and sheds dust over each of their spots, and down they drop through it, one after another, onto the floor, their
- * shelf, or (the slide room's) out past the duct, to crawl in under it.
+ * knocked down by a body he never saw), and early enough to be there as he walks in (the user's: not too late): as
+ * each one's spot comes onto the screen, a ceiling tile over it rattles and sheds dust a moment, and down he drops
+ * through it, onto the floor, his shelf, or (the slide room's) out past the duct, to crawl in under it. A room's lot
+ * come down one after another as it scrolls in, the near ones first.
  */
-const TELEGRAPH = 40, DROP_GAP = 14;
+const TELEGRAPH = 16, DROP_GAP = 8;
 const arrivals = (ctx: FrameContext, gym: Gym) => {
   const { state } = ctx;
   const cam = state.camera.x;
-  for (const r of [...gym.pending]) {
-    const lot = SPAWNS.map((s, i) => ({ s, i })).filter(o => o.s.room === r);
-    if (!lot.every(o => o.s.x > cam + 40 && o.s.x < cam + CANVAS_WIDTH - 40)) continue;
-    gym.pending.delete(r);
-    lot.forEach((o, k) => gym.drops.push({ ...o, x: o.s.x, at: state.frame + TELEGRAPH + k * DROP_GAP }));
+  let k = 0;
+  for (const i of [...gym.pending]) {
+    const s = SPAWNS[i];
+    // (its spot just in on the right of the screen, or anywhere on it: never one behind him, off the left)
+    if (!(s.x < cam + CANVAS_WIDTH - 30 && s.x > cam + 20)) continue;
+    gym.pending.delete(i);
+    gym.drops.push({ s, i, x: s.x, at: state.frame + TELEGRAPH + k++ * DROP_GAP });
   }
   for (const d of gym.drops) if (d.at - state.frame < TELEGRAPH && state.frame % 4 === 0) state.particles.push({ pos: { x: d.x + (Math.random() - 0.5) * 40, y: CEIL_Y + 2 }, vel: { x: 0, y: 0.6 + Math.random() }, life: 50, color: '#B8B2A0', size: 1.5 + Math.random() * 2 });
   gym.drops = gym.drops.filter(d => {
@@ -375,7 +378,9 @@ const gmen = (state: GameState, gym: Gym) => {
         break;
       }
       case 'cower': {
-        const to = (job as { runTo?: number }).runTo;
+        // (running for the room's end, but never off the screen: they cower at its edge if that comes first)
+        const want = (job as { runTo?: number }).runTo, cam = state.camera.x;
+        const to = want === undefined ? undefined : Math.max(cam + 60, Math.min(cam + CANVAS_WIDTH - 70, want));
         if (g.pose === 'flee' && to !== undefined && Math.abs(to - ex) > 4) { const dir = Math.sign(to - ex) as 1 | -1; e.pos.x += dir * FLEE; e.facing = dir; e.vel.x = dir * 0.01; break; }
         g.pose = 'cower'; e.facing = face; e.vel.x = 0;
         break;
@@ -418,7 +423,7 @@ const ring = (ctx: FrameContext, gym: Gym, controls: Controls): Controls => {
   // jetpack one, who flies up to his height)
   if (!gym.pad) {
     const cam = state.camera.x;
-    if (!(PAD_X > cam + 40 && JET_X < cam + CANVAS_WIDTH - 40)) return controls;
+    if (!(PAD_X > cam + 20 && JET_X < cam + CANVAS_WIDTH - 30)) return controls;
     gym.pad = addG(state, gym, GPAD, PAD_X, CEIL_Y + 8 + 70, 404, 'pad');
     gym.jet = addG(state, gym, GJET, JET_X, CEIL_Y + 8 + 70, 919, 'jet');
     for (const e of [gym.pad, gym.jet]) { e.maxHealth = 60; e.health = 9999; e.vel = { x: 0, y: 1.5 }; e.pauseTimer = 40; gym.holes.push({ x: e.pos.x + e.width / 2, until: state.frame + 240 }); }
