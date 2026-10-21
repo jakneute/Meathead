@@ -490,6 +490,25 @@ const drawFlats = (c: Ctx, x: number, w: number) => {
     for (let k = 0; k < w; k += 120) {
       const sw = Math.min(120, w - k), sx = x + k, base = mix(PLY[2], PLY[3], hash(sx * 0.37) * 0.45);
       box(g, sx, FLAT_TOP, sw, H, base);
+      // (two 4x8 sheets stacked, each its own tone: lit a step toward its top, shaded a step at its foot, dithered
+      // between; the butt joint across, a dark gap over a lit edge)
+      const seam = FLAT_TOP + 236, top2 = mix(base, PLY[4], 0.16 + hash(sx * 1.9) * 0.1), foot = mix(base, PLY[1], 0.3);
+      for (const [y0, y1] of [[FLAT_TOP, seam], [seam, GY]] as const) {
+        const hh = y1 - y0, b = y0 === FLAT_TOP ? base : mix(base, PLY[2], 0.25);
+        box(g, sx, y0, sw, hh, b);
+        box(g, sx, y0 + 4, sw, Math.round(hh * 0.28), top2); checker(g, sx, y0 + 4 + Math.round(hh * 0.28), sw, 2, top2, 0, 2);
+        box(g, sx, y1 - Math.round(hh * 0.22), sw, Math.round(hh * 0.22), foot); checker(g, sx, y1 - Math.round(hh * 0.22) - 2, sw, 2, foot, 1, 2);
+      }
+      box(g, sx, seam - 1, sw, 2, PLY[0]); box(g, sx, seam + 1, sw, 1, PLY[4]);
+      // (the screws along the sheets' edges and across the seam, each a dark dot with a glint)
+      for (let y = FLAT_TOP + 14; y < GY - 8; y += 22) for (const scx of [sx + 11, sx + sw - 5]) { box(g, scx, y, 2, 2, PLY[0]); box(g, scx, y, 1, 1, '#B8A88C'); }
+      for (let xx = sx + 20; xx < sx + sw - 8; xx += 24) { box(g, xx, seam - 5, 2, 2, PLY[0]); box(g, xx, seam + 4, 2, 2, PLY[0]); }
+      // (scenic paint got on it: drips and spatters from the show side's colors, scuffs at boot height)
+      for (let j = 0; j < 3; j++) if (hash(sx * 4.1 + j) > 0.5) {
+        const px = sx + 14 + hash(sx + j * 5.7) * (sw - 28), py = FLAT_TOP + 60 + hash(sx * 2.3 + j) * (H - 160), pc = ['#7C3AED', '#DB2777', '#0D9488', '#CA8A04'][(j + Math.round(sx)) % 4];
+        pixelBlob(g, px, py, 4 + hash(j + sx) * 4, 3, mix(pc, base, 0.35)); for (let d = 0; d < 6 + hash(px) * 12; d += 2) box(g, px + ((d >> 1) % 2), py + 2 + d, 1, 2, mix(pc, base, 0.45));
+      }
+      for (let j = 0; j < 5; j++) { const fx = sx + hash(sx * 6.1 + j) * (sw - 14); box(g, fx, GY - 34 - hash(j + sx * 2) * 30, 8 + hash(fx) * 8, 2, mix(base, PLY[0], 0.4)); }
       // (the grain: long streaks; a knot or two)
       for (let j = 0; j < 30; j++) {
         const gy = FLAT_TOP + 4 + hash(sx + j * 7.1) * (H - 8), gx = sx + hash(sx * 3 + j) * sw * 0.8;
@@ -515,7 +534,12 @@ const drawFlats = (c: Ctx, x: number, w: number) => {
       if (hash(sx * 2.3) > 0.5) { box(g, sx + 80, FLAT_TOP + 300, 26, 5, '#3F3F46'); box(g, sx + 80, FLAT_TOP + 300, 26, 1, '#71717A'); }
     }
     // (the rails across: 2x4s, lit along their tops, a shadow under each)
-    for (const ry of [FLAT_TOP + 90, GY - 130]) { box(g, x, ry, w, 8, LUMBER[2]); box(g, x, ry, w, 2, LUMBER[4]); box(g, x, ry + 6, w, 2, LUMBER[1]); checker(g, x, ry + 8, w, 2, PLY[0]); }
+    for (const ry of [FLAT_TOP + 90, GY - 130]) {
+      box(g, x, ry, w, 8, LUMBER[2]); box(g, x, ry, w, 2, LUMBER[4]); box(g, x, ry + 6, w, 2, LUMBER[1]); checker(g, x, ry + 8, w, 2, PLY[0]);
+      // (the rail's grain and its nail heads; spike tape where a crew marked it)
+      for (let d = 6; d < w - 6; d += 17) { box(g, x + d, ry + 3, 6 + (d % 5), 1, LUMBER[1]); if (d % 3 === 0) box(g, x + d + 8, ry + 4, 1, 1, '#2A2622'); }
+      for (let d = 40; d < w - 20; d += 260) box(g, x + d + hash(x + d + ry) * 60, ry + 2, 10, 4, ['#FDE047', '#F472B6', '#67E8F9'][Math.round(d / 260) % 3]);
+    }
     // (the show side's black paint, come over the top and run)
     box(g, x, FLAT_TOP, w, 4, '#0B0B12'); checker(g, x, FLAT_TOP + 4, w, 2, '#0B0B12');
     for (let d = 0; d < w; d += 13) if (hash(x + d * 1.3) > 0.62) box(g, x + d, FLAT_TOP + 4, 2, 4 + hash(d + x) * 22, '#0B0B12');
@@ -895,9 +919,38 @@ const drawQueueBack = (c: Ctx, state: GameState, hj: Hijack) => {
   stamp(c, 'atom-queue-wall', QUEUE_DOOR - 24, GY - 466, TUNNEL_X - QUEUE_DOOR + 270, 466, g => {
     const x0 = QUEUE_DOOR - 20, w = TUNNEL_X - QUEUE_DOOR + 260;
     bandedGradient(g, x0, GY - 460, w, 460, ['#0B1236', '#172554', '#1E3A8A', '#1E40AF', '#1E3A8A'], 10);
-    for (let x = x0 + 60; x < x0 + w; x += 150) { box(g, x - 1, GY - 440, 10, 380, INK); box(g, x, GY - 440, 8, 380, '#94A3B8'); box(g, x, GY - 440, 2, 380, '#E2E8F0'); box(g, x + 6, GY - 440, 2, 380, '#475569'); }
+    // (between the fins: tall inset panels, beveled (lit top and left, shaded right and foot), a lighter field in each
+    // banded down it; a mural strip across their tops: ringed planets, a rocket on its exhaust, orbits dotted round)
+    for (let x = x0 + 60; x < x0 + w - 20; x += 150) {
+      const px = x + 18, pw = 114, pt = GY - 420, ph = 270;
+      box(g, px - 1, pt - 1, pw + 2, ph + 2, '#0B1236');
+      bandedGradient(g, px, pt, pw, ph, ['#1E3A8A', '#1D4ED8', '#1E40AF', '#1E3A8A', '#172554'], 6);
+      box(g, px, pt, pw, 2, '#60A5FA'); box(g, px, pt, 2, ph, '#3B82F6'); box(g, px + pw - 2, pt, 2, ph, '#0F1E5A'); box(g, px, pt + ph - 2, pw, 2, '#0F1E5A');
+      checker(g, px + 2, pt + ph - 6, pw - 4, 4, '#172554', 0, 2);
+      // (the mural, in a paler blue, dithered at its edges)
+      const k = Math.round((x - x0) / 150), cx = px + pw / 2, cy = pt + 60;
+      if (k % 3 === 0) {
+        g.fillStyle = '#3B82F6'; g.beginPath(); g.arc(cx, cy, 20, 0, Math.PI * 2); g.fill(); g.fillStyle = '#60A5FA'; g.beginPath(); g.arc(cx - 5, cy - 5, 13, 0, Math.PI * 2); g.fill(); box(g, cx - 10, cy - 12, 4, 3, '#BFDBFE');
+        g.strokeStyle = '#93C5FD'; g.lineWidth = 2; g.beginPath(); g.ellipse(cx, cy, 34, 8, -0.25, 0.1, Math.PI - 0.1); g.stroke();
+      } else if (k % 3 === 1) {
+        g.save(); g.translate(cx, cy); g.rotate(-0.5);
+        box(g, -6, -26, 12, 40, '#60A5FA'); box(g, -6, -26, 4, 40, '#93C5FD'); g.fillStyle = '#93C5FD'; g.beginPath(); g.moveTo(-6, -26); g.lineTo(0, -40); g.lineTo(6, -26); g.fill();
+        g.fillStyle = '#3B82F6'; g.beginPath(); g.moveTo(-6, 6); g.lineTo(-14, 18); g.lineTo(-6, 14); g.fill(); g.beginPath(); g.moveTo(6, 6); g.lineTo(14, 18); g.lineTo(6, 14); g.fill();
+        box(g, -2, -14, 4, 4, '#1E3A8A'); for (let e = 0; e < 4; e++) checker(g, -4 + e, 16 + e * 4, 8 - e * 2, 4, '#93C5FD', e % 2, 2);
+        g.restore();
+      } else {
+        for (let o = 0; o < 3; o++) { g.strokeStyle = o === 1 ? '#93C5FD' : '#3B82F6'; g.lineWidth = 1; g.beginPath(); g.ellipse(cx, cy, 30, 11, o * 1.05, 0, Math.PI * 2); g.stroke(); }
+        g.fillStyle = '#BFDBFE'; g.beginPath(); g.arc(cx, cy, 5, 0, Math.PI * 2); g.fill();
+      }
+      for (let d = 0; d < 9; d++) box(g, px + 10 + hash(k * 7 + d) * (pw - 20), pt + 14 + hash(k * 3 + d * 1.7) * 110, 1, 1, d % 3 ? '#93C5FD' : '#E0F2FE');
+    }
+    for (let x = x0 + 60; x < x0 + w; x += 150) { box(g, x - 1, GY - 440, 10, 380, INK); box(g, x, GY - 440, 8, 380, '#94A3B8'); box(g, x, GY - 440, 2, 380, '#E2E8F0'); box(g, x + 6, GY - 440, 2, 380, '#475569'); for (let y = GY - 430; y < GY - 70; y += 40) { box(g, x + 1, y, 6, 2, '#475569'); box(g, x + 1, y, 6, 1, '#F1F5F9'); } }
     for (let i = 0; i < 14; i++) star(g, x0 + 90 + i * 77 + hash(i) * 30, GY - 380 + hash(i * 3.7) * 140, 5, '#3B82F6');
-    box(g, x0, GY - 60, w, 60, '#172554'); box(g, x0, GY - 60, w, 3, '#60A5FA');
+    // (the chair rail: chrome, lit along its top; the wainscot under it ribbed in navy)
+    box(g, x0, GY - 146, w, 8, INK); box(g, x0, GY - 145, w, 6, '#94A3B8'); box(g, x0, GY - 145, w, 2, '#F1F5F9'); box(g, x0, GY - 140, w, 1, '#475569');
+    box(g, x0, GY - 138, w, 78, '#14205A'); for (let x = x0; x < x0 + w; x += 12) { box(g, x, GY - 138, 2, 78, '#1E3A8A'); box(g, x + 2, GY - 138, 1, 78, '#0B1236'); }
+    checker(g, x0, GY - 138, w, 4, '#0B1236', 0, 2);
+    box(g, x0, GY - 60, w, 60, '#172554'); box(g, x0, GY - 60, w, 3, '#60A5FA'); checker(g, x0, GY - 57, w, 2, '#1E3A8A', 0, 2);
     // (the switchback's rail posts, chrome, along the line)
     for (let x = LINE_X0; x <= LINE_X1; x += 80) { cyl(g, x, GY - 68, 5, 68, '#94A3B8', 'y'); box(g, x - 3, GY - 3, 11, 3, '#475569'); }
   });

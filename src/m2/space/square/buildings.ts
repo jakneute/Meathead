@@ -266,13 +266,45 @@ const roofSide = (c: Ctx, eye: { x: number; y: number }, b: Block, side: 1 | -1 
 // ---------------------------------------------------------------------------------------------------------------
 // A shop's front
 
+/** The stucco over a wall's slab (local coords, foot at 0): banded light down it (bright under the eaves' shadow, a
+ *  step darker toward the foot, dithered between), scored panel joints (lit edge over a dark one), quoins up both
+ *  corners, rain streaks run down from the trim band, a stipple of texture, a vent. */
+const stucco = (g: Ctx, w: number, h: number, R: string[], seed: number) => {
+  const mid = mix(R[3], R[2], 0.5);
+  // (light in bands: the top third a touch lit, the foot third a step down)
+  const b1 = -h + Math.round(h * 0.34), b2 = -h + Math.round(h * 0.68);
+  box(g, 5, -h + 2, w - 10, b1 + h - 2, mix(R[3], R[4], 0.22)); checker(g, 5, b1, w - 10, 2, mix(R[3], R[4], 0.22), 0, 2);
+  box(g, 5, b2 + 2, w - 10, -b2 - 16, mid); checker(g, 5, b2, w - 10, 2, mid, 0, 2);
+  // (the scored joints: courses across, staggered verticals; each a dark line with a lit one under it)
+  for (let y = -h + 40, row = 0; y < -18; y += 26, row++) {
+    box(g, 5, y, w - 10, 1, R[2]); box(g, 5, y + 1, w - 10, 1, R[4]);
+    for (let x = (row % 2 ? 30 : 58); x < w - 8; x += 56) { box(g, x, y - 25, 1, 25, R[2]); box(g, x + 1, y - 25, 1, 25, R[4]); }
+  }
+  // (quoins: blocks up each corner, alternating long and short, lit tops, shaded feet)
+  for (let y = -h + 32, k = 0; y < -12; y += 18, k++) for (const [qx, qw] of [[0, k % 2 ? 10 : 16], [w - (k % 2 ? 10 : 16), k % 2 ? 10 : 16]] as const) {
+    box(g, qx, y, qw, 16, R[4]); box(g, qx, y, qw, 1, R[5]); box(g, qx, y + 15, qw, 1, R[1]); box(g, qx + (qx ? 0 : qw - 1), y, 1, 16, R[2]);
+  }
+  // (the texture: a fine stipple, light and dark)
+  for (let i = 0; i < (w * h) / 160; i++) box(g, 4 + hash(seed + i * 1.3) * (w - 8), -h + 2 + hash(seed + i * 2.9) * (h - 4), 1 + (i % 2), 1, i % 3 ? R[2] : R[5]);
+  // (streaks run down from the trim band: dithered, fading)
+  for (let k = 0; k < 4; k++) {
+    const sx = 20 + hash(seed * 1.7 + k) * (w - 40), len = 20 + hash(seed + k * 3.3) * 40;
+    for (let y = 0; y < len; y += 2) box(g, sx + ((y >> 1) % 2), -h + 31 + y, 1, 1, y < len * 0.6 ? R[1] : R[2]);
+  }
+  // (a vent up high, louvered)
+  if (w > 180) {
+    const vx = Math.round(w * 0.5 + hash(seed) * 20 - 10) - 9;
+    box(g, vx - 1, -h + 33, 20, 9, INK); box(g, vx, -h + 34, 18, 7, R[1]); for (let l = 0; l < 3; l++) box(g, vx + 1, -h + 35 + l * 2, 16, 1, R[4]);
+  }
+};
+
 /** A shop's front, painted flat in its own coordinates: its foot at (0, 0), x across 0..w. */
 export const paintShopFront = (g: Ctx, sh: Shop) => {
   const { w, h } = sh, R = ramp6(sh.wall), T = ramp6(sh.trim), glass = glassOf(), seed = sh.name.length * 13 + w;
   // The wall: stucco, stepped; louvers up its top (the googie sunshade) if there's room
   box(g, -2, -h - 2, w + 4, h + 2, INK);
   slab(g, 0, -h, w, h, R);
-  for (let i = 0; i < (w * h) / 220; i++) box(g, hash(seed + i * 1.3) * w, -h + hash(seed + i * 2.9) * h, 2, 1, i % 3 ? R[2] : R[4]);
+  stucco(g, w, h, R, seed);
   // (the trim band, lit along its top; a row of studs)
   box(g, 0, -h + 22, w, 9, INK); box(g, 0, -h + 23, w, 7, T[3]); box(g, 0, -h + 23, w, 2, T[5]); box(g, 0, -h + 29, w, 1, T[1]);
   for (let x = 6; x < w - 4; x += 14) box(g, x, -h + 25, 2, 2, T[5]);

@@ -302,6 +302,7 @@ const drawGroundNear = (c: Ctx, v: View) => {
 };
 const isWalk = (x: number) => PLAZAS.some(([a, b]) => x >= a && x < b);
 const paintNear = (g: Ctx, tx: number) => {
+  const stones: [number, number, number][] = [];
   for (let x = tx; x < tx + 400; x += 2) {
     const y = Math.round(floorAt(x + 1)), inBowl = x > BOWL.a && x < BOWL.d, furrow = x <= BOWL.a, walk = !inBowl && !furrow && isWalk(x);
     const R = inBowl ? DIRT : furrow ? SCORCH.concat(DIRT[4], DIRT[5]) : walk ? WALK : LAWN;
@@ -315,10 +316,20 @@ const paintNear = (g: Ctx, tx: number) => {
       box(g, x, y, 2, 2, R[6]); box(g, x, y + 2, 2, 2, R[5]);
     } else if (inBowl || furrow) {
       // (turned-up dirt: bands down, clods)
-      box(g, x, y, 2, 330, R[3]); box(g, x, y + 16, 2, 330, R[2]); box(g, x, y + 46, 2, 300, R[1]);
+      // (strata: each band a step darker, dithered into the next, wavering a little; a deep band near black)
+      const wv = Math.round(Math.sin(x * 0.031) * 3 + Math.sin(x * 0.007) * 4);
+      box(g, x, y, 2, 330, R[3]); box(g, x, y + 16 + wv, 2, 330, R[2]); box(g, x, y + 46 + wv, 2, 300, R[1]); box(g, x, y + 120 + wv * 2, 2, 220, DIRT[0]);
+      const odd = (x >> 1) % 2;
+      box(g, x, y + 14 + wv + odd * 2, 2, 2, R[2]); box(g, x, y + 44 + wv - odd * 2, 2, 2, R[1]); box(g, x, y + 116 + wv * 2 + odd * 2, 2, 2, DIRT[0]);
+      // (a thin pale clay seam through the middle band)
+      if (hash(x * 0.013) > 0.3) box(g, x, y + 30 + wv, 2, 1, mix(R[2], DIRT[5], 0.4));
       if (hash(x * 0.71) < 0.22) box(g, x, y + 6 + Math.floor(hash(x) * 30), 3, 2, R[0]);
       if (hash(x * 0.37) < 0.1) box(g, x, y + 4 + Math.floor(hash(x * 3) * 40), 2, 2, R[4]);
+      if (hash(x * 0.91) < 0.14) box(g, x, y + 54 + Math.floor(hash(x * 5) * 60), 2, 1, R[2]);
       box(g, x, y, 2, 2, furrow ? DIRT[5] : DIRT[6]); box(g, x, y + 2, 2, 2, furrow ? DIRT[4] : DIRT[5]);
+      // (stones in it, every so often: painted after, over the columns)
+      if ((x - D) % 26 < 2 && hash(x * 0.29) > 0.45) stones.push([x, y + 20 + Math.floor(hash(x * 1.7) * 80), 2 + Math.floor(hash(x * 2.3) * 4)]);
+      if (!furrow && hash(x * 0.19) < 0.05) for (let r = 0; r < 14 + hash(x) * 16; r += 2) box(g, x + Math.round(Math.sin(r * 0.4 + x) * 2), y + 4 + r, 1, 2, DIRT[1]);
     } else {
       // (the lawn: mowed in stripes toward him, blades along its lip)
       const stripe = Math.floor((x - D) / 48) % 2;
@@ -327,6 +338,13 @@ const paintNear = (g: Ctx, tx: number) => {
       box(g, x, y, 2, 2, R[6]); box(g, x, y + 2, 2, 1, R[5]);
       if (hash(x * 0.37) < 0.35) box(g, x + 1, y - 2 - Math.floor(hash(x * 2.1) * 2), 1, 2, R[5]);
     }
+  }
+  // (the stones, inked, lit on top, a shadow under)
+  for (const [x, sy, sr] of stones) {
+    g.fillStyle = DIRT[0]; g.beginPath(); g.ellipse(x + 1, sy + 1, sr + 2, sr + 1, 0, 0, Math.PI * 2); g.fill();
+    g.fillStyle = '#6E6A64'; g.beginPath(); g.ellipse(x, sy, sr + 1, sr, 0, 0, Math.PI * 2); g.fill();
+    g.fillStyle = '#9A958C'; g.beginPath(); g.ellipse(x - 1, sy - 1, sr * 0.7, sr * 0.5, 0, 0, Math.PI * 2); g.fill();
+    box(g, x - 1, sy - sr + 1, 1, 1, '#D2CCC0');
   }
 };
 

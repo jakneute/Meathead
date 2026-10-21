@@ -124,8 +124,24 @@ const walkBack = (c: Ctx, v: View, xa: number, xb: number) => {
     if (i) { const [lx, sy] = at(eye, L, GY, d0), [rx] = at(eye, R, GY, d0); checker(c, lx, sy - 1, rx - lx, 2, tint(P[[5, 4, 4, 3, 3, 2][i - 1]], 0.5, d0)); }
   }
   const dAt = (j: number) => 1 - (1 - d) * (1 - Math.pow(1 - j / 10, 1.4));
+  // (the nearer pavers a tone apart, every other one in a checker: laid, not poured)
+  for (let j = 0; j < 4; j++) {
+    const d0 = dAt(j), d1 = dAt(j + 1), col = tint(P[[5, 4, 4, 3][j]], 0.5, d0);
+    c.fillStyle = mix(col, tint(P[3], 0.5, d0), 0.5); c.beginPath();
+    for (let x = Math.ceil(L / 48) * 48 + (j % 2) * 48; x < R; x += 96) {
+      const xx = x + (j % 2) * 24, [ax, ay] = at(eye, xx, GY, d0), [bx] = at(eye, xx + 48, GY, d0), [cx2, cy] = at(eye, xx + 48, GY, d1), [dx] = at(eye, xx, GY, d1);
+      c.moveTo(ax, ay); c.lineTo(bx, ay); c.lineTo(cx2, cy); c.lineTo(dx, cy); c.closePath();
+    }
+    c.fill();
+  }
   // (the stripes inlaid across it: pink, a teal one behind)
-  for (const [j0, j1, col] of [[1.2, 1.9, PINK[3]], [2.2, 2.6, TEAL[3]], [6.4, 6.8, PINK[2]]] as const) back(c, eye, L, R, GY, dAt(j0), dAt(j1), tint(col, 0.5, dAt(j0)));
+  for (const [j0, j1, col] of [[1.2, 1.9, PINK[3]], [2.2, 2.6, TEAL[3]], [6.4, 6.8, PINK[2]]] as const) {
+    back(c, eye, L, R, GY, dAt(j0), dAt(j1), tint(col, 0.5, dAt(j0)));
+    // (each inlay's near edge lit, its far edge in shade: set into the walk, not painted on)
+    const [lx, ly] = at(eye, L, GY, dAt(j0)), [rx] = at(eye, R, GY, dAt(j0)), [fx, fy] = at(eye, L, GY, dAt(j1)), [gx] = at(eye, R, GY, dAt(j1));
+    box(c, lx, ly - 1, rx - lx, 1, tint(col === TEAL[3] ? TEAL[5] : PINK[5], 0.5, dAt(j0)));
+    box(c, fx, fy, gx - fx, 1, tint(col === TEAL[3] ? TEAL[1] : PINK[1], 0.5, dAt(j1)));
+  }
   // (rows of seams across, closer together going back)
   c.fillStyle = tint(P[1], 0.5, 0.8);
   for (let j = 1; j < 10; j++) { const [lx, ly] = at(eye, L, GY, dAt(j)), [rx] = at(eye, R, GY, dAt(j)); c.fillRect(Math.round(lx), Math.round(ly), Math.round(rx - lx), 1); }
@@ -213,7 +229,15 @@ const pitBack = (c: Ctx, v: View, p: Pit) => {
     for (let k = -3; k <= 3; k++) { c.fillStyle = '#1A2430'; c.beginPath(); c.arc(k * 26, 2, 5, 0, Math.PI * 2); c.fill(); }
     box(c, -110, -4, 220, 3, '#B8C040');
     c.restore();
-    for (let i = 0; i < 6; i++) { const wx = p.a + 80 + i * (p.b - p.a - 160) / 5; pixelBlob(c, wx, GY + 360 + hash(i) * 20, 30, 3, '#1A3A4A'); }
+    for (let i = 0; i < 6; i++) { const wx = p.a + 80 + i * (p.b - p.a - 160) / 5; pixelBlob(c, wx, GY + 360 + hash(i) * 20, 30, 3, '#1A3A4A'); box(c, wx - 10, GY + 359 + hash(i) * 20, 12, 1, mix('#7ABCD4', haze, 0.3)); }
+    // (the far wall's pool tile: its grout in a grid, a band of mosaic along the old waterline, the steel ladder
+    // down it, the depth painted on in big numbers)
+    const L0 = Math.max(ax, v.v0 - 40), R0 = Math.min(bx, v.v1 + 40);
+    for (let x = Math.ceil(L0 / 14) * 14; x < R0; x += 14) box(c, x, fy + 2, 1, 150, mix('#2A5A70', '#000000', 0.25));
+    for (let y = fy + 12; y < fy + 150; y += 12) box(c, L0, y, R0 - L0, 1, mix('#2A5A70', '#000000', 0.2 + (y - fy) / 400));
+    for (let x = Math.ceil(L0 / 8) * 8; x < R0; x += 8) box(c, x, fy + 14, 6, 4, ((x / 8) % 3) ? '#1E6A80' : '#3A92A8');
+    const lx = ax + 90; if (lx > L0 && lx < R0) { for (const sx of [lx, lx + 16]) box(c, sx, fy - 8, 2, 120, '#8AA0B0'); for (let y = fy + 4; y < fy + 112; y += 12) box(c, lx, y, 18, 2, '#6A8090'); }
+    for (const [nx, label] of [[ax + 160, '12 FT'], [bx - 200, '12 FT']] as const) if (nx > L0 && nx < R0) { c.font = '8px "Press Start 2P"'; c.fillStyle = '#0A1E2A'; c.fillText(label, Math.round(nx) + 1, Math.round(fy + 41)); c.fillStyle = '#9AC8D8'; c.fillText(label, Math.round(nx), Math.round(fy + 40)); }
   }
   for (let k = 0; k < 2; k++) hazeBands(c, p.a - 200, ay + 6 + k * 60, p.b - p.a + 400, 30, mix(haze, '#C8D0E0', 0.3), 0.0, 0.08 - k * 0.03, 4);
   c.restore();

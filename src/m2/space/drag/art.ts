@@ -9,7 +9,7 @@ import type { GameState } from '../../../m1/game/core/state';
 import type { Light } from '../../../m1/game/render/lighting';
 import { CANVAS_WIDTH } from '../../../m1/constants';
 import { SECTIONS, GY } from '../geometry';
-import { type Ctx, INK, box, checker, poly, still, inView, viewOf, board, slab, ramp6, lit, chromePole, starburst, ball, glassOf, CHROME, PINK, TEAL, LIP, mix } from '../square/paint';
+import { type Ctx, INK, box, checker, poly, still, inView, viewOf, board, slab, ramp6, lit, chromePole, starburst, ball, glassOf, CHROME, PINK, TEAL, LIP, ORANGE, mix } from '../square/paint';
 import { drawSky, drawClouds, drawBlimp, drawFarHills, drawFarSkyline, drawGiantAtom, drawNeedle, horizonY } from '../square/sky';
 import { drawGoingBack, drawPlayPlane, drawPitDressing, type Ground } from '../square/ground';
 import { type Shop, type Block, drawSides, drawShopFront, shopBlocks } from '../square/buildings';
@@ -109,13 +109,25 @@ const paintBase = (g: Ctx) => {
     poly(g, [[fx - 20, 0], [tx - 10, -560], [tx - 4, -560], [fx - 8, 0]], Lg[k + 1] ?? Lg[5]);
     poly(g, [[fx + 12, 0], [tx + 6, -560], [tx + 10, -560], [fx + 20, 0]], Lg[k - 1]);
     for (let u = 0.08; u < 1; u += 0.08) { const x = fx + (tx - fx) * u, y = -560 * u; box(g, x - 1, y, 2, 2, Lg[1]); }
+    // (the plates it's built of: a seam across every so often (a dark line over a lit one); the safety-orange bands
+    // up it in steps, as on the shaft; grime come up from the foot, dithered off)
+    const across = (u: number, h: number, col: string) => { const w0 = 20 - 10 * u, w1 = 20 - 10 * (u + h / 560), x0 = fx + (tx - fx) * u, x1 = fx + (tx - fx) * (u + h / 560), y0 = -560 * u; poly(g, [[x0 - w0, y0], [x0 + w0, y0], [x1 + w1, y0 - h], [x1 - w1, y0 - h]], col); };
+    for (let u = 0.12; u < 0.98; u += 0.12) { across(u, 1, Lg[1]); across(u + 1 / 560, 1, Lg[5]); }
+    for (const u of [0.42, 0.72]) { across(u, 14, ORANGE[3]); across(u + 10 / 560, 4, ORANGE[1]); across(u, 2, ORANGE[5]); }
+    for (let r = 0; r < 4; r++) { const y = -24 - r * 6, u = -y / 560, x = fx + (tx - fx) * u, w0 = 20 - 10 * u; checker(g, x - w0, y, w0 * 2, 3, mix(Lg[k], '#5A5A6A', 0.35), r % 2, 2); }
     // (its foot: a chrome shoe bolted down)
     box(g, fx - 30, -14, 60, 14, INK); box(g, fx - 29, -13, 58, 13, CHROME[3]); box(g, fx - 29, -13, 58, 2, CHROME[5]); for (const bx of [fx - 22, fx + 18]) box(g, bx, -9, 4, 4, CHROME[1]);
   }
   // (the core: banded, the lift's shaft)
   box(g, -45, -560, 90, 560, INK);
   slab(g, -44, -560, 88, 560, Lg, false);
-  for (let y = -540; y < -150; y += 40) box(g, -44, y, 88, 2, Lg[2]);
+  for (let y = -540; y < -150; y += 40) { box(g, -44, y, 88, 2, Lg[2]); box(g, -44, y + 2, 88, 1, Lg[5]); for (const rx of [-38, -12, 12, 36]) box(g, rx, y + 6, 2, 2, Lg[1]); }
+  // (the shaft's round: shaded across in steps toward its right, a lit strip down its left; portholes up it, lit
+  // after dark; the cable run up its middle, clamped)
+  box(g, 22, -560, 10, 410, Lg[2]); checker(g, 16, -560, 6, 410, Lg[2], 0, 2); box(g, 32, -560, 12, 410, Lg[1]);
+  box(g, -40, -560, 6, 410, Lg[5]);
+  for (let y = -500; y < -180; y += 80) { box(g, -9, y - 1, 18, 18, INK); box(g, -8, y, 16, 16, CHROME[3]); box(g, -6, y + 2, 12, 12, on ? '#FFE8A0' : glass[2]); box(g, -6, y + 2, 12, 4, on ? '#FFF6D0' : glass[3]); box(g, -6, y + 2, 2, 12, '#FFFFFF'); }
+  box(g, 24, -560, 3, 410, CHROME[1]); for (let y = -540; y < -160; y += 28) box(g, 22, y, 7, 3, CHROME[4]);
   // (the lobby round its foot)
   box(g, -142, -152, 284, 152, INK);
   slab(g, -140, -150, 280, 150, Pk);
