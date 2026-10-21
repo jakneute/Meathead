@@ -23,6 +23,7 @@ export const statusTint = (e: Enemy, state: GameState): { color: string; alpha: 
   if (e.type === 'boss') return null;
   if (isTasedNow(e, state)) return state.frame % 4 < 2 ? { color: '#E6FDFF', alpha: 0.6 } : { color: '#0891B2', alpha: 0.3 };
   if (e.frozenTimer && e.frozenTimer > 0) return { color: '#9DE3FF', alpha: 0.5 };
+  if (e.dyeColor && (e.dyeUntil ?? 0) > state.frame) return { color: e.dyeColor, alpha: Math.min(0.65, ((e.dyeUntil ?? 0) - state.frame) / 180 * 0.65) };
   return null;
 };
 

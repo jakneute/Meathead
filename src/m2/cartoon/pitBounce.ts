@@ -52,6 +52,10 @@ export interface PitSpec {
   plunge: (x: number, pit: [number, number]) => void;
   /** The callout over the cast it bounces. */
   call: (pit: [number, number]) => string;
+  /** Does this pit stick the needle in him (and hurt)? Default yes; the studio's ink doesn't. */
+  needle?: (pit: [number, number]) => boolean;
+  /** Something in it (him: no `e`; one of the cast: `e`), at x: the studio's ink dyes them. */
+  onIn?: (pit: [number, number], x: number, e?: Enemy) => void;
 }
 
 type Phase = 'none' | 'sink' | 'fly';
@@ -142,7 +146,7 @@ export const updatePitBounce = (ctx: FrameContext, spec: PitSpec) => {
     if (pit && feet > GY + 30) {
       b.phase = 'sink'; b.t = 0; b.pit = pit; b.sinkY = feet; b.tries = 0;
       s.stuff = spec.stuff(pit);
-      spec.splash(cx, GY, pit); spec.plunge(cx, pit);
+      spec.splash(cx, GY, pit); spec.plunge(cx, pit); spec.onIn?.(pit, cx);
     } else if (p.isGrounded) b.tries = 0;
   } else if (b.phase === 'sink') {
     // (down to his shoulders, held there: nobody steers)
@@ -151,7 +155,7 @@ export const updatePitBounce = (ctx: FrameContext, spec: PitSpec) => {
     const to = GY + p.height * 0.72;
     b.sinkY += (to - b.sinkY) * 0.2;
     p.pos.y = b.sinkY - p.height; p.vel.x = 0; p.vel.y = -PLAYER_GRAVITY;
-    if (b.t >= SINK) launch(ctx, spec, s, b.tries === 0);
+    if (b.t >= SINK) launch(ctx, spec, s, b.tries === 0 && (spec.needle?.(b.pit!) ?? true));
   } else if (b.phase === 'fly') {
     b.t++;
     state.playerStunTimer = Math.max(state.playerStunTimer, 2);
@@ -165,7 +169,7 @@ export const updatePitBounce = (ctx: FrameContext, spec: PitSpec) => {
       // (knocked back in, or short of it: again for free; a third time, just put him down safe)
       b.tries++; b.pit = inPit(spec, cx);
       if (b.tries >= 3) { b.phase = 'none'; teleport(state, spec.safe.x, spec.safe.y); spec.splash(spec.safe.x, spec.safe.y, b.pit!); }
-      else { b.phase = 'sink'; b.t = 0; b.sinkY = feet; spec.splash(cx, GY, b.pit!); spec.plunge(cx, b.pit!); }
+      else { b.phase = 'sink'; b.t = 0; b.sinkY = feet; spec.splash(cx, GY, b.pit!); spec.plunge(cx, b.pit!); spec.onIn?.(b.pit!, cx); }
     }
   }
   // The cast in the pits: the same bounce, to the nearer bank (hurt; the little ones die of it)
@@ -187,6 +191,7 @@ export const updatePitBounce = (ctx: FrameContext, spec: PitSpec) => {
     spec.splash(ex, GY, pit);
     // (never seen: spared, back where it was put)
     if (!e.seen) { e.pos.x = e.homeX ?? e.pos.x; e.pos.y = e.homeY ?? GY - e.height; e.vel.x = 0; e.vel.y = 0; continue; }
+    spec.onIn?.(pit, ex, e);
     if (hazardHit(ctx, e, 30, ex, spec.call(pit), { knock: 0 })) continue;
     playSound('boing', 0.6, -6);
     const left = pit[0] - MARGIN + 20, right = pit[1] + MARGIN - 20;

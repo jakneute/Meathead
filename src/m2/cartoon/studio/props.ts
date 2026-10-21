@@ -1,6 +1,7 @@
 // The studio's working parts: what moves that he stands on (the drying rack's cel, the paint room's two cels on their
-// overhead track, the camera crane's seat), the two things to fall in (THE REJECT PILE, THE PAINT VAT: in, and he's
-// bounced back out onto the floor, a dirty needle in his ass: cartoon/pitBounce.ts; the staff bounced out hurt), and what the staff throw (the
+// overhead track, the camera crane's seat), the two things to fall in (THE REJECT PILE: in, and he's bounced back out
+// onto the floor, a dirty needle in his ass: cartoon/pitBounce.ts; THE PAINT VAT's inks: bounced out, no needle, dyed
+// that ink, a second ink mixing in (dye.ts); the staff bounced out hurt), and what the staff throw (the
 // interns' coffee, the guides' souvenir plates).
 //
 // A mover's a one-way ledge kept where it is each frame before he moves (as the stacks' lids are, sway.ts); stood on
@@ -15,6 +16,10 @@ import { floorTopAt } from '../../../m1/game/core/terrain';
 import { setHazardZones } from '../../hazardHit';
 import { envSound } from '../../bossQuiet';
 import { updatePitBounce } from '../pitBounce';
+import { dipDye } from '../../dye';
+import { meatheadSays, byPants } from '../section';
+import { pickLine, isTalking } from '../../../m1/game/platform/speech';
+import { INK } from './lines';
 import { onTower } from '../sway';
 import { studioOf, type Mover } from './state';
 import { MOVERS, PITS, REJECTS, VAT, X, Y, type MoverDef } from './layout';
@@ -82,9 +87,10 @@ export const noteSafe = (state: GameState) => {
 };
 
 const PAPER = ['#FFFFFF', '#F5F0E1', '#E7E2D3', '#FDF6E3'];
-const PAINT = ['#DC2626', '#2563EB', '#FACC15'];
-/** The vat's paint where x is (it's in three runs of color). */
-export const paintAt = (x: number) => PAINT[Math.max(0, Math.min(2, Math.floor((x - X(VAT[0])) / ((VAT[1] - VAT[0]) / 3))))];
+/** The vat's inks: cel black, red, blue, yellow (in four runs). */
+const PAINT = ['#18181B', '#DC2626', '#2563EB', '#FACC15'];
+/** The vat's ink where x is. */
+export const paintAt = (x: number) => PAINT[Math.max(0, Math.min(PAINT.length - 1, Math.floor((x - X(VAT[0])) / ((VAT[1] - VAT[0]) / PAINT.length))))];
 const spray = (state: GameState, x: number, inVat: boolean) => {
   for (let i = 0; i < 16; i++) state.particles.push({
     pos: { x: x + (Math.random() - 0.5) * 30, y: GY - 4 }, vel: { x: (Math.random() - 0.5) * 6, y: -3 - Math.random() * 5 },
@@ -94,8 +100,9 @@ const spray = (state: GameState, x: number, inVat: boolean) => {
 
 const PIT_SPANS = PITS.map(([a, b]) => [X(a), X(b)] as [number, number]);
 const isVat = (pit: [number, number]) => pit[0] === X(VAT[0]);
-/** In, and the pile / the vat bounces him back out onto the floor, a dirty needle in his ass (cartoon/pitBounce.ts);
- *  the staff too. */
+/** In, and the pile bounces him back out onto the floor, a dirty needle in his ass (cartoon/pitBounce.ts); the vat
+ *  bounces him out too, no needle, no hurt (it's only ink), but dyed that ink's color (a second ink mixes in: dye.ts),
+ *  dripping; the staff too (bounced out hurt, the ink on them a while). */
 export const updatePits = (ctx: FrameContext) => {
   const { state } = ctx, s = studioOf(state);
   // (none of the staff idle in them: walk round, or not at all)
@@ -107,7 +114,25 @@ export const updatePits = (ctx: FrameContext) => {
     splash: (x, _y, pit) => spray(state, x, isVat(pit)),
     plunge: (x, pit) => envSound(state, x, isVat(pit) ? 'splash' : 'crunch', 0.6, isVat(pit) ? 0 : 6),
     call: pit => (isVat(pit) ? 'PAINTED OVER!' : 'REJECTED!'),
+    needle: pit => !isVat(pit),
+    onIn: (pit, x, e) => {
+      if (!isVat(pit)) return;
+      const col = paintAt(x);
+      if (e) { e.dyeColor = col; e.dyeUntil = state.frame + 600; return; }
+      const did = dipDye(state.player, col);
+      s.drip = 150; s.dripCol = state.player.dyeColor ?? col;
+      if (did !== 'same' && !isTalking()) meatheadSays(state, pickLine(byPants(state, INK[did])), false);
+    },
   });
+  // (fresh out of the ink: drips off him as he goes)
+  const p = state.player;
+  if (s.drip > 0) {
+    s.drip--;
+    if (p.health > 0 && s.drip % 4 === 0 && p.dyeTimer && p.dyeTimer > 0) state.particles.push({
+      pos: { x: p.pos.x + 6 + Math.random() * (p.width - 12), y: p.pos.y + p.height * (0.3 + Math.random() * 0.6) },
+      vel: { x: p.vel.x * 0.2, y: 0.5 }, life: 26, color: s.dripCol, size: 3, grav: 0.35,
+    } as typeof state.particles[number]);
+  }
 };
 /** Is world x over the reject pile / the vat? */
 export const overRejects = (x: number) => x > X(REJECTS[0]) && x < X(REJECTS[1]);

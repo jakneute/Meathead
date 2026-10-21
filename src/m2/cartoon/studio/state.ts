@@ -40,11 +40,13 @@ export interface Studio {
   spat: number;
   /** Back after the tour's done (the house lights up, the PA off). */
   revisit: boolean;
+  /** Fresh out of the ink: frames left of him dripping, and the ink's color. */
+  drip: number; dripCol: string;
 }
 
 export const studioOf = (state: GameState) => cartoonState<Studio>(state, 'studio', () => ({
   towers: [], movers: [], throws: [], barks: new Map(), barkAt: -999,
-  light: ROOMS.map(() => 0), on: ROOMS.map(() => -1), safe: { x: 0, y: 0 }, spat: 0, revisit: false,
+  light: ROOMS.map(() => 0), on: ROOMS.map(() => -1), safe: { x: 0, y: 0 }, spat: 0, revisit: false, drip: 0, dripCol: '#18181B',
 }));
 
 /** Which rooms are lit (the memo's bits). */

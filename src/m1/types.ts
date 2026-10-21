@@ -490,6 +490,8 @@ export interface Enemy extends Entity {
   burstLeft?: number;
   isShieldActive?: boolean;
   hitCooldown?: number;
+  /** Dyed (Meathead 2's studio ink: knocked in): its sprite tinted this color till frame dyeUntil. */
+  dyeColor?: string; dyeUntil?: number;
   frozenTimer?: number;
   /** The frame the ice went on (it's drawn held at that frame, not idling, while it's frozen). */
   frozeAt?: number;

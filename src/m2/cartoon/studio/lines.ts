@@ -157,6 +157,24 @@ export const GAGS: Record<'stack' | 'cels' | 'crane' | 'grind' | 'screen', ByPan
     nude: ["BEHIND THE SCREEN. FINALLY, A CURTAIN.", "BEHIND THE SCREEN. THEY'LL JUST SEE MY SHADOW. MOST OF IT."],
   },
 };
+/** In the paint vat's ink: dyed that color, a second color mixed in, a third and it all cancels out (dye.ts). */
+export const INK: Record<'dyed' | 'mixed' | 'undyed', ByPants> = {
+  dyed: {
+    clean: ["GREAT. I'M A CARTOON NOW. A WET ONE.", "IT'S CEL PAINT. IT SAID WASHABLE. IT LIED."],
+    shitty: ['PAINT OVER THE SHIT. THAT IS ONE WAY TO FIX IT.', "I'M COLORED IN NOW. EVEN THE BROWN PART."],
+    nude: ['PAINTED. EVERYWHERE. I MEAN EVERYWHERE.', "NAKED AND PAINTED. I'M MODERN ART."],
+  },
+  mixed: {
+    clean: ["TWO COLORS. I'M A NEW COLOR. THEY SHOULD PAY ME.", "I MIXED. THAT'S NOT ON THE MODEL SHEET."],
+    shitty: ["MIXED IT. THAT'S A COLOR NOBODY WANTS. LIKE MY PANTS.", 'TWO COLORS AND THE SMELL. THREE, REALLY.'],
+    nude: ['NOW I MATCH NOTHING. NAKED AND OFF MODEL.', "TWO COLORS. MY ASS IS A DIFFERENT ONE THAN MY FACE."],
+  },
+  undyed: {
+    clean: ["THREE COLORS AND IT'S GONE. DON'T ASK ME.", "BACK TO MEAT COLOR. THAT'S HOW PAINT WORKS, RIGHT?"],
+    shitty: ['ALL THE PAINT CAME OFF. THE SHIT STAYED.', "THE COLOR'S GONE. THE SMELL ISN'T."],
+    nude: ["BACK TO PINK. ALL OF ME. YOU CAN LOOK AGAIN. DON'T.", 'THE PAINT CANCELED OUT. MY DIGNITY DID TOO.'],
+  },
+};
 
 // ---------------------------------------------------------------------------------------------------------------
 // The staff (barks: rare, short)
@@ -228,7 +246,7 @@ export const KILL_CALLS: Record<string, Record<string, string[]>> = {
 const pools = (b: ByPants) => allOf(b);
 export const VOICE_LINES: Record<string, string[]> = {
   meathead: [
-    ...[ARRIVE, REVISIT, ...Object.values(GAGS), ...Object.values(REPLY)].flatMap(allOf),
+    ...[ARRIVE, REVISIT, ...Object.values(GAGS), ...Object.values(REPLY), ...Object.values(INK)].flatMap(allOf),
     ...Object.values(HURT).flatMap(h => h.hurt),
   ],
   death: Object.values(HURT).flatMap(h => h.death),
