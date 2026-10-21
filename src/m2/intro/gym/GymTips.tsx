@@ -44,11 +44,12 @@ const CARDS: Record<GymTip, { how: React.ReactNode; what: string; note?: string 
   beatdown: {
     how: <ChordPrompt pad={['Y', 'B']} join="+" kb={['@beatdown']} size={S} label="BEATDOWN" />,
     what: 'GET ON TOP OF HIM AND PUNCH. EVERY PUNCH HEALS YOU.',
-    note: 'THEY\'RE PADDED. THEY CAN TAKE IT.',
+    note: 'THEY\'RE PADDED. THEY CAN TAKE IT. OUT THERE, SOME PEOPLE AND CREATURES ARE TOO FAT OR TOO GREASY TO GRAB.',
   },
   shakedown: {
     how: <ChordPrompt pad={['Y', 'X']} join="+" kb={['@shakedown']} size={S} label="SHAKEDOWN" />,
     what: 'UP BY THE NECK: SHAKE THE AMMO OUT OF HIM. HOLD A DIRECTION TO THROW HIM. DOWN SLAMS HIM.',
+    note: 'TOO FAT OR TOO GREASY TO GET HOLD OF? THEN NO GRAB. HIT IT SOME OTHER WAY.',
   },
   airgrab: {
     how: <ChordPrompt pad={['A', 'B']} join="+" kb={['@airGrab']} size={S} label="AIR GRAB" />,
