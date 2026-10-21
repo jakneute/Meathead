@@ -138,6 +138,29 @@ const gorgeFaces = (c: Ctx, v: View, ra: number, rb: number, mine: boolean) => {
     // (moss over the lip, roots and ferns hanging off it)
     for (let t = 0; t < 1; t += 0.04) { const d = 1.25 - t * (1.25 - GORGE_D), [p, q] = at(v.eye, e, GY, d), l = (4 + hash(t * 97) * 14) * d; box(c, p, q, Math.max(1, 3 * d), 4 * d, M[3]); box(c, p, q + 3 * d, 1, l, M[1]); if (hash(t * 31) > 0.7) box(c, p - 1, q + l, 3, 2, M[3]); }
     for (let k = 0; k < 4; k++) { const d = 1.1 - k * 0.1, [p, q] = at(v.eye, e, GY + 30 + k * 14, d); c.strokeStyle = R[0]; c.lineWidth = 1; c.beginPath(); c.moveTo(p, q); c.quadraticCurveTo(p + side * 6, q + 10, p + side * 2, q + 22); c.stroke(); }
+    // (finer bedding, crevices down the face, ledges with moss and ferns along them, a boulder jutting: each pinned to a
+    // depth and a height on the face)
+    for (let k = 0; k < 26; k++) { const y = GY + 12 + k * 13, d0 = 1.25 - hash(k * 1.7 + ra) * 0.2, d1 = GORGE_D + hash(k * 2.3 + ra) * 0.25; const [p0, q0] = at(v.eye, e, y, d0), [p1, q1] = at(v.eye, e, y, d1); c.strokeStyle = k % 3 ? R[1] : R[4]; c.lineWidth = 1; c.beginPath(); c.moveTo(p0, q0); c.lineTo(p1, q1); c.stroke(); }
+    for (let k = 0; k < 9; k++) {
+      const d = 1.2 - hash(k * 3.9 + side + ra) * (1.2 - GORGE_D - 0.04), y0 = GY + 20 + hash(k * 5.3 + ra) * 200, len = 30 + hash(k * 7.1) * 70;
+      const [p0, q0] = at(v.eye, e, y0, d), [p1, q1] = at(v.eye, e, y0 + len, d);
+      c.strokeStyle = R[0]; c.lineWidth = 2 * d; c.beginPath(); c.moveTo(p0, q0); c.lineTo(p1 + side * 2, (q0 + q1) / 2); c.lineTo(p1, q1); c.stroke();
+      c.strokeStyle = R[4]; c.lineWidth = 1; c.beginPath(); c.moveTo(p0 + side, q0); c.lineTo(p1 + side * 3, (q0 + q1) / 2); c.stroke();
+    }
+    for (let k = 0; k < 5; k++) {
+      const y = GY + 60 + k * 52, da = 1.2 - hash(k * 2.9 + side * 5 + ra) * 0.15, db = da - 0.12 - hash(k * 4.1) * 0.2;
+      const [p0, q0] = at(v.eye, e, y, da), [p1, q1] = at(v.eye, e, y, db);
+      c.strokeStyle = R[4]; c.lineWidth = 3; c.beginPath(); c.moveTo(p0, q0); c.lineTo(p1, q1); c.stroke();
+      c.strokeStyle = M[3]; c.lineWidth = 2; c.beginPath(); c.moveTo(p0, q0 - 2); c.lineTo(p1, q1 - 2); c.stroke();
+      for (let t = 0.1; t < 1; t += 0.2) { const px = p0 + (p1 - p0) * t, py = q0 + (q1 - q0) * t, l = 4 + hash(t * 31 + k) * 9; box(c, px, py, 1, l, M[2]); box(c, px - 2, py - 3, 2, 2, M[4]); }
+    }
+    for (let k = 0; k < 4; k++) {
+      const d = 1.15 - k * 0.12, y = GY + 110 + hash(k * 6.1 + side + ra) * 160, [p, q] = at(v.eye, e, y, d), r = 9 * d;
+      c.fillStyle = INK; c.beginPath(); c.ellipse(p + side * r * 0.6, q, r + 1.5, r * 0.75 + 1.5, 0, 0, Math.PI * 2); c.fill();
+      c.fillStyle = R[3]; c.beginPath(); c.ellipse(p + side * r * 0.6, q, r, r * 0.75, 0, 0, Math.PI * 2); c.fill();
+      c.fillStyle = R[4]; c.beginPath(); c.ellipse(p + side * r * 0.4, q - r * 0.25, r * 0.6, r * 0.35, 0, 0, Math.PI * 2); c.fill();
+      box(c, p + side * r * 0.2 - 2, q - r * 0.75, 6, 2, M[3]);
+    }
   }
 };
 
@@ -370,7 +393,7 @@ const MINE_X = 7820;
 const drawMineHill = (c: Ctx, v: View) => {
   const cx = X(MINE_X);
   if (!seen(v, cx - 460, cx + 460, MINE_D, 60)) return;
-  stillAt(c, v, MINE_D, 'gl-minehill', cx, GY, -440, -380, 880, 384, g => {
+  stillAt(c, v, MINE_D, 'gl-minehill2', cx, GY, -440, -380, 880, 384, g => {
     const R = rampH(ROCKG, true), M = rampH(MOSS, true), T = rampH(TIMBER, true), Ir = rampH(IRON, true), P = D('#2A5A4C'), G = warmGlass();
     // (its right foot stops short of the shaft's lip)
     const hill: [number, number][] = [[-420, 0], [-330, -120], [-230, -240], [-110, -310], [0, -334], [140, -300], [250, -210], [320, -100], [355, 0]];
@@ -379,6 +402,14 @@ const drawMineHill = (c: Ctx, v: View) => {
     polyF(g, [[-420, 0], [-330, -120], [-230, -240], [-110, -310], [-60, -320], [-140, -200], [-260, -60], [-300, 0]], R[3]);
     polyF(g, [[250, -210], [320, -100], [355, 0], [200, 0], [235, -120]], R[1]);
     for (let k = 0; k < 14; k++) { const bx = -360 + hash(k * 3.1) * 660, by = -30 - hash(k * 7.3) * 220, r = 12 + hash(k) * 20; if (Math.abs(bx) < 110 && by > -200) continue; pixelBlob(g, bx, by, r, r * 0.66, R[1]); pixelBlob(g, bx - 2, by - 2, r * 0.8, r * 0.5, R[3]); pixelBlob(g, bx - r * 0.3, by - r * 0.3, r * 0.3, r * 0.16, R[4]); }
+    // (the rock's grain: fractures in steps, a speckle of grit, lichen spots, a trickle of water stain down from the crown)
+    g.save(); g.beginPath(); g.moveTo(hill[0][0], hill[0][1]); for (const [x, y] of hill.slice(1)) g.lineTo(x, y); g.closePath(); g.clip();
+    for (let k = 0; k < 900; k++) { const x = -420 + hash(k * 1.37) * 780, y = -hash(k * 2.11) * 334; box(g, x, y, k % 6 ? 1 : 2, 1, k % 3 ? R[1] : R[4]); }
+    for (let k = 0; k < 18; k++) { const x = -380 + hash(k * 4.3) * 700, y = -20 - hash(k * 6.7) * 250; if (Math.abs(x) < 100 && y > -190) continue; g.strokeStyle = R[0]; g.lineWidth = 1; g.beginPath(); g.moveTo(x, y); g.lineTo(x + 8, y + 10); g.lineTo(x + 5, y + 20); g.lineTo(x + 14, y + 28); g.stroke(); box(g, x + 1, y + 1, 1, 6, R[4]); }
+    for (let k = 0; k < 26; k++) { const x = -380 + hash(k * 8.1) * 700, y = -20 - hash(k * 9.9) * 230; if (Math.abs(x) < 100 && y > -190) continue; box(g, x, y, 4, 3, M[2]); box(g, x + 1, y, 2, 1, M[4]); }
+    for (const sx of [-180, 60, 190]) for (let y = -300 + Math.abs(sx) * 0.4; y < -60; y += 2) box(g, sx + Math.sin(y * 0.15) * 1.5, y, 2, 2, 'rgba(20,30,30,0.16)');
+    for (let y = -320; y < 0; y += 24) { checker(g, -420, y, 780, 1, 'rgba(26,16,40,0.1)', (y / 24) % 2, 2); }
+    g.restore();
     // (moss and grass over its crown; pines on it)
     polyF(g, [[-250, -220], [-110, -310], [0, -334], [140, -300], [250, -218], [140, -276], [0, -312], [-120, -290]], M[3]);
     for (let x = -240; x < 240; x += 6) box(g, x, -230 - Math.max(0, 100 - Math.abs(x) * 0.42) + hash(x) * 8, 2, 4, M[4]);
