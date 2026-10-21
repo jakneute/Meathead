@@ -19376,6 +19376,16 @@
  },
  {
   "voice": "m2.cartoon.dad",
+  "text": "I DID SHAKESPEARE ONCE. NOW IT'S 'BOY! BEER!' TILL I DIE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "I DID THIS IN A BOOTH FOR YEARS. NOBODY EVER SHOWED UP NAKED.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
   "text": "I MANAGE A CLOTHING STORE AND YOU SHOW UP NAKED? INSULTING.",
   "from": "CARTOON"
  },
@@ -19417,6 +19427,11 @@
  {
   "voice": "m2.cartoon.dad",
   "text": "I SIT. YOU STINK. THAT IS THE SHOW.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "I USED TO DO THIS IN A BOOTH. IN PANTS.",
   "from": "CARTOON"
  },
  {
@@ -19576,7 +19591,17 @@
  },
  {
   "voice": "m2.cartoon.dad",
+  "text": "NO ANNOUNCER. BUDGET. I'M HONK AZORIA. I WAS HIS VOICE. NOW I'M HIM.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
   "text": "NO AUTOGRAPHS!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "NO FAT SUIT, FOLKS. I GREW INTO THE PART.",
   "from": "CARTOON"
  },
  {
@@ -19627,6 +19652,16 @@
  {
   "voice": "m2.cartoon.dad",
   "text": "NOT ON ME. NOT ON...",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "NOT THE THROAT, YOU NAKED FREAK! I NEED THAT!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "NOT THE THROAT! THAT'S THE VOICE!",
   "from": "CARTOON"
  },
  {
@@ -19866,7 +19901,17 @@
  },
  {
   "voice": "m2.cartoon.dad",
+  "text": "THEY'LL PUT 'BOY! BEER!' ON MY STONE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
   "text": "THEY'RE ALL GONE. EVERY ONE OF THEM.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "THIRTY YEARS DOING THE VOICE. NEVER SMELLED A FAN LIKE YOU.",
   "from": "CARTOON"
  },
  {
@@ -19951,6 +19996,11 @@
  },
  {
   "voice": "m2.cartoon.dad",
+  "text": "WATCH THE THROAT! THAT VOICE PAYS MY BAR TAB!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
   "text": "WHAT THE HELL WAS THAT? AND WHAT IS THAT SMELL?",
   "from": "CARTOON"
  },
@@ -20012,6 +20062,11 @@
  {
   "voice": "m2.cartoon.dad",
   "text": "YOU WALK ON MY SET WITH YOUR WANG OUT?",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "YOU WANT THE VOICE? 'BOY! BEER!' THERE. NOW BEAT IT.",
   "from": "CARTOON"
  },
  {
@@ -82756,6 +82811,31 @@
  },
  {
   "voice": "meathead",
+  "text": "THE CARTOON DAD'S VOICE GUY? PLAYING HIM? IN PERSON?",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE CARTOON DAD'S VOICE GUY. IN THE FLESH. ME TOO. ALL OF IT.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE CARTOON DAD'S VOICE GUY. IN THE FLESH. ME TOO. IN THE SHIT.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE CARTOON DAD'S VOICE GUY. LIVE. HE SHOULD'VE STAYED A VOICE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE CARTOON DAD'S VOICE GUY. NO COSTUME. HE JUST LOOKS LIKE THAT.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "THE CASTLE. HER BEDROOM IS IN HERE SOMEWHERE.",
   "from": "FANTASY"
  },
@@ -83413,6 +83493,11 @@
   "voice": "meathead",
   "text": "THE GUY ON THE POLE IS CRYING. HE'S STILL GONNA JUMP.",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE GUY WHO DID THE CARTOON DAD'S VOICE. NOW HE PLAYS HIM. WHY?",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",

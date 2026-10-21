@@ -316,6 +316,14 @@ export const drawIntroHud = (c: Ctx, state: GameState, s: Amphi) => {
     wallpaperBack(c);
     const k = Math.min(1, i.closeT / 14), talking = s.said.has('dad');
     drawDadCloseup(c, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 40, 3.6 + k * 0.4, f, { face: talking ? 'bleary' : 'squint', talking });
+    // (a TV lower third, bottom left, a beat in: who he is (the voice, playing his cartoon in person))
+    if (i.closeT > 20) {
+      const bw = 214, bx = 24, by = CANVAS_HEIGHT - 44 - 54;
+      box(c, bx - 2, by - 2, bw + 4, 40, INK); box(c, bx, by, bw, 22, '#7C3AED'); box(c, bx, by, bw, 2, '#A78BFA'); box(c, bx, by + 20, bw, 2, '#5B21B6');
+      box(c, bx, by + 22, bw, 14, '#FDE047'); box(c, bx, by + 22, bw, 1, '#FEF9C3'); box(c, bx, by + 35, bw, 1, '#CA8A04');
+      signText(c, 'HONK AZORIA', bx + 8, by + 18, { sx: 2, sy: 2, bold: true, fill: ['#FFFFFF', '#FDE68A'], ink: INK }, 'left');
+      signText(c, 'THE ORIGINAL VOICE OF STUPID DAD', bx + 8, by + 32, { sx: 1, sy: 1, fill: INK }, 'left');
+    }
     const sd = s.said.get('dad');
     if (sd) saidOver(c, sd.text, CANVAS_WIDTH / 2, 92, '#FDE047', 520);
   }

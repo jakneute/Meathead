@@ -8,7 +8,9 @@
 // The setup (the user's): the lone surviving cast member of STUPID DAD, the man who voiced the dad, in his 70s now, an
 // alcoholic like the rest of them were (MOM, THE BOY, SIS and GRAMPS all dead of it: the plaque back in the big-kid zone
 // has their names); his TV family cheap animatronics on the tapes of the dead actors' voices; he sits on the couch and
-// asks the Boy for another beer so he can watch the game, and he drinks real beer doing it. Never anything about
+// asks the Boy for another beer so he can watch the game, and he drinks real beer doing it. Specifically (the user's):
+// HONK AZORIA was the VOICE of the cartoon dad; STUPID DAD LIVE! is a live-action stage recreation of the cartoon, him
+// playing the character in person, no fat suit needed (a voice actor's vanity, typecast for life). Never anything about
 // Meathead's age. Pure data.
 
 import { allOf, type ByPants, type HurtTable } from '../talk';
@@ -51,9 +53,9 @@ export const GAGS: Record<'beer' | 'crowd' | 'show' | 'robots', ByPants> = {
   },
   /** The show, the first "BOY! BEER!" he hears coming down the steps. */
   show: {
-    clean: ["THAT'S THE SHOW? A GUY ON A COUCH YELLING FOR BEER?", 'I SAW THIS SHOW. EVERY NIGHT. AT MY HOUSE.'],
-    shitty: ['A FAT GUY YELLING FOR BEER. HE SHITS HIMSELF TOO. I CAN TELL.', 'THAT IS A REAL BEER. AND THOSE ARE REAL STAINS.'],
-    nude: ["HE'S IN HIS UNDERWEAR. I'M STILL LESS DRESSED.", "THAT'S THE SHOW? I'M MORE OF A SHOW THAN THAT."],
+    clean: ["THAT'S THE SHOW? A GUY ON A COUCH YELLING FOR BEER?", 'I SAW THIS SHOW. EVERY NIGHT. AT MY HOUSE.', "THE CARTOON DAD'S VOICE GUY? PLAYING HIM? IN PERSON?"],
+    shitty: ['A FAT GUY YELLING FOR BEER. HE SHITS HIMSELF TOO. I CAN TELL.', 'THAT IS A REAL BEER. AND THOSE ARE REAL STAINS.', "THE CARTOON DAD'S VOICE GUY. NO COSTUME. HE JUST LOOKS LIKE THAT."],
+    nude: ["HE'S IN HIS UNDERWEAR. I'M STILL LESS DRESSED.", "THAT'S THE SHOW? I'M MORE OF A SHOW THAN THAT.", "THE CARTOON DAD'S VOICE GUY. LIVE. HE SHOULD'VE STAYED A VOICE."],
   },
   /** The family, up close from the pit: cheap animatronics. */
   robots: {
@@ -125,6 +127,10 @@ export const SHOW_ADLIB = [
   "THEY'RE ALL GONE. EVERY ONE OF THEM.",
   "THAT'S REAL BEER, FOLKS. DON'T TELL THE PARK.",
   'TWO MORE SHOWS. THEN THE GOOD STUFF.',
+  "NO ANNOUNCER. BUDGET. I'M HONK AZORIA. I WAS HIS VOICE. NOW I'M HIM.",
+  'NO FAT SUIT, FOLKS. I GREW INTO THE PART.',
+  'I USED TO DO THIS IN A BOOTH. IN PANTS.',
+  "I DID SHAKESPEARE ONCE. NOW IT'S 'BOY! BEER!' TILL I DIE.",
 ];
 /** At the game on the TV (the same tape every show). */
 export const SHOW_TV = ['RUN THE BALL! RUN THE... AH, HELL.', "THAT'S HOLDING! YOU BLIND?", "TOUCHDOWN! ...NO. IT'S THE SAME TAPE."];
@@ -258,9 +264,9 @@ export const DAD_TIRED: ByPants = {
 };
 /** Hit (now and then). */
 export const DAD_HURT: ByPants = {
-  clean: ['OW! MY BACK!', 'THAT\'S GONNA BRUISE!', 'HEY! I\'M SEVENTY-FOUR!'],
-  shitty: ['DON\'T TOUCH ME WITH THOSE HANDS!', 'OW! AND NOW I SMELL LIKE YOU!'],
-  nude: ['OW! DON\'T HIT ME WITH IT OUT!', 'OW! SOMETHING SLAPPED ME. I HOPE IT WAS A HAND.'],
+  clean: ['OW! MY BACK!', 'THAT\'S GONNA BRUISE!', 'HEY! I\'M SEVENTY-FOUR!', 'NOT THE THROAT! THAT\'S THE VOICE!'],
+  shitty: ['DON\'T TOUCH ME WITH THOSE HANDS!', 'OW! AND NOW I SMELL LIKE YOU!', 'WATCH THE THROAT! THAT VOICE PAYS MY BAR TAB!'],
+  nude: ['OW! DON\'T HIT ME WITH IT OUT!', 'OW! SOMETHING SLAPPED ME. I HOPE IT WAS A HAND.', 'NOT THE THROAT, YOU NAKED FREAK! I NEED THAT!'],
 };
 /** A family member flattened by a stunt car: more baffled, more fed up, every time (by how many: 1, 2, 3 (his couch
  *  goes with it), 4 (the last)). */
@@ -300,13 +306,13 @@ export const DAD_HEAVY: ByPants = {
 };
 /** Sat there, at him, now and then. */
 export const DAD_TAUNT: ByPants = {
-  clean: ['SIT DOWN. YOU\'RE BLOCKING THE GAME.', 'COMMERCIAL\'S OVER, KID. BEAT IT.', 'THIS IS A FAMILY SHOW.'],
-  shitty: ['YOU\'RE STINKING UP A FAMILY SHOW!', 'NOBODY SAID IT WAS SMELL-O-VISION.'],
-  nude: ['THIS IS A FAMILY SHOW! PUT IT AWAY!', 'THE NETWORK\'S GONNA PULL US. AGAIN.'],
+  clean: ['SIT DOWN. YOU\'RE BLOCKING THE GAME.', 'COMMERCIAL\'S OVER, KID. BEAT IT.', 'THIS IS A FAMILY SHOW.', 'YOU WANT THE VOICE? \'BOY! BEER!\' THERE. NOW BEAT IT.'],
+  shitty: ['YOU\'RE STINKING UP A FAMILY SHOW!', 'NOBODY SAID IT WAS SMELL-O-VISION.', 'THIRTY YEARS DOING THE VOICE. NEVER SMELLED A FAN LIKE YOU.'],
+  nude: ['THIS IS A FAMILY SHOW! PUT IT AWAY!', 'THE NETWORK\'S GONNA PULL US. AGAIN.', 'I DID THIS IN A BOOTH FOR YEARS. NOBODY EVER SHOWED UP NAKED.'],
 };
 /** Low. */
 export const DAD_LOW: ByPants = {
-  clean: ['I NEED A BEER. A BIG ONE. A KEG.', 'I SEE THE CAST. THEY\'RE WAVING.'],
+  clean: ['I NEED A BEER. A BIG ONE. A KEG.', 'I SEE THE CAST. THEY\'RE WAVING.', 'THEY\'LL PUT \'BOY! BEER!\' ON MY STONE.'],
   shitty: ['I\'M DYING AND IT SMELLS LIKE YOUR PANTS.', 'THIS CAN\'T BE IT. NOT WITH THAT SMELL.'],
   nude: ['IF I DIE, THE LAST THING I SAW WAS THAT.', 'I SEE A LIGHT. NO. IT\'S YOUR ASS.'],
 };

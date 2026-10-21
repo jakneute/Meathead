@@ -4,7 +4,8 @@
 //
 // Who he is (the user's): HONK AZORIA, the man who voiced the dad on STUPID DAD (UBX, 1995), the only one of the
 // principal cast still alive (the rest drank themselves to death or died drunk behind the wheel), in his seventies now
-// and a drunk too. He does the show live in the park's amphitheater twice a day in the dad's own look from the poster
+// and a drunk too. A voice actor doing his old cartoon character in person: STUPID DAD LIVE! is the cartoon recreated as
+// live action on a sitcom set, and he does it in the park's amphitheater twice a day in the dad's own look from the poster
 // (bigkid/art.ts dadArt): the stained white tank top, the striped boxers, the black socks pulled up, the slippers, the
 // three-hair comb-over (gone white). On him it's no costume: the belly's real, so's the beer (a can of SWILL LITE), so's
 // the nose (a drinker's: purple, swollen, veined). Liver spots on the dome and the arms, white stubble, jowls, eyes

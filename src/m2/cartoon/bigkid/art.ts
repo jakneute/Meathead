@@ -953,8 +953,9 @@ const billboard = (c: Ctx) => {
     g.restore();
     signText(g, 'SEE STUPID DAD', 70, top + 34, { sx: 2, sy: 2, bold: true, slant: 1, fill: [dimmed('#FFFFFF'), dimmed('#FDE047'), dimmed('#F59E0B')], ink, shadow: dimmed('#3B0764'), drop: 2 });
     signText(g, 'LIVE!', 70, top + 66, { sx: 3, sy: 3, bold: true, slant: 1, fill: [dimmed('#FFFFFF'), dimmed('#FB7185'), dimmed('#DC2626')], ink, shadow: dimmed('#3B0764'), drop: 2 });
-    signText(g, 'THE AMPHITHEATER', 70, top + 100, { sx: 1, sy: 1, bold: true, fill: dimmed('#FFFFFF'), ink });
-    signText(g, 'SHOWS DAILY. BEER GARDEN OPEN.', 70, top + 116, { sx: 1, sy: 1, fill: dimmed('#FDE047') });
+    signText(g, 'THE ORIGINAL VOICE!', 70, top + 98, { sx: 1, sy: 1, bold: true, fill: dimmed('#FFFFFF'), ink });
+    signText(g, 'AS SEEN (AND HEARD) ON TV!', 70, top + 112, { sx: 1, sy: 1, fill: dimmed('#FDE047') });
+    signText(g, 'THE AMPHITHEATER. SHOWS DAILY.', 70, top + 126, { sx: 1, sy: 1, fill: dimmed('#FDE047') });
     signText(g, 'THIS WAY >', 70, top + 150, { sx: 1, sy: 2, bold: true, fill: dimmed('#A3E635'), ink });
     // (the catwalk under it, its rail, the lamps reaching up over the face)
     box(g, -w / 2 - 6, top + h + 6, w + 12, 5, ink); box(g, -w / 2 - 4, top + h + 7, w + 8, 2, Lg[4]);

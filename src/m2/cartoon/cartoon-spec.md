@@ -364,8 +364,8 @@ never rides one (nothing on a ride is lit to stand on). x from the section's sta
   chain (taller lids, the middle tower leans further), Gloppy, a churro vendor and the Flea on the far drums.
 - 10560 RAD RAT'S TUBULAR HALFPIPE (cp 45): a giant riderless skateboard rocking in a concrete halfpipe (sloped ground
   runs); drop in, cross, jump it at the bottom (it's always at least once).
-- 11400 THE WAY ON (cp 46): the STUPID DAD LIVE billboard (THE AMPHITHEATER, SHOWS DAILY. BEER GARDEN OPEN., THIS WAY
-  >: the boss set up); a mixed crowd; the arch to STUPID DAD: THE EXTENDED UNIVERSE (the right end: on to `itchy`).
+- 11400 THE WAY ON (cp 46): the STUPID DAD LIVE billboard (THE ORIGINAL VOICE!, AS SEEN (AND HEARD) ON TV!, THE
+  AMPHITHEATER. SHOWS DAILY., THIS WAY >: the boss set up); a mixed crowd; the arch to STUPID DAD: THE EXTENDED UNIVERSE (the right end: on to `itchy`).
 
 **The zone's cast** (bigkid/kinds.ts, kindArt.ts; seeded people, men and women, every look): the RIDE OP (`m2:ct_rideop`:
 a bored teen, headset, traffic wand; hand to the headset (the tell) and the ride he's in or by comes straight for him;
@@ -463,8 +463,8 @@ side, D_FAR 0.7; the shell 0.74; the set's wall 0.8; the furniture and the famil
 section's start (amphi/layout.ts):
 
 - 0 THE GATE (cp 60): in from PUNCHY & KICKY's STUPID DAD LIVE! gate. THE MARQUEE on two striped steel posts (THE UBX
-  AMPHITHEATER PRESENTS, STUPID DAD in the show's lettering, LIVE! in bulbs, STARRING THE ORIGINAL STUPID DAD HIMSELF:
-  HONK AZORIA!, SHOWS AT 11, 1, 3, 5 AND 7; a vinyl NO OUTSIDE BEER zip-tied under it), the dad off the poster on it.
+  AMPHITHEATER PRESENTS, STUPID DAD in the show's lettering, LIVE! in bulbs, THE ORIGINAL VOICE OF STUPID DAD, IN THE
+  FLESH: HONK AZORIA!, SHOWS AT 11, 1, 3, 5 AND 7; a vinyl NO OUTSIDE BEER zip-tied under it), the dad off the poster on it.
 - 560 THE BEER GARDEN: the stand (striped awning, COLD BEER 12 / LITE BEER 11 / NACHOS 9 / SODA ASK / NO REFUNDS, the
   taps, the neon BEER buzzing, a bored vendor, a tip jar); a high-top with two regulars swaying at it; a trash can of
   empties; the light poles.
@@ -483,6 +483,15 @@ section's start (amphi/layout.ts):
   SOMEWHERE, the kitchen's swing door), the braided rug, the Boy's steel floor track; the TV on its cart (the game: the
   same tape every show; UBX in the corner), the couch (the poster's orange plaid, sagging, his dent in it, an afghan, the
   remote), his pyramid of empties.
+
+**WHO HE IS** (the user's, 2026-10-21): HONK AZORIA is a voice actor. He voiced the dad on the animated STUPID DAD;
+STUPID DAD LIVE! is a live-action stage recreation of the cartoon, Honk playing his old cartoon character in person
+(the animatronic family on a sitcom living-room set). Made specific in a handful of places: the marquee (THE ORIGINAL
+VOICE OF STUPID DAD, IN THE FLESH), the big-kid billboard (THE ORIGINAL VOICE! AS SEEN (AND HEARD) ON TV!), a TV
+lower third on his intro close-up (HONK AZORIA / THE ORIGINAL VOICE OF STUPID DAD), his off-script mumbles (no
+announcer, so he introduces himself; no fat suit, he grew into the part; he used to do it in a booth, in pants;
+typecast: Shakespeare once, BOY! BEER! till he dies), his taunts and hurts (doing the voice; NOT THE THROAT), and
+Meathead clocking him (THE CARTOON DAD'S VOICE GUY?) at the billboard and the show.
 
 **STUPID DAD** (amphi/dad.ts, boss grade: color ramps, stepped bands, dithered seams): HONK AZORIA, the voice of the
 dad (UBX, 1995), the only principal cast member still alive, in his seventies, a drunk. In the dad's look off the poster,

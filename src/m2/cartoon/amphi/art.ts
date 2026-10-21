@@ -206,8 +206,8 @@ const marquee = (c: Ctx, f: number) => {
     g.restore();
     signText(g, 'THE UBX AMPHITHEATER PRESENTS', 60, top + 20, { sx: 1, sy: 1, bold: true, fill: T('#FDE68A'), ink: T(INK) });
     signText(g, 'STUPID DAD', 60, top + 52, SHOWL(2, T));
-    signText(g, 'STARRING THE ORIGINAL', 60, top + 114, { sx: 1, sy: 1, fill: T('#FFFFFF'), ink: T(INK) });
-    signText(g, 'STUPID DAD HIMSELF', 60, top + 126, { sx: 1, sy: 1, fill: T('#FFFFFF'), ink: T(INK) });
+    signText(g, 'THE ORIGINAL VOICE OF', 60, top + 114, { sx: 1, sy: 1, fill: T('#FFFFFF'), ink: T(INK) });
+    signText(g, 'STUPID DAD, IN THE FLESH', 60, top + 126, { sx: 1, sy: 1, fill: T('#FFFFFF'), ink: T(INK) });
     signText(g, 'HONK AZORIA!', 60, top + 146, { sx: 1, sy: 2, bold: true, fill: [T('#FFFFFF'), T('#FDE047')], dither: true, ink: T(INK), shadow: T('#3B0764'), drop: 1 });
     box(g, -w / 2, top + h - 30, w, 26, Nv[3]); box(g, -w / 2, top + h - 30, w, 2, Nv[5]); box(g, -w / 2, top + h - 6, w, 2, Nv[1]);
     signText(g, 'SHOWS AT 11, 1, 3, 5 AND 7', 0, top + h - 12, { sx: 1, sy: 1, bold: true, fill: T('#FDE047'), ink: T(INK) });
