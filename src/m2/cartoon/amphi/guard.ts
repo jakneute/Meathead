@@ -146,7 +146,10 @@ export const drawGuard = (c: Ctx, x: number, feetY: number, pose: GuardPose, f: 
 /** On his side on the floor, head toward the bleachers, curled up round it: `k` (0..1) how far over he's gone. */
 const drawLying = (c: Ctx, f: number, k: number, ice: boolean) => {
   const rock = Math.sin(f * 0.07) * 1.4 * (1 - (ice ? 0.6 : 0));
-  c.save(); c.translate(0, 0); c.rotate((1 - Math.min(1, k)) * -0.9);
+  // (keeling over: from up on his knees (the whole curled-up body stood on end about his knees, his head where the
+  // kneeling one was) toppling over onto his side, easing in and settling, head on his neck all the way)
+  const e = Math.min(1, Math.max(0, k)), ee = e * e * (3 - 2 * e), PX = -4, PY = -3;
+  c.save(); c.translate(PX, PY); c.rotate((1 - ee) * -1.42); c.translate(-PX, -PY);
   // (the body on its side: the back to the camera's right, knees drawn up in front)
   const by = -14;
   limb(c, 6, by + 2, 8, -10, by - 2, 7, PANTS);
