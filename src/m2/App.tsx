@@ -310,7 +310,7 @@ const App2: React.FC = () => {
   const canGymSkip = () => live.current.stage === GYM_STAGE && !M2_PUBLIC;
   const skipGym = () => { setStatus(GameStatus.PLAYING); requestGymSkip(); };
   /** (RESUME, MAP, OPTIONS, then SKIP INTRO / BACK TO HUB where there's one) */
-  /** (the cheats build only, the user's: SKIP INTRO / SKIP TO HUB in America USA)
+  /** (the cheats build only, the user's: SKIP INTRO / SKIP TO HUB in America USA) */
   const canIntroSkip = () => live.current.stage === INTRO_STAGE && !M2_PUBLIC;
   const lastPause = () => (canIntroSkip() || canGymSkip() || canHub() ? arsenal().length + 4 : arsenal().length + 3);
   /** (QUIT, to the title: the last of the buttons) */
