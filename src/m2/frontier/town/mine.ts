@@ -17,6 +17,7 @@ import type { GameState } from '../../../m1/game/core/state';
 import { GY } from '../geometry';
 import { type Ctx, type TownView, box, checker, mix, hash, at, poly, still, stillAt, atDepth, seen, sideBack, topBack, underBack, INK, timeOfDay, farTint, hr, hr7, back7, fiberglass, ball, puff, FIBER, FIBER_LIP, MINE, TIMBER, STEEL, IRON, BRASS, ORE, COAL, NEEDLE, PLY, TOPLIP, MINE_BK, signPaint, western, viewIn, PIX, pixelBlob, DIRT, STONE, BARK } from './paint';
 import { signText } from '../../signLetters';
+import { rockSlab } from '../../foreign/kit';
 import { townOf } from './state';
 import { LANTERNS, CANARIES, GAS, CART_RUN, RIDE, BEAMS, BEAM_GAP, CHUTES, CAVEINS, CHASM, SHAFTS, FY, CEIL_Y, X, Y, mineDepthOf } from './layout';
 import { onScreen } from './view';
@@ -146,16 +147,48 @@ const drawOutside = (c: Ctx, state: GameState, v: TownView) => {
 /** The rock mass at the play plane (stamped in chunks: strata, blocks, veins of the park's fake gold, real quartz). */
 const paintRock = (g: Ctx, x0: number, w: number, y0: number, h: number) => {
   const tod = timeOfDay(), R = MINE.map(col => farTint(col, 0.1, tod)), s = Math.floor(x0);
-  box(g, x0, y0, w, h, R[2]);
-  for (let y = y0 + 6, row = 0; y < y0 + h; y += 18 + (row % 3) * 6, row++) {
-    for (let x = x0 - 30 + hash(s + row) * 40; x < x0 + w; x += 40 + hash(s + row * 3 + x) * 40) {
-      const bw = 30 + hash(x + row) * 40, bh = 12 + hash(x * 1.3 + row) * 10;
-      box(g, x, y, bw, bh, R[(row + Math.floor(x / 40)) % 2 ? 3 : 2]); box(g, x, y, bw, 1, R[4]); box(g, x, y + bh, bw, 1, R[0]); box(g, x + bw - 1, y, 1, bh, R[1]);
+  // (slabs and blocks in loose courses (the streets' rock painter), each lit along its top and left and shaded under,
+  // the crevices dark; a step brighter than the ramp's floor: murky, never black)
+  box(g, x0, y0, w, h, R[1]);
+  const RS = [R[0], R[1], R[2], R[3], R[4], R[5]];
+  for (let y = y0 - 4, row = 0; y < y0 + h; row++) {
+    const rh = 22 + Math.floor(hash(s + row * 1.7) * 18);
+    for (let x = x0 - 30 + hash(s + row) * 40, k = 0; x < x0 + w; k++) {
+      const bw = 34 + hash(s + row * 3 + k * 1.3) * 50;
+      rockSlab(g, Math.round(x) + 1, Math.round(x + bw) - 1, y + 1, y + rh - 1, RS, hash(s + row * 2.3 + k * 0.7), s + row * 13 + k);
+      x += bw;
     }
+    y += rh;
   }
   for (let i = 0; i < w / 160; i++) { const vx = x0 + hash(s + i * 3.3) * w, vy = y0 + hash(s + i * 5.1) * h; g.strokeStyle = hash(i + s) > 0.5 ? mix(R[5], '#C8A040', 0.4) : mix(R[5], '#E8E8F0', 0.3); g.lineWidth = 1; g.beginPath(); g.moveTo(vx, vy); g.lineTo(vx + 20, vy + 8); g.lineTo(vx + 34, vy + 4); g.stroke(); }
 };
 
+/** A tile of the tunnels' back wall's detail (world tx, ty; T square; transparent between, so the wall's bands show):
+ *  blocks and slabs on a world grid (each crevice dark, its top edge lit, the odd one lighter or darker), drill holes,
+ *  veins. Placed by world position, so tiles meet. */
+const backTile = (g: Ctx, tx: number, ty: number, T: number, R: string[]) => {
+  const RH = 30, CW = 58;
+  for (let n = Math.floor(ty / RH) - 1; n * RH < ty + T; n++) {
+    const top = n * RH + Math.round(hash(n * 1.37) * 6) - ty, bot = top + RH;
+    const end = (i: number) => i * CW + (n % 2) * 29 + Math.round(hash(n * 3.1 + i * 1.7) * 26) - tx;
+    for (let i = Math.floor((tx - 60) / CW); end(i) < T + 4; i++) {
+      const a = end(i) + 1, b = end(i + 1) - 1, t = hash(n * 7.1 + i * 0.13);
+      if (b - a < 8) continue;
+      if (t > 0.8) { box(g, a + 2, top + 2, b - a - 4, bot - top - 5, R[4]); checker(g, a + 2, bot - 5, b - a - 4, 2, R[3], i % 2); }
+      else if (t < 0.18) box(g, a + 2, top + 2, b - a - 4, bot - top - 5, R[2]);
+      box(g, a - 1, top, 1, bot - top, R[1]); box(g, a, bot - 1, b - a, 1, R[1]); box(g, a, bot - 2, b - a, 1, R[2]);
+      box(g, a + 2, top + 1, b - a - 5, 1, R[5]); box(g, a, top + 2, 1, Math.round((bot - top) * 0.5), R[4]);
+      if (t > 0.45 && t < 0.5) { box(g, a + (b - a) * 0.5, top + 8, 3, 3, R[0]); box(g, a + (b - a) * 0.5 + 2, top + 10, 1, 1, R[5]); }
+    }
+  }
+  // (a vein of fake gold paint, a vein of real quartz)
+  const vg = hash(tx * 0.013 + ty * 0.007);
+  if (vg > 0.4) {
+    let x = 10 + vg * (T - 80), y = 20 + hash(tx + ty) * (T - 60);
+    for (let s = 0; s < 14; s++) { const nx = x + 4 + hash(tx + s) * 4, ny = y + (hash(ty + s * 2.1) - 0.5) * 6; box(g, x, Math.min(y, ny), nx - x, 2, s % 3 ? '#8A6A1E' : '#C8A040'); if (s % 4 === 0) box(g, x + 1, y - 1, 1, 1, '#F2D27A'); x = nx; y = ny; }
+  }
+  { let x = hash(tx * 0.3 + 5) * (T - 60), y = 30 + hash(ty * 0.3 + tx) * (T - 80); for (let s = 0; s < 10; s++) { box(g, x, y, 4, 1, mix(R[5], '#E8E8F0', 0.35)); x += 4; y += hash(tx + ty + s) > 0.5 ? 1 : -1; } }
+};
 /** A tunnel cut through the rock (a..b, y0..y1 at the play plane): its back wall going back, its floor's gravel, its
  *  ceiling's underside, timber sets along it. `sets` puts the sets in. */
 const tunnel = (c: Ctx, v: TownView, a: number, b: number, y0: number, y1: number, sets: boolean) => {
@@ -170,7 +203,13 @@ const tunnel = (c: Ctx, v: TownView, a: number, b: number, y0: number, y1: numbe
   const steps = [R[3], R[3], R[4], R[3], R[2]];
   for (let i = 0; i < steps.length; i++) box(c, ba, bt + ((bbt - bt) * i) / steps.length, bb - ba, (bbt - bt) / steps.length + 1, steps[i]);
   for (let y = y0 + 20; y < y1; y += 26) { const [p0, py] = at(eye, xa, y, BK), [p1] = at(eye, xb, y, BK); box(c, p0, py, p1 - p0, 1, R[0]); box(c, p0, py + 1, p1 - p0, 1, R[4]); }
-  for (let x = Math.floor(xa / 90) * 90; x < xb; x += 90) { const bx = x + hash(x) * 50, by = y0 + 20 + hash(x * 1.7) * (y1 - y0 - 40); const [px, py] = at(eye, bx, by, BK); c.fillStyle = R[3]; c.beginPath(); c.ellipse(px, py, 14, 8, 0, 0, Math.PI * 2); c.fill(); box(c, px - 8, py - 6, 10, 2, R[5]); }
+  // (the rock's blocks and slabs going back with it: crevices, lit edges, the odd lighter or darker one, drill holes,
+  // a vein of the park's fake gold paint and one of real quartz; stamped in world tiles, drawn at the wall's depth)
+  const inv = (s: number, e: number) => e + (s - e) / BK;
+  const wx0 = inv(xa - 10, eye.x), wx1 = inv(xb + 10, eye.x), wy0 = inv(y0, eye.y), wy1 = inv(y1, eye.y), TT = 256;
+  atDepth(c, eye, BK, () => {
+    for (let tx = Math.floor(wx0 / TT) * TT; tx < wx1; tx += TT) for (let ty = Math.floor(wy0 / TT) * TT; ty < wy1; ty += TT) still(c, `mine-bk-${tx}-${ty}`, tx, ty, 0, 0, TT, TT, g => backTile(g, tx, ty, TT, R));
+  });
   // (the ceiling's underside going back, the floor going back)
   underBack(c, eye, xa, xb, y0, 1, BK, [R[0], R[1], R[1]], 3);
   if (eye.y < y1 - 1) for (let i = 0; i < 4; i++) { const d0 = 1 - ((1 - BK) * i) / 4, d1 = 1 - ((1 - BK) * (i + 1)) / 4; poly(c, [at(eye, xa, y1, d0), at(eye, xb, y1, d0), at(eye, xb, y1, d1), at(eye, xa, y1, d1)], [R[4], R[3], R[3], R[2]][i]); }

@@ -50,10 +50,26 @@ const paintFlat = (g: Ctx, seed: number) => {
   g.fillStyle = SN[1]; g.beginPath(); g.moveTo(62, -132); g.lineTo(96, -Hh); g.lineTo(128, -128); g.lineTo(112, -138); g.lineTo(100, -124); g.lineTo(84, -140); g.closePath(); g.fill();
   g.fillStyle = SN[2]; g.beginPath(); g.moveTo(68, -136); g.lineTo(95, -Hh + 2); g.lineTo(88, -150); g.closePath(); g.fill();
   for (let d = 0; d < 5; d++) box(g, 70 + d * 11, -134 + (d % 2) * 4, 2, 8 + hash(seed + d) * 12, SN[0]);
-  // (painted pines along the foot, too even)
-  for (let tx = 8; tx < W; tx += 14) { g.fillStyle = dimmed(['#1A3428'])[0]; g.beginPath(); g.moveTo(tx, -44 - ((tx * 5) % 9)); g.lineTo(tx + 8, -18); g.lineTo(tx - 8, -18); g.closePath(); g.fill(); }
-  box(g, 0, -20, W, 20, dimmed(['#1A3428'])[0]);
+  // (the painted shade down the peak's right: darker brush strokes, a ridge line painted in, painted crags in steps)
+  for (let s = 0; s < 12; s++) { g.strokeStyle = s % 2 ? P[1] : P[0]; g.lineWidth = 3; g.beginPath(); g.moveTo(100 + s * 4, -Hh + 10 + s * 7); g.lineTo(120 + s * 6, -Hh + 60 + s * 10); g.stroke(); }
+  g.strokeStyle = P[4]; g.lineWidth = 1; g.beginPath(); g.moveTo(96, -Hh + 2); g.lineTo(104, -150); g.lineTo(98, -110); g.lineTo(108, -70); g.stroke();
+  for (let k = 0; k < 6; k++) { const cx = 30 + hash(seed + k * 3.3) * 130, cy = -120 + hash(seed + k * 1.9) * 70; box(g, cx, cy, 10 + hash(seed + k) * 10, 2, P[1]); box(g, cx, cy - 1, 8, 1, P[4]); }
+  // (the ply's grain showing through the paint, and a patch where it's peeled)
+  for (let y = -Hh; y < 0; y += 9) box(g, 0, y + Math.round(hash(seed + y) * 4), W, 1, mix(P[2], BR[3], 0.18));
+  box(g, 40, -70, 14, 8, BR[3]); box(g, 40, -70, 14, 1, BR[4]); box(g, 42, -63, 10, 1, BR[1]);
+  // (painted pines along the foot, too even: two tones, a painted trunk, a lit side brushed on)
+  const PN = dimmed(['#12261C', '#1A3428', '#2A4A36', '#3E6448'], 0.1);
+  box(g, 0, -20, W, 20, PN[1]);
+  for (let tx = 8; tx < W; tx += 14) {
+    const ty = -46 - ((tx * 5) % 9);
+    g.fillStyle = PN[1]; g.beginPath(); g.moveTo(tx, ty); g.lineTo(tx + 8, -18); g.lineTo(tx - 8, -18); g.closePath(); g.fill();
+    g.fillStyle = PN[2]; g.beginPath(); g.moveTo(tx, ty); g.lineTo(tx, -18); g.lineTo(tx - 8, -18); g.closePath(); g.fill();
+    box(g, tx - 1, ty, 1, 3, PN[3]); box(g, tx - 1, -18, 2, 4, BR[1]);
+  }
+  checker(g, 0, -12, W, 2, PN[0], 0); box(g, 0, -8, W, 8, PN[0]);
   g.restore();
+  // (nails along its cut edge)
+  for (const [nx, ny] of [[30, -108], [58, -90], [134, -118], [160, -134], [176, -70]] as const) box(g, nx + 2, ny + 3, 1, 1, BR[0]);
   // (the stencil on its face: the park's)
   box(g, 120, -30, 50, 7, P[1]);
   for (let i = 0; i < 8; i++) box(g, 123 + i * 6, -28, 4, 3, P[4]);
