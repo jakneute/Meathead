@@ -96,20 +96,49 @@ export const OUCH = [
   'SOCKS! ARE YOU OKAY?', 'BAD MAN! YOU HURT SOCKS!', 'SOCKS, NO! GET UP!', 'SOCKS! YOU HAVE NINE LIVES! USE ONE!',
   'WALK IT OFF, SOCKS!', 'THAT LOOKED LIKE IT HURT! DID IT HURT?', "SOCKS! I'LL GET A BAND-AID! A BIG ONE!",
 ];
-/** He tells her to shut up (after about every other nag). */
+/** He tells her to shut up (the user's: "any time chelsea clinton tells socks what to do in the platforming parts,
+ *  meathead tells her to shut up": after every nag and every hint of hers). */
 export const SHUT_UP: ByPants = {
   clean: [
     'SHUT UP.', 'SHUT UP, KID.', "I'M NOT YOUR CAT.", 'NOBODY ASKED YOU.', 'SHUT. UP.', 'I HEARD YOU THE FIRST TIME.',
     'THIS SHOW HAS NO MUTE BUTTON.', "ONE MORE 'SOCKS' AND I QUIT.", "POINTING ISN'T HELPING.", 'GO NAG A LOBBYIST.',
+    'SHUT YOUR HEADBAND.', 'YOU DO IT THEN.', 'I GOT EYES, KID.', 'NOBODY PUT YOU IN CHARGE.', 'ZIP IT, CHELSEA.',
+    'YOU POINT ONE MORE TIME, I BITE THE FINGER.', 'SHUT UP. I KNOW WHERE THE DOOR IS.', 'TELL YOUR DAD. NOT ME.',
+    'THANKS, NAVI. SHUT UP.', "I DIDN'T ASK FOR A TOUR.",
   ],
   shitty: [
     'SHUT UP. I KNOW. I SMELL IT TOO.', 'SHUT UP ABOUT THE LITTER BOX.', 'SHUT UP OR YOU GET HUGGED.', "YES, IT'S ME. KEEP WALKING.",
-    "I'LL BURY IT LATER. SHUT UP.", 'SAY STINKY ONE MORE TIME.',
+    "I'LL BURY IT LATER. SHUT UP.", 'SAY STINKY ONE MORE TIME.', "SHUT UP. I'M LEAKING HERE.", "QUIT BOSSING A GUY WHO SHIT HIMSELF.",
+    'SHUT UP AND HOLD YOUR NOSE.', 'I GOT ENOUGH ON MY PLATE. AND IN MY PANTS.', "SHUT UP. EVERY STEP'S SQUISHY.",
+    "ORDERS FROM A KID. AND I'M THE ONE WHO SHIT.", 'SHUT UP OR I SIT ON YOU.', 'NOT NOW. NOT IN THESE PANTS.',
   ],
   nude: [
     'SHUT UP AND STOP LOOKING.', "SHUT UP. YOU SAID CATS DON'T WEAR PANTS.", 'SHUT UP. EYES UP HERE.', 'QUIT STARING AND START HELPING.',
-    "PANTS AREN'T IN THE SCRIPT. SHUT UP.", 'NOBODY TELLS DAD. GOT IT.',
+    "PANTS AREN'T IN THE SCRIPT. SHUT UP.", 'NOBODY TELLS DAD. GOT IT.', "SHUT UP. I'M COLD.", 'TELL A NAKED GUY WHAT TO DO. GO AHEAD.',
+    "SHUT UP. EVERYTHING'S OUT AND SWINGING.", "I'LL GO WHEN I FIND PANTS.", 'SHUT UP AND FACE THE WALL.',
+    "DON'T TALK TO ME. I'M NAKED.", 'NAKED AND NAGGED. GREAT.', "SHUT UP. YOU'RE NOT HELPING AND I'M NOT DRESSED.",
   ],
+};
+/** ...and at what she just told him, by her hint (both halves'; any state). */
+export const HINT_RETORT: Record<string, string[]> = {
+  vacuum: ["IT ATE YOUR HAMSTER. GOOD FOR IT.", 'SHUT UP ABOUT THE VACUUM.'],
+  wax: ['I KNOW IT\'S SLIPPY. SHUT UP.', 'SAY SLIPPY AGAIN.'],
+  chandelier: ["IT'S A LAMP. SHUT UP.", 'NOT EVERYTHING IS LIKE THE MOVIES.'],
+  stairs: ['I SEE THE BALLS. SHUT UP.', 'YOUR DAD BOWLS? WHO CARES.'],
+  roses: ['SHUT UP ABOUT THE FLOWERS.', "THEY'RE POINTY. I GOT IT."],
+  sprinkler: ['I KNOW CATS HATE WATER. I HATE YOU.', 'SHUT UP. IT\'S A SPRINKLER.'],
+  blimp: ['IT\'S A BALLOON. SHUT UP.', 'LET IT WATCH.'],
+  dining: ["CANADA CAN EAT A CHEESEBURGER. SHUT UP.", 'NOBODY CARES ABOUT CANADA.'],
+  upstairs: ['THEN WHY ARE WE GOING IN?', 'SHUT UP. I SLEEP WHERE I WANT.'],
+  westwing: ['MOSTLY. SHUT UP.', "I DON'T CARE WHERE HE WORKS."],
+  drawers: ['I SEE THE DRAWERS. SHUT UP.', 'CLIMB THEM YOURSELF.'],
+  ditto: ['GOOD FOR HIM. SHUT UP.', "I DON'T CARE WHAT HE LISTENS TO."],
+  kitchen: ['SECRETLY. EVERYBODY KNOWS. SHUT UP.', 'SHUT UP ABOUT THE CHEESEBURGERS.'],
+  jello: ["DON'T SAY BOING.", 'I KNOW IT BOUNCES. SHUT UP.'],
+  map: ["I WASN'T GONNA TOUCH IT. NOW I AM.", "SHUT UP ABOUT THE GLOBE."],
+  lasers: ['I KNOW HOW LASERS WORK. SHUT UP.', 'YOU TIME IT.'],
+  sweep: ['YOU TIME IT. SHUT UP.', 'UP AND DOWN. I SEE IT.'],
+  oval: ['MEANEST MAN. SURE. SHUT UP.', "GOOD. I'M IN A MOOD."],
 };
 /** She cheers a mean man going up in his puff (now and then). */
 export const CHEER = [
@@ -365,7 +394,7 @@ const punditPools = (l: PunditLines) => [...allOf(l.intro), ...allOf(l.taunt), .
 const meatPundit = (l: PunditLines) => [...allOf(l.reply), ...allOf(l.baffled), ...allOf(l.after)];
 export const VOICE_LINES: Record<string, string[]> = {
   meathead: [
-    ...ERASED, ...allOf(REDRAWN), ...allOf(SHUT_UP_FIRST), ...allOf(REDRAWN_AGAIN), ...allOf(SHUT_UP),
+    ...ERASED, ...allOf(REDRAWN), ...allOf(SHUT_UP_FIRST), ...allOf(REDRAWN_AGAIN), ...allOf(SHUT_UP), ...Object.values(HINT_RETORT).flat(),
     ...Object.values(GAGS).flatMap(allOf), ...meatPundit(PEROT_LINES), ...meatPundit(FALWELL_LINES), ...TOO_GREASY,
     ...allOf(SHOW_MOCK), ...allOf(KILL_QUIP),
     ...Object.values(HURT).flatMap(h => h.hurt),

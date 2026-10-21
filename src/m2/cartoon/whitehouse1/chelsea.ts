@@ -12,11 +12,11 @@
 // Her state's per stage (rebuilt with it on a death); what she's said outlives a death for the visit (hints once each).
 
 import type { GameState } from '../../../m1/game/core/state';
-import { isTalking } from '../../../m1/game/platform/speech';
+import { isTalking, pickFreshLine } from '../../../m1/game/platform/speech';
 import { playSound } from '../../../m1/game/platform/audio';
 import { speak, meatheadSays, byPants, saidOver, landVisit, type Said } from '../section';
 import { INK, type Ctx } from '../kit';
-import { CHELSEA, NAG, HINT, OUCH, SHUT_UP, CHEER, COWER, SHOW_MOCK, KILL_QUIP } from './lines';
+import { CHELSEA, NAG, HINT, OUCH, SHUT_UP, HINT_RETORT, CHEER, COWER, SHOW_MOCK, KILL_QUIP } from './lines';
 import { whLine, whMust } from './onceLines';
 import { HINT_AT, floorAt, roomAt, X, Y } from './layout';
 import { inFight, fightArena } from './pundits';
@@ -193,15 +193,26 @@ export const updateChelsea = (state: GameState, w: ChelseaWorld = PART_ONE) => {
   c.lastHp = p.health;
   if (!free) return;
   // (the first time he gets to each thing: her hint)
-  for (const [k, a, b, pool] of world.hints) if (px > a && px < b && hintOnce(k)) { chelseaSays(state, whMust(pool)); c.nagAt = state.frame + NAG_EVERY[0]; return; }
-  // (every so often, a nag; about every other one, he tells her to shut up; never the same twice in a life)
+  for (const [k, a, b, pool] of world.hints) if (px > a && px < b && hintOnce(k)) { chelseaSays(state, whMust(pool), () => shutHerUp(state, k)); c.nagAt = state.frame + NAG_EVERY[0]; return; }
+  // (every so often, a nag; never the same twice in a life; and every time, he tells her to shut up)
   if (state.frame > c.nagAt && !world.hush?.(px)) {
     c.nagAt = state.frame + NAG_EVERY[0] + Math.floor(Math.random() * (NAG_EVERY[1] - NAG_EVERY[0]));
     const nag = whLine(byPants(state, NAG));
     if (!nag) return;
-    const reply = c.shutNext; c.shutNext = !c.shutNext;
-    chelseaSays(state, nag, () => { const l = whLine(byPants(state, SHUT_UP)); if (l && reply && state.player.health > 0 && !state.player.inCutscene) meatheadSays(state, l, true); });
+    chelseaSays(state, nag, () => shutHerUp(state));
   }
+};
+
+/** The user's: "any time chelsea clinton tells socks what to do in the platforming parts, meathead tells her to shut
+ *  up": right after her line's done (queued: never over her), at what she just said now and then (her hint's own
+ *  retorts), else one of his shut-ups by the state of him; never twice in a life, and once they're all used, only one
+ *  not heard in the last 45 s (pickFreshLine), never silent while there is one. */
+const shutHerUp = (state: GameState, hint?: string) => {
+  const p = state.player;
+  if (p.health <= 0 || p.inCutscene) return;
+  const own = hint ? HINT_RETORT[hint] : undefined, pool = byPants(state, SHUT_UP);
+  const l = (own && Math.random() < 0.6 ? whLine(own) : null) ?? whLine(pool) ?? pickFreshLine(pool);
+  if (l) meatheadSays(state, l, true);
 };
 
 /** Mean men's puffs already seen (cheered or let go). */
