@@ -183,19 +183,35 @@ export const DAD_SETTLE: ByPants = {
 // Everything he says is by pants (he's seen him). The family's tapes don't react to Meathead: one pool each.
 
 /** Screaming at the family for a beer (the whole fight). */
+/** Yelling for a beer, at whoever's going to get it (the user's: "make sure the callouts match": the runner's picked
+ *  first, his line from that one's own pool). */
+export const DAD_BEER_FOR: Record<'mom' | 'boy' | 'sis' | 'gramps', ByPants> = {
+  mom: {
+    clean: ['MARLENE! BEER! THERE\'S A FAN IN THE HOUSE!', 'MARLENE! BEER! CHOP CHOP!', 'MARLENE! A BEER! YOU HAD ONE JOB!'],
+    shitty: ['MARLENE! BEER! THE GUEST SHIT HIMSELF!', 'MARLENE! BEER! AND OPEN A WINDOW!'],
+    nude: ['MARLENE! BEER! AND A TOWEL FOR THE NAKED GUY!', 'MARLENE! BEER! QUIT LOOKING AT HIS THING!'],
+  },
+  boy: {
+    clean: ['BOY! BEER! I\'M BEING ATTACKED HERE!', 'BOY! BEER! MOVE IT!', 'BOY! GET YOUR OLD MAN A BEER!'],
+    shitty: ['BOY! TWO BEERS! ONE TO DRINK, ONE TO POUR ON HIM!', 'BOY! BEER! HOLD YOUR NOSE!'],
+    nude: ['BOY! BEER! DON\'T LOOK AT HIM, JUST BRING IT!', 'BOY! BEER! EYES ON THE FRIDGE!'],
+  },
+  sis: {
+    clean: ['SIS! BEER! AND QUIT LOOKING AT ME LIKE THAT!', 'SIS! BEER! NOW, MISSY!', 'SIS! A BEER! AND NO LIP!'],
+    shitty: ['SIS! BEER! BREATHE THROUGH YOUR MOUTH!', 'SIS! BEER! THE STINKY MAN\'S BACK!'],
+    nude: ['SIS! BEER! AND COVER YOUR EYES!', 'SIS! BEER! DON\'T LOOK AT THE NAKED MAN!'],
+  },
+  gramps: {
+    clean: ['GRAMPS! BEER! YOU\'RE CLOSEST TO DEATH, MAKE YOURSELF USEFUL!', 'GRAMPS! BEER! WAKE UP!', 'GRAMPS! A BEER! BEFORE YOU DIE!'],
+    shitty: ['GRAMPS! BEER! HE SMELLS WORSE THAN YOU!', 'GRAMPS! BEER! YOU CAN\'T SMELL ANYWAY!'],
+    nude: ['GRAMPS! BEER! AND PUT YOUR TEETH IN, THERE\'S A NAKED GUY!', 'GRAMPS! BEER! YOU SEEN WORSE. IN THE WAR.'],
+  },
+};
+/** ...nobody in particular (spare). */
 export const DAD_BEER: ByPants = {
-  clean: [
-    'MARLENE! BEER! THERE\'S A FAN IN THE HOUSE!', 'BOY! BEER! I\'M BEING ATTACKED HERE!', 'SOMEBODY GET ME A BEER BEFORE I LOSE IT!',
-    'GRAMPS! BEER! YOU\'RE CLOSEST TO DEATH, MAKE YOURSELF USEFUL!', 'SIS! BEER! AND QUIT LOOKING AT ME LIKE THAT!',
-  ],
-  shitty: [
-    'BEER! IF I GET DRUNK ENOUGH I CAN\'T SMELL HIM!', 'MARLENE! BEER! THE GUEST SHIT HIMSELF!', 'BOY! TWO BEERS! ONE TO DRINK, ONE TO POUR ON HIM!',
-    'BEER! SOMETHING DIED IN HIS PANTS!',
-  ],
-  nude: [
-    'BEER! I GOTTA UNSEE THIS!', 'MARLENE! BEER! AND A TOWEL FOR THE NAKED GUY!', 'BOY! BEER! DON\'T LOOK AT HIM, JUST BRING IT!',
-    'BEER! A NAKED MAN IN MY LIVING ROOM! BEER!',
-  ],
+  clean: ['SOMEBODY GET ME A BEER BEFORE I LOSE IT!'],
+  shitty: ['BEER! IF I GET DRUNK ENOUGH I CAN\'T SMELL HIM!', 'BEER! SOMETHING DIED IN HIS PANTS!'],
+  nude: ['BEER! I GOTTA UNSEE THIS!', 'BEER! A NAKED MAN IN MY LIVING ROOM! BEER!'],
 };
 /** Snark at the family (the sitcom: everybody mean to everybody, in the living room, forever). */
 export const DAD_SNIPE: ByPants = {
@@ -490,7 +506,7 @@ export const VOICE_LINES: Record<string, string[]> = {
   [VOICES.guard]: [GUARD_STOP, GUARD_DOWN_LINES, GUARD_GROAN, GUARD_LATER].flatMap(all),
   [VOICES.dad]: [
     ...SHOW_CALL, ...SHOW_TAKE, ...SHOW_ADLIB, ...SHOW_TV, ...[DAD_NOTICE, DAD_UP, DAD_FIGHT, DAD_SETTLE].flatMap(all),
-    ...[DAD_BEER, DAD_SNIPE, DAD_BUNDY, DAD_SWAT, DAD_CATCH, DAD_MISS, DAD_BONK, DAD_PUKE, DAD_RAGE, DAD_TIRED, DAD_HURT, ...DAD_KILL,
+    ...Object.values(DAD_BEER_FOR).flatMap(all), ...[DAD_BEER, DAD_SNIPE, DAD_BUNDY, DAD_SWAT, DAD_CATCH, DAD_MISS, DAD_BONK, DAD_PUKE, DAD_RAGE, DAD_TIRED, DAD_HURT, ...DAD_KILL,
       DAD_PATHETIC, DAD_HEAVY, DAD_TAUNT, DAD_LOW, DAD_ENTRANCE, DAD_GRABBED, DAD_SEES_CAR, DAD_FRIDGE, DAD_WOBBLE, DAD_CRUSHED, DAD_FLAT].flatMap(all),
   ],
   [VOICES.crew]: [...CREW_EXCUSE],

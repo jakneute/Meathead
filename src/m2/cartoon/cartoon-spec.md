@@ -681,6 +681,17 @@ As built (numbers up top in fight.ts):
     up). Seated, the swat only counts him at the couch's level (his feet within 66 px of the deck): a jump and an air
     shoulder charge over him are safe; into him on the ground still gets swatted. After the rage he's winded 60 frames
     (was 90) and waddle-runs back to the couch at 3.4 px a frame (was 1.6).
+  - THE PUKE RIDE BY HEALTH (the user's: "when lower on health, the barf attack will bounce him across several walls,
+    left and right, across the whole room. many bounces can happen"): fight.ts PUKE_TIER, set as he winds up: over 60%
+    as before (24-frame tell, friction 0.972, bounce 62%: a wall or two); to 35%, a 34-frame tell (the couch rocking),
+    +4 on the kick, friction 0.991, bounce 84% (3-4 walls); under 35%, a 42-frame tell, +7, 0.996, 91% (5-8 walls). He
+    keeps puking while it's flying (up to 4 / 8 s more), the spray hurting the whole way; straight lines wall to wall,
+    each wall shaking the room (the fridge jolted at its wall); the push only the way the puke sends it. Jump it, or
+    charge / dive kick it (the skilled way, as ever). Then the fast scoot home.
+  - THE BEER CALL NAMES THE RUNNER (the user's: "stupid dad said 'gramps get a beer' when it wasn't gramps"): the runner's
+    picked first, his line from that one's own pool (DAD_BEER_FOR: MOM / THE BOY / SIS / GRAMPS, by pants), and it
+    stands waiting till he's said it (5 s at most), then its tell and the run. The other lines naming one of them
+    (DAD_SNIPE) only go at a living one, and its tape answers; the kill reactions name nobody.
   - THE CLAPPERBOARD'S RESET: snapped before it's ready (a dud, no ammo used): the stunt coordinator on the walkie
     (m2.hollywood.stuntco, off-stage; WALKIE: under the boss bar) with an excuse (CREW_EXCUSE: "THE NEW DRIVERS ARE SLOW
     AS SHIT." word for word, the union break, a car that still runs, the driver who quit, insurance, the stuntman

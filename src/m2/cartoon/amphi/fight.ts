@@ -119,6 +119,16 @@ const CATCH_T = 24, DRINK_T = 64;
 /** The puke: the wind-up, how long it comes, the kick it gives the couch (more each time), the push while it's coming,
  *  the couch's slide (friction) and bounce; the hurt (the puke, the couch). */
 const PUKE_WIND = 24, PUKE_T = 84, PUKE_KICK = 8, PUKE_KICK_MORE = 2.2, PUKE_KICK_MAX = 17, PUKE_PUSH = 0.3, SLIDE = 0.972, BOUNCE = 0.62;
+/** Lower on health, the puke rides further (the user's: "when lower on health, the barf attack will bounce him across
+ *  several walls, left and right, across the whole room. many bounces can happen"): by tier (his health over 60%, to
+ *  35%, under): the wind-up (a longer tell), the kick on top, the couch's friction and its bounce off a wall, how long
+ *  he keeps puking while it's still flying (the spray the whole way). About 1-2 walls, 3-4, 5-8. */
+const PUKE_TIER = [
+  { wind: PUKE_WIND, kick: 0, slide: SLIDE, bounce: BOUNCE, ride: 0 },
+  { wind: 34, kick: 4, slide: 0.991, bounce: 0.84, ride: 240 },
+  { wind: 42, kick: 7, slide: 0.996, bounce: 0.91, ride: 480 },
+];
+const pukeTierOf = (f: Fight) => (f.hp > HP * 0.6 ? 0 : f.hp > HP * 0.35 ? 1 : 2);
 /** The couch stopped off its spot: how fast he scoots it back (px a frame, while his heels are down). */
 const SCOOT = 3.4;
 const PUKE_DMG = 8, COUCH_DMG = 16, COUCH_HURTS = 3.4;
@@ -147,7 +157,7 @@ interface Fam {
   /** Stopped on its track this many frames more. */
   idle: number;
 }
-interface Errand { who: Member; step: 'ready' | 'go' | 'open' | 'toss' | 'back'; t: number; left: number }
+interface Errand { who: Member; step: 'ready' | 'go' | 'open' | 'toss' | 'back'; t: number; left: number; called: boolean; wait: number }
 type Miss = 'short' | 'long' | 'head' | 'wall' | 'catch' | 'spray';
 interface Bottle { t: number; T: number; ax: number; ay: number; ad: number; bx: number; by: number; bd: number; kind: Miss; rot: number; arc: number }
 interface Drop { x: number; y: number; vx: number; vy: number; r: number; k: number }
@@ -192,6 +202,8 @@ export interface Fight {
   words: Map<'dad' | Member | 'crew', string>;
   /** The zoom (eased: out to take in the whole set while it's on), the clapperboard's ready flash, the crew's last excuse. */
   zoom: number; readyFlash: number; crewAt: number; blocked: number; blockSaidAt: number;
+  /** The puke's tier for this ride (set as it winds up: PUKE_TIER). */
+  pukeTier: number;
   chatAt: number; bundy: number; lowSaid: boolean; wrongN: number; hintAt: number; dudAt: number; saidPuke: boolean; saidRage: boolean;
   flat: number;
   death: Death | null; deathSaid: number; cam: KillCam | null;
@@ -318,7 +330,7 @@ export const startFight = (state: GameState, retry: boolean): Fight => {
     bottles: [], drops: [], puddles: [], cars: [], wrecks: [], flung: [],
     kills: 0, recharge: 0, sad: false, words: new Map(),
     chatAt: rnd(...CHAT_EVERY) * 0.6, bundy: 0, lowSaid: false, wrongN: 0, hintAt: -9999, dudAt: -9999, saidPuke: false, saidRage: false,
-    flat: 1, death: null, deathSaid: 0, cam: null, zoom: 1, readyFlash: 0, crewAt: -9999, blocked: 0, blockSaidAt: -9999,
+    flat: 1, death: null, deathSaid: 0, cam: null, zoom: 1, readyFlash: 0, crewAt: -9999, blocked: 0, blockSaidAt: -9999, pukeTier: 0,
   };
   live = f;
   state.enemies.push(e);
@@ -369,16 +381,17 @@ const props = (ctx: FrameContext, f: Fight) => {
   const { state } = ctx, c = f.couch;
   // The couch: sliding on, bouncing off the end walls (the fridge jolts when it hits that one), slowing
   if (!c.crushed && c.vx !== 0) {
-    c.x += c.vx; c.vx *= SLIDE;
+    const T = PUKE_TIER[f.pukeTier];
+    c.x += c.vx; c.vx *= T.slide;
     const lo = ARENA.a + COUCH_HALF + 4, hi = ARENA.b - COUCH_HALF - 4;
     if (c.x < lo || c.x > hi) {
       const sp = Math.abs(c.vx);
-      c.x = c.x < lo ? lo : hi; c.vx = -c.vx * BOUNCE; c.squash = 1;
+      c.x = c.x < lo ? lo : hi; c.vx = -c.vx * T.bounce; c.squash = 1;
       playSound('crash', Math.min(1, 0.4 + sp / 14), -6); playSound('thud', 1, -10); shakeScreen(state, Math.min(14, 4 + sp), 4);
       if (c.x === hi) { f.fridge.jolt = 1; f.fridge.dx = Math.max(-34, f.fridge.dx - sp * 2.2); playSound('clink', 0.9, 2); playSound('glass', 0.5, 4); }
       for (let i = 0; i < 10; i++) state.particles.push({ pos: { x: X(c.x) + (c.x === hi ? COUCH_HALF : -COUCH_HALF), y: STAGE_Y - 30 - Math.random() * 30 }, vel: { x: (Math.random() - 0.5) * 4, y: -1 - Math.random() * 3 }, life: 30, color: i % 2 ? '#F4EFE2' : '#E0752E', size: 2 + Math.random() * 3, grav: 0.25 });
     }
-    if (Math.abs(c.vx) < 0.6 && f.act !== 'puke') c.vx = 0;
+    if (Math.abs(c.vx) < 0.6 && f.act !== 'puke') { c.vx = 0; if (f.act !== 'pukeWind') f.pukeTier = 0; }
     c.rot = Math.max(-0.12, Math.min(0.12, -c.vx * 0.012));
   } else c.rot *= 0.8;
   c.squash *= 0.82;
@@ -459,9 +472,11 @@ const dad = (ctx: FrameContext, f: Fight) => {
       if (!f.errand && f.t >= f.callAt && f.couch.vx === 0 && alive(f).length && Math.abs(f.couch.x - COUCH_HOME) <= 40) {
         f.callAt = f.t + rnd(...CALL_EVERY);
         const al = alive(f), who = al[Math.floor(Math.random() * al.length)];
-        dadSays(f, state, L.DAD_BEER);
-        f.errand = { who, step: 'ready', t: 0, left: Math.floor(rnd(BOTTLES[0], BOTTLES[1] + 1)) };
-        playSound('alarm', 0.5, 6);
+        // (the runner's picked first; he yells for that one by name (the user's: "make sure the callouts match"), and it
+        // goes once he's said it)
+        const er: Errand = { who, step: 'ready', t: 0, left: Math.floor(rnd(BOTTLES[0], BOTTLES[1] + 1)), called: false, wait: 0 };
+        f.errand = er;
+        dadSays(f, state, L.DAD_BEER_FOR[who], () => { er.called = true; });
       }
       break;
     }
@@ -485,20 +500,23 @@ const dad = (ctx: FrameContext, f: Fight) => {
       break;
     case 'pukeWind':
       if (t === 2) { bark(f, state, L.DAD_PUKE); playSound('retch', 0.9, -2); }
-      if (t >= PUKE_WIND) {
+      // (the tell: the cheeks puffing, the couch rocking, longer the further it'll go)
+      if (t % 4 === 0) f.couch.squash = Math.max(f.couch.squash, 0.35);
+      if (t >= PUKE_TIER[f.pukeTier].wind) {
         setAct(f, 'puke'); f.pukes++;
-        f.couch.vx += -f.facing * Math.min(PUKE_KICK_MAX, PUKE_KICK + PUKE_KICK_MORE * (f.pukes - 1 + f.kills));
+        f.couch.vx += -f.facing * (Math.min(PUKE_KICK_MAX, PUKE_KICK + PUKE_KICK_MORE * (f.pukes - 1 + f.kills)) + PUKE_TIER[f.pukeTier].kick);
         playSound('gush', 1, -2); playSound('barf', 1, 0); shakeScreen(state, 8, 4);
         if (!f.saidPuke) { f.saidPuke = true; meathead(state, L.MH_PUKE); }
       }
       break;
     case 'puke': {
       // (it comes out of him like a fire hose the way he's facing; the couch goes the other way)
-      f.couch.vx += -f.facing * PUKE_PUSH;
+      // (pushed only while it's going the way the puke sends it: after a wall it just rides)
+      if (Math.sign(f.couch.vx) === -f.facing) f.couch.vx += -f.facing * PUKE_PUSH;
       const mx = X(f.x) + f.facing * 15, my = STAGE_Y - 64;
       for (let k = 0; k < 2; k++) f.drops.push({ x: mx, y: my, vx: f.facing * rnd(7.5, 11.5) + f.couch.vx * 0.4, vy: rnd(-2.6, 0.6), r: rnd(3, 6), k: Math.floor(Math.random() * 6) });
       if (t % 12 === 0) playSound('gush', 0.6, Math.random() * 3);
-      if (t >= PUKE_T) { setAct(f, 'sit'); playSound('burp', 0.6, 4); }
+      if (t >= PUKE_T && !(t < PUKE_T + PUKE_TIER[f.pukeTier].ride && Math.abs(f.couch.vx) > COUCH_HURTS)) { setAct(f, 'sit'); playSound('burp', 0.6, 4); }
       break;
     }
     case 'rise':
@@ -588,7 +606,7 @@ const attack = (f: Fight, state: GameState) => {
   void state;
   const a = f.nextAtk;
   f.nextAtk = a === 'puke' ? 'rage' : 'puke';
-  if (a === 'puke' && f.seated && !f.couch.crushed) setAct(f, 'pukeWind');
+  if (a === 'puke' && f.seated && !f.couch.crushed) { setAct(f, 'pukeWind'); f.pukeTier = pukeTierOf(f); }
   else setAct(f, 'rise');
 };
 
@@ -826,7 +844,9 @@ const errand = (ctx: FrameContext, f: Fight) => {
   };
   switch (er.step) {
     case 'ready':
-      // (the tell: a klaxon off its chest, it leans the way it's going and revs (sparks at its wheels), then it bolts)
+      // (it waits for its name to be called (a few seconds at most), then the tell: a klaxon off its chest, it leans the
+      // way it's going and revs (sparks at its wheels), then it bolts)
+      if (!er.called) { er.wait++; if (er.wait < 300) { er.t = 0; break; } }
       m.dir = (AT_FRIDGE.x < m.x ? -1 : 1) as 1 | -1;
       if (er.t % 6 === 0) { const E = eyeOf(state), q = proj(E, X(m.x), STAGE_Y - 2, m.d); for (let i = 0; i < 3; i++) state.particles.push({ pos: q, vel: { x: -m.dir * (1 + Math.random() * 3), y: -1 - Math.random() * 2 }, life: 12, color: '#FDE047', size: 1.5, grav: 0.2 }); }
       if (er.t === 14) playSound('alarm', 0.5, 6);

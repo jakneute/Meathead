@@ -19171,7 +19171,22 @@
  },
  {
   "voice": "m2.cartoon.dad",
+  "text": "BOY! BEER! EYES ON THE FRIDGE!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "BOY! BEER! HOLD YOUR NOSE!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
   "text": "BOY! BEER! I'M BEING ATTACKED HERE!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "BOY! BEER! MOVE IT!",
   "from": "CARTOON"
  },
  {
@@ -19182,6 +19197,11 @@
  {
   "voice": "m2.cartoon.dad",
   "text": "BOY! GET ME ANOTHER BEER!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "BOY! GET YOUR OLD MAN A BEER!",
   "from": "CARTOON"
  },
  {
@@ -19337,6 +19357,36 @@
  {
   "voice": "m2.cartoon.dad",
   "text": "GRAMPS, YOU'RE DROOLING. HE'S NAKED, NOT A SANDWICH.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "GRAMPS! A BEER! BEFORE YOU DIE!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "GRAMPS! BEER! AND PUT YOUR TEETH IN, THERE'S A NAKED GUY!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "GRAMPS! BEER! HE SMELLS WORSE THAN YOU!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "GRAMPS! BEER! WAKE UP!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "GRAMPS! BEER! YOU CAN'T SMELL ANYWAY!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "GRAMPS! BEER! YOU SEEN WORSE. IN THE WAR.",
   "from": "CARTOON"
  },
  {
@@ -19536,7 +19586,27 @@
  },
  {
   "voice": "m2.cartoon.dad",
+  "text": "MARLENE! A BEER! YOU HAD ONE JOB!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
   "text": "MARLENE! BEER! AND A TOWEL FOR THE NAKED GUY!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "MARLENE! BEER! AND OPEN A WINDOW!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "MARLENE! BEER! CHOP CHOP!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "MARLENE! BEER! QUIT LOOKING AT HIS THING!",
   "from": "CARTOON"
  },
  {
@@ -19816,7 +19886,37 @@
  },
  {
   "voice": "m2.cartoon.dad",
+  "text": "SIS! A BEER! AND NO LIP!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "SIS! BEER! AND COVER YOUR EYES!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
   "text": "SIS! BEER! AND QUIT LOOKING AT ME LIKE THAT!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "SIS! BEER! BREATHE THROUGH YOUR MOUTH!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "SIS! BEER! DON'T LOOK AT THE NAKED MAN!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "SIS! BEER! NOW, MISSY!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
+  "text": "SIS! BEER! THE STINKY MAN'S BACK!",
   "from": "CARTOON"
  },
  {
