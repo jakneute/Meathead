@@ -6,6 +6,8 @@ import { inLand } from './geo';
 import { ATTRACTIONS, CAST, NUMBERS } from './data';
 import { ZOOMS, levelCanvas, landOutline } from './render';
 import { castPhotoImg } from './photos';
+import { remainsPhotoImg } from './remains';
+import { bossDeath } from '../store';
 
 // The hub's portal card, YOU ARE GOING HERE (up at a land's portal; the hub's own confirm and cancel, hub/index.ts):
 // a preview of that one land, not the park map: its corner of the brochure map close up (its landmarks, its walks,
@@ -55,7 +57,9 @@ const LandCard: React.FC<{ land: number }> = ({ land }) => {
   }, [land]);
   const list = ATTRACTIONS.filter(a => a.land === l?.id && !a.minor && (a.v ?? 0) <= 1);
   const star = CAST.find(c => c.land === l?.id);
-  const photo = star ? castPhotoImg(star.land, 'small') : null;
+  // (dead: what's left of him, and IN MEMORIAM: parkmap's obituaries)
+  const dead = star ? bossDeath(star.land) : null;
+  const photo = star ? (dead ? remainsPhotoImg(star.land, dead, 'small') : castPhotoImg(star.land, 'small')) : null;
   return (
     <div className="absolute inset-0 z-30 flex items-center justify-center bg-black/60">
       <div className="flex flex-col items-center gap-2 p-3" style={{ background: '#3B2A14', border: '3px solid #1C1206', boxShadow: '0 0 0 2px #000, 6px 6px 0 rgba(0,0,0,0.5)' }}>
@@ -81,7 +85,9 @@ const LandCard: React.FC<{ land: number }> = ({ land }) => {
             </div>
             {star && <div className="mt-auto flex items-center gap-[6px] px-2 py-[5px] text-[5px] leading-[8px]" style={{ color: '#44403C', borderTop: `2px dashed ${l?.swirl[1]}` }}>
               {photo && <img src={photo.url} width={photo.w} height={photo.h} alt="" draggable={false} className="shrink-0" style={{ width: photo.w, height: photo.h, imageRendering: 'pixelated', transform: 'rotate(-3deg)' }} />}
-              <div className="min-w-0">KEY CAST MEMBER:<br /><span className="font-black" style={{ color: l?.sign }}>{star.name}</span><br />{star.role}</div>
+              {dead
+                ? <div className="min-w-0">IN MEMORIAM:<br /><span className="font-black" style={{ color: '#18181B' }}>{star.name}</span><br /><span style={{ color: '#7F1D1D' }}>{star.obit[dead].dates}</span></div>
+                : <div className="min-w-0">KEY CAST MEMBER:<br /><span className="font-black" style={{ color: l?.sign }}>{star.name}</span><br />{star.role}</div>}
             </div>}
           </div>
         </div>

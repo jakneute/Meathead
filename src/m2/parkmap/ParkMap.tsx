@@ -8,6 +8,8 @@ import { boundHeld, keyHeld } from '../input';
 import { MAP_W, MAP_H, SECTORS, landMid } from './geo';
 import { ATTRACTIONS, CAST, NUMBERS, attractionOfZone } from './data';
 import { castPhotoImg, PHOTO_TILT } from './photos';
+import { remainsPhotoImg } from './remains';
+import { bossDeath, type BossDeath } from '../store';
 import { VIEW_W, VIEW_H, ZOOMS, FIT, levelCanvas, drawMarker, herePoint, hereLand, landOutline, landAtPoint, type Here } from './render';
 
 // The park map (SELECT on a pad, TAB or M, MAP in the pause menu): Happy Land's brochure map, the whole park, a YOU
@@ -290,9 +292,47 @@ const CastPhoto: React.FC<{ land: string }> = ({ land }) => {
   );
 };
 
+/** Dead: the evidence photo of what's left of him (remains.ts), on the same tilt. */
+const RemainsPhoto: React.FC<{ land: string; how: BossDeath }> = ({ land, how }) => {
+  const img = remainsPhotoImg(land, how);
+  if (!img) return null;
+  return (
+    <div className="flex justify-center pt-[6px]">
+      <img src={img.url} width={img.w} height={img.h} alt="" draggable={false} style={{ width: img.w, height: img.h, imageRendering: 'pixelated', transform: `rotate(${PHOTO_TILT[land] ?? 0}deg)` }} />
+    </div>
+  );
+};
+
+/** His obituary (once he's dead: store.ts bossDeath), the one for how he went: the newspaper's way, a black rule, IN
+ *  MEMORIAM, the dates, the notice, in lieu of flowers. Sized to fit the panel whole (no scrolling): every line set at
+ *  a fixed leading, the longest notice measured against the panel's height. */
+const ObitPanel: React.FC<{ landIdx: number; how: BossDeath }> = ({ landIdx, how }) => {
+  const l = LANDS[landIdx], c = CAST.find(m => m.land === l.id)!;
+  const o = c.obit[how];
+  return (
+    <div className="h-full" style={{ background: '#F2EFE6' }}>
+      <LandHead landIdx={landIdx} kicker="KEY CAST MEMBERS" />
+      <RemainsPhoto land={l.id} how={how} />
+      <div className="px-2 pt-1">
+        <div className="text-[5px] leading-[8px] tracking-widest text-center" style={{ color: '#18181B' }}>IN MEMORIAM</div>
+        <div className="my-[3px] h-[2px]" style={{ background: '#000' }} />
+        <div className="text-[8px] font-black leading-[11px]" style={{ color: '#18181B' }}>{c.name}</div>
+        <div className="text-[5px] leading-[8px] mt-[2px]" style={{ color: '#57534E' }}>{c.role}</div>
+        <div className="text-[5px] leading-[8px] mt-[2px]" style={{ color: '#7F1D1D' }}>{o.dates}</div>
+      </div>
+      <div className="mx-2 my-1 h-[2px]" style={{ background: '#000' }} />
+      <div className="px-2 pb-[6px] text-[5px] leading-[8px]" style={{ color: '#1C1917' }}>{o.text}</div>
+      <div className="px-2 pt-1 pb-1 text-[5px] leading-[8px] italic" style={{ color: '#57534E' }}>{o.flowers}</div>
+      {c.foot && <div className="px-2 pb-1 text-[5px] leading-[8px]" style={{ color: '#78716C' }}>{c.foot}</div>}
+    </div>
+  );
+};
+
 const CastPanel: React.FC<{ landIdx: number }> = ({ landIdx }) => {
   const l = LANDS[landIdx], c = CAST.find(m => m.land === l.id);
   if (!c) return <LandHead landIdx={landIdx} kicker="KEY CAST MEMBERS" />;
+  const dead = bossDeath(l.id);
+  if (dead) return <ObitPanel landIdx={landIdx} how={dead} />;
   return (
     <div>
       <LandHead landIdx={landIdx} kicker="KEY CAST MEMBERS" />
@@ -320,7 +360,7 @@ const CastIndex: React.FC = () => (
     <div className="flex flex-col gap-[6px] px-2 pt-2 pb-3">
       {RING.map(li => { const l = LANDS[li], c = CAST.find(m => m.land === l.id); return c ? (
         <div key={l.id} className="flex flex-col gap-[1px]">
-          <span className="text-[6px] font-black leading-[9px]" style={{ color: l.sign }}>{c.name}</span>
+          <span className="text-[6px] font-black leading-[9px]" style={{ color: l.sign }}>{c.name}{bossDeath(l.id) && <span style={{ color: '#18181B' }}> (LATE)</span>}</span>
           <span className="text-[5px] leading-[7px]" style={{ color: '#44403C' }}>{c.role}</span>
           <span className="text-[5px] leading-[8px] tracking-wider" style={{ color: '#A16207' }}>{l.name}</span>
         </div>
