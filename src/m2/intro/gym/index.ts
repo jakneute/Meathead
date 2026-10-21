@@ -39,7 +39,8 @@ import { registerGmen, gstate, gOf, isWomanG, GMAN, GCRAWL, GPAD, GJET, type Pos
 import { updateThings, drawThing, drawDebris, type Thing, type Debris } from './obstacles';
 import { drawGymBackdrop, drawGymBack, drawGymMid, drawRingFront, setExitOpen } from './art';
 import { createScene, tickScene, drawScene, sfx, type Scene, type Beat } from './scene';
-import { shotSquat, shotTv, shotDoorway, shotAgent, shotAgentF, shotMeathead, shotArrival, shotChoke, shotTicket, shotToddler, setShotDress } from './shots';
+import { shotSquat, shotTv, shotDoorway, shotAgent, shotAgentF, shotMeathead, shotArrival, shotTicket, shotToddler, setShotDress } from './shots';
+import { grossChoke, grossTruck, prewarmGross } from './gross';
 import {
   AGENT_VOICE, AGENTF_VOICE, GMAN_VOICE, ANCHOR_VOICE, OPEN_TV, OPEN_REPS, OPEN_AGENT_1, OPEN_AGENTF_1, OPEN_AGENT_2, OPEN_MH_1, OPEN_AGENTF_2, OPEN_MH_2, OPEN_MH_3,
   OPEN_AGENT_3, ROOM_LINES, RING_HELLO, RING_SHOVE, RING_THROWN, RING_JET, RING_DONE, CLOSE_MH_CORK, CLOSE_NO_CONTRACT, CLOSE_TICKET, CLOSE_MH_HAPPY, CLOSE_TRUCK,
@@ -52,6 +53,8 @@ export { GYM_STAGE };
 export type GymTip = 'move' | Room | 'beatdown' | 'shakedown' | 'airgrab' | 'exit';
 type Grabs = 'beatdown' | 'shakedown' | 'airgrab';
 const GRAB_ORDER: Grabs[] = ['beatdown', 'shakedown', 'airgrab'];
+/** Punches a trainer takes in a beatdown before he's had enough and shoves him off. */
+const SHOVE_AFTER = 6;
 
 interface Gym {
   phase: 'opening' | 'play' | 'closing';
@@ -68,7 +71,7 @@ interface Gym {
   /** The ring: the two trainers, the grabs done, the shove-off under way (its frames), what's been seen of each grab. */
   pad: Enemy; jet: Enemy;
   done: Set<Grabs>;
-  shove: number; punchesSeen: number; sawShake: boolean; sawArc: boolean; ringHello: boolean;
+  shove: number; punchesSeen: number; mountBase: number | null; shover: Enemy | null; sawShake: boolean; sawArc: boolean; ringHello: boolean;
   exitOpen: number;
   /** What a trainer's saying, over his head. */
   ringSaid: { e: Enemy; text: string } | null;
@@ -105,12 +108,15 @@ const OPENING = (): Beat[] => [
 
 const CLOSING = (d: Dressed): Beat[] => [
   { shot: shotArrival, hold: 70, enter: () => { playSound('slam', 1, -2); } },
-  { shot: shotChoke(0), who: 'MEATHEAD', voice: 'meathead', text: CLOSE_MH_CORK, enter: () => { playSound('punch', 0.9, -6); playSound('whoosh', 0.7); } },
-  { shot: shotChoke(1), who: 'G-MAN', voice: GMAN_VOICE, text: CLOSE_NO_CONTRACT[d] },
-  { shot: shotChoke(2), hold: 80, enter: () => { playSound('crunch', 0.8, -10); setTimeout(() => playSound('crunch', 0.6, -14), 400); } },
+  // (the chokehold and the truck: gross-ups, three times finer: gross.ts)
+  { shot: grossChoke(0), res: 3, who: 'MEATHEAD', voice: 'meathead', text: CLOSE_MH_CORK, enter: () => { playSound('punch', 0.9, -6); playSound('whoosh', 0.7); } },
+  { shot: grossChoke(1), res: 3, who: 'G-MAN', voice: GMAN_VOICE, text: CLOSE_NO_CONTRACT[d] },
+  { shot: grossChoke(2), res: 3, hold: 90, enter: () => { playSound('crunch', 0.8, -10); setTimeout(() => playSound('crunch', 0.6, -14), 400); } },
   { shot: shotTicket, who: 'G-MAN', voice: GMAN_VOICE, text: CLOSE_TICKET, enter: sfx('ding', 0.9, 6) },
   { shot: shotToddler(0), who: 'MEATHEAD', voice: 'meathead', text: CLOSE_MH_HAPPY, hold: 20, enter: sfx('powerup', 0.7, 8) },
   { shot: shotAgent(true), who: 'G-MAN', voice: AGENT_VOICE, text: CLOSE_TRUCK[d], enter: sfx('clink', 0.8, 4) },
+  // (and there it is: the truck, up close, nobody talking over it; the engine turning over, the horn)
+  { shot: grossTruck, res: 3, hold: 170, enter: () => { playSound('carroar', 0.7, -2); setTimeout(() => playSound('truckhorn', 0.6), 1500); } },
   { shot: shotToddler(1), who: 'MEATHEAD', voice: 'meathead', text: CLOSE_MH_TRUCK, hold: 12 },
   { shot: shotToddler(2), who: 'MEATHEAD', voice: 'meathead', text: CLOSE_MH_GO, hold: 40 },
 ];
@@ -172,10 +178,12 @@ export const gymLayout: StageLayout = {
       phase: openingSeen ? 'play' : 'opening', scene: null, waiting: !openingSeen, grab: createGrab(state),
       things: OBSTACLES.map(o => ({ kind: o.kind, x: o.x, broken: 0, shots: 0 })), debris: [], rooms: new Map(), barked: new Set(),
       moved: false, spawnX: START_X, pad: null as unknown as Enemy, jet: null as unknown as Enemy,
-      done: new Set(), shove: -1, punchesSeen: 0, sawShake: false, sawArc: false, ringHello: false, exitOpen: 0, ringSaid: null,
+      done: new Set(), shove: -1, punchesSeen: 0, mountBase: null, shover: null, sawShake: false, sawArc: false, ringHello: false, exitOpen: 0, ringSaid: null,
     };
     state.stage = gym;
     setExitOpen(0);
+    // (the closing's gross-ups, painted now, under the load's black: they're slow to paint, and a cut mustn't hitch)
+    prewarmGross();
     // The G-men, room by room (a mixed bunch: every one his own seed)
     SPAWNS.forEach((s, i) => {
       const crawl = s.role === 'crawl';
@@ -377,15 +385,19 @@ const ring = (ctx: FrameContext, gym: Gym, controls: Controls): Controls => {
   }
   if (!gym.ringHello && px > RING.x1 - 200) { gym.ringHello = true; trainerSays(gym, gym.pad, RING_HELLO); }
   // BEATDOWN: on top of one of them, punching; after a few he's had enough and shoves him off
+  // (the grab's punch count runs on across beatdowns: each one's punches counted from where it was as he got on top,
+  // so every beatdown gets its few punches before the shove, however many there've been)
   if (g.phase === 'mount' && isPadded(gym, g.held)) {
-    gym.punchesSeen = Math.max(gym.punchesSeen, g.punchN);
-    if (g.punchN >= 6 && gym.shove < 0) gym.shove = 0;
-  }
+    if (gym.mountBase === null) gym.mountBase = g.punchN;
+    const n = g.punchN - gym.mountBase;
+    gym.punchesSeen = Math.max(gym.punchesSeen, n);
+    if (n >= SHOVE_AFTER && gym.shove < 0) { gym.shove = 0; gym.shover = g.held; }
+  } else if (g.phase !== 'mount') gym.mountBase = null;
   if (gym.shove >= 0) {
     const dir = g.dir;
     gym.shove++;
     if (gym.shove === 1) controls = { ...controls, jump: false };
-    else if (gym.shove === 2) { controls = { ...controls, jump: true }; trainerSays(gym, gym.pad, pickLine(RING_SHOVE)); playSound('slam', 0.7, 4); }
+    else if (gym.shove === 2) { controls = { ...controls, jump: true }; trainerSays(gym, gym.shover ?? gym.pad, pickLine(RING_SHOVE)); playSound('slam', 0.7, 4); }
     else if (gym.shove === 3) { p.vel.x = -dir * 9; p.vel.y = -7; p.isGrounded = false; }
     if (gym.shove > 3) gym.shove = -1;
   }

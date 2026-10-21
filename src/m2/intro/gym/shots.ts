@@ -41,7 +41,8 @@ const dither = (c: Ctx, x: number, y: number, w: number, h: number, col: string,
 };
 
 /** A 3x5 pixel font (signs in the pictures). */
-const GLYPH: Record<string, string> = {
+export const GLYPH: Record<string, string> = {
+  '#': '011111010111110',
   A: '010101111101101', B: '110101110101110', C: '011100100100011', D: '110101101101110', E: '111100110100111', F: '111100110100100',
   G: '011100101101011', H: '101101111101101', I: '111010010010111', J: '001001001101010', K: '101110100110101', L: '100100100100111',
   M: '101111111101101', N: '110101101101101', O: '010101101101010', P: '110101110100100', Q: '010101101110011', R: '110101110110101',
@@ -50,7 +51,7 @@ const GLYPH: Record<string, string> = {
   '4': '101101111001001', '5': '111100110001110', '6': '011100111101111', '7': '111001010010010', '8': '111101111101111', '9': '111101111001110',
   ':': '000010000010000', '-': '000000111000000', '.': '000000000000010', '!': '010010010000010', "'": '010010000000000', ' ': '000000000000000', '/': '001001010100100',
 };
-const tiny = (c: Ctx, s: string, x: number, y: number, col: string, sc = 1) => {
+export const tiny = (c: Ctx, s: string, x: number, y: number, col: string, sc = 1) => {
   c.fillStyle = col;
   [...s.toUpperCase()].forEach((ch, i) => { const g = GLYPH[ch] ?? GLYPH[' ']; for (let k = 0; k < 15; k++) if (g[k] === '1') c.fillRect(x + i * 4 * sc + (k % 3) * sc, y + Math.floor(k / 3) * sc, sc, sc); });
 };

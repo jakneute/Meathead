@@ -33,6 +33,8 @@ export interface Beat {
   enter?: () => void;
   /** A card in the picture's place of the words (THE IRON PIT. LEG DAY.): not spoken. */
   caption?: string;
+  /** Drawn this many times finer than the art (a gross-up: gross.ts), in the art's coordinates still. */
+  res?: number;
 }
 
 export interface Scene {
@@ -103,10 +105,13 @@ export const tickScene = (s: Scene): boolean => {
 
 // ---------------------------------------------------------------------------------------------------------------
 
-let art: HTMLCanvasElement | null = null;
-const artCtx = () => {
-  if (!art) { art = document.createElement('canvas'); art.width = ART_W; art.height = ART_H; }
+/** The picture's canvas: the art's size, or `res` times finer (a gross-up), its drawing scaled to match. */
+const arts = new Map<number, HTMLCanvasElement>();
+const artCtx = (res: number) => {
+  let art = arts.get(res);
+  if (!art) { art = document.createElement('canvas'); art.width = ART_W * res; art.height = ART_H * res; arts.set(res, art); }
   const c = art.getContext('2d')!;
+  c.setTransform(res, 0, 0, res, 0, 0);
   c.imageSmoothingEnabled = false;
   return c;
 };
@@ -126,10 +131,10 @@ export const drawScene = (ctx: Ctx, s: Scene) => {
   ctx.setTransform(ctx.getTransform().a, 0, 0, ctx.getTransform().d, 0, 0);
   ctx.fillStyle = '#000'; ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
   const b = s.beats[Math.min(s.i, s.beats.length - 1)];
-  const a = artCtx();
+  const a = artCtx(b.res ?? 1);
   a.save(); b.shot(a, s.shotT, !!s.said); a.restore();
   ctx.imageSmoothingEnabled = false;
-  ctx.drawImage(art!, PX, PY, ART_W * SCALE, ART_H * SCALE);
+  ctx.drawImage(a.canvas, PX, PY, ART_W * SCALE, ART_H * SCALE);
   // (a thin frame round it)
   ctx.strokeStyle = '#2a2a30'; ctx.lineWidth = 2; ctx.strokeRect(PX - 1, PY - 1, ART_W * SCALE + 2, ART_H * SCALE + 2);
   // The words: who, then what (wrapped, kept whole in the box under the picture)
