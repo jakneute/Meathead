@@ -12,11 +12,12 @@
 // Her state's per stage (rebuilt with it on a death); what she's said outlives a death for the visit (hints once each).
 
 import type { GameState } from '../../../m1/game/core/state';
-import { pickLine, isTalking } from '../../../m1/game/platform/speech';
+import { isTalking } from '../../../m1/game/platform/speech';
 import { playSound } from '../../../m1/game/platform/audio';
 import { speak, meatheadSays, byPants, saidOver, landVisit, type Said } from '../section';
 import { INK, type Ctx } from '../kit';
-import { CHELSEA, NAG, HINT, OUCH, SHUT_UP } from './lines';
+import { CHELSEA, NAG, HINT, OUCH, SHUT_UP, CHEER, COWER, SHOW_MOCK, KILL_QUIP } from './lines';
+import { whLine, whMust } from './onceLines';
 import { HINT_AT, floorAt, roomAt, X, Y } from './layout';
 import { inFight, fightArena } from './pundits';
 import { toonPart, toonTop, toonFlat, toonLimb, type Rp } from './punditArt';
@@ -57,6 +58,8 @@ interface Chelsea {
   leap: Leap | null;
   /** Frames till she'll leap again (no hopping back and forth over an edge he's stood by). */
   leapCd?: number;
+  /** (banter) the last cheer, quip or squeak; his next go at the show. */
+  talkAt?: number; mockAt?: number;
 }
 const ALL = new WeakMap<object, Chelsea>();
 export const chelseaOf = (state: GameState): Chelsea => {
@@ -160,6 +163,7 @@ export const updateChelsea = (state: GameState, w: ChelseaWorld = PART_ONE) => {
   }
   // In a fight: back by the wall she came in by, cowering
   const fight = world.cower(state);
+  banter(state, c, !!fight);
   if (fight) {
     c.mode = 'cower';
     const spot = fight.x;
@@ -185,16 +189,49 @@ export const updateChelsea = (state: GameState, w: ChelseaWorld = PART_ONE) => {
   // What she's got to say
   const free = p.health > 0 && !p.inCutscene && !isTalking() && !c.said;
   // (he's hurt: now and then)
-  if (p.health < c.lastHp - 7 && p.health > 0 && state.frame - c.ouchAt > 1200 && Math.random() < 0.35 && !isTalking()) { c.ouchAt = state.frame; chelseaSays(state, pickLine(OUCH), undefined, false); }
+  if (p.health < c.lastHp - 7 && p.health > 0 && state.frame - c.ouchAt > 1200 && Math.random() < 0.35 && !isTalking()) { const l = whLine(OUCH); if (l) { c.ouchAt = state.frame; chelseaSays(state, l, undefined, false); } }
   c.lastHp = p.health;
   if (!free) return;
   // (the first time he gets to each thing: her hint)
-  for (const [k, a, b, pool] of world.hints) if (px > a && px < b && hintOnce(k)) { chelseaSays(state, pickLine(pool)); c.nagAt = state.frame + NAG_EVERY[0]; return; }
-  // (every so often, a nag; about every other one, he tells her to shut up)
+  for (const [k, a, b, pool] of world.hints) if (px > a && px < b && hintOnce(k)) { chelseaSays(state, whMust(pool)); c.nagAt = state.frame + NAG_EVERY[0]; return; }
+  // (every so often, a nag; about every other one, he tells her to shut up; never the same twice in a life)
   if (state.frame > c.nagAt && !world.hush?.(px)) {
     c.nagAt = state.frame + NAG_EVERY[0] + Math.floor(Math.random() * (NAG_EVERY[1] - NAG_EVERY[0]));
+    const nag = whLine(byPants(state, NAG));
+    if (!nag) return;
     const reply = c.shutNext; c.shutNext = !c.shutNext;
-    chelseaSays(state, pickLine(byPants(state, NAG)), () => { if (reply && state.player.health > 0 && !state.player.inCutscene) meatheadSays(state, pickLine(byPants(state, SHUT_UP)), true); });
+    chelseaSays(state, nag, () => { const l = whLine(byPants(state, SHUT_UP)); if (l && reply && state.player.health > 0 && !state.player.inCutscene) meatheadSays(state, l, true); });
+  }
+};
+
+/** Mean men's puffs already seen (cheered or let go). */
+const puffSeen = new WeakSet<object>();
+const PUNDIT_KINDS = new Set(['m2:ct_perot', 'm2:ct_falwell', 'm2:ct_limbaugh', 'm2:ct_dole', 'm2:ct_newt']);
+/** The rest of what they've got to say (the user's: more to say during combat, etc., never the same twice in a life):
+ *  a mean man goes up in his puff, now and then she cheers it or he cracks wise; cowering through a pundit's fight, now
+ *  and then she squeaks something; in between everything, now and then he has a go at the show itself. */
+const banter = (state: GameState, c: Chelsea, fighting: boolean) => {
+  const p = state.player, f = state.frame;
+  const free = p.health > 0 && !p.inCutscene && !isTalking() && !c.said;
+  c.talkAt ??= f; c.mockAt ??= f + 1200;
+  for (const e of state.enemies) {
+    if (e.health > 0 || puffSeen.has(e) || !e.kind?.startsWith('m2:ct_') || PUNDIT_KINDS.has(e.kind)) continue;
+    puffSeen.add(e);
+    if (!free || f - c.talkAt < 360) continue;
+    const r = Math.random();
+    if (r < 0.32) { const l = whLine(CHEER); if (l) { c.talkAt = f; chelseaSays(state, l, undefined, false); } }
+    else if (r < 0.55) { const l = whLine(byPants(state, KILL_QUIP)); if (l) { c.talkAt = f; meatheadSays(state, l, false); } }
+  }
+  if (!free) return;
+  if (fighting) {
+    if (f - c.talkAt > 780 && Math.random() < 0.005) { const l = whLine(COWER); if (l) { c.talkAt = f; chelseaSays(state, l, undefined, false); } }
+    return;
+  }
+  // (his go at the show: every half minute or so, out of the way of her nags)
+  if (f > c.mockAt && f - c.talkAt > 300 && c.nagAt - f > 240) {
+    c.mockAt = f + 1500 + Math.floor(Math.random() * 900);
+    const l = whLine(byPants(state, SHOW_MOCK));
+    if (l) { c.talkAt = f; meatheadSays(state, l, false); }
   }
 };
 

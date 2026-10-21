@@ -49,6 +49,7 @@ import { drawStageBackdrop, drawStageShell, drawStageProps, drawSeats, drawFalle
 import { drawPerotBody, drawFalwellBody, drawDeadActor } from '../whitehouse2/bodies';
 import { STAGE_WH1, BODY_LINES } from '../whitehouse2/lines';
 import { PIANO, CHAIRS, RISER, PODIUM, SIDEBOARD, BED, BENCH, TABLE, ARBOR, PEROT_ARENA, FALWELL_ARENA, BALCONY_EDGE, F2, floorAt } from './layout';
+import { clearWhLines, whMust } from './onceLines';
 import './kinds';
 import './catDeath';
 
@@ -122,6 +123,8 @@ export const whitehouse1: CartoonSection = {
   build: (state) => {
     // (a fresh start along: the world as a run that got there left it (job 4's: whitehouse2/state.ts))
     presetMemos(state);
+    // (a new life: Meathead and Chelsea have everything to say again)
+    clearWhLines();
     layOwn(state, GROUND.map(([a, b, ha, hb]) => ({ x1: X(a), y1: Y(ha), x2: X(b), y2: Y(hb), surface: 'wood', steps: a === STAIRS.a ? { n: STAIRS.steps } : undefined })));
     state.blocks.push({ x: x0 - 40, y: -6000, w: 40, h: 6000 + GY + 600, type: 'wall', hidden: true, tag: 'whitehouse1-start' });
     state.blocks.push({ x: x1, y: -6000, w: 40, h: 6000 + GY + 600, type: 'wall', hidden: true, tag: 'whitehouse1-end' });
@@ -170,7 +173,7 @@ export const whitehouse1: CartoonSection = {
     purgeCartoonGore(state);
     // What he's got to say (once each a visit)
     const rx = p.pos.x + p.width / 2 - x0, alive = !p.inCutscene && p.health > 0;
-    const once = (key: string, pool: string[]) => { if (alive && saidOnce(key)) meatheadSays(state, pickLine(pool), false); };
+    const once = (key: string, pool: string[]) => { if (alive && saidOnce(key)) meatheadSays(state, whMust(pool), false); };
     if (p.catForm && p.currentWeapon === 'GUN' && p.shootCooldown === GUN_COOLDOWN) once('wh-hairball', byPants(state, GAGS.hairball));
     for (const [key, a, bb] of GAG_AT) if (rx > a && rx < bb) once(`wh-${key}`, byPants(state, GAGS[key as keyof typeof GAGS]));
     if (ridingChandelier(state)) once('wh-chandelier', byPants(state, GAGS.chandelier));

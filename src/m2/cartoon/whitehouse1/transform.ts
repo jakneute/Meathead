@@ -30,6 +30,7 @@ import { chelseaSays, placeChelsea, scripted, chelseaTo, setChelseaPose } from '
 import { X, Y } from './layout';
 import { toonPart, toonFlat, type Rp } from './punditArt';
 import { GY } from '../geometry';
+import { whMust } from './onceLines';
 import { dith } from '../amphi/paint';
 
 /** The scene's beats (frames). */
@@ -115,7 +116,7 @@ export const updateTransform = (ctx: FrameContext, controls: Controls): Controls
 export const scribbleIn = (state: GameState) => {
   whOf(state).scribble = 26;
   playSound('poof', 0.6, 6);
-  meatheadSays(state, pickLine(byPants(state, REDRAWN_AGAIN)), false);
+  meatheadSays(state, whMust(byPants(state, REDRAWN_AGAIN)), false);
 };
 
 // ---------------------------------------------------------------------------------------------------------------

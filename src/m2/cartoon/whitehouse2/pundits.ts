@@ -29,6 +29,7 @@ import { shakeScreen } from '../../../m1/game/core/state';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { playSound } from '../../../m1/game/platform/audio';
 import { pickLine, silenceAll, isTalking } from '../../../m1/game/platform/speech';
+import { whLine, whMust } from '../whitehouse1/onceLines';
 import { SKIP_AFTER, offerSkip, takeSkip } from '../../../m1/game/platform/skip';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { floorTopAt } from '../../../m1/game/core/terrain';
@@ -111,7 +112,7 @@ const greased = (ctx: FrameContext, e: Enemy) => {
   playSound('squish', 0.9, -2); playSound('oil', 0.6, 4);
   const hx = p.pos.x + p.width / 2 - dir * 12, hy = p.pos.y + p.height * 0.4;
   for (let i = 0; i < 14; i++) state.particles.push({ pos: { x: hx, y: hy + (Math.random() - 0.5) * 20 }, vel: { x: (Math.random() - 0.5) * 6, y: -1 - Math.random() * 4 }, life: 26, color: ['#FDE68A', '#FACC15', '#A16207'][i % 3], size: 2 + Math.random() * 2, grav: 0.3 } as typeof state.particles[number]);
-  if (state.frame - greaseAt > 150) { greaseAt = state.frame; meatheadSays(state, pickLine(TOO_GREASY), false); }
+  if (state.frame - greaseAt > 150) { greaseAt = state.frame; const l = whLine(TOO_GREASY); if (l) meatheadSays(state, l, false); }
   return { said: true, free: true };
 };
 for (const id of ORDER) {
@@ -347,7 +348,7 @@ const finishDying = (state: GameState, q: Pundit) => {
   // (Newt: the finale takes it from here, the Oval Office still shut)
   if (q.id === 'newt') { startFinale(state); return; }
   unlock(q);
-  queasy(state, pickLine(S.queasy), () => { if (state.player.health > 0) meatheadSays(state, pickLine(byPants(state, S.lines.after)), true); });
+  queasy(state, pickLine(S.queasy), () => { if (state.player.health > 0) meatheadSays(state, whMust(byPants(state, S.lines.after)), true); });
 };
 /** (the finale's: the Oval Office's walls down once it's done) */
 export const unlockNewt = (state: GameState) => unlock(pOf(state, 'newt'));
@@ -376,7 +377,7 @@ export const updatePundits2 = (ctx: FrameContext, controls: Controls): Controls 
       const next = (k: number) => () => { q.introStep = k; };
       if (q.introStep === 0 && q.t === 8) { q.introStep = -1; chelseaSays(state, pickLine(S.coming), next(1)); }
       if (q.introStep === 1 && !s.air) { q.introStep = -1; say(q, pickLine(byPants(state, S.lines.intro)), next(2)); }
-      if (q.introStep === 2) { q.introStep = -1; meatheadSays(state, pickLine(byPants(state, S.lines.reply)), true, next(3)); }
+      if (q.introStep === 2) { q.introStep = -1; meatheadSays(state, whMust(byPants(state, S.lines.reply)), true, next(3)); }
       if (q.introStep === 3 || q.t > 1500) begin(state, q);
       out = hands();
       continue;
@@ -416,7 +417,7 @@ export const updatePundits2 = (ctx: FrameContext, controls: Controls): Controls 
     e.pos.x = s.x - S.w / 2; e.pos.y = s.y - S.h; e.vel.x = s.vx; e.vel.y = s.vy; e.facing = s.facing;
     updateThrows(ctx, q, S);
     if (q.t % 360 === 200 && Math.random() < 0.8 && q.act !== 'flop') bark(state, q, byPants(state, S.lines.taunt));
-    if (state.frame - q.baffleAt > 900 && q.t > 400 && quiet() && Math.random() < 0.004) { q.baffleAt = state.frame; meatheadSays(state, pickLine(byPants(state, S.lines.baffled)), false); }
+    if (state.frame - q.baffleAt > 600 && q.t > 300 && quiet() && Math.random() < 0.006) { q.baffleAt = state.frame; const l = whLine(byPants(state, S.lines.baffled)); if (l) meatheadSays(state, l, false); }
   }
   return out;
 };
