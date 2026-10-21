@@ -19,6 +19,8 @@ export const VOICES = {
   guard: 'm2.cartoon.bouncer',
   dad: 'm2.cartoon.dad',
   mom: 'm2.cartoon.tvmom', boy: 'm2.cartoon.tvboy', sis: 'm2.cartoon.tvsis', gramps: 'm2.cartoon.tvgramps',
+  /** The stunt coordinator, off-stage on a walkie (the clapperboard's crew: the stunt company's own voice). */
+  crew: 'm2.hollywood.stuntco',
 } as const;
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -421,9 +423,23 @@ export const MH_WON_WEAK: ByPants = {
   nude: ['FLATTER THAN ME. AND I\'M NAKED.', 'PANCAKE DAD. NO SYRUP.'],
 };
 export const MH_WON: ByPants = {
-  clean: ['CRUSHED BY HIS OWN FRIDGE. COLD.', 'HE GOT HIS OWN BEER. FINALLY.', "COLD ONE'S ON ME, DAD."],
+  clean: ['CRUSHED BY HIS OWN FRIDGE. COLD.', 'HE GOT HIS OWN BEER. FINALLY.', "COLD ONE\'S ON ME, DAD."],
   shitty: ['HE SHIT HIMSELF UNDER THERE. WELCOME TO THE CLUB.', 'FLAT UNDER A FRIDGE. IT SMELLS LIKE HIM NOW. NOT ME.'],
-  nude: ["CRUSHED BY A FRIDGE. I'LL TAKE THE BEER. NOT THE SHORTS.", 'A COLD ONE AND NO PANTS. PERFECT.'],
+  nude: ["CRUSHED BY A FRIDGE. I\'LL TAKE THE BEER. NOT THE SHORTS.", 'A COLD ONE AND NO PANTS. PERFECT.'],
+};
+
+/** The clapperboard snapped while the scene's resetting (its cooldown in the fight): the stunt coordinator on the
+ *  walkie, with why the next car isn't ready (the user's: "like 'the new drivers are slow as shit'"). */
+export const CREW_EXCUSE = [
+  'THE NEW DRIVERS ARE SLOW AS SHIT.', 'CREW\'S ON UNION BREAK. FIFTEEN MINUTES.', 'WE\'RE LOOKING FOR A CAR THAT STILL RUNS.',
+  'LAST DRIVER QUIT. WE\'RE CALLING HIS COUSIN.', 'INSURANCE WANTS ANOTHER FORM SIGNED.', 'HOLD ON. THE STUNTMAN\'S THROWING UP.',
+  'SOMEBODY PARKED IN FRONT OF THE RAMP.', 'THE NEW GUY CAN\'T DRIVE STICK.',
+];
+/** One of the animatronic family ate his shot (they're only hurt by the stunt cars): the user's line, and similar. */
+export const MH_BLOCKED: ByPants = {
+  clean: ['WHAT KIND OF BULLSHIT TITANIUM ARE THESE ROBOTS BUILT WITH?', 'A BULLETPROOF ROBOT MOM? REALLY?', 'WHO BUILDS A SITCOM GRANDPA OUT OF TANK ARMOR?', 'THE ROBOT ATE MY BULLET!', 'MOVE, TIN FAMILY! I GOT A CLEAR SHOT AT DAD!'],
+  shitty: ['WHAT KIND OF BULLSHIT TITANIUM ARE THESE ROBOTS BUILT WITH?', 'BULLETPROOF ROBOTS. AND I SHIT MYSELF FOR THIS.', 'THE TIN FAMILY ATE MY SHOT. AND I STILL SMELL.'],
+  nude: ['WHAT KIND OF BULLSHIT TITANIUM ARE THESE ROBOTS BUILT WITH?', 'BULLETPROOF ROBOTS, AND I\'M THE ONE NAKED.', 'THE ROBOT ATE MY SHOT. QUIT STARING, GRAMPS.'],
 };
 
 /** What hurts him here (by what did it, then by the state he's in: hurtSrc in fight.ts sends `<source>.<clean|shitty|
@@ -450,6 +466,16 @@ export const HURT_BY: Record<string, Record<'clean' | 'shitty' | 'nude', { hurt:
     shitty: { hurt: ['THE COUCH SQUISHED MY PANTS!', 'FLYING COUCH! IT SPLATTED!', 'SOFA! RIGHT IN THE MESS!'], death: ['FLATTENED BY A SOFA. SHITTY.', 'COUCHED IN MY OWN SHIT'] },
     nude: { hurt: ['COUCH! ON MY BARE ASS!', 'PLAID BURN ON MY BALLS!', 'FLYING COUCH! NAKED!'], death: ['RUN OVER BY A COUCH, NAKED', 'SOFA\'D BARE-ASSED'] },
   },
+  'm2:ct_family_slap': {
+    clean: { hurt: ['THE ROBOT SLAPPED ME!', 'SLAPPED BY A SITCOM!', 'THE TV FAMILY SLAPS?', 'RUBBER HAND! RIGHT IN THE FACE!'], death: ['SLAPPED TO DEATH BY ROBOTS', 'SLAPPED BY THE TV FAMILY', 'A SITCOM SLAPPED ME DEAD'] },
+    shitty: { hurt: ['SLAPPED! IT SQUISHED!', 'THE ROBOT SLAPPED MY SHITTY ASS!', 'SLAPPED THE SHIT LOOSE!'], death: ['SLAPPED, PANTS FULL', 'ROBOT SLAPS, SHITTY END'] },
+    nude: { hurt: ['SLAPPED MY BARE ASS!', 'RUBBER HAND! ON MY NAKED ASS!', 'NOT THE NUTS, ROBOT!'], death: ['SLAPPED TO DEATH, NAKED', 'ROBOT SLAPPED MY BARE ASS'] },
+  },
+  'm2:ct_family_ram': {
+    clean: { hurt: ['RUN OVER BY A BEER ROBOT!', 'OUT OF THE WAY OF THE BEER RUN!', 'THE ROBOT WANTED THAT BEER BAD!'], death: ['RUN DOWN ON A BEER RUN', 'TRAMPLED BY A ROBOT MOM', 'ROADKILL ON A BEER RUN'] },
+    shitty: { hurt: ['BEER ROBOT! IT SQUISHED!', 'RUN OVER! RIGHT IN THE MESS!', 'THE ROBOT RAN THE SHIT OUT OF ME!'], death: ['BEER RUN, PANTS FULL', 'RUN DOWN, SHITTY END'] },
+    nude: { hurt: ['RUN OVER! BARE ASS!', 'BEER ROBOT! ON MY NAKED EVERYTHING!', 'IT RAN OVER MY NUTS!'], death: ['RUN DOWN, NAKED', 'BEER RUN, BARE ASS'] },
+  },
   'm2:ct_dad_beer': {
     clean: { hurt: ['BEER BOTTLE! OW!', 'THEY\'RE THROWING BEER AT ME!', 'RIGHT IN THE HEAD! WITH BEER!', 'GOOD BEER! WASTED ON ME!'], death: ['KILLED BY FLYING BEER', 'BOTTLED BY A ROBOT FAMILY', 'BEER TO THE HEAD'] },
     shitty: { hurt: ['BEER BOTTLE! IN THE MESS!', 'BOTTLED! AND I STINK!', 'THROW IT AT HIM, NOT ME!'], death: ['BOTTLED, PANTS FULL', 'BEER, SHIT, DEAD'] },
@@ -465,7 +491,7 @@ const all = (b: ByPants) => allOf(b);
 export const VOICE_LINES: Record<string, string[]> = {
   meathead: [
     ...[ARRIVE, REVISIT, ...Object.values(GAGS), MH_KICKED, MH_SEES, MH_ON].flatMap(all),
-    ...[MH_HINT, MH_TOO_GREASY, MH_PUKE, MH_RAGE, MH_BUNDY, MH_KILL, MH_COUCH, MH_DUD, MH_WON_WEAK, MH_WON].flatMap(all),
+    ...[MH_HINT, MH_TOO_GREASY, MH_PUKE, MH_RAGE, MH_BUNDY, MH_KILL, MH_COUCH, MH_DUD, MH_WON_WEAK, MH_WON, MH_BLOCKED].flatMap(all),
     ...Object.values(HURT_BY).flatMap(by => Object.values(by).flatMap(h => h.hurt)),
   ],
   death: Object.values(HURT_BY).flatMap(by => Object.values(by).flatMap(h => h.death)),
@@ -475,6 +501,7 @@ export const VOICE_LINES: Record<string, string[]> = {
     ...[DAD_BEER, DAD_SNIPE, DAD_BUNDY, DAD_SWAT, DAD_CATCH, DAD_MISS, DAD_BONK, DAD_PUKE, DAD_RAGE, DAD_TIRED, DAD_HURT, ...DAD_KILL,
       DAD_PATHETIC, DAD_HEAVY, DAD_TAUNT, DAD_LOW, DAD_ENTRANCE, DAD_GRABBED, DAD_SEES_CAR, DAD_FRIDGE, DAD_WOBBLE, DAD_CRUSHED, DAD_FLAT].flatMap(all),
   ],
+  [VOICES.crew]: [...CREW_EXCUSE],
   [VOICES.mom]: [...MOM_TAPE, ...GLITCH_TAPE.mom, ...MOM_SNARK, ...FETCH_TAPE.mom, ...DIE_TAPE.mom],
   [VOICES.boy]: [...BOY_TAPE, ...GLITCH_TAPE.boy, ...BOY_SNARK, ...DIE_TAPE.boy],
   [VOICES.sis]: [...SIS_TAPE, ...SIS_SNARK, ...FETCH_TAPE.sis, ...DIE_TAPE.sis],

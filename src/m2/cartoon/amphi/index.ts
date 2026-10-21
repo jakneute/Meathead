@@ -48,7 +48,7 @@ import { updateShow, stageLook } from './show';
 import { startKick, updateKick, guardPoseOf, startIntro, updateIntro, drawKickHud, drawIntroHud } from './scene';
 import {
   startFight, updateFight, fightOver, endFight, resetFight, fightItems, drawPuddles, drawFightFront, drawFightHud, killCamTick,
-  killCamZoom, killedByWeakness, fightMood,
+  killedByWeakness, fightMood, fightZoom, fightZoomHome,
 } from './fight';
 import { drawAmphiBack, amphiLamps } from './art';
 import { drawAmphiFar } from './far';
@@ -135,6 +135,7 @@ export const amphi: CartoonSection = {
     // Over: VICTORY, then the walk-away
     if (s.won) {
       p.inCutscene = true;
+      if (s.fight) fightZoomHome(s.fight);
       if (s.victory) { tickVictory(state, s.victory); if (victoryDone(s.victory) && state.frame - s.wonAt > 60) { s.victory = null; leave(state, s); } }
       if (s.walk) tickWalkAway(s.walk, controls);
       return hands();
@@ -226,7 +227,7 @@ export const amphi: CartoonSection = {
     if (s.victory) drawVictory(c, s.victory);
     if (s.walk) drawWalkAway(c, s.walk);
   },
-  zoom: (state) => { const f = amphiOf(state).fight; return f ? killCamZoom(state, f) : null; },
+  zoom: (state) => { const f = amphiOf(state).fight; return f ? fightZoom(state, f) : null; },
   holdTick: (ctx) => { const f = amphiOf(ctx.state).fight; return f ? killCamTick(f) : false; },
   // (the fight: the camera kept to the living room and the top of the steps)
   cameraX: (state) => (amphiOf(state).fight && !amphiOf(state).won ? { min: X(ARENA.a - 120), max: x1 - CANVAS_WIDTH } : undefined),

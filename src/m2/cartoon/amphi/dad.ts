@@ -269,9 +269,11 @@ export const swatGrip = (t: number) => {
     const back = [sh[0] + Math.cos(-0.9) * 40, sh[1] + Math.sin(-0.9) * 40];
     return { near: lerp2([-30, -58], back, k), ang: -0.3 + (0.67 + 0.3) * k };
   }
+  // (the arc's a touch short of his full reach, the head driven down into the deck at the end: the user's "slightly
+  // reduce the smacking range of the mallet when close": about 15% less reach out in front than it had)
   const e = Math.min(1, (t - 0.35) / 0.65), k = 1 - (1 - e) * (1 - e);
-  const phi = -0.9 - 2.44 * k;
-  return { near: [sh[0] + Math.cos(phi) * 40, sh[1] + Math.sin(phi) * 40], ang: phi + Math.PI / 2 - 0.25 * k };
+  const phi = -0.9 - 2.44 * k, r = 40 - 6 * k;
+  return { near: [sh[0] + Math.cos(phi) * r, sh[1] + Math.sin(phi) * r], ang: phi + Math.PI / 2 - 0.55 * k };
 };
 /** Where the mallet's head is (his units): its middle and its half-size each way (a box round it, a touch inside the
  *  corners: it's a barrel). */

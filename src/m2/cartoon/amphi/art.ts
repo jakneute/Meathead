@@ -50,7 +50,11 @@ type P = { x: number; y: number };
 const eyeOf = (state: GameState): P => ({ x: state.camera.x + CANVAS_WIDTH / 2, y: state.camera.y + CANVAS_HEIGHT / 2 });
 const proj = (E: P, x: number, y: number, s: number): P => ({ x: E.x + (x - E.x) * s, y: E.y + (y - E.y) * s });
 const atDepth = (c: Ctx, E: P, s: number, fn: () => void) => { c.save(); c.translate(E.x, E.y); c.scale(s, s); c.translate(-E.x, -E.y); fn(); c.restore(); };
-const seen = (state: GameState, E: P, xa: number, xb: number, s: number, m = 60) => { const a = proj(E, xa, 0, s).x, b = proj(E, xb, 0, s).x; return b > state.camera.x - m && a < state.camera.x + CANVAS_WIDTH + m; };
+/** What of the world's on screen (the view as drawn: wider than the camera's 800x600 when the fight's zoomed out). */
+const vL = (state: GameState) => state.view?.x ?? state.camera.x;
+const vR = (state: GameState) => (state.view ? state.view.x + state.view.w : state.camera.x + CANVAS_WIDTH);
+const vB = (state: GameState) => (state.view ? state.view.y + state.view.h : state.camera.y + CANVAS_HEIGHT);
+const seen = (state: GameState, E: P, xa: number, xb: number, s: number, m = 60) => { const a = proj(E, xa, 0, s).x, b = proj(E, xb, 0, s).x; return b > vL(state) - m && a < vR(state) + m; };
 const quad = (c: Ctx, pts: P[], fill: string | CanvasPattern) => { c.beginPath(); c.moveTo(pts[0].x, pts[0].y); for (const p of pts.slice(1)) c.lineTo(p.x, p.y); c.closePath(); c.fillStyle = fill; c.fill(); };
 /** A floor's strip (world x a..b at y) from depth d0 back to d1 (only from above: a floor over the eye isn't seen). */
 const floor = (c: Ctx, E: P, a: number, b: number, y: number, d0: number, d1: number, fill: string) => { if (E.y < y - 1) quad(c, [proj(E, a, y, d0), proj(E, b, y, d0), proj(E, b, y, d1), proj(E, a, y, d1)], fill); };
@@ -421,10 +425,10 @@ const rowA = (k: number) => AISLE.a + k * ROW_W;
 const ROW_NAMES = 'ABCDEFGHIJKL';
 
 const floors = (c: Ctx, state: GameState, E: P) => {
-  const cam = state.camera.x, Cc = NR(CONC), Al = NR(ALU), Dk = NR(DECK), G = DR(GRASS), Hd = DR(HEDGE);
+  const cam = vL(state), camR = vR(state), Cc = NR(CONC), Al = NR(ALU), Dk = NR(DECK), G = DR(GRASS), Hd = DR(HEDGE);
   // (the bowl's far bank: grass in steps up to the rim, the hedge along its top in humps, lit up top)
   const dB = D_FAR - 0.02;
-  const l = Math.max(X(-260), cam - 260), r = Math.min(x1 + 260, cam + CANVAS_WIDTH + 300);
+  const l = Math.max(X(-260), cam - 260), r = Math.min(x1 + 260, camR + 300);
   if (r > l) {
     // (its foot meets the floors' far edge, so nothing of the far off shows between)
     const top = (x: number) => proj(E, x, BANK_Y, dB), foot = (x: number) => proj(E, x, Math.max(BANK_Y + 2, treadAt(x - X(0))), D_FAR + 0.002);
@@ -448,10 +452,10 @@ const floors = (c: Ctx, state: GameState, E: P) => {
   if (seen(state, E, X(-200), X(AISLE.a), 1)) {
     floorBands(c, E, X(-200), X(AISLE.a), TOP_Y, 1, D_FAR, [Cc[4], Cc[3], Cc[3], Cc[2]]);
     for (const d of [0.76, 0.82, 0.88, 0.94]) along(c, E, X(-200), X(AISLE.a), TOP_Y, d, Cc[1]);
-    for (let x = Math.floor((cam - 120) / 80) * 80; x < Math.min(X(AISLE.a), cam + 900); x += 80) { back(c, E, x, TOP_Y, D_FAR, 1, Cc[1]); back(c, E, x + 2, TOP_Y, D_FAR, 1, Cc[5]); }
+    for (let x = Math.floor((cam - 120) / 80) * 80; x < Math.min(X(AISLE.a), camR + 100); x += 80) { back(c, E, x, TOP_Y, D_FAR, 1, Cc[1]); back(c, E, x + 2, TOP_Y, D_FAR, 1, Cc[5]); }
     if (E.y < TOP_Y) for (let k = 0; k < 40; k++) {
       const rx = -180 + hash(k * 2.3) * 1160, d = 0.72 + hash(k * 4.1) * 0.27, p = proj(E, X(rx), TOP_Y, d);
-      if (p.x < cam - 10 || p.x > cam + CANVAS_WIDTH + 10) continue;
+      if (p.x < cam - 10 || p.x > camR + 10) continue;
       if (k % 5 === 0) crack(c, p.x, p.y, 18, k, Cc[1]); else if (k % 7 === 0) { c.fillStyle = 'rgba(120,90,40,0.25)'; c.beginPath(); c.ellipse(p.x, p.y, 14 * d, 3 * d, 0, 0, Math.PI * 2); c.fill(); } else gum(c, p.x, p.y, '#3A3640');
     }
   }
@@ -546,7 +550,7 @@ const concPattern = (c: Ctx, R: string[]) => {
 /** The near cut: the ground's section along the play plane (poured concrete in the bowl, the stage's skirt), the steps,
  *  every top lit. */
 const nearCut = (c: Ctx, state: GameState) => {
-  const l = Math.max(X(-200), state.camera.x - 40), r = Math.min(x1 + 200, state.camera.x + CANVAS_WIDTH + 40), bot = state.camera.y + CANVAS_HEIGHT + 40;
+  const l = Math.max(X(-200), vL(state) - 40), r = Math.min(x1 + 200, vR(state) + 40), bot = vB(state) + 40;
   const Cc = NR(CONC), Wd = NR(DECK), P = NR(PLY);
   const da = X(STEPS.a);
   // (the section: the step profile, filled down; banded under every tread, the form-tie dots)
@@ -568,7 +572,7 @@ const nearCut = (c: Ctx, state: GameState) => {
   // (the stage's skirt: red, white and blue bunting along its front, the lattice under it)
   if (r > da) {
     const s0 = Math.max(da, l);
-    box(c, s0, STAGE_Y + 2, r - s0, CANVAS_HEIGHT, '#2A1E22');
+    box(c, s0, STAGE_Y + 2, r - s0, CANVAS_HEIGHT * 2, '#2A1E22');
     for (let x = Math.floor(Math.max(X(DECK_A), l) / 14) * 14; x < r; x += 14) { c.strokeStyle = '#8A8478'; c.lineWidth = 1; c.beginPath(); c.moveTo(x, STAGE_Y + 20); c.lineTo(x + 30, STAGE_Y + 60); c.moveTo(x + 30, STAGE_Y + 20); c.lineTo(x, STAGE_Y + 60); c.stroke(); }
     box(c, Math.max(X(DECK_A), l), STAGE_Y + 2, r - Math.max(X(DECK_A), l), 6, Wd[2]); box(c, Math.max(X(DECK_A), l), STAGE_Y + 8, r - Math.max(X(DECK_A), l), 1, INK);
     for (let x = Math.max(X(DECK_A), Math.floor(l / 40) * 40); x < r; x += 40) {
@@ -608,7 +612,7 @@ export interface AmphiLook {
 
 /** Behind him: all of it, back to front. */
 export const drawAmphiBack = (c: Ctx, state: GameState, look: AmphiLook) => {
-  const E = eyeOf(state), f = state.frame, cam = state.camera.x;
+  const E = eyeOf(state), f = state.frame, cam = vL(state), camR = vR(state);
   drawRim(c, state, E);
   floors(c, state, E);
   // (the light masts and the string lights between them, deep: behind everybody)
@@ -620,8 +624,8 @@ export const drawAmphiBack = (c: Ctx, state: GameState, look: AmphiLook) => {
   if (seen(state, E, X(SET.a) - 70, X(SET.b) + 70, D_SET)) atDepth(c, E, D_SET, () => { drawSetWall(c, look.cleared); drawSwingDoor(c, look.doorOpen); drawLaughHorn(c, f, look.stage.applause); });
   if (seen(state, E, X(3000), X(3700), 0.9) && E.y < STAGE_Y) drawRug(c, (x, d) => proj(E, x, STAGE_Y, d), BOY_TRACK);
   // (the living room's side walls: the right-hand one, and the left flown in for the fight)
-  if (X(ARENA.b) > cam - 300 && X(ARENA.b) < cam + CANVAS_WIDTH + 300) drawSideWall(c, E, ARENA.b, SET.b, 1);
-  if ((look.flat ?? 0) > 0 && X(ARENA.a) > cam - 300 && X(ARENA.a) < cam + CANVAS_WIDTH + 300) drawSideWall(c, E, ARENA.a - 8, SET.a, look.flat ?? 0);
+  if (X(ARENA.b) > cam - 300 && X(ARENA.b) < camR + 300) drawSideWall(c, E, ARENA.b, SET.b, 1);
+  if ((look.flat ?? 0) > 0 && X(ARENA.a) > cam - 300 && X(ARENA.a) < camR + 300) drawSideWall(c, E, ARENA.a - 8, SET.a, look.flat ?? 0);
   // Everything else at its depth, far to near
   const items: { d: number; x: number; draw: () => void }[] = [];
   const S = look.stage;
@@ -663,11 +667,11 @@ export const drawAmphiBack = (c: Ctx, state: GameState, look: AmphiLook) => {
   items.sort((a, b) => a.d - b.d);
   for (const it of items) if (seen(state, E, it.x - 220, it.x + 220, it.d)) atDepth(c, E, it.d, it.draw);
   litter(c, state, E);
-  if (X(STEPS.a) > cam - 200 && X(STEPS.a) < cam + CANVAS_WIDTH + 200) rope(c, E, look.guard.pose === 'down' || look.guard.pose === 'keel');
+  if (X(STEPS.a) > cam - 200 && X(STEPS.a) < camR + 200) rope(c, E, look.guard.pose === 'down' || look.guard.pose === 'keel');
   nearCut(c, state);
   // (the guard, at the foot of the steps)
   const gx = X(GUARD_X);
-  if (gx > cam - 200 && gx < cam + CANVAS_WIDTH + 200) drawGuard(c, gx, PIT_Y, look.guard.pose, f, look.guard.t, look.guard.ice);
+  if (gx > cam - 200 && gx < camR + 200) drawGuard(c, gx, PIT_Y, look.guard.pose, f, look.guard.t, look.guard.ice);
 };
 
 /** After dark: the light masts' floods, the string lights, the stand's neon, the marquee, the stage's soft fills, the

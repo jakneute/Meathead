@@ -264,8 +264,8 @@ export const drawPancake = (c: Ctx, x: number, floorY: number, f: number, flutte
 };
 
 /** A can in the avalanche (world). */
-export interface PileCan { x: number; y: number; vx: number; vy: number; rot: number; vr: number; still: boolean }
-export const drawPile = (c: Ctx, cans: PileCan[]) => { for (const k of cans) can(c, k.x, k.y, k.rot, 0, false); };
+export interface PileCan { x: number; y: number; vx: number; vy: number; rot: number; vr: number; still: boolean; bottle?: boolean }
+export const drawPile = (c: Ctx, cans: PileCan[]) => { for (const k of cans) { if (k.bottle) drawBottle(c, k.x, k.y - 1, k.rot); else can(c, k.x, k.y, k.rot, 0, false); } };
 /** The brown seep out from under the pile. */
 export const drawSeep = (c: Ctx, x: number, floorY: number, w: number) => {
   if (w <= 0) return;
@@ -275,4 +275,29 @@ export const drawSeep = (c: Ctx, x: number, floorY: number, w: number) => {
 export const drawBlood = (c: Ctx, x: number, floorY: number, w: number) => {
   if (w <= 0) return;
   ell(c, x, floorY, w * 2, w * 0.3, '#5A0A10'); ell(c, x - 3, floorY - 0.6, w * 1.5, w * 0.2, '#8A1018'); px(c, x - w * 0.8, floorY - 1, w * 0.4, 1, '#C8303A');
+};
+
+/** An animatronic's slap arm (the fight's: bolted on for the live show, a steel rod off its shoulder, an elbow hinge,
+ *  a big pink rubber hand): `k` 0 tucked down at its side, -1 cocked right back over its shoulder (the wind-up: it
+ *  shakes, a spark at the hinge), 1 swung out flat in front (`dir` the way it's facing). World px, the shoulder at
+ *  (x, y). */
+export const drawSlapArm = (c: Ctx, x: number, y: number, dir: 1 | -1, k: number, winding: boolean, f: number) => {
+  const shake = winding ? ((f >> 1) % 2 ? 1 : -1) * 0.6 : 0;
+  // (the shoulder joint: a steel cap, a bolt)
+  ell(c, x, y, 4, 4, '#2A2A30'); ell(c, x, y, 3, 3, '#8A909A'); px(c, x - 1, y - 1, 1.4, 1.4, '#D4D8E0');
+  // (the angles: tucked hangs down; cocked points up and back; swung points out front)
+  const up = -Math.PI / 2, down = Math.PI / 2;
+  const a1 = k >= 0 ? down + (0 - down) * k : down + (up - 0.6 - down) * -k;
+  const ang = dir > 0 ? a1 : Math.PI - a1;
+  const ex = x + Math.cos(ang) * 16 + shake, ey = y + Math.sin(ang) * 16;
+  const a2 = ang + dir * (k < 0 ? -0.9 * -k : 0.25 * (1 - Math.abs(k)));
+  const hx = ex + Math.cos(a2) * 18, hy = ey + Math.sin(a2) * 18;
+  line(c, [x, y, ex, ey], 3.4, '#2A2A30'); line(c, [x, y, ex, ey], 2, '#9AA0AA');
+  line(c, [ex, ey, hx, hy], 3, '#2A2A30'); line(c, [ex, ey, hx, hy], 1.6, '#B4BAC4');
+  ell(c, ex, ey, 2.4, 2.4, '#2A2A30'); ell(c, ex, ey, 1.4, 1.4, '#D4D8E0');
+  // (the hand: pink rubber, fingers together, a crack in the palm; a blur behind it on the swing)
+  if (k > 0.5) { c.globalAlpha = 0.35; ell(c, hx - Math.cos(a2) * 6, hy - Math.sin(a2) * 6 - 4, 7, 4, '#F9A8D4'); c.globalAlpha = 1; }
+  ell(c, hx, hy, 6.4, 5.4, '#7A2E4A'); ell(c, hx, hy, 5.4, 4.4, '#F0A0B8'); ell(c, hx - 1.4, hy - 1.4, 2.4, 1.6, '#FFD0DE');
+  for (let i = -1; i <= 1; i++) line(c, [hx + Math.cos(a2) * 3 + i * 1.6, hy + Math.sin(a2) * 3 - 1, hx + Math.cos(a2) * 6 + i * 1.6, hy + Math.sin(a2) * 6], 0.6, '#B8607E');
+  if (winding && (f >> 2) % 3 === 0) sparks(c, ex, ey, f, 4);
 };

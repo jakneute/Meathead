@@ -11,6 +11,17 @@
 //                 miss him: short, long, off the wall, off his head: the laugh track), so nowhere on it's safe, and one
 //                 that hits Meathead hurts a bit (a shadow on the deck where each is coming down); till he catches one
 //                 and drinks it. Then one of two (in turn):
+//   THE FAMILY    (the user's, 2026-10-21: "the stupid dad fight feels a bit too sedentary. make it so you cannot just
+//                 stand there and shoot him.") Each living animatronic patrols its own track along the front of the set
+//                 (MOM the left end, SIS the middle in front of the couch, THE BOY right of it, GRAMPS the far end:
+//                 overlapping, so standing still anywhere gets you slapped sooner or later), a jerk at a time, and
+//                 SLAPS Meathead in reach (a bolted-on slap arm cocks back with a servo whine and sparks, 22 frames,
+//                 then swings: 6). They eat his shots and his moves (you need clearance: "they can only be destroyed
+//                 with the stunt car"); a ping, sparks, and now and then his gripe (MH_BLOCKED). The beer run is one of
+//                 them at random, rushing to the fridge and back to its track.
+//   CAMERA        Zoomed out (0.66) on the middle of the set for the whole fight, wall to wall; the words and the
+//                 clapperboard's reset ring drawn on the HUD at full size. The clapperboard snapped while it's
+//                 resetting: the stunt coordinator on the walkie with an excuse (CREW_EXCUSE).
 //   PUKE          He pukes so hard the couch rockets across the set; into a wall and back (the fridge jolts when it hits
 //                 its wall), bouncing harder every time it happens; it settles quickly, and he scoots it straight back to
 //                 its spot. The puke
@@ -58,11 +69,11 @@ import { speak, meatheadSays, byPants, saidOver, box, label, getCartoon } from '
 import { X, x0, x1, STAGE_Y, MOM, SIS, GRAMPS, BOY_TRACK, D_SET, ARENA, COUCH_HOME, FRIDGE } from './layout';
 import { laughTrack } from './show';
 import type { DadPose } from './state';
-import { drawDad, DAD_K, DAD_H, DAD_SIT_H, type DadFace, hammerGrip, swatGrip, malletHead } from './dad';
+import { drawDad, DAD_K, DAD_H, DAD_SIT_H, type DadFace, hammerGrip, swatGrip, malletHead, MALLET_HEAD } from './dad';
 import { pantsOf } from '../section';
 import {
   type P, type Member, type PileCan, eyeOf, proj, drawMallet, drawFridge, drawBottle, drawDrop, drawPuddle, drawCouchAt,
-  drawCarAt, drawWreck, drawStuntmanAt, drawWallSplat, drawMember, drawDeadMember, drawPancake, drawPile, drawSeep, drawBlood,
+  drawCarAt, drawWreck, drawStuntmanAt, drawWallSplat, drawMember, drawDeadMember, drawPancake, drawPile, drawSeep, drawBlood, drawSlapArm,
 } from './fightArt';
 import type { Anim } from './family';
 import * as L from './lines';
@@ -86,7 +97,23 @@ const SWAT_WIND = 16, SWAT_FAST = 7, SWAT_LIVE = 6, SWAT_RECOVER = 40, SWAT_GAP 
 /** The beer: how often he yells for one (frames, a range); armfuls a trip (the last has the one he catches); the gap
  *  between them; their flight; how many fly all over the set with each armful (more once he's lost some of them); the
  *  hurt one does Meathead; the family's jerky walk (px a step, a step every 8 frames). */
-const CALL_EVERY: [number, number] = [430, 620], BOTTLES: [number, number] = [2, 4], TOSS_GAP = 34, BOTTLE_T = 34, SPRAY = 2, BEER_DMG = 6, STEP_PX = 22;
+const CALL_EVERY: [number, number] = [300, 420], BOTTLES: [number, number] = [1, 2], TOSS_GAP = 30, BOTTLE_T = 34, SPRAY = 3, BEER_DMG = 6;
+/** The beer run's rush (the user's: "they will move very quickly to the fridge and throw it then back to their
+ *  'default' track"): px a frame there and back. */
+const RUSH = 9;
+/** The beer runner's tell before it bolts (a klaxon, a lean, a rev), and its ram (rushing, either way: the user's). */
+const READY_T = 34, RAM_DMG = 10;
+/** THE FAMILY ON THEIR TRACKS (the user's: "the various animatronics ... will move on a set track and attempt to slap
+ *  you"): each living one patrols its own stretch of the front of the set (they overlap end to end, so nowhere's out of
+ *  reach for long), a jerk at a time; in reach, a slap: a wind-up (the slap arm cocking back with a servo whine), a
+ *  quick swing, a rest, a wait before another. Only the stunt cars take them out. */
+const TRACKS: Record<Member, { a: number; b: number; d: number; sh: number }> = {
+  mom: { a: ARENA.a + 30, b: 3210, d: 1.0007, sh: 74 },
+  sis: { a: 3110, b: 3500, d: 1.0009, sh: 40 },
+  boy: { a: 3420, b: 3760, d: 1.0008, sh: 60 },
+  gramps: { a: 3660, b: ARENA.b - 40, d: 1.0006, sh: 62 },
+};
+const PATROL_STEP = 10, PATROL_EVERY = 6, SLAP_WIND = 22, SLAP_LIVE = 5, SLAP_REST = 26, SLAP_GAP = 70, SLAP_REACH = 54, SLAP_DMG = 6;
 /** Catching it, drinking it. */
 const CATCH_T = 24, DRINK_T = 64;
 /** The puke: the wind-up, how long it comes, the kick it gives the couch (more each time), the push while it's coming,
@@ -113,8 +140,15 @@ const CHAT_EVERY: [number, number] = [520, 820], HINT_GAP = 600;
 type Act = 'enter' | 'sit' | 'swat' | 'catch' | 'drink' | 'pukeWind' | 'puke' | 'rise' | 'rage' | 'tired' | 'return' | 'baffled'
   | 'thrown' | 'up' | 'trip' | 'heave';
 const MEMBERS: Member[] = ['mom', 'boy', 'sis', 'gramps'];
-interface Fam { id: Member; alive: boolean; x: number; d: number; home: { x: number; d: number }; stepT: number; dir: 1 | -1 }
-interface Errand { who: Member; step: 'go' | 'open' | 'toss' | 'back'; t: number; left: number }
+interface Fam {
+  id: Member; alive: boolean; x: number; d: number; home: { x: number; d: number }; stepT: number; dir: 1 | -1;
+  /** Its patrol (which way along its track), its slap (wind-up, swing, rest) and its clock, the frame it may slap again. */
+  way: 1 | -1; slap: 'none' | 'wind' | 'hit' | 'rest'; slapT: number; slapAt: number; slapHit: boolean;
+  /** Stopped on its track this many frames more (only stopped does it slap: the user's "only when they try slapping you
+   *  when idle"). */
+  idle: number;
+}
+interface Errand { who: Member; step: 'ready' | 'go' | 'open' | 'toss' | 'back'; t: number; left: number; rammed: boolean }
 type Miss = 'short' | 'long' | 'head' | 'wall' | 'catch' | 'spray';
 interface Bottle { t: number; T: number; ax: number; ay: number; ad: number; bx: number; by: number; bd: number; kind: Miss; rot: number; arc: number }
 interface Drop { x: number; y: number; vx: number; vy: number; r: number; k: number }
@@ -156,7 +190,9 @@ export interface Fight {
   bottles: Bottle[]; drops: Drop[]; puddles: Puddle[];
   cars: Car[]; wrecks: Wreck[]; flung: Flung[];
   kills: number; recharge: number; sad: boolean;
-  words: Map<'dad' | Member, string>;
+  words: Map<'dad' | Member | 'crew', string>;
+  /** The zoom (eased: out to take in the whole set while it's on), the clapperboard's ready flash, the crew's last excuse. */
+  zoom: number; readyFlash: number; crewAt: number; blocked: number; blockSaidAt: number;
   chatAt: number; bundy: number; lowSaid: boolean; wrongN: number; hintAt: number; dudAt: number; saidPuke: boolean; saidRage: boolean;
   flat: number;
   death: Death | null; deathSaid: number; cam: KillCam | null;
@@ -181,7 +217,7 @@ const KIND = 'm2:ct_stupid_dad' as const;
 let greaseAt = -9999;
 registerM2Kind({
   kind: KIND,
-  stats: { w: 56, h: 96, hp: BIG, contact: 0, mass: 400, air: true },
+  stats: { w: 44, h: 92, hp: BIG, contact: 0, mass: 400, air: true },
   make: b => ({ ...b, enemyType: 'flyer', initialY: b.pos.y, harmless: true }),
   gender: 'm', humanoid: true, grab: 'none', midBoss: true,
   head: { x: 2, y: -88, r: 14 },
@@ -231,8 +267,14 @@ const dud = (ctx: FrameContext, f: Fight) => {
   const { state } = ctx, p = state.player;
   p.shootCooldown = 24;
   playSound('click', 0.8, -2);
-  ctx.fx.spawnDamageNumber({ x: p.pos.x - 30, y: p.pos.y - 30 }, 'RESETTING THE SCENE', false, '#FDE68A');
-  if (f.t - f.dudAt > 300) { f.dudAt = f.t; meatheadSays(state, pick(byPants(state, L.MH_DUD)), false); }
+  // (the stunt coordinator, off-stage on the walkie, with why the next car isn't ready (the user's): once a reset, and
+  // never two within a few seconds however hard he mashes it)
+  if (f.t - f.crewAt > 240 && f.t - f.dudAt > 240 && quiet()) {
+    f.dudAt = f.t; f.crewAt = f.t;
+    playSound('beep', 0.4, -4);
+    const tok = token;
+    speak(L.VOICES.crew, pick(L.CREW_EXCUSE), s => { if (tok !== token) return; if (s) f.words.set('crew', s.text); else f.words.delete('crew'); }, true);
+  }
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -266,18 +308,18 @@ export const startFight = (state: GameState, retry: boolean): Fight => {
   const e = makeKindEnemy(KIND as EnemyKind, X(x), STAGE_Y);
   e.facing = -1; e.seen = true;
   const fam = {} as Record<Member, Fam>;
-  for (const m of MEMBERS) { const h = homeOf(m); fam[m] = { id: m, alive: true, x: h.x, d: h.d, home: { x: h.x, d: h.d }, stepT: 0, dir: -1 }; }
+  for (const m of MEMBERS) { const h = homeOf(m); fam[m] = { id: m, alive: true, x: h.x, d: h.d, home: { x: h.x, d: h.d }, stepT: 0, dir: -1, way: Math.random() < 0.5 ? 1 : -1, slap: 'none', slapT: 0, slapAt: 120, slapHit: false, idle: 0 }; }
   const f: Fight = {
     mode: 'on', t: 0, stage: String(state.stageId), hp: HP, iframes: 0, flash: 0, e, moveSeen: e.hitByMove,
     act: retry ? 'enter' : 'sit', actT: 0, x, y: 0, vy: 0, facing: -1, seated: true, landT: -999,
     swatWind: SWAT_WIND, swatAt: -999, swatHit: false, nextAtk: 'puke', pukes: 0, rages: 0, hopAt: 0,
     couch: { x: COUCH_HOME, vx: 0, squash: 0, crushed: false, rot: 0 },
     fridge: { open: 0, dx: 0, tilt: 0, jolt: 0 },
-    family: fam, errand: null, callAt: retry ? 300 : 200,
+    family: fam, errand: null, callAt: retry ? 240 : 160,
     bottles: [], drops: [], puddles: [], cars: [], wrecks: [], flung: [],
     kills: 0, recharge: 0, sad: false, words: new Map(),
     chatAt: rnd(...CHAT_EVERY) * 0.6, bundy: 0, lowSaid: false, wrongN: 0, hintAt: -9999, dudAt: -9999, saidPuke: false, saidRage: false,
-    flat: 1, death: null, deathSaid: 0, cam: null,
+    flat: 1, death: null, deathSaid: 0, cam: null, zoom: 1, readyFlash: 0, crewAt: -9999, blocked: 0, blockSaidAt: -9999,
   };
   live = f;
   state.enemies.push(e);
@@ -303,13 +345,17 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
   f.t++;
   if (f.iframes > 0) f.iframes--;
   if (f.flash > 0) f.flash--;
-  if (f.recharge > 0) f.recharge--;
+  if (f.recharge > 0) { f.recharge--; if (f.recharge === 0 && f.mode === 'on') { f.readyFlash = 36; playSound('clap', 0.5, 4); } }
+  if (f.readyFlash > 0) f.readyFlash--;
+  view(state, f);
   props(ctx, f);
   if (f.mode === 'dead') return dying(ctx, f);
   takeHits(ctx, f);
   if (f.hp <= 0) { die(ctx, f, 'fridge'); return dying(ctx, f); }
   dad(ctx, f);
   errand(ctx, f);
+  family(ctx, f);
+  blockShots(ctx, f);
   bottles(ctx, f);
   cars(ctx, f);
   chatter(ctx, f);
@@ -404,18 +450,20 @@ const dad = (ctx: FrameContext, f: Fight) => {
     case 'sit': {
       if (f.couch.vx === 0) f.facing = toward;
       // (too close: the mallet; quicker at a move coming in)
-      if (f.couch.vx === 0 && t > 6 && f.t - f.swatAt > SWAT_GAP && swatZone(f, state, 24)) {
+      if (f.couch.vx === 0 && t > 6 && f.t - f.swatAt > SWAT_GAP && swatZone(f, state, 16)) {
         f.swatWind = attacking(state) || grabbing(state) ? SWAT_FAST : SWAT_WIND; f.swatHit = false;
         setAct(f, 'swat');
         if (Math.random() < 0.5) bark(f, state, L.DAD_SWAT);
         break;
       }
       // (yelling for beer: off one of them goes to the fridge)
-      if (!f.errand && f.t >= f.callAt && f.couch.vx === 0 && alive(f).length && Math.abs(f.couch.x - COUCH_HOME) <= 1) {
+      if (!f.errand && f.t >= f.callAt && f.couch.vx === 0 && alive(f).length && Math.abs(f.couch.x - COUCH_HOME) <= 40) {
         f.callAt = f.t + rnd(...CALL_EVERY);
-        const al = alive(f), who = al.includes('boy') && Math.random() < 0.45 ? 'boy' : al[Math.floor(Math.random() * al.length)];
+        const al = alive(f), who = al[Math.floor(Math.random() * al.length)];
+        const fm = f.family[who]; fm.slap = 'none'; fm.slapT = 0;
         dadSays(f, state, L.DAD_BEER);
-        f.errand = { who, step: 'go', t: 0, left: Math.floor(rnd(BOTTLES[0], BOTTLES[1] + 1)) };
+        f.errand = { who, step: 'ready', t: 0, left: Math.floor(rnd(BOTTLES[0], BOTTLES[1] + 1)), rammed: false };
+        playSound('alarm', 0.5, 6);
       }
       break;
     }
@@ -550,12 +598,30 @@ const headRect = (f: Fight, grip: readonly number[], ang: number): R => {
   const h = malletHead(grip, ang), p = dadPt(f, h.x, h.y), hx = h.hx * DAD_K, hy = h.hy * DAD_K;
   return { x0: p.x - hx, x1: p.x + hx, y0: p.y - hy, y1: p.y + hy };
 };
+/** The mallet's head exactly as drawn: its four corners in the world (the barrel turned with the mallet). */
+const headPoly = (f: Fight, grip: readonly number[], ang: number): P[] => {
+  const h = malletHead(grip, ang), ux = Math.sin(ang), uy = -Math.cos(ang), vx = Math.cos(ang), vy = Math.sin(ang);
+  const A = MALLET_HEAD.along, C = MALLET_HEAD.across;
+  return [[-C, -A], [C, -A], [C, A], [-C, A]].map(([a, b]) => dadPt(f, h.x + vx * a + ux * b, h.y + vy * a + uy * b));
+};
+/** Does the turned head (no padding) touch his box? (Separating axes: the box's two, the head's two.) */
+const polyHits = (r: R, poly: P[]) => {
+  const box = [{ x: r.x0, y: r.y0 }, { x: r.x1, y: r.y0 }, { x: r.x1, y: r.y1 }, { x: r.x0, y: r.y1 }];
+  const axes = [{ x: 1, y: 0 }, { x: 0, y: 1 }, { x: poly[1].x - poly[0].x, y: poly[1].y - poly[0].y }, { x: poly[3].x - poly[0].x, y: poly[3].y - poly[0].y }];
+  for (const a of axes) {
+    let p0 = Infinity, p1 = -Infinity, q0 = Infinity, q1 = -Infinity;
+    for (const v of box) { const d = v.x * a.x + v.y * a.y; p0 = Math.min(p0, d); p1 = Math.max(p1, d); }
+    for (const v of poly) { const d = v.x * a.x + v.y * a.y; q0 = Math.min(q0, d); q1 = Math.max(q1, d); }
+    if (p1 <= q0 || q1 <= p0) return false;
+  }
+  return true;
+};
 /** The swat's pose (0..1) at its frame `t` (poseOf draws the same). */
 const swatT = (f: Fight, t: number) => (t < f.swatWind ? (Math.max(0, t) / f.swatWind) * 0.35 : Math.min(1, 0.35 + ((t - f.swatWind) / 5) * 0.65));
 /** The mallet's head swept from pose `a` to `b`: does it touch him? */
 const swatSweep = (f: Fight, state: GameState, a: number, b: number) => {
   const pr = pRect(state);
-  for (let k = 0; k <= 4; k++) { const g = swatGrip(a + ((b - a) * k) / 4); if (hits(pr, headRect(f, g.near, g.ang))) return true; }
+  for (let k = 0; k <= 4; k++) { const g = swatGrip(a + ((b - a) * k) / 4); if (polyHits(pr, headPoly(f, g.near, g.ang))) return true; }
   return false;
 };
 /** Where the swat reaches (its head's whole swing, and `pad` more round it), to start one. */
@@ -586,18 +652,23 @@ const hopTell = (f: Fight) => {
   const k = Math.max(pre, land);
   return k * k * (3 - 2 * k);
 };
-/** Where the hammer's head is this frame (or `dt` frames back), as drawn, knees bent and all. */
-const hammerRect = (f: Fight, dt = 0): R => {
-  const g = hammerGrip(hammerKAt(f.actT - dt)), drop = hopTell(f) * 11;
-  return headRect(f, [g.near[0], g.near[1] + drop], g.ang);
+/** The hammer's head as drawn at swing `k`, knees bent and all (the turned barrel exactly: no padding). */
+const hammerPoly = (f: Fight, k: number): P[] => {
+  const g = hammerGrip(k), drop = hopTell(f) * 11;
+  return headPoly(f, [g.near[0], g.near[1] + drop], g.ang);
 };
+/** The user's: "the 'donkey kong' attack seems to hit you when you're near him but not touching him. the hurt box seems
+ *  oversized". It hurts only where the drawn head really is: this frame's, and (only while it's moving: the slam, the
+ *  raise) the in-betweens since last frame so a fast slam can't skip him; held up or down it's just where it is. And
+ *  his body: his gut and his chest, not the air round him (34 px wide, his shoulders to his feet). */
 const hammer = (ctx: FrameContext, f: Fight) => {
   const { state } = ctx;
   if (!hurtable(state)) return;
   const cx = X(f.x), feet = STAGE_Y - f.y, pr = pRect(state);
-  // (him (his gut, his body); the hammer's head where it is now and where it just was)
-  const body: R = { x0: cx - 22, x1: cx + 22, y0: feet - DAD_H + 6, y1: feet };
-  if (hits(pr, body) || hits(pr, hammerRect(f)) || hits(pr, hammerRect(f, 1))) hammered(ctx, f);
+  const body: R = { x0: cx - 17, x1: cx + 17, y0: feet - 92, y1: feet };
+  if (hits(pr, body)) { hammered(ctx, f); return; }
+  const k1 = hammerKAt(f.actT), k0 = hammerKAt(f.actT - 1), n = Math.abs(k1 - k0) > 0.01 ? 3 : 0;
+  for (let i = 0; i <= n; i++) if (polyHits(pr, hammerPoly(f, k1 + ((k0 - k1) * i) / Math.max(1, n)))) { hammered(ctx, f); return; }
 };
 const hammered = (ctx: FrameContext, f: Fight) => {
   const { state } = ctx;
@@ -612,6 +683,145 @@ const hammered = (ctx: FrameContext, f: Fight) => {
 // ---------------------------------------------------------------------------------------------------------------
 // The beer run: one of the family to the fridge and back, the bottles
 
+/** The family on their tracks: each living one not off on the beer run patrols its stretch a jerk at a time, and
+ *  slaps him when he's in reach (wind-up, swing, rest, a wait). */
+const family = (ctx: FrameContext, f: Fight) => {
+  const { state } = ctx, E = eyeOf(state), pm = pmid(state);
+  for (const id of MEMBERS) {
+    const m = f.family[id];
+    if (!m.alive || f.errand?.who === id) continue;
+    const tr = TRACKS[id];
+    // (where it is on screen: its feet, its shoulder)
+    const at = proj(E, X(m.x), STAGE_Y, m.d), dx = pm.x + x0 - at.x;
+    if (m.slap === 'none') {
+      // (stopped on its track (idle), him in reach, allowed: the wind-up. Never on the move; never by touch)
+      const near = Math.abs(dx) < SLAP_REACH + 6 && pm.feet > STAGE_Y - tr.sh - 70 && f.mode === 'on' && f.act !== 'enter' && hurtable(state);
+      if (m.idle > 0) {
+        m.idle--;
+        if (near && f.t >= m.slapAt) { m.slap = 'wind'; m.slapT = 0; m.slapHit = false; m.dir = (dx < 0 ? -1 : 1) as 1 | -1; m.idle = Math.max(m.idle, 24); playSound('click', 0.6, 10); playSound('grind', 0.4, 8); }
+        continue;
+      }
+      // (the patrol, along the very front of the set (in front of everything on it, so what eats his shots is always in
+      // sight): off its track (just back from the fridge, the fight's start) it heads to it; on it, a jerk at a time end
+      // to end)
+      m.stepT++;
+      if (m.stepT % PATROL_EVERY) continue;
+      const tx = m.x < tr.a ? tr.a : m.x > tr.b ? tr.b : m.x + m.way * PATROL_STEP;
+      if (tx >= tr.b) { m.way = -1; m.idle = 40 + Math.floor(Math.random() * 40); } else if (tx <= tr.a) { m.way = 1; m.idle = 40 + Math.floor(Math.random() * 40); }
+      else if (m.x >= tr.a && m.x <= tr.b && Math.random() < 0.08) m.idle = 30 + Math.floor(Math.random() * 40);
+      const nx = Math.max(Math.min(m.x, tr.a), Math.min(Math.max(m.x, tr.b), tx));
+      m.dir = (nx < m.x ? -1 : 1) as 1 | -1;
+      m.x += Math.sign(nx - m.x) * Math.min(Math.abs(nx - m.x), PATROL_STEP * 2);
+      m.d += (tr.d - m.d) * 0.25;
+      if (m.stepT % (PATROL_EVERY * 3) === 0) playSound('click', 0.2, 6);
+      continue;
+    }
+    m.slapT++;
+    if (m.slap === 'wind' && m.slapT >= SLAP_WIND) { m.slap = 'hit'; m.slapT = 0; playSound('whoosh', 0.7, 6); }
+    else if (m.slap === 'hit') {
+      // (the swing: the hand's box out in front of it at its shoulder)
+      if (!m.slapHit && hurtable(state) && f.mode === 'on') {
+        const hand: R = { x0: m.dir > 0 ? at.x + 6 : at.x - SLAP_REACH, x1: m.dir > 0 ? at.x + SLAP_REACH : at.x - 6, y0: STAGE_Y - tr.sh - 26, y1: STAGE_Y - tr.sh + 30 };
+        if (hits(pRect(state), hand)) {
+          m.slapHit = true;
+          hurtPlayer(ctx, SLAP_DMG, hurtSrc(state, 'm2:ct_family_slap'), { x: m.dir * 7, y: -5 }, 10);
+          playSound('crack', 0.9, 4); playSound('punch', 0.7, 6); shakeScreen(state, 4, 3);
+          ctx.fx.spawnDamageNumber({ x: state.player.pos.x, y: state.player.pos.y - 20 }, 'SLAP!', true, '#F9A8D4');
+          if (quiet() && Math.random() < 0.4) tape(f, id, SNARK[id], () => laughTrack(state, 0.7));
+        }
+      }
+      if (m.slapT >= SLAP_LIVE) { m.slap = 'rest'; m.slapT = 0; }
+    } else if (m.slap === 'rest' && m.slapT >= SLAP_REST) { m.slap = 'none'; m.slapAt = f.t + SLAP_GAP; m.idle = 20; }
+  }
+};
+/** A living one of the family's body on screen (its depth's projection): what eats his shots. */
+const famRect = (state: GameState, m: Fam): R => {
+  const E = eyeOf(state), at = proj(E, X(m.x), STAGE_Y, m.d), h = TRACKS[m.id].sh + 34;
+  return { x0: at.x - 20, x1: at.x + 20, y0: at.y - h, y1: at.y };
+};
+/** The user's: "you gotta have clearance for stupid dad, if an animatronic is in the way, it will eat the shot. they
+ *  can only be destroyed with the stunt car." His shots into any of the living family: eaten (a ping, sparks), nothing
+ *  to it or to him; now and then, his gripe about it (MH_BLOCKED, the user's line first among them). */
+const blockShots = (ctx: FrameContext, f: Fight) => {
+  const { state } = ctx;
+  if (f.mode !== 'on') return;
+  const rects = MEMBERS.filter(id => f.family[id].alive && f.errand?.who !== id).map(id => famRect(state, f.family[id]));
+  if (!rects.length) return;
+  // (they can't be pushed, flung or grabbed (the user's): a charge, a slide, a dive kick into one stops dead and
+  // bounces off it, a clang; it never hurts him)
+  const p = state.player, me = pRect(state);
+  if ((p.isCharging || p.isSliding || p.isDivekicking) && p.pushbackTimer <= 0) {
+    const r = rects.find(q => hits(me, q));
+    if (r) {
+      const dir = (me.x0 + me.x1) / 2 < (r.x0 + r.x1) / 2 ? -1 : 1;
+      p.isCharging = false; p.isSliding = false; p.isDivekicking = false; p.isUppercutting = false;
+      p.vel = { x: dir * 4, y: Math.min(p.vel.y, -2) }; p.lockTimer = Math.max(p.lockTimer, 12);
+      eaten(state, f, dir < 0 ? r.x0 : r.x1, (me.y0 + me.y1) / 2);
+    }
+  }
+  state.projectiles = state.projectiles.filter(pr => {
+    if (pr.owner !== 'player') return true;
+    const r: R = { x0: pr.pos.x, x1: pr.pos.x + pr.width, y0: pr.pos.y, y1: pr.pos.y + pr.height };
+    const hit = rects.find(q => hits(r, q));
+    if (!hit) return true;
+    eaten(state, f, pr.pos.x + pr.width / 2, pr.pos.y + pr.height / 2);
+    return false;
+  });
+};
+/** A shot (or a move) eaten by one of them: the ping, the sparks, and his gripe every so often. */
+const eaten = (state: GameState, f: Fight, x: number, y: number) => {
+  playSound('clang', 0.6, 6 + Math.random() * 3);
+  for (let i = 0; i < 8; i++) state.particles.push({ pos: { x, y }, vel: { x: (Math.random() - 0.5) * 5, y: -1 - Math.random() * 3 }, life: 14, color: i % 2 ? '#FDE047' : '#FFFFFF', size: 1.5 + Math.random(), grav: 0.2 });
+  f.blocked++;
+  if (f.blocked >= 3 && f.t - f.blockSaidAt > 420 && quiet()) { f.blocked = 0; f.blockSaidAt = f.t; meathead(state, L.MH_BLOCKED); }
+};
+/** Something of the family between him and Dad (for his moves: they eat those too). */
+const famBetween = (state: GameState, f: Fight) => {
+  const pr = pRect(state), px = (pr.x0 + pr.x1) / 2, dx = X(f.x);
+  return MEMBERS.some(id => {
+    const m = f.family[id];
+    if (!m.alive || f.errand?.who === id) return false;
+    const r = famRect(state, m), mx = (r.x0 + r.x1) / 2;
+    return mx > Math.min(px, dx) + 4 && mx < Math.max(px, dx) - 4 && pr.y1 > r.y0;
+  });
+};
+
+/** How far the slap arm's out (0 tucked .. -1 cocked right back on the wind-up .. 1 swung through). */
+const slapArm = (m: Fam) => (m.slap === 'wind' ? -Math.min(1, m.slapT / (SLAP_WIND * 0.6)) : m.slap === 'hit' ? Math.min(1, m.slapT / 2) : m.slap === 'rest' ? Math.max(0, 1 - m.slapT / SLAP_REST) : 0);
+
+/** The camera through the fight (the user's: "zoom out so the whole set is always visible"): eased out to take in the
+ *  whole living room, wall to wall, his feet low on the screen, the camera parked on the middle of it; the whole view's
+ *  the screen for the rules. His weakness death zooms back in for its kill cam (it's in 1 by then); the standard death
+ *  stays out (it's all on the set). */
+const SET_ZOOM = 0.66, SET_FEET = 520;
+const view = (state: GameState, f: Fight) => {
+  const want = f.mode === 'dead' && f.death?.how === 'flat' ? 1 : SET_ZOOM;
+  f.zoom += Math.max(-0.008, Math.min(0.008, want - f.zoom));
+  state.viewIsScreen = f.zoom < 0.999;
+  if (f.mode === 'on' || f.death?.how === 'fridge') {
+    const cx = X((ARENA.a + ARENA.b) / 2) - CANVAS_WIDTH / 2;
+    const cy = STAGE_Y - CANVAS_HEIGHT / 2 - (SET_FEET - CANVAS_HEIGHT / 2) / f.zoom;
+    const cam = state.camera;
+    state.cameraOverride = { x: cam.x + (cx - cam.x) * 0.1, y: cam.y + (cy - cam.y) * 0.1 };
+  }
+};
+/** After it's over (VICTORY, the walk-away): the zoom eased back in. */
+export const fightZoomHome = (f: Fight) => { f.zoom = Math.min(1, f.zoom + 0.008); };
+/** The zoom the stage draws at: the kill cam's (in), else the set's (out). */
+export const fightZoom = (state: GameState, f: Fight) => {
+  const kc = killCamZoom(state, f);
+  if (kc) return kc;
+  if (f.zoom >= 0.999) return null;
+  return { scale: f.zoom, x: state.camera.x + CANVAS_WIDTH / 2, y: state.camera.y + CANVAS_HEIGHT / 2 };
+};
+/** A world point on screen, through the zoom. */
+const toScreen = (state: GameState, f: Fight, x: number, y: number) => {
+  const z = fightZoom(state, f), cx = state.camera.x, cy = state.camera.y;
+  if (!z) return { x: x - cx, y: y - cy };
+  const sh = z as { shiftX?: number; shiftY?: number };
+  return { x: (x - z.x) * z.scale + z.x - cx + (sh.shiftX ?? 0), y: (y - z.y) * z.scale + z.y - cy + (sh.shiftY ?? 0) };
+};
+
 const errand = (ctx: FrameContext, f: Fight) => {
   const { state } = ctx, er = f.errand;
   if (!er) { f.fridge.open = Math.max(0, f.fridge.open - 0.08); return; }
@@ -620,17 +830,33 @@ const errand = (ctx: FrameContext, f: Fight) => {
   er.t++;
   // (his business elsewhere (up off the couch, puking): the run's off, home it goes)
   if (er.step !== 'back' && (!f.seated || f.couch.crushed || f.act === 'pukeWind' || f.act === 'puke' || f.act === 'rise')) { er.step = 'back'; er.t = 0; }
+  // (a rush: flat out, sparking at the wheels, a whine)
   const walk = (to: { x: number; d: number }) => {
     m.stepT++;
-    if (m.stepT % 8 !== 0) return false;
     const dx = to.x - m.x, dist = Math.abs(dx);
     if (dist < 1) { m.x = to.x; m.d = to.d; return true; }
-    const k = Math.min(1, STEP_PX / dist);
+    const k = Math.min(1, RUSH / dist);
     m.x += dx * k; m.d += (to.d - m.d) * k; m.dir = (dx < 0 ? -1 : 1) as 1 | -1;
-    playSound('click', 0.25, 6);
+    if (m.stepT % 4 === 0) playSound('click', 0.3, 8);
+    if (m.stepT % 3 === 0) { const E = eyeOf(state), q = proj(E, X(m.x), STAGE_Y - 2, m.d); state.particles.push({ pos: q, vel: { x: -m.dir * (1 + Math.random() * 2), y: -1 - Math.random() * 2 }, life: 14, color: m.stepT % 2 ? '#FDE047' : '#FFFFFF', size: 1.5, grav: 0.2 }); }
+    // (the user's: "if you are in the way, you will get hurt. both on its way to the fridge and back to its normal path":
+    // rushing (not standing, not patrolling), it rams him: once a leg, flung the way it's going)
+    if (!er.rammed && m.d > 0.97 && hurtable(state) && f.mode === 'on' && hits(pRect(state), famRect(state, m))) {
+      er.rammed = true;
+      hurtPlayer(ctx, RAM_DMG, hurtSrc(state, 'm2:ct_family_ram'), { x: m.dir * 10, y: -7 });
+      playSound('thud', 1, -4); playSound('clang', 0.7, 2); shakeScreen(state, 7, 4);
+      ctx.fx.spawnDamageNumber({ x: state.player.pos.x, y: state.player.pos.y - 20 }, 'BEER RUN!', true, '#FDE047');
+    }
     return false;
   };
   switch (er.step) {
+    case 'ready':
+      // (the tell: a klaxon off its chest, it leans the way it's going and revs (sparks at its wheels), then it bolts)
+      m.dir = (AT_FRIDGE.x < m.x ? -1 : 1) as 1 | -1;
+      if (er.t % 6 === 0) { const E = eyeOf(state), q = proj(E, X(m.x), STAGE_Y - 2, m.d); for (let i = 0; i < 3; i++) state.particles.push({ pos: q, vel: { x: -m.dir * (1 + Math.random() * 3), y: -1 - Math.random() * 2 }, life: 12, color: '#FDE047', size: 1.5, grav: 0.2 }); }
+      if (er.t === 14) playSound('alarm', 0.5, 6);
+      if (er.t >= READY_T) { er.step = 'go'; er.t = 0; er.rammed = false; playSound('whoosh', 0.8, 4); }
+      break;
     case 'go': if (walk(AT_FRIDGE)) { er.step = 'open'; er.t = 0; tape(f, er.who, L.FETCH_TAPE[er.who]); } break;
     case 'open':
       f.fridge.open = Math.min(1, f.fridge.open + 0.07);
@@ -650,10 +876,14 @@ const errand = (ctx: FrameContext, f: Fight) => {
         if (er.left <= 0) { er.step = 'back'; er.t = 0; }
       }
       break;
-    case 'back':
+    case 'back': {
+      // (back to the nearest spot on its own track: a fresh leg, it can ram him again)
+      if (er.t === 1) er.rammed = false;
       f.fridge.open = Math.max(0, f.fridge.open - 0.06);
-      if (walk(m.home) && !f.bottles.length) f.errand = null;
+      const tr = TRACKS[er.who];
+      if (walk({ x: Math.max(tr.a, Math.min(tr.b, m.x)), d: tr.d }) && !f.bottles.some(b => b.kind === 'catch')) { f.errand = null; m.slapAt = f.t + 40; }
       break;
+    }
   }
 };
 
@@ -870,6 +1100,8 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
   if (dealt <= 0 || !state.enemies.includes(e) || (f.iframes > 0 && !done)) return;
   // (in the rage nothing lands but what's fired at him (the moves get him hammered: touch above))
   if (melee && (f.act === 'rage' || f.act === 'rise')) return;
+  // (one of the family in the way of his move: it eats it)
+  if (melee && famBetween(state, f)) { const pr = pRect(state); eaten(state, f, (pr.x0 + pr.x1) / 2 + state.player.facing * 20, pr.y0 + 30); return; }
   const plain = plainHit(state, melee);
   // (no hint at a weapon he hasn't got (the user's))
   if (plain === null && state.player.availableWeapons.includes('STUNT_CAR') && state.player.currentWeapon !== 'STUNT_CAR' && f.kills === 0 && (++f.wrongN === 2 || f.wrongN % 5 === 0) && f.t - f.hintAt > HINT_GAP) {
@@ -904,7 +1136,7 @@ const die = (ctx: FrameContext, f: Fight, how: 'fridge' | 'flat', car?: Car) => 
   f.mode = 'dead'; f.words.clear();
   state.enemies = state.enemies.filter(o => o !== f.e);
   state.damageNumbers = [];
-  f.errand = null; f.bottles = []; f.drops = []; f.cars = []; f.couch.vx = 0;
+  f.errand = null; f.bottles = []; f.drops = []; f.cars = []; f.couch.vx = 0; f.fridge.open = 0;
   p.inCutscene = true;
   f.death = { how, t: 0, step: 'start', at: 0, creep: 0, fall: 0, car: null, pile: [], heap: 0, seep: 0, roll: null, stunt: null, skipT: 0, walk: 0, tip: 1 };
   if (how === 'flat') {
@@ -928,9 +1160,12 @@ const dying = (ctx: FrameContext, f: Fight): Controls => {
   if (skippable && d.skipT > SKIP_AFTER && takeSkip()) { token++; silenceAll(); state.playerVulgarityTimer = 0; f.words.clear(); finish(state, f); return out; }
   out = d.how === 'flat' ? flatDeath(ctx, f, d) : fridgeDeath(ctx, f, d);
   // (the camera on him, kept to the arena)
-  const want = camFor(d.how === 'fridge' ? (d.roll && d.step === 'roll' ? Math.max(d.roll.x, p.pos.x + 300) : d.step === 'start' ? (X(f.x) + p.pos.x) / 2 : X(FRIDGE.x - 230)) : X(f.x));
-  const cam = state.camera.x + (want - state.camera.x) * 0.08;
-  state.cameraOverride = { x: cam, y: STAGE_Y - 500 };
+  if (d.how === 'flat') {
+    const want = camFor(X(f.x));
+    const cam = state.camera.x + (want - state.camera.x) * 0.08;
+    state.cameraOverride = { x: cam, y: state.camera.y + (STAGE_Y - 500 - state.camera.y) * 0.1 };
+  }
+  void p;
   // (it never hangs)
   if (t > 2400) f.deathSaid = 4;
   return out;
@@ -1070,9 +1305,16 @@ const fridgeDeath = (ctx: FrameContext, f: Fight, d: Death): Controls => {
         playSound('crash', 1, -4); playSound('crunch', 1.2, -8); playSound('squish', 1, -10); playSound('glass', 0.8, 2); shakeScreen(state, 16, 10);
         laughTrack(state, 1);
         const x0 = X(fridgePivot(f) - FRIDGE_LONG);
-        for (let i = 0; i < 24; i++) state.particles.push({ pos: { x: x0 + Math.random() * X(FRIDGE_LONG) - X(0), y: STAGE_Y - 4 }, vel: { x: (Math.random() - 0.5) * 7, y: -1 - Math.random() * 4 }, life: 40, color: i % 3 ? '#D6D3D1' : '#8E9A3E', size: 3 + Math.random() * 4, grav: 0.2 });
-        // (a few cans burst out of the door as it lands)
-        for (let k = 0; k < 10; k++) d.pile.push({ x: X(fridgePivot(f) - FRIDGE_LONG * (0.3 + Math.random() * 0.6)), y: STAGE_Y - 30, vx: rnd(-4, 4), vy: rnd(-6, -2), rot: Math.random() * 6, vr: rnd(-0.4, 0.4), still: false });
+        for (let i = 0; i < 24; i++) state.particles.push({ pos: { x: x0 + Math.random() * FRIDGE_LONG, y: STAGE_Y - 4 }, vel: { x: (Math.random() - 0.5) * 7, y: -1 - Math.random() * 4 }, life: 40, color: i % 3 ? '#D6D3D1' : '#8E9A3E', size: 3 + Math.random() * 4, grav: 0.2 });
+        // (the user's: "it opens and spills tons of beer bottles when it topples on top of him": the door bursts open as
+        // it lands and forty years of it comes out, bottles and cans, bouncing, rolling, foaming, both ways along the deck
+        // (mostly away from his head, so you can still see it))
+        for (let k = 0; k < 70; k++) {
+          const ox = X(fridgePivot(f) - FRIDGE_LONG * (0.15 + Math.random() * 0.8)), right = Math.random() < 0.72;
+          d.pile.push({ x: ox, y: STAGE_Y - 30 - Math.random() * 20, vx: (right ? 1 : -1) * rnd(1, 7.5), vy: rnd(-9, -2), rot: Math.random() * 6, vr: rnd(-0.5, 0.5), still: false, bottle: Math.random() < 0.55 });
+        }
+        for (let i = 0; i < 30; i++) state.particles.push({ pos: { x: x0 + Math.random() * FRIDGE_LONG, y: STAGE_Y - 30 }, vel: { x: (Math.random() - 0.5) * 6, y: -2 - Math.random() * 5 }, life: 40, color: i % 2 ? '#FFFFFF' : '#F2C84A', size: 2 + Math.random() * 3, grav: 0.2 });
+        playSound('glass', 1, -2); playSound('clink', 1, 6);
       }
       break;
     }
@@ -1093,18 +1335,39 @@ const fridgeDeath = (ctx: FrameContext, f: Fight, d: Death): Controls => {
     }
     default: break;
   }
-  // The cans out of it: tumbling, coming to rest on the deck
+  // The cans and bottles out of it: tumbling, bouncing (a clink), rolling to a stop; none comes to rest over his head
+  // (it stays readable sticking out the end)
+  const hx0 = X(f.x) - 132, hx1 = X(f.x) - 70;
   for (const k of d.pile) {
     if (k.still) continue;
     k.x += k.vx; k.y += k.vy; k.vy += 0.4; k.rot += k.vr;
-    if (k.vy > 0 && k.y >= STAGE_Y - 4) { k.y = STAGE_Y - 4; k.still = true; }
+    if (k.vy > 0 && k.y >= STAGE_Y - 4) {
+      k.y = STAGE_Y - 4;
+      if (k.vy > 2.5) { k.vy = -k.vy * 0.38; k.vx *= 0.7; k.vr *= 0.6; if (Math.random() < 0.3) playSound('clink', 0.3, 4 + Math.random() * 6); }
+      else { k.vy = 0; k.vx *= 0.9; k.rot = Math.PI / 2 * (k.vx >= 0 ? 1 : -1); if (Math.abs(k.vx) < 0.3) { k.still = true; if (k.x > hx0 && k.x < hx1) k.x = k.x - hx0 < hx1 - k.x ? hx0 - 4 : hx1 + 4; } }
+    }
+  }
+  // (the stage cleared for it (the user's: "move all props so they aren't in the way"): the family left standing
+  // backs off to the far left of the set, the wrecks and what's left of the others slide clear of his walk and the
+  // fridge's fall, the puddles mopped)
+  if (d.t < 120) {
+    const lo = STAND_AT - 260, hi = FRIDGE.x + 60;
+    let slot = 0;
+    for (const id of MEMBERS) {
+      const m = f.family[id];
+      if (m.alive) { const to = ARENA.a + 40 + slot++ * 70; m.x += Math.sign(to - m.x) * Math.min(6, Math.abs(to - m.x)); m.d += (0.9 - m.d) * 0.08; m.slap = 'none'; }
+      else if (m.x > lo && m.x < hi) m.x = Math.max(lo - 20, m.x - 6);
+    }
+    for (const w of f.wrecks) if (!w.onCouch && w.x > lo && w.x < hi) w.x = Math.max(lo - 60, w.x - 6);
+    for (const s of f.flung) if (!s.stuck && X(lo) < s.x && s.x < X(hi)) s.x -= 6;
+    f.puddles = f.puddles.filter(pu => pu.x < X(lo) || pu.x > X(hi));
   }
   return out;
 };
 
 /** Done with: his death played out, everybody's had their say. */
 export const fightOver = (f: Fight) => f.mode === 'dead' && !!f.death && f.deathSaid >= 4 && f.death.t > 150 && (!f.cam || f.cam.z <= 1);
-export const endFight = (state: GameState, f: Fight) => { state.player.inCutscene = false; state.cameraOverride = null; live = null; void f; };
+export const endFight = (state: GameState, f: Fight) => { state.player.inCutscene = false; state.cameraOverride = null; state.viewIsScreen = false; live = null; void f; };
 export const killedByWeakness = (f: Fight) => f.death?.how === 'flat';
 /** For the music: the fight's mood (on, him up and pathetic, the end). */
 export const fightMood = (f: Fight): 'on' | 'sad' | 'dead' => (f.mode === 'dead' ? 'dead' : f.sad ? 'sad' : 'on');
@@ -1195,7 +1458,7 @@ export const fightItems = (c: Ctx, state: GameState, f: Fight): Item[] => {
     if (fall > 0) {
       const pv = X(fridgePivot(f));
       c.save(); c.translate(pv, STAGE_Y); c.rotate(-fall * Math.PI / 2); c.translate(-pv, -STAGE_Y);
-      drawFridge(c, X(FRIDGE.x + f.fridge.dx), STAGE_Y, fr, { open: 0, tilt: 0, stuffed: false });
+      drawFridge(c, X(FRIDGE.x + f.fridge.dx), STAGE_Y, fr, { open: fall >= 0.85 ? 0.35 + 0.65 * Math.min(1, (fall - 0.85) / 0.15) : 0, tilt: 0, stuffed: fall < 0.85 });
       c.restore();
     } else drawFridge(c, X(FRIDGE.x + f.fridge.dx), STAGE_Y, fr, { open: f.fridge.open, tilt: f.fridge.tilt, stuffed });
   });
@@ -1206,7 +1469,14 @@ export const fightItems = (c: Ctx, state: GameState, f: Fight): Item[] => {
       const er = f.errand, out = er?.who === m;
       const a: Anim = { mode: out || f.kills > 0 ? 'glitch' : 'run', f: fr + m.length * 13, talking: f.words.has(m) };
       const throwing = out && er?.step === 'toss';
-      at(fm.d, X(fm.x), () => drawMember(c, m, X(fm.x), STAGE_Y, a, throwing ? 1 : 0, throwing));
+      const arm = slapArm(fm), tr = TRACKS[m];
+      const lean = out && er?.step === 'ready' ? fm.dir * 0.16 : out && (er?.step === 'go' || er?.step === 'back') ? fm.dir * 0.08 : 0;
+      at(fm.d, X(fm.x), () => {
+        if (lean) { c.save(); c.translate(X(fm.x), STAGE_Y); c.rotate(lean); c.translate(-X(fm.x), -STAGE_Y); }
+        drawMember(c, m, X(fm.x), STAGE_Y, a, throwing ? 1 : 0, throwing);
+        if (lean) c.restore();
+        if (!out) drawSlapArm(c, X(fm.x), STAGE_Y - tr.sh, fm.dir, arm, fm.slap === 'wind', fr);
+      });
     } else at(fm.d - 0.0004, X(fm.x), () => drawDeadMember(c, m, X(fm.x), STAGE_Y, fr, (fm.x > f.x ? 1 : -1) as 1 | -1));
   }
   for (const w of f.wrecks) at(w.onCouch ? 1.0012 : w.d + 0.0002, X(w.x), () => drawWreck(c, X(w.x), STAGE_Y - (w.onCouch ? 26 : 0), w.dir, w.paint, w.t, fr));
@@ -1297,11 +1567,17 @@ const INK_RED = '#38030B';
 /** The puke's puddles on the deck. */
 export const drawPuddles = (c: Ctx, f: Fight) => { for (const pu of f.puddles) drawPuddle(c, pu.x, STAGE_Y - 1, pu.w, pu.t < 500 ? 0.9 : (600 - pu.t) / 100 * 0.9); };
 
-/** World space, in front of him: the puke flying; the words over whoever's saying them. */
+/** World space, in front of him: the puke flying. (The words are the HUD's: drawFightWords, at full size whatever the
+ *  zoom.) */
 export const drawFightFront = (c: Ctx, state: GameState, f: Fight) => {
   for (const d of f.drops) drawDrop(c, d.x, d.y, d.r, d.k);
+};
+/** Screen space: the words over whoever's saying them (through the zoom, at full size: legible zoomed out); the
+ *  stunt crew's excuses off the walkie, up under his bar. */
+const drawFightWords = (c: Ctx, state: GameState, f: Fight) => {
   const E = eyeOf(state);
   for (const [who, text] of f.words) {
+    if (who === 'crew') { saidOver(c, `WALKIE: ${text}`, CANVAS_WIDTH / 2, 112, '#A7F3D0', 520); continue; }
     let p: P;
     if (who === 'dad') {
       const d = f.death;
@@ -1309,8 +1585,30 @@ export const drawFightFront = (c: Ctx, state: GameState, f: Fight) => {
       const top = d?.how === 'flat' ? STAGE_Y - 30 - DAD_H * 0.48 * paperOf(d).up : crushed ? STAGE_Y - 90 : STAGE_Y - f.y - (f.seated ? DAD_SIT_H : DAD_H) - 14;
       p = { x: crushed ? X(f.x) - 90 : X(f.x), y: top };
     } else { const m = f.family[who]; p = proj(E, X(m.x), STAGE_Y - 130 * DAD_K, m.d); }
-    saidOver(c, text, p.x, p.y, who === 'dad' ? '#FDE047' : '#93C5FD', 240);
+    const q = toScreen(state, f, p.x, p.y);
+    saidOver(c, text, q.x, q.y, who === 'dad' ? '#FDE047' : '#93C5FD', 240);
   }
+};
+/** The clapperboard resetting, over his shoulder while it's in his hand (the user's: "show a little cooldown above his
+ *  head when equipped"): a little clapperboard, a ring round it filling as the scene resets; READY! as it's done. Off
+ *  to the side of his head, clear of his speech over it. */
+const drawCooldown = (c: Ctx, state: GameState, f: Fight) => {
+  const p = state.player;
+  if (p.currentWeapon !== 'STUNT_CAR' || p.inCutscene || (f.recharge <= 0 && f.readyFlash <= 0)) return;
+  const s = toScreen(state, f, p.pos.x + p.width / 2, p.pos.y);
+  const x = Math.round(s.x + 30), y = Math.round(s.y + 6), k = f.recharge > 0 ? 1 - f.recharge / RECHARGE : 1;
+  // (the ring: a dark track, the fill going round from the top, a bright edge)
+  c.fillStyle = 'rgba(12, 10, 20, 0.75)'; c.beginPath(); c.arc(x, y, 13, 0, Math.PI * 2); c.fill();
+  c.lineWidth = 3; c.strokeStyle = '#3F3F46'; c.beginPath(); c.arc(x, y, 10, 0, Math.PI * 2); c.stroke();
+  c.strokeStyle = f.recharge > 0 ? '#FDE047' : (state.frame >> 2) % 2 ? '#FFFFFF' : '#FDE047';
+  c.beginPath(); c.arc(x, y, 10, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * k); c.stroke();
+  // (the clapperboard: the slate, the striped sticks (open while it's resetting, shut and clacked when it's ready))
+  const open = f.recharge > 0 ? 0.5 : 0;
+  box(c, x - 6, y - 2, 12, 8, '#1A1A1E'); box(c, x - 5, y - 1, 10, 6, '#3A3A44'); box(c, x - 4, y + 1, 8, 1, '#D4D4D8'); box(c, x - 4, y + 3, 5, 1, '#D4D4D8');
+  c.save(); c.translate(x - 6, y - 3); c.rotate(-open);
+  box(c, 0, -2, 12, 3, '#F8FAFC'); for (let i = 0; i < 4; i++) box(c, 1 + i * 3, -2, 1.5, 3, '#1A1A1E');
+  c.restore();
+  if (f.recharge <= 0) label(c, 'READY!', x, y - 18, (state.frame >> 2) % 2 ? '#FFFFFF' : '#FDE047', 6);
 };
 
 /** Screen space: his bar (the top band, clear of the HUD), the clapperboard's NEXT TAKE (if he's got it); the deaths'
@@ -1324,7 +1622,9 @@ export const drawFightHud = (c: Ctx, state: GameState, f: Fight, band: { x1: num
     if (f.deathSaid < 4 && d.t > 30 && d.skipT > SKIP_AFTER) drawSkipPrompt(c, CANVAS_WIDTH);
     return;
   }
+  drawFightWords(c, state, f);
   if (state.player.inCutscene) return;
+  drawCooldown(c, state, f);
   const w = band.x2 - band.x1, k = Math.max(0, f.hp / HP);
   box(c, band.x1, 22, w, 14, '#18181B'); box(c, band.x1 + 2, 24, (w - 4) * k, 10, f.iframes > 0 && Math.floor(f.iframes / 4) % 2 ? '#FEF08A' : '#FACC15');
   label(c, 'STUPID DAD', band.mid, 50, '#FDE047', 7);

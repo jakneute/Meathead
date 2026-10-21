@@ -209,7 +209,7 @@ export const drawRim = (c: Ctx, state: GameState, E: { x: number; y: number }) =
   for (let i = -2; i < 12; i++) {
     const wx = X(i * CHUNK);
     const sa = vis(wx - 120), sb = vis(wx + CHUNK + 120);
-    if (sb < state.camera.x - 40 || sa > state.camera.x + CANVAS_WIDTH + 40) continue;
+    if (sb < (state.view?.x ?? state.camera.x) - 40 || sa > (state.view ? state.view.x + state.view.w : state.camera.x + CANVAS_WIDTH) + 40) continue;
     c.save(); c.translate(E.x, E.y); c.scale(D_RIM, D_RIM); c.translate(-E.x, -E.y);
     c.translate(wx, BANK_Y);
     stamp(c, `ct-am-rim-${i}-${tod}-${f}`, -60, -TALL, CHUNK + 120, TALL + 6, g => paintChunk(g, i));

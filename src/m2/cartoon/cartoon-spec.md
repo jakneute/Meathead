@@ -627,7 +627,64 @@ As built (numbers up top in fight.ts):
   bottles inside clinking (DAD_WOBBLE: UH OH), he throws his arms up, and it tips over on him about its near foot: CRUSH,
   flat under it on his back, his head and his hands out the end, twitching; cans burst out across the deck; the laugh
   track; blood out from under it, and he shits himself (the fart, the seep, DAD_CRUSHED); one can rolls out across the
-  deck to Meathead's feet and cracks open on its own; MH_WON.
+  deck to Meathead's feet and cracks open on its own; MH_WON. (The user's, 2026-10-21: "move all props so they aren't in the way and make sure
+  the fridge is shut. it opens and spills tons of beer bottles when it topples on top of him": as it starts the family
+  left standing backs off to the far left of the set, the wrecks and the dead ones slide clear of his walk and the
+  fall, the puddles go; the fridge is shut (bulging) all through the yank and the wobble, and as it lands the door bursts
+  open and 70 bottles and cans pour out both ways (mostly away from his head), bouncing, clinking, foaming, none coming
+  to rest over his head.)
+- **Not sedentary (the user's, 2026-10-21, verbatim):** "the stupid dad fight feels a bit too sedentary. make it so you
+  cannot just stand there and shoot him. the various animatronics (the ones that are alive anyways, the stunt car will
+  elimate them) will move on a set track and attempt to slap you. the beer phases should happen much more often. i'd say
+  at least 5-6 times on a non weakness fight. one random family member is chosen to get the beer and they will move very
+  quickly to the fridge and throw it then back to their 'default' track. zoom out so the whole set is always visible";
+  "you gotta have clearance for stupid dad, if an animatronic is in the way, it will eat the shot. they can only be
+  destroyed with the stunt car. meathead will say 'what kind of bullshit titanium are these robots built with'"; "slightly
+  reduce the smacking range of the mallet when close"; the clapperboard on cooldown: "give a reason why it's taking a
+  while and show a little cooldown above his head when equipped. like 'the new drivers are slow as shit'". As built
+  (fight.ts TRACKS etc.):
+  - THE FAMILY ON TRACKS: each living one patrols its stretch of the very front of the set (drawn in front of everything
+    on it): MOM the left end to 3210, SIS 3110-3500 (across the couch), THE BOY 3420-3760, GRAMPS 3660 to the right
+    wall: overlapping, so nowhere's safe for long; 10 px a jerk every 6 frames. In reach (54 px, his feet within reach of
+    its shoulder): THE SLAP: a bolted-on steel slap arm with a pink rubber hand (fightArt drawSlapArm) cocks back over its
+    shoulder with a servo whine and sparks at the hinge (22 frames: the tell), swings (5 frames live, 6 hurt,
+    m2:ct_family_slap, clean / shitty / naked lines), rests 26, waits 70 before another; now and then its tape snipes
+    and the laugh track. The old rule that the family can't hurt him is gone.
+  - CLEARANCE: the living ones (not the one off on the beer run) eat his shots (every player projectile that touches one)
+    and his moves into Dad when one's between them: a clang, sparks, nothing to it or to Dad; after every 3 eaten (7 s
+    apart at least) his gripe, MH_BLOCKED ("WHAT KIND OF BULLSHIT TITANIUM ARE THESE ROBOTS BUILT WITH?", the user's,
+    first in each pool, and similar). Their patrols open and shut the windows; Sis sits low (shots over her).
+  - THE BEER RUN, MORE: he calls for one every 300-420 frames he's sat there (the couch within 40 px of its spot): ONE AT
+    RANDOM of the living rushes to the fridge (9 px a frame, sparks off its wheels), throws 1-2 armfuls (one at Dad, 3
+    more anywhere, 4 once two are gone), rushes back to the nearest spot on its own track: about every 13-15 s of a
+    fight, 5-8 over a non-weakness one. None once they're all gone.
+  - THE CAMERA: zoomed out to 0.66 on the middle of the set through the whole fight (and the standard death), wall to
+    wall, his feet low on the screen; the whole view's the screen for the rules (viewIsScreen); the art culls to the view
+    (state.view). The words over everybody and the walkie's are drawn on the HUD at full size. The weakness kill cam
+    zooms in as before; after it's all over the zoom eases back in.
+  - THE SWAT, SHORTER: the mallet's arc pulled in (radius 40 to 34 by the end of the swing) and the head driven down into
+    the deck (the wrist snap 0.25 to 0.55 rad): about 15% less reach out in front, still exactly where it's drawn; the
+    trigger pad round its swing 24 to 16 px.
+  - SOLID, NO CONTACT HURT (the user's: "the robots cannot be pushed either. they won't do contact damage. only when
+    they try slapping you when idle"): they're not the engine's enemies at all (nothing pushes, grabs, flings or blows
+    them about); a charge, slide or dive kick into one stops dead and bounces him off it (a clang, the gripe count).
+    Touching one never hurts. They stop on their tracks now and then (40-80 frames at each end, a few at random on the
+    way: IDLE) and only stopped do they slap.
+  - THE BEER RUNNER RAMS (the user's: "if you are in the way, you will get hurt. both on its way to the fridge and back to
+    its normal path"): the tell first, 34 frames (a klaxon, it leans the way it's going and revs, sparks at its wheels),
+    then it bolts; rushing either way it rams him once a leg (10, flung the way it's going, m2:ct_family_ram, clean /
+    shitty / naked lines). Standing, patrolling, slapping: no contact hurt.
+  - THE HAMMER, TIGHT (the user's: "the 'donkey kong' attack seems to hit you when you're near him but not touching him.
+    the hurt box seems oversized"): the head's hurt is the drawn barrel exactly, turned with the mallet (a separating-
+    axes test against his body box: no padding, no box round a tilted head), checked at this frame's swing and, only
+    while it's moving, the in-betweens since the last (held up over him or held down on the deck it's only where it
+    is); his body 34 px wide, shoulders to feet (was 48 wide, his whole height); the enemy box he's touched by 44 x 92
+    (was 56 x 96). The swat uses the same exact head.
+  - THE CLAPPERBOARD'S RESET: snapped before it's ready (a dud, no ammo used): the stunt coordinator on the walkie
+    (m2.hollywood.stuntco, off-stage; WALKIE: under the boss bar) with an excuse (CREW_EXCUSE: "THE NEW DRIVERS ARE SLOW
+    AS SHIT." word for word, the union break, a car that still runs, the driver who quit, insurance, the stuntman
+    throwing up...), at most one every 4 s however it's mashed. With it in his hand, a little clapperboard by his head
+    (to the side, clear of his speech) in a ring filling as the scene resets; READY! and a clap when it's done.
 - **His hurt lines** (lines.ts HURT_BY): every source names what it was (the drunk's swat, Donkey Dad's hammer, the
   puke, the couch, the family's beer bottles), each in clean / shitty / naked pools, hurt callouts and death screens
   (fight.ts hurtSrc sends `<source>.<state>`). (The user heard "bonked by a mouse" off his swat: the old pool's lines
