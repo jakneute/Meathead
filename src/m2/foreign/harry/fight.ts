@@ -35,6 +35,7 @@
 //   smash, no suicide after; Harry enraged (faster, the walls more often); the crossbow's sickness is grief and
 //   airsickness, doubled over puking on the floor, wide open; and his third death: BARFED TO DEATH.
 
+import { drawHarryGross, drawHarryGrossBack } from './harryGross';
 import type { GameState } from '../../../m1/game/core/state';
 import type { FrameContext } from '../../../m1/game/core/context';
 import type { Controls } from '../../../m1/game/platform/input';
@@ -119,7 +120,7 @@ type Act =
 type Move = 'walk' | 'crown' | 'cling' | 'stuckWalk';
 type ArmSt = 'hidden' | 'rise' | 'up' | 'wind' | 'feint' | 'drop' | 'stuck' | 'yank' | 'snap';
 type Fake = 'reaim' | 'feint' | 'double';
-type Intro = 'land' | 'queasy' | 'rip' | 'flex' | 'impressed' | 'rant' | 'aback' | 'summon' | 'rise' | 'monument';
+type Intro = 'land' | 'queasy' | 'rip' | 'flex' | 'gross' | 'impressed' | 'rant' | 'aback' | 'summon' | 'rise' | 'monument';
 
 interface Leap { x0: number; y0: number; x1: number; y1: number; t: number; T: number; h: number; then: Act; s0: number; s1: number }
 interface Round { x: number; y: number; vx: number; vy: number; src: string; dmg: number; life: number; harmless?: boolean }
@@ -186,6 +187,8 @@ let live: Fight | null = null;
 let game: GameState | null = null;
 const pants = (): 'clean' | 'shitty' | 'nude' => (!game ? 'clean' : isNude(game) ? 'nude' : isShat(game) ? 'shitty' : 'clean');
 export const resetFight = () => { live = null; };
+/** His gross-up's length in the intro (frames): the first go only (a retry has no intro). */
+const GROSS_T = 105;
 /** Seen the intro this visit (a retry from the checkpoint skips it); said once a visit. */
 let introVisit = -1, stuckSaidVisit = -1, concreteSaidVisit = -1, griefSaidVisit = -1;
 export const introSeen = () => introVisit === landVisit();
@@ -337,7 +340,12 @@ const intro = (ctx: FrameContext, f: Fight): Controls => {
       break;
     case 'flex':
       if (t % 20 === 1) playSound('stomp', 0.3, 8);
-      if (t >= 70) { next('impressed'); meatheadSays(state, pick(L.MH_IMPRESSED), true, tokened(() => next('rant'))); }
+      if (t >= 70) { next('gross'); playSound('ding', 0.5, -6); }
+      break;
+    case 'gross':
+      // (the real Harry, close up and gross, a beat; then Meathead's say)
+      if (t % 20 === 1) playSound('stomp', 0.3, 8);
+      if (t >= GROSS_T) { next('impressed'); meatheadSays(state, pick(L.MH_IMPRESSED), true, tokened(() => next('rant'))); }
       break;
     case 'impressed': break;
     case 'rant':
@@ -1502,7 +1510,7 @@ const drawHim = (c: Ctx, f: Fight, fr: number) => {
     drawHarry(c, f.hx, f.hy, { pose: f.jet ? 'jet' : 'stand', f: fr, facing: f.facing, mad: true, jetpack: f.jet, talking: !!f.said, scale: 1.15, green: f.green, steam: false });
   } else {
     const P = harryPose(f);
-    const pose: RamboPose = f.mode === 'intro' ? (f.intro === 'flex' || f.intro === 'impressed' ? 'flex' : f.intro === 'summon' || f.intro === 'rise' || f.intro === 'monument' ? 'command' : 'rant') : P.pose;
+    const pose: RamboPose = f.mode === 'intro' ? (f.intro === 'flex' || f.intro === 'gross' || f.intro === 'impressed' ? 'flex' : f.intro === 'summon' || f.intro === 'rise' || f.intro === 'monument' ? 'command' : 'rant') : P.pose;
     drawRambo(c, f.hx, f.hy, { pose, f: fr, facing: f.facing, aim: f.aim, flash: f.firing && fr % 4 < 2, talking: !!f.said, green: f.green, concrete: f.concrete, lean: P.lean, rot: P.rot, scale: f.scale });
   }
   c.globalAlpha = 1;
@@ -1875,6 +1883,7 @@ export const drawFightFront = (c: Ctx, state: GameState, f: Fight) => {
 /** Screen space: his bar in the top band clear of the HUD; the cutscenes' bars and SKIP. */
 export const drawFightHud = (c: Ctx, f: Fight, band: { x1: number; x2: number; mid: number }, inCutscene: boolean) => {
   if (f.mode === 'intro') {
+    if (f.intro === 'gross') { drawHarryGrossBack(c, CANVAS_WIDTH, CANVAS_HEIGHT); drawHarryGross(c, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 4, 0.9 + 0.1 * Math.min(1, f.introT / 10), game?.frame ?? f.total, f.introT < 14 ? 2 : 0); }
     const k = Math.min(1, f.skipT / 20), bar = Math.round(k * 44);
     c.fillStyle = '#000'; c.fillRect(0, 0, CANVAS_WIDTH, bar); c.fillRect(0, CANVAS_HEIGHT - bar, CANVAS_WIDTH, bar);
     if (f.skipT > SKIP_AFTER) drawSkipPrompt(c, CANVAS_WIDTH);
