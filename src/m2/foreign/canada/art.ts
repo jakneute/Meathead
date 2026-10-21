@@ -14,7 +14,7 @@
 import { GY } from '../geometry';
 import {
   type Ctx, type View, INK, box, mix, poly, checker, hash, at, atDepth, ramp6, dimmed, hour, slab, post, ball, timeOfDay, steppedGlow, pixelBlob,
-  stoneBlocks, planks, facade, still, words, plain, onScreen, lip, topBack, box3Back, ledge3, glassOf, flagPole, signText, postBoard, LOOKS,
+  stoneBlocks, planks, facade, still, words, plain, onScreen, lip, topBack, box3Back, ledge3, glassOf, flagPole, signText, postBoard, LOOKS, rockSlab,
 } from '../kit';
 
 const lampsOn = () => timeOfDay().lamps > 0.3;
@@ -288,22 +288,25 @@ const paintRockFace = (g: Ctx, w: number, h: number, fx0: number, fx1: number) =
 /** Rock in strata (local box x, y, w, h; the strata and the lumps by world place wx, wy so tiles meet seamlessly):
  *  each stratum's top shaded and dithered, the lumps along it lit on their tops, cracks down them, lichen. */
 export const worldRock = (g: Ctx, x: number, y: number, w: number, h: number, R: string[], wx: number, wy: number, seed: number) => {
-  box(g, x, y, w, h, R[2]);
-  const SH = 22, n0 = Math.floor(wy / SH) - 1, n1 = Math.ceil((wy + h) / SH) + 1;
-  const top = (n: number) => n * SH + Math.round(hash(seed + n * 1.37) * 8);
+  // (slabs and boulders in loose courses on a world grid (each course's height and each slab's ends seeded by where
+  // they are), so tiles meet seamlessly: the streets' rock (kit rockSlab), lichen on the odd one)
+  box(g, x, y, w, h, R[1]);
+  g.save(); g.beginPath(); g.rect(x, y, w, h); g.clip();
+  const SH = 34, CW = 54, n0 = Math.floor(wy / SH) - 1, n1 = Math.ceil((wy + h) / SH) + 1;
+  const top = (n: number) => n * SH + Math.round(hash(seed + n * 1.37) * 10);
+  const end = (n: number, i: number) => i * CW + (n % 2) * 27 + Math.round(hash(seed + n * 3.1 + i * 1.7) * 24);
+  const Li = ramp6(mix(R[3], '#7A8A5A', 0.5));
   for (let n = n0; n < n1; n++) {
     const sy = top(n) - wy + y, ey = top(n + 1) - wy + y;
     if (ey < y || sy > y + h) continue;
-    box(g, x, sy, w, 2, R[1]); checker(g, x, sy + 2, w, 2, R[1], 0, 1);
-    for (let gx = Math.floor((wx) / 16) * 16 - 16; gx < wx + w + 16; gx += 16) {
-      const t = hash(seed + n * 7.1 + gx * 0.13); if (t < 0.25) continue;
-      const lx = gx - wx + x + Math.round(hash(seed + gx + n) * 8), lw = 10 + Math.round(t * 18), lh = Math.min(ey - sy - 4, 4 + Math.round(hash(seed + n + gx * 0.7) * 9));
-      if (lh < 2) continue;
-      box(g, lx, sy + 3, lw, lh, R[3]); box(g, lx, sy + 3, lw, 1, R[4]); box(g, lx, sy + 3, Math.min(3, lw), lh, R[4]); box(g, lx, sy + 3 + lh, lw, 1, R[1]);
-      if (t > 0.9) box(g, lx + 2, sy + 2, 3, 2, ramp6(mix(R[3], '#7A8A5A', 0.5))[3]);
+    for (let i = Math.floor((wx - 60) / CW); end(n, i) < wx + w + 4; i++) {
+      const a = end(n, i) - wx + x + 1, b = end(n, i + 1) - wx + x - 1, t = hash(seed + n * 7.1 + i * 0.13);
+      rockSlab(g, a, b, sy + 1, ey - 1, R, t, seed + n * 31 + i);
+      if (t > 0.85 && t < 0.93) { box(g, a + 8, sy + 3, 6, 2, Li[3]); box(g, a + 10, sy + 5, 3, 1, Li[2]); }
+      for (let k = 0; k < 3; k++) box(g, a + hash(seed + i * 5 + n + k) * (b - a), sy + 4 + hash(seed + n * 2 + i + k) * (ey - sy - 8), 1, 1, k ? R[0] : R[4]);
     }
-    for (let gx = Math.floor(wx / 40) * 40; gx < wx + w + 40; gx += 40) if (hash(seed + gx * 0.37 + n * 2.9) > 0.78) { const cx = gx - wx + x + Math.round(hash(gx + n) * 30); for (let yy = sy + 3; yy < ey; yy += 3) box(g, cx + ((yy >> 2) % 2), yy, 1, 3, R[0]); }
   }
+  g.restore();
 };
 /** The rock face behind the climb (set back at 0.94). */
 export const drawRockFace = (c: Ctx, v: View, x: number, w: number, h: number, fx0: number, fx1: number) => facade(c, v, `ca-rockface-${w}x${h}`, x, w, h, g => paintRockFace(g, w, h, fx0, fx1), 0.94, 0, 0, false);

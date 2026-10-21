@@ -65,26 +65,48 @@ export const stoneBlocks = (g: Ctx, x: number, y: number, w: number, h: number, 
     }
   }
 };
-/** Rock: strata banded across (lit lumps over each, shaded under), cracks down, a lichen fleck or two. */
+/** Rock: irregular slabs and boulders in loose courses (never brick rows): each its own chamfered shape, lit along its
+ *  top and left, shaded under and down its right, a dark crevice round it; some cracked; flecks over it, a long fissure
+ *  or two down through the courses, a tuft in a crevice now and then. Small ones (a ledge's edge) in smaller pieces. */
 export const rockFace = (g: Ctx, x: number, y: number, w: number, h: number, R: string[], seed = 0) => {
-  box(g, x, y, w, h, R[2]);
-  for (let yy = y + 4, k = 0; yy < y + h; k++) {
-    const sh = 10 + Math.floor(hash(seed + k * 2.3) * 16);
-    box(g, x, yy, w, 2, R[1]); checker(g, x, yy + 2, w, 2, R[1], 0, 1);
-    // (the lumps along the stratum: lit tops, shaded bottoms)
-    for (let xx = x + hash(seed + k) * 30 - 20; xx < x + w; xx += 18 + hash(seed + k * 7 + xx) * 26) {
-      const lw = 10 + hash(seed + xx * 0.1 + k) * 24, lh = Math.min(sh - 3, 4 + hash(seed + xx + k * 3) * 8);
-      const a = Math.max(x, xx), b = Math.min(x + w, xx + lw);
-      if (b - a < 3) continue;
-      box(g, a, yy + 3, b - a, lh, R[3]); box(g, a, yy + 3, b - a, 1, R[4]); box(g, a, yy + 3, Math.min(3, b - a), lh, R[4]);
-      box(g, a, yy + 3 + lh, b - a, 1, R[1]);
+  box(g, x, y, w, h, R[1]);
+  g.save(); g.beginPath(); g.rect(x, y, w, h); g.clip();
+  const small = h < 40;
+  for (let yy = y - 6, row = 0; yy < y + h; row++) {
+    const rh = small ? 7 + Math.floor(hash(seed + row * 1.7) * 6) : 24 + Math.floor(hash(seed + row * 1.7) * 30);
+    for (let xx = x - hash(seed + row * 0.9) * 50, k = 0; xx < x + w; k++) {
+      const sw = small ? 14 + hash(seed + row * 5 + k * 1.3) * 22 : 28 + hash(seed + row * 5 + k * 1.3) * 64;
+      const t = hash(seed + row * 2.3 + k * 0.71), j = Math.round((hash(seed + row + k * 3.1) - 0.5) * (small ? 2 : 8));
+      rockSlab(g, Math.round(xx) + 1, Math.round(xx + sw) - 1, yy + 1 + j, yy + rh - 1, R, t, seed + row * 13 + k, small);
+      xx += sw;
     }
-    yy += sh;
+    yy += rh;
   }
-  // (cracks running down)
-  for (let k = 0; k < w / 40; k++) {
-    let cx = x + hash(seed + k * 4.4) * w, cy = y + hash(seed + k * 1.7) * h * 0.6;
-    for (let s = 0; s < 6; s++) { const nx = cx + (hash(seed + k * 9 + s) - 0.5) * 8; box(g, Math.min(cx, nx), cy, Math.abs(nx - cx) + 1, 6, R[0]); cx = nx; cy += 6; if (cy > y + h) break; }
+  rockGrit(g, x, y, w, h, R, seed, small);
+  g.restore();
+};
+/** One slab of rock (a..b across, top..bot down; `t` its seeded look): its own chamfered shape, lit along its top and
+ *  left, shaded under and down its right (dithered up into it), the crevice round it; the odd one cracked, a tuft of
+ *  scrub out of the odd crevice. */
+export const rockSlab = (g: Ctx, a: number, b: number, top: number, bot: number, R: string[], t: number, seed: number, small = false) => {
+  const c = small ? 2 : 6, R0 = R[0], R5 = R[Math.min(5, R.length - 1)];
+  if (b - a < c * 2 + 2 || bot - top < c * 2) { box(g, a, top, Math.max(1, b - a), Math.max(1, bot - top), R[2]); return; }
+  poly(g, [[a + c, top], [b - c, top + 1], [b, top + c + 1], [b - 1, bot - c], [b - c - 1, bot], [a + c - 2, bot], [a, bot - c], [a, top + c]], R[t > 0.78 ? 3 : t > 0.2 ? 2 : 1]);
+  poly(g, [[a + c, top], [b - c, top + 1], [b - c - 2, top + (small ? 2 : 4)], [a + c, top + (small ? 2 : 4)], [a + 1, top + c + 1]], R[t > 0.78 ? 4 : 3]);
+  if (!small) box(g, a + 1, top + c, 2, bot - top - c * 2, R[3]);
+  if (t > 0.78) box(g, a + c, top, Math.max(2, (b - a) * 0.4), 1, R5);
+  poly(g, [[b, top + c + 1], [b - 1, bot - c], [b - c - 1, bot], [a + c - 2, bot], [a + c, bot - (small ? 2 : 4)], [b - c - 2, bot - (small ? 2 : 5)], [b - (small ? 2 : 4), top + c + 2]], R[1]);
+  if (!small) checker(g, a + c, bot - 8, b - a - c * 2, 2, R[1], seed % 2);
+  box(g, a - 1, top, 1, bot - top, R0); box(g, a + c - 2, bot, b - a - c, 1, R0);
+  if (!small && t < 0.16 && b - a > 30) { let cx = a + (b - a) * 0.4, cy = top + 4; for (let s = 0; s < 5 && cy < bot - 3; s++) { const nx = cx + (hash(seed + s * 2.7) - 0.4) * 8; box(g, Math.min(cx, nx), cy, Math.abs(nx - cx) + 1, 4, R0); cx = nx; cy += 4; } }
+  if (!small && t > 0.93) for (let s = -2; s <= 2; s++) box(g, b - 2 + s * 2, bot - 3 - (2 - Math.abs(s)) * 2, 1, 3 + (2 - Math.abs(s)) * 2, mix(R[2], '#4E7A3A', 0.6));
+};
+/** Grit over rock: flecks lit and dark, and a long fissure or two down through the courses (a lit edge on it). */
+export const rockGrit = (g: Ctx, x: number, y: number, w: number, h: number, R: string[], seed: number, small = false) => {
+  for (let i = 0; i < (w * h) / 160; i++) box(g, x + hash(seed + i * 1.3) * w, y + hash(seed + i * 2.9) * h, 1, 1, i % 3 ? R[0] : R[4]);
+  if (!small) for (let k = 0; k < w / 120; k++) {
+    let cx = x + 20 + hash(seed + k * 4.4) * (w - 40), cy = y + hash(seed + k * 1.7) * h * 0.4;
+    for (let s = 0; s < 18 && cy < y + h; s++) { const nx = cx + (hash(seed + k * 9 + s) - 0.5) * 6; box(g, Math.min(cx, nx), cy, Math.abs(nx - cx) + 1, 6, R[0]); box(g, Math.max(cx, nx) + 1, cy, 1, 6, R[3]); cx = nx; cy += 6; }
   }
 };
 /** Boards (planks: across, or up and down), each a step, their grain, a nail at each end. */
