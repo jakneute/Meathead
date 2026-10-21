@@ -75,19 +75,84 @@ const saguaro = (g: Ctx, x: number, foot: number, h: number, R: string[], seed: 
   if (hash(seed) > 0.2) arm(x - 6, foot - h * 0.55, -1, h * 0.25);
   if (hash(seed + 1) > 0.35) arm(x + 6, foot - h * 0.42, 1, h * 0.22);
 };
+/** A range's flanks faceted (the SNES way, the wilds' Rockies the bar): each peak's right face in shade all the way to
+ *  the foot (its ridge slanting down, a lit rim on it and a dithered seam), its left face lit under the crest and
+ *  stepping down into the body in dithered bands; spurs down both faces (each with a lit edge), rock flecks, broken
+ *  strata, and the shade deepening toward the foot. Clipped under the crest. `strata`: the ledges' spacing. */
+const facets = (g: Ctx, crest: (x: number) => number, xa: number, xb: number, foot: number, R: string[], seed: number, strata = 28) => {
+  // (the peaks and the valleys along the crest)
+  const ext: { x: number; y: number; peak: boolean }[] = [];
+  let prev = crest(xa), dir = 0;
+  for (let x = xa + 4; x <= xb; x += 4) { const y = crest(x), d = Math.sign(y - prev); if (d && dir && d !== dir) ext.push({ x: x - 4, y: prev, peak: dir < 0 }); if (d) dir = d; prev = y; }
+  g.save(); g.beginPath(); g.moveTo(xa, foot); for (let x = xa; x <= xb; x += 2) g.lineTo(x, crest(x)); g.lineTo(xb, foot); g.closePath(); g.clip();
+  const ht = (y: number) => foot - y;
+  const line = (x0: number, y0: number, x1: number, y1: number, w: number, col: string, rim?: string) => {
+    const n = Math.max(1, Math.round(Math.abs(y1 - y0) / 2));
+    for (let i = 0; i <= n; i++) { const t = i / n, x = Math.round(x0 + (x1 - x0) * t), y = Math.round(y0 + (y1 - y0) * t); box(g, x, y, w, 2, col); if (rim) box(g, x - 1, y, 1, 2, rim); }
+  };
+  ext.forEach((p, i) => {
+    if (!p.peak) return;
+    let vL = { x: xa, y: crest(xa) }, vR = { x: xb, y: crest(xb) };
+    for (let j = i - 1; j >= 0; j--) if (!ext[j].peak) { vL = ext[j]; break; }
+    for (let j = i + 1; j < ext.length; j++) if (!ext[j].peak) { vR = ext[j]; break; }
+    const s = 0.1 + hash(seed + p.x * 0.13) * 0.2, rx = p.x + ht(p.y) * s;
+    // (the shade face, down to the foot; deeper in its lee under the ridge)
+    poly(g, [[p.x, p.y], [vR.x, vR.y], [vR.x + ht(vR.y) * 0.1, foot], [rx, foot]], R[1]);
+    for (let y = Math.round(p.y); y < foot; y += 2) { const x = Math.round(p.x + (y - p.y) * s); box(g, x + 2, y, 3, 2, R[0]); if ((y >> 1) % 2) box(g, x + 5, y, 2, 2, R[0]); box(g, x - 4 + ((y >> 1) % 2) * 2, y, 2, 2, R[1]); }
+    // (the lit face: a band under the crest from the valley up to the peak, stepping down into the body)
+    const dep = ht(p.y) * 0.4;
+    poly(g, [[vL.x, vL.y], [p.x, p.y], [p.x + dep * s, p.y + dep], [vL.x, vL.y + dep * 0.45]], R[3]);
+    for (let x = Math.round(vL.x); x < p.x + dep * s; x += 2) {
+      const u = (x - vL.x) / (p.x + dep * s - vL.x || 1), yb = Math.round(vL.y + dep * 0.45 + (p.y + dep - vL.y - dep * 0.45) * u);
+      if ((x >> 1) % 2) box(g, x, yb, 2, 2, R[3]); else box(g, x, yb + 2, 2, 2, R[3]);
+    }
+    // (the ridge's lit rim from the peak down)
+    for (let y = Math.round(p.y); y < p.y + ht(p.y) * 0.7; y += 2) box(g, Math.round(p.x + (y - p.y) * s) - 1, y, 1, 2, R[4]);
+    // (spurs down each face: a dark crease with a lit edge on the sunny side)
+    for (let k = 0; k < 2; k++) {
+      const ux = vL.x + (p.x - vL.x) * (0.35 + k * 0.3), uy = crest(ux), len = ht(uy) * (0.35 + hash(seed + ux) * 0.35);
+      line(ux, uy + 2, ux + len * s * 1.4, uy + len, 1, R[2], R[4]);
+      const sx = p.x + (vR.x - p.x) * (0.3 + k * 0.35), sy = crest(sx), sl = ht(sy) * (0.35 + hash(seed + sx) * 0.4);
+      line(sx, sy + 2, sx + sl * 0.18, sy + sl, 2, R[0], R[2]);
+    }
+  });
+  // (rock flecks, lit and shaded, over the faces)
+  const n = Math.round((xb - xa) * 0.9);
+  for (let i = 0; i < n; i++) { const x = xa + hash(seed + i * 1.31) * (xb - xa), y = crest(x) + 6 + hash(seed + i * 2.17) * ht(crest(x)); box(g, x, y, 2, 1, i % 3 ? R[0] : R[4]); }
+  // (broken strata across: a dark line, a lit lip over it)
+  for (let y = foot - 20, k = 0; y > 0; y -= strata + hash(seed + k) * 10, k++) {
+    for (let x = xa; x < xb; x += 18) if (crest(x) < y - 8 && hash(seed + k * 5 + Math.floor(x / 18)) > 0.5) { const lw = 8 + hash(seed + x * 0.3 + k) * 20; box(g, x, y, lw, 1, R[0]); box(g, x + 1, y - 1, lw - 2, 1, R[3]); }
+  }
+  // (the shade deepening toward the foot: two dithered bands)
+  checker(g, xa, foot - 40, xb - xa, 20, R[1], 0); box(g, xa, foot - 20, xb - xa, 20, R[1]); checker(g, xa, foot - 10, xb - xa, 10, R[0], 1);
+  g.restore();
+};
 /** A sheer fjord wall: rising in steps to its crest, vertical striations down its face (lit edges), snow along the top
  *  and in its gullies, a forest of firs along its foot. `dir`: which way it faces the water (1 right). */
 const fjordWall = (g: Ctx, pts: [number, number][], foot: number, dir: number, R: string[], snow: string[], fir: string[], seed: number) => {
   const xs = pts.map(p => p[0]), xa = Math.min(...xs), xb = Math.max(...xs);
   const shape: [number, number][] = [[xa, foot], ...pts, [xb, foot]];
   poly(g, shape, R[2]);
+  // (its buttresses faceted the SNES way: lit faces and shaded ones, ridges, spurs, flecks, broken strata)
+  facets(g, crestOf(pts), xa, xb, foot, R, seed, 34);
   g.save(); g.beginPath(); shape.forEach(([x, y], i) => (i ? g.lineTo(x, y) : g.moveTo(x, y))); g.closePath(); g.clip();
-  // (the face toward the water lit or shaded by which way it looks; striations down it)
-  for (let x = xa; x < xb; x += 4) { const t = hash(seed + x * 0.21); if (t > 0.55) box(g, x, 0, 2, foot, t > 0.85 ? R[3] : R[1]); }
+  // (the face toward the water lit or shaded by which way it looks; a few striations down it)
+  for (let x = xa; x < xb; x += 6) { const t = hash(seed + x * 0.21); if (t > 0.8) box(g, x, crestOf(pts)(x) + 30, 1, foot, t > 0.93 ? R[3] : R[1]); }
   const edge = dir > 0 ? xb - 40 : xa;
   box(g, edge, 0, 40, foot, dir > 0 ? R[1] : R[3]); checker(g, dir > 0 ? edge - 4 : edge + 40, 0, 4, foot, dir > 0 ? R[1] : R[3], 0);
-  // (ledges across in steps, a lit top on each)
-  for (let k = 0; k < 6; k++) { const y = 40 + k * 34 + hash(seed + k) * 18; box(g, xa, y, xb - xa, 2, R[0]); box(g, xa, y - 1, xb - xa, 1, R[3]); }
+  checker(g, dir > 0 ? edge - 10 : edge + 46, 0, 2, foot, dir > 0 ? R[1] : R[3], 1);
+  // (ledges across in steps, broken, a lit top on each, a dark shadow line under)
+  for (let k = 0; k < 6; k++) {
+    const y = 40 + k * 34 + hash(seed + k) * 18;
+    for (let x = xa; x < xb; x += 24) if (hash(seed + k * 7 + x * 0.05) > 0.3) { const lw = 10 + hash(seed + x + k) * 22; box(g, x, y, lw, 2, R[0]); box(g, x, y - 1, lw, 1, R[3]); checker(g, x, y + 2, lw, 2, R[1], k % 2); }
+  }
+  // (the forest climbing the lower slope: a dark belt, dithered up into the rock, stepped firs along its top)
+  const belt = foot - 46;
+  box(g, xa, belt, xb - xa, foot - belt, fir[0]); checker(g, xa, belt - 2, xb - xa, 2, fir[0], 0); checker(g, xa, belt - 6, xb - xa, 2, fir[0], 1);
+  for (let i = 0; i < (xb - xa) / 6; i++) {
+    const fx = xa + i * 6 + hash(seed + i * 3.3) * 4, fy = belt + 4 + hash(seed + i * 1.1) * 30, fh = 9 + hash(seed + i * 2.1) * 9;
+    poly(g, [[fx - fh * 0.34, fy], [fx, fy - fh], [fx + fh * 0.34, fy]], fir[1]); poly(g, [[fx - fh * 0.34, fy], [fx, fy - fh], [fx, fy]], fir[2]); box(g, fx - 1, fy - fh, 1, 1, fir[3]);
+  }
   // (snow in the gullies off the crest)
   for (let i = 0; i < (xb - xa) / 18; i++) { const sx = xa + hash(seed + i * 2.7) * (xb - xa); for (let y = 0; y < 60 + hash(seed + i) * 50; y += 2) box(g, sx + Math.round(Math.sin(y * 0.2 + i) * 2), y, 2, 2, snow[1]); }
   g.restore();
@@ -115,9 +180,10 @@ const crestOf = (pts: [number, number][]) => (x: number) => {
  *  lit with a rim, the others in shade, dithered into the body; gullies streaked down; ledges across. `snow`: white
  *  down from the crest where it's over `line`. */
 const rangeCols = (g: Ctx, crest: (x: number) => number, xa: number, xb: number, foot: number, R: string[], seed: number, snow?: { S: string[]; line: number }) => {
+  for (let x = xa; x < xb; x += 2) { const y = Math.round(crest(x)); box(g, x, y, 2, foot - y, R[2]); }
+  facets(g, crest, xa, xb, foot, R, seed);
   for (let x = xa; x < xb; x += 2) {
     const y = Math.round(crest(x)), sl = crest(x + 4) - crest(x - 4), lit = sl < -1.2, shade = sl > 1.2;
-    box(g, x, y, 2, foot - y, R[2]);
     const band = 18 + Math.round(hash(seed + x * 0.11) * 14);
     if (lit) { box(g, x, y, 2, band, R[3]); box(g, x, y, 2, 2, R[4]); if ((x >> 1) % 2) box(g, x, y + band, 2, 2, R[3]); }
     else if (shade) { box(g, x, y, 2, band + 8, R[1]); if ((x >> 1) % 2) box(g, x, y + band + 8, 2, 2, R[1]); }
@@ -173,9 +239,11 @@ const STILLS: Partial<Record<ForeignId, Far>> = {
       wallAlong(g, far, 0, w, rampT(T, '#C8C0B0'), 0.45, [90, 270, 450, 650, 850]);
       mist(g, w, 70, foot - 70, skyAt(0.9, tod), 0.05, 0.55, 6);
       const near = crestOf([[0, 232], [70, 196], [150, 220], [240, 150], [330, 182], [420, 118], [520, 168], [610, 128], [700, 188], [790, 154], [880, 206], [960, 194]]);
-      rangeCols(g, near, 0, w, foot, rampT(T, '#4E6E3A'), 11);
-      firsUnder(g, near, w, foot, rampT(T, '#2E4A2A'), 140, 0);
-      wallAlong(g, near, 0, w, rampT(T, '#D6CDB8'), 0.85, [70, 240, 420, 610, 790]);
+      // (the near ridge less far into the haze than the far range: it reads nearer, its facets crisper)
+      const Tn = farCol(tod, 0.16);
+      rangeCols(g, near, 0, w, foot, rampT(Tn, '#4E6E3A'), 11);
+      firsUnder(g, near, w, foot, rampT(Tn, '#2E4A2A'), 140, 0);
+      wallAlong(g, near, 0, w, rampT(Tn, '#D6CDB8'), 0.85, [70, 240, 420, 610, 790]);
       mist(g, w, foot - 110, 110, skyAt(0.9, tod), 0, 0.45, 5);
     },
   },
@@ -190,8 +258,9 @@ const STILLS: Partial<Record<ForeignId, Far>> = {
       rangeCols(g, alps, 0, w, foot, rampT(T, '#6A7896'), 7, { S: rampT(T, '#EEF2F8'), line: 160 });
       mist(g, w, 90, foot - 90, skyAt(0.9, tod), 0.05, 0.55, 6);
       const hill = (x: number) => foot - 168 * Math.exp(-(((x - 450) / 230) ** 2)) - 18 * Math.exp(-(((x - 160) / 90) ** 2)) - 14 * Math.exp(-(((x - 760) / 110) ** 2));
-      rangeCols(g, hill, 0, w, foot, rampT(T, '#4E7A3A'), 19);
-      firsUnder(g, hill, w, foot, rampT(T, '#2A4A2A'), 220, 5, (x, y) => Math.abs(x - 450) < 56 && y < hill(450) + 40);
+      const Tn = farCol(tod, 0.18);
+      rangeCols(g, hill, 0, w, foot, rampT(Tn, '#4E7A3A'), 19);
+      firsUnder(g, hill, w, foot, rampT(Tn, '#2A4A2A'), 220, 5, (x, y) => Math.abs(x - 450) < 56 && y < hill(450) + 40);
       // (the road winding up to the crag)
       const road = rampT(T, '#C8B48A');
       for (let k = 0; k < 120; k++) { const t = k / 120, x = 330 + Math.sin(t * 9) * 60 * (1 - t) + t * 110, y = foot - 6 - t * 150; box(g, x, y, 3, 2, road[2]); box(g, x, y, 3, 1, road[3]); }
@@ -633,7 +702,7 @@ const STILLS: Partial<Record<ForeignId, Far>> = {
       const farC = crestOf([[0, 190], [90, 120], [160, 160], [250, 70], [330, 140], [420, 96], [520, 40], [600, 120], [680, 84], [770, 30], [860, 110], [940, 76], [1000, 130]]);
       rangeCols(g, farC, 0, w, foot, [Fb[0], Fb[1], Fb[2], Fb[3], Fb[4]], 7, { S: [Sn[0], Sn[1], Sn[2], Sn[3], Sn[4]], line: 150 });
       mist(g, w, 100, foot - 100, haze, 0.15, 0.5, 6);
-      const R = rampT(T, '#5A6070'), Fr = rampT(T, '#2E4A36');
+      const Tn = farCol(tod, 0.16), R = rampT(Tn, '#5A6070'), Fr = rampT(Tn, '#2E4A36');
       const nearC = crestOf([[0, 230], [70, 170], [140, 200], [220, 110], [300, 180], [380, 140], [450, 196], [520, 150], [560, 170], [640, 170], [690, 120], [760, 190], [840, 130], [920, 210], [1000, 160]]);
       rangeCols(g, nearC, 0, w, foot, R, 19, { S: [Sn[0], Sn[1], Sn[2], Sn[3], Sn[4]], line: 210 });
       // (the cliff the falls come down, its lip, the falls and their pool)
@@ -702,7 +771,7 @@ const STILLS: Partial<Record<ForeignId, Far>> = {
       for (let k = 0; k < 5; k++) { const y = foot - 120 + k * 24, t = (y - (foot - 120)) / 120; box(g, 420 - t * 90, y, 60 + t * 180, 1, WA[3]); }
       box(g, 440, foot - 118, 20, 1, WA[4]);
       // (the walls: the left facing right, the right facing left)
-      const R = rampT(T, '#3E4A52'), F = rampT(T, '#2E4A36');
+      const Tn = farCol(tod, 0.16), R = rampT(Tn, '#4A5660'), F = rampT(Tn, '#2E4A36');
       fjordWall(g, [[0, 70], [60, 46], [130, 58], [200, 30], [260, 64], [330, 96], [420, 260]], foot, 1, R, S, F, 5);
       fjordWall(g, [[470, 250], [560, 90], [640, 40], [700, 60], [780, 26], [860, 50], [900, 70]], foot, -1, R, S, F, 9);
       // (the falls down the right wall, its pool at the foot)
