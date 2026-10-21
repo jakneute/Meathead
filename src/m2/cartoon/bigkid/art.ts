@@ -887,7 +887,9 @@ const halfpipe = (c: Ctx, v: View) => {
   polyF(c, [...pts.map(([x, d]) => at(v.eye, x, GY + d, PIPE_D)), at(v.eye, b, GY, PIPE_D), at(v.eye, a, GY, PIPE_D)], Cc[1]);
   const [wl, wy] = at(v.eye, a + PIPE.ramp, GY + PIPE.depth, PIPE_D), [wr] = at(v.eye, b - PIPE.ramp, GY, PIPE_D), [, wt] = at(v.eye, a, GY, PIPE_D);
   c.save(); c.beginPath(); c.rect(wl, wt, wr - wl, wy - wt); c.clip();
-  for (let k = 0; k < 6; k++) box(c, wl + k * (wr - wl) / 6, wt, 1, wy - wt, Cc[0]);
+  for (let k = 0; k < 6; k++) { const jx = wl + k * (wr - wl) / 6; box(c, jx, wt, 1, wy - wt, Cc[0]); box(c, jx + 1, wt, 1, wy - wt, Cc[3]); for (let y = wt + 4; y < wt + 30 + hash(k) * 40; y += 2) box(c, jx + 6 + hash(k * 3) * 30, y, 2, 2, 'rgba(40,34,50,0.18)'); }
+  for (let k = 0; k < 50; k++) box(c, wl + hash(k * 1.9) * (wr - wl), wt + hash(k * 2.7) * (wy - wt), 1, 1, k % 2 ? Cc[0] : Cc[3]);
+  signText(c, 'SK8', wl + 40, wt + 22, { sx: 1, sy: 1, bold: true, fill: hour('#A3E635'), ink: hour('#1F2937') });
   signText(c, 'RAD', (wl + wr) / 2 - 50, wy - 20, { sx: 2, sy: 2, bold: true, slant: 1, fill: hour('#EC4899'), ink: hour('#1F2937'), drip: { col: '#BE185D', rate: 0.5, len: 6 }, seed: 3 });
   c.strokeStyle = hour('#1F2937'); c.lineWidth = 5; c.lineCap = 'round'; c.beginPath(); c.moveTo((wl + wr) / 2 + 10, wy - 26); c.bezierCurveTo((wl + wr) / 2 + 40, wy - 46, (wl + wr) / 2 + 60, wy - 16, (wl + wr) / 2 + 90, wy - 36); c.stroke();
   c.strokeStyle = hour('#22D3EE'); c.lineWidth = 3; c.stroke();
@@ -897,6 +899,15 @@ const halfpipe = (c: Ctx, v: View) => {
     const s = (d2 - d1) / Math.max(1, q - p), col = s > 0.3 ? Cc[2] : s < -0.3 ? Cc[4] : s > 0.05 ? Cc[3] : s < -0.05 ? Cc[4] : Cc[3];
     polyF(c, [at(v.eye, X(p), GY + d1, 1), at(v.eye, X(q), GY + d2, 1), at(v.eye, X(q), GY + d2, PIPE_D), at(v.eye, X(p), GY + d1, PIPE_D)], col);
   }
+  // (the surface's texture: a joint along each run's edge, worn shiny where the wheels go, scuffs, a crack patched)
+  for (const [p, d1] of PIPE_RUNS) { const [x0, y0] = at(v.eye, X(p), GY + d1, 1), [x1, y1] = at(v.eye, X(p), GY + d1, PIPE_D); c.strokeStyle = 'rgba(40,34,50,0.22)'; c.lineWidth = 1; c.beginPath(); c.moveTo(x0, y0); c.lineTo(x1, y1); c.stroke(); }
+  for (let k = 0; k < 70; k++) {
+    const run = PIPE_RUNS[Math.floor(hash(k * 3.7) * PIPE_RUNS.length)], u = hash(k * 1.3), dd = PIPE_D + hash(k * 5.1) * (1 - PIPE_D);
+    const [px, py] = at(v.eye, X(run[0] + (run[2] - run[0]) * u), GY + run[1] + (run[3] - run[1]) * u, dd);
+    box(c, px, py, k % 4 ? 1 : 3, 1, k % 3 ? Cc[1] : Cc[5]);
+  }
+  { const [x0, y0] = at(v.eye, a + PIPE.ramp + 60, GY + PIPE.depth, 0.97), [x1, y1] = at(v.eye, b - PIPE.ramp - 60, GY + PIPE.depth, 0.97); c.strokeStyle = 'rgba(255,255,255,0.18)'; c.lineWidth = 3; c.beginPath(); c.moveTo(x0, y0); c.lineTo(x1, y1); c.stroke(); }
+  { const [cx0, cy0] = at(v.eye, a + PIPE.ramp + 200, GY + PIPE.depth, 0.9); c.strokeStyle = Cc[0]; c.lineWidth = 1; c.beginPath(); c.moveTo(cx0, cy0); c.lineTo(cx0 + 14, cy0 + 2); c.lineTo(cx0 + 22, cy0 - 1); c.lineTo(cx0 + 40, cy0 + 1); c.stroke(); }
   // (the flat's painted line, the skid marks, the seam between the curve and the flat)
   for (const [x, d] of [[a + PIPE.ramp, PIPE.depth], [b - PIPE.ramp, PIPE.depth]] as [number, number][]) { const [x0, y0] = at(v.eye, x, GY + d, 1), [x1, y1] = at(v.eye, x, GY + d, PIPE_D); c.strokeStyle = Cc[1]; c.lineWidth = 1; c.beginPath(); c.moveTo(x0, y0); c.lineTo(x1, y1); c.stroke(); }
   c.strokeStyle = 'rgba(30,24,40,0.35)'; c.lineWidth = 2; for (let k = 0; k < 3; k++) { const [x0, y0] = at(v.eye, a + PIPE.ramp + 40 + k * 120, GY + PIPE.depth, 0.98), [x1, y1] = at(v.eye, a + PIPE.ramp + 110 + k * 120, GY + PIPE.depth, 0.94); c.beginPath(); c.moveTo(x0, y0); c.lineTo(x1, y1); c.stroke(); }
@@ -913,8 +924,12 @@ const halfpipe = (c: Ctx, v: View) => {
   c.fillStyle = Cc[2]; c.beginPath(); c.moveTo(a, GY + 3);
   for (const [p, d1, q, d2] of PIPE_RUNS) { c.lineTo(X(p), GY + d1 + 3); c.lineTo(X(q), GY + d2 + 3); }
   c.lineTo(b, GY + 3); c.lineTo(b, GY + PIPE.depth + 260); c.lineTo(a, GY + PIPE.depth + 260); c.closePath(); c.fill();
-  for (let y = GY + 20; y < GY + PIPE.depth + 200; y += 22) { box(c, a, y, b - a, 1, Cc[1]); }
+  // (the section: board-formed courses with the boards' grain, lit under each seam; the footing darker; tie holes)
+  for (let y = GY + 20; y < GY + PIPE.depth + 200; y += 22) { box(c, a, y, b - a, 1, Cc[1]); box(c, a, y + 1, b - a, 1, Cc[3]); for (let x = a + ((y * 7) % 23); x < b; x += 23) box(c, x, y + 6 + ((x * 3) % 9), 4 + ((x + y) % 7), 1, (x + y) % 2 ? Cc[1] : Cc[3]); }
   c.fillStyle = Cc[1]; c.fillRect(a, GY + PIPE.depth + 18, b - a, 200);
+  checker(c, a, GY + PIPE.depth + 16, b - a, 2, Cc[1], 0, 1);
+  for (let x = a + 4; x < b; x += 6) box(c, x, GY + PIPE.depth + 24 + ((x * 13) % 40), 1, 1, Cc[0]);
+  for (let x = a + 30; x < b; x += 80) for (let y = GY + PIPE.depth + 40; y < GY + PIPE.depth + 200; y += 44) { box(c, x, y, 4, 4, Cc[0]); box(c, x + 3, y + 3, 1, 1, Cc[4]); }
   c.strokeStyle = LIP[2]; c.lineWidth = 2; c.beginPath(); c.moveTo(a, GY + 1);
   for (const [p, d1, q, d2] of PIPE_RUNS) { c.lineTo(X(p), GY + d1 + 1); c.lineTo(X(q), GY + d2 + 1); }
   c.stroke();
