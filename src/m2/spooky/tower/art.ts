@@ -98,25 +98,48 @@ const IRON = '#4A4D55', BRASS = '#B8862E', OAK = '#5A3A22';
 const ROCK = ['#0E0605', '#1A0D09', '#27140D', '#361C12', '#47261A'];
 
 /** Old stonework, as a repeating tile: two courses of rough-dressed blocks, each lit along its top and left. */
-const stoneFill = (c: Ctx) => tilePattern(c, 'tw-stone', 192, 64, g => {
-  g.fillStyle = '#100D14'; g.fillRect(0, 0, 192, 64);
+const stoneFill = (c: Ctx) => tilePattern(c, 'tw-stone2', 288, 128, g => {
+  // (four courses of rough-dressed blocks, every one its own: its tone (some warmer, some with a green damp in them),
+  // lit along its top and left, shaded along its bottom and right, dithered between, corners knocked off, pits, a
+  // crack now and then, moss creeping along a bottom edge; the mortar between dark and crumbling)
+  const TW = 288, TH = 128;
+  g.fillStyle = '#0C0A10'; g.fillRect(0, 0, TW, TH);
+  const tones = [STONE[1], STONE[2], STONE[2], '#2C2634', '#2A2A2E', '#2E2628', '#242A2A'];
   const st = (x: number, y: number, w: number, i: number) => {
-    const h = hash(i * 3.7 + x * 0.11), col = h < 0.35 ? STONE[1] : h < 0.8 ? STONE[2] : '#2C2634';
-    for (const ox of [0, -192, 192]) {
-      const sx = x + ox; if (sx > 192 || sx + w < 0) continue;
-      box(g, sx, y, w - 2, 30, col);
-      box(g, sx, y, w - 2, 2, STONE[3]); box(g, sx, y, 2, 30, STONE[3]);
-      checker(g, sx + 2, y + 2, w - 6, 2, STONE[3]);
-      box(g, sx, y + 28, w - 2, 2, STONE[0]); box(g, sx + w - 4, y, 2, 30, STONE[0]);
-      checker(g, sx + 2, y + 26, w - 6, 2, STONE[0], 1);
+    const h = hash(i * 3.7 + x * 0.11), col = tones[Math.floor(h * tones.length)];
+    const lit = mix(col, '#6A6078', 0.35), lit2 = mix(col, '#6A6078', 0.18), sh = mix(col, '#000000', 0.38), sh2 = mix(col, '#000000', 0.2);
+    for (const ox of [0, -TW, TW]) {
+      const sx = x + ox; if (sx > TW || sx + w < 0) continue;
+      const bw = w - 2, bh = 30;
+      box(g, sx, y, bw, bh, col);
+      box(g, sx, y, bw, 2, lit); box(g, sx, y, 2, bh, lit);
+      box(g, sx + 2, y + 2, bw - 4, 2, lit2); checker(g, sx + 2, y + 4, bw - 6, 2, lit2);
+      checker(g, sx + 2, y + 2, 2, bh - 6, lit2);
+      box(g, sx, y + bh - 2, bw, 2, sh); box(g, sx + bw - 2, y, 2, bh, sh);
+      box(g, sx + 2, y + bh - 4, bw - 4, 2, sh2); checker(g, sx + 2, y + bh - 6, bw - 6, 2, sh2, 1);
+      // (the corners knocked off)
+      box(g, sx, y, 2, 2, '#0C0A10'); box(g, sx + bw - 2, y + bh - 2, 2, 2, '#0C0A10');
+      if (h > 0.6) { box(g, sx + bw - 4, y, 4, 4, '#0C0A10'); box(g, sx + bw - 6, y + 2, 2, 2, sh); }
       // (pits and chips)
-      box(g, sx + 6 + Math.floor(h * (w - 18)), y + 10 + Math.floor(h * 10), 2, 2, STONE[0]);
-      if (h > 0.5) box(g, sx + 4 + Math.floor((1 - h) * (w - 14)), y + 18, 4, 2, STONE[4]);
+      box(g, sx + 6 + Math.floor(h * (bw - 18)), y + 10 + Math.floor(h * 10), 2, 2, sh);
+      box(g, sx + 8 + Math.floor(hash(i + 0.5) * (bw - 20)), y + 16, 2, 1, sh);
+      if (h > 0.5) box(g, sx + 4 + Math.floor((1 - h) * (bw - 14)), y + 18, 4, 2, STONE[4]);
+      // (a crack across it, lit along its lower side)
+      if (hash(i * 9.3) < 0.22) {
+        let cx = sx + 6 + Math.floor(hash(i * 2.1) * (bw * 0.4)), cy = y + 4;
+        for (let s = 0; s < 6 && cy < y + bh - 4; s++) { box(g, cx, cy, 2, 4, INK); box(g, cx + 2, cy + 2, 1, 2, lit2); cx += hash(i + s) < 0.5 ? 2 : 4; cy += 4; }
+      }
+      // (moss in the damp along its foot)
+      if (hash(i * 5.9) < 0.18) { checker(g, sx + 2, y + bh - 6, bw - 4, 4, '#2E3A2A'); box(g, sx + 4, y + bh - 3, bw - 10, 1, '#3A4A32'); }
     }
   };
   let i = 0;
-  for (let x = 0, k = 0; x < 192; k++) { const w = [52, 40, 60, 40][k]; st(x, 0, w, i++); x += w; }
-  for (let x = -12, k = 0; x < 180; k++) { const w = [34, 56, 44, 58][k]; st(x, 32, w, i++); x += w; }
+  const rows: number[][] = [[52, 40, 60, 40, 46, 50], [34, 56, 44, 58, 52, 44], [48, 62, 36, 50, 44, 48], [40, 44, 58, 46, 62, 38]];
+  rows.forEach((ws, r) => {
+    for (let x = [0, -12, -24, -6][r], k = 0; x < TW; k++) { const w = ws[k % ws.length]; st(x, r * 32, w, i++); x += w; }
+  });
+  // (a damp streak down from a joint, faint)
+  for (const sx of [70, 206]) { checker(g, sx, 8, 4, 100, 'rgba(10, 14, 12, 0.5)'); box(g, sx + 1, 8, 2, 60, 'rgba(10, 14, 12, 0.35)'); }
 });
 /** Rock (under the tower, the chute's walls): heaped, rounded, lit from above. */
 const rockFill = (c: Ctx) => tilePattern(c, 'tw-rock', 160, 96, g => {
@@ -735,8 +758,17 @@ const drawShaft = (c: Ctx, v: View, crashed: boolean) => {
   const sy0 = Math.max(ROOF, v.y0), sy1 = Math.min(GY + 30, v.y1);
   if (sy1 <= sy0) return;
   // (the dark down it: darkest in the middle of each)
-  box(c, SH0, sy0, SH1 - SH0, sy1 - sy0, '#0A080E');
-  for (const [a, b] of [[SH0, SHX], [SHX, SH1]]) { box(c, a, sy0, 14, sy1 - sy0, '#120F18'); box(c, b - 14, sy0, 14, sy1 - sy0, '#120F18'); checker(c, a + 14, sy0, 4, sy1 - sy0, '#120F18'); }
+  // (its back: the same stone as the tower's, deep in shadow; the ride's cables down each side, a counterweight's
+  // rails, grease run down in streaks)
+  c.fillStyle = stoneFill(c); c.fillRect(SH0, sy0, SH1 - SH0, sy1 - sy0);
+  c.fillStyle = 'rgba(8, 6, 12, 0.78)'; c.fillRect(SH0, sy0, SH1 - SH0, sy1 - sy0);
+  for (const [a, b] of [[SH0, SHX], [SHX, SH1]]) {
+    box(c, a, sy0, 14, sy1 - sy0, '#120F18'); box(c, b - 14, sy0, 14, sy1 - sy0, '#120F18'); checker(c, a + 14, sy0, 4, sy1 - sy0, '#120F18'); checker(c, b - 18, sy0, 4, sy1 - sy0, '#120F18', 1);
+    const m = (a + b) / 2;
+    for (const cx of [m - 14, m - 8, m + 8]) { box(c, cx - 1, sy0, 3, sy1 - sy0, '#06050A'); box(c, cx, sy0, 1, sy1 - sy0, '#3A3A46'); }
+    box(c, m + 20, sy0, 4, sy1 - sy0, '#1C1A22'); box(c, m + 20, sy0, 1, sy1 - sy0, '#34323E');
+    for (let y = Math.ceil(sy0 / 260) * 260; y < sy1; y += 260) { checker(c, m - 30 + (y % 3) * 8, y, 4, 120, 'rgba(26, 20, 10, 0.6)'); box(c, m - 29 + (y % 3) * 8, y, 2, 70, 'rgba(26, 20, 10, 0.5)'); }
+  }
   // (the lattice: X bracing between the corner posts, struts across; after the crash, torn and bent)
   for (const [a, b] of [[SH0, SHX], [SHX, SH1]]) {
     for (let y = Math.ceil(sy0 / 90) * 90 - 90; y < sy1; y += 90) {
