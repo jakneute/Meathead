@@ -37,6 +37,10 @@ import { type Fight, startFight as beginFight, updateFight, fightOver, endFight,
 import { type Victory, startVictory, tickVictory, drawVictory, victoryDone } from '../../victory';
 import { type WalkAway, playWalkAway, tickWalkAway, drawWalkAway } from '../../walkAway';
 import { markBossFight } from '../../bossQuiet';
+import { drawArtieGross, drawArtieGrossBack } from '../river/artieGross';
+
+/** His gross-up's length (frames): the first go only (a retry's kick isn't played, so neither is this). */
+const ARTIE_CLOSE_T = 110;
 
 const pick = pickLine;
 const dressed = (state: GameState): Dressed => (isNude(state) ? 'nude' : isShat(state) ? 'shitty' : 'clean');
@@ -77,12 +81,14 @@ interface Clearing {
   flap: number;
   /** Who's saying what's said: Artie up in his blind, or over the camp's loudspeaker. */
   saidAt: 'blind' | 'speaker';
+  /** The gross-up of him, found out (the kick's: frames in; -1 not up). */
+  close: number;
 }
 const getClearing = (state: GameState) => sectionState<Clearing>(state, 'clearing', () => ({
   init: false, domino: firstVisit(state), kicked: false, scene: null, t: 0, token: 0,
   trees: TREE_X.map(() => ({ a: 0, v: 0, on: false, done: false })), trunk: null, templeHit: false,
   fight: 'wait', wonAt: 0, fence: null, f: null, said: null, nextLine: 0, booms: [], wiped: false, victory: null, walk: null,
-  call: 'no', callT: 0, out: 0, flap: 0, saidAt: 'blind',
+  call: 'no', callT: 0, out: 0, flap: 0, saidAt: 'blind', close: -1,
 }));
 
 /** The junior guides: where each comes to (one up on the rock, tempting to come down on), in the order they come. */
@@ -222,7 +228,7 @@ const startFight = (state: GameState, cl: Clearing) => {
 
 const endKick = (state: GameState, cl: Clearing, skipped: boolean) => {
   if (skipped) { silenceAll(); state.playerVulgarityTimer = 0; treesDown(state, cl); }
-  cl.token++; cl.said = null; cl.scene = null; cl.domino = false;
+  cl.token++; cl.said = null; cl.scene = null; cl.domino = false; cl.close = -1;
   const p = state.player; p.inCutscene = false; p.kickPose = 0;
   state.cameraOverride = null;
 };
@@ -251,15 +257,17 @@ const kick = (ctx: FrameContext, cl: Clearing): Controls => {
     const want = TREE_X[front] + 170 * Math.sin(cl.trees[front].a) + 140 - CANVAS_WIDTH / 2;
     state.cameraOverride = { x: Math.min(TEMPLE_X + 160 - CANVAS_WIDTH, Math.max(state.camera.x, want)), y: state.camera.y };
   }
-  // All down: there he is
+  // All down: there he is (his gross-up first, a beat of it, silent; then his say)
   if (cl.templeHit && cl.trees.every(tr => tr.done) && !cl.said && t > 0 && cl.nextLine === 0) {
-    cl.nextLine = -1;
-    const at = t;
+    cl.nextLine = -2; cl.close = 0;
+    playSound('ding', 0.6, -6); playSound('whoosh', 0.5, -2);
+  }
+  if (cl.nextLine === -2 && ++cl.close >= ARTIE_CLOSE_T) {
+    cl.nextLine = -1; cl.close = -1;
     artieSays(state, cl, pick(ARTIE_FOUND[dressed(state)]), () => {
       const tok = cl.token;
       meatheadSays(state, pick(MEATHEAD_ARTIE), true, () => { if (cl.token === tok) endKick(state, cl, false); });
     });
-    cl.t = Math.max(cl.t, at);
   }
   if (t > 1400) endKick(state, cl, false);
   return hands();
@@ -392,6 +400,12 @@ export const clearing: Section = {
     // (his words over him up in his blind, wherever on the screen it's got to: out on the loop or on the strip)
     const said = cl.fight === 'wait' ? (cl.saidAt === 'blind' ? cl.said?.text : null) : cl.f && artieInBlind(cl.f) ? cl.f.said : null;
     if (said) { const w = blindWordsAt(state); saidOver(c, said, w.x, w.y, '#FDE68A'); }
+    // (found out: his face, close up and gross, a beat)
+    if (cl.scene === 'kick' && cl.close >= 0) {
+      drawArtieGrossBack(c, CANVAS_WIDTH, CANVAS_HEIGHT);
+      drawArtieGross(c, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2, 0.9 + 0.1 * Math.min(1, cl.close / 10), state.frame);
+      c.fillStyle = '#000'; c.fillRect(0, 0, CANVAS_WIDTH, 44); c.fillRect(0, CANVAS_HEIGHT - 44, CANVAS_WIDTH, 44);
+    }
     if (cl.fight === 'on' && cl.f) drawFightHud(c, cl.f, topBand(), !!state.player.inCutscene);
     if (cl.f && cl.fight !== 'wait') drawKillCam(c, cl.f);
     if (cl.victory) drawVictory(c, cl.victory);
