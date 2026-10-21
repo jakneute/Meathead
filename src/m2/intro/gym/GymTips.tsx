@@ -25,8 +25,8 @@ const CARDS: Record<GymTip, { how: React.ReactNode; what: string; note?: string 
   },
   slide: {
     how: <ChordPrompt pad={['DPAD_DOWN', 'B']} join="+" kb={['@down', '@special']} size={S} label="SLIDE TACKLE" />,
-    what: 'THEY\'RE CRAWLING UNDER THE DUCT. SLIDE IN AFTER THEM. SLIDE INTO THE KETTLEBELLS AND THEY GO ROLLING.',
-    note: 'HOLD DOWN TO CRAWL UNDER IT.',
+    what: 'THEY\'RE HIDING UNDER THE DUCT. SLIDE TACKLE UNDER IT AFTER THEM. SLIDE INTO THE KETTLEBELLS AND THEY GO ROLLING.',
+    note: 'A SLIDE IS THE ONLY WAY UNDER THE DUCT: IT CARRIES YOU OUT THE OTHER SIDE.',
   },
   uppercut: {
     how: <ChordPrompt pad={['DPAD_UP', 'B']} join="+" kb={['@up', '@special']} size={S} label="UPPERCUT" />,

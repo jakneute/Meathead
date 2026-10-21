@@ -42,7 +42,11 @@ Dying in the gym (only the gut's third blowout can do it) puts him back at its s
 - **Rooms** (teach, then escalate within each): shoot (couriers in the open, then two behind a tub stack), charge (a
   human wall, then two huddled at the dumbbell rack), slide (crawlers under a knee-high duct; the kettlebell rack
   bowls them over), uppercut (two up on shelves; the cable machine), dive kick (off the mezzanine onto a huddle; the
-  bench catapult), mix. The duct: under it he's forced into a crawl (down held) unless sliding; standing, he's stopped.
+  bench catapult), mix. The duct: only a slide tackle gets him under it (he can't crawl or crouch-walk: the user's), and
+  a slide that runs out under it carries him on out the far side; walking into it, he's stopped.
+- **G-men arrive in view** (the user's): each room's lot drops in through the ceiling tiles (dust first, then one after
+  another) once all of them would be on screen; nothing off the screen is hit by a flung body, a falling rack's
+  pieces, a rolling kettlebell, and obstacles off the screen don't break.
 - **Obstacles** smash on a shot (two), any of his charge moves, or a body flung into them; the pieces (tubs,
   dumbbells, kettlebells, plates) kill G-men they hit fast.
 - **No shield lesson, no checkpoints** (it's short and nothing can hurt him: noContactHurt).

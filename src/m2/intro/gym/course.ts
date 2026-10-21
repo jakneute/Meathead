@@ -6,7 +6,7 @@
 //             stack and it comes down on them).
 //   charge    a human wall, arms linked; past it, two huddled against the dumbbell rack (charge one into it and the
 //             rack comes down on the lot).
-//   slide     a run of ductwork down off the ceiling to knee height: under it, crawling, three of them. Slide. The
+//   slide     a run of ductwork down off the ceiling to knee height: three G-men crawl in under it. Slide under. The
 //             kettlebell rack before it: slide into it and they go rolling down under the duct like bowling balls.
 //   uppercut  two up on the tall storage shelves, out of reach; the cable machine with one hiding behind its stack
 //             (uppercut it: the weights go up the rods, and come down).
@@ -46,7 +46,7 @@ export const ROOM_ORDER: Room[] = ['shoot', 'charge', 'slide', 'uppercut', 'dive
 /** The squat rack he was in, the hand truck, the door in from outside (the far left). */
 export const SQUAT_X = R(260), TRUCK_X = R(130), FRONT_DOOR_X = R(30);
 
-/** The duct down off the ceiling (to knee height): only under it on his belly, or sliding. */
+/** The duct down off the ceiling (to knee height): only a slide tackle gets him under it (index.ts duct). */
 export const DUCT = { x1: R(2330), x2: R(2560), bottom: Y - 48 };
 
 /** The mezzanine (up the plyo boxes), and its edge. */
@@ -75,7 +75,8 @@ export const SPAWNS: Spawn[] = [
   { room: 'shoot', role: 'cower', x: R(1120) }, { room: 'shoot', role: 'cower', x: R(1160) },
   { room: 'charge', role: 'link', x: R(1560) }, { room: 'charge', role: 'link', x: R(1600) }, { room: 'charge', role: 'link', x: R(1640) }, { room: 'charge', role: 'link', x: R(1680) },
   { room: 'charge', role: 'huddle', x: R(1860) }, { room: 'charge', role: 'huddle', x: R(1890) },
-  { room: 'slide', role: 'crawl', x: R(2380) }, { room: 'slide', role: 'crawl', x: R(2450) }, { room: 'slide', role: 'crawl', x: R(2520) },
+  // (they come down out past the duct and crawl in under it)
+  { room: 'slide', role: 'crawl', x: R(2600) }, { room: 'slide', role: 'crawl', x: R(2650) }, { room: 'slide', role: 'crawl', x: R(2700) },
   { room: 'uppercut', role: 'perch', x: R(2945), y: Y - 120 }, { room: 'uppercut', role: 'perch', x: R(3175), y: Y - 150 },
   { room: 'uppercut', role: 'hide', x: R(3405) },
   { room: 'divekick', role: 'huddle', x: R(3870) }, { room: 'divekick', role: 'huddle', x: R(3905) }, { room: 'divekick', role: 'huddle', x: R(3940) }, { room: 'divekick', role: 'huddle', x: R(3975) },

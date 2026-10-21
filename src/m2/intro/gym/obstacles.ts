@@ -79,7 +79,7 @@ const smash = (ctx: FrameContext, t: Thing, debris: Debris[], dir: number, killa
 };
 
 /** Each frame: what's hit them, and the pieces flying. */
-export const updateThings = (ctx: FrameContext, things: Thing[], debris: Debris[], killable: (e: Enemy) => boolean) => {
+export const updateThings = (ctx: FrameContext, things: Thing[], debris: Debris[], killable: (e: Enemy) => boolean, seen: (x: number, w: number) => boolean = () => true) => {
   const { state } = ctx;
   const p = state.player, pb = { x: p.pos.x, y: p.pos.y, w: p.width, h: p.height };
   const pcx = p.pos.x + p.width / 2;
@@ -87,6 +87,8 @@ export const updateThings = (ctx: FrameContext, things: Thing[], debris: Debris[
   for (const t of things) {
     if (t.broken) continue;
     const b = thingBox(t);
+    // (only one he can see comes down: a body flung off the edge of the screen doesn't bring down a rack out there)
+    if (!seen(b.x, b.w)) continue;
     const away = b.x + b.w / 2 > pcx ? 1 : -1;
     // His moves into it
     const moving = p.isCharging || p.isSliding || p.isUppercutting || p.isDivekicking;

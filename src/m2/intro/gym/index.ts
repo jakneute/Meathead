@@ -73,6 +73,13 @@ interface Gym {
   done: Set<Grabs>;
   shove: number; punchesSeen: number; mountBase: number | null; shover: Enemy | null; sawShake: boolean; sawArc: boolean; ringHello: boolean;
   exitOpen: number;
+  /** (the duct) The way he was sliding as he went under it (0: not under it). */
+  ductDir: number;
+  /** The rooms whose G-men haven't come yet; who's coming down through the ceiling, where and when (frames); the
+   *  tiles knocked out up there (till when). */
+  pending: Set<Room>;
+  drops: { s: typeof SPAWNS[number]; i: number; x: number; at: number }[];
+  holes: { x: number; until: number }[];
   /** What a trainer's saying, over his head. */
   ringSaid: { e: Enemy; text: string } | null;
 }
@@ -178,22 +185,15 @@ export const gymLayout: StageLayout = {
       phase: openingSeen ? 'play' : 'opening', scene: null, waiting: !openingSeen, grab: createGrab(state),
       things: OBSTACLES.map(o => ({ kind: o.kind, x: o.x, broken: 0, shots: 0 })), debris: [], rooms: new Map(), barked: new Set(),
       moved: false, spawnX: START_X, pad: null as unknown as Enemy, jet: null as unknown as Enemy,
-      done: new Set(), shove: -1, punchesSeen: 0, mountBase: null, shover: null, sawShake: false, sawArc: false, ringHello: false, exitOpen: 0, ringSaid: null,
+      done: new Set(), shove: -1, punchesSeen: 0, mountBase: null, shover: null, sawShake: false, sawArc: false, ringHello: false, exitOpen: 0, ringSaid: null, ductDir: 0,
+      pending: new Set(ROOM_ORDER), drops: [], holes: [],
     };
     state.stage = gym;
     setExitOpen(0);
     // (the closing's gross-ups, painted now, under the load's black: they're slow to paint, and a cut mustn't hitch)
     prewarmGross();
     // The G-men, room by room (a mixed bunch: every one his own seed)
-    SPAWNS.forEach((s, i) => {
-      const crawl = s.role === 'crawl';
-      const e = addG(state, gym, crawl ? GCRAWL : GMAN, s.x, s.y ?? Y, 17 + i * 31, crawl ? 'crawl' : s.role === 'carry' ? 'carry' : s.role === 'link' ? 'link' : s.role === 'perch' ? 'perch' : s.role === 'huddle' ? 'huddle' : 'cower');
-      gym.rooms.set(e, { room: s.room, role: s.role, homeX: s.x });
-    });
-    // The two trainers at the ring
-    gym.pad = addG(state, gym, GPAD, PAD_X, RING.mat, 404, 'pad');
-    gym.jet = addG(state, gym, GJET, JET_X, JET_Y + 70, 919, 'jet');
-    for (const e of [gym.pad, gym.jet]) { e.maxHealth = 60; e.health = 9999; }
+    // (the G-men come room by room, in view: arrivals; the two trainers drop into the ring as it comes into view: ring)
     p.pos = { x: START_X - p.width / 2, y: Y - p.height }; p.vel = { x: 0, y: 0 }; p.facing = 1;
     if (gym.phase === 'opening') {
       p.hidden = true; p.inCutscene = true;
@@ -227,6 +227,7 @@ export const gymLayout: StageLayout = {
     const gym = getGym(state);
     if (!gym) return;
     drawRingFront(c, state);
+    drawHoles(c, gym, state.frame);
     drawGrab(c, state, gym.grab);
     // (who's saying what, over their heads, only while it's said)
     for (const e of state.enemies) { const g = gOf(e); if (g?.said && e.health > 0 && !e.isBlownAway) saidOver(c, g.said, e.pos.x + e.width / 2, e.pos.y - 16); }
@@ -267,11 +268,14 @@ const play = (ctx: FrameContext, gym: Gym, controlsIn: Controls): Controls => {
   // (nothing lying about: the drops off the G-men go; the shakedown's ammo stays)
   state.pickups = state.pickups.filter(k => !(k.id.startsWith('pickup-') && (k.type === 'small_health' || k.type === 'large_health')));
   if (Math.abs(px - gym.spawnX) > 120) gym.moved = true;
-  let controls = duct(state, controlsIn);
+  arrivals(ctx, gym);
+  let controls = duct(state, gym, controlsIn);
   controls = ring(ctx, gym, controls);
   controls = updateGrab(ctx, gym.grab, controls);
   gmen(state, gym);
-  updateThings(ctx, gym.things, gym.debris, e => !isPadded(gym, e) && alive(e));
+  // (nothing off the screen gets knocked down by a body, or a tub, or a kettlebell, he never saw coming: the user's)
+  const cam = state.camera.x, seen = (x: number, w: number) => x + w > cam && x < cam + CANVAS_WIDTH;
+  updateThings(ctx, gym.things, gym.debris, e => !isPadded(gym, e) && alive(e) && seen(e.pos.x, e.width), seen);
   bark(state, gym, px);
   // (the exit, once the ring's done: up to it, and that's the stage)
   if (gym.done.size === 3) {
@@ -282,23 +286,69 @@ const play = (ctx: FrameContext, gym: Gym, controlsIn: Controls): Controls => {
   return controls;
 };
 
-/** The duct down to knee height: under it he's down on his belly (crawling), or sliding; standing, he can't get in. */
-const duct = (state: GameState, controls: Controls): Controls => {
+/** The duct down to knee height: the only way under it is a slide tackle (he can't crawl or crouch-walk). Slid into, it
+ *  carries him out the far side (a slide that runs out under it keeps him going, low, the way he was sliding);
+ *  walked into standing, or ducked, he's stopped against it. */
+const duct = (state: GameState, gym: Gym, controls: Controls): Controls => {
   const p = state.player, cx = p.pos.x + p.width / 2;
   const inside = cx > DUCT.x1 - 4 && cx < DUCT.x2 + 4 && p.pos.y + p.height > DUCT.bottom - 4;
   if (!inside) {
-    // (walking into it standing: stopped against it; ducked or sliding, in he goes)
+    gym.ductDir = 0;
     const next = cx + p.vel.x;
-    if (!p.isSliding && !controls.down && next > DUCT.x1 - 4 && next < DUCT.x2 + 4 && p.pos.y + p.height > DUCT.bottom) {
+    if (!p.isSliding && next > DUCT.x1 - 4 && next < DUCT.x2 + 4 && p.pos.y + p.height > DUCT.bottom) {
       p.pos.x = (cx < DUCT.x1 ? DUCT.x1 - 4 : DUCT.x2 + 4) - p.width / 2 - Math.sign(p.vel.x || 1) * 0.5; p.vel.x = 0;
     }
     return controls;
   }
+  if (!gym.ductDir) gym.ductDir = p.facing;
   if (p.isSliding) return { ...controls, jump: false, up: false };
-  // (crawling along under it)
-  const dir = controls.right ? 1 : controls.left ? -1 : 0;
-  p.pos.x += dir * 2; if (dir) p.facing = dir;
-  return { ...controls, down: true, jump: false, up: false, left: false, right: false };
+  // (the slide's run out under it: on through, low, the way he was going)
+  p.facing = gym.ductDir as 1 | -1;
+  p.pos.x += gym.ductDir * 5;
+  return { ...controls, down: true, jump: false, up: false, left: false, right: false, special: false, charge: false, shoot: false };
+};
+
+/**
+ * The G-men come room by room, where he can see them come (the user's: none pops in, or waits off the screen to be
+ * knocked down by a body he never saw): once a room's whole lot would be on the screen at once, a ceiling tile rattles
+ * and sheds dust over each of their spots, and down they drop through it, one after another, onto the floor, their
+ * shelf, or (the slide room's) out past the duct, to crawl in under it.
+ */
+const TELEGRAPH = 40, DROP_GAP = 14;
+const arrivals = (ctx: FrameContext, gym: Gym) => {
+  const { state } = ctx;
+  const cam = state.camera.x;
+  for (const r of [...gym.pending]) {
+    const lot = SPAWNS.map((s, i) => ({ s, i })).filter(o => o.s.room === r);
+    if (!lot.every(o => o.s.x > cam + 40 && o.s.x < cam + CANVAS_WIDTH - 40)) continue;
+    gym.pending.delete(r);
+    lot.forEach((o, k) => gym.drops.push({ ...o, x: o.s.x, at: state.frame + TELEGRAPH + k * DROP_GAP }));
+  }
+  for (const d of gym.drops) if (d.at - state.frame < TELEGRAPH && state.frame % 4 === 0) state.particles.push({ pos: { x: d.x + (Math.random() - 0.5) * 40, y: CEIL_Y + 2 }, vel: { x: 0, y: 0.6 + Math.random() }, life: 50, color: '#B8B2A0', size: 1.5 + Math.random() * 2 });
+  gym.drops = gym.drops.filter(d => {
+    if (state.frame < d.at) return true;
+    const { s, i } = d, crawl = s.role === 'crawl';
+    const kind = crawl ? GCRAWL : GMAN, h = crawl ? 26 : 66;
+    const e = addG(state, gym, kind, d.x, CEIL_Y + 8 + h, 17 + i * 31, crawl ? 'crawl' : s.role === 'carry' ? 'carry' : s.role === 'link' ? 'link' : s.role === 'perch' ? 'perch' : s.role === 'huddle' ? 'huddle' : 'cower');
+    // (coming down: a bystander till he's landed, so the drop doesn't hurt him (nor does anything else meanwhile))
+    e.vel = { x: 0, y: 1.5 }; e.innocent = true; gOf(e)!.dropping = true;
+    gym.rooms.set(e, { room: s.room, role: s.role, homeX: s.x });
+    gym.holes.push({ x: d.x, until: state.frame + 240 });
+    for (let k = 0; k < 14; k++) state.particles.push({ pos: { x: d.x + (Math.random() - 0.5) * 50, y: CEIL_Y }, vel: { x: (Math.random() - 0.5) * 3, y: 1 + Math.random() * 3 }, life: 50 + Math.random() * 30, color: k % 3 ? '#8A8473' : '#B8B2A0', size: 2 + Math.random() * 5 });
+    playSound('crack', 0.5, 2);
+    return false;
+  });
+  gym.holes = gym.holes.filter(h => h.until > state.frame);
+};
+
+/** The ceiling tiles they came down through: knocked out, the dark up in there, one hanging by a corner. */
+const drawHoles = (c: CanvasRenderingContext2D, gym: Gym, frame: number) => {
+  for (const h of gym.holes) {
+    const tx = h.x - 30;
+    c.fillStyle = '#0E0A08'; c.fillRect(tx, CEIL_Y - 36, 60, 30);
+    c.save(); c.translate(tx + 60, CEIL_Y - 8); c.rotate(1.1 + Math.sin(frame * 0.2) * 0.05 * Math.max(0, (h.until - frame) / 240));
+    c.fillStyle = '#8A8473'; c.fillRect(0, 0, 28, 6); c.fillStyle = '#5A5444'; c.fillRect(0, 5, 28, 1); c.restore();
+  }
 };
 
 /** The G-men: by their job, never fighting back. */
@@ -312,6 +362,7 @@ const gmen = (state: GameState, gym: Gym) => {
     e.harmless = true; e.shootTimer = 0;
     g.t++;
     if ((e.pauseTimer || 0) > 2 || Math.abs(e.vel.y) > 0.5) continue;
+    if (g.dropping) { g.dropping = false; e.innocent = false; }
     e.pauseTimer = 2;
     const ex = e.pos.x + e.width / 2, d = px - ex, [r0, r1] = ROOMS[job.room];
     const face = (d < 0 ? -1 : 1) as 1 | -1;
@@ -363,6 +414,16 @@ const trainerSays = (gym: Gym, e: Enemy, text: string) => {
 const ring = (ctx: FrameContext, gym: Gym, controls: Controls): Controls => {
   const { state } = ctx;
   const p = state.player, px = p.pos.x + p.width / 2, g = gym.grab;
+  // The two trainers: down through the ceiling into the ring once it's in view (the one on the ground, then the
+  // jetpack one, who flies up to his height)
+  if (!gym.pad) {
+    const cam = state.camera.x;
+    if (!(PAD_X > cam + 40 && JET_X < cam + CANVAS_WIDTH - 40)) return controls;
+    gym.pad = addG(state, gym, GPAD, PAD_X, CEIL_Y + 8 + 70, 404, 'pad');
+    gym.jet = addG(state, gym, GJET, JET_X, CEIL_Y + 8 + 70, 919, 'jet');
+    for (const e of [gym.pad, gym.jet]) { e.maxHealth = 60; e.health = 9999; e.vel = { x: 0, y: 1.5 }; e.pauseTimer = 40; gym.holes.push({ x: e.pos.x + e.width / 2, until: state.frame + 240 }); }
+    playSound('crack', 0.5, 2);
+  }
   // They can't be killed: whatever's done to them, back up (the padding's taken it)
   for (const e of [gym.pad, gym.jet]) {
     if (e.isBlownAway || e.health <= 0) { e.isBlownAway = false; e.rotation = 0; e.vel = { x: 0, y: 0 }; e.pos.x = (e === gym.pad ? PAD_X : JET_X) - e.width / 2; e.pos.y = RING.mat - e.height - 40; if (!state.enemies.includes(e) && g.held !== e) state.enemies.push(e); }

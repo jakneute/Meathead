@@ -123,7 +123,7 @@ const handTruck = (c: Ctx, x: number) => {
 };
 
 /** The duct down off the ceiling to knee height: galvanized, banded, riveted, a grille in it; full height so it's
- *  plainly only gone under (on your belly, or sliding). */
+ *  plainly only gone under (a slide tackle). */
 const duct = (c: Ctx, state: GameState) => {
   const { x1, x2, bottom } = DUCT, w = x2 - x1;
   stamp(c, `m2gym-duct-${x1}`, x1 - 4, CEIL_Y - 4, w + 8, bottom - CEIL_Y + 12, g => {

@@ -13,7 +13,7 @@ export const GMAN = 'm2:gman', GCRAWL = 'm2:gcrawl', GPAD = 'm2:gpad', GJET = 'm
 
 /** What one's doing (the stage sets it; the drawing follows). */
 export type Pose = 'carry' | 'walk' | 'flee' | 'cower' | 'link' | 'crawl' | 'huddle' | 'perch' | 'pad' | 'jet';
-export interface GState { pose: Pose; seed: number; box?: boolean; said?: string | null; t: number }
+export interface GState { pose: Pose; seed: number; box?: boolean; said?: string | null; t: number; dropping?: boolean }
 export const gstate = new WeakMap<Enemy, GState>();
 export const gOf = (e: Enemy) => gstate.get(e);
 
