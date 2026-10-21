@@ -7,7 +7,8 @@
 // on its crag THE GREAT PIXIE'S CASTLE (fantasy/monument.ts: the smallest it ever is), Piper's window glowing at its
 // top. The sky by the hour. Timing, lines and skip unchanged.
 
-import { type Ctx, type Prop, type PortalDef, HOR, box, hash, rampOf, lump, smoke } from './kit';
+import { type Ctx, type Prop, type PortalDef, HOR, box, hash, rampOf, lump, smoke, mix, stipple } from './kit';
+import { farStrip } from './farStrip';
 import { timeOfDay, hourMix } from '../timeOfDay';
 import { drawTeaseStrip } from './teases';
 import { drawCastleAt } from '../fantasy/monument';
@@ -33,16 +34,62 @@ export const ground = (g: Ctx, w: number, h: number) => {
   for (let y = 0; y < h; y++) { const l = cx - half - 2 + Math.round((hash(Math.floor(y / 3) * 1.7) - 0.5) * 4), r = cx + half + Math.round((hash(Math.floor(y / 3) * 2.3 + 5) - 0.5) * 4); box(g, l, y, 4, 1, SNOW[3]); box(g, r - 2, y, 4, 1, SNOW[3]); box(g, l + 3, y, 1, 1, SNOW[1]); }
 };
 
+// ---------------------------------------------------------------------------------------------------------------
+// The Alps (shared with Piper's walk-away): painted once for the hour, slid by his sway
+
+const AM = 24, ASW = 400 + AM * 2, AH = 72;
+type Peaks = [number, number][];
+
+/** The Alps (in picture px at twice the size: farStrip.ts): each flank's rock in steps (the sun side lit, the far side
+ *  shaded), banded down toward the haze and dithered between; the snowfields over them, their ragged foot dithered
+ *  into the rock, a lit cornice along the ridge; ribs and gullies down the flanks, snow caught in them; the haze lying
+ *  along the foot. `snow`: how far down from the tops (picture px over the horizon) the snowline sits. */
+const paintAlps = (peaks: Peaks, snowAt: number) => (g: Ctx) => {
+  const alpsTop = (x: number) => Math.max(6, ...peaks.map(([px, h]) => h - Math.abs(x - px) * 0.9));
+  g.scale(2, 2);
+  const H = (d: string, s: string, n: string) => hourMix(d, s, n);
+  const rockL = [H('#8A88B0', '#9A6E96', '#323650'), H('#7A78A2', '#86628A', '#2A2E48')], rockS = [H('#5E5C88', '#664C78', '#1E2238'), H('#504E7A', '#583E6A', '#181C30')];
+  const snowL = [H('#FFFFFF', '#FFE6EC', '#8A94B8'), H('#E8EEF8', '#F2D8E0', '#7A84A8')], snowS = [H('#C8D2E8', '#D8B8CC', '#545C80'), H('#B0BAD4', '#C0A0B8', '#464E70')];
+  const rib = H('#3E3C64', '#4A3258', '#12162A'), haze = mix(timeOfDay().haze, H('#DCE4F4', '#F0C8D8', '#2A3058'), 0.5);
+  for (let x = 0; x < ASW; x++) {
+    const xx = x - AM, top = AH - Math.round(alpsTop(xx)), lit = alpsTop(xx - 1) < alpsTop(xx + 1);
+    const sl = Math.max(top, AH - snowAt + Math.round(Math.sin(xx * 0.07) * 4) + Math.round(hash(Math.floor(xx / 3) * 0.37) * 3));
+    const R = lit ? rockL : rockS, S = lit ? snowL : snowS;
+    // (the rock, in two bands down toward the foot, dithered where they meet)
+    const mid = sl + Math.round((AH - sl) * 0.45);
+    box(g, x, sl, 1, mid - sl, R[0]); box(g, x, mid, 1, AH - mid, R[1]);
+    if (x % 2) box(g, x, mid - 1, 1, 1, R[1]); else box(g, x, mid, 1, 1, R[0]);
+    // (the snow, its foot ragged and dithered into the rock, a cornice lit along the ridge)
+    if (sl > top) {
+      const sm = top + Math.round((sl - top) * 0.5);
+      box(g, x, top, 1, sm - top, S[0]); box(g, x, sm, 1, sl - sm, S[1]);
+      if (x % 2) box(g, x, sm - 1, 1, 1, S[1]);
+      box(g, x, sl + (x % 2), 1, 1, S[1]); if (hash(x * 0.53) > 0.6) box(g, x, sl + 2, 1, 1 + (x % 3), S[1]);
+      box(g, x, top, 1, 1, lit ? '#FFFFFF' : S[0]);
+    }
+  }
+  // (ribs and gullies down the flanks: dark rock lines falling from near each summit, snow lodged in their tops)
+  for (const [px, ph] of peaks) for (const sd of [-1, 1]) for (let k = 0; k < 3; k++) {
+    let x = px + AM + sd * (4 + k * 9), y = AH - ph + 6 + k * 8;
+    const len = 10 + k * 4 + Math.round(hash(px + sd * 3 + k) * 8);
+    for (let n = 0; n < len && y < AH - 2; n++) {
+      if (x >= 0 && x < ASW && y > AH - alpsTop(x - AM)) { box(g, x, y, 1, 2, rib); if (y < AH - snowAt + 2) box(g, x - sd, y, 1, 1, sd < 0 ? snowL[1] : snowS[1]); }
+      x += sd; y += 1 + (n % 2);
+    }
+  }
+  // (the haze along the foot: banded, dithered)
+  for (let k = 0; k < 3; k++) { g.fillStyle = stipple(g, haze, k % 2); g.fillRect(0, AH - 14 + k * 4, ASW, 4); }
+  box(g, 0, AH - 2, ASW, 2, haze);
+};
+/** Puts the Alps down behind everything, on the horizon, slid a tenth of his sway (`key`: which range it is). */
+export const drawAlps = (c: Ctx, key: string, peaks: Peaks, snowAt: number, sway: number) =>
+  c.drawImage(farStrip(key, ASW, AH, paintAlps(peaks, snowAt)), -AM + Math.round(sway * 0.1), HOR - AH);
+
+const FAIRY_PEAKS: Peaks = [[-20, 30], [40, 52], [96, 34], [150, 58], [214, 40], [268, 62], [330, 38], [390, 54], [440, 30]];
+
 const back = (c: Ctx, t: number, sway: number) => {
   // (the Alps far off: jagged, snowfields on their tops, rock ribs; the pine ridge nearer; the castle on its crag)
-  const rock = hourMix('#6E6C96', '#7A5A86', '#262A44'), snow = hourMix('#E8EEF8', '#F2D8E0', '#7A84A8'), shade = hourMix('#B8C2DC', '#C8A8C0', '#4A5276');
-  const peaks: [number, number][] = [[-20, 30], [40, 52], [96, 34], [150, 58], [214, 40], [268, 62], [330, 38], [390, 54], [440, 30]];
-  const yAt = (x: number) => HOR - Math.max(6, ...peaks.map(([px, h]) => h - Math.abs(x - px) * 0.9));
-  for (let x = 0; x < 400; x += 2) {
-    const xx = x - sway * 0.1, y = Math.round(yAt(xx)), lit2 = yAt(xx + 2) < yAt(xx - 2), sl = Math.max(y, HOR - 22 + Math.round(Math.sin(xx * 0.07) * 4));
-    box(c, x, y, 2, HOR - y, rock);
-    if (sl > y) box(c, x, y, 2, sl - y, lit2 ? snow : shade);
-  }
+  drawAlps(c, 'pw-fy-alps', FAIRY_PEAKS, 22, sway);
   // (in front of the Alps, the neighbors past the land's edge: THRONES OF THE STARS off left, Jungle Land's temple off right)
   drawTeaseStrip(c, 'fantasy', 'far', sway);
   drawCastleAt(c, Math.round(200 + sway * 0.45), HOR - 4, 0.17, t);
