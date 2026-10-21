@@ -228,6 +228,11 @@ const paintCulvertChunk = (g: Ctx, i: number, u0: number, top: number, bot: numb
     const x = u0 + k * 160, sh = hash(i * 7 + k) < 0.5 ? C[2] : mix(C[2], C[3], 0.4);
     box(g, x, top, 160, bot - top, sh);
     checker(g, x, top, 160, 4, C[3]);
+    // (lit down its left, in shade down its right, dithered; aggregate pitting all over; a spall now and then)
+    box(g, x + 3, top, 6, bot - top, mix(sh, C[3], 0.45)); checker(g, x + 9, top, 4, bot - top, mix(sh, C[3], 0.45));
+    box(g, x + 148, top, 12, bot - top, mix(sh, C[1], 0.45)); checker(g, x + 144, top, 4, bot - top, mix(sh, C[1], 0.45), 1);
+    for (let p = 0; p < 40; p++) { const px = x + 6 + Math.floor(hash(i * 31 + k * 7 + p * 1.3) * 148), py = top + 6 + Math.floor(hash(i * 17 + k + p * 2.9) * (bot - top - 12)); box(g, px, py, 2, 1, p % 3 ? mix(sh, C[1], 0.6) : mix(sh, C[4], 0.4)); }
+    if (hash(i * 5 + k * 3) > 0.7) { const sx = x + 40 + Math.floor(hash(i + k) * 70), sy = top + 90 + Math.floor(hash(i * 2 + k) * 120); box(g, sx - 1, sy - 1, 26, 14, C[0]); box(g, sx, sy, 24, 12, C[1]); box(g, sx, sy + 10, 24, 2, C[3]); box(g, sx + 3, sy + 5, 18, 2, fogged('#7A3E1E', 0.35)); }
     for (let ty = top + 30; ty < bot - 20; ty += 48) for (let tx = x + 20; tx < x + 160; tx += 40) { box(g, tx, ty, 2, 2, C[0]); box(g, tx, ty - 1, 2, 1, C[1]); }
     // (the stains: the waterline's band, rust down from the ties, algae creeping up from the floor)
     if (hash(i * 13 + k) > 0.45) { const rx = x + 30 + Math.floor(hash(i * 3 + k) * 90); for (let s = 0; s < 70; s += 2) box(g, rx + (s % 6 === 0 ? 1 : 0), top + 40 + s, 2, 2, mix(sh, '#6B3A1A', 0.35 * (1 - s / 70))); }
@@ -754,6 +759,16 @@ const paintRoof = (g: Ctx, a: number, b: number, bottom: number, i: number) => {
     const sx = a + Math.floor(hash(i * 131 + k) * (b - a)), sy = bottom - 40 - Math.floor(hash(i * 71 + k * 3) * (ROOF_H - 50));
     box(g, sx, sy, 6, 4, EARTH[3]); box(g, sx, sy, 6, 1, EARTH[4]); box(g, sx, sy + 4, 6, 1, EARTH[0]);
   }
+  // (bigger stones bedded in it, inked, lit on top, shaded under; roots threading down through it from the jungle)
+  for (let k = 0; k < (b - a) / 110; k++) {
+    const sx = a + Math.floor(hash(i * 53 + k * 1.7) * (b - a - 30)), sy = bottom - 60 - Math.floor(hash(i * 29 + k * 4.1) * (ROOF_H - 90)), sw = 14 + Math.floor(hash(k + i) * 18), shh = 8 + Math.floor(hash(k * 3 + i) * 8);
+    box(g, sx - 1, sy - 1, sw + 2, shh + 2, EARTH[0]); box(g, sx, sy, sw, shh, '#4A4438'); box(g, sx, sy, sw, 2, '#6A6252'); box(g, sx + 2, sy + 2, sw - 6, 1, '#5A5444');
+    box(g, sx, sy + shh - 2, sw, 2, '#2E2A22'); box(g, sx + sw - 2, sy + 2, 2, shh - 2, '#2E2A22');
+  }
+  for (let k = 0; k < (b - a) / 140; k++) {
+    let rx = a + Math.floor(hash(i * 7 + k * 2.3) * (b - a)); const len = 60 + Math.floor(hash(i + k * 5.1) * 160);
+    for (let y = bottom - ROOF_H; y < bottom - ROOF_H + len; y += 4) { box(g, rx, y, 2, 4, '#3A2A1A'); box(g, rx, y, 1, 4, '#5A4430'); if (hash(y + rx) < 0.2) rx += hash(y) < 0.5 ? -2 : 2; }
+  }
   // (the slab: precast concrete, its front edge lit on top, the underside shaded; joints every 160)
   const C = CONC;
   box(g, a, bottom - 30, b - a, 30, C[2]);
@@ -794,6 +809,14 @@ const earth = (c: Ctx, v: V, a: number, b: number, top: number, bottom: number) 
   if (x1_ <= x0_ || y1 <= y0) return;
   box(c, x0_, y0, x1_ - x0_, y1 - y0, EARTH[1]);
   for (let y = Math.ceil((y0 - top) / 110) * 110 + top; y < y1; y += 110) checker(c, x0_, y, x1_ - x0_, 6, EARTH[Math.round((y - top) / 110) % 2 ? 0 : 2]);
+  // (stones in it, world-anchored: a few per cell, lit on top)
+  for (let gx = Math.floor(x0_ / 64) * 64; gx < x1_; gx += 64) for (let gy = Math.floor(y0 / 64) * 64; gy < y1; gy += 64) {
+    const h = hash(gx * 0.013 + gy * 0.71);
+    if (h > 0.55) continue;
+    const sx = gx + Math.floor(h * 90) % 50, sy = gy + Math.floor(hash(gx + gy) * 50), sw = 6 + Math.floor(h * 16);
+    if (sy < top || sy > bottom - 8) continue;
+    box(c, sx, sy, sw, 5, EARTH[3]); box(c, sx, sy, sw, 1, EARTH[4]); box(c, sx, sy + 5, sw, 1, EARTH[0]);
+  }
 };
 
 /** The concrete wall at the far end of the tank, over the intake (front plane: it's solid), the earth over the pipe. */
