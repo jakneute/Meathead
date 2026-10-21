@@ -21,7 +21,7 @@ import { RAMP, shaded, bands, layer } from '../../../m1/game/scenes/art/snes';
 import { slab, tubeFixture, DOOR_GREEN, SET_INK } from '../../../m1/game/scenes/art/props';
 import { painting, rgbOf, type Painter } from '../../../m1/game/scenes/art/raster';
 import { flies, stink } from '../../../m1/game/scenes/shatLook';
-import { drawTitleMeathead, drawTitleGlasses, type TitleMood } from '../../title/meathead';
+import { drawTitleMeathead, drawTitleGlasses, prewarmTitleMeathead, type TitleMood } from '../../title/meathead';
 import { ART_W, ART_H } from './scene';
 
 type Ctx = CanvasRenderingContext2D;
@@ -895,3 +895,11 @@ export const shotGlassesOn = (c: Ctx, t: number, talking: boolean) => {
   if (talking && t % 8 < 4) { R(c, 116, 86, 24, 3, '#3a0606'); R(c, 118, 86, 20, 1, '#f4ecdc'); }
   if (dressed !== 'clean') { flies(c, 60, 120, 16, 3); stink(c, 200, 140, 3, 30, 10); }
 };
+
+/** The cutscenes' painted stills, in the order they're first wanted (the opening's, then the closing's): painted ahead
+ *  one per idle moment (gross.ts prewarmGross runs them first), so no shot stops to paint itself the frame it cuts in. */
+export const SHOT_STILLS: (() => void)[] = [
+  () => newsStill(), () => agentFStill(), prewarmTitleMeathead,
+  () => chokeStill(0), () => chokeStill(1), () => chokeStill(2), () => ticketStill(), () => keysHand(),
+  () => glassesInsertStill(), () => dressHand(),
+];

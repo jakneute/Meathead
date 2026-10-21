@@ -23,7 +23,7 @@
 // user's: "make sure there's a base to it on the bottom. i just don't want the wheel running under the logo"): its
 // rim, cars and all, ends above the logo's top, the deck and booth it stands on are right of the logo's end.
 
-import { drawTitleMeathead, blinkTitleMeathead, ART_W, ART_H, type TitleMood } from './meathead';
+import { drawTitleMeathead, blinkTitleMeathead, prewarmTitleMeathead, ART_W, ART_H, type TitleMood } from './meathead';
 import { bayer, hash2, noise, rgbOf, type RGB } from '../../m1/game/scenes/art/raster';
 
 type Ctx = CanvasRenderingContext2D;
@@ -1010,6 +1010,8 @@ const shakeAt = (beat: number): [number, number] => {
   return [m >= 3 ? sg * Math.round(m / 3) : 0, sg * Math.round(m)];
 };
 export const createTitleScene = () => {
+  // (his stills painted ahead in idle moments: the intro would otherwise stop to paint each as his face pops in)
+  prewarmTitleMeathead();
   let sky: HTMLCanvasElement | null = null, park: Park | null = null, plate: HTMLCanvasElement | null = null;
   let ribbon: HTMLCanvasElement | null = null, flags: HTMLCanvasElement[] = [], logo: Logo | null = null;
   let wheelBase: { back: HTMLCanvasElement; front: HTMLCanvasElement } | null = null;

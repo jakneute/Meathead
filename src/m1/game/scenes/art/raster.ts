@@ -51,6 +51,10 @@ export interface FormOpts {
   alpha?: number;
 }
 
+type Box = [number, number, number, number];
+/** Each mask's box (see readMask). */
+const boxes = new WeakMap<Uint8Array, Box>();
+
 /** A canvas being painted pixel by pixel. */
 export class Painter {
   readonly w: number; readonly h: number;
@@ -71,17 +75,35 @@ export class Painter {
   mask(path: (g: Ctx) => void): Uint8Array {
     const g = this.mg; g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, this.w, this.h);
     g.fillStyle = '#fff'; g.strokeStyle = '#fff'; g.beginPath(); path(g); g.fill();
-    const a = g.getImageData(0, 0, this.w, this.h).data, m = new Uint8Array(this.w * this.h);
-    for (let i = 0; i < m.length; i++) m[i] = a[i * 4 + 3] >= 128 ? 1 : 0;
-    return m;
+    return this.readMask(g);
   }
   /** A stroked path's mask (a fry, a hair, a straw). */
   strokeMask(path: (g: Ctx) => void, width: number): Uint8Array {
     const g = this.mg; g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, this.w, this.h);
     g.strokeStyle = '#fff'; g.lineWidth = width; g.lineCap = 'round'; g.lineJoin = 'round'; g.beginPath(); path(g); g.stroke();
-    const a = g.getImageData(0, 0, this.w, this.h).data, m = new Uint8Array(this.w * this.h);
-    for (let i = 0; i < m.length; i++) m[i] = a[i * 4 + 3] >= 128 ? 1 : 0;
+    return this.readMask(g);
+  }
+  /** The mask off the scratch canvas, its bounds noted (form and dist only walk the box it's in: the same pixels,
+   *  without a pass over the whole canvas for a vein or a stud). */
+  private readMask(g: Ctx): Uint8Array {
+    const a = g.getImageData(0, 0, this.w, this.h).data, m = new Uint8Array(this.w * this.h), w = this.w;
+    let x0 = w, y0 = this.h, x1 = -1, y1 = -1;
+    for (let i = 0; i < m.length; i++) if (a[i * 4 + 3] >= 128) {
+      m[i] = 1; const x = i % w, y = (i - x) / w;
+      if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; y1 = y;
+    }
+    boxes.set(m, [x0, y0, x1, y1]);
     return m;
+  }
+  /** Where a mask's set pixels are: [x0, y0, x1, y1] inclusive (x1 < x0: none). */
+  private box(m: Uint8Array): Box {
+    let b = boxes.get(m);
+    if (b) return b;
+    const w = this.w;
+    let x0 = w, y0 = this.h, x1 = -1, y1 = -1;
+    for (let i = 0; i < m.length; i++) if (m[i]) { const x = i % w, y = (i - x) / w; if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; y1 = y; }
+    b = [x0, y0, x1, y1]; boxes.set(m, b);
+    return b;
   }
   and(a: Uint8Array, b: Uint8Array) { const m = new Uint8Array(a.length); for (let i = 0; i < a.length; i++) m[i] = a[i] & b[i]; return m; }
   minus(a: Uint8Array, b: Uint8Array) { const m = new Uint8Array(a.length); for (let i = 0; i < a.length; i++) m[i] = a[i] & (1 - b[i]); return m; }
@@ -116,15 +138,17 @@ export class Painter {
 
   /** How far each pixel of a mask is from its edge (chamfer 3-4, in px). */
   dist(m: Uint8Array) {
-    const { w, h } = this, D = new Float32Array(w * h), BIG = 1e6;
-    for (let i = 0; i < D.length; i++) D[i] = m[i] ? BIG : 0;
-    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    // (only the mask's box: outside it everything's 0 and stays 0, and inside it each pixel's neighbors are the same
+    // either way, so it's the same distances as a pass over the lot)
+    const { w, h } = this, D = new Float32Array(w * h), BIG = 1e6, [bx0, by0, bx1, by1] = this.box(m);
+    for (let y = by0; y <= by1; y++) for (let x = bx0; x <= bx1; x++) { const i = y * w + x; if (m[i]) D[i] = BIG; }
+    for (let y = by0; y <= by1; y++) for (let x = bx0; x <= bx1; x++) {
       const i = y * w + x; if (!D[i]) continue;
       let v = D[i];
       v = Math.min(v, x > 0 ? D[i - 1] + 1 : 1, y > 0 ? D[i - w] + 1 : 1, x > 0 && y > 0 ? D[i - w - 1] + 1.414 : 1.414, x < w - 1 && y > 0 ? D[i - w + 1] + 1.414 : 1.414);
       D[i] = v;
     }
-    for (let y = h - 1; y >= 0; y--) for (let x = w - 1; x >= 0; x--) {
+    for (let y = by1; y >= by0; y--) for (let x = bx1; x >= bx0; x--) {
       const i = y * w + x; if (!D[i]) continue;
       let v = D[i];
       v = Math.min(v, x < w - 1 ? D[i + 1] + 1 : 1, y < h - 1 ? D[i + w] + 1 : 1, x < w - 1 && y < h - 1 ? D[i + w + 1] + 1.414 : 1.414, x > 0 && y < h - 1 ? D[i + w - 1] + 1.414 : 1.414);
@@ -140,8 +164,9 @@ export class Painter {
   form(shape: Uint8Array | ((g: Ctx) => void), o: FormOpts): Uint8Array {
     const m = typeof shape === 'function' ? this.mask(shape) : shape;
     const { w, h } = this, D = this.dist(m), bev = o.bevel ?? 8, amb = o.amb ?? 0.14, L = o.light ?? LIGHT;
-    const H = new Float32Array(w * h);
-    for (let i = 0; i < H.length; i++) {
+    const H = new Float32Array(w * h), [bx0, by0, bx1, by1] = this.box(m);
+    for (let y = by0; y <= by1; y++) for (let x = bx0; x <= bx1; x++) {
+      const i = y * w + x;
       if (!m[i]) continue;
       const t = Math.min(D[i] / bev, 1);
       H[i] = bev * Math.sqrt(Math.max(0, 1 - (1 - t) * (1 - t))) + (o.bump ? o.bump(i % w, Math.floor(i / w)) : 0);
@@ -149,9 +174,11 @@ export class Painter {
     const cols = o.ramp.map(rgbOf), n = cols.length, sc = o.spec ? rgbOf(o.spec) : null, wet = o.wet ?? 0;
     const Hv = norm3(L[0], L[1], L[2] + 1);
     const inkC = o.ink === null ? null : rgbOf(o.ink ?? '#140a06'), inkInC = o.inkIn === undefined ? inkC : o.inkIn === null ? null : rgbOf(o.inkIn);
-    const before = new Uint8Array(w * h); for (let i = 0; i < before.length; i++) before[i] = this.d[i * 4 + 3] > 0 ? 1 : 0;
+    // (what was painted before it, read straight off the pixels: only ever asked of pixels outside the mask, which
+    // this form never paints, so they're as they were before it)
+    const d = this.d, before = (j: number) => d[j * 4 + 3] > 0;
     const a = o.alpha ?? 1;
-    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    for (let y = by0; y <= by1; y++) for (let x = bx0; x <= bx1; x++) {
       const i = y * w + x; if (!m[i]) continue;
       const hl = x > 0 && m[i - 1] ? H[i - 1] : H[i], hr = x < w - 1 && m[i + 1] ? H[i + 1] : H[i];
       const hu = y > 0 && m[i - w] ? H[i - w] : H[i], hd = y < h - 1 && m[i + w] ? H[i + w] : H[i];
@@ -162,7 +189,7 @@ export class Painter {
       const edge = (x > 0 && !m[i - 1]) || (x < w - 1 && !m[i + 1]) || (y > 0 && !m[i - w]) || (y < h - 1 && !m[i + w]);
       if (edge && (inkC || inkInC)) {
         // (against nothing that was there before: the outer ink; against another form: the inner one)
-        const out = (x > 0 && !m[i - 1] && !before[i - 1]) || (x < w - 1 && !m[i + 1] && !before[i + 1]) || (y > 0 && !m[i - w] && !before[i - w]) || (y < h - 1 && !m[i + w] && !before[i + w]);
+        const out = (x > 0 && !m[i - 1] && !before(i - 1)) || (x < w - 1 && !m[i + 1] && !before(i + 1)) || (y > 0 && !m[i - w] && !before(i - w)) || (y < h - 1 && !m[i + w] && !before(i + w));
         const ic = out ? inkC : inkInC;
         if (ic) { this.px(x, y, ic, a); continue; }
       }
@@ -184,10 +211,48 @@ export class Painter {
   }
 }
 
+/** A painting's paint: straight through, or a generator that yields between its forms (so it can be painted a slice
+ *  at a time in idle moments: paintingStep). */
+export type Paint = (p: Painter) => void | Iterator<unknown>;
 const kept = new Map<string, HTMLCanvasElement>();
-/** Painted once (by `paint`, onto a Painter), kept by `key`. */
-export const painting = (key: string, w: number, h: number, paint: (p: Painter) => void, base?: (g: Ctx) => void) => {
+/** Paintings part painted (paintingStep), each with where it's got to. */
+const going = new Map<string, { p: Painter; it: Iterator<unknown> | null }>();
+const start = (key: string, w: number, h: number, paint: Paint, base?: (g: Ctx) => void) => {
+  let j = going.get(key);
+  if (!j) { const p = new Painter(w, h, base); const r = paint(p); j = { p, it: r && typeof (r as Iterator<unknown>).next === 'function' ? r as Iterator<unknown> : null }; going.set(key, j); }
+  return j;
+};
+const done = (key: string, p: Painter) => { const c = p.canvas(); kept.set(key, c); going.delete(key); return c; };
+/** Painted once (by `paint`, onto a Painter), kept by `key`. Part painted already (paintingStep): the rest, now. */
+export const painting = (key: string, w: number, h: number, paint: Paint, base?: (g: Ctx) => void) => {
   let c = kept.get(key);
-  if (!c) { const p = new Painter(w, h, base); paint(p); c = p.canvas(); kept.set(key, c); }
+  if (!c) { const j = start(key, w, h, paint, base); if (j.it) while (!j.it.next().done); c = done(key, j.p); }
   return c;
+};
+/** Paints a slice more of it, a step (a yield) at a time, till `until` (performance.now()). True once it's done. */
+export const paintingStep = (key: string, w: number, h: number, paint: Paint, until: number, base?: (g: Ctx) => void) => {
+  if (kept.has(key)) return true;
+  const j = start(key, w, h, paint, base);
+  if (j.it) { do { if (j.it.next().done) { j.it = null; break; } } while (performance.now() < until); }
+  if (j.it) return false;
+  done(key, j.p);
+  return true;
+};
+/** Is it painted (and kept)? */
+export const painted = (key: string) => kept.has(key);
+
+type Idle = (f: (d?: { timeRemaining(): number }) => void) => void;
+/** Runs `step` in idle moments, a few ms each (`step(until)` true once there's no more to do). */
+export const idleJob = (step: (until: number) => boolean, ms = 3) => {
+  const idle: Idle = (globalThis as unknown as { requestIdleCallback?: Idle }).requestIdleCallback ?? (h => setTimeout(() => h(), 40));
+  const slice = (d?: { timeRemaining(): number }) => {
+    const until = performance.now() + Math.min(ms, Math.max(1, (d?.timeRemaining() ?? ms) - 1));
+    if (!step(until)) idle(slice);
+  };
+  idle(slice);
+};
+/** Runs the tasks in idle moments, in order, as many to a moment as fit its few ms (one at least). */
+export const idleTasks = (tasks: (() => void)[], ms = 3) => {
+  const q = tasks.slice();
+  idleJob(until => { do { q.shift()?.(); } while (q.length && performance.now() < until); return !q.length; }, ms);
 };

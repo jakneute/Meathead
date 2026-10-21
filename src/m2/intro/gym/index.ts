@@ -41,7 +41,7 @@ import { updateThings, drawThing, drawDebris, type Thing, type Debris } from './
 import { drawGymBackdrop, drawGymBack, drawGymMid, drawRingFront, drawGymNear, drawCeilingHole, setExitOpen } from './art';
 import { createScene, tickScene, drawScene, sfx, type Scene, type Beat } from './scene';
 import { shotSquat, shotTv, shotDoorway, shotAgent, shotAgentF, shotMeathead, shotArrival, shotTicket, shotToddler, shotGlasses, shotGlassesOn, setShotDress } from './shots';
-import { grossChoke, grossTruck, prewarmGross } from './gross';
+import { grossChoke, grossTruck, prewarmGross, finishGross } from './gross';
 import {
   AGENT_VOICE, AGENTF_VOICE, GMAN_VOICE, ANCHOR_VOICE, OPEN_TV, OPEN_REPS, OPEN_AGENT_1, OPEN_AGENTF_1, OPEN_AGENT_2, OPEN_MH_1, OPEN_AGENTF_2, OPEN_MH_2, OPEN_MH_3,
   OPEN_AGENT_3, ROOM_LINES, RING_HELLO, RING_SHOVE, RING_THROWN, RING_JET, RING_DONE, CLOSE_MH_CORK, CLOSE_NO_CONTRACT, CLOSE_TICKET, CLOSE_MH_HAPPY, CLOSE_TRUCK,
@@ -143,6 +143,9 @@ const startClosing = (state: GameState, gym: Gym) => {
   // (he's handed the glasses in it: on him from here, every drawing of him, for good)
   setGlasses(true);
   gym.phase = 'closing';
+  // (the gross-ups, painted ahead in idle slices all through the course: any left over, now, on the cut into it
+  // (the arrival's on first, so nothing waits on them))
+  finishGross();
   gym.scene = createScene(CLOSING(d));
   state.projectiles = [];
   setUi({ introCutscene: true, gymTip: null });
@@ -203,7 +206,8 @@ export const gymLayout: StageLayout = {
     };
     state.stage = gym;
     setExitOpen(0);
-    // (the closing's gross-ups, painted now, under the load's black: they're slow to paint, and a cut mustn't hitch)
+    // (the closing's gross-ups: slow to paint, so painted ahead a slice per idle moment through the opening and the
+    // course (never at load: that was the stall going in), done long before the closing wants them)
     prewarmGross();
     // The G-men, room by room (a mixed bunch: every one his own seed)
     // (the G-men come room by room, in view: arrivals; the two trainers drop into the ring as it comes into view: ring)
@@ -228,7 +232,9 @@ export const gymLayout: StageLayout = {
     if (gym.phase === 'closing') {
       p.hidden = true; p.inCutscene = true; p.vel.x = 0;
       setUi({ introCutscene: true });
-      if (gym.scene && tickScene(gym.scene)) { gym.scene = null; carryGut(p.gut); goTo('intro'); }
+      // (the scene's kept up (its last frame, faded to black) till the parking lot's in: dropped here, the gym itself
+      // showed for a frame or so under the travel's fade)
+      if (gym.scene && tickScene(gym.scene)) { carryGut(p.gut); goTo('intro'); }
       return { ...NO_CONTROLS };
     }
     return play(ctx, gym, controls);

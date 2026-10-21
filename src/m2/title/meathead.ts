@@ -8,7 +8,7 @@
 // is in Meathead 2). All of that is painted once (twice: the pump in and out) and kept; each frame only puts it down,
 // then the face's moving parts, a drip running down a forearm, and a twinkle off the shine.
 
-import { painting, bayer, rgbOf, type Painter, type RGB } from '../../m1/game/scenes/art/raster';
+import { painting, idleTasks, bayer, rgbOf, type Painter, type RGB } from '../../m1/game/scenes/art/raster';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -500,6 +500,9 @@ const glassesStill = () => painting('m2-title-glasses', ART_W, ART_H, p => {
 });
 
 /** The glasses on him (`dy` off where they sit: the gym's closing puts them on him from above). */
+/** Paints his stills ahead, one per idle moment (the title's intro, or the gym's opening, would otherwise stop to paint
+ *  each the frame it's first wanted). */
+export const prewarmTitleMeathead = () => idleTasks([() => bodyStill(1), () => bodyStill(0), () => glassesStill()]);
 export const drawTitleGlasses = (ctx: Ctx, dy = 0) => { ctx.drawImage(glassesStill(), 0, Math.round(dy)); };
 
 /**
