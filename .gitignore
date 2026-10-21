@@ -55,3 +55,6 @@ close/
 
 # the voice tool's report of lines it couldn't resolve (rewritten every run)
 tools/voices/unresolved.txt
+
+# promo / store images (made locally, not part of the game)
+promo/
