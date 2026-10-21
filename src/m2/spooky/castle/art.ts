@@ -101,7 +101,11 @@ const paperFill = (g: Ctx, r: Room): CanvasPattern | string | null => {
       bits(t, STAR, 13, 6, mix(W[2], '#E8D890', 0.4)); bits(t, MOON, 37, 30, mix(W[2], '#E8D890', 0.4));
     });
     case 'stripe': return tilePattern(g, `cPaper:${r.id}`, 32, 8, t => { t.fillStyle = mix(W[2], W[3], 0.45); t.fillRect(0, 0, 12, 8); t.fillStyle = W[1]; t.fillRect(14, 0, 2, 8); t.fillRect(28, 0, 2, 8); t.fillStyle = mix(W[2], '#C9A227', 0.25); t.fillRect(20, 0, 2, 8); });
-    case 'velvet': return tilePattern(g, `cPaper:${r.id}`, 40, 8, t => { const o = [1, 2, 2, 3, 2, 2, 1, 1, 0, 1]; o.forEach((k, i) => { t.fillStyle = W[k]; t.fillRect(i * 4, 0, 4, 8); }); });
+    case 'velvet': return tilePattern(g, `cPaper:${r.id}`, 40, 48, t => {
+      // (flocked velvet: the pile in soft vertical folds, a flocked fleur raised on it, its shadow under)
+      const o = [1, 2, 2, 3, 2, 2, 1, 1, 0, 1]; o.forEach((k, i) => { t.fillStyle = W[k]; t.fillRect(i * 4, 0, 4, 48); });
+      for (const [x, y] of [[13, 6], [-7, 30], [33, 30]]) { bits(t, FLEUR, x, y + 2, W[0]); bits(t, FLEUR, x, y, mix(W[3], '#8A3A2A', 0.3)); }
+    });
     case 'boards': return tilePattern(g, `cPaper:${r.id}`, 24, 96, t => {
       t.fillStyle = W[2]; t.fillRect(0, 0, 24, 96); t.fillStyle = W[0]; t.fillRect(22, 0, 2, 96); t.fillStyle = W[3]; t.fillRect(0, 0, 1, 96);
       t.fillStyle = W[1]; t.fillRect(4, 30, 3, 2); t.fillRect(14, 70, 4, 2); t.fillRect(0, 95, 22, 1);
@@ -135,8 +139,70 @@ const paintWall = (g: Ctx, r: Room, tx: number) => {
     hazeBands(g, tx, top + 40, TW, (RAIL - top) * 0.6, '#0A0604', 0.7, 0, 6);
   }
   hazeBands(g, tx, top + 40, TW, 140, '#0A0204', 0.5, 0, 4);
+  const seed = tx * 0.013 + r.a * 0.001;
+  if (L.paper === 'stone') {
+    // (odd stones in the courses: a darker one, a paler one, soot-stained ones up high)
+    for (let i = 0; i < 26; i++) {
+      const bx = tx + Math.floor(hash(seed + i * 1.9) * (TW / 44)) * 44 + ((Math.floor(hash(seed + i * 4.1) * 30) & 1) ? 22 : 0);
+      const by = top + 44 + Math.floor(hash(seed + i * 2.7) * ((RAIL - top - 60) / 22)) * 22;
+      const col = hash(seed + i * 7.3) < 0.5 ? mix(W[1], '#000000', 0.15) : mix(W[2], '#9A9282', 0.45);
+      box(g, bx, by, 43, 21, col); box(g, bx, by, 43, 1, mix(col, '#FFFFFF', 0.12)); checker(g, bx, by + 17, 43, 2, mix(col, '#000000', 0.25));
+    }
+  } else {
+    // (the paper's hung in drops: a seam down each, a corner peeling off here and there, its back paler)
+    for (let sx = tx + 64 - (tx % 64); sx < tx + TW; sx += 64) {
+      box(g, sx, top + 40, 1, RAIL - top - 40, mix(W[1], W[0], 0.5));
+      box(g, sx + 1, top + 40, 1, RAIL - top - 40, mix(W[2], W[3], 0.35));
+      if (hash(seed + sx * 0.07) < 0.3) {
+        const py = top + 96 + Math.floor(hash(seed + sx) * 120);
+        g.fillStyle = INK; g.beginPath(); g.moveTo(sx + 1, py); g.lineTo(sx + 13, py); g.lineTo(sx + 1, py + 18); g.closePath(); g.fill();
+        g.fillStyle = mix(W[3], '#C8B89A', 0.55); g.beginPath(); g.moveTo(sx + 2, py + 1); g.lineTo(sx + 11, py + 1); g.lineTo(sx + 2, py + 15); g.closePath(); g.fill();
+        box(g, sx + 2, py + 1, 6, 1, mix(W[3], '#FFFFFF', 0.4));
+      }
+    }
+    // (water stains running down from up under the crown: dithered, ragged at the foot)
+    for (let i = 0; i < 2; i++) {
+      if (hash(seed + i * 5.5) < 0.45) continue;
+      const sx = tx + 30 + Math.floor(hash(seed + i * 3.3) * (TW - 90)), sw = 22 + Math.floor(hash(seed + i) * 26), sh = RAIL - 150 - Math.floor(hash(seed + i * 8.8) * 160) - (top + 80);
+      const stain = mix(W[1], '#2A1A08', 0.3);
+      checker(g, sx, top + 80, sw, sh * 0.6, stain);
+      box(g, sx + 4, top + 80, sw - 8, sh * 0.45, stain);
+      for (let k = 0; k < sw; k += 4) box(g, sx + k, top + 80 + sh * 0.6, 2, 6 + Math.floor(hash(sx + k) * sh * 0.4), stain);
+      box(g, sx + 4, top + 80 + sh * 0.45, sw - 8, 2, mix(stain, '#000000', 0.3));
+    }
+    // (grime along the top of the chair rail, where hands and dust go)
+    checker(g, tx, RAIL - 14, TW, 6, mix(W[1], W[0], 0.5)); box(g, tx, RAIL - 8, TW, 6, mix(W[1], W[0], 0.4));
+    // (where a picture hung once: the paper unfaded behind it, the nail still in)
+    if (r.id !== 'gallery' && hash(seed * 3.7) < 0.5) {
+      const gx = tx + 90 + Math.floor(hash(seed * 9.1) * (TW - 200)), gy = RAIL - 150;
+      box(g, gx, gy, 58, 74, mix(W[2], W[3], 0.55)); checker(g, gx - 2, gy, 2, 74, mix(W[2], W[3], 0.55)); checker(g, gx + 58, gy, 2, 74, mix(W[2], W[3], 0.55));
+      box(g, gx + 28, gy - 14, 2, 2, IRON[3]); box(g, gx + 28, gy - 12, 2, 1, INK);
+    }
+  }
+  // (a frieze under the crown: a stenciled band, a picture rail under it, lit on its top edge)
+  {
+    const fy = top + 38, fh = 30;
+    box(g, tx, fy, TW, fh, mix(W[1], T[0], 0.4));
+    for (let x = tx - (tx % 24); x < tx + TW; x += 24) {
+      box(g, x + 8, fy + 9, 8, 8, mix(T[1], W[2], 0.3)); box(g, x + 10, fy + 11, 4, 4, mix(T[2], W[3], 0.25));
+      box(g, x + 2, fy + 12, 4, 2, mix(T[1], W[2], 0.35)); box(g, x + 18, fy + 12, 4, 2, mix(T[1], W[2], 0.35));
+      box(g, x + 11, fy + 4, 2, 4, mix(T[1], W[2], 0.35)); box(g, x + 11, fy + 18, 2, 4, mix(T[1], W[2], 0.35));
+    }
+    box(g, tx, fy + fh, TW, 2, INK); box(g, tx, fy + fh + 2, TW, 2, mix(T[2], GLOOM, 0.3)); box(g, tx, fy + fh + 4, TW, 2, T[0]);
+    checker(g, tx, fy + fh + 6, TW, 2, '#0A0204');
+  }
   // Pilasters at the tile's ends (each tile paints its half)
   if (L.paper !== 'stone') for (const px of [tx, tx + TW]) pilaster(g, px, top + 40, RAIL, r.trim);
+  // (cobwebs strung in the corners up under the frieze, and at the pilasters' capitals)
+  for (const px of [tx, tx + TW]) {
+    if (hash(seed + px * 0.11) < 0.4) continue;
+    const s = px === tx ? 1 : -1, cx = px + s * 19, cy = top + 76, web = 'rgba(200, 196, 210, 0.32)';
+    g.strokeStyle = web; g.lineWidth = 1;
+    g.beginPath();
+    for (let a = 0; a <= 4; a++) { const ang = (a / 4) * (Math.PI / 2); g.moveTo(cx, cy); g.lineTo(cx + s * Math.cos(ang) * 34, cy + Math.sin(ang) * 34); }
+    for (const rr of [10, 19, 28]) { g.moveTo(cx + s * rr, cy); for (let a = 1; a <= 4; a++) { const ang = (a / 4) * (Math.PI / 2); g.lineTo(cx + s * Math.cos(ang) * rr, cy + Math.sin(ang) * rr + (a % 2) * 2); } }
+    g.stroke();
+  }
   // The crown molding way up: stepped, dentils under it, its shadow on the wall
   box(g, tx, top, TW, 12, T[1]); box(g, tx, top + 12, TW, 3, T[3]); box(g, tx, top + 15, TW, 9, T[2]);
   for (let x = Math.floor(tx / 12) * 12; x < tx + TW; x += 12) { box(g, x, top + 24, 7, 7, T[3]); box(g, x, top + 29, 7, 2, T[1]); }
@@ -196,6 +262,14 @@ const drawFloor = (c: Ctx, state: GameState, r: Room) => {
       for (let k = 0; k < 11; k++) { const y = FOOT + 2 + k * 2, s = (y - FOOT) / (GY - FOOT), bx = ex + (x - ex) * (K + (1 - K) * s); c.fillRect(Math.round(bx), y, 1, 2); }
     }
     if (L.floorKind === 'flags') box(c, a, FOOT + 10, b - a, 1, F[0]);
+    // (each board or flag its own: a grain dash or a chip lit across it, a knot now and then, a worn pale patch
+    // down the middle where the tours walk)
+    for (let x = Math.floor(a / step) * step; x < b + step; x += step) {
+      const k = hash(x * 0.37), y = FOOT + 4 + Math.floor(k * 14);
+      box(c, x + 4, y, Math.floor(step * 0.45), 1, k < 0.5 ? F[3] : mix(F[1], INK, 0.2));
+      if (k > 0.82) { box(c, x + 12, FOOT + 9, 3, 2, F[0]); box(c, x + 12, FOOT + 9, 1, 1, F[3]); }
+    }
+    checker(c, a, FOOT + 16, b - a, 2, mix(F[2], F[3], 0.5), 1);
   } else {
     // (carpet: a border pattern along the front, a pile stipple)
     checker(c, a, FOOT + 2, b - a, 6, mix(F[1], F[2], 0.5));
@@ -380,7 +454,11 @@ const paintArmor = (g: Ctx) => {
 };
 
 /** A portrait in its gilt frame: a sitter (each their own), and how they went. (Its eyes are left for eyesFollow.) */
-const paintPortrait = (g: Ctx, w: number, h: number, i: number, eyes: boolean) => {
+const paintPortrait = (g: Ctx, w: number, h: number, i: number, eyes: boolean, bare = false) => {
+  if (!bare) paintGilt(g, w, h);
+  paintSitter(g, w, h, i, eyes);
+};
+const paintGilt = (g: Ctx, w: number, h: number) => {
   // (the frame: stepped gilt, lit top-left, ornaments at the corners)
   box(g, -8, -8, w + 16, h + 16, INK);
   box(g, -7, -7, w + 14, h + 14, GILT[2]); box(g, -7, -7, w + 14, 2, GILT[4]); box(g, -7, -7, 2, h + 14, GILT[3]);
@@ -388,20 +466,54 @@ const paintPortrait = (g: Ctx, w: number, h: number, i: number, eyes: boolean) =
   box(g, -3, -3, w + 6, h + 6, GILT[1]); checker(g, -5, -5, w + 10, 2, GILT[3]);
   for (const [cx, cy] of [[-7, -7], [w - 3, -7], [-7, h - 3], [w - 3, h - 3]]) { box(g, cx, cy, 10, 10, GILT[3]); box(g, cx + 3, cy + 3, 4, 4, GILT[1]); }
   box(g, -1, -1, w + 2, h + 2, INK);
+};
+/** How much bigger than a wall portrait (150 wide) a sitter's painted: a huge frame gets a bigger sitter, not a small
+ *  one lost in it. */
+const sitterK = (w: number, h: number) => Math.max(1, Math.min(w, h * 0.8) / 150);
+const paintSitter = (g: Ctx, w: number, h: number, i: number, eyes: boolean) => {
+  const k = sitterK(w, h);
+  if (k > 1.05) {
+    g.save(); g.beginPath(); g.rect(0, 0, w, h); g.clip();
+    g.translate(0, 0); g.scale(k, k); paintSitterAt(g, w / k, h / k, i, eyes); g.restore();
+    return;
+  }
+  paintSitterAt(g, w, h, i, eyes);
+};
+const paintSitterAt = (g: Ctx, w: number, h: number, i: number, eyes: boolean) => {
   // (the painting: a dark ground, banded)
   const grounds = [['#1A1420', '#2E2438', '#3A2E44'], ['#141E1A', '#22342C', '#2E4038'], ['#201A12', '#3A3020', '#4A3E28'], ['#1E1418', '#342228', '#422C32'], ['#121822', '#202C3C', '#2A3A4E'], ['#22140E', '#3A2418', '#4A3020']][i % 6];
   bandedGradient(g, 0, 0, w, h, grounds, 6);
   const cx = Math.round(w / 2), fy = Math.round(h * 0.3), fw = Math.max(18, Math.round(w * 0.14));
   const skin = ['#C9A98A', '#8A5A3A', '#E0BCA0', '#5A3A28', '#B88A66', '#D8B090'][i % 6], S = rampOf(skin);
   const coat = ['#1E1A22', '#2A1A40', '#3A1A1A', '#1A2A22', '#2A2A3A', '#3A2A10'][i % 6], C = rampOf(coat);
-  // (the shoulders, the coat, a collar, a jewel)
-  box(g, cx - w * 0.32, h * 0.62, w * 0.64, h * 0.38, C[2]); box(g, cx - w * 0.32, h * 0.62, w * 0.2, h * 0.38, C[3]); box(g, cx + w * 0.18, h * 0.62, w * 0.14, h * 0.38, C[1]);
-  box(g, cx - 8, h * 0.6, 16, 10, i % 2 ? '#E8E2D0' : '#9A1A1A'); box(g, cx - 2, h * 0.66, 4, 4, GILT[3]);
-  // (the neck, the face, lit from the left)
-  box(g, cx - 5, fy + 24, 10, h * 0.62 - fy - 22, S[1]);
-  box(g, cx - fw / 2 - 1, fy - 1, fw + 2, 28, INK); box(g, cx - fw / 2, fy, fw, 26, S[2]); box(g, cx - fw / 2, fy, 4, 26, S[3]); box(g, cx + fw / 2 - 4, fy, 4, 26, S[1]);
-  box(g, cx - 1, fy + 10, 3, 6, S[1]);
-  if (!eyes) { box(g, cx - 7, fy + 8, 5, 3, INK); box(g, cx + 3, fy + 8, 5, 3, INK); }
+  // (the old master's backdrop: a swag of drapery one side, a column the other, a pool of light behind the sitter)
+  const Gd = rampOf(grounds[2]);
+  pixelBlob(g, cx - 4, fy + 20, w * 0.3, h * 0.3, mix(grounds[2], '#8A7A5A', 0.18));
+  checker(g, cx - w * 0.34, fy - h * 0.12, w * 0.68, h * 0.62, mix(grounds[2], '#8A7A5A', 0.1));
+  const dr = rampOf(['#5A1418', '#1E2A4A', '#3A4A1A', '#4A1A3A', '#5A3A14', '#2A1A4A'][i % 6]);
+  g.fillStyle = dr[1]; g.beginPath(); g.moveTo(0, 0); g.lineTo(w * 0.34, 0); g.quadraticCurveTo(w * 0.18, h * 0.22, 0, h * 0.42); g.closePath(); g.fill();
+  g.fillStyle = dr[2]; g.beginPath(); g.moveTo(0, 0); g.lineTo(w * 0.22, 0); g.quadraticCurveTo(w * 0.1, h * 0.16, 0, h * 0.28); g.closePath(); g.fill();
+  for (let k = 1; k < 4; k++) box(g, w * 0.06 * k, 2, 1, h * (0.3 - k * 0.05), dr[3]);
+  box(g, w - w * 0.16, h * 0.08, w * 0.1, h * 0.92, Gd[1]); box(g, w - w * 0.16, h * 0.08, 2, h * 0.92, Gd[3]); box(g, w - w * 0.18, h * 0.06, w * 0.14, 4, Gd[2]);
+  // (the shoulders: rounded, the coat lit from the left in steps, lapels, a collar, a jewel)
+  const sy = Math.round(h * 0.6), sw = w * 0.34;
+  g.fillStyle = INK; g.beginPath(); g.moveTo(cx - sw - 2, h); g.quadraticCurveTo(cx - sw, sy - 2, cx - 6, sy - 4); g.lineTo(cx + 6, sy - 4); g.quadraticCurveTo(cx + sw, sy - 2, cx + sw + 2, h); g.closePath(); g.fill();
+  g.fillStyle = C[2]; g.beginPath(); g.moveTo(cx - sw, h); g.quadraticCurveTo(cx - sw + 2, sy, cx - 6, sy - 2); g.lineTo(cx + 6, sy - 2); g.quadraticCurveTo(cx + sw - 2, sy, cx + sw, h); g.closePath(); g.fill();
+  g.fillStyle = C[3]; g.beginPath(); g.moveTo(cx - sw + 2, h); g.quadraticCurveTo(cx - sw + 4, sy + 2, cx - sw * 0.5, sy + 4); g.lineTo(cx - sw * 0.55, h); g.closePath(); g.fill();
+  checker(g, cx - sw * 0.55, sy + 6, 6, h - sy - 6, C[3]);
+  g.fillStyle = C[1]; g.beginPath(); g.moveTo(cx + sw * 0.55, sy + 6); g.quadraticCurveTo(cx + sw - 2, sy + 4, cx + sw - 1, h); g.lineTo(cx + sw * 0.6, h); g.closePath(); g.fill();
+  // (lapels)
+  g.fillStyle = C[0]; g.beginPath(); g.moveTo(cx - 10, sy); g.lineTo(cx, h); g.lineTo(cx - 16, h); g.closePath(); g.fill(); g.beginPath(); g.moveTo(cx + 10, sy); g.lineTo(cx, h); g.lineTo(cx + 16, h); g.closePath(); g.fill();
+  box(g, cx - 8, h * 0.6, 16, 10, i % 2 ? '#E8E2D0' : '#9A1A1A'); box(g, cx - 8, h * 0.6, 16, 2, i % 2 ? '#FFFFFF' : '#C83A3A'); box(g, cx - 2, h * 0.66, 4, 4, GILT[3]); box(g, cx - 1, h * 0.66, 1, 1, '#FFFFFF');
+  // (the neck, the face: an oval, lit from the left in steps, shaded under the jaw)
+  box(g, cx - 5, fy + 24, 10, h * 0.62 - fy - 22, S[1]); box(g, cx - 5, fy + 24, 3, h * 0.62 - fy - 22, S[2]);
+  const oval = (rx: number, ry: number, ox: number, oy: number, col: string) => { g.fillStyle = col; g.beginPath(); g.ellipse(cx + ox, fy + 13 + oy, rx, ry, 0, 0, Math.PI * 2); g.fill(); };
+  oval(fw / 2 + 1, 15, 0, 0, INK); oval(fw / 2, 14, 0, 0, S[1]); oval(fw / 2 - 2, 12, -1, -1, S[2]); oval(fw / 2 - 5, 9, -3, -3, S[3]);
+  box(g, cx - fw / 2 + 3, fy + 6, 2, 2, S[4]);
+  box(g, cx - 1, fy + 10, 3, 6, S[1]); box(g, cx - 1, fy + 10, 1, 5, S[3]);
+  box(g, cx - fw / 2 + 2, fy + 16, 4, 2, mix(S[2], '#C05050', 0.3)); box(g, cx + fw / 2 - 6, fy + 16, 4, 2, mix(S[1], '#C05050', 0.3));
+  if (!eyes) { box(g, cx - 7, fy + 8, 5, 3, INK); box(g, cx + 3, fy + 8, 5, 3, INK); box(g, cx - 6, fy + 8, 1, 1, '#E8E2D0'); box(g, cx + 4, fy + 8, 1, 1, '#E8E2D0'); }
+  box(g, cx - 8, fy + 6, 6, 1, mix(S[0], INK, 0.3)); box(g, cx + 2, fy + 6, 6, 1, mix(S[0], INK, 0.3));
   // (the hair: slicked, a wig, a bun, bald, a beard, a widow's peak)
   const hair = ['#141016', '#D8D4CC', '#4A2A14', '#141016', '#8A3A1A', '#2A2A2A'][i % 6];
   switch (i % 6) {
@@ -415,8 +527,10 @@ const paintPortrait = (g: Ctx, w: number, h: number, i: number, eyes: boolean) =
   // (and how they went: a grape, an apple in the mouth, a tight-lipped smirk)
   if (i % 3 === 0) { box(g, cx - 4, fy + 16, 8, 8, INK); box(g, cx - 3, fy + 17, 6, 6, '#6A1E9E'); box(g, cx - 2, fy + 18, 2, 2, '#B07ADE'); }
   else box(g, cx - 4, fy + 18, 8, 2, S[0]);
-  // (the varnish, gone dark at the edges)
+  // (the varnish, gone dark at the edges, cracked all over)
   hazeBands(g, 0, h - 30, w, 30, '#0A0606', 0, 0.45, 3);
+  hazeBands(g, 0, 0, w, 24, '#0A0606', 0.4, 0, 3);
+  for (let k = 0; k < Math.floor((w * h) / 900); k++) { const qx = Math.floor(hash(i * 13 + k * 1.7) * w), qy = Math.floor(hash(i * 7 + k * 2.3) * h); box(g, qx, qy, 2 + Math.floor(hash(k + i) * 6), 1, 'rgba(10, 6, 6, 0.35)'); }
 };
 const portrait = (c: Ctx, x: number, y: number, w: number, h: number, i: number, eyes: boolean) => put(c, `cPortrait:${i % 6}:${w}:${h}:${eyes}`, x, y, -10, -10, w + 20, h + 20, g => paintPortrait(g, w, h, i, eyes));
 
@@ -833,12 +947,10 @@ const drawLedge = (c: Ctx, state: GameState, x: number, y: number, w: number, lo
       const fh = Math.min(170, GY - y - 14);
       box(c, x - 1, y + 9, w + 2, fh + 2, INK); box(c, x, y + 10, w, fh, GILT[2]); box(c, x, y + 10, 4, fh, GILT[3]); box(c, x + w - 4, y + 10, 4, fh, GILT[1]);
       checker(c, x + 4, y + 14, w - 8, 2, GILT[3]); box(c, x + 9, y + 19, w - 18, fh - 18, INK);
-      bandedGradient(c, x + 10, y + 20, w - 20, fh - 20, ['#1A1420', '#2A2230', '#342A3A'], 4);
-      const cx = x + w / 2;
-      box(c, cx - 34, y + 90, 68, 80, '#1E1A22'); box(c, cx - 34, y + 90, 20, 80, '#2E2834'); box(c, cx - 6, y + 88, 12, 8, '#E8E2D0');
-      box(c, cx - 15, y + 49, 30, 34, INK); box(c, cx - 14, y + 50, 28, 32, '#C9A98A'); box(c, cx - 14, y + 50, 6, 32, '#DEC0A4'); box(c, cx + 8, y + 50, 6, 32, '#A8886A');
-      box(c, cx - 16, y + 44, 32, 8, '#2A1A14'); box(c, cx - 4, y + 72, 8, 2, '#7A4A3A');
-      eyesFollow(c, state, cx, y + 62);
+      // (the ancestor: painted as the gallery's portraits are, each frame its own sitter)
+      const iw = w - 20, ih = fh - 20, si = Math.floor(hash(x * 0.01) * 6);
+      put(c, `cFrameArt:${iw}:${ih}:${si}`, x + 10, y + 20, -2, -2, iw + 4, ih + 4, g => paintSitter(g, iw, ih, si, true));
+      eyesFollow(c, state, x + 10 + Math.round(iw / 2), y + 20 + Math.round(ih * 0.3 + 8 * sitterK(iw, ih)));
       lipSlab(c, x - 4, y, w + 8, 12, fill, lip);
       break;
     }
