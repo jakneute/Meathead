@@ -6456,6 +6456,11 @@
  },
  {
   "voice": "death",
+  "text": "A SITCOM SLAPPED ME DEAD",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "death",
   "text": "A SNACK",
   "from": "ADVENTURE"
  },
@@ -6933,6 +6938,16 @@
   "voice": "death",
   "text": "BEATEN WITH A STANCHION",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "death",
+  "text": "BEER RUN, BARE ASS",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "death",
+  "text": "BEER RUN, PANTS FULL",
+  "from": "CARTOON"
  },
  {
   "voice": "death",
@@ -13511,6 +13526,11 @@
  },
  {
   "voice": "death",
+  "text": "ROADKILL ON A BEER RUN",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "death",
   "text": "ROASTED BY A MASCOT",
   "from": "FANTASY"
  },
@@ -13533,6 +13553,16 @@
   "voice": "death",
   "text": "ROBBED. OF HIS LIFE.",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "death",
+  "text": "ROBOT SLAPPED MY BARE ASS",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "death",
+  "text": "ROBOT SLAPS, SHITTY END",
+  "from": "CARTOON"
  },
  {
   "voice": "death",
@@ -13703,6 +13733,21 @@
   "voice": "death",
   "text": "RUN DOWN IN SPACE",
   "from": "SPACE"
+ },
+ {
+  "voice": "death",
+  "text": "RUN DOWN ON A BEER RUN",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "death",
+  "text": "RUN DOWN, NAKED",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "death",
+  "text": "RUN DOWN, SHITTY END",
+  "from": "CARTOON"
  },
  {
   "voice": "death",
@@ -14721,6 +14766,11 @@
  },
  {
   "voice": "death",
+  "text": "SLAPPED BY THE TV FAMILY",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "death",
   "text": "SLAPPED DEAD BY A FISH",
   "from": "CARTOON"
  },
@@ -14758,6 +14808,21 @@
   "voice": "death",
   "text": "SLAPPED TO DEATH BY GRANDPA",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "death",
+  "text": "SLAPPED TO DEATH BY ROBOTS",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "death",
+  "text": "SLAPPED TO DEATH, NAKED",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "death",
+  "text": "SLAPPED, PANTS FULL",
+  "from": "CARTOON"
  },
  {
   "voice": "death",
@@ -16388,6 +16453,11 @@
   "voice": "death",
   "text": "TRAMPLED BY A MOOSE",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "TRAMPLED BY A ROBOT MOM",
+  "from": "CARTOON"
  },
  {
   "voice": "death",
@@ -48441,6 +48511,16 @@
  },
  {
   "voice": "m2.hollywood.stuntco",
+  "text": "CREW'S ON UNION BREAK. FIFTEEN MINUTES.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.hollywood.stuntco",
+  "text": "HOLD ON. THE STUNTMAN'S THROWING UP.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.hollywood.stuntco",
   "text": "I COORDINATE STUNTS. THIS IS ONE.",
   "from": "HOLLYWOOD"
  },
@@ -48448,6 +48528,16 @@
   "voice": "m2.hollywood.stuntco",
   "text": "I'VE TAKEN WORSE FALLS. NOT WORSE SMELLS.",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.stuntco",
+  "text": "INSURANCE WANTS ANOTHER FORM SIGNED.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.hollywood.stuntco",
+  "text": "LAST DRIVER QUIT. WE'RE CALLING HIS COUSIN.",
+  "from": "CARTOON"
  },
  {
   "voice": "m2.hollywood.stuntco",
@@ -48461,8 +48551,28 @@
  },
  {
   "voice": "m2.hollywood.stuntco",
+  "text": "SOMEBODY PARKED IN FRONT OF THE RAMP.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.hollywood.stuntco",
   "text": "THAT'S NOT A SAFE LANDING ZONE!",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.stuntco",
+  "text": "THE NEW DRIVERS ARE SLOW AS SHIT.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.hollywood.stuntco",
+  "text": "THE NEW GUY CAN'T DRIVE STICK.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.hollywood.stuntco",
+  "text": "WE'RE LOOKING FOR A CAR THAT STILL RUNS.",
+  "from": "CARTOON"
  },
  {
   "voice": "m2.hollywood.stuntcof",
@@ -55341,6 +55451,11 @@
  },
  {
   "voice": "meathead",
+  "text": "A BULLETPROOF ROBOT MOM? REALLY?",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "A BUNKER. GET IN THE BUNKER, DUMBASS.",
   "from": "HOLLYWOOD"
  },
@@ -58796,6 +58911,16 @@
  },
  {
   "voice": "meathead",
+  "text": "BEER ROBOT! IT SQUISHED!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "BEER ROBOT! ON MY NAKED EVERYTHING!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "BEES! BEES!",
   "from": "FRONTIER"
  },
@@ -59567,6 +59692,16 @@
  {
   "voice": "meathead",
   "text": "BULLET POINTED IN THE EYE!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "BULLETPROOF ROBOTS, AND I'M THE ONE NAKED.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "BULLETPROOF ROBOTS. AND I SHIT MYSELF FOR THIS.",
   "from": "CARTOON"
  },
  {
@@ -69806,6 +69941,11 @@
  },
  {
   "voice": "meathead",
+  "text": "IT RAN OVER MY NUTS!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "IT RAN UP MY LEG!",
   "from": "FRONTIER"
  },
@@ -72033,6 +72173,11 @@
   "voice": "meathead",
   "text": "MOVE THE FORKLIFT, DIPSHIT!",
   "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "MOVE, TIN FAMILY! I GOT A CLEAR SHOT AT DAD!",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -74571,6 +74716,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NOT THE NUTS, ROBOT!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "NOT THE SEWER. NOT NAKED.",
   "from": "FRONTIER"
  },
@@ -75523,6 +75673,11 @@
   "voice": "meathead",
   "text": "OUT OF THE PARK. NO PANTS. NO RULES.",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "OUT OF THE WAY OF THE BEER RUN!",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -78061,6 +78216,16 @@
  },
  {
   "voice": "meathead",
+  "text": "RUBBER HAND! ON MY NAKED ASS!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "RUBBER HAND! RIGHT IN THE FACE!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "RULES ARE FOR DEAD GUYS.",
   "from": "FRONTIER"
  },
@@ -78073,6 +78238,11 @@
   "voice": "meathead",
   "text": "RUN DOWN BY A UNION TRUCK! ON THE CLOCK!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "RUN OVER BY A BEER ROBOT!",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -78107,6 +78277,16 @@
  {
   "voice": "meathead",
   "text": "RUN OVER BY TODDLERS!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "RUN OVER! BARE ASS!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "RUN OVER! RIGHT IN THE MESS!",
   "from": "CARTOON"
  },
  {
@@ -79701,8 +79881,28 @@
  },
  {
   "voice": "meathead",
+  "text": "SLAPPED BY A SITCOM!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "SLAPPED BY THE A-LIST!",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "SLAPPED MY BARE ASS!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "SLAPPED THE SHIT LOOSE!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "SLAPPED! IT SQUISHED!",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -84486,6 +84686,16 @@
  },
  {
   "voice": "meathead",
+  "text": "THE ROBOT ATE MY BULLET!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE ROBOT ATE MY SHOT. QUIT STARING, GRAMPS.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "THE ROBOT BIT ME!",
   "from": "ADVENTURE"
  },
@@ -84513,6 +84723,26 @@
   "voice": "meathead",
   "text": "THE ROBOT LADY IS ON THE PIPES. COOL. COOL COOL.",
   "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE ROBOT RAN THE SHIT OUT OF ME!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE ROBOT SLAPPED ME!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE ROBOT SLAPPED MY SHITTY ASS!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE ROBOT WANTED THAT BEER BAD!",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -84871,6 +85101,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THE TIN FAMILY ATE MY SHOT. AND I STILL SMELL.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "THE TIN STAR HIT ME!",
   "from": "FRONTIER"
  },
@@ -85008,6 +85243,11 @@
   "voice": "meathead",
   "text": "THE TUBA KNOCKED ME OVER!",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE TV FAMILY SLAPS?",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -87601,6 +87841,11 @@
  },
  {
   "voice": "meathead",
+  "text": "WHAT KIND OF BULLSHIT TITANIUM ARE THESE ROBOTS BUILT WITH?",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "WHAT KIND OF CHEAP OIL DO THEY USE? IT DOESN'T EVEN BURN.",
   "from": "SPACE"
  },
@@ -87913,6 +88158,11 @@
   "voice": "meathead",
   "text": "WHO BUILDS A SAFE PLACE TO GET LAUNCHED BY A TORNADO?! WHO SIGNED OFF ON THIS?!",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHO BUILDS A SITCOM GRANDPA OUT OF TANK ARMOR?",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
