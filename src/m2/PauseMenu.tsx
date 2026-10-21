@@ -3,6 +3,7 @@ import type { WeaponType } from '../m1/types';
 import { maxAmmo } from '../m1/constants';
 import { Prompt } from '../m1/components/ButtonIcons';
 import { M2_WEAPON_INFO, M2WeaponArt, ammoName } from './weapons';
+import { HairballSvg } from './cartoon/whitehouse1/HairballArt';
 import ChordPrompt from './ChordPrompt';
 import { CardRowView, type PauseCard } from './PauseControls';
 import { PLAIN_PAUSE, type PauseSkin } from './hudThemes';
@@ -99,12 +100,22 @@ interface Props {
   /** A stretch with its own controls and no weapon switching (the dirt bike, the broom...): its controls card, shown
    *  in place of the weapons (PauseControls.tsx); the buttons along the bottom as ever. */
   card?: PauseCard | null;
+  /** He's the cat (the cartoon White House): the ray gun's the HAIRBALL, here as on the HUD. */
+  cat?: boolean;
 }
 
-const PauseMenu: React.FC<Props> = ({ weapons, current, ammo, selected, onPick, onResume, onMap, onOptions, onSkip, skipLabel, skin = PLAIN_PAUSE, locked = false, onHub, hubAsk = null, onHubAnswer, onHubPick, card = null, onQuit, quitAt = -1, asking = 'hub', onFile = false }) => {
+/** The ray gun as the cat has it. */
+const HAIRBALL_INFO = {
+  name: 'HAIRBALL', from: "SOCKS THE CAT'S THROAT",
+  controls: M2_WEAPON_INFO.GUN?.controls,
+  description: 'Hork. A wet wad of fur and spit, hacked up at whoever. Never runs dry. Nobody wants to touch it, least of all the guy it hits.',
+};
+
+const PauseMenu: React.FC<Props> = ({ weapons, current, ammo, selected, onPick, onResume, onMap, onOptions, onSkip, skipLabel, skin = PLAIN_PAUSE, locked = false, onHub, hubAsk = null, onHubAnswer, onHubPick, card = null, onQuit, quitAt = -1, asking = 'hub', onFile = false, cat = false }) => {
   const onQuitBtn = selected === quitAt;
   const shown = selected < weapons.length ? weapons[selected] : current;
-  const info = M2_WEAPON_INFO[shown];
+  const info = cat && shown === 'GUN' ? HAIRBALL_INFO : M2_WEAPON_INFO[shown];
+  const Art = ({ type, size }: { type: WeaponType; size: number }) => (cat && type === 'GUN' ? <HairballSvg size={size} /> : <M2WeaponArt type={type} size={size} />);
   const full = (w: WeaponType) => maxAmmo(w);
   const left = (w: WeaponType) => (full(w) === Infinity ? null : (ammo[w] ?? full(w)) / full(w));
   const ammoText = (w: WeaponType) => (full(w) === Infinity ? 'INFINITE' : `${Math.floor(ammo[w] ?? full(w))} / ${full(w)}`);
@@ -178,7 +189,7 @@ const PauseMenu: React.FC<Props> = ({ weapons, current, ammo, selected, onPick, 
                     className={`relative w-[64px] h-[64px] flex items-center justify-center border-2 transition-transform ${on ? 'scale-110 border-white' : equipped ? 'border-yellow-500' : 'border-zinc-600'} ${locked && !equipped ? 'opacity-35' : ''}`}
                     style={{ background: on ? skin.slotOn : skin.slot, boxShadow: on ? '0 0 12px rgba(250,204,21,0.6)' : 'none' }}>
                     <span className="absolute left-1 top-0 text-[7px] font-black text-zinc-300">{i + 1}</span>
-                    <M2WeaponArt type={w} size={46} />
+                    <Art type={w} size={46} />
                     {fill !== null && <span className="absolute left-1 right-1 bottom-1 h-[3px] bg-black"><span className="block h-full bg-green-400" style={{ width: `${Math.max(0, Math.min(1, fill)) * 100}%` }} /></span>}
                   </button>
                 );
@@ -190,7 +201,7 @@ const PauseMenu: React.FC<Props> = ({ weapons, current, ammo, selected, onPick, 
           <div className="flex-1 flex flex-col items-center text-center pt-5">
             <div className="w-[104px] h-[104px] flex items-center justify-center mb-2 border-2 border-zinc-700"
               style={{ background: `radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(0,0,0,0.6) 70%)`, borderColor: skin.accent }}>
-              <M2WeaponArt type={shown} size={88} />
+              <Art type={shown} size={88} />
             </div>
             <div className="text-[11px] font-black uppercase leading-tight mb-1" style={{ color: skin.text, textShadow: '1px 1px 0 rgba(0,0,0,0.35)' }}>{info?.name ?? shown}</div>
             <div className="text-[7px] font-black uppercase tracking-wider mb-2 text-center" style={{ color: skin.accent }}>FROM {info?.from ?? ''}{shown === current && <span className="block text-red-500 whitespace-nowrap mt-[2px]">[ EQUIPPED ]</span>}</div>

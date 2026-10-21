@@ -5,8 +5,12 @@ import React from 'react';
 
 const INK = '#1A1028';
 
-export const HAIRBALL_ART: React.ReactNode = (
-  <svg viewBox="0 0 16 16" width={40} height={40} shapeRendering="crispEdges" className="inline-block">
+export const HAIRBALL_ART: React.ReactNode = <HairballSvg size={40} />;
+
+/** At any size (the pause menu's arsenal and its close-up, the weapon wheel). */
+export function HairballSvg({ size }: { size: number }) {
+  return (
+  <svg viewBox="0 0 16 16" width={size} height={size} shapeRendering="crispEdges" className="inline-block">
     {/* (the ink round it, tufts poking out) */}
     <rect x="4" y="3" width="8" height="10" fill={INK} />
     <rect x="3" y="4" width="10" height="8" fill={INK} />
@@ -28,4 +32,5 @@ export const HAIRBALL_ART: React.ReactNode = (
     <rect x="13" y="10" width="2" height="1" fill="#4A3F37" />
     <rect x="1" y="6" width="2" height="1" fill="#4A3F37" />
   </svg>
-);
+  );
+}

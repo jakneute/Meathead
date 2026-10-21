@@ -4,7 +4,7 @@ import HUD from '../m1/components/HUD';
 /** The PWR row's cells, wide (the user's): three of them, fully upgraded, two-thirds of the HUD plate. */
 const M2_CELL_W = 54;
 import { RAYGUN_ART } from '../m1/components/WeaponIcon';
-import { HAIRBALL_ART } from './cartoon/whitehouse1/HairballArt';
+import { HAIRBALL_ART, HairballSvg } from './cartoon/whitehouse1/HairballArt';
 import { Prompt } from '../m1/components/ButtonIcons';
 import { GameStatus, WeaponType } from '../m1/types';
 import { setGutBlowout, setGutLines, setGutDeathLines } from '../m1/game/player/gut';
@@ -177,6 +177,8 @@ setDeathMessageDrawer(drawM2DeathMessage);
 
 /** What he can pick from: what he's got this playthrough, or every weapon (the cheat): cheats.ts. */
 const arsenal = availableWeapons;
+/** The weapons' pictures while he's the cat: the ray gun's the hairball. */
+const CatWeaponArt: React.FC<{ type: WeaponType; size: number }> = ({ type, size }) => (type === 'GUN' ? <HairballSvg size={size} /> : <M2WeaponArt type={type} size={size} />);
 const STARTING_AMMO = createFullAmmo();
 /** In the staff room (the practice pen) he can't be hurt (no flicker for it: it's how the room is) and nothing runs out of ammo; everywhere else he can, and it does (bar the cheats: cheats.ts). */
 const PRACTICE = { invincible: true, infiniteAmmo: true, infinitePower: false, skipToBoss: false };
@@ -761,9 +763,9 @@ const App2: React.FC = () => {
               onPick={at => { const id = ui.pick!; setUi({ pick: null }); setStartCheckpoint(typeof at === 'number' ? at : cps[cps.length - 1].cp); goTo(id); }} />
           );
         })()}
-        {wheelAt !== null && status === GameStatus.PLAYING && !noSwitching() && <WeaponWheel weapons={arsenal()} index={wheelAt} current={weapon} nameOf={weaponName} Art={M2WeaponArt} />}
+        {wheelAt !== null && status === GameStatus.PLAYING && !noSwitching() && <WeaponWheel weapons={arsenal()} index={wheelAt} current={weapon} nameOf={w => (w === 'GUN' && ui.catHud ? 'HAIRBALL' : weaponName(w))} Art={ui.catHud ? CatWeaponArt : M2WeaponArt} />}
         {status === GameStatus.PAUSED && !mapFrom && (
-          <PauseMenu weapons={arsenal()} current={weapon} ammo={hud.ammo} selected={pauseSel} locked={!!ui.noSwitch} card={card}
+          <PauseMenu weapons={arsenal()} current={weapon} ammo={hud.ammo} selected={pauseSel} locked={!!ui.noSwitch} card={card} cat={!!ui.catHud}
             onPick={i => { setPauseSel(i); equip(i); }} onResume={resume} onMap={() => { setPauseSel(arsenal().length + 1); openMap(); }} onOptions={() => { setPauseSel(arsenal().length + 2); openOptions(); }} onSkip={stage === INTRO_STAGE ? skipIntro : stage === GYM_STAGE && !M2_PUBLIC ? skipGym : undefined} skipLabel={stage === GYM_STAGE ? 'SKIP STAGE' : undefined}
             onHub={landOfStage(stage) || stage === PEN_STAGE ? askHub : undefined} hubAsk={hubAsk} onHubAnswer={answerHub} onHubPick={a => setHubAsk(a)} skin={theme?.pause}
             onQuit={() => { setPauseSel(quitIndex()); askQuit(); }} quitAt={quitIndex()} asking={asking} onFile={activeSlot() !== null} />
