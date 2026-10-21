@@ -8,7 +8,7 @@
 // his name tag. Smoke in stepped grays (fire-lit underneath while it's young), embers and sparks up and drifting, the
 // air shimmering over it. Its light goes into the scene's lighting (burnLights): the room, the statue, him.
 
-import { drawDonnie, drawLooseWig, DONNIE_H } from '../../cast/donnie';
+import { drawDonnie, drawLooseWig, DONNIE_H } from '../donnie';
 import type { Light } from '../../../m1/game/render/lighting';
 import { box } from '../section';
 import { GY } from '../geometry';

@@ -15,7 +15,7 @@ import type { SceneLight, Light } from '../../../m1/game/render/lighting';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { GY } from '../geometry';
 import { timeOfDay, hourMix, skyAt } from '../../timeOfDay';
-import { drawLooseWig, drawLooseFangs } from '../../cast/donnie';
+import { drawLooseWig, drawLooseFangs } from '../donnie';
 import { type Passage, passageBack, passageSide, passageFront, passageLintel } from './passage';
 import { rockWall } from './shopArt';
 import { x0, HOLE_X, DESK_X, RACK_X, ROOM_DOOR, SHOP_X, PART_L, PART_R, BUFFET_X, SLUSH_X } from './geo';

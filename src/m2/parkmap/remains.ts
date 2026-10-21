@@ -12,7 +12,7 @@ import { Pix, type Ramp, BLOOD, SHIT, BONE, GOO, ASH, SOOT, GOLD, STEEL, SOCKW }
 type Ctx = CanvasRenderingContext2D;
 const PW = 86, PH = 78;
 
-// ---- the cast's own colors (their drawings' ramps: river/artie.ts, cast/donnie.ts, steve.ts, harryArt.ts...)
+// ---- the cast's own colors (their drawings' ramps: river/artie.ts, spooky/donnie.ts, steve.ts, harryArt.ts...)
 const SKIN: Ramp = ['#FCE2C8', '#F0C29C', '#D89C76', '#B47454', '#6E3C26'];
 const PALE: Ramp = ['#FFF4E8', '#FBE4D0', '#E8C4A8', '#CCA084', '#7A5040'];
 const KHAKI: Ramp = ['#E4D49E', '#CAB47C', '#A99058', '#80693E', '#4A3C20'];

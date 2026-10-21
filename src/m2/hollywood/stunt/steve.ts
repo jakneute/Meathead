@@ -1,5 +1,5 @@
 // STUNTMAN STEVE, drawn at the land bosses' grade (Safari Artie's, Donnie Dracula's: adventure/river/artie.ts,
-// cast/donnie.ts): SNES pixel art, every material in its own ramp (light, base, shade, deep, line) in stepped bands with
+// spooky/donnie.ts): SNES pixel art, every material in its own ramp (light, base, shade, deep, line) in stepped bands with
 // a dithered seam between them, every material outlined in its own darkest tone, lit from the upper left.
 //
 // A washed-up 80s stunt double, a Cliff Booth type gone to seed. The yellow stunt jumpsuit, faded, red racing stripes

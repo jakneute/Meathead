@@ -19,7 +19,7 @@
 // both hands, a burp coming; a drumstick in his other hand on the PA, a blood slushie off the buffet in the shop; and in
 // his last moments, his trousers down, `look.soiled` spreads the stain across the seat of his bat boxers.
 
-import { type Ctx } from './kit';
+import { type Ctx } from '../cast/kit';
 import { smear, drip, cut, bloodFresh, bloodDark } from '../../m1/game/render/player/gore';
 
 export type DonniePose =

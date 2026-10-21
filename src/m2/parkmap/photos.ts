@@ -6,7 +6,7 @@
 
 import { signText } from '../signLetters';
 import { drawSafariArtie } from '../adventure/river/artie';
-import { drawDonnie } from '../cast/donnie';
+import { drawDonnie } from '../spooky/donnie';
 import { drawQueen } from '../space/queen/sprite';
 import { GY } from '../space/geometry';
 import { drawSteve } from '../hollywood/stunt/steve';

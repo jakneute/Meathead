@@ -30,7 +30,7 @@ import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { isShat, isNude } from '../../../m1/game/player/gut';
 import { registerHurtLines } from '../../kinds';
-import { drawDonnie, DONNIE_H } from '../../cast/donnie';
+import { drawDonnie, DONNIE_H } from '../donnie';
 import { voice } from '../section';
 import { CLERK, HAWKER, MASCOT, throwGlobe, staffTalking, setStaffHush } from './staff';
 import { hazardVictims, hazardHit, boxHits, setHazardZones } from '../../hazardHit';

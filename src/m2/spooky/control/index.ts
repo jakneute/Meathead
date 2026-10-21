@@ -6,7 +6,7 @@
 // Donnie runs into the tacky ballroom (the boss: the ballroom section). The big health and ammo before its doors.
 //
 // Indoors (no time of day). The reveal is a cutscene: HUD hidden from frame one, all-or-nothing skip, SNES framing
-// (letterbox bars). Donnie's lines: full clean / shitty / naked pools (lines.ts). Donnie himself: cast/donnie.ts.
+// (letterbox bars). Donnie's lines: full clean / shitty / naked pools (lines.ts). Donnie himself: spooky/donnie.ts.
 //
 // Revisits: once the land's cleared, the control room's empty (the mic left on the desk, the foam head bald, the hole
 // in the floor still there), the gift shop's racks still lying where Donnie knocked them over.
@@ -26,7 +26,7 @@ import { SKIP_AFTER, offerSkip, takeSkip, drawSkipPrompt } from '../../../m1/gam
 import { shakeScreen } from '../../../m1/game/core/state';
 import { isShat, isNude } from '../../../m1/game/player/gut';
 import { isLandCleared } from '../../store';
-import { drawDonnie, DONNIE_H, type DonniePose, type DonnieLook } from '../../cast/donnie';
+import { drawDonnie, DONNIE_H, type DonniePose, type DonnieLook } from '../donnie';
 import { drawBars, Lines } from './cine';
 import { tickStaff, drawGlobes, drawStaffSaid, resetStaff } from './staff';
 import { type Shop, makeShop, setShopGeo, buildShop, startChase, shopAftermath, tickShop, shopDonnieOut, shopDonnieGone, drawShop, drawShopFront } from './shop';

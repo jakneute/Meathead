@@ -53,7 +53,7 @@ import { ENEMY_HIT_COOLDOWN, CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE, BOSS_CH
 import { registerM2Kind, registerHurtLines } from '../../kinds';
 import { setSouvenirPick, setSouvenirHit, souvenirMaxHit } from '../../weapons/souvenir';
 import { drawPerson, lookOf } from '../../adventure/temple/people';
-import { drawDonnie, drawLooseWig, DONNIE_H, type DonniePose } from '../../cast/donnie';
+import { drawDonnie, drawLooseWig, DONNIE_H, type DonniePose } from '../donnie';
 import { box, label, saidOver, hands, speak, voice, meatheadSays } from '../section';
 import { GY } from '../geometry';
 import { inputDevice, padFamily } from '../../../m1/game/platform/device';
@@ -65,7 +65,7 @@ import { INK, checker, pixelBlob } from '../control/paint';
 import * as L from './lines';
 import { since } from '../../frames';
 import { drawBurn, burnLights } from './burn';
-import { drawDonnieGross, drawDonnieGrossBack } from '../../cast/donnieGross';
+import { drawDonnieGross, drawDonnieGrossBack } from '../donnieGross';
 
 type Ctx = CanvasRenderingContext2D;
 const pick = pickLine;

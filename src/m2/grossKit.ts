@@ -1,7 +1,7 @@
 // THE GROSS-UP KIT (the user's standing rule for every close-up: "gross ren and stimpy style close ups"): the John K held
 // still, a face huge in frame and painted in excruciating detail (pores, veins, bloodshot eyes, sweat, stubble, teeth
 // and gums, wet highlights). The land bosses' fight-start close-ups are built from it (adventure/river/artieGross.ts,
-// cast/donnieGross.ts, space/queen/queenGross.ts, hollywood/stunt/steveGross.ts, foreign/harry/harryGross.ts,
+// spooky/donnieGross.ts, space/queen/queenGross.ts, hollywood/stunt/steveGross.ts, foreign/harry/harryGross.ts,
 // frontier/tuckerGross.ts); Piper's (fantasy/piperGross.ts) came first and is the model for it.
 //
 // Painted per pixel into a low-res buffer (GW x GH, each pixel GP screen pixels at the hold): round shading off a light

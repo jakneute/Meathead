@@ -2,7 +2,7 @@
 // chandeliers, a disco ball, fog machines, folding chairs, a buffet), Donnie Dracula's arena: the fat balding guy from
 // the control room in his cheap wig, cape (DONNIE on its name tag) and plastic fangs, cowering in the far corner. Then
 // Satan gives him real power, and it's on (fight.ts: the intro, the fight, his two deaths). Dracula, legally: only Bram
-// Stoker's novel and generic vampire tropes; never the film looks. Donnie: cast/donnie.ts.
+// Stoker's novel and generic vampire tropes; never the film looks. Donnie: spooky/donnie.ts.
 //
 // Through the foyer (the coat check, the buffet, stacks of folding chairs) onto the dance floor: the velvet rope's gate
 // goes up behind him, and the view's fixed on the floor. Beaten: VICTORY, the walk-away (walkAway/donnie.ts), the hub.
