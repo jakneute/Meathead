@@ -91,7 +91,7 @@ The user's notes since (relayed):
   Never anything about his age.
 - **Stupid Dad's fight:** the user's design (2026-10-20, verbatim in Section 7 below), built (job 8: amphi/fight.ts):
   the couch, the mallet swat, the beer runs, the puke-rocket couch, the Donkey Kong rage, the clapperboard's cars for
-  the family, the weakness death (flattened) and the standard death (ours: the SWILL LITE avalanche). Sin: probably
+  the family, the weakness death (flattened) and the standard death (the user's: the fridge tips over on him). Sin: probably
   sloth (proposal).
 - **Music:** none yet. Cartoon Land's in music/cues.ts's LAND_OF_STAGE, and with no `land:cartoon` song it's quiet.
 
@@ -565,21 +565,30 @@ As built (numbers up top in fight.ts):
   (DAD_SNIPE; that one's tape snipes back, MOM_SNARK etc., and the laugh track), the Al Bundy dig (DAD_BUNDY: a clothing
   store manager, four bedrooms, a sunroom, Marlene at home; Meathead's MH_BUNDY once), taunts. Close in (in front of him
   or over his head): THE SWAT (the mallet, 22; a 16-frame wind-up, 7 at a charge, dive kick, uppercut, slide or grab
-  coming in), then 40 frames winding back (open). Grabs: TOO GREASY (onGrab: thrown off him, MH_TOO_GREASY, his
-  DAD_GRABBED). Family can't hurt him; their bottles don't.
+  coming in), then 40 frames winding back (open). It's an arc round his shoulder (dad.ts swatGrip: grabbed up, wound
+  back over his shoulder, swung through and down out in front) and it hurts only where the mallet's head is drawn,
+  swept frame to frame (fight.ts swatSweep); it starts when he's inside the head's swing (swatZone). Grabs: TOO GREASY
+  (onGrab: thrown off him, MH_TOO_GREASY, his DAD_GRABBED). The family can't hurt him.
 - **The beer run** (every 430-620 frames he's sat there): one of the family (the Boy half the time) jerks over to the
   fridge on its castors / post / track base (22 px every 8 frames: Gramps scoots in his recliner, Sis slides along
-  cross-legged), opens it (its FETCH_TAPE), pitches 2-5 bottles: short, long, off the wallpaper, off his head (bonk, the
-  laugh track), the last one caught (DAD_CATCH); one he can't catch (busy) smashes and there's always another. Then he
-  drinks it, and does one of the two, in turn (the first's the puke):
+  cross-legged), opens it (its FETCH_TAPE), and pitches 2-4 ARMFULS (the user's: "the thrown beer fly all over, making
+  any part of the stage you stand in deadly. thrown beer hurts a bit too"): each one bottle at him (short, long, off the
+  wallpaper, off his head: bonk, the laugh track; the last armful's the one he catches, DAD_CATCH) and 2 more (3 once
+  he's lost two of the family) flung wide all over the set, one about where Meathead's stood, each with a shadow on the
+  deck where it'll come down; one that hits Meathead hurts a bit (6, m2:ct_dad_beer) and smashes on him. One he can't
+  catch (busy) smashes and there's always another. Then he drinks it, and does one of the two, in turn (the first's the
+  puke):
 - **PUKE**: a fire hose of it the way he faces (hurts, 8 a glob); the couch rockets the other way, bouncing off the end
-  walls (each bounce 86%); its wall jolts the fridge off it (it creeps back); the kick's bigger every puke and every
-  family member gone. It settles; he scoots it back to its spot with his heels. The couch hurts (16) going fast unless
+  walls (each bounce 62%, the slide's friction 0.972: it settles quickly, the user's); its wall jolts the fridge off it
+  (it creeps back); the kick's bigger every puke and every family member gone. It settles; he scoots it straight back
+  to its spot with his heels (3.4 px a frame in hops: a few seconds). The couch hurts (16) going fast unless
   he's mid-move into it (charge, dive kick, uppercut, slide: the skilled way).
-- **DRUNKEN RAGE**: up off the couch, the mallet in both fists, Donkey Kong: hammering up over his head and down out in
-  front every 7 frames, after him at a stagger, hopping at random (10.5-12.5 up: run under him). All of him is the
-  hammer (18): no move lands (touch: hammered instead); only what's fired at him. 7 s, then winded (a wheeze: open), and
-  he shuffles back to the couch.
+- **DRUNKEN RAGE**: up off the couch, the mallet in both fists, Donkey Kong: a 14-frame swing (up over his head, held,
+  slammed down onto the deck out in front in 3, held: dad.ts hammerGrip, leaning into it), after him at a stagger,
+  hopping at random (10.5-12.5 up: run under him). THE TELL: his knees bend for 16 frames before each hop (he slows),
+  and give as he lands. The hammer (18) hurts where its head is drawn (this frame and last: no tunneling), and his body;
+  no move lands (touch: hammered instead); only what's fired at him. 7 s, then winded (a wheeze: open), and he shuffles
+  back to the couch.
 - **Hurting him**: 666; the ray gun 25 and his moves (35 / 50) in full; anything else 35%; the 60-frame breather.
 - **THE WEAKNESS: the clapperboard** (weapons/stuntCar.ts setStuntCarHook: this fight's say over it). Each snap (the
   clap, the ammo used) sends ONE stunt car, scripted, homing on the nearest of the family to Meathead: the flip, the
@@ -600,10 +609,26 @@ As built (numbers up top in fight.ts):
   Meathead) onto its roof; he's a pancake on the deck; he peels up off it, a squat paper-thin man wobbling in the draft
   (the cartoon's accordion squash), the stuntman up out of the wreck with a thumbs-up, the laugh track; DAD_FLAT; over he
   goes like a sheet of paper; MH_WON_WEAK.
-- **The standard death** (ours: the user left it to us): FINE, I'LL GET IT MYSELF (DAD_FRIDGE). Up for a beer at last,
-  he shuffles to the fridge (Meathead walked back out of the way), opens it: rumbling, and forty years of SWILL LITE
-  comes down on him (an avalanche of cans, a mound over him); the laugh track; under there he shits himself (the fart,
-  the seep, DAD_BURIED); one can rolls out across the deck to Meathead's feet and cracks open on its own; MH_WON.
+- **The standard death** (the user's, 2026-10-20: "he goes to the fridge and it just wobbles then falls on him, crushing
+  him to death"): FINE, I'LL GET IT MYSELF (DAD_FRIDGE). Up for a beer at last, he shuffles to the fridge (Meathead walked
+  back out of the way) and yanks on its stuck door; it rocks off the wall toward the front, wobbles on its corners, the
+  bottles inside clinking (DAD_WOBBLE: UH OH), he throws his arms up, and it tips over on him about its near foot: CRUSH,
+  flat under it on his back, his head and his hands out the end, twitching; cans burst out across the deck; the laugh
+  track; blood out from under it, and he shits himself (the fart, the seep, DAD_CRUSHED); one can rolls out across the
+  deck to Meathead's feet and cracks open on its own; MH_WON.
+- **His hurt lines** (lines.ts HURT_BY): every source names what it was (the drunk's swat, Donkey Dad's hammer, the
+  puke, the couch, the family's beer bottles), each in clean / shitty / naked pools, hurt callouts and death screens
+  (fight.ts hurtSrc sends `<source>.<state>`). (The user heard "bonked by a mouse" off his swat: the old pool's lines
+  are gone.)
+- **His look** (dad.ts): two-bone arms (elbowOf: the hand pulled in to his reach, the elbow worked out from it, bending
+  down and back when the hand's low, forward when it's up), a round at the shoulder and a wrinkled knob at the elbow;
+  bare knees out of the boxers' cuffs (kneecaps, drawn again over the gut when he's sat so they stick out past it). His
+  close-up in the intro is a gross-up (dadGross.ts: painted per pixel like Piper's: the liver-spotted dome, comb-over,
+  creased forehead, wild brows, bloodshot yellowed eyes with crust, a purple strawberry nose with pores, blackheads, a
+  wart and nose hair, broken veins, stubble with a follicle under each hair, beer foam on his lip, yellow teeth, the
+  headset mic; a fly, sweat, drool and foam live). The signs (posters, billboard, gate, store, mural, the portrait on the
+  set: bigkid/art.ts dadArt) draw his fight model on a short couch (dad.ts drawDadSign). The TV's cart: as wide as the
+  set and painted live (a stamp at the TV's depth came down off to one side, so the set hung off its shelf).
 - Both deaths are cutscenes (no input, no HUD, SKIP >> all or nothing). Then VICTORY, the walk-away (walkAway/
   stupidDad.ts: the band shell, his cans and cups down the path, the foam finger; the weakness leaves the last stunt car
   dumped on its roof by the walk and half his couch, the other way more cans; the MALLET), the hub, Cartoon Land

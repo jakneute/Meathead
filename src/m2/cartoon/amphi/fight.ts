@@ -7,14 +7,18 @@
 //                 at a charge, a dive kick or a grab coming in, a slower one otherwise; it misses, and he's open while he
 //                 winds back. Grabs don't work on him at all: forty years of beer sweat (TOO GREASY).
 //   THE BEER      Every so often one of the family (on its castors, its post, the Boy off his track) jerks over to the
-//                 fridge at the end of the set and pitches bottles at him: most miss (short, long, off the wall, off his
-//                 head: the laugh track), till he catches one and drinks it. Then one of two (in turn):
+//                 fridge at the end of the set and pitches bottles at him by the armful: they fly all over the set (most
+//                 miss him: short, long, off the wall, off his head: the laugh track), so nowhere on it's safe, and one
+//                 that hits Meathead hurts a bit (a shadow on the deck where each is coming down); till he catches one
+//                 and drinks it. Then one of two (in turn):
 //   PUKE          He pukes so hard the couch rockets across the set; into a wall and back (the fridge jolts when it hits
-//                 its wall), bouncing harder every time it happens; it settles, and he scoots it back to its spot. The puke
+//                 its wall), bouncing harder every time it happens; it settles quickly, and he scoots it straight back to
+//                 its spot. The puke
 //                 hurts; so does the couch coming at him, unless he's mid-move into it (a charge, a dive kick, an
 //                 uppercut: the skilled way in).
 //   DRUNKEN RAGE  Up off the couch with the mallet like Mario in Donkey Kong, hammering up and down, coming after him,
-//                 hopping at random (run under him). Every move into him gets him hammered (no melee lands); then he's
+//                 hopping at random (run under him; his knees bend a beat before each hop: the tell). The hammer hurts
+//                 where it's drawn (its head; him). Every move into him gets him hammered (no melee lands); then he's
 //                 winded, a wheeze (open), and shuffles back to the couch.
 //   HURTING HIM   The ray gun and Meathead's moves in full; anything else 35% (every land boss's way); the 60-frame
 //                 breather. 666 health.
@@ -30,9 +34,10 @@
 //
 // Two deaths. The weakness: the kill cam, the car on him, burning; it tips off and he's a pancake on the deck, fluttering
 //   at the edges, the stuntman up out of the wreck with a thumbs-up, the laugh track, his last words, Meathead's. Any other
-//   way (the standard death, ours: the user left it to us): FINE, I'LL GET IT MYSELF: he gets up for a beer at last,
-//   shuffles to the fridge, opens it, and forty years of SWILL LITE comes down on him; buried; the laugh track; he shits
-//   himself under there (the seep, his line); one can rolls out across the stage to Meathead's feet and cracks open.
+//   way (the standard death, the user's): FINE, I'LL GET IT MYSELF: he gets up for a beer at last, shuffles to the
+//   fridge and yanks on it; it rocks off the wall, wobbles, wobbles, and tips over on him (UH OH): crushed flat under it,
+//   his head and his hands out the end; the laugh track; he shits himself under there (the seep, his line); one can rolls
+//   out across the stage to Meathead's feet and cracks open.
 
 import type { GameState } from '../../../m1/game/core/state';
 import type { FrameContext } from '../../../m1/game/core/context';
@@ -53,10 +58,11 @@ import { speak, meatheadSays, byPants, saidOver, box, label, getCartoon } from '
 import { X, x0, x1, STAGE_Y, MOM, SIS, GRAMPS, BOY_TRACK, D_SET, ARENA, COUCH_HOME, FRIDGE } from './layout';
 import { laughTrack } from './show';
 import type { DadPose } from './state';
-import { drawDad, DAD_K, DAD_H, DAD_SIT_H, type DadFace } from './dad';
+import { drawDad, DAD_K, DAD_H, DAD_SIT_H, type DadFace, hammerGrip, swatGrip, malletHead } from './dad';
+import { pantsOf } from '../section';
 import {
   type P, type Member, type PileCan, eyeOf, proj, drawMallet, drawFridge, drawBottle, drawDrop, drawPuddle, drawCouchAt,
-  drawCarAt, drawWreck, drawStuntmanAt, drawWallSplat, drawMember, drawDeadMember, drawPancake, drawPile, drawSeep,
+  drawCarAt, drawWreck, drawStuntmanAt, drawWallSplat, drawMember, drawDeadMember, drawPancake, drawPile, drawSeep, drawBlood,
 } from './fightArt';
 import type { Anim } from './family';
 import * as L from './lines';
@@ -76,19 +82,24 @@ const SEAT_DX = 46, COUCH_HALF = 76;
 const AT_FRIDGE = { x: FRIDGE.x - 58, d: 0.955 };
 /** The swat: how near sets it off (px either side, how high over the deck), its wind-up (slow, at a move coming in),
  *  how long it's live, his recovery (open), the gap before another; the hurt. */
-const SWAT_NEAR = 150, SWAT_UP = 200, SWAT_WIND = 16, SWAT_FAST = 7, SWAT_LIVE = 5, SWAT_RECOVER = 40, SWAT_GAP = 26, SWAT_DMG = 22;
-/** The beer: how often he yells for one (frames, a range); bottles a trip (the last one caught); the gap between them;
- *  their flight; the family's jerky walk (px a step, a step every 8 frames). */
-const CALL_EVERY: [number, number] = [430, 620], BOTTLES: [number, number] = [2, 5], TOSS_GAP = 30, BOTTLE_T = 34, STEP_PX = 22;
+const SWAT_WIND = 16, SWAT_FAST = 7, SWAT_LIVE = 6, SWAT_RECOVER = 40, SWAT_GAP = 26, SWAT_DMG = 22;
+/** The beer: how often he yells for one (frames, a range); armfuls a trip (the last has the one he catches); the gap
+ *  between them; their flight; how many fly all over the set with each armful (more once he's lost some of them); the
+ *  hurt one does Meathead; the family's jerky walk (px a step, a step every 8 frames). */
+const CALL_EVERY: [number, number] = [430, 620], BOTTLES: [number, number] = [2, 4], TOSS_GAP = 34, BOTTLE_T = 34, SPRAY = 2, BEER_DMG = 6, STEP_PX = 22;
 /** Catching it, drinking it. */
 const CATCH_T = 24, DRINK_T = 64;
 /** The puke: the wind-up, how long it comes, the kick it gives the couch (more each time), the push while it's coming,
  *  the couch's slide (friction) and bounce; the hurt (the puke, the couch). */
-const PUKE_WIND = 24, PUKE_T = 84, PUKE_KICK = 8, PUKE_KICK_MORE = 2.2, PUKE_KICK_MAX = 17, PUKE_PUSH = 0.3, SLIDE = 0.986, BOUNCE = 0.86;
+const PUKE_WIND = 24, PUKE_T = 84, PUKE_KICK = 8, PUKE_KICK_MORE = 2.2, PUKE_KICK_MAX = 17, PUKE_PUSH = 0.3, SLIDE = 0.972, BOUNCE = 0.62;
+/** The couch stopped off its spot: how fast he scoots it back (px a frame, while his heels are down). */
+const SCOOT = 3.4;
 const PUKE_DMG = 8, COUCH_DMG = 16, COUCH_HURTS = 3.4;
 /** The rage: getting up, how long, the hammer's beat (frames up / down), his walk, his hops (how hard, how often), the
  *  gravity; the hurt; winded after. */
 const RISE_T = 30, RAGE_T = 420, HAMMER_BEAT = 7, RAGE_WALK = 1.5, HOP_VY = [-10.5, -12.5], HOP_GAP = [40, 110], G = 0.45, HAMMER_DMG = 18, TIRED_T = 90;
+/** The hop's tell (frames of knee bend before he goes), the give as he lands. */
+const HOP_TELL = 16, LAND_GIVE = 10;
 /** Baffled (each one of the family flattened), the clapperboard's reset in this fight; the cars' flight. */
 const BAFFLE_T = 84, RECHARGE = 420, CAR_V = 15;
 /** Up and pathetic: his stagger, the trips. */
@@ -104,8 +115,8 @@ type Act = 'enter' | 'sit' | 'swat' | 'catch' | 'drink' | 'pukeWind' | 'puke' | 
 const MEMBERS: Member[] = ['mom', 'boy', 'sis', 'gramps'];
 interface Fam { id: Member; alive: boolean; x: number; d: number; home: { x: number; d: number }; stepT: number; dir: 1 | -1 }
 interface Errand { who: Member; step: 'go' | 'open' | 'toss' | 'back'; t: number; left: number }
-type Miss = 'short' | 'long' | 'head' | 'wall' | 'catch';
-interface Bottle { t: number; T: number; ax: number; ay: number; ad: number; bx: number; by: number; bd: number; kind: Miss; rot: number }
+type Miss = 'short' | 'long' | 'head' | 'wall' | 'catch' | 'spray';
+interface Bottle { t: number; T: number; ax: number; ay: number; ad: number; bx: number; by: number; bd: number; kind: Miss; rot: number; arc: number }
 interface Drop { x: number; y: number; vx: number; vy: number; r: number; k: number }
 interface Puddle { x: number; w: number; t: number }
 interface Car {
@@ -116,6 +127,8 @@ interface Wreck { x: number; d: number; dir: 1 | -1; paint: number; t: number; o
 interface Flung { x: number; y: number; d: number; vx: number; vy: number; t: number; dir: 1 | -1; seed: number; stuck: boolean }
 interface Death {
   how: 'fridge' | 'flat'; t: number; step: string; at: number;
+  /** The fridge (the standard death): how far it's crept off the wall to the front (0..1), how far over it's tipped. */
+  creep: number; fall: number;
   /** The car on him (the weakness): where it is, its tip off him. */
   car: { x: number; rot: number; vx: number } | null;
   pile: PileCan[]; heap: number; seep: number;
@@ -132,7 +145,7 @@ export interface Fight {
   hp: number; iframes: number; flash: number;
   e: Enemy; moveSeen: number | undefined;
   /** Him: what he's at, its clock; where (section x, feet's height off the deck), which way he faces, on the couch. */
-  act: Act; actT: number; x: number; y: number; vy: number; facing: 1 | -1; seated: boolean;
+  act: Act; actT: number; x: number; y: number; vy: number; facing: 1 | -1; seated: boolean; landT: number;
   swatWind: number; swatAt: number; swatHit: boolean;
   nextAtk: 'puke' | 'rage'; pukes: number; rages: number; hopAt: number;
   /** The couch: where (its middle), going how fast, squashed (a bounce), crushed. */
@@ -197,6 +210,8 @@ registerM2Kind({
   },
 });
 for (const [source, l] of Object.entries(L.HURT)) registerHurtLines(source, l.hurt, l.death);
+/** What hurt him, with the state he's in (his callouts and the death screen by clean, shitty, naked). */
+const hurtSrc = (state: GameState, base: string) => `${base}.${pantsOf(state)}`;
 
 // ---------------------------------------------------------------------------------------------------------------
 // The clapperboard, in this fight: a car for one of the family each snap, and a wait between takes
@@ -254,7 +269,7 @@ export const startFight = (state: GameState, retry: boolean): Fight => {
   for (const m of MEMBERS) { const h = homeOf(m); fam[m] = { id: m, alive: true, x: h.x, d: h.d, home: { x: h.x, d: h.d }, stepT: 0, dir: -1 }; }
   const f: Fight = {
     mode: 'on', t: 0, stage: String(state.stageId), hp: HP, iframes: 0, flash: 0, e, moveSeen: e.hitByMove,
-    act: retry ? 'enter' : 'sit', actT: 0, x, y: 0, vy: 0, facing: -1, seated: true,
+    act: retry ? 'enter' : 'sit', actT: 0, x, y: 0, vy: 0, facing: -1, seated: true, landT: -999,
     swatWind: SWAT_WIND, swatAt: -999, swatHit: false, nextAtk: 'puke', pukes: 0, rages: 0, hopAt: 0,
     couch: { x: COUCH_HOME, vx: 0, squash: 0, crushed: false, rot: 0 },
     fridge: { open: 0, dx: 0, tilt: 0, jolt: 0 },
@@ -318,13 +333,13 @@ const props = (ctx: FrameContext, f: Fight) => {
       if (c.x === hi) { f.fridge.jolt = 1; f.fridge.dx = Math.max(-34, f.fridge.dx - sp * 2.2); playSound('clink', 0.9, 2); playSound('glass', 0.5, 4); }
       for (let i = 0; i < 10; i++) state.particles.push({ pos: { x: X(c.x) + (c.x === hi ? COUCH_HALF : -COUCH_HALF), y: STAGE_Y - 30 - Math.random() * 30 }, vel: { x: (Math.random() - 0.5) * 4, y: -1 - Math.random() * 3 }, life: 30, color: i % 2 ? '#F4EFE2' : '#E0752E', size: 2 + Math.random() * 3, grav: 0.25 });
     }
-    if (Math.abs(c.vx) < 0.25 && f.act !== 'puke') c.vx = 0;
+    if (Math.abs(c.vx) < 0.6 && f.act !== 'puke') c.vx = 0;
     c.rot = Math.max(-0.12, Math.min(0.12, -c.vx * 0.012));
   } else c.rot *= 0.8;
   c.squash *= 0.82;
-  // (stopped away from its spot, him on it and nothing on: scooted back with his heels, a hop at a time)
-  if (!c.crushed && c.vx === 0 && Math.abs(c.x - COUCH_HOME) > 1 && f.seated && (f.act === 'sit' || f.act === 'baffled' || f.act === 'drink')) {
-    if (f.t % 10 < 5) { c.x += Math.sign(COUCH_HOME - c.x) * Math.min(2.4, Math.abs(COUCH_HOME - c.x)); if (f.t % 10 === 0) playSound('thud', 0.2, -14); }
+  // (stopped away from its spot, him on it and nothing on: scooted straight back with his heels, a hop at a time)
+  if (!c.crushed && c.vx === 0 && Math.abs(c.x - COUCH_HOME) > 1 && f.seated && (f.act === 'sit' || f.act === 'baffled' || f.act === 'drink' || f.act === 'catch')) {
+    if (f.t % 6 < 4) { c.x += Math.sign(COUCH_HOME - c.x) * Math.min(SCOOT, Math.abs(COUCH_HOME - c.x)); if (f.t % 6 === 0) playSound('thud', 0.2, -14); }
   }
   // The fridge: knocked off the wall a way, it creeps back; the wobble dies
   const fr = f.fridge;
@@ -337,7 +352,7 @@ const props = (ctx: FrameContext, f: Fight) => {
     for (const d of f.drops) {
       if (d.r < 0) continue;
       if (hits(pr, { x0: d.x - d.r, x1: d.x + d.r, y0: d.y - d.r, y1: d.y + d.r })) {
-        hurtPlayer(ctx, PUKE_DMG, 'm2:ct_dad_puke', { x: Math.sign(d.vx || 1) * 5, y: -4 }, 10);
+        hurtPlayer(ctx, PUKE_DMG, hurtSrc(state, 'm2:ct_dad_puke'), { x: Math.sign(d.vx || 1) * 5, y: -4 }, 10);
         playSound('splat', 0.8, 2);
         for (let i = 0; i < 8; i++) state.particles.push({ pos: { x: d.x, y: d.y }, vel: { x: (Math.random() - 0.5) * 5, y: -Math.random() * 4 }, life: 24, color: ['#8A9A1E', '#B8C43A', '#E2E87A'][i % 3], size: 2 + Math.random() * 3, grav: 0.3 });
         d.r = -1;
@@ -352,7 +367,7 @@ const props = (ctx: FrameContext, f: Fight) => {
   // The couch coming at him (unless he's mid-move into it: the skilled way)
   if (f.mode === 'on' && !c.crushed && Math.abs(c.vx) > COUCH_HURTS && hurtable(state) && !attacking(state)) {
     if (hits(pRect(state), { x0: X(c.x) - COUCH_HALF + 6, x1: X(c.x) + COUCH_HALF - 6, y0: STAGE_Y - 56, y1: STAGE_Y })) {
-      hurtPlayer(ctx, COUCH_DMG, 'm2:ct_dad_couch', { x: Math.sign(c.vx) * 12, y: -7 });
+      hurtPlayer(ctx, COUCH_DMG, hurtSrc(state, 'm2:ct_dad_couch'), { x: Math.sign(c.vx) * 12, y: -7 });
       playSound('thud', 1, -6); playSound('punch', 0.8, -8); shakeScreen(state, 8, 4);
       ctx.fx.spawnDamageNumber({ x: state.player.pos.x, y: state.player.pos.y - 20 }, 'SOFA!', true, '#F97316');
     }
@@ -389,7 +404,7 @@ const dad = (ctx: FrameContext, f: Fight) => {
     case 'sit': {
       if (f.couch.vx === 0) f.facing = toward;
       // (too close: the mallet; quicker at a move coming in)
-      if (f.couch.vx === 0 && t > 6 && f.t - f.swatAt > SWAT_GAP && swatZone(f, state, 30)) {
+      if (f.couch.vx === 0 && t > 6 && f.t - f.swatAt > SWAT_GAP && swatZone(f, state, 24)) {
         f.swatWind = attacking(state) || grabbing(state) ? SWAT_FAST : SWAT_WIND; f.swatHit = false;
         setAct(f, 'swat');
         if (Math.random() < 0.5) bark(f, state, L.DAD_SWAT);
@@ -407,9 +422,10 @@ const dad = (ctx: FrameContext, f: Fight) => {
     case 'swat': {
       const W = f.swatWind;
       if (t === W) { playSound('whoosh', 1, -6); }
-      if (t >= W && t < W + SWAT_LIVE && !f.swatHit && hurtable(state) && swatZone(f, state, 0)) {
+      // (it hurts where the mallet's head is, swept from last frame's spot to this one's)
+      if (t >= W && t <= W + SWAT_LIVE && !f.swatHit && hurtable(state) && swatSweep(f, state, swatT(f, t - 1), swatT(f, t))) {
         f.swatHit = true;
-        hurtPlayer(ctx, SWAT_DMG, 'm2:ct_dad_swat', { x: f.facing * 11, y: -8 });
+        hurtPlayer(ctx, SWAT_DMG, hurtSrc(state, 'm2:ct_dad_swat'), { x: f.facing * 11, y: -8 });
         playSound('bonk', 1.1, -4); playSound('punch', 0.8, -6); shakeScreen(state, 8, 4);
         ctx.fx.spawnDamageNumber({ x: state.player.pos.x, y: state.player.pos.y - 24 }, 'BONK!', true, '#FDE047');
       }
@@ -450,11 +466,12 @@ const dad = (ctx: FrameContext, f: Fight) => {
     case 'rage': {
       // (Donkey Kong: the hammer up and down, after him at a stagger, a hop now and then)
       f.facing = toward;
-      const v = RAGE_WALK + 0.15 * f.kills;
+      // (his knees bend a beat before each hop (the tell): he slows for it)
+      const v = (RAGE_WALK + 0.15 * f.kills) * (1 - 0.7 * hopTell(f));
       if (Math.abs(m.x - f.x) > 12) f.x += toward * v;
       if (f.y <= 0 && t >= f.hopAt) { f.vy = rnd(HOP_VY[0], HOP_VY[1]); f.hopAt = t + rnd(HOP_GAP[0], HOP_GAP[1]); playSound('jump', 0.6, -10); }
       airborne(state, f);
-      if (t % (HAMMER_BEAT * 2) === HAMMER_BEAT && f.y <= 0) { playSound('stomp', 0.7, -6); shakeScreen(state, 3, 2); }
+      if (t % (HAMMER_BEAT * 2) === HAMMER_BEAT + 3 && f.y <= 0) { playSound('stomp', 0.7, -6); shakeScreen(state, 3, 2); }
       hammer(ctx, f);
       if (t >= RAGE_T && f.y <= 0) { setAct(f, 'tired'); dadSays(f, state, L.DAD_TIRED); }
       break;
@@ -513,7 +530,7 @@ const dad = (ctx: FrameContext, f: Fight) => {
 const airborne = (state: GameState, f: Fight) => {
   if (f.y > 0 || f.vy < 0) {
     f.y -= f.vy; f.vy += G;
-    if (f.y <= 0) { f.y = 0; f.vy = 0; playSound('thud', 0.8, -10); shakeScreen(state, 4, 2); }
+    if (f.y <= 0) { f.y = 0; f.vy = 0; f.landT = f.t; playSound('thud', 0.8, -10); shakeScreen(state, 4, 2); }
   }
 };
 
@@ -526,31 +543,68 @@ const attack = (f: Fight, state: GameState) => {
   else setAct(f, 'rise');
 };
 
-/** Where the swat reaches (and `pad` more, to start it): out in front of him and up over his head. */
+/** A point of his (his units) in the world: mirrored the way he faces, up off the deck. */
+const dadPt = (f: Fight, ux: number, uy: number) => ({ x: X(f.x) - f.facing * ux * DAD_K, y: STAGE_Y - f.y + uy * DAD_K });
+/** The mallet's head, as drawn (his near hand at `grip`, the mallet at `ang`), in the world. */
+const headRect = (f: Fight, grip: readonly number[], ang: number): R => {
+  const h = malletHead(grip, ang), p = dadPt(f, h.x, h.y), hx = h.hx * DAD_K, hy = h.hy * DAD_K;
+  return { x0: p.x - hx, x1: p.x + hx, y0: p.y - hy, y1: p.y + hy };
+};
+/** The swat's pose (0..1) at its frame `t` (poseOf draws the same). */
+const swatT = (f: Fight, t: number) => (t < f.swatWind ? (Math.max(0, t) / f.swatWind) * 0.35 : Math.min(1, 0.35 + ((t - f.swatWind) / 5) * 0.65));
+/** The mallet's head swept from pose `a` to `b`: does it touch him? */
+const swatSweep = (f: Fight, state: GameState, a: number, b: number) => {
+  const pr = pRect(state);
+  for (let k = 0; k <= 4; k++) { const g = swatGrip(a + ((b - a) * k) / 4); if (hits(pr, headRect(f, g.near, g.ang))) return true; }
+  return false;
+};
+/** Where the swat reaches (its head's whole swing, and `pad` more round it), to start one. */
 const swatZone = (f: Fight, state: GameState, pad: number) => {
-  const cx = X(f.x), fr = f.facing;
-  const a = fr > 0 ? cx - 50 - pad : cx - SWAT_NEAR - pad, b = fr > 0 ? cx + SWAT_NEAR + pad : cx + 50 + pad;
-  return hits(pRect(state), { x0: a, x1: b, y0: STAGE_Y - SWAT_UP - pad, y1: STAGE_Y });
+  const pr = pRect(state);
+  for (let k = 0; k <= 8; k++) {
+    const g = swatGrip(0.35 + (0.65 * k) / 8), r = headRect(f, g.near, g.ang);
+    if (hits(pr, { x0: r.x0 - pad, x1: r.x1 + pad, y0: r.y0 - pad, y1: r.y1 + pad })) return true;
+  }
+  return false;
 };
 
-/** The rage's hammer (and him: all of him's the hammer): up over his head, slammed down out in front. */
-const hammerK = (f: Fight) => (Math.floor(f.actT / HAMMER_BEAT) % 2);
+/** The rage's hammer, 0 up over his head .. 1 down on the deck: up over 5 frames, held up 3, slammed down in 3, held
+ *  down 3 (the impact). Continuous, so it's drawn swinging, and it hurts where it's drawn. */
+const hammerKAt = (t: number) => {
+  const n = HAMMER_BEAT * 2, p = ((t % n) + n) % n;
+  if (p < 5) { const e = p / 5; return 1 - e * e * (3 - 2 * e); }
+  if (p < 8) return 0;
+  if (p < 11) { const e = (p - 7) / 3; return e * e; }
+  return 1;
+};
+const hammerK = (f: Fight) => hammerKAt(f.actT);
+/** His knees bending for a hop (0..1): the tell before it, the give as he lands. */
+const hopTell = (f: Fight) => {
+  if (f.act !== 'rage' || f.y > 0) return 0;
+  const pre = Math.max(0, Math.min(1, (f.actT - (f.hopAt - HOP_TELL)) / HOP_TELL));
+  const land = Math.max(0, 1 - (f.t - f.landT) / LAND_GIVE) * 0.7;
+  const k = Math.max(pre, land);
+  return k * k * (3 - 2 * k);
+};
+/** Where the hammer's head is this frame (or `dt` frames back), as drawn, knees bent and all. */
+const hammerRect = (f: Fight, dt = 0): R => {
+  const g = hammerGrip(hammerKAt(f.actT - dt)), drop = hopTell(f) * 11;
+  return headRect(f, [g.near[0], g.near[1] + drop], g.ang);
+};
 const hammer = (ctx: FrameContext, f: Fight) => {
   const { state } = ctx;
   if (!hurtable(state)) return;
   const cx = X(f.x), feet = STAGE_Y - f.y, pr = pRect(state);
-  const body: R = { x0: cx - 24, x1: cx + 24, y0: feet - DAD_H, y1: feet };
-  const down = hammerK(f) === 1;
-  const hx = down ? cx + f.facing * 99 : cx + f.facing * 5, hy = down ? feet - 56 : feet - 187;
-  const head: R = { x0: hx - 28, x1: hx + 28, y0: hy - 18, y1: hy + 18 };
-  if (hits(pr, body) || hits(pr, head)) hammered(ctx, f);
+  // (him (his gut, his body); the hammer's head where it is now and where it just was)
+  const body: R = { x0: cx - 22, x1: cx + 22, y0: feet - DAD_H + 6, y1: feet };
+  if (hits(pr, body) || hits(pr, hammerRect(f)) || hits(pr, hammerRect(f, 1))) hammered(ctx, f);
 };
 const hammered = (ctx: FrameContext, f: Fight) => {
   const { state } = ctx;
   if (!hurtable(state)) return;
   const p = state.player, dir = p.pos.x + p.width / 2 < X(f.x) ? -1 : 1;
   p.isCharging = false; p.isDivekicking = false; p.isUppercutting = false;
-  hurtPlayer(ctx, HAMMER_DMG, 'm2:ct_dad_hammer', { x: dir * 10, y: -9 });
+  hurtPlayer(ctx, HAMMER_DMG, hurtSrc(state, 'm2:ct_dad_hammer'), { x: dir * 10, y: -9 });
   playSound('bonk', 1.2, -6); playSound('clang', 0.7, -4); shakeScreen(state, 8, 4);
   ctx.fx.spawnDamageNumber({ x: p.pos.x, y: p.pos.y - 24 }, 'BONK!', true, '#FDE047');
 };
@@ -584,10 +638,14 @@ const errand = (ctx: FrameContext, f: Fight) => {
       break;
     case 'toss':
       f.fridge.open = Math.min(1, f.fridge.open + 0.07);
-      if (er.t >= TOSS_GAP && !f.bottles.length) {
+      // (an armful at a time: one at him (the last armful's has the one he catches), the rest flung all over the set,
+      // one about where Meathead's stood)
+      if (er.t >= TOSS_GAP && !f.bottles.some(b => b.kind === 'catch')) {
         er.t = 0;
         throwBottle(f, er.left <= 1 ? 'catch' : (['short', 'long', 'head', 'wall'] as const)[Math.floor(Math.random() * 4)]);
-        playSound('whoosh', 0.5, 8);
+        const n = SPRAY + (f.kills >= 2 ? 1 : 0);
+        for (let k = 0; k < n; k++) throwSpray(f, state, k === 0);
+        playSound('whoosh', 0.5, 8); playSound('clink', 0.5, 6);
         er.left--;
         if (er.left <= 0) { er.step = 'back'; er.t = 0; }
       }
@@ -597,7 +655,6 @@ const errand = (ctx: FrameContext, f: Fight) => {
       if (walk(m.home) && !f.bottles.length) f.errand = null;
       break;
   }
-  void state;
 };
 
 const throwBottle = (f: Fight, kind: Miss) => {
@@ -609,15 +666,42 @@ const throwBottle = (f: Fight, kind: Miss) => {
   else if (kind === 'wall') { bx = sx + rnd(-60, 40); by = STAGE_Y - rnd(100, 150); bd = D_SET + 0.006; }
   else if (kind === 'head') { bx = sx + f.facing * 4; by = STAGE_Y - 84; bd = 1; }
   else { bx = sx + f.facing * 12; by = STAGE_Y - 100; bd = 1; }
-  f.bottles.push({ t: 0, T: BOTTLE_T + Math.floor(Math.random() * 6), ax: m.x, ay: STAGE_Y - 76, ad: m.d, bx, by, bd, kind, rot: 0 });
+  f.bottles.push({ t: 0, T: BOTTLE_T + Math.floor(Math.random() * 6), ax: m.x, ay: STAGE_Y - 76, ad: m.d, bx, by, bd, kind, rot: 0, arc: 70 });
+};
+/** One flung wide: down anywhere on the set (`atHim`: about where Meathead's stood), its shadow on the deck as it
+ *  comes (the longer the throw, the longer it's up). */
+const throwSpray = (f: Fight, state: GameState, atHim: boolean) => {
+  const er = f.errand!, m = f.family[er.who], me = pmid(state).x;
+  const lo = ARENA.a + 20, hi = ARENA.b - 30;
+  const bx = Math.max(lo, Math.min(hi, atHim ? me + rnd(-46, 46) : rnd(lo, hi)));
+  const T = BOTTLE_T + 8 + Math.floor(Math.min(20, Math.abs(bx - m.x) / 40));
+  f.bottles.push({ t: 0, T, ax: m.x, ay: STAGE_Y - 76, ad: m.d, bx, by: STAGE_Y - 4, bd: 1, kind: 'spray', rot: Math.random() * 6, arc: rnd(90, 150) });
+};
+/** A bottle's spot this frame: how far along (0..1), x (section), y (world), depth. */
+const bottleAt = (b: Bottle) => {
+  const u = Math.min(1, b.t / b.T);
+  return { u, x: b.ax + (b.bx - b.ax) * u, y: b.ay + (b.by - b.ay) * u - b.arc * Math.sin(Math.PI * u), d: b.ad + (b.bd - b.ad) * u };
 };
 
 const bottles = (ctx: FrameContext, f: Fight) => {
-  const { state } = ctx;
+  const { state } = ctx, E = eyeOf(state);
   for (const b of f.bottles) {
     b.t++; b.rot += 0.45;
+    // (coming down at the front of the set: one that hits Meathead hurts a bit and smashes on him)
+    if (b.kind !== 'catch' && b.kind !== 'wall' && b.kind !== 'head' && hurtable(state) && f.mode === 'on') {
+      const q = bottleAt(b);
+      if (q.u > 0.45 && q.d > 0.95) {
+        const at = proj(E, X(q.x), q.y, q.d);
+        if (hits(pRect(state), { x0: at.x - 5, x1: at.x + 5, y0: at.y - 7, y1: at.y + 7 })) {
+          hurtPlayer(ctx, BEER_DMG, hurtSrc(state, 'm2:ct_dad_beer'), { x: Math.sign(b.bx - b.ax || 1) * 4, y: -4 }, 8);
+          smash(state, at.x, at.y); playSound('bonk', 0.8, 6);
+          b.t = -1; continue;
+        }
+      }
+    }
     if (b.t < b.T) continue;
-    const E = eyeOf(state), at = proj(E, X(b.bx), b.by, b.bd);
+    const at = proj(E, X(b.bx), b.by, b.bd);
+    if (b.kind === 'spray') { smash(state, at.x, at.y); b.t = -1; continue; }
     if (b.kind === 'catch' && (f.act === 'sit' || f.act === 'enter') && f.seated) {
       setAct(f, 'catch'); playSound('clink', 0.9, 0); dadSays(f, state, L.DAD_CATCH);
       if (f.errand) f.errand.left = 0;
@@ -822,7 +906,7 @@ const die = (ctx: FrameContext, f: Fight, how: 'fridge' | 'flat', car?: Car) => 
   state.damageNumbers = [];
   f.errand = null; f.bottles = []; f.drops = []; f.cars = []; f.couch.vx = 0;
   p.inCutscene = true;
-  f.death = { how, t: 0, step: 'start', at: 0, car: null, pile: [], heap: 0, seep: 0, roll: null, stunt: null, skipT: 0, walk: 0, tip: 1 };
+  f.death = { how, t: 0, step: 'start', at: 0, creep: 0, fall: 0, car: null, pile: [], heap: 0, seep: 0, roll: null, stunt: null, skipT: 0, walk: 0, tip: 1 };
   if (how === 'flat') {
     f.seated = false; f.y = 0;
     f.death.car = { x: f.x, rot: 0, vx: 0 };
@@ -844,7 +928,7 @@ const dying = (ctx: FrameContext, f: Fight): Controls => {
   if (skippable && d.skipT > SKIP_AFTER && takeSkip()) { token++; silenceAll(); state.playerVulgarityTimer = 0; f.words.clear(); finish(state, f); return out; }
   out = d.how === 'flat' ? flatDeath(ctx, f, d) : fridgeDeath(ctx, f, d);
   // (the camera on him, kept to the arena)
-  const want = camFor(d.how === 'fridge' ? (d.roll && d.step === 'roll' ? Math.max(d.roll.x, p.pos.x + 300) : d.step === 'start' ? (X(f.x) + p.pos.x) / 2 : X(FRIDGE.x - 260)) : X(f.x));
+  const want = camFor(d.how === 'fridge' ? (d.roll && d.step === 'roll' ? Math.max(d.roll.x, p.pos.x + 300) : d.step === 'start' ? (X(f.x) + p.pos.x) / 2 : X(FRIDGE.x - 230)) : X(f.x));
   const cam = state.camera.x + (want - state.camera.x) * 0.08;
   state.cameraOverride = { x: cam, y: STAGE_Y - 500 };
   // (it never hangs)
@@ -853,7 +937,7 @@ const dying = (ctx: FrameContext, f: Fight): Controls => {
 };
 const camFor = (x: number) => Math.max(X(ARENA.a - 100), Math.min(x1 - CANVAS_WIDTH, x - CANVAS_WIDTH / 2));
 
-/** Skipped: straight to how it ends (the pancake, or the pile with the can at his feet). */
+/** Skipped: straight to how it ends (the pancake, or the fridge on him with the can at Meathead's feet). */
 const finish = (state: GameState, f: Fight) => {
   const d = f.death!;
   if (d.how === 'flat') {
@@ -864,8 +948,10 @@ const finish = (state: GameState, f: Fight) => {
     d.t = Math.max(d.t, 200); d.step = 'flop'; d.at = d.t - FLOP_T - 10;
   }
   else {
-    d.step = 'done'; d.heap = 1; f.fridge.open = 1;
-    if (!d.pile.length) for (let k = 0; k < 90; k++) { const u = (k / 90) * 2 - 1; d.pile.push({ x: X(f.x) + u * 120, y: STAGE_Y - 8 - (1 - u * u) * 100 * Math.random(), vx: 0, vy: 0, rot: k * 1.3, vr: 0, still: true }); }
+    // (the fridge down on him, flat; the cans out of it on the deck; the seep, the blood)
+    d.step = 'done'; d.creep = 1; d.fall = 1; d.heap = 40; f.x = STAND_AT; f.y = 0; f.seated = false; f.facing = 1; f.fridge.open = 0; f.fridge.jolt = 0;
+    if (!d.pile.length) for (let k = 0; k < 10; k++) d.pile.push({ x: X(fridgePivot(f) - FRIDGE_LONG * (0.1 + k * 0.09)) + rnd(-20, 20), y: STAGE_Y - 4, vx: 0, vy: 0, rot: k * 1.3, vr: 0, still: true });
+    for (const k of d.pile) { k.still = true; k.y = STAGE_Y - 4; }
     d.seep = 60;
     const px = state.player.pos.x + state.player.width / 2;
     d.roll = { x: px + (X(f.x) > px ? 34 : -34), vx: 0, open: 1 };
@@ -934,14 +1020,19 @@ const paperOf = (d: Death) => {
   return { up: 0, rot: 0 };
 };
 
-/** The standard death: up for a beer at last, to the fridge, and SWILL LITE comes down on him. */
+/** The standard death (the user's): up for a beer at last, to the fridge; it rocks off the wall, wobbles, and comes
+ *  down on him. */
+const FRIDGE_HALF = 28, FRIDGE_LONG = 120;
+/** Where he stands to yank on it (his feet), where its foot pivots as it tips over (its near bottom corner). */
+const STAND_AT = FRIDGE.x - 80;
+const fridgePivot = (f: Fight) => FRIDGE.x + f.fridge.dx - FRIDGE_HALF;
 const fridgeDeath = (ctx: FrameContext, f: Fight, d: Death): Controls => {
   const { state } = ctx, t = d.t, p = state.player;
   let out: Controls = { ...NO_CONTROLS };
-  const stand = FRIDGE.x - 70;
-  // (Meathead out of the way of it: walked back off a way if he's by the fridge)
+  // (Meathead out of the way of it: walked back off a way if he's anywhere it'll land)
   const pm = pmid(state);
-  if (d.step !== 'done' && pm.x > stand - 220 && p.isGrounded) out = { ...NO_CONTROLS, left: true };
+  if (d.step !== 'done' && d.step !== 'roll' && pm.x > STAND_AT - 230 && p.isGrounded) out = { ...NO_CONTROLS, left: true };
+  const fr = f.fridge;
   switch (d.step) {
     case 'start':
       // (off the couch (or down out of a hop), the line, up)
@@ -951,30 +1042,50 @@ const fridgeDeath = (ctx: FrameContext, f: Fight, d: Death): Controls => {
       break;
     case 'walk':
       f.facing = 1;
-      f.x += Math.min(1.4, stand - f.x);
-      if (stand - f.x < 0.5) { d.step = 'open'; d.at = t; }
+      f.x += Math.sign(STAND_AT - f.x) * Math.min(1.4, Math.abs(STAND_AT - f.x));
+      if (Math.abs(STAND_AT - f.x) < 0.5) { d.step = 'yank'; d.at = t; }
       break;
-    case 'open':
-      f.fridge.open = Math.min(1, f.fridge.open + 0.05);
-      if (t === d.at + 26) { playSound('rumble', 0.9, -4); shakeScreen(state, 4, 30); }
-      if (t === d.at + 44) { d.step = 'pour'; d.at = t; playSound('crash', 1, 0); playSound('clink', 1, 4); }
-      break;
-    case 'pour': {
-      // (forty years of it: an avalanche of cans out of the door, piling up over him)
-      if (t < d.at + 50) for (let k = 0; k < 4; k++) d.pile.push({ x: X(FRIDGE.x - 20), y: STAGE_Y - 100 - Math.random() * 30, vx: -rnd(1, 6.5), vy: rnd(-4, 1), rot: Math.random() * 6, vr: rnd(-0.4, 0.4), still: false });
-      if (t % 5 === 0 && t < d.at + 60) playSound('clink', 0.6, Math.random() * 8);
-      if (t >= d.at + 90) { d.step = 'buried'; d.at = t; laughTrack(state, 1); }
+    case 'yank': {
+      // (the door's stuck (it's packed solid): he yanks, and yanks, and the whole thing rocks off the wall toward him)
+      const u = t - d.at;
+      if (u % 16 === 4) { playSound('thud', 0.6, -6); playSound('clink', 0.6, 2); d.creep = Math.min(1, d.creep + 0.24); fr.jolt = 0.7; }
+      if (u >= 70) { d.step = 'wobble'; d.at = t; dadSays(f, state, L.DAD_WOBBLE); }
       break;
     }
-    case 'buried':
+    case 'wobble': {
+      // (it rocks on its corners, the bottles inside clinking; he looks up at it)
+      const u = t - d.at;
+      fr.jolt = Math.min(1.4, 0.6 + u * 0.02);
+      if (u % 9 === 0) playSound('clink', 0.5, 4 + Math.random() * 4);
+      if (u === 20) playSound('rumble', 0.6, -6);
+      if (u >= 60 && !isTalking()) { d.step = 'fall'; d.at = t; playSound('whoosh', 0.8, -8); }
+      break;
+    }
+    case 'fall': {
+      // (over it goes, onto him, faster and faster)
+      const u = t - d.at;
+      fr.jolt = 0; d.fall = Math.min(1, (u / 16) * (u / 16));
+      if (d.fall >= 1) {
+        d.step = 'crushed'; d.at = t;
+        playSound('crash', 1, -4); playSound('crunch', 1.2, -8); playSound('squish', 1, -10); playSound('glass', 0.8, 2); shakeScreen(state, 16, 10);
+        laughTrack(state, 1);
+        const x0 = X(fridgePivot(f) - FRIDGE_LONG);
+        for (let i = 0; i < 24; i++) state.particles.push({ pos: { x: x0 + Math.random() * X(FRIDGE_LONG) - X(0), y: STAGE_Y - 4 }, vel: { x: (Math.random() - 0.5) * 7, y: -1 - Math.random() * 4 }, life: 40, color: i % 3 ? '#D6D3D1' : '#8E9A3E', size: 3 + Math.random() * 4, grav: 0.2 });
+        // (a few cans burst out of the door as it lands)
+        for (let k = 0; k < 10; k++) d.pile.push({ x: X(fridgePivot(f) - FRIDGE_LONG * (0.3 + Math.random() * 0.6)), y: STAGE_Y - 30, vx: rnd(-4, 4), vy: rnd(-6, -2), rot: Math.random() * 6, vr: rnd(-0.4, 0.4), still: false });
+      }
+      break;
+    }
+    case 'crushed':
       if (t === d.at + 40) { playSound('fart', 1, -6); playSound('poopsplat', 0.7, -4); }
       if (t > d.at + 40) d.seep = Math.min(60, d.seep + 0.6);
-      if (t === d.at + 70 && f.deathSaid === 0) { f.deathSaid = 1; dadSays(f, state, L.DAD_BURIED, tokened(() => { d.step = 'roll'; d.at = d.t; })); }
+      d.heap = Math.min(40, d.heap + 0.5);
+      if (t === d.at + 70 && f.deathSaid === 0) { f.deathSaid = 1; dadSays(f, state, L.DAD_CRUSHED, tokened(() => { d.step = 'roll'; d.at = d.t; })); }
       break;
     case 'roll': {
-      // (one can rolls out of the pile, across the deck to his feet; it cracks open on its own)
+      // (one can rolls out from under it, across the deck to his feet; it cracks open on its own)
       const px = p.pos.x + p.width / 2;
-      if (!d.roll) d.roll = { x: X(f.x) - 90, vx: -5, open: 0 };
+      if (!d.roll) d.roll = { x: X(fridgePivot(f) - FRIDGE_LONG) - 10, vx: -5, open: 0 };
       const r = d.roll, stop = px + 34;
       if (r.x > stop) { r.x += r.vx; if (t % 8 === 0) playSound('clink', 0.3, 6); }
       else if (r.open === 0) { r.open = 1; playSound('canopen', 1, 0); for (let i = 0; i < 12; i++) state.particles.push({ pos: { x: r.x, y: STAGE_Y - 6 }, vel: { x: (Math.random() - 0.5) * 3, y: -2 - Math.random() * 3 }, life: 30, color: i % 2 ? '#FFFFFF' : '#F2C84A', size: 2 + Math.random() * 2, grav: 0.25 }); meathead(state, L.MH_WON, true, tokened(() => { f.deathSaid = 4; d.step = 'done'; })); }
@@ -982,16 +1093,11 @@ const fridgeDeath = (ctx: FrameContext, f: Fight, d: Death): Controls => {
     }
     default: break;
   }
-  // The cans: falling, tumbling, piling on the heap over him
-  // (the heap grows with what's landed: a mound over him, highest where he stood)
-  const cx = X(f.x) + 10;
-  d.heap = d.pile.reduce((n, k) => n + (k.still ? 1 : 0), 0);
-  const H = Math.min(128, d.heap * 0.75);
+  // The cans out of it: tumbling, coming to rest on the deck
   for (const k of d.pile) {
     if (k.still) continue;
     k.x += k.vx; k.y += k.vy; k.vy += 0.4; k.rot += k.vr;
-    const u = (k.x - cx) / 120, top = STAGE_Y - 6 - Math.max(0, 1 - u * u) * H;
-    if (k.vy > 0 && k.y >= top) { k.y = top - Math.random() * 5; k.still = true; }
+    if (k.vy > 0 && k.y >= STAGE_Y - 4) { k.y = STAGE_Y - 4; k.still = true; }
   }
   return out;
 };
@@ -1033,24 +1139,26 @@ export const killCamZoom = (state: GameState, f: Fight) => {
 type Item = { d: number; x: number; draw: () => void };
 
 /** His pose and how far through it, this frame. */
-const poseOf = (f: Fight): { pose: DadPose; t: number; face?: DadFace; can: 'near' | null; rot: number } => {
+const poseOf = (f: Fight): { pose: DadPose; t: number; face?: DadFace; can: 'near' | null; rot: number; crouch?: number } => {
   const t = f.actT, d = f.death;
   if (d) {
     if (d.how === 'fridge') {
       if (d.step === 'start') return { pose: f.seated && d.t < 70 ? 'rise' : 'stand', t: Math.min(1, d.t / 70), can: null, rot: 0 };
       if (d.step === 'walk') return { pose: 'shuffle', t: 0, can: null, rot: 0 };
-      return { pose: d.step === 'open' ? 'fridge' : 'stagger', t: 0, face: 'wide', can: null, rot: 0 };
+      if (d.step === 'yank') return { pose: 'fridge', t: 0, face: 'strain', can: null, rot: (d.t - d.at) % 16 < 5 ? -0.06 : 0 };
+      if (d.step === 'wobble' && d.t - d.at < 24) return { pose: 'fridge', t: 0, face: 'wide', can: null, rot: 0 };
+      return { pose: 'cower', t: 0, face: 'wide', can: null, rot: 0 };
     }
     return { pose: 'stand', t: 0, can: null, rot: 0 };
   }
   switch (f.act) {
-    case 'swat': return { pose: 'swat', t: t < f.swatWind ? (t / f.swatWind) * 0.35 : Math.min(1, 0.35 + ((t - f.swatWind) / 5) * 0.65), can: null, rot: 0 };
+    case 'swat': return { pose: 'swat', t: swatT(f, t), can: null, rot: 0 };
     case 'catch': return { pose: 'catch', t: 0, can: null, rot: 0 };
     case 'drink': return { pose: 'sip', t: 0, can: null, rot: 0 };
     case 'pukeWind': return { pose: 'sit', t: 0, face: 'burp', can: null, rot: 0 };
     case 'puke': return { pose: 'puke', t: 0, can: null, rot: 0 };
     case 'rise': return { pose: 'rise', t: t / RISE_T, can: null, rot: 0 };
-    case 'rage': return { pose: 'hammer', t: hammerK(f), can: null, rot: 0 };
+    case 'rage': return { pose: 'hammer', t: hammerK(f), can: null, rot: 0, crouch: hopTell(f) };
     case 'tired': return { pose: 'stand', t: 0, face: 'strain', can: null, rot: 0 };
     case 'return': return { pose: 'shuffle', t: 0, can: null, rot: 0 };
     case 'baffled': return f.seated ? { pose: 'baffled', t: 0, can: null, rot: 0 } : { pose: 'stand', t: 0, face: 'wide', can: null, rot: 0 };
@@ -1065,8 +1173,9 @@ const poseOf = (f: Fight): { pose: DadPose; t: number; face?: DadFace; can: 'nea
 /** The mallet in his hands (his units, his near and far hands), by what he's at. */
 const heldFor = (f: Fight, pose: DadPose) => (c: Ctx, near: number[], far: number[]) => {
   const put = (gx: number, gy: number, ang: number) => { c.save(); c.translate(gx, gy); c.rotate(ang); drawMallet(c); c.restore(); };
-  if (pose === 'swat') { const k = Math.min(1, f.actT < f.swatWind ? (f.actT / f.swatWind) * 0.35 : 0.35 + ((f.actT - f.swatWind) / 5) * 0.65); put(near[0], near[1], 0.9 - 2.9 * k); }
-  else if (pose === 'hammer') put((near[0] + far[0]) / 2, (near[1] + far[1]) / 2, -hammerK(f) * (Math.PI / 2));
+  // (the swat and the hammer: the grip in his near hand at the angle the hits are worked out from (dad.ts))
+  if (pose === 'swat') put(near[0], near[1], swatGrip(swatT(f, f.actT)).ang);
+  else if (pose === 'hammer') { void far; put(near[0], near[1], hammerGrip(hammerK(f)).ang); }
   else if (pose === 'stagger' && f.act !== 'thrown' && f.mode === 'on') put(near[0], near[1], 2.1);
   else if (pose === 'heave') put(near[0], near[1], -1.7);
   else if (pose === 'sip') { c.save(); c.translate(near[0] - 3, near[1] - 4); c.rotate(2.0); drawBottle(c, 0, 0, 0); c.restore(); }
@@ -1077,9 +1186,19 @@ const heldFor = (f: Fight, pose: DadPose) => (c: Ctx, near: number[], far: numbe
 export const fightItems = (c: Ctx, state: GameState, f: Fight): Item[] => {
   const fr = state.frame, items: Item[] = [];
   const at = (d: number, x: number, draw: () => void) => items.push({ d, x, draw });
-  // (the fridge)
-  const stuffed = f.death?.how === 'fridge' && (f.death.step === 'walk' || f.death.step === 'open' || f.death.step === 'start');
-  at(FRIDGE.d, X(FRIDGE.x), () => drawFridge(c, X(FRIDGE.x + f.fridge.dx), STAGE_Y, fr, { open: f.fridge.open, tilt: f.fridge.tilt, stuffed }));
+  // (the fridge: against its wall; in his standard death rocked off it toward the front, wobbling, then tipped over
+  // onto him about its near foot)
+  const dd = f.death?.how === 'fridge' ? f.death : null;
+  const stuffed = !!dd && dd.step !== 'crushed' && dd.step !== 'roll' && dd.step !== 'done';
+  const fall = dd ? dd.fall : 0, fd = dd ? (fall > 0 ? 1.0008 : FRIDGE.d + (1.0003 - FRIDGE.d) * dd.creep) : FRIDGE.d;
+  at(fd, X(FRIDGE.x), () => {
+    if (fall > 0) {
+      const pv = X(fridgePivot(f));
+      c.save(); c.translate(pv, STAGE_Y); c.rotate(-fall * Math.PI / 2); c.translate(-pv, -STAGE_Y);
+      drawFridge(c, X(FRIDGE.x + f.fridge.dx), STAGE_Y, fr, { open: 0, tilt: 0, stuffed: false });
+      c.restore();
+    } else drawFridge(c, X(FRIDGE.x + f.fridge.dx), STAGE_Y, fr, { open: f.fridge.open, tilt: f.fridge.tilt, stuffed });
+  });
   // (the family: going about it, or flattened)
   for (const m of MEMBERS) {
     const fm = f.family[m];
@@ -1133,22 +1252,37 @@ export const fightItems = (c: Ctx, state: GameState, f: Fight): Item[] => {
     const s = d.stunt;
     if (s) items.push({ d: 1.0013, x: s.x, draw: () => drawStuntmanAt(c, s.x, s.y, -1, 0, s.up ? 'up' : 'tumble') });
   } else {
-    const buried = d?.how === 'fridge' && (d.step === 'buried' || d.step === 'roll' || d.step === 'done');
-    if (!buried) {
+    const crushed = d?.how === 'fridge' && (d.step === 'crushed' || d.step === 'roll' || d.step === 'done');
+    if (crushed) {
+      // (flat under the fridge, on his back: his head and his hands out the end of it, twitching a while)
+      items.push({ d: 1.0002, x: X(f.x), draw: () => {
+        const tw = d.step === 'crushed' && d.t - d.at < 90 && (d.t >> 2) % 3 === 0 ? 1 : 0;
+        c.save(); c.translate(X(f.x), STAGE_Y - 9); c.scale(1, 0.42); c.rotate(-Math.PI / 2 + tw * 0.02);
+        drawDad(c, 0, 0, 'cower', fr, { face: 'out', can: null, sway: 0, facing: 1, talking: f.words.has('dad') });
+        c.restore();
+      } });
+    } else {
       const blink = f.iframes > 0 && Math.floor(fr / 3) % 2 === 0 && f.mode === 'on';
       items.push({ d: 1.0005, x: X(f.x), draw: () => {
         if (blink) c.globalAlpha = 0.65;
         const feet = STAGE_Y - f.y;
         c.save(); c.translate(X(f.x), feet); c.rotate(P.rot);
-        drawDad(c, 0, 0, P.pose, fr, { t: P.t, talking: f.words.has('dad'), face: P.face ?? (f.flash > 0 ? 'strain' : undefined), can: P.can, canFull: false, facing: f.facing, held: heldFor(f, P.pose) });
+        drawDad(c, 0, 0, P.pose, fr, { t: P.t, talking: f.words.has('dad'), face: P.face ?? (f.flash > 0 ? 'strain' : undefined), can: P.can, canFull: false, facing: f.facing, held: heldFor(f, P.pose), crouch: P.crouch });
         c.restore();
         c.globalAlpha = 1;
       } });
     }
   }
-  // (the avalanche over him, the seep from under it, the can rolled out)
+  // (the seep and the blood from under the fridge, the cans out of it, the can rolled out)
   if (d?.how === 'fridge') {
-    items.push({ d: 1.0011, x: X(f.x), draw: () => { drawSeep(c, X(f.x) - 70 - d.seep * 0.6, STAGE_Y - 1, d.seep); drawPile(c, d.pile); if (d.roll) drawRolled(c, d.roll.x, d.roll.open > 0, fr); } });
+    items.push({ d: 1.0001, x: X(f.x), draw: () => { drawBlood(c, X(f.x) + 10, STAGE_Y - 1, d.heap); drawSeep(c, X(f.x) + 40 + d.seep * 0.4, STAGE_Y - 1, d.seep); } });
+    items.push({ d: 1.0011, x: X(f.x), draw: () => { drawPile(c, d.pile); if (d.roll) drawRolled(c, d.roll.x, d.roll.open > 0, fr); } });
+  }
+  // (the bottles coming down on the front of the set: a shadow on the deck where each will land, darker as it comes)
+  for (const b of f.bottles) {
+    if (b.bd < 0.99 || b.by < STAGE_Y - 20) continue;
+    const u = Math.min(1, b.t / b.T);
+    at(0.9999, X(b.bx), () => { c.fillStyle = `rgba(20, 10, 30, ${(0.18 + 0.32 * u).toFixed(2)})`; c.beginPath(); c.ellipse(X(b.bx), STAGE_Y - 1, 3 + 6 * u, 1.2 + 1.4 * u, 0, 0, Math.PI * 2); c.fill(); });
   }
   return items;
 };
@@ -1171,9 +1305,9 @@ export const drawFightFront = (c: Ctx, state: GameState, f: Fight) => {
     let p: P;
     if (who === 'dad') {
       const d = f.death;
-      const buried = d?.how === 'fridge' && (d.step === 'buried' || d.step === 'roll' || d.step === 'done');
-      const top = d?.how === 'flat' ? STAGE_Y - 30 - DAD_H * 0.48 * paperOf(d).up :buried ? STAGE_Y - 130 : STAGE_Y - f.y - (f.seated ? DAD_SIT_H : DAD_H) - 14;
-      p = { x: X(f.x), y: top };
+      const crushed = d?.how === 'fridge' && (d.step === 'crushed' || d.step === 'roll' || d.step === 'done');
+      const top = d?.how === 'flat' ? STAGE_Y - 30 - DAD_H * 0.48 * paperOf(d).up : crushed ? STAGE_Y - 90 : STAGE_Y - f.y - (f.seated ? DAD_SIT_H : DAD_H) - 14;
+      p = { x: crushed ? X(f.x) - 90 : X(f.x), y: top };
     } else { const m = f.family[who]; p = proj(E, X(m.x), STAGE_Y - 130 * DAD_K, m.d); }
     saidOver(c, text, p.x, p.y, who === 'dad' ? '#FDE047' : '#93C5FD', 240);
   }

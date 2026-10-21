@@ -271,3 +271,8 @@ export const drawSeep = (c: Ctx, x: number, floorY: number, w: number) => {
   if (w <= 0) return;
   ell(c, x, floorY, w, w * 0.16, '#4A2A0A'); ell(c, x - 2, floorY - 0.6, w * 0.7, w * 0.1, '#6A3E12'); px(c, x - w * 0.3, floorY - 1, w * 0.2, 1, '#8A5A20');
 };
+/** The blood out from under the fridge (his standard death): a dark pool, a wet highlight. */
+export const drawBlood = (c: Ctx, x: number, floorY: number, w: number) => {
+  if (w <= 0) return;
+  ell(c, x, floorY, w * 2, w * 0.3, '#5A0A10'); ell(c, x - 3, floorY - 0.6, w * 1.5, w * 0.2, '#8A1018'); px(c, x - w * 0.8, floorY - 1, w * 0.4, 1, '#C8303A');
+};

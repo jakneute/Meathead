@@ -334,10 +334,16 @@ export const DAD_FRIDGE: ByPants = {
   shitty: ['FINE. I\'LL GET IT. YOU\'D ONLY SHIT ON IT.', 'I\'LL GET MY OWN BEER. AWAY FROM YOU.'],
   nude: ['FINE. I\'LL GET IT. DON\'T FOLLOW ME NAKED.', 'I\'LL GET MY OWN. AND A ROBE FOR YOU.'],
 };
-/** ...from under the pile (and he shits himself). */
-export const DAD_BURIED: ByPants = {
-  clean: ['...STILL COLD. AND I SHIT MYSELF. WORTH IT.', '...BEST SHOW WE EVER DID. I SHIT MYSELF.'],
-  shitty: ['...NOW I SHIT MYSELF. WE MATCH.', '...I SHIT MYSELF. DON\'T SAY IT.'],
+/** The fridge rocking: he looks up at it. */
+export const DAD_WOBBLE: ByPants = {
+  clean: ['UH OH.', 'EASY, BIG GREEN. EASY.', 'NO. NO NO NO.'],
+  shitty: ['UH OH. NOW I KNOW HOW YOUR PANTS FEEL.', "NO NO NO. DON'T YOU DARE, FRIDGE."],
+  nude: ["UH OH. DON'T JUST STAND THERE NAKED. CATCH IT.", 'NO NO NO. NOT IN FRONT OF THE NAKED GUY.'],
+};
+/** ...from under the fridge, flat (and he shits himself). */
+export const DAD_CRUSHED: ByPants = {
+  clean: ['...STILL COLD. AND I SHIT MYSELF.', '...TWENTY YEARS I FED THAT FRIDGE. I SHIT MYSELF.'],
+  shitty: ['...NOW I SHIT MYSELF. WE MATCH.', "...I SHIT MYSELF. DON'T SAY IT."],
   nude: ['...I SHIT MYSELF. AT LEAST I GOT SHORTS.', '...I SHIT MYSELF. STILL BETTER DRESSED THAN YOU.'],
 };
 /** The weakness death: flattened under the last stunt car, like a cartoon. */
@@ -409,45 +415,59 @@ export const MH_WON_WEAK: ByPants = {
   nude: ['FLATTER THAN ME. AND I\'M NAKED.', 'PANCAKE DAD. NO SYRUP.'],
 };
 export const MH_WON: ByPants = {
-  clean: ['DEATH BY BEER. HE\'D WANT IT THAT WAY.', 'COLD ONE\'S ON ME, DAD.'],
-  shitty: ['HE SHIT HIMSELF TOO. WELCOME TO THE CLUB.', 'IT SMELLS LIKE HIM NOW. NOT ME. FINALLY.'],
-  nude: ['BURIED IN BEER. BEATS PANTS.', 'ONE ROLLED OUT. NAKED KEEPERS.'],
+  clean: ['CRUSHED BY HIS OWN FRIDGE. COLD.', 'HE GOT HIS OWN BEER. FINALLY.', "COLD ONE'S ON ME, DAD."],
+  shitty: ['HE SHIT HIMSELF UNDER THERE. WELCOME TO THE CLUB.', 'FLAT UNDER A FRIDGE. IT SMELLS LIKE HIM NOW. NOT ME.'],
+  nude: ["CRUSHED BY A FRIDGE. I'LL TAKE THE BEER. NOT THE SHORTS.", 'A COLD ONE AND NO PANTS. PERFECT.'],
 };
 
-/** What hurts him here (by source), and the death screen (28 characters at most). The family can't hurt him (the
- *  user's): their bottles don't. */
-export const HURT: HurtTable = {
+/** What hurts him here (by what did it, then by the state he's in: hurtSrc in fight.ts sends `<source>.<clean|shitty|
+ *  nude>`), and the death screen (28 characters at most). Every one names what it was: Stupid Dad's mallet swat from
+ *  the couch, his Donkey Kong hammer, the puke, the couch, the family's beer bottles (they hurt a bit: the user's). */
+export const HURT_BY: Record<string, Record<'clean' | 'shitty' | 'nude', { hurt: string[]; death: string[] }>> = {
   'm2:ct_dad_swat': {
-    hurt: ['BONKED BY A MALLET!', 'HE BATTED ME LIKE A FLY!', 'HOME RUN! ME!'],
-    death: ['BATTED AWAY BY A DRUNK', 'HOME RUN. HE WAS THE BALL.', 'BONKED OFF A SITCOM SET'],
-  },
-  'm2:ct_dad_puke': {
-    hurt: ['PUKE! HOT PUKE!', 'IT\'S IN MY MOUTH!', 'BEER PUKE! IN MY EYES!'],
-    death: ['DROWNED IN DAD PUKE', 'HOSED DOWN BY A DRUNK', 'DIED IN A PUKE SHOWER'],
-  },
-  'm2:ct_dad_couch': {
-    hurt: ['HIT BY A FLYING COUCH!', 'THE COUCH GOT ME!', 'SOFA TO THE FACE!'],
-    death: ['RUN OVER BY A COUCH', 'KILLED BY A FLYING SOFA', 'COUCH-SURFED TO DEATH'],
+    clean: { hurt: ['THE DRUNK SWATTED ME!', 'HE BATTED ME OFF HIS COUCH!', 'SWATTED LIKE A FLY!', 'NO AUTOGRAPHS, I GET IT!', 'HOME RUN! I\'M THE BALL!'], death: ['SWATTED OFF A SITCOM COUCH', 'BATTED AWAY BY A DRUNK', 'HOME RUN. HE WAS THE BALL.'] },
+    shitty: { hurt: ['HE SWATTED THE SHIT OUT OF ME!', 'BATTED OFF THE COUCH! SQUISH!', 'SWATTED LIKE A STINKY FLY!', 'THAT KNOCKED MORE OUT OF ME!'], death: ['SWATTED, SHITTY, DEAD', 'BATTED AWAY, PANTS FULL'] },
+    nude: { hurt: ['HE SWATTED MY BARE ASS!', 'BATTED OFF THE COUCH! NAKED!', 'SWATTED! EVERYTHING JIGGLED!', 'NOT THE BALLS, DAD!'], death: ['SWATTED OFF A COUCH, NAKED', 'BATTED AWAY BARE-ASSED'] },
   },
   'm2:ct_dad_hammer': {
-    hurt: ['HAMMERED!', 'HE HOPPED AND BONKED ME!', 'MY HEAD\'S RINGING!'],
-    death: ['HAMMERED BY DONKEY DAD', 'WHACKED BY A STOLEN MALLET', 'BONKED FLAT'],
+    clean: { hurt: ['DONKEY DAD HAMMERED ME!', 'HE HAMMERED ME INTO THE FLOOR!', 'MY HEAD\'S RINGING!', 'HE HOPPED ON ME WITH A HAMMER!', 'DAD\'S GOT A HAMMER! OW!'], death: ['HAMMERED BY DONKEY DAD', 'NAILED BY A DRUNK DAD', 'HAMMERED INTO THE STAGE'] },
+    shitty: { hurt: ['HE HAMMERED IT OUT OF ME!', 'HAMMERED! IT SQUISHED!', 'DONKEY DAD! MY PANTS!', 'HE HAMMERED MY SHITTY ASS!'], death: ['HAMMERED, PANTS FULL', 'DONKEY DAD, SHITTY END'] },
+    nude: { hurt: ['HAMMERED! RIGHT ON MY BARE ASS!', 'DONKEY DAD! MY BALLS!', 'HE HAMMERED ME NAKED!', 'NOT THERE WITH A HAMMER!'], death: ['HAMMERED FLAT, NAKED', 'DONKEY DAD, BARE ASS'] },
+  },
+  'm2:ct_dad_puke': {
+    clean: { hurt: ['HOT DAD PUKE!', 'BEER PUKE! IN MY EYES!', 'IT\'S IN MY MOUTH!', 'HE PUKED ON ME!'], death: ['DROWNED IN DAD PUKE', 'HOSED DOWN BY A DRUNK', 'DIED IN A PUKE SHOWER'] },
+    shitty: { hurt: ['PUKE! NOW I\'M BOTH ENDS!', 'HE PUKED ON MY SHITTY PANTS!', 'PUKE AND SHIT! FULL SET!'], death: ['PUKED ON AND SHAT IN', 'BOTH ENDS. DEAD.'] },
+    nude: { hurt: ['PUKE! ON MY BARE SKIN!', 'IT\'S RUNNING DOWN MY CRACK!', 'HOT PUKE ON MY NAKED ASS!'], death: ['PUKED ON, NAKED', 'BARE ASS IN DAD PUKE'] },
+  },
+  'm2:ct_dad_couch': {
+    clean: { hurt: ['HIT BY A FLYING COUCH!', 'THE COUCH GOT ME!', 'SOFA TO THE FACE!', 'PUKE-POWERED COUCH! OW!'], death: ['RUN OVER BY A COUCH', 'KILLED BY A FLYING SOFA', 'COUCH-SURFED TO DEATH'] },
+    shitty: { hurt: ['THE COUCH SQUISHED MY PANTS!', 'FLYING COUCH! IT SPLATTED!', 'SOFA! RIGHT IN THE MESS!'], death: ['FLATTENED BY A SOFA. SHITTY.', 'COUCHED IN MY OWN SHIT'] },
+    nude: { hurt: ['COUCH! ON MY BARE ASS!', 'PLAID BURN ON MY BALLS!', 'FLYING COUCH! NAKED!'], death: ['RUN OVER BY A COUCH, NAKED', 'SOFA\'D BARE-ASSED'] },
+  },
+  'm2:ct_dad_beer': {
+    clean: { hurt: ['BEER BOTTLE! OW!', 'THEY\'RE THROWING BEER AT ME!', 'RIGHT IN THE HEAD! WITH BEER!', 'GOOD BEER! WASTED ON ME!'], death: ['KILLED BY FLYING BEER', 'BOTTLED BY A ROBOT FAMILY', 'BEER TO THE HEAD'] },
+    shitty: { hurt: ['BEER BOTTLE! IN THE MESS!', 'BOTTLED! AND I STINK!', 'THROW IT AT HIM, NOT ME!'], death: ['BOTTLED, PANTS FULL', 'BEER, SHIT, DEAD'] },
+    nude: { hurt: ['BEER BOTTLE! ON MY BARE ASS!', 'COLD BEER! ON MY NUTS!', 'BOTTLED! I\'M NAKED HERE!'], death: ['BOTTLED, NAKED', 'BEER TO THE BARE ASS'] },
   },
 };
+/** Flat (one line per source, all states): what fight.ts registers, `<source>.<state>` and the source alone (clean). */
+export const HURT: HurtTable = Object.fromEntries(Object.entries(HURT_BY).flatMap(([src, by]) => [
+  [src, by.clean], ...(['clean', 'shitty', 'nude'] as const).map(k => [`${src}.${k}`, by[k]] as const),
+]));
 
 const all = (b: ByPants) => allOf(b);
 export const VOICE_LINES: Record<string, string[]> = {
   meathead: [
     ...[ARRIVE, REVISIT, ...Object.values(GAGS), MH_KICKED, MH_SEES, MH_ON].flatMap(all),
     ...[MH_HINT, MH_TOO_GREASY, MH_PUKE, MH_RAGE, MH_BUNDY, MH_KILL, MH_COUCH, MH_DUD, MH_WON_WEAK, MH_WON].flatMap(all),
-    ...Object.values(HURT).flatMap(h => h.hurt),
+    ...Object.values(HURT_BY).flatMap(by => Object.values(by).flatMap(h => h.hurt)),
   ],
-  death: Object.values(HURT).flatMap(h => h.death),
+  death: Object.values(HURT_BY).flatMap(by => Object.values(by).flatMap(h => h.death)),
   [VOICES.guard]: [GUARD_STOP, GUARD_DOWN_LINES, GUARD_GROAN, GUARD_LATER].flatMap(all),
   [VOICES.dad]: [
     ...SHOW_CALL, ...SHOW_TAKE, ...SHOW_ADLIB, ...SHOW_TV, ...[DAD_NOTICE, DAD_UP, DAD_FIGHT, DAD_SETTLE].flatMap(all),
     ...[DAD_BEER, DAD_SNIPE, DAD_BUNDY, DAD_SWAT, DAD_CATCH, DAD_MISS, DAD_BONK, DAD_PUKE, DAD_RAGE, DAD_TIRED, DAD_HURT, ...DAD_KILL,
-      DAD_PATHETIC, DAD_HEAVY, DAD_TAUNT, DAD_LOW, DAD_ENTRANCE, DAD_GRABBED, DAD_SEES_CAR, DAD_FRIDGE, DAD_BURIED, DAD_FLAT].flatMap(all),
+      DAD_PATHETIC, DAD_HEAVY, DAD_TAUNT, DAD_LOW, DAD_ENTRANCE, DAD_GRABBED, DAD_SEES_CAR, DAD_FRIDGE, DAD_WOBBLE, DAD_CRUSHED, DAD_FLAT].flatMap(all),
   ],
   [VOICES.mom]: [...MOM_TAPE, ...GLITCH_TAPE.mom, ...MOM_SNARK, ...FETCH_TAPE.mom, ...DIE_TAPE.mom],
   [VOICES.boy]: [...BOY_TAPE, ...GLITCH_TAPE.boy, ...BOY_SNARK, ...DIE_TAPE.boy],

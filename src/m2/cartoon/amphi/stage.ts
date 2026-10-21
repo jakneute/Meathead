@@ -304,21 +304,36 @@ export const drawLaughHorn = (c: Ctx, f: number, laughing: boolean) => {
 // ---------------------------------------------------------------------------------------------------------------
 // The TV on its cart (turned toward the couch, three-quarters to us), the VCR flashing 12:00
 
+/** A 3x5 pixel font for the TV's score bug and the VCR's clock, drawn live (a stamped sign comes down off its spot at
+ *  the TV's depth, where the scale isn't a whole number). */
+const TV_FONT: Record<string, string> = {
+  '0': '111101101101111', '1': '010110010010111', '2': '111001111100111', '4': '101101111001001', ':': '000010000010000', ' ': '000000000000000',
+  U: '101101101101111', B: '110101110101110', X: '101101010101101',
+};
+const tvText = (c: Ctx, text: string, x: number, y: number, col: string) => {
+  let dx = x;
+  for (const ch of text) { const m = TV_FONT[ch] ?? TV_FONT[' ']; for (let k = 0; k < 15; k++) if (m[k] === '1') box(c, dx + (k % 3), y + Math.floor(k / 3), 1, 1, col); dx += ch === ':' ? 3 : 4; }
+};
+
 export const drawTV = (c: Ctx, x: number, f: number, mode: 'game' | 'roll' | 'off') => {
   const y = STAGE_Y, S = NR(STEEL), Wd = NR(r6('#7A4A2A'));
-  // (the cart: two shelves on casters, the VCR on the low one)
-  stamp(c, key('tvcart'), x - 50, y - 60, 100, 62, g => {
-    for (const s of [-1, 1]) { box(g, x + s * 34 - 2, y - 46, 4, 40, INK); box(g, x + s * 34 - 1, y - 46, 2, 40, S[4]); }
-    box(g, x - 41, y - 48, 82, 6, INK); box(g, x - 40, y - 47, 80, 4, S[3]); box(g, x - 40, y - 47, 80, 1, S[5]);
-    box(g, x - 39, y - 19, 78, 5, INK); box(g, x - 38, y - 18, 76, 3, S[3]); box(g, x - 38, y - 18, 76, 1, S[5]);
-    for (const s of [-1, 1]) { g.fillStyle = INK; g.beginPath(); g.arc(x + s * 34, y - 4, 4, 0, Math.PI * 2); g.fill(); g.fillStyle = S[2]; g.beginPath(); g.arc(x + s * 34, y - 4, 2, 0, Math.PI * 2); g.fill(); }
+  // (the cart: two shelves on casters, the VCR on the low one; its top shelf as wide as the set that sits on it. Painted
+  // live, not stamped: at the TV's depth (a scale that isn't a whole number) a stamp of it came down off to one side of
+  // the set, so the TV hung off the end of its shelf)
+  {
+    const g = c;
+    for (const s of [-1, 1]) { box(g, x + s * 38 - 2, y - 46, 4, 40, INK); box(g, x + s * 38 - 1, y - 46, 2, 40, S[4]); }
+    box(g, x - 48, y - 48, 98, 6, INK); box(g, x - 47, y - 47, 96, 4, S[3]); box(g, x - 47, y - 47, 96, 1, S[5]);
+    box(g, x - 43, y - 19, 86, 5, INK); box(g, x - 42, y - 18, 84, 3, S[3]); box(g, x - 42, y - 18, 84, 1, S[5]);
+    for (const s of [-1, 1]) { g.fillStyle = INK; g.beginPath(); g.arc(x + s * 38, y - 4, 4, 0, Math.PI * 2); g.fill(); g.fillStyle = S[2]; g.beginPath(); g.arc(x + s * 38, y - 4, 2, 0, Math.PI * 2); g.fill(); }
     // (the VCR)
     box(g, x - 30, y - 34, 54, 15, INK); box(g, x - 29, y - 33, 52, 13, '#2A2A30'); box(g, x - 29, y - 33, 52, 2, '#4A4A54'); box(g, x - 24, y - 28, 22, 3, '#141418'); for (let k = 0; k < 4; k++) box(g, x + 4 + k * 4, y - 26, 3, 2, '#5A5A64');
     box(g, x + 4, y - 31, 16, 4, '#0A1A10');
     // (the cable down to the floor)
-    g.strokeStyle = '#1A1A1A'; g.lineWidth = 2; g.beginPath(); g.moveTo(x + 36, y - 40); g.quadraticCurveTo(x + 48, y - 20, x + 44, y); g.stroke();
-  });
-  if (mode !== 'off' && (f >> 5) % 2 === 0) signText(c, '12:00', x + 12, y - 27, { sx: 1, sy: 1, fill: '#5CF06A' });
+    g.strokeStyle = '#1A1A1A'; g.lineWidth = 2; g.beginPath(); g.moveTo(x + 40, y - 40); g.quadraticCurveTo(x + 52, y - 20, x + 48, y); g.stroke();
+  }
+  // (the VCR's 12:00, blinking)
+  if (mode !== 'off' && (f >> 5) % 2 === 0) tvText(c, '12:00', x + 3, y - 32, '#5CF06A');
   // (the set: a wood-grain box, turned, the screen on its near face)
   c.fillStyle = INK; c.beginPath(); c.moveTo(x - 46, y - 46); c.lineTo(x + 26, y - 46); c.lineTo(x + 48, y - 55); c.lineTo(x + 48, y - 114); c.lineTo(x - 24, y - 114); c.lineTo(x - 46, y - 105); c.closePath(); c.fill();
   c.fillStyle = Wd[2]; c.beginPath(); c.moveTo(x + 26, y - 48); c.lineTo(x + 46, y - 56); c.lineTo(x + 46, y - 112); c.lineTo(x + 26, y - 104); c.closePath(); c.fill();
@@ -339,8 +354,7 @@ export const drawTV = (c: Ctx, x: number, f: number, mode: 'game' | 'roll' | 'of
     for (let k = -1; k < 5; k++) box(c, sx + k * 16 - scroll, sy + 10, 2, sh, '#E8F5E9');
     for (let k = 0; k < 8; k++) { const px = sx + ((k * 13 + f * (k % 2 ? 0.4 : 0.3)) % sw), py = sy + 14 + (k * 7) % 22; box(c, px, py, 2, 3, k % 2 ? '#DC2626' : '#FFFFFF'); box(c, px, py - 1, 2, 1, k % 2 ? '#FDE047' : '#C0C0C0'); }
     box(c, sx, sy + sh - 8, sw, 8, '#111827');
-    signText(c, 'UBX', sx + 9, sy + sh - 1, { sx: 1, sy: 1, fill: '#FDE047' });
-    signText(c, '14 10', sx + 34, sy + sh - 1, { sx: 1, sy: 1, fill: '#FFFFFF' });
+    tvText(c, 'UBX', sx + 3, sy + sh - 6, '#FDE047'); tvText(c, '14 10', sx + 26, sy + sh - 6, '#FFFFFF');
     if (mode === 'roll') {
       const band = (f * 3) % (sh + 20) - 10;
       box(c, sx, sy + band, sw, 6, '#111111');
