@@ -238,14 +238,81 @@ const paintMural = (g: Ctx, i: number, a: number) => {
   sea.forEach((col, k) => { const y = hz + Math.round(k * (WS - hz) / 4); box(g, a, y, 400, Math.ceil((WS - hz) / 4) + 1, col); if (k) checker(g, a, y - 2, 400, 2, col); });
   for (let y = hz + 6; y < WS; y += 10) for (let x = a + ((y * 7) % 30); x < a + 400; x += 30 + ((x + y) % 17)) box(g, x, y, 10 + ((x * 3) % 8), 2, '#5A8AA6');
   for (let y = hz + 2; y < WS; y += 6) box(g, a + 186 - (y - hz) * 0.3, y, 28 + (y - hz) * 0.6, 2, '#E8A860');
+  // (a sea stack, painted properly: a ragged silhouette, inked; a five-step ramp across it lit from the sun's side,
+  //  dithered where the steps meet; strata ledges with their lit lips, cracks, a grass cap in clumps with tufts hung
+  //  down the side; the surf broken round its foot, its reflection in the sea in broken bands)
+  const STK = ['#24182A', '#3A2838', '#563A46', '#7A5050', '#A86A4E', '#E0985A'];
+  const GRN = ['#1A3226', '#2A4E36', '#426E42', '#6E9248'];
   const stack = (x: number, w: number, h: number) => {
-    for (let k = 0; k < h; k += 6) { const ww = Math.round(w * (1 - k / h * 0.5)); box(g, x - ww / 2, hz - k - 6, ww, 6, k % 12 ? '#4A3A44' : '#3A2C36'); box(g, x - ww / 2, hz - k - 6, 4, 6, '#7A5A5A'); }
-    box(g, x - w * 0.25, hz - h - 4, w * 0.5, 4, '#2E5A3A'); box(g, x - w * 0.25, hz - h - 4, w * 0.3, 2, '#4A7A4A');
+    x = Math.round(x);
+    const sd = x * 7 + w, litR = x < a + 200;
+    const edge = (y: number) => {
+      const t = y / h, ch = Math.floor(y / 6);
+      const ww = Math.round(w * (1 - t * 0.5) + (hash(sd + ch * 13) - 0.5) * 8), lean = Math.round(Math.sin(t * 3 + sd) * 3);
+      const xl = x - (ww >> 1) + lean;
+      return [xl, xl + ww] as [number, number];
+    };
+    for (let y = 0; y < h; y += 2) {
+      const [xl, xr] = edge(y), ww = xr - xl, yy = hz - y - 2;
+      for (let s = 0; s < 5; s++) {
+        const u0 = xl + Math.round(ww * s / 5), u1 = xl + Math.round(ww * (s + 1) / 5);
+        const li = litR ? s : 4 - s;
+        box(g, u0, yy, u1 - u0, 2, STK[li]);
+        // (dither the seam into the next step)
+        if (s < 4 && ((y >> 1) & 1)) box(g, u1, yy, 2, 2, STK[li]);
+      }
+      // (the lit edge, the ink)
+      box(g, litR ? xr - 3 : xl + 1, yy, 2, 2, STK[5]);
+      box(g, xl, yy, 1, 2, INK); box(g, xr - 1, yy, 1, 2, INK);
+      // (strata: a dark seam, the ledge's lit lip on top of it, broken)
+      if ((y + (sd % 5) * 2) % 14 === 0 && y > 4 && y < h - 6) {
+        const g0 = xl + 2 + Math.floor(hash(sd + y) * ww * 0.3), g1 = xr - 2 - Math.floor(hash(sd + y * 3) * ww * 0.25);
+        box(g, g0, yy, g1 - g0, 1, STK[0]);
+        const lx0 = litR ? (g0 + g1) >> 1 : g0, lx1 = litR ? g1 : (g0 + g1) >> 1;
+        box(g, lx0, yy - 1, lx1 - lx0, 1, STK[4]);
+      }
+    }
+    // (cracks down it, wandering)
+    for (let k = 0; k < 3; k++) {
+      let cy = Math.floor(hash(sd + k * 17) * h * 0.7) + 6;
+      const [xl, xr] = edge(cy);
+      let cx = xl + 4 + Math.floor(hash(sd + k * 29) * Math.max(1, xr - xl - 8));
+      for (let n = 0; n < 8 && cy > 2; n++) { box(g, cx, hz - cy, 1, 3, STK[0]); box(g, cx + 1, hz - cy, 1, 3, litR ? STK[3] : STK[1]); cy -= 3; cx += hash(sd + k * 5 + n) < 0.5 ? -1 : 1; }
+    }
+    // (the cap: grass in clumps, lit on the sun's side; tufts hung down the side)
+    const [txl, txr] = edge(h - 2);
+    box(g, txl - 1, hz - h - 1, txr - txl + 2, 1, INK);
+    for (let cx = txl - 2; cx < txr + 2; cx += 5) {
+      const ch = 3 + Math.floor(hash(sd + cx) * 4);
+      box(g, cx, hz - h - ch, 6, ch + 2, INK); box(g, cx + 1, hz - h - ch + 1, 4, ch + 1, GRN[1]);
+      box(g, litR ? cx + 3 : cx + 1, hz - h - ch + 1, 2, 2, GRN[3]); box(g, cx + 1, hz - h + 1, 4, 1, GRN[0]);
+    }
+    for (let k = 0; k < 4; k++) {
+      const side = k % 2, len = 4 + Math.floor(hash(sd + k * 41) * 10), [xl, xr] = edge(h - 4 - k * 3);
+      const tx = side ? xr - 2 : xl;
+      box(g, tx, hz - h + k * 3, 2, len, GRN[side === (litR ? 1 : 0) ? 2 : 1]); box(g, tx, hz - h + k * 3 + len, 2, 1, GRN[0]);
+    }
+    // (the surf round its foot, broken; the reflection in bands under it)
+    const [bxl, bxr] = edge(0);
+    for (let k = 0; k < 4; k++) {
+      const ry = hz + 3 + k * 5, rw = Math.round((bxr - bxl) * (1 - k * 0.18));
+      for (let px = 0; px < rw; px += 6) if (hash(sd + k * 19 + px) > 0.3) box(g, bxl + ((bxr - bxl - rw) >> 1) + px, ry, 4 + (px % 3), 2, k < 2 ? STK[1] : '#1C3448');
+    }
+    for (let px = bxl - 6; px < bxr + 6; px += 5) if (hash(sd + px * 3) > 0.35) box(g, px, hz - 1 + ((px >> 2) & 1), 3 + (px % 3), 2, '#F2D8B0');
   };
   if (i % 3 === 0) {
     stack(a + 120, 70, 110); stack(a + 190, 44, 70); stack(a + 300, 56, 50);
     // (a palm off the tall one's top, leaning)
-    box(g, a + 124, hz - 150, 4, 40, '#3A2A20'); for (let fr = 0; fr < 5; fr++) { const an = -Math.PI + (fr / 4) * Math.PI; for (let t = 0; t < 1; t += 0.15) box(g, a + 126 + Math.cos(an) * 22 * t, hz - 152 + Math.sin(an) * 12 * t + t * t * 10, 4, 3, '#2E5A3A'); }
+    for (let y = 0; y < 40; y += 4) { const tx = a + 124 + Math.round(y * 0.08); box(g, tx - 1, hz - 114 - y - 4, 6, 4, INK); box(g, tx, hz - 114 - y - 4, 4, 3, '#4A3424'); box(g, tx + 2, hz - 114 - y - 4, 2, 3, '#8A6040'); box(g, tx, hz - 114 - y - 1, 4, 1, '#2A1C14'); }
+    for (let pass = 0; pass < 2; pass++) for (let fr = 0; fr < 6; fr++) {
+      const an = -Math.PI + (fr / 5) * Math.PI;
+      for (let t = 0; t < 1; t += 0.12) {
+        const fx = a + 127 + Math.cos(an) * 24 * t, fy = hz - 156 + Math.sin(an) * 12 * t + t * t * 12;
+        if (!pass) box(g, fx - 1, fy - 1, 6, 5, INK);
+        else { box(g, fx, fy, 4, 3, fr < 3 ? GRN[1] : GRN[2]); box(g, fx, fy, 4, 1, fr < 3 ? GRN[2] : GRN[3]); }
+      }
+    }
+    box(g, a + 125, hz - 158, 6, 4, '#5A3A22'); box(g, a + 126, hz - 158, 2, 2, '#8A6040');
   }
   if (i % 3 === 1) {
     // (the plesiosaur: its neck in stepped segments up out of the sea, lit along its front, the little head, the eye)
