@@ -15,6 +15,7 @@ import { type Land } from './lands';
 import { GATE, GATE_MID, ROW, PATH, depthAt } from './geometry';
 import { LAND_LOOK, type StretchId } from './stretch';
 import { signText, signW } from '../signLetters';
+import { stamp } from '../../m1/game/render/stamp';
 
 const { base: BASE, halfW: HW, h: H, frame: FR } = GATE;
 const TOP = BASE - H;
@@ -211,10 +212,15 @@ const paintFrame = (c: Ctx, land: Land, cx: number) => {
 
 /** The sign over a portal, in the land's lettering (its own stamp, put down after the swirl: nothing's ever over it). Its
  *  top kept under the string lights' lowest bulbs, its foot on the frame. */
-export const paintGateSign = (c: Ctx, land: Land, cx: number) => {
+/** Where a portal's sign sits (round its spot's middle): its lettering, width, height, top. */
+const signBox = (land: Land) => {
   const look = LAND_LOOK[land.id](land.id !== 'hollywood');
   const big = land.id === 'hollywood' ? LAND_LOOK.hollywood(true) : look;
   const tw = signW(land.name, big) + 14, th = (big.sy ?? 1) * 7 + 10, ty = TOP - FR - (land.id === 'adventure' ? 26 : land.id === 'spooky' ? 26 : land.id === 'cartoon' ? 22 : 8) - th;
+  return { big, tw, th, ty };
+};
+export const paintGateSign = (c: Ctx, land: Land, cx: number) => {
+  const { big, tw, th, ty } = signBox(land);
   const board = land.sign;
   box(c, cx - tw / 2 - 1, ty - 1, tw + 2, th + 2, INK);
   box(c, cx - tw / 2, ty, tw, th, board); box(c, cx - tw / 2, ty, tw, 2, mix(board, '#FFFFFF', 0.25)); box(c, cx - tw / 2, ty + th - 2, tw, 2, mix(board, '#000000', 0.3));
@@ -341,3 +347,70 @@ export const drawPostsLive = (c: Ctx, land: Land, cx: number, f: number) => {
 };
 
 export type { StretchId };
+
+// ---------------------------------------------------------------------------------------------------------------
+// CLEAR: a land he's cleared gets a flag on its portal. A pole clamped to the sign's right end (beside it, never
+// over it: the sign stays whole; its top kept under the string lights), a cloth in the sign's own color flying out
+// from it with CLEAR across it in the land's lettering, bold. Waving: a few frames of it, each a stamp (painted once,
+// put down with one drawImage), the cloth cut in two-pixel columns each lifted on the wave, stepped light and shade
+// down the folds (dithered at the turns).
+
+/** How many frames the cloth's wave goes round in, and how long each's held (game frames). */
+const FLAG_FRAMES = 8, FLAG_HOLD = 7;
+const clearLook = (land: Land) => {
+  const l = LAND_LOOK[land.id](land.id !== 'hollywood');
+  return { ...l, sy: 2, bold: true };
+};
+/** The flag's place round the spot's middle: the pole (x), its top, the cloth's size, the box it's all inside. */
+const flagBox = (land: Land) => {
+  const { tw, th, ty } = signBox(land), look = clearLook(land);
+  const px = Math.round(tw / 2) + 4, top = Math.max(Math.round(ty) - 4, 360), foot = Math.round(ty + th) + 3;
+  const cw = Math.round(signW('CLEAR', look)) + 14, ch = 7 * (look.sy ?? 1) + 10;
+  return { look, px, top, foot, cw, ch, ty: Math.round(ty), th: Math.round(th), box: [px - 6, top - 8, cw + 16, Math.max(foot, top + ch + 8) - top + 12] as const };
+};
+
+/** The cloth, flat (x0, y0 its top left, the hem at the pole's side). */
+const paintCloth = (c: Ctx, land: Land, x0: number, y0: number, cw: number, ch: number, look: ReturnType<typeof clearLook>) => {
+  const R = R6(land.sign), trim = land.swirl[2];
+  box(c, x0 - 1, y0 - 1, cw + 2, ch + 2, INK);
+  box(c, x0, y0, cw, ch, R[3]);
+  box(c, x0, y0, cw, 2, R[4]); checker(c, x0, y0 + 2, cw, 2, R[4]);
+  box(c, x0, y0 + ch - 2, cw, 2, R[1]); checker(c, x0, y0 + ch - 4, cw, 2, R[2]);
+  // (a trim line round it in the land's bright color, the hem down the pole side with its grommets)
+  box(c, x0 + 5, y0 + 2, cw - 7, 1, trim); box(c, x0 + 5, y0 + ch - 3, cw - 7, 1, mix(trim, INK, 0.3)); box(c, x0 + cw - 3, y0 + 2, 1, ch - 4, mix(trim, INK, 0.15));
+  box(c, x0, y0, 4, ch, R[1]); box(c, x0 + 4, y0, 1, ch, INK);
+  for (const gy of [y0 + 3, y0 + ch - 6]) { box(c, x0 + 1, gy, 2, 3, '#D6D3D1'); box(c, x0 + 1, gy + 1, 1, 1, INK); }
+  signText(c, 'CLEAR', x0 + 5 + (cw - 7) / 2, y0 + ch - 5, look);
+};
+
+/** One frame of the flag (k of FLAG_FRAMES), the pole and its clamps with it. */
+const paintFlag = (c: Ctx, land: Land, cx: number, k: number) => {
+  const { look, px, top, foot, cw, ch, ty, th } = flagBox(land), x = cx + px;
+  const ph = (k / FLAG_FRAMES) * Math.PI * 2;
+  // (the pole: inked, lit down its left, a gold knob on top)
+  box(c, x - 1, top - 1, 4, foot - top + 1, INK); box(c, x, top, 2, foot - top - 1, '#A8A29E'); box(c, x, top, 1, foot - top - 1, '#F5F5F4');
+  inked(c, () => c.arc(x + 1, top - 3, 2.5, 0, Math.PI * 2), '#E0AE3A'); box(c, x, top - 5, 1, 1, '#FFF6C8');
+  // (clamped to the sign's end)
+  for (const cy of [ty + 3, ty + th - 6]) { box(c, cx + px - 6, cy - 1, 9, 4, INK); box(c, cx + px - 5, cy, 7, 2, '#78716C'); box(c, cx + px - 5, cy, 7, 1, '#D6D3D1'); }
+  // (the cloth, cut in columns, each lifted on the wave: more the farther from the pole; light and shade down the folds)
+  const x0 = x + 3, y0 = top + 1, lit = mix(land.sign, '#FFFFFF', 0.3), shade = mix(land.sign, INK, 0.45);
+  for (let col = 0; col < cw + 2; col += 2) {
+    const u = col / cw, a = ph - u * 4.4, dy = Math.round(2.6 * Math.min(1, u * 1.6) * Math.sin(a)), s = Math.cos(a) * Math.min(1, u * 2);
+    c.save(); c.beginPath(); c.rect(x0 - 1 + col, y0 - 6, 2, ch + 12); c.clip();
+    c.translate(0, dy);
+    paintCloth(c, land, x0, y0, cw, ch, look);
+    if (col >= 6 && col < cw) {
+      if (s > 0.6) { c.globalAlpha = 0.35; box(c, x0 - 1 + col, y0, 2, ch, lit); c.globalAlpha = 1; }
+      else if (s > 0.3) checker(c, x0 - 1 + col, y0, 2, ch, lit, col & 1);
+      else if (s < -0.6) { c.globalAlpha = 0.35; box(c, x0 - 1 + col, y0, 2, ch, shade); c.globalAlpha = 1; }
+      else if (s < -0.3) checker(c, x0 - 1 + col, y0, 2, ch, shade, col & 1);
+    }
+    c.restore();
+  }
+};
+
+/** A cleared land's flag on its portal (live in that it waves; each frame of it a stamp). */
+export const drawClearFlag = (c: Ctx, land: Land, cx: number, f: number) => {
+  const k = Math.floor(f / FLAG_HOLD) % FLAG_FRAMES, [bx, by, bw, bh] = flagBox(land).box;
+  c.translate(cx, 0); stamp(c, `hubFlag|${land.id}|${k}`, bx, by, bw, bh, g => paintFlag(g, land, 0, k)); c.translate(-cx, 0);
+};

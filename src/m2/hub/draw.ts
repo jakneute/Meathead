@@ -20,7 +20,8 @@ import { LANDS, SPOTS, HUB_SLOTS } from './lands';
 import { HUB, HUB_CIRC, HUB_HORIZON, slotX, seamX, ROW } from './geometry';
 import { drawCrowdMid, drawCrowdWalk, drawCast, drawPigeons, drawLostBalloons } from './crowd';
 import { paintBack, paintWalk, paintPath, paintFence, drawStretchLive, stretchOf, LAND_LOOK } from './stretch';
-import { paintGate, paintGateSign, paintPosts, drawSwirl, drawShimmer, drawPostsLive } from './gates';
+import { paintGate, paintGateSign, paintPosts, drawSwirl, drawShimmer, drawPostsLive, drawClearFlag } from './gates';
+import { isLandCleared } from '../store';
 import { timeOfDay, skyRamp, sunAt, sunTint, cloudTint, farTint, drawStars, drawMoon, lampGlow } from '../timeOfDay';
 import { noteSun, drawSunGlare } from '../sunFlare';
 import { signText, signAt, signW, enamel } from './letters';
@@ -206,6 +207,8 @@ export const drawHubBack = (ctx: Ctx, state: GameState) => {
       drawSwirl(ctx, land, x, pf, on ? surge.k : 0);
       // (its sign after the swirl: never under it)
       ctx.translate(x, 0); stamp(ctx, `hubPS|${land.id}`, -110, 330, 220, 72, g => paintGateSign(g, land, 0)); ctx.translate(-x, 0);
+      // (cleared: its flag, clamped to the sign's end)
+      if (isLandCleared(land.id)) drawClearFlag(ctx, land, x, f);
     });
   }
   // The fence along the back of the walk, the gateposts at the paths
