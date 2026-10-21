@@ -25,9 +25,10 @@
 //   FUSES         a giant animatronic Kicky strikes a giant match and lights a long fuse: the spark crawls along it to
 //                 the TNT (the tell's the whole way), and it goes up; a new pile rises out of the trapdoor. The set's
 //                 runs along the fly rail and down a line to the far tower's foot: it goes up and kicks the tower.
-//   PORTABLE HOLES laid by the stagehands (flung down: it spreads out flat), and the set's floor of them: in, and he
-//                 drops out of one up in the air over where he last stood safe, on his head.
-//   THE CANYON    bottomless: in, and he's back where he last stood safe, hurt (the cast go down for good: a puff).
+//   PORTABLE HOLES laid by the stagehands (flung down: it spreads out flat): in, and he drops out of one up in the air
+//                 over where he last stood safe, on his head. The set's floor of them is the end of him: down one and
+//                 through the next and the next, forever (deaths.ts).
+//   THE CANYON    bottomless: in, and that's him, the coyote's fall (deaths.ts; the cast go down for good: a puff).
 //   What the cast throw (kinds.ts): cleavers (spinning, then stuck in the floor), dynamite (lit before it's thrown: the
 //   fuse burning down, then it goes up), folded portable holes.
 
@@ -41,6 +42,8 @@ import { floorTopAt } from '../../../m1/game/core/terrain';
 import { hazardVictims, hazardHit, hazardKill, boxHits, setHazardZones, type Zone } from '../../hazardHit';
 import { envSound } from '../../bossQuiet';
 import { teleport } from '../section';
+import { startHurtGag, pantsSource, RAKE_GAG, RAKE_LOCK } from '../../hurtGags';
+import { CANYON_SRC, BLACKHOLE_SRC } from './deaths';
 import { onScreen } from '../kit';
 import { onTower } from '../sway';
 import { GY } from '../geometry';
@@ -325,8 +328,14 @@ const updateRakes = (ctx: FrameContext) => {
     if (r.up === 0 && r.who === null && onTines && alive(state)) {
       r.up = 44; r.who = 'him';
       envSound(state, r.x, 'whoosh', 0.5, 10); playSound('bonk', 0.9, -2);
-      bonkStars(state, px, p.pos.y + 6);
-      if (p.invincibilityTimer <= 0) hurtPlayer(ctx, 8, 'm2:ct_rake', { x: (p.vel.x > 0 ? -1 : p.vel.x < 0 ? 1 : -r.dir) * 5, y: -4 });
+      if (p.invincibilityTimer <= 0) {
+        // (WHACK: stood there stiff as a board, his own hurt animation (hurtGags.ts); a tooth or two out)
+        hurtPlayer(ctx, 8, pantsSource(state, 'm2:ct_rake'), { x: 0, y: 0 }, RAKE_LOCK);
+        p.vel.x = 0;
+        startHurtGag(state, { kind: 'rake', len: RAKE_GAG, x: px, feet: pfeet(state), facing: p.facing === -1 ? -1 : 1, ax: r.x, dir: r.dir });
+        playSound('boing', 0.5, -6); playSound('crunch', 0.4, 10);
+        for (let i = 0; i < 2 + Math.floor(Math.random() * 2); i++) state.particles.push({ pos: { x: px + p.facing * 4, y: p.pos.y + 14 }, vel: { x: (Math.random() - 0.5) * 4 - Math.sign(px - r.x || 1) * 1.5, y: -3 - Math.random() * 2.5 }, life: 40, color: '#FFFFFF', size: 3, grav: 0.3 } as typeof state.particles[number]);
+      } else bonkStars(state, px, p.pos.y + 6);
       continue;
     }
     if (r.up > 0) continue;
@@ -353,7 +362,9 @@ const updateTraps = (ctx: FrameContext) => {
       sparks(state, tr.x, GY - 6);
       p.pos.x = tr.x - p.width / 2; p.vel.x = 0;
       k.trapped = 54;
-      if (p.invincibilityTimer <= 0) hurtPlayer(ctx, 10, 'm2:ct_beartrap', { x: 0, y: 0 }, 2);
+      if (p.invincibilityTimer <= 0) hurtPlayer(ctx, 10, pantsSource(state, 'm2:ct_beartrap'), { x: 0, y: 0 }, 2);
+      // (the jaws on his boot, hopping, howling: his own hurt animation (hurtGags.ts), as long as it holds him)
+      startHurtGag(state, { kind: 'trap', len: k.trapped, x: tr.x, feet: pfeet(state), facing: p.facing === -1 ? -1 : 1, ax: tr.x + 37, dir: 1, style: 'cartoon' });
       return;
     }
     for (const e of hazardVictims(state)) {
@@ -624,18 +635,19 @@ const enemyHoleOut = (ctx: FrameContext, e: Enemy, fromX: number) => {
   hazardHit(ctx, e, 30, hx, 'HOLED!', { knock: 0 });
 };
 
-/** The canyon and the floor of holes: in, and he's back where he last stood safe (hurt). The cast go down for good
- *  (the canyon) or come out of a hole (the set). */
+/** The canyon and the floor of holes: in, and he's dead (their own kill cams: deaths.ts); with the cheat's god mode on,
+ *  back where he last stood safe. The cast go down for good (the canyon) or come out of a hole (the set). */
 const updatePits = (ctx: FrameContext) => {
   const { state } = ctx, p = state.player, k = itchyOf(state);
   const cx = pmid(state), feet = pfeet(state);
   if (p.health > 0 && !p.inCutscene && feet > GY + 30) {
-    if (cx > X(CANYON[0]) && cx < X(CANYON[1])) {
-      // (a long way down: a little puff of dust at the bottom, and he's back up at the edge)
-      envSound(state, cx, 'whoosh', 0.7, -16); playSound('thud', 0.4, -14);
-      hurtPlayer(ctx, 12, 'm2:ct_canyon', { x: 0, y: -4 });
+    const canyon = cx > X(CANYON[0]) && cx < X(CANYON[1]);
+    if (canyon || (cx > X(HOLES[0]) && cx < X(HOLES[1]))) {
+      // (the coyote's long fall into the canyon; down the set's floor of holes, through them forever)
+      p.invincibilityTimer = 0; p.untouchable = false;
+      hurtPlayer(ctx, 9999, pantsSource(state, canyon ? CANYON_SRC : BLACKHOLE_SRC), { x: 0, y: 0 });
       if (p.health > 0) { teleport(state, k.safe.x, k.safe.y); p.invincibilityTimer = Math.max(p.invincibilityTimer, 60); dust(state, k.safe.x, k.safe.y, 10, '#F5E1B8'); }
-    } else if (cx > X(HOLES[0]) && cx < X(HOLES[1]) && !k.holeDrop) holeOut(state);
+    }
   }
   for (const e of state.enemies) {
     if (e.health <= 0 || e.type === 'boss' || e.enemyType === 'flyer' || e.isBlownAway) continue;

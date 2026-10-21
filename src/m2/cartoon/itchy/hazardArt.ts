@@ -6,7 +6,7 @@
 // shaking, the rope fraying, the barrel dipping or rising and its touch hole fizzing, the spark crawling along the fuse.
 
 import type { GameState } from '../../../m1/game/core/state';
-import { signText } from '../../signLetters';
+import { signText, signW } from '../../signLetters';
 import { box, hour, dimmed, onScreen, ballR, eggR, postR, checker, INK, type Ctx } from '../kit';
 import { GY } from '../geometry';
 import { itchyOf, type Hammer, type Drop, type Cannon, type Fuse } from './state';
@@ -14,6 +14,7 @@ import {
   AW, AH, A_TELL, A_FALL, A_DOWN, H_PIVOT, H_HEAD_W, H_HEAD_H, RAKE_LEN, GLOVE_REACH, BALL_R, hammerHead, glovePos, fusePoint,
 } from './hazards';
 import { GANTRY, CRATES, SAFE, PIANO, CANNON, X, Y } from './layout';
+import { hurtGagOf } from '../../hurtGags';
 import { catHead, mouseHead, cleaver, dynamiteStick, foldedHole } from './kindArt';
 import { NR, DR, NC, DC, STEELP, BLOOD, MUSTARD, TAR, CRATE, GINGER, MOUSEY, BONE, PLY, plate, planks, hazard, gore, small, stencil } from './paint';
 
@@ -103,7 +104,12 @@ const drawAnvilsFront = (c: Ctx, state: GameState) => {
     if (!onScreen(state, a.x - 60, a.x + 60)) continue;
     if (a.phase === 'fall' || a.phase === 'lift') {
       anvil(c, a.x, a.y, false);
-      if (a.phase === 'fall') for (const dx of [-18, 0, 18]) { box(c, a.x + dx - 1, a.y - AH - 34, 3, 26, 'rgba(255,255,255,0.55)'); box(c, a.x + dx, a.y - AH - 44, 1, 8, 'rgba(255,255,255,0.35)'); }
+      // (its speed lines: never up over the gantry's beam, across the GENERIC-CO crates on it)
+      if (a.phase === 'fall') {
+        c.save(); if (!a.host) { c.beginPath(); c.rect(a.x - 40, Y(GANTRY.h), 80, GY - Y(GANTRY.h)); c.clip(); }
+        for (const dx of [-18, 0, 18]) { box(c, a.x + dx - 1, a.y - AH - 34, 3, 26, 'rgba(255,255,255,0.55)'); box(c, a.x + dx, a.y - AH - 44, 1, 8, 'rgba(255,255,255,0.35)'); }
+        c.restore();
+      }
     } else if (a.phase === 'down') anvil(c, a.x, a.y, true);
   }
 };
@@ -211,22 +217,38 @@ const hammerArm = (c: Ctx, h: Hammer) => {
 // ---------------------------------------------------------------------------------------------------------------
 // Rakes, bear traps, the crates
 
-const rake = (c: Ctx, x: number, dir: -1 | 1, up: number) => {
-  // (the tines at x, the handle lying off along `dir`; up: swung up about the tines, into a face, and back down)
+const rake = (c: Ctx, x: number, dir: -1 | 1, up: number, f: number) => {
+  // (the tines at x, the handle lying off along `dir`; up: swung up about the tines, into a face, and back down. Big and
+  // bold so it reads at a glance in the grass (the user's "make the rakes more visible"): a fat inked handle in bright
+  // wood with the red tape, a shadow under it, the steel head chunky, the tines tall and lit, a glint going along them)
   const k = up > 0 ? Math.sin(Math.min(1, (44 - up) / 10) * Math.PI / 2) * (up < 14 ? up / 14 : 1) : 0;
   const ang = dir > 0 ? -k * 1.45 : Math.PI + k * 1.45;
-  const ex = x + Math.cos(ang) * RAKE_LEN, ey = GY - 3 + Math.sin(ang) * RAKE_LEN, Wd = NR(PLY), S = NR(STEELP);
+  const gy = GY - 4, ex = x + Math.cos(ang) * RAKE_LEN, ey = gy + Math.sin(ang) * RAKE_LEN, S = NR(STEELP);
+  const Wd = NR(['#5A2E0A', '#8A4A12', '#C2741E', '#EE9E36', '#FFC866', '#FFE6A8']);
+  // (its shadow on the grass while it's lying there)
+  if (k < 0.2) { c.fillStyle = 'rgba(20,10,30,0.35)'; c.beginPath(); c.ellipse(x + dir * RAKE_LEN / 2, GY, RAKE_LEN / 2 + 8, 3, 0, 0, Math.PI * 2); c.fill(); }
   c.lineCap = 'round';
-  c.strokeStyle = INK; c.lineWidth = 6; c.beginPath(); c.moveTo(x, GY - 3); c.lineTo(ex, ey); c.stroke();
-  c.strokeStyle = Wd[3]; c.lineWidth = 4; c.stroke();
-  c.strokeStyle = Wd[5]; c.lineWidth = 1; c.beginPath(); c.moveTo(x, GY - 4.5); c.lineTo(ex, ey - 1.5); c.stroke();
-  // (a grip of tape near the end)
-  const tx = x + Math.cos(ang) * (RAKE_LEN - 10), ty = GY - 3 + Math.sin(ang) * (RAKE_LEN - 10);
-  c.strokeStyle = hour('#DC2626'); c.lineWidth = 5; c.beginPath(); c.moveTo(tx, ty); c.lineTo(ex, ey); c.stroke();
-  // (the head: a steel bar across, the tines pointing up, glinting: the tell)
-  box(c, x - 13, GY - 6, 26, 5, INK); box(c, x - 12, GY - 5, 24, 3, S[3]); box(c, x - 12, GY - 5, 24, 1, S[5]);
-  for (let i = 0; i < 6; i++) { box(c, x - 11 + i * 4, GY - 13, 3, 8, INK); box(c, x - 10.5 + i * 4, GY - 12, 1, 7, S[5]); box(c, x - 9.5 + i * 4, GY - 12, 1, 7, S[3]); }
-  box(c, x - 10, GY - 13, 1, 1, '#FFFFFF');
+  c.strokeStyle = INK; c.lineWidth = 8; c.beginPath(); c.moveTo(x, gy); c.lineTo(ex, ey); c.stroke();
+  c.strokeStyle = Wd[3]; c.lineWidth = 5.5; c.stroke();
+  c.strokeStyle = Wd[1]; c.lineWidth = 1.5; c.beginPath(); c.moveTo(x, gy + 1.5); c.lineTo(ex, ey + 1.5); c.stroke();
+  c.strokeStyle = Wd[5]; c.lineWidth = 1.5; c.beginPath(); c.moveTo(x, gy - 1.5); c.lineTo(ex, ey - 1.5); c.stroke();
+  // (a grip of red tape at the end, banded)
+  const tx = x + Math.cos(ang) * (RAKE_LEN - 14), ty = gy + Math.sin(ang) * (RAKE_LEN - 14);
+  c.strokeStyle = INK; c.lineWidth = 9; c.beginPath(); c.moveTo(tx, ty); c.lineTo(ex, ey); c.stroke();
+  c.strokeStyle = hour('#DC2626'); c.lineWidth = 6.5; c.stroke();
+  c.strokeStyle = hour('#F87171'); c.lineWidth = 1.5; c.beginPath(); c.moveTo(tx, ty - 2); c.lineTo(ex, ey - 2); c.stroke();
+  c.lineCap = 'butt';
+  // (the head: a chunky steel bar across, the tines standing up tall, each lit down one side; the ferrule to the handle)
+  box(c, x - 19, GY - 9, 38, 8, INK); box(c, x - 18, GY - 8, 36, 6, S[3]); box(c, x - 18, GY - 8, 36, 2, S[5]); box(c, x - 18, GY - 3, 36, 1, S[1]);
+  box(c, x - 4, GY - 11, 8, 4, INK); box(c, x - 3, GY - 10, 6, 2, S[4]);
+  for (let i = 0; i < 7; i++) {
+    const lx = x - 17 + i * 5.5;
+    c.fillStyle = INK; c.beginPath(); c.moveTo(lx - 1, GY - 8); c.lineTo(lx - 1, GY - 20); c.lineTo(lx + 1.5, GY - 24); c.lineTo(lx + 4, GY - 20); c.lineTo(lx + 4, GY - 8); c.closePath(); c.fill();
+    box(c, lx, GY - 20, 1.5, 12, S[5]); box(c, lx + 1.5, GY - 20, 1.5, 12, S[2]); box(c, lx + 1, GY - 22, 1, 2, '#FFFFFF');
+  }
+  // (the glint running along the tines: the tell)
+  const gi = Math.floor(f / 6) % 14;
+  if (gi < 7 && k === 0) { const gx = x - 16 + gi * 5.5, gyy = GY - 21; box(c, gx - 3, gyy, 7, 1, '#FFFFFF'); box(c, gx, gyy - 3, 1, 7, '#FFFFFF'); box(c, gx - 1, gyy - 1, 3, 3, '#FFFFFF'); }
 };
 const trap = (c: Ctx, x: number, sprung: boolean, t: number) => {
   // (a steel bear trap: the plate, the springs, the chain to a stake; open: two jaws flat out, teeth up; sprung: shut)
@@ -266,8 +288,16 @@ const crate = (c: Ctx, state: GameState, i: number) => {
   c.strokeStyle = Cr[4]; c.lineWidth = 1; c.beginPath(); c.moveTo(xa + 6, top + 5); c.lineTo(xa + w - 6, GY - 6); c.stroke();
   const S = NR(STEELP);
   for (const [cx, cy] of [[xa + 2, top + 2], [xa + w - 10, top + 2], [xa + 2, GY - 9], [xa + w - 10, GY - 9]]) { box(c, cx, cy, 8, 8, S[2]); box(c, cx, cy, 8, 1, S[5]); box(c, cx + 3, cy + 3, 2, 2, S[0]); }
-  signText(c, 'GENERIC-CO', xa + w / 2, top + Math.min(h / 2, 30), stencil(hour('#1F2937')));
-  if (g) signText(c, 'THIS SIDE UP', xa + w / 2, top + Math.min(h / 2, 30) + 10, { sx: 1, sy: 1, fill: hour('#7F1D1D'), gap: 0, space: 2 });
+  // (the GENERIC-CO label: a paper label pasted on over the brace, the name on it whole (the user's "make sure the
+  // generic co label isn't obstructed"); on a narrow crate it goes on two lines; the punching ones, THIS SIDE UP's
+  // arrows under it)
+  {
+    const L = stencil(hour('#1F2937')), lw = w - 14, one = signW('GENERIC-CO', L) <= lw - 6;
+    const lines = one ? ['GENERIC-CO'] : ['GENERIC', '-CO'], ph = lines.length * 9 + 5, py = top + Math.max(10, Math.min(h / 2, 30) - ph / 2 - 3);
+    box(c, xa + 7, py, lw, ph, INK); box(c, xa + 8, py + 1, lw - 2, ph - 2, hour('#F4E6C4')); box(c, xa + 8, py + 1, lw - 2, 1, hour('#FFF8E4')); box(c, xa + 8, py + ph - 2, lw - 2, 1, hour('#D8C49A'));
+    lines.forEach((t, k) => signText(c, t, xa + w / 2, py + 10 + k * 9, L));
+    if (g) for (const ax of [xa + w / 2 - 9, xa + w / 2 + 9]) { const ay = py + ph + 3; c.fillStyle = INK; c.beginPath(); c.moveTo(ax - 4, ay + 4); c.lineTo(ax, ay); c.lineTo(ax + 4, ay + 4); c.closePath(); c.fill(); box(c, ax - 1, ay + 4, 2, 4, INK); c.fillStyle = hour('#B91C1C'); c.beginPath(); c.moveTo(ax - 2.5, ay + 3.5); c.lineTo(ax, ay + 1); c.lineTo(ax + 2.5, ay + 3.5); c.closePath(); c.fill(); }
+  }
   if (g && g.phase === 'rattle') for (const s of [-1, 1]) { box(c, (s < 0 ? xa - 6 : xa + w + 3) , top + 8, 3, 1, INK); box(c, (s < 0 ? xa - 8 : xa + w + 5), top + 14, 3, 1, INK); }
   box(c, xa, top, w, 2, LIP); box(c, xa + 2, top + 2, w - 4, 1, LIP2);
   c.restore();
@@ -615,8 +645,10 @@ export const drawHazardsBack = (c: Ctx, state: GameState, broken: boolean) => {
   drawFuses(c, state);
   drawDrops(c, state, false);
   drawHoles(c, state, false);
-  for (const r of k.rakes) if (onScreen(state, r.x - 90, r.x + 90)) rake(c, r.x, r.dir, r.up);
-  for (const t of k.traps) if (onScreen(state, t.x - 40, t.x + 50)) trap(c, t.x, t.sprung, t.t);
+  for (const r of k.rakes) if (onScreen(state, r.x - 90, r.x + 90)) rake(c, r.x, r.dir, r.up, state.frame);
+  // (the one that's got his leg: drawn on his boot, with him (hurtGags.ts))
+  const held = hurtGagOf(state);
+  for (const t of k.traps) if (onScreen(state, t.x - 40, t.x + 50) && !(held?.kind === 'trap' && held.ax === t.x + 37)) trap(c, t.x, t.sprung, t.t);
   for (let i = 0; i < CRATES.length; i++) if (onScreen(state, X(CRATES[i][0]) - GLOVE_REACH - 30, X(CRATES[i][1]) + GLOVE_REACH + 30)) crate(c, state, i);
   if (onScreen(state, X(CANNON.x) - 200, X(CANNON.x) + 100)) { const cn = k.cannon; cannonArt(c, state, cn, X(CANNON.x), GY, Y(cn.phase === 'tell' || cn.phase === 'aim' ? cn.aim : cn.lift || 20), true); }
   drawAnvilsBack(c, state);

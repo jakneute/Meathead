@@ -29,6 +29,8 @@ import { makeHazards, updateHazards, noteSafe, onDropped } from './hazards';
 import { drawHazardsBack, drawHazardsFront } from './hazardArt';
 import { drawItchyBackdrop, drawItchyBack, drawItchySigns, itchyLamps } from './art';
 import { ARRIVE, REVISIT, GAGS } from './lines';
+import { drawItchyDeathCam } from './deaths';
+import { tickHurtGag, drawHurtGag } from '../../hurtGags';
 import './kinds';
 
 const { x0, x1 } = SECTIONS.itchy;
@@ -67,6 +69,7 @@ export const itchy: CartoonSection = {
     updateTowers(ctx, k.towers);
     noteSafe(state);
     updateHazards(ctx);
+    tickHurtGag(state);
     // (a bear trap's got his leg: he can shoot, not go anywhere)
     if (k.trapped > 0) {
       k.trapped--; p.vel.x = 0;
@@ -98,10 +101,14 @@ export const itchy: CartoonSection = {
   },
   drawFront: (c, state) => {
     const k = itchyOf(state);
+    // (the rake in his face, the bear trap on his leg: him, in the pose for it (hurtGags.ts))
+    drawHurtGag(c, state);
     drawHazardsFront(c, state);
     // (the cast's barks over their heads)
     for (const [e, s] of k.barks) if (e.health > 0) saidOver(c, s.text, mid(e).x, e.pos.y - 18, '#FDE68A', 220);
   },
+  // (the canyon's fall, the floor of holes' forever: their kill cams)
+  drawHud: (c, state) => { drawItchyDeathCam(c, state); },
   cameraRow: () => 500,
   outdoors: () => 1,
   lamps: (state) => itchyLamps(state),

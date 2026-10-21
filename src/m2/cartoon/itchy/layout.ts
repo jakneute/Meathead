@@ -25,8 +25,8 @@
 //          pile of TNT; it goes up; a new pile rises out of the trapdoor. A stagehand.
 //   7150   THE PAINTED CANYON (cp 55): three towers across a bottomless gorge (lean into each gap); the cannon on its lift
 //          on the far rim, rising to his height and firing across; the host on the far rim calling anvils.
-//   8650   THE SET (cp 56): the live show's soundstage: a floor of portable holes (in, and he drops out of one up in the
-//          air where he last stood safe, hurt); two towers across it; a fuse along the fly rail and down a line to the
+//   8650   THE SET (cp 56): the live show's soundstage: a floor of portable holes (in, and he's falling through holes
+//          forever: deaths.ts); two towers across it; a fuse along the fly rail and down a line to the
 //          TNT at the far tower's foot (it goes up and kicks the tower); a stagehand.
 //   9650   THE WAY ON (cp 57): a mixed crowd; the gate to STUPID DAD LIVE! (the amphitheater: the right end).
 
@@ -40,7 +40,7 @@ export const Y = (h: number) => GY - h;
 // ---------------------------------------------------------------------------------------------------------------
 // The ground
 
-/** The painted canyon, and the floor of portable holes (no ground: in, and he's back where he last stood, hurt). */
+/** The painted canyon, and the floor of portable holes (no ground: in, and he's dead: deaths.ts). */
 export const CANYON: [number, number] = [7500, 8400];
 export const HOLES: [number, number] = [8900, 9500];
 export const PITS: [number, number][] = [CANYON, HOLES];

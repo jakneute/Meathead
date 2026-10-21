@@ -376,7 +376,7 @@ const warehouse = (c: Ctx, v: View) => {
   const xa = X(4280), w = 1080, top = Y(320), Cg = DC('#A8A4B4');
   sideBack(c, v.eye, xa, -1, top - 14, GY, 1, SET_D, Cg, 3); sideBack(c, v.eye, xa + w, 1, top - 14, GY, 1, SET_D, Cg, 3);
   topBack(c, v.eye, xa - 10, xa + w + 10, top - 14, 1, SET_D, DR(TAR), 2);
-  still(c, 'pk-warehouse2', xa, 0, -12, top - 54, w + 24, GY - top + 58, g => {
+  still(c, 'pk-warehouse3', xa, 0, -12, top - 54, w + 24, GY - top + 58, g => {
     const ink = dimmed(INK), M = DR(MUSTARD), S = DR(STEELP), Cr = DR(CRATE);
     box(g, -2, top, w + 4, GY - top, ink);
     // (corrugated: ribs in steps, a stain down from the gutter here and there, rust at the foot)
@@ -384,11 +384,13 @@ const warehouse = (c: Ctx, v: View) => {
     for (let k = 0; k < 8; k++) { const sx = 40 + hash(k * 3.3) * (w - 80), l = 40 + hash(k) * 120; g.globalAlpha = 0.35; box(g, sx, top + 2, 8, l, Cg[0]); g.globalAlpha = 1; }
     box(g, 0, GY - 14, w, 14, DR(RUST)[2]); checker(g, 0, GY - 18, w, 4, DR(RUST)[2], 0, 2);
     box(g, -10, top - 14, w + 20, 16, ink); box(g, -8, top - 12, w + 16, 12, S[2]); box(g, -8, top - 12, w + 16, 2, S[4]);
-    // (the sign: mustard board, GENERIC-CO stenciled, the slogan)
-    box(g, w / 2 - 262, top + 18, 524, 54, ink); bandsDown(g, () => g.rect(w / 2 - 258, top + 22, 516, 46), w / 2 - 258, top + 22, 516, 46, [M[5], M[4], M[3], M[3], M[2]]);
-    for (const bx of [w / 2 - 250, w / 2 + 244]) { box(g, bx, top + 26, 3, 3, M[0]); box(g, bx, top + 60, 3, 3, M[0]); }
-    signText(g, 'GENERIC-CO', w / 2, top + 50, stencil(dimmed('#1F2937'), 2));
-    signText(g, 'WE MAKE EVERYTHING. BADLY.', w / 2, top + 64, { sx: 1, sy: 1, fill: dimmed('#7F1D1D') });
+    // (the sign: mustard board, GENERIC-CO stenciled, the slogan; left of the dock crane's mast (hazardArt.ts: at
+    // 500 in here), so nothing stands in front of it)
+    const sc = 255, sw = 440;
+    box(g, sc - sw / 2 - 2, top + 18, sw + 4, 54, ink); bandsDown(g, () => g.rect(sc - sw / 2 + 2, top + 22, sw - 4, 46), sc - sw / 2 + 2, top + 22, sw - 4, 46, [M[5], M[4], M[3], M[3], M[2]]);
+    for (const bx of [sc - sw / 2 + 10, sc + sw / 2 - 14]) { box(g, bx, top + 26, 3, 3, M[0]); box(g, bx, top + 60, 3, 3, M[0]); }
+    signText(g, 'GENERIC-CO', sc, top + 50, stencil(dimmed('#1F2937'), 2));
+    signText(g, 'WE MAKE EVERYTHING. BADLY.', sc, top + 64, { sx: 1, sy: 1, fill: dimmed('#7F1D1D') });
     // (the roll doors: slats in steps; the right one half up, the dark inside, crates in there)
     for (const [dx, up] of [[140, 0], [820, 0.5]] as [number, number][]) {
       box(g, dx - 4, GY - 156, 158, 156, ink); box(g, dx - 2, GY - 154, 154, 6, S[1]);

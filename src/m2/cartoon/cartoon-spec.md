@@ -426,10 +426,13 @@ start (itchy/layout.ts):
 - 7150 THE PAINTED CANYON (cp 55; AS SEEN IN 'MOUSE MESA': mesas painted on plywood flats, braces showing): three towers
   across a bottomless gorge (the big-kid zone's first glop pit's geometry: proven both ways); THE CANNON ON ITS LIFT behind
   the far rim rises to his height, fizzes and fires across (a low ball or a high one); the host on the far rim calling
-  anvils. In, and he's back where he last stood safe, hurt (a little puff of dust way down); the cast go down for good.
+  anvils. In, and he's dead (the user's: "falling down the mesa lands will kill you ... not teleport you"): the coyote's
+  fall kill cam (itchy/deaths.ts: straight down the gorge, he hangs a beat, drops, tumbling smaller and smaller, the
+  whistle, a tiny puff of dust far below); the cast go down for good.
 - 8650 THE SET (cp 56; STAGE 9, PUNCHY & KICKY LIVE!, TAPING TODAY: drapes, the lighting grid, the APPLAUSE sign, the
-  cat and mouse's house flat): a FLOOR OF PORTABLE HOLES (in, and he drops out of one up in the air over where he last
-  stood safe, on his head); two towers across it (the big-kid zone's own spacing); a fuse along the fly rail and down a
+  cat and mouse's house flat): a FLOOR OF PORTABLE HOLES (in, and he's dead: the user's "perpetually falling through
+  black holes, forever" kill cam, itchy/deaths.ts: a painted black hole comes up under him and swallows him, out of
+  another over a different painted backdrop, the next already coming; it goes on under the death screen); two towers across it (the big-kid zone's own spacing); a fuse along the fly rail and down a
   line to the far tower's foot (a GENERIC-CO igniter strikes its own match): it goes up and kicks the tower. A stagehand.
 - 9650 THE WAY ON (cp 57): a mixed crowd; a rake; STUPID DAD's live-show posters; the STUPID DAD LIVE! gate (THE
   AMPHITHEATER >): the right end, on to `amphi`.
@@ -747,9 +750,18 @@ markBossFight every frame of a boss or sub-boss fight. Voice every new line (`np
   down for good, each sprung bear trap, the host's anvils where they came down, the last six). The gantry's anvils and
   the hammers' heads come and go with their cycle. Every block a hazard puts down (an anvil, a hammer's head, a wreck)
   waits till he's clear of it: he's never shut in one.
-- (job 6) The canyon follows the land's pit rule (back where he last stood safe, hurt; the cast go down for good); the
-  set's floor of portable holes is the same rule told the cartoon way: he drops out of a hole up in the air over where
-  he last stood safe and lands on his head (hurt on landing); the cast drop out of one over where they were put.
+- (job 6, changed by the user's notes) The canyon and the set's floor of portable holes kill him (their own kill cams,
+  itchy/deaths.ts, death screens by the state of him; with the cheat's god mode, back where he last stood safe); the
+  cast go down for good in the canyon and drop out of a hole over where they were put on the set. The stagehands' own
+  laid holes keep the cartoon rule: he drops out of one up in the air over where he last stood safe and lands on his
+  head (hurt on landing).
+- (the user's notes) The rakes and the bear traps have their own hurt animations (src/m2/hurtGags.ts, shared with
+  Wilderness Land's bear traps): the rake's handle WHACKs him in the face (stiff as a board, rocking on his heels, the
+  handle's print down his face, teeth out, X-eyed, stars and a birdie; held under half a second); the bear trap's jaws
+  on his boot, the chain to the stake pulled taut, hopping and howling as long as it holds him. Their lines by the state
+  of him (`_shitty`, `_nude` sources). The rakes are drawn big and bold to read at a glance (the fat bright handle, the
+  red tape, tall lit tines, a glint running along them). The GENERIC-CO labels stay clear: the warehouse sign moved left
+  of the dock crane's mast, the crates' names on pasted paper labels over the brace (two lines on the narrow ones).
 - (job 6) Deaths: the anvils, the hammers, the safe and the piano flatten him (the engine's `flattened`); the TNT and the
   thrown dynamite burn him black (`burnt`); the rest, he comes apart. Every hazard and attack its own hurt pool and death
   screens (lines.ts HURT).
