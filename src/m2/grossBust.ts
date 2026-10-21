@@ -62,7 +62,7 @@ export const LIPSTICK = R('#FF8AA0', '#F05070', '#D02A50', '#A8183C', '#780C28',
 const NOSTRIL = R('#3A0808', '#240404', '#140202', '#080101', '#000000');
 
 export type HairStyle = 'slick' | 'wig' | 'bun' | 'bald' | 'combover' | 'curls' | 'long' | 'beehive' | 'crew' | 'none';
-export type Beard = 'full' | 'goatee' | 'chops' | 'stache' | 'stubble';
+export type Beard = 'full' | 'goatee' | 'chops' | 'stache' | 'stubble' | 'curtain';
 export type Mouth = 'grin' | 'gape' | 'smirk' | 'grimace' | 'grape' | 'pout' | 'talk';
 export type Extra = 'monocle' | 'mole' | 'wart' | 'earring' | 'glasses' | 'scar' | 'zits' | 'pearls' | 'tiara' | 'cigar' | 'headset' | 'bowtie' | 'tie' | 'ruff' | 'lashes' | 'sweaty' | 'drool' | 'goiter' | 'aviators' | 'brace' | 'cig';
 export interface BustSpec {
@@ -182,6 +182,7 @@ const paint = (sp: BustSpec): Painted => {
       if (!inHead(x, y, 6) && !(((x - FX) / (rx * 0.5)) ** 2 + ((y - FY - ry * 0.85) / (ry * 0.35)) ** 2 < 1)) return false;
       if (sp.beard === 'goatee') return Math.abs(x - FX) < 18 && y > FY + 44;
       if (sp.beard === 'chops') return Math.abs(x - FX) > rx * 0.55 && y > FY - 10 && y < FY + 40;
+      if (sp.beard === 'curtain') return y > FY + 40 + (Math.abs(x - FX) < 26 ? 8 : 0) - Math.abs(x - FX) * 0.5;
       return y > FY + 18 + (Math.abs(x - FX) < 24 ? 14 : 0) - Math.abs(x - FX) * 0.3;
     };
     for (let k = 0; k < 1400; k++) { const x = FX - rx - 6 + rnd() * (rx * 2 + 12), y = FY - 10 + rnd() * (ry + 40); if (inB(x, y)) seg(b, x, y, x + (rnd() - 0.5) * 3, y + 3 + rnd() * 4, br[k % 5 === 0 ? 0 : k % 3 ? 2 : 3], 1, M_HAIR); }

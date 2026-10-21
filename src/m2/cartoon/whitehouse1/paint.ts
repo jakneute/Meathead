@@ -8,6 +8,7 @@
 
 import { box, mix, hash, checker, ramp6, BRASS, INK, type Ctx } from '../kit';
 import { signText, type Look } from '../../signLetters';
+import { bust as grossBust, drawBust, SKIN, HAIR, CLOTH, IRIS, LIPSTICK, type BustSpec } from '../../grossBust';
 import { timeOfDay, skyAt } from '../../timeOfDay';
 
 export type R6 = string[];
@@ -194,6 +195,18 @@ export const plaque = (g: Ctx, x: number, y: number, words: string) => {
 
 export type Who = 'washington' | 'lincoln' | 'teddy' | 'nixon' | 'firstlady' | 'beagle' | 'jefferson' | 'taft' | 'jfk' | 'fdr';
 const PRES_NAME: Record<Who, string> = { washington: 'G.WASHINGTON', lincoln: 'A.LINCOLN', teddy: 'T.ROOSEVELT', nixon: 'R.NIXON', firstlady: 'A FIRST LADY', beagle: 'HIM', jefferson: 'T.JEFFERSON', taft: 'W.H.TAFT', jfk: 'J.F.KENNEDY', fdr: 'F.D.ROOSEVELT' };
+/** The presidents (and a first lady) as gross-ups: each the caricature's own tells, grossed up. */
+const PRES_BUST: Record<Exclude<Who, 'beagle'>, BustSpec> = {
+  washington: { seed: 1732, skin: SKIN.pale, hair: 'wig', hairRamp: HAIR.white, iris: IRIS.gray, mouth: 'grimace', coat: CLOTH.navy, extras: ['ruff', 'zits'], jowl: 1.25, nose: 1.2, look: [0.4, 0] },
+  lincoln: { seed: 1809, skin: SKIN.olive, hair: 'crew', hairRamp: HAIR.black, beard: 'curtain', beardRamp: HAIR.black, iris: IRIS.gray, mouth: 'smirk', coat: CLOTH.black, extras: ['mole', 'bowtie'], tall: 1.14, wide: 0.86, nose: 1.15 },
+  teddy: { seed: 1858, skin: SKIN.pink, hair: 'crew', hairRamp: HAIR.brown, beard: 'stache', beardRamp: HAIR.brown, iris: IRIS.blue, mouth: 'grin', coat: CLOTH.mustard, extras: ['glasses', 'sweaty'], jowl: 1.2, look: [0.3, -0.2] },
+  nixon: { seed: 1913, skin: SKIN.tan, hair: 'slick', hairRamp: HAIR.brown, beard: 'stubble', iris: IRIS.brown, mouth: 'grin', coat: CLOTH.navy, extras: ['sweaty', 'tie'], jowl: 1.6, nose: 1.55, bulge: 1.3, look: [-0.5, 0.3] },
+  firstlady: { seed: 1929, skin: SKIN.pale, hair: 'beehive', hairRamp: HAIR.brown, iris: IRIS.brown, mouth: 'pout', lips: LIPSTICK, coat: CLOTH.red, extras: ['lashes', 'pearls', 'earring'], wide: 0.92, look: [0.2, 0] },
+  jefferson: { seed: 1743, skin: SKIN.pink, hair: 'wig', hairRamp: HAIR.ginger, iris: IRIS.green, mouth: 'smirk', coat: CLOTH.green, extras: ['ruff', 'wart'], nose: 1.25 },
+  taft: { seed: 1857, skin: SKIN.red, hair: 'crew', hairRamp: HAIR.brown, beard: 'stache', beardRamp: HAIR.brown, iris: IRIS.blue, mouth: 'gape', coat: CLOTH.black, extras: ['sweaty', 'drool', 'bowtie'], wide: 1.2, jowl: 1.7, bulge: 1.2 },
+  jfk: { seed: 1917, skin: SKIN.tan, hair: 'slick', hairRamp: HAIR.ginger, iris: IRIS.blue, mouth: 'grin', coat: CLOTH.gray, extras: ['tie', 'zits'], look: [0.4, -0.1] },
+  fdr: { seed: 1882, skin: SKIN.pale, hair: 'slick', hairRamp: HAIR.gray, iris: IRIS.blue, mouth: 'grin', coat: CLOTH.gray, extras: ['glasses', 'cigar', 'tie'], jowl: 1.2, tall: 1.06 },
+};
 const SKIN_P: R6 = ['#6A3A2A', '#9A5E46', '#C98A6A', '#F2BC98', '#FAD8BE', '#FFF0E2'];
 /** A president's cartoon portrait (the show's caricatures, played straight) in a gilt frame: its middle at (cx, cy),
  *  w × h; a plaque under it unless `bare`. */
@@ -210,11 +223,16 @@ export const portrait = (g: Ctx, cx: number, cy: number, who: Who, w = 68, h = 8
   const G = R(ground);
   box(g, ix, iy, iw, ih, G[2]); box(g, ix, iy, iw, Math.round(ih * 0.35), G[3]); checker(g, ix, iy + Math.round(ih * 0.35), iw, 2, G[3], 0, 1);
   box(g, ix, iy + ih - 8, iw, 8, G[1]);
-  g.save(); g.beginPath(); g.rect(ix, iy, iw, ih); g.clip();
-  const hx = cx, hy = cy - h * 0.1, s = Math.min(iw / 52, ih / 70);
-  g.translate(hx, hy); g.scale(s, s);
-  paintSitter(g, who);
-  g.restore();
+  if (who !== 'beagle') {
+    // (the sitter: a gross-up in oils (grossBust.ts), every pore of the office)
+    drawBust(g, grossBust(`wh-${who}`, PRES_BUST[who], 'oil'), ix + 1, iy + 1, iw - 2, ih - 1, ih > iw * 1.6 ? 200 : 150);
+  } else {
+    g.save(); g.beginPath(); g.rect(ix, iy, iw, ih); g.clip();
+    const hx = cx, hy = cy - h * 0.1, s = Math.min(iw / 52, ih / 70);
+    g.translate(hx, hy); g.scale(s, s);
+    paintSitter(g, who);
+    g.restore();
+  }
   // (the varnish's sheen across a corner)
   box(g, ix + 2, iy + 2, Math.round(iw * 0.3), 1, 'rgba(255,255,255,0.35)'); box(g, ix + 2, iy + 2, 1, Math.round(ih * 0.2), 'rgba(255,255,255,0.35)');
   if (!bare) plaque(g, cx, y + h + 3, PRES_NAME[who]);
