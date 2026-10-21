@@ -24,7 +24,7 @@ import { layOwn, endWalls, endExits, runExits, spaceState, hands, box, teleport,
 import { GY } from '../geometry';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, topBand } from '../../../m1/constants';
 import { drawSkipPrompt, SKIP_AFTER } from '../../../m1/game/platform/skip';
-import { goTo, markLandCleared, noteBossKill, isLandCleared, setUi, keepForRevisits, keptForRevisits } from '../../store';
+import { goTo, markLandCleared, markBossDeath, noteBossKill, isLandCleared, setUi, keepForRevisits, keptForRevisits } from '../../store';
 import { type Victory, startVictory, tickVictory, drawVictory, victoryDone } from '../../victory';
 import { type WalkAway, playWalkAway, tickWalkAway, drawWalkAway } from '../../walkAway';
 import { drawBars } from '../../spooky/control/cine';
@@ -180,7 +180,7 @@ export const queen: SpaceSection = {
       tickVictory(state, q.victory);
       if (victoryDone(q.victory) && state.frame - q.wonAt > 60) {
         q.victory = null;
-        markLandCleared('space'); noteBossKill();
+        markBossDeath('space', f.byWeakness); markLandCleared('space'); noteBossKill();
         // (her pieces where they lie, for the revisits; a plain death's her corpse)
         keepForRevisits(WRECK_KEPT, f.blown ? packPieces(f.pieces, f.splats) : null);
         q.walk = playWalkAway(state, { boss: 'space-queen', weakness: f.byWeakness, onDone: () => goTo('hub') });

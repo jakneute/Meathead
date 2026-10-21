@@ -17,7 +17,7 @@ import type { HollywoodSection } from '../section';
 import { layOwn, endWalls, endExits, runExits, hollywoodState, hands } from '../section';
 import { DOORS, GY } from '../geometry';
 import { topBand } from '../../../m1/constants';
-import { goTo, markLandCleared, noteBossKill, isLandCleared } from '../../store';
+import { goTo, markLandCleared, markBossDeath, noteBossKill, isLandCleared } from '../../store';
 import { type Victory, startVictory, tickVictory, drawVictory, victoryDone } from '../../victory';
 import { type WalkAway, playWalkAway, tickWalkAway, drawWalkAway } from '../../walkAway';
 import { markBossFight } from '../../bossQuiet';
@@ -37,7 +37,7 @@ const stuntOf = (state: GameState) => hollywoodState<Stunt>(state, 'stunt', () =
 
 const leave = (state: GameState, weakness: boolean) => {
   const s = stuntOf(state);
-  markLandCleared('hollywood'); noteBossKill();
+  markBossDeath('hollywood', weakness); markLandCleared('hollywood'); noteBossKill();
   s.walk = playWalkAway(state, { boss: 'stuntman-steve', weakness, onDone: () => goTo('hub') });
 };
 

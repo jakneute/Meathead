@@ -38,7 +38,7 @@ import type { FrontierSection } from '../section';
 import { layOwn, endWalls, endExits, runExits, hands } from '../section';
 import { DOORS } from '../geometry';
 import { topBand } from '../../../m1/constants';
-import { goTo, markLandCleared, noteBossKill, isLandCleared, setWalkBack } from '../../store';
+import { goTo, markLandCleared, markBossDeath, noteBossKill, isLandCleared, setWalkBack } from '../../store';
 import { startVictory, tickVictory, drawVictory, victoryDone } from '../../victory';
 import { playWalkAway, tickWalkAway, drawWalkAway } from '../../walkAway';
 import { markBossFight } from '../../bossQuiet';
@@ -93,7 +93,7 @@ const fightOn = (state: GameState) => {
 /** Beaten: off he walks (the walk-away, the FLINTLOCK, HEADING BACK TO PARK), and then, in place of the hub, the walk
  *  back in from the intro's parking lot (job H: intro/index.ts). The land's cleared first, so the lot's at the new hour. */
 const leave = (state: GameState, weakness: boolean) => {
-  markLandCleared('frontier'); noteBossKill();
+  markBossDeath('frontier', weakness); markLandCleared('frontier'); noteBossKill();
   arenaOf(state).walk = playWalkAway(state, { boss: 'tucker', weakness, onDone: () => { setWalkBack(true); goTo('intro'); } });
 };
 

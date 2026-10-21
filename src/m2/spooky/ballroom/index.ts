@@ -18,7 +18,7 @@ import { drawBallroomArt, drawBallroomFront, ballroomLighting } from './art';
 import { GY } from '../geometry';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, topBand } from '../../../m1/constants';
 import { drawSkipPrompt, SKIP_AFTER } from '../../../m1/game/platform/skip';
-import { goTo, markLandCleared, noteBossKill, isLandCleared } from '../../store';
+import { goTo, markLandCleared, markBossDeath, noteBossKill, isLandCleared } from '../../store';
 import { type Victory, startVictory, tickVictory, drawVictory, victoryDone } from '../../victory';
 import { type WalkAway, playWalkAway, tickWalkAway, drawWalkAway } from '../../walkAway';
 import { markBossFight } from '../../bossQuiet';
@@ -39,6 +39,7 @@ const ballOf = (state: GameState) => spookyState<Ballroom>(state, 'ballroom', ()
 /** Done: him walking away from it all, then the hub (Spooky Land's cleared: the day moves on). */
 const leave = (state: GameState, weakness: boolean) => {
   const b = ballOf(state);
+  markBossDeath('spooky', weakness);
   markLandCleared('spooky');
   noteBossKill();
   b.walk = playWalkAway(state, { boss: 'donnie-dracula', weakness, onDone: () => goTo('hub') });

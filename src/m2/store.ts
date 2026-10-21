@@ -162,6 +162,18 @@ export const clearedLands = () => [...cleared];
 export const restoreClearedLands = (ids: string[]) => { cleared.clear(); ids.forEach(id => cleared.add(id)); progressListeners.forEach(l => l()); };
 export const subscribeProgress = (l: () => void) => { progressListeners.add(l); return () => { progressListeners.delete(l); }; };
 
+/** How each land's boss died (the park map's obituaries, parkmap/data.ts): by his weakness or any other way, by land.
+ *  Marked as the boss's death plays (the latest wins: a rematch's re-kill rewrites it). A cleared land with nothing
+ *  marked (an older save) reads as the normal death. */
+export type BossDeath = 'normal' | 'weakness';
+const deaths = new Map<string, BossDeath>();
+export const markBossDeath = (land: string, weakness: boolean) => { deaths.set(land, weakness ? 'weakness' : 'normal'); };
+/** How his boss died, or null: still alive (the land's not cleared). */
+export const bossDeath = (land: string): BossDeath | null => deaths.get(land) ?? (cleared.has(land) ? 'normal' : null);
+/** All of it (for a save); put back from one. */
+export const allBossDeaths = () => Object.fromEntries(deaths) as Record<string, BossDeath>;
+export const restoreBossDeaths = (o: Record<string, BossDeath>) => { deaths.clear(); Object.entries(o).forEach(([k, v]) => deaths.set(k, v)); };
+
 /** What a cleared land keeps for its revisits beyond being cleared (how its boss was left: the queen's pieces where they
  *  landed), by key. For the playthrough (state.stageMemo goes with each visit; this doesn't). */
 const kept = new Map<string, string>();

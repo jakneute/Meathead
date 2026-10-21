@@ -8,7 +8,7 @@
 // nothing's written. Anything missing, corrupt or from a newer version reads as an empty slot: no crash.
 
 import { storage, readJson, writeJson } from '../m1/game/save/storage';
-import { clearedLands, allKept, subscribeProgress } from './store';
+import { clearedLands, allKept, allBossDeaths, subscribeProgress, type BossDeath } from './store';
 import { LANDS } from './hub/lands';
 
 export const SLOTS = [1, 2, 3] as const;
@@ -22,6 +22,8 @@ export interface Progress {
   cleared: string[];
   /** What the cleared lands keep for their revisits (store.ts keptForRevisits), by key. */
   kept: Record<string, string>;
+  /** How each cleared land's boss died (store.ts bossDeath), by land. Missing in older files: read as the normal death. */
+  deaths: Record<string, BossDeath>;
 }
 
 export interface SaveFile extends Progress {
@@ -44,7 +46,9 @@ const clean = (raw: unknown): SaveFile | null => {
   const cleared = Array.isArray(o.cleared) ? o.cleared.filter((id, i, all): id is string => typeof id === 'string' && LAND_IDS.includes(id) && all.indexOf(id) === i) : [];
   const kept: Record<string, string> = {};
   if (o.kept && typeof o.kept === 'object') for (const [k, v] of Object.entries(o.kept as Record<string, unknown>)) if (typeof v === 'string') kept[k] = v;
-  return { version: VERSION, cleared, kept, playTimeMs: num(o.playTimeMs), lastPlayed: num(o.lastPlayed) };
+  const deaths: Record<string, BossDeath> = {};
+  if (o.deaths && typeof o.deaths === 'object') for (const [k, v] of Object.entries(o.deaths as Record<string, unknown>)) if (LAND_IDS.includes(k) && (v === 'normal' || v === 'weakness')) deaths[k] = v;
+  return { version: VERSION, cleared, kept, deaths, playTimeMs: num(o.playTimeMs), lastPlayed: num(o.lastPlayed) };
 };
 
 // ---- who's listening (the title's CONTINUE, the file select's cards)
@@ -97,7 +101,7 @@ export const playOnFile = (slot: Slot | null, playTimeMs = 0) => {
 export const saveProgress = () => {
   if (active === null) return;
   tick();
-  const file: SaveFile = { cleared: clearedLands(), kept: allKept(), version: VERSION, playTimeMs: playTime(), lastPlayed: Date.now() };
+  const file: SaveFile = { cleared: clearedLands(), kept: allKept(), deaths: allBossDeaths(), version: VERSION, playTimeMs: playTime(), lastPlayed: Date.now() };
   if (writeJson(keyOf(active), file)) changed();
 };
 

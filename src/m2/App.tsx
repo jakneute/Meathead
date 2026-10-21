@@ -59,7 +59,7 @@ import { clearSkyCache } from './intro/art/sky';
 import { canSkip, requestSkip } from '../m1/game/platform/skip';
 import { getAudioContext } from '../m1/game/platform/audio';
 import { STAFF_SLOT, AMERICA_SLOT, landAt } from './hub/lands';
-import { getUi, subscribeUi, onTravel, setUi, goTo, takeBossKill, setStartCheckpoint, requestCarHop, restoreClearedLands, restoreKept } from './store';
+import { getUi, subscribeUi, onTravel, setUi, goTo, takeBossKill, setStartCheckpoint, requestCarHop, restoreClearedLands, restoreKept, restoreBossDeaths } from './store';
 import TitleScreen from './title/TitleScreen';
 import { readFile, deleteFile, playOnFile, saveProgress, closeFile, activeSlot, type Slot } from './save';
 import { setFrameHook } from '../m1/game/core/update';
@@ -238,6 +238,7 @@ const App2: React.FC = () => {
     if (!f) return;
     restoreClearedLands(f.cleared);
     restoreKept(f.kept);
+    restoreBossDeaths(f.deaths);
     playOnFile(slot, f.playTimeMs);
     // (onto the hub, where Meathead 1's goes onto the map: in off America USA's street)
     setHubStart(AMERICA_SLOT);

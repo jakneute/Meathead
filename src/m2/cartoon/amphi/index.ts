@@ -32,7 +32,7 @@ import { pickLine, pickFreshLine } from '../../../m1/game/platform/speech';
 import type { GameState } from '../../../m1/game/core/state';
 import type { CartoonSection } from '../section';
 import { layOwn, endWalls, endExits, runExits, hands, solid, meatheadSays, byPants, saidOver, speak } from '../section';
-import { goTo, markLandCleared, noteBossKill, isLandCleared } from '../../store';
+import { goTo, markLandCleared, markBossDeath, noteBossKill, isLandCleared } from '../../store';
 import { startVictory, tickVictory, drawVictory, victoryDone } from '../../victory';
 import { playWalkAway, tickWalkAway, drawWalkAway } from '../../walkAway';
 import { markBossFight } from '../../bossQuiet';
@@ -63,7 +63,7 @@ const pmidX = (state: GameState) => state.player.pos.x + state.player.width / 2;
 
 /** Over: the land's cleared, the walk-away with the MALLET, the hub. */
 const leave = (state: GameState, s: Amphi) => {
-  markLandCleared('cartoon'); noteBossKill();
+  markBossDeath('cartoon', !!s.fight && killedByWeakness(s.fight)); markLandCleared('cartoon'); noteBossKill();
   s.walk = playWalkAway(state, { boss: 'stupid-dad', weakness: !!s.fight && killedByWeakness(s.fight), onDone: () => goTo('hub') });
 };
 

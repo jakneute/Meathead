@@ -16,7 +16,7 @@ import type { ForeignSection } from '../section';
 import { layOwn, endWalls, endExits, runExits, foreignState, hands } from '../section';
 import { DOORS, GY } from '../geometry';
 import { topBand } from '../../../m1/constants';
-import { goTo, markLandCleared, noteBossKill, isLandCleared, keptForRevisits } from '../../store';
+import { goTo, markLandCleared, markBossDeath, noteBossKill, isLandCleared, keptForRevisits } from '../../store';
 import { type Victory, startVictory, tickVictory, drawVictory, victoryDone } from '../../victory';
 import { type WalkAway, playWalkAway, tickWalkAway, drawWalkAway } from '../../walkAway';
 import { x0, x1, VIEW_X, ARENA_L, ARENA_R, CAM_ROW, REFILL_X, WALL_W, WRECK_X, sy } from './arena';
@@ -53,7 +53,7 @@ const GATE_MEMO = 'foreign-harry-gate';
 
 const leave = (state: GameState, weakness: boolean) => {
   const s = harryOf(state);
-  markLandCleared('foreign'); noteBossKill();
+  markBossDeath('foreign', weakness); markLandCleared('foreign'); noteBossKill();
   s.walk = playWalkAway(state, { boss: 'helicopter-harry', weakness, onDone: () => goTo('hub') });
 };
 

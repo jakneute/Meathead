@@ -29,7 +29,7 @@ import { topBand, CANVAS_WIDTH } from '../../../m1/constants';
 import type { FantasySection } from '../section';
 import { layOwn, endWalls, endExits, runExits, fantasyState, hands, ledge, solid, landVisit, meatheadSays, byPants } from '../section';
 import { DOORS } from '../geometry';
-import { goTo, markLandCleared, noteBossKill, isLandCleared, setUi } from '../../store';
+import { goTo, markLandCleared, markBossDeath, noteBossKill, isLandCleared, setUi } from '../../store';
 import { type Victory, startVictory, tickVictory, drawVictory, victoryDone } from '../../victory';
 import { type WalkAway, playWalkAway, tickWalkAway, drawWalkAway } from '../../walkAway';
 import { markBossFight } from '../../bossQuiet';
@@ -57,7 +57,7 @@ let hallVisit = -1;
 
 const leave = (state: GameState, weakness: boolean) => {
   const s = bedroomOf(state);
-  markLandCleared('fantasy'); noteBossKill();
+  markBossDeath('fantasy', weakness); markLandCleared('fantasy'); noteBossKill();
   s.walk = playWalkAway(state, { boss: 'piper', weakness, onDone: () => goTo('hub') });
 };
 const endOf = (state: GameState): { how: 'cork' | 'balloon'; x: number } | null => {

@@ -19,7 +19,7 @@ import { GUIDE_KIND } from '../guides';
 import { lay, solid, speak, meatheadSays, saidOver, hands, sectionState } from '../section';
 import { drawTentFlap, drawPath, drawCamp, drawRock, drawHuntSign, drawAidStop, drawTree, drawWing, drawFence, CAMPFIRE, SPEAKER, drawSpeaker, drawUnderstory, drawFogger, drawSpeakerRock, drawParrot, drawSpeakerPole } from './art';
 import { GY } from '../geometry';
-import { goTo, setUi, markLandCleared, noteBossKill } from '../../store';
+import { goTo, setUi, markLandCleared, markBossDeath, noteBossKill } from '../../store';
 import { playSound } from '../../../m1/game/platform/audio';
 import { silenceAll, pickLine } from '../../../m1/game/platform/speech';
 import { SKIP_AFTER, offerSkip, takeSkip } from '../../../m1/game/platform/skip';
@@ -281,6 +281,7 @@ const kick = (ctx: FrameContext, cl: Clearing): Controls => {
 const leave = (state: GameState, weakness: boolean) => {
   const cl = getClearing(state);
   // (Adventure Land's cleared: the day moves on, the walk-away already at the new hour: timeOfDay.ts)
+  markBossDeath('adventure', weakness);
   markLandCleared('adventure');
   noteBossKill();
   cl.walk = playWalkAway(state, { boss: 'safari-artie', weakness, onDone: () => goTo('hub') });
