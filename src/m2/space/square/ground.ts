@@ -9,7 +9,7 @@
 
 import { bendFloor, BEND } from '../../intro/art/kit';
 import { GY } from '../geometry';
-import { type Ctx, type View, INK, box, checker, mix, hash, poly, at, atDepth, stamp, bandedGradient, hazeBands, pixelBlob, timeOfDay, farTint, skyAt, hourMix, PAVE, CONCRETE, PINK, TEAL, CHROME, ORANGE, LIP, ramp6 } from './paint';
+import { type Ctx, type View, INK, box, checker, mix, hash, poly, at, atDepth, stamp, still, bandedGradient, hazeBands, pixelBlob, timeOfDay, farTint, skyAt, hourMix, PAVE, CONCRETE, PINK, TEAL, CHROME, ORANGE, LIP, ramp6 } from './paint';
 
 /** How far back the walk goes (the far row along its far edge). */
 export const FAR = 0.62;
@@ -190,8 +190,86 @@ const wallBack = (c: Ctx, v: View, e: number, side: 1 | -1, kind: PitKind) => {
   // (the lagoon's tide line: green scum a way down; the trench's conduit along it)
   if (kind === 'lagoon') { q(0, GY + 30, 1, GY + 36, tint('#3A5A2A', 0.5, 0.8)); q(0, GY + 36, 1, GY + 38, tint('#5A7A3A', 0.5, 0.8)); }
   if (kind === 'trench') { q(0, GY + 40, 1, GY + 48, tint('#4A4A58', 0.5, 0.8)); q(0, GY + 40, 1, GY + 42, tint('#8A8A98', 0.5, 0.8)); q(0, GY + 70, 1, GY + 76, tint('#B83C0C', 0.5, 0.8)); }
+  if (kind !== 'lagoon') {
+    // (stains run down from the lip, darkening into the dark; the form ties in rows; rebar stubs bleeding rust)
+    const sd = e * 0.031;
+    for (let k = 0; k < 6; k++) {
+      const k0 = 0.06 + k * 0.155 + hash(sd + k) * 0.05, len = 50 + hash(sd + k * 2.3) * 140;
+      q(k0, GY + 2, k0 + 0.02 + hash(sd + k * 4.1) * 0.03, Math.min(bot, GY + len), dk(tint(R[0], 0.5, 1 - k0 * (1 - d)), GY + len * 0.5));
+    }
+    for (let y = GY + 24; y < Math.min(bot, GY + 200); y += 30) for (let k = 0.1; k < 1; k += 0.2) {
+      const [tx, ty] = pt(k, y), s = Math.max(1, Math.round(2 * (1 - k * (1 - d))));
+      box(c, tx, ty, s, s, dk(tint(R[0], 0.5, 1), y));
+    }
+    for (let k = 0.15; k < 1; k += 0.27) {
+      const [rx, ry] = pt(k, GY + 14), [, ry2] = pt(k, GY + 34);
+      box(c, rx - 1, ry, 2, Math.max(2, ry2 - ry), dk(tint('#6A3A1E', 0.5, 1), GY + 20));
+      box(c, rx - 2, ry - 2, 4, 3, INK); box(c, rx - 1, ry - 1, 2, 2, tint('#A8622E', 0.5, 1));
+    }
+  }
   const [x1, t1] = pt(1, GY);
   c.strokeStyle = INK; c.lineWidth = 1; c.beginPath(); c.moveTo(e, GY); c.lineTo(x1, t1); c.stroke();
+};
+
+/** How far down a hole's far wall is painted (world, at FAR) before it's all dark. */
+const FWH = 520;
+/** A concrete hole's far wall (painted once for the hour, in its own coordinates: x 0..w across, y 0 at the lip going
+ *  down): poured panels each their own shade (lit top, shaded foot and right edge, form-tie holes in rows), cold joints,
+ *  rebar stubs bleeding rust, water stains and white bloom run down from the lip; the site's dewatering pipe hung down
+ *  it and the surveyor's spray paint, the trench's pipe runs on brackets, a cable tray, caged work lights; then all of
+ *  it going into the dark in bands, dithered between. */
+const paintFarWall = (g: Ctx, w: number, kind: PitKind, seed: number) => {
+  const C = CONCRETE.map(col => tint(col, 0.5, FAR));
+  const PW = 96, PH = 64;
+  for (let y = 0, row = 0; y < FWH; y += PH, row++) for (let x = -(row % 2) * 48, k = 0; x < w; x += PW, k++) {
+    const t = hash(seed + row * 7.3 + k * 1.9), base = C[t > 0.66 ? 3 : t > 0.25 ? 2 : 1];
+    box(g, x, y, PW, PH, base);
+    box(g, x, y, PW, 1, C[t > 0.66 ? 4 : 3]); checker(g, x, y + 1, PW, 2, C[t > 0.66 ? 4 : 3], 0, 2);
+    box(g, x, y + PH - 2, PW, 2, C[0]); checker(g, x, y + PH - 4, PW, 2, C[0], 0, 2);
+    box(g, x + PW - 1, y, 1, PH, C[0]);
+    for (let ty = 0; ty < 3; ty++) for (let tx = 0; tx < 2; tx++) { const hx = x + 24 + tx * 48, hy = y + 12 + ty * 20; box(g, hx, hy, 3, 3, C[0]); box(g, hx, hy + 3, 3, 1, C[4]); }
+    // (honeycombing, a spall here and there)
+    if (t < 0.15) { const sx = x + 10 + Math.floor(hash(seed + k + row) * 60), sy = y + 20; box(g, sx, sy, 18, 10, C[0]); checker(g, sx + 2, sy + 2, 14, 6, C[2], 0, 2); box(g, sx, sy, 18, 1, C[4]); }
+  }
+  // (rebar stubs out of the cold joints, each bleeding rust down the wall)
+  for (let x = 30 + Math.floor(hash(seed) * 40); x < w - 10; x += 70 + Math.floor(hash(seed + x) * 60)) {
+    const y = PH * (1 + Math.floor(hash(seed + x * 0.3) * 2)) - 6, len = 14 + Math.floor(hash(seed + x * 0.7) * 30);
+    for (let s = 0; s < len; s += 2) box(g, x + ((s >> 1) & 1), y + 4 + s, 2, 2, s < len * 0.5 ? '#7A4220' : '#5A3A2A');
+    box(g, x - 1, y - 1, 5, 5, INK); box(g, x, y, 3, 3, '#9A5A2A'); box(g, x, y, 1, 1, '#D08A4A');
+  }
+  // (stains run down from the lip, and the white bloom where water's dried)
+  for (let x = 8; x < w; x += 22 + Math.floor(hash(seed + x * 1.3) * 40)) {
+    const len = 40 + Math.floor(hash(seed + x * 2.1) * 160), sw = 3 + Math.floor(hash(seed + x) * 6);
+    checker(g, x, 4, sw, len, C[0], 0, 2); box(g, x + 1, 4, sw - 2, Math.round(len * 0.4), C[0]);
+    if (hash(seed + x * 3.7) > 0.7) checker(g, x - 2, 8, sw + 4, 14, C[5], 1, 2);
+  }
+  if (kind === 'site') {
+    // (the dewatering pipe hung down it on straps, its hose off the bottom; the surveyor's paint: an X, the depth)
+    const px = Math.round(w * 0.3);
+    box(g, px - 1, 0, 10, FWH, INK); box(g, px, 0, 8, FWH, '#3A3E48'); box(g, px + 1, 0, 2, FWH, '#6A7080'); box(g, px + 6, 0, 2, FWH, '#22242C');
+    for (let y = 30; y < FWH; y += 90) { box(g, px - 3, y, 14, 4, '#B88A10'); box(g, px - 3, y, 14, 1, '#E8C040'); }
+    const sx = Math.round(w * 0.62), sy = 40;
+    for (let k = 0; k < 16; k += 2) { box(g, sx + k, sy + k, 3, 2, '#E8641A'); box(g, sx + 14 - k, sy + k, 3, 2, '#E8641A'); }
+    g.font = '8px "Press Start 2P"'; g.fillStyle = '#E8641A'; g.fillText('EL -14', sx + 24, sy + 14);
+    for (let k = 0; k < 6; k++) box(g, sx + 24 + k * 9, sy + 16, 1, 3 + (k % 3) * 2, '#B8501A');
+  } else if (kind === 'trench') {
+    // (pipe runs on brackets: steel, rusted red, a green one; flanges along them; a cable tray; caged work lights)
+    for (const [yy, col] of [[24, '#5A6A7A'], [44, '#7A2A1A'], [64, '#4A5A3A']] as const) {
+      const P = [mix(col, '#000000', 0.5), mix(col, '#000000', 0.25), col, mix(col, '#FFFFFF', 0.25), mix(col, '#FFFFFF', 0.5)].map(cc => tint(cc, 0.5, FAR));
+      box(g, 0, yy + 7, w, 3, C[0]);
+      box(g, 0, yy - 1, w, 9, INK); box(g, 0, yy, w, 7, P[2]); box(g, 0, yy, w, 1, P[4]); box(g, 0, yy + 1, w, 1, P[3]); box(g, 0, yy + 5, w, 2, P[1]);
+      for (let x = (yy * 3) % 120; x < w; x += 120) { box(g, x - 1, yy - 2, 6, 11, INK); box(g, x, yy - 1, 4, 9, P[3]); box(g, x, yy - 1, 1, 9, P[4]); }
+    }
+    for (let x = 40; x < w; x += 80) { box(g, x, 18, 3, 54, C[0]); box(g, x, 18, 1, 54, C[4]); }
+    box(g, 0, 84, w, 6, INK); box(g, 0, 85, w, 4, C[3]); for (let x = 0; x < w; x += 6) box(g, x, 85, 2, 4, C[1]); box(g, 0, 85, w, 1, C[5]);
+    for (let x = 30; x < w; x += 90) { box(g, x - 1, 7, 9, 10, INK); box(g, x, 8, 7, 8, timeOfDay().lamps > 0.3 ? '#FFE070' : '#C8A040'); for (let k = 0; k < 3; k++) box(g, x + 1 + k * 2, 8, 1, 8, '#2A2A30'); }
+  }
+  // (and down into the dark: in bands, dithered between)
+  for (let k = 0; k < 7; k++) {
+    const y = 110 + k * 50, a = Math.min(1, 0.18 + k * 0.14);
+    box(g, 0, y, w, 50, `rgba(0, 0, 0, ${a.toFixed(2)})`); checker(g, 0, y - 2, w, 2, `rgba(0, 0, 0, ${a.toFixed(2)})`, 0, 2);
+  }
+  box(g, 0, 460, w, FWH - 460, '#000000');
 };
 
 /** A hole going back: the dark inside it (banded down to black), its far wall, what's at the bottom; then its walls. */
@@ -207,16 +285,19 @@ const pitBack = (c: Ctx, v: View, p: Pit) => {
   box(c, x0, GY + 158, w, v.bot - GY, deep[3]);
   // (the far wall: a flat face at FAR going down, in courses)
   const fy = ay;
-  for (let y = fy, row = 0; y < fy + 200; row++) { const rh = 10 + row * 2; box(c, ax, y, bx - ax, 1, mix(deep[1], '#000000', row * 0.1)); y += rh; }
+  if (p.kind !== 'lagoon') {
+    // (the far wall, painted once for the hour: poured concrete, rebar, pipes, grime, into the dark)
+    const pw = p.b - p.a, kind = p.kind;
+    atDepth(c, eye, FAR, () => still(c, `spc-pitwall-${kind}-${p.a}`, p.a, GY, 0, 0, pw, FWH, g => paintFarWall(g, pw, kind, p.a * 0.013)));
+  } else for (let y = fy, row = 0; y < fy + 200; row++) { const rh = 10 + row * 2; box(c, ax, y, bx - ax, 1, mix(deep[1], '#000000', row * 0.1)); y += rh; }
   if (p.kind === 'site') {
-    // (rebar sticking up far down, a hard hat left lying, the form ties)
-    for (let x = p.a + 30; x < p.b; x += 70) { box(c, x, GY + 220, 3, 90, '#57534E'); box(c, x, GY + 220, 1, 90, '#8A847E'); box(c, x - 2, GY + 218, 7, 2, '#8A847E'); }
-    for (let x = ax + 10; x < bx; x += 40) box(c, x, fy + 20, 2, 2, '#4A4A54');
+    // (rebar sticking up far down, a hard hat left lying)
+    for (let x = p.a + 30; x < p.b; x += 70) { box(c, x - 1, GY + 220, 5, 90, INK); box(c, x, GY + 220, 3, 90, '#57534E'); box(c, x, GY + 220, 1, 90, '#8A847E'); box(c, x - 2, GY + 218, 7, 2, '#8A847E'); for (let y = GY + 226; y < GY + 310; y += 8) box(c, x, y, 3, 1, '#3A3632'); }
+    c.fillStyle = INK; c.beginPath(); c.ellipse(p.a + (p.b - p.a) * 0.6, GY + 301, 13, 7, 0, Math.PI, 0); c.fill();
     c.fillStyle = '#B88A10'; c.beginPath(); c.ellipse(p.a + (p.b - p.a) * 0.6, GY + 300, 12, 6, 0, Math.PI, 0); c.fill();
+    box(c, p.a + (p.b - p.a) * 0.6 - 6, GY + 296, 5, 2, '#E8C040');
   } else if (p.kind === 'trench') {
-    // (pipes and conduits along its far wall, a work light caged, cable trays; it's lit dim)
-    for (const [yy, col] of [[24, '#5A6A7A'], [44, '#7A2A1A'], [64, '#4A5A3A']] as const) { box(c, ax, fy + yy, bx - ax, 6, col); box(c, ax, fy + yy, bx - ax, 1, mix(col, '#FFFFFF', 0.3)); }
-    for (let x = ax + 30; x < bx; x += 90) { box(c, x, fy + 14, 6, 6, '#2A2A30'); box(c, x + 1, fy + 15, 4, 4, tod.lamps > 0.3 ? '#FFE070' : '#C8A040'); }
+    void tod;
   } else {
     // (the drained lagoon: puddles on its bottom far down, a submarine lying on its side, weed)
     const sx = p.a + (p.b - p.a) * 0.42, sy = GY + 330;

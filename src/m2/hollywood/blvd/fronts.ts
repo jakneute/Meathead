@@ -44,8 +44,11 @@ type Paint = (g: Ctx, x: number, y: number, w: number, h: number, seed: number) 
 const shelf = (g: Ctx, x: number, y: number, w: number) => { box(g, x, y, w, 3, PLY[2]); box(g, x, y, w, 1, PLY[4]); };
 /** A little statuette: gold, on a black base (the Oscar-ish). */
 const statuette = (g: Ctx, x: number, foot: number, s = 1) => {
+  box(g, x - 3 * s - 1, foot - 3 * s - 1, 6 * s + 2, 3 * s + 1, INK);
   box(g, x - 3 * s, foot - 3 * s, 6 * s, 3 * s, '#1A1418'); box(g, x - 3 * s, foot - 3 * s, 6 * s, 1, '#4A4248');
-  box(g, x - 1 * s, foot - 13 * s, 2 * s, 10 * s, BRASS[3]); box(g, x - 1 * s, foot - 13 * s, 1, 10 * s, BRASS[5]);
+  box(g, x - 1 * s - 1, foot - 13 * s, 2 * s + 2, 10 * s, INK);
+  box(g, x - 1 * s, foot - 13 * s, 2 * s, 10 * s, BRASS[3]); box(g, x - 1 * s, foot - 13 * s, 1, 10 * s, BRASS[5]); box(g, x + s - 1, foot - 13 * s, 1, 10 * s, BRASS[1]);
+  if (s >= 1.5) { box(g, x - s, foot - 9 * s, 2 * s, 1, BRASS[1]); box(g, x - s, foot - 6 * s, 2 * s, 1, BRASS[1]); }
   ball(g, x, foot - 15 * s, 1.6 * s, '#E8C25A', false);
 };
 /** A person in the window (a wax figure, a mannequin), plain: a head, a body in a color. */
@@ -70,9 +73,39 @@ const GOODS: Record<Goods, Paint> = {
     box(g, x + w - 18, y + h - 20, 12, 12, '#3A3A3A'); for (let k = 0; k < 3; k++) box(g, x + w - 16, y + h - 18 + k * 3, 8, 1, '#E8602A');
   },
   oscars: (g, x, y, w, h) => {
-    // (rows and rows of gold statuettes, a red velvet drape, a little podium)
-    box(g, x, y, w, 8, '#7A1420'); for (let k = 0; k < w; k += 8) box(g, x + k, y + 8, 4, 3, '#7A1420');
-    for (const sy of [y + h * 0.5, y + h - 6]) { shelf(g, x, sy, w); for (let k = 0; k < w / 10 - 1; k++) statuette(g, x + 6 + k * 10, sy, 1); }
+    // (a red velvet drape behind it all in folds, its swag across the top fringed in gold; the floor a strip of red
+    //  carpet; a stepped velvet riser either side, statuettes in rows up it with price tags; the big one in the middle
+    //  on a plinth under its own spotlight)
+    const V = ['#2A0A10', '#4A1018', '#6A1620', '#8A1E2A', '#B43040'];
+    const fold = [1, 2, 3, 3, 2, 1, 0, 1, 2, 2];
+    for (let k = 0, fx = x; fx < x + w; k++, fx += 3) box(g, fx, y, 3, h, V[fold[k % fold.length]]);
+    for (let fx = x; fx < x + w; fx += 30) checker(g, fx + 17, y + 10, 2, h - 10, V[0], 0, 2);
+    // (the swag: scallops across the top, shaded under, a gold fringe)
+    box(g, x, y, w, 6, V[2]);
+    for (let sx = x - 6; sx < x + w; sx += 24) { g.fillStyle = INK; g.beginPath(); g.ellipse(sx + 12, y + 5, 13, 7, 0, 0, Math.PI); g.fill(); g.fillStyle = V[3]; g.beginPath(); g.ellipse(sx + 12, y + 5, 12, 6, 0, 0, Math.PI); g.fill(); box(g, sx + 4, y + 6, 14, 1, V[4]); box(g, sx + 4, y + 9, 16, 2, V[1]); }
+    for (let fx = x; fx < x + w; fx += 2) box(g, fx, y + 12 + ((fx >> 1) & 1), 1, 2, (fx >> 1) % 3 ? BRASS[3] : BRASS[5]);
+    // (the carpet)
+    box(g, x, y + h - 5, w, 5, '#8A1420'); box(g, x, y + h - 5, w, 1, '#C83A40'); checker(g, x, y + h - 3, w, 2, '#5A0E16', 0, 2);
+    // (the risers, stepped, velvet-topped, each step lit along its front edge; statuettes up them, tagged)
+    const cx = x + w / 2;
+    for (const s of [-1, 1]) for (let st = 0; st < 3; st++) {
+      const sw = Math.max(20, w / 2 - 34 - st * 22), sx = s < 0 ? x + 2 : cx + 32 + st * 22, top = y + h - 5 - (st + 1) * 14;
+      const sx0 = sx, sw0 = s < 0 ? sw : x + w - 2 - sx;
+      box(g, sx0 - 1, top - 1, sw0 + 2, 15, INK); box(g, sx0, top, sw0, 14, V[2]); box(g, sx0, top, sw0, 2, V[4]); box(g, sx0, top + 11, sw0, 3, V[1]);
+      for (let k = 0; k < sw0 / 12 - 1; k++) {
+        const px = sx0 + 8 + k * 12;
+        statuette(g, px, top, 1);
+        box(g, px + 3, top + 4, 5, 3, '#F2EAD8'); box(g, px + 3, top + 4, 1, 1, INK);
+      }
+    }
+    // (the plinth in the middle, the big one on it, the spotlight's cone down on it, banded)
+    box(g, cx - 15, y + h - 31, 30, 26, INK); box(g, cx - 14, y + h - 30, 28, 25, '#1A1418'); box(g, cx - 14, y + h - 30, 28, 2, '#5A5258'); box(g, cx - 14, y + h - 30, 3, 25, '#3A3238');
+    box(g, cx - 10, y + h - 22, 20, 7, BRASS[2]); box(g, cx - 10, y + h - 22, 20, 1, BRASS[4]);
+    statuette(g, cx, y + h - 31, 2.2);
+    g.save(); g.globalAlpha = 0.18; g.fillStyle = '#FFF2C0';
+    for (let k = 0; k < 3; k++) { g.beginPath(); g.moveTo(cx - 3 - k * 2, y); g.lineTo(cx + 3 + k * 2, y); g.lineTo(cx + 14 + k * 8, y + h - 31); g.lineTo(cx - 14 - k * 8, y + h - 31); g.closePath(); g.fill(); }
+    g.restore();
+    box(g, cx - 2, y + h - 66, 2, 2, '#FFFFFF');
   },
   maps: (g, x, y, w, h) => {
     // (the maps pinned up, a star on each house; a pile of them; an old guy's folding chair)
@@ -191,6 +224,13 @@ const upperWindows = (g: Ctx, f: Front, y0: number, y1: number, R: string[], T: 
     box(g, wx, wy, ww, 8 + (hash(k + wy) * 12 | 0), on ? '#F2D088' : R[4]); for (let b = wy + 2; b < wy + 8; b += 2) box(g, wx, b, ww, 1, on ? '#D8B060' : R[3]);
     box(g, wx + ww / 2 - 1, wy, 2, wh, T[2]);
     box(g, wx - 3, wy + wh + 2, ww + 6, 3, R[1]);
+    if (arched) {
+      // (the iron grille over it: bars with spear tips, a rail across, a scroll at the foot)
+      const S = STEEL.map(dimmed);
+      for (let bx = wx + 3; bx < wx + ww - 1; bx += 5) { box(g, bx - 1, wy - 8, 3, wh + 9, INK); box(g, bx, wy - 8, 1, wh + 9, S[3]); poly(g, [[bx - 2, wy - 8], [bx, wy - 13], [bx + 2, wy - 8]], INK); box(g, bx, wy - 11, 1, 2, S[4]); }
+      for (const ry of [wy + 6, wy + wh - 4]) { box(g, wx - 1, ry - 1, ww + 2, 4, INK); box(g, wx, ry, ww, 2, S[3]); box(g, wx, ry, ww, 1, S[5]); }
+      for (let k = 0; k < 2; k++) { g.strokeStyle = S[3]; g.lineWidth = 1; g.beginPath(); g.arc(wx + 8 + k * 10, wy + wh - 8, 3, Math.PI * 0.2, Math.PI * 1.8); g.stroke(); }
+    }
   }
 };
 
@@ -236,6 +276,36 @@ export const paintFront = (g: Ctx, f: Front) => {
     for (let x = -5; x < w + 5; x += 6) { box(g, x, -h + 3, 5, 8, Rr[x % 12 === 1 ? 4 : 3]); box(g, x + 4, -h + 3, 1, 8, Rr[1]); box(g, x, -h + 3, 5, 1, Rr[5]); }
     box(g, -6, -h + 12, w + 12, 3, 'rgba(28, 16, 20, 0.35)');
     for (let x = 10; x < w - 6; x += 30) { box(g, x, -h + 12, 4, 6, R[1]); box(g, x, -h + 12, 4, 1, R[4]); }
+    // (the gable's coping, lit along its top; a bell niche in it, arched, a little bell hung, shaded)
+    g.strokeStyle = R[5]; g.lineWidth = 1; g.beginPath(); g.moveTo(cx - cw / 2, -h - 15); g.lineTo(cx - cw / 4, -h - 21); g.lineTo(cx - 17, -h - 42); g.lineTo(cx + 17, -h - 42); g.stroke();
+    g.strokeStyle = R[2]; g.beginPath(); g.moveTo(cx + 17, -h - 41); g.lineTo(cx + cw / 4, -h - 20); g.lineTo(cx + cw / 2, -h - 14); g.stroke();
+    g.fillStyle = INK; g.beginPath(); g.arc(cx, -h - 26, 8, Math.PI, 0); g.fill(); box(g, cx - 8, -h - 26, 16, 12, INK);
+    g.fillStyle = R[1]; g.beginPath(); g.arc(cx, -h - 26, 6, Math.PI, 0); g.fill(); box(g, cx - 6, -h - 26, 12, 10, R[1]);
+    box(g, cx - 6, -h - 26, 2, 10, R[0]);
+    poly(g, [[cx - 4, -h - 18], [cx - 3, -h - 26], [cx + 3, -h - 26], [cx + 4, -h - 18]], dimmed(BRASS[2])); box(g, cx - 2, -h - 25, 1, 6, dimmed(BRASS[4])); box(g, cx - 1, -h - 29, 2, 3, INK); box(g, cx - 1, -h - 18, 2, 2, dimmed(BRASS[1]));
+    box(g, cx - 9, -h - 14, 18, 2, R[4]); box(g, cx - 9, -h - 12, 18, 1, R[1]);
+    // (the vigas: round beam ends poking out under the tile, end grain, lit up-left, a stain run down from each)
+    const VG = rampH('#7A5434', true);
+    for (let x = 22; x < w - 16; x += 44) {
+      const vy = -h + 26;
+      for (let y = 0; y < 14; y += 2) box(g, x - 1 + ((y >> 1) & 1), vy + 5 + y, 2, 1, y < 8 ? R[1] : R[2]);
+      g.fillStyle = INK; g.beginPath(); g.arc(x, vy, 6, 0, Math.PI * 2); g.fill();
+      g.fillStyle = VG[2]; g.beginPath(); g.arc(x, vy, 5, 0, Math.PI * 2); g.fill();
+      g.fillStyle = VG[4]; g.beginPath(); g.arc(x - 1, vy - 1, 3, 0, Math.PI * 2); g.fill();
+      box(g, x - 1, vy - 1, 2, 2, VG[1]); box(g, x + 2, vy + 2, 2, 2, VG[1]); box(g, x - 3, vy - 4, 2, 1, VG[5]);
+    }
+    // (the plaster fallen off in patches, the adobe brick under it in courses, the edges inked and lit)
+    for (let k = 0; k < 3; k++) {
+      const px = 10 + Math.round(hash(f.rx * 0.7 + k * 3.1) * (w - 70)), py = -h + 44 + Math.round(hash(f.rx * 1.3 + k * 5.7) * (h - 150));
+      const pw = 26 + Math.round(hash(f.rx + k * 2.3) * 22), ph = 14 + Math.round(hash(f.rx + k * 7.1) * 10);
+      const A = rampH('#A8704A', true);
+      poly(g, [[px, py + 4], [px + pw * 0.4, py - 1], [px + pw + 1, py + 3], [px + pw - 3, py + ph + 1], [px + pw * 0.3, py + ph + 1], [px - 1, py + ph - 4]], INK);
+      poly(g, [[px + 1, py + 4], [px + pw * 0.4, py], [px + pw, py + 3], [px + pw - 4, py + ph], [px + pw * 0.3, py + ph], [px, py + ph - 4]], A[2]);
+      g.save(); g.beginPath(); g.rect(px, py, pw, ph); g.clip();
+      for (let by = py + 1, row = 0; by < py + ph; by += 5, row++) for (let bx = px + (row % 2 ? -6 : 0); bx < px + pw; bx += 12) { box(g, bx, by, 11, 4, A[(row + bx) % 3 === 0 ? 3 : 2]); box(g, bx, by, 11, 1, A[4]); box(g, bx, by + 4, 12, 1, A[0]); }
+      g.restore();
+      box(g, px + Math.round(pw * 0.4), py - 2, Math.round(pw * 0.5), 1, R[5]);
+    }
   } else if (f.style === 'modern') {
     // (stone veneer up the left, a slanted sign pylon off the right, a starburst, a flat cantilevered cap)
     for (let y = -h + 4, row = 0; y < -2; y += 9, row++) for (let x = row % 2 ? 0 : 6; x < 34; x += 14) box(g, x, y, 12, 8, hash(x + y * 3 + f.rx) > 0.5 ? mix(R[3], '#C8B8A0', 0.5) : mix(R[2], '#A89880', 0.5));
@@ -260,6 +330,19 @@ export const paintFront = (g: Ctx, f: Front) => {
   // The storefront, the floors over it
   const wy = storefront(g, f, R, T);
   if (f.style !== 'franchise') upperWindows(g, f, -h + (f.style === 'deco' ? 74 : 56), wy - 30, R, T, f.style === 'mission');
+  if (f.style === 'mission') {
+    // (the riser under the window in painted tile: blue and yellow, a star in each, the glaze lit, a chip or two)
+    const rx0 = 15, rx1 = w - 40 - 22 - 16 + 3, TB = rampH('#2A5AA8', true), TY = rampH('#E8B83A', true), TW = rampH('#F2EAD8', true);
+    g.save(); g.beginPath(); g.rect(rx0, -17, rx1 - rx0, 17); g.clip();
+    for (let x = rx0, k = 0; x < rx1; x += 8, k++) for (let r = 0; r < 2; r++) {
+      const ty = -17 + r * 8, alt = (k + r) % 2;
+      box(g, x, ty, 8, 8, INK); box(g, x, ty, 7, 7, TW[3]);
+      box(g, x + 2, ty + 2, 3, 3, alt ? TB[2] : TY[3]); box(g, x + 3, ty, 1, 7, alt ? TB[3] : TY[2]); box(g, x, ty + 3, 7, 1, alt ? TB[3] : TY[2]);
+      box(g, x, ty, 7, 1, TW[5]);
+      if (hash(f.rx + k * 1.7 + r) > 0.88) box(g, x + 4, ty + 4, 3, 3, mix(R[2], '#7A6A58', 0.4));
+    }
+    g.restore();
+  }
   // (grime up the foot)
   checker(g, 0, -6, w, 4, R[1], 1, 2);
   // The boards: its name up top, the joke under it
