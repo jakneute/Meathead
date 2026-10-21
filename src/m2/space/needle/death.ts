@@ -29,7 +29,7 @@ const CLOSE = 100;
 registerHurtLines(VACUUM, HURT_VACUUM, DEATH_VACUUM);
 registerDeathKind(VACUUM, DECOMP);
 registerDeathAnim(DECOMP, {
-  frames: DECOMP_FRAMES, airOk: true,
+  frames: DECOMP_FRAMES, airOk: true, cam: true,
   tick: (_ctx, _d, t) => {
     if (t === 1) playSound('whoosh', 1, -6);
     // (in close, out in the vacuum: no sound at all, but for what comes out of him, and the ice, and the burn)
