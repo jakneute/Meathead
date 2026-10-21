@@ -124,7 +124,7 @@ const stillW = (c: Ctx, key: string, x: number, y: number, bx: number, by: numbe
  *  pulls out to the whole room at most, so a wide margin either side of the screen). */
 const SEG = 256;
 const runW = (c: Ctx, state: GameState, key: string, a: number, b: number, top: number, bot: number, paint: (g: Ctx, s0: number, s1: number) => void) => {
-  const vx0 = state.camera.x - 780, vx1 = state.camera.x + 1580;
+  const vx0 = state.camera.x - 920, vx1 = state.camera.x + 1800;
   for (let sx = Math.floor(a / SEG) * SEG; sx < b; sx += SEG) {
     const s0 = Math.max(a, sx), s1 = Math.min(b, sx + SEG);
     if (s1 <= s0 || s1 < vx0 || s0 > vx1) continue;
@@ -217,7 +217,7 @@ export const drawCavity = (c: Ctx, x: number, y: number, w: number, h: number, s
 // Her bedroom: the walls (painted once, in stretches)
 
 /** The pilasters (x from her room's left wall). */
-const PIL = [36, 355, 668, 1176, 1338];
+const PIL = [36, 400, 750, 1316, 1508];
 const RAIL = GY - 124, WAIN_T = GY - 116, BASE_T = GY - 12, CORN_B = CEIL_Y + 28, FRIEZE_B = CEIL_Y + 48;
 
 /** A fluted pink marble pilaster (x its middle), its gilt capital at `top` and base at `bot`. */
@@ -340,19 +340,19 @@ const paintWall = (g: Ctx, a: number, b: number) => {
 // The wreck (a stamp a stage)
 
 const ceilHoles = (s: number) => (s >= 2 ? (s >= 4 ? 6 : 3) + (s >= 6 ? 3 : 0) : 0);
-const holeAt = (k: number) => ({ x: R(90 + hash(k * 5.3) * 1320), w: 70 + hash(k) * 70 });
-const wallHoleAt = (k: number) => ({ x: R(120 + hash(k * 9.1 + 4) * 1260), y: GY - 200 - hash(k * 2.2) * 130, w: 60 + hash(k * 4) * 50, h: 70 + hash(k * 6) * 40 });
+const holeAt = (k: number) => ({ x: R(90 + hash(k * 5.3) * 1500), w: 70 + hash(k) * 70 });
+const wallHoleAt = (k: number) => ({ x: R(120 + hash(k * 9.1 + 4) * 1430), y: GY - 200 - hash(k * 2.2) * 130, w: 60 + hash(k * 4) * 50, h: 70 + hash(k * 6) * 40 });
 
 const paintWreck = (g: Ctx, a: number, b: number, s: number) => {
   const near = (x: number, m = 160) => x > a - m && x < b + m;
   // (1: cracks from the cornice and the pilasters' feet, wandering; 5 on: big ones, gashes)
   const nCracks = s >= 5 ? 26 : s >= 3 ? 20 : 14;
   for (let k = 0; k < nCracks; k++) {
-    const x = R(20 + hash(k * 7.7) * 1460), up = k % 3 === 0;
+    const x = R(20 + hash(k * 7.7) * 1660), up = k % 3 === 0;
     if (!near(x)) continue;
     crack(g, x, up ? RAIL - 4 : FRIEZE_B + 2, up ? -1 : 1, k + 1, s >= 5 ? 9 : 6);
   }
-  if (s >= 5) for (let k = 0; k < 3; k++) { const x = R(200 + hash(k * 3.7 + 1) * 1100); if (near(x)) { const pts = ragged(x, CEIL_Y + 120 + k * 60, 16, 90, k + 90, 10); pathOf(g, pts); g.fillStyle = PLAST[2]; g.fill(); g.strokeStyle = DAM[0]; g.lineWidth = 1; g.stroke(); } }
+  if (s >= 5) for (let k = 0; k < 3; k++) { const x = R(200 + hash(k * 3.7 + 1) * 1250); if (near(x)) { const pts = ragged(x, CEIL_Y + 120 + k * 60, 16, 90, k + 90, 10); pathOf(g, pts); g.fillStyle = PLAST[2]; g.fill(); g.strokeStyle = DAM[0]; g.lineWidth = 1; g.stroke(); } }
   // (2: plaster down: holes through the cornice, a streak of dust down the wall under each, rubble on the floor)
   for (let k = 0; k < ceilHoles(s); k++) {
     const { x, w } = holeAt(k);
@@ -363,7 +363,7 @@ const paintWreck = (g: Ctx, a: number, b: number, s: number) => {
   }
   // (3: the damask torn and hanging in strips: the plaster bare where it was, the paper's back curling)
   if (s >= 3) for (let k = 0; k < (s >= 6 ? 20 : 12); k++) {
-    const x = R(40 + hash(k * 11.3 + 2) * 1420), y = FRIEZE_B + 4 + hash(k * 2.9) * 150, w = 12 + hash(k * 4.1) * 12, len = 40 + hash(k) * 70;
+    const x = R(40 + hash(k * 11.3 + 2) * 1610), y = FRIEZE_B + 4 + hash(k * 2.9) * 150, w = 12 + hash(k * 4.1) * 12, len = 40 + hash(k) * 70;
     if (!near(x)) continue;
     B(g, x, y, w, len * 0.8, PLAST[3]); B(g, x, y, w, 1, PLAST[1]); B(g, x, y, 1, len * 0.8, PLAST[4]); checker(g, x + 1, y + len * 0.8 - 2, w - 1, 2, PLAST[2], 0, 1);
     const lean = (hash(k * 3) - 0.5) * 12;
@@ -555,9 +555,9 @@ const piperBust = (pose: PiperPose) => {
 };
 
 const PORTRAITS: { x: number; y: number; w: number; h: number; k: number; pose: PiperPose; bg: 'garden' | 'sky' | 'throne'; tilt: [number, number, number] }[] = [
-  { x: 590, y: GY - 432, w: 84, h: 112, k: 0.5, pose: 'stand', bg: 'garden', tilt: [0, 0.1, 0.24] },
-  { x: 770, y: GY - 424, w: 150, h: 88, k: 0.4, pose: 'lounge', bg: 'sky', tilt: [0, -0.05, -0.11] },
-  { x: 1258, y: GY - 432, w: 84, h: 112, k: 0.5, pose: 'gloat', bg: 'throne', tilt: [0, -0.12, 0.3] },
+  { x: 650, y: GY - 432, w: 84, h: 112, k: 0.5, pose: 'stand', bg: 'garden', tilt: [0, 0.1, 0.24] },
+  { x: 850, y: GY - 424, w: 150, h: 88, k: 0.4, pose: 'lounge', bg: 'sky', tilt: [0, -0.05, -0.11] },
+  { x: 1398, y: GY - 432, w: 84, h: 112, k: 0.5, pose: 'gloat', bg: 'throne', tilt: [0, -0.12, 0.3] },
 ];
 
 /** The dead suitors, their heads mounted: who and how (a gag each). Looks copied from where they died. */
@@ -628,7 +628,7 @@ const scoreboard = (g: Ctx, x: number, y: number) => {
 
 /** The gilt crown corona over her bed, the drapes swept from it down behind the canopy to its corners, a sheer between. */
 const corona = (g: Ctx) => {
-  const cx = R(1010), cy = GY - 440, bl = R(846), br = R(1174), foot = GY - 196;
+  const cx = R(1150), cy = GY - 440, bl = R(986), br = R(1314), foot = GY - 196;
   // (the sheer: pink tulle behind, folds)
   g.globalAlpha = 0.55; polyF(g, [[cx - 26, cy + 18], [cx + 26, cy + 18], [br - 30, foot], [bl + 30, foot]], SATIN[4]); g.globalAlpha = 1;
   for (let k = 0; k < 12; k++) { const t = k / 11; g.globalAlpha = 0.4; g.strokeStyle = SATIN[2]; g.lineWidth = 1; g.beginPath(); g.moveTo(cx - 24 + t * 48, cy + 20); g.lineTo(bl + 30 + t * (br - bl - 60), foot); g.stroke(); g.globalAlpha = 1; }
@@ -889,7 +889,7 @@ const chaiseArt = (g: Ctx) => {
 /** The footstool and THE VIEWING BALCONY (world): the stool tufted, its top lit; the balcony a marble slab, its top lit,
  *  over a balustrade and gilt corbels; the arched doors over it open on the grounds (the view by the hour), the doors'
  *  leaves folded back, heavy drapes swagged either side. */
-const WIN = { l: 1360, r: 1494, top: GY - 458, bot: GY - 235 };
+const WIN = { l: 1560, r: 1694, top: GY - 458, bot: GY - 235 };
 const windowView = (g: Ctx) => {
   // (the whole park laid out below, from up here: view.ts)
   const l = R(WIN.l) + 8, r = R(WIN.r) - 8, top = WIN.top + 8, bot = WIN.bot;
@@ -1007,7 +1007,7 @@ export const drawFallenChandelier = (c: Ctx, x: number, f: number) => drawChande
  *  the furniture, the chandeliers, the hole she went out through. */
 export const drawChamber = (c: Ctx, state: GameState, look: RoomLook) => {
   const f = state.frame, s = look.stage;
-  if (state.camera.x + 1580 < ARENA_L - 100 || state.camera.x - 780 > ARENA_R + 300) return;
+  if (state.camera.x + 1800 < ARENA_L - 100 || state.camera.x - 920 > ARENA_R + 300) return;
   const x0 = ARENA_L - 60, x1 = ARENA_R + 120;
   runW(c, state, 'cut', ARENA_MID - CONE_HW - 30, ARENA_MID + CONE_HW + 30, PEAK - 80, CEIL_Y, (g, a, b) => paintCut(g, a, b));
   runW(c, state, 'wall', x0, x1, CEIL_Y, GY + 140, (g, a, b) => paintWall(g, a, b));
@@ -1021,7 +1021,7 @@ export const drawChamber = (c: Ctx, state: GameState, look: RoomLook) => {
   });
   const ti = s >= 5 ? 2 : s >= 3 ? 1 : 0;
   for (const P of PORTRAITS) stillW(c, `portrait-${P.x}-${ti}`, R(P.x), P.y, -P.w, -40, P.w * 2, P.h + 70, g => portraitArt(g, R(P.x), P.y, P.w, P.h, P.k, P.pose, P.bg, P.tilt[ti]));
-  stillW(c, 'corona', R(1010), GY - 440, -200, -40, 400, 260, g => corona(g));
+  stillW(c, 'corona', R(1150), GY - 440, -200, -40, 400, 260, g => corona(g));
   stillW(c, 'balcony', R(WIN.l), GY, -70,WIN.top - GY - 20, WIN.r - WIN.l + 110, GY - WIN.top + 24, g => balconyArt(g));
   // (balloons drifting past out there)
   c.save(); c.beginPath(); c.rect(R(WIN.l) + 8, WIN.top + 70, WIN.r - WIN.l - 16, WIN.bot - WIN.top - 70); c.clip();
@@ -1043,7 +1043,7 @@ export const drawChamber = (c: Ctx, state: GameState, look: RoomLook) => {
 
 /** Her room's far end wall (no way on: the end of the land): the castle's own pale ashlar past the room's last corner. */
 export const drawEndWall = (c: Ctx, state?: GameState) => {
-  if (state && state.camera.x + 1580 < ARENA_R) return;
+  if (state && state.camera.x + 1800 < ARENA_R) return;
   stillW(c, 'endwall', ARENA_R, CEIL_Y, 0, -160, 420, GY - CEIL_Y + 300, g => {
     B(g, ARENA_R, CEIL_Y - 160, 420, GY - CEIL_Y + 300, PALE[2]);
     for (let y = CEIL_Y - 160, r = 0; y < GY + 140; y += 16, r++) { B(g, ARENA_R, y, 420, 1, PALE[0]); for (let x = ARENA_R + (r % 2) * 18; x < ARENA_R + 420; x += 36) { B(g, x, y, 1, 16, PALE[0]); B(g, x + 1, y + 1, 34, 1, PALE[3]); } }

@@ -930,3 +930,12 @@ markBossFight every frame of a boss or sub-boss fight. Voice every new line (`np
   torn foam and a hazard band for the nitrogen; a burst copper water main and a frayed three-core cable for the wires),
   stepped fire with smoke and embers, frost ferns over wall and floor, the nitrogen plume with fog rolling along the
   carpet, arcs crawling over the flood with steam; her fire ball, ice crystal, forked bolt and the ice block redone.
+- (the user's: "slightly widen piper's fight plane. make it so you get slightly more leeway when hazards are
+  everywhere") Her room 1500 to 1700 wide (layout.ts ARENA_W). Re-spaced: the left side about a tenth out (wardrobe
+  R(580), chandeliers R(400)/R(1220), chaise R(800), vanity R(450), trophies R(165), portraits 650/850), the bed R(1000)
+  and the far wardrobe R(1320) +140, the ottoman R(1470), balcony R(1570) and its window +200 (to the far wall as
+  before); pilasters 36/400/750/1316/1508; the wreck's scatter spans the wider room. The throw's pull-out to 0.48 (was
+  0.52) so a far hop still frames the room. The mains: the tell longer (heat/nitro 55 to 70, wires 45 to 60, still
+  safe); placed 480 apart (was 420); the nitrogen's jet 260 (was 280), the flood 140 half-wide (was 150); and never all
+  three at once: a main due to start its tell holds, quiet, while the other two are both telling or on, so a whole
+  main's stretch of floor (well over a body or two wide) is always clear. Damage, her moves and everything else as was.

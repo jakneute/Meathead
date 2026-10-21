@@ -64,7 +64,7 @@ const endOf = (state: GameState): { how: 'cork' | 'balloon'; x: number } | null 
   const m = state.stageMemo[PIPER_END_MEMO];
   if (!m) return null;
   const [how, x] = m.split(':');
-  return { how: how === 'balloon' ? 'balloon' : 'cork', x: +x || R(750) };
+  return { how: how === 'balloon' ? 'balloon' : 'cork', x: +x || R(850) };
 };
 
 const pmidX = (state: GameState) => state.player.pos.x + state.player.width / 2;

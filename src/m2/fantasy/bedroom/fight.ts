@@ -98,14 +98,16 @@ const STUN_T = 26;
 const DEBRIS_WARN = 80, DEBRIS_MAX = 6;
 /** The mains' clocks: quiet, the tell, on (frames). */
 // (more deadly, the user's: on longer, off shorter, wider, harder)
-const HAZ = { heat: [95, 55, 150], nitro: [90, 55, 140], wires: [85, 45, 140] } as const;
+// (a touch more leeway, the user's: the tell a bit longer; and no more than two of the three ever going at once: a
+//  main due to start waits, quiet, while the other two are both telling or on (tickHazards))
+const HAZ = { heat: [95, 70, 150], nitro: [90, 70, 140], wires: [85, 60, 140] } as const;
 const HEAT_DMG = 24, NITRO_DMG = 14, SHOCK_DMG = 26;
 /** After thawing, frames the nitrogen can't freeze him again (it's on for good: time to get clear of it). */
 // (just thawed: can't be frozen again for this long, by anything: no chain icing, the user's)
 const NITRO_REFREEZE = 150;
 /** The heat pipe's flame (half-width), the fire on the floor under it; the nitrogen's jet (length, height); the
  *  flooded patch (half-width). */
-const HEAT_HW = 44, HEAT_FLOOR = 90, NITRO_LEN = 280, NITRO_H = 70, PUDDLE_HW = 150;
+const HEAT_HW = 44, HEAT_FLOOR = 90, NITRO_LEN = 260, NITRO_H = 70, PUDDLE_HW = 140;
 /** Her throws: how often at most, how near a loose part she has to be; their damage. */
 const THROW_GAP = 360, THROW_NEAR = 170, RIP_T = 36, THROW_T = 18, FIREBALL_DMG = 12, ICEBALL_DMG = 6, BOLT_DMG = 14;
 /** Frozen: a press's worth of the meter, its drain a frame, out on his own at the most. */
@@ -631,7 +633,7 @@ const debrisFloor = (f: Fight, x: number) => {
 /** A part torn loose where she landed (kept clear of the others and the walls): one of the three unsafe areas. */
 const loosen = (ctx: FrameContext, f: Fight, kind: HazardKind) => {
   const { state } = ctx;
-  const ok = (x: number) => x > ARENA_L + 260 && x < ARENA_R - 260 && f.hazards.every(h => Math.abs(h.x - x) > 420);
+  const ok = (x: number) => x > ARENA_L + 260 && x < ARENA_R - 260 && f.hazards.every(h => Math.abs(h.x - x) > 480);
   let x = f.x;
   for (let d = 0; d < 60 && !ok(x); d++) for (const s of [1, -1]) { const c = f.x + s * d * 40; if (ok(c)) { x = c; break; } }
   f.hazards.push({ kind, x, t: 0, dir: x < ARENA_MID ? 1 : -1, hit: false });
@@ -658,7 +660,9 @@ const tickHazards = (ctx: FrameContext, f: Fight) => {
   const { state } = ctx, p = state.player, m = pmid(state);
   for (const h of f.hazards) {
     const was = hazPhase(h).s;
-    h.t++;
+    // (never all three at once: due to start its tell while the other two are both telling or on, it holds, quiet)
+    const busy = f.hazards.filter(o => o !== h && hazPhase(o).s !== 'quiet').length;
+    if (!(was === 'quiet' && busy >= 2 && (h.t + 1) % (HAZ[h.kind][0] + HAZ[h.kind][1] + HAZ[h.kind][2]) === HAZ[h.kind][0])) h.t++;
     const ph = hazPhase(h);
     if (ph.s !== was) {
       h.hit = false;
@@ -1126,7 +1130,7 @@ export const killCamTick = (f: Fight): boolean => {
 };
 /** The camera pulled out for a throw from far off (the user's: so he sees it coming): the scale it eases toward, at
  *  most. */
-const RANGE_Z = 0.52;
+const RANGE_Z = 0.48;
 const tickRangeZoom = (state: GameState, f: Fight) => {
   const m = pmid(state), d = Math.abs(f.x - m.x);
   const throwing = f.mode === 'on' && (f.act === 'hop' || f.act === 'rip' || f.act === 'throw' || f.shots.length > 0);
