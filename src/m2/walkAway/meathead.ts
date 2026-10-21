@@ -404,6 +404,16 @@ export const drawMeatheadFront = (c: Ctx, x: number, y: number, p: Pose, grip: [
     if (open > 1) box(c, -3, mouthY + 2, 7, 1, '#7F1D1D');
     box(c, 6, mouthY - 2, 2, 2, INK); box(c, -7, mouthY + 1, 1, 1, INK);
   }
+  // (his glasses: the thick black rims round his eyes, the brow bar heavy, the bridge over his nose, the arms back to his
+  // ears; the glass a cold tint, a streak of light up its left; drawn here, behind whatever his hands hold up to his face)
+  box(c, -16, eyeY, 6, 2, INK); box(c, 10, eyeY, 6, 2, INK); box(c, -15, eyeY, 4, 1, BAND[3]); box(c, 11, eyeY, 4, 1, BAND[2]);
+  for (const rx of [-11, 1]) {
+    c.fillStyle = 'rgba(190, 220, 248, 0.24)'; c.fillRect(rx + 1, eyeY - 1, 8, 6);
+    box(c, rx + 2, eyeY + 2, 1, 1, '#F8FAFC'); box(c, rx + 3, eyeY + 1, 1, 1, '#F8FAFC'); box(c, rx + 4, eyeY, 1, 1, 'rgba(248, 250, 252, 0.6)');
+    box(c, rx, eyeY - 3, 10, 2, INK); box(c, rx, eyeY - 1, 1, 7, INK); box(c, rx + 9, eyeY - 1, 1, 7, INK); box(c, rx, eyeY + 5, 10, 1, INK);
+    box(c, rx + 1, eyeY - 3, 7, 1, BAND[3]); box(c, rx + 1, eyeY - 3, 2, 1, BAND[4]);
+  }
+  box(c, -1, eyeY, 2, 1, INK);
   // His forearms, the toy, his fists: last, in front of everything (his head too: up at his nose, it's in front of his
   // face; held at his chest, nothing's in its way)
   if (walking) swingingArms(c, p, ty, walking.weapon, S);

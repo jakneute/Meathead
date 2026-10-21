@@ -301,5 +301,11 @@ export const drawMeatheadBack = (c: Ctx, x: number, y: number, p: BackPose) => {
   for (let i = 0; i < 12; i++) box(c, -13 + i * 2.3, -183 + hy + (i % 2) * 4, 1, 3, HAIR[3]);
   box(c, -14, -175 + hy, 28, 2, HAIR[1]);
   box(c, -15, -185 + hy, 1, 12, p.rim); box(c, 14, -185 + hy, 1, 12, p.rim);
+  // (his glasses, from behind: the arms over the tops of his ears, hooked down behind them, a glint off each)
+  for (const side of [-1, 1]) {
+    const ax = side < 0 ? -18 : 13;
+    box(c, ax, -167 + hy, 5, 2, INK); box(c, side < 0 ? ax : ax + 4, -165 + hy, 1, 4, INK);
+    box(c, ax + 1, -167 + hy, 3, 1, BAND[3]); box(c, side < 0 ? ax + 1 : ax + 3, -167 + hy, 1, 1, BAND[4]);
+  }
   c.restore();
 };
