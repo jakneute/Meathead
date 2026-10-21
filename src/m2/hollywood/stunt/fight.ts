@@ -44,6 +44,7 @@ import { ENEMY_HIT_COOLDOWN, CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE, BOSS_CH
 import { registerM2Kind } from '../../kinds';
 import { setStormPick, setStormHit } from '../../weapons/spellbook';
 import { TOO_BIG_BY_KIND } from '../../lines/weaponLines';
+import { drawSteveGross, drawSteveGrossBack } from './steveGross';
 import { box, label, saidOver, hands, speak, voice, meatheadSays, landVisit, getHollywood } from '../section';
 import { ARENA_L, ARENA_R, ARENA_MID, GY, ZK, CUT, CAM_ROW, DOORS_X, STEVE_AT, LANE_FRONT, BARRIER_Y } from './arena';
 import {
@@ -92,7 +93,7 @@ const TAUNT_EVERY = 760, HINT_GAP = 600;
 // The state
 
 type Act = 'idle' | 'wave' | 'flail' | 'slip' | 'hurt' | 'zapped' | 'smoking' | 'call' | 'yank' | 'towed' | 'slide' | 'getup' | 'scramble' | 'angry';
-type Intro = 'land' | 'talk' | 'pan' | 'steve' | 'back';
+type Intro = 'land' | 'talk' | 'pan' | 'gross' | 'steve' | 'back';
 interface Death {
   how: 'stunt' | 'fried'; t: number; step: string; at: number;
   x: number; y: number; vx: number; vy: number; rot: number; car: Car | null;
@@ -240,6 +241,8 @@ export const startFight = (state: GameState): Fight => {
 
 /** A retry's entrance beat (frames). */
 const ENTRANCE_T = 105;
+/** His gross-up's length in the intro (frames): the first go only (a retry has no intro). */
+const GROSS_T = 105;
 
 /** On: out of the cutscene, Steve in the world, the posse on its way. */
 const beginFight = (state: GameState, f: Fight) => {
@@ -344,7 +347,12 @@ const intro = (ctx: FrameContext, f: Fight): Controls => {
     case 'pan':
       // (down the stage to Steve, at his end, livid)
       f.camX += (him - f.camX) * 0.06; f.act = 'angry'; f.facing = -1;
-      if (t >= 70) {
+      if (t >= 70) { f.intro = 'gross'; f.introT = 0; playSound('ding', 0.5, -6); }
+      break;
+    case 'gross':
+      // (his face, close up and gross, seething at the applause, a beat; then his say)
+      f.camX = him; f.act = 'angry';
+      if (t >= GROSS_T) {
         f.intro = 'steve'; f.introT = 0;
         steveLine(f, L.STEVE_FUMING, () => steveSays(f, L.STEVE_SHOWN_UP, () => {
           f.act = 'wave'; playSound('engine', 0.8, -4); playSound('carroar', 0.6, 2);
@@ -1047,6 +1055,7 @@ export const drawFightFront = (c: Ctx, state: GameState, f: Fight) => {
 /** Screen space: his bar in the top band clear of the HUD; the intro's bars and SKIP. */
 export const drawFightHud = (c: Ctx, f: Fight, band: { x1: number; x2: number; mid: number }, inCutscene: boolean) => {
   if (f.mode === 'intro') {
+    if (f.intro === 'gross') { drawSteveGrossBack(c, CANVAS_WIDTH, CANVAS_HEIGHT); drawSteveGross(c, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 6, 0.9 + 0.1 * Math.min(1, f.introT / 10), game?.frame ?? f.total, f.introT < 16 ? 2 : 0); }
     const k = Math.min(1, f.skipT / 20), bar = Math.round(k * 44);
     c.fillStyle = '#000'; c.fillRect(0, 0, CANVAS_WIDTH, bar); c.fillRect(0, CANVAS_HEIGHT - bar, CANVAS_WIDTH, bar);
     if (f.skipT > SKIP_AFTER) drawSkipPrompt(c, CANVAS_WIDTH);
