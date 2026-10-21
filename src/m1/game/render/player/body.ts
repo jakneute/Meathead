@@ -428,6 +428,82 @@ export const drawTalkingMouth = (ctx: Ctx, hx: number, my: number, frame: number
   if (open > 3) { ctx.fillStyle = '#DC2626'; ctx.fillRect(hx - 2.5, my + open - 0.8, 5, 1.2); ctx.fillStyle = '#F5F5F4'; ctx.fillRect(hx - 3.8, my + open - 0.3, 7.6, 0.8); }
 };
 
+/**
+ * Meathead 2's disguise (the public thinks he's in Guantanamo): thick black nerd glasses on him in every pose. Meathead 2
+ * turns them on (off in its gym till he's handed them); Meathead 1 never does.
+ */
+let glasses = false;
+export const setGlasses = (on: boolean) => { glasses = on; };
+export const glassesOn = () => glasses;
+
+/**
+ * The glasses on his face as the sprite draws it (his eyes at (hx - 5, ey) and (hx + 4, ey), facing right; the ear back
+ * at hx - 11): two thick square rims round the eyes, the brow bar heavier, the bridge over his nose, the arm back to his
+ * ear, a cold tint on the glass, a streak of light up its left, the sheen along the rims' tops.
+ */
+export const drawGlasses = (ctx: Ctx, hx: number, ey: number) => {
+  if (!glasses) return;
+  const dmg = glassesDamage();
+  const rims: [number, number][] = [[hx - 9, 8], [hx - 0.5, 8.5]];
+  const top = ey - 3.3, h = 6.4;
+  // (the arm back to the top of his ear, the hinge)
+  ctx.fillStyle = '#09090B'; ctx.fillRect(hx - 12, ey - 2.3, 4, 1.3);
+  ctx.fillStyle = '#3F3F46'; ctx.fillRect(hx - 11.5, ey - 2.3, 3, 0.4);
+  rims.forEach(([x, w], i) => {
+    // (at the worst of it the back rim's bent, knocked askew off the bridge)
+    const bent = dmg >= 4 && i === 0;
+    if (bent) { ctx.save(); ctx.translate(hx - 1, ey - 1.5); ctx.rotate(0.14); ctx.translate(-(hx - 1), -(ey - 1.5)); }
+    // (the glass: a cold tint, a streak of light up its left; at the worst, a chunk gone out of the front one's corner)
+    const chunk = dmg >= 4 && i === 1;
+    ctx.fillStyle = 'rgba(186, 216, 246, 0.22)';
+    ctx.beginPath(); ctx.rect(x + 1.2, top + 1.6, w - 2.4, h - 2.6);
+    if (chunk) { ctx.moveTo(x + w - 1.2, top + h - 1); ctx.lineTo(x + w - 4, top + h - 1); ctx.lineTo(x + w - 1.2, top + 2.6); ctx.closePath(); }
+    ctx.fill('evenodd');
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.7)'; ctx.fillRect(x + 1.6, top + 3.2, 0.8, 0.8); ctx.fillRect(x + 2.4, top + 2.2, 0.8, 1);
+    // (the cracks, more the more beaten he is: a chip in the front lens; a crack across it; across both; spiderwebbed)
+    ctx.strokeStyle = 'rgba(244, 250, 255, 0.9)'; ctx.lineWidth = 0.45;
+    if (i === 1 && dmg === 1) { ctx.fillStyle = 'rgba(244, 250, 255, 0.95)'; ctx.fillRect(x + w - 2.4, top + 1.7, 0.8, 0.8); ctx.beginPath(); ctx.moveTo(x + w - 2, top + 2.3); ctx.lineTo(x + w - 3.2, top + 3.3); ctx.stroke(); }
+    if ((i === 1 && dmg >= 2 && dmg < 4) || (i === 0 && dmg >= 3)) {
+      ctx.beginPath(); ctx.moveTo(x + 1.3, top + 2); ctx.lineTo(x + w * 0.4, top + 3.1); ctx.lineTo(x + w * 0.55, top + 2.6); ctx.lineTo(x + w - 1.3, top + h - 1.4); ctx.stroke();
+      if (dmg >= 3) { ctx.beginPath(); ctx.moveTo(x + w * 0.4, top + 3.1); ctx.lineTo(x + w * 0.35, top + h - 1.1); ctx.stroke(); }
+    }
+    if (i === 1 && dmg >= 4) {
+      // (the web: lines out from where it took the hit, a ring of short ones round it; the broken edge of the chunk)
+      const cx = x + w * 0.42, cy = top + 3.2;
+      ctx.beginPath();
+      for (let k = 0; k < 7; k++) { const a = k * 0.9 + 0.3; ctx.moveTo(cx, cy); ctx.lineTo(cx + Math.cos(a) * 4.5, cy + Math.sin(a) * 3); }
+      for (let k = 0; k < 7; k++) { const a = k * 0.9 + 0.3, b = a + 0.9; ctx.moveTo(cx + Math.cos(a) * 1.8, cy + Math.sin(a) * 1.2); ctx.lineTo(cx + Math.cos(b) * 1.8, cy + Math.sin(b) * 1.2); }
+      ctx.moveTo(x + w - 1.2, top + 2.6); ctx.lineTo(x + w - 2.6, top + 4.2); ctx.lineTo(x + w - 2.4, top + 4.9); ctx.lineTo(x + w - 4, top + h - 1);
+      ctx.stroke();
+      ctx.fillStyle = '#FFFFFF'; ctx.fillRect(cx - 0.4, cy - 0.4, 0.8, 0.8);
+    }
+    // (the rim: thick, the brow bar heavier; the corners eased)
+    ctx.fillStyle = '#09090B';
+    ctx.fillRect(x + 0.6, top, w - 1.2, 1.7);
+    ctx.fillRect(x, top + 0.6, 1.3, h - 1.2);
+    ctx.fillRect(x + w - 1.3, top + 0.6, 1.3, h - 1.2);
+    ctx.fillRect(x + 0.6, top + h - 1.1, w - 1.2, 1.1);
+    // (the sheen along the top; a lighter fleck at the outer corner)
+    ctx.fillStyle = '#52525B'; ctx.fillRect(x + 1.2, top + 0.3, w - 3, 0.5);
+    ctx.fillStyle = '#A1A1AA'; ctx.fillRect(x + 1, top + 0.3, 0.7, 0.5);
+    if (bent) ctx.restore();
+  });
+  // (the bridge over his nose; at the worst, snapped and taped up: a wad of white tape round it)
+  ctx.fillStyle = '#09090B'; ctx.fillRect(hx - 1.4, ey - 2, 1.4, 1.2);
+  if (dmg >= 4) {
+    ctx.fillStyle = '#E7E5E4'; ctx.fillRect(hx - 2, ey - 2.6, 2.6, 2.4);
+    ctx.fillStyle = '#A8A29E'; ctx.fillRect(hx - 2, ey - 1.6, 2.6, 0.4); ctx.fillRect(hx + 0.2, ey - 2.6, 0.4, 2.4);
+    ctx.fillStyle = '#FFFFFF'; ctx.fillRect(hx - 1.8, ey - 2.5, 1, 0.4);
+  }
+};
+
+/**
+ * How broken his glasses are, in the same steps as the blood on him (gore.ts drawHeadBlood): 0 whole; 1 a chip; 2 a
+ * crack across the front lens; 3 across both; 4 spiderwebbed, a chunk out, the back rim bent, the bridge taped. As his
+ * health comes back they're whole again (magically).
+ */
+export const glassesDamage = () => { const g = getGore(); return g >= 0.85 ? 4 : g >= 0.6 ? 3 : g >= 0.45 ? 2 : g >= 0.15 ? 1 : 0; };
+
 export const drawHead = (ctx: Ctx, hx: number, hy: number, mood: Mood, frame: number) => {
   if (catBodyOn()) { catHead(ctx, hx, hy, mood, frame); return; }
   ctx.fillStyle = skinTone;
@@ -486,6 +562,7 @@ export const drawHead = (ctx: Ctx, hx: number, hy: number, mood: Mood, frame: nu
     ctx.fillStyle = '#FFFFFF'; ctx.fillRect(hx - 5, my + 0.5, 10, 2);
     ctx.fillStyle = '#18181B'; ctx.fillRect(hx - 2, my + 0.5, 0.8, 2); ctx.fillRect(hx + 1, my + 0.5, 0.8, 2);
   }
+  drawGlasses(ctx, hx, ey);
   drawHeadBlood(ctx, hx, hy, frame);
   drawBeatenUp(ctx, hx, hy, frame);
 };

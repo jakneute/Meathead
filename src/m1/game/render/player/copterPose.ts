@@ -10,7 +10,7 @@
 // Pants as ever: jeans; shat (the stain where he sits); naked (bare legs and lap).
 
 import type { Player } from '../../../types';
-import { drawArmTo, drawTorso, drawHead, drawBoot, drawLeg, drawBelt, skinTone, skinShadow, skinHighlight, type Mood } from './body';
+import { drawArmTo, drawTorso, drawHead, drawGlasses, drawBoot, drawLeg, drawBelt, skinTone, skinShadow, skinHighlight, type Mood } from './body';
 import type { LadderPants } from './ladder';
 
 type Ctx = CanvasRenderingContext2D;
@@ -87,10 +87,11 @@ export const drawCopterSeatPose = (ctx: Ctx, q: Seat, frame: number, pants: Ladd
     // (eyes screwed shut)
     ctx.fillStyle = skinTone; ctx.fillRect(-7.5, hy - 5.8, 7, 4); ctx.fillRect(2, hy - 5.8, 7, 4);
     ctx.fillStyle = '#18181B'; ctx.fillRect(-7, hy - 4, 6, 1.3); ctx.fillRect(2.5, hy - 4, 6, 1.3);
+    drawGlasses(ctx, 1, hy - 4);
     ctx.restore();
   }
   // (bored: heavy-lidded)
-  if (q.mood === 'bored') { ctx.fillStyle = skinTone; ctx.fillRect(-7.5, hy - 6.5, 16, 2.6); }
+  if (q.mood === 'bored') { ctx.fillStyle = skinTone; ctx.fillRect(-7.5, hy - 6.5, 16, 2.6); drawGlasses(ctx, 1, hy - 4); }
   ctx.restore();
   // (the near arm, last: the stick, elbow out; or crossed over the other; hanging, up toward the roof)
   const fF = reach(sF, hang ? [12, -64] : pilot ? stickTop : T(-6, -32));

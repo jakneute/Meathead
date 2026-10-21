@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { setGlasses } from '../m1/game/render/player/body';
 import GameCanvas from '../m1/components/GameCanvas';
 import HUD from '../m1/components/HUD';
 /** The PWR row's cells, wide (the user's): three of them, fully upgraded, two-thirds of the HUD plate. */
@@ -131,6 +132,8 @@ registerIntro();
 registerGmen();
 loadVoicePack(voicePackUrl);
 attachM2Keys();
+// (Meathead 2's disguise: the nerd glasses on him everywhere, bar the gym before they're handed him: gym/index.ts)
+setGlasses(true);
 cleanLines();
 // (the options: its own keyboard (the grabs bindable, the left button alone firing to start with, P kept for pausing),
 // its own settings, remembered apart from Meathead 1's, put into effect now: the volumes, the shake, the flashing, the keys)
@@ -221,6 +224,8 @@ const App2: React.FC = () => {
   const devQ = import.meta.env.DEV ? new URLSearchParams(location.search) : null;
   const first = devQ?.has('adv') ? ADV_STAGE : devQ?.has('spooky') ? SPOOKY_STAGE : devQ?.has('space') ? SPACE_STAGE : devQ?.has('hollywood') ? HOLLYWOOD_STAGE : devQ?.has('foreign') ? FOREIGN_STAGE : devQ?.has('frontier') ? FRONTIER_STAGE : devQ?.has('fantasy') ? FANTASY_STAGE : devQ?.has('cartoon') ? CARTOON_STAGE :devQ?.has('hub') ? HUB_STAGE : devQ?.has('pen') ? PEN_STAGE : devQ?.has('intro') ? INTRO_STAGE : GYM_STAGE;
   const [stage, setStage] = useState(first);
+  // (the glasses: on everywhere but the gym, which hands them to him in its closing)
+  useEffect(() => { if (stage !== GYM_STAGE) setGlasses(true); }, [stage]);
   const [status, setStatus] = useState(GameStatus.START);
   // The title screen first (title/TitleScreen.tsx): nothing's built behind it till START GAME (the way in, as ever) or
   // CONTINUE (the hub, a file's lands put back). (In dev, a ?stage to start in skips it.)

@@ -10,7 +10,7 @@
 // belt, swinging free). The weapon's put away.
 
 import type { Player } from '../../../types';
-import { drawArm, drawJointedLeg, drawTorso, drawBelt, drawHead, isNude, pantsColor, pantsShadow, skinTone, skinShadow, skinHighlight, skinVein, backArmShade } from './body';
+import { drawArm, drawJointedLeg, drawTorso, drawBelt, drawHead, drawGlasses, isNude, pantsColor, pantsShadow, skinTone, skinShadow, skinHighlight, skinVein, backArmShade } from './body';
 import type { LadderPants } from './ladder';
 
 type Ctx = CanvasRenderingContext2D;
@@ -104,6 +104,8 @@ const face = (ctx: Ctx, hx: number, hy: number, frame: number, look: 'scream' | 
     ctx.fillStyle = '#450A0A'; ctx.beginPath(); ctx.ellipse(hx + 1, hy + 4, 3, 2.4, 0.2, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = '#DC2626'; ctx.fillRect(hx + 1.5, hy + 5, 2, 1.5);
   }
+  // (Meathead 2's glasses back on over the saucers)
+  drawGlasses(ctx, hx, hy - 4);
 };
 
 /** Stars round his head (local, about the top of it), going round. */

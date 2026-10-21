@@ -9,7 +9,7 @@
 // Bare legs (pants down) whatever he's wearing; the jeans bunched at his ankles (shat: brown in them; naked: no jeans).
 
 import type { Player } from '../../../types';
-import { drawArmTo, drawTorso, drawHead, drawBoot, skinTone, skinShadow, skinHighlight, skinVein, isTalkingNow, type Mood } from './body';
+import { drawArmTo, drawTorso, drawHead, drawGlasses, drawBoot, skinTone, skinShadow, skinHighlight, skinVein, isTalkingNow, type Mood } from './body';
 import type { LadderPants } from './ladder';
 
 type Ctx = CanvasRenderingContext2D;
@@ -118,6 +118,7 @@ export const drawThronePose = (ctx: Ctx, q: Throne, frame: number, pants: Ladder
       ctx.fillStyle = '#09090B'; ctx.fillRect(ex - 0.6, ey - 0.6, 1.4, 1.4);
     }
   }
+  drawGlasses(ctx, hx, ey);
   if (q.mood !== 'relief') {
     // (sweat, running down off his head)
     const n = q.mood === 'uhoh' ? 3 : 2;

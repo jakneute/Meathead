@@ -15,7 +15,7 @@
 // Hurt: the head snapped back, eyes shut. Pants as ever: jeans; shat (the stain on the seat); naked (bare legs).
 
 import type { Player } from '../../../types';
-import { drawArmTo, drawTorso, drawHead, drawBoot, drawLeg, drawBelt, skinTone, skinShadow, skinHighlight, type Mood } from './body';
+import { drawArmTo, drawTorso, drawHead, drawGlasses, drawBoot, drawLeg, drawBelt, skinTone, skinShadow, skinHighlight, type Mood } from './body';
 import type { LadderPants } from './ladder';
 
 type Ctx = CanvasRenderingContext2D;
@@ -93,6 +93,7 @@ export const drawFig = (ctx: Ctx, q: Fig, frame: number, pants: LadderPants) => 
       ctx.fillStyle = '#09090B'; ctx.fillRect(ex - 0.6, ey - 0.6, q.eyes === 'plates' ? 1.2 : 1.6, q.eyes === 'plates' ? 1.2 : 1.6);
     }
   }
+  if (q.eyes) drawGlasses(ctx, hx, ey);
   // (sweat flying off him)
   if (q.eyes === 'wide' || q.eyes === 'plates') for (let i = 0; i < 2; i++) {
     const u = ((frame + i * 13) % 26) / 26;

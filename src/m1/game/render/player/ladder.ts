@@ -11,7 +11,7 @@
 //   a foot on a rung and the near knee up on the next (here), the gun arm out level (the vine's).
 
 import type { Player } from '../../../types';
-import { drawArmTo, drawLeg, drawPantLeg, pantsColor, pantsShadow, skinTone, skinShadow, skinHighlight, beltColor, bootColor } from './body';
+import { drawArmTo, drawLeg, drawPantLeg, pantsColor, pantsShadow, skinTone, skinShadow, skinHighlight, beltColor, bootColor, glassesOn } from './body';
 
 type Ctx = CanvasRenderingContext2D;
 type Ladder = NonNullable<Player['ladder']>;
@@ -211,6 +211,12 @@ const backOfHead = (ctx: Ctx, hy0: number) => {
   ctx.fillStyle = HAIR; ctx.fillRect(-10, hy - 16, 20, 5); ctx.fillRect(-11, hy - 14, 22, 6);
   ctx.fillStyle = HAIR_LIT; ctx.fillRect(-8, hy - 15, 14, 1);
   ctx.fillStyle = '#52525B'; for (let i = 0; i < 7; i++) ctx.fillRect(-9 + i * 3, hy - 17, 1, 1);
+  // (Meathead 2's glasses: their arms over the tops of his ears, hooked down behind them)
+  if (glassesOn()) for (const s of [-1, 1]) {
+    const x = s < 0 ? -13.5 : 9.5;
+    ctx.fillStyle = '#09090B'; ctx.fillRect(x, hy - 7, 4, 1.3); ctx.fillRect(s < 0 ? x + 0.4 : x + 2.6, hy - 6, 1, 3);
+    ctx.fillStyle = '#52525B'; ctx.fillRect(x + 0.6, hy - 7, 2.8, 0.4);
+  }
 };
 
 /**
