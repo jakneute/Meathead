@@ -64,7 +64,7 @@ const NOSTRIL = R('#3A0808', '#240404', '#140202', '#080101', '#000000');
 export type HairStyle = 'slick' | 'wig' | 'bun' | 'bald' | 'combover' | 'curls' | 'long' | 'beehive' | 'crew' | 'none';
 export type Beard = 'full' | 'goatee' | 'chops' | 'stache' | 'stubble';
 export type Mouth = 'grin' | 'gape' | 'smirk' | 'grimace' | 'grape' | 'pout' | 'talk';
-export type Extra = 'monocle' | 'mole' | 'wart' | 'earring' | 'glasses' | 'scar' | 'zits' | 'pearls' | 'tiara' | 'cigar' | 'headset' | 'bowtie' | 'tie' | 'ruff' | 'lashes' | 'sweaty' | 'drool' | 'goiter';
+export type Extra = 'monocle' | 'mole' | 'wart' | 'earring' | 'glasses' | 'scar' | 'zits' | 'pearls' | 'tiara' | 'cigar' | 'headset' | 'bowtie' | 'tie' | 'ruff' | 'lashes' | 'sweaty' | 'drool' | 'goiter' | 'aviators' | 'brace' | 'cig';
 export interface BustSpec {
   seed: number;
   skin: number[];
@@ -294,6 +294,28 @@ const paint = (sp: BustSpec): Painted => {
   if (has('tiara')) for (let x = -rx * 0.7; x <= rx * 0.7; x++) { const y = FY - ry * 0.78 - Math.abs(Math.sin(x * 0.25)) * 6 * (1 - Math.abs(x) / rx); for (let d = 0; d < FY - ry * 0.7 - y; d++) plot(b, FX + x, y + d, GOLD[d < 1 ? 1 : 3], M_METAL); }
   if (has('cigar')) { for (let t = 0; t < 34; t++) for (let d = -3; d <= 3; d++) plot(b, cx + 22 + t, cy + 2 + t * 0.4 + d, R('#C8946A', '#A0704A', '#7A4E2E', '#5A341C', '#2A1608')[Math.abs(d) === 3 ? 4 : d < -1 ? 0 : d < 1 ? 1 : 2], M_OTHER); for (let d = -3; d <= 3; d++) plot(b, cx + 56, cy + 16 + d, d % 2 ? hexU('#F4602A') : hexU('#7A7A7A')); }
   if (has('headset')) { path(b, [FX - rx - 6, FY + 6, FX - rx - 4, FY + 26, FX - 30, FY + 40], HAIR.black[2], 2); ball(b, FX - 28, FY + 40, 3, 3, HAIR.black, { mat: M_METAL }); ball(b, FX - rx - 4, FY + 6, 6, 9, HAIR.black, { mat: M_METAL, line: true }); }
+  if (has('brace')) {
+    // (a neck brace: white foam, sweat-yellowed, rhinestones along it)
+    for (let y = 140; y < 172; y++) for (let x = FX - 40; x <= FX + 40; x++) { const u = (x - FX) / 40; if (y < 146 + u * u * 8 || y > 166 + u * u * 6) continue; const e = y < 148 + u * u * 8 || y > 164 + u * u * 6 || Math.abs(u) > 0.97; plot(b, x, y, e ? CLOTH.white[5] : CLOTH.white[Math.abs(u) > 0.7 ? 3 : u < -0.3 ? 1 : 2], M_CLOTH); }
+    tint(b, FX + 10, 162, 22, 5, hexU('#C8B048'), 0.35, M_CLOTH);
+    for (let k = 0; k < 9; k++) { const u = -0.8 + k * 0.2, x = FX + u * 40, y = 156 + u * u * 7; plot(b, x, y, WHITE); plot(b, x + 1, y, hexU('#A8D8F8')); }
+  }
+  if (has('cig')) { const ax = FX - rx - 4, ay = FY - 8; for (let t = 0; t < 22; t++) for (let d = -1; d <= 1; d++) plot(b, ax - 6 + t, ay - t * 0.25 + d, t < 4 ? hexU('#C8946A') : d < 0 ? WHITE : CLOTH.white[2], M_OTHER); }
+  if (has('aviators')) for (const s of [-1, 1]) {
+    // (cheap gold aviators: teardrop rims, the lens dark at the top going amber, the lights in it, a thumbprint)
+    const gx = FX + s * 21, gy = FY - 4;
+    for (let y = -13; y <= 15; y++) for (let x = -18; x <= 18; x++) {
+      const ux = x / 18, uy = y < 0 ? y / 13 : y / 15, inner = ux * ux + uy * uy * (1 + (s * x < 0 ? 0.2 * Math.max(0, uy) : 0));
+      if (inner > 1) continue;
+      if (inner > 0.84) { plot(b, gx + x, gy + y, (x + y) < -6 ? GOLD[1] : inner > 0.95 ? GOLD[6] : GOLD[3], M_GLASS); continue; }
+      const t = (y + 13) / 28, tintC = mixU(hexU('#2A1A10'), hexU('#B8742A'), Math.min(1, t * 1.1 + (bay(gx + x, gy + y) - 0.5) * 0.2));
+      plot(b, gx + x, gy + y, mixU(pxOf(b, gx + x, gy + y), tintC, 0.72), M_GLASS);
+    }
+    for (let k = 0; k < 4; k++) plot(b, gx - 10 + k, gy - 6 - k, WHITE);
+    tint(b, gx + 6, gy + 6, 5, 4, hexU('#D8C8A0'), 0.25, M_GLASS);
+    if (s < 0) { seg(b, FX - 3, FY - 14, FX + 3, FY - 14, GOLD[3], 1); seg(b, FX - 4, FY - 11, FX + 4, FY - 11, GOLD[4], 1); }
+    seg(b, gx + s * 18, gy - 6, gx + s * (rx - 18), gy - 4, GOLD[4], 1);
+  }
   // ---- the skin's going over: stubble, pores and blackheads, grease shine, zits, sweat
   if (sp.beard === 'stubble' || (sp.beard === undefined && !has('lashes') && hash2(sp.seed, 3) < 0.5)) stubble(b, (x, y) => (y > FY + 18 && inHead(x, y, 4) ? 0.9 : 0), S[6], 0.5);
   skinPost(b, S[7], (x, y) => (((x - nx) / 18) ** 2 + ((y - ny) / 14) ** 2 < 1 ? 0.2 : ((x - FX) / (rx * 0.9)) ** 2 + ((y - FY - 14) / 24) ** 2 < 1 ? 0.12 : 0.07), {
@@ -349,6 +371,22 @@ export const bust = (key: string, spec: BustSpec, medium: Medium = 'none'): Bust
   return s;
 };
 
+const tcache = new Map<Bust, Map<string, Bust>>();
+/** A bust under a color (multiplied over it: the time of day, a dimmed wall), kept per color. */
+export const tintBust = (bu: Bust, col: string): Bust => {
+  if (!bu.img || /^#f{6}$/i.test(col)) return bu;
+  let m = tcache.get(bu); if (!m) tcache.set(bu, (m = new Map()));
+  let t = m.get(col);
+  if (!t) {
+    const cv = document.createElement('canvas'); cv.width = GW; cv.height = GH;
+    const g = cv.getContext('2d')!;
+    g.drawImage(bu.img, 0, 0); g.globalCompositeOperation = 'multiply'; g.fillStyle = col; g.fillRect(0, 0, GW, GH);
+    g.globalCompositeOperation = 'destination-in'; g.drawImage(bu.img, 0, 0);
+    t = { ...bu, img: cv }; m.set(col, t);
+  }
+  return t;
+};
+
 export interface BustFit { x: number; y: number; s: number }
 /** Puts a bust down in (x, y, w, h): as big as fits across, the shoulders cut off the bottom before the face is (it
  *  shows at least `minH` of the box's 200 rows), centered, bottom on the rectangle's bottom. Smoothed when shrunk. */
@@ -367,8 +405,8 @@ export const drawBust = (g: Ctx, bu: Bust, x: number, y: number, w: number, h: n
 };
 /** Where a fitted bust's eyes are (box rows cut off the top accounted for). */
 export const bustEyes = (bu: Bust, fit: BustFit, h: number): [number, number][] => {
-  const vis = Math.min(BOX_H, h / fit.s), cut = BOX_H - vis;
-  return bu.eyes.map(([ex, ey]) => [fit.x + ex * fit.s, fit.y + (ey - cut) * fit.s] as [number, number]);
+  void h;
+  return bu.eyes.map(([ex, ey]) => [fit.x + ex * fit.s, fit.y + ey * fit.s] as [number, number]);
 };
 /** Live pupils for a `blankEyes` sitter at (ex, ey) on the screen, `s` its scale, looking toward (tx, ty). */
 export const bustPupils = (c: Ctx, bu: Bust, eyes: [number, number][], s: number, tx: number, ty: number) => {

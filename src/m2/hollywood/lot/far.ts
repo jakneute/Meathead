@@ -18,6 +18,8 @@ import { mist } from '../../adventure/farArt';
 import { type Ctx, INK, box, checker, mix, hash, poly, hazeBands, bandedGradient, signText, plain, STEVE } from '../blvd/kit';
 import { FAR, tile, farCol, rampF, paintMountains, paintFoothills, drawHill, paintCity, paintLot, paintPalms } from '../blvd/far';
 import { HWX, GY } from '../geometry';
+import { drawBust } from '../../grossBust';
+import { steveBust } from '../steveBust';
 import { realDisastersOn } from '../section';
 import { drawHwSky, drawHwHorizon, drawHwLandmarks } from '../landmarks';
 
@@ -167,7 +169,7 @@ const paintStages = (g: Ctx, tod: TimeOfDay) => {
   }
   // (Steve's billboard on the end of one: he's everywhere)
   box(g, 560, f - 182, 60, 40, INK); box(g, 561, f - 181, 58, 38, T(STEVE[3])); box(g, 561, f - 181, 58, 2, T(STEVE[5]));
-  box(g, 568, f - 176, 14, 16, T('#E2B48C')); box(g, 566, f - 178, 18, 5, T('#8A5A2A')); box(g, 569, f - 170, 12, 2, T('#2A2228'));
+  drawBust(g, steveBust('poster', T('#FFFFFF')), 563, f - 180, 20, 20, 130);
   signText(g, 'STEVE', 600, f - 166, plain(1, 1, T('#2A1408'))); signText(g, 'LIVE!', 600, f - 156, plain(1, 1, T('#B4243A')));
   // (its asphalt: banded, the parking lines, a fire lane's red curb along the front)
   box(g, 0, f, SW, SG, T('#5E585A')); box(g, 0, f, SW, 1, T('#7E787A')); checker(g, 0, f + 6, SW, 2, T('#4E4A4C'));

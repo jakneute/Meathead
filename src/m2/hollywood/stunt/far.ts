@@ -14,7 +14,8 @@ import { FAR, tile, farCol, rampF, paintMountains, paintFoothills, drawHill, pai
 import { HWX } from '../geometry';
 import { realDisastersOn } from '../section';
 import { isLandCleared } from '../../store';
-import { drawSteve } from './steve';
+import { drawBust } from '../../grossBust';
+import { steveBust } from '../steveBust';
 import { GY, CAM_ROW } from './arena';
 import { type Ctx, INK, box, checker, mix, hash, poly, timeOfDay, hourMix, skyAt, words, deco, plain, STEVE, bunting, wisp, EYE_UP } from './paint';
 import { hazeBands, bandedGradient, steppedGlow } from '../blvd/kit';
@@ -100,7 +101,8 @@ const billboard = (g: Ctx, T: T, tod: TimeOfDay, x: number, y: number, w: number
     ty += 7 * (s >= 2 ? s + 1 : 1) + 4;
     words(g, text, tx, ty, L);
   }
-  if (him) { g.save(); g.translate(x + w * 0.17, y + h - 6); g.scale(0.72, 0.72); drawSteve(g, 0, 0, 1, 'thumb', 0, {}); g.restore(); }
+  // (him: a gross-up, bigger than life (steveBust.ts), his shoulders on the red band)
+  if (him) drawBust(g, steveBust('poster', T('#FFFFFF')), x + 6, y + 2, w * 0.34, h - 8, 150);
   // (the goosenecks over it, lit after dark)
   for (let k = x + 30; k < x + w; k += 80) {
     box(g, k, y - 12, 2, 10, INK); box(g, k - 2, y - 14, 10, 3, INK); box(g, k + 4, y - 13, 5, 3, tod.lamps > 0.3 ? '#FFF2C0' : T('#7A7E86'));

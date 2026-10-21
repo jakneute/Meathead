@@ -18,29 +18,14 @@ import {
 } from './kit';
 import { gate } from '../../hub/letters';
 import { streetPalm } from './far';
+import { drawBust } from '../../grossBust';
+import { steveBust } from '../steveBust';
 
 /** Where things stand going back: the lamps by the curb, the plaques and ropes, the palms, the queue. */
 export const LAMP_D = 0.965, PROP_D = 0.952, PALM_D = 0.935;
 
 // ---------------------------------------------------------------------------------------------------------------
 // Stuntman Steve (all of it yellow, like his stunt suit)
-
-/** His face (the mullet, the cheap gold aviators, the horseshoe mustache, the neck brace), its middle-top at (x, y),
- *  `s` its scale. */
-const steveFace = (g: Ctx, x: number, y: number, s: number) => {
-  const skin = ['#8A5A3A', '#B8825A', '#E2B48C', '#F2CCA8'], hair = ['#3A2410', '#6A4420', '#8A5A2A', '#A8763A'];
-  const P = (dx: number, dy: number, w: number, h: number, col: string) => box(g, x + dx * s, y + dy * s, Math.max(1, w * s), Math.max(1, h * s), col);
-  // (the mullet: down the back of his neck; the feathered top)
-  P(-9, -1, 19, 7, INK); P(-8, 0, 17, 6, hair[2]); P(-8, 0, 6, 3, hair[3]); P(6, 2, 6, 18, INK); P(7, 3, 4, 16, hair[1]);
-  // (the face, stepped: lit left, shaded right)
-  P(-8, 4, 15, 17, INK); P(-7, 5, 13, 15, skin[2]); P(-7, 5, 4, 15, skin[3]); P(3, 5, 3, 15, skin[1]);
-  // (the aviators: gold frames, dark lenses, a glint)
-  P(-7, 9, 13, 1, BRASS[3]); P(-6, 10, 5, 3, '#2A2A3A'); P(0, 10, 5, 3, '#2A2A3A'); P(-5, 10, 1, 1, '#FFFFFF'); P(1, 10, 1, 1, '#FFFFFF');
-  // (the horseshoe mustache, the grin)
-  P(-5, 15, 9, 2, hair[1]); P(-5, 15, 2, 5, hair[1]); P(2, 15, 2, 5, hair[1]); P(-3, 17, 5, 1, '#F8F2E2');
-  // (the neck brace)
-  P(-8, 20, 16, 4, INK); P(-7, 21, 14, 2, '#F4F0E8'); P(-7, 21, 14, 1, '#FFFFFF');
-};
 
 /** A Steve card (a flier taped up, a poster in a frame), its middle at (x, y), `s` its scale. */
 export const steveCard = (g: Ctx, x: number, y: number, s: number, seed: number, kind: 'flier' | 'poster' = 'flier') => {
@@ -53,7 +38,8 @@ export const steveCard = (g: Ctx, x: number, y: number, s: number, seed: number,
   // (the sunburst behind his head)
   const cx = x, cy = t + 18 * s;
   for (let k = 0; k < 12; k++) { const a = (k * Math.PI) / 6; if (k % 2) continue; poly(g, [[cx, cy], [cx + Math.cos(a - 0.18) * 22 * s, cy + Math.sin(a - 0.18) * 22 * s], [cx + Math.cos(a + 0.18) * 22 * s, cy + Math.sin(a + 0.18) * 22 * s]], Y[5]); }
-  steveFace(g, x - 1 * s, t + 6 * s, s);
+  // (him: a gross-up in print (steveBust.ts), filling the top of the sheet)
+  drawBust(g, steveBust('poster'), l + 3 * s, t + 3 * s, w - 6 * s, 42 * s, 150);
   // (his thumb up)
   box(g, x - 16 * s, t + 22 * s, 6 * s, 7 * s, INK); box(g, x - 15 * s, t + 23 * s, 4 * s, 5 * s, '#E2B48C'); box(g, x - 14 * s, t + 18 * s, 2 * s, 5 * s, '#E2B48C');
   // (the car behind him going past: a red streak, speed lines)
@@ -95,7 +81,8 @@ const paintStandee = (g: Ctx) => {
   // (an arm on his hip, the other up: the thumb)
   box(g, -22, -96, 9, 28, Y[4]); box(g, -22, -68, 9, 6, '#E2B48C');
   box(g, 13, -96, 9, 14, Y[3]); box(g, 15, -110, 7, 16, Y[3]); box(g, 14, -118, 8, 9, '#E2B48C'); box(g, 16, -126, 3, 8, '#E2B48C');
-  steveFace(g, 1, -126, 1.1);
+  // (his head: the gross-up (steveBust.ts), printed on the cardboard)
+  drawBust(g, steveBust('poster'), -17, -138, 34, 36, 124);
   // (his name on the plate at his feet: yellow)
   board(g, 0, -1, ['STUNTMAN STEVE'], plain(1, 1, '#2A1408'), STEVE[3], STEVE, 4);
 };

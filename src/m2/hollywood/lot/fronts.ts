@@ -24,6 +24,11 @@ import {
 import { bracing } from '../blvd/fronts';
 import { gate } from '../../hub/letters';
 import { rampDown } from '../../signLetters';
+import { bust, tintBust, drawBust, SKIN, HAIR, IRIS, type BustSpec } from '../../grossBust';
+import { steveBust } from '../steveBust';
+
+/** The other WANTED face: some varmint, gap-toothed, a scar, a mole. */
+const VARMINT: BustSpec = { seed: 1881, skin: SKIN.olive, hair: 'crew', hairRamp: HAIR.black, beard: 'full', beardRamp: HAIR.black, iris: IRIS.gray, mouth: 'grimace', extras: ['scar', 'mole'], bulge: 1.3, look: [-0.5, 0] };
 import { BRICK, BOARD, SHINGLE, SIDING, bricks, battens, corrugated } from './paint';
 
 type Kind = 'ny' | 'west' | 'house';
@@ -222,8 +227,8 @@ const paintWest = (g: Ctx, f: Front) => {
     const wanted = (x: number, y: number, steve: boolean) => {
       box(g, x - 1, y - 1, 30, 38, INK); box(g, x, y, 28, 36, steve ? dimmed(STEVE[3]) : dimmed('#E8DCB8'));
       signText(g, 'WANTED', x + 14, y + 8, plain(1, 1, dimmed('#2A1408')));
-      if (steve) { box(g, x + 8, y + 11, 12, 13, dimmed('#E2B48C')); box(g, x + 7, y + 10, 14, 4, dimmed('#8A5A2A')); box(g, x + 18, y + 12, 4, 12, dimmed('#8A5A2A')); box(g, x + 8, y + 15, 12, 2, INK); box(g, x + 10, y + 20, 8, 1, dimmed('#6A4020')); }
-      else { box(g, x + 8, y + 11, 12, 13, dimmed('#C8A880')); box(g, x + 8, y + 11, 12, 4, dimmed('#3A2A1A')); }
+      // (the mugs: gross-ups, old photos (grossBust.ts); Steve's, and some other varmint's)
+      drawBust(g, steve ? steveBust('photo', dimmed('#FFFFFF')) : tintBust(bust('lot-varmint', VARMINT, 'photo'), dimmed('#FFFFFF')), x + 3, y + 10, 22, 17, 140);
       box(g, x + 4, y + 28, 20, 1, dimmed('#6A5A40')); box(g, x + 4, y + 31, 16, 1, dimmed('#6A5A40'));
     };
     wanted(68, -76, true); wanted(98, -70, false);
