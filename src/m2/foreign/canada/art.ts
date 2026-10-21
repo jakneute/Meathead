@@ -506,13 +506,49 @@ export const iceChunks = (c: Ctx, x: number, f: number) => {
 export const drawHill = (c: Ctx, v: View, a: number, topX: number, b: number, end: number, topY: number, steps: number, f: number) => {
   if (!onScreen(v, a - 20, end + 20)) return;
   const S = ramp6(hour(SNOW)), T = ramp6(hour('#7A5230')), Ic = ramp6(hour('#93C5FD'));
-  const shape: [number, number][] = [[a, GY], [topX, topY], [b, topY], [end, GY], [end, GY + 400], [a, GY + 400]];
-  poly(c, shape, S[3]);
-  c.save(); c.beginPath(); shape.forEach(([x, y], i) => (i ? c.lineTo(x, y) : c.moveTo(x, y))); c.closePath(); c.clip();
-  for (let k = 0; k < 6; k++) { const y = topY + 40 + k * 60; box(c, a, y, end - a, 60, S[[3, 3, 2, 2, 1, 1][k]]); checker(c, a, y - 2, end - a, 2, S[[3, 3, 2, 2, 1, 1][k]], k % 2, 2); }
-  box(c, a, GY, end - a, 400, S[1]);
-  for (let k = 0; k < 40; k++) { const x = a + hash(k * 3.1) * (end - a), y = topY + 10 + hash(k * 1.7) * (GY - topY); if (((f >> 4) + k) % 7 === 0) box(c, x, y, 2, 2, '#FFFFFF'); else box(c, x, y, 2, 1, S[4]); }
-  c.restore();
+  // (the snow body, stamped for the hour: banded down into cool blue shade, the lit near slope and the shaded far one,
+  // drifts heaped along both and round the foot, wind ripples, crust lines following the slopes, a toboggan's old
+  // grooves, a lost mitten)
+  const W = end - a, Hh = GY - topY;
+  box(c, a, GY + 40, W, 360, S[1]);
+  still(c, `ca-hill-${W}x${Hh}`, a, topY, -2, -2, W + 4, Hh + 44, g => {
+    const B = ramp6(hour('#A2BADA')), lx = topX - a, rx = b - a, H = Hh;
+    const shape: [number, number][] = [[0, H], [lx, 0], [rx, 0], [W, H], [W, H + 40], [0, H + 40]];
+    poly(g, shape, S[3]);
+    g.save(); g.beginPath(); shape.forEach(([x, y], i) => (i ? g.lineTo(x, y) : g.moveTo(x, y))); g.closePath(); g.clip();
+    const bands = [S[4], S[3], S[3], B[4], B[3], B[3], B[2]];
+    bands.forEach((col, k) => { const y = Math.round((k / bands.length) * (H + 40)); box(g, 0, y, W, H + 40 - y, col); checker(g, 0, y - 2, W, 2, col, k % 2, 2); });
+    // (the near slope lit along its surface, the far slope in shade along its)
+    for (let x = 0; x < lx; x += 2) { const y = Math.round(H - (x / lx) * H); box(g, x, y, 2, 22, S[4]); box(g, x, y, 2, 2, S[5]); if ((x >> 1) % 2) box(g, x, y + 22, 2, 2, S[4]); }
+    for (let x = rx; x < W; x += 2) { const y = Math.round(((x - rx) / (W - rx)) * H); box(g, x, y, 2, 30, B[2]); box(g, x, y, 2, 1, B[4]); if ((x >> 1) % 2) box(g, x, y + 30, 2, 2, B[2]); }
+    box(g, lx, 0, rx - lx, 6, S[5]); checker(g, lx, 6, rx - lx, 2, S[4], 0);
+    // (crust lines following the slopes)
+    for (let k = 1; k < 6; k++) {
+      const d = k * 26 + hash(k) * 10;
+      for (let x = 0; x < W; x += 2) {
+        const sy = x < lx ? H - (x / lx) * H : x < rx ? 0 : ((x - rx) / (W - rx)) * H;
+        if (hash(k * 7 + Math.floor(x / 24)) > 0.5) { const yy = Math.round(sy + d + Math.sin(x * 0.05 + k) * 3); box(g, x, yy, 2, 2, x > rx ? B[1] : B[3]); box(g, x, yy - 1, 2, 1, S[5]); }
+      }
+    }
+    // (wind ripples: little lit crests over their blue lee)
+    for (let i = 0; i < W / 5; i++) {
+      const x = hash(i * 1.9 + 3) * W, sy = x < lx ? H - (x / lx) * H : x < rx ? 0 : ((x - rx) / (W - rx)) * H, y = sy + 14 + hash(i * 2.7) * (H + 30 - sy);
+      const rw = 6 + hash(i) * 10; box(g, x, y, rw, 1, S[5]); box(g, x + 2, y + 1, rw - 2, 1, B[3]);
+    }
+    // (drifts heaped round the foot and against the slopes: lit tops, blue undersides)
+    for (let i = 0; i < 9; i++) {
+      const x = 20 + i * (W - 40) / 8 + (hash(i * 4.1) - 0.5) * 30, y = H + 6 + hash(i * 3.3) * 10, r = 26 + hash(i * 2.2) * 24;
+      pixelBlob(g, x, y + 3, r, r * 0.34, B[2]); pixelBlob(g, x - 2, y, r * 0.9, r * 0.3, S[4]); pixelBlob(g, x - r * 0.3, y - r * 0.12, r * 0.4, r * 0.14, S[5]);
+    }
+    // (a toboggan's old grooves down the far slope, and a lost mitten)
+    for (const off of [36, 44]) for (let x = rx + 10; x < W - 20; x += 2) { const t = (x - rx) / (W - rx); box(g, x, Math.round(t * H + off + t * 10), 2, 1, B[1]); }
+    const mx = lx * 0.35, my = H - 0.35 * H + 40;
+    box(g, mx - 1, my - 1, 10, 8, INK); box(g, mx, my, 8, 6, hour('#DC2626')); box(g, mx + 6, my - 3, 3, 4, INK); box(g, mx + 7, my - 2, 1, 3, hour('#DC2626')); box(g, mx, my + 5, 8, 1, hour('#F8FAFC'));
+    g.restore();
+  });
+  // (the sparkle, live: a glint winks now and then)
+  const surf = (x: number) => (x < topX ? GY - ((x - a) / (topX - a)) * Hh : x < b ? topY : topY + ((x - b) / (end - b)) * Hh);
+  for (let k = 0; k < 40; k++) { const x = a + hash(k * 3.1) * W, y = topY + 10 + hash(k * 1.7) * Hh; if (y > surf(x) + 4 && ((f >> 4) + k) % 7 === 0) { box(c, x, y, 2, 2, '#FFFFFF'); box(c, x - 2, y + 0.5, 6, 1, S[5]); } }
   // (the stairs cut in its near slope)
   const tw = (topX - a) / steps, rh = (GY - topY) / steps;
   for (let k = 0; k < steps; k++) {

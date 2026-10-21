@@ -511,12 +511,27 @@ export const drawVat = (c: Ctx, v: View, a: number, b: number, surface: number, 
   // (the coping round its back: a lit stone lip)
   box(c, ax - 1, ay - 2, bx - ax + 2, 3, INK); box(c, ax, ay - 2, bx - ax, 2, hour('#E8DFC8'));
   // (its end walls at the play plane, the masonry under it all)
-  for (const sx of [a, b - 6]) { box(c, sx, GY, 6, bed, W[2]); box(c, sx, GY, 2, bed, W[4]); box(c, sx + 5, GY, 1, bed, INK); }
-  box(c, a, bot, b - a, 400, W[1]); for (let y = bot + 12; y < bot + 400; y += 14) box(c, a, y, b - a, 1, W[0]); box(c, a, bot, b - a, 1, INK);
-  // (the dye at the play plane, the surface's lit line)
-  box(c, a + 6, sY, b - a - 12, bed - surface, D);
-  box(c, a + 6, sY + (bed - surface) * 0.55, b - a - 12, (bed - surface) * 0.45, Dr[2]); checker(c, a + 6, sY + (bed - surface) * 0.55 - 2, b - a - 12, 2, Dr[2], 0, 1);
-  box(c, a + 6, sY, b - a - 12, 2, Dr[4]); box(c, a + 6, sY + 2, b - a - 12, 1, mix(Dr[4], D, 0.5));
+  // (the masonry under it all, stamped for the hour: the vat's stained clay bottom over courses of cut stone (each
+  // block a step, dye seeped down its joints), darkening down into the dark)
+  const vw = Math.round(b - a);
+  still(c, `ma-vatbase-${vw}-${wall}-${col}`, a, bot, 0, 0, vw, 170, g => {
+    stoneBlocks(g, 0, 8, vw, 162, W, seed, 34, 17);
+    box(g, 0, 0, vw, 8, mix(W[1], D, 0.5)); box(g, 0, 0, vw, 1, INK); checker(g, 0, 8, vw, 2, mix(W[1], D, 0.5), 0, 1);
+    for (let x = 4; x < vw - 4; x += 5) if (hash(seed + x * 0.7) > 0.6) box(g, x, 8, 1, 6 + hash(seed + x) * 22, mix(W[1], D, 0.4));
+    for (let k = 0; k < 4; k++) { const y = 70 + k * 26; checker(g, 0, y, vw, 2, W[0], k % 2); box(g, 0, y + 2, vw, 24, mix(W[1], W[0], 0.25 + k * 0.2)); }
+    box(g, 0, 166, vw, 4, W[0]);
+  });
+  box(c, a, bot + 170, b - a, 230, W[0]);
+  // (its end walls at the play plane: clay, a zellige band down their tops, the lit edge)
+  for (const sx of [a, b - 6]) { box(c, sx, GY, 6, bed, W[2]); box(c, sx, GY, 2, bed, W[4]); box(c, sx + 5, GY, 1, bed, INK); box(c, sx, GY, 6, 6, hour(TILEBLUE)); box(c, sx + 1, GY + 1, 2, 2, hour('#F2EDE2')); }
+  // (the dye at the play plane, banded down into its depths, dithered between; the surface's lit line)
+  const dh = bed - surface, dw = b - a - 12;
+  box(c, a + 6, sY, dw, dh, D);
+  for (const [k, col2] of [[0.3, mix(D, Dr[2], 0.5)], [0.55, Dr[2]], [0.8, Dr[1]]] as const) { const yy = Math.round(sY + dh * k); box(c, a + 6, yy, dw, Math.round(sY + dh) - yy, col2); checker(c, a + 6, yy - 2, dw, 2, col2, 0, 1); }
+  box(c, a + 6, sY, dw, 2, Dr[4]); box(c, a + 6, sY + 2, dw, 1, mix(Dr[4], D, 0.5));
+  // (swirls of the dye turning over, drifting, live; a scrap of hide adrift under the surface)
+  for (let k = 0; k < 5; k++) { const sx = a + 10 + (((hash(seed + k * 2.3) * dw + f * (0.2 + k * 0.07)) % (dw - 16)) + (dw - 16)) % (dw - 16), sy2 = sY + 8 + hash(seed + k * 1.1) * (dh * 0.6); box(c, sx, sy2, 8 + k * 2, 1, Dr[3]); box(c, sx + 3, sy2 + 1, 6, 1, mix(Dr[3], Dr[2], 0.5)); }
+  { const hx = a + 14 + (((seed * 37 + f * 0.15) % (dw - 30)) + (dw - 30)) % (dw - 30), hy = sY + dh * 0.35 + Math.sin(f * 0.03 + seed) * 3; box(c, hx - 1, hy - 1, 12, 6, mix(Dr[1], INK, 0.3)); box(c, hx, hy, 10, 4, mix(hour('#C08A5A'), D, 0.55)); box(c, hx, hy, 10, 1, mix(hour('#E0B080'), D, 0.4)); }
   // (bubbles coming up and popping, live)
   for (let k = 0; k < 4; k++) {
     const t = (f + k * 23 + seed) % 46, bx2 = a + 18 + hash(seed + k * 1.9 + Math.floor((f + k * 23 + seed) / 46)) * (b - a - 36), r = 1 + t / 12;
@@ -684,12 +699,38 @@ const paintSoukWall = (g: Ctx, w: number, h: number) => {
   }
   box(g, 0, -24, w, 1, INK);
   for (let x = 0; x < w; x += 130) zellige(g, x + 102, -22, 20, 18);
+  // (the upper wall worked over: a carved plaster frieze (a run of little arches) and a stone string course across it,
+  // plaster patches gone pale, damp stains down from the roof, rugs hung up to air on poles, the odd shuttered window)
+  const fy = Math.round(-h * 0.5);
+  box(g, 0, fy - 1, w, 16, INK); box(g, 0, fy, w, 14, T[3]); box(g, 0, fy, w, 2, T[5]); box(g, 0, fy + 12, w, 2, T[1]);
+  for (let x = 2; x < w - 8; x += 10) { box(g, x, fy + 4, 8, 7, T[2]); box(g, x + 1, fy + 3, 6, 1, T[2]); box(g, x + 1, fy + 5, 6, 6, T[1]); box(g, x + 1, fy + 4, 1, 7, T[4]); }
+  const sc = -176; box(g, 0, sc - 1, w, 10, INK); stoneBlocks(g, 0, sc, w, 8, ramp6(dimmed(SAND)), 7, 26, 8);
+  for (let k = 0; k < w / 70; k++) { const px = hash(k * 4.7) * (w - 60), py = -h + 60 + hash(k * 2.9) * (h - 260), pw = 24 + hash(k) * 30, ph = 14 + hash(k * 1.3) * 18; if (Math.abs(py - fy) < 24) continue; box(g, px, py, pw, ph, R[4]); box(g, px, py, pw, 1, R[5]); box(g, px, py + ph, pw, 1, R[2]); checker(g, px + 2, py + 2, pw - 4, ph - 4, R[3], k % 2, 2); }
+  for (let k = 0; k < w / 45; k++) { const sx = 10 + hash(k * 6.1) * (w - 20); for (let y = -h + 24; y < -h + 60 + hash(k * 3.3) * 90; y += 2) box(g, sx + ((y >> 3) % 2), y, 3, 2, R[1]); }
+  for (let bx = 0, k = 0; bx + 140 <= w; bx += 140, k++) {
+    const rx = bx + (k % 2 ? 100 : 104), ry = k % 2 ? -300 : -400, RR = ramp6(dimmed(['#9F1D1D', '#1E3A8A', '#B45309', '#166534'][k % 4]));
+    box(g, rx - 4, ry - 3, 46, 4, INK); box(g, rx - 3, ry - 2, 44, 2, Wd[4]);
+    box(g, rx - 1, ry, 40, 58, INK); box(g, rx, ry + 1, 38, 56, RR[3]); box(g, rx + 3, ry + 4, 32, 50, RR[2]); box(g, rx + 6, ry + 7, 26, 44, RR[3]);
+    poly(g, [[rx + 19, ry + 12], [rx + 29, ry + 29], [rx + 19, ry + 46], [rx + 9, ry + 29]], dimmed('#F2C14E')); poly(g, [[rx + 19, ry + 18], [rx + 24, ry + 29], [rx + 19, ry + 40], [rx + 14, ry + 29]], RR[1]);
+    for (let y = ry + 6; y < ry + 54; y += 8) { box(g, rx + 3, y, 2, 2, T[4]); box(g, rx + 33, y, 2, 2, T[4]); }
+    for (let x = rx; x < rx + 38; x += 3) box(g, x, ry + 57, 1, 4, T[3]);
+    box(g, rx, ry + 1, 2, 56, RR[4]);
+  }
   for (let bx = 0, k = 0; bx + 140 <= w; bx += 140, k++) { if (k % 2) mashrabiya(g, bx + 50, -400, 40, 56); else mashrabiya(g, bx + 55, -300, 30, 44); }
   // (the roof over the alley: cedar beams across, a reed lattice between, daylight through its slots; dark after dark)
   for (let x = 0; x < w; x += 140) { box(g, x - 1, -h, 10, h - 150, INK); box(g, x, -h, 8, h - 150, Wd[2]); box(g, x, -h, 2, h - 150, Wd[4]); }
   box(g, 0, -h, w, 24, INK); box(g, 0, -h + 1, w, 22, Wd[1]);
   for (let x = 0; x < w; x += 4) box(g, x, -h + 2, 2, 20, (x / 4) % 3 ? Wd[2] : (on ? '#1A1A34' : dimmed('#F4E8C8')));
   for (let x = 0; x < w; x += 140) { box(g, x, -h + 22, 8, 6, Wd[3]); box(g, x, -h + 22, 8, 1, Wd[5]); }
+  // (a pierced brass lantern down off every other beam on its chain, lit after dark)
+  const Br = ramp6(dimmed(BRASS));
+  for (let x = 70; x < w - 20; x += 280) {
+    const ly = -h + 28 + 34;
+    for (let y = -h + 28; y < ly; y += 3) box(g, x + 3, y, 2, 2, Br[1]);
+    box(g, x - 4, ly - 1, 16, 26, INK); box(g, x - 3, ly, 14, 24, Br[3]); box(g, x - 3, ly, 3, 24, Br[5]); box(g, x + 8, ly, 3, 24, Br[1]);
+    for (let yy = ly + 4; yy < ly + 21; yy += 5) for (let xx = x - 1; xx < x + 9; xx += 3) box(g, xx, yy, 1, 2, on ? '#FFD88A' : Br[0]);
+    poly(g, [[x - 5, ly], [x + 4, ly - 7], [x + 13, ly]], Br[2]); box(g, x - 2, ly + 24, 12, 3, Br[2]);
+  }
   // (the slats of daylight down the wall, dithered, by day)
   if (!on) for (let k = 0; k < w / 140; k++) { const x = 40 + k * 140 + hash(k * 2.3) * 30; for (let y = -h + 24; y < -150; y += 2) checker(g, x + (y + h) * 0.25, y, 10, 2, 'rgba(255, 240, 200, 0.18)', 0, 1); }
 };
