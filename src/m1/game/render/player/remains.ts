@@ -3,6 +3,7 @@
 // abs still showing), his ribs, a rope of gut, his head on top (X'd out, tongue out), and on the very top of the heap,
 // his dick and balls. All of it brown with what did it, and red, and steaming. World space.
 
+import { glassesOn } from './body';
 import { skinTone, skinShadow, skinHighlight, bootColor, bootToe } from './body';
 
 type Ctx = CanvasRenderingContext2D;
@@ -79,6 +80,17 @@ const head = (c: Ctx) => {
   c.strokeStyle = INK; c.lineWidth = 1.2;
   for (const ex of [-4, 3]) { c.beginPath(); c.moveTo(ex - 1.8, -3); c.lineTo(ex + 1.8, 0.5); c.moveTo(ex + 1.8, -3); c.lineTo(ex - 1.8, 0.5); c.stroke(); }
   c.fillStyle = INK; c.fillRect(-4, 3, 8, 3); c.fillStyle = '#E36A7A'; c.fillRect(1, 4, 3, 4); c.fillStyle = '#B8455A'; c.fillRect(2, 5, 1, 2);
+  if (glassesOn()) {
+    // (Meathead 2's glasses, still on him, blown crooked: the lenses webbed, the bridge snapped)
+    c.save(); c.rotate(0.15);
+    for (const ex of [-4, 3]) {
+      c.fillStyle = 'rgba(190, 220, 248, 0.24)'; c.fillRect(ex - 2.6, -3.4, 5.2, 4.2);
+      c.strokeStyle = 'rgba(244, 250, 255, 0.9)'; c.lineWidth = 0.5; c.beginPath(); c.moveTo(ex - 2, -2.6); c.lineTo(ex, -1); c.lineTo(ex + 2, -3); c.moveTo(ex, -1); c.lineTo(ex + 0.6, 0.6); c.stroke();
+      c.strokeStyle = INK; c.lineWidth = 1.3; c.strokeRect(ex - 3, -4, 6, 5);
+    }
+    c.fillStyle = INK; c.fillRect(-9.5, -3, 3, 1.2);
+    c.restore();
+  }
   c.fillStyle = BLOOD; c.beginPath(); c.moveTo(-6, 9); c.lineTo(-3, 11); c.lineTo(0, 9); c.lineTo(3, 11); c.lineTo(6, 9); c.fill();
 };
 const dick = (c: Ctx) => {

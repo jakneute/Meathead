@@ -311,6 +311,15 @@ const paintHead = (g: Ctx, F: Fig, f: number) => {
     for (let x = -10; x < 10; x += 2) box(g, x, -20, 1, 1, MHAIR[3]);
     box(g, -12, -11, 3, 8, INK); box(g, -11, -10, 2, 6, MHAIR[1]);
     box(g, -4, -8, 1, 1, '#B04A3A'); box(g, -3, -7, 1, 2, '#B04A3A'); box(g, -4, -5, 1, 1, '#B04A3A');
+    // (his glasses: the arm back to his ear, the two thick rims round his eyes, the brow bar heavier, the bridge; the
+    // glass a cold tint with a glint)
+    box(g, -9, ey - 2, 9, 2, INK); box(g, -8, ey - 2, 6, 1, '#3F3F46');
+    for (const [rx, rw] of [[-1, 6], [5, 8]] as const) {
+      g.fillStyle = 'rgba(190, 220, 248, 0.24)'; g.fillRect(rx + 1, ey - 2, rw - 2, 4);
+      box(g, rx + 1, ey - 1, 1, 1, '#F8FAFC');
+      box(g, rx, ey - 4, rw, 2, INK); box(g, rx, ey - 2, 1, 5, INK); box(g, rx + rw - 1, ey - 2, 1, 5, INK); box(g, rx, ey + 2, rw, 1, INK);
+      box(g, rx + 1, ey - 4, rw - 3, 1, '#52525B');
+    }
   } else paintHat(g, who.L, f);
   if (F.squash && F.squash !== 1) g.restore();
 };

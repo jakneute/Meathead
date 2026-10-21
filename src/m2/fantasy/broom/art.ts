@@ -119,6 +119,8 @@ export const drawMeatheadBroom = (c: Ctx, x: number, y: number, k: number, L: Mh
   box(c, -6.4, top + ft - 1, 12.8, 1, HAIR[3]); box(c, -6.4, top, 2, ft, HAIR[3]); box(c, 4.4, top, 2, ft, HAIR[1]);
   for (let i = 0; i < 3; i++) box(c, -3 + i * 2.6, top + 1 + (i % 2), 1, 1, HAIR[3]);
   box(c, -5, hairB - 0.5, 10, 1, HAIR[0]);
+  // (his glasses from behind: the arms over the tops of his ears)
+  for (const d of [-1, 1]) { box(c, d < 0 ? -10.6 : 7, hy - 1, 3.6, 1.2, INK); box(c, d < 0 ? -10.6 : 9.6, hy - 0.2, 1, 2.4, INK); box(c, d < 0 ? -10 : 7.6, hy - 1, 2, 0.4, '#52525B'); }
   // (boosting, the wind whipping tufts off the sides)
   if (L.boost) for (let i = 0; i < 3; i++) { box(c, -8 - i * 2, hy - 6 + i * 3 - ((L.f + i * 3) % 3), 2 + (i % 2), 1, HAIR[2]); box(c, 7 + i * 2, hy - 6 + i * 3 - ((L.f + i * 5) % 3), 2, 1, HAIR[2]); }
   // HIS BACK, hunched over the shaft: the lats flaring out to his shoulders, the spine's groove, the shoulder blades,

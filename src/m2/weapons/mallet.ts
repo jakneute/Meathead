@@ -556,6 +556,10 @@ const drawTornado = (c: Ctx, x: number, y: number, f: number) => {
   const hx = x + Math.sin(f * 0.7) * 14;
   c.fillStyle = INK; c.beginPath(); c.arc(hx, y - 104, 10, 0, Math.PI * 2); c.fill(); c.fillStyle = '#F2C29B'; c.beginPath(); c.arc(hx, y - 104, 9, 0, Math.PI * 2); c.fill();
   c.fillStyle = '#18181B'; c.fillRect(hx - 8, y - 114, 16, 4);
+  // (his glasses, going round with him: the two rims, the bridge, a glint)
+  c.fillStyle = 'rgba(190, 220, 248, 0.3)'; c.fillRect(hx - 7, y - 107, 6, 4); c.fillRect(hx + 1, y - 107, 6, 4);
+  c.strokeStyle = '#09090B'; c.lineWidth = 1.4; c.strokeRect(hx - 7, y - 107, 6, 4); c.strokeRect(hx + 1, y - 107, 6, 4);
+  c.fillStyle = '#09090B'; c.fillRect(hx - 1, y - 106, 2, 1); c.fillStyle = '#F8FAFC'; c.fillRect(hx - 6, y - 106, 1, 1); c.fillRect(hx + 2, y - 106, 1, 1);
   // (the mallet, whipping round)
   const a = f * 0.55, mx = x + Math.cos(a) * 46, my = y - 54 + Math.sin(a) * 10;
   c.save(); c.translate(x, y - 54); c.rotate(Math.cos(a) > 0 ? 0 : Math.PI); c.scale(1, 0.6 + 0.4 * Math.abs(Math.cos(a))); c.restore();

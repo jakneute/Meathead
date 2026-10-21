@@ -39,6 +39,8 @@ const tumbler = (c: Ctx, x: number, y: number, rot: number, seed: number, him: b
   box(c, -4, 6, 3, 8, him ? '#1E3A8A' : L!.pants); box(c, 1, 6, 3, 8, him ? '#1E3A8A' : L!.pants);
   box(c, -9, -6, 4, 9, him ? '#F1C9A5' : L!.skin); box(c, 5, -6, 4, 9, him ? '#F1C9A5' : L!.skin);
   box(c, -5, -17, 10, 9, him ? '#F1C9A5' : L!.skin); box(c, -5, -18, 10, 3, him ? '#3F2A1A' : L!.hair);
+  // (his glasses: a black bar across his eyes at this size, a glint)
+  if (him) { box(c, -5, -14, 10, 2, '#09090B'); box(c, -4, -14, 1, 1, '#F8FAFC'); box(c, 1, -14, 1, 1, '#F8FAFC'); }
   c.restore();
 };
 /** A star sled from way off, tumbling (in bits, `wreck`). */

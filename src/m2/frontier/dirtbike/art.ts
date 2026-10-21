@@ -1005,6 +1005,9 @@ const mhHead = (c: Ctx, turn: number, sd: number, blood: number, fq: number) => 
     box(c, -9, -98, 18, 10, HAIR); box(c, -10, -100, 20, 4, HAIR); box(c, -10, -100, 20, 1, '#52525B'); box(c, -8, -99, 8, 1, '#3F3F46');
     for (let x = -8; x < 9; x += 2) box(c, x, -88, 1, 2, '#2A2A30');
     box(c, -9, -90, 18, 1, '#27272A');
+    // (his glasses from behind: the arms over the tops of his ears, hooked down behind them)
+    box(c, -13, -89, 4, 1.4, INK); box(c, -13, -88, 1, 3, INK); box(c, 9, -89, 4, 1.4, INK); box(c, 12, -88, 1, 3, INK);
+    box(c, -12, -89, 2, 0.5, '#52525B'); box(c, 10, -89, 2, 0.5, '#52525B');
   } else {
     c.save(); c.translate(sd * 2, 0); c.scale(sd, 1);
     // (the skull side on, the face to +x; the ear back toward us, the flat-top over it)
@@ -1022,6 +1025,14 @@ const mhHead = (c: Ctx, turn: number, sd: number, blood: number, fq: number) => 
     box(c, 7.5, -85, 0.6, 3, '#9CA3AF'); box(c, 9.8, -85, 0.6, 3, '#9CA3AF');
     box(c, 12, -85.5, 1.4, 3.8, '#7F1D1D');
     if (blood > 0.5) box(c, 11, -87, 1.6, 4 + (fq % 3), '#B91C1C');
+    // (his glasses side on: the arm back to his ear, the thick rim round the eye, the brow bar heavier, the glass tinted;
+    // cracked as he's beaten up, the way the game's are)
+    box(c, -7, -91.2, 11, 1.4, INK); box(c, -6, -91.2, 8, 0.5, '#3F3F46');
+    c.fillStyle = 'rgba(190, 220, 248, 0.24)'; c.fillRect(5, -91, 6, 3);
+    box(c, 4, -92.6, 8, 1.8, INK); box(c, 4, -91, 1.2, 4, INK); box(c, 10.8, -91, 1.2, 4, INK); box(c, 4, -88, 8, 1, INK);
+    box(c, 5, -92.4, 5, 0.5, '#52525B'); box(c, 5.4, -90.6, 0.8, 0.8, '#F8FAFC');
+    if (blood >= 0.45) line(c, 'rgba(244, 250, 255, 0.9)', 0.5, [5.4, -90.8, 7.6, -89.8, 8.4, -90.4, 10.6, -88.4]);
+    if (blood >= 0.85) { line(c, 'rgba(244, 250, 255, 0.9)', 0.5, [7.6, -89.8, 7.2, -88.2]); box(c, 3.4, -91.6, 1.6, 2, '#E7E5E4'); }
     c.restore();
   }
   // (beaten up: a gash in the scalp, blood down the back of his neck; dripping off his ear at the worst)
@@ -1144,6 +1155,11 @@ export const drawMhTumble = (c: Ctx, x: number, y: number, s: number, rot: numbe
     line(g, SK[2], 6, [-12, -12, -24, -22]); line(g, SK[2], 6, [12, -12, 24, -4]); line(g, SK[4], 2, [-12, -13, -23, -23]);
     box(g, -8, -33, 16, 17, SK[3]); box(g, -8, -33, 4, 17, SK[4]); box(g, -9, -35, 18, 6, HAIR); box(g, -9, -35, 18, 1, '#52525B');
     box(g, -4, -25, 3, 2, INK); box(g, 2, -25, 3, 2, INK); box(g, -3, -21, 7, 3, '#5A0A0A'); box(g, -2, -21, 5, 1, '#F4F4F4');
+    // (his glasses, knocked crooked on the way down: the rims round his eyes, the bridge, a streak on the glass)
+    g.save(); g.translate(0, -24.5); g.rotate(0.18);
+    for (const rx of [-6, 1]) { box(g, rx, -3, 6, 1.6, INK); box(g, rx, -1.4, 1, 3.4, INK); box(g, rx + 5, -1.4, 1, 3.4, INK); box(g, rx, 2, 6, 1, INK); box(g, rx + 1, -1, 1, 1, '#F8FAFC'); }
+    box(g, 0, -1, 1, 1, INK); box(g, -9, -2, 3, 1, INK); box(g, 7, -2, 2, 1, INK);
+    g.restore();
   });
   blit(c, sp, x, y, s);
 };

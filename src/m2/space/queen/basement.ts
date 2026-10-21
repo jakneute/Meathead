@@ -885,6 +885,16 @@ const drawHead = (c: Ctx, x: number, y: number, r: number, dir: 1 | -1) => {
   box(c, -8, -5, 7, 2, '#18181B'); box(c, 2, -5, 7, 2, '#18181B');
   for (const ex of [-6, 4]) { box(c, ex, -2, 1, 1, '#18181B'); box(c, ex + 2, -2, 1, 1, '#18181B'); box(c, ex + 1, -1, 1, 1, '#18181B'); box(c, ex, 0, 1, 1, '#18181B'); box(c, ex + 2, 0, 1, 1, '#18181B'); }
   box(c, -4, 4, 9, 4, '#450A0A'); box(c, -2, 7, 4, 2, '#F472B6');
+  // (his glasses, still on, smashed: knocked crooked, the lenses webbed with cracks, one rim snapped open)
+  c.save(); c.rotate(-0.12);
+  for (const rx of [-9, 1]) {
+    c.fillStyle = 'rgba(190, 220, 248, 0.24)'; c.fillRect(rx + 1, -3, 7, 4);
+    c.strokeStyle = 'rgba(244, 250, 255, 0.9)'; c.lineWidth = 0.6; c.beginPath(); c.moveTo(rx + 2, -2); c.lineTo(rx + 4, 0); c.lineTo(rx + 7, -3); c.moveTo(rx + 4, 0); c.lineTo(rx + 5, 1); c.stroke();
+    box(c, rx, -5, 9, 2, '#09090B'); box(c, rx, -3, 1, 5, '#09090B'); if (rx < 0) box(c, rx + 8, -3, 1, 5, '#09090B'); box(c, rx, 1, rx < 0 ? 9 : 6, 1, '#09090B');
+    box(c, rx + 1, -5, 5, 1, '#52525B');
+  }
+  box(c, -12, -4, 3, 1, '#09090B'); box(c, 10, -4, 3, 1, '#09090B');
+  c.restore();
   // (the neck end: ragged, red, a bit of spine)
   box(c, -8, 10, 16, 4, '#991B1B'); box(c, -6, 13, 4, 3, '#7F1D1D'); box(c, 2, 13, 5, 2, '#7F1D1D'); box(c, -1, 11, 3, 4, '#F5F5F4');
   c.restore();
