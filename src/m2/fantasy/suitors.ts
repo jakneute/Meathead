@@ -72,17 +72,45 @@ const blob = (c: Ctx, x: number, y: number, rx: number, ry: number, col: string,
   c.fillStyle = col; c.beginPath(); c.ellipse(x - rx * 0.12, y - ry * 0.12, rx * 0.86, ry * 0.86, 0, 0, Math.PI * 2); c.fill();
   if (rx > 3) { c.fillStyle = liteOf(col, 0.3); c.beginPath(); c.ellipse(x - rx * 0.38, y - ry * 0.38, rx * 0.32, ry * 0.26, 0, 0, Math.PI * 2); c.fill(); }
 };
-const limb = (c: Ctx, x1: number, y1: number, x2: number, y2: number, w: number, col: string, lit?: string) => {
-  const dx = x2 - x1, dy = y2 - y1, d = Math.hypot(dx, dy) || 1;
-  let nx = -dy / d, ny = dx / d;
-  if (nx < -0.01 || (Math.abs(nx) <= 0.01 && ny < 0)) { nx = -nx; ny = -ny; }
-  c.lineCap = 'round';
-  c.strokeStyle = INK; c.lineWidth = w + 2; c.beginPath(); c.moveTo(x1, y1); c.lineTo(x2, y2); c.stroke();
-  c.strokeStyle = col; c.lineWidth = w; c.beginPath(); c.moveTo(x1, y1); c.lineTo(x2, y2); c.stroke();
+/** A jointed limb (shoulder, elbow, wrist; hip, knee, ankle): inked round as ONE piece (so no ink cuts across a joint),
+ *  each bone in its steps, the crook of each bend creased and its point lit. */
+const chain = (c: Ctx, pts: [number, number][], ws: number[], col: string, lit?: string) => {
+  const n = pts.length - 1;
+  c.lineCap = 'round'; c.strokeStyle = INK;
+  for (let i = 0; i < n; i++) { c.lineWidth = ws[i] + 2; c.beginPath(); c.moveTo(pts[i][0], pts[i][1]); c.lineTo(pts[i + 1][0], pts[i + 1][1]); c.stroke(); }
+  c.strokeStyle = col;
+  for (let i = 0; i < n; i++) { c.lineWidth = ws[i]; c.beginPath(); c.moveTo(pts[i][0], pts[i][1]); c.lineTo(pts[i + 1][0], pts[i + 1][1]); c.stroke(); }
   c.lineCap = 'butt';
-  const o = w * 0.3;
-  c.strokeStyle = shadeOf(col, 0.26); c.lineWidth = w * 0.36; c.beginPath(); c.moveTo(x1 + nx * o, y1 + ny * o); c.lineTo(x2 + nx * o, y2 + ny * o); c.stroke();
-  c.strokeStyle = lit ?? liteOf(col, 0.22); c.lineWidth = Math.max(1, w * 0.22); c.beginPath(); c.moveTo(x1 - nx * o, y1 - ny * o); c.lineTo(x2 - nx * o, y2 - ny * o); c.stroke();
+  for (let i = 0; i < n; i++) {
+    const [x1, y1] = pts[i], [x2, y2] = pts[i + 1], w = ws[i], dx = x2 - x1, dy = y2 - y1, d = Math.hypot(dx, dy) || 1;
+    let nx = -dy / d, ny = dx / d;
+    if (nx < -0.01 || (Math.abs(nx) <= 0.01 && ny < 0)) { nx = -nx; ny = -ny; }
+    const o = w * 0.3, a = Math.min(0.3, (w * 0.42) / d), b = 1 - a;
+    const ax = x1 + dx * a, ay = y1 + dy * a, bx = x1 + dx * b, by = y1 + dy * b;
+    c.strokeStyle = shadeOf(col, 0.26); c.lineWidth = w * 0.36; c.beginPath(); c.moveTo(ax + nx * o, ay + ny * o); c.lineTo(bx + nx * o, by + ny * o); c.stroke();
+    c.strokeStyle = lit ?? liteOf(col, 0.22); c.lineWidth = Math.max(1, w * 0.22); c.beginPath(); c.moveTo(ax - nx * o, ay - ny * o); c.lineTo(bx - nx * o, by - ny * o); c.stroke();
+  }
+  for (let i = 1; i < n; i++) {
+    const [jx, jy] = pts[i], mx = (pts[i - 1][0] + pts[i + 1][0]) / 2 - jx, my = (pts[i - 1][1] + pts[i + 1][1]) / 2 - jy, md = Math.hypot(mx, my);
+    if (md < 1) continue;
+    const ux = mx / md, uy = my / md, w = Math.min(ws[i - 1], ws[i]);
+    // (the crease in the crook: a short dark tick across it; the point of the bend lit)
+    c.strokeStyle = shadeOf(col, 0.45); c.lineWidth = 1; c.beginPath();
+    c.moveTo(jx + ux * w * 0.15 - uy * w * 0.22, jy + uy * w * 0.15 + ux * w * 0.22); c.lineTo(jx + ux * w * 0.42, jy + uy * w * 0.42); c.stroke();
+    box(c, jx - ux * w * 0.32 - 0.5, jy - uy * w * 0.32 - 0.5, 1, 1, liteOf(col, 0.35));
+  }
+};
+/** The elbow between a shoulder and a hand, the arm's bones a set length (longer only reaching), bent toward (ox, oy). */
+const elbowOf = (sx: number, sy: number, hx: number, hy: number, ox: number, oy: number): [number, number] => {
+  const dx = hx - sx, dy = hy - sy, d = Math.hypot(dx, dy) || 1, L = Math.max(16, (d / 2) * 1.03);
+  const h = Math.sqrt(Math.max(0, L * L - (d / 2) * (d / 2)));
+  let nx = -dy / d, ny = dx / d; if (nx * ox + ny * oy < 0) { nx = -nx; ny = -ny; }
+  return [(sx + hx) / 2 + nx * h, (sy + hy) / 2 + ny * h];
+};
+/** A shoulder: the round deltoid cap over the arm's root, rounding the torso's corner off into the arm. */
+const deltoid = (c: Ctx, x: number, y: number, side: number, col: string, r = 8) => {
+  blob(c, x, y, r, r * 0.86, col);
+  box(c, x - side * 1 - 2, y + r * 0.55, 5, 1, shadeOf(col, 0.4));
 };
 
 /**
@@ -102,17 +130,19 @@ export const drawSuitor = (c: Ctx, x: number, feetY: number, facing: 1 | -1, f: 
   if (pose === 'ride') {
     // (astride a broom (its shaft 6 under his hips): knees bent forward, boots tucked back toward the bristles; the
     // far leg in shadow; his upper body leaned forward over the shaft, both fists on it ahead: see below)
-    limb(c, -4, hipY, 8, hipY + 13, 11, sd); limb(c, 8, hipY + 13, -7, hipY + 27, 10, sd);
-    limb(c, 2, hipY, 14, hipY + 14, 12, legCol); limb(c, 14, hipY + 14, -1, hipY + 30, 11, legCol);
+    chain(c, [[-4, hipY], [8, hipY + 13], [-7, hipY + 27]], [11, 10], sd);
+    chain(c, [[2, hipY], [14, hipY + 14], [-1, hipY + 30]], [12, 11], legCol);
     box(c, -10, hipY + 26, 13, 6, INK); box(c, -9, hipY + 27, 11, 5, L.kit === 'viking' ? '#6A4A2A' : L.kit === 'prince' ? '#F4F4F5' : '#3A2A1A');
     c.translate(0, hipY); c.rotate(0.2); c.translate(0, -hipY);
   } else if (pose !== 'sit' && !sp) {
-    limb(c, -7, hipY, -10, -4, 11, legCol); limb(c, 7, hipY, 10, -4, 12, legCol, L.kit === 'cape' ? sl : undefined);
+    // (hip, knee (a touch forward), ankle into the boot)
+    chain(c, [[-7, hipY], [-7.5, (hipY - 4) / 2 + 1], [-10, -4]], [11, 10], shadeOf(legCol, 0.14));
+    chain(c, [[7, hipY], [9.5, (hipY - 4) / 2 + 1], [10, -4]], [12, 11], legCol, L.kit === 'cape' ? sl : undefined);
     for (const fx of [-10, 10]) { box(c, fx - 6, -6, 14, 6, INK); box(c, fx - 5, -5, 12, 5, L.kit === 'viking' ? '#6A4A2A' : L.kit === 'prince' ? '#F4F4F5' : '#3A2A1A'); }
     if (L.kit === 'viking') for (const fx of [-10, 10]) for (let y = -30; y < -8; y += 5) box(c, fx - 6, y, 12, 2, '#8A7A60');
   } else {
     // (sat: thighs out in front on the bench, shins down)
-    limb(c, -4, hipY, 14, hipY + 2, 12, legCol); limb(c, 14, hipY + 2, 16, -4, 11, legCol);
+    chain(c, [[-4, hipY], [14, hipY + 2], [16, -4]], [12, 11], legCol);
     box(c, 10, -6, 14, 6, INK); box(c, 11, -5, 12, 5, '#3A2A1A');
   }
   // (slumped: the whole of him above the hips tipped over about them, his weight gone out of it)
@@ -142,10 +172,10 @@ export const drawSuitor = (c: Ctx, x: number, feetY: number, facing: 1 | -1, f: 
   const farHand: [number, number] = pose === 'ride' ? [32, hipY - 3] : flexing ? [-26, shY - 18] : throwing ? [-30, shY - 14] : [-22, hipY - 4];
   if (sp) {
     const [el, hd] = hang(-16, shY + 6, sp.arm ?? 30);
-    limb(c, -16, shY + 6, el[0], el[1], 12, sd); limb(c, el[0], el[1], hd[0], hd[1], 11, sd); blob(c, hd[0], hd[1], 5, 5, sd);
+    chain(c, [[-16, shY + 6], el, hd], [12, 11], sd); blob(c, hd[0], hd[1], 5, 5, sd);
   } else {
-    limb(c, -16, shY + 6, (-16 + farHand[0]) / 2 - 4, (shY + 6 + farHand[1]) / 2 + (flexing ? 4 : 0), 12, sd);
-    limb(c, (-16 + farHand[0]) / 2 - 4, (shY + 6 + farHand[1]) / 2 + (flexing ? 4 : 0), farHand[0], farHand[1], 11, sd);
+    const fe = flexing ? [-28, shY + 4] as [number, number] : elbowOf(-16, shY + 6, farHand[0], farHand[1], -1, 0.7);
+    chain(c, [[-16, shY + 6], fe, farHand], [12, 11], sd);
     blob(c, farHand[0], farHand[1], 5, 5, sd);
   }
   // THE CAPE (behind his torso, down his back)
@@ -155,10 +185,10 @@ export const drawSuitor = (c: Ctx, x: number, feetY: number, facing: 1 | -1, f: 
     c.strokeStyle = liteOf(L.main, 0.25); c.lineWidth = 1; c.beginPath(); c.moveTo(-15, shY + 4); c.lineTo(-24, -13); c.stroke();
     c.strokeStyle = L.trim; c.beginPath(); c.moveTo(-28, -12); c.lineTo(-5, -17); c.stroke(); }
   // THE TORSO: a V of shoulders, pecs, abs (or the gut)
-  c.fillStyle = INK; c.beginPath(); c.moveTo(-25, shY - 1); c.lineTo(25, shY - 1); c.quadraticCurveTo(21 + gut * 8, (shY + hipY) / 2 + 4, 14 + gut * 4, hipY + 1); c.lineTo(-14 - gut * 2, hipY + 1); c.quadraticCurveTo(-21, (shY + hipY) / 2, -25, shY - 1); c.closePath(); c.fill();
-  c.fillStyle = sb; c.beginPath(); c.moveTo(-24, shY); c.lineTo(24, shY); c.quadraticCurveTo(20 + gut * 8, (shY + hipY) / 2 + 4, 13 + gut * 4, hipY); c.lineTo(-13 - gut * 2, hipY); c.quadraticCurveTo(-20, (shY + hipY) / 2, -24, shY); c.closePath(); c.fill();
+  c.fillStyle = INK; c.beginPath(); c.moveTo(-25, shY + 6); c.quadraticCurveTo(-25, shY - 1, -18, shY - 1); c.lineTo(18, shY - 1); c.quadraticCurveTo(25, shY - 1, 25, shY + 6); c.quadraticCurveTo(21 + gut * 8, (shY + hipY) / 2 + 4, 14 + gut * 4, hipY + 1); c.lineTo(-14 - gut * 2, hipY + 1); c.quadraticCurveTo(-21, (shY + hipY) / 2, -25, shY + 6); c.closePath(); c.fill();
+  c.fillStyle = sb; c.beginPath(); c.moveTo(-24, shY + 6); c.quadraticCurveTo(-24, shY, -18, shY); c.lineTo(18, shY); c.quadraticCurveTo(24, shY, 24, shY + 6); c.quadraticCurveTo(20 + gut * 8, (shY + hipY) / 2 + 4, 13 + gut * 4, hipY); c.lineTo(-13 - gut * 2, hipY); c.quadraticCurveTo(-20, (shY + hipY) / 2, -24, shY + 6); c.closePath(); c.fill();
   // (the torso in steps: lit down the left, shaded down the right and under the pecs, dithered where they meet)
-  c.save(); c.beginPath(); c.moveTo(-24, shY); c.lineTo(24, shY); c.quadraticCurveTo(20 + gut * 8, (shY + hipY) / 2 + 4, 13 + gut * 4, hipY); c.lineTo(-13 - gut * 2, hipY); c.quadraticCurveTo(-20, (shY + hipY) / 2, -24, shY); c.closePath(); c.clip();
+  c.save(); c.beginPath(); c.moveTo(-24, shY + 6); c.quadraticCurveTo(-24, shY, -18, shY); c.lineTo(18, shY); c.quadraticCurveTo(24, shY, 24, shY + 6); c.quadraticCurveTo(20 + gut * 8, (shY + hipY) / 2 + 4, 13 + gut * 4, hipY); c.lineTo(-13 - gut * 2, hipY); c.quadraticCurveTo(-20, (shY + hipY) / 2, -24, shY + 6); c.closePath(); c.clip();
   box(c, 12, shY, 16, hipY - shY, sd); box(c, 18, shY, 12, hipY - shY, shadeOf(sd, 0.2));
   for (let y = Math.floor(shY); y < hipY; y += 2) { box(c, 11, y, 1, 1, sd); box(c, 17, y + 1, 1, 1, shadeOf(sd, 0.2)); box(c, -15, y, 1, 1, sl); }
   box(c, -24, hipY - 5, 48, 5, sd);
@@ -200,6 +230,8 @@ export const drawSuitor = (c: Ctx, x: number, feetY: number, facing: 1 | -1, f: 
     c.fillStyle = L.main; c.beginPath(); c.moveTo(-20, shY + 1); c.lineTo(-6, shY + 1); c.lineTo(0, shY + 14); c.lineTo(6, shY + 1); c.lineTo(20, shY + 1); c.lineTo(15, hipY); c.lineTo(-15, hipY); c.closePath(); c.fill();
     box(c, -15, hipY - 6, 30, 3, '#D8C890');
   }
+  // (the far shoulder's cap over the torso's corner, in its shade)
+  deltoid(c, -19, shY + 5, -1, L.kit === 'knight' ? '#6A6A74' : sd, 7);
   // THE HEAD: a thick neck, a square jaw (slumped: lolled over on the neck, dropped a little)
   c.save();
   if (sp) { c.translate(0, shY - 2); c.rotate(sp.loll); c.translate(0, -(shY - 2) + 3); }
@@ -264,15 +296,16 @@ export const drawSuitor = (c: Ctx, x: number, feetY: number, facing: 1 | -1, f: 
   // THE NEAR ARM: a bicep the size of his head
   if (sp) {
     const [el, hd] = hang(16, shY + 6, sp.arm ?? 30);
-    limb(c, 16, shY + 6, el[0], el[1], 13, sb, sl); limb(c, el[0], el[1], hd[0], hd[1], 11, sb, sl); blob(c, hd[0], hd[1], 5.5, 5.5, sb);
+    chain(c, [[16, shY + 6], el, hd], [13, 11], sb, sl); blob(c, hd[0], hd[1], 5.5, 5.5, sb);
+    deltoid(c, 18, shY + 5, 1, L.kit === 'knight' ? '#8A8A94' : sb);
     c.restore();
     return;
   }
   const nearHand: [number, number] = pose === 'ride' ? [26, hipY - 2] : flexing ? [24, shY - 20] : throwing ? [30, shY - 30 + (Math.floor(f / 6) % 2) * 8] : pose === 'point' ? [36, shY + 2] : pose === 'talk' ? [24, shY + 8 + (Math.floor(f / 8) % 2) * 3] : [20, hipY - 4];
-  const ex = flexing ? 28 : (16 + nearHand[0]) / 2 + 4, ey = flexing ? shY + 4 : (shY + 6 + nearHand[1]) / 2 + 2;
-  limb(c, 16, shY + 6, ex, ey, 13, sb, sl);
-  limb(c, ex, ey, nearHand[0], nearHand[1], 11, sb, sl);
+  const [ex, ey] = flexing ? [28, shY + 4] : elbowOf(16, shY + 6, nearHand[0], nearHand[1], 1, 0.7);
+  chain(c, [[16, shY + 6], [ex, ey], nearHand], [13, 11], sb, sl);
   if (flexing) blob(c, 24, shY - 4, 8, 7, sb);
+  deltoid(c, 18, shY + 5, 1, L.kit === 'knight' ? '#8A8A94' : sb);
   blob(c, nearHand[0], nearHand[1], 5.5, 5.5, sb);
   if (pose === 'point') box(c, nearHand[0] + 4, nearHand[1] - 1, 7, 3, sb);
   c.restore();

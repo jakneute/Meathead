@@ -125,7 +125,7 @@ const shape = (c: Ctx, path: () => void, r: Ramp, x0: number, x1: number, lw = 1
   c.fillStyle = dith(c, r[3]); c.fillRect(x0 + w * 0.8, -999, Math.max(1, w * 0.06), 1998);
   c.fillStyle = r[3]; c.fillRect(x0 + w * 0.86, -999, w + 4, 1998);
   c.restore();
-  c.beginPath(); path(); c.strokeStyle = r[4]; c.lineWidth = lw; c.lineJoin = 'round'; c.stroke();
+  if (lw > 0) { c.beginPath(); path(); c.strokeStyle = r[4]; c.lineWidth = lw; c.lineJoin = 'round'; c.stroke(); }
 };
 /** A shape lit from above (a roll of belly, a chin): lit across its top, shaded across its bottom. */
 const shapeTop = (c: Ctx, path: () => void, r: Ramp, y0: number, y1: number, lw = 1) => {
@@ -138,7 +138,7 @@ const shapeTop = (c: Ctx, path: () => void, r: Ramp, y0: number, y1: number, lw 
   c.fillStyle = r[2]; c.fillRect(-999, y0 + h * 0.68, 1998, h + 4);
   c.fillStyle = r[3]; c.fillRect(-999, y0 + h * 0.88, 1998, h + 4);
   c.restore();
-  c.beginPath(); path(); c.strokeStyle = r[4]; c.lineWidth = lw; c.lineJoin = 'round'; c.stroke();
+  if (lw > 0) { c.beginPath(); path(); c.strokeStyle = r[4]; c.lineWidth = lw; c.lineJoin = 'round'; c.stroke(); }
 };
 const fill = (c: Ctx, color: string | CanvasPattern, path: () => void) => { c.fillStyle = color; c.beginPath(); path(); c.fill(); };
 const ell = (c: Ctx, x: number, y: number, rx: number, ry: number, color: string | CanvasPattern, rot = 0) => fill(c, color, () => c.ellipse(x, y, Math.max(0.01, rx), Math.max(0.01, ry), rot, 0, Math.PI * 2));
@@ -151,18 +151,38 @@ const line = (c: Ctx, pts: number[], w: number, color: string, cap: CanvasLineCa
 };
 /** A fat limb (an upper arm with its own wing of flab, a calf): a tapered tube from (x1, y1) r1 to (x2, y2) r2, in its
  *  ramp, `sag` the flab hanging off its underside. */
-const fatLimb = (c: Ctx, x1: number, y1: number, r1: number, x2: number, y2: number, r2: number, r: Ramp, sag = 0) => {
-  const dx = x2 - x1, dy = y2 - y1, d = Math.hypot(dx, dy) || 1, nx = -dy / d, ny = dx / d;
-  const s = ny > 0 ? 1 : -1;
-  const path = () => {
-    c.moveTo(x1 + nx * r1, y1 + ny * r1);
-    c.lineTo(x2 + nx * r2, y2 + ny * r2);
-    c.arc(x2, y2, r2, Math.atan2(ny, nx), Math.atan2(-ny, -nx));
-    c.quadraticCurveTo((x1 + x2) / 2 - nx * (r1 + sag) * s, (y1 + y2) / 2 - ny * (r1 + sag) * s + sag, x1 - nx * r1, y1 - ny * r1);
-    c.arc(x1, y1, r1, Math.atan2(-ny, -nx), Math.atan2(ny, nx));
+const limbPath = (c: Ctx, x1: number, y1: number, r1: number, x2: number, y2: number, r2: number, sag = 0) => {
+  const dx = x2 - x1, dy = y2 - y1, d = Math.hypot(dx, dy) || 1, ux = dx / d, uy = dy / d;
+  // (the side facing down: the flab hangs off that one, whichever way the limb points)
+  let nx = -uy, ny = ux;
+  if (ny < 0 || (ny === 0 && nx < 0)) { nx = -nx; ny = -ny; }
+  const upA = Math.atan2(-ny, -nx), dnA = Math.atan2(ny, nx);
+  // (round the far end from the up side to the down side through the limb's direction: which way the sweep goes)
+  const ccw = !(ny * ux - nx * uy > 0);
+  return () => {
+    c.moveTo(x1 - nx * r1, y1 - ny * r1);
+    c.lineTo(x2 - nx * r2, y2 - ny * r2);
+    c.arc(x2, y2, r2, upA, dnA, ccw);
+    const rm = (r1 + r2) / 2;
+    c.quadraticCurveTo((x1 + x2) / 2 + nx * (rm + sag * 1.5), (y1 + y2) / 2 + ny * (rm + sag * 1.5), x1 + nx * r1, y1 + ny * r1);
+    c.arc(x1, y1, r1, dnA, upA, ccw);
+    c.closePath();
   };
-  shape(c, path, r, Math.min(x1, x2) - Math.max(r1, r2), Math.max(x1, x2) + Math.max(r1, r2));
-  return path;
+};
+/** Where the elbow (the knee) goes between a root and its end, `L1`, `L2` the two bones' lengths, bent the way that
+ *  scores best on (`ox`, `oy`) (out to the side, down): the arm stays one length whatever the hand does. */
+const joint = (sx: number, sy: number, hx: number, hy: number, L1: number, L2: number, ox: number, oy: number): [number, number] => {
+  const dx = hx - sx, dy = hy - sy, d = Math.hypot(dx, dy) || 1;
+  if (d >= L1 + L2 - 0.5) {
+    // (at full stretch: nearly straight, a hair of bend so the elbow still shows)
+    const t = L1 / (L1 + L2), px0 = -dy / d, py0 = dx / d, s = px0 * ox + py0 * oy >= 0 ? 1 : -1;
+    return [sx + dx * t + px0 * s * 2.5, sy + dy * t + py0 * s * 2.5];
+  }
+  const a = (L1 * L1 - L2 * L2 + d * d) / (2 * d), h = Math.sqrt(Math.max(0, L1 * L1 - a * a));
+  const mx = sx + (dx * a) / d, my = sy + (dy * a) / d, px0 = -dy / d, py0 = dx / d;
+  const e1: [number, number] = [mx + px0 * h, my + py0 * h], e2: [number, number] = [mx - px0 * h, my - py0 * h];
+  const sc = (e: [number, number]) => (e[0] - sx) * ox + (e[1] - sy) * oy;
+  return sc(e1) >= sc(e2) ? e1 : e2;
 };
 /** A star (the wand's, the glitter's). */
 const star = (c: Ctx, x: number, y: number, r: number, col: string, rot = 0) => fill(c, col, () => {
@@ -254,7 +274,16 @@ const head = (c: Ctx, hx: number, hy: number, face: PiperFace, f: number, talkin
   const sk = face === 'rage' ? RAGE : t2 > 0.3 ? GAUNT : SKIN;
   // (the chins: three rolls, under and round the jaw; leaked away one by one; a neck under them once they're gone)
   const chins = Math.round(3 * (1 - t1));
-  if (chins < 3) shape(c, () => c.rect(hx - 6 + t2 * 2, hy + 10, 12 - t2 * 4, 18), sk, hx - 6, hx + 6, 0.9);
+  if (chins < 3) {
+    // (the neck: flaring into her shoulders at its foot, inked down its sides only (no line across where it meets her),
+    // the tendons down it, the hollow of the throat)
+    const nw = 6 - t2 * 2, nb = nw + 4;
+    const neck = () => { c.moveTo(hx - nw, hy + 8); c.lineTo(hx + nw, hy + 8); c.lineTo(hx + nw, hy + 22); c.quadraticCurveTo(hx + nw, hy + 27, hx + nb + 2, hy + 29); c.lineTo(hx - nb - 2, hy + 29); c.quadraticCurveTo(hx - nw, hy + 27, hx - nw, hy + 22); c.closePath(); };
+    shape(c, neck, sk, hx - nb, hx + nb, 0);
+    line(c, [hx - nw, hy + 8, hx - nw, hy + 22], 0.9, sk[4]); line(c, [hx + nw, hy + 8, hx + nw, hy + 22], 0.9, sk[4]);
+    line(c, [hx - nw + 2, hy + 14, hx - 1, hy + 26], 0.5, sk[2]); line(c, [hx + nw - 2, hy + 14, hx + 1, hy + 26], 0.5, sk[2]);
+    ell(c, hx, hy + 26.5, 1.6, 1, sk[2]);
+  }
   for (let k = chins - 1; k >= 0; k--) {
     const chin = () => c.ellipse(hx + 2, hy + 12 + k * 6, 16 + k * 2, 7, 0, 0, Math.PI * 2);
     shapeTop(c, chin, sk, hy + 5 + k * 6, hy + 19 + k * 6, 0.9);
@@ -359,6 +388,7 @@ const head = (c: Ctx, hx: number, hy: number, face: PiperFace, f: number, talkin
 const body = (c: Ctx, j: number, f: number, thin = 0) => {
   if (thin > 0) { bodyThin(c, f, thin); return; }
   const jig = Math.sin(j * Math.PI * 6) * 2 * (1 - j);
+  yoke(c, SKIN, 1);
   // (the gown's hem, flaring a little at her shins)
   const path = () => {
     c.moveTo(-34, -18); c.quadraticCurveTo(-58 - jig, -50, -50, -82); c.quadraticCurveTo(-46, -106, -30, -114);
@@ -413,6 +443,16 @@ const body = (c: Ctx, j: number, f: number, thin = 0) => {
   for (const sx of [-24, 30]) { line(c, [sx - 2, -126, sx, -112], 0.6, SKIN[3]); line(c, [sx + 4, -126, sx + 4, -112], 0.6, SKIN[0]); line(c, [sx, -126, sx + 2, -112], 2, GOWN[2]); line(c, [sx - 0.6, -126, sx + 1.4, -112], 0.5, SATIN_HI); }
 };
 
+/** Her bare shoulders: the yoke of flesh from the base of her neck out to each arm (the gown's top cuts across it, the
+ *  arms' deltoids round off its ends), lit across the top. */
+const yoke = (c: Ctx, sk: Ramp, lw: number) => {
+  const p = () => { c.moveTo(-44, -102); c.quadraticCurveTo(-46, -118, -36, -122); c.quadraticCurveTo(-22, -128, -8, -129); c.lineTo(18, -129); c.quadraticCurveTo(34, -128, 44, -122); c.quadraticCurveTo(54, -117, 54, -102); c.closePath(); };
+  shapeTop(c, p, sk, -130, -104, lw);
+  // (the collarbones' shadow, the dip at the base of the throat)
+  line(c, [-30, -122, -14, -124, -2, -123], 0.6, sk[2]); line(c, [10, -123, 24, -124, 40, -121], 0.6, sk[2]);
+  overlay(c, p, STUBBLE(c), 0.3);
+};
+
 /** The body leaking down (`thin` 0..2): the gown taken in to her (the rolls going flat, the seams easing), a slim
  *  supermodel's at 1 (a waist, hips, the gown fitting her like it was cut for her); past it, the gown hanging off a
  *  frame of bones (the folds of empty satin, the ribs up her chest, the collarbones, the hip bones through it). */
@@ -420,6 +460,7 @@ const bodyThin = (c: Ctx, f: number, thin: number) => {
   const t1 = Math.min(1, thin), t2 = Math.max(0, Math.min(1, thin - 1));
   const bw = piperBodyW(thin), sk = t2 > 0.3 ? GAUNT : SKIN;
   c.save(); c.scale(bw, 1);
+  yoke(c, sk, 1 / bw);
   // (the gown: her shape scaled in; a waist pinched in as it goes; empty satin hanging off the bones past it)
   const waist = t1 * 12 * (1 - t2);
   const path = () => {
@@ -456,18 +497,58 @@ const bodyThin = (c: Ctx, f: number, thin: number) => {
 
 /** An arm: the upper arm fat with a wing hanging off it, the forearm, the hand (a fist, open, holding the wand, at the
  *  chin). From the shoulder (sx, sy) to the hand (hx, hy). */
-const armTo = (c: Ctx, sx: number, sy: number, hx: number, hy: number, near: boolean, hand: 'open' | 'fist' | 'wand' | 'clasp' | 'bonbon', f: number, enraged: boolean, thin = 0) => {
+const armTo = (c: Ctx, sx: number, sy: number, hx: number, hy: number, near: boolean, hand: 'open' | 'fist' | 'wand' | 'clasp' | 'bonbon', f: number, enraged: boolean, thin = 0, elb?: readonly [number, number]) => {
   const t1 = Math.min(1, Math.max(0, thin)), t2 = Math.max(0, Math.min(1, thin - 1));
   const sk = enraged ? RAGE : t2 > 0.3 ? GAUNT : SKIN, r = near ? sk : ([sk[1], sk[2], sk[3], sk[3], sk[4]] as const);
-  const ex = (sx + hx) / 2 + (near ? 6 : -6), ey = (sy + hy) / 2 + 10;
+  const o = near ? 1 : -1;
+  // (one arm, the same length whatever the hand's doing: the elbow found between, bent out and down)
+  const [ex, ey] = elb ?? joint(sx, sy, hx, hy, 27, 25, o, 0.8);
   const lf = 1 - 0.45 * t1 - 0.3 * t2;
-  const upper = fatLimb(c, sx, sy, 10 * lf, ex, ey, 8 * lf, r, 7 * (1 - t1));
-  // (the flab hanging off it dimpled with cellulite)
+  const rs = Math.max(3, 11.5 * lf), r1 = Math.max(2.6, 10 * lf), re = Math.max(2.4, 7.5 * lf), rw = Math.max(2, 5 * lf);
+  // (the deltoid: a round cap of shoulder over the top of the arm, joining it to her)
+  const dX = sx + o * 1.5, dY = sy + 1;
+  const delt = () => c.ellipse(dX, dY, rs * 1.12, rs, o * 0.35, 0, Math.PI * 2);
+  const upper = limbPath(c, sx + o * 1.5, sy + 3, r1, ex, ey, re, 7 * (1 - t1));
+  const elbow = () => c.arc(ex, ey, re + 0.4, 0, Math.PI * 2);
+  const fore = limbPath(c, ex, ey, re, hx, hy, rw, 2 * (1 - t1));
+  const x0 = Math.min(dX, ex, hx) - rs, x1 = Math.max(dX, ex, hx) + rs;
+  // (inked as one piece: the outline round the lot, then the lot filled over the inside seams)
+  c.strokeStyle = r[4]; c.lineWidth = 2.2; c.lineJoin = 'round';
+  for (const p of [upper, elbow, fore]) { c.beginPath(); p(); c.stroke(); }
+  for (const p of [upper, elbow, fore]) shape(c, p, r, x0, x1, 0);
+  // (the flab hanging off it dimpled with cellulite; stubble down the forearm)
   overlay(c, upper, CELLULITE(c), 1 - t1);
-  const fore = fatLimb(c, ex, ey, 8 * lf, hx, hy, Math.max(2, 5.5 * lf), r, 2 * (1 - t1));
   overlay(c, fore, STUBBLE(c), 0.35);
-  // (the elbow dimpled)
-  line(c, [ex - 1, ey + 1, ex + 1, ey + 2], 0.6, r[3]);
+  // (the elbow: the crease in the crook of it, the point of it catching the light, dimpled; the bones knobbing out
+  // when she's leaked down to them)
+  const mx0 = (sx + hx) / 2 - ex, my0 = (sy + hy) / 2 - ey, md = Math.hypot(mx0, my0) || 1, mux = mx0 / md, muy = my0 / md;
+  const ca = Math.atan2(-muy, -mux);
+  c.strokeStyle = r[3]; c.lineWidth = 0.8; c.beginPath(); c.arc(ex + mux * re * 1.25, ey + muy * re * 1.25, re * 0.75, ca - 0.7, ca + 0.7); c.stroke();
+  c.strokeStyle = r[4]; c.lineWidth = 0.5; c.beginPath(); c.arc(ex + mux * re * 1.25, ey + muy * re * 1.25, re * 0.75, ca - 0.3, ca + 0.3); c.stroke();
+  px(c, ex - mux * re * 0.55 - 0.5, ey - muy * re * 0.55 - 0.5, 1.4, 1.2, r[0]);
+  if (t1 < 0.6) line(c, [ex - mux * re * 0.2 - 0.8, ey - muy * re * 0.2, ex - mux * re * 0.2 + 0.8, ey - muy * re * 0.2 + 1], 0.6, r[3]);
+  if (t2 > 0.2) ell(c, ex - mux * re * 0.3, ey - muy * re * 0.3, re * 0.55, re * 0.5, r[0]);
+  // (the wrist: a fat ring round it where the hand starts)
+  const fdx = hx - ex, fdy = hy - ey, fd = Math.hypot(fdx, fdy) || 1, wx = hx - (fdx / fd) * (rw + 2.5), wy = hy - (fdy / fd) * (rw + 2.5);
+  line(c, [wx + (-fdy / fd) * rw * 0.9, wy + (fdx / fd) * rw * 0.9, wx - (-fdy / fd) * rw * 0.9, wy - (fdx / fd) * rw * 0.9], 0.6, r[3]);
+  // (the deltoid over the top: lit across its crown, a crease where it rounds into the arm, the strap's dent)
+  shapeTop(c, delt, r, dY - rs, dY + rs, 0);
+  overlay(c, delt, CELLULITE(c), 0.5 * (1 - t1));
+  const ua = Math.atan2(ey - sy, ex - sx);
+  c.strokeStyle = r[3]; c.lineWidth = 0.7; c.beginPath(); c.ellipse(dX, dY, rs * 1.12, rs, o * 0.35, ua - 0.9, ua + 0.9); c.stroke();
+  // (its ink: round the outside only, not where it melts into the arm nor in toward her neck)
+  const angD = (a: number, b: number) => Math.abs(Math.atan2(Math.sin(a - b), Math.cos(a - b)));
+  const inA = o > 0 ? Math.PI : 0;
+  c.strokeStyle = r[4]; c.lineWidth = 1; c.beginPath();
+  let on = false;
+  for (let a = 0; a <= Math.PI * 2 + 0.01; a += 0.12) {
+    const ok = angD(a, ua) > 0.85 && angD(a, inA) > 1.15;
+    const qx = dX + Math.cos(a) * rs * 1.12, qy = dY + Math.sin(a) * rs;
+    if (ok) { if (on) c.lineTo(qx, qy); else c.moveTo(qx, qy); }
+    on = ok;
+  }
+  c.stroke();
+  px(c, dX - rs * 0.4, dY - rs * 0.75, rs * 0.6, 1, r[0]);
   // (the hand: sausage fingers, the nails long and pink, chipped)
   const POLISH = '#E8287A';
   if (hand === 'fist') {
@@ -592,10 +673,10 @@ const lounge = (c: Ctx, f: number, face: PiperFace, talking: boolean, mess: numb
   overlay(c, shin, STUBBLE(c)); overlay(c, shin, CELLULITE(c));
   foot(c, 114, 4, true);
   // (the far arm propping her head; the head; the near arm with the bonbon)
-  armTo(c, -44, -30, -56, -62, false, 'open', f, false);
+  armTo(c, -42, -32, -64, -58, false, 'open', f, false, 0, [-66, -16]);
   beehive(c, -50, -78, mess, f);
   head(c, -50, -74, face, f, talking, mess);
-  armTo(c, -28, -36, 4, -60 + Math.sin(f * 0.05) * 4, true, 'bonbon', f, false);
+  armTo(c, -30, -38, 4, -60 + Math.sin(f * 0.05) * 4, true, 'bonbon', f, false, 0, [-4, -30]);
   c.restore();
 };
 
@@ -609,6 +690,8 @@ const flat = (c: Ctx, f: number) => {
   for (const [lx, ly] of [[78, -10], [86, -2]] as const) { const leg = () => c.ellipse(lx, ly, 10, 6, 0.3, 0, Math.PI * 2); shape(c, leg, SKIN, lx - 10, lx + 10); overlay(c, leg, STUBBLE(c)); overlay(c, leg, CELLULITE(c)); foot(c, lx + 14, ly - 6, true); }
   beehive(c, -78, -14, 0.9, f);
   head(c, -78, -12, 'out', f, false, 0.9);
+  // (the near arm flopped over the mountain of her, the hand limp on her belly)
+  armTo(c, -54, -26, -18, -52, true, 'open', f, false, 0, [-44, -46]);
   star(c, 30, -2, 6, GOLD[1], 0.4);
 };
 
