@@ -31,13 +31,14 @@ import {
   box, mix, hash, INK, checker, type Ctx, slab, bands, lip, PRINT, txt, R6, PANEL, CORK, PAPER, STEEL, CHARCOAL, CHROME,
   GOLD, VELVET, LIP, PURPLE, TEAL,
 } from './paint';
-import { socks, chelsea, drawDave, drawArtDirector, steam } from './people';
+import { socks, drawDave, drawArtDirector, steam } from './people';
 import {
   SHELLS, BACKS, PROPS, backKey, park, drawWritersLive, drawVoiceLive, OVERSEAS_ROWS, lightTable, nightShift, paintBanner,
   PROMO, paintPromo, drawPromoBulbs, paintPaparazzi, drawPaparazziLive, placardX, placardW, paintPlacard, paintMarquee,
   MARQUEE,
 } from './rooms';
 import { NEAR, D_NEAR, drawClutterLive } from './clutter';
+import { grossSocks, grossChelsea, grossBack } from './gross';
 
 // ---------------------------------------------------------------------------------------------------------------
 // The eye
@@ -368,6 +369,18 @@ const drawMovers = (c: Ctx, state: GameState) => {
   }
 };
 
+/** The screen's title card: the gross-up (gross.ts) under the show's name and SATURDAY MORNINGS!, in the park's letters. */
+const paintScreenCard = (g: Ctx, a: number, top: number, w: number, h: number) => {
+  const hx = a + w / 2, bot = top + h;
+  grossBack(g, a, top, w, h);
+  grossSocks(g, hx - 16, top + 150, 70);
+  grossChelsea(g, a + w - 40, bot - 66, 30);
+  bands(g, a, top, w, 56, ['#2E1065', '#4C1D95', '#5B21B6']); box(g, a, top + 56, w, 2, INK); checker(g, a, top + 54, w, 2, '#2E1065', 0, 1);
+  txt(g, 'CHELSEA AND SOCKS', hx, top + 22, park(1));
+  txt(g, 'WACKY!', hx, top + 48, park(2, ['#FFFFFF', '#FDF2F8', '#F9A8D4', '#EC4899']));
+  box(g, a, bot - 24, w, 24, INK); bands(g, a, bot - 22, w, 22, ['#DC4A40', '#BA2222', '#8E1616']);
+  txt(g, 'SATURDAY MORNINGS!', hx, bot - 8, park(1, ['#FFFFFF', '#FFFFFF', '#FEF3C7', '#FDE68A']));
+};
 /** THE SCREEN: a big white projection screen on its frame and legs, the show's title card thrown up on it; with him
  *  behind it, his shadow on it. */
 const drawScreen = (c: Ctx, state: GameState, behindIt: boolean) => {
@@ -380,17 +393,12 @@ const drawScreen = (c: Ctx, state: GameState, behindIt: boolean) => {
   box(c, a, top, b - a, bot - top, '#F1F5F9');
   // (the title card on it, a little washed out the way projections are, flickering)
   const w = b - a, h = bot - top, k = 0.88 + 0.06 * Math.sin(f * 0.9) * Math.sin(f * 0.13);
-  c.save(); c.beginPath(); c.rect(a, top, w, h); c.clip(); c.globalAlpha = k;
-  bands(c, a, top, w, h, ['#93C5FD', '#BAE6FD', '#E0F2FE']);
-  bands(c, a, bot - 60, w, 60, ['#86EFAC', '#4ADE80']);
+  c.save(); c.beginPath(); c.rect(a, top, w, h); c.clip();
   const hx = a + w / 2;
-  box(c, hx - 72, bot - 122, 144, 74, INK); box(c, hx - 70, bot - 120, 140, 70, '#FFFFFF'); box(c, hx - 32, bot - 142, 64, 22, INK); box(c, hx - 30, bot - 140, 60, 20, '#FFFFFF');
-  for (let i = 0; i < 5; i++) box(c, hx - 26 + i * 12, bot - 116, 4, 62, '#E2E8F0');
-  socks(c, a + 46, bot - 14, 1.1, 0); chelsea(c, b - 46, bot - 14, 1.1, true);
-  c.globalAlpha = k;
-  const L1 = park(1), L2 = park(2, ['#FFFFFF', '#FDF2F8', '#F9A8D4', '#EC4899']);
-  txt(c, 'CHELSEA AND SOCKS', hx, top + 30, L1);
-  txt(c, 'WACKY!', hx, top + 62, L2);
+  // (the show stopped dead on a gross-up: Socks lovingly over-rendered, Chelsea's grin in an inset; still, stamped)
+  stamp(c, 'ct-st2-screen-gross', a, top, w, h, g => paintScreenCard(g, a, top, w, h));
+  // (washed out the way projections are, flickering: the screen's white over it, a touch more or less)
+  c.fillStyle = `rgba(241,245,249,${(1 - k).toFixed(3)})`; c.fillRect(a, top, w, h);
   // (the projector's hot spot in the middle, and the vignette round the edges)
   c.fillStyle = 'rgba(255,255,255,0.12)'; c.beginPath(); c.ellipse(hx, top + h / 2, w * 0.3, h * 0.3, 0, 0, Math.PI * 2); c.fill();
   checker(c, a, top, w, 4, 'rgba(10,10,20,0.35)', 0, 2); checker(c, a, bot - 4, w, 4, 'rgba(10,10,20,0.35)', 0, 2);

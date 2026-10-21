@@ -24,6 +24,7 @@ import {
 import { sitter, behind, socks, chelsea, paintDaveStill, paintStar, ASIAN_SKIN, ASIAN_HAIR } from './people';
 import { CEIL, X, Y, type Room, type RoomId } from './layout';
 import { WALL_EXTRAS, PROP_EXTRAS } from './clutter';
+import { grossSocks, grossChelsea, grossBack } from './gross';
 import { GY } from '../geometry';
 
 /** The park's letters (fat, bouncing). */
@@ -842,20 +843,13 @@ export const paintPromo = (g: Ctx) => {
   }
   g.fillStyle = INK; g.fillRect(x0 - 2, y0 - 2, w + 4, h + 4);
   slab(g, x0, y0, w, h, BLUEPLAS, false);
-  bands(g, x0 + 6, y0 + 6, w - 12, h - 12, ['#38BDF8', '#7DD3FC', '#BAE6FD', '#E0F2FE']);
-  for (let i = 0; i < 3; i++) { const cx = x0 + 60 + i * 100; for (const [dx, dy, rr] of [[0, 0, 16], [16, -6, 20], [34, 2, 14]]) { g.fillStyle = INK; g.beginPath(); g.arc(cx + dx, y0 + 156 + dy, rr + 2, 0, Math.PI * 2); g.fill(); } for (const [dx, dy, rr] of [[0, 0, 16], [16, -6, 20], [34, 2, 14]]) { g.fillStyle = '#FFFFFF'; g.beginPath(); g.arc(cx + dx, y0 + 156 + dy, rr, 0, Math.PI * 2); g.fill(); g.fillStyle = '#E0F2FE'; g.beginPath(); g.arc(cx + dx, y0 + 160 + dy, rr * 0.7, 0, Math.PI); g.fill(); } }
-  bands(g, x0 + 6, y0 + h - 64, w - 12, 58, ['#4ADE80', '#22C55E', '#16A34A']);
+  // (the show stopped on a gross-up: Socks lovingly over-rendered, Chelsea's grin in an inset (gross.ts))
+  grossBack(g, x0 + 6, y0 + 6, w - 12, h - 12);
   const hx = x0 + w / 2;
-  // (the cartoon White House: wobbly columns, a fat outline)
-  g.save(); g.lineWidth = 3; g.strokeStyle = '#000';
-  g.fillStyle = '#F8FAFC'; g.beginPath(); g.moveTo(hx - 92, y0 + 248); g.quadraticCurveTo(hx - 96, y0 + 200, hx - 90, y0 + 168); g.lineTo(hx + 90, y0 + 168); g.quadraticCurveTo(hx + 96, y0 + 210, hx + 92, y0 + 248); g.closePath(); g.fill(); g.stroke();
-  g.beginPath(); g.moveTo(hx - 48, y0 + 168); g.lineTo(hx, y0 + 138); g.lineTo(hx + 48, y0 + 168); g.closePath(); g.fill(); g.stroke();
+  g.save(); g.beginPath(); g.rect(x0 + 6, y0 + 6, w - 12, h - 12); g.clip();
+  grossSocks(g, hx - 22, y0 + 196, 58);
   g.restore();
-  for (let i = 0; i < 5; i++) { box(g, hx - 38 + i * 18, y0 + 174, 6, 70, '#E2E8F0'); box(g, hx - 38 + i * 18, y0 + 174, 1, 70, '#94A3B8'); }
-  for (let i = 0; i < 3; i++) { box(g, hx - 82 + i * 14, y0 + 184, 9, 14, '#93C5FD'); box(g, hx + 46 + i * 14, y0 + 184, 9, 14, '#93C5FD'); }
-  px(g, hx - 2, y0 + 120, 3, 18, '#3F3F46'); flat(g, () => g.rect(hx + 1, y0 + 120, 18, 10), '#DC2626', 1); px(g, hx + 2, y0 + 121, 6, 4, '#1E3A8A');
-  socks(g, x0 + 58, y0 + h - 18, 1.4, 0);
-  chelsea(g, x0 + w - 58, y0 + h - 18, 1.4, true);
+  grossChelsea(g, x0 + w - 56, y0 + h - 84, 34);
   // (the title, in the park's letters, on a burst)
   g.fillStyle = INK; g.beginPath(); for (let i = 0; i < 24; i++) { const ang = (i * Math.PI) / 12, rr = i % 2 ? 66 : 82; g.lineTo(hx + Math.cos(ang) * rr * 1.7, y0 + 64 + Math.sin(ang) * rr * 0.62); } g.closePath(); g.fill();
   g.fillStyle = '#FDE047'; g.beginPath(); for (let i = 0; i < 24; i++) { const ang = (i * Math.PI) / 12, rr = i % 2 ? 62 : 78; g.lineTo(hx + Math.cos(ang) * rr * 1.7, y0 + 64 + Math.sin(ang) * rr * 0.62); } g.closePath(); g.fill();
