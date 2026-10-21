@@ -27,11 +27,18 @@ export { COLLAPSED_MEMO, CAT_MEMO };
 
 /** Kills recorded (the actor's dead: a body there once the screen's down). */
 export const deadList = (state: GameState, memo: string) => new Set((state.stageMemo[memo] ?? '').split(',').filter(Boolean).map(Number));
-export const markDead = (state: GameState, memo: string, ix: number) => {
+export const markDead = (state: GameState, memo: string, ix: number, at?: { x: number; y: number }) => {
   const s = deadList(state, memo);
   if (s.has(ix)) return;
   s.add(ix);
   state.stageMemo[memo] = [...s].join(',');
+  // (where he fell (his middle, his feet): the projection showed a puff there; the stage has had his body there since)
+  if (at) state.stageMemo[`${memo}@`] = `${state.stageMemo[`${memo}@`] ?? ''}${ix}:${Math.round(at.x)},${Math.round(at.y)};`;
+};
+/** Where a killed actor fell (world: his middle, his feet), if it was recorded. */
+export const deadAt = (state: GameState, memo: string, ix: number): { x: number; y: number } | null => {
+  const m = (state.stageMemo[`${memo}@`] ?? '').match(new RegExp(`(?:^|;)${ix}:(-?\\d+),(-?\\d+);`));
+  return m ? { x: +m[1], y: +m[2] } : null;
 };
 
 /**

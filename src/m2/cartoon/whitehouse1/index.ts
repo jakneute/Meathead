@@ -44,7 +44,7 @@ import { seedOf } from './kinds';
 import type { Enemy, Block } from '../../../m1/types';
 import type { Tower } from '../sway';
 import { todLight } from '../../timeOfDay';
-import { presetMemos, deadList, markDead, saidOnce as saidOnce2, DEAD1_MEMO } from '../whitehouse2/state';
+import { presetMemos, deadList, markDead, deadAt, saidOnce as saidOnce2, DEAD1_MEMO } from '../whitehouse2/state';
 import { drawStageBackdrop, drawStageShell, drawStageProps, drawSeats, drawFallenScreen, stageLights, realLight, type StagePlan } from '../whitehouse2/realStage';
 import { drawPerotBody, drawFalwellBody, drawDeadActor } from '../whitehouse2/bodies';
 import { STAGE_WH1, BODY_LINES } from '../whitehouse2/lines';
@@ -152,7 +152,7 @@ export const whitehouse1: CartoonSection = {
     const up = projectionUp(state);
     if (!up) return updateReal(state, controls);
     // (a mean man's actor killed: his body lies there once the screen's down)
-    for (const [e, ix] of castOf.get(state.stage as object) ?? []) if (e.health <= 0) markDead(state, DEAD1_MEMO, ix);
+    for (const [e, ix] of castOf.get(state.stage as object) ?? []) if (e.health <= 0) markDead(state, DEAD1_MEMO, ix, { x: e.pos.x + e.width / 2, y: e.pos.y + e.height });
     // (the projection's up: no blood, no bodies, the puffs; he's the cat, once he's been drawn in)
     state.cartoonKills = up;
     if (!s.scene) p.catForm = catActive(state);
@@ -250,10 +250,12 @@ const drawReal1 = (c: Ctx, state: GameState) => {
   if (onScreenX(state, X(PODIUM.a) - 200, X(PODIUM.b) + 200)) drawPerotBody(c, X(PODIUM.a), X(PODIUM.b), Y(PODIUM.h), GY);
   if (onScreenX(state, X(BED.a) - 200, X(BED.b) + 200)) drawFalwellBody(c, X(BED.a), X(BED.b), Y(BED.h), Y(F2));
   for (const ix of deadList(state, DEAD1_MEMO)) {
-    const [kind, rx, h] = CAST[ix];
-    if (!onScreenX(state, X(rx) - 160, X(rx) + 160)) continue;
-    const fy = kind === 'm2:ct_blimp' ? Y(floorAt(rx)) : Y(h);
-    drawDeadActor(c, kind, seed1(ix), X(rx), fy, ix % 2 === 1, state.frame);
+    // (where he really fell, the stage's floor under him; else where he stood)
+    const [kind, rx, h] = CAST[ix], at = deadAt(state, DEAD1_MEMO, ix);
+    const bx = at ? at.x : X(rx), floor = Y(floorAt(bx - x0));
+    if (!onScreenX(state, bx - 160, bx + 160)) continue;
+    const fy = kind === 'm2:ct_blimp' ? floor : at ? Math.min(floor, at.y) : Y(h);
+    drawDeadActor(c, kind, seed1(ix), bx, fy, ix % 2 === 1, state.frame);
   }
 };
 const onScreenX = (state: GameState, a: number, b: number) => b > state.camera.x - 60 && a < state.camera.x + CANVAS_WIDTH + 60;

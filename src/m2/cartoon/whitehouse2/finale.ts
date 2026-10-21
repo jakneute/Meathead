@@ -171,22 +171,48 @@ export const updateFinale = (ctx: FrameContext, controls: Controls): Controls =>
       F.work = Math.min(1, Math.max(0, (F.t - 28) / 40));
       if (F.t > 80) go('look');
       break;
-    case 'look':
-      // (he turns to the body)
+    case 'look': {
+      // (he turns to the body; the camera pushes in close on the Newt actor, dead in his blood (no puff); his line; a
+      // beat on it)
       p.facing = NEWT_BODY.x < p.pos.x + p.width / 2 ? -1 : 1;
-      once(() => meatheadSays(state, pickLine(byPants(state, SEES_NEWT)), true, after('look', 'actress')));
-      if (F.t > 700) go('actress');
+      // (fast and loud: a crash-zoom with a sting, the blood squelching; his slow, belated realization)
+      const z = zoomOf(F);
+      z.k = Math.min(1, F.t / 24); z.x = NEWT_BODY.x; z.y = NEWT_BODY.y - 34;
+      if (F.t === 1) { playSound('slam', 0.9, -18); playSound('whoosh', 0.8, -6); }
+      if (F.t === 24) { playSound('gush', 0.9, -6); playSound('crash', 0.5, -20); shakeScreen(state, 4, 4); }
+      if (F.t >= 40) once(() => meatheadSays(state, pickLine(byPants(state, SEES_NEWT)), true, () => { if (F.step === 'look') { F.line = 2; z.said = F.t; } }));
+      if ((F.line === 2 && F.t - z.said > 24) || F.t > 760) go('actress');
       break;
-    case 'actress':
-      // (her, on her knees, being sick: get out)
+    }
+    case 'actress': {
+      // (the camera pulls back out, across to her, on her knees, being sick: get out)
+      const z = zoomOf(F), e = Math.min(1, F.t / 36), ee = e * e * (3 - 2 * e);
+      z.k = 1 - ee; z.x = NEWT_BODY.x + (ACTRESS_AT.x - NEWT_BODY.x) * ee; z.y = NEWT_BODY.y - 34 + (ACTRESS_AT.y - NEWT_BODY.y) * ee;
       p.facing = ACTRESS_AT.x < p.pos.x + p.width / 2 ? -1 : 1;
       if (F.t === 20) heave(state, 50);
       if (F.t === 80) once(() => speak(ACTRESS, pickLine(byPants(state, ACTRESS_OUT)), x => { s.actress.said = x; }, true, () => { F.line = 2; }));
       if (F.line === 2) { F.line = -2; heave(state, 40); meatheadSays(state, pickLine(byPants(state, ACTRESS_ANSWER)), true, () => { F.line = 3; }); }
       if (F.line === 3 || F.t > 1200) finish(state, F, false);
       break;
+    }
   }
   return hands();
+};
+
+/** The push in on the body and back out to her (the user's: "when the screen falls down, zoom in on the dead actor who
+ *  played newt that you killed... then zoom out to show the actress playing chelsea barfing"): how far in (0..1), on
+ *  what (world), when his line was done. */
+const ZOOMS = new WeakMap<Finale, { k: number; x: number; y: number; said: number }>();
+const zoomOf = (F: Finale) => { let z = ZOOMS.get(F); if (!z) { z = { k: 0, x: 0, y: 0, said: 0 }; ZOOMS.set(F, z); } return z; };
+/** How close in it is (the stage's zoom: the spot pulled to the middle of the screen as it magnifies). */
+const ZOOM_IN = 2.3;
+export const finaleZoom = (state: GameState) => {
+  const F = wh2Of(state).finale;
+  if (!F || (F.step !== 'look' && F.step !== 'actress')) return null;
+  const z = ZOOMS.get(F);
+  if (!z || z.k <= 0) return null;
+  const k = z.k * z.k * (3 - 2 * z.k);
+  return { scale: 1 + (ZOOM_IN - 1) * k, x: z.x, y: z.y, shiftX: k * (CANVAS_WIDTH / 2 - (z.x - state.camera.x)), shiftY: k * (CANVAS_HEIGHT * 0.55 - (z.y - state.camera.y)) };
 };
 const tvSaid: { bill: string | null; hillary: string | null } = { bill: null, hillary: null };
 

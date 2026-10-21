@@ -264,11 +264,11 @@ export const NOT_A_CAT: ByPants = {
   shitty: ["I WASN'T A CAT. I WAS A GUY WHO SHIT HIMSELF. WITH A PROJECTOR ON HIM."],
   nude: ["I WASN'T A CAT. I WAS JUST NAKED. THE WHOLE TIME."],
 };
-/** The body. */
+/** The body, the camera in close on it (the user's line, word for word, whatever the state of him). */
 export const SEES_NEWT: ByPants = {
-  clean: ["OH. SO THAT'S WHAT A POOF LOOKS LIKE."],
-  shitty: ["SO THAT'S WHAT A POOF LOOKS LIKE. I NEED NEW PANTS. AGAIN."],
-  nude: ["SO THAT'S WHAT A POOF LOOKS LIKE. GOOD THING I'M NAKED. LESS TO WASH."],
+  clean: ["HE DEFINITELY DIDN'T POOF."],
+  shitty: ["HE DEFINITELY DIDN'T POOF."],
+  nude: ["HE DEFINITELY DIDN'T POOF."],
 };
 /** The actress, on her knees, being sick: get out. */
 export const ACTRESS_OUT: ByPants = {

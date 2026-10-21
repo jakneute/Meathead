@@ -38,7 +38,7 @@ import { updatePuffs, drawPuffs } from '../whitehouse1/poof';
 import { seedOf } from '../whitehouse1/kinds';
 import { drawSkipPrompt } from '../../../m1/game/platform/skip';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
-import { wh2Of, saidOnce, presetMemos, deadList, markDead, DEAD2_MEMO, COLLAPSED_MEMO, ACTRESS_GONE_MEMO, NEWT_MEMO } from './state';
+import { wh2Of, saidOnce, presetMemos, deadList, markDead, deadAt, DEAD2_MEMO, COLLAPSED_MEMO, ACTRESS_GONE_MEMO, NEWT_MEMO } from './state';
 import {
   SOLIDS, LEDGES, CAST, PICKUPS, CHECKPOINTS, GAG_AT, HINT_AT, OVAL_WALL, STAGE_DOOR, CABINETS, DESK_EIB, JELLO, RANGE, POT_RACK, CAB_TABLE,
   MAP_STEP, MAP_CAB, MAP_STOOL, RESOLUTE, LIMBAUGH_ARENA, DOLE_ARENA, NEWT_ARENA, BURNERS, BLINKERS, roomAt, X, Y,
@@ -50,7 +50,7 @@ import { updatePundits2, buildArenas2, drawPunditsWorld2, drawPunditsSaid2, draw
 import { drawPuffBit2 } from './punditArt';
 import {
   updateFinale, finaleOn, startFinale, drawFinaleFront, drawFinaleHud, drawFalling, shakeOffset, finaleLight, updateActress, drawActress, drawActressSaid,
-  actressLeaves, openOval, NEWT_BODY, ACTRESS_AT, RIG_X,
+  actressLeaves, openOval, NEWT_BODY, ACTRESS_AT, RIG_X, finaleZoom,
 } from './finale';
 import { drawWh2Back } from './art';
 import {
@@ -150,7 +150,7 @@ export const whitehouse2: CartoonSection = {
     purgeCartoonGore(state);
     if (real) updateActress(state);
     // (a mean man's actor killed: his body there once the screen's down)
-    for (const e of built.get(state.stage as object) ?? []) if (e.health <= 0) { const ix = s.castIx.get(e); if (ix !== undefined) markDead(state, DEAD2_MEMO, ix); }
+    for (const e of built.get(state.stage as object) ?? []) if (e.health <= 0) { const ix = s.castIx.get(e); if (ix !== undefined) markDead(state, DEAD2_MEMO, ix, { x: e.pos.x + e.width / 2, y: e.pos.y + e.height }); }
     // What he's got to say (once each a visit)
     const rx = p.pos.x + p.width / 2 - x0, alive = !p.inCutscene && p.health > 0;
     const once = (key: string, pool: string[]) => { if (alive && saidOnce(key)) meatheadSays(state, pickLine(pool), false); };
@@ -230,6 +230,8 @@ export const whitehouse2: CartoonSection = {
   },
   outdoors: (state) => (wh2Of(state).real ? 0 : roomAt(state.player.pos.x + state.player.width / 2 - x0).outdoors ? 1 : 0),
   cameraX: (state) => fightCam2(state),
+  // (the finale's push in on the Newt actor's body and back out to the actress)
+  zoom: (state) => finaleZoom(state),
 };
 
 /** The screen's down mid-stage: the mean men still about are actors, gone (they ran). */
@@ -258,9 +260,10 @@ const drawReal = (c: CanvasRenderingContext2D, state: GameState) => {
   drawDoleBody(c, X(CAB_TABLE.a), X(CAB_TABLE.b), Y(CAB_TABLE.h), GY);
   drawNewtBody(c, NEWT_BODY.x, GY);
   for (const ix of deadList(state, DEAD2_MEMO)) {
-    const [kind, rx] = CAST[ix];
-    if (Math.abs(X(rx) - (state.camera.x + CANVAS_WIDTH / 2)) > CANVAS_WIDTH) continue;
-    drawDeadActor(c, kind, seedAt(ix), X(rx), GY, ix % 2 === 0, f);
+    // (where he really fell: the projection showed a puff there; his body's been on the stage's floor there since)
+    const [kind, rx] = CAST[ix], at = deadAt(state, DEAD2_MEMO, ix), bx = at ? at.x : X(rx);
+    if (Math.abs(bx - (state.camera.x + CANVAS_WIDTH / 2)) > CANVAS_WIDTH) continue;
+    drawDeadActor(c, kind, seedAt(ix), bx, GY, ix % 2 === 0, f);
   }
   // (the projector rig: lit till it sparks; then crooked and smoking)
   const lensOn = !!F && F.step !== 'done' && F.beam > 0;
