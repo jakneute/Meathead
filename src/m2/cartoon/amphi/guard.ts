@@ -165,8 +165,9 @@ const drawLying = (c: Ctx, f: number, k: number, ice: boolean) => {
     shape(c, () => c.roundRect(2, by - 10, 12, 9, 3), ICE, 2, 14, 0.8); px(c, 4, by - 8, 4, 1, '#FFFFFF'); px(c, 5, by - 6, 6, 1, ICE[2]);
     const u = (f % 70) / 70; ell(c, 8, by + u * 12, 0.8, 1.2, '#DDF0FF');
   }
-  // (the head, on the floor, face toward us: eyes screwed shut, teeth gritted, a tear)
-  c.save(); c.translate(52 + rock, by + 2); c.rotate(-0.25);
+  // (the head, on the floor at the end of his body, its neck running back into the polo's collar (turned with him: the
+  // neck toward the body, not dangling into the floor), the face turned up: eyes screwed shut, teeth gritted, a tear)
+  c.save(); c.translate(58 + rock, by - 3); c.rotate(1.4);
   head(c, 0, 0, 'pain', f, 0.6);
   c.restore();
   c.restore();
@@ -316,4 +317,4 @@ const guardBody = (c: Ctx, S: Ramp, f: number, grind: number, leg: KickLeg, sick
 };
 
 /** Where his head is (world), for words over it. */
-export const guardHeadAt = (x: number, feetY: number, pose: GuardPose) => (pose === 'down' || pose === 'keel' ? { x: x + 40, y: feetY - 40 } : { x, y: feetY - GUARD_H });
+export const guardHeadAt = (x: number, feetY: number, pose: GuardPose) => (pose === 'down' || pose === 'keel' ? { x: x + 58, y: feetY - 40 } : { x, y: feetY - GUARD_H });
