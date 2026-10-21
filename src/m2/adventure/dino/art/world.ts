@@ -164,6 +164,18 @@ const paintFloor = (g: Ctx, a: number, b: number, pal: string[], kind: string, H
   for (let i = 1; i < bands.length; i++) checker(g, a, GY + Math.round((i * H) / bands.length) - 2, w, 2, bands[i]);
   box(g, a, GY, w, 2, pal[4]);
   speckle(g, a, GY + 4, w, H - 4, [pal[0], pal[4], pal[1]], Math.floor(w * 0.12), a);
+  // (the lit lip's shadow just under it, then stones and clods lying about: each lit on top, a shadow under, smaller
+  // and fewer the further down (nearer him: it's what's under his feet, kept quiet))
+  checker(g, a, GY + 4, w, 2, pal[1]);
+  if (kind !== 'grass') for (let x = Math.floor(a / 29) * 29; x < b; x += 29) {
+    const k = hash(x * 0.71), px = x + Math.floor(k * 20), py = GY + 8 + Math.floor(hash(x * 1.3) * (H - 30)), s = 2 + Math.floor(k * 3) * 2;
+    box(g, px, py + s - 1, s + 2, 2, pal[0]); box(g, px, py, s, s, k < 0.5 ? pal[2] : pal[1]); box(g, px, py, s, 1, pal[4]);
+  }
+  if (kind === 'pen' || kind === 'paddock' || kind === 'jungle') for (let x = Math.floor(a / 53) * 53; x < b; x += 53) {
+    // (scrubby tufts that came up through it)
+    const px = x + Math.floor(hash(x * 2.9) * 40), py = GY + 10 + Math.floor(hash(x * 3.3) * (H - 40));
+    for (let t = 0; t < 4; t++) box(g, px + t * 2, py - 2 - ((t * 5) % 4), 2, 3 + ((t * 5) % 4), t % 2 ? '#4E7A2E' : '#6A9A3A');
+  }
   if (kind === 'path' || kind === 'stone') {
     const step = kind === 'stone' ? 48 : 96;
     for (let x = Math.floor(a / step) * step; x < b; x += step) { box(g, x, GY + 2, 2, H, pal[0]); box(g, x + 2, GY + 2, 1, H, pal[4]); }
@@ -204,7 +216,26 @@ const penBackWall = (c: Ctx, state: GameState) => {
   chunked(c, state, 'dpen-back', D - 60, FENCE_X + 40, top - 20, GY - top + 20, (g, a, b) => {
     const w = b - a;
     slab(g, a, top, w, GY - top, '#8A8478', { ink: false });
-    for (let x = Math.floor(a / 120) * 120; x < b; x += 120) { box(g, x, top + 6, 2, GY - top - 6, '#6A6458'); box(g, x + 2, top + 6, 1, GY - top - 6, '#A8A296'); for (let y = top + 40; y < GY; y += 70) { box(g, x + 30, y, 3, 3, '#5A5448'); box(g, x + 90, y, 3, 3, '#5A5448'); } }
+    for (let x = Math.floor(a / 120) * 120; x < b; x += 120) {
+      // (each poured panel its own: a shade off the next, lit down its left, shaded down its right, dithered; the
+      // pour lines across it; a spall knocked out of it now and then, rebar showing)
+      const k = hash(x * 0.013), H = GY - top - 6;
+      if (k < 0.5) box(g, x + 3, top + 6, 117, H, k < 0.25 ? '#847E72' : '#908A7E');
+      box(g, x + 3, top + 6, 4, H, '#A09A8E'); checker(g, x + 7, top + 6, 2, H, '#A09A8E');
+      box(g, x + 114, top + 6, 6, H, '#78726A'); checker(g, x + 112, top + 6, 2, H, '#78726A', 1);
+      for (let y = top + 56; y < GY - 10; y += 50) { box(g, x + 3, y, 117, 1, '#7A7468'); box(g, x + 3, y + 1, 117, 1, '#9E988C'); }
+      if (k > 0.7) {
+        const sx = x + 20 + Math.floor(k * 60), sy = top + 60 + Math.floor(hash(x) * 120);
+        box(g, sx - 1, sy - 1, 22, 14, '#5A5448'); box(g, sx, sy, 20, 12, '#6E685C'); box(g, sx, sy + 10, 20, 2, '#A8A296');
+        box(g, sx + 2, sy + 5, 16, 2, '#7A3E1E'); box(g, sx + 2, sy + 5, 16, 1, '#A8582A');
+        box(g, sx + 4, sy + 12, 2, 16, 'rgba(122, 62, 30, 0.35)');
+      }
+      for (let y = top + 40; y < GY; y += 70) { box(g, x + 30, y, 3, 3, '#5A5448'); box(g, x + 90, y, 3, 3, '#5A5448'); box(g, x + 30, y + 3, 3, 1, '#A8A296'); box(g, x + 90, y + 3, 3, 1, '#A8A296'); }
+      box(g, x, top + 6, 2, H, '#6A6458'); box(g, x + 2, top + 6, 1, H, '#A8A296');
+    }
+    // (grime and mud splashed up its foot, in bands, dithered)
+    box(g, a, GY - 26, w, 26, 'rgba(70, 52, 32, 0.35)'); checker(g, a, GY - 44, w, 18, 'rgba(70, 52, 32, 0.35)');
+    for (let x = Math.floor(a / 16) * 16; x < b; x += 16) box(g, x + hash(x) * 10, GY - 30 - hash(x * 3) * 20, 3, 2, 'rgba(70, 52, 32, 0.5)');
     // (water stains down it, from the top)
     for (let x = Math.floor(a / 70) * 70; x < b; x += 70) box(g, x + hash(x) * 40, top + 8, 6, 30 + hash(x * 3) * 90, 'rgba(60, 54, 40, 0.25)');
     // (claw marks, in threes)
@@ -636,6 +667,13 @@ const paintCone = (g: Ctx) => {
   g.fillStyle = r[1]; g.beginPath(); g.moveTo(CRATER.x + 60, coneTop(CRATER.x + 60)); for (let x = CRATER.x + 60; x <= VX1; x += 8) g.lineTo(x, coneTop(x)); g.lineTo(VX1, GY); g.lineTo(CRATER.x + 200, GY); g.closePath(); g.fill();
   // (dithered where the flanks meet)
   for (let y = VPEAK; y < GY; y += 4) { const xl = CRATER.x - 120 + (y - VPEAK) * -0.2; checker(g, xl, y, 8, 4, r[2]); }
+  // (molded rock lumps all over it, bigger toward the foot; lit on the left flank, in shade on the right)
+  for (let i = 0; i < 140; i++) {
+    const lx = VX0 + hash(i * 1.31) * (VX1 - VX0), ly = coneTop(lx) + 16 + hash(i * 2.77) * (GY - coneTop(lx) - 20);
+    const s = 8 + ((ly - VPEAK) / (GY - VPEAK)) * 16 * (0.6 + hash(i * 4.1) * 0.6);
+    const rr = lx < CRATER.x - 60 ? [r[1], r[2], r[3], r[4], r[4]] : [r[0], r[1], r[2], r[3], r[3]];
+    fakeRock(g, lx, ly, s, s * 0.6, rr, i * 7.3, false);
+  }
   // (fiberglass panels: seams going round it and down it, bolted)
   for (let y = VPEAK + 60; y < GY; y += 70) { box(g, VX0, y, VX1 - VX0, 2, r[0]); box(g, VX0, y + 2, VX1 - VX0, 1, r[4]); for (let x = VX0 + 20; x < VX1; x += 40) box(g, x, y - 3, 2, 2, '#B8B0A8'); }
   for (let x = VX0 + 140; x < VX1; x += 180) { g.fillStyle = r[0]; for (let y = coneTop(x); y < GY; y += 6) g.fillRect(x + (y - coneTop(x)) * 0.12 * Math.sign(x - CRATER.x), y, 2, 4); }
@@ -652,14 +690,30 @@ const paintCone = (g: Ctx) => {
   g.restore();
   g.strokeStyle = INK; g.lineWidth = 2; g.beginPath(); for (let x = VX0; x <= VX1; x += 8) (x === VX0 ? g.moveTo(x, coneTop(x)) : g.lineTo(x, coneTop(x))); g.stroke();
 };
+/** A molded lump of fake rock: inked, its body, lit up its top left in two steps (dithered), shaded under. */
+const fakeRock = (g: Ctx, cx: number, cy: number, rw: number, rh: number, r: string[], seed: number, ink = true) => {
+  const pts: [number, number][] = [];
+  for (let i = 0; i < 8; i++) { const a = (i / 8) * Math.PI * 2, j = 0.78 + hash(seed + i * 1.7) * 0.3; pts.push([cx + Math.cos(a) * rw * j, cy + Math.sin(a) * rh * j]); }
+  const path = (k: number, dx = 0, dy = 0) => { g.beginPath(); pts.forEach(([px, py], i) => { const X = cx + (px - cx) * k + dx, Y = cy + (py - cy) * k + dy; if (i) g.lineTo(X, Y); else g.moveTo(X, Y); }); g.closePath(); };
+  if (ink) { path(1.1); g.fillStyle = mix(r[0], INK, 0.5); g.fill(); }
+  path(1); g.fillStyle = r[1]; g.fill();
+  g.save(); path(1); g.clip(); checker(g, cx - rw, cy - rh * 0.2, rw * 2, 4, r[2]); g.restore();
+  path(0.8, -rw * 0.08, -rh * 0.14); g.fillStyle = r[2]; g.fill();
+  g.save(); path(0.62, -rw * 0.2, -rh * 0.26); g.clip(); checker(g, cx - rw, cy - rh, rw * 2, rh * 2, r[3]); g.restore();
+  path(0.44, -rw * 0.26, -rh * 0.34); g.fillStyle = r[3]; g.fill();
+  box(g, Math.round(cx - rw * 0.4), Math.round(cy - rh * 0.62), 4, 2, r[4]);
+};
 const paintStep = (g: Ctx, x: number, top: number, w: number) => {
   const r = rampOf(ROCK), h = GY - top;
   slab(g, x, top, w, h, ROCK);
-  // (lumps of fake rock, stepped, and the seams where the molded panels meet)
-  for (let i = 0; i < Math.floor(w * h / 2400); i++) {
-    const bx = x + 8 + hash(x + i * 3.1) * (w - 30), by = top + 14 + hash(x * 2 + i * 7.3) * (h - 30), bw = 14 + hash(i + x) * 18;
-    box(g, bx, by, bw, 10, r[1]); box(g, bx, by, bw, 2, r[3]); box(g, bx + bw - 3, by + 2, 3, 8, r[0]);
+  // (lumps of fake rock molded on it, stepped, and the seams where the molded panels meet)
+  g.save(); g.beginPath(); g.rect(x, top + 6, w, h - 6); g.clip();
+  for (let i = 0; i < Math.floor(w * h / 1100); i++) {
+    const bx = x + 8 + hash(x + i * 3.1) * (w - 16), by = top + 16 + hash(x * 2 + i * 7.3) * (h - 20), bw = 12 + hash(i + x) * 16;
+    fakeRock(g, bx, by, bw, bw * 0.62, r, x + i * 9.1);
   }
+  box(g, x + w - 6, top + 6, 6, h - 6, r[0]); checker(g, x + w - 10, top + 6, 4, h - 6, r[0]);
+  g.restore();
   for (let y = top + 44; y < GY; y += 44) { box(g, x + 4, y, w - 8, 1, r[0]); for (let k = x + 16; k < x + w - 8; k += 30) box(g, k, y - 2, 2, 2, '#A8A098'); }
   lipOn(g, x, top, w, '#B8A488');
 };
@@ -699,6 +753,11 @@ const giftShop = (c: Ctx, state: GameState, eye: Eye, f: number) => {
   });
   stamp(c, 'dshop-front', x - 6, top - 6, w + 12, GY - top + 6, g => {
     slab(g, x, top, w, GY - top, '#D8A870');
+    // (lap siding: each board's shadow under the one above, lit along its edge, a knot now and then; the paint
+    // sun-faded up top, splashed with dirt along the foot)
+    for (let y = top + 22; y < GY - 4; y += 10) { box(g, x + 2, y, w - 4, 2, '#B08454'); box(g, x + 2, y + 2, w - 4, 1, '#ECC48E'); if (hash(y) > 0.6) box(g, x + 20 + hash(y * 3) * (w - 60), y + 5, 3, 2, '#A07446'); }
+    checker(g, x + 2, top + 20, w - 4, 6, '#E8BC86');
+    box(g, x + 2, GY - 14, w - 4, 14, 'rgba(90, 64, 36, 0.35)'); checker(g, x + 2, GY - 24, w - 4, 10, 'rgba(90, 64, 36, 0.35)');
     // (bamboo trim, thatch-look fascia along the roofline)
     box(g, x, top, w, 18, '#8A6A3A'); for (let k = x; k < x + w; k += 6) box(g, k, top + 2, 3, 14 + (k % 12 === 0 ? 3 : 0), '#C8A050');
     lipOn(g, x, top, w, '#E8C878');
@@ -881,14 +940,36 @@ const trees = (c: Ctx, state: GameState, eye: Eye, f: number) => {
     c.beginPath(); c.rect(x - 400, GY - 900, w + 800, 1400); c.rect(x - 4, Math.min(y, yb) - 1, w + 8, y + T + 1 - Math.min(y, yb) + 1); c.clip('evenodd');
     atDepth(c, eye, TREE_D, () => {
       stamp(c, `dtree-${tx}`, tx - 120, GY - 520, 240, 520, g => {
-        pole(g, tx - r, GY - 440, r * 2, 440, '#5A4430');
-        for (let yy = GY - 430; yy < GY; yy += 18) box(g, tx - r + 4 + (yy % 36 ? 6 : 0), yy, 6, 10, '#3E2E1E');
-        for (const s of [-1, 1]) { g.fillStyle = '#4A3826'; g.beginPath(); g.moveTo(tx + s * r, GY - 40); g.quadraticCurveTo(tx + s * (r + 30), GY - 6, tx + s * (r + 46), GY); g.lineTo(tx + s * r * 0.4, GY); g.closePath(); g.fill(); }
-        if (w === 150) { box(g, tx - 6, GY - 120, 16, 22, '#7A828C'); box(g, tx - 4, GY - 118, 2, 18, '#A8B0BA'); for (let k = 0; k < 3; k++) box(g, tx - 6, GY - 114 + k * 6, 16, 1, '#4A525C'); }
-        for (let i = 0; i < 9; i++) {
-          const a = (i / 9) * Math.PI, cx = tx + Math.cos(a) * 90, cy = GY - 450 - Math.sin(a) * 50;
-          pixelBlob(g, cx, cy, 46, 26, '#24401C'); pixelBlob(g, cx - 6, cy - 6, 30, 14, '#30522A');
+        // (the trunk: a stepped ramp round it, lit on its left, dithered at each step; fiberglass bark plates molded
+        // on, each lit along its top; the seams where the molds met)
+        const B = ['#2A1E12', '#3E2E1E', '#5A4430', '#6E5640', '#8A7052'];
+        const rw = Math.round(r * 2);
+        box(g, tx - r - 2, GY - 440, rw + 4, 440, INK);
+        const bands: [number, number, string][] = [[0, 0.18, B[3]], [0.18, 0.55, B[2]], [0.55, 0.8, B[1]], [0.8, 1, B[0]]];
+        for (const [u0, u1, col] of bands) box(g, tx - r + rw * u0, GY - 440, rw * (u1 - u0) + 1, 440, col);
+        checker(g, tx - r + rw * 0.18 - 2, GY - 440, 2, 440, B[3]); checker(g, tx - r + rw * 0.55, GY - 440, 2, 440, B[1]); checker(g, tx - r + rw * 0.8, GY - 440, 2, 440, B[0]);
+        box(g, tx - r + 2, GY - 440, 2, 440, B[4]);
+        for (let yy = GY - 430, k = 0; yy < GY - 10; yy += 16, k++) {
+          const px = tx - r + 3 + ((k * 7) % 3) * Math.max(4, rw * 0.22), pw = Math.max(6, rw * 0.28);
+          box(g, px, yy, pw, 10, B[1]); box(g, px, yy, pw, 2, B[3]); box(g, px + pw - 2, yy + 2, 2, 8, B[0]);
         }
+        box(g, tx + r * 0.3, GY - 440, 1, 440, B[0]);
+        for (const s of [-1, 1]) {
+          g.fillStyle = INK; g.beginPath(); g.moveTo(tx + s * (r + 1), GY - 42); g.quadraticCurveTo(tx + s * (r + 31), GY - 7, tx + s * (r + 48), GY); g.lineTo(tx + s * r * 0.4, GY); g.closePath(); g.fill();
+          g.fillStyle = s < 0 ? B[3] : B[1]; g.beginPath(); g.moveTo(tx + s * r, GY - 40); g.quadraticCurveTo(tx + s * (r + 30), GY - 6, tx + s * (r + 46), GY); g.lineTo(tx + s * r * 0.4, GY); g.closePath(); g.fill();
+          box(g, tx + s * (r + 10) - 4, GY - 22, 8, 2, s < 0 ? B[4] : B[2]);
+        }
+        if (w === 150) { box(g, tx - 6, GY - 120, 16, 22, '#7A828C'); box(g, tx - 4, GY - 118, 2, 18, '#A8B0BA'); for (let k = 0; k < 3; k++) box(g, tx - 6, GY - 114 + k * 6, 16, 1, '#4A525C'); }
+        // (the canopy: clumps inked round, each in four steps lit from up left, flecks of light on the tops, a few
+        // fronds hanging under)
+        const L = ['#142A12', '#24401C', '#30522A', '#46703A', '#6A9A4A'];
+        const clumps: [number, number][] = [];
+        for (let i = 0; i < 9; i++) { const a = (i / 9) * Math.PI; clumps.push([tx + Math.cos(a) * 90, GY - 450 - Math.sin(a) * 50]); }
+        for (const [cx, cy] of clumps) pixelBlob(g, cx, cy, 49, 29, INK);
+        for (const [cx, cy] of clumps) { pixelBlob(g, cx, cy, 46, 26, L[1]); pixelBlob(g, cx + 6, cy + 8, 36, 14, L[0]); }
+        for (const [cx, cy] of clumps) { pixelBlob(g, cx - 6, cy - 6, 32, 15, L[2]); pixelBlob(g, cx - 12, cy - 11, 18, 8, L[3]); }
+        for (const [cx, cy] of clumps) for (let k = 0; k < 5; k++) box(g, Math.round(cx - 26 + hash(cx + k) * 34), Math.round(cy - 16 + hash(cy + k * 3) * 10), 4, 2, L[4]);
+        for (let k = 0; k < 10; k++) { const fx = tx - 120 + k * 26 + hash(tx + k) * 10, len = 14 + hash(k * 3 + tx) * 26; for (let yy = 0; yy < len; yy += 4) box(g, Math.round(fx + Math.sin(yy * 0.2) * 2), GY - 430 + yy, 3, 4, yy % 8 ? L[2] : L[1]); }
         // (boughs up into the canopy, dim: nothing to stand on)
         g.strokeStyle = '#3E2E1E'; g.lineWidth = 7;
         for (const s of [-1, 1]) { g.beginPath(); g.moveTo(tx + s * r * 0.5, GY - 380); g.quadraticCurveTo(tx + s * 50, GY - 410, tx + s * 90, GY - 450); g.stroke(); }
