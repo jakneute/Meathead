@@ -27,7 +27,8 @@ import { isMidBoss } from '../../m1/game/combat/midBoss';
 import { specialsHalf, heavyHit, HALF } from './half';
 import { playSound } from '../../m1/game/platform/audio';
 import { setArmor } from '../../m1/game/core/resist';
-import { CANVAS_WIDTH } from '../../m1/constants';
+import { CANVAS_WIDTH, HUD_CLEAR_X, HUD_CLEAR_Y } from '../../m1/constants';
+import { idleTasks } from '../../m1/game/scenes/art/raster';
 import { vineGrip, vineLean } from '../../m1/game/combat/muzzle';
 import { drawLeg, drawArmTo, drawTorsoFromHips } from '../../m1/game/render/player/body';
 import { drawPoseSprite, drawPoseHead, drawEnemyAt, grabBusy } from '../moves/grab';
@@ -154,11 +155,14 @@ const bonk = (ctx: FrameContext, e: Enemy, dmg: number, vel: { x: number; y: num
   struck.add(e);
   const cx = e.pos.x + e.width / 2, cy = e.pos.y + e.height * 0.4;
   word(cx, cy - 20);
+  // (the tornado's: a star where it lands, and (him hurt by it) bits of him flung off)
+  const spun = mode === 'tornado', side = Math.sign(vel.x) || dir;
+  if (spun) tornadoStar(cx, cy, side);
   playSound('bonk'); shakeScreen(state, 8, 5);
   for (let i = 0; i < 8; i++) { const a = (i / 8) * Math.PI * 2; state.particles.push({ pos: { x: cx, y: cy }, vel: { x: Math.cos(a) * 4, y: Math.sin(a) * 4 }, life: 10, color: i % 2 ? '#FFFFFF' : '#FDE047', size: 3 }); }
   // (one opted in, weapons/half.ts: hurt, and sent half as far, dazed half as long; never the cartoon death)
-  if (specialsHalf(e)) { e.health -= dmg; fx.spawnDamageNumber(e.pos, dmg, true); e.vel = { x: vel.x * HALF, y: vel.y * HALF }; e.pauseTimer = Math.max(e.pauseTimer || 0, 50 * HALF); return; }
-  if (isMidBoss(e)) { e.health -= dmg; if (ownNumber(e)) fx.spawnDamageNumber(e.pos, dmg, true); noteBig(state, e, as ?? howNow()); return; }
+  if (specialsHalf(e)) { if (spun) tornadoGore(cx, cy, side); e.health -= dmg; fx.spawnDamageNumber(e.pos, dmg, true); e.vel = { x: vel.x * HALF, y: vel.y * HALF }; e.pauseTimer = Math.max(e.pauseTimer || 0, 50 * HALF); return; }
+  if (isMidBoss(e)) { if (spun) tornadoGore(cx, cy, side); e.health -= dmg; if (ownNumber(e)) fx.spawnDamageNumber(e.pos, dmg, true); noteBig(state, e, as ?? howNow()); return; }
   // (a blow from in front, at his shield: it's the shield it lands on; he goes flying all the same, but the blow does
   // him no harm (whatever he hits on the way does). The overhead ones, flattening, come down over it)
   if (how !== 'flatten' && shieldTakesBlow(e, vel.x || (cx - (state.player.pos.x + state.player.width / 2)))) {
@@ -168,6 +172,7 @@ const bonk = (ctx: FrameContext, e: Enemy, dmg: number, vel: { x: number; y: num
   }
   // (the queen's kids: any hit's the end of them, dropping whatever they drop right where it lands, not where they do)
   if (m2Kind(e.kind)?.malletOneShot) dmg = Math.max(dmg, e.health);
+  if (spun) tornadoGore(cx, cy, side);
   e.health -= dmg;
   if (e.health <= 0) { toonKill(ctx, e, how, Math.sign(vel.x) || dir); return; }
   fx.spawnDamageNumber(e.pos, dmg, true);
@@ -205,6 +210,9 @@ const tick = (ctx: FrameContext, input: { shoot: boolean }, equipped: boolean) =
   }
   flying = flying.filter(f => !f.done && state.frame % 600 !== 0);
   flat.forEach(f => f.t++); flat = flat.filter(f => f.t < 150);
+  artTick(state);
+  // (the tornado's funnel frames: painted in idle moments once it's first in his hands)
+  if (equipped) queueFunnel();
 
   if (!equipped) { if (mode !== 'idle') { mode = 'idle'; pl.hidden = false; syncArmor(); } xHeld = yHeld = 0; return; }
   // (wound up for the smash or the tornado, the smash coming down, the tornado going: a hit hurts him, but nothing
@@ -509,12 +517,13 @@ const drawOverlay = (c: Ctx, state: GameState) => {
       if (mode === 'tornado') {
         c.strokeStyle = 'rgba(255, 255, 255, 0.7)'; c.lineWidth = 2;
         for (let i = 0; i < 4; i++) { const yy = s.y - 30 + i * 24, sd = (f * 0.4 + i) % 2 < 1 ? 1 : -1; c.beginPath(); c.moveTo(cx + sd * 50, yy); c.lineTo(cx + sd * 66, yy - 4); c.stroke(); }
+        drawSpinTimer(c, state, cx, s.y - 48);
       }
     }
   } else if (mode !== 'idle' && pl.currentWeapon === 'MALLET') {
     const x = pl.pos.x + pl.width / 2, y = pl.pos.y + pl.height, air = !pl.isGrounded;
     // (on a slope: the funnel's foot down on the ground under the middle of him)
-    if (mode === 'tornado') drawTornado(c, x, y + (pl.stance ? (pl.stance.l + pl.stance.r) / 2 : 0), f);
+    if (mode === 'tornado') { const gy = y + (pl.stance ? (pl.stance.l + pl.stance.r) / 2 : 0); drawTornado(c, x, gy, f, pl); drawSpinTimer(c, state, x, gy - FHT - 6); }
     else {
       let a = 0, lean = 0, crouch = 0;
       let phi: number | null = null;
@@ -532,6 +541,9 @@ const drawOverlay = (c: Ctx, state: GameState) => {
       else { const walk = mode === 'windup' && !air && Math.abs(pl.vel.x) > 0.3 ? f * 0.3 * (Math.sign(pl.vel.x) === dir ? 1 : -1) : null; drawPoseSprite(c, x, y, dir, g => malletPose(g, f, a, lean, crouch, air, walk)); }
     }
   }
+  // What the tornado's flung out of it; the stars where it landed
+  for (const j of junk) if (j.fly) drawJunk(c, j);
+  for (const m of impacts) drawImpact(c, m);
   // The comic words, popping up
   for (const w of words) {
     const k = w.t / 34, s = w.t < 5 ? 0.5 + w.t * 0.14 : 1.2 - k * 0.2;
@@ -543,30 +555,335 @@ const drawOverlay = (c: Ctx, state: GameState) => {
   }
 };
 
-/** The tornado: a whirling funnel of dust and speed lines, the mallet whipping round in it, his head and feet poking out. */
-const drawTornado = (c: Ctx, x: number, y: number, f: number) => {
-  for (let i = 0; i < 7; i++) {
-    const k = i / 6, w = 22 + k * 30, yy = y - 6 - k * 92, off = Math.sin(f * 0.5 + i) * 5;
-    c.fillStyle = i % 2 ? 'rgba(168, 162, 158, 0.85)' : 'rgba(214, 211, 209, 0.85)';
-    c.beginPath(); c.ellipse(x + off, yy, w, 9, 0, 0, Math.PI * 2); c.fill();
-    c.strokeStyle = 'rgba(26, 11, 6, 0.5)'; c.lineWidth = 1.5; c.beginPath(); c.ellipse(x + off, yy, w, 9, 0, Math.PI * 0.1 + f * 0.3, Math.PI * 0.9 + f * 0.3); c.stroke();
+// ---------------------------------------------------------------------------------------------------------------
+// The tornado, Taz style: a whirling dervish of destruction. The funnel's a small set of pre-painted frames (each in
+// two halves: the far side, drawn behind him, the near side, over him), painted in idle slices the first time the
+// mallet's in his hands (and any one still missing painted as it's wanted, one a frame at most). Round them, live: the
+// mallet whipping round in a smear with its afterimages, glimpses of him through the blur (his grimace and glasses, the
+// flat-top, fists, boots), a dust skirt at the foot, junk sucked up and flung out, stars where it lands, scuffs behind.
+// All of it looks only: nothing here touches what the tornado does.
+
+const FN = 8, FW = 128, FH = 122, BX = 64, BY = 118, FHT = 110, FR0 = 15, FR1 = 58;
+type RGB = readonly [number, number, number];
+const hexRGB = (h: string): RGB => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
+/** The dust's ramp, darkest to lightest; the ink; the speed glints. */
+const DUST = ['#2B1E18', '#5C483A', '#8C7660', '#B8A488', '#DED0B4', '#F8F2E4'];
+const DUST_RGB = DUST.map(hexRGB), INK_RGB = hexRGB(INK), GLINT_RGB = hexRGB('#FFFFFF');
+const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
+const hash = (n: number) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
+/** Its own dice (the look's): never the game's, so none of this shifts what anything else rolls. */
+let rndS = 0x2f6b9a1;
+const rnd = () => { rndS = (rndS * 1664525 + 1013904223) >>> 0; return rndS / 4294967296; };
+
+/** frames[i] = [far half, near half]. */
+const funnel: ([HTMLCanvasElement | null, HTMLCanvasElement | null])[] = Array.from({ length: FN }, () => [null, null]);
+let funnelQueued = false;
+
+/** One half of one frame of the funnel, pixel by pixel: rows of stepped dust going round, a spiral twist up it, streaks
+ *  coming and going (holes where it's thin, him seen through them), the band seams darker, inked at the silhouette, a lip
+ *  round the top. */
+const paintFunnel = (i: number, near: boolean): HTMLCanvasElement | null => {
+  if (typeof document === 'undefined') return null;
+  const cv = document.createElement('canvas'); cv.width = FW; cv.height = FH;
+  const g = cv.getContext('2d'); if (!g) return cv;
+  const im = g.createImageData(FW, FH), d = im.data;
+  const put = (X: number, Y: number, col: RGB) => { if (X < 0 || Y < 0 || X >= FW || Y >= FH) return; const o = (Y * FW + X) * 4; d[o] = col[0]; d[o + 1] = col[1]; d[o + 2] = col[2]; d[o + 3] = 255; };
+  const ph = (i / FN) * Math.PI * 2;
+  for (let j = 0; j <= FHT; j++) {
+    const u = j / FHT, band = Math.floor(j / 14), hb = hash(band + 1);
+    const r = FR0 + (FR1 - FR0) * Math.pow(u, 1.3) + Math.sin(band * 1.9 + ph) * 1.5;
+    const cx = BX + Math.sin(u * 5 + ph + hb * 3) * 1.6, Y = BY - j, ri = Math.ceil(r);
+    for (let px = -ri; px <= ri; px++) {
+      const s = px / r; if (Math.abs(s) > 1) continue;
+      const X = Math.round(cx + px), z = Math.sqrt(1 - s * s), th0 = Math.asin(s);
+      const th = (near ? th0 : Math.PI - th0) + j * 0.07;
+      const v = 0.65 * (0.5 + 0.5 * Math.sin(th * 3 - ph * 3 + hb * 6)) + 0.35 * (0.5 + 0.5 * Math.sin(th * 7 - ph * 7 + hb * 3 + j * 0.2));
+      const b = BAYER[((Y & 3) << 2) | (X & 3)] / 16;
+      if (near && Math.abs(s) > 1 - 1.6 / r) { put(X, Y, INK_RGB); continue; }
+      // (thinner near the foot, his boots seen; the near side holey, the far side fuller)
+      const cover = near ? 0.5 + (u < 0.14 ? 0.22 : 0) : 0.26;
+      if (v + (b - 0.5) * 0.14 < cover) continue;
+      let L = near ? 0.3 + 0.5 * z : 0.08 + 0.3 * z;
+      L += (v - 0.5) * 0.5 + u * 0.12 - (j % 14 === 0 ? 0.25 : 0);
+      if (near && v > 0.95) { put(X, Y, GLINT_RGB); continue; }
+      put(X, Y, DUST_RGB[Math.max(0, Math.min(5, Math.floor(L * 5.99 + (b - 0.5) * 0.9)))]);
+    }
   }
-  // (his feet, his head, going round)
-  c.fillStyle = '#18181B'; c.fillRect(x - 12 + Math.sin(f * 0.9) * 6, y - 6, 9, 6); c.fillRect(x + 4 - Math.sin(f * 0.9) * 6, y - 6, 9, 6);
-  const hx = x + Math.sin(f * 0.7) * 14;
-  c.fillStyle = INK; c.beginPath(); c.arc(hx, y - 104, 10, 0, Math.PI * 2); c.fill(); c.fillStyle = '#F2C29B'; c.beginPath(); c.arc(hx, y - 104, 9, 0, Math.PI * 2); c.fill();
-  c.fillStyle = '#18181B'; c.fillRect(hx - 8, y - 114, 16, 4);
-  // (his glasses, going round with him: the two rims, the bridge, a glint)
-  c.fillStyle = 'rgba(190, 220, 248, 0.3)'; c.fillRect(hx - 7, y - 107, 6, 4); c.fillRect(hx + 1, y - 107, 6, 4);
-  c.strokeStyle = '#09090B'; c.lineWidth = 1.4; c.strokeRect(hx - 7, y - 107, 6, 4); c.strokeRect(hx + 1, y - 107, 6, 4);
-  c.fillStyle = '#09090B'; c.fillRect(hx - 1, y - 106, 2, 1); c.fillStyle = '#F8FAFC'; c.fillRect(hx - 6, y - 106, 1, 1); c.fillRect(hx + 2, y - 106, 1, 1);
-  // (the mallet, whipping round)
-  const a = f * 0.55, mx = x + Math.cos(a) * 46, my = y - 54 + Math.sin(a) * 10;
-  c.save(); c.translate(x, y - 54); c.rotate(Math.cos(a) > 0 ? 0 : Math.PI); c.scale(1, 0.6 + 0.4 * Math.abs(Math.cos(a))); c.restore();
-  c.save(); c.translate(mx - Math.cos(a) * 40, my); c.scale(Math.cos(a) >= 0 ? 1 : -1, 1); drawMallet(c, 28); c.restore();
-  // (speed lines)
-  c.strokeStyle = 'rgba(255, 255, 255, 0.7)'; c.lineWidth = 2;
-  for (let i = 0; i < 4; i++) { const yy = y - 20 - i * 24, s = (f * 0.4 + i) % 2 < 1 ? 1 : -1; c.beginPath(); c.moveTo(x + s * 50, yy); c.lineTo(x + s * 66, yy - 4); c.stroke(); }
+  // (the lip round the top: the far side's in shade, the near side's lit, inked under)
+  for (let a = 0; a < Math.PI * 2; a += 0.015) {
+    const sn = Math.sin(a); if ((sn > 0) !== near) continue;
+    const X = Math.round(BX + Math.cos(a) * (FR1 + 1)), Y = Math.round(BY - FHT + sn * 5);
+    if (near) { put(X, Y, DUST_RGB[5]); put(X, Y - 1, DUST_RGB[4]); put(X, Y + 1, INK_RGB); }
+    else { put(X, Y, DUST_RGB[2]); put(X, Y - 1, DUST_RGB[1]); }
+  }
+  g.putImageData(im, 0, 0);
+  return cv;
+};
+const queueFunnel = () => {
+  if (funnelQueued || typeof document === 'undefined') return;
+  funnelQueued = true;
+  const tasks: (() => void)[] = [];
+  for (let i = 0; i < FN; i++) for (const near of [false, true]) tasks.push(() => { if (!funnel[i][near ? 1 : 0]) funnel[i][near ? 1 : 0] = paintFunnel(i, near); });
+  idleTasks(tasks);
+};
+/** A frame's half, painting it now if it's still not done (only one a frame: otherwise the nearest one that's ready). */
+let paintedThisFrame = -1;
+const funnelHalf = (i: number, near: boolean, frame: number): HTMLCanvasElement | null => {
+  const k = near ? 1 : 0;
+  if (!funnel[i][k] && paintedThisFrame !== frame) { paintedThisFrame = frame; funnel[i][k] = paintFunnel(i, near); }
+  for (let n = 0; n < FN; n++) { const h = funnel[(i + n) % FN][k]; if (h) return h; }
+  return null;
+};
+
+/** Junk going round in it, or flung out of it; bits of whoever it hits. */
+type JunkKind = 'rock' | 'splinter' | 'paper' | 'can' | 'shoe' | 'hat' | 'blood' | 'tooth';
+interface Junk { kind: JunkKind; fly: boolean; ang: number; rad: number; h: number; x: number; y: number; vx: number; vy: number; rot: number; vr: number; life: number; floor: number }
+let junk: Junk[] = [];
+/** Stars where it lands on somebody. */
+let impacts: { x: number; y: number; t: number; rot: number }[] = [];
+/** Scuffs and scorches it leaves on the ground. */
+let scuffs: { x: number; y: number; t: number; w: number; seed: number }[] = [];
+/** What of him shows through the blur this moment. */
+let glimpse: { kind: 'fist' | 'boot' | 'face' | 'arm'; h: number; side: number; t: number } | null = null;
+/** How far round the funnel's frames have gone, and the mallet. */
+let spinPh = 0, malletA = 0;
+/** How hard he's spinning, 0..~1.2: winding up to full in the first half second, a bit more on the move. */
+const spinSpeed = (pl: GameState['player']) => mode !== 'tornado' ? 0 : Math.min(1, 0.45 + t / 30) + Math.min(0.2, Math.abs(pl.vel.x) / TORNADO.speed * 0.2);
+
+const JUNK_UP: JunkKind[] = ['rock', 'rock', 'rock', 'splinter', 'splinter', 'paper', 'can', 'rock', 'splinter', 'shoe', 'paper', 'hat'];
+/** The look of it moving on: round and up the funnel and flung out the top; flying, falling; stars, scuffs, glimpses. */
+const artTick = (state: GameState) => {
+  const pl = state.player, px = pl.pos.x + pl.width / 2, fy = pl.pos.y + pl.height;
+  const spd = spinSpeed(pl), on = mode === 'tornado' && pl.currentWeapon === 'MALLET' && !pl.vine;
+  if (mode === 'tornado') { spinPh += FN * (0.1 + 0.08 * spd); malletA += 0.35 + 0.25 * spd; }
+  for (const j of junk) {
+    j.life--; j.rot += j.vr;
+    if (!j.fly) {
+      j.ang += 0.25 + 0.2 * spd; j.h += 1.6 + spd * 1.4;
+      const want = FR0 + (FR1 - FR0) * Math.pow(Math.min(1, j.h / FHT), 1.3) + 6;
+      j.rad += (want - j.rad) * 0.12;
+      j.x = px + Math.cos(j.ang) * j.rad; j.y = fy - j.h + Math.sin(j.ang) * j.rad * 0.12;
+      // (out of the top, or he's stopped: flung off the way it was going round)
+      if (j.h > FHT - 6 || !on) {
+        j.fly = true; j.vx = -Math.sin(j.ang) * Math.min(9, j.rad * 0.18) + (rnd() - 0.5) * 2; j.vy = -2 - rnd() * 4;
+        j.floor = fy + 4; j.life = Math.min(j.life, 70);
+      }
+    } else {
+      j.vy += j.kind === 'paper' || j.kind === 'hat' ? 0.18 : 0.38; j.vx *= j.kind === 'paper' ? 0.97 : 0.995;
+      j.x += j.vx; j.y += j.vy;
+      if (j.y > j.floor) { j.y = j.floor; j.vy *= -0.3; j.vx *= 0.6; j.vr *= 0.5; if (j.kind === 'blood') j.life = Math.min(j.life, 3); }
+    }
+  }
+  junk = junk.filter(j => j.life > 0 && j.y < state.camera.y + 900);
+  impacts.forEach(m => m.t++); impacts = impacts.filter(m => m.t < 16);
+  scuffs.forEach(s => s.t++); scuffs = scuffs.filter(s => s.t < 300);
+  if (glimpse) { glimpse.t++; if (glimpse.t > 6) glimpse = null; }
+  if (!on) return;
+  // (sucked up off the ground round him: the harder he spins, the more of it)
+  const grounded = pl.isGrounded;
+  if (grounded && junk.length < 40 && rnd() < 0.18 + 0.3 * spd) {
+    const kind = JUNK_UP[Math.floor(rnd() * JUNK_UP.length)];
+    junk.push({ kind, fly: false, ang: rnd() * Math.PI * 2, rad: 50 + rnd() * 40, h: 2, x: px, y: fy, vx: 0, vy: 0, rot: rnd() * 6, vr: (rnd() - 0.5) * 0.6, life: 160, floor: fy + 4 });
+  }
+  if (grounded && state.frame % 5 === 0) scuffs.push({ x: px + (rnd() - 0.5) * 22, y: fy + (pl.stance ? (pl.stance.l + pl.stance.r) / 2 : 0), t: 0, w: 18 + rnd() * 18, seed: rnd() * 100 });
+  if (scuffs.length > 50) scuffs.splice(0, scuffs.length - 50);
+  if (!glimpse && rnd() < 0.35) {
+    const kind = (['fist', 'fist', 'boot', 'face', 'arm'] as const)[Math.floor(rnd() * 5)];
+    glimpse = { kind, h: kind === 'boot' ? 10 + rnd() * 20 : kind === 'face' ? 70 + rnd() * 20 : 34 + rnd() * 46, side: rnd() < 0.5 ? -1 : 1, t: 0 };
+  }
+};
+
+/** A tornado's hit: a star bursting where it landed, and bits of him (blood, the odd tooth) flung off the way he went. */
+const tornadoStar = (cx: number, cy: number, side: number) => { impacts.push({ x: cx - side * 6, y: cy, t: 0, rot: rnd() * Math.PI }); };
+const tornadoGore = (cx: number, cy: number, side: number) => {
+  const n = 5 + Math.floor(rnd() * 4);
+  for (let i = 0; i < n; i++) junk.push({ kind: 'blood', fly: true, ang: 0, rad: 0, h: 0, x: cx, y: cy, vx: side * (2 + rnd() * 6), vy: -2 - rnd() * 4, rot: 0, vr: 0, life: 40, floor: cy + 40 });
+  if (rnd() < 0.55) for (let i = 0, m = 1 + Math.floor(rnd() * 2); i < m; i++) junk.push({ kind: 'tooth', fly: true, ang: 0, rad: 0, h: 0, x: cx, y: cy - 6, vx: side * (3 + rnd() * 5), vy: -4 - rnd() * 3, rot: rnd() * 6, vr: 0.4, life: 70, floor: cy + 40 });
+};
+
+const box = (c: Ctx, x: number, y: number, w: number, h: number, col: string) => { c.fillStyle = col; c.fillRect(Math.round(x), Math.round(y), w, h); };
+
+/** One bit of junk at (x, y), stepped and inked. */
+const drawJunk = (c: Ctx, j: Junk) => {
+  const a = j.life < 12 ? j.life / 12 : 1;
+  c.save(); c.globalAlpha *= a; c.translate(Math.round(j.x), Math.round(j.y)); c.rotate(j.kind === 'blood' ? 0 : j.rot);
+  switch (j.kind) {
+    case 'rock': box(c, -3, -2, 6, 5, INK); box(c, -2, -1, 4, 3, '#78716C'); box(c, -2, -1, 2, 1, '#A8A29E'); box(c, 1, 1, 1, 1, '#44403C'); break;
+    case 'splinter': box(c, -5, -1, 10, 3, INK); box(c, -4, 0, 8, 1, '#D6A35C'); box(c, -4, 0, 3, 1, '#F2C27D'); box(c, 3, 0, 1, 1, '#92400E'); break;
+    case 'paper': box(c, -3, -3, 6, 6, INK); box(c, -2, -2, 4, 4, '#E7E5E4'); box(c, -2, -2, 2, 1, '#FFFFFF'); box(c, 0, 0, 2, 2, '#A8A29E'); break;
+    case 'can': box(c, -2, -4, 5, 8, INK); box(c, -1, -3, 3, 6, '#DC2626'); box(c, -1, -1, 3, 1, '#F8FAFC'); box(c, -1, -3, 1, 6, '#F87171'); break;
+    case 'shoe': box(c, -5, -2, 10, 6, INK); box(c, -4, -1, 8, 3, '#7C2D12'); box(c, -4, 2, 8, 1, '#E7E5E4'); box(c, -4, -1, 3, 1, '#C2410C'); break;
+    case 'hat': box(c, -5, -3, 8, 5, INK); box(c, -4, -2, 6, 3, '#2563EB'); box(c, -4, -2, 6, 1, '#60A5FA'); box(c, 2, 0, 5, 2, INK); box(c, 2, 0, 4, 1, '#1D4ED8'); break;
+    case 'blood': box(c, -1, -1, 3, 3, '#7F1D1D'); box(c, -1, -1, 2, 2, '#DC2626'); if (Math.abs(j.vx) > 3) box(c, -Math.sign(j.vx) * 3, 0, 2, 1, '#991B1B'); break;
+    case 'tooth': box(c, -2, -2, 4, 5, INK); box(c, -1, -1, 2, 3, '#FFFBEB'); box(c, -1, -1, 1, 1, '#FFFFFF'); break;
+  }
+  c.restore();
+};
+
+/** A star where it landed: a fat inked 8-point burst, yellow in white, popping out then shrinking. */
+const drawImpact = (c: Ctx, m: { x: number; y: number; t: number; rot: number }) => {
+  const k = m.t < 3 ? (m.t + 1) / 3 : 1 - (m.t - 3) / 13, r = 20 * k;
+  if (r < 1) return;
+  const star = (rr: number, col: string) => { c.fillStyle = col; c.beginPath(); for (let i = 0; i < 16; i++) { const a = m.rot + (i / 16) * Math.PI * 2, q = i % 2 ? rr * 0.45 : rr; i ? c.lineTo(m.x + Math.cos(a) * q, m.y + Math.sin(a) * q) : c.moveTo(m.x + Math.cos(a) * q, m.y + Math.sin(a) * q); } c.closePath(); c.fill(); };
+  star(r + 3, INK); star(r, '#F59E0B'); star(r * 0.75, '#FDE047'); star(r * 0.4, '#FFFFFF');
+  // (the bash lines, out from it)
+  c.fillStyle = INK;
+  for (let i = 0; i < 6; i++) { const a = m.rot * 0.5 + (i / 6) * Math.PI * 2, d0 = r + 4 + m.t, d1 = d0 + 6; for (let s = d0; s < d1; s += 2) c.fillRect(Math.round(m.x + Math.cos(a) * s) - 1, Math.round(m.y + Math.sin(a) * s) - 1, 2, 2); }
+};
+
+/** His face going by in the blur: wide, the flat-top, a vein, his brows down, the glasses, his teeth gritted. Seen from
+ *  behind (`back`): the back of the flat-top and his ears. */
+const drawSpinHead = (c: Ctx, hx: number, hy: number, back: boolean) => {
+  box(c, hx - 9, hy - 9, 18, 18, INK); box(c, hx - 8, hy - 8, 16, 16, '#E0AC69'); box(c, hx - 8, hy + 4, 16, 4, '#C68B45'); box(c, hx - 6, hy - 6, 4, 3, '#F5D0A9');
+  // (the flat-top: square across, a shine on it)
+  box(c, hx - 9, hy - 15, 18, 8, INK); box(c, hx - 8, hy - 14, 16, 6, '#18181B'); box(c, hx - 7, hy - 14, 12, 1, '#3F3F46');
+  if (back) { box(c, hx - 8, hy - 8, 16, 10, '#18181B'); box(c, hx - 10, hy - 3, 2, 5, '#C68B45'); box(c, hx + 8, hy - 3, 2, 5, '#C68B45'); box(c, hx - 6, hy + 2, 12, 1, '#C68B45'); return; }
+  box(c, hx + 4, hy - 7, 1, 3, '#EF4444');
+  // (brows down hard, the glasses, a glint)
+  box(c, hx - 7, hy - 6, 6, 2, INK); box(c, hx + 1, hy - 6, 6, 2, INK);
+  box(c, hx - 7, hy - 4, 6, 5, INK); box(c, hx + 1, hy - 4, 6, 5, INK); box(c, hx - 1, hy - 3, 2, 1, INK);
+  box(c, hx - 6, hy - 3, 4, 3, '#BFD9F0'); box(c, hx + 2, hy - 3, 4, 3, '#BFD9F0'); box(c, hx - 5, hy - 2, 2, 2, INK); box(c, hx + 3, hy - 2, 2, 2, INK);
+  box(c, hx - 6, hy - 3, 1, 1, '#FFFFFF'); box(c, hx + 2, hy - 3, 1, 1, '#FFFFFF');
+  // (the grimace: teeth gritted, wide)
+  box(c, hx - 6, hy + 2, 12, 5, INK); box(c, hx - 5, hy + 3, 10, 3, '#F8FAFC'); for (let i = -3; i <= 3; i += 2) box(c, hx + i, hy + 3, 1, 3, '#78716C'); box(c, hx - 5, hy + 4, 10, 1, '#A8A29E');
+};
+/** A fist, a boot, an arm going by. */
+const drawFist = (c: Ctx, x: number, y: number, s: number) => { box(c, x - 5, y - 4, 10, 9, INK); box(c, x - 4, y - 3, 8, 7, '#E0AC69'); box(c, x - 4, y - 3, 8, 2, '#F5D0A9'); for (let i = 0; i < 3; i++) box(c, x - 3 + i * 3, y - 1, 1, 2, '#C68B45'); box(c, x - s * 7, y - 3, 3, 7, '#09090B'); };
+const drawBoot = (c: Ctx, x: number, y: number, s: number) => { box(c, x - 6, y - 5, 12, 7, INK); box(c, x - 5, y - 4, 10, 4, '#18181B'); box(c, x + (s > 0 ? 2 : -5), y - 4, 3, 2, '#94A3B8'); box(c, x - 5, y, 10, 1, '#3F3F46'); box(c, x - 3, y - 8, 6, 4, '#1E3A8A'); };
+const drawArmSmear = (c: Ctx, x: number, y: number, s: number) => { box(c, x - 14, y - 3, 28, 7, INK); box(c, x - 13, y - 2, 26, 5, '#E0AC69'); box(c, x - 13, y - 2, 26, 1, '#F5D0A9'); box(c, x - 13, y + 2, 26, 1, '#C68B45'); box(c, x + s * 9, y - 2, 4, 5, '#09090B'); };
+
+/** A bit of him through the blur: three copies trailing back the way it's going round, the oldest faintest. */
+const ghosted = (c: Ctx, sweep: number, draw: (dx: number) => void) => {
+  const a0 = c.globalAlpha;
+  c.globalAlpha = a0 * 0.25; draw(-sweep * 10); c.globalAlpha = a0 * 0.5; draw(-sweep * 5); c.globalAlpha = a0; draw(0);
+};
+
+/** The mallet whipping round: a red and yellow smear along where it's been, its afterimages, then it, end on as it comes
+ *  round at you. Only the half that's on this side of him (`near`). */
+const drawSpinMallet = (c: Ctx, x: number, y: number, lean: number, spd: number, near: boolean) => {
+  const a = malletA, at = (q: number) => ({ x: x + lean * 54 + Math.cos(q) * 50, y: y - 54 + Math.sin(q) * 9 });
+  const onSide = (q: number) => (Math.sin(q) >= 0) === near;
+  // (the smear: three stepped bands, dark wide under, bright narrow over)
+  const len = 1.2 + spd * 1.3;
+  for (const [w, col] of [[14, 'rgba(127, 29, 29, 0.35)'], [9, 'rgba(220, 38, 38, 0.45)'], [3, 'rgba(253, 224, 71, 0.7)']] as const) {
+    c.strokeStyle = col; c.lineWidth = w; c.beginPath(); let pen = false;
+    for (let q = a - len; q <= a; q += 0.08) { if (!onSide(q)) { pen = false; continue; } const p = at(q); if (pen) c.lineTo(p.x, p.y); else { c.moveTo(p.x, p.y); pen = true; } }
+    c.stroke();
+  }
+  const one = (q: number, alpha: number) => {
+    if (!onSide(q)) return;
+    const k = Math.cos(q), a0 = c.globalAlpha; c.globalAlpha = a0 * alpha;
+    if (Math.abs(k) >= 0.3) { c.save(); c.translate(x + lean * 54 + k * 6, y - 54 + Math.sin(q) * 3); c.rotate(Math.sin(q) * 0.15); c.scale(k, 1); drawMallet(c, 26); c.restore(); }
+    else {
+      const p = at(q), r = 15;
+      c.fillStyle = INK; c.beginPath(); c.arc(p.x, p.y, r + 2, 0, Math.PI * 2); c.fill();
+      c.fillStyle = '#DC2626'; c.beginPath(); c.arc(p.x, p.y, r, 0, Math.PI * 2); c.fill();
+      c.strokeStyle = '#FACC15'; c.lineWidth = 3; c.beginPath(); c.arc(p.x, p.y, r - 4, 0, Math.PI * 2); c.stroke();
+      c.fillStyle = '#FEE2E2'; c.beginPath(); c.arc(p.x - 5, p.y - 5, 4, 0, Math.PI * 2); c.fill();
+    }
+    c.globalAlpha = a0;
+  };
+  one(a - 0.75, 0.18); one(a - 0.5, 0.3); one(a - 0.25, 0.5); one(a, 1);
+};
+
+/** The dust skirt round his feet: puffs going round, stepped, the far ones darker. */
+const drawSkirt = (c: Ctx, x: number, y: number, spd: number, near: boolean) => {
+  const n = 12, rad = 24 + spd * 16;
+  for (let i = 0; i < n; i++) {
+    const a = (i / n) * Math.PI * 2 + spinPh * 0.18, sn = Math.sin(a);
+    if ((sn >= 0) !== near) continue;
+    const s = 4 + ((i * 7) % 4) + spd * 2, px = x + Math.cos(a) * rad, py = y - 3 + sn * 5 - ((i * 3) % 5);
+    const R = near ? [DUST[2], DUST[3], DUST[4]] : [DUST[1], DUST[2], DUST[3]];
+    c.fillStyle = R[0]; c.beginPath(); c.arc(px, py, s, 0, Math.PI * 2); c.fill();
+    c.fillStyle = R[1]; c.beginPath(); c.arc(px - 1, py - 1, s * 0.7, 0, Math.PI * 2); c.fill();
+    c.fillStyle = R[2]; c.fillRect(Math.round(px - s * 0.5), Math.round(py - s * 0.6), Math.max(1, Math.round(s * 0.5)), 2);
+  }
+};
+
+/** Under him: the scuffs and scorches he's left, his shadow while he spins. */
+const drawUnder = (c: Ctx, state: GameState) => {
+  for (const s of scuffs) {
+    const a = s.t < 200 ? 0.5 : 0.5 * (300 - s.t) / 100;
+    c.fillStyle = `rgba(28, 18, 12, ${a.toFixed(2)})`;
+    c.fillRect(Math.round(s.x - s.w / 2), Math.round(s.y - 1), Math.round(s.w), 2);
+    c.fillStyle = `rgba(28, 18, 12, ${(a * 0.6).toFixed(2)})`;
+    for (let i = 0; i < 4; i++) { const ox = (hash(s.seed + i) - 0.5) * s.w; c.fillRect(Math.round(s.x + ox - 3), Math.round(s.y - 2 + (i % 2) * 3), 6, 1); }
+  }
+  const pl = state.player;
+  if (mode !== 'tornado' || pl.currentWeapon !== 'MALLET' || pl.vine) return;
+  const x = pl.pos.x + pl.width / 2, y = pl.pos.y + pl.height + (pl.stance ? (pl.stance.l + pl.stance.r) / 2 : 0), spd = spinSpeed(pl);
+  c.fillStyle = 'rgba(20, 12, 8, 0.22)'; c.beginPath(); c.ellipse(x, y, 34 + spd * 14, 6, 0, 0, Math.PI * 2); c.fill();
+  c.fillStyle = 'rgba(20, 12, 8, 0.25)'; c.beginPath(); c.ellipse(x, y, 20 + spd * 6, 4, 0, 0, Math.PI * 2); c.fill();
+};
+
+/** The tornado: the far half of the funnel, the mallet and junk behind him, glimpses of him, the mallet and junk in
+ *  front, the near half over it all, the skirt at its foot, the speed lines. Leaning the way he's going. */
+const drawTornado = (c: Ctx, x: number, y: number, f: number, pl: GameState['player']) => {
+  const spd = spinSpeed(pl), idx = Math.floor(spinPh) % FN;
+  const lean = Math.max(-0.22, Math.min(0.22, pl.vel.x * 0.05)), sx = 0.86 + 0.14 * Math.min(1, spd);
+  const a0 = c.globalAlpha;
+  const half = (near: boolean) => {
+    const h = funnelHalf(idx, near, f); if (!h) return;
+    c.save(); c.translate(x, y); c.transform(sx, 0, -lean, 1, 0, 0); c.globalAlpha = a0 * (near ? 0.62 + 0.3 * Math.min(1, spd) : 0.9); c.drawImage(h, -BX, -BY); c.restore();
+  };
+  const L = (h: number) => x + lean * h;
+  drawSkirt(c, x, y, spd, false);
+  half(false);
+  for (const j of junk) if (!j.fly && Math.sin(j.ang) < 0) drawJunk(c, j);
+  drawSpinMallet(c, x, y, lean, spd, false);
+  // (him in there: the torso a skin-and-denim smear, his boots taking turns, his head going round, a glimpse of something)
+  const sweep = Math.cos(spinPh * 0.4) >= 0 ? 1 : -1;
+  ghosted(c, sweep, dx => { box(c, L(52) - 10 + dx, y - 70, 20, 22, '#C68B45'); box(c, L(52) - 9 + dx, y - 69, 18, 6, '#E0AC69'); box(c, L(30) - 9 + dx, y - 48, 18, 4, '#78350F'); box(c, L(30) - 2 + dx, y - 48, 4, 4, '#FACC15'); box(c, L(24) - 9 + dx, y - 44, 18, 22, '#1E3A8A'); box(c, L(24) - 9 + dx, y - 44, 3, 22, '#172554'); });
+  const bt = Math.sin(spinPh * 0.9) * 7;
+  ghosted(c, sweep, dx => { drawBoot(c, x - 6 + bt + dx, y - 2, 1); drawBoot(c, x + 6 - bt + dx, y - 2, -1); });
+  const hp = spinPh * 0.5, hx = L(98) + Math.sin(hp) * 9;
+  ghosted(c, sweep, dx => drawSpinHead(c, hx + dx, y - 98, Math.cos(hp) < -0.3));
+  if (glimpse) {
+    const g = glimpse, gx = L(g.h) + g.side * (FR0 + (FR1 - FR0) * (g.h / FHT) * 0.6);
+    ghosted(c, -g.side, dx => {
+      if (g.kind === 'fist') drawFist(c, gx + dx, y - g.h, g.side);
+      else if (g.kind === 'boot') drawBoot(c, gx + dx, y - g.h, g.side);
+      else if (g.kind === 'arm') drawArmSmear(c, gx + dx, y - g.h, g.side);
+      else { c.save(); c.translate(gx + dx, y - g.h); c.scale(1.6, 0.85); drawSpinHead(c, 0, 0, false); c.restore(); }
+    });
+  }
+  drawSpinMallet(c, x, y, lean, spd, true);
+  for (const j of junk) if (!j.fly && Math.sin(j.ang) >= 0) drawJunk(c, j);
+  half(true);
+  drawSkirt(c, x, y, spd, true);
+  // (speed lines off its sides, stepped white to dust)
+  for (let i = 0; i < 6; i++) {
+    const h = 16 + i * 17, s = (f * 0.5 + i * 1.3) % 2 < 1 ? 1 : -1, rr = FR0 + (FR1 - FR0) * Math.pow(h / FHT, 1.3) + 6, l = 10 + spd * 14;
+    const xx = L(h) + s * rr, yy = y - h;
+    box(c, xx + (s > 0 ? 0 : -l), yy, l, 2, i % 2 ? '#FFFFFF' : DUST[4]);
+    box(c, xx + (s > 0 ? l * 0.4 : -l * 1.4), yy - 4, l * 0.6, 1, DUST[3]);
+  }
+};
+
+/** Over him while it spins: how long it's got left, a little mallet badge and a bar draining, blinking as it runs out.
+ *  Off to the side of the funnel's top, clear of his speech over his head and of the HUD. */
+const drawSpinTimer = (c: Ctx, state: GameState, x: number, top: number) => {
+  const pl = state.player;
+  if (mode !== 'tornado' || pl.inCutscene) return;
+  const left = Math.max(0, TORNADO.max - t), k = left / TORNADO.max, cam = state.camera;
+  let bx = x + 40, by = top - 14;
+  if (bx + 50 > cam.x + CANVAS_WIDTH - 6) bx = x - 90;
+  bx = Math.max(cam.x + 14, bx);
+  if (bx - cam.x < HUD_CLEAR_X && by - cam.y < HUD_CLEAR_Y + 12) by = cam.y + HUD_CLEAR_Y + 12;
+  by = Math.max(cam.y + 14, by);
+  bx = Math.round(bx); by = Math.round(by);
+  const blink = left < 60 && (state.frame >> 2) % 2 === 0;
+  // (the badge: an inked disc, a little mallet in it)
+  c.fillStyle = INK; c.beginPath(); c.arc(bx, by, 9, 0, Math.PI * 2); c.fill();
+  c.fillStyle = blink ? '#7F1D1D' : '#292524'; c.beginPath(); c.arc(bx, by, 7.5, 0, Math.PI * 2); c.fill();
+  box(c, bx - 1, by - 1, 2, 7, '#D6A35C'); box(c, bx - 5, by - 6, 10, 6, INK); box(c, bx - 4, by - 5, 8, 4, '#DC2626'); box(c, bx - 4, by - 5, 8, 1, '#F87171'); box(c, bx - 2, by - 5, 1, 4, '#FACC15'); box(c, bx + 1, by - 5, 1, 4, '#FACC15');
+  // (the bar: an inked track, the fill yellow, then orange, then red, notched, blinking white at the end)
+  const w = 40, x0 = bx + 11, y0 = by - 3;
+  box(c, x0 - 1, y0 - 1, w + 2, 8, INK); box(c, x0, y0, w, 6, '#3F3F46'); box(c, x0, y0 + 5, w, 1, '#27272A');
+  const fw = Math.round(w * k);
+  const [hi, mid, lo] = blink ? ['#FFFFFF', '#FFFFFF', '#E5E7EB'] : k > 0.5 ? ['#FEF08A', '#FACC15', '#CA8A04'] : k > 0.25 ? ['#FED7AA', '#FB923C', '#C2410C'] : ['#FCA5A5', '#EF4444', '#991B1B'];
+  if (fw > 0) { box(c, x0, y0, fw, 6, mid); box(c, x0, y0, fw, 1, hi); box(c, x0, y0 + 4, fw, 2, lo); }
+  for (let i = 8; i < w; i += 8) box(c, x0 + i, y0, 1, 6, INK);
 };
 
 /** On a vine: where his weapon shoulder is (world), his body hung off his hand on the vine as the renderer has it. */
@@ -624,10 +941,10 @@ const drawHeld = (c: Ctx) => { c.save(); c.translate(1, 3); c.rotate(-1.15); dra
 export const holdMalletForTests = (m: string, at: number) => { mode = m as Mode; t = at; };
 export const malletModeForTests = () => `${mode}:${t}:${xHeld}`;
 /** Everything it was in the middle of, stopped (through a door). */
-export const stopMallet = () => { mode = 'idle'; syncArmor(); words = []; twinkles = []; flat = []; flying = []; };
+export const stopMallet = () => { mode = 'idle'; syncArmor(); words = []; twinkles = []; flat = []; flying = []; junk = []; impacts = []; scuffs = []; glimpse = null; };
 
 export const registerMallet = () => registerWeapon('MALLET', {
   // (all its business is in tick: X and Y both, held and tapped)
   fire: ctx => { ctx.state.player.shootCooldown = 0; },
-  update: () => false, draw: () => {}, drawHeld: c => drawHeld(c), tick, drawOverlay, vineArm,
+  update: () => false, draw: () => {}, drawHeld: c => drawHeld(c), tick, drawOverlay, drawUnder, vineArm,
 });
