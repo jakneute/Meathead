@@ -522,6 +522,27 @@ const floors = (c: Ctx, state: GameState, E: P) => {
   }
 };
 
+/** Board-formed concrete for the near cut, as a tile anchored to the world (made once per ramp: the hour's): the form
+ *  boards' grain in courses, lit under each seam, the aggregate's speckle, a cold joint down one edge, form-tie holes. */
+const CONC_TILES = new Map<string, CanvasPattern>();
+const concPattern = (c: Ctx, R: string[]) => {
+  const key = R.join();
+  let p = CONC_TILES.get(key);
+  if (!p) {
+    const cv = document.createElement('canvas'); cv.width = 160; cv.height = 90;
+    const g = cv.getContext('2d')!;
+    box(g, 0, 0, 160, 90, R[2]);
+    for (let y = 0; y < 90; y += 15) { box(g, 0, y, 160, 1, R[1]); box(g, 0, y + 1, 160, 1, R[3]); for (let x = 0; x < 160; x += 3) if (hash(x * 1.3 + y) > 0.72) box(g, x, y + 4 + Math.floor(hash(x + y * 2) * 8), 2 + Math.floor(hash(x * 3 + y) * 5), 1, hash(x + y) > 0.5 ? R[1] : R[3]); }
+    for (let k = 0; k < 260; k++) box(g, Math.floor(hash(k * 2.17) * 160), Math.floor(hash(k * 3.31) * 90), 1, 1, k % 3 ? R[1] : R[4]);
+    box(g, 0, 0, 2, 90, R[1]); box(g, 2, 0, 1, 90, R[3]);
+    for (const [tx, ty] of [[40, 22], [120, 22], [40, 67], [120, 67]]) { box(g, tx - 2, ty - 2, 5, 5, R[0]); box(g, tx - 1, ty - 1, 3, 3, R[1]); box(g, tx + 2, ty + 2, 2, 1, R[4]); }
+    p = c.createPattern(cv, 'repeat')!;
+    if (CONC_TILES.size > 24) CONC_TILES.clear();
+    CONC_TILES.set(key, p);
+  }
+  return p;
+};
+
 /** The near cut: the ground's section along the play plane (poured concrete in the bowl, the stage's skirt), the steps,
  *  every top lit. */
 const nearCut = (c: Ctx, state: GameState) => {
@@ -532,12 +553,17 @@ const nearCut = (c: Ctx, state: GameState) => {
   c.beginPath(); c.moveTo(l, bot);
   for (let x = l; x <= r; x += 2) c.lineTo(x, treadAt(x - X(0)));
   c.lineTo(r, bot); c.closePath();
-  c.fillStyle = Cc[2]; c.fill();
+  c.fillStyle = concPattern(c, Cc); c.fill();
   c.save(); c.clip();
   let px = l, py = treadAt(l - X(0));
   const band = (x0: number, x2: number, y: number) => { const wood = x0 - X(0) >= STEPS.a; const R = wood ? P : Cc; box(c, x0, y + 4, x2 - x0, 8, R[3]); checker(c, x0, y + 12, x2 - x0, 2, R[3], 0, 1); box(c, x0, y + 14, x2 - x0, 14, R[2]); checker(c, x0, y + 28, x2 - x0, 2, R[2], 1, 1); };
   for (let x = l + 2; x <= r + 2; x += 2) { const y = treadAt(x - X(0)); if (y !== py || x > r) { band(px, x, py); px = x; py = y; } }
-  for (let x = Math.floor(l / 40) * 40; x < Math.min(r, da); x += 40) for (let y = treadAt(x - X(0)) + 34; y < bot; y += 30) box(c, x + 20, y, 2, 2, Cc[1]);
+  // (rain streaks down from the treads' lips, a patch of moss at the foot of some, a tag sprayed on one panel)
+  for (let x = Math.floor(l / 64) * 64; x < Math.min(r, da); x += 64) {
+    const k = hash(x * 0.37), y0 = treadAt(x - X(0)) + 14, len = 30 + k * 90;
+    if (k > 0.35) for (let y = 0; y < len; y += 3) box(c, x + 10 + Math.round(k * 30), y0 + y, 2 + (y < len * 0.4 ? 1 : 0), 3, 'rgba(40,34,30,' + (0.22 * (1 - y / len)).toFixed(3) + ')');
+    if (k < 0.18) { const sy = y0 + 40; c.strokeStyle = 'rgba(200,60,120,0.55)'; c.lineWidth = 2; c.beginPath(); c.moveTo(x + 8, sy + 8); c.quadraticCurveTo(x + 14, sy - 4, x + 20, sy + 6); c.quadraticCurveTo(x + 26, sy + 12, x + 34, sy); c.stroke(); }
+  }
   c.restore();
   // (the stage's skirt: red, white and blue bunting along its front, the lattice under it)
   if (r > da) {
