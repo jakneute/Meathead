@@ -1002,3 +1002,13 @@ markBossFight every frame of a boss or sub-boss fight. Voice every new line (`np
   canopy with scallops off its edge and a lit top lip, and the roof's a one-way ledge that moves with it and carries
   him (he can drop onto it from a tower lid and ride it over the pit; off the end it lets him down by the station). Only
   its front (the cab's nose and cowcatcher, 48 px) hurts now, so landing on it or riding it never does.
+- (the user, 2026-10-20, verbatim: "the stations in the monorail in cartoon land should look better and blend in
+  better with support beams and everything".) The sky trolley's line (kiddie/hazards.ts endStation): the END STATION's
+  no longer a dimmed box hovering over the street. The beam's candy stripes run on into its floor, carried on two of
+  the line's own curly lilac posts with a candy X-brace and bolted steel brackets; the lemon clapboard body on that
+  floor under the pink-striped dome (now filled out to its curve: the old fan left dark shoulders), finial and pennant,
+  round windows, lanterns at the doorway the trolley runs into, an END OF THE LINE board (NO MORE TODAY on a revisit)
+  on brass rods; down its far side a caged lilac lift tower to the street, the car at the bottom. The hattery end: a
+  candy strut up under the beam off a bolted plate on the wall. The studio's THIS WAY sign is drawn again over the
+  station's legs (it stands in front). Collision: only the beam's last 14 px on into the doorway (a ledge), so the
+  drawn beam end is all standable; nothing else new to stand on (the dome's not lit).

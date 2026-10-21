@@ -36,13 +36,13 @@ import { envSound } from '../../bossQuiet';
 import { updatePitBounce } from '../pitBounce';
 import {
   box, mix, onScreen, hour, dimmed, lit, toonLetters, INK, viewOf, drumTop, ballR, eggR, ramp6, rampH, polyF, candyStroke, shadeAcross, checker,
-  BRASS, FROSTING, LILAC, BUBBLEGUM, CHERRY, LEMON, SKY, STEEL, GRASS, LIP, type Ctx,
+  toonSign, BRASS, FROSTING, LILAC, BUBBLEGUM, CHERRY, LEMON, SKY, STEEL, GRASS, LIP, MINT, type Ctx,
 } from '../kit';
 import { signText } from '../../signLetters';
 import { lookOf } from '../../adventure/temple/people';
 import { kiddieOf, shut } from './state';
 import { onTower } from '../sway';
-import { CAROUSEL, SPINNER, TRAIN, TROLLEY, PITS, X, Y } from './layout';
+import { CAROUSEL, SPINNER, TRAIN, TROLLEY, PITS, SIGNS, X, Y } from './layout';
 import { GY } from '../geometry';
 
 const alive = (state: GameState) => state.player.health > 0 && !state.player.inCutscene;
@@ -481,6 +481,14 @@ export const drawHazardsBack = (c: Ctx, state: GameState) => {
   if (onScreen(state, ra - 60, rb + 200)) {
     const Pu = rampH(LILAC);
     for (let x = ra + 120; x < rb; x += 260) candyStroke(c, () => { c.moveTo(x, GY + 20); c.bezierCurveTo(x - 20, ry + 120, x + 20, ry + 60, x, ry + 10); }, 8, Pu, rampH(FROSTING), 8);
+    // (where the beam comes out of the hattery: a candy strut up under it off a bolted steel plate on the wall)
+    {
+      const St = rampH(STEEL);
+      candyStroke(c, () => { c.moveTo(ra + 2, ry + 78); c.quadraticCurveTo(ra + 20, ry + 40, ra + 64, ry + 16); }, 6, Pu, rampH(FROSTING), 7);
+      box(c, ra - 4, ry + 66, 12, 24, INK); box(c, ra - 3, ry + 67, 10, 22, St[3]); box(c, ra - 3, ry + 67, 10, 2, St[5]);
+      for (const by of [ry + 71, ry + 82]) { box(c, ra, by, 3, 3, St[1]); box(c, ra, by, 1, 1, St[5]); }
+      box(c, ra + 54, ry + 14, 20, 8, INK); box(c, ra + 55, ry + 15, 18, 6, St[3]); box(c, ra + 55, ry + 15, 18, 1, St[5]);
+    }
     // (the hattery's arch: the bell's lamp over it flashing while it rings; the revisit, the trolley's put away: the
     // shutter rolled down across the arch, its slats, OUT OF SERVICE on it, the lamp dark)
     const tl = trolleyAt(f), lampOn = !off && tl.phase === 'bell' && (tl.t >> 3) % 2 === 0;
@@ -494,14 +502,80 @@ export const drawHazardsBack = (c: Ctx, state: GameState) => {
       box(c, ra - 60, ry - 46, 52, 22, INK); box(c, ra - 59, ry - 45, 50, 20, hour('#F4E8D0'));
       signText(c, 'OUT OF', ra - 34, ry - 37, { sx: 1, sy: 1, bold: true, fill: hour(CHERRY[2]) }); signText(c, 'SERVICE', ra - 34, ry - 28, { sx: 1, sy: 1, bold: true, fill: hour(CHERRY[2]) });
     }
-    // (the end station: a little domed hut on stilts, behind)
-    const ex = rb + 20, Y2 = rampH(LEMON, true), P2 = rampH(BUBBLEGUM, true);
-    box(c, ex - 4, ry - 120, 140, 130, INK); shadeAcross(c, () => c.rect(ex, ry - 116, 132, 122), ex, ry - 116, 132, 122, Y2);
-    c.fillStyle = INK; c.beginPath(); c.arc(ex + 66, ry - 116, 72, Math.PI, 0); c.fill();
-    c.save(); c.beginPath(); c.arc(ex + 66, ry - 116, 68, Math.PI, 0); c.clip(); for (let k = 0; k < 8; k++) { c.fillStyle = k % 2 ? P2[3] : P2[4 - (k > 4 ? 2 : 0)]; c.beginPath(); c.moveTo(ex + 66, ry - 186); c.lineTo(ex - 2 + k * 17, ry - 116); c.lineTo(ex + 15 + k * 17, ry - 116); c.closePath(); c.fill(); } c.restore();
-    box(c, ex - 6, ry - 92, 40, 92, '#1A1028');
-    for (let k = 0; k < 3; k++) { c.fillStyle = INK; c.beginPath(); c.arc(ex + 60 + k * 26, ry - 70, 9, 0, Math.PI * 2); c.fill(); c.fillStyle = lit() ? '#FFE08A' : dimmed('#9ACAEA'); c.beginPath(); c.arc(ex + 60 + k * 26, ry - 70, 7, 0, Math.PI * 2); c.fill(); }
+    endStation(c, rb, ry, f, off);
+    // (the studio's THIS WAY sign stands in front of the station's legs: drawn again over them, so nothing's over it)
+    for (const [sx, sh, lines, board, tall] of SIGNS) if (Math.abs(X(sx) - (rb + 100)) < 320) toonSign(c, X(sx), Y(sh), lines, { board, tall });
   }
+};
+
+/** THE END STATION: built onto the monorail like the rest of it. The beam runs on into its floor (the same candy
+ *  stripes, the trolley's doorway over it: the tunnel mouth it runs into), the floor carried on two of the track's own
+ *  curly lilac posts with a candy X-brace between and bolted steel brackets where they meet it; the body's lemon
+ *  clapboard on that floor under the pink-striped dome (its finial and pennant), round windows, two lanterns at the
+ *  doorway, the END OF THE LINE board over it; down its far side a caged lift tower in the posts' lilac to the street
+ *  (the car waiting at the bottom), its head joined to the body. Nothing new to stand on (the dome's not lit). */
+const endStation = (c: Ctx, rb: number, ry: number, f: number, off: boolean) => {
+  const L0 = rb + 14, W = 160, R0 = L0 + W, top = ry - 124;
+  const Pu = rampH(LILAC), Wt = rampH(FROSTING), Mn = rampH(MINT), St = rampH(STEEL), Ye = rampH(LEMON), Pk = rampH(BUBBLEGUM);
+  // (the lift tower, behind the body's far end: four lilac corner posts, cross-laced, the car at the bottom)
+  const tx = R0 - 8, tw = 46, tt = top + 30;
+  box(c, tx - 2, tt - 2, tw + 4, GY - tt + 2, INK);
+  box(c, tx, tt, tw, GY - tt, hour('#2A1E4A'));
+  for (let y = tt + 8; y < GY - 8; y += 26) { c.strokeStyle = Pu[2]; c.lineWidth = 2; c.beginPath(); c.moveTo(tx + 3, y); c.lineTo(tx + tw - 3, y + 26); c.moveTo(tx + tw - 3, y); c.lineTo(tx + 3, y + 26); c.stroke(); box(c, tx, y - 1, tw, 3, Pu[3]); box(c, tx, y - 1, tw, 1, Pu[4]); }
+  for (const px of [tx, tx + tw - 5]) { box(c, px, tt, 5, GY - tt, Pu[3]); box(c, px, tt, 1, GY - tt, Pu[5]); box(c, px + 4, tt, 1, GY - tt, Pu[1]); }
+  const cy = GY - 50;
+  box(c, tx + 6, cy, tw - 12, 48, INK); box(c, tx + 8, cy + 2, tw - 16, 44, Ye[3]); box(c, tx + 8, cy + 2, tw - 16, 3, Ye[4]); box(c, tx + 8, cy + 40, tw - 16, 6, Ye[1]);
+  box(c, tx + 12, cy + 8, tw - 24, 22, hour('#BAE6FD')); box(c, tx + 12, cy + 8, tw - 24, 3, 'rgba(255,255,255,0.7)'); box(c, tx + tw / 2 - 1, cy + 8, 2, 22, INK);
+  box(c, tx + tw / 2 - 1, tt + 6, 2, cy - tt - 6, St[2]);
+  box(c, tx - 4, tt - 10, tw + 8, 12, INK); box(c, tx - 2, tt - 8, tw + 4, 8, Pk[3]); box(c, tx - 2, tt - 8, tw + 4, 2, Pk[4]);
+  // (the floor's posts: the track's own curly candy posts, a candy X between, bolted brackets up top)
+  const p1 = L0 + 34, p2 = R0 - 44, fy = ry + 18;
+  candyStroke(c, () => { c.moveTo(p1 + 14, GY - 30); c.lineTo(p2 - 14, fy + 26); }, 5, Pu, Wt, 7);
+  candyStroke(c, () => { c.moveTo(p1 + 14, fy + 26); c.lineTo(p2 - 14, GY - 30); }, 5, Pu, Wt, 7);
+  for (const px of [p1, p2]) {
+    candyStroke(c, () => { c.moveTo(px, GY + 20); c.bezierCurveTo(px - 16, fy + 110, px + 16, fy + 50, px, fy); }, 8, Pu, Wt, 8);
+    box(c, px - 11, fy - 1, 22, 12, INK); box(c, px - 10, fy, 20, 10, St[3]); box(c, px - 10, fy, 20, 2, St[5]); box(c, px - 10, fy + 8, 20, 2, St[1]);
+    for (const bx of [px - 6, px + 4]) { box(c, bx, fy + 4, 3, 3, St[1]); box(c, bx, fy + 4, 1, 1, St[5]); }
+  }
+  // (the floor: the beam's candy stripes carried on through, its steel rivets)
+  box(c, rb - 2, ry - 2, R0 - rb + 4, 22, INK); box(c, rb, ry, R0 - rb, 18, Wt[3]);
+  for (let x = Math.floor(rb / 24) * 24; x < R0; x += 24) { const x0 = Math.max(rb, x), ww = Math.min(12, R0 - x0); if (ww > 0) { box(c, x0, ry + 3, ww, 10, Mn[3]); box(c, x0, ry + 3, ww, 2, Mn[4]); box(c, x0, ry + 11, ww, 2, Mn[2]); } }
+  box(c, rb, ry + 14, R0 - rb, 4, Wt[1]); box(c, rb, ry + 1, R0 - rb, 1, Wt[5]);
+  for (let x = rb + 10; x < R0; x += 36) { box(c, x, ry + 7, 3, 3, St[1]); box(c, x, ry + 7, 1, 1, St[5]); }
+  // (the body: lemon clapboard, shaded across, its corner boards)
+  box(c, L0 - 2, top - 2, W + 4, ry - top + 2, INK);
+  shadeAcross(c, () => c.rect(L0, top, W, ry - top), L0, top, W, ry - top, Ye);
+  for (let y = top + 10; y < ry; y += 10) box(c, L0, y, W, 1, Ye[1]);
+  box(c, R0 - 8, top, 8, ry - top, Pk[2]); box(c, R0 - 8, top, 2, ry - top, Pk[4]);
+  box(c, L0, top, W, 6, Pk[3]); box(c, L0, top + 4, W, 2, Pk[1]);
+  // (the dome, pink stripes, its finial and a pennant)
+  const dx = L0 + W / 2, dr = W / 2 - 6;
+  c.fillStyle = INK; c.beginPath(); c.arc(dx, top, dr + 4, Math.PI, 0); c.fill();
+  c.save(); c.beginPath(); c.arc(dx, top, dr, Math.PI, 0); c.clip();
+  // (the stripes as wedges out of the dome's middle, so they fill it right out to its curve)
+  for (let k = 0; k < 10; k++) { const a0 = Math.PI + (k / 10) * Math.PI, a1 = Math.PI + ((k + 1) / 10) * Math.PI; c.fillStyle = k % 2 ? Wt[3] : Pk[k < 5 ? 4 : 2]; c.beginPath(); c.moveTo(dx, top); c.arc(dx, top, dr + 1, a0, a1); c.closePath(); c.fill(); }
+  c.fillStyle = 'rgba(26,16,40,0.18)'; c.beginPath(); c.arc(dx, top, dr, 0, Math.PI * 2); c.arc(dx, top, dr - 8, 0, Math.PI * 2, true); c.fill();
+  c.fillStyle = 'rgba(255,255,255,0.18)'; c.beginPath(); c.arc(dx - dr * 0.35, top - dr * 0.5, dr * 0.35, 0, Math.PI * 2); c.fill();
+  c.restore();
+  box(c, dx - 2, top - dr - 22, 4, 20, INK); box(c, dx - 1, top - dr - 21, 2, 18, hour(BRASS[4]));
+  ballR(c, dx, top - dr - 4, 5, rampH(ramp6(BRASS[3])));
+  const wav = Math.sin(f * 0.12) * 3;
+  polyF(c, [[dx + 2, top - dr - 22], [dx + 26, top - dr - 17 + wav], [dx + 2, top - dr - 12]], INK); polyF(c, [[dx + 3, top - dr - 20], [dx + 22, top - dr - 17 + wav], [dx + 3, top - dr - 14]], hour(CHERRY[3]));
+  // (round windows, the doorway the trolley runs into, its lanterns)
+  for (let k = 0; k < 3; k++) { const wx = L0 + 70 + k * 26; c.fillStyle = INK; c.beginPath(); c.arc(wx, ry - 70, 9, 0, Math.PI * 2); c.fill(); c.fillStyle = lit() ? '#FFE08A' : hour('#9ACAEA'); c.beginPath(); c.arc(wx, ry - 70, 7, 0, Math.PI * 2); c.fill(); box(c, wx - 4, ry - 75, 3, 3, 'rgba(255,255,255,0.6)'); }
+  box(c, L0, ry - 92, 40, 92, '#1A1028');
+  for (let k = 0; k < 4; k++) box(c, L0 + 2, ry - 80 + k * 18, 36, 2, 'rgba(60,40,90,0.6)');
+  box(c, L0 - 3, ry - 98, 46, 6, INK); box(c, L0 - 2, ry - 97, 44, 4, Ye[4]);
+  for (const lx of [L0 + 50, L0 + 140]) {
+    box(c, lx - 1, ry - 46, 2, 8, INK);
+    ballR(c, lx, ry - 34, 6, lit() && !off ? ramp6('#FDE047') : rampH(ramp6('#D9A84A')));
+    if (lit() && !off) { c.fillStyle = 'rgba(253,224,71,0.22)'; c.beginPath(); c.arc(lx, ry - 34, 18, 0, Math.PI * 2); c.fill(); }
+  }
+  // (the board over it all, held up on two brass rods off the dome's base)
+  const bw = 120, bx = dx - bw / 2, by = top - 30;
+  for (const rx of [bx + 14, bx + bw - 14]) { box(c, rx - 1, by + 20, 3, 12, INK); box(c, rx, by + 20, 1, 12, hour(BRASS[4])); }
+  box(c, bx, by, bw, 22, INK); box(c, bx + 2, by + 2, bw - 4, 18, hour(CHERRY[3])); box(c, bx + 2, by + 2, bw - 4, 2, hour(CHERRY[4])); box(c, bx + 2, by + 17, bw - 4, 3, hour(CHERRY[1]));
+  signText(c, off ? 'NO MORE TODAY' : 'END OF THE LINE', dx, by + 15, toonLetters(1));
 };
 
 /** A sandwich board on the ground (a CLOSED notice), its feet at x. */
@@ -613,9 +687,9 @@ export const drawHazardsFront = (c: Ctx, state: GameState) => {
       c.restore();
       // (the doorway's jambs and lintel over it, so it reads going in under the station's arch)
       if (tl.x > DOOR_L - 20) {
-        const Y2 = rampH(LEMON, true);
+        const Y2 = rampH(LEMON);
         box(c, DOOR_L - 3, ry - 96, 5, 96, INK); box(c, DOOR_L - 2, ry - 95, 3, 95, Y2[4]);
-        box(c, DOOR_L - 3, ry - 98, DOOR_R - DOOR_L + 6, 6, INK); box(c, DOOR_L - 2, ry - 97, DOOR_R - DOOR_L + 4, 4, Y2[3]);
+        box(c, DOOR_L - 3, ry - 98, DOOR_R - DOOR_L + 6, 6, INK); box(c, DOOR_L - 2, ry - 97, DOOR_R - DOOR_L + 4, 4, Y2[4]);
       }
     }
   }

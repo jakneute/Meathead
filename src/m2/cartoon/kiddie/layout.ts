@@ -82,6 +82,8 @@ export const LEDGES: [number, number, number][] = [
   [CAROUSEL.cx - CAROUSEL.r - 20, CAROUSEL.cx + CAROUSEL.r + 20, CAROUSEL.deck], [CAROUSEL.cx - CAROUSEL.r - 30, CAROUSEL.cx + CAROUSEL.r + 30, CAROUSEL.canopy],
   [BALCONY.a, BALCONY.b, BALCONY.h], [GUMDROP.a, GUMDROP.b, GUMDROP.h],
   [TROLLEY.a, TROLLEY.b, TROLLEY.h],
+  // (the beam's last bit, on into the end station's doorway)
+  [TROLLEY.b, TROLLEY.b + 14, TROLLEY.h],
   [END_BALCONY.a, END_BALCONY.b, END_BALCONY.h],
 ];
 
