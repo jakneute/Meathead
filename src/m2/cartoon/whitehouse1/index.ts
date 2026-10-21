@@ -238,7 +238,7 @@ const updateReal = (state: GameState, controls: Parameters<NonNullable<CartoonSe
   once('wh1-real', byPants(state, STAGE_WH1));
   if (near(X((PODIUM.a + PODIUM.b) / 2), 200)) once('body-perot', byPants(state, BODY_LINES.perot));
   if (near(X((BED.a + BED.b) / 2), 220)) once('body-falwell', byPants(state, BODY_LINES.falwell));
-  if ([...deadList(state, DEAD1_MEMO)].some(ix => near(X(CAST[ix][1]), 120))) once('body-staff', byPants(state, BODY_LINES.staff));
+  if ([...deadList(state, DEAD1_MEMO)].some(ix => near(deadAt(state, DEAD1_MEMO, ix)?.x ?? X(CAST[ix][1]), 120))) once('body-staff', byPants(state, BODY_LINES.staff));
   runExits(state, [{ x0, x1: x0 + 60, yTop: GY - 40, yBot: GY + 2, to: DOORS.studio.end }]);
   runExits(state, [{ x0: x1 - 60, x1, yTop: GY - 40, yBot: GY + 2, to: DOORS.whitehouse2.start }]);
   return controls;

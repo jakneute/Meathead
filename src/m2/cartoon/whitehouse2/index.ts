@@ -166,7 +166,7 @@ export const whitehouse2: CartoonSection = {
       if (near(X((DESK_EIB.a + DESK_EIB.b) / 2), 220)) once('body-limbaugh', byPants(state, BODY_LINES.limbaugh));
       if (near(X((CAB_TABLE.a + CAB_TABLE.b) / 2), 260)) once('body-dole', byPants(state, BODY_LINES.dole));
       if (state.stageMemo[ACTRESS_GONE_MEMO] && near(ACTRESS_AT.x, 160)) once('body-wig', byPants(state, BODY_LINES.wig));
-      if ([...deadList(state, DEAD2_MEMO)].some(ix => near(X(CAST[ix][1]), 120))) once('body-staff', byPants(state, BODY_LINES.staff));
+      if ([...deadList(state, DEAD2_MEMO)].some(ix => near(deadAt(state, DEAD2_MEMO, ix)?.x ?? X(CAST[ix][1]), 120))) once('body-staff', byPants(state, BODY_LINES.staff));
     }
     // The ways: back out the colonnade's left end (to the garden); out the stage door (the screen's down: on to the
     // big-kid rides, his line as he goes)
