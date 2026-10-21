@@ -64676,6 +64676,11 @@
  },
  {
   "voice": "meathead",
+  "text": "HE DEFINITELY DIDN'T POOF.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "HE DIED SMELLING ME. FAIR.",
   "from": "FANTASY"
  },
@@ -74866,11 +74871,6 @@
  },
  {
   "voice": "meathead",
-  "text": "OH. SO THAT'S WHAT A POOF LOOKS LIKE.",
-  "from": "CARTOON"
- },
- {
-  "voice": "meathead",
   "text": "OIL IN MY EYES! I CAN'T SEE THE SQUAT RACK!",
   "from": "HAZARD_HURT"
  },
@@ -79658,16 +79658,6 @@
   "voice": "meathead",
   "text": "SO MANY TINY TEETH!",
   "from": "ADVENTURE"
- },
- {
-  "voice": "meathead",
-  "text": "SO THAT'S WHAT A POOF LOOKS LIKE. GOOD THING I'M NAKED. LESS TO WASH.",
-  "from": "CARTOON"
- },
- {
-  "voice": "meathead",
-  "text": "SO THAT'S WHAT A POOF LOOKS LIKE. I NEED NEW PANTS. AGAIN.",
-  "from": "CARTOON"
  },
  {
   "voice": "meathead",
