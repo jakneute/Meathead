@@ -740,8 +740,14 @@ const paintTeenRider = (c: Ctx, k: TeenLook, weapon: Weapon, p: RiderPose, ph: n
   // (the arms out to the bars; the weapon arm up behind (the wind-up), out at him (the swing), or down at their side)
   const armTo = (side: number, hx: number, hy: number) => {
     const mx = (side * (bw - 2) + hx) / 2, my = (-70 + hy) / 2 + 2;
+    // (inked round as one arm first, so the sleeve and the forearm join at a real elbow)
+    line(c, INK, 8, [side * (bw - 2), -70, mx, my]); line(c, INK, 6, [mx, my, hx, hy]);
     line(c, S[2], 6, [side * (bw - 2), -70, mx, my]); line(c, S[4], 2, [side * (bw - 2) - 1, -71, mx - 1, my - 1]);
     line(c, Kn[2], 4, [mx, my, hx, hy]); line(c, Kn[4], 1.2, [mx, my - 1, hx, hy - 1]);
+    // (the elbow: the sleeve's cuff round it, the joint's knob; the shoulder: a round cap of jersey over the arm's root)
+    ell(c, mx, my, 2.4, 2.4, Kn[2]); box(c, mx - 1, my - 2, 1, 1, Kn[4]);
+    line(c, S[1], 1.4, [mx - 2.6, my - 1.6, mx + 2.6, my - 2.6]);
+    ell(c, side * (bw - 2), -70, 4.2, 3.6, S[3]); ell(c, side * (bw - 2) - 1, -71.4, 2, 1.4, S[4]); box(c, side * (bw - 2) - 2, -67, 4, 1, S[2]);
     box(c, hx - 2, hy - 2, 4, 4, k.helmet ? '#18181B' : Kn[3]);
   };
   const ws = p.side;
