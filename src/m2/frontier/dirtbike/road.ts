@@ -268,9 +268,11 @@ export const FOG_STEPS = 8;
 export const fogStep = (n: number) => { const k = n / DRAW; return Math.min(FOG_STEPS - 1, Math.floor(k * k * FOG_STEPS * 1.7)); };
 
 type Two = [string, string];
-interface Pal { grass: Two; verge: Two; rumble: Two; road: Two; crown: Two; rut: Two; lip: string; mud: Two; jump: [string, string, string, string] }
+interface Pal { grass: Two; verge: Two; rumble: Two; road: Two; crown: Two; rut: Two; lip: string; mud: Two; jump: [string, string, string, string]; tuft: [string, string, string] }
 const pal = (grass: Two, verge: Two, rumble: Two, road: Two, crown: Two, rut: Two, lip: string): Pal => ({
   grass, verge, rumble, road, crown, rut, lip,
+  // (the grass's tufts: a dark clump, a sunlit blade, a wildflower)
+  tuft: [mix(grass[1], '#0E1A0A', 0.32), mix(grass[0], '#F4F0B0', 0.3), mix(grass[0], '#F2E2A0', 0.62)],
   mud: [mix(road[0], '#2A2014', 0.55), mix(road[1], '#2A2014', 0.6)],
   // (a dirt jump: its run-up, its lit face, the lip catching the sun, its back in shade)
   jump: [mix(road[0], '#000000', 0.12), mix(crown[0], '#FFF4D8', 0.18), mix(lip, '#FFFFFF', 0.25), mix(road[1], '#1A1008', 0.3)],
@@ -304,7 +306,7 @@ const fogTable = (): Fogged => {
     const P = PALS[b];
     return Array.from({ length: FOG_STEPS }, (_, s): Pal => ({
       grass: m2(P.grass, s), verge: m2(P.verge, s), rumble: m2(P.rumble, s), road: m2(P.road, s), crown: m2(P.crown, s), rut: m2(P.rut, s),
-      lip: m(P.lip, s), mud: m2(P.mud, s), jump: [m(P.jump[0], s), m(P.jump[1], s), m(P.jump[2], s), m(P.jump[3], s)],
+      lip: m(P.lip, s), mud: m2(P.mud, s), jump: [m(P.jump[0], s), m(P.jump[1], s), m(P.jump[2], s), m(P.jump[3], s)], tuft: [m(P.tuft[0], s), m(P.tuft[1], s), m(P.tuft[2], s)],
     }));
   });
   const water = Array.from({ length: FOG_STEPS }, (_, s) => WATER.map(c => m(c, s)));
@@ -346,6 +348,19 @@ export const drawRoad = (c: CanvasRenderingContext2D, t: Track) => {
     // (wet and churned to mud either side of a creek's ford)
     const wet = segAt(t, s.i + 1).water || segAt(t, s.i + 2).water || segAt(t, s.i - 1).water || segAt(t, s.i - 2).water;
     c.fillStyle = P.grass[alt]; c.fillRect(0, top, W, bh + 1);
+    // (tufts in the grass either side, by the segment (they rush at him with it): dark clumps with a sunlit blade on
+    // top, the odd wildflower; bigger up close)
+    if (n < DRAW * 0.75) {
+      const sz = Math.max(1, Math.round(w1 * 0.022)), tufts = n < 24 ? 7 : n < 60 ? 5 : 3;
+      for (let k = 0; k < tufts; k++) {
+        const u = hash(s.i * 7.3 + k * 1.9), off = (u < 0.5 ? -1 : 1) * (1.65 + hash(s.i * 3.1 + k * 2.7) * 7), tx = Math.round(x1 + off * w1);
+        if (tx < -8 || tx > W + 8) continue;
+        const ty = top + (bh > 2 ? Math.round(hash(s.i + k * 5.1) * (bh - 1)) : 0);
+        if (hash(s.i * 1.7 + k * 9.3) > 0.86) { c.fillStyle = P.tuft[2]; c.fillRect(tx, ty - sz, sz, sz); continue; }
+        c.fillStyle = P.tuft[0]; c.fillRect(tx - sz, ty - sz, sz * 3, sz + 1);
+        c.fillStyle = P.tuft[1]; c.fillRect(tx, ty - sz * 2, sz, sz);
+      }
+    }
     quad(c, wet ? P.mud[alt] : P.verge[alt], x1, y1, w1 * 1.5, x2, y2, w2 * 1.5);
     quad(c, P.rumble[alt], x1, y1, w1 * 1.14, x2, y2, w2 * 1.14);
     quad(c, wet ? P.mud[1 - alt] : P.road[alt], x1, y1, w1, x2, y2, w2);

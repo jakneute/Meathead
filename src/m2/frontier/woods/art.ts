@@ -533,7 +533,19 @@ export const drawWoodsFront = (c: Ctx, state: GameState) => {
       const B = hr('bark', BARK, 0.2).map(col => mix(col, '#080604', 0.55)), N = firOf(hr('needle', NEEDLE, 0.2)).map(col => mix(col, '#040604', 0.5));
       g.fillStyle = INK; g.beginPath(); g.moveTo(-17, -700); g.lineTo(17, -700); g.lineTo(20, -10); g.lineTo(30, 40); g.lineTo(-30, 40); g.lineTo(-20, -10); g.closePath(); g.fill();
       box(g, -16, -700, 32, 740, B[3]); box(g, -16, -700, 7, 740, B[5]); box(g, 9, -700, 7, 740, B[1]); checker(g, 5, -700, 4, 740, B[2]);
-      for (let y = -690; y < 30; y += 11) { const px = -12 + ((y * 7) % 18 + 18) % 18; box(g, px, y, 7, 2, B[1]); box(g, px, y - 1, 7, 1, B[4]); }
+      // (the bark in long plates: fissures running up it, each plate lit down its left edge and shaded under its
+      // foot, broken where they end; moss up its shaded side near the ground, lichen flecks)
+      for (let col = 0; col < 5; col++) {
+        const px = -15 + col * 6 + (col % 2);
+        for (let y = -700 + Math.round(hash(rx + col) * 30), k = 0; y < 30; k++) {
+          const ph = 22 + Math.round(hash(rx * 0.1 + col * 3.1 + k * 1.7) * 30);
+          box(g, px, y, 1, ph, B[0]); box(g, px + 1, y, 1, ph - 3, col < 2 ? B[5] : B[4]); box(g, px + 1, y + ph - 3, 4, 2, B[1]); box(g, px + 1, y + ph - 1, 4, 1, B[0]);
+          y += ph + 2;
+        }
+      }
+      const M = hr('moss', MOSS, 0.2).map(col => mix(col, '#040604', 0.45));
+      for (let y = -120; y < 30; y += 3) { const mw = Math.round(3 + (y + 120) * 0.04 + hash(rx + y) * 3); box(g, 16 - mw, y, mw, 3, M[Math.min(M.length - 1, 2 + ((y >> 2) % 2))]); }
+      for (let k = 0; k < 18; k++) box(g, -14 + hash(rx + k * 2.3) * 26, -680 + hash(rx + k * 5.1) * 700, 2, 1, mix(B[4], '#9AA88A', 0.35));
       // (snapped-off limbs, dead, a tuft of needles left on one)
       for (const [ly, s] of [[-520, -1], [-430, 1], [-360, -1]] as const) { box(g, s > 0 ? 14 : -40, ly, 26, 5, INK); box(g, s > 0 ? 15 : -39, ly + 1, 24, 3, B[3]); box(g, s > 0 ? 15 : -39, ly + 1, 24, 1, B[4]); }
       for (let k = 0; k < 8; k++) box(g, -46 + k * 3, -526 + (k % 3) * 3, 3, 4, N[2 + (k % 2)]);
