@@ -310,7 +310,9 @@ const App2: React.FC = () => {
   const canGymSkip = () => live.current.stage === GYM_STAGE && !M2_PUBLIC;
   const skipGym = () => { setStatus(GameStatus.PLAYING); requestGymSkip(); };
   /** (RESUME, MAP, OPTIONS, then SKIP INTRO / BACK TO HUB where there's one) */
-  const lastPause = () => (live.current.stage === INTRO_STAGE || canGymSkip() || canHub() ? arsenal().length + 4 : arsenal().length + 3);
+  /** (the cheats build only, the user's: SKIP INTRO / SKIP TO HUB in America USA)
+  const canIntroSkip = () => live.current.stage === INTRO_STAGE && !M2_PUBLIC;
+  const lastPause = () => (canIntroSkip() || canGymSkip() || canHub() ? arsenal().length + 4 : arsenal().length + 3);
   /** (QUIT, to the title: the last of the buttons) */
   const quitIndex = () => lastPause();
   /** The options screen (OPTIONS in the pause menu): while it's up, it takes every key and button; and a moment after
@@ -374,7 +376,7 @@ const App2: React.FC = () => {
   pauseSelRef.current = pauseSel;
   const confirmPause = () => {
     const i = pauseSelRef.current, n = arsenal().length;
-    if (i === quitIndex()) askQuit(); else if (i === n + 3) { if (canHub()) askHub(); else if (canGymSkip()) skipGym(); else if (live.current.stage === INTRO_STAGE) skipIntro(); } else if (i === n + 2) openOptions(); else if (i === n + 1) openMap(); else if (i >= n) resume(); else equip(i);
+    if (i === quitIndex()) askQuit(); else if (i === n + 3) { if (canHub()) askHub(); else if (canGymSkip()) skipGym(); else if (canIntroSkip()) skipIntro(); } else if (i === n + 2) openOptions(); else if (i === n + 1) openMap(); else if (i >= n) resume(); else equip(i);
   };
 
   // Weapons: the shoulder buttons, the right stick's wheel, the number keys, the mouse wheel; START or ESC pauses
@@ -766,7 +768,7 @@ const App2: React.FC = () => {
         {wheelAt !== null && status === GameStatus.PLAYING && !noSwitching() && <WeaponWheel weapons={arsenal()} index={wheelAt} current={weapon} nameOf={w => (w === 'GUN' && ui.catHud ? 'HAIRBALL' : weaponName(w))} Art={ui.catHud ? CatWeaponArt : M2WeaponArt} />}
         {status === GameStatus.PAUSED && !mapFrom && (
           <PauseMenu weapons={arsenal()} current={weapon} ammo={hud.ammo} selected={pauseSel} locked={!!ui.noSwitch} card={card} cat={!!ui.catHud}
-            onPick={i => { setPauseSel(i); equip(i); }} onResume={resume} onMap={() => { setPauseSel(arsenal().length + 1); openMap(); }} onOptions={() => { setPauseSel(arsenal().length + 2); openOptions(); }} onSkip={stage === INTRO_STAGE ? skipIntro : stage === GYM_STAGE && !M2_PUBLIC ? skipGym : undefined} skipLabel={stage === GYM_STAGE ? 'SKIP STAGE' : undefined}
+            onPick={i => { setPauseSel(i); equip(i); }} onResume={resume} onMap={() => { setPauseSel(arsenal().length + 1); openMap(); }} onOptions={() => { setPauseSel(arsenal().length + 2); openOptions(); }} onSkip={stage === INTRO_STAGE && !M2_PUBLIC ? skipIntro : stage === GYM_STAGE && !M2_PUBLIC ? skipGym : undefined} skipLabel={stage === GYM_STAGE ? 'SKIP STAGE' : undefined}
             onHub={landOfStage(stage) || stage === PEN_STAGE ? askHub : undefined} hubAsk={hubAsk} onHubAnswer={answerHub} onHubPick={a => setHubAsk(a)} skin={theme?.pause}
             onQuit={() => { setPauseSel(quitIndex()); askQuit(); }} quitAt={quitIndex()} asking={asking} onFile={activeSlot() !== null} />
         )}
