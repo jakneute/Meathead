@@ -21,14 +21,16 @@ import { playSound } from '../../../m1/game/platform/audio';
 import { pickLine, silenceAll } from '../../../m1/game/platform/speech';
 import { SKIP_AFTER, offerSkip, takeSkip, drawSkipPrompt } from '../../../m1/game/platform/skip';
 import { drawPlayer } from '../../../m1/game/render/player/player';
+import { drawPlayerSpeech } from '../../../m1/game/render/world';
 import { hands, meatheadSays, byPants } from '../section';
 import { INK, type Ctx } from '../kit';
 import { whOf, CAT_MEMO, type Scene } from './state';
 import { ERASED, REDRAWN, CHELSEA_INTRO, CHELSEA_INTRO2, SHUT_UP_FIRST, REDRAWN_AGAIN } from './lines';
 import { chelseaSays, placeChelsea, scripted, chelseaTo, setChelseaPose } from './chelsea';
 import { X, Y } from './layout';
-import { toonPart, toonTop, toonFlat, type Rp } from './punditArt';
+import { toonPart, toonFlat, type Rp } from './punditArt';
 import { GY } from '../geometry';
+import { dith } from '../amphi/paint';
 
 /** The scene's beats (frames). */
 const LOOK = 40, IN = 36, RUB = 100, BLANK = 34, DRAW = 120, OUT = 30;
@@ -119,50 +121,126 @@ export const scribbleIn = (state: GameState) => {
 // ---------------------------------------------------------------------------------------------------------------
 // Drawing
 
-/** The animator's hand, off the top of the picture: its fingertips (where it holds the tool) at (x, y), what it holds. */
+// THE ANIMATOR'S ARM (the user: "make it look like a hand coming onto the canvas from the fourth wall, not a small
+// hovering arm, but a full arm for erasing and drawing. like the game canvas is an art canvas"): drawn in screen space
+// over everything, the letterbox too, because it's on OUR side of the picture: a real man's arm leaning in over the
+// paper from where he sits, off the bottom right corner, shoulder to fingertips, huge (foreshortened toward us: the
+// shoulder biggest), a rolled-up work shirt sleeve, a hairy forearm, a wristwatch, the hand round a fat pink eraser or
+// a yellow pencil; its shadow cast down on the picture under it (it's hovering over the paper). The picture treated as
+// paper: eraser crumbs rolling off, a smudge of rubbed graphite where he was, the cat's blue pencil roughs under the
+// ink as it goes down.
 const HAND: Rp = ['#FCDCC0', '#F2C8A6', '#DCA482', '#BC8462'];
-const CUFF: Rp = ['#FFFFFF', '#F4F6FA', '#D2D8E4', '#A8B0C4'];
+const SLEEVE: Rp = ['#B8CDEE', '#86A6DA', '#5F80B8', '#42608E'];
 const ERASER: Rp = ['#FFD2E4', '#F9A8C8', '#E0789E', '#B8507A'];
-const PEN: Rp = ['#4A70C8', '#1E3A8A', '#142A66', '#0A1840'];
-/** The animator's hand (the show's own: a big cartoon hand at the pundits' grade), off the top of the picture: its
- *  fingertips (where it holds the tool) at (x, y), what it holds: a fat pink eraser (its worn end, crumbs of it, the
- *  brand on its side) or an inking pen (a navy barrel, a gold clip and band, the steel nib wet). */
-const animatorHand = (c: Ctx, x: number, y: number, tool: 'eraser' | 'pen', f: number) => {
-  c.save(); c.translate(x, y); c.rotate(-0.5);
-  // (the arm up and off the picture: the forearm (a few hairs), a rolled-up shirt sleeve over it, a wristwatch)
-  toonPart(c, () => c.roundRect(4, -260, 46, 220, 18), HAND, 4, 50, 3);
-  c.fillStyle = HAND[3]; for (let k = 0; k < 7; k++) c.fillRect(14 + (k * 13) % 30, -170 + k * 14, 3, 1);
-  toonPart(c, () => c.roundRect(-2, -300, 58, 120, 10), CUFF, -2, 56, 3);
-  for (let k = 0; k < 3; k++) { toonTop(c, () => c.roundRect(-4, -196 + k * 10 - 30, 62, 12, 5), CUFF, -196 + k * 10 - 30, -184 + k * 10 - 30, 2); }
-  toonFlat(c, () => c.rect(10, -290, 2, 60), '#D2D8E4', 0);
-  toonTop(c, () => c.roundRect(2, -84, 50, 12, 3), ['#6A5A3E', '#4A3A26', '#3A2C1A', '#2A1E10'], -84, -72, 2);
-  toonPart(c, () => c.arc(27, -78, 8, 0, Math.PI * 2), ['#FFF0A8', '#F2C84A', '#D09A30', '#A06C1C'], 19, 35, 2);
-  toonFlat(c, () => c.arc(27, -78, 5.5, 0, Math.PI * 2), '#FFFDF2', 1);
-  c.strokeStyle = INK; c.lineWidth = 1.2; c.beginPath(); c.moveTo(27, -78); c.lineTo(27 + Math.cos(f * 0.1) * 4, -78 + Math.sin(f * 0.1) * 4); c.moveTo(27, -78); c.lineTo(29, -81); c.stroke();
-  // (the tool, held in the fingers)
-  if (tool === 'eraser') {
-    toonPart(c, () => c.roundRect(-16, -14, 54, 26, 6), ERASER, -16, 38, 3);
-    toonFlat(c, () => { c.moveTo(-16, -8); c.quadraticCurveTo(-22, 0, -16, 8); c.lineTo(-10, 8); c.lineTo(-10, -8); c.closePath(); }, ERASER[2], 2);
-    c.fillStyle = ERASER[0]; c.fillRect(-12, -10, 40, 3);
-    c.fillStyle = ERASER[3]; c.fillRect(-12, 6, 46, 3);
-    c.fillStyle = '#FFFFFF'; c.fillRect(2, -4, 26, 7); c.fillStyle = '#E0789E'; c.fillRect(4, -2, 22, 3);
-  } else {
-    toonPart(c, () => { c.moveTo(-6, 0); c.lineTo(46, -10); c.lineTo(50, 4); c.lineTo(-2, 12); c.closePath(); }, PEN, -6, 50, 3);
-    toonFlat(c, () => { c.moveTo(-6, 0); c.lineTo(-24, 10); c.lineTo(-2, 12); c.closePath(); }, '#D4D4D8', 2);
-    c.fillStyle = '#FFFFFF'; c.fillRect(-16, 6, 6, 1); c.fillStyle = '#8A8EA0'; c.fillRect(-14, 9, 8, 1);
-    c.fillStyle = INK; c.beginPath(); c.arc(-22, 10, 2.6, 0, Math.PI * 2); c.fill();
-    if ((f >> 3) % 3 === 0) { c.beginPath(); c.ellipse(-23, 15, 1.6, 2.6, 0, 0, Math.PI * 2); c.fill(); }
-    toonFlat(c, () => c.rect(28, -8, 5, 16), '#F2C84A', 1.4); c.fillStyle = '#FFF0A8'; c.fillRect(29, -7, 1, 14);
-    toonFlat(c, () => { c.moveTo(34, -12); c.lineTo(52, -15); c.lineTo(52, -12); c.lineTo(34, -9); c.closePath(); }, '#F2C84A', 1.2);
-  }
-  // (the hand: the palm and the fingers wrapped round it (each lit along its top), a thumb over the top, knuckles, nails)
-  toonPart(c, () => c.roundRect(0, -46, 52, 46, 16), HAND, 0, 52, 3);
-  for (let k = 0; k < 4; k++) { toonPart(c, () => c.roundRect(2 + k * 12, -12, 12, 22, 6), HAND, 2 + k * 12, 14 + k * 12, 2.4); toonFlat(c, () => c.roundRect(4 + k * 12, 3, 7, 5, 2), '#FBE6DA', 1); }
-  toonPart(c, () => c.roundRect(-8, -34, 26, 14, 7), HAND, -8, 18, 2.4);
-  toonFlat(c, () => c.roundRect(-7, -32, 7, 9, 3), '#FBE6DA', 1);
-  c.fillStyle = HAND[3]; for (let k = 0; k < 4; k++) c.fillRect(6 + k * 12, -14, 4, 2);
-  c.fillStyle = HAND[0]; c.fillRect(6, -42, 22, 2);
+const PENCIL: Rp = ['#FFF0A0', '#F8C83A', '#D89A1A', '#A86C0A'];
+/** Where the arm comes from: its shoulder, off the bottom right corner of the screen. */
+const SHOULDER: [number, number] = [CANVAS_WIDTH + 20, CANVAS_HEIGHT + 60];
+/** The hand's size over the world's (it's on our side of the picture, nearer than the paper). */
+const HS = 1.3;
+/** Hand plus tool, wrist to the tool's working end (screen px). */
+const REACH = { eraser: 150 * HS, pencil: 176 * HS };
+
+/** A tapered tube a to b (ra to rb) in its ramp, shaded across its length (lit along its top edge, shade and deep
+ *  along its underside, dithered seams), inked fat. */
+const armTube = (c: Ctx, a: [number, number], b: [number, number], ra: number, rb: number, r: Rp, ink = 3.4) => {
+  const L = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1, ang = Math.atan2(b[1] - a[1], b[0] - a[0]);
+  c.save(); c.translate(a[0], a[1]); c.rotate(ang);
+  // (which side's up on screen: the light comes from the top)
+  const up = Math.cos(ang) >= 0 ? -1 : 1;
+  const path = () => { c.beginPath(); c.moveTo(0, -ra); c.lineTo(L, -rb); c.arc(L, 0, rb, -Math.PI / 2, Math.PI / 2); c.lineTo(0, ra); c.arc(0, 0, ra, Math.PI / 2, Math.PI * 1.5); c.closePath(); };
+  path(); c.fillStyle = r[1]; c.fill();
+  c.save(); c.clip();
+  const R = Math.max(ra, rb) + 2, band = (a0: number, a1: number, col: string | CanvasPattern) => { c.fillStyle = col; const y0 = up * a0 * R, y1 = up * a1 * R; c.fillRect(-R, Math.min(y0, y1), L + 2 * R, Math.abs(y1 - y0)); };
+  band(0.62, 1.1, r[0]); band(0.5, 0.62, dith(c, r[0]));
+  band(-0.3, -0.42, dith(c, r[2])); band(-0.42, -1.1, r[2]); band(-0.72, -0.82, dith(c, r[3])); band(-0.82, -1.1, r[3]);
   c.restore();
+  path(); c.strokeStyle = INK; c.lineWidth = ink; c.lineJoin = 'round'; c.stroke();
+  c.restore();
+};
+/** The animator's arm, screen space: the tool's working end at (tx, ty). */
+const animatorArm = (c: Ctx, tx: number, ty: number, tool: 'eraser' | 'pencil', f: number) => {
+  const S = SHOULDER, sd = Math.atan2(ty - S[1], tx - S[0]), cs = Math.cos(sd), sn = Math.sin(sd);
+  // (the elbow: partway, crooked up over the picture, the forearm and the hand coming down onto the paper from above
+  // in one line, the way a man leans over a drawing desk)
+  const L = Math.hypot(tx - S[0], ty - S[1]), nx = -sn, ny = cs, sgn = ny <= 0 ? 1 : -1, bow = Math.min(300, L * 0.55);
+  const E: [number, number] = [S[0] + (tx - S[0]) * 0.46 + nx * sgn * bow, S[1] + (ty - S[1]) * 0.46 + ny * sgn * bow];
+  const dir = Math.atan2(ty - E[1], tx - E[0]), reach = Math.min(REACH[tool], Math.hypot(tx - E[0], ty - E[1]) - 40);
+  const Wr: [number, number] = [tx - Math.cos(dir) * reach, ty - Math.sin(dir) * reach];
+  // (its shadow first, cast down on the paper under it: off down and right, soft, the whole arm's shape)
+  c.save(); c.globalAlpha = 0.22; c.strokeStyle = '#1A1030'; c.lineCap = 'round'; c.lineJoin = 'round';
+  const so = 34;
+  c.lineWidth = 150; c.beginPath(); c.moveTo(S[0] + so, S[1] + so); c.lineTo(E[0] + so, E[1] + so); c.stroke();
+  c.lineWidth = 70; c.beginPath(); c.moveTo(E[0] + so, E[1] + so); c.lineTo(Wr[0] + so, Wr[1] + so); c.stroke();
+  c.lineWidth = 56; c.beginPath(); c.moveTo(Wr[0] + so, Wr[1] + so); c.lineTo(tx + so * 0.6, ty + so * 0.6); c.stroke();
+  c.restore();
+  // (the forearm: bare, hairy, the veins; then the sleeve over the upper arm, rolled up thick at the elbow)
+  armTube(c, E, Wr, 40, 27, HAND);
+  c.save(); c.translate(E[0], E[1]); c.rotate(Math.atan2(Wr[1] - E[1], Wr[0] - E[0]));
+  const fl = Math.hypot(Wr[0] - E[0], Wr[1] - E[1]);
+  c.strokeStyle = HAND[3]; c.lineWidth = 1.6;
+  for (let k = 0; k < 16; k++) { const x = 30 + ((k * 37) % Math.max(1, fl - 60)), y = -24 + ((k * 13) % 36) * (1 - x / fl * 0.35); c.beginPath(); c.moveTo(x, y); c.lineTo(x + 5, y - 2); c.stroke(); }
+  c.strokeStyle = HAND[2]; c.lineWidth = 2; c.beginPath(); c.moveTo(fl * 0.35, 8); c.quadraticCurveTo(fl * 0.6, 2, fl * 0.85, 10); c.stroke();
+  c.restore();
+  armTube(c, S, E, 118, 66, SLEEVE, 4);
+  // (the rolled cuff at the elbow: three fat rolls, each lit on top; a plaid stripe or two across the sleeve)
+  c.save(); c.translate(E[0], E[1]); c.rotate(Math.atan2(S[1] - E[1], S[0] - E[0]));
+  for (let k = 0; k < 3; k++) armTube(c, [6 + k * 18, 0], [6 + k * 18 + 1, 0], 70 + k * 6, 70 + k * 6, k === 1 ? SLEEVE : [SLEEVE[0], SLEEVE[0], SLEEVE[1], SLEEVE[2]], 3);
+  c.restore();
+  c.save(); c.translate(S[0], S[1]); c.rotate(Math.atan2(E[1] - S[1], E[0] - S[0]));
+  const ul = Math.hypot(E[0] - S[0], E[1] - S[1]);
+  c.globalAlpha = 0.35; c.fillStyle = '#2E4A80';
+  for (let k = 1; k < 4; k++) c.fillRect(ul * 0.18 * k, -110 + k * 6, 6, 220 - k * 12);
+  c.globalAlpha = 1;
+  c.restore();
+  // (the wristwatch: a leather strap round the wrist, the gold case, the face, its hands going)
+  c.save(); c.translate(Wr[0], Wr[1]); c.rotate(dir); c.scale(HS, HS);
+  toonPart(c, () => c.roundRect(-14, -30, 20, 60, 6), ['#7A5A3A', '#523A22', '#3A2814', '#24180A'], -14, 6, 2.6);
+  toonPart(c, () => c.arc(-4, -10, 14, 0, Math.PI * 2), ['#FFF0A8', '#F2C84A', '#D09A30', '#A06C1C'], -18, 10, 2.6);
+  toonFlat(c, () => c.arc(-4, -10, 10, 0, Math.PI * 2), '#FFFDF2', 1.4);
+  c.strokeStyle = INK; c.lineWidth = 1.8; c.beginPath(); c.moveTo(-4, -10); c.lineTo(-4 + Math.cos(f * 0.08) * 7, -10 + Math.sin(f * 0.08) * 7); c.moveTo(-4, -10); c.lineTo(0, -15); c.stroke();
+  // (the hand, along the arm's line, the tool out past the fingertips toward the paper)
+  if (tool === 'eraser') {
+    // (a fat pink eraser block, its working end worn round and gray with graphite, the brand on its side)
+    toonPart(c, () => c.roundRect(88, -34, 66, 50, 10), ERASER, 88, 154, 3.4);
+    toonFlat(c, () => { c.moveTo(146, -32); c.quadraticCurveTo(160, -9, 146, 14); c.lineTo(140, 14); c.lineTo(140, -32); c.closePath(); }, '#B8A0AC', 2.4);
+    c.fillStyle = ERASER[0]; c.fillRect(94, -30, 46, 4);
+    c.fillStyle = '#FFFFFF'; c.fillRect(100, -16, 34, 12); c.fillStyle = '#E0789E'; c.fillRect(104, -13, 26, 5);
+  } else {
+    // (a yellow pencil, hexagonal faces in steps, the shaved wood cone, the graphite point; the pink eraser end and its
+    // crimped ferrule back over the hand)
+    toonPart(c, () => { c.moveTo(20, -36); c.lineTo(144, -12); c.lineTo(142, 0); c.lineTo(18, -24); c.closePath(); }, PENCIL, 18, 144, 2.6);
+    c.strokeStyle = PENCIL[2]; c.lineWidth = 1.4; c.beginPath(); c.moveTo(20, -30); c.lineTo(143, -6); c.stroke();
+    toonFlat(c, () => { c.moveTo(144, -12); c.lineTo(176, 2); c.lineTo(142, 0); c.closePath(); }, '#F2D6A8', 2.2);
+    toonFlat(c, () => { c.moveTo(166, -2); c.lineTo(176, 2); c.lineTo(165, 3); c.closePath(); }, '#3A3A44', 1.4);
+    toonPart(c, () => { c.moveTo(6, -38); c.lineTo(22, -35); c.lineTo(20, -23); c.lineTo(4, -26); c.closePath(); }, ['#F2F2F6', '#C8CCD6', '#9CA2B0', '#6A707E'], 4, 22, 2);
+    toonPart(c, () => { c.moveTo(-6, -40); c.lineTo(6, -38); c.lineTo(4, -26); c.lineTo(-8, -28); c.closePath(); }, ERASER, -8, 6, 2);
+  }
+  // (the back of the hand, the knuckles, the fingers curled round the tool (each lit along its top, a nail), the thumb
+  // pinching it from the other side)
+  toonPart(c, () => c.roundRect(4, -42, 82, 70, 26), HAND, 4, 86, 3.4);
+  c.fillStyle = HAND[0]; c.fillRect(20, -36, 40, 4);
+  c.strokeStyle = HAND[3]; c.lineWidth = 2; for (let k = 0; k < 4; k++) { c.beginPath(); c.moveTo(62, -30 + k * 15); c.lineTo(70, -28 + k * 15); c.stroke(); }
+  for (let k = 0; k < 4; k++) { const fy = -32 + k * 15; toonPart(c, () => c.roundRect(72, fy, 32, 15, 7), HAND, 72, 104, 2.6); toonFlat(c, () => c.roundRect(94, fy + 3, 8, 8, 3), '#FBE6DA', 1.2); }
+  toonPart(c, () => c.roundRect(48, 18, 46, 18, 9), HAND, 48, 94, 2.6);
+  toonFlat(c, () => c.roundRect(82, 21, 10, 10, 4), '#FBE6DA', 1.2);
+  c.restore();
+};
+
+/** Where the tool's working end is (world), and which tool, while the hand's in the picture (or coming, going). */
+const toolAt = (state: GameState): { tool: 'eraser' | 'pencil'; x: number; y: number; inK: number } | null => {
+  const sc = whOf(state).scene, f = state.frame;
+  if (!sc) return null;
+  const x = sc.x, feet = sc.y, head = feet - TALL - 8;
+  const at = (tool: 'eraser' | 'pencil', line: number) => {
+    const inK = Math.min(1, sc.t / IN), out = sc.step === 'blank' ? Math.min(1, sc.t / 18) : sc.step === 'draw' && sc.draw >= 1 ? Math.min(1, (sc.t - IN - DRAW) / OUT) : 0;
+    const k = inK * (1 - out), e = k * k * (3 - 2 * k);
+    const work = tool === 'eraser' ? [Math.sin(f * 0.55) * 22, Math.cos(f * 1.1) * 3] : [Math.sin(f * 0.4) * 22, Math.sin(f * 1.3) * 2];
+    return { tool, x: x + 4 + work[0], y: line + work[1], inK: e };
+  };
+  if (sc.step === 'erase') return at('eraser', head + (TALL + 12) * sc.erase - 4);
+  if (sc.step === 'blank' && sc.t < 20) return at('eraser', feet - 4);
+  if (sc.step === 'draw') return at('pencil', head - 12 + (TALL + 34) * sc.draw);
+  return null;
 };
 
 /** Him, drawn clipped (the scene's): what's left of him being rubbed out, or what's drawn of the cat so far. */
@@ -187,6 +265,15 @@ export const drawTransform = (c: Ctx, state: GameState) => {
   }
   if (!sc) return;
   const x = sc.x, feet = sc.y, head = feet - TALL - 8;
+  // (the smudge of rubbed-out graphite where he was, gray and pink, fading as the cat's drawn in over it)
+  const smudge = sc.step === 'erase' ? sc.erase : sc.step === 'blank' ? 1 : sc.step === 'draw' ? Math.max(0, 1 - sc.draw * 1.4) : 0;
+  if (smudge > 0) {
+    c.save(); c.globalAlpha = 0.28 * smudge;
+    const top = sc.step === 'erase' ? head : head;
+    const bot = sc.step === 'erase' ? head + (TALL + 12) * sc.erase : feet;
+    for (let yy = top; yy < bot; yy += 5) { const w = 22 + Math.sin(yy * 0.37) * 8; c.fillStyle = (yy >> 2) % 3 ? '#7A7480' : '#C890A8'; c.fillRect(x - w + Math.sin(yy * 0.9) * 4, yy, w * 2, 3); }
+    c.restore();
+  }
   if (sc.step === 'erase' && sc.t > IN) {
     // What's left of him (below the line the eraser's got down to), the rubbed edge ragged
     const cut = head + (TALL + 12) * sc.erase;
@@ -194,22 +281,24 @@ export const drawTransform = (c: Ctx, state: GameState) => {
     c.fillStyle = 'rgba(249, 168, 200, 0.5)'; for (let k = -3; k <= 3; k++) c.fillRect(x + k * 7 - 2, cut - 1 + ((k + f) % 3), 4, 2);
   }
   if (sc.step === 'draw' && sc.t > IN) {
-    // What's drawn of the cat so far (above the pen's line), an ink line along the edge
+    // The animator's blue pencil roughs under it (the head's circle, the ears, the line of action, the barrel of a
+    // chest, the limbs' sticks, the tail's S), then what's inked of the cat so far (above the pencil's line), the line
+    // being laid down along its edge
     const edge = head - 12 + (TALL + 34) * sc.draw;
+    c.save(); c.beginPath(); c.rect(x - 80, edge - 2, 160, feet + 20 - edge); c.clip();
+    c.strokeStyle = 'rgba(96, 156, 232, 0.75)'; c.lineWidth = 1.2;
+    const w = (k: number) => Math.sin(k * 3.1 + 1) * 1.2;
+    c.beginPath(); c.arc(x + 3, feet - 61, 12, 0, Math.PI * 2); c.stroke();
+    c.beginPath(); c.moveTo(x - 6, feet - 70); c.lineTo(x - 4, feet - 82); c.lineTo(x + 2, feet - 72); c.moveTo(x + 6, feet - 72); c.lineTo(x + 10, feet - 84); c.lineTo(x + 13, feet - 70); c.stroke();
+    c.beginPath(); c.ellipse(x + 2, feet - 37, 15, 14, 0.1, 0, Math.PI * 2); c.stroke();
+    c.beginPath(); c.moveTo(x + 6 + w(1), feet - 76); c.quadraticCurveTo(x - 4, feet - 40, x + 2, feet - 2); c.stroke();
+    c.beginPath(); c.moveTo(x - 4, feet - 22); c.lineTo(x - 6, feet - 10); c.lineTo(x - 5, feet); c.moveTo(x + 5, feet - 22); c.lineTo(x + 9, feet - 11); c.lineTo(x + 7, feet); c.stroke();
+    c.beginPath(); c.moveTo(x + 9, feet - 45); c.lineTo(x + 16, feet - 34); c.lineTo(x + 15, feet - 27); c.moveTo(x - 6, feet - 45); c.lineTo(x - 10, feet - 34); c.lineTo(x - 9, feet - 26); c.stroke();
+    c.beginPath(); c.moveTo(x - 9, feet - 27); c.bezierCurveTo(x - 24, feet - 24, x - 34, feet - 40, x - 26, feet - 56); c.stroke();
+    c.restore();
     drawHimClipped(c, state, true, head - 40, edge);
     if (sc.draw < 1) { c.strokeStyle = INK; c.lineWidth = 2; c.beginPath(); c.moveTo(x - 26, edge); for (let k = -26; k <= 26; k += 4) c.lineTo(x + k, edge + Math.sin(k * 0.6 + f) * 1.5); c.stroke(); }
   }
-  // The hand: in from off the top, rubbing back and forth (the eraser) / zigzagging along the line (the pen), back out
-  const handAt = (tool: 'eraser' | 'pen', k: number, line: number) => {
-    const inK = Math.min(1, sc.t / IN), out = sc.step === 'blank' ? Math.min(1, sc.t / 18) : sc.step === 'draw' && sc.draw >= 1 ? Math.min(1, (sc.t - IN - DRAW) / OUT) : 0;
-    const rub = tool === 'eraser' ? Math.sin(f * 0.55) * 24 : Math.sin(f * 0.4) * 22;
-    const hx = x + 10 + (inK < 1 ? (1 - inK) * 260 : rub) + out * 260, hy = (inK < 1 ? line - (1 - inK) * 380 : line) - out * 380;
-    animatorHand(c, hx, hy, tool, f);
-    void k;
-  };
-  if (sc.step === 'erase') handAt('eraser', sc.erase, head + (TALL + 12) * sc.erase - 4);
-  if (sc.step === 'blank' && sc.t < 20) handAt('eraser', 1, feet - 4);
-  if (sc.step === 'draw') handAt('pen', sc.draw, head - 12 + (TALL + 34) * sc.draw);
 };
 
 /** Screen space: the letterbox bars while it's on, SKIP >>. */
@@ -218,6 +307,14 @@ export const drawTransformHud = (c: Ctx, state: GameState) => {
   if (!sc) return;
   const k = Math.min(1, sc.all / 24), bh = Math.round(36 * k * k * (3 - 2 * k));
   c.fillStyle = '#05030A'; c.fillRect(0, 0, CANVAS_WIDTH, bh); c.fillRect(0, CANVAS_HEIGHT - bh, CANVAS_WIDTH, bh);
+  // (the animator's arm, on our side of the picture: over the letterbox too, slid in from the corner and back out)
+  const t = toolAt(state);
+  if (t && t.inK > 0) {
+    const sx = t.x - state.camera.x, sy = t.y - state.camera.y, e = t.inK;
+    animatorArm(c, SHOULDER[0] + (sx - SHOULDER[0]) * e, SHOULDER[1] + (sy - SHOULDER[1]) * e, t.tool, state.frame);
+    // (his words never under the arm: put back on top, where they were)
+    c.save(); c.translate(-state.camera.x, -state.camera.y); drawPlayerSpeech(c, state); c.restore();
+  }
   if (sc.all > SKIP_AFTER) drawSkipPrompt(c, CANVAS_WIDTH);
 };
 export { Y };

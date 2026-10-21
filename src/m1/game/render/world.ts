@@ -1276,7 +1276,8 @@ const drawTommyPool = (ctx: CanvasRenderingContext2D, state: GameState) => {
   ctx.restore();
 };
 
-const drawPlayerSpeech = (ctx: CanvasRenderingContext2D, state: GameState) => {
+/** (exported: a scene drawing something over the world in screen space puts his words back on top of it) */
+export const drawPlayerSpeech = (ctx: CanvasRenderingContext2D, state: GameState) => {
   const { player } = state;
   // (nothing over his head once the boss is down: the death, the victory)
   if (!state.playerLastVulgarity || state.playerVulgarityTimer <= 0 || state.bossExplosionTimer > 0 || state.bossFallen || state.victoryString !== '') return;
