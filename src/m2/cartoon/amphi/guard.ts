@@ -143,15 +143,28 @@ export const drawGuard = (c: Ctx, x: number, feetY: number, pose: GuardPose, f: 
   c.restore();
 };
 
+/** Where the kneeling pose (drawGuard's 'keel' at its end: on his knees, doubled over) puts his head's middle, and its
+ *  angle, in his frame: drawGuard's own numbers (kneel 1: the hips, the shoulders, the lean, the head's spot, the
+ *  torso's turn about the hips). */
+const kneelHead = (f: number) => {
+  const hipY = -44 + 22, shY = -76 + 18 + 6 + Math.sin(f * 0.05) * 0.6, lean = 16, a = -lean * 0.02;
+  const hx = -2 - lean * 0.1, hy = shY - 10 - hipY;
+  return { x: hx * Math.cos(a) - hy * Math.sin(a), y: hipY + hx * Math.sin(a) + hy * Math.cos(a), a };
+};
 /** On his side on the floor, head toward the bleachers, curled up round it: `k` (0..1) how far over he's gone. */
 const drawLying = (c: Ctx, f: number, k: number, ice: boolean) => {
   const rock = Math.sin(f * 0.07) * 1.4 * (1 - (ice ? 0.6 : 0));
   // (keeling over: from up on his knees (the whole curled-up body stood on end about his knees, his head where the
   // kneeling one was) toppling over onto his side, easing in and settling, head on his neck all the way)
-  const e = Math.min(1, Math.max(0, k)), ee = e * e * (3 - 2 * e), PX = -4, PY = -3;
-  c.save(); c.translate(PX, PY); c.rotate((1 - ee) * -1.42); c.translate(-PX, -PY);
+  // (its first frame starts exactly from the kneeling pose: the toppling body's offset so its head is on the kneeling
+  // head's spot and angle, that offset easing out as it goes over)
+  const e = Math.min(1, Math.max(0, k)), ee = e * e * (3 - 2 * e), PX = -4, PY = -3, A0 = -1.42, by = -14;
+  const kh = kneelHead(f), lx0 = 58 + rock - PX, ly0 = by - 3 - PY;
+  const l0x = PX + lx0 * Math.cos(A0) - ly0 * Math.sin(A0), l0y = PY + lx0 * Math.sin(A0) + ly0 * Math.cos(A0);
+  const off = 1 - ee;
+  c.save(); c.translate((kh.x - l0x) * off, (kh.y - l0y) * off);
+  c.translate(PX, PY); c.rotate(off * A0); c.translate(-PX, -PY);
   // (the body on its side: the back to the camera's right, knees drawn up in front)
-  const by = -14;
   limb(c, 6, by + 2, 8, -10, by - 2, 7, PANTS);
   limb(c, -10, by - 2, 7, 2, by + 6, 6, PANTS);
   shape(c, () => c.roundRect(-2, by + 2, 15, 8, [3, 4, 1, 1]), BOOT, -2, 13);
@@ -170,7 +183,7 @@ const drawLying = (c: Ctx, f: number, k: number, ice: boolean) => {
   }
   // (the head, on the floor at the end of his body, its neck running back into the polo's collar (turned with him: the
   // neck toward the body, not dangling into the floor), the face turned up: eyes screwed shut, teeth gritted, a tear)
-  c.save(); c.translate(58 + rock, by - 3); c.rotate(1.4);
+  c.save(); c.translate(58 + rock, by - 3); c.rotate(1.4 + off * (kh.a - (A0 + 1.4)));
   head(c, 0, 0, 'pain', f, 0.6);
   c.restore();
   c.restore();
