@@ -43,7 +43,7 @@ import { puffAt } from '../whitehouse1/poof';
 import type { PuffBit } from '../whitehouse1/state';
 import { wh2Of, saidOnce, LIMBAUGH_MEMO, DOLE_MEMO, NEWT_MEMO, type Pundit, type PunditId, type PunditThrow } from './state';
 import { LIMBAUGH_ARENA, DOLE_ARENA, NEWT_ARENA, DESK_EIB, CAB_TABLE, RESOLUTE, X, Y, type Arena } from './layout';
-import { LIMBAUGH, DOLE, NEWT, LIMBAUGH_LINES, DOLE_LINES, NEWT_LINES, LIMBAUGH_COMING, DOLE_COMING, NEWT_COMING, QUEASY_LIMBAUGH, QUEASY_DOLE, type PunditLines2 } from './lines';
+import { LIMBAUGH, DOLE, NEWT, LIMBAUGH_LINES, DOLE_LINES, NEWT_LINES, LIMBAUGH_COMING, DOLE_COMING, NEWT_COMING, QUEASY_LIMBAUGH, QUEASY_DOLE, LIMBAUGH_DOWN, DOLE_DOWN, NEWT_DOWN, type PunditLines2 } from './lines';
 import { drawPundit2, drawPunditThrow2 } from './punditArt';
 import { startFinale } from './finale';
 
@@ -64,21 +64,21 @@ interface Spec {
 const SPECS: Record<PunditId, Spec> = {
   limbaugh: {
     id: 'limbaugh', kind: 'm2:ct_limbaugh', arena: LIMBAUGH_ARENA, memo: LIMBAUGH_MEMO, voice: LIMBAUGH, lines: LIMBAUGH_LINES, coming: LIMBAUGH_COMING, queasy: QUEASY_LIMBAUGH,
-    name: 'RUSH LIMBAUGH', bar: '#DC2626', call: 'LIMBAUGH SIGNS OFF!',
+    name: 'RUSH LIMBAUGH', bar: '#DC2626', call: LIMBAUGH_DOWN,
     w: 64, h: 112, hopVx: 2.4, leapVy: 15, rest: [56, 24], heavy: true, throws: ['cigar', 'mic', 'cigar'],
     tops: [[DESK_EIB.a, DESK_EIB.b, DESK_EIB.h]], bits: ['rushhead', 'mic', 'cigar', 'headphones'],
     flop: { when: 'land', chance: 0.28, frames: 70 },
   },
   dole: {
     id: 'dole', kind: 'm2:ct_dole', arena: DOLE_ARENA, memo: DOLE_MEMO, voice: DOLE, lines: DOLE_LINES, coming: DOLE_COMING, queasy: QUEASY_DOLE,
-    name: 'BOB DOLE', bar: '#2563EB', call: 'BOB DOLE DROPS!',
+    name: 'BOB DOLE', bar: '#2563EB', call: DOLE_DOWN,
     w: 48, h: 118, hopVx: 3.4, leapVy: 15, rest: [44, 18], heavy: false, throws: ['pineapple', 'button', 'pineapple', 'button'],
     tops: [[CAB_TABLE.a, CAB_TABLE.b, CAB_TABLE.h]], bits: ['dolehead', 'pen', 'pineapple', 'button'],
     flop: { when: 'leap', chance: 0.3, frames: 64 },
   },
   newt: {
     id: 'newt', kind: 'm2:ct_newt', arena: NEWT_ARENA, memo: NEWT_MEMO, voice: NEWT, lines: NEWT_LINES, coming: NEWT_COMING, queasy: [],
-    name: 'NEWT GINGRICH', bar: '#F1F5F9', call: 'NEWT IS SHUT DOWN!',
+    name: 'NEWT GINGRICH', bar: '#F1F5F9', call: NEWT_DOWN,
     w: 58, h: 112, hopVx: 3, leapVy: 15, rest: [50, 16], heavy: true, throws: ['contract', 'gavel', 'contract', 'gavel'],
     tops: [[RESOLUTE.a, RESOLUTE.b, RESOLUTE.h]], bits: ['newthead', 'wig', 'gavel', 'contract'],
     flop: { when: 'half', chance: 0.22, frames: 90 },

@@ -13,6 +13,12 @@ a network. A line that hasn't been recorded is only shown as text, never spoken 
 That finds every line (`extract.ts` -> `manifest.json`, plus `extras.json` for lines built at runtime), records the
 new or changed ones (`generate.py`; everything else is cached in `cache/`), and repacks. Then `npm run release`.
 
+Meathead 2 records only what's in its voice tables (each section's `VOICE_LINES`, by voice). `unresolved.txt` (not
+committed) lists anything its code says that isn't in one in that voice ("unrecorded": add it to the section's
+`VOICE_LINES`), or that `m2/lines/consistency.ts` would weed out ("weeded out"); the rest of that file is expressions
+read only at runtime (a line picked by a helper, a voice off a seeded look), which are fine as long as nothing's
+"unrecorded".
+
 ## Setup (once)
 
     py -3 -m venv tools/voices/.venv

@@ -36,7 +36,7 @@ import { speak, meatheadSays, byPants, solid, ledge, hands, box, label } from '.
 import { topBand } from '../../../m1/constants';
 import { whOf, saidOnce, PEROT_MEMO, FALWELL_MEMO, type Pundit, type PunditId, type PunditThrow, type PuffBit } from './state';
 import { PEROT_ARENA, FALWELL_ARENA, PODIUM, BED, X, Y, type Arena } from './layout';
-import { PEROT, FALWELL, PEROT_LINES, FALWELL_LINES, PEROT_COMING, FALWELL_COMING, QUEASY_PEROT, QUEASY_FALWELL, TOO_GREASY, type PunditLines } from './lines';
+import { PEROT, FALWELL, PEROT_LINES, FALWELL_LINES, PEROT_COMING, FALWELL_COMING, QUEASY_PEROT, QUEASY_FALWELL, TOO_GREASY, PEROT_DOWN, FALWELL_DOWN, type PunditLines } from './lines';
 import { chelseaSays, queasy } from './chelsea';
 import { puffAt } from './poof';
 import { drawPundit, drawPunditThrow } from './punditArt';
@@ -311,7 +311,7 @@ const die = (ctx: FrameContext, q: Pundit) => {
   if (q.e) { const e = q.e; state.enemies = state.enemies.filter(o => o !== e); q.e = null; }
   silenceAll();
   playSound('hurt', 0.9, -4); playSound('boing', 0.8, -10);
-  ctx.fx.announceKill(q.id === 'perot' ? 'PEROT DROPS OUT!' : 'FALWELL FALLS!');
+  ctx.fx.announceKill(q.id === 'perot' ? PEROT_DOWN : FALWELL_DOWN);
   say(state, q, pickLine(byPants(state, S.lines.death)));
   void s;
 };

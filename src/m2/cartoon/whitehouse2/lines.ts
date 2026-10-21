@@ -403,6 +403,11 @@ export const KILL_CALLS2: Record<string, Record<string, string[]>> = {
 
 const meatPundit = (l: PunditLines2) => [...allOf(l.reply), ...allOf(l.baffled), ...allOf(l.after)];
 const punditPools = (l: PunditLines2) => [...allOf(l.intro), ...allOf(l.taunt), ...l.toss, ...l.flop, ...allOf(l.death)];
+/** The announcer's call as each pundit goes down (pundits.ts: their SPECS' call). */
+export const LIMBAUGH_DOWN = 'LIMBAUGH SIGNS OFF!';
+export const DOLE_DOWN = 'BOB DOLE DROPS!';
+export const NEWT_DOWN = 'NEWT IS SHUT DOWN!';
+
 export const VOICE_LINES: Record<string, string[]> = {
   meathead: [
     ...Object.values(GAGS2).flatMap(allOf), ...meatPundit(LIMBAUGH_LINES), ...meatPundit(DOLE_LINES), ...meatPundit(NEWT_LINES),
@@ -410,7 +415,7 @@ export const VOICE_LINES: Record<string, string[]> = {
     ...allOf(STAGE_WH1), ...Object.values(BODY_LINES).flatMap(allOf), ...Object.values(HURT2).flatMap(h => h.hurt),
   ],
   death: Object.values(HURT2).flatMap(h => h.death),
-  announcer: [...new Set(Object.values(KILL_CALLS2).flatMap(k => Object.values(k).flat()))],
+  announcer: [...new Set(Object.values(KILL_CALLS2).flatMap(k => Object.values(k).flat())), LIMBAUGH_DOWN, DOLE_DOWN, NEWT_DOWN],
   [CHELSEA2]: [
     ...Object.values(HINT2).flat(), ...GLOBE_RUN, ...LIMBAUGH_COMING, ...DOLE_COMING, ...NEWT_COMING, ...QUEASY_LIMBAUGH, ...QUEASY_DOLE,
     ...QUEASY_NEWT, ...WOBBLY,

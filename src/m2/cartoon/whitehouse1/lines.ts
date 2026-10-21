@@ -396,8 +396,10 @@ export const HURT: HurtTable = {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
-// The announcer's kill callouts, by kind
+// The announcer's kill callouts, by kind; and his call as each pundit goes down (pundits.ts)
 
+export const PEROT_DOWN = 'PEROT DROPS OUT!';
+export const FALWELL_DOWN = 'FALWELL FALLS!';
 export const KILL_CALLS: Record<string, Record<string, string[]>> = {
   'm2:ct_goon': { charge: ['HENCHED!', 'MEAN MAN DOWN!'], uppercut: ['FIRED!'], divekick: ['STOMPED OUT!'] },
   'm2:ct_lobbyist': { charge: ['LOBBIED!', 'DEREGULATED!'], uppercut: ['CASHED OUT!'], divekick: ['BRIBE DENIED!'] },
@@ -416,7 +418,7 @@ export const VOICE_LINES: Record<string, string[]> = {
     ...Object.values(HURT).flatMap(h => h.hurt),
   ],
   death: Object.values(HURT).flatMap(h => h.death),
-  announcer: [...new Set(Object.values(KILL_CALLS).flatMap(k => Object.values(k).flat()))],
+  announcer: [...new Set(Object.values(KILL_CALLS).flatMap(k => Object.values(k).flat())), PEROT_DOWN, FALWELL_DOWN],
   [CHELSEA]: [
     ...CHELSEA_INTRO, ...allOf(CHELSEA_INTRO2), ...allOf(NAG), ...Object.values(HINT).flat(), ...OUCH, ...PEROT_COMING, ...FALWELL_COMING,
     ...QUEASY_PEROT, ...QUEASY_FALWELL, ...CHEER, ...COWER,
