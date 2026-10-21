@@ -513,7 +513,8 @@ export const drawWhBack = (c: Ctx, state: GameState) => {
   // (the floor's front edges: the ground floor's slab end on, the garden's turf)
   floorEdge(c, state, X(-200), X(BALCONY_EDGE), MARBLE, '#C89A6A');
   const ga = Math.max(X(BALCONY_EDGE), state.camera.x - 20), gb = Math.min(X(12200), state.camera.x + CANVAS_WIDTH + 20);
-  if (ga < gb) { box(c, ga, GY, gb - ga, 70, GRASS[1]); box(c, ga, GY + 6, gb - ga, 64, '#5A3A22'); checker(c, ga, GY + 4, gb - ga, 4, GRASS[1], 0, 1); for (let x = Math.floor(ga / 14) * 14; x < gb; x += 14) box(c, x, GY + 14 + (x % 28 ? 6 : 0), 4, 3, '#7A5A3E'); box(c, ga, GY, gb - ga, 3, GRASS[5]); for (let x = Math.floor(ga / 6) * 6; x < gb; x += 6) box(c, x, GY - 2 - (x % 18 ? 0 : 2), 2, 2 + (x % 18 ? 0 : 2), GRASS[4]); }
+  if (ga < gb) { box(c, ga, GY, gb - ga, 70, GRASS[1]); box(c, ga, GY + 6, gb - ga, 64, '#5A3A22'); box(c, ga, GY + 30, gb - ga, 40, '#4A2E1A'); checker(c, ga, GY + 29, gb - ga, 2, '#4A2E1A', 0, 1); box(c, ga, GY + 6, gb - ga, 1, INK); checker(c, ga, GY + 4, gb - ga, 4, GRASS[1], 0, 1); for (let x = Math.floor(ga / 14) * 14; x < gb; x += 14) box(c, x, GY + 14 + (x % 28 ? 6 : 0), 4, 3, '#7A5A3E');
+    for (let x = Math.floor(ga / 40) * 40; x < gb; x += 40) { box(c, x + 20, GY + 36 + (x % 80 ? 0 : 10), 6, 4, '#2E1C10'); box(c, x + 21, GY + 36 + (x % 80 ? 0 : 10), 3, 1, '#8A6A4A'); c.strokeStyle = '#2E1C10'; c.lineWidth = 1; c.beginPath(); c.moveTo(x + 4, GY + 7); c.quadraticCurveTo(x + 8, GY + 16, x + 2, GY + 24); c.stroke(); } box(c, ga, GY, gb - ga, 3, GRASS[5]); for (let x = Math.floor(ga / 6) * 6; x < gb; x += 6) box(c, x, GY - 2 - (x % 18 ? 0 : 2), 2, 2 + (x % 18 ? 0 : 2), GRASS[4]); }
   drawUnderDeck(c, state);
   stairs(c, state);
   if (onScreen(state, X(PIANO.a) - 300, X(RISER.b) + 100)) { piano(c, E); chairStack(c, E); }

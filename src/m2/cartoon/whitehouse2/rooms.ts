@@ -295,7 +295,9 @@ const paintWall = (g: Ctx, r: Room, live: Live, w: number) => {
       }
       // (the hood over the range: stainless in steps, its vent slots, a lamp under it)
       const hd = () => { g.moveTo(480, -H + 60); g.lineTo(980, -H + 60); g.lineTo(960, -300); g.lineTo(500, -300); g.closePath(); };
-      stepsDown(g, hd, 480, -H + 60, 500, H - 360, R('#C4CAD6'), 3);
+      stepsDown(g, hd, 480, -H + 60, 500, H - 360, R('#AEB6C4'), 3);
+      g.beginPath(); hd(); g.strokeStyle = INK; g.lineWidth = 2.5; g.stroke();
+      for (const sx of [640, 820]) { g.strokeStyle = '#8A92A4'; g.lineWidth = 1.5; g.beginPath(); g.moveTo(sx, -H + 62); g.lineTo(sx + (sx < 730 ? -8 : 8), -302); g.stroke(); }
       slabI(g, 496, -306, 468, 14, R('#9AA2B4'));
       for (let x = 540; x < 940; x += 18) box(g, x, -296 + 0, 10, 3, '#3A3A48');
       for (let x = 600; x < 900; x += 24) box(g, x, -H + 120, 14, 2, '#8A92A4');
