@@ -476,25 +476,16 @@ const paintPreshow = (g: Ctx) => {
   g.strokeStyle = INK; g.lineWidth = 6; g.beginPath(); g.moveTo(tx + 92, GY - 8); g.quadraticCurveTo(tx + 160, GY - 2, tx + 190, GY - 60); g.stroke();
   g.strokeStyle = '#15803D'; g.lineWidth = 4; g.stroke();
   box(g, tx + 160, GY - 30, 14, 6, '#A1A1AA');
-  // (the host's screen: a TV in a fiberglass bezel, him on it in his jumpsuit (the words are live, over it))
-  const sx = PRESHOW.l + 120;
+  // (the host's screen: a TV in a fiberglass bezel, the studio's blue behind him; he's live over it, grossed up
+  // (hostGross.ts, drawn by the house: the CRT's scanlines and glare over him), the words live over that)
+  const sx = HOST_SCREEN.x;
   panel(g, sx - 8, GY - 338, 166, 116, '#334155');
   box(g, sx - 1, GY - 331, 152, 102, INK);
   bandedGradient(g, sx, GY - 330, 150, 100, ['#1E3A8A', '#1E40AF', '#2563EB', '#1E40AF'], 6);
   for (let k = 0; k < 6; k++) box(g, sx + 10 + k * 24, GY - 320 + (k % 3) * 9, 2, 2, '#BFDBFE');
-  // (the host: silver jumpsuit, shoulder pads, a mullet, the grin)
-  const hx = sx + 75;
-  box(g, hx - 17, GY - 298, 34, 68, INK); box(g, hx - 16, GY - 297, 32, 67, '#D4D4D8'); box(g, hx - 16, GY - 297, 8, 67, '#F4F4F5'); box(g, hx + 10, GY - 297, 6, 67, '#A1A1AA');
-  box(g, hx - 22, GY - 298, 44, 8, '#E4E4E7'); box(g, hx - 22, GY - 298, 44, 2, '#FFFFFF');
-  box(g, hx - 2, GY - 296, 4, 30, '#DC2626');
-  g.fillStyle = INK; g.beginPath(); g.arc(hx, GY - 309, 13, 0, Math.PI * 2); g.fill();
-  g.fillStyle = '#F2C49B'; g.beginPath(); g.arc(hx, GY - 309, 12, 0, Math.PI * 2); g.fill();
-  g.fillStyle = '#FBD9B8'; g.beginPath(); g.arc(hx - 3, GY - 312, 7, 0, Math.PI * 2); g.fill();
-  box(g, hx - 13, GY - 324, 26, 8, '#78350F'); box(g, hx - 15, GY - 318, 5, 18, '#78350F'); box(g, hx + 10, GY - 318, 5, 18, '#78350F'); box(g, hx - 12, GY - 324, 14, 2, '#A16207');
-  box(g, hx - 6, GY - 310, 3, 3, INK); box(g, hx + 3, GY - 310, 3, 3, INK); box(g, hx - 5, GY - 303, 10, 3, '#FFFFFF'); box(g, hx - 5, GY - 303, 10, 1, INK);
-  for (let y = GY - 330; y < GY - 230; y += 3) box(g, sx, y, 150, 1, 'rgba(0, 0, 0, 0.18)');
-  box(g, sx + 4, GY - 328, 40, 3, 'rgba(255, 255, 255, 0.22)');
 };
+/** The pre-show host's screen (its picture's top left; 150 x 100). */
+export const HOST_SCREEN = { x: PRESHOW.l + 120, y: GY - 330 };
 
 const paintBridge = (g: Ctx) => {
   const l = HALLS.bridge.l;

@@ -30,7 +30,8 @@ import { GY } from '../geometry';
 import { drawCheapGreen, shown } from './art';
 import { type Rig, makeRigs, tickRigs, drawRigs, drawRigsFront, drawRigSaid, rigLights } from './rigs';
 import { checker, orb, stamp } from './paint';
-import { DOORWAYS, DOOR_TOP } from './ship';
+import { DOORWAYS, DOOR_TOP, HOST_SCREEN } from './ship';
+import { drawHostScreen } from './hostGross';
 import { lettering } from '../square/lettering';
 import { PRESHOW, TRAMS, CEIL, HOUSE_DOOR, HALLS } from './layout';
 import { liveBolts } from './kinds';
@@ -326,6 +327,8 @@ const hatchOpen = (c: Ctx, x: number, open: number, f: number, glow: number) => 
 
 /** World space, behind him: the rigs, the trams. */
 export const drawHouseBack = (c: Ctx, state: GameState, h: House) => {
+  // (the pre-show host on his screen, grossed up: his mouth going while his words are up)
+  if (shown(state, HOST_SCREEN.x - 10, HOST_SCREEN.x + 160)) drawHostScreen(c, HOST_SCREEN.x, HOST_SCREEN.y, state.frame, h.show === 'on' && !!h.hostSaid);
   drawRigs(c, state, h.rigs);
   drawTrams(c, state, h);
   // (the pre-show's way out: its doorway's leaves shut till the show's done)
