@@ -20,6 +20,10 @@ import { rockWall } from '../control/shopArt';
 import { drawBallDoors } from '../control/ballDoors';
 import { x0, ARENA_L, ARENA_R, ARENA_MID, CIRCLE_X, CHANDELIERS, RISER } from './arena';
 import { signAt, haunt, print, candle } from '../letters';
+import { bust, drawBust, SKIN, HAIR, CLOTH, IRIS, type BustSpec } from '../../grossBust';
+
+/** Somebody's idea of a count: deathly, a widow's peak slicked back, a high collar, bloodshot, grinning. */
+const COUNT: BustSpec = { seed: 777, skin: SKIN.ghoul, hair: 'slick', hairRamp: HAIR.black, iris: IRIS.yellow, sclera: 'red', mouth: 'grin', coat: CLOTH.black, extras: ['ruff', 'mole', 'drool'], tall: 1.1, wide: 0.9, nose: 1.15, bulge: 1.25 };
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -81,12 +85,8 @@ const paintWallTile = (g: Ctx, x: number, v: number) => {
     const px = x + 60, py = GY - 340;
     slab(g, px - 8, py - 8, 96, 122, GOLD, { edge: 4 });
     box(g, px, py, 80, 106, '#1C0F24'); box(g, px, py, 80, 40, '#2A1635'); checker(g, px, py + 40, 80, 2, '#2A1635');
-    inked(g, () => { g.moveTo(px + 12, py + 106); g.lineTo(px + 18, py + 70); g.lineTo(px + 40, py + 84); g.lineTo(px + 62, py + 70); g.lineTo(px + 68, py + 106); g.closePath(); }, '#18181B', 0);
-    inked(g, () => { g.moveTo(px + 16, py + 76); g.lineTo(px + 22, py + 52); g.lineTo(px + 30, py + 74); g.closePath(); g.moveTo(px + 64, py + 76); g.lineTo(px + 58, py + 52); g.lineTo(px + 50, py + 74); g.closePath(); }, '#7F1D1D', 0);
-    inked(g, () => g.ellipse(px + 40, py + 48, 13, 17, 0, 0, Math.PI * 2), '#D6D3E4', 2);
-    inked(g, () => { g.moveTo(px + 27, py + 42); g.lineTo(px + 40, py + 38); g.lineTo(px + 53, py + 42); g.lineTo(px + 53, py + 32); g.quadraticCurveTo(px + 40, py + 24, px + 27, py + 32); g.closePath(); }, '#18181B', 0);
-    box(g, px + 33, py + 46, 4, 2, INK); box(g, px + 43, py + 46, 4, 2, INK); box(g, px + 36, py + 56, 8, 1, '#7F1D1D');
-    box(g, px + 38, py + 57, 1, 2, '#F8FAFC'); box(g, px + 41, py + 57, 1, 2, '#F8FAFC');
+    // (the count himself: a gross-up in oils (grossBust.ts), fangs in the grin, the varnish cracked)
+    drawBust(g, bust('ballroom-count', COUNT, 'oil'), px + 2, py + 2, 76, 104, 150);
   }
 };
 

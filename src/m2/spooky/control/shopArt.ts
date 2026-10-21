@@ -10,6 +10,10 @@ import {
   WALL_D, CEIL, inDepth, spanAt, at, quad, seg, inked, wallRun, ceiling, backFloor, frontFloor, plaque, type Eye,
 } from './paint';
 import { signAt, print, haunt, candle, brand, fit } from '../letters';
+import { bust, drawBust, SKIN, HAIR, CLOTH, IRIS, type BustSpec } from '../../grossBust';
+
+/** The employee of the month, every month: fat, balding, a headset, grinning, sweating through it. */
+const EOTM: BustSpec = { seed: 909, skin: SKIN.pink, hair: 'combover', hairRamp: HAIR.brown, beard: 'stubble', iris: IRIS.blue, mouth: 'grin', coat: CLOTH.red, extras: ['headset', 'sweaty', 'zits'], jowl: 1.4, wide: 1.12 };
 import { BUFFET_X, BUFFET_W, SLUSH_X } from './geo';
 
 type Ctx = CanvasRenderingContext2D;
@@ -110,11 +114,8 @@ const paintShopTile = (g: Ctx, x: number, v: number) => {
     const sx = x + 120, sy = GY - 300;
     slab(g, sx, sy, 76, 96, '#A16207', { edge: 3 });
     box(g, sx + 6, sy + 6, 64, 62, '#7DA0C0'); box(g, sx + 6, sy + 6, 64, 20, '#93B4D0');
-    inked(g, () => g.ellipse(sx + 38, sy + 70, 24, 18, 0, 0, Math.PI * 2), '#E7E5E4', 2);
-    inked(g, () => g.ellipse(sx + 38, sy + 38, 14, 16, 0, 0, Math.PI * 2), '#E8B48A', 2);
-    box(g, sx + 25, sy + 26, 4, 10, '#57534E'); box(g, sx + 47, sy + 26, 4, 10, '#57534E');
-    box(g, sx + 32, sy + 36, 3, 3, INK); box(g, sx + 41, sy + 36, 3, 3, INK); box(g, sx + 33, sy + 46, 10, 2, '#9A5A40');
-    box(g, sx + 22, sy + 30, 3, 14, '#27272A'); box(g, sx + 24, sy + 42, 8, 2, '#27272A');
+    // (him: a gross-up (grossBust.ts), the flash on his sweat, every pore)
+    drawBust(g, bust('shop-eotm', EOTM), sx + 6, sy + 6, 64, 62, 150);
     box(g, sx + 3, sy + 68, 70, 22, '#F1EFEA');
     signAt(g, 'EMPLOYEE', sx + 38, sy + 77, 6, print(6, '#7F1D1D'));
     signAt(g, 'OF THE MONTH', sx + 38, sy + 86, 6, print(6, '#7F1D1D'));

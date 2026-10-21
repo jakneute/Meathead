@@ -23,6 +23,7 @@ import {
   TRAIN, WARDROBES, HORNS, BALLPIT, type Castle, type LedgeLook,
 } from './layout';
 import { signAt, signW, gothic, enamel, led } from '../letters';
+import { bust, drawBust, fitBust, bustEyes, bustPupils, SKIN, HAIR, CLOTH, IRIS, LIPSTICK, type BustSpec } from '../../grossBust';
 
 type Ctx = CanvasRenderingContext2D;
 type Room = (typeof ROOMS)[number];
@@ -519,13 +520,6 @@ const candelabra = (c: Ctx, x: number, y: number, f: number) => {
   box(c, x - 15, y - 29, 30, 5, INK); box(c, x - 14, y - 28, 28, 3, BRASS[2]); box(c, x - 14, y - 28, 28, 1, BRASS[4]);
   for (const dx of [-12, 0, 12]) candle(c, x + dx, y - 28, dx ? 10 : 14, f, dx * 7 + x);
 };
-/** A portrait's eyes, following him (live, over the stamped painting): two pupils turned his way. */
-const eyesFollow = (c: Ctx, state: GameState, x: number, y: number) => {
-  const p = state.player, dx = Math.sign(p.pos.x + p.width / 2 - x), dy = p.pos.y + 30 - dyAt(p.pos.x) > y ? 1 : 0;
-  box(c, x - 8, y - 1, 6, 4, '#E8E2D0'); box(c, x + 2, y - 1, 6, 4, '#E8E2D0');
-  box(c, x - 6 + dx * 2, y + dy, 2, 2, INK); box(c, x + 4 + dx * 2, y + dy, 2, 2, INK);
-};
-
 /** Each room's windows (from its left end): x, and the sill's height (up off the floor). */
 const WINDOWS: Record<RoomId, [number, number][]> = {
   foyer: [[560, 230]], dining: [[440, 230], [1320, 230]], kitchen: [[600, 230], [1340, 230]], study: [[1100, 230], [1150, 760]],
@@ -560,7 +554,7 @@ const paintArmor = (g: Ctx) => {
   for (let k = 0; k < 4; k++) box(g, -4 + k * 2, -166 + k, 4, 14 - k, Rd[2 + (k % 2)]);
 };
 
-/** A portrait in its gilt frame: a sitter (each their own), and how they went. (Its eyes are left for eyesFollow.) */
+/** A portrait in its gilt frame: a sitter (each their own), and how they went. (Its eyes are left for sitterEyes.) */
 const paintPortrait = (g: Ctx, w: number, h: number, i: number, eyes: boolean, bare = false) => {
   if (!bare) paintGilt(g, w, h);
   paintSitter(g, w, h, i, eyes);
@@ -574,25 +568,29 @@ const paintGilt = (g: Ctx, w: number, h: number) => {
   for (const [cx, cy] of [[-7, -7], [w - 3, -7], [-7, h - 3], [w - 3, h - 3]]) { box(g, cx, cy, 10, 10, GILT[3]); box(g, cx + 3, cy + 3, 4, 4, GILT[1]); }
   box(g, -1, -1, w + 2, h + 2, INK);
 };
-/** How much bigger than a wall portrait (150 wide) a sitter's painted: a huge frame gets a bigger sitter, not a small
- *  one lost in it. */
-const sitterK = (w: number, h: number) => Math.max(1, Math.min(w, h * 0.8) / 150);
-const paintSitter = (g: Ctx, w: number, h: number, i: number, eyes: boolean) => {
-  const k = sitterK(w, h);
-  if (k > 1.05) {
-    g.save(); g.beginPath(); g.rect(0, 0, w, h); g.clip();
-    g.translate(0, 0); g.scale(k, k); paintSitterAt(g, w / k, h / k, i, eyes); g.restore();
-    return;
-  }
-  paintSitterAt(g, w, h, i, eyes);
+/** The gallery's sitters (each their own, every one a gross-up): the powdered fop, the ghoul dowager, the merchant with
+ *  the apple, the old general, the duchess, the drunk uncle. */
+const SITTERS: BustSpec[] = [
+  { seed: 101, skin: SKIN.pale, hair: 'wig', hairRamp: HAIR.white, iris: IRIS.blue, mouth: 'grin', coat: CLOTH.purple, extras: ['monocle', 'ruff', 'wart', 'zits'], nose: 1.2, look: [0.3, 0] },
+  { seed: 202, skin: SKIN.ghoul, hair: 'beehive', hairRamp: HAIR.gray, iris: IRIS.green, sclera: 'yellow', mouth: 'pout', lips: LIPSTICK, coat: CLOTH.green, extras: ['lashes', 'pearls', 'mole', 'goiter'], wide: 0.92, tall: 1.06 },
+  { seed: 303, skin: SKIN.tan, hair: 'bald', hairRamp: HAIR.brown, beard: 'full', beardRamp: HAIR.ginger, iris: IRIS.brown, mouth: 'grape', coat: CLOTH.red, extras: ['sweaty', 'bowtie'], jowl: 1.35, wide: 1.08, nose: 1.1 },
+  { seed: 404, skin: SKIN.brown, hair: 'curls', hairRamp: HAIR.gray, beard: 'chops', beardRamp: HAIR.gray, iris: IRIS.gray, mouth: 'grimace', coat: CLOTH.navy, extras: ['scar', 'ruff'], bulge: 1.3, look: [-0.4, 0.2] },
+  { seed: 505, skin: SKIN.dark, hair: 'bun', hairRamp: HAIR.black, iris: IRIS.brown, mouth: 'grin', lips: LIPSTICK, coat: CLOTH.mustard, extras: ['lashes', 'tiara', 'earring', 'pearls', 'sweaty'], wide: 0.94 },
+  { seed: 606, skin: SKIN.red, hair: 'combover', hairRamp: HAIR.brown, beard: 'stache', beardRamp: HAIR.brown, iris: IRIS.blue, sclera: 'yellow', mouth: 'gape', coat: CLOTH.black, extras: ['zits', 'drool', 'tie'], nose: 1.45, bulge: 1.35, look: [0.5, 0.4] },
+];
+const sitterBust = (i: number, eyes: boolean) => bust(`castle-sitter-${i % 6}-${eyes}`, { ...SITTERS[i % 6], blankEyes: eyes }, 'oil');
+const paintSitter = (g: Ctx, w: number, h: number, i: number, eyes: boolean) => paintSitterAt(g, w, h, i, eyes);
+/** A sitter's eyes, live, following him: (x, y) the painting's top left, w x h its canvas (as painted). */
+const sitterEyes = (c: Ctx, state: GameState, x: number, y: number, w: number, h: number, i: number) => {
+  const bu = sitterBust(i, true), fit = fitBust(x + 4, y + 4, w - 8, h - 4, h > w * 1.1 ? 160 : 150);
+  const p = state.player;
+  bustPupils(c, bu, bustEyes(bu, fit, h - 4), fit.s, p.pos.x + p.width / 2, p.pos.y + 30 - dyAt(p.pos.x));
 };
 const paintSitterAt = (g: Ctx, w: number, h: number, i: number, eyes: boolean) => {
   // (the painting: a dark ground, banded)
   const grounds = [['#1A1420', '#2E2438', '#3A2E44'], ['#141E1A', '#22342C', '#2E4038'], ['#201A12', '#3A3020', '#4A3E28'], ['#1E1418', '#342228', '#422C32'], ['#121822', '#202C3C', '#2A3A4E'], ['#22140E', '#3A2418', '#4A3020']][i % 6];
   bandedGradient(g, 0, 0, w, h, grounds, 6);
-  const cx = Math.round(w / 2), fy = Math.round(h * 0.3), fw = Math.max(18, Math.round(w * 0.14));
-  const skin = ['#C9A98A', '#8A5A3A', '#E0BCA0', '#5A3A28', '#B88A66', '#D8B090'][i % 6], S = rampOf(skin);
-  const coat = ['#1E1A22', '#2A1A40', '#3A1A1A', '#1A2A22', '#2A2A3A', '#3A2A10'][i % 6], C = rampOf(coat);
+  const cx = Math.round(w / 2), fy = Math.round(h * 0.3);
   // (the old master's backdrop: a swag of drapery one side, a column the other, a pool of light behind the sitter)
   const Gd = rampOf(grounds[2]);
   pixelBlob(g, cx - 4, fy + 20, w * 0.3, h * 0.3, mix(grounds[2], '#8A7A5A', 0.18));
@@ -602,38 +600,8 @@ const paintSitterAt = (g: Ctx, w: number, h: number, i: number, eyes: boolean) =
   g.fillStyle = dr[2]; g.beginPath(); g.moveTo(0, 0); g.lineTo(w * 0.22, 0); g.quadraticCurveTo(w * 0.1, h * 0.16, 0, h * 0.28); g.closePath(); g.fill();
   for (let k = 1; k < 4; k++) box(g, w * 0.06 * k, 2, 1, h * (0.3 - k * 0.05), dr[3]);
   box(g, w - w * 0.16, h * 0.08, w * 0.1, h * 0.92, Gd[1]); box(g, w - w * 0.16, h * 0.08, 2, h * 0.92, Gd[3]); box(g, w - w * 0.18, h * 0.06, w * 0.14, 4, Gd[2]);
-  // (the shoulders: rounded, the coat lit from the left in steps, lapels, a collar, a jewel)
-  const sy = Math.round(h * 0.6), sw = w * 0.34;
-  g.fillStyle = INK; g.beginPath(); g.moveTo(cx - sw - 2, h); g.quadraticCurveTo(cx - sw, sy - 2, cx - 6, sy - 4); g.lineTo(cx + 6, sy - 4); g.quadraticCurveTo(cx + sw, sy - 2, cx + sw + 2, h); g.closePath(); g.fill();
-  g.fillStyle = C[2]; g.beginPath(); g.moveTo(cx - sw, h); g.quadraticCurveTo(cx - sw + 2, sy, cx - 6, sy - 2); g.lineTo(cx + 6, sy - 2); g.quadraticCurveTo(cx + sw - 2, sy, cx + sw, h); g.closePath(); g.fill();
-  g.fillStyle = C[3]; g.beginPath(); g.moveTo(cx - sw + 2, h); g.quadraticCurveTo(cx - sw + 4, sy + 2, cx - sw * 0.5, sy + 4); g.lineTo(cx - sw * 0.55, h); g.closePath(); g.fill();
-  checker(g, cx - sw * 0.55, sy + 6, 6, h - sy - 6, C[3]);
-  g.fillStyle = C[1]; g.beginPath(); g.moveTo(cx + sw * 0.55, sy + 6); g.quadraticCurveTo(cx + sw - 2, sy + 4, cx + sw - 1, h); g.lineTo(cx + sw * 0.6, h); g.closePath(); g.fill();
-  // (lapels)
-  g.fillStyle = C[0]; g.beginPath(); g.moveTo(cx - 10, sy); g.lineTo(cx, h); g.lineTo(cx - 16, h); g.closePath(); g.fill(); g.beginPath(); g.moveTo(cx + 10, sy); g.lineTo(cx, h); g.lineTo(cx + 16, h); g.closePath(); g.fill();
-  box(g, cx - 8, h * 0.6, 16, 10, i % 2 ? '#E8E2D0' : '#9A1A1A'); box(g, cx - 8, h * 0.6, 16, 2, i % 2 ? '#FFFFFF' : '#C83A3A'); box(g, cx - 2, h * 0.66, 4, 4, GILT[3]); box(g, cx - 1, h * 0.66, 1, 1, '#FFFFFF');
-  // (the neck, the face: an oval, lit from the left in steps, shaded under the jaw)
-  box(g, cx - 5, fy + 24, 10, h * 0.62 - fy - 22, S[1]); box(g, cx - 5, fy + 24, 3, h * 0.62 - fy - 22, S[2]);
-  const oval = (rx: number, ry: number, ox: number, oy: number, col: string) => { g.fillStyle = col; g.beginPath(); g.ellipse(cx + ox, fy + 13 + oy, rx, ry, 0, 0, Math.PI * 2); g.fill(); };
-  oval(fw / 2 + 1, 15, 0, 0, INK); oval(fw / 2, 14, 0, 0, S[1]); oval(fw / 2 - 2, 12, -1, -1, S[2]); oval(fw / 2 - 5, 9, -3, -3, S[3]);
-  box(g, cx - fw / 2 + 3, fy + 6, 2, 2, S[4]);
-  box(g, cx - 1, fy + 10, 3, 6, S[1]); box(g, cx - 1, fy + 10, 1, 5, S[3]);
-  box(g, cx - fw / 2 + 2, fy + 16, 4, 2, mix(S[2], '#C05050', 0.3)); box(g, cx + fw / 2 - 6, fy + 16, 4, 2, mix(S[1], '#C05050', 0.3));
-  if (!eyes) { box(g, cx - 7, fy + 8, 5, 3, INK); box(g, cx + 3, fy + 8, 5, 3, INK); box(g, cx - 6, fy + 8, 1, 1, '#E8E2D0'); box(g, cx + 4, fy + 8, 1, 1, '#E8E2D0'); }
-  box(g, cx - 8, fy + 6, 6, 1, mix(S[0], INK, 0.3)); box(g, cx + 2, fy + 6, 6, 1, mix(S[0], INK, 0.3));
-  // (the hair: slicked, a wig, a bun, bald, a beard, a widow's peak)
-  const hair = ['#141016', '#D8D4CC', '#4A2A14', '#141016', '#8A3A1A', '#2A2A2A'][i % 6];
-  switch (i % 6) {
-    case 0: box(g, cx - fw / 2 - 2, fy - 6, fw + 4, 8, hair); box(g, cx - 2, fy, 4, 4, hair); break;
-    case 1: box(g, cx - fw / 2 - 8, fy - 8, fw + 16, 10, hair); box(g, cx - fw / 2 - 8, fy, 8, 30, hair); box(g, cx + fw / 2, fy, 8, 30, hair); break;
-    case 2: box(g, cx - fw / 2 - 2, fy - 4, fw + 4, 6, hair); box(g, cx - 7, fy - 14, 14, 10, hair); break;
-    case 3: box(g, cx - fw / 2, fy - 2, fw, 3, S[3]); box(g, cx - fw / 2 - 2, fy + 6, 3, 8, hair); box(g, cx + fw / 2 - 1, fy + 6, 3, 8, hair); break;
-    case 4: box(g, cx - fw / 2 - 2, fy - 5, fw + 4, 7, hair); box(g, cx - fw / 2, fy + 18, fw, 12, hair); break;
-    default: box(g, cx - fw / 2 - 2, fy - 6, fw + 4, 6, hair); box(g, cx - 3, fy, 6, 3, hair);
-  }
-  // (and how they went: a grape, an apple in the mouth, a tight-lipped smirk)
-  if (i % 3 === 0) { box(g, cx - 4, fy + 16, 8, 8, INK); box(g, cx - 3, fy + 17, 6, 6, '#6A1E9E'); box(g, cx - 2, fy + 18, 2, 2, '#B07ADE'); }
-  else box(g, cx - 4, fy + 18, 8, 2, S[0]);
+  // (the sitter: a gross-up in oils, huge in the frame (grossBust.ts), its eyes left blank for the live ones to follow him)
+  drawBust(g, sitterBust(i, eyes), 4, 4, w - 8, h - 4, h > w * 1.1 ? 160 : 150);
   // (the varnish, gone dark at the edges, cracked all over)
   hazeBands(g, 0, h - 30, w, 30, '#0A0606', 0, 0.45, 3);
   hazeBands(g, 0, 0, w, 24, '#0A0606', 0.4, 0, 3);
@@ -924,7 +892,7 @@ const drawRoomThings = (c: Ctx, state: GameState, r: Room) => {
   switch (r.id) {
     case 'foyer':
       put(c, 'cArmor', a + 380, FOOT + 10, -40, -200, 80, 202, paintArmor); put(c, 'cArmor', a + 1300, FOOT + 10, -40, -200, 80, 202, paintArmor);
-      portrait(c, a + 900, GY - 640, 160, 200, 0, true); eyesFollow(c, state, a + 980, GY - 640 + 68);
+      portrait(c, a + 900, GY - 640, 160, 200, 0, true); sitterEyes(c, state, a + 900, GY - 640, 160, 200, 0);
       break;
     case 'dining':
       for (let k = 0; k < 4; k++) portrait(c, a + 220 + k * 440, GY - 620, 110, 140, k + 1, false);
@@ -948,7 +916,7 @@ const drawRoomThings = (c: Ctx, state: GameState, r: Room) => {
       put(c, 'cChop', a + 160, GY, -4, -108, 100, 110, paintChopBlock);
       break;
     case 'bedroom':
-      portrait(c, a + 1300, GY - 680, 150, 190, 4, true); eyesFollow(c, state, a + 1375, GY - 680 + 65);
+      portrait(c, a + 1300, GY - 680, 150, 190, 4, true); sitterEyes(c, state, a + 1300, GY - 680, 150, 190, 4);
       fireplace(c, a + 1340, f);
       break;
     case 'nursery': {
@@ -960,7 +928,7 @@ const drawRoomThings = (c: Ctx, state: GameState, r: Room) => {
       break;
     }
     case 'gallery':
-      for (let k = 0; k < 5; k++) { const py = GY - 660 + (k % 2) * 24; portrait(c, a + 240 + k * 230, py, 150, 200, k, true); eyesFollow(c, state, a + 315 + k * 230, py + 68); }
+      for (let k = 0; k < 5; k++) { const py = GY - 660 + (k % 2) * 24; portrait(c, a + 240 + k * 230, py, 150, 200, k, true); sitterEyes(c, state, a + 240 + k * 230, py, 150, 200, k); }
       // (the empty frame at the end: his)
       put(c, 'cReserved', r.b - 330, GY - 600, -10, -10, 210, 270, g => {
         box(g, -8, -8, 206, 266, INK); box(g, -7, -7, 204, 264, GILT[2]); box(g, -7, -7, 204, 2, GILT[4]); box(g, -7, -7, 2, 264, GILT[3]); box(g, -7, 255, 204, 2, GILT[0]); box(g, 195, -7, 2, 264, GILT[1]);
@@ -1057,7 +1025,7 @@ const drawLedge = (c: Ctx, state: GameState, x: number, y: number, w: number, lo
       // (the ancestor: painted as the gallery's portraits are, each frame its own sitter)
       const iw = w - 20, ih = fh - 20, si = Math.floor(hash(x * 0.01) * 6);
       put(c, `cFrameArt:${iw}:${ih}:${si}`, x + 10, y + 20, -2, -2, iw + 4, ih + 4, g => paintSitter(g, iw, ih, si, true));
-      eyesFollow(c, state, x + 10 + Math.round(iw / 2), y + 20 + Math.round(ih * 0.3 + 8 * sitterK(iw, ih)));
+      sitterEyes(c, state, x + 10, y + 20, iw, ih, si);
       lipSlab(c, x - 4, y, w + 8, 12, fill, lip);
       break;
     }
