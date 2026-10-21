@@ -18,6 +18,7 @@
 import type { GameState } from '../../../m1/game/core/state';
 import { signText, fit } from '../../signLetters';
 import { GY } from '../geometry';
+import { bust, randomBust, drawBust } from '../../grossBust';
 import {
   type Ctx, type TownView, box, checker, mix, hash, at, poly, still, stillAt, atDepth, sideBack, topBack, underBack, INK,
   hr, hr7, clapboard, sash, door, western, signPaint, warmth, lampsOn, BRASS, TAR, TOPLIP, VARNISH, PLANK, STEEL, CREAM,
@@ -137,7 +138,7 @@ const paintBackWall = (g: Ctx) => {
   for (const [px, words] of [[X(4110) - a, ['WANTED', '$4 FARE']], [X(4180) - a, ['WANTED', 'CHEATS']]] as const) {
     const py = Y(200) - GY;
     box(g, px - 1, py - 1, 52, 66, INK); box(g, px, py, 50, 64, Cr[5]); box(g, px, py, 50, 2, Cr[6]); box(g, px + 46, py, 4, 64, Cr[3]);
-    signText(g, words[0], px + 25, py + 12, { sx: 1, sy: 1, fill: '#7F1D1D', shadow: Cr[4] }); box(g, px + 13, py + 18, 24, 22, Cr[2]); box(g, px + 18, py + 22, 14, 12, Cr[1]);
+    signText(g, words[0], px + 25, py + 12, { sx: 1, sy: 1, fill: '#7F1D1D', shadow: Cr[4] }); box(g, px + 13, py + 18, 24, 22, Cr[2]); drawBust(g, bust(`wanted-${words[1]}`, randomBust(words[1] === 'CHEATS' ? 1871 : 1868, { hair: 'crew', mouth: 'grimace' }), 'photo'), px + 13, py + 18, 24, 22, 150);
     signText(g, words[1], px + 25, py + 54, { sx: 1, sy: 1, fill: '#2A1A10' });
   }
   const hx = X(4600) - a, hy = Y(330) - GY;

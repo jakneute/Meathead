@@ -11,6 +11,7 @@
 // chain-link, AUTHORIZED ONLY, then the fault line and the chasm down to the sewer).
 
 import type { GameState } from '../../../m1/game/core/state';
+import { bust, randomBust, drawBust, HAIR } from '../../grossBust';
 import { CANVAS_WIDTH } from '../../../m1/constants';
 import { signText } from '../../signLetters';
 import { steppedGlow } from '../../intro/art/kit';
@@ -189,7 +190,8 @@ export const drawStation = (c: Ctx, state: GameState) => {
     box(g, 88, 8, 70, 60, INK); box(g, 90, 10, 66, 56, '#2A6AA8'); box(g, 90, 10, 66, 2, '#5A9AD8');
     signText(g, 'YOU WILL', 123, 24, painted(1, '#FDE047', '#0A2A4A')); signText(g, 'GET WET', 123, 58, painted(1, '#FDE047', '#0A2A4A'));
     for (let k = 0; k < 7; k++) box(g, 96 + k * 9, 30 + (k % 3) * 4, 3, 8 + (k % 2) * 4, '#BFE4F8');
-    g.fillStyle = '#F2C8A0'; g.beginPath(); g.arc(123, 42, 8, 0, Math.PI * 2); g.fill(); box(g, 118, 41, 3, 2, INK); box(g, 125, 41, 3, 2, INK); box(g, 121, 46, 4, 2, INK);
+    // (the soaked rider: a gross-up in print (grossBust.ts), gasping, dripping)
+    drawBust(g, bust('lr-getwet', randomBust(1955, { mouth: 'gape', extras: ['sweaty', 'drool'], hair: 'slick', hairRamp: HAIR.brown }), 'poster'), 112, 28, 22, 22, 150);
   });
   if (onScreen(state, X(-80), X(20))) stillAt(c, 'lr-st-jack', X(-30), GY - 26, -40, -150, 90, 152, g => {
     const Pl = asIs(PLY);

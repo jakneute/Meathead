@@ -18,6 +18,7 @@ import type { GameState } from '../../../m1/game/core/state';
 import { signText, signW, fit } from '../../signLetters';
 import { burned } from '../kit';
 import { GY } from '../geometry';
+import { bust, randomBust, drawBust } from '../../grossBust';
 import {
   type Ctx, type TownView, box, checker, mix, hash, at, poly, still, stillAt, atDepth, seen, sideBack, topBack, underBack, INK, timeOfDay,
   FRONT_D, hr, hr7, back7, clapboard, batten, sash, door, western, signPaint, warmth, lampsOn, halo, PLY, PLANK, STEEL, BRASS, TAR, SHINGLE, BRICK, WEATHER, TOPLIP,
@@ -128,7 +129,7 @@ const GOODS: Record<Goods, Paint> = {
     // (the cell's iron bars, a cot, a tin cup, WANTED posters)
     box(g, x, y, w, h, '#1A1410');
     box(g, x + 4, y + h - 14, w - 8, 6, '#6A5A4A'); box(g, x + 4, y + h - 14, w - 8, 2, '#9A8A7A');
-    box(g, x + 8, y + 6, 14, 18, '#E8DCB0'); box(g, x + 11, y + 10, 8, 7, '#8A7A6A');
+    box(g, x + 8, y + 6, 14, 18, '#E8DCB0'); drawBust(g, bust('wanted-jail', randomBust(1866, { mouth: 'gape' }), 'photo'), x + 9, y + 8, 12, 12, 150);
     for (let k = x + 3; k < x + w; k += 6) { box(g, k, y, 2, h, '#3A3A42'); box(g, k, y, 1, h, '#7A7A82'); }
   },
   none: () => {},
