@@ -52,3 +52,6 @@ tools/perf/out/
 
 # headless close-up renders (agents' scratch images)
 close/
+
+# the voice tool's report of lines it couldn't resolve (rewritten every run)
+tools/voices/unresolved.txt
