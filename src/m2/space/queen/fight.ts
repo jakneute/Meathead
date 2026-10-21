@@ -72,6 +72,7 @@ import { BITER, SPITTER, CHARGER, KIN, isKin, kinAge, spawnKin, destroyKin, tick
 import * as L from './lines';
 import { setDropTable } from '../../../m1/game/core/effects';
 import { since } from '../../frames';
+import { drawQueenGross, drawQueenGrossBack } from './queenGross';
 
 type Ctx = CanvasRenderingContext2D;
 const pick = pickLine;
@@ -354,8 +355,9 @@ const intro = (ctx: FrameContext, f: Fight): Controls => {
       f.down = Math.min(1, t / 18);
       if (t === 1) playSound('screams', 0.7, -8);
       if (t === 18) { playSound('thud', 1, -10); playSound('land', 1, -8); shakeScreen(state, 14, 7); }
-      if (t === 30) playSound('roar', 0.8, -8);
-      if (t >= 60) go(f, 'grab');
+      if (t === 30) { playSound('roar', 0.8, -8); playSound('ding', 0.4, -10); }
+      // (her gross-up from the screech on, a beat; then him)
+      if (t >= 40 + GROSS_T) go(f, 'grab');
       break;
     case 'grab':
       // (over to the wall for the extinguisher; a hop up for it in its cabinet, got it, down with it, in to his chest)
@@ -1024,6 +1026,15 @@ onMeteorBlast((ctx, at) => {
 export const fightOver = (f: Fight) => f.mode === 'dead' && f.deathSaid >= 3 && f.deathT > 220;
 export const endFight = (state: GameState, f: Fight) => { setDropTable(PARK_DROPS); live = null; state.player.inCutscene = false; state.player.extinguisher = undefined; f.drops = []; f.pool = null; setHazardZones(state, 'queen-pool', []); clearOil(state); };
 export const introOn = (f: Fight) => f.mode === 'intro';
+/** Her gross-up's length in the cutscene (frames, from the screech): the first go only (a retry has no cutscene). */
+const GROSS_T = 100;
+/** Screen space, under the letterbox: the cutscene's gross-up of her, screeching. */
+export const drawIntroCloseup = (c: Ctx, f: Fight, fr: number) => {
+  if (f.mode !== 'intro' || f.step !== 'drop' || f.stepT < 30 || f.stepT >= 30 + GROSS_T) return;
+  const t = f.stepT - 30;
+  drawQueenGrossBack(c, CANVAS_WIDTH, CANVAS_HEIGHT);
+  drawQueenGross(c, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2, 0.9 + 0.1 * Math.min(1, t / 10), fr, t < 24 ? 4 : 1);
+};
 
 // ---------------------------------------------------------------------------------------------------------------
 // Drawing

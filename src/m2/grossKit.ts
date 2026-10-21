@@ -191,6 +191,16 @@ export const stubble = (b: Buf, inside: (x: number, y: number) => number, col: n
   }
 };
 
+/** Ink round a material's edge, where it meets anything but `keep` (its line tone). */
+export const inkEdges = (b: Buf, mat: number, col: number, keep: number[] = []) => {
+  const m = b.mat.slice();
+  const other = (x: number, y: number) => { if (x < 0 || y < 0 || x >= GW || y >= GH) return false; const v = m[y * GW + x]; return v !== mat && !keep.includes(v); };
+  for (let y = 0; y < GH; y++) for (let x = 0; x < GW; x++) {
+    if (m[y * GW + x] !== mat) continue;
+    if (other(x - 1, y) || other(x + 1, y) || other(x, y - 1) || other(x, y + 1)) b.px[y * GW + x] = col;
+  }
+};
+
 /** The skin's going over: pores (thick on the nose and the cheeks: `dens`), blackheads, grease shining on the lit side. */
 export const skinPost = (b: Buf, deep: number, dens: (x: number, y: number) => number, o: { onMat?: number; blackheads?: (x: number, y: number) => boolean; shine?: number; shineCol?: number } = {}) => {
   const on = o.onMat ?? M_SKIN, sh = o.shine ?? 0.14, sc = o.shineCol ?? WHITE;
