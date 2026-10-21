@@ -38,7 +38,7 @@ import {
 } from './course';
 import { registerGmen, gstate, gOf, isWomanG, GMAN, GCRAWL, GPAD, GJET, type Pose } from './gman';
 import { updateThings, drawThing, drawDebris, type Thing, type Debris } from './obstacles';
-import { drawGymBackdrop, drawGymBack, drawGymMid, drawRingFront, setExitOpen } from './art';
+import { drawGymBackdrop, drawGymBack, drawGymMid, drawRingFront, drawGymNear, drawCeilingHole, setExitOpen } from './art';
 import { createScene, tickScene, drawScene, sfx, type Scene, type Beat } from './scene';
 import { shotSquat, shotTv, shotDoorway, shotAgent, shotAgentF, shotMeathead, shotArrival, shotTicket, shotToddler, shotGlasses, shotGlassesOn, setShotDress } from './shots';
 import { grossChoke, grossTruck, prewarmGross } from './gross';
@@ -240,8 +240,9 @@ export const gymLayout: StageLayout = {
     const gym = getGym(state);
     if (!gym) return;
     drawRingFront(c, state);
-    drawHoles(c, gym, state.frame);
+    drawHoles(c, state, gym);
     drawGrab(c, state, gym.grab);
+    drawGymNear(c, state);
     // (who's saying what, over their heads, only while it's said)
     for (const e of state.enemies) { const g = gOf(e); if (g?.said && e.health > 0 && !e.isBlownAway) saidOver(c, g.said, e.pos.x + e.width / 2, e.pos.y - 16); }
     if (gym.ringSaid) saidOver(c, gym.ringSaid.text, gym.ringSaid.e.pos.x + gym.ringSaid.e.width / 2, gym.ringSaid.e.pos.y - 22);
@@ -357,14 +358,9 @@ const arrivals = (ctx: FrameContext, gym: Gym) => {
   gym.holes = gym.holes.filter(h => h.until > state.frame);
 };
 
-/** The ceiling tiles they came down through: knocked out, the dark up in there, one hanging by a corner. */
-const drawHoles = (c: CanvasRenderingContext2D, gym: Gym, frame: number) => {
-  for (const h of gym.holes) {
-    const tx = h.x - 30;
-    c.fillStyle = '#0E0A08'; c.fillRect(tx, CEIL_Y - 36, 60, 30);
-    c.save(); c.translate(tx + 60, CEIL_Y - 8); c.rotate(1.1 + Math.sin(frame * 0.2) * 0.05 * Math.max(0, (h.until - frame) / 240));
-    c.fillStyle = '#8A8473'; c.fillRect(0, 0, 28, 6); c.fillStyle = '#5A5444'; c.fillRect(0, 5, 28, 1); c.restore();
-  }
+/** The ceiling tiles they came down through: knocked out, the dark up in there, one hanging by a corner (art.ts). */
+const drawHoles = (c: CanvasRenderingContext2D, state: GameState, gym: Gym) => {
+  for (const h of gym.holes) drawCeilingHole(c, state, h.x, state.frame, Math.max(0, (h.until - state.frame) / 240));
 };
 
 /** The G-men: by their job, never fighting back. */

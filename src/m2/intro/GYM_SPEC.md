@@ -39,6 +39,14 @@ Dying in the gym (only the gut's third blowout can do it) puts him back at its s
   close-up, voice `m2.gmanf`). The tutorial G-men are seeded variants (men and women, every skin, builds, hair).
 - **The gym is Meathead 1's** (its wall, props and plyo boxes reused from `m1/game/stages/gym/draw.ts`, now exported),
   laid out longer, with its ring from Meathead 1's garage range (posts, sagging ropes, MEATHEAD'S G M on the apron).
+- **...in Meathead 2's fake 3D** (the user's, 2026-10-21: "look very similar to the first one ... really sell this is a
+  visual upgrade"; painted 2D perspective, no real 3D): one eye (the screen's middle); the back wall set back at 0.8
+  with its mirrors, posters, souvenir shelves, TV and doors; the drop ceiling and the rubber floor in true perspective
+  (troffers in rows going back, their light pools and sheen on the floor, dust in the back row's light, I-beams); the
+  end walls receding; Meathead 1's floor things at 0.86; the shelves, plyo boxes, mezzanine, duct and ring as boxes in
+  depth (tops and sides toward the eye, fronts and lit lips on the play line); low dark things on the floor nearer
+  than him going by faster. The exit door sits in the back wall where it lands just past EXIT_AT with the camera
+  stopped at the room's end.
 - **Rooms** (teach, then escalate within each): shoot (couriers in the open, then two behind a tub stack), charge (a
   human wall, then two huddled at the dumbbell rack), slide (crawlers under a knee-high duct; the kettlebell rack
   bowls them over), uppercut (two up on shelves; the cable machine), dive kick (off the mezzanine onto a huddle; the
