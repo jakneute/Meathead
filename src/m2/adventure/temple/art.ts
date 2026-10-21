@@ -213,8 +213,20 @@ const drawFloor = (c: Ctx, eye: Eye, L: number, R: number) => {
   // (and the butt joints across)
   for (const d of [0.57, 0.66, 0.77, 0.9, 1.06, 1.28]) box(c, L, floorAt(eye, d), R - L, 1, 'rgba(0, 0, 0, 0.5)');
   // (scuffs, lit where the work lights fall)
-  c.fillStyle = 'rgba(255, 230, 190, 0.035)';
-  for (let x = Math.floor(s0 / 230) * 230; x < s1; x += 230) { const p = at(eye, x + hash(x) * 120, GY, 0.62 + hash(x * 1.3) * 0.5); c.fillRect(p[0], p[1], 30, 2); }
+  c.fillStyle = 'rgba(255, 230, 190, 0.07)';
+  for (let x = Math.floor(s0 / 130) * 130; x < s1; x += 130) { const d = 0.62 + hash(x * 1.3) * 0.5, p = at(eye, x + hash(x) * 80, GY, d); c.fillRect(p[0], p[1], 30 * d, 2); c.fillRect(p[0] + 8 * d, p[1] + 2, 14 * d, 1); }
+  // (the paint worn through to the ply where the crew walks: a pale patch, dithered at its edges)
+  for (let x = Math.floor(s0 / 520) * 520 + 200; x < s1; x += 520) {
+    const d = 0.8 + hash(x * 0.7) * 0.25, p = at(eye, x, GY, d), w = 60 * d, h = Math.max(2, 6 * d);
+    box(c, p[0], p[1], w, h, 'rgba(110, 84, 58, 0.22)'); checker(c, p[0] - 4, p[1], 4, h, 'rgba(110, 84, 58, 0.22)'); checker(c, p[0] + w, p[1], 4, h, 'rgba(110, 84, 58, 0.22)');
+  }
+  // (a cable run taped down across it, going back toward the wall: black rubber, a gaffer strip every so often)
+  for (let x = Math.floor(s0 / 760) * 760 + 330; x < s1; x += 760) {
+    c.strokeStyle = '#050404'; c.lineWidth = 3; c.beginPath();
+    for (let k = 0; k <= 8; k++) { const d = WALL_D + (1.15 - WALL_D) * (k / 8), p = at(eye, x + Math.sin(k * 1.3 + x) * 30, GY, d); if (k) c.lineTo(p[0], p[1]); else c.moveTo(p[0], p[1]); }
+    c.stroke();
+    for (let k = 1; k < 8; k += 2) { const d = WALL_D + (1.15 - WALL_D) * (k / 8), p = at(eye, x + Math.sin(k * 1.3 + x) * 30, GY, d); box(c, p[0] - 8 * d, p[1] - 1, 16 * d, Math.max(2, 3 * d), '#3A3A3E'); }
+  }
   // (spike marks: tape, where things go)
   for (let x = Math.floor(s0 / 370) * 370; x < s1; x += 370) {
     const d = 0.7 + hash(x * 0.37) * 0.35, p = at(eye, x + 40, GY, d), s = d * 6;
