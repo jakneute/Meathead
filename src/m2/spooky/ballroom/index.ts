@@ -25,7 +25,7 @@ import { markBossFight } from '../../bossQuiet';
 import { hands } from '../section';
 import { drawBars } from '../control/cine';
 import { x0, x1, ARENA_L, ARENA_R, TRIGGER_X, CHANDELIERS, RISER } from './arena';
-import { type Fight, startFight, updateFight, fightOver, endFight, resetFight, drawFightBack, drawFightFront, drawFightHud, killCamTick, killCamZoom, drawKillCam, killedByWeakness, introOn, introSkipT, deathLights } from './fight';
+import { type Fight, startFight, updateFight, fightOver, endFight, resetFight, drawFightBack, drawFightFront, drawFightHud, killCamTick, killCamZoom, drawKillCam, killedByWeakness, introOn, introSkipT, deathLights, drawIntroCloseup } from './fight';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -107,6 +107,7 @@ export const ballroom: SpookySection = {
   drawFront: (c, state) => { drawBallroomFront(c, state); const b = ballOf(state); if (b.f && b.fight !== 'wait') drawFightFront(c, state, b.f); },
   drawHud: (c, state) => {
     const b = ballOf(state);
+    if (b.f) drawIntroCloseup(c, b.f, state.frame);
     if (b.f && introOn(b.f)) { drawBars(c, Math.min(1, introSkipT(b.f) / 20)); if (introSkipT(b.f) > SKIP_AFTER) drawSkipPrompt(c, CANVAS_WIDTH); }
     if (b.fight === 'on' && b.f) drawFightHud(c, b.f, topBand(), !!state.player.inCutscene);
     if (b.f) drawKillCam(c, b.f);

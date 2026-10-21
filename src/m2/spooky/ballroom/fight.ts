@@ -65,6 +65,7 @@ import { INK, checker, pixelBlob } from '../control/paint';
 import * as L from './lines';
 import { since } from '../../frames';
 import { drawBurn, burnLights } from './burn';
+import { drawDonnieGross, drawDonnieGrossBack } from '../../cast/donnieGross';
 
 type Ctx = CanvasRenderingContext2D;
 const pick = pickLine;
@@ -146,7 +147,7 @@ registerHurtLines(BLOOD, L.HURT_BLOOD, L.DEATH_BLOOD);
 // ---------------------------------------------------------------------------------------------------------------
 // The state
 
-type Intro = 'plead' | 'reply' | 'open' | 'bestow' | 'rise' | 'powered' | 'soul' | 'panic' | 'mh' | 'close';
+type Intro = 'plead' | 'reply' | 'open' | 'bestow' | 'rise' | 'gross' | 'powered' | 'soul' | 'panic' | 'mh' | 'close';
 export type Mode = 'intro' | 'hover' | 'aim' | 'dive' | 'drain' | 'rise' | 'hunt' | 'suck' | 'spew' | 'winded' | 'flinch' | 'stunned' | 'dead';
 
 interface Guest { x: number; dir: 1 | -1; seed: number; state: 'run' | 'held' | 'fall' | 'husk'; y: number; vy: number; t: number; said: string | null; facing: 1 | -1;
@@ -347,7 +348,11 @@ const intro = (ctx: FrameContext, f: Fight): Controls => {
         // (the drumstick he'd been cowering with, dropped: he's after bigger things now)
         for (let i = 0; i < 3; i++) state.particles.push({ pos: { x: f.x + f.facing * 14, y: f.y - 60 }, vel: { x: (Math.random() - 0.5) * 2, y: -2 - i }, life: 50, color: ['#B8701E', '#F1E6C8', '#E09A3A'][i], size: 4 - i, grav: 0.35 });
       }
-      if (t >= 80) { f.intro = 'close'; f.introT = 0; }
+      if (t >= 80) { f.intro = 'gross'; f.introT = 0; playSound('roar', 0.6, -2); playSound('ding', 0.5, -8); }
+      break;
+    case 'gross':
+      // (changed: his face, close up and gross, a beat; silent but the roar)
+      if (t >= GROSS_T) { f.intro = 'close'; f.introT = 0; }
       break;
     case 'close':
       f.circle = Math.max(0, 1 - t / 40);
@@ -1168,6 +1173,14 @@ export const drawFightHud = (c: Ctx, f: Fight, band: { x1: number; x2: number; m
   const w = band.x2 - band.x1, k = Math.max(0, f.hp / HP);
   box(c, band.x1, 22, w, 14, '#18181B'); box(c, band.x1 + 2, 24, (w - 4) * k, 10, f.iframes > 0 && Math.floor(f.iframes / 4) % 2 ? '#FCA5A5' : '#DC2626');
   label(c, 'DONNIE DRACULA', band.mid, 50, '#FCA5A5', 7);
+};
+/** His gross-up's length in the intro (frames): the first go only (a retry has no intro). */
+const GROSS_T = 110;
+/** Screen space, under the letterbox: the intro's gross-up of him, changed. */
+export const drawIntroCloseup = (c: Ctx, f: Fight, fr: number) => {
+  if (f.mode !== 'intro' || f.intro !== 'gross') return;
+  drawDonnieGrossBack(c, CANVAS_WIDTH, CANVAS_HEIGHT);
+  drawDonnieGross(c, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 24, 0.9 + 0.1 * Math.min(1, f.introT / 10), fr, f.introT < 20 ? 3 : 0.6);
 };
 /** The intro's skippable (for the stage's skip prompt). */
 export const introOn = (f: Fight) => f.mode === 'intro';
