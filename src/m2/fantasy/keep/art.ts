@@ -41,6 +41,7 @@ import { bendFloor } from '../../intro/art/kit';
 import { tilePattern } from '../../../m1/game/render/pixelArt';
 import { type Ctx, type View, INK, box, mix, hash, checker, onScreen, storySign, viewOf, at, still, stillAt, seen, polyF, sideBack, topBack, lit, SNOW, LIP, warmGlass, gilt, dimmed } from '../kit';
 import { signText } from '../../signLetters';
+import { bust as grossBust, randomBust, drawBust } from '../../grossBust';
 import { drawKeepFar } from './far';
 import {
   X, Y, GY, RUNWAY, MOAT, BARBICAN, GATEHOUSE, WALL, BREACH, PILLAR, LAND_B, LAND_C, GALLERY, TOWER_WALL, LEDGES,
@@ -692,7 +693,7 @@ const drawHoardings = (c: Ctx, v: View) => {
 const TOWER = { a: 6250, b: TOWER_WALL.b }, TOWER_TOP = 1700;
 const TCELL = 260;
 const paintTowerCell = (g: Ctx, w: number, sx: number, row: number) => {
-  const S = R(PALE), Gd = R(GOLD), Pk = R(PINK), Ir = R(IRON), Tm = R(TIMBER), Pl = R(PLUM), Bl = R(['#0E1430', '#18224E', '#22327A', '#2E4EA8', '#5A7ACC', '#9AB4EC']);
+  const S = R(PALE), Gd = R(GOLD), Pk = R(PINK), Ir = R(IRON), Tm = R(TIMBER), Bl = R(['#0E1430', '#18224E', '#22327A', '#2E4EA8', '#5A7ACC', '#9AB4EC']);
   ashlar(g, -10, -TCELL, w + 20, TCELL, S, 97 + row * 7, 14, 30);
   // (a string course every cell)
   box(g, -10, -6, w + 20, 5, S[5]); box(g, -10, -1, w + 20, 1, S[1]);
@@ -714,9 +715,10 @@ const paintTowerCell = (g: Ctx, w: number, sx: number, row: number) => {
       const pw = 60, ph = 76, px = x - pw / 2, py = -TCELL + 70;
       box(g, px - 7, py - 7, pw + 14, ph + 14, INK); box(g, px - 6, py - 6, pw + 12, ph + 12, Gd[3]); box(g, px - 6, py - 6, pw + 12, 2, Gd[5]); box(g, px - 3, py - 3, pw + 6, ph + 6, Gd[1]);
       box(g, px, py, pw, ph, R(['#1A1020', '#2A1A34', '#3A2848', '#4E3A5E', '#6A5478', '#8A7498'])[2]);
-      const sk = ['#F2C8A0', '#D8A078', '#8A5A3A', '#F8D8B8'][Math.floor(hash(rx + row * 3) * 4)];
-      g.fillStyle = Pl[3]; g.beginPath(); g.ellipse(x, py + ph, 26, 30, 0, Math.PI, 0); g.fill(); polyF(g, [[x - 18, py + ph - 26], [x + 14, py + ph], [x + 6, py + ph], [x - 18, py + ph - 18]], Pk[3]);
-      g.fillStyle = mix(sk, '#000000', 0.15); g.beginPath(); g.ellipse(x, py + 32, 12, 15, 0, 0, Math.PI * 2); g.fill(); box(g, x - 6, py + 30, 3, 2, INK); box(g, x + 3, py + 30, 3, 2, INK); box(g, x - 4, py + 39, 8, 1, INK);
+      // (the royal: a gross-up in oils (grossBust.ts), dealt from where it hangs; the pink sash over the coat)
+      const sd = 5000 + Math.floor(hash(rx + row * 3) * 12);
+      drawBust(g, grossBust(`keep-royal-${sd}`, randomBust(sd, { mouth: 'grimace', look: [0, 0] }), 'oil'), px, py, pw, ph, 150);
+      polyF(g, [[x - 18, py + ph - 14], [x + 14, py + ph], [x + 6, py + ph], [x - 18, py + ph - 8]], Pk[3]);
       polyF(g, [[x - 12, py + 18], [x - 12, py + 8], [x - 6, py + 13], [x, py + 4], [x + 6, py + 13], [x + 12, py + 8], [x + 12, py + 18]], Gd[4]);
       box(g, x - 10, py + ph + 10, 20, 6, INK); box(g, x - 9, py + ph + 11, 18, 4, Gd[2]);
     } else if (kind === 4) {

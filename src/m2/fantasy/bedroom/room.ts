@@ -34,6 +34,8 @@ import type { GameState } from '../../../m1/game/core/state';
 import { box, mix, hash, INK, gilt, checker, polyF, still, ballR, GOLD as GD, TIMBER, type Ctx } from '../kit';
 import { signText } from '../../signLetters';
 import { drawPiper, type PiperPose } from '../piper';
+import { R as gR } from '../../grossKit';
+import { bust as grossBust, drawBust } from '../../grossBust';
 import { drawSuitor, type SuitorLook } from '../suitors';
 import { timeOfDay, skyRamp } from '../../timeOfDay';
 import { parkView } from './view';
@@ -527,13 +529,29 @@ const portraitArt = (g: Ctx, x: number, y: number, w: number, h: number, k: numb
   if (bg === 'garden') { const S = ['#4A5AA8', '#6E86C8', '#9AB4E4', '#E8C4DC']; S.forEach((col, i) => B(g, l, y + (i * h * 0.6) / 4, w, h * 0.15 + 1, col)); B(g, l, y + h * 0.6, w, h * 0.4, LEAF[2]); for (let i = 0; i < w; i += 6) { disc(g, l + i, y + h * 0.6, 5, LEAF[3]); if (hash(i + x) > 0.5) rose(g, l + i, y + h * 0.62, 1); } }
   else if (bg === 'sky') { const S = ['#7A3A7A', '#B05A9A', '#E08AB8', '#F8C4D8']; S.forEach((col, i) => B(g, l, y + (i * h) / 4, w, h / 4 + 1, col)); for (let i = 0; i < 4; i++) { ell(g, l + hash(i + x) * w, y + h * (0.2 + i * 0.18), 18, 5, '#FFE4F0'); ell(g, l + hash(i + x) * w - 6, y + h * (0.2 + i * 0.18) - 2, 10, 4, '#FFFFFF'); } }
   else { B(g, l, y, w, h, '#4A1030'); for (let i = 0; i < w; i += 10) { B(g, l + i, y, 5, h, '#5A1A3E'); } B(g, l, y + h * 0.7, w, h * 0.3, '#7A2A4A'); }
-  g.translate(x, y + h - 4); g.scale(k, k);
-  drawPiper(g, pose === 'lounge' ? 10 : 0, 0, pose === 'lounge' ? -1 : 1, 0, pose, { talking: false });
+  // (her: a gross-up in oils (grossBust.ts), as her own close-up has her (piperGross.ts): the caked foundation, the
+  // mascara, the chins, the wart; a pout, a smirk or a gloat by the pose)
+  void k;
+  drawBust(g, piperBust(pose), l + 2, y + 2, w - 4, h - 2, w > h ? 130 : 150);
   g.restore();
   // (the varnish's sheen)
   g.globalAlpha = 0.18; polyF(g, [[l, y + h * 0.3], [l + w * 0.4, y], [l + w * 0.55, y], [l, y + h * 0.5]], '#FFFFFF'); g.globalAlpha = 1;
   B(g, x - 16, y + h + 8, 32, 7, INK); B(g, x - 15, y + h + 9, 30, 5, GD[3]); B(g, x - 15, y + h + 9, 30, 1, GD[5]); signText(g, 'PIPER', x, y + h + 14, { sx: 1, sy: 1, gap: 1, fill: '#3A2208' });
   g.restore();
+};
+
+/** Piper as her portraits (and the photo on her vanity) have her: a gross-up, matching her close-up. */
+const PIPER_HAIR = gR('#FFFFF4', '#FAF0C4', '#ECD894', '#D4BA6A', '#B09450', '#86703A', '#4E3E1A');
+const PIPER_SKIN = gR('#FFEAD4', '#FCD6B4', '#F4BE98', '#E8A67E', '#D68A66', '#BA6E52', '#94523E', '#5A2A1E');
+const PIPER_GOWN = gR('#FFC4E6', '#FF8CC8', '#F45AAE', '#D63A92', '#B02474', '#841656', '#460828');
+const PIPER_EYE = gR('#A8F0C4', '#6ED49A', '#3CAA6E', '#22804E', '#105434', '#04200E');
+const PIPER_LIP = gR('#FF94AE', '#F4587E', '#D82450', '#B4143A', '#8A0A28', '#4A0412');
+const piperBust = (pose: PiperPose) => {
+  const mouth = pose === 'lounge' ? 'smirk' : pose === 'gloat' ? 'grin' : 'pout';
+  return grossBust(`piper-${mouth}`, {
+    seed: 1999, skin: PIPER_SKIN, hair: 'beehive', hairRamp: PIPER_HAIR, iris: PIPER_EYE, sclera: 'red', mouth, lips: PIPER_LIP, coat: PIPER_GOWN,
+    extras: ['lashes', 'tiara', 'wart', 'pearls', 'sweaty', 'zits'], jowl: 1.5, wide: 1.05, look: [0.3, 0],
+  }, 'oil');
 };
 
 const PORTRAITS: { x: number; y: number; w: number; h: number; k: number; pose: PiperPose; bg: 'garden' | 'sky' | 'throne'; tilt: [number, number, number] }[] = [
@@ -814,7 +832,7 @@ const vanityArt = (g: Ctx) => {
   for (let k = 0; k < 3; k++) { B(g, 80 + k * 4, -96, 3, 10, INK); B(g, 80 + k * 4, -95, 2, 6, GD[3]); B(g, 80 + k * 4, -99, 2, 4, ['#D21E4A', '#F43F8E', '#A01E64'][k]); }
   B(g, 94, -110, 10, 24, INK); B(g, 95, -109, 8, 22, '#F472B6'); B(g, 95, -109, 2, 22, '#FFB0D8'); B(g, 95, -104, 8, 6, '#FFFFFF'); signText(g, 'HOLD', 99, -99, { sx: 1, sy: 1, gap: 0, fill: '#A01E64' }); B(g, 96, -114, 6, 5, '#E4E4E7');
   ell(g, 108, -91, 7, 5, '#E0F0FF'); for (let k = 0; k < 4; k++) disc(g, 105 + (k % 2) * 5, -91 - Math.floor(k / 2) * 3, 2, ['#6A3A1E', '#F45AAE', '#8A4A2A', '#FDE68A'][k]); B(g, 102, -97, 12, 2, '#C8E4F4');
-  B(g, 18, -112, 16, 20, INK); B(g, 19, -111, 14, 18, GD[3]); B(g, 21, -109, 10, 14, '#E08AB8'); ell(g, 26, -101, 3, 5, '#F45AAE'); ell(g, 26, -106, 2, 2, '#F8CDB4'); ell(g, 26, -109, 2, 2, '#F6E8B0');
+  B(g, 18, -112, 16, 20, INK); B(g, 19, -111, 14, 18, GD[3]); B(g, 21, -109, 10, 14, '#E08AB8'); drawBust(g, piperBust('stand'), 21, -109, 10, 14, 150);
 };
 /** The mirror's glass, live: banded silver with the room in it soft, her in it when she's near, cracked (stage 2 on),
  *  a piece out (stage 5 on); the bulbs' soft glow. */

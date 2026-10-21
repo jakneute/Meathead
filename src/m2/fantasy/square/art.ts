@@ -25,6 +25,7 @@ import type { GameState } from '../../../m1/game/core/state';
 import type { Light } from '../../../m1/game/render/lighting';
 import { timeOfDay, skyAt } from '../../timeOfDay';
 import { signText } from '../../signLetters';
+import { bust as grossBust, randomBust, tintBust, drawBust } from '../../grossBust';
 import { bendFloor, hazeBands } from '../../intro/art/kit';
 import { tilePattern } from '../../../m1/game/render/pixelArt';
 import {
@@ -589,11 +590,9 @@ const paintHallWall = (g: Ctx, k: number) => {
     for (const py of [-470, -200]) {
       box(g, px - 2, py - 2, 64, 80, INK); box(g, px, py, 60, 76, Gd[3]); box(g, px, py, 60, 2, Gd[5]); box(g, px + 54, py, 6, 76, Gd[2]);
       box(g, px + 6, py + 6, 48, 64, dimmed(['#2A3A2A', '#3A2A2A', '#2A2A3A', '#3A3424'][(k + py) % 4 & 3]));
-      const skin = dimmed(['#F0D0B0', '#C8946A', '#8A5A36', '#5A3A24'][(k * 3 + (py & 3)) % 4]);
-      box(g, px + 18, py + 46, 24, 24, dimmed(['#7A1A2A', '#1A3A6A', '#2A5A2A', '#5A2A6A'][k % 4]));
-      g.fillStyle = skin; g.beginPath(); g.ellipse(px + 30, py + 32, 10, 12, 0, 0, Math.PI * 2); g.fill();
-      box(g, px + 20, py + 18, 20, 6, dimmed(['#E8E0D0', '#2A1A10', '#8A3A1A', '#C8C8D0'][(k + 1) % 4]));
-      if ((k + py) % 2) polyF(g, [[px + 18, py + 22], [px + 42, py + 22], [px + 32, py + 2]], dimmed('#2A2440'));
+      // (the sitter: a gross-up in oils (grossBust.ts), dealt from the bay; the eyes blank for the live ones)
+      const sd = 4000 + k * 2 + (py < -300 ? 0 : 1);
+      drawBust(g, tintBust(grossBust(`sq-hall-${sd}`, randomBust(sd, { blankEyes: true, ...((k + py) % 2 ? { extras: ['tiara'] } : {}) }), 'oil'), dimmed('#FFFFFF')), px + 6, py + 6, 48, 64, 150);
     }
   } else {
     const [m, t] = [['#9B1C1C', '#E0AE3A'], ['#166534', '#C8CCD4'], ['#1E3A8A', '#B07A4A'], ['#CA8A04', '#18181B']][(k >> 1) % 4];
@@ -636,7 +635,7 @@ const drawTowerHall = (c: Ctx, state: GameState, v: View) => {
     const { eyes, torch } = hallBits(k);
     for (const [ex, ey] of eyes) {
       const [sx, sy] = at(v.eye, ex, ey, TOWER_D), dx = Math.max(-1, Math.min(1, (pmx - ex) / 300)), dy = Math.max(-1, Math.min(1, (pmy - ey) / 300));
-      for (const o of [-4, 3]) { box(c, sx + o - 1, sy - 2, 3, 3, dimmed('#F4F0E8')); box(c, sx + o + Math.round(dx), sy - 2 + Math.round(dy), 1, 2, INK); }
+      for (const o of [-7, 6]) { box(c, sx + o - 1, sy - 2, 3, 3, dimmed('#F4F0E8')); box(c, sx + o + Math.round(dx), sy - 2 + Math.round(dy), 1, 2, INK); }
     }
     const [tx, ty] = at(v.eye, torch[0], torch[1], TOWER_D), fl = Math.sin(f * 0.4 + k) * 2;
     for (const [col, r, dy] of [['#DC2626', 6, 0], ['#F97316', 5, -2], ['#FDE047', 3, -4]] as const) { c.fillStyle = col; c.beginPath(); c.moveTo(tx - r, ty + 2); c.quadraticCurveTo(tx + fl, ty - r * 2.4 + dy, tx + r, ty + 2); c.closePath(); c.fill(); }

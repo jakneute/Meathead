@@ -84,6 +84,26 @@ export interface BustSpec {
   /** The eyes painted without irises (the live pupils go over them: `bustPupils`). */
   blankEyes?: boolean;
 }
+/** A sitter dealt from a seed: any skin, any hair, any face (for walls of portraits); `o` pins what it must be. */
+export const randomBust = (seed: number, o: Partial<BustSpec> = {}): BustSpec => {
+  const h = (k: number) => hash2(seed * 13 + k, k * 7 + 3), pick = <T>(a: T[], k: number) => a[Math.floor(h(k) * a.length) % a.length];
+  const fem = h(1) < 0.45;
+  const extras: Extra[] = [];
+  for (const [e, k, p] of [['mole', 2, 0.3], ['wart', 3, 0.25], ['zits', 4, 0.35], ['sweaty', 5, 0.4], ['drool', 6, 0.15], ['scar', 7, 0.12], ['earring', 8, 0.3], ['goiter', 9, 0.1]] as [Extra, number, number][]) if (h(k) < p) extras.push(e);
+  if (fem) extras.push('lashes', ...(h(10) < 0.5 ? ['pearls' as Extra] : []));
+  else if (h(10) < 0.3) extras.push(pick<Extra>(['monocle', 'glasses', 'bowtie', 'ruff'], 11));
+  return {
+    seed, skin: pick([SKIN.pale, SKIN.pink, SKIN.tan, SKIN.olive, SKIN.brown, SKIN.dark], 12),
+    hair: fem ? pick<HairStyle>(['bun', 'beehive', 'long', 'curls'], 13) : pick<HairStyle>(['slick', 'bald', 'combover', 'crew', 'curls', 'wig'], 13),
+    hairRamp: pick([HAIR.black, HAIR.brown, HAIR.gray, HAIR.ginger, HAIR.blond, HAIR.white], 14),
+    beard: fem ? undefined : pick<Beard | undefined>([undefined, undefined, 'full', 'stache', 'chops', 'goatee', 'stubble'], 15),
+    iris: pick([IRIS.blue, IRIS.brown, IRIS.green, IRIS.gray], 16), sclera: pick<'red' | 'yellow' | 'white'>(['red', 'red', 'yellow', 'white'], 17),
+    mouth: pick<Mouth>(fem ? ['pout', 'grin', 'smirk', 'gape'] : ['grin', 'gape', 'smirk', 'grimace', 'grape'], 18),
+    lips: fem && h(19) < 0.7 ? LIPSTICK : undefined, coat: pick([CLOTH.black, CLOTH.purple, CLOTH.red, CLOTH.green, CLOTH.navy, CLOTH.mustard], 20),
+    extras, wide: 0.88 + h(21) * 0.26, tall: 0.92 + h(22) * 0.16, jowl: 0.9 + h(23) * 0.7, nose: 0.9 + h(24) * 0.6, bulge: 1 + h(25) * 0.4, look: [h(26) * 1.2 - 0.6, h(27) * 0.6 - 0.2],
+    ...o,
+  };
+};
 export type Medium = 'oil' | 'crt' | 'poster' | 'photo' | 'bw' | 'none';
 
 // ---------------------------------------------------------------------------------------------------------------
