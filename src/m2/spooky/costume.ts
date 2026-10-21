@@ -50,7 +50,7 @@ export const part = (g: Ctx, path: () => void, col: string, x: number, y: number
     g.fillStyle = r[1]; g.fillRect(rx, py, 1, 1);
   }
   g.restore();
-  g.beginPath(); path(); g.strokeStyle = INK; g.lineWidth = line; g.lineJoin = 'round'; g.stroke();
+  if (line > 0) { g.beginPath(); path(); g.strokeStyle = INK; g.lineWidth = line; g.lineJoin = 'round'; g.stroke(); }
 };
 /** A part lit from above (a hat's crown, a shell): the top lit, the bottom shaded, dithered between. */
 export const partTop = (g: Ctx, path: () => void, col: string, x: number, y: number, w: number, h: number, line = 1.2) => {
@@ -64,7 +64,7 @@ export const partTop = (g: Ctx, path: () => void, col: string, x: number, y: num
   g.fillStyle = r[0]; g.fillRect(Math.round(x + w * 0.8), by, w, h);
   for (let px = Math.floor(x) - 1; px < x + w + 1; px += 2) { g.fillStyle = r[3]; g.fillRect(px, ty, 1, 1); g.fillStyle = r[1]; g.fillRect(px + 1, by - 1, 1, 1); }
   g.restore();
-  g.beginPath(); path(); g.strokeStyle = INK; g.lineWidth = line; g.lineJoin = 'round'; g.stroke();
+  if (line > 0) { g.beginPath(); path(); g.strokeStyle = INK; g.lineWidth = line; g.lineJoin = 'round'; g.stroke(); }
 };
 /** A flat inked fill (small things: a button, a buckle). */
 export const flat = (g: Ctx, path: () => void, col: string, line = 1) => {
@@ -93,6 +93,45 @@ export const limb = (g: Ctx, x1: number, y1: number, x2: number, y2: number, w: 
   const o = w * 0.3;
   g.strokeStyle = dk(col, 0.26); g.lineWidth = w * 0.36; g.beginPath(); g.moveTo(x1 + nx * o, y1 + ny * o); g.lineTo(x2 + nx * o, y2 + ny * o); g.stroke();
   g.strokeStyle = lt(col, 0.22); g.lineWidth = Math.max(1, w * 0.2); g.beginPath(); g.moveTo(x1 - nx * o, y1 - ny * o); g.lineTo(x2 - nx * o, y2 - ny * o); g.stroke();
+};
+/**
+ * A jointed limb (shoulder or hip, elbow or knee, wrist or ankle): the bones' strokes inked as ONE piece (the ink round
+ * the lot first, then every bone's color over it, so no ink line cuts across a joint), a round cap filling each joint,
+ * each bone shaded and lit, the crook of each bend creased and its point catching the light. `pts` the joints in order,
+ * `ws` each bone's width, `cols` each bone's color.
+ */
+export const jointed = (g: Ctx, pts: number[][], ws: number[], cols: string[], inked = true) => {
+  const n = pts.length - 1;
+  g.lineCap = 'round'; g.lineJoin = 'round';
+  if (inked) {
+    g.strokeStyle = INK;
+    for (let i = 0; i < n; i++) { g.lineWidth = ws[i] + 2.4; g.beginPath(); g.moveTo(pts[i][0], pts[i][1]); g.lineTo(pts[i + 1][0], pts[i + 1][1]); g.stroke(); }
+  }
+  for (let i = 0; i < n; i++) { g.strokeStyle = cols[i]; g.lineWidth = ws[i]; g.beginPath(); g.moveTo(pts[i][0], pts[i][1]); g.lineTo(pts[i + 1][0], pts[i + 1][1]); g.stroke(); }
+  for (let i = 0; i < n; i++) {
+    const [x1, y1] = pts[i], [x2, y2] = pts[i + 1], w = ws[i], col = cols[i];
+    const dx = x2 - x1, dy = y2 - y1, d = Math.hypot(dx, dy) || 1;
+    let nx = -dy / d, ny = dx / d;
+    if (nx < -0.01 || (Math.abs(nx) <= 0.01 && ny < 0)) { nx = -nx; ny = -ny; }
+    const o = w * 0.3;
+    // (shade and light stopped short of the joints, so each joint's round cap reads as its own knob)
+    const a = Math.min(0.3, (w * 0.4) / d), b = 1 - a;
+    const ax = x1 + dx * a, ay = y1 + dy * a, bx = x1 + dx * b, by = y1 + dy * b;
+    g.lineCap = 'butt';
+    g.strokeStyle = dk(col, 0.26); g.lineWidth = w * 0.36; g.beginPath(); g.moveTo(ax + nx * o, ay + ny * o); g.lineTo(bx + nx * o, by + ny * o); g.stroke();
+    g.strokeStyle = lt(col, 0.22); g.lineWidth = Math.max(1, w * 0.2); g.beginPath(); g.moveTo(ax - nx * o, ay - ny * o); g.lineTo(bx - nx * o, by - ny * o); g.stroke();
+  }
+  // (the bends: a crease in the crook, a lit point on the outside)
+  for (let i = 1; i < n; i++) {
+    const [px0, py0] = pts[i - 1], [jx, jy] = pts[i], [qx, qy] = pts[i + 1];
+    const mx = (px0 + qx) / 2 - jx, my = (py0 + qy) / 2 - jy, md = Math.hypot(mx, my);
+    if (md < 0.8) continue;
+    const ux = mx / md, uy = my / md, w = Math.min(ws[i - 1], ws[i]);
+    g.fillStyle = dk(cols[i], 0.4); g.fillRect(Math.round(jx + ux * w * 0.32), Math.round(jy + uy * w * 0.32), 1, 1);
+    g.fillStyle = dk(cols[i], 0.26); g.fillRect(Math.round(jx + ux * w * 0.32 - uy), Math.round(jy + uy * w * 0.32 + ux), 1, 1);
+    g.fillStyle = lt(cols[i], 0.3); g.fillRect(Math.round(jx - ux * w * 0.3), Math.round(jy - uy * w * 0.3), 1, 1);
+  }
+  g.lineCap = 'butt';
 };
 /** A round thing (a hand, a knob, an eyeball) in steps. */
 export const ball = (g: Ctx, x: number, y: number, r: number, col: string, line = 1) => part(g, () => g.arc(x, y, r, 0, Math.PI * 2), col, x - r, y - r, r * 2, r * 2, line);
@@ -205,8 +244,8 @@ export const legs = (g: Ctx, B: Body, o: LegOpts) => {
     const hip = [side * B.hipW * 0.22, B.hipY + 2], foot = [side * 3 + B.feet[s], -4 - B.lift[s]];
     const knee = [(hip[0] + foot[0]) / 2 + 1.5, (hip[1] + foot[1]) / 2];
     const col = near ? o.col : dk(o.col, 0.14), skin = o.skin ?? B.L.skin;
-    limb(g, hip[0], hip[1], knee[0], knee[1], B.legW, col);
-    limb(g, knee[0], knee[1], foot[0], foot[1], B.legW - 0.5, o.bareBelow ? (near ? skin : dk(skin, 0.12)) : col);
+    // (hip, knee, ankle as one jointed leg: the knee's cap, its crease behind)
+    jointed(g, [hip, knee, foot], [B.legW, B.legW - 0.5], [col, o.bareBelow ? (near ? skin : dk(skin, 0.12)) : col]);
     if (o.stripe) {
       // (striped tights: bands across the shin)
       g.save(); g.strokeStyle = near ? o.stripe : dk(o.stripe, 0.14); g.lineWidth = 1.6;
@@ -239,13 +278,28 @@ export const arm = (g: Ctx, B: Body, side: -1 | 1, hx: number, hy: number, o: Ar
   // (the elbow: out from the shoulder-to-hand line, a bit, to the outside of the body (the far arm's to the back, the
   // near arm's to the front) and down. Which of the two ways off the line that is depends on which arm it is: picking
   // it by the line's own slope alone bent a hanging far arm's elbow in across the body and a near one's the other way)
-  const bend = Math.max(0, 10 - d * 0.3) * (o.elbow ?? 1);
+  // (the arm's bones a set length (longer only when it's reaching), so a hand in near the body bends the elbow right
+  // out instead of folding the arm into a stick)
+  const L = Math.max(10.5, (d / 2) * 1.04);
+  const bend = Math.sqrt(Math.max(0, L * L - (d / 2) * (d / 2))) * (o.elbow ?? 1);
   let nx = -dy / d, ny = dx / d; if (side * nx * 0.7 + ny < 0) { nx = -nx; ny = -ny; }
   const ex = mx + nx * bend, ey = my + ny * bend;
   const len = o.len ?? 1;
-  limb(g, sx, sy, ex, ey, w, len > 0 ? o.sleeve : o.hand);
-  limb(g, ex, ey, hx, hy, w - 0.5, len >= 1 ? o.sleeve : o.hand);
+  const upCol = len > 0 ? o.sleeve : o.hand, foreCol = len >= 1 ? o.sleeve : o.hand;
+  // (the shoulder: a round cap of deltoid over the top of the arm, joining it to the torso; inked with the arm as one)
+  const cr = w * 0.64, cx = sx + side * 0.5, cy = sy - 0.5;
+  g.fillStyle = INK; g.beginPath(); g.arc(cx, cy, cr + 1.2, 0, Math.PI * 2); g.fill();
+  jointed(g, [[sx, sy], [ex, ey], [hx, hy]], [w, w - 0.5], [upCol, foreCol]);
+  partTop(g, () => g.arc(cx, cy, cr, 0, Math.PI * 2), upCol, cx - cr, cy - cr, cr * 2, cr * 2, 0);
+  // (its seam into the arm below: a short shadow under the cap)
+  const ua = Math.atan2(ey - sy, ex - sx);
+  g.strokeStyle = dk(upCol, 0.3); g.lineWidth = 1; g.beginPath(); g.arc(cx, cy, cr - 0.5, ua - 0.7, ua + 0.7); g.stroke();
   if (len > 0 && len < 1) { px(g, ex - w / 2, ey - 1, w, 2, dk(o.sleeve, 0.2)); }
+  else if (len >= 1 && o.sleeve !== o.hand) {
+    // (the cuff at the wrist, the hand coming out of it)
+    const fx = hx - ex, fy = hy - ey, fd = Math.hypot(fx, fy) || 1, wx = hx - (fx / fd) * (w * 0.75), wy = hy - (fy / fd) * (w * 0.75);
+    g.strokeStyle = dk(o.sleeve, 0.3); g.lineWidth = 1.2; g.beginPath(); g.moveTo(wx - (fy / fd) * w * 0.45, wy + (fx / fd) * w * 0.45); g.lineTo(wx + (fy / fd) * w * 0.45, wy - (fx / fd) * w * 0.45); g.stroke();
+  }
   if (o.claw) {
     ball(g, hx, hy, w * 0.66, o.hand, 1);
     for (let k = -1; k <= 1; k++) flat(g, () => { g.moveTo(hx + 2, hy + k * 2 - 0.8); g.lineTo(hx + 7, hy + k * 2.4); g.lineTo(hx + 2, hy + k * 2 + 0.8); g.closePath(); }, '#ECE7DC', 0.6);
