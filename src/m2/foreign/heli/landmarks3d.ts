@@ -45,8 +45,10 @@ export const viewOf = (cam: Cam, f: number): View => {
   };
 };
 
+/** Turned this much (radians) off the middle while it stands idle on its plinth. */
+const IDLE_TURN: Partial<Record<MechId, number>> = { pyramid: 0.45 };
 /** Its axes: across (the fight camera's right) and away (toward the park's middle). */
-const axesOf = (i: number) => { const p = phiOf(i); return { R: { x: Math.cos(p), z: -Math.sin(p) }, F: { x: -Math.sin(p), z: -Math.cos(p) } }; };
+const axesOf = (i: number, turn = 0) => { const p = phiOf(i) + turn; return { R: { x: Math.cos(p), z: -Math.sin(p) }, F: { x: -Math.sin(p), z: -Math.cos(p) } }; };
 
 /** The wreck's lie: over on its side to the left, resting on the ground (the lowest it gets, worked out once each). */
 const lieOf = new Map<MechId, M34>();
@@ -119,7 +121,11 @@ const pieceFire = (c: Ctx, x: number, y: number, r: number, t: number, n: number
 
 /** Draws it (whatever's under it first: its shadow, the plinth or the legs; then the body; its eyes). */
 const render = (c: Ctx, cam: Cam, id: MechId, i: number, at: { x: number; z: number }, L: MechLook, feet: FootW[] | undefined, f: number, axes?: { R: { x: number; z: number }; F: { x: number; z: number } }) => {
-  const view = viewOf(cam, f), { R, F } = axes ?? axesOf(i), m = L.m;
+  const view = viewOf(cam, f), m = L.m;
+  // (idle on its plinth, a few stand turned a little off the middle (the pyramid's broad side covered the parking lot,
+  // the user's); awake, every one squares up to the fight)
+  const idleTurn = !L.awake && !L.wreck ? IDLE_TURN[id] ?? 0 : 0;
+  const { R, F } = axes ?? axesOf(i, idleTurn);
   const base0 = view.proj(at.x, 0, at.z);
   view.lod = base0.k * 420 < 90;
   view.upright = { x: at.x, z: at.z };

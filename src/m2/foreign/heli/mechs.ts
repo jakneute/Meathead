@@ -31,7 +31,8 @@ const overlap = (a: Rect, b: Rect) => a.x < b.x + b.w && a.x + a.w > b.x && a.y 
 /** Each one's health (the big ones last). HP_SCALE multiplies the damage they take, so 2 is half as long a fight
  *  (2: trimmed for length, the user: a land plays ~5 min; each landmark ~15-20 s). */
 const HP_SCALE = 1.6;
-const HP: Record<MechId, number> = { eiffel: 3600, opera: 4000, redeemer: 4400, pisa: 1, taj: 4800, bigben: 5000, colosseum: 5400, pyramid: 5800, moai: 6600 };
+// (three quarters of what they were, the user's)
+const HP: Record<MechId, number> = { eiffel: 2700, opera: 3000, redeemer: 3300, pisa: 1, taj: 3600, bigben: 3750, colosseum: 4050, pyramid: 4350, moai: 4950 };
 /** What a machine-gun round does to one (the engine's 22 is for people). */
 const ROUND_MECH = 10;
 /** How hard everything of theirs hits him (the user: a little harder: their shots, beams, drops, minions and their
