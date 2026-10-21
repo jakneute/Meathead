@@ -33,6 +33,7 @@ import { runWaves, skipWavesTo } from './waves';
 import { startSaucer, updateSaucer, drawSaucerFront, drawSaucerHud, noteSaucerHp } from './ufo';
 import { updateGun, drawGun, levelAt, gunSays, RAPID_AT } from './gun';
 import { MH_ARRIVE, MH_RAPID, GUN_UPGRADE } from './lines';
+import { forceWeapon, releaseWeapon } from '../../weaponLock';
 
 /** Where the big refill is put out, before the end (a camera offset), and where (screen). */
 const REFILL_AT = ARENA_CAM - X0 - 250;
@@ -52,7 +53,7 @@ const startFlight = (ctx: FrameContext) => {
   // (in the suit: back in it after a death; put on if he's started out here fresh)
   reapplySuit(state);
   if (!p.spaceSuit) putOnSuit(state);
-  state.lockWeapon = 'GUN'; p.currentWeapon = 'GUN';
+  forceWeapon(state, 'GUN');
   if (!o.quiet) startSaucer(state);
   if (!state.stageMemo[MEMO.hi]) { state.stageMemo[MEMO.hi] = '1'; meatheadSays(state, pickLine(MH_ARRIVE), true); }
 };
@@ -173,7 +174,7 @@ const leave = (state: GameState) => {
   const o = orbitOf(state), p = state.player;
   o.on = false;
   if (o.cam) { state.cameraOverride = null; o.cam = false; }
-  state.lockWeapon = undefined;
+  releaseWeapon(state);
   p.carried = false;
   teleport(state, DOORS.crater.start.x, DOORS.crater.start.y);
   state.camera.y = DOORS.crater.start.y - 550;

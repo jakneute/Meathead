@@ -23,6 +23,7 @@ import { grabCallout } from '../moves/callouts';
 import { isRobot } from '../kinds';
 import { specialsHalf, halfKill } from './half';
 import { since } from '../frames';
+import { struckAt } from './strikes';
 type Ctx = CanvasRenderingContext2D;
 const INK = '#1A0B06';
 
@@ -101,7 +102,7 @@ const line = (ctx: FrameContext, x: number, y: number, dx: number, dy: number, k
     }
   }
   trails.push({ x0: x, y0: y, x1: cx, y1: cy, t: 0, spark: wall });
-  if (wall) { fx.spawnExplosion({ x: cx, y: cy }, '#FDE047', 8, 0, 8); playSound('clang', 0.5, 6); }
+  if (wall) { fx.spawnExplosion({ x: cx, y: cy }, '#FDE047', 8, 0, 8); playSound('clang', 0.5, 6); struckAt(cx - 8, cy - 8, cx + 8, cy + 8, 150); }
   return { x: cx - dx * STEP, y: cy - dy * STEP, wall };
 };
 

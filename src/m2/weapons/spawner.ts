@@ -56,6 +56,10 @@ export interface SpawnerBait {
 }
 let baitsOf: (state: GameState) => SpawnerBait[] = () => [];
 export const setSpawnerBaits = (fn: ((state: GameState) => SpawnerBait[]) | null) => { baitsOf = fn ?? (() => []); };
+/** ...and a stage's own, alongside the fight's (Space Needle 2's window: they chew on the glass). */
+const moreBaits = new Set<(state: GameState) => SpawnerBait[]>();
+export const addSpawnerBaits = (fn: (state: GameState) => SpawnerBait[]) => { moreBaits.add(fn); };
+const allBaits = (state: GameState) => { const out = baitsOf(state); if (!moreBaits.size) return out; return [...out, ...[...moreBaits].flatMap(f => f(state))]; };
 /** What they've bitten out of each one since it was last asked (a fight telling their nibbles from a real hit). */
 const bitten = new WeakMap<Enemy, number>();
 export const takeBites = (e: Enemy) => { const n = bitten.get(e) ?? 0; bitten.delete(e); return n; };
@@ -259,7 +263,7 @@ const airTarget = (state: GameState, a: Alien) => {
     const dd = Math.hypot(cx - a.x, e.pos.y + e.height / 2 - a.y);
     if (dd < d) { d = dd; best = { e, b: null }; }
   }
-  for (const b of baitsOf(state)) {
+  for (const b of allBaits(state)) {
     if (!b.air || !b.alive() || !ahead(b.x + b.w / 2)) continue;
     const dd = Math.hypot(b.x + b.w / 2 - a.x, b.y + b.h / 2 - a.y);
     if (dd < d) { d = dd; best = { e: null, b }; }
@@ -366,7 +370,7 @@ const roam = (ctx: FrameContext, a: Alien) => {
 /** The nearest bait about, if any. */
 const nearestBait = (state: GameState, a: Alien) => {
   let best: SpawnerBait | null = null, d = 700;
-  for (const b of baitsOf(state)) { if (!b.alive()) continue; const dx = Math.abs(b.x + b.w / 2 - a.x); if (dx < d) { d = dx; best = b; } }
+  for (const b of allBaits(state)) { if (!b.alive()) continue; const dx = Math.abs(b.x + b.w / 2 - a.x); if (dx < d) { d = dx; best = b; } }
   return best;
 };
 

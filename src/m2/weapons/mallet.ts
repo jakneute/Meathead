@@ -40,6 +40,7 @@ import { DUCK_LINES } from '../lines/weaponLines';
 import { shieldTakesBlow, clang } from './shield';
 import { m2Kind } from '../kinds';
 import { since } from '../frames';
+import { struckAt } from './strikes';
 
 type Ctx = CanvasRenderingContext2D;
 const INK = '#1A0B06';
@@ -264,6 +265,7 @@ const tick = (ctx: FrameContext, input: { shoot: boolean }, equipped: boolean) =
       const S = mode === 'swing' ? SWING : AIR_SWING;
       if (mode === 'swing') pl.vel.x *= 0.6;
       if (t === S.hitAt) {
+        if (mode === 'swing') struckAt(px, fy - 95, px + dir * 100, fy, S.dmg); else struckAt(px, pl.pos.y - 30, px + dir * 95, fy + 40, S.dmg);
         const hits = mode === 'swing' ? inBox(state, px, fy - 95, px + dir * 100, fy) : inBox(state, px, pl.pos.y - 30, px + dir * 95, fy + 40);
         for (const e of hits) bonk(ctx, e, S.dmg, { x: dir * S.knock, y: S.lift }, 'fling');
         if (hits.length) wearOut(ctx, WEAR.swing);
@@ -287,6 +289,7 @@ const tick = (ctx: FrameContext, input: { shoot: boolean }, equipped: boolean) =
     case 'launch': {
       pl.vel.x *= 0.6;
       if (t === LAUNCH.hitAt) {
+        struckAt(px - dir * 10, fy - 115, px + dir * 85, fy, LAUNCH.dmg);
         const hits = inBox(state, px - dir * 10, fy - 115, px + dir * 85, fy);
         for (const e of hits) bonk(ctx, e, LAUNCH.dmg, { x: dir * 1.5, y: LAUNCH.up }, 'launch');
         if (hits.length) wearOut(ctx, WEAR.launch);
@@ -317,6 +320,7 @@ const tick = (ctx: FrameContext, input: { shoot: boolean }, equipped: boolean) =
         mode = 'land'; t = 0;
         playSound('slam'); playSound('bonk', 1, -8); shakeScreen(state, 20, 10);
         word(px + dir * 30, fy - 70, 'WHOMP!', '#FB923C');
+        struckAt(px - POUND.radius, fy - 60, px + POUND.radius, fy, POUND.dmg + POUND.under);
         // (everybody round where he came down: a heavy hit, heaviest right under him, bounced up off the floor; one it
         // finishes is squashed flat)
         for (const e of state.enemies.filter(o => alive(o) && !struck.has(o) && Math.abs(o.pos.x + o.width / 2 - px) < POUND.radius && Math.abs(o.pos.y + o.height - fy) < 60)) {
@@ -341,6 +345,7 @@ const tick = (ctx: FrameContext, input: { shoot: boolean }, equipped: boolean) =
       if (t === 4) {
         playSound('slam'); playSound('bonk', 1, -6); shakeScreen(state, 18, 9);
         word(px + dir * 70, fy - 50, 'KA-BLAM!', '#FDE047');
+        struckAt(px + dir * 15, fy - 80, px + dir * SMASH.reach, fy + (hang ? 45 : 6), 999);
         // (from a vine: down in front of him, under his feet as well)
         for (const e of inBox(state, px + dir * 15, fy - 80, px + dir * SMASH.reach, fy + (hang ? 45 : 6))) {
           struck.add(e);
@@ -387,6 +392,7 @@ const tick = (ctx: FrameContext, input: { shoot: boolean }, equipped: boolean) =
       if (t % 4 === 0 && ground) state.particles.push({ pos: { x: px + (Math.random() - 0.5) * 60, y: fy - 2 }, vel: { x: (Math.random() - 0.5) * 4, y: -1 - Math.random() * 2 }, life: 18, color: 'rgba(214, 211, 209, 0.6)', size: 5 + Math.random() * 5 });
       if (t % TORNADO.every === 0) {
         struck = new Set();
+        struckAt(px - TORNADO.radius, fy - 110, px + TORNADO.radius, fy + (hang ? 40 : 10), TORNADO.dmg);
         const hits = state.enemies.filter(o => alive(o) && Math.abs(o.pos.x + o.width / 2 - px) < TORNADO.radius + o.width / 2 && o.pos.y < fy + (hang ? 40 : 10) && o.pos.y + o.height > fy - 110);
         let off: Enemy | null = null;
         for (const e of hits) {

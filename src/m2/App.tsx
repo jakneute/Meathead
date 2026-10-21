@@ -533,7 +533,24 @@ const App2: React.FC = () => {
     return () => { window.removeEventListener('wheel', onWheel); window.removeEventListener('mousedown', onMouseDown); window.removeEventListener('keydown', onKey); window.removeEventListener('contextmenu', onContext); window.removeEventListener('pointerdown', onPointer); cancelAnimationFrame(id); };
   }, []);
 
-  const onPlayerUpdate = (health: number, power: number, ammo?: Record<WeaponType, number>) => {
+  // (a set piece that only allows one weapon (weaponLock.ts: the orbit's ray gun, the star sled's, the duel's): put in
+  // his hands as it starts, kept there, and once it's over, however it ends (done, died out of it, gone through a door),
+  // what he had out before is back in his hands, if he's still got it)
+  const lockRef = useRef<{ to?: WeaponType; before: WeaponType | null }>({ before: null });
+  const followLock = (to?: WeaponType) => {
+    const L = lockRef.current;
+    if (to) {
+      if (L.before === null) L.before = live.current.weapon;
+      if (live.current.weapon !== to) setWeapon(to);
+    } else if (L.to && L.before !== null) {
+      const back = L.before;
+      L.before = null;
+      setWeapon(arsenal().includes(back) ? back : 'GUN');
+    }
+    L.to = to;
+  };
+  const onPlayerUpdate = (health: number, power: number, ammo?: Record<WeaponType, number>, _forced?: WeaponType, lockedTo?: WeaponType) => {
+    followLock(lockedTo);
     if (ammo) ammoRef.current = ammo;
     // (the engine hands over the same ammo table every frame, changed in place: it's what's in it that's compared, and
     // a copy that's kept, or the HUD only caught up when something else changed, his health, his power)

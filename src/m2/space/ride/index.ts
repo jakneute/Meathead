@@ -47,6 +47,7 @@ import { drawSled, seatedIn, HIS_SLED, FRONT_SLED, SEATS, SLED_SINK } from './sl
 import { drawRideBackdrop, drawRideBack, drawRideFront, rideLighting, drawBlaster, BRAKE_BOX_X, type RideLook } from './art';
 import { drawLaunchOutside, OUT_END, OUT_SPLAT, OUT_LAND_ME } from './launch';
 import * as L from './lines';
+import { forceWeapon, releaseWeapon } from '../../weaponLock';
 
 const SINK = SLED_SINK;
 /** (where his feet sit in it, from the sled's middle: the front seat) */
@@ -234,6 +235,7 @@ const toDrag = (state: GameState, s: Sled, skipped: boolean) => {
   state.stageMemo[LAUNCHED_MEMO] = 'yes';
   p.carried = false; p.cartSeat = false; p.inCutscene = false; p.hidden = false; p.spriteRot = 0;
   p.noSpecials = false; setUi({ noSwitch: false, pauseControls: null });
+  releaseWeapon(state);
   state.cameraOverride = null; state.cameraLeadX = 0;
   teleport(state, DOORS.drag.start.x, DOORS.drag.start.y);
   p.facing = 1;
@@ -343,6 +345,8 @@ const run = (ctx: FrameContext, controls: Controls): Controls => {
   if (s.mode === 'gone') { if (p.inCutscene) return controls; Object.assign(s, fresh(state)); }
   if (s.mode === 'off') board(state, s);
   p.noSpecials = true; setUi({ noSwitch: true, pauseControls: 'sled' });
+  // (the space blaster comes out of his ray gun: that's what's in his hands, the whole ride)
+  forceWeapon(state, 'GUN');
   if (s.mode === 'crash' || s.mode === 'up' || s.mode === 'out') return scene(ctx, s);
   // (the faster it goes, the further ahead the camera looks: what is coming is on screen sooner)
   s.lead += (150 + Math.max(0, s.speed - 4.3) * 24 - s.lead) * 0.04;

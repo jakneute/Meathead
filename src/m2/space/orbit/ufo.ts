@@ -40,6 +40,7 @@ import { CY, W, H, X0, X1 } from './geo';
 import { SAUCER_INTRO, SAUCER_TAUNT, SAUCER_HURT, SAUCER_PISSED, MH_WHO, MH_LADIES, GUN_FACTORY, type ByPants } from './lines';
 import { SAUCER_SHARE, SAUCER_FLOOR, MAX_LEVEL, gunSays, gunWords } from './gun';
 import { takeOffSuit } from '../needle/suit';
+import { releaseWeapon } from '../../weaponLock';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -321,7 +322,7 @@ const finish = (state: GameState) => {
   p.vel.x = 0; p.vel.y = 0; p.facing = 1; p.invincibilityTimer = 0;
   o.on = false;
   if (o.cam) { state.cameraOverride = null; o.cam = false; }
-  state.lockWeapon = undefined;
+  releaseWeapon(state);
   teleport(state, DOORS.crater.start.x, DOORS.crater.start.y);
   state.camera.y = DOORS.crater.start.y - 550;
 };

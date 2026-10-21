@@ -47,6 +47,7 @@ import {
   DUEL_RULES, SHOW_CHEAT, SHOW_CLOSE, SHERIFF_BARK, SHERIFF_DRAW, TOWN_VOICES,
 } from './lines';
 import { SALOON_FOLK, bark, voiceOf } from './kinds';
+import { forceWeapon, releaseWeapon } from '../../weaponLock';
 
 const AWAY = -99999;
 /** After DRAW!, how long he has to fire (frames): fair, but no dawdling. */
@@ -184,9 +185,9 @@ const startIntro = (state: GameState) => {
   d.phase = 'intro'; d.t = 0; d.step = 0;
   const tok = ++d.token, ok = () => d.token === tok && d.phase === 'intro';
   p.inCutscene = true;
-  // (the user's: the ray gun's his for the duel, whatever he had out; he's left with it after, as the land's other
-  // forced weapons leave him)
-  state.lockWeapon = 'GUN'; p.currentWeapon = 'GUN';
+  // (the user's: the ray gun's his for the duel, whatever he had out; once it's settled, what he had out is back in his
+  // hands, as with every forced weapon: weaponLock.ts)
+  forceWeapon(state, 'GUN');
   shutSquare(state, true);
   playSound('slam', 1, -6);
   announce(state, SHOW_OPEN, () => {
@@ -210,7 +211,7 @@ const beginDuel = (state: GameState, controls: Controls) => {
 };
 
 /** Out of the duel's stance, the ray gun his to put away (or keep). */
-const unsquare = (state: GameState) => { state.player.gunslinger = false; state.lockWeapon = undefined; };
+const unsquare = (state: GameState) => { state.player.gunslinger = false; releaseWeapon(state); };
 
 /** The duel settled: the sheriff down, the gates open, the crowd. */
 const settle = (state: GameState) => {
@@ -305,7 +306,7 @@ const runDuel = (ctx: FrameContext, controls: Controls): Controls => {
   // user's, and that's cheating: the posse; anything of his that reached him counts)
   if (s && s.health > 0 && d.phase === 'wait' && p.health > 0 && (s.health < s.maxHealth || s.isBlownAway || (s.hitFlash ?? 0) > 0 || s.meleeFlung || s.uppercutFlung)) {
     d.phase = 'duel'; d.t = 0; d.drawAt = 9999;
-    state.lockWeapon = undefined;
+    releaseWeapon(state);
     cheat(ctx);
     return controls;
   }

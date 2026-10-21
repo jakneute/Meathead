@@ -22,6 +22,7 @@ import { CANVAS_WIDTH } from '../../m1/constants';
 import { m2Kill } from '../moves/killLines';
 import { ART_K, drawCarArt, drawWreckArt, drawStuntmanArt, type StuntPose } from './stuntCarArt';
 import { grabCallout } from '../moves/callouts';
+import { struckAt } from './strikes';
 
 type Ctx = CanvasRenderingContext2D;
 const INK = '#1A0B06';
@@ -190,6 +191,7 @@ const stunt = (ctx: FrameContext, p: Projectile, car: Extract<Part, { kind: 'car
   fx.spawnExplosion({ x: p.pos.x + p.width / 2, y: p.pos.y }, '#57534E', 16, 0, 22);
   // The fireball: everybody within a good way of it, hurt by how near, most of them gone
   const cx = p.pos.x + p.width / 2, cy = p.pos.y + p.height / 2;
+  struckAt(cx - BLAST.radius, cy - BLAST.radius, cx + BLAST.radius, cy + BLAST.radius, BLAST.dmg);
   for (const e of [...state.enemies]) {
     if (!alive(e) || car.hit.includes(e.id)) continue;
     const d = Math.hypot(e.pos.x + e.width / 2 - cx, e.pos.y + e.height / 2 - cy);

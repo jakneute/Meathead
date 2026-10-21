@@ -31,6 +31,7 @@ import { setArmor } from '../../m1/game/core/resist';
 import { vineGrip } from '../../m1/game/combat/muzzle';
 import { specialsHalf, specialsOff, realMax, HALF } from './half';
 import { since } from '../frames';
+import { struckAt } from './strikes';
 
 type Ctx = CanvasRenderingContext2D;
 const INK = '#1A0B06';
@@ -254,6 +255,7 @@ if (import.meta.env?.DEV && typeof window !== 'undefined') (window as unknown as
 const meteorBlast = (ctx: FrameContext, at: { x: number; y: number }, three: Enemy[] = []) => {
   const { state, fx } = ctx;
   for (const h of meteorHooks) h(ctx, at);
+  struckAt(at.x - METEOR.radius, at.y - METEOR.radius, at.x + METEOR.radius, at.y + METEOR.radius, METEOR.dmg);
   playSound('boom'); playSound('crash', 0.7, -6); shakeScreen(state, 22, 12);
   fx.spawnExplosion(at, '#F97316', 44, 0, 26); fx.spawnExplosion(at, '#FDE047', 28, 0, 18); fx.spawnExplosion(at, '#FFFFFF', 10, 0, 10); fx.spawnExplosion(at, '#57534E', 22, 0, 22);
   ring(at.x, at.y, METEOR.radius * 1.4, '253, 186, 116', 20); ring(at.x, at.y, METEOR.radius * 0.8, '255, 255, 255', 10);
@@ -281,6 +283,7 @@ const meteorBlast = (ctx: FrameContext, at: { x: number; y: number }, three: Ene
 /** The comet: it hurts whoever it comes down on; living through it, he's frozen solid (anybody right by it too). */
 const cometHit = (ctx: FrameContext, at: { x: number; y: number }, hit: Enemy | null, three: Enemy[] = []) => {
   const { state, fx } = ctx;
+  struckAt(at.x - 40, at.y - 40, at.x + 40, at.y + 40, COMET.dmg);
   playSound('ice'); playSound('glass', 0.9, 4); playSound('crack', 0.8, 2); shakeScreen(state, 12, 6);
   fx.spawnExplosion(at, '#BAE6FD', 34, 0, 20); fx.spawnExplosion(at, '#FFFFFF', 18, 0, 12); fx.spawnExplosion(at, '#7DD3FC', 14, 0, 16);
   ring(at.x, at.y, 80, '186, 230, 253', 18); ring(at.x, at.y, 40, '255, 255, 255', 10);

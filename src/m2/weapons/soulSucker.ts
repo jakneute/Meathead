@@ -30,6 +30,7 @@ import { FULL_BAG_LINES, EMPTY_BAG_LINES } from '../lines/weaponLines';
 import { isRobot } from '../kinds';
 import { specialsHalf, specialsOff, realMax, halfKill } from './half';
 import { since } from '../frames';
+import { struckAt } from './strikes';
 
 type Ctx = CanvasRenderingContext2D;
 const INK = '#1A0B06';
@@ -201,6 +202,8 @@ const fire = (ctx: FrameContext) => {
   }
   suckingAt = state.frame;
   pl.shootCooldown = 0;
+  // (the cone's pull on anything in it that isn't somebody: a stage's breakables)
+  struckAt(mouth.x, mouth.y - 70, mouth.x + pl.facing * REACH, mouth.y + 70, 3);
   // (a unit every third frame of sucking: a full tank's half a minute of it (the playtest: it was every frame, ten
   // seconds, bled dry way too quickly))
   if (!cheats.infiniteAmmo && state.frame % SUCK_COST_EVERY === 0) pl.weaponAmmo.SOUL_SUCKER--;

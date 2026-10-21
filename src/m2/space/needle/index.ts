@@ -39,6 +39,8 @@ import { drawDeckView, drawAscent, prewarmSky, c01, hash } from './sky';
 import { DECOMP, VACUUM, setOutGuests, drawPuppet, drawDecompCam, drawFloat } from './death';
 import { putOnSuit, wearingHelmet, reapplySuit, SUIT_MEMO } from './suit';
 import * as L from './lines';
+import { onStrike } from '../../weapons/strikes';
+import { addSpawnerBaits } from '../../weapons/spawner';
 import { drawPoseSprite, drawPoseHead } from '../../moves/grab';
 import { drawLeg, drawArmTo, drawTorsoFromHips } from '../../../m1/game/render/player/body';
 export { takeOffSuit, wearingHelmet, putOnSuit } from './suit';
@@ -225,6 +227,36 @@ const suitScene = (state: GameState, ns: Needle) => {
 
 /** How much shooting the big window takes before it goes (a dozen or so ray gun shots). */
 const WINDOW_HP = 300;
+/** One hit this hard (a mallet, the flintlock's ball, a meteor, the stunt car's fireball) and it goes outright, the
+ *  same as a charge into it; less, it chips it. */
+const WINDOW_BREAK = 60;
+/** What a weapon's projectile does to it, where its own damage says nothing (theirs is dealt out on the hit). */
+const WINDOW_CHIP: Partial<Record<string, number>> = { STUNT_CAR: WINDOW_HP, SPELLBOOK: 80 };
+/** (the window's strip, world: its face and a little into it) */
+const WIN_X0 = D1 - 12, WIN_X1 = D1 + 20;
+/** Every weapon's hits that aren't projectiles (weapons/strikes.ts), and the spawner's litter chewing on it: what's
+ *  landed on the window since the deck last looked (it's dealt with in free(), the same as a shot). */
+let onGlass: { dmg: number; y: number }[] = [];
+/** The deck, while it's running (and the frame it last ran): the spawner's bait only while it's there. */
+let deckNow: { ns: Needle; frame: number } | null = null;
+const glassOpen = (state: GameState) => !!deckNow && state.frame - deckNow.frame < 3 && deckNow.ns.phase === 'free' && deckNow.ns.glass === 'whole';
+onStrike(s => {
+  if (!deckNow || deckNow.ns.glass !== 'whole' || s.x1 < WIN_X0 || s.x0 > WIN_X1 || s.y1 < WIN_TOP - 12 || s.y0 > GY) return;
+  onGlass.push({ dmg: s.dmg, y: Math.max(WIN_TOP, Math.min(GY - 10, (Math.max(s.y0, WIN_TOP) + Math.min(s.y1, GY)) / 2)) });
+});
+addSpawnerBaits(state => (glassOpen(state) ? [{
+  x: D1 - 16, y: GY - 130, w: 16, h: 130,
+  alive: () => glassOpen(state),
+  bite: (dmg: number) => { onGlass.push({ dmg: dmg * 4, y: GY - 40 - Math.random() * 80 }); },
+}] : []));
+/** A hit on the window (`dmg`, at height `y`): chipped, the cracks spreading from it; true, it's gone (the crack started). */
+const hitGlass = (state: GameState, ns: Needle, dmg: number, y: number) => {
+  ns.shot += dmg; ns.hitY = y; ns.crack = Math.min(0.45, (ns.shot / WINDOW_HP) * 0.45);
+  playSound('clink', 0.8, -4 + Math.random() * 6);
+  for (let k = 0; k < 6; k++) state.particles.push({ pos: { x: D1, y: ns.hitY }, vel: { x: -1 - Math.random() * 3, y: (Math.random() - 0.5) * 4 }, life: 22, color: k % 2 ? '#CFFAFE' : '#F8FAFC', size: 2, grav: 0.2, isGlass: true } as never);
+  if (ns.shot >= WINDOW_HP || dmg >= WINDOW_BREAK) { startCrack(state, ns, true); return true; }
+  return false;
+};
 const startCrack = (state: GameState, ns: Needle, shot = false) => {
   const p = state.player;
   ns.phase = 'crack'; ns.t = 0; ns.crack = shot ? ns.crack : 0; if (!shot) ns.hitY = p.pos.y + p.height * 0.35;
@@ -376,18 +408,20 @@ const free = (ctx: FrameContext, ns: Needle, controls: Controls): Controls => {
     if (up) { if (wearingHelmet(state)) { startFade(state, ns, 'orbit'); return hands(); } meatheadSays(state, pickLine(L.MH_AIRLOCK_NO), false); }
   }
   if (ns.glass === 'whole') {
-    // (shot at: each one chips it, the cracks spreading out from where they hit; enough of them and it goes, the same as a
-    // charge into it)
+    // (shot at, by anything of his: each one chips it, the cracks spreading out from where they hit; enough of them, or
+    // one big enough, and it goes, the same as a charge into it)
     for (const q of state.projectiles) {
-      if (q.owner !== 'player' || q.health <= 0 || q.vel.x <= 0) continue;
-      if (q.pos.x + q.width + q.vel.x < D1 - 2 || q.pos.x > D1 + 20 || q.pos.y + q.height < WIN_TOP - 12 || q.pos.y > GY) continue;
+      if (q.owner !== 'player' || q.health <= 0) continue;
+      if (q.pos.x + q.width + Math.max(0, q.vel.x) < D1 - 2 || q.pos.x > WIN_X1 || q.pos.y + q.height < WIN_TOP - 12 || q.pos.y > GY) continue;
       q.health = 0;
-      ns.shot += q.damage || 25; ns.hitY = q.pos.y + q.height / 2; ns.crack = Math.min(0.45, (ns.shot / WINDOW_HP) * 0.45);
-      playSound('clink', 0.8, -4 + Math.random() * 6);
-      for (let k = 0; k < 6; k++) state.particles.push({ pos: { x: D1, y: ns.hitY }, vel: { x: -1 - Math.random() * 3, y: (Math.random() - 0.5) * 4 }, life: 22, color: k % 2 ? '#CFFAFE' : '#F8FAFC', size: 2, grav: 0.2, isGlass: true } as never);
-      if (ns.shot >= WINDOW_HP) { startCrack(state, ns, true); return hands(); }
+      if (hitGlass(state, ns, Math.max(q.damage || 0, (q.custom && WINDOW_CHIP[q.custom]) || 25), q.pos.y + q.height / 2)) { onGlass = []; return hands(); }
     }
-    if (p.isCharging && p.facing === 1 && p.pos.x + p.width >= D1 - 10) { startCrack(state, ns); return hands(); }
+    // (everything else of his that's landed on it: a mallet, the flintlock's ball, a fireball, the sucker, the litter)
+    const landed = onGlass; onGlass = [];
+    for (const h of landed) if (hitGlass(state, ns, h.dmg, h.y)) return hands();
+    // (into it himself: a charge, a slide, an uppercut, a dive kick)
+    const melee = p.isCharging || p.isSliding || p.isUppercutting || !!p.isDivekicking;
+    if (melee && p.facing === 1 && p.pos.x + p.width >= D1 - 10 && p.pos.y + p.height > WIN_TOP) { startCrack(state, ns); return hands(); }
     if (!ns.warned && cx > D1 - 90) { ns.warned = true; meatheadSays(state, pickLine(L.MH_WINDOW), false); }
   }
   return controls;
@@ -419,6 +453,8 @@ export const needle: SpaceSection = {
   },
   update: (ctx, controls) => {
     const { state } = ctx, ns = st(state);
+    deckNow = { ns, frame: state.frame };
+    if (ns.phase !== 'free' || ns.glass !== 'whole') onGlass = [];
     ns.drift += 0.3;
     if (ns.doors && ++ns.doors.t > 90) ns.doors = null;
     if (ns.fadeIn > 0) ns.fadeIn--;
