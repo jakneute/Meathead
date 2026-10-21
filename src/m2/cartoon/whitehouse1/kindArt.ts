@@ -20,6 +20,7 @@ import {
 } from '../../spooky/costume';
 import { stamp } from '../../../m1/game/render/stamp';
 import { signText } from '../../signLetters';
+import { readable } from './readable';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -221,9 +222,8 @@ export const drawBlimp = (c: Ctx, e: Enemy, f: number) => {
     g.restore();
     g.strokeStyle = INK; g.lineWidth = 1.6; g.beginPath(); g.ellipse(0, -16, 30, 12, 0, 0, Math.PI * 2); g.stroke();
     px(g, -14, -26, 18, 2, '#FFFFFF'); px(g, -18, -24, 6, 1, '#FFFFFF');
-    // (MEAN MEN painted down its side: red letters, inked, a navy stripe under)
+    // (a navy stripe down its side, MEAN MEN over it: the letters put on live, after, so they're never mirrored)
     px(g, -26, -11, 50, 2, '#1D3A8A');
-    signText(g, 'MEAN MEN', 0, -13, { sx: 1, sy: 1, gap: 1, bold: true, fill: ['#F06A72', '#DC3442'], ink: INK });
     // (the gondola: windows, a lit edge, the camera under it on its gimbal)
     part(g, () => g.roundRect(-10, -5, 20, 8, 3), '#3F3F46', -10, -5, 20, 8, 1.2);
     for (const wx of [-6, -1, 4]) { px(g, wx, -3, 3, 3, '#9CC4F0'); px(g, wx, -3, 1, 1, '#FFFFFF'); }
@@ -232,6 +232,8 @@ export const drawBlimp = (c: Ctx, e: Enemy, f: number) => {
     // (the antenna)
     px(g, -2, -32, 1, 5, INK); px(g, -3, -34, 3, 2, '#DC2626');
   });
+  // (MEAN MEN painted down its side: red letters, inked; read the right way round whichever way it's flying)
+  readable(c, 0, -16.5, () => signText(c, 'MEAN MEN', 0, -13, { sx: 1, sy: 1, gap: 1, bold: true, fill: ['#F06A72', '#DC3442'], ink: INK }));
   // (the prop at the back spinning; the red light; the hatch open under it)
   const k = Math.abs(Math.sin(f * 0.8));
   part(c, () => c.ellipse(-37, -16, 2, 9 * k + 1, 0, 0, Math.PI * 2), '#52525B', -39, -26, 4, 20, 0.8);

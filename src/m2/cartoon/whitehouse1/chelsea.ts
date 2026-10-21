@@ -185,7 +185,7 @@ export const drawChelseaAt = (c: Ctx, x: number, y: number, dir: 1 | -1, pose: C
   // (legs: white knee socks with a cuff, shiny black Mary Janes with a strap)
   const legA = run ? Math.sin(ph) * 9 : pose === 'cower' ? 6 : 3, legB = run ? -Math.sin(ph) * 9 : pose === 'cower' ? -6 : -3;
   for (const [lx, back] of [[legB, true], [legA, false]] as [number, boolean][]) {
-    toonLimb(c, lx * 0.3, -20, lx, -3, 5, back ? [SOCK_R[2], SOCK_R[2], SOCK_R[3], SOCK_R[3]] : SOCK_R, 4.4);
+    toonLimb(c, lx * 0.3, -20, lx, -3, 5, back ? [SOCK_R[2], SOCK_R[2], SOCK_R[3], SOCK_R[3]] : SOCK_R, 4.4, -0.08);
     toonFlat(c, () => c.rect(lx * 0.3 + (lx - lx * 0.3) * 0.25 - 2.6, -16, 5.2, 2), back ? SOCK_R[3] : SOCK_R[2], 0.8);
     toonTop(c, () => c.roundRect(lx - 3, -5, 9, 5, [2, 3, 1, 1]), SHOE_R, -5, 0, 1.6);
     c.fillStyle = '#9CA3AF'; c.fillRect(lx - 1, -5, 4, 1); c.fillStyle = '#FFFFFF'; c.fillRect(lx + 3, -4, 1, 1);

@@ -62,7 +62,8 @@ export const muzzlePoint = (player: Player, weapon: WeaponType) => {
     const lx = sx + HOLD.x - VINE_SHOULDER.x + tip.x, ly = sy + HOLD.y - VINE_SHOULDER.y + tip.y;
     return { x: player.pos.x + player.width / 2 + player.facing * lx, y: player.pos.y + player.height + ly };
   }
-  const hold = player.isSliding ? SLIDE_HOLD : player.isDucking ? { x: HOLD.x + DUCK_SHIFT.x, y: HOLD.y + DUCK_SHIFT.y } : HOLD;
+  // (the cat (Meathead 2's cartoon White House) crouches lower, his paw lower with it: render/player/catBody.ts DUCK_PAW)
+  const hold = player.isSliding ? SLIDE_HOLD : player.isDucking ? { x: HOLD.x + DUCK_SHIFT.x + (player.catForm ? 2 : 0), y: HOLD.y + DUCK_SHIFT.y + (player.catForm ? 7 : 0) } : HOLD;
   const lx = hold.x + tip.x;
   const ly = hold.y + tip.y;
   const drop = stanceDrop(player.stance, !player.isSliding && !player.isDucking && !player.isCharging);
@@ -71,7 +72,7 @@ export const muzzlePoint = (player: Player, weapon: WeaponType) => {
 
 /** In cat form (Meathead 2's cartoon White House: render/player/catPose.ts), his mouth: where the hairball comes out
  *  (standing, ducked, sliding), in his local frame. */
-export const CAT_MOUTH = { x: 12, y: -55 }, CAT_MOUTH_DUCK = { x: 18, y: -44 }, CAT_MOUTH_SLIDE = { x: -13, y: -40 };
+export const CAT_MOUTH = { x: 12, y: -55 }, CAT_MOUTH_DUCK = { x: 25, y: -29 }, CAT_MOUTH_SLIDE = { x: -13, y: -40 };
 export const catMouthPoint = (player: Player) => {
   const m = player.isSliding ? CAT_MOUTH_SLIDE : player.isDucking ? CAT_MOUTH_DUCK : CAT_MOUTH;
   const drop = stanceDrop(player.stance, !player.isSliding && !player.isDucking && !player.isCharging);

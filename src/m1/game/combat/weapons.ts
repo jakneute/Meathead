@@ -87,7 +87,8 @@ export const fireWeapon = (ctx: FrameContext, input: WeaponInput) => {
         addProjectile({
           id: `hb-${Date.now()}-${Math.random()}`,
           pos: { x: m.x - 6, y: m.y - 6 },
-          vel: { x: facing * GUN_VELOCITY * 0.72 + player.vel.x * 0.3, y: -0.9 },
+          // (crouched, spat out low and level: under things, at the floor from up on something)
+          vel: { x: facing * GUN_VELOCITY * 0.72 + player.vel.x * 0.3, y: player.isDucking ? 0.25 : -0.9 },
           width: 12, height: 12, health: 1, maxHealth: 1,
           type: 'projectile', damage: BULLET_DAMAGE, owner: 'player', fromX: pos.x + width / 2, isHairball: true,
         });

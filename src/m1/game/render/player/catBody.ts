@@ -97,24 +97,30 @@ const paw = (c: Ctx, x: number, y: number, r: number, ang: number, back: boolean
 /** An arm, shoulder to elbow to wrist (body.ts drawArm's), the fist a white paw past the wrist. */
 export const catArm = (c: Ctx, sx: number, sy: number, ex: number, ey: number, wx: number, wy: number, back: boolean, fistR = 5) => {
   const fur = back ? FUR_SH : FUR;
-  // (the forearm: black fur, then the white sock up it)
-  const mx = ex + (wx - ex) * 0.5, my = ey + (wy - ey) * 0.5;
-  seg(c, [ex, ey], [mx, my], 4.6, 4, fur);
-  seg(c, [mx, my], [wx, wy], 4, 3.6, back ? WHITE_SH : WHITE);
+  // (the forearm: black fur most of the way, the white sock just up from the paw, like a mitten's cuff)
+  const mx = ex + (wx - ex) * 0.68, my = ey + (wy - ey) * 0.68;
+  seg(c, [ex, ey], [mx, my], 4.4, 3.9, fur);
+  seg(c, [mx, my], [wx, wy], 3.9, 3.6, back ? WHITE_SH : WHITE);
   // (a jagged edge where the sock starts)
   const fa = Math.atan2(wy - ey, wx - ex), nx = -Math.sin(fa), ny = Math.cos(fa);
   c.beginPath(); c.moveTo(mx + nx * 4.2, my + ny * 4.2);
   for (let k = -1; k <= 1; k++) { c.lineTo(mx + nx * k * 2.8 + Math.cos(fa) * 2.4, my + ny * k * 2.8 + Math.sin(fa) * 2.4); c.lineTo(mx + nx * (k * 2.8 - 1.4), my + ny * (k * 2.8 - 1.4)); }
   c.lineTo(mx - nx * 4.2, my - ny * 4.2); c.closePath(); fill(c, fur);
-  // (the upper arm: a slab of it, a bulge of a bicep, fur ticks; the shoulder's round cap of fur)
-  seg(c, [sx, sy], [ex, ey], 5.4, 4.6, fur);
-  const ua = Math.atan2(ey - sy, ex - sx), ul = Math.hypot(ex - sx, ey - sy);
-  c.beginPath(); c.ellipse(sx + (ex - sx) * 0.55 - Math.sin(ua) * 1.6, sy + (ey - sy) * 0.55 + Math.cos(ua) * 1.6, 4.8, ul * 0.42, ua - Math.PI / 2, 0, Math.PI * 2); fill(c, fur);
+  // (the upper arm: a slab of it, a bulge of a bicep on its front, fur ticks; the shoulder's round cap of fur, lit on
+  // top; the elbow's point and its tuft, a lit step down the forearm's top edge)
+  seg(c, [sx, sy], [ex, ey], 5.2, 4.4, fur);
+  const ua = Math.atan2(ey - sy, ex - sx), ul = Math.hypot(ex - sx, ey - sy), un = -Math.sin(ua), uv = Math.cos(ua);
+  const bs = Math.sign(un * 0.3 + uv) || 1;
+  c.beginPath(); c.ellipse(sx + (ex - sx) * 0.5 - un * 1.2 * bs, sy + (ey - sy) * 0.5 - uv * 1.2 * bs, 4.6, ul * 0.36, ua - Math.PI / 2, 0, Math.PI * 2); fill(c, fur);
   if (!back) ticks(c, [sx, sy], [ex, ey], 3);
-  ball(c, sx, sy, 6.2, fur);
-  if (!back) { c.beginPath(); c.ellipse(sx + 1, sy - 2, 3, 1.6, 0, 0, Math.PI * 2); fill(c, FUR_LT); }
-  // (an elbow tuft)
-  c.beginPath(); c.moveTo(ex - Math.cos(ua) * 2, ey - Math.sin(ua) * 2); c.lineTo(ex + Math.cos(ua) * 4 + nx * 2, ey + Math.sin(ua) * 4 + ny * 2); c.lineTo(ex + nx * 4, ey + ny * 4); c.closePath(); fill(c, fur);
+  ball(c, sx, sy, 5.6, fur);
+  if (!back) { c.beginPath(); c.ellipse(sx + 0.6, sy - 2.2, 2.8, 1.4, 0, 0, Math.PI * 2); fill(c, FUR_LT); }
+  ball(c, ex, ey, 4.6, fur);
+  if (!back) { c.strokeStyle = col(FUR_LT); c.lineWidth = 1; c.beginPath(); c.moveTo(ex - nx * 3.4, ey - ny * 3.4); c.lineTo(mx - nx * 3, my - ny * 3); c.stroke(); }
+  // (the elbow's tuft, out the back of the bend)
+  const bend = Math.sign((ex - sx) * (wy - ey) - (ey - sy) * (wx - ex)) || 1, ox = (Math.cos(ua) - Math.cos(fa)), oy = (Math.sin(ua) - Math.sin(fa)), ol = Math.hypot(ox, oy) || 1;
+  const tx = ex + (ox / ol) * 6.5, ty = ey + (oy / ol) * 6.5;
+  c.beginPath(); c.moveTo(ex - nx * 3 * bend, ey - ny * 3 * bend); c.lineTo(tx, ty); c.lineTo(ex + Math.cos(fa) * 3, ey + Math.sin(fa) * 3); c.closePath(); fill(c, fur);
   // (the paw)
   const reach = fistR - 0.5;
   paw(c, wx + Math.cos(fa) * reach, wy + Math.sin(fa) * reach, fistR, fa, back, claws.hands);
@@ -306,6 +312,12 @@ const elbowOf = (s: Pt, f: Pt, out: boolean): Pt => {
   const ang = base + (out ? -off : off);
   return [s[0] + Math.cos(ang) * a, s[1] + Math.sin(ang) * a];
 };
+/** The elbow that sits naturally: of the two bends, the one lower down and further forward (an arm hangs and reaches
+ *  with its elbow down and back, an arm thrown up with it out in front), never a chicken wing. */
+const elbowNat = (s: Pt, f: Pt): Pt => {
+  const a = elbowOf(s, f, true), b = elbowOf(s, f, false), score = (e: Pt) => e[1] + e[0] * 0.45;
+  return score(a) > score(b) ? a : b;
+};
 const reachTo = (s: Pt, f: Pt, m = 22.5): Pt => { const dx = f[0] - s[0], dy = f[1] - s[1], d = Math.hypot(dx, dy); return d <= m ? f : [s[0] + (dx / d) * m, s[1] + (dy / d) * m]; };
 /** The knee for a leg from hip h to foot f (thigh 14, shin 13), bent forward or back. */
 const kneeOf = (h: Pt, f: Pt, fwd: boolean): Pt => {
@@ -330,18 +342,18 @@ export interface CatFig {
 export const drawCatFig = (c: Ctx, q: CatFig, frame: number) => {
   const cs = Math.cos(q.lean), sn = Math.sin(q.lean);
   const T = (x: number, y: number): Pt => [q.hip[0] + x * cs - y * sn, q.hip[1] + x * sn + y * cs];
-  const sF = T(-8, -22), sN = T(11, -22);
-  const hF = T(-4, 0), hN = T(4, 0);
+  const sF = T(-6, -21), sN = T(9, -21);
+  const hF = T(-4, 1), hN = T(5, 1);
   catLeg(c, hF, kneeOf(hF, q.tF, q.kneeFwd ?? true), q.tF, q.toeF ?? 0, true);
   const fF = reachTo(sF, q.fF);
-  catArmTo(c, sF, elbowOf(sF, fF, false), fF, true);
+  catArmTo(c, sF, elbowNat(sF, fF), fF, true);
   catLeg(c, hN, kneeOf(hN, q.tN, q.kneeFwd ?? true), q.tN, q.toeN ?? 0, false);
   c.save(); c.translate(q.hip[0], q.hip[1]); c.rotate(q.lean);
   catTorso(c, frame);
   c.save(); c.translate(3 + (q.headDx ?? 0), -37 + (q.headDy ?? 0)); c.rotate(q.headRot ?? 0); catHead(c, 0, 0, q.mood, frame); c.restore();
   c.restore();
   const fN = reachTo(sN, q.fN);
-  catArmTo(c, sN, elbowOf(sN, fN, !q.nearDown), fN, false, 5.5);
+  catArmTo(c, sN, q.nearDown ? elbowOf(sN, fN, false) : elbowNat(sN, fN), fN, false, 5.5);
   if (q.hold) q.hold(c, fN[0] - 1, fN[1] - 4);
 };
 
@@ -356,7 +368,7 @@ export interface CatPlayerOpts {
 }
 
 /** Where his paw holds his weapon (muzzle.ts's HOLD, the weapon's grip, less the paw's offset), standing and ducked. */
-const HOLD_PAW: Pt = [19, -36], DUCK_PAW: Pt = [21, -20], SLIDE_PAW: Pt = [2, -34];
+const HOLD_PAW: Pt = [19, -36], DUCK_PAW: Pt = [23, -13], SLIDE_PAW: Pt = [2, -34];
 
 /** Meathead the cat, in whatever he's doing (drawPlayer's, inside his sprite: feet at the origin, facing +x). */
 export const drawCatPlayer = (c: Ctx, p: Player, state: GameState, o: CatPlayerOpts) => {
@@ -392,14 +404,15 @@ export const drawCatPlayer = (c: Ctx, p: Player, state: GameState, o: CatPlayerO
     setCatClaws(false, true); setCatFace({ ears: 'flat', mouth: 'yowl' }); setCatTail(-0.4, 1);
     q = { hip: [-2, -30], lean: 0.95, tN: [20, -4], tF: [12, -10], toeN: 0.5, toeF: 0.4, fF: [-22, -50], fN: [-12, -58], mood: 'roar', headRot: -0.6, kneeFwd: true };
   } else if (p.isDucking) {
-    // Crouched low like he's about to pounce: haunches down, ears back, the far paw down by his foot, the tail low
+    // Down low like a cat about to pounce: haunches right down on his heels, chest low over his knees, chin jutted
+    // forward, ears back, the far forepaw planted on the floor in front, the tail low and twitching
     setCatFace({ ears: 'back' }); setCatTail(Math.sin(f * 0.12) * 0.9, 0);
-    q = { hip: [0, -14], lean: 0.22, tN: [10, 0], tF: [-9, 0], fF: [-3, -6], fN: hold ? DUCK_PAW : [17, -22], mood: o.angry ? 'scowl' : 'grit', hold: hold ?? undefined, nearDown: !!hold, headRot: -0.12 };
+    q = { hip: [-3, -9], lean: 0.62, tN: [12, 0], tF: [-8, 0], toeF: 0.1, fF: [20, -2], fN: hold ? DUCK_PAW : [24, -14], mood: o.angry ? 'scowl' : 'grit', hold: hold ?? undefined, nearDown: !!hold, headRot: -0.5, headDy: 3 };
   } else if (air) {
     // In the air: going up, tucked, the far paw up; coming down, legs reaching, the far paw out for balance, tail up
     const fall = Math.max(0, Math.min(1, (p.vel.y + 6) / 12));
     setCatTail(0.2, 0.6 + fall * 0.4);
-    q = { hip: [0, -24], lean: -0.08 + fall * 0.15, tN: [7 - fall * 1, -10 + fall * 8], tF: [-5 - fall * 3, -12 + fall * 8], fF: [-14 - fall * 6, -60 + fall * 14], fN: hold ? HOLD_PAW : [14, -40], mood: 'grit', hold: hold ?? undefined, nearDown: !!hold };
+    q = { hip: [0, -24], lean: -0.08 + fall * 0.15, tN: [7 - fall * 1, -10 + fall * 8], tF: [-5 - fall * 3, -12 + fall * 8], fF: [-14 - fall * 6, -58 + fall * 16], fN: hold ? HOLD_PAW : [17, -44 + fall * 10], mood: 'grit', hold: hold ?? undefined, nearDown: !!hold };
   } else if (walking) {
     // The walk: a heavy swagger, the far paw swinging, the tail bobbing opposite
     const back = Math.sign(p.vel.x) === -p.facing;
@@ -407,11 +420,13 @@ export const drawCatPlayer = (c: Ctx, p: Player, state: GameState, o: CatPlayerO
     const bob = 2 * (1 - Math.abs(Math.cos(ph - 0.3)));
     const lean = 0.06 * Math.min(1, Math.abs(p.vel.x) / PLAYER_MOVE_SPEED) * (back ? -1 : 1);
     setCatTail(-s * 0.8, 0.5);
-    q = { hip: [0, -24 + bob], lean, tN: [3 + s * 8, -lift(0)], tF: [-2 - s * 8, -lift(Math.PI)], fF: [-10 - s * 6, -27 + Math.abs(s) * 2], fN: hold ? [HOLD_PAW[0] + s * 2, HOLD_PAW[1] + bob] : [15 + s * 2, -38 + bob], mood: o.angry ? 'scowl' : 'grit', hold: hold ?? undefined, nearDown: !!hold };
+    // (the paws swinging opposite the feet, fists loose at the hips, the near one ahead as the far foot steps)
+    q = { hip: [0, -24 + bob], lean, tN: [3 + s * 8, -lift(0)], tF: [-2 - s * 8, -lift(Math.PI)], fF: [-5 + s * 9, -26 + Math.abs(s) * 2 + bob], fN: hold ? [HOLD_PAW[0] + s * 2, HOLD_PAW[1] + bob] : [9 - s * 9, -26 + Math.abs(s) * 3 + bob], mood: o.angry ? 'scowl' : 'grit', hold: hold ?? undefined, nearDown: !!hold };
   } else {
-    // Stood about: breathing, the tail swishing, an ear flicking now and then; a paw up ready, or his weapon out
+    // Stood about: breathing, the tail swishing, an ear flicking now and then; his paws hanging balled up at his sides
+    // the way he stands (the slab arms bowed out off the barrel of him), or his weapon out
     const br = Math.sin(f * 0.08) * 0.8;
-    q = { hip: [0, -24 + br * 0.5], lean: 0.02, tN: [5, 0], tF: [-4, 0], fF: [-12, -26 + br], fN: hold ? HOLD_PAW : [15, -38 + br], mood: o.angry ? 'scowl' : 'grit', hold: hold ?? undefined, nearDown: !!hold };
+    q = { hip: [0, -24 + br * 0.5], lean: 0.02, tN: [7, 0], tF: [-5, 0], fF: [-9, -25 + br], fN: hold ? HOLD_PAW : [15, -27 + br], mood: o.angry ? 'scowl' : 'grit', hold: hold ?? undefined, nearDown: !!hold };
   }
   if (hacked) { setCatFace({ ...face, mouth: 'hack' }); q.headDx = (q.headDx ?? 0) + 2; q.headRot = (q.headRot ?? 0) - 0.1; }
   drawCatFig(c, q, f);

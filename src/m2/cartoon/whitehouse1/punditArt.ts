@@ -66,11 +66,46 @@ const partTop = (c: Ctx, path: () => void, r: Rp, y0: number, y1: number, lw = 2
 };
 const flat = (c: Ctx, path: () => void, fill: string, w = 1.6) => { c.beginPath(); path(); c.fillStyle = fill; c.fill(); if (w > 0) { c.lineJoin = 'round'; c.strokeStyle = INK; c.lineWidth = w; c.stroke(); } };
 const px = (c: Ctx, x: number, y: number, w: number, h: number, col: string) => { c.fillStyle = col; c.fillRect(x, y, w, h); };
-/** A limb: a tapered tube, in its ramp, inked. */
-const limb = (c: Ctx, ax: number, ay: number, bx: number, by: number, w: number, r: Rp, wb = w * 0.85) => {
-  const dx = bx - ax, dy = by - ay, d = Math.hypot(dx, dy) || 1, nx = -dy / d, ny = dx / d, ra = w / 2, rb = wb / 2;
-  const path = () => { c.moveTo(ax + nx * ra, ay + ny * ra); c.lineTo(bx + nx * rb, by + ny * rb); c.arc(bx, by, rb, Math.atan2(ny, nx), Math.atan2(-ny, -nx)); c.lineTo(ax - nx * ra, ay - ny * ra); c.arc(ax, ay, ra, Math.atan2(-ny, -nx), Math.atan2(ny, nx)); };
-  part(c, path, r, Math.min(ax, bx) - ra, Math.max(ax, bx) + ra, 2);
+/** One straight tube's outline, a (radius ra) to b (rb), its end caps round the OUTSIDE of each end (the old path's
+ *  caps curled back inside the tube: limbs drew as bow ties). */
+const tube = (c: Ctx, ax: number, ay: number, ra: number, bx: number, by: number, rb: number) => {
+  const dx = bx - ax, dy = by - ay, d = Math.hypot(dx, dy) || 1, nx = -dy / d, ny = dx / d, an = Math.atan2(ny, nx);
+  c.moveTo(ax + nx * ra, ay + ny * ra); c.lineTo(bx + nx * rb, by + ny * rb);
+  c.arc(bx, by, rb, an, an + Math.PI, true);
+  c.lineTo(ax - nx * ra, ay - ny * ra);
+  c.arc(ax, ay, ra, an + Math.PI, an, true);
+  c.closePath();
+};
+/** A limb (the joints pass): shoulder or hip a to hand or foot b, bent at an elbow or knee partway (`bend`, a share of
+ *  its length: + bends it down and back, as an arm's elbow; - forward, as a knee; 0 straight), inked as one piece (the
+ *  ink laid round the whole bent limb first, the two tubes filled over it in its ramp), the joint's round knob, a crease
+ *  in the crook of it and a lit step on its point; a round cap at a (the shoulder's, the hip's). */
+const limb = (c: Ctx, ax: number, ay: number, bx: number, by: number, w: number, r: Rp, wb = w * 0.85, bend = 0.13) => {
+  const dx = bx - ax, dy = by - ay, d = Math.hypot(dx, dy) || 1, ux = dx / d, uy = dy / d, ra = w / 2, rb = wb / 2, rm = (ra + rb) / 2;
+  // (which way the joint juts: of the two sides, the one down and back for +, flipped for -)
+  let nx = -uy, ny = ux;
+  if (ny - nx * 0.5 < 0) { nx = -nx; ny = -ny; }
+  if (bend < 0) { nx = -nx; ny = -ny; }
+  const off = Math.abs(bend) * d, ex = ax + dx * 0.5 + nx * off, ey = ay + dy * 0.5 + ny * off;
+  // (the ink: one fat line round the whole limb, so the two halves read as one arm or leg)
+  c.lineCap = 'round'; c.lineJoin = 'round'; c.strokeStyle = INK;
+  c.lineWidth = rm * 2 + 2; c.beginPath(); c.moveTo(ax, ay); c.lineTo(ex, ey); c.lineTo(bx, by); c.stroke();
+  c.lineWidth = ra * 2 + 2.2; c.beginPath(); c.moveTo(ax, ay); c.lineTo(ax + (ex - ax) * 0.3, ay + (ey - ay) * 0.3); c.stroke();
+  c.lineCap = 'butt';
+  // (the fill: both tubes and the knob, banded in the ramp the way every part is)
+  const path = () => { tube(c, ax, ay, ra, ex, ey, rm); tube(c, ex, ey, rm, bx, by, rb); c.moveTo(ex + rm + 0.4, ey); c.arc(ex, ey, rm + 0.4, 0, Math.PI * 2); };
+  const x0 = Math.min(ax, bx, ex) - ra, x1 = Math.max(ax, bx, ex) + ra, bw = x1 - x0;
+  c.beginPath(); path(); c.fillStyle = r[1]; c.fill();
+  c.save(); c.clip();
+  const band = (a: number, b: number, col: string | CanvasPattern) => { c.fillStyle = col; c.fillRect(x0 + a * bw, -BIG, (b - a) * bw + 1, BIG * 2); };
+  band(-0.1, 0.2, r[0]); band(0.2, 0.27, dith(c, r[0])); band(0.6, 0.67, dith(c, r[2])); band(0.67, 1.1, r[2]); band(0.84, 0.9, dith(c, r[3])); band(0.9, 1.1, r[3]);
+  c.restore();
+  if (off > 0.5) {
+    // (the crease in the crook, the lit step on the point)
+    const ix = ex - nx * rm * 0.95, iy = ey - ny * rm * 0.95;
+    c.strokeStyle = INK; c.lineWidth = 1.1; c.beginPath(); c.moveTo(ix - ux * 2.2, iy - uy * 2.2); c.quadraticCurveTo(ex - nx * rm * 0.3, ey - ny * rm * 0.3, ix + ux * 2.2, iy + uy * 2.2); c.stroke();
+    px(c, ex + nx * (rm - 1.6) - 0.5, ey + ny * (rm - 1.6) - 0.5, 1.5, 1.5, r[0]);
+  }
 };
 const hand = (c: Ctx, x: number, y: number, r = 3.8, skin: Rp = SKIN) => {
   part(c, () => c.arc(x, y, r, 0, Math.PI * 2), skin, x - r, x + r, 1.8);
@@ -178,7 +213,7 @@ const paintPerot = (c: Ctx, q: Pundit, s: SimView, f: number, reel: number) => {
   // (legs: skinny gray trouser legs, creased, shiny black shoes)
   const air = pose === 'air' || pose === 'glide';
   const lA = air ? [-6, -8] : pose === 'tell' ? [-7, 0] : [-4, 0], lB = air ? [8, -12] : pose === 'tell' ? [8, 0] : [5, 0];
-  for (const [lx, ly] of [lA, lB]) { limb(c, lx * 0.4, -30, lx, ly - 4, 6.5, GRAY, 5.5); shoe(c, lx, ly); }
+  for (const [lx, ly] of [lA, lB]) { limb(c, lx * 0.4, -30, lx, ly - 4, 6.5, GRAY, 5.5, -0.1); shoe(c, lx, ly); }
   // (the far arm: the pointer stick; up with the pie chart in the tell)
   const far: [number, number] = pose === 'tell' ? [-6, -84] : pose === 'glide' ? [-20, -54 + Math.sin(f * 0.9) * 6] : pose === 'throw' ? [-16, -52] : [-14, -36];
   limb(c, -6, -56, far[0], far[1], 6, [GRAY[1], GRAY[2], GRAY[3], mix(GRAY[3], INK, 0.3)]); hand(c, far[0], far[1]);
@@ -241,7 +276,7 @@ const paintFalwell = (c: Ctx, q: Pundit, s: SimView, f: number, reel: number) =>
   const pose = poseOf(q, s, reel);
   // (legs: stout navy trouser legs, black shoes)
   const lA = pose === 'air' ? [-7, -10] : [-7, 0], lB = pose === 'air' ? [9, -14] : [8, 0];
-  for (const [lx, ly] of [lA, lB]) { limb(c, lx * 0.5, -32, lx, ly - 4, 10, NAVY_S, 8.5); shoe(c, lx, ly, 14); }
+  for (const [lx, ly] of [lA, lB]) { limb(c, lx * 0.5, -32, lx, ly - 4, 10, NAVY_S, 8.5, -0.1); shoe(c, lx, ly, 14); }
   // (the far arm: the pulpit under it; set down in front in the tell)
   const far: [number, number] = pose === 'tell' ? [16, -40] : pose === 'air' ? [-24, -70] : [-16, -44];
   if (pose !== 'tell' && pose !== 'air' && pose !== 'reel') pulpit(c, -20, -24, -0.25);

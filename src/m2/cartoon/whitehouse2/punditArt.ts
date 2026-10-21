@@ -28,6 +28,7 @@ import { star } from '../whitehouse1/poof';
 import { drawPuffBit as drawPuffBit1, toonPart as part, toonTop as partTop, toonFlat as flat, toonLimb as limb, toonRamp as rp, type Rp } from '../whitehouse1/punditArt';
 import { dith } from '../amphi/paint';
 import { signText } from '../../signLetters';
+import { readable } from '../whitehouse1/readable';
 
 export interface SimView { x: number; y: number; vx: number; vy: number; air: boolean; facing: 1 | -1; kind: PunditThrow['kind'] | null }
 
@@ -89,7 +90,8 @@ export const goldMic = (c: Ctx, x: number, y: number, a: number) => {
   px(c, -4, -10, 2, 3, '#FFFFFF');
   // (the EIB flag on it)
   part(c, () => c.rect(-7, 5, 14, 7), ['#5A84D8', '#1D4ED8', '#163CA8', '#0E2A78'], -7, 7, 1.2);
-  signText(c, 'EIB', 0, 11, { sx: 1, sy: 1, fill: ['#FDE047', '#F59E0B'] });
+  // (never mirrored, never upside down: turned with him, spun in the air)
+  readable(c, 0, 8.5, () => signText(c, 'EIB', 0, 11, { sx: 1, sy: 1, fill: ['#FDE047', '#F59E0B'] }));
   c.restore();
 };
 export const pineapple = (c: Ctx, x: number, y: number, a: number, s = 1) => {
@@ -110,30 +112,60 @@ export const campaignButton = (c: Ctx, x: number, y: number, squash: number) => 
   c.fillStyle = '#163CA8'; c.fillRect(2, -8, 7, 8);
   c.fillStyle = '#C81E2E'; c.fillRect(-8, 1, 16, 2); c.fillRect(-7, 5, 14, 2);
   for (const sx of [-5, 0, 5]) { c.fillStyle = '#FFFFFF'; c.fillRect(sx - 0.5, -6.5, 1.5, 1.5); }
-  signText(c, 'DOLE', 0, -1, { sx: 1, sy: 1, fill: ['#FFFFFF'] });
+  readable(c, 0, -4.5, () => signText(c, 'DOLE', 0, -1, { sx: 1, sy: 1, fill: ['#FFFFFF'] }));
   px(c, -7, -6, 2, 1, 'rgba(255,255,255,0.8)');
   c.restore();
 };
 export const contract = (c: Ctx, x: number, y: number, a: number, open = 0) => {
   c.save(); c.translate(x, y); c.rotate(a);
   if (open > 0) {
-    // (unrolled: CONTRACT WITH AMERICA, its lines, the seal)
-    partTop(c, () => c.rect(-13, -17 * open, 26, 34 * open), PAPER, -17 * open, 17 * open, 1.8);
-    if (open > 0.6) { signText(c, 'CONTRACT', 0, -11 * open, { sx: 1, sy: 1, fill: ['#991B1B'] }); }
-    c.fillStyle = '#92400E'; for (let k = 1; k < 6; k++) c.fillRect(-9, -13 * open + k * 4.5 * open, 18 - (k % 2) * 5, 1);
-    part(c, () => c.arc(6, 12 * open, 3.6, 0, Math.PI * 2), RED, 2.4, 9.6, 1.2);
+    // (unrolled between its two rolls: CONTRACT / WITH / AMERICA set to fit the sheet (never mirrored), its lines, the
+    // seal and its ribbon tails; the sheet as wide as the words want)
+    const h = 23 * open;
+    partTop(c, () => c.rect(-26, -h, 52, h * 2), PAPER, -h, h, 1.8);
+    c.fillStyle = PAPER[2]; c.fillRect(-25, -h + 1, 1, h * 2 - 2); c.fillRect(24, -h + 1, 1, h * 2 - 2);
+    if (open > 0.6) readable(c, 0, -2, () => {
+      signText(c, 'CONTRACT', 0, -h + 11, { sx: 1, sy: 1, fill: ['#B91C1C', '#7F1D1D'] });
+      signText(c, 'WITH', 0, -h + 20, { sx: 1, sy: 1, fill: ['#1E3A8A'] });
+      signText(c, 'AMERICA', 0, -h + 29, { sx: 1, sy: 1, fill: ['#B91C1C', '#7F1D1D'] });
+    });
+    c.fillStyle = '#92400E'; for (let k = 0; k < 3; k++) c.fillRect(-20, -h + 33 + k * 3.4, 40 - (k % 2) * 12, 1);
+    for (const d of [-1, 1]) flat(c, () => { c.moveTo(14, h - 6); c.lineTo(14 + d * 3, h + 3); c.lineTo(14 + d * 1, h + 1); c.closePath(); }, RED[1], 1);
+    part(c, () => c.arc(14, h - 7, 4, 0, Math.PI * 2), RED, 10, 18, 1.2);
+    px(c, 13, h - 9, 2, 1, RED[0]);
+    // (the rolls top and bottom)
+    for (const ry of [-h, h]) { partTop(c, () => c.roundRect(-29, ry - 3.5, 58, 7, 3.5), PAPER, ry - 3.5, ry + 3.5, 1.6); for (const sx of [-29, 29]) { c.fillStyle = PAPER[2]; c.beginPath(); c.ellipse(sx, ry, 2, 3.5, 0, 0, Math.PI * 2); c.fill(); c.strokeStyle = INK; c.lineWidth = 1; c.stroke(); } }
+    c.restore();
+    return;
   }
   partTop(c, () => c.roundRect(-14, -4.5, 28, 9, 4.5), PAPER, -4.5, 4.5, 1.8);
   for (const sx of [-14, 14]) { c.fillStyle = PAPER[2]; c.beginPath(); c.ellipse(sx, 0, 2.5, 4, 0, 0, Math.PI * 2); c.fill(); c.strokeStyle = INK; c.lineWidth = 1; c.stroke(); }
   part(c, () => c.rect(-2.5, -5.5, 5, 11), RED, -2.5, 2.5, 1);
   c.restore();
 };
-export const gavel = (c: Ctx, x: number, y: number, a: number) => {
+/** The Speaker's gavel by its grip (x, y): the handle up from his fist along `a` (0 straight up, + tipped forward), the
+ *  head across its top; `mid` pivots it about its middle instead (spinning through the air). Draw his hand after it
+ *  (his fingers round the handle). */
+export const gavel = (c: Ctx, x: number, y: number, a: number, mid = false) => {
   c.save(); c.translate(x, y); c.rotate(a);
-  limb(c, 0, 0, 0, 18, 3.6, WOOD, 3);
-  part(c, () => c.roundRect(-10, -6.5, 20, 10, 2.5), WOOD, -10, 10, 1.8);
-  for (const sx of [-8, 6]) { px(c, sx, -6.5, 2, 10, '#E2B33C'); px(c, sx, -6.5, 1, 10, '#FFF0A8'); }
-  px(c, -6, -5, 10, 1, '#C27A3E');
+  if (mid) c.translate(0, 11);
+  // (the turned handle: a knob at the butt, a collar under the head)
+  limb(c, 0, 0, 0, -20, 4.2, WOOD, 3.2, 0);
+  part(c, () => c.arc(0, 1.5, 2.8, 0, Math.PI * 2), WOOD, -2.8, 2.8, 1.4);
+  px(c, -1.5, -15, 3, 1.4, '#E2B33C');
+  // (the head across the top: a mallet of oak, gold bands near both faces, a lit top)
+  part(c, () => c.roundRect(-10, -27, 20, 9, 2.5), WOOD, -10, 10, 1.8);
+  for (const sx of [-7.5, 5.5]) { px(c, sx, -27, 2, 9, '#E2B33C'); px(c, sx, -27, 1, 9, '#FFF0A8'); }
+  px(c, -6, -26, 11, 1, '#C27A3E');
+  c.restore();
+};
+/** His fist round the gavel's handle (drawn over it): the knuckles across it, a thumb wrapped over. */
+const fistOn = (c: Ctx, x: number, y: number, a: number, skin: Rp) => {
+  hand(c, x, y, 4.4, skin);
+  c.save(); c.translate(x, y); c.rotate(a);
+  c.strokeStyle = skin[3]; c.lineWidth = 0.9;
+  for (const k of [-2, 0, 2]) { c.beginPath(); c.moveTo(1.2, k - 0.6); c.lineTo(3.6, k - 0.2); c.stroke(); }
+  flat(c, () => c.ellipse(-1.6, -2.6, 2.2, 1.5, -0.4, 0, Math.PI * 2), skin[1], 1.1);
   c.restore();
 };
 
@@ -170,12 +202,14 @@ const headphones = (c: Ctx, cx: number, cy: number) => {
   for (const sx of [-15, 9]) part(c, () => c.roundRect(cx + sx, cy - 2, 8, 10, 2.5), ['#5A5866', '#2A2830', '#1A1820', '#0C0B10'], cx + sx, cx + sx + 8, 1.4);
   c.strokeStyle = '#1A1820'; c.lineWidth = 1.4; c.beginPath(); c.moveTo(cx + 13, cy + 8); c.quadraticCurveTo(cx + 18, cy + 30, cx + 8, cy + 42); c.stroke();
 };
+/** The corner of his mouth (his head's at (2, -94)): where the cigar's clamped. */
+const MOUTH_CORNER: [number, number] = [13, -84];
 const paintLimbaugh = (c: Ctx, q: Pundit, s: SimView, f: number, reel: number) => {
   const pose = poseOf(q, s, reel), micTell = pose === 'tell' && s.kind === 'mic';
   if (pose === 'flop') {
     // (winded: sat on the floor, legs out, belly heaving, sweating, the mic dropped)
     const heave = Math.sin(f * 0.3) * 2;
-    for (const lx of [10, 24]) { limb(c, 0, -14, lx + 8, -5, 11, NAVY_L, 10); shoe(c, lx + 8, 0, 11); }
+    for (const lx of [10, 24]) { limb(c, 0, -14, lx + 8, -5, 11, NAVY_L, 10, -0.12); shoe(c, lx + 8, 0, 11); }
     partTop(c, () => c.ellipse(-2, -30 - heave * 0.3, 26 + heave, 22, 0, 0, Math.PI * 2), NAVY_L, -52, -8, 2.6);
     flat(c, () => { c.moveTo(-5, -50); c.lineTo(6, -50); c.lineTo(0.5, -36); c.closePath(); }, SHIRT[1], 1.2);
     part(c, () => { c.moveTo(-2.5, -50); c.lineTo(3.5, -50); c.lineTo(5, -26); c.lineTo(0.5, -21); c.lineTo(-4, -26); c.closePath(); }, TIE_L, -4, 5, 1.2);
@@ -186,7 +220,7 @@ const paintLimbaugh = (c: Ctx, q: Pundit, s: SimView, f: number, reel: number) =
   }
   // (legs: navy trouser legs, the break over the shoe, black shoes)
   const lA = pose === 'air' ? [-8, -10] : [-9, 0], lB = pose === 'air' ? [10, -14] : [10, 0];
-  for (const [lx, ly] of [lA, lB]) { limb(c, lx * 0.5, -32, lx, ly - 4, 11, NAVY_L, 10); shoe(c, lx, ly, 14); }
+  for (const [lx, ly] of [lA, lB]) { limb(c, lx * 0.5, -32, lx, ly - 4, 11, NAVY_L, 10, -0.1); shoe(c, lx, ly, 14); }
   // (the far arm: the cigar hand, a finger up talking)
   const far: [number, number] = pose === 'air' ? [-26, -72] : pose === 'tell' && !micTell ? [8, -84] : [-20, -46];
   limb(c, -10, -70, far[0], far[1], 10, [NAVY_L[1], NAVY_L[2], NAVY_L[3], '#080C18'], 8.5);
@@ -209,9 +243,15 @@ const paintLimbaugh = (c: Ctx, q: Pundit, s: SimView, f: number, reel: number) =
   limbaughHead(c, 2, -94, pose, f);
   // (the cigar in his teeth, smoke curling; puffed in the cigar's tell: a smoke ring)
   if (pose !== 'reel' && !micTell) {
-    cigar(c, 20, -85, 0.15);
-    for (let k = 0; k < 3; k++) { const t = ((f + k * 14) % 42) / 42, x = 31 + Math.sin(t * 6 + k) * 4, y = -88 - t * 30; c.strokeStyle = INK; c.lineWidth = 2.6; c.beginPath(); c.arc(x, y, 1.5 + t * 3, 0, Math.PI * 2); c.stroke(); c.strokeStyle = '#E5E7EB'; c.lineWidth = 1.4; c.stroke(); }
-    if (pose === 'tell') { const t = (f % 30) / 30; c.strokeStyle = INK; c.lineWidth = 4; c.beginPath(); c.ellipse(34 + t * 16, -92 - t * 10, 4 + t * 6, 3 + t * 4, 0, 0, Math.PI * 2); c.stroke(); c.strokeStyle = '#F3F4F6'; c.lineWidth = 2.4; c.stroke(); }
+    // (clamped in the corner of his mouth: the butt end in his lips, the rest drooping out and down, the lips pinched
+    // round it; the smoke off its lit tip)
+    const [mx, my] = MOUTH_CORNER, ca = 0.42;
+    cigar(c, mx + Math.cos(ca) * 9, my + Math.sin(ca) * 9, ca);
+    flat(c, () => c.ellipse(mx + 0.5, my, 3.2, 2.7, 0.3, 0, Math.PI * 2), SKIN_L[2], 1.3);
+    px(c, mx - 1, my - 1.6, 2, 1, SKIN_L[0]);
+    const tx = mx + Math.cos(ca) * 19, ty = my + Math.sin(ca) * 19;
+    for (let k = 0; k < 3; k++) { const t = ((f + k * 14) % 42) / 42, x = tx + 1 + Math.sin(t * 6 + k) * 4, y = ty - 3 - t * 30; c.strokeStyle = INK; c.lineWidth = 2.6; c.beginPath(); c.arc(x, y, 1.5 + t * 3, 0, Math.PI * 2); c.stroke(); c.strokeStyle = '#E5E7EB'; c.lineWidth = 1.4; c.stroke(); }
+    if (pose === 'tell') { const t = (f % 30) / 30; c.strokeStyle = INK; c.lineWidth = 4; c.beginPath(); c.ellipse(tx + 4 + t * 16, ty - 8 - t * 10, 4 + t * 6, 3 + t * 4, 0, 0, Math.PI * 2); c.stroke(); c.strokeStyle = '#F3F4F6'; c.lineWidth = 2.4; c.stroke(); }
   }
   // (the near arm: the golden mic; up at his mouth in the mic's tell, flung in the throw, wagged talking)
   const near: [number, number] = micTell ? [20, -92] : pose === 'throw' ? [32, -70] : pose === 'talk' ? [24, -60 + ((f >> 3) % 2) * 3] : pose === 'air' ? [26, -76] : [20, -46];
@@ -222,7 +262,7 @@ const paintLimbaugh = (c: Ctx, q: Pundit, s: SimView, f: number, reel: number) =
   if (micTell && f % 10 < 6) {
     flat(c, () => c.roundRect(-24, -136, 48, 14, 3), '#DC2626', 2);
     px(c, -22, -134, 44, 3, '#F87171');
-    signText(c, 'ON AIR', 0, -125, { sx: 1, sy: 1, bold: true, fill: ['#FFFFFF', '#FEE2E2'] });
+    readable(c, 0, -129, () => signText(c, 'ON AIR', 0, -125, { sx: 1, sy: 1, bold: true, fill: ['#FFFFFF', '#FEE2E2'] }));
   }
   if (pose === 'reel') reelStars(c, f, -128);
 };
@@ -273,7 +313,7 @@ const paintDole = (c: Ctx, q: Pundit, s: SimView, f: number, reel: number) => {
   }
   // (legs: long gray trouser legs, the crease lit, black shoes)
   const lA = pose === 'air' ? [-7, -10] : [-6, 0], lB = pose === 'air' ? [9, -16] : [7, 0];
-  for (const [lx, ly] of [lA, lB]) { limb(c, lx * 0.4, -38, lx, ly - 4, 8, GRAY_D, 7); px(c, lx * 0.7 - 0.5, -34, 1, 26 + ly * 0.5, GRAY_D[0]); shoe(c, lx, ly, 12); }
+  for (const [lx, ly] of [lA, lB]) { limb(c, lx * 0.4, -38, lx, ly - 4, 8, GRAY_D, 7, -0.1); px(c, lx * 0.7 - 0.5, -34, 1, 26 + ly * 0.5, GRAY_D[0]); shoe(c, lx, ly, 12); }
   // (the far arm: his right, always at his side, the fist closed round his pen)
   limb(c, -8, -74, -12, -50, 7, [GRAY_D[1], GRAY_D[2], GRAY_D[3], mix(GRAY_D[3], INK, 0.3)], 6);
   px(c, -15, -54, 6, 2, SHIRT[1]);
@@ -345,15 +385,16 @@ const paintNewt = (c: Ctx, q: Pundit, s: SimView, f: number, reel: number) => {
   }
   // (legs: stout navy trouser legs, black shoes)
   const lA = pose === 'air' ? [-8, -10] : [-8, 0], lB = pose === 'air' ? [10, -14] : [9, 0];
-  for (const [lx, ly] of [lA, lB]) { limb(c, lx * 0.5, -32, lx, ly - 4, 10, NAVY_N, 9); shoe(c, lx, ly, 14); }
+  for (const [lx, ly] of [lA, lB]) { limb(c, lx * 0.5, -32, lx, ly - 4, 10, NAVY_N, 9, -0.1); shoe(c, lx, ly, 14); }
   // (the far arm: the Contract under it; held up in the contract's tell)
   const conTell = pose === 'tell' && s.kind === 'contract';
-  const far: [number, number] = conTell ? [-6, -114] : pose === 'air' ? [-26, -70] : [-16, -48];
+  const far: [number, number] = conTell ? [-28, -100] : pose === 'air' ? [-26, -70] : [-16, -48];
   if (!conTell && pose !== 'air' && pose !== 'reel') contract(c, -20, -56, -0.5);
   limb(c, -9, -68, far[0], far[1], 9, [NAVY_N[1], NAVY_N[2], NAVY_N[3], '#08122E'], 8);
   px(c, far[0] - 3, far[1] - 5, 6, 2, SHIRT[1]);
+  // (held up unrolled by its bottom roll, his fist round it)
+  if (conTell) contract(c, far[0], far[1] - 24, 0, 1);
   hand(c, far[0], far[1], 4.4, SKIN_N);
-  if (conTell) contract(c, far[0], far[1] - 15, 0, 1);
   // (the body: a round navy suit in steps, the lapels, the shirt, the red tie, a flag pin, the belly's shade)
   const body = () => { c.moveTo(-16, -30); c.quadraticCurveTo(-25, -52, -15, -72); c.quadraticCurveTo(0, -78, 15, -72); c.quadraticCurveTo(26, -50, 16, -30); c.closePath(); };
   part(c, body, NAVY_N, -25, 26, 2.6);
@@ -366,13 +407,16 @@ const paintNewt = (c: Ctx, q: Pundit, s: SimView, f: number, reel: number) => {
   for (const by of [-48, -40]) flat(c, () => c.arc(1, by, 1.3, 0, Math.PI * 2), '#0E1E4A', 0.6);
   newtHead(c, 2, -94, pose, f);
   // (the near arm: the gavel; banged on his palm in the gavel's tell, flung in the throw, wagged talking)
-  const bang = pose === 'tell' && !conTell ? ((f >> 3) % 2) * 10 : 0;
-  const near: [number, number] = pose === 'tell' && !conTell ? [20, -96 + bang] : pose === 'throw' ? [32, -70] : pose === 'talk' ? [22, -98 + ((f >> 3) % 2) * 6] : pose === 'air' ? [26, -78] : [18, -46];
+  // (gripped by the handle's end, the head up: raised back over his shoulder and brought down forward in the tell
+  // ("ORDER!"), shaken talking, carried by his side tipped forward)
+  const gTell = pose === 'tell' && !conTell, down = gTell && (f >> 3) % 2 === 1;
+  const near: [number, number] = gTell ? (down ? [24, -84] : [18, -100]) : pose === 'throw' ? [32, -70] : pose === 'talk' ? [22, -92 + ((f >> 3) % 2) * 4] : pose === 'air' ? [26, -78] : [18, -46];
+  const ga = gTell ? (down ? 1.45 : -0.75) : pose === 'talk' ? 0.35 + ((f >> 3) % 2) * 0.25 : pose === 'air' ? 0.9 : 0.55;
   limb(c, 9, -68, near[0], near[1], 9, NAVY_N, 8);
   px(c, near[0] - 3, near[1] - 5, 6, 2, SHIRT[1]);
-  hand(c, near[0], near[1], 4.4, SKIN_N);
-  if (pose !== 'throw' || s.kind !== 'gavel') gavel(c, near[0] + 2, near[1] - 2, pose === 'tell' ? -1.8 : -0.4);
-  if (bang) for (let k = 0; k < 3; k++) { c.strokeStyle = INK; c.lineWidth = 1.5; c.beginPath(); c.moveTo(30 + k * 4, -90 - k * 5); c.lineTo(36 + k * 5, -94 - k * 6); c.stroke(); }
+  const held = pose !== 'throw' || s.kind !== 'gavel';
+  if (held) { gavel(c, near[0], near[1], ga); fistOn(c, near[0], near[1], ga, SKIN_N); } else hand(c, near[0], near[1], 4.4, SKIN_N);
+  if (down) for (let k = 0; k < 3; k++) { const hx = near[0] + 24, hy = near[1] + 4; c.strokeStyle = INK; c.lineWidth = 1.5; c.beginPath(); c.moveTo(hx + 4, hy - 8 + k * 7); c.lineTo(hx + 10, hy - 10 + k * 9); c.stroke(); }
   if (pose === 'reel') reelStars(c, f, -132);
 };
 
@@ -410,7 +454,7 @@ export const drawPunditThrow2 = (c: Ctx, t: PunditThrow) => {
     }
     case 'button': campaignButton(c, t.x, t.y, 0.3 + Math.abs(Math.sin(t.spin)) * 0.7); break;
     case 'contract': contract(c, t.x, t.y, t.spin); break;
-    case 'gavel': gavel(c, t.x, t.y, t.spin); break;
+    case 'gavel': gavel(c, t.x, t.y, t.spin, true); break;
   }
 };
 
@@ -439,7 +483,7 @@ export const drawPuffBit2 = (c: Ctx, b: PuffBit) => {
     case 'button': campaignButton(c, 0, 0, 1); break;
     case 'newthead': { part(c, () => c.ellipse(0, 2, 18, 19, 0, 0, Math.PI * 2), SKIN_N, -18, 18, 2.4); holes(SKIN_N); flat(c, () => c.roundRect(-4, 9, 10, 4, 2), '#5A0E14', 1.4); break; }
     case 'wig': partTop(c, () => { c.moveTo(-20, 6); c.quadraticCurveTo(-26, -22, 0, -24); c.quadraticCurveTo(26, -22, 20, 6); c.quadraticCurveTo(12, -8, 0, -8); c.quadraticCurveTo(-12, -8, -20, 6); c.closePath(); }, HAIR_N, -24, 6, 2.4); c.strokeStyle = HAIR_N[3]; c.lineWidth = 1.2; for (let k = 0; k < 4; k++) { c.beginPath(); c.arc(-11 + k * 7.5, -14, 4, Math.PI * 1.05, Math.PI * 1.95); c.stroke(); } break;
-    case 'gavel': gavel(c, 0, -6, 0); break;
+    case 'gavel': gavel(c, 0, 0, 0, true); break;
     case 'contract': contract(c, 0, 0, 0, 1); break;
     default: c.restore(); drawPuffBit1(c, b); return;
   }
