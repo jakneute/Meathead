@@ -4,7 +4,8 @@
 //   guards nuts. you kick him there, he keels over, and you have free access to the stage"). Up to the guard at the
 //   stage steps: he puts a hand up ("SHOW'S IN PROGRESS. NO GUESTS ON STAGE."); a beat; Meathead's boot, the other lands'
 //   door kick (the kick pose), right in the nuts (a punch, a bell); THE CLOSE-UP: the guard's face as it lands (the eyes
-//   pop, cross and water, the face goes gray, the mouth from a little O to every tooth); back out: he keels over, onto
+//   pop, cross and water, the face goes gray, the mouth from a little O to every tooth, Ren & Stimpy gross), then the
+//   camera pans down him to the boot dug into his nuts, grinding, his hands clutched round it; back out: he keels over, onto
 //   his knees and over on his side, curled up round it, his line; Meathead's. The rope's unhooked; the way's open.
 //
 //   STUPID DAD'S INTRO. Up the steps onto the stage: the show stops dead (the tape winds down, the laugh track's cut,
@@ -26,7 +27,7 @@ import { silenceAll, pickLine } from '../../../m1/game/platform/speech';
 import { SKIP_AFTER, offerSkip, takeSkip, drawSkipPrompt } from '../../../m1/game/platform/skip';
 import { KICK_POSE_FRAMES, CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { signText } from '../../signLetters';
-import { meatheadSays, byPants, saidOver, box } from '../section';
+import { meatheadSays, byPants, pantsOf, saidOver, box } from '../section';
 import { INK } from '../kit';
 import { checker } from '../../../m1/game/render/pixelArt';
 import type { Amphi, Speaker } from './state';
@@ -61,7 +62,10 @@ const said = (s: Amphi, who: Speaker, text: string, then: () => void) => stageSa
 // THE BOSS DOOR: the guard's nuts
 
 /** The kick's beats (frames into the boot): the boot comes up, it lands. */
-const BOOT_UP = 4, BOOT_HIT = 12, BOOT_DONE = 34, CLOSE_T = 96, KEEL_T = 84;
+const BOOT_UP = 4, BOOT_HIT = 12, BOOT_DONE = 34, KEEL_T = 84;
+/** The close-up's beats (the user's: "do a ren and stimpy closeup of his head with a pan down of the foot digging into
+ *  his nuts"): on his face, the pan down him, on the boot grinding in. */
+const FACE_T = 90, PAN_T = 46, GRIND_T = 64, CLOSE_T = FACE_T + PAN_T + GRIND_T;
 
 export const startKick = (state: GameState, s: Amphi) => {
   s.kick = { step: 'walk', t: 0, skipT: 0, waiting: false, camX: state.camera.x };
@@ -128,6 +132,9 @@ export const updateKick = (ctx: FrameContext, s: Amphi): Controls => {
       break;
     case 'close':
       if (k.t === 40) playSound('sadBolt', 0.6, 3);
+      if (k.t === FACE_T) playSound('whoosh', 0.5, -10);
+      // (the boot grinding in: the squeak of rubber on cargo pants)
+      if (k.t > FACE_T + PAN_T && (k.t - FACE_T - PAN_T) % 9 === 0) playSound('scratch', 0.5, -6 + ((k.t >> 3) % 2) * 4);
       if (k.t >= CLOSE_T) { k.step = 'keel'; k.t = 0; }
       break;
     case 'keel':
@@ -289,9 +296,11 @@ export const drawKickHud = (c: Ctx, state: GameState, s: Amphi) => {
   if (!k) return;
   if (k.step === 'close') {
     // (the close-up: a cartoon impact burst behind his face, DING)
-    const t = Math.min(1, k.t / CLOSE_T), f = state.frame;
+    const t = Math.min(1, k.t / FACE_T), f = state.frame;
+    const pan = Math.max(0, Math.min(1, (k.t - FACE_T) / PAN_T)), grind = Math.max(0, Math.min(1, (k.t - FACE_T - PAN_T) / 10));
+    const pants = pantsOf(state);
     burst(c, f);
-    drawGuardCloseup(c, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 30, 3.4 + Math.min(1, k.t / 10) * 0.4, f, t);
+    drawGuardCloseup(c, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 + 30, 3.4 + Math.min(1, k.t / 10) * 0.4, f, t, pan, grind, pants === 'nude' ? 'bare' : pants === 'shitty' ? 'shat' : 'jeans');
     if (k.t < 30) signText(c, 'DING!', CANVAS_WIDTH / 2 + 220, 150, { sx: 4, sy: 4, bold: true, slant: 1, fill: ['#FFFFFF', '#FDE047'], ink: INK, shadow: '#7A1E5A', drop: 3 });
   }
   bars(c, Math.min(1, k.skipT / 20));
