@@ -192,6 +192,45 @@ export const stageRoofs = () => {
   return out;
 };
 export const STAGES = { SW, SH, SG } as const;
+
+/** The lot's road across from the soundstages (a tile, painted once for the hour, slid with the stages): the curb
+ *  along the stages' feet (its fire-lane red, lit along its top), the asphalt in bands darker nearer (dithered where
+ *  they meet), the tram lane's dashes, a crosswalk, manholes, oil stains, tar-sealed cracks, tire marks. */
+const RW = 1200, RH = 150;
+const paintRoad = (g: Ctx, tod: TimeOfDay, scorched: boolean) => {
+  const T = farCol(tod, 0.05), A = ['#625C62', '#58525A', '#4E4850', '#454048', '#3C383E'].map(T);
+  const bandH = [10, 18, 28, 40, 54];
+  for (let i = 0, y = 8; i < A.length; y += bandH[i], i++) { box(g, 0, y, RW, (bandH[i] ?? 60) + 60, A[i]); if (i) checker(g, 0, y - 2, RW, 2, A[i], 0, 2); }
+  // (the curb: concrete, lit along its top; its fire-lane red face)
+  box(g, 0, 0, RW, 4, T('#A8A29A')); box(g, 0, 0, RW, 1, T('#D8D2C8')); box(g, 0, 4, RW, 4, T('#9A2A20')); box(g, 0, 7, RW, 1, T('#5A1810'));
+  for (let x = 0; x < RW; x += 48) box(g, x, 0, 1, 8, T('#6A645E'));
+  // (the asphalt's grain: a fine stipple, lighter flecks, darker pits)
+  for (let i = 0; i < 900; i++) { const x = hash(i * 1.37) * RW, y = 10 + hash(i * 2.71) * (RH - 12); box(g, x, y, 1 + (i % 3 === 0 ? 1 : 0), 1, i % 2 ? T('#787278') : T('#2E2A30')); }
+  // (the tram lane's dashes, squashed going back: wider nearer)
+  for (let x = 20; x < RW; x += 90) { box(g, x, 30, 34, 2, T('#C8A43A')); box(g, x + 4, 68, 46, 3, T('#D8B440')); }
+  // (a crosswalk, white bars foreshortened)
+  for (let k = 0; k < 7; k++) { const y0 = 12 + k * k * 2.6, hh = 2 + k; box(g, 520, y0, 120 + k * 6, hh, T('#C8C4BC')); box(g, 520, y0 + hh - 1, 120 + k * 6, 1, T('#8A867E')); }
+  // (manholes and drain grates, squashed ellipses)
+  for (const [mx, my, r] of [[230, 46, 12], [880, 84, 16], [1110, 36, 10]] as const) {
+    g.fillStyle = T('#26222A'); g.beginPath(); g.ellipse(mx, my, r + 2, (r + 2) * 0.32, 0, 0, Math.PI * 2); g.fill();
+    g.fillStyle = T('#5A545C'); g.beginPath(); g.ellipse(mx, my, r, r * 0.3, 0, 0, Math.PI * 2); g.fill();
+    for (let k = -2; k <= 2; k++) box(g, mx + k * r * 0.35 - 1, my - 1, 2, 1, T('#2E2A30'));
+    box(g, mx - r * 0.5, my - r * 0.25, r * 0.6, 1, T('#7A747C'));
+  }
+  // (oil stains: dark blots in steps; tire marks curving; tar seams over the cracks)
+  for (let k = 0; k < 7; k++) { const ox = 60 + hash(k * 9.3) * (RW - 120), oy = 40 + hash(k * 4.1) * 90; g.fillStyle = T('#34303A'); g.beginPath(); g.ellipse(ox, oy, 18 + k % 3 * 6, 4 + (oy - 40) * 0.04, 0, 0, Math.PI * 2); g.fill(); g.fillStyle = T('#2A262E'); g.beginPath(); g.ellipse(ox + 2, oy, 8, 2, 0, 0, Math.PI * 2); g.fill(); }
+  for (let k = 0; k < 3; k++) { const x0 = 100 + k * 380; for (let s = 0; s < 140; s += 2) { const yy = 50 + k * 18 + Math.sin(s * 0.03 + k) * 10; box(g, x0 + s, yy, 2, 1, T('#3A363E')); box(g, x0 + s + 8, yy + 6, 2, 1, T('#3A363E')); } }
+  for (let k = 0; k < 6; k++) { let x = 40 + hash(k * 3.9) * (RW - 80), y = 14 + hash(k * 5.1) * 60; for (let s = 0; s < 30; s++) { box(g, x, y, 2, 1, T('#24202A')); x += 2; y += (hash(k * 11 + s) - 0.45) * 3; } }
+  // (scorched: soot blown across it, the odd burning bit of debris left dark)
+  if (scorched) for (let k = 0; k < 10; k++) { const sx = hash(k * 7.7) * RW, sy = 20 + hash(k * 2.3) * 100; g.fillStyle = 'rgba(20, 12, 10, 0.35)'; g.beginPath(); g.ellipse(sx, sy, 40, 6, 0, 0, Math.PI * 2); g.fill(); box(g, sx - 6, sy - 2, 10, 3, T('#2A1E1A')); }
+};
+/** The lot's road under the soundstages' feet, then the rest of the far ground banded down as before. */
+export const roadUnder = (c: Ctx, tod: TimeOfDay, off: number, y: number, scorched = false) => {
+  if (y >= H) return;
+  tile(c, `hl-road-${tod.key}-${scorched ? 1 : 0}`, off, Math.round(y), RH, RW, g => paintRoad(g, tod, scorched));
+  const T2 = farCol(tod, 0.05), y2 = Math.round(y) + RH;
+  if (y2 < H) bandedGradient(c, 0, y2, W, H - y2, [T2('#3C383E'), T2('#34303A')], 2);
+};
 export { paintStages, smoke };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -240,7 +279,7 @@ export const drawLotFar = (c: Ctx, state: GameState) => {
   tile(c, `hb-palms-${tod.key}`, cam * K.palms + 900, groundAt(K.palms) - (FAR.PH - FAR.PG) + drop(K.palms), FAR.PH, FAR.PW, g => paintPalms(g, tod));
   under(groundAt(K.palms) + FAR.PG + drop(K.palms), 0.12, '#6E6668');
   tile(c, `hl-stages-${tod.key}`, cam * K.stages + 300, groundAt(K.stages) - (SH - SG) + drop(K.stages), SH, SW, g => paintStages(g, tod));
-  under(groundAt(K.stages) + SG + drop(K.stages), 0.05, '#58525A');
+  roadUnder(c, tod, cam * K.stages + 300, groundAt(K.stages) + SG + drop(K.stages));
   if (real) {
     // (the weather: the whole far off reddened, in bands, heavier up top)
     hazeBands(c, 0, 0, W, Math.round(groundAt(K.stages)), '#7F1D1D', 0.3, 0.1, 6);

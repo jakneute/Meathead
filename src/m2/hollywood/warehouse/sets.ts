@@ -14,7 +14,7 @@ import {
   appleBox, flightCase, revLogo, revLook, standSign, TAPE, back,
 } from './paint';
 import {
-  box, checker, mix, hash, poly, at, atDepth, still, bandedGradient, lit, ramp6, board, plain, deco, words, STEVE, BRASS,
+  box, checker, mix, hash, poly, at, atDepth, still, bandedGradient, pixelBlob, lit, ramp6, board, plain, deco, words, STEVE, BRASS,
   signText, type Look,
 } from '../blvd/kit';
 import { steveCard } from '../blvd/props';
@@ -39,11 +39,22 @@ const cyc = (c: Ctx, v: View, a: number, b: number, h = CYC_H, seed = 0) => {
     box(c, a - 1, top - 1, b - a + 2, h + 1, INK);
     bandedGradient(c, a, top, b - a, h - 46, [C[2], C[3], C[4], C[4], C[3], C[3]], 8);
     bandedGradient(c, a, GY - 46, b - a, 46, [C[3], C[2], C[1]], 4);
+    // (the hot spot where the key light lands: a stepped pool, brighter in its middle)
+    { const hx = a + (b - a) * (0.3 + hash(seed + 3) * 0.4), hy = top + h * 0.42, rw = Math.min(220, (b - a) / 2 - 10);
+      if (rw > 40) { pixelBlob(c, hx, hy, rw, 150, mix(C[4], C[3], 0.35)); pixelBlob(c, hx, hy, rw * 0.6, 90, C[4]); pixelBlob(c, hx - rw * 0.1, hy - 10, rw * 0.3, 44, mix(C[4], C[5], 0.4)); } }
     // (its hem along the top: a darker band, the grommets and their ties)
     box(c, a, top, b - a, 5, C[1]);
     for (let x = a + 8; x < b; x += 20) { box(c, x, top + 1, 3, 3, C[6]); box(c, x + 1, top - 12, 1, 13, INK); }
     // (the panel seams: a darker line, dithered along it)
     for (let x = a + 140; x < b - 10; x += 140) { box(c, x, top + 5, 1, h - 5, C[2]); checker(c, x + 1, top + 5, 2, h - 50, C[2], 0, 1); }
+    // (the muslin sags between its ties: a shallow scallop of shade under the hem; and hangs in long folds, each a lit
+    // ridge beside a shaded trough, fading out before the sweep)
+    for (let x = a + 8; x < b - 20; x += 20) { box(c, x + 5, top + 5, 10, 2, C[2]); box(c, x + 8, top + 7, 4, 1, C[2]); }
+    for (let x = a + 22; x < b - 16; x += 38) {
+      const k = hash(x * 0.21 + seed), fl = Math.round(120 + k * (h - 220)), fx = x + Math.round((k - 0.5) * 14);
+      box(c, fx, top + 6, 1, fl, C[5]); box(c, fx + 1, top + 6, 2, fl, C[2]);
+      box(c, fx, top + 6 + fl, 1, 18, C[4]); box(c, fx + 1, top + 6 + fl, 1, 12, C[3]);
+    }
     // (the edges, wrapped round their frames, in shade)
     box(c, a, top, 4, h, C[1]); box(c, b - 6, top, 6, h, C[1]); checker(c, b - 10, top, 4, h, C[1], 0, 1);
     // (the tracking markers: tape crosses, seeded, never in the sweep)

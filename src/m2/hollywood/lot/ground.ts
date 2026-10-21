@@ -237,6 +237,17 @@ const paintStreet = (g: Ctx, x0: number, w: number, z: Zone) => {
     for (let i = 0; i < w * 0.7; i++) { const lx = x0 + hash(s + i * 0.613) * w, ly = GY + 10 + hash(s + i * 1.37) * (BAND - 12), sc = 1 + (ly - GY) / 100; box(g, lx, ly, sc * (i % 4 === 0 ? 3 : 1), Math.max(1, sc), i % 3 ? D[2] : D[5]); }
     for (let i = 0; i < w / 18; i++) { const hx = x0 + i * 18 + hash(s + i) * 6, hy = GY + 120 + Math.sin(hx * 0.01) * 30, sc = 1 + (hy - GY) / 120; box(g, hx, hy, 5 * sc, 4 * sc, D[1]); box(g, hx + 1, hy, 3 * sc, 1, D[0]); }
     for (let i = 0; i < w / 700; i++) { const px = x0 + 100 + hash(s + i * 9.1) * (w - 200), py = GY + 150 + hash(s + i * 2.7) * 60; for (const [dx, dy, r] of [[0, 0, 5], [7, 1, 4], [3, -4, 4]] as const) { g.fillStyle = INK; g.beginPath(); g.arc(px + dx, py + dy, r + 1, 0, Math.PI * 2); g.fill(); g.fillStyle = '#5A3A1A'; g.beginPath(); g.arc(px + dx, py + dy, r, 0, Math.PI * 2); g.fill(); box(g, px + dx - 2, py + dy - 3, 2, 1, '#8A6A3A'); } }
+    // (pebbles, inked, lit on top, bigger nearer; dry grass in tufts along the boardwalk's foot and here and there; a
+    // wheel's ruts cut deeper where the stagecoach turned, a dropped horseshoe)
+    for (let i = 0; i < w / 14; i++) {
+      const px = x0 + hash(s + i * 3.37) * w, py = GY + 14 + hash(s + i * 5.11) * (BAND - 20), r = 1 + (py - GY) / 70 + hash(i + s) * 1.5;
+      box(g, px - r - 1, py - r * 0.6, r * 2 + 2, r * 1.3 + 1, D[0]); box(g, px - r, py - r * 0.6, r * 2, r * 1.2, D[3]); box(g, px - r, py - r * 0.6, r * 1.2, Math.max(1, r * 0.4), D[5]);
+    }
+    for (let i = 0; i < w / 40; i++) {
+      const tx = x0 + hash(s + i * 7.9) * w, ty = i % 3 ? GY + 12 + hash(s + i) * 6 : GY + 30 + hash(s + i * 2.2) * 150, n = 4 + (i % 3);
+      for (let k = 0; k < n; k++) { const lx = tx + k * 2 - n, hh = 3 + ((k * 5 + i) % 4) * 2 + (ty - GY) / 50; box(g, lx, ty - hh, 1, hh, k % 2 ? hour('#A89048', 0.1) : hour('#C8B060', 0.1)); }
+    }
+    for (let cx = Math.floor(x0 / 1100) * 1100 + 640; cx < x0 + w; cx += 1100) { const hy = GY + 130; g.strokeStyle = INK; g.lineWidth = 4; g.beginPath(); g.ellipse(cx, hy, 8, 4, 0, Math.PI * 0.2, Math.PI * 0.8, true); g.stroke(); g.strokeStyle = '#8A8A92'; g.lineWidth = 2; g.stroke(); box(g, cx - 4, hy - 7, 2, 1, '#D8D8E0'); }
     box(g, x0, GY, w, 8, D[3]); checker(g, x0, GY + 6, w, 2, D[2], 0, 1);
   } else if (z === 'burb') {
     asphalt();

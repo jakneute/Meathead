@@ -152,6 +152,18 @@ const burnHole = (g: Ctx, f: HFront) => {
   box(g, x0 + w * 0.4, y0, 4, 30, dimmed(PLY[2]));
 };
 
+/** Stucco over a slab: light in bands down it (a step lit up top, a step shaded toward the foot, dithered between),
+ *  scored courses with a lit edge under each, its grain, rain streaks run down from the top, a fresher skim patch. */
+const stuccoBands = (g: Ctx, w: number, h: number, R: string[], seed: number) => {
+  const up = mix(R[3], R[4], 0.25), low = mix(R[3], R[2], 0.55), b1 = -h + Math.round(h * 0.3), b2 = -h + Math.round(h * 0.7);
+  box(g, 5, -h + 2, w - 10, b1 + h - 2, up); checker(g, 5, b1, w - 10, 2, up, 0, 2);
+  box(g, 5, b2 + 2, w - 10, -b2 - 8, low); checker(g, 5, b2, w - 10, 2, low, 0, 2);
+  for (let y = -h + 30, r = 0; y < -12; y += 32, r++) { box(g, 5, y, w - 10, 1, R[2]); box(g, 5, y + 1, w - 10, 1, R[4]); for (let x = r % 2 ? 40 : 76; x < w - 8; x += 72) { box(g, x, y - 31, 1, 31, R[2]); box(g, x + 1, y - 31, 1, 31, R[4]); } }
+  for (let i = 0; i < (w * h) / 180; i++) box(g, 4 + hash(seed + i * 1.3) * (w - 8), -h + 2 + hash(seed + i * 2.9) * (h - 4), 1 + (i % 2), 1, i % 3 ? R[2] : R[4]);
+  for (let k = 0; k < 3; k++) { const sx = 24 + hash(seed * 1.9 + k) * (w - 48), len = 24 + hash(seed + k * 4.7) * 50; for (let y = 0; y < len; y += 2) box(g, sx + ((y >> 1) % 2), -h + 4 + y, 1, 1, y < len * 0.6 ? R[1] : R[2]); }
+  if (w > 160) { const px = 30 + hash(seed * 3.1) * (w - 120), py = -h + 40 + hash(seed * 5.3) * (h * 0.3); box(g, px, py, 46, 20, mix(R[3], R[4], 0.45)); box(g, px, py, 46, 1, R[4]); box(g, px, py + 19, 46, 1, R[2]); checker(g, px, py + 1, 46, 18, R[3], 0, 3); }
+};
+
 // ---------------------------------------------------------------------------------------------------------------
 // The fronts, painted flat (their foot at (0, 0), x across 0..w)
 
@@ -199,7 +211,7 @@ const paintFront = (g: Ctx, f: HFront) => {
     nameY = 0;
   } else if (f.style === 'deco' || f.style === 'theater') {
     slab(g, 0, -h, w, h, R);
-    for (let i = 0; i < (w * h) / 260; i++) box(g, hash(f.rx + i * 1.3) * w, -h + hash(f.rx + i * 2.9) * h, 2, 1, i % 3 ? R[2] : R[4]);
+    stuccoBands(g, w, h, R, f.rx);
     for (const px of [0, w - 18]) { box(g, px, -h, 18, h, R[4]); for (let k = 2; k < 18; k += 4) box(g, px + k, -h, 1, h, R[2]); box(g, px + 16, -h, 2, h, R[1]); }
     for (let x = 18; x < w - 18; x += 12) poly(g, [[x, -h + 30], [x + 6, -h + 24], [x + 12, -h + 30], [x + 12, -h + 34], [x + 6, -h + 28], [x, -h + 34]], T[3]);
     box(g, 18, -h + 34, w - 36, 2, T[1]);
@@ -274,7 +286,7 @@ const paintFront = (g: Ctx, f: HFront) => {
   } else {
     // (stucco: the diner, the drive-in, the store, the motel)
     slab(g, 0, -h, w, h, R);
-    for (let i = 0; i < (w * h) / 260; i++) box(g, hash(f.rx + i * 1.3) * w, -h + hash(f.rx + i * 2.9) * h, 2, 1, i % 3 ? R[2] : R[4]);
+    stuccoBands(g, w, h, R, f.rx);
     if (f.style === 'diner') {
       // (a band of windows, the chrome stripe, a googie pylon off one end with a starburst)
       box(g, 0, -h + 40, w, 6, dimmed('#D8DCE2')); box(g, 0, -h + 40, w, 2, dimmed('#FFFFFF')); box(g, 0, -h + 46, w, 2, dimmed('#7A7E86'));

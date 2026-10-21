@@ -14,7 +14,7 @@ import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { drawTodSky, type TimeOfDay } from '../../timeOfDay';
 import { mist } from '../../adventure/farArt';
 import { FAR, tile, farCol, paintMountains, paintFoothills, drawHill, paintCity, paintLot, paintPalms, HILL, hillY } from '../blvd/far';
-import { paintStages, smoke, stageRoofs, STAGES } from '../lot/far';
+import { paintStages, smoke, stageRoofs, STAGES, roadUnder } from '../lot/far';
 import { HWX, GY } from '../geometry';
 import { type Ctx, INK, box, checker, mix, hash, hazeBands as hazeBandsOf, bandedGradient as bandedOf, pixelBlob, steppedGlow, timeOfDay, skyAt } from '../blvd/kit';
 import { FIRE } from '../disaster/paint';
@@ -266,7 +266,7 @@ export const drawHavocFar = (c: Ctx, state: GameState) => {
   const sTop = groundAt(K.stages) - (SH - SG) + drop(K.stages), sOff = cam * K.stages + 300;
   tile(c, `hh-stages-${tod.key}-${done ? 1 : 0}`, sOff, sTop, SH, SW, g => paintBurnt(g, tod, done));
   stageFires(c, sOff, sTop, f, done);
-  under(groundAt(K.stages) + SG + drop(K.stages), 0.05, '#58525A');
+  roadUnder(c, tod, sOff, groundAt(K.stages) + SG + drop(K.stages), true);
   mist(c, W, Math.round(groundAt(K.stages) + drop(K.stages) - 40), 40, skyAt(0.9, tod), 0, 0.1, 3);
   // (the whole far off reddened, in bands, heavier up top; spent, grayed)
   hazeBandsOf(c, 0, 0, W, Math.round(groundAt(K.stages) + drop(K.stages)), done ? '#3A3634' : '#7F1D1D', done ? 0.22 : 0.3, 0.1, 6);

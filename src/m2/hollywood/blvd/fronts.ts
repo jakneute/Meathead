@@ -205,8 +205,16 @@ export const paintFront = (g: Ctx, f: Front) => {
     // (a ghost ad, faded, painted up the wall)
     signText(g, 'HAIR TONIC 10¢', w / 2, -h + 98, plain(1, 2, mix(R[3], '#F2E8D8', 0.35)));
   } else slab(g, 0, -h, w, h, R);
-  // (stucco's grain)
-  if (f.style !== 'brick') for (let i = 0; i < (w * h) / 260; i++) box(g, hash(f.rx + i * 1.3) * w, -h + hash(f.rx + i * 2.9) * h, 2, 1, i % 3 ? R[2] : R[4]);
+  // (stucco: light in bands down it (a step lit up top, a step shaded toward the foot, dithered between), its grain,
+  // a darker water-stain run under the cap here and there, a patch skimmed over in a fresher tone)
+  if (f.style !== 'brick') {
+    const up = mix(R[3], R[4], 0.25), low = mix(R[3], R[2], 0.55), b1 = -h + Math.round(h * 0.3), b2 = -h + Math.round(h * 0.7);
+    box(g, 5, -h + 2, w - 10, b1 + h - 2, up); checker(g, 5, b1, w - 10, 2, up, 0, 2);
+    box(g, 5, b2 + 2, w - 10, -b2 - 8, low); checker(g, 5, b2, w - 10, 2, low, 0, 2);
+    for (let i = 0; i < (w * h) / 180; i++) box(g, 4 + hash(f.rx + i * 1.3) * (w - 8), -h + 2 + hash(f.rx + i * 2.9) * (h - 4), 1 + (i % 2), 1, i % 3 ? R[2] : R[4]);
+    for (let k = 0; k < 3; k++) { const sx = 24 + hash(f.rx * 1.9 + k) * (w - 48), len = 24 + hash(f.rx + k * 4.7) * 50; for (let y = 0; y < len; y += 2) box(g, sx + ((y >> 1) % 2), -h + 4 + y, 1, 1, y < len * 0.6 ? R[1] : R[2]); }
+    if (w > 160) { const px = 30 + hash(f.rx * 3.1) * (w - 120), py = -h + 40 + hash(f.rx * 5.3) * (h * 0.3); box(g, px, py, 46, 20, mix(R[3], R[4], 0.45)); box(g, px, py, 46, 1, R[4]); box(g, px, py + 19, 46, 1, R[2]); checker(g, px, py + 1, 46, 18, R[3], 0, 3); }
+  }
   plywood(g, w, h, R);
   // The style's dressing
   if (f.style === 'deco') {

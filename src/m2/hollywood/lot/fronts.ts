@@ -350,7 +350,20 @@ const paintRide = (g: Ctx) => {
   const { a, w, h } = RIDE, C = rampH('#6A625E', true), O = rampH('#C2410C', true);
   box(g, a - 2, -h - 2, w + 4, h + 2, INK);
   slab(g, a, -h, w, h, C);
-  for (let y = -h + 30; y < 0; y += 40) box(g, a, y, w, 1, C[1]);
+  // (poured concrete: light in bands down it, dithered between; each form panel a touch its own tone, its board marks
+  // across it, the tie holes in rows, lit under each lift line; rust and water run down from the ties)
+  { const up = mix(C[3], C[4], 0.22), low = mix(C[3], C[2], 0.55), b1 = -h + Math.round(h * 0.3), b2 = -h + Math.round(h * 0.68);
+    box(g, a + 5, -h + 2, w - 10, b1 + h - 2, up); checker(g, a + 5, b1, w - 10, 2, up, 0, 2);
+    box(g, a + 5, b2 + 2, w - 10, -b2 - 8, low); checker(g, a + 5, b2, w - 10, 2, low, 0, 2);
+    for (let y = -h + 30, r = 0; y < 0; y += 40, r++) for (let x = a + 60 - 80, k = 0; x < a + w; x += 80, k++) {
+      const t = hash(k * 3.1 + r * 7.7);
+      if (t > 0.6) checker(g, Math.max(a + 5, x + 1), y + 1, 78, 38, t > 0.8 ? C[4] : C[2], (k + r) % 2, 3);
+      for (let by = y + 8; by < y + 38; by += 8) box(g, Math.max(a + 5, x + 4), by, 70, 1, mix(C[3], C[2], 0.5));
+      for (const tx of [x + 16, x + 62]) if (tx > a + 6 && tx < a + w - 8) { box(g, tx, y + 18, 3, 3, C[0]); box(g, tx, y + 21, 3, 1, C[4]); if (hash(tx + y) > 0.7) for (let d = 0; d < 14; d += 2) box(g, tx + 1, y + 22 + d, 1, 2, dimmed('#7A4A2A')); }
+    }
+    for (let i = 0; i < (w * h) / 200; i++) box(g, a + 4 + hash(i * 1.71) * (w - 8), -h + 2 + hash(i * 2.39) * (h - 4), 1 + (i % 2), 1, i % 3 ? C[2] : C[4]);
+  }
+  for (let y = -h + 30; y < 0; y += 40) { box(g, a, y, w, 1, C[1]); box(g, a, y + 1, w, 1, C[4]); }
   for (let x = a + 60; x < a + w; x += 80) box(g, x, -h, 1, h, C[2]);
   // (the cracks, painted on: zigzags, lit along one side)
   for (let k = 0; k < 6; k++) { let x = a + 40 + k * 86, y = -h + 10; g.strokeStyle = INK; g.lineWidth = 2; g.beginPath(); g.moveTo(x, y); for (let s = 0; s < 6; s++) { x += (hash(k * 7 + s) - 0.5) * 30; y += 16 + hash(k + s * 3) * 14; g.lineTo(x, y); } g.stroke(); }

@@ -590,6 +590,22 @@ const hillNear = (c: Ctx, v: View, hv: Hv, f: number, done: boolean, hl: typeof 
       const col = [ROCK[4], ROCK[3], ROCK[2], ROCK[3], ROCK[2], ROCK[1]][k % 6];
       poly(c, [[xa, ya + s], [xb, yb + s], [xb, yb + s + 26 + k * 6], [xa, ya + s + 26 + k * 6]], mix(col, '#000000', Math.min(0.6, s / 1400)));
       if (k % 2 === 1) { c.strokeStyle = SNOW[3]; c.lineWidth = 2; c.beginPath(); c.moveTo(xa, ya + s); c.lineTo(xb, yb + s); c.stroke(); }
+      else if (s > 0) { const dk = Math.min(0.6, s / 1400); c.strokeStyle = mix(ROCK[5], '#000000', dk); c.lineWidth = 1; c.beginPath(); c.moveTo(xa, ya + s + 1); c.lineTo(xb, yb + s + 1); c.stroke(); c.strokeStyle = mix(ROCK[0], '#000000', dk); c.beginPath(); c.moveTo(xa, ya + s - 1); c.lineTo(xb, yb + s - 1); c.stroke(); }
+    }
+    // (in the face: fissures running down through the strata, and boulders bedded in it, each lit on top, a lick of
+    // snow on the bigger ones; fewer and darker the deeper)
+    const along = (x: number) => ya + ((yb - ya) * (x - xa)) / Math.max(1, xb - xa);
+    for (let x = Math.ceil(Math.max(xa, v.v0 - 40) / 46) * 46; x < Math.min(xb, v.v1 + 40); x += 46) {
+      const t = hash(x * 0.071), top = along(x);
+      if (t > 0.55) { c.strokeStyle = ROCK[0]; c.lineWidth = 1; c.beginPath(); c.moveTo(x, top + 20); let fx = x, fy = top + 20; for (let s = 0; s < 6; s++) { fx += (hash(x + s) - 0.5) * 10; fy += 14 + hash(x * 2 + s) * 10; c.lineTo(fx, fy); } c.stroke(); }
+      if (t < 0.5) {
+        const r = 6 + Math.round(hash(x * 1.3) * 10), by = top + 36 + hash(x * 2.9) * 180, dk = Math.min(0.55, (by - top) / 500);
+        const pts: [number, number][] = [[x - r, by + 2], [x - r * 0.7, by - r * 0.6], [x, by - r * 0.8], [x + r * 0.8, by - r * 0.4], [x + r, by + 2], [x + r * 0.4, by + r * 0.6], [x - r * 0.5, by + r * 0.6]];
+        poly(c, pts.map(([px, py]) => [px + 1, py + 1] as [number, number]), ROCK[0]);
+        poly(c, pts, mix(ROCK[3], '#000000', dk));
+        poly(c, [[x - r * 0.7, by - r * 0.6], [x, by - r * 0.8], [x + r * 0.8, by - r * 0.4], [x + r * 0.2, by - r * 0.2]], mix(ROCK[5], '#000000', dk));
+        if (r > 11 && by - top < 120) box(c, x - r * 0.4, by - r * 0.8, r * 0.9, 2, SNOW[4]);
+      }
     }
     // (the snowpack in cross-section over the edge, icicles off it: snowzone.ts; the lit lip over it, frost twinkling
     // just over that)

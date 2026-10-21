@@ -618,12 +618,33 @@ export const drawOutsideFar = (c: Ctx, v: View, f: number) => {
     still(c, 'burnfront', fx, GY, -90, -262, 180, 264, g => {
       const B = ramp6('#5A4030').map(cc => mix(cc, '#140806', 0.3));
       box(g, -82, -260, 164, 260, INK);
-      for (let k = -80; k < 80; k += 12) { box(g, k, -258, 12, 258, B[2 + (Math.abs(k / 12) % 2)]); box(g, k + 9, -258, 3, 258, B[1]); }
-      box(g, -82, -260, 164, 12, B[0]);
+      for (let k = -80; k < 80; k += 12) {
+        // (each board in steps: lit down its left, its grain, a knot; charred darker the higher up; the batten over the
+        // seam, lit along its edge, nail heads)
+        box(g, k, -258, 12, 258, B[2 + (Math.abs(k / 12) % 2)]); box(g, k, -258, 2, 258, B[4]); box(g, k + 9, -258, 3, 258, B[1]);
+        for (let j = 0; j < 9; j++) box(g, k + 3 + (j % 3) * 2, -250 + hash(k * 1.3 + j) * 240, 1, 6 + hash(j + k) * 14, B[1]);
+        if (hash(k * 2.7) > 0.5) { const ky = -230 + hash(k) * 200; box(g, k + 4, ky, 4, 3, B[0]); box(g, k + 5, ky - 1, 2, 1, B[3]); }
+        box(g, k + 9, -258, 4, 258, B[3]); box(g, k + 9, -258, 1, 258, B[4]); box(g, k + 12, -258, 1, 258, B[0]);
+        for (let y = -246; y < -6; y += 40) box(g, k + 10, y, 2, 2, '#1C0A06');
+      }
+      box(g, -82, -260, 164, 12, B[0]); box(g, -82, -248, 164, 2, B[3]);
+      // (the porch roof across the foot of it, on its posts; a step up to the door)
+      box(g, -84, -106, 168, 10, INK); box(g, -83, -105, 166, 7, B[3]); box(g, -83, -105, 166, 2, B[4]); box(g, -83, -99, 166, 1, B[1]);
+      for (const px of [-74, 66]) { box(g, px - 1, -96, 8, 96, INK); box(g, px, -96, 6, 96, B[3]); box(g, px, -96, 2, 96, B[4]); }
       board(g, 0, -214, ['HOTEL'], showLook(2, 2, '#E8C25A', '#1C0A06'), '#3A1A10', GOLD, 5);
-      for (const wx2 of [-56, 26]) { box(g, wx2, -170, 32, 40, INK); box(g, wx2 + 2, -168, 28, 36, '#2A0806'); }
-      box(g, -20, -90, 40, 90, INK); box(g, -18, -88, 36, 88, '#1C0806');
+      // (the windows: frames, sash bars, the glass gone orange with the fire inside, a torn shade)
+      for (const wx2 of [-56, 26]) {
+        box(g, wx2 - 2, -172, 36, 44, INK); box(g, wx2, -170, 32, 40, B[3]); box(g, wx2 + 2, -168, 28, 36, '#2A0806');
+        box(g, wx2 + 2, -152, 28, 20, '#7A2A0C'); checker(g, wx2 + 2, -154, 28, 2, '#7A2A0C', 0, 2); box(g, wx2 + 2, -140, 28, 8, '#C85A14');
+        box(g, wx2 + 2, -168, 28, 10, '#C8B898'); for (let s = 0; s < 28; s += 4) box(g, wx2 + 2 + s, -158, 3, 2 + (s % 8), '#C8B898');
+        box(g, wx2 + 15, -168, 2, 36, B[1]); box(g, wx2 + 2, -151, 28, 2, B[1]);
+        box(g, wx2 - 4, -128, 40, 4, INK); box(g, wx2 - 3, -127, 38, 2, B[3]);
+      }
+      box(g, -22, -92, 44, 92, INK); box(g, -20, -90, 40, 90, B[2]); box(g, -18, -88, 36, 88, '#1C0806');
+      box(g, -16, -86, 14, 40, '#2A0E08'); box(g, 2, -86, 14, 40, '#2A0E08'); box(g, -16, -40, 32, 30, '#2A0E08'); box(g, 12, -48, 3, 3, '#C8962E');
+      box(g, -30, -6, 60, 6, INK); box(g, -29, -5, 58, 4, B[3]); box(g, -29, -5, 58, 1, B[4]);
       checker(g, -82, -260, 164, 120, 'rgba(10, 4, 2, 0.5)', 0, 2);
+      for (let r = 0; r < 4; r++) checker(g, -82, -140 + r * 4, 164, 2, 'rgba(10, 4, 2, 0.3)', r % 2, 2);
       // (the 2x4s behind it, showing past its ends)
       for (const s of [-1, 1]) { g.strokeStyle = INK; g.lineWidth = 6; g.beginPath(); g.moveTo(s * 70, -200); g.lineTo(s * 92, 0); g.stroke(); g.strokeStyle = B[3]; g.lineWidth = 4; g.stroke(); }
     });
