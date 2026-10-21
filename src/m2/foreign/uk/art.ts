@@ -15,6 +15,7 @@
 // where.
 
 import { GY } from '../geometry';
+import { bust, tintBust, drawBust, SKIN, HAIR, CLOTH, IRIS, LIPSTICK, type BustSpec } from '../../grossBust';
 import {
   type Ctx, type View, type Look, INK, box, mix, poly, checker, hash, at, atDepth, ramp6, dimmed, hour, slab, post, ball, timeOfDay, steppedGlow, pixelBlob,
   stoneBlocks, planks, stucco, facade, still, board, words, plain, onScreen, lip, topBack, sideBack, underBack, box3Back, ledge3, glassOf, skyAt, signText, rampDown, LOOKS,
@@ -506,19 +507,17 @@ const basket = (g: Ctx, x: number, y: number) => {
   for (let k = 0; k < 7; k++) { const fx = x - 9 + k * 3, fy = y - 2 - (k % 2) * 3; pixelBlob(g, fx, fy, 2.5, 2, k % 3 === 1 ? Bl[3] : Rd[3]); box(g, fx - 1, fy - 1, 1, 1, k % 3 === 1 ? Bl[5] : Rd[5]); }
   for (const tx of [x - 7, x - 2, x + 5]) for (let k = 0; k < 4; k++) box(g, tx + (k % 2), y + 6 + k * 3, 2, 2, Gr[k % 2 ? 2 : 3]);
 };
-/** The pub's sign (local: its board x, y, w, h): the gilt frame, a painted queen (head and shoulders: her gray curls,
- *  her crown, pearls, the blue gown's shoulders), the sky behind her. */
+/** A queen, as the sign-painter saw her: gray curls, pearls, a blue gown, lipstick on her teeth, every pore. */
+const QUEEN: BustSpec = { seed: 1952, skin: SKIN.pink, hair: 'curls', hairRamp: HAIR.gray, iris: IRIS.blue, sclera: 'yellow', mouth: 'grin', lips: LIPSTICK, coat: CLOTH.navy, extras: ['pearls', 'lashes', 'earring', 'mole'], jowl: 1.45, nose: 1.2 };
+/** The pub's sign (local: its board x, y, w, h): the gilt frame, a painted queen (head and shoulders, a gross-up: her
+ *  gray curls, her crown, pearls, the blue gown's shoulders), the sky behind her. */
 const queenSign = (g: Ctx, x: number, y: number, w: number, h: number) => {
-  const Gd = ramp6(hour(GILT)), Sk = ramp6(hour('#7FA8D0')), Bl = ramp6(hour('#1E3A8A')), Sn = ramp6(hour('#E8C4A0')), Hr = ramp6(hour('#C8C8CC'));
+  const Gd = ramp6(hour(GILT)), Sk = ramp6(hour('#7FA8D0'));
   box(g, x - 2, y - 2, w + 4, h + 4, INK); box(g, x - 1, y - 1, w + 2, h + 2, Gd[3]); box(g, x - 1, y - 1, w + 2, 1, Gd[5]); box(g, x - 1, y - 1, 1, h + 2, Gd[4]); box(g, x + w, y - 1, 1, h + 2, Gd[1]);
   box(g, x + 1, y + 1, w - 2, h - 2, Sk[3]); box(g, x + 1, y + 1, w - 2, (h - 2) * 0.4, Sk[4]); checker(g, x + 1, y + 1 + Math.round((h - 2) * 0.4), w - 2, 2, Sk[4], 0, 1);
   const cx = x + w / 2;
-  poly(g, [[x + 2, y + h - 1], [cx - 9, y + h - 14], [cx + 9, y + h - 14], [x + w - 2, y + h - 1]], Bl[3]); poly(g, [[x + 2, y + h - 1], [cx - 9, y + h - 14], [cx - 4, y + h - 14], [x + 8, y + h - 1]], Bl[4]);
-  for (let k = 0; k < 5; k++) box(g, cx - 5 + k * 2.5, y + h - 13 + (k === 2 ? 1 : 0), 2, 2, '#F8FAFC');
-  g.fillStyle = INK; g.beginPath(); g.ellipse(cx, y + h - 22, 8, 10, 0, 0, Math.PI * 2); g.fill();
-  for (let k = 0; k < 6; k++) { const a = Math.PI + (k / 5) * Math.PI; pixelBlob(g, cx + Math.cos(a) * 7, y + h - 24 + Math.sin(a) * 6, 2.5, 2.5, Hr[k % 2 ? 3 : 4], 1); }
-  g.fillStyle = Sn[3]; g.beginPath(); g.ellipse(cx, y + h - 21, 5.5, 7, 0, 0, Math.PI * 2); g.fill();
-  box(g, cx - 4, y + h - 26, 2, 5, Sn[4]); box(g, cx - 3, y + h - 23, 2, 1, INK); box(g, cx + 1, y + h - 23, 2, 1, INK); box(g, cx - 2, y + h - 18, 4, 1, hour('#B4485A'));
+  // (her: a gross-up in sign-painter's oils (grossBust.ts), under the hour's light; the crown on her curls)
+  drawBust(g, tintBust(bust('uk-queen', QUEEN, 'oil'), hour('#FFFFFF')), x + 1, y + 1, w - 2, h - 2, 150);
   crown(g, cx, y + h - 30, Gd, 0.5);
 };
 /** The pub's front (local: its top-left 0, 0; w x h): the brick upper storey (sash windows under their arches, the
