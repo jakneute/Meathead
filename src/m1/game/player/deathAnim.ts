@@ -152,8 +152,17 @@ const BY_SOURCE: Record<string, MeatheadDeathKind> = {
 
 /** Another game's own death (Meathead 2's): how long it plays, whether it works up in the air as it is, its sounds and
  *  bits each frame (its drawing: render/player/deathAnim's registerDeathDraw). */
-export interface OwnDeath { frames: number; airOk?: boolean; tick?: (ctx: FrameContext, d: MeatheadDeath, t: number) => void }
+export interface OwnDeath { frames: number; airOk?: boolean; tick?: (ctx: FrameContext, d: MeatheadDeath, t: number) => void;
+  /** A kill cam: a whole view of its own over the game (the HUD comes down for it: isKillCam). */
+  cam?: boolean }
 const OWN_DEATHS = new Map<string, OwnDeath>();
+/** The deaths that cut to a kill cam (a view of their own over the whole screen: the falls, space, the spikes, the
+ *  crash, the eye, the punt, and another game's own that say so). */
+const CAM_KINDS = new Set<string>(['space', 'spiked', 'crash', 'eye_fall', 'punted']);
+export const isKillCam = (state: GameState) => {
+  const d = state.meatheadDeath;
+  return !!d && state.deathTimer > 0 && (d.kind.startsWith('fall_') || CAM_KINDS.has(d.kind) || !!OWN_DEATHS.get(d.kind)?.cam);
+};
 export const registerDeathAnim = (kind: `own:${string}`, def: OwnDeath) => {
   OWN_DEATHS.set(kind, def);
   MEATHEAD_DEATH_FRAMES[kind] = def.frames;

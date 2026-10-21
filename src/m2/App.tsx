@@ -63,6 +63,7 @@ import { getUi, subscribeUi, onTravel, setUi, goTo, takeBossKill, setStartCheckp
 import TitleScreen from './title/TitleScreen';
 import { readFile, deleteFile, playOnFile, saveProgress, closeFile, activeSlot, type Slot } from './save';
 import { setFrameHook } from '../m1/game/core/update';
+import { isKillCam } from '../m1/game/player/deathAnim';
 import { disableM1Music } from '../m1/game/music';
 import { setMusicState, setMusicStage, setMusicPaused, setMusicTitle } from './music/cues';
 
@@ -75,7 +76,7 @@ const noSwitching = () => !!getUi().noSwitch || !!getUi().locked;
 // (each frame: is the game his to play? Not in a cutscene (the victory walk's one), dying or dead, mid-grab, mid-lever)
 setFrameHook(state => {
   const p = state.player;
-  setUi({ locked: !!p.inCutscene || state.deathTimer > 0 || p.health <= 0 || !!p.hidden || !!p.leverPull || !!p.freefall || portalArrivalPending() });
+  setUi({ locked: !!p.inCutscene || state.deathTimer > 0 || p.health <= 0 || !!p.hidden || !!p.leverPull || !!p.freefall || portalArrivalPending(), killCam: isKillCam(state) });
 });
 import { getCheats, subscribeCheats, availableWeapons, subscribeArsenal, setLiveState, cheatPanelOpen, setCheatPanelOpen, moveCheatCursor, activateCheat } from './cheats';
 import { attachM2Keys } from './input';
@@ -577,7 +578,7 @@ const App2: React.FC = () => {
           onBossDeath={noop}
           onIntroComplete={() => setStatus(GameStatus.PLAYING)}
         />
-        {status === GameStatus.PLAYING && ui.map === null && !ui.introCutscene && (
+        {status === GameStatus.PLAYING && ui.map === null && !ui.introCutscene && !ui.killCam && (
           ui.heliHud
             // (flying the helicopter: the PWR row's its boost, its rockets beside it; the weapon's its machine gun)
             ? <HUD health={hud.health} maxHealth={INITIAL_PLAYER_HEALTH} power={ui.heliBoost ?? 0} powerCells={1} powerExtra={ROCKETS_ON ? <HeliRockets charges={ui.heliRockets ?? 0} /> : undefined} currentWeapon="LMG" ammo={Infinity} maxAmmo={Infinity} weaponName="MACHINE GUN" skin={theme?.hud} cellWidth={M2_CELL_W} />

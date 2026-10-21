@@ -53,7 +53,7 @@ const dimOut = (c: Ctx, t: number, len: number) => { const out = clamp01((t - (l
 // The mesa: straight down the gorge
 
 registerDeathAnim(MESA, {
-  frames: MESA_FRAMES, airOk: true,
+  frames: MESA_FRAMES, airOk: true, cam: true,
   tick: (_ctx, _d, t) => {
     if (t === 8) playSound('click', 0.4, 10);
     // (the whistle, falling away)
@@ -129,7 +129,7 @@ const drawMesa = (c: Ctx, state: GameState, d: MeatheadDeath, t: number) => {
 // The black hole: through one into the next, forever
 
 registerDeathAnim(BLACKHOLE, {
-  frames: BH_FRAMES, airOk: true,
+  frames: BH_FRAMES, airOk: true, cam: true,
   tick: (_ctx, _d, t) => {
     const u = t % CYCLE;
     if (u === 1) { playSound('whoosh', 0.6, -8 - (Math.floor(t / CYCLE) % 3) * 2); playSound('poof', 0.25, -6); }

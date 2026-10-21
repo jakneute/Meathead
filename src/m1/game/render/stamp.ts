@@ -13,7 +13,8 @@ type Ctx = CanvasRenderingContext2D;
 /** The drawing state a paint leaves behind (line joins, colours, the font...), which the live art after it may count on. */
 interface Leaves { globalAlpha: number; lineCap: CanvasLineCap; lineJoin: CanvasLineJoin; miterLimit: number; lineWidth: number; fillStyle: Ctx['fillStyle']; strokeStyle: Ctx['strokeStyle']; font: string; textAlign: CanvasTextAlign; textBaseline: CanvasTextBaseline }
 const leaves = (g: Ctx): Leaves => ({ globalAlpha: g.globalAlpha, lineCap: g.lineCap, lineJoin: g.lineJoin, miterLimit: g.miterLimit, lineWidth: g.lineWidth, fillStyle: g.fillStyle, strokeStyle: g.strokeStyle, font: g.font, textAlign: g.textAlign, textBaseline: g.textBaseline });
-interface Stamp { c: HTMLCanvasElement; L: number; T: number; after: Leaves }
+/** (a, d: the exact scale it was painted at; L, T: its device box at that scale) */
+interface Stamp { c: HTMLCanvasElement; L: number; T: number; a: number; d: number; after: Leaves }
 /** Most recently used last; the oldest are let go once they add up to more than BUDGET bytes. */
 const stamps = new Map<string, Stamp>();
 // (a busy stretch of Adventure Land wants ~100 MB of them at once: under that, the whole lot is let go and painted
@@ -95,7 +96,7 @@ export const stamp = (ctx: Ctx, key: string, x: number, y: number, w: number, h:
       // (any distance while it's sweeping: a fresh paint mid-zoom (a ride's drop, the helicopter's pull-back) was the
       // big stall: painted afresh only once the scale holds still (asked for again at it))
       if (near) {
-        const ka = a / l!.a, kd = d / l!.d;
+        const ka = m.a / l!.s.a, kd = m.d / l!.s.d;
         putDown(ctx, m, l!.s.c, l!.s.L * ka, l!.s.T * kd, l!.s.c.width * ka, l!.s.c.height * kd);
         Object.assign(ctx, l!.s.after);
         return;
@@ -103,15 +104,18 @@ export const stamp = (ctx: Ctx, key: string, x: number, y: number, w: number, h:
       if (!l) { paint(ctx); return; }
     }
     // (the box in device pixels, from whole pixels: the art lands in the stamp on the same pixel grid it's shown on)
-    const L = Math.floor(Math.min(a * x, a * (x + w))) - 1, T = Math.floor(Math.min(d * y, d * (y + h))) - 1;
-    const R = Math.ceil(Math.max(a * x, a * (x + w))) + 1, B = Math.ceil(Math.max(d * y, d * (y + h))) + 1;
+    // (at the transform's exact scale, not the rounded one that keys it: art out at world coordinates (x in the tens of
+    // thousands, pushed back in depth by a scale that isn't whole) came down pixels off, the rounding times x)
+    const pa = m.a, pd = m.d;
+    const L = Math.floor(Math.min(pa * x, pa * (x + w))) - 1, T = Math.floor(Math.min(pd * y, pd * (y + h))) - 1;
+    const R = Math.ceil(Math.max(pa * x, pa * (x + w))) + 1, B = Math.ceil(Math.max(pd * y, pd * (y + h))) + 1;
     const c = document.createElement('canvas'); c.width = Math.max(1, R - L); c.height = Math.max(1, B - T);
     const g = c.getContext('2d')!;
     // (it starts from the drawing state the live art would've, and leaves the one it would've)
     painting++;
     let after: Leaves;
-    try { after = paintClean(g, ctx, a, d, L, T, c.width, c.height, paint); } finally { painting--; }
-    s = { c, L, T, after };
+    try { after = paintClean(g, ctx, pa, pd, L, T, c.width, c.height, paint); } finally { painting--; }
+    s = { c, L, T, a: pa, d: pd, after };
     stamps.set(id, s);
     bytes += c.width * c.height * 4;
     for (const [oldId, old] of stamps) {
@@ -124,7 +128,9 @@ export const stamp = (ctx: Ctx, key: string, x: number, y: number, w: number, h:
   latest.set(lk, { s, a, d });
   // (painted on whole device pixels; put down where the art itself would've gone, between pixels when the camera is:
   // its edges soften just the way the live art's do there)
-  putDown(ctx, m, s.c, s.L, s.T, s.c.width, s.c.height);
+  // (the scale now a hair off the one it was painted at, inside the rounding that keys it: shifted so its box's corner
+  // lands right where the art's own would)
+  putDown(ctx, m, s.c, s.L + (m.a - s.a) * x, s.T + (m.d - s.d) * y, s.c.width, s.c.height);
   Object.assign(ctx, s.after);
 };
 
