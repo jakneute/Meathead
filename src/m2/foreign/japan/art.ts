@@ -15,7 +15,7 @@
 import { GY } from '../geometry';
 import {
   type Ctx, type View, INK, box, mix, poly, checker, hash, at, atDepth, ramp6, dimmed, hour, slab, post, ball, timeOfDay, steppedGlow, pixelBlob,
-  stucco, planks, hole, facade, still, board, words, plain, LOOKS, onScreen, lip, topBack, box3Back, ledge3, lantern,
+  stucco, planks, hole, facade, still, board, words, plain, LOOKS, onScreen, lip, topBack, box3Back, ledge3, lantern, rockFace,
 } from '../kit';
 
 const lampsOn = () => timeOfDay().lamps > 0.3;
@@ -465,8 +465,15 @@ export const drawTrack = (c: Ctx, v: View, a: number, b: number) => {
  *  along its top dripping down, the bolted panel seams; a lit left edge. */
 const paintFujiStep = (g: Ctx, w: number, h: number, seed: number) => {
   const R = ramp6(hour('#64748B')), S = ramp6(hour('#F8FAFC'));
-  box(g, -1, 0, w + 2, h + 1, INK); slab(g, 0, 0, w, h, R, true);
-  for (let i = 0; i < w / 5; i++) { const sx = hash(seed + i * 2.3) * w; box(g, sx, 18 + hash(seed + i) * (h - 30), 1, 10 + hash(seed + i * 5) * 20, R[hash(seed + i * 7) > 0.5 ? 2 : 4]); }
+  // (fiberglass painted as the mountain's slate-gray rock: slabs and boulders, snow streaks down its gullies, a band
+  // of dark little pines round the foot of the tall ones, the panels' bolted seams giving it away)
+  box(g, -1, 0, w + 2, h + 1, INK); rockFace(g, 0, 0, w, h, R, seed);
+  for (let i = 0; i < w / 14; i++) { const sx = 4 + hash(seed + i * 2.3) * (w - 8); let x = sx; for (let y = 14; y < 14 + 18 + hash(seed + i) * Math.min(90, h * 0.5); y += 2) { box(g, x, y, 2, 2, S[2]); if ((y >> 1) % 3 === 0) x += hash(seed + i + y) > 0.5 ? 1 : -1; } }
+  if (h > 120) {
+    const F = ramp6(hour('#1F4A2E'));
+    box(g, 0, h - 26, w, 26, F[1]); checker(g, 0, h - 28, w, 2, F[1], 0, 1);
+    for (let x = 4; x < w - 4; x += 9) { const ph = 14 + hash(seed + x) * 12, y = h - 6 + hash(seed + x * 1.3) * 4; poly(g, [[x - 5, y], [x, y - ph], [x + 5, y]], F[2]); poly(g, [[x - 5, y], [x, y - ph], [x, y]], F[3]); box(g, x, y - ph, 1, 2, F[4]); }
+  }
   // (the snow paint along its top, drips down from it)
   box(g, 0, 0, w, 12, S[3]); box(g, 0, 0, w, 2, S[5]); box(g, 0, 10, w, 2, S[1]);
   for (let x = 2; x < w - 4; x += 6) { const d = 4 + Math.floor(hash(seed + x * 0.7) * 14); box(g, x, 12, 4, d, S[3]); box(g, x, 12, 1, d, S[5]); box(g, x + 1, 12 + d, 2, 2, S[2]); }

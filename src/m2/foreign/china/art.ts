@@ -17,7 +17,7 @@ import type { GroundRun } from '../../../m1/game/core/terrain';
 import { GY } from '../geometry';
 import {
   type Ctx, type View, type Box3, INK, box, mix, poly, checker, hash, at, atDepth, ramp6, dimmed, hour, slab, post, ball, timeOfDay, glassOf,
-  pixelBlob, stoneBlocks, planks, hole, facade, still, board, LOOKS, onScreen, lip, topBack, boxes3, box3Back, box3Front, ledge3, lantern,
+  pixelBlob, stoneBlocks, planks, hole, facade, still, board, LOOKS, onScreen, lip, topBack, boxes3, box3Back, box3Front, ledge3, lantern, rockSlab,
 } from '../kit';
 
 type XY = (n: number) => number;
@@ -44,21 +44,15 @@ const slopeOf = (r: GroundRun) => (x: number) => r.y1 + ((x - r.x1) / (r.x2 - r.
 /** The mountain's rock (a tile, painted for the hour, laid on the world's grid): strata, lumps lit on top, cracks. */
 const TW = 256, TH = 224;
 const paintRock = (g: Ctx) => {
+  // (slabs and boulders in loose courses (the streets' rock, kit rockSlab), their ends repeating with the tile so it
+  // meets itself seamlessly; grass and lichen in the crevices)
   const M = ramp6(hour(ROCK));
-  box(g, 0, 0, TW, TH, M[2]);
-  for (let k = 0; k < TH / 28; k++) {
-    const y = k * 28;
-    box(g, 0, y, TW, 2, M[1]); checker(g, 0, y + 2, TW, 2, M[1], 0, 1);
-    for (let x = -10 + hash(k * 3.3) * 20, j = 0; x < TW; j++) {
-      const lw = 12 + hash(k * 7 + j * 1.9) * 26, lh = 6 + Math.floor(hash(k * 5 + j * 2.7) * 12);
-      const a = Math.max(0, x), b = Math.min(TW, x + lw);
-      if (b - a > 3) {
-        box(g, a, y + 5, b - a, lh, M[3]); box(g, a, y + 5, b - a, 1, M[4]); box(g, a, y + 5, Math.min(3, b - a), lh, M[4]);
-        box(g, a, y + 5 + lh, b - a, 1, M[1]); checker(g, a, y + 6 + lh, b - a, 2, M[1], 1, 1);
-      }
-      x += lw + 8 + hash(k * 11 + j) * 22;
-    }
-    for (let j = 0; j < 4; j++) box(g, hash(k * 13 + j) * TW, y + 10 + hash(k + j * 3) * 14, 2, 1, hour(j % 2 ? '#8A9A5A' : '#C8C08A'));
+  box(g, 0, 0, TW, TH, M[1]);
+  const RHS = [22, 34, 28, 26, 36, 20, 30, 28];
+  for (let k = 0, y = 0; k < RHS.length; y += RHS[k], k++) {
+    const RH = RHS[k], N = 3 + ((k * 2) % 5), end = (i: number) => { const m = ((i % N) + N) % N; return Math.floor(i / N) * TW + m * (TW / N) + k * 37 % 50 + Math.round((hash(k * 3.7 + m * 1.9) - 0.5) * (TW / N) * 0.6); };
+    for (let i = -N; end(i) < TW; i++) { if (end(i + 1) < 0) continue; rockSlab(g, end(i) + 1, end(i + 1) - 1, y + 1, y + RH - 1, M, hash(k * 5.3 + (((i % N) + N) % N) * 2.1), k * 17 + i); }
+    for (let j = 0; j < 4; j++) box(g, hash(k * 13 + j) * TW, y + RH - 3, 3, 2, hour(j % 2 ? '#6A8A3A' : '#A8B06A'));
   }
   for (let j = 0; j < 5; j++) {
     let cx = hash(j * 4.4 + 9) * TW, cy = hash(j * 1.7 + 3) * TH * 0.7;

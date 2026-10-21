@@ -554,6 +554,29 @@ export const brewerySmoke = (c: Ctx, v: View, x: number, f: number) => {
   }
 };
 
+/** A tile of the embankment's earth (world tx, ty; T square), everything placed by world position so tiles meet. */
+const earthTile = (g: Ctx, tx: number, ty: number, T: number, top: number, E: string[]) => {
+  const BH = 26;
+  for (let n = Math.floor(ty / BH) - 1; n * BH < ty + T; n++) {
+    const by = n * BH + Math.round(hash(n * 1.37) * 6) - ty, depth = n * BH - top;
+    const col = depth < 60 ? E[n % 2 ? 3 : 2] : depth < 200 ? E[n % 2 ? 2 : 1] : E[n % 2 ? 1 : 0];
+    box(g, 0, by, T, BH + 8, col); checker(g, 0, by - 2, T, 2, col, n % 2);
+    for (let x = 0; x < T; x += 6) if (hash(n * 3.1 + (tx + x) * 0.11) > 0.7) box(g, x, by + 1, 4, 1, E[4]);
+  }
+  // (fieldstones on a world grid)
+  for (let i = Math.floor(tx / 36) - 1; i * 36 < tx + T + 36; i++) for (let j = Math.floor(ty / 30) - 1; j * 30 < ty + T + 30; j++) {
+    const t = hash(i * 7.3 + j * 3.1); if (t < 0.62 || j * 30 < top + 30) continue;
+    const sx = i * 36 + hash(i + j * 9.1) * 20 - tx, sy = j * 30 + hash(i * 2.3 + j) * 14 - ty, sw = 10 + t * 16, sh = 6 + hash(i * j + 1.7) * 6, S = ramp6(mix(E[3], '#8A8478', 0.6));
+    poly(g, [[sx + 2, sy - 1], [sx + sw - 3, sy - 1], [sx + sw + 1, sy + sh * 0.5], [sx + sw - 2, sy + sh + 1], [sx + 2, sy + sh + 1], [sx - 1, sy + sh * 0.5]], INK);
+    poly(g, [[sx + 2, sy], [sx + sw - 3, sy], [sx + sw, sy + sh * 0.5], [sx + sw - 2, sy + sh], [sx + 2, sy + sh], [sx, sy + sh * 0.5]], S[2]);
+    box(g, sx + 2, sy, sw - 5, 2, S[4]); box(g, sx + 1, sy + 2, 2, sh - 3, S[3]); box(g, sx + 3, sy + sh - 2, sw - 5, 2, S[1]);
+    box(g, sx, sy + sh + 1, sw, 1, E[0]);
+  }
+  // (pebbles, roots threading the top layer, a bottle cap)
+  for (let k = 0; k < 40; k++) { const x = hash(tx * 0.13 + ty + k * 1.7) * T, y = hash(tx + ty * 0.17 + k * 2.9) * T; box(g, x, y, 2, 1, k % 3 ? E[0] : E[4]); }
+  for (let k = 0; k < 3; k++) { let x = hash(tx * 0.3 + k) * T, y = top + 6 + hash(tx + k * 5) * 30 - ty; if (y < -40 || y > T) continue; for (let s = 0; s < 22; s++) { box(g, x, y, 2, 1, mix(E[1], '#3A2A18', 0.4)); x += 2; y += hash(tx + k + s) > 0.5 ? 1 : -1; } }
+  if (hash(tx * 0.7 + ty) > 0.85) { const x = hash(tx + ty * 3) * (T - 10), y = hash(tx * 3 + ty) * (T - 10); if (ty + y > top + 40) { box(g, x - 1, y - 1, 6, 4, INK); box(g, x, y, 4, 2, hour('#C8962E')); box(g, x, y, 4, 1, hour('#FFF0A8')); } }
+};
 /** The embankment under the ramp, the yard and the stairs (from rx a to the stairs' foot): the retaining wall's cut
  *  stone along under the road, the earth below in bands with grass and stones; the road's cobbles going back; the
  *  ramp's lit lip; the stairs' treads. `rampY(x)`: the road's world y at world x. */
@@ -564,9 +587,11 @@ export const drawEmbankment = (c: Ctx, v: View, a: number, rb: number, yb: numbe
   const xa = Math.max(a, v.cam.x - 20), xb = Math.min(sb, v.cam.x + 820);
   if (xb > xa) {
     c.save(); c.beginPath(); c.moveTo(a, GY); c.lineTo(rb, top); c.lineTo(yb, top); c.lineTo(sb, GY); c.lineTo(sb, GY + 400); c.lineTo(a, GY + 400); c.closePath(); c.clip();
-    box(c, xa, top, xb - xa, GY + 400 - top, E[2]);
-    for (let y = Math.floor((top - GY) / 30) * 30 + GY; y < GY + 400; y += 30) { box(c, xa, y, xb - xa, 2, E[1]); checker(c, xa, y + 2, xb - xa, 2, E[1], 0, 1); }
-    for (let x = Math.ceil(xa / 40) * 40; x < xb; x += 40) for (let k = 0; k < 4; k++) { const sy = rampY(Math.min(yb, Math.max(a, x))) + 50 + hash(x * 0.07 + k) * 300; if (sy > GY + 380) continue; const sx = x + hash(x + k * 3) * 30; box(c, sx, sy, 8, 5, E[3]); box(c, sx, sy, 8, 1, E[4]); box(c, sx, sy + 5, 8, 1, E[0]); }
+    // (stamped in world tiles for the hour: soil in strata darkening as it goes down (dithered seams, each band its own
+    // step), fieldstones bedded in it (lit tops, shaded undersides), pebbles, roots threading the top layer, the odd
+    // lost bottle cap)
+    const T = 160, y0 = Math.max(top, v.cam.y - 20), y1 = Math.min(GY + 400, v.cam.y + 620);
+    for (let tx = Math.floor(xa / T) * T; tx < xb; tx += T) for (let ty = Math.floor(y0 / T) * T; ty < y1; ty += T) still(c, `de-earth-${tx}-${ty}`, tx, ty, 0, 0, T, T, g => earthTile(g, tx, ty, T, top, E));
     c.restore();
   }
   // (the retaining wall's band under the road (stamped in pieces along it), grass along its foot)
