@@ -9,6 +9,8 @@
 // line tone. The heavy paint's cached (a base per face, a stamp per variant off it: `stamps`); the live bits (a bead of
 // sweat running, drool, spittle, a tic, glints) are drawn over it each frame by the caller (`drawGrossStamp`'s `over`).
 
+import { idleJob } from '../m1/game/scenes/art/raster';
+
 export type Ctx = CanvasRenderingContext2D;
 
 /** The buffer's size in its pixels, and how many screen pixels each is at the hold (a little over the whole screen). */
@@ -55,6 +57,7 @@ export const hash2 = (x: number, y: number) => { let h = (x * 374761393 + y * 66
 let seed = 1;
 /** The painting's dice: seeded (`setSeed`) so a face paints the same every time. */
 export const setSeed = (s: number) => { seed = s; };
+export const getSeed = () => seed;
 export const rnd = () => { seed = (seed + 0x6d2b79f5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
 export const matAt = (b: Buf, x: number, y: number) => (x < 0 || y < 0 || x >= GW || y >= GH ? 0 : b.mat[(y | 0) * GW + (x | 0)]);
 export const pxAt = (b: Buf, x: number, y: number) => b.px[Math.max(0, Math.min(GH - 1, Math.round(y))) * GW + Math.max(0, Math.min(GW - 1, Math.round(x)))];
@@ -296,14 +299,62 @@ export const toCanvas = (b: Buf): HTMLCanvasElement | null => {
   return cv;
 };
 
-/** A face's stamps: built once each (by key), kept. */
-export const stamps = <K extends string>(build: (key: K) => Buf) => {
-  const m = new Map<K, { img: HTMLCanvasElement | null; buf: Buf }>();
-  return (key: K) => {
-    let s = m.get(key);
-    if (!s) { const buf = build(key); s = { img: toCanvas(buf), buf }; m.set(key, s); }
-    return s;
+// ---- painted ahead, a step at a time
+/** A paint that can be paused: a generator yielding between its parts, returning what it painted. */
+export type Steps<T> = Iterator<void, T>;
+const isSteps = <T>(r: T | Steps<T>): r is Steps<T> => !!r && typeof (r as Steps<T>).next === 'function';
+/**
+ * A paint part done, carrying its own dice (the seed's shared: anything painted in between, a portrait or a face
+ * wanted now, would otherwise shift the dice under it, and it'd come out different from painting it in one go).
+ * `run(until)` paints on till then (true once done); `finish()` the rest, now.
+ */
+export const stepper = <T>(start: () => T | Steps<T>, dice: { get: () => number; set: (s: number) => void } = { get: getSeed, set: setSeed }) => {
+  let it: Steps<T> | null = null, mine = 0, out: { v: T } | null = null;
+  const go = (until: number) => {
+    if (out) return true;
+    const theirs = dice.get();
+    try {
+      if (!it) { const r = start(); if (!isSteps(r)) { out = { v: r }; return true; } it = r; mine = dice.get(); }
+      dice.set(mine);
+      for (;;) { const n = it.next(); if (n.done) { out = { v: n.value }; it = null; return true; } if (performance.now() >= until) { mine = dice.get(); return false; } }
+    } finally { dice.set(theirs); }
   };
+  return { run: go, finish: (): T => { go(Infinity); return out!.v; }, done: () => !!out };
+};
+/** Paint jobs to do ahead (each face's, as its module loads): run by warmGrossUps. */
+const ahead: ((until: number) => boolean)[] = [];
+export const paintAhead = (job: (until: number) => boolean) => { ahead.push(job); };
+let warming = false;
+/** Paints every gross-up ahead, a few ms per idle moment (each face's parts a step at a time: never a long frame),
+ *  so no close-up stops to paint itself the frame it cuts in (or each time a new mouth shape comes up). Once. */
+export const warmGrossUps = () => {
+  if (warming || typeof document === 'undefined') return;
+  warming = true;
+  const q = ahead.slice();
+  idleJob(until => {
+    while (q.length) { if (!q[0](until)) return false; q.shift(); if (performance.now() >= until) break; }
+    return !q.length;
+  });
+};
+
+/** A face's stamps: built once each (by key), kept; `warm`: the keys to paint ahead (warmGrossUps). `build` can be a
+ *  generator yielding between its parts (so it can be painted ahead a step at a time). */
+export const stamps = <K extends string>(build: (key: K) => Buf | Steps<Buf>, warm: K[] = []) => {
+  const m = new Map<K, { img: HTMLCanvasElement | null; buf: Buf }>();
+  const going = new Map<K, ReturnType<typeof stepper<Buf>>>();
+  const job = (key: K) => { let j = going.get(key); if (!j) { j = stepper(() => build(key)); going.set(key, j); } return j; };
+  const keep = (key: K, buf: Buf) => { const s = { img: toCanvas(buf), buf }; m.set(key, s); going.delete(key); return s; };
+  if (warm.length) paintAhead(until => {
+    for (const k of warm) {
+      if (m.has(k)) continue;
+      const j = job(k);
+      if (!j.run(until)) return false;
+      keep(k, j.finish());
+      if (performance.now() >= until) return false;
+    }
+    return true;
+  });
+  return (key: K) => m.get(key) ?? keep(key, job(key).finish());
 };
 
 /** A stamp on the screen: (cx, cy) where its (fx, fy) goes, `zoom` 1 at the hold (each of its pixels GP screen pixels),

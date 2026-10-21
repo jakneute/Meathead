@@ -13,6 +13,7 @@
 // paint's cached (a base per face, then a stamp per mouth shape off it); the live bits (a bead of sweat running, the
 // foam dripping, drool, a fly) are drawn over it each frame.
 
+import { stepper, paintAhead } from '../../grossKit';
 type Ctx = CanvasRenderingContext2D;
 
 export const GW = 272, GH = 204, GP = 3;
@@ -132,10 +133,12 @@ const veins = (b: Buf, x: number, y: number, ang: number, len: number, col: numb
 // ---------------------------------------------------------------------------------------------------------------
 // The base: everything but his eyes and his mouth
 
-const buildBase = (squint: boolean): Buf => {
+function* buildBase(squint: boolean): Generator<void, Buf> {
   seed = squint ? 731 : 733;
   const b = newBuf();
+  yield;
   // (the tank top: the scooped neckline at the bottom of the frame, the straps gone yellow at the armpits, grey chest
+  yield;
   // hair curling out over it; his shoulders round it)
   ball(b, FX, 300, 240, 120, SKIN, { mat: M_SKIN });
   for (const s of [-1, 1]) {
@@ -144,8 +147,10 @@ const buildBase = (squint: boolean): Buf => {
   }
   for (let x = FX - 92; x <= FX + 92; x++) { const yN = 192 + ((x - FX) / 92) ** 2 * 10; for (let y = Math.ceil(yN); y < GH; y++) plot(b, x, y, (x % 3 === 0) ? TANK[2] : TANK[1], M_OTHER); plot(b, x, Math.round(yN), TANK[4]); }
   for (let k = 0; k < 40; k++) { const x = FX - 60 + rnd() * 120, y = 186 + rnd() * 6; path(b, [x, y + 4, x + (rnd() - 0.5) * 4, y, x + (rnd() - 0.5) * 6, y - 3], k % 3 ? HAIR[3] : HAIR[1]); }
+  yield;
   // (the neck rolls: three, sweaty in their creases)
   for (let k = 0; k < 3; k++) ball(b, FX, 178 - k * 9, 92 - k * 6, 14, SKIN, { mat: M_SKIN, line: (_dx, dy) => dy > 0.1, lw: 1.4 });
+  yield;
   // (the ears: big, red at the rims, white hair tufting out of the holes, a lobe like a teabag)
   for (const s of [-1, 1]) {
     const ex = FX + s * 104;
@@ -156,22 +161,27 @@ const buildBase = (squint: boolean): Buf => {
     path(b, [ex + s * 1, 88, ex - s * 3, 98, ex + s * 1, 108], SKIN[5]);
     for (let k = 0; k < 12; k++) path(b, [ex - s * 2, 100, ex - s * (6 + rnd() * 6), 92 - rnd() * 10, ex - s * (8 + rnd() * 10), 86 - rnd() * 12], k % 2 ? HAIR[0] : HAIR[2]);
   }
+  yield;
   // (the white fringe round the back of his head, over the ears, a fuzz)
   for (const s of [-1, 1]) {
     ball(b, FX + s * 96, 66, 18, 26, HAIR, { mat: M_HAIR, soft: 0.5 });
     for (let k = 0; k < 30; k++) { const x = FX + s * (84 + rnd() * 24), y = 44 + rnd() * 44; path(b, [x, y, x + s * (2 + rnd() * 5), y - 3 - rnd() * 4], k % 3 ? HAIR[1] : HAIR[4], 1, undefined, M_HAIR); }
   }
+  yield;
   // (the jowls, hanging off the jaw, and the double chin)
   ball(b, FX, 162, 84, 30, SKIN, { mat: M_SKIN, line: (_dx, dy) => dy > 0.2, lw: 1.4 });
   for (const s of [-1, 1]) ball(b, FX + s * 58, 146, 34, 36, SKIN, { mat: M_SKIN, line: (dx, dy) => dy > 0.4 || dx * s > 0.85, lit: 1.04 });
+  yield;
   // (the head: the dome, cut off at the top of the frame, a forehead you could land a plane on)
   ball(b, FX, 76, 96, 104, SKIN, { mat: M_SKIN, line: (dx, dy) => dy > -0.1 && Math.abs(dx) > 0.82, lw: 1.5, lit: 1.05 });
   for (const s of [-1, 1]) ball(b, FX + s * 50, 128, 40, 30, SKIN, { mat: M_SKIN, line: (dx, dy) => (dy > 0.5 && dx * s > -0.4) || dx * s > 0.9, lit: 1.08 });
+  yield;
   // (the cheeks flushed, broken capillaries all over them)
   for (const s of [-1, 1]) {
     tint(b, FX + s * 52, 126, 32, 20, FLUSH[2], 0.55, M_SKIN, 0.6);
     for (let k = 0; k < 9; k++) veins(b, FX + s * (34 + rnd() * 34), 114 + rnd() * 24, rnd() * Math.PI * 2, 5 + rnd() * 6, VEIN, M_SKIN);
   }
+  yield;
   // (the liver spots: big brown blotches over the dome, a few at his temples, raised and cracked)
   for (let k = 0; k < 16; k++) {
     const x = FX + (rnd() - 0.5) * 170, y = 4 + rnd() * 54, r = 2 + rnd() * 6;
@@ -179,6 +189,7 @@ const buildBase = (squint: boolean): Buf => {
     ball(b, x, y, r * (0.8 + rnd() * 0.5), r, SPOT.concat(SPOT[2], DARK), { soft: 0.4, flat: 0.4 });
     if (r > 5) path(b, [x - r * 0.5, y, x, y - r * 0.3, x + r * 0.4, y + r * 0.2], DARK);
   }
+  yield;
   // (the forehead's creases: deep, wavy, three across, each inked under and lit over)
   for (let k = 0; k < 4; k++) {
     const y0 = 38 + k * 8, w = 52 - k * 6;
@@ -186,7 +197,9 @@ const buildBase = (squint: boolean): Buf => {
     path(b, pts, SKIN[6], 1, undefined, M_SKIN); path(b, pts.map((v, i) => (i % 2 ? v - 1 : v)), SKIN[0], 1, undefined, M_SKIN);
   }
   path(b, [FX - 6, 58, FX - 3, 66, FX - 4, 72], SKIN[6]); path(b, [FX + 6, 58, FX + 3, 66, FX + 5, 72], SKIN[6]);
+  yield;
   // (the comb-over: three long white strands from over his left ear clean across the dome, sweat-plastered, one come
+  yield;
   // loose and standing up)
   for (let k = 0; k < 3; k++) {
     const pts: number[] = [];
@@ -196,9 +209,11 @@ const buildBase = (squint: boolean): Buf => {
     for (let i = 0; i < pts.length; i += 6) plot(b, pts[i], pts[i + 1], WHITE);
   }
   path(b, [FX - 12, 12, FX - 18, 2, FX - 14, -6], HAIR[2], 1); path(b, [FX + 10, 10, FX + 14, 1, FX + 22, -4], HAIR[2], 1);
+  yield;
   // (rosacea and the veins up the sides of his nose, the bridge)
   ball(b, FX, 108, 14, 30, SKIN, { mat: M_SKIN, lit: 1.1 });
   tint(b, FX, 112, 22, 26, FLUSH[3], 0.45, M_SKIN, 0.6);
+  yield;
   // (the brows: big, grey, wiry, going every way, a couple of long ones curling off)
   for (const s of [-1, 1]) {
     const by = squint && s < 0 ? 66 : 60;
@@ -210,6 +225,7 @@ const buildBase = (squint: boolean): Buf => {
     }
     path(b, [FX + s * 54, by - 4, FX + s * 62, by - 14, FX + s * 70, by - 12], HAIR[1]);
   }
+  yield;
   // (the bags under the eyes: purple, three deep, veined)
   for (const s of [-1, 1]) {
     const ex = FX + s * 38, ey = 94;
@@ -219,6 +235,7 @@ const buildBase = (squint: boolean): Buf => {
     // (crow's feet)
     for (let k = 0; k < 4; k++) path(b, [ex + s * 26, ey - 2 + k * 3, ex + s * (34 + k * 2), ey - 6 + k * 5, ex + s * (40 + k * 2), ey - 8 + k * 7], SKIN[6], 1, undefined, M_SKIN);
   }
+  yield;
   // (the nose: a swollen purple strawberry, bumpy, the nostrils flared, the wings)
   for (const s of [-1, 1]) ball(b, FX + s * 22, 136, 14, 12, NOSE, { mat: M_NOSE, line: (dx, dy) => dy > -0.2 && dx * s > -0.3 });
   ball(b, FX, 124, 28, 24, NOSE, { mat: M_NOSE, line: (_dx, dy) => dy > 0.3, lit: 1.12 });
@@ -228,9 +245,11 @@ const buildBase = (squint: boolean): Buf => {
     ball(b, FX + s * 12, 143, 8, 4, R('#4A1426', '#2E0A16', '#1A040C', '#0E0206', '#060002'), { mat: M_OTHER });
     for (let k = 0; k < 7; k++) path(b, [FX + s * (7 + k * 1.6), 142, FX + s * (6 + k * 2) + (rnd() - 0.5) * 3, 147 + rnd() * 3, FX + s * (5 + k * 2.2) + (rnd() - 0.5) * 4, 150 + rnd() * 3], k % 3 ? HAIRLINE : HAIR[3]);
   }
+  yield;
   // (the wart on the side of his nose, a hair out of it)
   ball(b, FX + 26, 118, 4, 4, WART, { line: true, mat: M_OTHER });
   path(b, [FX + 27, 115, FX + 30, 109, FX + 34, 106], HAIRLINE);
+  yield;
   // (the philtrum; the white stubble everywhere under the nose, a dark follicle under every hair)
   seg(b, FX - 5, 151, FX - 4, 158, SKIN[5]); seg(b, FX + 5, 151, FX + 4, 158, SKIN[5]);
   for (let k = 0; k < 520; k++) {
@@ -240,14 +259,17 @@ const buildBase = (squint: boolean): Buf => {
     plot(b, x, y, mixU(pxAt(b, x, y), DARK, 0.4));
     if (rnd() < 0.6) plot(b, x + (rnd() < 0.5 ? 1 : 0), y - 1, rnd() < 0.5 ? HAIR[3] : HAIR[1]);
   }
+  yield;
   // (the headset mic: taped along his right cheek from the ear, a boom, the foam ball by his mouth, tape gone grey)
   path(b, [FX + 100, 120, FX + 74, 146, FX + 46, 162], MIC[5], 4, M_OTHER); path(b, [FX + 100, 120, FX + 74, 146, FX + 46, 162], MIC[1], 2, M_OTHER);
   for (const [x, y] of [[FX + 84, 136], [FX + 64, 152]] as const) { ball(b, x, y, 6, 4, R('#E4E0D4', '#CCC6B6', '#B0A894', '#908874', '#5A5444'), { line: true, mat: M_OTHER, flat: 0.4 }); seg(b, x - 4, y, x + 4, y, hexU('#9A947E')); }
   ball(b, FX + 42, 164, 7, 7, R('#5A5A5A', '#3A3A3A', '#262626', '#161616', '#060606'), { line: true, mat: M_OTHER });
   for (let k = 0; k < 10; k++) plot(b, FX + 38 + rnd() * 8, 160 + rnd() * 8, hexU('#6A6A6A'));
+  yield;
   // (sweat: beads across the dome and the forehead, over the lip, in the neck rolls)
   for (let k = 0; k < 18; k++) { const x = FX - 80 + rnd() * 160, y = 6 + rnd() * 56; if (matAt(b, x, y) === M_SKIN) bead(b, x, y, 1.5 + rnd() * 1.8, SKIN); }
   for (let k = 0; k < 4; k++) bead(b, FX - 60 + rnd() * 120, 172 + rnd() * 10, 1.6, SKIN);
+  yield;
   // (post: the pores (thick on his nose and cheeks), blackheads, the grease shining)
   for (let y = 0; y < GH; y++) for (let x = 0; x < GW; x++) {
     const i = y * GW + x, m = b.mat[i];
@@ -261,7 +283,7 @@ const buildBase = (squint: boolean): Buf => {
     else if (b.tone[i] < 50 && h > 0.6 && h < 0.76) b.px[i] = mixU(b.px[i], WHITE, 0.6);
   }
   return b;
-};
+}
 
 // ---------------------------------------------------------------------------------------------------------------
 // The eyes and the mouth
@@ -359,6 +381,25 @@ const mouth = (b: Buf, n: number) => {
 // The caches
 
 const bases = new Map<boolean, Buf>();
+/** The bases being painted ahead a step at a time (warmGrossUps), each with its own dice. */
+const baseJobs = new Map<boolean, ReturnType<typeof stepper<Buf>>>();
+const baseJob = (squint: boolean) => {
+  let j = baseJobs.get(squint);
+  if (!j) { j = stepper(() => buildBase(squint), { get: () => seed, set: s => { seed = s; } }); baseJobs.set(squint, j); }
+  return j;
+};
+// (ahead: each base a step at a time, then every stamp off it (a mouth shape each: cheap) one at a time)
+paintAhead(until => {
+  for (const v of [false, true]) {
+    if (!bases.has(v)) { const j = baseJob(v); if (!j.run(until)) return false; bases.set(v, j.finish()); }
+    for (let n = 0; n < 4; n++) {
+      if (stamps.has(`${v ? 1 : 0}${n}`)) continue;
+      stamp(v, n);
+      if (performance.now() >= until) return false;
+    }
+  }
+  return true;
+});
 const stamps = new Map<string, HTMLCanvasElement>();
 const stamp = (squint: boolean, n: number): HTMLCanvasElement | null => {
   const key = `${squint ? 1 : 0}${n}`;
@@ -366,7 +407,7 @@ const stamp = (squint: boolean, n: number): HTMLCanvasElement | null => {
   if (hit) return hit;
   if (typeof document === 'undefined') return null;
   let base = bases.get(squint);
-  if (!base) { base = buildBase(squint); bases.set(squint, base); }
+  if (!base) { base = baseJob(squint).finish(); bases.set(squint, base); }
   const b: Buf = { px: base.px.slice(), mat: base.mat.slice(), tone: base.tone };
   seed = squint ? 51 : 53;
   eye(b, FX - 38, 92, -1, squint, squint ? 0.35 : 0.5);

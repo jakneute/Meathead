@@ -10,6 +10,7 @@
 // The heavy paint's cached: a base per face, then a stamp per (face, mouth shape, twitch) off it; the live bits (glitter
 // twinkling, a bead of sweat running, drool, spittle, the tic) are drawn over it each frame.
 
+import { stepper, paintAhead } from '../grossKit';
 type Ctx = CanvasRenderingContext2D;
 
 /** The buffer's size in its pixels, and how many screen pixels each is at the hold. */
@@ -163,10 +164,11 @@ const bead = (b: Buf, x: number, y: number, r: number, skin: number[]) => {
 // ---------------------------------------------------------------------------------------------------------------
 // The base: everything but her eyes and her mouth
 
-const buildBase = (rage: boolean): Buf => {
+function* buildBase(rage: boolean): Generator<void, Buf> {
   seed = rage ? 911 : 377;
   const b = newBuf();
   const FC = rage ? RAGEF : FACE, SK = rage ? RAGES : SKIN;
+  yield;
   // (her wings' tips peeking up behind her shoulders: veined, glittered, straining)
   for (const s of [-1, 1]) {
     const x = FX + s * 126;
@@ -176,6 +178,7 @@ const buildBase = (rage: boolean): Buf => {
     path(b, [x + s * 3, 160, x + s * 9, 150], WING[4], 1, undefined, M_OTHER);
     for (let k = 0; k < 6; k++) { const gx = x + (rnd() - 0.5) * 16, gy = 140 + rnd() * 50; if (matAt(b, gx, gy) === M_OTHER) { plot(b, gx, gy, WHITE); b.glitter.push(Math.round(gx), Math.round(gy)); } }
   }
+  yield;
   // (her shoulders, the gown at the corners, the straps biting in)
   ball(b, FX, 300, 230, 112, SK, { mat: M_SKIN });
   for (const s of [-1, 1]) {
@@ -186,12 +189,15 @@ const buildBase = (rage: boolean): Buf => {
     seg(b, FX + s * 108, 204, FX + s * 100, 190, SK[6], 1);
     for (let k = 0; k < 14; k++) { const sx = FX + s * (104 + rnd() * 30), sy = 200 + rnd() * 4; if (matAt(b, sx, sy) === M_OTHER) plot(b, sx, sy, k % 3 ? GOWN[0] : WHITE); }
   }
+  yield;
   // (the beehive's sides behind her head)
   for (const s of [-1, 1]) ball(b, FX + s * 106, 44, 44, 62, HAIR, { mat: M_HAIR, line: true });
+  yield;
   // (the chins: three, sagging, the lowest first; each creased under)
   ball(b, FX, 194, 104, 18, SK, { mat: M_SKIN, line: (_dx, dy) => dy > -0.1, lw: 1.5 });
   ball(b, FX, 181, 92, 18, SK, { mat: M_SKIN, line: (_dx, dy) => dy > -0.1, lw: 1.5 });
   ball(b, FX, 168, 80, 18, SK, { mat: M_SKIN, line: (_dx, dy) => dy > -0.1, lw: 1.5 });
+  yield;
   // (the ears, the lobes stretched by the hoops)
   for (const s of [-1, 1]) {
     const ex = FX + s * 106;
@@ -200,19 +206,24 @@ const buildBase = (rage: boolean): Buf => {
     path(b, [ex + s * 4, 84, ex - s * 4, 88, ex - s * 6, 100, ex - s * 2, 112], SK[6]);
     path(b, [ex + s * 1, 92, ex - s * 2, 100, ex + s * 1, 106], SK[4]);
   }
+  yield;
   // (her face: round, the jowls hanging)
   ball(b, FX, FY, 98, 78, FC, { mat: M_SKIN, line: (_dx, dy) => dy > -0.25, lw: 1.5 });
   ball(b, 84, 120, 42, 34, FC, { mat: M_SKIN, line: (dx, dy) => (dy > 0.35 && dx > -0.5) || dx < -0.8, lit: 1.08 });
   ball(b, 188, 120, 42, 34, FC, { mat: M_SKIN, line: (dx, dy) => (dy > 0.35 && dx < 0.5) || dx > 0.8, lit: 1.08 });
+  yield;
   // (the blush, troweled on)
   for (const s of [-1, 1]) tint(b, FX + s * 54, 112, 30, 15, hexU(rage ? '#C81E24' : '#F46A86'), rage ? 0.3 : 0.4, M_SKIN);
+  yield;
   // (the eyeshadow: violet up to her brows, blue in the crease, dithered off at the edges)
   for (const s of [-1, 1]) {
     const ex = FX + s * 38;
     ball(b, ex + s * 2, 64, 34, 15, SHADOW2, { soft: 0.45, flat: 0.6 });
     ball(b, ex, 78, 29, 18, SHADOW, { soft: 0.3, flat: 0.8 });
   }
+  yield;
   // (the brows: plucked to nothing and drawn back on in pencil, a few real hairs poking out of the line; down in a V
+  yield;
   // when she's furious)
   for (const s of [-1, 1]) {
     const pts = rage ? [FX + s * 72, 50, FX + s * 50, 56, FX + s * 30, 64, FX + s * 12, 72] : [FX + s * 72, 66, FX + s * 60, 54, FX + s * 42, 49, FX + s * 18, 57];
@@ -220,6 +231,7 @@ const buildBase = (rage: boolean): Buf => {
     path(b, pts.map((v, i) => (i % 2 ? v - 1 : v)), hexU('#7A5230'), 1);
     for (let k = 0; k < 9; k++) { const t = rnd(), j = Math.floor(t * (pts.length / 2 - 1)) * 2, u = t * (pts.length / 2 - 1) - j / 2; const x = pts[j] + (pts[j + 2] - pts[j]) * u, y = pts[j + 1] + (pts[j + 3] - pts[j + 1]) * u; seg(b, x, y + 2, x + s * 1, y + 4 + rnd() * 2, hexU('#6A4A2A')); }
   }
+  yield;
   // (the nose: the bridge, the wings, the bulb; the nostrils, the hairs out of them)
   ball(b, FX, 98, 13, 26, FC, { mat: M_SKIN, lit: 1.1 });
   for (const s of [-1, 1]) ball(b, FX + s * 17, 120, 10, 9, FC, { mat: M_SKIN, line: (dx, dy) => dy > -0.2 && dx * s > -0.3 });
@@ -228,18 +240,22 @@ const buildBase = (rage: boolean): Buf => {
     ball(b, FX + s * 9, 126, 5, 3, R('#4A1C16', '#2E0E0A', '#1A0606', '#0E0202', '#060000'), { mat: M_OTHER });
     for (let k = 0; k < 4; k++) path(b, [FX + s * (6 + k * 2), 126, FX + s * (5.5 + k * 2.4) + (rnd() - 0.5) * 2, 129 + rnd() * 3, FX + s * (5 + k * 2.6) + (rnd() - 0.5) * 3, 131 + rnd() * 2], HAIRLINE);
   }
+  yield;
   // (the philtrum; the hairs on her upper lip)
   seg(b, FX - 4, 131, FX - 3, 139, FC[5]); seg(b, FX + 4, 131, FX + 3, 139, FC[5]);
   for (let k = 0; k < 18; k++) { const x = FX - 22 + rnd() * 44, y = 134 + rnd() * 6; seg(b, x, y, x + (x - FX) * 0.05 + (rnd() - 0.5), y + 2, hexU('#4A2A1A'), 1, undefined, M_SKIN); }
+  yield;
   // (the beauty mark, with a hair out of it; the wart on her chin, with a long one)
   ball(b, 197, 134, 2.4, 2.2, R('#6A3A22', '#4A2414', '#2E140A', '#1A0804', '#0E0402'), { mat: M_OTHER });
   path(b, [198, 133, 201, 129, 200, 125, 203, 122], HAIRLINE);
   ball(b, 168, 166, 6, 5, WART, { line: true, mat: M_OTHER });
   for (let k = 0; k < 6; k++) plot(b, 165 + rnd() * 6, 163 + rnd() * 5, WART[4]);
   path(b, [170, 162, 172, 156, 176, 153, 177, 148, 181, 146], HAIRLINE);
+  yield;
   // (stubble on the chins; two long hairs off them)
   for (let k = 0; k < 90; k++) { const x = FX + (rnd() - 0.5) * 150, y = 172 + rnd() * 30; if (matAt(b, x, y) === M_SKIN) plot(b, x, y, mixU(b.px[(Math.round(y)) * GW + Math.round(x)] ?? WHITE, DARK, 0.55)); }
   path(b, [104, 186, 100, 191, 103, 196, 100, 201], HAIRLINE); path(b, [162, 190, 165, 195, 162, 200], HAIRLINE);
+  yield;
   // (the hoops: big gold rings off the lobes)
   for (const s of [-1, 1]) {
     const hx = FX + s * 106, hy = 142;
@@ -249,6 +265,7 @@ const buildBase = (rage: boolean): Buf => {
     }
     plot(b, hx - 9, hy - 9, WHITE); b.glitter.push(hx - 9, hy - 9);
   }
+  yield;
   // (the hairline: the beehive pulled up off her forehead, black roots coming through the bleach, bobby pins)
   ball(b, FX, -14, 124, 38, HAIR, { mat: M_HAIR, line: (_dx, dy) => dy > 0.5 });
   for (let x = FX - 124; x <= FX + 124; x++) {
@@ -257,22 +274,26 @@ const buildBase = (rage: boolean): Buf => {
   }
   for (let k = 0; k < 40; k++) { const x0 = rnd() * GW, y0 = rnd() * 60; path(b, [x0, y0, x0 + (rnd() - 0.5) * 10, y0 - 4 - rnd() * 6, x0 + (rnd() - 0.5) * 16, y0 - 10 - rnd() * 8], k % 3 ? HAIR[4] : HAIR[0], 1, undefined, M_HAIR); }
   for (const [x, y, dx, dy] of [[56, 14, 12, -6], [204, 10, 10, 6], [88, 6, 6, -6], [238, 60, -8, 6], [30, 64, 9, 5]]) { seg(b, x, y, x + dx, y + dy, hexU('#1A1A22'), 1, undefined, M_HAIR); seg(b, x, y + 2, x + dx, y + dy + 2, hexU('#3A3A48'), 1, undefined, M_HAIR); }
+  yield;
   // (the tiara, jammed in it: gold, a pink heart, a stone missing)
   poly(b, [96, 20, 100, 7, 110, 15, 122, -1, 136, 12, 150, -1, 162, 15, 172, 7, 176, 20, 176, 22, 96, 22], GOLD, M_OTHER);
   ball(b, FX, 13, 6, 5, R('#FFB4DA', '#FF5AA8', '#E02A84', '#A8105E', '#5A0430'), { line: true, mat: M_OTHER }); plot(b, FX - 2, 11, WHITE); b.glitter.push(FX - 2, 11);
   ball(b, 110, 17, 2.5, 2.5, R('#C8F0FF', '#5AC8F4', '#2A8ACC', '#145A8A', '#082A4A'), { mat: M_OTHER }); ball(b, 162, 17, 2.5, 2.5, R('#2A1A08', '#1A1004', '#120A02', '#0A0601', '#000000'), { mat: M_OTHER });
   for (const x of [100, 122, 150, 172]) { plot(b, x, x === 122 || x === 150 ? 1 : 9, WHITE); b.glitter.push(x, x === 122 || x === 150 ? 1 : 9); }
+  yield;
   // (rage: the veins up her forehead and her temples, bulging)
   if (rage) {
     const vein = (pts: number[]) => { path(b, pts, VEIN[5], 4); path(b, pts, VEIN[3], 3); path(b, pts.map((v, i) => (i % 2 ? v : v - 1)), VEIN[1], 1); path(b, pts.map((v, i) => (i % 2 ? v - 1 : v - 1)), VEIN[0], 1); };
     vein([116, 24, 112, 32, 118, 40, 114, 50]); vein([118, 40, 106, 46, 102, 52]); vein([160, 26, 164, 34, 158, 44, 162, 50]);
     vein([52, 40, 46, 52, 50, 62, 46, 74]); vein([220, 40, 226, 52, 222, 62, 226, 74]);
   }
+  yield;
   // (sweat: beads across her forehead, over her lip, on her chins; a trail down each temple)
   for (let k = 0; k < 12; k++) { const x = 70 + rnd() * 132, y = 26 + rnd() * 22; if (matAt(b, x, y) === M_SKIN) bead(b, x, y, 1.6 + rnd() * 1.6, FC); }
   for (let k = 0; k < 4; k++) bead(b, FX - 16 + k * 10 + rnd() * 3, 135 + rnd() * 2, 1.3, FC);
   bead(b, 116, 176, 2, SK); bead(b, 154, 188, 1.8, SK);
   for (const s of [-1, 1]) { path(b, [FX + s * 82, 50, FX + s * 85, 66, FX + s * 84, 82, FX + s * 87, 94], mixU(FC[1], WHITE, 0.5), 2, undefined, M_SKIN); bead(b, FX + s * 87, 96, 2.2, FC); }
+  yield;
   // (post: the pores, the blackheads, the grease shining, the glitter stuck in it)
   for (let y = 0; y < GH; y++) for (let x = 0; x < GW; x++) {
     const i = y * GW + x;
@@ -286,6 +307,7 @@ const buildBase = (rage: boolean): Buf => {
     else if (b.tone[i] < 50 && h > 0.6 && h < 0.74) b.px[i] = mixU(b.px[i], WHITE, 0.65);
     else if (h > 0.9965 && b.tone[i] < 170) { b.px[i] = hexU(['#FFFFFF', '#FFE070', '#FFB0E0', '#B0F0FF'][Math.floor(hash2(y, x) * 4)]); b.glitter.push(x, y); }
   }
+  yield;
   // (the foundation, caked on, cracking: across her forehead, her cheeks, her chin; flakes lifting off the cracks)
   for (let k = 0; k < 22; k++) {
     const sx = 50 + rnd() * 172, sy = k < 9 ? 26 + rnd() * 24 : 96 + rnd() * 60;
@@ -300,7 +322,7 @@ const buildBase = (rage: boolean): Buf => {
     walk(sx, sy, ang, len, 1.1, (x, y, i) => { crack(x, y); if (i === 5) walk(x, y, ang + 1.2, len * 0.5, 1.1, (x2, y2) => crack(x2, y2)); });
   }
   return b;
-};
+}
 
 // ---------------------------------------------------------------------------------------------------------------
 // The eyes and the mouth (a stamp each per face, mouth shape, twitch)
@@ -421,6 +443,25 @@ const mouth = (b: Buf, rage: boolean, n: number) => {
 // The caches
 
 const bases = new Map<boolean, Buf>();
+/** The bases being painted ahead a step at a time (warmGrossUps), each with its own dice. */
+const baseJobs = new Map<boolean, ReturnType<typeof stepper<Buf>>>();
+const baseJob = (rage: boolean) => {
+  let j = baseJobs.get(rage);
+  if (!j) { j = stepper(() => buildBase(rage), { get: () => seed, set: s => { seed = s; } }); baseJobs.set(rage, j); }
+  return j;
+};
+// (ahead: each base a step at a time, then every stamp off it (a mouth shape each: cheap) one at a time)
+paintAhead(until => {
+  for (const v of [false, true]) {
+    if (!bases.has(v)) { const j = baseJob(v); if (!j.run(until)) return false; bases.set(v, j.finish()); }
+    for (let n = 0; n < 4; n++) for (const tw of [false, true]) {
+      if (stamps.has(`${v ? 1 : 0}${n}${tw ? 1 : 0}`)) continue;
+      stamp(v, n, tw);
+      if (performance.now() >= until) return false;
+    }
+  }
+  return true;
+});
 const stamps = new Map<string, HTMLCanvasElement>();
 const stamp = (rage: boolean, n: number, twitch: boolean): HTMLCanvasElement | null => {
   const key = `${rage ? 1 : 0}${n}${twitch ? 1 : 0}`;
@@ -428,7 +469,7 @@ const stamp = (rage: boolean, n: number, twitch: boolean): HTMLCanvasElement | n
   if (hit) return hit;
   if (typeof document === 'undefined') return null;
   let base = bases.get(rage);
-  if (!base) { base = buildBase(rage); bases.set(rage, base); }
+  if (!base) { base = baseJob(rage).finish(); bases.set(rage, base); }
   const b: Buf = { px: base.px.slice(), mat: base.mat.slice(), tone: base.tone, glitter: base.glitter };
   const FC = rage ? RAGEF : FACE;
   seed = rage ? 41 : 43; // (the same every stamp: the veins in her eyes don't jump about as her mouth goes)

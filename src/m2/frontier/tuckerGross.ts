@@ -31,10 +31,11 @@ const WIRE = hexU('#8A7A3A');
 
 type Key = '0' | '1' | '2';
 
-const build = (key: Key): Buf => {
+function* build(key: Key): Generator<void, Buf> {
   setSeed(1849);
   const n = +key;
   const b = newBuf();
+  yield;
   // ---- the coat, the vest, the collar and the bow tie; the branch through his chest, the vest torn round it
   ball(b, FX, 262, 210, 96, COAT, { mat: M_CLOTH });
   for (const s of [-1, 1]) poly(b, [FX + s * 30, 178, FX + s * 110, 186, FX + s * 76, 204, FX + s * 30, 204], COAT, M_CLOTH);
@@ -42,6 +43,7 @@ const build = (key: Key): Buf => {
   for (const s of [-1, 1]) poly(b, [FX, 184, FX + s * 26, 176, FX + s * 28, 192], R('#5A5A62', '#2A2A30', '#18181C', '#0C0C10', '#000000'), M_CLOTH);
   ball(b, FX, 184, 6, 6, R('#5A5A62', '#2A2A30', '#18181C', '#0C0C10', '#000000'), { mat: M_CLOTH, line: true });
   poly(b, [FX - 40, 170, FX + 40, 170, FX + 34, 180, FX - 34, 180], SHIRT, M_CLOTH);
+  yield;
   // (the branch: in at the vest from the lower left, out of the frame; bark, blood up it, the hole's meat)
   for (let x = 0; x < 120; x++) {
     const y = 214 - x * 0.22, r = 12 - x * 0.04;
@@ -52,10 +54,12 @@ const build = (key: Key): Buf => {
   ball(b, 122, 188, 16, 14, R('#C42A2A', '#8A1414', '#6A0E0E', '#4A0A0A', '#2A0404'), { line: true, mat: M_OTHER });
   for (let k = 0; k < 9; k++) { const a = (k / 9) * Math.PI * 2; poly(b, [122 + Math.cos(a) * 14, 188 + Math.sin(a) * 12, 122 + Math.cos(a + 0.3) * 22, 188 + Math.sin(a + 0.3) * 18, 122 + Math.cos(a + 0.6) * 14, 188 + Math.sin(a + 0.6) * 12], VEST, M_CLOTH); }
   path(b, [118, 200, 116, 204], BLOOD[2], 3); path(b, [128, 200, 130, 204], BLOOD[3], 2);
+  yield;
   // (the chips and the muck over the coat, a leaf in his collar)
   for (let k = 0; k < 14; k++) { const x = 30 + rnd() * 220, y = 178 + rnd() * 26; if (matAt(b, x, y) === M_CLOTH) { seg(b, x, y, x + 3, y + 1, hexU('#D6A060'), 2); plot(b, x + 1, y + 1, hexU('#8A6030')); } }
   tint(b, FX + 80, 196, 30, 8, hexU('#4A4A26'), 0.6, M_CLOTH, 0.5);
   poly(b, [FX + 30, 172, FX + 50, 160, FX + 56, 168, FX + 40, 178], R('#F4A040', '#D9741E', '#B05A14', '#8A3A10', '#5A2008'), M_OTHER);
+  yield;
   // ---- the ears, red
   for (const s of [-1, 1]) {
     const ex = FX + s * 82, ey = 106;
@@ -63,12 +67,15 @@ const build = (key: Key): Buf => {
     ball(b, ex - s, ey + 2, 7, 12, RAGE.slice(4), { mat: M_SKIN, soft: 0.3 });
     ball(b, ex - s * 3, ey + 4, 2.4, 3, R('#3A0808', '#240404', '#140202', '#080101', '#000000'), { mat: M_OTHER });
   }
+  yield;
   // ---- the face: round and jowly, a double chin, red to the ears
   ball(b, FX, 176, 70, 18, RAGE, { mat: M_SKIN, line: (_dx, dy) => dy > -0.1, lw: 1.5 });
   ball(b, FX, FY, 84, 80, RAGE, { mat: M_SKIN, line: (_dx, dy) => dy > -0.2, lw: 1.5 });
   for (const s of [-1, 1]) ball(b, FX + s * 50, 126, 30, 28, RAGE, { mat: M_SKIN, lit: 1.1 });
+  yield;
   // (the veins up his temples, the cords of the scream in his neck)
   for (const s of [-1, 1]) vein(b, [FX + s * 62, 96, FX + s * 66, 80, FX + s * 60, 66], R('#FFB8A8', '#E88A7A', '#C86A5C', '#A04C44', '#78302C', '#401414'), 2);
+  yield;
   // ---- the muttonchops: ginger, bushy, down his cheeks to the mustache, matted with blood, chips in them
   for (const s of [-1, 1]) {
     for (let k = 0; k < 260; k++) {
@@ -79,12 +86,14 @@ const build = (key: Key): Buf => {
   }
   for (const [x, y] of [[FX - 66, 110], [FX + 58, 136], [FX - 54, 140]] as const) { seg(b, x, y, x + 3, y + 1, hexU('#D6A060'), 2); plot(b, x, y + 1, hexU('#8A6030')); }
   poly(b, [FX - 74, 92, FX - 62, 84, FX - 58, 92, FX - 68, 98], R('#F4A040', '#D9741E', '#B05A14', '#8A3A10', '#5A2008'), M_OTHER);
+  yield;
   // ---- the brows: ginger, flung up in the scream
   for (const s of [-1, 1]) {
     const pts = [FX + s * 54, 74, FX + s * 40, 66, FX + s * 24, 64, FX + s * 10, 68];
     path(b, pts, GINGER[4], 6); path(b, pts, GINGER[2], 4); path(b, pts.map((v, i) => (i % 2 ? v - 1 : v)), GINGER[0], 1);
   }
   for (let k = 0; k < 4; k++) path(b, [FX - 40, 50 + k * 4, FX - 14, 47 + k * 4, FX + 14, 48 + k * 4, FX + 40, 51 + k * 4], RAGE[6], 1, undefined, M_SKIN);
+  yield;
   // ---- the far eye: bulging, bloodshot to the rims, behind its wire rim; the near one: shot clean through
   {
     const ex = FX - 32, ey = 92;
@@ -103,6 +112,7 @@ const build = (key: Key): Buf => {
     path(b, [ex - 2, ey + 12, ex - 4, ey + 30, ex - 1, ey + 52, ex - 3, ey + 74], BLOOD[3], 3); path(b, [ex - 1, ey + 12, ex - 3, ey + 30, ex, ey + 52], BLOOD[1], 1);
     path(b, [ex + 6, ey + 12, ex + 8, ey + 34], BLOOD[3], 2);
   }
+  yield;
   // ---- the spectacles: round wire rims; the near lens starred round the hole
   for (const s of [-1, 1]) {
     const lx = FX + s * 32, ly = 92, r = 19;
@@ -112,10 +122,12 @@ const build = (key: Key): Buf => {
     seg(b, lx + s * r, ly - 2, lx + s * (r + 30), ly + 4, WIRE, 1, M_METAL);
   }
   seg(b, FX - 13, 90, FX + 13, 90, WIRE, 1, M_METAL);
+  yield;
   // ---- the nose: a button, gone purple at the tip, broken veins, the pores
   ball(b, FX + 2, 118, 18, 15, NOSE, { mat: M_SKIN, line: (_dx, dy) => dy > 0.4, lit: 1.1 });
   for (const s of [-1, 1]) ball(b, FX + 2 + s * 9, 128, 4.4, 2.8, R('#3A0808', '#240404', '#140202', '#080101', '#000000'), { mat: M_OTHER });
   for (let k = 0; k < 7; k++) { let x = FX + 2 + (rnd() - 0.5) * 20, y = 114 + (rnd() - 0.5) * 12, a = rnd() * 6; for (let i = 0; i < 8; i++) { x += Math.cos(a); y += Math.sin(a); a += (rnd() - 0.5) * 1.4; if (matAt(b, x, y) === M_SKIN) plot(b, x, y, hexU('#C02044')); } }
+  yield;
   // ---- the scream: wide, the gap teeth, the gums, the uvula, the tongue, spit strung
   const cx = FX, cy = 156, mw = 34, mh = 18 + n * 3;
   ball(b, cx, cy, mw + 5, mh + 5, LIP, { mat: M_OTHER, line: true, lw: 1.4 });
@@ -129,6 +141,7 @@ const build = (key: Key): Buf => {
   teeth(b, cx - 28, cx + 28, (x) => top(x) + 3, 1, 8, { tw: 6, gaps: [4], rot: [1, 8], ramp: TOOTH_B.map((v, i) => mixU(v, WHITE, i < 3 ? 0.35 : 0.1)) });
   teeth(b, cx - 24, cx + 24, bot, -1, 6, { tw: 6, gaps: [2, 6], rot: [5], ramp: TOOTH_B });
   for (const sx of [cx - 14, cx + 8, cx + 20]) for (let y = Math.round(top(sx) + 8); y < bot(sx) - 3; y++) if (bay(sx, y) < 0.7) plot(b, sx + Math.round(Math.sin(y * 0.4)), y, hexU('#F0E8F8'));
+  yield;
   // ---- the handlebar mustache: waxed, curled up at the near end, gone limp at the far; over the scream
   for (let k = 0; k < 300; k++) {
     const s = rnd() < 0.5 ? -1 : 1, t = rnd();
@@ -137,6 +150,7 @@ const build = (key: Key): Buf => {
   }
   path(b, [cx + 48, 124, cx + 52, 116, cx + 48, 112, cx + 44, 116], GINGER[2], 2, M_HAIR);
   path(b, [cx - 46, 146, cx - 50, 154, cx - 47, 160], GINGER[3], 2, M_HAIR);
+  yield;
   // ---- the cap: navy, the brass band, the CONDUCTOR plate (half of it), the patent visor; split by the saw
   ball(b, FX, 26, 96, 44, COAT, { mat: M_CLOTH, line: true, lw: 1.5, only: (_x, y) => y < 54 });
   for (let x = FX - 92; x <= FX + 92; x++) { const y = 42 + ((x - FX) / 92) ** 2 * 4; for (let d = 0; d < 6; d++) plot(b, x, y + d, BRASS[d === 0 ? 1 : d < 3 ? 2 : d < 5 ? 3 : 5], M_METAL); }
@@ -144,11 +158,13 @@ const build = (key: Key): Buf => {
   for (let k = 0; k < 5; k++) seg(b, FX - 36 + k * 6, 22, FX - 36 + k * 6, 30, BRASS[5], 2);
   for (let x = FX - 96; x <= FX + 96; x++) { const u = (x - FX) / 96, y = 50 + Math.round(u * u * -4); const th = Math.round(5 + 5 * (1 - u * u)); for (let d = 0; d < th; d++) plot(b, x, y + d, PATENT[d === 0 ? 0 : d < 2 ? 1 : d < th - 1 ? (bay(x, y + d) < 0.4 ? 2 : 3) : 5], M_OTHER); }
   for (let x = FX - 60; x <= FX - 20; x++) plot(b, x, 52, WHITE);
+  yield;
   // (the slot down through the cap and into his forehead: meat, bone at its lips, blood sheeting down his brow)
   poly(b, [FX + 4, -4, FX + 22, -4, FX + 18, 64, FX + 8, 64], R('#C42A2A', '#8A1414', '#6A0E0E', '#4A0A0A', '#2A0404'), M_OTHER);
   path(b, [FX + 4, 0, FX + 8, 62], hexU('#F5F0E6'), 1); path(b, [FX + 22, 0, FX + 18, 62], hexU('#F5F0E6'), 1);
   ball(b, FX + 13, 40, 3, 10, R('#FFD0D8', '#F2A8B0', '#D88090', '#B05868', '#783040'), { mat: M_OTHER });
   for (const [x0, w] of [[FX + 10, 4], [FX + 16, 3], [FX + 6, 2], [FX + 20, 2]] as const) path(b, [x0, 62, x0 + 1, 72, x0 - 1, 80, x0 + 1, 86], BLOOD[w > 2 ? 3 : 2], w);
+  yield;
   // (the blade: what's out of him, foreshortened (edge on), its teeth caked, the hanger's arm snapped off short)
   for (let y = 0; y < 46; y++) {
     const u = (y - 12) / 40, w = 15 * Math.sqrt(Math.max(0, 1 - u * u));
@@ -157,11 +173,13 @@ const build = (key: Key): Buf => {
     if (y % 4 === 0) { plot(b, FX + 13 - w - 1, y, STEEL[3]); plot(b, FX + 13 - w - 2, y + 1, STEEL[4]); plot(b, FX + 13 + w + 1, y, STEEL[4]); plot(b, FX + 13 + w + 2, y + 1, STEEL[5]); }
     if (y % 8 === 2 && y > 6) { plot(b, FX + 13 - w - 1, y + 1, BLOOD[3]); plot(b, FX + 13 + w + 1, y + 1, BLOOD[3]); }
   }
+  yield;
   // (the hub, the hanger's arm snapped off short up out of it; blood up the blade from the slot)
   ball(b, FX + 13, 14, 4, 6, BRASS, { mat: M_METAL, line: true });
   seg(b, FX + 13, 12, FX + 9, -4, STEEL[4], 3, M_METAL); seg(b, FX + 12, 12, FX + 8, -4, STEEL[1], 1, M_METAL);
   for (let y = 34; y < 46; y++) for (let xx = -10; xx <= 10; xx++) if (matAt(b, FX + 13 + xx, y) === M_METAL && bay(FX + 13 + xx, y) < (y - 34) / 12) plot(b, FX + 13 + xx, y, BLOOD[(y + xx) % 3 ? 2 : 3]);
   path(b, [FX + 8, 30, FX + 9, 40], BLOOD[2], 2); path(b, [FX + 18, 24, FX + 17, 40], BLOOD[3], 1);
+  yield;
   // ---- the pores, the sweat, the grime: blood spattered, muck across his brow
   stubble(b, (x, y) => (y > 150 && Math.abs(x - FX) < 70 ? 0.4 : 0), RAGE[6], 0.35);
   skinPost(b, RAGE[7], (x, y) => (((x - FX) / 60) ** 2 + ((y - 124) / 30) ** 2 < 1 ? 0.12 : 0.07), { blackheads: (x, y) => ((x - FX - 2) / 18) ** 2 + ((y - 118) / 15) ** 2 < 1, shine: 0.22 });
@@ -169,9 +187,9 @@ const build = (key: Key): Buf => {
   for (let k = 0; k < 18; k++) { const x = FX + (rnd() - 0.5) * 150, y = 60 + rnd() * 110; if (matAt(b, x, y) === M_SKIN) ball(b, x, y, 1 + rnd() * 1.6, 1 + rnd() * 1.2, BLOOD.slice(1)); }
   tint(b, FX - 44, 60, 20, 4, hexU('#4A4A26'), 0.55, M_SKIN, 0.5);
   return b;
-};
+}
 
-const get = stamps<Key>(build);
+const get = stamps<Key>(build, ['0', '1', '2']);
 
 /** His gross-up: (cx, cy) where the middle of his face goes on the screen, `zoom` 1 at the hold; `talking` his mouth
  *  going (the scream), `jolt` a shake (the snap). */

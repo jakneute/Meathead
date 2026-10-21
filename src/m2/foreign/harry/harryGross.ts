@@ -26,10 +26,12 @@ const TVEIN = R('#FFD0B0', '#ECAA86', '#CC8866', '#A86A50', '#7E4C38', '#44241A'
 
 type Key = 'a' | 'b';
 
-const build = (key: Key): Buf => {
+function* build(key: Key): Generator<void, Buf> {
   setSeed(1969);
   const b = newBuf();
+  yield;
   // ---- the traps and the shoulders: hams, the cords of the neck into them; gray chest hair; the dog tags' chain; the
+  yield;
   // bandolier's strap and its brass across him
   for (const s of [-1, 1]) ball(b, FX + s * 104, 214, 86, 70, TAN, { mat: M_SKIN, line: true, lw: 1.5 });
   ball(b, FX, 230, 70, 50, TAN, { mat: M_SKIN });
@@ -40,9 +42,11 @@ const build = (key: Key): Buf => {
   }
   hairs(b, 70, () => [FX - 30 + rnd() * 60, 186 + rnd() * 18], 5, -Math.PI / 2, GRAY[2], M_SKIN);
   for (let x = FX - 34; x <= FX + 34; x++) { const y = 192 + ((x - FX) / 34) ** 2 * -14; if (x % 2 === 0) { plot(b, x, y, STEEL[1]); plot(b, x, y + 1, STEEL[4]); } }
+  yield;
   // (the bandolier: across from his near shoulder down, its brass rounds)
   for (let d = -6; d <= 6; d++) seg(b, FX + 136, 154 + d, FX - 30, 214 + d, LEATHER[Math.abs(d) === 6 ? 5 : d < -2 ? 1 : d < 2 ? 2 : 3], 1, M_CLOTH);
   for (let k = 0; k < 9; k++) { const x = FX + 128 - k * 18, y = 156 + k * 6.5; for (let yy = -12; yy <= 0; yy++) for (let xx = -3; xx <= 3; xx++) plot(b, x + xx + yy * 0.36, y + yy, BRASS[Math.abs(xx) === 3 ? 5 : xx < -1 ? 0 : xx < 1 ? 2 : 3], M_METAL); plot(b, x - 4.5, y - 13, BRASS[4]); }
+  yield;
   // ---- the ears: hairs out of them, the lobes long
   for (const s of [-1, 1]) {
     const ex = FX + s * 66, ey = 104;
@@ -51,6 +55,7 @@ const build = (key: Key): Buf => {
     ball(b, ex - s * 2, ey + 4, 2.4, 3, R('#3A1808', '#24100A', '#140806', '#080302', '#000000'), { mat: M_OTHER });
     hairs(b, 9, () => [ex - s * 2, ey + 3], 7, s > 0 ? -0.3 : Math.PI + 0.3, GRAY[3]);
   }
+  yield;
   // ---- the face: lean and hard, the cheekbones up, the jaw clenched square
   ball(b, FX, FY + 4, 64, 78, TAN, { mat: M_SKIN, line: (_dx, dy) => dy > -0.2, lw: 1.5 });
   poly(b, [FX - 56, 120, FX + 56, 120, FX + 50, 162, FX + 22, 178, FX - 22, 178, FX - 50, 162], TAN, M_SKIN, { line: false, tilt: 0.2 });
@@ -59,6 +64,7 @@ const build = (key: Key): Buf => {
     tint(b, FX + s * 44, 136, 12, 18, TAN[6], 0.35, M_SKIN, 0.7);
     path(b, [FX + s * 54, 124, FX + s * 56, 146, FX + s * 50, 162], TAN[6], 1, undefined, M_SKIN);
   }
+  yield;
   // ---- the hair, gray, scraped back over the top; the bandana tied over it, sweated dark, the paisley, the knot
   ball(b, FX, 44, 70, 26, GRAY.slice(1), { mat: M_HAIR, line: (_dx, dy) => dy < 0, only: (_x, y) => y < 50, flat: 0.6 });
   for (let k = 0; k < 60; k++) { const x0 = FX - 62 + rnd() * 124; path(b, [x0, 48, x0 + (x0 - FX) * 0.08, 34, x0 + (x0 - FX) * 0.2, 18], k % 3 ? GRAY[k % 2 ? 4 : 3] : GRAY[1], 1, undefined, M_HAIR); }
@@ -66,25 +72,30 @@ const build = (key: Key): Buf => {
     const u = (x - FX) / 72, yt = 44 + u * u * 8, h = 16 - u * u * 4;
     for (let d = 0; d < h; d++) { const v = d / h; plot(b, x, yt + d, BAND[d === 0 || d >= h - 1 ? 5 : v < 0.25 ? 1 : v < 0.6 ? (bay(x, yt + d) < 0.5 ? 2 : 1) : 3], M_CLOTH); }
   }
+  yield;
   // (the paisley: white teardrops and dots; sweated through dark along the bottom)
   for (let k = 0; k < 16; k++) { const x = FX - 64 + k * 8.5, y = 50 + ((x - FX) / 72) ** 2 * 8 + (k % 2) * 3; plot(b, x, y, WHITE); plot(b, x + 1, y, WHITE); plot(b, x + 1, y + 1, BAND[0]); plot(b, x - 1, y + 2, BAND[0]); }
   for (let x = FX - 70; x <= FX + 70; x++) { const y0 = 44 + ((x - FX) / 72) ** 2 * 8 + 10; for (let d = 0; d < 4; d++) if (bay(x, y0 + d) < 0.55) plot(b, x, y0 + d, BAND[4], undefined, M_CLOTH); }
+  yield;
   // (the knot off the side of his head and its tails flying out)
   ball(b, FX + 76, 54, 10, 9, BAND, { mat: M_CLOTH, line: true });
   poly(b, [FX + 80, 50, FX + 130, 30, FX + 136, 44, FX + 84, 58], BAND, M_CLOTH);
   poly(b, [FX + 82, 58, FX + 124, 66, FX + 120, 78, FX + 80, 64], BAND, M_CLOTH);
+  yield;
   // ---- the forehead: furrows, the vein forked up under the bandana, the temples' veins, liver spots
   for (let k = 0; k < 3; k++) path(b, [FX - 40, 64 + k * 5, FX - 14, 62 + k * 5, FX + 14, 63 + k * 5, FX + 40, 65 + k * 5], TAN[6], 1, undefined, M_SKIN);
   vein(b, [FX - 6, 82, FX - 10, 72, FX - 6, 62, FX - 10, 58], TVEIN, 3);
   vein(b, [FX - 8, 68, FX + 6, 62, FX + 10, 58], TVEIN, 2);
   for (const s of [-1, 1]) vein(b, [FX + s * 52, 90, FX + s * 56, 76, FX + s * 52, 64], TVEIN, 2);
   for (let k = 0; k < 10; k++) { const x = FX + (rnd() - 0.5) * 100, y = 62 + rnd() * 100; if (matAt(b, x, y) === M_SKIN) tint(b, x, y, 2 + rnd() * 2.5, 2 + rnd() * 2, TAN[5], 0.45, M_SKIN, 0.4); }
+  yield;
   // ---- the brows: gray, wild, crushed down in the middle
   for (const s of [-1, 1]) {
     const pts = [FX + s * 50, 72, FX + s * 36, 74, FX + s * 22, 80, FX + s * 8, 88];
     path(b, pts, GRAY[4], 5); path(b, pts.map((v, i) => (i % 2 ? v - 1 : v)), GRAY[2], 2);
     for (let k = 0; k < 22; k++) { const t = rnd(), x = FX + s * (50 - t * 42), y = 72 + t * 16; seg(b, x, y + 2, x + s * (rnd() * 6 - 2), y - 4 - rnd() * 5, k % 3 ? GRAY[3] : GRAY[1]); }
   }
+  yield;
   // ---- the eyes: bulging, bloodshot, a burst vessel in the near one; the crow's feet; the round amber glasses over
   for (const s of [-1, 1]) {
     const ex = FX + s * 28, ey = 98;
@@ -98,6 +109,7 @@ const build = (key: Key): Buf => {
     for (const [dy, col] of [[11, TAN[6]], [15, TAN[5]]] as const) path(b, [ex - 13, ey + dy - 2, ex - 5, ey + dy + 1, ex + 5, ey + dy + 1, ex + 13, ey + dy - 2], col, 1, undefined, M_SKIN);
     for (let k = 0; k < 4; k++) path(b, [ex + s * 20, ey - 6 + k * 5, ex + s * 28, ey - 9 + k * 7, ex + s * 34, ey - 10 + k * 9], TAN[6], 1, undefined, M_SKIN);
   }
+  yield;
   // ---- the nose: long, hooked, pores, hairs out of it
   poly(b, [FX - 6, 90, FX + 6, 90, FX + 12, 122, FX - 12, 122], TAN, M_SKIN, { line: false, tilt: 1.3 });
   for (const s of [-1, 1]) ball(b, FX + s * 13, 128, 8, 8, TAN, { mat: M_SKIN, line: (dx, dy) => dy > -0.2 && dx * s > -0.3 });
@@ -106,6 +118,7 @@ const build = (key: Key): Buf => {
     ball(b, FX + s * 8, 134, 4.6, 3, R('#3A1808', '#24100A', '#140806', '#080302', '#000000'), { mat: M_OTHER });
     for (let k = 0; k < 5; k++) path(b, [FX + s * (5 + k * 2), 134, FX + s * (4.5 + k * 2.4) + (rnd() - 0.5) * 2, 137 + rnd() * 3, FX + s * (4 + k * 2.6), 139 + rnd() * 3], GRAY[3]);
   }
+  yield;
   // ---- the war face: lips peeled off clenched teeth, gums, tartar, spit between them
   const cx = FX, cy = 156;
   const top = (x: number) => cy - 9 + ((x - cx) / 32) ** 2 * 4;
@@ -115,11 +128,14 @@ const build = (key: Key): Buf => {
   teeth(b, cx - 30, cx + 30, (x) => top(x) + 3, 1, 7, { tw: 5, rot: [0, 11], ramp: TOOTH_B.map((v, i) => mixU(v, WHITE, i < 3 ? 0.4 : 0.1)) });
   teeth(b, cx - 28, cx + 28, (x) => bot(x) - 3, -1, 6, { tw: 5, rot: [1, 10], gaps: [5], ramp: TOOTH_B.map((v, i) => mixU(v, WHITE, i < 3 ? 0.3 : 0.05)) });
   seg(b, cx - 30, cy + 1, cx + 30, cy + 1, MOUTH[5], 1, undefined, M_MOUTH);
+  yield;
   // (spit forced out between them, frothing at the corners)
   for (const [x, y] of [[cx - 30, cy], [cx + 30, cy], [cx - 10, cy + 1], [cx + 12, cy + 1]] as const) { ball(b, x, y, 2.4, 1.8, R('#FFFFFF', '#F4F8FC', '#E0E8F0', '#C0CCD8', '#8A9AAA')); plot(b, x - 1, y - 1, WHITE); }
   for (let x = cx - 34; x <= cx + 34; x++) for (let d = 1; d <= 3; d++) { plot(b, x, top(x) - d, LIP[d === 1 ? 5 : d === 2 ? 2 : 1], M_OTHER); plot(b, x, bot(x) + d, LIP[d === 1 ? 5 : d === 2 ? 1 : 3], M_OTHER); }
+  yield;
   // (the folds out from the corners: the grimace)
   for (const s of [-1, 1]) { path(b, [cx + s * 34, cy - 4, cx + s * 38, cy - 18, cx + s * 30, cy - 30], TAN[6], 1, undefined, M_SKIN); path(b, [cx + s * 36, cy + 6, cx + s * 40, cy + 18], TAN[6], 1, undefined, M_SKIN); }
+  yield;
   // ---- the Van Dyke: the mustache over the lip (gray), the goatee under it on the chin; jerky crumbs in it
   for (let k = 0; k < 260; k++) {
     const x = cx - 36 + rnd() * 72, y = 140 + rnd() * 5 + Math.abs(x - cx) * 0.12;
@@ -132,11 +148,13 @@ const build = (key: Key): Buf => {
     seg(b, x, y, x + (rnd() - 0.5) * 2, y + 4 + rnd() * 3, k % 4 ? GRAY[k % 2 ? 3 : 2] : GRAY[1]);
   }
   for (const [x, y] of [[cx - 20, 146], [cx + 8, 178], [cx - 6, 184]] as const) ball(b, x, y, 1.8, 1.4, R('#B8784A', '#8A5028', '#6A3818', '#4A240C', '#2A1004'));
+  yield;
   // ---- stubble over the cheeks (shaved round the beard), the pores, the blackheads, the oil shining
   stubble(b, (x, y) => (y > 128 ? 0.6 : 0), GRAY[4], 0.35);
   skinPost(b, TAN[7], (x, y) => (((x - FX) / 18) ** 2 + ((y - 120) / 22) ** 2 < 1 ? 0.18 : 0.07), { blackheads: (x, y) => ((x - FX) / 18) ** 2 + ((y - 122) / 18) ** 2 < 1, shine: 0.3 });
   ball(b, FX - 46, 140, 2.6, 2.4, R('#6A3A22', '#4A2414', '#2E140A', '#1A0804', '#0E0402'), { mat: M_OTHER });
   path(b, [FX - 46, 139, FX - 49, 134, FX - 48, 129], GRAY[3]);
+  yield;
   // ---- the glasses: round, wire, amber, his bulging eyes through them, the glare
   for (const s of [-1, 1]) {
     const lx = FX + s * 28, ly = 98, r = 19;
@@ -152,14 +170,15 @@ const build = (key: Key): Buf => {
     seg(b, lx + s * r, ly - 2, lx + s * (r + 18), ly + 2, STEEL[2], 1, M_METAL);
   }
   seg(b, FX - 9, 96, FX + 9, 96, STEEL[2], 1, M_METAL); seg(b, FX - 8, 95, FX + 8, 95, STEEL[0], 1, M_METAL);
+  yield;
   // ---- sweat: beads across the brow under the bandana, on the nose; running down the temples into the cords
   for (let k = 0; k < 12; k++) { const x = FX - 46 + rnd() * 92, y = 62 + rnd() * 12; if (matAt(b, x, y) === M_SKIN) bead(b, x, y, 1.4 + rnd() * 1.4, TAN); }
   bead(b, FX + 4, 118, 1.6, TAN);
   for (const s of [-1, 1]) { path(b, [FX + s * 58, 70, FX + s * 60, 90, FX + s * 58, 110, FX + s * 61, 124], mixU(TAN[1], WHITE, 0.5), 2, undefined, M_SKIN); bead(b, FX + s * 61, 126, 2.2, TAN); }
   return b;
-};
+}
 
-const get = stamps<Key>(build);
+const get = stamps<Key>(build, ['a', 'b']);
 
 /** His gross-up: (cx, cy) where the middle of his face goes on the screen, `zoom` 1 at the hold. */
 export const drawHarryGross = (c: Ctx, cx: number, cy: number, zoom: number, f: number, jolt = 0) => {

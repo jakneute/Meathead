@@ -10,7 +10,7 @@
 // Live: the throat's glow pulsing, the inner jaws snapping in and out (two stamps), oil dripping, a wire sparking.
 
 import {
-  type Ctx, type Buf, GW, GH, R, hexU, mixU, WHITE, newBuf, cloneBuf, setSeed, rnd, matAt, plot, seg, path, ball, tint, poly, inkEdges, stamps, drawGrossStamp, grossBackdrop, hash2, bay, M_OTHER, M_METAL, M_MOUTH, M_CLOTH,
+  type Ctx, type Buf, GW, GH, R, hexU, mixU, WHITE, newBuf, cloneBuf, setSeed, rnd, matAt, plot, seg, path, ball, tint, poly, inkEdges, stamps, stepper, drawGrossStamp, grossBackdrop, hash2, bay, M_OTHER, M_METAL, M_MOUTH, M_CLOTH,
 } from '../../grossKit';
 
 const FX = 136, FY = 118;
@@ -38,10 +38,12 @@ const inDome = (x: number, y: number) => {
   return y > top + nose * 0.4 && y < bot - nose * 0.4;
 };
 
-const base = (): Buf => {
+function* base(): Generator<void, Buf> {
   setSeed(4040);
   const b = newBuf();
+  yield;
   // ---- her neck: a ribbed column down and back, a hose round it zip-tied, a chrome ball joint, the latex torn (the
+  yield;
   // yellow foam bulging out), a serial plate riveted on
   poly(b, [176, 112, 272, 70, 272, 204, 140, 204], LATEX.slice(2), M_CLOTH, { tilt: 0.5 });
   for (let k = 0; k < 7; k++) {
@@ -60,6 +62,7 @@ const base = (): Buf => {
   for (const k of [6, 13]) { const x = hose[k * 2], y = hose[k * 2 + 1]; seg(b, x - 6, y - 1, x + 6, y + 1, hexU('#F0F0E8'), 2, M_OTHER); poly(b, [x + 6, y - 1, x + 11, y - 3, x + 11, y + 1, x + 6, y + 2], R('#FFFFFF', '#F0F0E8', '#D0D0C8', '#A0A098', '#606058'), M_OTHER); }
   ball(b, 176, 182, 10, 10, CHROME.slice(1), { mat: M_METAL, line: true });
   ball(b, 173, 179, 3, 2, R('#FFFFFF', '#FFFFFF', '#E4E6EE', '#C0C4CE', '#9A9EAA'), { soft: 0.3 });
+  yield;
   // (the tear: ragged lips of latex, the foam bulging out of it, crumbs of it)
   ball(b, 238, 156, 11, 8, FOAM, { mat: M_OTHER });
   for (let k = 0; k < 40; k++) { const x = 228 + rnd() * 22, y = 149 + rnd() * 15; if (matAt(b, x, y) === M_OTHER && hash2(Math.round(x), Math.round(y)) > 0.4) plot(b, x, y, FOAM[rnd() < 0.5 ? 5 : 0]); }
@@ -67,10 +70,12 @@ const base = (): Buf => {
   path(b, [226, 160, 232, 164, 238, 162, 244, 166, 250, 162], LATEX[7], 2);
   path(b, [227, 151, 231, 146, 236, 150], LATEX[1], 1);
   for (const [x, y] of [[232, 170], [236, 174], [234, 180]] as const) plot(b, x, y, FOAM[2]);
+  yield;
   // (the serial plate)
   poly(b, [200, 182, 230, 176, 232, 192, 202, 198], CHROME, M_METAL);
   for (let k = 0; k < 10; k++) seg(b, 205 + k * 2.4, 183 - k * 0.5, 205 + k * 2.4, 191 - k * 0.5, k % 3 ? CHROME[6] : CHROME[4]);
   for (const [x, y] of [[202, 184], [229, 178], [203, 195], [230, 189]] as const) plot(b, x, y, CHROME[0]);
+  yield;
   // ---- the crest: a flat fan back over her head, ridged, scalloped, riveted on (one gone, glue crusted at the seam)
   {
     const px0 = 206, py0 = 74;
@@ -91,6 +96,7 @@ const base = (): Buf => {
     }
     for (let k = 0; k < 6; k++) { const x = 150 + k * 16, y = 70 - k * 2; ball(b, x, y + rnd() * 3, 2.4, 3.4, R('#FFFCE8', '#F0E8C0', '#D8C890', '#B0A060', '#706030'), { line: true, lw: 0.7 }); }
   }
+  yield;
   // ---- the dome: long and glossy, the snout at the left
   for (let y = 0; y < GH; y++) for (let x = 0; x < GW; x++) {
     if (!inDome(x, y)) continue;
@@ -103,6 +109,7 @@ const base = (): Buf => {
     const s = (1 - lv) * 6.3 - 0.4 + (bay(x, y) - 0.5) * 0.9;
     plot(b, x, y, LATEX[Math.max(0, Math.min(6, Math.round(s)))], M_DOME);
   }
+  yield;
   // (the rig through the latex: a gear or two, a circuit board, a bundle of wires; dithered, under the shine)
   const under = (x: number, y: number, col: number) => { if (matAt(b, x, y) === M_DOME && bay(x, y) < 0.55) plot(b, x, y, mixU(b.px[y * GW + x], col, 0.55)); };
   for (const [gx, gy, gr] of [[168, 84, 16], [196, 92, 10], [128, 96, 8]] as const) {
@@ -114,6 +121,7 @@ const base = (): Buf => {
   }
   for (let y = 98; y < 112; y++) for (let x = 140; x < 170; x++) under(x, y, BOARD[1]);
   for (let k = 0; k < 6; k++) { let x = 210, y = 80 + k * 4; for (let i = 0; i < 70; i++) { x -= 1; y += Math.sin(i * 0.15 + k) * 0.6; under(Math.round(x), Math.round(y), hexU(['#C83030', '#3060D0', '#D0B030'][k % 3])); } }
+  yield;
   // (the gloss: the long hard shine down the top, the specular glint, a smear of grease through it, dust in the grease)
   for (let x = 50; x < 250; x++) {
     let y = 0; while (y < GH && !inDome(x, y)) y++;
@@ -122,15 +130,17 @@ const base = (): Buf => {
   }
   ball(b, 150, 54, 6, 2.5, R('#FFFFFF', '#FFFFFF', '#EEF3FF', '#B9C6DE', '#9AA8C8'), { soft: 0.4 });
   for (let k = 0; k < 140; k++) { const x = 40 + rnd() * 220, y = 40 + rnd() * 90; if (matAt(b, x, y) === M_DOME) plot(b, x, y, rnd() < 0.5 ? LATEX[1] : hexU('#6A5A3A')); }
+  yield;
   // (the seam down the dome where the latex halves meet: glue crusted, drips)
   path(b, [230, 54, 200, 60, 160, 68, 120, 82, 80, 98, 44, 112], LATEX[7], 1, undefined, M_DOME);
   for (const x of [200, 162, 124, 92]) { const y = x === 200 ? 60 : x === 162 ? 68 : x === 124 ? 81 : 95; seg(b, x, y + 1, x - 1, y + 6, hexU('#D8C890'), 1, undefined, M_DOME); plot(b, x - 1, y + 7, hexU('#F0E8C0')); }
+  yield;
   // (scuffs, a gouge in it)
   for (let k = 0; k < 16; k++) { const x = 60 + rnd() * 180, y = 50 + rnd() * 70; if (matAt(b, x, y) === M_DOME) seg(b, x, y, x + 4 + rnd() * 8, y + (rnd() - 0.5) * 3, LATEX[1], 1, undefined, M_DOME); }
   inkEdges(b, M_DOME, LATEX[7]);
   inkEdges(b, M_CREST, LATEX[7], [M_DOME]);
   return b;
-};
+}
 
 /** The dome's underside at x (the upper jaw's edge), and the lower jaw's top edge and underside, hanging open. */
 const upper = (x: number) => { const t = (x - 30) / 230; return 127 - t * 24; };
@@ -227,13 +237,15 @@ const jaws = (b: Buf, out: number) => {
   tint(b, mx, my + 2, 9, 4, OIL[1], 0.5, M_OTHER, 0.5);
 };
 
-let baseBuf: Buf | null = null;
-const get = stamps<Key>((key) => {
-  if (!baseBuf) baseBuf = base();
-  const b = cloneBuf(baseBuf);
+// (her base, painted a step at a time ahead (warmGrossUps), or at once when she's wanted first)
+const baseJob = stepper(base);
+function* withBase(key: Key): Generator<void, Buf> {
+  while (!baseJob.run(performance.now())) yield;
+  const b = cloneBuf(baseJob.finish());
   jaws(b, key === 'a' ? 1 : 0.6);
   return b;
-});
+}
+const get = stamps<Key>(withBase, ['a', 'b']);
 
 /** Her gross-up: (cx, cy) where her middle goes on the screen, `zoom` 1 at the hold; `jolt` a shake (the screech). */
 export const drawQueenGross = (c: Ctx, cx: number, cy: number, zoom: number, f: number, jolt = 0) => {
