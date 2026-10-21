@@ -426,7 +426,9 @@ export const drawCatPlayer = (c: Ctx, p: Player, state: GameState, o: CatPlayerO
     // Stood about: breathing, the tail swishing, an ear flicking now and then; his paws hanging balled up at his sides
     // the way he stands (the slab arms bowed out off the barrel of him), or his weapon out
     const br = Math.sin(f * 0.08) * 0.8;
-    q = { hip: [0, -24 + br * 0.5], lean: 0.02, tN: [7, 0], tF: [-5, 0], fF: [-9, -25 + br], fN: hold ? HOLD_PAW : [15, -27 + br], mood: o.angry ? 'scowl' : 'grit', hold: hold ?? undefined, nearDown: !!hold };
+    // (firm: the arms near straight down off the shoulders, fists balled by the thighs, a little bowed out by the lats;
+    // not a limp paw held up in front (the user's: it looked "fruity"))
+    q = { hip: [0, -24 + br * 0.5], lean: 0.02, tN: [7, 0], tF: [-5, 0], fF: [-11, -23 + br], fN: hold ? HOLD_PAW : [14, -23 + br], mood: o.angry ? 'scowl' : 'grit', hold: hold ?? undefined, nearDown: !!hold };
   }
   if (hacked) { setCatFace({ ...face, mouth: 'hack' }); q.headDx = (q.headDx ?? 0) + 2; q.headRot = (q.headRot ?? 0) - 0.1; }
   drawCatFig(c, q, f);
