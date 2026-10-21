@@ -429,7 +429,6 @@ const incidentBoard = (c: Ctx) => {
   box(c, x + 6, y + 6, w - 12, h - 12, '#5A6068');
   bandedGradient(c, x + 7, y + 7, w - 14, h - 14, ['#F4F4EE', '#E8E8E0', '#DADAD0'], 5);
   for (const [sx, sy, sw] of [[110, 84, 30], [96, 100, 40], [140, 70, 20]]) pixelBlob(c, x + sx, y + sy, sw, 8, 'rgba(120, 130, 150, 0.1)');
-  text(c, '1', x + 84, y + 100, 'rgba(200, 40, 40, 0.14)', 24, 'center', null);
   text(c, 'DAYS WITHOUT', x + w / 2, y + 30, '#1E3A8A', 8, 'center', null);
   text(c, 'AN INCIDENT:', x + w / 2, y + 46, '#1E3A8A', 8, 'center', null);
   text(c, '0', x + w / 2, y + 100, '#DC2626', 24, 'center', '#F4A0A0');
@@ -683,8 +682,9 @@ const heads = (c: Ctx) => {
     oval(c, x, y + 22, 11, 3, '#0A0A0E');
     if (i === 1) { tape(c, x + 6, y - 22, 12, 5); }
   });
-  plate(c, rx(1585), 414, ['SPARE HEADS'], '#2A2E36', '#F4F4F5');
-  for (const wx of [rx(1585) - 50, rx(1585) + 50]) box(c, wx, sy + 8, 1, 6, '#A3ABB6');
+  // (its plate hung off the shelf's far end, clear of the ladder)
+  plate(c, rx(1660), 414, ['SPARE HEADS'], '#2A2E36', '#F4F4F5');
+  for (const wx of [rx(1660) - 50, rx(1660) + 50]) box(c, wx, sy + 8, 1, 6, '#A3ABB6');
   // (the chair: an orange shell on legs, faded)
   const cx = rx(1530);
   shade(c, cx - 34, 440, 68, 60, 0.3);
@@ -701,7 +701,7 @@ const heads = (c: Ctx) => {
   box(c, cx + 32, 470, 10, 26, INK); box(c, cx + 33, 470, 8, 24, B[1]); oval(c, cx + 34, 498, 7, 6, INK); oval(c, cx + 34, 498, 6, 5, '#F1EFEA');
   pole(c, cx + 38, 488, 8, 13, '#B91C1C'); box(c, cx + 38, 488, 8, 2, '#D3D9E0');
   // (up the wall: the safety poster, the clock and its plaque, the first aid box with one bandage left)
-  const px = rx(1458), py = 140, pw = 144, ph = 150;
+  const px = rx(1392), py = 140, pw = 144, ph = 150;
   shade(c, px, py, pw, ph, 0.35, 3);
   box(c, px, py, pw, ph, '#E2D6B2'); box(c, px, py, pw, 1, '#F4ECD0'); box(c, px + pw - 2, py, 2, ph, '#B8AC88');
   box(c, px, py, pw, 24, '#2F7D3A'); box(c, px, py, pw, 2, '#4CA04A'); box(c, px, py + 22, pw, 2, '#1E5A2A');
@@ -963,6 +963,170 @@ const vending = (c: Ctx) => {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
+// The filth: what the pigeons, the rats and the staff have left everywhere
+
+/** A cigarette butt on the floor: the filter, a burnt end, flattened. */
+const butt = (c: Ctx, x: number, y: number, k: number) => {
+  x = Math.round(x); y = Math.round(y);
+  box(c, x - 1, y - 1, 7, 3, 'rgba(26, 11, 6, 0.55)');
+  box(c, x, y, 3, 1, k > 0.5 ? '#D89A4A' : '#E8E2CC'); box(c, x + 3, y, 2, 1, '#F1EFEA'); box(c, x + 5, y, 1, 1, '#4A4038');
+};
+/** Pigeon crap: a white splat, a gray-green middle, a few drops round it. */
+const splat = (c: Ctx, x: number, y: number, s = 1) => {
+  x = Math.round(x); y = Math.round(y);
+  box(c, x - 2 * s, y, 5 * s, 2 * s, '#E8E6DC'); box(c, x - s, y - s, 3 * s, 1 * s, '#F4F2EA'); box(c, x, y, s, s, '#6A7458');
+  box(c, x + 4 * s, y + s, s, s, '#E8E6DC'); box(c, x - 3 * s, y + 2 * s, s, s, '#D8D6CC');
+};
+/** A run of pigeon crap down a wall from a ledge: streaks, thickest at the top. */
+const streaks = (c: Ctx, x: number, y: number, w: number, n: number) => {
+  for (let k = 0; k < n; k++) {
+    const sx = Math.round(x + hash(x * 0.3 + k * 7.7) * w), len = 6 + Math.floor(hash(y + k * 3.3) * 18);
+    box(c, sx, y, 2, 3, '#ECEAE0'); box(c, sx, y + 3, 1, len, 'rgba(232, 230, 220, 0.8)'); box(c, sx, y + 3 + len, 2, 2, '#D8D6CC');
+  }
+};
+/** The sticky floor: spilled soda gone to tar, the shine still on it; footprints tracked out of it. */
+const sticky = (c: Ctx, x: number, y: number, r: number, col: string) => {
+  pixelBlob(c, x, y, r, r * 0.22, col);
+  pixelBlob(c, x - r * 0.2, y - 1, r * 0.55, r * 0.1, mix(col, '#000000', 0.25));
+  box(c, x - r * 0.4, y - 2, Math.max(2, r * 0.3), 1, 'rgba(255, 240, 230, 0.45)'); box(c, x + r * 0.2, y, 2, 1, 'rgba(255, 240, 230, 0.35)');
+};
+
+/** The floor's filth along the whole room (a..b): sticky spills, butts, crap, rat droppings. */
+const floorFilth = (c: Ctx, a: number, b: number) => {
+  for (let x = Math.floor((a - X0) / 46) * 46 + X0; x < b; x += 46) {
+    const s = hash(x * 0.913 + 5), t = hash(x * 0.271 + 9);
+    if (s > 0.72) sticky(c, x + t * 30, G + 10 + Math.floor(t * 14), 12 + s * 16, t > 0.5 ? 'rgba(58, 24, 30, 0.5)' : 'rgba(70, 48, 14, 0.5)');
+    if (s > 0.88) for (let k = 0; k < 4; k++) { const fx = x + t * 30 + 18 + k * 13, fy = G + 12 + (k % 2) * 6; box(c, fx, fy, 5, 2, `rgba(58, 30, 24, ${(0.4 - k * 0.08).toFixed(2)})`); box(c, fx + 1, fy + 2, 3, 1, `rgba(58, 30, 24, ${(0.3 - k * 0.06).toFixed(2)})`); }
+    if (t < 0.45) butt(c, x + s * 40, G + 7 + Math.floor(hash(x + 3) * 24), hash(x + 1));
+    if (t > 0.35 && t < 0.62) splat(c, x + 10 + s * 30, G + 8 + Math.floor(hash(x * 2.3) * 26), hash(x * 4) > 0.7 ? 2 : 1);
+    if (s < 0.22) for (let k = 0; k < 6; k++) box(c, Math.round(x + 8 + hash(x + k * 1.7) * 22), Math.round(G + 6 + hash(x * 1.9 + k) * 6), 2, 1, '#24180E');
+  }
+};
+
+/** The holes the rats come out of: arches gnawed through the rubber base and the block behind, dark, droppings out front. */
+const ratHole = (c: Ctx, x: number) => {
+  const y = G, w = 18, h = 16;
+  poly(c, [x - w / 2 - 1, y, x - w / 2 - 1, y - h + 6, x - 4, y - h - 1, x + 4, y - h - 1, x + w / 2 + 1, y - h + 6, x + w / 2 + 1, y], INK);
+  poly(c, [x - w / 2, y, x - w / 2, y - h + 6, x - 4, y - h, x + 4, y - h, x + w / 2, y - h + 6, x + w / 2, y], '#060504');
+  // (gnawed: the rim chewed ragged, the light catching its far side)
+  for (let k = 0; k < 4; k++) box(c, x - w / 2 + 2 + k * 4, y - h + 2 - (k % 2), 2, 2, '#25231E');
+  box(c, x + w / 2 - 1, y - h + 7, 1, h - 7, '#4A463A');
+  // (a pair of eyes in there)
+  box(c, x - 3, y - 8, 1, 1, '#DC2626'); box(c, x + 1, y - 8, 1, 1, '#DC2626');
+  for (let k = 0; k < 9; k++) box(c, Math.round(x - 16 + hash(x + k) * 32), G + 3 + Math.floor(hash(x * 3 + k) * 5), 2, 1, '#1E140A');
+};
+
+/** NO SMOKING, by the door: a butt stubbed out on it, a burn; under it the coffee can they use for an ashtray. */
+const smokers = (c: Ctx) => {
+  const x = rx(14), y = 296, w = 70, h = 64;
+  shade(c, x, y, w, h);
+  slab(c, x, y, w, h, '#E8E4D8');
+  ball(c, x + w / 2, y + 24, 17, '#E8E4D8', false);
+  c.strokeStyle = '#C81E1E'; c.lineWidth = 4; c.beginPath(); c.arc(x + w / 2, y + 24, 15, 0, Math.PI * 2); c.stroke();
+  box(c, x + w / 2 - 12, y + 22, 18, 5, '#F4F2EA'); box(c, x + w / 2 + 6, y + 22, 5, 5, '#D89A4A'); box(c, x + w / 2 - 12, y + 22, 18, 1, INK); box(c, x + w / 2 - 12, y + 26, 23, 1, INK);
+  line(c, [x + w / 2 - 11, y + 13, x + w / 2 + 11, y + 35], '#C81E1E', 4);
+  text(c, 'NO SMOKING', x + w / 2, y + 56, '#3A2A18', 6, 'center', null);
+  // (the burn, and the butt stuck to it)
+  pixelBlob(c, x + 52, y + 14, 4, 3, '#3A2A18'); pixelBlob(c, x + 52, y + 14, 2, 2, '#14100A');
+  box(c, x + 50, y + 15, 5, 2, '#F1EFEA'); box(c, x + 54, y + 15, 2, 2, '#4A4038');
+  for (const [sx, sy] of [[x + 2, y + 2], [x + w - 4, y + 2], [x + 2, y + h - 4], [x + w - 4, y + h - 4]]) screw(c, sx, sy);
+  // (the coffee can, heaped over with butts, the ash down its side)
+  const cx = rx(80);
+  shade(c, cx, G - 20, 16, 20, 0.3, 2);
+  pole(c, cx, G - 20, 16, 20, '#B4442A');
+  box(c, cx + 2, G - 14, 12, 6, '#E8C040'); text(c, 'JOE', cx + 8, G - 9, '#6A1A10', 6, 'center', null);
+  pixelBlob(c, cx + 8, G - 21, 9, 3, '#6E6A62');
+  for (let k = 0; k < 9; k++) { const bx = cx + 1 + (k * 5) % 14, by = G - 24 + (k % 3) * 2; box(c, bx, by, 4, 1, k % 3 ? '#E8E2CC' : '#D89A4A'); box(c, bx + 3, by, 1, 1, '#4A4038'); }
+  box(c, cx + 14, G - 18, 1, 10, 'rgba(110, 106, 98, 0.6)');
+  for (let k = 0; k < 7; k++) butt(c, cx - 22 + hash(k * 3.7) * 56, G + 3 + Math.floor(hash(k * 5.3) * 10), hash(k));
+};
+
+/** A spare head that got away: on its side in the corner by the clock, grinning at the ceiling, a butt in its mouth. */
+const lostHead = (c: Ctx) => {
+  const x = rx(270), y = G - 16, col = '#E8803A', r = rampOf(col);
+  oval(c, x + 4, G, 22, 3, 'rgba(18, 12, 6, 0.4)');
+  // (the ears, one squashed under it)
+  ball(c, x + 14, y - 11, 5, col); ball(c, x + 14, y - 11, 2.5, '#F4C8A0', false);
+  ball(c, x, y, 16, col);
+  checker(c, x - 12, y - 10, 9, 10, r[3]);
+  // (turned on its side: the eyes one over the other, the grin up the side)
+  for (const [ex, ey, look] of [[x + 3, y - 7, -1], [x + 4, y + 3, 1]] as const) { oval(c, ex, ey, 5, 4, INK); oval(c, ex, ey, 4, 3, '#FFFFFF'); box(c, ex - 1 + look, ey - 1, 2, 2, INK); }
+  c.fillStyle = INK; c.beginPath(); c.arc(x + 6, y, 9, -0.45 * Math.PI, 0.45 * Math.PI); c.closePath(); c.fill();
+  c.fillStyle = '#5A0A1A'; c.beginPath(); c.arc(x + 6, y, 7.5, -0.42 * Math.PI, 0.42 * Math.PI); c.closePath(); c.fill();
+  for (let k = 0; k < 3; k++) box(c, x + 10, y - 5 + k * 4, 3, 2, '#F4F0E0');
+  box(c, x + 12, y - 1, 6, 2, '#F1EFEA'); box(c, x + 17, y - 1, 1, 2, '#F97316');
+  // (the neck hole, to us: dark, a ring of sweat round it)
+  oval(c, x - 11, y + 2, 4, 9, INK); oval(c, x - 11, y + 2, 3, 8, '#0A0A0E'); checker(c, x - 15, y - 6, 3, 16, 'rgba(90, 70, 30, 0.6)');
+  // (its tag)
+  line(c, [x - 2, y - 14, x - 10, y - 24], '#C8C4B8');
+  box(c, x - 30, y - 34, 30, 12, INK); box(c, x - 29, y - 33, 28, 10, '#F2E890'); text(c, 'MINE', x - 15, y - 25, '#7A1E1A', 6, 'center', null);
+};
+
+/** The union notice the park keeps covering up: the rights, the break (unpaid), the meeting canceled. */
+const unionNotice = (c: Ctx) => {
+  note(c, rx(1252), 156, ['LOCAL 69', 'UNION NOTICE', '', 'YOU HAVE THE', 'RIGHT TO ONE', '10-MIN BREAK', 'PER SHIFT', '(UNPAID)'], { size: 6, paper: '#F4F0E0', ink: '#1E3A8A', mount: 'tack', pinCol: '#2D51B0' });
+  note(c, rx(1270), 248, ['MEETING', 'CANCELED'], { size: 6, paper: '#F2C6D4', ink: '#7A1E1A', mount: 'tape' });
+  // (somebody's drawn a face on it)
+  box(c, rx(1338), 186, 2, 2, '#3A3F48'); box(c, rx(1344), 186, 2, 2, '#3A3F48'); box(c, rx(1337), 192, 10, 1, '#3A3F48');
+};
+
+/** Flypaper hung off the ceiling's grid, so full of flies it's black, curled at the bottom. */
+const flypaper = (c: Ctx) => {
+  const x = rx(772), top = CEIL_Y - 2, len = 96;
+  box(c, x + 2, top, 1, 8, '#3A3A30');
+  box(c, x - 1, top + 8, 8, len + 2, INK); box(c, x, top + 9, 6, len, '#C8A040'); box(c, x, top + 9, 2, len, '#DCB860'); box(c, x + 5, top + 9, 1, len, '#9A7820');
+  for (let k = 0; k < 34; k++) box(c, x + Math.floor(hash(k * 2.3) * 5), top + 10 + Math.floor(hash(k * 7.1) * (len - 4)), 2, 1 + (k % 2), '#14140E');
+  poly(c, [x - 1, top + len + 9, x + 7, top + len + 9, x + 4, top + len + 15], INK);
+  box(c, x + 1, top + len + 9, 4, 3, '#C8A040');
+};
+
+/** The pigeons' way in and their nest: twigs on the pipe up in the missing tile, the crap down the tile's edge. */
+const nest = (c: Ctx) => {
+  const mx = rx(1880);
+  pixelBlob(c, mx + 22, 39, 16, 5, '#5A4020');
+  for (let k = 0; k < 12; k++) { const sx = mx + 8 + k * 2.5, sy = 36 + (k % 3); line(c, [sx, sy, sx + 6 - (k % 4) * 3, sy + 4], k % 2 ? '#8A6A3A' : '#6A4C24', 1); }
+  for (let k = 0; k < 2; k++) { oval(c, mx + 18 + k * 7, 35, 3, 2, '#F1EFEA'); }
+  streaks(c, mx + 4, CEIL_Y - 8, 52, 7);
+};
+
+/** Pigeon crap down from the ledges they sit on: the incident board, the mural, the lockers. */
+const pigeonMess = (c: Ctx) => {
+  streaks(c, rx(540), 128, 200, 6);
+  streaks(c, rx(806), 106, 240, 8);
+  streaks(c, rx(814), 334, 240, 7);
+  for (const r of [560, 640, 700, 880, 990]) splat(c, rx(r), G + 4 + (r % 7), 1);
+};
+
+/** The utility sink: piled over the rim with dishes nobody's doing, gray water standing in it, the drain long gone. */
+const SINK_X = 1714, SINK_W = 52, SINK_Y = 480;
+const sink = (c: Ctx) => {
+  const x = rx(SINK_X), w = SINK_W, y = SINK_Y;
+  mold(c, x + 26, y - 12, 30, 14);
+  // (the pipes, the legs)
+  pole(c, x + 22, y + 20, 6, G - y - 28, '#8A929C'); box(c, x + 14, G - 12, 22, 6, '#6B737E');
+  for (const lx of [x + 3, x + w - 7]) { box(c, lx, y + 20, 4, G - y - 20, INK); box(c, lx + 1, y + 20, 2, G - y - 20, '#A3ABB6'); }
+  // (the faucet, off the wall)
+  box(c, x + 18, y - 22, 16, 5, INK); box(c, x + 19, y - 21, 14, 3, '#C8CCD2'); box(c, x + 19, y - 21, 14, 1, '#FFFFFF');
+  box(c, x + 30, y - 18, 4, 8, INK); box(c, x + 31, y - 18, 2, 7, '#A3ABB6');
+  for (const kx of [x + 14, x + 34]) { ball(c, kx, y - 20, 3, '#D3D9E0'); }
+  // (the dishes, up over the rim: plates on edge, a pot with its handle out, a mug, a pan)
+  for (let k = 0; k < 4; k++) { const px = x + 8 + k * 7; oval(c, px, y - 4 - (k % 2) * 3, 4, 10, INK); oval(c, px, y - 4 - (k % 2) * 3, 3, 9, k % 2 ? '#E8E4D8' : '#C8D8E0'); pixelBlob(c, px, y - 6 - (k % 2) * 3, 2, 3, '#B4844A'); }
+  box(c, x + 34, y - 10, 14, 10, INK); box(c, x + 35, y - 9, 12, 8, '#6B737E'); box(c, x + 35, y - 9, 12, 2, '#A3ABB6'); box(c, x + 46, y - 7, 10, 3, INK); box(c, x + 47, y - 6, 8, 1, '#3A3A40');
+  pixelBlob(c, x + 41, y - 10, 5, 2, '#8AA040');
+  box(c, x + 2, y - 8, 8, 8, INK); box(c, x + 3, y - 7, 6, 6, '#B91C1C'); box(c, x + 9, y - 6, 3, 4, INK);
+  // (the basin: steel, dented, its rim's top in shade: nothing to stand on)
+  shade(c, x, y, w, 20, 0.3, 3);
+  box(c, x - 1, y - 1, w + 2, 22, INK); slab(c, x, y, w, 20, '#9AA2AC', { ink: false });
+  dimTop(c, x, y, w, '#9AA2AC', 3);
+  box(c, x + 3, y + 3, w - 6, 3, '#4E5A50'); box(c, x + 3, y + 3, w - 6, 1, '#7A8A6E');
+  line(c, [x + 8, y + 12, x + 16, y + 8], 'rgba(255, 255, 255, 0.35)', 1);
+  // (gray water down the front where it's overflowed, a puddle under)
+  box(c, x + 40, y + 6, 2, 16, 'rgba(110, 130, 110, 0.6)'); box(c, x + 12, y + 6, 1, 10, 'rgba(110, 130, 110, 0.5)');
+  pixelBlob(c, x + 30, G - 1, 30, 3, 'rgba(100, 120, 100, 0.4)');
+  note(c, x + 2, 430, ['DO YOUR', 'DISHES!!'], { size: 6, paper: '#F4F0E0', ink: '#B91C1C' });
+};
+
+// ---------------------------------------------------------------------------------------------------------------
 // The room in strips: everything still, painted once per strip
 
 const CHUNK = 420;
@@ -983,7 +1147,7 @@ const propList = () => items ?? (items = [
   { a: rx(800), b: rx(1080), paint: lockers },
   { a: rx(1040), b: rx(1240), paint: closet },
   { a: rx(1230), b: rx(1440), paint: rack },
-  { a: rx(1440), b: rx(1740), paint: heads },
+  { a: rx(1380), b: rx(1740), paint: heads },
   { a: rx(1590), b: rx(1720), paint: laundry },
   { a: rx(1680), b: rx(1840), paint: bagWall },
   { a: rx(1860), b: rx(1980), paint: leakBucket },
@@ -993,6 +1157,15 @@ const propList = () => items ?? (items = [
   { a: rx(2135), b: rx(2255), paint: counter },
   { a: rx(2245), b: rx(2340), paint: fridge },
   { a: rx(2330), b: rx(2400), paint: vending },
+  // (the filth over it all)
+  { a: rx(0), b: rx(110), paint: smokers },
+  { a: rx(230), b: rx(300), paint: lostHead },
+  { a: rx(1240), b: rx(1360), paint: unionNotice },
+  { a: rx(760), b: rx(790), paint: flypaper },
+  { a: rx(1870), b: rx(1950), paint: nest },
+  { a: rx(SINK_X - 10), b: rx(SINK_X + SINK_W + 20), paint: sink },
+  { a: rx(470), b: rx(1100), paint: pigeonMess },
+  ...[500, 1822].map(r => ({ a: rx(r - 30), b: rx(r + 30), paint: (c: Ctx) => ratHole(c, rx(r)) })),
 ]);
 
 const strip = (c: Ctx, i: number) => {
@@ -1003,6 +1176,7 @@ const strip = (c: Ctx, i: number) => {
     ceiling(c, ia, ib);
     wall(c, ia, ib);
     floor(c, ia, ib);
+    floorFilth(c, ia, ib);
     if (a < rx(1950) && b > rx(700)) ceilingFaults(c);
     wallFaults(c);
     for (const it of propList()) if (it.b > a && it.a < b) it.paint(c);
@@ -1085,7 +1259,9 @@ const critters = (c: Ctx, f: number, vis: (a: number, b: number) => boolean) => 
   // (one in and out of the microwave)
   if (vis(rx(2140), rx(2210))) { const t = f * 0.02, k = Math.sin(t); if (k > -0.4) roach(c, rx(2176) + k * 28, 466, Math.cos(t) > 0 ? 1 : -1, f); }
   // (flies over the trash and the laundry)
-  for (const [fx, fy] of [[rx(732), G - 82], [rx(1660), 448]] as const) {
+  // (the sink's tap, dripping onto the dishes)
+  if (vis(rx(SINK_X), rx(SINK_X + SINK_W))) { const t = f % 50, y = SINK_Y - 10 + t * 0.5; if (t < 26) box(c, rx(SINK_X) + 31, Math.round(y), 2, 3, '#A8C8B8'); }
+  for (const [fx, fy] of [[rx(732), G - 82], [rx(1660), 448], [rx(270), G - 30], [rx(SINK_X + 26), SINK_Y - 18], [rx(86), G - 34], [rx(2290), G - 20]] as const) {
     if (!vis(fx - 30, fx + 30)) continue;
     for (let i = 0; i < 3; i++) {
       const x = Math.round(fx + Math.sin(f * 0.11 + i * 2.1) * 16 + Math.sin(f * 0.37 + i) * 4), y = Math.round(fy + Math.cos(f * 0.15 + i * 1.3) * 9);
