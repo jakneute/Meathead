@@ -6636,6 +6636,11 @@
  },
  {
   "voice": "death",
+  "text": "BARE ASS, DIRTY NEEDLE",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "death",
   "text": "BARRELED OVER",
   "from": "content/deaths"
  },
@@ -8476,11 +8481,6 @@
  },
  {
   "voice": "death",
-  "text": "DIED IN THE REJECT PILE",
-  "from": "CARTOON"
- },
- {
-  "voice": "death",
   "text": "DIED IN THE SOUND MIX",
   "from": "HOLLYWOOD"
  },
@@ -8498,6 +8498,11 @@
   "voice": "death",
   "text": "DIED LIKE THE KING",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "death",
+  "text": "DIED OF A DIRTY NEEDLE",
+  "from": "CARTOON"
  },
  {
   "voice": "death",
@@ -8896,11 +8901,6 @@
  },
  {
   "voice": "death",
-  "text": "DROWNED IN CEL PAINT",
-  "from": "CARTOON"
- },
- {
-  "voice": "death",
   "text": "DROWNED IN CRUDE",
   "from": "content/deaths"
  },
@@ -8933,11 +8933,6 @@
   "voice": "death",
   "text": "DROWNED IN FOUR FEET",
   "from": "FRONTIER"
- },
- {
-  "voice": "death",
-  "text": "DROWNED IN GLOP",
-  "from": "CARTOON"
  },
  {
   "voice": "death",
@@ -10287,6 +10282,11 @@
  {
   "voice": "death",
   "text": "HENCHED",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "death",
+  "text": "HEPATITIS IN SHITTY PANTS",
   "from": "CARTOON"
  },
  {
@@ -11986,18 +11986,8 @@
  },
  {
   "voice": "death",
-  "text": "LOST IN THE BALL PIT",
-  "from": "CARTOON"
- },
- {
-  "voice": "death",
   "text": "LOST IN THE CLOUDS",
   "from": "m1/game/stages/artie/tram.ts:107"
- },
- {
-  "voice": "death",
-  "text": "LOST IN THE GLOP PIT",
-  "from": "CARTOON"
  },
  {
   "voice": "death",
@@ -12316,6 +12306,11 @@
  },
  {
   "voice": "death",
+  "text": "NEEDLED IN THE BARE ASS",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "death",
   "text": "NEVER BARF WHERE YOU STAND",
   "from": "m1/game/stages/dale/convoy.ts:487"
  },
@@ -12323,11 +12318,6 @@
   "voice": "death",
   "text": "NEVER DOPE A SCIENCE PROJECT",
   "from": "m1/game/stages/barry/hyper.ts:128"
- },
- {
-  "voice": "death",
-  "text": "NEVER FOUND. LIKE THE KIDS",
-  "from": "CARTOON"
  },
  {
   "voice": "death",
@@ -12623,11 +12613,6 @@
   "voice": "death",
   "text": "PAID THE TROLL TOLL",
   "from": "FANTASY"
- },
- {
-  "voice": "death",
-  "text": "PAINTED OVER",
-  "from": "CARTOON"
  },
  {
   "voice": "death",
@@ -13243,11 +13228,6 @@
   "voice": "death",
   "text": "REDEEMED",
   "from": "FOREIGN"
- },
- {
-  "voice": "death",
-  "text": "REJECTED",
-  "from": "CARTOON"
  },
  {
   "voice": "death",
@@ -13882,6 +13862,11 @@
  {
   "voice": "death",
   "text": "SHARPENED TO DEATH",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "death",
+  "text": "SHAT, THEN NEEDLED",
   "from": "CARTOON"
  },
  {
@@ -15142,6 +15127,11 @@
  {
   "voice": "death",
   "text": "STRUNG UP BY A KITE",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "death",
+  "text": "STUCK BY A JUNKIE'S NEEDLE",
   "from": "CARTOON"
  },
  {
@@ -55116,11 +55106,6 @@
  },
  {
   "voice": "meathead",
-  "text": "A DIAPER! I TOUCHED A DIAPER!",
-  "from": "CARTOON"
- },
- {
-  "voice": "meathead",
   "text": "A DIAPER! IN MY FACE!",
   "from": "FANTASY"
  },
@@ -56017,6 +56002,21 @@
  {
   "voice": "meathead",
   "text": "A NAPKIN. TWO MILLION BUCKS. I HATE THIS GUY.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "A NEEDLE! IN MY ASS! A USED ONE!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "A NEEDLE! IN MY BARE ASS!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "A NEEDLE! RIGHT THROUGH THE SHIT!",
   "from": "CARTOON"
  },
  {
@@ -56988,11 +56988,6 @@
   "voice": "meathead",
   "text": "A WHOLE TOWER OF STAIRS THAT HATE ME.",
   "from": "FANTASY"
- },
- {
-  "voice": "meathead",
-  "text": "A WHOLE TUB OF PAINT!",
-  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -67141,11 +67136,6 @@
  },
  {
   "voice": "meathead",
-  "text": "I SANK IN THE REJECTS!",
-  "from": "CARTOON"
- },
- {
-  "voice": "meathead",
   "text": "I SAW THE FUSE! I SAW IT!",
   "from": "CARTOON"
  },
@@ -67651,11 +67641,6 @@
  },
  {
   "voice": "meathead",
-  "text": "I'M BLUE NOW! I'M BLUE!",
-  "from": "CARTOON"
- },
- {
-  "voice": "meathead",
   "text": "I'M BLUE NOW. OR YELLOW. WHATEVER THIS VAT WAS.",
   "from": "FOREIGN"
  },
@@ -67748,6 +67733,11 @@
   "voice": "meathead",
   "text": "I'M GONNA FEED YOU YOUR HAT.",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M GONNA GET HEPATITIS! ALL OF THEM!",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -68986,11 +68976,6 @@
  },
  {
   "voice": "meathead",
-  "text": "IT WAS WARM IN THERE! WHY WAS IT WARM!",
-  "from": "CARTOON"
- },
- {
-  "voice": "meathead",
   "text": "IT WEIGHS A TON!",
   "from": "SPOOKY"
  },
@@ -69008,6 +68993,11 @@
   "voice": "meathead",
   "text": "IT WENT FOR MY EYES!",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT WENT IN THROUGH MY DIRTY PANTS!",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -69148,11 +69138,6 @@
   "voice": "meathead",
   "text": "IT'S ALL BOLTS! NOTHING TO GRAB!",
   "from": "TOO_BIG_LINES"
- },
- {
-  "voice": "meathead",
-  "text": "IT'S ALL DRAWINGS DOWN THERE!",
-  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -69493,11 +69478,6 @@
   "voice": "meathead",
   "text": "IT'S SO SWEATY UNDER HERE!",
   "from": "SPOOKY"
- },
- {
-  "voice": "meathead",
-  "text": "IT'S STICKY IN THERE! WHY IS IT STICKY!",
-  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -73511,6 +73491,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NOTHING BETWEEN MY ASS AND THAT NEEDLE!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "NOTHING DANGLES OVER THE BURNERS.",
   "from": "CARTOON"
  },
@@ -73578,6 +73563,11 @@
   "voice": "meathead",
   "text": "NOW I'M TWO COLORS. I'M A FINGER PAINTING.",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOW I'VE GOT SHIT AND HEPATITIS!",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -75306,11 +75296,6 @@
  },
  {
   "voice": "meathead",
-  "text": "PAINT! IT BURNS!",
-  "from": "CARTOON"
- },
- {
-  "voice": "meathead",
   "text": "PAINT. EVERYWHERE. ...SO WHERE DO I GO?",
   "from": "m1/game/stages/tommy/escape.ts:221"
  },
@@ -75343,11 +75328,6 @@
   "voice": "meathead",
   "text": "PAPER CUT! ON MY TRAPS!",
   "from": "HAZARD_HURT"
- },
- {
-  "voice": "meathead",
-  "text": "PAPER CUTS! A THOUSAND PAPER CUTS!",
-  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -76463,6 +76443,11 @@
   "voice": "meathead",
   "text": "RIGHT BETWEEN THE EYES!",
   "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "RIGHT IN THE CHEEK! THE BARE CHEEK!",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -78351,11 +78336,6 @@
  },
  {
   "voice": "meathead",
-  "text": "SLIME! IN MY EVERYTHING!",
-  "from": "CARTOON"
- },
- {
-  "voice": "meathead",
   "text": "SLIPPED ON YOUR BUDDY!",
   "from": "M2_KILL_LINES"
  },
@@ -78811,11 +78791,6 @@
  },
  {
   "voice": "meathead",
-  "text": "SOMETHING IN THERE GRABBED ME!",
-  "from": "CARTOON"
- },
- {
-  "voice": "meathead",
   "text": "SOMETHING IN THESE WOODS EATS CONDUCTORS. IT JUST NEEDS A SMELL.",
   "from": "FRONTIER"
  },
@@ -78828,11 +78803,6 @@
   "voice": "meathead",
   "text": "SOMETHING POPPED ON ME! THAT WAS A BOIL!",
   "from": "HAZARD_HURT"
- },
- {
-  "voice": "meathead",
-  "text": "SOMETHING TOUCHED MY FOOT IN THERE!",
-  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -83901,6 +83871,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THERE'S STILL SOMETHING IN IT!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "THESE GUYS SAY SORRY AND THEN SLAPSHOT YOU IN THE NUTS.",
   "from": "FOREIGN"
  },
@@ -86428,6 +86403,11 @@
   "voice": "meathead",
   "text": "WHO KEEPS DRIVING A TRUCK THAT'S ON FIRE?!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHO LEAVES A NEEDLE IN THERE!",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",

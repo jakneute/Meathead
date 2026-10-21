@@ -13,6 +13,7 @@
 // gate to STUPID DAD: THE EXTENDED UNIVERSE (DOORS.itchy.start); back from there, he's at DOORS.bigkid.end. Been out the
 // far gate (`ct-bigkid-done`): a later visit's the revisit (the couch parked dead, OUT OF ORDER; his lines).
 
+import { drawPitBounce } from '../pitBounce';
 import { pickLine, pickFreshLine } from '../../../m1/game/platform/speech';
 import type { EnemyKind } from '../../../m1/types';
 import { makeKindEnemy, mid } from '../../../m1/game/enemies/kinds';
@@ -118,6 +119,7 @@ export const bigkid: CartoonSection = {
   drawFront: (c, state) => {
     const k = bigkidOf(state);
     drawRidesFront(c, state);
+    drawPitBounce(c, state);
     // (the cast's barks over their heads; the doll's over the bin)
     for (const [e, s] of k.barks) if (e.health > 0) saidOver(c, s.text, mid(e).x, e.pos.y - 14, '#FDE68A', 220);
     if (k.doll) saidOver(c, k.doll.text, X(SHACK.bin), Y(96), '#FCA5A5', 200);

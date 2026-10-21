@@ -143,7 +143,6 @@ export const HURT: HurtTable = {
   'm2:ct_fish': { hurt: ['A FISH! A FLYING FISH!', 'HIT BY A FIBERGLASS FISH!', 'ONE FISH! IN MY FACE!'], death: ['KILLED BY A KIDDIE FISH', 'SLAPPED DEAD BY A FISH'] },
   'm2:ct_train': { hurt: ['THE BABY TRAIN HIT ME!', 'CHOO CHOO MY ASS!', 'RUN OVER BY TODDLERS!'], death: ['RUN OVER BY A KIDDIE TRAIN', 'DIED UNDER A CHOO CHOO'] },
   'm2:ct_trolley': { hurt: ['THE TROLLEY! FUCKING TROLLEY!', 'HIT BY PUBLIC TRANSIT!', 'DING DING! OW! OW!'], death: ['RUN OVER BY A TROLLEY', 'HIT BY THE SKY TROLLEY'] },
-  'm2:ct_ballpit': { hurt: ['SOMETHING IN THERE GRABBED ME!', "IT'S STICKY IN THERE! WHY IS IT STICKY!", 'A DIAPER! I TOUCHED A DIAPER!'], death: ['LOST IN THE BALL PIT', 'NEVER FOUND. LIKE THE KIDS'] },
 };
 
 // ---------------------------------------------------------------------------------------------------------------

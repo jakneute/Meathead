@@ -1,6 +1,6 @@
 // The studio's working parts: what moves that he stands on (the drying rack's cel, the paint room's two cels on their
 // overhead track, the camera crane's seat), the two things to fall in (THE REJECT PILE, THE PAINT VAT: in, and he's
-// coughed back up where he last stood safe, hurt; the staff go under for good), and what the staff throw (the
+// bounced back out onto the floor, a dirty needle in his ass: cartoon/pitBounce.ts; the staff bounced out hurt), and what the staff throw (the
 // interns' coffee, the guides' souvenir plates).
 //
 // A mover's a one-way ledge kept where it is each frame before he moves (as the stacks' lids are, sway.ts); stood on
@@ -12,9 +12,9 @@ import type { Block } from '../../../m1/types';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { playSound } from '../../../m1/game/platform/audio';
 import { floorTopAt } from '../../../m1/game/core/terrain';
-import { hazardKill, setHazardZones } from '../../hazardHit';
+import { setHazardZones } from '../../hazardHit';
 import { envSound } from '../../bossQuiet';
-import { teleport } from '../section';
+import { updatePitBounce } from '../pitBounce';
 import { onTower } from '../sway';
 import { studioOf, type Mover } from './state';
 import { MOVERS, PITS, REJECTS, VAT, X, Y, type MoverDef } from './layout';
@@ -92,30 +92,22 @@ const spray = (state: GameState, x: number, inVat: boolean) => {
   } as typeof state.particles[number]);
 };
 
+const PIT_SPANS = PITS.map(([a, b]) => [X(a), X(b)] as [number, number]);
+const isVat = (pit: [number, number]) => pit[0] === X(VAT[0]);
+/** In, and the pile / the vat bounces him back out onto the floor, a dirty needle in his ass (cartoon/pitBounce.ts);
+ *  the staff too. */
 export const updatePits = (ctx: FrameContext) => {
-  const { state } = ctx, p = state.player, s = studioOf(state);
+  const { state } = ctx, s = studioOf(state);
   // (none of the staff idle in them: walk round, or not at all)
   setHazardZones(state, 'ct-studio-pits', PITS.map(([a, b]) => ({ x0: X(a), x1: X(b), y0: GY - 2, y1: GY + 200, ground: true })));
   if (s.spat > 0) s.spat--;
-  const cx = p.pos.x + p.width / 2, feet = p.pos.y + p.height;
-  const pit = PITS.find(([a, b]) => cx > X(a) && cx < X(b));
-  if (pit && feet > GY + 30 && p.health > 0) {
-    const vat = pit === VAT;
-    spray(state, cx, vat);
-    envSound(state, cx, vat ? 'splash' : 'crunch', 0.6, vat ? 0 : 6);
-    hurtPlayer(ctx, 12, vat ? 'm2:ct_paint' : 'm2:ct_rejects', { x: 0, y: -4 });
-    if (p.health > 0) { teleport(state, s.safe.x, s.safe.y); p.invincibilityTimer = Math.max(p.invincibilityTimer, 60); spray(state, s.safe.x, false); s.spat = 30; }
-  }
-  for (const e of state.enemies) {
-    if (e.health <= 0 || e.type === 'boss' || e.enemyType === 'flyer' || e.isBlownAway) continue;
-    const ex = e.pos.x + e.width / 2;
-    const at = PITS.find(([a, b]) => ex > X(a) && ex < X(b));
-    if (!at || e.pos.y + e.height < GY + 30) continue;
-    spray(state, ex, at === VAT);
-    if (e.seen) hazardKill(ctx, e, ex, at === VAT ? 'PAINTED OVER!' : 'REJECTED!', { fling: { x: (Math.random() < 0.5 ? -1 : 1) * 4, y: -14 }, sound: at === VAT ? 'splash' : 'crunch' });
-    // (never seen: spared, back where it was put)
-    else { e.pos.x = e.homeX ?? e.pos.x; e.pos.y = e.homeY ?? Y(0) - e.height; e.vel.x = 0; e.vel.y = 0; }
-  }
+  updatePitBounce(ctx, {
+    pits: PIT_SPANS, safe: s.safe,
+    stuff: pit => (isVat(pit) ? { kind: 'paint', colorAt: paintAt } : { kind: 'paper' }),
+    splash: (x, _y, pit) => spray(state, x, isVat(pit)),
+    plunge: (x, pit) => envSound(state, x, isVat(pit) ? 'splash' : 'crunch', 0.6, isVat(pit) ? 0 : 6),
+    call: pit => (isVat(pit) ? 'PAINTED OVER!' : 'REJECTED!'),
+  });
 };
 /** Is world x over the reject pile / the vat? */
 export const overRejects = (x: number) => x > X(REJECTS[0]) && x < X(REJECTS[1]);

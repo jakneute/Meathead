@@ -977,3 +977,20 @@ markBossFight every frame of a boss or sub-boss fight. Voice every new line (`np
   couch crushed): any hit from anything kills him in one (no breather in the way), the normal SWILL LITE death unless
   it's the car. Before that the regular boss rules stand (666, non-weakness 35%, double once the couch is crushed), so
   he can still be worn down the long way.
+- (the user, 2026-10-20, verbatim: "falling in the ball pits in cartoon land (or similar hazards there) won't teleport
+  you but bounce you out of the pit with a dirty needle briefly sticking in you." Then: "the drawing pit also gives
+  dirty needles and bounces you back up, like the ball pit"; "glop follows same rules as balls, paper earlier in the
+  level".) cartoon/pitBounce.ts, shared by the soft pits: the square's three ball pits, the studio's reject pile (the
+  drawing pit: paper flies) and paint vat, the big kids' two glop pits (glop splashes). Not the itchy canyon (a real
+  drop) nor the portable holes. In, he sinks to the shoulders (the stuff drawn closing over him) for ~22 frames, no
+  control, then he's flung up in a big arc (higher the further it is) and steered (no input) onto the bank on the side
+  he last stood safe on (70 px from the lip; the other bank if there's no ground there; the safe spot only if neither):
+  never the safe spot itself when there's a bank (it might have been a cel on its track or the vat's rim). A tower lid
+  on the way down catches him (that's standing too). A dirty syringe (murky fill, orange hub) stuck in his ass,
+  wobbling, ~2.5 s, then it falls out and clinks to the floor. Hurt 10 (×0.65 = 6.5; the old pits did 12), standard
+  i-frames, the hurt sound plus a needle 'dart'. Lines (cartoon/lines.ts NEEDLE, registered in pitBounce.ts): one
+  source per state of him (m2:ct_needle / _shat / _nude), so the engine's fresh-line picker and the death screen fit;
+  the old per-pit sources (ct_ballpit, ct_rejects, ct_paint, ct_glop) are gone. No softlock: knocked back in mid-flight
+  (or short), it's a free re-bounce; a third in a row puts him down at his safe spot. The cast knocked in: hurt 30
+  (little ones die of it), then flung kinematically to the nearer bank. Nothing persists (keyed on state.stage, rebuilt
+  each death): checkpoints and world state untouched.

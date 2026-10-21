@@ -212,8 +212,6 @@ export const HURT: HurtTable = {
   'm2:ct_pencil': { hurt: ['THE PENCIL GOT ME!', 'SPUN INTO BY A PENCIL!', 'SHAVINGS! IN MY MOUTH!'], death: ['SHARPENED TO DEATH', 'KILLED BY A NUMBER TWO'] },
   'm2:ct_pencil_point': { hurt: ['I STOMPED ON THE POINT!', 'THE LEAD! IN MY FOOT!', 'NUMBER TWO! UP MY ASS!'], death: ['IMPALED ON A PENCIL', 'LEAD POISONING'] },
   'm2:ct_guard': { hurt: ['THE GUARD TACKLED ME!', 'OW! HE WEIGHS A TON!', 'FLASHLIGHT! RIGHT ON THE HEAD!'], death: ['TACKLED BY RENT-A-COP', 'ESCORTED OUT. FOREVER'] },
-  'm2:ct_rejects': { hurt: ['PAPER CUTS! A THOUSAND PAPER CUTS!', "IT'S ALL DRAWINGS DOWN THERE!", 'I SANK IN THE REJECTS!'], death: ['DIED IN THE REJECT PILE', 'REJECTED'] },
-  'm2:ct_paint': { hurt: ['PAINT! IT BURNS!', "I'M BLUE NOW! I'M BLUE!", 'A WHOLE TUB OF PAINT!'], death: ['DROWNED IN CEL PAINT', 'PAINTED OVER'] },
 };
 
 // ---------------------------------------------------------------------------------------------------------------

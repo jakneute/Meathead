@@ -20,6 +20,7 @@ import { makeTowers, updateTowers, drawTowers, ridingTower } from '../sway';
 import { GROUND, SOLIDS, LEDGES, TOWERS, IN_PIT, CAST, PICKUPS, CHECKPOINTS, GAG_AT, STUDIO, X, Y } from './layout';
 import { kiddieOf, saidOnce, KIDDIE_DONE_MEMO } from './state';
 import { updateHazards, drawHazardsBack, drawHazardsFront, noteSafe } from './hazards';
+import { drawPitBounce } from '../pitBounce';
 import { drawKiddieBackdrop, drawKiddieBack, drawPitHeaps, kiddieLamps } from './art';
 import { ARRIVE, REVISIT, GAGS } from './lines';
 import './kinds';
@@ -78,6 +79,7 @@ export const kiddie: CartoonSection = {
   },
   drawFront: (c, state) => {
     drawHazardsFront(c, state);
+    drawPitBounce(c, state);
     // (the cast's barks, over their heads)
     for (const [e, s] of kiddieOf(state).barks) if (e.health > 0) saidOver(c, s.text, mid(e).x, e.pos.y - 14, '#FDE68A', 220);
   },

@@ -19,8 +19,8 @@
 //     (the tell), then hops at where he is and lands like a dropped fridge (the street shakes). Kept to its plaza.
 //   RAD RAT'S TUBULAR HALFPIPE: a giant skateboard (four seats, nobody in them) rocking back and forth in a concrete
 //     halfpipe; the coping clanks at each end. Drop in, cross, jump it at the bottom.
-//   THE GLOP PITS: bottomless green slime (the big kids' ball pit). In, and he's spat back out where he last stood
-//     safe, hurt; the cast it spits out dead.
+//   THE GLOP PITS: bottomless green slime (the big kids' ball pit). In, and it bounces him back out onto the bank, a
+//     dirty needle stuck in his ass (cartoon/pitBounce.ts); the cast it bounces out too, hurt (the little ones dead).
 //   What the cast throw (kinds.ts): traffic cones, the skate punk's board, Gloppy's loogies (and the sticky puddles
 //   they leave: he wades through them at half speed), churros.
 
@@ -30,9 +30,9 @@ import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { playSound } from '../../../m1/game/platform/audio';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { floorTopAt } from '../../../m1/game/core/terrain';
-import { hazardVictims, hazardHit, hazardKill, boxHits, setHazardZones, type Zone } from '../../hazardHit';
+import { hazardVictims, hazardHit, boxHits, setHazardZones, type Zone } from '../../hazardHit';
 import { envSound } from '../../bossQuiet';
-import { teleport } from '../section';
+import { updatePitBounce } from '../pitBounce';
 import { onScreen } from '../kit';
 import { onTower } from '../sway';
 import { bigkidOf, makeRide, type Ride } from './state';
@@ -371,27 +371,16 @@ export const updateRides = (ctx: FrameContext) => {
 
 const GLOPS = ['#65D11B', '#84CC16', '#4D9F10', '#A3E635'];
 const splash = (state: GameState, x: number, y: number) => { for (let i = 0; i < 16; i++) state.particles.push({ pos: { x: x + (Math.random() - 0.5) * 30, y: y - 4 }, vel: { x: (Math.random() - 0.5) * 6, y: -3 - Math.random() * 5 }, life: 34, color: GLOPS[i % GLOPS.length], size: 5, grav: 0.3 } as typeof state.particles[number]); };
+const PIT_SPANS = PITS.map(([a, b]) => [X(a), X(b)] as [number, number]);
+/** In, and the glop bounces him back out onto the bank, a dirty needle in his ass (cartoon/pitBounce.ts); the cast too. */
 const updatePits = (ctx: FrameContext) => {
-  const { state } = ctx, p = state.player, k = bigkidOf(state);
-  {
-    const cx = p.pos.x + p.width / 2, feet = p.pos.y + p.height;
-    const pit = PITS.find(([a, b]) => cx > X(a) && cx < X(b));
-    if (pit && feet > GY + 30 && p.health > 0) {
-      splash(state, cx, GY);
-      envSound(state, cx, 'glug', 0.7, -6); playSound('splat', 0.6, -10);
-      hurtPlayer(ctx, 12, 'm2:ct_glop', { x: 0, y: -4 });
-      if (p.health > 0) { teleport(state, k.safe.x, k.safe.y); p.invincibilityTimer = Math.max(p.invincibilityTimer, 60); splash(state, k.safe.x, k.safe.y); }
-    }
-  }
-  for (const e of state.enemies) {
-    if (e.health <= 0 || e.type === 'boss' || e.enemyType === 'flyer' || e.isBlownAway) continue;
-    const ex = e.pos.x + e.width / 2;
-    if (e.pos.y + e.height < GY + 30 || !PITS.some(([a, b]) => ex > X(a) && ex < X(b))) continue;
-    splash(state, ex, GY);
-    if (e.seen) hazardKill(ctx, e, ex, 'GLOPPED!', { fling: { x: (Math.random() < 0.5 ? -1 : 1) * 4, y: -14 }, sound: 'glug', color: '#BEF264' });
-    // (never seen: spared, back where it was put)
-    else { e.pos.x = e.homeX ?? e.pos.x; e.pos.y = e.homeY ?? Y(0) - e.height; e.vel.x = 0; e.vel.y = 0; }
-  }
+  const { state } = ctx, k = bigkidOf(state);
+  updatePitBounce(ctx, {
+    pits: PIT_SPANS, safe: k.safe, stuff: () => ({ kind: 'goo', color: '#65D11B' }),
+    splash: (x, y) => splash(state, x, y),
+    plunge: x => { envSound(state, x, 'glug', 0.7, -6); playSound('splat', 0.6, -10); },
+    call: () => 'GLOPPED!',
+  });
 };
 
 /** Where he last stood safe (index.ts calls this every frame): on the ground or a ledge, not a tower, not in a ride's

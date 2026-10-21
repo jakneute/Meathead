@@ -10,8 +10,8 @@
 //     track's right end and along it at him (jump it), round behind the hedges back the other way. The whistle first.
 //   THE SKY-HIGH TROLLEY: out of the hattery's wall along its track over the ball pit, bell ringing first; anybody on
 //     the track in its way gets hit (he gets up onto a tower's lid over it, or he's too slow).
-//   THE BALL PITS: bottomless (LAST KID FOUND 1997). Into one and it spits him back out where he last stood, hurt; the
-//     cast it spits out dead.
+//   THE BALL PITS: bottomless (LAST KID FOUND 1997). Into one and it bounces him back out onto the bank, a dirty needle
+//     stuck in his ass (cartoon/pitBounce.ts); the cast it bounces out too, hurt (the little ones dead).
 //   What the cast throw: the hat cat's hat (out, and back), the Whatsits' kites (on their strings: a shake, a dive at
 //     him, back up), the painter's paint blobs (they splat).
 //
@@ -30,9 +30,9 @@ import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { playSound } from '../../../m1/game/platform/audio';
 import { floorTopAt } from '../../../m1/game/core/terrain';
 import { mid } from '../../../m1/game/enemies/kinds';
-import { hazardVictims, hazardHit, hazardKill, boxHits, setHazardZones } from '../../hazardHit';
+import { hazardVictims, hazardHit, boxHits, setHazardZones } from '../../hazardHit';
 import { envSound } from '../../bossQuiet';
-import { teleport } from '../section';
+import { updatePitBounce } from '../pitBounce';
 import {
   box, mix, onScreen, hour, dimmed, lit, toonLetters, INK, viewOf, drumTop, ballR, eggR, ramp6, rampH, polyF, candyStroke, shadeAcross, checker,
   BRASS, FROSTING, LILAC, BUBBLEGUM, CHERRY, LEMON, SKY, STEEL, GRASS, LIP, type Ctx,
@@ -107,7 +107,7 @@ export const trolleyAt = (f: number) => {
 // Each frame
 
 export const updateHazards = (ctx: FrameContext) => {
-  const { state } = ctx, f = state.frame, p = state.player, off = shut(state);
+  const { state } = ctx, f = state.frame, off = shut(state);
   const zones: { x0: number; x1: number; y0: number; y1: number }[] = [];
   // The carousel
   {
@@ -161,30 +161,19 @@ export const updateHazards = (ctx: FrameContext) => {
   }
   zones.push({ x0: X(TROLLEY.a), x1: X(TROLLEY.b) + 40, y0: Y(TROLLEY.h + TROLLEY_H), y1: Y(TROLLEY.h - 4) });
   setHazardZones(state, 'ct-kiddie-rides', zones);
-  // The ball pits: him (spat back out where he last stood, hurt), and the cast (spat out dead)
+  // The ball pits: him and the cast, bounced back out
   const k = kiddieOf(state);
   if (k.spat > 0) k.spat--;
-  {
-    const cx = p.pos.x + p.width / 2, feet = p.pos.y + p.height;
-    const pit = PITS.find(([a, b]) => cx > X(a) && cx < X(b));
-    if (pit && feet > GY + 30 && p.health > 0) {
-      spray(state, cx, GY);
-      envSound(state, cx, 'splat', 0.6, 10); playSound('boing', 0.6, -8);
-      hurtPlayer(ctx, 12, 'm2:ct_ballpit', { x: 0, y: -4 });
-      if (p.health > 0) { teleport(state, k.safe.x, k.safe.y); p.invincibilityTimer = Math.max(p.invincibilityTimer, 60); spray(state, k.safe.x, k.safe.y); k.spat = 30; }
-    }
-  }
-  for (const e of state.enemies) {
-    if (e.health <= 0 || e.type === 'boss' || e.enemyType === 'flyer' || e.isBlownAway) continue;
-    const ex = e.pos.x + e.width / 2;
-    if (e.pos.y + e.height < GY + 30 || !PITS.some(([a, b]) => ex > X(a) && ex < X(b))) continue;
-    spray(state, ex, GY);
-    if (e.seen) hazardKill(ctx, e, ex, 'BALL PITTED!', { fling: { x: (Math.random() < 0.5 ? -1 : 1) * 4, y: -14 }, sound: 'boing' });
-    // (never seen: spared, back where it was put)
-    else { e.pos.x = e.homeX ?? e.pos.x; e.pos.y = e.homeY ?? Y(0) - e.height; e.vel.x = 0; e.vel.y = 0; }
-  }
+  // (in, and the pit bounces him back out onto the bank, a dirty needle in his ass: cartoon/pitBounce.ts)
+  updatePitBounce(ctx, {
+    pits: PIT_SPANS, safe: k.safe, stuff: () => ({ kind: 'balls', colors: BALLS }),
+    splash: (x, y) => spray(state, x, y),
+    plunge: x => { envSound(state, x, 'splat', 0.6, 10); playSound('boing', 0.6, -8); },
+    call: () => 'BALL PITTED!',
+  });
   updateThrows(ctx);
 };
+const PIT_SPANS = PITS.map(([a, b]) => [X(a), X(b)] as [number, number]);
 const BALLS = ['#EF4444', '#FDE047', '#3B82F6', '#22C55E', '#F472B6', '#FB923C'];
 const spray = (state: GameState, x: number, y: number) => { for (let i = 0; i < 16; i++) state.particles.push({ pos: { x: x + (Math.random() - 0.5) * 30, y: y - 4 }, vel: { x: (Math.random() - 0.5) * 6, y: -3 - Math.random() * 5 }, life: 34, color: BALLS[i % BALLS.length], size: 5, grav: 0.3 } as typeof state.particles[number]); };
 

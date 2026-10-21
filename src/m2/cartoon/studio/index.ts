@@ -19,6 +19,7 @@
 // doors (its left end: DOORS.kiddie.end); on behind the screen (DOORS.whitehouse1.start); back from the White House,
 // he's in front of the screen (DOORS.studio.end).
 
+import { drawPitBounce } from '../pitBounce';
 import { pickLine, isTalking } from '../../../m1/game/platform/speech';
 import type { EnemyKind } from '../../../m1/types';
 import { makeKindEnemy, mid } from '../../../m1/game/enemies/kinds';
@@ -108,7 +109,7 @@ export const studio: CartoonSection = {
   },
   drawBackdrop: (c) => drawStudioBackdrop(c),
   drawBack: (c, state) => drawStudioBack(c, state, !!paSaying(state)),
-  drawFront: (c, state) => drawStudioFront(c, state),
+  drawFront: (c, state) => { drawStudioFront(c, state); drawPitBounce(c, state); },
   drawHud: (c, state) => {
     // (over the lighting, in screen space: the exec's laser dots and their beams (they glow), the staff's barks, the PA)
     const s = studioOf(state), cx = state.camera.x, cy = state.camera.y;
