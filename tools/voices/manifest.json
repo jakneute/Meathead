@@ -59906,6 +59906,11 @@
  },
  {
   "voice": "meathead",
+  "text": "CANADA CAN EAT A CHEESEBURGER. SHUT UP.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "CANADA. IT'S JUST COLD AMERICA WITH A MOOSE.",
   "from": "FOREIGN"
  },
@@ -60318,6 +60323,11 @@
   "voice": "meathead",
   "text": "CLIFF DIVERS. INTO SIX FEET OF WATER. FROM OHIO.",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "CLIMB THEM YOURSELF.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -61316,6 +61326,11 @@
  },
  {
   "voice": "meathead",
+  "text": "DON'T SAY BOING.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "DON'T SIT ON THE HORSES AFTER ME.",
   "from": "FANTASY"
  },
@@ -61352,6 +61367,11 @@
  {
   "voice": "meathead",
   "text": "DON'T SUCK ON ANYTHING, VACUUM.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "DON'T TALK TO ME. I'M NAKED.",
   "from": "CARTOON"
  },
  {
@@ -64106,6 +64126,11 @@
  },
  {
   "voice": "meathead",
+  "text": "GOOD FOR HIM. SHUT UP.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "GOOD KITTIES. DON'T LOOK AT ME.",
   "from": "FRONTIER"
  },
@@ -64133,6 +64158,11 @@
   "voice": "meathead",
   "text": "GOOD THING I SOUPED UP MY TOYS IN THE GARAGE. SHOULD'VE SOUPED UP MY PANTS.",
   "from": "FINALE_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "GOOD. I'M IN A MOOD.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -67276,6 +67306,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I DIDN'T ASK FOR A TOUR.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "I DIDN'T COME HERE TO PLAY TAG! SAME MOVE AS HIM, IN HIS FACE!",
   "from": "m1/game/stages/victor/doorman.ts:540"
  },
@@ -67333,6 +67368,16 @@
   "voice": "meathead",
   "text": "I DIVE KICKED A PORCUPINE!",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "I DON'T CARE WHAT HE LISTENS TO.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "I DON'T CARE WHERE HE WORKS.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -67616,6 +67661,16 @@
  },
  {
   "voice": "meathead",
+  "text": "I GOT ENOUGH ON MY PLATE. AND IN MY PANTS.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "I GOT EYES, KID.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "I GOT HIT BY A FLAMINGO. A PLASTIC ONE. STILL COUNTS.",
   "from": "HAZARD_HURT"
  },
@@ -67798,6 +67853,26 @@
   "voice": "meathead",
   "text": "I KNEW IT.",
   "from": "m1/components/RadioCutscene.tsx:26"
+ },
+ {
+  "voice": "meathead",
+  "text": "I KNOW CATS HATE WATER. I HATE YOU.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "I KNOW HOW LASERS WORK. SHUT UP.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "I KNOW IT BOUNCES. SHUT UP.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "I KNOW IT'S SLIPPY. SHUT UP.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -68018,6 +68093,16 @@
   "voice": "meathead",
   "text": "I SAW YOUR BUCKET OF DARTS, DIPSHIT!",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "I SEE THE BALLS. SHUT UP.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "I SEE THE DRAWERS. SHUT UP.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -68246,6 +68331,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I WASN'T GONNA TOUCH IT. NOW I AM.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "I WAXED THOSE! I WAXED THOSE FOR THE CEREMONY!",
   "from": "HAZARD_HURT"
  },
@@ -68328,6 +68418,11 @@
   "voice": "meathead",
   "text": "I'LL EXTINGUISH YOUR ENTIRE BLOODLINE!",
   "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'LL GO WHEN I FIND PANTS.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -69371,6 +69466,11 @@
  },
  {
   "voice": "meathead",
+  "text": "IT ATE YOUR HAMSTER. GOOD FOR IT.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "IT BIT ME AND IT'S ON FIRE!",
   "from": "SPOOKY"
  },
@@ -69906,6 +70006,11 @@
  },
  {
   "voice": "meathead",
+  "text": "IT'S A BALLOON. SHUT UP.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "IT'S A BIG BALL. I'M A SHITTY CAT. RUN.",
   "from": "CARTOON"
  },
@@ -69957,6 +70062,11 @@
  {
   "voice": "meathead",
   "text": "IT'S A KIDS SHOW AND THE BAD GUY SMOKES CIGARS. NICE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT'S A LAMP. SHUT UP.",
   "from": "CARTOON"
  },
  {
@@ -70986,6 +71096,11 @@
  },
  {
   "voice": "meathead",
+  "text": "LET IT WATCH.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "LET ME BACK IN. MY TICKET'S SOMEWHERE IN THE WOODS.",
   "from": "INTRO"
  },
@@ -71641,6 +71756,11 @@
  },
  {
   "voice": "meathead",
+  "text": "MEANEST MAN. SURE. SHUT UP.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "meathead",
   "from": "m1/game/stages/ernie/jetski.ts:142"
  },
@@ -71858,6 +71978,11 @@
   "voice": "meathead",
   "text": "MOSQUITO BITE! I EAT LEAD FOR BREAKFAST!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "MOSTLY. SHUT UP.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -72777,6 +72902,11 @@
  {
   "voice": "meathead",
   "text": "NAKED AND COUGHING UP HAIR. LIVING THE DREAM.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "NAKED AND NAGGED. GREAT.",
   "from": "CARTOON"
  },
  {
@@ -74061,6 +74191,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NOBODY CARES ABOUT CANADA.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "NOBODY CLEANED UP.",
   "from": "CARTOON"
  },
@@ -74138,6 +74273,11 @@
   "voice": "meathead",
   "text": "NOBODY OUTRUNS ME. EXCEPT TRAINS. NOT TODAY.",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOBODY PUT YOU IN CHARGE.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -74286,6 +74426,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NOT EVERYTHING IS LIKE THE MOVIES.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "NOT FROM DOWN HERE. I'VE GOT TO GET UP THERE.",
   "from": "m1/game/stages/dale/town.ts:574"
  },
@@ -74313,6 +74458,11 @@
   "voice": "meathead",
   "text": "NOT LIKE THIS! I HAVEN'T EVEN HAD MY PROTEIN SHAKE!",
   "from": "m1/game/stages/artie/ski.ts:475"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOT NOW. NOT IN THESE PANTS.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -75287,6 +75437,11 @@
  {
   "voice": "meathead",
   "text": "ORDER? I LOST ORDER HOURS AGO.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "ORDERS FROM A KID. AND I'M THE ONE WHO SHIT.",
   "from": "CARTOON"
  },
  {
@@ -77051,6 +77206,11 @@
  },
  {
   "voice": "meathead",
+  "text": "QUIT BOSSING A GUY WHO SHIT HIMSELF.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "QUIT DANCING AROUND THE BIG IDIOT! HE CHARGES? CHARGE RIGHT BACK!",
   "from": "m1/game/stages/victor/doorman.ts:540"
  },
@@ -78181,6 +78341,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SAY SLIPPY AGAIN.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "SAY STINKY ONE MORE TIME.",
   "from": "CARTOON"
  },
@@ -78243,6 +78408,11 @@
   "voice": "meathead",
   "text": "SECOND HAND GORE!",
   "from": "M2_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "SECRETLY. EVERYBODY KNOWS. SHUT UP.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -79166,12 +79336,47 @@
  },
  {
   "voice": "meathead",
+  "text": "SHUT UP ABOUT THE CHEESEBURGERS.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHUT UP ABOUT THE FLOWERS.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHUT UP ABOUT THE GLOBE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "SHUT UP ABOUT THE LITTER BOX.",
   "from": "CARTOON"
  },
  {
   "voice": "meathead",
+  "text": "SHUT UP ABOUT THE VACUUM.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHUT UP AND FACE THE WALL.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHUT UP AND HOLD YOUR NOSE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "SHUT UP AND STOP LOOKING.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHUT UP OR I SIT ON YOU.",
   "from": "CARTOON"
  },
  {
@@ -79231,7 +79436,22 @@
  },
  {
   "voice": "meathead",
+  "text": "SHUT UP. EVERY STEP'S SQUISHY.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHUT UP. EVERYTHING'S OUT AND SWINGING.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "SHUT UP. EYES UP HERE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHUT UP. I KNOW WHERE THE DOOR IS.",
   "from": "CARTOON"
  },
  {
@@ -79241,12 +79461,42 @@
  },
  {
   "voice": "meathead",
+  "text": "SHUT UP. I SLEEP WHERE I WANT.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHUT UP. I'M COLD.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHUT UP. I'M LEAKING HERE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "SHUT UP. IT WAS ME.",
   "from": "CARTOON"
  },
  {
   "voice": "meathead",
+  "text": "SHUT UP. IT'S A SPRINKLER.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "SHUT UP. YOU SAID CATS DON'T WEAR PANTS.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHUT UP. YOU'RE NOT HELPING AND I'M NOT DRESSED.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHUT YOUR HEADBAND.",
   "from": "CARTOON"
  },
  {
@@ -81356,6 +81606,11 @@
  },
  {
   "voice": "meathead",
+  "text": "TELL A NAKED GUY WHAT TO DO. GO AHEAD.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "TELL MY SPOTTER... I LOVE HIM",
   "from": "VULGARITIES"
  },
@@ -81363,6 +81618,11 @@
   "voice": "meathead",
   "text": "TELL MY TRUCK I LOVED IT.",
   "from": "M2_GUT_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "TELL YOUR DAD. NOT ME.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -81438,6 +81698,11 @@
   "voice": "meathead",
   "text": "THANKS FOR THE RIDE, BUDDY.",
   "from": "m1/game/stages/barry/runtime.ts:404"
+ },
+ {
+  "voice": "meathead",
+  "text": "THANKS, NAVI. SHUT UP.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -85001,6 +85266,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THEN WHY ARE WE GOING IN?",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "THERE ARE EYES. WHY ARE THERE EYES?",
   "from": "SPOOKY"
  },
@@ -85473,6 +85743,11 @@
   "voice": "meathead",
   "text": "THEY'RE IN MY SHIRT!",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "THEY'RE POINTY. I GOT IT.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -86693,6 +86968,11 @@
   "voice": "meathead",
   "text": "UNPAID AND UNALIVE!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "UP AND DOWN. I SEE IT.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -88791,6 +89071,11 @@
  },
  {
   "voice": "meathead",
+  "text": "YOU DO IT THEN.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "YOU DON'T GET ON THAT LIST BY BEING NICE.",
   "from": "ENEMY_KILL_LINES"
  },
@@ -88926,6 +89211,11 @@
  },
  {
   "voice": "meathead",
+  "text": "YOU POINT ONE MORE TIME, I BITE THE FINGER.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "YOU POP OUT AT A NAKED GUY, YOU GET WHAT YOU SEE.",
   "from": "SPACE"
  },
@@ -88993,6 +89283,16 @@
   "voice": "meathead",
   "text": "YOU SWING LIKE MY BOWELS.",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOU TIME IT.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOU TIME IT. SHUT UP.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -89178,6 +89478,11 @@
   "voice": "meathead",
   "text": "YOUR CLIPBOARD CAN'T SAVE YOU!",
   "from": "ENEMY_KILL_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOUR DAD BOWLS? WHO CARES.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -89368,6 +89673,11 @@
   "voice": "meathead",
   "text": "ZERO? I CAN COUNT TO ZERO. THAT'S NOTHING. YOU'RE OFFERING ME NOTHING.",
   "from": "OSCAR_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "ZIP IT, CHELSEA.",
+  "from": "CARTOON"
  },
  {
   "voice": "oldman",
