@@ -592,6 +592,18 @@ const paintLairWall = (g: Ctx, k: number) => {
   box(g, 0, -1000, BAY, 1000, F[2]);
   // (big rounded "boulders" moulded in, in steps)
   for (let i = 0; i < 16; i++) { const bx = hash(k * 31 + i * 3.1) * BAY, by = -40 - hash(k * 17 + i * 5.7) * 900, r = 30 + hash(k + i) * 50; pixelBlob(g, bx, by + 4, r, r * 0.7, F[1]); pixelBlob(g, bx - 3, by, r * 0.92, r * 0.62, F[2]); pixelBlob(g, bx - r * 0.3, by - r * 0.28, r * 0.5, r * 0.3, F[3]); pixelBlob(g, bx - r * 0.42, by - r * 0.4, r * 0.18, r * 0.1, F[4]); }
+  // (the sprayed finish: a mottle of light and dark flecks, dithered patches of shade in the hollows, a dark crevice
+  // between some boulders, chips knocked out showing the white glass fiber, paint runs, grime up from the floor)
+  for (let i = 0; i < 1400; i++) { const fx = hash(k * 13 + i * 1.31) * BAY, fy = -hash(k * 7 + i * 2.17) * 1000; box(g, fx, fy, i % 7 ? 1 : 2, 1, i % 3 ? F[1] : F[3]); }
+  for (let i = 0; i < 7; i++) { const px = hash(k * 3 + i * 4.3) * BAY, py = -60 - hash(k * 11 + i * 2.9) * 880; checker(g, px - 30, py - 18, 60, 36, F[1], (i + k) & 1, 2); }
+  for (let i = 0; i < 6; i++) {
+    const cx = hash(k * 19 + i * 5.1) * BAY, cy = -80 - hash(k * 23 + i * 3.7) * 860;
+    g.strokeStyle = F[0]; g.lineWidth = 2; g.beginPath(); g.moveTo(cx, cy); g.quadraticCurveTo(cx + 14, cy + 20, cx + 6, cy + 46); g.stroke();
+    g.strokeStyle = F[3]; g.lineWidth = 1; g.beginPath(); g.moveTo(cx + 2, cy); g.quadraticCurveTo(cx + 16, cy + 20, cx + 8, cy + 46); g.stroke();
+  }
+  for (let i = 0; i < 4; i++) { const cx = hash(k * 29 + i * 6.3) * (BAY - 20), cy = -40 - hash(k * 31 + i * 7.9) * 900; polyF(g, [[cx, cy], [cx + 10, cy - 3], [cx + 14, cy + 5], [cx + 4, cy + 9]], F[0]); polyF(g, [[cx + 2, cy + 1], [cx + 9, cy - 1], [cx + 11, cy + 4], [cx + 4, cy + 6]], D('#F2EEE6')[4]); for (let q = 0; q < 3; q++) box(g, cx + 3 + q * 3, cy + 1 + (q % 2), 1, 3, D('#D8D0C4')[3]); }
+  for (let i = 0; i < 3; i++) { const dx = hash(k * 37 + i * 2.3) * BAY, dy = -200 - hash(k * 41 + i) * 700, l = 20 + hash(k + i * 9) * 40; box(g, dx, dy, 2, l, F[1]); box(g, dx - 1, dy + l, 4, 3, F[1]); box(g, dx, dy, 1, l * 0.6, F[3]); }
+  for (let y = -120; y < 0; y += 2) checker(g, 0, y, BAY, 2, 'rgba(20,10,24,' + (0.22 * (1 + y / 120)).toFixed(3) + ')', (y >> 1) & 1, 2);
   // (the panel's seam down its edge, bolted)
   box(g, 0, -1000, 2, 1000, F[0]); box(g, 2, -1000, 1, 1000, F[4]); for (let y = -990; y < 0; y += 24) { box(g, 4, y, 3, 3, F[0]); box(g, 4, y, 1, 1, F[5]); }
   box(g, 0, -500 + (k % 3) * 60, BAY, 2, F[0]); for (let x = 10; x < BAY; x += 24) box(g, x, -496 + (k % 3) * 60, 3, 3, F[0]);

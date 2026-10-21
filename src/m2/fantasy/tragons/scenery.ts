@@ -380,6 +380,24 @@ export const drawFloor = (c: Ctx, state: GameState, t: Tragons, e: Eye) => {
     c.beginPath(); c.moveTo(xOf(P, FLOOR_D[0]), yF); c.lineTo(xOf(P + SW, FLOOR_D[0]), yF); c.lineTo(xOf(P + SW, 1.7), yN); c.lineTo(xOf(P, 1.7), yN); c.closePath(); c.fill();
   }
   c.globalAlpha = 1;
+  // (the near lawn's grass: tufts in steps, clover, a daisy, snow lying in patches, each pinned to its spot on the ground
+  // (world column and depth) so it slides with the park and grows nearer the eye)
+  {
+    const Lg = L.map(col => dimmed(col)), Sn = SNOW.map(col => dimmed(col));
+    for (let P = Math.floor(pa / 26) * 26; P < pb; P += 26) {
+      for (let j = 0; j < 3; j++) {
+        const k = hash(P * 0.173 + j * 7.7), d = 0.86 + hash(P * 0.31 + j * 3.3) * 0.82;
+        if (d > 1.03 && d < 1.13) continue;
+        const x = xOf(P + k * 20, d), y = groundAt(e, d), s = d;
+        if (x < v.x - 20 || x > v.x + v.w + 20 || y > v.y + v.h + 10) continue;
+        if (k < 0.12) { box(c, x - 7 * s, y - 1, 14 * s, 3 * s, Sn[3]); box(c, x - 5 * s, y - 2, 9 * s, 1, Sn[5]); continue; }
+        const shade = k > 0.7 ? 4 : k > 0.4 ? 3 : 2;
+        box(c, x, y - 4 * s, Math.max(1, s), 4 * s, Lg[shade]); box(c, x - 2 * s, y - 3 * s, Math.max(1, s), 3 * s, Lg[shade - 1]); box(c, x + 2 * s, y - 3 * s, Math.max(1, s), 3 * s, Lg[Math.min(4, shade + 1)]);
+        if (k > 0.94) { box(c, x - s, y - 6 * s, 3 * s, 3 * s, '#F4F0E8'); box(c, x, y - 5 * s, s, s, '#F2C84A'); }
+        else if (k > 0.86) box(c, x + 3 * s, y - 2 * s, 3 * s, 2 * s, Lg[1]);
+      }
+    }
+  }
   // (the paths: the promenade going along at the back, a near one under the ride; flagstones, snow banked along)
   const path = (da: number, db: number, seed: number) => {
     const ya = groundAt(e, da), yb = groundAt(e, db);
