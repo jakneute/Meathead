@@ -994,3 +994,11 @@ markBossFight every frame of a boss or sub-boss fight. Voice every new line (`np
   (or short), it's a free re-bounce; a third in a row puts him down at his safe spot. The cast knocked in: hurt 30
   (little ones die of it), then flung kinematically to the nearer bank. Nothing persists (keyed on state.stage, rebuilt
   each death): checkpoints and world state untouched.
+- (the user, 2026-10-20, verbatim: "make sure the trolley in cartoon land actually goes through the tunnel. there are
+  spikes on top of it, making it so you cannot ride it".) The SKY-HIGH TROLLEY (kiddie/hazards.ts): it now runs on
+  till its tail's in through the end station's doorway (the tunnel mouth), drawn clipped between the hattery's arch and
+  the doorway's far jamb, darkening as it goes in, the doorway's jambs and lintel drawn over it; it no longer pops out
+  of sight short of the station. The "spikes" were the roof's row of separate colored blocks: now a flat striped
+  canopy with scallops off its edge and a lit top lip, and the roof's a one-way ledge that moves with it and carries
+  him (he can drop onto it from a tower lid and ride it over the pit; off the end it lets him down by the station). Only
+  its front (the cab's nose and cowcatcher, 48 px) hurts now, so landing on it or riding it never does.

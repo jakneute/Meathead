@@ -26,6 +26,7 @@
 
 import type { FrameContext } from '../../../m1/game/core/context';
 import type { GameState } from '../../../m1/game/core/state';
+import type { Block } from '../../../m1/types';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { playSound } from '../../../m1/game/platform/audio';
 import { floorTopAt } from '../../../m1/game/core/terrain';
@@ -99,8 +100,35 @@ export const trolleyAt = (f: number) => {
   const t = f % TROLLEY_P;
   if (t < BELL) return { phase: 'bell' as const, x: X(TROLLEY.a), t };
   const x = X(TROLLEY.a) + (t - BELL) * TROLLEY_V;
-  if (x - TROLLEY_LEN < X(TROLLEY.b) + 40) return { phase: 'run' as const, x, t };
+  // (on till its tail's gone in through the end station's doorway: it goes right in, out of sight)
+  if (x - TROLLEY_LEN < DOOR_R) return { phase: 'run' as const, x, t };
   return { phase: 'gone' as const, x: 0, t };
+};
+/** The end station's doorway (the tunnel mouth the trolley runs into): its left and right edges. */
+const DOOR_L = X(TROLLEY.b) + 14, DOOR_R = X(TROLLEY.b) + 54;
+/** The trolley's roof: a one-way ledge that rides along with it (he can ride it), off out of the way when it's not
+ *  running. Its top's the roof's flat lit top. */
+const ROOF_UP = TROLLEY_H + 9;
+const roofs = new WeakMap<object, Block>();
+const roofOf = (state: GameState) => {
+  let b = roofs.get(state.blocks);
+  if (!b || !state.blocks.includes(b)) {
+    b = { x: 0, y: -99999, w: 0, h: 12, type: 'platform', oneWay: true, hidden: true, tag: 'ct-trolley-roof' } as Block;
+    state.blocks.push(b); roofs.set(state.blocks, b);
+  }
+  return b;
+};
+/** The roof to where the trolley is now (before he moves), carrying him if he's on it. */
+const updateRoof = (state: GameState, off: boolean) => {
+  const b = roofOf(state), p = state.player, tl = trolleyAt(state.frame);
+  const cx = p.pos.x + p.width / 2, feet = p.pos.y + p.height;
+  const on = b.y > -9999 && p.health > 0 && p.vel.y >= 0 && Math.abs(feet - b.y) <= 3 && cx >= b.x - 4 && cx <= b.x + b.w + 4;
+  if (off || tl.phase !== 'run') { b.y = -99999; b.w = 0; return; }
+  // (only what's out: from the hattery's wall to the end station's doorway)
+  const l = Math.max(X(TROLLEY.a), tl.x - TROLLEY_LEN + 4), r = Math.min(DOOR_L, tl.x - 2);
+  if (r - l < 8) { b.y = -99999; b.w = 0; return; }
+  if (on) { const prev = trolleyAt(state.frame - 1); if (prev.phase === 'run') p.pos.x += tl.x - prev.x; }
+  b.x = l; b.w = r - l; b.y = Y(TROLLEY.h) - ROOF_UP;
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -147,15 +175,17 @@ export const updateHazards = (ctx: FrameContext) => {
   }
   zones.push({ x0: X(TRAIN.a) - 20, x1: X(TRAIN.b) + 20, y0: Y(TRAIN_H + 20), y1: GY });
   // The trolley
+  updateRoof(state, off);
   if (!off) {
     const tl = trolleyAt(f);
     if (tl.phase === 'bell' && tl.t % 30 === 0) envSound(state, X(TROLLEY.a), 'ding', 0.55, 6);
     if (tl.phase === 'run') {
       if (tl.t % 50 === 0) envSound(state, tl.x, 'ding', 0.35, 6);
-      const x0 = Math.max(X(TROLLEY.a), tl.x - TROLLEY_LEN);
-      if (tl.x > X(TROLLEY.a)) {
-        rideHurts(ctx, x0, Y(TROLLEY.h + TROLLEY_H), tl.x - x0, TROLLEY_H, 14, 'm2:ct_trolley', { x: 8, y: -7 });
-        rideHitsCast(ctx, x0, Y(TROLLEY.h + TROLLEY_H), tl.x - x0, TROLLEY_H, 70, x0, 'TROLLEYED!');
+      // (its front hits: the cowcatcher and the cab's nose. Its roof he can ride, so nothing up there hurts)
+      const x0 = Math.max(X(TROLLEY.a), tl.x - 48), x1 = Math.min(tl.x + 14, DOOR_L);
+      if (x1 > x0) {
+        rideHurts(ctx, x0, Y(TROLLEY.h + TROLLEY_H - 6), x1 - x0, TROLLEY_H - 6, 14, 'm2:ct_trolley', { x: 8, y: -7 });
+        rideHitsCast(ctx, x0, Y(TROLLEY.h + TROLLEY_H - 6), x1 - x0, TROLLEY_H - 6, 70, x0, 'TROLLEYED!');
       }
     }
   }
@@ -183,6 +213,8 @@ export const noteSafe = (state: GameState) => {
   if (!p.isGrounded || p.health <= 0 || p.inCutscene) return;
   if (k.towers.some(t => onTower(state, t))) return;
   const cx = p.pos.x + p.width / 2, feet = p.pos.y + p.height;
+  // (nor riding the trolley's roof)
+  { const r = roofOf(state); if (r.y > -9999 && Math.abs(feet - r.y) < 4 && cx > r.x - 6 && cx < r.x + r.w + 6) return; }
   if (PITS.some(([a, b]) => cx > X(a) - 30 && cx < X(b) + 30)) {
     // (at a pit's very edge: only the ledges up off it count, never the lip of it)
     if (Math.abs(feet - GY) < 4) return;
@@ -550,13 +582,18 @@ export const drawHazardsFront = (c: Ctx, state: GameState) => {
   const tl = trolleyAt(f), ra = X(TROLLEY.a), rb = X(TROLLEY.b), ry = Y(TROLLEY.h);
   if (onScreen(state, ra - 200, rb + 200)) {
     if (!off && tl.phase === 'run') {
-      c.save(); c.beginPath(); c.rect(ra, ry - 200, rb - ra + 60, 220); c.clip();
+      // (out of the hattery's arch, and right in through the end station's doorway: clipped to between the two)
+      c.save(); c.beginPath(); c.rect(ra, ry - 200, DOOR_R - ra, 220); c.clip();
       const x0 = tl.x - TROLLEY_LEN, Bd = rampH(ramp6('#FB7185')), W2 = rampH(FROSTING), Gr = rampH(GRASS);
       // (a curly little tram: a striped awning roof, round windows with grown-ups waving, a bell, a cowcatcher)
       c.fillStyle = INK; c.beginPath(); c.roundRect(x0, ry - TROLLEY_H, TROLLEY_LEN, TROLLEY_H - 6, 14); c.fill();
       c.save(); c.beginPath(); c.roundRect(x0 + 3, ry - TROLLEY_H + 3, TROLLEY_LEN - 6, TROLLEY_H - 12, 12); c.clip(); for (let i = 0; i < 5; i++) box(c, x0, ry - TROLLEY_H + 3 + i * 14, TROLLEY_LEN, 15, [Bd[4], Bd[3], Bd[3], Bd[2], Bd[1]][i]); box(c, x0, ry - 24, TROLLEY_LEN, 4, W2[3]); box(c, x0, ry - 24, TROLLEY_LEN, 1, W2[5]); c.restore();
-      for (let i = 0; i < 9; i++) { const R = i % 2 ? W2 : Gr; box(c, x0 + 6 + i * 18, ry - TROLLEY_H - 7, 10, 11, INK); box(c, x0 + 7 + i * 18, ry - TROLLEY_H - 6, 8, 9, R[3]); box(c, x0 + 7 + i * 18, ry - TROLLEY_H - 6, 8, 2, R[4]); }
-      box(c, x0, ry - TROLLEY_H - 9, TROLLEY_LEN, 3, INK);
+      // (the roof: a flat striped canopy he can ride, its top lit along it, scallops hanging off its front edge)
+      const rt = ry - ROOF_UP;
+      box(c, x0 + 2, rt - 1, TROLLEY_LEN - 4, 11, INK);
+      for (let i = 0; i * 17 < TROLLEY_LEN - 6; i++) { const R = i % 2 ? W2 : Gr, sx = x0 + 3 + i * 17, sw = Math.min(17, x0 + TROLLEY_LEN - 3 - sx); box(c, sx, rt + 1, sw, 8, R[3]); box(c, sx, rt + 6, sw, 2, R[2]); }
+      for (let i = 0; i * 17 < TROLLEY_LEN - 6; i++) { const R = i % 2 ? W2 : Gr, sx = x0 + 3 + i * 17 + 8.5; c.fillStyle = INK; c.beginPath(); c.arc(sx, rt + 9, 7.5, 0, Math.PI); c.fill(); c.fillStyle = R[2]; c.beginPath(); c.arc(sx, rt + 9, 6, 0, Math.PI); c.fill(); }
+      box(c, x0 + 3, rt + 1, TROLLEY_LEN - 6, 2, LIP[2]); box(c, x0 + 6, rt + 1, TROLLEY_LEN * 0.6, 1, LIP[3]);
       for (let i = 0; i < 4; i++) {
         const wx = x0 + 28 + i * 38, L = lookOf(i * 9 + 17);
         c.fillStyle = INK; c.beginPath(); c.arc(wx, ry - 48, 13, 0, Math.PI * 2); c.fill();
@@ -568,7 +605,18 @@ export const drawHazardsFront = (c: Ctx, state: GameState) => {
       polyF(c, [[tl.x, ry - 30], [tl.x + 17, ry - 3], [tl.x, ry - 3]], INK); for (let k2 = 0; k2 < 3; k2++) box(c, tl.x + 2 + k2 * 4, ry - 24 + k2 * 7, 2, 18 - k2 * 7, hour(STEEL[4]));
       ballR(c, tl.x - 8, ry - 60, 6, rampH(LEMON));
       for (const wx of [x0 + 24, tl.x - 24]) { c.fillStyle = INK; c.beginPath(); c.arc(wx, ry - 4, 8.5, 0, Math.PI * 2); c.fill(); c.fillStyle = hour(STEEL[3]); c.beginPath(); c.arc(wx, ry - 4, 6.5, 0, Math.PI * 2); c.fill(); box(c, wx - 3, ry - 8, 3, 2, hour(STEEL[5])); }
+      // (in the doorway it's in the station's dark, going darker in; past it, the station's wall hides it)
+      if (tl.x > DOOR_L) {
+        const g = c.createLinearGradient(DOOR_L, 0, DOOR_R, 0); g.addColorStop(0, 'rgba(26,16,40,0.55)'); g.addColorStop(1, 'rgba(26,16,40,0.97)');
+        c.fillStyle = g; c.fillRect(DOOR_L, ry - 120, DOOR_R - DOOR_L, 124);
+      }
       c.restore();
+      // (the doorway's jambs and lintel over it, so it reads going in under the station's arch)
+      if (tl.x > DOOR_L - 20) {
+        const Y2 = rampH(LEMON, true);
+        box(c, DOOR_L - 3, ry - 96, 5, 96, INK); box(c, DOOR_L - 2, ry - 95, 3, 95, Y2[4]);
+        box(c, DOOR_L - 3, ry - 98, DOOR_R - DOOR_L + 6, 6, INK); box(c, DOOR_L - 2, ry - 97, DOOR_R - DOOR_L + 4, 4, Y2[3]);
+      }
     }
   }
   // The ball pits: the near lip of the balls (over his feet as he goes in), only what's on screen
