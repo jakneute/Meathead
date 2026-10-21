@@ -376,6 +376,8 @@ export const updateFight = (ctx: FrameContext): Controls | null => {
     state.stageMemo[CAST_MEMO] = '1';
     // (the stage door goes back up)
     if (F.door) F.door.x = -1e7;
+    // (a big health, dropped mid-stage for having got through them (the user's))
+    state.pickups.push({ id: 'warehouse-cast-health', pos: { x: X((ARENA.a + ARENA.b) / 2) - 10, y: GY - 160 }, vel: { x: 0, y: -3 }, width: 20, height: 20, type: 'large_health', life: 1e9 });
   }
   return null;
 };
