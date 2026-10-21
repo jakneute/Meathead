@@ -114,6 +114,34 @@ const EMPTY_SLED: SledLook = { body: '#CBD5E1', stripe: '#64748B', num: 0 };
 // ---------------------------------------------------------------------------------------------------------------
 // The backdrop (screen space)
 
+/** The moonscape flats on the dome's floor (a tile, MOON_W wide, its foot at MOON_H): jagged rims in stepped indigo,
+ *  craters with lit lips, the blacklight paint glowing along every edge; row 0 the far one, dimmer. */
+const MOON_W = 960, MOON_H = 120;
+const paintMoonscape = (g: Ctx, row: number) => {
+  const far = row === 0, body = far ? ['#0B0820', '#120C2C', '#1A1238'] : ['#120C2A', '#1C1440', '#2A1F58'];
+  const glowA = far ? '#3F7A3A' : '#86EFAC', glowB = far ? '#7A2A5A' : '#F0ABFC';
+  const pts: [number, number][] = [[0, MOON_H]];
+  for (let x = 0, k = 0; x <= MOON_W; x += 24, k++) pts.push([x, MOON_H - 30 - (far ? 26 : 10) - Math.round(Math.abs(Math.sin(x * 0.011 + row * 2)) * 34 + hash(k * 3.1 + row) * 16)]);
+  pts.push([MOON_W, MOON_H]);
+  g.fillStyle = body[1]; g.beginPath(); pts.forEach(([x, y], i) => (i ? g.lineTo(x, y) : g.moveTo(x, y))); g.closePath(); g.fill();
+  // (stepped shade down it, dithered)
+  g.save(); g.clip();
+  box(g, 0, MOON_H - 34, MOON_W, 34, body[0]); checker(g, 0, MOON_H - 38, MOON_W, 4, body[0], 0, 2);
+  // (craters: a dark bowl, a lit far lip, the glow paint round the near one)
+  for (let k = 0; k < 7; k++) {
+    const cx = 60 + k * 132 + hash(k * 5.7 + row) * 50, cyy = MOON_H - 26 + hash(k * 2.3 + row) * 10, r = 16 + hash(k + row * 9) * 18;
+    g.fillStyle = body[0]; g.beginPath(); g.ellipse(cx, cyy, r, r * 0.3, 0, 0, Math.PI * 2); g.fill();
+    g.fillStyle = body[2]; g.beginPath(); g.ellipse(cx, cyy - r * 0.12, r, r * 0.18, 0, Math.PI, 0); g.fill();
+    for (let a = 0.2; a < Math.PI - 0.2; a += 0.22) box(g, cx + Math.cos(a) * r - 1, cyy + Math.sin(a) * r * 0.3, 2, 1, k % 2 ? glowA : glowB);
+  }
+  for (let i = 0; i < 160; i++) box(g, hash(i * 1.9 + row) * MOON_W, MOON_H - 60 + hash(i * 3.3 + row) * 60, 1, 1, i % 4 ? body[2] : body[0]);
+  g.restore();
+  // (the glow paint along the rim's edge: a bright line, a dimmer one under it)
+  for (let i = 1; i < pts.length - 2; i++) { const [ax, ay] = pts[i], [, by] = pts[i + 1]; for (let s = 0; s < 24; s += 2) { const yy = Math.round(ay + ((by - ay) * s) / 24); box(g, ax + s, yy, 2, 1, i % 5 === 0 ? glowB : glowA); box(g, ax + s, yy + 2, 2, 1, body[2]); } }
+  // (the flag, cardboard on a dowel, stuck in the far rim)
+  if (!far) { const fx = 600, fy = pts[26][1]; box(g, fx, fy - 40, 2, 40, '#94A3B8'); box(g, fx + 2, fy - 40, 22, 14, '#1E3A8A'); for (let s = 0; s < 4; s++) box(g, fx + 2, fy - 38 + s * 3, 22, 1, s % 2 ? '#F8FAFC' : '#B91C1C'); box(g, fx + 2, fy - 40, 9, 7, '#1E3A8A'); }
+};
+
 export const drawRideBackdrop = (c: Ctx, state: GameState, look: RideLook) => {
   const W = CANVAS_WIDTH, H = CANVAS_HEIGHT, f = state.frame, cam = state.camera.x, cy = state.camera.y;
   const k = look.k;
@@ -187,6 +215,16 @@ export const drawRideBackdrop = (c: Ctx, state: GameState, look: RideLook) => {
     for (let sx = -4; sx < W + 4; sx += 4) { const yy = farY(sx); box(c, sx, yy - 2, 4, 4, '#2A2050'); box(c, sx, yy - 2, 4, 1, '#4C3F80'); }
     for (let j = 0; j < 2; j++) { const sx = ((f * 1.6 + j * 900 - cam * tk) % 1800 + 1800) % 1800 - 300; tinySled(c, sx, farY(sx) - 2, 4100 + j * 31, f, 0.4); }
     c.restore();
+    // (down on the dome's floor, under the track: the moonscape flats, plywood cut to crater rims and painted in
+    // blacklight paint (their edges glowing green and pink), in two rows (stamped), a cardboard flag stuck in one)
+    const mk = 0.42, base = Math.round(GY - cy + 168);
+    if (base - MOON_H < H && base > 0) for (const [row, kk, dy] of [[0, mk * 0.8, -26], [1, mk, 0]] as const) {
+      for (let x = -(((cam * kk) % MOON_W) + MOON_W) % MOON_W; x < W; x += MOON_W) {
+        c.save(); c.translate(Math.round(x), base + dy - MOON_H);
+        stamp(c, `ride-moonscape-${row}`, 0, 0, MOON_W, MOON_H, g => paintMoonscape(g, row));
+        c.restore();
+      }
+    }
   }
   if (k > 0) {
     c.save(); c.globalAlpha = Math.min(1, k);
