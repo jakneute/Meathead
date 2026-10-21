@@ -545,7 +545,11 @@ const endStation = (c: Ctx, rb: number, ry: number, f: number, off: boolean) => 
   // (the body: lemon clapboard, shaded across, its corner boards)
   box(c, L0 - 2, top - 2, W + 4, ry - top + 2, INK);
   shadeAcross(c, () => c.rect(L0, top, W, ry - top), L0, top, W, ry - top, Ye);
-  for (let y = top + 10; y < ry; y += 10) box(c, L0, y, W, 1, Ye[1]);
+  for (let y = top + 10; y < ry; y += 10) { box(c, L0, y, W, 1, Ye[1]); box(c, L0, y + 1, W, 1, Ye[4]); for (let x = L0 + 6 + ((y / 10) % 2) * 20; x < R0 - 10; x += 40) box(c, x, y + 4, 1, 1, Ye[1]); }
+  // (the timetable pinned up by the doorway, a pennant string along the eave)
+  box(c, L0 + 104, ry - 62, 36, 40, INK); box(c, L0 + 105, ry - 61, 34, 38, Wt[4]); box(c, L0 + 105, ry - 61, 34, 7, Pk[3]);
+  for (let k = 0; k < 5; k++) { box(c, L0 + 108, ry - 50 + k * 6, 14, 2, St[2]); box(c, L0 + 126, ry - 50 + k * 6, 10, 2, Pk[2]); }
+  for (let k = 0; k < 8; k++) { const px = L0 + 6 + k * 19; polyF(c, [[px, top + 8], [px + 14, top + 8], [px + 7, top + 18]], [Pk[3], Mn[3], Pu[3]][k % 3]); box(c, px, top + 8, 14, 1, Wt[5]); }
   box(c, R0 - 8, top, 8, ry - top, Pk[2]); box(c, R0 - 8, top, 2, ry - top, Pk[4]);
   box(c, L0, top, W, 6, Pk[3]); box(c, L0, top + 4, W, 2, Pk[1]);
   // (the dome, pink stripes, its finial and a pennant)

@@ -30,7 +30,7 @@ import { signText } from '../../signLetters';
 import { bendFloor } from '../../intro/art/kit';
 import { tilePattern } from '../../../m1/game/render/pixelArt';
 import {
-  type Ctx, type View, INK, box, mix, hash, onScreen, viewOf, at, still, polyF, sideBack, topBack, drumTop, ballR, eggR,
+  type Ctx, type View, INK, box, mix, hash, checker, onScreen, viewOf, at, still, polyF, sideBack, topBack, drumTop, ballR, eggR,
   ramp6, rampH, hour, dimmed, lit, toonSign, toonLetters, bandsDown, shadeAcross, candyStroke, glassOf,
   BUBBLEGUM, FROSTING, MINT, LEMON, LILAC, SKY, CHERRY, LICORICE, WAFFLE, GRASS, BRASS, STEEL, LIP,
 } from '../kit';
@@ -295,9 +295,24 @@ const drawHattery = (c: Ctx, state: GameState, v: View) => {
       const R = rampH(ramp6(col)), Bd = rampH(ramp6(band)), y0 = GY - (GY - top) * t1, y1 = GY - (GY - top) * t0, inset = t0 * 14;
       const hat = () => { g.moveTo(inset, y1); g.quadraticCurveTo(inset - 12, (y0 + y1) / 2, inset + 4, y0); g.lineTo(w - inset - 4, y0); g.quadraticCurveTo(w - inset + 12, (y0 + y1) / 2, w - inset, y1); g.closePath(); };
       shadeAcross(g, hat, inset - 12, y0, w - inset * 2 + 24, y1 - y0, R);
+      // (the felt: a nap of flecks, a soft sheen in steps along the crown, a dent, the crown's shade under the brim above)
+      g.save(); g.beginPath(); hat(); g.clip();
+      for (let k = 0, n = Math.floor((w * (y1 - y0)) / 60); k < n; k++) box(g, hash(t0 * 97 + k * 1.31) * w, y0 + hash(t0 * 53 + k * 2.17) * (y1 - y0), k % 4 ? 1 : 2, 1, k % 2 ? R[2] : R[4]);
+      const sh = y0 + (y1 - y0) * 0.3;
+      box(g, inset + 10, sh, w * 0.42, 3, R[4]); checker(g, inset + 10, sh + 3, w * 0.42, 2, R[4], 0, 1); box(g, inset + 16, sh, w * 0.18, 1, R[5]);
+      g.fillStyle = R[2]; g.beginPath(); g.ellipse(w * (0.58 + t0 * 0.2), y0 + (y1 - y0) * 0.45, 16, 4, 0, 0, Math.PI * 2); g.fill();
+      box(g, inset - 12, y0, w + 24, 5, R[1]); checker(g, inset - 12, y0 + 5, w + 24, 2, R[1], 1, 1);
+      // (rounding top to bottom: a lit step under the shade line, the crown's foot in shade, a patch stitched on)
+      const hh = y1 - y0;
+      box(g, inset - 12, y0 + 7, w + 24, hh * 0.18, 'rgba(255,255,255,0.13)'); checker(g, inset - 12, y0 + 7 + hh * 0.18, w + 24, 2, 'rgba(255,255,255,0.13)', 0, 1);
+      box(g, inset - 12, y1 - 22, w + 24, 10, 'rgba(26,16,40,0.16)'); checker(g, inset - 12, y1 - 24, w + 24, 2, 'rgba(26,16,40,0.16)', 1, 1);
+      { const px0 = w * (0.18 + hash(t0 * 7) * 0.5), py0 = y0 + hh * 0.38; box(g, px0 - 1, py0 - 1, 26, 16, INK); box(g, px0, py0, 24, 14, R[4]); box(g, px0, py0, 24, 2, R[5]); box(g, px0, py0 + 12, 24, 2, R[3]); for (let k = 0; k < 24; k += 4) { box(g, px0 + k, py0 - 3, 2, 1, Bd[4]); box(g, px0 + k, py0 + 16, 2, 1, Bd[4]); } }
+      g.restore();
       g.beginPath(); hat(); g.strokeStyle = INK; g.lineWidth = 3; g.stroke();
       // (its band, stepped; a bow on the derby, a feather on the bowler)
       box(g, inset + 2, y1 - 13, w - inset * 2 - 4, 8, Bd[3]); box(g, inset + 2, y1 - 13, w - inset * 2 - 4, 2, Bd[4]); box(g, inset + 2, y1 - 7, w - inset * 2 - 4, 2, Bd[1]);
+      for (let x = inset + 6; x < w - inset - 8; x += 6) box(g, x, y1 - 10, 3, 1, Bd[5]);
+      box(g, inset + 2, y1 - 14, w - inset * 2 - 4, 1, INK);
       if (t0 === 0) { ballR(g, w * 0.82, y1 - 9, 6, Bd); ballR(g, w * 0.82 - 9, y1 - 9, 5, Bd); ballR(g, w * 0.82 + 9, y1 - 9, 5, Bd); }
       if (t0 === 0.3) { candyStroke(g, () => { g.moveTo(w * 0.16, y1 - 10); g.quadraticCurveTo(w * 0.1, y1 - 40, w * 0.2, y1 - 52); }, 5, rampH(ramp6('#F472B6')), null); }
       // (each hat's brim: a fat ellipse, lit along its top)
@@ -396,6 +411,19 @@ const drawStudioFront = (c: Ctx, state: GameState, v: View) => {
     shadeAcross(g, body, -14, top - 24, w + 14, GY - top + 24, Pu);
     g.save(); g.beginPath(); body(); g.clip();
     for (const yy of [top + 40, top + 180, GY - 140]) { box(g, -20, yy, w + 40, 8, Pu[2]); box(g, -20, yy, w + 40, 2, Pu[4]); for (let x = -10; x < w + 20; x += 16) { g.fillStyle = Pu[2]; g.beginPath(); g.arc(x, yy + 8, 8, 0, Math.PI); g.fill(); g.fillStyle = Pu[1]; g.fillRect(x - 1, yy + 12, 2, 2); } }
+    // (the plaster: a fleck, pilasters in steps between the trims (lit edge, shade edge, a capital), portholes lit warm low down)
+    for (let k = 0, n = Math.floor((w * (GY - top)) / 80); k < n; k++) box(g, hash(k * 1.73 + 5) * w, top + hash(k * 2.41 + 9) * (GY - top), k % 5 ? 1 : 2, 1, k % 2 ? Pu[2] : Pu[4]);
+    for (let k = 0; k <= 8; k++) {
+      const px0 = 8 + k * (w - 16) / 8; if (Math.abs(px0 - (dx - xa)) < 120) continue;
+      for (const [y0, y1] of [[top + 190, GY - 142], [GY - 130, GY - 4]] as [number, number][]) { box(g, px0 - 9, y0, 18, y1 - y0, Pu[2]); box(g, px0 - 9, y0, 3, y1 - y0, Pu[4]); box(g, px0 + 6, y0, 3, y1 - y0, Pu[1]); checker(g, px0 - 6, y0, 2, y1 - y0, Pu[4], 0, 1); box(g, px0 - 12, y0, 24, 4, Pu[4]); box(g, px0 - 12, y0 + 4, 24, 2, Pu[1]); }
+    }
+    for (let k = 0; k < 8; k++) {
+      const wx = 8 + (k + 0.5) * (w - 16) / 8; if (Math.abs(wx - (dx - xa)) < 300) continue;
+      const wy = top + 232, on = lit();
+      g.fillStyle = INK; g.beginPath(); g.arc(wx, wy, 15, 0, Math.PI * 2); g.fill(); g.fillStyle = Gd[3]; g.beginPath(); g.arc(wx, wy, 13, 0, Math.PI * 2); g.fill();
+      g.fillStyle = on ? '#F6B858' : hour('#3E5A8A'); g.beginPath(); g.arc(wx, wy, 10, 0, Math.PI * 2); g.fill();
+      g.fillStyle = on ? '#FFE29A' : hour('#7AA0CA'); g.beginPath(); g.arc(wx - 2, wy - 2, 6, 0, Math.PI * 2); g.fill(); box(g, wx - 5, wy - 6, 2, 3, '#FFFFFF');
+    }
     for (let k = 0; k < 7; k++) { const sx = 26 + k * (w - 52) / 6; for (let y = top + 56; y < top + 170; y += 22) { g.fillStyle = Gd[3]; g.beginPath(); g.moveTo(sx, y - 5); g.lineTo(sx + 2, y - 1); g.lineTo(sx + 6, y); g.lineTo(sx + 2, y + 1); g.lineTo(sx, y + 5); g.lineTo(sx - 2, y + 1); g.lineTo(sx - 6, y); g.lineTo(sx - 2, y - 1); g.closePath(); g.fill(); } }
     g.restore();
     g.beginPath(); body(); g.strokeStyle = INK; g.lineWidth = 4; g.stroke();

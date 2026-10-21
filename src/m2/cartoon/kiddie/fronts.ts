@@ -159,6 +159,8 @@ const roof = (g: Ctx, f: Front, cx: number, top: number, w: number) => {
     g.save(); dome(1); g.clip();
     box(g, cx - w, top - w * 1.1, w * 2, w * 1.2, R[3]);
     if (f.seed % 3 === 0) { g.fillStyle = W2[3]; for (let k = -w; k < w; k += 18) { g.beginPath(); g.moveTo(cx + k, top + 4); g.quadraticCurveTo(cx + k * 0.4 + 6, top - w * 0.6, cx + flip * 16, top - w); g.lineTo(cx + flip * 16 + 3, top - w); g.quadraticCurveTo(cx + k * 0.4 + 14, top - w * 0.6, cx + k + 9, top + 4); g.closePath(); g.fill(); } }
+    // (the dome's tiles: fish-scale shingles in rows, each lit along its curve)
+    for (let ry = top - 4, row = 0; ry > top - w; ry -= 9, row++) for (let rx = cx - w + (row % 2) * 6; rx < cx + w; rx += 12) { g.fillStyle = R[2]; g.beginPath(); g.arc(rx, ry, 6, 0, Math.PI); g.fill(); g.fillStyle = R[4]; g.fillRect(rx - 4, ry + 1, 3, 1); }
     g.fillStyle = 'rgba(255,255,255,0.22)'; g.fillRect(cx - w, top - w * 1.1, w * 0.7, w * 1.2);
     g.fillStyle = 'rgba(26,16,40,0.22)'; g.fillRect(cx + w * 0.18, top - w * 1.1, w, w * 1.2); checker(g, cx + w * 0.18 - 2, top - w * 1.1, 2, w * 1.2, 'rgba(26,16,40,0.22)', 0, 1);
     g.fillStyle = 'rgba(26,16,40,0.3)'; g.fillRect(cx - w, top - 6, w * 2, 10);
@@ -170,6 +172,10 @@ const roof = (g: Ctx, f: Front, cx: number, top: number, w: number) => {
     g.save(); cone(); g.clip();
     box(g, cx - w * 1.2, top - w * 1.5, w * 2.4, w * 1.6, R[3]);
     for (let k = -3; k < 8; k++) { g.fillStyle = k % 2 ? W2[3] : R[3]; g.beginPath(); g.moveTo(cx - w, top - k * 18); g.lineTo(cx + w, top - k * 18 - 20); g.lineTo(cx + w, top - k * 18 - 30); g.lineTo(cx - w, top - k * 18 - 10); g.closePath(); if (k % 2) g.fill(); }
+    // (the cloth: a nap of flecks, the seams running up it stitched, a patch on some)
+    for (let k = 0, n = Math.floor(w * w * 0.12); k < n; k++) box(g, cx - w + hash(f.seed * 13 + k * 1.9) * w * 2, top - hash(f.seed * 19 + k * 2.3) * w * 1.4, 1, 1, k % 2 ? R[2] : R[4]);
+    for (const sk of [-0.25, 0.2]) { g.strokeStyle = R[1]; g.lineWidth = 1; g.setLineDash([3, 3]); g.beginPath(); g.moveTo(cx + sk * w, top + 2); g.quadraticCurveTo(cx + sk * w * 0.4, top - w * 0.9, cx + flip * w * 0.5, top - w * 1.25); g.stroke(); g.setLineDash([]); }
+    if (f.seed % 2 === 0) { const px0 = cx - w * 0.1, py0 = top - w * 0.55; box(g, px0 - 1, py0 - 1, 20, 16, INK); box(g, px0, py0, 18, 14, ROOFC[((Math.floor(f.seed + 5) % ROOFC.length) + ROOFC.length) % ROOFC.length]); checker(g, px0, py0, 18, 14, 'rgba(255,255,255,0.18)', 0, 2); for (let k = 0; k < 18; k += 4) box(g, px0 + k, py0 - 3, 2, 2, W2[3]); }
     g.fillStyle = 'rgba(255,255,255,0.2)'; g.fillRect(cx - w, top - w * 1.5, w * 0.62, w * 1.6);
     g.fillStyle = 'rgba(26,16,40,0.22)'; g.fillRect(cx + w * 0.16, top - w * 1.5, w, w * 1.6); checker(g, cx + w * 0.16 - 2, top - w * 1.5, 2, w * 1.6, 'rgba(26,16,40,0.22)', 1, 1);
     g.restore();
@@ -213,12 +219,40 @@ const paintFront = (g: Ctx, f: Front, closed: boolean) => {
   if (f.skin === 'spiral') { g.fillStyle = Wl[2]; for (let k = -h; k < w + h; k += 26) { g.beginPath(); g.moveTo(k, 0); g.lineTo(k + 11, 0); g.lineTo(k + 11 + h * 0.36, -h - 10); g.lineTo(k + h * 0.36, -h - 10); g.closePath(); g.fill(); } }
   else if (f.skin === 'dots') { for (let yy = -h + 18; yy < -24; yy += 22) for (let xx = 10 + ((yy / 22) % 2 ? 11 : 0); xx < w; xx += 22) { g.fillStyle = Wl[4]; g.beginPath(); g.arc(xx + lean * (-yy / h), yy, 5, 0, Math.PI * 2); g.fill(); box(g, xx + lean * (-yy / h) - 2, yy - 3, 2, 2, Wl[5]); } }
   else if (f.skin === 'scallop') { for (let yy = -h + 30; yy < -30; yy += 46) { box(g, -10, yy, w + 40, 6, Wl[2]); for (let xx = -6; xx < w + 20; xx += 12) { g.fillStyle = Wl[2]; g.beginPath(); g.arc(xx + lean * (-yy / h), yy + 6, 6, 0, Math.PI); g.fill(); } } }
-  g.fillStyle = 'rgba(255,255,255,0.24)'; g.fillRect(-b * 2 - 10, -h - 20, w * 0.2 + b * 2 + 10, h + 22); checker(g, w * 0.2, -h - 20, 2, h + 22, 'rgba(255,255,255,0.24)', 0, 1);
-  g.fillStyle = 'rgba(26,16,40,0.16)'; g.fillRect(w * 0.66, -h - 20, w, h + 22); checker(g, w * 0.66 - 2, -h - 20, 2, h + 22, 'rgba(26,16,40,0.16)', 1, 1);
-  g.fillStyle = 'rgba(26,16,40,0.18)'; g.fillRect(w * 0.86, -h - 20, w, h + 22);
-  // (a skirting of darker plaster along the foot, the eave's shade under the roof)
-  box(g, -20, -16, w + 50, 16, Wl[2]); box(g, -20, -16, w + 50, 2, Wl[4]);
+  // (the plaster's texture: a stucco speckle, light and shade, a hairline crack or two, a rain streak under a window)
+  for (let k = 0, n = Math.floor((w * h) / 70); k < n; k++) {
+    const sx = hash(f.seed * 31 + k * 1.37) * (w + 20) - 10, sy = -hash(f.seed * 17 + k * 2.71) * h, col = k % 3 ? Wl[2] : Wl[4];
+    box(g, sx + lean * (-sy / h), sy, k % 5 ? 1 : 2, 1, col);
+  }
+  for (let k = 0; k < 2; k++) {
+    const cx = hash(f.seed * 7 + k * 3) * w * 0.8 + w * 0.1, cy = -30 - hash(f.seed * 5 + k) * (h - 80);
+    g.strokeStyle = Wl[1]; g.lineWidth = 1; g.beginPath(); g.moveTo(cx, cy); g.lineTo(cx + 4, cy + 6); g.lineTo(cx + 2, cy + 11); g.lineTo(cx + 6, cy + 17); g.stroke();
+    box(g, cx + 1, cy + 1, 1, 4, Wl[4]);
+  }
+  { const sx = w * (0.3 + hash(f.seed * 2.9) * 0.4); for (let y = -h + 40; y < -100; y += 2) box(g, sx + lean * (-y / h) + Math.sin(y * 0.2) * 0.6, y, 2, 2, 'rgba(90,60,90,0.1)'); }
+  // (a patch where the plaster's come away and the brick shows, on some)
+  if (f.seed % 3 === 0) {
+    const px0 = f.seed % 2 ? w * 0.62 : w * 0.12, py0 = -h * 0.5;
+    g.fillStyle = Wl[2]; g.beginPath(); g.ellipse(px0 + 14, py0, 18, 11, 0.2, 0, Math.PI * 2); g.fill();
+    const Bk = rampH(['#4A1A16', '#7A2E24', '#A84A36', '#C86A4E', '#E0906E', '#F4BCA0'], true);
+    for (let r = 0; r < 4; r++) for (let c = 0; c < 4; c++) { const bx = px0 + c * 8 + (r % 2) * 4 - 2, by = py0 - 8 + r * 5; if ((bx - px0 - 14) ** 2 / 256 + (by - py0) ** 2 / 81 < 1) { box(g, bx, by, 7, 4, Bk[2 + ((r + c) % 2)]); box(g, bx, by, 7, 1, Bk[4]); } }
+  }
+  // (the light round the bulge: lit steps up the left, the shade in steps down the right, dithered seams between)
+  const bands: [number, number, string][] = [[-0.2, 0.06, 'rgba(255,255,255,0.32)'], [0.06, 0.2, 'rgba(255,255,255,0.2)'], [0.62, 0.74, 'rgba(26,16,40,0.1)'], [0.74, 0.86, 'rgba(26,16,40,0.2)'], [0.86, 1.3, 'rgba(26,16,40,0.3)']];
+  for (const [a, z, col] of bands) {
+    g.fillStyle = col; g.fillRect(w * a, -h - 20, w * (z - a), h + 22);
+    checker(g, a < 0.5 ? w * z : w * a - 2, -h - 20, 2, h + 22, col, a < 0.5 ? 0 : 1, 1);
+  }
+  // (the floors marked out: a piped molding along each, lit on top, its shade under)
+  for (let y = -122; y > -h + 34; y -= 40) {
+    box(g, -20, y, w + 50, 5, Wl[2]); box(g, -20, y, w + 50, 1, Wl[5]); box(g, -20, y + 1, w + 50, 1, Wl[4]); box(g, -20, y + 5, w + 50, 2, 'rgba(26,16,40,0.18)');
+    for (let x = 4 + ((f.seed * 3) % 7); x < w; x += 9) box(g, x, y + 2, 2, 2, Wl[1]);
+  }
+  // (a skirting of darker plaster along the foot (scuffed, a kick mark), the eave's shade under the roof, icing drips off it)
+  box(g, -20, -16, w + 50, 16, Wl[2]); box(g, -20, -16, w + 50, 2, Wl[4]); box(g, -20, -3, w + 50, 3, Wl[1]);
+  for (let x = 6; x < w; x += 23) box(g, x + (f.seed % 5), -10, 5 + (x % 4), 2, Wl[1]);
   box(g, -20, -h - 10, w + 50, 14, 'rgba(26,16,40,0.18)');
+  { const F = rampH(FROSTING, true); for (let x = -6; x < w + 16; x += 7) { const dl = 3 + Math.floor(hash(f.seed + x * 0.37) * 9), y0 = -h - 2; box(g, x + lean, y0, 6, 4, F[3]); box(g, x + 1 + lean, y0 + 4, 3, dl, F[3]); box(g, x + 1 + lean, y0 + 4 + dl, 3, 1, F[1]); box(g, x + lean, y0, 6, 1, F[5]); } }
   g.restore();
   g.beginPath(); outline(); g.strokeStyle = INK; g.lineWidth = 3; g.lineJoin = 'round'; g.stroke();
   // (the shop: the door, the bay of a window under its awning, the name board up over them)
