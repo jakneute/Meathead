@@ -14,11 +14,11 @@
 //   THE FAMILY    (the user's, 2026-10-21: "the stupid dad fight feels a bit too sedentary. make it so you cannot just
 //                 stand there and shoot him.") Each living animatronic patrols its own track along the front of the set
 //                 (MOM the left end, SIS the middle in front of the couch, THE BOY right of it, GRAMPS the far end:
-//                 overlapping, so standing still anywhere gets you slapped sooner or later), a jerk at a time, and
-//                 SLAPS Meathead in reach (a bolted-on slap arm cocks back with a servo whine and sparks, 22 frames,
-//                 then swings: 6). They eat his shots and his moves (you need clearance: "they can only be destroyed
-//                 with the stunt car"); a ping, sparks, and now and then his gripe (MH_BLOCKED). The beer run is one of
-//                 them at random, rushing to the fridge and back to its track.
+//                 overlapping), a jerk at a time, stopping now and then. They never hurt him ("the robots don't hurt you
+//                 anymore but they do obstruct your shots. same for beer runs"); they eat his shots and his moves (you
+//                 need clearance: "they can only be destroyed with the stunt car"); a ping, sparks, and now and then his
+//                 gripe (MH_BLOCKED). The beer run is one of them at random, rushing to the fridge and back to its
+//                 track (harmless); two of each armful's wide bottles come down about where he's stood.
 //   CAMERA        Zoomed out (0.66) on the middle of the set for the whole fight, wall to wall; the words and the
 //                 clapperboard's reset ring drawn on the HUD at full size. The clapperboard snapped while it's
 //                 resetting: the stunt coordinator on the walkie with an excuse (CREW_EXCUSE).
@@ -73,7 +73,7 @@ import { drawDad, DAD_K, DAD_H, DAD_SIT_H, type DadFace, hammerGrip, swatGrip, m
 import { pantsOf } from '../section';
 import {
   type P, type Member, type PileCan, eyeOf, proj, drawMallet, drawFridge, drawBottle, drawDrop, drawPuddle, drawCouchAt,
-  drawCarAt, drawWreck, drawStuntmanAt, drawWallSplat, drawMember, drawDeadMember, drawPancake, drawPile, drawSeep, drawBlood, drawSlapArm,
+  drawCarAt, drawWreck, drawStuntmanAt, drawWallSplat, drawMember, drawDeadMember, drawPancake, drawPile, drawSeep, drawBlood,
 } from './fightArt';
 import type { Anim } from './family';
 import * as L from './lines';
@@ -101,8 +101,8 @@ const CALL_EVERY: [number, number] = [300, 420], BOTTLES: [number, number] = [1,
 /** The beer run's rush (the user's: "they will move very quickly to the fridge and throw it then back to their
  *  'default' track"): px a frame there and back. */
 const RUSH = 9;
-/** The beer runner's tell before it bolts (a klaxon, a lean, a rev), and its ram (rushing, either way: the user's). */
-const READY_T = 34, RAM_DMG = 10;
+/** The beer runner's tell before it bolts (a klaxon, a lean, a rev). */
+const READY_T = 34;
 /** THE FAMILY ON THEIR TRACKS (the user's: "the various animatronics ... will move on a set track and attempt to slap
  *  you"): each living one patrols its own stretch of the front of the set (they overlap end to end, so nowhere's out of
  *  reach for long), a jerk at a time; in reach, a slap: a wind-up (the slap arm cocking back with a servo whine), a
@@ -113,7 +113,7 @@ const TRACKS: Record<Member, { a: number; b: number; d: number; sh: number }> = 
   boy: { a: 3420, b: 3760, d: 1.0008, sh: 60 },
   gramps: { a: 3660, b: ARENA.b - 40, d: 1.0006, sh: 62 },
 };
-const PATROL_STEP = 10, PATROL_EVERY = 6, SLAP_WIND = 22, SLAP_LIVE = 5, SLAP_REST = 26, SLAP_GAP = 70, SLAP_REACH = 54, SLAP_DMG = 6;
+const PATROL_STEP = 10, PATROL_EVERY = 6;
 /** Catching it, drinking it. */
 const CATCH_T = 24, DRINK_T = 64;
 /** The puke: the wind-up, how long it comes, the kick it gives the couch (more each time), the push while it's coming,
@@ -143,12 +143,11 @@ const MEMBERS: Member[] = ['mom', 'boy', 'sis', 'gramps'];
 interface Fam {
   id: Member; alive: boolean; x: number; d: number; home: { x: number; d: number }; stepT: number; dir: 1 | -1;
   /** Its patrol (which way along its track), its slap (wind-up, swing, rest) and its clock, the frame it may slap again. */
-  way: 1 | -1; slap: 'none' | 'wind' | 'hit' | 'rest'; slapT: number; slapAt: number; slapHit: boolean;
-  /** Stopped on its track this many frames more (only stopped does it slap: the user's "only when they try slapping you
-   *  when idle"). */
+  way: 1 | -1;
+  /** Stopped on its track this many frames more. */
   idle: number;
 }
-interface Errand { who: Member; step: 'ready' | 'go' | 'open' | 'toss' | 'back'; t: number; left: number; rammed: boolean }
+interface Errand { who: Member; step: 'ready' | 'go' | 'open' | 'toss' | 'back'; t: number; left: number }
 type Miss = 'short' | 'long' | 'head' | 'wall' | 'catch' | 'spray';
 interface Bottle { t: number; T: number; ax: number; ay: number; ad: number; bx: number; by: number; bd: number; kind: Miss; rot: number; arc: number }
 interface Drop { x: number; y: number; vx: number; vy: number; r: number; k: number }
@@ -308,7 +307,7 @@ export const startFight = (state: GameState, retry: boolean): Fight => {
   const e = makeKindEnemy(KIND as EnemyKind, X(x), STAGE_Y);
   e.facing = -1; e.seen = true;
   const fam = {} as Record<Member, Fam>;
-  for (const m of MEMBERS) { const h = homeOf(m); fam[m] = { id: m, alive: true, x: h.x, d: h.d, home: { x: h.x, d: h.d }, stepT: 0, dir: -1, way: Math.random() < 0.5 ? 1 : -1, slap: 'none', slapT: 0, slapAt: 120, slapHit: false, idle: 0 }; }
+  for (const m of MEMBERS) { const h = homeOf(m); fam[m] = { id: m, alive: true, x: h.x, d: h.d, home: { x: h.x, d: h.d }, stepT: 0, dir: -1, way: Math.random() < 0.5 ? 1 : -1, idle: 0 }; }
   const f: Fight = {
     mode: 'on', t: 0, stage: String(state.stageId), hp: HP, iframes: 0, flash: 0, e, moveSeen: e.hitByMove,
     act: retry ? 'enter' : 'sit', actT: 0, x, y: 0, vy: 0, facing: -1, seated: true, landT: -999,
@@ -460,9 +459,8 @@ const dad = (ctx: FrameContext, f: Fight) => {
       if (!f.errand && f.t >= f.callAt && f.couch.vx === 0 && alive(f).length && Math.abs(f.couch.x - COUCH_HOME) <= 40) {
         f.callAt = f.t + rnd(...CALL_EVERY);
         const al = alive(f), who = al[Math.floor(Math.random() * al.length)];
-        const fm = f.family[who]; fm.slap = 'none'; fm.slapT = 0;
         dadSays(f, state, L.DAD_BEER);
-        f.errand = { who, step: 'ready', t: 0, left: Math.floor(rnd(BOTTLES[0], BOTTLES[1] + 1)), rammed: false };
+        f.errand = { who, step: 'ready', t: 0, left: Math.floor(rnd(BOTTLES[0], BOTTLES[1] + 1)) };
         playSound('alarm', 0.5, 6);
       }
       break;
@@ -683,55 +681,28 @@ const hammered = (ctx: FrameContext, f: Fight) => {
 // ---------------------------------------------------------------------------------------------------------------
 // The beer run: one of the family to the fridge and back, the bottles
 
-/** The family on their tracks: each living one not off on the beer run patrols its stretch a jerk at a time, and
- *  slaps him when he's in reach (wind-up, swing, rest, a wait). */
+/** The family on their tracks: each living one not off on the beer run patrols its stretch a jerk at a time, stopping
+ *  now and then. They never hurt him (the user's: "the robots don't hurt you anymore but they do obstruct your shots"). */
 const family = (ctx: FrameContext, f: Fight) => {
-  const { state } = ctx, E = eyeOf(state), pm = pmid(state);
+  void ctx;
   for (const id of MEMBERS) {
     const m = f.family[id];
     if (!m.alive || f.errand?.who === id) continue;
     const tr = TRACKS[id];
-    // (where it is on screen: its feet, its shoulder)
-    const at = proj(E, X(m.x), STAGE_Y, m.d), dx = pm.x + x0 - at.x;
-    if (m.slap === 'none') {
-      // (stopped on its track (idle), him in reach, allowed: the wind-up. Never on the move; never by touch)
-      const near = Math.abs(dx) < SLAP_REACH + 6 && pm.feet > STAGE_Y - tr.sh - 70 && f.mode === 'on' && f.act !== 'enter' && hurtable(state);
-      if (m.idle > 0) {
-        m.idle--;
-        if (near && f.t >= m.slapAt) { m.slap = 'wind'; m.slapT = 0; m.slapHit = false; m.dir = (dx < 0 ? -1 : 1) as 1 | -1; m.idle = Math.max(m.idle, 24); playSound('click', 0.6, 10); playSound('grind', 0.4, 8); }
-        continue;
-      }
-      // (the patrol, along the very front of the set (in front of everything on it, so what eats his shots is always in
-      // sight): off its track (just back from the fridge, the fight's start) it heads to it; on it, a jerk at a time end
-      // to end)
-      m.stepT++;
-      if (m.stepT % PATROL_EVERY) continue;
-      const tx = m.x < tr.a ? tr.a : m.x > tr.b ? tr.b : m.x + m.way * PATROL_STEP;
-      if (tx >= tr.b) { m.way = -1; m.idle = 40 + Math.floor(Math.random() * 40); } else if (tx <= tr.a) { m.way = 1; m.idle = 40 + Math.floor(Math.random() * 40); }
-      else if (m.x >= tr.a && m.x <= tr.b && Math.random() < 0.08) m.idle = 30 + Math.floor(Math.random() * 40);
-      const nx = Math.max(Math.min(m.x, tr.a), Math.min(Math.max(m.x, tr.b), tx));
-      m.dir = (nx < m.x ? -1 : 1) as 1 | -1;
-      m.x += Math.sign(nx - m.x) * Math.min(Math.abs(nx - m.x), PATROL_STEP * 2);
-      m.d += (tr.d - m.d) * 0.25;
-      if (m.stepT % (PATROL_EVERY * 3) === 0) playSound('click', 0.2, 6);
-      continue;
-    }
-    m.slapT++;
-    if (m.slap === 'wind' && m.slapT >= SLAP_WIND) { m.slap = 'hit'; m.slapT = 0; playSound('whoosh', 0.7, 6); }
-    else if (m.slap === 'hit') {
-      // (the swing: the hand's box out in front of it at its shoulder)
-      if (!m.slapHit && hurtable(state) && f.mode === 'on') {
-        const hand: R = { x0: m.dir > 0 ? at.x + 6 : at.x - SLAP_REACH, x1: m.dir > 0 ? at.x + SLAP_REACH : at.x - 6, y0: STAGE_Y - tr.sh - 26, y1: STAGE_Y - tr.sh + 30 };
-        if (hits(pRect(state), hand)) {
-          m.slapHit = true;
-          hurtPlayer(ctx, SLAP_DMG, hurtSrc(state, 'm2:ct_family_slap'), { x: m.dir * 7, y: -5 }, 10);
-          playSound('crack', 0.9, 4); playSound('punch', 0.7, 6); shakeScreen(state, 4, 3);
-          ctx.fx.spawnDamageNumber({ x: state.player.pos.x, y: state.player.pos.y - 20 }, 'SLAP!', true, '#F9A8D4');
-          if (quiet() && Math.random() < 0.4) tape(f, id, SNARK[id], () => laughTrack(state, 0.7));
-        }
-      }
-      if (m.slapT >= SLAP_LIVE) { m.slap = 'rest'; m.slapT = 0; }
-    } else if (m.slap === 'rest' && m.slapT >= SLAP_REST) { m.slap = 'none'; m.slapAt = f.t + SLAP_GAP; m.idle = 20; }
+    if (m.idle > 0) { m.idle--; continue; }
+    // (the patrol, along the very front of the set (in front of everything on it, so what eats his shots is always in
+    // sight): off its track (just back from the fridge, the fight's start) it heads to it; on it, a jerk at a time end
+    // to end, stopping at the ends and now and then on the way: the windows to Dad open and shut)
+    m.stepT++;
+    if (m.stepT % PATROL_EVERY) continue;
+    const tx = m.x < tr.a ? tr.a : m.x > tr.b ? tr.b : m.x + m.way * PATROL_STEP;
+    if (tx >= tr.b) { m.way = -1; m.idle = 40 + Math.floor(Math.random() * 40); } else if (tx <= tr.a) { m.way = 1; m.idle = 40 + Math.floor(Math.random() * 40); }
+    else if (m.x >= tr.a && m.x <= tr.b && Math.random() < 0.08) m.idle = 30 + Math.floor(Math.random() * 40);
+    const nx = Math.max(Math.min(m.x, tr.a), Math.min(Math.max(m.x, tr.b), tx));
+    m.dir = (nx < m.x ? -1 : 1) as 1 | -1;
+    m.x += Math.sign(nx - m.x) * Math.min(Math.abs(nx - m.x), PATROL_STEP * 2);
+    m.d += (tr.d - m.d) * 0.25;
+    if (m.stepT % (PATROL_EVERY * 3) === 0) playSound('click', 0.2, 6);
   }
 };
 /** A living one of the family's body on screen (its depth's projection): what eats his shots. */
@@ -786,8 +757,6 @@ const famBetween = (state: GameState, f: Fight) => {
   });
 };
 
-/** How far the slap arm's out (0 tucked .. -1 cocked right back on the wind-up .. 1 swung through). */
-const slapArm = (m: Fam) => (m.slap === 'wind' ? -Math.min(1, m.slapT / (SLAP_WIND * 0.6)) : m.slap === 'hit' ? Math.min(1, m.slapT / 2) : m.slap === 'rest' ? Math.max(0, 1 - m.slapT / SLAP_REST) : 0);
 
 /** The camera through the fight (the user's: "zoom out so the whole set is always visible"): eased out to take in the
  *  whole living room, wall to wall, his feet low on the screen, the camera parked on the middle of it; the whole view's
@@ -839,14 +808,7 @@ const errand = (ctx: FrameContext, f: Fight) => {
     m.x += dx * k; m.d += (to.d - m.d) * k; m.dir = (dx < 0 ? -1 : 1) as 1 | -1;
     if (m.stepT % 4 === 0) playSound('click', 0.3, 8);
     if (m.stepT % 3 === 0) { const E = eyeOf(state), q = proj(E, X(m.x), STAGE_Y - 2, m.d); state.particles.push({ pos: q, vel: { x: -m.dir * (1 + Math.random() * 2), y: -1 - Math.random() * 2 }, life: 14, color: m.stepT % 2 ? '#FDE047' : '#FFFFFF', size: 1.5, grav: 0.2 }); }
-    // (the user's: "if you are in the way, you will get hurt. both on its way to the fridge and back to its normal path":
-    // rushing (not standing, not patrolling), it rams him: once a leg, flung the way it's going)
-    if (!er.rammed && m.d > 0.97 && hurtable(state) && f.mode === 'on' && hits(pRect(state), famRect(state, m))) {
-      er.rammed = true;
-      hurtPlayer(ctx, RAM_DMG, hurtSrc(state, 'm2:ct_family_ram'), { x: m.dir * 10, y: -7 });
-      playSound('thud', 1, -4); playSound('clang', 0.7, 2); shakeScreen(state, 7, 4);
-      ctx.fx.spawnDamageNumber({ x: state.player.pos.x, y: state.player.pos.y - 20 }, 'BEER RUN!', true, '#FDE047');
-    }
+    // (it goes straight through him: harmless (the user's: "same for beer runs"))
     return false;
   };
   switch (er.step) {
@@ -855,7 +817,7 @@ const errand = (ctx: FrameContext, f: Fight) => {
       m.dir = (AT_FRIDGE.x < m.x ? -1 : 1) as 1 | -1;
       if (er.t % 6 === 0) { const E = eyeOf(state), q = proj(E, X(m.x), STAGE_Y - 2, m.d); for (let i = 0; i < 3; i++) state.particles.push({ pos: q, vel: { x: -m.dir * (1 + Math.random() * 3), y: -1 - Math.random() * 2 }, life: 12, color: '#FDE047', size: 1.5, grav: 0.2 }); }
       if (er.t === 14) playSound('alarm', 0.5, 6);
-      if (er.t >= READY_T) { er.step = 'go'; er.t = 0; er.rammed = false; playSound('whoosh', 0.8, 4); }
+      if (er.t >= READY_T) { er.step = 'go'; er.t = 0; playSound('whoosh', 0.8, 4); }
       break;
     case 'go': if (walk(AT_FRIDGE)) { er.step = 'open'; er.t = 0; tape(f, er.who, L.FETCH_TAPE[er.who]); } break;
     case 'open':
@@ -870,18 +832,18 @@ const errand = (ctx: FrameContext, f: Fight) => {
         er.t = 0;
         throwBottle(f, er.left <= 1 ? 'catch' : (['short', 'long', 'head', 'wall'] as const)[Math.floor(Math.random() * 4)]);
         const n = SPRAY + (f.kills >= 2 ? 1 : 0);
-        for (let k = 0; k < n; k++) throwSpray(f, state, k === 0);
+        // (two of them about where he's stood: with the family harmless now, the bottles keep him moving)
+        for (let k = 0; k < n; k++) throwSpray(f, state, k < 2);
         playSound('whoosh', 0.5, 8); playSound('clink', 0.5, 6);
         er.left--;
         if (er.left <= 0) { er.step = 'back'; er.t = 0; }
       }
       break;
     case 'back': {
-      // (back to the nearest spot on its own track: a fresh leg, it can ram him again)
-      if (er.t === 1) er.rammed = false;
+      // (back to the nearest spot on its own track)
       f.fridge.open = Math.max(0, f.fridge.open - 0.06);
       const tr = TRACKS[er.who];
-      if (walk({ x: Math.max(tr.a, Math.min(tr.b, m.x)), d: tr.d }) && !f.bottles.some(b => b.kind === 'catch')) { f.errand = null; m.slapAt = f.t + 40; }
+      if (walk({ x: Math.max(tr.a, Math.min(tr.b, m.x)), d: tr.d }) && !f.bottles.some(b => b.kind === 'catch')) f.errand = null;
       break;
     }
   }
@@ -1355,7 +1317,7 @@ const fridgeDeath = (ctx: FrameContext, f: Fight, d: Death): Controls => {
     let slot = 0;
     for (const id of MEMBERS) {
       const m = f.family[id];
-      if (m.alive) { const to = ARENA.a + 40 + slot++ * 70; m.x += Math.sign(to - m.x) * Math.min(6, Math.abs(to - m.x)); m.d += (0.9 - m.d) * 0.08; m.slap = 'none'; }
+      if (m.alive) { const to = ARENA.a + 40 + slot++ * 70; m.x += Math.sign(to - m.x) * Math.min(6, Math.abs(to - m.x)); m.d += (0.9 - m.d) * 0.08; }
       else if (m.x > lo && m.x < hi) m.x = Math.max(lo - 20, m.x - 6);
     }
     for (const w of f.wrecks) if (!w.onCouch && w.x > lo && w.x < hi) w.x = Math.max(lo - 60, w.x - 6);
@@ -1469,13 +1431,11 @@ export const fightItems = (c: Ctx, state: GameState, f: Fight): Item[] => {
       const er = f.errand, out = er?.who === m;
       const a: Anim = { mode: out || f.kills > 0 ? 'glitch' : 'run', f: fr + m.length * 13, talking: f.words.has(m) };
       const throwing = out && er?.step === 'toss';
-      const arm = slapArm(fm), tr = TRACKS[m];
       const lean = out && er?.step === 'ready' ? fm.dir * 0.16 : out && (er?.step === 'go' || er?.step === 'back') ? fm.dir * 0.08 : 0;
       at(fm.d, X(fm.x), () => {
         if (lean) { c.save(); c.translate(X(fm.x), STAGE_Y); c.rotate(lean); c.translate(-X(fm.x), -STAGE_Y); }
         drawMember(c, m, X(fm.x), STAGE_Y, a, throwing ? 1 : 0, throwing);
         if (lean) c.restore();
-        if (!out) drawSlapArm(c, X(fm.x), STAGE_Y - tr.sh, fm.dir, arm, fm.slap === 'wind', fr);
       });
     } else at(fm.d - 0.0004, X(fm.x), () => drawDeadMember(c, m, X(fm.x), STAGE_Y, fr, (fm.x > f.x ? 1 : -1) as 1 | -1));
   }

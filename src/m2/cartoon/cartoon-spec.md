@@ -645,11 +645,10 @@ As built (numbers up top in fight.ts):
   (fight.ts TRACKS etc.):
   - THE FAMILY ON TRACKS: each living one patrols its stretch of the very front of the set (drawn in front of everything
     on it): MOM the left end to 3210, SIS 3110-3500 (across the couch), THE BOY 3420-3760, GRAMPS 3660 to the right
-    wall: overlapping, so nowhere's safe for long; 10 px a jerk every 6 frames. In reach (54 px, his feet within reach of
-    its shoulder): THE SLAP: a bolted-on steel slap arm with a pink rubber hand (fightArt drawSlapArm) cocks back over its
-    shoulder with a servo whine and sparks at the hinge (22 frames: the tell), swings (5 frames live, 6 hurt,
-    m2:ct_family_slap, clean / shitty / naked lines), rests 26, waits 70 before another; now and then its tape snipes
-    and the laugh track. The old rule that the family can't hurt him is gone.
+    wall: overlapping; 10 px a jerk every 6 frames, stopping 40-80 frames at each end and now and then on the way. THEY
+    NEVER HURT HIM (the user's, 2026-10-21, later: "the robots don't hurt you anymore but they do obstruct your shots.
+    same for beer runs"): the slap they had for a day (a bolted-on slap arm) and the beer runner's ram are gone, their
+    hurt lines dropped from the pools (the clips stay in the pack).
   - CLEARANCE: the living ones (not the one off on the beer run) eat his shots (every player projectile that touches one)
     and his moves into Dad when one's between them: a clang, sparks, nothing to it or to Dad; after every 3 eaten (7 s
     apart at least) his gripe, MH_BLOCKED ("WHAT KIND OF BULLSHIT TITANIUM ARE THESE ROBOTS BUILT WITH?", the user's,
@@ -665,15 +664,12 @@ As built (numbers up top in fight.ts):
   - THE SWAT, SHORTER: the mallet's arc pulled in (radius 40 to 34 by the end of the swing) and the head driven down into
     the deck (the wrist snap 0.25 to 0.55 rad): about 15% less reach out in front, still exactly where it's drawn; the
     trigger pad round its swing 24 to 16 px.
-  - SOLID, NO CONTACT HURT (the user's: "the robots cannot be pushed either. they won't do contact damage. only when
-    they try slapping you when idle"): they're not the engine's enemies at all (nothing pushes, grabs, flings or blows
-    them about); a charge, slide or dive kick into one stops dead and bounces him off it (a clang, the gripe count).
-    Touching one never hurts. They stop on their tracks now and then (40-80 frames at each end, a few at random on the
-    way: IDLE) and only stopped do they slap.
-  - THE BEER RUNNER RAMS (the user's: "if you are in the way, you will get hurt. both on its way to the fridge and back to
-    its normal path"): the tell first, 34 frames (a klaxon, it leans the way it's going and revs, sparks at its wheels),
-    then it bolts; rushing either way it rams him once a leg (10, flung the way it's going, m2:ct_family_ram, clean /
-    shitty / naked lines). Standing, patrolling, slapping: no contact hurt.
+  - SOLID, HARMLESS (the user's: "the robots cannot be pushed either"): they're not the engine's enemies at all (nothing
+    pushes, grabs, flings or blows them about); a charge, slide or dive kick into one stops dead and bounces him off it
+    (a clang, the gripe count). Touching one never hurts.
+  - THE BEER RUNNER: a tell first, 34 frames (a klaxon, it leans the way it's going and revs, sparks at its wheels),
+    then it bolts there and back, straight through him, harmless. To keep him moving now the family's harmless, two of
+    each armful's wide bottles come down about where he's stood (was one).
   - THE HAMMER, TIGHT (the user's: "the 'donkey kong' attack seems to hit you when you're near him but not touching him.
     the hurt box seems oversized"): the head's hurt is the drawn barrel exactly, turned with the mallet (a separating-
     axes test against his body box: no padding, no box round a tilted head), checked at this frame's swing and, only
