@@ -229,3 +229,7 @@ export const drawDavePortraitLive = (c: Ctx, f: number) => {
     for (let i = -10; i <= 10; i++) { const x = Math.round(sx + i * 0.5), y = Math.round(oy + ey + i); if (Math.hypot(x - ox - ex, y - oy - ey) < GLASS_R - 2) c.fillRect(x, y, 2, 1); }
   }
 };
+
+/** The painting itself (his head and shoulders: 200 x 204, the head's middle about (100, 70)), for prints of him
+ *  elsewhere (the cardboard stand-in out front: kiddie/art.ts). Null with no document. */
+export const davePainting = () => portrait();

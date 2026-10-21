@@ -408,21 +408,73 @@ export const tintBust = (bu: Bust, col: string): Bust => {
   return t;
 };
 
+/** A canvas under a color (multiplied over it, its see-through kept), kept per color. */
+const tcv = new WeakMap<HTMLCanvasElement, Map<string, HTMLCanvasElement>>();
+export const tintCanvas = (src: HTMLCanvasElement, col: string): HTMLCanvasElement => {
+  if (/^#f{6}$/i.test(col)) return src;
+  let m = tcv.get(src); if (!m) tcv.set(src, (m = new Map()));
+  let t = m.get(col);
+  if (!t) {
+    t = document.createElement('canvas'); t.width = src.width; t.height = src.height;
+    const g = t.getContext('2d')!;
+    g.drawImage(src, 0, 0); g.globalCompositeOperation = 'multiply'; g.fillStyle = col; g.fillRect(0, 0, t.width, t.height);
+    g.globalCompositeOperation = 'destination-in'; g.drawImage(src, 0, 0);
+    m.set(col, t);
+  }
+  return t;
+};
+
 export interface BustFit { x: number; y: number; s: number }
 /** Puts a bust down in (x, y, w, h): as big as fits across, the shoulders cut off the bottom before the face is (it
- *  shows at least `minH` of the box's 200 rows), centered, bottom on the rectangle's bottom. Smoothed when shrunk. */
+ *  shows at least `minH` of the box's 200 rows), centered, bottom on the rectangle's bottom. Shrunk crisp (`crisp`). */
 export const fitBust = (x: number, y: number, w: number, h: number, minH = 160): BustFit => {
   const s = Math.min(w / BOX_W, h / minH), vis = Math.min(BOX_H, h / s);
   return { x: x + (w - BOX_W * s) / 2, y: y + h - vis * s, s };
 };
 export const drawBust = (g: Ctx, bu: Bust, x: number, y: number, w: number, h: number, minH = 160): BustFit => {
-  const { s, x: ox, y: oy } = fitBust(x, y, w, h, minH), vis = Math.min(BOX_H, h / s), dw = BOX_W * s, dh = vis * s;
+  const { s, x: ox, y: oy } = fitBust(x, y, w, h, minH), vis = Math.min(BOX_H, h / s), dw = Math.round(BOX_W * s), dh = Math.round(vis * s);
   if (bu.img) {
-    g.save(); g.imageSmoothingEnabled = s < 0.8;
-    g.drawImage(bu.img, BOX_X, BOX_Y, BOX_W, vis, Math.round(ox), Math.round(oy), Math.round(dw), Math.round(dh));
-    g.restore();
+    if (s < 1) g.drawImage(crisp(bu.img, BOX_X, BOX_Y, BOX_W, vis, dw, dh), Math.round(ox), Math.round(oy));
+    else { g.save(); g.imageSmoothingEnabled = false; g.drawImage(bu.img, BOX_X, BOX_Y, BOX_W, vis, Math.round(ox), Math.round(oy), dw, dh); g.restore(); }
   }
   return { x: ox, y: oy, s };
+};
+
+const crispCache = new WeakMap<HTMLCanvasElement, Map<string, HTMLCanvasElement>>();
+/** A part of a painting (sx, sy, sw, sh) shrunk to exactly dw x dh pixels, crisp: each pixel the average of what it
+ *  covers (a pixel artist's reduction, not a blur), snapped to steps of 8 per channel; a pixel's either solid (most of
+ *  it painted) or empty, never half see-through. Made once per size, kept: draw it 1:1, at whole pixels. */
+export const crisp = (src: HTMLCanvasElement, sx: number, sy: number, sw: number, sh: number, dw: number, dh: number): HTMLCanvasElement => {
+  dw = Math.max(1, Math.round(dw)); dh = Math.max(1, Math.round(dh));
+  let m = crispCache.get(src); if (!m) crispCache.set(src, (m = new Map()));
+  const key = `${sx},${sy},${sw},${sh},${dw},${dh}`;
+  let out = m.get(key);
+  if (out) return out;
+  const x0 = Math.floor(sx), y0 = Math.floor(sy), w0 = Math.ceil(sw), h0 = Math.ceil(sh);
+  const data = src.getContext('2d')!.getImageData(x0, y0, w0, h0).data;
+  out = document.createElement('canvas'); out.width = dw; out.height = dh;
+  const og = out.getContext('2d')!, img = og.createImageData(dw, dh), o = img.data;
+  const kx = sw / dw, ky = sh / dh;
+  for (let ty = 0; ty < dh; ty++) for (let tx = 0; tx < dw; tx++) {
+    const ax = tx * kx + (sx - x0), bx = (tx + 1) * kx + (sx - x0), ay = ty * ky + (sy - y0), by = (ty + 1) * ky + (sy - y0);
+    let r = 0, gg = 0, b = 0, a = 0, tot = 0;
+    for (let yy = Math.floor(ay); yy < Math.ceil(by) && yy < h0; yy++) {
+      const wy = Math.min(by, yy + 1) - Math.max(ay, yy);
+      for (let xx = Math.floor(ax); xx < Math.ceil(bx) && xx < w0; xx++) {
+        const wt = wy * (Math.min(bx, xx + 1) - Math.max(ax, xx)), i = (yy * w0 + xx) * 4;
+        tot += wt;
+        if (data[i + 3] < 128) continue;
+        r += data[i] * wt; gg += data[i + 1] * wt; b += data[i + 2] * wt; a += wt;
+      }
+    }
+    const j = (ty * dw + tx) * 4;
+    if (a < tot * 0.5 || a <= 0) continue;
+    const q = (v: number) => Math.min(255, Math.round(v / a / 8) * 8);
+    o[j] = q(r); o[j + 1] = q(gg); o[j + 2] = q(b); o[j + 3] = 255;
+  }
+  og.putImageData(img, 0, 0);
+  m.set(key, out);
+  return out;
 };
 /** Where a fitted bust's eyes are (box rows cut off the top accounted for). */
 export const bustEyes = (bu: Bust, fit: BustFit, h: number): [number, number][] => {

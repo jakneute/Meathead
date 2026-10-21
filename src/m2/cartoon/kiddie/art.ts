@@ -35,6 +35,8 @@ import {
   BUBBLEGUM, FROSTING, MINT, LEMON, LILAC, SKY, CHERRY, LICORICE, WAFFLE, GRASS, BRASS, STEEL, LIP,
 } from '../kit';
 import { GY } from '../geometry';
+import { davePainting } from '../studio/daveGross';
+import { crisp, tintCanvas } from '../../grossBust';
 import { drawKiddieFar } from './far';
 import { drawAlley, drawFronts, drawPavement, drawFurniture, frontLamps, PIT_D } from './fronts';
 import { shut } from './state';
@@ -464,17 +466,14 @@ const drawStudioFront = (c: Ctx, state: GameState, v: View) => {
       signText(g, sub, pxc, GY - 54, { sx: 1, sy: 1, bold: true, fill: hour('#FDE047'), ink: INK });
       box(g, pxc - 30, GY - 136, 3, 50, 'rgba(255,255,255,0.35)');
     }
-    // (a cardboard 1994 animator stand-in by the door: a ponytail, round glasses, a turtleneck, a pencil behind the ear,
-    // a smug grin, VISIONARY on his base)
-    const sx = rx - 150, Sk = rampH(ramp6('#F0C8A2')), Tn = rampH(ramp6('#2A2430')), Hr = rampH(ramp6('#5A3A22'));
+    // (a cardboard stand-in of Dave by the door: his gross-up head on a turtleneck, a pencil behind the ear, VISIONARY on
+    // his base)
+    const sx = rx - 150, Tn = rampH(ramp6('#2A2430'));
     box(g, sx - 22, GY - 124, 44, 104, INK); box(g, sx - 20, GY - 122, 40, 102, hour('#C8A878'));
     box(g, sx - 18, GY - 92, 36, 72, Tn[3]); box(g, sx - 18, GY - 92, 8, 72, Tn[4]); box(g, sx + 10, GY - 92, 8, 72, Tn[2]); box(g, sx - 12, GY - 94, 24, 6, Tn[4]);
-    eggR(g, sx, GY - 104, 13, 14, Sk);
-    box(g, sx - 14, GY - 122, 28, 9, Hr[3]); box(g, sx - 14, GY - 122, 28, 2, Hr[4]); box(g, sx + 11, GY - 114, 6, 20, Hr[2]);
-    g.strokeStyle = INK; g.lineWidth = 1; g.beginPath(); g.arc(sx - 5, GY - 106, 4, 0, Math.PI * 2); g.arc(sx + 6, GY - 106, 4, 0, Math.PI * 2); g.stroke();
-    box(g, sx - 6, GY - 107, 2, 2, INK); box(g, sx + 5, GY - 107, 2, 2, INK);
-    g.beginPath(); g.moveTo(sx - 5, GY - 97); g.quadraticCurveTo(sx + 1, GY - 93, sx + 7, GY - 99); g.stroke();
-    box(g, sx - 3, GY - 95, 7, 3, Hr[2]);
+    // (his head: Dave's gross-up (studio/daveGross.ts, the Vision room's portrait) printed on the cardboard, shrunk crisp)
+    const dave = davePainting();
+    if (dave) g.drawImage(tintCanvas(crisp(dave, 36, 0, 128, 150, 28, 33), hour('#FFFFFF')), sx - 14, GY - 124);
     box(g, sx - 20, GY - 116, 16, 3, Lm[3]); box(g, sx - 20, GY - 116, 3, 3, hour('#F4A6C0'));
     box(g, sx - 22, GY - 20, 44, 20, INK); box(g, sx - 21, GY - 19, 42, 18, St[3]); box(g, sx - 21, GY - 19, 42, 2, St[5]);
     signText(g, 'VISIONARY', sx, GY - 6, toonLetters(1, ['#FFFFFF', '#FFFFFF', '#F1F5F9', '#CBD5E1']));
