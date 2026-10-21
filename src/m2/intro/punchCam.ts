@@ -9,6 +9,8 @@
 import { CANVAS_WIDTH } from '../../m1/constants';
 import { shaded, ball as roundLight, box as boxLight, RAMP } from '../../m1/game/scenes/art/snes';
 import { PIP_LEN, PIP_HIT } from './index';
+import { R } from '../grossKit';
+import { bust, drawBust, IRIS, LIPSTICK, type BustSpec } from '../grossBust';
 
 type Ctx = CanvasRenderingContext2D;
 const INK = '#1A0B06';
@@ -21,6 +23,11 @@ const SX = CANVAS_WIDTH - W * 2 - 28, SY = 112;
 const SKIN = ['#4a2418', '#7a3f2a', '#a85e42', '#cc8262', '#e6a483', '#f4c4a6', '#fde2cf'];
 const HAIR = ['#2a0c06', '#4e1a0c', '#7a2c12', '#a3411a', '#c65d28', '#e0854a'];
 const POLO = ['#3c0606', '#6a0e0c', '#9c1a14', '#c8281e', '#e2483a', '#f47a66'];
+/** Her employee-of-the-month photo, as a gross-up: her auburn hair, the red polo, the headset, the smile. */
+const DEB_BUST: BustSpec = {
+  seed: 1994, skin: R(...[...SKIN].reverse(), '#2a100a'), hair: 'long', hairRamp: R(...[...HAIR].reverse()), iris: IRIS.green, mouth: 'grin', lips: LIPSTICK,
+  coat: R(...[...POLO].reverse()), extras: ['headset', 'lashes', 'sweaty'], wide: 0.95,
+};
 const WOOD = ['#2c1204', '#4c2008', '#72340c', '#9a4c14', '#c06c24', '#dc9044'];
 const BRASS = ['#3c2804', '#6c4c0c', '#a0781c', '#ccA032', '#ecc860', '#fcec9c'];
 const NAVY = ['#060a24', '#0c1440', '#16245e', '#20367e', '#3250a2'];
@@ -67,9 +74,8 @@ const back = () => {
   box(g, 6, 14, 52, 46, INK); box(g, 7, 15, 50, 44, '#a9743c'); dither(g, 7, 15, 50, 44, '#8f5c2c');
   box(g, 7, 15, 50, 2, '#c99a5c');
   box(g, 11, 19, 20, 24, '#F8FAFC'); box(g, 13, 21, 16, 14, '#93C5FD');
-  g.fillStyle = HAIR[3]; g.beginPath(); g.ellipse(21, 28, 6, 6, 0, 0, Math.PI * 2); g.fill();
-  g.fillStyle = SKIN[4]; g.beginPath(); g.ellipse(21, 29, 4, 5, 0, 0, Math.PI * 2); g.fill();
-  box(g, 15, 33, 12, 2, POLO[3]); box(g, 19, 31, 4, 1, INK);
+  // (her photo: a gross-up (grossBust.ts), the same smile, the headset)
+  drawBust(g, bust('deb-eotm', DEB_BUST), 13, 21, 16, 14, 150);
   tiny(g, 'DEB', 15, 37, '#1E3A8A');
   box(g, 20, 17, 2, 2, '#DC2626');
   box(g, 35, 19, 18, 22, '#FEF9C3'); for (let k = 0; k < 6; k++) box(g, 37, 22 + k * 3, 14 - (k % 3) * 3, 1, '#78716C');
