@@ -25,6 +25,7 @@ import { updateLeeches, drawLeeches } from './leeches';
 import { drawWildsBackdrop, drawWildsBack } from './art';
 import { updateStation, drawStationBack, drawStationFront, drawStationHud, stationGone } from './station';
 import { ARRIVE, GAGS } from './lines';
+import { tickHurtGag, drawHurtGag } from '../../hurtGags';
 import './kinds';
 
 const { x0, x1 } = SECTIONS.wilds;
@@ -65,6 +66,8 @@ export const wilds: FrontierSection = {
     const rx = p.pos.x + p.width / 2 - x0;
     let out = updateStation(ctx, controls);
     out = updateTraps(ctx, out);
+    // (a bear trap on his ankle: him, hopping in it (hurtGags.ts))
+    tickHurtGag(state);
     out = updateLogs(ctx, out);
     out = updateLeeches(ctx, out);
     updatePines(ctx); updateLoose(ctx); updateBees(ctx); updateRollers(ctx); updateQuills(ctx); updateBranches(ctx); updateFalls(ctx);
@@ -87,6 +90,7 @@ export const wilds: FrontierSection = {
     drawLogs(c, state);
   },
   drawFront: (c, state) => {
+    drawHurtGag(c, state);
     drawLeeches(c, state);
     drawWaterFront(c, state);
     drawBoomAndBranches(c, state);

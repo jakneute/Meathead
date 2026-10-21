@@ -24,6 +24,7 @@ import { x0, x1, X, GY, CP_LOT, FALLEN, BOULDER, CROWS, REFILL, TRIG, SULK } fro
 import { woodsOf } from './state';
 import { makeBike, rideBike, teenOf } from './teens';
 import { updateHazards, drawIvy, drawTrap, ivyLamps } from './hazards';
+import { tickHurtGag, drawHurtGag } from '../../hurtGags';
 import { BOUNTY_MEMO, bountyDone, inBounty, startBounty, updateBounty, tickBountyCast, drawBountyCast, drawBountyFront, drawBountyHud, kidASeed } from './scene';
 import { drawWoodsBackdrop, drawWoodsBack, drawWoodsFront, drawPile, drawSulk } from './art';
 import { REAL_WOODS, KID_SULK } from './lines';
@@ -66,6 +67,8 @@ export const woods: FrontierSection = {
   update: (ctx, controls) => {
     const { state } = ctx, p = state.player, w = woodsOf(state);
     const cx = p.pos.x + p.width / 2;
+    // (the bear trap on his ankle: him, hopping in it (hurtGags.ts))
+    tickHurtGag(state);
     // (the checkpoint skip to somewhere past the bounty: it's been)
     if (w.first) { w.first = false; if (state.checkpoint >= 50 && !bountyDone(state)) { state.stageMemo[BOUNTY_MEMO] = '1'; w.bikes = []; w.pile.burst = true; } }
     tickBountyCast(state);
@@ -103,6 +106,7 @@ export const woods: FrontierSection = {
     drawBountyCast(c, state);
   },
   drawFront: (c, state) => {
+    drawHurtGag(c, state);
     drawWoodsFront(c, state);
     drawBountyFront(c, state);
     const w = woodsOf(state);

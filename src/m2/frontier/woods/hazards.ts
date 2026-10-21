@@ -20,6 +20,7 @@ import { stillAt, hr, IVY as IVYR, RUST, STEEL, BARK, RINGS, GOLD, BROWN, leafAt
 import { X, GY, IVY, TRAP_X } from './layout';
 import { woodsOf } from './state';
 import { HURT } from './lines';
+import { startHurtGag, endHurtGag, pantsSource } from '../../hurtGags';
 
 for (const [source, l] of Object.entries(HURT)) registerHurtLines(source, l.hurt, l.death);
 
@@ -57,7 +58,9 @@ export const updateHazards = (ctx: FrameContext, controls: Controls): Controls =
     if (onIt && !t.latch && !p.untouchable) {
       t.state = 'him'; t.t = 0; t.hold = TRAP_HOLD;
       p.invincibilityTimer = 0;
-      hurtPlayer(ctx, TRAP_DMG, 'm2:fr_beartrap');
+      hurtPlayer(ctx, TRAP_DMG, pantsSource(state, 'm2:fr_beartrap'));
+      // (the jaws on his boot, hopping, howling: his own hurt animation, as long as it holds him (hurtGags.ts))
+      startHurtGag(state, { kind: 'trap', len: 99999, x: tx, feet: GY, facing: p.facing === -1 ? -1 : 1, ax: tx - 34, dir: 1, style: 'rusty' });
       playSound('clang', 1, -4); playSound('crunch', 0.9, -6); shakeScreen(state, 6, 3);
       for (let i = 0; i < 8; i++) state.particles.push({ pos: { x: tx, y: GY - 6 }, vel: { x: (Math.random() - 0.5) * 4, y: -Math.random() * 4 }, life: 24, color: i % 2 ? '#B91C1C' : '#7F1D1D', size: 2 + Math.random() * 2 });
     }
@@ -66,7 +69,7 @@ export const updateHazards = (ctx: FrameContext, controls: Controls): Controls =
     t.hold--;
     for (const k of ['left', 'right', 'jump'] as const) if (press[k] && !t.lastPress[k]) t.hold -= MASH;
     out = { ...out, left: false, right: false, jump: false, special: false, charge: false };
-    if (t.hold <= 0 || p.health <= 0) { t.state = 'sprung'; t.t = 0; t.latch = true; playSound('clink', 0.8, 0); }
+    if (t.hold <= 0 || p.health <= 0) { t.state = 'sprung'; t.t = 0; t.latch = true; playSound('clink', 0.8, 0); endHurtGag(state); }
   } else if (t.state === 'sprung' && t.t > REARM) {
     t.state = 'open'; t.t = 0;
     if (Math.abs(cx - tx) < 14 && Math.abs(feet - GY) < 8) t.latch = true;
@@ -161,6 +164,8 @@ export const drawTrap = (c: Ctx, state: GameState) => {
   const tx = Math.round(X(TRAP_X)), y = GY, t = woodsOf(state).trap, f = state.frame;
   if (!onScreen(state, tx - 60, tx + 40)) return;
   stillAt(c, 'wd-trapstump', tx - 41, y, -14, -24, 60, 26, paintTrapStump);
+  // (on his ankle: drawn on his boot, with him (hurtGags.ts))
+  if (t.state === 'him') return;
   const Ru = hr('rust', RUST, 0.2), S = hr('steel', STEEL, 0.2);
   // (the springs, both ends: long flat leaves, rust over steel worn bright at the bends)
   const spring = (s: number, up: boolean) => {
@@ -192,7 +197,6 @@ export const drawTrap = (c: Ctx, state: GameState) => {
     };
     jaw(-1); jaw(1);
     box(c, tx - 1, y - 18, 2, 4, S[5]);
-    if (t.state === 'him') for (let k = 0; k < 3; k++) box(c, tx - 7 + k * 6, y - 6 - (f % 20 < 10 ? 1 : 0) + k % 2, 3, 4 + k, '#B91C1C');
   }
   // (leaves over its edges: half hidden)
   for (let i = 0; i < 6; i++) leafAt(c, tx - 24 + i * 9 + hash(i) * 4, y - 1, 3, hash(i + 3) * 3, i % 2 ? hr('brown', BROWN, 0.2) : hr('gold', GOLD, 0.2));

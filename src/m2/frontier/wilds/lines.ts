@@ -136,6 +136,16 @@ export const HURT: HurtTable = {
     hurt: ['MY LEG! MY LEG!', 'BEAR TRAP! I\'M NOT A BEAR!', 'IT\'S GOT MY ANKLE!', 'GET IT OFF! GET IT OFF!'],
     death: ['BEAR TRAP. NOT A BEAR.', 'THE BEAR TRAP WORKED'],
   },
+  // (the bear trap's hurt has its own animation (hurtGags.ts: the jaws on his boot, hopping, howling), and its lines by
+  // the state of him)
+  'm2:fr_beartrap_shitty': {
+    hurt: ['MY LEG! AND THERE GOES THE REST OF IT!', 'IT SQUEEZED THE SHIT RIGHT OUT OF ME!', 'BEAR TRAP! FILL THE OTHER LEG TOO!'],
+    death: ['TRAPPED, SHAT, DONE', 'BEAR TRAP. SHITTY PANTS.'],
+  },
+  'm2:fr_beartrap_nude': {
+    hurt: ['MY LEG! THANK GOD IT WENT FOR THE LEG!', "NAKED IN A BEAR TRAP! DON'T LOOK!", 'TWO INCHES FROM MY NUTS!'],
+    death: ['NAKED IN A BEAR TRAP', 'BEAR TRAPPED, BARE ASS'],
+  },
   'm2:fr_cone': {
     hurt: ['A PINE CONE! TO THE SKULL!', 'OW! THE TREE THREW IT!', 'BONK!'],
     death: ['KILLED BY A PINE CONE', 'THE TREE WON'],

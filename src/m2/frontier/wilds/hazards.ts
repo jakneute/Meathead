@@ -32,6 +32,7 @@ import { type Ctx, box, checker, mix, at, poly, still, near, pine, fiberglass, v
 import { TRAPS, PINES, LOOSE, LOG_PILE, X, Y, groundH } from './layout';
 import { wildsOf, type Trap, type Roller } from './state';
 import { drawLog } from './logs';
+import { startHurtGag, endHurtGag, pantsSource } from '../../hurtGags';
 
 const AWAY = -99999;
 
@@ -66,7 +67,9 @@ export const updateTraps = (ctx: FrameContext, controls: Controls): Controls => 
       if (onIt && !t.latch && p.health > 0 && !p.inCutscene && !p.untouchable) {
         t.state = 'him'; t.t = 0; t.hold = TRAP_HOLD;
         p.invincibilityTimer = 0;
-        hurtPlayer(ctx, TRAP_DMG, 'm2:fr_beartrap');
+        hurtPlayer(ctx, TRAP_DMG, pantsSource(state, 'm2:fr_beartrap'));
+        // (the jaws on his boot, hopping, howling: his own hurt animation, as long as it holds him (hurtGags.ts))
+        startHurtGag(state, { kind: 'trap', len: 99999, x: t.x, feet: t.y, facing: p.facing === -1 ? -1 : 1, ax: t.x - 38, dir: 1, style: 'rusty' });
         playSound('clang', 1, -2); playSound('crunch', 0.9, -4); shakeScreen(state, 6, 3);
         for (let i = 0; i < 8; i++) state.particles.push({ pos: { x: t.x, y: t.y - 6 }, vel: { x: (Math.random() - 0.5) * 4, y: -Math.random() * 4 }, life: 24, color: i % 2 ? '#B91C1C' : '#7F1D1D', size: 2 + Math.random() * 2 });
         continue;
@@ -89,7 +92,7 @@ export const updateTraps = (ctx: FrameContext, controls: Controls): Controls => 
       t.hold--;
       for (const k of ['left', 'right', 'jump'] as const) if (press[k] && !w.lastPress[k]) t.hold -= MASH;
       out = { ...out, left: false, right: false, jump: false, special: false, charge: false };
-      if (t.hold <= 0 || p.health <= 0) { t.state = 'sprung'; t.t = 0; t.latch = true; playSound('clink', 0.8, 2); }
+      if (t.hold <= 0 || p.health <= 0) { t.state = 'sprung'; t.t = 0; t.latch = true; playSound('clink', 0.8, 2); endHurtGag(state); }
     } else if (t.state === 'animal') {
       const e = t.victim;
       if (!e || e.health <= 0 || e.isBlownAway || !state.enemies.includes(e) || --t.hold <= 0) {
@@ -500,7 +503,8 @@ export const drawHazardsBack = (c: Ctx, state: GameState) => {
   const eye = viewOf(state).eye;
   for (const L of w.loose) if (L.state !== 'fallen' && onScreen(state, L.a, L.b)) drawShelf(c, L.a, L.b, L.y, true, L.state === 'shake' ? 1 : 0, f, eye);
   for (const L of w.loose) if (L.state === 'fallen' && L.drop < 600) { c.globalAlpha = Math.max(0, 1 - L.drop / 600); drawShelf(c, L.a, L.b, L.y + L.drop, true); c.globalAlpha = 1; }
-  for (const t of w.traps) if (onScreen(state, t.x - 30, t.x + 30)) drawTrap(c, t, f);
+  // (the one on his ankle: drawn on his boot, with him (hurtGags.ts))
+  for (const t of w.traps) if (onScreen(state, t.x - 30, t.x + 30) && t.state !== 'him') drawTrap(c, t, f);
   // (the log pile: logs stacked in a pyramid behind a broken rail, at the hill's top)
   const px = X(LOG_PILE.x), py = Y(groundH(px) ?? 0);
   if (onScreen(state, px - 140, px + 140)) {
@@ -526,10 +530,9 @@ export const drawHazardsBack = (c: Ctx, state: GameState) => {
   }
 };
 
-/** Over him: the trap on his ankle (its jaws over his boot), the cones falling, the swarms. */
+/** Over him: the cones falling, the swarms (the trap on his ankle is drawn with him: hurtGags.ts). */
 export const drawHazardsFront = (c: Ctx, state: GameState) => {
-  const w = wildsOf(state), f = state.frame;
-  for (const t of w.traps) if (t.state === 'him') drawTrap(c, t, f);
+  const w = wildsOf(state);
   for (const pn of w.pines) if (pn.state === 'fall') cone(c, pn.x, pn.cy);
   for (const q of w.quills) drawQuill(c, q.x, q.y, q.vx, q.vy);
   for (const s of w.swarms) { c.globalAlpha = Math.max(0, 1 - s.gone / SWARM_LEAVE); drawSwarm(c, s.x, s.y, s.t); c.globalAlpha = 1; }
