@@ -6,7 +6,7 @@
 
 import { LANDS } from '../hub/lands';
 import { signText, signW, rampDown, type Look } from '../signLetters';
-import { MAP_W, MAP_H, HC, RX, RY, SECTORS, inLand, edgeQ, fromPolar, Q_RING, sectorOfLand, landMid } from './geo';
+import { MAP_W, MAP_H, HC, RX, RY, SECTORS, inLand, edgeQ, fromPolar, Q_RING, sectorOfLand, landMid, wrapNear } from './geo';
 import { ATTRACTIONS, NUMBERS, attractionOfZone, landIndex } from './data';
 import { paintTerrain, terrainJob, attractionAt } from './terrain';
 import { paintFeatures, featureTasks, paintDetails, ICONS, numberBadge, LEGEND } from './global';
@@ -58,17 +58,113 @@ interface Box { x: number; y: number; w: number; h: number }
 const hits = (a: Box, b: Box) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
 const INK = '#3B2A14';
 
-/** A label on a plate, centered on (x, y) (screen px of the level), unless it'd sit on one already placed. */
-const plate = (g: Ctx, placed: Box[], text: string, x: number, y: number, L: Look, bg: string, edge: string, pad = 2, force = false): boolean => {
-  const w = signW(text, L) + pad * 2 + 2, h = 7 * (L.sy ?? 1) + pad * 2 + 1;
+/** A plate's size for a label of one or more lines. */
+const LINE_GAP = 2;
+const plateSize = (lines: string[], L: Look, pad: number) => ({
+  w: Math.max(...lines.map(t => signW(t, L))) + pad * 2 + 2,
+  h: lines.length * 7 * (L.sy ?? 1) + (lines.length - 1) * LINE_GAP + pad * 2 + 1,
+});
+/** A label on a plate (a line, or a few stacked), centered on (x, y) (screen px of the level), unless it'd sit on one
+ *  already placed. */
+const plate = (g: Ctx, placed: Box[], text: string | string[], x: number, y: number, L: Look, bg: string, edge: string, pad = 2, force = false): boolean => {
+  const lines = typeof text === 'string' ? [text] : text;
+  const { w, h } = plateSize(lines, L, pad);
   const box = { x: Math.round(x - w / 2), y: Math.round(y - h / 2), w, h };
   if (!force && placed.some(b => hits(b, box))) return false;
   placed.push(box);
   R(g, box.x + 1, box.y + 1, w, h, 'rgba(40,24,8,0.35)');
   R(g, box.x, box.y, w, h, bg);
   hl(g, box.x, box.y, w, edge); hl(g, box.x, box.y + h - 1, w, edge); vl(g, box.x, box.y, h, edge); vl(g, box.x + w - 1, box.y, h, edge);
-  signText(g, text, box.x + w / 2, box.y + pad + 1 + 7 * (L.sy ?? 1), L);
+  const lh = 7 * (L.sy ?? 1);
+  lines.forEach((t, k) => signText(g, t, box.x + w / 2, box.y + pad + 1 + lh + k * (lh + LINE_GAP), L));
   return true;
+};
+
+// ---- keeping a label in its own land
+/** Whether a paper point's inside a land's slice, at least m paper px in from its sides, the ring walk and its outer
+ *  edge (`past`: an off-the-map bit past the edge: out to beyond it, still between the land's sides). */
+const inSlice = (li: number, x: number, y: number, m: number, past = false) => {
+  const s = sectorOfLand(li), dx = x - HC.x, dy = y - HC.y;
+  const a = wrapNear(Math.atan2(dy / RY, dx / RX), s.mid);
+  if (a < s.a0 || a > s.a1) return false;
+  const side = (ang: number) => { const ux = Math.cos(ang) * RX, uy = Math.sin(ang) * RY; return Math.abs(dx * uy - dy * ux) / Math.hypot(ux, uy); };
+  if (side(s.a0) < m || side(s.a1) < m) return false;
+  const q = Math.hypot(dx / RX, dy / RY), qm = m / RY;
+  if (q < Q_RING + qm) return false;
+  return past ? q < 1.3 : q < edgeQ(a) - qm;
+};
+/** Whether a box (screen px of a level at scale s) sits wholly inside a land (its rim walked every few px). */
+const boxInLand = (li: number, b: Box, s: number, m: number, past = false) => {
+  const step = 3;
+  for (let x = b.x; ; x = Math.min(b.x + b.w, x + step)) {
+    if (!inSlice(li, x / s, b.y / s, m, past) || !inSlice(li, x / s, (b.y + b.h) / s, m, past)) return false;
+    if (x >= b.x + b.w) break;
+  }
+  for (let y = b.y; ; y = Math.min(b.y + b.h, y + step)) {
+    if (!inSlice(li, b.x / s, y / s, m, past) || !inSlice(li, (b.x + b.w) / s, y / s, m, past)) return false;
+    if (y >= b.y + b.h) break;
+  }
+  return true;
+};
+/** A name's ways of setting: on one line, then broken onto two (the most even breaks first; a number stays with its
+ *  first word). */
+const wraps = (text: string, L: Look): string[][] => {
+  const words = text.split(' '), two: string[][] = [];
+  for (let k = 1; k < words.length; k++) {
+    const a = words.slice(0, k).join(' '), b = words.slice(k).join(' ');
+    if (/^\d+\.$/.test(a)) continue;
+    two.push([a, b]);
+  }
+  two.sort((p, q) => Math.max(...p.map(t => signW(t, L))) - Math.max(...q.map(t => signW(t, L))));
+  return [[text], ...two.slice(0, 2)];
+};
+interface Spot { lines: string[]; x: number; y: number; cost: number }
+/** Every place a label might go round its landmark at (px, py) (screen px), cheapest first: under it, nudged across,
+ *  further under, over it, beside it; on one line, then on two. */
+const spotsFor = (text: string, L: Look, pad: number, px: number, py: number, s: number): Spot[] => {
+  const out: Spot[] = [];
+  wraps(text, L).forEach((lines, wi) => {
+    const { w, h } = plateSize(lines, L, pad), wc = wi ? 14 : 0;
+    const dxs = [0]; for (let d = 6; d <= 96; d += 6) dxs.push(d, -d);
+    for (const dx of dxs) {
+      for (let k = 0; k <= 8; k++) out.push({ lines, x: px + dx, y: py + 4 * s + h / 2 + k * 4, cost: Math.abs(dx) + k * 5 + wc });
+      for (let k = 0; k <= 4; k++) out.push({ lines, x: px + dx, y: py - 24 * s - h / 2 - k * 4, cost: 18 + Math.abs(dx) + k * 5 + wc });
+    }
+    for (const side of [-1, 1]) for (let k = 0; k <= 4; k++) for (const dy of [0, -6, 6, -12, 12])
+      out.push({ lines, x: px + side * (14 * s + w / 2 + k * 4), y: py - 8 * s + dy, cost: 24 + k * 5 + Math.abs(dy) + wc });
+  });
+  return out.sort((a, b) => a.cost - b.cost);
+};
+/** The best spot for a label inside its land (clear of the labels down already, then of the landmarks too where
+ *  it can be), or null. */
+const findSpot = (spots: Spot[], L: Look, pad: number, li: number, s: number, placed: Box[], art: Box[], past: boolean, mustFit: boolean) => {
+  const W = MAP_W * s, H = MAP_H * s, m = 3 / s + 1;
+  const boxOf = (sp: Spot): Box => { const { w, h } = plateSize(sp.lines, L, pad); return { x: Math.round(sp.x - w / 2), y: Math.round(sp.y - h / 2), w, h }; };
+  const fits = (b: Box, mm: number) => b.x >= 2 && b.y >= 2 && b.x + b.w <= W - 2 && b.y + b.h <= H - 2 && boxInLand(li, b, s, mm, past);
+  for (const sp of spots) { const b = boxOf(sp); if (!placed.some(o => hits(o, b)) && !art.some(o => hits(o, b)) && fits(b, m)) return sp; }
+  for (const sp of spots) { const b = boxOf(sp); if (!placed.some(o => hits(o, b)) && fits(b, m)) return sp; }
+  if (!mustFit) return null;
+  for (const sp of spots) { const b = boxOf(sp); if (fits(b, 0.5)) return sp; }
+  return spots[0];
+};
+
+/** The landmarks' rough boxes (screen px of a level at scale s): labels keep off them where they can. */
+const artBoxes = (s: number): Box[] => ATTRACTIONS.filter(a => a.land !== 'hub').map(a => { const p = attractionAt(a); return { x: (p.x - 13) * s, y: (p.y - 22) * s, w: 26 * s, h: 24 * s }; });
+
+/** Every attraction's name (its brochure number first), each on a plate by its landmark, kept inside its own land. */
+const attractionLabels = (g: Ctx, placed: Box[], s: number) => {
+  const L: Look = { ...SMALL, fill: INK, bold: s >= 2 }, pad = 2;
+  const list = ATTRACTIONS.filter(a => a.land !== 'hub');
+  // (the landmarks themselves: a label keeps off them where it can)
+  const art = artBoxes(s);
+  // (the big ones first, the longest names first: they've the fewest places to go)
+  const order = [...list].sort((a, b) => Number(!!a.minor) - Number(!!b.minor) || b.name.length - a.name.length);
+  for (const a of order) {
+    const p = attractionAt(a), n = NUMBERS[a.id], text = n ? `${n}. ${a.name}` : a.name;
+    const li = landIndex(a.land), past = (a.v ?? 0) > 1;
+    const sp = findSpot(spotsFor(text, L, pad, p.x * s, p.y * s, s), L, pad, li, s, placed, art, past, true)!;
+    plate(g, placed, sp.lines, sp.x, sp.y, L, a.minor ? '#F3E8D0' : '#FFFBEB', INK, pad, true);
+  }
 };
 
 /** The service icons round each land and the hub. */
@@ -85,7 +181,7 @@ const SERVICES: { kind: keyof typeof ICONS; x: number; y: number }[] = (() => {
 })();
 
 /** The small print, right up close. */
-const GAGS: { t: string; x: number; y: number }[] = [
+const GAGS: { t: string; x: number; y: number; li?: number }[] = [
   { t: 'LOST CHILDREN', x: HC.x - 46, y: HC.y - 56 }, { t: 'LOST ADULTS', x: HC.x + 46, y: HC.y - 56 },
   { t: 'OVERFLOW PARKING: NEXT STATE >', x: 556, y: 958 }, { t: 'COMING SOON-ISH', x: 128, y: 950 },
   { t: 'STAR-SPANGLED SPLASH ZONE: OPENS 2031', x: 150, y: 806 }, { t: 'CAST ONLY · NOT ON MAP', x: 450, y: 22 },
@@ -97,7 +193,7 @@ const GAGS: { t: string; x: number; y: number }[] = [
   ...['MEXICO', 'NORWAY', 'CHINA', 'GERMANY', 'ITALY', 'JAPAN', 'MOROCCO', 'FRANCE', 'UK', 'CANADA'].map((t, k) => {
     const off: [number, number][] = [[-46, 6], [-40, -14], [-26, -28], [-6, -34], [14, -33], [32, -26], [44, -10], [46, 10], [-26, 22], [26, 22]];
     const p = inLand(landIndex('foreign'), 0, 0.42);
-    return { t, x: p.x + off[k][0], y: p.y + off[k][1] + 7 };
+    return { t, x: p.x + off[k][0], y: p.y + off[k][1] + 7, li: landIndex('foreign') };
   }),
   ...gagsIn('adventure', [['DO NOT LICK THE DINOSAUR', -0.25, 0.72], ['THE BACKSIDE OF WATER', -0.12, 0.9], ['MOUNT KABOOMA (FIBERGLASS)', -0.18, 0.52]]),
   ...gagsIn('spooky', [['BOTTOMLESS MOAT', -0.1, 0.62], ['MUST BE THIS SHORT', 0.2, 0.26], ['CLOCK TOWER: STAFF ONLY', 0.3, 0.72]]),
@@ -108,7 +204,7 @@ const GAGS: { t: string; x: number; y: number }[] = [
   ...gagsIn('cartoon', [['UPDATED 1994', 0.1, 0.26], ['GLOPPY', 0.05, 0.7], ['BEER GARDEN', 0.36, 0.95]]),
   ...gagsIn('foreign', [['THE WAITER IS IGNORING YOU', 0.3, 0.62], ['CUSTOMS', 0.0, 0.14]]),
 ];
-function gagsIn(id: string, list: [string, number, number][]) { return list.map(([t, u, v]) => ({ t, ...inLand(landIndex(id), u, v) })); }
+function gagsIn(id: string, list: [string, number, number][]) { return list.map(([t, u, v]) => ({ t, ...inLand(landIndex(id), u, v), li: landIndex(id) })); }
 
 const SMALL: Look = { sx: 1, sy: 1, fill: INK };
 const landLook = (li: number, big: boolean): Look => ({ sx: 1, sy: big ? 2 : 1, bold: true, fill: rampDown(LANDS[li].swirl[2], 0.35), dither: true, ink: LANDS[li].sign, shadow: '#1C1206', drop: 1 });
@@ -135,23 +231,29 @@ export const levelCanvas = (i: number): HTMLCanvasElement => {
   // (the way in, named once there's room)
   if (s >= 0.75) {
     const tag = (t: string, x: number, y: number) => plate(g, placed, t, x * s, y * s, { ...SMALL, fill: '#FFFFFF', bold: s >= 1 }, '#1E3A8A', '#0F172A');
-    tag('AMERICA USA', HC.x + 66, 690); tag('TICKETS + GATE', HC.x - 66, 806); tag('SECURITY', HC.x + 76, 832); tag('PARKING P1-P47', HC.x, 950); tag('WATER PARK', 128, 830);
+    tag('AMERICA USA', HC.x, 720); tag('TICKETS + GATE', HC.x - 66, 806); tag('SECURITY', HC.x + 76, 832); tag('PARKING P1-P47', HC.x, 950); tag('WATER PARK', 128, 830);
     tag('THE HAPPY HUB', HC.x, HC.y + 40);
   }
-  // Attractions: their numbers (nearer), their names (nearer still)
-  if (s >= 0.75) for (const a of ATTRACTIONS) {
+  // Attractions: their numbers (nearer), their names (nearer still; every one named, each kept inside its own land)
+  if (s >= 1) attractionLabels(g, placed, s);
+  else if (s >= 0.75) for (const a of ATTRACTIONS) {
     if (a.land === 'hub') continue;
     const p = at(attractionAt(a)), n = NUMBERS[a.id];
-    if (s >= 1) {
-      const L = { ...SMALL, fill: INK, bold: s >= 2 };
-      const ok = plate(g, placed, n ? `${n}. ${a.name}` : a.name, p.x, p.y + 10 * Math.max(1, s * 0.75), L, a.minor ? '#F3E8D0' : '#FFFBEB', INK);
-      if (!ok && n) numberBadge(g, Math.round(p.x), Math.round(p.y + 6 * s), n);
-    } else if (n) { numberBadge(g, Math.round(p.x), Math.round(p.y + 5), n); placed.push({ x: p.x - 7, y: p.y - 2, w: 14, h: 14 }); }
+    if (n) { numberBadge(g, Math.round(p.x), Math.round(p.y + 5), n); placed.push({ x: p.x - 7, y: p.y - 2, w: 14, h: 14 }); }
   }
   // Services (up close)
   if (s >= 1) for (const sv of SERVICES) { const p = at(sv); const box = { x: p.x - 6, y: p.y - 6, w: 12, h: 12 }; if (placed.some(b => hits(b, box))) continue; placed.push(box); ICONS[sv.kind](g, Math.round(p.x), Math.round(p.y)); }
   // The small print (right up close)
-  if (s >= 2) for (const gg of GAGS) plate(g, placed, gg.t, gg.x * s, gg.y * s, { ...SMALL, fill: '#57534E' }, 'rgba(255,251,235,0.9)', '#A8A29E', 1);
+  // (a land's own small print stays in it: nudged in, or left off)
+  if (s >= 2) for (const gg of GAGS) {
+    const L: Look = { ...SMALL, fill: '#57534E' }, x = gg.x * s, y = gg.y * s;
+    if (gg.li === undefined) { plate(g, placed, gg.t, x, y, L, 'rgba(255,251,235,0.9)', '#A8A29E', 1); continue; }
+    const spots: Spot[] = [];
+    for (let dx = -60; dx <= 60; dx += 6) for (let dy = -24; dy <= 24; dy += 4) spots.push({ lines: [gg.t], x: x + dx, y: y + dy, cost: Math.abs(dx) + Math.abs(dy) * 2 });
+    spots.sort((a, b) => a.cost - b.cost);
+    const sp = findSpot(spots, L, 1, gg.li, s, placed, artBoxes(s), false, false);
+    if (sp) plate(g, placed, sp.lines, sp.x, sp.y, L, 'rgba(255,251,235,0.9)', '#A8A29E', 1, true);
+  }
   levels[i] = c;
   return c;
 };
