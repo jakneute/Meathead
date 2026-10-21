@@ -24,12 +24,12 @@ import { silenceAll } from '../../../m1/game/platform/speech';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { SKIP_AFTER, offerSkip, takeSkip, drawSkipPrompt } from '../../../m1/game/platform/skip';
 import { hands, saidOver } from '../section';
-import { box, mix, hash, type Ctx } from '../kit';
-import { drawTuckerCloseup } from '../tucker';
+import { box, hash, type Ctx } from '../kit';
+import { drawTuckerGross, drawTuckerGrossBack } from '../tuckerGross';
 import { GY, TREE_X, HANG_X, HANG_FEET, UP_X, ROOT, FIGHT_X } from './layout';
 import { startEntry, skipToWalk } from './entry';
 import { arenaOf, next, markIntroSeen, UP_MEMO, type Arena } from './state';
-import { tuckerSays, tuckerBarks, meatheadLine, camSnap, tickTucker, WOUNDS_ALL } from './cast';
+import { tuckerSays, tuckerBarks, meatheadLine, camSnap, tickTucker } from './cast';
 import { leafBurst } from './art';
 import { setBranchMemos } from './catchup';
 import { FAKE_ME_OUT, TUCKER_JUMP, MH_JUMPED, TUCKER_UP, TUCKER_ENTRANCE } from './lines';
@@ -156,10 +156,10 @@ export const drawIntroHud = (c: Ctx, state: GameState) => {
   const s = arenaOf(state), f = state.frame, W = CANVAS_WIDTH, H = CANVAS_HEIGHT;
   if (s.phase === 'fakeout' && s.step === 'pop') {
     const t = s.t;
-    // (the woods dark behind his head, banded; the oak's leaves whipping across)
-    for (let i = 0; i < 6; i++) box(c, 0, (i * H) / 6, W, H / 6 + 1, mix('#1A1408', '#3A2A12', i / 6));
-    const jolt = Math.max(0.08, 0.9 - t * 0.03);
-    drawTuckerCloseup(c, W / 2, H / 2 - 50, 11, f, { face: 'yell', red: true, jolt, wounds: WOUNDS_ALL, talking: s.talking });
+    // (the woods dark behind his head, banded; his face, gross (the user's rule for every close-up: tuckerGross.ts);
+    // the oak's leaves whipping across)
+    drawTuckerGrossBack(c, W, H);
+    drawTuckerGross(c, W / 2, H / 2 + 16, 1.06 - Math.min(0.06, t * 0.004), f, s.talking, Math.max(0.6, 7 - t * 0.25));
     for (let i = 0; i < 26; i++) {
       const k = ((t * 0.04 + hash(i + 50) * 3) % 1), x = (hash(i + 59) * W + t * (12 + hash(i + 54) * 14)) % (W + 80) - 40, y = H * k;
       c.save(); c.translate(x, y); c.rotate(t * 0.2 + i); c.fillStyle = ['#B45309', '#D97706', '#92400E', '#CA8A04'][i % 4]; c.beginPath(); c.ellipse(0, 0, 14, 7, 0, 0, Math.PI * 2); c.fill(); c.restore();
