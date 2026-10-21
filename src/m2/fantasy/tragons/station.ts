@@ -22,7 +22,7 @@ import type { GameState } from '../../../m1/game/core/state';
 import { signText, signW } from '../../signLetters';
 import { paintedOn } from '../kit';
 import {
-  INK, mix, box, hash, ramp6, rampH, dimmed, warmGlass, lit, polyF, ballR, postR, slab, gilt, storySign, sideBack,
+  INK, mix, box, hash, checker, ramp6, rampH, dimmed, warmGlass, lit, polyF, ballR, postR, slab, gilt, storySign, sideBack,
   STONE, TIMBER, SLATE, SNOW, GOLD, IRON, FLAG, LIP, type Ctx,
 } from '../kit';
 import { paintHead } from '../glen/sets';
@@ -53,7 +53,21 @@ const paintWall = (g: Ctx, w: number, heads: boolean) => {
   const S = STONE.map(dimmed), Sl = SLATE.map(dimmed), Sn = SNOW.map(dimmed), G = warmGlass(), Gd = GOLD.map(dimmed), I = IRON.map(dimmed);
   // (the stone in courses, blocks picked out, a plinth)
   box(g, -1, -WALL_H, w + 2, WALL_H, INK); slab(g, 0, -WALL_H, w, WALL_H, S);
-  for (let y = -WALL_H + 18, r = 0; y < 0; y += 20, r++) { box(g, 0, y, w, 1, S[1]); for (let x = (r % 2) * 26; x < w; x += 52) { box(g, x, y - 19, 1, 19, S[2]); if (hash(x * 0.3 + r) > 0.7) box(g, x + 4, y - 16, 20, 2, S[4]); } }
+  for (let y = -WALL_H + 18, r = 0; y < 0; y += 20, r++) {
+    box(g, 0, y, w, 1, S[1]); box(g, 0, y + 1, w, 1, S[4]);
+    for (let x = (r % 2) * 26; x < w; x += 52) {
+      // (each block its own: a tone picked by its place, lit along its top and left, its shade under, a chip or a crack)
+      const k = hash(x * 0.37 + r * 7.1), bw = Math.min(52, w - x);
+      if (k > 0.66) box(g, x + 1, y - 19, bw - 1, 19, S[k > 0.88 ? 4 : 2]);
+      box(g, x + 1, y - 19, bw - 2, 1, S[4]); box(g, x + 1, y - 18, 1, 17, S[4]); box(g, x + 1, y - 3, bw - 2, 2, S[2]);
+      box(g, x, y - 19, 1, 19, S[1]);
+      if (k < 0.12) { g.strokeStyle = S[1]; g.lineWidth = 1; g.beginPath(); g.moveTo(x + 12, y - 19); g.lineTo(x + 16, y - 12); g.lineTo(x + 13, y - 6); g.stroke(); }
+      else if (k > 0.45 && k < 0.5) { box(g, x + bw - 8, y - 19, 6, 4, S[1]); box(g, x + bw - 8, y - 15, 6, 1, S[4]); }
+      if (hash(x * 0.3 + r) > 0.7) box(g, x + 4, y - 16, 20, 2, S[4]);
+    }
+  }
+  // (grime up from the plinth, dithered; damp under the windows' sills)
+  for (let y = -70; y < -26; y += 2) checker(g, 0, y, w, 2, 'rgba(20,24,30,' + (0.18 * (1 + y / 70)).toFixed(3) + ')', (y / 2) & 1, 2);
   box(g, 0, -26, w, 26, S[2]); box(g, 0, -26, w, 3, S[4]); box(g, 0, -3, w, 3, S[0]);
   // (the gothic windows: stained glass in the dragons' colors, lit from inside, their tracery and mullions)
   const cols = ['#C42828', '#3A8ED8', '#E2B21E'];
@@ -110,9 +124,22 @@ const flags = (c: Ctx, e: Eye, x0: number, x1: number) => {
     const [ax, ay] = at(e, x0, GY, a), [bx] = at(e, x1, GY, a);
     box(c, ax, ay, bx - ax, 1, F[1]);
   }
+  // (the flags' joints: staggered by band, so each stone's its own; a lit edge along each joint, a worn dip, grit)
   c.strokeStyle = F[1]; c.lineWidth = 1; c.beginPath();
-  for (let x = Math.ceil(x0 / 48) * 48; x < x1; x += 48) { const [ax, ay] = at(e, x, GY, HALL_D), [bx, by] = at(e, x, GY, 1.3); c.moveTo(ax, ay); c.lineTo(bx, by); }
+  for (let i = 0; i < ds.length - 1; i++) {
+    const a = ds[i], b = ds[i + 1], off = (i % 2) * 24;
+    for (let x = Math.ceil((x0 - off) / 48) * 48 + off; x < x1; x += 48) { const [ax, ay] = at(e, x, GY, a), [bx, by] = at(e, x, GY, b); c.moveTo(ax, ay); c.lineTo(bx, by); }
+  }
   c.stroke();
+  for (let i = 0; i < ds.length - 1; i++) {
+    const a = ds[i], b = ds[i + 1], off = (i % 2) * 24;
+    for (let x = Math.ceil((x0 - off) / 48) * 48 + off; x < x1; x += 48) {
+      const k = hash(x * 0.13 + i * 9), m = (a + b) / 2, [px, py] = at(e, x + 24, GY, m), sc = m;
+      if (k > 0.75) { box(c, px - 10 * sc, py - 1, 20 * sc, 2, F[i < 4 ? 5 : 4]); }
+      else if (k < 0.15) { box(c, px - 6 * sc, py, 12 * sc, 1, F[1]); box(c, px - 2 * sc, py - 1, 4 * sc, 1, F[0]); }
+      const [qx, qy] = at(e, x + 1, GY, m); box(c, qx, qy, 1, 2 * sc, F[5]);
+    }
+  }
   // (the platform's edge at the play plane: a lit kerb)
   box(c, x0, GY - 1, x1 - x0, 2, LIP[2]); box(c, x0, GY + 1, x1 - x0, 2, F[1]);
 };
