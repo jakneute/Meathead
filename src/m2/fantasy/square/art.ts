@@ -105,6 +105,11 @@ const gorgeVoid = (c: Ctx, v: View) => {
   const [fa, fy] = at(v.eye, a, GY, GORGE_D), [fb] = at(v.eye, b, GY, GORGE_D), R = rampH(ROCK, true), Ic = rampH(['#4A6A9A', '#6E90C0', '#94B4DC', '#B8D2EE', '#DCEAFA', '#FFFFFF'], true);
   polyF(c, [[fa, fy], [fa + (fb - fa) * 0.38, fy + 30], [fa + (fb - fa) * 0.5, fy + 220], [fa, fy + 260]], R[2]);
   polyF(c, [[fb, fy], [fa + (fb - fa) * 0.62, fy + 30], [fa + (fb - fa) * 0.52, fy + 220], [fb, fy + 260]], R[1]);
+  // (their rock: strata across them, a ledge or two in snow, cracks)
+  c.save(); c.beginPath(); c.moveTo(fa, fy); c.lineTo(fa + (fb - fa) * 0.38, fy + 30); c.lineTo(fa + (fb - fa) * 0.5, fy + 220); c.lineTo(fa + (fb - fa) * 0.52, fy + 220); c.lineTo(fa + (fb - fa) * 0.62, fy + 30); c.lineTo(fb, fy); c.lineTo(fb, fy + 260); c.lineTo(fa, fy + 260); c.closePath(); c.clip();
+  for (let y = fy + 8; y < fy + 260; y += 9) { box(c, fa, y, fb - fa, 1, (y - fy) % 27 < 9 ? R[3] : R[0]); }
+  for (let k = 0; k < 6; k++) { const lx = fa + hash(k * 2.3) * (fb - fa), ly = fy + 30 + hash(k * 4.7) * 180; box(c, lx, ly, 14 + hash(k) * 16, 2, Ic[4]); box(c, lx, ly + 2, 14 + hash(k) * 16, 1, R[0]); }
+  c.restore();
   const wx = fa + (fb - fa) * 0.5;
   for (let k = 0; k < 7; k++) { const x = wx - 30 + k * 9; box(c, x, fy + 20, 8, 160 + (k % 3) * 20, Ic[2 + (k % 3)]); box(c, x, fy + 20, 2, 150, Ic[5]); }
   for (let k = 0; k < 12; k++) box(c, wx - 34 + k * 6, fy + 16 + (k % 2) * 3, 4, 10, Ic[4]);
@@ -132,6 +137,29 @@ const cliffFaces = (c: Ctx, v: View) => {
     for (let k = 1; k < 9; k++) { const y = GY + k * 34 + (k % 2) * 8; const [p0, q0] = at(v.eye, e, y, 1.25), [p1, q1] = at(v.eye, e, y, GORGE_D); c.strokeStyle = k % 2 ? R[0] : R[3]; c.lineWidth = 1; c.beginPath(); c.moveTo(p0, q0); c.lineTo(p1, q1); c.stroke(); }
     for (let t = 0; t < 1; t += 0.035) { const d = 1.25 - t * (1.25 - GORGE_D), [p, q] = at(v.eye, e, GY, d), l = (3 + hash(t * 97) * 10) * d; box(c, p, q + 1, Math.max(1, 2 * d), l, S[3]); box(c, p, q + 1, 1, l * 0.7, S[5]); }
     for (let k = 0; k < 4; k++) { const d = 1.1 - k * 0.1, [p, q] = at(v.eye, e, GY + 30 + k * 14, d); c.strokeStyle = R[0]; c.lineWidth = 1; c.beginPath(); c.moveTo(p, q); c.quadraticCurveTo(p + side * 6, q + 10, p + side * 2, q + 22); c.stroke(); }
+    // (finer bedding between the strata, crevices down the face (dark, a lit edge), ledges with snow along them and
+    // icicles off their lips, a boulder jutting here and there: each pinned to a depth and a height, so it holds still)
+    for (let k = 0; k < 26; k++) { const y = GY + 12 + k * 13, d0 = 1.25 - hash(k * 1.7) * 0.2, d1 = GORGE_D + hash(k * 2.3) * 0.25; const [p0, q0] = at(v.eye, e, y, d0), [p1, q1] = at(v.eye, e, y, d1); c.strokeStyle = k % 3 ? R[1] : R[4]; c.lineWidth = 1; c.beginPath(); c.moveTo(p0, q0); c.lineTo(p1, q1); c.stroke(); }
+    for (let k = 0; k < 9; k++) {
+      const d = 1.2 - hash(k * 3.9 + side) * (1.2 - GORGE_D - 0.04), y0 = GY + 20 + hash(k * 5.3) * 200, len = 30 + hash(k * 7.1) * 70;
+      const [p0, q0] = at(v.eye, e, y0, d), [p1, q1] = at(v.eye, e, y0 + len, d);
+      c.strokeStyle = R[0]; c.lineWidth = 2 * d; c.beginPath(); c.moveTo(p0, q0); c.lineTo(p1 + side * 2, (q0 + q1) / 2); c.lineTo(p1, q1); c.stroke();
+      c.strokeStyle = R[4]; c.lineWidth = 1; c.beginPath(); c.moveTo(p0 + side, q0); c.lineTo(p1 + side * 3, (q0 + q1) / 2); c.stroke();
+    }
+    for (let k = 0; k < 5; k++) {
+      const y = GY + 60 + k * 52, da = 1.2 - hash(k * 2.9 + side * 5) * 0.15, db = da - 0.12 - hash(k * 4.1) * 0.2;
+      const [p0, q0] = at(v.eye, e, y, da), [p1, q1] = at(v.eye, e, y, db);
+      c.strokeStyle = R[4]; c.lineWidth = 3; c.beginPath(); c.moveTo(p0, q0); c.lineTo(p1, q1); c.stroke();
+      c.strokeStyle = S[4]; c.lineWidth = 2; c.beginPath(); c.moveTo(p0, q0 - 2); c.lineTo(p1, q1 - 2); c.stroke();
+      for (let t = 0.1; t < 1; t += 0.22) { const px = p0 + (p1 - p0) * t, py = q0 + (q1 - q0) * t, l = 4 + hash(t * 31 + k) * 8; box(c, px, py + 1, 2, l, S[3]); box(c, px, py + 1, 1, l * 0.6, S[5]); }
+    }
+    for (let k = 0; k < 4; k++) {
+      const d = 1.15 - k * 0.12, y = GY + 110 + hash(k * 6.1 + side) * 160, [p, q] = at(v.eye, e, y, d), r = 9 * d;
+      c.fillStyle = INK; c.beginPath(); c.ellipse(p + side * r * 0.6, q, r + 1.5, r * 0.75 + 1.5, 0, 0, Math.PI * 2); c.fill();
+      c.fillStyle = R[3]; c.beginPath(); c.ellipse(p + side * r * 0.6, q, r, r * 0.75, 0, 0, Math.PI * 2); c.fill();
+      c.fillStyle = R[4]; c.beginPath(); c.ellipse(p + side * r * 0.4, q - r * 0.25, r * 0.6, r * 0.35, 0, 0, Math.PI * 2); c.fill();
+      box(c, p + side * r * 0.2 - 2, q - r * 0.75, 6, 2, S[4]);
+    }
   }
 };
 /** The columns he crosses by: old carved pillars up out of the depths, snow on top (lit: stood on), faint runes. */
