@@ -216,6 +216,26 @@ const playProps = (c0: Ctx, state: GameState) => {
   });
 };
 
+/** A crumpled drawing: a lumpy faceted ball (its outline jittered), the lit facets up and left, the creases between,
+ *  a glint. R a paper ramp. */
+const crumpled = (g: Ctx, cx: number, cy: number, rr: number, R: string[], seed: number) => {
+  const n = 8, pts: [number, number][] = [];
+  for (let i = 0; i < n; i++) { const a = (i / n) * Math.PI * 2 + hash(seed) * 0.6, r = rr * (0.78 + hash(seed + i * 1.7) * 0.32); pts.push([cx + Math.cos(a) * r, cy + Math.sin(a) * r * 0.92]); }
+  const poly = (ps: [number, number][]) => { g.beginPath(); g.moveTo(ps[0][0], ps[0][1]); for (const p of ps.slice(1)) g.lineTo(p[0], p[1]); g.closePath(); };
+  g.fillStyle = INK; g.save(); g.translate(cx, cy); g.scale(1 + 1.4 / rr, 1 + 1.4 / rr); g.translate(-cx, -cy); poly(pts); g.fill(); g.restore();
+  g.fillStyle = R[2]; poly(pts); g.fill();
+  // (the facets: each wedge from a crease point near the middle, lit by which way it faces)
+  const mx = cx - rr * 0.15 + (hash(seed * 3) - 0.5) * rr * 0.3, my = cy - rr * 0.15;
+  for (let i = 0; i < n; i++) {
+    const a = pts[i], b = pts[(i + 1) % n], fa = Math.atan2((a[1] + b[1]) / 2 - cy, (a[0] + b[0]) / 2 - cx), lite = -Math.cos(fa + Math.PI * 0.25);
+    g.fillStyle = lite > 0.55 ? R[5] : lite > 0.1 ? R[4] : lite > -0.4 ? R[3] : R[2];
+    g.beginPath(); g.moveTo(mx, my); g.lineTo(a[0], a[1]); g.lineTo(b[0], b[1]); g.closePath(); g.fill();
+  }
+  g.strokeStyle = R[1]; g.lineWidth = 1; g.beginPath();
+  for (let i = 0; i < n; i += 2) { g.moveTo(mx, my); g.lineTo(pts[i][0] * 0.7 + mx * 0.3, pts[i][1] * 0.7 + my * 0.3); }
+  g.stroke();
+  box(g, mx - rr * 0.35, my - rr * 0.3, 2, 1, '#FFFFFF');
+};
 /** The reject pile (crumpled drawings heaped in a trough) and the paint vat (three runs of color, stirring), behind. */
 const pitsBack = (c: Ctx, state: GameState) => {
   const f = state.frame;
@@ -223,16 +243,23 @@ const pitsBack = (c: Ctx, state: GameState) => {
   if (X(rb) > state.camera.x - 40 && X(ra) < state.camera.x + CANVAS_WIDTH + 40) {
     bands(c, X(ra), GY + 4, rb - ra, 400, [PAPER[2], PAPER[1], PAPER[0], '#5E584C', '#3A362E']);
     stamp(c, 'ct-st2-rejects', X(ra) - 8, GY - 8, rb - ra + 16, 76, g => {
-      for (let row = 0; row < 3; row++) for (let x = ra + 8; x < rb - 4; x += 16) {
-        const k = hash(x * 3.1 + row), cx = X(x + (row % 2) * 8), cy = GY + 10 + row * 14 - k * 4, rr = 8 + k * 3;
-        const R = row === 0 ? PAPER : R6(['#F5F0E1', '#ECE6D6', '#FDF6E3'][(x / 16 + row) % 3 | 0]);
-        g.fillStyle = INK; g.beginPath(); g.arc(cx, cy, rr + 1, 0, Math.PI * 2); g.fill();
-        g.fillStyle = R[2]; g.beginPath(); g.arc(cx, cy, rr, 0, Math.PI * 2); g.fill();
-        g.fillStyle = R[4]; g.beginPath(); g.arc(cx - 2, cy - 2, rr * 0.65, 0, Math.PI * 2); g.fill();
-        // (the crumples: creases in it, a drawing's line showing)
-        g.strokeStyle = R[1]; g.lineWidth = 1; g.beginPath(); g.moveTo(cx - rr * 0.5, cy - 1); g.lineTo(cx, cy + rr * 0.3); g.lineTo(cx + rr * 0.4, cy - rr * 0.3); g.stroke();
-        if (k > 0.6) { g.strokeStyle = '#64748B'; g.beginPath(); g.arc(cx - 1, cy - 1, 3, 0, 4); g.stroke(); }
-        if (k < 0.12) { g.strokeStyle = '#DC2626'; g.beginPath(); g.moveTo(cx - 4, cy - 4); g.lineTo(cx + 4, cy + 4); g.moveTo(cx + 4, cy - 4); g.lineTo(cx - 4, cy + 4); g.stroke(); }
+      // (a few flat sheets slid down between the balls first: a doodle of the cat on each, a coffee ring, a red X)
+      for (let x = ra + 20; x < rb - 30; x += 70) {
+        const k = hash(x * 0.71), sx = X(x), sy = GY + 14 + k * 18, a = (k - 0.5) * 0.6;
+        g.save(); g.translate(sx, sy); g.rotate(a);
+        box(g, -15, -11, 30, 22, INK); box(g, -14, -10, 28, 20, PAPER[4]); box(g, -14, -10, 28, 2, PAPER[5]); box(g, 12, -10, 2, 20, PAPER[2]);
+        g.strokeStyle = '#64748B'; g.lineWidth = 1; g.beginPath(); g.arc(0, 0, 5, 0, Math.PI * 2); g.moveTo(-4, -3); g.lineTo(-5, -8); g.lineTo(-1, -5); g.moveTo(4, -3); g.lineTo(5, -8); g.lineTo(1, -5); g.stroke();
+        if (k > 0.5) { g.strokeStyle = 'rgba(120,72,30,0.5)'; g.beginPath(); g.arc(-7, 4, 4, 0, Math.PI * 2); g.stroke(); }
+        else { g.strokeStyle = '#DC2626'; g.lineWidth = 2; g.beginPath(); g.moveTo(-9, -7); g.lineTo(9, 7); g.moveTo(9, -7); g.lineTo(-9, 7); g.stroke(); }
+        g.restore();
+      }
+      for (let row = 0; row < 3; row++) for (let x = ra + 8; x < rb - 4; x += 15) {
+        const k = hash(x * 3.1 + row), cx = X(x + (row % 2) * 8 + (hash(x + row * 7) - 0.5) * 6), cy = GY + 10 + row * 14 - k * 5, rr = 7 + k * 5;
+        const R = row === 0 ? PAPER : R6(['#F5F0E1', '#ECE6D6', '#FDF6E3', '#FFF7D6'][(x / 15 + row) % 4 | 0]);
+        crumpled(g, cx, cy, rr, R, x * 1.3 + row * 11);
+        if (k > 0.66) { g.strokeStyle = '#64748B'; g.lineWidth = 1; g.beginPath(); g.arc(cx - 1, cy - 1, 3, 0, 4); g.stroke(); }
+        if (k < 0.12) { g.strokeStyle = '#DC2626'; g.lineWidth = 1; g.beginPath(); g.moveTo(cx - 4, cy - 4); g.lineTo(cx + 4, cy + 4); g.moveTo(cx + 4, cy - 4); g.lineTo(cx - 4, cy + 4); g.stroke(); }
+        if (k > 0.9) { box(g, cx - 2, cy - rr - 3, 12, 3, INK); box(g, cx - 1, cy - rr - 2, 9, 1, '#F2C230'); box(g, cx + 8, cy - rr - 2, 2, 1, '#F4A6C0'); }
       }
       for (const ex of [X(ra) - 6, X(rb)]) slab(g, ex, GY - 4, 6, 70, STEEL);
     });
@@ -260,12 +287,9 @@ const pitsFront = (c: Ctx, state: GameState) => {
   const [ra, rb] = REJECTS;
   if (X(rb) > state.camera.x - 40 && X(ra) < state.camera.x + CANVAS_WIDTH + 40) {
     stamp(c, 'ct-st2-rejects-lip', X(ra), GY + 2, rb - ra, 32, g => {
-      for (let x = ra + 6; x < rb - 4; x += 13) {
-        const k = hash(x * 1.7), cx = X(x), cy = GY + 18 - k * 3, rr = 7 + k * 2;
-        g.fillStyle = INK; g.beginPath(); g.arc(cx, cy, rr + 1, 0, Math.PI * 2); g.fill();
-        g.fillStyle = PAPER[3]; g.beginPath(); g.arc(cx, cy, rr, 0, Math.PI * 2); g.fill();
-        g.fillStyle = PAPER[5]; g.beginPath(); g.arc(cx - 2, cy - 2, rr * 0.55, 0, Math.PI * 2); g.fill();
-        g.strokeStyle = PAPER[1]; g.lineWidth = 1; g.beginPath(); g.moveTo(cx - 3, cy); g.lineTo(cx + 1, cy + 3); g.lineTo(cx + 4, cy - 2); g.stroke();
+      for (let x = ra + 6; x < rb - 4; x += 12) {
+        const k = hash(x * 1.7), cx = X(x + (hash(x * 0.3) - 0.5) * 5), cy = GY + 18 - k * 4, rr = 6 + k * 4;
+        crumpled(g, cx, cy, rr, PAPER, x * 2.1 + 5);
       }
     });
   }
