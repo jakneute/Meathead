@@ -103,7 +103,9 @@ const LEAP_EVERY = [0, 720, 520, 360], CROUCH_T = 34, AIR_T = 84, LAND_T = 22, L
 const FLAIL_REACH = 190, FLAIL_LINGER = 90, FLAIL_TELL = 20, FLAIL_T = 26, FLAIL_WIDE = 230, FLAIL_DMG = 28;
 /** Thrown into her: what it does; batted back with the mallet: what that does, and how long she's stunned. */
 /** (a throw into her is crowd control, a chip: only her own batted back with the mallet really hurts her) */
-const THROWN_DMG = 12, BATTED_DMG = 60, BATTED_STUN = 90;
+// (anything flung into her, thrown or batted, big or small, is the one fairly heavy hit, once per contact however many
+// arrive together (the user's: it was compounding); a batted kid still stuns her and clears the brood)
+const FLUNG_DMG = 40, FLUNG_GAP = 45, BATTED_STUN = 90;
 /** Her head bonked with the mallet: the extra, the stun. */
 const HEAD_EXTRA = 8, HEAD_STUN = 70;
 /** The mallet's plain swing on her: a modest knock (the breather after it, like anything). */
@@ -193,6 +195,8 @@ export interface Fight {
   barked: Set<string>;
   /** When one of hers (or anybody) last went into her, thrown or batted; when he last hinted at it. */
   throwAt: number; throwHintAt: number;
+  /** When the last thing flung into her hurt her (one hit per contact, however many arrive together). */
+  flungAt: number;
   /** A throw or a bat landed on her lately (the engine's own share of the same hit isn't counted on top). */
   eventAt: number;
   /** The operators in the booth: at it; losing it after her; running out the back; gone. */
@@ -217,7 +221,7 @@ export const makeFight = (state: GameState): Fight => {
     said: null, boothSaid: null,
     birthT: 120, leapT: 0, linger: 0, forceLeap: false, stunT: 0, closeAt: -9999, pool: null,
     dents: 0, pieces: [], splats: [], glitchAt: -9999, stopT: 0, barFrom: HP, barT: 0, blown: false, slow: null, whiteT: 99, lastWords: false,
-    drops: [], sacs: [], slicks: [], barf: [], spots: [], litter: [], cheapSaid: false, grabT: 0, tauntT: 0, saidBirth: -9999, barked: new Set(), throwAt: -1, throwHintAt: -9999, eventAt: -99,
+    drops: [], sacs: [], slicks: [], barf: [], spots: [], litter: [], cheapSaid: false, grabT: 0, tauntT: 0, saidBirth: -9999, barked: new Set(), throwAt: -1, throwHintAt: -9999, flungAt: -9999, eventAt: -99,
     ops: { mode: 'on', t: 0 }, can: null, canT: 0, leapFrom: SIDE_X[1], deathT: 0, deathSaid: 0, byWeakness: false, e: null, entrance: 0,
   };
 };
@@ -742,15 +746,22 @@ const thrownInto = (ctx: FrameContext, f: Fight) => {
     if (!flung || speed < 5 || (isKin(e) && kinAge(state, e) < 20 && !thrown && !e.isBlownAway)) continue;
     const batted = !thrown && p.currentWeapon === 'MALLET' && isKin(e);
     f.eventAt = f.total; f.throwAt = f.total;
+    // (another one arriving on the same contact: it's done for, but she's already been hurt for this one)
+    if (f.total - f.flungAt < FLUNG_GAP) {
+      if (isKin(e) || e.isBlownAway) destroyKin(ctx, e);
+      else { e.health = 0; ctx.fx.blowAwayEnemy(e, { x: -Math.sign(e.vel.x) * 6, y: -6 }, null as never, -Math.sign(e.vel.x) || 1); }
+      continue;
+    }
+    f.flungAt = f.total;
     if (batted) {
-      // (her own, batted back into her: the big one; she's stunned, and the lot of them go)
+      // (her own, batted back into her: the hit, and she's stunned, and the lot of them go)
       const before = f.hp;
-      f.hp -= BATTED_DMG; f.flash = 16; f.iframes = IFRAMES;
+      f.hp -= FLUNG_DMG; f.flash = 16; f.iframes = IFRAMES;
       malletFeel(state, f, 'batted', before, { x: f.x, y: GY - 170 }, (Math.sign(e.vel.x) || 1) as 1 | -1);
       for (const k of kinAbout(state)) destroyKin(ctx, k);
       if (state.enemies.includes(e)) destroyKin(ctx, e);
       f.sacs = []; f.litter = [];
-      ctx.fx.spawnDamageNumber({ x: f.x - 20, y: GY - 260 }, BATTED_DMG, true);
+      ctx.fx.spawnDamageNumber({ x: f.x - 20, y: GY - 260 }, FLUNG_DMG, true);
       // (its own callout, the announcer calling it)
       const call = pickLine(GRAB_CALLOUTS.batted.lines);
       state.damageNumbers.push({ id: `queen-bat-${state.frame}`, text: call, pos: { x: f.x - 60, y: GY - 300 }, vel: { x: 0, y: -2.8 }, life: 80, maxLife: 80, isCritical: true, isCallout: true, color: GRAB_CALLOUTS.batted.color });
@@ -761,8 +772,8 @@ const thrownInto = (ctx: FrameContext, f: Fight) => {
       return;
     }
     // (thrown into her: it's done for, and she's hurt)
-    f.hp -= THROWN_DMG; f.flash = 8;
-    ctx.fx.spawnDamageNumber({ x: f.x - 20, y: GY - 260 }, THROWN_DMG, true);
+    f.hp -= FLUNG_DMG; f.flash = 12;
+    ctx.fx.spawnDamageNumber({ x: f.x - 20, y: GY - 260 }, FLUNG_DMG, true);
     playSound('crash', 0.8, 2); shakeScreen(state, 8, 4);
     if (isKin(e) || e.isBlownAway) destroyKin(ctx, e);
     else { e.health = 0; ctx.fx.blowAwayEnemy(e, { x: -Math.sign(e.vel.x) * 6, y: -6 }, null as never, -Math.sign(e.vel.x) || 1); }
