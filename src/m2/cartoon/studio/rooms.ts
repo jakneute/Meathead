@@ -22,7 +22,8 @@ import {
   BLACKOUT, NAVYWALL, SLATE, BLUEPLAS, REDPLAS,
 } from './paint';
 import { sitter, behind, socks, chelsea, paintDaveStill, paintStar, ASIAN_SKIN, ASIAN_HAIR } from './people';
-import { CEIL, X, Y, type Room } from './layout';
+import { CEIL, X, Y, type Room, type RoomId } from './layout';
+import { WALL_EXTRAS, PROP_EXTRAS } from './clutter';
 import { GY } from '../geometry';
 
 /** The park's letters (fat, bouncing). */
@@ -910,14 +911,18 @@ export const drawPaparazziLive = (c: Ctx, f: number) => {
 // ---------------------------------------------------------------------------------------------------------------
 // The lookups
 
-export const BACKS: Record<string, (g: Ctx, r: Room) => void> = {
+const BACK_PAINT: Record<string, (g: Ctx, r: Room) => void> = {
   lobby: paintLobby, vision: paintVision, writers: paintWriters, storyboards: paintStoryboards, voice: paintVoice,
   models: paintModels, overseas: paintOverseas, inkpaint: paintInkpaint, camera: paintCamera, premiere: paintPremiere,
 };
-export const PROPS: Record<string, ((g: Ctx) => void) | undefined> = {
+const PROP_PAINT: Record<string, ((g: Ctx) => void) | undefined> = {
   lobby: paintLobbyProps, vision: paintVisionProps, writers: paintWritersProps, storyboards: paintStoryboardsProps,
   voice: paintVoiceProps, models: paintModelsProps, inkpaint: paintInkpaintProps, camera: paintCameraProps,
 };
+/** Each room's back wall, its clutter over it (clutter.ts). */
+export const BACKS: Record<string, (g: Ctx, r: Room) => void> = Object.fromEntries(Object.entries(BACK_PAINT).map(([id, fn]) => [id, (g: Ctx, r: Room) => { fn(g, r); WALL_EXTRAS[id as RoomId]?.(g, r); }]));
+/** Each room's tableau, the clutter in it (clutter.ts) behind. */
+export const PROPS: Record<string, ((g: Ctx) => void) | undefined> = Object.fromEntries(Object.keys(BACK_PAINT).filter(id => PROP_EXTRAS[id as RoomId] || PROP_PAINT[id]).map(id => [id, (g: Ctx) => { PROP_EXTRAS[id as RoomId]?.(g); PROP_PAINT[id]?.(g); }]));
 /** What changes the back wall's look (the lobby's doors show the hour). */
 export const backKey = (id: string) => (id === 'lobby' ? timeOfDay().key : '');
 

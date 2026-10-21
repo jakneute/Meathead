@@ -35,6 +35,9 @@ export const SCENARIOS = [
   { name: 'fantasy-broom', q: 'fantasy=50', keys: [[0, 'down', 'ArrowRight']] },
   // Cartoon Land
   { name: 'cartoon-kiddie', q: 'cartoon=1', keys: hopRight() },
+  // (the studio: the lobby through the writers' room to the storyboard wall; the long overseas room into ink and paint)
+  { name: 'cartoon-studio', q: 'cartoon=10', keys: hopRight() },
+  { name: 'cartoon-studio-overseas', q: 'cartoon=13', keys: hopRight() },
   { name: 'cartoon-whitehouse', q: 'cartoon=21', keys: hopRight() },
   { name: 'cartoon-bigkid', q: 'cartoon=40', keys: hopRight() },
   { name: 'cartoon-itchy', q: 'cartoon=50', keys: hopRight() },

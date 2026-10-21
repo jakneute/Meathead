@@ -37,6 +37,7 @@ import {
   PROMO, paintPromo, drawPromoBulbs, paintPaparazzi, drawPaparazziLive, placardX, placardW, paintPlacard, paintMarquee,
   MARQUEE,
 } from './rooms';
+import { NEAR, D_NEAR, drawClutterLive } from './clutter';
 
 // ---------------------------------------------------------------------------------------------------------------
 // The eye
@@ -496,8 +497,11 @@ export const drawStudioBack = (c: Ctx, state: GameState, talking: boolean) => {
       else if (r.id === 'voice') drawVoiceLive(c, f);
       else if (r.id === 'models') drawArtDirector(c, X(5120), GY, f);
       else if (r.id === 'premiere') { stamp(c, 'ct-st2-promo', PROMO.x - 10, PROMO.y - 20, PROMO.w + 20, GY - PROMO.y + 24, g => paintPromo(g)); drawPromoBulbs(c, f); }
+      drawClutterLive(c, r.id, f);
     });
   }
+  // (the low clutter just behind the rope: crumpled drawings, cables taped down, cans, a putting green)
+  for (const r of vis) { const near = NEAR[r.id]; if (near && seen(state, E, X(r.a), X(r.b), D_NEAR)) atDepth(c, E, D_NEAR, () => stamp(c, `ct-st2-near-${r.id}`, X(r.a), GY - 90, r.b - r.a, 92, g => near(g))); }
   // (the press, cardboard, behind the rope along the red carpet, flashing)
   if (vis.some(r => r.id === 'premiere')) atDepth(c, E, 0.91, () => { stamp(c, 'ct-st2-papz', X(9330), GY - 100, 330, 104, g => paintPaparazzi(g)); drawPaparazziLive(c, f); });
   for (const w of walls) if (seen(state, E, w.x - 4, w.x + 4, D_PROPS) || seen(state, E, w.x - 4, w.x + 4, D_RAIL)) partition(c, E, w.x, D_PROPS, D_RAIL, facing(w));
