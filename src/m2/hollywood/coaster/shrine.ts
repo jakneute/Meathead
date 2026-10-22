@@ -267,7 +267,8 @@ export const drawBooth = (c: Ctx, v: CView, state: GameState, co: Coaster) => {
   box(c, wx, wy, ww, wh, lit() ? '#4A3A20' : '#1E2430');
   box(c, wx, wy, ww, 10, lit() ? '#5A4828' : '#2A3240');
   if (!launched) {
-    c.save(); c.translate(cx0 + 70, by - 40); c.scale(0.9, 0.9);
+    // (kept inside the window: his legs are under the desk, behind the wall)
+    c.save(); c.beginPath(); c.rect(wx, wy, ww, wh); c.clip(); c.translate(cx0 + 70, by - 40); c.scale(0.9, 0.9);
     drawPerson(c, { seed: 4407, outfit: 'operator', f: 0, pose: 'sit', mood: 'bored', talking: !!co.sleeper });
     c.restore();
   } else {
