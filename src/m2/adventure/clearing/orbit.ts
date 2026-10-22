@@ -29,6 +29,8 @@ import { timeOfDay, skyRamp, farTint, sunAt, drawSun, drawStars, drawMoon, cloud
 import { pixelBlob, mix } from '../../intro/art/kit';
 import { STONE as SR, MOSS } from '../roof/stone';
 import { drawParkRing } from './far';
+import { OrbitGl, type BandShape, type FloorEye } from './orbitGl';
+import { idleTasks } from '../../../m1/game/scenes/art/raster';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -542,37 +544,59 @@ const ditherOf = (c: Ctx, col: string): CanvasPattern | string => {
   return p;
 };
 
-/** A bumpy band round the loop at radius r (the jungle's canopy, the hills): its far side, as one shape. */
-const band = (c: Ctx, v: View, r: number, height: (a: number) => number, col: string, nearest: number, crest?: string, bands?: [number, string][]) => {
-  const tops: { x: number; y: number }[] = [], bases: { x: number; y: number }[] = [];
-  for (let k = 0; k < 720; k++) {
-    const a = (k / 720) * Math.PI * 2, p = polar(r, a);
-    if (depth(v, p.x, p.z) < nearest) continue;
-    tops.push(proj(v, p.x, height(a), p.z)); bases.push(proj(v, p.x, 0, p.z));
+/** A bumpy band round the loop at radius r (the jungle's canopy, the hills): its far side, as one shape. Its ring of
+ *  points (where they stand, how high: the same every frame) worked out once a radius. */
+const RING_N = 720;
+const rings = new Map<number, { px: Float64Array; pz: Float64Array; h: Float64Array }>();
+const ringOf = (r: number, height: (a: number) => number) => {
+  let R = rings.get(r);
+  if (!R) {
+    R = { px: new Float64Array(RING_N), pz: new Float64Array(RING_N), h: new Float64Array(RING_N) };
+    for (let k = 0; k < RING_N; k++) { const a = (k / RING_N) * Math.PI * 2; R.px[k] = r * Math.sin(a); R.pz[k] = r * Math.cos(a); R.h[k] = height(a); }
+    rings.set(r, R);
   }
-  const order = tops.map((_, i) => i).sort((i, j) => tops[i].x - tops[j].x);
-  if (order.length < 2) return;
-  // (lit along its crest: the shape in a lighter step, then itself a little lower over it; darker going down, in
-  // steps following the crest: the far side of the hills in their own shade. Each step down into a color is a row of
-  // dither (a cached checker pattern), then the step solid)
-  // (the dither's a cached checker pattern filled through the shape: a full-screen checker under a clip, per step per
-  // frame, is tens of thousands of fills and crawled the loop)
-  const L: { dy: number; fill: string | CanvasPattern; solid: boolean }[] = [];
-  const step = (dy: number, cl: string) => { L.push({ dy: dy - 2, fill: ditherOf(c, cl), solid: false }, { dy, fill: cl, solid: true }); };
-  if (crest) { L.push({ dy: 0, fill: crest, solid: true }); step(4, col); } else L.push({ dy: 0, fill: col, solid: true });
+  return R;
+};
+/** The band's outline for the view (its points past `nearest`, through the camera, sorted across the screen) and its
+ *  layers down from the crest: lit along its crest (the shape in a lighter step, then itself a little lower over it),
+ *  darker going down in steps following the crest (the far side of the hills in their own shade), each step down into
+ *  a color a row of dither (the 2-unit checker) then the step solid. */
+const bandShape = (v: View, r: number, height: (a: number) => number, col: string, nearest: number, crest?: string, bands?: [number, string][]): BandShape => {
+  const R = ringOf(r, height);
+  const X: number[] = [], T: number[] = [], B: number[] = [];
+  for (let k = 0; k < RING_N; k++) {
+    const px = R.px[k], pz = R.pz[k];
+    const Z = DC - px * v.sin - pz * v.cos;
+    if (Z < nearest) continue;
+    const kk = F / Math.max(40, Z);
+    X.push(CANVAS_WIDTH / 2 + (px * v.cos - pz * v.sin) * kk); T.push(v.hy + (HC - R.h[k]) * kk); B.push(v.hy + HC * kk);
+  }
+  const order = X.map((_, i) => i).sort((i, j) => X[i] - X[j]);
+  const n = order.length, xs = new Float64Array(n), tops = new Float64Array(n), bases = new Float64Array(n);
+  order.forEach((i, j) => { xs[j] = X[i]; tops[j] = T[i]; bases[j] = B[i]; });
+  const L: BandShape['L'] = [];
+  const step = (dy: number, cl: string) => { L.push({ dy: dy - 2, col: cl, dither: true }, { dy, col: cl, dither: false }); };
+  if (crest) { L.push({ dy: 0, col: crest, dither: false }); step(4, col); } else L.push({ dy: 0, col, dither: false });
   if (bands) for (const [dy, cl] of bands) step(dy, cl);
+  return { n, xs, tops, bases, L };
+};
+/** A band the 2D way. */
+// (the dither's a cached checker pattern filled through the shape: a full-screen checker under a clip, per step per
+// frame, is tens of thousands of fills and crawled the loop)
+const paintBand = (c: Ctx, b: BandShape) => {
+  if (b.n < 2) return;
+  const { xs, tops, bases, n } = b;
   // (each layer filled only down to a little under the next solid step that covers it (the last one right down to the
   // base): the same picture as each going all the way down under the next, but a fraction of the area. Every one of
   // them all the way down, a few dozen big fills a frame, was the GPU's whole frame and then some: the loop crawled)
   const OVER = 8;
-  L.forEach((ly, j) => {
-    const next = L.slice(j + 1).find(n => n.solid);
-    c.fillStyle = ly.fill; c.beginPath();
-    order.forEach((i, n) => (n ? c.lineTo(tops[i].x, tops[i].y + ly.dy) : c.moveTo(tops[i].x, tops[i].y + ly.dy)));
-    for (let n = order.length - 1; n >= 0; n--) {
-      const i = order[n];
-      if (next) c.lineTo(tops[i].x, Math.min(tops[i].y + next.dy + OVER, bases[i].y + 3));
-      else c.lineTo(bases[i].x, bases[i].y + 3);
+  b.L.forEach((ly, j) => {
+    const next = b.L.slice(j + 1).find(q => !q.dither);
+    c.fillStyle = ly.dither ? ditherOf(c, ly.col) : ly.col; c.beginPath();
+    for (let i = 0; i < n; i++) (i ? c.lineTo(xs[i], tops[i] + ly.dy) : c.moveTo(xs[i], tops[i] + ly.dy));
+    for (let i = n - 1; i >= 0; i--) {
+      if (next) c.lineTo(xs[i], Math.min(tops[i] + next.dy + OVER, bases[i] + 3));
+      else c.lineTo(xs[i], bases[i] + 3);
     }
     c.closePath(); c.fill();
   });
@@ -588,16 +612,37 @@ const mixRgb = (a: number[], b: number[], k: number) => a.map((v, i) => v + (b[i
 const GRASS = [[61, 107, 26], [70, 120, 30]], GRASS_DOT = [92, 140, 40], GRASS_DK = [50, 92, 24];
 const DIRT = [138, 110, 75], DIRT_DK = [112, 88, 58], FOOT = [107, 90, 64], JUNGLE = [31, 77, 36];
 const hash2 = (a: number, b: number) => { const x = Math.sin(a * 127.1 + b * 311.7) * 43758.5; return x - Math.floor(x); };
+/** The floor and the far bands on the GPU (orbitGl.ts), the software path whenever it can't. */
+const gpu = new OrbitGl({
+  W: CANVAS_WIDTH, H: CANVAS_HEIGHT, F, HC, PR, BASE, TD, WDx: WD.x, WDz: WD.z, WEx: WE.x, WEz: WE.z, WING_U0, WING_W, A_START, WING_A,
+  GRASS0: GRASS[0], GRASS1: GRASS[1], GRASS_DOT, GRASS_DK, DIRT, DIRT_DK, FOOT, JUNGLE, hash2,
+});
+/** Every sprite out round the loop (each tree kind and fake at each distance band) painted ahead, a few a moment,
+ *  so none's first painted mid-walk (a fast charge round the loop crossed several bands a frame: a spike each). */
+let primed = false;
+const primeSprites = () => {
+  if (primed || typeof document === 'undefined') return;
+  primed = true;
+  const tasks: (() => void)[] = [];
+  for (let band = 3; band >= 0; band--) {
+    TREES.forEach((_, i) => tasks.push(() => { treeSprite(i, band); }));
+    for (const k of new Set(FAKES.map(f => f.kind))) tasks.push(() => { fakeSprite(k, band); });
+  }
+  idleTasks(tasks);
+};
 
+/** The floor's camera for the view: the eye on the ground, its right and forward, the haze at the hour's color. */
+const floorEye = (v: View): FloorEye => {
+  const hz = timeOfDay().haze, haze = mixRgb(HAZE_DAY, [1, 3, 5].map(i => parseInt(hz.slice(i, i + 2), 16)), Math.max(0, timeOfDay().skyK - 0.1));
+  const cam = camPos(v);
+  return { hy: v.hy, cx: cam.x, cz: cam.z, rx: v.cos, rz: -v.sin, fx: -v.sin, fz: -v.cos, haze };
+};
 const drawFloor = (c: Ctx, v: View) => {
   if (typeof document === 'undefined') return;
   if (!floorCanvas) { floorCanvas = document.createElement('canvas'); floorCanvas.width = FW; floorCanvas.height = FH; floorImg = floorCanvas.getContext('2d')!.createImageData(FW, FH); }
   const d = floorImg!.data;
   d.fill(0);
-  // (the haze at the hour's color)
-  const hz = timeOfDay().haze, HAZE = mixRgb(HAZE_DAY, [1, 3, 5].map(i => parseInt(hz.slice(i, i + 2), 16)), Math.max(0, timeOfDay().skyK - 0.1));
-  const cam = camPos(v);
-  const rx = v.cos, rz = -v.sin, fx = -v.sin, fz = -v.cos;
+  const { haze: HAZE, cx, cz, rx, rz, fx, fz } = floorEye(v), cam = { x: cx, z: cz };
   const row0 = Math.max(0, Math.floor(v.hy / FS) + 1);
   for (let ry = row0; ry < FH; ry++) {
     const sy = ry * FS + FS / 2 - v.hy;
@@ -665,19 +710,22 @@ export const drawOrbitBackdrop = (c: Ctx, state: GameState, templeHit: boolean, 
   // darker and greener, banded darker going down)
   const hzd = (col: string, k: number, far = 1) => mix(farTint(col, far, tod), SKY[SKY.length - 1], k);
   const jagA = (a: number, n: number, seed: number) => { const x = Math.sin(Math.floor(a * n) * 91.7 + seed) * 43758.5; return x - Math.floor(x) - 0.5; };
-  band(c, v, 5600, a => 1250 + 420 * Math.sin(4 * a + 0.5) + 200 * Math.sin(9 * a + 2) + 90 * Math.sin(23 * a) + 70 * jagA(a, 160, 3), hzd('#7A9AAE', 0.45), 600, hzd('#B8D0DC', 0.45),
+  const useGl = gpu.ok();
+  primeSprites();
+  const peaks = bandShape(v, 5600, a => 1250 + 420 * Math.sin(4 * a + 0.5) + 200 * Math.sin(9 * a + 2) + 90 * Math.sin(23 * a) + 70 * jagA(a, 160, 3), hzd('#7A9AAE', 0.45), 600, hzd('#B8D0DC', 0.45),
     [[10, hzd('#6A889C', 0.45)], [26, hzd('#5E7C90', 0.5)]]);
-  band(c, v, 4200, a => 700 + 260 * Math.sin(3 * a) + 140 * Math.sin(7 * a + 1) + 60 * Math.sin(17 * a + 2) + 30 * jagA(a, 240, 7), hzd('#6E9C96', 0.15), 600, hzd('#94BEB6', 0.15),
+  const hills = bandShape(v, 4200, a => 700 + 260 * Math.sin(3 * a) + 140 * Math.sin(7 * a + 1) + 60 * Math.sin(17 * a + 2) + 30 * jagA(a, 240, 7), hzd('#6E9C96', 0.15), 600, hzd('#94BEB6', 0.15),
     [[12, hzd('#5E8C84', 0.15)], [28, hzd('#527E76', 0.18)], [50, hzd('#48706A', 0.22)]]);
+  if (!(useGl && gpu.draw(c, [peaks, hills], null, null))) { paintBand(c, peaks); paintBand(c, hills); }
   // (the park out past the hills: the cruise, the dino park, the other lands: far.ts)
   drawParkRing(c, v, state.frame);
-  band(c, v, 3000, a => 380 + 120 * Math.sin(5 * a + 2) + 70 * Math.sin(13 * a) + 26 * Math.abs(Math.sin(70 * a)), farTint('#4A7A5E', 0.7, tod), 600, farTint('#6A9A6E', 0.7, tod),
+  const ridge = bandShape(v, 3000, a => 380 + 120 * Math.sin(5 * a + 2) + 70 * Math.sin(13 * a) + 26 * Math.abs(Math.sin(70 * a)), farTint('#4A7A5E', 0.7, tod), 600, farTint('#6A9A6E', 0.7, tod),
     [[14, farTint('#3E6C50', 0.7, tod)], [32, farTint('#346046', 0.7, tod)]]);
-  drawFloor(c, v);
-  // The jungle's canopy round the loop (its far side)
-  // (its crowns bumping along the top, lit along the crest, in darker steps going down into the shade under it)
-  band(c, v, PR + 520, a => 330 + 60 * Math.sin(9 * a) + 40 * Math.sin(23 * a + 1) + 22 * Math.abs(Math.sin(61 * a)) + 10 * Math.abs(Math.sin(149 * a + 2)), '#1B5E2E', DC - 150, '#2E7A3A',
+  // (then the floor over it; and the jungle's canopy round the loop (its far side) over that: its crowns bumping along
+  // the top, lit along the crest, in darker steps going down into the shade under it)
+  const canopy = bandShape(v, PR + 520, a => 330 + 60 * Math.sin(9 * a) + 40 * Math.sin(23 * a + 1) + 22 * Math.abs(Math.sin(61 * a)) + 10 * Math.abs(Math.sin(149 * a + 2)), '#1B5E2E', DC - 150, '#2E7A3A',
     [[12, '#185428'], [30, '#144822'], [56, '#103C1C']]);
+  if (!(useGl && gpu.draw(c, [ridge], floorEye(v), canopy))) { paintBand(c, ridge); drawFloor(c, v); paintBand(c, canopy); }
   // The trees round about, the temple and its wing, back to front (the near side of the loop is the play strip's)
   const items: OrbitItem[] = [];
   TREES.forEach((p, i) => { const z = depth(v, p.x, p.z); if (z > F + 420) items.push({ foot: [p], y0: 0, y1: 370 + ((i * 37) % 120), z, draw: () => drawTree(c, v, p.x, p.z, i) }); });

@@ -12,6 +12,7 @@
 
 import type { Enemy } from '../../m1/types';
 import { stamp } from '../../m1/game/render/stamp';
+import { idleTasks } from '../../m1/game/scenes/art/raster';
 import { heldHow } from '../held';
 import { lookOf, type Look } from '../adventure/temple/people';
 import { eyes as kitEyes, mouth as kitMouth, type EyeStyle, type MouthStyle } from '../cast/kit';
@@ -372,6 +373,35 @@ export const frameOf = (seed: number, f: number, pose: Pose, md: Mood, t = 0, wo
 /** Puts a frame down from its stamp (painted the once), in the box (x, y, w, h) about the feet. */
 export const putFrame = (c: Ctx, id: string, F: Frame, box: [number, number, number, number], paint: (g: Ctx) => void) =>
   stamp(c, `spk-${id}-${F.seed}-${F.pose}-${F.fr}-${F.md}-${F.t}-${F.blink ? 1 : 0}-${F.woman === undefined ? 'x' : F.woman ? 'f' : 'm'}-${F.v}`, box[0], box[1], box[2], box[3], paint);
+
+/**
+ * The frames a figure's knocked about in (flung, hurt and dead; dazed; a body), painted ahead in idle moments at the
+ * scale and facing it's being drawn at now. A shoulder charge through a crowd flings several at once, and each new
+ * frame was painted in the frame it was first seen (twice: live, then into its stamp): the charge's stutter.
+ */
+const primed = new Set<string>();
+let primeCtx: CanvasRenderingContext2D | null = null;
+export const primeKnockFrames = (c: Ctx, id: string, F: Frame, box: [number, number, number, number], paintOf: (F: Frame) => (g: Ctx) => void) => {
+  if (typeof document === 'undefined') return;
+  const m = c.getTransform();
+  if (m.b !== 0 || m.c !== 0) return;
+  const key = `${id}|${F.seed}|${F.woman}|${F.v}|${m.a.toFixed(3)}|${m.d.toFixed(3)}`;
+  if (primed.has(key)) return;
+  if (primed.size > 512) primed.clear();
+  primed.add(key);
+  const frames: Frame[] = [];
+  for (const md of ['hurt', 'dead'] as const) for (let fr = 0; fr < 4; fr++) frames.push({ ...F, pose: 'thrown', md, fr, t: 0, blink: false });
+  for (let fr = 0; fr < 2; fr++) frames.push({ ...F, pose: 'stun', md: 'hurt', fr, t: 0, blink: false });
+  frames.push({ ...F, pose: 'limp', md: 'dead', fr: 0, t: 0, blink: false });
+  const a = m.a, d = m.d;
+  idleTasks(frames.map(f => () => {
+    if (!primeCtx) { const cv = document.createElement('canvas'); cv.width = cv.height = 1; primeCtx = cv.getContext('2d'); }
+    const g = primeCtx;
+    if (!g) return;
+    // (asked for twice: a stamp's painted the second time it's wanted)
+    for (let k = 0; k < 2; k++) { g.setTransform(a, 0, 0, d, 0, 0); putFrame(g, id, f, box, paintOf(f)); }
+  }));
+};
 
 /** A seeded pick (the same one every time for this seed and salt). */
 export const pickOf = <T>(seed: number, salt: number, list: readonly T[]): T => list[Math.abs(Math.floor(seed / (salt + 1)) + salt * 7) % list.length];

@@ -412,6 +412,16 @@ export const drawAidStop = (c: Ctx, stocked: boolean) => {
 
 /** One tree, its foot at (x, GY), turned `a` (radians, over to the right). `down`: lying back there, dimmed. */
 export const drawTree = (c: Ctx, x: number, a: number, i: number, f: number, down: boolean) => {
+  // (standing (before the kick, every frame he's in view of them): painted once each, stamped; the toucan's two bobs
+  // two stamps. Going over or down: live)
+  if (a === 0 && !down) {
+    const bob = i === 2 ? Math.floor(f / 30) % 2 : 0;
+    stamp(c, `clTreeUp:${i}:${bob}`, x - 130, GY - TREE_H - 110, 260, TREE_H + 116, g => paintTree(g, x, 0, i, bob * 30, false));
+    return;
+  }
+  paintTree(c, x, a, i, f, down);
+};
+const paintTree = (c: Ctx, x: number, a: number, i: number, f: number, down: boolean) => {
   const d = (col: string) => (down ? dim(mix(col, INK, 0.3)) : col);
   c.save();
   // (down: lying back off the path, nothing of it below the path's edge; the bark's light turned away from its top)

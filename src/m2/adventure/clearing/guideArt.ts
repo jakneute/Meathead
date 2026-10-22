@@ -16,7 +16,7 @@
 import type { Enemy } from '../../../m1/types';
 import {
   type Pose, type Body, type Frame, INK, dk, lt, part, partTop, px, ball, dither, flat,
-  bodyOf, flailHands, legs, torso, arm, headShape, faceOn, whiskers, glasses, hairTop, hairBack, frameOf, putFrame, moodOf,
+  bodyOf, flailHands, legs, torso, arm, headShape, faceOn, whiskers, glasses, hairTop, hairBack, frameOf, putFrame, primeKnockFrames, moodOf,
   reaction, pickOf,
 } from '../../spooky/costume';
 
@@ -151,4 +151,6 @@ export const drawGuide = (c: Ctx, e: Enemy, f: number, seed: number, woman?: boo
   // (the windup's whistle: two frames, blown)
   if (pose === 'tell') F.fr = Math.floor(f / 6) % 2;
   putFrame(c, 'adv-guide', F, [-72, -130, 160, 136], g => paintGuide(g, F));
+  // (what a charge will knock it into, painted ahead)
+  if (!r) primeKnockFrames(c, 'adv-guide', F, [-72, -130, 160, 136], F2 => g => paintGuide(g, F2));
 };

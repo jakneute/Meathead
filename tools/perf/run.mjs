@@ -11,7 +11,7 @@
 //   npm run perf -- tragons-lift heli-board       just those (names, or a prefix: "fantasy-" runs every Fairy Land one)
 //   options: --build --dist=<folder> (serve that build instead) --throttle=4 --secs=25 --warm=5 --settle=6 --profile --top=25 --port=5179 --shots (a PNG per scenario, into
 //            tools/perf/out/) --headed --json=tools/perf/out/last.json --url=http://127.0.0.1:3000 (some other server
-//            with the dev starts: none started)
+//            with the dev starts: none started) --extra=nogl (more on every scenario's URL: ?nogl, the software paths)
 //
 // Numbers: "med"/"p95" are the requestAnimationFrame intervals (what the player sees: the game steps once a frame, so a
 // long frame is slow motion); "work" is the main-thread time spent inside the frame's callbacks (update + draw);
@@ -49,7 +49,7 @@ const PERF = join(ROOT, '.build', 'perf');
 const builds = () => (existsSync(PERF) ? readdirSync(PERF).filter(d => /^\d+$/.test(d) && existsSync(join(PERF, d, 'meathead2.html'))).sort() : []);
 let server = null, base = opt('url', '');
 if (!base) {
-  if (flag('build') || !builds().length) {
+  if (flag('build') || (!builds().length && !opt('dist', ''))) {
     const out = join(PERF, String(Date.now()));
     console.log(`building ${out} ...`);
     const r = spawnSync(process.execPath, ['--max-old-space-size=8192', join(ROOT, 'node_modules', 'vite', 'bin', 'vite.js'), 'build', '--mode', 'perf', '--logLevel', 'warn'], { cwd: ROOT, stdio: 'inherit', env: { ...process.env, MEATHEAD_PERF_OUT: out } });
@@ -104,7 +104,7 @@ for (const sc of list) {
   page.on('pageerror', e => errs.push(String(e.message).slice(0, 200)));
   page.on('console', m => { if (m.type() === 'error') errs.push(m.text().slice(0, 200)); });
   const cdp = await ctx.newCDPSession(page);
-  await page.goto(`${base}/meathead2.html?${sc.q}`, { waitUntil: 'load', timeout: 120000 });
+  await page.goto(`${base}/meathead2.html?${sc.q}${opt('extra', '') ? `&${opt('extra', '')}` : ''}`, { waitUntil: 'load', timeout: 120000 });
   await page.waitForFunction(() => document.querySelector('canvas') && window.__m2SetCheat, null, { timeout: 120000 });
   // (god mode and the like, through the dev server's own modules)
   await page.evaluate(() => { window.__m2SetCheat('god', true); window.__m2SetCheat('ammo', true); });

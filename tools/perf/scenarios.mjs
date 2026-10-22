@@ -58,10 +58,17 @@ export const SCENARIOS = [
   // (the clearing (the user's: "runs really slow"): the walk round it; the Artie fight)
   { name: 'jungle-clearing', q: 'adv=70', keys: hopRight() },
   { name: 'jungle-boss', q: 'adv=71', keys: hopRight() },
+  // (the same two, shoulder charging the whole way (the user's: slowdown "tends to happen when shoulder charging"))
+  { name: 'jungle-clearing-charge', q: 'adv=70', keys: chargeRight() },
+  { name: 'jungle-boss-charge', q: 'adv=71', keys: chargeRight() },
   { name: 'jungle-cart', q: 'adv=50', keys: [[0, 'down', 'ArrowRight']] },
   // Wilderness Land
   { name: 'wild-train', q: 'frontier=5', keys: hopRight() },
   { name: 'wild-logride', q: 'frontier=29', keys: hopRight() },
+  // (Tucker's fight: walk in (his entrance), then the soul sucker's shower over and over: the lions, the mauling's
+  // punch-in (the user's: "heavy slowdown during the part where tucker gets mauled"); and the slow-mo lion kill)
+  { name: 'wild-tucker-maul', q: 'frontier=61', warm: 8, keys: [[0, 'down', 'ArrowRight'], [2500, 'up', 'ArrowRight'], ...[8500, 14500, 20500, 26500].map(t => [t, 'js', 'window.__m2TuckerShower("maul")'])] },
+  { name: 'wild-tucker-kill', q: 'frontier=61', warm: 8, keys: [[0, 'down', 'ArrowRight'], [2500, 'up', 'ArrowRight'], [8500, 'js', 'window.__m2TuckerShower("kill")']] },
   // Hollywood Land (the outdoor stretches: the far off, its landmarks and sky)
   { name: 'hollywood-blvd', q: 'hollywood=0', keys: hopRight() },
   { name: 'hollywood-lot', q: 'hollywood=30', keys: hopRight() },
