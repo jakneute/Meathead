@@ -85,7 +85,7 @@ export interface M2Ui {
 }
 
 /** The stretches with a pause-menu controls card (PauseControls.tsx). */
-export type PauseCardId = 'bike' | 'heli' | 'cart' | 'tragons' | 'broom' | 'sled' | 'orbit';
+export type PauseCardId = 'bike' | 'heli' | 'cart' | 'tragons' | 'broom' | 'sled' | 'orbit' | 'logride';
 
 /** (Truelling Tragons) A hop asked for (wheel up or RB: the car above; wheel down or LB: the car below), taken by the
  *  ride next frame (it keeps its own cooldown); one at a time, the last asked. */

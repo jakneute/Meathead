@@ -627,6 +627,9 @@ const App2: React.FC = () => {
             : ui.bikeHud
             // (on the dirt bike: the PWR row's its boost; no gun, his fists)
             ? <HUD health={hud.health} maxHealth={INITIAL_PLAYER_HEALTH} power={ui.bikeBoost ?? 0} powerCells={1} currentWeapon={weapon} ammo={Infinity} maxAmmo={Infinity} weaponName="FISTS" weaponArt={<BikeFist />} skin={theme?.hud} cellWidth={M2_CELL_W} />
+            : ui.noSwitch && ui.pauseControls === 'logride'
+            // (in the log ride's log: unarmed, his fists)
+            ? <HUD health={hud.health} maxHealth={INITIAL_PLAYER_HEALTH} power={hud.power} currentWeapon={weapon} ammo={Infinity} maxAmmo={Infinity} weaponName="FISTS" weaponArt={<BikeFist />} skin={theme?.hud} cellWidth={M2_CELL_W} />
             : ui.broomHud
             // (on the broomstick: the PWR row's its boost; the weapon's the laser on the broom's end)
             ? <HUD health={hud.health} maxHealth={INITIAL_PLAYER_HEALTH} power={ui.broomBoost ?? 0} powerCells={1} currentWeapon={weapon} ammo={Infinity} maxAmmo={Infinity} weaponName="BROOM LASER" weaponArt={<BroomWand />} skin={theme?.hud} cellWidth={M2_CELL_W} />

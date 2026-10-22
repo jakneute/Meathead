@@ -135,7 +135,8 @@ export const gateControls = (ctx: FrameContext, c: Controls): FrameInput => {
   const specialPressed = specialHeld && !player.specialHeldLastFrame;
   // (secondary fire only does anything with a weapon that has one in his hands)
   const hasSecondary = !!SECONDARY[ctx.currentWeapon] || !!customWeapon(ctx.currentWeapon)?.tick;
-  const shootHeld = c.shoot;
+  // (holstered (Meathead 2's log ride): nothing in his hands to fire)
+  const shootHeld = c.shoot && !player.holstered;
   const shootPressed = shootHeld && !player.shootHeldLastFrame;
   player.jumpHeldLastFrame = c.jump;
   player.specialHeldLastFrame = specialHeld;
@@ -150,7 +151,7 @@ export const gateControls = (ctx: FrameContext, c: Controls): FrameInput => {
   const shoot = (act || grit) && shootHeld;
   return {
     shoot,
-    secondary: act && hasSecondary && !!c.secondary,
+    secondary: act && hasSecondary && !!c.secondary && !player.holstered,
     shootPressed: (act || grit) && shootPressed,
     moveLeft: canSteer && c.left,
     moveRight: canSteer && c.right,

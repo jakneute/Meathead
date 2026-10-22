@@ -76,6 +76,14 @@ export const pauseCard = (id: PauseCardId, nin: boolean, joycon: boolean): Pause
       one('DUCK', ['DPAD_DOWN'], ['@down']),
       one('SPACE BLASTER', ['X'], ['@fire']),
     ] };
+    // (frontier/logride/ride.ts: the log goes at the ride's pace; right paddles it faster, left drags his hands to
+    // slow it, A hops him up out of it (left / right in the hop: back or on along it), down ducks him down in it; no gun)
+    case 'logride': return { title: 'THE LOG RIDE', rows: [
+      one('PADDLE (FASTER)', ['DPAD_RIGHT'], ['@right']),
+      one('BRAKE (HANDS IN THE WATER)', ['DPAD_LEFT'], ['@left']),
+      one('HOP', ['A'], ['@jump']),
+      one('DUCK', ['DPAD_DOWN'], ['@down']),
+    ] };
     // (space/orbit: free flight any way, the ray gun held)
     case 'orbit': return { title: 'SPACE', rows: [
       { label: 'FLY', parts: [DIRS] },

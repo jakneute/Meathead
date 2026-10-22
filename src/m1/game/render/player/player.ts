@@ -147,7 +147,8 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   const isWalking = !p.skiing && onFeet && Math.abs(p.vel.x) > 0.4 && !isCharging && !isDucking && !isDivekicking;
   const isIdle = onFeet && !isWalking && !isCharging && !isDucking && !isUppercutting && !isDivekicking && !isHurt;
   // Victory lap after a weakness kill: weapon put away, and both hands on the job while he pisses
-  const isUnarmed = !!state.bossCorpse && !!state.victoryString;
+  // (or holstered for a stretch: the log ride, Meathead 2's: empty fists)
+  const isUnarmed = (!!state.bossCorpse && !!state.victoryString) || !!p.holstered;
   const pee = peeProgress(p.peeTimer);
   const isRelieving = isUnarmed && pee.busy;
   // Grim determination after a charge that didn't kill (like the Doom guy's rampage face)

@@ -24,6 +24,7 @@ import { CANVAS_WIDTH } from '../../../m1/constants';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { teleport, layOwn, ledge, solid, endWalls, runExits, saidOver, type FrontierSection, type Exit } from '../section';
 import { DOORS, GY } from '../geometry';
+import { setUi } from '../../store';
 import { rideOf } from './state';
 import {
   x0, x1, X, waterY, PLATFORM_END, LOAD_X, RIDE_CPS, CLEARING, CHIPPER, CREW, indoorsAt, inSewer,
@@ -92,6 +93,8 @@ export const logride: FrontierSection = {
   },
   update: (ctx, controls) => {
     const { state } = ctx, p = state.player, r = rideOf(state), L = r.log;
+    // (in a log he's unarmed and can't switch (ride.ts): the pause menu's the ride's controls; out of it, his own again)
+    setUi(p.holstered && p.health > 0 ? { noSwitch: true, pauseControls: 'logride' } : { noSwitch: false, pauseControls: null });
     // (back at one of the ride's checkpoints: straight into a log there)
     if (fresh.get(state.stage as object)) {
       fresh.delete(state.stage as object);

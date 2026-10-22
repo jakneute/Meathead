@@ -3,8 +3,9 @@
 // him (not on the chain, not down a drop); jump hops him up out of the log and back down into it, and left or right in
 // the hop carries him a little back or on along it (the log always follows, catching up under him: the user's, to get
 // out of the way of things); down ducks him right down in it. He faces the way he's going. He sits in it (Player.logSeat:
-// legs down in the log, a hand on its rim, the gun out). He can shoot (no specials: the charge, the slide and the rest
-// need ground under them). The camera rides ahead of him. Off the foot of every drop the water goes up in a big wave
+// legs down in the log, a hand on its rim). He's unarmed in it (Player.holstered, the user's: no firing, no weapon in
+// his hand, no switching; the pause menu's the ride's controls card) and no specials (the charge, the slide and the
+// rest need ground under them); his weapon's back as he's out of the log, however that goes. The camera rides ahead of him. Off the foot of every drop the water goes up in a big wave
 // (bigSplash: the big drop, into the sewer, into the river, the waterfall).
 //
 // Back at a checkpoint (31-38) he's put straight back in a log there; at the station (30) he walks to it.
@@ -61,7 +62,7 @@ export const board = (state: GameState, rx: number, mode: 'ride' | 'scene' = 'ri
   const r = rideOf(state), p = state.player, L = r.log;
   L.mode = mode; L.rx = Math.max(START, Math.min(END - 400, rx)); L.v = mode === 'scene' ? 0 : speedAt(L.rx)[1]; L.push = 1;
   L.up = 0; L.vy = 0; L.off = 0; L.hopV = 0; L.float = 0; L.bob = 0; L.bobV = 0; L.t = 0; L.camY = waterY(L.rx) - 420;
-  p.carried = true; p.noSpecials = true; p.logSeat = true; p.vel.x = 0; p.vel.y = 0; p.facing = 1;
+  p.carried = true; p.noSpecials = true; p.logSeat = true; p.holstered = true; p.vel.x = 0; p.vel.y = 0; p.facing = 1;
   place(state, r);
   state.camera.x = Math.max(x0, Math.min(x1 - CANVAS_WIDTH, X(L.rx) - 300));
   state.camera.y = L.camY;
@@ -73,7 +74,8 @@ export const board = (state: GameState, rx: number, mode: 'ride' | 'scene' = 'ri
 /** Out of the log (on his feet: the clearing, or dead). */
 export const unboard = (state: GameState) => {
   const p = state.player, r = rideOf(state);
-  p.carried = false; p.noSpecials = false; p.logSeat = false; p.spriteRot = 0;
+  p.carried = false; p.noSpecials = false; p.logSeat = false; p.holstered = false; p.spriteRot = 0;
+  setUi({ noSwitch: false, pauseControls: null });
   state.cameraOverride = null;
   if (r.log.mode !== 'done') r.log.mode = 'off';
 };
@@ -216,9 +218,9 @@ export const updateRide = (ctx: FrameContext, controls: Controls): Controls => {
   // (coming up on the woodchipper: eased on ahead, so the chipper, the clearing past it and the JUMP! are all in view)
   const lead = L.rx > 10450 ? Math.min(150, (L.rx - 10450) * 0.6) : 0;
   state.cameraOverride = { x: Math.max(x0, Math.min(x1 - CANVAS_WIDTH, X(L.rx) - 290 + lead)), y: L.camY };
-  setUi({ noSwitch: false });
-  // (his left and right are the log's; no jumping off his own legs, no specials; down's his duck; fire's his)
-  return { ...controls, left: false, right: false, jump: false, special: false, charge: false };
+  setUi({ noSwitch: true, pauseControls: 'logride' });
+  // (his left and right are the log's; no jumping off his own legs, no specials; down's his duck; nothing to fire)
+  return { ...controls, left: false, right: false, jump: false, special: false, charge: false, shoot: false, secondary: false };
 };
 const jumpWas = new WeakMap<GameState, boolean>();
 
