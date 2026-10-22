@@ -24,8 +24,8 @@ import { drawTableau, TABLEAUS, tinySled, meteor, OP_SEED, planet, CARPET } from
 import { drawAtomPerson } from '../atom/people';
 import { cyl, sphere, neonBar, lamp, truss, rivets, hazard, screenGlass } from '../atom/snes';
 import {
-  R, RUNS, GAPS, OBS, CUES, CUE_XS, TABLEAU_XS, LIFT_X0, LIFT_X1, BREAKER_X, STATION_X0, STATION_X1, FINS_X0, FINS_X1, BRAKE_X,
-  CREST_X, FRONT_AT, STATION_ROOF, WORKERS, STATION_FOLK, trackY, railLine, type Ob, type Verb,
+  R, RUNS, GAPS, OBS, CUES, CUE_XS, TABLEAU_XS, LIFT_X0, LIFT_X1, BREAKER_X, STATION_X0, STATION_X1, LOAD_X0, FINS_X0, FINS_X1,
+  BRAKE_X, BRAKE_BOX_X, GANTRY_X, FRONT_AT, STATION_ROOF, WORKERS, STATION_FOLK, trackY, railLine, type Ob, type Verb,
   slopeAt,
 } from './layout';
 import { CLEAR, BEAM_CLEAR, HURDLE, halfW, trayReach, rockHeight, ROCK_R, obLive, cueLive, type Tricks } from './tricks';
@@ -73,9 +73,9 @@ const PA_POLES = [700, 1500, 2150, 3350, 3950, 4650, 5650, 6050].map(x => R + x)
  *  booth); the crest gantry's legs; the breaker doorway's and the brake box alcove's jambs, on down to the floor. */
 const drawSupports = (c: Ctx, cam: number, lit: boolean) => {
   const on = (a: number, b: number) => b > cam - 100 && a < cam + CANVAS_WIDTH + 100;
-  if (on(CREST_X - 170, CREST_X + 170)) {
-    const gy = (trackY(CREST_X) ?? GY) - 250;
-    for (const lx of [CREST_X - 154, CREST_X + 146]) { truss(c, lx, gy, 14, FOOT_Y - 12 - gy, '#3F3F46', true); footing(c, lx + 7, 34, lit); }
+  if (on(GANTRY_X - 170, GANTRY_X + 170)) {
+    const gy = (trackY(GANTRY_X) ?? GY) - 250;
+    for (const lx of [GANTRY_X - 154, GANTRY_X + 146]) { truss(c, lx, gy, 14, FOOT_Y - 12 - gy, '#3F3F46', true); footing(c, lx + 7, 34, lit); }
   }
   if (on(BREAKER_X - 120, BREAKER_X + 120)) {
     const rail = trackY(BREAKER_X) ?? GY;
@@ -107,8 +107,6 @@ export interface RideLook {
   k: number; tricks: Tricks; breakerT: number; brakeT: number; boxT: number; sledX: number; sledY: number; speed: number;
   frontGone: boolean; flat: Set<number>; crashing: boolean;
 }
-/** The brake box, beside the brake run (he blasts it). */
-export const BRAKE_BOX_X = R + 14860;
 const EMPTY_SLED: SledLook = { body: '#CBD5E1', stripe: '#64748B', num: 0 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -662,10 +660,10 @@ const parkedSleds = (c: Ctx, x: number, f: number) => {
   c.fillStyle = 'rgba(15, 23, 42, 0.35)'; c.fillRect(x - 110, y - 70, 380, 76);
 };
 
-/** The track's last leg, seen from the start: up behind, the brake run along its top, the drop down into the station
- *  (STATION AHEAD, BRAKE ZONE). Dimmed: it's behind, nothing to stand on. A sled comes round now and then: it stops in
- *  the brakes, sparks, and eases down into the station. */
-const RETURN_TOP = GY - 290, RETURN_X0 = R + 280, RETURN_X1 = R + 980, RETURN_FOOT = R - 20;
+/** The track's last leg, seen from the start: up behind, along its top (STATION AHEAD), the drop down, the brake zone
+ *  at the bottom of it, into the station. Dimmed: it's behind, nothing to stand on. A sled comes round now and then:
+ *  along the top, down the drop, grabbed by the brakes at the bottom (sparks), a crawl on into the station. */
+const RETURN_TOP = GY - 290, RETURN_X0 = R + 280, RETURN_X1 = R + 980, RETURN_FOOT = R - 20, RETURN_FINS = 130;
 const drawReturnLeg = (c: Ctx, f: number) => {
   const ay = RETURN_TOP, bx = RETURN_X0, ax = RETURN_X1, foot = RETURN_FOOT;
   const leg = (x: number) => (x >= bx ? ay : ay + ((bx - x) / (bx - foot)) * (GY - 30 - ay));
@@ -676,33 +674,77 @@ const drawReturnLeg = (c: Ctx, f: number) => {
   c.strokeStyle = '#94A3B8'; c.lineWidth = 1; c.beginPath(); c.moveTo(ax, ay - 2); c.lineTo(bx, ay - 2); c.lineTo(foot, GY - 32); c.stroke();
   // (the lamps down it: amber, the brake zone's)
   for (let x = foot + 80; x < bx; x += 70) lamp(c, x, leg(x) - 12, 3, '#F59E0B', (f >> 4) % 2 === 1, 2);
-  // the brake fins along the top, the brake box beside them
-  for (let x = bx + 40; x < bx + 300; x += 26) { box(c, x - 2, ay - 12, 5, 12, INK); box(c, x - 1, ay - 11, 3, 11, '#64748B'); }
-  slab(c, bx + 320, ay - 70, 34, 60, '#7F1D1D');
-  lamp(c, bx + 337, ay - 56, 4, '#22C55E', (f >> 4) % 2 === 1, 2);
-  // the signs: STATION AHEAD on a gantry over the crest, BRAKE ZONE by the fins
+  // the brake fins along the bottom of the drop, on into the station
+  for (let x = foot + 24; x < foot + RETURN_FINS; x += 22) { const ly = leg(x); box(c, x - 2, ly - 12, 5, 12, INK); box(c, x - 1, ly - 11, 3, 11, '#64748B'); }
+  // the signs: STATION AHEAD over the top, BRAKE ZONE by the fins
   postedPlate(c, 'ret-ahead', bx + 430, ay - 76, ay, 'STATION AHEAD', 'enamel', '#1E3A8A', '#BAE6FD', 4);
-  postedPlate(c, 'ret-brake', bx + 175, ay - 52, ay, 'BRAKE ZONE 3 MPH', 'small', '#A16207', '#FEF3C7', 4);
-  // a sled, round every so often (going the other way: it's the far side of the loop): along the top, a crawl
-  // through the brakes (sparks), and an easy roll down into the station
+  const sx = foot + 190, sy = leg(sx);
+  postedPlate(c, 'ret-brake', sx, sy - 52, sy, 'BRAKE ZONE 3 MPH', 'small', '#A16207', '#FEF3C7', 4);
+  // a sled, round every so often (going the other way: it's the far side of the loop): along the top, down the drop,
+  // and a crawl through the brakes at the bottom (sparks), on into the station
   const T = f % 600;
   let x = -1, y = ay;
-  if (T < 120) x = ax - (T / 120) * (ax - bx - 300);
-  else if (T < 220) x = bx + 300 - ((T - 120) / 100) * 300;
-  else if (T < 360) { x = bx - ((T - 220) / 140) * (bx - foot); y = leg(x); }
+  if (T < 120) x = ax - (T / 120) * (ax - bx);
+  else if (T < 190) { const u = (T - 120) / 70; x = bx - u * u * (bx - foot - RETURN_FINS); y = leg(x); }
+  else if (T < 330) { x = foot + RETURN_FINS - ((T - 190) / 140) * RETURN_FINS; y = leg(x); }
   if (x > foot) {
     const rot = x < bx ? Math.atan2(GY - 30 - ay, bx - foot) : 0;
     c.save(); c.translate(x, y); c.scale(-0.6, 0.6); drawSled(c, 0, 0, f, FRONT_SLED, true, rot, false); drawSled(c, 0, 0, f, FRONT_SLED, false, rot, false); c.restore();
-    if (T >= 120 && T < 220 && f % 2 === 0) { box(c, x - 20 + (f % 7) * 5, y - 6, 3, 3, '#FDE047'); box(c, x + (f % 5) * 6, y - 10, 2, 2, '#FFFFFF'); }
+    if (T >= 190 && T < 330 && f % 2 === 0) { box(c, x - 20 + (f % 7) * 5, y - 6, 3, 3, '#FDE047'); box(c, x + (f % 5) * 6, y - 10, 2, 2, '#FFFFFF'); }
   }
   // (knocked back: it's behind, in the dark)
   c.fillStyle = 'rgba(3, 2, 10, 0.15)'; c.fillRect(foot, ay - 100, ax - foot + 20, GY - ay + 100);
 };
 
-/** The brake run (ridden, at the end): the fins along the rail, the attendant's booth, the brake box; the gantry over
- *  the crest (STATION AHEAD, BRAKE ZONE: BRAKE FAILURE, once he's done the box); the red lamps down the drop. */
+/** The station's UNLOAD end (STATION_X0..LOAD_X0), where the brake run brings the sleds in: UNLOAD hung over it, the
+ *  platform's yellow edge, its row of exit gates (shut till a sled's stopped), the unload attendant behind them, PLEASE
+ *  REMAIN SEATED on the wall, the EXIT door; the drive tires in the rail (they push the sleds along the platform: the
+ *  brake box blasted, they spin up, flat out, and kick him off). Read at the crawl: he's plainly back where he started. */
+const UNLOAD_SEED = 6733;
+const drawUnload = (c: Ctx, look: RideLook, f: number) => {
+  const y = GY, failed = look.boxT > 0, coming = look.crashing && failed;
+  const alcove = (x: number, pad: number) => x > BRAKE_BOX_X - 50 - pad && x < BRAKE_BOX_X + 50 + pad;
+  // UNLOAD, hung off the roof on cables (above the TVs)
+  const ux = STATION_X0 + 130, [, u0] = plateBoxAt('UNLOAD', 'chrome2', ux, STATION_ROOF + 44, 6);
+  cables(c, [ux - 34, ux + 30], STATION_ROOF + 8, u0 + 2, '#A1A1AA');
+  plate(c, 'unload', ux, STATION_ROOF + 44, 'UNLOAD', 'chrome2', '#1E3A8A', '#BAE6FD', 6);
+  // the EXIT door in the back wall (its lit sign over it, an arrow on)
+  const ex = LOAD_X0 - 90;
+  box(c, ex - 31, y - 172, 62, 112, INK); bandedGradient(c, ex - 29, y - 170, 58, 110, ['#0F172A', '#020617'], 3);
+  box(c, ex - 29, y - 170, 58, 2, '#475569');
+  plate(c, 'unload-exit', ex, y - 190, 'EXIT >', 'neon', '#450A0A', '#F87171', 4);
+  // PLEASE REMAIN SEATED, on the wall between the brake box's alcove and the door
+  wallPlate(c, 'unload-seated', BRAKE_BOX_X + 160, y - 150, 'PLEASE REMAIN\nSEATED UNTIL\nTHE SLED STOPS', 'small', '#FEF3C7', '#7F1D1D', 5);
+  // the platform behind the track: its deck, the yellow edge along the rail
+  box(c, STATION_X0, y - 22, LOAD_X0 - STATION_X0, 22, INK); box(c, STATION_X0, y - 21, LOAD_X0 - STATION_X0, 21, '#334155'); box(c, STATION_X0, y - 21, LOAD_X0 - STATION_X0, 2, '#64748B');
+  box(c, STATION_X0, y - 4, LOAD_X0 - STATION_X0, 4, '#FACC15'); box(c, STATION_X0, y - 4, LOAD_X0 - STATION_X0, 1, '#FEF9C3');
+  for (let x = STATION_X0 + 12; x < LOAD_X0; x += 24) box(c, x, y - 3, 12, 2, '#1C1917');
+  // the unload attendant, behind the gates (wide-eyed once it's coming on with no brakes)
+  c.save(); c.translate(STATION_X0 + 230, y - 22); drawAtomPerson(c, 'op', { seed: UNLOAD_SEED, f, pose: coming ? 'after' : 'stand', md: 'ok' }); c.restore();
+  // the exit gates along the platform's edge, shut (posts, a chrome panel, a red top rail)
+  for (let gx = STATION_X0 + 40; gx < LOAD_X0 - 30; gx += 84) {
+    if (alcove(gx, 20) || alcove(gx + 60, 20)) continue;
+    for (const px of [gx, gx + 60]) { box(c, px - 1, y - 64, 6, 44, INK); box(c, px, y - 63, 4, 42, '#94A3B8'); box(c, px, y - 63, 1, 42, '#E2E8F0'); }
+    box(c, gx + 4, y - 54, 56, 26, INK); box(c, gx + 5, y - 53, 54, 24, '#CBD5E1'); box(c, gx + 5, y - 53, 54, 2, '#F8FAFC');
+    box(c, gx + 4, y - 64, 56, 5, INK); box(c, gx + 5, y - 63, 54, 3, '#DC2626');
+    lamp(c, gx + 32, y - 41, 3, failed ? '#EF4444' : '#22C55E', failed ? (f >> 3) % 2 === 0 : true, 1);
+  }
+  // the drive tires in the rail (past the fins): still, the brakes on; spun up flat out, the box gone
+  for (let x = FINS_X1 + 30; x < LOAD_X0 - 10; x += 44) {
+    const spin = failed ? (f + x) % 4 : 0;
+    box(c, x - 7, y - 7, 14, 7, INK); box(c, x - 6, y - 6, 12, 6, '#27272A');
+    box(c, x - 5 + spin * 3, y - 6, 2, 5, failed ? '#71717A' : '#52525B');
+    if (failed && f % 3 === 0) box(c, x - 2 + spin * 2, y - 10 - spin * 2, 3, 3, 'rgba(212, 212, 216, 0.6)');
+  }
+};
+
+/** The brake run (ridden, at the end, on the flat at the foot of the last drop): the gantry over its start (STATION
+ *  AHEAD, BRAKE ZONE: BRAKE FAILURE, once he's done the box); the red lamps along it; the attendant's booth by the
+ *  station's mouth; the fins along the rail, on into the station; the station's UNLOAD end (drawUnload); the brake box
+ *  in its alcove there. Drawn over the station's shell. */
 const drawBrakeRun = (c: Ctx, look: RideLook, f: number) => {
   const rail = trackY(BRAKE_X) ?? GY, failed = look.boxT > 0, flash = (f >> 3) % 2 === 0;
+  drawUnload(c, look, f);
   // the attendant's booth, behind the track: teal, its window, its little roof
   slab(c, BRAKE_X - 120, rail - 130, 96, 130, '#0F766E');
   box(c, BRAKE_X - 126, rail - 138, 108, 10, INK); box(c, BRAKE_X - 125, rail - 137, 106, 8, '#E5E7EB'); box(c, BRAKE_X - 125, rail - 137, 106, 2, '#FFFFFF');
@@ -730,53 +772,55 @@ const drawBrakeRun = (c: Ctx, look: RideLook, f: number) => {
     for (let j = 0; j < 4; j++) box(c, bx - 16 + j * 9, by - 58 + (j % 2) * 6, 3, 30, ['#EF4444', '#FDE047', '#3B82F6', '#22C55E'][j]);
     if (f % 6 < 3) { box(c, bx - 6 + hash(f) * 16, by - 70 + hash(f * 3) * 30, 4, 4, '#FDE047'); box(c, bx + hash(f * 7) * 10, by - 60, 3, 3, '#FFFFFF'); }
   }
-  // the gantry over the crest
-  const gy = (trackY(CREST_X) ?? rail) - 250;
+  // the gantry over the start of it
+  const gy = (trackY(GANTRY_X) ?? rail) - 250;
   // (its legs go down to the floor: drawn behind the track, drawSupports; the beam across their tops, the signs hung
   // off it on cables, the second off the first)
-  truss(c, CREST_X - 156, gy - 14, 318, 16, '#52525B');
-  const [, a0, , a1] = plateBoxAt('STATION AHEAD', 'chrome2', CREST_X, gy + 24, 6);
-  cables(c, [CREST_X - 80, CREST_X + 76], gy + 2, a0 + 2, '#A1A1AA');
-  plate(c, 'gantry-ahead', CREST_X, gy + 24, 'STATION AHEAD', 'chrome2', '#1E3A8A', '#BAE6FD', 6);
-  const sub = failed ? 'BRAKE FAILURE' : 'BRAKE ZONE 3 MPH', [, b0] = plateBoxAt(sub, 'enamel', CREST_X, a1 + 22, 6);
-  cables(c, [CREST_X - 50, CREST_X + 46], a1 - 2, b0 + 2, '#A1A1AA');
-  if (!failed) plate(c, 'gantry-zone', CREST_X, a1 + 22, sub, 'enamel', '#A16207', '#FEF3C7', 6);
-  else plate(c, `gantry-fail-${flash ? 1 : 0}`, CREST_X, a1 + 22, sub, 'enamel', flash ? '#DC2626' : '#7F1D1D', '#FFFFFF', 6);
-  // the red lamps down the drop (lit, the brakes gone)
-  for (let x = CREST_X + 40; x < STATION_X0; x += 70) {
+  truss(c, GANTRY_X - 156, gy - 14, 318, 16, '#52525B');
+  const [, a0, , a1] = plateBoxAt('STATION AHEAD', 'chrome2', GANTRY_X, gy + 24, 6);
+  cables(c, [GANTRY_X - 80, GANTRY_X + 76], gy + 2, a0 + 2, '#A1A1AA');
+  plate(c, 'gantry-ahead', GANTRY_X, gy + 24, 'STATION AHEAD', 'chrome2', '#1E3A8A', '#BAE6FD', 6);
+  const sub = failed ? 'BRAKE FAILURE' : 'BRAKE ZONE 3 MPH', [, b0] = plateBoxAt(sub, 'enamel', GANTRY_X, a1 + 22, 6);
+  cables(c, [GANTRY_X - 50, GANTRY_X + 46], a1 - 2, b0 + 2, '#A1A1AA');
+  if (!failed) plate(c, 'gantry-zone', GANTRY_X, a1 + 22, sub, 'enamel', '#A16207', '#FEF3C7', 6);
+  else plate(c, `gantry-fail-${flash ? 1 : 0}`, GANTRY_X, a1 + 22, sub, 'enamel', flash ? '#DC2626' : '#7F1D1D', '#FFFFFF', 6);
+  // the red lamps along it, up to the station's mouth (lit, the brakes gone; none in front of the booth)
+  for (let x = GANTRY_X + 40; x < STATION_X0 - 60; x += 70) {
+    if (x > BRAKE_X - 130 && x < BRAKE_X + 6) continue;
     const y = trackY(x) ?? GY;
     box(c, x - 1, y - 60, 3, 54, '#27272A');
     lamp(c, x, y - 64, 5, '#EF4444', failed && ((f >> 2) + x / 70) % 2 < 1, 3);
   }
 };
 
-/** Back in the station (the same as the one he left from): the line, the platform, the console, the empty sleds. */
+/** Back in the station (the same as the one he left from): its shell, from the unload end on; at the load end, the
+ *  line, the platform, the console, the empty sleds. */
 const drawStation = (c: Ctx, state: GameState, look: RideLook) => {
   const f = state.frame, cam = state.camera.x;
   if (cam + CANVAS_WIDTH < STATION_X0 - 200) return;
   const y = GY;
-  stationShell(c, STATION_X0 - 60, STATION_X1 + 200, f, look.frontGone, [STATION_X0 + 196, STATION_X0 + 274]);
+  stationShell(c, STATION_X0 - 60, STATION_X1 + 200, f, look.frontGone, [LOAD_X0 + 196, LOAD_X0 + 274]);
   if (look.frontGone) for (let j = 0; j < 8; j++) { box(c, FRONT_AT - 121 + j * 30, STATION_ROOF - 21 + (j % 3) * 8, 28, 12, INK); box(c, FRONT_AT - 120 + j * 30, STATION_ROOF - 20 + (j % 3) * 8, 26, 10, '#1E3A8A'); box(c, FRONT_AT - 120 + j * 30, STATION_ROOF - 20 + (j % 3) * 8, 26, 2, '#60A5FA'); }
-  stamp(c, 'ride-station-sign', STATION_X0 + 116, STATION_ROOF + 26, 428, 38, g => {
-    box(g, STATION_X0 + 120, STATION_ROOF + 30, 420, 30, INK); box(g, STATION_X0 + 122, STATION_ROOF + 32, 416, 26, '#9CA3AF'); box(g, STATION_X0 + 122, STATION_ROOF + 32, 416, 1, '#F3F4F6');
-    bandedGradient(g, STATION_X0 + 125, STATION_ROOF + 35, 410, 20, ['#0F172A', '#020617'], 3);
-    lettering(g, 'VOYAGE TO 2010 - PRESENTED BY PROGRESSCO', STATION_X0 + 330, STATION_ROOF + 45, 'neon', '#67E8F9', '#0F172A', true);
+  stamp(c, 'ride-station-sign', LOAD_X0 + 116, STATION_ROOF + 26, 428, 38, g => {
+    box(g, LOAD_X0 + 120, STATION_ROOF + 30, 420, 30, INK); box(g, LOAD_X0 + 122, STATION_ROOF + 32, 416, 26, '#9CA3AF'); box(g, LOAD_X0 + 122, STATION_ROOF + 32, 416, 1, '#F3F4F6');
+    bandedGradient(g, LOAD_X0 + 125, STATION_ROOF + 35, 410, 20, ['#0F172A', '#020617'], 3);
+    lettering(g, 'VOYAGE TO 2010 - PRESENTED BY PROGRESSCO', LOAD_X0 + 330, STATION_ROOF + 45, 'neon', '#67E8F9', '#0F172A', true);
   });
-  parkedSleds(c, STATION_X0 + 300, f);
+  parkedSleds(c, LOAD_X0 + 300, f);
   // (the line, behind its rail: the same people, still waiting; wide-eyed once it's coming, the nearest splattered)
   const coming = look.crashing && look.boxT > 0;
   for (let j = 0; j < 16; j++) {
-    const qx = STATION_X0 + 20 + j * 34, seed = 4001 + j * 337;
+    const qx = LOAD_X0 + 20 + j * 34, seed = 4001 + j * 337;
     c.save(); c.translate(qx, y - 20 - (j % 2) * 14); drawAtomPerson(c, 'guest', { seed, f, pose: coming ? 'after' : 'stand', md: 'ok' }); c.restore();
   }
-  box(c, STATION_X0, y - 65, 560, 6, INK); box(c, STATION_X0, y - 64, 560, 4, '#94A3B8'); box(c, STATION_X0, y - 64, 560, 1, '#F8FAFC');
-  box(c, STATION_X0 + 560, y - 4, STATION_X1 - STATION_X0 - 560, 4, '#FACC15'); box(c, STATION_X0 + 560, y - 4, STATION_X1 - STATION_X0 - 560, 1, '#FEF9C3');
+  box(c, LOAD_X0, y - 65, 560, 6, INK); box(c, LOAD_X0, y - 64, 560, 4, '#94A3B8'); box(c, LOAD_X0, y - 64, 560, 1, '#F8FAFC');
+  box(c, LOAD_X0 + 560, y - 4, STATION_X1 - LOAD_X0 - 560, 4, '#FACC15'); box(c, LOAD_X0 + 560, y - 4, STATION_X1 - LOAD_X0 - 560, 1, '#FEF9C3');
   // (what's left on the platform of whoever was on the track)
   look.flat.forEach(i => { const x = STATION_FOLK[i].x + 10; box(c, x, y - 3, 90, 4, '#7F1D1D'); box(c, x + 20, y - 4, 40, 3, '#B91C1C'); box(c, x + 10, y - 60 - (i % 3) * 10, 6, 14, '#991B1B'); });
   // (the operator at her console)
-  c.save(); c.translate(STATION_X0 + 600, y); drawAtomPerson(c, 'op', { seed: OP_SEED, f, pose: look.frontGone || coming ? 'after' : 'stand', md: 'ok' }); c.restore();
-  slab(c, STATION_X0 + 630, y - 70, 60, 70, '#0F766E'); box(c, STATION_X0 + 634, y - 66, 52, 4, '#5EEAD4');
-  c.save(); c.beginPath(); c.rect(STATION_X0 + 648, y - 90, 24, 18); c.clip(); sphere(c, STATION_X0 + 660, y - 72, 8, '#22C55E'); c.restore();
+  c.save(); c.translate(LOAD_X0 + 600, y); drawAtomPerson(c, 'op', { seed: OP_SEED, f, pose: look.frontGone || coming ? 'after' : 'stand', md: 'ok' }); c.restore();
+  slab(c, LOAD_X0 + 630, y - 70, 60, 70, '#0F766E'); box(c, LOAD_X0 + 634, y - 66, 52, 4, '#5EEAD4');
+  c.save(); c.beginPath(); c.rect(LOAD_X0 + 648, y - 90, 24, 18); c.clip(); sphere(c, LOAD_X0 + 660, y - 72, 8, '#22C55E'); c.restore();
 };
 
 /** The start: the station he's just left (behind him), the empty sleds; the track's last leg coming down into it. */
@@ -869,8 +913,8 @@ export const drawRideBack = (c: Ctx, state: GameState, look: RideLook) => {
       if (f % 8 < 3) box(c, bx - 10 + hash(f) * 30, rail - 165 + hash(f * 3) * 20, 4, 4, '#FDE047');
     }
   }
-  if (on(BRAKE_X - 300, STATION_X0 + 100)) drawBrakeRun(c, look, f);
   drawStation(c, state, look);
+  if (on(GANTRY_X - 200, LOAD_X0)) drawBrakeRun(c, look, f);
 };
 
 /** In front: the laser bands, the tripwires' beams. */
@@ -942,12 +986,12 @@ export const rideLighting = (state: GameState, look: RideLook): SceneLight => {
     if (near(BRAKE_BOX_X)) lights.push({ x: BRAKE_BOX_X, y: (trackY(BRAKE_BOX_X) ?? GY) - 120, r: 110, a: 0.8, color: 'rgba(254, 243, 199, 0.18)' });
     if (near(R)) { for (let x = R - 600; x < R + 100; x += 200) lights.push({ x, y: GY - 300, r: 420, a: 0.85, cone: 200, color: 'rgba(224, 242, 254, 0.08)' }); lights.push({ x: R + 40, y: GY - 150, r: 150, a: 0.7, color: 'rgba(240, 171, 252, 0.14)' }); }
     // (the track's last leg, seen from the start: its signs and its brake zone lit, so it reads)
-    if (near(RETURN_X0)) for (const [x, up, r] of [[RETURN_X0 + 430, 70, 150], [RETURN_X0 + 175, 50, 150], [RETURN_X0 + 337, 40, 90], [RETURN_X0 - 120, 0, 160]] as const) lights.push({ x, y: RETURN_TOP - up + (x < RETURN_X0 ? 150 : 0), r, a: 0.9, color: 'rgba(253, 230, 138, 0.1)' });
+    if (near(RETURN_X0)) for (const [x, up, r] of [[RETURN_X0 + 430, 70, 150], [RETURN_FOOT + 190, 107, 150], [RETURN_FOOT + 80, -30, 120], [RETURN_X0 - 120, 0, 160]] as const) lights.push({ x, y: RETURN_TOP - up + (x < RETURN_X0 ? 150 : 0), r, a: 0.9, color: 'rgba(253, 230, 138, 0.1)' });
   }
   spurLights(cam, look.k, lights);
-  if (look.boxT > 0) for (let x = CREST_X + 40; x < STATION_X0; x += 70) if (near(x) && ((f >> 2) + x / 70) % 2 < 1) lights.push({ x, y: (trackY(x) ?? GY) - 64, r: 110, a: 0.8, color: 'rgba(239, 68, 68, 0.2)' });
+  if (look.boxT > 0) for (let x = GANTRY_X + 40; x < STATION_X0 - 60; x += 70) if (!(x > BRAKE_X - 130 && x < BRAKE_X + 6)) if (near(x) && ((f >> 2) + x / 70) % 2 < 1) lights.push({ x, y: (trackY(x) ?? GY) - 64, r: 110, a: 0.8, color: 'rgba(239, 68, 68, 0.2)' });
   for (const b of look.tricks.bolts) lights.push({ x: b.x, y: b.y, r: 90, a: 0.8, color: 'rgba(74, 222, 128, 0.25)' });
-  if (near(STATION_X0) || near(STATION_X1)) for (let x = STATION_X0; x < STATION_X1 + 200; x += 200) { lights.push({ x, y: GY - 300, r: 480, a: 0.9, cone: 200, color: 'rgba(224, 242, 254, 0.08)' }); lights.push({ x, y: STATION_ROOF + 12, r: 130, a: 0.6, color: 'rgba(103, 232, 249, 0.1)' }); }
+  if (STATION_X1 + 200 > cam - 300 && STATION_X0 < cam + CANVAS_WIDTH + 300) for (let x = STATION_X0; x < STATION_X1 + 200; x += 200) if (near(x)) { lights.push({ x, y: GY - 300, r: 480, a: 0.9, cone: 200, color: 'rgba(224, 242, 254, 0.08)' }); lights.push({ x, y: STATION_ROOF + 12, r: 130, a: 0.6, color: 'rgba(103, 232, 249, 0.1)' }); }
   // (the sled's headlamp, and enough round him that he's never lost)
   lights.push({ x: look.sledX, y: look.sledY - 50, r: 180, a: 0.6 });
   lights.push({ x: look.sledX + 180, y: look.sledY - 40, r: 160, a: 0.55, color: 'rgba(224, 242, 254, 0.08)' });

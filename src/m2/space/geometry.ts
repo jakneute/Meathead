@@ -28,7 +28,7 @@ export const SECTIONS = {
   /** Inside the giant atom: the backstage of the dark ride, stagehands, space obstacles; cutting the line. */
   atom: { x0: SPX + 13000, x1: SPX + 20500 },
   /** The hijacked train ride: the 1990 PA, the obstacles, the power breaker reveal, the brake crash, the launch. */
-  ride: { x0: SPX + 23500, x1: SPX + 39500 },
+  ride: { x0: SPX + 23500, x1: SPX + 40100 },
   /** Back out on the main drag: outdoor platforming up to Space Needle 2. */
   drag: { x0: SPX + 40500, x1: SPX + 48000 },
   /** Space Needle 2: up into actual space; the slow-spinning cylinder, the suit, the window. */

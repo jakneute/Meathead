@@ -5,10 +5,12 @@
 // wrong, and teaches the blaster ("USE YOUR ONBOARD SPACE BLASTER") before the first cardboard Martian. ACT 1, the dark
 // ride, slow. The chain lift up into the dome. ACT 2, space, fast. Then the MAIN BREAKER: the sled smashes it, and the
 // work lights bang on bank by bank (the sled crawls through it: it's all in view). It's a warehouse. ACT 3, the
-// warehouse version, the show dead and the PA still going. THE BRAKE RUN (a scene from here): the brake fins grab the
-// sled, it grinds to a crawl, he blasts the brake box. The fins rip off, the siren, BRAKE FAILURE, and the sled goes
-// over the crest and down the last drop impossibly fast, into the load station he left from (the track's a circuit:
-// the drop's seen from the start), flattening everybody on the track, into the back of the sled in front, loading: up
+// warehouse version, the show dead and the PA still going, down the last drop to the floor. THE BRAKE RUN (a scene from
+// here): the brake fins grab the sled, it grinds to a crawl, and creeps on in under STATION AHEAD, past the attendant's
+// booth, into the station he left from (the track's a circuit: the drop's seen from the start), its unload end, plainly
+// back. He blasts the brake box. The fins rip off, the siren, BRAKE FAILURE; it creeps on, the sled in front screaming,
+// then the drive tires kick it: a sudden lurch, impossibly fast, through the load end, flattening everybody on the
+// track, into the back of the sled in front, loading: up
 // through the station's roof, out through the atom's shell (the outside shot: launch.ts), over the main drag. They're a
 // smear. He's fine: on to the drag (DOORS.drag.start).
 //
@@ -16,7 +18,7 @@
 // on it's gone), the launch (LAUNCHED_MEMO: the drag draws the smear). One-way: there's no coming back in from the drag
 // (the launch is a one-way set piece); DOORS.ride.end (the atom's load platform) is kept for the record only.
 //
-// ~16000 px of track: about 70 s of riding plus the reveal, ~10 s of scenes (the brake run, the launch). Checkpoints 20-23.
+// ~16600 px of track: about 70 s of riding plus the reveal, ~10 s of scenes (the brake run, the launch). Checkpoints 20-23.
 
 import type { GameState } from '../../../m1/game/core/state';
 import type { FrameContext } from '../../../m1/game/core/context';
@@ -37,13 +39,13 @@ import { ATOM, homeFacing } from '../atom/kinds';
 import { drawAtomPerson, type Outfit } from '../atom/people';
 import { box } from '../../intro/art/kit';
 import {
-  x0, x1, R, RUNS, GAPS, OBS, PA_CUES, BREAKER_X, ACT3_X, BRAKE_AT, FINS_X0, FINS_X1, BRAKE_X, CREST_X, FRONT_AT,
+  x0, x1, R, RUNS, GAPS, OBS, PA_CUES, BREAKER_X, ACT3_X, BRAKE_AT, FINS_X0, FINS_X1, BRAKE_X, BRAKE_BOX_X, FRONT_AT,
   STATION_ROOF, WORKERS, STATION_FOLK, speedAt, trackY, runAt, slopeAt, BREAKER_MEMO, LAUNCHED_MEMO, lightsOn,
 } from './layout';
 import { type Tricks, newTricks, runTricks, settleTricks, fireBlaster, JUMP_V, JUMP_G } from './tricks';
 import { paStory, paSaying, paHush } from './pa';
 import { drawSled, seatedIn, HIS_SLED, FRONT_SLED, SEATS, SLED_SINK } from './sled';
-import { drawRideBackdrop, drawRideBack, drawRideFront, rideLighting, drawBlaster, BRAKE_BOX_X, type RideLook } from './art';
+import { drawRideBackdrop, drawRideBack, drawRideFront, rideLighting, drawBlaster, type RideLook } from './art';
 import { drawLaunchOutside, prewarmLaunch, OUT_END, OUT_SPLAT, OUT_LAND_ME } from './launch';
 import * as L from './lines';
 import { forceWeapon, releaseWeapon } from '../../weaponLock';
@@ -51,8 +53,13 @@ import { forceWeapon, releaseWeapon } from '../../weaponLock';
 const SINK = SLED_SINK;
 /** (where his feet sit in it, from the sled's middle: the front seat) */
 const SEAT = SEATS[0];
-/** The runaway's top speed down the last drop (px a frame), and how much it gains a frame on it. */
-const RUNAWAY = 26, RUNAWAY_GAIN = 1.1;
+/** The runaway's top speed through the station (px a frame), and how much it gains a frame; what the drive tires kick it
+ *  to all at once (the lurch); the crawl the brake fins hold it to; the creep it eases to, the fins gone, till the kick. */
+const RUNAWAY = 26, RUNAWAY_GAIN = 1.1, LURCH = 15, CRAWL = 1.1, CREEP = 0.7;
+/** He blasts the brake box once it's this far in front of him (on screen, the station well in view first). */
+const SHOT_REACH = 220;
+/** The longest the sled in front's scream holds the kick (frames: never past the load end's people). */
+const SCREAM_MAX = 130;
 /** A jump pressed this many frames before he's back on the rail still goes; and off the end of the rail, this long. */
 const JUMP_BUFFER = 8, COYOTE = 6;
 
@@ -69,8 +76,9 @@ interface Sled {
   k: number; breakerT: number; brakeT: number; boxT: number; boxShot: boolean;
   /** The PA's on (not on a second ride: the power's out). */
   paLive: boolean; cued: Set<string>; yelled: boolean; braked: boolean;
-  /** The scene: frames into it; the sled in front (gone through the roof); who's flying up through it. */
-  sceneT: number; frontGone: boolean; fliers: Flyer[]; front: { x: number; y: number; rot: number; vy: number } | null;
+  /** The scene: frames into it; frames since the drive tires kicked it (0: not yet); the creep after BRAKE FAILURE,
+   *  frames; the sled in front (gone through the roof); who's flying up through it. */
+  sceneT: number; lurchT: number; creepT: number; frontGone: boolean; fliers: Flyer[]; front: { x: number; y: number; rot: number; vy: number } | null;
   /** The station's people: who's been hit (flying, in `fliers`); a beat held on each hit. */
   flat: Set<number>; hold: number;
   said: Said | null; saidX: number; saidY: number;
@@ -82,7 +90,7 @@ const fresh = (state: GameState): Sled => ({
   jumpBuf: 0, offRail: 0, ducked: false, tricks: newTricks(),
   k: lightsOn(state) ? 1 : 0, breakerT: lightsOn(state) ? 999 : 0, brakeT: 0, boxT: 0, boxShot: false,
   paLive: !state.stageMemo[LAUNCHED_MEMO], cued: new Set(), yelled: false, braked: false,
-  sceneT: 0, frontGone: false, fliers: [], front: null, flat: new Set(), hold: 0, said: null, saidX: 0, saidY: 0, skipT: 0,
+  sceneT: 0, lurchT: 0, creepT: 0, frontGone: false, fliers: [], front: null, flat: new Set(), hold: 0, said: null, saidX: 0, saidY: 0, skipT: 0,
 });
 const sledOf = (state: GameState) => sectionState<Sled, 'ride'>(state, 'ride', () => fresh(state));
 const look = (state: GameState): RideLook => {
@@ -259,12 +267,13 @@ const scene = (ctx: FrameContext, s: Sled): Controls => {
     if (!s.boxT && s.x >= FINS_X0 - 30) {
       // The brake fins grab: a fountain of sparks off the sled's belly, the grind, down to a crawl
       if (!s.brakeT) { s.brakeT = 1; playSound('grind', 1, -6); playSound('clang', 0.8, -8); shakeScreen(state, 8, 4); meatheadSays(state, L.MEATHEAD_BRAKE); }
-      s.speed = Math.max(0.9, s.speed - 0.17);
+      s.speed = Math.max(CRAWL, s.speed - 0.17);
       if (state.frame % 9 === 0) playSound('grind', 0.6, -4 + Math.random() * 4);
       for (let i = 0; i < 3; i++) state.particles.push({ pos: { x: s.x - 40 + Math.random() * 80, y: s.y - 4 }, vel: { x: -2 - Math.random() * 5, y: -1 - Math.random() * 5 }, life: 14 + Math.random() * 10, color: i % 2 ? '#FDE047' : '#FFFFFF', size: 2, grav: 0.25 });
-      // He's had enough of that: the space blaster into the brake box
+      // He's had enough of that: the space blaster into the brake box, once it's crept up in front of him (the station
+      // he's rolling into well seen first)
       // (once his line's said: the words before the shot, not after it; never longer than 5 s)
-      if (!s.boxShot && s.brakeT > 34 && (!isTalking() || s.brakeT > 300)) { s.boxShot = true; blast(state, s); }
+      if (!s.boxShot && s.brakeT > 34 && s.x >= BRAKE_BOX_X - SHOT_REACH && (!isTalking() || s.brakeT > 300)) { s.boxShot = true; blast(state, s); }
       if (s.boxShot && !s.boxT && tr.bolts.every(b => b.x < BRAKE_BOX_X - 20)) {
         // (the bolt's in it)
         s.boxT = 1; tr.bolts = []; s.hold = SMASH_HOLD;
@@ -277,13 +286,25 @@ const scene = (ctx: FrameContext, s: Sled): Controls => {
         if (s.paLive) paStory(state, 'brakefail', true);
       }
     } else if (s.boxT) {
-      // No brakes: off it goes, over the crest and down the last drop, faster and faster. (Held at the crawl till
-      // BRAKE FAILURE's been said, so it's heard before the drop, not over it; 6 s at most.)
+      // No brakes. It creeps on along the platform at the crawl (held there till BRAKE FAILURE's been said, so it's heard
+      // before the run, not over it; 6 s at most), the sled in front screaming as it comes on and doesn't stop; then the
+      // drive tires kick it, all at once: a jolt, and it's off, impossibly fast, faster and faster
       const held = s.boxT < 50 || (isTalking() && s.boxT < 360);
-      if (!held) s.speed = Math.min(RUNAWAY, s.speed + (s.x > CREST_X ? RUNAWAY_GAIN : 0.22));
+      if (!s.lurchT) s.speed += (CREEP - s.speed) * 0.05;
+      if (!held && !s.lurchT) {
+        s.creepT++;
+        if (!s.cued.has('scream') && !isTalking()) { s.cued.add('scream'); sayAt(s, 'm2.guest2', L.FRONT_SCREAM, FRONT_AT, GY - 100); }
+        // (the kick waits on the scream, said whole: then a beat; never longer than SCREAM_MAX, never crept into the load end)
+        if ((s.cued.has('scream') && s.creepT > 24 && !isTalking() && !s.said) || s.creepT > SCREAM_MAX || s.x > STATION_FOLK[0].x - 100) {
+          s.lurchT = 1; s.speed = LURCH;
+          playSound('boom', 1, -10); playSound('ignite', 1, -4); playSound('clang', 1, -12); playSound('crash', 0.6, 6); shakeScreen(state, 16, 8);
+          for (let i = 0; i < 26; i++) state.particles.push({ pos: { x: s.x - 50 + Math.random() * 70, y: s.y - 4 }, vel: { x: -4 - Math.random() * 9, y: -1 - Math.random() * 6 }, life: 16 + Math.random() * 14, color: ['#FDE047', '#FFFFFF', '#F97316', '#A1A1AA'][i % 4], size: 2 + Math.random() * 2, grav: 0.25 });
+        }
+      }
+      if (s.lurchT) { s.lurchT++; s.speed = Math.min(RUNAWAY, s.speed + RUNAWAY_GAIN); }
       if (s.boxT % 50 === 1) playSound('siren', 0.7);
-      if (s.x > CREST_X && s.speed > 12) shakeScreen(state, 4, 2);
-      if (s.x > CREST_X && state.frame % 3 === 0) playSound('rumble', 0.5, 4);
+      if (s.lurchT && s.speed > 12) shakeScreen(state, 4, 2);
+      if (s.lurchT && state.frame % 3 === 0) playSound('rumble', 0.5, 4);
     }
     if (s.boxT) s.boxT++;
     if (s.brakeT) s.brakeT++;
@@ -298,7 +319,6 @@ const scene = (ctx: FrameContext, s: Sled): Controls => {
       playSound('splat', 1, -4 + i); playSound('crunch', 0.9); playSound('gorespray', 0.7); if (i === 0 || i === 2) playSound('screams', 0.8);
       shakeScreen(state, 10, 5);
     });
-    if (s.x >= FRONT_AT - 900 && !s.cued.has('scream') && !isTalking()) { s.cued.add('scream'); sayAt(s, 'm2.guest2', L.FRONT_SCREAM, FRONT_AT, GY - 100); }
     // THE RAM
     if (s.x >= FRONT_AT - 150) {
       s.mode = 'up'; s.sceneT = 0;
@@ -309,7 +329,7 @@ const scene = (ctx: FrameContext, s: Sled): Controls => {
       s.vy = -15; p.cartSeat = false;
     }
     place(state, s);
-    // (the camera: well ahead of it, down the drop with it)
+    // (the camera: well ahead of it, the station in front of it)
     state.cameraOverride = { x: s.x - 130, y: Math.min(GY - 430, s.y - 330) };
     return hands();
   }

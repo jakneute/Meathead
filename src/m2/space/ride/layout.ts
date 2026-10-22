@@ -1,8 +1,8 @@
 // The ride's track: where the rail runs (and the gaps), each act, the obstacles along it, the PA's cues, the breaker,
 // the brake run and the station at the end (shared by the section's running, index.ts, and its painting, art.ts).
 //
-// The track's a circuit: its last stretch is a steep drop down into the load station (seen from the start, the brake
-// zone at the bottom of it; ridden at the end, with no brakes).
+// The track's a circuit: its last stretch is a steep drop down to the floor, then the brake run along it into the load
+// station (seen from the start: the drop, the brake zone at the bottom of it, into the station).
 //
 //   ACT 1  R+0..6200       the dark ride, slow: the narrated scenes of 2010. A satellite hung low (duck), the track not
 //                          built yet (jump), a cardboard Martian on the rail (the space blaster's taught: blast it),
@@ -11,11 +11,14 @@
 //   ACT 2  R+7800..13100   space, fast: a laser tripwire on the rail (jump), gaps, an asteroid lowered onto the track
 //                          (blast), a space station module hung low (duck), a laser band (duck)
 //   BREAKER R+13100        the sled smashes the MAIN BREAKER: the work lights bang on, bank by bank. It's a warehouse
-//   ACT 3  R+13300..14600  the warehouse version, the show dead: workers on the track, the forklift's pallet (jump), a
-//                          stack of snack cases on the rail (blast)
-//   BRAKES R+14600..14950  the brake run (a scene from here): the fins grab, he blasts the brake box, they're gone
-//   DROP   R+14950..15300  the last drop, no brakes, impossibly fast
-//   STATION R+15300..16000 back into the load station; everybody on the track flattened; the sled in front; the launch
+//   ACT 3  R+13300..14900  the warehouse version, the show dead: workers on the track, the forklift's pallet (jump), a
+//                          stack of snack cases on the rail (blast); the last drop (R+14500..14850), down to the floor
+//   BRAKES R+14950..       the brake run (a scene from here), on the flat: the fins grab, a long crawl on in through the
+//                          gantry, past the attendant's booth, into the station's UNLOAD end (R+15270..15900: its
+//                          platform, gates, signs, attendant), plainly back where it started. He blasts the brake box,
+//                          they're gone, it creeps on (BRAKE FAILURE, the sled in front's scream), then the drive tires
+//                          kick it: a sudden lurch, impossibly fast
+//   STATION R+15900..16600 the load end: everybody on the track flattened; the sled in front; the launch
 //
 // Every obstacle's beaten one way, shown by its cue (a glowing arrow: up jump, down duck; a crosshair: blast), and
 // tested against him rail-relative (tricks.ts) so a slope's no different from the flat.
@@ -39,19 +42,24 @@ export const RUNS: [number, number, number, number][] = [
   [10500, 11200, -620, -620],
   [11200, 11800, -620, -300], // the second drop
   [11980, 13300, -300, -300], // (the breaker at 13100)
-  [13300, 13700, -300, -420], // the warehouse, up to the brake run
-  [13700, 14950, -420, -420], // (the brake run from 14600)
-  [14950, 15300, -420, 0],    // the last drop
-  [15300, 16000, 0, 0],       // the station
+  [13300, 13700, -300, -420], // the warehouse, up
+  [13700, 14500, -420, -420], // (the forklift's pallet, the snack cases)
+  [14500, 14850, -420, 0],    // the last drop (ridden, at the ride's pace), down to the floor
+  [14850, 16600, 0, 0],       // the brake run (from 14950), on into the station: unload, then load
 ].map(([a, b, ya, yb]) => [R + a, R + b, GY + ya, GY + yb]);
 
 export const LIFT_X0 = R + 6200, LIFT_X1 = R + 7800, ACT2_X = R + 7800;
 export const BREAKER_X = R + 13100, ACT3_X = R + 13300;
-/** The brake run: the scene from BRAKE_AT; the fins along the rail; the brake box beside it; the crest; the drop. */
-export const BRAKE_AT = R + 14600, FINS_X0 = R + 14640, FINS_X1 = R + 14900, BRAKE_X = R + 14780, CREST_X = R + 14950;
-export const STATION_X0 = R + 15300, STATION_X1 = R + 16000;
+/** The brake run: the gantry over its start (STATION AHEAD, BRAKE ZONE); the scene from BRAKE_AT; the fins along the
+ *  rail (on into the station); the attendant's booth (BRAKE_X: its right end, by the station's mouth). */
+export const GANTRY_X = R + 14930, BRAKE_AT = R + 14950, FINS_X0 = R + 14990, FINS_X1 = R + 15510, BRAKE_X = R + 15220;
+/** The station: from its UNLOAD end (STATION_X0) to its load end (LOAD_X0 on: the line, the platform, the sled in front)
+ *  and out. */
+export const STATION_X0 = R + 15270, LOAD_X0 = R + 15900, STATION_X1 = R + 16600;
+/** The brake box, in its alcove on the rail at the unload end (he blasts it once it's up in front of him). */
+export const BRAKE_BOX_X = R + 15590;
 /** The sled in front, loading at the platform (he rams it). */
-export const FRONT_AT = R + 15720;
+export const FRONT_AT = LOAD_X0 + 420;
 /** The station's roof (they go up through it). */
 export const STATION_ROOF = GY - 330;
 
@@ -106,13 +114,13 @@ export const CUE_XS = CUES.map((_, i) => cueX(i));
 
 /** Workers on the track (the warehouse's, and a stagehand or two crossing in the dark): [x, in a hi-vis vest]. */
 export const WORKERS: [number, number][] = [[3230, 0], [4990, 0], [13450, 1], [13680, 1]].map(([x, v]) => [R + x, v]);
-/** The people on the track in the station (the bottom of the drop on): flattened by the runaway. */
+/** The people on the track at the station's load end: flattened by the runaway. */
 export const STATION_FOLK: { x: number; outfit: 'hand' | 'worker' | 'guest'; seed: number; paddle?: boolean }[] = [
-  { x: R + 15335, outfit: 'hand', seed: 7301, paddle: true },
-  { x: R + 15395, outfit: 'worker', seed: 7402 },
-  { x: R + 15450, outfit: 'guest', seed: 7517 },
-  { x: R + 15482, outfit: 'guest', seed: 7633 },
-  { x: R + 15540, outfit: 'hand', seed: 7741 },
+  { x: LOAD_X0 + 35, outfit: 'hand', seed: 7301, paddle: true },
+  { x: LOAD_X0 + 95, outfit: 'worker', seed: 7402 },
+  { x: LOAD_X0 + 150, outfit: 'guest', seed: 7517 },
+  { x: LOAD_X0 + 182, outfit: 'guest', seed: 7633 },
+  { x: LOAD_X0 + 240, outfit: 'hand', seed: 7741 },
 ];
 /** The narrated scenes of 2010 (act 1), along the track: home, office, traffic, the moon. */
 export const TABLEAU_XS = [1100, 2800, 4100, 5200].map(x => R + x);
