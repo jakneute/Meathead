@@ -60,3 +60,23 @@ SAFE_X 360).
   can be knocked into it. (Clearing: the tree waits on the clearing's own guides only, `liveGuides` by x, so one left
   alive back in the temple can't hold up the kick.)
 - The station: the last warrior's up on the queue's rail, down on him from there, not stood by the checkpoint.
+
+**The river, under it (river/course.ts PIRANHAS, SNAPPERS: same counts)**
+
+- The swim was a fish here and there to shoot swimming right, the air pockets free, and piranhas or a snapper sat
+  inside four checkpoints' reach (UNDER THE RIVER, THE RIDE GRAVEYARD, THE ANIMATRONICS, THE DINOSAUR TANK).
+- Now the first air pocket's free (teach the air), and the second and third have a pair of piranhas milling under
+  their mouths (the tunnel's roof keeps them below it): clear them to breathe. The third has its snapper under them
+  too (low and high at the mouth).
+- The first pair's by the rock with the first eel in it (the eel's lunge and the school at once); one piranha is over
+  the sunk boat by its stern's eel; one's among the animatronics. All out of the checkpoints' reach.
+- Left alone: the boat ride's piranhas (the boat ride and Artie are the set piece), the tank (its guests behind the
+  glass), the intake.
+
+**Not touched**
+
+- The queue: its staff are harmless (the joke); nothing to fight there.
+- The mine cart: a ride; its threats are the ride's tricks (idols, the serpent, boulders, beams, gaps), already taught
+  one at a time and then mixed.
+- The roof: a set piece (it comes down), no enemies.
+- The clearing: Safari Artie's camp and fight (the guides out of his tent are part of it).

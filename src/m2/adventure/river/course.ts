@@ -69,8 +69,11 @@ export const VENTS = [4100, 5250, 6200, 7450, 8150, 9350, 11000, 12100, 12900];
 /** Who's in the water: piranhas (x, y), eels (in a hole: its mouth, which way it comes out), snapping plants (root x). */
 // (none right where the boat runs dry and he goes over the side: they're off up the river, coming)
 export const PIRANHAS_BOAT = [900, 1300, 1700, 2100, 2350];
+// (none within the safe start's reach of a checkpoint (spawnSafe.ts SAFE_X, 360). The first air pocket's free (teach);
+// the second and third each have a pair milling under their mouths: clear them to get the air. A pair by the rock
+// with the first eel in it, one over the sunk boat by its stern's eel, one among the animatronics)
 export const PIRANHAS: [number, number][] = [
-  [3900, 760], [3960, 800], [4900, 740], [5000, 790], [5800, 760], [6500, 760], [6560, 820], [7700, 760], [8500, 800],
+  [4060, 760], [4120, 800], [4900, 740], [5700, 880], [5800, 760], [6720, 690], [6790, 720], [7950, 800], [8740, 690],
   [9100, 760], [9180, 820], [10800, 760], [11900, 800],
 ];
 // (each hole's in something solid, its mouth flush with that thing's face: the rock's left side, the sunk boat's stern,
@@ -84,7 +87,9 @@ export const eelHome = (el: (typeof EELS)[number]) => ({ x: el.x, y: el.y || bed
 export const eelMouth = (el: (typeof EELS)[number]) => { const h = eelHome(el); return { x: h.x, y: h.y + 8, dir: h.dir }; };
 /** The eels' holes' size: the dark of the hole (half width, half height), its middle in from the face it's in. */
 export const EEL_HOLE = { rx: 8, ry: 10, inset: 5 };
-export const SNAPPERS = [4850, 6300, 6900, 8800, 9650, 11200, 12000];
+// (the one at 8800 under the third pocket's piranhas: low and high at its mouth; 9520 kept out of THE DINOSAUR TANK
+// checkpoint's reach)
+export const SNAPPERS = [4850, 6300, 6900, 8800, 9520, 11200, 12000];
 
 /** The gallery behind the tank's glass: where the guests stand. */
 export const GALLERY = { x1: TANK.x1 + 80, x2: TANK.x2 - 80, floor: 1000, glassTop: WS + 70 };
