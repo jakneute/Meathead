@@ -324,12 +324,18 @@ export const tickHunter = (ctx: FrameContext, h: Hunter, controls: Controls): Co
   return out;
 };
 
+/** Her screech, kept rare (the user: the stalk had too many whooshing noises): none within `gap` frames of the last. The
+ *  tells and the kill screech go straight to playSound (always heard). */
+let lastScreech = -9999;
+const screech = (state: GameState, v: number, pitch: number, gap = 300) => {
+  if (state.frame - lastScreech < gap) return;
+  lastScreech = state.frame; playSound('screams', v, pitch);
+};
+
 const ambience = (state: GameState, h: Hunter) => {
   const r = Math.random();
   if (r < 1 / 160) playSound('tinkle', 0.15, -4 + Math.random() * 8);
-  if (state.frame % 260 === 0) playSound('engine', 0.06, -20);
-  if (r > 1 - 1 / 420) playSound('gush', 0.1, -12);
-  if (h.mode === 'away' && Math.random() < 1 / 900) playSound('screams', 0.08, -14);
+  // (no hum, hiss or far-off screeches under it (the user: too many whooshes): the drips and her skitter carry it)
   // (somewhere off in the vents: a skitter that's her, or isn't)
   if (h.mode === 'away' && Math.random() < 1 / 500) playSound('click', 0.12, -6 + Math.random() * 6);
 };
@@ -464,7 +470,7 @@ const schedule = (state: GameState, h: Hunter) => {
   const r = Math.random();
   // (now and then it's nothing: a rattle, or her shape going by over the near pipes and on)
   if (r < 0.12 && h.noise < 60) { h.fake = { x: pickVent(cx + (Math.random() < 0.5 ? -1 : 1) * rnd(200, 500), -1) ?? cx, t: 0 }; h.next = rnd(300, 520); return; }
-  if (r < 0.2 && h.noise < 60) { h.fg = { t: 0, dir: Math.random() < 0.5 ? -1 : 1 }; playSound('screams', 0.25, -10); h.next = rnd(320, 560); return; }
+  if (r < 0.2 && h.noise < 60) { h.fg = { t: 0, dir: Math.random() < 0.5 ? -1 : 1 }; screech(state, 0.25, -10); h.next = rnd(320, 560); return; }
   // (out for real: ahead, behind, above or below him, or along the ceiling first)
   const lvl = plevel(state);
   const his: 0 | 1 = lvl === 1 ? 1 : 0;
@@ -551,7 +557,7 @@ const runHer = (ctx: FrameContext, h: Hunter) => {
       if (h.t % 7 === 0) playSound('click', vol(state, h.x, 0.5), 2);
       if (h.t % 8 === 0) dust(state, h.x, CEIL_B + 10, 2);
       if (over || h.t >= 400) {
-        if (!h.sniff) { h.sniff = 1; playSound('screams', vol(state, h.x, 0.6) + 0.2, -6); }
+        if (!h.sniff) { h.sniff = 1; screech(state, vol(state, h.x, 0.6) + 0.2, -6); }
         if (++h.sniff > 34) {
           h.sniff = 0;
           // (down in front of him, on his level, far enough off to do something about it)
@@ -596,7 +602,7 @@ const runHer = (ctx: FrameContext, h: Hunter) => {
     case 'ambush':
       // (down, rearing, screeching at him: not looking yet; then she's on him, or, hidden, she's lost him right there)
       if (h.t === 14) { playSound('land', 0.9, -10); shakeScreen(state, 5, 3); dust(state, h.x, h.y - 4, 8); }
-      if (h.t % 20 === 15) playSound('screams', 0.5, -2);
+      if (h.t % 20 === 15) screech(state, 0.5, -2, 150);
       if (h.t >= AMBUSH_T) {
         if (h.hid >= 0) { to(h, 'search'); h.path = [{ x: clampLvl(h, cx), stop: 160 }]; h.speed = 1.8; }
         else spotted(state, h);
@@ -722,9 +728,11 @@ const hunting = (ctx: FrameContext, h: Hunter) => {
 };
 
 const steps = (state: GameState, h: Hunter, every: number) => {
-  if (h.t % every === 0) playSound('thud', vol(state, h.x, 0.5), -12);
+  // (her heavy footfalls only when she's in view (the user: whooshing thuds from her out of sight); the clicks of her
+  // claws carry from anywhere: they're the tell)
+  const seen = h.x > state.camera.x - 40 && h.x < state.camera.x + CANVAS_WIDTH + 40;
+  if (seen && h.t % every === 0) playSound('thud', vol(state, h.x, 0.5), -12);
   if (h.t % 13 === 0) playSound('click', vol(state, h.x, 0.35), 4);
-  if (h.t % 90 === 45) playSound('gush', vol(state, h.x, 0.2), -14);
 };
 /** Dust down out of the ceiling (or a duct): grey, in steps. */
 const dust = (state: GameState, x: number, y: number, n: number) => {
