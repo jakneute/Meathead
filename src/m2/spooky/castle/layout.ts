@@ -113,11 +113,14 @@ export const CAST: [StaffKind, number, number][] = [
   ['skeleton', X(1150), GY],
   // the dining room: the shields (one up on the table)
   ['skeleton', X(1640), GY], ['skeleton', X(2380), GY - 72], ['skeleton', X(3080), GY],
-  // the kitchen: the forks (one on its own first), then the witch up on her cauldron lobbing
-  ['igor', X(3500), GY], ['igor', X(4060), GY], ['witch', X(4740), GY - 150], ['igor', X(4500), GY],
-  // the library: the spiked helmets on its floor (the shelves over them tempting a dive kick); a witch up on the second
-  // gallery lobbing down the stories; a bat at the top
-  ['knight', LIB + 460, GY], ['knight', LIB + 1080, GY], ['knight', LIB + 1680, GY], ['witch', LIB + 1000, GY - 820], ['bat', LIB + 1500, GY - 1100],
+  // the kitchen: the forks (one on its own first, between the stoves: shove it onto a burner when it flares), one up on
+  // the pot rack by its health (no charging him up there: meet the fork on the rack, or shoot up at him from the floor),
+  // then one under the witch up on her cauldron lobbing (low and high at once)
+  ['igor', X(3960), GY], ['igor', X(4060), GY - 210], ['witch', X(4740), GY - 150], ['igor', X(4500), GY],
+  // the library: a spiked helmet on its floor (the shelves over him tempting a dive kick); another up on the reading
+  // balcony, waiting at the top of the first ladder (shoot him from the ladder, or come off it into his sword); the last
+  // by the far bookcase (the books are his too); a witch up on the second gallery lobbing down the stories; a bat at the top
+  ['knight', LIB + 460, GY], ['knight', LIB + 950, GY - 340], ['knight', LIB + 1680, GY], ['witch', LIB + 1000, GY - 820], ['bat', LIB + 1500, GY - 1100],
   // the bedroom: the brides (out of the wardrobes and from under the bed: see index.ts), and a knight
   ['knight', X(8540), GY],
   // the nursery: the bat suits on their rigs, real bats out of the chimney, an igor

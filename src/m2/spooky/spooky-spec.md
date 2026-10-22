@@ -23,3 +23,16 @@ placed within the safe start's reach of a checkpoint (spawnSafe.ts SAFE_X 360, S
 - Left alone: the plaza and the street (bats, a crow, rats, ghosts, already over and around the gallows and balconies),
   the monster alone by the hearse (the bruiser's teach), the rides (their riders and flyers are the set pieces), the
   drop tower's two roads, the arcade's skeleton (no jumping him under that roof), the stairs (the pumpkins).
+
+**The castle (castle/layout.ts CAST: same kinds, same count)**
+
+- The kitchen was three forks on the floor one after the other, the first 80 from THE KITCHEN's checkpoint. Now the
+  first is between the two stoves, on its own (shove it onto a burner when it flares: the stoves sear the cast too);
+  the second's up on the pot rack by its health (out of sight from the floor: he meets it climbing up off a stove top,
+  where he can't charge it, or shoots up at it); the third's still under the witch on her cauldron (low and high).
+- The library was three spiked helmets on its floor in a row. Now one on the floor under the shelves (the dive-kick
+  tease, taught), one up on the reading balcony at the top of the first ladder (Spooky's ladders: shoot him from the
+  ladder, or come off it into his sword), and the last by the far bookcase (its books hit him too).
+- Left alone: the foyer's lone shield (the teach), the dining room's shields (shots bounce off them anyway; the table
+  and the chandeliers are the play), the bedroom's brides (scripted out of the wardrobes and the bed), the nursery's
+  flyers over the ball pit, the gallery's mummy alone then everything at once.
