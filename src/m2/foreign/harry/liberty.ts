@@ -14,6 +14,7 @@
 import { LIB, sy, ARENA_L, ARENA_R } from './arena';
 import { signText } from '../../signLetters';
 import { dith } from '../heli/harryArt';
+import { stamp } from '../../../m1/game/render/stamp';
 
 type Ctx = CanvasRenderingContext2D;
 const INK = '#0A1F1B';
@@ -109,6 +110,11 @@ const robe = (c: Ctx, f: number) => {
 const hair = (c: Ctx, hx: number, hy: number) => {
   for (const s of [-1, 1]) {
     fl(c, PAT[2], () => { c.moveTo(hx + s * 40, hy - 64); c.quadraticCurveTo(hx + s * 86, hy - 40, hx + s * 80, hy + 10); c.quadraticCurveTo(hx + s * 88, hy + 50, hx + s * 64, hy + 84); c.lineTo(hx + s * 44, hy + 70); c.quadraticCurveTo(hx + s * 58, hy + 20, hx + s * 46, hy - 20); c.closePath(); }, 2.5);
+    // (stepped: the far side of the lock in shade, a dithered seam; its outer edge lit (her left) or dark (her right))
+    c.save(); c.beginPath(); c.moveTo(hx + s * 40, hy - 64); c.quadraticCurveTo(hx + s * 86, hy - 40, hx + s * 80, hy + 10); c.quadraticCurveTo(hx + s * 88, hy + 50, hx + s * 64, hy + 84); c.lineTo(hx + s * 44, hy + 70); c.quadraticCurveTo(hx + s * 58, hy + 20, hx + s * 46, hy - 20); c.closePath(); c.clip();
+    const ox = s < 0 ? hx - 92 : hx + 72;
+    r(c, ox, hy - 70, 20, 160, s < 0 ? PAT[1] : PAT[4]); dr(c, s < 0 ? ox + 20 : ox - 6, hy - 70, 6, 160, s < 0 ? PAT[1] : PAT[4]);
+    c.restore();
     // (the waves: stepped bands)
     for (let k = 0; k < 6; k++) {
       const yy = hy - 44 + k * 22, xx = hx + s * (66 + Math.sin(k * 1.4) * 6);
@@ -124,6 +130,8 @@ const face = (c: Ctx, L: LibLook, hx: number, hy: number) => {
   // (the neck: a column, shaded down its right)
   fl(c, PAT[3], () => { c.moveTo(hx - 40, hy + 50); c.lineTo(hx - 44, sy(330)); c.lineTo(hx + 44, sy(330)); c.lineTo(hx + 40, hy + 50); c.closePath(); }, 2.5);
   r(c, hx - 42, hy + 60, 14, 80, PAT[2]); r(c, hx + 26, hy + 60, 10, 80, PAT[4]);
+  // (her jaw's shadow down the neck under it)
+  r(c, hx - 38, hy + 66, 76, 8, PAT[2]); dr(c, hx - 38, hy + 74, 76, 6, PAT[2]);
   // (the face: an oval, the far side shaded, the cheekbones lit)
   const puffed = m === 'gag' ? 1 : 0;
   fl(c, PAT[3], () => c.ellipse(hx, hy + 6, 54 + puffed * 6, 72, 0, 0, Math.PI * 2), 3);
@@ -135,6 +143,14 @@ const face = (c: Ctx, L: LibLook, hx: number, hy: number) => {
   // (the brow's ridge lit, the sockets in shade under it, the cheeks' planes)
   r(c, hx - 36, hy - 34, 72, 3, PAT[4]); dr(c, hx - 36, hy - 21, 72, 6, PAT[2]);
   dr(c, hx - 40, hy + 14, 22, 18, PAT[4]); dr(c, hx + 18, hy + 14, 20, 18, PAT[2]);
+  // (the sockets: deep under the brow, the shade stepped in; the nose's bridge lit between them)
+  for (const s of [-1, 1]) { r(c, hx + s * 22 - 16, hy - 20, 32, 5, s < 0 ? PAT[2] : PAT[1]); dr(c, hx + s * 22 - 16, hy - 15, 32, 3, s < 0 ? PAT[2] : PAT[1]); }
+  r(c, hx - 3, hy - 22, 6, 8, PAT[4]); r(c, hx - 1, hy - 22, 2, 6, PAT[5]);
+  // (the planes down from the nose's wings to the mouth's corners, the shade under the lower lip, the chin's cleft)
+  dr(c, hx - 24, hy + 22, 5, 18, PAT[2]); r(c, hx + 18, hy + 22, 5, 18, PAT[2]); dr(c, hx + 23, hy + 22, 3, 18, PAT[2]);
+  r(c, hx - 12, hy + 54, 24, 3, PAT[2]); dr(c, hx - 12, hy + 57, 24, 3, PAT[2]); r(c, hx - 1, hy + 62, 2, 6, PAT[2]);
+  // (the verdigris run down her face from under the band: pale streaks, the old ones fainter)
+  for (const [ox, oy, l] of [[-14, -30, 14], [30, -26, 20], [-44, -4, 34], [40, 20, 28]] as const) { dr(c, hx + ox, hy + oy, 2, l, PAT[5]); r(c, hx + ox, hy + oy, 2, 2, PAT[5]); }
   c.restore();
   // (the gag: her cheeks blown out round)
   if (puffed) for (const s of [-1, 1]) { fl(c, PAT[4], () => c.ellipse(hx + s * 34, hy + 38, 20, 16, 0, 0, Math.PI * 2), 2); r(c, hx + s * 34 - 6, hy + 30, 8, 4, PAT[5]); }
@@ -159,10 +175,16 @@ const face = (c: Ctx, L: LibLook, hx: number, hy: number) => {
     const lid = m === 'sad' || m === 'sob' ? 5 : 2;
     fl(c, PAT[2], () => { c.moveTo(ex - 14, ey); c.quadraticCurveTo(ex, ey - 10, ex + 14, ey); c.quadraticCurveTo(ex, ey - 10 + lid * 1.6, ex - 14, ey); c.closePath(); }, 1.5);
     r(c, ex - 4, ey - 1, 5, 3, PAT[6]);
+    // (the lid's crease over it, the lower lid's edge under it)
+    c.strokeStyle = PAT[1]; c.lineWidth = 1.5; c.beginPath(); c.moveTo(ex - 13, ey - 4); c.quadraticCurveTo(ex, ey - 14, ex + 13, ey - 4); c.stroke();
+    c.strokeStyle = PAT[2]; c.lineWidth = 1.5; c.beginPath(); c.moveTo(ex - 11, ey + 4); c.quadraticCurveTo(ex, ey + 9, ex + 11, ey + 4); c.stroke();
   }
   // (the nose: long and straight, its lit side and its shadow)
   fl(c, PAT[4], () => { c.moveTo(hx - 3, hy - 16); c.lineTo(hx - 9, hy + 22); c.quadraticCurveTo(hx, hy + 28, hx + 9, hy + 22); c.lineTo(hx + 3, hy - 16); c.closePath(); }, 2);
   r(c, hx - 7, hy + 4, 4, 16, PAT[2]); r(c, hx + 2, hy - 10, 3, 26, PAT[5]);
+  // (its wings and nostrils, the shade under it, the groove down to the lip)
+  for (const s of [-1, 1]) { c.strokeStyle = INK; c.lineWidth = 2; c.beginPath(); c.moveTo(hx + s * 10, hy + 16); c.quadraticCurveTo(hx + s * 13, hy + 22, hx + s * 6, hy + 25); c.stroke(); r(c, hx + s * 5 - 2, hy + 23, 4, 2, PAT[0]); }
+  dr(c, hx - 9, hy + 27, 18, 3, PAT[1]); r(c, hx - 2, hy + 30, 4, 8, PAT[2]); r(c, hx - 2, hy + 30, 1, 8, PAT[4]);
   if (m === 'disgust') { c.strokeStyle = INK; c.lineWidth = 2; c.beginPath(); c.moveTo(hx - 12, hy + 8); c.lineTo(hx - 6, hy + 4); c.moveTo(hx + 12, hy + 8); c.lineTo(hx + 6, hy + 4); c.stroke(); }
   // (the mouth: by her mood)
   const my = hy + 44;
@@ -195,37 +217,163 @@ const face = (c: Ctx, L: LibLook, hx: number, hy: number) => {
   }
 };
 
+// The crown, laid out round her head (the user: "the statue of liberty is missing some detail in the crown area"): the
+// diadem a deep band wrapped round her brow (seen from the front: an arch, its ends turning away round the sides of her
+// head, foreshortened), its row of 25 windows (the middle one the room Harry stands in), the crown's dark inside showing
+// over its top between the rays, and the seven rays socketed into its top edge (no gap: they grow out of it), each a
+// faceted spike: a lit face and a shadow face either side of its ridge.
+/** The band's half width, how far round her head it's seen (radians), its top and bottom edges over her head's middle
+ *  at the front and at its ends. */
+const BAND = { rx: 92, th: 1.25, top: 86, topEnd: 58, bot: 33, botEnd: 12 };
+const bandS = (u: number) => (1 - Math.cos(u * BAND.th)) / (1 - Math.cos(BAND.th));
+/** Along the band (u -1 .. 1, left end to right end): its x, its top and bottom edges. */
+const bandAt = (hx: number, hy: number, u: number) => {
+  const s = bandS(u);
+  return { x: hx + BAND.rx * Math.sin(u * BAND.th), t: hy - BAND.top + (BAND.top - BAND.topEnd) * s, b: hy - BAND.bot + (BAND.bot - BAND.botEnd) * s };
+};
+/** The band's u at screen x (the front half). */
+const bandU = (hx: number, x: number) => Math.asin(Math.max(-1, Math.min(1, (x - hx) / BAND.rx))) / BAND.th;
+/** The middle window (the room in her crown: Harry's; arena.ts's WINDOW). */
+const WIN = (hx: number, hy: number) => ({ x0: hx - 28, x1: hx + 28, y0: hy - 78, y1: hy - 38 });
+
+/** One ray: from its socket on the band's top edge (bx, by) out along `a` (0 straight up), `len` long, `w` its half
+ *  width at the socket; `stub` (shot): broken off that far along, jagged, the concrete backing in the break. */
+const ray = (c: Ctx, bx: number, by: number, a: number, len: number, w: number, stub = 0) => {
+  const dx = Math.sin(a), dy = -Math.cos(a), nx = Math.cos(a), ny = Math.sin(a);
+  // (which face the light's on (from the upper left): +n or -n)
+  const lit = -0.6 * nx - 0.8 * ny > 0 ? 1 : -1;
+  const L = stub || len, tx = bx + dx * L, ty = by + dy * L;
+  // (a stub's end: the break across it, jagged; else the point)
+  const tipW = stub ? w * (1 - stub / len) : 0;
+  const end: [number, number][] = stub
+    ? [-1, -0.5, -0.1, 0.35, 0.7, 1].map((k, i) => [tx + nx * tipW * k + dx * (i % 2 ? 5 : -3), ty + ny * tipW * k + dy * (i % 2 ? 5 : -3)])
+    : [[tx, ty]];
+  const outline = () => { c.moveTo(bx - nx * w, by - ny * w); end.forEach(([x, y]) => c.lineTo(x, y)); c.lineTo(bx + nx * w, by + ny * w); c.closePath(); };
+  /** A sliver of one face: between k0 and k1 of its half width (0 the ridge .. 1 its edge), on side s. */
+  const face = (s: number, k0: number, k1: number, col: string | CanvasPattern) => {
+    c.beginPath();
+    c.moveTo(bx + nx * w * k0 * s, by + ny * w * k0 * s); c.lineTo(tx + nx * tipW * k0 * s, ty + ny * tipW * k0 * s);
+    c.lineTo(tx + nx * tipW * k1 * s, ty + ny * tipW * k1 * s); c.lineTo(bx + nx * w * k1 * s, by + ny * w * k1 * s);
+    c.closePath(); c.fillStyle = col; c.fill();
+  };
+  fl(c, PAT[3], outline, 0);
+  c.save(); c.beginPath(); outline(); c.clip();
+  // (the lit face: the ridge's edge brightest, stepping down out to its edge; the shadow face: dark, its edge darker)
+  face(lit, 0, 1.1, PAT[4]); face(lit, 0, 0.32, PAT[5]); face(lit, 0.32, 0.46, dith(c, PAT[5])); face(lit, 0.8, 1.1, dith(c, PAT[3]));
+  face(-lit, 0, 1.1, PAT[2]); face(-lit, 0.55, 1.1, dith(c, PAT[1])); face(-lit, 0.78, 1.1, PAT[1]);
+  // (the verdigris run down its shadow face from its point, pale; shade down by the socket where the band's over it)
+  c.fillStyle = dith(c, PAT[5]); c.beginPath(); c.moveTo(bx + nx * w * -lit * 0.3 + dx * L * 0.15, by + ny * w * -lit * 0.3 + dy * L * 0.15);
+  c.lineTo(bx + nx * w * -lit * 0.42 + dx * L * 0.15, by + ny * w * -lit * 0.42 + dy * L * 0.15); c.lineTo(tx + dx * -L * 0.25, ty + dy * -L * 0.25); c.closePath(); c.fill();
+  c.fillStyle = dith(c, PAT[1]); c.fillRect(bx - w - 2, by - 12, w * 2 + 4, 14);
+  c.restore();
+  // (the ridge: a hard glint on its lit side, the crease dark)
+  c.strokeStyle = PAT[1]; c.lineWidth = 1; c.beginPath(); c.moveTo(bx, by); c.lineTo(stub ? tx : tx, stub ? ty : ty); c.stroke();
+  c.strokeStyle = PAT[6]; c.lineWidth = 1; c.beginPath(); c.moveTo(bx + nx * lit * 1.5 + dx * 10, by + ny * lit * 1.5 + dy * 10); c.lineTo(bx + dx * L * 0.92 + nx * lit * 0.5, by + dy * L * 0.92 + ny * lit * 0.5); c.stroke();
+  // (the break: the copper's lip, the concrete backing in it)
+  if (stub) {
+    c.strokeStyle = CONC[2]; c.lineWidth = 4; c.lineJoin = 'miter'; c.beginPath(); end.forEach(([x, y], i) => (i ? c.lineTo(x, y) : c.moveTo(x, y))); c.stroke();
+    c.strokeStyle = CONC[4]; c.lineWidth = 1.5; c.beginPath(); end.forEach(([x, y], i) => (i ? c.lineTo(x - dx * 1.5, y - dy * 1.5) : c.moveTo(x - dx * 1.5, y - dy * 1.5))); c.stroke();
+  }
+  // (inked)
+  c.beginPath(); outline(); c.strokeStyle = INK; c.lineWidth = 2.5; c.lineJoin = 'round'; c.stroke();
+  // (its socket on the band: a riveted collar)
+  const cw = w + 3;
+  fl(c, PAT[3], () => { c.moveTo(bx - nx * cw, by - ny * cw); c.lineTo(bx - nx * cw + dx * 9, by - ny * cw + dy * 9); c.lineTo(bx + nx * cw + dx * 9, by + ny * cw + dy * 9); c.lineTo(bx + nx * cw, by + ny * cw); c.closePath(); }, 2);
+  c.strokeStyle = PAT[5]; c.lineWidth = 1; c.beginPath(); c.moveTo(bx - nx * cw + dx * 8, by - ny * cw + dy * 8); c.lineTo(bx + nx * cw + dx * 8, by + ny * cw + dy * 8); c.stroke();
+  for (const k of [-0.6, 0, 0.6]) { const x = bx + nx * cw * k + dx * 4, y = by + ny * cw * k + dy * 4; r(c, x - 1.5, y - 1.5, 3, 3, PAT[0]); r(c, x - 1.5, y - 1.5, 1, 1, PAT[6]); }
+};
+
+/** The forehead's hair: parted in the middle under the band, swept out to her temples in heavy waves. */
+const foreLocks = (c: Ctx, hx: number, hy: number) => {
+  for (const s of [-1, 1]) {
+    const lock = () => { c.moveTo(hx, hy - 38); c.quadraticCurveTo(hx + s * 30, hy - 44, hx + s * 50, hy - 34); c.quadraticCurveTo(hx + s * 64, hy - 20, hx + s * 58, hy + 4); c.lineTo(hx + s * 48, hy - 4); c.quadraticCurveTo(hx + s * 46, hy - 24, hx + s * 26, hy - 30); c.quadraticCurveTo(hx + s * 10, hy - 33, hx, hy - 38); c.closePath(); };
+    fl(c, s < 0 ? PAT[2] : PAT[3], lock, 2);
+    c.save(); c.beginPath(); lock(); c.clip();
+    // (stepped: lit along the top of each wave, shaded under)
+    for (let k = 0; k < 3; k++) {
+      const yy = hy - 30 + k * 11, xx = hx + s * (40 + k * 6);
+      c.strokeStyle = s < 0 ? PAT[1] : PAT[2]; c.lineWidth = 3; c.beginPath(); c.moveTo(xx - s * 16, yy - 2); c.quadraticCurveTo(xx, yy + 6, xx + s * 14, yy); c.stroke();
+      c.strokeStyle = s < 0 ? PAT[4] : PAT[5]; c.lineWidth = 1; c.beginPath(); c.moveTo(xx - s * 14, yy - 5); c.quadraticCurveTo(xx, yy + 2, xx + s * 12, yy - 3); c.stroke();
+    }
+    c.restore();
+  }
+};
+
+/** The crown's still parts (painted once: a stamp): its dark inside over the band, the rays in their sockets, the band
+ *  and its windows (all but the middle one), the hair under it. `broken`: the rays on the shot side snapped off. */
+const crownStill = (c: Ctx, hx: number, hy: number, broken: boolean) => {
+  const N = 24, at = (u: number) => bandAt(hx, hy, u);
+  // (the crown's inside, dark, seen over the band's top edge: its far rim)
+  fl(c, PAT[1], () => {
+    for (let i = 0; i <= N; i++) { const u = -1 + (2 * i) / N, p = at(u); const y = p.t - 12 + 8 * bandS(u); if (i) c.lineTo(p.x, y); else c.moveTo(p.x, y); }
+    for (let i = N; i >= 0; i--) { const p = at(-1 + (2 * i) / N); c.lineTo(p.x, p.t + 4); }
+    c.closePath();
+  }, 2);
+  for (let i = 0; i < N; i++) { const u = -1 + (2 * i + 1) / N, p = at(u); dr(c, p.x - 4, p.t - 8 + 8 * bandS(u), 8, 4, PAT[0]); }
+  // (the rays: the outer ones first, the middle one over them all)
+  for (const deg of [-72, 72, -48, 48, -24, 24, 0]) {
+    const a = (deg * Math.PI) / 180, u = bandU(hx, hx + BAND.rx * 0.8 * Math.sin(a)), p = at(u);
+    const len = 170 - Math.abs(deg) * 0.42, w = 13 - Math.abs(deg) * 0.03;
+    ray(c, p.x, p.t + 4, a * 1.08, len, w, broken && deg <= -24 ? 30 + (deg + 72) * 0.5 : 0);
+  }
+  // (the band: its front face in steps (lit to the upper left, turning away into shade at its ends), its top lip lit,
+  // its bottom rim a moulding)
+  const band = () => {
+    for (let i = 0; i <= N; i++) { const p = at(-1 + (2 * i) / N); if (i) c.lineTo(p.x, p.t); else c.moveTo(p.x, p.t); }
+    for (let i = N; i >= 0; i--) { const p = at(-1 + (2 * i) / N); c.lineTo(p.x, p.b); }
+    c.closePath();
+  };
+  fl(c, PAT[3], band, 3);
+  c.save(); c.beginPath(); band(); c.clip();
+  const strip = (u0: number, u1: number, col: string | CanvasPattern) => { const p0 = at(u0), p1 = at(u1); c.fillStyle = col; c.fillRect(Math.round(p0.x), hy - 120, Math.round(p1.x - p0.x), 140); };
+  strip(-1, -0.7, PAT[4]); strip(-0.7, -0.62, dith(c, PAT[4])); strip(0.45, 0.55, dith(c, PAT[2])); strip(0.55, 0.86, PAT[2]); strip(0.86, 0.92, dith(c, PAT[1])); strip(0.92, 1, PAT[1]);
+  // (the top lip, lit; the moulding along the bottom: a groove, a lit bead, its underside dark)
+  for (let i = 0; i < N; i++) {
+    const u0 = -1 + (2 * i) / N, u1 = u0 + 2 / N, p = at(u0), q = at(u1), lit = u0 < 0.5;
+    c.strokeStyle = lit ? PAT[5] : PAT[4]; c.lineWidth = 3; c.beginPath(); c.moveTo(p.x, p.t + 2); c.lineTo(q.x, q.t + 2); c.stroke();
+    c.strokeStyle = PAT[1]; c.lineWidth = 2; c.beginPath(); c.moveTo(p.x, p.b - 9); c.lineTo(q.x, q.b - 9); c.stroke();
+    c.strokeStyle = lit ? PAT[5] : PAT[3]; c.lineWidth = 2; c.beginPath(); c.moveTo(p.x, p.b - 6); c.lineTo(q.x, q.b - 6); c.stroke();
+    c.strokeStyle = PAT[1]; c.lineWidth = 3; c.beginPath(); c.moveTo(p.x, p.b - 1); c.lineTo(q.x, q.b - 1); c.stroke();
+  }
+  // (the windows: 12 a side of the middle one (25 in all), little, foreshortened round her head; a couple lit up from
+  // the room inside)
+  const W = WIN(hx, hy), uIn = bandU(hx, W.x1 + 6), PER = 12;
+  for (const s of [-1, 1]) for (let k = 0; k < PER; k++) {
+    const u0 = uIn + ((1 - uIn - 0.04) * k) / PER, u1 = uIn + ((1 - uIn - 0.04) * (k + 1)) / PER;
+    const p0 = at(s * u0), p1 = at(s * u1), x0 = Math.min(p0.x, p1.x), ww = Math.abs(p1.x - p0.x);
+    const mt = (p0.t + p1.t) / 2, mb = (p0.b + p1.b) / 2, top = Math.round(mt + (mb - mt) * 0.34), bot = Math.round(mt + (mb - mt) * 0.6), wx = x0 + ww * 0.14, w = Math.max(1, ww * 0.72);
+    const lit = (s < 0 && k === 3) || (s > 0 && k === 6);
+    r(c, wx - 1, top - 2, w + 2, 1, PAT[1]);
+    r(c, wx, top, w, bot - top, lit ? '#B7791F' : '#0B1512');
+    if (lit) { r(c, wx, top, w, (bot - top) * 0.5, '#F6E05E'); dr(c, wx, top + (bot - top) * 0.5, w, 2, '#F6E05E'); }
+    else r(c, wx, top, Math.max(1, w * 0.4), 2, '#1E3A36');
+    r(c, wx - 1, bot, w + 2, 1, s < 0 || k < 2 ? PAT[5] : PAT[4]);
+    // (the pier between it and the next: a lit edge)
+    if (s < 0 && ww > 3) r(c, wx + w, top, 1, bot - top, PAT[2]);
+  }
+  // (rivets along the top lip, the verdigris run down the band from them)
+  for (let i = 1; i < N; i += 2) { const p = at(-1 + (2 * i) / N); r(c, p.x - 1.5, p.t + 5, 3, 3, PAT[0]); r(c, p.x - 1.5, p.t + 5, 1, 1, PAT[6]); }
+  for (const u of [-0.82, -0.5, 0.6, 0.86]) { const p = at(u); run(c, p.x, p.t + 9, p.b - p.t - 16); }
+  // (shot: cracks across the band on the broken side)
+  if (broken) {
+    c.strokeStyle = INK; c.lineWidth = 2; c.lineJoin = 'miter';
+    for (const u of [-0.75, -0.45]) { const p = at(u); c.beginPath(); c.moveTo(p.x - 4, p.t); c.lineTo(p.x + 3, p.t + 14); c.lineTo(p.x - 2, p.t + 24); c.lineTo(p.x + 4, p.b); c.stroke(); }
+  }
+  c.restore();
+  // (its shadow on her forehead and down the hair under it)
+  for (let i = 0; i < N; i++) { const u = -1 + (2 * i + 1) / N, p = at(u), w = (BAND.rx * 2 * Math.PI * Math.cos(u * BAND.th) * BAND.th) / (N * Math.PI) + 2; if (Math.abs(p.x - hx) < 58) dr(c, p.x - w / 2, p.b + 1, w, 4, PAT[1]); }
+  // (the middle window's frame: a deep reveal round it, lit along its top)
+  const F = { x0: W.x0 - 5, y0: W.y0 - 5, w: W.x1 - W.x0 + 10, h: W.y1 - W.y0 + 9 };
+  fl(c, PAT[2], () => c.roundRect(F.x0, F.y0, F.w, F.h, 13), 2.5);
+  r(c, F.x0 + 6, F.y0 + 1, F.w - 12, 2, PAT[5]); r(c, F.x0 + 1, F.y0 + 8, 2, F.h - 16, PAT[4]); r(c, F.x0 + F.w - 3, F.y0 + 8, 2, F.h - 16, PAT[1]);
+};
+
 /** The crown: the band of windows over her brow (the middle window a hole Harry stands in), and its seven rays. */
 const crown = (c: Ctx, L: LibLook, hx: number, hy: number) => {
   const broken = L.broken > 0;
-  // (the rays, fanned out over her head, off the top of the shot)
-  const rays = [-72, -48, -24, 0, 24, 48, 72];
-  for (const deg of rays) {
-    if (broken && deg <= -24) continue;
-    const a = (deg * Math.PI) / 180, bx = hx + Math.sin(a) * 70, by = hy - 70 - Math.cos(a) * 14;
-    const len = deg === 0 ? 170 : 150, tx = bx + Math.sin(a) * len, ty = by - Math.cos(a) * len;
-    const nx = Math.cos(a) * 11, ny = Math.sin(a) * 11;
-    fl(c, PAT[3], () => { c.moveTo(bx - nx, by - ny); c.lineTo(tx, ty); c.lineTo(bx + nx, by + ny); c.closePath(); }, 2.5);
-    fl(c, PAT[4], () => { c.moveTo(bx, by); c.lineTo(tx, ty); c.lineTo(bx + nx, by + ny); c.closePath(); }, 0);
-    c.strokeStyle = PAT[5]; c.lineWidth = 1.5; c.beginPath(); c.moveTo(bx + nx * 0.4, by + ny * 0.4); c.lineTo(tx, ty); c.stroke();
-    // (the ray's shade side stepped down to its edge, dithered; its riveted collar)
-    c.fillStyle = dith(c, PAT[2]); c.beginPath(); c.moveTo(bx - nx, by - ny); c.lineTo(tx, ty); c.lineTo(bx - nx * 0.4, by - ny * 0.4); c.closePath(); c.fill();
-    for (const k of [-0.6, 0, 0.6]) { r(c, bx + nx * k - 1.5, by + ny * k - 1.5, 3, 3, PAT[0]); r(c, bx + nx * k - 1.5, by + ny * k - 1.5, 1, 1, PAT[6]); }
-  }
-  // (the band: a shallow arch over the brow)
-  const y0 = hy - 82, y1 = hy - 34;
-  fl(c, PAT[3], () => { c.moveTo(hx - 86, y1 + 10); c.quadraticCurveTo(hx, y0 - 16, hx + 86, y1 + 10); c.lineTo(hx + 82, y1 + 20); c.quadraticCurveTo(hx, y1 - 4, hx - 82, y1 + 20); c.closePath(); }, 3);
-  r(c, hx - 70, y0 + 4, 140, 3, PAT[5]); dr(c, hx - 70, y0 + 7, 140, 3, PAT[4]);
-  // (the band's rivets along its rim, its lower edge in shade)
-  for (let k = -6; k <= 6; k++) { const rx = hx + k * 12, ry = y0 + 10 + Math.abs(k) * 1.4; r(c, rx - 1.5, ry - 1.5, 3, 3, PAT[1]); r(c, rx - 1.5, ry - 1.5, 1, 1, PAT[6]); }
-  // (the windows: a row of little dark ones, the middle one big: a room in her crown)
-  for (let k = -3; k <= 3; k++) {
-    if (k === 0) continue;
-    const wx = hx + k * 22, wy = y0 + 18 + Math.abs(k) * 4;
-    fl(c, '#0B1512', () => c.roundRect(wx - 6, wy, 12, 14, 4), 1.5);
-    r(c, wx - 4, wy + 2, 3, 3, '#1E3A36'); r(c, wx - 6, wy + 12, 12, 2, PAT[5]); r(c, wx - 1, wy, 2, 14, PAT[1]);
-  }
-  const W = { x0: hx - 28, x1: hx + 28, y0: hy - 78, y1: hy - 38 };
+  // (the still parts painted once (a stamp: the band, its windows, the rays, the hair under it); the room live)
+  stamp(c, `liberty-crown-${broken ? 'shot' : 'whole'}`, hx - 280, hy - 300, 560, 330, g => { foreLocks(g, hx, hy); crownStill(g, hx, hy, broken); });
+  const W = WIN(hx, hy);
   fl(c, '#0B1512', () => c.roundRect(W.x0, W.y0, W.x1 - W.x0, W.y1 - W.y0, 10), 2.5);
   // (the light inside, from the room's other windows)
   r(c, W.x0 + 4, W.y0 + 4, W.x1 - W.x0 - 8, 6, '#183A34'); dr(c, W.x0 + 4, W.y0 + 10, W.x1 - W.x0 - 8, 6, '#183A34');
@@ -330,7 +478,7 @@ const hole = (c: Ctx, hand: Pt, f: number) => {
 const wh = (n: number) => { const s = Math.sin(n * 91.7 + 13.1) * 43758.5; return s - Math.floor(s); };
 const AREAS = [
   { x: LIB.head.x, y: LIB.head.y, rx: 70, ry: 80 }, { x: LIB.x - 180, y: sy(380), rx: 90, ry: 60 },
-  { x: LIB.x + 170, y: sy(370), rx: 90, ry: 60 }, { x: LIB.x, y: sy(420), rx: 150, ry: 70 }, { x: LIB.head.x, y: LIB.head.y - 95, rx: 110, ry: 30 },
+  { x: LIB.x + 170, y: sy(370), rx: 90, ry: 60 }, { x: LIB.x, y: sy(420), rx: 150, ry: 70 }, { x: LIB.head.x, y: LIB.head.y - 56, rx: 66, ry: 10 },
 ];
 const spot = (n: number) => { const a = AREAS[n % AREAS.length], t = wh(n * 3.1) * Math.PI * 2, k = Math.sqrt(wh(n * 7.7)); return { x: a.x + Math.cos(t) * a.rx * k, y: a.y + Math.sin(t) * a.ry * k }; };
 const CRACKS = Array.from({ length: 26 }, (_, i) => {
@@ -366,7 +514,7 @@ export const drawLibertyBody = (c: Ctx, L: LibLook, arm?: (c: Ctx) => void) => {
   c.save();
   frame(c, L);
   const hx = LIB.head.x, hy = LIB.head.y;
-  robe(c, L.f);
+  stamp(c, 'liberty-robe', LIB.x - 310, sy(318) - 40, 620, sy(560) - sy(318) + 60, g => robe(g, L.f));
   // (her left arm: down her side to the tablet, or up with the gun at her temple)
   const sh = LIB.shL, hd = L.hand;
   const dx = hd.x - sh.x, dy2 = hd.y - sh.y, d = Math.min(LIB.upper + LIB.fore - 2, Math.hypot(dx, dy2) || 1);
@@ -387,7 +535,7 @@ export const drawLibertyBody = (c: Ctx, L: LibLook, arm?: (c: Ctx) => void) => {
   // (holding the gun to her head: the arm and the revolver IN FRONT of her head, its muzzle on her temple on our side
   // (the user: "make sure the gun can be seen"); otherwise the arm's behind, at her side)
   if (!L.gun) leftArm();
-  hair(c, hx, hy);
+  stamp(c, 'liberty-hair', hx - 100, hy - 80, 200, 180, g => hair(g, hx, hy));
   face(c, L, hx, hy);
   crown(c, L, hx, hy);
   if (L.gun) { leftArm(); revolver(c, hx2 - 10, hy2 - 10, GUN_A, L.f, L.broken > 0 && L.broken < 5); }
