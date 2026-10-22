@@ -185,8 +185,54 @@ export const drumTop = (c: Ctx, eye: View['eye'], a: number, b: number, y: numbe
   c.strokeStyle = INK; c.lineWidth = 1; c.beginPath(); pts.forEach(([px, py], i) => (i ? c.lineTo(px, py) : c.moveTo(px, py))); c.stroke();
   return true;
 };
+/** How a prop's depth is drawn (boxSides): `d0` its front's depth (1: the play plane); `lines` world y's of lines
+ *  running back along its sides (a cloth's hem, drawer seams, a molding); `apron` (px down from its top): a thing on
+ *  legs (a table, a bench), its side only its top's thickness, a leg at the back corner (`leg` px wide, 0 for none: a
+ *  shelf on brackets) down to `bottom`; `noTop` for no top face (round tops, things nobody'd see the top of);
+ *  `sideR` / `topR` other ramps for the sides / the top (default `R`). */
+export interface BoxSides { d0?: number; lines?: number[]; apron?: number; leg?: number; noTop?: boolean; sideR?: string[]; topR?: string[] }
+/**
+ * A solid prop's depth (a table, a desk, a counter, a cabinet, a crate, a riser...): its sides going back from its
+ * front face (x a..b at depth d0, `top` to `bottom` world y) to depth d1, each only where the eye's past that end (so
+ * it opens up as the camera moves away and is gone looking straight at it), and its top going back where the eye's
+ * above it. sideBack and topBack plus what Fairy Land's wallSide puts on a wall's return: lines running back to the
+ * one eye, a lit corner down the front edge, the far edge inked. A few polygons and strokes a frame (no pixel work);
+ * draw it before the front face (the stamp): the sides and the top never cross it. `R` a ramp6.
+ */
+export const boxSides = (c: Ctx, eye: View['eye'], a: number, b: number, top: number, bottom: number, d1: number, R: string[], o: BoxSides = {}) => {
+  const d0 = o.d0 ?? 1, S = o.sideR ?? R;
+  if (!o.noTop) topBack(c, eye, a, b, top, d0, d1, o.topR ?? R, 3);
+  for (const [e, side] of [[a, -1], [b, 1]] as const) {
+    if ((eye.x - e) * side <= 1) continue;
+    const low = o.apron ? Math.min(bottom, top + o.apron) : bottom;
+    // (the back leg first: it stands behind the side's band)
+    if (o.apron && (o.leg ?? 6) > 0 && low < bottom) {
+      const lw = o.leg ?? 6, dl = d1 + (d0 - d1) * 0.1;
+      const [x0, y0] = at(eye, e - side * lw, low, dl), [x1, y1] = at(eye, e, bottom, dl);
+      const l = Math.round(Math.min(x0, x1)), w = Math.max(2, Math.round(Math.abs(x1 - x0)));
+      box(c, l - 1, y0, w + 2, y1 - y0, INK); box(c, l, y0, w, y1 - y0, S[1]); box(c, side > 0 ? l + w - 1 : l, y0, 1, y1 - y0, S[2]);
+    }
+    sideBack(c, eye, e, side, top, low, d0, d1, S, 3);
+    const [nx, nt] = at(eye, e, top, d0), [fx] = at(eye, e, top, d1);
+    if (Math.abs(fx - nx) < 3) continue;
+    // (the lines running back: a dark line, lit under it)
+    if (o.lines?.length) {
+      const dark = new Path2D(), lite = new Path2D();
+      for (const y of o.lines) {
+        if (y <= top || y >= low) continue;
+        const [p0, q0] = at(eye, e, y, d0), [p1, q1] = at(eye, e, y, d1);
+        dark.moveTo(p0, q0); dark.lineTo(p1, q1); lite.moveTo(p0, q0 + 1); lite.lineTo(p1, q1 + 1);
+      }
+      c.lineWidth = 1; c.strokeStyle = S[0]; c.stroke(dark);
+      c.globalAlpha = 0.5; c.strokeStyle = S[3]; c.stroke(lite); c.globalAlpha = 1;
+    }
+    // (the corner: lit down its front edge)
+    const [, nb] = at(eye, e, low, d0);
+    box(c, Math.round(nx) - (side > 0 ? 0 : 2), nt, 2, nb - nt, S[5]);
+  }
+};
 /** A slab (a face), stepped: lit down its left and along its top, shaded down its right (dithered in). */
-export const slab = (g: Ctx, x: number, y: number, w: number, h: number, R: string[]) => {
+export const slab =(g: Ctx, x: number, y: number, w: number, h: number, R: string[]) => {
   box(g, x, y, w, h, R[3]);
   box(g, x, y, 2, h, R[4]); box(g, x, y, w, 2, R[4]);
   box(g, x + w - 4, y, 4, h, R[2]); checker(g, x + w - 8, y, 4, h, R[2], 0, 1);

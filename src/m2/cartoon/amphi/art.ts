@@ -22,6 +22,7 @@ import type { Light } from '../../../m1/game/render/lighting';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { signText } from '../../signLetters';
 import { stamp } from '../../../m1/game/render/stamp';
+import { pixelBlob } from '../../../m1/game/render/pixelArt';
 import { timeOfDay } from '../../timeOfDay';
 import { bodyOf, torso, arm as cArm, headShape, faceOn, hairTop, hairBack, whiskers, glasses, limb as cLimb, shoe, pickOf, type Body } from '../../spooky/costume';
 import { dadArt } from '../bigkid/art';
@@ -39,7 +40,7 @@ import { drawRim, BANK_Y } from './rim';
 import { drawShell, drawFlown, drawBanner, drawSetWall, drawSwingDoor, drawLaughHorn, drawTV, drawRug } from './stage';
 import {
   box, mix, hash, checker, hour, dimmed, INK, NR, DR, r6, CONC, ALU, DECK, STEEL, BRASS, RED, NAVY, PURP, AWNG, GRASS,
-  HEDGE, PLY, VELV, SHOWL, small, tiny, stencil, bulb, deadBulb, streaks, peel, rustRun, gum, crack, cupAt, deadCan,
+  HEDGE, BARK, PLY, VELV, SHOWL, small, tiny, stencil, bulb, deadBulb, streaks, peel, rustRun, gum, crack, cupAt, deadCan,
   shadowAt, lattice, tube, type Ctx,
 } from './mats';
 
@@ -424,6 +425,136 @@ const rowY = (k: number) => TOP_Y + (2 * k + 1) * (ROW_RISE / 2);
 const rowA = (k: number) => AISLE.a + k * ROW_W;
 const ROW_NAMES = 'ABCDEFGHIJKL';
 
+// ---------------------------------------------------------------------------------------------------------------
+// The grass bank (the bowl's far side): its face a tile, its lip's greenery stamps
+
+/** The bank's face as a tile (made once per ramp, the hour's), its top at the bank's lip: an irregular grassy slope in
+ *  tonal bands (lit along the lip, deeper in shade going down to the foot) with wavy dithered seams, grass strokes lit
+ *  and shaded, clover, a few flowers up where the sun gets. Wraps left to right. */
+const BANK_TILES = new Map<string, CanvasPattern>();
+const BANK_TW = 192, BANK_TH = 320;
+const bankPattern = (c: Ctx, G: string[]) => {
+  const key = G.join();
+  let p = BANK_TILES.get(key);
+  if (!p) {
+    const cv = document.createElement('canvas'); cv.width = BANK_TW; cv.height = BANK_TH;
+    const g = cv.getContext('2d')!;
+    const TAU = Math.PI * 2;
+    // (the bands: each seam wavy (whole waves across the tile, so it wraps), the lower color dithered up into it)
+    const seams = [7, 40, 104, 176], cols = [G[4], G[3], G[2], mix(G[2], G[1], 0.5), G[1]];
+    const seamAt = (k: number, x: number) => Math.round(seams[k] + Math.sin((x / BANK_TW) * TAU * (2 + k) + k * 1.7) * (2 + k) + Math.sin((x / BANK_TW) * TAU * (5 + k) + k) * 1.5);
+    for (let x = 0; x < BANK_TW; x += 2) {
+      let y0 = 0;
+      for (let k = 0; k <= seams.length; k++) {
+        const y1 = k < seams.length ? seamAt(k, x) : BANK_TH;
+        box(g, x, y0, 2, y1 - y0, cols[k]);
+        if (k) checker(g, x, y0 - 2, 2, 2, cols[k], (x >> 1) % 2, 1);
+        y0 = y1;
+      }
+    }
+    // (the grass: short strokes, lit ones and shaded ones, thinning out down the slope; clover; flowers up top)
+    const band = (y: number) => { let k = 0; while (k < seams.length && y > seams[k]) k++; return k; };
+    for (let k = 0; k < 900; k++) {
+      const x = Math.floor(hash(k * 1.91) * (BANK_TW - 3)), y = Math.floor(Math.pow(hash(k * 2.73), 1.3) * (BANK_TH - 6)) + 2, b = band(y);
+      const lite = hash(k * 0.37) > 0.45, col = lite ? (b ? cols[b - 1] : G[5]) : (b < cols.length - 1 ? cols[b + 1] : G[0]);
+      const len = 2 + Math.floor(hash(k * 5.3) * 3), lean = hash(k * 7.7) > 0.5 ? 1 : 0;
+      box(g, x, y, 1, len, col); if (lean) box(g, x + 1, y - 1, 1, 2, col);
+    }
+    for (let k = 0; k < 46; k++) {
+      const x = 2 + Math.floor(hash(k * 3.17 + 9) * (BANK_TW - 6)), y = 6 + Math.floor(hash(k * 4.41 + 2) * 150), b = band(y), col = b ? cols[b - 1] : G[5];
+      box(g, x, y, 2, 1, col); box(g, x + 2, y + 1, 1, 1, col); box(g, x - 1, y + 1, 1, 1, col); box(g, x, y + 2, 1, 1, cols[Math.min(cols.length - 1, b + 1)]);
+    }
+    for (let k = 0; k < 18; k++) {
+      const x = 3 + Math.floor(hash(k * 6.11 + 4) * (BANK_TW - 8)), y = 8 + Math.floor(hash(k * 2.29 + 7) * 90);
+      const fl = mix(['#F4F1E8', '#FDE68A', '#F9A8D4', '#C4B5FD'][k % 4], G[3], 0.28);
+      box(g, x, y, 2, 2, fl); box(g, x, y, 1, 1, mix(fl, '#FFFFFF', 0.5)); box(g, x + 1, y + 2, 1, 2, G[1]);
+    }
+    p = c.createPattern(cv, 'repeat')!;
+    if (BANK_TILES.size > 24) BANK_TILES.clear();
+    BANK_TILES.set(key, p);
+  }
+  return p;
+};
+
+/** The bank's lip, a stamp per HEDGE_SEG of world (at the bank's depth): what grows there, from a world grid so the
+ *  stamps meet seamlessly. A back row smaller and hazier (further off), then the front row: clipped hedges of all
+ *  heights and lengths in leafy lumps (inked, shaded under, lit on top, leaf flecks), gaps of grass and tufts, a
+ *  flowering shrub now and then, the odd young tree; each casting a shadow down the bank's face. */
+const HEDGE_SEG = 320, HEDGE_PAD = 90, HEDGE_TALL = 130, HEDGE_CELL = 52;
+const leafMass = (g: Ctx, cx: number, w: number, h: number, H: string[], seed: number, bloom: string | null, shadow: string | null) => {
+  const n = Math.max(2, Math.round(w / 13)), lumps: [number, number, number][] = [];
+  for (let k = 0; k < n; k++) {
+    const t = k / (n - 1), r = 6 + hash(seed * 3.1 + k) * 5;
+    const top = h * (0.78 + 0.22 * Math.sin(t * Math.PI)) * (0.88 + hash(seed + k * 1.7) * 0.24);
+    lumps.push([cx - w / 2 + r + t * (w - 2 * r) + (hash(seed + k * 7.3) - 0.5) * 4, -top + r, r]);
+  }
+  const bx = Math.round(cx - w / 2), bw = Math.round(w), by = Math.round(-h * 0.55);
+  if (shadow) { box(g, bx - 2, 0, bw + 6, 3, shadow); checker(g, bx - 4, 3, bw + 10, 3, shadow, 0, 1); }
+  box(g, bx - 1, by, bw + 2, -by + 1, INK);
+  for (const [lx, ly, lr] of lumps) pixelBlob(g, lx, ly, lr + 1.5, lr * 0.9 + 1.5, INK);
+  box(g, bx, by, bw, -by, H[1]);
+  for (const [lx, ly, lr] of lumps) pixelBlob(g, lx, ly, lr, lr * 0.9, H[1]);
+  for (const [lx, ly, lr] of lumps) pixelBlob(g, lx - 1, ly - 1, lr * 0.82, lr * 0.7, H[2]);
+  box(g, bx + 1, by, Math.round(bw * 0.7), Math.round(-by * 0.5), H[2]);
+  for (const [lx, ly, lr] of lumps) pixelBlob(g, lx - lr * 0.28, ly - lr * 0.32, lr * 0.5, lr * 0.36, H[3]);
+  // (leaf flecks: lit ones up top, dark ones under; dithered shade along the foot)
+  for (let k = 0; k < (w * h) / 40; k++) {
+    const x = bx + 2 + hash(seed * 5.3 + k) * (bw - 4), y = -h * 0.95 + hash(seed * 2.9 + k * 1.3) * h * 0.9;
+    box(g, x, y, 2, 1, y < -h * 0.5 ? H[4] : H[0]);
+  }
+  for (const [lx, ly, lr] of lumps.filter((_, k) => k % 2 === 0)) box(g, lx - lr * 0.45, ly - lr * 0.55, 2, 1, H[5]);
+  checker(g, bx, -4, bw, 4, H[0], 0, 1); box(g, bx, -1, bw, 1, H[0]);
+  if (bloom) for (let k = 0; k < w / 6; k++) {
+    const x = bx + 3 + hash(seed * 9.1 + k) * (bw - 6), y = -h * 0.92 + hash(seed * 4.7 + k) * h * 0.7;
+    box(g, x, y, 2, 2, bloom); box(g, x, y, 1, 1, mix(bloom, '#FFFFFF', 0.5));
+  }
+};
+const tufts = (g: Ctx, a: number, b: number, G: string[], seed: number) => {
+  for (let x = a; x < b; x += 4) {
+    const s = hash(seed + x * 0.71);
+    if (s < 0.3) continue;
+    const t = 2 + Math.floor(s * 4);
+    box(g, x, -t, 1, t + 1, G[4]); box(g, x + 1, -t + 2, 1, t - 1, G[3]); box(g, x - 1, -1, 1, 2, G[3]);
+    if (s > 0.93) { const fl = mix(['#FDE68A', '#F4F1E8', '#F9A8D4'][Math.floor(s * 97) % 3], G[3], 0.25); box(g, x, -t - 2, 2, 2, fl); }
+  }
+};
+const paintHedgeSeg = (g: Ctx, i: number, G: string[], Hd: string[]) => {
+  const a0 = i * HEDGE_SEG - HEDGE_PAD - 90, a1 = (i + 1) * HEDGE_SEG + HEDGE_PAD + 90, at = (wx: number) => wx - i * HEDGE_SEG;
+  const haze = Hd.map(col => mix(col, '#9A94B4', 0.32)), B = DR(BARK), shade = mix(G[1], INK, 0.3);
+  // (the grass along the lip under everything, tufted)
+  box(g, at(a0), -2, a1 - a0, 3, G[4]); box(g, at(a0), -2, a1 - a0, 1, G[5]);
+  tufts(g, at(a0), at(a1), G, i * 13);
+  // (the back row: smaller, hazier, set up the slope a touch)
+  for (let j = Math.floor(a0 / HEDGE_CELL); j <= Math.ceil(a1 / HEDGE_CELL); j++) {
+    const s = hash(j * 2.37 + 5);
+    if (s < 0.35) continue;
+    const w = 30 + hash(j * 4.1) * 40, h = 10 + hash(j * 1.9) * 12;
+    g.save(); g.translate(0, -5); leafMass(g, at(j * HEDGE_CELL + 26), w, h, haze, j * 3 + 1, null, null); g.restore();
+  }
+  // (the front row: hedges of every length and height, gaps, shrubs in flower, the odd young tree)
+  for (let j = Math.floor(a0 / HEDGE_CELL); j <= Math.ceil(a1 / HEDGE_CELL); j++) {
+    const s = hash(j * 1.13 + 2), cx = at(j * HEDGE_CELL + (hash(j * 3.3) - 0.5) * 16);
+    if (s < 0.16) continue;
+    if (s > 0.9) {
+      // (a young tree: a thin trunk, a crown in clustered lumps)
+      const th = 54 + hash(j * 6.1) * 30, cr = 15 + hash(j * 2.2) * 7;
+      box(g, cx - 10, 0, 22, 3, shade); checker(g, cx - 12, 3, 26, 2, shade, 0, 1);
+      box(g, cx - 3, -th, 6, th, INK); box(g, cx - 2, -th, 4, th, B[3]); box(g, cx - 2, -th, 1, th, B[4]); box(g, cx + 1, -th, 1, th, B[1]);
+      const lumps: [number, number, number][] = [[0, 0, 1], [-0.7, 0.3, 0.7], [0.7, 0.25, 0.72], [-0.3, -0.5, 0.66], [0.35, -0.45, 0.6]];
+      for (const [dx, dy, k] of lumps) pixelBlob(g, cx + dx * cr, -th + dy * cr, cr * k + 1.5, cr * k * 0.85 + 1.5, INK);
+      for (const [dx, dy, k] of lumps) pixelBlob(g, cx + dx * cr, -th + dy * cr, cr * k, cr * k * 0.85, Hd[1]);
+      for (const [dx, dy, k] of lumps) pixelBlob(g, cx + dx * cr - 2, -th + dy * cr - 2, cr * k * 0.75, cr * k * 0.6, Hd[2]);
+      for (const [dx, dy, k] of lumps) pixelBlob(g, cx + dx * cr - cr * k * 0.3, -th + dy * cr - cr * k * 0.35, cr * k * 0.4, cr * k * 0.3, Hd[3]);
+      for (const [dx, dy, k] of lumps.slice(0, 3)) box(g, cx + dx * cr - cr * k * 0.4, -th + dy * cr - cr * k * 0.5, 2, 1, Hd[5]);
+      checker(g, cx - cr, -th + cr * 0.5, cr * 2, 4, Hd[0], 0, 2);
+      continue;
+    }
+    const long = hash(j * 7.9) > 0.5, w = long ? 56 + hash(j * 2.6) * 34 : 30 + hash(j * 2.6) * 22, h = 14 + hash(j * 5.2) * 20;
+    const bloom = s > 0.78 ? mix(['#F9A8D4', '#FDE68A', '#F4F1E8', '#FCA5A5'][j & 3], Hd[3], 0.22) : null;
+    leafMass(g, cx, w, h, bloom ? Hd.map(col => mix(col, '#3A5A2A', 0.15)) : Hd, j * 7 + 3, bloom, shade);
+  }
+};
+
 const floors = (c: Ctx, state: GameState, E: P) => {
   const cam = vL(state), camR = vR(state), Cc = NR(CONC), Al = NR(ALU), Dk = NR(DECK), G = DR(GRASS), Hd = DR(HEDGE);
   // (the bowl's far bank: grass in steps up to the rim, the hedge along its top in humps, lit up top)
@@ -438,6 +569,9 @@ const floors = (c: Ctx, state: GameState, E: P) => {
     const ground = (x: number) => {
       const rx = x - X(0);
       if (rx >= AISLE.a && rx < AISLE.b) return rowY(Math.min(ROWS - 1, Math.floor((rx - AISLE.a) / ROW_W)));
+      // (behind the stage steps it's the pit's floor that reaches the far side (the flight only goes back to its own
+      // depth): the bank came down to the treads' heights there, leaving a gap to the far off over the floor)
+      if (rx >= STEPS.a && rx < DECK_A) return PIT_Y;
       return treadAt(rx);
     };
     const top = (x: number) => proj(E, x, BANK_Y, dB), foot = (x: number) => proj(E, x, Math.max(BANK_Y + 2, ground(x) + 4), D_FAR + 0.002);
@@ -453,15 +587,25 @@ const floors = (c: Ctx, state: GameState, E: P) => {
       for (let i = xs.length - 1; i >= 0; i--) { const x = xs[i], t = top(x), f2 = foot(x); c.lineTo(t.x, t.y + (f2.y - t.y) * k1 + 1); }
       c.closePath(); c.fillStyle = col; c.fill();
     };
-    strip(0, 0.18, G[3]); strip(0.16, 0.5, G[2]); strip(0.48, 1, G[1]);
-    const p0 = top(l), p1 = top(r); checker(c, p0.x, p0.y + 2, p1.x - p0.x, 2, G[2], 0, 1);
-    for (let x = Math.floor(l / 36) * 36; x < r; x += 36) {
-      const p = top(x), rr = 11 + hash(x * 0.13) * 6;
-      c.fillStyle = INK; c.beginPath(); c.arc(p.x, p.y, rr + 1.5, Math.PI, 0); c.fill();
-      c.fillStyle = Hd[2]; c.beginPath(); c.arc(p.x, p.y, rr, Math.PI, 0); c.fill();
-      c.fillStyle = Hd[3]; c.beginPath(); c.arc(p.x - 2, p.y - 1, rr * 0.7, Math.PI, 0); c.fill();
-      box(c, p.x - rr * 0.5, p.y - rr * 0.75, 3, 2, Hd[5]);
-    }
+    // (the slope's face: one fill in the bank's tile (tonal bands, dithered, the grass's texture), anchored to the world
+    // at the bank's depth so it slides with it; a shadow along its foot where it meets the floors)
+    const pat = bankPattern(c, G);
+    pat.setTransform(new DOMMatrix([dB, 0, 0, dB, E.x * (1 - dB), E.y * (1 - dB) + BANK_Y * dB]));
+    strip(0, 1, pat as unknown as string);
+    c.beginPath();
+    xs.forEach((x, i) => { const f2 = foot(x); if (!i) c.moveTo(f2.x, f2.y - 5); else c.lineTo(f2.x, f2.y - 5); });
+    for (let i = xs.length - 1; i >= 0; i--) { const f2 = foot(xs[i]); c.lineTo(f2.x, f2.y + 1); }
+    c.closePath(); c.fillStyle = G[0]; c.globalAlpha = 0.45; c.fill(); c.globalAlpha = 1;
+    // (the hedges, shrubs and the odd tree along its lip: stamps on a world grid at the bank's depth)
+    const wl = E.x + (l - E.x) / dB, wr = E.x + (r - E.x) / dB;
+    atDepth(c, E, dB, () => {
+      const tod = timeOfDay().key;
+      for (let i = Math.floor((wl - X(0)) / HEDGE_SEG) - 1; i <= Math.floor((wr - X(0)) / HEDGE_SEG) + 1; i++) {
+        c.save(); c.translate(X(0) + i * HEDGE_SEG, BANK_Y);
+        stamp(c, `ct-am-hedge-${i}-${tod}`, -HEDGE_PAD, -HEDGE_TALL, HEDGE_SEG + HEDGE_PAD * 2, HEDGE_TALL + 10, g => paintHedgeSeg(g, i, G, Hd));
+        c.restore();
+      }
+    });
   }
   // (the concourse's paving: slabs in bands going back, the joints, gum, a stain, a drain)
   if (seen(state, E, X(-200), X(AISLE.a), 1)) {
@@ -512,6 +656,14 @@ const floors = (c: Ctx, state: GameState, E: P) => {
       for (let j = 0; j < 8; j++) { const p = proj(E, X(2000 + hash(j * 7.1) * 560), PIT_Y, 0.74 + hash(j * 2.9) * 0.24); c.fillStyle = 'rgba(150,100,30,0.28)'; c.beginPath(); c.ellipse(p.x, p.y, 16, 3, 0, 0, Math.PI * 2); c.fill(); gum(c, p.x + 20, p.y, '#2A2630'); }
     }
   }
+  // (the stage's side facing the bowl, going back: a lattice skirt gone gray (before the steps: they stand in front of it))
+  if (E.x < X(DECK_A)) {
+    side(c, E, X(DECK_A), PIT_Y, STAGE_Y, D_FAR, 1, '#2A2024');
+    c.strokeStyle = '#B8B0A4'; c.lineWidth = 1;
+    for (let k = 0; k < 16; k++) { const d = D_FAR + (k + 0.5) * ((1 - D_FAR) / 16); const p = proj(E, X(DECK_A), PIT_Y, d), q = proj(E, X(DECK_A), STAGE_Y + 8, d); c.beginPath(); c.moveTo(p.x, p.y); c.lineTo(q.x, q.y); c.stroke(); }
+    for (let k = 0; k < 16; k++) { const d0 = D_FAR + (k / 16) * (1 - D_FAR), d1 = D_FAR + ((k + 1) / 16) * (1 - D_FAR); const p = proj(E, X(DECK_A), PIT_Y - 4, d0), q = proj(E, X(DECK_A), STAGE_Y + 10, d1), r2 = proj(E, X(DECK_A), STAGE_Y + 10, d0), s2 = proj(E, X(DECK_A), PIT_Y - 4, d1); c.beginPath(); c.moveTo(p.x, p.y); c.lineTo(q.x, q.y); c.moveTo(r2.x, r2.y); c.lineTo(s2.x, s2.y); c.stroke(); }
+    const p0 = proj(E, X(DECK_A), STAGE_Y, D_FAR), p1 = proj(E, X(DECK_A), STAGE_Y, 1); c.strokeStyle = Dk[5]; c.lineWidth = 2; c.beginPath(); c.moveTo(p0.x, p0.y + 1); c.lineTo(p1.x, p1.y + 1); c.stroke();
+  }
   // (the stage steps: a plywood unit going back to its far side, each riser facing the bowl, each tread lit at its nose)
   { const n = STEPS.n, sw = (STEPS.b - STEPS.a) / n, rise = (PIT_Y - STAGE_Y) / n, Pl = NR(PLY), dS = 0.86;
     if (seen(state, E, X(STEPS.a), X(STEPS.b), 1)) for (let k = 0; k < n; k++) {
@@ -520,14 +672,7 @@ const floors = (c: Ctx, state: GameState, E: P) => {
       floorBands(c, E, x0, x2, y, 1, dS, [Pl[4], Pl[3], Pl[3]]);
       if (E.y < y) { back(c, E, x0 + 1, y, dS, 1, Pl[5]); back(c, E, x2 - 1, y, dS, 1, Pl[1]); }
     } }
-  // (the stage's front facing the bowl: a lattice skirt gone gray; its deck: boards, scuffed, spike and gaffer tape)
-  if (E.x < X(DECK_A)) {
-    side(c, E, X(DECK_A), PIT_Y, STAGE_Y, D_FAR, 1, '#2A2024');
-    c.strokeStyle = '#B8B0A4'; c.lineWidth = 1;
-    for (let k = 0; k < 16; k++) { const d = D_FAR + (k + 0.5) * ((1 - D_FAR) / 16); const p = proj(E, X(DECK_A), PIT_Y, d), q = proj(E, X(DECK_A), STAGE_Y + 8, d); c.beginPath(); c.moveTo(p.x, p.y); c.lineTo(q.x, q.y); c.stroke(); }
-    for (let k = 0; k < 16; k++) { const d0 = D_FAR + (k / 16) * (1 - D_FAR), d1 = D_FAR + ((k + 1) / 16) * (1 - D_FAR); const p = proj(E, X(DECK_A), PIT_Y - 4, d0), q = proj(E, X(DECK_A), STAGE_Y + 10, d1), r2 = proj(E, X(DECK_A), STAGE_Y + 10, d0), s2 = proj(E, X(DECK_A), PIT_Y - 4, d1); c.beginPath(); c.moveTo(p.x, p.y); c.lineTo(q.x, q.y); c.moveTo(r2.x, r2.y); c.lineTo(s2.x, s2.y); c.stroke(); }
-    const p0 = proj(E, X(DECK_A), STAGE_Y, D_FAR), p1 = proj(E, X(DECK_A), STAGE_Y, 1); c.strokeStyle = Dk[5]; c.lineWidth = 2; c.beginPath(); c.moveTo(p0.x, p0.y + 1); c.lineTo(p1.x, p1.y + 1); c.stroke();
-  }
+  // (the deck: boards, scuffed, spike and gaffer tape)
   if (seen(state, E, X(DECK_A), X(4200), 1) || seen(state, E, X(DECK_A), X(4200), D_FAR)) {
     floorBands(c, E, X(DECK_A), X(4200), STAGE_Y, 1, D_FAR, [Dk[4], Dk[3], Dk[3], Dk[2], Dk[2], Dk[1], Dk[0]]);
     if (E.y < STAGE_Y) {
@@ -568,15 +713,17 @@ const nearCut = (c: Ctx, state: GameState) => {
   const l = Math.max(X(-200), vL(state) - 40), r = Math.min(x1 + 200, vR(state) + 40), bot = vB(state) + 40;
   const Cc = NR(CONC), Wd = NR(DECK), P = NR(PLY);
   const da = X(STEPS.a);
-  // (the section: the step profile, filled down; banded under every tread, the form-tie dots)
+  // (the section: the ground's profile, filled down; banded under every tread, the form-tie dots. Under the stage steps
+  // and the stage it's the pit's floor (they stand on it; their own near faces go on top))
+  const cutAt = (x: number) => (x - X(0) >= STEPS.a ? PIT_Y : treadAt(x - X(0)));
   c.beginPath(); c.moveTo(l, bot);
-  for (let x = l; x <= r; x += 2) c.lineTo(x, treadAt(x - X(0)));
+  for (let x = l; x <= r; x += 2) c.lineTo(x, cutAt(x));
   c.lineTo(r, bot); c.closePath();
   c.fillStyle = concPattern(c, Cc); c.fill();
   c.save(); c.clip();
-  let px = l, py = treadAt(l - X(0));
-  const band = (x0: number, x2: number, y: number) => { const wood = x0 - X(0) >= STEPS.a; const R = wood ? P : Cc; box(c, x0, y + 4, x2 - x0, 8, R[3]); checker(c, x0, y + 12, x2 - x0, 2, R[3], 0, 1); box(c, x0, y + 14, x2 - x0, 14, R[2]); checker(c, x0, y + 28, x2 - x0, 2, R[2], 1, 1); };
-  for (let x = l + 2; x <= r + 2; x += 2) { const y = treadAt(x - X(0)); if (y !== py || x > r) { band(px, x, py); px = x; py = y; } }
+  let px = l, py = cutAt(l);
+  const band = (x0: number, x2: number, y: number) => { box(c, x0, y + 4, x2 - x0, 8, Cc[3]); checker(c, x0, y + 12, x2 - x0, 2, Cc[3], 0, 1); box(c, x0, y + 14, x2 - x0, 14, Cc[2]); checker(c, x0, y + 28, x2 - x0, 2, Cc[2], 1, 1); };
+  for (let x = l + 2; x <= r + 2; x += 2) { const y = cutAt(x); if (y !== py || x > r) { band(px, x, py); px = x; py = y; } }
   // (rain streaks down from the treads' lips, a patch of moss at the foot of some, a tag sprayed on one panel)
   for (let x = Math.floor(l / 64) * 64; x < Math.min(r, da); x += 64) {
     const k = hash(x * 0.37), y0 = treadAt(x - X(0)) + 14, len = 30 + k * 90;
@@ -584,22 +731,56 @@ const nearCut = (c: Ctx, state: GameState) => {
     if (k < 0.18) { const sy = y0 + 40; c.strokeStyle = 'rgba(200,60,120,0.55)'; c.lineWidth = 2; c.beginPath(); c.moveTo(x + 8, sy + 8); c.quadraticCurveTo(x + 14, sy - 4, x + 20, sy + 6); c.quadraticCurveTo(x + 26, sy + 12, x + 34, sy); c.stroke(); }
   }
   c.restore();
-  // (the stage's skirt: red, white and blue bunting along its front, the lattice under it)
+  // (the steps' and the stage's near faces, down to the pit's floor: the stringer under the treads (raw plywood, a
+  // diagonal board, screw heads), the stage's skirt (a lattice gone gray over the dark under it, the deck's rim, red,
+  // white and blue bunting), the lattice carried on under the stringer; a kick board along the floor)
   if (r > da) {
-    const s0 = Math.max(da, l);
-    box(c, s0, STAGE_Y + 2, r - s0, CANVAS_HEIGHT * 2, '#2A1E22');
-    for (let x = Math.floor(Math.max(X(DECK_A), l) / 14) * 14; x < r; x += 14) { c.strokeStyle = '#8A8478'; c.lineWidth = 1; c.beginPath(); c.moveTo(x, STAGE_Y + 20); c.lineTo(x + 30, STAGE_Y + 60); c.moveTo(x + 30, STAGE_Y + 20); c.lineTo(x, STAGE_Y + 60); c.stroke(); }
-    box(c, Math.max(X(DECK_A), l), STAGE_Y + 2, r - Math.max(X(DECK_A), l), 6, Wd[2]); box(c, Math.max(X(DECK_A), l), STAGE_Y + 8, r - Math.max(X(DECK_A), l), 1, INK);
-    for (let x = Math.max(X(DECK_A), Math.floor(l / 40) * 40); x < r; x += 40) {
-      const i = Math.floor((x - X(0)) / 40) % 3, col = ['#C83A3A', '#F4F1E8', '#2A4AC8'][i], dk = ['#8A1A1A', '#C8C0B0', '#1A2A8A'][i];
-      c.fillStyle = INK; c.beginPath(); c.moveTo(x, STAGE_Y + 8); c.quadraticCurveTo(x + 20, STAGE_Y + 30, x + 40, STAGE_Y + 8); c.closePath(); c.fill();
-      c.fillStyle = col; c.beginPath(); c.moveTo(x + 1, STAGE_Y + 9); c.quadraticCurveTo(x + 20, STAGE_Y + 28, x + 39, STAGE_Y + 9); c.closePath(); c.fill();
-      c.fillStyle = dk; c.beginPath(); c.moveTo(x + 8, STAGE_Y + 14); c.quadraticCurveTo(x + 20, STAGE_Y + 25, x + 32, STAGE_Y + 14); c.lineTo(x + 30, STAGE_Y + 17); c.quadraticCurveTo(x + 20, STAGE_Y + 22, x + 10, STAGE_Y + 17); c.closePath(); c.fill();
-      box(c, x - 2, STAGE_Y + 7, 4, 4, NR(BRASS)[4]);
+    const s0 = Math.max(da, l), dk = X(DECK_A), n = STEPS.n, sw = (STEPS.b - STEPS.a) / n, rise = (PIT_Y - STAGE_Y) / n;
+    // (the stringer's underside: from the foot of the first riser up to the deck's rim)
+    const under = (x: number) => Math.min(PIT_Y, PIT_Y + 2 - ((x - da) / (dk - da)) * (PIT_Y - STAGE_Y - 14) + 4);
+    c.beginPath(); c.moveTo(s0, PIT_Y);
+    for (let x = s0; x <= r; x += 2) c.lineTo(x, treadAt(x - X(0)) + 3);
+    c.lineTo(r, PIT_Y); c.closePath();
+    c.fillStyle = '#2A1E22'; c.fill();
+    c.save(); c.clip();
+    // (the lattice: diagonal slats both ways, anchored to the world, lit down one edge)
+    const L0 = '#5E584E', L1 = '#8A8478', L2 = '#B8B0A4', H = PIT_Y - STAGE_Y;
+    c.lineWidth = 3; c.strokeStyle = L0; c.beginPath();
+    for (let x = Math.floor((s0 - H) / 16) * 16; x < r + 16; x += 16) { c.moveTo(x, STAGE_Y); c.lineTo(x + H, PIT_Y); c.moveTo(x + H, STAGE_Y); c.lineTo(x, PIT_Y); }
+    c.stroke(); c.lineWidth = 1; c.strokeStyle = L1; c.stroke();
+    c.strokeStyle = L2; c.beginPath();
+    for (let x = Math.floor((s0 - H) / 16) * 16; x < r + 16; x += 16) { c.moveTo(x - 1, STAGE_Y); c.lineTo(x + H - 1, PIT_Y); }
+    c.stroke();
+    // (the stringer: a plywood board along the flight, the treads' notches cut out of its top)
+    if (s0 < dk) {
+      c.beginPath(); c.moveTo(da, PIT_Y);
+      for (let k = 0; k < n; k++) { const x = da + k * sw, y = PIT_Y - (k + 1) * rise; c.lineTo(x, y + 3); c.lineTo(x + sw, y + 3); }
+      c.lineTo(dk, under(dk)); c.lineTo(da, under(da)); c.closePath();
+      c.fillStyle = P[3]; c.fill();
+      c.save(); c.clip();
+      for (let k = 0; k < n; k++) { const x = da + k * sw, y = PIT_Y - (k + 1) * rise; box(c, x, y + 3, sw, 3, P[4]); box(c, x + sw - 3, y + 3, 3, rise, P[2]); }
+      c.strokeStyle = P[2]; c.lineWidth = 3; c.beginPath(); c.moveTo(da, under(da) - 1); c.lineTo(dk, under(dk) - 1); c.stroke();
+      c.strokeStyle = P[5]; c.lineWidth = 1; c.beginPath(); c.moveTo(da + 4, under(da) - 10); c.lineTo(dk, under(dk) - 10); c.stroke();
+      for (let k = 0; k < n; k++) { const x = da + k * sw + sw * 0.5, y = (treadAt(x - X(0)) + under(x)) / 2; box(c, x - 1, y, 2, 2, P[0]); box(c, x + 6, y + 3, 2, 2, P[0]); }
+      c.restore();
+      c.strokeStyle = INK; c.lineWidth = 2; c.beginPath(); c.moveTo(da, under(da) + 1); c.lineTo(dk, under(dk) + 1); c.stroke();
     }
-    // (the stage steps' stringer: raw plywood, screw heads)
-    const sa = Math.max(da, l), sb = Math.min(X(DECK_A), r);
-    if (sb > sa) for (let x = sa; x < sb; x += 2) { const y = treadAt(x - X(0)); box(c, x, y + 4, 2, STAGE_Y + 2 - y - 4 + 60, P[2]); if ((x - X(0)) % 32 === 0) box(c, x, y + 8, 2, 2, P[0]); }
+    c.restore();
+    // (the deck's rim and the bunting along it)
+    const ds = Math.max(dk, l);
+    if (r > ds) {
+      box(c, ds, STAGE_Y + 2, r - ds, 6, Wd[2]); box(c, ds, STAGE_Y + 8, r - ds, 1, INK);
+      for (let x = Math.max(dk, Math.floor(l / 40) * 40); x < r; x += 40) {
+        const i = Math.floor((x - X(0)) / 40) % 3, col = ['#C83A3A', '#F4F1E8', '#2A4AC8'][i], dkc = ['#8A1A1A', '#C8C0B0', '#1A2A8A'][i];
+        c.fillStyle = INK; c.beginPath(); c.moveTo(x, STAGE_Y + 8); c.quadraticCurveTo(x + 20, STAGE_Y + 30, x + 40, STAGE_Y + 8); c.closePath(); c.fill();
+        c.fillStyle = col; c.beginPath(); c.moveTo(x + 1, STAGE_Y + 9); c.quadraticCurveTo(x + 20, STAGE_Y + 28, x + 39, STAGE_Y + 9); c.closePath(); c.fill();
+        c.fillStyle = dkc; c.beginPath(); c.moveTo(x + 8, STAGE_Y + 14); c.quadraticCurveTo(x + 20, STAGE_Y + 25, x + 32, STAGE_Y + 14); c.lineTo(x + 30, STAGE_Y + 17); c.quadraticCurveTo(x + 20, STAGE_Y + 22, x + 10, STAGE_Y + 17); c.closePath(); c.fill();
+        box(c, x - 2, STAGE_Y + 7, 4, 4, NR(BRASS)[4]);
+      }
+      box(c, dk - 1, STAGE_Y, 2, PIT_Y - STAGE_Y, INK);
+    }
+    // (the kick board along the floor, the floor's line)
+    box(c, s0, PIT_Y - 5, r - s0, 5, P[1]); box(c, s0, PIT_Y - 5, r - s0, 1, P[3]); box(c, s0, PIT_Y, r - s0, 1, INK);
   }
   // (every tread's lit top, its front edge dark; the aisle's noses yellow)
   let qx = l, qy = treadAt(l - X(0));
