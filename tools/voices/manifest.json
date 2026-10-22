@@ -236,6 +236,11 @@
  },
  {
   "voice": "announcer",
+  "text": "BEAR HUGGED!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "BEATEN SENSELESS!",
   "from": "GRAB_CALLOUTS"
  },
@@ -337,6 +342,11 @@
  {
   "voice": "announcer",
   "text": "BONKED!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "BOOT PRINTED!",
   "from": "GRAB_CALLOUTS"
  },
  {
@@ -593,6 +603,11 @@
   "voice": "announcer",
   "text": "CURB STOMP!",
   "from": "SURFACE_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "CURB STOMPED!",
+  "from": "GRAB_CALLOUTS"
  },
  {
   "voice": "announcer",
@@ -996,6 +1011,11 @@
  },
  {
   "voice": "announcer",
+  "text": "GLASGOW KISS!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "GLASS JAW!",
   "from": "KILL_CALLOUTS"
  },
@@ -1106,6 +1126,11 @@
  },
  {
   "voice": "announcer",
+  "text": "GUT CHECKED!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "HAMBURGERED!",
   "from": "GRAB_CALLOUTS"
  },
@@ -1147,6 +1172,16 @@
  {
   "voice": "announcer",
   "text": "HEAD FIRST!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "HEAD STOMPED!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "HEADBUTTED!",
   "from": "GRAB_CALLOUTS"
  },
  {
@@ -1236,6 +1271,11 @@
  },
  {
   "voice": "announcer",
+  "text": "HUGGED TO DEATH!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "HULL CHECK!",
   "from": "KILL_CALLOUTS"
  },
@@ -1321,6 +1361,21 @@
  },
  {
   "voice": "announcer",
+  "text": "KNEE DEEP!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "KNEED TO DEATH!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "KNEED!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "KNIGHT KNIGHT!",
   "from": "FANTASY"
  },
@@ -1381,6 +1436,11 @@
  },
  {
   "voice": "announcer",
+  "text": "LIGHTS OUT!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "LIKE HITTING CONCRETE!",
   "from": "SURFACE_CALLOUTS"
  },
@@ -1428,6 +1488,11 @@
   "voice": "announcer",
   "text": "LOVE STINKS!",
   "from": "FANTASY"
+ },
+ {
+  "voice": "announcer",
+  "text": "LOVED TO DEATH!",
+  "from": "GRAB_CALLOUTS"
  },
  {
   "voice": "announcer",
@@ -1643,6 +1708,11 @@
   "voice": "announcer",
   "text": "NUMBER DOWN!",
   "from": "CARTOON"
+ },
+ {
+  "voice": "announcer",
+  "text": "NUTTED!",
+  "from": "GRAB_CALLOUTS"
  },
  {
   "voice": "announcer",
@@ -2166,6 +2236,16 @@
  },
  {
   "voice": "announcer",
+  "text": "SKULL CRACKED!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "SKULL PANCAKE!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "SKY HIGH!",
   "from": "KILL_CALLOUTS"
  },
@@ -2331,6 +2411,11 @@
  },
  {
   "voice": "announcer",
+  "text": "SQUEEZED!",
+  "from": "GRAB_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
   "text": "SQUISHED!",
   "from": "KILL_CALLOUTS"
  },
@@ -2353,6 +2438,11 @@
   "voice": "announcer",
   "text": "STEAMROLLED!",
   "from": "KILL_CALLOUTS"
+ },
+ {
+  "voice": "announcer",
+  "text": "STOMPED FLAT!",
+  "from": "GRAB_CALLOUTS"
  },
  {
   "voice": "announcer",
@@ -2728,6 +2818,11 @@
   "voice": "announcer",
   "text": "WIG SPLIT!",
   "from": "CARTOON"
+ },
+ {
+  "voice": "announcer",
+  "text": "WINDED FOREVER!",
+  "from": "GRAB_CALLOUTS"
  },
  {
   "voice": "announcer",
@@ -41701,6 +41796,16 @@
  },
  {
   "voice": "m2.gman",
+  "text": "Can't reach me up here! Stop jumping! It flaps!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gman",
+  "text": "Can't smell you up here! Barely!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gman",
   "text": "Crawl! Crawl like your pension depends on it!",
   "from": "GYM"
  },
@@ -41747,6 +41852,16 @@
  {
   "voice": "m2.gman",
   "text": "Get him a diaper! Government issue!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gman",
+  "text": "Get off! It's in the padding now!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gman",
+  "text": "Get off! Something's slapping my face!",
   "from": "GYM"
  },
  {
@@ -41816,7 +41931,27 @@
  },
  {
   "voice": "m2.gman",
+  "text": "I'm fine. I'll never be fine.",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gman",
+  "text": "I'm fine. The padding's getting burned.",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gman",
+  "text": "Jetpack, baby! Above the stink!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gman",
   "text": "Jetpack, baby! Come and get me!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gman",
+  "text": "Jetpack, baby! Great view! Horrible view!",
   "from": "GYM"
  },
  {
@@ -41851,7 +41986,27 @@
  },
  {
   "voice": "m2.gman",
+  "text": "Off! You're leaking on me!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gman",
+  "text": "Off! Your balls are on my chest pad!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gman",
+  "text": "Okay, big guy. We're padded. Not for that smell, though.",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gman",
   "text": "Okay, big guy. We're padded. Show us the new stuff.",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gman",
+  "text": "Okay, big guy. We're padded. You are not. At all.",
   "from": "GYM"
  },
  {
@@ -41861,7 +42016,17 @@
  },
  {
   "voice": "m2.gman",
+  "text": "Ow. And now I smell like you.",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gman",
   "text": "Ow. Good one.",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gman",
+  "text": "Ow. I saw everything on the way down.",
   "from": "GYM"
  },
  {
@@ -41911,6 +42076,16 @@
  },
  {
   "voice": "m2.gman",
+  "text": "Tap! I tap! Oh God, it's warm!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gman",
+  "text": "Tap! I tap! Put it away!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gman",
   "text": "Tap! I tapped! Get off!",
   "from": "GYM"
  },
@@ -41926,12 +42101,32 @@
  },
  {
   "voice": "m2.gman",
+  "text": "That's everything. Exit's that way. Please, God, use it.",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gman",
+  "text": "That's everything. Exit's that way. Your pants aren't.",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gman",
   "text": "Time! Get off me!",
   "from": "GYM"
  },
  {
   "voice": "m2.gman",
   "text": "Wait! All-day pass! Happy Land!",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gman",
+  "text": "Wait! All-day pass! Happy Land! Don't ask where I kept it. Don't put it anywhere.",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gman",
+  "text": "Wait! All-day pass! Happy Land! Take it by the corner! Don't touch me!",
   "from": "GYM"
  },
  {
@@ -42081,7 +42276,22 @@
  },
  {
   "voice": "m2.gmanf",
+  "text": "Put something on, asset. Your balls are on my shoe.",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gmanf",
   "text": "Sign here. Officially you're rotting in Guantanamo, so sign it Guantanamo.",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gmanf",
+  "text": "Sir, you've soiled yourself. Again. On government time.",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gmanf",
+  "text": "Sit on the trash bags. That upholstery is government property.",
   "from": "GYM"
  },
  {
@@ -42132,6 +42342,11 @@
  {
   "voice": "m2.gmanf",
   "text": "That's not how glasses work.",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gmanf",
+  "text": "Towel on the seat. That upholstery is government property.",
   "from": "GYM"
  },
  {
@@ -58637,6 +58852,16 @@
  {
   "voice": "meathead",
   "text": "A TRUCK?! FOR ME?!",
+  "from": "GYM"
+ },
+ {
+  "voice": "meathead",
+  "text": "A TRUCK?! FOR ME?! I ALREADY WENT, SO NO STOPS!",
+  "from": "GYM"
+ },
+ {
+  "voice": "meathead",
+  "text": "A TRUCK?! FOR ME?! I'M DRIVING NAKED!",
   "from": "GYM"
  },
  {
