@@ -20,11 +20,13 @@ import { M2_PUBLIC } from '../build';
 // confirm and back: swapped on a Nintendo pad). The cheats build saves nothing (as Meathead 1's doesn't): no CONTINUE, no
 // file select; START GAME is NO SAVE.
 
-type Kind = 'continue' | 'new' | 'options' | 'quit';
+type Kind = 'continue' | 'new' | 'hub' | 'options' | 'quit';
 interface TitleOption { label: string; kind: Kind }
 const titleOptions = (hasFile: boolean): TitleOption[] => [
   ...(hasFile ? [{ label: 'CONTINUE', kind: 'continue' as const }] : []),
   { label: 'START GAME', kind: 'new' },
+  // (the cheats build only: straight onto the hub)
+  ...(!M2_PUBLIC ? [{ label: 'SKIP TO HUB', kind: 'hub' as const }] : []),
   { label: 'OPTIONS', kind: 'options' },
   ...(isDesktop ? [{ label: 'QUIT GAME', kind: 'quit' as const }] : []),
 ];
@@ -35,7 +37,9 @@ const TitleScreen: React.FC<{
   onNew: (slot: Slot | null) => void;
   /** Carrying on with a file. */
   onContinue: (slot: Slot) => void;
-}> = ({ onNew, onContinue }) => {
+  /** (the cheats build) Straight onto the hub, NO SAVE. */
+  onHub?: () => void;
+}> = ({ onNew, onContinue, onHub }) => {
   const filesV = useSyncExternalStore(subscribeFiles, filesVersion, filesVersion);
   const options = React.useMemo(() => titleOptions(!!M2_PUBLIC && anyFile()), [filesV]);
   const [sel, setSel] = useState(0);
@@ -90,6 +94,7 @@ const TitleScreen: React.FC<{
     if (o.kind === 'quit') { setQuitAsk(1); return; }
     if (locked) return;
     if (o.kind === 'continue') { const slot = latestSlot(); if (slot) { playMenuOk(); onContinue(slot); } return; }
+    if (o.kind === 'hub') { if (onHub) { playMenuOk(); onHub(); } return; }
     // (the cheats build: straight in, NO SAVE)
     if (!M2_PUBLIC) { playMenuOk(); onNew(null); return; }
     playMenuOk();

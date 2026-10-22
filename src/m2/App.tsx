@@ -251,6 +251,13 @@ const App2: React.FC = () => {
     pending.current = HUB_STAGE;
     setTitle(false);
   };
+  /** (the cheats build's SKIP TO HUB on the title: NO SAVE, straight onto the hub, past the gym and the way in) */
+  const startAtHub = () => {
+    playOnFile(null);
+    setHubStart(AMERICA_SLOT);
+    pending.current = HUB_STAGE;
+    setTitle(false);
+  };
   /** QUIT, from the pause menu (asked first): the file keeps what it had at the last safe point, just the time played
    *  goes on it; and back to the title, everything as it was when the page opened. */
   const quitToTitle = () => { closeFile(); location.reload(); };
@@ -813,7 +820,7 @@ const App2: React.FC = () => {
           <div className="absolute left-1/2 top-[40%] -translate-x-1/2 z-40 px-4 py-3 text-[12px] text-yellow-300 bg-black/85 border-2 border-yellow-500">{ui.notice.text}</div>
         )}
         <div className="absolute inset-0 z-50 bg-black pointer-events-none transition-opacity duration-200" style={{ opacity: fade || status === GameStatus.START ? 1 : 0 }} />
-        {title && <TitleScreen onNew={startNew} onContinue={continueFile} />}
+        {title && <TitleScreen onNew={startNew} onContinue={continueFile} onHub={startAtHub} />}
       </div>
     </div>
   );
