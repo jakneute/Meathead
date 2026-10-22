@@ -122,7 +122,7 @@ export const PICKUPS: [number, number, 'small_health' | 'small_ammo'][] = [
 
 /** PA horns (on poles): [x]. Steve's standees and posters: [x, kind]. */
 export const SPEAKERS = [300, 1450, 3050, 4750, 6600, 8000];
-export const STEVES: [number, 'standee' | 'poster'][] = [[760, 'standee'], [1380, 'poster'], [2100, 'poster'], [2980, 'standee'], [4500, 'standee'], [5350, 'poster'], [6250, 'poster'], [6580, 'standee'], [7400, 'poster'], [7980, 'standee'], [8650, 'poster']];
+export const STEVES: [number, 'standee' | 'poster'][] = [[760, 'standee'], [1380, 'poster'], [2100, 'poster'], [2980, 'standee'], [4500, 'standee'], [5350, 'poster'], [6250, 'poster'], [6580, 'standee'], [7400, 'poster'], [7900, 'standee'], [8650, 'poster']];
 /** The guests reading the leaked pages: [x, seed]. */
 export const READERS: [number, number][] = [[880, 41], [960, 44], [1100, 47], [3120, 52], [4560, 55], [6620, 58], [7950, 61]];
 
