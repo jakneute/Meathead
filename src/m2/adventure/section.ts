@@ -163,6 +163,9 @@ export const label = (c: Ctx, s: string, x: number, y: number, col = '#FFFFFF', 
   c.textAlign = 'left';
 };
 /** Words over somebody's head, wrapped (only while they're said). */
+/** The HUD's corner as the words see it: Meathead 2's panel runs taller than HUD_CLEAR_Y (a third line under the
+ *  weapon (MANA, BULK UP), its drop shadow), so the words keep clear of all of it. */
+const SAY_HUD_X = HUD_CLEAR_X + 12, SAY_HUD_Y = HUD_CLEAR_Y + 30;
 export const saidOver = (c: Ctx, s: string, x: number, y: number, col = '#FFFFFF', wide = 240) => {
   c.font = '7px "Press Start 2P"';
   const words = s.split(' '), lines: string[] = [];
@@ -179,6 +182,9 @@ export const saidOver = (c: Ctx, s: string, x: number, y: number, col = '#FFFFFF
     const L = -m.e / m.a, R = (c.canvas.width - m.e) / m.a, T = -m.f / m.d;
     const half = (Math.max(...lines.map(l => c.measureText(l).width)) / 2 + 6) / z, up = ((lines.length - 1) * 11 + 9) / z;
     x = Math.min(Math.max(x, L + half), R - half); y = Math.max(y, T + 6 / z + up);
+    // (and out from under the HUD, pushed in or not)
+    const hudR = (SAY_HUD_X * k - m.e) / m.a, hudB = (SAY_HUD_Y * k - m.f) / m.d;
+    if (x - half < hudR && y - up < hudB) y = hudB + 4 / z + up;
     c.save(); c.translate(x, y); c.scale(1 / z, 1 / z);
     lines.forEach((l, i) => label(c, l, 0, -(lines.length - 1 - i) * 11, col, 7));
     c.restore();
@@ -189,7 +195,7 @@ export const saidOver = (c: Ctx, s: string, x: number, y: number, col = '#FFFFFF
     const L = -m.e / m.a, R = (c.canvas.width - m.e) / m.a, T = -m.f / m.d;
     x = Math.min(Math.max(x, L + half), R - half);
     let dy = Math.max(0, T + 6 - top);
-    const hudR = (HUD_CLEAR_X * k - m.e) / m.a, hudB = (HUD_CLEAR_Y * k - m.f) / m.d;
+    const hudR = (SAY_HUD_X * k - m.e) / m.a, hudB = (SAY_HUD_Y * k - m.f) / m.d;
     if (x - half < hudR && top + dy < hudB) dy = hudB + 4 - top;
     y += dy;
   }

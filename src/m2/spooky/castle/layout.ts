@@ -69,7 +69,8 @@ export const LADDER_DEFS: { x: number; top: number; bottom: number; ledge: { x: 
   { x: LIB + 690, top: GY + 300 - 640, bottom: GY + 300 - 340, ledge: { x: LIB + 640, y: GY + 300 - 640 } },
   { x: LIB + 700, top: GY + 300 - 820, bottom: GY + 300 - 640, ledge: { x: LIB + 800, y: GY + 300 - 820 } },
   { x: LIB + 1270, top: GY + 300 - 1000, bottom: GY + 300 - 820, ledge: { x: LIB + 1330, y: GY + 300 - 1000 } },
-  { x: X(8660), top: GY - 1000, bottom: GY - 700, ledge: { x: X(8740), y: GY - 1000 } },
+  // (up against the nursery floor's end, its rails flush with the stone: not hanging off on its own beside it)
+  { x: X(8686), top: GY - 1000, bottom: GY - 700, ledge: { x: X(8740), y: GY - 1000 } },
 ];
 
 /** The stoves (solid counters, burners on top): x, w. Their top. */
