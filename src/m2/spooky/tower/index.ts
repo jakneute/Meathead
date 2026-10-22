@@ -133,7 +133,8 @@ const beamsBefore = (cp: number) => (cp >= 45 ? BEAMS.length : cp >= 44 ? 6 : cp
 const CPS: SpookySection['checkpoints'] = [
   { name: 'THE LOADING BAY', cp: 40, x: x0 + 200, y: GY },
   { name: 'THE CLOCK TOWER', cp: 41, x: TX0 + 80, y: GY },
-  { name: 'THE PENDULUM', cp: 42, x: U(210), y: F(2) },
+  // (left of the pendulum's sweep (U 225 on): not under the end of its swing)
+  { name: 'THE PENDULUM', cp: 42, x: U(180), y: F(2) },
   { name: 'THE TOWER, FLOOR 5', cp: 43, x: U(220), y: F(4) },
   { name: 'THE CLOCK ROOM', cp: 44, x: U(205), y: TOP },
   { name: 'THE WAY DOWN', cp: 45, x: U(300), y: TOP },

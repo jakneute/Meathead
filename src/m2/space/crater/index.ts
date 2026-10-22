@@ -88,7 +88,8 @@ export const crater: SpaceSection = {
     { name: 'XENOSCARE', cp: 61, x: FACADE_X - 520, y: GY },
     { name: 'THE TELEPORTER', cp: AFTER_PRESHOW_CP, x: PRESHOW.r + 90, y: GY },
     { name: 'THE SPECIMEN BAY', cp: 63, x: HALLS.specimen.l + 90, y: GY },
-    { name: 'THE ENGINE ROOM', cp: 64, x: HALLS.engine.l + 70, y: GY },
+    // (up on the first crate, out of the tram's way: its run starts right at the hall's door)
+    { name: 'THE ENGINE ROOM', cp: 64, x: CRATES[0][0] + CRATES[0][1] / 2, y: GY - CRATES[0][2] },
   ],
   build: (state) => {
     // The ground: the furrow, the bowl (down, its floor, up), the lawns and walks; XENOSCARE's floor

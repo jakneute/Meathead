@@ -158,7 +158,8 @@ export const CHECKPOINTS = [
   { name: 'THE STATE DINING ROOM', cp: 23, x: X(5050), y: GY },
   { name: 'THE GRAND STAIRCASE', cp: 24, x: X(6450), y: GY },
   { name: 'THE LINCOLN BEDROOM', cp: 25, x: X(8390), y: Y(F2) },
-  { name: 'THE ROSE GARDEN', cp: 26, x: X(10820), y: GY },
+  // (short of the first rose bush (10790-10890): not stood in its thorns)
+  { name: 'THE ROSE GARDEN', cp: 26, x: X(10700), y: GY },
 ];
 
 /** The transformation goes off as he's in this far (the first time). */

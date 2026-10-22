@@ -7,6 +7,7 @@ import type { GameState } from '../m1/game/core/state';
 import type { Enemy } from '../m1/types';
 import { isMidBoss } from '../m1/game/combat/midBoss';
 import { CANVAS_WIDTH } from '../m1/constants';
+import { startSafe, tickSafe } from './spawnSafe';
 
 /** How far past the screen's edges (each side) the cast are awake. */
 const AWAKE = 700;
@@ -21,6 +22,8 @@ const keepsAwake = (e: Enemy) => e.type === 'boss' || isMidBoss(e) || !!e.innoce
 /** After the stage is built and he's put where he starts: everybody not near him goes to sleep. */
 export const sleepFar = (state: GameState) => {
   if (!state.stage) return;
+  // (and a safe start: nobody on the checkpoint he's just been put at (spawnSafe.ts))
+  startSafe(state);
   const pool: Enemy[] = [];
   state.enemies = state.enemies.filter(e => { if (keepsAwake(e) || near(state, e)) return true; pool.push(e); return false; });
   POOLS.set(state.stage as object, pool);
@@ -28,6 +31,8 @@ export const sleepFar = (state: GameState) => {
 
 /** Each frame: whoever's come near wakes, where they were placed. */
 export const wakeNear = (state: GameState) => {
+  // (the safe start's grace (spawnSafe.ts): run here, every land's every frame)
+  tickSafe(state);
   const pool = state.stage ? POOLS.get(state.stage as object) : undefined;
   if (!pool || !pool.length) return;
   for (let i = pool.length - 1; i >= 0; i--) {

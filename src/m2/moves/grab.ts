@@ -21,6 +21,7 @@
 // pitched; the big ones and the bosses can't be got hold of (the lunge stops dead against them, the hands close on air).
 // Swimming, or hanging off a vine, it's only the one-handed kind (no floor to slam anybody into).
 
+import { spawnShielded } from '../spawnSafe';
 import { pickLine } from '../../m1/game/platform/speech';
 import type { FrameContext } from '../../m1/game/core/context';
 import type { GameState } from '../../m1/game/core/state';
@@ -760,7 +761,8 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
   p.airGrab = g.phase === 'awind' || g.phase === 'alunge' || g.phase === 'aarc';
   // (the whole air grab: nothing hurts him; and a moment after it, bumping into whoever's there doesn't either (the one
   // he slammed, still alive, at his feet))
-  p.untouchable = p.airGrab;
+  // (or just back at a checkpoint, still on the spot: spawnSafe.ts's grace)
+  p.untouchable = p.airGrab || spawnShielded(state);
   if (wasAir && !p.airGrab) p.noContactUntil = state.frame + AIR_CONTACT_GRACE;
   const press = (k: keyof Controls) => !!controls[k] && !was[k];
   if (state.deathTimer > 0 || p.health <= 0) { if (g.phase !== 'idle') letGo(state, g); return controls; }

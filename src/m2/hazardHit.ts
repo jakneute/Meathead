@@ -35,6 +35,12 @@ const live = (state: GameState, e?: Enemy) => {
 };
 /** Every live zone (dev: the spawn check). */
 export const hazardZones = (state: GameState) => live(state);
+/** Whose live zones overlap a box (dev: spawnSafe.ts's check that no checkpoint sits in a hazard). */
+export const hazardOwnersIn = (state: GameState, x: number, y: number, w: number, h: number) => {
+  const out: string[] = [];
+  for (const [owner, z] of zones) if (Math.abs(state.frame - z.at) <= 3 && z.list.some(q => overlaps(q, x, y, w, h))) out.push(owner);
+  return out;
+};
 const overlaps = (z: Zone, x: number, y: number, w: number, h: number) => x + w > z.x0 && x < z.x1 && y + h > z.y0 && y < z.y1;
 /** Would `e` at (x, y) be in a hazard's way? */
 export const inHazard = (state: GameState, e: Enemy, x = e.pos.x, y = e.pos.y) => live(state, e).some(z => overlaps(z, x, y, e.width, e.height));

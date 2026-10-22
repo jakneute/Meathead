@@ -168,8 +168,9 @@ export const PICKUPS: [number, number, 'small_health' | 'small_ammo'][] = [
 export const CHECKPOINTS = [
   { name: 'PUNCHY & KICKY', cp: 50, x: X(200), y: GY },
   { name: 'THE MERCH STAND', cp: 51, x: X(2340), y: GY },
-  { name: 'THE GENERIC-CO DOCK', cp: 52, x: X(4280), y: GY },
-  { name: 'CANNON ROW', cp: 53, x: X(5460), y: GY },
+  // (52, 53: clear of the punching crates' reach (they go off at anybody within 180 of them, right as he's back))
+  { name: 'THE GENERIC-CO DOCK', cp: 52, x: X(4180), y: GY },
+  { name: 'CANNON ROW', cp: 53, x: X(5600), y: GY },
   { name: 'THE FUSE', cp: 54, x: X(6500), y: GY },
   { name: 'THE PAINTED CANYON', cp: 55, x: X(7280), y: GY },
   { name: 'THE SET', cp: 56, x: X(8640), y: GY },
