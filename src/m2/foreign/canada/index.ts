@@ -64,10 +64,16 @@ const LOG_EVERY = 210, LOG_SLIDE = 90, LOG_G = 0.7;
 
 const ENEMIES: [string, number, number][] = [
   // (none stood down in the narrow gap between the log piles and the poles: up on the high pile instead)
-  ['m2:fl_lumberjack', 450, 90], ['m2:fl_hockey', 580, 140], ['m2:fl_hockey', 870, 240], ['m2:fl_lumberjack', 1070, 80],
-  ['m2:fl_moose', 1720, 0], ['m2:fl_lumberjack', 1880, 0],
+  // (the camp's way in by CANADA's checkpoint clear) a hockey player on the high pile, a lumberjack on the first carved
+  // pole, a hockey player on the tallest
+  ['m2:fl_hockey', 580, 140], ['m2:fl_lumberjack', 730, 160], ['m2:fl_hockey', 870, 240],
+  // the pond's far bank: a lumberjack right at the edge where the logs come in (chop off the log; shove him in), the
+  // moose behind; a lumberjack out on a ledge across the falls (the flume's logs come down on the cast too)
+  ['m2:fl_lumberjack', 1640, 0], ['m2:fl_moose', 1720, 0], ['m2:fl_lumberjack', 2010, 390],
   ['m2:fl_hockey', 2240, 520],
-  ['m2:fl_mountie', 2380, TOP], ['m2:fl_hockey', 2560, TOP], ['m2:fl_hockey', 2760, TOP], ['m2:fl_moose', 2910, TOP],
+  // the rink, past THE RINK's checkpoint's reach: the Mountie and two hockey players at the far boards (the pucks off
+  // the boards), the moose past them
+  ['m2:fl_mountie', 2720, TOP], ['m2:fl_hockey', 2770, TOP], ['m2:fl_hockey', 2820, TOP], ['m2:fl_moose', 2910, TOP],
   ['m2:fl_lumberjack', 3150, 520], ['m2:fl_mountie', 3470, 0], ['m2:fl_moose', 3540, 0],
 ];
 const PICKUPS: [number, number, 'small_health' | 'small_ammo'][] = [[2225, 780, 'small_health'], [2650, TOP, 'small_ammo']];

@@ -45,10 +45,13 @@ const HILL = { a: 4560, top: 4800, b: 5020, end: 5360, h: 380 } as const;
 const SHACK = { a: 4840, b: 4960, h: 470 } as const;
 
 const ENEMIES: [string, number, number][] = [
-  ['m2:fl_lumberjack', 3660, 0],
-  ['m2:fl_hockey', 3820, 0], ['m2:fl_hockey', 4060, 0], ['m2:fl_hockey', 4410, 0],
-  ['m2:fl_moose', 4510, 0],
-  ['m2:fl_mountie', 4870, HILL.h], ['m2:fl_lumberjack', 4990, HILL.h],
+  // (THE FROZEN POND's checkpoint's bank clear) on the ice's thick panels: a hockey player, a lumberjack between the
+  // thin ones (shove him onto one), a hockey player at the far end
+  ['m2:fl_hockey', 4060, 0], ['m2:fl_lumberjack', 4205, 0], ['m2:fl_hockey', 4410, 0],
+  // the hill (THE TOBOGGAN HILL's checkpoint's foot clear): the Mountie and a lumberjack on top, a hockey player on the
+  // sugar shack's roof with the health, a moose and a hockey player down the chute (the antlers: no dive kicks onto it)
+  ['m2:fl_mountie', 4870, HILL.h], ['m2:fl_hockey', 4900, SHACK.h], ['m2:fl_lumberjack', 4990, HILL.h],
+  ['m2:fl_moose', 5100, Math.round(HILL.h * (1 - (5100 - HILL.b) / (HILL.end - HILL.b)))],
   ['m2:fl_hockey', 5200, Math.round(HILL.h * (1 - (5200 - HILL.b) / (HILL.end - HILL.b)))],
   ['m2:fl_moose', 5390, 0],
 ];

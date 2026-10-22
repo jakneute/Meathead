@@ -823,3 +823,62 @@ section before. replace them with something else." None of the helicopter's nine
 - The arena's gate stands shut in the left tower's doorway (a wall) till he walks up to it and kicks it in (his
   standing kick, ~0.5 s, controls held; the pose counted down there); it goes over flat onto the slab and lies there
   through the fight and on revisits. In the fight the way back is shut by the fight's own invisible wall.
+
+### 2026-10-21: encounter pass (the user: "some areas seem like they can be mindlessly cleared by walking forward and pressing fire")
+
+Existing kinds, ledges and hazards only; about the same counts (two fewer in all); the helicopter, Harry, the toll
+gang, the dragon's own make-up and every set piece's timing untouched. The pavilions' checkpoints sit close together,
+and a lot of the cast stood inside a checkpoint's safe reach ahead of it (spawnSafe.ts: 360 either side, 260 up/down;
+gone on a start there): everybody's out of that now (a guard stood at attention is harmless, so it's spared and stays),
+mostly by going UP (the safe box is only 260 tall). Two checkpoints moved instead, where a set piece stood in one's
+reach: CHINA: THE SECOND RIDGE (from the dip, 4930, up to the pagoda's flat, 4600: the second dragon sat inside it)
+and FRANCE: THE CABARET (from 1080 back to 770: the can-can line stood inside it). China's first dragon is spawned 80
+on (3720) for THE DRAGON DANCE's checkpoint. Left as they were: the can-can pair on the Seine's bookstalls (inside
+THE SEINE's reach: the stalls are its spot), the tequila stand's hat thrower (its stand is by THE DIVE POOL's).
+
+- **Mexico.** The cantina's three out front walked at him in a row: now the luchador's under the balcony's hat thrower
+  (hats rolling while it lunges), the blind pinata host staggering by a mariachi (its swings get the mariachi). La
+  Quebrada: hat throwers on the first and third outcrops, the mariachi on the top one, a pinata host at the cliff's
+  foot; a pinata host between the luchador and the hat thrower on top; a luchador out on the end of the diving board
+  (charge him off into the diver's pool); a mariachi on the right face. The end stretch's line (inside THE DIVE POOL's
+  reach) went up the cliff.
+- **Norway.** The sampler lady off THE FJORD's spot to her booth; the church: a shield viking up on the bottom roof's
+  far end, the sampler lady on the third roof lobbing down; down its far side a shield viking with a viking right
+  behind (the shield in front, axes over it). The troll toll: the sampler lady on the left troll's shoulder (globs on
+  him climbing its knee), a viking on the right troll's inner knee over the river (at him swimming), a shield viking
+  on the right troll's shoulder (both ways down cross it); TOLL PAID's stretch, all in its checkpoint's reach, quiet.
+- **China.** The intern up on the tea stall's roof (rockets down; their bursts get the kung fu kid); the rampart past
+  THE GREAT WALL's checkpoint quiet, a kung fu kid inside WATCHTOWER 1 instead. The ridge: a kung fu kid in the dip
+  with the second dragon under the battery's shells (lure them under the marks); one more up the beacon tower; the
+  scaffold's way down has the intern and a kung fu kid on its lifts instead of three at its foot.
+- **Germany.** The biergarten's way in quiet; a slap-dancer under the tuba on the sausage stand (OOM-PAH into the
+  slaps); a slap-dancer where the clock's wheel lets him off, by the cuckoo's door; down the far tower a barmaid on the
+  top balcony and a slap-dancer on a low one; past THE CASTLE's reach a slap-dancer in front of a tuba (charge it
+  in). The brewery: two slap-dancers one above the other on the keg ramp, one on the hop loft's balcony over the
+  crates, a barmaid up the drying racks (the stairs by THE BRAUHAUS clear).
+- **Italy.** A nonna on the piazza, the pizza tosser up on the oven; the palace one per tier (nonna, opera, pizza
+  tosser on the roof); a pizza tosser on the campanile's climb. Il forno: a pizzaiolo and a nonna inside between the
+  burners (lure them into a flare), a pizza tosser at the roof's far end between the chimneys; down the last house, a
+  nonna on the high balcony over the opera singer and a pizza tosser.
+- **Japan.** A ninja on the second torii's beam, the cosplay kid under it; a samurai up on the stacked vending machines
+  (the katana in his face as he climbs); a ninja on every pagoda floor; the sumo at the ring's far side. The bullet
+  train: a ninja on the first Fuji's top, the cosplay kid on the station canopy, a samurai and a ninja on the last
+  gantry (no charging along it), a sumo and the cosplay kid on the other Fuji's top (its stomp: off the peak onto the
+  track).
+- **Morocco.** Nobody at the gate or on the first roof (two checkpoints); a snake charmer on the second roof, a salesman
+  on a carpet line (his ram: off into the alley); the tower a floor at a time, a salesman on its far side's carpets; a
+  camel suit spitting from the drying rack onto the vats' rims, a salesman past the last vat (shove him in); the
+  lounge: a snake charmer at the tent's mouth, the hookah bro on the cushions, a camel suit on the tent. The souk: all
+  up on the awnings (a snake charmer low across them, a camel suit and a salesman side by side whose ram puts him in
+  the stampede); the corral (in its checkpoint's reach) quiet.
+- **France.** A waiter up on the first cafe's awning; a baguette in front of the kick line, a mime up on the marquee
+  (the high way has its wall too); a baguette with the mime on the arc's gallery, a mime on the girders; a mime with
+  the smoker behind its wall, a baguette on the flower stall. The Louvre: the courtyard quiet; the block's roof a mime
+  and a waiter, a mime on a balcony down its far side.
+- **The UK.** A bobby out on the bus's street (lure him into the bus); the pub's hooligans on its far edge and the
+  barrels, past THE PUB's reach. The phone box: a bobby inside on the ground floor, a hooligan on a molding down the
+  outside; the street past OUT THE TOP's reach.
+- **Canada.** A lumberjack on a carved pole; on the pond's far bank a lumberjack at the edge where the logs come in, a
+  lumberjack on a ledge across the falls (the flume's logs); the rink's three at its far boards, past THE RINK's
+  reach. The frozen pond: a lumberjack on the ice between the thin panels (shove him onto one); the hill: a hockey
+  player on the sugar shack's roof, a moose charging down the chute.
