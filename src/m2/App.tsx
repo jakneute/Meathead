@@ -639,6 +639,8 @@ const App2: React.FC = () => {
         {status === GameStatus.PLAYING && ui.map === null && (nearLand || ui.near === STAFF_SLOT || ui.nearExit || ui.nearAmerica) && (
           <div className={`absolute left-1/2 -translate-x-1/2 ${stage === PEN_STAGE ? 'top-[232px]' : 'top-[132px]'} z-30 px-3 py-2 text-[9px] text-white bg-black/75 border-2 border-zinc-600`}>
             <Prompt pad={['DPAD_UP']} kb={['@up']} label={nearLand ? `MAP: ${nearLand.name}` : ui.nearExit ? 'BACK TO THE HUB' : ui.nearAmerica ? 'BACK TO AMERICA USA' : 'STAFF ONLY: THE STAFF ROOM'} />
+            {/* (the staff room's door: what it's for, the user's) */}
+            {!nearLand && !ui.nearExit && !ui.nearAmerica && ui.near === STAFF_SLOT && <div className="mt-1 text-center text-[#FDE047]">PRACTICE YOUR KILLING HERE! UNLIMITED AMMO!</div>}
           </div>
         )}
         {/* The staff room: practice, so the ammo's free (said only once he's got a weapon that takes any) */}
