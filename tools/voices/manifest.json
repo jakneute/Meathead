@@ -10536,6 +10536,11 @@
  },
  {
   "voice": "death",
+  "text": "HE WAS OKAY. THEN HE WASN'T.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "death",
   "text": "HE WAS THE LIGHTNING ROD",
   "from": "FANTASY"
  },
@@ -12346,6 +12351,11 @@
  },
  {
   "voice": "death",
+  "text": "LUNCH FOR THE LION",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "death",
   "text": "MAILBOXED. RETURN TO SENDER.",
   "from": "FRONTIER"
  },
@@ -12383,6 +12393,11 @@
   "voice": "death",
   "text": "MAULED BY A CAT-SIZED MONKEY",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "death",
+  "text": "MAULED BY A CIRCUS LION",
+  "from": "FRONTIER"
  },
  {
   "voice": "death",
@@ -56776,6 +56791,11 @@
  },
  {
   "voice": "meathead",
+  "text": "A CIRCUS LION. DON'T LOOK AT ME, CAT.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "A CITY PAINTED ON PLYWOOD. BY A GUY WHO GOT PAID UNION SCALE.",
   "from": "HOLLYWOOD"
  },
@@ -57643,6 +57663,26 @@
   "voice": "meathead",
   "text": "A LIGHT FELL ON MY HEAD!",
   "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "A LION IN A FEZ. AND I'M THE ONE WITH NO CLOTHES.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "A LION! WHY IS THERE A LION?!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "A LION. IT SMELLS ME. IT LIKES IT.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "A LION. ON A TRAIN. IN A FEZ.",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -63593,6 +63633,11 @@
   "voice": "meathead",
   "text": "EYES ON THE GAME, GRANDPA. NOT THE BALLS.",
   "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "EYES UP, CAT. THAT'S NOT A SAUSAGE.",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -70617,12 +70662,37 @@
  {
   "voice": "meathead",
   "text": "I'M OKAY!",
-  "from": "m1/game/stages/artie/cliffDraw.ts:81"
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
   "text": "I'M OKAY! ...MY PANTS AREN'T.",
   "from": "m1/game/stages/artie/cliffDraw.ts:81"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M OKAY! MY BALLS TOOK THE TIES.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M OKAY! THE PANTS AREN'T.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M OKAY. GRAVEL IN MY ASS CRACK, BUT OKAY.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M OKAY. I SHAT AGAIN, BUT I'M OKAY.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M OKAY. I'M FUCKING OKAY.",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -72278,6 +72348,11 @@
   "voice": "meathead",
   "text": "IT'S WASHING THE SHIT OUT! KEEP GOING!",
   "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT'S WEARING A FEZ! GET IT OFF ME!",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -76426,6 +76501,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NOT THE FACE! NOT MY FACE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "NOT THE FACE! NOT THE FACE!",
   "from": "FOREIGN"
  },
@@ -76543,6 +76623,11 @@
   "voice": "meathead",
   "text": "NOTHING BETWEEN MY ASS AND THAT NEEDLE!",
   "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "NOTHING BROKE. NOTHING IMPORTANT.",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -85831,6 +85916,36 @@
  },
  {
   "voice": "meathead",
+  "text": "THE LION GOT OUT. IT WANTS NOTHING TO DO WITH ME.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE LION GOT OUT. KEEP YOUR HAT ON, CAT.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE LION GOT OUT. NOT MY PROBLEM.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE LION'S LOOSE. GOOD THING I'M NOT DOWN THERE NAKED.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE LION'S LOOSE. GOOD THING I'M ON THE TRAIN.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE LION'S STARING AT MY PANTS.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "THE LITTLE RED FUCKER BIT MY ANKLE!",
   "from": "SPOOKY"
  },
@@ -87148,6 +87263,11 @@
   "voice": "meathead",
   "text": "THERE GOES THE COUCH.",
   "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "THERE GOES THE LION. GLAD I'M UP HERE.",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
