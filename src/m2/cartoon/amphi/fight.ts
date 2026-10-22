@@ -134,7 +134,17 @@ const SCOOT = 3.4;
 const PUKE_DMG = 8, COUCH_DMG = 16, COUCH_HURTS = 3.4;
 /** The rage: getting up, how long, the hammer's beat (frames up / down), his walk, his hops (how hard, how often), the
  *  gravity; the hurt; winded after. */
-const RISE_T = 30, RAGE_T = 420, HAMMER_BEAT = 7, RAGE_WALK = 1.5, HOP_VY = [-11.5, -13.5], HOP_GAP = [40, 110], G = 0.45, HAMMER_DMG = 18, TIRED_T = 60, RETURN_V = 3.4;
+const RISE_T = 30, RAGE_T = 420, HAMMER_BEAT = 7, RAGE_WALK = 1.5, HOP_VY = [-8.3, -9.2], HOP_GAP = [22, 56], G = 0.45, HAMMER_DMG = 18, TIRED_T = 60, RETURN_V = 3.4;
+/** His hops float (the user's: "he should float long enough in the air on his jumps so you should be able to have just
+ *  enough time to walk under him without charging. barely"): the same heights as before (apex about 148..182 px) on a
+ *  lighter gravity, so 73..80 frames up (was 53..62). Worked out from the walk (4.44 px a frame, from his lerp), his
+ *  34 px body, Meathead's 44 x 64 box, the hammer's reach out front at Meathead's height (118 px from his middle: he
+ *  turns to face him in the air) and his drift after him (1.5..1.95 px a frame): already walking, timed right, on the
+ *  lowest hop, Meathead's clear of the hammer as he lands with a ~3 frame window late in the fight (~10 frames early
+ *  on; from a standstill only early on, ~5). The gap between hops counts from the landing now, so the knee-bend tell
+ *  always shows before the next one. */
+const HOP_G = 0.233;
+const hopAir = (vy: number) => Math.ceil((2 * -vy) / HOP_G) + 1;
 /** The hop's tell (frames of knee bend before he goes), the give as he lands. */
 const HOP_TELL = 16, LAND_GIVE = 10;
 /** Baffled (each one of the family flattened), the clapperboard's reset in this fight; the cars' flight. */
@@ -525,7 +535,7 @@ const dad = (ctx: FrameContext, f: Fight) => {
     case 'rise':
       if (t === 1) { f.seated = false; f.x = seatX(f); }
       if (t >= RISE_T) {
-        setAct(f, 'rage'); f.rages++; f.hopAt = 30 + rnd(HOP_GAP[0], HOP_GAP[1]);
+        setAct(f, 'rage'); f.rages++; f.hopAt = 30 + rnd(40, 110);
         dadSays(f, state, L.DAD_RAGE); playSound('roar', 0.5, 6);
         if (!f.saidRage) { f.saidRage = true; meathead(state, L.MH_RAGE); }
       }
@@ -536,8 +546,8 @@ const dad = (ctx: FrameContext, f: Fight) => {
       // (his knees bend a beat before each hop (the tell): he slows for it)
       const v = (RAGE_WALK + 0.15 * f.kills) * (1 - 0.7 * hopTell(f));
       if (Math.abs(m.x - f.x) > 12) f.x += toward * v;
-      if (f.y <= 0 && t >= f.hopAt) { f.vy = rnd(HOP_VY[0], HOP_VY[1]); f.hopAt = t + rnd(HOP_GAP[0], HOP_GAP[1]); playSound('jump', 0.6, -10); }
-      airborne(state, f);
+      if (f.y <= 0 && t >= f.hopAt) { f.vy = rnd(HOP_VY[0], HOP_VY[1]); f.hopAt = t + hopAir(f.vy) + rnd(HOP_GAP[0], HOP_GAP[1]); playSound('jump', 0.6, -10); }
+      airborne(state, f, HOP_G);
       if (t % (HAMMER_BEAT * 2) === HAMMER_BEAT + 3 && f.y <= 0) { playSound('stomp', 0.7, -6); shakeScreen(state, 3, 2); }
       hammer(ctx, f);
       if (t >= RAGE_T && f.y <= 0) { setAct(f, 'tired'); dadSays(f, state, L.DAD_TIRED); }
@@ -597,9 +607,9 @@ const dad = (ctx: FrameContext, f: Fight) => {
 };
 
 /** His feet off the deck (a hop, thrown): up and down. */
-const airborne = (state: GameState, f: Fight) => {
+const airborne = (state: GameState, f: Fight, g = G) => {
   if (f.y > 0 || f.vy < 0) {
-    f.y -= f.vy; f.vy += G;
+    f.y -= f.vy; f.vy += g;
     if (f.y <= 0) { f.y = 0; f.vy = 0; f.landT = f.t; playSound('thud', 0.8, -10); shakeScreen(state, 4, 2); }
   }
 };
@@ -696,12 +706,19 @@ const hammerPoly = (f: Fight, k: number): P[] => {
 const hammer = (ctx: FrameContext, f: Fight) => {
   const { state } = ctx;
   if (!hurtable(state)) return;
-  const cx = X(f.x), feet = STAGE_Y - f.y, pr = pRect(state);
+  const cx = X(f.x), feet = STAGE_Y - f.y, pr = pRect(state), p = state.player;
+  // (over the top: an uppercut into an air charge (or a charge off a high jump) with his feet clear over Dad's head is
+  // safe from his body and the hammer held up overhead (the user's: "an uppercut followed by a shoulder charge should
+  // safely go over stupid dad if you do so at a modestly high height"); lower, a charge into him still gets hammered)
+  if ((p.isUppercutting || p.isCharging) && !p.isGrounded && p.pos.y + p.height <= feet - OVER_TOP) return;
   const body: R = { x0: cx - 17, x1: cx + 17, y0: feet - 92, y1: feet };
   if (hits(pr, body)) { hammered(ctx, f); return; }
   const k1 = hammerK(f), k0 = f.y > 0 ? 0 : hammerK(f, 1), n = Math.abs(k1 - k0) > 0.01 ? 3 : 0;
   for (let i = 0; i <= n; i++) if (polyHits(pr, hammerPoly(f, k1 + ((k0 - k1) * i) / Math.max(1, n)))) { hammered(ctx, f); return; }
 };
+/** How high over his feet Meathead's feet must be for a charge or an uppercut to pass over him: his head (DAD_H) and a
+ *  little more. A single jump peaks about 145 px; an uppercut then a charge gets well over it. */
+const OVER_TOP = DAD_H + 8;
 const hammered = (ctx: FrameContext, f: Fight) => {
   const { state } = ctx;
   if (!hurtable(state)) return;
