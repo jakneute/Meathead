@@ -13,11 +13,12 @@ import { heard, heardSpan } from '../../bossQuiet';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { hazardVictims, hazardHit, boxHits, setHazardZones, type Zone } from '../../hazardHit';
 import { getEnemyMass } from '../../../m1/game/combat/knockback';
+import { getSpecialForm, interruptSpecialWithHurt } from '../../../m1/game/player/player';
 import { registerHurtLines } from '../../kinds';
 import { GY } from '../geometry';
 import {
   THRUSTERS, thrustAt, flameBox, SWINGS, swingBall, SHOWER, showerAt, AIRLOCKS, AIRLOCK_TOP, airlockAt, AIRLOCK_POST,
-  CANNON, cannonAt, FLOOR_LASER, floorLaserAt, SWEEP_LASER, sweepSpot, sweepState, LASER_POST, deadPosts,
+  type Airlock, CANNON, cannonAt, FLOOR_LASER, floorLaserAt, SWEEP_LASER, sweepSpot, sweepState, LASER_POST, deadPosts,
 } from './layout';
 import { ATOM } from './kinds';
 import {
@@ -61,6 +62,44 @@ const hitBox = (ctx: FrameContext, box: Box, dmg: number, source: string, fromX:
     had?.add(e);
     hazardHit(ctx, e, edmg, fromX, call, { knock: 9 });
   }
+};
+
+/** Which side of door `i` to put him out on: `want`, unless something solid's there (a wall, the next door shut), then
+ *  the other (both blocked: `want` anyway, never inside the slab). */
+const sideFor = (state: GameState, d: Airlock, blk: Block, want: -1 | 1): -1 | 1 => {
+  const p = state.player;
+  const clear = (side: -1 | 1) => {
+    const bx = side < 0 ? d.x - p.width - 2 : d.x + d.w + 2;
+    return !state.blocks.some(b => b !== blk && !b.oneWay && b.x > AWAY / 2
+      && bx < b.x + b.w && bx + p.width > b.x && p.pos.y < b.y + b.h && p.pos.y + p.height - 2 > b.y);
+  };
+  return clear(want) ? want : clear(-want as -1 | 1) ? -want as -1 | 1 : want;
+};
+
+/** A door's hit: heavy (32 before M2's ×0.65, about 21 off him). */
+const AIRLOCK_DMG = 32;
+/**
+ * Caught by a door coming down: never popped up on top of it. A heavy hit (if he can be hurt), out of its way back
+ * the way he came, knocked hard that way and stunned a moment. Whatever he was in the middle of (a charge, a slide,
+ * an uppercut, a dive kick: the moves nothing usually shoves) is over; this shoves him regardless.
+ */
+const slamBack = (ctx: FrameContext, d: Airlock, blk: Block) => {
+  const { state } = ctx, p = state.player, px = p.pos.x + p.width / 2;
+  // (the way he came: against the way he was going, the move's way if he was in one; standing, the nearer side)
+  const form = getSpecialForm(p);
+  const going = form === 'charge' || form === 'slide' ? (p.chargeFace || p.facing) : Math.abs(p.vel.x) > 1 ? Math.sign(p.vel.x) : 0;
+  const want: -1 | 1 = going ? (going > 0 ? -1 : 1) : px < d.x + d.w / 2 ? -1 : 1;
+  const side = sideFor(state, d, blk, want);
+  if (form) interruptSpecialWithHurt(ctx, form);
+  if (canHurt(state)) hurtPlayer(ctx, AIRLOCK_DMG, 'atom_airlock');
+  p.pos.x = side < 0 ? d.x - p.width - 2 : d.x + d.w + 2;
+  // (always: through any armor, i-frames or not)
+  p.isCharging = false; p.isSliding = false; p.isUppercutting = false; p.isDivekicking = false;
+  p.recoiling = false; p.lockTimer = 0;
+  p.vel = { x: side * 10, y: -5 };
+  p.pushbackTimer = Math.max(p.pushbackTimer, 26);
+  p.isHarmlessPushback = false;
+  shakeScreen(state, 12, 6);
 };
 
 /** Each one's own: who's been had already (a swing has someone once a pass, not every frame of it). */
@@ -126,15 +165,23 @@ export const runRigs = (ctx: FrameContext, blocks: RigBlocks) => {
     if (s.down > 0.92) { blk.x = d.x; blk.y = AIRLOCK_TOP; blk.h = GY - AIRLOCK_TOP; } else blk.x = AWAY;
     if (!near(d.x, 1000)) return;
     if (s.warn > 0 && s.warn < 0.05 && hear(d.x)) playSound('alarm', 0.35, 6);
-    if (s.slamming) {
-      const box = { x: d.x + 2, y: bottom - 60, w: d.w - 4, h: 60 };
-      // (under it as it comes down: crushed, and squeezed out the nearer side)
-      if (canHurt(state) && overlap(pBox(state), box)) {
-        hurtPlayer(ctx, 26, 'atom_airlock', { x: px < d.x + d.w / 2 ? -8 : 8, y: -4 });
-        p.pos.x = px < d.x + d.w / 2 ? d.x - p.width - 2 : d.x + d.w + 2;
-        shakeScreen(state, 10, 5);
+    // (the whole slab, the ceiling down to its foot: whoever's anywhere in it as it comes down (or the frame it lands)
+    //  is hit, however fast its foot moved past them; never left inside it for the wall to pop up on top)
+    if (s.down > 0) {
+      const coming = s.down > airlockAt(d, f - 1, locked).down;
+      const slab = { x: d.x, y: AIRLOCK_TOP, w: d.w, h: bottom - AIRLOCK_TOP };
+      if (!p.inCutscene && p.health > 0 && overlap({ x: p.pos.x, y: p.pos.y, w: p.width, h: p.height }, slab)) {
+        if (coming) slamBack(ctx, d, blk);
+        // (in it while it's up and solid, some other way: out, the nearer side, nothing more)
+        else if (s.down > 0.92) p.pos.x = sideFor(state, d, blk, px < d.x + d.w / 2 ? -1 : 1) < 0 ? d.x - p.width - 2 : d.x + d.w + 2;
       }
-      for (const e of hazardVictims(state)) if (boxHits(e, box.x, box.y, box.w, box.h)) hazardHit(ctx, e, 300, e.pos.x + e.width / 2 < d.x + d.w / 2 ? d.x + d.w : d.x, 'SQUASHED!', { knock: 4, kill: true });
+      if (coming) for (const e of hazardVictims(state)) {
+        if (!boxHits(e, slab.x, slab.y, slab.w, slab.h)) continue;
+        // (anybody else the same: a heavy hit, out of its way the side they were on, knocked back)
+        const side = e.pos.x + e.width / 2 < d.x + d.w / 2 ? -1 : 1;
+        e.pos.x = side < 0 ? d.x - e.width - 2 : d.x + d.w + 2;
+        hazardHit(ctx, e, 150, side < 0 ? d.x + d.w : d.x, 'SLAMMED!', { knock: 14 });
+      }
     }
     if (s.down > 0.9 && s.down <= 1 && s.warn === 1 && !s.slamming && airlockAt(d, f - 1, locked).slamming && hear(d.x)) { playSound('slam', 1, -8); playSound('clang', 0.8, -12); shakeScreen(state, 8, 4); }
     if (s.warn > 0 || s.down > 0) zones.push({ x0: d.x - 12, x1: d.x + d.w + 12, y0: AIRLOCK_TOP, y1: GY });
