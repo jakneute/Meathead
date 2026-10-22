@@ -40,7 +40,7 @@ export const MOVER_BACK = [
 ];
 /** At the needle's lift. */
 export const NEEDLE_BASE = [
-  'FIVE MILES UP. THE ELEVATOR BETTER HAVE A TOILET.',
+  'SIXTY-TWO MILES UP. THE ELEVATOR BETTER HAVE A TOILET.',
   'TO SPACE AND BEYOND. I PACKED NOTHING. LET\'S GO.',
 ];
 

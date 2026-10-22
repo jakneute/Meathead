@@ -62926,11 +62926,6 @@
  },
  {
   "voice": "meathead",
-  "text": "FIVE MILES UP. THE ELEVATOR BETTER HAVE A TOILET.",
-  "from": "SPACE"
- },
- {
-  "voice": "meathead",
   "text": "FIVE STARS.",
   "from": "SPACE"
  },
@@ -80122,6 +80117,11 @@
  {
   "voice": "meathead",
   "text": "SIXTY POUNDS. I WEIGH TWO-FORTY.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "SIXTY-TWO MILES UP. THE ELEVATOR BETTER HAVE A TOILET.",
   "from": "SPACE"
  },
  {

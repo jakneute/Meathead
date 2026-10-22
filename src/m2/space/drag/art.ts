@@ -70,7 +70,7 @@ const signs = (c: Ctx, state: GameState) => {
   drawBigSign(c, state, 'd-trench', X(T1.a - 150), 120, 'FUTURELAND UNDERGROUND', 'OPEN TRENCH. CAST MEMBERS ONLY.', '#FACC15', '#18181B', false, 'enamel2');
   drawBigSign(c, state, 'd-lagoon', X(1880), 150, 'THE LAGOON OF TOMORROW', 'DRAINED 1971. SUBMARINES ON THE BOTTOM.', '#0C1E3A', '#5EEAD4', true, 'neon2');
   drawBigSign(c, state, 'd-mover', X(4300), 290, 'THE PEOPLE MOVER (EXPRESS RETURN)', 'WALK FASTER, CITIZEN!', undefined, undefined, true, 'chrome2');
-  drawBigSign(c, state, 'd-plaza', X(5850), 150, 'SPACE NEEDLE 2', 'TO SPACE AND BEYOND! FIVE MILES UP!', '#7F1D1D', undefined, false, 'marquee');
+  drawBigSign(c, state, 'd-plaza', X(5850), 150, 'SPACE NEEDLE 2', 'TO SPACE AND BEYOND! 62 MILES UP!', '#7F1D1D', undefined, false, 'marquee');
 };
 
 const ledges = (c: Ctx, state: GameState) => {
@@ -140,7 +140,7 @@ const paintBase = (g: Ctx) => {
   box(g, 50, -98, 16, 26, INK); box(g, 51, -97, 14, 24, CHROME[3]); g.fillStyle = on ? '#FDE047' : '#F59E0B'; g.beginPath(); g.moveTo(58, -93); g.lineTo(54, -85); g.lineTo(62, -85); g.fill();
   ball(g, 58, -79, 2, '#EF4444');
   board(g, 0, -174, 'ELEVATOR TO SPACE', '#0F172A', '#FDE047', 10, 8, true, 'chrome2');
-  board(g, 0, -134, 'ALL ABOARD! 5 MILES UP. NO REFUNDS IN ORBIT.', '#FFFFFF', '#BE123C', 6, 3, false, 'small');
+  board(g, 0, -134, 'ALL ABOARD! 62 MILES UP. NO REFUNDS IN ORBIT.', '#FFFFFF', '#BE123C', 6, 3, false, 'small');
   void checker; void mix;
 };
 const base = (c: Ctx, state: GameState) => {
