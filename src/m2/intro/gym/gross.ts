@@ -16,7 +16,8 @@
 //           GOV'T 001), U.S. GOV'T sprayed on the hood scoop, bugs splattered in the grille, a rust spot, truck nuts.
 
 import { painting, paintingStep, idleJob, type Painter, type Paint } from '../../../m1/game/scenes/art/raster';
-import { GLYPH, SHOT_STILLS } from './shots';
+import { GLYPH, SHOT_STILLS, shotDress } from './shots';
+import { flies, stink } from '../../../m1/game/scenes/shatLook';
 
 type Ctx = CanvasRenderingContext2D;
 const W = 768, H = 432;
@@ -183,6 +184,8 @@ export const grossChoke = (stage: number) => (c: Ctx, t: number, talking: boolea
   if (!talking || stage > 0) for (let k = 0; k < 4; k++) { const ph = (t + k * 9) % 30; if (ph < 14) { c.fillStyle = '#e8f4fc'; c.fillRect(190 + k * 14 + ph * 0.6, 32 + ph * 0.9, 2 / 3, 2 / 3); } }
   c.restore();
   if (stage > 1 && t % 20 < 10) { c.fillStyle = '#fffcf0'; for (const [x, y] of [[226, 78], [232, 84], [222, 70]]) c.fillRect(x, y, 5, 1 / 3 * 2); }
+  // (shat: the stink coming up off him into the G-man's face, the flies round them both)
+  if (shotDress() === 'shitty') { stink(c, 40, 144, 4, 60, 18, 0.7); stink(c, 200, 144, 4, 56, 16, 0.7); flies(c, 110, 50, 24, 3); flies(c, 210, 110, 14, 2); }
 };
 
 // ---------------------------------------------------------------------------------------------------------------

@@ -66,11 +66,32 @@ export const ROOM_LINES: Record<Room, Record<Dressed, string[]>> = {
 };
 
 // ---- the ring: the two padded trainers (they teach the grabs; they can't be killed)
-export const RING_HELLO = "Okay, big guy. We're padded. Show us the new stuff.";
-export const RING_SHOVE = ['Time! Get off me!', "That's enough! Off!", 'Okay! OKAY! Off!', 'Tap! I tapped! Get off!'];
-export const RING_THROWN = ['Ow. Good one.', "I'm fine! The padding's fine!", 'I felt that in my fillings.'];
-export const RING_JET = ["Can't reach me up here!", 'Jetpack, baby! Come and get me!'];
-export const RING_DONE = "That's everything. Exit's that way. Please use it.";
+// (by the state of him: he can shit himself in the gym, or blow his pants clean off, and they notice)
+export const RING_HELLO: Record<Dressed, string> = {
+  clean: "Okay, big guy. We're padded. Show us the new stuff.",
+  shitty: "Okay, big guy. We're padded. Not for that smell, though.",
+  nude: "Okay, big guy. We're padded. You are not. At all.",
+};
+export const RING_SHOVE: Record<Dressed, string[]> = {
+  clean: ['Time! Get off me!', "That's enough! Off!", 'Okay! OKAY! Off!', 'Tap! I tapped! Get off!'],
+  shitty: ["Off! You're leaking on me!", "Get off! It's in the padding now!", "Tap! I tap! Oh God, it's warm!"],
+  nude: ["Off! Your balls are on my chest pad!", "Get off! Something's slapping my face!", 'Tap! I tap! Put it away!'],
+};
+export const RING_THROWN: Record<Dressed, string[]> = {
+  clean: ['Ow. Good one.', "I'm fine! The padding's fine!", 'I felt that in my fillings.'],
+  shitty: ["I'm fine. The padding's getting burned.", 'Ow. And now I smell like you.'],
+  nude: ['Ow. I saw everything on the way down.', "I'm fine. I'll never be fine."],
+};
+export const RING_JET: Record<Dressed, string[]> = {
+  clean: ["Can't reach me up here!", 'Jetpack, baby! Come and get me!'],
+  shitty: ["Can't smell you up here! Barely!", 'Jetpack, baby! Above the stink!'],
+  nude: ["Can't reach me up here! Stop jumping! It flaps!", 'Jetpack, baby! Great view! Horrible view!'],
+};
+export const RING_DONE: Record<Dressed, string> = {
+  clean: "That's everything. Exit's that way. Please use it.",
+  shitty: "That's everything. Exit's that way. Please, God, use it.",
+  nude: "That's everything. Exit's that way. Your pants aren't.",
+};
 
 // ---- the closing (scene.ts / shots.ts)
 export const CLOSE_MH_CORK = 'YOU GUYS KEEP INTERRUPTING MY SETS. GIVE ME SOMEONE TO KILL OR I POP YOUR HEAD OFF LIKE A CORK.';
@@ -81,14 +102,34 @@ export const CLOSE_NO_CONTRACT: Record<Dressed, string> = {
 };
 /** (the user's) The choked one, wheezing it into his earpiece as the arm tightens: then the ticket's the contingency. */
 export const CLOSE_CONTINGENCY = 'Asset is extra unstable. Activate contingency protocol.';
-export const CLOSE_TICKET = 'Wait! All-day pass! Happy Land!';
+export const CLOSE_TICKET: Record<Dressed, string> = {
+  clean: 'Wait! All-day pass! Happy Land!',
+  shitty: "Wait! All-day pass! Happy Land! Take it by the corner! Don't touch me!",
+  nude: "Wait! All-day pass! Happy Land! Don't ask where I kept it. Don't put it anywhere.",
+};
 export const CLOSE_MH_HAPPY = 'HAPPY LAND?! THE ONE WITH THE RIDES?!';
+/** (his state, noticed: after he's taken the pass, before the truck's offered; nothing said clean) */
+export const CLOSE_NOTICED: Record<Dressed, string | null> = {
+  clean: null,
+  shitty: "Sir, you've soiled yourself. Again. On government time.",
+  nude: 'Put something on, asset. Your balls are on my shoe.',
+};
 export const CLOSE_TRUCK: Record<Dressed, string> = {
   clean: 'And a government-issued truck.',
   shitty: 'And a government-issued truck. Sit on a towel.',
   nude: 'And a government-issued truck. And government-issued pants.',
 };
-export const CLOSE_MH_TRUCK = 'A TRUCK?! FOR ME?!';
+export const CLOSE_MH_TRUCK: Record<Dressed, string> = {
+  clean: 'A TRUCK?! FOR ME?!',
+  shitty: 'A TRUCK?! FOR ME?! I ALREADY WENT, SO NO STOPS!',
+  nude: "A TRUCK?! FOR ME?! I'M DRIVING NAKED!",
+};
+/** (the truck's seats, after he's seen it: nothing said clean) */
+export const CLOSE_UPHOLSTERY: Record<Dressed, string | null> = {
+  clean: null,
+  shitty: 'Sit on the trash bags. That upholstery is government property.',
+  nude: 'Towel on the seat. That upholstery is government property.',
+};
 // (the disguise: he's meant to be in Guantanamo, and he's off to a theme park in public; the nerd glasses he wears from
 // here on, every sprite of him)
 export const CLOSE_GUANTANAMO = "One problem. The whole country thinks you're in Guantanamo.";
@@ -102,12 +143,12 @@ export const CLOSE_NOT_HOW = "That's not how glasses work.";
 export const CLOSE_MH_GO = "LET'S GO TO HAPPY LAND!";
 
 /** Every line, by voice. */
-const all = (v: Record<Dressed, string[] | string>) => Object.values(v).flat();
+const all = (v: Record<Dressed, string[] | string | null>) => Object.values(v).flat().filter((s): s is string => !!s);
 export const VOICE_LINES: Record<string, string[]> = {
-  meathead: [OPEN_REPS, OPEN_MH_1, OPEN_MH_2, OPEN_MH_3, CLOSE_MH_CORK, CLOSE_MH_HAPPY, CLOSE_MH_TRUCK, CLOSE_MH_GLASSES, CLOSE_MH_GO],
+  meathead: [OPEN_REPS, OPEN_MH_1, OPEN_MH_2, OPEN_MH_3, CLOSE_MH_CORK, CLOSE_MH_HAPPY, ...all(CLOSE_MH_TRUCK), CLOSE_MH_GLASSES, CLOSE_MH_GO],
   [ANCHOR_VOICE]: OPEN_TV,
   [AGENT_VOICE]: [OPEN_AGENT_1, OPEN_AGENT_2, OPEN_AGENT_3, ...all(CLOSE_TRUCK), ...all(CLOSE_DISGUISE)],
   // (the women among the G-men say the rooms' lines in her voice)
-  [AGENTF_VOICE]: [OPEN_AGENTF_1, OPEN_AGENTF_2, CLOSE_GUANTANAMO, CLOSE_NOT_HOW, ...Object.values(ROOM_LINES).flatMap(all)],
-  [GMAN_VOICE]: [...Object.values(ROOM_LINES).flatMap(all), RING_HELLO, ...RING_SHOVE, ...RING_THROWN, ...RING_JET, RING_DONE, ...all(CLOSE_NO_CONTRACT), CLOSE_CONTINGENCY, CLOSE_TICKET],
+  [AGENTF_VOICE]: [OPEN_AGENTF_1, OPEN_AGENTF_2, CLOSE_GUANTANAMO, CLOSE_NOT_HOW, ...all(CLOSE_NOTICED), ...all(CLOSE_UPHOLSTERY),...Object.values(ROOM_LINES).flatMap(all)],
+  [GMAN_VOICE]: [...Object.values(ROOM_LINES).flatMap(all), ...all(RING_HELLO), ...all(RING_SHOVE), ...all(RING_THROWN), ...all(RING_JET), ...all(RING_DONE), ...all(CLOSE_NO_CONTRACT), CLOSE_CONTINGENCY, ...all(CLOSE_TICKET)],
 };

@@ -20,7 +20,9 @@ import { agentFig, agentTalk, DOOR_RIM, SUIT } from '../../../m1/game/scenes/sui
 import { RAMP, shaded, bands, layer } from '../../../m1/game/scenes/art/snes';
 import { slab, tubeFixture, DOOR_GREEN, SET_INK } from '../../../m1/game/scenes/art/props';
 import { painting, rgbOf, type Painter } from '../../../m1/game/scenes/art/raster';
-import { flies, stink } from '../../../m1/game/scenes/shatLook';
+import { flies, stink, shatFront } from '../../../m1/game/scenes/shatLook';
+/** His state (the closing's shots draw it: gross.ts too). */
+export const shotDress = () => dressed;
 import { drawTitleMeathead, drawTitleGlasses, prewarmTitleMeathead, type TitleMood } from '../../title/meathead';
 import { ART_W, ART_H } from './scene';
 
@@ -521,6 +523,17 @@ export const shotAgentF = (c: Ctx, t: number, talking: boolean) => {
   const g = (t * 2) % 140;
   if (g < 26) for (let y = 49; y < 60; y++) { const x = 104 + g + Math.round((60 - y) * 0.5); if (x < 152) R(c, x, y, 1, 1, '#c8c8dc'); }
   if (talking && t % 10 < 5) { R(c, 121, 81, 14, 4, '#3a0606'); R(c, 122, 81, 12, 1, '#e8e0d0'); }
+  // (the state of him, from her side of it: shat, she's pinching her nose and the stink's reached her; naked, a hand up
+  // by her face so she doesn't have to look)
+  if (dressed === 'shitty') {
+    stink(c, 40, 144, 4, 40, 14); flies(c, 70, 100, 14, 2);
+    for (const [x, y, w, h, col] of [[120, 66, 14, 10, '#1e1008'], [121, 67, 12, 8, '#8a5840'], [123, 68, 4, 6, '#a46e52'], [126, 74, 10, 12, '#714530']] as [number, number, number, number, string][]) R(c, x, y, w, h, col);
+    R(c, 136, 70, 1, 1, '#a46e52');
+  } else if (dressed === 'nude') {
+    // (her palm up at the side of her face, blinkering the view, the fingers together)
+    for (const [x, y, w, h, col] of [[84, 34, 18, 46, '#1e1008'], [85, 35, 16, 44, '#8a5840'], [86, 36, 5, 42, '#a46e52'], [85, 79, 16, 22, '#714530'], [96, 36, 4, 42, '#714530']] as [number, number, number, number, string][]) R(c, x, y, w, h, col);
+    for (let k = 0; k < 4; k++) R(c, 86, 46 + k * 8, 14, 1, '#43261a');
+  }
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -553,6 +566,21 @@ export const shotMeathead = (mood: TitleMood, red = 0, glasses = false) => (c: C
 // ---------------------------------------------------------------------------------------------------------------
 // The closing: through the door, the chokehold, the ticket, the toddler
 
+/** Him standing (mhStandingFig, feet at x, base) with his jeans blown off (the gut's blowout: naked from the waist, the
+ *  boots still on): bare legs, lit down the left, hairy; the bush; swinging free. */
+const nakedLegs = (c: Ctx, x: number, base: number) => {
+  for (const s of [-1, 1]) {
+    const l = s < 0 ? x - 9 : x + 1;
+    R(c, l - 1, base - 30, 10, 26, I);
+    R(c, l, base - 29, 8, 25, S[4]); R(c, l, base - 29, 2, 25, S[s < 0 ? 6 : 5]); R(c, l + 6, base - 29, 2, 25, S[3]);
+    R(c, l + 2, base - 16, 4, 1, S[3]);
+    for (let k = 0; k < 5; k++) R(c, l + 2 + (k % 3) * 2, base - 26 + k * 4, 1, 1, '#5a3418');
+  }
+  R(c, x - 10, base - 31, 20, 3, S[4]); R(c, x - 10, base - 31, 20, 1, S[6]);
+  R(c, x - 3, base - 30, 6, 3, '#3a2010');
+  R(c, x - 1, base - 27, 3, 5, S[3]); R(c, x - 2, base - 24, 5, 3, S[2]);
+};
+
 /** Another one comes through the door: the daylight behind him, him walking in with a folder; Meathead turning. */
 export const shotArrival = (c: Ctx, t: number) => {
   room(c, t);
@@ -566,7 +594,8 @@ export const shotArrival = (c: Ctx, t: number) => {
   // Meathead, in the middle of the floor: he sees him (the veins come up, the steam)
   mhStandingFig(false, true, true)(c, 120, 136);
   if (t > 40) { for (let k = 0; k < 3; k++) { const y = 62 - ((t * 0.6 + k * 8) % 20); R(c, 112 + k * 7, y, 2, 2, 'rgba(240,240,240,0.7)'); } R(c, 117, 70, 1, 3, '#ef4444'); R(c, 124, 70, 1, 3, '#ef4444'); }
-  if (dressed === 'shitty') { flies(c, 120, 100, 10, 2, 0.6); }
+  if (dressed === 'shitty') { shatFront(c, 120, 136); stink(c, 120, 112, 3, 22, 8); flies(c, 120, 100, 10, 2, 0.6); }
+  else if (dressed === 'nude') nakedLegs(c, 120, 136);
   // (the bang of the door: the dust)
   if (t < 12) for (let i = 0; i < 8; i++) R(c, 214 + hash(i) * 6, 33 + hash(i + 9) * 70 + t, 1, 1, '#d8d0b0');
 };
@@ -726,6 +755,8 @@ export const shotTicket = (c: Ctx, t: number) => {
   for (let y = -32; y < 32; y += 4) R(c, 36, y, 1, 2, '#8a5c08');
   c.restore();
   c.restore();
+  // (shat: the stink coming up into the light, flies at the hand holding it out)
+  if (dressed === 'shitty') { stink(c, 230, 144, 4, 50, 14); flies(c, 50, 100, 14, 3); }
   // (sparkles off it)
   for (let k = 0; k < 7; k++) {
     const ph = (t + k * 13) % 50;
@@ -775,7 +806,7 @@ export const shotToddler = (giddy: number, glasses = false) => (c: Ctx, t: numbe
   // (the mouth going as he squeals it)
   if (talking && t % 6 < 3) { R(c, 112, 84, 32, 6, '#5a0a0a'); R(c, 120, 88, 16, 2, '#e05060'); }
   c.restore();
-  if (dressed === 'shitty') flies(c, 60, 40, 14, 3);
+  if (dressed === 'shitty') { flies(c, 60, 40, 14, 3); stink(c, 60, 144, 4, 40, 12); stink(c, 200, 144, 3, 34, 12); }
 };
 
 // ---------------------------------------------------------------------------------------------------------------

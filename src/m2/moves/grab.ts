@@ -121,10 +121,29 @@ const WINDUP = 15, LUNGE = 7, LUNGE_SPEED = 21, WHIFF = 22, REACH = 6;
 /** How far ahead of him, as he lunges, he can still get hold of somebody. */
 const LUNGE_REACH = 20;
 /**
- * A punch's damage: the same for everybody, so the tougher he is the more it takes (a shooter about four, a bouncer
- * nine, a wolverine three). Each heals a little, the last a lot.
+ * The beatdown's three blows, on top of him (the user: "punching, kneeing or headbutting does generally the same dps,
+ * just different speeds. this is basically if you want to quickly pulverize or go for big hits"): X (fire) a punch,
+ * fast; B (special / the charge key) a knee, slower and bigger; Y (secondary) a headbutt, slowest and biggest. All
+ * three about 100 a second flat out (15 per 9 frames, 25 per 15, 40 per 24). `hit`: the frame of it that lands, `len`
+ * its animation, `shake` the screen's jolt for it. The same for everybody, so the tougher he is the more it takes. Every
+ * blow heals by its damage (the same healing a second whichever), the kill a lot more.
  */
-const PUNCH_DAMAGE = 28, PUNCH_HEAL = 2, KILL_HEAL = 10, PUNCH_FRAMES = 6, PUNCH_GAP = 3;
+type Blow = 'punch' | 'knee' | 'head';
+const BLOWS: Record<Blow, { dmg: number; gap: number; hit: number; len: number; shake: [number, number] }> = {
+  punch: { dmg: 15, gap: 9, hit: 2, len: 6, shake: [4, 3] },
+  knee: { dmg: 25, gap: 15, hit: 5, len: 11, shake: [7, 4] },
+  head: { dmg: 40, gap: 24, hit: 10, len: 18, shake: [11, 6] },
+};
+const HEAL_PER_DMG = 2 / 15, KILL_HEAL = 10;
+/** A blow pressed for too early (the last one's still going) is kept this long and thrown the moment it can be. */
+const BLOW_BUFFER = 10;
+/**
+ * Not a guaranteed kill (the user): after BEAT_WINDOW frames on top of him (2.5 s) he's had enough and shoves him off.
+ * Flat out, that's about 250 damage: the run of the mill (80 to 180) die in it, the beefy (225 and up) mostly don't.
+ * Bulked up, the window's half again as long and every blow BULK_HIT times as hard (about 940): a sure thing.
+ * The shove: him knocked back and up off him, a moment before he's his own again; the other dazed a moment.
+ */
+const BEAT_WINDOW = 150, BULK_WINDOW = 1.5, SHOVE_VX = 9, SHOVE_VY = 7, SHOVE_RECOVER = 16, SHOVE_DAZE = 36;
 // The shakedown
 /** Thrown, it takes a modest share of him; slammed, a big one. */
 /** Each throw's animation: how long, and the frame he lets go on. */
@@ -186,7 +205,7 @@ const grabbedHurts = (ctx: FrameContext, e: Enemy) => {
   hurtPlayer(ctx, h.dmg, e.kind!, { x: 0, y: 0 }, 0);
 };
 
-type Phase = 'idle' | 'windup' | 'lunge' | 'whiff' | 'mount' | 'kill' | 'reach' | 'shake' | 'toss' | 'miss' | 'plummet' | 'drop' | 'critter' | 'pitch' | 'smash'
+type Phase = 'idle' | 'windup' | 'lunge' | 'whiff' | 'mount' | 'kill' | 'reach' | 'shake' | 'toss' | 'miss' | 'plummet' | 'drop' | 'critter' | 'pitch' | 'smash' | 'stomp' | 'hug'
   // (the air grab: wound up, launched with hands out, the arc down with one in his arms, the impact)
   | 'awind' | 'alunge' | 'aarc' | 'aland';
 /** The air grab's arc: back held (a backflip), forward held (a dive), nothing (a piledriver straight down). */
@@ -199,9 +218,14 @@ export interface Grab {
   t: number;
   dir: 1 | -1;
   held: Enemy | null;
-  /** Frames into the punch being thrown (counts down), and when the next can start. */
-  punchT: number;
-  /** Punches thrown this beatdown (they come left, right, left...). */
+  /** The beatdown's blow being thrown (punch, knee, headbutt) and frames into it (-1: none going); the next one asked
+   *  for early (kept a moment); the window before he's shoved off (frames, from g.t); healing owed (fractions of one). */
+  blow: Blow;
+  blowT: number;
+  want: { b: Blow; t: number } | null;
+  window: number;
+  healBank: number;
+  /** Blows thrown (they come left, right, left...: the punches; the gym counts them). */
   punchN: number;
   /** Ammo still to come out of whoever he's shaking. */
   ammoLeft: number;
@@ -258,7 +282,7 @@ export interface Grab {
 }
 
 export const createGrab = (state: GameState): Grab => ({
-  phase: 'idle', t: 0, dir: 1, held: null, punchT: 0, punchN: 0, ammoLeft: 0, nextPunchAt: 0, hp: state.player.health, yHeld: 0, yChord: false, was: { ...NO_CONTROLS }, shaken: new WeakSet(), gate: new Set(), pend: null, clearT: 0, calmed: new Set(), toss: 'forward', thrown: null, flying: [], fall: 0, pitch: 'right', aim: null, queued: null, windHp: 0, pb: 0, bumpT: 0, airSpent: false,
+  phase: 'idle', t: 0, dir: 1, held: null, blow: 'punch', blowT: -1, want: null, window: BEAT_WINDOW, healBank: 0, punchN: 0, ammoLeft: 0, nextPunchAt: 0, hp: state.player.health, yHeld: 0, yChord: false, was: { ...NO_CONTROLS }, shaken: new WeakSet(), gate: new Set(), pend: null, clearT: 0, calmed: new Set(), toss: 'forward', thrown: null, flying: [], fall: 0, pitch: 'right', aim: null, queued: null, windHp: 0, pb: 0, bumpT: 0, airSpent: false,
   airLock: false, diveOk: false, arcJump: true, arc: 'down', ang: 0, avx: 0, avy: 0, hitAt: null,
 });
 
@@ -322,7 +346,7 @@ const putBack = (state: GameState, e: Enemy, x: number) => {
 
 const GATED: (keyof Controls)[] = ['special', 'shoot', 'secondary', 'charge'];
 const end = (state: GameState, g: Grab) => {
-  g.phase = 'idle'; g.t = 0; g.held = null; g.punchT = 0; g.ammoLeft = 0;
+  g.phase = 'idle'; g.t = 0; g.held = null; g.blowT = -1; g.want = null; g.ammoLeft = 0;
   for (const k of GATED) g.gate.add(k);
   state.player.hidden = false;
 };
@@ -330,9 +354,10 @@ const end = (state: GameState, g: Grab) => {
 /** Lets go of whoever he's got (he got hurt, or jumped off), alive. */
 const letGo = (state: GameState, g: Grab, toss = false) => {
   const e = g.held;
-  if (e) putBack(state, e, g.phase === 'mount' ? centerX(state) + g.dir * 18 : centerX(state) + g.dir * 30);
+  // (one already finished, mid-finisher: nothing to put back)
+  if (e && e.health > 0) putBack(state, e, g.phase === 'mount' ? centerX(state) + g.dir * 18 : centerX(state) + g.dir * 30);
   // (jumped off a beatdown: he's sent up in the air again)
-  if (e && toss) { e.vel = { x: g.dir * 2, y: -10 }; e.pauseTimer = Math.max(e.pauseTimer || 0, 40); }
+  if (e && e.health > 0 && toss) { e.vel = { x: g.dir * 2, y: -10 }; e.pauseTimer = Math.max(e.pauseTimer || 0, 40); }
   end(state, g);
 };
 
@@ -720,6 +745,7 @@ export const updateGrab = (ctx: FrameContext, g: Grab, controls: Controls): Cont
   tintOf = ctx.state.player;
   const out = stepGrab(ctx, g, controls);
   busy = g.phase !== 'idle' || g.yChord;
+  finishing = g.phase === 'smash' || g.phase === 'stomp' || g.phase === 'hug';
   holding = g.held;
   // (on top of him: the punch buttons up on screen, the whole time)
   const tip = g.phase === 'mount';
@@ -944,7 +970,7 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
       if (e) {
         // Down he goes, Meathead on top of him (in the air, the two of them plummet first)
         g.phase = p.isGrounded ? 'mount' : 'plummet'; g.t = 0; g.held = e; take(state, e); g.fall = 0;
-        g.nextPunchAt = 4; g.punchT = 0;
+        g.nextPunchAt = 4; startBeat(g);
         placeAt(state, e.pos.x + e.width / 2 - p.width / 2, p.pos.x);
         e.facing = (-g.dir) as 1 | -1;
         playSound('slam'); playSound('punch', 1.2, -3);
@@ -1013,7 +1039,7 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
         return hold();
       }
       fx.spawnDamageNumber({ x: centerX(state), y: p.pos.y - 10 }, dmg, true);
-      g.phase = 'mount'; g.t = 0; g.nextPunchAt = 4;
+      g.phase = 'mount'; g.t = 0; g.nextPunchAt = 4; startBeat(g);
       return hold();
     }
 
@@ -1029,35 +1055,22 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
       const e = g.held!;
       // Jumped off (nothing knocks him off: armor)
       if (press('jump')) { letGo(state, g, true); return { ...controls, jump: true }; }
-      if (g.punchT > 0) g.punchT--;
-      // (any of X, B or Y throws one)
-      if ((press('shoot') || press('special') || press('secondary') || pressed('y')) && g.t >= g.nextPunchAt) {
-        g.punchT = PUNCH_FRAMES; g.nextPunchAt = g.t + PUNCH_GAP; g.punchN++;
-        // (bulked up: a lot more in each one)
-        const dmg = Math.round(PUNCH_DAMAGE * (bulked() ? BULK_PUNCH : 1));
-        e.health -= dmg;
-        if (!e.noHeal) { p.health = Math.min(INITIAL_PLAYER_HEALTH, p.health + PUNCH_HEAL); g.hp = p.health; }
-        const hx = e.pos.x + e.width / 2 + g.dir * 14, hy = feetY(state) - 8;
-        fx.spawnDamageNumber({ x: hx, y: hy - 30 }, dmg);
-        aftershock(ctx, g, centerX(state), feetY(state), dmg);
-        for (let i = 0; i < 6; i++) state.particles.push({ pos: { x: hx, y: hy }, vel: { x: (Math.random() - 0.5) * 5, y: -2 - Math.random() * 4 }, life: 22, color: i % 2 ? '#8B0000' : '#B91C1C', size: 2 + Math.random() * 2 });
-        playSound('punch', 0.9 + Math.random() * 0.3, Math.random() * 4 - 2);
-        // (a cat: it's not punches, it's claws raked down him, a tuft of fur and stuffing off him)
-        if (p.catForm) { playSound('scratch', 1, Math.random() * 4 - 2); for (let i = 0; i < 5; i++) state.particles.push({ pos: { x: hx, y: hy - 4 }, vel: { x: (Math.random() - 0.5) * 4, y: -1.5 - Math.random() * 3 }, life: 26, color: ['#F8FAFC', '#CBD5E1', '#FDE68A'][i % 3], size: 2 + Math.random() * 2 }); }
-        shakeScreen(state, 4, 3);
-        // Bulked up, the last one's not a punch: both fists up over his head, and down
-        if (e.health <= 0 && bulked()) { g.phase = 'smash'; g.t = 0; g.punchT = 0; playSound('whoosh', 1.1, -6); return hold(); }
-        if (e.health <= 0) {
-          // Done: the rest of the health back, and him left lying there
-          if (!e.noHeal) { p.health = Math.min(INITIAL_PLAYER_HEALTH, p.health + KILL_HEAL); g.hp = p.health; }
-          e.pos = { x: e.pos.x, y: feetY(state) - e.height };
-          release(state, e);
-          fx.blowAwayEnemy(e, { x: g.dir * 1.5, y: -2 }, m2Kill('beatdown_kill'), g.dir);
-          fx.spawnKillCallout(e, grabCallout('beatdown'));
-          if (!e.noHeal) fx.spawnDamageNumber({ x: centerX(state), y: p.pos.y - 20 }, `+${KILL_HEAL} HP`, true, '#4ADE80');
-          playSound('crunch'); shakeScreen(state, 10, 6);
-          g.held = null; g.phase = 'kill'; g.t = 0;
-        }
+      // X a punch, B (or the charge key) a knee, Y a headbutt: each a press (whatever's still held from the grab's
+      // chord does nothing till it's let go and pressed again); one asked for early is kept a moment
+      const ask: Blow | null = press('secondary') || pressed('y') ? 'head' : press('special') || press('charge') ? 'knee' : press('shoot') ? 'punch' : null;
+      if (ask) g.want = { b: ask, t: g.t };
+      else if (g.want && g.t - g.want.t > BLOW_BUFFER) g.want = null;
+      if (g.blowT >= 0) {
+        g.blowT++;
+        if (g.blowT === BLOWS[g.blow].hit) { landBlow(ctx, g, e); if (g.phase !== 'mount') return hold(); }
+        if (g.blowT >= BLOWS[g.blow].len) g.blowT = -1;
+      }
+      // Time: he's had enough, and shoves him off (not halfway into a blow: that lands first)
+      if (g.t >= g.window && (g.blowT < 0 || g.blowT >= BLOWS[g.blow].hit)) { shoveOff(ctx, g); return { ...NO_CONTROLS }; }
+      if (g.want && g.t >= g.nextPunchAt) {
+        g.blow = g.want.b; g.want = null; g.blowT = 0; g.nextPunchAt = g.t + BLOWS[g.blow].gap; g.punchN++;
+        if (g.blow === 'knee') playSound('whoosh', 0.7, -4);
+        else if (g.blow === 'head') playSound('whoosh', 0.8, -9);
       }
       return hold();
     }
@@ -1070,6 +1083,25 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
       // Up... and down: him burst like a dropped melon, bits of him everywhere (and into whoever's about)
       if (g.t === SMASH_RAISE && g.held) smashHim(ctx, g, g.held);
       if (g.t >= SMASH_RAISE + 16) end(state, g);
+      return hold();
+
+    case 'stomp': {
+      // (bulked, the knee that kills: up off him, stepping up to his head as he stands, and the boot down on it, twice)
+      const e = g.held;
+      if (e && g.hitAt && g.t <= STOMP.stand) {
+        const to = pinnedHead(e, g.hitAt.x, g.hitAt.y, g.dir).x - g.dir * STOMP_FOOT * buffs.size, cx = centerX(state);
+        placeAt(state, cx + (to - cx) / (STOMP.stand - g.t + 1) - p.width / 2, p.pos.x);
+      }
+      if (g.t === STOMP.hit1 || g.t === STOMP.hit2) stompHim(ctx, g, g.t === STOMP.hit1);
+      if (g.t >= STOMP.len) end(state, g);
+      return hold();
+    }
+
+    case 'hug':
+      // (bulked, the headbutt that kills: up off the floor in a bearhug, squeezed till he bursts)
+      if (g.held && g.t >= HUG.lift && g.t < HUG.pop && g.t % 7 === 0) playSound('crunch', 0.35 + (g.t - HUG.lift) / (HUG.pop - HUG.lift) * 0.5, 6 - (g.t - HUG.lift) / 6);
+      if (g.t === HUG.pop && g.held) hugBurst(ctx, g, g.held);
+      if (g.t >= HUG.len) end(state, g);
       return hold();
 
     case 'shake': {
@@ -1104,8 +1136,189 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
 };
 
 /** Bulked up (the spellbook's bulk up): a punch is this many times as hard, and the last one's the double-fisted smash. */
-const BULK_PUNCH = 2.2, SMASH_RAISE = 12, GIBS = 12, GIB_DMG = 35;
+const BULK_HIT = 2.5, SMASH_RAISE = 12, GIBS = 12, GIB_DMG = 35;
 const bulked = () => buffs.knock > 1;
+
+/** A beatdown under way: its window (bulked, longer), nothing owed or asked for yet. */
+const startBeat = (g: Grab) => { g.blowT = -1; g.want = null; g.healBank = 0; g.window = Math.round(BEAT_WINDOW * (bulked() ? BULK_WINDOW : 1)); };
+
+/** Where each blow lands, from his middle along the floor (facing right): a punch and a headbutt in the face, a knee in the gut. */
+const BLOW_AT: Record<Blow, { x: number; y: number }> = { punch: { x: 46, y: -9 }, knee: { x: 16, y: -12 }, head: { x: 40, y: -10 } };
+/** Each blow's kill callout (not bulked up: bulked, it's the blow's finisher's). */
+const BLOW_CALLOUT: Record<Blow, GrabCallout> = { punch: 'beatdown', knee: 'kneed', head: 'headbutt' };
+
+/** The blow lands: its damage (bulked, BULK_HIT times), its healing, its blood, its sound; the kill, or the finisher. */
+const landBlow = (ctx: FrameContext, g: Grab, e: Enemy) => {
+  const { state, fx } = ctx, p = state.player, B = BLOWS[g.blow], big = bulked();
+  const dmg = Math.round(B.dmg * (big ? BULK_HIT : 1));
+  e.health -= dmg;
+  // (healing by the blow's own damage, unbulked: the same a second whichever he's throwing)
+  if (!e.noHeal) {
+    g.healBank += B.dmg * HEAL_PER_DMG;
+    const h = Math.floor(g.healBank); g.healBank -= h;
+    if (h > 0) { p.health = Math.min(INITIAL_PLAYER_HEALTH, p.health + h); g.hp = p.health; }
+  }
+  const at = BLOW_AT[g.blow], hx = centerX(state) + g.dir * at.x, hy = feetY(state) + at.y;
+  fx.spawnDamageNumber({ x: hx, y: hy - 30 }, dmg, g.blow === 'head');
+  aftershock(ctx, g, centerX(state), feetY(state), dmg);
+  const scrap = isMachineKind(e.kind);
+  const n = g.blow === 'punch' ? 6 : g.blow === 'knee' ? 9 : 14, sp = g.blow === 'punch' ? 1 : g.blow === 'knee' ? 1.3 : 1.7;
+  for (let i = 0; i < n; i++) {
+    const color = scrap ? ['#0A0A0A', '#9CA3AF', '#FDE047', '#B91C1C'][i % 4] : i % 2 ? '#8B0000' : '#B91C1C';
+    state.particles.push({ pos: { x: hx, y: hy }, vel: { x: (Math.random() - 0.5) * 5 * sp, y: -2 - Math.random() * 4 * sp }, life: 22 + sp * 4, color, size: 2 + Math.random() * 2 + (g.blow === 'head' ? 1 : 0) });
+  }
+  if (g.blow === 'punch') {
+    playSound('punch', 0.9 + Math.random() * 0.3, Math.random() * 4 - 2);
+    // (a cat: it's not punches, it's claws raked down him, a tuft of fur and stuffing off him)
+    if (p.catForm) { playSound('scratch', 1, Math.random() * 4 - 2); for (let i = 0; i < 5; i++) state.particles.push({ pos: { x: hx, y: hy - 4 }, vel: { x: (Math.random() - 0.5) * 4, y: -1.5 - Math.random() * 3 }, life: 26, color: ['#F8FAFC', '#CBD5E1', '#FDE68A'][i % 3], size: 2 + Math.random() * 2 }); }
+  } else if (g.blow === 'knee') {
+    // (the wind knocked out of him: a puff of spit up out of his mouth)
+    playSound('thud', 1, -5); playSound('punch', 1, -7);
+    for (let i = 0; i < 3; i++) state.particles.push({ pos: { x: centerX(state) + g.dir * 42, y: hy - 2 }, vel: { x: g.dir * (0.5 + Math.random()), y: -2.5 - Math.random() * 2 }, life: 18, color: 'rgba(240, 240, 240, 0.8)', size: 2 });
+  } else {
+    // (skull on skull: a crack, and a tooth or two)
+    playSound('crack', 0.8, -2); playSound('thud', 1.1, -9); playSound('crunch', 0.6, -2);
+    for (let i = 0; i < 2; i++) state.particles.push({ pos: { x: hx, y: hy - 3 }, vel: { x: (Math.random() - 0.5) * 6, y: -4 - Math.random() * 3 }, life: 34, color: '#F5F5F0', size: 2, grav: 0.3 });
+  }
+  shakeScreen(state, B.shake[0], B.shake[1]);
+  if (e.health > 0) return;
+  // Bulked up, the blow that kills goes on into its finisher (the punch, the double-fisted smash; the knee, up and the
+  // boot on his head; the headbutt, the bearhug he bursts in)
+  if (big) {
+    g.t = 0; g.blowT = -1; g.want = null; g.hitAt = { x: centerX(state), y: feetY(state) };
+    g.phase = g.blow === 'knee' ? 'stomp' : g.blow === 'head' ? 'hug' : 'smash';
+    playSound('whoosh', 1.1, -6);
+    return;
+  }
+  // Done: the rest of the health back, and him left lying there
+  if (!e.noHeal) { p.health = Math.min(INITIAL_PLAYER_HEALTH, p.health + KILL_HEAL); g.hp = p.health; }
+  e.pos = { x: e.pos.x, y: feetY(state) - e.height };
+  release(state, e);
+  fx.blowAwayEnemy(e, { x: g.dir * (g.blow === 'knee' ? 2.5 : 1.5), y: g.blow === 'knee' ? -4 : -2 }, m2Kill('beatdown_kill'), g.dir);
+  fx.spawnKillCallout(e, grabCallout(BLOW_CALLOUT[g.blow]));
+  if (!e.noHeal) fx.spawnDamageNumber({ x: centerX(state), y: p.pos.y - 20 }, `+${KILL_HEAL} HP`, true, '#4ADE80');
+  playSound('crunch'); shakeScreen(state, 10, 6);
+  g.held = null; g.phase = 'kill'; g.t = 0;
+};
+
+/** Who last shoved him off a beatdown, and when (the gym's trainers have a line for it). */
+let shoved: { e: Enemy; frame: number } | null = null;
+export const beatShove = () => shoved;
+/** Time's up: he's shoved off (knocked back and up off him, a moment before he's his own again); the other gets up dazed. */
+const shoveOff = (ctx: FrameContext, g: Grab) => {
+  const { state } = ctx, p = state.player, e = g.held, dir = g.dir;
+  if (e) {
+    putBack(state, e, centerX(state) + dir * 18);
+    e.pauseTimer = Math.max(e.pauseTimer || 0, SHOVE_DAZE); e.facing = (-dir) as 1 | -1;
+    shoved = { e, frame: state.frame };
+  }
+  end(state, g);
+  p.facing = dir;
+  p.vel.x = -dir * SHOVE_VX; p.vel.y = -SHOVE_VY; p.isGrounded = false;
+  p.pushbackTimer = Math.max(p.pushbackTimer ?? 0, SHOVE_RECOVER);
+  playSound('slam', 0.7, 4); playSound('whoosh', 0.8, 2); shakeScreen(state, 5, 3);
+  for (let i = 0; i < 8; i++) state.particles.push({ pos: { x: centerX(state) + (Math.random() - 0.5) * 30, y: feetY(state) - 2 }, vel: { x: (Math.random() - 0.5) * 3, y: -0.5 - Math.random() * 1.5 }, life: 20, color: 'rgba(168, 162, 158, 0.6)', size: 3 + Math.random() * 3 });
+};
+
+/** A bulked finisher playing (the smash, the stomp, the bearhug): the bulk-up's timer holds still for it (spellbook.ts). */
+let finishing = false;
+export const bulkFinishing = () => finishing;
+
+// ---- The head stomp (bulked, a knee kills): up off him, a step up to his head, and the boot down on it, twice
+/** Frames: up on his feet by `stand` (stepping up to the head as he goes), the first stomp (the kill), the second, done. */
+const STOMP = { stand: 10, hit1: 20, hit2: 34, len: 52 };
+/** How far up the boot comes, frame by frame (0 down flat on it, 1 the knee right up). */
+const stompLift = (t: number) => t < STOMP.stand ? 0 : t < STOMP.hit1 - 2 ? (t - STOMP.stand) / (STOMP.hit1 - 2 - STOMP.stand)
+  : t < STOMP.hit1 ? 1 - (t - (STOMP.hit1 - 2)) / 2 : t < STOMP.hit1 + 4 ? 0 : t < STOMP.hit2 - 2 ? (t - STOMP.hit1 - 4) / (STOMP.hit2 - 2 - STOMP.hit1 - 4)
+  : t < STOMP.hit2 ? 1 - (t - (STOMP.hit2 - 2)) / 2 : 0;
+/** Where his boot comes down, out from his middle (facing right, before he's scaled up). */
+const STOMP_FOOT = 12;
+
+/** One he's finished, left lying there: his head pulped flat into a crater in the floor. Drawn till it fades. */
+interface Pulped { e: Enemy; x: number; y: number; dir: 1 | -1; born: number; stage: string; crater: number; scrap: boolean; seed: number }
+const pulped: Pulped[] = [];
+const PULP_LIFE = 420, PULP_FADE = 40;
+
+/** Where a pinned one's head is (drawPinned's way of laying him down), on the floor at groundY, his middle at x. */
+const pinnedHead = (e: Enemy, x: number, groundY: number, dir: 1 | -1) => {
+  const hd = e.kind ? kindHead(e.kind, e.variant) : null;
+  if (isHumanoidKind(e.kind)) return { x: x + dir * ((hd ? -hd.y : e.height * 0.9) - e.height * 0.45), y: groundY - 7, r: hd?.r ?? 10 };
+  return { x: x + dir * 6 + dir * (hd ? hd.x : e.width * 0.3), y: Math.min(groundY - 6, groundY - e.height - 2 - (hd ? hd.y : -e.height * 0.7)), r: hd?.r ?? 9 };
+};
+
+const stompHim = (ctx: FrameContext, g: Grab, first: boolean) => {
+  const { state, fx } = ctx, p = state.player, e = g.held;
+  if (!e || !g.hitAt) return;
+  const at = pinnedHead(e, g.hitAt.x, g.hitAt.y, g.dir), scrap = isMachineKind(e.kind);
+  if (first) {
+    e.health = 0; e.isBlownAway = true;
+    if (scrap) markMachineGore(state, at.x - 80, at.y - 80, 160, 120, 40);
+    pulped.push({ e, x: g.hitAt.x, y: g.hitAt.y, dir: g.dir, born: state.frame, stage: String(state.stageId), crater: 1, scrap, seed: Math.random() * 1000 });
+    if (!e.noHeal) { p.health = Math.min(INITIAL_PLAYER_HEALTH, p.health + KILL_HEAL); g.hp = p.health; fx.spawnDamageNumber({ x: centerX(state), y: p.pos.y - 20 }, `+${KILL_HEAL} HP`, true, '#4ADE80'); }
+    fx.spawnKillCallout({ pos: { x: at.x - e.width / 2, y: at.y - e.height }, width: e.width, height: e.height, kind: e.kind, health: 0, isBlownAway: true }, grabCallout('stomp'));
+    fx.speakVulgarity(m2Kill('beatdown_kill'));
+    p.killSatisfactionTimer = 60;
+    playSound('stomp', 1.2, -6); playSound('crunch', 1.2, -4); playSound('splat', 1.1, -2);
+    shakeScreen(state, 14, 8);
+  } else {
+    // (for good measure: ground in, and the floor cracks right out)
+    const c = pulped.find(q => q.e === e); if (c) c.crater = 2;
+    playSound('stomp', 1.3, -9); playSound('slam', 0.9, -4); playSound('splat', 1.2, -6);
+    shakeScreen(state, 18, 10);
+    aftershock(ctx, g, at.x, g.hitAt.y, 30);
+    for (let i = 0; i < 5; i++) {
+      const a = -Math.PI / 2 + (Math.random() - 0.5) * 2.6, sp = 5 + Math.random() * 5, size = 5 + Math.random() * 4;
+      state.projectiles.push({
+        id: `stompgib-${state.frame}-${i}`, pos: { x: at.x - size / 2, y: at.y - size - 4 }, vel: { x: Math.cos(a) * sp, y: Math.sin(a) * sp },
+        width: size, height: size, health: 1, maxHealth: 1, type: 'projectile', damage: GIB_DMG, owner: 'player',
+        custom: 'SOUL_SUCKER', customData: { life: 60, hit: [] as string[], chunk: true, spin: Math.random() * 6, shade: i % 3, scrap },
+      });
+    }
+  }
+  // Out sideways along the floor, flat, and up: blood (oil and sparks off a machine)
+  for (let k = 0; k < 2; k++) fx.spawnDeathShower({ x: at.x, y: at.y }, k ? 1.2 : -1.2, first ? 1.4 : 1.8, false, 50);
+  for (let i = 0; i < (first ? 16 : 24); i++) {
+    const side = i % 2 ? 1 : -1, color = scrap ? ['#0A0A0A', '#FDE047', '#9CA3AF'][i % 3] : ['#B91C1C', '#7F1D1D', '#F9A8D4', '#F5F5F0'][i % 4];
+    state.particles.push({ pos: { x: at.x, y: at.y }, vel: { x: side * (2 + Math.random() * 7), y: -1 - Math.random() * (first ? 4 : 6) }, life: 30 + Math.random() * 20, color, size: 2 + Math.random() * 3, grav: 0.35 });
+  }
+};
+
+// ---- The exploding bearhug (bulked, a headbutt kills): up on his feet with him, off the floor in a bearhug, squeezed
+/** Frames: up with him by `stand`, off the floor by `lift`, squeezing till `pop` (he bursts), stood there in it till `len`. */
+const HUG = { stand: 12, lift: 22, pop: 72, len: 104 };
+/** Where the one being hugged is (his feet), out from Meathead's middle and up off the floor (facing right, unscaled). */
+const HUG_AT = 20, HUG_UP = 12;
+/** How hard he's being squeezed (0 .. 1). */
+const hugSqueeze = (t: number) => t < HUG.lift || t >= HUG.pop ? 0 : Math.min(1, (t - HUG.lift) / (HUG.pop - HUG.lift - 6));
+
+const hugBurst = (ctx: FrameContext, g: Grab, e: Enemy) => {
+  const { state, fx } = ctx, p = state.player;
+  const at = { x: centerX(state) + g.dir * HUG_AT * buffs.size, y: feetY(state) - HUG_UP - e.height / 2 };
+  const scrap = isMachineKind(e.kind);
+  if (scrap) markMachineGore(state, at.x - 90, at.y - 90, 180, 140, 40);
+  g.held = null;
+  e.health = 0; e.isBlownAway = true; e.pos = { x: at.x - e.width / 2, y: at.y - e.height / 2 };
+  if (!e.noHeal) { p.health = Math.min(INITIAL_PLAYER_HEALTH, p.health + KILL_HEAL); g.hp = p.health; fx.spawnDamageNumber({ x: centerX(state), y: p.pos.y - 20 }, `+${KILL_HEAL} HP`, true, '#4ADE80'); }
+  playSound('splat', 1.3, -7); playSound('crunch', 1.2, -8); playSound('boom', 0.6, -12); playSound('slam', 0.8, -4);
+  shakeScreen(state, 22, 12);
+  // Everywhere: out all round, chunks of him flung (they hurt whoever they land on), a red mist hanging, it raining down
+  for (let k = 0; k < 4; k++) fx.spawnDeathShower(at, (k - 1.5) * 0.9, 2.4, false, 90);
+  for (let i = 0; i < 16; i++) {
+    const a = (i / 16) * Math.PI * 2 + Math.random() * 0.3, sp = 6 + Math.random() * 8, size = 6 + Math.random() * 6;
+    state.projectiles.push({
+      id: `huggib-${state.frame}-${i}`, pos: { x: at.x - size / 2, y: at.y - size / 2 }, vel: { x: Math.cos(a) * sp, y: Math.sin(a) * sp - 3 },
+      width: size, height: size, health: 1, maxHealth: 1, type: 'projectile', damage: GIB_DMG, owner: 'player',
+      custom: 'SOUL_SUCKER', customData: { life: 70, hit: [] as string[], chunk: true, spin: Math.random() * 6, shade: i % 3, scrap },
+    });
+  }
+  for (let i = 0; i < 18; i++) state.particles.push({ pos: { x: at.x + (Math.random() - 0.5) * 50, y: at.y + (Math.random() - 0.5) * 50 }, vel: { x: (Math.random() - 0.5) * 1.2, y: -0.3 - Math.random() * 0.5 }, life: 70 + Math.random() * 40, color: scrap ? 'rgba(40, 40, 40, 0.35)' : 'rgba(185, 28, 28, 0.32)', size: 10 + Math.random() * 10 });
+  for (let i = 0; i < 30; i++) state.particles.push({ pos: { x: at.x + (Math.random() - 0.5) * 200, y: at.y - 140 - Math.random() * 120 }, vel: { x: (Math.random() - 0.5) * 0.8, y: 1 + Math.random() * 2 }, life: 80 + Math.random() * 40, color: scrap ? '#1C1917' : i % 3 ? '#B91C1C' : '#7F1D1D', size: 2 + Math.random() * 2, grav: 0.15 });
+  // (him, covered in it: red all over for a few seconds, unless he's dyed already)
+  if (!scrap && !(p.dyeTimer && p.dyeTimer > 0)) { p.dyeColor = '#8B1A1A'; p.dyeParts = []; p.dyeTimer = 240; }
+  fx.spawnKillCallout(e, grabCallout('hugged'));
+  fx.speakVulgarity(m2Kill('beatdown_kill'));
+  p.killSatisfactionTimer = 60;
+};
 
 /**
  * The smash: both fists down on him, and he goes everywhere. No body left: his blood all over, the screen jumping, and
@@ -1832,6 +2045,155 @@ const hugPose = (c: Ctx, f: number, ext: number) => {
   c.restore();
 };
 
+
+/** The knee, frame by frame: below 0 the knee coming up (hips up off him), 1 driven down into his gut. */
+const KNEE_ARC = [-0.4, -0.8, -1, -0.7, 0.2, 1, 1, 0.8, 0.5, 0.25, 0.1];
+/** The headbutt, frame by frame: below 0 rearing back (slow, all the way), 1 his forehead down into the face. */
+const HEAD_ARC = [-0.1, -0.25, -0.4, -0.55, -0.7, -0.82, -0.92, -1, -1, -0.4, 1, 1, 1, 0.85, 0.65, 0.45, 0.25, 0.1];
+const lerp2 = (a: number, b: number, t: number) => a + (b - a) * t;
+/** A point in the world (from his feet, facing right) in a torso's own frame: turned `rot` about the hips at (0, hipY). */
+const toTorso = (rot: number, hipY: number, wx: number, wy: number): [number, number] => {
+  const dx = wx, dy = wy - hipY, cs = Math.cos(-rot), sn = Math.sin(-rot);
+  return [dx * cs - dy * sn, dx * sn + dy * cs];
+};
+
+/**
+ * Astride him, a knee: up off him on the back knee, the front knee raised high (`k` below 0), then dropped down into
+ * his gut with all his weight (1); both hands on his shirt, holding him there for it.
+ */
+const kneePose = (c: Ctx, f: number, k: number) => {
+  const lift = Math.max(0, -k), land = Math.max(0, k);
+  const hipY = -16 - 7 * lift + 2 * land;
+  drawLeg(c, [-5, hipY], [-14, -4], [-26, -5], 1.4, true);
+  const knee: [number, number] = land > 0 ? [lerp2(16, 18, land), lerp2(-4, -1, land)] : [lerp2(16, 19, lift), lerp2(-4, -30, lift)];
+  const foot: [number, number] = land > 0 ? [lerp2(4, 6, land), -3] : [lerp2(4, 9, lift), lerp2(-3, -17, lift)];
+  drawLeg(c, [5, hipY], knee, foot, lerp2(1.4, 0.4, lift), false);
+  const rot = 0.2 - 0.2 * lift + 0.45 * land;
+  c.save(); c.translate(0, hipY); c.rotate(rot);
+  const shirt = toTorso(rot, hipY, 28, -10), shirt2 = toTorso(rot, hipY, 36, -9);
+  drawArmTo(c, [-8, -22], [shirt[0] - 12, (shirt[1] - 22) / 2 + 2], shirt, true);
+  drawTorsoFromHips(c);
+  head(c, 4, -36, 0.25 + 0.2 * land, land > 0.3 ? 'roar' : 'grit', f);
+  drawArmTo(c, [11, -22], [shirt2[0] - 8, (shirt2[1] - 22) / 2 + 4], shirt2, false, 6);
+  c.restore();
+};
+
+/**
+ * Astride him, a headbutt: both fists in his shirt hauling him up a little, reared right back (`k` below 0, his head
+ * back), then his whole upper body thrown down, forehead first, into the face (1).
+ */
+const headbuttPose = (c: Ctx, f: number, k: number) => {
+  const rear = Math.max(0, -k), land = Math.max(0, k);
+  const hipY = -16 - 2 * rear + 4 * land;
+  drawLeg(c, [-5, hipY], [-14, -4], [-26, -5], 1.4, true);
+  drawLeg(c, [5, hipY], [16, -4], [4, -3], 1.4, false);
+  const rot = 0.3 - 0.6 * rear + 1.05 * land;
+  c.save(); c.translate(0, hipY); c.rotate(rot);
+  // (his fists in the collar, out in front: pulled up a bit as he rears back)
+  const collar = toTorso(rot, hipY, 30 - 4 * rear, -10 - 6 * rear), collar2 = toTorso(rot, hipY, 34 - 4 * rear, -9 - 6 * rear);
+  drawArmTo(c, [-8, -22], [(collar[0] - 8) / 2 + 4, (collar[1] - 22) / 2 + 6], collar, true);
+  drawTorsoFromHips(c);
+  head(c, 4, -36, 0.3 - 0.35 * rear + 0.3 * land, land > 0.4 ? 'roar' : 'grit', f);
+  drawArmTo(c, [11, -22], [(collar2[0] + 11) / 2 + 4, (collar2[1] - 22) / 2 + 7], collar2, false, 6);
+  c.restore();
+};
+
+/**
+ * The head stomp: `rise` 0 astride him .. 1 up on his feet; `lift` the front knee coming up (1 right up, the boot over
+ * the head) and stamped down (0: flat on it); `grind` a twist of the boot on what's left.
+ */
+const stompPose = (c: Ctx, f: number, rise: number, lift: number, grind: number) => {
+  const hipY = lerp2(-16, -24, rise) - 2 * lift;
+  drawLeg(c, [-5, hipY], [lerp2(-14, -9, rise), lerp2(-4, -12, rise)], [lerp2(-26, -13, rise), lerp2(-5, 0, rise)], lerp2(1.4, 0, rise), true);
+  const knee: [number, number] = [lerp2(lerp2(16, 11, rise), 17, lift), lerp2(lerp2(-4, -12, rise), -32, lift)];
+  const foot: [number, number] = [lerp2(lerp2(4, STOMP_FOOT, rise), STOMP_FOOT + 3, lift) + grind, lerp2(lerp2(-3, 0, rise), -20, lift)];
+  drawLeg(c, [5, hipY], knee, foot, lerp2(1.4, 0, rise), false);
+  c.save(); c.translate(0, hipY); c.rotate(0.3 * (1 - rise) + 0.06 + 0.12 * lift);
+  // (fists balled, out from his sides for the balance)
+  drawArmTo(c, [-8, -22], [-14, -12], [-17 - 3 * lift, -2 - 4 * lift], true);
+  drawTorsoFromHips(c);
+  head(c, 4, -36, 0.4, lift > 0.5 || grind ? 'roar' : 'grit', f);
+  drawArmTo(c, [11, -22], [18, -12], [21 + 2 * lift, -1 - 4 * lift], false, 6);
+  c.restore();
+};
+
+/**
+ * The bearhug: `rise` 0 astride him .. 1 stood up, leaning back under the weight; `sq` how hard he's squeezing (the
+ * arms pulled in tighter, him shaking with it, veins up on the forearm). `part`: his body (legs, back arm, torso, head:
+ * behind the one he's hugging), or his front arm (round in front of him).
+ */
+const bearPose = (c: Ctx, f: number, rise: number, sq: number, part: 'body' | 'arm') => {
+  const hipY = lerp2(-16, -24, rise);
+  if (part === 'body') {
+    drawLeg(c, [-5, hipY], [lerp2(-14, -10, rise), lerp2(-4, -12, rise)], [lerp2(-26, -16, rise), lerp2(-5, 0, rise)], lerp2(1.4, 0, rise), true);
+    drawLeg(c, [5, hipY], [lerp2(16, 13, rise), lerp2(-4, -12, rise)], [lerp2(4, 15, rise), lerp2(-3, 0, rise)], lerp2(1.4, 0, rise), false);
+  }
+  c.save(); c.translate(0, hipY); c.rotate(lerp2(0.5, -0.12, rise) - sq * 0.06);
+  if (part === 'body') {
+    drawArmTo(c, [-8, -22], [8, -30 + sq * 2], [24 - sq * 4, -34], true, 5);
+    drawTorsoFromHips(c);
+    head(c, 2, -37, -0.15, sq > 0.2 ? 'roar' : 'yell', f);
+  } else {
+    const fist: [number, number] = [36 - sq * 6, -36];
+    drawArmTo(c, [11, -22], [28, -24], fist, false, 6);
+    // (veins up on the forearm, squeezing)
+    if (sq > 0.3) {
+      c.strokeStyle = `rgba(150, 30, 40, ${(0.4 + sq * 0.5).toFixed(2)})`; c.lineWidth = 1;
+      c.beginPath(); c.moveTo(29, -26); c.lineTo(31, -29); c.lineTo(30, -31); c.lineTo(33, -34); c.stroke();
+    }
+  }
+  c.restore();
+};
+
+/**
+ * What the head stomp leaves (behind him: drawn with the spellbook's things, see spellbook.ts drawUnder): the body
+ * lying there, the floor cracked out from where his head was and dented in, a pool of it spreading, and the head itself
+ * a flat red splat (bits of skull, brains). Gone after a while, faded out; gone at once in another stage.
+ */
+export const drawPulped = (ctx: Ctx, state: GameState) => {
+  if (!pulped.length) return;
+  for (let i = pulped.length - 1; i >= 0; i--) {
+    const q = pulped[i], age = state.frame - q.born;
+    if (age < 0 || age > PULP_LIFE || q.stage !== String(state.stageId)) pulped.splice(i, 1);
+  }
+  const v = state.view;
+  for (const q of pulped) {
+    if (v && (q.x < v.x - 200 || q.x > v.x + v.w + 200)) continue;
+    const age = state.frame - q.born;
+    let s = q.seed;
+    const rnd = () => { s = (s * 9301 + 49297) % 233280; return s / 233280; };
+    const h = pinnedHead(q.e, q.x, q.y, q.dir);
+    ctx.save();
+    ctx.globalAlpha = Math.max(0, Math.min(1, (PULP_LIFE - age) / PULP_FADE));
+    // (the dent, and the cracks out from it along the floor)
+    ctx.fillStyle = 'rgba(20, 14, 10, 0.55)';
+    ctx.beginPath(); ctx.ellipse(h.x, q.y, 14 + 7 * q.crater, 2.5 + q.crater, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#1C1917'; ctx.lineWidth = 1.5;
+    for (let i = 0; i < 3 + 2 * q.crater; i++) {
+      const side = i % 2 ? 1 : -1, len = 12 + rnd() * 16 * q.crater;
+      let cx = h.x + side * 4, cy = q.y + (rnd() - 0.5) * 2;
+      ctx.beginPath(); ctx.moveTo(cx, cy);
+      for (let k = 0; k < 4; k++) { cx += side * len / 4; cy = q.y + (rnd() - 0.3) * 3; ctx.lineTo(cx, cy); }
+      ctx.stroke();
+    }
+    // (the pool, spreading)
+    ctx.fillStyle = q.scrap ? '#1C1917' : '#6B1414';
+    ctx.beginPath(); ctx.ellipse(h.x, q.y - 1, 20 + Math.min(age, 90) / 90 * 16, 3.5, 0, 0, Math.PI * 2); ctx.fill();
+    drawPinned(ctx, q.e, state, q.x, q.y, q.dir, 0, 0);
+    // (the head: flat, a splat with bits in it)
+    const r = h.r;
+    ctx.fillStyle = q.scrap ? '#262626' : '#7F1D1D';
+    ctx.beginPath(); ctx.ellipse(h.x, h.y + 1, r * 1.8, r * 1.1, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = q.scrap ? '#525252' : '#B91C1C';
+    for (let i = 0; i < 6; i++) { ctx.beginPath(); ctx.arc(h.x + (rnd() - 0.5) * r * 3.4, h.y + 1 + (rnd() - 0.5) * r * 1.4, 2 + rnd() * 3, 0, Math.PI * 2); ctx.fill(); }
+    ctx.fillStyle = q.scrap ? '#FDE047' : '#F9A8D4';
+    for (let i = 0; i < 4; i++) ctx.fillRect(Math.round(h.x + (rnd() - 0.5) * r * 2.4), Math.round(h.y + (rnd() - 0.5) * r), 3, 2);
+    ctx.fillStyle = q.scrap ? '#9CA3AF' : '#F5F5F0';
+    for (let i = 0; i < 4; i++) ctx.fillRect(Math.round(h.x + (rnd() - 0.5) * r * 3), Math.round(h.y + (rnd() - 0.5) * r * 1.2), 2, 2);
+    ctx.restore();
+  }
+};
+
 /** Draws whatever grab's on, in place of him (world space, over everything). */
 export const drawGrab = (ctx: Ctx, state: GameState, g: Grab) => {
   if (g.phase === 'idle') return;
@@ -1939,33 +2301,99 @@ export const drawGrab = (ctx: Ctx, state: GameState, g: Grab) => {
       }
       return;
     }
+    case 'stomp': {
+      // Up off him, a step up to his head, the knee right up, and the boot down on it (him under it till then; after,
+      // what's left of him is lying there: drawPulped)
+      const rise = Math.min(1, g.t / STOMP.stand), lift = stompLift(g.t);
+      if (g.held && g.hitAt && g.t < STOMP.hit1) drawPinned(ctx, g.held, state, g.hitAt.x, g.hitAt.y, g.dir, 0, Math.sin(f * 0.9) * 0.08);
+      const grind = g.t > STOMP.hit2 + 3 && g.t < STOMP.len - 6 ? Math.sin(g.t * 1.3) * 1.5 : 0;
+      sprite(ctx, x, y, g.dir, c => stompPose(c, f, rise, lift, grind));
+      const since1 = g.t - STOMP.hit1, since2 = g.t - STOMP.hit2;
+      if (g.held && g.hitAt && ((since1 >= 0 && since1 < 4) || (since2 >= 0 && since2 < 5))) {
+        const h = pinnedHead(g.held, g.hitAt.x, g.hitAt.y, g.dir), big = since2 >= 0 ? 1.4 : 1;
+        ctx.fillStyle = '#FFFFFF';
+        for (let i = 0; i < 12; i++) { const a = i * Math.PI / 6; ctx.fillRect(Math.round(h.x + Math.cos(a) * 22 * big) - 2, Math.round(h.y + Math.sin(a) * 8 * big) - 2, 4, 4); }
+        ctx.fillStyle = '#FDE047'; ctx.fillRect(h.x - 6, h.y - 4, 12, 6);
+      }
+      return;
+    }
+    case 'hug': {
+      // Up with him, off the floor, squeezed (him squashed in the middle, bulging, his eyes coming out), and then he's
+      // not there: Meathead stood with his arms round nothing, dripping
+      const sq = hugSqueeze(g.t), rise = Math.min(1, g.t / HUG.stand), jig = sq > 0 ? (f % 2 ? 1 : -1) * sq * 1.5 : 0;
+      sprite(ctx, x + jig, y, g.dir, c => bearPose(c, f, rise, sq, 'body'));
+      const e = g.held;
+      if (e) {
+        const s = buffs.size, up = g.t < HUG.stand ? 0 : Math.min(1, (g.t - HUG.stand) / (HUG.lift - HUG.stand));
+        const person = isHumanoidKind(e.kind);
+        const x0 = person ? x - g.dir * e.height * 0.45 : x + g.dir * 6, y0 = person ? y - 5 : y - e.height - 2, a0 = person ? g.dir * Math.PI / 2 : Math.PI;
+        const ex = lerp2(x0, x + g.dir * HUG_AT * s, rise), ey = lerp2(y0, y, rise) - HUG_UP * s * up, face = (-g.dir) as 1 | -1;
+        ctx.save();
+        ctx.translate(ex + (f % 2 ? 1 : -1) * sq * 2, ey);
+        ctx.scale(1 - 0.2 * sq, 1 + 0.12 * sq);
+        drawEnemyAt(ctx, e, state, 0, 0, lerp2(a0, 0, rise), face, 'neck');
+        // (his eyes, popping out of his head)
+        const hd = e.kind ? kindHead(e.kind, e.variant) : null;
+        if (hd && sq > 0.25 && !isMachineKind(e.kind)) {
+          const r = 1.2 + 3 * (sq - 0.25), hx = face * hd.x, hy = hd.y - 1;
+          for (const ox of [-3.5, 3.5]) {
+            ctx.fillStyle = '#FFFFFF'; ctx.beginPath(); ctx.arc(hx + ox, hy, r, 0, Math.PI * 2); ctx.fill();
+            ctx.strokeStyle = '#B91C1C'; ctx.lineWidth = 0.6; ctx.stroke();
+            ctx.fillStyle = '#111111'; ctx.fillRect(Math.round(hx + ox + face * r * 0.3) - 1, Math.round(hy) - 1, 2, 2);
+          }
+        }
+        ctx.restore();
+      }
+      sprite(ctx, x + jig, y, g.dir, c => bearPose(c, f, rise, sq, 'arm'));
+      // (the burst: a flash where he was)
+      if (g.t >= HUG.pop && g.t < HUG.pop + 4) {
+        const bx = x + g.dir * HUG_AT * buffs.size, by = y - 50;
+        ctx.fillStyle = '#FFFFFF'; for (let i = 0; i < 16; i++) { const a = i * Math.PI / 8; ctx.fillRect(Math.round(bx + Math.cos(a) * 34) - 3, Math.round(by + Math.sin(a) * 34) - 3, 6, 6); }
+        ctx.fillStyle = '#FDE047'; ctx.fillRect(bx - 9, by - 9, 18, 18);
+      }
+      return;
+    }
     case 'mount':
     case 'kill': {
-      // (a punch, frame by frame: pulled way back, coming down, landing, held there a beat, back up again)
-      const k = g.punchT > 0 ? PUNCH_ARC[PUNCH_FRAMES - g.punchT] : 0;
-      const landed = g.punchT > 0 && k >= 1;
+      // (each blow, frame by frame: see PUNCH_ARC, KNEE_ARC, HEAD_ARC)
+      const b = g.phase === 'mount' && g.blowT >= 0 ? g.blow : null;
+      const k = b === 'punch' ? PUNCH_ARC[g.blowT] ?? 0 : b === 'knee' ? KNEE_ARC[g.blowT] ?? 0 : b === 'head' ? HEAD_ARC[g.blowT] ?? 0 : 0;
+      const landed = b !== null && g.blowT >= BLOWS[b].hit && g.blowT < BLOWS[b].hit + 2;
+      // How long he's got left on top of him (1 .. 0): the one under him struggles harder as it runs out
+      const left = g.phase === 'mount' ? Math.max(0, 1 - g.t / g.window) : 1;
       if (g.held) {
-        // Flat on his back under him, head toward his punching hand; jolted by each one landing, squirming between
-        const e = g.held;
-        const squirm = Math.sin(f * 0.4) * 0.05 * (landed ? 0 : 1);
-        drawPinned(ctx, e, state, x, y, g.dir, landed ? 1 : 0, squirm);
+        // Flat on his back under him, head toward his front; jolted by each one landing, squirming between
+        const e = g.held, strain = 1 - left;
+        const squirm = landed ? 0 : Math.sin(f * (0.4 + strain * 0.6)) * (0.05 + strain * 0.1);
+        drawPinned(ctx, e, state, x, y, g.dir, landed ? (b === 'head' ? 2 : b === 'knee' ? 1.5 : 1) : 0, squirm);
       }
       const right = g.punchN % 2 === 0;
       // (a cat: claws out, raking him; three white streaks down him where each one lands)
       if (p.catForm) setCatClaws(true);
-      sprite(ctx, x, y, g.dir, c => mountPose(c, f, g.phase === 'kill' ? 0.2 : k, right, g.punchT > 0 && g.punchT >= PUNCH_FRAMES - 2));
+      if (b === 'knee') sprite(ctx, x, y, g.dir, c => kneePose(c, f, k));
+      else if (b === 'head') sprite(ctx, x, y, g.dir, c => headbuttPose(c, f, k));
+      else sprite(ctx, x, y, g.dir, c => mountPose(c, f, g.phase === 'kill' ? 0.2 : k, right, b === 'punch' && g.blowT <= 2));
       setCatClaws(false);
-      if (p.catForm && g.punchT > 0 && k >= 0.45) {
+      if (p.catForm && b === 'punch' && k >= 0.45) {
         const bx = x + g.dir * 42, by = y - 14;
         ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)'; ctx.lineWidth = 2;
         for (let i = 0; i < 3; i++) { ctx.beginPath(); ctx.moveTo(bx - g.dir * 8 + i * 5 * g.dir, by - 12); ctx.quadraticCurveTo(bx + i * 5 * g.dir, by - 2, bx + g.dir * 6 + i * 5 * g.dir, by + 8); ctx.stroke(); }
       }
-      // (the landing: a burst where it went in)
-      else if (landed && g.punchT === PUNCH_FRAMES - 2) {
-        const bx = x + g.dir * 46, by = y - 9;
+      // (the landing: a burst where it went in, bigger the bigger the blow)
+      else if (b && g.blowT === BLOWS[b].hit) {
+        const at = BLOW_AT[b], bx = x + g.dir * at.x, by = y + at.y, sz = b === 'punch' ? 1 : b === 'knee' ? 1.4 : 1.8;
         ctx.fillStyle = '#FFFFFF';
-        for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4 + 0.3; ctx.fillRect(Math.round(bx + Math.cos(a) * 9) - 1, Math.round(by + Math.sin(a) * 6) - 1, i % 2 ? 2 : 3, i % 2 ? 2 : 3); }
-        ctx.fillStyle = '#FDE047'; ctx.fillRect(bx - 3, by - 3, 6, 6);
+        for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4 + 0.3; ctx.fillRect(Math.round(bx + Math.cos(a) * 9 * sz) - 1, Math.round(by + Math.sin(a) * 6 * sz) - 1, i % 2 ? 2 : 3, i % 2 ? 2 : 3); }
+        ctx.fillStyle = '#FDE047'; ctx.fillRect(bx - 3 * sz, by - 3 * sz, 6 * sz, 6 * sz);
+        // (a headbutt: stars off where heads met)
+        if (b === 'head') { ctx.fillStyle = '#FDE68A'; for (let i = 0; i < 4; i++) { const a = -Math.PI / 2 + (i - 1.5) * 0.6; ctx.fillRect(Math.round(bx + Math.cos(a) * 22) - 1, Math.round(by - 6 + Math.sin(a) * 16) - 1, 3, 3); } }
+      }
+      // (the time he's got: a bar over him, running down; red and flashing as it's nearly out)
+      if (g.phase === 'mount' && g.held) {
+        const bw = 44, bx = Math.round(x - bw / 2), by = Math.round(y - 78 * buffs.size);
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.75)'; ctx.fillRect(bx - 1, by - 1, bw + 2, 6);
+        ctx.fillStyle = left < 0.3 ? (f % 8 < 4 ? '#EF4444' : '#FCA5A5') : left < 0.6 ? '#FACC15' : '#E5E7EB';
+        ctx.fillRect(bx, by, Math.round(bw * left), 4);
       }
       return;
     }

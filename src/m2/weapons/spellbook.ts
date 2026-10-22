@@ -26,7 +26,8 @@ import { CANVAS_WIDTH, CANVAS_HEIGHT, HUD_CLEAR_Y } from '../../m1/constants';
 import { m2Kill } from '../moves/killLines';
 import { grabCallout } from '../moves/callouts';
 import { BULK_LINES, BULK_FAIL_LINES } from '../lines/weaponLines';
-import { drawPoseSprite, drawPoseHead } from '../moves/grab';
+// (the bulked head stomp's leftovers lie on the floor behind him: drawn with the bulk-up's things)
+import { drawPoseSprite, drawPoseHead, bulkFinishing, drawPulped } from '../moves/grab';
 import { drawLeg, drawArmTo, drawTorsoFromHips } from '../../m1/game/render/player/body';
 import { setArmor } from '../../m1/game/core/resist';
 import { vineGrip } from '../../m1/game/combat/muzzle';
@@ -398,7 +399,8 @@ const tick = (ctx: FrameContext, input: { secondary?: boolean }, equipped: boole
   if (bulkLeft > 0) {
     // (steam coming off him, red)
     if (state.frame % 3 === 0) state.particles.push({ pos: { x: pl.pos.x + Math.random() * pl.width, y: pl.pos.y + Math.random() * pl.height * 0.6 }, vel: { x: (Math.random() - 0.5), y: -1.5 - Math.random() }, life: 24, color: 'rgba(248, 113, 113, 0.45)', size: 4 + Math.random() * 4 });
-    if (--bulkLeft <= 0) { setBuffs({ speed: 1, size: 1, knock: 1 }); bulkCool = BULK.cooldown; playSound('whoosh', 0.6, -8); }
+    // (held still while a bulked finisher plays (grab.ts: the smash, the stomp, the bearhug): never shrinking mid-kill)
+    if (!bulkFinishing() && --bulkLeft <= 0) { setBuffs({ speed: 1, size: 1, knock: 1 }); bulkCool = BULK.cooldown; playSound('whoosh', 0.6, -8); }
   } else if (bulkCool > 0) bulkCool--;
   publish();
   // The burning: a little every frame till it's out (or he's dead)
@@ -612,4 +614,4 @@ const drawHeld = (c: Ctx, frame: number) => {
   if (frame % 40 < 20) { c.fillStyle = 'rgba(192, 132, 252, 0.5)'; c.fillRect(19, -4 - (frame % 20) * 0.3, 2, 2); }
 };
 
-export const registerSpellbook = () => registerWeapon('SPELLBOOK', { fire: ctx => fire(ctx), update, draw, drawHeld, tick, drawOverlay, vineArm });
+export const registerSpellbook = () => registerWeapon('SPELLBOOK', { fire: ctx => fire(ctx), update, draw, drawHeld, tick, drawOverlay, vineArm, drawUnder: drawPulped });

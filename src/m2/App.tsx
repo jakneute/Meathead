@@ -682,10 +682,10 @@ const App2: React.FC = () => {
             <span className="inline-flex items-center gap-1 align-middle"><Prompt pad={['DPAD_DOWN']} kb={['@down']} /><span>+ FORWARD: CROUCH-WALK THE LOG</span></span>
           </div>
         )}
-        {/* A beatdown: on top of him, the punch buttons (any of them throws one) */}
+        {/* A beatdown: on top of him, the three blows (quick punches, slower knees, slowest headbutts) */}
         {status === GameStatus.PLAYING && ui.map === null && !ui.introCutscene && ui.beatTip && !ui.upPrompt && !ui.holdUpPrompt && !ui.holdDownPrompt && (
           <div className="absolute left-1/2 -translate-x-1/2 top-[132px] z-30 px-3 py-2 text-[9px] text-white bg-black/75 border-2 border-zinc-600">
-            <span className="inline-flex items-center gap-1 align-middle"><Prompt pad={['X']} kb={['@fire']} /><span>/</span><Prompt pad={['B']} kb={['@special']} /><span>/</span><Prompt pad={['Y']} kb={['@secondary']} /><span>: PUNCH</span></span>
+            <span className="inline-flex items-center gap-3 align-middle"><Prompt pad={['X']} kb={['@fire']} label="PUNCH" /><Prompt pad={['B']} kb={['@special']} label="KNEE" /><Prompt pad={['Y']} kb={['@secondary']} label="HEADBUTT" /></span>
           </div>
         )}
         {/* Foreign Lands' helicopter: the flying controls, for a while once he's jacked it */}

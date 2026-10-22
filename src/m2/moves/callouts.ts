@@ -21,6 +21,12 @@ export const GRAB_CALLOUTS = {
   flintlock: { lines: ['HEADSHOT!', 'BLOWN CLEAN OFF!', 'DEAD EYE!', 'HEADS WILL ROLL!', 'DECAPITATED!'], color: '#FB923C' },
   // (the beatdown's finisher, bulked up: the double-fisted smash)
   smash: { lines: ['PULVERIZED!', 'OBLITERATED!', 'PASTE!', 'SPLATTERED!', 'MEAT RAIN!'], color: '#EF4444' },
+  // (the beatdown's other two blows: the knee, the headbutt)
+  kneed: { lines: ['KNEED!', 'KNEED TO DEATH!', 'GUT CHECKED!', 'KNEE DEEP!', 'WINDED FOREVER!'], color: '#F59E0B' },
+  headbutt: { lines: ['HEADBUTTED!', 'GLASGOW KISS!', 'SKULL CRACKED!', 'NUTTED!', 'LIGHTS OUT!'], color: '#FCA5A5' },
+  // (their finishers, bulked up: the head stomp, the exploding bearhug)
+  stomp: { lines: ['CURB STOMPED!', 'HEAD STOMPED!', 'STOMPED FLAT!', 'BOOT PRINTED!', 'SKULL PANCAKE!'], color: '#FB923C' },
+  hugged: { lines: ['HUGGED TO DEATH!', 'SQUEEZED!', 'BEAR HUGGED!', 'POPPED!', 'LOVED TO DEATH!'], color: '#F43F5E' },
   // (the clapperboard's stunt car and stuntman)
   stunt: { lines: ['ROADKILL!', "THAT'S A WRAP!", 'TOTALED!', 'HIT AND RUN!', 'STUNT DOUBLED!'], color: '#F59E0B' },
   // (the mallet, batting one of the queen's own back into her)
