@@ -56,9 +56,14 @@ const GONDOLAS = [
 const DECK = 8;
 
 const ENEMIES: [string, number, number][] = [
-  ['m2:fl_pizzaiolo', 600, 0], ['m2:fl_nonna', 880, 0],
-  ['m2:fl_pizzaiolo', 1940, 0], ['m2:fl_opera', 2050, 300], ['m2:fl_nonna', 2200, 150],
-  ['m2:fl_nonna', 3330, 600], ['m2:fl_opera', 3560, 0], ['m2:fl_pizzaiolo', 3750, 0], ['m2:fl_gondolier', 3880, 0],
+  // the piazza: a nonna on the paving, the pizza tosser up on the oven (pies down at him; THE GRAND CANAL's
+  // checkpoint's bank left clear)
+  ['m2:fl_nonna', 560, 0], ['m2:fl_pizzaiolo', 760, OVEN.h],
+  // the palace, one up each tier (off its checkpoint's spot): a nonna on the first, the opera singer on the second, the
+  // pizza tosser on the roof
+  ['m2:fl_nonna', 2225, 150], ['m2:fl_opera', 2050, 300], ['m2:fl_pizzaiolo', 2160, 450],
+  // the campanile: the pizza tosser on a balcony on the way up (pies flat across the climb), the nonna at the top
+  ['m2:fl_pizzaiolo', 3260, 480], ['m2:fl_nonna', 3330, 600], ['m2:fl_opera', 3560, 0], ['m2:fl_gondolier', 3880, 0],
 ];
 const PICKUPS: [number, number, 'small_health' | 'small_ammo'][] = [[2050, 450, 'small_ammo'], [3340, 600, 'small_health']];
 

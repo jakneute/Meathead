@@ -41,10 +41,15 @@ const VESPA = { a: 5010, b: 5070, h: 70 } as const;
 const BALCONIES: [number, number, number][] = [[5640, 5720, 140], [5650, 5740, 280]];
 
 const ENEMIES: [string, number, number][] = [
-  ['m2:fl_pizzaiolo', 4100, 0], ['m2:fl_nonna', 4180, 0],
-  ['m2:fl_nonna', 4520, OVEN.roof], ['m2:fl_pizzaiolo', 4560, 0], ['m2:fl_opera', 4800, OVEN.roof],
-  ['m2:fl_nonna', 5180, 180], ['m2:fl_opera', 5380, 300], ['m2:fl_pizzaiolo', 5560, 420],
-  ['m2:fl_opera', 5700, 0], ['m2:fl_pizzaiolo', 5760, 0],
+  // (IL FORNO's checkpoint's spot left clear) in the oven, a pizzaiolo and a nonna working between the burners (lure
+  // them into the flare); on the roof, a nonna, the opera singer, a pizza tosser at the far end (pies along the roof
+  // at him between the chimneys)
+  ['m2:fl_pizzaiolo', 4560, 0], ['m2:fl_nonna', 4760, 0],
+  ['m2:fl_nonna', 4520, OVEN.roof], ['m2:fl_opera', 4800, OVEN.roof], ['m2:fl_pizzaiolo', 4950, OVEN.roof],
+  // the rooftops: the opera singer and a pizza tosser up the houses; down the last one, a nonna on the high balcony,
+  // the opera singer and a pizza tosser below
+  ['m2:fl_opera', 5380, 300], ['m2:fl_pizzaiolo', 5560, 420],
+  ['m2:fl_nonna', 5690, 280], ['m2:fl_opera', 5700, 0], ['m2:fl_pizzaiolo', 5760, 0],
 ];
 
 export const OVEN_CHECKPOINTS = [
