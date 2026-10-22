@@ -54,3 +54,18 @@ placed within the safe start's reach of a checkpoint (spawnSafe.ts SAFE_X 360, S
   ammo goes through him); the guard still rushes across the plates.
 - Left alone: the landing, the saucers (nothing about: learn them), the third rail and its trains, the treadmill under
   fire (already a fight against the belt).
+
+**The crater (crater/index.ts ENEMIES: same kinds, same count)**
+
+- The impact site past the bowl was taught one at a time on the flat (a soldier, two crawlers, the brute), then the
+  pylon's mix sat 80-220 from XENOSCARE's checkpoint. Now: a soldier at the top of the bowl's far side shooting down at
+  him climbing out; one up on the churro cart (shooting down; he comes down after him only from right under) with a
+  crawler waiting where he lands off it, another past it; then the brute with a crawler at his feet (slide it, not into
+  the spiked helmet) and a soldier behind the brute shooting past him. The pylon (its health) and the walk to
+  XENOSCARE's checkpoint are quiet.
+- THE SPECIMEN BAY's checkpoint had a soldier 200 from it on the floor and one 260 from it on the first catwalk: the
+  floor's soldier and the brute moved on a little, the catwalk's soldier to its far end.
+- THE ENGINE ROOM: the soldier on its first crate (inside THE ENGINE ROOM checkpoint's reach, wherever on the hall's
+  near end it sits) is up on the last catwalk over the way in now, over the soldier and crawler on the floor.
+- Left alone: the dome's soldier (the teach), the queue, the bridge (the tram's the thing), the engine room's other
+  crates and its far end, the operators in the corridor aft (scripted).

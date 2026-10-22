@@ -49,22 +49,26 @@ const craterOf = (state: GameState) => spaceState<Crater>(state, 'crater', () =>
  *  for him to step off it (the brute); the engine room's are up on its crates (shooting down at him on the track) and
  *  at its two ends, where the floor's theirs. */
 const ENEMIES: [string, number, number, number][] = [
-  // (the impact site)
+  // (the impact site: the soldier up on the wreck's dome; another at the top of the bowl's far side, shooting down at
+  // him climbing out; one up on the churro cart with a crawler waiting where he lands off it, another past it; then the
+  // brute with a crawler at his feet and a soldier behind him, shooting past him (the pylon and the way to XENOSCARE's
+  // checkpoint quiet))
   [FLEER, D + 700, GY, 3], [GRUNT, DOME.x + 85, DOME.y, 11], [FLEER, D + 1640, GY + BOWL.deep, 7], [FLEER, D + 2480, GY, 13],
-  [GRUNT, D + 2660, GY, 17], [CRAWLER, D + 3160, GY, 19], [CRAWLER, D + 3330, GY, 23], [FLEER, D + 3420, GY, 25],
-  [BRUTE, D + 3940, GY, 29], [GRUNT, PYLON.x + 220, PYLON.y, 31], [CRAWLER, D + 4620, GY, 37], [FLEER, D + 4560, GY, 34], [GRUNT, D + 4760, GY, 41],
+  [GRUNT, D + 2250, GY, 31], [GRUNT, CART.x + CART.w / 2, GY - CART.h + 6, 17], [CRAWLER, D + 3060, GY, 19], [CRAWLER, D + 3330, GY, 23], [FLEER, D + 3420, GY, 25],
+  [CRAWLER, D + 3830, GY, 37], [BRUTE, D + 3940, GY, 29], [FLEER, D + 4560, GY, 34], [GRUNT, D + 4080, GY, 41],
   // (the queue)
   [GRUNT, D + 5820, GY, 43], [GRUNT, D + 6120, GY, 46],
   // (THE BRIDGE: the tram's the thing; from the far end, past the track)
-  [GRUNT, D + 9090, GY, 55], [BRUTE, D + 9360, GY, 59],
+  [GRUNT, D + 9300, GY, 55], [BRUTE, D + 9440, GY, 59],
   // (THE SPECIMEN BAY: up on the gantries too; the operators (seeds from 1000: headsets on) are posted by the rigs
   // they'll take over)
-  [GRUNT, CATWALKS[0][0] + 130, CATWALKS[0][1], 1061], [GRUNT, CATWALKS[1][0] + 120, CATWALKS[1][1], 67], [CRAWLER, D + 9560, GY, 65],
+  [GRUNT, CATWALKS[0][0] + 240, CATWALKS[0][1], 1061], [GRUNT, CATWALKS[1][0] + 120, CATWALKS[1][1], 67], [CRAWLER, D + 9560, GY, 65],
   [CRAWLER, D + 9720, GY, 53], [GRUNT, CATWALKS[2][0] + 150, CATWALKS[2][1], 1073], [BRUTE, D + 9900, GY, 71],
-  // (the way into the engine room, before its track)
-  [GRUNT, D + 10030, GY, 77], [CRAWLER, D + 10100, GY, 79],
-  // (THE ENGINE ROOM: everything at once; up on its crates, out of the tram's way, shooting down at him on the track)
-  [GRUNT, CRATES[0][0] + CRATES[0][1] / 2, GY - CRATES[0][2], 1081], [GRUNT, CRATES[1][0] + CRATES[1][1] / 2, GY - CRATES[1][2], 1085],
+  // (the way into the engine room, before its track: one over it on the last catwalk)
+  [GRUNT, D + 10030, GY, 77], [CRAWLER, D + 10100, GY, 79], [GRUNT, CATWALKS[3][0] + 80, CATWALKS[3][1], 1081],
+  // (THE ENGINE ROOM: everything at once; up on its crates, out of the tram's way, shooting down at him on the track;
+  // nobody on the first crate: THE ENGINE ROOM checkpoint's in reach of it)
+  [GRUNT, CRATES[1][0] + CRATES[1][1] / 2, GY - CRATES[1][2], 1085],
   [GRUNT, CRATES[2][0] + CRATES[2][1] / 2, GY - CRATES[2][2], 91],
   // (past its track, waiting for him to get off it)
   [CRAWLER, D + 12130, GY, 89], [BRUTE, D + 12320, GY, 95],
