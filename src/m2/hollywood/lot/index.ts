@@ -23,7 +23,7 @@ import { playSound } from '../../../m1/game/platform/audio';
 import { CANVAS_WIDTH } from '../../../m1/constants';
 import type { HollywoodSection, Said } from '../section';
 import { layOwn, ledge, solid, endWalls, endExits, runExits, meatheadSays, speak, saidOver, realDisastersOn, hands } from '../section';
-import { SECTIONS, GY, LOT_WALL_BREAK } from '../geometry';
+import { SECTIONS, GY, LOT_WALL_BREAK, LOT_DUMPSTER } from '../geometry';
 import { X, Y, R, GROUND, SOLIDS, LEDGES, WIRES, ENEMIES, PICKUPS, CHECKPOINTS, TANK, FALL_TOWER, PIT1, PIT2, RAIN, TOWER, GIFT, RIDE_DOORS, SPEAKERS, READERS, DUMP, LOT_BOARDED_MEMO } from './layout';
 import './kinds';
 import { byPants } from '../blvd/kinds';
@@ -62,6 +62,8 @@ export const lot: HollywoodSection = {
       e.variant = (i * 5 + rx) % 13;
       state.enemies.push(e);
     });
+    // (the big health for getting through the ensemble: on the ground just past the dumpster they all went into)
+    state.pickups.push({ id: 'lot-cast-health', pos: { x: LOT_DUMPSTER.x1 + 50, y: GY - 24 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type: 'large_health', life: 1e9 });
     for (const [rx, h, type] of PICKUPS) state.pickups.push({ id: `lot-${rx}`, pos: { x: X(rx) - 10, y: Y(h) - 24 }, vel: { x: 0, y: 0 }, width: 20, height: 20, type, life: 1e9 });
   },
   update: (ctx, controls) => {
