@@ -9,9 +9,10 @@
 //                slow enough that it's going back in).
 //   the boulder: lobbed over the set (the catapult behind it): it comes down on the track ahead and rolls back at him
 //                (jump it); on behind him, it'll have Artie.
-//   the big one: the doors in a fake rock wall bang open as he passes and THE ROLLING BOULDER comes out after him: a
-//                touch quicker than the cart left alone (on a bit, right, and he stays ahead) to the gap, where it goes
-//                down.
+//   the big one: the doors in a fake rock wall bang open as he passes and THE ROLLING BOULDER comes out after him,
+//                right on his tail, gaining, dropping back, gaining, to the gap, where it goes down. A red herring (the
+//                user's: "the boulder trap on the mine cart cannot catch up to you"): it never reaches him, never hurts
+//                him (it'll still have Artie, or anybody else in its way).
 // They hit whoever's in the way: him, Artie in his cart, anybody else (hazardHit.ts).
 //
 // Painted in trickArt.ts.
@@ -200,7 +201,6 @@ export const runTricks = (ctx: FrameContext, tr: Tricks, cart: CartView, artie: 
     firstTime('chase');
   } else if (tr.chase) tr.chase++;
   const tub = tubBox(cart);
-  let shoved = false;
   tr.boulders = tr.boulders.filter(b => {
     b.t++;
     if (b.mode === 'lob') {
@@ -227,6 +227,9 @@ export const runTricks = (ctx: FrameContext, tr: Tricks, cart: CartView, artie: 
       if (b.big) {
         if (b.back > 0) b.back--;
         b.vx += ((b.back ? 5 : CHASE_V) - b.vx) * 0.08;
+        // (never on him: right behind the cart's tail at the closest, falling back a bit and gaining again)
+        const near = tub.x - b.r - 14 - (Math.sin(b.t * 0.035) * 0.5 + 0.5) * 70;
+        if (cart.ride && b.x + b.vx > near) b.vx = Math.max(0, Math.min(b.vx, near - b.x));
         if (state.frame % 10 === 0) { playSound('rumble', 0.5); shakeScreen(state, 3, 3); }
       }
       b.x += b.vx;
@@ -240,21 +243,11 @@ export const runTricks = (ctx: FrameContext, tr: Tricks, cart: CartView, artie: 
       return b.y < (trackY(b.x - b.vx * 20) ?? state.camera.y + 700) + 900;
     }
     // Who's in its way
-    if (cart.ride && circleBox(b.x, b.y, b.r - 2, tub)) {
-      if (b.big) {
-        // (the big one: he's shoved on ahead of it, and it's knocked back a moment)
-        if (!b.back) {
-          b.back = 50; b.vx = 2;
-          if (canHurt(state)) { hurtMe = true; hurtPlayer(ctx, 20, 'cart_chase'); }
-          playSound('crash', 1, -6); shakeScreen(state, 14, 6);
-          shoved = true;
-        }
-      } else {
-        // (a little one: into the side of the cart, to bits)
-        if (canHurt(state)) { hurtMe = true; hurtPlayer(ctx, 14, 'cart_boulder'); }
-        shakeScreen(state, 10, 5); smash(state, b);
-        return false;
-      }
+    // (a little one: into the side of the cart, to bits. The big one never gets to him)
+    if (cart.ride && !b.big && circleBox(b.x, b.y, b.r - 2, tub)) {
+      if (canHurt(state)) { hurtMe = true; hurtPlayer(ctx, 14, 'cart_boulder'); }
+      shakeScreen(state, 10, 5); smash(state, b);
+      return false;
     }
     if (artie.on && !b.had.has(ARTIE) && circleBox(b.x, b.y, b.r, artieBox(artie.x))) {
       b.had.add(ARTIE); artie.hit('boulder', b.x + 60);
@@ -268,6 +261,6 @@ export const runTricks = (ctx: FrameContext, tr: Tricks, cart: CartView, artie: 
     return Math.abs(b.x - state.camera.x - 400) < 2600;
   });
   setHazardZones(state, 'cart', zones);
-  return { shoved, hurt: hurtMe };
+  return { hurt: hurtMe };
 };
 

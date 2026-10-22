@@ -216,7 +216,6 @@ const ride = (ctx: FrameContext, cart: Cart, controls: Controls): Controls => {
   const a = cart.artie;
   if (a.trapT > 0) a.trapT--;
   const out = runTricks(ctx, cart.tricks, { x: cart.x, y: cart.y, air: cart.air, ride: true, t: cart.t }, riderOf(state, cart), kind => firstSight(state, kind));
-  if (out.shoved) cart.speed += 4;
   if (out.hurt && a.on && cart.x - a.x < 900 && Math.random() < 0.5) artieSays(cart, pick(ARTIE_GLOATS[dressed(state)]));
   place(state, cart);
   // (on his feet in it, for ducking: the engine's crouch wants him on the ground)
