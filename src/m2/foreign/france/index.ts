@@ -55,16 +55,26 @@ const LIFT = { a: 2460, w: 100, lo: 0, hi: 620, wait: 120, run: 180 } as const;
 const STALLS: [number, number, number, string][] = [[2800, 2900, 90, '#15803D'], [3150, 3250, 120, '#78350F']];
 
 const ENEMIES: [string, number, number][] = [
-  ['m2:fl_waiter', 620, 0], ['m2:fl_smoker', 710, COLUMN.h], ['m2:fl_waiter', 920, 160], ['m2:fl_mime', 1060, 0], ['m2:fl_baguette', 1110, 0],
+  // the cafes: a waiter up on the first cafe's awning (plates flat down at him), one on the street, the smoker on the
+  // newspaper column
+  ['m2:fl_waiter', 540, 150], ['m2:fl_waiter', 620, 0], ['m2:fl_smoker', 710, COLUMN.h],
+  // the cabaret: a baguette in front of the kick line; up on the marquee (the high way past them) a mime, its wall
+  // across the high way too
+  ['m2:fl_baguette', 1130, 0], ['m2:fl_mime', 1300, MARQUEE.h],
   ['m2:fl_cancan', 1200, STAGE.h], ['m2:fl_cancan', 1260, STAGE.h], ['m2:fl_cancan', 1320, STAGE.h], ['m2:fl_cancan', 1380, STAGE.h],
-  ['m2:fl_mime', 1540, 0], ['m2:fl_baguette', 1700, 240], ['m2:fl_mime', 2000, 360], ['m2:fl_waiter', 2250, 360], ['m2:fl_smoker', 2100, 620],
-  ['m2:fl_baguette', 2700, 0], ['m2:fl_mime', 2980, 0], ['m2:fl_smoker', 3100, 0], ['m2:fl_baguette', 3380, 0],
+  // the arc (its foot by THE ARC's checkpoint clear): a baguette and a mime on the gallery (the wall eats his shots, the
+  // baguette comes round it), a mime up on the girders, the waiter on along the gallery, the smoker up top
+  ['m2:fl_baguette', 1800, 360], ['m2:fl_mime', 2000, 360], ['m2:fl_mime', 1940, 490], ['m2:fl_waiter', 2250, 360], ['m2:fl_smoker', 2100, 620],
+  // the bakery street (past THE BAKERY's checkpoint's reach): a mime with the smoker behind its wall, a baguette up on
+  // the flower stall, one on the street
+  ['m2:fl_mime', 3060, 0], ['m2:fl_smoker', 3100, 0], ['m2:fl_baguette', 3200, 120], ['m2:fl_baguette', 3380, 0],
 ];
 const PICKUPS: [number, number, 'small_health' | 'small_ammo'][] = [[2100, 820, 'small_health'], [1300, MARQUEE.h, 'small_ammo']];
 
 export const FRANCE_CHECKPOINTS = [
   { name: 'FRANCE', cp: 70, x: X(150), y: GY },
-  { name: 'FRANCE: THE CABARET', cp: 71, x: X(1080), y: GY },
+  // (back off the stage: at 1080 the can-can line stood in its safe reach and was gone on a start here)
+  { name: 'FRANCE: THE CABARET', cp: 71, x: X(770), y: GY },
   { name: 'FRANCE: THE ARC', cp: 72, x: X(1520), y: GY },
   { name: 'FRANCE: THE BAKERY', cp: 73, x: X(2680), y: GY },
   ...LOUVRE_CHECKPOINTS,

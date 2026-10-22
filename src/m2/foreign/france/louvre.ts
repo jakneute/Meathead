@@ -40,10 +40,13 @@ const BLOCK = { a: 5020, b: 5220, h: 340 } as const;
 const BALCONIES: [number, number, number][] = [[4950, 5020, 130], [4960, 5020, 240], [5220, 5290, 240], [5220, 5300, 120]];
 
 const ENEMIES: [string, number, number][] = [
-  ['m2:fl_mime', 3700, 0], ['m2:fl_waiter', 3800, 0],
+  // (the courtyard by THE LOUVRE's checkpoint quiet) the pyramid, a tier at a time, between the nozzles (the jets throw
+  // the cast too)
   ['m2:fl_baguette', 4060, 200], ['m2:fl_mime', 4210, 400], ['m2:fl_smoker', 4300, 500], ['m2:fl_waiter', 4460, 300], ['m2:fl_baguette', 4610, 100],
   ['m2:fl_cancan', 4790, 80], ['m2:fl_cancan', 4920, 80],
-  ['m2:fl_mime', 5120, BLOCK.h], ['m2:fl_waiter', 5320, 0], ['m2:fl_baguette', 5370, 0],
+  // the apartment block: a mime and a waiter on the roof (the wall on the roof, the plates over it), a mime on a balcony
+  // down the far side (its wall across the way down); a waiter and a baguette at the bottom
+  ['m2:fl_mime', 5120, BLOCK.h], ['m2:fl_waiter', 5180, BLOCK.h], ['m2:fl_mime', 5260, 240], ['m2:fl_waiter', 5320, 0], ['m2:fl_baguette', 5370, 0],
 ];
 
 export const LOUVRE_CHECKPOINTS = [
