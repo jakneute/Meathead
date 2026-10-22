@@ -953,3 +953,12 @@ markBossFight every frame of a boss or sub-boss fight. Voice every new line (`np
     hits him too) in front of the dragon. The bandstand's crowd was four on the ground with the dragon inside THE
     BANDSTAND's reach: the dragon's out of it, the princess up on the balcony with the clerk (two throwing down) over
     the dragon, the bro and the knight.
+  - **The enchanted glen (glen/layout.ts CAST):** the briars' clerk stood inside THE STORYBOOK BRIDGE's reach: now at
+    the briars' near edge with the ginger (casting while it runs at him; up on the first toadstool, the ginger comes on
+    into the thorns). The cottage garden was gingers on the ground one after another (the last inside THE DWARF MINE's
+    reach): one's up on the woodpile, leaping on him as he comes down off the roof, the last at the edge of the gallows
+    cauldron's swing (a leap at him there goes up into its path). The dwarfs' team (a row: the candles say no dive
+    kicks, a charge into the first takes the line) out of the mine's checkpoint's reach. The meadow's second unicorn
+    stood inside THE DRAGON'S LAIR's reach: it's down at the foot of the lair's far side now, charging along under the
+    steps as he comes down them (no shouldering the horn: a dive kick from the steps). Left: the far shaft's dwarf and
+    the queue's crowd sit inside checkpoints' reach on stretches no wider than it.

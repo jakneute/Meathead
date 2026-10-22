@@ -137,13 +137,21 @@ export const CAULDRONS: [number, number, number, number, number, number][] = [
 export const CAST: [string, number, number][] = [
   ['m2:fa_huntsman', 1150, 0],
   ['m2:fa_owl', 2100, 400], ['m2:fa_ginger', 2620, 0],
-  ['m2:fa_owl', 3250, 320], ['m2:fa_clerk', 3780, 0],
+  // (the clerk at the briars' near edge (he stood inside THE STORYBOOK BRIDGE's reach): casting while the ginger
+  // runs at him; up on the first toadstool, the ginger comes on into the thorns)
+  ['m2:fa_owl', 3250, 320], ['m2:fa_clerk', 2700, 0],
   ['m2:fa_cupid', 4120, 230], ['m2:fa_troll', 5330, 0],
-  ['m2:fa_clerk', 6060, 0], ['m2:fa_ginger', 6230, 0], ['m2:fa_cupid', 6450, 400], ['m2:fa_ginger', 6740, 0], ['m2:fa_ginger', 7290, 0],
-  ['m2:fa_dwarf', 7760, 0], ['m2:fa_dwarf', 7850, 0], ['m2:fa_dwarf', 7940, 0],
+  // (the garden: a ginger up on the woodpile, leaping on him as he comes down off the roof; the last at the edge of
+  // the gallows cauldron's swing (it was inside THE DWARF MINE's reach): a leap at him there goes up into its path)
+  ['m2:fa_clerk', 6060, 0], ['m2:fa_ginger', 6230, 0], ['m2:fa_cupid', 6450, 400], ['m2:fa_ginger', 6730, 105], ['m2:fa_ginger', 6870, 0],
+  // (the team in a row: the candles say no dive kicks, a charge into the first takes the line; out of the
+  // checkpoint's reach)
+  ['m2:fa_dwarf', 7800, 0], ['m2:fa_dwarf', 7880, 0], ['m2:fa_dwarf', 7960, 0],
   ['m2:fa_owl', 8700, 320], ['m2:fa_cupid', 9000, 300], ['m2:fa_dwarf', GAP2.b + 140, 0],
-  ['m2:fa_unicorn', 10050, 0], ['m2:fa_huntsman', STAND.a + 70, STAND.h], ['m2:fa_cupid', 10500, 380], ['m2:fa_unicorn', 11000, 0],
-  ['m2:fa_dragon', 11380, 0], ['m2:fa_owl', 11980, 300], ['m2:fa_cupid', 11900, 540], ['m2:fa_huntsman', TOP.b - 60, TOP.h],
+  // (the second unicorn (it stood inside THE DRAGON'S LAIR's reach) is down at the foot of the lair's far side: it
+  // charges along under the steps as he comes down them (no shouldering the horn: drop a dive kick on it))
+  ['m2:fa_unicorn', 10050, 0], ['m2:fa_huntsman', STAND.a + 70, STAND.h], ['m2:fa_cupid', 10500, 380],
+  ['m2:fa_dragon', 11380, 0], ['m2:fa_unicorn', 12680, 0], ['m2:fa_owl', 11980, 300], ['m2:fa_cupid', 11900, 540], ['m2:fa_huntsman', TOP.b - 60, TOP.h],
   ['m2:fa_knight', 13330, 0], ['m2:fa_cupid', 13380, 250], ['m2:fa_ginger', 13460, 0], ['m2:fa_princess', 13560, 0],
 ];
 /** Pickups (lean): [x, height, type]. */
