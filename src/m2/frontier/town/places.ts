@@ -228,11 +228,54 @@ export const drawSquareBack = (c: Ctx, state: GameState, v: TownView) => {
     signText(g, 'THE SHOWDOWN', 0, -432, fit('THE SHOWDOWN', western(2, '#7F1D1D', Pl[1]), 260));
     signText(g, 'DAILY. NOBODY GETS HURT.', 0, -414, burned(1, 3));
   });
-  atDepth(c, eye, 0.88, () => {
-    const S = back7(STEEL[3], 0.06);
-    box(c, mid - 3, Y(330), 6, 330, INK); box(c, mid - 2, Y(330), 4, 330, S[3]); box(c, mid - 2, Y(330), 1, 330, S[5]);
-    for (const dx of [-1, 1]) { const hx = mid + dx * 10; c.fillStyle = INK; c.beginPath(); c.moveTo(hx, Y(320)); c.lineTo(hx + dx * 18, Y(330)); c.lineTo(hx + dx * 18, Y(306)); c.closePath(); c.fill(); c.fillStyle = S[4]; c.beginPath(); c.moveTo(hx, Y(319)); c.lineTo(hx + dx * 16, Y(328)); c.lineTo(hx + dx * 16, Y(308)); c.closePath(); c.fill(); }
-  });
+  stillAt(c, v, 0.88, 'showdown-speakers', mid, GY, -64, -352, 128, 352, g => drawSpeakers(g));
+};
+
+/** The loudspeakers on their pole (local to the pole's foot): a riveted steel pole, the cable run down it in clips, a
+ *  junction box, the crossarm, two horn speakers (the bell flared, the throat dark, the driver can behind, the bracket
+ *  and its bolts), a little rust. Painted once (a still). */
+const drawSpeakers = (g: Ctx) => {
+  const S = back7(STEEL[3], 0.06), R = back7('#8A4A24', 0.08), H = back7('#9AA0A6', 0.05);
+  // (the pole: inked, lit down its left, banded shade down its right; a collar every so often, rivets)
+  box(g, -4, -330, 8, 330, INK); box(g, -3, -330, 6, 330, S[3]); box(g, -3, -330, 2, 330, S[5]); box(g, 1, -330, 2, 330, S[2]);
+  for (let y = -300; y < -10; y += 70) { box(g, -5, y, 10, 5, INK); box(g, -4, y + 1, 8, 3, S[4]); box(g, -4, y + 1, 8, 1, S[6]); box(g, -2, y + 2, 1, 1, INK); box(g, 2, y + 2, 1, 1, INK); }
+  checker(g, 1, -200, 2, 40, R[3]); checker(g, -3, -120, 2, 24, R[2]);
+  // (the foot: a flange bolted down)
+  box(g, -9, -6, 18, 6, INK); box(g, -8, -5, 16, 4, S[3]); box(g, -8, -5, 16, 1, S[5]); for (const bx of [-6, 5]) box(g, bx, -4, 1, 1, S[6]);
+  // (the cable down its side, clipped every 40)
+  box(g, 4, -306, 2, 290, INK); box(g, 4, -306, 1, 290, '#3A3A40');
+  for (let y = -290; y < -20; y += 40) { box(g, 2, y, 6, 3, INK); box(g, 3, y + 1, 4, 1, S[5]); }
+  // (the junction box halfway up, its lid, its cable glands)
+  box(g, 3, -150, 14, 18, INK); box(g, 4, -149, 12, 16, S[3]); box(g, 4, -149, 12, 2, S[5]); box(g, 4, -135, 12, 2, S[1]);
+  box(g, 6, -146, 8, 1, S[2]); box(g, 6, -142, 8, 1, S[2]); box(g, 8, -132, 4, 3, INK);
+  // (the crossarm up top, its brace)
+  box(g, -26, -322, 52, 6, INK); box(g, -25, -321, 50, 4, S[3]); box(g, -25, -321, 50, 1, S[5]);
+  g.strokeStyle = INK; g.lineWidth = 2; g.beginPath(); g.moveTo(-3, -300); g.lineTo(-20, -318); g.moveTo(3, -300); g.lineTo(20, -318); g.stroke();
+  // (the cap on the pole's top)
+  box(g, -5, -334, 10, 5, INK); box(g, -4, -333, 8, 3, S[4]); box(g, -4, -333, 8, 1, S[6]);
+  // The horns: each on its bracket off the crossarm's end, angled out and a touch down
+  for (const dx of [-1, 1]) {
+    g.save(); g.translate(dx * 22, -314); g.scale(dx, 1); g.rotate(0.12);
+    // (the bracket and its bolt)
+    box(g, -2, -4, 6, 10, INK); box(g, -1, -3, 4, 8, S[3]); box(g, -1, -3, 4, 1, S[5]); box(g, 0, 0, 1, 1, S[6]);
+    // (the driver can behind: a short drum)
+    box(g, 2, -9, 9, 16, INK); box(g, 3, -8, 7, 14, S[2]); box(g, 3, -8, 7, 2, S[4]); box(g, 3, 4, 7, 2, S[1]); box(g, 5, -8, 1, 14, S[3]);
+    // (the throat flaring out to the bell, banded light to dark top to bottom)
+    const horn = (inset: number) => { g.beginPath(); g.moveTo(10, -4 + inset * 0.3); g.bezierCurveTo(18, -5 + inset * 0.3, 24, -12 + inset, 30, -16 + inset); g.lineTo(30, 14 - inset); g.bezierCurveTo(24, 10 - inset, 18, 4 - inset * 0.3, 10, 3 - inset * 0.3); g.closePath(); };
+    g.fillStyle = INK; horn(-1); g.fill();
+    const bands = [H[5], H[4], H[3], H[3], H[2], H[1]];
+    for (let k = 0; k < bands.length; k++) { g.save(); horn(0); g.clip(); g.fillStyle = bands[k]; g.fillRect(8, -18 + k * 6, 24, 6); g.restore(); }
+    // (a seam down it, a lit lip round the bell's rim, the dark throat inside the mouth)
+    g.fillStyle = H[6]; g.fillRect(14, -6, 10, 1);
+    box(g, 29, -17, 3, 32, INK); box(g, 29, -15, 2, 28, H[5]); box(g, 29, -15, 1, 28, H[6]);
+    g.fillStyle = '#16161A'; g.beginPath(); g.ellipse(30, -1, 1.5, 11, 0, 0, Math.PI * 2); g.fill();
+    checker(g, 28, -12, 1, 22, '#2A2A30');
+    // (rust weeping from the bracket bolt, a bird dropping on top)
+    checker(g, 12, -3, 4, 6, R[3]); box(g, 20, -12, 2, 1, '#E8E4DA'); box(g, 21, -11, 1, 2, '#E8E4DA');
+    g.restore();
+  }
+  // (the cables from the crossarm out to each horn, sagging)
+  g.strokeStyle = '#2A2A30'; g.lineWidth = 1.5; g.beginPath(); g.moveTo(4, -306); g.quadraticCurveTo(14, -300, 26, -306); g.moveTo(-1, -316); g.quadraticCurveTo(-12, -306, -26, -310); g.stroke();
 };
 
 /** The showdown's play plane: the balconies (ledges), the marks in the dirt, the gates. */
