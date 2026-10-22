@@ -45,3 +45,18 @@ SAFE_X 360).
 - The last stretch was a pack of three raptors on the ground to walk-and-fire. Now: a raptor on the ground and one up
   the first trees as before, a trike between the trees in front of the last fence (up a tree out of its way, then over
   the fence), and the last raptor up the last tree, dropping on him from above.
+
+**The temple backstage (temple/layout.ts ACTORS, GUIDES: 5 warriors before; 5 warriors and 1 guide after)**
+
+- Three of the five warriors stood on or next to a checkpoint's spot (70 from THE DART TRAP's, 250 from SMOKE AND
+  MIRRORS', 200 from THE LOADING STATION's): ground-level spear-carriers walking at him, shot down walking right.
+- The catapult: the warrior from between the runs is now on the low scaffold over the boulders' run (the high one
+  keeps its own). Low enough that he comes down after him into the run: shove or kick him into a boulder (they bowl
+  enemies over too).
+- Smoke and mirrors: the warrior by the fog, at the scaffold's foot, and up on its first step one of Safari Artie's
+  junior guides, sent round the back after him (Artie knows he's in there: he's on his tail all the way through the
+  mine cart). The spear punishes a shoulder charge, the spiked hat punishes a dive kick: the two counters side by
+  side, the first time in the land they meet. The guide's out of the snake's reach, but up the scaffold after him he
+  can be knocked into it. (Clearing: the tree waits on the clearing's own guides only, `liveGuides` by x, so one left
+  alive back in the temple can't hold up the kick.)
+- The station: the last warrior's up on the queue's rail, down on him from there, not stood by the checkpoint.

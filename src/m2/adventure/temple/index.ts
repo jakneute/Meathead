@@ -10,7 +10,8 @@
 //   the loading station: the line, a long one, in the background; a cart with a family in it. THE LOADING SCENE (first
 //                     visit, `loadingSeen`): he kicks them out of it one by one and sits down, and the operators, who
 //                     care (or don't), put him on the actual dangerous track. Then he's off to the mine cart (SECTIONS.cart).
-// Cast members in the warrior costume (with real spears) along the way.
+// Cast members in the warrior costume (with real spears) along the way, and one of Safari Artie's junior guides (the
+// spiked hat) sent round the back after him.
 //
 // Backtrackable: back out through the kicked-in back door, to the dino park (it stays open).
 // Painted in art.ts (the backstage seen from behind: the set's raw back, the rigs, the station and its line).
@@ -36,8 +37,9 @@ import { registerHurtLines } from '../../kinds';
 import { DINO_BACK_DOOR_X } from '../dino';
 import { drawRideCart, SEAT_DX, RIDE_SINK, JAGUAR_EXPRESS } from '../rideCart';
 import './kinds';
+import { GUIDE_KIND } from '../guides';
 import {
-  x0, x1, T, END_WALL, CATAPULT_X, DART_WALL, SNAKE_WALL, SNAKE_Y, SNAKE_REACH, CART_X, SCENE_AT, POSTS, LEDGES, SOLIDS, ACTORS,
+  x0, x1, T, END_WALL, CATAPULT_X, DART_WALL, SNAKE_WALL, SNAKE_Y, SNAKE_REACH, CART_X, SCENE_AT, POSTS, LEDGES, SOLIDS, ACTORS, GUIDES,
   type Temple, type Loading, crewed, DART_EVERY, DART_TELL, DART_SPEED, dartY, SNAKE_CYCLE, SNAKE_WIND, snakeOut, GUESTS, SEAT,
 } from './layout';
 import { drawTempleBackdrop, drawTempleBack, drawTempleFront, templeLighting } from './art';
@@ -263,6 +265,7 @@ export const temple: Section = {
     for (const [x, y, w] of LEDGES) ledge(state, x, y, w);
     for (let i = n0; i < state.blocks.length; i++) state.blocks[i].hidden = true;
     ACTORS.forEach(([x, y], i) => { const e = makeKindEnemy('m2:actor' as EnemyKind, x, y); e.variant = i; state.enemies.push(e); });
+    GUIDES.forEach(([x, y], i) => { const e = makeKindEnemy(GUIDE_KIND as EnemyKind, x, y); e.variant = 7 + i; state.enemies.push(e); });
     for (const [post, x, face] of POSTS) {
       const e: Enemy = makeKindEnemy('m2:stagehand' as EnemyKind, x, GY);
       e.variant = post; e.facing = face; e.homeX = e.pos.x;

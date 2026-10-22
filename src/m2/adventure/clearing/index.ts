@@ -137,7 +137,9 @@ const popGuide = (ctx: FrameContext, e: Enemy) => {
   // (his hat, up in the air and down again)
   state.particles.push({ pos: { x: e.pos.x + e.width / 2, y: e.pos.y }, vel: { x: (Math.random() - 0.5) * 3, y: -9 }, life: 60, color: '#D6C9A0', size: 9, grav: 0.35 });
 };
-const liveGuides = (state: GameState) => state.enemies.filter(e => e.kind === GUIDE_KIND && e.health > 0 && !e.isBlownAway);
+// (the clearing's own: the one round the back of the temple (temple/layout.ts GUIDES), left alive back there, isn't
+// waited on before the tree can be kicked)
+const liveGuides = (state: GameState) => state.enemies.filter(e => e.kind === GUIDE_KIND && e.health > 0 && !e.isBlownAway && e.pos.x > x0 - 1500);
 /** Into the lair: every guide still about goes off, one after another (none locked in with him, none waiting outside). */
 const popGuides = (state: GameState, cl: Clearing) => {
   liveGuides(state).forEach((e, i) => cl.booms.push({ at: state.frame + 4 + i * 9, go: ctx => popGuide(ctx, e) }));

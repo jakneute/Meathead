@@ -32,9 +32,15 @@ export const SOLIDS: [number, number, number][] = [
   [T - 60, GY - 700, 70], [DART_WALL, DART_TOP, 40], [SNAKE_WALL, SNAKE_TOP, 50],
   [END_WALL, GY - 700, 200],
 ];
-/** The warriors: [x, the floor under them]. None out in the boulders' or the darts' run: up on the scaffold over the
- *  boulders, between the two runs, up on the dart wall's ledge (over the darts). */
-export const ACTORS: [number, number][] = [[T + 1010, GY - 200], [T + 1650, GY], [T + 2600, GY - 110], [T + 3300, GY], [T + 4500, GY]];
+/** The warriors: [x, the floor under them]. None out in the boulders' or the darts' run, none within the safe start's
+ *  reach of a checkpoint (spawnSafe.ts): up on the scaffold over the boulders, high and low (the low one comes down
+ *  after him into the boulders' run: knock him into a boulder), up on the dart wall's ledge (over the darts), by the
+ *  fog at the foot of the snake's scaffold, up on the queue's rail by the station (down on him from there). */
+export const ACTORS: [number, number][] = [[T + 1010, GY - 200], [T + 1320, GY - 120], [T + 2600, GY - 110], [T + 3460, GY], [T + 4700, GY - 110]];
+/** One of Safari Artie's junior guides (guides.ts), sent round the back after him: up on the snake scaffold's first
+ *  step over the warrior by the fog. The spear doesn't take a shoulder charge, the spiked hat doesn't take a dive kick:
+ *  the two counters side by side. Out of the snake's reach (but knock him up into it). */
+export const GUIDES: [number, number][] = [[T + 3630, GY - 115]];
 
 // ---------------------------------------------------------------------------------------------------------------
 // Its state
