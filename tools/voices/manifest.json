@@ -6376,11 +6376,6 @@
  },
  {
   "voice": "death",
-  "text": "A KID SAW ONE KUNG FU MOVIE",
-  "from": "FRONTIER"
- },
- {
-  "voice": "death",
   "text": "A LITERAL MURDER OF CROWS",
   "from": "FRONTIER"
  },
@@ -6432,6 +6427,11 @@
  {
   "voice": "death",
   "text": "A PORCUPINE. OF ALL THINGS.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "death",
+  "text": "A PUNK SAW ONE KUNG FU MOVIE",
   "from": "FRONTIER"
  },
  {
@@ -6731,7 +6731,7 @@
  },
  {
   "voice": "death",
-  "text": "BATTED TO DEATH BY A KID",
+  "text": "BATTED TO DEATH BY A PUNK",
   "from": "FRONTIER"
  },
  {
@@ -37216,12 +37216,27 @@
  },
  {
   "voice": "m2.frontier.teen",
+  "text": "EIGHTEEN AND A HALF, BITCH! IT'S ON MY LEARNER'S PERMIT!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "EIGHTEEN! I CAN BUY SCRATCH-OFFS! NOT BEER! SCRATCH-OFFS!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "EIGHTEEN! I HAVEN'T SHAT MY PANTS SINCE I WAS SEVENTEEN!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
   "text": "EVERYBODY'S GONE. THANKS A LOT.",
   "from": "FRONTIER"
  },
  {
   "voice": "m2.frontier.teen",
-  "text": "EW! EW! EW!",
+  "text": "EW! EW! I WANT MY MOM!",
   "from": "FRONTIER"
  },
  {
@@ -37291,12 +37306,47 @@
  },
  {
   "voice": "m2.frontier.teen",
+  "text": "I SKINNED MY EVERYTHING!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
   "text": "I WANT MY MOM!",
   "from": "FRONTIER"
  },
  {
   "voice": "m2.frontier.teen",
   "text": "I'M BURNING THAT SEAT.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "I'M EIGHTEEN! I COULD JOIN THE ARMY! MY MOM SAID NO!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "I'M NINETEEN AND EVEN I DON'T DO THAT ANYMORE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "I'M NINETEEN! I CAN VOTE AND I STILL WET THE BED!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "I'M NINETEEN! I CAN VOTE AND I STILL WET THE BED! BUT I DON'T SHIT IT!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "I'M NINETEEN! I PAY TAXES! MY MOM DOES THEM!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "I'M NINETEEN! OLD ENOUGH TO CALL THE COPS ON A NAKED GUY!",
   "from": "FRONTIER"
  },
  {
@@ -37311,17 +37361,57 @@
  },
  {
   "voice": "m2.frontier.teen",
+  "text": "I'M TELLING!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
   "text": "IT STILL SMELLS LIKE YOU OVER HERE.",
   "from": "FRONTIER"
  },
  {
   "voice": "m2.frontier.teen",
-  "text": "MOM!",
+  "text": "MOMMY!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "MOMMY! HE SMELLS!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "MOMMY! HE'S NAKED!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "MOMMY! IT'S ON ME!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "MY BIKE! IT SMELLS LIKE HIM NOW!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "MY BIKE! MY DAD'S GONNA KILL ME!",
   "from": "FRONTIER"
  },
  {
   "voice": "m2.frontier.teen",
   "text": "MY DAD'S STILL MAKING PAYMENTS ON THAT BIKE.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "MY MOM SAYS I'M A GROWN MAN! GROWN MEN USE TOILETS!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "MY MOM SAYS I'M A GROWN MAN! SHE STILL CUTS MY STEAK!",
   "from": "FRONTIER"
  },
  {
@@ -37346,17 +37436,32 @@
  },
  {
   "voice": "m2.frontier.teen",
-  "text": "OH NO OH NO!",
-  "from": "FRONTIER"
- },
- {
-  "voice": "m2.frontier.teen",
   "text": "PUT IT AWAY, MAN!",
   "from": "FRONTIER"
  },
  {
   "voice": "m2.frontier.teen",
+  "text": "SHOULD WE BE IN SCHOOL? NO. SOME OF US DROPPED OUT. SOME OF US GRADUATED. WE ARE A DIVERSE GROUP OF PUNKS.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "TELL MY MOM I WAS GOOD!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "TELL MY MOM I WAS GOOD! AND HE STINKS!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
   "text": "THAT'S MY BIKE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "TIME OUT! TIME OUT!",
   "from": "FRONTIER"
  },
  {
@@ -37382,6 +37487,41 @@
  {
   "voice": "m2.frontier.teen",
   "text": "TWENTY BUCKS?! HELL YEAH!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "WAAAAAH!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "WAAAAAH! I WANT MY BLANKIE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "WAAAAAH! IT'S IN MY HAIR!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "WE'RE ALL LEGAL ADULTS! ASK THE NARRATOR!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "WE'RE ALL LEGAL ADULTS! ASK THE NARRATOR! HE SMELLS IT TOO!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "WE'RE ALL LEGAL ADULTS! ASK THE NARRATOR! HE'S GROSSED OUT TOO!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen",
+  "text": "YEAH, WE'RE TEENAGERS. WE ARE ALL EITHER 18 OR 19 YEARS OLD. NO YOUNGER, NO OLDER.",
   "from": "FRONTIER"
  },
  {
@@ -37461,12 +37601,27 @@
  },
  {
   "voice": "m2.frontier.teen2",
+  "text": "EIGHTEEN AND A HALF, BITCH! IT'S ON MY LEARNER'S PERMIT!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "EIGHTEEN! I CAN BUY SCRATCH-OFFS! NOT BEER! SCRATCH-OFFS!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "EIGHTEEN! I HAVEN'T SHAT MY PANTS SINCE I WAS SEVENTEEN!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
   "text": "EVERYBODY'S GONE. THANKS A LOT.",
   "from": "FRONTIER"
  },
  {
   "voice": "m2.frontier.teen2",
-  "text": "EW! EW! EW!",
+  "text": "EW! EW! I WANT MY MOM!",
   "from": "FRONTIER"
  },
  {
@@ -37536,12 +37691,47 @@
  },
  {
   "voice": "m2.frontier.teen2",
+  "text": "I SKINNED MY EVERYTHING!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
   "text": "I WANT MY MOM!",
   "from": "FRONTIER"
  },
  {
   "voice": "m2.frontier.teen2",
   "text": "I'M BURNING THAT SEAT.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "I'M EIGHTEEN! I COULD JOIN THE ARMY! MY MOM SAID NO!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "I'M NINETEEN AND EVEN I DON'T DO THAT ANYMORE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "I'M NINETEEN! I CAN VOTE AND I STILL WET THE BED!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "I'M NINETEEN! I CAN VOTE AND I STILL WET THE BED! BUT I DON'T SHIT IT!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "I'M NINETEEN! I PAY TAXES! MY MOM DOES THEM!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "I'M NINETEEN! OLD ENOUGH TO CALL THE COPS ON A NAKED GUY!",
   "from": "FRONTIER"
  },
  {
@@ -37556,17 +37746,57 @@
  },
  {
   "voice": "m2.frontier.teen2",
+  "text": "I'M TELLING!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
   "text": "IT STILL SMELLS LIKE YOU OVER HERE.",
   "from": "FRONTIER"
  },
  {
   "voice": "m2.frontier.teen2",
-  "text": "MOM!",
+  "text": "MOMMY!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "MOMMY! HE SMELLS!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "MOMMY! HE'S NAKED!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "MOMMY! IT'S ON ME!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "MY BIKE! IT SMELLS LIKE HIM NOW!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "MY BIKE! MY DAD'S GONNA KILL ME!",
   "from": "FRONTIER"
  },
  {
   "voice": "m2.frontier.teen2",
   "text": "MY DAD'S STILL MAKING PAYMENTS ON THAT BIKE.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "MY MOM SAYS I'M A GROWN MAN! GROWN MEN USE TOILETS!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "MY MOM SAYS I'M A GROWN MAN! SHE STILL CUTS MY STEAK!",
   "from": "FRONTIER"
  },
  {
@@ -37591,17 +37821,32 @@
  },
  {
   "voice": "m2.frontier.teen2",
-  "text": "OH NO OH NO!",
-  "from": "FRONTIER"
- },
- {
-  "voice": "m2.frontier.teen2",
   "text": "PUT IT AWAY, MAN!",
   "from": "FRONTIER"
  },
  {
   "voice": "m2.frontier.teen2",
+  "text": "SHOULD WE BE IN SCHOOL? NO. SOME OF US DROPPED OUT. SOME OF US GRADUATED. WE ARE A DIVERSE GROUP OF PUNKS.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "TELL MY MOM I WAS GOOD!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "TELL MY MOM I WAS GOOD! AND HE STINKS!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
   "text": "THAT'S MY BIKE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "TIME OUT! TIME OUT!",
   "from": "FRONTIER"
  },
  {
@@ -37627,6 +37872,41 @@
  {
   "voice": "m2.frontier.teen2",
   "text": "TWENTY BUCKS?! HELL YEAH!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "WAAAAAH!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "WAAAAAH! I WANT MY BLANKIE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "WAAAAAH! IT'S IN MY HAIR!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "WE'RE ALL LEGAL ADULTS! ASK THE NARRATOR!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "WE'RE ALL LEGAL ADULTS! ASK THE NARRATOR! HE SMELLS IT TOO!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "WE'RE ALL LEGAL ADULTS! ASK THE NARRATOR! HE'S GROSSED OUT TOO!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teen2",
+  "text": "YEAH, WE'RE TEENAGERS. WE ARE ALL EITHER 18 OR 19 YEARS OLD. NO YOUNGER, NO OLDER.",
   "from": "FRONTIER"
  },
  {
@@ -37706,12 +37986,27 @@
  },
  {
   "voice": "m2.frontier.teenf",
+  "text": "EIGHTEEN AND A HALF, BITCH! IT'S ON MY LEARNER'S PERMIT!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "EIGHTEEN! I CAN BUY SCRATCH-OFFS! NOT BEER! SCRATCH-OFFS!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "EIGHTEEN! I HAVEN'T SHAT MY PANTS SINCE I WAS SEVENTEEN!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
   "text": "EVERYBODY'S GONE. THANKS A LOT.",
   "from": "FRONTIER"
  },
  {
   "voice": "m2.frontier.teenf",
-  "text": "EW! EW! EW!",
+  "text": "EW! EW! I WANT MY MOM!",
   "from": "FRONTIER"
  },
  {
@@ -37781,12 +38076,47 @@
  },
  {
   "voice": "m2.frontier.teenf",
+  "text": "I SKINNED MY EVERYTHING!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
   "text": "I WANT MY MOM!",
   "from": "FRONTIER"
  },
  {
   "voice": "m2.frontier.teenf",
   "text": "I'M BURNING THAT SEAT.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "I'M EIGHTEEN! I COULD JOIN THE ARMY! MY MOM SAID NO!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "I'M NINETEEN AND EVEN I DON'T DO THAT ANYMORE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "I'M NINETEEN! I CAN VOTE AND I STILL WET THE BED!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "I'M NINETEEN! I CAN VOTE AND I STILL WET THE BED! BUT I DON'T SHIT IT!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "I'M NINETEEN! I PAY TAXES! MY MOM DOES THEM!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "I'M NINETEEN! OLD ENOUGH TO CALL THE COPS ON A NAKED GUY!",
   "from": "FRONTIER"
  },
  {
@@ -37801,17 +38131,57 @@
  },
  {
   "voice": "m2.frontier.teenf",
+  "text": "I'M TELLING!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
   "text": "IT STILL SMELLS LIKE YOU OVER HERE.",
   "from": "FRONTIER"
  },
  {
   "voice": "m2.frontier.teenf",
-  "text": "MOM!",
+  "text": "MOMMY!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "MOMMY! HE SMELLS!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "MOMMY! HE'S NAKED!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "MOMMY! IT'S ON ME!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "MY BIKE! IT SMELLS LIKE HIM NOW!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "MY BIKE! MY DAD'S GONNA KILL ME!",
   "from": "FRONTIER"
  },
  {
   "voice": "m2.frontier.teenf",
   "text": "MY DAD'S STILL MAKING PAYMENTS ON THAT BIKE.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "MY MOM SAYS I'M A GROWN MAN! GROWN MEN USE TOILETS!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "MY MOM SAYS I'M A GROWN MAN! SHE STILL CUTS MY STEAK!",
   "from": "FRONTIER"
  },
  {
@@ -37836,17 +38206,32 @@
  },
  {
   "voice": "m2.frontier.teenf",
-  "text": "OH NO OH NO!",
-  "from": "FRONTIER"
- },
- {
-  "voice": "m2.frontier.teenf",
   "text": "PUT IT AWAY, MAN!",
   "from": "FRONTIER"
  },
  {
   "voice": "m2.frontier.teenf",
+  "text": "SHOULD WE BE IN SCHOOL? NO. SOME OF US DROPPED OUT. SOME OF US GRADUATED. WE ARE A DIVERSE GROUP OF PUNKS.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "TELL MY MOM I WAS GOOD!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "TELL MY MOM I WAS GOOD! AND HE STINKS!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
   "text": "THAT'S MY BIKE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "TIME OUT! TIME OUT!",
   "from": "FRONTIER"
  },
  {
@@ -37872,6 +38257,41 @@
  {
   "voice": "m2.frontier.teenf",
   "text": "TWENTY BUCKS?! HELL YEAH!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "WAAAAAH!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "WAAAAAH! I WANT MY BLANKIE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "WAAAAAH! IT'S IN MY HAIR!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "WE'RE ALL LEGAL ADULTS! ASK THE NARRATOR!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "WE'RE ALL LEGAL ADULTS! ASK THE NARRATOR! HE SMELLS IT TOO!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "WE'RE ALL LEGAL ADULTS! ASK THE NARRATOR! HE'S GROSSED OUT TOO!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf",
+  "text": "YEAH, WE'RE TEENAGERS. WE ARE ALL EITHER 18 OR 19 YEARS OLD. NO YOUNGER, NO OLDER.",
   "from": "FRONTIER"
  },
  {
@@ -37951,12 +38371,27 @@
  },
  {
   "voice": "m2.frontier.teenf2",
+  "text": "EIGHTEEN AND A HALF, BITCH! IT'S ON MY LEARNER'S PERMIT!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "EIGHTEEN! I CAN BUY SCRATCH-OFFS! NOT BEER! SCRATCH-OFFS!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "EIGHTEEN! I HAVEN'T SHAT MY PANTS SINCE I WAS SEVENTEEN!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
   "text": "EVERYBODY'S GONE. THANKS A LOT.",
   "from": "FRONTIER"
  },
  {
   "voice": "m2.frontier.teenf2",
-  "text": "EW! EW! EW!",
+  "text": "EW! EW! I WANT MY MOM!",
   "from": "FRONTIER"
  },
  {
@@ -38026,12 +38461,47 @@
  },
  {
   "voice": "m2.frontier.teenf2",
+  "text": "I SKINNED MY EVERYTHING!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
   "text": "I WANT MY MOM!",
   "from": "FRONTIER"
  },
  {
   "voice": "m2.frontier.teenf2",
   "text": "I'M BURNING THAT SEAT.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "I'M EIGHTEEN! I COULD JOIN THE ARMY! MY MOM SAID NO!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "I'M NINETEEN AND EVEN I DON'T DO THAT ANYMORE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "I'M NINETEEN! I CAN VOTE AND I STILL WET THE BED!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "I'M NINETEEN! I CAN VOTE AND I STILL WET THE BED! BUT I DON'T SHIT IT!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "I'M NINETEEN! I PAY TAXES! MY MOM DOES THEM!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "I'M NINETEEN! OLD ENOUGH TO CALL THE COPS ON A NAKED GUY!",
   "from": "FRONTIER"
  },
  {
@@ -38046,17 +38516,57 @@
  },
  {
   "voice": "m2.frontier.teenf2",
+  "text": "I'M TELLING!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
   "text": "IT STILL SMELLS LIKE YOU OVER HERE.",
   "from": "FRONTIER"
  },
  {
   "voice": "m2.frontier.teenf2",
-  "text": "MOM!",
+  "text": "MOMMY!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "MOMMY! HE SMELLS!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "MOMMY! HE'S NAKED!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "MOMMY! IT'S ON ME!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "MY BIKE! IT SMELLS LIKE HIM NOW!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "MY BIKE! MY DAD'S GONNA KILL ME!",
   "from": "FRONTIER"
  },
  {
   "voice": "m2.frontier.teenf2",
   "text": "MY DAD'S STILL MAKING PAYMENTS ON THAT BIKE.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "MY MOM SAYS I'M A GROWN MAN! GROWN MEN USE TOILETS!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "MY MOM SAYS I'M A GROWN MAN! SHE STILL CUTS MY STEAK!",
   "from": "FRONTIER"
  },
  {
@@ -38081,17 +38591,32 @@
  },
  {
   "voice": "m2.frontier.teenf2",
-  "text": "OH NO OH NO!",
-  "from": "FRONTIER"
- },
- {
-  "voice": "m2.frontier.teenf2",
   "text": "PUT IT AWAY, MAN!",
   "from": "FRONTIER"
  },
  {
   "voice": "m2.frontier.teenf2",
+  "text": "SHOULD WE BE IN SCHOOL? NO. SOME OF US DROPPED OUT. SOME OF US GRADUATED. WE ARE A DIVERSE GROUP OF PUNKS.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "TELL MY MOM I WAS GOOD!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "TELL MY MOM I WAS GOOD! AND HE STINKS!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
   "text": "THAT'S MY BIKE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "TIME OUT! TIME OUT!",
   "from": "FRONTIER"
  },
  {
@@ -38117,6 +38642,41 @@
  {
   "voice": "m2.frontier.teenf2",
   "text": "TWENTY BUCKS?! HELL YEAH!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "WAAAAAH!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "WAAAAAH! I WANT MY BLANKIE!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "WAAAAAH! IT'S IN MY HAIR!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "WE'RE ALL LEGAL ADULTS! ASK THE NARRATOR!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "WE'RE ALL LEGAL ADULTS! ASK THE NARRATOR! HE SMELLS IT TOO!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "WE'RE ALL LEGAL ADULTS! ASK THE NARRATOR! HE'S GROSSED OUT TOO!",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "m2.frontier.teenf2",
+  "text": "YEAH, WE'RE TEENAGERS. WE ARE ALL EITHER 18 OR 19 YEARS OLD. NO YOUNGER, NO OLDER.",
   "from": "FRONTIER"
  },
  {
@@ -39146,7 +39706,7 @@
  },
  {
   "voice": "m2.frontier.tucker",
-  "text": "A HUNDRED BUCKS! DON'T LOOK DOWN, CHILDREN!",
+  "text": "A HUNDRED BUCKS! DON'T LOOK DOWN, PUNKS!",
   "from": "FRONTIER"
  },
  {
@@ -39981,7 +40541,7 @@
  },
  {
   "voice": "m2.frontier.tucker",
-  "text": "I'M BILLING YOU FOR THESE CHILDREN!",
+  "text": "I'M BILLING YOU FOR THESE PUNKS!",
   "from": "FRONTIER"
  },
  {
@@ -40316,7 +40876,7 @@
  },
  {
   "voice": "m2.frontier.tucker",
-  "text": "ONE FARE! PLUS INTEREST! PLUS THERAPY FOR THOSE CHILDREN!",
+  "text": "ONE FARE! PLUS INTEREST! PLUS THERAPY FOR THOSE PUNKS!",
   "from": "FRONTIER"
  },
  {
@@ -40606,7 +41166,7 @@
  },
  {
   "voice": "m2.frontier.tucker",
-  "text": "SO SORRY, CHILDREN! HE'S NOT ALWAYS NAKED. JUST TODAY.",
+  "text": "SO SORRY, EVERYBODY! HE'S NOT ALWAYS NAKED. JUST TODAY.",
   "from": "FRONTIER"
  },
  {
@@ -58396,6 +58956,26 @@
  },
  {
   "voice": "meathead",
+  "text": "ADULTS. GOOD. NO MORE HOLDING BACK.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "ADULTS. GOOD. THAT'S A LOAD OFF.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "ADULTS. GOOD. THAT'S A LOAD OFF. UNLIKE MY PANTS.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "ADULTS. GREAT. NO GUILT. JUST SHIT.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "AFTER THE CAT AND THE MOUSE? GOOD LUCK, STUPID DAD.",
   "from": "CARTOON"
  },
@@ -62321,7 +62901,7 @@
  },
  {
   "voice": "meathead",
-  "text": "EAT DIRT, KID.",
+  "text": "EAT DIRT, PUNK.",
   "from": "FRONTIER"
  },
  {
@@ -65056,6 +65636,11 @@
  },
  {
   "voice": "meathead",
+  "text": "GROWN MEN. NO MORE HOLDING BACK.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "GUESS THEY'RE STILL BITIN'.",
   "from": "m1/game/stages/hector/boat.ts:61"
  },
@@ -67611,7 +68196,7 @@
  },
  {
   "voice": "meathead",
-  "text": "HOT! KID BITS! HOT!",
+  "text": "HOT! PUNK BITS! HOT!",
   "from": "FRONTIER"
  },
  {
@@ -67711,7 +68296,7 @@
  },
  {
   "voice": "meathead",
-  "text": "HUMAN RAMP. MY BALLS WENT AIRBORNE.",
+  "text": "HUMAN RAMP. NAKED AND AIRBORNE.",
   "from": "FRONTIER"
  },
  {
@@ -74521,12 +75106,12 @@
  },
  {
   "voice": "meathead",
-  "text": "NEXT. GO DO YOUR HOMEWORK.",
+  "text": "NEXT. GO CRY TO YOUR MOM.",
   "from": "FRONTIER"
  },
  {
   "voice": "meathead",
-  "text": "NEXT. TELL YOUR MOM I SAID HI.",
+  "text": "NEXT. GO DO YOUR HOMEWORK.",
   "from": "FRONTIER"
  },
  {
@@ -74728,6 +75313,16 @@
   "voice": "meathead",
   "text": "NINE SECONDS. I'VE HAD SHORTER SEX. NOT MUCH.",
   "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "NINETEEN. FAIR GAME.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "NINETEEN. FAIR GAME. NAKED FAIR GAME.",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -76996,7 +77591,7 @@
  },
  {
   "voice": "meathead",
-  "text": "OW! THAT'S A TOOL, KID!",
+  "text": "OW! THAT'S A TOOL, PUNK!",
   "from": "FRONTIER"
  },
  {
@@ -78761,7 +79356,7 @@
  },
  {
   "voice": "meathead",
-  "text": "ROLL OUT, KID.",
+  "text": "ROLL OUT, PUNK.",
   "from": "FRONTIER"
  },
  {
@@ -82686,7 +83281,7 @@
  },
  {
   "voice": "meathead",
-  "text": "THANKS FOR THE LIFT, KID.",
+  "text": "THANKS FOR THE LIFT, PUNK.",
   "from": "FRONTIER"
  },
  {
