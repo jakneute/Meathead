@@ -21,6 +21,7 @@ import { stamp } from '../../../m1/game/render/stamp';
 import { px, ball, limb } from '../../spooky/costume';
 import type { Tower } from '../sway';
 import { GY } from '../geometry';
+import { boxSides } from '../kit';
 import { studioOf } from './state';
 import { moverAt, paintAt } from './props';
 import {
@@ -143,6 +144,23 @@ const drawPath = (c: Ctx, state: GameState) => {
   }
 };
 
+/** What stands on the path, its depth: the sides going back to the one eye from off to the side, the tops from above
+ *  (the kit's boxSides; drawn before the fronts, which never get crossed). */
+const propSides = (c: Ctx, state: GameState) => {
+  const E = eyeOf(state), on = (a: number, b: number) => X(b) > state.camera.x - 160 && X(a) < state.camera.x + CANVAS_WIDTH + 160;
+  if (on(FLATFILE.a, PENCILBOX.b)) {
+    boxSides(c, E, X(FLATFILE.a), X(FLATFILE.b), Y(FLATFILE.h), GY, 0.91, STEEL, { lines: [0, 1, 2, 3, 4].map(i => Y(FLATFILE.h) + 8 + i * 19) });
+    boxSides(c, E, X(DRAFTING.a), X(DRAFTING.b), Y(DRAFTING.h), GY, 0.9, PAPER, { apron: 10, leg: 4, sideR: STEEL });
+    boxSides(c, E, X(STORYWALL.a) - 3, X(STORYWALL.b) + 3, Y(STORYWALL.h), GY - 14, 0.96, PANEL, { lines: [Y(STORYWALL.h) + 10] });
+    boxSides(c, E, X(PENCILBOX.a), X(PENCILBOX.b), Y(PENCILBOX.h), GY, 0.9, R6('#E2B04A'), { lines: [Y(PENCILBOX.h) + 12, Y(PENCILBOX.h) + 30] });
+  }
+  if (on(SHELF.a, SHELF.b)) boxSides(c, E, X(SHELF.a), X(SHELF.b), Y(SHELF.h), Y(SHELF.h) + 12, 0.94, R6('#8B6B4A'));
+  for (const d of [NEAR_DESK, FAR_DESK]) if (on(d.a, d.b)) boxSides(c, E, X(d.a), X(d.b), Y(d.h), GY, 0.91, R6('#C9C4AE'), { apron: 14, leg: 6, sideR: STEEL });
+  if (on(FILMCANS.a, CRATE.b)) {
+    boxSides(c, E, X(FILMCANS.a), X(FILMCANS.b), Y(FILMCANS.h), GY, 0.9, CHROME, { lines: Array.from({ length: 13 }, (_, i) => GY - 20 - i * 20) });
+    boxSides(c, E, X(CRATE.a), X(CRATE.b), Y(CRATE.h), GY, 0.9, R6('#A47148'), { lines: [0, 1, 2, 3].map(k => Y(CRATE.h) + 8 + k * 36) });
+  }
+};
 const playProps = (c0: Ctx, state: GameState) => {
   const on = (a: number, b: number) => X(b) > state.camera.x - 80 && X(a) < state.camera.x + CANVAS_WIDTH + 80;
   if (on(FLATFILE.a, PENCILBOX.b)) stamp(c0, 'ct-st2-pp-story', X(FLATFILE.a) - 10, Y(STORYWALL.h) - 6, PENCILBOX.b - FLATFILE.a + 20, STORYWALL.h + 10, c => {
@@ -350,7 +368,7 @@ const drawStacks = (c: Ctx, state: GameState, list: Tower[]) => {
 
 /** The movers: the overhead tracks, the cels on their trolleys (a painted Socks on each), the crane. */
 const drawMovers = (c: Ctx, state: GameState) => {
-  const f = state.frame;
+  const f = state.frame, E = eyeOf(state);
   for (const d of MOVERS) {
     const at = moverAt(d, f), half = d.w / 2;
     if (at.x + 200 < state.camera.x || at.x - 200 > state.camera.x + CANVAS_WIDTH) continue;
@@ -368,6 +386,7 @@ const drawMovers = (c: Ctx, state: GameState) => {
       slab(c, wx0 - 13, wy0 - 11, 26, 22, CHARCOAL); for (let k = 0; k < 3; k++) box(c, wx0 - 10, wy0 - 7 + k * 6, 20, 1, CHARCOAL[4]);
       ball(c, bx, py, 7, CHROME[4], 1.2); ball(c, bx, py, 2.5, INK, 0);
       // (the seat's deck: steel, a rail at its back, the seat, the camera slung under its front)
+      boxSides(c, E, at.x - half, at.x + half, at.y, at.y + 12, 0.93, STEEL);
       slab(c, at.x - half, at.y, d.w, 12, STEEL);
       limb(c, at.x - half + 8, at.y, at.x - half + 8, at.y - 26, 2.4, CHROME[3]); limb(c, at.x - half + 8, at.y - 26, at.x - half + 26, at.y - 26, 2.4, CHROME[3]);
       if (at.y + 32 < GY) { slab(c, at.x + half - 30, at.y + 12, 28, 18, CHARCOAL); ball(c, at.x + half - 2, at.y + 21, 6, '#3F3F46', 1); ball(c, at.x + half - 2, at.y + 21, 2.5, '#1E3A8A', 0); }
@@ -388,6 +407,7 @@ const drawMovers = (c: Ctx, state: GameState) => {
     c.fillStyle = 'rgba(255,255,255,0.25)'; c.beginPath(); c.moveTo(at.x - half + 12, at.y + 10); c.lineTo(at.x - half + 22, at.y + 10); c.lineTo(at.x - half + 8, at.y + 60); c.lineTo(at.x - half + 4, at.y + 60); c.closePath(); c.fill();
     socks(c, at.x, at.y + 74, 0.62, d.id === 'celB' ? 1 : 0);
     for (let k = 0; k < 3; k++) { box(c, at.x - half + 10 + k * 34, at.y + 76, 6, 3, INK); }
+    boxSides(c, E, at.x - half, at.x + half, at.y, at.y + 10, 0.95, CHROME);
     slab(c, at.x - half, at.y, d.w, 10, CHROME);
     for (const cx of [at.x - half + 6, at.x + half - 14]) slab(c, cx, at.y + 8, 8, 6, CHARCOAL);
     lip(c, at.x - half + 2, at.y, d.w - 4);
@@ -567,6 +587,7 @@ export const drawStudioBack = (c: Ctx, state: GameState, talking: boolean) => {
   drawPath(c, state);
   pitsBack(c, state);
   drawThrows(c, state, true);
+  propSides(c, state);
   playProps(c, state);
   drawStacks(c, state, s.towers);
   drawMovers(c, state);
