@@ -11,19 +11,19 @@ export const MEATHEAD_BACK = 'EXTRA FAST PASS.';
 
 /** Somebody in line, seeing him go round them (through the fence out back). */
 export const GUEST_CUT: Record<Dressed, string[]> = {
-  clean: ["HEY! HE'S CUTTING, THE PRICK!", "WE'VE BEEN HERE SINCE NINE, ASSHOLE!", 'HOW COME HE GETS TO GO BACK THERE?'],
-  shitty: ["HE'S CUTTING! AND HE SHIT HIMSELF!", 'LET HIM CUT. GOD, LET HIM CUT.', 'IS THAT GUY LEAKING?'],
+  clean: ["HEY! HE'S CUTTING, THE PRICK!", "WE'VE BEEN HERE SINCE NINE, ASSHOLE!", "HE'S GOT A FAST PASS? HE LOOKS POOR!"],
+  shitty: ["HE'S CUTTING! AND HE SHIT HIMSELF!", 'LET HIM CUT. GOD, LET HIM CUT.', "HE'S DRIPPING ON MY CROCS!"],
   nude: ["A NAKED MAN IS CUTTING THE LINE!", "WHERE'S HE KEEPING HIS PASS?!", 'COVER YOUR EYES, KAYLEE!'],
 };
 /** A staffer, explaining him away. */
 export const STAFF_EXCUSE: Record<Dressed, string[]> = {
-  clean: ["EXTRA FAST PASS, MA'AM.", "IT'S THE EXTRA FAST PASS. DON'T WORRY ABOUT IT."],
+  clean: ["EXTRA FAST PASS, MA'AM.", 'EXTRA FAST PASS. TAKE IT UP WITH GUEST SERVICES.'],
   shitty: ['EXTRA FAST PASS. THE BROWN TIER.', 'EXTRA FAST PASS. IT COMES WITH THAT.'],
   nude: ["EXTRA FAST PASS. PANTS AREN'T INCLUDED.", "WHERE'S HE KEEPING IT? NOT MY PROBLEM."],
 };
 /** A staffer on break, as he goes by. */
 export const STAFF_IDLE: Record<Dressed, string[]> = {
-  clean: ["I'M ON BREAK.", "THEY DON'T PAY ME ENOUGH TO STOP YOU.", "YOU'RE NOT ALLOWED BACK HERE. ANYWAY."],
+  clean: ["I'M ON BREAK.", "THEY DON'T PAY ME ENOUGH TO STOP YOU.", "I'M ON MY TEN. DO WHATEVER THE FUCK YOU WANT."],
   shitty: ["I'M NOT CLEANING THAT. I'M ON BREAK.", 'DUDE. YOU SHIT YOURSELF.', 'NOPE. GO AHEAD. KEEP WALKING.'],
   nude: ["SIR, YOUR DICK IS OUT. I'M ON BREAK, THOUGH.", 'NUDITY IS GUEST SERVICES. NOT ME.', "I DIDN'T SEE ANYTHING. I'M ON BREAK."],
 };
@@ -32,7 +32,7 @@ export const STAFF_HIT = ["OW. I'M STILL NOT FIGHTING YOU.", 'I MAKE ELEVEN DOLL
 
 /** The front of the line, at the dock, as he walks past them onto their boat. */
 export const GUEST_FRONT: Record<Dressed, string[]> = {
-  clean: ["THAT'S OUR BOAT, YOU FAT FUCK!", 'THREE HOURS! WE WAITED THREE HOURS!'],
+  clean: ["THAT'S OUR BOAT, YOU FAT FUCK!", 'I PAID FOUR HUNDRED DOLLARS FOR THIS DAY!'],
   shitty: ['TAKE IT. TAKE THE BOAT.', "HE'S SITTING ON THE SEAT! WITH HIS ASS!"],
   nude: ["HE'S NAKED AND HE TOOK OUR BOAT!", "KAYLEE, DON'T LOOK AT THE MAN'S BALLS!"],
 };

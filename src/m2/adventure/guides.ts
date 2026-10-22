@@ -12,9 +12,9 @@ import { lookOf } from './temple/people';
 import { drawGuide } from './clearing/guideArt';
 
 /** What he says when a guide's stick gets him, and when he comes down on a spiked helmet; their death screens. */
-export const HURT_GUIDE = ['HE HIT ME WITH A HIKING STICK!', 'QUIT WHACKING ME, BOY SCOUT!', 'IS THAT IN THE TOUR?!'];
-export const DEATH_GUIDE = ['WALKING-STICKED TO DEATH', 'GUIDED TO THE AFTERLIFE', 'TOUR OVER'];
-export const HURT_HAT_SPIKES = ['WHO PUTS SPIKES ON A HAT?!', 'I STOMPED A PINCUSHION!', 'MY FEET!', 'NOTE TO SELF: NOT THE POINTY HAT.'];
+export const HURT_GUIDE = ['BEAT UP BY A MALL COP IN SHORTS!', 'QUIT WHACKING ME, BOY SCOUT!', 'IS THAT IN THE TOUR?!'];
+export const DEATH_GUIDE = ['WALKING-STICKED TO DEATH', 'GUIDED TO THE AFTERLIFE', 'BEATEN BY A BOY SCOUT'];
+export const HURT_HAT_SPIKES = ['WHO PUTS SPIKES ON A HAT?!', 'I STOMPED A PINCUSHION!', "MY ARCHES! I DON'T EVEN HAVE ARCHES!", 'NOTE TO SELF: NOT THE POINTY HAT.'];
 export const DEATH_HAT_SPIKES = ['STOMPED A SPIKED HAT', 'IMPALED FROM BELOW', 'HAT TRICK'];
 
 export const VOICE_LINES: Record<string, string[]> = {
