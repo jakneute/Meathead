@@ -962,3 +962,12 @@ markBossFight every frame of a boss or sub-boss fight. Voice every new line (`np
     stood inside THE DRAGON'S LAIR's reach: it's down at the foot of the lair's far side now, charging along under the
     steps as he comes down them (no shouldering the horn: a dive kick from the steps). Left: the far shaft's dwarf and
     the queue's crowd sit inside checkpoints' reach on stretches no wider than it.
+  - **The castle's base (keep/layout.ts CAST):** the gate's lone guard and the courtyard's princess stood inside their
+    checkpoints' reach: moved just out. The ramparts' first clerk stood on THE RAMPARTS' spot: now between the
+    machicolations' second and third holes (casting through the rolling wave; knock him into a pour). Past the breach the
+    courtier and the guard stood inside THE TOWER STAIRS' reach: the courtier's right where the far staircase lands him,
+    the clerk behind her (two throwing across the swinging flight). The postern yard was a ground line (guard, jester,
+    unicorn, courtier) inside THE POSTERN's reach: the wall's last guard and the yard's jester are up on the steps down
+    the tower's far side (below him coming down: the halberd chops up at a jump over, a dive kick's fine; the pins come
+    up from the step under), the yard keeps its guard, unicorn and courtier. Left: the clerk past the breach, the
+    yard's three sit inside checkpoints' reach on stretches no wider than it.

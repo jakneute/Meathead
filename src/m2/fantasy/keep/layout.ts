@@ -152,14 +152,21 @@ export const CAULDRONS: [number, number, number, number, number, number][] = [
 // The cast, the pickups, the checkpoints
 
 /** [kind, x, height of its feet]. Nobody of the cast stands in a hazard's way. */
+// (the encounter pass: nobody newly inside a checkpoint's safe start (spawnSafe.ts, 360 either side). The gate's guard
+// and the courtyard's princess out of it; the first wall-walk clerk between the machicolations' second and third
+// holes (casting through the rolling wave; he can be knocked into a pour); past the breach the courtier right where
+// the far staircase lands him, the clerk behind her (two throwing across the swinging flight); the wall's last guard
+// and the yard's jester up on the steps down the tower's far side (below him coming down: the halberd chops up at a
+// jump over, a dive kick's fine on him; pins coming up from the step under))
 export const CAST: [string, number, number][] = [
-  ['m2:fa_guard', 520, 0],
+  ['m2:fa_guard', 610, 0],
   ['m2:fa_guard', 2170, 0], ['m2:fa_courtier', 2680, 0],
-  ['m2:fa_princess', 3340, 0], ['m2:fa_jester', 3820, 0], ['m2:fa_knight', 3990, 0], ['m2:fa_owl', 4300, 330],
-  ['m2:fa_clerk', 4840, WALL.top], ['m2:fa_guard', 5235, WALL.top], ['m2:fa_owl', 5560, 470],
-  ['m2:fa_clerk', 5960, WALL.top], ['m2:fa_courtier', 6160, WALL.top],
-  ['m2:fa_guard', 6440, WALL.top], ['m2:fa_owl', 6720, 640], ['m2:fa_jester', 7060, GALLERY.h], ['m2:fa_courtier', 7380, GALLERY.h],
-  ['m2:fa_guard', 8560, 0], ['m2:fa_jester', 8700, 0], ['m2:fa_unicorn', 8820, 0], ['m2:fa_courtier', 8930, 0],
+  ['m2:fa_princess', 3400, 0], ['m2:fa_jester', 3820, 0], ['m2:fa_knight', 3990, 0], ['m2:fa_owl', 4300, 330],
+  ['m2:fa_clerk', 5085, WALL.top], ['m2:fa_guard', 5235, WALL.top], ['m2:fa_owl', 5560, 470],
+  ['m2:fa_courtier', 5890, WALL.top], ['m2:fa_clerk', 5960, WALL.top],
+  ['m2:fa_owl', 6720, 640], ['m2:fa_jester', 7060, GALLERY.h], ['m2:fa_courtier', 7380, GALLERY.h],
+  ['m2:fa_jester', 7840, 514], ['m2:fa_guard', 8000, 384],
+  ['m2:fa_guard', 8560, 0], ['m2:fa_unicorn', 8820, 0], ['m2:fa_courtier', 8930, 0],
 ];
 /** Pickups (lean): [x, height, type]. */
 export const PICKUPS: [number, number, 'small_health' | 'small_ammo'][] = [
