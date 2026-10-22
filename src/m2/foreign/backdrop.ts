@@ -20,7 +20,13 @@ import { drawTodSky, farTint, timeOfDay, hourMix, skyAt, cloudTint, type TimeOfD
 import { drawAcross, drawTourCopter, drawGulls, ringAt } from './teases';
 import { farCol } from '../hollywood/blvd/far';
 import { mist, falls } from '../adventure/farArt';
-import { box, poly, mix, hash, checker, stamp, bandedGradient, pixelBlob, signText, plain, INK } from './kit';
+import { box as kitBox, poly, mix, hash, checker, stamp, bandedGradient, pixelBlob, signText, plain, INK } from './kit';
+
+/** Where a far still's being painted only a window of (the hub's skyline: hub/far.ts showcase): the fills wholly
+ *  outside it skipped (they'd be clipped off anyway). Everywhere else, nothing's skipped. */
+let cullL = -Infinity, cullR = Infinity;
+export const cullStill = (l: number, r: number) => { cullL = l; cullR = r; };
+const box = (g: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, col: string) => { if (x > cullR || x + w < cullL) { g.fillStyle = col; return; } kitBox(g, x, y, w, h, col); };
 import { SECTIONS, FLX, type ForeignId } from './geometry';
 
 type Ctx = CanvasRenderingContext2D;

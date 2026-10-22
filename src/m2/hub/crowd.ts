@@ -14,7 +14,7 @@
 
 import type { GameState } from '../../m1/game/core/state';
 import { GROUND_Y } from '../../m1/constants';
-import { stamp } from '../../m1/game/render/stamp';
+import { stamp, stampSweep, notePaint, coveredAndSpent } from '../../m1/game/render/stamp';
 import { CAST, type CastMember } from '../cast/people';
 import { drawPerson, lookOf, type Pose } from '../adventure/temple/people';
 import { type Ctx, INK, mix, hash, box, inked } from './kit';
@@ -122,11 +122,23 @@ const SPRITES = new Map<string, Sprite>();
 const BOX = { x0: -50, y0: -150, w: 110, h: 156 };
 /** How big a guest is drawn at each row (a few sizes, not one per pixel of depth: fewer pictures to paint). */
 const sizeAt = (y: number) => { const s = personScale(y); return s < 0.66 ? 0.62 : s < 0.72 ? 0.68 : s < 0.77 ? 0.74 : 0.8; };
+/** Through the pull-back out of a portal (stamp.ts's sweep): the guests at the zoom's sizes, kept apart, so the ones
+ *  at the hub's own size (painted on the last visit, or before the zoom) are still there, not painted over, when it's
+ *  done. */
+const ZOOMED = new Map<string, Sprite>();
 const putSprite = (c: Ctx, key: string, x: number, y: number, s: number, facing: 1 | -1, paint: (g: Ctx) => void) => {
   const m = c.getTransform(), dev = Math.hypot(m.a, m.b), want = Math.round(dev * s * 8) / 8;
-  let sp = SPRITES.get(key);
   if (typeof document === 'undefined') return;
-  if (!sp || Math.abs(sp.P - want) / want > 0.35) {
+  const sweep = stampSweep();
+  if (!sweep && ZOOMED.size) ZOOMED.clear();
+  const ok = (p?: Sprite) => !!p && Math.abs(p.P - want) / want <= 0.35;
+  let sp = SPRITES.get(key);
+  const home = !sweep || ok(sp) ? SPRITES : ZOOMED;
+  if (home === ZOOMED) sp = ZOOMED.get(key);
+  if (!sp || !ok(sp)) {
+    // (under cover (stamp.ts), this frame's painted plenty: next frame)
+    if (coveredAndSpent()) return;
+    const t0 = performance.now();
     const cv = sp?.c ?? document.createElement('canvas');
     cv.width = Math.ceil(BOX.w * want) + 2; cv.height = Math.ceil(BOX.h * want) + 2;
     const g = cv.getContext('2d')!;
@@ -134,7 +146,8 @@ const putSprite = (c: Ctx, key: string, x: number, y: number, s: number, facing:
     g.imageSmoothingEnabled = false;
     paint(g);
     sp = { c: cv, P: want };
-    SPRITES.set(key, sp);
+    home.set(key, sp);
+    notePaint(performance.now() - t0);
   }
   // (one unit, one device pixel at the size it was painted at: mirrored about the feet when facing left)
   const k = s / sp.P;

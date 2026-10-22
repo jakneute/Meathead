@@ -24,7 +24,7 @@ import { todLight } from '../timeOfDay';
 import { HUB, HUB_CIRC, slotX } from './geometry';
 import { createGrab, updateGrab, drawGrab, grabbing, type Grab } from '../moves/grab';
 import { setDropTable } from '../../m1/game/core/effects';
-import { setStampSweep } from '../../m1/game/render/stamp';
+import { setStampSweep, setStampCover } from '../../m1/game/render/stamp';
 
 export const HUB_STAGE = 'M2 Happy Hub';
 
@@ -36,6 +36,9 @@ let exitNext = false;
 export const setHubExit = (on: boolean) => { exitNext = on; };
 /** Is he about to come out of a portal? (No HUD as the hub loads, then.) */
 export const hubExitPending = () => exitNext;
+
+/** The portal exit's first frames, under the white (95% and more) and the stage change's black: stamp.ts's cover. */
+const COVERED_T = 2;
 
 const GATED: (keyof Controls)[] = ['jump', 'special', 'shoot', 'secondary', 'charge'];
 
@@ -78,6 +81,9 @@ export const hubLayout: StageLayout = {
     const portal = exitNext ? startExit(startSlot) : null;
     exitNext = false;
     setStampSweep(!!portal);
+    // (and built under the stage change's black, the portal's white over that: what's painted for the first frames spread
+    // over them)
+    setStampCover(!!portal);
     state.stage = { map: null, upWas: false, gate: new Set(), grab: createGrab(state), portal } satisfies Hub;
     state.cameraMinX = HUB.x0 - HUB_CIRC;
   },
@@ -94,6 +100,7 @@ export const hubLayout: StageLayout = {
     // (out of a portal, the camera pulling back: the art stamped as it comes into view, not painted live every frame of
     // the pull-back (stamp.ts))
     setStampSweep(hub.portal?.kind === 'out');
+    setStampCover(hub.portal?.kind === 'out' && hub.portal.t < COVERED_T);
     // (through a portal: nothing else till he's there)
     if (hub.portal) return runShow(state, hub, controls);
     const p = state.player, cx = p.pos.x + p.width / 2;

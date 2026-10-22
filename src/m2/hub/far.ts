@@ -22,21 +22,44 @@ import { drawTowerIntact } from '../walkAway/spookyTown';
 import { drawTowerAt } from '../cartoon/monument';
 import { drawCastleAt } from '../fantasy/monument';
 import { drawRexStill } from '../adventure/dino/rex';
-import { FAR_STILLS } from '../foreign/backdrop';
+import { FAR_STILLS, cullStill } from '../foreign/backdrop';
 import { signText } from '../signLetters';
 
 /** The haze over something painted in it: painted into a canvas of its own, then washed toward the sky by k (only where
  *  it's painted), then put down. */
+/** The landmarks, hazed, as painted (paintLandmark: by which, where, the hour, the scale and the part of it): kept across
+ *  the hub's visits (the stage's stamps aren't), so walking back onto the hub doesn't paint them all over again. */
+const HAZED = new Map<string, HTMLCanvasElement>();
+const HAZED_MAX = 10;
+/** Which landmark's being painted (paintLandmark), for HAZED. */
+let hazeKey: string | null = null;
 const hazed = (g: Ctx, x0: number, y0: number, w: number, h: number, k: number, tod: TimeOfDay, paint: (o: Ctx) => void) => {
   if (typeof document === 'undefined') return;
   const m = g.getTransform(), s = Math.max(1, Math.abs(m.a));
-  const cv = document.createElement('canvas'); cv.width = Math.ceil(w * s); cv.height = Math.ceil(h * s);
-  const o = cv.getContext('2d')!;
-  o.setTransform(s, 0, 0, s, -x0 * s, -y0 * s);
-  paint(o);
-  o.setTransform(1, 0, 0, 1, 0, 0);
-  o.globalCompositeOperation = 'source-atop'; o.globalAlpha = k; o.fillStyle = skyAt(0.86, tod); o.fillRect(0, 0, cv.width, cv.height);
-  g.drawImage(cv, x0, y0, w, h);
+  const W = Math.ceil(w * s), H = Math.ceil(h * s);
+  // (only the part of it that lands on the canvas it's going on (a big landmark pushed right in, mostly off it: the
+  // hub's portal exit), in whole pixels of the full picture, so what's painted is the same pixels either way)
+  let i0 = 0, i1 = W, j0 = 0, j1 = H;
+  if (m.a > 0 && m.d > 0 && m.b === 0 && m.c === 0) {
+    const sx = W / w, sy = H / h;
+    i0 = Math.max(0, Math.floor(((-m.e / m.a) - x0) * sx) - 2); i1 = Math.min(W, Math.ceil(((g.canvas.width - m.e) / m.a - x0) * sx) + 2);
+    j0 = Math.max(0, Math.floor(((-m.f / m.d) - y0) * sy) - 2); j1 = Math.min(H, Math.ceil(((g.canvas.height - m.f) / m.d - y0) * sy) + 2);
+    if (i1 <= i0 || j1 <= j0) return;
+  }
+  // (just the whole ones at a whole scale (the hub's own view): none of a zoom's passing sizes)
+  const ck = hazeKey && s === Math.round(s) && i0 === 0 && j0 === 0 && i1 === W && j1 === H ? `${hazeKey}|${tod.key}|${x0},${y0},${w},${h}|${s}` : null;
+  let cv = ck ? HAZED.get(ck) : undefined;
+  if (cv) { HAZED.delete(ck!); HAZED.set(ck!, cv); }
+  else {
+    cv = document.createElement('canvas'); cv.width = i1 - i0; cv.height = j1 - j0;
+    const o = cv.getContext('2d')!;
+    o.setTransform(s, 0, 0, s, -x0 * s - i0, -y0 * s - j0);
+    paint(o);
+    o.setTransform(1, 0, 0, 1, 0, 0);
+    o.globalCompositeOperation = 'source-atop'; o.globalAlpha = k; o.fillStyle = skyAt(0.86, tod); o.fillRect(0, 0, cv.width, cv.height);
+    if (ck) { HAZED.set(ck, cv); if (HAZED.size > HAZED_MAX) HAZED.delete(HAZED.keys().next().value!); }
+  }
+  g.drawImage(cv, x0 + (i0 * w) / W, y0 + (j0 * h) / H, (cv.width * w) / W, (cv.height * h) / H);
 };
 const poly = (g: Ctx, pts: number[], col: string) => { g.fillStyle = col; g.beginPath(); g.moveTo(pts[0], pts[1]); for (let i = 2; i < pts.length; i += 2) g.lineTo(pts[i], pts[i + 1]); g.closePath(); g.fill(); };
 /** A five-step far ramp round a color (deep .. highlight), for the hour and the distance. */
@@ -218,7 +241,9 @@ const showcase = (g: Ctx, x: number, Y: number, tod: TimeOfDay) => {
     if (!S) return;
     g.save(); g.beginPath(); g.rect(cx - (aw * s) / 2, Y - S.h * s - 10, aw * s, S.h * s + 20); g.clip();
     g.translate(cx - ax * s, Y - S.h * s); g.scale(s, s);
-    S.paint(g, farCol(tod, S.k * 0.5), tod);
+    // (just its window's worth: the rest of the still was painted only to be clipped off)
+    cullStill(ax - aw / 2 - 4, ax + aw / 2 + 4);
+    try { S.paint(g, farCol(tod, S.k * 0.5), tod); } finally { cullStill(-Infinity, Infinity); }
     g.restore();
   };
   one('japan', 0.62, x + 10, 480, 640);
@@ -228,6 +253,10 @@ const showcase = (g: Ctx, x: number, Y: number, tod: TimeOfDay) => {
 };
 
 export const paintLandmark = (g: Ctx, id: StretchId, x: number, Y: number) => {
+  hazeKey = id;
+  try { paintLandmarkNow(g, id, x, Y); } finally { hazeKey = null; }
+};
+const paintLandmarkNow = (g: Ctx, id: StretchId, x: number, Y: number) => {
   const tod = timeOfDay(), night = tod.lamps;
   const L = LANDMARK_BOX;
   switch (id) {
