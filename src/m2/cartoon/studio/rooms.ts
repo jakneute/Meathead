@@ -741,16 +741,21 @@ const paintInkpaint = (g: Ctx, r: Room) => {
   for (let k = 0; k < 8; k++) px(g, X(8548) + (k * 7) % 30, CEIL + 320 + k * 7, 3, 3, ['#DC2626', '#2563EB', '#FACC15'][k % 3]);
 };
 const paintInkpaintProps = (g: Ctx) => {
-  // (two long tables, painters at them painting the backs of cels laid flat, jars and brushes by them)
+  // (two long tables, painters at them painting the backs of cels laid flat, jars and brushes by them: each painter on
+  // a stool behind the table's front, their legs drawn first, the table over the knees, then their arms on the top and
+  // the brush's tip down on their own cel)
   for (const [t0, n] of [[7680, 4], [8180, 4]] as [number, number][]) {
-    for (let i = 0; i < n; i++) { const x = X(t0 + i * 95); g.save(); g.translate(x, GY - 44); sitter(g, 700 + t0 + i * 29, { asian: true, shirt: ['#E7E5E4', '#D6D3C4', '#CBD5E1'][i % 3], pants: '#475569', reach: 22, nod: 0.45, drawing: false }); g.restore(); }
-    slab(g, X(t0 + 10), GY - 66, n * 95 + 20, 10, R6('#9CA3AF'));
-    slab(g, X(t0 + 16), GY - 56, 6, 56, STEEL); slab(g, X(t0 + n * 95 + 20), GY - 56, 6, 56, STEEL);
+    const paint = (i: number) => ['#DC2626', '#18181B', '#FACC15', '#7C3AED'][i % 4];
+    const painter = (i: number, half: 'lower' | 'upper') => { g.save(); g.translate(X(t0 + 20 + i * 95), GY - 34); animator(g, 700 + t0 + i * 29, half, { shirt: ['#E7E5E4', '#D6D3C4', '#CBD5E1'][i % 3], pants: '#475569', brush: paint(i) }); g.restore(); };
+    for (let i = 0; i < n; i++) painter(i, 'lower');
+    slab(g, X(t0 - 4), GY - 46, n * 95 + 34, 8, R6('#9CA3AF'));
+    slab(g, X(t0 - 2), GY - 38, 6, 38, STEEL); slab(g, X(t0 + n * 95 + 22), GY - 38, 6, 38, STEEL);
     for (let i = 0; i < n; i++) {
       const cx = X(t0 + 40 + i * 95);
-      px(g, cx, GY - 70, 40, 4, 'rgba(219,234,254,0.9)'); px(g, cx + 8, GY - 70, 14, 4, ['#DC2626', '#18181B', '#FACC15', '#7C3AED'][i % 4]);
-      slab(g, cx + 44, GY - 76, 8, 10, R6('#E5E7EB')); px(g, cx + 45, GY - 72, 6, 5, ['#DC2626', '#2563EB', '#16A34A', '#18181B'][i % 4]); px(g, cx + 47, GY - 84, 1, 10, '#A16207');
+      px(g, cx, GY - 50, 40, 4, 'rgba(219,234,254,0.9)'); px(g, cx + 8, GY - 50, 14, 4, paint(i));
+      slab(g, cx + 44, GY - 56, 8, 10, R6('#E5E7EB')); px(g, cx + 45, GY - 52, 6, 5, ['#DC2626', '#2563EB', '#16A34A', '#18181B'][i % 4]); px(g, cx + 47, GY - 64, 1, 10, '#A16207');
     }
+    for (let i = 0; i < n; i++) painter(i, 'upper');
   }
   footShadow(g, X(7660), GY, 420); footShadow(g, X(8160), GY, 420);
 };

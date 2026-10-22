@@ -71,7 +71,7 @@ const draftStool = (g: Ctx, col: string) => {
  * the head and the near arm (after it, so the forearms lie on the top and the pencil's point is on the paper). `hand`
  * nudges the pencil along the line; `asleep` puts the head down on the folded arms.
  */
-export const animator = (g: Ctx, seed: number, half: 'lower' | 'upper', o: { shirt: string; pants: string; hand?: number; asleep?: boolean; yawn?: boolean; cardigan?: string; chair?: string }) => {
+export const animator = (g: Ctx, seed: number, half: 'lower' | 'upper', o: { shirt: string; pants: string; hand?: number; asleep?: boolean; yawn?: boolean; cardigan?: string; chair?: string; brush?: string }) => {
   const B = bodyOf(seed, 'stand', 0);
   B.L.skin = ASIAN_SKIN[((Math.floor(seed) % ASIAN_SKIN.length) + ASIAN_SKIN.length) % ASIAN_SKIN.length];
   B.L.hair = ASIAN_HAIR[((Math.floor(seed >> 2) % ASIAN_HAIR.length) + ASIAN_HAIR.length) % ASIAN_HAIR.length];
@@ -88,8 +88,8 @@ export const animator = (g: Ctx, seed: number, half: 'lower' | 'upper', o: { shi
   const S = o.asleep ? { x: 10, y: -17 } : { x: 6, y: -23 };
   const H = o.asleep ? { x: 22, y: -25 } : { x: 12, y: -33 };
   // (the far arm: the elbow on the table's lip, the hand holding the sheet down)
-  jointed(g, o.asleep ? [[S.x - 2, S.y + 1], [16, -14], [30, -18]] : [[S.x - 2, S.y + 1], [14, -13], [27, -16]], [B.armW - 0.5, B.armW - 0.5], [dk(top, 0.15), dk(top, 0.15)]);
-  ball(g, o.asleep ? 30 : 27, o.asleep ? -18 : -16, 3, dk(L.skin, 0.1), 1);
+  jointed(g, o.asleep ? [[S.x - 2, S.y + 1], [16, -14], [30, -18]] : [[S.x - 2, S.y + 1], [14, -13], [27, o.brush ? -14 : -16]], [B.armW - 0.5, B.armW - 0.5], [dk(top, 0.15), dk(top, 0.15)]);
+  ball(g, o.asleep ? 30 : 27, o.asleep ? -18 : o.brush ? -14 : -16, 3, dk(L.skin, 0.1), 1);
   // (the body, bent over the table)
   part(g, () => { g.moveTo(-B.hipW / 2, 0); g.lineTo(S.x - B.w / 2 + 1, S.y); g.quadraticCurveTo(S.x, S.y - 4, S.x + B.w / 2 - 1, S.y); g.lineTo(B.hipW / 2, 0); g.closePath(); }, o.shirt, -B.hipW / 2, S.y - 4, B.w + 8, -S.y + 4);
   if (o.cardigan) { part(g, () => { g.moveTo(-B.hipW / 2 - 1, 0); g.lineTo(S.x - B.w / 2, S.y - 1); g.quadraticCurveTo(S.x - 3, S.y - 4, S.x - 1, S.y - 2); g.lineTo(3, 0); g.closePath(); }, o.cardigan, -B.hipW / 2 - 1, S.y - 4, B.w / 2 + 8, -S.y + 4, 1); px(g, (S.x + 3) / 2, S.y * 0.7, 2, 2, lt(o.cardigan, 0.4)); px(g, 2, S.y * 0.35, 2, 2, lt(o.cardigan, 0.4)); }
@@ -102,10 +102,11 @@ export const animator = (g: Ctx, seed: number, half: 'lower' | 'upper', o: { shi
   if (!o.asleep) { px(g, H.x, H.y + 2, 3, 1, dk(L.skin, 0.22)); px(g, H.x + 5, H.y + 2, 3, 1, dk(L.skin, 0.22)); }
   glasses(g, hb); whiskers(g, hb); hairTop(g, hb);
   // (the near arm: the forearm along the table, the pencil's point down on the paper)
-  const hx = (o.asleep ? 26 : 32) + (o.hand ?? 0), hy = o.asleep ? -16 : -21;
+  const hx = (o.asleep ? 26 : 32) + (o.hand ?? 0), hy = o.asleep ? -16 : o.brush ? -17 : -21;
   jointed(g, [[S.x + 2, S.y + 1], [o.asleep ? 14 : 17, -12], [hx, hy]], [B.armW, B.armW], [top, top]);
   ball(g, hx, hy, 3.4, L.skin, 1);
-  if (!o.asleep) { limb(g, hx + 2, hy - 6, hx + 3, hy + 3, 2, '#F2C230', false); px(g, hx + 2, hy + 2, 2, 2, '#3F3F46'); px(g, hx + 1, hy - 8, 2, 2, '#F49AB0'); }
+  if (o.brush) { limb(g, hx + 3, hy - 9, hx + 2, hy + 1, 1.6, '#A16207', false); px(g, hx + 1, hy + 1, 2, 3, o.brush); }
+  else if (!o.asleep) { limb(g, hx + 2, hy - 6, hx + 3, hy + 3, 2, '#F2C230', false); px(g, hx + 2, hy + 2, 2, 2, '#3F3F46'); px(g, hx + 1, hy - 8, 2, 2, '#F49AB0'); }
 };
 
 /** Someone seen behind a table (from the chest up over its edge, at (0, 0) the table's top), facing right-ish. */
