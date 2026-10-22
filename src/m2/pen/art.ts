@@ -1114,7 +1114,8 @@ const sink = (c: Ctx) => {
 // The building's own: what it has outside (hub/draw.ts: backBuilding, staffDoor) seen from in here
 
 /** The rusty water pipe along the top of the wall, under the ceiling (outside it runs up the building's side). */
-const PIPE_Y = CEIL_Y + 4;
+// (a function, not a value: index.ts imports this file, so CEIL_Y isn't there yet while this file's top level runs)
+const pipeY = () => CEIL_Y + 4;
 /** Where its joints are: over the water stains (they weep). */
 const PIPE_JOINTS = [60, 470, 1240, 1730, 2210, 2470];
 /**
@@ -1122,7 +1123,7 @@ const PIPE_JOINTS = [60, 470, 1240, 1730, 2210, 2470];
  * stand on), hung on straps up into the ceiling, its joints swollen and weeping down the paint.
  */
 const pipes = (c: Ctx, a: number, b: number) => {
-  const w = b - a, y = PIPE_Y;
+  const w = b - a, y = pipeY();
   box(c, a, y + 9, w, 3, 'rgba(18, 12, 6, 0.3)');
   box(c, a, y, w, 9, INK);
   box(c, a, y + 1, w, 7, '#7C2D12'); box(c, a, y + 1, w, 1, '#4A180A'); box(c, a, y + 3, w, 2, '#9A3412'); box(c, a, y + 3, w, 1, '#B4622A'); box(c, a, y + 6, w, 2, '#5A1E0C');
@@ -1145,7 +1146,7 @@ const pipes = (c: Ctx, a: number, b: number) => {
 
 /** The same pipe down the near corner and into the floor (an elbow at the top, straps down it, a collar at the foot). */
 const cornerPipe = (c: Ctx) => {
-  const x = rx(2), y = PIPE_Y;
+  const x = rx(2), y = pipeY();
   shade(c, x, y, 9, G - y, 0.3, 3);
   box(c, x - 1, y, 11, G - y, INK); box(c, x, y, 9, G - y, '#7C2D12'); box(c, x + 2, y, 2, G - y, '#9A3412'); box(c, x + 2, y, 1, G - y, '#B4622A'); box(c, x + 7, y, 2, G - y, '#5A1E0C');
   for (let yy = y + 30; yy < G - 20; yy += 26) if (hash(yy * 0.3) > 0.4) box(c, x + 3, yy, 3, 2, '#3A1206');
@@ -1157,7 +1158,7 @@ const cornerPipe = (c: Ctx) => {
 
 /** The gray conduit (up the building's front outside) down beside the door to the light switch: taped on, LEAVE IT ON. */
 const conduit = (c: Ctx) => {
-  const x = rx(173), top = PIPE_Y + 9, sy = 300;
+  const x = rx(173), top = pipeY() + 9, sy = 300;
   box(c, x - 1, top, 7, sy - top, INK); box(c, x, top, 5, sy - top, '#6B7280'); box(c, x, top, 1, sy - top, '#9CA3AF'); box(c, x + 4, top, 1, sy - top, '#4B5563');
   for (let y = top + 34; y < sy - 10; y += 60) { box(c, x - 2, y, 9, 4, INK); box(c, x - 1, y, 7, 3, '#4B5563'); box(c, x - 1, y, 7, 1, '#9CA3AF'); }
   const bx = x - 6, by = sy;
@@ -1737,7 +1738,7 @@ const bag = (c: Ctx, f: number) => {
 // (made when first wanted: CEIL_Y comes from index.ts, which imports this)
 const eyeY = () => CEIL_Y + (G - CEIL_Y) * 0.45;
 const sideBands = (): [number, number, string][] => [
-  [CEIL_Y, PIPE_Y, '#6A6250'], [PIPE_Y, PIPE_Y + 9, '#5A1E0C'], [PIPE_Y + 9, STRIPE, '#6A6250'],
+  [CEIL_Y, pipeY(), '#6A6250'], [pipeY(), pipeY() + 9, '#5A1E0C'], [pipeY() + 9, STRIPE, '#6A6250'],
   [STRIPE, STRIPE + 8, fade(FLAG_RED[1], 0.42)], [STRIPE + 8, STRIPE + 12, fade(FLAG_WHITE[2], 0.42)], [STRIPE + 12, STRIPE + 20, fade(FLAG_BLUE[1], 0.42)],
   [STRIPE + 20, WAIN, '#6A6250'], [WAIN, WAIN + 4, '#2A3424'], [WAIN + 4, BASE, '#46523E'], [BASE, G, '#1C1A16'],
 ];
