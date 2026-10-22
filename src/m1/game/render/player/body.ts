@@ -42,6 +42,10 @@ export const setNude = (on: boolean, vx = 0, vy = 0, frame = 0, facing = 1) => {
   dangle.a += dangle.va;
 };
 export const isNude = () => nude;
+/** (Meathead 2) Its own look for the shitty pants: SNES-grain ramps (player.ts's drawShitPantsSnes). Meathead 1 keeps its own. */
+let snesShatOn = false;
+export const setSnesShat = (on: boolean) => { snesShatOn = on; };
+export const snesShat = () => snesShatOn;
 /** (Meathead 2's Fairy Land) How hard he is (0 hanging .. 1 a full boner), set by a stage every frame it wants it (by
  *  the game's frame): unset for a few frames, it's back to hanging. */
 const erect = { k: 0, at: -99 };

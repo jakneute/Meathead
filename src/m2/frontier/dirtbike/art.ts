@@ -1061,7 +1061,6 @@ const paintMeathead = (c: Ctx, p: MhPose, fq: number, lean: number) => {
   if (p.nude) {
     ell(c, -5.5, -43, 6.5, 5.6, BUM[2]); ell(c, 5.5, -43, 6.5, 5.6, BUM[1]); ell(c, -7, -45, 3, 2.2, BUM[3]); box(c, -0.5, -47, 1, 7, '#8A5A3A');
     box(c, -12, -50, 24, 3, BUM[2]); box(c, -12, -50, 24, 1, BUM[3]);
-    if (p.shat) { ell(c, 0, -41, 4.5, 3.2, '#5C3A16'); ell(c, 0, -42, 2.4, 1.6, '#7A5222'); box(c, -1, -39, 2, 2 + (fq % 3), '#5C3A16'); }
     if (b > 0.35) ell(c, -7, -43, 3.5, 2.5, '#C0504A');
     if (b > 0.55) ell(c, 7, -42, 3, 2.5, '#B03030');
   } else {
@@ -1149,7 +1148,6 @@ export const drawMhTumble = (c: Ctx, x: number, y: number, s: number, rot: numbe
     box(g, -12, 2, 24, 9, nude ? BUM[2] : JE[3]); box(g, -12, 2, 24, 2, nude ? BUM[3] : JE[4]);
     if (!nude) box(g, -13, 1, 26, 3, '#5A2A0C');
     if (shat && !nude) ell(g, 0, 7, 6, 3, '#6A4418');
-    if (shat && nude) ell(g, 0, 7, 4, 2.5, '#5C3A16');
     line(g, L[2], 7, [-6, 10, -14, 24]); line(g, L[2], 7, [6, 10, 16, 20]); line(g, L[4], 2, [-7, 10, -15, 23]);
     box(g, -18, 23, 8, 5, '#1A120C'); box(g, 13, 18, 8, 5, '#1A120C');
     line(g, SK[2], 6, [-12, -12, -24, -22]); line(g, SK[2], 6, [12, -12, 24, -4]); line(g, SK[4], 2, [-12, -13, -23, -23]);

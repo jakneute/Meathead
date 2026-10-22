@@ -73,7 +73,7 @@ export const drawLadderLegs = (ctx: Ctx, l: Ladder) => {
 // ---------------------------------------------------------------------------------------------------------------
 // Climbing and sliding: from behind
 
-/** What his pants are like: blown off him (`nude`), and shitty (the seat, or with them gone, the backs of his legs). */
+/** What his pants are like: blown off him (`nude`: clean, it all went with them), or shitty (the seat, the backs of his legs). */
 export interface LadderPants { nude: boolean; shat: boolean }
 
 const PALE = '#F3D0AC', PALE_SHADE = '#D9A97C', STAIN = 'rgba(92, 58, 22, 0.8)', STAIN_DARK = 'rgba(64, 38, 12, 0.85)';
@@ -133,9 +133,6 @@ const seat = (ctx: Ctx, pants: LadderPants, frame: number, sway: number) => {
     ctx.fillStyle = '#7A4626'; ctx.beginPath(); ctx.ellipse(sx - 1.6, -13.5, 2.4, 3, 0, 0, Math.PI * 2); ctx.fill();
     ctx.beginPath(); ctx.ellipse(sx + 1.8, -13, 2.4, 3, 0, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = '#4A2812'; ctx.fillRect(sx - 0.3, -15.5, 0.8, 4);
-    if (pants.shat) {
-      ctx.fillStyle = STAIN; ctx.beginPath(); ctx.ellipse(0, -18.5, 4, 3, 0, 0, Math.PI * 2); ctx.fill();
-    }
     return;
   }
   // (the seat of his jeans: each cheek lit a little, the seam down the middle, a back pocket on each)

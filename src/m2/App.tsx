@@ -9,6 +9,9 @@ import { HAIRBALL_ART, HairballSvg } from './cartoon/whitehouse1/HairballArt';
 import { Prompt } from '../m1/components/ButtonIcons';
 import { GameStatus, WeaponType } from '../m1/types';
 import { setGutBlowout, setGutLines, setGutDeathLines } from '../m1/game/player/gut';
+// (the blowout's spray hurts whoever it hits: a quiet bonus)
+import './blowoutHit';
+import { setSnesShat } from '../m1/game/render/player/body';
 import { setFootstepVolume } from '../m1/game/player/footsteps';
 import { setHurtScale, setShoveSetDistance, setWallSplatDeath } from '../m1/game/core/resist';
 import { setDeathMessageDrawer } from '../m1/game/render/world';
@@ -162,6 +165,8 @@ if (import.meta.env.DEV) {
 }
 // (already shitty, he can do it again: so hard his pants go, and he's naked: game/player/gut.ts)
 setGutBlowout(true);
+// (and his shitty pants in its own SNES-grain look)
+setSnesShat(true);
 setGutLines(M2_GUT_LINES);
 setGutDeathLines(M2_GUT_DEATH);
 // (his footsteps, up where they can be heard over everything)

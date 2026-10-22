@@ -173,7 +173,6 @@ export const drawMeatheadBroom = (c: Ctx, x: number, y: number, k: number, L: Mh
     // (the balls, hanging over the shaft below)
     ell(c, -2.6, aY + 11.5, 3.6, 3.8, INK); ell(c, 2.6, aY + 11.5, 3.6, 3.8, INK);
     ell(c, 2.6, aY + 11.5, 2.8, 3, SK[1]); ell(c, -2.6, aY + 11.5, 2.8, 3, SK[2]); ell(c, -3.2, aY + 10.4, 1.2, 1.2, SK[3]); box(c, -0.3, aY + 9.5, 0.6, 4, SK[0]);
-    if (L.shat) { ell(c, 0, aY + 5, 4.5, 3.2, '#5C3A16'); ell(c, -1, aY + 4, 2, 1.4, '#7A5222'); box(c, -1, aY + 8, 2, 3 + ((L.f >> 3) % 3), '#5C3A16'); }
   } else {
     line(c, JE[0], 1.4, [0, aY - 10, 0, aY + 9]); line(c, STITCH, 0.5, [-1.4, aY - 9, -1.4, aY + 8]); line(c, STITCH, 0.5, [1.4, aY - 9, 1.4, aY + 8]);
     for (const d of [-1, 1]) {

@@ -476,7 +476,7 @@ export const shotAgent = (keys = false) => (c: Ctx, t: number, talking: boolean)
     R(c, 171 + sw, 115, 8, 5, '#1c2a5c'); R(c, 171 + sw, 115, 3, 3, '#e8e8f0'); for (let k = 0; k < 2; k++) R(c, 174 + sw, 116 + k * 2, 5, 1, '#b01818');
     tiny(c, 'US', 172 + sw, 122, '#e8e8f0');
   }
-  if (dressed !== 'clean') { flies(c, 70, 110, 14, 2); stink(c, 40, 140, 3, 26, 9); }
+  if (dressed === 'shitty') { flies(c, 70, 110, 14, 2); stink(c, 40, 140, 3, 26, 9); }
 };
 
 /** Her up close: the shades, the bun, the earpiece, the clipboard up, the gym behind her out of focus. */
@@ -547,7 +547,7 @@ export const shotMeathead = (mood: TitleMood, red = 0, glasses = false) => (c: C
   drawTitleMeathead(c, t, mood, t, glasses);
   // (his mouth going as he says it: the jaw's working)
   if (talking && t % 8 < 4 && mood === 'dumb') { R(c, 116, 86, 24, 3, '#3a0606'); R(c, 118, 86, 20, 1, '#f4ecdc'); }
-  if (dressed !== 'clean') { flies(c, 60, 120, 16, 3); stink(c, 200, 140, 3, 30, 10); }
+  if (dressed === 'shitty') { flies(c, 60, 120, 16, 3); stink(c, 200, 140, 3, 30, 10); }
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -566,7 +566,7 @@ export const shotArrival = (c: Ctx, t: number) => {
   // Meathead, in the middle of the floor: he sees him (the veins come up, the steam)
   mhStandingFig(false, true, true)(c, 120, 136);
   if (t > 40) { for (let k = 0; k < 3; k++) { const y = 62 - ((t * 0.6 + k * 8) % 20); R(c, 112 + k * 7, y, 2, 2, 'rgba(240,240,240,0.7)'); } R(c, 117, 70, 1, 3, '#ef4444'); R(c, 124, 70, 1, 3, '#ef4444'); }
-  if (dressed !== 'clean') { flies(c, 120, 100, 10, 2, 0.6); }
+  if (dressed === 'shitty') { flies(c, 120, 100, 10, 2, 0.6); }
   // (the bang of the door: the dust)
   if (t < 12) for (let i = 0; i < 8; i++) R(c, 214 + hash(i) * 6, 33 + hash(i + 9) * 70 + t, 1, 1, '#d8d0b0');
 };
@@ -667,7 +667,7 @@ export const shotChoke = (stage: number) => (c: Ctx, t: number, talking: boolean
   }
   // (the G-man's mouth going, if it's him)
   if (talking && t % 8 < 4) R(c, 121 + j, 89 - stage, 11, 3, '#1a0202');
-  if (dressed !== 'clean') { flies(c, 220, 30, 18, 3); stink(c, 20, 144, 3, 30, 10); }
+  if (dressed === 'shitty') { flies(c, 220, 30, 18, 3); stink(c, 20, 144, 3, 30, 10); }
 };
 
 /** The ticket: held up in his shaking hand, a light from heaven down on it, sparkles. */
@@ -775,7 +775,7 @@ export const shotToddler = (giddy: number, glasses = false) => (c: Ctx, t: numbe
   // (the mouth going as he squeals it)
   if (talking && t % 6 < 3) { R(c, 112, 84, 32, 6, '#5a0a0a'); R(c, 120, 88, 16, 2, '#e05060'); }
   c.restore();
-  if (dressed !== 'clean') flies(c, 60, 40, 14, 3);
+  if (dressed === 'shitty') flies(c, 60, 40, 14, 3);
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -893,7 +893,7 @@ export const shotGlassesOn = (c: Ctx, t: number, talking: boolean) => {
   // (the click as they seat: a twinkle off each lens)
   if (t >= 34 && t < 46) for (const x of [104, 138]) { const r = t < 40 ? 3 : 1; R(c, x - r, 52, r * 2 + 1, 1, '#ffffff'); R(c, x, 52 - r, 1, r * 2 + 1, '#ffffff'); }
   if (talking && t % 8 < 4) { R(c, 116, 86, 24, 3, '#3a0606'); R(c, 118, 86, 20, 1, '#f4ecdc'); }
-  if (dressed !== 'clean') { flies(c, 60, 120, 16, 3); stink(c, 200, 140, 3, 30, 10); }
+  if (dressed === 'shitty') { flies(c, 60, 120, 16, 3); stink(c, 200, 140, 3, 30, 10); }
 };
 
 /** The cutscenes' painted stills, in the order they're first wanted (the opening's, then the closing's): painted ahead

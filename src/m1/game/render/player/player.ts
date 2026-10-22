@@ -25,7 +25,7 @@ import { rayGun } from '../../combat/rayGun';
 import { customWeapon } from '../../combat/customWeapons';
 import { buffs } from '../../core/buffs';
 import { setGore, getGore, smear, drip, drawHeadBlood, drawLeadArmBlood, drawBeatenUp, bloodDark } from './gore';
-import { skinTone, skinShadow, skinHighlight, skinVein, pantsColor, pantsShadow, beltColor, beltBuckle, wristbandColor, backArmShade, stubbleColor, drawTorso, drawBelt, drawArm, drawPantLeg, drawBoot, drawJointedLeg, drawLeg, drawArmTo, drawHead, drawGlasses, setTalking, drawTalkingMouth, setLegSinge, setNude } from './body';
+import { skinTone, skinShadow, skinHighlight, skinVein, pantsColor, pantsShadow, beltColor, beltBuckle, wristbandColor, backArmShade, stubbleColor, drawTorso, drawBelt, drawArm, drawPantLeg, drawBoot, drawJointedLeg, drawLeg, drawArmTo, drawHead, drawGlasses, setTalking, drawTalkingMouth, setLegSinge, setNude, snesShat } from './body';
 
 export interface PlayerDrawOptions {
   currentWeapon: WeaponType;
@@ -260,7 +260,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   // A cartoon tuxedo cat (Meathead 2's cartoon White House): his own frames for all of it (render/player/catBody.ts);
   // the gun's a hairball (nothing in his paw), any other weapon held in his paw
   if (p.catForm && !p.headless) {
-    const g = p.gut, shat = !!g && (g.stage === 2 || (g.stage === 3 && !g.washed));
+    const g = p.gut, shat = g?.stage === 2;
     const armed = !isUnarmed && !outOfRocks(p, currentWeapon) && !((p.throwTimer || 0) > 0);
     drawCatPlayer(ctx, p, state, {
       frame: animFrame, hairball: currentWeapon === 'GUN', hurt: isHurt, angry: isAngry,
@@ -277,7 +277,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   if (p.leverPull && hurtT < 0 && !p.headless && p.health > 0) {
     const lp = p.leverPull, g = p.gut;
     drawOverheadPull(ctx, { ...lp, gx: (lp.gx - anchorX) * p.facing, gy: lp.gy - anchorY, ang: p.facing > 0 ? lp.ang : Math.PI - lp.ang, lean: lp.lean * p.facing },
-      animFrame, { nude: g?.stage === 3, shat: !!g && (g.stage === 2 || (g.stage === 3 && !g.washed)) });
+      animFrame, { nude: g?.stage === 3, shat: g?.stage === 2 });
     finishBody();
     ctx.restore();
     return;
@@ -285,7 +285,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   // A long fall out of his hands, and the landing at the bottom: undignified, its own pose (render/player/freefall.ts)
   if (p.freefall && hurtT < 0 && !p.headless && p.health > 0) {
     const g = p.gut;
-    const shat = !!g && (g.stage === 2 || (g.stage === 3 && !g.washed));
+    const shat = g?.stage === 2;
     drawFreefall(ctx, p.freefall, animFrame, { nude: g?.stage === 3, shat }, p.facing);
     finishBody();
     if (shat) drawStink(ctx, anchorX - p.facing * 10, anchorY - 30, animFrame);
@@ -295,7 +295,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   // With a fire extinguisher (a cutscene's): its own poses, the can drawn with him (render/player/extinguisher.ts)
   if (p.extinguisher && hurtT < 0 && !p.headless && p.health > 0) {
     const g = p.gut;
-    const shat = !!g && (g.stage === 2 || (g.stage === 3 && !g.washed));
+    const shat = g?.stage === 2;
     drawExtinguisherPose(ctx, p.extinguisher, animFrame, { nude: g?.stage === 3, shat });
     finishBody();
     if (shat) drawStink(ctx, anchorX - p.facing * 10, anchorY - 30, animFrame);
@@ -305,7 +305,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   // Sat in Meathead 2's helicopter, a passenger or flying it: its own poses (render/player/copterPose.ts); a cutscene
   // kick (out of his seat at the pilot) takes over
   if (p.copterSeat && !((p.kickPose || 0) > 0) && hurtT < 0 && !p.headless && p.health > 0) {
-    const g = p.gut, shat = !!g && (g.stage === 2 || (g.stage === 3 && !g.washed));
+    const g = p.gut, shat = g?.stage === 2;
     drawCopterSeatPose(ctx, p.copterSeat, animFrame, { nude: g?.stage === 3, shat });
     finishBody();
     if (shat) drawStink(ctx, anchorX - p.facing * 10, anchorY - 30, animFrame);
@@ -315,7 +315,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   // On a dragon coaster's back, no gun (Meathead 2's Truelling Tragons): its own poses, hurt or not
   // (render/player/tragonPose.ts)
   if (p.tragon && !p.headless && p.health > 0) {
-    const g = p.gut, shat = !!g && (g.stage === 2 || (g.stage === 3 && !g.washed));
+    const g = p.gut, shat = g?.stage === 2;
     drawTragonPose(ctx, { ...p.tragon, hurt: p.tragon.hurt || hurtT >= 0 }, animFrame, { nude: g?.stage === 3, shat });
     finishBody();
     if (shat) drawStink(ctx, anchorX - p.facing * 10, anchorY - 30, animFrame);
@@ -324,7 +324,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   }
   // Astride a broomstick (Meathead 2's Fairy Land runway): its own pose (render/player/broomPose.ts)
   if (p.broomRide && !p.headless && p.health > 0) {
-    const g = p.gut, shat = !!g && (g.stage === 2 || (g.stage === 3 && !g.washed));
+    const g = p.gut, shat = g?.stage === 2;
     drawBroomRidePose(ctx, p.broomRide, animFrame, { nude: g?.stage === 3, shat }, hurtT >= 0);
     finishBody();
     if (shat) drawStink(ctx, anchorX - p.facing * 10, anchorY - 30, animFrame);
@@ -334,7 +334,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   // Sat on a toilet, pants down, going (Meathead 2's star toilets): its own pose (render/player/throne.ts)
   if (p.throne && hurtT < 0 && !p.headless && p.health > 0) {
     const g = p.gut;
-    drawThronePose(ctx, p.throne, animFrame, { nude: g?.stage === 3, shat: !!g && (g.stage === 2 || (g.stage === 3 && !g.washed)) });
+    drawThronePose(ctx, p.throne, animFrame, { nude: g?.stage === 3, shat: g?.stage === 2 });
     finishBody();
     ctx.restore();
     return;
@@ -342,7 +342,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   // On a ladder, climbing or sliding down it: seen from behind, facing into it (render/player/ladder.ts)
   if (ladder && ladder.mode !== 'hang') {
     const g = p.gut;
-    drawLadderClimb(ctx, ladder, animFrame, { nude: g?.stage === 3, shat: !!g && (g.stage === 2 || (g.stage === 3 && !g.washed)) },
+    drawLadderClimb(ctx, ladder, animFrame, { nude: g?.stage === 3, shat: g?.stage === 2 },
       c => { if (!isUnarmed && !outOfRocks(p, currentWeapon)) drawHeldWeapon(c, currentWeapon, 0, 0, 0, animFrame); });
     finishBody();
     ctx.restore();
@@ -882,7 +882,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   }
   ctx.restore();
   // Shit himself (game/player/gut.ts): the seat of his pants soaked through brown, and it's run down his legs
-  if (p.gut && (p.gut.stage === 2 || (p.gut.stage === 3 && !p.gut.washed)) && !isSwimming) drawShitPants(ctx, isDucking ? -16 : -26, isDucking ? 10 : 20);
+  if (p.gut && p.gut.stage === 2 && !isSwimming) drawShitPants(ctx, isDucking ? -16 : -26, isDucking ? 10 : 20);
 
   // ==========================================
   // LAYER 3: WEIGHTLIFTING BELT
@@ -1329,7 +1329,7 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   finishBody();
 
   // The stink coming up off him, and the flies he's picked up
-  if (p.gut && (p.gut.stage === 2 || (p.gut.stage === 3 && !p.gut.washed)) && !p.swimming) drawStink(ctx, p.pos.x + p.width / 2 - p.facing * 14, anchorY - 22, animFrame);
+  if (p.gut && p.gut.stage === 2 && !p.swimming) drawStink(ctx, p.pos.x + p.width / 2 - p.facing * 14, anchorY - 22, animFrame);
 
   // Pain sparks when knocked out of a special move
   if (hurtT >= 0 && hurtT < 0.5) {
@@ -1716,6 +1716,7 @@ const drawSlideTackle = (ctx: CanvasRenderingContext2D, frame: number, weapon: W
 
 /** The seat of his pants from `top` down `h`: soaked through brown, darkest at the seat, runs down the backs of both legs. */
 const drawShitPants = (ctx: CanvasRenderingContext2D, top: number, h: number) => {
+  if (snesShat()) { drawShitPantsSnes(ctx, top, h); return; }
   ctx.save();
   ctx.fillStyle = 'rgba(92, 58, 22, 0.75)';
   ctx.beginPath(); ctx.ellipse(-4, top + 5, 9, 6, 0, 0, Math.PI * 2); ctx.fill();
@@ -1727,6 +1728,34 @@ const drawShitPants = (ctx: CanvasRenderingContext2D, top: number, h: number) =>
   ctx.beginPath(); ctx.arc(-7.5, top + 8 + h * 0.55, 1.8, 0, Math.PI * 2); ctx.fill();
   // (a wet shine on it)
   ctx.fillStyle = 'rgba(200, 160, 100, 0.35)'; ctx.fillRect(-6, top + 2, 4, 1);
+  ctx.restore();
+};
+
+/** (Meathead 2's) The same, at SNES grain: solid ramp steps on the denim (no see-through wash), a darker core where
+ *  he sat in it, a lit lip along the top and a wet glint, and it's run: a streak down the back of each leg, the longer
+ *  one beading at the end. Modest: a seat stain, not a coat of paint. */
+const SHIT_RAMP = ['#3A220B', '#5C3A16', '#7A4E22', '#9A6A34', '#D4B07A'];
+const drawShitPantsSnes = (ctx: CanvasRenderingContext2D, top: number, h: number) => {
+  const t = Math.round(top), R = SHIT_RAMP;
+  ctx.save();
+  // (the stain: the soaked patch, ragged at its front edge where it's wicked up the denim)
+  ctx.fillStyle = R[1];
+  ctx.fillRect(-12, t + 2, 13, 6); ctx.fillRect(-11, t + 1, 10, 1); ctx.fillRect(-10, t + 8, 9, 1); ctx.fillRect(1, t + 3, 1, 3);
+  // (the core, darkest: where he sat in it)
+  ctx.fillStyle = R[0];
+  ctx.fillRect(-10, t + 3, 6, 4); ctx.fillRect(-9, t + 7, 4, 1);
+  // (the lit lip along the top, and a step of it down the front edge)
+  ctx.fillStyle = R[2];
+  ctx.fillRect(-11, t + 1, 8, 1); ctx.fillRect(-1, t + 2, 1, 4);
+  ctx.fillStyle = R[3]; ctx.fillRect(-9, t + 1, 3, 1);
+  // (a wet glint)
+  ctx.fillStyle = R[4]; ctx.fillRect(-7, t + 2, 2, 1);
+  // (it's run: down the back of each leg, a shade darker on the shadow side; the long one beads at the end)
+  const l1 = Math.max(3, Math.round(h * 0.45)), l2 = Math.max(2, Math.round(h * 0.25));
+  ctx.fillStyle = R[1]; ctx.fillRect(-10, t + 9, 2, l1); ctx.fillRect(-3, t + 9, 2, l2);
+  ctx.fillStyle = R[0]; ctx.fillRect(-10, t + 9, 1, l1); ctx.fillRect(-3, t + 9, 1, l2);
+  ctx.fillStyle = R[1]; ctx.fillRect(-11, t + 9 + l1, 3, 2);
+  ctx.fillStyle = R[3]; ctx.fillRect(-10, t + 9 + l1, 1, 1);
   ctx.restore();
 };
 
@@ -1754,6 +1783,13 @@ const drawBlowout = (ctx: CanvasRenderingContext2D, gut: NonNullable<Player['gut
     ctx.fillStyle = '#A16207'; ctx.fillRect(x - 3, y - 9, 2, 1);
     // (steam)
     for (let i = 0; i < 2; i++) { const k = ((frame * 0.02 + i * 0.5) % 1); ctx.strokeStyle = `rgba(140, 160, 70, ${(0.4 * (1 - k)).toFixed(2)})`; ctx.lineWidth = 1.2; ctx.beginPath(); const sx = x - 4 + i * 8, sy = y - 9 - k * 16; ctx.moveTo(sx, sy); ctx.quadraticCurveTo(sx + 2, sy - 3, sx, sy - 6); ctx.stroke(); }
+    // (fresh, the stink hangs over it a good while (here, not on him: it all came out of him), and two flies find it)
+    const age = gut.pile.at !== undefined ? frame - gut.pile.at : Infinity;
+    if (age >= 0 && age < 900) {
+      ctx.save(); ctx.globalAlpha = age > 780 ? (900 - age) / 120 : 1;
+      drawStink(ctx, x, y - 14, frame);
+      ctx.restore();
+    }
   }
   // Globs still flying
   for (const g of gut.globs ?? []) { ctx.fillStyle = '#5C3A16'; ctx.beginPath(); ctx.arc(g.x, g.y, 2.4, 0, Math.PI * 2); ctx.fill(); }

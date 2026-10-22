@@ -41,8 +41,9 @@ export const hasEverShat = () => everShat;
 /** A save file's say on it (loaded), or a new game's (no). */
 export const setEverShat = (v: boolean) => { everShat = v; };
 
-/** Has he shit himself (this attempt)? (Naked after doing it again, he still has: it's still all over him.) */
-export const isShat = (state: GameState) => { const g = state.player.gut; return !!g && (g.stage === 2 || (g.stage === 3 && !g.washed)); };
+/** Has he shit himself (this attempt), and is it still in his pants? (Naked after the blowout, he isn't: it all went
+ *  out with the pants, every last bit of it, and his bare ass is clean. Only shitty pants sully the waters.) */
+export const isShat = (state: GameState) => state.player.gut?.stage === 2;
 /** His pants blown clean off him (Meathead 2): naked from the waist down. */
 export const isNude = (state: GameState) => state.player.gut?.stage === 3;
 
@@ -52,6 +53,11 @@ export const isNude = (state: GameState) => state.player.gut?.stage === 3;
  */
 let blowout = false;
 export const setGutBlowout = (on: boolean) => { blowout = on; };
+/** (Meathead 2) A glob of it flying at (x, y) (or just `landed` there, the splat): whoever it hits, hurt (a little
+ *  bonus for the skilled: never advertised). True if it hit somebody (the glob's spent). Set by the game; unset, they fly on. */
+type GlobHit = (ctx: FrameContext, x: number, y: number, landed: boolean) => boolean;
+let globHit: GlobHit | null = null;
+export const setGutGlobHit = (fn: GlobHit | null) => { globHit = fn; };
 
 const meatheadSays = (state: GameState, text: string, after = false) => {
   // (`after`: it waits its turn behind whoever's talking: the announcer's callout)
@@ -69,7 +75,7 @@ export const updateGut = (ctx: FrameContext, input: FrameInput) => {
   // (the cheat: shitty from the off, every attempt, no fanfare: it's just how it is)
   if (ctx.cheats.shittyPants && gut.stage < 2) { gut.stage = 2; gut.t = 0; gut.lineAt = undefined; }
   if (gut.debris) flyPants(ctx, gut.debris);
-  if (gut.globs?.length) flyGlobs(state, gut);
+  if (gut.globs?.length) flyGlobs(ctx, gut);
   if (gut.stage >= 2) {
     // (his line about it, once the announcer's had his say: queued up behind the callout)
     if (gut.lineAt !== undefined && state.frame >= gut.lineAt) {
@@ -77,8 +83,9 @@ export const updateGut = (ctx: FrameContext, input: FrameInput) => {
       const line = pick(gut.stage === 3 ? lines.BLOWOUT : lines.ACCIDENT);
       if (line) meatheadSays(state, line, true);
     }
-    if (gut.stage !== 3 || !gut.washed) leaveTrail(ctx);
-    if (blowout && (gut.stage === 2 || !gut.washed)) washOff(ctx, gut);
+    // (naked, there's none of it left on him: no trail, nothing to wash off)
+    if (gut.stage === 2) leaveTrail(ctx);
+    if (blowout && gut.stage === 2) washOff(ctx, gut);
     if (gut.stage === 2 && blowout) again(ctx, input, gut);
     if (gut.stage === 3 && blowout && !gut.remains) third(ctx, input, gut);
     return;
@@ -155,13 +162,23 @@ const again = (ctx: FrameContext, input: FrameInput, gut: NonNullable<GameState[
     { kind: 'briefs', x, y: y - 4, vx: -p.facing * (5 + Math.random() * 2) + (Math.random() - 0.5) * 2, vy: -18 - Math.random() * 3, a: 0, va: p.facing * 0.4, t: 0, down: false, w: 14 },
     ...Array.from({ length: 5 }, (_, i) => ({ kind: 'shred' as const, x, y, vx: -p.facing * (2 + Math.random() * 6) + (Math.random() - 0.5) * 6, vy: -9 - Math.random() * 9, a: Math.random() * 6, va: (Math.random() - 0.5) * 0.6, t: 0, down: false, w: 6 + (i % 3) * 3 })),
   ];
-  // (and it goes everywhere: globs of it off in every direction, staining whatever they hit)
-  gut.globs = Array.from({ length: 18 }, () => ({ x, y, vx: -p.facing * (1 + Math.random() * 9) + (Math.random() - 0.5) * 7, vy: -3 - Math.random() * 10 }));
+  // (and it ALL goes: every last bit of it in him, out in a great brown spray, a fan of it arcing up and back off his
+  // seat, and a scatter every which way; staining whatever it hits, floor, walls, whoever's near. None left on him.)
+  const fan = Array.from({ length: 34 }, (_, i) => {
+    const a = -Math.PI / 2 - p.facing * (0.15 + (i / 33) * 1.25) + (Math.random() - 0.5) * 0.18, v = 7 + Math.random() * 8;
+    return { x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v };
+  });
+  const scatter = Array.from({ length: 22 }, () => ({ x, y, vx: -p.facing * (1 + Math.random() * 10) + (Math.random() - 0.5) * 9, vy: -2 - Math.random() * 11 }));
+  gut.globs = [...fan, ...scatter];
   gut.stains = gut.stains ?? [];
-  // (the heap of it, where he was squatting)
-  gut.pile = { x: p.pos.x + p.width / 2 - p.facing * 4, y: groundLineAt(state.groundRuns, p.pos.x + p.width / 2), dir: p.facing };
-  for (let i = 0; i < 26; i++) state.particles.push({ pos: { x, y }, vel: { x: -p.facing * (1 + Math.random() * 6) + (Math.random() - 0.5) * 4, y: -2 - Math.random() * 7 }, life: 40 + Math.random() * 30, color: i % 3 === 0 ? 'rgba(132, 155, 60, 0.6)' : i % 3 === 1 ? '#5C3A16' : '#7A4E22', size: 3 + Math.random() * 5, grav: 0.25 });
-  ctx.fx.spawnExplosion({ x, y }, '#6B4423', 18, -p.facing * 4, 16);
+  // (the heap of it, where he was squatting, and the stink hanging over it a while: over it, not him)
+  gut.pile = { x: p.pos.x + p.width / 2 - p.facing * 4, y: groundLineAt(state.groundRuns, p.pos.x + p.width / 2), dir: p.facing, at: state.frame };
+  for (let i = 0; i < 48; i++) state.particles.push({ pos: { x, y }, vel: { x: -p.facing * (1 + Math.random() * 7) + (Math.random() - 0.5) * 5, y: -2 - Math.random() * 8 }, life: 40 + Math.random() * 30, color: i % 3 === 0 ? 'rgba(132, 155, 60, 0.6)' : i % 3 === 1 ? '#5C3A16' : '#7A4E22', size: 3 + Math.random() * 5, grav: 0.25 });
+  // (the cloud of it puffing out round where he was, green-brown, slow to clear)
+  for (let i = 0; i < 12; i++) state.particles.push({ pos: { x: x + (Math.random() - 0.5) * 20, y: y + (Math.random() - 0.5) * 10 }, vel: { x: -p.facing * Math.random() * 1.2 + (Math.random() - 0.5) * 0.8, y: -0.2 - Math.random() * 0.5 }, life: 90 + Math.random() * 50, color: i % 2 ? 'rgba(132, 155, 60, 0.35)' : 'rgba(110, 80, 34, 0.35)', size: 9 + Math.random() * 8 });
+  ctx.fx.spawnExplosion({ x, y }, '#6B4423', 26, -p.facing * 5, 20);
+  ctx.fx.spawnPoopExplosion({ x: x - p.facing * 10, y }, 22);
+  shakeScreen(state, 10, 6);
 };
 
 /** Naked already (the pants gone with the second one), squatting still a third time: the grumble, the warning, and
@@ -261,13 +278,19 @@ const flyPants = (ctx: FrameContext, debris: NonNullable<NonNullable<GameState['
 
 /** The globs of it flying: off in an arc till they hit something: the floor, a wall, a ceiling; a stain there. */
 const SOLID = (b: GameState['blocks'][number]) => b.type !== 'pit' && b.type !== 'door';
-const flyGlobs = (state: GameState, gut: NonNullable<GameState['player']['gut']>) => {
+const flyGlobs = (ctx: FrameContext, gut: NonNullable<GameState['player']['gut']>) => {
+  const { state } = ctx;
+  const splat = (x: number, y: number, vx: number) => {
+    for (let i = 0; i < 4; i++) state.particles.push({ pos: { x, y }, vel: { x: vx * 0.15 + (Math.random() - 0.5) * 2.5, y: -1 - Math.random() * 2 }, life: 24 + Math.random() * 14, color: i % 2 ? '#5C3A16' : '#7A4E22', size: 2 + Math.random() * 2.5, grav: 0.3 });
+  };
   const globs = gut.globs ?? [], stains = (gut.stains ??= []);
   gut.globs = globs.filter(g => {
     g.vy = Math.min(13, g.vy + 0.45);
     const nx = g.x + g.vx, ny = g.y + g.vy;
     const hit = state.blocks.find(b => SOLID(b) && !b.oneWay && nx > b.x && nx < b.x + b.w && ny > b.y && ny < b.y + b.h);
     const floor = groundLineAt(state.groundRuns, nx);
+    // (whoever's in the way of it, a game that cares (Meathead 2: setGutGlobHit): splattered, and on it goes no further)
+    if (globHit?.(ctx, nx, ny, false)) { splat(nx, ny, g.vx); return false; }
     if (hit) {
       // (side on: a wall; from below: a ceiling; from above: a floor)
       const wasIn = (x: number, y: number) => x > hit.x && x < hit.x + hit.w && y > hit.y && y < hit.y + hit.h;
@@ -275,7 +298,7 @@ const flyGlobs = (state: GameState, gut: NonNullable<GameState['player']['gut']>
       else stains.push({ x: nx, y: g.vy < 0 ? hit.y + hit.h : hit.y, side: g.vy < 0 ? 2 : 0, r: 3 + Math.random() * 4, seed: Math.random() });
       return false;
     }
-    if (g.vy > 0 && ny >= floor) { stains.push({ x: nx, y: floor, side: 0, r: 3 + Math.random() * 4, seed: Math.random() }); return false; }
+    if (g.vy > 0 && ny >= floor) { stains.push({ x: nx, y: floor, side: 0, r: 3 + Math.random() * 4, seed: Math.random() }); globHit?.(ctx, nx, floor, true); return false; }
     g.x = nx; g.y = ny;
     return g.y < state.camera.y + 2000;
   });
