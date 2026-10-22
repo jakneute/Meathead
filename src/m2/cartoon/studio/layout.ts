@@ -126,21 +126,36 @@ export const TRACK_H = 330;
 // ---------------------------------------------------------------------------------------------------------------
 // The staff, the pickups, the checkpoints
 
-/** [kind, x, height of its feet, variant]. */
+/** [kind, x, height of its feet, variant]. Encounter pass (cartoon-spec.md, 2026-10-21): nobody within a checkpoint's
+ *  safe reach (spawnSafe.ts SAFE_X), the staff up on the climbs and over the pits, not lined up on the floor. */
 export const CAST: [string, number, number, number?][] = [
+  // (the lobby, the vision, the writers: each of them alone first, as before)
   ['m2:ct_guide', 560, 0],
   ['m2:ct_intern', 1150, 0], ['m2:ct_guide', 1520, 0],
   ['m2:ct_exec', 2300, 0], ['m2:ct_intern', 2600, 0],
-  ['m2:ct_intern', 2980, 0], ['m2:ct_pencil', 3660, 0],
-  ['m2:ct_guard', 4300, 0], ['m2:ct_intern', 4560, 0], ['m2:ct_exec', 4700, 0],
-  ['m2:ct_pencil', 4960, 0], ['m2:ct_guide', 5220, 0], ['m2:ct_intern', 5470, 0],
-  ['m2:ct_intern', 5860, 0], ['m2:ct_guide', 5960, 0], ['m2:ct_exec', 7330, 0], ['m2:ct_guard', 7470, 0],
-  ['m2:ct_pencil', 7720, 0], ['m2:ct_exec', 8460, 0], ['m2:ct_intern', 8540, 0],
-  ['m2:ct_guard', 8640, 0], ['m2:ct_pencil', 9150, 0],
-  ['m2:ct_guard', 9360, 0], ['m2:ct_guide', 9420, 0], ['m2:ct_exec', 9500, 0], ['m2:ct_pencil', 9540, 0], ['m2:ct_intern', 9580, 0],
+  // (storyboards: an intern up on the drafting table lobbing coffee down the climb (shove her off it); Pencil Pete at
+  // the pencil box's foot, where he comes down off the wall: the point's spiky, so no dive kick on the way down)
+  ['m2:ct_intern', DRAFTING.a + 35, DRAFTING.h], ['m2:ct_pencil', 3500, 0],
+  // (the voice booth: security with an intern right behind him (charge the guard and he flattens her), the exec at
+  // the back with the laser)
+  ['m2:ct_guard', 4300, 0], ['m2:ct_intern', 4370, 0], ['m2:ct_exec', 4720, 0],
+  // (model sheets: a guide's plates flung flat (jump them), Pete spinning across the floor under the drying rack: up
+  // on the moving cel out of his way)
+  ['m2:ct_guide', 5020, 0], ['m2:ct_pencil', 5290, 0],
+  // (overseas: a guide on the near light table, the step up onto the stacks (knock him into the pile: they go under
+  // for good); the exec on the far table lasering him on the leaning stacks; security waiting at the far lip, a bull
+  // rush as he lands (sidestep it and he pulls up at the edge; charge him in))
+  ['m2:ct_guide', NEAR_DESK.a + 50, NEAR_DESK.h], ['m2:ct_exec', FAR_DESK.a + 50, FAR_DESK.h], ['m2:ct_guard', 7250, 0],
+  // (ink and paint: Pete on the far side of the vat, spinning at him as he steps off the cel (into the paint with
+  // him); the exec behind; an intern up on the film cans, coffee at him riding the crane's seat up; security at its
+  // foot)
+  ['m2:ct_pencil', 8440, 0], ['m2:ct_exec', 8530, 0],
+  ['m2:ct_guard', 8640, 0], ['m2:ct_intern', FILMCANS.a + 50, FILMCANS.h],
+  // (premiere night: the mixed crowd in front of the screen, out of the checkpoint's reach)
+  ['m2:ct_guard', 9650, 0], ['m2:ct_pencil', 9715, 0], ['m2:ct_guide', 9785, 0], ['m2:ct_exec', 9845, 0],
 ];
 /** Back later (been behind the screen): the staff gone home but the night security. */
-export const NIGHT_CAST: [string, number, number, number?][] = [['m2:ct_guard', 2300, 0], ['m2:ct_guard', 7400, 0], ['m2:ct_guard', 9400, 0]];
+export const NIGHT_CAST: [string, number, number, number?][] = [['m2:ct_guard', 2300, 0], ['m2:ct_guard', 7250, 0], ['m2:ct_guard', 9650, 0]];
 /** Pickups (lean): [x, height, type]. */
 export const PICKUPS: [number, number, 'small_health' | 'small_ammo'][] = [
   [1700, 0, 'small_ammo'],
