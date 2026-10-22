@@ -21,7 +21,7 @@ import {
   PANEL, WALNUT, CORK, BEIGE, PAPER, STEEL, CHARCOAL, TEAL, PURPLE, VELVET, GOLD, CHROME, GREENWALL, CREAMWALL, FOAM,
   BLACKOUT, NAVYWALL, SLATE, BLUEPLAS, REDPLAS,
 } from './paint';
-import { sitter, behind, socks, chelsea, paintDaveStill, paintStar, ASIAN_SKIN, ASIAN_HAIR } from './people';
+import { sitter, animator, behind, socks, chelsea, paintDaveStill, paintStar, ASIAN_SKIN, ASIAN_HAIR } from './people';
 import { CEIL, X, Y, type Room, type RoomId } from './layout';
 import { WALL_EXTRAS, PROP_EXTRAS } from './clutter';
 import { grossSocks, grossChelsea, grossBack } from './gross';
@@ -638,34 +638,38 @@ export const OVERSEAS_ROWS: { d: number; xs: number[] }[] = [
   { d: 0.84, xs: Array.from({ length: 11 }, (_, i) => 5760 + i * 165) },
   { d: 0.88, xs: Array.from({ length: 10 }, (_, i) => 5700 + i * 180) },
 ];
-/** A light table (its left at x): legs, the tilted glowing top, a peg bar, a stack of drawings, a lamp, a noodle cup or a
- *  thermos, a cot under some. */
+/** A light table (its left at x), sized to the person at it: legs, the tilted glowing top (its front lip at GY - 46), a
+ *  peg bar, the drawing they're on, a stack of drawings, a noodle cup, a thermos or a lamp up the back, a cot under
+ *  some (no crossbar over it). */
 export const lightTable = (g: Ctx, x: number, k: number) => {
-  for (const lx of [x + 4, x + 74]) slab(g, lx, GY - 66, 5, 66, STEEL, false);
-  box(g, x + 4, GY - 26, 74, 3, STEEL[2]);
-  part(g, () => { g.moveTo(x, GY - 66); g.lineTo(x + 84, GY - 66); g.lineTo(x + 80, GY - 92); g.lineTo(x + 4, GY - 80); g.closePath(); }, '#C9C4AE', x, GY - 92, 84, 26, 1.2);
-  flat(g, () => { g.moveTo(x + 10, GY - 70); g.lineTo(x + 76, GY - 70); g.lineTo(x + 73, GY - 87); g.lineTo(x + 12, GY - 79); g.closePath(); }, '#FFF8DA', 0);
-  flat(g, () => { g.moveTo(x + 10, GY - 70); g.lineTo(x + 40, GY - 70); g.lineTo(x + 40, GY - 83); g.lineTo(x + 12, GY - 79); g.closePath(); }, '#FFFDF0', 0);
-  // (the drawing on it, its line showing through the paper; the peg bar)
-  g.strokeStyle = 'rgba(60,60,70,0.55)'; g.lineWidth = 1; g.beginPath(); g.arc(x + 44, GY - 78, 4, 0, Math.PI * 2); g.moveTo(x + 44, GY - 74); g.lineTo(x + 46, GY - 72); g.stroke();
-  px(g, x + 30, GY - 85, 28, 2, STEEL[3]);
-  part(g, () => g.rect(x + 50, GY - 98 - (k % 4) * 4, 26, 6 + (k % 4) * 4), '#FAFAF5', x + 50, GY - 98 - (k % 4) * 4, 26, 6 + (k % 4) * 4, 0.8);
-  for (let l = 0; l < (k % 4) + 1; l++) px(g, x + 51, GY - 95 - l * 4, 24, 1, PAPER[2]);
-  if (k % 3 === 0) { part(g, () => g.rect(x + 14, GY - 98, 12, 14), '#F8FAFC', x + 14, GY - 98, 12, 14, 0.9); px(g, x + 14, GY - 98, 12, 3, '#DC2626'); px(g, x + 18, GY - 106, 1, 8, '#D6A86A'); px(g, x + 21, GY - 106, 1, 8, '#D6A86A'); }
-  else if (k % 3 === 1) { part(g, () => g.roundRect(x + 14, GY - 106, 8, 20, 2), '#1E3A8A', x + 14, GY - 106, 8, 20, 0.9); px(g, x + 14, GY - 106, 8, 3, CHROME[3]); }
-  else { limb(g, x + 6, GY - 80, x + 2, GY - 120, 1.6, STEEL[3]); limb(g, x + 2, GY - 120, x + 20, GY - 124, 1.6, STEEL[3]); part(g, () => { g.moveTo(x + 14, GY - 128); g.lineTo(x + 28, GY - 128); g.lineTo(x + 30, GY - 118); g.lineTo(x + 12, GY - 118); g.closePath(); }, '#475569', x + 12, GY - 128, 18, 10, 1); }
-  if (k % 5 === 2) { px(g, x + 36, GY - 66, 30, 4, '#4B5563'); part(g, () => g.rect(x + 30, GY - 30, 50, 22), '#6B7F6A', x + 30, GY - 30, 50, 22, 1); }
+  const cot = k % 5 === 2;
+  for (const lx of [x + 4, x + 74]) slab(g, lx, GY - 46, 5, 46, STEEL, false);
+  if (!cot) box(g, x + 4, GY - 10, 74, 3, STEEL[2]);
+  part(g, () => { g.moveTo(x, GY - 46); g.lineTo(x + 84, GY - 46); g.lineTo(x + 80, GY - 72); g.lineTo(x + 4, GY - 60); g.closePath(); }, '#C9C4AE', x, GY - 72, 84, 26, 1.2);
+  flat(g, () => { g.moveTo(x + 10, GY - 50); g.lineTo(x + 76, GY - 50); g.lineTo(x + 73, GY - 67); g.lineTo(x + 12, GY - 59); g.closePath(); }, '#FFF8DA', 0);
+  flat(g, () => { g.moveTo(x + 10, GY - 50); g.lineTo(x + 40, GY - 50); g.lineTo(x + 40, GY - 63); g.lineTo(x + 12, GY - 59); g.closePath(); }, '#FFFDF0', 0);
+  // (the drawing on it, its line showing through the paper, right under the pencil; the peg bar above it)
+  g.strokeStyle = 'rgba(60,60,70,0.55)'; g.lineWidth = 1; g.beginPath(); g.arc(x + 31, GY - 56, 4, 0, Math.PI * 2); g.moveTo(x + 31, GY - 52); g.lineTo(x + 33, GY - 50); g.stroke();
+  px(g, x + 18, GY - 62, 28, 2, STEEL[3]);
+  part(g, () => g.rect(x + 50, GY - 78 - (k % 4) * 4, 26, 6 + (k % 4) * 4), '#FAFAF5', x + 50, GY - 78 - (k % 4) * 4, 26, 6 + (k % 4) * 4, 0.8);
+  for (let l = 0; l < (k % 4) + 1; l++) px(g, x + 51, GY - 75 - l * 4, 24, 1, PAPER[2]);
+  // (up the back, clear of their head: the noodle cup, the thermos, or the lamp hung over the paper)
+  if (k % 3 === 0) { part(g, () => g.rect(x + 34, GY - 78, 12, 14), '#F8FAFC', x + 34, GY - 78, 12, 14, 0.9); px(g, x + 34, GY - 78, 12, 3, '#DC2626'); px(g, x + 38, GY - 86, 1, 8, '#D6A86A'); px(g, x + 41, GY - 86, 1, 8, '#D6A86A'); }
+  else if (k % 3 === 1) { part(g, () => g.roundRect(x + 36, GY - 84, 8, 20, 2), '#1E3A8A', x + 36, GY - 84, 8, 20, 0.9); px(g, x + 36, GY - 84, 8, 3, CHROME[3]); }
+  else { limb(g, x + 80, GY - 70, x + 82, GY - 108, 1.6, STEEL[3]); limb(g, x + 82, GY - 108, x + 62, GY - 104, 1.6, STEEL[3]); part(g, () => { g.moveTo(x + 50, GY - 106); g.lineTo(x + 64, GY - 106); g.lineTo(x + 66, GY - 96); g.lineTo(x + 48, GY - 96); g.closePath(); }, '#475569', x + 48, GY - 106, 18, 10, 1); }
+  if (cot) { px(g, x + 36, GY - 46, 30, 4, '#4B5563'); part(g, () => g.rect(x + 30, GY - 30, 50, 22), '#6B7F6A', x + 30, GY - 30, 50, 22, 1); }
   if (k % 4 === 1) { slab(g, x + 60, GY - 18, 22, 18, CORK); for (let i = 0; i < 3; i++) ball(g, x + 64 + i * 7, GY - 20, 4, PAPER[4 - i], 0.8); }
 };
-/** Draws one row's person (stamped by frame: drawing, flipping a page, asleep, yawning) and the cot sleeper. */
+/** One light table and who's at it (the stool and legs, the table over the knees, then the arms on its top), stamped
+ *  by frame (drawing, flipping a page, asleep, yawning), and the cot sleeper under some. */
 export const nightShift = (c: Ctx, x: number, k: number, f: number) => {
   const seed = 400 + k * 13, asleep = k % 9 === 4, yawn = k % 11 === 7 && (f % 300) < 60;
   const fr = asleep ? 0 : ((f + k * 17) >> 3) % 4;
-  stamp(c, `ct-st2-anim-${k}-${fr}-${yawn ? 1 : 0}`, x - 60, GY - 120, 110, 124, g => {
-    g.save(); g.translate(x - 26, GY - 44);
-    sitter(g, seed, { asian: true, shirt: ['#6B7280', '#4B5563', '#7C6A55', '#3F5160', '#5B6B5B', '#8B7E74'][k % 6], pants: '#374151', drawing: true, reach: 18, nod: asleep ? 1 : 0.4 + (k % 3) * 0.1, hand: [0, 2, 4, 2][fr], yawn, cardigan: k % 4 === 0 ? '#8B6B4A' : k % 4 === 2 ? '#3F3F46' : undefined });
-    g.restore();
-  });
+  const o = { shirt: ['#6B7280', '#4B5563', '#7C6A55', '#3F5160', '#5B6B5B', '#8B7E74'][k % 6], pants: '#374151', hand: [0, 2, 4, 2][fr], asleep, yawn, cardigan: k % 4 === 0 ? '#8B6B4A' : k % 4 === 2 ? '#3F3F46' : undefined };
+  const hip = (g: Ctx, half: 'lower' | 'upper') => { g.save(); g.translate(x - 6, GY - 34); animator(g, seed, half, o); g.restore(); };
+  stamp(c, `ct-st2-animlo-${k}`, x - 34, GY - 40, 64, 42, g => hip(g, 'lower'));
+  stamp(c, `ct-st2-desk-${k}`, x - 4, GY - 112, 96, 116, g => lightTable(g, x, k));
+  stamp(c, `ct-st2-anim-${k}-${fr}-${yawn ? 1 : 0}`, x - 34, GY - 88, 84, 62, g => hip(g, 'upper'));
   if (k % 5 === 2) stamp(c, `ct-st2-cot-${k}`, x + 20, GY - 46, 70, 46, g => {
     ball(g, x + 40, GY - 34, 7, ASIAN_SKIN[k % 6], 1); px(g, x + 35, GY - 42, 11, 5, ASIAN_HAIR[k % 4]);
     part(g, () => g.roundRect(x + 44, GY - 41, 34, 12, 4), '#8B5CF6', x + 44, GY - 41, 34, 12, 1);

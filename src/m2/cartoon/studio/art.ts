@@ -34,7 +34,7 @@ import {
 import { socks, drawDave, drawArtDirector, steam } from './people';
 import { drawDavePortraitLive } from './daveGross';
 import {
-  SHELLS, BACKS, PROPS, backKey, park, drawWritersLive, drawVoiceLive, OVERSEAS_ROWS, lightTable, nightShift, paintBanner,
+  SHELLS, BACKS, PROPS, backKey, park, drawWritersLive, drawVoiceLive, OVERSEAS_ROWS, nightShift, paintBanner,
   PROMO, paintPromo, drawPromoBulbs, paintPaparazzi, drawPaparazziLive, placardX, placardW, paintPlacard, paintMarquee,
   MARQUEE,
 } from './rooms';
@@ -516,9 +516,8 @@ export const drawStudioBack = (c: Ctx, state: GameState, talking: boolean) => {
     for (let i = 0; i < row.xs.length; i++) {
       const x = X(row.xs[i]), k = i * 7 + Math.round(row.d * 100);
       if (!seen(state, E, x - 60, x + 100, row.d)) continue;
-      stamp(c, `ct-st2-desk-${k}`, x - 4, GY - 132, 96, 136, g => lightTable(g, x, k));
       nightShift(c, x, k, f);
-      if (k % 3 === 0) steam(c, x + 19, GY - 106, f, k);
+      if (k % 3 === 0) steam(c, x + 39, GY - 86, f, k);
     }
   });
   for (const r of vis) {
@@ -611,7 +610,7 @@ export const studioLights = (state: GameState): Light[] => {
   // (the night shift's light tables, glowing in the dark before the room's lights come up)
   const oi = ROOMS.findIndex(r => r.id === 'overseas');
   if (s.light[oi] < 1 && seen(state, E, X(5600), X(7600), 0.84)) for (const row of OVERSEAS_ROWS) for (const rx of row.xs) {
-    const p = proj(E, X(rx) + 42, GY - 82, row.d);
+    const p = proj(E, X(rx) + 42, GY - 60, row.d);
     if (p.x > state.camera.x - 60 && p.x < state.camera.x + CANVAS_WIDTH + 60) out.push({ x: p.x, y: p.y, r: 46, a: 0.7 * (1 - s.light[oi]), color: 'rgba(255,244,200,0.10)' });
   }
   // (the screen, glowing; the promo board's bulbs; the RECORDING lamp; the lobby's TV bank and its EXIT sign)

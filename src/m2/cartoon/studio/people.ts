@@ -5,7 +5,7 @@
 // art director with his stamp, the voice star in the booth; and the show's cartoon cast as the model sheets and the
 // promo draw them (Socks, Chelsea): flat cel color, fat ink, the way a 1994 Saturday-morning show looked.
 
-import { part, px, ball, limb, dk, lt, bodyOf, headShape, faceOn, hairTop, hairBack, glasses, whiskers, INK as SINK } from '../../spooky/costume';
+import { part, px, ball, limb, jointed, dk, lt, bodyOf, headShape, faceOn, hairTop, hairBack, glasses, whiskers, INK as SINK } from '../../spooky/costume';
 import { box, PAPER, slab, type Ctx } from './paint';
 
 export const ASIAN_SKIN = ['#F3D2B3', '#EBC29C', '#E0B48A', '#D9A877', '#F0C8A2', '#E6BC94'];
@@ -52,6 +52,60 @@ export const sitter = (g: Ctx, seed: number, o: { shirt: string; pants?: string;
   limb(g, 4, -22, hx, hy, B.armW, o.cardigan ?? o.shirt); ball(g, hx, hy, 3.4, L.skin, 1);
   if (o.drawing && nod < 0.9) { px(g, hx - 1, hy - 8, 2, 8, '#F2C230'); px(g, hx - 1, hy - 1, 2, 2, '#3F3F46'); px(g, hx - 1, hy - 9, 2, 2, '#F49AB0'); }
   g.restore();
+};
+
+/** A drafting stool (its seat's top middle at 0, 0, the floor at y 34): the round seat, the post, the foot ring, the
+ *  five-star base on its casters. */
+const draftStool = (g: Ctx, col: string) => {
+  limb(g, -1, 5, -1, 32, 3, '#52525B');
+  limb(g, -11, 17, 9, 17, 2, '#71717A');
+  limb(g, -13, 32, 11, 32, 2.6, '#27272A');
+  for (const cx of [-13, -1, 11]) ball(g, cx, 32.2, 1.8, '#18181B', 0.6);
+  part(g, () => g.roundRect(-12, 0, 22, 5, 2), col, -12, 0, 22, 5, 1);
+};
+
+/**
+ * The night shift's animator, in two halves around their light table (the hip on the stool's seat at (0, 0), the floor
+ * at y 34, the table's near edge 6 px to the right with its front lip at y -12 and the drawing on it at about (36, -23)):
+ * `lower` the stool and the legs (drawn before the table, so the knees go in under it), `upper` the far arm, the body,
+ * the head and the near arm (after it, so the forearms lie on the top and the pencil's point is on the paper). `hand`
+ * nudges the pencil along the line; `asleep` puts the head down on the folded arms.
+ */
+export const animator = (g: Ctx, seed: number, half: 'lower' | 'upper', o: { shirt: string; pants: string; hand?: number; asleep?: boolean; yawn?: boolean; cardigan?: string; chair?: string }) => {
+  const B = bodyOf(seed, 'stand', 0);
+  B.L.skin = ASIAN_SKIN[((Math.floor(seed) % ASIAN_SKIN.length) + ASIAN_SKIN.length) % ASIAN_SKIN.length];
+  B.L.hair = ASIAN_HAIR[((Math.floor(seed >> 2) % ASIAN_HAIR.length) + ASIAN_HAIR.length) % ASIAN_HAIR.length];
+  B.L.bald = false; if (B.L.face === 1 || B.L.face === 2) B.L.face = (seed % 2) ? 3 : 0;
+  const L = B.L;
+  if (half === 'lower') {
+    draftStool(g, o.chair ?? '#3F3F46');
+    // (thigh along the seat and in under the table, shin down to the foot ring, the shoe on it)
+    jointed(g, [[0, -1], [16, -1], [12, 14]], [B.legW, B.legW - 0.5], [o.pants, o.pants]);
+    part(g, () => g.roundRect(10, 13, 10, 4, 1.5), '#1C1917', 10, 13, 10, 4, 1);
+    return;
+  }
+  const top = o.cardigan ?? o.shirt;
+  const S = o.asleep ? { x: 10, y: -17 } : { x: 6, y: -23 };
+  const H = o.asleep ? { x: 22, y: -25 } : { x: 12, y: -33 };
+  // (the far arm: the elbow on the table's lip, the hand holding the sheet down)
+  jointed(g, o.asleep ? [[S.x - 2, S.y + 1], [16, -14], [30, -18]] : [[S.x - 2, S.y + 1], [14, -13], [27, -16]], [B.armW - 0.5, B.armW - 0.5], [dk(top, 0.15), dk(top, 0.15)]);
+  ball(g, o.asleep ? 30 : 27, o.asleep ? -18 : -16, 3, dk(L.skin, 0.1), 1);
+  // (the body, bent over the table)
+  part(g, () => { g.moveTo(-B.hipW / 2, 0); g.lineTo(S.x - B.w / 2 + 1, S.y); g.quadraticCurveTo(S.x, S.y - 4, S.x + B.w / 2 - 1, S.y); g.lineTo(B.hipW / 2, 0); g.closePath(); }, o.shirt, -B.hipW / 2, S.y - 4, B.w + 8, -S.y + 4);
+  if (o.cardigan) { part(g, () => { g.moveTo(-B.hipW / 2 - 1, 0); g.lineTo(S.x - B.w / 2, S.y - 1); g.quadraticCurveTo(S.x - 3, S.y - 4, S.x - 1, S.y - 2); g.lineTo(3, 0); g.closePath(); }, o.cardigan, -B.hipW / 2 - 1, S.y - 4, B.w / 2 + 8, -S.y + 4, 1); px(g, (S.x + 3) / 2, S.y * 0.7, 2, 2, lt(o.cardigan, 0.4)); px(g, 2, S.y * 0.35, 2, 2, lt(o.cardigan, 0.4)); }
+  // (the neck, the head bent to the drawing)
+  limb(g, S.x + 1, S.y, H.x - 2, H.y + 6, 5, L.skin);
+  const hb = { ...B, hx: H.x, hy: H.y };
+  hairBack(g, hb);
+  headShape(g, hb, L.skin);
+  faceOn(g, hb, { skin: L.skin, eyes: o.asleep || o.yawn ? 'closed' : 'tired', mouth: o.yawn ? 'o' : 'flat', look: 0.9 });
+  if (!o.asleep) { px(g, H.x, H.y + 2, 3, 1, dk(L.skin, 0.22)); px(g, H.x + 5, H.y + 2, 3, 1, dk(L.skin, 0.22)); }
+  glasses(g, hb); whiskers(g, hb); hairTop(g, hb);
+  // (the near arm: the forearm along the table, the pencil's point down on the paper)
+  const hx = (o.asleep ? 26 : 32) + (o.hand ?? 0), hy = o.asleep ? -16 : -21;
+  jointed(g, [[S.x + 2, S.y + 1], [o.asleep ? 14 : 17, -12], [hx, hy]], [B.armW, B.armW], [top, top]);
+  ball(g, hx, hy, 3.4, L.skin, 1);
+  if (!o.asleep) { limb(g, hx + 2, hy - 6, hx + 3, hy + 3, 2, '#F2C230', false); px(g, hx + 2, hy + 2, 2, 2, '#3F3F46'); px(g, hx + 1, hy - 8, 2, 2, '#F49AB0'); }
 };
 
 /** Someone seen behind a table (from the chest up over its edge, at (0, 0) the table's top), facing right-ish. */
