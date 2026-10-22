@@ -490,13 +490,15 @@ const tickSmoke = (f: Fight) => { for (const s of f.smoke) { s.t++; s.y -= 0.3; 
 // ---- the stampedes
 const stampede = (state: GameState, f: Fight) => {
   const k = phaseK(f), n = Math.round(lerp(CRITTERS, k)) + (Math.random() < 0.5 ? 1 : 0);
-  // (they come from one end (later, a few the other way too), the view's edge: they run from the bang across it)
-  const dir: 1 | -1 = Math.random() < 0.5 ? 1 : -1;
+  // (they come from one end, the view's edge, and run from the bang across it: all of them one way, and a stampede
+  // that comes while the last is still running goes the same way (the user's: never two ways at once))
+  const running = f.queue.length ? f.queue[0].dir : (state.enemies.find(e => isCritter(e) && e.health > 0 && !e.isBlownAway)?.facing as 1 | -1 | undefined);
+  const dir: 1 | -1 = running ?? (Math.random() < 0.5 ? 1 : -1);
   let at = f.t + FIRST_IN;
   for (let i = 0; i < n; i++) {
     const fly = Math.random() < FLY_SHARE;
     const c = fly ? FLYING_CRITTERS[Math.floor(Math.random() * FLYING_CRITTERS.length)] : GROUND_CRITTERS[Math.floor(Math.random() * GROUND_CRITTERS.length)];
-    const d: 1 | -1 = k > 0.5 && Math.random() < 0.3 ? (-dir as 1 | -1) : dir;
+    const d = dir;
     const y = fly ? GY - (c === 'bat' ? 150 + Math.random() * 80 : 60 + Math.random() * 70) : GY;
     f.queue.push({ at, c, dir: d, y, sp: critterSpeed(c) * (1 + 0.3 * k) * (0.9 + Math.random() * 0.25) });
     at += Math.round(lerp(GAP, Math.random()));
