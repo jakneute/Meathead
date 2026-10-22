@@ -95,7 +95,7 @@ export const MH_JUMPED: ByPants = {
 export const TUCKER_UP: ByPants = {
   clean: ['NOW! ABOUT THAT FARE!', 'ONE FARE! PLUS INTEREST! PLUS ONE TREE!'],
   shitty: ['NOW! ABOUT THAT FARE! PLUS THE CLEANING FEE!', 'ONE FARE! PLUS INTEREST! PLUS NEW SEATS FOR THE LOG!'],
-  nude: ['NOW! ABOUT THAT FARE! PLUS A DECENCY FINE!', 'ONE FARE! PLUS INTEREST! PLUS THERAPY FOR THOSE CHILDREN!'],
+  nude: ['NOW! ABOUT THAT FARE! PLUS A DECENCY FINE!', 'ONE FARE! PLUS INTEREST! PLUS THERAPY FOR THOSE PUNKS!'],
 };
 /** A retry: he pops up again off the ground by the felled tree (the entrance beat), split and blind. */
 export const TUCKER_ENTRANCE: ByPants = {

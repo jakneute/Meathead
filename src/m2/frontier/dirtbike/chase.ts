@@ -41,7 +41,7 @@ import {
 } from './road';
 import { drawSpr, drawTeenRider, drawTeenBody, drawTeenDangle, drawEndo, drawMeathead, drawMhTumble, drawBikeTumble, drawTuckerRider, drawWeapon, digits, teenLookOf, parryHand, PUNCH_WIND, PUNCH_LEN, ART, type Weapon, type TeenLook, type RiderPose, type MhPose } from './art';
 import { signText, signW, type Look as Letters } from '../../signLetters';
-import { HURT, MH_START, MH_AGAIN, MH_KNOCKOFF, MH_PARRY, MH_END, TEEN_TAUNT, TEEN_PARRIED, TUCKER_RAISE, TUCKER_LEDGER, TUCKER_FLEE } from './lines';
+import { HURT, MH_START, MH_AGAIN, MH_KNOCKOFF, MH_PARRY, MH_END, MH_ADULTS, TEEN_TAUNT, TEEN_AGE, TEEN_AGE_FIRST, TEEN_DOWN, TEEN_PARRIED, TUCKER_RAISE, TUCKER_LEDGER, TUCKER_FLEE } from './lines';
 
 for (const [source, l] of Object.entries(HURT)) registerHurtLines(source, l.hurt, l.death);
 
@@ -127,6 +127,8 @@ interface Chase {
   bike: string;
   /** A parried kid's yelp (subtitled while it's said: they're mid-flourish, so it goes under the pops). */
   yelp: Said | null;
+  /** An age line said this ride (one always comes out at the start: they're all 18 or 19, they only act like kids). */
+  aged: boolean;
 }
 
 const chaseOf = (state: GameState) => frontierState<Chase>(state, 'dirtbike', () => ({
@@ -137,7 +139,7 @@ const chaseOf = (state: GameState) => frontierState<Chase>(state, 'dirtbike', ()
   teens: [], loose: [], parts: [], pops: [], bgX: 0, prev: { l: false, r: false, j: false },
   tucker: { on: false, z: 0, x: 0.3, t: 0, leave: false, flee: false, said: null, at: 0 },
   outro: { t: 0, step: 'talk', said: false },
-  quipAt: 0, bumpAt: 0, engineAt: 0, tauntAt: 0, deathLast: -1, bike: '#E5E7EB', yelp: null,
+  quipAt: 0, bumpAt: 0, engineAt: 0, tauntAt: 0, deathLast: -1, bike: '#E5E7EB', yelp: null, aged: false,
 }));
 export const inChase = (state: GameState) => chaseOf(state).phase !== 'off';
 /** The chase as the music follows it (music/cues.ts): the last stretch, the outro. */
@@ -145,6 +147,8 @@ export const chaseMusic = (state: GameState) => { const c = chaseOf(state); retu
 
 /** Said the start line this visit. */
 let startVisit = -1;
+/** The first ride of a visit: its first age line is the user's own. */
+let ageFirst = false;
 const rnd = Math.random;
 const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
 const teensLeft = (c: Chase) => {
@@ -186,6 +190,7 @@ export const startChase = (state: GameState, wave: number, fromBounty: boolean) 
   // (off the bounty: the pack's right behind him)
   if (fromBounty) for (let i = 0; i < 2; i++) spawnTeen(state, c, true, -1400 - i * 900);
   const first = startVisit !== landVisit();
+  c.aged = false; ageFirst = first;
   if (first) { startVisit = landVisit(); setTimeout(() => meatheadSays(state, pickLine(byPants(state, MH_START)), true), 900); }
   else if (rnd() < 0.4) setTimeout(() => meatheadSays(state, pickLine(byPants(state, MH_AGAIN)), false), 900);
 };
@@ -238,7 +243,12 @@ const knockOff = (state: GameState, c: Chase, t: Teen, side: number, quip: boole
   c.loose.push({ kind: 'wreck', z: t.z, x: t.x, h: 0, vz: t.speed * 0.8, vx: side * 0.03, vh: 6, t: 0, rot: 0, color: t.k.bike });
   blood(c, t.z, t.x, 140, 10);
   playSound('crash', 0.5, 4);
-  if (quip && state.frame > c.quipAt && rnd() < 0.3) { c.quipAt = state.frame + 400; meatheadSays(state, pickLine(byPants(state, MH_KNOCKOFF)), false); }
+  // (they cry for mommy on the way down, now and then; his quip, if any, after it)
+  const quipNow = quip && state.frame > c.quipAt && rnd() < 0.3;
+  if (quipNow) c.quipAt = state.frame + 400;
+  const mh = () => meatheadSays(state, pickLine(byPants(state, MH_KNOCKOFF)), false);
+  if (rnd() < 0.5) speak(t.k.voice, pickLine(byPants(state, TEEN_DOWN)), s => { c.yelp = s; }, false, quipNow ? mh : undefined);
+  else if (quipNow) mh();
 };
 
 /** Something in the road or by it in this segment that a rider at x hits (tall ones; low ones when not in the air). */
@@ -323,7 +333,16 @@ const updateTeens = (ctx: FrameContext, c: Chase) => {
     // (their taunt, pulling up alongside)
     if (engagedNow && !t.taunted && Math.abs(dz) < 300 && f > c.tauntAt) {
       t.taunted = true; c.tauntAt = f + 360;
-      if (rnd() < 0.5) speak(t.k.voice, pickLine(byPants(state, TEEN_TAUNT)), s => { t.said = s; }, false);
+      if (!c.aged) {
+        // (the first taunt of a ride is always an age line, queued so it's never dropped; the first in a visit is the
+        // user's own; he answers it)
+        c.aged = true;
+        const line = ageFirst ? TEEN_AGE_FIRST : pickLine(byPants(state, TEEN_AGE));
+        ageFirst = false;
+        speak(t.k.voice, line, s => { t.said = s; }, true, () => {
+          if (rnd() < 0.7) { c.quipAt = state.frame + 300; meatheadSays(state, pickLine(byPants(state, MH_ADULTS)), false); }
+        });
+      } else if (rnd() < 0.5) speak(t.k.voice, pickLine(byPants(state, rnd() < 0.25 ? TEEN_AGE : TEEN_TAUNT)), s => { t.said = s; }, false);
     }
     // ---- their swings
     t.t++;
