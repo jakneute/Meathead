@@ -5,9 +5,9 @@
 // only ever above the opening) slides past faster still: drawFront. The rooms either side show through, each its own
 // paper; a little candlelight spills through each one (castleLighting).
 //
-// Art only: on the same floor the wall stands across the boundary (nothing there to stop him: he walks through the
-// opening); where the floor changes, it stands on the boundary's far side over the step the ground makes (solid under
-// the opening, open through it). The gallery's far end: the same, the stairs down into the dark through it.
+// On the same floor the wall stands across the boundary (he walks through the opening); where the floor changes, it
+// stands on the boundary's far side over the step the ground makes (the ground's own step solid under the opening,
+// open through it). The wall over each opening is solid (index.ts: partitionWalls). The gallery's far end: the same, the stairs down into the dark through it.
 
 import type { GameState } from '../../../m1/game/core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
@@ -19,7 +19,8 @@ type Ctx = CanvasRenderingContext2D;
 type Pt = [number, number];
 /** Depths: the back walls (as the floor strip), the opening's far jamb, the near pillar. Half the wall's thickness; how
  *  tall the opening (at most). */
-const K = 0.93, DJ = 0.95, DN = 1.12, HW = 70, OPEN = 260;
+const K = 0.93, DJ = 0.95, DN = 1.12, OPEN = 260;
+export const HW = 70;
 
 export interface Doorway { cx: number; top: number; bottom: number; roof: number; low: number; end: boolean }
 /** Every doorway (world y): its wall's middle, the opening's top and bottom (the floor through it), the wall's top, how

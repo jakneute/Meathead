@@ -38,7 +38,7 @@ import { spookyState } from '../section';
 import { spawnStaff, STAFF } from './staff';
 import { paStory, paQuip, paBusy, pick, byPants, drawPaWords } from './pa';
 import { drawCastleBack, drawBooks, drawStoveFire, drawBallPit, castleLighting } from './art';
-import { drawDoorwaysFront } from './doorways';
+import { drawDoorwaysFront, DOORWAYS, HW } from './doorways';
 import { runBalls, drawBalls, resetBalls } from './balls';
 import {
   x0, x1, ROOMS, roomAt, CEIL, LEDGES, STOVES, STOVE_TOP, BURNERS, stovePhase, FIRE_H, STOVE_CYCLE, STOVE_FIRE, BED, BOUNCE, CHANDELIERS, CHAND_Y, CHAND_W, CHAND_TELL,
@@ -258,6 +258,9 @@ export const castle: SpookySection = {
     endWalls(state, 'castle');
     // (each room's ceiling, way up)
     for (const r of ROOMS) solid(state, r.a, ceilOf(r.id) + DY[r.id] - 60, r.b - r.a, 60, { hidden: true, tag: 'castle-ceiling' });
+    // (the stone walls between the rooms: solid from over each doorway's arch up past the ceilings, its whole thickness;
+    // the opening clear at floor level; under it, where the floor steps, the ground's own step)
+    for (const d of DOORWAYS) solid(state, d.cx - HW, d.roof, 2 * HW, d.top - d.roof, { hidden: true, tag: 'castle-partition' });
     // (the witch's hearth is stone: solid; the rest jump-through)
     for (const [x, y, w, look] of LEDGES) { const d = dyAt(x); if (look === 'cauldron') solid(state, x, y + d, w, GY - y, { hidden: true, tag: 'castle-hearth' }); else ledge(state, x, y + d, w, { hidden: true, tag: 'castle-ledge' }); }
     for (const [x, w] of STOVES) solid(state, x, STOVE_TOP + DY.kitchen, w, GY - STOVE_TOP, { hidden: true, tag: 'castle-stove' });
