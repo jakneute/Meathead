@@ -23,7 +23,8 @@
 
 import type { GameState } from '../../../m1/game/core/state';
 import { CANVAS_WIDTH } from '../../../m1/constants';
-import { bendFloor } from '../../intro/art/kit';
+import { bendFloor, BEND } from '../../intro/art/kit';
+import { turned } from '../disaster/paint';
 import { drawPerson } from '../../adventure/temple/people';
 import { bricks, BRICK } from '../lot/paint';
 import { print, enamel, marquee as marqueeLook } from '../blvd/paint';
@@ -661,11 +662,13 @@ export const drawStage = (c: Ctx, state: GameState, opts: { cleared: boolean; hy
     stillH(c, `marq-${on ? phase : 'x'}`, mq - 450, TRUSS_Y - 66, 0, 0, 900, 56, g => paintMarquee(g, on, phase));
     if (opts.cleared) {
       // (SHOW CANCELED, taped over it crooked)
-      c.save(); c.translate(mq, TRUSS_Y - 38); c.rotate(-0.06);
-      box(c, -172, -21, 344, 42, INK); box(c, -170, -19, 340, 38, '#F4F1EA'); box(c, -170, -19, 340, 2, '#FFFFFF'); box(c, -170, 16, 340, 3, '#D8D2C6');
-      for (const tx of [-176, 156]) { box(c, tx, -22, 20, 10, 'rgba(232, 220, 180, 0.85)'); box(c, tx, 12, 20, 10, 'rgba(232, 220, 180, 0.85)'); }
-      words(c, 'SHOW CANCELED', 0, 10, { sx: 3, sy: 3, fill: ['#DC2626', '#B42222'], dither: true, gap: 1 });
-      c.restore();
+      // (crooked: turned on a whole pixel, so the live paint doesn't crawl)
+      turned(c, mq, TRUSS_Y - 38, -0.06, () => {
+        c.translate(mq, TRUSS_Y - 38);
+        box(c, -172, -21, 344, 42, INK); box(c, -170, -19, 340, 38, '#F4F1EA'); box(c, -170, -19, 340, 2, '#FFFFFF'); box(c, -170, 16, 340, 3, '#D8D2C6');
+        for (const tx of [-176, 156]) { box(c, tx, -22, 20, 10, 'rgba(232, 220, 180, 0.85)'); box(c, tx, 12, 20, 10, 'rgba(232, 220, 180, 0.85)'); }
+        words(c, 'SHOW CANCELED', 0, 10, { sx: 3, sy: 3, fill: ['#DC2626', '#B42222'], dither: true, gap: 1 });
+      });
     }
   }
   const bx = ARENA_L + 520;
@@ -684,21 +687,36 @@ export const drawStage = (c: Ctx, state: GameState, opts: { cleared: boolean; hy
     if (!inView(state, mx - hw - 20, mx + hw + 20)) continue;
     const M = MAT.map(c2 => hour(c2, 0.1)), H = 7;
     const back = Math.round(GY - 44 * ZK) - H, front = Math.round(GY + 22 * ZK) - H, foot = front + H;
-    // (its shadow on the floor, the ink round it)
-    c.fillStyle = 'rgba(10, 8, 14, 0.35)'; c.fillRect(mx - hw - 3, foot - 1, hw * 2 + 8, 4);
-    box(c, mx - hw - 1, back - 1, hw * 2 + 2, foot - back + 2, INK);
+    // (its front half lies on the bent floor in front of the line: its front edge fanned out from the eye as the floor
+    // under it is (a flat box, its sides straight down the screen, it slid about on the floor as the camera went by);
+    // its back edge, behind the line, as it was. Each end's thickness shows down its side when the eye's past it)
+    const ex = v.eye.x, kf = 1 + (foot - GY) * BEND, fx = (x: number) => ex + (x - ex) * kf;
+    const L0 = mx - hw, R0 = mx + hw, L1 = fx(L0), R1 = fx(R0), seeL = ex < L0 - 1, seeR = ex > R0 + 1;
+    const lerp = (x: number, t: number) => x + (fx(x) - x) * t, tb = 0.4, yb = back + Math.round((front - back) * tb);
+    c.fillStyle = 'rgba(10, 8, 14, 0.35)'; c.fillRect(L1 - 3, foot - 1, R1 - L1 + 8, 4);
+    poly(c, [[L0 - 1, back - 1], [R0 + 1, back - 1], ...(seeR ? [[R0 + 1, back + H]] as [number, number][] : [[R1 + 1, front]] as [number, number][]), [R1 + 1, foot + 1], [L1 - 1, foot + 1], ...(seeL ? [[L0 - 1, back + H]] as [number, number][] : [[L1 - 1, front]] as [number, number][])], INK);
+    if (seeL) poly(c, [[L0, back], [L1, front], [L1, foot], [L0, back + H]], M[2]);
+    if (seeR) poly(c, [[R0, back], [R1, front], [R1, foot], [R0, back + H]], M[1]);
     // (the top, going back: lit at the front, a shade darker going back, dithered between; piped round)
-    box(c, mx - hw, back, hw * 2, front - back, M[3]);
-    box(c, mx - hw, back, hw * 2, Math.round((front - back) * 0.4), M[2]);
-    checker(c, mx - hw, back + Math.round((front - back) * 0.4), hw * 2, 2, M[2], 0, 1);
-    box(c, mx - hw, back, hw * 2, 1, M[4]); box(c, mx - hw, front - 1, hw * 2, 1, M[5]);
-    box(c, mx - hw, back, 1, front - back, M[4]); box(c, mx + hw - 1, back, 1, front - back, M[1]);
+    const top: [number, number][] = [[L0, back], [R0, back], [R1, front], [L1, front]];
+    poly(c, top, M[3]);
+    poly(c, [[L0, back], [R0, back], [lerp(R0, tb), yb], [lerp(L0, tb), yb]], M[2]);
+    c.save(); c.beginPath(); top.forEach(([x, y], i) => (i ? c.lineTo(x, y) : c.moveTo(x, y))); c.closePath(); c.clip();
+    checker(c, Math.min(L0, L1), yb, Math.max(R0, R1) - Math.min(L0, L1), 2, M[2], 0, 1);
+    c.restore();
+    box(c, L0, back, hw * 2, 1, M[4]); box(c, L1, front - 1, R1 - L1, 1, M[5]);
+    c.lineWidth = 1;
+    c.strokeStyle = M[4]; c.beginPath(); c.moveTo(L0 + 0.5, back); c.lineTo(L1 + 0.5, front); c.stroke();
+    c.strokeStyle = M[1]; c.beginPath(); c.moveTo(R0 - 0.5, back); c.lineTo(R1 - 0.5, front); c.stroke();
     // (the stitched seams across it, front to back)
-    for (let k = mx - hw + 35; k < mx + hw - 10; k += 35) { box(c, k, back + 2, 1, front - back - 3, M[1]); box(c, k + 1, back + 2, 1, front - back - 3, M[4]); }
+    for (let k = mx - hw + 35; k < mx + hw - 10; k += 35) {
+      c.strokeStyle = M[1]; c.beginPath(); c.moveTo(k + 0.5, back + 2); c.lineTo(lerp(k, 0.97) + 0.5, front - 1); c.stroke();
+      c.strokeStyle = M[4]; c.beginPath(); c.moveTo(k + 1.5, back + 2); c.lineTo(lerp(k, 0.97) + 1.5, front - 1); c.stroke();
+    }
     // (the front face: its handles, CRASH MAT on it)
-    box(c, mx - hw, front, hw * 2, H, M[2]); box(c, mx - hw, foot - 1, hw * 2, 1, M[0]);
-    for (const hx of [mx - hw + 10, mx + hw - 20]) { box(c, hx, front + 2, 10, 3, INK); box(c, hx + 1, front + 3, 8, 1, M[1]); }
-    words(c, 'CRASH MAT', mx, foot - 1, { sx: 1, sy: 1, fill: M[5], stencil: true, gap: 1 });
+    box(c, L1, front, R1 - L1, H, M[2]); box(c, L1, foot - 1, R1 - L1, 1, M[0]);
+    for (const hx of [fx(mx - hw + 10), fx(mx + hw - 20)]) { box(c, hx, front + 2, 10, 3, INK); box(c, hx + 1, front + 3, 8, 1, M[1]); }
+    words(c, 'CRASH MAT', Math.round(fx(mx)), foot - 1, { sx: 1, sy: 1, fill: M[5], stencil: true, gap: 1 });
   }
   // (an old wreck or two lying about, after)
   if (opts.cleared) {
@@ -892,7 +910,13 @@ const fanBack = (c: Ctx, px: number, py: number, n: number, hype: number, f: num
 };
 
 export const drawCrowd = (c: Ctx, state: GameState, hype: number) => {
-  const a = Math.max(x0 - 100, state.camera.x - 40), b = state.camera.x + CANVAS_WIDTH + 40;
+  // (it stands at the front edge of the floor, where the floor's bent furthest out: it goes by as fast as the floor at
+  // its foot does (it went by at the play line's speed, slower than the floor behind it: it skated, reading as further
+  // back than what it hides). Same size, just slid along: its pattern (joints, plates, fans, the hazard paint) laid out
+  // that much further from the eye)
+  const v = sview(state), k = 1 + (BARRIER_Y + 40 - GY) * BEND, ox = (1 - k) * v.eye.x;
+  c.save(); c.translate(ox, 0);
+  const a = Math.max(x0 - 100 + ox, state.camera.x - 40) - ox, b = state.camera.x + CANVAS_WIDTH + 40 - ox;
   const C = CONCRETE.map(c2 => hour(c2, 0.06)), f = state.frame;
   // (the jersey barrier: its cap seen from over it, the face under it banded, the joints between its sections, the
   // hazard paint along its foot)
@@ -902,7 +926,9 @@ export const drawCrowd = (c: Ctx, state: GameState, hype: number) => {
   box(c, a, BARRIER_Y + 8, b - a, 32, C[4]); box(c, a, BARRIER_Y + 8, b - a, 2, C[2]); checker(c, a, BARRIER_Y + 10, b - a, 2, C[3], 0, 2);
   box(c, a, BARRIER_Y + 30, b - a, 10, C[3]); checker(c, a, BARRIER_Y + 28, b - a, 2, C[3], 1, 2);
   for (let x = Math.floor(a / 120) * 120; x < b; x += 120) { box(c, x, BARRIER_Y, 1, 40, C[1]); box(c, x + 1, BARRIER_Y, 1, 40, C[5]); }
-  hazard(c, a, BARRIER_Y + 34, b - a, 6, 0);
+  // (its stripes laid from a whole stripe in the world (from the screen's edge they stood still on the screen while the
+  // barrier went by under them))
+  hazard(c, a, BARRIER_Y + 34, b - a, 6, -a);
   // (Steve's plates on it: yellow, bolted up, his name)
   const plates: number[] = [];
   for (let x = Math.floor(a / 640) * 640 + 200; x < b + 100; x += 640) {
@@ -921,6 +947,7 @@ export const drawCrowd = (c: Ctx, state: GameState, hype: number) => {
     const bob = hype > 0.3 ? Math.round(Math.abs(Math.sin(f * 0.25 + n)) * 6 * hype) : 0;
     fanBack(c, px, BARRIER_Y + 34 - bob, n, hype, f);
   }
+  c.restore();
 };
 
 void LIP; void slab; void deco; void plain; void mix; void hash; void BACK_Z; void glassOf; void SET_D; void post;

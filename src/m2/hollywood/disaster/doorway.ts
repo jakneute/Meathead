@@ -14,7 +14,7 @@ import { box, checker, mix, poly, at, ramp6, signW } from '../blvd/kit';
 import { X, Y, GY, PRESHOW, THEATER, DOOR_HALF } from './layout';
 import type { Dz } from './state';
 import {
-  type Ctx, type View, INK, WALL_D, seenD, levelQ, sideQ, INDIGO, BLACKS, GOLD, SHELL, CHAR, hungBoard, showLook, still, deep,
+  type Ctx, type View, INK, WALL_D, seenD, levelQ, sideQ, INDIGO, BLACKS, GOLD, SHELL, CHAR, hungBoard, showLook, still, deep, faceWide,
 } from './paint';
 
 /** The wall's middle (the rooms' old shared line), its half thickness, its faces. */
@@ -57,7 +57,8 @@ export const doorwayBack = (c: Ctx, v: View, o: Dz, beat: number, real: boolean)
   levelQ(c, eye, EL, ER, GY, DOOR_D + 0.006, DOOR_D, GOLD[0]);
   // The face he's looking at (going back from the cut, the hole in it near the front)
   const side = eye.x < EL - 1 ? -1 : eye.x > ER + 1 ? 1 : 0;
-  if (side) {
+  // (only once it's wider than a sliver on screen: a hair past its edge it flickered, its trim and inked corners popping)
+  if (side && faceWide(v, side < 0 ? EL : ER, WALL_D) >= 1.5) {
     const ex = side < 0 ? EL : ER, R = side < 0 ? INDIGO : BLACKS, top = Y(side < 0 ? PRESHOW.ceil : THEATER.ceil), steps = 4;
     for (let i = 0; i < steps; i++) {
       const d0 = 1 - ((1 - WALL_D) * i) / steps, d1 = 1 - ((1 - WALL_D) * (i + 1)) / steps, cc = R[Math.max(1, 3 - i)];

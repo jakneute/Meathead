@@ -11,9 +11,9 @@
 // board, the theater's doors.
 
 import type { GameState } from '../../../m1/game/core/state';
-import { bendFloor } from '../../intro/art/kit';
+import { bendFloor, BEND } from '../../intro/art/kit';
 import { drawPerson } from '../../adventure/temple/people';
-import { box, checker, mix, hash, poly, at, bandedGradient, steppedGlow, ramp6, board, plain, words, timeOfDay, skyAt, hourMix, glassOf, STEVE } from '../blvd/kit';
+import { box, checker, mix, hash, poly, at, bandedGradient, steppedGlow, ramp6, board, plain, words, timeOfDay, skyAt, hourMix, glassOf, sideBack, STEVE } from '../blvd/kit';
 import { steveCard, paintStandee, velvetRopePaint } from '../blvd/props';
 import {
   X, Y, GY, LOBBY, PRESHOW, THEATER, FAR_WALL, DOOR_HALF, QUEUE_RAILS, RAIL_H, LEDGES, HORNS, PRESHOW_WATCHERS,
@@ -22,20 +22,22 @@ import type { Dz } from './state';
 import { drawChip, tvBulbs, paintSockets } from './chip';
 import {
   type Ctx, type View, INK, WALL_D, NEAR_D, seenD, spanAt, levelQ, sideQ, MAROON, CARPET, INDIGO, TRUSS, GOLD, CASE, SHELL,
-  lip, tubeH, tubeV, truss, chain, hungBoard, oneSheet, horn, disasterLook, rideLook, showLook, still, deep,
+  lip, tubeH, tubeV, truss, chain, hungBoard, oneSheet, horn, disasterLook, rideLook, showLook, still, deep, turned, faceWide,
 } from './paint';
 
 // ---------------------------------------------------------------------------------------------------------------
 // The shell (shared by the rooms)
 
-const CHUNK = 512;
+const CHUNK = 512, OVER = 2;
 /** A room's back wall, x a..b, floor to ceiling: painted a chunk at a time (`paint` in world coordinates, the wall's
  *  face as if at the play plane) and put down at WALL_D. */
 export const backWall = (c: Ctx, v: View, key: string, a: number, b: number, ceil: number, paint: (g: Ctx, x: number, w: number) => void) => {
   const [sa, sb] = spanAt(v, WALL_D, 40), top = Y(ceil);
   deep(c, v, WALL_D, () => {
     for (let x = a, i = 0; x < b; x += CHUNK, i++) {
-      const w = Math.min(CHUNK, b - x);
+      // (each chunk reaching a hair into the next: at depth (a scale that isn't whole) their shared edge was half
+      // covered by both, a faint seam of the dark behind down the wall every chunk, flickering as the camera crept)
+      const w = Math.min(CHUNK, b - x) + (x + CHUNK < b ? OVER : 0);
       if (x + w < sa || x > sb) continue;
       still(c, `${key}-${i}`, 0, 0, x, top - 2, w, GY - top + 2, g => paint(g, x, w));
     }
@@ -81,7 +83,8 @@ export const ceilingUnder = (c: Ctx, v: View, a: number, b: number, ceil: number
  *  one the eye's on the side of. `R` its ramp. */
 export const sideWall = (c: Ctx, v: View, e: number, ceil: number, R: string[], trim: string[], door?: { h: number; to: number; col: string }) => {
   const eye = v.eye, side = eye.x > e ? 1 : -1;
-  if (Math.abs(eye.x - e) < 2) return;
+  // (under a pixel and a half wide on screen: a sliver, with its trim and inked corner popping on beside it: not yet)
+  if (faceWide(v, e, WALL_D) < 1.5) return;
   const top = Y(ceil), steps = 4;
   for (let i = 0; i < steps; i++) sideQ(c, eye, e, top, GY, 1 - ((1 - WALL_D) * i) / steps, 1 - ((1 - WALL_D) * (i + 1)) / steps, R[Math.max(1, 3 - i)]);
   sideQ(c, eye, e, GY - 12, GY, 1, WALL_D, trim[1]); sideQ(c, eye, e, GY - 12, GY - 10, 1, WALL_D, trim[3]);
@@ -105,7 +108,7 @@ export const plenum = (c: Ctx, v: View, key: string, a: number, b: number, ceil:
   if (sb <= sa) return;
   if (v.top < top - H) bandedGradient(c, sa, Math.max(v.top, top - 1400), sb - sa, top - H - Math.max(v.top, top - 1400) + 2, ['#030203', '#060507', '#0A080B'], 4);
   for (let x = a, i = 0; x < b; x += CHUNK, i++) {
-    const w = Math.min(CHUNK, b - x);
+    const w = Math.min(CHUNK, b - x) + (x + CHUNK < b ? OVER : 0);
     if (x + w < v.v0 || x > v.v1) continue;
     still(c, `${key}-plen-${i}`, 0, 0, x, top - H, w, H + 16, g => {
       const S = SHELL, T = TRUSS.map(cc => mix(cc, '#0A080B', 0.55));
@@ -135,12 +138,18 @@ export const plenum = (c: Ctx, v: View, key: string, a: number, b: number, ceil:
 export const BAND = 260;
 export const floorFront = (c: Ctx, v: View, key: string, a: number, b: number, paint: (g: Ctx, x: number, w: number) => void, fill: string) => {
   for (let x = a, i = 0; x < b; x += CHUNK, i++) {
-    const w = Math.min(CHUNK, b - x);
+    const w = Math.min(CHUNK, b - x) + (x + CHUNK < b ? OVER : 0);
     if (x + w < v.v0 || x > v.v1) continue;
     still(c, `${key}-ff-${i}`, 0, 0, x, GY - 1, w, BAND + 1, g => paint(g, x, w));
   }
-  const sa = Math.max(a, v.v0), sb = Math.min(b, v.v1);
-  if (v.bot > GY + BAND && sb > sa) box(c, sa, GY + BAND - 1, sb - sa, v.bot - GY - BAND + 1, fill);
+  // (past the bent band (the wide shot), the floor on down: its ends fanned out from the eye just as the band's are, so
+  // where one room's floor meets the next carries straight on down (a vertical cut there kinked off the fanned seam))
+  if (v.bot > GY + BAND) {
+    const ex = v.eye.x, fan = (x: number, y: number) => ex + (x - ex) * (1 + (y - GY) * BEND);
+    const y0 = GY + BAND - 1, y1 = v.bot;
+    const l0 = fan(a, y0), l1 = fan(a, y1), r0 = fan(b, y0) + 1, r1 = fan(b, y1) + 1;
+    if (Math.max(r0, r1) > v.v0 && Math.min(l0, l1) < v.v1) poly(c, [[l0, y0], [r0, y0], [r1, y1], [l1, y1]], fill);
+  }
 };
 export const bendAll = (c: Ctx, v: View, a: number, b: number) => bendFloor(c, v.eye, GY, GY, GY + BAND, a, b);
 
@@ -268,7 +277,8 @@ const lobbyDoors = (c: Ctx, v: View, real: boolean) => {
 const lobbyMarquee = (c: Ctx, f: number, real: boolean) => {
   const ceil = Y(LOBBY.ceil), cx = X(330), cy = ceil + 72;
   for (const s of [-1, 1]) chain(c, cx + s * 230, ceil, ceil + 30 + (real && s > 0 ? 18 : 0));
-  c.save(); if (real) { c.translate(cx, cy); c.rotate(0.06); c.translate(-cx, -cy); }
+  // (askew once it's real: turned on a whole pixel, so the live paint doesn't crawl as the camera creeps)
+  turned(c, cx, cy, real ? 0.06 : 0, () => {
   still(c, 'marquee-box', cx, ceil + 30, -294, -4, 588, 92, g => {
     const R = ramp6('#7C2D12'), G = GOLD;
     box(g, -262, -2, 524, 88, INK);
@@ -282,7 +292,7 @@ const lobbyMarquee = (c: Ctx, f: number, real: boolean) => {
   for (let k = -250; k < 252; k += 10) { const on = !real ? (Math.floor((k + 250) / 10) + Math.floor(f / 6)) % 3 !== 0 : hash(k) > 0.6 && f % 30 < 18; box(c, cx + k, ceil + 32, 4, 3, on ? '#FFF4C8' : '#6A5A3A'); box(c, cx + k, ceil + 109, 4, 3, on ? '#FFF4C8' : '#6A5A3A'); }
   words(c, 'DISASTER:', cx, cy, disasterLook(3, !real || f % 30 < 12));
   words(c, 'THE RIDE', cx, cy + 32, rideLook(3));
-  c.restore();
+  });
 };
 
 /** The queue's posts (brass stanchions, solid: a lit lip on each) and the velvet between them (behind). */
@@ -334,6 +344,10 @@ const gantry = (c: Ctx, v: View, f: number, real: boolean) => {
 const counter = (c: Ctx, v: View, f: number) => {
   const x = X(1560), y = Y(60), w = 150;
   if (!seenD(v, x - 40, x + w + 40)) return;
+  // (its ends going back to the backbar, whichever the eye's past (the wood's own ramp, stepped darker going back))
+  const Wd = ramp6('#92400E');
+  sideBack(c, v.eye, x, -1, y, GY, 1, 0.94, Wd, 2);
+  sideBack(c, v.eye, x + w, 1, y, GY, 1, 0.94, Wd, 2);
   // (its top going back, the backbar behind it)
   levelQ(c, v.eye, x, x + w, y, 1, 0.94, '#D8CCB2'); levelQ(c, v.eye, x, x + w, y, 0.97, 0.94, '#BCAE92');
   still(c, 'counter', x, y, -6, -54, w + 12, 60 + 56, g => {
@@ -392,7 +406,8 @@ export const drawLobby = (c: Ctx, v: View, state: GameState, o: Dz, real: boolea
   // Real: a ceiling tile down on the carpet, the grid's hole over it
   if (real && seenD(v, X(1120), X(1240))) {
     box(c, X(1150), ceil - 1, 60, 4, INK);
-    c.save(); c.translate(X(1180), GY - 6); c.rotate(0.2); box(c, -41, -9, 82, 12, INK); box(c, -40, -8, 80, 10, '#D6D3D1'); box(c, -40, -8, 80, 2, '#F5F5F4'); checker(c, -40, -6, 80, 8, '#A8A29E', 0, 2); c.restore();
+    const tx = X(1180), ty = GY - 6;
+    turned(c, tx, ty, 0.2, () => { box(c, tx - 41, ty - 9, 82, 12, INK); box(c, tx - 40, ty - 8, 80, 10, '#D6D3D1'); box(c, tx - 40, ty - 8, 80, 2, '#F5F5F4'); checker(c, tx - 40, ty - 6, 80, 8, '#A8A29E', 0, 2); });
   }
 };
 
@@ -428,7 +443,7 @@ const paintPreshowWall = (g: Ctx, x: number, w: number) => {
  *  swinging), chaser bulbs round its bezel. */
 const bigTv = (c: Ctx, o: Dz, f: number, real: boolean) => {
   const ceil = Y(PRESHOW.ceil), tx = X(PRESHOW.tv);
-  c.save(); if (real) { c.translate(tx, ceil); c.rotate(-0.08); c.translate(-tx, -ceil); }
+  turned(c, tx, ceil, real ? -0.08 : 0, () => {
   for (const s of [-1, 1]) chain(c, tx + s * 80, ceil, ceil + 48);
   still(c, 'tv', tx, ceil + 46, -134, -4, 268, 198, g => {
     const K = CASE;
@@ -457,7 +472,7 @@ const bigTv = (c: Ctx, o: Dz, f: number, real: boolean) => {
   }
   // (the chaser bulbs round the bezel, over the picture's edge)
   tvBulbs(c, tx, ceil + 46, f, real);
-  c.restore();
+  });
 };
 
 export const preshowShell = (c: Ctx, v: View) => {

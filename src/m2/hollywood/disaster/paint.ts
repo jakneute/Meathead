@@ -191,5 +191,20 @@ export const still = (c: Ctx, key: string, x: number, y: number, bx: number, by:
 };
 /** At depth d (scaled toward the eye), something drawn as if at the play plane. */
 export const deep = (c: Ctx, v: View, d: number, draw: () => void) => { if (d === 1) draw(); else atDepth(c, v.eye, d, draw); };
+/** Art put down turned (a sign hung askew, a set knocked crooked) can't be stamped (stamps only go down flat), so it's
+ *  painted live every frame; between pixels (the camera creeping) its dithering and edges came out different every
+ *  frame: it crawled. Pinned: about (x, y), that point on a whole device pixel, turned by `ang`; then `draw` as if
+ *  unturned (in the same coordinates as before: x, y included). Lands on the same pixels frame to frame. (The thing
+ *  turned keeps whole-pixel steps against the art round it, half a pixel at most: steadier than the crawl.) */
+export const turned = (c: Ctx, x: number, y: number, ang: number, draw: () => void) => {
+  // (not turned: just drawn (stamped, between pixels with everything round it))
+  if (!ang) { draw(); return; }
+  c.save(); c.translate(x, y);
+  const m = c.getTransform(); c.setTransform(m.a, m.b, m.c, m.d, Math.round(m.e), Math.round(m.f));
+  c.rotate(ang); c.translate(-x, -y); draw(); c.restore();
+};
+/** Width on screen of an upright face across x = e going back from the play plane to depth d1: under a pixel or so it's
+ *  a sliver that flickers as the camera creeps (not drawn). */
+export const faceWide = (v: View, e: number, d1: number) => Math.abs(v.eye.x - e) * (1 - d1);
 
 void checker; void signText; void plain; void ramp6; void GY;

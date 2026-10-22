@@ -25,7 +25,7 @@ import { FX_LEN } from './show';
 import { footage } from './footage';
 import {
   type Ctx, type View, INK, WALL_D, SCREEN_D, seenD, spanAt, levelQ, sideQ, BLACKS, TRUSS, CASE, GOLD, SILVER, SHELL, CHAR, ICE, FIRE, WATER,
-  lip, dimRail, tubeH, tubeV, truss, chain, standBoard, showLook, stencil, still, deep,
+  lip, dimRail, tubeH, tubeV, truss, chain, standBoard, showLook, stencil, still, deep, turned, faceWide,
 } from './paint';
 import { backWall, floorBack, ceilingUnder, plenum } from './rooms';
 
@@ -128,7 +128,7 @@ export const theaterPlenum = (c: Ctx, v: View, real: boolean, open: boolean) => 
   if (open && seenD(v, X(FAR_WALL) - 60, X(FAR_WALL) + 60)) {
     const wx = X(FAR_WALL), top = Y(THEATER.ceil);
     // (looking in from outside: the roof's torn end going back over the ceiling, dark, its deck's edge)
-    if (v.eye.x > wx + 2) {
+    if (v.eye.x > wx && faceWide(v, wx, WALL_D) >= 1.5) {
       sideQ(c, v.eye, wx, top - 1400, top, 1, WALL_D, '#0E0C10');
       sideQ(c, v.eye, wx, top - 120, top - 108, 1, WALL_D, SHELL[2]);
       sideQ(c, v.eye, wx, top - 8, top, 1, WALL_D, BLACKS[3]);
@@ -318,6 +318,9 @@ const leanRail = (c: Ctx, v: View, rx: number) => {
 const fxCases = (c: Ctx, v: View) => {
   const x = X(2780), y = Y(90), w = 110;
   topBack(c, v.eye, x, x + w, y, 1, 0.95, CASE, 2);
+  // (its ends going back, whichever the eye's past (the left one was never drawn: coming from the doorway they stood
+  // flat as a card))
+  sideBack(c, v.eye, x, -1, y, GY, 1, 0.95, CASE, 2, false);
   sideBack(c, v.eye, x + w, 1, y, GY, 1, 0.95, CASE, 2, false);
   still(c, 'fxcases', x, y, -4, -2, w + 8, 94, g => {
     const K = CASE, S = SILVER;
@@ -537,7 +540,8 @@ export const drawTheater = (c: Ctx, v: View, state: GameState, o: Dz, beat: numb
     if (X(rx) < v.v0 - 60 || X(rx) > v.v1 + 60) continue;
     const down = r.phase === 'on' && r.step >= 2;
     c.save(); c.translate(X(rx), GY - 4);
-    if (down) { c.rotate(seed % 2 ? 1.45 : -1.45); c.translate(0, -12); }
+    // (down: lying turned, on a whole pixel (painted live: between pixels it crawled))
+    if (down) { const m = c.getTransform(); c.setTransform(m.a, m.b, m.c, m.d, Math.round(m.e), Math.round(m.f)); c.rotate(seed % 2 ? 1.45 : -1.45); c.translate(0, -12); }
     c.scale(seed % 2 ? 0.86 : -0.86, 0.86);
     const wob = !down && beat === 0 && k >= 0 && k < 150 ? Math.sin(f * 0.6) * 0.04 : 0; c.rotate(wob);
     drawPerson(c, { seed, outfit: 'guest', f, pose: down ? 'stand' : seed % 5 === 0 ? 'point' : 'stand', mood: down ? 'scared' : seed % 3 ? 'bored' : 'happy', shorts: seed % 3 === 0 });
@@ -707,10 +711,12 @@ export const drawFarWall = (c: Ctx, v: View, o: Dz, real: boolean) => {
   // (a sign stuck in the rubble: this way; held up on its post)
   const sx = X(5600);
   if (sx > v.v0 - 100 && sx < v.v1 + 100) {
-    c.save(); c.translate(sx, GY); c.rotate(-0.12);
-    tubeV(c, -3, -112, 0, 5, ramp6('#57534E'));
-    still(c, 'rideexit', 0, -128, -82, -26, 164, 52, g => board(g, 0, 0, ['RIDE EXIT', 'EVERYTHING >>'], showLook(1, 2, '#18181B', '#D6D3D1'), '#FEF3C7', GOLD, 6));
-    c.restore();
+    // (stuck in crooked: turned on a whole pixel, so it doesn't crawl)
+    turned(c, sx, GY, -0.12, () => {
+      c.translate(sx, GY);
+      tubeV(c, -3, -112, 0, 5, ramp6('#57534E'));
+      still(c, 'rideexit', 0, -128, -82, -26, 164, 52, g => board(g, 0, 0, ['RIDE EXIT', 'EVERYTHING >>'], showLook(1, 2, '#18181B', '#D6D3D1'), '#FEF3C7', GOLD, 6));
+    });
   }
 };
 
