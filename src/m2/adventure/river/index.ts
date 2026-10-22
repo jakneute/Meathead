@@ -36,7 +36,8 @@ import {
   MEATHEAD_JUMP, MEATHEAD_UNDER, MEATHEAD_AIR, GUESTS_SEE, GUESTS_KILL, type Dressed,
 } from './lines';
 import { drawRiverBackdrop, drawRiverBack, drawRiverFront, COUGHS } from './draw';
-import { startRage, rageLine, stepRage, drawRage, type RageInset } from './rageInset';
+import { startPip, pipLine, stepPip, drawPip, type ArtiePip } from './artiePip';
+import { ARTIE_H } from './artie';
 import { warmGrossUps } from '../../grossKit';
 
 const { x0, x1 } = SECTIONS.river;
@@ -82,8 +83,8 @@ export interface River {
   guests: Guest[]; guestNext: number; tankDead: number;
   suck: number;
   stain: Stain;
-  /** Artie losing it in a TV inset up in the corner, him gone over the side (rageInset.ts). */
-  rage?: RageInset;
+  /** Artie losing it in a TV inset up in the corner, him gone over the side (artiePip.ts). */
+  rage?: ArtiePip;
 }
 export const getRiver = (state: GameState) => sectionState<River>(state, 'river', () => ({
   talk: talk(),
@@ -269,8 +270,8 @@ const updateBoat = (state: GameState, rv: River) => {
     if (wasRiding) t.q.push(mh(pick(MEATHEAD_JUMP)));
     if (wasRiding) {
       // (and up in the corner, Artie losing it: his line's the yell)
-      const rage = rv.rage = startRage(), l = artieFrom(state, rv, 'jumped', ARTIE_JUMPED), set = l.set;
-      l.set = s => { set?.(s); rageLine(rage, s); };
+      const rage = rv.rage = startPip('rage'), l = artieFrom(state, rv, 'jumped', ARTIE_JUMPED), set = l.set;
+      l.set = s => { set?.(s); pipLine(rage, s); };
       t.q.push(l);
     }
   }
@@ -490,7 +491,7 @@ export const river: Section = {
     // Saying things the once each, swimming past them
     if (p.swimming) for (const [x, k] of CALLOUTS) if (rx > x && !rv.said.has(k)) { rv.said.add(k); if (rv.talk.q.length < 2) rv.talk.q.push(mh(MEATHEAD_UNDER[k])); }
     stepTalk(state, rv.talk);
-    if (rv.rage && !stepRage(state, rv.rage, rv.boat.x)) rv.rage = undefined;
+    if (rv.rage && !stepPip(state, rv.rage, { x: rv.boat.x + 200, y: BOAT.deck - ARTIE_H - 8 })) rv.rage = undefined;
     return rv.suck > 0 ? ({}) as typeof controls : controls;
   },
   waterBodyAt: (_state, x, y) => {
@@ -511,5 +512,5 @@ export const river: Section = {
   drawBackdrop: (c, state) => drawRiverBackdrop(c, state),
   drawBack: (c, state) => drawRiverBack(c, state, getRiver(state)),
   drawFront: (c, state) => drawRiverFront(c, state, getRiver(state)),
-  drawHud: (c, state) => { const rv = getRiver(state); if (rv.rage) drawRage(c, rv.rage, state.frame); },
+  drawHud: (c, state) => { const rv = getRiver(state); if (rv.rage) drawPip(c, rv.rage, state.frame); },
 };

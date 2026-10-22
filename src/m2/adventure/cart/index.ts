@@ -34,6 +34,8 @@ import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { registerHurtLines } from '../../kinds';
 import { drawRideCart, SEAT_DX, JAGUAR_EXPRESS, TOUR_CART, type CartLook } from '../rideCart';
 import { drawSafariArtie } from '../river/artie';
+import { startPip, pipLine, stepPip, drawPip, type ArtiePip } from '../river/artiePip';
+import { warmGrossUps } from '../../grossKit';
 import {
   type Dressed, MEATHEAD_UNFRIENDLY, MEATHEAD_ARTIE_AGAIN, ARTIE_CHASE_START, ARTIE_TAUNT, ARTIE_CHIDE, ARTIE_SHOT, ARTIE_RAMP,
   ARTIE_TRAPPED, ARTIE_GLOATS, MEATHEAD_SEES_DARTS, MEATHEAD_SEES_SNAKE, MEATHEAD_SEES_LOB, MEATHEAD_SEES_CHASE,
@@ -94,6 +96,8 @@ export interface Cart {
   };
   /** The ride's tricks (tricks.ts): reset and loaded again every go. */
   tricks: Tricks;
+  /** Artie gloating in a TV inset up in the corner, coming up behind him the first time (river/artiePip.ts). */
+  pip?: ArtiePip;
 }
 const getCart = (state: GameState) => sectionState<Cart>(state, 'cart', () => ({
   mode: 'off', x: X + 150, y: GY, railY: GY, vy: 0, speed: 0, air: false, beamsHit: new Set(), jumpWas: false,
@@ -210,7 +214,8 @@ const ride = (ctx: FrameContext, cart: Cart, controls: Controls): Controls => {
   }
   // (and off it goes, at the top of the fork)
   if (slow && cart.x + cart.speed >= SLOW_TO) playSound('grind', 0.6, -4);
-  // Safari Artie, after him
+  // Safari Artie, after him (his gloating close-up painted ahead in idle slices till he comes: never on the spot)
+  if (cart.chase && !cart.artie.on) warmGrossUps();
   if (cart.chase) artieChase(ctx, cart);
   // The ride's tricks, at him (and at Artie, behind him)
   const a = cart.artie;
@@ -226,6 +231,8 @@ const ride = (ctx: FrameContext, cart: Cart, controls: Controls): Controls => {
   return { ...controls, left: false, right: false, jump: false, charge: false, special: false, secondary: controls.secondary };
 };
 
+/** He's gloated in the corner already (state.stageMemo: kept across his deaths). */
+const TAUNTED = 'm2:cartTaunted';
 /** How far behind him Artie rides once he's caught up. */
 const TAIL = 170;
 const artieChase = (ctx: FrameContext, cart: Cart) => {
@@ -235,7 +242,10 @@ const artieChase = (ctx: FrameContext, cart: Cart) => {
     a.on = true; a.x = cart.x - 520; a.v = cart.speed + 3; a.next = 360;
     playSound('clang', 0.6, -6); playSound('engine', 0.6);
     a.said = { text: '' };
-    speak('m2.safari', pick(ARTIE_CHASE_START[dressed(state)]), s => { a.said = s; }, true, () => meatheadSays(state, pick(MEATHEAD_ARTIE_AGAIN)));
+    // (and up in the corner, him gloating: the first time he comes up behind him this go at the land, only)
+    if (!state.stageMemo[TAUNTED]) { state.stageMemo[TAUNTED] = 'yes'; cart.pip = startPip('taunt'); }
+    const pip = cart.pip;
+    speak('m2.safari', pick(ARTIE_CHASE_START[dressed(state)]), s => { a.said = s; pipLine(pip, s ? s.text : null); }, true, () => meatheadSays(state, pick(MEATHEAD_ARTIE_AGAIN)));
     return;
   }
   if (cart.mode !== 'ride') { a.x += a.v; return; }
@@ -418,6 +428,7 @@ const run = (ctx: FrameContext, controls: Controls): Controls => {
   c.lead += ((big ? 0 : 150) - c.lead) * 0.04;
   state.cameraLeadX = c.mode !== 'ride' ? 0
     : c.x < SLOW_TO + 400 ? Math.max(Math.min(c.x - 160, FORK_CAM_X), c.x - 250) - (c.x - CANVAS_WIDTH / 2) : c.lead;
+  if (c.pip && !stepPip(state, c.pip, { x: c.artie.x, y: artieTrackY(c.artie.x) - 110 })) c.pip = undefined;
   if (c.mode === 'ride') return ride(ctx, c, controls);
   return outro(ctx, c);
 };
@@ -463,6 +474,7 @@ export const cart: Section = {
   lighting: (state) => cartLighting(state, getCart(state)),
   drawHud: (c, state) => {
     const cart = getCart(state);
+    if (cart.pip && cart.mode === 'ride') drawPip(c, cart.pip, state.frame);
     if (cart.mode !== 'outro') return;
     if (cart.fade) { c.fillStyle = `rgba(0,0,0,${Math.min(1, cart.fade / 28)})`; c.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT); }
     if (cart.outT > SKIP_AFTER) drawSkipPrompt(c, CANVAS_WIDTH);

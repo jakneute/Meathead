@@ -1,23 +1,28 @@
-// ARTIE LOSES IT (the user's: "show a picture-in-picture image of artie getting enraged when you jump off the boat"):
-// Meathead goes over the side mid-ride, and up in a corner comes a TV inset of Artie on his boat, his gross-up
-// (artieGross.ts): going red (seething, the sneer, shaking, steam off his ears) while Meathead says his piece, then as
-// his own line comes (ARTIE_JUMPED, voiced) the jaw drops and he yells, the helmet pops off his head and goes flying
-// (pale as a fish under it, the comb-over), his fist up in the camera shaking, spit flying at the lens, the veins up.
-// His line done, he's left seething a beat, and the inset slides off. Gameplay goes on under it (it's not a cutscene:
-// no input lock, the HUD stays). Once a visit: the jump only happens the once (the boat's memo keeps it over deaths).
-// Never over the main HUD's corner, and never over Artie's own words (it takes the other side if they'd be under it).
-// Its stamps are painted ahead (warmGrossUps, while he's on the boat): it waits for them rather than paint on the spot.
+// ARTIE IN THE CORNER: a TV inset of Safari Artie's gross-up (artieGross.ts), up over the game while it goes on under it
+// (not a cutscene: no input lock, the HUD stays), synced to one of his lines. Two of them:
+//
+// - 'rage' (the user's: "show a picture-in-picture image of artie getting enraged when you jump off the boat"):
+//   Meathead goes over the side mid-ride. Artie going red (seething, the sneer, shaking, steam off his ears) while
+//   Meathead says his piece; then as his own line comes (ARTIE_JUMPED) the jaw drops and he yells, the helmet pops off
+//   and goes flying (pale as a fish under it, the comb-over), his fist up in the camera shaking, spit at the lens.
+// - 'taunt' (the user's: "when artie first approaches you in the mine cart, do another picture in picture taunt"): him
+//   coming up behind the cart. The nasty grin and a wink, gloating through his line (ARTIE_CHASE_START), his finger
+//   wagged at the camera (tsk tsk), and still grinning through Meathead's answer.
+//
+// His line done, a beat, and it slides off. Once a visit (the callers keep it so). Never over the main HUD's corner,
+// and never over his own words (it takes the other side if they'd be under it). Its stamps are painted ahead
+// (warmGrossUps, by the caller well before): it waits for them rather than paint on the spot.
 
 import type { GameState } from '../../../m1/game/core/state';
 import { CANVAS_WIDTH, HUD_CLEAR_Y } from '../../../m1/constants';
 import { hash2, GW, GH } from '../../grossKit';
 import { artieStamp, artieStampReady, drawArtieGrossBack, ARTIE_FX as FX, ARTIE_FY as FY, HAT_DY, type Key } from './artieGross';
-import { BOAT } from './course';
-import { ARTIE_H } from './artie';
 
 type Ctx = CanvasRenderingContext2D;
 
-export interface RageInset {
+export type PipKind = 'rage' | 'taunt';
+export interface ArtiePip {
+  kind: PipKind;
   /** Frames it's been up; when his line started and ended (-1: not yet); how long it's waited on its paint. */
   t: number; yellAt: number; endAt: number; wait: number;
   /** Up the left (under the HUD) instead of the top right. */
@@ -26,25 +31,25 @@ export interface RageInset {
 
 /** Its picture's scale (screen pixels a buffer pixel), size; the bezel round it; the slides in and out. */
 const S = 0.8, CW = Math.round(GW * S), CH = Math.round(GH * S), BZ = 8, IN = 12, OUT = 14;
-/** The seething before his line, at most (his line out of earshot, never coming); the yell without one; at the least. */
-const PRE_MAX = 200, YELL_MAX = 420, YELL_MIN = 110, SEETHE_AFTER = 24;
-const KEYS: Key[] = ['a', 'rc', 'r', 'r2', 'hat', 'fist'];
+/** Before his line, at most (his line out of earshot, never coming); his line without one; at the least. */
+const PRE_MAX = 200, YELL_MAX = 420, YELL_MIN = 110;
+/** Held after his line (the rage: seething a beat; the taunt: grinning through Meathead's answer). */
+const AFTER: Record<PipKind, number> = { rage: 24, taunt: 110 };
+const KEYS: Record<PipKind, Key[]> = { rage: ['a', 'rc', 'r', 'r2', 'hat', 'fist'], taunt: ['t', 't2', 'finger'] };
 
-/** Over the side: up it comes. */
-export const startRage = (): RageInset => ({ t: 0, yellAt: -1, endAt: -1, wait: 0, left: false });
+export const startPip = (kind: PipKind): ArtiePip => ({ kind, t: 0, yellAt: -1, endAt: -1, wait: 0, left: false });
 /** His line (what's shown while it's said: null once it's done). */
-export const rageLine = (r: RageInset | undefined, said: string | null) => {
+export const pipLine = (r: ArtiePip | undefined, said: string | null) => {
   if (!r) return;
   if (said && r.yellAt < 0) r.yellAt = r.t;
   if (!said && r.yellAt >= 0 && r.endAt < 0) r.endAt = r.t;
 };
 
-/** Each frame; false once it's gone. */
-export const stepRage = (state: GameState, r: RageInset, boatX: number) => {
-  if (r.t === 0 && !KEYS.every(artieStampReady)) return ++r.wait < 120;
+/** Each frame (`words`: where his words go up, in the world: the corner's picked clear of them); false once it's gone. */
+export const stepPip = (state: GameState, r: ArtiePip, words: { x: number; y: number }) => {
+  if (r.t === 0 && !KEYS[r.kind].every(artieStampReady)) return ++r.wait < 120;
   if (r.t === 0) {
-    // (which corner: the top right, unless Artie's words would come up under it)
-    const ax = boatX + 200 - state.camera.x, ay = BOAT.deck - ARTIE_H - 8 - state.camera.y;
+    const ax = words.x - state.camera.x, ay = words.y - state.camera.y;
     const x0 = CANVAS_WIDTH - 16 - CW - BZ * 2, y1 = 16 + CH + BZ * 2;
     r.left = ax + 130 > x0 && ay - 44 < y1;
   }
@@ -53,11 +58,11 @@ export const stepRage = (state: GameState, r: RageInset, boatX: number) => {
   if (r.yellAt >= 0 && r.endAt < 0 && r.t - r.yellAt > YELL_MAX) r.endAt = r.t;
   return r.endAt < 0 || r.t < outAt(r) + OUT;
 };
-const outAt = (r: RageInset) => Math.max(r.endAt, r.yellAt + YELL_MIN) + SEETHE_AFTER;
+const outAt = (r: ArtiePip) => Math.max(r.endAt, r.yellAt + YELL_MIN) + AFTER[r.kind];
 const ease = (k: number) => { k = Math.max(0, Math.min(1, k)); return k * k * (3 - 2 * k); };
 
 /** Screen space (the section's drawHud). */
-export const drawRage = (c: Ctx, r: RageInset, f: number) => {
+export const drawPip = (c: Ctx, r: ArtiePip, f: number) => {
   if (r.t <= 0 || typeof document === 'undefined') return;
   const t = r.t, out = r.endAt >= 0 ? ease((t - outAt(r)) / OUT) : 0, slid = 1 - ease(t / IN) + out;
   if (slid >= 1) return;
@@ -77,8 +82,9 @@ export const drawRage = (c: Ctx, r: RageInset, f: number) => {
   c.save(); c.translate(ox, oy); drawArtieGrossBack(c, CW, CH); c.restore();
   // ---- him: what phase of it
   const yell = r.yellAt >= 0 ? t - r.yellAt : -1, talking = yell >= 0 && (r.endAt < 0 || t < r.endAt);
-  const red = ease((t - 6) / 50);
-  const jolt = talking ? 6 : yell >= 0 ? 2 : red * 3;
+  const rage = r.kind === 'rage';
+  const red = rage ? ease((t - 6) / 50) : 0;
+  const jolt = !rage ? (talking ? 1 : 0) : talking ? 6 : yell >= 0 ? 2 : red * 3;
   // (the stamps' shake, the same for all of them: drawGrossStamp's lurch and jitter, his rage on top)
   const jx = Math.round(Math.sin(f * 0.045) * 1.4 + (hash2(Math.floor(f / 9), 3) > 0.7 ? (hash2(Math.floor(f / 9), 5) - 0.5) * 2 : 0)) + (jolt * (f % 4 < 2 ? 1 : -1)) / 3;
   const jy = Math.round(Math.sin(f * 0.06) * 1.2) + (jolt > 3 && f % 6 < 3 ? 1 : 0);
@@ -91,7 +97,27 @@ export const drawRage = (c: Ctx, r: RageInset, f: number) => {
   };
   c.imageSmoothingEnabled = false;
   const box = (x: number, y: number, w: number, h: number, col: string) => { c.fillStyle = col; c.fillRect(Math.round(ox + (x + jx) * S), Math.round(oy + (y + jy) * S), Math.max(1, Math.round(w * S)), Math.max(1, Math.round(h * S))); };
-  if (yell < 0) {
+  // (the mouth going on the words: open, half shut; `a` and `b` the two shapes)
+  const flap = (a: Key, b: Key) => (hash2(Math.floor(yell / 5), 7) > 0.35 ? a : b);
+  if (!rage) {
+    // The taunt: grinning, the wink; the mouth going on his words; his finger wagged at the camera all through
+    put(talking ? flap('t2', 't') : 't');
+    // (a glint off the gold tooth, now and then)
+    if (f % 50 < 6 && !talking) { box(FX + 25, 148, 3, 1, '#FFFFFF'); box(FX + 26, 147, 1, 3, '#FFFFFF'); }
+    // (a bead of sweat down his temple)
+    { const u = (f % 120) / 120; box(FX - 60, 82 + u * 46, 2, 3, '#FFF4EA'); }
+    const up = ease((t - 6) / 10) - (r.endAt >= 0 ? ease((t - outAt(r) + 30) / 12) : 0);
+    if (up > 0) {
+      const img = artieStamp('finger');
+      if (img) {
+        const fs = S * 0.7, bx = ox + CW - 64, by = oy + CH + 8 + (1 - up) * 150;
+        c.save();
+        c.translate(bx, by); c.rotate(Math.sin(f * 0.32) * 0.32); c.scale(fs, fs);
+        c.drawImage(img, -FX, -160);
+        c.restore();
+      }
+    }
+  } else if (yell < 0) {
     // Seething: going red, the sneer, the helmet still on; steam off his ears
     put('a'); put('rc', red);
     put('hat', 1, 0, -HAT_DY);
@@ -101,7 +127,7 @@ export const drawRage = (c: Ctx, r: RageInset, f: number) => {
     }
   } else {
     // Yelling: the mouth going (wide on the words, half shut between); done, seething again
-    const k: Key = talking ? (hash2(Math.floor(yell / 5), 7) > 0.35 ? 'r' : 'r2') : 'rc';
+    const k: Key = talking ? flap('r', 'r2') : 'rc';
     put(k);
     // (the veins throbbing: lit up a beat each pulse)
     if (f % 14 < 4) { box(FX - 7, 40, 2, 30, '#FFB0B0'); box(FX + 54, 70, 2, 24, '#FFB0B0'); box(FX - 56, 70, 2, 24, '#FFB0B0'); }
