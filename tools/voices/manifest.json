@@ -542,7 +542,7 @@
  {
   "voice": "announcer",
   "text": "CODE BROWN!",
-  "from": "m1/game/player/gut.ts:106"
+  "from": "m1/game/player/gut.ts:113"
  },
  {
   "voice": "announcer",
@@ -18501,6 +18501,11 @@
  },
  {
   "voice": "m2.cartoon.chelsea",
+  "text": "DON'T SIT ON THE CARPET, SOCKS! IT'S FROM THE NINETEEN HUNDREDS!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.chelsea",
   "text": "DON'T TOUCH MOM'S ROSES! THEY'RE POINTY!",
   "from": "CARTOON"
  },
@@ -18527,6 +18532,11 @@
  {
   "voice": "m2.cartoon.chelsea",
   "text": "HI, SOCKS! MOM AND DAD ARE AT A UN SUMMIT, AND MEAN MEN HAVE INVADED THE WHITE HOUSE!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.chelsea",
+  "text": "HOLD STILL, SOCKS! I'LL WIPE YOU WITH A NAPKIN! NO, YOU DO IT!",
   "from": "CARTOON"
  },
  {
@@ -18577,6 +18587,11 @@
  {
   "voice": "m2.cartoon.chelsea",
   "text": "MOM SAYS VIOLENCE IS NEVER THE ANSWER! EXCEPT RIGHT NOW!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.chelsea",
+  "text": "MOM'S GONNA KILL US, SOCKS! THAT'S THE PRESIDENTIAL RUG!",
   "from": "CARTOON"
  },
  {
@@ -18686,12 +18701,27 @@
  },
  {
   "voice": "m2.cartoon.chelsea",
+  "text": "SOCKS, YOU'RE LEAVING A TRAIL! THE MEAN MEN CAN FOLLOW IT!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.chelsea",
   "text": "SOCKS, YOU'RE SUPPOSED TO BE HELPING!",
   "from": "CARTOON"
  },
  {
   "voice": "m2.cartoon.chelsea",
+  "text": "SOCKS, YOUR BUTT FUR IS ALL CRUSTY! EW! EW! EW!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.chelsea",
   "text": "SOCKS! ARE YOU OKAY?",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.chelsea",
+  "text": "SOCKS! DID YOU HAVE AN ACCIDENT?!",
   "from": "CARTOON"
  },
  {
@@ -20241,6 +20271,11 @@
  },
  {
   "voice": "m2.cartoon.ditto",
+  "text": "I CAN SEE THE CAT'S WIENER! IS THAT ON THE RADIO TOO?",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.ditto",
   "text": "I LISTEN THREE HOURS A DAY, KITTY!",
   "from": "CARTOON"
  },
@@ -20291,6 +20326,11 @@
  },
  {
   "voice": "m2.cartoon.dittof",
+  "text": "I CAN SEE THE CAT'S WIENER! IS THAT ON THE RADIO TOO?",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dittof",
   "text": "I LISTEN THREE HOURS A DAY, KITTY!",
   "from": "CARTOON"
  },
@@ -20327,6 +20367,11 @@
  {
   "voice": "m2.cartoon.dole",
   "text": "A FIFTEEN PERCENT TAX CUT! FOR BOB DOLE!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dole",
+  "text": "BOB DOLE CAN SEE THE CAT DICK! BOB DOLE WANTS IT TO STOP BOUNCING!",
   "from": "CARTOON"
  },
  {
@@ -20616,6 +20661,11 @@
  },
  {
   "voice": "m2.cartoon.falwell",
+  "text": "STOP BOUNCING THAT THING! THE LORD CAN SEE IT!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.falwell",
   "text": "THE GAY AGENDA IS COMING FOR OUR CARTOONS! NOT ON MY WATCH!",
   "from": "CARTOON"
  },
@@ -20841,7 +20891,17 @@
  },
  {
   "voice": "m2.cartoon.goon",
+  "text": "WHY DOES THE CAT HAVE A DICK? WHO DREW THAT?",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.goon",
   "text": "WHY'S THE CAT NAKED? CATS ARE ALWAYS NAKED. WHY'S IT WEIRD?",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.goon",
+  "text": "YOU'RE NOT WEARING PANTS, LIKE A NORMAL CAT, BUT I CAN STILL SEE ITS DICK.",
   "from": "CARTOON"
  },
  {
@@ -20896,7 +20956,17 @@
  },
  {
   "voice": "m2.cartoon.goonf",
+  "text": "WHY DOES THE CAT HAVE A DICK? WHO DREW THAT?",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.goonf",
   "text": "WHY'S THE CAT NAKED? CATS ARE ALWAYS NAKED. WHY'S IT WEIRD?",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.goonf",
+  "text": "YOU'RE NOT WEARING PANTS, LIKE A NORMAL CAT, BUT I CAN STILL SEE ITS DICK.",
   "from": "CARTOON"
  },
  {
@@ -21526,6 +21596,11 @@
  },
  {
   "voice": "m2.cartoon.limbaugh",
+  "text": "FOLKS, IT'S BOUNCING! I'M DESCRIBING IT FOR THE LISTENERS AT HOME!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.limbaugh",
   "text": "FOLKS, THE CAT'S NAKED! I'M NOT MAKING THIS UP!",
   "from": "CARTOON"
  },
@@ -21626,6 +21701,11 @@
  },
  {
   "voice": "m2.cartoon.lobbyist",
+  "text": "I CAN MAKE THAT DICK GO AWAY! FOR A PRICE!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.lobbyist",
   "text": "I CAN MAKE THAT SMELL GO AWAY! FOR A PRICE!",
   "from": "CARTOON"
  },
@@ -21672,6 +21752,11 @@
  {
   "voice": "m2.cartoon.lobbyistf",
   "text": "I CAN GET YOU SOME PANTS! FOR A CONTRIBUTION!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.lobbyistf",
+  "text": "I CAN MAKE THAT DICK GO AWAY! FOR A PRICE!",
   "from": "CARTOON"
  },
  {
@@ -21947,6 +22032,11 @@
  {
   "voice": "m2.cartoon.newt",
   "text": "I'M CUTTING FUNDING FOR YOUR PANTS!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.newt",
+  "text": "I'M CUTTING THE FUNDING FOR THAT THING'S BOUNCE!",
   "from": "CARTOON"
  },
  {
@@ -22256,6 +22346,11 @@
  },
  {
   "voice": "m2.cartoon.perot",
+  "text": "LOOK AT IT BOUNCE! THAT'S A GIANT FLOPPING SOUND!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.perot",
   "text": "NOW LET ME FINISH! LET ME FINISH!",
   "from": "CARTOON"
  },
@@ -22331,6 +22426,11 @@
  },
  {
   "voice": "m2.cartoon.pollster",
+  "text": "NINE OUT OF TEN VOTERS CAN SEE THE CAT'S DICK!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.pollster",
   "text": "NINE OUT OF TEN VOTERS HATE CATS!",
   "from": "CARTOON"
  },
@@ -22381,6 +22481,11 @@
  },
  {
   "voice": "m2.cartoon.pollsterf",
+  "text": "NINE OUT OF TEN VOTERS CAN SEE THE CAT'S DICK!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.pollsterf",
   "text": "NINE OUT OF TEN VOTERS HATE CATS!",
   "from": "CARTOON"
  },
@@ -22736,6 +22841,11 @@
  },
  {
   "voice": "m2.cartoon.spindoc",
+  "text": "THE CAT'S DICK IS OUT. OFF THE RECORD, IT'S BOUNCING.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.spindoc",
   "text": "WATCH ME SPIN!",
   "from": "CARTOON"
  },
@@ -22782,6 +22892,11 @@
  {
   "voice": "m2.cartoon.spindocf",
   "text": "THAT'S NOT A SCRATCH! THAT'S A NARRATIVE!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.spindocf",
+  "text": "THE CAT'S DICK IS OUT. OFF THE RECORD, IT'S BOUNCING.",
   "from": "CARTOON"
  },
  {
@@ -69811,6 +69926,11 @@
  },
  {
   "voice": "meathead",
+  "text": "IT BOUNCES. WHY DID THEY ANIMATE IT BOUNCING?",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "IT BURNED MY SHIN!",
   "from": "SPACE"
  },
@@ -77176,6 +77296,11 @@
  },
  {
   "voice": "meathead",
+  "text": "POOF. THE LAST THING HE SAW WAS IT BOUNCING.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "POOF. WISH MY PANTS DID THAT.",
   "from": "CARTOON"
  },
@@ -80448,6 +80573,11 @@
   "voice": "meathead",
   "text": "SOME OF IT IS.",
   "from": "INTRO"
+ },
+ {
+  "voice": "meathead",
+  "text": "SOMEBODY AT THE STUDIO SPENT A WEEK ON THIS DICK.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -86087,6 +86217,11 @@
  {
   "voice": "meathead",
   "text": "THEY DREW ME FUR. NOWHERE USEFUL.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "THEY DREW THE CAT A DICK. FOR A KIDS SHOW.",
   "from": "CARTOON"
  },
  {
