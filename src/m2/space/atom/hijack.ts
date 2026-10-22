@@ -121,7 +121,8 @@ const seat = (state: GameState, hj: Hijack) => {
 const walkTo = (state: GameState, x: number, speed = 3) => {
   const p = state.player, px = p.pos.x + p.width / 2;
   if (Math.abs(px - x) <= speed) { p.pos.x = x - p.width / 2; p.vel.x = 0; return true; }
-  p.facing = px < x ? 1 : -1; p.pos.x += p.facing * speed; p.vel.x = p.facing * 0.01;
+  // (a hair over the walk's threshold, so his legs go: the walk cycle's own clock sets the stride, not the speed)
+  p.facing = px < x ? 1 : -1; p.pos.x += p.facing * speed; p.vel.x = p.facing * 0.5;
   return false;
 };
 
@@ -184,7 +185,7 @@ export const runHijack = (ctx: FrameContext, hj: Hijack): Controls => {
     case 6: seat(state, hj); break;
     // Out again, back to the console, and the boot into the big green one
     case 7:
-      if (hj.t === 1) { p.carried = false; p.cartSeat = false; p.pos.y = GY - p.height; }
+      if (hj.t === 1) { p.carried = false; p.cartSeat = false; p.pos.y = GY - p.height; p.vel.y = 0; p.isGrounded = true; }
       if (!walkTo(state, CONSOLE_X + 46)) break;
       p.facing = -1;
       if (!hj.boot) { hj.boot = 1; p.kickPose = KICK_POSE_FRAMES; playSound('whoosh', 0.6, -4); hj.opPose = 'after'; }
