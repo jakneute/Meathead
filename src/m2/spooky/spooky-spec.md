@@ -66,3 +66,10 @@ placed within the safe start's reach of a checkpoint (spawnSafe.ts SAFE_X 360, S
   the first hound into the rest, but not into the goat's horns). Then it's quiet to the refill and the gate.
 - Left alone: the pit, the bone yard's imps up their rocks, the bats over the pools, the vents' high-road imp, the lake
   (everything at once already).
+
+**Not touched**
+
+- The control room and the gift shop: the shop's a chase (Donnie ahead, the racks he tips), its staff already up on the
+  display tower, the mezzanine and the shelf over the floor's forks. (Its checkout hawker on the display tower sits in
+  THE GIFT SHOP checkpoint's reach, behind it: left, spawnSafe leaves him out of a start there.)
+- The ballroom: Donnie's fight.

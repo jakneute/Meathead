@@ -69,3 +69,8 @@ placed within the safe start's reach of a checkpoint (spawnSafe.ts SAFE_X 360, S
   near end it sits) is up on the last catwalk over the way in now, over the soldier and crawler on the floor.
 - Left alone: the dome's soldier (the teach), the queue, the bridge (the tram's the thing), the engine room's other
   crates and its far end, the operators in the corridor aft (scripted).
+
+**Not touched**
+
+- The ride (a ride: its tricks), Space Needle 2 (the lift and the deck: no enemies), the orbit (the shooter's waves and
+  the UFO), the queen's basement (the stalker chase) and the queen.
