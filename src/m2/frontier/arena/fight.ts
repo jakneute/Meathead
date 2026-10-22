@@ -545,10 +545,15 @@ const tickCritters = (ctx: FrameContext, f: Fight) => {
       const x = e.pos.x + e.width / 2, dir = e.facing ?? 1;
       return !(x < state.camera.x - 70 || x > state.camera.x + CANVAS_WIDTH + 70 || (dir > 0 ? e.pos.x + e.width >= ARENA_R - 4 : e.pos.x <= ARENA_L + 4));
     }
-    if (!isCritter(e) || e.health <= 0 || e.isBlownAway) return true;
+    if (!isCritter(e)) return true;
+    // (any critter a little way off the view, either side, above or below (knocked back off the near edge, flung up,
+    // left behind as the camera moves), live or a body: gone (the user's: for the slowdown and the chaos))
+    const x = e.pos.x + e.width / 2, y = e.pos.y + e.height / 2, dir = e.facing ?? 1;
+    const outside = x < state.camera.x - 80 || x > state.camera.x + CANVAS_WIDTH + 80 || y < state.camera.y - 80 || y > state.camera.y + CANVAS_HEIGHT + 80;
+    if (outside) return false;
+    if (e.health <= 0 || e.isBlownAway) return true;
     // (the arena's walls stand at the view's edges once the camera's against them: reaching a wall, it's out of the scene
     // (they used to stop dead at the wall, off view only by a whisker, and pile up there for good: the playtest))
-    const x = e.pos.x + e.width / 2, dir = e.facing ?? 1;
     const off = dir > 0
       ? x > state.camera.x + CANVAS_WIDTH + 30 || e.pos.x + e.width >= ARENA_R - 4
       : x < state.camera.x - 30 || e.pos.x <= ARENA_L + 4;
