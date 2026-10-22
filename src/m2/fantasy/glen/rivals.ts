@@ -101,8 +101,8 @@ export const drawRivals = (c: Ctx, state: GameState) => {
   c.beginPath(); c.rect(state.camera.x - 200, -4000, X(QUEUE.door) + 12 - (state.camera.x - 200), 8000); c.clip();
   g.rivals.forEach((R, i) => {
     if (R.gone) return;
-    const bob = R.walk ? (Math.floor((f + i * 7) / 8) % 2) : 0;
-    drawSuitor(c, R.x, GY - bob, R.face, f + i * 13, RIVALS[i].look, R.said ? 'talk' : R.walk ? 'stand' : i === 2 ? 'flex' : 'stand', { talking: !!R.said });
+    // (walking in: a stride cycle off the ground he's covered from his spot in the queue)
+    drawSuitor(c, R.x, GY, R.face, f + i * 13, RIVALS[i].look, R.walk ? 'walk' : R.said ? 'talk' : i === 2 ? 'flex' : 'stand', { talking: !!R.said, stride: R.x - X(QUEUE.spots[i]) });
   });
   c.restore();
 };

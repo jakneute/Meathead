@@ -11,11 +11,15 @@
 //   TREMAINE  a gym prince: a tank top cut to the navel, a PRINCE CHARMING sash, a man bun, gold chains, calves
 //
 // More come (the wheel's and the brooms' crowds): `suitorOf(seed)` makes one from a seed (a mix of the same parts).
-// drawSuitor(c, x, feetY, facing, frame, look, pose, opts): feet at (x, feetY), facing 1 right / -1 left.
+// drawSuitor(c, x, feetY, facing, frame, look, pose, opts): feet at (x, feetY), facing 1 right / -1 left. Moving, pose
+// 'walk' with opts.stride (how far he's walked): a six-frame stride cycle off the distance, so the feet don't skate.
+
+import { knee, elbow } from '../art/limb';
+import { stamp } from '../../m1/game/render/stamp';
 
 type Ctx = CanvasRenderingContext2D;
 
-export type SuitorPose = 'stand' | 'flex' | 'talk' | 'point' | 'cheer' | 'throw' | 'sit' | 'hurt' | 'dead' | 'ride';
+export type SuitorPose = 'walk' | 'stand' | 'flex' | 'talk' | 'point' | 'cheer' | 'throw' | 'sit' | 'hurt' | 'dead' | 'ride';
 
 export interface SuitorLook {
   name: string;
@@ -108,6 +112,17 @@ const elbowOf = (sx: number, sy: number, hx: number, hy: number, ox: number, oy:
   return [(sx + hx) / 2 + nx * h, (sy + hy) / 2 + ny * h];
 };
 /** A shoulder: the round deltoid cap over the arm's root, rounding the torso's corner off into the arm. */
+/** WALKING: one stride cycle (two steps) per this much ground, in WALK_FRAMES frames: picked from how far he's gone,
+ *  so the planted foot keeps pace with the ground (no skating). */
+const WALK_CYCLE = 48, WALK_FRAMES = 6, STEP = 12;
+/** The walk cycle's frame for `dist` walked. */
+const walkFrame = (dist: number) => Math.floor((((dist % WALK_CYCLE) + WALK_CYCLE) % WALK_CYCLE) / (WALK_CYCLE / WALK_FRAMES)) % WALK_FRAMES;
+/** A walking leg's ankle at phase `ph` (sin > 0: ahead), off its hip's rest spot: planted and sliding back under him,
+ *  then lifted and swung through. */
+const footAt = (bx: number, ph: number): [number, number] => [bx + Math.sin(ph) * STEP, -4 - Math.max(0, Math.cos(ph)) * 7];
+/** A walking arm's hand at swing `s` (-1 back .. 1 forward): out off the lats, coming up as it swings ahead. */
+const handAt = (bx: number, hipY: number, s: number): [number, number] => [bx + s * 11, hipY - 6 - Math.max(0, s) * 9 + Math.max(0, -s) * 2];
+
 const deltoid = (c: Ctx, x: number, y: number, side: number, col: string, r = 8) => {
   blob(c, x, y, r, r * 0.86, col);
   box(c, x - side * 1 - 2, y + r * 0.55, 5, 1, shadeOf(col, 0.4));
@@ -118,13 +133,35 @@ const deltoid = (c: Ctx, x: number, y: number, side: number, col: string, r = 8)
  * or astride a broom: 'ride', its shaft 34 over feetY, fists on it ahead).
  * `opts.talking`: his mouth going; `opts.hold`: what's in his throwing hand ('throw').
  */
-export const drawSuitor = (c: Ctx, x: number, feetY: number, facing: 1 | -1, f: number, L: SuitorLook, pose: SuitorPose, opts: { talking?: boolean; slump?: Slump; dead?: boolean } = {}) => {
+export const drawSuitor = (c: Ctx, x: number, feetY: number, facing: 1 | -1, f: number, L: SuitorLook, pose: SuitorPose, opts: SuitorOpts = {}) => {
+  // (a walk frame with his mouth shut is still art: stamped the once per look, frame and facing, painted when first
+  // wanted twice (the stamp cache's way), put down after)
+  if (pose === 'walk' && !opts.talking && !opts.slump && !opts.dead) {
+    const wf = walkFrame(opts.stride ?? 0);
+    c.save(); c.translate(Math.round(x), Math.round(feetY));
+    stamp(c, `m2suitorWalk|${L.name}|${L.kit}|${L.skin[1]}|${L.hair}|${L.main}|${L.trim}|${L.gut}|${facing}|${wf}`, -64, -142, 128, 150,
+      g => drawSuitorLive(g, 0, 0, facing, 0, L, 'walk', { stride: wf * (WALK_CYCLE / WALK_FRAMES) }));
+    c.restore();
+    return;
+  }
+  drawSuitorLive(c, x, feetY, facing, f, L, pose, opts);
+};
+
+/** drawSuitor's options: `talking` his mouth going; `slump` / `dead` (above); `stride` (pose 'walk') how far he's walked
+ *  (the ground covered the way he faces: the cycle's frame is picked from it, so the feet keep pace with the ground). */
+export interface SuitorOpts { talking?: boolean; slump?: Slump; dead?: boolean; stride?: number }
+
+const drawSuitorLive = (c: Ctx, x: number, feetY: number, facing: 1 | -1, f: number, L: SuitorLook, pose: SuitorPose, opts: SuitorOpts) => {
   c.save(); c.translate(Math.round(x), Math.round(feetY)); c.scale(facing, 1);
   if (pose === 'dead') { c.rotate(-Math.PI / 2); c.translate(-8, -20); }
   const sp = opts.slump, dead = !!opts.dead || pose === 'dead';
   const [sl, sb, sd] = L.skin;
   const bob = pose === 'flex' || pose === 'cheer' ? (Math.floor(f / 10) % 2) : 0;
-  const hipY = -40, shY = -72 + bob, gut = L.gut;
+  // (walking: the cycle's phase (the near leg's; the far leg half a cycle on), the body dipping a touch as each foot
+  // lands and riding up as the legs pass)
+  const walking = pose === 'walk', wph = walking ? (walkFrame(opts.stride ?? 0) / WALK_FRAMES) * Math.PI * 2 : 0;
+  const wb = walking ? Math.round(Math.abs(Math.sin(wph)) * 2) : 0;
+  const hipY = -40 + wb, shY = -72 + bob + wb, gut = L.gut;
   // LEGS: thick, the trunks or trousers
   const legCol = L.kit === 'cape' ? sb : L.kit === 'viking' ? '#5A4A3A' : L.kit === 'tee' ? '#3A4A6A' : L.kit === 'knight' ? '#8A8A94' : L.kit === 'wizard' ? L.main : '#2A2A34';
   if (pose === 'ride') {
@@ -134,6 +171,16 @@ export const drawSuitor = (c: Ctx, x: number, feetY: number, facing: 1 | -1, f: 
     chain(c, [[2, hipY], [14, hipY + 14], [-1, hipY + 30]], [12, 11], legCol);
     box(c, -10, hipY + 26, 13, 6, INK); box(c, -9, hipY + 27, 11, 5, L.kit === 'viking' ? '#6A4A2A' : L.kit === 'prince' ? '#F4F4F5' : '#3A2A1A');
     c.translate(0, hipY); c.rotate(0.2); c.translate(0, -hipY);
+  } else if (walking) {
+    // (striding: each leg hip, knee (always forward: limb.ts), ankle; the far one in shadow and half a cycle on; the
+    // boots following the feet, the swinging one lifted clear)
+    const boot = L.kit === 'viking' ? '#6A4A2A' : L.kit === 'prince' ? '#F4F4F5' : '#3A2A1A';
+    for (const [hx0, ph, w, col, lit] of [[-7, wph + Math.PI, 11, shadeOf(legCol, 0.14), undefined], [7, wph, 12, legCol, L.kit === 'cape' ? sl : undefined]] as [number, number, number, string, string | undefined][]) {
+      const ft = footAt(hx0 + 2, ph), kn = knee(hx0, hipY, ft[0], ft[1], 19, 19, 1);
+      chain(c, [[hx0, hipY], kn, ft], [w, w - 1], col, lit);
+      if (L.kit === 'viking') for (let k = 1; k <= 3; k++) { const t = 0.22 + k * 0.2; box(c, kn[0] + (ft[0] - kn[0]) * t - 6, kn[1] + (ft[1] - kn[1]) * t - 1, 12, 2, '#8A7A60'); }
+      box(c, ft[0] - 6, ft[1] - 2, 14, 6, INK); box(c, ft[0] - 5, ft[1] - 1, 12, 5, boot);
+    }
   } else if (pose !== 'sit' && !sp) {
     // (hip, knee (a touch forward), ankle into the boot)
     chain(c, [[-7, hipY], [-7.5, (hipY - 4) / 2 + 1], [-10, -4]], [11, 10], shadeOf(legCol, 0.14));
@@ -169,12 +216,12 @@ export const drawSuitor = (c: Ctx, x: number, feetY: number, facing: 1 | -1, f: 
   }
   // THE BACK ARM (far)
   const throwing = pose === 'throw', flexing = pose === 'flex' || pose === 'cheer';
-  const farHand: [number, number] = pose === 'ride' ? [32, hipY - 3] : flexing ? [-26, shY - 18] : throwing ? [-30, shY - 14] : [-22, hipY - 4];
+  const farHand: [number, number] = walking ? handAt(-20, hipY, Math.sin(wph)) : pose === 'ride' ? [32, hipY - 3] : flexing ? [-26, shY - 18] : throwing ? [-30, shY - 14] : [-22, hipY - 4];
   if (sp) {
     const [el, hd] = hang(-16, shY + 6, sp.arm ?? 30);
     chain(c, [[-16, shY + 6], el, hd], [12, 11], sd); blob(c, hd[0], hd[1], 5, 5, sd);
   } else {
-    const fe = flexing ? [-28, shY + 4] as [number, number] : elbowOf(-16, shY + 6, farHand[0], farHand[1], -1, 0.7);
+    const fe = flexing ? [-28, shY + 4] as [number, number] : walking ? elbow(-16, shY + 6, farHand[0], farHand[1], 17, 16, 1) : elbowOf(-16, shY + 6, farHand[0], farHand[1], -1, 0.7);
     chain(c, [[-16, shY + 6], fe, farHand], [12, 11], sd);
     blob(c, farHand[0], farHand[1], 5, 5, sd);
   }
@@ -301,8 +348,8 @@ export const drawSuitor = (c: Ctx, x: number, feetY: number, facing: 1 | -1, f: 
     c.restore();
     return;
   }
-  const nearHand: [number, number] = pose === 'ride' ? [26, hipY - 2] : flexing ? [24, shY - 20] : throwing ? [30, shY - 30 + (Math.floor(f / 6) % 2) * 8] : pose === 'point' ? [36, shY + 2] : pose === 'talk' ? [24, shY + 8 + (Math.floor(f / 8) % 2) * 3] : [20, hipY - 4];
-  const [ex, ey] = flexing ? [28, shY + 4] : elbowOf(16, shY + 6, nearHand[0], nearHand[1], 1, 0.7);
+  const nearHand: [number, number] = walking ? handAt(21, hipY, -Math.sin(wph)) : pose === 'ride' ? [26, hipY - 2] : flexing ? [24, shY - 20] : throwing ? [30, shY - 30 + (Math.floor(f / 6) % 2) * 8] : pose === 'point' ? [36, shY + 2] : pose === 'talk' ? [24, shY + 8 + (Math.floor(f / 8) % 2) * 3] : [20, hipY - 4];
+  const [ex, ey] = flexing ? [28, shY + 4] : walking ? elbow(16, shY + 6, nearHand[0], nearHand[1], 17, 16, 1) : elbowOf(16, shY + 6, nearHand[0], nearHand[1], 1, 0.7);
   chain(c, [[16, shY + 6], [ex, ey], nearHand], [13, 11], sb, sl);
   if (flexing) blob(c, 24, shY - 4, 8, 7, sb);
   deltoid(c, 18, shY + 5, 1, L.kit === 'knight' ? '#8A8A94' : sb);
