@@ -15,6 +15,7 @@
 // head; px per unit is the slot's scale times ART (world units per art unit) times K (him: about 1, so his frames are
 // painted 1:1 and put down unscaled).
 
+import { elbowFront, halfBone } from '../../art/limb';
 import { mix } from '../kit';
 import { lookOf, type Look } from '../../adventure/temple/people';
 import { teenOf, bikeColor, type Teen } from '../woods/teens';
@@ -739,7 +740,8 @@ const paintTeenRider = (c: Ctx, k: TeenLook, weapon: Weapon, p: RiderPose, ph: n
   else { box(c, -bw + 2, -52, bw * 2 - 4, 2, S[2]); box(c, -6, -60, 4, 1, S[2]); }
   // (the arms out to the bars; the weapon arm up behind (the wind-up), out at him (the swing), or down at their side)
   const armTo = (side: number, hx: number, hy: number) => {
-    const mx = (side * (bw - 2) + hx) / 2, my = (-70 + hy) / 2 + 2;
+    // (seen from behind: the elbow out to that arm's side by anatomy, src/m2/art/limb.ts, never in across the back)
+    const L = halfBone(side * (bw - 2), -70, hx, hy, 9, 1.03), [mx, my] = elbowFront(side * (bw - 2), -70, hx, hy, L, L, side);
     // (inked round as one arm first, so the sleeve and the forearm join at a real elbow)
     line(c, INK, 8, [side * (bw - 2), -70, mx, my]); line(c, INK, 6, [mx, my, hx, hy]);
     line(c, S[2], 6, [side * (bw - 2), -70, mx, my]); line(c, S[4], 2, [side * (bw - 2) - 1, -71, mx - 1, my - 1]);

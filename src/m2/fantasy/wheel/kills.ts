@@ -14,6 +14,7 @@
 // Every one of them shits himself going (undignified, both ways). Meathead's drawn posed (the grabs' way, moves/grab.ts)
 // while it's on; nothing hurts him; it's his to play again the moment it's over.
 
+import { elbow, halfBone } from '../../art/limb';
 import type { FrameContext } from '../../../m1/game/core/context';
 import type { GameState } from '../../../m1/game/core/state';
 import { shakeScreen } from '../../../m1/game/core/state';
@@ -274,16 +275,18 @@ export const updateBodies = (ctx: FrameContext, w: Wheel, onHit: (target: number
 const drawMeathead = (c: Ctx, x: number, y: number, dir: 1 | -1, f: number, hands: [P, P], lean: number, mood: Mood, hop = 0) => {
   const feetY = y - hop, hipY = -24;
   const local = (p: P): P => { const fx = (p[0] - x) * dir, fy = p[1] - feetY - hipY; return rotP(fx, fy, -lean); };
-  const elbow = (s: P, h: P): P => [(s[0] + h[0]) / 2 + 3, (s[1] + h[1]) / 2 + 7];
+  // (the elbows by anatomy, src/m2/art/limb.ts: in his own frame he faces right, so the forearm folds toward the front
+  // of the upper arm; a fixed "down and forward" sag bent an overhead or behind-him hand the wrong way)
+  const elbowAt = (s: P, h: P): P => { const L = halfBone(s[0], s[1], h[0], h[1], 9, 1.08); return elbow(s[0], s[1], h[0], h[1], L, L, 1); };
   const h1 = local(hands[0]), h2 = local(hands[1]);
   drawPoseSprite(c, x, feetY, dir, g => {
     drawLeg(g, [-5, hipY], [-11, hipY + 12], [-15, 0], 0, true);
     drawLeg(g, [5, hipY], [13, hipY + 12], [15, 0], 0, false);
     g.save(); g.translate(0, hipY); g.rotate(lean);
-    drawArmTo(g, [-8, -22], elbow([-8, -22], h2), h2, true);
+    drawArmTo(g, [-8, -22], elbowAt([-8, -22], h2), h2, true);
     drawTorsoFromHips(g);
     drawPoseHead(g, 2, -37, lean * 0.3, mood, f);
-    drawArmTo(g, [11, -22], elbow([11, -22], h1), h1, false, 6);
+    drawArmTo(g, [11, -22], elbowAt([11, -22], h1), h1, false, 6);
     g.restore();
   });
 };

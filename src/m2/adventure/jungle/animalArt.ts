@@ -12,6 +12,7 @@ import { stamp } from '../../../m1/game/render/stamp';
 import { mix } from '../../../m1/game/render/backdrops/core';
 import { INK, ink, eye, limb, lite, dark } from '../../../m1/game/render/npc/kit';
 import { reaction } from '../../spooky/costume';
+import { elbowXY, halfBone } from '../../art/limb';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -107,7 +108,9 @@ const paintMonkey = (g: Ctx, v: number, pose: string, fr: number, md: Mood) => {
   else if (pose === 'sit' && fr === 2) hand = { x: hx - 2, y: hy - 8 };
   else if (pose === 'windup') hand = [{ x: -2, y: -34 }, { x: -8, y: -38 }, { x: -10, y: -36 }][fr];
   else if (pose === 'throw') hand = [{ x: 14, y: -26 }, { x: 16, y: -16 }][fr];
-  const elbow = { x: (sh.x + hand.x) / 2 + (pose === 'windup' ? -4 : 3), y: (sh.y + hand.y) / 2 + 3 };
+  // (the elbow by anatomy, src/m2/art/limb.ts: drawn facing right, the forearm folds toward the front of the upper arm:
+  // back by its side with the hand on its knee, forward with the fist cocked back over its head)
+  const bone = halfBone(sh.x, sh.y, hand.x, hand.y, 6, 1.12), elbow = elbowXY(sh, hand, bone, bone, 1);
   limb(g, sh.x, sh.y, elbow.x, elbow.y, 4, fur); limb(g, elbow.x, elbow.y, hand.x, hand.y, 3.4, lite(fur, 0.1));
   ink(g, () => g.arc(hand.x, hand.y, 2.4, 0, Math.PI * 2), '#3A2414', 0.8);
   if (pose === 'windup') { ink(g, () => g.ellipse(hand.x - 1, hand.y - 3, 4, 3, 0, 0, Math.PI * 2), '#5A3A12', 0.8); g.fillStyle = '#7C5A2A'; g.fillRect(hand.x - 3, hand.y - 5, 2, 1); }
@@ -144,7 +147,9 @@ const paintChimp = (g: Ctx, v: number, pose: string, fr: number, md: Mood) => {
   // The back arm: down on its knuckles walking; up hooting; out, leaping
   const armUp = pose === 'hoot' || pose === 'leap';
   const backHand = md === 'dead' ? { x: -16, y: -2 } : armUp ? { x: -14, y: pose === 'leap' ? -50 : -58 + (fr % 2) * 4 } : { x: -12 - step, y: -2 };
-  limb(g, -4, -38 + squash, (backHand.x - 4) / 2 - 2, (backHand.y - 38) / 2 + 2, 8, dark(fur, 0.2)); limb(g, (backHand.x - 4) / 2 - 2, (backHand.y - 38) / 2 + 2, backHand.x, backHand.y, 7, dark(fur, 0.2));
+  // (both elbows by anatomy, src/m2/art/limb.ts: back when it's down on its knuckles, forward with its arms up hooting)
+  const backSh = { x: -4, y: -38 + squash }, bb = halfBone(backSh.x, backSh.y, backHand.x, backHand.y, 6, 1.02), be = elbowXY(backSh, backHand, bb, bb, 1);
+  limb(g, backSh.x, backSh.y, be.x, be.y, 8, dark(fur, 0.2)); limb(g, be.x, be.y, backHand.x, backHand.y, 7, dark(fur, 0.2));
   ink(g, () => g.arc(backHand.x, backHand.y, 3.5, 0, Math.PI * 2), skinD, 0.8);
   // The body: hunched, broad shoulders, lit along the back; the shaggy fringe at the forearm and the gray of an old one
   const by = -30 + squash - stretch;
@@ -167,7 +172,7 @@ const paintChimp = (g: Ctx, v: number, pose: string, fr: number, md: Mood) => {
   else { g.strokeStyle = INK; g.lineWidth = 0.9; g.beginPath(); g.moveTo(hx + 4, hy + 6); g.lineTo(hx + 10, hy + 6); g.stroke(); }
   // The front arm
   const frontHand = md === 'dead' ? { x: 18, y: -2 } : armUp ? { x: 18, y: pose === 'leap' ? -46 : -58 + ((fr + 1) % 2) * 4 } : { x: 16 + step, y: -2 };
-  const el = { x: (6 + frontHand.x) / 2 + (armUp ? 4 : 2), y: (by - 4 + frontHand.y) / 2 };
+  const frontSh = { x: 6, y: by - 4 }, fb = halfBone(frontSh.x, frontSh.y, frontHand.x, frontHand.y, 6, 1.02), el = elbowXY(frontSh, frontHand, fb, fb, 1);
   limb(g, 6, by - 4, el.x, el.y, 8, fur); limb(g, el.x, el.y, frontHand.x, frontHand.y, 7, lite(fur, 0.08));
   ink(g, () => g.arc(frontHand.x, frontHand.y, 3.6, 0, Math.PI * 2), skinD, 0.8);
   g.restore();

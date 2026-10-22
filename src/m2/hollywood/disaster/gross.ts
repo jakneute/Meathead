@@ -6,6 +6,7 @@
 // down them. All painted the once into sprites (kept at the scale they're shown at; fine under rotation too).
 
 import { type Ctx, INK, box, checker, mix, poly, hash, pixelBlob } from '../blvd/kit';
+import { elbowFront, halfBone } from '../../art/limb';
 
 // ---------------------------------------------------------------------------------------------------------------
 // Sprites: painted once at the scale they're shown at, then put down (rotated, scaled) with one drawImage
@@ -285,7 +286,8 @@ export const grossPerson = (g: Ctx, cx: number, foot: number, o: Gross) => {
   if (o.camera) { box(g, cx - 6, tt + 8, 10, 7, INK); box(g, cx - 5, tt + 9, 8, 5, '#2A2A2E'); box(g, cx - 2, tt + 10, 3, 3, '#6A8AAA'); box(g, cx - 1, tt + 10, 1, 1, '#FFFFFF'); for (const s of [-1, 1]) box(g, cx + s * 4, tt, 1, 9, '#1A1A1A'); }
   // (the arms: sleeves to the elbow, the forearms hairy, the hands splayed, finger by finger, knuckles)
   const arm = (sx: number, sy: number, hx: number, hy: number) => {
-    const ex = (sx + hx) / 2 + (hx > sx ? -2 : 2), ey = (sy + hy) / 2;
+    // (front-on: the elbow out to his side, never in toward his head or chest: src/m2/art/limb.ts)
+    const bone = halfBone(sx, sy, hx, hy, 6, 1.01), [ex, ey] = elbowFront(sx, sy, hx, hy, bone, bone, sx < cx ? -1 : 1);
     g.lineCap = 'round';
     g.strokeStyle = INK; g.lineWidth = 7; g.beginPath(); g.moveTo(sx, sy); g.lineTo(ex, ey); g.lineTo(hx, hy); g.stroke();
     g.strokeStyle = SH[3]; g.lineWidth = 5; g.beginPath(); g.moveTo(sx, sy); g.lineTo(ex, ey); g.stroke();

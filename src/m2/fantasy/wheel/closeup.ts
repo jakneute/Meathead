@@ -32,6 +32,7 @@ import { skyRamp } from '../../timeOfDay';
 import { saidOver, pantsOf } from '../section';
 import type { SuitorLook } from '../suitors';
 import { box, mix, INK, ramp6, GOLD, type Ctx } from '../kit';
+import { elbow } from '../../art/limb';
 import { ROSTER } from './layout';
 import { CAPS, drawItem } from './art';
 import { closeupYell } from './kills';
@@ -171,10 +172,11 @@ const drawArm = (g: Ctx, F: Fig, near: boolean) => {
   let h = F.hands[near ? 0 : 1];
   const dx = h[0] - sh[0], dy = h[1] - sh[1], d = Math.hypot(dx, dy) || 1;
   if (d > seg * 2) h = [sh[0] + (dx / d) * seg * 2, sh[1] + (dy / d) * seg * 2];
-  const dd = Math.min(d, seg * 2), off = Math.sqrt(Math.max(0, seg * seg - (dd / 2) ** 2));
-  let nx = -dy / d, ny = dx / d;
-  if (ny < 0) { nx = -nx; ny = -ny; }
-  const el: P = [(sh[0] + h[0]) / 2 + nx * off, (sh[1] + h[1]) / 2 + ny * off];
+  // (the elbow by anatomy, src/m2/art/limb.ts: worked out in the figure's own upright frame (facing F.dir) so the
+  // forearm folds toward the front of the upper arm however the car's tipped him; "always below the line" bent a
+  // raised or thrown-back hand the wrong way)
+  const [lx, ly] = rot(h[0] - sh[0], h[1] - sh[1], -F.rot), [ex, ey] = elbow(0, 0, lx, ly, seg, seg, F.dir), [wx, wy] = rot(ex, ey, F.rot);
+  const el: P = [sh[0] + wx, sh[1] + wy];
   const w = F.who.mh ? 9 : 10.5;
   limb(g, sh, el, w * s, R); limb(g, el, h, (w - 1.5) * s, R);
   orb(g, h[0], h[1], 4.6 * s, 4.2 * s, R);
@@ -191,7 +193,10 @@ const paintLegs = (g: Ctx, F: Fig, k: number) => {
   const R = legColOf(F.who), nude = F.who.mh && F.who.pants === 'nude';
   for (const [s, ph] of [[-1, 0], [1, Math.PI]] as [number, number][]) {
     const a = Math.sin(k + ph) * 0.55;
-    const hip: P = [s * 7, 3], knee: P = [hip[0] + rot(0, 19, a)[0], hip[1] + rot(0, 19, a)[1]], foot: P = [knee[0] + rot(0, 18, a * 1.6 - 0.25)[0], knee[1] + rot(0, 18, a * 1.6 - 0.25)[1]];
+    // (the knee always bent forward (the shin swung back off the thigh's line, more so as the thigh kicks up): the
+    // shin's old fixed swing past the thigh's hyperextended the knee on every forward kick)
+    const sa = a + 0.3 + 0.6 * Math.max(0, -a);
+    const hip: P = [s * 7, 3], knee: P = [hip[0] + rot(0, 19, a)[0], hip[1] + rot(0, 19, a)[1]], foot: P = [knee[0] + rot(0, 18, sa)[0], knee[1] + rot(0, 18, sa)[1]];
     limb(g, hip, knee, 11, R); limb(g, knee, foot, 10, R);
     if (nude) orb(g, foot[0] + 2, foot[1] + 1, 5, 3, MSK);
     else { box(g, foot[0] - 5, foot[1] - 3, 12, 7, INK); box(g, foot[0] - 4, foot[1] - 2, 10, 5, F.who.mh ? '#27272A' : '#3A2A1A'); box(g, foot[0] - 3, foot[1] - 2, 5, 1, F.who.mh ? '#52525B' : '#6A4A2A'); }

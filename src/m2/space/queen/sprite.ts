@@ -15,6 +15,7 @@ import { GY } from '../geometry';
 import { stencil } from './letters';
 import { ALIEN } from '../../../m1/game/scenes/alienLook';
 import { type Ramp, LAT, GLOSS, SPEC, CHROME, STEELR, SACR, FOAMR, GUM, TOOTH, GREEN, dith, tube, hose, quad, blob, shapeShade, rings } from './paint';
+import { elbow } from '../../art/limb';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -403,8 +404,13 @@ const armsOf = (pose: QueenPose, t: number, stride: number): [Arm, Arm] => {
   };
   return [base(0), base(1)];
 };
-const arm = (c: Ctx, a: Arm, r: Ramp, pose: QueenPose) => {
-  const sx = 22 + a.ox, sy = -222 + a.oy;
+const arm = (c: Ctx, a0: Arm, r: Ramp, pose: QueenPose) => {
+  const sx = 22 + a0.ox, sy = -222 + a0.oy;
+  // (the elbow by anatomy, src/m2/art/limb.ts: her keyed elbows sat a few degrees the wrong side of the shoulder-to-hand
+  // line in most poses (idle, stalk, swipe, spit, dead), so the arm hyperextended. Same bones, same hand, the elbow
+  // put on the side where the forearm folds toward the front of the upper arm; she's drawn facing right)
+  const [ex, ey] = elbow(sx, sy, a0.hx, a0.hy, Math.hypot(a0.ex - sx, a0.ey - sy), Math.hypot(a0.hx - a0.ex, a0.hy - a0.ey) + 0.01, 1);
+  const a: Arm = { ...a0, ex, ey };
   blob(c, sx, sy, 8, 8, r);
   tube(c, sx, sy, a.ex, a.ey, 10, r);
   tube(c, a.ex, a.ey, a.hx, a.hy, 8, r);
