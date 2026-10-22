@@ -112,7 +112,9 @@ const runTour = (state: GameState, cs: Castle) => {
 /** The chandeliers that have come down, by index (state.stageMemo: kept across his deaths). */
 const CHAND_MEMO = 'm2:castleChandeliers';
 /** What a chandelier comes down on: the table, or the floor. */
-const chandFloor = (x: number) => (x > LEDGES[3][0] && x < LEDGES[3][0] + LEDGES[3][2] ? LEDGES[3][1] : GY);
+// (the dining table's top under a fallen chandelier, else the floor: found by its look, not its place in the list)
+const TABLE = LEDGES.find(l => l[3] === 'table')!;
+const chandFloor = (x: number) => (x > TABLE[0] && x < TABLE[0] + TABLE[2] ? TABLE[1] : GY);
 const runChandeliers = (ctx: FrameContext, cs: Castle, zones: Zone[]) => {
   const { state } = ctx, p = state.player, cx = p.pos.x + p.width / 2;
   for (const ch of cs.chand) {
