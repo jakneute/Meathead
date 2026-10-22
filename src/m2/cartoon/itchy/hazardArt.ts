@@ -17,6 +17,8 @@ import { GANTRY, CRATES, SAFE, PIANO, CANNON, X, Y } from './layout';
 import { hurtGagOf } from '../../hurtGags';
 import { catHead, mouseHead, cleaver, dynamiteStick, foldedHole } from './kindArt';
 import { NR, DR, NC, DC, STEELP, BLOOD, MUSTARD, TAR, CRATE, GINGER, MOUSEY, BONE, PLY, plate, planks, hazard, gore, small, stencil } from './paint';
+import { elbow } from '../../art/limb';
+
 
 const LIP = '#FFFFFF', LIP2 = '#FFE8F2';
 
@@ -553,7 +555,9 @@ const matchKicky = (c: Ctx, state: GameState, fz: Fuse, x: number) => {
   c.restore();
   // (the arm: up and back while striking, then out over the fuse's end: fur to the elbow, a piston forearm, the glove)
   const hx = x + 30 + u * 40, hy = Y(100) + (strike ? Math.sin(u * Math.PI) * -30 : 30);
-  const ex = (x + 10 + hx) / 2, ey = (Y(130) + hy) / 2 - 6;
+  // (the elbow by anatomy, src/m2/art/limb.ts: he faces right, so it drops under the arm reaching out (it used to be
+  // pushed up off the line whichever way the arm pointed: bent backward))
+  const bone = Math.hypot(Math.hypot(hx - x - 10, hy - Y(130)) / 2, 6), [ex, ey] = elbow(x + 10, Y(130), hx, hy, bone, bone, 1);
   c.lineCap = 'round';
   c.strokeStyle = D; c.lineWidth = 19; c.beginPath(); c.moveTo(x + 10, Y(130)); c.lineTo(ex, ey); c.stroke(); c.strokeStyle = F[3]; c.lineWidth = 15; c.stroke(); c.strokeStyle = F[4]; c.lineWidth = 4; c.beginPath(); c.moveTo(x + 8, Y(134)); c.lineTo(ex - 2, ey - 4); c.stroke();
   c.strokeStyle = D; c.lineWidth = 9; c.beginPath(); c.moveTo(ex, ey); c.lineTo(hx, hy); c.stroke(); c.strokeStyle = S[3]; c.lineWidth = 6; c.stroke(); c.strokeStyle = S[5]; c.lineWidth = 1.5; c.beginPath(); c.moveTo(ex, ey - 2); c.lineTo(hx, hy - 2); c.stroke();

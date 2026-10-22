@@ -19,6 +19,7 @@ import { INK, mix } from '../kit';
 import type { Pundit, PunditId, PunditThrow, PuffBit } from './state';
 import { star } from './poof';
 import { dith } from '../amphi/paint';
+import { elbow, knee } from '../../art/limb';
 
 interface SimView { x: number; y: number; vx: number; vy: number; air: boolean; facing: 1 | -1; kind: PunditThrow['kind'] | null }
 
@@ -77,16 +78,18 @@ const tube = (c: Ctx, ax: number, ay: number, ra: number, bx: number, by: number
   c.closePath();
 };
 /** A limb (the joints pass): shoulder or hip a to hand or foot b, bent at an elbow or knee partway (`bend`, a share of
- *  its length: + bends it down and back, as an arm's elbow; - forward, as a knee; 0 straight), inked as one piece (the
+ *  its length: + an elbow, - a knee, each bent the anatomical way for `facing`: 1 stood facing right (or flat on his
+ *  face, head to the right), -1 on his back with his head to the right; 0 straight), inked as one piece (the
  *  ink laid round the whole bent limb first, the two tubes filled over it in its ramp), the joint's round knob, a crease
  *  in the crook of it and a lit step on its point; a round cap at a (the shoulder's, the hip's). */
-const limb = (c: Ctx, ax: number, ay: number, bx: number, by: number, w: number, r: Rp, wb = w * 0.85, bend = 0.13) => {
+const limb = (c: Ctx, ax: number, ay: number, bx: number, by: number, w: number, r: Rp, wb = w * 0.85, bend = 0.13, facing = 1) => {
   const dx = bx - ax, dy = by - ay, d = Math.hypot(dx, dy) || 1, ux = dx / d, uy = dy / d, ra = w / 2, rb = wb / 2, rm = (ra + rb) / 2;
-  // (which way the joint juts: of the two sides, the one down and back for +, flipped for -)
-  let nx = -uy, ny = ux;
-  if (ny - nx * 0.5 < 0) { nx = -nx; ny = -ny; }
-  if (bend < 0) { nx = -nx; ny = -ny; }
-  const off = Math.abs(bend) * d, ex = ax + dx * 0.5 + nx * off, ey = ay + dy * 0.5 + ny * off;
+  // (which way the joint juts: by anatomy, src/m2/art/limb.ts (drawn facing right): an elbow's forearm folds toward
+  // the front of the upper arm (down reaching out, forward with the hand overhead), a knee points forward. The old
+  // "down and back" pick folded a raised arm's elbow backward)
+  const off = Math.abs(bend) * d, bone = Math.hypot(d / 2, off);
+  const [ex, ey] = bend > 0 ? elbow(ax, ay, bx, by, bone, bone, facing) : bend < 0 ? knee(ax, ay, bx, by, bone, bone, facing) : [ax + dx * 0.5, ay + dy * 0.5];
+  let nx = ex - (ax + dx * 0.5), ny = ey - (ay + dy * 0.5); { const n = Math.hypot(nx, ny); if (n > 1e-6) { nx /= n; ny /= n; } else { nx = -uy; ny = ux; } }
   // (the ink: one fat line round the whole limb, so the two halves read as one arm or leg)
   c.lineCap = 'round'; c.lineJoin = 'round'; c.strokeStyle = INK;
   c.lineWidth = rm * 2 + 2; c.beginPath(); c.moveTo(ax, ay); c.lineTo(ex, ey); c.lineTo(bx, by); c.stroke();

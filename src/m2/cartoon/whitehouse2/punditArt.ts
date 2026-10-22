@@ -300,7 +300,7 @@ const paintDole = (c: Ctx, q: Pundit, s: SimView, f: number, reel: number) => {
   if (pose === 'flop') {
     // (the pratfall: flat on his face, the pen still in his right hand, stars)
     c.save(); c.translate(-30, -6);
-    for (const lx of [0, 10]) limb(c, -16, lx * 0.2, -40 + lx, -2 + lx * 0.3, 8, GRAY_D, 7);
+    for (const lx of [0, 10]) limb(c, -16, lx * 0.2, -40 + lx, -2 + lx * 0.3, 8, GRAY_D, 7, -0.13);
     shoe(c, -46, 2, 10); shoe(c, -36, 4, 10);
     partTop(c, () => c.roundRect(-20, -14, 44, 18, 8), GRAY_D, -14, 4, 2.4);
     limb(c, 16, -8, 36, 2, 7, GRAY_D, 6); hand(c, 36, 2, 3.8, SKIN_D);
@@ -369,12 +369,13 @@ const newtHead = (c: Ctx, hx: number, hy: number, pose: Pose, f: number) => {
 const paintNewt = (c: Ctx, q: Pundit, s: SimView, f: number, reel: number) => {
   const pose = poseOf(q, s, reel);
   if (pose === 'flop') {
-    // (the tantrum: on his back, fists and feet going, tears squirting out sideways)
+    // (the tantrum: on his back, fists and feet going, tears squirting out sideways; on his back his limbs bend as a
+    // figure facing left's would (`facing` -1): knees up, elbows toward his feet)
     const k = (f >> 2) % 2;
     c.save(); c.translate(0, -10);
-    for (const [lx, up] of [[-26, k], [-14, 1 - k]] as [number, number][]) { limb(c, -6, -2, lx, -16 - up * 14, 9, NAVY_N, 8); shoe(c, lx - 4, -12 - up * 14, 10); }
+    for (const [lx, up] of [[-26, k], [-14, 1 - k]] as [number, number][]) { limb(c, -6, -2, lx, -16 - up * 14, 9, NAVY_N, 8, -0.13, -1); shoe(c, lx - 4, -12 - up * 14, 10); }
     partTop(c, () => c.roundRect(-10, -14, 36, 18, 9), NAVY_N, -14, 4, 2.4);
-    for (const [ax, up] of [[24, 1 - k], [10, k]] as [number, number][]) { limb(c, 16, -10, ax + 6, -24 - up * 14, 8, NAVY_N, 7); hand(c, ax + 6, -24 - up * 14, 4.2, SKIN_N); }
+    for (const [ax, up] of [[24, 1 - k], [10, k]] as [number, number][]) { limb(c, 16, -10, ax + 6, -24 - up * 14, 8, NAVY_N, 7, 0.13, -1); hand(c, ax + 6, -24 - up * 14, 4.2, SKIN_N); }
     part(c, () => c.ellipse(36, -8, 15, 14, 0, 0, Math.PI * 2), SKIN_N, 21, 51, 2.4);
     partTop(c, () => c.ellipse(45, -10, 9, 13, 0, 0, Math.PI * 2), HAIR_N, -23, 3, 2);
     flat(c, () => c.ellipse(32, -2, 6, 4 + k * 2, 0, 0, Math.PI * 2), '#5A0E14', 1.6); px(c, 28, -4, 8, 1.4, '#FFFFFF');
