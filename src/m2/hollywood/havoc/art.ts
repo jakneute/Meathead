@@ -26,7 +26,7 @@ import { hvOf } from './state';
 import { spent } from './hazards';
 import { isTorn } from './chase';
 import { drawHavocFar } from './far';
-import { drawHavocPavement, drawHavocStreet, lavaBack, lavaNear, lavaGlow, puddlesBack, puddlesNear, STREET_LAVA, pourAt } from './ground';
+import { drawHavocPavement, drawHavocStreet, lavaBack, lavaNear, lavaRiver, lavaGlow, puddlesBack, puddlesNear, STREET_LAVA, pourAt } from './ground';
 import { drawHavocFronts, drawLightTower, drawRideEnd, FRONTS } from './fronts';
 import { drawClimb, drawHill } from './climb';
 import { drawHavocProps, zoneFloor, zoneStreet, zoneSigns, zoneLights } from './props';
@@ -41,10 +41,11 @@ export const drawHavocBack = (c: Ctx, state: GameState) => {
   const hv = hvOf(state), f = state.frame, done = spent(state), v = viewOf(state);
   // The street under him (bent), the zone's marks and the puddles on it; the lava toward us
   drawHavocStreet(c, v, (cc, a, b) => { zoneStreet(cc, a, b, state, done); puddlesNear(cc, a, b, f); });
-  for (const l of STREET_LAVA) lavaNear(c, v, l, done, f);
+  if (done) for (const l of STREET_LAVA) lavaNear(c, v, l, done, f);
   // The ground going back (and the lot behind the fronts), the lava channels going back, the zone, the puddles
   drawHavocPavement(c, v, done);
-  for (const l of STREET_LAVA) lavaBack(c, v, l, done, f, FRONT_D);
+  // (live: each river in one piece, welling out of its fissure between charred banks; spent: crusted black)
+  for (const l of STREET_LAVA) if (done) lavaBack(c, v, l, done, f, FRONT_D); else lavaRiver(c, v, l, f);
   zoneFloor(c, v, state, hv, done);
   puddlesBack(c, v, f);
   // DISASTER: THE RIDE's end, its far wall out flat
@@ -87,8 +88,9 @@ export const havocLamps = (state: GameState): Light[] => {
     if (Math.abs(x - cam - 400) > 1200) continue;
     const fl = 0.85 + 0.15 * Math.sin(state.frame * 0.11 + l.a) * Math.sin(state.frame * 0.037), y = Y(Math.min(l.hl, l.hr));
     out.push({ x, y: y + 20, r: Math.max(160, (l.b - l.a) * 0.9), a: 0.9 * fl, color: '#F97316' });
-    const [px, py] = at(v.eye, X(pourAt(l)), y + LAVA_DOWN, l.hl > 0 ? ROAD_D : FRONT_D);
-    out.push({ x: px, y: py - 16, r: 120, a: 0.75 * fl, color: '#FDBA4A' });
+    // (the pour on the hill; on the street, the fissure it wells up out of at the fronts' feet)
+    const [px, py] = l.hl > 0 ? at(v.eye, X(pourAt(l)), y + LAVA_DOWN, ROAD_D) : at(v.eye, X(pourAt(l)), y, FRONT_D + 0.01);
+    out.push({ x: px, y: py - 10, r: l.hl > 0 ? 120 : 90, a: (l.hl > 0 ? 0.75 : 0.55) * fl, color: '#FDBA4A' });
     for (const e of [X(l.a), X(l.b)]) out.push({ x: e, y: y + 10, r: 110, a: 0.5 * fl, color: '#FB6A1E' });
   }
   // (the fronts burning: their tops, where they're drawn)

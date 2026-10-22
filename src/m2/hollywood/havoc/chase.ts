@@ -284,6 +284,24 @@ const spinDebris = (state: GameState, hv: Hv) => {
   });
 };
 
+/** While it has him (the fling: a cutscene, so the chase isn't run): nothing's left hanging in the air. Whatever and
+ *  whoever it had going round it is thrown out now, hard, up and away off the screen; what it had already thrown comes
+ *  on down where it was going. (The playtest: guests in the funnel froze mid-air for the whole cutscene.) */
+export const flingDebris = (state: GameState) => {
+  const hv = hvOf(state), t = hv.tornado;
+  for (const d of hv.debris) if (d.t < d.orbit - 1) {
+    const away = d.x < t.x ? -1 : 1;
+    d.orbit = d.t + 1; d.vx = away * (11 + Math.random() * 9); d.vy = -8 - Math.random() * 8;
+  }
+  spinDebris(state, hv);
+  hv.thrown = hv.thrown.filter(o => {
+    if (o.landed > 0) return ++o.landed < 50;
+    o.t++; o.x += o.vx; o.y += o.vy; o.vy += 0.4; o.rot += 0.18;
+    if (o.y >= o.ty) { o.y = o.ty; o.landed = 1; }
+    return true;
+  });
+};
+
 /** While he's dying to it (skinned: player/tornadoDeath.ts), it doesn't stop for him: on down its war path, blowing
  *  away what it comes to, its junk going round. */
 export const tornadoRoams = (state: GameState) => {

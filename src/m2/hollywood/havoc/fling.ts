@@ -17,7 +17,7 @@ import { hands, meatheadSays, teleport } from '../section';
 import { DOORS, GY } from '../geometry';
 import { Y } from './layout';
 import { hvOf, FLUNG_MEMO } from './state';
-import { tornadoBase } from './chase';
+import { tornadoBase, flingDebris } from './chase';
 import { CAUGHT, SPIN, FLUNG } from './lines';
 import { FLUNG_IN, LAND_FALL } from '../stunt/state';
 
@@ -35,7 +35,8 @@ export const startFling = (ctx: FrameContext) => {
   playSound('whirl', 1, -8); playSound('whoosh', 1, -14);
   meatheadSays(state, pickLine(CAUGHT), false);
   // (anybody about goes up with him)
-  for (const e of hazardVictims(state)) if (Math.abs(e.pos.x - t.x) < 900) hazardKill(ctx, e, t.x, 'SUCKED UP!', { fling: { x: (Math.random() - 0.5) * 10, y: -22 }, sound: 'whirl' });
+  // (and anybody in the funnel itself, whoever they are: never left paused in mid-air by the cutscene)
+  for (const e of hazardVictims(state, { innocents: true })) if (Math.abs(e.pos.x + e.width / 2 - t.x) < (e.innocent ? 160 : 900)) hazardKill(ctx, e, t.x, 'SUCKED UP!', { fling: { x: (Math.random() - 0.5) * 10, y: -22 }, sound: 'whirl' });
 };
 
 const finish = (ctx: FrameContext, skipped: boolean) => {
@@ -43,6 +44,7 @@ const finish = (ctx: FrameContext, skipped: boolean) => {
   if (skipped) silenceAll();
   state.stageMemo[FLUNG_MEMO] = '1';
   fl.step = 'done'; fl.fade = 0;
+  hv.debris = []; hv.thrown = [];
   hv.tornado.on = false;
   p.spriteRot = undefined;
   state.cameraOverride = null;
@@ -60,6 +62,8 @@ export const updateFling = (ctx: FrameContext): Controls | null => {
   const { state } = ctx, hv = hvOf(state), fl = hv.fling, p = state.player;
   if (fl.step === 'off' || fl.step === 'done') return null;
   fl.t++; fl.all++;
+  // (what it had going round it: thrown out, flying off, not left frozen in the air while it has him)
+  flingDebris(state);
   p.inCutscene = true; p.carried = true;
   if (fl.all > SKIP_AFTER) { offerSkip(); if (takeSkip()) { finish(ctx, true); return hands(); } }
   const ff = p.freefall;

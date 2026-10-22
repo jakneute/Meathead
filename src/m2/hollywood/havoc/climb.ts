@@ -31,7 +31,8 @@ import {
   type Ctx, type View, INK, box, checker, mix, hash, poly, at, atDepth, still, stillAt, seen, signText, STEEL, BRASS, CONCRETE, LIP,
   ramp6, hour, dimmed, rampH, lit, slab, ball, board, bulbs, plain, sideBack, topBack, underBack,
 } from '../blvd/kit';
-import { gate, hillside } from '../../hub/letters';
+import { gate } from '../../hub/letters';
+import { tone } from '../../signLetters';
 import { levelQ, sideQ, truss, tubeH } from '../disaster/paint';
 import { bricks, corrugated, CAT, SIDING, BOARD } from '../lot/paint';
 import {
@@ -427,7 +428,13 @@ const paintLetter = (g: Ctx, ch: string | null) => {
   for (const y of [-50, -100]) { box(g, -18, y, 36, 3, INK); box(g, -17, y + 1, 34, 1, S[3]); }
   g.strokeStyle = S[1]; g.lineWidth = 1; g.beginPath(); g.moveTo(-14, -10); g.lineTo(14, -50); g.moveTo(14, -10); g.lineTo(-14, -50); g.stroke();
   if (!ch) { for (const dx of [-14, 0, 14]) { poly(g, [[dx - 2, -140], [dx + 3, -148], [dx + 2, -136]], S[3]); } return; }
-  signText(g, ch, 0, -40, hillside({ sx: 7, sy: 14 }, dimmed('#F5F5F4'), dimmed('#A8A29E')));
+  // (the letter: sheet metal painted white, shaded down its face (stepped, dithered), inked round, its thickness
+  // standing out behind it dark, snow lying along every stroke's top only; it has to read against the snow behind)
+  const face = dimmed('#E2DFDB'), shade = dimmed('#7C756E');
+  signText(g, ch, 0, -40, {
+    sx: 7, sy: 14, gap: 2, fill: [face, face, tone(face, shade, 0.35), tone(face, shade, 0.6)], dither: true,
+    ink: INK, shadow: dimmed('#3E3936'), drop: 3, hi: SNOW.map(dimmed)[5], lo: dimmed('#5E5852'),
+  });
   box(g, -18, -40, 36, 3, dimmed('#6A6460'));
   // (snow along its top, scorch up its face)
   box(g, -17, -140, 34, 4, SNOW.map(dimmed)[4]);
@@ -535,7 +542,10 @@ export const drawHill = (c: Ctx, v: View, state: GameState, hv: Hv, done: boolea
     const lx = X(8230 + i * 52), gone = i === 5 || i === 7;
     if (!seen(v, lx - 30, lx + 30, LETTER_D)) continue;
     const gy = hillTop(R(lx), LETTER_D) + 6;
-    atDepth(c, eye, LETTER_D, () => { c.save(); c.translate(lx, gy); c.rotate(((i * 7) % 5 - 2) * 0.02); still(c, `hh-letter-${gone ? '_' : word[i]}`, 0, 0, -30, -150, 60, 152, g => paintLetter(g, gone ? null : word[i])); c.restore(); });
+    // (each sits a little high or low on its legs, haphazard; never rotated: a turned stamp can't be cached, so it was
+    // painted live every frame and its pixels crawled along the letters' left sides as the camera moved)
+    const jy = ((i * 7) % 5 - 2) * 2;
+    stillAt(c, v, LETTER_D, `hh-letter2-${gone ? '_' : word[i]}`, lx, gy + jy, -40, -152, 80, 156, g => paintLetter(g, gone ? null : word[i]));
   }
   // The lava coming down the hillside into the trench
   if (hl && !done) {

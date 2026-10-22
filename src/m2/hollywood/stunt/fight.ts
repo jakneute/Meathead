@@ -47,7 +47,7 @@ import { TOO_BIG_BY_KIND } from '../../lines/weaponLines';
 import { drawSteveGross, drawSteveGrossBack } from './steveGross';
 import { box, label, saidOver, hands, speak, voice, meatheadSays, getHollywood } from '../section';
 import { bossIntroSeen, markBossIntroSeen } from '../../bossIntro';
-import { ARENA_L, ARENA_R, ARENA_MID, GY, ZK, CUT, CAM_ROW, DOORS_X, STEVE_AT, LANE_FRONT, BARRIER_Y } from './arena';
+import { ARENA_L, ARENA_R, ARENA_MID, GY, ZK, CUT, CAM_ROW, DOORS_X, STEVE_AT, LANE_FRONT, BARRIER_Y, MAT_X } from './arena';
 import {
   type Garage, newRamps, spawnRed, spawnBlue, spawnTow, pickRamp, updateRamps, updateCars, tickLaunch, launchHim, boom, freeze,
   clearCars, dropCars, countCars, targetable, carOf, pmid, landingOf,
@@ -69,8 +69,8 @@ const HP = 666, BIG = 100000;
 /** Anything but the ray gun, his moves and the book: this share; the breather after a hit. */
 const SHARE = 0.35, IFRAMES = ENEMY_HIT_COOLDOWN;
 /** The lightning on him: the first strike of a storm, each one after (no breather: it's one long hit); stunned this
- *  long past the last strike, then smoking a while. */
-const ZAP_FIRST = 24, ZAP_EACH = 6, ZAP_HOLD = 26, SMOKE_T = 70;
+ *  long past the last strike, then smoking a while. (The playtest: a touch more, +25% on 24 and 6.) */
+const ZAP_FIRST = 30, ZAP_EACH = 7.5, ZAP_HOLD = 26, SMOKE_T = 70;
 /** A meteor or comet that catches him going off on a car; a car thrown into him (bulked up). */
 const METEOR_SPLASH = 30, COMET_SPLASH = 20, THROWN_DMG = 120;
 /** The pyro: a beat after the lightning lands, the jets go off out from him down the stage this fast (px a frame);
@@ -251,7 +251,7 @@ const beginFight = (state: GameState, f: Fight) => {
   state.cameraOverride = null;
   const p = state.player;
   // (skipped while he was still coming down: down, on his feet)
-  if (f.fall) { f.fall = null; touchDown(state, true); }
+  if (f.fall) { f.fall = null; p.pos.x = MAT_X(-1) - p.width / 2; touchDown(state, true); }
   p.inCutscene = false; p.isDucking = false;
   f.mode = 'on'; f.act = 'idle'; f.actT = 0; f.replay = 0;
   f.redT = RED_EVERY[1] - 50; f.blueT = BLUE_EVERY[1] * 0.4;
@@ -288,7 +288,7 @@ const comingDown = (ctx: FrameContext, f: Fight, fall: NonNullable<Fight['fall']
   fall.t++;
   const T = LAND_FALL.t, u = Math.min(1, fall.t / T);
   // Where he is: carried along a way, falling faster and faster
-  const x = fall.x0 + LAND_FALL.dx * easeOut(u), feet = GY - LAND_FALL.h * (1 - u * u);
+  const x = fall.x0 + (MAT_X(-1) - fall.x0) * easeOut(u), feet = GY - LAND_FALL.h * (1 - u * u);
   p.carried = true; p.pos.x = x - p.width / 2; p.pos.y = feet - p.height; p.vel.x = 0; p.vel.y = 0;
   // How he's going over: three times head over heels, quick to start, slowing, a wobble that dies out, upright as he
   // hits (the luck of it)
@@ -597,7 +597,7 @@ const struck = (ctx: FrameContext, f: Fight, el: 'meteor' | 'comet' | 'bolt') =>
   const dmg = first ? ZAP_FIRST : ZAP_EACH;
   f.hp -= dmg; f.flash = 6;
   f.frizz = 1; f.singe = Math.min(1, f.singe + 0.06);
-  ctx.fx.spawnDamageNumber({ x: f.sx - 10, y: GY - STEVE_H - 10 }, dmg, first);
+  ctx.fx.spawnDamageNumber({ x: f.sx - 10, y: GY - STEVE_H - 10 }, Math.round(dmg), first);
   if (first) {
     playSound('taser', 1, -2);
     // (and the stage's pyro goes off with it)

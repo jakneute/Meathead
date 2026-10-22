@@ -13,7 +13,7 @@
 //   top of it in bulbs, Steve's vinyl banner off it, STEVE-O-VISION hung on its chains with its speaker stacks;
 // - the ramps on their dollies (diamond plate going back, the lightening holes, the hazard lip: not his to stand on),
 //   the hula hoops on their trolleys (taped pink and white), the rings of fire (wick-wrapped steel, stepped flames), the
-//   pyro jets set in the floor and their columns of fire; the crash mats he never lands on.
+//   pyro jets set in the floor and their columns of fire; the crash mats lying flat (he comes down off the fling onto the left one).
 //
 // Round it, on the scene's one eye: the stands up both ends going back to the set (cut at the play plane: the stepped
 // section, the tunnel through the left one, the way back out), their rows of seats in Steve's yellow and stunt red, half
@@ -27,7 +27,7 @@ import { bendFloor } from '../../intro/art/kit';
 import { drawPerson } from '../../adventure/temple/people';
 import { bricks, BRICK } from '../lot/paint';
 import { print, enamel, marquee as marqueeLook } from '../blvd/paint';
-import { ARENA_L, ARENA_R, ARENA_W, ARENA_MID, GY, ZK, BACK_Z, LANE_BACK, LANE_FRONT, FLOOR_BACK_Y, BARRIER_Y, DOORS_X, TRUSS_Y, STEVE_AT, x0 } from './arena';
+import { ARENA_L, ARENA_R, ARENA_W, ARENA_MID, GY, ZK, BACK_Z, LANE_BACK, LANE_FRONT, FLOOR_BACK_Y, BARRIER_Y, DOORS_X, TRUSS_Y, STEVE_AT, MAT_X, MAT_HW, x0 } from './arena';
 import { RAMP, hoopOf } from './cars';
 import type { Ramp, Skid } from './state';
 import { drawSteve } from './steve';
@@ -676,17 +676,29 @@ export const drawStage = (c: Ctx, state: GameState, opts: { cleared: boolean; hy
   const jx = ARENA_R - 560;
   if (inView(state, jx - 180, jx + 180)) drawJumbotron(c, jx, TRUSS_Y + 60, f, opts);
   drawCones(c, state);
-  // The crash mats by Steve's two ends (he never lands on one): vinyl, piped, handles, CRASH MAT on their faces
+  // The crash mats by Steve's two ends, lying flat on the floor: vinyl, piped round, stitched, handles and CRASH MAT
+  // along the front face. He comes down off the fling onto the left one's middle: nothing stands on either or in front
+  // of it (no pyro jets set under them: PYRO_X).
   for (const side of [-1, 1] as const) {
-    const sx = STEVE_AT(side), mx = sx - side * 150;
-    if (!inView(state, mx - 90, mx + 90)) continue;
-    const M = MAT.map(c2 => hour(c2, 0.1)), top = GY - 32, face = GY - 18;
-    box(c, mx - 71, top - 1, 142, GY - 3 - top + 1, INK);
-    box(c, mx - 70, top, 140, face - top, M[3]); box(c, mx - 70, top, 140, 2, M[4]); checker(c, mx - 70, face - 4, 140, 2, M[2], 0, 1);
-    for (let k = mx - 50; k < mx + 70; k += 40) box(c, k, top + 2, 1, face - top - 2, M[2]);
-    box(c, mx - 70, face, 140, GY - 4 - face, M[2]); box(c, mx - 70, face, 140, 1, M[5]); box(c, mx - 70, GY - 5, 140, 1, M[0]);
-    for (const hx of [mx - 50, mx + 42]) { box(c, hx, face + 3, 10, 3, INK); box(c, hx + 1, face + 4, 8, 1, M[1]); }
-    words(c, 'CRASH MAT', mx, GY - 6, { sx: 1, sy: 1, fill: M[5], stencil: true, gap: 1 });
+    const mx = MAT_X(side), hw = MAT_HW;
+    if (!inView(state, mx - hw - 20, mx + hw + 20)) continue;
+    const M = MAT.map(c2 => hour(c2, 0.1)), H = 7;
+    const back = Math.round(GY - 44 * ZK) - H, front = Math.round(GY + 22 * ZK) - H, foot = front + H;
+    // (its shadow on the floor, the ink round it)
+    c.fillStyle = 'rgba(10, 8, 14, 0.35)'; c.fillRect(mx - hw - 3, foot - 1, hw * 2 + 8, 4);
+    box(c, mx - hw - 1, back - 1, hw * 2 + 2, foot - back + 2, INK);
+    // (the top, going back: lit at the front, a shade darker going back, dithered between; piped round)
+    box(c, mx - hw, back, hw * 2, front - back, M[3]);
+    box(c, mx - hw, back, hw * 2, Math.round((front - back) * 0.4), M[2]);
+    checker(c, mx - hw, back + Math.round((front - back) * 0.4), hw * 2, 2, M[2], 0, 1);
+    box(c, mx - hw, back, hw * 2, 1, M[4]); box(c, mx - hw, front - 1, hw * 2, 1, M[5]);
+    box(c, mx - hw, back, 1, front - back, M[4]); box(c, mx + hw - 1, back, 1, front - back, M[1]);
+    // (the stitched seams across it, front to back)
+    for (let k = mx - hw + 35; k < mx + hw - 10; k += 35) { box(c, k, back + 2, 1, front - back - 3, M[1]); box(c, k + 1, back + 2, 1, front - back - 3, M[4]); }
+    // (the front face: its handles, CRASH MAT on it)
+    box(c, mx - hw, front, hw * 2, H, M[2]); box(c, mx - hw, foot - 1, hw * 2, 1, M[0]);
+    for (const hx of [mx - hw + 10, mx + hw - 20]) { box(c, hx, front + 2, 10, 3, INK); box(c, hx + 1, front + 3, 8, 1, M[1]); }
+    words(c, 'CRASH MAT', mx, foot - 1, { sx: 1, sy: 1, fill: M[5], stencil: true, gap: 1 });
   }
   // (an old wreck or two lying about, after)
   if (opts.cleared) {
@@ -798,7 +810,8 @@ export const drawRing = (c: Ctx, side: 1 | -1, front: boolean, lit3: boolean, f:
 
 /** The pyro jets along the front of the stage (set into the floor: steel, grilled, an armed lamp), and their columns of
  *  fire when they go off (stepped tongues, a white core, the glow on the floor). */
-export const PYRO_X = Array.from({ length: Math.floor(ARENA_W / 130) }, (_, i) => ARENA_L + 65 + i * 130);
+export const PYRO_X = Array.from({ length: Math.floor(ARENA_W / 130) }, (_, i) => ARENA_L + 65 + i * 130)
+  .filter(px => Math.abs(px - MAT_X(-1)) > MAT_HW + 20 && Math.abs(px - MAT_X(1)) > MAT_HW + 20);
 export const drawPyro = (c: Ctx, state: GameState, fire: Map<number, number>) => {
   const f = state.frame;
   for (const px of PYRO_X) {

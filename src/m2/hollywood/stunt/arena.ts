@@ -23,6 +23,9 @@ export const FLOOR_BACK_Y = GY + BACK_Z * ZK - 4, BARRIER_Y = GY + 96;
 export const DOORS_X = [ARENA_L + 230, ARENA_L + 760, ARENA_R - 760, ARENA_R - 230];
 /** Where Steve stands, by which end he's at (-1 the left, +1 the right). */
 export const STEVE_AT = (side: 1 | -1) => (side > 0 ? ARENA_R - 80 : ARENA_L + 80);
+/** The crash mats, lying flat on the floor by Steve's two ends (by which end); he comes down off the fling onto the
+ *  left one's middle (nothing set in the floor under them: no pyro jets). */
+export const MAT_X = (side: 1 | -1) => STEVE_AT(side) - side * 150, MAT_HW = 70;
 /** The overhead truss (the hoops' trolleys run along it). */
 export const TRUSS_Y = GY - 560;
 /** His feet on the screen in here (lower than usual: the floor in front, the crowd, in view). */
