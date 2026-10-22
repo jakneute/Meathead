@@ -50,6 +50,8 @@ export interface CarDef {
   cp?: [number, string];
   /** Tucker cuts it loose (and everything behind it) once he's this far along it (0..1); `tell` frames of warning. */
   cut?: { at: number; tell: number };
+  /** Its load's the circus cage wagon (the lion in it) in place of logs (lion.ts). */
+  circus?: boolean;
 }
 
 const C = (kind: CarKind, len: number, more: Partial<CarDef> = {}): CarDef => ({ kind, len, ...more });
@@ -57,7 +59,9 @@ const C = (kind: CarKind, len: number, more: Partial<CarDef> = {}): CarDef => ({
 export const CARS: CarDef[] = [
   /* 0 */ C('caboose', 440, { cp: [10, 'THE CABOOSE'] }),
   /* 1 */ C('boxcar', 520),
-  /* 2 */ C('flat', 520, { cut: { at: 0.3, tell: 120 } }),
+  // (the user's: the circus lion's cage rides on the first flat, right away, so the lion on the tracks (lion.ts) doesn't
+  // come from nowhere: Tucker cuts this car loose, it blows, and the lion gets out)
+  /* 2 */ C('flat', 520, { cut: { at: 0.3, tell: 120 }, circus: true }),
   /* 3 */ C('coach', 620, { cp: [11, 'THE COACHES'], foes: [['passenger', 170, 'in'], ['porter', 300, 'in'], ['passenger', 440, 'in']] }),
   /* 4 */ C('hopper', 460, { foes: [['brakeman', 260, 'top']] }),
   /* 5 */ C('baggage', 620, { cp: [12, 'THE BAGGAGE CAR'], foes: [['porter', 300, 'in']] }),
@@ -83,6 +87,8 @@ export const CARS: CarDef[] = [
   /* 21 */ C('engine', 600),
 ];
 export const TENDER = 20, ENGINE = 21;
+/** The car with the circus cage on it. */
+export const CIRCUS = CARS.findIndex(c => c.circus);
 
 /** Where the caboose starts (its back end): room behind it for the run up, and for cut cars to fall back. */
 export const REAR_X = x0 + 700;

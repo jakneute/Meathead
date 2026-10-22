@@ -33,7 +33,9 @@ import { playerRoom, roomAt } from './where';
 import { shiftBounds } from './kinds';
 import { tubeSay } from './tube';
 import { inView } from './view';
-import { TUBE_UNCOUPLE, TUBE_MISSED, TRAIN_GAGS } from './lines';
+import { TUBE_UNCOUPLE, TUBE_MISSED, TRAIN_GAGS, LION_LOOSE } from './lines';
+import { startMaul, lionEscapes } from './lion';
+import { CIRCUS } from './layout';
 
 const AWAY = -99999;
 
@@ -225,8 +227,11 @@ const derail = (ctx: FrameContext, tr: Train, k: number) => {
   for (let i = tr.rear; i <= k; i++) {
     const x = CAR_X[i] + cut.off;
     if (!inView(state, x, x + CARS[i].len, 300)) continue;
-    tr.wrecks.push({ x, y: 0, vx: cut.v, rot: 0, tip: 0, kind: CARS[i].kind, len: CARS[i].len, t: -(k - i) * 8, seed: i * 7 + 3 });
+    tr.wrecks.push({ x, y: 0, vx: cut.v, rot: 0, tip: 0, kind: CARS[i].kind, len: CARS[i].len, t: -(k - i) * 8, seed: i * 7 + 3, circus: i === CIRCUS });
   }
+  // (the circus car's gone up: the lion out of the fire and away (lion.ts); seen go, off screen or not)
+  const freed = CIRCUS >= tr.rear && CIRCUS <= k;
+  if (freed) lionEscapes(state, CAR_X[CIRCUS] + cut.off + CARS[CIRCUS].len / 2);
   const onIt = cx < edge && p.health > 0 && !p.inCutscene && p.pos.y + p.height < GY - 4;
   playSound('boom', 1, -8); playSound('crash', 1, -12); playSound('crunch', 1, -6); playSound('clang', 0.8, -14);
   shakeScreen(state, onIt ? 16 : 10, onIt ? 7 : 5);
@@ -263,14 +268,19 @@ const derail = (ctx: FrameContext, tr: Train, k: number) => {
     return;
   }
   tubeSay(state, TUBE_MISSED);
-  if (!tr.said.cut) { tr.said.cut = true; meatheadSays(state, pickLine(byPants(state, TRAIN_GAGS.cut))); }
+  // (the lion's car: his line's about the lion (lionEscapes); the cut gag waits for the next one)
+  if (freed) meatheadSays(state, pickLine(byPants(state, LION_LOOSE)));
+  else if (!tr.said.cut) { tr.said.cut = true; meatheadSays(state, pickLine(byPants(state, TRAIN_GAGS.cut))); }
 };
 
-/** The tracks under the train: down on them while it's moving, he's under the wheels (and so is anybody else). */
+/** The tracks under the train: down on them while it's moving, it's the circus lion (lion.ts: the user's, Meathead 1's
+ *  fall off Dale's truck); in the middle of a cut, the cut-off end still rolling at him behind, he's under its wheels
+ *  (and anybody else down there is under the wheels). */
 export const updateTracks = (ctx: FrameContext, x0: number, x1: number) => {
   const { state } = ctx, tr = trainOf(state), p = state.player;
   if (tr.phase !== 'ride') return;
   const cx = p.pos.x + p.width / 2;
+  if (p.health > 0 && !p.inCutscene && cx > x0 && cx < x1 && p.pos.y + p.height >= GY - 3 && p.vel.y >= 0 && !(tr.cut && tr.cut.phase === 'drift')) { startMaul(ctx); return; }
   if (p.health > 0 && !p.inCutscene && cx > x0 && cx < x1 && p.pos.y + p.height >= GY - 3 && p.vel.y >= 0) {
     p.invincibilityTimer = 0;
     for (let n = 0; n < 30; n++) state.particles.push({ pos: { x: cx, y: GY - 10 }, vel: { x: -3 - Math.random() * 8, y: -Math.random() * 6 }, life: 40, color: n % 2 ? '#B91C1C' : '#7F1D1D', size: 3 + Math.random() * 4 });

@@ -629,11 +629,12 @@ export const drawLamp = (c: Ctx, lx: number, ly: number, f: number) => {
 // ---------------------------------------------------------------------------------------------------------------
 // The wrecks: the cut cars gone off the line, over on their sides down the near bank, burning
 
-export const drawWreckCar = (c: Ctx, kind: CarKind, len: number, t: number, seed: number) => {
-  // (local: its left end, the ground line; drawn as it stood, then charred over, then fire)
+export const drawWreckCar = (c: Ctx, kind: CarKind, len: number, t: number, seed: number, load?: (c: Ctx) => void) => {
+  // (local: its left end, the ground line; drawn as it stood, then charred over, then fire; `load` in place of its
+  // own (the circus cage, broken open))
   c.save();
   drawBase(c, kind, len, 0);
-  if (ENTERABLE.includes(kind)) drawExt(c, kind, len, 0); else drawTop(c, kind, len, 0);
+  if (ENTERABLE.includes(kind)) drawExt(c, kind, len, 0); else if (load) load(c); else drawTop(c, kind, len, 0);
   for (const tx of [70, len - 70]) truck(c, tx, seed);
   c.restore();
   // (charred: soot over it, blacker the longer it burns; broken planks out of its side; the fire)

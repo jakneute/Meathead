@@ -46,6 +46,7 @@ import { updateEngine, drawEngineBack, drawEngineFront, drawEngineHud, crashed, 
 import { ZOOM } from './view';
 import { tubeSay, drawTube } from './tube';
 import { BOARDED, TUBE_BOARD, TUBE_LEDGER, TRAIN_GAGS, REVISIT } from './lines';
+import { updateCage, updateMaul, drawMaul, drawEscape, trainOff } from './lion';
 
 const { x0, x1 } = SECTIONS.train;
 // (back into the train from the town: the tender's front end)
@@ -106,6 +107,8 @@ export const train: FrontierSection = {
     }
     // (the camera's pulled back: the whole of what's drawn is the screen for the rules (what he can see, he can shoot))
     state.viewIsScreen = true;
+    // (off it onto the tracks: the lion's scene has it from here (lion.ts))
+    if (tr.lion) { stepWrecks(state); updateCage(ctx); return updateMaul(ctx); }
     // (up a grade it slows, down one it picks up)
     const want = tr.phase === 'ride' && tr.vTarget === V_FULL ? V_FULL * Math.max(0.7, Math.min(1.3, 1 - tr.grade * 4)) : tr.vTarget;
     tr.v += (want - tr.v) * 0.02;
@@ -146,6 +149,7 @@ export const train: FrontierSection = {
     updatePassers(ctx);
     updateShots(ctx, tr.phase === 'ride');
     updateRooms(ctx);
+    updateCage(ctx);
     stepWrecks(state);
     updateTracks(ctx, CAR_X[0] - 600, CAR_X[ENGINE] + CARS[ENGINE].len);
     // ---- what's said: the ledger now and then; the firsts
@@ -160,31 +164,47 @@ export const train: FrontierSection = {
   // (pulled back: the view's wider than the camera's 800, so the camera's kept that much in from the ends)
   cameraX: () => ({ min: x0 + (CANVAS_WIDTH / ZOOM - CANVAS_WIDTH) / 2, max: x1 - CANVAS_WIDTH - (CANVAS_WIDTH / ZOOM - CANVAS_WIDTH) / 2 }),
   // (the camera kept level: the train and the scenery steady, whichever car top he's on)
-  cameraRow: (state) => (state.player.isGrounded ? state.player.pos.y + state.player.height : DECK + 200),
+  // (off it onto the tracks: kept where it was, at the deck)
+  cameraRow: (state) => (trainOf(state).lion ? DECK : state.player.isGrounded ? state.player.pos.y + state.player.height : DECK + 200),
   // (the playtest: the cars are big; the camera pulled back to fit them, about the middle of the screen)
   zoom: (state) => ({ scale: ZOOM, x: state.camera.x + CANVAS_WIDTH / 2, y: state.camera.y + 300 }),
   // (the grades: the whole train tilts with the line under it, the horizon (the backdrop) level)
   worldTilt: (state) => { const t = trainOf(state).tilt; return Math.abs(t) > 0.0005 ? { x: state.camera.x + CANVAS_WIDTH / 2, y: DECK, angle: -t } : null; },
   drawBackdrop: (c, state) => drawScenery(c, state),
+  // (off it onto the tracks, the world stood still: the train drawn gone on without him (lion.ts trainOff))
   drawBack: (c, state) => {
+    const off = trainOff(state);
     drawTrackside(c, state);
     drawPassersBack(c, state);
+    c.save(); c.translate(off, 0);
     drawCarsBack(c, state);
     drawEngineBack(c, state);
+    c.restore();
     drawShots(c, state);
   },
   drawFront: (c, state) => {
+    const off = trainOff(state);
+    c.save(); c.translate(off, 0);
     drawCarsFront(c, state);
+    c.restore();
     drawPassersFront(c, state);
+    c.save(); c.translate(off, 0);
     drawEngineFront(c, state);
+    c.restore();
+    // (him on the ties, the lion)
+    drawMaul(c, state);
     drawNearLane(c, state);
     // (the wrecks still up by the rails, then the riders in the near lane, then the wrecks gone down the bank past them)
     drawWrecks(c, state, false);
     drawRiders(c, state);
+    // (the lion out of its wreck, off along the near lane)
+    drawEscape(c, state);
     drawWrecks(c, state, true);
   },
   drawHud: (c, state) => {
     const tr = trainOf(state);
+    // (off it onto the tracks: a cutscene, nothing up over it)
+    if (tr.lion) return;
     drawWarnings(c, state);
     drawTube(c, state);
     drawEngineHud(c, state);
@@ -195,7 +215,8 @@ export const train: FrontierSection = {
   // glows (the playtest: the lights muted, no spotlights; nobody lit up round him much))
   lighting: (state) => {
     const tr = trainOf(state), h = headlamp();
-    const lamps: Light[] = [...carLamps(state), ...tunnelLamps(state), { x: h.x, y: h.y, r: 170, a: 0.35, color: '#4A4418' }];
+    const off = trainOff(state);
+    const lamps: Light[] = [...carLamps(state).map(l => (off ? { ...l, x: l.x + off } : l)), ...tunnelLamps(state), { x: h.x + off, y: h.y, r: 170, a: 0.35, color: '#4A4418' }];
     const tod = todLight(lamps, 1);
     if (tr.dark < 0.02) return tod;
     return { dark: Math.max(tod?.dark ?? 0, 0.86 * tr.dark), shade: [12, 10, 10], rim: 0.2, grade: tod?.grade, lights: lamps };

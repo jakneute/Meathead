@@ -28,7 +28,7 @@ export interface Shot { kind: 'suitcase' | 'cleaver' | 'coal' | 'cinder'; x: num
 
 /** A cut car going off the line: sliding off the rails down the near bank, going over on its side, then left there
  *  (scrolling away with the ground). */
-export interface Wreck { x: number; y: number; vx: number; rot: number; tip: number; kind: CarKind; len: number; t: number; seed: number }
+export interface Wreck { x: number; y: number; vx: number; rot: number; tip: number; kind: CarKind; len: number; t: number; seed: number; circus?: boolean }
 
 /** A horse with nobody on it any more (its robber boarded, or shot off it): galloping off. */
 export interface LooseHorse { x: number; vx: number; t: number; seed: number }
@@ -87,10 +87,30 @@ export interface Train {
   hitCd: number;
   /** A shudder on the cut car (px). */
   shudder: number;
+  /** The circus lion in its cage (x along the car, which way it's facing, its roar), and out of it once its car's
+   *  blown (leaping out of the wreck, off down the bank). lion.ts. */
+  cage: { rx: number; facing: 1 | -1; walk: boolean; roar: number; roarCd: number; t: number };
+  escape: { x: number; y: number; vx: number; vy: number; t: number } | null;
+  /** Off the train onto the tracks: the lion scene (lion.ts). */
+  lion: Maul | null;
+}
+
+/** Off the train onto the tracks (the user's: Meathead 1's fall off Dale's truck): he tumbles along the ties as the
+ *  train rolls on away, lies there twitching, gets up, he's okay; then the circus lion. `x`, `h`: his middle and how high
+ *  he is off the ties; `off`: how far the train's gone on (it's drawn moved on by that; the world's stood still). */
+export interface Maul {
+  t: number;
+  x: number; h: number; vx: number; vh: number; rot: number; spin: number;
+  stoppedAt: number; okAt: number; saidOk: boolean;
+  off: number; trainV: number;
+  smears: { x: number; w: number }[];
+  lion: { x: number; h: number; vx: number; vh: number; t: number; mode: 'run' | 'leap' | 'maul' | 'chew' } | null;
+  hitAt: number; screamDone: number; kill: string;
 }
 
 export const trainOf = (state: GameState) => frontierState<Train>(state, 'train', () => ({
   phase: 'intro', settled: false, cars: [], rear: 0, cut: null, cutsDone: new Set(), dist: 0, v: 0, vTarget: 0, passers: [], fired: new Set(), shots: [], wrecks: [], horses: [], riders: [],
   dark: 0, grade: 0, tilt: 0, climb: 0, soak: 0, roarT: 0, stash: [],
   introT: 0, hopT: 0, tube: null, tubeBusy: false, ledgerT: 0, said: {}, cinderT: 0, hitCd: 0, shudder: 0,
+  cage: { rx: 260, facing: 1, walk: false, roar: 0, roarCd: 90, t: 0 }, escape: null, lion: null,
 }));

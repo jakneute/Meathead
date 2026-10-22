@@ -205,6 +205,24 @@ export const TRAIN_GAGS: Record<'cut' | 'cattle' | 'robbers' | 'tower' | 'tunnel
     nude: ["DARK. GOOD. NOBODY CAN SEE MY DICK."],
   },
 };
+/** The circus lion in its cage on the first flatcar (the first time he sees it): the setup for the tracks. */
+export const LION_CAGE: ByPants = {
+  clean: ['A LION. ON A TRAIN. IN A FEZ.', "A CIRCUS LION. DON'T LOOK AT ME, CAT."],
+  shitty: ['A LION. IT SMELLS ME. IT LIKES IT.', "THE LION'S STARING AT MY PANTS."],
+  nude: ["A LION IN A FEZ. AND I'M THE ONE WITH NO CLOTHES.", "EYES UP, CAT. THAT'S NOT A SAUSAGE."],
+};
+/** Tucker cut the lion's car loose: it blew, and the lion got out. */
+export const LION_LOOSE: ByPants = {
+  clean: ['THE LION GOT OUT. NOT MY PROBLEM.', "THERE GOES THE LION. GLAD I'M UP HERE."],
+  shitty: ["THE LION'S LOOSE. GOOD THING I'M ON THE TRAIN.", 'THE LION GOT OUT. IT WANTS NOTHING TO DO WITH ME.'],
+  nude: ["THE LION'S LOOSE. GOOD THING I'M NOT DOWN THERE NAKED.", 'THE LION GOT OUT. KEEP YOUR HAT ON, CAT.'],
+};
+/** Off the train onto the tracks: he's lain there twitching, he's up, and he's fine (the lion's coming). */
+export const IM_OKAY: ByPants = {
+  clean: ["I'M OKAY!", "I'M OKAY. I'M FUCKING OKAY.", 'NOTHING BROKE. NOTHING IMPORTANT.'],
+  shitty: ["I'M OKAY! THE PANTS AREN'T.", "I'M OKAY. I SHAT AGAIN, BUT I'M OKAY."],
+  nude: ["I'M OKAY! MY BALLS TOOK THE TIES.", "I'M OKAY. GRAVEL IN MY ASS CRACK, BUT OKAY."],
+};
 /** The engine: the KILL arrow over Tucker. */
 export const KILL_SEEN: ByPants = {
   clean: ['THERE\'S AN ARROW. IT SAYS KILL. OKAY.', 'KILL. YEAH. THAT WAS THE PLAN.'],
@@ -245,6 +263,11 @@ export const HURT: HurtTable = {
   'm2:fr_tracks': {
     hurt: ['THE TRACKS! THE TRACKS!', 'UNDER THE WHEELS!'],
     death: ['RUN OVER BY HIS OWN TRAIN', 'DICED BETWEEN THE CARS'],
+  },
+  // (off the train onto the tracks: he's okay, then the circus lion (lion.ts))
+  'm2:fr_lion': {
+    hurt: ['A LION! WHY IS THERE A LION?!', "IT'S WEARING A FEZ! GET IT OFF ME!", 'NOT THE FACE! NOT MY FACE!'],
+    death: ['MAULED BY A CIRCUS LION', "HE WAS OKAY. THEN HE WASN'T.", 'LUNCH FOR THE LION'],
   },
   'm2:fr_bridge': {
     hurt: ['BRIDGE! FACE!', 'LOW BRIDGE! I DIDN\'T DUCK!', 'WHO BUILDS A BRIDGE THAT LOW?!'],
@@ -315,7 +338,7 @@ export const HURT: HurtTable = {
 export const VOICE_LINES: Record<string, string[]> = {
   meathead: [
     ...allOf(BOARDED), ...Object.values(TRAIN_GAGS).flatMap(allOf), ...allOf(KILL_SEEN), ...allOf(SHOT_LINE), ...allOf(DRIVER_LINE), ...allOf(REVISIT),
-    ...allOf(MH_COMEBACK), ...allOf(MH_RAYGUN),
+    ...allOf(MH_COMEBACK), ...allOf(MH_RAYGUN), ...allOf(LION_CAGE), ...allOf(LION_LOOSE), ...allOf(IM_OKAY),
     ...Object.values(HURT).flatMap(h => h.hurt),
   ],
   death: Object.values(HURT).flatMap(h => h.death),

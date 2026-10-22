@@ -21,6 +21,7 @@ import { viewOf, drawnView, inDrawn } from './view';
 import { FG_GROUND } from './kinds';
 import type { Train } from './state';
 import { WR, windows, WIN_T, WIN_H, truck, drawBase, drawExt, drawInt, drawTop, drawCarLive, drawLamp, drawWreckCar } from './carArt';
+import { drawCage, trainOff } from './lion';
 
 export { drawScenery } from './far';
 
@@ -121,7 +122,8 @@ const veilOf = (state: GameState, tr: Train) => {
 /** Behind everybody: the cars (opened up if he's inside one, or fading as he goes in or out; the ones he only
  *  crosses), their trucks on the rails. */
 export const drawCarsBack = (c: Ctx, state: GameState) => {
-  const tr = trainOf(state), f = state.frame, roll = tr.dist / WR, veil = veilOf(state, tr);
+  // (the wheels turning with the world going by, or (he's off it, the world stood still) the train going on)
+  const tr = trainOf(state), f = state.frame, roll = (tr.dist + trainOff(state)) / WR, veil = veilOf(state, tr);
   for (let i = tr.rear; i < CARS.length; i++) {
     if (i === ENGINE || tr.cars[i]?.gone) continue;
     const x = carXNow(tr, i) + (tr.cut && tr.cut.phase === 'tell' && i === tr.cut.k ? tr.shudder : 0), d = CARS[i];
@@ -131,7 +133,8 @@ export const drawCarsBack = (c: Ctx, state: GameState) => {
     const open = ENTERABLE.includes(d.kind) && veil[i] < 1;
     if (ENTERABLE.includes(d.kind)) {
       if (open) { drawInt(c, d.kind, d.len, x); for (const [lx, ly] of lamps(i, x, f)) drawLamp(c, lx, ly, f); }
-    } else drawTop(c, d.kind, d.len, x);
+    } else if (d.circus) drawCage(c, state, x, d.len, tr.phase === 'still' ? 'open' : 'live');
+    else drawTop(c, d.kind, d.len, x);
     drawCarLive(c, d.kind, d.len, x, f, open);
   }
 };
@@ -212,7 +215,7 @@ export const drawWrecks = (c: Ctx, state: GameState, near?: boolean) => {
     c.rotate(w.rot);
     c.scale(1, Math.abs(flip) < 0.02 ? 0.02 * Math.sign(flip || 1) : flip);
     c.translate(-w.len / 2, H / 2 - GY);
-    drawWreckCar(c, w.kind, w.len, w.t + f * 0, w.seed);
+    drawWreckCar(c, w.kind, w.len, w.t + f * 0, w.seed, w.circus ? g => drawCage(g, state, 0, w.len, 'open') : undefined);
     c.restore();
     // (the smoke off it, rising straight up (it's stopped), drifting back)
     if (w.t > 0) for (let k = 0; k < 4; k++) {
