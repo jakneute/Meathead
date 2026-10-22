@@ -85,6 +85,11 @@ const SOUV_SHARE = 0.15, SOUV_IFRAMES = ENEMY_HIT_COOLDOWN;
 const REDEEMER_DMG = 90, REDEEMER_STUN = 120;
 /** After one's put him down, he's wise to it a while: another in that time is just a souvenir (unless it'd finish him). */
 const REDEEMER_GRACE = 300;
+/** In his fight, the launcher's bag is loaded for him: this often the next one out is the Redeemer outright, on top of
+ *  its usual 1 in 9 (so 0.25 + 0.75 / 9 = 1 in 3 all told); everywhere else it's just one of the nine. */
+const REDEEMER_BOOST = 0.25;
+/** A Redeemer landing on him: the callout over him ("CHRIST'D!" the main one: in twice). */
+const REDEEMER_CALLOUTS = ["CHRIST'D!", "CHRIST'D!", "JESUS'D!", 'SAVED!', 'HOLY HIT!', 'BORN AGAIN!', 'THE LORD SMITES!'];
 /** Hovering about between goes (frames, by phase); how high (feet above the floor). */
 const HOVER_T = [0, 140, 110, 88], HOVER_UP = 160;
 /** Now and then, hovering, he swoops down low across the floor (in the line of fire) for a while: every this often,
@@ -224,7 +229,9 @@ setSouvenirPick(all => {
     const t = (p.customData as { t?: { id: string; dmg: number } } | undefined)?.t;
     if (t && t.id !== 'redeemer') inAir += Math.max(1, souvenirMaxHit(t.dmg) * SOUV_SHARE);
   }
-  return f.hp <= lesserMax(all) + inAir ? 'redeemer' : null;
+  if (f.hp <= lesserMax(all) + inAir) return 'redeemer';
+  // (and otherwise a better than usual chance of it: random, never a sure thing)
+  return Math.random() < REDEEMER_BOOST ? 'redeemer' : null;
 });
 // (the Redeemer comes apart on him: one hit, its one chunk, no bouncing back for more)
 setSouvenirHit((e, id) => { if (!live || e !== live.e) return false; live.souvenir = { id }; return id === 'redeemer'; });
@@ -753,6 +760,7 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
     f.redeemAt = f.total + REDEEMER_STUN + REDEEMER_GRACE;
     f.hp -= REDEEMER_DMG; f.flash = 16; f.iframes = IFRAMES;
     playSound('ding', 1, 6); playSound('crack', 0.8, -4); shakeScreen(state, 10, 5);
+    state.damageNumbers.push({ id: `donnie-christd-${state.frame}`, text: pick(REDEEMER_CALLOUTS), pos: { x: f.x, y: f.y - DONNIE_H - 20 }, vel: { x: 0, y: -2.8 }, life: 80, maxLife: 80, isCritical: true, isCallout: true, color: '#D9F99D' });
     for (let i = 0; i < 16; i++) state.particles.push({ pos: { x: f.x, y: f.y - 50 }, vel: { x: (Math.random() - 0.5) * 7, y: -2 - Math.random() * 4 }, life: 30, color: ['#FEF9C3', '#FDE047', '#ECFCCB', '#FFFFFF'][i % 4], size: 2 + Math.random() * 3, grav: 0.15 });
     if (f.hp <= 0) { f.hp = 0; die(ctx, f, true); return; }
     stun(state, f);
