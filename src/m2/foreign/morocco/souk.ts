@@ -3,8 +3,8 @@
 // the park's CAMEL RIDE at its far end, whose fiberglass camels keep getting loose: every several seconds the herd
 // THUNDERS down the alley from the far end (the dust cloud, the rumble and the bells first: the tell; a salesman's
 // shout), trampling whoever's down in it (him: `m2:fl_stampede`, knocked flying; the cast too). The awnings are over
-// their humps: up there, they go by underneath. Salesmen, a camel suit spitting and a hookah bro smoking up on the
-// awnings; the broken corral at the end (GATE BROKEN, CAMELS: ALSO BROKEN), to the border with France.
+// their humps: up there, they go by underneath. Salesmen, camel suits spitting, a snake charmer and hookah bros up on
+// the awnings; the broken corral at the end (GATE BROKEN, CAMELS: ALSO BROKEN), to the border with France.
 
 import type { Light } from '../../../m1/game/render/lighting';
 import type { FrameContext } from '../../../m1/game/core/context';
@@ -42,9 +42,13 @@ const HERD = { n: 5, gap: 110, h: 112, v: 11 } as const;
 const EVERY = 450, WARN = 90;
 
 const ENEMIES: [string, number, number][] = [
-  ['m2:fl_snakecharmer', 3660, 0],
-  ['m2:fl_carpet', 3990, 230], ['m2:fl_hookah', 4180, 330], ['m2:fl_camel', 4540, 350], ['m2:fl_carpet', 4720, 450], ['m2:fl_hookah', 4890, 300],
-  ['m2:fl_carpet', 5060, 0], ['m2:fl_camel', 5230, 0], ['m2:fl_snakecharmer', 5320, 0],
+  // (THE SOUK's and THE CAMEL CORRAL's checkpoints' spots left clear; nobody idle down in the alley, the herd's run)
+  // up on the awnings: a salesman, the hookah bro, a snake charmer (the snake low across the awnings at his feet as he
+  // hops), a camel suit and a salesman side by side (the ram shoves him off down into the stampede: shove him instead),
+  // a salesman on the highest, the hookah bro and a camel suit on the way down
+  ['m2:fl_carpet', 3990, 230], ['m2:fl_hookah', 4180, 330], ['m2:fl_snakecharmer', 4370, 250],
+  ['m2:fl_camel', 4530, 350], ['m2:fl_carpet', 4590, 350], ['m2:fl_carpet', 4720, 450],
+  ['m2:fl_hookah', 4870, 300], ['m2:fl_camel', 4930, 300],
 ];
 
 export const SOUK_CHECKPOINTS = [

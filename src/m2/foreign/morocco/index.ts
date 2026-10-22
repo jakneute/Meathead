@@ -61,11 +61,20 @@ const SPICE = { a: 3460, b: 3570, h: 100 } as const;
 
 const ENEMIES: [string, number, number][] = [
   // (none down in the narrow alleys between the roofs, where he goes over them: up on the roofs, or out in the open)
-  ['m2:fl_camel', 260, 0], ['m2:fl_carpet', 400, 0], ['m2:fl_snakecharmer', 610, 140], ['m2:fl_carpet', 940, 220],
-  ['m2:fl_hookah', 1260, 300], ['m2:fl_snakecharmer', 1575, 200], ['m2:fl_camel', 1700, 0],
-  ['m2:fl_carpet', 1920, 240], ['m2:fl_hookah', 1820, 600],
-  ['m2:fl_carpet', 2220, 0], ['m2:fl_camel', 3080, 0],
-  ['m2:fl_snakecharmer', 3140, 0], ['m2:fl_hookah', 3330, 0], ['m2:fl_carpet', 3510, SPICE.h],
+  // (the gate and the first roof, by the two checkpoints there, left clear) a snake charmer on the second roof (the
+  // snake low across it as he lands), a salesman out on the next carpet line (his ram shoves him off into the alley),
+  // the hookah bro up top, a snake charmer on the last roof
+  ['m2:fl_snakecharmer', 940, 220], ['m2:fl_carpet', 1100, 250],
+  ['m2:fl_hookah', 1260, 300], ['m2:fl_snakecharmer', 1575, 200],
+  // the tower, a floor at a time (its door by THE TOWER's checkpoint clear): a camel suit, a salesman, the hookah bro
+  // at the top; a salesman out on a carpet down its far side
+  ['m2:fl_camel', 1800, 360], ['m2:fl_carpet', 1920, 480], ['m2:fl_hookah', 1820, 600], ['m2:fl_carpet', 2110, 440],
+  // the tannery: a camel suit up on the far drying rack, spitting down on him on the vats' rims (stuck a moment, a vat
+  // either side); past the last vat, a salesman (his ram shoves him back into it; shove him in instead)
+  ['m2:fl_camel', 2800, RACKS[1][2]], ['m2:fl_carpet', 3040, 0],
+  // the hookah lounge: a snake charmer at the tent's mouth, the hookah bro on the cushions inside, a camel suit up on
+  // the tent's roof, the salesman on the spice stall
+  ['m2:fl_snakecharmer', 3140, 0], ['m2:fl_hookah', 3250, CUSHIONS.h], ['m2:fl_camel', 3330, TENT.h], ['m2:fl_carpet', 3510, SPICE.h],
 ];
 const PICKUPS: [number, number, 'small_health' | 'small_ammo'][] = [[1870, 720, 'small_ammo'], [2510, 150, 'small_health']];
 
