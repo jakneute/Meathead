@@ -155,7 +155,7 @@ export const PINES: [number, number, number][] = [
   [18150, 230, 0],
 ];
 /** Rattlesnake holes: [x]. (The rattler in each: ANIMALS.) */
-export const SNAKE_HOLES: number[] = [9620, 9900, 10180, 18050];
+export const SNAKE_HOLES: number[] = [9620, 9900, 10180, 18230];
 /** Beehives: [x, height it hangs at] (the hive's own kind, in ANIMALS; drawn hanging off what's over it). */
 export const HIVES: [number, number][] = [[5720, 230], [16100, 160]];
 /** The log pile atop the hill (x), and the stretch its logs roll down (from the pile to the hill's foot). */
@@ -193,8 +193,9 @@ export const ANIMALS: [AnimalKind, number, number][] = [
   ['m2:fr_hawk', 8250, 560],
   ['m2:fr_cougar', 8380, 300],
   ['m2:fr_crow', 8800, 470],
-  // (snake flats: a goose behind, a hawk over the holes)
-  ['m2:fr_goose', 9420, 0],
+  // (snake flats: a goose among the holes (it was on the checkpoint): he walks past it to the next hole, it comes at
+  // his back while the rattler ahead rears; a hawk over the holes)
+  ['m2:fr_goose', 9790, 0],
   ['m2:fr_rattler', 9620, 0], ['m2:fr_rattler', 9900, 0], ['m2:fr_rattler', 10180, 0],
   ['m2:fr_hawk', 9900, 420],
   ['m2:fr_porcupine', 10330, 0],
@@ -204,15 +205,18 @@ export const ANIMALS: [AnimalKind, number, number][] = [
   ['m2:fr_beaver', 12050, 0], ['m2:fr_beaver', 12720, 0],
   ['m2:fr_trout', 11040, 0], ['m2:fr_trout', 12260, 0],
   ['m2:fr_crow', 12200, 380],
-  // (bison meadow: geese either side of the porcupine, a hawk over the bison)
-  ['m2:fr_goose', 13120, 0],
-  ['m2:fr_buck', 13250, 0],
-  ['m2:fr_hawk', 13450, 450],
-  ['m2:fr_bison', 13800, 0],
+  // (bison meadow: the porcupine and a goose between the meadow's rock and the bison: get up on the rock and the
+  // bison's charge plows through them under him (or stay down and take the lot head on); a hawk over the rock, so
+  // waiting up there isn't free)
+  ['m2:fr_hawk', 13420, 450],
   ['m2:fr_porcupine', 13560, 0],
   ['m2:fr_goose', 13640, 0],
-  // (the log pile: a hawk over the hill)
+  ['m2:fr_bison', 13850, 0],
+  // (the log pile: a goose grazing at the hill's foot (at his back while the logs come at his front), a hawk over
+  // the hill, and the buck up top past the pile: he charges down the hill at him through the logs' lane)
+  ['m2:fr_goose', 14090, 0],
   ['m2:fr_hawk', 14800, 600],
+  ['m2:fr_buck', 15190, 260],
   // (the long river: a goose on the bank at his back as he takes the log; a hawk over the water; the overhangs'
   // wolves and cougar, the hive, crows)
   ['m2:fr_goose', 15472, 0],
@@ -223,12 +227,15 @@ export const ANIMALS: [AnimalKind, number, number][] = [
   ['m2:fr_crow', 16500, 380], ['m2:fr_crow', 17200, 400],
   ['m2:fr_beaver', 15900, 0], ['m2:fr_beaver', 16900, 0],
   ['m2:fr_trout', 16060, 0], ['m2:fr_trout', 16780, 0], ['m2:fr_trout', 17160, 0],
-  // (the last mile: a goose on the cliff behind him, a hawk over the wolves)
-  ['m2:fr_goose', 17980, 40],
-  ['m2:fr_rattler', 18050, 0],
-  ['m2:fr_wolf', 18450, 0], ['m2:fr_wolf', 18530, 0], ['m2:fr_wolf', 18720, 0],
+  // (the last mile: the rattler past the pine; a goose behind the traps (at his back); two wolves side by side (one
+  // charge flings one into the other); a hawk over them; the buck past the second trap (wait, and his charge puts him
+  // in it); the cougar up on the gauntlet's first ledge, pouncing down among the traps; crows)
+  ['m2:fr_rattler', 18230, 0],
+  ['m2:fr_goose', 18420, 0],
+  ['m2:fr_wolf', 18500, 0], ['m2:fr_wolf', 18560, 0],
   ['m2:fr_hawk', 18600, 420],
-  ['m2:fr_buck', 18250, 0],
+  ['m2:fr_buck', 18760, 0],
+  ['m2:fr_cougar', 18890, 120],
   ['m2:fr_crow', 19000, 330], ['m2:fr_crow', 19250, 360],
 ];
 

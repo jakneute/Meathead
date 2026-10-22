@@ -1405,3 +1405,19 @@ later (+1 if heavyset; was 2 / 3 before playtest fixes E). Tucker's glimpsed ahe
   between the shafts (actors too) lies the ground's cut face (soil banded over rock courses, roots; mine.ts
   drawMineVeil, drawn in drawFront), its top following the floor's fanned edge, faded out by how far down a shaft he
   is (mineDepthOf 60..360 below the line: no pop) and back as he climbs out. The shafts' own openings stay clear.
+- **Encounter pass (2026-10-21; the user: "some areas seem like they can be mindlessly cleared by walking forward and
+  pressing fire. don't come up with new enemies but find more creative uses for their placements and the obstacles").**
+  Existing kinds and terrain only, about the same counts, HP and damage; the train's, the log ride's and the bike's
+  mechanics, the scenes and the fights untouched. Nobody newly placed inside a checkpoint's safe start (spawnSafe.ts
+  SAFE_X 360: placements there are silently left out on a respawn).
+  - **The wilds (wilds/layout.ts ANIMALS):** snake flats' goose stood on the checkpoint (120 off): now among the holes
+    (9790), so it comes at his back while the next rattler rears ahead. Bison meadow was a ground line (a goose on the
+    checkpoint, the buck 150 off it, then the porcupine, a goose, the bison): now the porcupine and a goose stand between
+    the meadow's rock and the bison, so up on the rock its charge plows through them under him (a hawk over the rock:
+    waiting up there isn't free). The buck's moved up onto the log pile's plateau past the pile (charging down the hill
+    at him through the logs' lane), and the meadow's other goose to the hill's foot (at his back while the logs come at
+    his front). The last mile had a goose and the rattler's hole inside THE LAST MILE's reach and a buck then three
+    wolves walking at him in a row: the hole and rattler moved past the pine (18230), the goose behind the first trap,
+    two wolves side by side (a charge flings one into the other), the buck past the second trap (wait him out and his
+    charge puts him in it), and the third wolf is a cougar up on the gauntlet's first ledge, pouncing down among the
+    traps. Counts the same (the last mile trades a wolf for the cougar).
