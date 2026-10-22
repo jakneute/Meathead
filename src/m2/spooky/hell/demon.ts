@@ -62,6 +62,7 @@ import {
 } from './demonLines';
 import type { Dressed, ByPants } from './lines';
 import { markBossFight } from '../../bossQuiet';
+import { drawSinkBack, drawSinkFront, drawSunk, sinkFx, sinkGulp } from './demonPool';
 
 type Ctx = CanvasRenderingContext2D;
 const pick = pickLine;
@@ -143,6 +144,8 @@ export interface Demon {
   said: Said | null; talkAt: number; used: string[];
   /** Beaten: the guitar left lying where he dropped it; how far he's sunk away. */
   guitarAt: number | null; sink: number;
+  /** The frame he went all the way under (the puddle cooling after him: demonPool.ts); long ago, just the scorch. */
+  sunkAt: number;
 }
 export const demonOf = (state: GameState) => hellOf(state).demon;
 
@@ -174,7 +177,7 @@ const blank = (): Demon => ({
   fight: 'wait', x: DEMON_HOME, y: GY, vx: 0, vy: 0, facing: -1, st: 'lounge', t: 0, cd: 60,
   hp: HP, flash: 0, hurtSince: 0, hurtAt: -999, e: null, lock: null, back: null, roof: null, bouncedAt: -999, bounces: 0,
   jumpTo: 0, hit: false, rushDir: 1, hold: 0, feint: false, last: [], pillars: [], waves: [],
-  said: null, talkAt: 0, used: [], guitarAt: null, sink: 0,
+  said: null, talkAt: 0, used: [], guitarAt: null, sink: 0, sunkAt: -1e9,
 });
 export const buildDemon = (state: GameState) => {
   const h = hellOf(state);
@@ -723,12 +726,14 @@ export const settleDemon = (state: GameState, d: Demon) => {
   if (d.y >= GY) { d.vy = 0; playSound('thud', 1, -10); shakeScreen(state, 12, 5); }
 };
 /** He's sinking away (satan.ts says when). */
+/** How long he takes to sink away. */
+const SINK_T = 110;
 export const sinkDemon = (d: Demon) => { d.st = 'sink'; d.t = 0; };
 export const tickSink = (state: GameState, d: Demon) => {
-  d.t++; d.sink = Math.min(1, d.t / 110);
-  if (d.t % 6 === 0) for (let i = 0; i < 3; i++) state.particles.push({ pos: { x: d.x + (Math.random() - 0.5) * 120, y: GY - 2 }, vel: { x: (Math.random() - 0.5) * 2, y: -2 - Math.random() * 3 }, life: 24, color: i % 2 ? '#F97316' : '#FDE047', size: 3 + Math.random() * 3 });
+  d.t++; d.sink = Math.min(1, d.t / SINK_T);
+  sinkFx(state, d.x, d.t);
   if (d.t % 30 === 0) playSound('glug', 0.7, -8);
-  if (d.sink >= 1) d.fight = 'gone';
+  if (d.sink >= 1) { d.fight = 'gone'; d.sunkAt = state.frame; sinkGulp(state, d.x); }
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -1085,6 +1090,8 @@ export const drawDemon = (c: Ctx, state: GameState) => {
   if (!d) return;
   const f = state.frame;
   // (the guitar he dropped: still lying there on the way back, its neck cracked)
+  // (the puddle he went down in: its last gulp, crusting over, then a scorch)
+  if (d.fight === 'gone' && d.sink >= 1) drawSunk(c, state, d.x, f - d.sunkAt);
   if (d.guitarAt !== null) guitar(c, d.guitarAt - 70, GY - 9, 0.04, false, 0, true);
   if (d.fight === 'gone') return;
   if (d.x < state.camera.x - 500 || d.x > state.camera.x + CANVAS_WIDTH + 500) return;
@@ -1156,17 +1163,15 @@ export const drawDemon = (c: Ctx, state: GameState) => {
   }
   // (the hellfire getting ready in his pointing hand: a flicker)
   void mad;
+  // (the puddle opening under him: its glow behind him, the far half of its splash)
+  if (st === 'sink') drawSinkBack(c, d.x, t, SINK_T);
   c.save();
   if (st === 'sink') { c.beginPath(); c.rect(d.x - 220, d.y - 420, 440, 420); c.clip(); c.translate(0, d.sink * 200); }
   c.translate(Math.round(d.x), Math.round(d.y));
   c.scale(d.facing, 1);
   drawPunk(c, d, f);
   c.restore();
-  if (st === 'sink') {
-    const r = 80 + Math.round(Math.sin(f * 0.2) * 6);
-    c.fillStyle = INK; c.beginPath(); c.ellipse(d.x, GY, r + 2, 10, 0, 0, Math.PI * 2); c.fill();
-    for (const [k, col] of [[1, LAVA[3]], [0.8, LAVA[4]], [0.55, LAVA[6]], [0.25, LAVA[7]]] as [number, string][]) { c.fillStyle = col; c.beginPath(); c.ellipse(d.x, GY - 1, r * k, 8 * k, 0, 0, Math.PI * 2); c.fill(); }
-  }
+  if (st === 'sink') drawSinkFront(c, d.x, t, f, SINK_T);
 };
 
 /** What he's saying, over his head (only while he's saying it). */
