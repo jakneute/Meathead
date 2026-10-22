@@ -22,7 +22,7 @@ import { isTorn } from './chase';
 import { drawCivilians } from './civArt';
 import {
   type Ctx, type View, INK, box, mix, hash, poly, at, atDepth, stillAt, seen, signText, FRONT_D, STEEL, STEVE, BRASS, CONCRETE, hour,
-  ramp6, post, board,
+  ramp6, post, board, sideBack, topBack,
 } from '../blvd/kit';
 import { enamel, gate } from '../../hub/letters';
 import type { Look } from '../../signLetters';
@@ -73,8 +73,10 @@ const tent = (c: Ctx, v: View, f: number) => {
   });
   // (the front legs, the canopy's top going back, its valance)
   for (const lx of [x + 2, x + w - 6]) { box(c, lx - 1, top + 18, 6, GY - top - 18, INK); box(c, lx, top + 18, 4, GY - top - 18, S[3]); box(c, lx, top + 18, 1, GY - top - 18, S[5]); box(c, lx - 3, GY - 3, 10, 3, S[1]); }
-  if (eye.y < top) {
-    for (let i = 0; i < 3; i++) { const p = 1 - 0.0233 * i, q = 1 - 0.0233 * (i + 1); poly(c, [at(eye, x, top, p), at(eye, x + w, top, p), at(eye, x + w, top, q), at(eye, x, top, q)], Wt[3 - i]); }
+  // (the valance's ends going back to the back legs, the one he's looking at; the canopy's top (none of it once it's under
+  // a pixel deep: its bands flickered as he came level with it))
+  for (const [e, side] of [[x, -1], [x + w, 1]] as const) sideBack(c, eye, e, side, top, top + 18, 1, 0.93, Wt, 2, false);
+  if (topBack(c, eye, x, x + w, top, 1, 0.93, Wt, 3)) {
     const [cx, cy] = at(eye, x + w / 2, top, 0.965); box(c, cx - 3, cy - 6, 6, 12, Rd[3]); box(c, cx - 9, cy - 2, 18, 4, Rd[3]);
   }
   box(c, x - 2, top - 1, w + 4, 20, INK); box(c, x - 1, top, w + 2, 18, Wt[3]); box(c, x - 1, top + 14, w + 2, 4, Wt[1]);

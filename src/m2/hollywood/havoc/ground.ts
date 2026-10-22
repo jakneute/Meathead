@@ -98,6 +98,12 @@ const pave = (c: Ctx, v: View, a: number, b: number, z: HZ, done: boolean) => {
       poly(c, [[at(eye, a, 0, p)[0], top(p)], [at(eye, b, 0, p)[0], top(p)], [at(eye, b, 0, q)[0], top(q)], [at(eye, a, 0, q)[0], top(q)]], tint(bandsW[i], p));
     }
     for (let x = step(90, 0); x < b; x += 90) { const [p0] = at(eye, x, 0, WALK_D), [p1] = at(eye, x, 0, FRONT_D); c.strokeStyle = tint(BOARD_R[1], 0.89); c.lineWidth = 1; c.beginPath(); c.moveTo(p0, top(WALK_D)); c.lineTo(p1, top(FRONT_D)); c.stroke(); }
+    // (its ends going back, the side he's looking at, once it's a pixel wide: it read as a flat strip cut off square)
+    const H = GY - fh / WALK_D;
+    for (const [e, side] of [[a, -1], [b, 1]] as const) {
+      if ((eye.x - e) * side * (WALK_D - FRONT_D) < 1) continue;
+      poly(c, [at(eye, e, H, WALK_D), at(eye, e, H, FRONT_D), at(eye, e, GY, FRONT_D), at(eye, e, GY, WALK_D)], tint(BOARD_R[1], WALK_D));
+    }
   } else if (z === 'canyon') {
     // (the canyon's apron: poured slabs, darker and wet toward the back, drains, DRAINS TO OCEAN stenciled)
     rows(c, eye, a, b, CURB_D, FRONT_D, [C[3], C[3], C[2], C[2], C[1]]);
@@ -400,7 +406,7 @@ export const lavaBack = (c: Ctx, v: View, l: typeof LAVA[number], done: boolean,
   // (the side walls, the ones he's looking at: rock, the glow up them from their feet (stepped, flickering), splashes
   // glowing along the foot)
   const wall = (e: number, ye: number, side: 1 | -1) => {
-    if ((eye.x - e) * side <= 1) return;
+    if ((eye.x - e) * side * (1 - D) < 1) return;
     const sp = surf - ye, SW = [ROCK[3], ROCK[2], ROCK[2], mix(ROCK[3], LAVA_R[1], 0.4), mix(ROCK[2], LAVA_R[2], 0.4 + fl * 0.2), LAVA_R[1], LAVA_R[2]];
     SW.forEach((col, i) => sideQ(c, eye, e, ye + (sp * i) / SW.length, ye + (sp * (i + 1)) / SW.length + 1, 1, D, col));
     for (let k = 0; k < 6; k++) { const d = D + ((k + 0.5) * (1 - D)) / 6, [sx, sy] = at(eye, e, surf - 3 - hash(k + e) * 6, d); if (((f >> 3) + k) % 4) box(c, sx - 1, sy, 2, 2, LAVA_R[(k % 2) + 4]); }

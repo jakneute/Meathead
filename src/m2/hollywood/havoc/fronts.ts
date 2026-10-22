@@ -522,7 +522,7 @@ export const drawLightTower = (c: Ctx, v: View, state: GameState, hv: Hv) => {
   }
   // (down: across the river, a plank: its top going back, lit along its edge (he walks on it))
   const y = GY - 14, a = x + w - 10, b = x + w + h;
-  if (v.eye.y < y) levelQ(c, v.eye, a, b, y, 1, 0.975, S[3]);
+  if ((y - v.eye.y) * 0.025 >= 1) levelQ(c, v.eye, a, b, y, 1, 0.975, S[3]);
   lip(c, a, y, b - a);
   void f;
 };
@@ -570,7 +570,7 @@ export const drawRideEnd = (c: Ctx, v: View, state: GameState) => {
   // (its EXIT sign, lying in it, dead)
   { const [ex, ey] = at(eye, xr + 250, GY - 3, 0.92); box(c, ex - 15, ey - 5, 30, 8, INK); box(c, ex - 14, ey - 4, 28, 6, '#5A1010'); }
   // The building's end: its corner open where the far wall went (the inside: dark, the seats in tiers, the screen's fire)
-  if (eye.x > xr + 1) {
+  if ((eye.x - xr) * (1 - OUT_D) >= 1) {
     const bands: [number, number, string][] = [[0, 20, '#141012'], [20, 120, '#0E0C10'], [120, 300, '#0A0809'], [300, RIDE_H, '#141012']];
     for (const [h0, h1, col] of bands) sideQ(c, eye, xr, GY - h1, GY - h0, 1, OUT_D, col);
     for (let t = 0; t < 4; t++) { const h0 = 10 + t * 22; sideQ(c, eye, xr, GY - h0 - 4, GY - h0, 0.98 - t * 0.03, 0.9 - t * 0.012, '#2A2228'); }

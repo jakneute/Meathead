@@ -31,6 +31,7 @@ import {
   type Ctx, type View, INK, box, checker, mix, hash, poly, at, atDepth, still, stillAt, seen, signText, STEEL, BRASS, CONCRETE, LIP,
   ramp6, hour, dimmed, rampH, lit, slab, ball, board, bulbs, plain, sideBack, topBack, underBack,
 } from '../blvd/kit';
+import { BEND } from '../../intro/art/kit';
 import { gate } from '../../hub/letters';
 import { tone } from '../../signLetters';
 import { levelQ, sideQ, truss, tubeH } from '../disaster/paint';
@@ -66,7 +67,7 @@ const waterTop = (c: Ctx, v: View, hv: Hv) => {
   const fd = hv.flood;
   if (!fd.on) return;
   const sy = Y(fd.h), eye = v.eye;
-  if (eye.y >= sy - 1) return;
+  if ((sy - eye.y) * 0.05 < 1) return;
   const a = Math.max(X(CLIMB.a) - 900, v.v0 - 200), b = Math.min(X(CLIMB.b), v.v1 + 200);
   if (b <= a) return;
   const cols = ['rgba(60, 74, 100, 0.85)', 'rgba(96, 60, 64, 0.8)', 'rgba(52, 66, 92, 0.8)', 'rgba(120, 70, 60, 0.75)'];
@@ -239,8 +240,9 @@ const ledges = (c: Ctx, v: View, hv: Hv, f: number, done: boolean) => {
     // (the transoms back to the frame; the deck going back)
     for (const bx of [x + 8, x + w - 10]) { const [px, py] = at(eye, bx, y + 28, FRAME_D); c.strokeStyle = INK; c.lineWidth = 4; c.beginPath(); c.moveTo(bx + jig, y + 13); c.lineTo(px, py); c.stroke(); c.strokeStyle = S[2]; c.lineWidth = 2; c.stroke(); }
     const R2 = rotten ? BOARD.map(c2 => hour(mix(c2, '#4A3A30', 0.25))) : S;
-    if (!topBack(c, eye, x + jig, x + w + jig, y, 1, FRAME_D + 0.004, R2, 3)) underBack(c, eye, x + jig, x + w + jig, y + 14, 1, FRAME_D + 0.004, R2, 3);
-    if (eye.y < y && !rotten) for (let k = x + 6; k < x + w; k += 10) { const [p0, q0] = at(eye, k + jig, y, 0.996), [p1, q1] = at(eye, k + jig, y, FRAME_D + 0.008); c.strokeStyle = S[1]; c.lineWidth = 1; c.beginPath(); c.moveTo(p0, q0); c.lineTo(p1, q1); c.stroke(); }
+    const deck = topBack(c, eye, x + jig, x + w + jig, y, 1, FRAME_D + 0.004, R2, 3);
+    if (!deck) underBack(c, eye, x + jig, x + w + jig, y + 14, 1, FRAME_D + 0.004, R2, 3);
+    if (deck && !rotten) for (let k = x + 6; k < x + w; k += 10) { const [p0, q0] = at(eye, k + jig, y, 0.996), [p1, q1] = at(eye, k + jig, y, FRAME_D + 0.008); c.strokeStyle = S[1]; c.lineWidth = 1; c.beginPath(); c.moveTo(p0, q0); c.lineTo(p1, q1); c.stroke(); }
     still(c, `hh-ledge-${w}-${rotten ? 1 : 0}-${done ? 1 : 0}`, x + jig, y, -4, -4, w + 8, 22, g => paintLedge(g, w, rotten, done));
   });
 };
@@ -317,6 +319,9 @@ export const drawClimb = (c: Ctx, v: View, state: GameState, hv: Hv, done: boole
     const x0 = X(bx);
     if (!seen(v, x0, x0 + bw, BACKS_D)) return;
     const gone = done ? bh * 0.7 : Math.max(0, Math.min(bh * 0.7, (flood.h - at0) * 2.2)), keep = bh - gone;
+    // (its ends going back (they stand apart: the gaps between them showed flat cutouts), up to what's left of it)
+    const SR = SIDING.map(dimmed);
+    for (const [e, side] of [[x0, -1], [x0 + bw, 1]] as const) sideBack(c, eye, e, side, Y(keep), GY, BACKS_D, BACKS_D - 0.05, SR, 3, false);
     atDepth(c, eye, BACKS_D, () => {
       c.save(); c.beginPath(); c.moveTo(x0 - 6, GY + 10);
       const n2 = 10;
@@ -337,7 +342,9 @@ const climbNear = (c: Ctx, v: View, state: GameState, hv: Hv, done: boolean) => 
   // The HOTEL HAPPYWOOD behind the first shaft (its side, its roof going back)
   const s1 = SHAFTS[0], hx = X(s1.a), hw = s1.b - s1.a, HH = 560, HR = rampH('#6B4F3A', true);
   if (seen(v, hx - 40, hx + hw + 40, HOTEL_D)) {
+    // (both its ends going back: the right one shows over STAGE 14's roof from the second shaft)
     sideBack(c, eye, hx, -1, Y(HH), GY, HOTEL_D, BACKS_D + 0.03, HR, 3);
+    sideBack(c, eye, X(s1.b), 1, Y(HH), GY, HOTEL_D, BACKS_D + 0.03, HR, 3);
     topBack(c, eye, hx, X(s1.b), Y(HH), HOTEL_D, BACKS_D + 0.03, ramp6(dimmed('#4A4440')), 3);
     atDepth(c, eye, HOTEL_D, () => still(c, 'hh-hotel', hx, GY, -12, -HH - 100, hw + 24, HH + 102, g => paintHotel(g, hw, HH)));
     if (!done) atDepth(c, eye, HOTEL_D, () => { for (let k = 0; k < 2; k++) flame(c, hx + 120 + k * 360, Y(HH) + 2, 26, 40, f, 50 + k); });
@@ -361,7 +368,8 @@ const climbNear = (c: Ctx, v: View, state: GameState, hv: Hv, done: boolean) => 
   }
   // The hill's flank over the third shaft (rock going back; the hillside's top along it)
   const fx = X(CLIMB.b);
-  if (eye.x < fx - 1 && seen(v, fx - 300, fx + 40)) {
+  // (only once it's a pixel wide: a sub-pixel sliver flickered along the play plane's edge as the camera crept)
+  if ((fx - eye.x) * (1 - SLOPE_D) >= 1 && seen(v, fx - 300, fx + 40)) {
     const N = 5;
     for (let i = 0; i < N; i++) {
       const d0 = 1 - ((1 - SLOPE_D) * i) / N, d1 = 1 - ((1 - SLOPE_D) * (i + 1)) / N;
@@ -454,9 +462,11 @@ const bunker = (c: Ctx, v: View, k: number, f: number, done: boolean) => {
   poly(c, [at(eye, L, under, BUNK_D), at(eye, Rr, under, BUNK_D), at(eye, Rr, floorY, BUNK_D), at(eye, L, floorY, BUNK_D)], '#1C1917');
   for (let y = under + 22; y < floorY - 4; y += 22) { const [p, q] = at(eye, L, y, BUNK_D), [p2] = at(eye, Rr, y, BUNK_D); box(c, p, q, p2 - p, 2, '#292524'); }
   levelQ(c, eye, L, Rr, floorY, 1, BUNK_D, Cd[2]);
-  if (eye.y > under) levelQ(c, eye, L, Rr, under, 1, BUNK_D, Cd[0]);
-  if (eye.x > L) sideQ(c, eye, L, under, floorY, 1, BUNK_D, Cd[1]);
-  if (eye.x < Rr) sideQ(c, eye, Rr, under, floorY, 1, BUNK_D, Cd[1]);
+  // (each only once it's a pixel across: sub-pixel slivers flickered at the mouth's edges)
+  const deep = 1 - BUNK_D;
+  if ((eye.y - under) * deep >= 1) levelQ(c, eye, L, Rr, under, 1, BUNK_D, Cd[0]);
+  if ((eye.x - L) * deep >= 1) sideQ(c, eye, L, under, floorY, 1, BUNK_D, Cd[1]);
+  if ((Rr - eye.x) * deep >= 1) sideQ(c, eye, Rr, under, floorY, 1, BUNK_D, Cd[1]);
   atDepth(c, eye, BUNK_D, () => {
     const mx = (L + Rr) / 2;
     signText(c, cv.name, mx, under + 40, { sx: 1, sy: 2, fill: '#FACC15', stencil: true, gap: 1 });
@@ -592,15 +602,29 @@ const hillNear = (c: Ctx, v: View, hv: Hv, f: number, done: boolean, hl: typeof 
   for (const [ra, rb] of hv.banks) mounds(ra, rb, 0.965);
   if (done) mounds(8600, DOWNHILL.b + 600, 0.962);
   // The rock face under the road (toward us): strata following it, snow on the ledges, icicles under the lip
+  // (the face's two outer ends, where it meets the street under the play plane (the ridge's foot at the climb, the hill's
+  // foot at the chase): below GY they follow the street's bent end (fanned from the eye like it), not a vertical cut that
+  // left a wedge of the unbent street showing between them as the eye moved off the end)
+  const yB = v.bot + 40, bentAt = (e: number) => eye.x + (e - eye.x) * (1 + (yB - GY) * BEND);
   for (const [ra, rb, h1, h2] of hillRuns) {
     const xa = X(ra), xb = X(rb), ya = Y(h1), yb = Y(h2);
     if (xb < v.v0 - 60 || xa > v.v1 + 60) continue;
-    poly(c, [[xa, ya], [xb, yb], [xb, v.bot + 40], [xa, v.bot + 40]], ROCK[3]);
+    const first = ra === hillRuns[0][0], last = rb === hillRuns[hillRuns.length - 1][1];
+    const la = first && yB > GY ? bentAt(xa) : xa, lb = last && yB > GY ? bentAt(xb) : xb;
+    const outline: [number, number][] = [[xa, ya], [xb, yb]];
+    if (lb !== xb && yb < GY) outline.push([xb, GY]);
+    outline.push([lb, yB], [la, yB]);
+    if (la !== xa && ya < GY) outline.push([xa, GY]);
+    poly(c, outline, ROCK[3]);
+    c.save(); c.beginPath(); outline.forEach(([px, py], i) => (i ? c.lineTo(px, py) : c.moveTo(px, py))); c.closePath(); c.clip();
+    // (the strata carried on level past an end, into the wedge the bent street leaves)
+    const ea = Math.max(0, xa - la), eb = Math.max(0, lb - xb);
     for (let s = 0, k = 0; s < 900; s += 30 + k * 6, k++) {
-      const col = [ROCK[4], ROCK[3], ROCK[2], ROCK[3], ROCK[2], ROCK[1]][k % 6];
-      poly(c, [[xa, ya + s], [xb, yb + s], [xb, yb + s + 26 + k * 6], [xa, ya + s + 26 + k * 6]], mix(col, '#000000', Math.min(0.6, s / 1400)));
-      if (k % 2 === 1) { c.strokeStyle = SNOW[3]; c.lineWidth = 2; c.beginPath(); c.moveTo(xa, ya + s); c.lineTo(xb, yb + s); c.stroke(); }
-      else if (s > 0) { const dk = Math.min(0.6, s / 1400); c.strokeStyle = mix(ROCK[5], '#000000', dk); c.lineWidth = 1; c.beginPath(); c.moveTo(xa, ya + s + 1); c.lineTo(xb, yb + s + 1); c.stroke(); c.strokeStyle = mix(ROCK[0], '#000000', dk); c.beginPath(); c.moveTo(xa, ya + s - 1); c.lineTo(xb, yb + s - 1); c.stroke(); }
+      const col = [ROCK[4], ROCK[3], ROCK[2], ROCK[3], ROCK[2], ROCK[1]][k % 6], t = 26 + k * 6;
+      poly(c, [[xa - ea, ya + s], [xa, ya + s], [xb, yb + s], [xb + eb, yb + s], [xb + eb, yb + s + t], [xb, yb + s + t], [xa, ya + s + t], [xa - ea, ya + s + t]], mix(col, '#000000', Math.min(0.6, s / 1400)));
+      const line = (o: number) => { c.beginPath(); c.moveTo(xa - ea, ya + s + o); c.lineTo(xa, ya + s + o); c.lineTo(xb, yb + s + o); c.lineTo(xb + eb, yb + s + o); c.stroke(); };
+      if (k % 2 === 1) { c.strokeStyle = SNOW[3]; c.lineWidth = 2; line(0); }
+      else if (s > 0) { const dk = Math.min(0.6, s / 1400); c.strokeStyle = mix(ROCK[5], '#000000', dk); c.lineWidth = 1; line(1); c.strokeStyle = mix(ROCK[0], '#000000', dk); line(-1); }
     }
     // (in the face: fissures running down through the strata, and boulders bedded in it, each lit on top, a lick of
     // snow on the bigger ones; fewer and darker the deeper)
@@ -617,6 +641,7 @@ const hillNear = (c: Ctx, v: View, hv: Hv, f: number, done: boolean, hl: typeof 
         if (r > 11 && by - top < 120) box(c, x - r * 0.4, by - r * 0.8, r * 0.9, 2, SNOW[4]);
       }
     }
+    c.restore();
     // (the snowpack in cross-section over the edge, icicles off it: snowzone.ts; the lit lip over it, frost twinkling
     // just over that)
     snowpack(c, xa, ya, xb, yb, done ? 0 : f);
