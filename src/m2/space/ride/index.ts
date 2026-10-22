@@ -45,7 +45,7 @@ import { type Tricks, newTricks, runTricks, settleTricks, fireBlaster, JUMP_V, J
 import { paStory, paSaying, paHush } from './pa';
 import { drawSled, seatedIn, HIS_SLED, FRONT_SLED, SEATS, SLED_SINK } from './sled';
 import { drawRideBackdrop, drawRideBack, drawRideFront, rideLighting, drawBlaster, BRAKE_BOX_X, type RideLook } from './art';
-import { drawLaunchOutside, OUT_END, OUT_SPLAT, OUT_LAND_ME } from './launch';
+import { drawLaunchOutside, prewarmLaunch, OUT_END, OUT_SPLAT, OUT_LAND_ME } from './launch';
 import * as L from './lines';
 import { forceWeapon, releaseWeapon } from '../../weaponLock';
 
@@ -405,6 +405,8 @@ export const ride: SpaceSection = {
     { name: 'THE WAREHOUSE', cp: 23, x: R + 13400, y: GY - 330 },
   ],
   build: (state) => {
+    // (the launch's outside shot: its still layers painted ahead, in idle moments)
+    prewarmLaunch();
     // (the track's own ground, under the workers on it; the gaps go down to nothing)
     const n0 = state.blocks.length;
     lay(state, RUNS.map(([a, b, ya, yb]) => ({ x1: a, y1: ya, x2: b, y2: yb, surface: 'metal' as const })));
