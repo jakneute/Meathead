@@ -41,3 +41,16 @@ placed within the safe start's reach of a checkpoint (spawnSafe.ts SAFE_X 360, S
   - the laser show: a flag in the fog in the floor laser's run, the two martians under the sweep.
 - Left alone: the meteors (the floor's all swept: the martian on the crate and the rigger on the perch), the line and
   the hijack (scripted).
+
+**The main drag (drag/layout.ts ENEMIES: same kinds, same count)**
+
+- The monorail's cadet stood 140 from THE LAGOON MONORAIL's checkpoint. It's by the timed pad under the station now,
+  shooting at him while he waits on the pad for it to go (or shove it onto the pad: BLAST OFF).
+- The street under the googie roofs was a walk-and-fire line (robot, dog, guard, robot), the last robot 140 from SPACE
+  NEEDLE 2's checkpoint, and the roofs had only the jetpacker. Two roads with different mixes now: the street a robot
+  with a dog at its feet, then the guard; the roofs the other robot up on the health's roof (its live antenna: no dive
+  kicking it, fight it up there or go under), the jetpacker over.
+- The needle's plaza: the first cadet's up on the observation balcony shooting down (the step pad's way up to its
+  ammo goes through him); the guard still rushes across the plates.
+- Left alone: the landing, the saucers (nothing about: learn them), the third rail and its trains, the treadmill under
+  fire (already a fight against the belt).

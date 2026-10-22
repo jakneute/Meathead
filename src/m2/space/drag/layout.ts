@@ -58,13 +58,18 @@ export const MONO = { a: TRACK.a, b: TRACK.b, len: 270, v: 6.5, period: 400, off
 export const TRACK_LEGS = [2100, 2550, 3000, 3330];
 
 export type DragKind = 'm2:space_rover' | 'm2:space_cadet' | 'm2:space_guard' | 'm2:space_robot' | 'm2:space_jetpack';
+/** Who's where: [kind, x, height]. Off the checkpoints; the two roads differ (the roofs: a robot on the health's roof,
+ *  no dive kicking its antenna, a jetpacker over; the street: a robot with a dog at its feet, then the guard). */
 export const ENEMIES: [DragKind, number, number][] = [
-  ['m2:space_cadet', 1620, 0], ['m2:space_jetpack', 1900, 340],
+  // (by the timed pad under the station: shooting at him while he waits on it for it to go; or shove him onto it)
+  ['m2:space_cadet', 1870, 0], ['m2:space_jetpack', 1900, 340],
   ['m2:space_jetpack', 2700, 420],
   ['m2:space_cadet', 4430, 0], ['m2:space_cadet', 4510, 0], ['m2:space_jetpack', 4100, 300],
-  ['m2:space_robot', 4950, 0], ['m2:space_rover', 5120, 0], ['m2:space_guard', 5350, 0], ['m2:space_robot', 5560, 0],
+  ['m2:space_robot', 4950, 0], ['m2:space_rover', 5040, 0], ['m2:space_guard', 5350, 0], ['m2:space_robot', 5100, 240],
   ['m2:space_jetpack', 5150, 420],
-  ['m2:space_guard', 6400, 0], ['m2:space_cadet', 6760, 0], ['m2:space_cadet', 6980, 0], ['m2:space_robot', 7120, 0],
+  // (the needle's plaza: the guard rushing across the plates at him, a cadet up on the observation balcony shooting
+  // down (the pad's way up to its ammo), a cadet and a robot at the lift)
+  ['m2:space_guard', 6400, 0], ['m2:space_cadet', 6740, 280], ['m2:space_cadet', 6980, 0], ['m2:space_robot', 7120, 0],
   ['m2:space_jetpack', 6800, 360],
 ];
 export const PICKUPS: [number, number, 'small_health' | 'small_ammo'][] = [
