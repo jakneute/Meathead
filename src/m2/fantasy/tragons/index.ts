@@ -25,6 +25,7 @@ import { x0, x1, GY, CHECKPOINTS, EXIT_X } from './layout';
 import { tragonsOf } from './state';
 import { buildRide, updateRide, viewOf, cameraLimits, holdOffRide, offRideNow } from './ride';
 import { drawTragonsBackdrop, drawTragonsBack, drawTragonsFront, drawTragonsHud } from './art';
+import { caveLight } from './cave';
 import './deaths';
 
 // (back from the castle's base: out by the unload's exit)
@@ -63,4 +64,6 @@ export const tragons: FantasySection = {
     return { scale: v.k, x: v.cx, y: v.cy, shiftX: CANVAS_WIDTH / 2 - (v.cx - state.camera.x), shiftY: CANVAS_HEIGHT / 2 - (v.cy - state.camera.y) };
   },
   outdoors: () => 1,
+  // (inside the fake mountain: dark as the Wilderness train's tunnels, never black, the dragons' lamps through it)
+  lighting: (state, base) => caveLight(state, base),
 };

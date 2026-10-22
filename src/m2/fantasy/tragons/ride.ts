@@ -35,8 +35,9 @@ import {
   TUNNEL as TUNNEL_L, SPLASH, ARRIVE, CLOSED, RIVAL_UNLOAD, RIVAL_VOICES,
 } from './lines';
 
-/** His hop: frames in the air, and the cooldown from when he leaves (the user's "a little cooldown"). */
-export const HOP_T = 20, HOP_CD = 32;
+/** His hop: frames in the air, and the cooldown from when he leaves (the user's "a little cooldown"; halved since, the
+ *  user's: was 32), and the least he's held after he lands (no spamming it into glitches). */
+export const HOP_T = 20, HOP_CD = 16, HOP_LAND_CD = 6;
 /** Not holding down through a loop this long and his hands go (frames): a slip first, then flung. */
 export const GRIP_SLIP = 5, GRIP_GONE = 16;
 /** The screen's framing of the ride: the trains' rears this far in from the left; the band under the HUD and over the
@@ -623,7 +624,7 @@ export const updateRide = (ctx: FrameContext, controls: Controls): Controls => {
       p.vel.x = 0; p.vel.y = 0;
       p.tragon = { mode: 'hop', move: false, hang: 0, hurt: false };
       if (h.t >= h.dur) {
-        t.hop = null; p.carried = false; t.lane = h.to;
+        t.hop = null; p.carried = false; t.lane = h.to; t.hopCd = Math.max(t.hopCd, HOP_LAND_CD);
         p.pos.y = ty - p.height - 0.5; p.vel.y = 1;
         playSound('land', 0.8, -4);
         if (!state.stageMemo[TIPS_MEMO]) state.stageMemo[TIPS_MEMO] = '1';

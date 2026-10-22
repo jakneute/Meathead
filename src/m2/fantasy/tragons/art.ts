@@ -12,12 +12,12 @@
 // (drawTragonsBack). Culled by where it lands on the screen, never by where it'd be flat (no pop-in). The sorted list's
 // worked out once a frame (the back and the front share it).
 //
-// Over it all in screen space: the dark inside the mountain (his dragons' lamps soft through it), the warnings (an
+// Over it all in screen space (the mountain's dark is the lighting's: cave.ts): the warnings (an
 // enamel plaque at every hole and loop coming, in its lane's color, an arrow at the edge while it's off the screen, a
 // countdown over the dragon that's going into it, SAFE over the one that won't), the PA's words in the top band.
 
 import type { GameState } from '../../../m1/game/core/state';
-import { CANVAS_WIDTH, CANVAS_HEIGHT, topBand } from '../../../m1/constants';
+import { CANVAS_WIDTH, topBand } from '../../../m1/constants';
 import { drawFireball } from '../../../m1/game/render/fx/fireball';
 import { saidOver } from '../section';
 import { mix, box, INK, IRON, SNOW, STONE, GOLD, ramp6, rampH, dimmed, polyF, postR, checker, type Ctx } from '../kit';
@@ -27,12 +27,12 @@ import { GY, TL, CAR, LANES, LANE_COL, LANE_NAME, rearX, type Lane } from './lay
 import { trackPt, proj, type Eye, type Pt } from './track';
 import { roofSpan } from './cars';
 import { tragonsOf, type Tragons, type Obst, type Train, type Car } from './state';
-import { toScreen, viewOf, hisTrainD, UNLOAD_SPOTS, FRAME_TOP, FRAME_BOT } from './ride';
-import { TUNNEL } from './layout';
+import { toScreen, hisTrainD, UNLOAD_SPOTS, FRAME_TOP, FRAME_BOT } from './ride';
 import { viewBox, boxIn, sceneEye, fog } from './scene';
 import { paintCar } from './dragon';
 import { drawSteel, RAIL } from './steel';
 import { drawFloor, drawMountain, sceneryItems } from './scenery';
+import { drawCaveInside } from './cave';
 import { drawStation, drawUnload, drawStationNear, drawUnloadNear } from './station';
 import { drawTragonsFar } from './far';
 
@@ -432,6 +432,8 @@ export const drawTragonsBack = (c: Ctx, state: GameState) => {
   drawFloor(c, state, t, e);
   // (the fake mountain: far back, behind every track whatever their depth)
   drawMountain(c, state, t, e);
+  // (inside it: the bore, behind every track and dragon; its dark's the lighting's: cave.ts)
+  drawCaveInside(c, state);
   drawStation(c, state, t, e);
   drawUnload(c, state, t, e);
   drawUnloadRivals(c, state, t, UNLOAD_SPOTS);
@@ -502,34 +504,8 @@ const overTrain = (state: GameState, tr: Train, up: number) => {
   return { x: Math.max(60, Math.min(CANVAS_WIDTH - 60, p.x)), y: Math.max(FRAME_TOP + 8, Math.min(FRAME_BOT - 12, p.y)) };
 };
 
-let dark: HTMLCanvasElement | null = null;
-/** Inside the mountain: dark, but for his dragons' lamps (their heads, soft round them) and a glow round him. */
-const drawDark = (c: Ctx, state: GameState, t: Tragons) => {
-  const mid = t.dist + TL / 2, a = TUNNEL.a + 60, b = TUNNEL.b - 60;
-  if (t.phase !== 'ride' || mid < a - 200 || mid > b + 200 || typeof document === 'undefined') return;
-  // (in steps going in and coming out: the light going and coming back gradually, the steps not smooth: SNES)
-  const k = Math.round(Math.min(1, (mid - (a - 200)) / 420, (b + 200 - mid) / 420) * 6) / 6 * 0.78;
-  if (k <= 0) return;
-  dark ??= document.createElement('canvas');
-  if (dark.width !== CANVAS_WIDTH) { dark.width = CANVAS_WIDTH; dark.height = CANVAS_HEIGHT; }
-  const g = dark.getContext('2d')!;
-  g.globalCompositeOperation = 'source-over'; g.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-  g.fillStyle = `rgba(6, 3, 14, ${k})`; g.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-  g.globalCompositeOperation = 'destination-out';
-  const hole = (x: number, y: number, r: number) => { const gr = g.createRadialGradient(x, y, r * 0.2, x, y, r); gr.addColorStop(0, 'rgba(0,0,0,0.9)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = gr; g.fillRect(x - r, y - r, r * 2, r * 2); };
-  const s = viewOf(state).k;
-  for (const tr of t.trains) { if (tr.phase !== 'ok' || !tr.cars.length) continue; const h = toScreen(state, tr.cars[2].x + 60 * tr.cars[2].d, tr.cars[2].y - 30); hole(h.x, h.y, 130 * s); const m = toScreen(state, tr.cars[1].x, tr.cars[1].y - 30); hole(m.x, m.y, 110 * s); }
-  const p = state.player, pp = toScreen(state, p.pos.x + p.width / 2, p.pos.y + p.height / 2); hole(pp.x, pp.y, 90 * s);
-  g.globalCompositeOperation = 'source-over';
-  c.drawImage(dark, 0, 0);
-  // (the plaster inside caught in the lamps: a few painted rocks and a STAFF ONLY door going by)
-  const f = state.frame;
-  for (let n = 0; n < 6; n++) { const x = ((n * 173 - f * 7) % (CANVAS_WIDTH + 200) + CANVAS_WIDTH + 200) % (CANVAS_WIDTH + 200) - 100, y = 120 + ((n * 97) % 380); c.globalAlpha = 0.12 * k; box(c, x, y, 40, 4, '#9A8894'); c.globalAlpha = 1; }
-};
-
 export const drawTragonsHud = (c: Ctx, state: GameState) => {
   const t = tragonsOf(state), f = state.frame;
-  drawDark(c, state, t);
   if (t.phase === 'ride') {
     // The holes coming
     for (const g of t.gaps) {

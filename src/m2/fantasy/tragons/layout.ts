@@ -32,6 +32,29 @@ export type LaneId = (typeof LANE_ID)[number];
 export const LANE_COL: [string, string, string][] = [['#FACC15', '#FEF9C3', '#6D28D9'], ['#EA580C', '#FDBA74', '#991B1B'], ['#38BDF8', '#F0F9FF', '#1D4ED8']];
 
 // ---------------------------------------------------------------------------------------------------------------
+// The stretch (the user's: faster, and a bit longer to make up for it): the layout's below is written in the old
+// ride's track positions and stretched out by STRETCH everywhere but the big drops and the mountain's dive (kept as
+// steep as they were). Everything at a position goes through it together (the keys, the script, the set pieces, the
+// checkpoints), so it all still lines up; lengths (holes, loops, the live rail) and warnings (frames) aren't.
+
+const STRETCH = 1.5;
+const KEEP: [number, number][] = [[5100, 6500], [13800, 15000], [23900, 25200], [33200, 34400]];
+/** An old track position, stretched. */
+function stretch(s: number) {
+  const seg = (a: number, b: number) => {
+    let L = 0, x = a;
+    for (const [k0, k1] of KEEP) {
+      if (k1 <= x || k0 >= b) continue;
+      const p = Math.max(x, k0), q = Math.min(b, k1);
+      L += (p - x) * STRETCH + (q - p); x = q;
+    }
+    return L + Math.max(0, b - x) * STRETCH;
+  };
+  return Math.round(s >= 0 ? seg(0, s) : -seg(s, 0));
+}
+const at = stretch;
+
+// ---------------------------------------------------------------------------------------------------------------
 // The world
 
 /** The load station's platform starts here; the trains' rears sit at S0X waiting. */
@@ -46,7 +69,7 @@ export const TL = 300, CAR = 100;
 export const GATE_X = S0X + TL + 60;
 /** Where the trains stop (their rears' s) at the unload; the unload's decks (one a lane, right of the dragons' heads)
  *  and the exit (on to the castle's base). */
-export const END_S = 50000;
+export const END_S = Math.round(stretch(50000));
 export const DECK_X0 = RX + TL + 4, DECK_X1 = RX + TL + 460;
 export const EXIT_X = RX + TL + 1500;
 export const AWAY = -99999;
@@ -59,7 +82,7 @@ export const rearX = (dist: number) => S0X + Math.min(dist, LOCK);
 // ---------------------------------------------------------------------------------------------------------------
 // The tracks: heights above the ground (lanes 0, 1, 2) and depths, keyed along the ride, smoothed between the keys.
 
-const H_KEYS: [number, number, number, number][] = [
+const H_KEYS: [number, number, number, number][] = ([
   [-2000, 380, 230, 70], [700, 380, 230, 70],
   // THE LIFT HILL: up and up, away into the haze
   [1800, 450, 300, 150], [3200, 700, 560, 420], [4700, 980, 840, 700], [5100, 1000, 860, 720],
@@ -87,15 +110,15 @@ const H_KEYS: [number, number, number, number][] = [
   [39600, 600, 420, 260], [40600, 420, 330, 240], [41200, 560, 400, 260], [43600, 560, 400, 260],
   // THE GRAND FINALE: three interlocked loops; one more hole; the brakes
   [44400, 520, 380, 240], [47400, 520, 380, 240], [48400, 480, 330, 180], [64000, 480, 330, 180],
-];
-const D_KEYS: [number, number, number, number][] = [
+] as [number, number, number, number][]).map(([k, a, b, c]) => [at(k), a, b, c]);
+const D_KEYS: [number, number, number, number][] = ([
   [-2000, 1, 1, 1], [1400, 1, 1, 1], [4800, 0.78, 0.8, 0.82], [5200, 0.8, 0.82, 0.84], [6500, 1.32, 1.38, 1.3], [7600, 1, 1, 1],
   [12800, 1, 1, 1], [13800, 0.84, 0.85, 0.86], [15000, 1.3, 1.32, 1.3], [15800, 1, 1, 1],
   [17400, 1, 1, 1], [18500, 0.72, 1.36, 1], [19400, 0.82, 1.2, 1], [20200, 1, 1, 1],
   [23000, 1, 1, 1], [24000, 0.8, 0.8, 0.8], [25200, 1.3, 1.3, 1.3], [26000, 1, 1, 1],
   [32600, 1, 1, 1], [33200, 0.8, 0.8, 0.8], [34400, 1.3, 1.35, 1.4], [35400, 1, 1, 1],
   [40000, 1, 1, 1], [40600, 0.82, 1, 1.2], [41200, 1, 1, 1], [64000, 1, 1, 1],
-];
+] as [number, number, number, number][]).map(([k, a, b, c]) => [at(k), a, b, c]);
 
 const ease = (u: number) => u * u * (3 - 2 * u);
 const keyed = (keys: [number, number, number, number][], lane: Lane, s: number) => {
@@ -116,12 +139,13 @@ export const laneD = (lane: Lane, s: number) => keyed(D_KEYS, lane, s);
 // The ride's speed (px a frame) along it: slow for the teaching (the first hole, the first loop), up to speed, the
 // brakes at the end.
 
-// (a bit quicker, the user's; the warnings are in frames, so they keep their time)
-export const V_TEACH = 5.6, V_RIDE = 7, V_LATE = 7.5;
+// (quicker again, the user's (was 5.6 / 7 / 7.5); the warnings are in frames, so they keep their time)
+export const V_TEACH = 7.2, V_RIDE = 9.5, V_LATE = 10.2;
+const TEACH_END = at(9600), LATE_AT = at(34000), BRAKES = 2000;
 export const speedAt = (dist: number) => {
-  if (dist < 9600) return V_TEACH;
-  if (dist > END_S - 1600) return Math.max(0.6, V_RIDE * Math.sqrt(Math.max(0, END_S - dist) / 1600));
-  if (dist > 34000) return V_LATE;
+  if (dist < TEACH_END) return V_TEACH;
+  if (dist > END_S - BRAKES) return Math.max(0.6, V_LATE * Math.sqrt(Math.max(0, END_S - dist) / BRAKES));
+  if (dist > LATE_AT) return V_LATE;
   return V_RIDE;
 };
 
@@ -129,11 +153,11 @@ export const speedAt = (dist: number) => {
 // The set pieces on the track
 
 /** The fake mountain the tracks dive through (track positions: its tunnel's mouths). */
-export const TUNNEL = { a: 23700, b: 25500 };
+export const TUNNEL = { a: at(23700), b: at(25500) };
 /** The lagoon at the bottom of the splashdown (track positions), and the bottom (the spray). */
-export const LAGOON = { a: 33700, b: 35200, splash: 34400 };
+export const LAGOON = { a: at(33700), b: at(35200), splash: at(34400) };
 /** The big drops (where the spiel and he go for it): track positions at the top. */
-export const DROPS = [5150, 13850, 33250];
+export const DROPS = [5150, 13850, 33250].map(at);
 
 // ---------------------------------------------------------------------------------------------------------------
 // The script: what comes at him where (track positions). Holes in the track: `his` (the one he's on when it breaks),
@@ -155,7 +179,7 @@ export type Ev =
   | { k: 'breath'; at: number }
   | { k: 'say'; at: number; what: 'welcome' | 'rules' | 'piper' | 'near' | 'drop' | 'tunnel' | 'splash' | 'piperMid' | 'piperLate' };
 
-export const SCRIPT: Ev[] = [
+export const SCRIPT: Ev[] = ([
   // THE LIFT HILL: aboard and away; the spiel, the rules (hang on in the loops), Piper; the first hole alone, slow
   { k: 'say', at: 200, what: 'welcome' },
   { k: 'say', at: 1300, what: 'rules' },
@@ -182,13 +206,17 @@ export const SCRIPT: Ev[] = [
   // THE CHAIN: two lanes' loops through each other
   { k: 'spin', at: 26300, kind: 'chain', on: 'two', len: 1005, r: 220, warn: 240 },
   // THE GAUNTLET AGAIN; ONLY ONE SAFE, and the one that's left loops straight after the hop
+  { k: 'duck', at: 27900 },
   { k: 'jump', at: 28600 }, { k: 'mover', at: 29200 }, { k: 'duck', at: 29900 },
   { k: 'safe', at: 30700, len: 800, safe: 'next', warn: 190 },
   { k: 'spin', at: 31600, kind: 'loop', on: 'safe', len: 1005, r: 220, warn: 150 },
   // THE SPLASHDOWN
-  { k: 'say', at: 33000, what: 'splash' },
+  // (said early enough to be done before the splash)
+  { k: 'say', at: 32700, what: 'splash' },
   // THE TRIPLE HELIX: all three wound round one another (no way round it: hang on)
   { k: 'spin', at: 36000, kind: 'braid', on: 'all', len: 2400, r: 130, turns: 2, warn: 280 },
+  // (out of it, the jump ones, with the hole's warning already up: hop and jump)
+  { k: 'jump', at: 38900 },
   // ONLY ONE SAFE (the far one), the near miss, the double corkscrew on two
   { k: 'safe', at: 39400, len: 800, safe: 'far', warn: 200 },
   { k: 'say', at: 40100, what: 'near' },
@@ -199,7 +227,7 @@ export const SCRIPT: Ev[] = [
   { k: 'say', at: 44000, what: 'piperLate' },
   { k: 'spin', at: 45400, kind: 'chain3', on: 'all', len: 1300, r: 250, warn: 280 },
   { k: 'mover', at: 48000 },
-];
+] as Ev[]).map(ev => ({ ...ev, at: at(ev.at) }));
 
 /** How far ahead of the trains' heads an obstacle's put on the track (off the right of the screen, pulled out). */
 export const SPAWN_AHEAD = 1500;
@@ -214,7 +242,7 @@ export const evDue = (ev: Ev, dist: number, v: number) => {
 // Checkpoints (30-38): the station (walked past), the ride's (set by the ride as it passes them: back on a car, that
 // far along, on the lane given; never inside a loop's warning), the unload (set as it pulls in).
 
-export const RIDE_CPS: { cp: number; name: string; s: number; lane: Lane }[] = [
+export const RIDE_CPS: { cp: number; name: string; s: number; lane: Lane }[] = ([
   { cp: 31, name: 'THE LIFT HILL', s: 1500, lane: 2 },
   { cp: 32, name: 'THE FIRST LOOP', s: 5700, lane: 1 },
   { cp: 33, name: 'THE GAUNTLET', s: 9600, lane: 1 },
@@ -222,7 +250,7 @@ export const RIDE_CPS: { cp: number; name: string; s: number; lane: Lane }[] = [
   { cp: 35, name: 'THE MOUNTAIN', s: 23650, lane: 1 },
   { cp: 36, name: 'THE SPLASHDOWN', s: 32700, lane: 1 },
   { cp: 37, name: 'THE GRAND FINALE', s: 43300, lane: 1 },
-];
+] as { cp: number; name: string; s: number; lane: Lane }[]).map(c => ({ ...c, s: at(c.s) }));
 export const UNLOAD_CP = 38;
 export const CHECKPOINTS = [
   { name: 'TRUELLING TRAGONS', cp: 30, x: x0 + 200, y: GY },

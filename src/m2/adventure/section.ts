@@ -58,7 +58,9 @@ export interface Section<Id extends string = SectionId> {
   zoom?: (state: GameState) => { scale: number; x: number; y: number; shiftX?: number; shiftY?: number } | null;
   /** Slow motion: true for a tick that runs no game time (Meathead 1's kill cam). Called every real tick. */
   holdTick?: (ctx: FrameContext) => boolean;
-  lighting?: (state: GameState) => SceneLight | null;
+  /** Its own lighting (`base`: what it'd have been without, where the land works that out (Fairy Land: the time of
+   *  day's over its lamps), to build on). */
+  lighting?: (state: GameState, base?: SceneLight | null) => SceneLight | null;
   /** How open to the sky it is here (1 open air; less under a canopy or the water; left out: indoors), for the time of
    *  day's light over it (timeOfDay.ts). Only when it has no lighting of its own. */
   outdoors?: (state: GameState) => number;

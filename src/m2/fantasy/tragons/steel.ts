@@ -10,7 +10,7 @@
 
 import type { GameState } from '../../../m1/game/core/state';
 import { timeOfDay } from '../../timeOfDay';
-import { INK, mix, box, dimmed, polyF, checker, type Ctx } from '../kit';
+import { INK, mix, box, dimmed, polyF, type Ctx } from '../kit';
 import { GY, LANE_COL, TUNNEL, type Lane } from './layout';
 import { trackPt, spinAt } from './track';
 import type { Tragons } from './state';
@@ -22,11 +22,6 @@ export const RAIL = 48;
 const DG = 0.024, GG = 5;
 /** Between the points drawn. */
 const STEP = 12;
-/** Into the mountain: how far the bore takes to go black from each mouth. */
-const FADE = 300;
-/** How far into the mountain's dark s is (0 out, 1 black), counted from the nearer mouth. */
-const fadeIn = (s: number) => (s < TUNNEL.a || s > TUNNEL.b ? 0 : Math.min(1, (s - TUNNEL.a) / FADE, (TUNNEL.b - s) / FADE));
-
 // ---------------------------------------------------------------------------------------------------------------
 // The supports' lattice strips
 
@@ -108,7 +103,6 @@ export const drawSteel = (c: Ctx, state: GameState, t: Tragons, eye: { x: number
   // (the holes in order along the track: one sweep marks the points in them, the furthest end reached so far)
   const byA = gaps.length > 1 ? [...gaps].sort((g, h) => g.a - h.a) : gaps;
   let gi = 0, gEnd = -Infinity;
-  const live = t.phase !== 'done';
   const ex = eye.x, ey = eye.y;
   for (let k = 0; k <= n; k++) {
     const q = raw[k + 1], p0 = raw[k], p1 = raw[k + 2];
@@ -127,47 +121,14 @@ export const drawSteel = (c: Ctx, state: GameState, t: Tragons, eye: { x: number
     pts.sx[k] = mx + nx * (off + 9 * q.d * cr); pts.sy[k] = my + ny * (off + 9 * q.d * cr);
     const s = s0 + k * STEP;
     while (gi < byA.length && byA[gi].a <= s) { if (byA[gi].b > gEnd) gEnd = byA[gi].b; gi++; }
-    pts.gone[k] = s < gEnd || (live && fadeIn(s) >= 1);
+    pts.gone[k] = s < gEnd;
   }
   const mid = Math.floor(n / 2), dm = pts.d[mid];
   pts.flip = Math.cos(raw[mid + 1].roll) >= 0 ? 1 : -1;
 
-  // THE MOUNTAIN (the user's: "the entryways into the fake mountain should look like a natural transition"): through it
-  // the track runs in a bore cut into the mountain's rock, the rock above it (rising to a ragged ridge toward the
-  // middle: the slope going on up) and under it, at the track's own depth (so it sorts with the trains like the track).
-  // In from each mouth the bore goes dark in steps (dithered where they meet) over the first stretch, the track fading
-  // into it; past that it's black (the dragons' lamps light them: art.ts drawDark), no track to see; the same, the
-  // other way, toward the way out. At each mouth the rock face: a ragged edge, an overhang over the opening, snow and
-  // ferns along its lip (drawn last, over the track going in).
-  const inMtn = t.phase !== 'done' && s1 > TUNNEL.a && s0 < TUNNEL.b;
-  const fadeAt = fadeIn;
-  const steps = (u: number) => Math.min(1, Math.ceil(u * 5 - 1e-6) / 5);
-  if (inMtn) {
-    const Rk = ['#2A2030', '#3A2E3E', '#4E3E50', '#665464', '#7E6C7A', '#9A8894'].map(col => fog(dimmed(col), dm));
-    for (let k = 0; k < n; k++) {
-      const sa = s0 + k * STEP, sb = sa + STEP;
-      if (sb < TUNNEL.a || sa > TUNNEL.b) continue;
-      const d = pts.d[k], u = steps(fadeAt(sa + STEP / 2));
-      const xa = pts.mx[k], ya = pts.my[k], xb = pts.mx[k + 1], yb = pts.my[k + 1];
-      // (the ridge over it: low at the mouths, up toward the middle, ragged)
-      const ridge = (s: number) => (150 + 230 * Math.min(1, fadeAt(s) * 1.6)) + ((Math.floor(s / STEP) * 37) % 23) - 11;
-      // (the three bores run together into one cavity: the rock over it is the top track's, under it the bottom's)
-      const top = lane === 0, bottom = lane === 2;
-      const ta = ya - (top ? ridge(sa) : 120) * d, tb = yb - (top ? ridge(sb) : 120) * pts.d[k + 1], bot = bottom ? 96 : 62;
-      polyF(c, [[xa - 1, ta], [xb + 1, tb], [xb + 1, yb + bot * d], [xa - 1, ya + bot * d]], Rk[2]);
-      if (top) {
-        box(c, Math.min(xa, xb) - 1, Math.min(ta, tb), Math.abs(xb - xa) + 2, 3 * d, Rk[4]);
-        if ((Math.floor(sa / STEP) % 5) === 0) box(c, xa, ta + 14 * d, 18 * d, 3 * d, Rk[3]);
-      }
-      if (bottom && (Math.floor(sa / STEP) % 7) === 3) box(c, xa, yb + 70 * d, 14 * d, 3 * d, Rk[1]);
-      // (the bore: in shadow at the mouth, darker in steps going in)
-      c.fillStyle = '#0B0612'; c.globalAlpha = 0.45 + 0.55 * u;
-      polyF(c, [[xa - 1, ya - 120 * d], [xb + 1, yb - 120 * d], [xb + 1, yb + 62 * d], [xa - 1, ya + 62 * d]], '#0B0612');
-      c.globalAlpha = 1;
-      if (top) box(c, Math.min(xa, xb) - 1, Math.min(ya, yb) - 122 * d, Math.abs(xb - xa) + 2, 2 * d, Rk[0]);
-    }
-  }
-
+  // THE MOUNTAIN: the inside of it (the bore, the rock round it) is drawn behind everything (scenery.ts drawCaveInside),
+  // the track through it as anywhere else; the dark's the lighting's (index.ts), never black, the dragons' lamps in it.
+  // Here only the rock faces at its mouths (below), over the track going in.
   // The supports: every 420 of track, down to the park at their depth (none under a hole or a loop)
   for (let s = Math.ceil(s0 / 420) * 420; s < s1; s += 420) {
     if (gaps.some(g => s >= g.a - 40 && s < g.b + 40) || spinAt(t.spins, lane, s) || (t.phase !== 'done' && s > TUNNEL.a - 60 && s < TUNNEL.b + 60)) continue;
@@ -216,17 +177,6 @@ export const drawSteel = (c: Ctx, state: GameState, t: Tragons, eye: { x: number
     if (night) for (const k of run) if ((s0 / STEP + k) % 8 === 0) { box(c, pts.sx[k] - 1.5 * dm, pts.sy[k] - 1.5 * dm, 3 * dm, 3 * dm, light); c.globalAlpha = 0.25; box(c, pts.sx[k] - 4 * dm, pts.sy[k] - 4 * dm, 8 * dm, 8 * dm, light); c.globalAlpha = 1; }
   }
   c.lineCap = 'butt'; c.lineJoin = 'miter';
-  // (going into the mountain: the track going dark in steps with the bore; dithered where a step meets the next)
-  if (inMtn) for (let k = 0; k < n; k++) {
-    const sa = s0 + k * STEP, u = steps(fadeAt(sa + STEP / 2));
-    if (u <= 0 || u >= 1) continue;
-    const d = pts.d[k], xa = pts.mx[k], ya = pts.my[k], xb = pts.mx[k + 1], yb = pts.my[k + 1];
-    c.globalAlpha = u * 0.85;
-    polyF(c, [[xa - 0.5, ya - 4 * d], [xb + 0.5, yb - 4 * d], [xb + 0.5, yb + 62 * d], [xa - 0.5, ya + 62 * d]], '#0B0612');
-    c.globalAlpha = 1;
-    const un = steps(fadeAt(sa + STEP * 1.5));
-    if (un !== u) checker(c, Math.min(xa, xb), Math.min(ya, yb), Math.max(2, Math.abs(xb - xa)), 62 * d, '#0B0612', 0, 2);
-  }
 
   // The broken ends: the spine torn and bent down, the rails curled off it, bolts out, sparking
   for (const g of gaps) for (const [s, dir] of [[g.a, 1], [g.b, -1]] as [number, number][]) {
@@ -259,8 +209,6 @@ export const drawSteel = (c: Ctx, state: GameState, t: Tragons, eye: { x: number
     // (above the opening and below it: the bore's left open between, its edge in shadow)
     const top: [number, number][] = [[ex - o * 8 * d, y - 176 * d], [ex + o * 26 * d, y - 168 * d], [ex + o * 18 * d, y - 148 * d], [ex + o * 34 * d, y - 128 * d], [ex + o * 14 * d, y - 118 * d], [ex - o * 8 * d, y - 120 * d]];
     const bot: [number, number][] = [[ex - o * 8 * d, y + 62 * d], [ex + o * 20 * d, y + 64 * d], [ex + o * 32 * d, y + 80 * d], [ex + o * 24 * d, y + 102 * d], [ex - o * 8 * d, y + 104 * d]];
-    // (the bore's edge in shadow down the inside of the face)
-    c.globalAlpha = 0.5; polyF(c, [[ex - o * 8 * d, y - 118 * d], [ex - o * 22 * d, y - 118 * d], [ex - o * 22 * d, y + 62 * d], [ex - o * 8 * d, y + 62 * d]], '#0B0612'); c.globalAlpha = 1;
     // (the three bores are one opening: the face over it is the top track's, under it the bottom's)
     if (lane === 2) {
       polyF(c, bot.map(([px, py]) => [px + o * 2, py + 1] as [number, number]), INK); polyF(c, bot, R[3]);

@@ -176,12 +176,13 @@ export const fantasyLayout: StageLayout = {
   },
   zoom: (state) => current(state).zoom?.(state) ?? null,
   holdTick: (ctx) => current(ctx.state).holdTick?.(ctx) ?? false,
-  // (a section's own lighting if it has one; else outdoors, the time of day's (timeOfDay.ts); indoors, none)
+  // (outdoors, the time of day's (timeOfDay.ts); indoors, none; a section's own lighting on top of that if it has one)
   lighting: (state) => {
     const sec = current(state);
-    if (sec.lighting) return sec.lighting(state);
     const out = sec.outdoors?.(state) ?? 0;
-    return out > 0 ? todLight(near(state).flatMap(id => ALL[id].lamps?.(state) ?? []), out) : null;
+    const base = out > 0 ? todLight(near(state).flatMap(id => ALL[id].lamps?.(state) ?? []), out) : null;
+    // (a section's own built on that: Truelling Tragons' mountain dark)
+    return sec.lighting ? sec.lighting(state, base) : base;
   },
   cameraRow: (state) => current(state).cameraRow?.(state),
   cylinder: (state) => current(state).cylinder?.(state) ?? null,
