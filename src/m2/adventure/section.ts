@@ -153,7 +153,10 @@ export const speak = (voiceId: string, text: string, set: (s: Said | null) => vo
 // ---------------------------------------------------------------------------------------------------------------
 // Drawing, crude (the first pass: Atari-2600 boxes and words, to get the feel before the real look goes on)
 
-export const box = (c: Ctx, x: number, y: number, w: number, h: number, col: string) => { c.fillStyle = col; c.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h)); };
+/** A filled box on whole pixels: its edges rounded (not its size), so a box and its neighbor share an edge exactly and
+ *  neither end jitters as the camera scrolls; a box at least half a pixel thick never rounds away. */
+const span = (a: number, d: number) => { const a0 = Math.round(a), n = Math.round(a + d) - a0; return n === 0 && Math.abs(d) >= 0.5 ? Math.sign(d) : n; };
+export const box = (c: Ctx, x: number, y: number, w: number, h: number, col: string) => { c.fillStyle = col; c.fillRect(Math.round(x), Math.round(y), span(x, w), span(y, h)); };
 export const label = (c: Ctx, s: string, x: number, y: number, col = '#FFFFFF', size = 8) => {
   c.font = `${size}px "Press Start 2P"`; c.textAlign = 'center';
   c.fillStyle = '#000'; c.fillText(s, x + 1, y + 1); c.fillStyle = col; c.fillText(s, x, y);
