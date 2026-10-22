@@ -103,6 +103,8 @@ export interface Ride {
   said: Record<string, boolean>;
   /** The photo's flash (frames left). */
   flash: number;
+  /** The woodchipper's gore: the bits, the pools, its bloody mouth (chipperGore.ts; the visit's). */
+  gore?: import('./chipperGore').Gore;
   /** Hit cooldowns for the things that touch him. */
   pipeCd: number; gushCd: number; branchCd: number;
 }

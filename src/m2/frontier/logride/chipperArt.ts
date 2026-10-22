@@ -16,6 +16,7 @@ import { type Ctx, box, checker, mix, hash, stillAt, puff, INK, hr, crewSign, ba
 import { rideOf } from './state';
 import { X, waterY, CHIPPER, LAND_X, CLEARING, END } from './layout';
 import { CHUTE } from './chipper';
+import { drawGorePools, drawChuteBlood, drawHopperBlood, drawGoreFront, bloodyKnives, chipperJammed } from './chipperGore';
 
 /** Behind him: the clearing, the truck, the conveyor, the chipper's body and chute, the lamp, the signs. */
 export const drawChipperBack = (c: Ctx, state: GameState) => {
@@ -97,7 +98,8 @@ export const drawChipperBack = (c: Ctx, state: GameState) => {
   for (let k = 0; k < 14; k++) { const u = ((k / 14) + f * 0.004) % 1, cx = X(a) + (X(END) - X(a)) * u, cy = wa + (wb - wa) * u; box(c, cx - 2, cy - 5, 4, 7, INK); box(c, cx - 1, cy - 4, 2, 5, S[5]); }
   for (let k = 0; k <= 6; k++) { const u = k / 6, cx = X(a) + (X(END) - X(a)) * u, cy = wa + (wb - wa) * u + 6; c.fillStyle = INK; c.beginPath(); c.arc(cx, cy, 4, 0, Math.PI * 2); c.fill(); c.fillStyle = S[4]; c.beginPath(); c.arc(cx, cy, 2.5, 0, Math.PI * 2); c.fill(); }
   // ---- the chipper: its body on its trailer (stepped orange, louvers, decals), the chute up and out over the truck
-  const bx = CHIPPER.x, O = hr('orange', ORANGE);
+  // (choking on a big one: the whole machine bucking)
+  const bx = CHIPPER.x + (chipperJammed(state) ? ((f >> 1) % 2 ? 2 : -2) : 0), O = hr('orange', ORANGE);
   stillAt(c, 'lr-chipper', bx, g, -36, -130, 176, 132, gg => {
     box(gg, -31, -121, 162, 102, INK);
     box(gg, -30, -120, 160, 100, O[4]); box(gg, -30, -120, 160, 3, O[6]); box(gg, -30, -117, 160, 6, O[5]); box(gg, 90, -120, 40, 100, O[3]); box(gg, 124, -120, 6, 100, O[2]); box(gg, -30, -26, 160, 6, O[2]);
@@ -116,6 +118,7 @@ export const drawChipperBack = (c: Ctx, state: GameState) => {
   c.lineCap = 'butt';
   for (const [col, lw] of [[INK, 26], [O[3], 22], [O[4], 14], [O[6], 3]] as const) { c.strokeStyle = col; c.lineWidth = lw; c.beginPath(); c.moveTo(bx + 100, g - 110 - (lw < 10 ? 6 : 0)); c.quadraticCurveTo(bx + 110, CHUTE.y - 30 - (lw < 10 ? 6 : 0), CHUTE.x, CHUTE.y - (lw < 10 ? 6 : 0)); c.stroke(); }
   box(c, CHUTE.x - 4, CHUTE.y - 14, 10, 28, INK); box(c, CHUTE.x - 3, CHUTE.y - 13, 8, 26, O[2]);
+  drawChuteBlood(c, state);
   // (running: it shakes, exhaust puffs)
   const running = ch.state !== 'idle';
   box(c, bx + 116, g - 142, 6, 22, INK); box(c, bx + 117, g - 142, 4, 22, '#3F3F46');
@@ -124,6 +127,8 @@ export const drawChipperBack = (c: Ctx, state: GameState) => {
   const lamp = ch.state === 'open' ? (f % 10 < 5 ? '#22C55E' : '#14532D') : ch.state === 'ready' ? '#F59E0B' : '#3F3F46';
   box(c, bx + 38, g - 140, 24, 22, INK); box(c, bx + 40, g - 138, 20, 18, '#26262C'); box(c, bx + 42, g - 136, 16, 14, lamp);
   if (lamp !== '#3F3F46' && lamp !== '#14532D') { box(c, bx + 44, g - 134, 5, 4, '#FFFFFF'); steppedGlow(c, bx + 50, g - 129, 36, lamp, 0.04, 0.35, 4); }
+  // (where the chipper's gore came down: pools on the clearing and the truck's bed)
+  drawGorePools(c, state);
   void mix;
 };
 
@@ -144,10 +149,14 @@ export const drawChipperFront = (c: Ctx, state: GameState) => {
     signText(gg, 'DANGER', -5, 15, painted(1, '#F2C21A', '#1C1917'));
     box(gg, -47, -24, 78, 6, mix(O[2], '#000000', 0.3)); box(gg, -47, -24, 78, 1, O[3]);
   });
-  // (the throat's knives, glimpsed, turning)
-  if (ch.state !== 'idle') for (let i = 0; i < 5; i++) { const kx = hx - 36 + ((f * 4 + i * 16) % 70); box(c, kx - 1, hy - 23, 6, 6, INK); box(c, kx, hy - 22, 4, 4, S[5]); box(c, kx, hy - 22, 2, 1, S[6]); }
+  drawHopperBlood(c, state);
+  // (the throat's knives, glimpsed, turning (red, once somebody's been through))
+  const red = bloodyKnives(state);
+  if (ch.state !== 'idle') for (let i = 0; i < 5; i++) { const kx = hx - 36 + ((f * 4 + i * 16) % 70); box(c, kx - 1, hy - 23, 6, 6, INK); box(c, kx, hy - 22, 4, 4, red && i % 2 ? '#B91C1C' : S[5]); box(c, kx, hy - 22, 2, 1, red ? '#F87171' : S[6]); }
   // ---- the chips and the bits out of the chute
   for (const q of ch.chips) { box(c, q.x - q.s / 2 - 0.5, q.y - q.s / 2 - 0.5, q.s + 1, q.s * 0.7 + 1, INK); box(c, q.x - q.s / 2, q.y - q.s / 2, q.s, q.s * 0.7, q.c); if (q.s > 2.5) box(c, q.x - q.s / 2, q.y - q.s / 2, Math.max(1, q.s * 0.4), 1, mix(q.c, '#FFFFFF', 0.35)); }
+  // ---- the gore: the choke's smoke, the bits, the red mist, the screen's splats
+  drawGoreFront(c, state);
   // ---- READY / JUMP! over the clearing, big, and an arrow from the log over to the landing (the timing cue: kept)
   if (ch.state === 'ready' || ch.state === 'open') {
     const lx = X(LAND_X), ly = g - 210;

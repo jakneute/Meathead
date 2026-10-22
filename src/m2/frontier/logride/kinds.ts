@@ -96,6 +96,8 @@ const chainsaw = (g: Ctx, x: number, y: number, a: number) => {
 };
 const CHECKS = ['#B91C1C', '#1F5A8A', '#3F6A2A', '#C2702A', '#5A2A6A'];
 const HATS = ['#FACC15', '#F97316', '#F8FAFC', '#2EA86A', '#C81E1E'];
+/** A logger's colors, as painted (chipperGore.ts: the bits of them out the woodchipper's chute). */
+export const loggerColors = (e: Enemy) => { const s = loggerSeed(e); return { check: pickOf(s, 2, CHECKS), hat: pickOf(s, 5, HATS), vest: s % 3 !== 1, skin: lookOf(s).skin }; };
 const paintLogger = (g: Ctx, F: Frame) => {
   const B = bodyOf(F.seed, F.pose, F.fr), L = B.L, check = pickOf(F.seed, 2, CHECKS), hat = pickOf(F.seed, 5, HATS);
   const vest = F.seed % 3 !== 1, glove = pickOf(F.seed, 4, ['#C8A070', '#3F3F46', '#E8B830']);

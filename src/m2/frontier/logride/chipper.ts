@@ -29,6 +29,7 @@ import { lookOf } from '../../adventure/temple/people';
 import { rideOf } from './state';
 import { unboard, feetY, riderX } from './ride';
 import { X, x0, x1, CHIPPER, JUMP_FROM, READY_FROM, LAND_X, END } from './layout';
+import { startGore, updateGore, chipperJammed } from './chipperGore';
 import { RIDE_VOICES, CREW_JUMP, CREW_MAD, CHIPPED_CALLS, JUMPED, HURT } from './lines';
 
 const LEAP = 54;
@@ -61,6 +62,7 @@ const chipThrown = (ctx: FrameContext) => {
     // (in and gone: out of sight down the throat)
     e.pos.y = CHIPPER.ground + 4000;
     ch.gore = 80;
+    startGore(state, e);
     playSound('grind', 1, -12); playSound('gorespray', 1, -4); playSound('crunch', 0.9, -8); shakeScreen(state, 7, 3);
     if (alive) playSound('screams', 0.7, 4);
   }
@@ -75,7 +77,8 @@ export const updateChipper = (ctx: FrameContext, controls: Controls): Controls |
   ch.chips = ch.chips.filter(q => q.life > 0);
   // ---- running: anybody flung in goes through it, red out the chute a while after
   if (ch.state !== 'idle') chipThrown(ctx);
-  if (ch.gore > 0) { ch.gore--; if (ch.gore % 3 === 0) spray(state, ch.gore > 50 ? 'red' : ch.gore > 25 ? 'meat' : 'wood'); if (ch.gore % 12 === 0) playSound('grind', 0.7, -8); }
+  updateGore(state);
+  if (ch.gore > 0) { ch.gore--; if (ch.gore % 3 === 0 && !chipperJammed(state)) spray(state, ch.gore > 50 ? 'red' : ch.gore > 25 ? 'meat' : 'wood'); if (ch.gore % 12 === 0) playSound('grind', 0.7, -8); }
   // ---- the crew, sore about their log, once he's down on their clearing (the first time this visit)
   if (!ch.madSaid && ch.state === 'safe' && ch.t > 50 && p.health > 0 && !p.inCutscene) {
     const who = crewAlive(state)[0];
