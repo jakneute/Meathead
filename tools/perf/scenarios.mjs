@@ -74,6 +74,9 @@ export const SCENARIOS = [
   { name: 'hollywood-lot', q: 'hollywood=30', keys: hopRight() },
   { name: 'hollywood-havoc', q: 'hollywood=50', keys: hopRight() },
   { name: 'hollywood-hill', q: 'hollywood=56', keys: hopRight() },
+  // (the big avalanche (the user's: "the falling avalanches tank performance as it falls"): from the second bunker on
+  // down the hill, out in the open, so the wall of snow comes over the whole screen)
+  { name: 'hollywood-avalanche', q: 'hollywood=57', warm: 1, keys: walk() },
   // Future Land
   { name: 'future-square', q: 'space=0', keys: hopRight() },
   { name: 'future-drag', q: 'space=30', keys: hopRight() },

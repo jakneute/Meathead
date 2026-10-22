@@ -255,7 +255,7 @@ const slides = (c: Ctx, state: GameState, hv: Hv) => {
 };
 
 /** A billow of snow, stepped (rows, never a smooth disc): its blue shade down-right, itself, lit up-left, a glint. */
-const billow = (c: Ctx, x: number, y: number, r: number) => {
+const paintBillow = (c: Ctx, x: number, y: number, r: number) => {
   const disc2 = (cx: number, cy: number, rr: number, col: string) => {
     c.fillStyle = col;
     for (let dy = -rr; dy < rr; dy += 3) { const hw = Math.sqrt(Math.max(0, rr * rr - (dy + 1.5) * (dy + 1.5))); c.fillRect(Math.round(cx - hw), Math.round(cy + dy), Math.round(hw * 2), 3); }
@@ -264,6 +264,77 @@ const billow = (c: Ctx, x: number, y: number, r: number) => {
   disc2(x, y, r * 0.84, SNOW[4]);
   disc2(x - r * 0.24, y - r * 0.24, r * 0.5, SNOW[5]);
   c.fillStyle = '#FFFFFF'; c.fillRect(Math.round(x - r * 0.42), Math.round(y - r * 0.42), Math.max(2, Math.round(r * 0.18)), 2);
+};
+
+// The avalanche's art, painted once (at the screen's scale) and put down whole: its billows as sprites, the body's
+// churning bands, its shaded face and the powder off its front as patterns (the same pixels the old per-frame rows and
+// dither made, a few draws a frame instead of thousands under the bunkers' clip). Painted ahead during the rumble.
+const avScale = (c: Ctx) => Math.max(1, Math.min(4, Math.round(c.getTransform().a * 100) / 100));
+/** A canvas w x h (world) at about scale s (fitted exactly to its whole pixels), its corner at world ox, oy. */
+const canvasOf = (w: number, h: number, s: number, ox: number, oy: number, paint: (g: Ctx) => void) => {
+  const cv = document.createElement('canvas');
+  cv.width = Math.max(1, Math.ceil(w * s)); cv.height = Math.max(1, Math.ceil(h * s));
+  const g = cv.getContext('2d')!, sx = cv.width / w, sy = cv.height / h;
+  g.imageSmoothingEnabled = false; g.setTransform(sx, 0, 0, sy, -ox * sx, -oy * sy);
+  paint(g);
+  return cv;
+};
+const avArt = new Map<string, HTMLCanvasElement | CanvasPattern>();
+/** Each pattern's tile size (world). */
+const tileSize = new WeakMap<CanvasPattern, [number, number, number, number]>();
+/** The billows' sizes (the body's, the front's). */
+const BILLOW_R = [14, 22, 30, 38, 40, 50];
+const billowBox = (r: number) => { const o = Math.ceil(r) + 3; return { o, w: Math.ceil(r * 2.4) + 8 }; };
+const billowSprite = (s: number, r: number) => {
+  const k = `b${r}@${s}`;
+  let cv = avArt.get(k) as HTMLCanvasElement | undefined;
+  if (!cv) { const { o, w } = billowBox(r); cv = canvasOf(w, w, s, -o, -o, g => paintBillow(g, 0, 0, r)); avArt.set(k, cv); }
+  return cv;
+};
+const billow = (c: Ctx, x: number, y: number, r: number) => {
+  const { o, w } = billowBox(r);
+  c.drawImage(billowSprite(avScale(c), r), Math.round(x) - o, Math.round(y) - o, w, w);
+};
+/** A repeating tile (w x h, at scale s) as a pattern. */
+const tile = (c: Ctx, key: string, s: number, w: number, h: number, paint: (g: Ctx) => void) => {
+  const k = `${key}@${s}`;
+  let p = avArt.get(k) as CanvasPattern | undefined;
+  if (!p) { const cv = canvasOf(w, h, s, 0, 0, paint); p = c.createPattern(cv, 'repeat')!; tileSize.set(p, [w, h, cv.width, cv.height]); avArt.set(k, p); }
+  return p;
+};
+/** The body's bands (four, 24 high, each dithered into the next along its foot): a 96-high tile, 60 across. */
+const bodyTile = (c: Ctx, s: number) => tile(c, 'body', s, 60, 96, g => {
+  const cols = [SNOW[4], SNOW[5], SNOW[4], SNOW[3]];
+  for (let i = 0; i < 4; i++) {
+    g.fillStyle = cols[i]; g.fillRect(0, i * 24, 60, 24);
+    g.fillStyle = cols[(i + 1) % 4]; for (let x = (i * 3) % 6; x < 60; x += 6) g.fillRect(x, i * 24 + 22, 3, 2);
+  }
+});
+/** Its leading face (50 wide: the dither, the shade, the dither, the deep shade), 40 high. */
+const faceTile = (c: Ctx, s: number) => tile(c, 'face', s, 50, 40, g => {
+  g.fillStyle = SNOW[3]; g.fillRect(4, 0, 46, 40); g.fillStyle = SNOW[2]; g.fillRect(32, 0, 18, 40);
+  for (let k = 0; k < 10; k++) { g.fillStyle = SNOW[3]; g.fillRect((k % 2) * 2, k * 4, 2, 2); g.fillStyle = SNOW[2]; g.fillRect(28 + (k % 2) * 2, k * 4, 2, 2); }
+});
+/** The powder blown on ahead (six columns 34 wide, thinner and thinner, checkered; ph the checker's phase): 136 high. */
+const powderTile = (c: Ctx, s: number, ph: number) => tile(c, `powder${ph}`, s, 210, 136, g => {
+  for (let j = 0; j < 6; j++) {
+    g.fillStyle = `rgba(246, 250, 255, ${(0.42 * (1 - j / 6)).toFixed(3)})`;
+    for (let k = 0; k < 34; k++) if ((k + j + ph) % 2 === 0) g.fillRect(j * 34 + ((k * 7) % 34), k * 4, 4, 4);
+  }
+});
+/** Put a pattern down over x, y, w, h with its tile's corner at ox, oy (world). */
+const fillTile = (c: Ctx, p: CanvasPattern, ox: number, oy: number, x: number, y: number, w: number, h: number) => {
+  const [tw, th, pw, ph] = tileSize.get(p)!;
+  p.setTransform(new DOMMatrix([tw / pw, 0, 0, th / ph, ox, oy]));
+  c.fillStyle = p; c.fillRect(x, y, w, h);
+};
+/** One piece of the avalanche's art painted ahead (during the rumble): a frame's worth at a time. */
+const warmAv = (c: Ctx) => {
+  const s = avScale(c);
+  for (const r of BILLOW_R) if (!avArt.has(`b${r}@${s}`)) { billowSprite(s, r); return; }
+  if (!avArt.has(`body@${s}`)) { bodyTile(c, s); return; }
+  if (!avArt.has(`face@${s}`)) { faceTile(c, s); return; }
+  for (const ph of [0, 1]) if (!avArt.has(`powder${ph}@${s}`)) { powderTile(c, s, ph); return; }
 };
 /** What the avalanche is carrying, tumbling (local, about its middle): a fir, a boulder, a buried car dug up, a parking
  *  meter, plywood off the chalet, the fake Christmas tree, an AVALANCHE ZONE sign. */
@@ -289,6 +360,7 @@ const avalanches = (c: Ctx, state: GameState, hv: Hv) => {
       // (snow shaken loose, the ground starting to jump)
       for (let j = 0; j < 8; j++) { const px = cam.x + 60 + ((j * 97) % 700), g = Y(groundAt(R(px))), hop = Math.abs(Math.sin(f * 0.6 + j * 1.7)) * 4 * k; box(c, px, g - 3 - hop, 3, 3, SNOW[5]); }
       if (f % 16 < 10) signText(c, 'AVALANCHE!', cam.x + 400, cam.y + 260, enamel(16, '#EF4444', '#000'));
+      warmAv(c);
       continue;
     }
     if (av.phase !== 'run') continue;
@@ -311,17 +383,13 @@ const avalanches = (c: Ctx, state: GameState, hv: Hv) => {
     c.clip('evenodd');
     const body = Math.min(av.front, r) - l;
     // (the body: banded snow churning down it, the bands' edges dithered into each other)
+    const s = avScale(c);
     if (body > 0) {
-      const off = (f * 6) % 48, cols = [SNOW[4], SNOW[5], SNOW[4], SNOW[3]];
-      for (let y = top - off, i = 0; y < bot; y += 24, i++) {
-        c.fillStyle = cols[i % 4]; c.fillRect(l, y, body, 24);
-        c.fillStyle = cols[(i + 1) % 4];
-        for (let x = l + ((i * 3) % 6); x < l + body; x += 6) c.fillRect(x, y + 22, 3, 2);
-      }
+      const off = (f * 6) % 48;
+      fillTile(c, bodyTile(c, s), l, top - off, l, top - off, body, bot - (top - off));
       // (its leading face in shade: the light's from the upper left, the face looks right; dithered into the body)
-      const fx = Math.min(av.front, r);
-      box(c, fx - 46, top, 46, bot - top, SNOW[3]); box(c, fx - 18, top, 18, bot - top, SNOW[2]);
-      for (let y = top, k = 0; y < bot; y += 4, k++) { box(c, fx - 50 + (k % 2) * 2, y, 2, 2, SNOW[3]); box(c, fx - 22 + (k % 2) * 2, y, 2, 2, SNOW[2]); }
+      const fx = Math.round(Math.min(av.front, r));
+      fillTile(c, faceTile(c, s), fx - 50, Math.round(top), fx - 50, Math.round(top), 50, bot - Math.round(top));
     }
     // (billows tumbling in it, each going round as it comes on, and what it's carrying)
     for (let k = 0; k < 34; k++) {
@@ -336,11 +404,9 @@ const avalanches = (c: Ctx, state: GameState, hv: Hv) => {
       const y = cam.y - 20 + k * 38, bx = av.front + Math.sin(f * 0.3 + k) * 16 + ((k * 13) % 30);
       billow(c, bx, y, 30 + (k % 3) * 10);
     }
-    for (let j = 0; j < 6; j++) {
-      const x0 = av.front + 40 + j * 34, a = 0.42 * (1 - j / 6);
-      if (x0 > r) break;
-      c.fillStyle = `rgba(246, 250, 255, ${a.toFixed(3)})`;
-      for (let y = top - ((f * 4) % 8), k = 0; y < bot; y += 4, k++) if ((k + j + (f >> 1)) % 2 === 0) c.fillRect(x0 + ((k * 7) % 34), y, 4, 4);
+    if (av.front + 40 <= r) {
+      const py = top - ((f * 4) % 8);
+      fillTile(c, powderTile(c, s, (f >> 1) % 2), av.front + 40, py, av.front + 40, py, 210, bot - py);
     }
     for (let j = 0; j < 22; j++) { const t = ((f * 3 + j * 19) % 60) / 60, px = av.front + 20 + t * 220, py = cam.y + ((j * 89) % 620) - t * 40; if (px < r) box(c, px, py, 3 - t * 2 + 1, 3 - t * 2 + 1, SNOW[5]); }
     c.restore();
