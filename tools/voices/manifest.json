@@ -40866,6 +40866,11 @@
  },
  {
   "voice": "m2.gman",
+  "text": "Asset is extra unstable. Activate contingency protocol.",
+  "from": "GYM"
+ },
+ {
+  "voice": "m2.gman",
   "text": "Can't reach me up here!",
   "from": "GYM"
  },

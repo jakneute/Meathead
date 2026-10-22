@@ -44,7 +44,7 @@ import { shotSquat, shotTv, shotDoorway, shotAgent, shotAgentF, shotMeathead, sh
 import { grossChoke, grossTruck, prewarmGross, finishGross } from './gross';
 import {
   AGENT_VOICE, AGENTF_VOICE, GMAN_VOICE, ANCHOR_VOICE, OPEN_TV, OPEN_REPS, OPEN_AGENT_1, OPEN_AGENTF_1, OPEN_AGENT_2, OPEN_MH_1, OPEN_AGENTF_2, OPEN_MH_2, OPEN_MH_3,
-  OPEN_AGENT_3, ROOM_LINES, RING_HELLO, RING_SHOVE, RING_THROWN, RING_JET, RING_DONE, CLOSE_MH_CORK, CLOSE_NO_CONTRACT, CLOSE_TICKET, CLOSE_MH_HAPPY, CLOSE_TRUCK,
+  OPEN_AGENT_3, ROOM_LINES, RING_HELLO, RING_SHOVE, RING_THROWN, RING_JET, RING_DONE, CLOSE_MH_CORK, CLOSE_NO_CONTRACT, CLOSE_CONTINGENCY, CLOSE_TICKET, CLOSE_MH_HAPPY, CLOSE_TRUCK,
   CLOSE_MH_TRUCK, CLOSE_GUANTANAMO, CLOSE_DISGUISE, CLOSE_MH_GLASSES, CLOSE_NOT_HOW, CLOSE_MH_GO, type Room,
 } from './lines';
 
@@ -114,12 +114,16 @@ const OPENING = (): Beat[] => [
   { shot: shotDoorway('him', true), who: 'G-MAN', voice: AGENT_VOICE, text: OPEN_AGENT_3, hold: 24 },
 ];
 
+/** (the tightest squeeze: one shot over two beats, it carries on through the line) */
+const choke2 = grossChoke(2);
 const CLOSING = (d: Dressed): Beat[] => [
   { shot: shotArrival, hold: 70, enter: () => { playSound('slam', 1, -2); } },
   // (the chokehold and the truck: gross-ups, three times finer: gross.ts)
   { shot: grossChoke(0), res: 3, who: 'MEATHEAD', voice: 'meathead', text: CLOSE_MH_CORK, enter: () => { playSound('punch', 0.9, -6); playSound('whoosh', 0.7); } },
   { shot: grossChoke(1), res: 3, who: 'G-MAN', voice: GMAN_VOICE, text: CLOSE_NO_CONTRACT[d] },
-  { shot: grossChoke(2), res: 3, hold: 90, enter: () => { playSound('crunch', 0.8, -10); setTimeout(() => playSound('crunch', 0.6, -14), 400); } },
+  { shot: choke2, res: 3, hold: 50, enter: () => { playSound('crunch', 0.8, -10); setTimeout(() => playSound('crunch', 0.6, -14), 400); } },
+  // (the user's: still in the squeeze, he wheezes it into his earpiece; the ticket's the contingency)
+  { shot: choke2, res: 3, who: 'G-MAN', voice: GMAN_VOICE, text: CLOSE_CONTINGENCY, hold: 20 },
   { shot: shotTicket, who: 'G-MAN', voice: GMAN_VOICE, text: CLOSE_TICKET, enter: sfx('ding', 0.9, 6) },
   { shot: shotToddler(0), who: 'MEATHEAD', voice: 'meathead', text: CLOSE_MH_HAPPY, hold: 20, enter: sfx('powerup', 0.7, 8) },
   { shot: shotAgent(true), who: 'G-MAN', voice: AGENT_VOICE, text: CLOSE_TRUCK[d], enter: sfx('clink', 0.8, 4) },

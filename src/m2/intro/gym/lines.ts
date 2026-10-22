@@ -79,6 +79,8 @@ export const CLOSE_NO_CONTRACT: Record<Dressed, string> = {
   shitty: 'No active contract... right now. And you shit yourself.',
   nude: 'No active contract... right now. And your dick is on my back.',
 };
+/** (the user's) The choked one, wheezing it into his earpiece as the arm tightens: then the ticket's the contingency. */
+export const CLOSE_CONTINGENCY = 'Asset is extra unstable. Activate contingency protocol.';
 export const CLOSE_TICKET = 'Wait! All-day pass! Happy Land!';
 export const CLOSE_MH_HAPPY = 'HAPPY LAND?! THE ONE WITH THE RIDES?!';
 export const CLOSE_TRUCK: Record<Dressed, string> = {
@@ -107,5 +109,5 @@ export const VOICE_LINES: Record<string, string[]> = {
   [AGENT_VOICE]: [OPEN_AGENT_1, OPEN_AGENT_2, OPEN_AGENT_3, ...all(CLOSE_TRUCK), ...all(CLOSE_DISGUISE)],
   // (the women among the G-men say the rooms' lines in her voice)
   [AGENTF_VOICE]: [OPEN_AGENTF_1, OPEN_AGENTF_2, CLOSE_GUANTANAMO, CLOSE_NOT_HOW, ...Object.values(ROOM_LINES).flatMap(all)],
-  [GMAN_VOICE]: [...Object.values(ROOM_LINES).flatMap(all), RING_HELLO, ...RING_SHOVE, ...RING_THROWN, ...RING_JET, RING_DONE, ...all(CLOSE_NO_CONTRACT), CLOSE_TICKET],
+  [GMAN_VOICE]: [...Object.values(ROOM_LINES).flatMap(all), RING_HELLO, ...RING_SHOVE, ...RING_THROWN, ...RING_JET, RING_DONE, ...all(CLOSE_NO_CONTRACT), CLOSE_CONTINGENCY, CLOSE_TICKET],
 };
