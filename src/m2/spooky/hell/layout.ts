@@ -87,8 +87,8 @@ export const LEDGES: [number, number, number][] = [
   [D + 1850, GY - 110, 200], [D + 2130, GY - 220, 170],
   // (the shelf over the vents)
   [D + 4790, GY - 200, 380],
-  // (the shore's imp)
-  [D + 7520, GY - 120, 130],
+  // (the shore's imp, over the pack at the lake's landing)
+  [D + 7245, GY - 120, 130],
   // (the arena's two)
   [D + 8100, GY - 165, 150], [D + 8640, GY - 165, 150],
 ];

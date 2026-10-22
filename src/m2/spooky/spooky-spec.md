@@ -52,3 +52,17 @@ placed within the safe start's reach of a checkpoint (spawnSafe.ts SAFE_X 360, S
 - Left as is: the clock room's igor and bride sit inside THE CLOCK ROOM checkpoint's reach (the room's near half is all
   inside it, and the igor at the main support is the point of the room): spawnSafe leaves them out of a start there,
   and walking up into the room they're there.
+
+**Real hell (hell/index.ts ENEMIES, layout.ts LEDGES: same kinds, same count)**
+
+- The hound run was one hound then two side by side on the flat. Now one, then another by the rock step, and the third
+  waits past the first lava puddle: it pounces at him across it (hop back and it comes down in the lava: it cooks).
+- The goat stood alone on its flat 280 from THE BRIMSTONE STEPS' checkpoint. It's up on its rock at the flat's end
+  now: no charging the horns head-on, so jump over and dive kick it (a tough one up top), or shoot it; it charges to
+  the rock's edge at him and pulls up.
+- The shore's pack (two hounds, the goat, an imp up on its ledge) stood 115-440 from THE DEMON's checkpoint, in a walk
+  at him. They wait right at the lake's landing now (the imp's ledge moved over them): the hounds pounce at him while
+  he's still on the last crumbling rock (step back and they're in the lava), the three on the ground in a line (charge
+  the first hound into the rest, but not into the goat's horns). Then it's quiet to the refill and the gate.
+- Left alone: the pit, the bone yard's imps up their rocks, the bats over the pools, the vents' high-road imp, the lake
+  (everything at once already).

@@ -48,18 +48,22 @@ const pick = pickLine;
 const ENEMIES: [keyof typeof HELL_KINDS, number, number][] = [
   // (the bone yard: an imp up on a low rock; another higher)
   ['imp', D + 1950, GY - 110], ['imp', D + 2200, GY - 220],
-  // (the hound run: one, then two)
-  ['hound', D + 2700, GY], ['hound', D + 3180, GY], ['hound', D + 3300, GY],
+  // (the hound run: one, then another (the rock step to get up out of a pounce); the third waits past the first lava
+  // puddle and pounces at him across it: hop back and it comes down in the lava)
+  ['hound', D + 2700, GY], ['hound', D + 3250, GY], ['hound', D + 3790, GY],
   // (the first lava's pool: bats over it)
   ['bat', D + 4020, GY - 230], ['bat', D + 4270, GY - 250],
   // (the high road over the vents: an imp on it)
   ['imp', D + 5000, GY - 200],
-  // (the goat, alone on its flat)
-  ['goat', D + 5920, GY],
+  // (the goat, alone, up on its rock at the end of the flat: no charging its horns head-on; jump over and dive kick it,
+  // or shoot it; it charges to the rock's edge at him and pulls up)
+  ['goat', D + 6055, GY - 64],
   // (the lake: an imp on the pillar, bats over it)
   ['imp', D + 6830, GY - 90], ['bat', D + 6480, GY - 330], ['bat', D + 6930, GY - 290],
-  // (the shore: hounds on the run in, the goat behind them, an imp up on its rock)
-  ['hound', D + 7260, GY], ['hound', D + 7360, GY], ['goat', D + 7460, GY], ['imp', D + 7585, GY - 120],
+  // (the shore: waiting right where he comes off the lake's last crumbling rock: the hounds pounce at him out on it
+  // (step back and they're in the lava), the goat behind them in a line (charge the first into the rest, but not the
+  // horns), an imp up on its rock over them; then quiet to the refill)
+  ['hound', D + 7190, GY], ['hound', D + 7250, GY], ['goat', D + 7315, GY], ['imp', D + 7310, GY - 120],
 ];
 
 export const hell: SpookySection = {
