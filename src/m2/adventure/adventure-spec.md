@@ -32,3 +32,16 @@ SAFE_X 360).
 - The last ravine: the first chimp on the far bank is a jaguar now, waiting at the landing. It pounces at him out on
   the vines, over the ravine (hang back on a vine and it jumps into it), or meets him landing. Taught on the
   overlook, then from above in jaguar country, then this.
+
+**The dino park (dino/index.ts ENEMIES: 12 raptors, 2 trikes, 5 pteros before; 10, 4, 5 after)**
+
+- The trike field: two trikes on the ground, the boardwalks over them free; the second trike stood 150 from THE
+  VOLCANO's checkpoint. Now the first trike's alone by the low boardwalk (teach: up out of its way), and a raptor's up
+  on the high boardwalk over the second trike's run (the way up isn't free; it drops in on him while the trike paws).
+  The second trike is back out of the checkpoint's reach.
+- The gift shop's ground way was two raptors in a row. The second is a trike now: down off the shop's roof, a raptor
+  (shove it) and a trike's charge (its horns don't take a shoulder charge: shoot it or get up out of its way, the
+  monorail's ledge right there). The monorail way keeps its raptor.
+- The last stretch was a pack of three raptors on the ground to walk-and-fire. Now: a raptor on the ground and one up
+  the first trees as before, a trike between the trees in front of the last fence (up a tree out of its way, then over
+  the fence), and the last raptor up the last tree, dropping on him from above.
