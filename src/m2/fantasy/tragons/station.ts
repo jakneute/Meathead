@@ -13,8 +13,9 @@
 //                      trains are out. Its play-plane things (and the unload's) are sorted in with the tracks (art.ts)
 //                      so no support behind them draws over them.
 //   THE UNLOAD         the decks one a lane, stepped down off the dragons' fronts (oak planks on stone piers, lit along
-//                      their tops: somewhere to stand), the hall, UNLOAD / EXIT TO THY RIGHT, the yard's flagstones,
-//                      the gate arch out to the castle's base (the castle through it), its sign.
+//                      their tops: somewhere to stand; gilt back rails), the exit stairs off the bottom deck, the hall,
+//                      UNLOAD / EXIT TO THY RIGHT, the yard's flagstones, the castle garden's hedge along its back,
+//                      the castle's gatehouse out (its towers, cone roofs, banners, the name; the courtyard through it).
 //
 // The still parts (the back walls, the crowd, the booth) are painted once per hour into stamps.
 
@@ -28,7 +29,7 @@ import {
 import { paintHead } from '../glen/sets';
 import { GY, S0X, STATION_X, GATE_X, DECK_X0, DECK_X1, EXIT_X, END_S, TL, LANES, LANE_COL, wxOf, type Lane } from './layout';
 import type { Tragons } from './state';
-import { deckY } from './ride';
+import { deckY, STAIR_N, STAIR_W, stairY } from './ride';
 import { inView, scrollOf, at } from './scene';
 import { guest, rails, lampPost, type GPose } from './scenery';
 import type { Eye } from './track';
@@ -349,7 +350,30 @@ export const drawUnload = (c: Ctx, state: GameState, t: Tragons, e: Eye) => {
   c.restore();
   // (the yard's flagstones out to the gate)
   flags(c, e, hx0, EXIT_X + off + 260);
+  // (along the back of the yard from the hall to the gatehouse: the castle's garden hedge, topiary, a flower bed)
+  const gx0 = hx1 + 60, gw = Math.round(EXIT_X + off - 130 - gx0);
+  if (gw > 40) {
+    const [gx, gy] = at(e, gx0, GY, HALL_D);
+    c.save(); c.translate(gx, gy); c.scale(HALL_D, HALL_D);
+    pic(c, `tg-hedge-${gw}`, -10, -190, gw + 20, 194, g => paintHedge(g, gw));
+    c.restore();
+  }
   canopy(c, state, e, hx0, hx1);
+};
+
+/** The castle garden's hedge (local: its foot's left at 0, 0; w wide): clipped yew in steps, lit along the top, cone
+ *  topiaries standing up out of it in gilt pots, a bed of pink and lilac flowers along its foot. */
+const paintHedge = (g: Ctx, w: number) => {
+  const H = D('#2E6A3A'), Fl = ['#F49AC8', '#C8A0E8', '#FFFFFF', '#F9C8E0'].map(col => dimmed(col)), Gd = GOLD.map(dimmed);
+  box(g, -1, -91, w + 2, 91, INK); box(g, 0, -90, w, 90, H[2]); box(g, 0, -90, w, 6, H[4]); box(g, 0, -84, w, 2, H[3]); box(g, 0, -10, w, 10, H[1]);
+  for (let x = 4; x < w - 4; x += 11) for (let y = -76; y < -14; y += 13) box(g, x + ((y / 13) & 1) * 5, y, 4, 3, H[(x + y) % 3 ? 3 : 1]);
+  for (let x = 70; x < w - 40; x += 150) {
+    polyF(g, [[x - 22, -88], [x, -176], [x + 22, -88]], INK); polyF(g, [[x - 20, -89], [x, -172], [x + 20, -89]], H[3]); polyF(g, [[x - 20, -89], [x, -172], [x - 4, -89]], H[4]);
+    for (let k = 1; k < 4; k++) box(g, x - 20 + k * 5, -89 - k * 20, 40 - k * 10, 2, H[2]);
+    ballR(g, x, -178, 4, Gd);
+  }
+  box(g, 0, -8, w, 8, dimmed('#5A3A2A'));
+  for (let x = 3; x < w - 3; x += 7) box(g, x, -12 + (x % 3), 4, 4, Fl[(x * 13) % 4]);
 };
 
 /** The unload's play-plane things (the decks, its signs, the gate arch out, the lamps): sorted in with the tracks at the
@@ -368,17 +392,105 @@ export const drawUnloadNear = (c: Ctx, state: GameState, t: Tragons) => {
     box(c, ux, y, dw, 2, LIP[2]); box(c, ux, y, dw, 1, LIP[3]);
   }
   storySign(c, ux + 360, GY, ['UNLOAD', 'EXIT TO THY RIGHT'], { tall: 130 });
-  storySign(c, EXIT_X - 200 + off, GY, ["THE GREAT PIXIE'S CASTLE", 'THIS WAY >'], { tall: 150, board: '#2E5A3A' });
-  // The gate arch out: stone, a portcullis up, the lane up to the castle through it
-  const ex = EXIT_X + off, St = STONE;
-  box(c, ex - 30, GY - 300, 180, 300, INK); slab(c, ex - 29, GY - 299, 178, 299, St);
-  for (let y = GY - 280; y < GY; y += 20) box(c, ex - 29, y, 178, 1, St[1]);
-  for (let x = ex - 30; x < ex + 150; x += 30) { box(c, x, GY - 322, 20, 23, INK); box(c, x + 1, GY - 321, 18, 22, St[3]); box(c, x + 1, GY - 321, 4, 22, St[4]); }
-  c.fillStyle = INK; c.beginPath(); c.moveTo(ex + 14, GY); c.lineTo(ex + 14, GY - 180); c.arc(ex + 60, GY - 180, 46, Math.PI, 0); c.lineTo(ex + 106, GY); c.closePath(); c.fill();
-  c.fillStyle = '#7A8AC8'; c.beginPath(); c.moveTo(ex + 18, GY); c.lineTo(ex + 18, GY - 180); c.arc(ex + 60, GY - 180, 42, Math.PI, 0); c.lineTo(ex + 102, GY); c.closePath(); c.fill();
-  box(c, ex + 18, GY - 60, 84, 60, FLAG[3]); box(c, ex + 18, GY - 120, 84, 60, '#9AA8D8');
-  polyF(c, [[ex + 40, GY - 120], [ex + 60, GY - 200], [ex + 80, GY - 120]], '#C8BCD8'); polyF(c, [[ex + 48, GY - 170], [ex + 60, GY - 210], [ex + 72, GY - 170]], '#4A78D4');
-  for (let x = ex + 22; x < ex + 100; x += 10) { box(c, x, GY - 232, 3, 30, IRON[3]); polyF(c, [[x - 1, GY - 202], [x + 4, GY - 202], [x + 1.5, GY - 196]], IRON[4]); }
-  lampPostAt(c, ex - 50, GY); lampPostAt(c, ex + 170, GY);
+  // The exit stairs down off the bottom deck to the yard (each step a real one: ride.ts), a handrail along them
+  const sx0 = DECK_X1 + off;
+  for (let k = 0; k < STAIR_N; k++) {
+    const x = sx0 + k * STAIR_W, y = stairY(k);
+    box(c, x - 1, y - 1, STAIR_W + 2, GY - y + 1, INK); slab(c, x, y, STAIR_W, GY - y, S);
+    box(c, x, y, STAIR_W, 2, LIP[2]); box(c, x, y, STAIR_W, 1, LIP[3]); box(c, x, y + 10, STAIR_W, 1, S[1]);
+  }
+  const rail = (x0: number, y0: number, x1: number, y1: number) => {
+    c.strokeStyle = INK; c.lineWidth = 4; c.beginPath(); c.moveTo(x0, y0 - 34); c.lineTo(x1, y1 - 34); c.stroke();
+    c.strokeStyle = GOLD[3]; c.lineWidth = 2; c.stroke();
+  };
+  const sEnd = sx0 + STAIR_N * STAIR_W;
+  rail(sx0 + 4, deckY(2), sEnd - 6, GY - 8);
+  for (let k = 0; k <= STAIR_N; k += 2) {
+    const x = sx0 + 4 + ((sEnd - 10 - sx0) * k) / STAIR_N, y = deckY(2) + ((GY - 8 - deckY(2)) * k) / STAIR_N;
+    postR(c, x, y - 36, k ? Math.min(GY, stairY(Math.min(STAIR_N - 1, k - 1))) : y, 3, GOLD);
+  }
+  // (the decks' back rails: gilt, posts and a top rail, clear of the dragons' heads)
+  for (const lane of LANES as Lane[]) {
+    const dw = DECK_X1 - DECK_X0 - (2 - lane) * 80, y = deckY(lane), x0 = ux + 120, x1 = ux + dw - 6;
+    if (x1 - x0 < 40) continue;
+    rail(x0, y, x1, y);
+    for (let x = x0; x <= x1; x += 56) postR(c, x, y - 36, y, 3, GOLD);
+  }
+  // The castle's gatehouse: out of the yard into the castle's grounds (cached art)
+  const ex = EXIT_X + off;
+  c.save(); c.translate(Math.round(ex), GY);
+  pic(c, 'tg-gatehouse', -150, -580, 420, 584, paintGatehouse);
+  c.restore();
+  lampPostAt(c, ex - 150, GY);
+};
+
+/** The Great Pixie's castle's gatehouse at the unload's yard end (local: the arch's left at 18, the ground at 0): the
+ *  castle's own lavender stone and blue cone roofs banded in gold, pink pennants, two round towers with their banners
+ *  and crenellations, the gilt name over the arch, the portcullis up, and through the arch the castle's courtyard (a
+ *  path between hedges up to the keep's door, a tower over it), box hedges at its feet. */
+const paintGatehouse = (g: Ctx) => {
+  const St = D('#BCAED6'), Rf = D('#4A78D4'), Pk = D('#F49AC8'), Gd = GOLD.map(dimmed), Ir = IRON.map(dimmed), Hg = D('#2E7A3A'), Fl = FLAG.map(dimmed);
+  const night = timeOfDay().lamps > 0.3;
+  const sky = timeOfDay().lamps > 0.5 ? ['#1E2448', '#2A3060', '#3A4278'] : ['#8AB4F0', '#A8C8F4', '#C8DCF8'];
+  // (the view through the arch, first: the sky, the keep's wall and door, a tower over it, the path between hedges)
+  g.save(); g.beginPath(); g.moveTo(18, 0); g.lineTo(18, -180); g.arc(60, -180, 42, Math.PI, 0); g.lineTo(102, 0); g.closePath(); g.clip();
+  sky.forEach((col, i) => box(g, 18, -224 + i * 30, 84, 30, dimmed(col)));
+  const Fw = D('#9484B4');
+  box(g, 18, -134, 84, 90, Fw[3]); for (let y = -126; y < -44; y += 10) box(g, 18, y, 84, 1, Fw[2]);
+  for (let x = 18; x < 102; x += 12) { box(g, x, -142, 8, 8, Fw[3]); box(g, x, -142, 8, 2, Fw[4]); }
+  box(g, 64, -200, 24, 70, Fw[4]); box(g, 64, -200, 4, 70, Fw[5]); box(g, 84, -200, 4, 70, Fw[2]);
+  polyF(g, [[60, -200], [76, -240], [92, -200]], Rf[3]); polyF(g, [[60, -200], [76, -240], [72, -200]], Rf[4]); box(g, 60, -202, 32, 3, Gd[3]);
+  box(g, 76, -252, 1, 12, Ir[3]); polyF(g, [[77, -252], [88, -249], [77, -246]], Pk[3]);
+  box(g, 72, -186, 8, 12, night ? '#FFE6A0' : Fw[1]);
+  g.fillStyle = INK; g.beginPath(); g.moveTo(48, -44); g.lineTo(48, -76); g.arc(60, -76, 12, Math.PI, 0); g.lineTo(72, -44); g.closePath(); g.fill();
+  g.fillStyle = dimmed('#5A3A2A'); g.beginPath(); g.moveTo(50, -44); g.lineTo(50, -76); g.arc(60, -76, 10, Math.PI, 0); g.lineTo(70, -44); g.closePath(); g.fill();
+  box(g, 18, -44, 84, 44, Hg[2]);
+  polyF(g, [[50, -44], [70, -44], [96, 0], [24, 0]], Fl[3]);
+  for (let y = -36; y < 0; y += 9) { const u = (y + 44) / 44; box(g, 60 - (10 + 36 * u), y, 20 + 72 * u, 1, Fl[1]); }
+  for (const sd of [-1, 1]) for (let k = 0; k < 4; k++) {
+    const u = k / 4, x = 60 + sd * (16 + 30 * u), h = 8 + 10 * u;
+    box(g, x - 4 - 4 * u, -44 + 44 * u - h, 8 + 8 * u, h, Hg[3]); box(g, x - 4 - 4 * u, -44 + 44 * u - h, 8 + 8 * u, 2, Hg[4]);
+  }
+  g.restore();
+  // (the gate wall: ashlar courses, blocks picked out by place, lit left and top; its merlons)
+  box(g, -31, -301, 182, 301, INK); slab(g, -30, -300, 180, 300, St);
+  for (let y = -280, r = 0; y < 0; y += 20, r++) {
+    box(g, -30, y, 180, 1, St[1]);
+    for (let bx = -30 + (r % 2) * 14; bx < 150; bx += 28) { box(g, bx, y - 19, 1, 19, St[1]); if (hash(bx * 0.31 + r * 5.7) > 0.7) box(g, bx + 1, y - 18, Math.min(27, 149 - bx), 2, St[4]); }
+  }
+  for (let mx = -30; mx < 146; mx += 24) { box(g, mx - 1, -323, 18, 24, INK); box(g, mx, -322, 16, 22, St[3]); box(g, mx, -322, 4, 22, St[4]); box(g, mx, -322, 16, 2, St[5]); }
+  // (the arch cut through it: its voussoirs, the portcullis up in its slot)
+  g.fillStyle = INK; g.beginPath(); g.moveTo(12, 0); g.lineTo(12, -180); g.arc(60, -180, 48, Math.PI, 0); g.lineTo(108, 0); g.lineTo(102, 0); g.lineTo(102, -180); g.arc(60, -180, 42, 0, Math.PI, true); g.lineTo(18, 0); g.closePath(); g.fill();
+  for (let k = 0; k <= 8; k++) { const a = Math.PI + (k / 8) * Math.PI, x = 60 + Math.cos(a) * 45, y = -180 + Math.sin(a) * 45; box(g, x - 3, y - 3, 6, 6, k % 2 ? St[5] : St[4]); }
+  for (let x = 22; x < 100; x += 10) { box(g, x, -226, 3, 26, Ir[2]); polyF(g, [[x - 1, -200], [x + 4, -200], [x + 1.5, -194]], Ir[4]); }
+  box(g, 18, -222, 84, 3, Ir[1]); box(g, 18, -210, 84, 2, Ir[2]);
+  // (the name over the arch, on a gilt-edged board)
+  box(g, -12, -296, 144, 56, INK); box(g, -11, -295, 142, 54, Gd[3]); box(g, -8, -292, 136, 48, dimmed('#3B0764')); box(g, -8, -292, 136, 2, D('#3B0764')[4]);
+  signText(g, "THE GREAT PIXIE'S", 60, -270, gilt(1)); signText(g, 'CASTLE', 60, -252, gilt(1));
+  // (the round towers either side: shaded round in steps, courses, slit windows, a corbelled ring, crenellations, the
+  // blue cone roof banded in gold, a pink pennant; a long pink banner down each; box hedges at the foot)
+  for (const tx of [-76, 196]) {
+    const r = 46, top = -380;
+    box(g, tx - r - 1, top - 1, r * 2 + 2, -top + 1, INK);
+    const cols = [St[2], St[3], St[4], St[4], St[3], St[3], St[2], St[1]];
+    cols.forEach((col, i) => box(g, tx - r + (i * r * 2) / cols.length, top, (r * 2) / cols.length + 1, -top, col));
+    for (let y = top + 22; y < 0; y += 22) box(g, tx - r, y, r * 2, 1, St[1]);
+    for (let y = top + 40; y < -60; y += 90) { box(g, tx + 18, y, 8, 26, INK); box(g, tx + 19, y + 1, 6, 24, night ? '#FFE6A0' : St[0]); }
+    box(g, tx - r - 7, top - 14, r * 2 + 14, 16, INK); box(g, tx - r - 6, top - 13, r * 2 + 12, 14, St[3]); box(g, tx - r - 6, top - 13, r * 2 + 12, 2, St[5]);
+    for (let k = 0; k < 6; k++) box(g, tx - r - 4 + k * 18, top + 1, 8, 6, St[1]);
+    for (let mx = tx - r - 6; mx < tx + r; mx += 20) { box(g, mx - 1, top - 34, 14, 21, INK); box(g, mx, top - 33, 12, 20, St[3]); box(g, mx, top - 33, 3, 20, St[5]); }
+    polyF(g, [[tx - r - 10, top - 34], [tx, top - 170], [tx + r + 10, top - 34]], INK);
+    polyF(g, [[tx - r - 8, top - 35], [tx, top - 167], [tx + r + 8, top - 35]], Rf[3]);
+    polyF(g, [[tx - r - 8, top - 35], [tx, top - 167], [tx - 12, top - 35]], Rf[4]);
+    polyF(g, [[tx + 16, top - 35], [tx, top - 167], [tx + r + 8, top - 35]], Rf[2]);
+    box(g, tx - r - 10, top - 38, (r + 10) * 2, 4, Gd[3]); box(g, tx - 33, top - 90, 66, 4, Gd[3]);
+    box(g, tx, top - 192, 1, 26, Ir[3]); polyF(g, [[tx + 1, top - 192], [tx + 22, top - 186], [tx + 1, top - 180]], Pk[3]); polyF(g, [[tx + 1, top - 192], [tx + 22, top - 186], [tx + 1, top - 189]], Pk[4]);
+    const bx = tx - 22;
+    box(g, bx - 3, top + 10, 32, 4, Gd[3]); box(g, bx - 1, top + 14, 28, 150, INK); box(g, bx, top + 14, 26, 148, Pk[3]); box(g, bx, top + 14, 5, 148, Pk[4]); box(g, bx + 21, top + 14, 5, 148, Pk[2]);
+    polyF(g, [[bx, top + 162], [bx + 13, top + 150], [bx + 26, top + 162], [bx + 26, top + 172], [bx + 13, top + 160], [bx, top + 172]], Pk[3]);
+    ballR(g, bx + 13, top + 60, 7, Gd);
+    box(g, tx - r - 8, -30, r * 2 + 16, 30, INK); box(g, tx - r - 7, -29, r * 2 + 14, 29, Hg[2]); box(g, tx - r - 7, -29, r * 2 + 14, 4, Hg[4]);
+    for (let x = tx - r - 4; x < tx + r + 4; x += 9) box(g, x, -22 + ((x * 7) % 5), 3, 3, Hg[3]);
+  }
 };
 const lampPostAt = (c: Ctx, x: number, y: number) => { c.save(); c.translate(x, y); lampPost(c, 0, 120); c.restore(); };

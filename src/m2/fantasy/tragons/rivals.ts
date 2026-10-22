@@ -23,8 +23,8 @@ export const drawUnloadRivals = (c: Ctx, state: GameState, t: Tragons, spots: nu
     if (x > EXIT_X + 60) return;
     const talking = !!t.unload.talk[r.id];
     const walking = t.unload.walk > 0;
-    const pose = walking ? 'stand' : talking ? 'talk' : r.id === 'blake' ? 'hurt' : r.id === 'hank' ? 'cheer' : 'stand';
-    drawSuitor(c, x, GY, walking ? 1 : -1, f, r.look, pose, { talking });
+    const pose = walking ? 'walk' : talking ? 'talk' : r.id === 'blake' ? 'hurt' : r.id === 'hank' ? 'cheer' : 'stand';
+    drawSuitor(c, x, GY, walking ? 1 : -1, f, r.look, pose, { talking, stride: t.unload.walk + i * 23 });
     // (Blake's lunch, coming back up)
     if (r.id === 'blake' && !walking && !talking && f % 50 < 24) for (let k = 0; k < 4; k++) box(c, x - 18 - k * 4, GY - 66 + k * 9 + (f % 4), 5, 4, k % 2 ? '#84CC16' : '#A3E635');
   });

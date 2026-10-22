@@ -72,11 +72,20 @@ export const buildRide = (state: GameState) => {
   t.trains = LANES.map(lane => ({ lane, cars: [], phase: 'ok' as const, t: 0, fx: 0, fy: 0, fvy: 0, rot: 0, fd: 1, ...makeTrainBlocks(state) }));
   gate = solid(state, GATE_X, GY - 320, 20, 320, { hidden: true, tag: 'tragons-gate' });
   decks = LANES.map(lane => solid(state, DECK_X0, AWAY, DECK_X1 - DECK_X0 - (2 - lane) * 80, 16, { type: 'platform', oneWay: true, hidden: true, tag: 'tragons-deck' }));
+  stairs = Array.from({ length: STAIR_N }, (_, k) => solid(state, DECK_X1 + k * STAIR_W, AWAY, STAIR_W, 12, { type: 'platform', oneWay: true, hidden: true, tag: 'tragons-stair' }));
 };
+/** The exit stairs down off the bottom deck's end to the yard (station.ts draws them): steps, each this wide. */
+export const STAIR_N = 8, STAIR_W = 26;
+/** Step k's top (world y). */
+export const stairY = (k: number) => deckY(2) + ((k + 1) * (GY - deckY(2))) / (STAIR_N + 1);
+let stairs: { y: number }[] = [];
 let gate: { y: number } = { y: 0 };
 let decks: { y: number }[] = [];
 /** The unload's decks (one a lane, at its dragon's roof as it stops): out (or away till then). */
-const setDecks = (on: boolean) => decks.forEach((d, lane) => { d.y = on ? deckY(lane as Lane) : AWAY; });
+const setDecks = (on: boolean) => {
+  decks.forEach((d, lane) => { d.y = on ? deckY(lane as Lane) : AWAY; });
+  stairs.forEach((d, k) => { d.y = on ? stairY(k) : AWAY; });
+};
 export const deckY = (lane: Lane) => laneY(lane, END_S + TL / 2);
 
 /** The eye: the trains' middle (all depths are drawn about it), eased to where the three are. */

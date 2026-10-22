@@ -11,7 +11,7 @@
 import type { GameState } from '../../../m1/game/core/state';
 import { timeOfDay } from '../../timeOfDay';
 import { INK, mix, box, dimmed, polyF, type Ctx } from '../kit';
-import { GY, LANE_COL, TUNNEL, type Lane } from './layout';
+import { GY, LANE_COL, TUNNEL, END_S, TL, type Lane } from './layout';
 import { trackPt, spinAt } from './track';
 import type { Tragons } from './state';
 import { fog } from './scene';
@@ -95,7 +95,14 @@ const rampsFor = (lane: Lane, d: number) => {
 };
 
 /** A run of track on a lane (s0..s1), its depth the middle's (the caller sorts on it). */
+/** The end of the line: just past where the dragons' heads stop at the unload (buffer stops, under the decks). */
+const LINE_END = END_S + TL + 36;
+
 export const drawSteel = (c: Ctx, state: GameState, t: Tragons, eye: { x: number; y: number }, lane: Lane, s0: number, s1: number) => {
+  // (nothing past the end of the line: no track running on across the yard)
+  if (s0 >= LINE_END) return;
+  const ends = s1 >= LINE_END;
+  if (ends) s1 = LINE_END;
   const light = LANE_COL[lane][1];
   const n = Math.round((s1 - s0) / STEP);
   for (let k = -1; k <= n + 1; k++) { const r = (raw[k + 1] ??= { x: 0, y: 0, d: 1, roll: 0 }); trackPt(t.spins, t.dist, lane, s0 + k * STEP, r); }
@@ -177,6 +184,19 @@ export const drawSteel = (c: Ctx, state: GameState, t: Tragons, eye: { x: number
     if (night) for (const k of run) if ((s0 / STEP + k) % 8 === 0) { box(c, pts.sx[k] - 1.5 * dm, pts.sy[k] - 1.5 * dm, 3 * dm, 3 * dm, light); c.globalAlpha = 0.25; box(c, pts.sx[k] - 4 * dm, pts.sy[k] - 4 * dm, 8 * dm, 8 * dm, light); c.globalAlpha = 1; }
   }
   c.lineCap = 'butt'; c.lineJoin = 'miter';
+
+  // The end of the line: a buffer stop on the end of the spine (timber baulk, iron frame, red and white), a pier under it
+  if (ends) {
+    const x = pts.sx[n], y = pts.sy[n], d = pts.d[n], gy = ey + (GY - ey) * d;
+    const Ir = steel, R = ['#7A1A1A', '#C42828', '#F2EAD0'].map(col => fog(dimmed(col), d));
+    box(c, x - 14 * d, y - 6 * d, 18 * d, gy - y + 6 * d, INK); box(c, x - 13 * d, y - 5 * d, 16 * d, gy - y + 4 * d, fog(dimmed('#8A847A'), d));
+    box(c, x - 13 * d, y - 5 * d, 4 * d, gy - y + 4 * d, fog(dimmed('#B4AEA2'), d));
+    for (let yy = y + 16 * d; yy < gy - 4; yy += 18 * d) box(c, x - 13 * d, yy, 16 * d, Math.max(1, d), fog(dimmed('#5A5650'), d));
+    box(c, x - 4 * d, y - 34 * d, 16 * d, 40 * d, INK); box(c, x - 3 * d, y - 33 * d, 14 * d, 38 * d, Ir[2]);
+    box(c, x + 1 * d, y - 30 * d, 12 * d, 18 * d, INK); box(c, x + 2 * d, y - 29 * d, 10 * d, 16 * d, R[1]);
+    for (let k = 0; k < 3; k++) box(c, x + 2 * d, y - 27 * d + k * 6 * d, 10 * d, 2 * d, R[2]);
+    box(c, x - 3 * d, y - 33 * d, 14 * d, Math.max(1, d), Ir[4]);
+  }
 
   // The broken ends: the spine torn and bent down, the rails curled off it, bolts out, sparking
   for (const g of gaps) for (const [s, dir] of [[g.a, 1], [g.b, -1]] as [number, number][]) {
