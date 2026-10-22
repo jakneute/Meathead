@@ -113,19 +113,32 @@ export const IN_PIT = new Set([5, 6, 7, 9, 10, 11]);
 // ---------------------------------------------------------------------------------------------------------------
 // The cast, the pickups, the checkpoints
 
-/** [kind, x, height of its feet, variant (the Whatsits' number)]. */
+/** [kind, x, height of its feet, variant (the Whatsits' number)]. Encounter pass (cartoon-spec.md, 2026-10-21): nobody
+ *  within a checkpoint's safe reach (spawnSafe.ts SAFE_X), heights and pairs so no stretch is walk-right-and-fire. */
 export const CAST: [string, number, number, number?][] = [
-  ['m2:ct_hatcat', 1050, 0],
+  // (the gate: a cat alone on the flat, taught; then another up on the shoppe's roof, waiting where the first tower
+  // leans him over: the umbrella's pointy, so no charging in: shoot him or knock him off the roof)
+  ['m2:ct_hatcat', 1050, 0], ['m2:ct_hatcat', 1990, SHOP.h],
   ['m2:ct_painter', 2350, 0],
-  ['m2:ct_whatsit', 3330, 0, 1], ['m2:ct_whatsit', 3420, 0, 2],
-  ['m2:ct_painter', 4460, 0], ['m2:ct_hatcat', 4640, 0],
-  ['m2:ct_vendor', 4880, 0],
-  ['m2:ct_mascot', 6260, 0],
-  ['m2:ct_whatsit', 8080, 0, 1], ['m2:ct_whatsit', 8170, 0, 2], ['m2:ct_vendor', 8320, 0],
-  ['m2:ct_hatcat', 8440, 0], ['m2:ct_painter', 9830, 110],
-  ['m2:ct_vendor', 10400, HATTERY.h],
-  ['m2:ct_painter', 12670, 140], ['m2:ct_mascot', 12960, 0], ['m2:ct_hatcat', 13160, 0],
-  ['m2:ct_whatsit', 13330, 0, 1], ['m2:ct_whatsit', 13410, 0, 2], ['m2:ct_vendor', 13520, 0],
+  // (the Wumple-Go-Round: a painter up on the canopy flicking blobs down at him among the beasts (the tower's way up
+  // meets her: shove her off into them); past it the Whatsits' pair, kites diving from above and a dash along the
+  // ground at once; the cat at the spinner's edge, hats flying in while the fish go round)
+  ['m2:ct_painter', 4110, CAROUSEL.canopy],
+  ['m2:ct_whatsit', 4480, 0, 1], ['m2:ct_whatsit', 4570, 0, 2],
+  ['m2:ct_hatcat', 4980, 0],
+  // (past the spinner: the vendor on the tower's step (balloon dogs from up there; shove him off into the fish) and
+  // the mascot under him leaping at him as he comes out of the fish (leaps into them if he hangs back); the candle's
+  // spiky: no dive kick)
+  ['m2:ct_vendor', 5790, 120], ['m2:ct_mascot', 5990, 0],
+  // (the big pit: the Whatsits on the gumdrop, kites diving at him on the swaying lids; land on it and one shove or
+  // charge sends both into the balls)
+  ['m2:ct_whatsit', 7735, GUMDROP.h, 1], ['m2:ct_whatsit', 7805, GUMDROP.h, 2],
+  // (the hattery's roof, its far end: balloon dogs drifting out over the trolley's pit after him on the lids)
+  ['m2:ct_vendor', 10460, HATTERY.h],
+  // (the studio square, out of the door checkpoint's reach: a painter, the mascot, then the Whatsits lined up in front
+  // of the cat (charge the pair and they chain; charge the cat and the umbrella gets him), the vendor back by the door)
+  ['m2:ct_painter', 12850, 0], ['m2:ct_mascot', 13020, 0],
+  ['m2:ct_whatsit', 13220, 0, 1], ['m2:ct_whatsit', 13290, 0, 2], ['m2:ct_hatcat', 13420, 0], ['m2:ct_vendor', 13600, 0],
 ];
 /** Pickups (lean): [x, height, type]. */
 export const PICKUPS: [number, number, 'small_health' | 'small_ammo'][] = [
