@@ -27,7 +27,6 @@ import { pickLine } from '../../../m1/game/platform/speech';
 import { killPlayer, skipDying, clearForDoom } from '../../../m1/game/player/player';
 import { drawPlayer } from '../../../m1/game/render/player/player';
 import { drawBloodPool } from '../../../m1/game/render/spatter';
-import { stamp } from '../../../m1/game/render/stamp';
 import { PARTICLE_PALETTES } from '../../../m1/constants';
 import { signText } from '../../signLetters';
 import { meatheadSays, byPants, hands, label } from '../section';
@@ -38,177 +37,14 @@ import { carXNow } from './where';
 import { viewOf, inView, inDrawn } from './view';
 import { type Ctx, box, checker, mix, hash, INK, N, boards, lip, stillAt, BRASS, RED, VARNISH, HAY } from './paint';
 import { LION_CAGE, IM_OKAY, HURT } from './lines';
+import { drawCircusLion, type LionPose } from './lionArt';
 
 const GORE = PARTICLE_PALETTES.GORE;
-const LION_SRC = 'm2:fr_lion';
-
-// ---------------------------------------------------------------------------------------------------------------
-// The lion: a maned circus lion, about 115 nose to rump, 46 at the shoulder, the mane's top ~66 up; a little red fez
-// (its gold tassel swinging) and a red studded collar. Drawn at (x, feetY) facing right; `t` its own frame count.
-
-export type LionPose = 'stand' | 'walk' | 'run' | 'pounce' | 'roar' | 'maul' | 'chew';
-
-type R5 = readonly string[];
-const TAWNY: R5 = ['#F4D898', '#DDAE62', '#BC8A42', '#8E6028', '#3C240C'];
-const TAWNY_FAR: R5 = TAWNY.map(c => mix(c, '#3C240C', 0.28));
-const PALE: R5 = ['#FFF6E2', '#F2DEB8', '#D8BC8C', '#B09468', '#5A4630'];
-const MANE: R5 = ['#E09440', '#B8682A', '#8E481A', '#64300E', '#2A1206'];
-const FEZ: R5 = ['#F87171', '#DC2626', '#991B1B', '#5F0F0F', '#2A0606'];
-const GOLD: R5 = ['#FFF0A8', '#F2C84A', '#C8962E', '#8A5E14', '#3A2408'];
 const BLOOD = ['#5F0F0F', '#7F1D1D', '#B91C1C', '#DC2626'];
-
-const ell = (g: Ctx, x: number, y: number, rx: number, ry: number, col: string, rot = 0) => { g.fillStyle = col; g.beginPath(); g.ellipse(x, y, Math.max(0.1, rx), Math.max(0.1, ry), rot, 0, Math.PI * 2); g.fill(); };
+const GOLD = ['#FFF0A8', '#F2C84A', '#C8962E', '#8A5E14', '#3A2408'];
+const ell = (g: Ctx, x: number, y: number, rx: number, ry: number, col: string) => { g.fillStyle = col; g.beginPath(); g.ellipse(x, y, Math.max(0.1, rx), Math.max(0.1, ry), 0, 0, Math.PI * 2); g.fill(); };
 const line = (g: Ctx, pts: number[], w: number, col: string) => { g.strokeStyle = col; g.lineWidth = w; g.lineCap = 'round'; g.lineJoin = 'round'; g.beginPath(); g.moveTo(pts[0], pts[1]); for (let i = 2; i < pts.length; i += 2) g.lineTo(pts[i], pts[i + 1]); g.stroke(); };
-/** A shape in its ramp, lit from above: the lit band, the base, the shade and the deep (dithered seams), inked. */
-const banded = (g: Ctx, path: () => void, R: R5, y0: number, y1: number, lw = 1.2) => {
-  g.beginPath(); path(); g.fillStyle = R[1]; g.fill();
-  g.save(); g.beginPath(); path(); g.clip();
-  const h = y1 - y0;
-  box(g, -300, y0 - 20, 600, h * 0.24 + 20, R[0]); checker(g, -300, y0 + h * 0.24, 600, 2, R[0], 0, 1);
-  checker(g, -300, y0 + h * 0.58, 600, 2, R[2], 0, 1); box(g, -300, y0 + h * 0.58 + 2, 600, h + 20, R[2]);
-  checker(g, -300, y0 + h * 0.84, 600, 2, R[3], 0, 1); box(g, -300, y0 + h * 0.84 + 2, 600, h + 20, R[3]);
-  g.restore();
-  g.beginPath(); path(); g.strokeStyle = R[4]; g.lineWidth = lw; g.lineJoin = 'round'; g.stroke();
-};
-
-type Pt = [number, number];
-interface Geo { tilt: number; hip: Pt; sh: Pt; head: Pt; open: number; ry: number; tail: number[]; legs: number[][]; shake: number }
-
-/** Where everything is, by pose and the cycle's phase (legs: far back, far front, near back, near front, each hip ->
- *  knee -> paw). */
-const geo = (pose: LionPose, ph: number): Geo => {
-  const a = Math.sin(ph), b = Math.sin(ph + Math.PI), lift = (s: number) => -Math.max(0, s) * 5;
-  switch (pose) {
-    case 'run': {
-      const ra = Math.sin(ph), rb = Math.sin(ph + 1.6), bob = Math.sin(ph * 2) * 2;
-      return { tilt: 0, hip: [-42, -40 + bob], sh: [32, -42 - bob], head: [54, -46 - bob], open: 0.35, ry: 15, shake: 0,
-        tail: [-52, -40, -74, -48 + bob * 2, -92, -44],
-        legs: [[-40, -34, -48 - ra * 8, -16, -44 - ra * 20, lift(ra) * 1.2], [30, -34, 36 + rb * 9, -16, 38 + rb * 22, lift(-rb)],
-          [-36, -32, -44 - ra * 9, -14, -38 - ra * 22, lift(ra)], [34, -32, 42 + rb * 10, -14, 44 + rb * 22, lift(-rb) * 1.2]] };
-    }
-    case 'pounce':
-      return { tilt: -0.22, hip: [-40, -42], sh: [30, -46], head: [52, -50], open: 1, ry: 15, shake: 0,
-        tail: [-50, -44, -72, -60, -90, -58],
-        legs: [[-38, -36, -56, -28, -74, -22], [28, -40, 46, -48, 64, -52], [-34, -34, -54, -24, -70, -16], [32, -38, 52, -42, 70, -44]] };
-    case 'roar': {
-      const o = 0.55 + 0.45 * Math.abs(Math.sin(ph));
-      return { tilt: -0.05, hip: [-38, -40], sh: [28, -46], head: [44, -56], open: o, ry: 16, shake: 0,
-        tail: [-48, -40, -66, -30 + a * 4, -76, -14 + a * 4],
-        legs: [[-36, -34, -38, -16, -36, 0], [26, -36, 30, -16, 30, 0], [-32, -32, -34, -14, -30, 0], [30, -34, 34, -14, 36, 0]] };
-    }
-    case 'maul': {
-      const k = Math.sin(ph * 2) * 4, w = Math.sin(ph) * 3;
-      return { tilt: 0.1, hip: [-38, -38], sh: [24, -30 + w], head: [50 + k, -22 + Math.abs(k) * 0.5], open: 0.25 + 0.75 * Math.abs(Math.sin(ph * 2)), ry: 15, shake: k,
-        tail: [-48, -38, -68, -50 + w * 3, -84, -44 + w * 4],
-        legs: [[-36, -32, -46, -18, -40, 0], [22, -26, 34, -18, 44 + w, -10], [-32, -30, -42, -14, -34, 0], [26, -24, 40, -14, 52 - w, -8]] };
-    }
-    case 'chew': {
-      const ch = Math.abs(Math.sin(ph)) * 0.3;
-      return { tilt: 0, hip: [-36, -20], sh: [24, -22], head: [44, -28], open: ch, ry: 13, shake: 0,
-        tail: [-46, -16, -64, -6 + a * 3, -80, -4 + a * 5],
-        legs: [[-34, -14, -24, -6, -12, -2], [22, -14, 38, -6, 56, -4], [-30, -12, -20, -4, -8, 0], [26, -12, 42, -4, 60, -2]] };
-    }
-    default: {
-      // (walking, or stood: the legs in their walk, half a beat apart near to far)
-      const bob = pose === 'walk' ? Math.sin(ph * 2) : 0;
-      return { tilt: 0, hip: [-38, -40 + bob], sh: [28, -44 + bob], head: [46, -48 + bob], open: 0, ry: 16, shake: 0,
-        tail: [-48, -40, -66, -30 + a * 6, -74, -12 + a * 6],
-        legs: [[-36, -34, -40 + b * 5, -16, -38 + b * 10, lift(Math.cos(ph + Math.PI))], [26, -36, 28 + a * 5, -16, 30 + a * 10, lift(Math.cos(ph))],
-          [-32, -32, -36 + a * 5, -14, -32 + a * 10, lift(Math.cos(ph))], [30, -34, 32 + b * 5, -14, 34 + b * 10, lift(Math.cos(ph + Math.PI))]] };
-    }
-  }
-};
-
-const paintLion = (g: Ctx, pose: LionPose, fr: number, n: number, bloody: number) => {
-  const ph = (fr / n) * Math.PI * 2, G = geo(pose, ph);
-  const [hx, hy] = G.head;
-  g.save();
-  g.rotate(G.tilt);
-  // (the tail: a whip of it, the dark tuft at its end)
-  line(g, G.tail, 5.4, TAWNY[4]); line(g, G.tail, 3.6, TAWNY[2]);
-  ell(g, G.tail[4], G.tail[5], 5.2, 4.2, MANE[4]); ell(g, G.tail[4], G.tail[5], 4.2, 3.2, MANE[3]); ell(g, G.tail[4] - 1, G.tail[5] - 1, 2, 1.4, MANE[1]);
-  // (the legs: the far pair darker, behind)
-  const leg = (L: number[], R: R5, w: number) => {
-    line(g, L, w + 2.4, R[4]); line(g, L, w, R[2]); line(g, [L[0] - 1, L[1], L[2] - 1, L[3]], w * 0.35, R[1]);
-    ell(g, L[4] + 2, L[5] - 2.6, w * 0.7 + 1, 3.6, R[4]); ell(g, L[4] + 2, L[5] - 2.8, w * 0.7, 2.8, R[1]);
-    if (pose === 'pounce' || pose === 'maul') for (let k = 0; k < 3; k++) line(g, [L[4] + 4 + k * 1.6, L[5] - 1, L[4] + 6 + k * 1.6, L[5] + 2], 0.8, '#F2EAD8');
-  };
-  leg(G.legs[0], TAWNY_FAR, 6.5); leg(G.legs[1], TAWNY_FAR, 7);
-  // (the body: barrel and haunch, the chest heavier, the belly paler)
-  const [hpx, hpy] = G.hip, [shx, shy] = G.sh;
-  const cx = (hpx + shx) / 2, cy = (hpy + shy) / 2 + 8, len = Math.hypot(shx - hpx, shy - hpy), ang = Math.atan2(shy - hpy, shx - hpx);
-  banded(g, () => { g.ellipse(cx, cy, len / 2 + 14, G.ry, ang, 0, Math.PI * 2); g.moveTo(hpx + 14, hpy + 8); g.ellipse(hpx + 2, hpy + 8, 15, 15, 0, 0, Math.PI * 2); }, TAWNY, Math.min(hpy, shy) - 8, cy + G.ry + 2);
-  ell(g, cx + 2, cy + G.ry * 0.62, len / 2 - 4, 3.2, PALE[2], ang);
-  // (the near legs)
-  leg(G.legs[2], TAWNY, 7); leg(G.legs[3], TAWNY, 7.6);
-  // (the mane: a shaggy ruff round the head, two layers, dark to the outside; the collar across the bottom of it)
-  const mx = hx - 7, my = hy + 3;
-  const ruff = (r: number, spikes: number, jag: number, seed: number) => () => {
-    for (let i = 0; i <= spikes * 2; i++) {
-      const t = (i / (spikes * 2)) * Math.PI * 2, rr = i % 2 ? r - jag : r + jag * 0.4 + hash(seed + i) * 3;
-      const x = mx + Math.cos(t) * rr, y = my + Math.sin(t) * rr * 1.08;
-      if (i === 0) g.moveTo(x, y); else g.lineTo(x, y);
-    }
-    g.closePath();
-  };
-  banded(g, ruff(22, 14, 6, 3), MANE, my - 26, my + 24);
-  banded(g, ruff(16, 11, 4, 9), MANE.map(c => mix(c, '#F0B060', 0.18)), my - 18, my + 16, 0.8);
-  g.strokeStyle = FEZ[4]; g.lineWidth = 6.4; g.beginPath(); g.arc(mx + 1, my + 2, 15, Math.PI * 0.18, Math.PI * 0.8); g.stroke();
-  g.strokeStyle = FEZ[1]; g.lineWidth = 4.4; g.stroke();
-  g.strokeStyle = FEZ[0]; g.lineWidth = 1; g.beginPath(); g.arc(mx + 1, my + 2, 13.6, Math.PI * 0.22, Math.PI * 0.6); g.stroke();
-  for (let k = 0; k < 5; k++) { const t = Math.PI * (0.24 + k * 0.13); box(g, mx + 1 + Math.cos(t) * 15 - 1, my + 2 + Math.sin(t) * 15 - 1, 2, 2, GOLD[1]); }
-  // (the ears peeking over the mane, the face, the muzzle)
-  for (const [ex, ey] of [[hx - 4, hy - 11], [hx + 5, hy - 12]] as Pt[]) { ell(g, ex, ey, 4, 3.6, TAWNY[4]); ell(g, ex, ey, 3, 2.6, TAWNY[2]); ell(g, ex + 0.4, ey + 0.6, 1.4, 1.2, '#5A3418'); }
-  banded(g, () => g.ellipse(hx + 3, hy, 11, 10.5, 0, 0, Math.PI * 2), TAWNY, hy - 10, hy + 10);
-  // (the jaw: dropped open, the fangs, the tongue)
-  const o = G.open;
-  if (o > 0.12) {
-    ell(g, hx + 13, hy + 7 + o * 3, 6, 1 + o * 4, '#3A0A10'); ell(g, hx + 12, hy + 8 + o * 4, 4, 0.6 + o * 2, '#D8606A');
-    g.save(); g.translate(hx + 6, hy + 7); g.rotate(o * 0.5);
-    banded(g, () => { g.moveTo(-3, 0); g.lineTo(13, 0); g.quadraticCurveTo(14, 4, 10, 4.6); g.lineTo(-2, 4); g.closePath(); }, PALE, 0, 5, 0.8);
-    for (const fx of [10, 5.6]) { g.fillStyle = '#FBF6E8'; g.beginPath(); g.moveTo(fx, 0.4); g.lineTo(fx + 1, -3); g.lineTo(fx + 2, 0.4); g.closePath(); g.fill(); }
-    g.restore();
-  }
-  banded(g, () => g.ellipse(hx + 11, hy + 3.5, 7.6, 5, 0, 0, Math.PI * 2), PALE, hy - 1.5, hy + 8.5, 0.9);
-  if (o > 0.12) for (const fx of [14.6, 10]) { g.fillStyle = '#FBF6E8'; g.beginPath(); g.moveTo(hx + fx, hy + 6.6); g.lineTo(hx + fx + 1, hy + 10 + o * 1.6); g.lineTo(hx + fx + 2, hy + 6.6); g.closePath(); g.fill(); }
-  else line(g, [hx + 8, hy + 7, hx + 12, hy + 8, hx + 16, hy + 7], 0.8, '#3A1A0C');
-  for (let i = 0; i < 3; i++) box(g, hx + 9 + i * 2, hy + 3.4, 1, 1, '#6A5034');
-  g.fillStyle = '#3A1A10'; g.beginPath(); g.moveTo(hx + 15, hy - 0.6); g.lineTo(hx + 19.4, hy - 0.2); g.lineTo(hx + 17.4, hy + 3); g.closePath(); g.fill();
-  line(g, [hx + 3, hy - 7, hx + 14, hy - 2.4], 1.4, TAWNY[0]);
-  // (the eye: amber, narrowed under a heavy brow)
-  ell(g, hx + 6.4, hy - 3, 2.8, 1.6, '#1A0E06'); ell(g, hx + 6.8, hy - 3, 2, 1.1, '#E8A830'); ell(g, hx + 7.2, hy - 3, 0.6, 1, '#0A0604'); box(g, hx + 6, hy - 3.8, 1, 1, '#FFFFFF');
-  line(g, [hx + 2.6, hy - 5.6, hx + 9.4, hy - 4.8], 1.3, TAWNY[4]);
-  // (the fez: tipped jauntily, its band, the tassel swinging off the back)
-  g.save(); g.translate(hx + 2, hy - 9); g.rotate(-0.28);
-  g.fillStyle = FEZ[4]; g.beginPath(); g.moveTo(-7.4, 1); g.lineTo(7.4, 1); g.lineTo(5.4, -11); g.lineTo(-5.4, -11); g.closePath(); g.fill();
-  g.fillStyle = FEZ[1]; g.beginPath(); g.moveTo(-6.4, 0); g.lineTo(6.4, 0); g.lineTo(4.6, -10); g.lineTo(-4.6, -10); g.closePath(); g.fill();
-  box(g, -4.4, -10, 3, 10, FEZ[0]); box(g, 2.6, -10, 2.4, 10, FEZ[2]); box(g, -6.4, -2.4, 12.8, 2.4, GOLD[2]); box(g, -6.4, -2.4, 12.8, 1, GOLD[0]);
-  box(g, -4.6, -11, 9.2, 1.4, FEZ[3]);
-  const sw = Math.sin(ph) * 2 + (pose === 'run' || pose === 'pounce' ? -3 : 0);
-  line(g, [0, -10.6, -4, -10 + 1, -8 + sw, -4], 0.9, '#1A0E06');
-  ell(g, -8 + sw, -2.4, 1.8, 2.8, GOLD[3]); ell(g, -8.4 + sw, -3, 1, 1.8, GOLD[1]);
-  g.restore();
-  // (the blood: over its muzzle, down its chin and the bottom of its mane, on its front paws)
-  if (bloody > 0) {
-    g.globalAlpha = Math.min(1, bloody);
-    ell(g, hx + 12, hy + 7, 7, 3.4, BLOOD[1]); ell(g, hx + 14, hy + 5, 3.4, 1.8, BLOOD[2]); line(g, [hx + 8, hy + 9, hx + 7, hy + 14, hx + 8, hy + 17], 1.4, BLOOD[1]);
-    ell(g, mx + 6, my + 18, 7, 3, BLOOD[0]); ell(g, mx + 8, my + 17, 3, 1.6, BLOOD[2]);
-    for (const L of [G.legs[1], G.legs[3]]) { ell(g, L[4] + 2, L[5] - 3, 5, 2.4, BLOOD[1]); ell(g, L[4] + 3, L[5] - 3.4, 2, 1, BLOOD[3]); }
-    g.globalAlpha = 1;
-  }
-  g.restore();
-};
-
-/** The lion at (x, feetY), facing (1 right), its own frame `t`, in a pose (scaled `s`). */
-export const drawCircusLion = (c: Ctx, x: number, feetY: number, facing: number, t: number, pose: LionPose, o: { bloody?: number; s?: number } = {}) => {
-  const per = pose === 'run' ? 0.45 : pose === 'walk' ? 0.11 : pose === 'maul' ? 0.32 : pose === 'chew' ? 0.14 : pose === 'roar' ? 0.12 : 0;
-  const n = pose === 'run' || pose === 'walk' ? 8 : pose === 'maul' || pose === 'roar' ? 6 : pose === 'chew' ? 4 : 1;
-  const fr = per ? Math.floor(((((t * per) / (Math.PI * 2)) % 1 + 1) % 1) * n) : 0;
-  const bloody = Math.round((o.bloody ?? 0) * 2) / 2, s = o.s ?? 1;
-  c.save(); c.translate(Math.round(x), Math.round(feetY)); c.scale((facing < 0 ? -1 : 1) * s, s);
-  stamp(c, `fr-circlion-${pose}-${fr}-${bloody}`, -100, -112, 200, 124, g => paintLion(g, pose, fr, n, bloody));
-  c.restore();
-};
+const LION_SRC = 'm2:fr_lion';
 
 // ---------------------------------------------------------------------------------------------------------------
 // The cage wagon on the circus flat (in place of the logs; its roof at the logs' height, to stand on)
@@ -288,7 +124,12 @@ export const drawCage = (c: Ctx, state: GameState, x: number, len: number, mode:
   if (mode === 'live') {
     const cg = trainOf(state).cage;
     const pose: LionPose = cg.roar > 0 ? 'roar' : cg.walk ? 'walk' : 'stand';
-    drawCircusLion(c, x + cg.rx, GY + FLOOR, cg.facing, cg.t, pose, { s: 0.9 });
+    // (kept inside the bars: nothing of it ever pokes out past the header or the posts)
+    // (the walk's frame from how far it's paced (its paws planted, never skating); the roar a one-shot over its 54)
+    const t = pose === 'walk' ? (cg.facing > 0 ? cg.rx : -cg.rx) / 0.9 : cg.t;
+    c.save(); c.beginPath(); c.rect(x + END + 6, GY + HEAD_B - 2, len - 2 * END - 12, FLOOR - HEAD_B + 16); c.clip();
+    drawCircusLion(c, x + cg.rx, GY + FLOOR, cg.facing, t, pose, { s: 0.9, k: Math.floor((54 - cg.roar) / 9) });
+    c.restore();
   }
   stillAt(c, `tr-cage-front-${len}-${mode}`, x, GY, END - 8, TP - 4, len - 2 * END + 16, Dk - TP + 8, g => paintCageFront(g, len, mode === 'open'));
 };
@@ -335,11 +176,13 @@ const updateEscape = (state: GameState) => {
   else e.x += -9 - tr.v * 1.25;
   if (e.t > 600 || (e.y >= BANK && e.x < viewOf(state).x - 300)) tr.escape = null;
 };
+/** The leap's frame by how it's moving (launched, rising, over the top, coming down). */
+const pounceFrame = (vy: number) => (vy < -5 ? 0 : vy < -1 ? 1 : vy < 3 ? 2 : 3);
 export const drawEscape = (c: Ctx, state: GameState) => {
   const e = trainOf(state).escape;
   if (!e || !inDrawn(state, e.x - 120, e.x + 120)) return;
   const air = e.y < BANK;
-  drawCircusLion(c, e.x, e.y, -1, e.t, air ? 'pounce' : 'run', { s: 1.2 });
+  drawCircusLion(c, e.x, e.y, -1, e.t, air ? 'pounce' : 'run', { s: 1.2, k: pounceFrame(e.vy) });
   if (e.t < 120 && (e.t >> 3) % 4 !== 3) label(c, "THE LION'S LOOSE!", e.x, e.y - 96, '#FDE047', 8);
 };
 
@@ -513,8 +356,12 @@ export const drawMaul = (c: Ctx, state: GameState) => {
     drawBody(c, state, m.x + jerk, lieY + (standY - lieY) * up, LYING * (1 - up) + up * (Math.sin(s * 0.08) * 0.08 + jerk * 0.02), { talking: up >= 1, hurtTimer: up < 1 ? 20 : 0 });
   }
   if (L) {
-    const pose: LionPose = L.mode === 'run' ? 'run' : L.mode === 'leap' ? 'pounce' : L.mode;
-    const feet = L.mode === 'chew' ? GY - 10 : L.mode === 'maul' ? GY - 4 : GY - L.h;
-    drawCircusLion(c, L.x, feet, 1, L.mode === 'maul' || L.mode === 'chew' ? L.t : f, pose, { bloody: L.mode === 'maul' ? Math.min(1, L.t / 30) : L.mode === 'chew' ? 1 : 0 });
+    // (the landing and the settling down eased in over a few frames (down onto him as he goes over; down onto what's
+    // left), never snapped from one pose to the next)
+    const SET = 8;
+    const pose: LionPose = L.mode === 'run' ? 'run' : L.mode === 'leap' ? 'pounce' : L.mode === 'maul' ? (L.t < SET ? 'land' : 'maul') : L.t < SET ? 'settle' : 'chew';
+    const k = L.mode === 'leap' ? pounceFrame(L.vh) : Math.floor(L.t / 2);
+    const feet = L.mode === 'chew' ? GY - 4 - Math.round(6 * Math.min(1, L.t / SET)) : L.mode === 'maul' ? GY - Math.round(4 * Math.min(1, L.t / SET)) : GY - L.h;
+    drawCircusLion(c, L.x, feet, 1, L.mode === 'maul' || L.mode === 'chew' ? Math.max(0, L.t - SET) : f, pose, { k, bloody: L.mode === 'maul' ? Math.min(1, L.t / 30) : L.mode === 'chew' ? 1 : 0 });
   }
 };
