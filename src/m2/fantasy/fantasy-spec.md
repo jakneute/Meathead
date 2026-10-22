@@ -939,3 +939,17 @@ markBossFight every frame of a boss or sub-boss fight. Voice every new line (`np
   safe); placed 480 apart (was 420); the nitrogen's jet 260 (was 280), the flood 140 half-wide (was 150); and never all
   three at once: a main due to start its tell holds, quiet, while the other two are both telling or on, so a whole
   main's stretch of floor (well over a body or two wide) is always clear. Damage, her moves and everything else as was.
+- **Encounter pass (2026-10-21; the user: "some areas seem like they can be mindlessly cleared by walking forward and
+  pressing fire. don't come up with new enemies but find more creative uses for their placements and the obstacles").**
+  Existing kinds and terrain only, the same counts, HP and damage; the fairy wheel, the Tragons, the broom deathmatch,
+  the scenes and Piper untouched. Nobody newly placed inside a checkpoint's safe start (spawnSafe.ts SAFE_X 360:
+  placements there are silently left out on a respawn).
+  - **The town square (square/layout.ts CAST):** the carousel's bro and princess walked at him on the cobbles one after
+    the other (the princess inside THE GORGE's reach): the bro's up on the carousel's deck under the canopy's clerk (the
+    staircase's way: one throwing down, one in the way), the princess out of the checkpoint's reach. The gorge's knight
+    out of GINGERBREAD LANE's reach. Gingerbread lane was four on the ground in a row (troll, knight, bro, dragon): the
+    bro's up on the porch over the troll (balls bouncing down while the shockwaves run along the ground: the spiked
+    helmet's no dive kick either), and the knight's past the second roof's snow (draw his charge under it: the slab
+    hits him too) in front of the dragon. The bandstand's crowd was four on the ground with the dragon inside THE
+    BANDSTAND's reach: the dragon's out of it, the princess up on the balcony with the clerk (two throwing down) over
+    the dragon, the bro and the knight.

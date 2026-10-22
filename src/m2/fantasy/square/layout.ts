@@ -122,15 +122,20 @@ export const LEDGES: [number, number, number][] = [
 // The cast, the hazards, the pickups, the checkpoints
 
 /** [kind, x, height of its feet]. */
+// (the encounter pass: nobody inside a checkpoint's safe start (spawnSafe.ts, 360 either side); the carousel's bro up
+// on its deck under the canopy's clerk (both on the staircase's way); gingerbread lane's bro up on the porch over the
+// troll (balls bouncing down while the shockwaves run), the knight past the second roof's snow (draw his charge
+// under it); the bandstand's princess up on the balcony with the clerk (two throwing down) over the dragon, the bro
+// and the knight)
 export const CAST: [string, number, number][] = [
   ['m2:fa_clerk', 1100, 0],
   ['m2:fa_clerk', 2150, 120], ['m2:fa_knight', 2620, 0], ['m2:fa_princess', 2840, 0],
   ['m2:fa_bro', 4320, 0], ['m2:fa_owl', 4620, 300],
-  ['m2:fa_clerk', 5680, CANOPY], ['m2:fa_bro', 6020, 0], ['m2:fa_princess', 6250, 0], ['m2:fa_owl', 5900, 330],
-  ['m2:fa_owl', 7300, 380], ['m2:fa_clerk', PORCH.a + 150, PORCH.h], ['m2:fa_knight', 8350, 0],
-  ['m2:fa_troll', 9480, 0], ['m2:fa_knight', 9720, 0], ['m2:fa_bro', 10010, 0], ['m2:fa_dragon', 10220, 0], ['m2:fa_owl', 9600, 270],
+  ['m2:fa_clerk', 5680, CANOPY], ['m2:fa_bro', 5620, DECK], ['m2:fa_princess', 6080, 0], ['m2:fa_owl', 5900, 330],
+  ['m2:fa_owl', 7300, 380], ['m2:fa_clerk', PORCH.a + 150, PORCH.h], ['m2:fa_knight', 8300, 0],
+  ['m2:fa_bro', 9290, 130], ['m2:fa_troll', 9480, 0], ['m2:fa_knight', 10080, 0], ['m2:fa_dragon', 10220, 0], ['m2:fa_owl', 9600, 270],
   ['m2:fa_knight', 11320, 0], ['m2:fa_clerk', PIER.a + 120, PIER.h], ['m2:fa_bro', RB.a + 120, RB.h], ['m2:fa_owl', 11900, 440], ['m2:fa_clerk', TL.a + 60, TL.h],
-  ['m2:fa_dragon', 13520, 0], ['m2:fa_princess', 13680, 0], ['m2:fa_bro', 13820, 0], ['m2:fa_clerk', 13990, 140], ['m2:fa_knight', 14020, 0],
+  ['m2:fa_dragon', 13700, 0], ['m2:fa_princess', 13935, 140], ['m2:fa_bro', 13820, 0], ['m2:fa_clerk', 14025, 140], ['m2:fa_knight', 14020, 0],
 ];
 /** The snow off the roofs: [x (the slab's middle), the eave's height, its cycle's phase]. Nobody of the cast stands under one. */
 export const SNOW: [number, number, number][] = [[1760, 160, 0], [2960, 150, 90], [9160, 140, 40], [9910, 150, 150]];
