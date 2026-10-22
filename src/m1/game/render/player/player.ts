@@ -149,8 +149,9 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   // Victory lap after a weakness kill: weapon put away, and both hands on the job while he pisses
   // (or holstered for a stretch: the log ride, Meathead 2's: empty fists)
   const isUnarmed = (!!state.bossCorpse && !!state.victoryString) || !!p.holstered;
-  const pee = peeProgress(p.peeTimer);
-  const isRelieving = isUnarmed && pee.busy;
+  // (Meathead 2 stubs the victory pee out: its progress comes back empty there, so read it as not going)
+  const pee = peeProgress(p.peeTimer) ?? { busy: false, undoing: false, drop: 0 };
+  const isRelieving = isUnarmed && !!pee.busy;
   // Grim determination after a charge that didn't kill (like the Doom guy's rampage face)
   const isAngry = !!p.angryTimer && p.angryTimer > 0 && !isHurt && !isRelieving;
   // Sat astride the jet ski: knees forward, off-hand on the handlebars (the gun hand's free)
