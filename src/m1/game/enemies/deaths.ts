@@ -22,6 +22,7 @@ import { floorTopAt } from '../core/terrain';
 import { isMidBoss } from '../combat/midBoss';
 import { poofEnemy } from '../core/cartoonKills';
 import { kindHead, isHumanoidKind } from '../render/enemies/index';
+import { kindDef } from './kinds';
 import { GunDeath, GunMode, startGunDeath, updateGunDeath, updateEjected } from './gunDeaths';
 import { type Drown, updateDrowned } from './drownDeath';
 import { type WallSplat, updateWallSplat, WALLSPLAT_FRAMES } from './wallSplatDeath';
@@ -103,6 +104,9 @@ export const deathFacing = (state: GameState, e: Enemy): 1 | -1 => {
     'cardoor', 'rattlesnake', 'scorpion', 'coyote', 'visitor', 'bum', 'reader', 'hr', 'custodian', 'scientist', 'rat', 'tenant', 'minion',
     'pitbull', 'lowrider', 'manhole', 'sludgeling', 'mutantfish'];
   if (e.kind && ownWay.includes(e.kind)) return e.facing === 1 ? 1 : -1;
+  // (another game's own kinds are drawn the way their AI turns them (kindFacing), or turned by a pose: the body keeps
+  // that, not swung round to face him the moment it dies)
+  if (kindDef(e.kind)) return (e.pose?.face ?? (e.facing === 1 ? 1 : -1)) as 1 | -1;
   return state.player.pos.x + state.player.width / 2 < e.pos.x + e.width / 2 ? -1 : 1;
 };
 

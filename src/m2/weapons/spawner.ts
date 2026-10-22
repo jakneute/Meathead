@@ -18,7 +18,7 @@ import { isMidBoss } from '../../m1/game/combat/midBoss';
 import { specialsHalf, HALF } from './half';
 import { playSound } from '../../m1/game/platform/audio';
 import { groundLineAt } from '../../m1/game/core/terrain';
-import { isHumanoidKind } from '../../m1/game/render/enemies';
+import { isHumanoidKind, kindFacing } from '../../m1/game/render/enemies';
 import { CANVAS_WIDTH } from '../../m1/constants';
 import { stamp } from '../../m1/game/render/stamp';
 import { drawEnemyAt, grabHolding } from '../moves/grab';
@@ -438,7 +438,8 @@ const eatenAlive = (ctx: FrameContext, e: Enemy) => {
   }
   state.enemies = state.enemies.filter(o => o !== e);
   e.isBlownAway = true;
-  const face = (isHumanoidKind(e.kind) ? (state.player.pos.x + state.player.width / 2 > e.pos.x + e.width / 2 ? 1 : -1) : (e.facing ?? 1)) as 1 | -1;
+  // (the way it was drawn as it died (its own way, or turned by a pose), not swung round to him)
+  const face = (e.pose?.face ?? (e.kind ? (kindFacing(e, state) >= 0 ? 1 : -1) : (e.facing ?? 1))) as 1 | -1;
   const c: Corpse = { e, x: e.pos.x + e.width / 2, y: e.pos.y + e.height, vy: 0, t: 0, face, bones: skeleton(e), flesh: null, fx: 0, fy: 0, landedAt: -1 };
   // (him as he was: drawn off to the side, to be eaten away)
   try {

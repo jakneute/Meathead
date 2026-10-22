@@ -380,12 +380,12 @@ const performerFace = (c: Ctx, e: Enemy, x: number, y: number, r: number, md: 'o
 export const drawGloppy = (c: Ctx, e: Enemy, f: number) => {
   const r = reaction(e), md = r?.md ?? moodOf(e), isDead = md === 'dead';
   const pose = r?.pose ?? (e.aiState === 'hock' ? 'tell' : moving(e));
-  const isFlat = pose === 'limp' || (isDead && !r);
+  // (never flat by itself: the engine's deaths and body drawers lay a body down themselves; a body in a death animation
+  // (no id) doesn't wobble either, the animation turns it)
   const hock = e.aiState === 'hock', bump = e.aiState === 'bumpWind', bumped = e.aiState === 'bump';
   const seed = Math.abs(Math.round(e.initialX || 0));
   c.save();
-  if (isFlat) { c.translate(0, -2); c.rotate(-Math.PI / 2 + 0.05); c.translate(-40, -12); }
-  else if (pose === 'thrown') c.rotate(Math.sin(f * 0.6) * 0.3);
+  if (pose === 'thrown' && e.id) c.rotate(Math.sin(f * 0.6) * 0.3);
   if (bump) c.rotate(-0.12);
   if (bumped) c.translate(6, 0);
   const walk = pose === 'walk' ? Math.sin(f * 0.3) * 4 : 0, wob = Math.sin(f * 0.15) * 1.5;

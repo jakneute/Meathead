@@ -69,11 +69,13 @@ const mascot = (c: Ctx, key: string, spin: number, bx: [number, number, number, 
   if (spin) { c.save(); c.rotate(spin); paint(c); c.restore(); return; }
   stamp(c, key, bx[0], bx[1], bx[2], bx[3], paint);
 };
-/** How a costume lies: flat (dead or a body), flung, or stood. */
+/** How a costume stands: flung, or stood. Never flat by itself, dead or not: the engine's deaths and body drawers lay a body
+ * down themselves (keeled over, rolled, sprawled), so lying down here as well turned it on end; and a body in a death
+ * animation (no id) doesn't wobble, the animation turns it. */
 const layOf = (e: Enemy) => {
   const r = reaction(e), md = r?.md ?? moodOf(e), isDead = md === 'dead', pose = r?.pose ?? null;
-  const flat = pose === 'limp' || (isDead && !r), flung = pose === 'thrown' || pose === 'shaken' || pose === 'pinned';
-  return { r, md, isDead, pose, flat, flung };
+  const flung = !!e.id && (pose === 'thrown' || pose === 'shaken' || pose === 'pinned');
+  return { r, md, isDead, pose, flung };
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -324,7 +326,7 @@ const paintCupid = (g: Ctx, P: CupidLook) => {
   }
 };
 export const drawCupid = (c: Ctx, e: Enemy, f: number, seed: number) => {
-  const { md, isDead, pose, flat, flung } = layOf(e);
+  const { md, isDead, pose, flung } = layOf(e);
   const onWire = !isDead && !pose;
   const draw = e.aiState === 'draw', rear = e.aiState === 'rear', swoop = e.aiState === 'swoop';
   const ff = Math.floor(f / (rear || swoop ? 3 : 5)) % 4;
@@ -334,7 +336,6 @@ export const drawCupid = (c: Ctx, e: Enemy, f: number, seed: number) => {
   // (the wire it's flown on, up out of the picture from the harness between the wings: thin, dim)
   if (onWire) { c.strokeStyle = 'rgba(200, 200, 220, 0.35)'; c.lineWidth = 1; c.beginPath(); c.moveTo(-6, -46); c.lineTo(-6, -700); c.stroke(); }
   c.save();
-  if (flat) { c.rotate(-Math.PI / 2 + 0.05); c.translate(-20, -6); }
   const spin = flung ? Math.sin(f * 0.6) * 0.3 : onWire ? (swoop ? 0.35 : rear ? -0.25 : 0) : 0;
   const P: CupidLook = { seed, isDead, md, pose, onWire, draw, swoop, rear, flap, kick, pull, glint };
   mascot(c, `fa-cupid-${seed}-${isDead ? 1 : 0}-${md}-${pose ?? '-'}-${onWire ? ff : 9}-${kick}-${pull}-${glint ? 1 : 0}-${draw ? 1 : 0}${swoop ? 's' : ''}`, spin, [-40, -76, 110, 90], g => paintCupid(g, P));
@@ -392,11 +393,10 @@ const paintGinger = (g: Ctx, seed: number, pose: { crouch: boolean; leap: boolea
   if (down) stars(g, 2, -112, f);
 };
 export const drawGinger = (c: Ctx, e: Enemy, f: number) => {
-  const { md, isDead, pose, flat, flung } = layOf(e), seed = seedOfE(e);
+  const { md, isDead, pose, flung } = layOf(e), seed = seedOfE(e);
   const crouch = e.aiState === 'crouch', leap = e.aiState === 'leap', down = e.aiState === 'down' && !pose;
   const wf = Math.abs(e.vel.x) > 0.3 ? Math.floor(f / 5) % 6 : 0, walk = wf ? Math.round(Math.sin((wf / 6) * Math.PI * 2) * 6) : 0;
   c.save();
-  if (flat) { c.rotate(-Math.PI / 2 + 0.05); c.translate(-34, -10); }
   if (crouch) c.scale(1.08, 0.86);
   if (down) c.translate(6, 4);
   const spin = flung ? Math.sin(f * 0.6) * 0.3 : down ? 0.35 : 0;
@@ -457,14 +457,13 @@ const paintUnicorn = (g: Ctx, seed: number, P: { paw: boolean; charge: boolean; 
   if (dizzy) stars(g, 10, -120, f);
 };
 export const drawUnicorn = (c: Ctx, e: Enemy, f: number, seed: number) => {
-  const { md, isDead, pose, flat, flung } = layOf(e);
+  const { md, isDead, pose, flung } = layOf(e);
   const paw = e.aiState === 'paw', charge = e.aiState === 'charge', dizzy = e.aiState === 'dizzy';
   const wf = charge ? Math.floor(f / 3) % 6 : Math.abs(e.vel.x) > 0.3 ? Math.floor(f / 5) % 6 : 0;
   const walk = wf || charge ? Math.round(Math.sin((wf / 6) * Math.PI * 2) * (charge ? 9 : 5)) : 0;
   const pf = paw ? Math.floor(f / 4) % 4 : 0, pawK = paw ? [0, 5, 10, 5][pf] : 0, tf = Math.floor(f / 8) % 4, tail = [0, 2, 3, 1][tf];
   const lean = charge ? 0.2 : paw ? 0.12 : 0;
   c.save();
-  if (flat) { c.rotate(-Math.PI / 2 + 0.05); c.translate(-36, -12); }
   const spin = flung ? Math.sin(f * 0.6) * 0.3 : lean;
   const P = { paw, charge, dizzy, walk, pawK, hurt: md === 'hurt', isDead, tail };
   // (leaning into a charge: tipped from the hips)

@@ -266,27 +266,12 @@ const mascot = (c: Ctx, key: string, spin: number, box: [number, number, number,
 export const drawTroll = (c: Ctx, e: Enemy, f: number) => {
   const r = reaction(e), md = r?.md ?? moodOf(e), isDead = md === 'dead';
   const pose = r?.pose ?? (e.aiState === 'raise' ? 'tell' : e.aiState === 'winded' ? 'strike' : moving(e));
-  const FOAM = '#5E9A3A', DARK = '#3E6A24', isFlat = pose === 'limp' || (isDead && !r), seed = seedOfE(e);
-  const wf = pose === 'walk' ? Math.floor(f / 5) % 6 : 0, walk = pose === 'walk' ? Math.sin((wf / 6) * Math.PI * 2) * 5 : 0;
-  const raise = pose === 'tell', after = pose === 'strike', hurt = md === 'hurt';
+  const FOAM = '#5E9A3A', DARK = '#3E6A24', seed = seedOfE(e);
+  const wf = pose === 'walk' && !isDead ? Math.floor(f / 5) % 6 : 0, walk = wf ? Math.sin((wf / 6) * Math.PI * 2) * 5 : 0;
+  const raise = pose === 'tell' && !isDead, after = pose === 'strike' && !isDead, hurt = md === 'hurt';
   const paint = (g: Ctx) => {
-    if (isFlat) {
-      // (laid out on his back on the cobbles: the big foam body belly-up, the stumpy legs in the air, the mitts flopped
-      // out, the costume's head rolled off beside him, the performer's own sweaty head out the neck hole)
-      for (const [x1, y1, x2, y2, col] of [[24, -22, 40, -40, DARK], [30, -16, 50, -26, FOAM]] as const) { limb(g, x1, y1, x2, y2, 15, col); part(g, () => g.ellipse(x2 + 2, y2 - 3, 7, 11, 0.5, 0, Math.PI * 2), dk(FOAM, 0.3), x2 - 6, y2 - 14, 16, 22, 1.2); }
-      limb(g, -18, -30, -26, -48, 13, DARK); ball(g, -27, -50, 8, DARK, 1.2);
-      part(g, () => g.ellipse(0, -22, 40, 22, 0, 0, Math.PI * 2), FOAM, -40, -44, 80, 44, 1.4);
-      part(g, () => g.ellipse(4, -30, 26, 12, 0, 0, Math.PI * 2), lt(FOAM, 0.18), -22, -42, 52, 24, 1);
-      part(g, () => g.rect(14, -42, 8, 40), '#7A5A34', 14, -42, 8, 40, 1); for (let y = -40; y < -4; y += 6) px(g, 22, y, 3, 4, '#5A3E20');
-      for (let x = -34; x < 30; x += 3) px(g, x, -3 + Math.abs(x) * 0.02, 1, 2, '#A8AEB8');
-      limb(g, 6, -36, 12, -56, 13, FOAM); ball(g, 12, -58, 8, FOAM, 1.2);
-      px(g, -46, -24, 8, 10, dk(FOAM, 0.3));
-      performer(g, seed, -50, -18, 9, true, true, true);
-      part(g, () => g.ellipse(70, -15, 20, 15, 0.5, 0, Math.PI * 2), FOAM, 50, -30, 40, 30, 1.2);
-      px(g, 62, -20, 14, 7, INK); googly(g, 66, -24, 4, 2.2); googly(g, 76, -18, 3.5, 0.2);
-      part(g, () => { g.moveTo(80, -24); g.quadraticCurveTo(96, -34, 92, -48); g.lineTo(86, -30); g.closePath(); }, '#F2EAD0', 80, -48, 16, 24, 1);
-      return;
-    }
+    // (dead, he is drawn the one way, stood: the engine's deaths lay him down themselves, so he never lies down in his
+    // own drawing too, and every part of him stays on the body as they turn it)
     // (the legs: short, stumpy, foam feet with felt toes)
     limb(g, -14, -32, -16 - walk, -8, 16, DARK); limb(g, 14, -32, 16 + walk, -8, 16, FOAM);
     for (const [fx, col] of [[-14 - walk, dk(FOAM, 0.35)], [18 + walk, dk(FOAM, 0.2)]] as const) { part(g, () => g.ellipse(fx, -5, 13, 6, 0, 0, Math.PI * 2), col, fx - 13, -11, 26, 12, 1.2); for (let k = 0; k < 3; k++) ball(g, fx + 6 + k * 3, -4 + (k - 1) * 0.5, 2, lt(col, 0.1), 0.8); }
@@ -302,12 +287,15 @@ export const drawTroll = (c: Ctx, e: Enemy, f: number) => {
     part(g, () => { g.moveTo(-26, -34); g.lineTo(26, -34); g.lineTo(26, -26); g.lineTo(-26, -26); g.closePath(); }, '#7A5A34', -26, -34, 52, 8, 1);
     for (let k = -24; k < 26; k += 6) { px(g, k, -26, 4, 4, '#5A3E20'); px(g, k + 1, -26, 2, 1, '#9A7A54'); }
     part(g, () => g.roundRect(-6, -35, 12, 4, 2), '#F2EAD0', -6, -35, 12, 4, 0.8);
-    // (the costume's head (dead: off, lying at his feet, and there's the performer's own head, small, on the big body))
+    // (the costume's head (dead: knocked off, hanging down his front by the neck, face down, and there's the performer's
+    // own head, small, on the big body))
     if (isDead) {
-      part(g, () => g.ellipse(48, -18, 22, 18, 0.4, 0, Math.PI * 2), FOAM, 26, -36, 44, 36, 1.2);
-      px(g, 40, -24, 16, 8, INK); googly(g, 44, -28, 4, 2); googly(g, 54, -24, 3.5, 0.4);
       px(g, -6, -104, 12, 6, dk(FOAM, 0.3));
       performer(g, seed, 2, -110, 9, true, true, true);
+      g.save(); g.translate(22, -66); g.rotate(1.2);
+      part(g, () => g.ellipse(0, 0, 22, 18, 0, 0, Math.PI * 2), FOAM, -22, -18, 44, 36, 1.2);
+      px(g, -4, 2, 16, 8, INK); googly(g, -2, -8, 4, 2); googly(g, 9, -8, 3.5, 0.4);
+      g.restore();
     } else {
       part(g, () => g.ellipse(4, -96, 26, 22, 0, 0, Math.PI * 2), FOAM, -22, -118, 52, 44, 1.4);
       // (pointed felt ears, warts, a brow like a shelf, googly eyes)
@@ -328,7 +316,7 @@ export const drawTroll = (c: Ctx, e: Enemy, f: number) => {
     // (the near arm and the club: up over his head (the tell), down in front (after the slam), else carried)
     const cx = raise ? 6 : after ? 54 : 36, cy = raise ? -128 : after ? -14 : -50, ca = raise ? -1.9 : after ? 0.1 : -0.6;
     limb(g, 24, -78, cx, cy, 15, FOAM); ball(g, cx, cy, 10, FOAM, 1.2);
-    if (!r || !isDead) {
+    if (!isDead) {
       g.save(); g.translate(cx, cy); g.rotate(ca);
       part(g, () => { g.moveTo(-4, -6); g.lineTo(58, -14); g.quadraticCurveTo(72, 0, 58, 14); g.lineTo(-4, 6); g.closePath(); }, '#8A5A30', -4, -14, 76, 28, 1.4);
       for (const [kx, ky] of [[22, -4], [40, 6], [50, -6]] as const) { ball(g, kx, ky, 2.5, '#6A4020', 0.8); px(g, kx - 1, ky - 1, 1, 1, '#B07A48'); }
@@ -336,9 +324,10 @@ export const drawTroll = (c: Ctx, e: Enemy, f: number) => {
       g.restore();
     }
   };
-  const spin = pose === 'thrown' ? Math.sin(f * 0.6) * 0.3 : 0;
+  // (flung about he wobbles; a body in a death animation (no id) holds still: the animation turns it)
+  const spin = pose === 'thrown' && !!e.id ? Math.sin(f * 0.6) * 0.3 : 0;
   // (big enough for the club at every swing: over his head on the tell (to ~-200 up), out in front after the slam (to ~+130))
-  mascot(c, `fa-troll2-${seed}-${pose}-${wf}-${md}-${isFlat ? 1 : 0}-${r ? 1 : 0}`, spin, [-120, -225, 270, 236], paint);
+  mascot(c, `fa-troll3-${seed}-${isDead ? 'dead' : `${pose}-${wf}-${md}`}`, spin, [-120, -225, 270, 236], paint);
 };
 
 export const drawDragon = (c: Ctx, e: Enemy, f: number) => {
@@ -346,27 +335,13 @@ export const drawDragon = (c: Ctx, e: Enemy, f: number) => {
   const pose = r?.pose ?? moving(e);
   const seed = seedOfE(e);
   const SUIT = ['#4CA84A', '#8A4ACF', '#D0402E'][((Math.floor(seed) % 3) + 3) % 3], BELLY = '#F2D98A', WING = ['#6A2E8A', '#E07A2A', '#2E6A8A'][((Math.floor(seed) % 3) + 3) % 3];
-  const isFlat = pose === 'limp' || (isDead && !r), hurt = md === 'hurt';
-  const rear = e.aiState === 'rear', breathe = e.aiState === 'breathe';
-  const wf = pose === 'walk' ? Math.floor(f / 5) % 6 : 0, walk = pose === 'walk' ? Math.sin((wf / 6) * Math.PI * 2) * 5 : 0;
-  const flap = Math.floor(f / 15) % 2;
+  const hurt = md === 'hurt';
+  const rear = !isDead && e.aiState === 'rear', breathe = !isDead && e.aiState === 'breathe';
+  const wf = pose === 'walk' && !isDead ? Math.floor(f / 5) % 6 : 0, walk = wf ? Math.sin((wf / 6) * Math.PI * 2) * 5 : 0;
+  const flap = isDead ? 0 : Math.floor(f / 15) % 2;
+  // (dead, it's drawn the one way, stood: the engine's deaths lay it down themselves (keeled over, rolled, sprawled), so
+  // it never lies down in its own drawing too, and every part of it stays on the body as they turn it)
   const paint = (g: Ctx) => {
-    if (isFlat) {
-      // (flat on its back: the plush body belly-up, its legs and little arms in the air, the wings squashed out under it,
-      // the tail flopped out behind, the costume's head rolled away, the performer's own head out the neck hole)
-      part(g, () => { g.moveTo(-30, -10); g.quadraticCurveTo(-56, -6, -70, -2); g.lineTo(-68, -8); g.quadraticCurveTo(-52, -14, -30, -20); g.closePath(); }, SUIT, -70, -20, 40, 18, 1.2);
-      part(g, () => { g.moveTo(-20, -4); g.lineTo(-44, -2); g.lineTo(-34, -14); g.closePath(); }, dk(WING, 0.2), -44, -14, 24, 12, 1);
-      for (const [x1, y1, x2, y2, col] of [[18, -22, 30, -40, dk(SUIT, 0.2)], [24, -16, 40, -28, SUIT]] as const) { limb(g, x1, y1, x2, y2, 13, col); part(g, () => g.ellipse(x2 + 2, y2 - 2, 5, 9, 0.5, 0, Math.PI * 2), dk(SUIT, 0.3), x2 - 4, y2 - 12, 12, 20, 1); }
-      part(g, () => g.ellipse(0, -20, 34, 20, 0, 0, Math.PI * 2), SUIT, -34, -40, 68, 40, 1.4);
-      part(g, () => g.ellipse(2, -28, 22, 10, 0, 0, Math.PI * 2), BELLY, -20, -38, 44, 20, 1);
-      for (let k = 0; k < 4; k++) px(g, -14 + k * 9, -36, 1, 14, dk(BELLY, 0.3));
-      limb(g, 6, -36, 10, -50, 9, SUIT); ball(g, 10, -52, 5, SUIT, 1);
-      px(g, -40, -24, 8, 10, dk(SUIT, 0.3));
-      performer(g, seed, -44, -18, 9, true, true, true);
-      part(g, () => g.ellipse(58, -14, 20, 14, 0.3, 0, Math.PI * 2), SUIT, 38, -28, 40, 28, 1.2);
-      px(g, 50, -20, 14, 8, INK); googly(g, 54, -26, 3.5, 1.6); for (let k = 0; k < 3; k++) px(g, 51 + k * 4, -20, 2, 2, '#FFFFFF');
-      return;
-    }
     // (the tail, out behind, felt spines along it, an arrowhead tip)
     part(g, () => { g.moveTo(-18, -34); g.quadraticCurveTo(-56, -30, -60, -8); g.lineTo(-50, -10); g.quadraticCurveTo(-46, -24, -16, -22); g.closePath(); }, SUIT, -60, -34, 44, 26, 1.2);
     part(g, () => { g.moveTo(-60, -8); g.lineTo(-70, -4); g.lineTo(-62, -18); g.closePath(); }, WING, -70, -18, 10, 14, 1);
@@ -387,13 +362,17 @@ export const drawDragon = (c: Ctx, e: Enemy, f: number) => {
     for (let k = 0; k < 5; k++) { px(g, -4, -68 + k * 8, 24, 1, dk(BELLY, 0.3)); px(g, -2, -67 + k * 8, 8, 1, lt(BELLY, 0.4)); }
     for (let y = -78; y < -32; y += 3) px(g, -27 + Math.abs(y + 55) * 0.12, y, 2, 1, '#A8AEB8');
     for (let k = 0; k < 4; k++) { const tx = -14 - k * 4, ty = -82 + k * 10; part(g, () => { g.moveTo(tx, ty + 3); g.lineTo(tx - 6, ty - 3); g.lineTo(tx + 2, ty - 2); g.closePath(); }, WING, tx - 6, ty - 3, 8, 6, 0.8); }
-    // (the head: on a neck up front; dead: off, rolled on the ground, the performer's own head on the body)
+    // (the head: on a neck up front; dead: knocked off, hanging down its chest by the neck, snout down, the performer's
+    // own head out the neck hole)
     if (isDead) {
-      part(g, () => g.ellipse(46, -14, 20, 14, 0.3, 0, Math.PI * 2), SUIT, 26, -28, 40, 28, 1.2);
-      px(g, 38, -20, 14, 8, INK); googly(g, 42, -26, 3.5, 1.6);
-      for (let k = 0; k < 3; k++) px(g, 39 + k * 4, -20, 2, 2, '#FFFFFF');
       px(g, -6, -82, 12, 6, dk(SUIT, 0.3));
       performer(g, seed, 6, -90, 9, true, true, true);
+      g.save(); g.translate(20, -58); g.rotate(1.25);
+      part(g, () => g.ellipse(0, 0, 20, 14, 0, 0, Math.PI * 2), SUIT, -20, -14, 40, 28, 1.2);
+      part(g, () => g.ellipse(18, 4, 11, 8, 0, 0, Math.PI * 2), SUIT, 7, -4, 22, 16, 1);
+      px(g, 4, 4, 18, 6, INK); for (let k = 0; k < 3; k++) px(g, 6 + k * 5, 4, 2, 2, '#FFFFFF');
+      googly(g, -4, -8, 3.5, 1.6); googly(g, 5, -9, 3, 2.6);
+      g.restore();
     } else {
       const hx = rear ? 4 : 18, hy = rear ? -98 : -86;
       limb(g, 4, -74, hx, hy + 6, 16, SUIT);
@@ -416,10 +395,11 @@ export const drawDragon = (c: Ctx, e: Enemy, f: number) => {
     limb(g, 14, -66, 28, rear ? -76 : -52, 10, SUIT); ball(g, 28, rear ? -77 : -51, 6, SUIT, 1);
     for (let k = 0; k < 3; k++) px(g, 32, (rear ? -80 : -54) + k * 2, 2, 1, '#F2EAD0');
   };
-  const spin = pose === 'thrown' ? Math.sin(f * 0.6) * 0.3 : 0;
+  // (flung about it wobbles; a body in a death animation (no id) holds still: the animation turns it)
+  const spin = pose === 'thrown' && !!e.id ? Math.sin(f * 0.6) * 0.3 : 0;
   // (rearing, the smoke's live: no stamp)
   if (rear && !isDead) { if (spin) { c.save(); c.rotate(spin); paint(c); c.restore(); } else paint(c); return; }
-  mascot(c, `fa-dragon-${seed}-${pose}-${wf}-${md}-${breathe ? 1 : 0}-${flap}-${isFlat ? 1 : 0}-${r ? 1 : 0}`, spin, [-80, -140, 170, 146], paint);
+  mascot(c, `fa-dragon2-${seed}-${isDead ? 'dead' : `${pose}-${wf}-${md}-${breathe ? 1 : 0}-${flap}`}-${r ? 1 : 0}`, spin, [-80, -140, 170, 146], paint);
 };
 
 // ---------------------------------------------------------------------------------------------------------------

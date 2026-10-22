@@ -335,21 +335,11 @@ export const drawMascot = (c: Ctx, e: Enemy, f: number) => {
   const CUP = ['#F9A8D4', '#93C5FD', '#C4B5FD'][((Math.floor(seed) % 3) + 3) % 3], FROST = ['#FBCFE8', '#FEF3C7', '#BFDBFE'][((Math.floor(seed >> 1) % 3) + 3) % 3];
   const crash = e.aiState === 'crash', rev = e.aiState === 'rev', air = e.aiState === 'leap';
   const pose = r?.pose ?? (rev ? 'tell' : moving(e));
-  const isFlat = pose === 'limp' || (isDead && !r);
+  // (never flat by itself: the engine's deaths and body drawers lay a body down themselves, so lying down here as well
+  // turned it on end; a body in a death animation (no id) doesn't wobble either, the animation turns it)
   const wf = pose === 'walk' ? Math.floor(f / 5) % 6 : 0, walk = pose === 'walk' ? Math.sin((wf / 6) * Math.PI * 2) * 5 : 0;
   const hurt = md === 'hurt';
   const paint = (g: Ctx) => {
-    if (isFlat) {
-      // (laid out on his side on the cobbles: the cup tipped over (its rim to the left), the stumpy legs up in the air,
-      // the frosted head rolled off beside him, candle out, the performer's own sweaty head out of the cup's top)
-      for (const [x1, y1, x2, y2] of [[28, -46, 38, -70], [32, -28, 52, -48]] as const) { limb(g, x1, y1, x2, y2, 12, '#F8FAFC'); for (let k = 0.2; k < 0.9; k += 0.3) px(g, x1 + (x2 - x1) * k - 5, y1 + (y2 - y1) * k - 1, 10, 2, '#EF4444'); part(g, () => g.ellipse(x2 + 2, y2 - 4, 7, 11, 0.5, 0, Math.PI * 2), '#7C3AED', x2 - 6, y2 - 15, 16, 22, 1.2); }
-      // (the cup on its side: turned so its side lies flat along the ground)
-      g.save(); g.translate(0, -30); g.rotate(-Math.PI / 2 + 0.16); cup(g, CUP, 0, 30, -26, 24, 33); g.restore();
-      limb(g, -14, -14, -26, -4, 11, FROST); ball(g, -28, -5, 7, '#F8FAFC', 1.2);
-      performer(g, seed, -42, -36, 9, 'dead', false, true);
-      frostedHead(g, 70, -16, 0.72, FROST, 'out', 2.2, 1.2);
-      return;
-    }
     // (the legs: stubby, striped tights, big shoes; crashed: sat, out in front)
     if (crash) {
       limb(g, -12, -22, 10, -6, 12, '#F8FAFC'); limb(g, 10, -22, 30, -4, 12, '#F8FAFC');
@@ -371,22 +361,22 @@ export const drawMascot = (c: Ctx, e: Enemy, f: number) => {
     const hy = -96 + sit + (crash ? 6 : 0);
     frostedHead(g, 0, hy, 1, FROST, crash ? 'out' : 'lit', null);
     part(g, () => g.roundRect(-15, hy + 1, 32, 16, 5), '#2A1A2A', -15, hy + 1, 32, 16, 1.2);
-    performer(g, seed, 1, hy + 9, 8, hurt ? 'hurt' : 'ok', crash);
+    performer(g, seed, 1, hy + 9, 8, isDead ? 'dead' : hurt ? 'hurt' : 'ok', crash);
     // (the near arm: waving, up in a leap, hanging in the crash)
     const nx = air ? 42 : crash ? 38 : 36 + (rev ? 4 : 0), ny = air ? -108 : crash ? -28 + sit * 0.4 : -52;
     limb(g, 26, -70 + sit, nx, ny, 11, FROST); ball(g, nx, ny, 8, '#F8FAFC', 1.2); px(g, nx - 3, ny - 4, 2, 2, '#FFFFFF');
   };
   // (stamped by its look while it's stood or laid flat; live while it's being flung about)
-  const spin = pose === 'thrown' ? Math.sin(f * 0.6) * 0.3 : 0;
+  const spin = pose === 'thrown' && e.id ? Math.sin(f * 0.6) * 0.3 : 0;
   c.save();
   if (rev) c.translate(f % 2 ? 1.5 : -1.5, 0);
   if (spin) { c.rotate(spin); paint(c); }
-  else stamp(c, `ct-mascot2-${seed}-${pose}-${wf}-${md}-${crash ? 1 : 0}-${air ? 1 : 0}-${rev ? 1 : 0}-${isFlat ? 1 : 0}`, -100, -170, 220, 176, paint);
+  else stamp(c, `ct-mascot2-${seed}-${pose}-${wf}-${md}-${crash ? 1 : 0}-${air ? 1 : 0}-${rev ? 1 : 0}`, -100, -170, 220, 176, paint);
   // (live over it: the googly pupils rolling, the flame)
-  if (!isFlat) {
+  {
     const sit = crash ? 18 : 0, hy = -96 + sit + (crash ? 6 : 0);
     for (const ex of [-9, 9]) { const a = f * 0.3 + ex; c.fillStyle = INK; c.fillRect(Math.round(ex + Math.cos(a) * 2.5 - 1.7), Math.round(hy - 12 + Math.sin(a) * 2.5 - 1.7), 3, 3); }
-    flame(c, 0, hy, 1, f, !crash);
+    flame(c, 0, hy, 1, f, !crash && !isDead);
   }
   c.restore();
   // (the crash: Zs)
