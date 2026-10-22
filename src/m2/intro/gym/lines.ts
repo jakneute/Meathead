@@ -35,26 +35,26 @@ export type Room = 'shoot' | 'charge' | 'slide' | 'uppercut' | 'divekick' | 'mix
 export const ROOM_LINES: Record<Room, Record<Dressed, string[]>> = {
   shoot: {
     clean: ["Don't shoot! I just deliver the protein!", "I'm a courier! I have a clipboard!"],
-    shitty: ["Don't shoot! And don't come closer! God, the smell!", "I signed up to deliver protein, not this!"],
+    shitty: ["Don't shoot! Oh God, he's crusty!", "I signed up to deliver protein, not this!"],
     nude: ["Don't shoot! And put some pants on!", 'Why is his dick out? Why is it always out?'],
   },
   charge: {
-    clean: ['Form a wall! He can\'t get through all of us!', 'Lock arms! Human wall!'],
+    clean: ["Form a wall! He can't get through six federal employees!", 'Lock arms! Human wall!'],
     shitty: ['Form a wall! Breathe through your mouths!', "Lock arms! Nobody breathe!"],
     nude: ['Form a wall! Eyes up! Eyes UP!', "Lock arms! Don't look down!"],
   },
   slide: {
     clean: ["Stay low! He can't hit us down here!", 'Crawl! Crawl like your pension depends on it!'],
     shitty: ["Stay low! Oh no, it's worse down here!", 'Crawl! Through the... oh God, what is that?'],
-    nude: ["Stay low! No, wait, that's the worst view in the building!", "Crawl! Don't look up!"],
+    nude: ['Stay low! No! Not under him!', "Crawl! Don't look up!"],
   },
   uppercut: {
     clean: ["He can't reach us up here!", 'Nobody jumps that high! Right? RIGHT?'],
     shitty: ["He can't reach us up here! But the smell can!", "Smell rises! Why did we come up here?"],
-    nude: ["He can't reach us up here! Great view, though! Wait, no!", "We're safe up here! From most of it!"],
+    nude: ["He can't reach us up here! Oh God, it's bouncing!", "We're safe up here! From most of it!"],
   },
   divekick: {
-    clean: ['Huddle up! Strength in numbers!', 'Stay together! He only has two feet!'],
+    clean: ['Huddle up! He can only stomp one of us!', 'Stay together! He only has two feet!'],
     shitty: ['Huddle up! Upwind! UPWIND!', "Stay together! He's shitting on us from a height!"],
     nude: ['Huddle up! Cover your eyes!', "He's jumping! It's all swinging! Huddle!"],
   },
@@ -68,7 +68,7 @@ export const ROOM_LINES: Record<Room, Record<Dressed, string[]>> = {
 // ---- the ring: the two padded trainers (they teach the grabs; they can't be killed)
 export const RING_HELLO = "Okay, big guy. We're padded. Show us the new stuff.";
 export const RING_SHOVE = ['Time! Get off me!', "That's enough! Off!", 'Okay! OKAY! Off!', 'Tap! I tapped! Get off!'];
-export const RING_THROWN = ['Ow. Good one.', "I'm fine! The padding's fine!", 'Nailed it. Again, I guess.'];
+export const RING_THROWN = ['Ow. Good one.', "I'm fine! The padding's fine!", 'I felt that in my fillings.'];
 export const RING_JET = ["Can't reach me up here!", 'Jetpack, baby! Come and get me!'];
 export const RING_DONE = "That's everything. Exit's that way. Please use it.";
 

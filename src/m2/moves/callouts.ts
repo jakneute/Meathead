@@ -4,17 +4,17 @@
 import { KILL_CALLOUTS, type KillCallout } from '../../m1/content/dialogue';
 
 export const GRAB_CALLOUTS = {
-  beatdown: { lines: ['GROUND AND POUNDED!', 'TAPPED OUT!', 'REFEREE STOPPAGE!', 'BEATEN SENSELESS!', 'NO MERCY!'], color: '#DC2626' },
+  beatdown: { lines: ['GROUND AND POUNDED!', 'TAPPED OUT!', 'REFEREE STOPPAGE!', 'BEATEN SENSELESS!', 'TENDERIZED!'], color: '#DC2626' },
   slam: { lines: ['SLAMMED!', 'POWERBOMBED!', 'PILE DRIVEN!', 'BODY SLAMMED!'], color: '#F97316' },
   thrown: { lines: ['TOSSED!', 'AIRMAILED!', 'YEETED!', 'NO REFUNDS!'], color: '#FDE68A' },
-  launched: { lines: ['LAUNCHED!', 'SKY HIGH!', 'AIR TIME!', 'GRAVITY WINS!'], color: '#7DD3FC' },
-  suplex: { lines: ['SUPLEXED!', 'GERMAN SUPLEX!', 'BRIDGED!', 'SPIKED!'], color: '#C084FC' },
+  launched: { lines: ['LAUNCHED!', 'SKY HIGH!', 'SENT TO GOD!', 'GRAVITY WINS!'], color: '#7DD3FC' },
+  suplex: { lines: ['SUPLEXED!', 'GERMAN SUPLEX!', 'FOLDED IN HALF!', 'SPIKED!'], color: '#C084FC' },
   // (the air grab's, by which way the arc went: straight down, backflipped, dived)
   piledriver: { lines: ['PILEDRIVEN!', 'TOMBSTONED!', 'HEAD FIRST!', 'NECK CHECKED!', 'SPIKED!'], color: '#FB7185' },
   backdrop: { lines: ['BACKDROPPED!', 'BACKFLIPPED!', 'FLIPPED OFF!', 'ASS OVER TEAKETTLE!'], color: '#A5B4FC' },
   spear: { lines: ['SPEARED!', 'FACE PLANTED!', 'BULLDOGGED!', 'DDT!', 'LAWN DARTED!'], color: '#FBBF24' },
   // (and not a grab's: the souvenir launcher's junk)
-  souvenir: { lines: ['SOUVENIRED!', 'GIFT SHOPPED!', 'TOURIST TRAPPED!', 'BON VOYAGE!'], color: '#F472B6' },
+  souvenir: { lines: ['SOUVENIRED!', 'GIFT SHOPPED!', 'TOURIST TRAPPED!', 'MADE IN CHINA!'], color: '#F472B6' },
   // (the soul sucker's: into the grinder, and back out the other end)
   shred: { lines: ['SHREDDED!', 'GROUND CHUCK!', 'MINCED!', 'HAMBURGERED!', 'SUCKED IN!'], color: '#A78BFA' },
   // (the laser-guided flintlock's)
@@ -33,7 +33,7 @@ export const GRAB_CALLOUTS = {
   mallet: { lines: ['BONKED!', 'FLATTENED!', 'TWINKLED!', 'SQUASHED!', 'WHACKED!'], color: '#F472B6' },
   // (the spellbook of the damned's)
   spell: { lines: ['SMITED!', 'HEXED!', 'STRUCK DOWN!', 'CURSED!', 'FRIED!'], color: '#C084FC' },
-  gorespray: { lines: ['HOSED DOWN!', 'GORE SHOWER!', 'SPLATTERED!', 'RETURN TO SENDER!'], color: '#DC2626' },
+  gorespray: { lines: ['HOSED DOWN!', 'GORE SHOWER!', 'SPLATTERED!', 'BUDDY BATHED!'], color: '#DC2626' },
 } as const;
 
 export type GrabCallout = keyof typeof GRAB_CALLOUTS;
