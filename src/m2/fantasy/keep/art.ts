@@ -79,7 +79,7 @@ const floorBack = (c: Ctx, v: View, ra: number, rb: number, d1: number, kind: Fl
   if (kind === 'flag' || kind === 'carpet') {
     // (the joints, running back to the eye; a crack or a puddle here and there)
     c.strokeStyle = F[1]; c.lineWidth = 1; c.beginPath();
-    for (let x = Math.floor(a / 44) * 44; x < b; x += 44) { const [p0, q0] = at(v.eye, x, y, 1), [p1, q1] = at(v.eye, x + 6, y, d1); c.moveTo(p0, q0); c.lineTo(p1, q1); }
+    for (let x = Math.floor(a / 44) * 44; x < b; x += 44) { const [p0, q0] = at(v.eye, x, y, 1), [p1, q1] = at(v.eye, x, y, d1); c.moveTo(p0, q0); c.lineTo(p1, q1); }
     c.stroke();
     for (let x = Math.floor(a / 53) * 53; x < b; x += 53) {
       const t = hash(x * 0.37 + h), d = d1 + 0.02 + hash(x * 1.9) * (0.95 - d1), [sx, sy] = at(v.eye, x, y, d);
@@ -246,17 +246,29 @@ const drawMoat = (c: Ctx, v: View) => {
   box(c, rx, ry, 1, 120 + Math.sin(f * 0.03) * 3, '#C8B890');
   const by = ry + 120 + Math.sin(f * 0.03) * 3; box(c, rx - 7, by, 14, 12, INK); box(c, rx - 6, by + 1, 12, 10, '#6A8AB8'); box(c, rx - 6, by + 1, 12, 2, '#9AB8E0'); box(c, rx - 4, by - 4, 8, 1, '#3A3448');
   const [kx, ky] = at(v.eye, a + 120, GY, MOAT_D + 0.03); polyF(c, [[kx - 6, ky], [kx, ky - 16], [kx + 6, ky]], '#F2C84A'); box(c, kx - 7, ky - 1, 14, 2, INK); box(c, kx - 3, ky - 9, 6, 2, '#1A1028');
-  // (its side faces going back from right in front of him, down out of the picture)
+  moatSides(c, v);
+};
+/** The moat's side faces going back from right in front of him (NEAR_SIDE_D: past the bent floor's edge at the
+ *  screen's foot, so its fanned end never shows a vertical cut), down out of the picture. Drawn with the moat (its far
+ *  part, behind the play plane) and again after the near ground, below the ground line only (the near ground's flat
+ *  stamp otherwise covered its near part where the bent floor's end recedes from the eye). */
+const NEAR_SIDE_D = 1.6;
+const moatSides = (c: Ctx, v: View, belowGround = false) => {
+  const a = X(MOAT.a), b = X(MOAT.b);
+  if (!seen(v, a - 300, b + 300, MOAT_D, 200)) return;
+  const S = R(PALE), f = v.f, n0 = NEAR_SIDE_D - 0.02;
+  if (belowGround) { c.save(); c.beginPath(); c.rect(v.cam.x - 400, GY, CANVAS_WIDTH + 800, CANVAS_HEIGHT + 400); c.clip(); }
   for (const [e, side] of [[a, 1], [b, -1]] as const) {
-    if (!sideBack(c, v.eye, e, side, GY, GY + MOAT_DEEP, 1.3, MOAT_D, S, 6)) continue;
-    for (let k = 1; k < 14; k++) { const y = GY + k * 26; const [p0, q0] = at(v.eye, e, y, 1.28), [p1, q1] = at(v.eye, e, y, MOAT_D); c.strokeStyle = k % 2 ? S[0] : S[2]; c.lineWidth = 1; c.beginPath(); c.moveTo(p0, q0); c.lineTo(p1, q1); c.stroke(); }
+    if (!sideBack(c, v.eye, e, side, GY, GY + MOAT_DEEP, NEAR_SIDE_D, MOAT_D, S, 6)) continue;
+    for (let k = 1; k < 14; k++) { const y = GY + k * 26; const [p0, q0] = at(v.eye, e, y, n0), [p1, q1] = at(v.eye, e, y, MOAT_D); c.strokeStyle = k % 2 ? S[0] : S[2]; c.lineWidth = 1; c.beginPath(); c.moveTo(p0, q0); c.lineTo(p1, q1); c.stroke(); }
     // (the old water line: a green stain band, slime streaks under it)
-    for (let t = 0; t < 1; t += 0.03) { const d = 1.28 - t * (1.28 - MOAT_D), [p, q] = at(v.eye, e, GY + 90, d); box(c, p - (side > 0 ? 0 : 3), q, 3, 5 * d, '#3E5E40'); box(c, p - (side > 0 ? 0 : 1), q + 5 * d, 1, (8 + hash(t * 71) * 30) * d, '#2E4A34'); }
+    for (let t = 0; t < 1; t += 0.03) { const d = n0 - t * (n0 - MOAT_D), [p, q] = at(v.eye, e, GY + 90, d); box(c, p - (side > 0 ? 0 : 3), q, 3, 5 * d, '#3E5E40'); box(c, p - (side > 0 ? 0 : 1), q + 5 * d, 1, (8 + hash(t * 71) * 30) * d, '#2E4A34'); }
     // (the lip: lit stone, snow)
-    for (let t = 0; t < 1; t += 0.05) { const d = 1.28 - t * (1.28 - MOAT_D), [p, q] = at(v.eye, e, GY, d); box(c, p - 2, q - 1, 4, 2, SNOW[4]); }
+    for (let t = 0; t < 1; t += 0.04) { const d = n0 - t * (n0 - MOAT_D), [p, q] = at(v.eye, e, GY, d); box(c, p - 2, q - 1, 4, 2, SNOW[4]); }
     // (a drain mouth dribbling)
     const [dp, dq] = at(v.eye, e, GY + 200, 1.05); box(c, dp - 6, dq - 6, 12, 12, INK); box(c, dp - 4, dq - 4, 8, 8, '#141020'); box(c, dp - 1, dq + 6, 2, 30 + (f % 20), '#5A7A8A');
   }
+  if (belowGround) c.restore();
 };
 
 /** The barbican's tower (BARB_D), its ledge corbelled out of it in the play plane over the moat. */
@@ -1008,8 +1020,14 @@ export const drawKeepBack = (c: Ctx, state: GameState, piperX: number | null, ru
   drawPort(c, state, v, done, 'mid');
   // (the play plane: the ground, the gatehouse's block, the curtain wall, the hoardings, the tower's shell, landings and
   //  gallery, the steps, the postern gate)
+  // (the near ground's stretches, each bent on its own: where two meet (the runway's deck) the one on the eye's side
+  // goes down last, its bent end fanning out over the seam; the other way round, the first one's flat stamp showed as
+  // a vertical cut there)
+  const deckFirst = v.eye.x < X(RUNWAY);
+  if (deckFirst) drawPort(c, state, v, done, 'ground');
   drawNearGround(c, state, v);
-  drawPort(c, state, v, done, 'ground');
+  moatSides(c, v, true);
+  if (!deckFirst) drawPort(c, state, v, done, 'ground');
   drawGateFront(c, v);
   drawCurtain(c, v);
   drawHoardings(c, v);

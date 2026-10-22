@@ -133,10 +133,11 @@ const gorgeVoid = (c: Ctx, v: View) => {
 const cliffFaces = (c: Ctx, v: View) => {
   const R = rampH(ROCK, true), S = rampH(SNOW, true);
   for (const [e, side] of [[X(GORGE.a), 1], [X(FAR_BANK), -1]] as const) {
-    if (!sideBack(c, v.eye, e, side, GY, GY + 900, 1.3, GORGE_D, R, 6)) continue;
+    // (from 1.6: past the bent floor's edge at the screen's foot, so the near ground's flat end never shows beside it)
+    if (!sideBack(c, v.eye, e, side, GY, GY + 900, 1.6, GORGE_D, R, 6)) continue;
     // (strata running back, icicles under the lip, frozen roots)
-    for (let k = 1; k < 9; k++) { const y = GY + k * 34 + (k % 2) * 8; const [p0, q0] = at(v.eye, e, y, 1.25), [p1, q1] = at(v.eye, e, y, GORGE_D); c.strokeStyle = k % 2 ? R[0] : R[3]; c.lineWidth = 1; c.beginPath(); c.moveTo(p0, q0); c.lineTo(p1, q1); c.stroke(); }
-    for (let t = 0; t < 1; t += 0.035) { const d = 1.25 - t * (1.25 - GORGE_D), [p, q] = at(v.eye, e, GY, d), l = (3 + hash(t * 97) * 10) * d; box(c, p, q + 1, Math.max(1, 2 * d), l, S[3]); box(c, p, q + 1, 1, l * 0.7, S[5]); }
+    for (let k = 1; k < 9; k++) { const y = GY + k * 34 + (k % 2) * 8; const [p0, q0] = at(v.eye, e, y, 1.58), [p1, q1] = at(v.eye, e, y, GORGE_D); c.strokeStyle = k % 2 ? R[0] : R[3]; c.lineWidth = 1; c.beginPath(); c.moveTo(p0, q0); c.lineTo(p1, q1); c.stroke(); }
+    for (let t = 0; t < 1; t += 0.03) { const d = 1.58 - t * (1.58 - GORGE_D), [p, q] = at(v.eye, e, GY, d), l = (3 + hash(t * 97) * 10) * d; box(c, p, q + 1, Math.max(1, 2 * d), l, S[3]); box(c, p, q + 1, 1, l * 0.7, S[5]); }
     for (let k = 0; k < 4; k++) { const d = 1.1 - k * 0.1, [p, q] = at(v.eye, e, GY + 30 + k * 14, d); c.strokeStyle = R[0]; c.lineWidth = 1; c.beginPath(); c.moveTo(p, q); c.quadraticCurveTo(p + side * 6, q + 10, p + side * 2, q + 22); c.stroke(); }
     // (finer bedding between the strata, crevices down the face (dark, a lit edge), ledges with snow along them and
     // icicles off their lips, a boulder jutting here and there: each pinned to a depth and a height, so it holds still)

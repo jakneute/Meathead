@@ -142,8 +142,10 @@ export const polyF = (c: Ctx, pts: [number, number][], col: string) => {
  *  darker going back, inked along its far edge, a lit sliver on its corner. `R` a ramp6. */
 export const sideBack = (c: Ctx, eye: View['eye'], e: number, side: 1 | -1, top: number, bottom: number, d0: number, d1: number, R: string[], steps = 3) => {
   if ((eye.x - e) * side <= 1) return false;
+  // (each step runs a quarter step into the next (painted over by it): shared edges left an antialiased hairline that
+  // shimmered as he walked)
   for (let i = 0; i < steps; i++) {
-    const a = d0 - ((d0 - d1) * i) / steps, b = d0 - ((d0 - d1) * (i + 1)) / steps;
+    const a = d0 - ((d0 - d1) * i) / steps, b = d0 - ((d0 - d1) * (i + (i < steps - 1 ? 1.25 : 1))) / steps;
     polyF(c, [at(eye, e, top, a), at(eye, e, top, b), at(eye, e, bottom, b), at(eye, e, bottom, a)], R[Math.max(0, 2 - i)]);
   }
   const [x0, t0] = at(eye, e, top, d0), [, b0] = at(eye, e, bottom, d0), [x1, t1] = at(eye, e, top, d1), [, b1] = at(eye, e, bottom, d1);
@@ -155,7 +157,7 @@ export const sideBack = (c: Ctx, eye: View['eye'], e: number, side: 1 | -1, top:
 export const topBack = (c: Ctx, eye: View['eye'], x0: number, x1: number, y: number, d0: number, d1: number, R: string[], n = 3) => {
   if (eye.y >= y - 1) return false;
   for (let i = 0; i < n; i++) {
-    const a = d0 - ((d0 - d1) * i) / n, b = d0 - ((d0 - d1) * (i + 1)) / n;
+    const a = d0 - ((d0 - d1) * i) / n, b = d0 - ((d0 - d1) * (i + (i < n - 1 ? 1.25 : 1))) / n;
     polyF(c, [at(eye, x0, y, a), at(eye, x1, y, a), at(eye, x1, y, b), at(eye, x0, y, b)], R[Math.max(0, 4 - i)]);
   }
   const [ax, ay] = at(eye, x0, y, d1), [bx, by] = at(eye, x1, y, d1);

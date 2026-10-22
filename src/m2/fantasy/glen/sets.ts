@@ -132,11 +132,12 @@ const gorgeFaces = (c: Ctx, v: View, ra: number, rb: number, mine: boolean) => {
   if (!seen(v, X(ra) - 200, X(rb) + 200, GORGE_D, 200)) return;
   const R = rampH(mine ? ramp6('#5A5048') : ROCKG, true), M = rampH(MOSS, true), T = rampH(TIMBER, true);
   for (const [e, side] of [[X(ra), 1], [X(rb), -1]] as const) {
-    if (!sideBack(c, v.eye, e, side, GY, GY + 900, 1.3, GORGE_D, R, 6)) continue;
-    for (let k = 1; k < 10; k++) { const y = GY + k * 32 + (k % 2) * 8; const [p0, q0] = at(v.eye, e, y, 1.25), [p1, q1] = at(v.eye, e, y, GORGE_D); c.strokeStyle = mine ? T[k % 2 ? 2 : 1] : k % 2 ? R[0] : R[3]; c.lineWidth = mine ? 3 : 1; c.beginPath(); c.moveTo(p0, q0); c.lineTo(p1, q1); c.stroke(); }
-    if (mine) { for (let t = 0; t < 1; t += 0.2) { const d = 1.25 - t * (1.25 - GORGE_D), [p, q] = at(v.eye, e, GY, d); box(c, p - 2, q, 4 * d, 500 * d, T[2]); box(c, p - 2, q, 1, 500 * d, T[4]); } continue; }
+    // (from 1.6: past the bent floor's edge at the screen's foot, so the near ground's flat end never shows beside it)
+    if (!sideBack(c, v.eye, e, side, GY, GY + 900, 1.6, GORGE_D, R, 6)) continue;
+    for (let k = 1; k < 10; k++) { const y = GY + k * 32 + (k % 2) * 8; const [p0, q0] = at(v.eye, e, y, 1.58), [p1, q1] = at(v.eye, e, y, GORGE_D); c.strokeStyle = mine ? T[k % 2 ? 2 : 1] : k % 2 ? R[0] : R[3]; c.lineWidth = mine ? 3 : 1; c.beginPath(); c.moveTo(p0, q0); c.lineTo(p1, q1); c.stroke(); }
+    if (mine) { for (let t = 0; t < 1; t += 0.2) { const d = 1.58 - t * (1.58 - GORGE_D), [p, q] = at(v.eye, e, GY, d); box(c, p - 2, q, 4 * d, 500 * d, T[2]); box(c, p - 2, q, 1, 500 * d, T[4]); } continue; }
     // (moss over the lip, roots and ferns hanging off it)
-    for (let t = 0; t < 1; t += 0.04) { const d = 1.25 - t * (1.25 - GORGE_D), [p, q] = at(v.eye, e, GY, d), l = (4 + hash(t * 97) * 14) * d; box(c, p, q, Math.max(1, 3 * d), 4 * d, M[3]); box(c, p, q + 3 * d, 1, l, M[1]); if (hash(t * 31) > 0.7) box(c, p - 1, q + l, 3, 2, M[3]); }
+    for (let t = 0; t < 1; t += 0.04) { const d = 1.58 - t * (1.58 - GORGE_D), [p, q] = at(v.eye, e, GY, d), l = (4 + hash(t * 97) * 14) * d; box(c, p, q, Math.max(1, 3 * d), 4 * d, M[3]); box(c, p, q + 3 * d, 1, l, M[1]); if (hash(t * 31) > 0.7) box(c, p - 1, q + l, 3, 2, M[3]); }
     for (let k = 0; k < 4; k++) { const d = 1.1 - k * 0.1, [p, q] = at(v.eye, e, GY + 30 + k * 14, d); c.strokeStyle = R[0]; c.lineWidth = 1; c.beginPath(); c.moveTo(p, q); c.quadraticCurveTo(p + side * 6, q + 10, p + side * 2, q + 22); c.stroke(); }
     // (finer bedding, crevices down the face, ledges with moss and ferns along them, a boulder jutting: each pinned to a
     // depth and a height on the face)
@@ -774,7 +775,9 @@ const drawRide = (c: Ctx, state: GameState, v: View) => {
   const a = X(RIDE_A), b = X(RIDE_B), top = GY - RIDE_TOP;
   if (!onScreen(state, a - 200, b + 200)) return;
   const St = N('#8A7EA8');
-  sideBack(c, v.eye, a, -1, top, GY, 1, 0.8, St, 3);
+  // (its left end's side going back: the turret's (40 out past the wall, 100 higher), which stands in front of the wall's
+  // own end; the wall's poked out from behind it, too low, once the eye was well off to the left)
+  sideBack(c, v.eye, a - 40, -1, top - 100, GY, 1, 0.8, St, 3);
   still(c, 'gl-ride', a, GY, -60, -RIDE_TOP - 150, b - a + 120, RIDE_TOP + 154, g => {
     const w = b - a, Sd = rampH(ramp6('#8A7EA8'), true), Sl = rampH(SLATE, true), G = warmGlass(), Gd = rampH(GOLD, true), Ir = rampH(IRON, true);
     // (the front: castle stone in courses, crenellated (dim: not somewhere to stand))
