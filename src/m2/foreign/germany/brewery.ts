@@ -43,10 +43,13 @@ const LOFT: [number, number, number][] = [[4800, 4895, 670], [5060, 5170, 690], 
 const EVERY = 130, TEETER = 40, A = 0.085, KR = 26;
 
 const ENEMIES: [string, number, number][] = [
-  ['m2:fl_slapper', 3780, 0],
-  ['m2:fl_slapper', 4350, 210], ['m2:fl_tuba', 4745, RAMP.h], ['m2:fl_barmaid', 4800, CRATES.h],
-  ['m2:fl_barmaid', 4990, HAUS.h], ['m2:fl_tuba', 5120, RAMP.h], ['m2:fl_slapper', 5160, RAMP.h],
-  ['m2:fl_barmaid', 5500, 0], ['m2:fl_slapper', 5540, 0],
+  // two slap-dancers on the keg ramp, one above the other (charge up into them: the first flung into the second; or let
+  // the kegs have them)
+  ['m2:fl_slapper', 4200, 120], ['m2:fl_slapper', 4350, 210], ['m2:fl_tuba', 4745, RAMP.h], ['m2:fl_barmaid', 4800, CRATES.h],
+  // a slap-dancer on the hop loft's balcony over the crates (it's on him as he comes up), a barmaid on the roof
+  ['m2:fl_slapper', 4850, 670], ['m2:fl_barmaid', 4990, HAUS.h], ['m2:fl_tuba', 5120, RAMP.h], ['m2:fl_slapper', 5160, RAMP.h],
+  // a barmaid up the drying racks, lobbing down the far side (THE BRAUHAUS's checkpoint's stairs left clear)
+  ['m2:fl_barmaid', 5110, 690],
 ];
 
 export const BREW_CHECKPOINTS = [

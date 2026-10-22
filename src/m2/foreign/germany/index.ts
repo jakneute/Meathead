@@ -56,10 +56,17 @@ const BALCONIES: [number, number, number][] = [[2750, 2900, 140], [2760, 2900, 2
 const CUCKOO = { x: 2300, a: 2228, b: 2372, every: 360, warn: 45, out: 40 } as const;
 
 const ENEMIES: [string, number, number][] = [
-  ['m2:fl_slapper', 420, 0], ['m2:fl_barmaid', 600, 50], ['m2:fl_tuba', 870, STAGE.h], ['m2:fl_slapper', 1000, 0],
-  ['m2:fl_barmaid', 1140, 50], ['m2:fl_tuba', 1590, 130], ['m2:fl_slapper', 1820, 0],
-  ['m2:fl_barmaid', 2460, BATTLE.h], ['m2:fl_tuba', 2610, BATTLE.h],
-  ['m2:fl_slapper', 3000, 0], ['m2:fl_barmaid', 3230, 50], ['m2:fl_tuba', 3500, 0], ['m2:fl_slapper', 3660, 0],
+  // the biergarten (the way in by GERMANY's checkpoint quiet): a barmaid up on a table, the tuba on the bandstand, a
+  // slap-dancer under it; a barmaid on the next table; at the stands, a slap-dancer on the ground under the tuba up on
+  // the sausage stand (its OOM-PAH shoves him into the slaps)
+  ['m2:fl_barmaid', 600, 50], ['m2:fl_tuba', 870, STAGE.h], ['m2:fl_slapper', 1000, 0],
+  ['m2:fl_barmaid', 1140, 50], ['m2:fl_slapper', 1300, 0], ['m2:fl_tuba', 1590, 130],
+  // the battlements: a slap-dancer waiting where the clock's wheel lets him off, by the cuckoo's door (lure it under
+  // the cuckoo); the barmaid and the tuba on along them
+  ['m2:fl_slapper', 2150, BATTLE.h], ['m2:fl_barmaid', 2460, BATTLE.h], ['m2:fl_tuba', 2610, BATTLE.h],
+  // down the far tower: a barmaid on the top balcony (steins down on him), a slap-dancer on a low one; then past THE
+  // CASTLE's checkpoint, a tuba with a slap-dancer right in front of it (charge the dancer into it)
+  ['m2:fl_barmaid', 2820, 560], ['m2:fl_slapper', 2830, 280], ['m2:fl_slapper', 3500, 0], ['m2:fl_tuba', 3570, 0],
 ];
 const PICKUPS: [number, number, 'small_health' | 'small_ammo'][] = [[2660, BATTLE.h, 'small_ammo'], [1410, 100, 'small_health']];
 
