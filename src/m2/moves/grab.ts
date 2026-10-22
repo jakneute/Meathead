@@ -2063,19 +2063,26 @@ const toTorso = (rot: number, hipY: number, wx: number, wy: number): [number, nu
  */
 const kneePose = (c: Ctx, f: number, k: number) => {
   const lift = Math.max(0, -k), land = Math.max(0, k);
-  const hipY = -16 - 7 * lift + 2 * land;
+  // (up off him: hips high, leaning back to haul the knee up in front; then dropped, the knee driven down and in)
+  const hipY = -16 - 9 * lift + 2 * land;
   drawLeg(c, [-5, hipY], [-14, -4], [-26, -5], 1.4, true);
-  const knee: [number, number] = land > 0 ? [lerp2(16, 18, land), lerp2(-4, -1, land)] : [lerp2(16, 19, lift), lerp2(-4, -30, lift)];
-  const foot: [number, number] = land > 0 ? [lerp2(4, 6, land), -3] : [lerp2(4, 9, lift), lerp2(-3, -17, lift)];
-  drawLeg(c, [5, hipY], knee, foot, lerp2(1.4, 0.4, lift), false);
-  const rot = 0.2 - 0.2 * lift + 0.45 * land;
+  const rot = 0.15 - 0.35 * lift + 0.4 * land;
   c.save(); c.translate(0, hipY); c.rotate(rot);
-  const shirt = toTorso(rot, hipY, 28, -10), shirt2 = toTorso(rot, hipY, 36, -9);
-  drawArmTo(c, [-8, -22], [shirt[0] - 12, (shirt[1] - 22) / 2 + 2], shirt, true);
+  // (both fists in his shirt, low, pulling him up into it: kept under the knee so it reads as the knee)
+  const shirt = toTorso(rot, hipY, 22, -4), shirt2 = toTorso(rot, hipY, 27, -3);
+  drawArmTo(c, [-8, -22], [shirt[0] - 10, (shirt[1] - 22) / 2 + 4], shirt, true);
   drawTorsoFromHips(c);
-  head(c, 4, -36, 0.25 + 0.2 * land, land > 0.3 ? 'roar' : 'grit', f);
-  drawArmTo(c, [11, -22], [shirt2[0] - 8, (shirt2[1] - 22) / 2 + 4], shirt2, false, 6);
+  head(c, 4, -36, 0.1 - 0.15 * lift + 0.3 * land, land > 0.3 ? 'roar' : 'grit', f);
+  drawArmTo(c, [11, -22], [shirt2[0] - 6, (shirt2[1] - 22) / 2 + 5], shirt2, false, 6);
   c.restore();
+  // (the knee, drawn over all of him: raised high out in front, then slammed down into the gut)
+  const knee: [number, number] = land > 0 ? [lerp2(24, 22, land), lerp2(-30, -3, land)] : [lerp2(16, 24, lift), lerp2(-4, -34, lift)];
+  const foot: [number, number] = land > 0 ? [lerp2(10, 6, land), lerp2(-14, -3, land)] : [lerp2(4, 10, lift), lerp2(-3, -14, lift)];
+  if (land > 0 && land < 1.01 && k > 0.15) {
+    c.fillStyle = 'rgba(255, 255, 255, 0.5)';
+    for (let i = 1; i <= 3; i++) { c.beginPath(); c.arc(knee[0] + 1, knee[1] - i * 7, 5 - i, 0, Math.PI * 2); c.fill(); }
+  }
+  drawLeg(c, [5, hipY], knee, foot, lerp2(1.4, 0.4, Math.max(lift, 1 - land)), false);
 };
 
 /**
