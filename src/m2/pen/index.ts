@@ -19,18 +19,18 @@ import { stopWeapons } from '../weapons';
 import { NO_CONTROLS } from '../../m1/game/platform/input';
 import { PEN_STAFF_KINDS, penMoving } from './staff';
 import { beingSucked } from '../weapons/soulSucker';
-import { drawPenBackdrop, drawPenBack } from './art';
+import { drawPenBackdrop, drawPenBack, drawPenShelf } from './art';
 import { updateLadders, drawLadders, type LadderDef } from '../moves/ladders';
 
 export const PEN_STAGE = 'M2 Staff Pen';
-export const X0 = -40000, LEN = 2400;
+export const X0 = -40000, LEN = 2700;
 /** The end walls: solid, drawn, and the camera stops at their outer faces. */
 export const WALL = 60;
 /** The ceiling: a concrete slab across the whole room, its underside this far down (clear of the HUD's bars). */
 export const CEIL_Y = 70;
 export const EXIT_X = X0 + 130;
 /** The high shelf (a one-way ledge: up through it from under), and the ladders: one up to it, one up to nothing. */
-const SHELF = { x: X0 + 880, y: GROUND_Y - 210, w: 300 };
+export const SHELF = { x: X0 + 880, y: GROUND_Y - 210, w: 300 };
 const LADDERS: LadderDef[] = [
   { x: SHELF.x + 18, top: SHELF.y, bottom: GROUND_Y, ledge: { x: SHELF.x + 60, y: SHELF.y } },
   { x: X0 + 1560, top: GROUND_Y - 300, bottom: GROUND_Y },
@@ -142,7 +142,7 @@ export const penLayout: StageLayout = {
     return out;
   },
   drawBackdrop: (ctx, state) => { drawPenBackdrop(ctx, state); return true; },
-  drawBack: (ctx, state) => { drawPenBack(ctx, state); drawShelf(ctx, state); drawLadders(ctx, state, LADDERS); },
+  drawBack: (ctx, state) => { drawPenBack(ctx, state); drawPenShelf(ctx, state); drawLadders(ctx, state, LADDERS); },
   drawFront: (ctx, state) => { const pen = getPen(state); if (pen) drawGrab(ctx, state, pen.grab); },
 };
 
@@ -219,24 +219,4 @@ const practice = (state: GameState) => {
     // (a hair of speed, for which way they're going: not enough to slide them)
     e.vel.x = dir * 0.01;
   }
-};
-
-/** The high shelf: a steel plank on brackets off the back wall, its top lip lit (stood on), boxes along it. */
-const drawShelf = (c: CanvasRenderingContext2D, state: GameState) => {
-  const { x, y, w } = SHELF;
-  if (x + w < state.camera.x - 20 || x > state.camera.x + CANVAS_WIDTH + 20) return;
-  // (brackets down to the wall)
-  for (const bx of [x + 30, x + w - 40]) {
-    c.fillStyle = '#1C1A1E'; c.beginPath(); c.moveTo(bx, y + 14); c.lineTo(bx + 10, y + 14); c.lineTo(bx + 3, y + 54); c.lineTo(bx, y + 54); c.closePath(); c.fill();
-    c.fillStyle = '#4A4650'; c.fillRect(bx + 1, y + 14, 2, 38);
-  }
-  // (a box or two up there)
-  c.fillStyle = '#2A1E14'; c.fillRect(x + 150, y - 34, 46, 34); c.fillStyle = '#8A6A44'; c.fillRect(x + 152, y - 32, 42, 30);
-  c.fillStyle = '#6E5234'; c.fillRect(x + 152, y - 20, 42, 3); c.fillStyle = '#B08A5C'; c.fillRect(x + 152, y - 32, 42, 2);
-  c.fillStyle = '#2A1E14'; c.fillRect(x + 204, y - 22, 34, 22); c.fillStyle = '#7A5C3A'; c.fillRect(x + 206, y - 20, 30, 18); c.fillStyle = '#A8845A'; c.fillRect(x + 206, y - 20, 30, 2);
-  // (the plank: inked, its face dark, the top lip lit)
-  c.fillStyle = '#0E0C10'; c.fillRect(x - 2, y - 2, w + 4, 18);
-  c.fillStyle = '#4C4852'; c.fillRect(x, y + 3, w, 11);
-  c.fillStyle = '#36323A'; c.fillRect(x, y + 10, w, 4);
-  c.fillStyle = '#C8C2B4'; c.fillRect(x, y, w, 3);
 };

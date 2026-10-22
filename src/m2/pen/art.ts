@@ -1,10 +1,15 @@
-// The staff room, painted: Happy Land's back of house, where the cheer stops. A break room nobody's cleaned since the
-// park opened: painted block walls gone the green of a hospital corridor, a faded red-white-and-blue stripe peeling off
-// them, stained drop-ceiling tiles (one missing, the roof dripping through it into a bucket), cracked tile underfoot.
-// Along it, near end to far: the door out, the time clock, the mirror that tells you to smile, the board that's never
-// got past 0, a fire exit you can't get to, the lockers, the costume closet, a rack of limp mascot suits, the spare
-// heads over a headless body taking its break, the punching bag, the break table, the counter, the fridge, the vending
-// machine. Peak SNES: stepped ramps, dither where they meet, ink lines, never a smooth gradient.
+// The staff room, painted: Happy Land's back of house, where the cheer stops. The inside of the grungy block building
+// the hub's STAFF ONLY door is in (hub/draw.ts: backBuilding): the same cinderblock, painted the cream that's peeling
+// off it outside (and peeling in here too, the gray-brown block under it), the rusty pipe and the gray conduit it has
+// outside coming through, the back of the same gray steel door (its push bar, SMILE! YOU'RE ON STAGE), the same cracked
+// wired window (the hub's lamp post, string lights and bunting out through it, the hour's sky), the greasy vent's fan.
+// A faded red-white-and-blue stripe, a green tile wainscot, stained drop-ceiling tiles (one missing, the roof dripping
+// through it into a bucket), cracked tile underfoot. Along it, near end to far: the door out, the time clock, the mirror
+// that tells you to smile, the board that's never got past 0, a fire exit you can't get to, the lockers, the costume
+// closet, a rack of limp mascot suits, the spare heads over a headless body taking its break, the punching bag, the
+// break table, the counter, the fridge, the vending machine, and the lounge at the far end (the training video on its
+// cart, the couch, the lost and found, the chairs stacked in the corner). Peak SNES: stepped ramps, dither where they
+// meet, ink lines, never a smooth gradient.
 //
 // All the still art is painted once into six stamps a strip of the room wide (see kit's stamp); what moves (the
 // lights, the flicker, the drip, the roaches, the flies, the punching bag, the microwave's clock) is drawn live over it.
@@ -16,7 +21,8 @@ import {
   hash, checker, bandedGradient, hazeBands, steppedGlow, pixelBlob, tilePattern, stamp,
   bendFloor,
 } from '../intro/art/kit';
-import { X0, LEN, WALL, CEIL_Y, EXIT_X } from './index';
+import { X0, LEN, WALL, CEIL_Y, EXIT_X, SHELF } from './index';
+import { timeOfDay, skyAt, farTint, lampGlow } from '../timeOfDay';
 
 const G = GROUND_Y;
 /** World x from a distance into the room (0 at the near wall's face). */
@@ -24,7 +30,9 @@ const rx = (r: number) => X0 + r;
 
 // The wall's bands, top to bottom: painted block, the stripe, the tiled wainscot, the rubber base.
 const STRIPE = 410, WAIN = 430, BASE = 536;
-const WALLC = '#646B58';
+const WALLC = '#8E846A';
+/** The block under the paint (the hub's back building's own, outside: hub/draw.ts). */
+const BLOCK = ['#4E463A', '#5A5144', '#62594B', '#6B6153', '#7A7062', '#8A8072'];
 const fade = (c: string, k = 0.45) => mix(c, WALLC, k);
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -120,10 +128,10 @@ const mold = (c: Ctx, x: number, y: number, rw: number, rh: number) => {
 /** Paint peeled off the block: bare gray concrete showing in a ragged patch, the broken paint edge shadowed along the
  * top and left (the light's from up there), lit along the bottom and right, a flake curling off one end. */
 const peel = (c: Ctx, x: number, y: number, w: number, h: number) => {
-  const x0 = Math.round(x - w / 2), y0 = Math.round(y - h / 2), bare = '#8A887A';
+  const x0 = Math.round(x - w / 2), y0 = Math.round(y - h / 2), bare = BLOCK[3];
   for (const [px, py, pw, ph] of [[0, 4, w, h - 8], [4, 0, w - 12, h], [8, h - 2, w * 0.4, 4], [w * 0.5, -2, w * 0.3, 4]]) box(c, x0 + px, y0 + py, pw, ph, bare);
-  for (let k = 0; k < 8; k++) box(c, x0 + 3 + Math.floor(hash(x + k) * (w - 6)), y0 + 2 + Math.floor(hash(y + k * 3) * (h - 4)), 2, 1, '#6E6C60');
-  box(c, x0 + 4, y0, w - 12, 1, '#3A4030'); box(c, x0, y0 + 4, 1, h - 8, '#3A4030'); box(c, x0 + w * 0.5, y0 - 2, w * 0.3, 1, '#3A4030');
+  for (let k = 0; k < 8; k++) box(c, x0 + 3 + Math.floor(hash(x + k) * (w - 6)), y0 + 2 + Math.floor(hash(y + k * 3) * (h - 4)), 2, 1, BLOCK[1]);
+  box(c, x0 + 4, y0, w - 12, 1, '#463E2E'); box(c, x0, y0 + 4, 1, h - 8, '#463E2E'); box(c, x0 + w * 0.5, y0 - 2, w * 0.3, 1, '#463E2E');
   box(c, x0 + 4, y0 + h, w - 12, 1, lite(WALLC, 0.3)); box(c, x0 + w, y0 + 4, 1, h - 8, lite(WALLC, 0.3));
   poly(c, [x0 + w, y0 + 4, x0 + w + 6, y0 + 2, x0 + w + 4, y0 + 10, x0 + w, y0 + 9], lite(WALLC, 0.18));
   box(c, x0 + w + 1, y0 + 10, 4, 1, dark(WALLC, 0.35));
@@ -177,15 +185,17 @@ const ceilingFaults = (c: Ctx) => {
 
 const wall = (c: Ctx, a: number, b: number) => {
   const w = b - a;
-  // Painted block: dingy institutional green, darker up under the ceiling, a shade lighter where the lights hit it
-  bandedGradient(c, a, CEIL_Y, w, STRIPE - CEIL_Y, ['#3A3F32', '#525A46', '#646B58', '#6E7561', '#666D59'], 12);
+  // Painted block: the building's own cinderblock (outside: hub/draw.ts), painted the cream that's peeling off it out
+  // there, gone the color of nicotine in here; darker up under the ceiling, a shade lighter where the lights hit it
+  bandedGradient(c, a, CEIL_Y, w, STRIPE - CEIL_Y, ['#5E5644', '#766C56', '#8E846A', '#968C72', '#8C8268'], 12);
   for (let y = CEIL_Y + 10, row = 0; y < STRIPE; y += 24, row++) {
-    box(c, a, y, w, 2, 'rgba(36, 40, 30, 0.55)'); box(c, a, y + 2, w, 1, 'rgba(160, 170, 140, 0.18)');
+    box(c, a, y, w, 2, 'rgba(52, 42, 26, 0.55)'); box(c, a, y + 2, w, 1, 'rgba(226, 214, 180, 0.2)');
     for (let x = Math.floor((a - X0) / 48) * 48 + X0 - 48 + (row % 2) * 24; x < b; x += 48) {
-      box(c, x, y + 2, 2, 22, 'rgba(36, 40, 30, 0.45)'); box(c, x + 2, y + 2, 1, 22, 'rgba(160, 170, 140, 0.14)');
-      // (the block's face: pitted, a darker smudge on some)
-      for (let k = 0; k < 4; k++) box(c, x + 4 + Math.floor(hash(x + y * 0.1 + k) * 40), y + 4 + Math.floor(hash(x * 0.3 + y + k * 5) * 18), 2, 1, 'rgba(30, 34, 24, 0.35)');
-      if (hash(x * 0.11 + y) > 0.85) checker(c, x + 6, y + 6, 30, 12, 'rgba(40, 36, 20, 0.18)');
+      box(c, x, y + 2, 2, 22, 'rgba(52, 42, 26, 0.45)'); box(c, x + 2, y + 2, 1, 22, 'rgba(226, 214, 180, 0.16)');
+      // (the block's face under the paint: pitted, a darker smudge on some, the odd chip down to the block)
+      for (let k = 0; k < 4; k++) box(c, x + 4 + Math.floor(hash(x + y * 0.1 + k) * 40), y + 4 + Math.floor(hash(x * 0.3 + y + k * 5) * 18), 2, 1, 'rgba(46, 36, 22, 0.35)');
+      if (hash(x * 0.11 + y) > 0.85) checker(c, x + 6, y + 6, 30, 12, 'rgba(60, 46, 20, 0.18)');
+      if (hash(x * 0.53 + y * 0.7) > 0.93) { const cx = x + 8 + Math.floor(hash(x + y) * 28), cy = y + 6 + Math.floor(hash(y - x) * 10); box(c, cx, cy, 5, 3, BLOCK[3]); box(c, cx, cy, 5, 1, BLOCK[1]); box(c, cx, cy + 3, 5, 1, 'rgba(226, 214, 180, 0.3)'); }
     }
   }
   // The stripe the park paints on everything: red, white and blue, gone pale, chipped
@@ -197,19 +207,19 @@ const wall = (c: Ctx, a: number, b: number) => {
     const s = hash(x * 0.21);
     if (s < 0.45) continue;
     const cw = 6 + Math.floor(s * 22), cy = STRIPE + Math.floor(hash(x) * 10);
-    box(c, x + 10, cy, cw, 6 + Math.floor(s * 6), '#6A6E5E'); box(c, x + 10, cy + 6 + Math.floor(s * 6), cw, 1, '#3E4234');
-    box(c, x + 10, cy, cw, 1, '#8A8E7C');
+    box(c, x + 10, cy, cw, 6 + Math.floor(s * 6), BLOCK[3]); box(c, x + 10, cy + 6 + Math.floor(s * 6), cw, 1, '#463E2E');
+    box(c, x + 10, cy, cw, 1, BLOCK[0]);
   }
-  // The wainscot: glazed tile, gone the color of old teeth, grime working up from the floor
-  const tile = tilePattern(c, 'pen-wain', 16, 16, g => {
-    g.fillStyle = '#4E4B3A'; g.fillRect(0, 0, 16, 16);
-    g.fillStyle = '#8F8B72'; g.fillRect(0, 0, 15, 15);
-    g.fillStyle = '#A29E84'; g.fillRect(0, 0, 15, 1); g.fillRect(0, 0, 1, 15);
-    g.fillStyle = '#7A765F'; g.fillRect(1, 13, 14, 2); g.fillRect(13, 1, 2, 13);
-    g.fillStyle = '#B4B096'; g.fillRect(2, 2, 3, 1);
+  // The wainscot: glazed tile, the green of a hospital corridor, grime working up from the floor
+  const tile = tilePattern(c, 'pen-wain2', 16, 16, g => {
+    g.fillStyle = '#2E3828'; g.fillRect(0, 0, 16, 16);
+    g.fillStyle = '#5C6A52'; g.fillRect(0, 0, 15, 15);
+    g.fillStyle = '#728266'; g.fillRect(0, 0, 15, 1); g.fillRect(0, 0, 1, 15);
+    g.fillStyle = '#4A5642'; g.fillRect(1, 13, 14, 2); g.fillRect(13, 1, 2, 13);
+    g.fillStyle = '#8EA080'; g.fillRect(2, 2, 3, 1);
   });
   c.fillStyle = tile; c.fillRect(a, WAIN, w, BASE - WAIN);
-  box(c, a, WAIN, w, 4, '#454234'); box(c, a, WAIN, w, 1, '#5E5A48');
+  box(c, a, WAIN, w, 4, '#2E3828'); box(c, a, WAIN, w, 1, '#48543E');
   hazeBands(c, a, WAIN + 40, w, BASE - WAIN - 40, '#2A2414', 0.02, 0.5, 5);
   // (cracked and missing tiles, here and there)
   for (let x = Math.floor((a - X0) / 16) * 16 + X0; x < b; x += 16) for (let y = WAIN + 4; y < BASE - 8; y += 16) {
@@ -224,7 +234,7 @@ const wall = (c: Ctx, a: number, b: number) => {
 
 /** Faults on the wall: water stains, peeling, mold in the corners (the ones in a..b). */
 const wallFaults = (c: Ctx) => {
-  for (const [r, rad, run] of [[60, 20, 90], [470, 24, 140], [1240, 18, 70], [1730, 22, 120], [2210, 20, 60]]) stain(c, rx(r), CEIL_Y + 12, rad, run);
+  for (const [r, rad, run] of [[60, 20, 90], [470, 24, 140], [1240, 18, 70], [1730, 22, 120], [2210, 20, 60], [2470, 22, 110]]) stain(c, rx(r), CEIL_Y + 12, rad, run);
   for (const [r, y, w, h] of [[300, 120, 28, 16], [770, 300, 22, 14], [1110, 140, 30, 18], [1440, 300, 24, 14], [1900, 380, 26, 16], [2370, 150, 30, 20], [700, 384, 18, 12], [1270, 200, 20, 12]]) peel(c, rx(r), y, w, h);
   mold(c, rx(10), CEIL_Y + 14, 34, 24); mold(c, rx(LEN - 10), CEIL_Y + 16, 40, 28);
   mold(c, rx(12), BASE - 6, 28, 22); mold(c, rx(LEN - 8), BASE - 10, 30, 26);
@@ -258,11 +268,11 @@ const floor = (c: Ctx, a: number, b: number) => {
 
 const endWall = (c: Ctx, wx: number, face: 1 | -1) => {
   const top = -60, h = CANVAS_HEIGHT + 120;
-  const cols = face > 0 ? ['#2E2F2A', '#373832', '#41433B', '#4B4D44', '#56594E'] : ['#56594E', '#4B4D44', '#41433B', '#373832', '#2E2F2A'];
+  const cols = face > 0 ? ['#3A342A', '#443D32', '#4E463A', '#5A5144', '#62594B'] : ['#62594B', '#5A5144', '#4E463A', '#443D32', '#3A342A'];
   cols.forEach((col, i) => box(c, wx + i * (WALL / cols.length), top, WALL / cols.length + 1, h, col));
   for (let i = 1; i < cols.length; i++) checker(c, wx + i * (WALL / cols.length) - 2, top, 2, h, cols[i - 1]);
   const edge = face > 0 ? wx + WALL - 10 : wx;
-  box(c, face > 0 ? wx + WALL - 2 : wx, top, 2, h, face > 0 ? '#8A8C7E' : '#121210');
+  box(c, face > 0 ? wx + WALL - 2 : wx, top, 2, h, face > 0 ? BLOCK[5] : '#121210');
   for (let y = top; y < G; y += 28) box(c, edge + (face > 0 ? -2 : 2), y, 8, 14, (Math.floor(y / 28) % 2) ? fade('#CA8A04', 0.3) : '#18181B');
   for (let y = top + 40; y < G; y += 96) for (let k = 0; k < 2; k++) { box(c, wx + 14 + k * 20, y, 4, 4, '#1E1E1A'); box(c, wx + 14 + k * 20, y + 4, 4, 1, '#6A6C60'); }
   for (let y = top; y < G; y += 192) box(c, wx, y, WALL, 2, '#24241F');
@@ -273,35 +283,6 @@ const endWall = (c: Ctx, wx: number, face: 1 | -1) => {
 
 // ---------------------------------------------------------------------------------------------------------------
 // The props, near end to far
-
-/** The door out to the hub (the player presses up at it), TO THE HUB over it. */
-const exitDoor = (c: Ctx) => {
-  const x = EXIT_X - 34, y = G - 120, w = 68, h = 120;
-  shade(c, x - 6, y - 6, w + 12, h + 6, 0.3, 4);
-  box(c, x - 7, y - 7, w + 14, h + 7, INK);
-  slab(c, x - 6, y - 6, w + 12, h + 6, '#3E434A', { ink: false });
-  box(c, x - 1, y - 1, w + 2, h + 1, '#0E0F12');
-  slab(c, x, y, w, h, '#56606C');
-  for (const py of [y + 60, y + 90]) { box(c, x + 6, py, w - 12, 1, '#3C434C'); box(c, x + 6, py + 1, w - 12, 1, '#7A8592'); }
-  // (wired glass, a glint across it)
-  box(c, x + 17, y + 13, 34, 38, INK);
-  bandedGradient(c, x + 19, y + 15, 30, 34, ['#1E2C38', '#34485A', '#24323E'], 4);
-  for (let k = 0; k < 30; k += 6) { box(c, x + 19 + k, y + 15, 1, 34, 'rgba(160, 170, 180, 0.25)'); box(c, x + 19, y + 15 + k, 30, 1, 'rgba(160, 170, 180, 0.25)'); }
-  line(c, [x + 22, y + 46, x + 40, y + 18], 'rgba(255, 255, 255, 0.45)', 2); line(c, [x + 30, y + 46, x + 46, y + 22], 'rgba(255, 255, 255, 0.25)', 1);
-  // (the kick plate, kicked; the lever)
-  slab(c, x + 3, G - 22, w - 6, 18, '#8C8F94', { ink: false });
-  for (let k = 0; k < 5; k++) line(c, [x + 8 + k * 11, G - 18 + (k % 2) * 4, x + 14 + k * 11, G - 8], 'rgba(30, 30, 34, 0.6)');
-  oval(c, x + 40, G - 12, 6, 4, 'rgba(30, 30, 34, 0.45)');
-  box(c, x + w - 22, y + 62, 14, 4, INK); box(c, x + w - 21, y + 62, 12, 3, '#C8CCD2'); box(c, x + w - 21, y + 62, 12, 1, '#FFFFFF');
-  ball(c, x + w - 10, y + 64, 3, '#A3ABB6');
-  // (a faded smiley sticker, half scraped off)
-  ball(c, x + 14, y + 72, 6, '#C8B048', false); box(c, x + 11, y + 70, 2, 2, '#4A3A10'); box(c, x + 16, y + 70, 2, 2, '#4A3A10'); box(c, x + 11, y + 75, 7, 1, '#4A3A10');
-  box(c, x + 14, y + 66, 8, 12, '#5A6470');
-  box(c, x, G - 2, w, 2, '#08090A');
-  wallSign(c, EXIT_X - 48, G - 156, 'TO THE HUB', '#1F6B3A', '#ECFCCB');
-  // (an arrow pointing at it, painted on the wall, and the path worn into the floor in front)
-  for (const [ax, dir] of [[x - 22, 1], [x + w + 22, -1]] as const) { box(c, ax - 5, G - 70, 10, 4, fade('#EAB308', 0.35)); poly(c, [ax + dir * 5, G - 74, ax + dir * 11, G - 68, ax + dir * 5, G - 62], fade('#EAB308', 0.35)); }
-};
 
 /** A dead potted plant in the corner, a little flag still stuck in it. */
 const deadPlant = (c: Ctx) => {
@@ -429,8 +410,8 @@ const incidentBoard = (c: Ctx) => {
   box(c, x + 6, y + 6, w - 12, h - 12, '#5A6068');
   bandedGradient(c, x + 7, y + 7, w - 14, h - 14, ['#F4F4EE', '#E8E8E0', '#DADAD0'], 5);
   for (const [sx, sy, sw] of [[110, 84, 30], [96, 100, 40], [140, 70, 20]]) pixelBlob(c, x + sx, y + sy, sw, 8, 'rgba(120, 130, 150, 0.1)');
-  text(c, 'DAYS WITHOUT', x + w / 2, y + 30, '#1E3A8A', 8, 'center', null);
-  text(c, 'AN INCIDENT:', x + w / 2, y + 46, '#1E3A8A', 8, 'center', null);
+  text(c, 'DAYS SINCE LAST', x + w / 2, y + 30, '#1E3A8A', 8, 'center', null);
+  text(c, 'INCIDENT:', x + w / 2, y + 46, '#1E3A8A', 8, 'center', null);
   text(c, '0', x + w / 2, y + 100, '#DC2626', 24, 'center', '#F4A0A0');
   text(c, 'RECORD: 1', x + w / 2, y + 124, '#3A3F48', 8, 'center', null);
   for (const [bx, by] of [[x + 3, y + 3], [x + w - 5, y + 3], [x + 3, y + h - 5], [x + w - 5, y + h - 5]]) screw(c, bx, by);
@@ -758,7 +739,7 @@ const bagWall = (c: Ctx) => {
   const hx = rx(1790), hy = 470;
   pixelBlob(c, hx, hy, 16, 12, '#2A2618'); pixelBlob(c, hx - 2, hy - 2, 10, 7, '#141208');
   for (const [ex, ey] of [[-26, -14], [24, -10], [-20, 16], [22, 18], [2, -22]]) line(c, [hx, hy, hx + ex, hy + ey], 'rgba(26, 11, 6, 0.6)');
-  for (let k = 0; k < 6; k++) poly(c, [hx - 30 + k * 12, G - 2, hx - 26 + k * 12, G - 5, hx - 22 + k * 12, G - 2], '#8F8B72');
+  for (let k = 0; k < 6; k++) poly(c, [hx - 30 + k * 12, G - 2, hx - 26 + k * 12, G - 5, hx - 22 + k * 12, G - 2], '#5C6A52');
 };
 
 /** The bucket under the hole in the ceiling, a puddle round it, the leak reported (years ago). */
@@ -875,6 +856,9 @@ const counter = (c: Ctx) => {
   line(c, [ex + 20, ey + 90, ex + 40, ey + 40], 'rgba(255, 255, 255, 0.3)', 2);
   note(c, rx(2150), 296, ["YOUR MOM", "DOESN'T WORK", 'HERE.'], { paper: '#F4F0E0', ink: '#7A1E1A' });
   note(c, rx(2196), 344, ['THIS MEANS', 'YOU, GARY'], { paper: '#F2E890', ink: '#26324A' });
+  // (and taped on the wall over the microwave, an arrow drawn down at it)
+  note(c, x - 2, ty - 84, ['CLEAN UP AFTER', 'YOURSELF!!!'], { size: 5, paper: '#F4F0E0', ink: '#B91C1C' });
+  line(c, [x + 28, ty - 60, x + 28, ty - 46], '#B91C1C', 2); poly(c, [x + 23, ty - 48, x + 33, ty - 48, x + 28, ty - 42], '#B91C1C');
   // (the cabinet under it: laminate, one door hanging open, one gone, a pipe and a roach trap in the dark)
   slab(c, x, ty, w, G - ty, '#6E5A3E');
   dimTop(c, x, ty, w, '#6E5A3E', 4);
@@ -1127,6 +1111,426 @@ const sink = (c: Ctx) => {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
+// The building's own: what it has outside (hub/draw.ts: backBuilding, staffDoor) seen from in here
+
+/** The rusty water pipe along the top of the wall, under the ceiling (outside it runs up the building's side). */
+const PIPE_Y = CEIL_Y + 4;
+/** Where its joints are: over the water stains (they weep). */
+const PIPE_JOINTS = [60, 470, 1240, 1730, 2210, 2470];
+/**
+ * The pipe the length of the room (a..b): rust-red, round (lit along its middle, its top in shade: nothing up here to
+ * stand on), hung on straps up into the ceiling, its joints swollen and weeping down the paint.
+ */
+const pipes = (c: Ctx, a: number, b: number) => {
+  const w = b - a, y = PIPE_Y;
+  box(c, a, y + 9, w, 3, 'rgba(18, 12, 6, 0.3)');
+  box(c, a, y, w, 9, INK);
+  box(c, a, y + 1, w, 7, '#7C2D12'); box(c, a, y + 1, w, 1, '#4A180A'); box(c, a, y + 3, w, 2, '#9A3412'); box(c, a, y + 3, w, 1, '#B4622A'); box(c, a, y + 6, w, 2, '#5A1E0C');
+  checker(c, a, y + 5, w, 1, '#7C2D12');
+  for (let x = Math.floor((a - X0) / 14) * 14 + X0; x < b; x += 14) if (hash(x * 0.37) > 0.55) box(c, x + Math.floor(hash(x) * 10), y + 2 + Math.floor(hash(x * 2.1) * 5), 2, 1, hash(x * 3) > 0.5 ? '#C2703A' : '#3A1206');
+  // (the straps: steel bands up into the ceiling's grid)
+  for (let x = Math.floor((a - X0) / 120) * 120 + X0 + 40; x < b; x += 120) {
+    box(c, x, CEIL_Y - 2, 2, y - CEIL_Y + 2, '#3A3F48');
+    box(c, x - 2, y - 1, 6, 11, INK); box(c, x - 1, y, 4, 9, '#6B737E'); box(c, x - 1, y, 1, 9, '#A3ABB6');
+  }
+  // (the joints: fat collars, rust run down from each)
+  for (const r of PIPE_JOINTS) {
+    const cx = rx(r) - 7;
+    if (cx > b || cx + 14 < a) continue;
+    box(c, cx - 1, y - 2, 16, 13, INK); box(c, cx, y - 1, 14, 11, '#8B4A1C'); box(c, cx, y + 2, 14, 2, '#B4622A'); box(c, cx, y + 8, 14, 2, '#5A1E0C');
+    box(c, cx + 3, y - 1, 1, 11, '#3A1206'); box(c, cx + 10, y - 1, 1, 11, '#3A1206');
+    box(c, cx + 5, y + 11, 3, 4, '#7C2D12'); box(c, cx + 6, y + 15, 1, 3, 'rgba(124, 45, 18, 0.6)');
+  }
+};
+
+/** The same pipe down the near corner and into the floor (an elbow at the top, straps down it, a collar at the foot). */
+const cornerPipe = (c: Ctx) => {
+  const x = rx(2), y = PIPE_Y;
+  shade(c, x, y, 9, G - y, 0.3, 3);
+  box(c, x - 1, y, 11, G - y, INK); box(c, x, y, 9, G - y, '#7C2D12'); box(c, x + 2, y, 2, G - y, '#9A3412'); box(c, x + 2, y, 1, G - y, '#B4622A'); box(c, x + 7, y, 2, G - y, '#5A1E0C');
+  for (let yy = y + 30; yy < G - 20; yy += 26) if (hash(yy * 0.3) > 0.4) box(c, x + 3, yy, 3, 2, '#3A1206');
+  box(c, x - 2, y - 2, 14, 14, INK); box(c, x - 1, y - 1, 12, 12, '#8B4A1C'); box(c, x - 1, y + 2, 12, 2, '#B4622A');
+  for (let yy = y + 70; yy < G - 30; yy += 110) { box(c, x - 2, yy, 13, 5, INK); box(c, x - 1, yy + 1, 11, 3, '#6B737E'); box(c, x - 1, yy + 1, 11, 1, '#A3ABB6'); }
+  box(c, x - 3, G - 7, 15, 7, INK); box(c, x - 2, G - 6, 13, 5, '#6B737E'); box(c, x - 2, G - 6, 13, 1, '#A3ABB6');
+  pixelBlob(c, x + 5, G - 1, 12, 2, 'rgba(124, 45, 18, 0.45)');
+};
+
+/** The gray conduit (up the building's front outside) down beside the door to the light switch: taped on, LEAVE IT ON. */
+const conduit = (c: Ctx) => {
+  const x = rx(173), top = PIPE_Y + 9, sy = 300;
+  box(c, x - 1, top, 7, sy - top, INK); box(c, x, top, 5, sy - top, '#6B7280'); box(c, x, top, 1, sy - top, '#9CA3AF'); box(c, x + 4, top, 1, sy - top, '#4B5563');
+  for (let y = top + 34; y < sy - 10; y += 60) { box(c, x - 2, y, 9, 4, INK); box(c, x - 1, y, 7, 3, '#4B5563'); box(c, x - 1, y, 7, 1, '#9CA3AF'); }
+  const bx = x - 6, by = sy;
+  shade(c, bx, by, 18, 28, 0.34, 2);
+  slab(c, bx, by, 18, 28, '#8A929C');
+  screw(c, bx + 8, by + 2); screw(c, bx + 8, by + 24);
+  box(c, bx + 5, by + 7, 8, 14, INK); box(c, bx + 6, by + 8, 6, 6, '#E8E4D8'); box(c, bx + 6, by + 8, 6, 1, '#FFFFFF');
+  tape(c, bx + 1, by + 10, 16, 5);
+  note(c, rx(128), 300, ['LEAVE', 'IT', 'ON'], { size: 5, paper: '#F2E890', ink: '#B91C1C' });
+};
+
+/** The window: the building's cracked wired one (outside: hub/draw.ts), from in here. Its glass; out through it is live. */
+const WIN = { r: 22, y: 166, w: 64, h: 50 };
+/** Its frame, its sill (top in shade), grime run down the paint under it: the still part, in the strip. */
+const windowFrame = (c: Ctx) => {
+  const x = rx(WIN.r), y = WIN.y, w = WIN.w, h = WIN.h;
+  shade(c, x - 6, y - 6, w + 12, h + 12, 0.38, 4);
+  box(c, x - 7, y - 7, w + 14, h + 14, INK);
+  box(c, x - 6, y - 6, w + 12, h + 12, '#3F3F46'); box(c, x - 6, y - 6, w + 12, 1, '#6B6B74'); box(c, x - 6, y - 6, 1, h + 12, '#5A5A62'); box(c, x + w + 5, y - 6, 1, h + 12, '#26262C'); box(c, x - 6, y + h + 5, w + 12, 1, '#26262C');
+  for (const [sx, sy] of [[x - 4, y - 4], [x + w + 2, y - 4], [x - 4, y + h + 2], [x + w + 2, y + h + 2]]) screw(c, sx, sy);
+  box(c, x - 1, y - 1, w + 2, h + 2, '#18181B');
+  box(c, x, y, w, h, '#2A3036');
+  for (let k = 0; k < 6; k++) box(c, x - 6 + k * 14, y + h + 14, 2, 8 + ((k * 7) % 18), 'rgba(46, 36, 22, 0.32)');
+  box(c, x - 10, y + h + 6, w + 20, 8, INK); box(c, x - 9, y + h + 7, w + 18, 6, BLOCK[4]); box(c, x - 9, y + h + 12, w + 18, 1, BLOCK[1]);
+  dimTop(c, x - 9, y + h + 7, w + 18, BLOCK[4], 2);
+  // (on the sill: dead flies, a butt, a curled-up park map)
+  for (let k = 0; k < 3; k++) { box(c, x + 6 + k * 19, y + h + 5, 2, 1, INK); box(c, x + 7 + k * 19, y + h + 4, 1, 1, 'rgba(220, 230, 240, 0.6)'); }
+  box(c, x + 48, y + h + 4, 5, 2, '#F1EFEA'); box(c, x + 52, y + h + 4, 1, 2, '#D97706');
+  box(c, x - 6, y + h, 14, 6, INK); box(c, x - 5, y + h + 1, 12, 4, '#7FB0D8'); box(c, x - 5, y + h + 1, 4, 4, '#E8C040'); box(c, x - 5, y + h + 1, 12, 1, '#B8D4EC');
+};
+/** The glass over the view: grime, the wire in it, the crack (the outside's, turned round), tape over the hit. Stamped. */
+const paintWindowGlass = (g: Ctx) => {
+  const x = rx(WIN.r), y = WIN.y, w = WIN.w, h = WIN.h;
+  box(g, x, y, w, h, 'rgba(150, 170, 160, 0.14)');
+  checker(g, x, y + h - 12, w, 8, 'rgba(70, 60, 36, 0.3)');
+  box(g, x, y + h - 4, w, 4, 'rgba(70, 60, 36, 0.4)');
+  for (let k = 0; k < 20; k++) box(g, x + Math.floor(hash(k * 2.7) * w), y + Math.floor(hash(k * 5.1 + 3) * h), 1, 1, 'rgba(60, 50, 30, 0.5)');
+  for (let k = 9; k < w; k += 9) box(g, x + k, y, 1, h, 'rgba(70, 74, 80, 0.7)');
+  for (let k = 7; k < h; k += 7) box(g, x, y + k, w, 1, 'rgba(70, 74, 80, 0.7)');
+  const P = (u: number, v: number) => [x + u, y + v];
+  for (const pts of [[...P(55, 4), ...P(35, 28), ...P(40, 47)], [...P(35, 28), ...P(9, 22)], [...P(35, 28), ...P(24, 46)]]) {
+    line(g, pts.map((v, i) => (i % 2 ? v + 1 : v)), 'rgba(20, 20, 24, 0.5)');
+    line(g, pts, 'rgba(229, 231, 235, 0.85)');
+  }
+  tape(g, x + 27, y + 25, 17, 6);
+  line(g, [x + 6, y + h - 8, x + 20, y + 4], 'rgba(255, 255, 255, 0.22)', 2); line(g, [x + 14, y + h - 10, x + 24, y + 10], 'rgba(255, 255, 255, 0.12)', 1);
+};
+const BULBS = ['#F87171', '#FDE047', '#4ADE80', '#60A5FA', '#F472B6', '#FB923C'];
+/**
+ * Out through it, live: the hub as it is this hour. Its sky, the far side's rides in the haze (a spire, the big wheel
+ * turning), the hedge, the walk; a guest going by now and then (a balloon, some of them); the nearest lamp post, its
+ * lamp lit after dark, string lights swagged off it (twinkling, as the hub's do) and a run of bunting.
+ */
+const windowView = (c: Ctx, f: number) => {
+  const x = rx(WIN.r), y = WIN.y, w = WIN.w, h = WIN.h, tod = timeOfDay(), night = lampGlow(tod);
+  c.save(); c.beginPath(); c.rect(x, y, w, h); c.clip();
+  for (let k = 0; k < 6; k++) box(c, x, y + k * 6, w, 7, skyAt(0.3 + k * 0.1, tod));
+  const far = farTint('#4A5468', 1, tod);
+  poly(c, [x + 2, y + 34, x + 2, y + 22, x + 5, y + 18, x + 7, y + 8, x + 9, y + 18, x + 12, y + 22, x + 12, y + 26, x + 20, y + 26, x + 20, y + 34], far);
+  c.strokeStyle = far; c.lineWidth = 1; c.beginPath(); c.arc(x + 44, y + 20, 13, 0, Math.PI * 2); c.stroke();
+  const turn = f * 0.004;
+  c.beginPath(); for (let k = 0; k < 4; k++) { const a = turn + k * Math.PI / 4; c.moveTo(x + 44 - Math.cos(a) * 13, y + 20 - Math.sin(a) * 13); c.lineTo(x + 44 + Math.cos(a) * 13, y + 20 + Math.sin(a) * 13); } c.stroke();
+  for (let k = 0; k < 8; k++) { const a = turn + k * Math.PI / 4; box(c, Math.round(x + 43 + Math.cos(a) * 13), Math.round(y + 19 + Math.sin(a) * 13), 3, 3, farTint(BULBS[k % 6], 0.8, tod)); }
+  poly(c, [x + 38, y + 36, x + 44, y + 20, x + 50, y + 36], far);
+  box(c, x, y + 30, w, 6, farTint('#3E5A3A', 0.6, tod)); checker(c, x, y + 30, w, 2, farTint('#56784E', 0.6, tod));
+  const walk = farTint('#B8A88A', 0.3, tod), seam = farTint('#8A7C64', 0.3, tod);
+  box(c, x, y + 36, w, h - 36, walk);
+  for (let k = 0; k < 7; k++) box(c, x + 3 + k * 10, y + 38 + (k % 2) * 4, 1, h - 38, seam);
+  box(c, x, y + 41, w, 1, seam); box(c, x, y + 46, w, 1, seam);
+  // (a guest going by)
+  const P = 420, t = f % P, n = Math.floor(f / P);
+  if (t < 220) {
+    const dir = n % 2 ? -1 : 1, gx = Math.round(dir > 0 ? x - 10 + (t / 220) * (w + 20) : x + w + 10 - (t / 220) * (w + 20)), gy = y + 44 - ((t >> 3) % 2);
+    const shirt = farTint(['#DC2626', '#2563EB', '#F59E0B', '#16A34A'][n % 4], 0.3, tod), skin = farTint(['#E8B48A', '#8A5A3A', '#C68A5E', '#F2CDA8'][(n >> 1) % 4], 0.3, tod);
+    box(c, gx - 2, gy - 14, 5, 8, shirt); box(c, gx - 1, gy - 19, 4, 5, skin);
+    box(c, gx - 2, gy - 6, 2, 6 - ((t >> 3) % 2) * 2, '#1F2937'); box(c, gx + 1, gy - 6, 2, 4 + ((t >> 3) % 2) * 2, '#1F2937');
+    if (n % 3 !== 1) { box(c, gx + 3, gy - 28, 1, 14, '#E5E7EB'); ball(c, gx + 3, gy - 31, 3, farTint(BULBS[n % 6], 0.2, tod), false); }
+  }
+  // (the lamp post, the nearest: cast iron, its lamp)
+  const lx = x + 18;
+  box(c, lx - 2, y + 4, 5, h, '#151B26'); box(c, lx - 1, y + 4, 1, h, '#4B5563');
+  box(c, lx - 4, y + 22, 9, 2, '#374151');
+  box(c, lx - 4, y - 3, 9, 8, INK); box(c, lx - 3, y - 2, 7, 6, mix('#FEF3C7', '#FFFBEB', night));
+  if (night > 0.3) { c.fillStyle = `rgba(253, 230, 138, ${(0.25 * night).toFixed(2)})`; c.fillRect(lx - 10, y - 4, 21, 16); }
+  // (string lights off it, the bunting under)
+  for (let k = 1; k < 10; k++) {
+    const u = k / 10, bx = lx + 2 + u * (w - 20), by = y + 4 + 10 * 4 * u * (1 - u);
+    box(c, Math.round(bx), Math.round(by) - 1, 1, 1, '#27272A');
+    const on = night > 0.3 || ((k + (f >> 4)) % 6) !== 0;
+    box(c, Math.round(bx), Math.round(by), 2, 2, on ? (night > 0.3 ? mix(BULBS[k % 6], '#FFFFFF', 0.4) : BULBS[k % 6]) : '#57534E');
+  }
+  for (let k = 0; k < 4; k++) {
+    const u = (k + 0.5) / 4, bx = Math.round(lx - 2 - u * 18), by = Math.round(y + 12 + 6 * 4 * u * (1 - u));
+    poly(c, [bx - 2, by, bx + 2, by, bx, by + 4], [FLAG_RED[2], FLAG_WHITE[3], FLAG_BLUE[3]][k % 3]);
+  }
+  c.restore();
+};
+
+/** The greasy vent (outside, by the door): from in here, the exhaust fan behind it, its guard furred with grease. */
+const FAN = { r: 214, y: 192, R: 17 };
+const fanHousing = (c: Ctx) => {
+  const x = rx(FAN.r), y = FAN.y, R = FAN.R;
+  for (let k = 0; k < 6; k++) box(c, x - R + 2 + k * 7, y + R + 6, 2, 10 + ((k * 13) % 30), 'rgba(60, 44, 16, 0.42)');
+  shade(c, x - R - 5, y - R - 5, R * 2 + 10, R * 2 + 10, 0.38, 4);
+  box(c, x - R - 6, y - R - 6, R * 2 + 12, R * 2 + 12, INK);
+  slab(c, x - R - 5, y - R - 5, R * 2 + 10, R * 2 + 10, '#8A8C84', { ink: false });
+  oval(c, x, y, R + 1, R + 1, INK); oval(c, x, y, R, R, '#0E0D0B');
+  for (let k = 0; k < 16; k++) { const a = k * Math.PI / 8 + 0.2; box(c, Math.round(x + Math.cos(a) * (R + 1)), Math.round(y + Math.sin(a) * (R + 1)), 3, 2, 'rgba(70, 52, 20, 0.65)'); }
+  pixelBlob(c, x, y + R + 4, R, 3, 'rgba(70, 52, 20, 0.5)');
+};
+/** Its blades going round behind the guard, one of them bent (so it wobbles). */
+const fanBlades = (c: Ctx, f: number) => {
+  const x = rx(FAN.r), y = FAN.y, R = FAN.R - 2, a0 = f * 0.11 + Math.sin(f * 0.11) * 0.15;
+  for (let k = 0; k < 4; k++) {
+    const a = a0 + k * Math.PI / 2 + (k === 1 ? 0.3 : 0);
+    poly(c, [x, y, x + Math.cos(a - 0.38) * R, y + Math.sin(a - 0.38) * R, x + Math.cos(a + 0.12) * R, y + Math.sin(a + 0.12) * R], k === 1 ? '#5A5C54' : '#6E7068');
+    line(c, [x, y, x + Math.cos(a - 0.38) * R, y + Math.sin(a - 0.38) * R], '#8E9088');
+  }
+  oval(c, x, y, 4, 4, '#2A2C28'); box(c, x - 1, y - 2, 2, 1, '#8E9088');
+};
+const paintFanGuard = (g: Ctx) => {
+  const x = rx(FAN.r), y = FAN.y, R = FAN.R;
+  g.lineWidth = 1;
+  for (const r of [5, 11, R - 1]) { g.strokeStyle = '#2A2C28'; g.beginPath(); g.arc(x + 0.5, y + 0.5, r, 0, Math.PI * 2); g.stroke(); g.strokeStyle = 'rgba(176, 178, 168, 0.6)'; g.beginPath(); g.arc(x - 0.5, y - 0.5, r, Math.PI, Math.PI * 1.5); g.stroke(); }
+  box(g, x - R, y, R * 2, 1, '#2A2C28'); box(g, x, y - R, 1, R * 2, '#2A2C28');
+  for (let k = 0; k < 9; k++) { const a = hash(k * 3.3) * Math.PI * 2, d = 4 + hash(k * 7.1) * (R - 5); pixelBlob(g, x + Math.cos(a) * d, y + Math.sin(a) * d, 2, 2, 'rgba(90, 66, 26, 0.75)'); }
+  for (let k = 0; k < 5; k++) box(g, x - 10 + k * 5, y + R - 2, 1, 4 + (k % 3) * 2, 'rgba(90, 66, 26, 0.7)');
+};
+
+/**
+ * The door out to the hub (the player presses up at it): the back of the hub's gray steel STAFF ONLY door (hub/draw.ts:
+ * staffDoor). Its hinges this side, the closer up top, the push bar, the deadbolt's thumb turn, the kick plate kicked
+ * in, SMILE! YOU'RE ON STAGE on it (the last thing they see before they go out there), the day showing in a line under
+ * it. TO THE HUB over it.
+ */
+const exitDoor = (c: Ctx) => {
+  const x = EXIT_X - 34, y = G - 120, w = 68, h = 120;
+  shade(c, x - 6, y - 6, w + 12, h + 6, 0.3, 4);
+  box(c, x - 7, y - 7, w + 14, h + 7, INK);
+  slab(c, x - 6, y - 6, w + 12, h + 6, '#3E434A', { ink: false });
+  box(c, x - 1, y - 1, w + 2, h + 1, '#0E0F12');
+  slab(c, x, y, w, h, '#6B7280');
+  box(c, x + 2, y + 2, 5, h - 4, '#7C8592'); checker(c, x + 7, y + 2, 2, h - 4, '#7C8592');
+  box(c, x + w - 6, y + 2, 4, h - 4, '#565C68');
+  for (const [dx, dy, r] of [[50, 30, 5], [20, 96, 6], [44, 104, 4]]) { oval(c, x + dx, y + dy, r + 1, r, '#5E6572'); box(c, x + dx - r + 1, y + dy + r - 1, r * 2 - 2, 1, '#8892A0'); }
+  // (the hinges, this side)
+  for (const hy of [y + 10, y + 54, y + 98]) { box(c, x + w - 3, hy, 5, 14, INK); box(c, x + w - 2, hy + 1, 3, 12, '#A3ABB6'); box(c, x + w - 2, hy + 1, 1, 12, '#E5E7EB'); box(c, x + w - 3, hy + 6, 5, 1, INK); }
+  // (the closer: its body on the door, its arm up to the frame)
+  box(c, x + w - 36, y + 4, 28, 10, INK); box(c, x + w - 35, y + 5, 26, 8, '#3A3F48'); box(c, x + w - 35, y + 5, 26, 1, '#6B737E');
+  line(c, [x + w - 32, y + 9, x + w - 50, y + 1, x + w - 20, y - 4], INK, 3); line(c, [x + w - 32, y + 9, x + w - 50, y + 1, x + w - 20, y - 4], '#8A929C', 1);
+  // (SMILE! YOU'RE ON STAGE: the park's yellow and red, curling at a corner, taped where it's lost a screw)
+  const px = x + 6, py = y + 18, pw = w - 12, ph = 38;
+  shade(c, px, py, pw, ph, 0.38, 2);
+  box(c, px - 1, py - 1, pw + 2, ph + 2, INK); box(c, px, py, pw, ph, '#B91C1C'); box(c, px + 2, py + 2, pw - 4, ph - 4, '#F2CC4A');
+  box(c, px + 2, py + 2, pw - 4, 1, '#FBE38A'); checker(c, px + 2, py + ph - 5, pw - 4, 2, '#D4A82A');
+  text(c, 'SMILE!', px + pw / 2, py + 14, '#B91C1C', 8, 'center', '#7A1E1A');
+  text(c, "YOU'RE ON", px + pw / 2, py + 25, '#1E3A8A', 5, 'center', null);
+  text(c, 'STAGE', px + pw / 2, py + 32, '#1E3A8A', 5, 'center', null);
+  screw(c, px + 2, py + 2); screw(c, px + pw - 4, py + 2); screw(c, px + 2, py + ph - 4);
+  poly(c, [px + pw, py + ph - 7, px + pw, py + ph, px + pw - 7, py + ph], '#6B7280'); poly(c, [px + pw - 7, py + ph, px + pw, py + ph - 7, px + pw - 7, py + ph - 7], '#C8A030');
+  tape(c, px + pw - 9, py + ph - 9, 10, 5);
+  // (the deadbolt's thumb turn, on the latch side)
+  box(c, x + 8, y + 62, 9, 9, INK); box(c, x + 9, y + 63, 7, 7, '#A3ABB6'); box(c, x + 12, y + 63, 2, 7, '#3A3F48');
+  // (the push bar across: its latch case at that side, the chrome bar, the end cap; grime where the hands go)
+  pixelBlob(c, x + 34, y + 78, 22, 6, 'rgba(30, 24, 12, 0.3)');
+  box(c, x + 3, y + 72, 16, 16, INK); box(c, x + 4, y + 73, 14, 14, '#5A616C'); box(c, x + 4, y + 73, 14, 1, '#9CA3AF');
+  box(c, x + 18, y + 75, w - 24, 9, INK); box(c, x + 19, y + 76, w - 26, 7, '#C8CCD2'); box(c, x + 19, y + 76, w - 26, 1, '#FFFFFF'); box(c, x + 19, y + 81, w - 26, 2, '#7A828E');
+  box(c, x + w - 8, y + 73, 5, 13, INK); box(c, x + w - 7, y + 74, 3, 11, '#5A616C');
+  text(c, 'PUSH', x + 38, y + 82, '#3A3F48', 5, 'center', null);
+  // (the kick plate, kicked; the day in a line under the door)
+  slab(c, x + 3, G - 22, w - 6, 18, '#8C8F94', { ink: false });
+  for (let k = 0; k < 5; k++) line(c, [x + 8 + k * 11, G - 18 + (k % 2) * 4, x + 14 + k * 11, G - 8], 'rgba(30, 30, 34, 0.6)');
+  oval(c, x + 40, G - 12, 6, 4, 'rgba(30, 30, 34, 0.45)');
+  box(c, x, G - 2, w, 2, '#08090A');
+  box(c, x + 3, G - 1, w - 6, 1, '#F4E2A0'); checker(c, x + 6, G - 2, w - 12, 1, 'rgba(244, 226, 160, 0.5)');
+  wallSign(c, EXIT_X - 48, G - 156, 'TO THE HUB', '#1F6B3A', '#ECFCCB');
+  // (an arrow pointing at it, painted on the wall, and the path worn into the floor in front)
+  for (const [ax, dir] of [[x - 22, 1], [x + w + 22, -1]] as const) { box(c, ax - 5, G - 70, 10, 4, fade('#EAB308', 0.35)); poly(c, [ax + dir * 5, G - 74, ax + dir * 11, G - 68, ax + dir * 5, G - 62], fade('#EAB308', 0.35)); }
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// The lounge, at the far end: the training video, the couch, the board over it, the chairs stacked in the corner
+
+/** The TV cart: a black steel AV cart (the TV strapped on, the VCR, the tapes), the cords to a power strip. */
+const TV = { r: 2416, w: 64 };
+const tvTop = () => G - 62;
+const TV_SCREEN = () => ({ x: rx(TV.r) + 6, y: tvTop() - 46, w: 42, h: 34 });
+const tvCart = (c: Ctx) => {
+  const x = rx(TV.r), w = TV.w, top = tvTop();
+  shade(c, x - 2, top - 54, w + 4, G - top + 54, 0.3, 3);
+  for (const lx of [x + 1, x + w - 6]) { box(c, lx, top, 5, G - 6 - top, INK); box(c, lx + 1, top, 3, G - 6 - top, '#3A3F48'); box(c, lx + 1, top, 1, G - 6 - top, '#6B737E'); }
+  for (const sy of [top, G - 34, G - 12]) { box(c, x - 3, sy, w + 6, 6, INK); box(c, x - 2, sy + 1, w + 4, 4, '#2A2C30'); dimTop(c, x - 2, sy + 1, w + 4, '#2A2C30', 1); box(c, x - 2, sy + 4, w + 4, 1, '#14161A'); }
+  for (const wx of [x + 3, x + w - 3]) ball(c, wx, G - 4, 4, '#18181B');
+  // (the VCR: 12:00 like everything else in here, a tape half in)
+  box(c, x + 4, G - 48, w - 8, 14, INK); box(c, x + 5, G - 47, w - 10, 12, '#2A2A2E'); box(c, x + 5, G - 47, w - 10, 1, '#4A4A50');
+  box(c, x + 9, G - 44, 26, 4, '#0A0A0C'); box(c, x + 11, G - 46, 22, 3, '#1A1A1E'); box(c, x + 11, G - 46, 22, 1, '#E8E4D8');
+  box(c, x + 40, G - 44, 14, 6, '#0A140A'); box(c, x + 42, G - 42, 3, 2, '#5AFF6A'); box(c, x + 47, G - 42, 5, 2, '#5AFF6A');
+  // (the tapes on the bottom shelf, their spines)
+  [['#E8E4D8', '#B91C1C'], ['#E8E4D8', '#1E3A8A'], ['#18181B', '#E8C040'], ['#E8E4D8', '#2F7D3A']].forEach(([sp, lab], i) => { box(c, x + 6 + i * 12, G - 26, 10, 14, INK); box(c, x + 7 + i * 12, G - 25, 8, 13, sp); box(c, x + 7 + i * 12, G - 21, 8, 4, lab); });
+  // (the TV: a beige CRT from the park's opening year, the screen live; knobs; PROPERTY OF HAPPY LAND)
+  const ty = top - 54, tw = w;
+  box(c, x - 1, ty - 1, tw + 2, 56, INK); slab(c, x, ty, tw, 54, '#B4AA8A', { ink: false }); dimTop(c, x, ty, tw, '#B4AA8A', 3);
+  box(c, x + 4, ty + 6, 46, 38, INK); box(c, x + 5, ty + 7, 44, 36, '#14181A');
+  for (let k = 0; k < 2; k++) { ball(c, x + 57, ty + 14 + k * 12, 3, '#3A3F48'); box(c, x + 56, ty + 13 + k * 12, 1, 1, '#A3ABB6'); }
+  for (let k = 0; k < 4; k++) box(c, x + 53, ty + 38 + k * 3, 8, 1, '#6A6050');
+  box(c, x + 6, ty + 46, 44, 6, '#E8E4D8'); text(c, 'HAPPY LAND', x + 28, ty + 51, '#3A2A18', 4, 'center', null);
+  // (the rabbit ears, one bent, foil on it)
+  line(c, [x + 30, ty, x + 18, ty - 24], INK, 2); line(c, [x + 34, ty, x + 46, ty - 16, x + 54, ty - 18], INK, 2);
+  ball(c, x + 32, ty - 1, 4, '#3A3F48'); box(c, x + 50, ty - 21, 7, 5, '#C8CCD2'); box(c, x + 50, ty - 21, 7, 1, '#FFFFFF');
+  // (the cords, down off the back to the power strip on the floor, everything plugged into everything)
+  line(c, [x + w, ty + 40, x + w + 6, G - 20, x + w + 4, G - 3, x + w + 14, G - 3], '#18181B', 2);
+  box(c, x + w + 12, G - 6, 26, 6, INK); box(c, x + w + 13, G - 5, 24, 4, '#E8E4D8'); box(c, x + w + 14, G - 5, 3, 2, '#DC2626');
+  for (let k = 0; k < 3; k++) { box(c, x + w + 19 + k * 6, G - 9, 4, 4, '#2A2A2E'); line(c, [x + w + 21 + k * 6, G - 9, x + w + 24 + k * 9, G - 16 - k * 4], '#18181B', 1); }
+  note(c, x + 6, top - 106, ['WATCH ON', 'YOUR BREAK'], { size: 5, paper: '#F2E890', ink: '#1E3A8A' });
+};
+/** The training video, on its loop forever: three slides, the tracking rolling down them. */
+const tvScreen = (c: Ctx, f: number) => {
+  const { x, y, w, h } = TV_SCREEN(), slide = Math.floor(f / 160) % 3, cx = x + w / 2;
+  box(c, x, y, w, h, ['#1E3A8A', '#2F7D3A', '#8E1E1E'][slide]);
+  if (slide === 0) {
+    star(c, cx, y + 14, 10, '#F2CC4A'); box(c, cx - 4, y + 11, 2, 3, INK); box(c, cx + 3, y + 11, 2, 3, INK); box(c, cx - 3, y + 17, 7, 1, INK);
+    box(c, cx + 11, y + 10, 3, 6, '#F2CC4A'); box(c, cx + 11, y + 8, 2, 3, '#F2CC4A');
+    text(c, 'SAFETY!', cx, y + h - 3, '#FFFFFF', 5, 'center', null);
+  } else if (slide === 1) {
+    // (a stick man lifting a box with his back, the X over him; LEGS!)
+    ball(c, cx - 8, y + 6, 3, '#FFFFFF', false); line(c, [cx - 8, y + 9, cx + 2, y + 14, cx - 2, y + 24], '#FFFFFF', 2); line(c, [cx + 2, y + 14, cx + 6, y + 24], '#FFFFFF', 2);
+    box(c, cx + 4, y + 12, 8, 7, '#C49A62'); line(c, [cx - 4, y + 10, cx + 4, y + 14], '#FFFFFF', 1);
+    line(c, [cx - 14, y + 3, cx + 14, y + 25], '#DC2626', 2); line(c, [cx + 14, y + 3, cx - 14, y + 25], '#DC2626', 2);
+    text(c, 'LEGS!', cx, y + h - 3, '#FFFFFF', 5, 'center', null);
+  } else {
+    ball(c, cx, y + 14, 11, '#F2CC4A', false); box(c, cx - 5, y + 9, 2, 3, INK); box(c, cx + 4, y + 9, 2, 3, INK);
+    c.strokeStyle = INK; c.lineWidth = 2; c.beginPath(); c.arc(cx, y + 13, 6, 0.15 * Math.PI, 0.85 * Math.PI); c.stroke();
+    text(c, 'SMILE!', cx, y + h - 3, '#FFFFFF', 5, 'center', null);
+  }
+  const ty = y + Math.round((f * 0.6) % (h + 10)) - 5;
+  if (ty > y - 3 && ty < y + h) { const t0 = Math.max(y, ty), t1 = Math.min(y + h, ty + 3); box(c, x, t0, w, t1 - t0, 'rgba(255, 255, 255, 0.28)'); for (let k = 0; k < 6; k++) box(c, x + Math.floor(hash(k + f) * (w - 3)), t0, 3, 1, 'rgba(0, 0, 0, 0.5)'); }
+  for (let k = 0; k < h; k += 2) box(c, x, y + k, w, 1, 'rgba(0, 0, 0, 0.16)');
+  box(c, x + 3, y + 3, 10, 2, 'rgba(255, 255, 255, 0.22)'); box(c, x + 3, y + 5, 4, 2, 'rgba(255, 255, 255, 0.14)');
+};
+
+/**
+ * The couch: a plaid one off a curb somewhere in 1979; a seat cushion gone (the springs), the arm duct-taped, the other
+ * bleeding its stuffing, a burn, a stain; somebody's been sleeping on it (a park beach towel, a deflated head for a
+ * pillow); the remote down the side. Tops dimmed.
+ */
+const couch = (c: Ctx) => {
+  const x = rx(2490), w = 156, back = G - 76, seat = G - 38, aw = 18;
+  const P = rampOf('#8A6A2E');
+  shade(c, x, back, w, G - back, 0.32, 4);
+  // (the back)
+  box(c, x + 6, back - 1, w - 12, seat - back + 2, INK);
+  box(c, x + 7, back, w - 14, seat - back, P[2]);
+  for (let xx = x + 12; xx < x + w - 10; xx += 14) { box(c, xx, back, 3, seat - back, P[1]); box(c, xx + 7, back, 1, seat - back, '#8E3A1E'); }
+  for (let yy = back + 8; yy < seat; yy += 12) { box(c, x + 7, yy, w - 14, 2, P[1]); box(c, x + 7, yy + 5, w - 14, 1, P[3]); }
+  dimTop(c, x + 7, back, w - 14, P[2], 3);
+  for (const k of [1, 2]) box(c, x + aw + k * ((w - aw * 2) / 3), back + 4, 2, seat - back - 4, P[0]);
+  // (the seat: three cushions, the middle one gone)
+  const cw = (w - aw * 2) / 3;
+  for (let i = 0; i < 3; i++) {
+    const sx = Math.round(x + aw + i * cw);
+    if (i === 1) {
+      box(c, sx, seat - 2, cw, 16, '#1E1408');
+      c.strokeStyle = '#8A929C'; c.lineWidth = 1;
+      for (let k = 0; k < 4; k++) { c.beginPath(); c.ellipse(sx + 6 + k * 9, seat + 6, 3, 2, 0, 0, Math.PI * 2); c.stroke(); c.beginPath(); c.ellipse(sx + 6 + k * 9, seat + 2, 3, 2, 0, 0, Math.PI * 2); c.stroke(); }
+      continue;
+    }
+    box(c, sx - 1, seat - 3, cw + 2, 18, INK); box(c, sx, seat - 2, cw, 16, P[2]); box(c, sx, seat - 2, cw, 2, P[1]); box(c, sx, seat + 11, cw, 3, P[0]);
+    for (let xx = sx + 4; xx < sx + cw - 2; xx += 14) box(c, xx, seat, 3, 11, P[1]);
+  }
+  // (the arms)
+  for (const ax of [x, x + w - aw]) { box(c, ax - 1, G - 59, aw + 2, 46, INK); box(c, ax, G - 58, aw, 44, P[2]); box(c, ax, G - 58, aw, 4, P[1]); box(c, ax + 2, G - 54, 3, 38, P[3]); box(c, ax + aw - 4, G - 54, 3, 38, P[0]); }
+  // (the skirt, the legs)
+  box(c, x - 1, G - 15, w + 2, 9, INK); box(c, x, G - 14, w, 7, P[1]); checker(c, x, G - 14, w, 1, P[0]);
+  for (const lx of [x + 6, x + w - 14]) { box(c, lx, G - 7, 8, 7, INK); box(c, lx + 1, G - 7, 6, 6, '#5A3A1A'); }
+  // (duct tape on the near arm; the far arm's stuffing out; a burn; a stain)
+  line(c, [x + 2, G - 50, x + 16, G - 30], '#9CA3AF', 4); line(c, [x + 16, G - 50, x + 2, G - 30], '#9CA3AF', 4); line(c, [x + 2, G - 51, x + 16, G - 31], '#D1D5DB', 1);
+  pixelBlob(c, x + w - 8, G - 50, 7, 6, '#E8E4D8'); pixelBlob(c, x + w - 4, G - 54, 4, 3, '#F4F2EA');
+  box(c, x + 60, back + 14, 3, 3, '#1A0B06'); box(c, x + 59, back + 13, 5, 1, 'rgba(26, 11, 6, 0.4)');
+  pixelBlob(c, x + 110, seat + 4, 9, 4, 'rgba(60, 40, 10, 0.45)');
+  // (the towel over the far end, the park's stripes)
+  for (let k = 0; k < 6; k++) box(c, x + w - 46 + k * 7, back - 2, 7, 42 + (k % 2) * 4, [FLAG_RED[2], FLAG_WHITE[3]][k % 2]);
+  box(c, x + w - 46, back - 3, 42, 3, INK); box(c, x + w - 46, back - 2, 42, 1, dark(FLAG_WHITE[3], 0.2));
+  // (the pillow: a pink foam head gone flat, its grin crumpled)
+  oval(c, x + 28, seat - 10, 15, 10, INK); oval(c, x + 28, seat - 10, 14, 9, '#E05A9A'); oval(c, x + 24, seat - 13, 7, 4, '#F08AB8');
+  box(c, x + 22, seat - 13, 3, 2, INK); box(c, x + 31, seat - 12, 3, 2, INK); line(c, [x + 21, seat - 6, x + 26, seat - 4, x + 30, seat - 6, x + 35, seat - 4], INK, 1);
+  // (the remote down the side)
+  box(c, x + 72, seat - 6, 4, 10, INK); box(c, x + 73, seat - 5, 2, 8, '#2A2A2E'); box(c, x + 73, seat - 5, 2, 1, '#DC2626');
+  // (under it: a shoe, coins, a sock)
+  box(c, x + 40, G - 4, 14, 4, INK); box(c, x + 41, G - 3, 12, 3, '#E8E4D8');
+  for (let k = 0; k < 3; k++) box(c, x + 80 + k * 6, G - 2, 3, 2, '#C8A030');
+};
+/** The board over it: the lost and found, the sign-up nobody signs, LIFT WITH YOUR LEGS, DO NOT FEED THE PIGEONS. */
+const loungeBoard = (c: Ctx) => {
+  const x = rx(2480), y = 162, w = 184, h = 112;
+  shade(c, x, y, w, h, 0.38, 4);
+  slab(c, x, y, w, h, '#6A4A2A');
+  box(c, x + 6, y + 6, w - 12, h - 12, '#3A2A16'); box(c, x + 7, y + 7, w - 14, h - 14, '#A67C4E'); checker(c, x + 7, y + 7, w - 14, h - 14, '#946A3E');
+  for (let k = 0; k < 30; k++) box(c, x + 8 + Math.floor(hash(k * 4.3 + 1) * (w - 18)), y + 8 + Math.floor(hash(k * 2.9 + 5) * (h - 18)), 2, 2, k % 2 ? '#7A5430' : '#C49A62');
+  note(c, x + 9, y + 10, ['LOST & FOUND', '212 SUNGLASSES', '1 RETAINER (USED)', '40 LEFT SHOES', 'A GRANDMA', '(UNCLAIMED)'], { size: 5, mount: 'tack', paper: '#F4F0E0', pinCol: '#C02424' });
+  const su = note(c, x + 110, y + 10, ['SIGN UP:', 'MASCOT DUTY', 'JULY 4TH', '1. GARY', '2. NOT GARY', '3.'], { size: 5, mount: 'tack', paper: '#F2E890', pinCol: '#2D51B0' });
+  line(c, [x + 110 + su.w / 2 - 19, y + 41, x + 110 + su.w / 2 + 19, y + 42], '#B91C1C', 1);
+  note(c, x + 10, y + 76, ['LIFT WITH', 'YOUR LEGS'], { size: 6, mount: 'tack', paper: '#E0F0D0', ink: '#2F7D3A', pinCol: '#E8C040' });
+  note(c, x + 86, y + 76, ['DO NOT FEED', 'THE PIGEONS'], { size: 6, mount: 'tack', paper: '#C8E0F0', ink: '#7A1E1A', pinCol: '#2F7D3A' });
+  splat(c, x + 148, y + 88, 1);
+};
+/** The chairs stacked in the corner: a leaning tower of them, orange and blue, the top one's top dim. */
+const stackedChairs = (c: Ctx) => {
+  const x = rx(2648), n = 13;
+  shade(c, x, G - 40 - n * 9 - 26, 40, n * 9 + 66, 0.3, 3);
+  for (const lx of [x + 2, x + 27]) { box(c, lx - 1, G - 38, 5, 38, INK); box(c, lx, G - 38, 3, 38, '#8A929C'); box(c, lx, G - 38, 1, 38, '#C8CCD2'); }
+  for (let k = 0; k < n; k++) {
+    const yy = G - 40 - k * 9, dx = Math.round(k * 0.7), col = fade(k % 3 === 1 ? '#3A6AA8' : '#C2622A', 0.15), r = rampOf(col);
+    poly(c, [x + dx + 27, yy + 1, x + dx + 32, yy - 26, x + dx + 38, yy - 26, x + dx + 34, yy + 6], INK);
+    poly(c, [x + dx + 29, yy + 1, x + dx + 33, yy - 24, x + dx + 36, yy - 24, x + dx + 33, yy + 4], r[1]);
+    box(c, x + dx - 1, yy - 1, 34, 7, INK); box(c, x + dx, yy, 32, 5, r[2]); box(c, x + dx, yy + 4, 32, 1, r[0]);
+    if (k === n - 1) { dimTop(c, x + dx, yy, 32, r[2], 2); box(c, x + dx + 32, yy - 26, 6, 1, r[0]); }
+  }
+};
+
+/** The high shelf (a one-way ledge, index.ts): steel on brackets off the wall, its lip lit (stood on); up on it the
+ *  costume props nobody's thrown out: a pirate hat off Jungle Land's boat, a rubber alien head from Space Land, a box
+ *  or two, and a broken animatronic arm hanging off the end, its wires out. Stamped. */
+const paintShelf = (c: Ctx) => {
+  const { x, y, w } = SHELF;
+  for (const bx of [x + 30, x + w - 40]) {
+    c.fillStyle = '#1C1A1E'; c.beginPath(); c.moveTo(bx, y + 14); c.lineTo(bx + 10, y + 14); c.lineTo(bx + 3, y + 54); c.lineTo(bx, y + 54); c.closePath(); c.fill();
+    c.fillStyle = '#4A4650'; c.fillRect(bx + 1, y + 14, 2, 38);
+  }
+  c.fillStyle = '#2A1E14'; c.fillRect(x + 150, y - 34, 46, 34); c.fillStyle = '#8A6A44'; c.fillRect(x + 152, y - 32, 42, 30);
+  c.fillStyle = '#6E5234'; c.fillRect(x + 152, y - 20, 42, 3); c.fillStyle = '#B08A5C'; c.fillRect(x + 152, y - 32, 42, 2);
+  text(c, 'PROPS', x + 173, y - 6, '#3A2A18', 5, 'center', null);
+  c.fillStyle = '#2A1E14'; c.fillRect(x + 204, y - 22, 34, 22); c.fillStyle = '#7A5C3A'; c.fillRect(x + 206, y - 20, 30, 18); c.fillStyle = '#A8845A'; c.fillRect(x + 206, y - 20, 30, 2);
+  // (the pirate hat: a black tricorn, gold braid, the skull and bones, a red feather)
+  const hx = x + 92;
+  poly(c, [hx - 25, y + 1, hx - 21, y - 15, hx - 9, y - 23, hx + 9, y - 23, hx + 21, y - 15, hx + 25, y + 1], INK);
+  poly(c, [hx - 23, y, hx - 19, y - 14, hx - 8, y - 21, hx + 8, y - 21, hx + 19, y - 14, hx + 23, y], '#26222C');
+  poly(c, [hx - 23, y, hx - 19, y - 14, hx - 12, y - 18, hx - 12, y], '#3A3442');
+  line(c, [hx - 23, y - 1, hx - 19, y - 14, hx - 8, y - 21, hx + 8, y - 21, hx + 19, y - 14, hx + 23, y - 1], '#C9A227', 1);
+  ball(c, hx, y - 11, 4, '#F1EFEA', false); box(c, hx - 2, y - 12, 1, 2, INK); box(c, hx + 1, y - 12, 1, 2, INK); box(c, hx - 1, y - 8, 3, 1, '#F1EFEA');
+  line(c, [hx - 6, y - 5, hx + 6, y - 2], '#F1EFEA', 1); line(c, [hx + 6, y - 5, hx - 6, y - 2], '#F1EFEA', 1);
+  line(c, [hx + 16, y - 16, hx + 26, y - 34, hx + 30, y - 36], '#B91C1C', 3); line(c, [hx + 17, y - 17, hx + 27, y - 35], '#F06A55', 1);
+  // (the alien head: green rubber, the black eyes, an antenna, split down one side)
+  const ax = x + 130;
+  oval(c, ax, y - 16, 15, 17, INK); oval(c, ax, y - 16, 14, 16, '#5FAF46'); oval(c, ax - 4, y - 22, 8, 8, '#7ECB60'); checker(c, ax + 4, y - 12, 8, 10, '#3E8A2E');
+  for (const s of [-1, 1]) { c.fillStyle = INK; c.beginPath(); c.ellipse(ax + s * 6, y - 15, 5, 3, s * 0.5, 0, Math.PI * 2); c.fill(); box(c, ax + s * 6 - 1, y - 17, 2, 1, '#FFFFFF'); }
+  line(c, [ax + 2, y - 32, ax + 6, y - 44], INK, 2); ball(c, ax + 6, y - 45, 3, '#F2CC4A');
+  line(c, [ax + 11, y - 26, ax + 13, y - 16, ax + 10, y - 8], '#1E3A12', 1); box(c, ax + 12, y - 18, 3, 3, '#E8E4D8');
+  oval(c, ax, y - 1, 9, 2, '#0A0A0E');
+  // (the animatronic arm: steel and servos, its rubber skin half peeled, a tattoo on what's left; the hand hanging off the
+  // end; the wires out of the shoulder)
+  const sx = x + 244;
+  for (const [col, dy] of [['#DC2626', -6], ['#E8C040', -3], ['#2D51B0', 0]] as const) { line(c, [sx, y - 5, sx - 6, y - 7 + dy, sx - 12, y - 2 + dy], col, 1); box(c, sx - 13, y - 3 + dy, 2, 2, '#D97706'); }
+  box(c, sx - 1, y - 11, 44, 11, INK); box(c, sx, y - 10, 42, 9, '#8A929C'); box(c, sx, y - 10, 42, 2, '#C8CCD2'); box(c, sx, y - 3, 42, 2, '#5A616C');
+  box(c, sx + 14, y - 10, 28, 9, '#D8A27A'); box(c, sx + 14, y - 10, 28, 2, '#ECC0A0'); box(c, sx + 14, y - 3, 28, 2, '#B07A54');
+  for (let k = 0; k < 3; k++) box(c, sx + 12 - k, y - 9 + k * 3, 3, 2, '#D8A27A');
+  box(c, sx + 26, y - 8, 5, 4, '#1E3A8A'); box(c, sx + 28, y - 9, 1, 6, '#1E3A8A');
+  ball(c, sx + 47, y - 6, 6, '#3A3F48'); ball(c, sx + 47, y - 6, 3, '#B91C1C', false);
+  // (the plank: inked, its face dark, the top lip lit)
+  c.fillStyle = '#0E0C10'; c.fillRect(x - 2, y - 2, w + 4, 18);
+  c.fillStyle = '#4C4852'; c.fillRect(x, y + 3, w, 11);
+  c.fillStyle = '#36323A'; c.fillRect(x, y + 10, w, 4);
+  c.fillStyle = '#C8C2B4'; c.fillRect(x, y, w, 3);
+  // (the arm's forearm and hand, hanging down over the plank's end)
+  box(c, sx + 50, y - 4, 7, 32, INK); box(c, sx + 51, y - 4, 5, 30, '#D8A27A'); box(c, sx + 51, y - 4, 1, 30, '#ECC0A0'); box(c, sx + 51, y + 6, 5, 8, '#8A929C');
+  for (let k = 0; k < 4; k++) { box(c, sx + 49 + k * 3, y + 26, 2, 7 + (k % 2) * 3, INK); box(c, sx + 49 + k * 3, y + 26, 1, 6 + (k % 2) * 3, '#D8A27A'); }
+};
+export const drawPenShelf = (ctx: Ctx, state: GameState) => {
+  const { x, y, w } = SHELF;
+  if (x + w < state.camera.x - 40 || x > state.camera.x + CANVAS_WIDTH + 40) return;
+  stamp(ctx, 'pen-shelf', x - 30, y - 70, w + 70, 140, paintShelf);
+};
+
+// ---------------------------------------------------------------------------------------------------------------
 // The room in strips: everything still, painted once per strip
 
 const CHUNK = 420;
@@ -1135,7 +1539,11 @@ const STRIPS = () => Math.ceil((LEN + WALL * 2) / CHUNK);
 /** The props, with the stretch of room (world x) each one's paint can reach. */
 let items: { a: number; b: number; paint: (c: Ctx) => void }[] | null = null;
 const propList = () => items ?? (items = [
+  { a: rx(-10), b: rx(30), paint: cornerPipe },
   { a: rx(-10), b: rx(110), paint: deadPlant },
+  { a: rx(-10), b: rx(110), paint: windowFrame },
+  { a: rx(160), b: rx(250), paint: fanHousing },
+  { a: rx(120), b: rx(200), paint: conduit },
   { a: EXIT_X - 70, b: EXIT_X + 70, paint: exitDoor },
   { a: rx(170), b: rx(320), paint: timeClock },
   { a: rx(300), b: rx(520), paint: mirror },
@@ -1157,6 +1565,10 @@ const propList = () => items ?? (items = [
   { a: rx(2135), b: rx(2255), paint: counter },
   { a: rx(2245), b: rx(2340), paint: fridge },
   { a: rx(2330), b: rx(2400), paint: vending },
+  { a: rx(2400), b: rx(2560), paint: tvCart },
+  { a: rx(2470), b: rx(2680), paint: loungeBoard },
+  { a: rx(2480), b: rx(2660), paint: couch },
+  { a: rx(2640), b: rx(LEN), paint: stackedChairs },
   // (the filth over it all)
   { a: rx(0), b: rx(110), paint: smokers },
   { a: rx(230), b: rx(300), paint: lostHead },
@@ -1179,6 +1591,7 @@ const strip = (c: Ctx, i: number) => {
     floorFilth(c, ia, ib);
     if (a < rx(1950) && b > rx(700)) ceilingFaults(c);
     wallFaults(c);
+    pipes(c, ia, ib);
     for (const it of propList()) if (it.b > a && it.a < b) it.paint(c);
   }
   if (a < X0) endWall(c, X0 - WALL, 1);
@@ -1189,7 +1602,7 @@ const strip = (c: Ctx, i: number) => {
 // ---------------------------------------------------------------------------------------------------------------
 // What moves
 
-const FIXTURES = [210, 570, 930, 1290, 1650, 2010, 2310];
+const FIXTURES = [210, 570, 930, 1290, 1650, 2010, 2310, 2610];
 /** The fixture that flickers, and the one that's dead. */
 const FLICKER = 930, DEAD = 2310;
 
@@ -1261,7 +1674,7 @@ const critters = (c: Ctx, f: number, vis: (a: number, b: number) => boolean) => 
   // (flies over the trash and the laundry)
   // (the sink's tap, dripping onto the dishes)
   if (vis(rx(SINK_X), rx(SINK_X + SINK_W))) { const t = f % 50, y = SINK_Y - 10 + t * 0.5; if (t < 26) box(c, rx(SINK_X) + 31, Math.round(y), 2, 3, '#A8C8B8'); }
-  for (const [fx, fy] of [[rx(732), G - 82], [rx(1660), 448], [rx(270), G - 30], [rx(SINK_X + 26), SINK_Y - 18], [rx(86), G - 34], [rx(2290), G - 20]] as const) {
+  for (const [fx, fy] of [[rx(732), G - 82], [rx(1660), 448], [rx(270), G - 30], [rx(SINK_X + 26), SINK_Y - 18], [rx(86), G - 34], [rx(2290), G - 20], [rx(2560), G - 56]] as const) {
     if (!vis(fx - 30, fx + 30)) continue;
     for (let i = 0; i < 3; i++) {
       const x = Math.round(fx + Math.sin(f * 0.11 + i * 2.1) * 16 + Math.sin(f * 0.37 + i) * 4), y = Math.round(fy + Math.cos(f * 0.15 + i * 1.3) * 9);
@@ -1324,9 +1737,9 @@ const bag = (c: Ctx, f: number) => {
 // (made when first wanted: CEIL_Y comes from index.ts, which imports this)
 const eyeY = () => CEIL_Y + (G - CEIL_Y) * 0.45;
 const sideBands = (): [number, number, string][] => [
-  [CEIL_Y, STRIPE, '#4C5240'],
+  [CEIL_Y, PIPE_Y, '#6A6250'], [PIPE_Y, PIPE_Y + 9, '#5A1E0C'], [PIPE_Y + 9, STRIPE, '#6A6250'],
   [STRIPE, STRIPE + 8, fade(FLAG_RED[1], 0.42)], [STRIPE + 8, STRIPE + 12, fade(FLAG_WHITE[2], 0.42)], [STRIPE + 12, STRIPE + 20, fade(FLAG_BLUE[1], 0.42)],
-  [STRIPE + 20, WAIN, '#4C5240'], [WAIN, WAIN + 4, '#36342A'], [WAIN + 4, BASE, '#6A6652'], [BASE, G, '#1C1A16'],
+  [STRIPE + 20, WAIN, '#6A6250'], [WAIN, WAIN + 4, '#2A3424'], [WAIN + 4, BASE, '#46523E'], [BASE, G, '#1C1A16'],
 ];
 const sideWall = (c: Ctx, cam: number, corner: number, side: -1 | 1) => {
   const ex = cam + CANVAS_WIDTH / 2;
@@ -1352,7 +1765,7 @@ const sideWall = (c: Ctx, cam: number, corner: number, side: -1 | 1) => {
   // The wall itself, band by band
   for (const [y0, y1, col] of sideBands()) quad([P(y0, 1), P(y0, D), P(y1, D), P(y1, 1)], col);
   // (the block's courses and joints, going back to the corner: wider apart the nearer)
-  c.strokeStyle = 'rgba(30, 34, 24, 0.5)'; c.lineWidth = 1; c.beginPath();
+  c.strokeStyle = 'rgba(46, 36, 22, 0.5)'; c.lineWidth = 1; c.beginPath();
   for (let y = CEIL_Y + 34; y < STRIPE; y += 24) { const [a, b] = P(y, 1), [e, f] = P(y, D); c.moveTo(a, b); c.lineTo(e, f); }
   for (let d = 1.1; d < D; d *= 1.1) { const [a, b] = P(CEIL_Y, d), [, f] = P(STRIPE, d); c.moveTo(Math.round(a) + 0.5, b); c.lineTo(Math.round(a) + 0.5, f); }
   c.stroke();
@@ -1381,6 +1794,10 @@ export const drawPenBack = (ctx: Ctx, state: GameState) => {
   bendFloor(ctx, { x: cam + CANVAS_WIDTH / 2 }, G, G, G + 120, X0, X0 + LEN);
   // (the side walls: after the bend, which is the floor's alone)
   sideWall(ctx, cam, X0, -1); sideWall(ctx, cam, X0 + LEN, 1);
+  // (the window's view, the fan behind its guard, the training video: live, their glass and guard stamped over them)
+  if (vis(rx(WIN.r) - 10, rx(WIN.r + WIN.w) + 10)) { windowView(ctx, f); stamp(ctx, 'pen-window-glass', rx(WIN.r) - 2, WIN.y - 2, WIN.w + 4, WIN.h + 4, paintWindowGlass); }
+  if (vis(rx(FAN.r - FAN.R), rx(FAN.r + FAN.R))) { fanBlades(ctx, f); stamp(ctx, 'pen-fan-guard', rx(FAN.r) - FAN.R - 2, FAN.y - FAN.R - 2, FAN.R * 2 + 4, FAN.R * 2 + 10, paintFanGuard); }
+  if (vis(rx(TV.r), rx(TV.r + TV.w))) tvScreen(ctx, f);
   lights(ctx, f, vis);
   if (vis(rx(1880), rx(1940))) drip(ctx, f);
   critters(ctx, f, vis);
