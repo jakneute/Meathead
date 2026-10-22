@@ -540,19 +540,23 @@ export const mechDone = (state: GameState) => { const h = heliOf(state), m = h.m
 
 const updateShots = (state: GameState) => {
   const h = heliOf(state), live = new Set(state.projectiles);
+  // (shot down: gone for good. Its look comes off, and the engine's projectile with it: left in, it went on flying
+  // unseen and hurt him out of nowhere)
+  let downed: Set<unknown> | null = null;
   for (const [q, s] of h.shots) {
-    if (!live.has(q) || q.health <= 0) { h.shots.delete(q); continue; }
+    if (!live.has(q) || q.health <= 0) { h.shots.delete(q); if (live.has(q)) (downed ??= new Set()).add(q); continue; }
     s.t++;
     if (s.g) q.vel.y += s.g;
     const w = (s as ShotLook & { wave?: number }).wave;
     if (w !== undefined) q.vel.y = Math.cos(s.t * 0.07 + w) * 2.2;
     if (s.burst && s.t >= s.burst.at) {
-      q.health = 0; h.shots.delete(q);
+      q.health = 0; h.shots.delete(q); (downed ??= new Set()).add(q);
       const id = (q.shooterKind ?? '').replace('m2:fl_mech_', '') as MechId;
       ring(state, id, q.pos.x + q.width / 2, q.pos.y + q.height / 2, s.burst.n, s.burst.speed, Math.random(), s.shape === 'rock' ? L.rock : L.orb(s.col));
       playSound('boom', 0.4, 10);
     }
   }
+  if (downed) state.projectiles = state.projectiles.filter(q => !downed!.has(q));
 };
 
 const updateBeams = (ctx: FrameContext) => {
