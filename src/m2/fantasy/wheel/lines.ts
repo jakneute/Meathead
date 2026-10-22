@@ -19,14 +19,14 @@ export type RosterId = keyof typeof WHEEL_VOICES;
 
 /** Each one's own cheesy lines (barked now and then as he throws). */
 export const OWN: Record<RosterId, string[]> = {
-  braxton: ['THIS BODY IS FOR PIPER. AND MIRRORS.', 'I OILED UP FOR THIS. ALL OVER.'],
-  gunnar: ['VALHALLA IS HER BEDROOM!', 'I BENCH THREE GOATS. FOR HER!'],
-  tremaine: ['SHE WANTS A PRINCE. I BOUGHT THE SASH.', 'CALVES LIKE THESE DON\'T LOSE.'],
-  chad: ['PIPER\'S GONNA LOVE THESE GUNS, BRO.', 'I DID CHEST DAY TWICE TODAY.'],
-  derek: ['M\'LADY PIPER. I HAVE NINE FAIRE PASSES.', 'MY SWORD IS REAL. MY CASTLE IS A CONDO.'],
+  braxton: ['I JERK OFF TO MY OWN FLEX VIDEOS. FOR PIPER.', 'I OILED UP FOR THIS. ALL OVER.'],
+  gunnar: ['VALHALLA IS HER BEDROOM!', 'I DRINK RAW EGGS AND GOAT PISS. FOR HER!'],
+  tremaine: ['SHE WANTS A PRINCE. MY SASH WAS NINETEEN NINETY-NINE.', 'CALVES LIKE THESE DON\'T LOSE.'],
+  chad: ['PIPER\'S GONNA LOVE THESE GUNS, BRO.', 'MY NIPPLES ARE BLEEDING FROM CHEST DAY. FOR HER, BRO.'],
+  derek: ['M\'LADY PIPER. I HAVE NINE FAIRE PASSES.', 'MY SWORD IS REAL. I STILL LIVE WITH MY MOM.'],
   wayne: ['MY STAFF IS FOUR FEET LONG. THE STAFF.', 'I CAST LEVEL NINE HORNY.'],
-  duane: ['I DEADLIFT FIVE HUNDRED. I CAN LIFT HER.', 'PIPER LIKES A BIG MAN. I AM A BIG MAN.'],
-  lorenzo: ['I WAS ON A ROMANCE NOVEL. TWICE.', 'MY HAIR DOES THIS NATURALLY, PIPER.'],
+  duane: ['MY BALLS SHRANK TO RAISINS FOR THIS. WORTH IT.', 'PIPER LIKES A BIG MAN. I AM A BIG MAN.'],
+  lorenzo: ['I WAS ON A ROMANCE NOVEL. TWICE.', 'THIS HAIR COST FOUR HUNDRED BUCKS, PIPER.'],
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -34,29 +34,29 @@ export const OWN: Record<RosterId, string[]> = {
 
 /** Throwing at Meathead. */
 export const AT_HIM: ByPants = {
-  clean: ['CATCH, MEATBALL!', 'SHE\'S MINE, FATSO!', 'GET OFF MY WHEEL!'],
-  shitty: ['CATCH, SHIT PANTS!', 'YOU SMELL LIKE A BUS STATION!'],
-  nude: ['PUT SOME PANTS ON!', 'NOBODY WANTS TO SEE THAT!'],
+  clean: ['CATCH, MEATBALL!', 'SHE\'S MINE, FATSO!', 'GET OFF MY WHEEL, LARD ASS!'],
+  shitty: ['CATCH, SHIT PANTS!', 'YOU SMELL LIKE A GREYHOUND SHITTER!'],
+  nude: ['PUT SOME PANTS ON!', 'THERE ARE KIDS ON THIS WHEEL, YOU PERVERT!'],
 };
 /** Throwing at a rival. */
-export const AT_RIVAL = ['SHE\'S MINE, BRO!', 'EAT IT, PRETTY BOY!', 'BACK OF THE LINE!', 'NICE CALVES, LOSER!'];
+export const AT_RIVAL = ['SHE\'S MINE, BRO!', 'EAT IT, PRETTY BOY!', 'BACK OF THE LINE!', "SHE'D NEVER FUCK A GUY WITH CALF IMPLANTS!"];
 /** Hit by a rival's throw. */
-export const YELP = ['MY FACE!', 'OW! MY PECS!', 'THAT\'S A FOUL!'];
+export const YELP = ['MY FACE!', 'OW! MY PECS!', 'MY GOD DAMN TEETH!'];
 /** Shot at: it bounces off him. */
 export const BOUNCE: ByPants = {
   clean: ['HA! I\'M SHREDDED!', 'TICKLES, BRO!'],
-  shitty: ['BULLETS? FROM A GUY WHO SHAT HIMSELF?', 'HA! SHOOT ME WITH YOUR SMELL!'],
+  shitty: ['BULLETS? FROM A GUY WHO SHAT HIMSELF?', 'YOUR SMELL HURTS MORE THAN YOUR GUN!'],
   nude: ['HA! NICE TRY, NAKED!', 'IS THAT A GUN OR A DICK? BOTH TINY!'],
 };
 /** Meathead's jumped into his cart (the QTE's on). */
 export const QTE_START: ByPants = {
-  clean: ['GET OUT OF MY CART!', 'THIS IS A ONE MAN CART!'],
+  clean: ['GET OUT OF MY CART!', 'THIS CART IS FOR ME AND MY BOOTY!'],
   shitty: ['OH GOD, THE SMELL! GET OUT!', 'YOU SHAT IN MY CART!'],
-  nude: ['WHY IS YOUR DICK IN MY CART?', 'YOUR BALLS ARE ON MY BENCH!'],
+  nude: ['WHY IS YOUR DICK IN MY CART?', 'YOUR BARE ASS IS ON MY SEAT!'],
 };
 /** He's won it: Meathead's thrown out. */
 export const QTE_WIN: ByPants = {
-  clean: ['AND STAY OUT!', 'SHE\'S MINE, LOSER!'],
+  clean: ['AND STAY OUT, FAT FUCK!', 'SHE\'S MINE, LOSER!'],
   shitty: ['TAKE YOUR SMELL WITH YOU!'],
   nude: ['TAKE YOUR TINY DICK WITH YOU!'],
 };
@@ -67,9 +67,9 @@ export type KillKind = 'smash' | 'throw' | 'floor' | 'fling' | 'choke';
 /** What he yells, going (each kill its own). */
 export const DEATH: Record<KillKind, string[]> = {
   smash: ['NOT THE FACE!', 'MY VENEERS!'],
-  throw: ['AAAAAAAAAAH!', 'I CAN\'T FLY! I CAN\'T FLY!'],
-  floor: ['MMMPH! MMMPH!', 'MY HEAD\'S IN THE FLOOR!'],
-  fling: ['PUT ME DOWN! PUT ME DOWN!', 'I\'M GONNA PUKE!'],
+  throw: ['AAAAAAAAAAH!', "I SHOULD'VE DONE CARDIO!"],
+  floor: ['MMMPH! MY HAIR!', 'MY HEAD\'S IN THE FLOOR!'],
+  fling: ['PUT ME DOWN! PUT ME DOWN!', "I'M GONNA SHART!"],
   choke: ['MY OWN ROSES!', 'GLURK! PETALS!'],
 };
 
@@ -78,20 +78,20 @@ export const DEATH: Record<KillKind, string[]> = {
 
 /** Shot one of them: it bounced off. */
 export const SHOT_BOUNCE: ByPants = {
-  clean: ['IT BOUNCED OFF HIS PECS.', 'BULLETPROOF? STEROIDS.', 'GUNS DON\'T WORK ON HIM. HANDS, THEN.'],
-  shitty: ['IT BOUNCED. I GOTTA GET IN THERE. SMELLING LIKE THIS.', 'BULLETPROOF. NOT SMELL PROOF.'],
-  nude: ['BULLETS BOUNCE. GUESS I GO IN NAKED.', 'FINE. HAND TO HAND. DICK TO DICK.'],
+  clean: ['IT BOUNCED OFF HIS PECS.', 'BULLETS BOUNCE OFF HIM. HORSE STEROIDS, MUST BE.', 'GUNS DON\'T WORK ON HIM. HANDS, THEN.'],
+  shitty: ["IT BOUNCED. GUESS I'M CLIMBING IN WITH MY SHITTY PANTS.", "BULLETPROOF. LET'S SEE IF HE'S SHIT PROOF."],
+  nude: ["BULLETS BOUNCE. MY BALLS WON'T.", 'FINE. HAND TO HAND. DICK TO DICK.'],
 };
 /** After a kill (his own, or the land's HORNY pool). */
 export const KILLED: ByPants = {
-  clean: ['NEXT.', 'THAT\'S FOR PIPER.', 'ONE LESS DICK IN LINE.', 'SHE\'S WORTH IT. PROBABLY.'],
-  shitty: ['DIED SMELLING ME. RESPECT.', 'SHITTY WAY TO GO. FOR HIM.'],
-  nude: ['KILLED HIM NAKED. STILL HARD.', 'EVERY KILL, HARDER. THAT\'S NOT WEIRD.'],
+  clean: ['NEXT.', 'THAT\'S FOR PIPER.', 'ONE LESS DICK IN LINE.', "HOPE SHE'S HOT. I'M IN TOO DEEP."],
+  shitty: ['DIED SMELLING ME. RESPECT.', 'LAST THING HE SMELLED WAS MY ASS.'],
+  nude: ['KILLED HIM NAKED. STILL HARD.', 'EVERY KILL MAKES IT HARDER. NOT WEIRD. TOTALLY NORMAL.'],
 };
 /** The wheel's clear. */
 export const ALL_DEAD: ByPants = {
-  clean: ['WHEEL\'S CLEAR. PIPER, I\'M COMING.', 'TRIAL ONE. DONE. NOW WHERE\'S MY PIPER?'],
-  shitty: ['WHEEL\'S CLEAR. PIPER, I\'M COMING. AND I REEK.', 'TRIAL ONE. DONE. SO ARE MY PANTS.'],
+  clean: ['WHEEL\'S CLEAR. PIPER, I\'M COMING.', "TRIAL ONE. NOW WHERE'S MY PUSSY?"],
+  shitty: ['WHEEL\'S CLEAR. PIPER, I\'M COMING. AND I REEK.', 'TRIAL ONE. DONE. MY PANTS ARE DONE TOO.'],
   nude: ['WHEEL\'S CLEAR. THE BONER LIVES.', 'TRIAL ONE. DONE. STILL NAKED. STILL HARD.'],
 };
 
@@ -100,28 +100,28 @@ export const ALL_DEAD: ByPants = {
 
 /** The trial's on (he's at the wheel). */
 export const PIPER_START: ByPants = {
-  clean: ['ALL ABOARD, BOYS. ONLY ONE OF YOU GETS OFF.', 'ROUND AND ROUND. LAST MAN BREATHING GETS ME. SORT OF.'],
+  clean: ['ALL ABOARD, BOYS. ONLY ONE OF YOU GETS OFF.', 'ROUND AND ROUND. LAST ONE BREATHING GETS ME.'],
   shitty: ['SOMEBODY BROUGHT A SMELL. HOW BRAVE.', 'ONE OF YOU SHAT ALREADY. I DO LOVE FEAR.'],
-  nude: ['ONE OF YOU CAME NAKED. NOW THAT\'S COMMITMENT.', 'A NAKED ONE. NOTHING TO SOAK UP THE BLOOD.'],
+  nude: ['ONE OF YOU CAME NAKED. NOW THAT\'S COMMITMENT.', 'A NAKED ONE. THE BLOOD WILL GO EVERYWHERE. GOOD.'],
 };
 /** Purring over a death. */
 export const PIPER_KILL: ByPants = {
-  clean: ['OOH. DO IT AGAIN.', 'MMM. THAT ONE SQUIRTED.', 'ALL THAT RED. FOR ME?', 'YES. FIGHT OVER ME.', 'ONE LESS. KEEP GOING, BABY.'],
-  shitty: ['MESSY. FROM BOTH ENDS. I LOVE IT.', 'HE STINKS AND HE KILLS. MMM.', 'BLOOD AND SHIT. YOU SPOIL ME.'],
-  nude: ['NAKED AND KILLING. HOW PRIMAL.', 'BLOOD ON BARE SKIN. MMM.', 'KILL ANOTHER ONE, NAKED BOY.'],
+  clean: ['OOH. DO IT AGAIN.', 'MMM. HE SQUIRTED. SO DID I.', 'ALL THAT RED. FOR ME?', 'YES. FIGHT OVER ME.', 'MY PANTIES ARE RUINED, BOYS.'],
+  shitty: ['MESSY. FROM BOTH ENDS. I LOVE IT.', "HE KILLS WITH SHIT IN HIS PANTS. I'M SOAKED.", 'BLOOD AND SHIT. YOU SPOIL ME.'],
+  nude: ["NAKED AND KILLING. I'M TOUCHING MYSELF.", 'BLOOD ON BARE SKIN. MMM.', 'KILL ANOTHER ONE, NAKED BOY.'],
 };
 /** He's lost a QTE: thrown out. */
 export const PIPER_KNOCK: ByPants = {
-  clean: ['OOH, HE BOUNCED.', 'I DO LIKE WATCHING YOU LOSE.'],
-  shitty: ['HE FELL AND SPRAYED. GROSS. GOOD.', 'OFF YOU GO, STINKY.'],
-  nude: ['NAKED AND FLYING. WHAT A VIEW.', 'OFF HE GOES. EVERYTHING FLAPPING.'],
+  clean: ['OOH, HE BOUNCED. ON HIS FACE.', 'I DO LIKE WATCHING YOU LOSE.'],
+  shitty: ['HE FELL AND SPRAYED. GROSS. GOOD.', 'BYE, STINKY. TAKE YOUR SKID MARKS.'],
+  nude: ['NAKED AND FLYING. WHAT A VIEW.', 'OFF HE GOES. BALLS FLAPPING. DELICIOUS.'],
 };
 /** The suitors hitting each other. */
-export const PIPER_RIVAL = ['YES, BOYS. HURT EACH OTHER.', 'OOH. RIGHT IN THE FACE.', 'THROW HARDER. FOR ME.'];
+export const PIPER_RIVAL = ['YES, BOYS. HURT EACH OTHER.', 'OOH. RIGHT IN THE FACE.', "THROW HARDER. I'M ALMOST THERE."];
 /** All of them dead. */
 export const PIPER_DONE: ByPants = {
-  clean: ['ALL THAT BLOOD. FOR LITTLE OLD ME. NEXT TRIAL.', 'WELL DONE. I\'M ALL FLUSHED. ON TO THE NEXT ONE.'],
-  shitty: ['THE STINKY ONE WINS. NEXT TRIAL, STINKY.', 'YOU WON. YOU REEK. ON TO THE NEXT ONE.'],
+  clean: ['ALL THAT BLOOD. FOR LITTLE OLD ME. NEXT TRIAL.', "I'M ALL FLUSHED. I NEED A CIGARETTE. NEXT TRIAL."],
+  shitty: ['THE STINKY ONE WINS. HOSE OFF. NEXT TRIAL.', 'YOU WON. YOU REEK. ON TO THE NEXT ONE.'],
   nude: ['THE NAKED ONE WINS. KEEP IT OUT. NEXT TRIAL.', 'ALL THAT RED ON BARE SKIN. NEXT TRIAL, BABY.'],
 };
 
@@ -138,14 +138,14 @@ export const ITEM_SRC: Record<Item, string> = {
 export const QTE_SRC = 'm2:fa_wheel_qte', FALL_SRC = 'm2:fa_wheel_fall';
 
 export const HURT: HurtTable = {
-  [ITEM_SRC.bouquet]: { hurt: ['THORNS! IN MY EYE!', 'ROSES! WITH THORNS!', 'HE THREW FLOWERS AT ME!'], death: ['KILLED BY A BOUQUET', 'DIED OF ROMANCE'] },
-  [ITEM_SRC.chocolates]: { hurt: ['A BOX OF CHOCOLATES! HARD!', 'NOUGAT! IN MY TEETH!', 'THE HEART BOX! MY HEAD!'], death: ['CHOCOLATED TO DEATH', 'DIED OF A HEART-SHAPED BOX'] },
-  [ITEM_SRC.horseshoe]: { hurt: ['A HORSESHOE! LUCKY HIM!', 'HORSESHOE! TO THE DOME!', 'RINGER! ON MY NECK!'], death: ['NOT SO LUCKY HORSESHOE', 'RINGER TO THE SKULL'] },
-  [ITEM_SRC.brick]: { hurt: ['A LOVE LETTER! WITH A BRICK!', 'HE MAILED ME A BRICK!', 'LOVE HURTS! IT\'S A BRICK!'], death: ['KILLED BY A LOVE LETTER', 'BRICKED BY A SUITOR'] },
-  [ITEM_SRC.shaker]: { hurt: ['PROTEIN SHAKE! IN MY EYES!', 'WHEY! IN MY FACE!', 'IT\'S CHUNKY! WHY IS IT CHUNKY?'], death: ['DROWNED IN A PROTEIN SHAKE', 'WHEYED DOWN'] },
-  [ITEM_SRC.wand]: { hurt: ['A WAND! TO THE NUTS!', 'HE THREW A FORTY BUCK WAND!', 'MAGIC STICK! MY EYE!'], death: ['WANDED OFF A FERRIS WHEEL', 'KILLED BY A WAND TOSS'] },
-  [QTE_SRC]: { hurt: ['HE THREW ME OUT!', 'KICKED OUT OF THE CART!', 'LOST TO A GYM RAT!'], death: ['THROWN FROM A FAIRY WHEEL', 'LOST THE CART FIGHT'] },
-  [FALL_SRC]: { hurt: ['FELL OFF THE WHEEL! MY ASS!', 'THAT\'S A LONG WAY DOWN!', 'MY KNEES! MY EVERYTHING!'], death: ['FELL OFF A FERRIS WHEEL', 'SPLATTED UNDER THE WHEEL'] },
+  [ITEM_SRC.bouquet]: { hurt: ['THORNS! IN MY EYE!', 'ROSES! WITH THORNS!', 'ROSES! THE THORNS ARE IN MY NIPPLE!'], death: ['KILLED BY A BOUQUET', 'DIED OF ROMANCE'] },
+  [ITEM_SRC.chocolates]: { hurt: ['A BOX OF CHOCOLATES! HARD!', 'NOUGAT! IN MY TEETH!', "WHITMAN'S SAMPLER! TO THE FACE!"], death: ['CHOCOLATED TO DEATH', 'DIED OF A HEART-SHAPED BOX'] },
+  [ITEM_SRC.horseshoe]: { hurt: ['A HORSESHOE! LUCKY HIM!', 'IT STILL HAS HORSE SHIT ON IT!', 'RINGER! ON MY NECK!'], death: ['NOT SO LUCKY HORSESHOE', 'RINGER TO THE SKULL'] },
+  [ITEM_SRC.brick]: { hurt: ['A LOVE LETTER! WITH A BRICK!', 'A BRICK! WITH A POEM ON IT!', 'LOVE HURTS! IT\'S A BRICK!'], death: ['KILLED BY A LOVE LETTER', 'BRICKED BY A SUITOR'] },
+  [ITEM_SRC.shaker]: { hurt: ['PROTEIN SHAKE! IN MY EYES!', 'WHEY! CHOCOLATE! IN MY NOSE!', 'IT\'S CHUNKY! WHY IS IT CHUNKY?'], death: ['DROWNED IN A PROTEIN SHAKE', 'WHEYED DOWN'] },
+  [ITEM_SRC.wand]: { hurt: ['A WAND! TO THE NUTS!', 'THE WAND! UP MY ASS!', 'MAGIC STICK! MY EYE!'], death: ['WANDED OFF A FERRIS WHEEL', 'KILLED BY A WAND TOSS'] },
+  [QTE_SRC]: { hurt: ['HE THREW ME OUT!', 'KICKED OUT OF THE CART!', 'THROWN OUT BY A GUY WITH FROSTED TIPS!'], death: ['THROWN FROM A FAIRY WHEEL', 'LOST THE CART FIGHT'] },
+  [FALL_SRC]: { hurt: ['FELL OFF THE WHEEL! MY ASS!', 'THAT\'S A LONG WAY DOWN!', 'MY TAILBONE! I HEARD IT!'], death: ['FELL OFF A FERRIS WHEEL', 'SPLATTED UNDER THE WHEEL'] },
 };
 
 /** The announcer's calls, by kill. */
