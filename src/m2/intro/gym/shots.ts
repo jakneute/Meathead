@@ -482,7 +482,7 @@ export const shotAgent = (keys = false) => (c: Ctx, t: number, talking: boolean)
 };
 
 /** Her up close: the shades, the bun, the earpiece, the clipboard up, the gym behind her out of focus. */
-const agentFStill = () => painting('m2-agentf-close', ART_W, ART_H, p => {
+const agentFStill = (dress: string) => painting(`m2-agentf-close-${dress}`, ART_W, ART_H, p => {
   const SH = RAMP.shirt, HAIR = RAMP.mHair;
   const AFC = ['#1e1008', '#2e1a0e', '#43261a', '#5a3524', '#714530', '#8a5840', '#a46e52', '#bc8a6c'];
   // The jacket: shoulders out past the frame
@@ -515,25 +515,38 @@ const agentFStill = () => painting('m2-agentf-close', ART_W, ART_H, p => {
   for (let k = 0; k < 6; k++) p.line(58 - k * 0.6, 114 + k * 5, 84 - k * 0.6, 118 + k * 5, '#8c8a7c');
   p.line(60, 140, 76, 132, '#20242c'); p.line(66, 138, 70, 134, '#20242c');
   p.form(g => { g.rect(64, 98, 14, 6); }, { ramp: RAMP.steel, bevel: 2, amb: 0.3, ink: I });
+  // (the state of him, from her side of it: painted in with her, so it sits right)
+  if (dress === 'shitty') {
+    // her left hand up from the bottom right, pinching her nostrils shut; the mouth left clear under it
+    p.form(g => { g.moveTo(196, 150); g.lineTo(150, 82); g.lineTo(162, 74); g.lineTo(222, 150); g.closePath(); }, { ramp: SUIT, bevel: 6, amb: 0.15, ink: I });
+    p.form(g => { g.rect(148, 70, 12, 12); }, { ramp: SH, bevel: 3, amb: 0.3, ink: I });
+    p.form(g => { g.ellipse(142, 72, 10, 8, -0.3, 0, Math.PI * 2); }, { ramp: AFC, bevel: 5, amb: 0.2, ink: I });
+    // (the forefinger over the bridge of the nose, the thumb under the nostrils, squeezing)
+    p.form(g => { g.ellipse(131, 68, 8, 3, -0.15, 0, Math.PI * 2); }, { ramp: AFC, bevel: 2, amb: 0.25, ink: I });
+    p.form(g => { g.ellipse(132, 76, 7, 3, 0.1, 0, Math.PI * 2); }, { ramp: AFC, bevel: 2, amb: 0.25, ink: I });
+    p.line(139, 69, 141, 75, AFC[2]); p.px(125, 68, AFC[7]);
+    // (the brows pinched in disgust over the shades)
+    p.line(118, 42, 124, 45, HAIR[0]); p.line(132, 45, 138, 42, HAIR[0]);
+  } else if (dress === 'nude') {
+    // her right hand up at the side of her face, flat, blinkering the view; the sleeve down past the clipboard
+    p.form(g => { g.moveTo(54, 150); g.lineTo(86, 92); g.lineTo(102, 96); g.lineTo(78, 150); g.closePath(); }, { ramp: SUIT, bevel: 6, amb: 0.15, ink: I });
+    p.form(g => { g.rect(86, 84, 16, 12); }, { ramp: SH, bevel: 3, amb: 0.3, ink: I });
+    p.form(g => { g.moveTo(87, 86); g.lineTo(86, 46); g.bezierCurveTo(86, 30, 100, 30, 100, 44); g.lineTo(102, 86); g.closePath(); }, { ramp: AFC, bevel: 6, amb: 0.2, ink: I });
+    // (the fingers together, the thumb tucked in front)
+    for (const fx of [90, 94, 98]) p.line(fx, 36, fx, 56, AFC[2]);
+    p.form(g => { g.ellipse(100, 70, 3, 8, 0.2, 0, Math.PI * 2); }, { ramp: AFC, bevel: 2, amb: 0.25, ink: I });
+  }
 });
 export const shotAgentF = (c: Ctx, t: number, talking: boolean) => {
   gymBg(c); c.fillStyle = 'rgba(0,0,0,0.5)'; c.fillRect(0, 0, ART_W, ART_H);
-  c.drawImage(agentFStill(), 0, 0);
+  c.drawImage(agentFStill(dressed), 0, 0);
   // (a glint across the shades)
   const g = (t * 2) % 140;
   if (g < 26) for (let y = 49; y < 60; y++) { const x = 104 + g + Math.round((60 - y) * 0.5); if (x < 152) R(c, x, y, 1, 1, '#c8c8dc'); }
   if (talking && t % 10 < 5) { R(c, 121, 81, 14, 4, '#3a0606'); R(c, 122, 81, 12, 1, '#e8e0d0'); }
-  // (the state of him, from her side of it: shat, she's pinching her nose and the stink's reached her; naked, a hand up
-  // by her face so she doesn't have to look)
-  if (dressed === 'shitty') {
-    stink(c, 40, 144, 4, 40, 14); flies(c, 70, 100, 14, 2);
-    for (const [x, y, w, h, col] of [[120, 66, 14, 10, '#1e1008'], [121, 67, 12, 8, '#8a5840'], [123, 68, 4, 6, '#a46e52'], [126, 74, 10, 12, '#714530']] as [number, number, number, number, string][]) R(c, x, y, w, h, col);
-    R(c, 136, 70, 1, 1, '#a46e52');
-  } else if (dressed === 'nude') {
-    // (her palm up at the side of her face, blinkering the view, the fingers together)
-    for (const [x, y, w, h, col] of [[84, 34, 18, 46, '#1e1008'], [85, 35, 16, 44, '#8a5840'], [86, 36, 5, 42, '#a46e52'], [85, 79, 16, 22, '#714530'], [96, 36, 4, 42, '#714530']] as [number, number, number, number, string][]) R(c, x, y, w, h, col);
-    for (let k = 0; k < 4; k++) R(c, 86, 46 + k * 8, 14, 1, '#43261a');
-  }
+  // (the state of him, from her side of it: shat, she's pinching her nose (in the painting) and the stink's reached her;
+  // naked, a hand up by her face so she doesn't have to look (in the painting))
+  if (dressed === 'shitty') { stink(c, 40, 144, 4, 40, 14); flies(c, 70, 100, 14, 2); }
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -930,7 +943,7 @@ export const shotGlassesOn = (c: Ctx, t: number, talking: boolean) => {
 /** The cutscenes' painted stills, in the order they're first wanted (the opening's, then the closing's): painted ahead
  *  one per idle moment (gross.ts prewarmGross runs them first), so no shot stops to paint itself the frame it cuts in. */
 export const SHOT_STILLS: (() => void)[] = [
-  () => newsStill(), () => agentFStill(), prewarmTitleMeathead,
+  () => newsStill(), () => agentFStill(dressed), prewarmTitleMeathead,
   () => chokeStill(0), () => chokeStill(1), () => chokeStill(2), () => ticketStill(), () => keysHand(),
   () => glassesInsertStill(), () => dressHand(),
 ];
