@@ -226,11 +226,13 @@ export const paintBearSign = (g: Ctx) => {
   for (const nx of [-bw / 2 + 3, bw / 2 - 6]) for (const ny of [6, bh - 9]) { box(g, nx, top + ny, 3, 3, INK); box(g, nx, top + ny, 2, 2, S[5]); }
   box(g, 20, top + bh + 1, 6, 4, '#A89C88'); box(g, 21, top + bh + 1, 4, 1, '#C8BCA8');
   // (the county's notice under it: yellow, black letters, its corner bent; a hunter's orange tape on the far post)
-  const nt = top + bh + 8, nw = 92, nh = 26;
+  const nt = top + bh + 8, nw = 92, nh = 34;
   box(g, -nw / 2 - 1, nt - 1, nw + 2, nh + 2, INK); box(g, -nw / 2, nt, nw, nh, '#E8C21E'); box(g, -nw / 2, nt, nw, 1, '#F8E060'); box(g, -nw / 2, nt + nh - 1, nw, 1, '#B08E10');
   box(g, -nw / 2 + 2, nt + 2, nw - 4, nh - 4, '#141414'); box(g, -nw / 2 + 3, nt + 3, nw - 6, nh - 6, '#E8C21E');
   signText(g, 'MOUNTAIN LIONS', 0, nt + 12, printed('#141414'));
   signText(g, 'ACTIVE IN AREA', 0, nt + 21, printed('#141414'));
+  // (the hint: what brings them out)
+  signText(g, 'DRAWN TO BLOOD', 0, nt + 30, printed('#8A1010'));
   g.fillStyle = INK; g.beginPath(); g.moveTo(nw / 2 + 1, nt + nh - 9); g.lineTo(nw / 2 + 1, nt + nh + 1); g.lineTo(nw / 2 - 9, nt + nh + 1); g.closePath(); g.fill();
   g.fillStyle = '#C8B060'; g.beginPath(); g.moveTo(nw / 2 - 1, nt + nh - 7); g.lineTo(nw / 2 - 7, nt + nh - 1); g.lineTo(nw / 2 - 3, nt + nh - 3); g.closePath(); g.fill();
   box(g, 33, -24, 8, 4, '#F2601A'); box(g, 33, -24, 8, 1, '#FF9A50'); box(g, 41, -23, 6, 2, '#F2601A'); box(g, 46, -22, 3, 9, '#E2500E');
