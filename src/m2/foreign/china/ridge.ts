@@ -49,17 +49,22 @@ const EVERY = 280, WARN = 70, FLY = 50, BURST = 16, R = 70;
 const TARGETS: [number, number, number][] = [[4960, 5130, 5330], [5040, 5220, 5450], [5110, 5300, 5560], [4990, 5390, 5610]];
 
 const ENEMIES: [string, number, number][] = [
-  ['m2:fl_kungfu', 4800, 960],
+  // the dip, under the battery's shells, with the dragon (the shells get the cast too: lure them under the marks)
+  ['m2:fl_kungfu', 5200, 860],
   ['m2:fl_kungfu', 5480, 1090],
-  ['m2:fl_kungfu', 5960, 1260],
-  ['m2:fl_kungfu', 6100, 1380], ['m2:fl_fireworks', 6140, BEACON_TOP],
+  // up the beacon tower, floor by floor (the BEACON TOWER checkpoint's flat left clear)
+  ['m2:fl_kungfu', 6100, 1380], ['m2:fl_kungfu', 6190, 1500], ['m2:fl_fireworks', 6140, BEACON_TOP],
   ['m2:fl_kungfu', 6380, 1260], ['m2:fl_fireworks', 6440, 1260],
-  ['m2:fl_kungfu', 7200, 0], ['m2:fl_fireworks', 7340, 0], ['m2:fl_kungfu', 7450, 0],
+  // down the repair scaffold: the intern on a low-middle lift (rockets up at him coming down), a kung fu kid on the
+  // one under the top (the kick across the gap at him on the zigzag); one more at the bottom, past THE SCAFFOLD's
+  // checkpoint's reach
+  ['m2:fl_fireworks', 6620, 560], ['m2:fl_kungfu', 6900, 700], ['m2:fl_kungfu', 7450, 0],
 ];
 const OPERATOR: [string, number, number][] = [['m2:fl_fireworks', 5760, 1260]];
 
 export const RIDGE_CHECKPOINTS = [
-  { name: 'CHINA: THE SECOND RIDGE', cp: 24, x: X(4930), y: Y(860) },
+  // (up on the pagoda's flat, looking down on the ridge: down in the dip it sat on the second dragon)
+  { name: 'CHINA: THE SECOND RIDGE', cp: 24, x: X(4600), y: Y(1120) },
   { name: 'CHINA: THE BEACON TOWER', cp: 25, x: X(5700), y: Y(1260) },
   { name: 'CHINA: THE SCAFFOLD', cp: 26, x: X(7080), y: GY },
 ];

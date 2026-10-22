@@ -53,9 +53,13 @@ const PAGODA: [number, number, number][] = [[4330, 4590, 1250], [4370, 4550, 137
 const STALLS: [number, number, number][] = [[360, 520, 90], [560, 700, 120]];
 
 const ENEMIES: [string, number, number][] = [
-  ['m2:fl_kungfu', 760, 0], ['m2:fl_fireworks', 880, 0],
+  // the market: the intern up on the tea stall's roof (rockets down on him under it; their bursts get the kung fu kid
+  // too), the kung fu kid past it
+  ['m2:fl_kungfu', 760, 0], ['m2:fl_fireworks', 630, 120],
   ['m2:fl_kungfu', 1160, 240],
-  ['m2:fl_kungfu', 1500, 480], ['m2:fl_fireworks', 2100, 960],
+  // (the rampart by THE GREAT WALL's checkpoint quiet) a kung fu kid inside WATCHTOWER 1 (the flying kick in a tight
+  // room), the intern on its roof
+  ['m2:fl_kungfu', 2060, 700], ['m2:fl_fireworks', 2100, 960],
   ['m2:fl_kungfu', 2620, 440], ['m2:fl_kungfu', 3080, 820],
   ['m2:fl_fireworks', 4500, 1120], ['m2:fl_kungfu', 4450, 1250],
 ];
@@ -106,7 +110,7 @@ export const china: ForeignSection = {
     }
     for (const [a, b, h] of PAGODA) ledge(state, X(a), Y(h), b - a, { hidden: true, tag: 'cn-pagoda' });
     spawnCast(state, ENEMIES, X, Y);
-    spawnDragon(state, (x, y) => makeKindEnemy('m2:fl_dragon' as EnemyKind, x, y), X(3640), Y(900));
+    spawnDragon(state, (x, y) => makeKindEnemy('m2:fl_dragon' as EnemyKind, x, y), X(3720), Y(900));
     // (the B team: four kids under a cloth for six, in the saddle past the pagoda)
     spawnDragon(state, (x, y) => makeKindEnemy('m2:fl_dragon' as EnemyKind, x, y), X(5060), Y(860), 4);
     buildRidge(state);
