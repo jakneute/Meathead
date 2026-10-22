@@ -36,6 +36,7 @@ import type { FrameContext } from '../../../m1/game/core/context';
 import type { GameState } from '../../../m1/game/core/state';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
+import { elbow, knee, reachTo } from '../../art/limb';
 import { registerDeathKind } from '../../../m1/game/player/deathAnim';
 import { hazardVictims, boxHits, setHazardZones } from '../../hazardHit';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
@@ -793,25 +794,18 @@ const guitar = (c: Ctx, hx: number, hy: number, ang: number, glint: boolean, hot
   c.restore();
 };
 
-/** Two bones from a root to an end (an arm's, a leg's): the middle joint, bent the side `bend` scores higher. */
-const joint = (sx: number, sy: number, hx: number, hy: number, a1: number, a2: number, bend: (p: P2) => number): P2 => {
-  const d = Math.max(Math.abs(a1 - a2) + 1, Math.min(a1 + a2 - 1, Math.hypot(hx - sx, hy - sy)));
-  const base = Math.atan2(hy - sy, hx - sx), a = Math.acos(Math.max(-1, Math.min(1, (a1 * a1 + d * d - a2 * a2) / (2 * a1 * d))));
-  const e1: P2 = [sx + Math.cos(base + a) * a1, sy + Math.sin(base + a) * a1], e2: P2 = [sx + Math.cos(base - a) * a1, sy + Math.sin(base - a) * a1];
-  return bend(e1) >= bend(e2) ? e1 : e2;
-};
 const UPPER = 42, FORE = 40, THIGH = 40, SHIN = 36;
-/** A hand brought within reach of the shoulder. */
-const reach = (sx: number, sy: number, hx: number, hy: number): P2 => {
-  const d = Math.hypot(hx - sx, hy - sy), m = UPPER + FORE - 2;
-  return d <= m ? [hx, hy] : [sx + (hx - sx) * m / d, sy + (hy - sy) * m / d];
-};
+/** A hand brought within reach of the shoulder (src/m2/art/limb.ts). */
+const reach = (sx: number, sy: number, hx: number, hy: number): P2 => reachTo(sx, sy, hx, hy, UPPER, FORE);
 
 /** An arm: the jacket's studded shoulder, the leather sleeve to the elbow (a torn cuff), the bare red forearm, a
  *  spiked wristband, the fist (`horns`: index and pinkie up). `far`: the one behind, a shade darker. */
 const arm = (c: Ctx, sx: number, sy: number, hx: number, hy: number, S: readonly string[], far = false, horns = false) => {
   const R = far ? S.map(x => mix(x, INK, 0.2)) : S, L = far ? LEATHER.map(x => mix(x, INK, 0.2)) : LEATHER;
-  const [ex, ey] = joint(sx, sy, hx, hy, UPPER, FORE, e => (e[1] - sy) * 0.6 - Math.abs(e[0] - sx) * 0.2 + (e[0] - sx) * -0.3);
+  // (the elbow by anatomy (src/m2/art/limb.ts): drawn facing right, the forearm folds toward the front of the upper
+  // arm: down when reaching out, forward when the guitar's overhead, back when the hand's low behind him)
+  [hx, hy] = reachTo(sx, sy, hx, hy, UPPER, FORE);
+  const [ex, ey] = elbow(sx, sy, hx, hy, UPPER, FORE, 1);
   thick(c, ex, ey, hx, hy, 14, R);
   thick(c, sx, sy, ex, ey, 19, L);
   // (the sleeve's torn cuff)
@@ -916,7 +910,8 @@ const legs = (c: Ctx, P: Pose, S: readonly string[], f: number) => {
     const far = i === 1, J = far ? JEANS.map(x => mix(x, INK, 0.25)) : JEANS;
     const [fx, fy] = feet[i === 1 ? 1 : 0];
     const ank: P2 = [fx - 2, fy - 14];
-    const kn = joint(hx, hipY, ank[0], ank[1], THIGH, SHIN, P.sat ? (e => -e[1]) : (e => e[0]));
+    // (the knee always forward: src/m2/art/limb.ts)
+    const kn = knee(hx, hipY, ank[0], ank[1], THIGH, SHIN, 1);
     thick(c, hx, hipY, kn[0], kn[1], 22, J);
     thick(c, kn[0], kn[1], ank[0], ank[1], 18, J);
     // (the rip at the knee: red showing through, the white threads)
