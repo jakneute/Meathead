@@ -164,6 +164,23 @@ export const clearedLands = () => [...cleared];
 export const restoreClearedLands = (ids: string[]) => { cleared.clear(); ids.forEach(id => cleared.add(id)); progressListeners.forEach(l => l()); };
 export const subscribeProgress = (l: () => void) => { progressListeners.add(l); return () => { progressListeners.delete(l); }; };
 
+/** Collectibles (none in the game yet: wired ahead of time). Each land's total (0 till its finds go in), and the ones
+ *  he's found, by land, by id. A cleared land with every one found is 100% (the hub flag says so: hub/gates.ts). */
+export const LAND_COLLECTIBLES: Record<string, number> = {};
+const found = new Map<string, Set<string>>();
+export const markCollectibleFound = (land: string, id: string) => {
+  const s = found.get(land) ?? new Set<string>();
+  if (s.has(id)) return; s.add(id); found.set(land, s); progressListeners.forEach(l => l());
+};
+export const collectiblesFound = (land: string) => found.get(land)?.size ?? 0;
+export const isLandComplete = (land: string) => {
+  const total = LAND_COLLECTIBLES[land] ?? 0;
+  return cleared.has(land) && total > 0 && collectiblesFound(land) >= total;
+};
+/** All of it (for a save); put back from one. */
+export const allFound = () => Object.fromEntries([...found].map(([k, v]) => [k, [...v]])) as Record<string, string[]>;
+export const restoreFound = (o: Record<string, string[]>) => { found.clear(); Object.entries(o).forEach(([k, v]) => found.set(k, new Set(v))); progressListeners.forEach(l => l()); };
+
 /** How each land's boss died (the park map's obituaries, parkmap/data.ts): by his weakness or any other way, by land.
  *  Marked as the boss's death plays (the latest wins: a rematch's re-kill rewrites it). A cleared land with nothing
  *  marked (an older save) reads as the normal death. */

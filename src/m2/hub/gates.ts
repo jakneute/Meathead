@@ -362,15 +362,15 @@ const clearLook = (land: Land) => {
   return { ...l, sy: 2, bold: true };
 };
 /** The flag's place round the spot's middle: the pole (x), its top, the cloth's size, the box it's all inside. */
-const flagBox = (land: Land) => {
+const flagBox = (land: Land, word: FlagWord) => {
   const { tw, th, ty } = signBox(land), look = clearLook(land);
   const px = Math.round(tw / 2) + 4, top = Math.max(Math.round(ty) - 4, 360), foot = Math.round(ty + th) + 3;
-  const cw = Math.round(signW('CLEAR', look)) + 14, ch = 7 * (look.sy ?? 1) + 10;
+  const cw = Math.round(signW(word, look)) + 14, ch = 7 * (look.sy ?? 1) + 10;
   return { look, px, top, foot, cw, ch, ty: Math.round(ty), th: Math.round(th), box: [px - 6, top - 8, cw + 16, Math.max(foot, top + ch + 8) - top + 12] as const };
 };
 
 /** The cloth, flat (x0, y0 its top left, the hem at the pole's side). */
-const paintCloth = (c: Ctx, land: Land, x0: number, y0: number, cw: number, ch: number, look: ReturnType<typeof clearLook>) => {
+const paintCloth = (c: Ctx, land: Land, x0: number, y0: number, cw: number, ch: number, look: ReturnType<typeof clearLook>, word: FlagWord) => {
   const R = R6(land.sign), trim = land.swirl[2];
   box(c, x0 - 1, y0 - 1, cw + 2, ch + 2, INK);
   box(c, x0, y0, cw, ch, R[3]);
@@ -380,12 +380,12 @@ const paintCloth = (c: Ctx, land: Land, x0: number, y0: number, cw: number, ch: 
   box(c, x0 + 5, y0 + 2, cw - 7, 1, trim); box(c, x0 + 5, y0 + ch - 3, cw - 7, 1, mix(trim, INK, 0.3)); box(c, x0 + cw - 3, y0 + 2, 1, ch - 4, mix(trim, INK, 0.15));
   box(c, x0, y0, 4, ch, R[1]); box(c, x0 + 4, y0, 1, ch, INK);
   for (const gy of [y0 + 3, y0 + ch - 6]) { box(c, x0 + 1, gy, 2, 3, '#D6D3D1'); box(c, x0 + 1, gy + 1, 1, 1, INK); }
-  signText(c, 'CLEAR', x0 + 5 + (cw - 7) / 2, y0 + ch - 5, look);
+  signText(c, word, x0 + 5 + (cw - 7) / 2, y0 + ch - 5, look);
 };
 
 /** One frame of the flag (k of FLAG_FRAMES), the pole and its clamps with it. */
-const paintFlag = (c: Ctx, land: Land, cx: number, k: number) => {
-  const { look, px, top, foot, cw, ch, ty, th } = flagBox(land), x = cx + px;
+const paintFlag = (c: Ctx, land: Land, cx: number, k: number, word: FlagWord) => {
+  const { look, px, top, foot, cw, ch, ty, th } = flagBox(land, word), x = cx + px;
   const ph = (k / FLAG_FRAMES) * Math.PI * 2;
   // (the pole: inked, lit down its left, a gold knob on top)
   box(c, x - 1, top - 1, 4, foot - top + 1, INK); box(c, x, top, 2, foot - top - 1, '#A8A29E'); box(c, x, top, 1, foot - top - 1, '#F5F5F4');
@@ -398,7 +398,7 @@ const paintFlag = (c: Ctx, land: Land, cx: number, k: number) => {
     const u = col / cw, a = ph - u * 4.4, dy = Math.round(2.6 * Math.min(1, u * 1.6) * Math.sin(a)), s = Math.cos(a) * Math.min(1, u * 2);
     c.save(); c.beginPath(); c.rect(x0 - 1 + col, y0 - 6, 2, ch + 12); c.clip();
     c.translate(0, dy);
-    paintCloth(c, land, x0, y0, cw, ch, look);
+    paintCloth(c, land, x0, y0, cw, ch, look, word);
     if (col >= 6 && col < cw) {
       if (s > 0.6) { c.globalAlpha = 0.35; box(c, x0 - 1 + col, y0, 2, ch, lit); c.globalAlpha = 1; }
       else if (s > 0.3) checker(c, x0 - 1 + col, y0, 2, ch, lit, col & 1);
@@ -409,8 +409,10 @@ const paintFlag = (c: Ctx, land: Land, cx: number, k: number) => {
   }
 };
 
+/** What the flag says: CLEAR (the boss beaten), or 100% (that and every collectible found: store.ts isLandComplete). */
+export type FlagWord = 'CLEAR' | '100%';
 /** A cleared land's flag on its portal (live in that it waves; each frame of it a stamp). */
-export const drawClearFlag = (c: Ctx, land: Land, cx: number, f: number) => {
-  const k = Math.floor(f / FLAG_HOLD) % FLAG_FRAMES, [bx, by, bw, bh] = flagBox(land).box;
-  c.translate(cx, 0); stamp(c, `hubFlag|${land.id}|${k}`, bx, by, bw, bh, g => paintFlag(g, land, 0, k)); c.translate(-cx, 0);
+export const drawClearFlag = (c: Ctx, land: Land, cx: number, f: number, word: FlagWord = 'CLEAR') => {
+  const k = Math.floor(f / FLAG_HOLD) % FLAG_FRAMES, [bx, by, bw, bh] = flagBox(land, word).box;
+  c.translate(cx, 0); stamp(c, `hubFlag|${land.id}|${word}|${k}`, bx, by, bw, bh, g => paintFlag(g, land, 0, k, word)); c.translate(-cx, 0);
 };

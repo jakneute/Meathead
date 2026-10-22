@@ -67,7 +67,7 @@ import { clearSkyCache } from './intro/art/sky';
 import { canSkip, requestSkip } from '../m1/game/platform/skip';
 import { getAudioContext } from '../m1/game/platform/audio';
 import { STAFF_SLOT, AMERICA_SLOT, landAt } from './hub/lands';
-import { getUi, subscribeUi, onTravel, setUi, goTo, takeBossKill, setStartCheckpoint, requestCarHop, restoreClearedLands, restoreKept, restoreBossDeaths } from './store';
+import { getUi, subscribeUi, onTravel, setUi, goTo, takeBossKill, setStartCheckpoint, requestCarHop, restoreClearedLands, restoreKept, restoreBossDeaths, restoreFound, isLandCleared, isLandComplete } from './store';
 import TitleScreen from './title/TitleScreen';
 import { readFile, deleteFile, playOnFile, saveProgress, closeFile, activeSlot, type Slot } from './save';
 import { setFrameHook } from '../m1/game/core/update';
@@ -256,6 +256,7 @@ const App2: React.FC = () => {
     restoreClearedLands(f.cleared);
     restoreKept(f.kept);
     restoreBossDeaths(f.deaths);
+    restoreFound(f.found ?? {});
     playOnFile(slot, f.playTimeMs);
     // (onto the hub, where Meathead 1's goes onto the map: in off America USA's street)
     setHubStart(AMERICA_SLOT);
@@ -650,7 +651,7 @@ const App2: React.FC = () => {
         {/* What up does here */}
         {status === GameStatus.PLAYING && ui.map === null && (nearLand || ui.near === STAFF_SLOT || ui.nearExit || ui.nearAmerica) && (
           <div className={`absolute left-1/2 -translate-x-1/2 ${stage === PEN_STAGE ? 'top-[232px]' : 'top-[132px]'} z-30 px-3 py-2 text-[9px] text-white bg-black/75 border-2 border-zinc-600`}>
-            <Prompt pad={['DPAD_UP']} kb={['@up']} label={nearLand ? `MAP: ${nearLand.name}` : ui.nearExit ? 'BACK TO THE HUB' : ui.nearAmerica ? 'BACK TO AMERICA USA' : 'STAFF ONLY: THE STAFF ROOM'} />
+            <Prompt pad={['DPAD_UP']} kb={['@up']} label={nearLand ? `MAP: ${nearLand.name}${isLandComplete(nearLand.id) ? ' (100%)' : isLandCleared(nearLand.id) ? ' (CLEAR)' : ''}` : ui.nearExit ? 'BACK TO THE HUB' : ui.nearAmerica ? 'BACK TO AMERICA USA' : 'STAFF ONLY: THE STAFF ROOM'} />
             {/* (the staff room's door: what it's for, the user's) */}
             {!nearLand && !ui.nearExit && !ui.nearAmerica && ui.near === STAFF_SLOT && <div className="mt-1 text-center text-[#FDE047]">PRACTICE YOUR KILLING HERE! UNLIMITED AMMO!</div>}
           </div>
