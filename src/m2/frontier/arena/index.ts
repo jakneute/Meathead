@@ -38,9 +38,9 @@ import type { FrontierSection } from '../section';
 import { layOwn, endWalls, endExits, runExits, hands } from '../section';
 import { DOORS } from '../geometry';
 import { topBand } from '../../../m1/constants';
-import { goTo, markLandCleared, markBossDeath, noteBossKill, isLandCleared, setWalkBack } from '../../store';
+import { goTo, landsCleared, markLandCleared, markBossDeath, noteBossKill, isLandCleared, setWalkBack } from '../../store';
 import { startVictory, tickVictory, drawVictory, victoryDone } from '../../victory';
-import { playWalkAway, tickWalkAway, drawWalkAway } from '../../walkAway';
+import { playWalkAway, tickWalkAway, drawWalkAway, prewarmWalkAway } from '../../walkAway';
 import { markBossFight } from '../../bossQuiet';
 import { takeChaseHandoff } from '../dirtbike';
 import { x0, x1, GY, HANG_X, FIGHT_X, MH_PARK, BODY_NEAR, ENTRANCE_NEAR, ARENA_L, ARENA_R, CP61_X, REFILL2_X } from './layout';
@@ -153,6 +153,8 @@ export const arena: FrontierSection = {
           endFight(state, f);
           openWalls(state, s);
           s.victory = startVictory();
+          // (the walk-away's art painted in idle slices under the VICTORY, at the hour it'll be once the land's cleared)
+          prewarmWalkAway('tucker', s.weak, isLandCleared('frontier') ? null : landsCleared() + 1);
         }
         return out ?? controls;
       }
@@ -172,8 +174,11 @@ export const arena: FrontierSection = {
   },
   // (the fight on, or his entrance: the camera kept to the arena)
   cameraX: (state) => { const s = arenaOf(state); return s.phase === 'up' || s.phase === 'entrance' ? { min: ARENA_L, max: ARENA_R - 800 } : undefined; },
-  drawBackdrop: (c, state) => drawArenaBackdrop(c, state),
+  // (none of it under the walk-away: it covers the whole screen, and the land's just cleared moved the hour on, so every
+  // stamp of the woods would be painted afresh for nobody)
+  drawBackdrop: (c, state) => (arenaOf(state).walk ? true : drawArenaBackdrop(c, state)),
   drawBack: (c, state) => {
+    if (arenaOf(state).walk) return;
     drawArenaBack(c, state);
     drawBoulder(c, state);
     if (isLandCleared('frontier') && !arenaOf(state).fight) drawRemainsMark(c, state);
@@ -184,6 +189,7 @@ export const arena: FrontierSection = {
   },
   drawFront: (c, state) => {
     const s = arenaOf(state);
+    if (s.walk) return;
     drawFallingTree(c, s);
     drawLeaves(c, s);
     if (s.fight && s.phase === 'up') drawFightFront(c, state, s.fight);

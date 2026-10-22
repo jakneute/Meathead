@@ -46,7 +46,8 @@ const tileOf = (look: Look) => {
   if (!m) { m = new Map(); tiles.set(look.ground, m); }
   let t = m.get(key);
   if (!t) {
-    const c = canvas(TILE, TILE), g = c.getContext('2d')!;
+    // (read back once, right after: a canvas kept in memory, not on the GPU (the read back off the GPU stalled the frame))
+    const c = canvas(TILE, TILE), g = c.getContext('2d', { willReadFrequently: true })!;
     look.ground(g, TILE, TILE);
     // (lit by the hour)
     g.globalCompositeOperation = 'multiply'; g.fillStyle = gradeOf(); g.fillRect(0, 0, TILE, TILE); g.globalCompositeOperation = 'source-over';
@@ -55,6 +56,9 @@ const tileOf = (look: Look) => {
   }
   return t;
 };
+
+/** The ground's tile painted ahead of time (walkAway.ts prewarmWalkAway). */
+export const warmGround = (look: Look) => { tileOf(look); };
 
 /** The hour's sky, top to the horizon, banded (flat steps, a dithered row where each meets the next). */
 export const skyOf = () => {

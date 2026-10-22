@@ -19,7 +19,7 @@ import { drawPadFace } from '../m1/game/render/padGlyph';
 import { isNude, isShat } from '../m1/game/player/gut';
 import { M2_WEAPON_INFO } from './weapons/index';
 import { type Ctx, type Prop, type SceneDef, LW, LH, TOP, BOT, HOR, SPEED, STEP, FEET_Y, ME_D, VP_X, ME_X, project, stipple } from './walkAway/kit';
-import { lowRes, canvas, drawGround, skyOf, spriteOf, fogAt, vignetteOf, wobble, drawStink, drawTitle, blitPicture, font } from './walkAway/screen';
+import { lowRes, canvas, warmGround, drawGround, skyOf, spriteOf, fogAt, vignetteOf, wobble, drawStink, drawTitle, blitPicture, font } from './walkAway/screen';
 import { drawMeatheadFront, type Pose } from './walkAway/meathead';
 import { ACTS, toyIcon, type ActFx } from './walkAway/acts';
 import { SAFARI_ARTIE } from './walkAway/artie';
@@ -31,6 +31,7 @@ import { TUCKER } from './walkAway/tucker';
 import { PIPER } from './walkAway/piper';
 import { STUPID_DAD } from './walkAway/stupidDad';
 import { musicMoment } from './music/moments';
+import { setTimeOfDayOverride, timeOfDayOverride } from './timeOfDay';
 
 /** The bosses that have a walk-away (add each boss's SceneDef here). */
 export const WALK_AWAY_SCENES = { 'safari-artie': SAFARI_ARTIE, 'donnie-dracula': DONNIE_DRACULA, 'space-queen': SPACE_QUEEN, 'stuntman-steve': STUNTMAN_STEVE, 'helicopter-harry': HELICOPTER_HARRY, tucker: TUCKER, piper: PIPER, 'stupid-dad': STUPID_DAD } satisfies Record<string, SceneDef>;
@@ -87,6 +88,33 @@ export const playWalkAway = (state: GameState | null, opts: WalkAwayOpts): WalkA
 };
 
 export const walkAwayDone = (w: WalkAway) => w.done;
+
+/**
+ * Its painted-once art (the ground's tile, the sky, the vignette, the far layers, every prop's sprite) painted ahead of
+ * time, a piece an idle slice, so its first frame doesn't paint the lot at once (a fifth of a second's hitch). Call it
+ * while something else holds the screen (a boss's VICTORY). `hour`: the lands cleared it'll be painted at, if not now's
+ * (the land's cleared just before it starts, and the hour moves on with it); a hand-set hour (the cheat) is kept.
+ */
+export const prewarmWalkAway = (boss: WalkAwayBoss, weakness: boolean, hour: number | null = null) => {
+  if (typeof document === 'undefined') return;
+  const def = WALK_AWAY_SCENES[boss];
+  const scratch = canvas(LW, LH).getContext('2d')!;
+  const jobs: (() => void)[] = [
+    () => warmGround(def), () => { skyOf(); vignetteOf(); }, () => def.back(scratch, 0, 0, weakness),
+    ...def.props(weakness).filter(p => p.paint).map(p => () => { spriteOf(def, p, 0); }),
+  ];
+  const atHour = (f: () => void) => {
+    if (hour === null || timeOfDayOverride() !== null) { f(); return; }
+    setTimeOfDayOverride(hour);
+    try { f(); } finally { setTimeOfDayOverride(null); }
+  };
+  const idle = (cb: (d?: IdleDeadline) => void) => (typeof requestIdleCallback === 'function' ? requestIdleCallback(cb, { timeout: 120 }) : setTimeout(cb, 16));
+  const step = (d?: IdleDeadline) => {
+    do { const job = jobs.shift(); if (!job) return; atHour(job); } while (d && !d.didTimeout && d.timeRemaining() > 6);
+    if (jobs.length) idle(step);
+  };
+  idle(step);
+};
 
 // ---------------------------------------------------------------------------------------------------------------
 // His beats: a loop (10 s) of admiring it, turning it over; up to his nose for a sniff; gagging, spitting; grinning.
