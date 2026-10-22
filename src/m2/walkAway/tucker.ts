@@ -13,10 +13,10 @@
 //
 // And Tucker's leftovers, by how it went: the weakness (the lions): his cap left in the leaves, the pool where they tore
 // him in two, the two drag marks off it through the leaves (furrows, blood, his bits dropped along them: a button, a
-// glove, the watch), and the cats themselves at the tree line backing off into the woods with half of him each. Any
-// other way (the grizzly): chunks of him everywhere (meat, the navy coat in rags with its brass, the vest and the
-// watch, a boot still in its pinstriped leg, a glove, the spectacles, the ticket punch, a muttonchop), blood thrown about,
-// the cap, the bear's bloody prints off toward it lumbering away with his leg. His toy: the FLINTLOCK (its act:
+// glove, the watch), and the cats themselves at the tree line backing off into the woods with half of him each (his top
+// half, his legs). Any other way (the grizzly): him flat on his back in the pool, headless, bits it mauled off him about
+// (meat, the navy coat in rags with its brass, the vest and the watch, a glove, the spectacles, the ticket punch, a
+// muttonchop), blood thrown about, the cap, the bear's bloody prints off toward it lumbering away with his head. His toy: the FLINTLOCK (its act:
 // walkAway/acts.ts, held up by his face in front of his head). The title's HEADING BACK TO PARK; after it he starts from
 // the intro's parking lot and walks back in (arena/index.ts `leave`; intro/index.ts's walk back): unchanged.
 
@@ -30,7 +30,8 @@ import { INK } from '../frontier/kit';
 import { paintClouds, paintPeaks, paintForestRidge, paintNearPines, CW, CH, RW, RH, FW, FH, NW, NH } from '../frontier/woods/far';
 import { paintTree, treeBox, leafAt, bush, hr, type TreeKind, DUFF, GOLD, BROWN, DIRT, BARK, RINGS, STEEL, GRANITE, MOSS } from '../frontier/woods/paint';
 import { paintOak, paintBearSign } from '../frontier/arena/art';
-import { drawLion, drawGrizzly } from '../frontier/arena/beasts';
+import { drawLion, drawGrizzly, type LionCarry } from '../frontier/arena/beasts';
+import { drawHeadlessBody } from '../frontier/arena/gore';
 import { drawTuckerCap } from '../frontier/tucker';
 import { drawDirtBike } from '../frontier/woods/teens';
 import { TRUNK_W, TUCK_BIKE } from '../frontier/arena/layout';
@@ -418,19 +419,19 @@ const paintBit = (k: Bit, seed: number) => (g: Ctx, w: number, h: number) => {
 };
 
 /** One of the cats at the tree line, backing off into the woods with half of him. */
-const lionLive = (dir: 1 | -1, carry: 'arm' | 'leg') => (c: Ctx, sx: number, sy: number, s: number, t: number) => {
+const lionLive = (dir: 1 | -1, carry: LionCarry) => (c: Ctx, sx: number, sy: number, s: number, t: number) => {
   const k = s / FIG, slide = Math.min(2.6, t * 0.004) * s * dir;
   if (k < 0.04) return;
   c.save(); c.translate(Math.round(sx + slide), Math.round(sy)); c.scale(k, k);
   drawLion(c, 0, 0, -dir, t, 'drag', { carry, bloody: 1 });
   c.restore();
 };
-/** The grizzly lumbering off with his leg. */
+/** The grizzly lumbering off with his head. */
 const bearLive = (c: Ctx, sx: number, sy: number, s: number, t: number) => {
   const k = s / FIG, slide = -Math.min(3.2, t * 0.004) * s;
   if (k < 0.04) return;
   c.save(); c.translate(Math.round(sx + slide), Math.round(sy)); c.scale(k, k);
-  drawGrizzly(c, 0, 0, -1, t, 'walk', { carry: 'leg', bloody: 1 });
+  drawGrizzly(c, 0, 0, -1, t, 'walk', { carry: 'head', bloody: 1 });
   c.restore();
 };
 
@@ -448,16 +449,17 @@ const props = (weakness: boolean): Prop[] => {
     out.push(flat('glove', 2.4, 6.4, 0.34, 0.26, 72, paintBit('glove', 2)));
     out.push(flat('watch', -6.0, 6.6, 0.4, 0.2, 72, paintBit('watch', 3)));
     out.push(flat('specs', 0.6, 4.9, 0.34, 0.18, 80, paintBit('specs', 4)));
-    out.push({ id: 'wa-tk-lion-l', x: -12, z: 10, w: 1, h: 1, live: lionLive(-1, 'arm') });
-    out.push({ id: 'wa-tk-lion-r', x: 6.6, z: 13, w: 1, h: 1, live: lionLive(1, 'leg') });
+    out.push({ id: 'wa-tk-lion-l', x: -12, z: 10, w: 1, h: 1, live: lionLive(-1, 'top') });
+    out.push({ id: 'wa-tk-lion-r', x: 6.6, z: 13, w: 1, h: 1, live: lionLive(1, 'legs') });
   } else {
-    // (chunks of him everywhere, blood thrown about, the cap; the bear's prints off toward it, lumbering off with his
-    // leg)
+    // (him flat on his back in the pool, headless, blood thrown about, bits the bear mauled off him, the cap; the
+    // bear's prints off toward it, lumbering off with his head)
     out.push(flat('cap', 1.1, 3.2, 0.5, 0.32, 72, paintCap(2.6)));
     out.push(flat('pool', 0.2, 4.6, 2.0, 0.45, 40, paintPool(true)));
+    out.push(sq('headless', 0.4, 4.7, 160, 92, 110, 76, FIG, g => drawHeadlessBody(g, 0, 0, 1), { res: 26 }));
     for (const [x, z, w, sd] of [[-2.6, 5.4, 1.2, 1], [2.6, 6.2, 1.0, 2], [-4.4, 7.4, 1.4, 3], [1.4, 8.4, 0.9, 4]] as const) out.push(flat(`splat${sd}`, x, z, w, 0.3, 40, paintPool(false)));
     const bits: [Bit, number, number, number, number][] = [
-      ['meat', 1.8, 3.8, 0.42, 0.26], ['coat', -2.8, 4.6, 0.6, 0.34], ['vest', 2.9, 5.2, 0.5, 0.32], ['boot', -3.9, 6.2, 0.7, 0.3],
+      ['meat', 1.8, 3.8, 0.42, 0.26], ['coat', -2.8, 4.6, 0.6, 0.34], ['vest', 2.9, 5.2, 0.5, 0.32],
       ['glove', 0.9, 5.8, 0.34, 0.26], ['specs', 0.4, 3.9, 0.34, 0.18], ['punch', 3.6, 7.0, 0.4, 0.24], ['chop', -1.9, 6.9, 0.3, 0.2],
       ['meat', -5.2, 8.2, 0.4, 0.24], ['coat', 4.2, 8.6, 0.56, 0.3], ['meat', 2.2, 9.6, 0.38, 0.24], ['button', -0.8, 4.4, 0.16, 0.12],
     ];

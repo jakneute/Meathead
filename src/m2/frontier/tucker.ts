@@ -89,6 +89,8 @@ export interface TuckerOpts {
   pan?: boolean;
   /** 'grope' (his fight's): the flintlock in his near hand as he feels his way about. */
   pistol?: boolean;
+  /** No head on him (his fight's grizzly: it's in the bear; arena/gore.ts draws the stump). */
+  headless?: boolean;
 }
 
 /** How tall he is (feet to the top of his cap), for putting words over him. */
@@ -236,9 +238,11 @@ export const drawTucker = (c: Ctx, x: number, feetY: number, facing: number, fra
   const hx = pose === 'sit' ? Math.sin(f * 0.1) * 2 : pose === 'hurt' ? -2 : pose === 'run' ? 1.5 : pose === 'impaled' ? 2.5 : pose === 'grope' ? 1.5 : 0.5;
   const nod = pose === 'impaled' ? 0.5 : pose === 'hurt' ? -0.25 : pose === 'grope' ? -0.2 + Math.sin(f * 0.07) * 0.08 : pose === 'sit' ? Math.sin(f * 0.1) * 0.14 : pose === 'run' ? 0.08 : pose === 'furious' ? Math.sin(f * 1.3) * 0.05 : pose === 'tip' ? 0.08
     : pose === 'aim' ? -0.16 : pose === 'cock' ? -0.1 : pose === 'reload' ? 0.12 : pose === 'mauled' ? Math.sin(f * 0.9) * 0.3 : 0;
-  c.save(); c.translate(hx, hy); c.rotate(nod); c.scale(HS, HS);
-  drawHead(c, face, f, !!opts.talking, opts.capless || pose === 'sit' || pose === 'flat', pose === 'furious' || face === 'yell', wounds);
-  c.restore();
+  if (!opts.headless) {
+    c.save(); c.translate(hx, hy); c.rotate(nod); c.scale(HS, HS);
+    drawHead(c, face, f, !!opts.talking, opts.capless || pose === 'sit' || pose === 'flat', pose === 'furious' || face === 'yell', wounds);
+    c.restore();
+  }
   // (the flintlock: behind the near hand's fist in the aim and the cock; up in the far hand for the reload, the rod down
   // it from the near one)
   if (pose === 'grope' && opts.pistol) drawFlintlock(c, near.hx, near.hy, 0.55, { cocked: false, f });
@@ -253,6 +257,16 @@ export const drawTucker = (c: Ctx, x: number, feetY: number, facing: number, fra
   if (pose === 'sit') stars(c, hx, hy - 18, f);
   c.restore();
 };
+
+/** His head on its own (off him: the grizzly's), its middle at (x, y), facing right turned `rot` (mirrored for -1);
+ *  capless unless `capped`. The skull's about 26 across, its crown at (0, -15), under the jaw (0, 13) (scaled in). */
+export const drawTuckerHead = (c: Ctx, x: number, y: number, facing: number, rot: number, frame: number, face: TuckerFace, wounds: TuckerWounds = {}, capped = false) => {
+  c.save(); c.translate(x, y); c.scale(facing < 0 ? -1 : 1, 1); c.rotate(rot); c.scale(HS, HS);
+  drawHead(c, face, frame, false, !capped, face === 'yell', wounds);
+  c.restore();
+};
+/** How far his head's scaled (its units to the figure's). */
+export const TUCKER_HEAD_SCALE = HS;
 
 /** His cap on its own (knocked off: lying where it fell), its middle at (x, y), turned `rot`. */
 export const drawTuckerCap = (c: Ctx, x: number, y: number, rot = 0, scale = HS) => {

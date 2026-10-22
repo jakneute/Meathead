@@ -6,10 +6,12 @@
 //   the MOUNTAIN LION  (the weakness: drawn out of the woods by the soul sucker's blood all over him) tawny, a pale
 //                      muzzle and belly, the black-tipped tail, amber eyes; running (a stretched gallop), the pounce
 //                      (flat out in the air, claws out), mauling (crouched over him, shoulders working, head down,
-//                      tearing), dragging (backing off with a piece of him in its jaws)
+//                      tearing), the tug (braced back, jaws clamped on him, wrenching), dragging (backing off with a
+//                      piece of him in its jaws, or the half of him it won)
 //   the GRIZZLY        (the standard death: out of nowhere) the shoulder hump silvered, the dished face, the claws;
-//                      the lumbering charge, reared up roaring, mauling (on him, tearing), walking off (a leg of his in
-//                      its jaws)
+//                      the lumbering charge, reared up roaring, mauling (on him, tearing), the tug (a forepaw pinning
+//                      his chest, hauling his head up off him by the jaws, rearing back more each wrench), walking off
+//                      (his head in its jaws)
 //
 // And their close-ups (the mutilation rule: the grizzly's mauling, animated, gory; the lions' for the weakness kill,
 // slowed): registered on tucker.ts's close-up as the 'maul' and 'lions' wounds (head units: his face ~24 across, its
@@ -17,6 +19,8 @@
 
 import { registerWoundPainter } from '../tucker';
 import { stamp } from '../../../m1/game/render/stamp';
+import { elbow } from '../../art/limb';
+import { drawTuckerHalf, drawTuckerHeadHeld } from './gore';
 
 type Ctx = CanvasRenderingContext2D;
 type Ramp = readonly [string, string, string, string, string];
@@ -62,19 +66,58 @@ const px = (c: Ctx, x: number, y: number, w: number, h: number, col: string) => 
 // The mountain lion: about 92 long nose to rump (a tail as long again), 40 at the shoulder; drawn at (x, feetY) facing
 // right, `t` its own frame count
 
-export type LionPose = 'run' | 'pounce' | 'maul' | 'drag' | 'crouch' | 'dead';
+/** ('tug': braced back on its haunches, the jaws clamped on half of Tucker, wrenching it back: the weakness kill) */
+export type LionPose = 'run' | 'pounce' | 'maul' | 'drag' | 'crouch' | 'dead' | 'tug';
+/** What a cat's got in its jaws: a bit of him, or (the weakness kill) the half of him it won: 'top' (his head and
+ *  chest), 'legs' (his hips down). */
+export type LionCarry = 'arm' | 'leg' | 'cap' | 'top' | 'legs';
+
+/** The cycle's frame for `t` (each pose's in stepped frames). */
+const lionFrame = (pose: LionPose, t: number) => {
+  const per = pose === 'run' ? 0.42 : pose === 'drag' ? 0.18 : pose === 'maul' ? 0.7 : pose === 'crouch' ? 0.13 : pose === 'pounce' ? 0.13 : pose === 'tug' ? 0.55 : 0;
+  const n = pose === 'run' || pose === 'maul' || pose === 'drag' ? 8 : pose === 'dead' ? 1 : 4;
+  const fr = per ? Math.floor(((((t * per) / (Math.PI * 2)) % 1 + 1) % 1) * n) : 0;
+  return { fr, n };
+};
 
 /** (`hurt`: its eye screwed shut (a hit on one leaving: critters.ts); the 'dead' pose: flat on its back, legs stuck up
  *  stiff, eye crossed out, tongue out: what the engine's special deaths play out on) */
-export const drawLion = (c: Ctx, x: number, feetY: number, facing: number, t: number, pose: LionPose, o: { bloody?: number; carry?: 'arm' | 'leg' | 'cap' | null; hurt?: boolean } = {}) => {
+export const drawLion = (c: Ctx, x: number, feetY: number, facing: number, t: number, pose: LionPose, o: { bloody?: number; carry?: LionCarry | null; hurt?: boolean } = {}) => {
   // (each pose's cycle in stepped frames, every frame painted once into a stamp and put down after that)
-  const per = pose === 'run' ? 0.42 : pose === 'drag' ? 0.18 : pose === 'maul' ? 0.7 : pose === 'crouch' ? 0.13 : pose === 'pounce' ? 0.13 : 0;
-  const n = pose === 'run' || pose === 'maul' || pose === 'drag' ? 8 : pose === 'dead' ? 1 : 4;
-  const fr = per ? Math.floor(((((t * per) / (Math.PI * 2)) % 1 + 1) % 1) * n) : 0;
-  const bloody = Math.round((o.bloody ?? (pose === 'maul' ? 1 : pose === 'drag' ? 0.8 : 0)) * 2) / 2, drip = Math.floor(t / 6) % 4;
+  const { fr, n } = lionFrame(pose, t);
+  const bloody = Math.round((o.bloody ?? (pose === 'maul' || pose === 'tug' ? 1 : pose === 'drag' ? 0.8 : 0)) * 2) / 2, drip = Math.floor(t / 6) % 4;
+  // (half of him in its jaws reaches well out past its nose)
+  const half = o.carry === 'top' || o.carry === 'legs';
   c.save(); c.translate(Math.round(x), Math.round(feetY)); c.scale(facing < 0 ? -1 : 1, 1);
-  stamp(c, `fr-lion-${pose}-${fr}-${bloody}-${bloody ? drip : 0}-${o.carry ?? ''}-${o.hurt ? 1 : 0}`, -100, -74, 176, 92, g => paintLion(g, pose, fr, n, bloody, drip, o.carry ?? null, !!o.hurt));
+  stamp(c, `fr-lion-${pose}-${fr}-${bloody}-${bloody ? drip : 0}-${o.carry ?? ''}-${o.hurt ? 1 : 0}`, -100, -84, half ? 220 : 176, half ? 106 : 102, g => paintLion(g, pose, fr, n, bloody, drip, o.carry ?? null, !!o.hurt));
   c.restore();
+};
+
+/** How the cat's carried for a pose at phase `ph`: crouched down by `low`, bobbing, tipped `tilt`; the head's middle and
+ *  its angle; the jaws open. */
+const lionRig = (pose: LionPose, ph: number) => {
+  const air = pose === 'pounce', dead = pose === 'dead';
+  const low = pose === 'maul' ? 9 : pose === 'crouch' ? 7 : pose === 'drag' ? 3 : pose === 'tug' ? TUG_LOW : 0;
+  const bob = pose === 'run' ? Math.abs(Math.sin(ph)) * -4 : pose === 'maul' ? Math.sin(ph) * 1.6 : 0;
+  const tilt = air ? -0.12 : pose === 'maul' ? 0.08 + Math.sin(ph + 1) * 0.04 : pose === 'drag' ? 0.06 : pose === 'run' ? Math.sin(ph) * 0.04 : pose === 'tug' ? TUG_TILT : 0;
+  // (the tug: its head wrenched back and shaken, a beat at a time)
+  const jerk = (1 - Math.cos(ph)) * 2.6;
+  const hp = pose === 'maul' ? { x: 36, y: -14 + Math.sin(ph) * 3, a: 0.5 + Math.sin(ph + 0.8) * 0.15 } : pose === 'drag' ? { x: 34, y: -30, a: 0.15 } : pose === 'crouch' ? { x: 34, y: -30, a: 0.05 }
+    : pose === 'tug' ? { x: 38 - jerk, y: -41 + Math.sin(ph) * 1.2, a: 0.5 - jerk * 0.03 } : dead ? { x: 36, y: -38, a: -0.35 } : air ? { x: 36, y: -44, a: -0.15 } : { x: 34, y: -42 + Math.sin(ph) * 1.5, a: 0 };
+  const open = pose === 'pounce' ? 1 : pose === 'maul' ? 0.6 + Math.sin(ph) * 0.4 : pose === 'crouch' ? 0.5 : dead ? 0.55 : pose === 'drag' ? 0.35 : pose === 'tug' ? 0.3 : 0.2;
+  return { low, bob, tilt, hp, open };
+};
+const TUG_LOW = 3, TUG_TILT = -0.08;
+/** Where its jaws close (in its head's frame). */
+const LION_BITE = { x: 9, y: 2.6 };
+/** Where the cat's jaws are, at (0, 0) its feet, facing right (mirror x for facing left): what it's got hold of goes
+ *  there. */
+export const lionJaw = (pose: LionPose, t: number): { x: number; y: number } => {
+  const { fr, n } = lionFrame(pose, t), r = lionRig(pose, (fr / n) * Math.PI * 2);
+  const ca = Math.cos(r.hp.a), sa = Math.sin(r.hp.a);
+  const px0 = r.hp.x + LION_BITE.x * ca - LION_BITE.y * sa, py0 = r.hp.y + LION_BITE.x * sa + LION_BITE.y * ca;
+  const ct = Math.cos(r.tilt), st = Math.sin(r.tilt);
+  return { x: px0 * ct - py0 * st, y: px0 * st + py0 * ct + r.bob + r.low };
 };
 
 /** The legs by pose: [hip/shoulder x, y, joint x, y, paw x, y] each. */
@@ -94,6 +137,13 @@ const lionLegs = (pose: LionPose, g: number, t: number) => {
       farBack: [-32, -24, -40, -12, -32, 0], nearBack: [-28, -22, -36, -10, -26, 0],
       farFront: [18, -26, 30 + k, -16, 40 + k, -6], nearFront: [20, -24, 34 - k, -12, 46 - k, -4],
     };
+  }
+  if (pose === 'tug') {
+    // (braced: the hind legs folded under the haunch, the forelegs dug in out front; each paw put down on the ground
+    // under the tilt, the joints from limb.ts)
+    const gy = (x: number) => (-TUG_LOW - x * Math.sin(TUG_TILT)) / Math.cos(TUG_TILT);
+    const leg = (sx: number, sy: number, fx: number, a: number, b: number) => { const fy = gy(fx); const [jx, jy] = elbow(sx, sy, fx, fy, a, b, 1); return [sx, sy, jx, jy, fx, fy]; };
+    return { farBack: leg(-32, -24, -26, 14, 14), nearBack: leg(-28, -22, -20, 14, 14), farFront: leg(18, -26, 42, 17, 17), nearFront: leg(20, -24, 48, 17, 17) };
   }
   if (pose === 'drag') {
     const k = Math.sin(g);
@@ -163,16 +213,38 @@ const carried = (c: Ctx, what: 'arm' | 'leg' | 'cap', t: number) => {
 // ---------------------------------------------------------------------------------------------------------------
 // The grizzly: about 150 long on all fours, 80 at the hump; reared up, 170 tall. (x, feetY) facing right
 
-export type BearPose = 'run' | 'rear' | 'maul' | 'walk' | 'stand';
+/** ('tug': the standard death's last of it: a forepaw pinning him down by the chest, its jaws clamped on his head,
+ *  hauling it up and back off him a wrench at a time (`pull`: 0 .. BEAR_TUG_STEPS - 1) till it comes away) */
+export type BearPose = 'run' | 'rear' | 'maul' | 'walk' | 'stand' | 'tug';
+/** What the bear's got in its jaws walking off: a bit of him, or (the standard death) his head. */
+export type BearCarry = 'leg' | 'arm' | 'head';
+export const BEAR_TUG_STEPS = 8;
+/** Where the tug's forepaw comes down (on his chest), at (0, 0) the bear's feet, facing right. */
+export const BEAR_TUG_PIN = { x: 56, y: -30 };
 
-export const drawGrizzly = (c: Ctx, x: number, feetY: number, facing: number, t: number, pose: BearPose, o: { carry?: 'leg' | 'arm' | null; bloody?: number } = {}) => {
+export const drawGrizzly = (c: Ctx, x: number, feetY: number, facing: number, t: number, pose: BearPose, o: { carry?: BearCarry | null; bloody?: number; pull?: number } = {}) => {
   const per = pose === 'run' ? 0.3 : pose === 'walk' ? 0.14 : pose === 'maul' ? 0.7 : pose === 'rear' ? 0.2 : 0;
-  const n = pose === 'stand' ? 1 : pose === 'rear' ? 6 : 8;
+  const n = pose === 'stand' || pose === 'tug' ? 1 : pose === 'rear' ? 6 : 8;
   const fr = per ? Math.floor(((((t * per) / (Math.PI * 2)) % 1 + 1) % 1) * n) : 0;
-  const bloody = Math.round((o.bloody ?? (pose === 'maul' ? 1 : 0)) * 2) / 2, drip = Math.floor(t / 5) % 4;
+  const bloody = Math.round((o.bloody ?? (pose === 'maul' || pose === 'tug' ? 1 : 0)) * 2) / 2, drip = Math.floor(t / 5) % 4;
+  const pull = pose === 'tug' ? Math.max(0, Math.min(BEAR_TUG_STEPS - 1, Math.round(o.pull ?? 0))) : 0;
   c.save(); c.translate(Math.round(x), Math.round(feetY)); c.scale(facing < 0 ? -1 : 1, 1);
-  stamp(c, `fr-griz-${pose}-${fr}-${bloody}-${bloody ? drip : 0}-${o.carry ?? ''}`, -96, -204, 212, 222, g => paintGrizzly(g, pose, fr, n, bloody, drip, o.carry ?? null));
+  stamp(c, `fr-griz-${pose}-${fr}-${bloody}-${bloody ? drip : 0}-${o.carry ?? ''}-${pull}`, -96, -204, 212, 222, g => paintGrizzly(g, pose, fr, n, bloody, drip, o.carry ?? null, pull));
   c.restore();
+};
+
+/** The tug's head (its middle, its angle) at wrench `step`: down on his head at first, hauled up and back by the end. */
+const bearTugHead = (step: number) => {
+  const k = step / (BEAR_TUG_STEPS - 1), e = 1 - (1 - k) * (1 - k) * 0.4 - 0.6 * (1 - k);
+  return { x: 83 + (64 - 83) * e, y: -30 + (-100 + 30) * e, a: 0.6 + (-0.3 - 0.6) * e };
+};
+/** Where its jaws close, in its head's frame. */
+const BEAR_BITE = { x: 15, y: 5 };
+/** Where the bear's jaws are (its feet at (0, 0), facing right): the tug's at wrench `step`, the walk's. */
+export const bearJaw = (pose: 'tug' | 'walk', step = 0): { x: number; y: number } => {
+  const hp = pose === 'tug' ? bearTugHead(step) : { x: 58, y: -50, a: 0.15 };
+  const ca = Math.cos(hp.a), sa = Math.sin(hp.a);
+  return { x: hp.x + BEAR_BITE.x * ca - BEAR_BITE.y * sa, y: hp.y + BEAR_BITE.x * sa + BEAR_BITE.y * ca };
 };
 
 /** The bear's head in its own frame: the broad dished face, the small round ears, the long muzzle (paler), the black
@@ -361,22 +433,21 @@ const catHead = (c: Ctx, open: number, bloody: number, md: 'ok' | 'hurt' | 'dead
 };
 
 /** The cougar, painted (feet at the origin, facing right; `fr` of `n` the cycle's frame). */
-const paintLion = (c: Ctx, pose: LionPose, fr: number, n: number, bloody: number, drip: number, carry: 'arm' | 'leg' | 'cap' | null, hurt: boolean) => {
+const paintLion = (c: Ctx, pose: LionPose, fr: number, n: number, bloody: number, drip: number, carry: LionCarry | null, hurt: boolean) => {
   const ph = (fr / n) * Math.PI * 2, dead = pose === 'dead';
   c.save();
   // (dead: turned over onto its back, its back on the ground, its paws in the air)
   if (dead) { c.translate(0, -50); c.scale(1, -1); }
-  const air = pose === 'pounce', low = pose === 'maul' ? 9 : pose === 'crouch' ? 7 : pose === 'drag' ? 3 : 0;
-  const bob = pose === 'run' ? Math.abs(Math.sin(ph)) * -4 : pose === 'maul' ? Math.sin(ph) * 1.6 : 0;
-  const tilt = air ? -0.12 : pose === 'maul' ? 0.08 + Math.sin(ph + 1) * 0.04 : pose === 'drag' ? 0.06 : pose === 'run' ? Math.sin(ph) * 0.04 : 0;
+  const air = pose === 'pounce';
+  const { low, bob, tilt, hp, open } = lionRig(pose, ph);
   c.translate(0, bob + low); c.rotate(tilt);
   // ---- the tail: long, low, curling up at its black tip (swishing)
-  const sw = (dead ? 0 : Math.sin(ph) * (pose === 'maul' ? 7 : pose === 'run' ? 4 : 6)) + (air ? -10 : 0);
+  const sw = (dead ? 0 : Math.sin(ph) * (pose === 'maul' || pose === 'tug' ? 7 : pose === 'run' ? 4 : 6)) + (air ? -10 : 0);
   tail7(c, [-40, -32, -58, -26 + sw * 0.4, -72, -20 + sw, -80, -26 + sw * 1.3], 3.6, 2.6, CAT, CAT_DARK);
   // ---- the far legs (a step darker)
   const D: R7 = [CAT[1], CAT[2], CAT[3], CAT[4], CAT[5], CAT[5], CAT[6]];
   const L = lionLegs(pose, ph, ph / 0.8);
-  const clawsOut = air || pose === 'maul' || pose === 'crouch';
+  const clawsOut = air || pose === 'maul' || pose === 'crouch' || pose === 'tug';
   limb7(c, L.farBack, [8, 5], D, false, 4); limb7(c, L.farFront, [7, 4.6], D, clawsOut, 4);
   // ---- the body: deep chest, the waist tucked up, the haunch round
   const body = () => {
@@ -399,15 +470,19 @@ const paintLion = (c: Ctx, pose: LionPose, fr: number, n: number, bloody: number
   // ---- the near legs
   limb7(c, L.nearBack, [9, 5.4], CAT, false, 4.4); limb7(c, L.nearFront, [8, 5], CAT, clawsOut, 4.6);
   // ---- the neck and the head: low and forward; down tearing when mauling, the jaws on something when dragging
-  const hp = pose === 'maul' ? { x: 36, y: -14 + Math.sin(ph) * 3, a: 0.5 + Math.sin(ph + 0.8) * 0.15 } : pose === 'drag' ? { x: 34, y: -30, a: 0.15 } : pose === 'crouch' ? { x: 34, y: -30, a: 0.05 } : dead ? { x: 36, y: -38, a: -0.35 } : air ? { x: 36, y: -44, a: -0.15 } : { x: 34, y: -42 + Math.sin(ph) * 1.5, a: 0 };
   const neck = () => { c.moveTo(18, -44); c.quadraticCurveTo(hp.x - 6, hp.y - 10, hp.x, hp.y - 6); c.lineTo(hp.x + 2, hp.y + 6); c.quadraticCurveTo(hp.x - 8, hp.y + 8, 20, -24); c.closePath(); };
   coat(c, neck, CAT, 16, hp.x + 4, Math.min(-44, hp.y - 10), -24, 1.1, 13);
   c.save(); c.beginPath(); neck(); c.clip(); ell(c, hp.x - 6, hp.y + 6, 7, 5, CAT_PALE[2]); ell(c, hp.x - 7, hp.y + 5, 5, 3, CAT_PALE[1]); c.restore();
-  const open = pose === 'pounce' ? 1 : pose === 'maul' ? 0.6 + Math.sin(ph) * 0.4 : pose === 'crouch' ? 0.5 : dead ? 0.55 : pose === 'drag' ? 0.35 : 0.2;
   c.save(); c.translate(hp.x, hp.y); c.rotate(hp.a);
   catHead(c, open, bloody, dead ? 'dead' : hurt ? 'hurt' : 'ok', drip);
-  // (what it's carrying off: a piece of him)
-  if (carry) carried(c, carry, ph * 5);
+  // (what it's carrying off: a piece of him; or the half of him it won, held up level by the jaws (the torn end out
+  // front, sagging), dragged backing off)
+  if (carry === 'top' || carry === 'legs') {
+    c.save(); c.translate(LION_BITE.x, LION_BITE.y); c.rotate(-hp.a - tilt + 0.22 + Math.sin(ph) * 0.03);
+    if (carry === 'legs') c.scale(-1, 1);
+    drawTuckerHalf(c, carry, 'out');
+    c.restore();
+  } else if (carry) carried(c, carry, ph * 5);
   c.restore();
   c.restore();
 };
@@ -449,7 +524,7 @@ const bearFace = (c: Ctx, open: number, bloody: number, drip: number) => {
 };
 
 /** The grizzly, painted (feet at the origin, facing right; `fr` of `n` the cycle's frame). */
-const paintGrizzly = (c: Ctx, pose: BearPose, fr: number, n: number, bloody: number, drip: number, carry: 'leg' | 'arm' | null) => {
+const paintGrizzly = (c: Ctx, pose: BearPose, fr: number, n: number, bloody: number, drip: number, carry: BearCarry | null, pull = 0) => {
   const ph = (fr / n) * Math.PI * 2;
   const D: R7 = [BEAR[1], BEAR[2], BEAR[3], BEAR[4], BEAR[5], BEAR[5], BEAR[6]];
   c.save();
@@ -476,14 +551,26 @@ const paintGrizzly = (c: Ctx, pose: BearPose, fr: number, n: number, bloody: num
     c.restore();
     return;
   }
-  const st = pose === 'stand', run = pose === 'run';
+  const tug = pose === 'tug', st = pose === 'stand' || tug, run = pose === 'run';
   const low = pose === 'maul' ? 10 : 0, bob = run ? -Math.abs(Math.sin(ph)) * 5 : pose === 'maul' ? Math.sin(ph) * 2 : 0;
   c.translate(0, bob + low);
-  c.rotate(pose === 'maul' ? 0.1 + Math.sin(ph + 0.6) * 0.05 : st ? 0 : Math.sin(ph) * 0.03);
+  // (the tug: reared back about its hind feet as it hauls, more each wrench; the forepaw and the head put where they go
+  // unrotated, after)
+  const tk = pull / (BEAR_TUG_STEPS - 1), tr = tug ? -0.2 * tk : 0, PIV = -46;
+  /** A point of the body, rotated as the tug's rearing has it (into the unrotated frame), and back. */
+  const T = (x: number, y: number): [number, number] => { const ca = Math.cos(tr), sa = Math.sin(tr); return [PIV + (x - PIV) * ca - y * sa, (x - PIV) * sa + y * ca]; };
+  const Ti = (x: number, y: number): [number, number] => { const ca = Math.cos(-tr), sa = Math.sin(-tr); return [PIV + (x - PIV) * ca - y * sa, (x - PIV) * sa + y * ca]; };
+  c.save();
+  if (tug) { c.translate(PIV, 0); c.rotate(tr); c.translate(-PIV, 0); }
+  else c.rotate(pose === 'maul' ? 0.1 + Math.sin(ph + 0.6) * 0.05 : st ? 0 : Math.sin(ph) * 0.03);
   const k = st ? 0 : Math.sin(ph), k2 = st ? 0 : Math.sin(ph + 1.4), mp = Math.sin(ph + 0.3);
   // ---- the far legs
   limb7(c, [-46, -46, -52 - k * 8, -24, -50 - k * 14, -1], [20, 14], D, false, 8, 4, 4);
-  limb7(c, pose === 'maul' ? [30, -50, 50, -40, 66, -18] : [30, -52, 34 + k2 * 8, -26, 34 + k2 * 14, -1], [20, 14], D, true, 8, 6, 4);
+  if (tug) {
+    // (its far forepaw planted out front on the ground, braced: the elbow off limb.ts)
+    const [fx, fy] = Ti(40, -1), [ex, ey] = elbow(30, -52, fx, fy, 27, 25, 1);
+    limb7(c, [30, -52, ex, ey, fx, fy], [20, 14], D, true, 8, 6, 4);
+  } else limb7(c, pose === 'maul' ? [30, -50, 50, -40, 66, -18] : [30, -52, 34 + k2 * 8, -26, 34 + k2 * 14, -1], [20, 14], D, true, 8, 6, 4);
   // ---- the body: the great hump over the shoulders, the back sloping to the rump; shaggy
   const body = () => {
     c.moveTo(44, -60); c.quadraticCurveTo(26, -96, 2, -84); c.quadraticCurveTo(-30, -80, -54, -70);
@@ -504,16 +591,33 @@ const paintGrizzly = (c: Ctx, pose: BearPose, fr: number, n: number, bloody: num
   ticks(c, -56, 40, x => (x > 2 ? -86 + (x - 2) * 0.6 : -84 + (2 - x) * 0.25), 8, BEAR_TIP, 19);
   // ---- the near legs
   limb7(c, [-40, -44, -44 + k * 9, -22, -42 + k * 16, 0], [22, 15], BEAR, false, 8.6, 4, 4);
-  limb7(c, pose === 'maul' ? [34, -46, 56, -30 + mp * 8, 74, -10 + mp * 10] : [34, -48, 38 - k2 * 9, -24, 38 - k2 * 16, 0], [22, 15], BEAR, true, 8.6, 6, 4);
-  // ---- the head: low and forward on the thick neck (down tearing when mauling; a leg of his in its jaws walking off)
-  const hp = pose === 'maul' ? { x: 62, y: -20 + Math.sin(ph) * 5, a: 0.6 + Math.sin(ph + 1) * 0.2 } : pose === 'walk' ? { x: 58, y: -50, a: 0.15 } : { x: 60, y: -56 + (run ? Math.sin(ph) * 3 : 0), a: 0.05 };
-  const neck = () => { c.moveTo(36, -74); c.quadraticCurveTo(hp.x - 6, hp.y - 18, hp.x, hp.y - 10); c.lineTo(hp.x + 2, hp.y + 10); c.quadraticCurveTo(hp.x - 10, hp.y + 14, 40, -34); c.closePath(); };
-  coat(c, neck, BEAR, 34, hp.x + 4, Math.min(-74, hp.y - 18), -34, 1.2, 43);
-  shag(c, qpts(40, -34, hp.x - 10, hp.y + 14, hp.x + 2, hp.y + 10, 5), 1, 3.4, BEAR, 3, 23);
+  if (!tug) limb7(c, pose === 'maul' ? [34, -46, 56, -30 + mp * 8, 74, -10 + mp * 10] : [34, -48, 38 - k2 * 9, -24, 38 - k2 * 16, 0], [22, 15], BEAR, true, 8.6, 6, 4);
+  // (the rest of it in the body's frame as before; the tug's unrotated)
+  if (tug) c.restore();
+  // ---- the tug's near forepaw, pinning him down by the chest, claws in (the shoulder where the rearing's put it; the
+  // elbow off limb.ts)
+  if (tug) {
+    const [sx, sy] = T(34, -48), [ex, ey] = elbow(sx, sy, BEAR_TUG_PIN.x, BEAR_TUG_PIN.y, 30, 28, 1);
+    limb7(c, [sx, sy, ex, ey, BEAR_TUG_PIN.x, BEAR_TUG_PIN.y], [22, 15], BEAR, true, 8.6, 6, 4);
+  }
+  // ---- the head: low and forward on the thick neck (down tearing when mauling; a leg of his in its jaws walking off;
+  // the tug: clamped on his head, hauled up and back)
+  const hp = tug ? bearTugHead(pull) : pose === 'maul' ? { x: 62, y: -20 + Math.sin(ph) * 5, a: 0.6 + Math.sin(ph + 1) * 0.2 } : pose === 'walk' ? { x: 58, y: -50, a: 0.15 } : { x: 60, y: -56 + (run ? Math.sin(ph) * 3 : 0), a: 0.05 };
+  const [n1x, n1y] = T(36, -74), [n2x, n2y] = T(40, -34);
+  const neck = () => { c.moveTo(n1x, n1y); c.quadraticCurveTo(hp.x - 6, hp.y - 18, hp.x, hp.y - 10); c.lineTo(hp.x + 2, hp.y + 10); c.quadraticCurveTo(hp.x - 10, hp.y + 14, n2x, n2y); c.closePath(); };
+  coat(c, neck, BEAR, Math.min(n1x, n2x) - 2, hp.x + 4, Math.min(n1y, hp.y - 18), tug ? Math.max(n2y, hp.y + 14) : -34, 1.2, 43);
+  shag(c, qpts(n2x, n2y, hp.x - 10, hp.y + 14, hp.x + 2, hp.y + 10, 5), 1, 3.4, BEAR, 3, 23);
   c.save(); c.translate(hp.x, hp.y); c.rotate(hp.a);
-  bearFace(c, pose === 'maul' ? 0.6 + Math.sin(ph) * 0.4 : run ? 0.5 : pose === 'walk' ? 0.3 : 0.1, bloody, drip);
-  if (carry) { c.save(); c.translate(6, 4); c.scale(1.4, 1.4); carried(c, carry, ph * 5); c.restore(); }
+  // (his head walked off with: hung by the crown in its jaws, behind its muzzle, the torn neck dangling under it)
+  if (carry === 'head') {
+    c.save(); c.translate(BEAR_BITE.x, BEAR_BITE.y); c.rotate(-hp.a + Math.sin(ph) * 0.12);
+    drawTuckerHeadHeld(c, 0, 0, 1, 0.1, 'out', true);
+    c.restore();
+  }
+  bearFace(c, tug ? 0.35 : pose === 'maul' ? 0.6 + Math.sin(ph) * 0.4 : run ? 0.5 : pose === 'walk' ? 0.3 : 0.1, bloody, drip);
+  if (carry && carry !== 'head') { c.save(); c.translate(6, 4); c.scale(1.4, 1.4); carried(c, carry, ph * 5); c.restore(); }
   c.restore();
+  if (!tug) c.restore();
   c.restore();
 };
 

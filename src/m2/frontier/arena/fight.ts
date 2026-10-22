@@ -29,11 +29,15 @@
 //   HURTING HIM The ray gun and Meathead's moves at Meathead 1's boss values; anything else 35%; the 60-frame breather.
 //
 // Two deaths (the land bosses' rule): the weakness (the lions' mauling the last thing to hurt him): THE SLOW-MO KILL
-// (the kill cam, slowed: the close-up of them at his throat and his split crown, then him torn in two between them in
-// the glade, then dragged off into the trees half each, his cap left spinning). Any other way: he falls over, apparently
-// dead; Meathead walks up; he pops up AAHHH (his jumpscare); gloating, he can't see the GRIZZLY come up behind him; the
-// close-up of its mauling (the mutilation rule); then chunks of him everywhere, the bear off with a leg. Both cutscenes
-// (no HUD, no controls; SKIP >> all of it).
+// (the kill cam, slowed: the close-up of them at his throat and his split crown, then a TUG OF WAR: one cat's jaws in
+// his chest, the other's in his shins, each wrenching back in turn, him stretched long at the waist (the cloth, then his
+// belly skin, splitting, then raw meat necking thin) till he tears in two with a burst; each backs off into the trees with
+// its half, his cap left spinning). Any other way: he falls over, apparently dead; Meathead walks up; he pops up AAHHH
+// (his jumpscare); gloating, he can't see the GRIZZLY come up behind him; the close-up of its mauling (the mutilation
+// rule); then pushed in on it pinning him by the chest and hauling his head up off him by its jaws a wrench at a time,
+// his neck stretched out of his collar (skin, splitting, the raw strap muscles and windpipe) till the head comes away in
+// a spray; the body slumps, the stump pumping; the bear walks off with his head. Both cutscenes (no HUD, no controls;
+// SKIP >> all of it). The pieces of him: gore.ts (sprites, stretched; never repainted a frame).
 
 import type { GameState } from '../../../m1/game/core/state';
 import type { FrameContext } from '../../../m1/game/core/context';
@@ -55,7 +59,8 @@ import { TUCKER_VOICE, type ByPants } from '../talk';
 import { mix, INK, type Ctx } from '../kit';
 import { pixelBlob, checker } from '../../../m1/game/render/pixelArt';
 import { drawTucker, drawTuckerCloseup, drawTuckerCap, tuckerMuzzle, TUCKER_H, type TuckerPose, type TuckerFace, type TuckerWounds } from '../tucker';
-import { drawLion, drawGrizzly, type LionPose, type BearPose } from './beasts';
+import { drawLion, drawGrizzly, lionJaw, bearJaw, BEAR_TUG_STEPS, type LionPose, type BearPose, type LionCarry } from './beasts';
+import { drawTugged, drawTuckerHalf, halfEnd, drawStrand, drawNeckStump, drawHeadlessBody, drawBodyForNeck, drawStretchedNeck, drawTuckerHeadAt, BITE_TOP, BITE_LEGS, COLLAR, HEAD_CROWN, HEAD_SOCKET } from './gore';
 import { kindOf, GROUND_CRITTERS, FLYING_CRITTERS, critterSpeed, isCritter, isLion, LION_KIND, type Critter } from './critters';
 import { GY, ARENA_L, ARENA_R, ROCK_X, ROCK_HW, ROCK_H, LION_FROM_L, LION_FROM_R } from './layout';
 import { WOUNDS_SPLIT } from './cast';
@@ -106,15 +111,20 @@ type Act = 'listen' | 'cock' | 'aim' | 'pan' | 'recoil' | 'reload' | 'bloody' | 
 interface Shot { x: number; y: number; vx: number; vy: number; life: number }
 interface Queued { at: number; c: Critter; dir: 1 | -1; y: number; sp: number }
 interface Swarm { x: number; y: number; t: number; cd: number; off: number; gone: number }
-interface Lion { x: number; y: number; vx: number; vy: number; dir: 1 | -1; mode: 'wait' | 'run' | 'pounce' | 'maul' | 'drag' | 'gone'; t: number; wait: number; side: number; carry: 'arm' | 'leg' | 'cap' | null }
+interface Lion { x: number; y: number; vx: number; vy: number; dir: 1 | -1; mode: 'wait' | 'run' | 'pounce' | 'maul' | 'tug' | 'drag' | 'gone'; t: number; wait: number; side: number; carry: LionCarry | null }
 interface Death {
   how: 'lions' | 'grizzly'; t: number; step: string; at: number; done: boolean;
   /** His last say's been said (the grizzly's: it's over once the bear's gone too). */
   said?: boolean;
-  /** The grizzly: where, which way, what it's doing. */
-  bx: number; bdir: 1 | -1; bear: BearPose | null;
+  /** The grizzly: where, which way, what it's doing; its wrench on his head (the tug: 0 .. BEAR_TUG_STEPS - 1). */
+  bx: number; bdir: 1 | -1; bear: BearPose | null; pull: number;
+  /** Which way he's lying (flat on his back, his head that way's back: the grizzly's). */
+  lie: 1 | -1;
   /** Tucker's figure: where he's thrown (a hop), the halves of him (the lions' tear: how far apart, 0..1). */
   ty: number; tvy: number; tear: number;
+  /** The lions' tug of war: how far each cat's hauled back (left, right), the tug going (which side, its ticks), when
+   *  he came apart (-1: not yet). */
+  eL: number; eR: number; tugSide: number; tugT: number; snap: number;
   /** A close-up's k (0..1), the cap where it fell. */
   k: number; cap: { x: number; y: number; vx: number; vy: number; rot: number } | null;
 }
@@ -629,9 +639,17 @@ const tickLions = (ctx: FrameContext, f: Fight) => {
         if (l.t % 9 === 0) state.particles.push({ pos: { x: f.tx + (Math.random() - 0.5) * 40, y: GY - 10 - Math.random() * 20 }, vel: { x: (Math.random() - 0.5) * 4, y: -2 - Math.random() * 3 }, life: 30, color: Math.random() < 0.6 ? '#B91C1C' : '#7F1D1D', size: 2 + Math.random() * 3, grav: 0.3 });
         if (l.t % 16 === 0) playSound(Math.random() < 0.5 ? 'squish' : 'snort', 0.5, Math.random() * 6);
         break;
-      case 'drag':
-        l.x += l.dir * 3.4; l.y += (GY - l.y) * 0.3;
-        if (l.x < ARENA_L - 160 || l.x > ARENA_R + 160 || !inView(state, l.x, -140)) l.mode = 'gone';
+      case 'drag': {
+        // (half of him: backing off with it, slower, the torn end dripping)
+        const half = l.carry === 'top' || l.carry === 'legs';
+        l.x += l.dir * (half ? 2.3 : 3.4); l.y += (GY - l.y) * 0.3;
+        if (half && l.t % 5 === 0) state.particles.push({ pos: { x: l.x - l.dir * 70, y: GY - 16 }, vel: { x: (Math.random() - 0.5) * 1.2, y: 0.5 }, life: 26, color: l.t % 10 ? '#7F1D1D' : '#B91C1C', size: 2 + Math.random() * 2, grav: 0.3 });
+        if (l.x < ARENA_L - 160 || l.x > ARENA_R + 160 || !inView(state, l.x, half ? -200 : -140)) l.mode = 'gone';
+        break;
+      }
+      case 'tug':
+        // (placed by the kill (lionsKill): just the noise of it)
+        if (l.t % 20 === 0) playSound('snort', 0.4, 4 + Math.random() * 4);
         break;
     }
   }
@@ -756,7 +774,7 @@ const die = (ctx: FrameContext, f: Fight, lions: boolean) => {
   state.damageNumbers = [];
   p.inCutscene = true; p.vel.x = 0; p.isDucking = false;
   f.skipT = 0;
-  f.death = { how: lions ? 'lions' : 'grizzly', t: 0, step: lions ? 'close' : 'fall', at: 0, done: false, bx: 0, bdir: 1, bear: null, ty: GY, tvy: 0, tear: 0, k: 0, cap: null };
+  f.death = { how: lions ? 'lions' : 'grizzly', t: 0, step: lions ? 'close' : 'fall', at: 0, done: false, bx: 0, bdir: 1, bear: null, pull: 0, lie: f.facing, ty: GY, tvy: 0, tear: 0, eL: 0, eR: 0, tugSide: 0, tugT: 99, snap: -1, k: 0, cap: null };
   if (lions) {
     // (the kill cam: slowed, pushed in on them)
     f.cam = { t: 0, acc: 0, z: f.cam?.z ?? 1, zt: 2, top: 2, slow: 0.3 };
@@ -874,30 +892,77 @@ const grizzly = (ctx: FrameContext, f: Fight, d: Death): number => {
       if (t % 30 === 15) playSound('gush', 0.4, -4);
       if (t === 120) tuckerSays(f, L.TF_LAST_BEAR);
       if (d.k >= 1 && !f.talking) {
-        next(d, 'chunks');
-        // (wide: chunks of him everywhere)
-        for (let i = 0; i < 70; i++) {
-          const a = -Math.PI / 2 + (Math.random() - 0.5) * 2.6, sp = 4 + Math.random() * 10;
-          state.particles.push({ pos: { x: f.tx + (Math.random() - 0.5) * 30, y: GY - 20 - Math.random() * 30 }, vel: { x: Math.cos(a) * sp, y: Math.sin(a) * sp }, life: 60 + Math.random() * 60, color: ['#DC2626', '#B91C1C', '#7F1D1D', '#F4C2B0', '#36467E', '#982F35', '#F5F5F4'][i % 7], size: 3 + Math.random() * 5, grav: 0.35, chunk: i % 3 === 0 });
-        }
-        ctx.fx.spawnDeathShower({ x: f.tx, y: GY - 30 }, d.bdir, 2.6, false, 90);
-        playSound('gorespray', 1, -4); playSound('crunch', 1, -8); shakeScreen(state, 14, 7);
-        d.cap = { x: f.tx, y: GY - 80, vx: -d.bdir * 3, vy: -8, rot: 0 };
+        // (wide again, pushed in: flat on his back under it, a forepaw pinning his chest, its jaws on his head)
+        next(d, 'neck');
+        d.lie = (-d.bdir) as 1 | -1; d.bear = 'tug'; d.pull = 0; d.bx = f.tx - BEAR_AT * d.bdir;
+        f.cam = { t: 0, acc: 0, z: f.cam?.z ?? 1, zt: NECK_ZOOM, top: NECK_ZOOM, slow: 1 };
+        playSound('crunch', 1, -6); playSound('roar', 0.7, -10); shakeScreen(state, 8, 4);
+        d.cap = { x: f.tx + d.bdir * 60, y: GY - 30, vx: d.bdir * 2.6, vy: -6, rot: 0 };
       }
       break;
-    case 'chunks':
-      // (the bear off the way it came with the leg, gone once it's off the view (whichever edge); it's over when he's
-      // had his say and the bear's gone: it never hangs about on screen into the VICTORY (the playtest))
-      if (t === 70) { d.bear = 'walk'; d.bdir = (-d.bdir) as 1 | -1; }
-      if (d.bear === 'walk' && t > 70) {
+    case 'neck': {
+      // (the head hauled up off him a wrench at a time, his neck drawn out longer and thinner each one: the skin, the
+      // skin splitting, the raw meat of it; a beat of it quivering at full stretch; then it comes away)
+      const at = NECK_TUGS.indexOf(t);
+      if (at >= 0) {
+        d.pull = Math.min(BEAR_TUG_STEPS - 1, at + 1);
+        playSound('squish', 1, -6 + at); playSound('crunch', 0.5 + at * 0.07, -12 + at * 2); shakeScreen(state, 3 + at, 3);
+        if (at === 1 || at === 4) playSound('screams', 0.5, 4 + at);
+        if (at >= 3) { const g = neckOf(f, d); for (let i = 0; i < 3; i++) state.particles.push({ pos: { x: (g.colX + g.sockX) / 2 + (Math.random() - 0.5) * 6, y: (g.colY + g.sockY) / 2 }, vel: { x: (Math.random() - 0.5) * 2, y: -1 - Math.random() * 2 }, life: 34, color: i % 2 ? '#B91C1C' : '#7F1D1D', size: 2 + Math.random() * 2, grav: 0.3 }); }
+      }
+      if (t > NECK_TUGS[NECK_TUGS.length - 1] && t % 7 === 0) playSound('squish', 0.35, 10);
+      if (t === 2) playSound('screams', 0.7, 0);
+      if (t >= NECK_POP) {
+        // (it comes away: a spray off the stump, the bear's head jerked back with his in its jaws)
+        const g = neckOf(f, d);
+        next(d, 'chunks');
+        playSound('gorespray', 1, -2); playSound('crunch', 1.2, -12); playSound('splat', 1, -4); shakeScreen(state, 14, 7);
+        ctx.fx.spawnDeathShower({ x: g.colX, y: g.colY - 6 }, d.bdir, 0.5, false, 50);
+        for (let i = 0; i < 22; i++) {
+          const a = -Math.PI / 2 + d.bdir * 0.5 + (Math.random() - 0.5) * 1.4, sp = 3 + Math.random() * 6;
+          state.particles.push({ pos: { x: g.colX, y: g.colY - 4 }, vel: { x: Math.cos(a) * sp, y: Math.sin(a) * sp }, life: 40 + Math.random() * 30, color: ['#DC2626', '#B91C1C', '#7F1D1D', '#F4C2B0'][i % 4], size: 2 + Math.random() * 3, grav: 0.32, chunk: i % 5 === 0 });
+        }
+      }
+      break;
+    }
+    case 'chunks': {
+      // (his body slumped headless, the stump pumping in spurts, weaker each; the bear turns and walks off the way it
+      // came with his head, gone once it's off the view (whichever edge); it's over when Meathead's had his say and the
+      // bear's gone: it never hangs about on screen into the VICTORY (the playtest))
+      if (t < 72 && t % 8 === 0) {
+        const g = neckOf(f, d), n = Math.max(1, 4 - Math.floor(t / 20));
+        for (let i = 0; i < n; i++) state.particles.push({ pos: { x: g.colX + d.lie * -4, y: g.colY - 3 }, vel: { x: -d.lie * (1 + Math.random() * 2.4), y: -3 - Math.random() * (5 - t / 20) }, life: 40, color: i % 2 ? '#DC2626' : '#B91C1C', size: 2 + Math.random() * 2.4, grav: 0.32 });
+        if (t % 16 === 0) playSound('gush', 0.6 - t / 160, -2);
+      }
+      if (t === 40) { d.bear = 'walk'; d.bdir = (-d.bdir) as 1 | -1; if (f.cam) f.cam.zt = 1; }
+      if (d.bear === 'walk' && t > 40) {
         d.bx += d.bdir * 3.2;
+        if (t % 40 === 0) playSound('snort', 0.4, -4);
         if (d.bx < f.camX - 140 || d.bx > f.camX + CANVAS_WIDTH + 140) d.bear = null;
       }
-      if (t === 100) mhSays(state, L.MH_GRIZZLY, true, () => { d.said = true; });
-      if (d.said && !d.bear && t > 70) d.done = true;
+      if (t === 64) mhSays(state, L.MH_GRIZZLY, true, () => { d.said = true; });
+      if (d.said && !d.bear && t > 40) d.done = true;
       break;
+    }
   }
   return walk;
+};
+
+/** The grizzly's tug: where the bear stands from him (its feet behind his, so its forepaw lands on his chest), the
+ *  push-in, the wrenches (ticks into it) and when his head comes away. */
+const BEAR_AT = 26, NECK_ZOOM = 1.8, NECK_TUGS = [30, 52, 74, 96, 118, 140, 162], NECK_POP = 198;
+/** His head in the bear's jaws (its middle, its turn, which way it faces) and his neck's ends (out of his collar, under
+ *  his jaw), world, at the wrench the tug's at. The bear's frame faces right; his head's mirrored in it (he lies the
+ *  other way); hauled from lying face up to hung by the crown. */
+const neckOf = (f: Fight, d: Death) => {
+  const J = bearJaw('tug', d.pull), k = d.pull / (BEAR_TUG_STEPS - 1);
+  const rot = -Math.PI / 2 + (Math.PI / 2 - 0.15) * k, ca = Math.cos(rot), sa = Math.sin(rot);
+  const R = (p: { x: number; y: number }) => ({ x: -(p.x * ca - p.y * sa), y: p.x * sa + p.y * ca });
+  const cr = R(HEAD_CROWN), so = R(HEAD_SOCKET);
+  const cx = J.x - cr.x, cy = J.y - cr.y;
+  const W = (x: number, y: number) => ({ x: d.bx + d.bdir * x, y: GY + y });
+  const c = W(cx, cy), s = W(cx + so.x, cy + so.y);
+  return { cx: c.x, cy: c.y, rot, hf: -d.bdir, sockX: s.x, sockY: s.y, colX: f.tx + d.lie * COLLAR.x, colY: GY + COLLAR.y };
 };
 
 /** THE WEAKNESS KILL, slowed: the close-up of them at him; torn in two between them in the glade; dragged off. */
@@ -911,24 +976,58 @@ const lionsKill = (ctx: FrameContext, f: Fight, d: Death) => {
       if (t % 26 === 13) playSound('gush', 0.5, -8);
       if (d.k >= 1) {
         next(d, 'tear');
-        // (stood up between them for it: one at his shoulders, one at his legs)
+        // (up off the ground between them for it, flat out: one at his chest, the other at his shins; pulled back a
+        // touch, the slow motion eased so the tug plays out)
         f.lions = f.lions.slice(0, 2);
-        while (f.lions.length < 2) f.lions.push({ x: f.tx, y: GY, vx: 0, vy: 0, dir: 1, mode: 'maul', t: 0, wait: 0, side: f.lions.length ? 1 : -1, carry: null });
+        while (f.lions.length < 2) f.lions.push({ x: f.tx, y: GY, vx: 0, vy: 0, dir: 1, mode: 'tug', t: 0, wait: 0, side: f.lions.length ? 1 : -1, carry: null });
         f.lions[0].side = -1; f.lions[1].side = 1;
+        for (const l of f.lions) { l.mode = 'tug'; l.y = GY; l.carry = null; l.t = 0; }
+        d.eL = 0; d.eR = 0; d.tugT = 99; d.snap = -1; d.tear = 0;
+        if (f.cam) { f.cam.zt = TUG_ZOOM; f.cam.slow = TUG_SLOW; }
+        placeTug(f, d);
+        playSound('roar', 0.8, 2); playSound('screams', 0.6, 4);
       }
       break;
     case 'tear': {
-      // (pulled apart: the halves going their ways, the blood strung out between, bits hung in the air)
-      d.tear = Math.min(1, t / 70);
-      for (const l of f.lions) { l.mode = 'maul'; l.x = f.tx + l.side * (36 + d.tear * 70); }
-      if (t === 18) { playSound('gorespray', 1, -10); playSound('crunch', 1.2, -12); playSound('screams', 0.5, -10); shakeScreen(state, 14, 7); }
-      if (t >= 18 && t % 3 === 0) for (let i = 0; i < 4; i++) state.particles.push({ pos: { x: f.tx + (Math.random() - 0.5) * 60 * d.tear, y: GY - 40 - Math.random() * 20 }, vel: { x: (Math.random() - 0.5) * 5, y: -3 - Math.random() * 4 }, life: 50, color: ['#DC2626', '#B91C1C', '#7F1D1D', '#F4C2B0'][i % 4], size: 2 + Math.random() * 4, grav: 0.3, chunk: i === 3 });
-      if (t === 20) d.cap = { x: f.tx, y: GY - 96, vx: 2.4, vy: -7, rot: 0 };
-      if (t >= 80) {
-        next(d, 'drag');
-        if (f.cam) { f.cam.zt = 1; f.cam.slow = 1; }
-        f.lions[0].carry = 'arm'; f.lions[1].carry = 'leg';
-        for (const l of f.lions) { l.mode = 'drag'; l.dir = l.side < 0 ? -1 : 1; }
+      if (d.snap < 0) {
+        // (THE TUG OF WAR: each cat in turn wrenches back; he stretches at the waist, the cloth, then him, thinner each
+        // wrench, till he gives)
+        const at = LION_TUGS.indexOf(t);
+        if (at >= 0) {
+          d.tugSide = at % 2 ? 1 : -1; d.tugT = 0;
+          playSound('squish', 0.9, -4 + at); playSound('snort', 0.6, 2 + at); shakeScreen(state, 3 + at * 0.6, 3);
+          if (at === 2 || at === 5) playSound('screams', 0.5, 2 + at);
+        }
+        if (d.tugT < 6) { d.tugT++; if (d.tugSide < 0) d.eL += LION_WRENCH / 6; else d.eR += LION_WRENCH / 6; }
+        placeTug(f, d);
+        const E = d.eL + d.eR;
+        if (E > 22 && t % 4 === 0) for (let i = 0; i < 2; i++) state.particles.push({ pos: { x: f.tx + (d.eR - d.eL) / 2 + (Math.random() - 0.5) * E * 0.6, y: GY - 34 }, vel: { x: (Math.random() - 0.5) * 2, y: 0.5 + Math.random() }, life: 30, color: i ? '#7F1D1D' : '#B91C1C', size: 2 + Math.random() * 2, grav: 0.3 });
+        if (t >= LION_TUGS[LION_TUGS.length - 1] + 6) {
+          // (he gives: torn in two at the middle, a burst of him, the cap off spinning; slowed right down for it)
+          d.snap = t;
+          const mx = f.tx + (d.eR - d.eL) / 2;
+          playSound('gorespray', 1, -6); playSound('crunch', 1.2, -12); playSound('splat', 1, -6); playSound('screams', 0.5, -10); shakeScreen(state, 14, 7);
+          ctx.fx.spawnDeathShower({ x: mx, y: GY - 36 }, 0, 0.6, false, 60);
+          for (let i = 0; i < 26; i++) {
+            const a = -Math.PI / 2 + (Math.random() - 0.5) * 2.4, sp = 3 + Math.random() * 6;
+            state.particles.push({ pos: { x: mx + (Math.random() - 0.5) * 10, y: GY - 36 }, vel: { x: Math.cos(a) * sp, y: Math.sin(a) * sp }, life: 50 + Math.random() * 30, color: ['#DC2626', '#B91C1C', '#7F1D1D', '#F4C2B0', '#E8909C'][i % 5], size: 2 + Math.random() * 3.4, grav: 0.3, chunk: i % 4 === 0 });
+          }
+          d.cap = { x: f.tx - 50, y: GY - 60, vx: -2.4, vy: -7, rot: 0 };
+          if (f.cam) f.cam.slow = 0.3;
+        }
+      } else {
+        // (the halves: the cats stagger back with them, the strands of him snapping back, the gut strung between)
+        const q = t - d.snap;
+        d.tear = Math.min(1, q / 30);
+        if (q < 10) { d.eL += 2.6 * (1 - q / 10); d.eR += 2.6 * (1 - q / 10); }
+        placeTug(f, d);
+        if (q === 14) playSound('splat', 0.7, 4);
+        if (q >= 34) {
+          next(d, 'drag');
+          if (f.cam) { f.cam.zt = 1; f.cam.slow = 1; }
+          // (each backing off with its half, facing him: the near cat his top half, the far one his legs)
+          for (const l of f.lions) { l.mode = 'drag'; l.dir = l.side < 0 ? -1 : 1; l.carry = l.side < 0 ? 'top' : 'legs'; l.t = 0; l.x += l.side * 2; }
+        }
       }
       break;
     }
@@ -938,6 +1037,18 @@ const lionsKill = (ctx: FrameContext, f: Fight, d: Death) => {
       break;
   }
 };
+
+/** The tug of war: its push-in and slow motion (eased off from the close-up's), the wrenches (ticks into it: each cat in
+ *  turn), how far each wrench hauls. */
+const TUG_ZOOM = 1.6, TUG_SLOW = 0.55, LION_TUGS = [8, 20, 32, 44, 56, 68, 80], LION_WRENCH = 8.4;
+/** The tug's cats: each where its jaws are on him (whole: their bites his length apart), hauled back by however far it's
+ *  wrenched. */
+const TUG_JAW = lionJaw('tug', 0).x, TUG_REST = Math.hypot(BITE_LEGS.x - BITE_TOP.x, BITE_LEGS.y - BITE_TOP.y);
+const placeTug = (f: Fight, d: Death) => {
+  for (const l of f.lions) l.x = f.tx + l.side * (TUG_REST / 2 + (l.side < 0 ? d.eL : d.eR) + TUG_JAW);
+};
+/** Where a tugging cat's jaws are (world) at `t` (its own frame count, as drawn). */
+const tugJaw = (l: Lion, t: number) => { const j = lionJaw('tug', t); return { x: l.x - l.side * j.x, y: l.y + j.y }; };
 
 // ---------------------------------------------------------------------------------------------------------------
 // The kill cam (slowed: the lions) and the mauling's punch-in
@@ -1008,78 +1119,79 @@ const drawDead = (c: Ctx, f: Fight, fr: number) => {
       case 'gloat': drawTucker(c, f.tx, GY, f.facing, fr, 'point', { wounds: w, face: f.talking ? 'talk' : 'manic', talking: f.talking }); return;
       case 'swipe': drawTucker(c, f.tx, GY, f.facing, fr, 'grope', { wounds: w, face: 'shock' }); return;
       case 'close': drawTucker(c, f.tx, GY, f.facing, fr, 'mauled', { wounds: w, face: 'yell' }); return;
-      default: drawRemains(c, f.tx, fr); return;
+      case 'neck': {
+        // (flat on his back under it, headless but for the neck drawn up out of his collar to his head in its jaws)
+        const g = neckOf(f, d);
+        bloodPool(c, g.colX - d.lie * 6, 18 + d.pull * 3, 2.4);
+        drawBodyForNeck(c, f.tx, GY, d.lie);
+        drawStretchedNeck(c, g.colX, g.colY, g.sockX, g.sockY, fr);
+        drawTuckerHeadAt(c, g.cx, g.cy, g.hf, g.rot, d.pull >= BEAR_TUG_STEPS - 2 ? 'out' : 'yell');
+        return;
+      }
+      default: {
+        drawRemains(c, f, d, fr);
+        // (just come away: his head still up in its jaws, the torn neck dangling off it, before it turns to go)
+        if (d.step === 'chunks' && d.bear === 'tug') {
+          const g = neckOf(f, d), t = d.t - d.at;
+          drawNeckStump(c, g.sockX, g.sockY, Math.atan2(g.colY - g.sockY, g.colX - g.sockX) + Math.sin(t * 0.5) * 0.3 * Math.max(0, 1 - t / 30), 10, 8);
+          drawTuckerHeadAt(c, g.cx, g.cy, g.hf, g.rot, 'out');
+        }
+        return;
+      }
     }
   }
-  // (the lions: down under them; then torn in two between them; then gone with them)
+  // (the lions: down under them; then the tug of war (drawn over the cats: drawTugOfWar); then gone with them)
   if (d.step === 'close') { drawTucker(c, f.tx, GY, f.facing, fr, 'mauled', { wounds: w, face: 'yell' }); return; }
-  if (d.step === 'tear' || (d.step === 'over' && d.tear < 1)) {
-    const cut = GY - 40, k = d.tear, lift = Math.sin(Math.min(1, k * 1.4) * Math.PI) * 26;
-    // (the top half, up and away with the near cat; the legs the other way)
-    for (const half of [-1, 1] as const) {
-      c.save();
-      const dx = half * k * 70, dy = half < 0 ? -lift : -lift * 0.3, rot = half * k * 0.9;
-      c.translate(f.tx + dx, cut + dy); c.rotate(rot); c.translate(-f.tx, -cut);
-      c.beginPath(); if (half < 0) c.rect(f.tx - 80, cut - 200, 160, 200); else c.rect(f.tx - 80, cut, 160, 120); c.clip();
-      drawTucker(c, f.tx, GY, f.facing, fr, 'hurt', { wounds: w, face: 'yell' });
-      c.restore();
-      // (the torn edge: ragged meat in steps, a knob of spine, strings of gut)
-      c.save(); c.translate(f.tx + dx, cut + dy); c.rotate(rot);
-      const rag = (e: number) => { c.beginPath(); for (let i = 0; i <= 8; i++) c.lineTo(-14 + i * 3.5, ((i % 2 ? 3 : -3) - e * Math.sign(i % 2 ? 3 : -3)) * half); c.lineTo(14, 0); c.closePath(); };
-      rag(-1); c.fillStyle = '#3A0606'; c.fill();
-      rag(0); c.fillStyle = '#7F1D1D'; c.fill();
-      rag(1.4); c.fillStyle = '#B82828'; c.fill();
-      box(c, -4, -2.6, 8, 5.2, INK); box(c, -3, -2, 6, 4, '#E2DAC4'); box(c, -3, -2, 6, 1, '#FFFBF0'); box(c, -1, -1, 2, 2, '#9A2020');
-      c.restore();
-    }
-    // (the gut strung out between them, stepped: its line, its pink, a wet glint)
-    c.lineCap = 'round';
-    c.strokeStyle = '#5A1A24'; c.lineWidth = 4.4; c.beginPath(); c.moveTo(f.tx - k * 70, cut - lift); c.quadraticCurveTo(f.tx, cut + 20, f.tx + k * 70, cut - lift * 0.3); c.stroke();
-    c.strokeStyle = '#C86070'; c.lineWidth = 3; c.stroke();
-    c.strokeStyle = '#F0A8B8'; c.lineWidth = 1; c.beginPath(); c.moveTo(f.tx - k * 70, cut - lift - 0.8); c.quadraticCurveTo(f.tx, cut + 19, f.tx + k * 70, cut - lift * 0.3 - 0.8); c.stroke();
-    c.lineCap = 'butt';
-    return;
-  }
-  // (dragged off: nothing left but the blood where it happened)
-  bloodPool(c, f.tx, 46, 4);
+  // (the blood where it happened, spreading once he's given)
+  const k = d.step === 'tear' ? (d.snap < 0 ? 0.3 : 0.3 + 0.7 * d.tear) : 1;
+  bloodPool(c, f.tx + (d.eR - d.eL) / 2, 46 * k, 4 * Math.min(1, k + 0.3));
 };
 
-/** What the grizzly left: a blood pool, a leg (the pinstripe, the boot), ribs, the saw's blade, his spectacles, bits. */
-const drawRemains = (c: Ctx, x: number, fr: number) => {
-  bloodPool(c, x, 60, 5);
-  // (a leg, torn off at the thigh: the gray pinstripe in steps, the boot polished, the meat and the knob of bone)
-  c.save(); c.translate(x + 18, GY - 4); c.rotate(-0.1);
-  box(c, -1, -4.6, 29, 9.2, INK);
-  box(c, 0, -3.6, 27, 7.2, '#7A7A84'); box(c, 0, -3.6, 27, 2, '#9A9AA4'); box(c, 0, 2, 27, 1.6, '#5A5A64');
-  for (const py of [-2, 0.4, 2.4]) box(c, 0, py, 27, 0.6, '#4A4A54');
-  box(c, 8, -3.6, 1, 7.2, '#62626C');
-  box(c, 26, -4.6, 9, 10, INK); box(c, 27, -3.6, 7, 8, '#2E2E36'); box(c, 27, -3.6, 3, 2, '#6A6A78'); box(c, 26, 4, 12, 2.4, INK); box(c, 27, 4.4, 10, 1, '#3A3A44');
-  c.fillStyle = INK; c.beginPath(); c.ellipse(0, 0, 3.8, 5.2, 0, 0, Math.PI * 2); c.fill();
-  c.fillStyle = '#921616'; c.beginPath(); c.ellipse(0, 0, 3, 4.4, 0, 0, Math.PI * 2); c.fill();
-  c.fillStyle = '#C83A3A'; c.beginPath(); c.ellipse(-0.6, -1, 1.8, 2.4, 0, 0, Math.PI * 2); c.fill();
-  box(c, -2.6, -1.2, 3.6, 2.4, '#C8C0A8'); box(c, -2.6, -1.2, 3.6, 1, '#F5F0E6');
-  c.restore();
-  // (ribs: a rack of them, stepped bone, gristle red between)
-  box(c, x - 27, GY - 6, 20, 4, '#6E0E0E'); box(c, x - 26, GY - 6, 18, 1, '#B82020');
-  for (let i = 0; i < 4; i++) {
-    c.strokeStyle = INK; c.lineWidth = 2.6; c.beginPath(); c.arc(x - 22 + i * 5, GY - 2, 6, Math.PI * 1.1, Math.PI * 1.8); c.stroke();
-    c.strokeStyle = '#E2DAC4'; c.lineWidth = 1.4; c.stroke();
-    c.strokeStyle = '#FFFBF0'; c.lineWidth = 0.6; c.beginPath(); c.arc(x - 22 + i * 5, GY - 2.4, 6, Math.PI * 1.2, Math.PI * 1.5); c.stroke();
+/** The lions' tug of war, over the cats (their jaws on top of him): him stretched between them, then the halves. */
+const drawTugOfWar = (c: Ctx, f: Fight, d: Death, fr: number) => {
+  const lt = f.lions.find(l => l.side < 0), rt = f.lions.find(l => l.side > 0);
+  if (!lt || !rt) return;
+  const jl = tugJaw(lt, fr + lt.side * 13), jr = tugJaw(rt, fr + rt.side * 13);
+  if (d.snap < 0) {
+    drawTugged(c, jl, jr, 'yell', fr);
+  } else {
+    // (the halves, sagging at their torn ends; the strands of him snapping back into them; the gut strung between)
+    const q = d.tear, sag = 0.22 * Math.min(1, q * 3);
+    const end = (j: { x: number; y: number }, which: 'top' | 'legs', a: number) => { const e = halfEnd(which), ca = Math.cos(a), sa = Math.sin(a); return { x: j.x + e.x * ca - e.y * sa, y: j.y + e.x * sa + e.y * ca }; };
+    const et = end(jl, 'top', sag), el = end(jr, 'legs', -sag), mx = (et.x + el.x) / 2, my = (et.y + el.y) / 2;
+    if (q < 0.6) {
+      const g = 1 - q / 0.6;
+      c.lineCap = 'round';
+      c.strokeStyle = '#5A1A24'; c.lineWidth = 4.4; c.beginPath(); c.moveTo(et.x, et.y + 4); c.quadraticCurveTo(mx, my + 16 + (1 - g) * 20, el.x, el.y + 4); c.stroke();
+      c.strokeStyle = '#C86070'; c.lineWidth = 3; c.stroke();
+      c.strokeStyle = '#F0A8B8'; c.lineWidth = 1; c.beginPath(); c.moveTo(et.x, et.y + 3.2); c.quadraticCurveTo(mx, my + 15 + (1 - g) * 20, el.x, el.y + 3.2); c.stroke();
+      c.lineCap = 'butt';
+    }
+    if (q < 0.4) {
+      const g = 1 - q / 0.4;
+      drawStrand(c, et.x, et.y, et.x + (mx - et.x) * g * 0.9, et.y + (my - et.y) * g * 0.9 + (1 - g) * 6, 1 + 5 * g);
+      drawStrand(c, el.x, el.y, el.x + (mx - el.x) * g * 0.9, el.y + (my - el.y) * g * 0.9 + (1 - g) * 6, 1 + 5 * g);
+    }
+    c.save(); c.translate(jl.x, jl.y); c.rotate(sag); drawTuckerHalf(c, 'top', 'out'); c.restore();
+    c.save(); c.translate(jr.x, jr.y); c.rotate(-sag); drawTuckerHalf(c, 'legs', 'out'); c.restore();
   }
-  // (the saw's blade, flat in the leaves, its teeth, red to the hub)
-  c.fillStyle = INK; c.beginPath(); c.ellipse(x - 40, GY - 1, 11.6, 3.4, 0, 0, Math.PI * 2); c.fill();
-  c.fillStyle = '#8A8E96'; c.beginPath(); c.ellipse(x - 40, GY - 1.2, 10.4, 2.6, 0, 0, Math.PI * 2); c.fill();
-  c.fillStyle = '#C4C8D0'; c.beginPath(); c.ellipse(x - 42, GY - 2, 6, 1.2, 0, 0, Math.PI * 2); c.fill();
-  for (let i = 0; i < 9; i++) box(c, x - 51 + i * 2.6, GY - 4 + (i % 2), 1, 1, '#E8ECF0');
-  box(c, x - 41, GY - 2, 2, 1.4, '#3A3C42'); box(c, x - 47, GY - 2, 7, 1.4, '#7A1212'); box(c, x - 36, GY - 1, 5, 1, '#921616');
-  // (the spectacles, one lens gone, the other cracked)
-  c.strokeStyle = INK; c.lineWidth = 1.6; c.beginPath(); c.ellipse(x + 2, GY - 3, 2.6, 2.2, 0, 0, Math.PI * 2); c.stroke();
-  c.strokeStyle = '#B8902C'; c.lineWidth = 0.8; c.stroke();
-  c.beginPath(); c.moveTo(x + 4.6, GY - 3); c.lineTo(x + 8, GY - 4); c.moveTo(x - 0.6, GY - 3); c.lineTo(x - 4, GY - 2); c.stroke();
-  box(c, x + 1, GY - 4, 1, 1, '#E8F4FF'); box(c, x + 2, GY - 3, 1, 2, '#A8C4D8');
-  // (a slow curl of steam off it, stepped)
-  const s = (fr % 60) / 60, st = Math.floor(s * 4);
-  c.globalAlpha = [0.3, 0.24, 0.16, 0.08][st]; pixelBlob(c, Math.round(x - 4), Math.round(GY - 10 - s * 20), 3 + s * 5, 2.6 + s * 4, '#E7E5E4'); c.globalAlpha = 1;
+  // (their fangs sunk in him, blood welling round them)
+  for (const [j, dir] of [[jl, 1], [jr, -1]] as const) {
+    const x = Math.round(j.x), y = Math.round(j.y);
+    box(c, x - 3, y - 1, 7, 3, '#7F1D1D'); box(c, x - 2, y, 5, 1, '#B91C1C');
+    for (const o of [-2, 2]) { c.fillStyle = '#5A4A34'; c.beginPath(); c.moveTo(x + o * dir - 1.2, y - 1); c.lineTo(x + o * dir, y + 3.4); c.lineTo(x + o * dir + 1.2, y - 1); c.closePath(); c.fill(); c.fillStyle = '#FBF6E8'; c.beginPath(); c.moveTo(x + o * dir - 0.8, y - 1); c.lineTo(x + o * dir, y + 2.6); c.lineTo(x + o * dir + 0.8, y - 1); c.closePath(); c.fill(); }
+    if (((fr >> 3) + (dir > 0 ? 0 : 2)) % 4 === 0) box(c, x - 1, y + 3, 1, 2, '#B91C1C');
+  }
+};
+
+/** What the grizzly left: him flat on his back in a pool of his own blood, headless, the stump (twitching a while). */
+const drawRemains = (c: Ctx, f: Fight, d: Death, fr: number) => {
+  const t = d.step === 'chunks' ? d.t - d.at : 999, x = f.tx;
+  bloodPool(c, x + d.lie * COLLAR.x * 0.8, Math.min(60, 26 + t * 0.8), 5);
+  drawHeadlessBody(c, x, GY, d.lie, t < 60 ? Math.sin(t * 1.7) * 0.035 * (1 - t / 60) : 0);
+  // (a slow curl of steam off the stump, stepped)
+  const s = (fr % 60) / 60, st = Math.floor(s * 4), sx = x + d.lie * (COLLAR.x - 8);
+  c.globalAlpha = [0.3, 0.24, 0.16, 0.08][st]; pixelBlob(c, Math.round(sx), Math.round(GY - 22 - s * 20), 3 + s * 5, 2.6 + s * 4, '#E7E5E4'); c.globalAlpha = 1;
 };
 
 /** A pool of blood on the ground at x, `w` across: stepped rings (dark rim, the body, wet and glossy at its middle), a
@@ -1093,7 +1205,9 @@ const bloodPool = (c: Ctx, x: number, w: number, h: number) => {
   for (const [dx, dy] of [[-1.12, 2], [-1.04, -1], [1.08, 1], [1.16, 3], [0.6, 4]] as const) box(c, Math.round(x + dx * w), Math.round(GY + dy), 2, 1, '#5F0F0F');
 };
 
-const lionPose = (l: Lion): LionPose => (l.mode === 'pounce' ? 'pounce' : l.mode === 'maul' ? 'maul' : l.mode === 'drag' ? 'drag' : 'run');
+const lionPose = (l: Lion): LionPose => (l.mode === 'pounce' ? 'pounce' : l.mode === 'maul' ? 'maul' : l.mode === 'tug' ? 'tug' : l.mode === 'drag' ? 'drag' : 'run');
+/** Which way a cat's drawn: on him (mauling, tugging), toward him; backing off with half of him, still toward him. */
+const lionFacing = (l: Lion) => (l.mode === 'maul' || l.mode === 'tug' ? (l.side < 0 ? 1 : -1) : l.mode === 'drag' && (l.carry === 'top' || l.carry === 'legs') ? -l.dir : l.dir);
 
 /** World, behind Meathead: the smoke, Tucker, the cats on him, the grizzly, the balls, the aim's line, the bees. */
 export const drawFightBack = (c: Ctx, state: GameState, f: Fight) => {
@@ -1134,10 +1248,12 @@ export const drawFightBack = (c: Ctx, state: GameState, f: Fight) => {
     if (look.pose === 'sit') drawTuckerCap(c, f.tx - f.facing * 30, GY - 4, 0.4);
   }
   // ---- the cats
-  for (const l of f.lions) drawLion(c, l.x, l.y, l.mode === 'maul' ? (l.side < 0 ? 1 : -1) : l.mode === 'drag' ? l.dir : l.dir, fr + l.side * 13, lionPose(l), { carry: l.carry });
-  // ---- the grizzly
+  for (const l of f.lions) drawLion(c, l.x, l.y, lionFacing(l), fr + l.side * 13, lionPose(l), { carry: l.carry });
+  // ---- the lions' tug of war: him over them, their jaws in him
   const d = f.death;
-  if (d?.bear) drawGrizzly(c, d.bx, GY, d.bdir, fr, d.bear, { carry: d.step === 'chunks' && d.bear === 'walk' ? 'leg' : null, bloody: d.step === 'chunks' ? 1 : undefined });
+  if (d && d.how === 'lions' && d.step === 'tear') drawTugOfWar(c, f, d, fr);
+  // ---- the grizzly (his head in its jaws walking off)
+  if (d?.bear) drawGrizzly(c, d.bx, GY, d.bdir, fr, d.bear, { carry: d.step === 'chunks' && d.bear === 'walk' ? 'head' : null, bloody: d.step === 'chunks' ? 1 : undefined, pull: d.pull });
   if (d?.cap) drawTuckerCap(c, d.cap.x, d.cap.y, d.cap.rot);
   // ---- the balls: round lead, stepped, a glint; a streak of smoke behind in stepped dots, thinning
   for (const s of f.shots) {
