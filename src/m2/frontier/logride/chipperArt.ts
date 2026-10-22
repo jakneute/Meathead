@@ -83,12 +83,44 @@ export const drawChipperBack = (c: Ctx, state: GameState) => {
       for (let k = 0; k < 8; k++) { const a = (k * Math.PI) / 4; box(gg, wx + Math.cos(a) * 12 - 1, -14 + Math.sin(a) * 12 - 1, 2, 2, '#3F3F46'); }
     }
   });
-  // ---- the conveyor up out of the water: a steel frame on legs, rollers, its belt moving, cleats
+  // ---- the bank under it: the river's end, dirt and rock climbing out of the water up to the clearing (the conveyor's
+  // legs stand on it, on concrete footings, braced; nothing left hanging in the air)
   const a = END - 300, wa = waterY(a), wb = waterY(END), S = hr('steel', STEEL);
-  for (const u of [0.1, 0.4, 0.7, 0.95]) {
-    const cx = X(a) + (X(END) - X(a)) * u, cy = wa + (wb - wa) * u;
-    box(c, cx - 4, cy + 8, 8, g - cy - 8 + 120, INK); box(c, cx - 3, cy + 8, 6, g - cy - 8 + 120, S[3]); box(c, cx - 3, cy + 8, 2, g - cy - 8 + 120, S[5]);
-    c.strokeStyle = S[2]; c.lineWidth = 2; c.beginPath(); c.moveTo(cx, cy + 30); c.lineTo(cx + 40, cy + 90); c.stroke();
+  const B0 = a - 40, B1 = CLEARING.a - 30, bankY = (rx: number) => { const u = Math.max(0, Math.min(1, (rx - B0) / (B1 - B0))); return wa + 6 + (g - wa - 6) * (u * u * (3 - 2 * u)); };
+  if (onScreen(state, X(B0), X(B1) + 40)) stillAt(c, 'lr-sluice-bank', X(B0), g, 0, -10, X(B1) - X(B0) + 40, 340, gg => {
+    const D = hr('dirt', DIRT, 0.18), G = hr('grass', GRASS, 0.18), L = hr('lip', LIP, 0.18), w = X(B1) - X(B0) + 40;
+    for (let px = 0; px < w; px += 2) {
+      const top = bankY(B0 + Math.min(px, X(B1) - X(B0))) - g;
+      // (strata down the cut face: banded, darker deeper, a seam of dither between)
+      for (let k = 0; k < 6; k++) { const y0 = top + 4 + k * 26 + ((px * 7 + k * 13) % 9 > 6 ? 1 : 0); box(gg, px, y0, 2, 28, D[Math.max(0, 4 - k)]); if ((px >> 1) % 2) box(gg, px, y0 + 26, 1, 1, D[Math.max(0, 3 - k)]); }
+      box(gg, px, top + 160, 2, 180, D[0]);
+      // (the grass lip along its top, roots hanging out of the face under it)
+      box(gg, px, top, 2, 2, L[2]); box(gg, px, top + 2, 2, 2, G[2]); if (hash(px * 0.37) > 0.6) box(gg, px, top - 2, 1, 3, G[4]);
+      if (hash(px * 1.3) > 0.9) { const rl = 6 + hash(px) * 14; box(gg, px, top + 4, 1, rl, BARK[1]); box(gg, px + 1, top + 4 + rl * 0.6, 1, rl * 0.4, BARK[2]); }
+    }
+    // (rocks bedded in the face, lit on top, mud-dark under; a wet line where the river laps it)
+    for (let n = 0; n < 18; n++) {
+      const px = hash(n * 7.3) * (w - 20) + 6, top = bankY(B0 + px) - g, py = top + 12 + hash(n * 3.1) * 120, rw = 6 + hash(n) * 12, rh = 4 + hash(n * 5) * 7;
+      gg.fillStyle = INK; gg.beginPath(); gg.ellipse(px, py, rw + 1, rh + 1, 0, 0, Math.PI * 2); gg.fill();
+      gg.fillStyle = '#6E6A62'; gg.beginPath(); gg.ellipse(px, py, rw, rh, 0, 0, Math.PI * 2); gg.fill();
+      box(gg, px - rw * 0.6, py - rh * 0.7, rw * 1.1, 2, '#A8A296'); box(gg, px - rw * 0.7, py + rh * 0.4, rw * 1.3, 2, '#3E3A34');
+    }
+    box(gg, 0, wa - g + 8, 30, 2, '#2A2218'); checker(gg, 0, wa - g + 10, 30, 2, '#2A2218');
+  });
+  // ---- the conveyor up out of the water: a steel frame on legs, rollers, its belt moving, cleats
+  const legs = [0.1, 0.4, 0.7, 0.95].map(u => { const cx = X(a) + (X(END) - X(a)) * u, cy = wa + (wb - wa) * u; return { cx, cy, foot: bankY(a + (END - a) * u) + 4 }; });
+  // (cross-bracing between the legs: angle iron in an X, bolted at the crossing)
+  for (let i = 0; i + 1 < legs.length; i++) {
+    const L0 = legs[i], L1 = legs[i + 1], t0 = L0.cy + 14, t1 = L1.cy + 14, b0 = L0.foot - 10, b1 = L1.foot - 10;
+    for (const [col, lw] of [[INK, 4], [S[2], 2]] as const) { c.strokeStyle = col; c.lineWidth = lw; c.beginPath(); c.moveTo(L0.cx, t0); c.lineTo(L1.cx, b1); c.moveTo(L0.cx, b0); c.lineTo(L1.cx, t1); c.stroke(); }
+    const mx = (L0.cx + L1.cx) / 2, my = (t0 + b1 + b0 + t1) / 4; box(c, mx - 2, my - 2, 4, 4, INK); box(c, mx - 1, my - 1, 2, 2, S[5]);
+  }
+  for (const L of legs) {
+    const h = L.foot - L.cy - 8;
+    box(c, L.cx - 4, L.cy + 8, 8, h, INK); box(c, L.cx - 3, L.cy + 8, 6, h, S[3]); box(c, L.cx - 3, L.cy + 8, 2, h, S[5]); box(c, L.cx + 2, L.cy + 8, 1, h, S[1]);
+    // (its footing: a concrete pad sunk in the bank, the base plate and its bolts on it, mud splashed up)
+    box(c, L.cx - 11, L.foot - 4, 22, 10, INK); box(c, L.cx - 10, L.foot - 3, 20, 8, '#8E8A80'); box(c, L.cx - 10, L.foot - 3, 20, 2, '#B4B0A4'); checker(c, L.cx - 10, L.foot + 2, 20, 3, '#5E5A50');
+    box(c, L.cx - 7, L.foot - 6, 14, 3, INK); box(c, L.cx - 6, L.foot - 5, 12, 1, S[4]); box(c, L.cx - 5, L.foot - 5, 1, 1, S[6]); box(c, L.cx + 4, L.foot - 5, 1, 1, S[6]);
   }
   c.lineCap = 'butt';
   c.strokeStyle = INK; c.lineWidth = 18; c.beginPath(); c.moveTo(X(a), wa + 4); c.lineTo(X(END), wb + 4); c.stroke();

@@ -37,7 +37,7 @@ import { TUCKER_VOICE } from '../talk';
 import { drawTuckerCloseup } from '../tucker';
 import {
   W, H, K, SEG_L, DRAW, PLAYER_Z, CAM_H, SPR, view, PS, PX, PY, PZ, CLIP,
-  newTrack, generate, nextBiome, segAt, project, placeAt, roadYAt, drawRoad, drawBackground, fogStep, type Track, type Spr,
+  newTrack, generate, nextBiome, segAt, project, placeAt, roadYAt, drawRoad, drawBackground, fogStep, clearRoad, type Track, type Spr,
 } from './road';
 import { drawSpr, drawTeenRider, drawTeenBody, drawTeenDangle, drawEndo, drawMeathead, drawMhTumble, drawBikeTumble, drawTuckerRider, drawWeapon, digits, teenLookOf, parryHand, PUNCH_WIND, PUNCH_LEN, ART, type Weapon, type TeenLook, type RiderPose, type MhPose } from './art';
 import { signText, signW, type Look as Letters } from '../../signLetters';
@@ -867,6 +867,8 @@ export const updateChase = (ctx: FrameContext, controls: Controls): Controls => 
 // no HUD, SKIP >> for all of it), black, the arena
 
 const startOutro = (state: GameState, c: Chase) => {
+  // (the last teen's down: nothing more in the road ahead)
+  clearRoad(c.track, Math.floor(c.z / SEG_L) + 2);
   c.phase = 'outro'; c.outro = { t: 0, step: 'talk', said: false };
   state.player.inCutscene = true;
   setUi({ bikeHud: false, bikeTips: false });

@@ -86,6 +86,8 @@ export interface Track {
   rnd: number;
   /** A sign to put up at the start of the next piece (a stretch's name), and a pickup to drop in its middle. */
   sign: string | null; health: boolean;
+  /** The last teen's down: nothing more in the road from here (the ride's over). */
+  clear?: boolean;
 }
 
 export const newTrack = (biome: number, seed: number): Track => {
@@ -205,9 +207,15 @@ export const generate = (t: Track, upTo: number) => {
     dress(t, first, t.next);
     // (in the middle of a piece, now and then: something in the road)
     const span = t.next - first;
-    if (t.inBiome > 60 && rand(t) < 0.75) obstacle(t, first + Math.floor(span * (0.35 + rand(t) * 0.3)));
+    if (!t.clear && t.inBiome > 60 && rand(t) < 0.75) obstacle(t, first + Math.floor(span * (0.35 + rand(t) * 0.3)));
     if (t.health) { t.health = false; put(t, first + Math.floor(span / 2), 'health', (rand(t) - 0.5) * 0.8); }
   }
+};
+/** The ride's over: no more in the road from segment `from` on (what's laid out ahead cleared too: logs, rocks, hay,
+ *  mounds, the creek's water, the animals); the roadside's trees and fences stay. */
+export const clearRoad = (t: Track, from: number) => {
+  t.clear = true;
+  for (const s of t.segs) if (s.i >= from) { s.mound = false; s.water = false; s.spr = s.spr.filter(q => Math.abs(q.x) >= 1.1 && q.k !== 'cow' && q.k !== 'deer' && q.k !== 'hay' && q.k !== 'rock' && q.k !== 'log'); }
 };
 /** Over to the next biome (a new stretch): its sign first, a health pickup somewhere in it if `health`. */
 export const nextBiome = (t: Track, biome: number, sign: string, health: boolean) => { t.biome = biome; t.inBiome = 0; t.sign = sign; t.health = health; };
