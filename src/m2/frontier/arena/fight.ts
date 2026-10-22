@@ -667,6 +667,8 @@ const startMaul = (ctx: FrameContext, f: Fight) => {
 const maul = (ctx: FrameContext, f: Fight) => {
   const { state } = ctx;
   f.maulT++;
+  // (the punch-in's on Tucker: nothing he can't see touches him while it's on, and for a beat after it pulls back out)
+  state.player.noContactUntil = Math.max(state.player.noContactUntil ?? 0, state.frame + 45);
   if (f.cam && f.cam.slow === 1 && f.maulT === PUNCH_T) f.cam.zt = 1;
   // (the cats on him: whichever have got there pile in)
   for (const l of f.lions) if (l.mode === 'run' || l.mode === 'wait') { l.mode = 'run'; }
