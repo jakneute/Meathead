@@ -10,7 +10,8 @@
 //   1400   The studio gate: HAPPYWOOD STUDIOS BACKLOT (nothing filmed since 1987).
 //   1500   CHECKPOINT. NEW YORK STREET (one plank deep): the FAKE RAIN rig over it; it rains, it pours (the tell, the
 //          thunder), and the fake lightning really zaps the wet street: be up off it (the fire escapes, the crates)
-//          when it goes. Backlot security in a golf cart (alone), a guide up a fire escape.
+//          when it goes. A centurion on the street, a guide up a fire escape, backlot security in a golf cart down the
+//          far end (it runs down whoever's in its way: get up out of it and the centurion's flattened).
 //   3000   CHECKPOINT. THE FLASH FLOOD tank, sunk across the street: three stunt wires in a chain over it (jump from
 //          one to the next), and the dump tank's surge every so often, knocking him off a low one. Fall in (it's
 //          tourist pee): it stings, and he's flung back out onto the nearer bank, gagging. Centurion extras on the far side (don't charge the spear).
@@ -87,20 +88,26 @@ export type LotKind = 'm2:hw_guide' | 'm2:hw_cart' | 'm2:hw_legionary' | 'm2:hw_
 export const ENEMIES: [LotKind, number, number][] = [
   // a guide, alone
   ['m2:hw_guide', 1250, 0],
-  // New York: a cart alone; a guide up a fire escape; a centurion
-  ['m2:hw_cart', 2550, 0], ['m2:hw_guide', 2280, 240], ['m2:hw_legionary', 2900, 0],
-  // the flood tank's far side: centurions
-  ['m2:hw_legionary', 4450, 0], ['m2:hw_legionary', 4620, 0],
-  // the western town: cowboys, a centurion on the porch's far side
-  ['m2:hw_cowboy', 5050, 0], ['m2:hw_cowboy', 5650, 0], ['m2:hw_legionary', 5800, 0], ['m2:hw_cowboy', 4950, 110],
+  // New York: a centurion on the wet street under the fire escapes, a guide up the high one, and a cart down the far
+  // end: it comes flat out at him and runs down whoever's in its way (up a fire escape or a crate out of it, and the
+  // centurion's flattened; the fake lightning gets whoever's left on the street)
+  ['m2:hw_legionary', 2300, 0], ['m2:hw_guide', 2280, 240], ['m2:hw_cart', 2680, 0],
+  // the flood tank's far side: a centurion right at the last wire's landing (shoot him off it, or reel up over the
+  // spear), another back from the bank
+  ['m2:hw_legionary', 4290, 0], ['m2:hw_legionary', 4450, 0],
+  // the western town (past the checkpoint's reach): a cowboy alone (the lasso); then a cowboy and a centurion shoulder to
+  // shoulder (charge the cowboy into him), a security cart behind them down Main Street (it runs them down too; the
+  // camera dolly up the water tower out of its way)
+  ['m2:hw_cowboy', 5130, 0], ['m2:hw_cowboy', 5620, 0], ['m2:hw_legionary', 5680, 0], ['m2:hw_cart', 5900, 0],
   // in the collapse, on the fall tower in the shuttle's way: a cowboy, a centurion
   ['m2:hw_cowboy', FALL_TOWER.a + 22, -FALL_TOWER.drop], ['m2:hw_legionary', FALL_TOWER.a + 70, -FALL_TOWER.drop],
-  // past the collapse
-  ['m2:hw_guide', 6650, 0],
-  // the suburb, the far side of the pit
-  ['m2:hw_cart', 7900, 0], ['m2:hw_cowboy', 6760, 110],
-  // the gift shop and the ride's doors: the lot of them
-  ['m2:hw_guide', 8480, 130], ['m2:hw_legionary', 8700, 0], ['m2:hw_cowboy', 8900, 0], ['m2:hw_cart', 8150, 0],
+  // the suburb: a cowboy at the foundation pit's lip (shove him in, or he lassos him off the wire over it); a guide up on
+  // the camera crane's platform, waiting where the swoop lands him (its blast shoves him back off it)
+  ['m2:hw_cowboy', 6960, 0], ['m2:hw_guide', 7480, CRANE.h],
+  // the gift shop and the ride's doors (past the checkpoint's reach): a centurion under the shelf, a guide up on it, a
+  // cart coming at him through the shop (up on the counter out of its way: the centurion's run down), a cowboy at the
+  // doors
+  ['m2:hw_legionary', 8440, 0], ['m2:hw_guide', 8490, 130], ['m2:hw_cart', 8680, 0], ['m2:hw_cowboy', 8900, 0],
 ];
 
 export const PICKUPS: [number, number, 'small_health' | 'small_ammo'][] = [
