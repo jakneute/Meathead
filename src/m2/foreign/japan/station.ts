@@ -42,10 +42,15 @@ const TRAIN = { h: 110, len: 1500, v: 30 } as const;
 const EVERY = 430, WARN = 105;
 
 const ENEMIES: [string, number, number][] = [
-  ['m2:fl_ninja', 3640, 0], ['m2:fl_cosplay', 3840, 240],
+  // (THE BULLET TRAIN's checkpoint's spot left clear) a ninja waiting on the first Fuji's top
+  ['m2:fl_ninja', 3920, 340],
+  // the refuges: a ninja on the first gantry; the walkway's sumo and samurai, a ninja over them, the cosplay kid up on
+  // the canopy throwing down; a samurai and a ninja on the last gantry (the katana: no charging along it)
   ['m2:fl_ninja', 4090, 140], ['m2:fl_sumo', 4420, 140], ['m2:fl_samurai', 4560, 140], ['m2:fl_ninja', 4460, 280],
-  ['m2:fl_ninja', 4850, 140], ['m2:fl_cosplay', 5000, 340],
-  ['m2:fl_samurai', 5260, 0], ['m2:fl_sumo', 5330, 0],
+  ['m2:fl_cosplay', 4440, 410], ['m2:fl_samurai', 4820, 140], ['m2:fl_ninja', 4870, 140],
+  // the other Fuji's top: a sumo and the cosplay kid (its stomp knocks him off the peak onto the track; THE OTHER FUJI's
+  // checkpoint's foot left clear)
+  ['m2:fl_sumo', 4985, 340], ['m2:fl_cosplay', 5025, 340],
 ];
 
 export const STATION_CHECKPOINTS = [

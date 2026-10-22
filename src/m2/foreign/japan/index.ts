@@ -59,10 +59,16 @@ const LANTERNS: [number, number, number][] = [[2380, 2420, 70], [2760, 2800, 70]
 const MANGA = { a: 3000, b: 3140, h: 110 } as const;
 
 const ENEMIES: [string, number, number][] = [
-  ['m2:fl_ninja', 350, KASAGI], ['m2:fl_cosplay', 640, 0],
-  ['m2:fl_samurai', 1220, 0], ['m2:fl_ninja', 1455, 260], ['m2:fl_ninja', 1595, 130], ['m2:fl_samurai', 1700, 0],
-  ['m2:fl_ninja', 2110, 240], ['m2:fl_cosplay', 1890, 360], ['m2:fl_ninja', 2000, 600],
-  ['m2:fl_sumo', 2580, DOHYO.h], ['m2:fl_samurai', 2900, 0], ['m2:fl_cosplay', 3070, MANGA.h], ['m2:fl_ninja', 3300, 0], ['m2:fl_sumo', 3460, 0],
+  // the torii (JAPAN's checkpoint's spot left clear): a ninja up on the second gate's beam, the cosplay kid under it
+  // (stars from above, the energy ball low)
+  ['m2:fl_ninja', 610, KASAGI], ['m2:fl_cosplay', 560, 0],
+  // the vending alley: a samurai on the ground, then one up on the stacked machines (the katana in his face as he climbs:
+  // shoot up, or hop past it), a ninja on the last machine
+  ['m2:fl_samurai', 1220, 0], ['m2:fl_samurai', 1455, 260], ['m2:fl_ninja', 1595, 130],
+  // the pagoda: one a floor, the door by its checkpoint left clear
+  ['m2:fl_ninja', 2110, 240], ['m2:fl_cosplay', 1890, 360], ['m2:fl_ninja', 2100, 480], ['m2:fl_ninja', 2000, 600],
+  // the sumo at the ring's far side (out of THE SUMO RING checkpoint's reach)
+  ['m2:fl_sumo', 2670, DOHYO.h], ['m2:fl_samurai', 2900, 0], ['m2:fl_cosplay', 3070, MANGA.h], ['m2:fl_ninja', 3300, 0], ['m2:fl_sumo', 3460, 0],
 ];
 const PICKUPS: [number, number, 'small_health' | 'small_ammo'][] = [[2000, 600, 'small_health'], [2240, 700, 'small_ammo']];
 
