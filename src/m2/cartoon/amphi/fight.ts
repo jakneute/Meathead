@@ -750,7 +750,7 @@ const famRect = (state: GameState, m: Fam): R => {
 const blockShots = (ctx: FrameContext, f: Fight) => {
   const { state } = ctx;
   if (f.mode !== 'on') return;
-  const rects = MEMBERS.filter(id => f.family[id].alive && f.errand?.who !== id).map(id => famRect(state, f.family[id]));
+  const ids = MEMBERS.filter(id => f.family[id].alive && f.errand?.who !== id), rects = ids.map(id => famRect(state, f.family[id]));
   if (!rects.length) return;
   // (they can't be pushed, flung or grabbed (the user's): a charge, a slide, a dive kick into one stops dead and
   // bounces off it, a clang; it never hurts him)
@@ -761,7 +761,7 @@ const blockShots = (ctx: FrameContext, f: Fight) => {
       const dir = (me.x0 + me.x1) / 2 < (r.x0 + r.x1) / 2 ? -1 : 1;
       p.isCharging = false; p.isSliding = false; p.isDivekicking = false; p.isUppercutting = false;
       p.vel = { x: dir * 4, y: Math.min(p.vel.y, -2) }; p.lockTimer = Math.max(p.lockTimer, 12);
-      eaten(state, f, dir < 0 ? r.x0 : r.x1, (me.y0 + me.y1) / 2);
+      eaten(state, f, dir < 0 ? r.x0 : r.x1, (me.y0 + me.y1) / 2, ids[rects.indexOf(r)]);
     }
   }
   state.projectiles = state.projectiles.filter(pr => {
@@ -769,21 +769,22 @@ const blockShots = (ctx: FrameContext, f: Fight) => {
     const r: R = { x0: pr.pos.x, x1: pr.pos.x + pr.width, y0: pr.pos.y, y1: pr.pos.y + pr.height };
     const hit = rects.find(q => hits(r, q));
     if (!hit) return true;
-    eaten(state, f, pr.pos.x + pr.width / 2, pr.pos.y + pr.height / 2);
+    eaten(state, f, pr.pos.x + pr.width / 2, pr.pos.y + pr.height / 2, ids[rects.indexOf(hit)]);
     return false;
   });
 };
 /** A shot (or a move) eaten by one of them: the ping, the sparks, and his gripe every so often. */
-const eaten = (state: GameState, f: Fight, x: number, y: number) => {
+const eaten = (state: GameState, f: Fight, x: number, y: number, who: Member) => {
   playSound('clang', 0.6, 6 + Math.random() * 3);
   for (let i = 0; i < 8; i++) state.particles.push({ pos: { x, y }, vel: { x: (Math.random() - 0.5) * 5, y: -1 - Math.random() * 3 }, life: 14, color: i % 2 ? '#FDE047' : '#FFFFFF', size: 1.5 + Math.random(), grav: 0.2 });
   f.blocked++;
-  if (f.blocked >= 3 && f.t - f.blockSaidAt > 420 && quiet()) { f.blocked = 0; f.blockSaidAt = f.t; meathead(state, L.MH_BLOCKED); }
+  if (f.blocked >= 3 && f.t - f.blockSaidAt > 420 && quiet()) { f.blocked = 0; f.blockSaidAt = f.t; meathead(state, Math.random() < 0.6 ? L.MH_BLOCKED_BY[who] : L.MH_BLOCKED); }
 };
 /** Something of the family between him and Dad (for his moves: they eat those too). */
-const famBetween = (state: GameState, f: Fight) => {
+/** (which one, or undefined) */
+const famBetween = (state: GameState, f: Fight): Member | undefined => {
   const pr = pRect(state), px = (pr.x0 + pr.x1) / 2, dx = X(f.x);
-  return MEMBERS.some(id => {
+  return MEMBERS.find(id => {
     const m = f.family[id];
     if (!m.alive || f.errand?.who === id) return false;
     const r = famRect(state, m), mx = (r.x0 + r.x1) / 2;
@@ -1099,7 +1100,7 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
   // (in the rage nothing lands but what's fired at him (the moves get him hammered: touch above))
   if (melee && (f.act === 'rage' || f.act === 'rise')) return;
   // (one of the family in the way of his move: it eats it)
-  if (melee && famBetween(state, f)) { const pr = pRect(state); eaten(state, f, (pr.x0 + pr.x1) / 2 + state.player.facing * 20, pr.y0 + 30); return; }
+  { const who = melee ? famBetween(state, f) : undefined; if (who) { const pr = pRect(state); eaten(state, f, (pr.x0 + pr.x1) / 2 + state.player.facing * 20, pr.y0 + 30, who); return; } }
   const plain = plainHit(state, melee);
   // (no hint at a weapon he hasn't got (the user's))
   if (plain === null && state.player.availableWeapons.includes('STUNT_CAR') && state.player.currentWeapon !== 'STUNT_CAR' && f.kills === 0 && (++f.wrongN === 2 || f.wrongN % 5 === 0) && f.t - f.hintAt > HINT_GAP) {

@@ -56571,7 +56571,17 @@
  },
  {
   "voice": "meathead",
+  "text": "A BULLETPROOF ROBOT KID. AND HE'S LAUGHING AT MY PANTS.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "A BULLETPROOF ROBOT MOM? THE PENTAGON SHOULD BUY THESE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "A BULLETPROOF ROBOT MOM. SHE DOESN'T EVEN FLINCH AT THE SMELL.",
   "from": "CARTOON"
  },
  {
@@ -73941,7 +73951,17 @@
  },
  {
   "voice": "meathead",
+  "text": "MOVE, ROBOT MOM!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "MOVE, TIN FAMILY! I GOT A CLEAR SHOT AT DAD!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "MOVE, TIN KID!",
   "from": "CARTOON"
  },
  {
@@ -77486,6 +77506,16 @@
  },
  {
   "voice": "meathead",
+  "text": "OUT OF THE WAY, ROBOT GRAMPS!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "OUT OF THE WAY, ROBOT SIS!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "OUT THE BACK. LIKE ALWAYS.",
   "from": "FRONTIER"
  },
@@ -79612,6 +79642,26 @@
  {
   "voice": "meathead",
   "text": "ROBOT FAMILY. DEAD EYES. NOBODY JUDGES THE DICK.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "ROBOT GRAMPS IS BULLETPROOF. AND HE SMELLS WORSE THAN ME.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "ROBOT MOM ATE MY SHOT. SHE DIDN'T EVEN LOOK DOWN.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "ROBOT SIS ATE MY SHOT. AND SHE'S HOLDING HER NOSE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "ROBOT SIS ATE MY SHOT. SHE'S FILMING THIS, ISN'T SHE.",
   "from": "CARTOON"
  },
  {
@@ -86476,6 +86526,16 @@
  },
  {
   "voice": "meathead",
+  "text": "THE ROBOT KID ATE MY BULLET. WHAT DO THEY FEED HIM?",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE ROBOT KID ATE MY SHOT. COVER HIS EYES, SOMEBODY.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "THE ROBOT KID BEANED ME!",
   "from": "CARTOON"
  },
@@ -86483,6 +86543,11 @@
   "voice": "meathead",
   "text": "THE ROBOT LADY IS ON THE PIPES. COOL. COOL COOL.",
   "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE ROBOT SISTER JUST TANKED A BULLET. ROLLED HER EYES, TOO.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",

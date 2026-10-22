@@ -453,9 +453,32 @@ export const CREW_EXCUSE = [
 ];
 /** One of the animatronic family ate his shot (they're only hurt by the stunt cars): the user's line, and similar. */
 export const MH_BLOCKED: ByPants = {
-  clean: ['WHAT KIND OF BULLSHIT TITANIUM ARE THESE ROBOTS BUILT WITH?', 'A BULLETPROOF ROBOT MOM? THE PENTAGON SHOULD BUY THESE.', 'WHO BUILDS A SITCOM GRANDPA OUT OF TANK ARMOR?', "THE ROBOT ATE MY BULLET! THE ROBOT DIDN'T EVEN BLINK!", 'MOVE, TIN FAMILY! I GOT A CLEAR SHOT AT DAD!'],
+  clean: ['WHAT KIND OF BULLSHIT TITANIUM ARE THESE ROBOTS BUILT WITH?', "THE ROBOT ATE MY BULLET! THE ROBOT DIDN'T EVEN BLINK!", 'MOVE, TIN FAMILY! I GOT A CLEAR SHOT AT DAD!'],
   shitty: ['WHAT KIND OF BULLSHIT TITANIUM ARE THESE ROBOTS BUILT WITH?', 'BULLETPROOF ROBOTS. NINETY BUCKS EACH. MY ASS.', 'THE TIN FAMILY ATE MY SHOT. AND I STILL SMELL.'],
-  nude: ['WHAT KIND OF BULLSHIT TITANIUM ARE THESE ROBOTS BUILT WITH?', 'BULLETPROOF ROBOTS, AND I\'M THE ONE NAKED.', 'THE ROBOT ATE MY SHOT. AND GRAMPS IS STARING AT MY DICK.'],
+  nude: ['WHAT KIND OF BULLSHIT TITANIUM ARE THESE ROBOTS BUILT WITH?', "BULLETPROOF ROBOTS, AND I'M THE ONE NAKED."],
+};
+/** The same gripe, naming the one that ate it (fight.ts picks these for whichever of them he just shot). */
+export const MH_BLOCKED_BY: Record<'mom' | 'boy' | 'sis' | 'gramps', ByPants> = {
+  mom: {
+    clean: ['A BULLETPROOF ROBOT MOM? THE PENTAGON SHOULD BUY THESE.', 'MOVE, ROBOT MOM!'],
+    shitty: ["A BULLETPROOF ROBOT MOM. SHE DOESN'T EVEN FLINCH AT THE SMELL."],
+    nude: ["ROBOT MOM ATE MY SHOT. SHE DIDN'T EVEN LOOK DOWN."],
+  },
+  gramps: {
+    clean: ['WHO BUILDS A SITCOM GRANDPA OUT OF TANK ARMOR?', 'OUT OF THE WAY, ROBOT GRAMPS!'],
+    shitty: ['ROBOT GRAMPS IS BULLETPROOF. AND HE SMELLS WORSE THAN ME.'],
+    nude: ['THE ROBOT ATE MY SHOT. AND GRAMPS IS STARING AT MY DICK.'],
+  },
+  boy: {
+    clean: ['THE ROBOT KID ATE MY BULLET. WHAT DO THEY FEED HIM?', 'MOVE, TIN KID!'],
+    shitty: ["A BULLETPROOF ROBOT KID. AND HE'S LAUGHING AT MY PANTS."],
+    nude: ['THE ROBOT KID ATE MY SHOT. COVER HIS EYES, SOMEBODY.'],
+  },
+  sis: {
+    clean: ['THE ROBOT SISTER JUST TANKED A BULLET. ROLLED HER EYES, TOO.', 'OUT OF THE WAY, ROBOT SIS!'],
+    shitty: ["ROBOT SIS ATE MY SHOT. AND SHE'S HOLDING HER NOSE."],
+    nude: ["ROBOT SIS ATE MY SHOT. SHE'S FILMING THIS, ISN'T SHE."],
+  },
 };
 
 /** What hurts him here (by what did it, then by the state he's in: hurtSrc in fight.ts sends `<source>.<clean|shitty|
@@ -499,7 +522,7 @@ const all = (b: ByPants) => allOf(b);
 export const VOICE_LINES: Record<string, string[]> = {
   meathead: [
     ...[ARRIVE, REVISIT, ...Object.values(GAGS), MH_KICKED, MH_SEES, MH_ON].flatMap(all),
-    ...[MH_HINT, MH_TOO_GREASY, MH_PUKE, MH_RAGE, MH_BUNDY, MH_KILL, MH_COUCH, MH_DUD, MH_WON_WEAK, MH_WON, MH_BLOCKED].flatMap(all),
+    ...[MH_HINT, MH_TOO_GREASY, MH_PUKE, MH_RAGE, MH_BUNDY, MH_KILL, MH_COUCH, MH_DUD, MH_WON_WEAK, MH_WON, MH_BLOCKED, ...Object.values(MH_BLOCKED_BY)].flatMap(all),
     ...Object.values(HURT_BY).flatMap(by => Object.values(by).flatMap(h => h.hurt)),
   ],
   death: Object.values(HURT_BY).flatMap(by => Object.values(by).flatMap(h => h.death)),
