@@ -151,8 +151,8 @@ const propSides = (c: Ctx, state: GameState) => {
   if (on(FLATFILE.a, PENCILBOX.b)) {
     boxSides(c, E, X(FLATFILE.a), X(FLATFILE.b), Y(FLATFILE.h), GY, 0.91, STEEL, { lines: [0, 1, 2, 3, 4].map(i => Y(FLATFILE.h) + 8 + i * 19) });
     boxSides(c, E, X(DRAFTING.a), X(DRAFTING.b), Y(DRAFTING.h), GY, 0.9, PAPER, { apron: 10, leg: 4, sideR: STEEL });
-    boxSides(c, E, X(STORYWALL.a) - 3, X(STORYWALL.b) + 3, Y(STORYWALL.h), GY - 14, 0.96, PANEL, { lines: [Y(STORYWALL.h) + 10] });
-    boxSides(c, E, X(PENCILBOX.a), X(PENCILBOX.b), Y(PENCILBOX.h), GY, 0.9, R6('#E2B04A'), { lines: [Y(PENCILBOX.h) + 12, Y(PENCILBOX.h) + 30] });
+    boxSides(c, E, X(STORYWALL.a) - 3, X(STORYWALL.b) + 3, Y(STORYWALL.h), GY - 14, 0.96, PANEL, { cut: [null, Y(PENCILBOX.h)], lines: [Y(STORYWALL.h) + 10] });
+    boxSides(c, E, X(PENCILBOX.a), X(PENCILBOX.b), Y(PENCILBOX.h), GY, 0.9, R6('#E2B04A'), { cut: [Y(PENCILBOX.h), null], lines: [Y(PENCILBOX.h) + 12, Y(PENCILBOX.h) + 30] });
   }
   if (on(SHELF.a, SHELF.b)) boxSides(c, E, X(SHELF.a), X(SHELF.b), Y(SHELF.h), Y(SHELF.h) + 12, 0.94, R6('#8B6B4A'));
   for (const d of [NEAR_DESK, FAR_DESK]) if (on(d.a, d.b)) boxSides(c, E, X(d.a), X(d.b), Y(d.h), GY, 0.91, R6('#C9C4AE'), { apron: 14, leg: 6, sideR: STEEL });

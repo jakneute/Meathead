@@ -29,7 +29,7 @@ import { signText, signW } from '../../signLetters';
 import { bendFloor } from '../../intro/art/kit';
 import { tilePattern } from '../../../m1/game/render/pixelArt';
 import {
-  type Ctx, type View, INK, box, mix, hash, checker, hour, dimmed, lit, viewOf, at, still, stillAt, polyF, sideBack, topBack, ballR, eggR, postR,
+  type Ctx, type View, INK, box, mix, hash, checker, hour, dimmed, lit, viewOf, at, still, stillAt, polyF, sideBack, topBack, boxSides, ballR, eggR, postR,
   bandsDown, shadeAcross, LIP as LIPR,
 } from '../kit';
 import { GY } from '../geometry';
@@ -426,8 +426,10 @@ const warehouse = (c: Ctx, v: View) => {
   });
 };
 /** The pallet rack (one shelf up top lit: stand on it; crates on the lower shelves: scenery). */
-const rack = (c: Ctx) => {
+const rack = (c: Ctx, v: View) => {
   const [a, b, h] = RACK, xa = X(a), xb = X(b), top = Y(h);
+  // (its depth: the beam's ends going back, an upright at the back corners; its deck from above)
+  boxSides(c, v.eye, xa - 4, xb + 4, top, GY, 0.9, NC('#F97316'), { apron: 10, leg: 8, sideR: NR(NAVY), topR: DR(CRATE) });
   still(c, 'pk-rack', xa, top, -8, -4, xb - xa + 16, GY - top + 8, g => {
     const Bl = NR(NAVY), Or = NC('#F97316'), Cr = DR(CRATE);
     for (const px of [0, xb - xa - 8]) { postR(g, px + 4, 0, GY - top, 8, Bl); for (let y = 12; y < GY - top; y += 10) box(g, px + 2, y, 4, 2, Bl[1]); }
@@ -606,10 +608,11 @@ const gorgeNear = (c: Ctx, state: GameState) => {
   if (t < 0.25) { const px = (a + b) / 2 + Math.sin(state.frame * 0.001) * 200, k = t / 0.25; c.fillStyle = `rgba(200,140,100,${0.4 * (1 - k)})`; c.beginPath(); c.arc(px, GY + 200, 6 + k * 10, 0, Math.PI * 2); c.fill(); }
 };
 /** The canyon's rim rocks and the set's crate steps (solid, lit along the top). */
-const steps = (c: Ctx, state: GameState) => {
+const steps = (c: Ctx, state: GameState, v: View) => {
   for (const [a, b, h] of ROCKS) {
     const xa = X(a), xb = X(b), top = Y(h);
-    if (!onScreen(state, xa, xb)) continue;
+    if (!onScreen(state, xa - 120, xb + 120)) continue;
+    boxSides(c, v.eye, xa, xb, top, GY, 0.93, NR(['#3A1606', '#5E260C', '#8A3A14', '#C2410C', '#E0703A', '#F4A070']), { lines: Array.from({ length: Math.floor(h / 22) }, (_, k) => top + 22 + k * 22).filter(y => y < GY - 4) });
     still(c, `pk-rock-${a}`, xa, top, -8, -4, xb - xa + 16, h + 8, g => {
       const R = NR(['#3A1606', '#5E260C', '#8A3A14', '#C2410C', '#E0703A', '#F4A070']), w2 = xb - xa;
       g.fillStyle = INK; g.beginPath(); g.moveTo(-4, h); g.lineTo(0, 8); g.lineTo(10, 0); g.lineTo(w2 - 8, 0); g.lineTo(w2, 10); g.lineTo(w2 + 4, h); g.closePath(); g.fill();
@@ -623,7 +626,8 @@ const steps = (c: Ctx, state: GameState) => {
   }
   for (const [a, b, h] of SET_STEPS) {
     const xa = X(a), xb = X(b), top = Y(h);
-    if (!onScreen(state, xa, xb)) continue;
+    if (!onScreen(state, xa - 120, xb + 120)) continue;
+    boxSides(c, v.eye, xa, xb, top, GY, 0.93, NR(TAR), { lines: [top + 8, GY - 20] });
     still(c, `pk-setstep-${a}`, xa, top, -2, -2, xb - xa + 4, h + 4, g => {
       const K = NR(TAR), w2 = xb - xa;
       box(g, 0, 0, w2, h, INK); plate(g, 2, 2, w2 - 4, h - 3, K, true);
@@ -846,8 +850,8 @@ export const drawItchyBack = (c: Ctx, state: GameState, revisit: boolean) => {
   holeFloor(c, state);
   towerFeet(c, state);
   ground(c, state, v);
-  rack(c);
-  steps(c, state);
+  rack(c, v);
+  steps(c, state, v);
 };
 /** The signs: last of everything behind him (nothing of the machinery's ever over one). */
 export const drawItchySigns = (c: Ctx, state: GameState) => {

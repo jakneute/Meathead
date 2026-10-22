@@ -442,7 +442,7 @@ const SKYR: R6 = ['#0E3460', '#18568E', '#2A80C4', '#4CA8E8', '#86CAF4', '#C6E8F
 /** The library step, the map chest, the footstool. */
 const mapFurniture = (c: Ctx, E: P) => {
   const sa = X(MAP_STEP.a), sw = MAP_STEP.b - MAP_STEP.a, st = Y(MAP_STEP.h);
-  boxSides(c, E, sa, sa + sw, st, GY, 0.92, OAK, { lines: [st + 10] });
+  boxSides(c, E, sa, sa + sw, st, GY, 0.92, OAK, { cut: [null, st], lines: [st + 10] });
   still(c, 'wh2-mapstep', sa, st, -4, -2, sw + 8, GY - st + 6, g => {
     const h = GY - st;
     slabI(g, 0, 0, sw, 10, OAK); stepsAcross(g, () => g.rect(4, 10, sw - 8, h - 10), 4, 10, sw - 8, h - 10, OAK, 2);
@@ -450,7 +450,7 @@ const mapFurniture = (c: Ctx, E: P) => {
   });
   litTop(c, sa, st, sw);
   const ma = X(MAP_CAB.a), mw = MAP_CAB.b - MAP_CAB.a, mt = Y(MAP_CAB.h);
-  boxSides(c, E, ma, ma + mw, mt, GY, 0.88, OAK, { lines: [mt + 10, ...[0, 1, 2, 3].map(k => mt + 14 + k * ((GY - mt - 30) / 4)), GY - 8] });
+  boxSides(c, E, ma, ma + mw, mt, GY, 0.88, OAK, { cut: [Y(MAP_STEP.h), Y(MAP_STOOL.h)], lines: [mt + 10, ...[0, 1, 2, 3].map(k => mt + 14 + k * ((GY - mt - 30) / 4)), GY - 8] });
   if (E.y < mt) { const p = proj(E, ma + mw * 0.6, mt, 0.92); stepsAcross(c, () => c.roundRect(p.x - 40, p.y - 9, 80, 9, 4), p.x - 40, p.y - 9, 80, 9, R('#F2E2B8'), 1.4); box(c, p.x - 2, p.y - 9, 4, 9, '#DC2626'); const q = proj(E, ma + 30, mt, 0.95); inkP(c, () => c.arc(q.x, q.y - 6, 6, 0, Math.PI * 2), 'rgba(219,234,254,0.7)', 1.6); box(c, q.x + 4, q.y - 3, 10, 3, OAK[2]); }
   still(c, 'wh2-mapcab', ma, mt, -6, -2, mw + 12, GY - mt + 6, g => {
     const h = GY - mt;
@@ -461,7 +461,7 @@ const mapFurniture = (c: Ctx, E: P) => {
   });
   litTop(c, ma, mt, mw);
   const fa = X(MAP_STOOL.a), fw = MAP_STOOL.b - MAP_STOOL.a, ft = Y(MAP_STOOL.h);
-  boxSides(c, E, fa - 2, fa + fw + 2, ft, GY, 0.93, VELVET, { apron: 24, leg: 6, sideR: OAK });
+  boxSides(c, E, fa - 2, fa + fw + 2, ft, GY, 0.93, VELVET, { cut: [ft, null], apron: 24, leg: 6, sideR: OAK });
   still(c, 'wh2-stool', fa, ft, -4, -2, fw + 8, GY - ft + 6, g => {
     const h = GY - ft;
     stepsDown(g, () => g.roundRect(-2, 0, fw + 4, 22, [8, 8, 3, 3]), -2, 0, fw + 4, 22, VELVET, 2.2);

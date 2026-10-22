@@ -167,7 +167,7 @@ const piano = (c: Ctx, E: P) => {
 };
 const chairStack = (c: Ctx, E: P) => {
   const a = X(CHAIRS.a), w = CHAIRS.b - CHAIRS.a, t = Y(CHAIRS.h);
-  boxSides(c, E, a, a + w, t, GY, 0.92, CHERRY, { sideR: GILT, lines: Array.from({ length: 9 }, (_, i) => t + ((i + 1) * (GY - t)) / 10) });
+  boxSides(c, E, a, a + w, t, GY, 0.92, CHERRY, { cut: [null, Y(RISER.h)], sideR: GILT, lines: Array.from({ length: 9 }, (_, i) => t + ((i + 1) * (GY - t)) / 10) });
   still(c, 'wh1-chairs', a, GY, -10, -(GY - t) - 6, w + 20, GY - t + 10, g => {
     // (gilt ballroom chairs, stacked too high to jump: each a gilt frame, a red cushion, staggered as they're piled)
     const n = 10, hh = (GY - t) / n;
@@ -182,7 +182,7 @@ const chairStack = (c: Ctx, E: P) => {
   litTop(c, a, t, w);
   // (the bandstand risers down the far side: blue skirting with stars, carpeted tops)
   const ra = X(RISER.a), rw = RISER.b - RISER.a, rt = Y(RISER.h);
-  boxSides(c, E, ra, ra + rw, rt, GY, 0.9, NAVY, { lines: [rt + 8] });
+  boxSides(c, E, ra, ra + rw, rt, GY, 0.9, NAVY, { cut: [rt, null], lines: [rt + 8] });
   still(c, 'wh1-riser', ra, rt, -2, -2, rw + 4, GY - rt + 6, g => {
     slabI(g, 0, 0, rw, GY - rt, NAVY);
     for (let x = 4; x < rw - 4; x += 12) { box(g, x, 10, 6, GY - rt - 14, NAVY[2]); box(g, x, 10, 1, GY - rt - 14, NAVY[4]); }

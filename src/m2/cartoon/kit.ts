@@ -189,8 +189,10 @@ export const drumTop = (c: Ctx, eye: View['eye'], a: number, b: number, y: numbe
  *  running back along its sides (a cloth's hem, drawer seams, a molding); `apron` (px down from its top): a thing on
  *  legs (a table, a bench), its side only its top's thickness, a leg at the back corner (`leg` px wide, 0 for none: a
  *  shelf on brackets) down to `bottom`; `noTop` for no top face (round tops, things nobody'd see the top of);
- *  `sideR` / `topR` other ramps for the sides / the top (default `R`). */
-export interface BoxSides { d0?: number; lines?: number[]; apron?: number; leg?: number; noTop?: boolean; sideR?: string[]; topR?: string[] }
+ *  `sideR` / `topR` other ramps for the sides / the top (default `R`); `cut` [left, right]: where a side stops (world y:
+ *  the top of a lower thing against that end, which hides the rest; at or above `top`, that side's never drawn: it's
+ *  against something as tall). */
+export interface BoxSides { d0?: number; lines?: number[]; apron?: number; leg?: number; noTop?: boolean; sideR?: string[]; topR?: string[]; cut?: [number | null, number | null] }
 /**
  * A solid prop's depth (a table, a desk, a counter, a cabinet, a crate, a riser...): its sides going back from its
  * front face (x a..b at depth d0, `top` to `bottom` world y) to depth d1, each only where the eye's past that end (so
@@ -204,9 +206,11 @@ export const boxSides = (c: Ctx, eye: View['eye'], a: number, b: number, top: nu
   if (!o.noTop) topBack(c, eye, a, b, top, d0, d1, o.topR ?? R, 3);
   for (const [e, side] of [[a, -1], [b, 1]] as const) {
     if ((eye.x - e) * side <= 1) continue;
-    const low = o.apron ? Math.min(bottom, top + o.apron) : bottom;
+    const cut = o.cut?.[side < 0 ? 0 : 1] ?? null;
+    if (cut !== null && cut <= top + 1) continue;
+    const low = Math.min(o.apron ? Math.min(bottom, top + o.apron) : bottom, cut ?? Infinity);
     // (the back leg first: it stands behind the side's band)
-    if (o.apron && (o.leg ?? 6) > 0 && low < bottom) {
+    if (o.apron && (o.leg ?? 6) > 0 && low < bottom && cut === null) {
       const lw = o.leg ?? 6, dl = d1 + (d0 - d1) * 0.1;
       const [x0, y0] = at(eye, e - side * lw, low, dl), [x1, y1] = at(eye, e, bottom, dl);
       const l = Math.round(Math.min(x0, x1)), w = Math.max(2, Math.round(Math.abs(x1 - x0)));

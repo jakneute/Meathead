@@ -30,7 +30,7 @@ import { signText } from '../../signLetters';
 import { bendFloor, BEND } from '../../intro/art/kit';
 import { tilePattern } from '../../../m1/game/render/pixelArt';
 import {
-  type Ctx, type View, INK, box, mix, hash, checker, onScreen, viewOf, at, still, polyF, sideBack, topBack, drumTop, ballR, eggR,
+  type Ctx, type View, INK, box, mix, hash, checker, onScreen, viewOf, at, still, polyF, sideBack, topBack, boxSides, drumTop, ballR, eggR,
   ramp6, rampH, hour, dimmed, lit, toonSign, toonLetters, bandsDown, shadeAcross, candyStroke, glassOf,
   BUBBLEGUM, FROSTING, MINT, LEMON, LILAC, SKY, CHERRY, LICORICE, WAFFLE, GRASS, BRASS, STEEL, LIP,
 } from '../kit';
@@ -221,7 +221,7 @@ const toadstool = (c: Ctx, v: View, a: number, b: number, h: number, seed: numbe
 /** A wafer balcony on curly brackets, lit along its top (its top going back). */
 const balcony = (c: Ctx, v: View, a: number, b: number, h: number, col: string[], key: string, toGround = false) => {
   const xa = X(a), xb = X(b), y = Y(h);
-  topBack(c, v.eye, xa, xb, y, 1, 0.95, rampH(col), 2);
+  boxSides(c, v.eye, xa, xb, y, y + 12, 0.95, rampH(col), { lines: [y + 9] });
   still(c, `ki-balc-${key}`, xa, y, -10, -4, b - a + 20, (toGround ? h : 60) + 8, g => {
     const w = b - a, R = rampH(col);
     box(g, -2, -2, w + 4, 16, INK); box(g, 0, 0, w, 12, R[3]); box(g, 0, 0, w, 3, R[4]); box(g, 0, 9, w, 3, R[1]);
@@ -254,7 +254,7 @@ const trolleyBeam = (c: Ctx, state: GameState, v: View) => {
   const l = Math.max(ra, state.camera.x - 40), r = Math.min(rb, state.camera.x + 840);
   if (r <= l) return;
   const W2 = rampH(FROSTING), G = rampH(MINT), St = rampH(STEEL);
-  topBack(c, v.eye, l, r, y, 1, 0.965, St, 2);
+  boxSides(c, v.eye, ra, rb, y, y + 15, 0.965, St, { sideR: W2, lines: [y + 3, y + 12] });
   box(c, l, y - 2, r - l, 19, INK); box(c, l, y, r - l, 15, W2[3]);
   for (let x = Math.floor(l / 24) * 24; x < r; x += 24) { const x0 = Math.max(l, x), ww = Math.min(12, r - x0); if (ww > 0) { box(c, x0, y + 3, ww, 9, G[3]); box(c, x0, y + 3, ww, 2, G[4]); box(c, x0, y + 10, ww, 2, G[2]); } }
   box(c, l, y + 12, r - l, 3, W2[1]);
