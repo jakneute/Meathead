@@ -62,7 +62,9 @@ const CART = { a: 3250, b: 3330, h: 80 } as const;
 
 const ENEMIES: [string, number, number][] = [
   ['m2:fl_guard', 250, 0], ['m2:fl_guard', 470, 0],
-  ['m2:fl_bobby', 1985, 120], ['m2:fl_hooligan', 2090, PUB.h], ['m2:fl_hooligan', 2240, PUB.h],
+  // a bobby out on the bus's street (lure him into the bus's way: it runs over the cast too); past THE PUB's checkpoint's
+  // reach, a hooligan on the pub roof's far edge and one on the barrels (pints down at him on the way over)
+  ['m2:fl_bobby', 1250, 0], ['m2:fl_hooligan', 2295, PUB.h], ['m2:fl_hooligan', 2335, BARRELS.h],
   ['m2:fl_bobby', 2700, TOWER_HI], ['m2:fl_tealady', 3150, 180],
   ['m2:fl_bobby', 3200, 0], ['m2:fl_tealady', 3290, CART.h], ['m2:fl_hooligan', 3420, 0], ['m2:fl_guard', 3540, 0],
 ];

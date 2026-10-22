@@ -53,10 +53,16 @@ const EVERY = 380, WIND = 70, RING_T = 28, RING_R = 330;
 const HOUSES: [number, number, number][] = [[4620, 4720, 120], [5000, 5060, 120]];
 
 const ENEMIES: [string, number, number][] = [
-  ['m2:fl_bobby', 3700, 0], ['m2:fl_hooligan', 3800, 0],
+  // (the door by THE TALLEST PHONE BOX's checkpoint clear) a bobby inside on the ground floor; up the shaft, a floor at
+  // a time
+  ['m2:fl_bobby', 4200, 0],
   ['m2:fl_bobby', 3990, 390], ['m2:fl_tealady', 4200, 520], ['m2:fl_guard', 4000, 650], ['m2:fl_hooligan', 4220, 780],
   ['m2:fl_bobby', 4060, 900],
-  ['m2:fl_guard', 4560, 0], ['m2:fl_hooligan', 4670, 120], ['m2:fl_tealady', 4850, 0], ['m2:fl_bobby', 5030, 120], ['m2:fl_guard', 5200, 0], ['m2:fl_hooligan', 5300, 0],
+  // a hooligan on a molding down the outside (pints at him on the way down)
+  ['m2:fl_hooligan', 4370, 560],
+  // the street (past OUT THE TOP's checkpoint's reach; its guard stands there harmless): the tea lady and a bobby, a
+  // hooligan up on the far house's step, the last guard, a hooligan
+  ['m2:fl_guard', 4560, 0], ['m2:fl_tealady', 4870, 0], ['m2:fl_bobby', 4930, 0], ['m2:fl_hooligan', 5030, 120], ['m2:fl_guard', 5200, 0], ['m2:fl_hooligan', 5300, 0],
 ];
 
 export const TOWER_CHECKPOINTS = [
