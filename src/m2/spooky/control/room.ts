@@ -24,7 +24,7 @@ import {
   WALL_D, CEIL, eyeOf, inDepth, at, quad, seg, shade, inked, wallRun, ceiling, tileFloor, frontFloor, plaque,
   type Eye,
 } from './paint';
-import { signAt, enamel, print } from '../letters';
+import { signAt, signText, enamel, print } from '../letters';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -97,87 +97,455 @@ const paintWallTile = (g: Ctx, x: number, v: number) => {
 
 /** The wall of monitors: where the rack runs (wall units), and each screen's top left. */
 const BANK_L = x0 + 284, BANK_R = x0 + 664, BANK_TOP = GY - 418;
-const screenAt = (i: number): [number, number] => [BANK_L + 22 + (i % 3) * 122, BANK_TOP + 20 + Math.floor(i / 3) * 104];
-const SCR_W = 92, SCR_H = 62;
+const screenAt = (i: number): [number, number] => [BANK_L + 22 + (i % 3) * 122, BANK_TOP + 22 + Math.floor(i / 3) * 104];
+const SCR_W = 92, SCR_H = 60;
+/** Each set's plastic: the same beige, gone yellow by different amounts (the ones up top nearer the bulb, the worst). */
+const CASE = ['#C4B48A', '#BDB394', '#C9B47E', '#B9B29C', '#BFB08A', '#B5AE98'];
+/** What each camera sees, on the label-maker tape under its screen. */
+const TAPE = ['TOWN', 'CASTLE', 'CLOCK', 'HELL', 'BALLRM', 'GIFTS'];
+
+/** The camera feeds' on-screen lettering: a blocky 3x5 character generator (digits, the few letters it needs). */
+const GLYPH: Record<string, string> = {
+  '0': '111101101101111', '1': '010110010010111', '2': '111001111100111', '3': '111001011001111', '4': '101101111001001',
+  '5': '111100111001111', '6': '111100111101111', '7': '111001010010010', '8': '111101111101111', '9': '111101111001111',
+  ':': '000010000010000', C: '111100100100111', A: '010101111101101', M: '101111111101101', R: '110101110101101',
+  E: '111100110100111', ' ': '000000000000000',
+};
+/** Sets `s` in the character generator at x, y (its top left): white, a dark drop under it. (Runs per row: cheap.) */
+const osdText = (g: Ctx, s: string, x: number, y: number, col = '#E8ECEF') => {
+  for (const [dx, cl] of [[1, 'rgba(0, 0, 0, 0.7)'], [0, col]] as const) {
+    for (let k = 0; k < s.length; k++) {
+      const bits = GLYPH[s[k]] ?? GLYPH[' '];
+      for (let row = 0; row < 5; row++) {
+        let run = -1;
+        for (let col3 = 0; col3 <= 3; col3++) {
+          const on = col3 < 3 && bits[row * 3 + col3] === '1';
+          if (on && run < 0) run = col3;
+          else if (!on && run >= 0) { box(g, x + k * 4 + run + dx, y + row + dx, col3 - run, 1, cl); run = -1; }
+        }
+      }
+    }
+  }
+};
+/** A run of the character generator, stamped (put down where the screen's translated to; one per text and spot). */
+const osd = (c: Ctx, s: string, x: number, y: number) => stamp(c, `ctl-osd|${s}|${x},${y}`, x - 1, y - 1, s.length * 4 + 3, 8, g => osdText(g, s, x, y));
+
+/** The feeds' clock: the hour the park's sky says it is, the minutes and seconds ticking on from there. */
+const HOUR: Record<string, number> = { morning: 9, midday: 12, afternoon: 15, 'golden hour': 17, sunset: 19, dusk: 20, night: 23 };
+const clockAt = (f: number) => {
+  const t = (HOUR[timeOfDay().name] ?? 21) * 3600 + 13 * 60 + 37 + Math.floor(f / 60);
+  const two = (n: number) => String(n).padStart(2, '0');
+  return { hm: `${two(Math.floor(t / 3600) % 24)}:${two(Math.floor(t / 60) % 60)}:`, s: two(t % 60), min: Math.floor(t / 60) % 60, hr: Math.floor(t / 3600) % 12 };
+};
 
 const paintBank = (g: Ctx) => {
-  // (the steel rack: uprights, shelves; the casings on it)
+  // (the steel rack: uprights punched for shelf pins, a back panel, the shelves; the casings on it)
   slab(g, BANK_L, BANK_TOP, BANK_R - BANK_L, 222, '#2F343B', { edge: 4 });
+  box(g, BANK_L + 10, BANK_TOP + 6, BANK_R - BANK_L - 20, 210, '#262A30');
+  for (const ux of [BANK_L + 2, BANK_R - 8]) {
+    pole(g, ux, BANK_TOP + 2, 6, 218, '#5B636D');
+    for (let y = BANK_TOP + 8; y < BANK_TOP + 216; y += 8) box(g, ux + 2, y, 2, 3, '#1A1D21');
+  }
+  // (the tubes' backs: the bulge behind each casing, its vent slots, in the dark behind the shelf lip)
+  for (let i = 0; i < 6; i++) {
+    const [sx, sy] = screenAt(i), col = dark(CASE[i], 0.22);
+    slab(g, sx + 8, sy - 22, SCR_W - 16, 12, col, { edge: 2 });
+    for (let k = 0; k < 9; k++) box(g, sx + 16 + k * 7, sy - 19, 3, 5, rampOf(col)[0]);
+  }
   for (let row = 0; row < 2; row++) {
     const sy = BANK_TOP + 104 + row * 104;
     slab(g, BANK_L - 6, sy, BANK_R - BANK_L + 12, 10, '#5B636D', { edge: 2 });
+    for (let x = BANK_L + 2; x < BANK_R; x += 40) { box(g, x, sy + 4, 2, 2, '#2F343B'); box(g, x, sy + 4, 1, 1, '#9AA3AD'); }
+    // (each set's shadow on the shelf under it)
+    for (let k = 0; k < 3; k++) checker(g, screenAt(row * 3 + k)[0] - 10, sy + 2, SCR_W + 20, 2, '#2F343B');
   }
   for (let i = 0; i < 6; i++) {
-    const [sx, sy] = screenAt(i);
-    // (the casing: beige plastic gone yellow, a bevel round the glass, the brand strip, two knobs, a vent)
-    slab(g, sx - 12, sy - 10, SCR_W + 24, SCR_H + 30, '#B8AE92', { edge: 4 });
-    box(g, sx - 4, sy - 4, SCR_W + 8, SCR_H + 8, '#3A362C'); box(g, sx - 3, sy - 3, SCR_W + 6, 1, '#7A715C'); box(g, sx - 3, sy - 3, 1, SCR_H + 6, '#7A715C');
-    box(g, sx, sy + SCR_H + 8, 30, 3, '#8C836A');
-    ball(g, sx + SCR_W - 18, sy + SCR_H + 10, 3, '#3A3A3E'); ball(g, sx + SCR_W - 6, sy + SCR_H + 10, 3, '#3A3A3E');
-    signAt(g, `CAM ${i + 1}`, sx + 2, sy + SCR_H + 13, 6, print(6, '#3A362C'), 'left');
+    const [sx, sy] = screenAt(i), col = CASE[i], r = rampOf(col);
+    // (the casing: beige plastic gone yellow up top where the bulb's cooked it, stepped round its corners)
+    slab(g, sx - 12, sy - 12, SCR_W + 24, SCR_H + 34, col, { edge: 4 });
+    checker(g, sx - 8, sy - 8, SCR_W + 16, 2, mix(col, '#C99A3A', 0.35));
+    box(g, sx - 8, sy - 10, SCR_W + 16, 1, mix(col, '#D6A84A', 0.25));
+    // (the side vents, stepped slots)
+    for (let k = 0; k < 6; k++) for (const vx of [sx - 10, sx + SCR_W + 7]) { box(g, vx, sy + 6 + k * 6, 3, 3, r[0]); box(g, vx, sy + 6 + k * 6, 3, 1, INK); }
+    // (the bezel: sunk into the casing (lit along its foot, in shadow under the top), the dark plastic round the glass)
+    box(g, sx - 7, sy - 7, SCR_W + 14, SCR_H + 14, r[4]);
+    box(g, sx - 7, sy - 7, SCR_W + 13, SCR_H + 13, r[0]);
+    box(g, sx - 6, sy - 6, SCR_W + 12, SCR_H + 12, '#2B2822');
+    box(g, sx - 5, sy - 5, SCR_W + 10, 1, '#4E483C'); box(g, sx - 5, sy - 5, 1, SCR_H + 10, '#4E483C');
+    box(g, sx - 5, sy + SCR_H + 4, SCR_W + 10, 1, '#16140F'); box(g, sx + SCR_W + 4, sy - 5, 1, SCR_H + 10, '#16140F');
+    box(g, sx - 1, sy - 1, SCR_W + 2, SCR_H + 2, '#0B0D0E');
+    // (the badge up top: a chrome lozenge, the maker's mark pressed in it)
+    const bx = sx + SCR_W / 2 - 12;
+    box(g, bx - 1, sy - 11, 26, 6, INK); box(g, bx, sy - 10, 24, 4, '#A8ADB4'); box(g, bx, sy - 10, 24, 1, '#E4E7EB'); box(g, bx, sy - 7, 24, 1, '#6B7078');
+    for (let k = 0; k < 5; k++) box(g, bx + 3 + k * 4, sy - 9, 2, 2, '#3A3E44');
+    // (the panel under the glass: the speaker grille, the label-maker tape, the knobs, the power button, its lamp)
+    const y0 = sy + SCR_H + 9;
+    for (let gy = 0; gy < 3; gy++) for (let gx = 0; gx < 5; gx++) box(g, sx - 6 + gx * 3, y0 + gy * 3, 2, 2, r[0]);
+    box(g, sx + 14, y0 - 1, 42, 10, '#121212'); box(g, sx + 14, y0 - 1, 42, 1, '#3A3A3A'); box(g, sx + 14, y0 + 8, 42, 1, '#000000');
+    signText(g, TAPE[i], sx + 35, y0 + 8, print(6, '#E8E8E8'), 'center');
+    for (const kx of [sx + SCR_W - 20, sx + SCR_W - 9]) { ball(g, kx, y0 + 4, 4, '#3A3A3E'); box(g, kx - 1, y0, 1, 3, '#D4D4D8'); }
+    slab(g, sx + SCR_W + 1, y0 - 1, 7, 6, r[1], { edge: 1 });
+    box(g, sx + SCR_W + 2, y0 + 7, 4, 2, INK); box(g, sx + SCR_W + 3, y0 + 7, 2, 1, '#22C55E');
+    // (the casing's foot on the shelf)
+    box(g, sx - 12, sy + SCR_H + 21, SCR_W + 24, 1, INK);
   }
-  // (cables down out of the back of the rack, bundled, to the floor behind the desk)
-  g.strokeStyle = '#141416'; g.lineWidth = 3;
-  for (let k = 0; k < 4; k++) { g.beginPath(); g.moveTo(BANK_L + 80 + k * 70, BANK_TOP + 222); g.quadraticCurveTo(BANK_L + 90 + k * 70, GY - 60, BANK_L + 120 + k * 50, GY - 4); g.stroke(); }
-  // (a sticky note on one casing: the wifi password; a strip of tape holding a cracked bezel)
-  box(g, BANK_L + 30, BANK_TOP + 76, 14, 12, '#FDE68A'); box(g, BANK_L + 32, BANK_TOP + 80, 10, 1, '#A16207'); box(g, BANK_L + 32, BANK_TOP + 83, 7, 1, '#A16207');
-  box(g, BANK_L + 252, BANK_TOP + 120, 18, 5, '#C8BFA6');
+  // (what's stuck on them: the wifi password on a sticky note; a rubber bat on CASTLE's casing; a plastic pumpkin up on
+  // CLOCK's; DO NOT UNPLUG on HELL's; a strip of tape holding GIFTS' cracked bezel)
+  {
+    const [ax, ay] = screenAt(0);
+    box(g, ax - 13, ay + 46, 14, 13, '#FDE68A'); box(g, ax - 13, ay + 46, 14, 2, '#F5D063');
+    box(g, ax - 11, ay + 50, 10, 1, '#A16207'); box(g, ax - 11, ay + 53, 7, 1, '#A16207'); box(g, ax - 11, ay + 56, 9, 1, '#A16207');
+    const [cx, cy] = screenAt(1);
+    inked(g, () => { g.moveTo(cx + SCR_W + 2, cy - 8); g.lineTo(cx + SCR_W + 6, cy - 12); g.lineTo(cx + SCR_W + 8, cy - 9); g.lineTo(cx + SCR_W + 10, cy - 12); g.lineTo(cx + SCR_W + 14, cy - 8); g.lineTo(cx + SCR_W + 10, cy - 6); g.lineTo(cx + SCR_W + 8, cy - 4); g.lineTo(cx + SCR_W + 6, cy - 6); g.closePath(); }, '#27272A', 1);
+    box(g, cx + SCR_W + 7, cy - 8, 1, 1, '#EF4444'); box(g, cx + SCR_W + 9, cy - 8, 1, 1, '#EF4444');
+    const [px, py] = screenAt(2);
+    inked(g, () => g.ellipse(px + SCR_W - 10, py - 18, 8, 6, 0, 0, Math.PI * 2), '#EA7A1A', 2);
+    box(g, px + SCR_W - 16, py - 22, 3, 6, '#F59E3A'); box(g, px + SCR_W - 9, py - 23, 2, 9, '#C2560E');
+    box(g, px + SCR_W - 11, py - 26, 2, 3, '#3F6212');
+    box(g, px + SCR_W - 15, py - 19, 2, 2, INK); box(g, px + SCR_W - 8, py - 19, 2, 2, INK); box(g, px + SCR_W - 14, py - 15, 7, 1, INK);
+    const [hx, hy] = screenAt(3);
+    box(g, hx - 14, hy - 4, 12, 22, '#F1EEE6'); box(g, hx - 14, hy - 4, 12, 1, '#FFFFFF');
+    for (let k = 0; k < 4; k++) box(g, hx - 12, hy + k * 5, 6 + (k % 2) * 2, 2, '#B91C1C');
+    const [tx, ty] = screenAt(5);
+    box(g, tx - 14, ty - 4, 20, 6, '#C8BFA6'); box(g, tx - 14, ty - 4, 20, 1, '#E2DBC6'); checker(g, tx - 14, ty + 1, 20, 1, '#9C9480');
+    g.strokeStyle = '#5A5A5A'; g.lineWidth = 1; g.beginPath(); g.moveTo(tx - 4, ty - 6); g.lineTo(tx + 2, ty + 2); g.lineTo(tx + 1, ty + 7); g.stroke();
+  }
+  // (the cables out of the backs, down the side of the rack in a bundle (zip-tied), off along the floor behind the desk:
+  // black power, gray coax, the yellow and red composite leads)
+  const cols = ['#141416', '#3F4247', '#141416', '#B88A12', '#9B1C1C', '#2A2C30'];
+  for (let k = 0; k < cols.length; k++) {
+    g.strokeStyle = INK; g.lineWidth = 4;
+    const lane = BANK_R + 4 + k * 2;
+    const path = () => { g.beginPath(); g.moveTo(BANK_R - 20 - k * 10, BANK_TOP + 220); g.quadraticCurveTo(lane, BANK_TOP + 222, lane, BANK_TOP + 250); g.lineTo(lane, GY - 30); g.quadraticCurveTo(lane, GY - 6, lane - 40 - k * 14, GY - 4); };
+    path(); g.stroke();
+    g.strokeStyle = cols[k]; g.lineWidth = 2; path(); g.stroke();
+  }
+  for (let y = BANK_TOP + 260; y < GY - 30; y += 46) { box(g, BANK_R + 2, y, 15, 3, '#E7E5E4'); box(g, BANK_R + 2, y + 2, 15, 1, '#A8A29E'); }
 };
 
-/** The camera feeds: crude little scenes (the town, the castle, the clock tower, hell, the ballroom, the gift shop). */
-const feed = (c: Ctx, i: number, f: number, dead: boolean) => {
-  const [mx, my] = screenAt(i);
-  if (dead) {
-    box(c, mx, my, SCR_W, SCR_H, '#2A2A2E');
-    for (let k = 0; k < 46; k++) box(c, mx + ((k * 37 + f * 13) % (SCR_W - 2)), my + ((k * 23 + f * 7) % (SCR_H - 2)), 2, 2, k % 3 ? '#9CA3AF' : '#52525B');
+// ---------------------------------------------------------------------------------------------------------------
+// The camera feeds: each a little scene of its place, painted the once (the outdoor ones again when the hour moves on),
+// what moves in it drawn live over that, then the glass over it all. All of it at the screen's own top left.
+
+type Tod = ReturnType<typeof timeOfDay>;
+/** An outdoor feed's sky: the hour's, in bands (a dither where they meet), the stars out at night. */
+const feedSky = (g: Ctx, tod: Tod, h: number) => {
+  const n = 4;
+  for (let k = 0; k < n; k++) {
+    const col = mix(skyAt(0.12 + (k / (n - 1)) * 0.7, tod), '#20283A', 0.3), y = Math.round((k * h) / n);
+    box(g, 0, y, SCR_W, Math.ceil(h / n) + 1, col);
+    if (k) checker(g, 0, y, SCR_W, 2, mix(skyAt(0.12 + ((k - 1) / (n - 1)) * 0.7, tod), '#20283A', 0.3));
+  }
+  if (tod.stars > 0.3) for (let k = 0; k < 9; k++) box(g, 3 + ((k * 37) % (SCR_W - 6)), 2 + ((k * 13) % 16), 1, 1, k % 3 ? '#C8CCE0' : '#8890B0');
+  if (tod.moon > 0.3) { ball(g, SCR_W - 16, 9, 4, '#E8E4D0', false); box(g, SCR_W - 15, 7, 2, 2, '#C8C2A8'); }
+};
+/** A color on an outdoor feed: lighter by day, darkening down to the night. */
+const dayOf = (col: string, tod: Tod) => hourMix(lite(col, 0.3), lite(col, 0.1), col, tod);
+/** Is it dark enough that the windows are lit? */
+const litAt = (tod: Tod) => tod.lamps > 0.3;
+
+const paintTown = (g: Ctx, tod: Tod) => {
+  const d = (c: string) => dayOf(c, tod), lit = litAt(tod);
+  feedSky(g, tod, 30);
+  // (the hills behind, the church spire off on them)
+  g.fillStyle = d('#262C3A'); g.beginPath(); g.moveTo(0, 28); g.lineTo(18, 22); g.lineTo(40, 26); g.lineTo(64, 20); g.lineTo(SCR_W, 25); g.lineTo(SCR_W, 34); g.lineTo(0, 34); g.closePath(); g.fill();
+  box(g, 70, 10, 3, 14, d('#262C3A')); box(g, 71, 6, 1, 4, d('#262C3A'));
+  // (the square's fronts: gabled, the stone ramped left to right, the roofs' ridges lit, chimneys, the doors)
+  for (let k = 0; k < 4; k++) {
+    const hx = 3 + k * 22, top = 30 + (k % 2) * 3, w = 18, col = d(['#5A4E46', '#4A4440', '#5E5348', '#47423F'][k]), r = rampOf(col);
+    box(g, hx, top, w, 50 - top, col); box(g, hx, top, 2, 50 - top, r[3]); box(g, hx + w - 2, top, 2, 50 - top, r[1]);
+    for (let y = top + 4; y < 50; y += 4) box(g, hx + 2, y, w - 4, 1, r[1]);
+    const roof = d('#1E1A1C');
+    g.fillStyle = roof; g.beginPath(); g.moveTo(hx - 2, top + 1); g.lineTo(hx + w / 2, top - 10); g.lineTo(hx + w + 2, top + 1); g.closePath(); g.fill();
+    g.strokeStyle = d('#3E3438'); g.lineWidth = 1; g.beginPath(); g.moveTo(hx - 1, top); g.lineTo(hx + w / 2, top - 9); g.stroke();
+    if (k % 2 === 0) box(g, hx + w - 6, top - 9, 3, 6, d('#3A2E2A'));
+    box(g, hx + 6, 42, 6, 8, d('#1A1210')); box(g, hx + 6, 42, 6, 1, d('#3A2A22'));
+    if (!lit) { box(g, hx + 2, top + 4, 4, 4, d('#2E3440')); box(g, hx + w - 6, top + 4, 4, 4, d('#2E3440')); }
+  }
+  // (the cobbles, the curb; a lamp post on the corner)
+  box(g, 0, 50, SCR_W, SCR_H - 50, d('#35302C')); box(g, 0, 50, SCR_W, 1, d('#5A524A'));
+  for (let y = 52; y < SCR_H; y += 3) for (let x = (y % 2) * 3; x < SCR_W; x += 6) box(g, x, y, 3, 1, d('#2A2522'));
+  box(g, 46, 30, 1, 20, d('#1A1A1E')); box(g, 44, 28, 5, 3, d('#1A1A1E')); box(g, 45, 29, 3, 1, lit ? '#FDE68A' : d('#3A3A40'));
+  if (lit) checker(g, 40, 50, 14, 2, '#8A7A4A');
+};
+const paintCastle = (g: Ctx, tod: Tod) => {
+  const d = (c: string) => dayOf(c, tod), stone = d('#4A4540'), r = rampOf(stone);
+  feedSky(g, tod, 34);
+  // (the towers either side, their battlements; the keep's wall between, its courses; the gate, the portcullis down)
+  const course = (x: number, y: number, w: number, h: number) => {
+    box(g, x, y, w, h, stone); box(g, x, y, 2, h, r[3]); box(g, x + w - 2, y, 2, h, r[1]);
+    for (let yy = y + 4, k = 0; yy < y + h; yy += 4, k++) { box(g, x + 2, yy, w - 4, 1, r[1]); for (let xx = x + 3 + (k % 2) * 4; xx < x + w - 3; xx += 8) box(g, xx, yy - 3, 1, 3, r[1]); }
+  };
+  course(20, 24, 52, 30);
+  for (let k = 0; k < 6; k++) box(g, 20 + k * 9, 20, 6, 4, stone);
+  for (const tx of [6, 70]) {
+    course(tx, 12, 16, 42);
+    for (let k = 0; k < 3; k++) box(g, tx + k * 6, 8, 4, 4, stone);
+    box(g, tx + 6, 20, 3, 6, '#0C0A09');
+  }
+  // (a pennant up on the right one)
+  box(g, 79, 0, 1, 8, d('#1A1A1E')); box(g, 80, 1, 6, 3, '#7F1D1D');
+  g.fillStyle = '#0C0A09'; g.beginPath(); g.moveTo(38, 54); g.lineTo(38, 40); g.quadraticCurveTo(46, 32, 54, 40); g.lineTo(54, 54); g.closePath(); g.fill();
+  for (let x = 40; x < 54; x += 3) box(g, x, 38, 1, 16, '#3A3530');
+  for (let y = 42; y < 54; y += 3) box(g, 38, y, 16, 1, '#3A3530');
+  // (the moat, the bridge over it, the path)
+  box(g, 0, 54, SCR_W, SCR_H - 54, d('#1E2A2C')); checker(g, 0, 55, SCR_W, 1, d('#34484A'));
+  box(g, 36, 54, 20, 3, d('#5C4630')); box(g, 36, 54, 20, 1, d('#7A5E40'));
+  g.fillStyle = d('#3A3428'); g.beginPath(); g.moveTo(38, 57); g.lineTo(54, 57); g.lineTo(62, SCR_H); g.lineTo(30, SCR_H); g.closePath(); g.fill();
+};
+const paintTower = (g: Ctx, tod: Tod) => {
+  const d = (c: string) => dayOf(c, tod), lit = litAt(tod), brick = d('#3A3330'), r = rampOf(brick);
+  feedSky(g, tod, SCR_H);
+  // (the rooftops round its foot)
+  box(g, 0, 46, 30, 14, d('#22201E')); box(g, 62, 50, 30, 10, d('#22201E'));
+  g.fillStyle = d('#22201E'); g.beginPath(); g.moveTo(0, 46); g.lineTo(14, 38); g.lineTo(30, 46); g.moveTo(62, 50); g.lineTo(78, 42); g.lineTo(92, 50); g.fill();
+  if (lit) { box(g, 8, 50, 3, 3, '#C89A3A'); box(g, 80, 53, 3, 3, '#C89A3A'); }
+  // (the tower: brick courses, ramped; the gallery under the face; the spire, the weathervane)
+  box(g, 34, 14, 24, SCR_H - 14, brick); box(g, 34, 14, 3, SCR_H - 14, r[3]); box(g, 55, 14, 3, SCR_H - 14, r[1]);
+  for (let y = 16, k = 0; y < SCR_H; y += 3, k++) { box(g, 37, y, 18, 1, r[1]); box(g, 39 + (k % 2) * 4, y - 2, 1, 2, r[1]); }
+  box(g, 32, 30, 28, 3, d('#2A2522')); for (let x = 33; x < 59; x += 3) box(g, x, 33, 1, 4, d('#2A2522'));
+  g.fillStyle = d('#2A1E22'); g.beginPath(); g.moveTo(32, 14); g.lineTo(46, 0); g.lineTo(60, 14); g.closePath(); g.fill();
+  g.fillStyle = d('#463238'); g.beginPath(); g.moveTo(34, 14); g.lineTo(46, 2); g.lineTo(46, 14); g.closePath(); g.fill();
+  box(g, 46, 0, 1, 2, d('#1A1A1E'));
+  // (the face: its rim, the hour ticks; lit from behind after dark)
+  ball(g, 46, 22, 7, '#2A2420');
+  ball(g, 46, 22, 6, lit ? '#FDE68A' : d('#E0D6BC'), false);
+  for (let k = 0; k < 12; k++) { const a = (k / 12) * Math.PI * 2; box(g, 46 + Math.cos(a) * 5 - 0.5, 22 + Math.sin(a) * 5 - 0.5, 1, 1, '#3A3028'); }
+  if (lit) { box(g, 42, 42, 3, 5, '#C89A3A'); box(g, 48, 42, 3, 5, '#C89A3A'); }
+};
+const paintHell = (g: Ctx) => {
+  // (the cavern: dark red banded down to the glow; the rock hanging off the top; the far spires; the gate's arch; the
+  // lava's crust along the bottom, the flames live over it)
+  const band = ['#1E0404', '#2E0808', '#450C0A', '#5E140E', '#7A1E10'];
+  band.forEach((col, k) => { box(g, 0, k * 12, SCR_W, 12, col); if (k) checker(g, 0, k * 12, SCR_W, 2, band[k - 1]); });
+  g.fillStyle = '#120202';
+  for (let k = 0; k < 8; k++) { const x = k * 12 + (k % 2) * 3; g.beginPath(); g.moveTo(x, 0); g.lineTo(x + 6, 6 + (k % 3) * 4); g.lineTo(x + 11, 0); g.closePath(); g.fill(); }
+  g.fillStyle = '#2A0606';
+  for (const [x, h] of [[4, 22], [18, 14], [70, 26], [84, 16]] as const) { g.beginPath(); g.moveTo(x - 6, 50); g.lineTo(x, 50 - h); g.lineTo(x + 6, 50); g.closePath(); g.fill(); }
+  box(g, 30, 22, 32, 28, '#2A0606'); box(g, 34, 26, 24, 24, '#0E0202');
+  g.fillStyle = '#2A0606'; g.beginPath(); g.moveTo(30, 23); g.quadraticCurveTo(46, 12, 62, 23); g.closePath(); g.fill();
+  for (let x = 36; x < 58; x += 4) box(g, x, 26, 1, 24, '#3A1010');
+  box(g, 0, SCR_H - 8, SCR_W, 8, '#7C2D12'); checker(g, 0, SCR_H - 9, SCR_W, 2, '#5E140E');
+};
+const paintBallroom = (g: Ctx) => {
+  // (the wall: purple banded; two tall arched windows (the night out of them); swagged red curtains; the floor going
+  // back under the tiles (they're live))
+  const band = ['#1E0B44', '#2E1065', '#3B1580', '#4C1D95'];
+  band.forEach((col, k) => { box(g, 0, k * 11, SCR_W, 12, col); if (k) checker(g, 0, k * 11, SCR_W, 2, band[k - 1]); });
+  for (const wx of [16, 62]) {
+    g.fillStyle = '#C9A227'; g.beginPath(); g.moveTo(wx - 1, 40); g.lineTo(wx - 1, 14); g.quadraticCurveTo(wx + 7, 4, wx + 15, 14); g.lineTo(wx + 15, 40); g.closePath(); g.fill();
+    g.fillStyle = '#0E1430'; g.beginPath(); g.moveTo(wx + 1, 40); g.lineTo(wx + 1, 15); g.quadraticCurveTo(wx + 7, 7, wx + 13, 15); g.lineTo(wx + 13, 40); g.closePath(); g.fill();
+    box(g, wx + 6, 9, 2, 31, '#C9A227'); box(g, wx + 1, 26, 12, 1, '#C9A227');
+    box(g, wx + 9, 14, 1, 1, '#C8CCE0'); box(g, wx + 3, 30, 1, 1, '#C8CCE0');
+  }
+  for (const [x, s] of [[0, 1], [SCR_W, -1]] as const) {
+    g.fillStyle = '#7F1D1D'; g.beginPath(); g.moveTo(x, 0); g.lineTo(x + s * 14, 0); g.quadraticCurveTo(x + s * 6, 20, x + s * 9, 44); g.lineTo(x, 44); g.closePath(); g.fill();
+    for (let k = 1; k < 3; k++) box(g, x + s * (k * 4) - (s < 0 ? 1 : 0), 2, 1, 40, '#5C0E0E');
+    box(g, x + s * 2 - (s < 0 ? 2 : 0), 0, 2, 44, '#A12A2A');
+  }
+  box(g, 0, 0, SCR_W, 3, '#5C0E0E'); checker(g, 0, 3, SCR_W, 2, '#7F1D1D');
+  box(g, 0, 44, SCR_W, SCR_H - 44, '#160A26');
+  box(g, 45, 0, 1, 12, '#A1A1AA');
+};
+const paintShop = (g: Ctx) => {
+  // (the wall red, banded; the shelves of tees (stepped, the horns on the hooks); the counter in front, the register on
+  // it; the clerk in horns asleep on his arms across it)
+  const band = ['#3B0A0A', '#4A0E0E', '#5B1414'];
+  band.forEach((col, k) => { box(g, 0, k * 14, SCR_W, 15, col); if (k) checker(g, 0, k * 14, SCR_W, 2, band[k - 1]); });
+  box(g, 0, 42, SCR_W, SCR_H - 42, '#3A0A0A'); checker(g, 0, 42, SCR_W, 2, '#5B1414');
+  for (const sy of [18, 38]) { box(g, 2, sy, 50, 2, '#6B4423'); box(g, 2, sy, 50, 1, '#8A5A2E'); }
+  for (let k = 0; k < 5; k++) {
+    const tx = 4 + k * 10, col = ['#DC2626', '#18181B', '#F8FAFC', '#7C3AED', '#18181B'][k], r = rampOf(col);
+    box(g, tx, 24, 8, 13, col); box(g, tx - 2, 24, 12, 4, col); box(g, tx, 24, 2, 13, r[3]); box(g, tx + 6, 24, 2, 13, r[1]);
+    box(g, tx + 3, 24, 2, 1, INK);
+  }
+  for (let k = 0; k < 4; k++) { const hx = 6 + k * 12; box(g, hx, 12, 2, 6, '#DC2626'); box(g, hx + 6, 12, 2, 6, '#DC2626'); box(g, hx + 2, 16, 4, 2, '#991B1B'); }
+  // (the counter)
+  box(g, 46, 40, SCR_W - 46, SCR_H - 40, '#5C3317'); box(g, 46, 40, SCR_W - 46, 2, '#8A5A2E'); box(g, 46, 42, 2, SCR_H - 42, '#7A4A22');
+  for (let y = 46; y < SCR_H; y += 5) box(g, 48, y, SCR_W - 48, 1, '#4A2810');
+  box(g, 78, 30, 12, 10, '#3F3F46'); box(g, 78, 30, 12, 2, '#71717A'); box(g, 80, 32, 8, 3, '#0A2A10'); box(g, 81, 33, 5, 1, '#4ADE80');
+  // (the clerk: his arms folded on the counter, his head down on them, the horns up off it, a staff tee)
+  box(g, 52, 34, 22, 7, '#5B21B6'); box(g, 52, 34, 22, 2, '#7C3AED');
+  box(g, 54, 37, 18, 4, '#E8B48A'); box(g, 54, 37, 18, 1, '#F5C9A4');
+  ball(g, 62, 31, 6, '#3A2618', false); box(g, 57, 31, 10, 4, '#E8B48A'); box(g, 59, 33, 2, 1, INK); box(g, 63, 33, 2, 1, INK);
+  box(g, 56, 22, 2, 5, '#DC2626'); box(g, 66, 22, 2, 5, '#DC2626'); box(g, 55, 26, 3, 1, '#991B1B'); box(g, 66, 26, 3, 1, '#991B1B');
+  box(g, 60, 36, 3, 2, '#9CC4E0');
+};
+
+/** The still part of feed i (its key changes with the hour for the outdoor ones). */
+const feedStill = (c: Ctx, i: number, tod: Tod) => {
+  const key = i <= 2 ? `ctl-feed-${i}-${tod.key}` : `ctl-feed-${i}`;
+  stamp(c, key, 0, 0, SCR_W, SCR_H, g => {
+    g.save(); g.beginPath(); g.rect(0, 0, SCR_W, SCR_H); g.clip();
+    [paintTown, paintCastle, paintTower][i]?.(g, tod);
+    if (i === 3) paintHell(g); else if (i === 4) paintBallroom(g); else if (i === 5) paintShop(g);
+    g.restore();
+    osdText(g, `CAM ${i + 1}`, 4, 4);
+  });
+};
+
+/** What moves in feed i (drawn live at its top left): the windows, a walker, a bat, the hands, the flames and the damned,
+ *  the floor and the ghosts dancing, the clerk's Z's. */
+const feedLive = (c: Ctx, i: number, f: number, tod: Tod) => {
+  const lit = litAt(tod), d = (col: string) => dayOf(col, tod);
+  if (i === 0) {
+    if (lit) for (let k = 0; k < 4; k++) {
+      const hx = 3 + k * 22, top = 30 + (k % 2) * 3, on = (k + Math.floor(f / 50)) % 5;
+      box(c, hx + 2, top + 4, 4, 4, on ? '#FDE68A' : '#A16207'); box(c, hx + 12, top + 4, 4, 4, (on + 2) % 5 ? '#F5D06A' : '#8A5A10');
+    }
+    // (a guest crossing the square, legs going)
+    const wx = ((f * 0.22) % (SCR_W + 16)) - 8, step = Math.floor(f / 10) % 2;
+    box(c, wx, 45, 3, 3, d('#2563EB')); box(c, wx, 43, 3, 2, d('#E8B48A'));
+    box(c, wx + (step ? 0 : 1), 48, 1, 2, d('#1F2937')); box(c, wx + (step ? 2 : 1), 48, 1, 2, d('#1F2937'));
+  } else if (i === 1) {
+    if (lit) for (const [x, y] of [[11, 30], [75, 30], [30, 30], [60, 30]] as const) box(c, x, y, 3, 4, Math.floor(f / 8 + x) % 3 ? '#F59E0B' : '#FDE68A');
+    // (a bat going over, flapping)
+    const bx = ((f * 0.5 + 40) % 150) - 20, by = 8 + Math.sin(f * 0.07) * 3, up = Math.floor(f / 6) % 2;
+    box(c, bx, by, 2, 2, '#0A0A0C');
+    box(c, bx - 3, by + (up ? -1 : 1), 3, 1, '#0A0A0C'); box(c, bx + 2, by + (up ? -1 : 1), 3, 1, '#0A0A0C');
+  } else if (i === 2) {
+    // (the hands: the feed's own clock, near enough)
+    const { min, hr } = clockAt(f), am = (min / 60) * Math.PI * 2 - Math.PI / 2, ah = ((hr + min / 60) / 12) * Math.PI * 2 - Math.PI / 2;
+    c.strokeStyle = '#1A1410'; c.lineWidth = 1;
+    c.beginPath(); c.moveTo(46.5, 22.5); c.lineTo(46.5 + Math.cos(am) * 5, 22.5 + Math.sin(am) * 5); c.moveTo(46.5, 22.5); c.lineTo(46.5 + Math.cos(ah) * 3, 22.5 + Math.sin(ah) * 3); c.stroke();
+  } else if (i === 3) {
+    // (the fire along the bottom, stepped, flickering)
+    for (let k = 0; k < 7; k++) {
+      const h = 10 + ((k * 7 + Math.floor(f / 6)) % 5) * 3, x = 1 + k * 13;
+      box(c, x, SCR_H - h, 11, h, '#B91C1C'); box(c, x + 2, SCR_H - h + 3, 7, h - 3, '#F97316'); box(c, x + 4, SCR_H - h + 7, 3, h - 7, '#FDE047');
+    }
+    // (a guest down in it: shirt, arms up and going, mouth wide; a pitchfork up into his seat now and again)
+    const bob = Math.round(Math.sin(f * 0.25) * 2), gx = 44, gy = 36 + bob, wave = Math.floor(f / 5) % 2;
+    box(c, gx, gy + 6, 8, 9, '#0EA5E9'); box(c, gx, gy + 6, 8, 2, '#38BDF8');
+    box(c, gx + 1, gy, 6, 6, '#E8B48A'); box(c, gx + 1, gy, 6, 1, '#6B3A12');
+    box(c, gx + 2, gy + 2, 1, 1, INK); box(c, gx + 5, gy + 2, 1, 1, INK); box(c, gx + 3, gy + 3, 2, 3, '#3A0A0A');
+    box(c, gx - 3, gy - 1 + (wave ? 0 : 2), 2, 8, '#E8B48A'); box(c, gx + 9, gy - 1 + (wave ? 2 : 0), 2, 8, '#E8B48A');
+    if (wave) { box(c, gx - 5, gy - 4, 1, 2, '#FDE68A'); box(c, gx + 12, gy - 4, 1, 2, '#FDE68A'); box(c, gx + 3, gy - 5, 1, 2, '#FDE68A'); }
+    const poke = f % 150;
+    if (poke < 30) {
+      const up = poke < 8 ? poke : poke < 22 ? 8 : 30 - poke, fy = SCR_H - up * 2;
+      box(c, gx + 3, fy - 1, 1, 22, '#52525B'); box(c, gx + 1, fy - 1, 5, 1, '#71717A');
+      for (const tx of [gx + 1, gx + 3, gx + 5]) box(c, tx, fy - 4, 1, 3, '#A1A1AA');
+    }
+    for (let k = 0; k < 4; k++) { const ey = SCR_H - ((f * 0.6 + k * 17) % 50); box(c, 8 + k * 23 + Math.round(Math.sin(f * 0.1 + k) * 2), ey, 1, 1, '#FDBA74'); }
+  } else if (i === 4) {
+    // (the disco ball turning: its glints walking round; the dance floor going round its colors; two ghosts at it)
+    ball(c, 46, 17, 6, '#A1A1AA', false);
+    for (let k = 0; k < 3; k++) { const a = f * 0.05 + k * 2.1; if (Math.cos(a) > 0) box(c, 46 + Math.sin(a) * 4, 15 + k * 2, 1, 1, '#FFFFFF'); }
+    const t = Math.floor(f / 20), floor = ['#F472B6', '#60A5FA', '#FDE047', '#4ADE80'];
+    for (let k = 0; k < 8; k++) box(c, 2 + k * 11, 46, 10, 5, floor[(k + t) % 4]);
+    for (let k = 0; k < 6; k++) box(c, k * 16, 52, 15, 8, floor[(k + t + 1) % 4]);
+    for (const [gx0, ph] of [[30, 0], [56, 1.6]] as const) {
+      const gx = gx0 + Math.round(Math.sin(f * 0.06 + ph) * 3), gy = 30 + Math.round(Math.abs(Math.sin(f * 0.12 + ph)) * -2);
+      box(c, gx, gy, 7, 10, '#DCE4F5'); box(c, gx + 1, gy - 2, 5, 2, '#DCE4F5'); box(c, gx, gy, 2, 10, '#F4F7FF');
+      box(c, gx + (Math.floor(f / 8) % 2), gy + 10, 2, 2, '#DCE4F5'); box(c, gx + 4 + (Math.floor(f / 8) % 2), gy + 10, 2, 2, '#DCE4F5');
+      box(c, gx + 2, gy + 1, 1, 2, INK); box(c, gx + 4, gy + 1, 1, 2, INK);
+    }
   } else {
-    // (the outdoor feeds (the town, the castle, the tower) under the hour's sky; the indoor ones their own light)
-    const tod = timeOfDay(), out = i <= 2, lit = !out || tod.lamps > 0.3;
-    const outSky = (top: boolean) => mix(skyAt(top ? 0.2 : 0.75, tod), '#20283A', 0.3);
-    const sky = out ? [outSky(true), outSky(false)] : [['#450A0A', '#7F1D1D'], ['#2E1065', '#4C1D95'], ['#3B0A0A', '#5B1414']][i - 3];
-    box(c, mx, my, SCR_W, SCR_H, sky[1]); box(c, mx, my, SCR_W, 20, sky[0]); checker(c, mx, my + 20, SCR_W, 2, sky[0]);
-    if (out && tod.stars > 0.3) for (let k = 0; k < 5; k++) box(c, mx + 6 + k * 19, my + 4 + (k % 3) * 5, 1, 1, '#C8CCE0');
-    /** A building's stone or wood on an outdoor feed: lighter by day. */
-    const day = (col: string) => (out ? hourMix(lite(col, 0.3), lite(col, 0.1), col, tod) : col);
-    const win = lit ? '#FDE68A' : day('#3A3440');
-    if (i === 0) {
-      // (the town square: gabled fronts, their windows lit)
-      box(c, mx, my + 52, SCR_W, 10, day('#292524'));
-      for (let k = 0; k < 4; k++) {
-        const hx = mx + 4 + k * 22;
-        box(c, hx, my + 32, 18, 20, day(k % 2 ? '#57534E' : '#4A4440')); box(c, hx, my + 32, 1, 20, day('#78716C'));
-        c.fillStyle = day('#1C1917'); c.beginPath(); c.moveTo(hx - 2, my + 33); c.lineTo(hx + 9, my + 22); c.lineTo(hx + 20, my + 33); c.closePath(); c.fill();
-        box(c, hx + 6, my + 38, 5, 6, lit ? ((k + Math.floor(f / 50)) % 3 ? '#FDE68A' : '#A16207') : win);
-      }
-    } else if (i === 1) {
-      // (the castle's front: battlements, the door)
-      box(c, mx + 18, my + 22, 56, 40, day('#44403C')); box(c, mx + 18, my + 22, 56, 2, day('#57534E'));
-      for (let k = 0; k < 4; k++) box(c, mx + 18 + k * 16, my + 16, 9, 7, day('#44403C'));
-      box(c, mx + 40, my + 42, 12, 20, '#0C0A09'); box(c, mx + 24, my + 30, 5, 7, win); box(c, mx + 63, my + 30, 5, 7, win);
-    } else if (i === 2) {
-      // (the clock tower, its face lit)
-      box(c, mx + 36, my + 6, 20, 56, day('#292524')); box(c, mx + 36, my + 6, 2, 56, day('#3F3A36'));
-      ball(c, mx + 46, my + 18, 6, lit ? '#FDE68A' : '#E8DCC0', false); box(c, mx + 45, my + 13, 2, 6, INK); box(c, mx + 45, my + 18, 4, 1, INK);
-    } else if (i === 3) {
-      // (the elevator shaft's camera: the fire at the bottom, flickering)
-      for (let k = 0; k < 6; k++) { const h = 14 + ((k * 7 + Math.floor(f / 6)) % 5) * 4; box(c, mx + 4 + k * 15, my + SCR_H - h, 10, h, k % 2 ? '#F97316' : '#DC2626'); box(c, mx + 6 + k * 15, my + SCR_H - h + 4, 6, h - 4, '#FDE047'); }
-    } else if (i === 4) {
-      // (the ballroom: the disco ball, the dance floor going round its colors)
-      box(c, mx + 45, my, 1, 12, '#A1A1AA'); ball(c, mx + 46, my + 18, 6, '#A1A1AA', false);
-      for (let k = 0; k < 6; k++) box(c, mx + 4 + k * 15, my + 50, 12, 12, (k + Math.floor(f / 20)) % 2 ? '#F472B6' : '#60A5FA');
-    } else {
-      // (the gift shop: the tee racks, a clerk in horns)
-      box(c, mx, my + 54, SCR_W, 8, '#7F1D1D');
-      for (let k = 0; k < 5; k++) box(c, mx + 8 + k * 17, my + 30, 10, 24, k % 2 ? '#18181B' : '#DC2626');
-      box(c, mx + 72, my + 34, 10, 20, '#E8B48A'); box(c, mx + 72, my + 30, 2, 4, '#DC2626'); box(c, mx + 80, my + 30, 2, 4, '#DC2626');
+    // (the clerk's Z's, drifting up off him)
+    for (let k = 0; k < 2; k++) {
+      const t = (f + k * 60) % 120, zx = 66 + Math.round(t / 14) + k * 2, zy = 26 - Math.round(t / 8);
+      if (zy < 2) continue;
+      box(c, zx, zy, 3, 1, '#E8ECEF'); box(c, zx + 1, zy + 1, 1, 1, '#E8ECEF'); box(c, zx, zy + 2, 3, 1, '#E8ECEF');
     }
   }
-  // (the glass: scanlines, a sheen in its corner, the roll bar going down it; the red REC dot)
-  c.fillStyle = 'rgba(0, 0, 0, 0.22)';
-  for (let y = my + 1; y < my + SCR_H; y += 2) c.fillRect(mx, y, SCR_W, 1);
-  box(c, mx, my + ((f * 2) % SCR_H), SCR_W, 2, 'rgba(255, 255, 255, 0.07)');
-  box(c, mx + 3, my + 3, 10, 2, 'rgba(255, 255, 255, 0.18)'); box(c, mx + 3, my + 5, 2, 6, 'rgba(255, 255, 255, 0.18)');
-  if (!dead && Math.floor(f / 30) % 2) { box(c, mx + SCR_W - 10, my + 4, 5, 5, '#7F1D1D'); box(c, mx + SCR_W - 9, my + 5, 3, 3, '#EF4444'); }
+};
+
+/** A dead feed: snow (four frames of it, painted the once, the screens out of step). */
+const snow = (c: Ctx, i: number, f: number) => {
+  const k = (Math.floor(f / 3) + i) % 4;
+  stamp(c, `ctl-snow-${k}`, 0, 0, SCR_W, SCR_H, g => {
+    box(g, 0, 0, SCR_W, SCR_H, '#2A2A2E');
+    for (let n = 0; n < 420; n++) {
+      const h = hash(n * 1.37 + k * 91.7), x = Math.floor(hash(n * 7.1 + k * 3.3) * SCR_W), y = Math.floor(hash(n * 3.9 + k * 11.1) * SCR_H);
+      box(g, x, y, h < 0.5 ? 1 : 2, 1, h < 0.35 ? '#D4D4D8' : h < 0.7 ? '#71717A' : '#18181B');
+    }
+  });
+};
+
+/** The glass over each picture: the tube's green-gray cast, the scanlines, its corners rounded off under the bezel, the
+ *  edges going dark (a stepped vignette), the curve of it catching the bulb top left. */
+const glass = (c: Ctx) => stamp(c, 'ctl-glass', 0, 0, SCR_W, SCR_H, g => {
+  box(g, 0, 0, SCR_W, SCR_H, 'rgba(40, 90, 70, 0.10)');
+  for (let y = 1; y < SCR_H; y += 2) box(g, 0, y, SCR_W, 1, 'rgba(0, 0, 0, 0.22)');
+  for (let k = 0; k < 3; k++) {
+    const a = `rgba(0, 0, 0, ${0.22 - k * 0.07})`, e = k * 2;
+    box(g, e, e, SCR_W - e * 2, 2, a); box(g, e, SCR_H - e - 2, SCR_W - e * 2, 2, a);
+    box(g, e, e + 2, 2, SCR_H - e * 2 - 4, a); box(g, SCR_W - e - 2, e + 2, 2, SCR_H - e * 2 - 4, a);
+  }
+  // (the corners: the tube's round under the square bezel)
+  for (const [cx, sx] of [[0, 1], [SCR_W, -1]] as const) for (const [cy, sy] of [[0, 1], [SCR_H, -1]] as const) {
+    for (const [dx, dy, w, h] of [[0, 0, 4, 1], [0, 1, 2, 1], [0, 2, 1, 2]] as const) box(g, sx > 0 ? cx + dx : cx - dx - w, sy > 0 ? cy + dy : cy - dy - h, w, h, '#0B0D0E');
+  }
+  // (the glare: a stepped curve of light in the top left, a fleck bottom right)
+  box(g, 6, 3, 18, 1, 'rgba(255, 255, 255, 0.20)'); box(g, 4, 4, 6, 1, 'rgba(255, 255, 255, 0.16)'); box(g, 3, 5, 2, 8, 'rgba(255, 255, 255, 0.14)');
+  box(g, 24, 3, 8, 1, 'rgba(255, 255, 255, 0.08)'); box(g, 3, 13, 1, 6, 'rgba(255, 255, 255, 0.07)');
+  box(g, SCR_W - 9, SCR_H - 7, 4, 1, 'rgba(255, 255, 255, 0.10)');
+});
+
+/** Feed i on its screen: the picture (or snow), what moves in it, the roll bar, the odd flicker and tear, the clock and the
+ *  REC lamp, the glass. */
+const feed = (c: Ctx, i: number, f: number, dead: boolean) => {
+  const [mx, my] = screenAt(i), tod = timeOfDay();
+  c.save(); c.translate(mx, my);
+  if (dead) snow(c, i, f);
+  else { feedStill(c, i, tod); feedLive(c, i, f, tod); }
+  // (the roll bar going down it, each its own speed)
+  const ry = Math.round((f * (0.5 + i * 0.09) + i * 23) % (SCR_H + 24)) - 12;
+  box(c, 0, ry, SCR_W, 3, 'rgba(255, 255, 255, 0.06)'); box(c, 0, ry + 3, SCR_W, 2, 'rgba(0, 0, 0, 0.12)');
+  // (now and then one picture tears: a few lines of it smeared sideways for a moment; a flicker)
+  const slot = Math.floor(f / 200);
+  if (!dead && Math.floor(hash(slot * 3.7) * 6) === i && f % 200 < 8) {
+    for (let k = 0; k < 3; k++) { const ty = Math.floor(hash(f * 0.37 + k) * (SCR_H - 2)); box(c, 0, ty, SCR_W, 1, 'rgba(220, 230, 240, 0.35)'); box(c, Math.floor(hash(f + k * 5) * 60), ty + 1, 30, 1, 'rgba(0, 0, 0, 0.5)'); }
+  }
+  if (hash(Math.floor(f / 4) * 1.3 + i * 17.1) > 0.96) box(c, 0, 0, SCR_W, SCR_H, 'rgba(220, 240, 230, 0.06)');
+  if (!dead) {
+    const { hm, s } = clockAt(f);
+    osd(c, hm, SCR_W - 37, SCR_H - 8); osd(c, s, SCR_W - 13, SCR_H - 8);
+    if (Math.floor(f / 30) % 2) { box(c, SCR_W - 21, 4, 5, 5, '#7F1D1D'); box(c, SCR_W - 20, 5, 3, 3, '#EF4444'); }
+    osd(c, 'REC', SCR_W - 15, 4);
+  }
+  glass(c);
+  c.restore();
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// The park's own cameras, in here too (wall units): a housing on a bracket up under the conduit, panning in steps, the red
+// tally lamp on it lit while it's recording. One by the clock looking at the desk, one at the far end of the rack.
+
+/** A camera on its bracket (the bracket's foot on the wall at 0, 0, the head out to the right), at pan step `p` (0 turned
+ *  most toward the room, 2 side on). */
+const paintCctv = (g: Ctx, p: number) => {
+  slab(g, -5, -8, 10, 16, '#6B7078', { edge: 2 });
+  box(g, -3, -5, 2, 2, '#2F343B'); box(g, -3, 3, 2, 2, '#2F343B');
+  pole(g, 4, -2, 10, 4, '#8A9098');
+  box(g, 12, -4, 5, 8, '#3F444C');
+  const L = [20, 25, 30][p], drop = [7, 5, 3][p];
+  // (the housing: off-white, tipped down at the room; the sun hood over it; the lens at its business end)
+  inked(g, () => { g.moveTo(14, -10); g.lineTo(14 + L, -10 + drop); g.lineTo(14 + L, -1 + drop); g.lineTo(14, 0); g.closePath(); }, '#D6D3C8', 2);
+  box(g, 15, -9, L - 2, 2, '#ECEAE2'); box(g, 15, -3 + Math.round(drop / 2), L - 2, 2, '#A8A498');
+  inked(g, () => { g.moveTo(12, -13); g.lineTo(18 + L, -13 + drop); g.lineTo(18 + L, -10 + drop); g.lineTo(12, -10); g.closePath(); }, '#B8B4A8', 1);
+  const lx = 14 + L, ly = -5 + drop, lr = [5, 4, 3][p];
+  inked(g, () => g.ellipse(lx, ly, Math.max(2, lr - 1), lr, 0, 0, Math.PI * 2), '#1A1C20', 1);
+  box(g, lx - 1, ly - 2, 1, 2, '#7DB7E8'); box(g, lx, ly - 1, 1, 1, '#C8E0F5');
+  // (the cable off the back, looped down into the conduit)
+  g.strokeStyle = '#141416'; g.lineWidth = 2; g.beginPath(); g.moveTo(14, -2); g.quadraticCurveTo(6, 14, 0, -28); g.stroke();
+};
+const CCTV: { x: number; y: number; dir: 1 | -1; ph: number }[] = [
+  { x: x0 + 246, y: GY - 486, dir: 1, ph: 0 },
+  { x: BANK_R + 8, y: GY - 486, dir: -1, ph: 300 },
+];
+const cctv = (c: Ctx, f: number) => {
+  for (const cam of CCTV) {
+    // (the pan: a slow back-and-forth in three steps, holding at each end)
+    const t = ((f + cam.ph) % 720) / 720, s = Math.sin(t * Math.PI * 2), p = s > 0.45 ? 2 : s < -0.45 ? 0 : 1;
+    c.save(); c.translate(cam.x, cam.y); c.scale(cam.dir, 1);
+    stamp(c, `ctl-cctv-${p}`, -8, -32, 60, 56, g => paintCctv(g, p));
+    // (the tally: red, blinking while it records)
+    const on = Math.floor(f / 40) % 2 === 0;
+    box(c, 16, -8, 3, 3, INK); box(c, 17, -7, 2, 2, on ? '#EF4444' : '#4A1414');
+    c.restore();
+  }
 };
 
 const paintBoards = (g: Ctx) => {
@@ -549,8 +917,9 @@ export const drawRoom = (c: Ctx, state: GameState, look: RoomLook) => {
   // On the back wall: the rack and its feeds, the boards, the fridge
   inDepth(c, eye, WALL_D, () => {
     stamp(c, 'ctl-boards', x0 + 40, GY - 400, 230, 200, paintBoards);
-    stamp(c, 'ctl-bank', BANK_L - 10, BANK_TOP - 50, BANK_R - BANK_L + 20, GY - BANK_TOP + 50, paintBank);
+    stamp(c, 'ctl-bank', BANK_L - 10, BANK_TOP - 50, BANK_R - BANK_L + 32, GY - BANK_TOP + 50, paintBank);
     for (let i = 0; i < 6; i++) feed(c, i, f, look.done || (look.burst && i === 3));
+    cctv(c, f);
     stamp(c, 'ctl-fridge', x0 - 10, GY - 146, 150, 146, paintFridge);
     stamp(c, 'ctl-nest-back', x0 + 130, GY - 96, 170, 98, paintNestBack);
   });
