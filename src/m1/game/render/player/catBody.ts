@@ -42,6 +42,9 @@ export const setCatTail = (swish: number, up: number, puff = false) => { tail = 
 let face: { eyes: 'mean' | 'wide' | 'shut' | 'x'; ears: 'up' | 'back' | 'flat'; mouth: 'auto' | 'hiss' | 'hack' | 'yowl' | 'tongue'; puff: boolean; twitch: boolean } = { eyes: 'mean', ears: 'up', mouth: 'auto', puff: false, twitch: false };
 /** The face for what's drawn next (eyes, ears, the mouth over the mood's, fur puffed out). */
 export const setCatFace = (f: Partial<typeof face>) => { face = { eyes: 'mean', ears: 'up', mouth: 'auto', puff: false, twitch: false, ...f }; };
+/** Naked: how his dick's swinging (radians off hanging straight down, + forward) and stretching (px) for what's drawn
+ *  next (drawCatPlayer sets it from how he's moving). */
+let dangle = { swing: 0, stretch: 0 };
 let ghost = false;
 /** Drawn as his ghost (all pale, see-through: the death's): for what's drawn next. */
 export const setCatGhost = (on: boolean) => { ghost = on; };
@@ -204,7 +207,17 @@ export const catTorso = (c: Ctx, frame = 0) => {
   ticks(c, [-10, -18], [-9, -2], 3);
   // (his waist: the belt over his jeans; bare, fur)
   if (!nude) drawBelt(c, -3, 7);
-  else { c.beginPath(); c.ellipse(0, 1, 11, 4, 0, 0, Math.PI * 2); fill(c, FUR); ticks(c, [-8, 1], [8, 1], 4); }
+  else {
+    c.beginPath(); c.ellipse(0, 1, 11, 4, 0, 0, Math.PI * 2); fill(c, FUR); ticks(c, [-8, 1], [8, 1], 4);
+    // (the user's: "when socks the cat is naked you see a cat dick bouncing around": a crude little cartoon one, out of
+    // a tuft of fur at his crotch, pink, swinging and bouncing with how he moves)
+    const ang = Math.max(-1.1, Math.min(1.1, dangle.swing)), len = 6 + dangle.stretch;
+    const ax = 7, ay = 3, tx = ax + Math.sin(ang) * len, ty = ay + Math.cos(ang) * len;
+    seg(c, [ax, ay], [tx, ty], 1.9, 1.5, '#E07A92');
+    ball(c, tx, ty, 1.9, '#F4A6BA');
+    c.fillStyle = col('#FFFFFF'); c.fillRect(tx - 0.6, ty - 1, 0.8, 0.8);
+    ball(c, ax, ay, 2.6, FUR); ball(c, ax + 0.4, ay - 0.4, 1.4, FUR_LT);
+  }
   // (the collar: black leather, silver studs, a gold tag on a ring)
   c.beginPath(); c.roundRect(-4, -28, 15, 4, 1.5); fill(c, '#111014');
   c.fillStyle = col('#E5E7EB'); for (const x of [-2, 2, 6, 9.5]) { c.beginPath(); c.moveTo(x, -28.6); c.lineTo(x + 1.2, -26); c.lineTo(x - 1.2, -26); c.closePath(); c.fill(); }
@@ -380,6 +393,14 @@ export const drawCatPlayer = (c: Ctx, p: Player, state: GameState, o: CatPlayerO
   const hold = o.hairball ? null : o.hold;
   setCatClaws(false); setCatFace({ ears: o.angry ? 'back' : 'up', twitch: f % 190 < 10 });
   setCatTail(Math.sin(f * 0.05) * 0.6, 0.55);
+  // (naked: how it swings: with his step walking, flung up going up and down coming down in the air, a wobble on a
+  // landing, a lazy sway stood about; it trails behind him running)
+  {
+    const sq = p.squash ?? 0;
+    const step = walking ? Math.sin(f * 0.56) * 0.75 : 0, idle = Math.sin(f * 0.09) * 0.18, run = -Math.min(1, Math.abs(p.vel.x) / PLAYER_MOVE_SPEED) * 0.35;
+    const airSwing = air ? Math.max(-1, Math.min(1, -p.vel.y * 0.09)) * (p.vel.y < 0 ? 1.4 : 0.6) : 0;
+    dangle = { swing: step + idle + run + airSwing + Math.sin(f * 1.3) * sq * 2, stretch: air && p.vel.y < 0 ? 1.5 : sq * -2 };
+  }
   let q: CatFig;
   if (o.hurt) {
     // Knocked back: fur puffed out, tail bottle-brushed, eyes like dinner plates, paws flung up
