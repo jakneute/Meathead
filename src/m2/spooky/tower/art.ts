@@ -350,52 +350,153 @@ const bayDoor = (c: Ctx, eye: Eye, x: number, w: number, h: number, frame: strin
   slab(c, l - 10, t, 10, h, frame, { edge: 2 }); slab(c, r, t, 10, h, frame, { edge: 2 });
 };
 
-/** HOW THE RIDE WORKS: a framed board, four panels, a picture in each (stamped). */
+/** HOW THE RIDE WORKS: a printed theme-park board in a gilt frame, hung off the wall on two iron brackets and chains:
+ *  its title on a red banner, four illustrated panels (numbered, arrows between), their captions on plates under them,
+ *  the height rule along the foot; aged, grimy, a corner peeling, and somebody's had a marker at it (stamped). */
+const GILT = ['#4A300C', '#7A5418', '#B8862E', '#D4A84A', '#F0D27A'];
+/** A stick rider, happy (feet at (x, y)): a head with dot eyes and a grin, arms up if they're having fun. */
+const rider = (g: Ctx, x: number, y: number, shirt: string, up: boolean) => {
+  box(g, x - 3, y - 20, 7, 7, INK); box(g, x - 2, y - 19, 5, 5, '#F0C8A2'); box(g, x - 1, y - 18, 1, 1, INK); box(g, x + 1, y - 18, 1, 1, INK); box(g, x - 1, y - 16, 3, 1, '#7A1A10');
+  box(g, x - 2, y - 13, 5, 8, shirt); box(g, x - 2, y - 13, 1, 8, mix(shirt, '#FFFFFF', 0.3));
+  box(g, x - 2, y - 5, 2, 5, INK); box(g, x + 1, y - 5, 2, 5, INK);
+  if (up) { box(g, x - 5, y - 22, 2, 9, INK); box(g, x + 4, y - 22, 2, 9, INK); } else { box(g, x - 5, y - 12, 2, 6, INK); box(g, x + 4, y - 12, 2, 6, INK); }
+};
+/** The car, little: the gilded elevator cage, its bars, its dome. */
+const carIcon = (g: Ctx, x: number, y: number, w: number, h: number) => {
+  box(g, x - 1, y - 1, w + 2, h + 2, INK); bandedGradient(g, x, y, w, h, ['#6E1414', '#3A0808'], 3);
+  for (let k = 3; k < w - 2; k += 5) box(g, x + k, y, 1, h, GILT[1]);
+  box(g, x, y, w, 2, GILT[3]); box(g, x, y + h - 3, w, 3, GILT[2]); box(g, x, y, 2, h, GILT[3]); box(g, x + w - 2, y, 2, h, GILT[1]);
+  box(g, x + 3, y - 4, w - 6, 4, INK); box(g, x + 4, y - 3, w - 8, 3, GILT[2]); box(g, x + w / 2 - 1, y - 7, 3, 3, GILT[3]);
+};
+/** A printed arrow, gold: (x, y) its tip, pointing right, up or down. */
+const arrow = (g: Ctx, x: number, y: number, dir: 'r' | 'u' | 'd', col = GILT[3]) => {
+  const tri = (k: number) => {
+    g.beginPath();
+    if (dir === 'r') { g.moveTo(x + k, y); g.lineTo(x - 7 - k, y - 6 - k); g.lineTo(x - 7 - k, y + 6 + k); }
+    else { const s2 = dir === 'u' ? 1 : -1; g.moveTo(x, y - s2 * k); g.lineTo(x - 6 - k, y + s2 * (7 + k)); g.lineTo(x + 6 + k, y + s2 * (7 + k)); }
+    g.closePath();
+  };
+  g.fillStyle = INK; tri(1); g.fill(); g.fillStyle = col; tri(0); g.fill();
+};
 const paintHowBoard = (g: Ctx, hx: number, hy: number) => {
-  slab(g, hx - 218, hy - 10, 436, 204, '#3A2414', { edge: 4 });
-  for (let i = 0; i < 8; i++) box(g, hx - 210 + i * 54, hy - 8, 2, 2, '#D4A84A');
-  box(g, hx - 210, hy - 2, 420, 188, '#16100C');
-  bandedGradient(g, hx - 210, hy - 2, 420, 188, ['#1E1612', '#120C09'], 4);
-  signAt(g, 'HOW THE RIDE WORKS', hx, hy + 18, 10, candle({ sx: 2, sy: 2 }, '#16100C'));
+  const L = hx - 224, T = hy - 12, W = 448, H = 216;
+  // the mounting: two wall plates up under the crown, chains down from them to the frame's eyes
+  for (const mx of [hx - 176, hx + 176]) {
+    box(g, mx - 9, hy - 44, 18, 12, INK); box(g, mx - 8, hy - 43, 16, 10, '#3A3A40'); box(g, mx - 8, hy - 43, 16, 2, '#6A6A74');
+    box(g, mx - 6, hy - 40, 2, 2, '#9A9AA4'); box(g, mx + 4, hy - 40, 2, 2, '#9A9AA4');
+    for (let y = hy - 32; y < T - 2; y += 5) { box(g, mx - 2, y, 4, 4, INK); box(g, mx - 1, y + 1, 2, 2, (y >> 2) % 2 ? '#7A7A84' : '#4A4A52'); }
+    box(g, mx - 4, T - 4, 8, 6, INK); box(g, mx - 3, T - 3, 6, 4, GILT[2]);
+  }
+  // the frame: gilt molding, stepped (the dark outer lip, the lit bead, the hollow, the inner lip); bolts at its corners
+  box(g, L, T, W, H, INK);
+  box(g, L + 1, T + 1, W - 2, H - 2, GILT[1]); box(g, L + 2, T + 2, W - 4, 3, GILT[4]); box(g, L + 2, T + 2, 3, H - 4, GILT[3]);
+  box(g, L + 2, T + H - 5, W - 4, 3, GILT[0]); box(g, L + W - 5, T + 2, 3, H - 4, GILT[0]);
+  box(g, L + 6, T + 6, W - 12, H - 12, INK); box(g, L + 7, T + 7, W - 14, H - 14, GILT[2]); checker(g, L + 7, T + 7, W - 14, 2, GILT[3]);
+  for (let x = L + 14; x < L + W - 10; x += 12) box(g, x, T + 3, 4, 1, GILT[2]);
+  for (const [bx, by] of [[L + 4, T + 4], [L + W - 10, T + 4], [L + 4, T + H - 10], [L + W - 10, T + H - 10], [hx - 3, T + 1], [hx - 3, T + H - 7]] as const) {
+    box(g, bx, by, 6, 6, INK); box(g, bx + 1, by + 1, 4, 4, '#8A8A94'); box(g, bx + 1, by + 1, 2, 2, '#E4E4EA'); box(g, bx + 1, by + 4, 4, 1, '#3A3A40');
+  }
+  // the board itself: printed, old (darker toward the edges, damp coming down from the top)
+  const fx = L + 10, fy = T + 10, fw = W - 20, fh = H - 20;
+  bandedGradient(g, fx, fy, fw, fh, ['#241A14', '#1C1410', '#140E0A'], 4);
+  hazeBands(g, fx, fy, fw, 30, '#060302', 0.45, 0, 4);
+  for (let k = 0; k < 7; k++) { const sx = fx + 20 + Math.floor(hash(k * 9.1) * (fw - 40)); checker(g, sx, fy, 4, 14 + Math.floor(hash(k * 3.3) * 26), '#0A0604'); }
+  // the title, on a red banner across the top, its ends folded back
+  {
+    const by = fy + 3, bw = 300, bx = hx - bw / 2;
+    for (const [ex, right] of [[bx - 16, false], [bx + bw, true]] as const) {
+      box(g, ex, by + 6, 16, 20, INK); box(g, ex + 1, by + 7, 14, 18, '#5A0E0E');
+      g.fillStyle = '#1C1410'; g.beginPath();
+      if (right) { g.moveTo(ex + 16, by + 6); g.lineTo(ex + 8, by + 16); g.lineTo(ex + 16, by + 26); } else { g.moveTo(ex, by + 6); g.lineTo(ex + 8, by + 16); g.lineTo(ex, by + 26); }
+      g.fill();
+    }
+    box(g, bx - 1, by - 1, bw + 2, 26, INK); bandedGradient(g, bx, by, bw, 24, ['#A82020', '#8A1414', '#6A0E0E'], 3);
+    box(g, bx, by + 1, bw, 1, GILT[3]); box(g, bx, by + 22, bw, 1, GILT[1]);
+    signAt(g, 'HOW THE RIDE WORKS', hx, by + 15, 10, candle({ sx: 2, sy: 2 }, '#8A1414', '#FDE68A', false));
+  }
+  // the panels: printed pictures in cream borders, numbered, an arrow from each to the next, a caption plate under
   const panels: [string, string][] = [['1. BOARD', 'THE CAR'], ['2. UP THE', 'CLOCK TOWER'], ['3. DROP TO', 'HELL!'], ['4. EXIT THRU', 'GIFT SHOP']];
-  panels.forEach(([a, b], i) => {
-    const px = hx - 200 + i * 100, py = hy + 30;
-    slab(g, px, py, 92, 112, '#2A2220', { edge: 2 });
-    bandedGradient(g, px + 4, py + 4, 84, 104, i === 2 ? ['#1A0606', '#4A0E08', '#8A2408'] : ['#0E1024', '#1A1C3A', '#2A2A4A'], 5);
+  const PW = 96, PH = 104, GAP = 8, P0 = hx - (4 * PW + 3 * GAP) / 2, PY = fy + 34;
+  panels.forEach(([a, b2], i) => {
+    const px = P0 + i * (PW + GAP), py = PY;
+    box(g, px - 1, py - 1, PW + 2, PH + 2, INK); box(g, px, py, PW, PH, '#D8CCAE'); box(g, px, py, PW, 1, '#F0E6CC'); box(g, px, py + PH - 2, PW, 2, '#A8987A');
+    const ix = px + 4, iy = py + 4, iw = PW - 8, ih = PH - 8;
+    g.save(); g.beginPath(); g.rect(ix, iy, iw, ih); g.clip();
+    bandedGradient(g, ix, iy, iw, ih, i === 2 ? ['#2A0606', '#5A0E08', '#8A2408', '#B83A0C'] : i === 3 ? ['#2A1A3A', '#3A2448', '#4A2E52'] : ['#0E1024', '#161A36', '#22264A', '#2E3058'], 5);
+    if (i < 2) for (let k = 0; k < 6; k++) box(g, ix + 6 + Math.floor(hash(k * 4.7 + i) * (iw - 12)), iy + 4 + Math.floor(hash(k * 2.3 + i) * 30), 1, 1, '#E8E0B0');
     if (i === 0) {
-      // (the car at the platform, a stick rider stepping in)
-      slab(g, px + 26, py + 52, 40, 34, '#B8862E', { edge: 2 }); box(g, px + 30, py + 58, 32, 22, '#2A1410');
-      ball(g, px + 46, py + 46, 5, '#F0C8A2'); box(g, px + 43, py + 52, 6, 16, '#3B82F6');
-      box(g, px + 14, py + 86, 64, 4, '#5A5A60');
+      // (the platform, the car at it, the riders filing in, the first one in waving; an arrow in)
+      box(g, ix, iy + 76, iw, 20, '#3A2E2A'); box(g, ix, iy + 76, iw, 2, '#8A7A6A'); for (let x = ix + 4; x < ix + iw; x += 14) box(g, x, iy + 80, 8, 2, '#E8C130');
+      carIcon(g, ix + 46, iy + 40, 34, 36);
+      rider(g, ix + 63, iy + 74, '#3B82F6', true);
+      rider(g, ix + 28, iy + 76, '#22C55E', false); rider(g, ix + 14, iy + 76, '#F59E0B', false);
+      arrow(g, ix + 43, iy + 62, 'r');
     }
     if (i === 1) {
-      // (the tower, the car on the way up it)
-      slab(g, px + 32, py + 14, 28, 92, '#4A4458', { edge: 2 });
-      g.fillStyle = INK; g.beginPath(); g.moveTo(px + 28, py + 16); g.lineTo(px + 46, py + 2); g.lineTo(px + 64, py + 16); g.fill();
-      ball(g, px + 46, py + 28, 8, '#E8D9A0'); box(g, px + 45, py + 22, 2, 6, INK); box(g, px + 45, py + 27, 5, 2, INK);
-      slab(g, px + 38, py + 66, 16, 14, '#B8862E', { edge: 2 });
-      for (let k = 0; k < 3; k++) box(g, px + 66, py + 76 - k * 12, 4, 8, '#FDE68A');
+      // (the clock tower, its face, the car in its shaft on the way up, a rider waving out of it; arrows up)
+      box(g, ix + 26, iy + 22, 36, 80, INK); box(g, ix + 27, iy + 23, 34, 80, '#4A4458'); box(g, ix + 27, iy + 23, 3, 80, '#6A6278'); box(g, ix + 57, iy + 23, 4, 80, '#2E2A38');
+      for (let y = iy + 30; y < iy + ih; y += 10) box(g, ix + 27, y, 34, 1, '#3A3446');
+      g.fillStyle = INK; g.beginPath(); g.moveTo(ix + 22, iy + 24); g.lineTo(ix + 44, iy + 2); g.lineTo(ix + 66, iy + 24); g.fill();
+      g.fillStyle = '#5A3A6A'; g.beginPath(); g.moveTo(ix + 26, iy + 23); g.lineTo(ix + 44, iy + 6); g.lineTo(ix + 62, iy + 23); g.fill();
+      ball(g, ix + 44, iy + 34, 8, '#E8D9A0'); box(g, ix + 43, iy + 28, 2, 6, INK); box(g, ix + 43, iy + 33, 6, 2, INK);
+      box(g, ix + 37, iy + 46, 14, 46, '#0A0814');
+      carIcon(g, ix + 37, iy + 58, 14, 18); rider(g, ix + 44, iy + 72, '#EC4899', true);
+      for (const ay of [iy + 50, iy + 70]) { arrow(g, ix + 76, ay, 'u'); box(g, ix + 75, ay + 6, 3, 10, GILT[3]); }
     }
     if (i === 2) {
-      // (the drop: the car falling, the flames under)
-      slab(g, px + 34, py + 20, 22, 18, '#B8862E', { edge: 2 });
-      for (let k = 0; k < 3; k++) box(g, px + 38 + k * 6, py + 4, 2, 14, '#FDE68A');
-      for (let k = 0; k < 4; k++) {
-        const fx = px + 10 + k * 20;
-        g.fillStyle = '#DC2626'; g.beginPath(); g.moveTo(fx, py + 104); g.lineTo(fx + 9, py + 74 - (k % 2) * 8); g.lineTo(fx + 18, py + 104); g.fill();
-        g.fillStyle = '#FBBF24'; g.beginPath(); g.moveTo(fx + 5, py + 104); g.lineTo(fx + 9, py + 88); g.lineTo(fx + 13, py + 104); g.fill();
+      // (the drop: the car plunging, speed lines, arms up; the brakes catching it, sparking, short of the flames of
+      // "hell" and its little devil)
+      for (let k = 0; k < 4; k++) box(g, ix + 36 + k * 6, iy + 2, 2, 20, '#FDE68A');
+      carIcon(g, ix + 32, iy + 24, 30, 28); rider(g, ix + 41, iy + 50, '#3B82F6', true); rider(g, ix + 53, iy + 50, '#22C55E', true);
+      box(g, ix + 15, iy + 30, 3, 12, '#FDE68A'); arrow(g, ix + 16, iy + 50, 'd', '#FDE68A');
+      box(g, ix + 26, iy + 54, 6, 14, INK); box(g, ix + 27, iy + 55, 4, 12, '#A8A8B2'); box(g, ix + 62, iy + 54, 6, 14, INK); box(g, ix + 63, iy + 55, 4, 12, '#A8A8B2');
+      for (const [sx2, sy2] of [[ix + 22, iy + 58], [ix + 20, iy + 64], [ix + 70, iy + 57], [ix + 73, iy + 63], [ix + 24, iy + 53]] as const) box(g, sx2, sy2, 2, 2, '#FDE047');
+      for (let k = 0; k < 5; k++) {
+        const fxx = ix + 2 + k * 18;
+        g.fillStyle = '#DC2626'; g.beginPath(); g.moveTo(fxx, iy + ih); g.lineTo(fxx + 9, iy + 74 - (k % 2) * 8); g.lineTo(fxx + 18, iy + ih); g.fill();
+        g.fillStyle = '#FBBF24'; g.beginPath(); g.moveTo(fxx + 5, iy + ih); g.lineTo(fxx + 9, iy + 86); g.lineTo(fxx + 13, iy + ih); g.fill();
       }
+      box(g, ix + 70, iy + 80, 9, 9, INK); box(g, ix + 71, iy + 81, 7, 7, '#B91C1C'); box(g, ix + 70, iy + 77, 2, 4, INK); box(g, ix + 77, iy + 77, 2, 4, INK);
+      box(g, ix + 72, iy + 83, 1, 1, '#FDE047'); box(g, ix + 76, iy + 83, 1, 1, '#FDE047'); box(g, ix + 82, iy + 72, 1, 18, INK); box(g, ix + 80, iy + 72, 5, 1, INK);
+      // (and somebody's been at it with a marker, by the brakes)
+      g.strokeStyle = '#E4E4E7'; g.lineWidth = 1; g.beginPath(); g.moveTo(ix + 72, iy + 38); g.lineTo(ix + 69, iy + 52); g.moveTo(ix + 66, iy + 49); g.lineTo(ix + 69, iy + 52); g.lineTo(ix + 72, iy + 49); g.stroke();
+      signAt(g, '(MOSTLY)', ix + 66, iy + 32, 6, print(6, '#F4F4F5', '#1A0606'));
     }
     if (i === 3) {
-      // (the gift shop: a storefront, a till)
-      slab(g, px + 14, py + 40, 64, 62, '#7F1D1D', { edge: 2 });
-      box(g, px + 10, py + 34, 72, 8, '#FDE68A'); for (let k = 0; k < 6; k++) box(g, px + 12 + k * 12, py + 34, 6, 8, '#B91C1C');
-      box(g, px + 22, py + 56, 18, 16, '#FDE68A'); box(g, px + 52, py + 56, 18, 16, '#FDE68A');
-      signAt(g, '$', px + 46, py + 96, 10, enamel({ sx: 2, sy: 2 }, '#4ADE80', INK));
+      // (the gift shop: its striped awning, windows full of junk, a rider walking out with a bag; the $)
+      box(g, ix + 8, iy + 34, iw - 16, 62, INK); box(g, ix + 9, iy + 35, iw - 18, 62, '#7F1D1D'); box(g, ix + 9, iy + 35, 2, 62, '#A83030');
+      box(g, ix + 4, iy + 28, iw - 8, 10, INK); for (let k = 0; k < 7; k++) box(g, ix + 5 + k * 12, iy + 29, 6, 8, k % 2 ? '#B91C1C' : '#FDE68A');
+      for (const wx of [ix + 16, ix + 52]) { box(g, wx, iy + 46, 20, 18, '#FDE68A'); box(g, wx + 2, iy + 56, 4, 8, '#7C3AED'); box(g, wx + 8, iy + 52, 5, 12, '#22C55E'); box(g, wx + 14, iy + 58, 4, 6, '#3B82F6'); }
+      box(g, ix + 38, iy + 70, 12, 26, '#2A0A0A');
+      rider(g, ix + 62, iy + 94, '#F59E0B', false); box(g, ix + 66, iy + 82, 8, 9, INK); box(g, ix + 67, iy + 83, 6, 7, '#E8DFC8');
+      signAt(g, '$', ix + 24, iy + 86, 10, enamel({ sx: 2, sy: 2 }, '#4ADE80', INK));
     }
-    signAt(g, a, px + 46, hy + 156, 6, haunt(6, '#E7E5E4', '#16100C')); signAt(g, b, px + 46, hy + 168, 6, haunt(6, '#FCA5A5', '#16100C'));
+    // (the print's age: its edges faded)
+    checker(g, ix, iy, iw, 2, 'rgba(216, 204, 174, 0.25)'); checker(g, ix, iy + ih - 2, iw, 2, 'rgba(10, 6, 4, 0.4)');
+    g.restore();
+    // its number, on a gold disc at its corner; the arrow on to the next
+    ball(g, px + 7, py + 7, 7, GILT[2]); signAt(g, String(i + 1), px + 7, py + 10, 6, print(6, INK));
+    if (i < 3) arrow(g, px + PW + GAP + 2, py + PH / 2, 'r');
+    // its caption, on a plate under it
+    const cy = py + PH + 4;
+    box(g, px - 1, cy - 1, PW + 2, 28, INK); box(g, px, cy, PW, 26, '#2A1E16'); box(g, px, cy, PW, 1, '#4A3A2A');
+    signAt(g, a, px + PW / 2, cy + 11, 6, haunt(6, '#E7E5E4', '#2A1E16')); signAt(g, b2, px + PW / 2, cy + 22, 6, haunt(6, '#FCA5A5', '#2A1E16'));
   });
-  signAt(g, 'RIDERS MUST BE THIS WICKED TO RIDE', hx, hy + 182, 6, haunt(6, '#A8A29E', '#16100C'));
+  // the height rule along the foot: the little horned rider at the mark, and the words
+  {
+    const ry = fy + fh - 6;
+    const dx = hx - 176; rider(g, dx, ry + 2, '#B91C1C', false); box(g, dx - 4, ry - 20, 2, 3, '#B91C1C'); box(g, dx + 3, ry - 20, 2, 3, '#B91C1C');
+    box(g, dx + 8, ry - 20, 12, 1, GILT[3]);
+    signAt(g, 'RIDERS MUST BE THIS WICKED TO RIDE', hx + 10, ry - 2, 6, haunt(6, '#A8A29E', '#16100C'));
+  }
+  // grime over the lot: soot along the top, specks, and the print's bottom-right corner peeling off the board
+  hazeBands(g, fx, fy, fw, 16, '#000000', 0.3, 0, 3);
+  for (let k = 0; k < 18; k++) box(g, fx + Math.floor(hash(k * 7.3 + 1) * fw), fy + Math.floor(hash(k * 5.9 + 2) * fh), 2, 2, 'rgba(10, 6, 2, 0.5)');
+  {
+    const cx = fx + fw, cy2 = fy + fh;
+    g.fillStyle = INK; g.beginPath(); g.moveTo(cx, cy2 - 16); g.lineTo(cx - 16, cy2); g.lineTo(cx, cy2); g.fill();
+    g.fillStyle = '#B8A888'; g.beginPath(); g.moveTo(cx - 1, cy2 - 15); g.lineTo(cx - 15, cy2 - 1); g.lineTo(cx - 11, cy2 - 11); g.fill();
+  }
 };
 
 /** The back wall of the bay (BAY_D back): damask over dark panelling, a picture rail, the sconces, the board. */
@@ -427,7 +528,7 @@ const drawBayWall = (c: Ctx, eye: Eye, v: View, f: number) => {
     }
     // HOW THE RIDE WORKS
     const hx = HOW_BOARD_X, hy = GY - 360;
-    if (hx + 230 > L && hx - 230 < R) stamp(c, 'tw-howboard', hx - 222, hy - 14, 444, 212, g => paintHowBoard(g, hx, hy));
+    if (hx + 240 > L && hx - 240 < R) stamp(c, 'tw-howboard2', hx - 228, hy - 48, 456, 256, g => paintHowBoard(g, hx, hy));
   });
 };
 
@@ -1039,9 +1140,16 @@ const paintCuckoo = (g: Ctx) => {
     for (let k = 0; k < 4; k++) box(g, x - 1 + (k % 2) * 3, wy + 3 + k * 4, 3, 2, '#C89A3A');
   }
 };
-const drawCuckooClock = (c: Ctx, x: number, y: number, f: number) => {
+/** `open`: its bird's alive (its little door's open, the bird sat in it or out of it); dead, it's shut on nothing. The
+ *  door's middle is the bird's home (tower/index.ts spawns it there: (x, y - 17)). */
+const drawCuckooClock = (c: Ctx, x: number, y: number, f: number, open: boolean) => {
   c.save(); c.translate(x, y);
   stamp(c, 'tw-cuckoo', -40, -72, 80, 160, paintCuckoo);
+  if (open) {
+    // (the door's two leaves folded back either side of it, the dark inside)
+    box(c, -9, -26, 18, 18, '#0A0604'); box(c, -9, -26, 18, 3, '#000000');
+    for (const s of [-1, 1]) { const lx = s < 0 ? -17 : 10; box(c, lx - 1, -28, 8, 22, INK); box(c, lx, -27, 6, 20, '#3A1E0C'); box(c, s < 0 ? lx : lx + 4, -27, 2, 20, '#5A3418'); box(c, lx + 2, -18, 2, 2, '#C9A227'); }
+  }
   // (its pendulum, swinging under it)
   const a = Math.sin(f * 0.07 + x) * 0.25;
   c.rotate(a); box(c, -1, 30, 2, 30, '#5A4A2A'); ball(c, 0, 62, 5, '#C89A3A'); c.restore();
@@ -1062,9 +1170,13 @@ const flame = (c: Ctx, x: number, y: number, hgt: number, wob: number) => {
 };
 
 const drawUnder = (c: Ctx, f: number, look: TowerLook, v: View) => {
-  // the rock all round
-  const rx0 = Math.max(TX0 - WALL - 300, v.x0), rx1 = Math.min(TX1 + WALL + 300, v.x1), ry0 = Math.max(GY + 24, v.y0), ry1 = Math.min(HELL_AT + 400, v.y1);
-  if (rx1 > rx0 && ry1 > ry0) { c.fillStyle = rockFill(c); c.fillRect(rx0, ry0, rx1 - rx0, ry1 - ry0); }
+  // the rock all round: under the tower from its ground floor's front down; out under the bay (left of the tower's
+  // wall) only from under the bay floor's front face down (GY + 50, as drawBayFloor's own rock: the same tile, so
+  // nothing changes as this starts drawing with the tower coming on screen; it never paints over the bay floor's face)
+  const rx0 = Math.max(TX0 - WALL - 300, v.x0), rx1 = Math.min(TX1 + WALL + 300, v.x1), ry1 = Math.min(HELL_AT + 400, v.y1);
+  const rock = (a: number, b: number, top: number) => { const y0 = Math.max(top, v.y0); if (b > a && ry1 > y0) { c.fillStyle = rockFill(c); c.fillRect(a, y0, b - a, ry1 - y0); } };
+  rock(rx0, Math.min(rx1, TX0 - WALL), GY + 50);
+  rock(Math.max(rx0, TX0 - WALL), rx1, GY + 24);
   // B1: the room (a theater flat painted as hell across its back, plywood seams showing)
   if (v.y0 < B1 + 30 && v.y1 > GY) {
     bandedGradient(c, CH0, GY + 30, CH1 - CH0, B1 - GY - 30, ['#1A0404', '#3A0A08', '#6A1A0A', '#8A2A0C'], 6);
@@ -1193,7 +1305,9 @@ export const drawTowerBack = (c: Ctx, state: GameState, look: TowerLook) => {
     c.restore();
   }
   // the cuckoo clocks (their birds are the enemies), the gears
-  for (const [x, y] of CUCKOOS) if (y > v.y0 && y < v.y1) drawCuckooClock(c, x, y, f);
+  // (culled by the whole clock's extent on screen, carving to pendulum; each one's door open while its bird's alive)
+  const birds = state.enemies.filter(e => e.kind === 'm2:tower_cuckoo' && e.health > 0 && !e.isBlownAway);
+  CUCKOOS.forEach(([x, y], i) => { if (y + 90 > v.y0 && y - 80 < v.y1) drawCuckooClock(c, x, y, f, birds.some(e => e.variant === 50 + i)); });
   for (const g of gearsNow(look.crashed)) {
     if (g.y < v.y0 || g.y > v.y1) continue;
     const a = gearAt(g, f);

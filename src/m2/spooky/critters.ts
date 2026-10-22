@@ -188,9 +188,14 @@ export const drawCatArt = (c: Ctx, e: Enemy, f: number) => {
 // ---------------------------------------------------------------------------------------------------------------
 // The cuckoo: a carved wooden bird out of its clock, painted, on its spring
 
-const paintCuckoo = (g: Ctx, spring: boolean, fr: number, md: Mood) => {
+/** `out`: how far out of its door it is on its spring (px; the door's middle that far back behind it): the spring's
+ *  drawn from there to the bird, as long as that and no longer (none sat home in its door, none flying). */
+const paintCuckoo = (g: Ctx, out: number, fr: number, md: Mood) => {
   const WOOD = '#9A5B2A', PAINT = '#E9D9B0';
-  if (spring) { g.strokeStyle = INK; g.lineWidth = 2.6; g.beginPath(); for (let i = 0; i <= 8; i++) g.lineTo(-12 - i * 3, -11 + (i % 2 ? 3 : -3)); g.stroke(); g.strokeStyle = '#B8BCC6'; g.lineWidth = 1.2; g.stroke(); }
+  if (out >= 2) {
+    const n = Math.max(2, Math.round(out / 3));
+    g.strokeStyle = INK; g.lineWidth = 2.6; g.beginPath(); for (let i = 0; i <= n; i++) g.lineTo(-out + (out * i) / n, -11 + (i % 2 ? 3 : -3)); g.stroke(); g.strokeStyle = '#B8BCC6'; g.lineWidth = 1.2; g.stroke();
+  }
   part(g, () => { g.moveTo(-10, -9); g.lineTo(-18, -4); g.lineTo(-17, -1); g.lineTo(-8, -5); g.closePath(); }, dk(WOOD, 0.15), -18, -9, 10, 8, 1);
   part(g, () => g.ellipse(0, -11, 11, 7, 0, 0, Math.PI * 2), WOOD, -11, -18, 22, 14);
   // (the painted breast: cream chevrons)
@@ -207,7 +212,9 @@ const paintCuckoo = (g: Ctx, spring: boolean, fr: number, md: Mood) => {
 export const drawCuckooArt = (c: Ctx, e: Enemy, f: number) => {
   const md = moodOf(e), flying = e.aiState === 'dart' || e.aiState === 'back' || struggling(e);
   const fr = flying ? Math.floor(f / 3) % 4 : 2;
-  put(c, `cuckoo-${flying ? 0 : 1}-${fr}-${md}`, [-40, -24, 62, 26], g => paintCuckoo(g, !flying, fr, md));
+  // (on its spring only while it's popping out of the door: alive, not grabbed, as far out as it is)
+  const out = e.aiState === 'pop' && e.health > 0 && !struggling(e) ? Math.min(28, Math.round(Math.abs(e.pos.x - (e.homeX ?? e.pos.x)) / 2) * 2) : 0;
+  put(c, `cuckoo-${out}-${fr}-${md}`, [-40, -24, 62, 26], g => paintCuckoo(g, out, fr, md));
 };
 
 // ---------------------------------------------------------------------------------------------------------------
