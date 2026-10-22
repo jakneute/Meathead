@@ -3,7 +3,8 @@
 // clean / shitty pants / naked, each the same size. A room's story is said in order, line by line; a quip is one of its
 // pool. Meathead has his say back after each story. The hurt and death lines are registered in staff.ts and index.ts.
 // He's eating the whole tour (his sin's gluttony): crunching and slurping into the mic, losing his place for a bite,
-// the food creeping into his script. A *CRUNCH*, *SLURP* or *GULP* that opens a line gets the real sound with it (pa.ts).
+// the food creeping into his script. A *CRUNCH*, *SLURP*, *GULP* is shown but never said: it plays as the real sound,
+// at its place in the line, out of the speakers (m1 platform/cues.ts).
 
 export type Dressed = 'clean' | 'shitty' | 'nude';
 export type ByPants = Record<Dressed, readonly string[]>;

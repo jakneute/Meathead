@@ -242,6 +242,17 @@ export const playClip = (voice: string, text: string, opts: { radio?: boolean; o
   };
 };
 
+/** Where a noise in one of this voice's lines goes (cues.ts: his *CRUNCH* into the mic): through the same chain the
+ *  voice goes through (the PA's phone band, the radio...), onto the voices' bus. Taken apart again after `ms`. */
+export const voiceSfxOut = (ctx: AudioContext, voice: string, ms = 3000): AudioNode => {
+  const spec = pack?.voices[voice] ?? { rate: 1, gain: 1, fx: '' };
+  const g = ctx.createGain(); g.gain.value = spec.gain;
+  const post = ctx.createGain(); post.connect(busFor(ctx));
+  g.connect(fxChain(ctx, spec.fx, post));
+  setTimeout(() => { try { g.disconnect(); post.disconnect(); } catch { /* fine */ } }, ms);
+  return g;
+};
+
 /** Every voice that's been recorded, and its lines (for the voice test on the title screen's cheat panel). */
 export const recordedVoices = (): Record<string, string[]> => {
   const out: Record<string, string[]> = {};

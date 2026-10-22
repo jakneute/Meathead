@@ -14,6 +14,18 @@ lines = manifest + extras
 _pron = os.path.join(HERE, 'pronunciations.json')
 fixes = json.load(open(_pron, encoding='utf-8')).get('fixes', []) if os.path.exists(_pron) else []
 
+# ---- noises written into a line ("*CRUNCH*. THE DUNGEON."): shown, never said. The game plays each as a real sound at
+# its place in the line (src/m1/game/platform/cues.ts, the same pattern); a sentence that's only a noise is recorded as
+# a stretch of quiet that long (generate.py), so the line's sentences still line up with what's shown.
+CUE = re.compile(r"(?<![A-Za-z0-9])\*[A-Za-z][A-Za-z !'-]*\*(?![A-Za-z0-9])")
+def has_cue(text): return bool(CUE.search(text))
+def strip_cues(text): return re.sub(r'\s{2,}', ' ', CUE.sub(' ', text)).strip()
+def cue_only(sent):
+    """A sentence that's nothing but a noise (and punctuation): how long its quiet is (seconds), else 0."""
+    if not has_cue(sent) or re.search(r'[A-Za-z0-9]', CUE.sub('', sent)): return 0
+    words = sum(len(m.group(0).strip('*').split()) for m in CUE.finditer(sent))
+    return 0.5 + 0.25 * (words - 1)
+
 def respell(text, voice=None):
     """The line as it's to be said: with the fixes in pronunciations.json (a word said wrong, respelled where it comes up),
     and every year said the way people say years (years())."""
@@ -82,6 +94,8 @@ def key_of(line, spec):
     # (a word respelled so it's said right: re-recorded)
     # (AM read as the word, not A.M., where it isn't a time: re-recorded)
     if re.search(r"(?<![0-9] )\bAM\b", line['text']): k['am'] = 1
+    # (a noise in it: left out of what's said, a quiet in its place: re-recorded)
+    if has_cue(line['text']): k['cue'] = 1
     said = respell(line['text'], line.get('voice'))
     if said != line['text']: k['say'] = said
     blob = json.dumps(k, sort_keys=True)
@@ -94,7 +108,7 @@ def path_of(line):
 # ---- words: the game's all-caps shouting, as something the model reads naturally
 KEEP = {'ID', 'FBI', 'DEA', 'TV', 'USA', 'NYC', 'OK', 'DJ', 'VIP', 'SUV', 'LMG', 'IQ', 'UFO', 'CEO', 'ATM', 'HR', 'R&D', 'AC/DC', 'NOAA', 'CPR', 'DNA', 'EPA', 'RV', 'OD', 'NASA', 'AM', 'PM', 'GPS'}
 def speakable(text):
-    t = text.replace('*', '').replace('…', '...').strip()
+    t = strip_cues(text).replace('*', '').replace('…', '...').strip()
     # A held-out word ("AAAAAAH", "NOOOOO", "NOTHIIIING"): the model reads a long run of one letter as gibberish,
     # so it gets two of it, and a pure scream is just "Aaah!"
     t = re.sub(r'\b[Aa]{3,}[Hh]*\b', 'Aaah', t)

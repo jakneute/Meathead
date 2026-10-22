@@ -1,4 +1,5 @@
 import { hasClip, playClip, voicesLoaded, sentenceTimes, ClipHandle, holdVoices } from './voiceclips';
+import { hasCues, playCues } from './cues';
 // Who's talking, and when: every line goes through here. A line that's been recorded (voiceclips.ts: every character
 // has their own voice) plays that; anything that hasn't is only shown, never said: the browser's own speech is never
 // used (it sounds like nobody in the game).
@@ -107,6 +108,13 @@ const noteStart = (voice: Voice, text: string, spoken: boolean) => {
   if (parts.length < 2) return;
   const starts = spoken ? sentenceTimes(voice.id, text) : [];
   timings.set(text, { at: Date.now(), starts: starts.length === parts.length - 1 ? starts : readingStarts(parts) });
+};
+/** A line's written-in noises (*CRUNCH*: never said, cues.ts), played at their places as it's said. */
+const noises = (voice: Voice, text: string, spoken: boolean, live: () => boolean) => {
+  if (!hasCues(text)) return;
+  const parts = splitSentences(text);
+  const starts = spoken ? sentenceTimes(voice.id, text) : [];
+  playCues(voice.id, parts, starts.length === parts.length - 1 ? starts : readingStarts(parts), live, () => pausedAt > 0);
 };
 /** What to show over someone's head for this line right now: the sentence being said. */
 export const sentenceShown = (text: string): string => {
@@ -281,6 +289,7 @@ const start = (line: Line) => {
         playing.started = true;
         playing.deadline = Date.now() + ms + 1500;
         noteStart(line.voice, line.text, true);
+        noises(line.voice, line.text, true, () => current === playing);
         line.onShow(true);
       },
       onEnd: () => {
@@ -295,6 +304,7 @@ const start = (line: Line) => {
   // Not recorded: just show the text for its usual time
   noteMiss(line.voice, line.text);
   noteStart(line.voice, line.text, false);
+  noises(line.voice, line.text, false, () => true);
   line.onShow(false);
   line.onDone?.();
 };

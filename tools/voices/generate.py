@@ -10,7 +10,7 @@ import numpy as np
 import soundfile as sf
 from kokoro_onnx import Kokoro
 
-from voicelib import HERE, ROOT, CACHE, OUT, cast, lines, spec_of, key_of, sentences, respell, speakable, KEEP
+from voicelib import HERE, ROOT, CACHE, OUT, cast, lines, spec_of, key_of, sentences, respell, speakable, KEEP, has_cue, cue_only
 os.makedirs(CACHE, exist_ok=True)
 os.makedirs(os.path.dirname(OUT), exist_ok=True)
 
@@ -26,23 +26,33 @@ def style(voice):
     total = sum(w for _, w in voice)
     return sum(kokoro.get_voice_style(n) * (w / total) for n, w in voice)
 
-def synth(text, voice, speed):
-    # A sentence at a time, with a proper pause after each (said all in one go, the model runs them together)
+def synth(text, voice, speed, starts=None):
+    # A sentence at a time, with a proper pause after each (said all in one go, the model runs them together). A
+    # sentence that's only a noise ("*CRUNCH*."): a quiet that long, never said (the game plays the noise there).
+    # `starts`: given a list, filled with where each sentence after the first starts (samples).
     parts = sentences(text)
     if len(parts) == 1:
+        q = cue_only(text)
+        if q: return np.zeros(int(q * SR / speed), np.float32)
         s, sr = kokoro.create(speakable(text), voice=style(voice), speed=speed, lang='en-us')
         return np.asarray(s, dtype=np.float32)
-    out = []
+    out = []; n = 0
     for k, (sent, gap) in enumerate(parts):
-        s, sr = kokoro.create(speakable(sent), voice=style(voice), speed=speed, lang='en-us')
-        out.append(trim(np.asarray(s, dtype=np.float32)))
-        if k < len(parts) - 1: out.append(np.zeros(int(gap * SR / speed), np.float32))
+        if k and starts is not None: starts.append(n)
+        q = cue_only(sent)
+        if q: x = np.zeros(int(q * SR / speed), np.float32)
+        else:
+            s, sr = kokoro.create(speakable(sent), voice=style(voice), speed=speed, lang='en-us')
+            x = trim(np.asarray(s, dtype=np.float32))
+        out.append(x); n += len(x)
+        if k < len(parts) - 1: g = np.zeros(int(gap * SR / speed), np.float32); out.append(g); n += len(g)
     return np.concatenate(out)
 
-def trim(x, thresh=0.012):
+def trim(x, thresh=0.012, front=True, back=True, at=None):
     idx = np.where(np.abs(x) > thresh)[0]
     if not len(idx): return x
-    a = max(0, idx[0] - int(0.02 * SR)); b = min(len(x), idx[-1] + int(0.06 * SR))
+    a = max(0, idx[0] - int(0.02 * SR)) if front else 0; b = min(len(x), idx[-1] + int(0.06 * SR)) if back else len(x)
+    if at is not None: at.append(a)
     return x[a:b]
 
 def resample(x, factor):
@@ -50,7 +60,7 @@ def resample(x, factor):
     n = int(len(x) / factor)
     return np.interp(np.linspace(0, len(x) - 1, n), np.arange(len(x)), x).astype(np.float32)
 
-def render(text, spec):
+def render(text, spec, starts=None):
     if spec.get('fx') == 'chorus':
         # Everyone at once, a little apart, deep
         takes = [synth(text, v, spec['speed'] * (1 + 0.03 * (k - 1.5))) for k, v in enumerate(spec['voice'])]
@@ -60,10 +70,10 @@ def render(text, spec):
             off = int(0.025 * SR) * k
             mix[off:off + len(t)] += t * (1.0 if k == 0 else 0.7)
         return mix
-    return synth(text, spec['voice'], spec.get('speed', 1.0))
+    return synth(text, spec['voice'], spec.get('speed', 1.0), starts)
 
-def finish(x):
-    x = trim(x)
+def finish(x, front=True, back=True, at=None):
+    x = trim(x, front=front, back=back, at=at)
     peak = float(np.max(np.abs(x))) if len(x) else 1.0
     x = x / (peak or 1.0) * 0.89
     f = min(len(x), int(0.01 * SR))
@@ -83,8 +93,18 @@ for i, l in enumerate(todo):
     if os.path.exists(path): continue
     if kokoro is None: kokoro = Kokoro(os.path.join(HERE, 'kokoro-v1.0.onnx'), os.path.join(HERE, 'voices-v1.0.bin'))
     try:
-        audio = finish(render(respell(l['text'], l['voice']), spec))
-        sf.write(path, audio, SR, format='OGG', subtype='OPUS', compression_level=0.95)
+        if has_cue(l['text']):
+            # (a noise in it: the quiet for one at either end kept, and where each sentence starts kept exactly, not
+            # guessed from the quiet afterwards: a noise's quiet runs into the pauses round it)
+            parts = sentences(l['text']); starts = []; at = []
+            audio = finish(render(respell(l['text'], l['voice']), spec, starts), front=not cue_only(parts[0][0]), back=not cue_only(parts[-1][0]), at=at)
+            sf.write(path, audio, SR, format='OGG', subtype='OPUS', compression_level=0.95)
+            if len(parts) > 1 and len(starts) == len(parts) - 1:
+                cut = at[0] if at else 0
+                json.dump([round(max(0, (n - cut) / SR), 3) for n in starts], open(path[:-4] + '.sents.json', 'w'))
+        else:
+            audio = finish(render(respell(l['text'], l['voice']), spec))
+            sf.write(path, audio, SR, format='OGG', subtype='OPUS', compression_level=0.95)
         made += 1
     except Exception as e:
         print('FAILED', l['voice'], l['text'], e)

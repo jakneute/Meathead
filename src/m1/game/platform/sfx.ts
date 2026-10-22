@@ -668,6 +668,71 @@ SFX.tapestop = {
   make: () => { const lp = lowpass(); let p1 = 0, p2 = 0, p3 = 0; return render(0.9, t => { const k = Math.max(0, 1 - t / 0.8), sp = k * k; p1 += (220 * sp) / SFX_SR; p2 += (277 * sp) / SFX_SR; p3 += (330 * sp) / SFX_SR; const v = ((p1 % 1) * 2 - 1) + ((p2 % 1) * 2 - 1) * 0.7 + ((p3 % 1) * 2 - 1) * 0.6 + rnd() * 0.2 * sp; return lp(v, 300 + 2600 * sp) * Math.min(1, k * 4); }); },
 };
 
+// ---- Eating noises written into a line (*CRUNCH*, *GULP*...): never said by the voice, played as these (cues.ts)
+/** A wet crunchy bite: teeth snapping through something crisp (a cracking burst of crackle), then a wet squelch. */
+SFX.bite = {
+  gain: 0.6, vary: 0.8, gap: 120, voices: 2,
+  make: () => {
+    const bp = bandpass(), lp = lowpass(), wet = bandpass();
+    const cracks = Array.from({ length: 14 }, () => Math.random() * 0.12);
+    return render(0.5, t => {
+      let c = 0;
+      for (const h of cracks) if (t >= h && t < h + 0.003) c += rnd() * 3;
+      const crunch = bp(c + rnd() * 0.6 * ex(t, 18), 2400, 1.2) * (t < 0.16 ? 1 : ex(t - 0.16, 20));
+      const thud = lp(rnd(), 350) * ex(t, 14) * 0.8;
+      const u = t - 0.14, squelch = u > 0 ? wet(rnd(), 700 + 500 * Math.sin(TAU * 11 * u), 3) * ex(u, 9) * 0.7 : 0;
+      return crunch * 1.3 + thud + squelch;
+    });
+  },
+};
+/** Chewing with his mouth open: two wet, smacking chews, squelchy, teeth clicking at the bottom of each. */
+SFX.chew = {
+  gain: 0.55, vary: 0.6, gap: 200, voices: 1,
+  make: () => {
+    const wet = bandpass(), lp = lowpass();
+    return render(0.75, t => {
+      const k = Math.floor(t / 0.36), u = t - k * 0.36;
+      const open = Math.sin(Math.PI * Math.min(1, u / 0.3));
+      const smack = u < 0.006 ? rnd() * 1.5 : 0;
+      const click = u > 0.26 && u < 0.27 ? rnd() : 0;
+      const squish = wet(rnd(), 600 + 900 * open, 2.5) * open * 0.9 + lp(rnd(), 300) * open * 0.4;
+      return smack + click * 0.8 + squish;
+    });
+  },
+};
+/** A big swallow: the throat clicking shut, then a low wet gloop going down. */
+SFX.gulp = {
+  gain: 0.6, vary: 0.6, gap: 200, voices: 1,
+  make: () => {
+    const lp = lowpass(), bp = bandpass();
+    return render(0.45, t => {
+      const click = t < 0.012 ? bp(rnd(), 1800, 2) * 2 : 0;
+      const u = t - 0.05;
+      const gloop = u > 0 ? Math.sin(TAU * (260 - 160 * Math.min(1, u / 0.2)) * u) * Math.sin(Math.PI * Math.min(1, u / 0.3)) * 0.9 : 0;
+      return click + lp(gloop + rnd() * 0.15 * ex(t, 8), 900);
+    });
+  },
+};
+/** A smoker's hack: three rough barks from the chest, the last one rattling. */
+SFX.cough = {
+  gain: 0.55, vary: 0.5, gap: 300, voices: 1,
+  make: () => {
+    const f1 = bandpass(), f2 = bandpass(), lp = lowpass();
+    const at = [0, 0.2, 0.42];
+    return render(0.75, t => {
+      let v = 0;
+      for (let k = 0; k < at.length; k++) {
+        const u = t - at[k];
+        if (u < 0 || u > 0.22) continue;
+        const env = Math.min(1, u / 0.01) * ex(u, k === 2 ? 9 : 16);
+        const n = rnd() * (1 + 0.6 * Math.sin(TAU * 70 * u));
+        v += (f1(n, 500, 1.5) * 1.2 + f2(n, 1400, 2) * 0.6) * env * (k === 0 ? 1 : 0.8);
+      }
+      return lp(v, 3000);
+    });
+  },
+};
+
 // ---------------------------------------------------------------------------
 
 let ctx: AudioContext | null = null;
@@ -704,8 +769,9 @@ const bufferOf = (c: AudioContext, name: string) => {
 const scaled: Record<string, number> = {};
 export const setSfxScale = (names: string[], k: number) => { for (const n of names) scaled[n] = k; };
 
-/** Plays a sound effect (`vol` a multiplier, `pitch` in semitones). Dropped if it's playing too much already. */
-export const playSfx = (c: AudioContext, name: string, vol = 1, pitch = 0) => {
+/** Plays a sound effect (`vol` a multiplier, `pitch` in semitones). Dropped if it's playing too much already. `to`:
+ *  somewhere else to send it than the sound effects' bus (a voice's own chain: a noise in a line, cues.ts). */
+export const playSfx = (c: AudioContext, name: string, vol = 1, pitch = 0, to?: AudioNode) => {
   vol *= scaled[name] ?? 1;
   const def = SFX[name];
   if (!def) return;
@@ -713,7 +779,7 @@ export const playSfx = (c: AudioContext, name: string, vol = 1, pitch = 0) => {
   if (def.gap && now - (lastAt[name] ?? -1e9) < def.gap) return;
   if ((playing[name] ?? 0) >= (def.voices ?? 2)) return;
   lastAt[name] = now;
-  const out = busFor(c);
+  const bus = busFor(c), out = to ?? bus;
   const src = c.createBufferSource();
   src.buffer = bufferOf(c, name);
   src.playbackRate.value = Math.pow(2, (pitch + (def.vary ? (Math.random() * 2 - 1) * def.vary : 0)) / 12);
