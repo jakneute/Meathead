@@ -183,8 +183,8 @@ export const uk: ForeignSection = {
   waterBodyAt: (_state, x, y) => poolAt([THAMES], x, y),
   drawBack: (c, state) => {
     const v = viewIn(state), f = state.frame, br = britOf(state);
-    promenade(c, v, x0, THAMES.a, '#CBD5E1', '#64748B');
-    promenade(c, v, THAMES.b, x1, '#CBD5E1', '#64748B');
+    promenade(c, v, x0, THAMES.a, '#CBD5E1', '#64748B', [false, true]);
+    promenade(c, v, THAMES.b, x1, '#CBD5E1', '#64748B', [true, false]);
     // (the Thames's back first (its far paving and railing are farther back than any front), then the fronts)
     drawPoolBack(c, v, THAMES);
     drawFronts(c, v);

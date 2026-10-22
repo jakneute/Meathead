@@ -373,7 +373,14 @@ export const railing = (c: Ctx, v: View, A0: number, B0: number) => {
     }
   }
 };
-export const promenade = (c: Ctx, v: View, x0: number, x1: number, top = '#D6CBB4', face = '#8C7F68') => {
+/** Where world x at the play plane lands on the bent near band at screen-world row y (fanned out from the eye like the
+ *  band's own joints): a boundary across the band (a pool's edge, the paving's end) follows this down, never a straight
+ *  vertical cut. */
+export const nearX = (eye: View['eye'], x: number, y: number) => eye.x + (x - eye.x) * (1 + Math.max(0, y - GY) * BEND);
+/** The promenade from x0 to x1. `fan` [x0's end, x1's end]: that end meets ground that goes on toward him too (a pool,
+ *  a canal dug out of it), so the near band's end there runs down fanned out from the eye (nearX), the pool's own fill
+ *  meeting it along the same line (water.ts); otherwise it's cut square (something stood there covers it). */
+export const promenade = (c: Ctx, v: View, x0: number, x1: number, top = '#D6CBB4', face = '#8C7F68', fan: readonly [boolean, boolean] = [false, false]) => {
   const a = Math.max(x0, v.cam.x - 160), b = Math.min(x1, v.cam.x + CANVAS_WIDTH + 160);
   if (b <= a) return;
   const eye = v.eye;
@@ -389,23 +396,28 @@ export const promenade = (c: Ctx, v: View, x0: number, x1: number, top = '#D6CBB
   box(c, a, GY + 12, b - a, 1, INK);
   const fy = (y: number) => 1 + (y - GY) * BEND, fx = (x: number, y: number) => eye.x + (x - eye.x) * fy(y);
   const ys = [GY + 13, GY + 26, GY + 44, GY + 68, GY + 100, GY + 140, GY + 190, GY + NEAR_BAND];
-  c.save(); c.beginPath(); c.rect(a, GY + 13, b - a, NEAR_BAND + 600); c.clip();
-  for (let i = 0; i < ys.length - 1; i++) box(c, a, ys[i], b - a, ys[i + 1] - ys[i], N[[4, 3, 3, 2, 2, 1, 1][i]]);
-  box(c, a, GY + NEAR_BAND, b - a, 600, N[1]);
+  // (its ends: fanned from the eye where the ground goes on toward him past them (a pool's edge), else square; the fills
+  // reach as wide as the fanned ends do, only on screen)
+  const yb = GY + NEAR_BAND + 600, fa = fan[0] && x0 >= a - 0.5, fb = fan[1] && x1 <= b + 0.5;
+  const endA = (y: number) => (fa ? fx(a, y) : a), endB = (y: number) => (fb ? fx(b, y) : b);
+  const L = Math.max(v.cam.x - 200, Math.min(a, endA(yb))), Rr = Math.min(v.cam.x + CANVAS_WIDTH + 200, Math.max(b, endB(yb)));
+  c.save(); c.beginPath(); c.moveTo(endA(GY + 13), GY + 13); c.lineTo(endB(GY + 13), GY + 13); c.lineTo(endB(yb), yb); c.lineTo(endA(yb), yb); c.closePath(); c.clip();
+  for (let i = 0; i < ys.length - 1; i++) box(c, L, ys[i], Rr - L, ys[i + 1] - ys[i], N[[4, 3, 3, 2, 2, 1, 1][i]]);
+  box(c, L, GY + NEAR_BAND, Rr - L, 600, N[1]);
   // (the darker pavers coming toward him, the joints fanned)
   for (let i = 0; i < ys.length - 1; i++) {
     const off = (i % 2) * PAVER / 2, y0 = ys[i], y1 = ys[i + 1];
-    const lo = eye.x + (a - eye.x) / fy(y0) - PAVER, hi = eye.x + (b - eye.x) / fy(y0) + PAVER;
+    const lo = eye.x + (L - eye.x) / fy(y0) - PAVER, hi = eye.x + (Rr - eye.x) / fy(y0) + PAVER;
     for (let x = Math.floor((lo - off) / PAVER) * PAVER + off; x < hi; x += PAVER) {
       const hh = hash(x * 0.013 + i * 3.1 + 40);
       if (hh > 0.75) poly(c, [[fx(x + 2, y0), y0 + 1], [fx(x + PAVER - 2, y0), y0 + 1], [fx(x + PAVER - 2, y1), y1 - 1], [fx(x + 2, y1), y1 - 1]], N[hh > 0.9 ? 4 : 2]);
     }
   }
   c.strokeStyle = N[0]; c.lineWidth = 1; c.beginPath();
-  for (let i = 0; i < ys.length; i++) { c.moveTo(a, ys[i] + 0.5); c.lineTo(b, ys[i] + 0.5); }
+  for (let i = 0; i < ys.length; i++) { c.moveTo(L, ys[i] + 0.5); c.lineTo(Rr, ys[i] + 0.5); }
   for (let i = 0; i < ys.length - 1; i++) {
     const off = (i % 2) * PAVER / 2, y0 = ys[i], y1 = ys[i + 1];
-    const lo = eye.x + (a - eye.x) / fy(y0) - PAVER, hi = eye.x + (b - eye.x) / fy(y0) + PAVER;
+    const lo = eye.x + (L - eye.x) / fy(y0) - PAVER, hi = eye.x + (Rr - eye.x) / fy(y0) + PAVER;
     for (let x = Math.floor((lo - off) / PAVER) * PAVER + off; x < hi; x += PAVER) { c.moveTo(fx(x, y0), y0); c.lineTo(fx(x, y1), y1); }
   }
   c.stroke();

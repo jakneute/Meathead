@@ -13,7 +13,6 @@
 
 import type { GameState } from '../../../m1/game/core/state';
 import { stamp, checker, mix, tilePattern, bendFloor, steppedGlow, type Ctx } from '../../intro/art/kit';
-import { CANVAS_WIDTH } from '../../../m1/constants';
 import { GY, LOBBY0, LIFT_X, LOBBY1, CAR0, CAR1, CAR_X, D0, D1, CEIL, CASE_X, SLOT, SLOTS, slotX, slotKind, WIN_HW, WIN_TOP, WIN_BOT, WIN_R, SPEAKER_Y, type SlotKind } from './layout';
 import { letters, type LetterStyle } from './letters';
 import { lettering } from '../square/lettering';
@@ -1025,8 +1024,9 @@ export const drawLobby = (c: Ctx, state: GameState) => {
   const v = state.view ?? { x: state.camera.x, w: 800 };
   if (v.x > LOBBY1 + 60 || v.x + v.w < LOBBY0 - 40) return;
   stamp(c, 'n2-lobby', LOBBY0, GY - 760, LOBBY1 + 40 - LOBBY0, 967, paintLobby);
-  // (the floor in perspective, from where the camera's looking: the joints and the inlay fan out toward him)
-  bendFloor(c, { x: state.camera.x + CANVAS_WIDTH / 2 }, GY + 3, GY + 3, GY + 207, LOBBY0, LOBBY1 + 40);
+  // (the floor in perspective, from where the camera's looking (the middle of what's on screen, zoomed or not: the one
+  // eye): the joints and the inlay fan out toward him)
+  bendFloor(c, { x: v.x + v.w / 2 }, GY + 3, GY + 3, GY + 207, LOBBY0, LOBBY1 + 40);
 };
 
 /** The elevator car going up (centered on CAR_X): its floor and roof slabs, its chrome ribs, the guide rails outside

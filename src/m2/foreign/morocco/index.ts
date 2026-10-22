@@ -149,8 +149,8 @@ export const morocco: ForeignSection = {
   },
   drawBack: (c, state) => {
     const v = viewIn(state), f = state.frame;
-    promenade(c, v, x0, VATS[0].a, '#E7D3B0', '#9C7F5A');
-    VATS.forEach((p, i) => { const nx = VATS[i + 1]?.a ?? x1; promenade(c, v, p.b, nx, '#E7D3B0', '#9C7F5A'); });
+    promenade(c, v, x0, VATS[0].a, '#E7D3B0', '#9C7F5A', [false, true]);
+    VATS.forEach((p, i) => { const nx = VATS[i + 1]?.a ?? x1; promenade(c, v, p.b, nx, '#E7D3B0', '#9C7F5A', [true, i + 1 < VATS.length]); });
     // (the vats' paving behind them first (it's farther back than any front), then the fronts, then the gate over the
     // way in)
     for (const p of VATS) vatPaving(c, v, p.a, p.b);

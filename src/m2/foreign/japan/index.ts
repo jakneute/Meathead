@@ -165,8 +165,8 @@ export const japan: ForeignSection = {
   waterBodyAt: (_state, x, y) => poolAt([POND], x, y),
   drawBack: (c, state) => {
     const v = viewIn(state), f = state.frame;
-    promenade(c, v, x0, POND.a, '#D6CBB4', '#8C7F68');
-    promenade(c, v, POND.b, x1, '#D6CBB4', '#8C7F68');
+    promenade(c, v, x0, POND.a, '#D6CBB4', '#8C7F68', [false, true]);
+    promenade(c, v, POND.b, x1, '#D6CBB4', '#8C7F68', [true, false]);
     // (the pond's back first (its far paving and railing are farther back than any front), then the fronts)
     drawPoolBack(c, v, POND);
     drawFronts(c, v);

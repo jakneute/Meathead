@@ -17,7 +17,7 @@
 import { GY } from '../geometry';
 import {
   type Ctx, type View, INK, box, mix, poly, checker, hash, at, atDepth, ramp6, dimmed, hour, slab, post, ball, timeOfDay, steppedGlow, pixelBlob,
-  stucco, planks, stoneBlocks, barrelTile, facade, still, board, words, plain, LOOKS, onScreen, lip, topBack, sideBack, box3Back, ledge3, pavingBack, skyAt, flagPole,
+  stucco, planks, stoneBlocks, barrelTile, facade, still, board, words, plain, LOOKS, onScreen, lip, topBack, sideBack, box3Back, ledge3, pavingBack, skyAt, flagPole, nearX, NEAR_BAND,
 } from '../kit';
 
 const lampsOn = () => timeOfDay().lamps > 0.3;
@@ -491,6 +491,14 @@ export const drawVat = (c: Ctx, v: View, a: number, b: number, surface: number, 
   const eye = v.eye, W = ramp6(hour(wall)), sY = GY + surface, bot = GY + bed, D = hour(col), Dr = ramp6(D);
   const P = (x: number, y: number, d: number) => at(eye, x, y, d);
   const [ax, ay] = P(a, GY, VAT_D), [bx] = P(b, GY, VAT_D), [, sy] = P(a, sY, VAT_D), [, by] = P(a, bot, VAT_D);
+  // (its stretch of the near band, edges fanned out from the eye like the paving's (the promenade's `fan` ends meet them
+  // on the same line): the end walls' faces coming toward him where they fan out past the cut-through, the dark under)
+  const yb = GY + NEAR_BAND + 600, near: [number, number][] = [[a, GY], [b, GY], [nearX(eye, b, yb), yb], [nearX(eye, a, yb), yb]];
+  poly(c, near, W[0]);
+  for (const e of [a, b]) poly(c, [[e, GY], [nearX(eye, e, bot), bot], [e, bot]], W[2]);
+  c.strokeStyle = INK; c.lineWidth = 1; c.beginPath();
+  for (const e of [a, b]) { c.moveTo(e, GY); c.lineTo(nearX(eye, e, yb), yb); }
+  c.stroke();
   // (the far wall: clay plaster, the dye's tide marks and drips down it from the rim, darker under the dye line)
   box(c, ax, ay, bx - ax, sy - ay, W[3]);
   for (let x = Math.round(ax) + 2; x < bx - 2; x += 3) { const dl = 2 + Math.round(hash(seed + x * 0.37) * (sy - ay - 3)); if (hash(seed + x * 0.11) > 0.45) box(c, x, ay + 1, 2, dl, mix(W[3], D, 0.45)); }
@@ -514,6 +522,7 @@ export const drawVat = (c: Ctx, v: View, a: number, b: number, surface: number, 
   // (the masonry under it all, stamped for the hour: the vat's stained clay bottom over courses of cut stone (each
   // block a step, dye seeped down its joints), darkening down into the dark)
   const vw = Math.round(b - a);
+  c.save(); c.beginPath(); near.forEach(([x, y], i) => (i ? c.lineTo(x, y) : c.moveTo(x, y))); c.closePath(); c.clip();
   still(c, `ma-vatbase-${vw}-${wall}-${col}`, a, bot, 0, 0, vw, 170, g => {
     stoneBlocks(g, 0, 8, vw, 162, W, seed, 34, 17);
     box(g, 0, 0, vw, 8, mix(W[1], D, 0.5)); box(g, 0, 0, vw, 1, INK); checker(g, 0, 8, vw, 2, mix(W[1], D, 0.5), 0, 1);
@@ -522,6 +531,7 @@ export const drawVat = (c: Ctx, v: View, a: number, b: number, surface: number, 
     box(g, 0, 166, vw, 4, W[0]);
   });
   box(c, a, bot + 170, b - a, 230, W[0]);
+  c.restore();
   // (its end walls at the play plane: clay, a zellige band down their tops, the lit edge)
   for (const sx of [a, b - 6]) { box(c, sx, GY, 6, bed, W[2]); box(c, sx, GY, 2, bed, W[4]); box(c, sx + 5, GY, 1, bed, INK); box(c, sx, GY, 6, 6, hour(TILEBLUE)); box(c, sx + 1, GY + 1, 2, 2, hour('#F2EDE2')); }
   // (the dye at the play plane, banded down into its depths, dithered between; the surface's lit line)

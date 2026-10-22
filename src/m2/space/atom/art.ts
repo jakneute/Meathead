@@ -548,14 +548,21 @@ const drawFlats = (c: Ctx, x: number, w: number) => {
   });
 };
 /** A flat's raw end, seen from the side (at a gap): the 2x4 frame nearest, the plywood, the show side's black paint at the
- *  far edge. `x` its near edge, `t` how far it reaches into the gap toward the eye (`dir` that way). */
-const flatEnd = (c: Ctx, x: number, t: number, dir: 1 | -1) => {
-  const H = GY - FLAT_TOP, x0 = dir > 0 ? x : x - t;
-  box(c, x0, FLAT_TOP, t, H, LUMBER[1]);
-  const lum = Math.max(1, Math.round(t * 0.7)), ply = t - lum;
-  box(c, dir > 0 ? x : x - lum, FLAT_TOP, lum, H, LUMBER[0]);
-  if (ply > 0) { box(c, dir > 0 ? x + lum : x - t, FLAT_TOP, ply, H, PLY[3]); box(c, dir > 0 ? x + t - 1 : x - t, FLAT_TOP, 1, H, '#0B0B12'); }
-  box(c, x0, FLAT_TOP, t, 2, PLY[4]);
+ *  far edge; a face in perspective going back from x toward the one eye to FLAT_D (its top and foot running back to the
+ *  eye's height, not a square box), gone looking straight at it. */
+const FLAT_D = 0.97;
+const flatEnd = (c: Ctx, eye: { x: number; y: number }, x: number) => {
+  const P = (d: number, y: number) => [eye.x + (x - eye.x) * d, eye.y + (y - eye.y) * d] as [number, number];
+  const [x1] = P(FLAT_D, GY);
+  if (Math.abs(x1 - x) < 2) return;
+  const face = (d0: number, d1: number, col: string) => { c.fillStyle = col; c.beginPath(); for (const [px, py] of [P(d0, FLAT_TOP), P(d1, FLAT_TOP), P(d1, GY), P(d0, GY)]) c.lineTo(px, py); c.closePath(); c.fill(); };
+  const dl = 1 - (1 - FLAT_D) * 0.7;
+  face(1, dl, LUMBER[0]);
+  face(dl, FLAT_D, PLY[3]);
+  c.lineWidth = 1;
+  c.strokeStyle = '#0B0B12'; c.beginPath(); c.moveTo(...P(FLAT_D, FLAT_TOP)); c.lineTo(...P(FLAT_D, GY)); c.stroke();
+  c.lineWidth = 2; c.strokeStyle = PLY[4]; c.beginPath(); c.moveTo(...P(1, FLAT_TOP + 1)); c.lineTo(...P(FLAT_D, FLAT_TOP + 1)); c.stroke();
+  c.lineWidth = 1;
 };
 
 /** The floor: black-painted concrete, gaffer-taped, glow-taped (the spike marks), cables along it; out in the queue, its
@@ -745,10 +752,11 @@ export const drawAtomBack = (c: Ctx, state: GameState, hj: Hijack) => {
       box(c, x - 7, GY - 430, 14, 3, '#FEF9C3');
     }
   }
-  const eye = cam + CANVAS_WIDTH / 2;
+  // (the scene's one eye: the same as the floor's bend and every face going back)
+  const eye = { x: cam + CANVAS_WIDTH / 2, y: state.camera.y + CANVAS_HEIGHT * 0.42 };
   for (const [gx, gw] of GAPS) if (on(gx - 20, gx + gw + 20)) {
-    if (eye > gx) { const t = Math.min(18, Math.round((eye - gx) * 0.03)); if (t >= 2) flatEnd(c, gx, t, 1); }
-    if (eye < gx + gw) { const t = Math.min(18, Math.round((gx + gw - eye) * 0.03)); if (t >= 2) flatEnd(c, gx + gw, t, -1); }
+    if (eye.x > gx + 1) flatEnd(c, eye, gx);
+    if (eye.x < gx + gw - 1) flatEnd(c, eye, gx + gw);
     // (a rope across: KEEP OUT OF SHOW, on two stanchions, its tag)
     const mid = gx + gw / 2;
     for (const sx of [gx + 8, gx + gw - 14]) { cyl(c, sx, GY - 78, 6, 78, '#A1A1AA', 'y'); sphere(c, sx + 3, GY - 80, 5, '#D4D4D8'); box(c, sx - 6, GY - 4, 18, 4, '#52525B'); }

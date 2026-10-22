@@ -126,8 +126,8 @@ export const mexico: ForeignSection = {
   drawBack: (c, state) => {
     const v = viewIn(state), f = state.frame;
     // (the promenade first: what stands on it, set back, stands on it, not under it)
-    promenade(c, v, x0 - 300, DIVE_POOL.a, '#E7D9BE', '#9C8462');
-    promenade(c, v, DIVE_POOL.b, x1, '#E7D9BE', '#9C8462');
+    promenade(c, v, x0 - 300, DIVE_POOL.a, '#E7D9BE', '#9C8462', [false, true]);
+    promenade(c, v, DIVE_POOL.b, x1, '#E7D9BE', '#9C8462', [true, false]);
     drawLandGate(c, v, f);
     drawFronts(c, v);
     drawPyramid(c, v, X(PYR.a), PYR.b - PYR.a);

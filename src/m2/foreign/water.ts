@@ -14,7 +14,7 @@ import type { GroundRun } from '../../m1/game/core/terrain';
 import { ledge } from './section';
 import { setHazardZones } from '../hazardHit';
 import { GY } from './geometry';
-import { type Ctx, type View, box, mix, at, poly, checker, ramp6, hour, INK, LIP, onScreen, pavingBack, sideBack, topBack, lip, hash } from './kit';
+import { type Ctx, type View, box, mix, at, poly, checker, ramp6, hour, INK, LIP, onScreen, pavingBack, sideBack, topBack, lip, hash, nearX, NEAR_BAND } from './kit';
 
 export interface Pool {
   key: string;
@@ -64,6 +64,16 @@ export const drawPoolBack = (c: Ctx, v: View, p: Pool) => {
   if (!onScreen(v, p.a, p.b)) return;
   const eye = v.eye, W = ramp6(hour(p.wall)), top = GY, bot = GY + p.bed, sY = GY + p.surface;
   const P = (x: number, y: number, d: number) => at(eye, x, y, d);
+  // (its stretch of the near band: the dug-out going on toward him, its edges fanned out from the eye like the paving's
+  // (promenade's `fan` ends meet them on the same line), never a square cut down the screen. Under the cut-through at
+  // the play plane: where an edge fans out past its end wall that's the end wall's face coming toward him (lit a step),
+  // under the bed the dark fill. Drawn first: the cut-through goes over it.)
+  const yb = GY + NEAR_BAND + 600;
+  poly(c, [[p.a, top], [p.b, top], [nearX(eye, p.b, yb), yb], [nearX(eye, p.a, yb), yb]], W[1]);
+  for (const e of [p.a, p.b]) poly(c, [[e, top], [nearX(eye, e, bot), bot], [e, bot]], W[2]);
+  c.strokeStyle = INK; c.lineWidth = 1; c.beginPath();
+  for (const e of [p.a, p.b]) { c.moveTo(e, top); c.lineTo(nearX(eye, e, yb), yb); }
+  c.stroke();
   // (the promenade behind it, from its back coping to the railing)
   pavingBack(c, v, p.a, p.b, FAR_D);
   // (the far wall: from the coping down to the bed, in courses of tile, the water line on it; bluer and darker under it)
@@ -104,7 +114,7 @@ export const drawPoolBack = (c: Ctx, v: View, p: Pool) => {
   box(c, ax - 1, ay - 2, bx - ax + 2, 3, INK); box(c, ax, ay - 2, bx - ax, 2, hour('#E8DFC8'));
   // (its end walls at the play plane, the front of the bed under it all)
   for (const sx of [p.a, p.b - 6]) { box(c, sx, top, 6, p.bed, W[2]); box(c, sx, top, 2, p.bed, W[4]); box(c, sx + 5, top, 1, p.bed, INK); }
-  box(c, p.a, bot, p.b - p.a, 400, W[1]); checker(c, p.a, bot, p.b - p.a, 2, W[2], 0, 1); box(c, p.a, bot, p.b - p.a, 1, INK);
+  box(c, p.a, bot, p.b - p.a, 6, W[1]); checker(c, p.a, bot, p.b - p.a, 2, W[2], 0, 1); box(c, p.a, bot, p.b - p.a, 1, INK);
   // (the steps out: tiled treads, lit lips: somewhere to stand)
   for (const sx of [p.a, p.b - 54]) {
     const ty = GY + p.surface + 26;

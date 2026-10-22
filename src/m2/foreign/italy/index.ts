@@ -179,9 +179,9 @@ export const italy: ForeignSection = {
   waterBodyAt: (_state, x, y) => poolAt(POOLS, x, y),
   drawBack: (c, state) => {
     const v = viewIn(state), f = state.frame;
-    promenade(c, v, x0, CANAL1.a, '#E7DCC4', '#9C8C6A');
-    promenade(c, v, CANAL1.b, CANAL2.a, '#E7DCC4', '#9C8C6A');
-    promenade(c, v, CANAL2.b, x1, '#E7DCC4', '#9C8C6A');
+    promenade(c, v, x0, CANAL1.a, '#E7DCC4', '#9C8C6A', [false, true]);
+    promenade(c, v, CANAL1.b, CANAL2.a, '#E7DCC4', '#9C8C6A', [true, true]);
+    promenade(c, v, CANAL2.b, x1, '#E7DCC4', '#9C8C6A', [true, false]);
     // (the canals' backs first (their far paving and railing are farther back than any front), then the fronts)
     for (const p of POOLS) drawPoolBack(c, v, p);
     drawFronts(c, v);

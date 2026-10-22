@@ -209,12 +209,19 @@ const floor = (c: Ctx, state: GameState) => {
   for (const ty of [GY + 14, GY + 44]) for (let x = Math.ceil(a / 8) * 8; x < Math.min(b, ARENA_L - WALL_W); x += 8) { box(c, x, ty, 6, 5, D[0]); box(c, x, ty, 6, 1, D[1]); }
   for (let x = Math.ceil(a / 23) * 23; x < Math.min(b, ARENA_L - WALL_W); x += 23) { const y = GY - 18 + hsh(x) * 16, y2 = GY + 6 + hsh(x * 1.7) * 60; box(c, x, y, 3, 2, D[4]); box(c, x + 9, y2, 3, 2, D[3]); box(c, x + 9, y2 + 2, 3, 1, D[0]); }
   if (s1 > s0) {
+    // (its poured ends against the dirt run back to the eye and on toward him like the joints do (one rule for both:
+    // `fan`), never a square cut down the screen; only where an end's really there, not where the screen cuts it)
+    const fan = (x: number, y: number) => x + (x - ex) * (y - GY) / (GY - horY);
+    const fL = s0 === ARENA_L - WALL_W, fR = s1 === ARENA_R + WALL_W;
+    const eL = (y: number) => (fL ? fan(s0, y) : s0), eR = (y: number) => (fR ? fan(s1, y) : s1);
+    const w0 = Math.min(s0, eL(GY + 120)), w1 = Math.max(s1, eR(GY + 120)), sw = w1 - w0;
+    c.save(); c.beginPath(); c.moveTo(eL(GY - 26), GY - 26); c.lineTo(eR(GY - 26), GY - 26); c.lineTo(eR(GY + 120), GY + 120); c.lineTo(eL(GY + 120), GY + 120); c.closePath(); c.clip();
     // (the slab's top going back: lit, hazier toward the back; a dithered step; its far edge)
-    box(c, s0, GY - 26, s1 - s0, 26, S[3]); box(c, s0, GY - 26, s1 - s0, 6, dith(c, S[4]) as unknown as string); box(c, s0, GY - 26, s1 - s0, 1, S[5]);
-    box(c, s0, GY - 13, s1 - s0, 1, S[2]);
+    box(c, w0, GY - 26, sw, 26, S[3]); box(c, w0, GY - 26, sw, 6, dith(c, S[4]) as unknown as string); box(c, w0, GY - 26, sw, 1, S[5]);
+    box(c, w0, GY - 13, sw, 1, S[2]);
     // (coming on toward him: a step darker, the near rows darker again)
-    box(c, s0, GY, s1 - s0, 120, S[2]); box(c, s0, GY + 30, s1 - s0, 8, dith(c, S[1]) as unknown as string); box(c, s0, GY + 38, s1 - s0, 90, S[1]); box(c, s0, GY + 70, s1 - s0, 8, dith(c, S[0]) as unknown as string);
-    box(c, s0, GY + 36, s1 - s0, 1, S[0]); box(c, s0, GY + 37, s1 - s0, 1, S[3]);
+    box(c, w0, GY, sw, 120, S[2]); box(c, w0, GY + 30, sw, 8, dith(c, S[1]) as unknown as string); box(c, w0, GY + 38, sw, 90, S[1]); box(c, w0, GY + 70, sw, 8, dith(c, S[0]) as unknown as string);
+    box(c, w0, GY + 36, sw, 1, S[0]); box(c, w0, GY + 37, sw, 1, S[3]);
     // (the joints: sawn every 120, going back to the eye and coming on toward him, each a dark cut with a lit lip)
     for (let x = Math.ceil(s0 / 120) * 120; x < s1; x += 120) {
       const bx = x + (ex - x) * back, nx = x + (x - ex) * (80 / (GY - horY));
@@ -231,8 +238,10 @@ const floor = (c: Ctx, state: GameState) => {
       else if (k === 2) { box(c, cx - 5, cy - 1, 10, 2, '#F472B6'); box(c, cx - 1, cy - 5, 2, 10, '#F472B6'); box(c, cx + 8, cy, 8, 1, '#60A5FA'); }
       else { ellR(c, cx, cy, 10, 2.6, 'rgba(12, 10, 14, 0.5)'); box(c, cx - 4, cy - 1, 3, 1, 'rgba(160, 140, 220, 0.6)'); }
     }
-    // (the slab's poured ends against the dirt: its edge stepped)
-    for (const ex2 of [ARENA_L - WALL_W, ARENA_R + WALL_W]) if (ex2 > a && ex2 < b) { box(c, ex2 - 1, GY - 26, 2, 146, S[0]); }
+    c.restore();
+    // (the slab's poured ends against the dirt: its edge, inked along the same line)
+    if (fL) lineR(c, [eL(GY - 26), GY - 26, eL(GY + 120), GY + 120], 2, S[0], 'butt');
+    if (fR) lineR(c, [eR(GY - 26), GY - 26, eR(GY + 120), GY + 120], 2, S[0], 'butt');
   }
   // (the lit lip: the line he stands on)
   box(c, a, GY, b - a, 3, LIP[2]); box(c, a, GY, b - a, 1, LIP[3]);

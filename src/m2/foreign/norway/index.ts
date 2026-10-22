@@ -170,9 +170,9 @@ export const norway: ForeignSection = {
   },
   drawBack: (c, state) => {
     const v = viewIn(state), f = state.frame;
-    promenade(c, v, x0, POOL.a, '#D6CBB4', '#8C7F68');
-    promenade(c, v, POOL.b, RIVER.a, '#D6CBB4', '#8C7F68');
-    promenade(c, v, RIVER.b, x1, '#D6CBB4', '#8C7F68');
+    promenade(c, v, x0, POOL.a, '#D6CBB4', '#8C7F68', [false, true]);
+    promenade(c, v, POOL.b, RIVER.a, '#D6CBB4', '#8C7F68', [true, true]);
+    promenade(c, v, RIVER.b, x1, '#D6CBB4', '#8C7F68', [true, false]);
     drawFronts(c, v);
     drawPoolBack(c, v, POOL);
     // (the wave machine's housing at the pool's far end, set back: its light on before a wave)

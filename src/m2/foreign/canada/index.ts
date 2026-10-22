@@ -173,11 +173,11 @@ export const canada: ForeignSection = {
   waterBodyAt: (_state, x, y) => poolAt([POND, PLUNGE], x, y) ?? pondWater(x, y),
   drawBack: (c, state) => {
     const v = viewIn(state), f = state.frame, cn = canOf(state);
-    promenade(c, v, x0, POND.a, '#D6CBB4', '#8C7F68');
-    promenade(c, v, POND.b, PLUNGE.a, '#D6CBB4', '#8C7F68');
-    promenade(c, v, PLUNGE.b, X(CLIFF), '#D6CBB4', '#8C7F68');
-    promenade(c, v, X(TRAIL_B), ICE_POND.a, '#D6CBB4', '#8C7F68');
-    promenade(c, v, ICE_POND.b, X(4560), '#D6CBB4', '#8C7F68');
+    promenade(c, v, x0, POND.a, '#D6CBB4', '#8C7F68', [false, true]);
+    promenade(c, v, POND.b, PLUNGE.a, '#D6CBB4', '#8C7F68', [true, true]);
+    promenade(c, v, PLUNGE.b, X(CLIFF), '#D6CBB4', '#8C7F68', [true, false]);
+    promenade(c, v, X(TRAIL_B), ICE_POND.a, '#D6CBB4', '#8C7F68', [false, true]);
+    promenade(c, v, ICE_POND.b, X(4560), '#D6CBB4', '#8C7F68', [true, false]);
     promenade(c, v, X(5360), x1, '#D6CBB4', '#8C7F68');
     // (the pools' backs first (their far paving and railing are farther back than anything set back), then the rest)
     drawPoolBack(c, v, POND);
