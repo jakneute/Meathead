@@ -125,7 +125,9 @@ export const FRONT_PAINT = {
 export const sideBack = (c: Ctx, eye: TownView['eye'], e: number, side: 1 | -1, top: number, bottom: number, d0: number, d1: number, R: string[], steps = 3, shadow = true) => {
   if ((eye.x - e) * side <= 1) return false;
   for (let i = 0; i < steps; i++) {
-    const a = d0 - ((d0 - d1) * i) / steps, b = d0 - ((d0 - d1) * (i + 1)) / steps;
+    // (each step runs a quarter step into the next (painted over by it): shared edges left an antialiased hairline that
+    // shimmered as he walked)
+    const a = d0 - ((d0 - d1) * i) / steps, b = d0 - ((d0 - d1) * (i + (i < steps - 1 ? 1.25 : 1))) / steps;
     poly(c, [at(eye, e, top, a), at(eye, e, top, b), at(eye, e, bottom, b), at(eye, e, bottom, a)], R[Math.max(0, 2 - i)]);
   }
   const [x0, t0] = at(eye, e, top, d0), [, b0] = at(eye, e, bottom, d0);
@@ -140,7 +142,7 @@ export const sideBack = (c: Ctx, eye: TownView['eye'], e: number, side: 1 | -1, 
 export const topBack = (c: Ctx, eye: TownView['eye'], x0: number, x1: number, y: number, d0: number, d1: number, R: string[], n = 3) => {
   if (eye.y >= y - 1) return false;
   for (let i = 0; i < n; i++) {
-    const a = d0 - ((d0 - d1) * i) / n, b = d0 - ((d0 - d1) * (i + 1)) / n;
+    const a = d0 - ((d0 - d1) * i) / n, b = d0 - ((d0 - d1) * (i + (i < n - 1 ? 1.25 : 1))) / n;
     poly(c, [at(eye, x0, y, a), at(eye, x1, y, a), at(eye, x1, y, b), at(eye, x0, y, b)], R[Math.max(0, 4 - i)]);
   }
   const [ax, ay] = at(eye, x0, y, d1), [bx, by] = at(eye, x1, y, d1), [px, py] = at(eye, x0, y, d0), [qx, qy] = at(eye, x1, y, d0);
@@ -151,7 +153,7 @@ export const topBack = (c: Ctx, eye: TownView['eye'], x0: number, x1: number, y:
 export const underBack = (c: Ctx, eye: TownView['eye'], x0: number, x1: number, y: number, d0: number, d1: number, R: string[], n = 3) => {
   if (eye.y <= y + 1) return false;
   for (let i = 0; i < n; i++) {
-    const a = d0 - ((d0 - d1) * i) / n, b = d0 - ((d0 - d1) * (i + 1)) / n;
+    const a = d0 - ((d0 - d1) * i) / n, b = d0 - ((d0 - d1) * (i + (i < n - 1 ? 1.25 : 1))) / n;
     poly(c, [at(eye, x0, y, a), at(eye, x1, y, a), at(eye, x1, y, b), at(eye, x0, y, b)], R[Math.max(0, 2 - i)]);
   }
   return true;

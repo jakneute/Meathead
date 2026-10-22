@@ -18,6 +18,7 @@ import {
   DIRT, GRANITE, MOSS, BARK, STEEL, PLY, RUST, RINGS, LIP, POLE, CHAR, ASH, BLOCK, GOLD, BROWN, DUFF, NEEDLE,
   printed, sprayed, brush, leafAt, firOf,
 } from './paint';
+import { extrude } from '../wilds/paint';
 import { drawWoodsFar } from './far';
 import { drawGoingBack, drawTrees, drawPlayFloor, drawDeadEndBack, drawDeadEndFront } from './ground';
 import { drawTeenPerson, teenOf } from './teens';
@@ -71,7 +72,7 @@ export const drawWoodsBack = (c: Ctx, state: GameState) => {
   for (const [rx, what] of LITTER) if (litterDepth(what) === 1 && seenAt(v, X(rx) - 40, X(rx) + 40)) litter(c, X(rx), what);
   if (seenAt(v, X(SCOUT_SIGN) - 70, X(SCOUT_SIGN) + 70)) scoutSign(c, X(SCOUT_SIGN));
   if (seenAt(v, X(FALLEN[0]) - 50, X(FALLEN[1]) + 50)) fallenTree(c);
-  if (seenAt(v, X(BOULDER[0]) - 20, X(BOULDER[1]) + 20)) boulder(c);
+  if (seenAt(v, X(BOULDER[0]) - 20, X(BOULDER[1]) + 20)) boulder(c, v);
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -352,11 +353,14 @@ const fallenTree = (c: Ctx) => {
 };
 
 /** The boulder before the wider ivy (stand on it, jump from it): real granite, lichen, moss in its cracks, lit on top. */
-const boulder = (c: Ctx) => {
+const boulder = (c: Ctx, v: View) => {
   const [a, b, h] = BOULDER, xa = X(a), w = b - a;
+  const pts: [number, number][] = [[-2, 1], [2, -h * 0.55], [8, -h + 4], [22, -h - 2], [w - 22, -h - 1], [w - 6, -h + 6], [w + 2, -h * 0.5], [w + 3, 1]];
+  // (its bulk going back: its top lit, its sides shaded, on the side he's looking at (it was a flat front))
+  const Gr = hr('granite', GRANITE, 0.2);
+  extrude(c, v.eye, pts.map(([x, y]) => [xa + x, GY + y] as [number, number]), 0.93, Gr[4], Gr[1]);
   stillAt(c, 'wd-boulder', xa, GY, -6, -h - 8, w + 12, h + 10, g => {
     const G = hr('granite', GRANITE, 0.2), Ms = hr('moss', MOSS, 0.2), L = hr('lip', LIP, 0.2);
-    const pts: [number, number][] = [[-2, 1], [2, -h * 0.55], [8, -h + 4], [22, -h - 2], [w - 22, -h - 1], [w - 6, -h + 6], [w + 2, -h * 0.5], [w + 3, 1]];
     g.fillStyle = INK; g.beginPath(); pts.forEach(([x, y], i) => (i ? g.lineTo(x, y - 1) : g.moveTo(x - 1, y))); g.closePath(); g.fill();
     g.save(); g.beginPath(); pts.forEach(([x, y], i) => (i ? g.lineTo(x, y) : g.moveTo(x, y))); g.closePath(); g.clip();
     for (let i = 0; i < 6; i++) box(g, -4, -h - 4 + (i * (h + 6)) / 6, w + 10, (h + 6) / 6 + 1, [G[5], G[4], G[4], G[3], G[3], G[2]][i]);

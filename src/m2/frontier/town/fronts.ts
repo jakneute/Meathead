@@ -231,6 +231,8 @@ const drawWalk = (c: Ctx, v: TownView, F: Front) => {
     const [ax, ay] = at(eye, xa, y, WALK_D), [bx] = at(eye, xb, y, WALK_D);
     box(c, ax, ay, bx - ax, 1, P[5]);
   }
+  // (its ends going back to the front, on the side he's looking at (it stopped flat at its corners))
+  for (const [e, side] of [[xa, -1], [xb, 1]] as const) if ((eye.x - e) * side > 1) poly(c, [at(eye, e, y, WALK_D), at(eye, e, y, FRONT_D), at(eye, e, GY, FRONT_D), at(eye, e, GY, WALK_D)], P[1]);
   // (its front face: the edge board, the joists' ends)
   const [fa, fy] = at(eye, xa, y, WALK_D), [fb, fby] = at(eye, xb, GY, WALK_D);
   box(c, fa, fy, fb - fa, fby - fy, P[2]); box(c, fa, fy, fb - fa, 1, P[5]);

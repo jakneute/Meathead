@@ -76,6 +76,23 @@ export const seen = (v: View, a: number, b: number, d = 1, pad = 60) => {
   return sb > v.cam.x - pad && sa < v.cam.x + 800 + pad;
 };
 
+/** A solid's thickness going back (a rock, a stump: anything drawn as a flat front): its outline `pts` (world, convex,
+ *  clockwise on screen: up its left, across its top, down its right; the foot's edge is skipped) extruded from the play
+ *  plane back to depth `d` toward the one eye, each edge's face a cheap polygon: the tops lit (`top`), the sides shaded
+ *  (`side`). Drawn before the front (which covers the faces turned away: only the ones he's looking at show, opening
+ *  up as the camera moves off to a side, gone head-on). */
+export const extrude = (c: Ctx, eye: { x: number; y: number }, pts: [number, number][], d: number, top: string, side: string) => {
+  for (let i = 0; i + 1 < pts.length; i++) {
+    const [px, py] = pts[i], [qx, qy] = pts[i + 1], dx = qx - px, dy = qy - py, len = Math.hypot(dx, dy) || 1;
+    const ny = -dx / len;
+    if (ny > 0.5) continue;
+    // (facing away from the eye: hidden behind the front anyway, skipped)
+    const nx = dy / len, mx = (px + qx) / 2, my = (py + qy) / 2;
+    if (nx * (eye.x - mx) + ny * (eye.y - my) <= 0) continue;
+    poly(c, [[px, py], [qx, qy], at(eye, qx, qy, d), at(eye, px, py, d)], ny < -0.5 ? top : side);
+  }
+};
+
 // ---------------------------------------------------------------------------------------------------------------
 // Pieces
 

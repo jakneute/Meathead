@@ -123,8 +123,9 @@ const LITTER: Record<string, [number, 'can' | 'shoe' | 'cap' | 'coin'][]> = {
   river: [[300, 'coin'], [700, 'can'], [1180, 'shoe'], [1600, 'cap']],
 };
 
-/** The water's body at the play plane, its bed and its rocks, painted once per hour per water (stamped in chunks). */
-const paintBody = (g: Ctx, w: Water, x0: number, cw: number) => {
+/** The water's body at the play plane, its bed and its rocks, painted once per hour per water (stamped in chunks; the
+ *  near banks also paint a strip of it live, past the water's own end, where the bent floor's edge pulls back). */
+export const paintBody = (g: Ctx, w: Water, x0: number, cw: number) => {
   const R = waterR(w), s = surfaceY(w), depth = GY + BED - s, tod = timeOfDay();
   const S = STONE.map(c => farTint(c, 0.25, tod));
   // (banded deeper, dithered between)

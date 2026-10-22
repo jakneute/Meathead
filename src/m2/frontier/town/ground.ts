@@ -30,6 +30,8 @@ interface Run { a: number; b: number; rx: number; zone: Zone }
 const RUNS: Run[] = GROUND.filter(([, , h1, h2]) => h1 === 0 && h2 === 0).map(([a, b]) => ({ a: X(a), b: X(b), rx: a, zone: a >= 14000 ? 'queue' : a >= 9000 ? 'mill' : 'street' }));
 /** The island in pond B's middle (the feller's): world x, its top. */
 const ISLE = { a: X(8800), b: X(8900), top: Y(20) };
+/** How far back the island goes (the pond carries on behind it). */
+const ISLE_D = 0.82;
 
 const zoneR = (z: Zone) => (z === 'mill' ? SAWDUST : z === 'queue' ? CONC : STREET);
 /** Ramps for the hour, made once per hour. */
@@ -108,11 +110,6 @@ export const drawGroundBack = (c: Ctx, v: TownView) => {
       poly(c, [pt(a, GY, d0), pt(b, GY, d0), pt(b, GY, d1), pt(a, GY, d1)], mix(cols[i], haze, i * 0.04));
     }
   }
-  // The island's top going back (grass over dirt; the stump)
-  if (ISLE.b > v.v0 && ISLE.a < v.v1 && eye.y < ISLE.top - 2) {
-    const G = nr('isle-g', GRASS, 0.4);
-    for (let i = 0; i < 4; i++) { const d0 = 1 - 0.06 * i, d1 = 1 - 0.06 * (i + 1); poly(c, [pt(ISLE.a + 6, ISLE.top, d0), pt(ISLE.b - 6, ISLE.top, d0), pt(ISLE.b - 14, ISLE.top, d1), pt(ISLE.a + 14, ISLE.top, d1)], [G[5], G[4], G[4], G[3]][i]); }
-  }
   // The pond's surface going back, to its far bank
   for (const w of WATERS) {
     if (w.mine || w.b < v.v0 - 300 || w.a > v.v1 + 300 || eye.y > w.surface - 2) continue;
@@ -125,10 +122,17 @@ export const drawGroundBack = (c: Ctx, v: TownView) => {
       const [lx, sy] = p2(w.a, d1), [rx] = p2(w.b, d1);
       checker(c, lx, sy, rx - lx, PIX, cols[Math.min(N - 1, i + 1)], i % 2);
     }
-    // (the banks either side going back: the street's dirt down to the water)
+    // (the water carrying on behind the island, between the two ponds (it's an island: there was a hole back there))
+    if (w.b === ISLE.a) for (let i = 0; i < N; i++) {
+      const d0 = Math.min(ISLE_D, 1 - ((1 - FAR) * i) / N), d1 = 1 - ((1 - FAR) * (i + 1)) / N;
+      if (d1 >= ISLE_D) continue;
+      poly(c, [p2(ISLE.a - 1, d0), p2(ISLE.b + 1, d0), p2(ISLE.b + 1, d1), p2(ISLE.a - 1, d1)], cols[i]);
+    }
+    // (the banks either side going back: the street's dirt down to the water (where a pond meets the island, the
+    // island's own sides, below))
     const D = nr('pondbank', STREET, 0.4);
     for (const [e, side] of [[w.a, 1], [w.b, -1]] as const) {
-      if ((eye.x - e) * side <= 1) continue;
+      if ((eye.x - e) * side <= 1 || e === ISLE.a || e === ISLE.b) continue;
       poly(c, [pt(e, GY, 1), pt(e, GY, FAR), pt(e, s, FAR), pt(e, s, 1)], D[2]);
       const [x1, y1] = pt(e, GY, FAR);
       c.strokeStyle = INK; c.lineWidth = 1; c.beginPath(); c.moveTo(e, GY); c.lineTo(x1, y1); c.stroke();
@@ -143,10 +147,28 @@ export const drawGroundBack = (c: Ctx, v: TownView) => {
     }
     // (the far bank, stamped, cut to the water)
     atDepth(c, eye, FAR, () => {
-      c.save(); c.beginPath(); c.rect(w.a, s - 90, w.b - w.a, 92); c.clip();
-      for (let tx = Math.floor(w.a / 420) * 420; tx < w.b; tx += 420) { c.save(); c.translate(tx, s); stamp(c, `ft-farbank-${tod.key}`, -10, -86, 440, 88, paintFarBank); c.restore(); }
+      const wb = w.b === ISLE.a ? ISLE.b : w.b;
+      c.save(); c.beginPath(); c.rect(w.a, s - 90, wb - w.a, 92); c.clip();
+      for (let tx = Math.floor(w.a / 420) * 420; tx < wb; tx += 420) { c.save(); c.translate(tx, s); stamp(c, `ft-farbank-${tod.key}`, -10, -86, 440, 88, paintFarBank); c.restore(); }
       c.restore();
     });
+  }
+  // The island going back, over the water behind it: its sides (dirt down to the water, on the side he's looking at),
+  // its top (grass, banded darker going back; its edges straight back to the eye: they used to zigzag band to band)
+  if (ISLE.b > v.v0 - 100 && ISLE.a < v.v1 + 100) {
+    const s = WATERS[0].surface, D = nr('pondbank', STREET, 0.4);
+    for (const [e, side] of [[ISLE.a, -1], [ISLE.b, 1]] as const) {
+      if ((eye.x - e) * side <= 1) continue;
+      poly(c, [pt(e, ISLE.top, 1), pt(e, ISLE.top, ISLE_D), pt(e, s, ISLE_D), pt(e, s, 1)], D[2]);
+      const [x1, y1] = pt(e, ISLE.top, ISLE_D), [, y2] = pt(e, s, ISLE_D);
+      c.strokeStyle = INK; c.lineWidth = 1; c.beginPath(); c.moveTo(e, ISLE.top); c.lineTo(x1, y1); c.lineTo(x1, y2); c.stroke();
+    }
+    if (eye.y < ISLE.top - 2) {
+      const G = nr('isle-g', GRASS, 0.4), cols = [G[5], G[4], G[4], G[3]];
+      for (let i = 0; i < 4; i++) { const d0 = 1 - ((1 - ISLE_D) * i) / 4, d1 = 1 - ((1 - ISLE_D) * Math.min(4, i + 1.25)) / 4; poly(c, [pt(ISLE.a, ISLE.top, d0), pt(ISLE.b, ISLE.top, d0), pt(ISLE.b, ISLE.top, d1), pt(ISLE.a, ISLE.top, d1)], cols[i]); }
+      const [ax, ay] = pt(ISLE.a, ISLE.top, ISLE_D), [bx, by] = pt(ISLE.b, ISLE.top, ISLE_D);
+      c.strokeStyle = INK; c.lineWidth = 1; c.beginPath(); c.moveTo(ax, ay); c.lineTo(bx, by); c.stroke();
+    }
   }
 };
 
@@ -249,6 +271,16 @@ const nearBank = (c: Ctx, v: TownView, e: number, side: 1 | -1, water: boolean) 
   const band = (s0: number, s1: number, col: string) => poly(c, [...pts.map(([x, y]) => [x, y + s0] as [number, number]), ...pts.slice().reverse().map(([x, y]) => [x, y + s1] as [number, number])], col);
   const D = nr('nbank', STREET, 0.2), R = nr('nstone', STONE, 0.2), L = nr('nlip', TOPLIP, 0.2);
   const depth = water ? 26 : 480;
+  // (the pond past where the floor pulls back: the floor's bent only within its own ends, so between its edge here and
+  // the pond's end the flat street was left showing under the bank, cut straight down at the pond's end (a vertical line
+  // on the bent ground); the pond's body carries on in there instead, its edge going back to the eye with the floor's)
+  const wb = water ? WATERS.find(w => !w.mine && e > w.a - 3 && e < w.b + 3) : undefined;
+  if (wb) {
+    const xa = Math.min(e, edge(Y1)), xb = Math.max(e, edge(Y1));
+    c.save(); c.beginPath(); c.moveTo(e, GY + depth); pts.forEach(([x, y]) => c.lineTo(x, y + depth)); c.lineTo(e, Y1 + depth); c.closePath(); c.clip();
+    paintBody(c, wb, Math.floor(xa) - 2, Math.ceil(xb - xa) + 4);
+    c.restore();
+  }
   band(0, 3, L[2]); band(3, Math.min(depth, 16), D[4]);
   if (depth > 16) band(16, Math.min(depth, 30), D[3]);
   if (!water) {

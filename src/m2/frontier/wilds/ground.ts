@@ -12,6 +12,7 @@ import { pine } from './paint';
 import { bendFloor, BEND } from '../../intro/art/kit';
 import { GY } from '../geometry';
 import { GROUND, WATERS, BED, X, Y } from './layout';
+import { paintBody } from './water';
 
 /** How far toward him the floor under his feet comes (bent); under that, the earth, not bent. */
 const BAND = 160, SOIL = 420;
@@ -176,7 +177,9 @@ const bankFace = (c: Ctx, v: View, fc: Face) => {
   if ((eye.x - e) * side <= 1) return;
   const tod = timeOfDay(), haze = skyAt(0.9, tod);
   const pt = (k: number, y: number) => at(eye, e, y, 1 - (1 - FAR) * k);
-  const q = (k0: number, y0: number, k1: number, y1: number, col: string) => poly(c, [pt(k0, y0), pt(k1, y0), pt(k1, y1), pt(k0, y1)], col);
+  // (each piece runs a little into the next going back and down (painted over by it): shared edges left an antialiased
+  // hairline that shimmered as he walked)
+  const q = (k0: number, y0: number, k1: number, y1: number, col: string) => { const k2 = k1 < 1 ? Math.min(1, k1 + 0.03) : k1, y2 = y1 < bot ? y1 + 1 : y1; poly(c, [pt(k0, y0), pt(k2, y0), pt(k2, y2), pt(k0, y2)], col); };
   const bot = Math.min(bottom, eye.y + (v.bot - eye.y) / FAR + 40);
   const shade = (col: string, k: number, y: number) => mix(mix(farTint(col, 0.3, tod), haze, k * 0.25), '#050404', Math.min(0.85, Math.max(0, (y - Math.max(top, GY - 40) - 60) / 480)));
   if (fiber) {
@@ -350,6 +353,17 @@ const nearBank = (c: Ctx, v: View, e: number, side: 1 | -1, water: boolean) => {
   const tod = timeOfDay();
   const D = DIRT.map(col => farTint(col, 0.2, tod)), R = STONE.map(col => farTint(col, 0.2, tod)), L = LIP.map(col => farTint(col, 0.2, tod));
   const depth = water ? 26 : 480;
+  // (the water past where the floor pulls back: the floor's bent only within its own ends, so between its edge here and
+  // the water's end the flat floor was left showing under the bank, cut straight down at the water's end (a vertical
+  // line on the bent ground); the water's body carries on in there instead, under the bank, its edge going back to the
+  // eye with the floor's)
+  const wb = water ? WATERS.find(w => e > w.a - 3 && e < w.b + 3) : undefined;
+  if (wb) {
+    const xa = Math.min(e, edge(Y1)), xb = Math.max(e, edge(Y1));
+    c.save(); c.beginPath(); c.moveTo(e, GY + depth); pts.forEach(([x, y]) => c.lineTo(x, y + depth)); c.lineTo(e, Y1 + depth); c.closePath(); c.clip();
+    paintBody(c, wb, Math.floor(xa) - 2, Math.ceil(xb - xa) + 4);
+    c.restore();
+  }
   band(0, 3, L[2]); band(3, Math.min(depth, 16), D[4]);
   if (depth > 16) band(16, Math.min(depth, 30), D[3]);
   if (!water) {

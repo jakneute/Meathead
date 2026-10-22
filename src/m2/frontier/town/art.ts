@@ -19,7 +19,7 @@ import type { GameState } from '../../../m1/game/core/state';
 import { parkSign } from '../kit';
 import { GY } from '../geometry';
 import { drawTracks } from '../wilds/ground';
-import { type Ctx, type TownView, box, checker, hash, at, topBack, INK, hr, hr7, viewIn, PLANK, HAY, MINE, TIMBER, STEEL, TOPLIP, VARNISH, FRONT_D } from './paint';
+import { type Ctx, type TownView, box, checker, hash, at, topBack, sideBack, INK, hr, hr7, viewIn, PLANK, HAY, MINE, TIMBER, STEEL, TOPLIP, VARNISH, FRONT_D } from './paint';
 import { GROUND, LEDGES, SOLIDS, COVER, SIGNS, LANTERNS, LADDER, X, Y, inSaloon } from './layout';
 import { onScreen } from './view';
 import { wreckHere } from './scenes';
@@ -137,6 +137,7 @@ const drawSolid = (c: Ctx, state: GameState, v: TownView, [a, b, h, h2]: [number
     // (hay bales stacked: twine bands, straw sticking out, lit along the top)
     const H = hr('hay', HAY);
     topBack(c, v.eye, xa, xb, top, 1, 0.92, [H[2], H[3], H[4], H[4], H[5]], 2);
+    for (const [e, side] of [[xa, -1], [xb, 1]] as const) sideBack(c, v.eye, e, side, top, bot, 1, 0.92, [H[1], H[2], H[2], H[3], H[4]], 2, bot >= GY - 1);
     box(c, xa - 1, top - 1, xb - xa + 2, bot - top + 1, INK);
     for (let y = top, r = 0; y < bot; y += 35, r++) { box(c, xa, y, xb - xa, 35, H[3]); box(c, xa, y, xb - xa, 3, H[5]); box(c, xa, y + 32, xb - xa, 3, H[1]); for (let k = 0; k < 14; k++) box(c, xa + hash(k + r * 7) * (xb - xa - 4), y + 4 + hash(k * 3 + r) * 26, 3, 1, k % 2 ? H[5] : H[2]); for (const tx of [xa + 14, xb - 18]) box(c, tx, y, 2, 35, '#6A4A20'); }
     for (let x = xa; x < xb; x += 3) box(c, x, top - 2 - hash(x) * 3, 1, 3, H[5]);
@@ -147,6 +148,7 @@ const drawSolid = (c: Ctx, state: GameState, v: TownView, [a, b, h, h2]: [number
   // (a crate: planked, cross-braced, stenciled, its top going back; its lid's edge lit)
   const P = hr7('#A07848'), W = hr('varn', VARNISH);
   topBack(c, v.eye, xa, xb, top, 1, 0.93, [P[2], P[3], P[4], P[4], P[5]], 2);
+  for (const [e, side] of [[xa, -1], [xb, 1]] as const) sideBack(c, v.eye, e, side, top, bot, 1, 0.93, [P[1], P[2], P[2], P[3], P[4]], 2, bot >= GY - 1);
   box(c, xa - 1, top - 1, xb - xa + 2, bot - top + 1, INK); box(c, xa, top, xb - xa, bot - top, P[3]);
   for (let y = top + 10; y < bot; y += 10) { box(c, xa, y, xb - xa, 1, P[1]); box(c, xa, y + 1, xb - xa, 1, P[4]); }
   box(c, xa, top, 4, bot - top, P[5]); box(c, xb - 4, top, 4, bot - top, P[1]);
@@ -160,6 +162,7 @@ const drawSolid = (c: Ctx, state: GameState, v: TownView, [a, b, h, h2]: [number
 const drawTrough = (c: Ctx, v: TownView, xa: number, xb: number, top: number) => {
   const P = hr7('#6B4423');
   topBack(c, v.eye, xa, xb, top, 1, 0.94, ['#1E3A4A', '#2A4E62', '#3A6A88', '#3A6A88', '#5A8AA8'], 2);
+  for (const [e, side] of [[xa, -1], [xb, 1]] as const) sideBack(c, v.eye, e, side, top, GY, 1, 0.94, [P[1], P[2], P[2], P[3], P[4]], 2);
   box(c, xa - 1, top - 1, xb - xa + 2, GY - top + 1, INK); box(c, xa, top, xb - xa, GY - top, P[3]);
   box(c, xa, top + 9, xb - xa, 1, P[1]); box(c, xa, top + 10, xb - xa, 1, P[5]); box(c, xa, top, 3, GY - top, P[5]); box(c, xb - 3, top, 3, GY - top, P[1]);
   for (const bx of [xa + 6, xb - 8]) box(c, bx, top + 2, 2, GY - top - 4, hr('steel', STEEL)[2]);
