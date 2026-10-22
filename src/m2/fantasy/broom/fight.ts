@@ -444,10 +444,12 @@ const tickFall = (f: Fight, fl: Flyer) => {
   }
 };
 
+/** Everything that hurts him up here, eased off a touch (the user's: "slightly reduce damage taken"). */
+const HURT_SCALE = 0.8;
 /** Hurt him (if he can be): the hit, the shake, dead at zero. */
 const hurtHim = (ctx: FrameContext, f: Fight, dmg: number, src: string) => {
   if (f.inv > 0 || f.phase !== 'fly') return false;
-  hurtPlayer(ctx, dmg, src, { x: 0, y: 0 });
+  hurtPlayer(ctx, Math.max(1, Math.round(dmg * HURT_SCALE)), src, { x: 0, y: 0 });
   f.inv = 50; f.shake = Math.max(f.shake, 10);
   blood(f, f.x, f.z, f.alt + 40, 16);
   // (blood off him, at us: out of his back and shoulders, flying off and falling)
