@@ -87,6 +87,16 @@ const plaque = (c: Ctx, x: number, y: number, words: string, face: string, ink: 
   const L = iron(size, words.length), w = Math.ceil(signW(words, L)) + 18, h = signH(L) + 12;
   sign(c, x - w / 2, y - h / 2, w, h, face, words, ink, size, INK, L);
 };
+/** A door's sign, bolted flat to the face it's on (the casing over a door, a pillar): set in stacked lines so it fits
+ *  that face, its bottom at `bottom`; a drop shadow onto the face behind, the bolts at its corners. */
+const doorPlate = (c: Ctx, cx: number, bottom: number, lines: string[], face: string, seed = 0) => {
+  const L = iron(8, seed), lh = signH(L), gap = 4;
+  const w = Math.ceil(Math.max(...lines.map(t => signW(t, L)))) + 12, h = lines.length * lh + (lines.length - 1) * gap + 10;
+  const x = Math.round(cx - w / 2), y = Math.round(bottom - h);
+  box(c, x - 1, y - 1, w + 8, h + 8, 'rgba(6, 4, 8, 0.4)');
+  sign(c, x, y, w, h, face, '', '#FDE68A', 8, INK);
+  lines.forEach((t, i) => signText(c, t, x + w / 2, y + 5 + lh + i * (lh + gap), L));
+};
 
 // ---------------------------------------------------------------------------------------------------------------
 // The colors
@@ -572,7 +582,10 @@ const drawBay = (c: Ctx, state: GameState, look: TowerLook, eye: Eye, v: View) =
     box(g, l + 6, t + 64, 48, 4, '#9A9AA4'); box(g, l + 6, t + 68, 48, 2, INK);
     box(g, l + 26, t + 22, 8, 10, '#121214'); box(g, l + 27, t + 23, 6, 3, '#2A2A30');
   });
-  plaque(c, STAFF_DOOR_X, GY - 158, 'CAST MEMBERS ONLY', '#1C1917', '#FDE68A');
+  // (its sign: stood on the casing's head, a strap either side down onto it; narrow enough to stay on the door's own
+  // frame, clear of the tower's wall and the maintenance door's sign)
+  for (const sx of [STAFF_DOOR_X - 26, STAFF_DOOR_X + 22]) { box(c, sx - 1, GY - 152, 6, 12, INK); box(c, sx, GY - 151, 4, 10, '#5A5E66'); box(c, sx, GY - 151, 4, 1, '#9AA0A8'); box(c, sx + 1, GY - 146, 2, 2, '#1A1A1E'); }
+  doorPlate(c, STAFF_DOOR_X, GY - 147, ['CAST', 'MEMBERS', 'ONLY'], '#1C1917', 3);
   // the hatch the cars come up through (in the floor, by the dock)
   {
     const open = look.ride.cars.some(k => k.phase === 'lift' || (k.phase === 'under' && k.t > 120));
@@ -1267,5 +1280,9 @@ export const drawTowerBack = (c: Ctx, state: GameState, look: TowerLook) => {
       for (let x = TX0 - WALL + 20; x < TX1 + WALL; x += 60) box(c, x, ROOF - 30, 4, 4, '#6A6070');
     }
   }
-  if (v.x0 < TX0 + 200 && v.y1 > GY - 300 && v.y0 < GY) plaque(c, TX0 - 40, GY - DOOR_H - 40, 'CLOCK TOWER: STAFF ONLY', '#1C1917', '#FDE68A');
+  // (the maintenance door's sign: bolted to the wall over its lintel, stacked to the wall's width; culled by its own box)
+  {
+    const cx = TX0 - WALL / 2, bottom = GY - DOOR_H - 20;
+    if (v.x0 < cx + 40 && v.x1 > cx - 40 && v.y0 < bottom + 8 && v.y1 > bottom - 90) doorPlate(c, cx, bottom, ['CLOCK', 'TOWER', 'STAFF', 'ONLY'], '#1C1917', 7);
+  }
 };
