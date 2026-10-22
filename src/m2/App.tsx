@@ -63,6 +63,7 @@ import { gymLayout, GYM_STAGE, requestGymSkip } from './intro/gym/index';
 import { registerGmen } from './intro/gym/gman';
 import GymTips from './intro/gym/GymTips';
 import { M2_PUBLIC } from './build';
+import FpsMeter from './FpsMeter';
 import { clearSkyCache } from './intro/art/sky';
 import { canSkip, requestSkip } from '../m1/game/platform/skip';
 import { getAudioContext } from '../m1/game/platform/audio';
@@ -689,6 +690,8 @@ const App2: React.FC = () => {
             <span className="inline-flex items-center gap-3 align-middle"><Prompt pad={['X']} kb={['@fire']} label="PUNCH" /><Prompt pad={['B']} kb={['@special']} label="KNEE" /><Prompt pad={['Y']} kb={['@secondary']} label="HEADBUTT" /></span>
           </div>
         )}
+        {/* The cheats build's frame rate, top right */}
+        {!M2_PUBLIC && <FpsMeter />}
         {/* Foreign Lands' helicopter: the flying controls, for a while once he's jacked it */}
         {status === GameStatus.PLAYING && ui.map === null && !ui.introCutscene && ui.heliTips && (
           <div className="absolute left-1/2 -translate-x-1/2 top-[132px] z-30 flex gap-4 px-3 py-2 text-[9px] text-white bg-black/75 border-2 border-zinc-600">
