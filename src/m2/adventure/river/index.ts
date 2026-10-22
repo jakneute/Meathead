@@ -36,6 +36,8 @@ import {
   MEATHEAD_JUMP, MEATHEAD_UNDER, MEATHEAD_AIR, GUESTS_SEE, GUESTS_KILL, type Dressed,
 } from './lines';
 import { drawRiverBackdrop, drawRiverBack, drawRiverFront, COUGHS } from './draw';
+import { startRage, rageLine, stepRage, drawRage, type RageInset } from './rageInset';
+import { warmGrossUps } from '../../grossKit';
 
 const { x0, x1 } = SECTIONS.river;
 const R = (x: number) => x0 + x;
@@ -80,6 +82,8 @@ export interface River {
   guests: Guest[]; guestNext: number; tankDead: number;
   suck: number;
   stain: Stain;
+  /** Artie losing it in a TV inset up in the corner, him gone over the side (rageInset.ts). */
+  rage?: RageInset;
 }
 export const getRiver = (state: GameState) => sectionState<River>(state, 'river', () => ({
   talk: talk(),
@@ -201,6 +205,8 @@ const onBoat = (state: GameState, rv: River) => {
 const updateBoat = (state: GameState, rv: River) => {
   const b = rv.boat, t = rv.talk, p = state.player;
   if (!b.block) return;
+  // (his gross-ups painted ahead in idle slices while he's aboard: the inset, him going over the side, never paints on the spot)
+  if (b.phase !== 'jumped') warmGrossUps();
   const aboard = onBoat(state, rv);
   const near = Math.abs(p.pos.x - artieAt(rv).x) < EARSHOT && p.pos.y < 1100;
   // Out of earshot: whatever he had to say goes unheard (he's still saying it)
@@ -261,7 +267,12 @@ const updateBoat = (state: GameState, rv: River) => {
     // (off it, he's off it: Artie's not having him back aboard, there's no climbing back on)
     if (wasRiding && b.block) { const blk = b.block; state.blocks = state.blocks.filter(o => o !== blk); }
     if (wasRiding) t.q.push(mh(pick(MEATHEAD_JUMP)));
-    if (wasRiding) t.q.push(artieFrom(state, rv, 'jumped', ARTIE_JUMPED));
+    if (wasRiding) {
+      // (and up in the corner, Artie losing it: his line's the yell)
+      const rage = rv.rage = startRage(), l = artieFrom(state, rv, 'jumped', ARTIE_JUMPED), set = l.set;
+      l.set = s => { set?.(s); rageLine(rage, s); };
+      t.q.push(l);
+    }
   }
   if (b.phase === 'jumped' && b.rode && near && !t.q.length && !t.busy && p.swimming) {
     b.n++;
@@ -479,6 +490,7 @@ export const river: Section = {
     // Saying things the once each, swimming past them
     if (p.swimming) for (const [x, k] of CALLOUTS) if (rx > x && !rv.said.has(k)) { rv.said.add(k); if (rv.talk.q.length < 2) rv.talk.q.push(mh(MEATHEAD_UNDER[k])); }
     stepTalk(state, rv.talk);
+    if (rv.rage && !stepRage(state, rv.rage, rv.boat.x)) rv.rage = undefined;
     return rv.suck > 0 ? ({}) as typeof controls : controls;
   },
   waterBodyAt: (_state, x, y) => {
@@ -499,4 +511,5 @@ export const river: Section = {
   drawBackdrop: (c, state) => drawRiverBackdrop(c, state),
   drawBack: (c, state) => drawRiverBack(c, state, getRiver(state)),
   drawFront: (c, state) => drawRiverFront(c, state, getRiver(state)),
+  drawHud: (c, state) => { const rv = getRiver(state); if (rv.rage) drawRage(c, rv.rage, state.frame); },
 };

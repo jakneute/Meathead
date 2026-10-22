@@ -354,7 +354,10 @@ export const stamps = <K extends string>(build: (key: K) => Buf | Steps<Buf>, wa
     }
     return true;
   });
-  return (key: K) => m.get(key) ?? keep(key, job(key).finish());
+  const get = (key: K) => m.get(key) ?? keep(key, job(key).finish());
+  /** (painted already: asking for it won't paint it there and then) */
+  get.ready = (key: K) => m.has(key);
+  return get;
 };
 
 /** A stamp on the screen: (cx, cy) where its (fx, fy) goes, `zoom` 1 at the hold (each of its pixels GP screen pixels),

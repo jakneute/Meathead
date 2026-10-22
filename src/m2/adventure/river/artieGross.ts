@@ -8,13 +8,19 @@
 // Live: a bead of sweat running, his eye twitching, the nostrils flaring, a fly round his head.
 
 import {
-  type Ctx, type Buf, GW, R, hexU, mixU, WHITE, newBuf, setSeed, rnd, matAt, plot, shade, seg, path, ball, tint, poly, bead, eyeball, teeth, skinPost, stubble, hairs, stamps, drawGrossStamp, grossBackdrop, hash2, bay, M_SKIN, M_HAIR, M_MOUTH, M_OTHER, M_CLOTH, M_METAL, SCLERA_R, MOUTH, GUM, BLOOD, HAIRLINE, DARK,
+  type Ctx, type Buf, GW, R, hexU, mixU, WHITE, newBuf, setSeed, rnd, matAt, plot, shade, seg, path, ball, tint, poly, bead, eyeball, teeth, vein, skinPost, stubble, hairs, stamps, drawGrossStamp, grossBackdrop, hash2, bay, M_SKIN, M_HAIR, M_MOUTH, M_OTHER, M_CLOTH, M_METAL, SCLERA_R, MOUTH, GUM, BLOOD, HAIRLINE, DARK, TONGUE, TOOTH, TOOTH_B,
 } from '../../grossKit';
 
 const FX = 136, FY = 100;
 
-const SKIN = R('#FFE8D0', '#FCD4B0', '#F0BC94', '#E0A27A', '#C88462', '#A8664A', '#7E4632', '#4A2214');
-const BURNT = R('#FFD0B8', '#F8AE90', '#EC8C70', '#DA6C56', '#C04E40', '#9A3430', '#701E20', '#400A0E');
+const SKIN_CALM = R('#FFE8D0', '#FCD4B0', '#F0BC94', '#E0A27A', '#C88462', '#A8664A', '#7E4632', '#4A2214');
+const BURNT_CALM = R('#FFD0B8', '#F8AE90', '#EC8C70', '#DA6C56', '#C04E40', '#9A3430', '#701E20', '#400A0E');
+// (enraged: beet red all over, the nose gone purple)
+const SKIN_RAGE = R('#FFC8B8', '#F89C8C', '#EC7A6E', '#DA5A54', '#BC4044', '#962A36', '#6A1828', '#3A0812');
+const BURNT_RAGE = R('#F4A8C0', '#E07CA0', '#C85A86', '#A83E6C', '#862A56', '#621A40', '#420C2C', '#24041A');
+const RAGE_VEIN = R('#FFB0B0', '#F07C84', '#D04A5E', '#A82E46', '#7A1A32', '#40061A');
+/** The top of his head (no helmet on it ever: pale as a fish under where it goes, the tan line hard). */
+const SCALP = R('#FFF6F0', '#FCE8E0', '#F4D4CC', '#E8BCB4', '#D49C98', '#B47878', '#844E52', '#4A2228');
 const HAIR = R('#C8A070', '#A88458', '#86643E', '#664A2C', '#4A341E', '#2A1C10');
 const HELMET = R('#FFFCEC', '#F6EECC', '#E8DCB2', '#D6C89A', '#C2B080', '#A8956A', '#7E6E48', '#4A3E24');
 const BAND = R('#B07A48', '#8C5C34', '#6C4426', '#50301A', '#36200E', '#1E1006');
@@ -24,10 +30,19 @@ const IRIS = R('#B8E0F4', '#80C0E4', '#4A94C8', '#2A6EA4', '#164878', '#082440')
 const LIP = R('#F8B8A8', '#EC9A88', '#D87A6C', '#BC5C52', '#94403C', '#5A1E1C');
 const STEEL = R('#FFFFFF', '#E4E4E7', '#C4C4CC', '#A1A1AA', '#71717A', '#3F3F46');
 
-type Key = 'a' | 'b';
+/** 'a' / 'b' the fight intro's (b: the tic); 'rc' / 'r' / 'r2' enraged, hatless (rc: seething, the sneer; r: the
+ *  yell wide open; r2: half shut, between words), 'hat' his helmet alone (painted 40 down: the whole dome on it),
+ *  'fist' his fist, shaken (the boat's picture-in-picture when Meathead goes over the side: rageInset.ts). */
+export type Key = 'a' | 'b' | 'rc' | 'r' | 'r2' | 'hat' | 'fist';
+/** The helmet painted down this far in the 'hat' stamp (the dome's off the buffer's top on him). */
+export const HAT_DY = 40;
 
 function* build(key: Key): Generator<void, Buf> {
+  if (key === 'hat') return yield* buildHat();
+  if (key === 'fist') return yield* buildFist();
   setSeed(5150);
+  const rage = key === 'rc' || key === 'r' || key === 'r2', yell = key === 'r' || key === 'r2';
+  const SKIN = rage ? SKIN_RAGE : SKIN_CALM, BURNT = rage ? BURNT_RAGE : BURNT_CALM;
   const b = newBuf();
   yield;
   // ---- the collar, an epaulette each side, the shirt sweated dark
@@ -43,6 +58,8 @@ function* build(key: Key): Generator<void, Buf> {
   poly(b, [FX - 30, 150, FX + 30, 150, FX + 34, 204, FX - 34, 204], SKIN, M_SKIN, { line: false, tilt: 1.2 });
   ball(b, FX + 2, 182, 9, 11, SKIN, { mat: M_SKIN, line: (_dx, dy) => dy > 0.3 });
   for (const s of [-1, 1]) path(b, [FX + s * 18, 160, FX + s * 16, 180, FX + s * 20, 204], SKIN[6], 1, undefined, M_SKIN);
+  // (enraged: the cords of it stood out, a vein up each side fit to burst)
+  if (rage) for (const s of [-1, 1]) { path(b, [FX + s * 10, 204, FX + s * 14, 176, FX + s * 22, 152], SKIN[2], 3, undefined, M_SKIN); vein(b, [FX + s * 26, 204, FX + s * 24, 186, FX + s * 28, 170, FX + s * 26, 156], RAGE_VEIN, 2); }
   yield;
   // (the lanyard's cord round his neck, the whistle hanging)
   for (const s of [-1, 1]) path(b, [FX + s * 30, 168, FX + s * 18, 196, FX + s * 6, 204], hexU('#C81E1E'), 2);
@@ -70,10 +87,13 @@ function* build(key: Key): Generator<void, Buf> {
     hairs(b, 6, () => [ex - s * 2, ey + 4], 6, s > 0 ? -0.3 : Math.PI + 0.3, HAIRLINE);
   }
   yield;
-  // ---- the face: long, narrow, the cheekbones, the weak chin
+  // ---- the face: long, narrow, the cheekbones, the weak chin (enraged, hatless: the dome of his head over it)
+  if (rage) ball(b, FX, 52, 60, 46, SKIN, { mat: M_SKIN, line: (_dx, dy) => dy < 0, lw: 1.5 });
   ball(b, FX, FY + 4, 66, 84, SKIN, { mat: M_SKIN, line: (_dx, dy) => dy > -0.1, lw: 1.5 });
   for (const s of [-1, 1]) ball(b, FX + s * 40, 112, 26, 22, SKIN, { mat: M_SKIN, lit: 1.08 });
-  ball(b, FX, 168, 26, 18, SKIN, { mat: M_SKIN, line: (_dx, dy) => dy > 0.2, lit: 1.05 });
+  // (the jaw dropped with the mouth, yelling)
+  const jaw = key === 'r' ? 14 : key === 'r2' ? 6 : 0;
+  ball(b, FX, 168 + jaw, 26, 18, SKIN, { mat: M_SKIN, line: (_dx, dy) => dy > 0.2, lit: 1.05 });
   yield;
   // (the cheeks hollowed under the bones)
   for (const s of [-1, 1]) tint(b, FX + s * 46, 140, 12, 18, SKIN[6], 0.3, M_SKIN, 0.7);
@@ -84,7 +104,7 @@ function* build(key: Key): Generator<void, Buf> {
   yield;
   // ---- the brows: in a V, bushy, a few long ones curling off
   for (const s of [-1, 1]) {
-    const pts = [FX + s * 54, 64, FX + s * 40, 68, FX + s * 24, 74, FX + s * 10, 82];
+    const pts = rage ? [FX + s * 56, 54, FX + s * 42, 60, FX + s * 26, 70, FX + s * 10, 84] : [FX + s * 54, 64, FX + s * 40, 68, FX + s * 24, 74, FX + s * 10, 82];
     path(b, pts, HAIR[5], 7); path(b, pts, HAIR[4], 5); path(b, pts.map((v, i) => (i % 2 ? v - 1 : v)), HAIR[2], 2);
     for (let k = 0; k < 22; k++) { const t = rnd(), x = FX + s * (54 - t * 44), y = 64 + t * 18; seg(b, x, y + 2, x + s * (rnd() * 4 - 1), y - 3 - rnd() * 3, k % 4 ? HAIR[3] : HAIR[1]); }
     path(b, [FX + s * 12, 78, FX + s * 6, 70, FX + s * 9, 64], HAIR[4]);
@@ -124,7 +144,13 @@ function* build(key: Key): Generator<void, Buf> {
     const ex = FX + s * 30, ey = 92;
     // (the socket shadow)
     tint(b, ex, ey, 22, 14, SKIN[6], 0.3, M_SKIN, 0.6);
-    eyeball(b, ex, ey, {
+    // (enraged: popped wide, the pupils pinpricks, threaded red all over)
+    if (rage) eyeball(b, ex, ey, {
+      rx: 16, ry: 12, sclera: SCLERA_R, iris: IRIS, ir: 5, idx: -s * 1, idy: 0, pr: 1.2, veins: 34, lid: SKIN,
+      top: (x) => ey - 9 + Math.abs(x - ex) * 0.08 + (s * (x - ex) < 0 ? 3 : 0),
+      bot: (x) => ey + 9 - ((x - ex) / 16) ** 2 * 3,
+    });
+    else eyeball(b, ex, ey, {
       rx: 15, ry: 9, sclera: SCLERA_R, iris: IRIS, ir: 6, idx: -s * 2, idy: 1, pr: 2.4, veins: 14, lid: SKIN,
       top: (x) => ey - 4 + Math.abs(x - (ex - s * 4)) * 0.18 + (s * (x - ex) < 0 ? 2 : 0) + (key === 'b' && s > 0 ? 3 : 0),
       bot: (x) => ey + 4 - ((x - ex) / 15) ** 2 * 2,
@@ -138,7 +164,9 @@ function* build(key: Key): Generator<void, Buf> {
   }
   yield;
   // ---- the mouth: the lip curled back off the buck teeth on his left (the sneer), the gums, the bottom lip under them
-  {
+  // (yelling: wide open, yellMouth)
+  if (yell) yellMouth(b, key === 'r', SKIN);
+  else {
     const cx = FX + 2, cy = 154;
     const top = (x: number) => cy - 4 - Math.max(0, (x - cx + 10) * 0.12) * (x > cx - 10 ? 1 : 0) - 3 * Math.exp(-(((x - cx) / 10) ** 2));
     const bot = (x: number) => cy + 5 - ((x - cx) / 30) ** 2 * 5;
@@ -179,9 +207,9 @@ function* build(key: Key): Generator<void, Buf> {
   }
   yield;
   // ---- the chin: a whitehead, a few long hairs, stubble that never took, a scrape
-  ball(b, FX - 14, 172, 3.4, 3, R('#FFFFF0', '#FFF4C0', '#F4C890', '#E07868', '#B84A44', '#6A2020'), { line: true, lw: 0.7, mat: M_OTHER });
-  tint(b, FX - 14, 172, 7, 6, hexU('#E04A4A'), 0.35, M_SKIN, 0.7);
-  path(b, [FX + 10, 176, FX + 12, 184, FX + 10, 190], HAIRLINE); path(b, [FX + 16, 174, FX + 19, 181], HAIRLINE); path(b, [FX - 20, 180, FX - 22, 188, FX - 20, 192], HAIRLINE);
+  ball(b, FX - 14, 172 + jaw, 3.4, 3, R('#FFFFF0', '#FFF4C0', '#F4C890', '#E07868', '#B84A44', '#6A2020'), { line: true, lw: 0.7, mat: M_OTHER });
+  tint(b, FX - 14, 172 + jaw, 7, 6, hexU('#E04A4A'), 0.35, M_SKIN, 0.7);
+  path(b, [FX + 10, 176 + jaw, FX + 12, 184 + jaw, FX + 10, 190 + jaw], HAIRLINE); path(b, [FX + 16, 174 + jaw, FX + 19, 181 + jaw], HAIRLINE); path(b, [FX - 20, 180 + jaw, FX - 22, 188 + jaw, FX - 20, 192 + jaw], HAIRLINE);
   stubble(b, (x, y) => (y > 150 && Math.abs(x - FX) < 50 ? 0.25 : 0), HAIR[4], 0.4);
   yield;
   // ---- freckles, a mole with a hair, mosquito bites (welts, a red dot, scratched)
@@ -200,43 +228,31 @@ function* build(key: Key): Generator<void, Buf> {
     return nose ? 0.17 : cheek ? 0.11 : 0.06;
   }, { blackheads: (x, y) => ((x - FX) / 24) ** 2 + ((y - 120) / 20) ** 2 < 1 || (y > 160 && Math.abs(x - FX) < 30) });
   yield;
-  // ---- the helmet: the dome down to his brows, the band sweated through, the brim; cracked, taped, scuffed, a dead bug
-  ball(b, FX, 30, 96, 56, HELMET, { mat: M_OTHER, line: true, lw: 1.5, only: (x, y) => y < 50 - ((x - FX) / 96) ** 2 * 6 });
-  yield;
-  // (the ventilator button on top, the seam)
-  ball(b, FX, -18, 10, 6, HELMET, { mat: M_OTHER, line: true });
-  path(b, [FX, -12, FX - 2, 10, FX - 3, 34], HELMET[6], 1);
-  for (let x = FX - 96; x <= FX + 96; x++) {
-    const y = 46 + Math.round(((x - FX) / 96) ** 2 * -6);
-    for (let d = 0; d < 9; d++) plot(b, x, y + d, BAND[d === 0 || d === 8 ? 5 : d < 3 ? 1 : d < 6 ? 2 : 3], M_OTHER);
-    if (hash2(x, 3) > 0.7) plot(b, x, y + 4, BAND[0]);
+  if (!rage) yield* helmet(b, 0);
+  else {
+    // ---- no helmet (it's gone flying): the dome under it pale as a fish, the tan line hard where the band sat; the
+    // comb-over plastered across it with sweat, a few strands of it stood up straight off it (he's that mad)
+    for (let y = 0; y < 72; y++) for (let x = FX - 80; x <= FX + 80; x++) {
+      if (matAt(b, x, y) !== M_SKIN) continue;
+      const line = 55 - Math.round(((x - FX) / 96) ** 2 * 6);
+      if (y < line) shade(b, x, y, SCALP[1], y < line - 1 ? 0.62 : 0.3);
+      else if (y < line + 3) shade(b, x, y, SKIN[6], 0.25);
+    }
+    tint(b, FX - 18, 26, 18, 10, WHITE, 0.4, M_SKIN, 0.7);
+    yield;
+    for (let k = 0; k < 9; k++) {
+      const y0 = 64 - k * 3, s = k % 2 ? 1 : -1;
+      path(b, [FX + s * 62, y0, FX + s * 30, y0 - 14 - k, FX - s * 10, y0 - 22 - k * 1.5, FX - s * 48, y0 - 20 - k], HAIR[k % 3 ? 3 : 1], 1, M_HAIR);
+    }
+    for (let k = 0; k < 5; k++) { const x = FX - 16 + k * 8; path(b, [x, 22 + (k % 2) * 3, x + (rnd() - 0.5) * 4, 10, x + (rnd() - 0.5) * 6, -2], HAIR[k % 2 ? 2 : 4], 1, M_HAIR); }
+    yield;
+    // (the veins up it: one forked up the middle of his forehead, one up each temple, fat and throbbing)
+    vein(b, [FX - 4, 84, FX - 6, 70, FX - 2, 56, FX - 8, 42, FX - 6, 28], RAGE_VEIN, 3);
+    vein(b, [FX - 7, 56, FX + 8, 46, FX + 12, 34], RAGE_VEIN, 2);
+    for (const s of [-1, 1]) vein(b, [FX + s * 56, 104, FX + s * 54, 88, FX + s * 50, 70, FX + s * 46, 52], RAGE_VEIN, 2);
+    // (sweat pouring off the dome)
+    for (let k = 0; k < 16; k++) { const x = FX - 50 + rnd() * 100, y = 22 + rnd() * 48; if (matAt(b, x, y) === M_SKIN) bead(b, x, y, 1.4 + rnd() * 1.8, SCALP); }
   }
-  yield;
-  // (the band sweated dark in a tide line)
-  for (let x = FX - 96; x <= FX + 96; x++) { const y0 = 46 + Math.round(((x - FX) / 96) ** 2 * -6); for (let d = 4; d < 8; d++) if (bay(x, y0 + d) < 0.6) plot(b, x, y0 + d, BAND[4]); }
-  yield;
-  // (the brim: wide, its underside in shadow over his forehead)
-  for (let x = FX - 136; x <= FX + 136; x++) {
-    const u = (x - FX) / 136, yb = 56 - Math.round(u * u * 12);
-    const th = Math.round(6 + 7 * (1 - u * u));
-    for (let d = 0; d < th; d++) { const q = d / th; plot(b, x, yb + d, HELMET[d === 0 ? 0 : q < 0.3 ? 2 : q < 0.55 ? (bay(x, yb + d) < 0.5 ? 3 : 4) : d < th - 1 ? 5 : 7], M_OTHER); }
-  }
-  for (let x = FX - 70; x <= FX + 70; x++) for (let d = 0; d < 6; d++) { const y = 69 - Math.round(((x - FX) / 136) ** 2 * 16) + d; if (matAt(b, x, y) === M_SKIN && bay(x, y) < 0.6 - d * 0.1) shade(b, x, y, DARK, 0.35); }
-  yield;
-  // (the crack, from the brim up across the dome, and the duct tape over it (silver, crinkled, peeling at a corner))
-  const crack: number[] = [];
-  { let x = FX + 30, y = 52; crack.push(x, y); for (let k = 0; k < 9; k++) { x += 2 + rnd() * 5; y -= 5 + rnd() * 3; crack.push(x, y); } }
-  path(b, crack, HELMET[7], 1);
-  poly(b, [FX + 26, 18, FX + 62, 8, FX + 66, 22, FX + 30, 32], TAPE, M_METAL);
-  for (let k = 0; k < 8; k++) { const x = FX + 30 + k * 4.4; seg(b, x, 20 - k * 1.2, x + 2, 30 - k * 1.2, TAPE[k % 2 ? 0 : 3]); }
-  poly(b, [FX + 62, 8, FX + 70, 4, FX + 68, 14], TAPE, M_METAL);
-  poly(b, [FX - 60, 6, FX - 34, -6, FX - 30, 4, FX - 56, 16], TAPE, M_METAL);
-  yield;
-  // (scuffs, a gouge; a squashed bug on it, its leg and a smear of blood)
-  for (let k = 0; k < 30; k++) { const x = FX + (rnd() - 0.5) * 170, y = -10 + rnd() * 56; if (matAt(b, x, y) === M_OTHER) seg(b, x, y, x + 3 + rnd() * 5, y + (rnd() - 0.5) * 2, HELMET[5]); }
-  ball(b, FX - 40, 30, 4, 3, R('#3A2A1A', '#2A1A0E', '#1A1008', '#0A0602', '#000000'), { mat: M_OTHER });
-  tint(b, FX - 36, 32, 6, 3, BLOOD[2], 0.6, M_OTHER, 0.5);
-  for (const [dx, dy] of [[-5, -3], [-6, 2], [4, 4], [5, -2]] as const) seg(b, FX - 40, 30, FX - 40 + dx, 30 + dy, hexU('#1A1008'));
   yield;
   // ---- sweat: beads in a row under the brim, on the nose, the lip; tracks down the temples
   for (let k = 0; k < 14; k++) { const x = FX - 50 + rnd() * 100, y = 70 + rnd() * 5; if (matAt(b, x, y) === M_SKIN) bead(b, x, y, 1.4 + rnd() * 1.6, SKIN); }
@@ -244,10 +260,151 @@ function* build(key: Key): Generator<void, Buf> {
   for (const s of [-1, 1]) { path(b, [FX + s * 58, 80, FX + s * 61, 96, FX + s * 60, 112, FX + s * 62, 124], mixU(SKIN[1], WHITE, 0.5), 2, undefined, M_SKIN); bead(b, FX + s * 62, 126, 2.2, SKIN); }
   return b;
 }
+/** His mouth wide open, yelling (`wide`: the jaw right down; else half shut, between words): the buck teeth hanging
+ *  off the top, the bottom row (yellow, one gone), the tongue up, the uvula, spit strung top to bottom, the lips
+ *  stretched round it chapped and wet. */
+const yellMouth = (b: Buf, wide: boolean, SKIN: number[]) => {
+  const cx = FX + 2, top = 146, bot = wide ? 186 : 172, rx = wide ? 30 : 32, cy = (top + bot) / 2, ry = (bot - top) / 2;
+  // (the hole: deepest at the back, the throat)
+  for (let y = top; y <= bot; y++) for (let x = cx - rx; x <= cx + rx; x++) {
+    const u = (x - cx) / rx, v = (y - cy) / ry, d = u * u + v * v;
+    if (d > 1) continue;
+    plot(b, x, y, MOUTH[Math.min(5, Math.round((1 - d) * 4 + (bay(x, y) < 0.5 ? 0 : 0.5)))], M_MOUTH);
+  }
+  // (the uvula, swinging, and the throat behind it)
+  if (wide) { ball(b, cx, top + 14, 4, 6, R('#FF9AAC', '#E8708A', '#C84E6C', '#9A3050', '#5A1028'), { mat: M_OTHER, line: true, lw: 0.7 }); }
+  // (the tongue: up off the floor of it, curled, a white coat on it)
+  ball(b, cx - 2, bot - ry * 0.35, rx * 0.72, ry * 0.42, TONGUE, { mat: M_OTHER, only: (x, y) => matAt(b, x, y) === M_MOUTH, line: (_dx, dy) => dy < 0, lw: 0.8 });
+  for (let k = 0; k < 14; k++) { const x = cx - 14 + rnd() * 24, y = bot - ry * 0.55 + rnd() * 4; if (matAt(b, x, y) === M_OTHER) plot(b, x, y, hexU('#F4E8EC')); }
+  path(b, [cx - 1, bot - ry * 0.7, cx - 2, bot - ry * 0.3], TONGUE[4], 1);
+  // (the teeth: the bottom row, then the two buck ones hanging down off the gums over it)
+  teeth(b, cx - rx + 6, cx + rx - 6, (x) => bot - 1 - ((x - cx) / rx) ** 2 * 3, -1, 6, { tw: 6, gaps: [3], rot: [1, 5] });
+  for (let x = cx - rx; x <= cx + rx; x++) { const t = top + Math.round(((x - cx) / rx) ** 2 * ry * 0.7); for (let y = t; y < t + 3; y++) if (matAt(b, x, y) === M_MOUTH) plot(b, x, y, GUM[y === t ? 3 : 1], M_OTHER); }
+  for (const s of [-1, 1]) {
+    const x0 = cx + (s < 0 ? -11 : 0), t = top + 2;
+    for (let yy = 0; yy < 16; yy++) for (let xx = 0; xx < 11; xx++) {
+      if (yy > 13 && (xx === 0 || xx === 10)) continue;
+      if (s > 0 && yy > 11 && xx > 6 && xx - 6 > 13 - yy) continue; // (the chip)
+      const k = xx === 0 ? 0 : xx > 8 ? 3 : yy > 11 ? 2 : 1;
+      plot(b, x0 + xx, t + yy, (xx === 10 || yy === 15) ? TOOTH[5] : TOOTH[bay(x0 + xx, t + yy) > 0.85 && k < 3 ? k + 1 : k], M_OTHER);
+    }
+    seg(b, x0 + 1, t + 1, x0 + 1, t + 8, WHITE, 1);
+  }
+  seg(b, cx, top + 2, cx, top + 17, TOOTH_B[5]);
+  // (spit, strung from the top teeth to the bottom ones, and pooled on the lip)
+  for (const [x, w] of [[cx - 20, 1], [cx + 16, 1], [cx + 22, 1]] as const) path(b, [x, top + 8, x + 1, cy, x - 1, bot - 6], hexU('#E8F0F8'), w);
+  // (the lips round it: stretched thin, chapped, wet)
+  for (let y = top - 4; y <= bot + 5; y++) for (let x = cx - rx - 5; x <= cx + rx + 5; x++) {
+    const u = (x - cx) / (rx + 4), v = (y - cy) / (ry + 4), d = u * u + v * v;
+    if (d > 1 || matAt(b, x, y) === M_MOUTH || matAt(b, x, y) === M_OTHER) continue;
+    const lit = v < 0 ? (d > 0.86 ? 4 : 2) : d > 0.86 ? 4 : bay(x, y) < 0.5 ? 1 : 2;
+    plot(b, x, y, LIP[lit], M_OTHER);
+  }
+  for (let x = cx - rx; x <= cx + rx; x += 4) if (hash2(x, 9) > 0.5) seg(b, x, bot + 2, x + 1, bot + 4, LIP[4]);
+  seg(b, cx - 14, bot + 3, cx - 6, bot + 3, WHITE); seg(b, cx + 8, top - 2, cx + 12, top - 2, WHITE);
+  // (the folds from his nose round it, cut deep)
+  for (const s of [-1, 1]) path(b, [cx + s * 22, top - 14, cx + s * (rx + 8), cy - 4, cx + s * (rx + 6), bot + 2], SKIN[6], 1, undefined, M_SKIN);
+};
+
+/** His helmet, painted `o` down (0 on his head; HAT_DY for the 'hat' stamp: the whole dome on the buffer). The brim's
+ *  shadow goes on whatever skin's under it. */
+function* helmet(b: Buf, o: number): Generator<void, void> {
+  // ---- the helmet: the dome down to his brows, the band sweated through, the brim; cracked, taped, scuffed, a dead bug
+  ball(b, FX, 30 + o, 96, 56, HELMET, { mat: M_OTHER, line: true, lw: 1.5, only: (x, y) => y - o < 50 - ((x - FX) / 96) ** 2 * 6 });
+  yield;
+  // (the ventilator button on top, the seam)
+  ball(b, FX, -18 + o, 10, 6, HELMET, { mat: M_OTHER, line: true });
+  path(b, [FX, -12 + o, FX - 2, 10 + o, FX - 3, 34 + o], HELMET[6], 1);
+  for (let x = FX - 96; x <= FX + 96; x++) {
+    const y = 46 + o + Math.round(((x - FX) / 96) ** 2 * -6);
+    for (let d = 0; d < 9; d++) plot(b, x, y + d, BAND[d === 0 || d === 8 ? 5 : d < 3 ? 1 : d < 6 ? 2 : 3], M_OTHER);
+    if (hash2(x, 3) > 0.7) plot(b, x, y + 4, BAND[0]);
+  }
+  yield;
+  // (the band sweated dark in a tide line)
+  for (let x = FX - 96; x <= FX + 96; x++) { const y0 = 46 + o + Math.round(((x - FX) / 96) ** 2 * -6); for (let d = 4; d < 8; d++) if (bay(x, y0 + d) < 0.6) plot(b, x, y0 + d, BAND[4]); }
+  yield;
+  // (the brim: wide, its underside in shadow over his forehead)
+  for (let x = FX - 136; x <= FX + 136; x++) {
+    const u = (x - FX) / 136, yb = 56 + o - Math.round(u * u * 12);
+    const th = Math.round(6 + 7 * (1 - u * u));
+    for (let d = 0; d < th; d++) { const q = d / th; plot(b, x, yb + d, HELMET[d === 0 ? 0 : q < 0.3 ? 2 : q < 0.55 ? (bay(x, yb + d) < 0.5 ? 3 : 4) : d < th - 1 ? 5 : 7], M_OTHER); }
+  }
+  for (let x = FX - 70; x <= FX + 70; x++) for (let d = 0; d < 6; d++) { const y = 69 + o - Math.round(((x - FX) / 136) ** 2 * 16) + d; if (matAt(b, x, y) === M_SKIN && bay(x, y) < 0.6 - d * 0.1) shade(b, x, y, DARK, 0.35); }
+  yield;
+  // (the crack, from the brim up across the dome, and the duct tape over it (silver, crinkled, peeling at a corner))
+  const crack: number[] = [];
+  { let x = FX + 30, y = 52 + o; crack.push(x, y); for (let k = 0; k < 9; k++) { x += 2 + rnd() * 5; y -= 5 + rnd() * 3; crack.push(x, y); } }
+  path(b, crack, HELMET[7], 1);
+  poly(b, [FX + 26, 18 + o, FX + 62, 8 + o, FX + 66, 22 + o, FX + 30, 32 + o], TAPE, M_METAL);
+  for (let k = 0; k < 8; k++) { const x = FX + 30 + k * 4.4; seg(b, x, 20 + o - k * 1.2, x + 2, 30 + o - k * 1.2, TAPE[k % 2 ? 0 : 3]); }
+  poly(b, [FX + 62, 8 + o, FX + 70, 4 + o, FX + 68, 14 + o], TAPE, M_METAL);
+  poly(b, [FX - 60, 6 + o, FX - 34, -6 + o, FX - 30, 4 + o, FX - 56, 16 + o], TAPE, M_METAL);
+  yield;
+  // (scuffs, a gouge; a squashed bug on it, its leg and a smear of blood)
+  for (let k = 0; k < 30; k++) { const x = FX + (rnd() - 0.5) * 170, y = -10 + o + rnd() * 56; if (matAt(b, x, y) === M_OTHER) seg(b, x, y, x + 3 + rnd() * 5, y + (rnd() - 0.5) * 2, HELMET[5]); }
+  ball(b, FX - 40, 30 + o, 4, 3, R('#3A2A1A', '#2A1A0E', '#1A1008', '#0A0602', '#000000'), { mat: M_OTHER });
+  tint(b, FX - 36, 32 + o, 6, 3, BLOOD[2], 0.6, M_OTHER, 0.5);
+  for (const [dx, dy] of [[-5, -3], [-6, 2], [4, 4], [5, -2]] as const) seg(b, FX - 40, 30 + o, FX - 40 + dx, 30 + o + dy, hexU('#1A1008'));
+}
+
+/** The helmet alone (flying off him). */
+function* buildHat(): Generator<void, Buf> {
+  setSeed(5150);
+  const b = newBuf();
+  yield* helmet(b, HAT_DY);
+  return b;
+}
+
+/** His fist, shaken at the camera: the knuckles (hairy, skinned), the fingers curled, the thumb across, nails bitten,
+ *  sunburnt to the cuff; the khaki sleeve rolled. (FX, FY) the middle of it. */
+function* buildFist(): Generator<void, Buf> {
+  setSeed(6060);
+  const b = newBuf(), SKIN = SKIN_RAGE;
+  // (the sleeve, rolled at the forearm; the forearm up out of it)
+  ball(b, FX + 10, 196, 54, 30, KHAKI, { mat: M_CLOTH, line: true });
+  for (let k = 0; k < 3; k++) path(b, [FX - 40, 176 + k * 6, FX + 10, 172 + k * 6, FX + 60, 178 + k * 6], KHAKI[5], 1, undefined, M_CLOTH);
+  yield;
+  poly(b, [FX - 34, 176, FX + 38, 176, FX + 34, 128, FX - 30, 128], SKIN, M_SKIN, { line: true, tilt: 1.2 });
+  vein(b, [FX - 10, 176, FX - 6, 160, FX - 12, 144, FX - 8, 132], RAGE_VEIN, 2);
+  vein(b, [FX + 14, 176, FX + 18, 158, FX + 12, 140], RAGE_VEIN, 2);
+  yield;
+  // (the fist: the back of the hand, a knuckle a finger, the fingers curled under in a row)
+  ball(b, FX, 96, 58, 46, SKIN, { mat: M_SKIN, line: true, lw: 1.5 });
+  yield;
+  for (let i = 0; i < 4; i++) {
+    const x = FX - 39 + i * 26;
+    ball(b, x, 66 + Math.abs(i - 1.5) * 3, 15, 13, SKIN, { mat: M_SKIN, line: (_dx, dy) => dy < 0.2, lit: 1.12 });
+    ball(b, x, 104, 13, 20, SKIN, { mat: M_SKIN, line: true });
+    path(b, [x - 9, 100, x, 97, x + 9, 100], SKIN[6], 1, undefined, M_SKIN);
+    // (the nails, chewed to the quick)
+    ball(b, x + 2, 120, 6, 4, R('#FFE8E0', '#F8C8C0', '#E8A8A0', '#C88480', '#9A5A58', '#5A2A28'), { mat: M_OTHER, line: true, lw: 0.7 });
+    // (skinned knuckles, scabbed)
+    if (i % 2 === 0) { tint(b, x, 62, 5, 3, BLOOD[1], 0.6, M_SKIN, 0.4); plot(b, x - 1, 62, BLOOD[3]); plot(b, x + 1, 61, BLOOD[4]); }
+  }
+  yield;
+  // (the thumb across the front, its nail)
+  ball(b, FX - 6, 130, 36, 13, SKIN, { mat: M_SKIN, line: true, lit: 1.08 });
+  ball(b, FX + 24, 128, 8, 7, R('#FFE8E0', '#F8C8C0', '#E8A8A0', '#C88480', '#9A5A58', '#5A2A28'), { mat: M_OTHER, line: true, lw: 0.7 });
+  path(b, [FX - 30, 134, FX - 10, 138, FX + 12, 136], SKIN[6], 1, undefined, M_SKIN);
+  yield;
+  // (hairs on the knuckles and the back of the hand, freckles, the pores)
+  hairs(b, 60, () => { const x = FX - 50 + rnd() * 100, y = 50 + rnd() * 30; return matAt(b, x, y) === M_SKIN ? [x, y] : null; }, 5, -Math.PI / 2 - 0.3, HAIRLINE, M_SKIN);
+  for (let k = 0; k < 40; k++) { const x = FX + (rnd() - 0.5) * 110, y = 60 + rnd() * 100; if (matAt(b, x, y) === M_SKIN) plot(b, x, y, SKIN[5]); }
+  skinPost(b, SKIN[7], () => 0.08);
+  for (let k = 0; k < 8; k++) { const x = FX - 40 + rnd() * 80, y = 70 + rnd() * 50; if (matAt(b, x, y) === M_SKIN) bead(b, x, y, 1.3 + rnd(), SKIN); }
+  return b;
+}
+
 /** (is that pixel on his lips) */
 const pxAtLip = (b: Buf, x: number, y: number) => { const v = b.px[y * GW + x]; return v === LIP[1] || v === LIP[2] || v === LIP[0]; };
 
-const get = stamps<Key>(build, ['a', 'b']);
+const get = stamps<Key>(build, ['a', 'b', 'rc', 'r', 'r2', 'hat', 'fist']);
+/** One of his stamps (its canvas; null headless), and whether it's painted yet (never paint one the frame it's wanted). */
+export const artieStamp = (key: Key) => get(key).img;
+export const artieStampReady = (key: Key) => get.ready(key);
+/** Where his face's middle is on the buffer. */
+export const ARTIE_FX = FX, ARTIE_FY = FY;
 
 /** His gross-up: (cx, cy) where the middle of his face goes on the screen, `zoom` 1 at the hold. */
 export const drawArtieGross = (c: Ctx, cx: number, cy: number, zoom: number, f: number) => {
