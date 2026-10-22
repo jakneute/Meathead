@@ -85,13 +85,15 @@ export const WIRES: StuntWire[] = [
 export type DisasterKind = 'm2:hwd_usher' | 'm2:hwd_tech' | 'm2:hwd_twisty';
 /** Everybody (the theater's lot only before the lever: after it, they're all dead). */
 export const ENEMIES: [DisasterKind, number, number][] = [
-  // the queue: an usher, alone; a tech, alone
-  ['m2:hwd_usher', 1150, 0], ['m2:hwd_tech', 1780, 0],
+  // the queue: an usher, alone, among the switchbacks; a tech, alone, up on the LAVA NACHOS counter with the health
+  // (fogging down the queue at him: up onto it, or shoot it off)
+  ['m2:hwd_usher', 1150, 0], ['m2:hwd_tech', 1620, 60],
   // the pre-show: Twisty, alone
   ['m2:hwd_twisty', 2470, 0],
 ];
 export const THEATER_ENEMIES: [DisasterKind, number, number][] = [
-  ['m2:hwd_usher', 3080, 0], ['m2:hwd_tech', 3480, 0], ['m2:hwd_twisty', 3980, 0], ['m2:hwd_usher', 4500, 0],
+  // (an usher up on the high truss, on the way up to the catwalk: the climb's his; the rest on the floor under the wire)
+  ['m2:hwd_usher', 2840, 310], ['m2:hwd_tech', 3480, 0], ['m2:hwd_twisty', 3980, 0], ['m2:hwd_usher', 4500, 0],
   ['m2:hwd_tech', 3250, CAT_L.h], ['m2:hwd_usher', 4640, CAT_R.h],
 ];
 export const PICKUPS: [number, number, 'small_health' | 'small_ammo'][] = [
