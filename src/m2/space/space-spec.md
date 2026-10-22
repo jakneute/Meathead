@@ -27,3 +27,17 @@ placed within the safe start's reach of a checkpoint (spawnSafe.ts SAFE_X 360, S
   shooting up the beam at him while he walks it between trains.
 - Left alone: the guard's teach, the wall's pads, the jetpacker over the pit, the atom plaza (the mix: a belt into a live
   plate, the guard rushing across plates, a cadet on the deck, jetpackers).
+
+**The giant atom (atom/layout.ts CAST: same kinds, same count)**
+
+- The costumed cast were one at a time on the floor, between the rigs, and four of them inside checkpoints' reach (the
+  first flag 320 from THE GIANT ATOM's, the second 60 from THE METEOR RIG's, the third 160 from THE AIRLOCKS', the last
+  50 from THE LINE's). Now each stands by a rig, where the rig can be turned on it:
+  - the thrusters: the first flag just short of the test stand's flame (lure or shove it in), and a flag in the gap
+    between the gantry's two blasts, under the rigger's catwalk (wrenches from above, the pole at him, the blasts);
+  - the airlocks: a martian and a flag side by side between the first two doors (the spiked antennae punish a dive
+    kick, the flag's pole a shoulder charge: the two counters at once), the air cannon blowing them back into the door
+    with him; the last flag between the next two;
+  - the laser show: a flag in the fog in the floor laser's run, the two martians under the sweep.
+- Left alone: the meteors (the floor's all swept: the martian on the crate and the rigger on the perch), the line and
+  the hijack (scripted).

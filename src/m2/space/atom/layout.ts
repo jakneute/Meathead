@@ -187,12 +187,19 @@ export const POSTS: [number, number, number, 1 | -1][] = [
   [1, A + 1320, GY, -1], [2, A + 2080, GY - 150, -1], [3, A + 3650, GY - 140, -1], [4, A + 4800, GY - 120, -1], [5, A + 6020, GY - 90, -1],
 ];
 /** The cast members in costume (the moon landing's astronauts, with the flag; the friendly martians) and the riggers
- *  (up on the catwalks, throwing wrenches): [kind, x, floor]. None started in a rig's way. */
+ *  (up on the catwalks, throwing wrenches): [kind, x, floor]. None started in a rig's way, but each stood by one (the
+ *  rigs hit them too: lure or shove them in), none at a checkpoint:
+ *    the thrusters: a flag just short of the test stand's flame; the rigger lobbing off the catwalk; a flag in the gap
+ *      between the gantry's two blasts (under the catwalk's end)
+ *    the meteors: up on the crate and the perch (the floor's all swept)
+ *    the airlocks: a martian and a flag side by side between the first two doors (the dive-kick counter and the charge
+ *      counter at once; the air cannon blows them back into the door too), a flag between the next two
+ *    the laser show: a flag in the fog in the floor laser's run, two martians under the sweep */
 export const CAST: ['flag' | 'martian' | 'rigger', number, number][] = [
-  ['flag', A + 520, GY], ['rigger', A + 1450, GY - 190], ['flag', A + 2200, GY],
-  ['martian', A + 2790, GY - 110], ['rigger', A + 3110, GY - 205], ['flag', A + 3820, GY],
-  ['martian', A + 4170, GY], ['flag', A + 4480, GY],
-  ['martian', A + 5290, GY], ['martian', A + 5700, GY], ['flag', A + 6230, GY],
+  ['flag', A + 640, GY], ['rigger', A + 1450, GY - 190], ['flag', A + 1760, GY],
+  ['martian', A + 2790, GY - 110], ['rigger', A + 3110, GY - 205],
+  ['martian', A + 4130, GY], ['flag', A + 4240, GY], ['flag', A + 4480, GY],
+  ['flag', A + 5300, GY], ['martian', A + 5560, GY], ['martian', A + 5700, GY],
 ];
 
 // ---------------------------------------------------------------------------------------------------------------
