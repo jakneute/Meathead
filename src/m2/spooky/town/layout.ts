@@ -10,7 +10,8 @@
 //   2350   SET PIECE: the SPINNING COFFIN CUPS. A turntable the coffins sweep across, left to right, along the floor:
 //          they knock him flying if they hit him (and anybody else in the way); jump on one and it carries him over (and
 //          up to the canopy over the hub: ammo).
-//   2950   CHECKPOINT (the kiddie rides). The long straight: the wolfman (the rusher), alone; then another.
+//   2950   CHECKPOINT (the kiddie rides). The long straight: the wolfman (the rusher) with a rat at his feet; then
+//          another down the ramp at him from the terrace.
 //   3550   The ADA ramp up to the crypt terrace (the phone-charging coffin; a crow on the lamp, the cat).
 //   4450   SET PIECE: the BAT-O-ROUND. Its bat seats go round and bob up and down: they shove him walking through
 //          (riding into him), so ride one; up on one at the top of its bob he can get onto the roof (a health). Or
@@ -91,10 +92,11 @@ export const ENEMIES: [TownKind, number, number][] = [
   // the street: a crow over the gallows, rats, a ghost
   ['m2:town_crow', 1950, 300],
   ['m2:town_rat', 2080, 0], ['m2:town_ghost', 2250, 0],
-  // (rats by the cups, off the turntable: nobody stands in a ride's way)
-  ['m2:town_rat', 2160, 0], ['m2:town_rat', 3060, 0],
-  // the long straight: a wolfman alone, then another
-  ['m2:town_wolfman', 3250, 0], ['m2:town_wolfman', 3500, 0],
+  // (a rat by the cups, off the turntable: nobody stands in a ride's way)
+  ['m2:town_rat', 2160, 0],
+  // the long straight: quiet off the checkpoint, then a wolfman with a rat at his feet (the rush and the ankle-biter at
+  // once: jump the one, slide the other); the second wolfman's up at the top of the ramp, running down it at him
+  ['m2:town_rat', 3420, 0], ['m2:town_wolfman', 3500, 0], ['m2:town_wolfman', 3960, RAMP.h],
   // the terrace: a crow on the lamp, the cat
   ['m2:town_crow', 4205, 290], ['m2:town_cat', 4100, RAMP.h],
   // over the carousel
