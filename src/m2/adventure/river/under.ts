@@ -419,6 +419,24 @@ const drawFarJunk = (c: Ctx, v: V) => {
   c.restore();
 };
 
+/** Columns `w` wide side by side ([x, y, h] each in `R`, left to right), filled in one go: each run of them with no
+ * gap between goes in as ONE stepped outline (along their tops, back along their bottoms). The same pixels as a rect
+ * per column, but a single contour per run: hundreds of rects in one path (or hundreds of fillRects) cost far more. */
+export const stepCols = (c: Ctx, R: number[], w: number, fill: string | CanvasPattern) => {
+  if (!R.length) return;
+  c.fillStyle = fill; c.beginPath();
+  for (let i0 = 0; i0 < R.length;) {
+    let i1 = i0 + 3;
+    while (i1 < R.length && R[i1] === R[i1 - 3] + w) i1 += 3;
+    c.moveTo(R[i0], R[i0 + 1]);
+    for (let i = i0; i < i1; i += 3) { c.lineTo(R[i], R[i + 1]); c.lineTo(R[i] + w, R[i + 1]); }
+    for (let i = i1 - 3; i >= i0; i -= 3) { c.lineTo(R[i] + w, R[i + 1] + R[i + 2]); c.lineTo(R[i], R[i + 1] + R[i + 2]); }
+    c.closePath();
+    i0 = i1;
+  }
+  c.fill();
+};
+
 /** The open river's far bed: two ridges of rock and weed going off into the murk. */
 const drawRidges = (c: Ctx, v: V) => {
   const a = Math.max(R(DOCK), v.l - 4), b = Math.min(R(TUNNEL.x1), v.r + 4);
@@ -433,7 +451,10 @@ const drawRidges = (c: Ctx, v: V) => {
     const hAt = (u: number) => 40 + 50 * (0.5 + 0.5 * Math.sin(u * 0.006 + s * 9) * Math.cos(u * 0.0023 + s * 3)) + 14 * Math.sin(u * 0.031 + s);
     const yAt = (x: number) => Math.round((base - hAt((x - ox) / s)) * s + oy);
     // (column by column, each layer of every column gathered into one path and filled once (the columns never overlap,
-    // so it's the same picture): a few fills, where it was well over a thousand)
+    // so it's the same picture): a few fills, where it was well over a thousand. Each run of side-by-side columns goes
+    // in as ONE stepped outline (along their tops, back along their bottoms), not a rect per column: the same pixels,
+    // but a path of hundreds of separate rects (some pattern-filled) was murder for the GPU to rasterize every frame
+    // (15 fps the moment he was in the open river; the main thread sat idle waiting on it))
     const R0: number[] = [], R1: number[] = [], R2: number[] = [], R3: number[] = [], R4: number[] = [], R5: number[] = [], R6: number[] = [], R7: number[] = [];
     for (let x = Math.floor(a / 4) * 4; x < b; x += 4) {
       const y = yAt(x), yn = yAt(x + 4);
@@ -445,12 +466,7 @@ const drawRidges = (c: Ctx, v: V) => {
       if (yn < y) { R5.push(x, y, 6); R6.push(x, y + 6, 2); }
       R7.push(x, y, 2);
     }
-    const cols = (R: number[], fill: string | CanvasPattern) => {
-      if (!R.length) return;
-      c.fillStyle = fill; c.beginPath();
-      for (let i = 0; i < R.length; i += 3) c.rect(R[i], R[i + 1], 4, R[i + 2]);
-      c.fill();
-    };
+    const cols = (R: number[], fill: string | CanvasPattern) => stepCols(c, R, 4, fill);
     cols(R0, col); cols(R1, deep); cols(R2, checkerFill(c, deep)); cols(R3, deeper); cols(R4, checkerFill(c, deeper));
     cols(R5, lit); cols(R6, checkerFill(c, lit)); cols(R7, rim);
     // (boulders along the crest, kelp off it: each at a world x on this plane, so it slides with it)

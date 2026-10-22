@@ -45,6 +45,10 @@ export const SCENARIOS = [
   // Jungle Land
   { name: 'jungle-jungle', q: 'adv=0', keys: hopRight() },
   { name: 'jungle-river', q: 'adv=20', keys: hopRight() },
+  // (under the river (the user's: "slows down massively when i jump in the water"): off the dock into the open river;
+  // the ride graveyard on, which ran fine, to set it against)
+  { name: 'jungle-jumpin', q: 'adv=20', keys: walk() },
+  { name: 'jungle-graveyard', q: 'adv=22', keys: walk() },
   { name: 'jungle-dino', q: 'adv=30', keys: hopRight() },
   { name: 'jungle-cart', q: 'adv=50', keys: [[0, 'down', 'ArrowRight']] },
   // Wilderness Land

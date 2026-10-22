@@ -25,7 +25,7 @@ import { chromium } from 'playwright';
 import { spawnSync } from 'node:child_process';
 import { createServer } from 'node:http';
 import { existsSync, mkdirSync, writeFileSync, createReadStream, statSync, readdirSync, rmSync } from 'node:fs';
-import { dirname, join, extname, normalize } from 'node:path';
+import { dirname, join, extname, normalize, isAbsolute } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { SCENARIOS } from './scenarios.mjs';
 
@@ -58,7 +58,7 @@ if (!base) {
   }
 }
 // (--dist=<folder>: some other perf build (an older one kept to compare against), not the newest)
-const DIST = opt('dist', '') ? join(ROOT, opt('dist', '')) : join(PERF, builds().at(-1) ?? '');
+const DIST = opt('dist', '') ? (isAbsolute(opt('dist', '')) ? normalize(opt('dist', '')) : join(ROOT, opt('dist', ''))) : join(PERF, builds().at(-1) ?? '');
 if (!base && !existsSync(join(DIST, 'meathead2.html'))) { console.error(`no perf build at ${DIST}`); process.exit(1); }
 if (!base) {
   const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.woff2': 'font/woff2', '.woff': 'font/woff', '.png': 'image/png', '.bin': 'application/octet-stream', '.json': 'application/json' };

@@ -9,7 +9,7 @@ import type { GameState } from '../../../m1/game/core/state';
 import { box, hash, mix, rampOf, INK } from '../../intro/art/kit';
 import { signAt, stencil } from '../letters';
 import { DOCK, FALLS, WS, bedAt } from './course';
-import { R, viewOf, onScreen, pX, pY, unX, waterAt, type Ctx, type V } from './under';
+import { R, viewOf, onScreen, pX, pY, unX, waterAt, stepCols, type Ctx, type V } from './under';
 
 const S_RAIL = 0.9, S_TRAY = 0.85, S_JUNK = 0.95;
 const A = DOCK + 30, B = FALLS.x - 40;
@@ -36,13 +36,15 @@ const drawRail = (c: Ctx, v: V) => {
     if (hash(wx) > 0.6) box(c, x - 5, ry + 8, 11, 2, rust);
   }
   // (the rail itself: the top flange lit (the launches' guide wheels polish it), the web, the bottom flange, rust bleeding)
+  // (two pixels a column; each band of every column gathered into one stepped outline (stepCols), the rust over them)
+  const ink: number[] = [], b4: number[] = [], b3: number[] = [], b1: number[] = [], b2: number[] = [], rs: number[] = [];
   for (let x = Math.floor(a / 2) * 2; x < b; x += 2) {
     const wx = unX(v, s, x) - R(0), y = Math.round(bedY(v, s, wx)) - Math.round(22 * s);
-    box(c, x, y - 1, 2, 11, INK);
-    box(c, x, y, 2, 2, St[4]); box(c, x, y + 2, 2, 1, St[3]);
-    box(c, x, y + 3, 2, 4, St[1]); box(c, x, y + 7, 2, 2, St[2]);
-    if (hash(Math.floor(wx / 6)) > 0.82) box(c, x, y + 3, 2, 3 + Math.floor(hash(wx) * 4), rust);
+    ink.push(x, y - 1, 11); b4.push(x, y, 2); b3.push(x, y + 2, 1); b1.push(x, y + 3, 4); b2.push(x, y + 7, 2);
+    if (hash(Math.floor(wx / 6)) > 0.82) rs.push(x, y + 3, 3 + Math.floor(hash(wx) * 4));
   }
+  stepCols(c, ink, 2, INK); stepCols(c, b4, 2, St[4]); stepCols(c, b3, 2, St[3]); stepCols(c, b1, 2, St[1]); stepCols(c, b2, 2, St[2]);
+  stepCols(c, rs, 2, rust);
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -60,11 +62,12 @@ const drawTray = (c: Ctx, v: V) => {
     box(c, x0 - 5, y0 - 2, 11, 3, St[1]); box(c, x0 - 6, y0 - top - 2, 13, 3, St[3]);
     // (the cables: each its own sag, stepped two pixels at a time)
     if (wx + 160 <= B) cols.forEach((col, k) => {
-      const sag = 10 + k * 4 + (hash(wx + k) * 6 | 0);
+      const sag = 10 + k * 4 + (hash(wx + k) * 6 | 0), run: number[] = [];
       for (let x = x0 + 2; x < x1 - 1; x += 2) {
         const t = (x - x0) / (x1 - x0), y = Math.round(y0 - top + k * 2 + (y1 - y0) * t + sag * 4 * t * (1 - t));
-        box(c, x, y, 2, 2, col);
+        run.push(x, y, 2);
       }
+      stepCols(c, run, 2, col);
     });
     // (every third post, a junction box: its door, the stencil, the light (blinking: it's still live, somehow))
     if (Math.round(wx / 160) % 3 === 1) {
