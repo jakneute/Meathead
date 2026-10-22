@@ -55,6 +55,8 @@ export interface Portal {
   walk: PortalWalk | null;
   /** A has to be let go of first (it may be what confirmed it). */
   armed: boolean;
+  /** Fast travel (parkmap/fastTravel.ts): no walk up to the land's gate after; straight out at the stop. */
+  quick?: boolean;
 }
 /** Coming back out. */
 export interface Exit {
@@ -103,11 +105,11 @@ const zoomK = (pt: Show) => (pt.kind === 'in' ? smoother(pt.t / ZOOM_T) : 1 - sm
 const shown = (pt: Show | null | undefined): pt is Show => !!pt && !(pt.kind === 'in' && pt.walk);
 const slotOf = (land: Land) => SPOTS.findIndex(s => s.kind === 'land' && LANDS[s.land] === land);
 
-export const startPortal = (land: Land): Portal => {
+export const startPortal = (land: Land, quick = false): Portal => {
   // (no HUD, no prompt, from the frame it's confirmed)
   setUi({ near: null, introCutscene: true });
   playMenuOk();
-  return { kind: 'in', land, slot: slotOf(land), t: 0, at: 0, phase: 0, walk: null, armed: false };
+  return { kind: 'in', land, slot: slotOf(land), t: 0, at: 0, phase: 0, walk: null, armed: false, quick };
 };
 
 /** Back from the land at this hub spot (its portal): out it comes. */
@@ -176,6 +178,7 @@ export const runShow = (state: GameState, hub: { portal?: Show | null }, control
   if (s === TURN_T + 10) playSound('suck', 0.3, -4);
   if (s === TURN_T + IN_T - 6) playSound('whirl', 0.35, 2);
   if (s === TAKE) { playSound('whoosh', 0.7, 8); playSound('boom', 0.3, 10); playSound('twinkle', 0.45, 4); shakeScreen(state, 10, 6); }
+  if (s >= TAKE + WHITE_T && pt.quick) { leaveThrough(pt, true); return { ...NO_CONTROLS }; }
   if (s >= TAKE + WHITE_T) pt.walk = playPortalWalk(state, { land: pt.land.id, flash: true, onDone: () => leaveThrough(pt, true) });
   return { ...NO_CONTROLS };
 };

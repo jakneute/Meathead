@@ -6,14 +6,15 @@ import type { StageLayout } from '../../m1/game/stages/index';
 import type { GameState } from '../../m1/game/core/state';
 import { groundBlocks } from '../../m1/game/core/terrain';
 import { NO_CONTROLS, type Controls } from '../../m1/game/platform/input';
-import { playMenuOk, playMenuBack } from '../../m1/game/platform/audio';
+import { playMenuOk, playMenuBack, playCursor } from '../../m1/game/platform/audio';
 import { GROUND_Y } from '../../m1/constants';
 import { LANDS, SPOTS, STAFF_SLOT, AMERICA_SLOT, HUB_SLOTS, landAt } from './lands';
 import { say, MEATHEAD_VOICE, pickLine } from '../../m1/game/platform/speech';
 import { isShat, isNude } from '../../m1/game/player/gut';
 import { AMERICA_DENY } from '../lines/hubLines';
 import { getCheats } from '../cheats';
-import { setUi, getUi, goTo, isLeaving, arrived, carryGut, takeGut } from '../store';
+import { setUi, getUi, goTo, isLeaving, arrived, carryGut, takeGut, setStartCheckpoint } from '../store';
+import { fastTravelStops, fastTravelPick, setFastTravelPick, takeFastTravelGo } from '../parkmap/fastTravel';
 import { stopWeapons } from '../weapons';
 import { pollM2, pressed } from '../input';
 import { drawHubBackdrop, drawHubBack, drawHubFront, drawHubLampGlow, HUB_HORIZON } from './draw';
@@ -42,7 +43,7 @@ const COVERED_T = 2;
 
 const GATED: (keyof Controls)[] = ['jump', 'special', 'shoot', 'secondary', 'charge'];
 
-interface Hub { map: number | null; upWas: boolean; /** Buttons held from closing the map: ignored till let go. */ gate: Set<keyof Controls>; /** The grabs work here too. */ grab: Grab; /** Going through a portal, or back out of one (portal.ts). */ portal?: Show | null }
+interface Hub { map: number | null; upWas: boolean; /** (the fast-travel pick: down held last frame) */ downWas?: boolean; /** Buttons held from closing the map: ignored till let go. */ gate: Set<keyof Controls>; /** The grabs work here too. */ grab: Grab; /** Going through a portal, or back out of one (portal.ts). */ portal?: Show | null }
 const getHub = (state: GameState) => state.stage as Hub | null;
 
 /** Round the lap: everything shifts by a whole lap, so he never runs out of roundabout. */
@@ -117,10 +118,20 @@ export const hubLayout: StageLayout = {
     // The map's up: nothing else till it's dealt with
     if (hub.map !== null) {
       p.vel.x = 0;
-      if (pressed('ok')) {
+      // (a land he's cleared: fast travel, where in it to go, up and down its stops (parkmap/fastTravel.ts))
+      const stops = fastTravelStops(LANDS[hub.map].id);
+      if (stops) {
+        const d = (controls.down && !hub.downWas ? 1 : 0) - (controls.up && !hub.upWas ? 1 : 0);
+        if (d) { setFastTravelPick((fastTravelPick() + d + stops.length) % stops.length); playCursor(); }
+      }
+      hub.downWas = !!controls.down;
+      if (pressed('ok') || takeFastTravelGo()) {
         const land = LANDS[hub.map];
-        // (the checkpoint-skip cheat: where in it to start, asked first)
-        if (land.open && getCheats().skip) setUi({ pick: land.id });
+        const stop = stops ? stops[Math.min(fastTravelPick(), stops.length - 1)] : null;
+        // (the checkpoint-skip cheat: where in it to start, asked first; not over a fast-travel stop picked)
+        if (land.open && getCheats().skip && !(stop && stop.cp !== null)) setUi({ pick: land.id });
+        // (a fast-travel stop: built there, through the portal, no walk up to the gate: straight out at the stop)
+        else if (land.open && stop && stop.cp !== null) { setStartCheckpoint(stop.cp); hub.portal = startPortal(land, true); }
         else if (land.open && hasPortalWalk(land.id)) hub.portal = startPortal(land);
         else if (land.open) goTo(land.id);
         else { setUi({ notice: { text: `${land.name}: COMING SOON`, at: performance.now() } }); playMenuBack(); }
@@ -153,7 +164,7 @@ export const hubLayout: StageLayout = {
     }
     if (near !== null && controls.up && !hub.upWas) {
       if (near === STAFF_SLOT) goTo('pen');
-      else { const land = landAt(near); if (land) { hub.map = LANDS.indexOf(land); playMenuOk(); } }
+      else { const land = landAt(near); if (land) { hub.map = LANDS.indexOf(land); setFastTravelPick(0); takeFastTravelGo(); hub.downWas = !!controls.down; playMenuOk(); } }
     }
     hub.upWas = !!controls.up;
     setUi({ near, map: hub.map, nearExit: false, nearAmerica: nearAmerica && near === null });
