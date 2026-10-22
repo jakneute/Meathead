@@ -36,6 +36,21 @@ export const stampsForStage = (stageId: string | null | undefined) => {
   stampStage = stageId; stamps.clear(); asked.clear(); latest.clear(); bytes = 0;
 };
 
+/** A zoom pulling out (Meathead 2's hub, out of a portal): while it's on, art that's never been stamped is stamped the
+ *  first time it's seen, at the scale it's seen at, and scaled down from as the zoom goes on (everything only ever gets
+ *  smaller, so nothing's blown up soft). Off, a stamp's never painted till the scale holds still, so art coming into
+ *  view mid-zoom was painted live every frame of it: the whole screen's worth by the end. */
+let sweep = false;
+export const setStampSweep = (on: boolean) => { sweep = on; };
+
+/** Painting stamps this frame (ms): past PAINT_MS, a stamp that's only wanted afresh because the scale has settled on a
+ *  new one (the end of a zoom: every one on screen at once) goes down scaled from the one it has a frame or two longer,
+ *  and the rest are painted over the next frames rather than all in one. */
+let spent = 0;
+const PAINT_MS = 6;
+/** A new frame (world.ts, before the world's drawn). */
+export const newStampFrame = () => { spent = 0; };
+
 const q = (n: number) => Math.round(n * 4096) / 4096;
 /** Inside a stamp's paint (how deep). */
 let painting = 0;
@@ -101,7 +116,13 @@ export const stamp = (ctx: Ctx, key: string, x: number, y: number, w: number, h:
         Object.assign(ctx, l!.s.after);
         return;
       }
-      if (!l) { paint(ctx); return; }
+      if (!l && !sweep) { paint(ctx); return; }
+    } else if (near && spent > PAINT_MS) {
+      // (wanted at a settled scale, but this frame's painted plenty already: the one it has, scaled, for now)
+      const ka = m.a / l!.s.a, kd = m.d / l!.s.d;
+      putDown(ctx, m, l!.s.c, l!.s.L * ka, l!.s.T * kd, l!.s.c.width * ka, l!.s.c.height * kd);
+      Object.assign(ctx, l!.s.after);
+      return;
     }
     // (the box in device pixels, from whole pixels: the art lands in the stamp on the same pixel grid it's shown on)
     // (at the transform's exact scale, not the rounded one that keys it: art out at world coordinates (x in the tens of
@@ -114,7 +135,8 @@ export const stamp = (ctx: Ctx, key: string, x: number, y: number, w: number, h:
     // (it starts from the drawing state the live art would've, and leaves the one it would've)
     painting++;
     let after: Leaves;
-    try { after = paintClean(g, ctx, pa, pd, L, T, c.width, c.height, paint); } finally { painting--; }
+    const t0 = performance.now();
+    try { after = paintClean(g, ctx, pa, pd, L, T, c.width, c.height, paint); } finally { painting--; spent += performance.now() - t0; }
     s = { c, L, T, a: pa, d: pd, after };
     stamps.set(id, s);
     bytes += c.width * c.height * 4;

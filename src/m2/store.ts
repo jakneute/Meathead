@@ -130,6 +130,8 @@ let leaving = false;
 /** Off somewhere (a door, a portal): from then till the next stage is built, he's not in control, nothing he's doing
  * carries on (a weapon held down has to be pressed again over there). */
 export const goTo = (dest: string) => { leaving = true; travel?.(dest); };
+// (dev builds: for tools/perf's scenarios, a way somewhere without walking there)
+if (import.meta.env.DEV) (window as unknown as { __m2GoTo: typeof goTo }).__m2GoTo = goTo;
 
 /**
  * The state of his pants (shitty, blown off: game/player/gut.ts) goes with him through a door: it's only dying that

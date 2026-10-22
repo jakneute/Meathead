@@ -6,12 +6,17 @@
 const walk = (from = 0) => [[from, 'down', 'ArrowRight']];
 /** Walk right, hopping now and then (over steps, gaps). */
 const hopRight = (secs = 40) => [[0, 'down', 'ArrowRight'], ...Array.from({ length: secs }, (_, i) => [600 + i * 1000, 'tap', 'Space'])];
+/** Walk right, shoulder charging (Shift) over and over. */
+const chargeRight = (secs = 40) => [[0, 'down', 'ArrowRight'], ...Array.from({ length: secs * 2 }, (_, i) => [300 + i * 500, 'tap', 'Shift'])];
 /** On a ride: hold down (the grip through the loops), nothing else. */
 const grip = [[0, 'down', 'ArrowDown']];
 
 export const SCENARIOS = [
   // The hub: round the whole roundabout from the staff door (walking right, a lap and a bit)
   { name: 'hub', q: 'hub=9', keys: walk() },
+  // (back to the hub out of a land (BACK TO HUB, as after a boss's walk-away): the stage swap, the hub built, the walk
+  // back out of the land's portal (the user's: "some slowdown during the portal exit to the hub"))
+  { name: 'hub-exit', q: 'adv=0', keys: [[300, 'js', 'window.__m2GoTo("hub")']], warm: 0 },
   // Fairy Land: Truelling Tragons (the lift hill, the first drop, the loop; then the gauntlet)
   { name: 'tragons-lift', q: 'fantasy=31', keys: grip },
   { name: 'tragons-gauntlet', q: 'fantasy=33', keys: grip },

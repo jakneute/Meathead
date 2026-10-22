@@ -52,7 +52,7 @@ import { drawBlasts } from './blasts';
 import { drawBossDoor, drawLairFacade } from './bossDoors';
 import { drawTommyShaftBack } from './bosses/lairs/tommy';
 import { drawFrozenShell, drawOnFire, drawTasedFx, drawTaserBeam, isTasedNow, statusTint, tasedJitter } from './statusFx';
-import { stampsForStage } from './stamp';
+import { stampsForStage, newStampFrame } from './stamp';
 import { fenced } from './fence';
 import { shakeScale, flashAlpha } from '../settings';
 
@@ -82,6 +82,7 @@ const BACKDROP_LIFT = 0.3;
 const drawWorldAt = (ctx: CanvasRenderingContext2D, state: GameState, view: WorldView, lift: number) => {
   const { status, stageId } = view;
   stampsForStage(stageId);
+  newStampFrame();
   if (status === GameStatus.STAGE_SELECT || status === GameStatus.START) {
     ctx.fillStyle = 'black';
     ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);

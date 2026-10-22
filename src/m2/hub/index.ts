@@ -24,6 +24,7 @@ import { todLight } from '../timeOfDay';
 import { HUB, HUB_CIRC, slotX } from './geometry';
 import { createGrab, updateGrab, drawGrab, grabbing, type Grab } from '../moves/grab';
 import { setDropTable } from '../../m1/game/core/effects';
+import { setStampSweep } from '../../m1/game/render/stamp';
 
 export const HUB_STAGE = 'M2 Happy Hub';
 
@@ -76,6 +77,7 @@ export const hubLayout: StageLayout = {
     // (back out of a land's portal, if that's where he's come from)
     const portal = exitNext ? startExit(startSlot) : null;
     exitNext = false;
+    setStampSweep(!!portal);
     state.stage = { map: null, upWas: false, gate: new Set(), grab: createGrab(state), portal } satisfies Hub;
     state.cameraMinX = HUB.x0 - HUB_CIRC;
   },
@@ -89,6 +91,9 @@ export const hubLayout: StageLayout = {
     state.player.noContactHurt = false;
     if (!hub) return controls;
     pollM2(state.frame);
+    // (out of a portal, the camera pulling back: the art stamped as it comes into view, not painted live every frame of
+    // the pull-back (stamp.ts))
+    setStampSweep(hub.portal?.kind === 'out');
     // (through a portal: nothing else till he's there)
     if (hub.portal) return runShow(state, hub, controls);
     const p = state.player, cx = p.pos.x + p.width / 2;
