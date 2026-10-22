@@ -1127,3 +1127,74 @@ markBossFight every frame of a boss or sub-boss fight. Voice every new line (`np
   candy strut up under the beam off a bolted plate on the wall. The studio's THIS WAY sign is drawn again over the
   station's legs (it stands in front). Collision: only the beam's last 14 px on into the doorway (a ledge), so the
   drawn beam end is all standable; nothing else new to stand on (the dome's not lit).
+
+### 2026-10-21: encounter pass (the user: "some areas seem like they can be mindlessly cleared by walking forward and pressing fire")
+
+Existing kinds and existing terrain/hazards only; HP, damage and drops unchanged; set pieces, scenes, the White House
+show and STUPID DAD untouched. Nobody placed within a checkpoint's safe start (spawnSafe.ts SAFE_X 360: anybody
+placed there is silently left out on a start at it). Where the cast was cut, it's because a checkpoint's reach covers
+the whole stretch.
+
+**Sillyville Square (kiddie/layout.ts CAST: 20 before, 18 after)**
+
+- The Whatsits stood on THE WUMPLE-GO-ROUND's checkpoint; the painter, cat and vendor between the carousel and the
+  spinner were a ground line to walk and fire through; the mascot stood by THE BOTTOMLESS BALL PIT's; the far bank's
+  Whatsits, vendor and cat by THE SNOOZLE CHOO's; the train's painter by THE SKY-HIGH TROLLEY's; the square's balcony
+  painter by THE STUDIO DOOR's.
+- A second hat cat up on the SWEET-TOOTH SHOPPE's roof, where the first tower leans him over: the cat taught alone on
+  the flat, then up where the umbrella (pointy) says don't charge in.
+- The carousel: a painter up on its canopy, blobs down at him among the beasts; the tower's way up meets her (shove
+  her off into them). Past it the Whatsits' pair (kites from above, a dash along the ground), then the cat at the
+  spinner's edge, hats in while the fish go round.
+- Past the spinner: the vendor on the tower's toadstool step (dogs from up there, knock him into the fish) and the
+  mascot under him, leaping at him coming out of the fish (into them if he hangs back); its candle's spiky.
+- The big pit: the Whatsits on the gumdrop, kites at him out on the swaying lids; land there and one charge or shove
+  sends both into the balls.
+- The hattery's vendor moved to the roof's far end: dogs drifting after him out over the trolley's pit.
+- The studio square, out of the door's reach: painter, mascot, the Whatsits lined up in front of the cat (charge the
+  pair and they chain; charge the cat and the umbrella gets him), the vendor back by the door.
+
+**The studio (studio/layout.ts CAST: 27 before, 23 after; NIGHT_CAST's guards moved out of reach)**
+
+- Storyboards: an intern on the drafting table, coffee down the climb; Pencil Pete at the pencil box's foot where he
+  comes down off the wall (was by THE VOICE BOOTH's checkpoint): the point's spiky, the dive kick down is the wrong
+  move.
+- The voice booth's floor line: security with an intern right behind him (charge him into her), the exec at the back.
+- Model sheets: a guide's plates (jump them), Pete spinning under the drying rack: up on the moving cel (the intern
+  by OVERSEAS's checkpoint gone).
+- Overseas (the intern and guide by its checkpoint, the exec and guard by INK AND PAINT's): a guide on the near light
+  table (the step onto the stacks: knock him into the pile), the exec on the far table lasering him on the leaning
+  stacks, security at the far lip rushing him as he lands.
+- Ink and paint: Pete (by its checkpoint) moved across the vat, spinning at him as he steps off the cel; an intern up
+  on the film cans, coffee at him riding the crane's seat up.
+- Premiere night: the crowd (all by its checkpoint) moved up in front of the screen, out of reach.
+
+**The big-kid zone (bigkid/layout.ts CAST: 16 before, 14 after; THE EXTENDED UNIVERSE's checkpoint 11460 -> 11330)**
+
+- In checkpoints' reach: the churro vendor (THE GIFT SHACK), Gloppy (THE BUMPER BASH), Rad Rat (IN LOVING MEMORY),
+  the Flea and Rad Rat (THE MOTION MADNESS), Gloppy and the Flea on the second pit's far drums (THE TUBULAR
+  HALFPIPE), the gate's whole crowd (THE EXTENDED UNIVERSE).
+- The first glop pit had nobody: the Flea on its near bank now; up on the lids he leaps and dives at where he was:
+  keep moving and he goes into the glop.
+- The rink: Gloppy on the near scorer's stand, loogie puddles on the floor (half speed) with the cars lining up; a
+  ride op on the far stand on his headset setting the cars on him.
+- The whirl: Rad Rat past the memorial (spiky), the op who sets the whirl on him with Gloppy at the plaza's mouth
+  (puddles as it lurches over; they're in its way too).
+- The pod's plaza is the pod alone. The second pit: the Flea up on the near drums (the step up), diving after him on
+  the lids; the churro vendor below throwing flat at him from behind.
+- The checkpoint after the halfpipe moved to its lip so the gate's crowd (op, Rad Rat, Gloppy, the Flea) stands clear.
+
+**PUNCHY & KICKY (itchy/layout.ts CAST: 16 before, 12 after)**
+
+- In checkpoints' reach: the gate's Punchy (just), the lawn's Punchy, the host by THE GENERIC-CO DOCK, the dock's
+  Kicky, CANNON ROW's Punchy, THE PAINTED CANYON's stagehand, the far rim's host and the set's stagehand (THE SET), the
+  way on's crowd (THE WAY ON). The canyon, the set and the way on lie inside their checkpoints' reach end to end, so
+  those stretches are the hazards' alone now (the canyon's cannon, the holes, the fuse).
+- Anvil alley: a Punchy between the lone trapdoor and the wave (his leap sticks the mallet in the floor: lure him
+  under a trapdoor), the Kicky at the wave's end.
+- The lawn: the Punchy in among the rakes. The kill-o-rama: the host between the first two hammers calling anvils
+  while he times them (knock him under one).
+- The dock: the Kicky among the bear traps with the glove crate's reach behind him (pointy: shove him onto a trap);
+  the host up on the pallet rack calling anvils by the safe; the dynamite mouse on its crates.
+- Cannon row: the Punchy past the piano, the dynamite mouse by the cannon. The fuse: a stagehand by the TNT laying
+  holes while the spark crawls (hold him there and it gets him).

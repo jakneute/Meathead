@@ -131,21 +131,30 @@ export const LEDGES: [number, number, number][] = [RACK];
 // ---------------------------------------------------------------------------------------------------------------
 // The cast, the pickups, the checkpoints
 
-/** [kind, x, height of its feet]. */
+/** [kind, x, height of its feet]. Encounter pass (cartoon-spec.md, 2026-10-21): nobody within a checkpoint's safe
+ *  reach (spawnSafe.ts SAFE_X); the cast set among the gags so the gags can be turned on them. (The canyon, the set
+ *  and the way on sit inside their checkpoints' reach end to end: their threats are the hazards.) */
 export const CAST: [string, number, number][] = [
-  ['m2:ct_punchy', 560, 0],
-  ['m2:ct_kicky', 1640, 0],
-  ['m2:ct_punchy', 2250, 0],
+  // (the gate: a Punchy alone on the flat, taught, out of the checkpoint's reach)
+  ['m2:ct_punchy', 620, 0],
+  // (anvil alley: a Punchy between the lone trapdoor and the wave; his leap sticks the mallet in the floor: lure him
+  // under a trapdoor and the anvil does it. A Kicky at the wave's end, cleavers in while the anvils roll)
+  ['m2:ct_punchy', 1040, 0], ['m2:ct_kicky', 1640, 0],
+  // (the lawn: a Punchy in among the rakes (he treads on them too); the merch stand: the stagehand's holes, taught)
+  ['m2:ct_punchy', 1920, 0],
   ['m2:ct_stagehand', 2920, 0],
-  ['m2:ct_host', 4170, 0],
-  ['m2:ct_kicky', 4530, 0],
+  // (the kill-o-rama: the host between the first two hammers calling anvils while he times them (knock him under one))
+  ['m2:ct_host', 3590, 0],
+  // (the dock: a Kicky in among the bear traps, the glove crate's reach behind him (the cleaver's pointy: no charging
+  // in; shove him onto a trap); the host up on the pallet rack calling anvils at him by the safe; the dynamite mouse
+  // on the crate stack)
+  ['m2:ct_kicky', 4640, 0], ['m2:ct_host', RACK[0] + 60, RACK[2]],
   ['m2:ct_kickyboom', 5210, 100],
-  ['m2:ct_punchy', 5660, 0],
+  // (cannon row: a Punchy past the piano and the dynamite mouse at the cannon's end, the balls coming through)
+  ['m2:ct_punchy', 5990, 0],
   ['m2:ct_kickyboom', 6140, 0],
-  ['m2:ct_stagehand', 7240, 0],
-  ['m2:ct_host', 8580, 0],
-  ['m2:ct_stagehand', 8700, 0],
-  ['m2:ct_kicky', 9780, 0], ['m2:ct_punchy', 9840, 0], ['m2:ct_host', 9920, 0], ['m2:ct_kickyboom', 9640, 0],
+  // (the fuse: a stagehand by the TNT laying holes in his way while the spark crawls up; keep him there and it gets him)
+  ['m2:ct_stagehand', 6890, 0],
 ];
 /** Pickups (lean): [x, height, type]. */
 export const PICKUPS: [number, number, 'small_health' | 'small_ammo'][] = [
