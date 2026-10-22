@@ -1217,6 +1217,8 @@ const shoveOff = (ctx: FrameContext, g: Grab) => {
   p.facing = dir;
   p.vel.x = -dir * SHOVE_VX; p.vel.y = -SHOVE_VY; p.isGrounded = false;
   p.pushbackTimer = Math.max(p.pushbackTimer ?? 0, SHOVE_RECOVER);
+  // (shoved off, he's not hurt by bumping into him (or anyone): the touch is held off till he's down and his own again)
+  p.noContactUntil = Math.max(p.noContactUntil ?? 0, state.frame + Math.max(SHOVE_DAZE, SHOVE_RECOVER) + 20);
   playSound('slam', 0.7, 4); playSound('whoosh', 0.8, 2); shakeScreen(state, 5, 3);
   for (let i = 0; i < 8; i++) state.particles.push({ pos: { x: centerX(state) + (Math.random() - 0.5) * 30, y: feetY(state) - 2 }, vel: { x: (Math.random() - 0.5) * 3, y: -0.5 - Math.random() * 1.5 }, life: 20, color: 'rgba(168, 162, 158, 0.6)', size: 3 + Math.random() * 3 });
 };
