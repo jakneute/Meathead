@@ -536,8 +536,11 @@ const tumble = (state: GameState, p: Piece) => {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
-// The skeletons: one for a man, one for a four-legged animal, one for a bird (anything that flies: drones too)
+// The skeletons: one for a man, one for a four-legged animal, one for a bird (anything that flies: drones too), one
+// for a fish
 
+/** The fish (and eels): their own skeleton, not a four-legged one with legs. */
+const FISH = /fish|:eel|koi|trout|piranha|shark/i;
 const skeleton = (e: Enemy): Bone[] => {
   const w = e.width, h = e.height;
   const s = Math.max(1.6, Math.min(4.5, h * 0.05));
@@ -558,6 +561,17 @@ const skeleton = (e: Enemy): Bone[] => {
     }
     for (const dx of [-2, 2]) { long(dx, -h * 0.4, dx + w * 0.03, -h * 0.16, s * 0.5); long(dx + w * 0.03, -h * 0.16, dx + w * 0.03, -1, s * 0.5); }
     for (let f = 0; f < 3; f++) long(-w * 0.28, sy, -w * 0.42, sy - 4 + f * 4, s * 0.5);
+  } else if (FISH.test(e.kind)) {
+    // A fish (an eel too): picked clean to the classic fishbone: the skull out front, the spine along its middle, the
+    // pin bones fanned up and down off it (longest mid-body, short at the ends, raked back), the tail fin's rays
+    const sy = -h * 0.5, n = Math.max(6, Math.min(12, Math.round(w / 7))), x0 = -w * 0.34, x1 = w * 0.26, ss = Math.max(1, s * 0.55);
+    bone('snout', w * 0.36, sy, Math.max(3.5, Math.min(10, h * 0.42)));
+    for (let i = 0; i < n; i++) {
+      const u = i / (n - 1), x = x1 + (x0 - x1) * u, reach = h * 0.42 * Math.sin(Math.PI * (0.15 + 0.75 * (1 - u)));
+      bone('vert', x, sy, 0, 0, 1, ss);
+      if (i > 0 && i < n - 1) { long(x, sy, x - reach * 0.35, sy - reach, ss * 0.55); long(x, sy, x - reach * 0.35, sy + reach, ss * 0.55); }
+    }
+    for (let f = 0; f < 4; f++) long(x0, sy, x0 - w * 0.16, sy - h * 0.34 + f * h * 0.23, ss * 0.5);
   } else if (!isHumanoidKind(e.kind) && w > h * 1.1) {
     // Four legs: the spine along the top, the skull out front, ribs hanging, a tail
     const sy = -h * 0.64;
