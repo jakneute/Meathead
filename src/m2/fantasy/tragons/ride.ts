@@ -452,6 +452,12 @@ export const updateRide = (ctx: FrameContext, controls: Controls): Controls => {
     if (t.dist >= END_S - 2) arrive(state);
   }
 
+  // (up in the air off his dragon (a jump, not a hop): it goes on carrying him, so he comes down on the spot along it he
+  // went up from, not further back down it)
+  const air = riding && alive && !pOn && !t.hop && !t.lock && !t.flung && !p.isGrounded ? trainOn(t, t.lane) : null;
+  const airLive = !!air && air.phase === 'ok' && air.cars.length > 0;
+  let airU = 0, airX = 0;
+  if (air && airLive) { const { x0, x1 } = roofSpan(air); airU = carUnder(air, Math.max(x0 + 2, Math.min(x1 - 2, p.pos.x + p.width / 2))).u; airX = alongTrain(air, airU).x; }
   // ---- the trains where they are now (their cars along the track); him carried on his
   for (const tr of t.trains) {
     if (tr.phase === 'ok' || tr.phase === 'arrive') layCars(t, tr);
@@ -460,6 +466,7 @@ export const updateRide = (ctx: FrameContext, controls: Controls): Controls => {
       if (tr.fy > GY - 40) { tr.phase = 'gone'; tr.t = 0; playSound('crash', 1, -10); shakeScreen(state, 10, 4); for (let k = 0; k < 30; k++) state.particles.push({ pos: { x: tr.fx + (Math.random() - 0.5) * TL, y: GY - 6 }, vel: { x: (Math.random() - 0.5) * 8, y: -2 - Math.random() * 7 }, life: 60, color: k % 3 ? '#57534E' : '#F97316', size: 3 + Math.random() * 4 }); }
     } else if (tr.phase === 'gone') tr.t++;
   }
+  if (air && airLive && air.phase === 'ok' && air.cars.length) p.pos.x += alongTrain(air, airU).x - airX;
   if (pOn && pOn.phase === 'ok') {
     const at = alongTrain(pOn, pu);
     p.pos.x = at.x - p.width / 2; p.pos.y = roofAt(pOn, at.x) - p.height;
