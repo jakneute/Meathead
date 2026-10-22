@@ -52,9 +52,14 @@ const CHURCH: [number, number, number][] = [[2920, 3480, 140], [3000, 3400, 270]
 
 const ENEMIES: [string, number, number][] = [
   ['m2:fl_viking', 600, 0], ['m2:fl_shieldviking', 900, 0],
-  ['m2:fl_viking', 1280, PLANK.h], ['m2:fl_lutefisk', 1840, 0],
-  ['m2:fl_shieldviking', 2900, 0], ['m2:fl_viking', 3150, 140], ['m2:fl_viking', 3260, 270],
-  ['m2:fl_shieldviking', 3470, 0], ['m2:fl_lutefisk', 3620, 0], ['m2:fl_viking', 3740, 0],
+  // (the sampler lady by her booth, out of THE FJORD's checkpoint's reach: lobbing as he comes down off the plank)
+  ['m2:fl_viking', 1280, PLANK.h], ['m2:fl_lutefisk', 1570, 0],
+  // the church (off its checkpoint's spot): a shield wall of one up on the bottom roof's far end (a shield on a roof:
+  // over him, behind him), the vikings up the roofs (their horns: no dive kicks onto them), the sampler lady up on the
+  // third roof lobbing down
+  ['m2:fl_shieldviking', 3400, 140], ['m2:fl_viking', 3150, 140], ['m2:fl_viking', 3260, 270], ['m2:fl_lutefisk', 3200, 400],
+  // down the far side: a shield wall with a viking right behind it (the shield in front, the axes over it)
+  ['m2:fl_shieldviking', 3540, 0], ['m2:fl_viking', 3640, 0],
 ];
 const PICKUPS: [number, number, 'small_health' | 'small_ammo'][] = [[3200, 520, 'small_ammo'], [1690, BOOTH.h, 'small_health']];
 

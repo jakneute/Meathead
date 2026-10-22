@@ -6,7 +6,7 @@
 // fresh way into the land shuts it again). Or don't pay: down into the river under the bridge and swim it, where THE
 // TROLL UNDER THE BRIDGE (an animatronic arm) sweeps across the water every few seconds (bubbles first: the tell),
 // hitting whoever's in it (him: `m2:fl_troll_hand`; the cast, knocked in). Out on the far bank, up the right troll's
-// knee and shoulder (the way back, too), down its far side; the drying racks, the last of the vikings, to China.
+// knee and shoulder (the way back, too), down its far side (a shield viking on its shoulder); the drying racks, to China.
 
 import type { Light } from '../../../m1/game/render/lighting';
 import type { FrameContext } from '../../../m1/game/core/context';
@@ -53,9 +53,15 @@ const GANG: [string, number, number][] = [
   ['m2:fl_shieldviking', 4380, DECK.h], ['m2:fl_viking', 4500, DECK.h], ['m2:fl_lutefisk', 4610, DECK.h], ['m2:fl_shieldviking', 4700, DECK.h],
 ];
 const ENEMIES: [string, number, number][] = [
-  ['m2:fl_viking', 3900, 0], ['m2:fl_lutefisk', 4000, 0],
-  ['m2:fl_viking', 4880, DECK.h],
-  ['m2:fl_shieldviking', 5300, 0], ['m2:fl_viking', 5380, RACKS[0][2]], ['m2:fl_viking', 5500, 0],
+  // (nobody by THE TROLL BRIDGE's checkpoint) the sampler lady up on the left troll's shoulder, lobbing down on him on
+  // its knee
+  ['m2:fl_lutefisk', 4160, TROLL_L.body[2]],
+  // past the gate on the deck; and a viking on the right troll's inner knee, over the river (axes at him swimming, at
+  // him climbing out)
+  ['m2:fl_viking', 4880, DECK.h], ['m2:fl_viking', 4950, TROLL_R.knees[1][2]],
+  // a shield wall of one on the right troll's shoulder: the way down off the bridge and the way up out of the river
+  // both cross it (TOLL PAID's stretch by its checkpoint left quiet)
+  ['m2:fl_shieldviking', 5140, TROLL_R.body[2]],
 ];
 
 export const TOLL_CHECKPOINTS = [
