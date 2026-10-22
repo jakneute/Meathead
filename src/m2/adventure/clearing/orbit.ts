@@ -552,21 +552,30 @@ const band = (c: Ctx, v: View, r: number, height: (a: number) => number, col: st
   }
   const order = tops.map((_, i) => i).sort((i, j) => tops[i].x - tops[j].x);
   if (order.length < 2) return;
-  // (lit along its crest: the shape in a lighter step, then itself a little lower over it)
-  const outline = (dy: number) => {
-    c.beginPath();
-    order.forEach((i, n) => (n ? c.lineTo(tops[i].x, tops[i].y + dy) : c.moveTo(tops[i].x, tops[i].y + dy)));
-    for (let n = order.length - 1; n >= 0; n--) c.lineTo(bases[order[n]].x, bases[order[n]].y + 3);
-    c.closePath();
-  };
-  const layer = (dy: number, cl: string) => { c.fillStyle = cl; outline(dy); c.fill(); };
-  /** A step down into `cl` at dy under the crest: a row of dither, then the step solid. */
+  // (lit along its crest: the shape in a lighter step, then itself a little lower over it; darker going down, in
+  // steps following the crest: the far side of the hills in their own shade. Each step down into a color is a row of
+  // dither (a cached checker pattern), then the step solid)
   // (the dither's a cached checker pattern filled through the shape: a full-screen checker under a clip, per step per
   // frame, is tens of thousands of fills and crawled the loop)
-  const step = (dy: number, cl: string) => { c.fillStyle = ditherOf(c, cl); outline(dy - 2); c.fill(); layer(dy, cl); };
-  if (crest) { layer(0, crest); step(4, col); } else layer(0, col);
-  // (darker going down, in steps following the crest: the far side of the hills in their own shade)
+  const L: { dy: number; fill: string | CanvasPattern; solid: boolean }[] = [];
+  const step = (dy: number, cl: string) => { L.push({ dy: dy - 2, fill: ditherOf(c, cl), solid: false }, { dy, fill: cl, solid: true }); };
+  if (crest) { L.push({ dy: 0, fill: crest, solid: true }); step(4, col); } else L.push({ dy: 0, fill: col, solid: true });
   if (bands) for (const [dy, cl] of bands) step(dy, cl);
+  // (each layer filled only down to a little under the next solid step that covers it (the last one right down to the
+  // base): the same picture as each going all the way down under the next, but a fraction of the area. Every one of
+  // them all the way down, a few dozen big fills a frame, was the GPU's whole frame and then some: the loop crawled)
+  const OVER = 8;
+  L.forEach((ly, j) => {
+    const next = L.slice(j + 1).find(n => n.solid);
+    c.fillStyle = ly.fill; c.beginPath();
+    order.forEach((i, n) => (n ? c.lineTo(tops[i].x, tops[i].y + ly.dy) : c.moveTo(tops[i].x, tops[i].y + ly.dy)));
+    for (let n = order.length - 1; n >= 0; n--) {
+      const i = order[n];
+      if (next) c.lineTo(tops[i].x, Math.min(tops[i].y + next.dy + OVER, bases[i].y + 3));
+      else c.lineTo(bases[i].x, bases[i].y + 3);
+    }
+    c.closePath(); c.fill();
+  });
 };
 
 // ---------------------------------------------------------------------------------------------------------------

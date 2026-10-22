@@ -50,6 +50,9 @@ export const SCENARIOS = [
   { name: 'jungle-jumpin', q: 'adv=20', keys: walk() },
   { name: 'jungle-graveyard', q: 'adv=22', keys: walk() },
   { name: 'jungle-dino', q: 'adv=30', keys: hopRight() },
+  // (the clearing (the user's: "runs really slow"): the walk round it; the Artie fight)
+  { name: 'jungle-clearing', q: 'adv=70', keys: hopRight() },
+  { name: 'jungle-boss', q: 'adv=71', keys: hopRight() },
   { name: 'jungle-cart', q: 'adv=50', keys: [[0, 'down', 'ArrowRight']] },
   // Wilderness Land
   { name: 'wild-train', q: 'frontier=5', keys: hopRight() },
