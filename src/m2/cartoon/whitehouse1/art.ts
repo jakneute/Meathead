@@ -402,7 +402,10 @@ const hazards = (c: Ctx, state: GameState) => {
     // (the head: red, chrome trim, HOOVER, the headlamp, the wheels; the nozzle's brush)
     stepsDown(c, () => c.roundRect(-26, -28, 54, 24, 6), -26, -28, 54, 24, CHERRY, 2.4);
     box(c, -24, -10, 50, 3, STEEL[4]); box(c, -24, -10, 50, 1, '#FFFFFF');
-    signText(c, 'HOOVER', -1, -15, tinyLetters(['#FFFFFF', '#F4F2FA']));
+    // (the word never mirrored, whichever way it's going)
+    c.save(); c.translate(-1, -15); if (c.getTransform().a < 0) c.scale(-1, 1);
+    signText(c, 'HOOVER', 0, 0, tinyLetters(['#FFFFFF', '#F4F2FA']));
+    c.restore();
     inkP(c, () => c.rect(14, -16, 16, 12), LICORICE[2], 1.6);
     c.fillStyle = v.pause ? '#7F1D1D' : '#FDE047'; c.beginPath(); c.arc(24, -22, 4.5, 0, Math.PI * 2); c.fill(); c.strokeStyle = INK; c.lineWidth = 1.4; c.stroke();
     if (!v.pause) { c.fillStyle = 'rgba(253,224,71,0.3)'; c.beginPath(); c.moveTo(28, -24); c.lineTo(70, -36); c.lineTo(70, -8); c.closePath(); c.fill(); }
