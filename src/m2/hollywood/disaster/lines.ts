@@ -15,33 +15,33 @@ import { PA_VOICE } from '../blvd/lines';
 /** In the doors, the queue ahead (once). */
 export const ARRIVE = ['NINETY MINUTES. FOR A ROOM WITH A TV.', 'DISASTER: THE RIDE. THE LINE IS THE DISASTER.'];
 /** Shoving into the queue (the first guest); now and then after. */
-export const CUT_LINE = ['NINETY MINUTES? I HAVE SIX.', 'OUT OF THE WAY. I HAVE A DISASTER TO GET TO.'];
-export const SHOVE = ['MOVE IT, GRANDMA.', 'EXCUSE ME. NOPE.', 'SHOULDA STAYED HOME.'];
+export const CUT_LINE = ['NINETY MINUTES? I HAVE SIX.', "MOVE. I'M THE DISASTER."];
+export const SHOVE = ['MOVE IT, GRANDMA.', 'EXCUSE ME. NOPE.', 'SHOULDA PEED BEFORE YOU GOT IN LINE.'];
 /** The pre-show's host on the TV. */
 export const PRESHOW = ['THIS GUY IS HAVING THE BEST DAY OF HIS LIFE. IN 1983.', 'CHIP CHADWICK. HE PEAKED ON THAT TAPE.'];
 /** Into the theater. */
-export const THEATER = ['IT\'S A ROOM. WITH A TV. AND A FAN.', 'STAND BEHIND A RAIL AND WATCH TV. TERRIFYING.'];
+export const THEATER = ['IT\'S A ROOM. WITH A TV. AND A FAN.', 'I PAID TO STAND AT A RAIL. I DO THAT AT THE BAR FOR FREE.'];
 /** Each effect, the first time he gets it (by the disaster's index: quake, volcano, tornado, blizzard, flood, fire). */
 export const EFFECT = [
-  ['THAT WAS THE GUY NEXT TO ME FARTING.', 'MY CAR SHAKES MORE AT A RED LIGHT.'],
-  ['A SPACE HEATER. I\'M SHAKING.', 'THE VOLCANO IS A SPACE HEATER WITH A RED LIGHT ON IT.'],
+  ['THAT WAS THE GUY NEXT TO ME FARTING.', "MY WASHER SHAKES HARDER. I'VE RIDDEN IT."],
+  ["THAT'S MY UNCLE'S SPACE HEATER. HE BURNED DOWN A TRAILER WITH IT.", 'THE VOLCANO IS A SPACE HEATER WITH A RED LIGHT ON IT.'],
   ['IT\'S A DESK FAN. MY GRANDMA HAS THAT FAN.', 'A TORNADO. ON LOW.'],
-  ['THEY TURNED THE AC UP. I\'LL ALERT THE MEDIA.', 'THE BLIZZARD IS SIXTY-EIGHT DEGREES.'],
-  ['SOMEBODY SQUIRTED ME. I\'M GONNA FIND HIM.', 'THE FLOOD IS A SQUIRT GUN.'],
+  ['THE BLIZZARD IS THE AC. MY NIPPLES ARE UNIMPRESSED.', 'THE BLIZZARD IS SIXTY-EIGHT DEGREES.'],
+  ["SOMEBODY SQUIRTED ME. I'VE BEEN SQUIRTED BETTER.", 'THE FLOOD IS A SQUIRT GUN.'],
   ['A FOG MACHINE. SMELLS LIKE A BAR MITZVAH.', 'THE WILDFIRE IS FOG. FROM A HOSE.'],
 ];
 /** The flying cow's rig (the tornado's cow, on a stunt wire over the screen). */
-export const COW = ['A COW ON A WIRE. I\'M RIDING THE COW.', 'THE TORNADO COW. GET OVER HERE, BESSIE.'];
+export const COW = ['A COW ON A WIRE. YEEHAW, MOTHERFUCKER.', 'THE TORNADO COW. GET OVER HERE, BESSIE.'];
 /** The booth, with its sleeper (once). */
-export const BOOTH = ['ANOTHER GUY ASLEEP NEXT TO A LEVER. THIS PARK NEVER LEARNS.', 'REAL DISASTERS. EXPERIMENTAL. I KNOW THIS ONE.'];
+export const BOOTH = ['ANOTHER GUY ASLEEP AT A LEVER. THIS PARK RUNS ON NAPS.', 'REAL DISASTERS. EXPERIMENTAL. I KNOW THIS ONE.'];
 /** The lever flipped. */
-export const LEVER = ['REAL DISASTERS. FINALLY, SOME VALUE.', 'FLIP IT. WHAT\'S THE WORST THAT COULD HAPPEN. THAT\'S A JOKE.'];
+export const LEVER = ['REAL DISASTERS. FINALLY, SOME VALUE.', 'EXPERIMENTAL. MY FAVORITE KIND OF EVERYTHING.'];
 /** After it all. */
 export const REAL_AFTER = ['NOW THAT\'S A RIDE.', 'FIVE STARS. WOULD WRECK AGAIN.'];
 /** Out through the hole in the wall (once). */
-export const OUT = ['EVERY DISASTER AT ONCE. I DID THAT.', 'THE WHOLE PARK\'S A RIDE NOW. YOU\'RE WELCOME.'];
+export const OUT = ['EVERY DISASTER AT ONCE. I DID THAT.', "THE WHOLE PARK'S A DISASTER NOW. NO LINE."];
 /** Back in the wreck, the narrator still going. */
-export const WRECK_AGAIN = ['STILL LOOPING. NOBODY TOLD THE NARRATOR.', 'HE\'S STILL UNDER THERE. NOBODY TOLD HIM EITHER.'];
+export const WRECK_AGAIN = ['STILL LOOPING. NOBODY TOLD THE NARRATOR.', "STILL LOOPING. THAT GUY'S GOT BETTER JOB SECURITY THAN ME."];
 
 // ---------------------------------------------------------------------------------------------------------------
 // The tape and the loop (recordings: never about him)
@@ -50,10 +50,10 @@ export const WRECK_AGAIN = ['STILL LOOPING. NOBODY TOLD THE NARRATOR.', 'HE\'S S
 export const HOST = 'm2.hollywood.host';
 export const HOST_TAPE = [
   'HI THERE! I\'M CHIP CHADWICK! WELCOME TO THE MOST TERRIFYING TWELVE MINUTES OF YOUR LIFE!',
-  'EVER WONDERED WHAT A REAL DISASTER FEELS LIKE? KEEP WONDERING!',
+  'EVER WONDERED WHAT A REAL DISASTER FEELS LIKE? ASK MY EX-WIFE!',
   'OUR SCIENTISTS HAVE RECREATED THE FURY OF NATURE! WITH A FAN!',
   'AFTER THE SHOW, SEE STUNTMAN STEVE! HE\'S MY FRIEND! I MET HIM ONCE!',
-  'NOW STEP INSIDE! IF YOU DARE! YOU DON\'T HAVE TO DARE! IT\'S FINE!',
+  "NOW STEP INSIDE! IF YOU DARE! LEGAL SAYS YOU DON'T HAVE TO DARE!",
 ];
 
 /** The ride's narrator (deadpan, bored, on a loop). */
@@ -85,18 +85,18 @@ export const REAL = {
 
 export const GUEST_VOICES = { m: 'm2.guest2', f: 'm2.guest' } as const;
 export const QUEUE_OUTRAGE: ByPants = {
-  clean: ['NINETY MINUTES! WE WAITED NINETY MINUTES!', 'HEY! BACK OF THE LINE!', 'USHER! HE CUT! HE CUT!'],
-  shitty: ['HE CUT AND HE STINKS!', 'HE BROUGHT HIS OWN DISASTER!', 'IT\'S ON MY FANNY PACK!'],
-  nude: ['A NAKED MAN CUT THE LINE!', 'HIS THING HIT THE ROPE!', 'NOT IN THE QUEUE! NOT ANYWHERE!'],
+  clean: ['NINETY MINUTES! WE WAITED NINETY MINUTES!', 'HEY! BACK OF THE LINE!', "I'M EMAILING CORPORATE! I HAVE THE EMAIL!"],
+  shitty: ['HE CUT AND HE STINKS!', 'HE BROUGHT HIS OWN DISASTER! IN HIS PANTS!', 'IT\'S ON MY FANNY PACK!'],
+  nude: ['A NAKED MAN CUT THE LINE!', 'HIS THING HIT THE ROPE!', 'MY KID ASKED WHAT THAT WAS! I SAID A SAD LITTLE HOT DOG!'],
 };
 /** The theater's guests at the effects: underwhelmed, or overreacting. */
-export const UNDERWHELMED = ['THAT\'S IT?', 'I PAID FOR THIS.', 'MY DRYER DOES MORE THAN THAT.', 'WAS THAT IT OR WAS THAT KEVIN?'];
-export const OVERREACT = ['OH MY GOD! I FELT THAT!', 'HOLD ME, KEVIN!', 'IT\'S SO REAL! I\'M SWEATING! A LITTLE!', 'I CAN\'T LOOK! IT\'S A FAN!'];
+export const UNDERWHELMED = ['THAT\'S IT?', 'I PAID FOR THIS.', 'MY DRYER DOES MORE THAN THAT.', "WAS THAT THE QUAKE OR KEVIN'S STOMACH?"];
+export const OVERREACT = ['OH MY GOD! I FELT THAT!', 'HOLD ME, KEVIN!', "IT'S SO REAL! I PEED A LITTLE!", 'I CAN\'T LOOK! IT\'S A FAN!'];
 /** The theater's guests, at him. */
 export const GUEST_HIM: ByPants = {
-  clean: ['SIR, BEHIND THE RAIL!', 'HE\'S WALKING IN FRONT OF THE SCREEN!'],
-  shitty: ['IS THAT SMELL AN EFFECT?', 'WAS THAT THE VOLCANO OR HIM?'],
-  nude: ['IS THE NAKED GUY PART OF THE SHOW?', 'THE BLIZZARD GOT HIM! LOOK HOW SMALL!'],
+  clean: ['SIR, BEHIND THE RAIL!', 'DOWN IN FRONT, FATASS!'],
+  shitty: ['IS THAT SMELL AN EFFECT? I WANT A REFUND!', 'WAS THAT THE VOLCANO OR HIM?'],
+  nude: ["IS THE NAKED GUY A DISASTER? HE'S A DISASTER.", 'THE BLIZZARD GOT HIM! LOOK HOW SMALL!'],
 };
 /** The one guest left in the wreck, singed, clapping. */
 export const SINGED = ['BEST RIDE IN THE PARK.', 'FIVE STARS. CAN\'T FEEL MY FACE.'];
@@ -110,19 +110,19 @@ export const STAFF_VOICES = {
   twisty: 'm2.hollywood.twisty', twistyf: 'm2.hollywood.twistyf',
 } as const;
 export const USHER_BARK: ByPants = {
-  clean: ['SIR! BEHIND THE ROPE!', 'NO TICKET, NO DISASTER!', 'THE LINE IS THAT WAY, SIR!'],
+  clean: ['SIR! BEHIND THE ROPE!', "NO TICKET, NO DISASTER! I DON'T MAKE THE RULES! I LOVE THE RULES!", 'THE LINE IS THAT WAY, SIR!'],
   shitty: ['THE RIDE DOESN\'T HAVE A SMELL EFFECT! IT DOES NOW!', 'CODE BROWN IN THE QUEUE!'],
-  nude: ['PANTS ARE REQUIRED IN LINE, SIR!', 'I\'M NOT ROPING THAT OFF!'],
+  nude: ['SIR, PANTS ARE PART OF THE DRESS CODE! LAMINATED!', 'I\'M NOT ROPING THAT OFF!'],
 };
 export const TECH_BARK: ByPants = {
-  clean: ['YOU\'RE IN MY EFFECT ZONE!', 'THAT FAN COST NINE DOLLARS!', 'HIT YOUR MARK OR GET FOGGED!'],
-  shitty: ['I\'M FOGGING THAT SMELL OUT!', 'WE DON\'T HAVE A FILTER FOR THAT!'],
+  clean: ['YOU\'RE IN MY EFFECT ZONE!', "THAT FAN'S ON MY TIMESHEET!", 'HIT YOUR MARK OR GET FOGGED!'],
+  shitty: ['I\'M FOGGING THAT SMELL OUT!', "THE FOG FILTER'S RATED FOR FOG! NOT ASS!"],
   nude: ['COLD BLAST! SHRINK IT!', 'HE\'S NAKED! BLIZZARD HIM!'],
 };
 export const TWISTY_BARK: ByPants = {
-  clean: ['TWISTY WANTS A HUG! A VIOLENT HUG!', 'WHOOOOSH! I\'M A TORNADO!', 'TWISTY SAYS NO CUTTING!'],
+  clean: ['TWISTY WANTS A HUG! A VIOLENT HUG!', 'WHOOOOSH! I\'M A TORNADO!', 'TWISTY SAYS GO FUCK YOURSELF!'],
   shitty: ['TWISTY SMELLS SOMETHING! IT\'S NOT TWISTY!', 'EVEN TWISTY WON\'T SPIN NEAR THAT!'],
-  nude: ['TWISTY SEES A NAKED MAN! TWISTY IS SCARED!', 'COVER UP! TWISTY\'S A FAMILY TORNADO!'],
+  nude: ["TWISTY SEES YOUR WIENER! TWISTY'S SEEN BIGGER IN KANSAS!", 'COVER UP! TWISTY\'S A FAMILY TORNADO!'],
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -130,8 +130,8 @@ export const TWISTY_BARK: ByPants = {
 
 export const SLEEPER = 'm2.hollywood.sleeper2';
 export const SLEEPER_MUMBLE: ByPants = {
-  clean: ['MMM. EARTHQUAKE. NICE.', 'ZZZ. HERE\'S A NAP.', 'FIVE MORE DISASTERS, MOM.'],
-  shitty: ['SNIFF. VOLCANO? ZZZ.', 'WHO LET A SKUNK IN THE BLIZZARD.'],
+  clean: ['MMM. EARTHQUAKE. NICE.', 'ZZZ. HERE\'S A NAP.', "FIVE MORE MINUTES. I'M ON UNION BREAK."],
+  shitty: ['SNIFF. VOLCANO? ZZZ.', "SMELLS LIKE MY WIFE'S SIDE OF THE BED."],
   nude: ['MMM. SOMEBODY\'S COLD. ZZZ.', 'NAKED GUY. THIS DREAM AGAIN.'],
 };
 export const SLEEPER_LEVER = 'REAL DISASTERS. SURE. ZZZ.';
@@ -141,8 +141,8 @@ export const SLEEPER_WAKE = 'HUH? WHAT\'D I MISS?';
 // The park's PA (the trailer voice): into the ride, Steve, the real thing after
 
 export const PA_RIDE: ByPants = {
-  clean: ['NOW ENTERING: DISASTER: THE RIDE! THE FURY OF NATURE! SIMULATED!', 'DISASTER: THE RIDE! NO REAL DISASTERS WERE HARMED!'],
-  shitty: ['ATTENTION. A GUEST HAS BROUGHT HIS OWN DISASTER INTO DISASTER: THE RIDE.', 'DISASTER: THE RIDE NOW FEATURES A BROWN ALERT.'],
+  clean: ['NOW ENTERING: DISASTER: THE RIDE! THE FURY OF NATURE! SIMULATED!', 'DISASTER: THE RIDE! TWELVE MINUTES! ONE FAN!'],
+  shitty: ['ATTENTION. A GUEST HAS BROUGHT HIS OWN DISASTER INTO DISASTER: THE RIDE.', 'ATTENTION. THE SMELL IN DISASTER: THE RIDE IS NOT AN EFFECT. WE CHECKED.'],
   nude: ['ATTENTION. DISASTER: THE RIDE IS NOT A NUDE EXPERIENCE.', 'DISASTER: THE RIDE! NOW WITH A NAKED MAN! WE ARE SORRY!'],
 };
 /** Once, in the lobby: the leak, mourned; the cast, a coupon. */
@@ -159,11 +159,11 @@ export const PA_REAL = ['ATTENTION. DISASTER: THE RIDE IS EXPERIENCING REAL DISA
 export const HURT: Record<string, { hurt: string[]; death: string[] }> = {
   'm2:hwd_usher': {
     hurt: ['HIT WITH THE LINE! THE ACTUAL LINE!', 'A STANCHION TO THE FACE!', 'OW! THE VELVET ROPE!'],
-    death: ['BEATEN WITH A STANCHION', 'DIED WAITING IN LINE'],
+    death: ['BEATEN WITH A STANCHION', 'DIED IN A NINETY MINUTE LINE'],
   },
   'm2:hwd_tech': {
-    hurt: ['THE TECH KICKED ME!', 'OW! GET YOUR HEADSET OUT OF MY FACE!'],
-    death: ['KILLED BY THE CREW', 'TECHNICAL DIFFICULTIES'],
+    hurt: ['THE TECH KICKED ME!', 'HE HIT ME WITH A CLIPBOARD!'],
+    death: ['KILLED BY THE CREW', 'STAGEHANDED'],
   },
   'm2:hwd_fog': {
     hurt: ['COLD! MY NIPPLES!', 'FOGGED! I CAN\'T SEE SHIT!', 'FREEZER BURN ON MY FACE!'],
@@ -174,7 +174,7 @@ export const HURT: Record<string, { hurt: string[]; death: string[] }> = {
     death: ['TAKEN BY A FOAM TORNADO', 'TWISTY GOT HIM'],
   },
   'm2:hwd_fire': {
-    hurt: ['THE HEATER\'S REAL NOW! MY ASS!', 'FIRE! ACTUAL FIRE!', 'IT\'S HOT! IT\'S FINALLY HOT!'],
+    hurt: ['THE HEATER\'S REAL NOW! MY ASS!', 'FIRE! MY BUSH IS ON FIRE!', 'IT\'S HOT! IT\'S FINALLY HOT!'],
     death: ['DISASTER: THE DEATH', 'THE VOLCANO WAS REAL'],
   },
 };
