@@ -9,7 +9,7 @@ import type { GameState } from '../../../m1/game/core/state';
 import type { Light } from '../../../m1/game/render/lighting';
 import { CANVAS_WIDTH } from '../../../m1/constants';
 import { SECTIONS, GY } from '../geometry';
-import { type Ctx, INK, box, checker, poly, still, inView, viewOf, board, slab, ramp6, lit, chromePole, starburst, ball, glassOf, CHROME, PINK, TEAL, LIP, ORANGE, mix } from '../square/paint';
+import { type Ctx, INK, box, checker, poly, still, inView, viewOf, board, slab, ramp6, lit, chromePole, starburst, ball, glassOf, CHROME, PINK, TEAL, LIP, ORANGE, mix, snapPx } from '../square/paint';
 import { drawSky, drawClouds, drawBlimp, drawFarHills, drawFarSkyline, drawGiantAtom, drawNeedle, horizonY } from '../square/sky';
 import { drawGoingBack, drawPlayPlane, drawPitDressing, type Ground } from '../square/ground';
 import { type Shop, type Block, drawSides, drawShopFront, shopBlocks } from '../square/buildings';
@@ -149,7 +149,7 @@ const base = (c: Ctx, state: GameState) => {
 };
 
 /** `mid`: what goes on the walk, in front of the shops but behind the furniture (the track, the gear, the landing). */
-export const drawDragBack = (c: Ctx, state: GameState, mid?: () => void) => {
+export const drawDragBack = (c: Ctx, state: GameState, mid?: () => void) => snapPx(c, () => {
   const v = viewOf(state);
   drawGoingBack(c, v, GROUND);
   drawSides(c, v, BLOCKS);
@@ -161,7 +161,7 @@ export const drawDragBack = (c: Ctx, state: GameState, mid?: () => void) => {
   signs(c, state);
   for (const rx of LAMPS) if (inView(state, X(rx) - 50, X(rx) + 60)) drawLamp(c, X(rx), GY, state.frame);
   ledges(c, state);
-};
+});
 
 export const drawDragSpeakers = (c: Ctx, state: GameState, talking: boolean) => {
   for (const [rx, h] of SPEAKERS) if (inView(state, X(rx) - 40, X(rx) + 40)) drawSpeaker(c, X(rx), GY, h, talking, state.frame);

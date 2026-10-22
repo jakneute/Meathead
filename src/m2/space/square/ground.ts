@@ -128,7 +128,8 @@ const walkBack = (c: Ctx, v: View, xa: number, xb: number) => {
   for (let j = 0; j < 4; j++) {
     const d0 = dAt(j), d1 = dAt(j + 1), col = tint(P[[5, 4, 4, 3][j]], 0.5, d0);
     c.fillStyle = mix(col, tint(P[3], 0.5, d0), 0.5); c.beginPath();
-    for (let x = Math.ceil(L / 48) * 48 + (j % 2) * 48; x < R; x += 96) {
+    // (from a whole 96 in the world: started from the screen's edge rounded to 48, every other one flipped the lot)
+    for (let x = Math.floor(L / 96) * 96 + (j % 2) * 48; x < R; x += 96) {
       const xx = x + (j % 2) * 24, [ax, ay] = at(eye, xx, GY, d0), [bx] = at(eye, xx + 48, GY, d0), [cx2, cy] = at(eye, xx + 48, GY, d1), [dx] = at(eye, xx, GY, d1);
       c.moveTo(ax, ay); c.lineTo(bx, ay); c.lineTo(cx2, cy); c.lineTo(dx, cy); c.closePath();
     }
@@ -348,8 +349,10 @@ const paintFloor = (g: Ctx, x0: number, w: number) => {
   for (let y = GY + 10, row = 0; y < GY + BAND; row++) {
     const rh = 6 + row * 2.4, cw = 22 + row * 5;
     const stripe = row === 2 ? Pk : row === 3 ? Tl : row === 7 ? Pk : null;
-    for (let x = x0 - ((row * 11) % cw); x < x0 + w; x += cw) {
-      const t = hash(s + x * 0.37 + row * 11.3);
+    // (laid from the world's x, not the chunk's: one course runs on unbroken from chunk to chunk)
+    const off = (row * 11) % cw;
+    for (let x = Math.floor((x0 - off) / cw) * cw + off; x < x0 + w; x += cw) {
+      const t = hash(x * 0.37 + row * 11.3);
       const R = stripe ?? C, col = stripe ? R[3] : R[t > 0.7 ? 4 : t > 0.25 ? 5 : 3];
       box(g, x + 1, y + 1, cw - 2, rh - 2, col);
       box(g, x + 2, y + 1, cw - 4, 1, stripe ? R[4] : C[6]);

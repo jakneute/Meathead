@@ -208,10 +208,25 @@ const paintRoof = (g: Ctx, sh: Shop, T: string[], glass: string[]) => {
     g.save(); g.beginPath(); g.arc(cx, dy, r, Math.PI, 0); g.clip();
     for (let k = 1; k < 5; k++) checker(g, cx - r, dy - r * (1 - k * 0.15) - 1, r * 2, 2, T[k], 0, 2);
     g.strokeStyle = T[1]; g.lineWidth = 1; for (let k = 1; k < 6; k++) { const a = Math.PI + (k * Math.PI) / 6; g.beginPath(); g.moveTo(cx, dy - r); g.quadraticCurveTo(cx + Math.cos(a) * r * 0.7, dy + Math.sin(a) * r * 0.9, cx + Math.cos(a) * r, dy); g.stroke(); }
+    // (the ribs' lit edges, every other one, so they read as ribs not seams)
+    g.strokeStyle = T[4]; for (let k = 1; k < 6; k += 2) { const a = Math.PI + (k * Math.PI) / 6; g.beginPath(); g.moveTo(cx + 1, dy - r + 4); g.quadraticCurveTo(cx + Math.cos(a) * r * 0.7 + 1, dy + Math.sin(a) * r * 0.9, cx + Math.cos(a) * r + 1, dy); g.stroke(); }
     g.restore();
-    box(g, cx - r * 0.45, dy - r * 0.7, 6, 3, T[5]);
-    chromePole(g, cx, dy - r - 22, dy - r + 3, 3);
-    ball(g, cx, dy - r - 24, 4, '#F0C840');
+    // (the glints: a long streak up the lit shoulder, a dot under it)
+    for (let k = 0; k < 5; k++) box(g, Math.round(cx - r * 0.62 + k * 5), Math.round(dy - r * 0.42 - k * 9), 4, 6, k < 4 ? T[5] : '#FFFFFF');
+    box(g, Math.round(cx - r * 0.45), Math.round(dy - r * 0.18), 3, 3, T[5]);
+    // The crown: a chrome ring where the ribs meet, a glass skylight cap in it (lit by the hour), a stepped collar,
+    // an antenna up out of it with a ball on top and a ring round it
+    const ry = Math.round(dy - r), cr = Math.max(10, Math.round(r * 0.13));
+    g.fillStyle = INK; g.beginPath(); g.ellipse(cx, ry + 3, cr + 3, 6, 0, 0, Math.PI * 2); g.fill();
+    box(g, cx - cr - 2, ry, cr * 2 + 4, 4, CHROME[3]); box(g, cx - cr - 2, ry, cr * 2 + 4, 1, CHROME[6]); box(g, cx - cr - 2, ry + 3, cr * 2 + 4, 1, CHROME[1]);
+    g.fillStyle = INK; g.beginPath(); g.arc(cx, ry, cr + 1, Math.PI, 0); g.fill();
+    g.fillStyle = lit() ? '#FFE8A0' : glass[2]; g.beginPath(); g.arc(cx, ry, cr - 1, Math.PI, 0); g.fill();
+    g.fillStyle = lit() ? '#FFF6D0' : glass[4]; g.beginPath(); g.arc(cx - 3, ry - 2, cr * 0.5, Math.PI, 0); g.fill();
+    for (const k of [-0.5, 0, 0.5]) box(g, Math.round(cx + k * cr) - 1, ry - Math.round(cr * Math.sqrt(1 - k * k * 0.9)), 1, Math.round(cr * Math.sqrt(1 - k * k * 0.9)), INK);
+    box(g, cx - 5, ry - cr - 4, 10, 4, INK); box(g, cx - 4, ry - cr - 3, 8, 2, CHROME[4]);
+    chromePole(g, cx, ry - cr - 26, ry - cr - 3, 3);
+    box(g, cx - 7, ry - cr - 17, 14, 3, INK); box(g, cx - 6, ry - cr - 16, 12, 1, CHROME[5]);
+    ball(g, cx, ry - cr - 28, 4, '#F0C840');
   } else if (sh.roof === 'fin') {
     // (a fin up the right end: a thick blade set in a chrome shoe on the cornice, its edge lit, its face shaded across,
     // a starburst on its tip)
@@ -351,9 +366,13 @@ export const paintShopFront = (g: Ctx, sh: Shop) => {
 };
 
 /** The shops: each one's front, painted once for the hour, at the play plane. (Their sides: drawSides, before.) */
+/** How far a shop's roof goes up over its wall's top (the paint box's headroom): a dome by its width (its crown and
+ *  antenna), the rest a fixed 130. */
+export const roofRise = (sh: Shop) => (sh.roof === 'dome' ? Math.max(130, Math.ceil(16 + sh.w / 2 - 14 + Math.max(10, Math.round((sh.w / 2 - 14) * 0.13)) + 36)) : 130);
 export const drawShopFront = (c: Ctx, state: GameState, sh: Shop, y: number) => {
   if (!inView(state, sh.x - 80, sh.x + sh.w + 80)) return;
-  still(c, `spc-shop-${sh.name}-${sh.x}`, sh.x, y, -60, -sh.h - 130, sh.w + 120, sh.h + 132, g => paintShopFront(g, sh));
+  const up = roofRise(sh);
+  still(c, `spc-shop-${sh.name}-${sh.x}`, sh.x, y, -60, -sh.h - up, sh.w + 120, sh.h + up + 2, g => paintShopFront(g, sh));
 };
 /** The shops' blocks; their roofs' tops going back only where he can stand on them (`flatTops`: those with a roof
  *  ledge), the rest left without (a top lit like a ledge would read as one). */

@@ -13,7 +13,7 @@ import { timeOfDay, hourMix, skyRamp, sunAt, drawStars, drawMoon, farTint, skyAt
 import { drawTeaseStrip } from './teases';
 import { mix, checker, bandedGradient, hazeBands, pixelBlob, PAVE, PINK, TEAL, INK, ramp6, poly } from '../space/square/paint';
 import { drawGiantAtom, drawNeedle } from '../space/square/sky';
-import { paintShopFront, type Shop } from '../space/square/buildings';
+import { paintShopFront, roofRise, type Shop } from '../space/square/buildings';
 import { paintLamp, paintGate, paintTrashCan, paintPlanter, paintSpeaker } from '../space/square/props';
 
 /** The square's px a meter here (him: ~70 of them in the square; a touch under 2 m in this picture). */
@@ -171,7 +171,7 @@ const props = (): Prop[] => {
   // The gate
   out.push(sq('gate', 0, GATE_Z, 540, 347, 270, 345, paintGate, 22, true));
   // Through it: the square's shopfronts facing him
-  for (const [s, x] of SQUARE) { const gh = 130; out.push(sq(`shop-${s.name.length}`, x, SQUARE_Z, s.w + 120, s.h + gh + 4, 60, s.h + gh, g => paintShopFront(g, s), 14, true)); }
+  for (const [s, x] of SQUARE) { const gh = roofRise(s); out.push(sq(`shop-${s.name.length}`, x, SQUARE_Z, s.w + 120, s.h + gh + 4, 60, s.h + gh, g => paintShopFront(g, s), 14, true)); }
   // The googie lamps up the way, either side, staggered; on up past the gate
   for (let i = 0; i < 5; i++) { const side = i % 2 ? 1 : -1; out.push(sq(`lamp${side}`, side * 3.6 + 0.4, 2.5 + i * 3.2, 84, 202, 40, 200, g => paintLamp(g, timeOfDay().lamps > 0.35), 24)); }
   for (const [x, z] of [[-3.4, GATE_Z + 4], [4, GATE_Z + 5.5]] as const) out.push(sq('lampb', x, z, 84, 202, 40, 200, g => paintLamp(g, timeOfDay().lamps > 0.35), 24));

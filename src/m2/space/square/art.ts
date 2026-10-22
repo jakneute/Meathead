@@ -11,7 +11,7 @@ import type { Light } from '../../../m1/game/render/lighting';
 import { CANVAS_WIDTH } from '../../../m1/constants';
 import { SECTIONS, GY } from '../geometry';
 import { X, Y, PIT, WALL, DOORS_X, SOLIDS, LEDGES, LAMPS, SPEAKERS } from './layout';
-import { type Ctx, INK, box, checker, mix, poly, still, inView, viewOf, board, slab, ramp6, lit, chromePole, starburst, ball, bandedGradient, CHROME, PINK, TEAL, ORANGE, LIP, glassOf, timeOfDay } from './paint';
+import { type Ctx, INK, box, checker, mix, poly, still, inView, viewOf, board, slab, ramp6, lit, chromePole, starburst, ball, bandedGradient, CHROME, PINK, TEAL, ORANGE, LIP, glassOf, timeOfDay, snapPx } from './paint';
 import { lettering } from './lettering';
 import { drawSky, drawClouds, drawBlimp, drawFarHills, drawFarSkyline, drawGiantAtom, drawNeedle, horizonY } from './sky';
 import { drawGoingBack, drawPlayPlane, drawPitDressing, type Ground } from './ground';
@@ -92,32 +92,118 @@ const gags = (c: Ctx2, state: GameState) => {
   drawBigSign(c, state, 'plaza', X(8440), 200, 'THE ATOM PLAZA', 'THE FUTURE IS SPLITTING!', undefined, undefined, true, 'chrome2');
 };
 
-/** The wall across the street (too tall to jump), a mural of tomorrow on it: a family in a flying car waving, over a
- *  city of domes, the sun; its top a chrome coping, lit (stand on it). */
+/** The wall across the street (too tall to jump): a stucco slab between two fluted pilasters, a chrome coping on top
+ *  (lit: he stands on it), a pink trim band under it, studded, two little hooded lamps over the mural; the mural of
+ *  tomorrow framed in chrome (the sky banded, painted stars, the sun and its rays, clouds, a city of domes, a needle, a
+ *  monorail running through, the family in their flying car waving, its jet, speed lines); under it the name on an
+ *  enamel plaque, riveted, rust weeping off it; grime up the foot, a chrome kickplate. Everything on it inside its face:
+ *  the mural clipped to its frame, nothing past the wall's ends or over its top. */
 const paintWall = (g: Ctx2) => {
-  const w = WALL.w, h = WALL.h, R = ramp6('#7DD3FC');
-  box(g, -2, -h - 2, w + 4, h + 2, INK);
-  // (the mural's sky, banded; the sun; the city of domes)
-  bandedGradient(g, 0, -h + 8, w, 140, ['#2A6ED8', '#4A9AEA', '#86C8F2', '#FCE6B8'], 7, 2);
-  box(g, 0, -h + 148, w, h - 148, R[2]);
-  g.fillStyle = '#FDE047'; g.beginPath(); g.arc(w - 22, -h + 40, 14, 0, Math.PI * 2); g.fill(); g.fillStyle = '#FEF9C3'; g.beginPath(); g.arc(w - 25, -h + 37, 7, 0, Math.PI * 2); g.fill();
-  for (let k = 0; k < 4; k++) { g.fillStyle = ['#9470C4', '#22BCAC', '#E8659E', '#6E46A2'][k]; g.beginPath(); g.arc(12 + k * 26, -h + 148, 14 + (k % 2) * 6, Math.PI, 0); g.fill(); }
-  box(g, 60, -h + 100, 4, 48, '#6E46A2'); g.fillStyle = '#E8659E'; g.beginPath(); g.ellipse(62, -h + 100, 14, 4, 0, 0, Math.PI * 2); g.fill();
-  // (the flying car: red, fins, a bubble, four heads waving, speed lines behind)
-  const cx = w / 2, cy = -h + 104;
-  g.fillStyle = INK; g.beginPath(); g.ellipse(cx, cy + 6, 42, 15, 0, 0, Math.PI * 2); g.fill();
-  g.fillStyle = '#DC2626'; g.beginPath(); g.ellipse(cx, cy + 6, 40, 13, 0, 0, Math.PI * 2); g.fill();
-  g.fillStyle = '#F87171'; g.beginPath(); g.ellipse(cx - 4, cy + 2, 32, 6, 0, 0, Math.PI * 2); g.fill();
-  poly(g, [[cx - 40, cy + 4], [cx - 52, cy - 14], [cx - 28, cy + 2]], '#B91C1C');
-  for (let k = 0; k < 4; k++) { g.fillStyle = ['#F0C8A2', '#8A5A36', '#E4C0A8', '#55331C'][k]; g.beginPath(); g.arc(cx - 22 + k * 14, cy - 8, 6, 0, Math.PI * 2); g.fill(); box(g, cx - 24 + k * 14, cy - 8, 1, 1, INK); box(g, cx - 21 + k * 14, cy - 8, 1, 1, INK); }
-  box(g, cx + 22, cy - 22, 2, 10, '#F0C8A2');
-  g.fillStyle = 'rgba(200,236,255,0.45)'; g.beginPath(); g.ellipse(cx, cy - 6, 34, 12, 0, Math.PI, 0); g.fill();
-  for (let k = 0; k < 3; k++) box(g, 2, cy + k * 6, 20, 2, '#F8FAFC');
-  // (the words, painted on in the mural's own hand)
-  for (const [s, y] of [['THE WALL', 168], ['OF', 186], ['TOMORROW', 204]] as const) lettering(g, s, w / 2, -h + y, 'enamel', '#F8FAFC', '#1E3A8A');
-  // (grime up its foot, the coping on top: lit, he stands on it)
-  checker(g, 0, -24, w, 8, R[1], 0, 2); box(g, 0, -16, w, 16, R[1]);
-  box(g, -3, -h - 4, w + 6, 9, INK); box(g, -2, -h - 3, w + 4, 7, CHROME[4]); box(g, -2, -h - 3, w + 4, 2, LIP[3]); box(g, -2, -h + 3, w + 4, 1, CHROME[1]);
+  const w = WALL.w, h = WALL.h, R = ramp6('#7DD3FC'), on = lit();
+  // (the slab: inked round, stucco in bands, lit toward the top, a step darker toward the foot, a stipple)
+  box(g, -1, -h - 1, w + 2, h + 1, INK);
+  box(g, 0, -h, w, h, R[3]);
+  box(g, 0, -h, w, 40, mix(R[3], R[4], 0.35)); checker(g, 0, -h + 40, w, 2, mix(R[3], R[4], 0.35), 0, 2);
+  box(g, 0, -60, w, 60, R[2]); checker(g, 0, -62, w, 2, R[2], 0, 2);
+  for (let i = 0; i < 70; i++) box(g, 7 + ((i * 37) % (w - 14)), -h + 14 + ((i * 53) % (h - 30)), 1, 1, i % 3 ? R[2] : R[4]);
+  // (fluted pilasters up both ends: each flute lit one side, shaded the other; a chrome cap and base)
+  for (const px of [0, w - 7]) {
+    box(g, px, -h + 12, 7, h - 12, R[4]); box(g, px + 6, -h + 12, 1, h - 12, R[1]);
+    for (let k = 1; k < 6; k += 2) { box(g, px + k, -h + 16, 1, h - 34, R[2]); box(g, px + k + 1, -h + 16, 1, h - 34, R[5]); }
+    box(g, px, -h + 12, 7, 3, CHROME[4]); box(g, px, -h + 12, 7, 1, CHROME[6]);
+    box(g, px, -18, 7, 4, CHROME[3]); box(g, px, -18, 7, 1, CHROME[5]);
+  }
+  // The coping (he stands on it: lit along its top, flush with the wall's ends) and the trim band under it, studded
+  box(g, 0, -h, w, 7, CHROME[4]); box(g, 0, -h, w, 2, LIP[3]); box(g, 0, -h + 2, w, 1, LIP[2]); box(g, 0, -h + 6, w, 1, CHROME[1]);
+  for (let x = 6; x < w - 4; x += 12) box(g, x, -h + 4, 2, 1, CHROME[2]);
+  box(g, 0, -h + 7, w, 6, PINK[3]); box(g, 0, -h + 7, w, 1, PINK[5]); box(g, 0, -h + 12, w, 1, PINK[1]);
+  for (let x = 4; x < w - 2; x += 8) box(g, x, -h + 9, 2, 2, PINK[5]);
+  // The mural, in its chrome frame (everything in it clipped to it)
+  const mx = 10, my = -h + 22, mw = w - 20, mh = 112;
+  box(g, mx - 3, my - 3, mw + 6, mh + 6, INK);
+  box(g, mx - 2, my - 2, mw + 4, mh + 4, CHROME[3]); box(g, mx - 2, my - 2, mw + 4, 1, CHROME[6]); box(g, mx - 2, my - 2, 1, mh + 4, CHROME[5]);
+  box(g, mx + mw + 1, my - 2, 1, mh + 4, CHROME[1]); box(g, mx - 2, my + mh + 1, mw + 4, 1, CHROME[1]);
+  box(g, mx - 1, my - 1, mw + 2, mh + 2, INK);
+  g.save(); g.beginPath(); g.rect(mx, my, mw, mh); g.clip();
+  // (the sky, banded and dithered; a few painted stars still up in its top)
+  bandedGradient(g, mx, my, mw, mh, ['#1E4FB8', '#2A6ED8', '#4A9AEA', '#86C8F2', '#C8E6F6', '#FCE6B8'], 8, 2);
+  for (const [sx0, sy0] of [[6, 6], [22, 12], [40, 4], [58, 14], [14, 22]] as const) { box(g, mx + sx0, my + sy0, 1, 1, '#FFFFFF'); box(g, mx + sx0 - 1, my + sy0 + 3, 3, 1, '#C8E6F6'); }
+  // (the sun: stepped, rays round it in two lengths)
+  const sx = mx + mw - 16, sy = my + 22;
+  g.strokeStyle = '#FDE68A'; g.lineWidth = 2;
+  for (let k = 0; k < 12; k++) { const a = (k * Math.PI) / 6, l = k % 2 ? 15 : 20; g.beginPath(); g.moveTo(sx + Math.cos(a) * 11, sy + Math.sin(a) * 11); g.lineTo(sx + Math.cos(a) * l, sy + Math.sin(a) * l); g.stroke(); }
+  g.fillStyle = '#F59E0B'; g.beginPath(); g.arc(sx, sy, 10, 0, Math.PI * 2); g.fill();
+  g.fillStyle = '#FDE047'; g.beginPath(); g.arc(sx - 1, sy - 1, 8, 0, Math.PI * 2); g.fill();
+  g.fillStyle = '#FEF9C3'; g.beginPath(); g.arc(sx - 3, sy - 3, 4, 0, Math.PI * 2); g.fill();
+  // (puffy painted clouds, lit tops)
+  for (const [cx0, cy0, cw] of [[mx + 4, my + 40, 22], [mx + 44, my + 50, 18]] as const) {
+    g.fillStyle = '#C8E6F6'; g.beginPath(); g.ellipse(cx0 + cw / 2, cy0 + 2, cw / 2, 4, 0, 0, Math.PI * 2); g.fill();
+    g.fillStyle = '#FFFFFF'; g.beginPath(); g.ellipse(cx0 + cw / 2 - 2, cy0, cw / 2 - 3, 3, 0, 0, Math.PI * 2); g.fill();
+    g.beginPath(); g.arc(cx0 + cw / 2 - 3, cy0 - 2, 4, 0, Math.PI * 2); g.fill();
+  }
+  // (the city along its foot: a hazed back row of domes, a needle up through them, a monorail on its pylons with a
+  // train on it, the front row of domes in color with lit windows, a strip of lawn)
+  const gy = my + mh - 16;
+  g.fillStyle = '#9CB8DC'; for (let k = 0; k < 5; k++) { g.beginPath(); g.arc(mx + 4 + k * 20, gy - 6, 10, Math.PI, 0); g.fill(); }
+  box(g, mx + 52, gy - 58, 3, 52, '#6E46A2'); box(g, mx + 52, gy - 58, 1, 52, '#9470C4');
+  g.fillStyle = INK; g.beginPath(); g.ellipse(mx + 53, gy - 58, 13, 4, 0, 0, Math.PI * 2); g.fill();
+  g.fillStyle = '#E8659E'; g.beginPath(); g.ellipse(mx + 53, gy - 58, 12, 3, 0, 0, Math.PI * 2); g.fill(); box(g, mx + 45, gy - 60, 8, 1, '#FCD0E2');
+  box(g, mx + 52, gy - 66, 2, 6, '#6E46A2');
+  box(g, mx, gy - 26, mw, 3, '#E2E8F0'); box(g, mx, gy - 23, mw, 1, '#64748B');
+  for (let x = mx + 12; x < mx + mw; x += 28) box(g, x, gy - 23, 2, 23, '#94A3B8');
+  box(g, mx + 6, gy - 32, 22, 6, '#F8FAFC'); box(g, mx + 6, gy - 32, 22, 1, '#FFFFFF'); for (let k = 0; k < 4; k++) box(g, mx + 8 + k * 5, gy - 30, 3, 2, '#0EA5E9');
+  for (let k = 0; k < 4; k++) {
+    const dx = mx + 8 + k * 22, r = 9 + (k % 2) * 4, col = ['#9470C4', '#22BCAC', '#E8659E', '#6E46A2'][k];
+    g.fillStyle = INK; g.beginPath(); g.arc(dx, gy, r + 1, Math.PI, 0); g.fill();
+    g.fillStyle = col; g.beginPath(); g.arc(dx, gy, r, Math.PI, 0); g.fill();
+    g.fillStyle = mix(col, '#FFFFFF', 0.4); g.beginPath(); g.arc(dx - r * 0.3, gy - r * 0.3, r * 0.4, Math.PI, 0); g.fill();
+    for (let j = -1; j <= 1; j++) box(g, dx + j * 4 - 1, gy - 4, 2, 2, on ? '#FFE8A0' : '#1E3A8A');
+  }
+  box(g, mx, gy, mw, 16, '#3A6A3A'); box(g, mx, gy, mw, 2, '#5EB86A'); checker(g, mx, gy + 2, mw, 2, '#5EB86A', 0, 2);
+  // (the flying car: speed lines behind, its jet, a fin, the body red in bands with a chrome strake, four heads waving
+  // (Dad's arm up), a bubble top with a glint)
+  const cx = mx + mw / 2 + 4, cy = my + 66;
+  for (let k = 0; k < 3; k++) box(g, mx, cy - 4 + k * 5, 18 - k * 4, 2, '#F8FAFC');
+  g.fillStyle = '#FB9440'; g.beginPath(); g.moveTo(cx - 32, cy + 2); g.lineTo(cx - 42, cy + 6); g.lineTo(cx - 32, cy + 9); g.fill();
+  g.fillStyle = '#FDE047'; g.beginPath(); g.moveTo(cx - 32, cy + 4); g.lineTo(cx - 38, cy + 6); g.lineTo(cx - 32, cy + 7); g.fill();
+  poly(g, [[cx - 30, cy + 2], [cx - 38, cy - 12], [cx - 33, cy - 12], [cx - 22, cy + 1]], INK);
+  poly(g, [[cx - 29, cy + 1], [cx - 36, cy - 11], [cx - 33, cy - 11], [cx - 23, cy + 1]], '#B91C1C');
+  g.fillStyle = INK; g.beginPath(); g.ellipse(cx, cy + 5, 33, 11, 0, 0, Math.PI * 2); g.fill();
+  g.fillStyle = '#991B1B'; g.beginPath(); g.ellipse(cx, cy + 5, 32, 10, 0, 0, Math.PI * 2); g.fill();
+  g.fillStyle = '#DC2626'; g.beginPath(); g.ellipse(cx, cy + 3, 31, 8, 0, 0, Math.PI * 2); g.fill();
+  g.fillStyle = '#F87171'; g.beginPath(); g.ellipse(cx - 4, cy + 1, 24, 4, 0, 0, Math.PI * 2); g.fill();
+  box(g, cx - 28, cy + 6, 56, 1, '#E2E8F0');
+  for (let k = 0; k < 4; k++) {
+    const hx = cx - 15 + k * 10;
+    box(g, hx - 3, cy - 3, 6, 4, ['#F472B6', '#38BDF8', '#FDE047', '#34D399'][k]);
+    g.fillStyle = INK; g.beginPath(); g.arc(hx, cy - 7, 4.5, 0, Math.PI * 2); g.fill();
+    g.fillStyle = ['#F0C8A2', '#8A5A36', '#E4C0A8', '#55331C'][k]; g.beginPath(); g.arc(hx, cy - 7, 3.5, 0, Math.PI * 2); g.fill();
+    box(g, hx - 2, cy - 8, 1, 1, INK); box(g, hx + 1, cy - 8, 1, 1, INK);
+  }
+  box(g, cx + 16, cy - 20, 2, 9, '#F0C8A2'); box(g, cx + 15, cy - 22, 4, 3, '#F0C8A2');
+  g.fillStyle = 'rgba(200,236,255,0.4)'; g.beginPath(); g.ellipse(cx, cy - 3, 24, 11, 0, Math.PI, 0); g.fill();
+  box(g, cx - 12, cy - 12, 6, 1, 'rgba(255,255,255,0.8)');
+  g.restore();
+  // (the lamps over it: hooded, on short chrome arms off the trim band, well inside the wall's ends; lit after dark,
+  // their light laid down the mural's top in dithered bands)
+  for (const lx of [24, w - 30]) {
+    box(g, lx + 2, -h + 13, 2, 4, CHROME[3]);
+    box(g, lx - 1, -h + 16, 8, 4, INK); box(g, lx, -h + 16, 6, 3, CHROME[4]); box(g, lx, -h + 16, 6, 1, CHROME[6]);
+    box(g, lx + 1, -h + 19, 4, 1, on ? '#FFF3B0' : CHROME[1]);
+    if (on) { checker(g, lx - 4, my, 14, 6, 'rgba(255,240,180,0.55)', 0, 2); checker(g, lx - 7, my + 6, 20, 8, 'rgba(255,240,180,0.35)', 1, 2); }
+  }
+  // The plaque: enamel, navy, a chrome bezel, four rivets (rust weeping off the lower two), the name on it
+  const py = my + mh + 8, ph = 58;
+  box(g, 9, py - 1, w - 18, ph + 2, INK);
+  box(g, 10, py, w - 20, ph, CHROME[3]); box(g, 10, py, w - 20, 1, CHROME[6]); box(g, 10, py + ph - 1, w - 20, 1, CHROME[1]);
+  box(g, 12, py + 2, w - 24, ph - 4, '#1E3A8A'); box(g, 12, py + 2, w - 24, 2, '#3B5BB0'); box(g, 12, py + ph - 4, w - 24, 2, '#14285E');
+  for (const [rx, ry] of [[14, py + 4], [w - 16, py + 4], [14, py + ph - 6], [w - 16, py + ph - 6]] as const) { box(g, rx, ry, 2, 2, CHROME[5]); box(g, rx + 1, ry + 1, 1, 1, CHROME[1]); }
+  for (const [s, y] of [['THE WALL', 11], ['OF', 29], ['TOMORROW', 47]] as const) lettering(g, s, w / 2, py + y, 'enamel', '#F8FAFC', '#14285E');
+  for (const rx of [14, w - 16]) for (let y = 1; y < 9; y += 2) box(g, rx + ((y >> 1) & 1), py + ph + y, 1, 2, y < 6 ? '#8A5A3A' : R[2]);
+  // (grime up the foot, the kickplate: chrome, bolted)
+  checker(g, 7, -26, w - 14, 8, R[1], 0, 2); box(g, 7, -18, w - 14, 4, R[1]);
+  box(g, 0, -14, w, 14, CHROME[2]); box(g, 0, -14, w, 1, CHROME[5]); box(g, 0, -1, w, 1, CHROME[0]);
+  for (let x = 4; x < w - 2; x += 12) { box(g, x, -10, 2, 2, CHROME[4]); box(g, x, -5, 2, 2, CHROME[4]); }
 };
 
 /** The solids (the rocket trash can, the planter) and the ledges (the kiosk dome, the station steps, the deck, the
@@ -212,7 +298,7 @@ const doors = (c: Ctx2, state: GameState) => {
 };
 
 /** `mid`: what goes on the walk, in front of the shops but behind the furniture (the track, the gear). */
-export const drawSquareBack = (c: Ctx2, state: GameState, mid?: () => void) => {
+export const drawSquareBack = (c: Ctx2, state: GameState, mid?: () => void) => snapPx(c, () => {
   const v = viewOf(state);
   drawGoingBack(c, v, GROUND);
   drawSides(c, v, BLOCKS);
@@ -222,12 +308,12 @@ export const drawSquareBack = (c: Ctx2, state: GameState, mid?: () => void) => {
   drawPlayPlane(c, v, GROUND);
   drawPitDressing(c, v, GROUND);
   mid?.();
-  if (inView(state, X(WALL.x) - 60, X(WALL.x + WALL.w) + 60)) still(c, 'spc-wall', X(WALL.x), GY, -10, -WALL.h - 10, WALL.w + 20, WALL.h + 12, paintWall);
+  if (inView(state, X(WALL.x) - 60, X(WALL.x + WALL.w) + 60)) still(c, 'spc-wall', X(WALL.x), GY, -4, -WALL.h - 4, WALL.w + 8, WALL.h + 6, paintWall);
   things(c, state);
   gags(c, state);
   for (const rx of LAMPS) if (inView(state, X(rx) - 50, X(rx) + 60)) drawLamp(c, X(rx), GY, state.frame);
   void mix; void timeOfDay;
-};
+});
 
 export const drawSpeakers = (c: Ctx2, state: GameState, talking: boolean) => {
   for (const [rx, h] of SPEAKERS) if (inView(state, X(rx) - 40, X(rx) + 40)) drawSpeaker(c, X(rx), GY, h, talking, state.frame);

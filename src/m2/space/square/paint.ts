@@ -54,6 +54,15 @@ export const glassOf = () => {
     : [hourMix('#10203A', '#2A1A2E', '#0A0C1A', tod), hourMix('#1E3E66', '#4A2E4A', '#141A30', tod), hourMix('#3468A0', '#7A4E66', '#22304A', tod), hourMix('#5E9ACC', '#B07A7A', '#34466A', tod), hourMix('#A8D4F2', '#E6B094', '#5A6C90', tod), '#FFFFFF'];
 };
 export const lit = () => timeOfDay().lamps > 0.35;
+/** Draws `fn` with the world's offset snapped to whole device pixels (the scale kept): the scene's still art and its
+ *  ground land on the pixel grid while the camera's between pixels, so a stamp isn't blended across two pixels (the
+ *  bent floor, resampled pixel for pixel from it, picked one or the other: its 1 px joints blinked as it scrolled). */
+export const snapPx = (c: Ctx, fn: () => void) => {
+  const m = c.getTransform();
+  if (m.b !== 0 || m.c !== 0) { fn(); return; }
+  c.save(); c.setTransform(m.a, 0, 0, m.d, Math.round(m.e), Math.round(m.f));
+  try { fn(); } finally { c.restore(); }
+};
 
 // ---------------------------------------------------------------------------------------------------------------
 // Stills, the view
