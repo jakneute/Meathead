@@ -47,6 +47,9 @@ const listeners = new Set<() => void>();
 export const goreBag = () => gore;
 export const goreSprays = () => gore / SPRAY;
 export const onGore = (f: () => void) => { listeners.add(f); return () => { listeners.delete(f); }; };
+/** How much more than its due an enemy puts in the bag (a stage can set `goreMul` on it: Tucker's critters, fewer of
+ *  them now, each worth more, so the weakness fills as fast as it did). */
+const bagMul = (e: Enemy) => (e as Enemy & { goreMul?: number }).goreMul ?? 1;
 const setGore = (v: number) => { const n = Math.max(0, Math.min(SPRAY * MAX_SPRAYS, v)); if (n !== gore) { gore = n; listeners.forEach(f => f()); } };
 /** (for tests) */
 export const setGoreBag = (v: number) => setGore(v);
@@ -180,7 +183,7 @@ const bleed = (ctx: FrameContext, e: Enemy, near: number, mouth: { x: number; y:
   if (dmg <= 0) return;
   e.health -= dmg; e.hitFlash = 3;
   fx.spawnDamageNumber(e.pos, dmg);
-  if (!noBagFrom.has(e)) setGore(gore + dmg * BLEED.bag);
+  if (!noBagFrom.has(e)) setGore(gore + dmg * BLEED.bag * bagMul(e));
   playSound('glug', 0.6, -3);
   if (bleedRobot) playSound('clink', 0.4, 4); else playSound('splat', 0.35, 2);
   // (a spurt out of the hole, some of it going down him)
@@ -283,7 +286,7 @@ const swallow = (ctx: FrameContext, e: Enemy) => {
 const grind = (ctx: FrameContext, s: Swallow) => {
   const { state, fx } = ctx;
   const pl = state.player, mouth = muzzlePoint(pl, 'SOUL_SUCKER');
-  setGore(gore + poiseMax(s.e));
+  setGore(gore + poiseMax(s.e) * bagMul(s.e));
   s.e.health = 0;
   // (cartoon kills: through the grinder in a puff of smoke, nothing out the intake)
   if (state.cartoonKills) {

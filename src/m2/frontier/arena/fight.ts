@@ -90,10 +90,14 @@ const RUN_FIRE: [number, number] = [26, 46], RUN_ERR = 90;
 /** The noises: how far off he hears each (px of error either way). */
 const ERR = { jump: 40, land: 30, step: 70, shot: 16, hit: 0 };
 /** The stampede after each bang: how many (more later), how soon the first comes, the gaps, how many fly. */
-const CRITTERS: [number, number] = [5, 8], FIRST_IN = 22, GAP: [number, number] = [6, 20], FLY_SHARE = 0.3;
+// (toned down (the user's): still stampedes, a touch smaller and looser, with lulls between them (LULL))
+const CRITTERS: [number, number] = [4, 7], FIRST_IN = 22, GAP: [number, number] = [9, 24], FLY_SHARE = 0.3;
+/** A quiet spell after a stampede: a shot in it sends nothing running (frames from the last one's start, and while any are
+ *  still coming or about). */
+const LULL = 330;
 /** The most critters about at once (the user's: a lot, but limited; and the game slowed with tons of them), and the most
  *  of their bodies left lying (the oldest cleared away). */
-const MAX_CRITTERS = 10, MAX_CORPSES = 6;
+const MAX_CRITTERS = 8, MAX_CORPSES = 6;
 /** The bees: their speed, the sting (before M2's x0.65), how often, then off a while; a second swarm below this health. */
 const BEE_V: [number, number] = [1.5, 2.3], STING = 3, STING_GAP = 55, BEE_OFF = 50, SECOND_SWARM = 0.4;
 /** The weakness: how many globs of the spray on him make him showered; the lions' wait (frames after the shower), their
@@ -145,7 +149,7 @@ export interface Fight {
   wasGrounded: boolean; pShots: number; stepT: number;
   shots: Shot[]; smoke: { x: number; y: number; t: number }[];
   // ---- the critters coming, the rustle where they're coming from
-  queue: Queued[]; rustle: { x: number; t: number } | null; stampedes: number;
+  queue: Queued[]; rustle: { x: number; t: number } | null; stampedes: number; lastStampede?: number;
   // ---- the bees
   swarms: Swarm[];
   // ---- the weakness: the blood on him, how much of the spray's landed; the cats; how many times they've had him
@@ -489,6 +493,9 @@ const tickSmoke = (f: Fight) => { for (const s of f.smoke) { s.t++; s.y -= 0.3; 
 
 // ---- the stampedes
 const stampede = (state: GameState, f: Fight) => {
+  // (the lull: one running, or one just gone by, and the shot's left alone)
+  if (f.queue.length || f.t - (f.lastStampede ?? -9999) < LULL) return;
+  f.lastStampede = f.t;
   const k = phaseK(f), n = Math.round(lerp(CRITTERS, k)) + (Math.random() < 0.5 ? 1 : 0);
   // (they come from one end, the view's edge, and run from the bang across it: all of them one way, and a stampede
   // that comes while the last is still running goes the same way (the user's: never two ways at once))
@@ -531,6 +538,8 @@ const tickCritters = (ctx: FrameContext, f: Fight) => {
     e.facing = q.dir; e.aiX = q.sp; e.aiY = q.y - e.height; e.variant = Math.floor(Math.random() * 7); e.seen = true; e.aiState = 'run';
     // (they give nothing back (the user's): no heal or ammo off a beatdown or a shakedown; no drops either, see tickFight)
     e.noHeal = true;
+    // (fewer of them now (toned down): each fills the soul sucker's bag that much more, so the weakness comes as soon)
+    (e as typeof e & { goreMul?: number }).goreMul = 1.8;
     // (they run straight through Tucker and each other, harmless to him: never shoved about by anybody (the playtest: they
     // got stuck on him))
     e.noCrowd = true;
