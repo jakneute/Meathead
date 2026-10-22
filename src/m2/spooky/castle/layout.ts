@@ -51,7 +51,8 @@ export const LEDGES: [number, number, number, LedgeLook][] = [
   // the top gallery out onto the third floor (the bedroom)
   [LIB + 180, GY - 130, 170, 'shelf'], [LIB + 400, GY - 250, 170, 'shelf'], [LIB + 660, GY - 340, 520, 'balcony'],
   [LIB + 1240, GY - 230, 170, 'shelf'], [LIB + 1460, GY - 120, 170, 'shelf'], [LIB + 1200, GY - 450, 220, 'shelf'],
-  [LIB + 200, GY - 640, 520, 'balcony'], [LIB + 760, GY - 820, 540, 'balcony'], [LIB + 1240, GY - 1000, 560, 'balcony'],
+  // (the second gallery reaches back over the ladder up to it: its top comes out onto the gallery, not beside it)
+  [LIB + 200, GY - 640, 520, 'balcony'], [LIB + 680, GY - 820, 620, 'balcony'], [LIB + 1240, GY - 1000, 560, 'balcony'],
   // the bed's canopy (bounce up onto it)
   [X(7490), GY - 370, 620, 'canopy'],
   // the nursery's toy shelves
