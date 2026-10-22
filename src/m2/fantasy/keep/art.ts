@@ -35,7 +35,7 @@
 
 import type { GameState } from '../../../m1/game/core/state';
 import type { Light } from '../../../m1/game/render/lighting';
-import { CANVAS_WIDTH } from '../../../m1/constants';
+import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { timeOfDay } from '../../timeOfDay';
 import { bendFloor } from '../../intro/art/kit';
 import { tilePattern } from '../../../m1/game/render/pixelArt';
@@ -112,6 +112,54 @@ const floorBack = (c: Ctx, v: View, ra: number, rb: number, d1: number, kind: Fl
     box(c, p, Math.round(yy) - 1, q - p, 1, S[5]);
     for (let x = Math.floor(a / 23) * 23; x < b; x += 23) { const [sx, sy] = at(v.eye, x, y, d1 + 0.012); box(c, sx, sy - 3 - hash(x) * 3, 10 + hash(x * 2) * 10, 3, S[4]); }
   }
+};
+
+/** A wall's return (its side going back from the play plane where it steps forward of what's behind it): kit.ts's
+ *  sideBack (stepped darker going back, inked along its far edge, the lit corner) with the same ashlar on it: courses
+ *  running back to the eye, their joints staggered and closing up toward the back; `door` [from, to] (world heights)
+ *  cuts a doorway's mouth into its front (`deep` its depth). Only drawn where the eye's past the edge (so it opens up
+ *  as the camera moves away and is gone looking straight at it); only the courses on screen are drawn (no per-frame
+ *  pixel work: a few polygons and two stroked paths). `e` screen x of the edge, heights world (up from the ground). */
+const wallSide = (c: Ctx, v: View, e: number, side: 1 | -1, top: number, bot: number, d1: number, door?: [number, number, number]) => {
+  if ((v.eye.x - e) * side <= 1) return;
+  const S = R(PALE);
+  // (only the part on screen: what's at d1 squeezes toward the eye, so the band is worked out there)
+  const sy0 = v.cam.y - 30, sy1 = v.cam.y + CANVAS_HEIGHT + 30;
+  const hTop = Math.min(top, GY - (v.eye.y + (sy0 - v.eye.y) / d1)), hBot = Math.max(bot, GY - (v.eye.y + (sy1 - v.eye.y) / d1));
+  if (hTop <= hBot) return;
+  sideBack(c, v.eye, e, side, Y(hTop), Y(hBot), 1, d1, S, 4);
+  const [x0] = at(v.eye, e, 0, 1), [x1] = at(v.eye, e, 0, d1), span = Math.abs(x1 - x0);
+  if (span < 3) return;
+  // (the courses: a mortar line and a lit line under it; the joints, staggered, a brick ~16 px of face apart)
+  const n = Math.max(1, Math.round(span / 16)), CH = 14;
+  const joints = new Path2D(), lights = new Path2D(), mortar = new Path2D();
+  for (let h = Math.ceil(hBot / CH) * CH, r = Math.ceil(hBot / CH); h <= hTop; h += CH, r++) {
+    const [p0, q0] = at(v.eye, e, Y(h), 1), [p1, q1] = at(v.eye, e, Y(h), d1);
+    mortar.moveTo(p0, q0); mortar.lineTo(p1, q1);
+    lights.moveTo(p0, q0 + 1); lights.lineTo(p1, q1 + 1);
+    for (let k = 0; k < n; k++) {
+      const d = 1 - ((1 - d1) * (k + (r % 2 ? 0.5 : 0.15) + hash(r * 7.1 + k) * 0.2)) / n;
+      if (d <= d1) continue;
+      const [jx, jy] = at(v.eye, e, Y(h), d), [, jy2] = at(v.eye, e, Y(Math.min(hTop, h + CH)), d);
+      joints.moveTo(Math.round(jx) + 0.5, jy2); joints.lineTo(Math.round(jx) + 0.5, jy);
+    }
+  }
+  c.lineWidth = 1;
+  c.strokeStyle = S[0]; c.stroke(mortar); c.stroke(joints);
+  c.globalAlpha = 0.5; c.strokeStyle = S[3]; c.stroke(lights); c.globalAlpha = 1;
+  // (a doorway through it: its mouth at the front, dark inside, an arched head in steps, its jamb lit)
+  if (door) {
+    const [da, db, dd] = door, dh = db - da, pts: [number, number][] = [];
+    for (let i = 0; i <= 6; i++) { const t = i / 6, d = 1 - (1 - dd) * t, arch = Math.sin(t * Math.PI) * Math.min(30, dh * 0.2); pts.push(at(v.eye, e, Y(db - Math.min(30, dh * 0.2) + arch), d)); }
+    pts.push(at(v.eye, e, Y(da), dd), at(v.eye, e, Y(da), 1));
+    polyF(c, pts, INK);
+    polyF(c, pts.map(([px, py], i) => [px, py + (i < 7 ? 2 : 0)] as [number, number]), '#1E1830');
+    const [bx, by] = at(v.eye, e, Y(db), dd), [, by2] = at(v.eye, e, Y(da), dd);
+    box(c, Math.round(bx) - (side > 0 ? 0 : 1), by, 1, by2 - by, S[3]);
+  }
+  // (the corner: lit down its front edge)
+  const [cx, ct] = at(v.eye, e, Y(hTop), 1), [, cb] = at(v.eye, e, Y(hBot), 1);
+  box(c, Math.round(cx) - (side > 0 ? 0 : 2), ct, 2, cb - ct, S[5]);
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -643,9 +691,8 @@ const drawWalk = (c: Ctx, v: View) => {
  *  scaffolding. */
 const drawCurtain = (c: Ctx, v: View) => {
   if (!seen(v, X(WALL.a) - 100, X(WALL.b) + 100, 1, 60)) return;
-  const S = R(PALE);
-  // (the broken ends' thickness going back)
-  for (const [e, side] of [[X(BREACH.a), 1], [X(BREACH.b), -1]] as const) sideBack(c, v.eye, e, side, Y(WALL.top), GY, 1, 0.9, S, 4);
+  // (the broken ends' thickness going back, the pillar's sides between them)
+  for (const [e, side] of [[X(BREACH.a), 1], [X(BREACH.b), -1], [X(PILLAR.a), -1], [X(PILLAR.b), 1]] as const) wallSide(c, v, e, side, WALL.top, 0, 0.9);
   run(c, v, 1, 'curtA', WALL.a, BREACH.a, 0, WALL.top + 6, paintCurtain);
   run(c, v, 1, 'curtB', BREACH.b, WALL.b, 0, WALL.top + 6, paintCurtain);
   for (const rx of CURTAIN_SCONCES) if (onScreenV(v, X(rx) - 30, X(rx) + 30)) flame(c, X(rx), Y(150), v.f);
@@ -779,6 +826,20 @@ const drawTowerShell = (c: Ctx, v: View) => {
     still(c, `kp-shell-arch-${ra}`, side < 0 ? a : b, Y(base), -40, -4, 90, 30, g => { const S = R(PALE); for (let k = 0; k < 4; k++) { const x = side < 0 ? -30 + k * 20 : -50 + k * 20; box(g, x, 0, 19, 18, INK); box(g, x + 1, 1, 17, 16, S[4]); box(g, x + 1, 1, 17, 1, S[5]); } });
   }
 };
+/** The tower's own sides going back from the play plane (it stands forward of the walk's parapet on its left and of
+ *  the outside wall behind the steps down on its right), back to its inside's depth (drawn before the parapet and the
+ *  outside wall: they're nearer than its back part), the doorways in and out cut into their fronts. */
+const TOWER_UP = 1800;
+const drawTowerSides = (c: Ctx, v: View) => {
+  if (onScreenV(v, X(6250) - 400, X(6250) + 40)) wallSide(c, v, X(6250), -1, WALL.top + 200 + TOWER_UP, WALL.top, TOWER_D, [WALL.top, WALL.top + 200, 0.965]);
+  if (onScreenV(v, X(TOWER_WALL.b) - 40, X(TOWER_WALL.b) + 400)) wallSide(c, v, X(TOWER_WALL.b), 1, GALLERY.h + 190 + TOWER_UP, 0, TOWER_D, [GALLERY.h, GALLERY.h + 190, 0.965]);
+};
+/** The gatehouse block's ends (roof down to the passage's ceiling, back to its parapet) and the curtain wall's left end
+ *  (the walk's thickness, back to its parapet), where they stand forward of the yards. */
+const drawBlockEnds = (c: Ctx, v: View) => {
+  for (const [rx, side] of [[GATEHOUSE.a, -1], [GATEHOUSE.b, 1]] as const) if (onScreenV(v, X(rx) - 300, X(rx) + 300)) wallSide(c, v, X(rx), side, GATEHOUSE.roof, GATEHOUSE.ceil, PARA_D);
+  if (onScreenV(v, X(WALL.a) - 300, X(WALL.a) + 40)) wallSide(c, v, X(WALL.a), -1, WALL.top, 0, PARA_D);
+};
 /** The landings, the gallery, the tower's right wall (play plane, lit along their tops; on corbels). */
 const drawTowerPlay = (c: Ctx, v: View) => {
   if (!seen(v, X(LAND_C.a) - 100, X(TOWER_WALL.b) + 100, 1, 60)) return;
@@ -844,8 +905,8 @@ const GATE = { a: 8880, b: 9000, h: 160, top: 300 };
 const drawPosternGate = (c: Ctx, v: View) => {
   if (!seen(v, X(GATE.a) - 60, X(GATE.b) + 60, POST_D, 60)) return;
   const S = R(PALE);
-  sideBack(c, v.eye, X(GATE.a), -1, Y(GATE.top), GY, 1, POST_D, S, 3);
-  sideBack(c, v.eye, X(GATE.b), 1, Y(GATE.top), GY, 1, POST_D, S, 3);
+  wallSide(c, v, X(GATE.a), -1, GATE.top, 0, POST_D);
+  wallSide(c, v, X(GATE.b), 1, GATE.top, 0, POST_D);
   still(c, 'kp-postern', X(GATE.a), GY, -4, -GATE.top - 30, GATE.b - GATE.a + 8, GATE.top + 34, g => {
     const w = GATE.b - GATE.a, Ir = R(IRON), Tm = R(TIMBER);
     g.save(); g.beginPath(); g.rect(0, -GATE.top - 30, w, GATE.top + 30); g.moveTo(22, 0); g.lineTo(22, -GATE.h + 30); g.arc(w / 2, -GATE.h + 30, w / 2 - 22, Math.PI, 0, false); g.lineTo(w - 22, 0); g.closePath(); g.clip('evenodd');
@@ -937,10 +998,12 @@ export const drawKeepBack = (c: Ctx, state: GameState, piperX: number | null, ru
     floorBack(c, v, POST.a, POST.b + 120, POST_D, 'flag');
   }
   drawTowerInside(c, v);
+  drawTowerSides(c, v);
   drawWalk(c, v);
   drawTowerOut(c, v);
   drawGatehouse(c, v, state);
   drawProps(c, v);
+  drawBlockEnds(c, v);
   drawBarbican(c, v);
   drawPort(c, state, v, done, 'mid');
   // (the play plane: the ground, the gatehouse's block, the curtain wall, the hoardings, the tower's shell, landings and
