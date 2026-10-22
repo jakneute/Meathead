@@ -55,9 +55,10 @@ export const passageSide = (c: Ctx, eye: Eye, X: number, side: -1 | 1, p: Passag
   const ds = [1, 0.97, 0.94, 0.91, 0.885, WALL_D];
   for (let i = 0; i < ds.length - 1; i++) {
     const shade = mix(r[1], INK, i * 0.1);
-    quad(c, shade, pt(p.top, ds[i]), pt(p.top, ds[i + 1]), pt(p.H, ds[i + 1]), pt(p.H, ds[i]));
+    // (each band on to the back wall, the next over it: no antialiased hairline between them crawling as it scrolls)
+    quad(c, shade, pt(p.top, ds[i]), pt(p.top, WALL_D), pt(p.H, WALL_D), pt(p.H, ds[i]));
     // (below the lintel: only behind the passage)
-    const a = Math.min(ds[i], p.dp), b = ds[i + 1];
+    const a = Math.min(ds[i], p.dp), b = WALL_D;
     if (a > b) quad(c, shade, pt(p.H, a), pt(p.H, b), pt(GY, b), pt(GY, a));
   }
   if (courses) {

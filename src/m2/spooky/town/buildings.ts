@@ -180,9 +180,10 @@ const drawShop = (c: Ctx, v: View, s: Shop, i: number) => {
     const e = side > 0 ? xr : x0;
     const P = (y: number, d: number) => at(eye, e, y, d);
     const steps = [R[1], R[1], R[0]];
+    // (each step on to the back, the next over it: no antialiased hairline between steps crawling as it scrolls)
     for (let k = 0; k < 3; k++) {
-      const a = SHOP_D - ((SHOP_D - SHOP_BACK) * k) / 3, b = SHOP_D - ((SHOP_D - SHOP_BACK) * (k + 1)) / 3;
-      poly(c, [P(top, a), P(top, b), P(base, b), P(base, a)], steps[k]);
+      const a = SHOP_D - ((SHOP_D - SHOP_BACK) * k) / 3;
+      poly(c, [P(top, a), P(top, SHOP_BACK), P(base, SHOP_BACK), P(base, a)], steps[k]);
     }
     // (a window or two down the side, a drainpipe at the corner)
     for (const [dd, yy] of [[0.86, top + 50], [0.86, top + 130], [0.79, top + 50]] as const) {
@@ -198,8 +199,8 @@ const drawShop = (c: Ctx, v: View, s: Shop, i: number) => {
     const ridge = s.mansard ? top - gh : top - gh + 6, rx = s.mansard ? (side > 0 ? xr - 14 : x0 + 14) : cx, ex = e + side * 8;
     const Q = (x: number, y: number, d: number) => at(eye, x, y, d);
     for (let k = 0; k < 4; k++) {
-      const a = SHOP_D - ((SHOP_D - SHOP_BACK) * k) / 4, b = SHOP_D - ((SHOP_D - SHOP_BACK) * (k + 1)) / 4;
-      poly(c, [Q(ex, top + 2, a), Q(rx, ridge, a), Q(rx, ridge, b), Q(ex, top + 2, b)], S[[3, 2, 2, 1][k]]);
+      const a = SHOP_D - ((SHOP_D - SHOP_BACK) * k) / 4;
+      poly(c, [Q(ex, top + 2, a), Q(rx, ridge, a), Q(rx, ridge, SHOP_BACK), Q(ex, top + 2, SHOP_BACK)], S[[3, 2, 2, 1][k]]);
     }
     // (the courses of slate along it)
     c.strokeStyle = S[1]; c.lineWidth = 1; c.beginPath();
@@ -315,7 +316,7 @@ export const drawCastle = (c: Ctx, v: View) => {
   const S = STONE.map(col => farTint(col, 0.2, tod));
   if (v.eye.x < CL) {
     const P = (y: number, d: number) => at(v.eye, CL, y, d);
-    for (let k = 0; k < 4; k++) { const a = 1 - 0.05 * k, b = 1 - 0.05 * (k + 1); poly(c, [P(CB - CH - 31, a), P(CB - CH - 31, b), P(CB, b), P(CB, a)], S[[2, 2, 1, 1][k]]); }
+    for (let k = 0; k < 4; k++) { const a = 1 - 0.05 * k; poly(c, [P(CB - CH - 31, a), P(CB - CH - 31, 0.8), P(CB, 0.8), P(CB, a)], S[[2, 2, 1, 1][k]]); }
     c.strokeStyle = S[1]; c.lineWidth = 1; c.beginPath();
     for (let y = CB - CH; y < CB; y += 20) { const [p0, q0] = P(y, 1), [p1, q1] = P(y, 0.8); c.moveTo(p0, q0); c.lineTo(p1, q1); }
     c.stroke();

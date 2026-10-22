@@ -154,7 +154,8 @@ export const wallSide = (c: Ctx, eye: Eye, X: number, side: -1 | 1, top: number,
   if (side < 0 ? eye.x >= X : eye.x <= X) return;
   const r = rampOf(col);
   const ds = [1, 0.97, 0.94, 0.91, 0.885, WALL_D];
-  for (let i = 0; i < ds.length - 1; i++) quad(c, mix(r[1], INK, i * 0.1), at(eye, X, top, ds[i]), at(eye, X, top, ds[i + 1]), at(eye, X, GY, ds[i + 1]), at(eye, X, GY, ds[i]));
+  // (each band on to the back wall, the next over it: no antialiased hairline between them)
+  for (let i = 0; i < ds.length - 1; i++) quad(c, mix(r[1], INK, i * 0.1), at(eye, X, top, ds[i]), at(eye, X, top, WALL_D), at(eye, X, GY, WALL_D), at(eye, X, GY, ds[i]));
   if (courses) {
     // (block courses going back along it, every 16; the base dark)
     c.strokeStyle = mix(r[0], INK, 0.2); c.lineWidth = 1; c.beginPath();
@@ -170,8 +171,8 @@ export const ceiling = (c: Ctx, eye: Eye, L: number, R: number, cols: string[], 
   if (eye.y <= CEIL) return;
   const n = cols.length;
   for (let i = 0; i < n; i++) {
-    const d0 = 1 - (1 - WALL_D) * (i / n), d1 = 1 - (1 - WALL_D) * ((i + 1) / n);
-    quad(c, cols[i], at(eye, L, CEIL, d0), at(eye, R, CEIL, d0), at(eye, R, CEIL, d1), at(eye, L, CEIL, d1));
+    const d0 = 1 - (1 - WALL_D) * (i / n);
+    quad(c, cols[i], at(eye, L, CEIL, d0), at(eye, R, CEIL, d0), at(eye, R, CEIL, WALL_D), at(eye, L, CEIL, WALL_D));
   }
   const [s0, s1] = spanAt(eye, 1, 100);
   c.strokeStyle = beamCol; c.lineWidth = 1; c.beginPath();

@@ -34,6 +34,36 @@ const RAISED = RUNS.filter(r => r.y < GY);
 /** Where the path out to the park starts (paving creeping in from here on). */
 export const PATH_X = X(11380);
 
+/** The runs, the low ground first (what's going back is drawn in this order: the raised tops over the low ground). */
+const BY_HEIGHT = RUNS.slice().sort((p, q) => q.y - p.y);
+
+/**
+ * For something standing at depth d on ground at `foot`: clips away wherever a raised run (higher than its foot: the
+ * overlook, the rock) is in front of it, its block from d forward seen from the one eye (its front, its top going back
+ * to d and its sides: their outline, the hull of its corners). Without it a tree or a prop on the low ground behind
+ * the overlook's corner showed through its top. Leaves the clip on: call inside c.save()/c.restore().
+ */
+export const clipRaised = (c: Ctx, v: View, d: number, foot: number) => {
+  for (const r of RAISED) {
+    if (r.y >= foot - 1) continue;
+    const [pa, py] = at(v.eye, r.a, r.y, d), [pb] = at(v.eye, r.b, r.y, d);
+    if (Math.max(r.b, pb) < v.v0 - 40 || Math.min(r.a, pa) > v.v1 + 40) continue;
+    const BIG = v.bot + 2000;
+    const hull = convexHull([[r.a, r.y], [r.b, r.y], [pa, py], [pb, py], [r.a, BIG], [r.b, BIG], [pa, BIG], [pb, BIG]]);
+    c.beginPath(); c.rect(v.v0 - 4000, v.top - 4000, v.v1 - v.v0 + 8000, BIG - v.top + 8000);
+    hull.forEach(([x, y], i) => (i ? c.lineTo(x, y) : c.moveTo(x, y)));
+    c.closePath(); c.clip('evenodd');
+  }
+};
+const convexHull = (pts: [number, number][]): [number, number][] => {
+  const p = pts.slice().sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+  const cross = (o: [number, number], a: [number, number], b: [number, number]) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+  const lo: [number, number][] = [], hi: [number, number][] = [];
+  for (const q of p) { while (lo.length >= 2 && cross(lo[lo.length - 2], lo[lo.length - 1], q) <= 0) lo.pop(); lo.push(q); }
+  for (let i = p.length - 1; i >= 0; i--) { const q = p[i]; while (hi.length >= 2 && cross(hi[hi.length - 2], hi[hi.length - 1], q) <= 0) hi.pop(); hi.push(q); }
+  return lo.slice(0, -1).concat(hi.slice(0, -1));
+};
+
 /** What a run's top's made of. */
 const topCols = (r: Run) => (r.y === GY ? ['#3E4A1E', '#36401A', '#2E3616', '#262C12', '#1E2410'] : ['#4E5A3A', '#465034', '#3E462E', '#363C28', '#2E3222']);
 
@@ -109,8 +139,9 @@ export const drawGoingBack = (c: Ctx, v: View) => {
   // The gorge's floor: the river the falls come down into, from the pool at their foot out toward him (between its
   // walls: they're drawn after, in front of it)
   if (gorge && gorge.b > v.v0 - 400 && gorge.a < v.v1 + 400) gorgeRiver(c, v, gorge.a, gorge.b);
-  // The ground behind him, going back: bands, darker and hazier the further (bushes along the far edge, later)
-  for (const r of RUNS) {
+  // The ground behind him, going back: bands, darker and hazier the further (bushes along the far edge, later). The
+  // low ground first: a raised run's top (the overlook, the rock) is always nearer than low ground it overlaps on screen
+  for (const r of BY_HEIGHT) {
     if (r.b < v.v0 - 400 || r.a > v.v1 + 400 || eye.y > r.y - 2) continue;
     const cols = topCols(r), steps = 5;
     for (let i = 0; i < steps; i++) {
@@ -418,10 +449,24 @@ export const drawPlayPlane = (c: Ctx, v: View) => {
     if (p.b < v.v0 - 300 || p.a > v.v1 + 300) continue;
     if (p.ya === GY || FLOOR.some(([, b]) => Math.abs(b - p.a) < 1)) nearBank(c, v, p.a, 1);
     if (p.yb === GY || FLOOR.some(([a]) => Math.abs(a - p.b) < 1)) nearBank(c, v, p.b, -1);
-    // (mist rising out of it)
+    // (mist rising out of it: kept to the ravine's mouth, its sides going back to the eye above the line and fanned
+    // out with the floor below it, never a straight up-and-down cut across the ground)
     const tod = timeOfDay(), mist = mix(skyAt(0.9, tod), '#FFFFFF', 0.3);
     const [mr, mg, mb] = [1, 3, 5].map(i => parseInt(mist.slice(i, i + 2), 16));
-    c.save(); c.beginPath(); c.rect(p.a, v.top, p.b - p.a, v.bot - v.top); c.clip();
+    c.save(); c.beginPath();
+    {
+      const fa = p.ya === GY || FLOOR.some(([, b]) => Math.abs(b - p.a) < 1), fb = p.yb === GY || FLOOR.some(([a]) => Math.abs(a - p.b) < 1);
+      const ex = v.eye.x, fan = (e: number, y: number, on: boolean) => (on ? ex + (e - ex) * (1 + Math.max(0, y - GY) * BEND) : e);
+      const [ax, ay] = at(v.eye, p.a, p.ya, FAR), [bx, by] = at(v.eye, p.b, p.yb, FAR);
+      const ys: number[] = [];
+      for (let y = GY; y < v.bot; y += 20) ys.push(y);
+      ys.push(v.bot);
+      c.moveTo(ax, ay); c.lineTo(bx, by); c.lineTo(p.b, p.yb);
+      for (const y of ys) if (y > p.yb) c.lineTo(fan(p.b, y, fb), y);
+      for (let i = ys.length - 1; i >= 0; i--) if (ys[i] > p.ya) c.lineTo(fan(p.a, ys[i], fa), ys[i]);
+      c.lineTo(p.a, p.ya); c.lineTo(ax, ay); c.closePath();
+    }
+    c.clip();
     hazeBands(c, p.a, GY - 70, p.b - p.a, 90, mist, 0, 0.12, 5);
     for (let k = 0; k < (p.b - p.a) / 90; k++) {
       const mx = p.a + ((hash(p.a + k) * (p.b - p.a) + v.f * (0.2 + hash(k) * 0.2)) % (p.b - p.a + 200)) - 100, my = GY - 10 + hash(p.a + k * 2) * 120 - ((v.f * 0.1 + k * 40) % 60);
