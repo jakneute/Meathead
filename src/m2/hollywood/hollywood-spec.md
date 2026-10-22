@@ -235,3 +235,24 @@ before the stage's door. The walk-away is walkAway/stuntmanSteve.ts (his toy: th
   the signs snow-capped with icicles; the avalanche a churning wall (stepped tumbling billows, dithered bands, a shaded
   leading face, a car, a meter, the tree, plywood, a sign carried in it, powder blown on ahead, its shadow thrown
   forward and the ground jumping ahead of it).
+
+### 2026-10-21: encounter pass (the user: "some areas seem like they can be mindlessly cleared by walking forward and pressing fire")
+
+Existing kinds, ledges, solids and hazards only; about the same counts; scenes, the coaster's stop waves, the Ensemble
+Cast and Steve untouched. Nobody placed within a checkpoint's safe reach ahead of it (spawnSafe.ts SAFE_X 360).
+
+**The blvd (blvd/layout.ts ENEMIES: 23 before, 23 after)**
+
+- The palace: a Marilyn and a statue side by side on the street, the marquee free. Now the Marilyn's out front and the
+  statue's posed up on the marquee by the small ammo (still: it wakes only when he's up there with it).
+- The pirate "alone" stood 220 past THE WALK OF FAME's checkpoint (gone on a start there, the sinkhole stretch empty).
+  He's on the sinkhole's far bank now, waiting at wire 2's landing (shoot him from the wire; a charge off it goes into
+  the cutlass).
+- The mixed street was four hustlers in a row to shoot walking right, the last one 100 from THE ROAD WORK's checkpoint.
+  Now: the hero alone (the shield), a statue up on the awning with the health, then an Elvis and a Marilyn shoulder to
+  shoulder with a pirate behind them (charge them and they're flung into him: the one a charge can't take head on).
+- The tram's street: the Elvis is up on the far bus shelter (the way out of the tram's path is his: clear him off it);
+  the pirate stays in the street for the tram.
+- The queue plaza's five stood inside THRONES OF THE STARS' checkpoint's reach (most gone on a start there). Now past
+  it, in an order: a statue (on him from behind once he's by), a pirate (shoot him), a Marilyn and an Elvis side by
+  side (charge one into the other), a hero behind them (the bodies fly into him round his shield).

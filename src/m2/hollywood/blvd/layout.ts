@@ -8,11 +8,11 @@
 //   1720   STUNT WIRE 1, the teach: a harmless one over a planter (jump it or ride it; walk up to the harness and he
 //          takes hold; it runs the way he faces; up/down reel him in and out; jump to let go).
 //   2500   An Elvis, alone. The movie palace (GROWMAN'S CHINA-ISH THEATRE, plywood, sandbags behind): the handprints
-//          of nobodies; a Marilyn and a statue together; up a trash can onto its marquee for a small ammo.
-//   3500   CHECKPOINT. A pirate, alone (don't charge his cutlass).
-//   3880   STUNT WIRE 2, over the SINKHOLE in the star pavement (fall in and that's it).
-//   4600   A caped hero, alone (the shield). The mixed street: Elvis, Marilyn, a pirate; tip jars, an AS SEEN IN
-//          hydrant; a small health up on an awning.
+//          of nobodies; a Marilyn out front; up a trash can onto its marquee for a small ammo, a statue posed up there.
+//   3500   CHECKPOINT. STUNT WIRE 2, over the SINKHOLE in the star pavement (fall in and that's it): a pirate waiting
+//          at its landing (don't charge his cutlass: shoot him from the wire).
+//   4600   A caped hero, alone (the shield). A statue up on an awning with a small health. The mixed street: an Elvis
+//          and a Marilyn side by side, a pirate behind them (charge them into him); tip jars, an AS SEEN IN hydrant.
 //   6300   CHECKPOINT. STUNT WIRE 3, under fire: over the ROAD WORK trench, heroes throwing shields at him from the far
 //          side, one from the street (low: reel up over it) and one from up on a billboard's catwalk (high: pay out
 //          under it).
@@ -98,20 +98,26 @@ export type BlvdKind = 'm2:hw_marilyn' | 'm2:hw_elvis' | 'm2:hw_hero' | 'm2:hw_p
 export const ENEMIES: [BlvdKind, number, number][] = [
   // alone: a Marilyn, a statue
   ['m2:hw_marilyn', 1080, 0], ['m2:hw_statue', 1450, 0],
-  // an Elvis alone; the palace: a Marilyn and a statue
-  ['m2:hw_elvis', 2560, 0], ['m2:hw_marilyn', 3150, 0], ['m2:hw_statue', 3380, 0],
-  // a pirate alone
-  ['m2:hw_pirate', 3720, 0],
-  // a hero alone; the mixed street
-  ['m2:hw_hero', 4950, 0], ['m2:hw_elvis', 5300, 0], ['m2:hw_marilyn', 5650, 0], ['m2:hw_pirate', 5980, 0], ['m2:hw_statue', 6200, 0],
+  // an Elvis alone; the palace: a Marilyn out front of it, and a statue posed up on the marquee by the ammo (gold, still:
+  // part of the sign till he's up there with it)
+  ['m2:hw_elvis', 2560, 0], ['m2:hw_marilyn', 2850, 0], ['m2:hw_statue', 3080, 150],
+  // a pirate on the sinkhole's far bank, waiting at the wire's landing (the cutlass: shoot him off the wire, or reel up
+  // and drop in behind him; don't charge in off it)
+  ['m2:hw_pirate', 4430, 0],
+  // a hero alone (the shield); a statue up on the awning with the health; then an Elvis and a Marilyn shoulder to
+  // shoulder with a pirate at their backs (charge them: they're flung into him, whose cutlass a charge can't take)
+  ['m2:hw_hero', 4950, 0], ['m2:hw_statue', 5470, 120], ['m2:hw_elvis', 5660, 0], ['m2:hw_marilyn', 5720, 0], ['m2:hw_pirate', 5870, 0],
   // the trench, under fire: heroes on the far side, one on the ground, one up on the billboard's catwalk
   ['m2:hw_hero', 7450, 220], ['m2:hw_hero', 7310, 0],
   // the deck: a statue, a hero
   ['m2:hw_statue', 8350, DECK.h], ['m2:hw_hero', 8540, DECK.h],
-  // the tram's street
-  ['m2:hw_elvis', 9650, 0], ['m2:hw_pirate', 10000, 0],
-  // the queue plaza: the lot of them
-  ['m2:hw_marilyn', 10600, 0], ['m2:hw_statue', 10780, 0], ['m2:hw_hero', 10950, 0], ['m2:hw_elvis', 11050, 0], ['m2:hw_pirate', 10850, 0],
+  // the tram's street: an Elvis up on the far bus shelter (the way out of the tram's path is his: clear him off it), a
+  // pirate in the street (let the tram have him)
+  ['m2:hw_elvis', 9890, 120], ['m2:hw_pirate', 10000, 0],
+  // the queue plaza (past the checkpoint's reach): a statue (still: it's on him from behind once he's by), a pirate
+  // (shoot him), a Marilyn and an Elvis side by side (charge one into the other), a hero behind them (the bodies fly into
+  // him round his shield)
+  ['m2:hw_statue', 10800, 0], ['m2:hw_pirate', 10880, 0], ['m2:hw_marilyn', 10960, 0], ['m2:hw_elvis', 11010, 0], ['m2:hw_hero', 11120, 0],
 ];
 
 /** Lying about up the side routes (lean: small, each for going out of the way). */
