@@ -5,6 +5,7 @@
     { "in": "A UN SUMMIT", "say": "A YOO ENN SUMMIT" },
     { "in": "FROM THE U.N.", "say": "FROM THE YOO ENN" },
     { "in": "TAKE A BOW", "say": "TAKE A BOUGH" },
+    { "in": "RELOCATING", "say": "REE LOH KAYTING" },
     { "in": "CABOOSE", "say": "KUH BOOSE", "word": true },
     { "in": "CABOOSES", "say": "KUH BOOSES", "word": true },
     { "in": "MY RESUME", "say": "MY REZ OO MAY" },
