@@ -1447,7 +1447,8 @@ const drawGored = (c: Ctx, state: GameState, f: Fight, g: Gore) => {
       return;
     case 'carry': {
       const h = hornHip(g);
-      drawBeastAt(c, 'rhino', g.rx, 1, gallopFrame(g.run, RUSH));
+      // (his blood down its horn, spattered up its face)
+      drawBeastAt(c, 'rhino', g.rx, 1, gallopFrame(g.run, RUSH), true);
       // (draped backward over the horn: his legs down over its face, his top half hanging off the front, bouncing)
       c.save(); c.translate(h.x, h.y); c.rotate(0.3 + Math.sin(fr * 0.45) * 0.07);
       drawSafariArtie(c, 0, 29, -1, fr, 'skewered', dmg);
