@@ -7,8 +7,10 @@
 //                 back. Up in the DJ booth, the real ones explain (their study of humans: the mating ritual happens at
 //                 the disco; this is a disco; so she breeds): ACTIVATE IMPREGNATOR RAY! The beam into her. His say. On.
 //                 The hall's extra wide (the camera follows him in it); held on him, the booth and her for this.
-//   HER SIDE      she holds one side of the hall (left or right: far apart), facing in, swaying. First thing, she
-//                 leaps to the far one.
+//   HER SIDE      she never stays put long (the user's: "it shouldn't stand at the same place for very long"): a few
+//                 seconds or two goes at him (a litter, a flail) in one spot at most, then she's off: a skitter across
+//                 the floor (a hiss and a rear back, the tell), a hop clean over him to his other side (a crouch and a
+//                 screech), or now and then the big leap to the far end of the hall. First thing, she leaps.
 //   BIRTHS        every so often she turns her back on him (the tell: round she goes, a push, a grunt) and out of her
 //                 rear it comes: a sac, splat on the floor, and out of that one of her offspring (kin.ts: a BITER, a
 //                 SPITTER or a CHARGER). So many at once, at most.
@@ -99,7 +101,15 @@ const litterOf = (f: Fight) => Math.max(LITTER_MIN, Math.min(LITTER_MAX, LITTER_
 /** Which kind comes out (by phase): the chances of a biter, a spitter (the rest chargers). */
 const KIN_ODDS = [[0, 0, 0], [0.55, 0.3], [0.4, 0.35], [0.35, 0.35]];
 /** The leap: how often (by phase); the crouch (the tell), the air, the landing; how high; the oil it barfs. */
-const LEAP_EVERY = [0, 720, 520, 360], CROUCH_T = 34, AIR_T = 84, LAND_T = 22, LEAP_UP = 330, OIL_DMG = 12;
+const LEAP_EVERY = [0, 420, 360, 300], CROUCH_T = 34, AIR_T = 84, LAND_T = 22, LEAP_UP = 330, OIL_DMG = 12;
+/** On the move: the longest she stands in one spot (frames, by phase); the soonest she might go on her own; how many
+ *  goes at him (litters, flails) in one spot before she's off. Where she can be (her two far sides the ends of it). */
+const STAY_MAX = [0, 200, 170, 140], STAY_MIN = 70, STAY_ACTS = 2, X_MIN = DISCO_SIDES.l, X_MAX = DISCO_SIDES.r;
+/** The skitter: the tell (a hiss, reared back), how fast across the floor (px/frame), how far (at least, at most), kept
+ *  this far off him (she never runs through him). */
+const SKIT_TELL = 16, SKIT_SPEED = 12, SKIT_MIN = 200, SKIT_MAX = 620, SKIT_KEEP = 150;
+/** The hop over him: the crouch (the tell), the air, how high, how far past him she comes down; only if he's this near. */
+const HOP_CROUCH = 24, HOP_AIR = 46, HOP_UP = 210, HOP_PAST = 260, HOP_NEAR = 560;
 /** The flail: in this close this long and it's coming; the tell; the hit (how wide, how hard, how far he goes). */
 const FLAIL_REACH = 190, FLAIL_LINGER = 90, FLAIL_TELL = 20, FLAIL_T = 26, FLAIL_WIDE = 230, FLAIL_DMG = 28;
 /** Thrown into her: what it does; batted back with the mallet: what that does, and how long she's stunned. */
@@ -148,7 +158,7 @@ const POOL_R = 190, POOL_DMG = 22;
 // The state
 
 type Step = 'lights' | 'drop' | 'grab' | 'spray' | 'shake' | 'throw' | 'bonk' | 'mode' | 'study' | 'ray' | 'beam' | 'react';
-export type Mode = 'wait' | 'intro' | 'idle' | 'birth' | 'leap' | 'flail' | 'stun' | 'dead';
+export type Mode = 'wait' | 'intro' | 'idle' | 'birth' | 'leap' | 'skitter' | 'flail' | 'stun' | 'dead';
 interface Drop { x: number; y: number; vx: number; vy: number; tx: number }
 interface Sac { x: number; y: number; vx: number; vy: number; t: number; kind: string; landed: number }
 interface Slick { x1: number; x2: number; t: number }
@@ -202,8 +212,11 @@ export interface Fight {
   ops: BoothOps;
   /** The booth's spotlight: its spot (x), how far through (the tell, then falling); when the next. */
   can: { x: number; t: number } | null; canT: number;
-  /** Where she leapt from. */
-  leapFrom: number;
+  /** Where she leapt (or skittered) from; where to; the leap just a hop over him (no barf, no pool); the skitter's
+   *  run (frames); her stride (the skitter's legs). */
+  leapFrom: number; dest: number; hop: boolean; runT: number; stride: number;
+  /** Frames stood in this one spot; goes at him (litters, flails) made from it. */
+  stay: number; acts: number;
   deathT: number; deathSaid: number; byWeakness: boolean;
   e: Enemy | null;
   /** A retry's entrance beat (frames left): she rears and screeches, a greeting, nothing at him (the user's). */
@@ -221,7 +234,7 @@ export const makeFight = (state: GameState): Fight => {
     birthT: 120, leapT: 0, linger: 0, forceLeap: false, stunT: 0, closeAt: -9999, pool: null,
     dents: 0, pieces: [], splats: [], glitchAt: -9999, stopT: 0, barFrom: HP, barT: 0, blown: false, slow: null, whiteT: 99, lastWords: false,
     drops: [], sacs: [], slicks: [], barf: [], spots: [], litter: [], cheapSaid: false, grabT: 0, tauntT: 0, saidBirth: -9999, barked: new Set(), throwAt: -1, throwHintAt: -9999, flungAt: -9999, eventAt: -99,
-    ops: { mode: 'on', t: 0 }, can: null, canT: 0, leapFrom: SIDE_X[1], deathT: 0, deathSaid: 0, byWeakness: false, e: null, entrance: 0,
+    ops: { mode: 'on', t: 0 }, can: null, canT: 0, leapFrom: SIDE_X[1], dest: SIDE_X[1], hop: false, runT: 0, stride: 0, stay: 0, acts: 0, deathT: 0, deathSaid: 0, byWeakness: false, e: null, entrance: 0,
   };
 };
 
@@ -314,7 +327,9 @@ const begin = (state: GameState, f: Fight) => {
   f.token++;
   to(f, 'idle'); f.glass = false; f.booth = 1; f.beam = 0; f.alive = 1; f.said = null; f.boothSaid = null;
   f.lights = 1; f.down = 1; f.foam = 0; f.ext2 = 'gone'; f.cheapSaid = false;
-  f.birthT = 120; f.leapT = 0; f.canT = 0;
+  f.birthT = 120; f.canT = 0;
+  // (the big leap's ready from the off: the first time she's to move, that's it; a retry, she's off soon after her entrance)
+  f.leapT = LEAP_EVERY[1]; f.stay = 80; f.acts = 0;
   // (out of the cutscene she's mid-hall: first thing, she's off to the far end)
   if (Math.abs(f.x - SIDE_X[1]) > 40) { f.side = -1; f.forceLeap = true; }
   markBossIntroSeen(state, 'queen');
@@ -498,18 +513,24 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
   if (f.mode !== 'dead' && ++f.tauntT >= TAUNT_EVERY) { f.tauntT = Math.floor(Math.random() * 200); bark(state, f, L.QUEEN_TAUNT); }
   // (him in close: the flail's coming if he stays; backing off, it's off)
   // (not with the pool up round her: that's the keep-off then)
-  const close = Math.abs(pm.x - f.x) < FLAIL_REACH && f.y === 0 && p.health > 0 && !f.pool;
+  // (her own pool's the keep-off while she's stood in it; walked off out of it, the flail's on again)
+  const close = Math.abs(pm.x - f.x) < FLAIL_REACH && f.y === 0 && p.health > 0 && !(f.pool && Math.abs(f.pool.x - f.x) < POOL_R);
   f.linger = close && (f.mode === 'idle' || f.mode === 'birth') ? f.linger + 1 : Math.max(0, f.linger - 3);
+  // (how long she's stood in this spot; the big leap's own clock runs whatever she's at)
+  if (f.mode === 'idle' || f.mode === 'birth' || f.mode === 'flail') f.stay++;
+  if (f.mode !== 'leap' && f.mode !== 'dead') f.leapT++;
   switch (f.mode) {
     case 'idle':
       f.facing = toward; f.ext *= 0.85;
-      if (f.linger >= FLAIL_LINGER) { to(f, 'flail'); f.ph = 'tell'; playSound('click', 0.8, 10); break; }
-      if (f.forceLeap || ++f.leapT >= LEAP_EVERY[ph]) { startLeap(state, f); break; }
-      if (++f.birthT >= BIRTH_EVERY[ph] && kinAbout(state).length + f.sacs.length + litterOf(f) <= KIN_CAP[ph]) { f.birthT = 0; to(f, 'birth'); f.ph = 'turn'; playSound('snort', 0.7, -8); }
+      if (f.linger >= FLAIL_LINGER) { toFlail(f); break; }
+      if (f.forceLeap) { startLeap(state, f); break; }
+      // (stood here long enough, or had her two goes at him from here: off she goes; now and then sooner)
+      if (f.acts >= STAY_ACTS || f.stay >= STAY_MAX[ph] || (f.stay >= STAY_MIN && Math.random() < 0.012)) { relocate(state, f); break; }
+      if (++f.birthT >= BIRTH_EVERY[ph] && kinAbout(state).length + f.sacs.length + litterOf(f) <= KIN_CAP[ph]) { f.birthT = 0; f.acts++; to(f, 'birth'); f.ph = 'turn'; playSound('snort', 0.7, -8); }
       break;
     case 'birth':
       // (round she turns, her back to him; a push; out it comes)
-      if (f.linger >= FLAIL_LINGER) { to(f, 'flail'); f.ph = 'tell'; playSound('click', 0.8, 10); break; }
+      if (f.linger >= FLAIL_LINGER) { toFlail(f); break; }
       if (f.ph === 'turn') { f.facing = (-toward) as 1 | -1; if (f.t >= TURN_T) { f.ph = 'push'; f.t = 0; bark(state, f, L.QUEEN_BIRTH); } }
       else if (f.ph === 'push') {
         if (f.t % 8 === 0) { playSound('snort', 0.6, -12 + (f.t % 16) / 2); shakeScreen(state, 2, 1); }
@@ -557,6 +578,7 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
       break;
     }
     case 'leap': leaping(ctx, f); break;
+    case 'skitter': skittering(state, f); break;
     case 'stun':
       f.ext *= 0.9;
       if (f.t % 6 === 0) state.particles.push({ pos: { x: f.x + (Math.random() - 0.5) * 60, y: GY - 120 - Math.random() * 120 }, vel: { x: (Math.random() - 0.5) * 3, y: -1.5 }, life: 20, color: Math.random() < 0.5 ? '#FDE047' : '#FFFFFF', size: 2 });
@@ -576,25 +598,85 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
 // ---------------------------------------------------------------------------------------------------------------
 // The leap, the oil
 
-const startLeap = (state: GameState, f: Fight) => {
-  to(f, 'leap'); f.ph = 'crouch'; f.leapT = 0; f.forceLeap = false; f.leapFrom = f.x;
-  f.facing = (-f.side) as 1 | -1;
-  // (where the barf'll come down: spaced spots along the floor between her two sides, gaps between them to stand in;
-  // marked on the floor from now)
-  const dest = SIDE_X[(-f.side) as -1 | 1], lo = Math.min(f.x, dest) + BARF_IN, hi = Math.max(f.x, dest) - BARF_IN;
-  const n = BARF_N[phase(f)], gap = (hi - lo - n * BARF_W) / (n - 1), shift = (Math.random() - 0.5) * Math.min(60, gap * 0.4);
+const toFlail = (f: Fight) => { f.acts++; to(f, 'flail'); f.ph = 'tell'; playSound('click', 0.8, 10); };
+/** Off she goes from here: the big leap when it's due; else a hop over him (him near, room past him), or a skitter
+ *  along her side of him; whichever there's room for. */
+const relocate = (state: GameState, f: Fight) => {
+  if (f.leapT >= LEAP_EVERY[phase(f)]) { startLeap(state, f); return; }
+  const pm = pmid(state).x, over = (Math.sign(pm - f.x) || 1) as 1 | -1, hopX = pm + over * HOP_PAST;
+  const canHop = Math.abs(pm - f.x) < HOP_NEAR && hopX >= X_MIN && hopX <= X_MAX && Math.abs(hopX - f.x) >= 260 && state.player.health > 0;
+  const skit = skitterSpot(f, pm);
+  if (canHop && (skit === null || Math.random() < 0.45)) startLeap(state, f, hopX);
+  else if (skit !== null) startSkitter(f, skit);
+  else startLeap(state, f);
+};
+/** Somewhere to skitter to: along her own side of him (never through him, never right up on him), a fair way off. */
+const skitterSpot = (f: Fight, pm: number): number | null => {
+  const mine = f.x >= pm ? 1 : -1;
+  const lo = mine > 0 ? Math.max(X_MIN, pm + SKIT_KEEP) : X_MIN, hi = mine > 0 ? X_MAX : Math.min(X_MAX, pm - SKIT_KEEP);
+  if (hi - lo < SKIT_MIN) return null;
+  for (let i = 0; i < 8; i++) {
+    const x = lo + Math.random() * (hi - lo), d = Math.abs(x - f.x);
+    if (d >= SKIT_MIN && d <= SKIT_MAX) return x;
+  }
+  return null;
+};
+/** Off the spot: her clocks for it start again. */
+const moved = (f: Fight) => {
+  f.stay = 0; f.acts = 0; f.linger = 0;
+  // (off out of her pool: it goes down behind her)
+  if (f.pool) f.pool.going = true;
+};
+const startSkitter = (f: Fight, x: number) => {
+  to(f, 'skitter'); f.ph = 'tell'; moved(f); f.leapFrom = f.x; f.dest = x;
+  f.runT = Math.max(18, Math.min(52, Math.round(Math.abs(x - f.x) / SKIT_SPEED)));
+  f.facing = (Math.sign(x - f.x) || f.facing) as 1 | -1;
+  playSound('snort', 0.8, 6); playSound('click', 0.6, 12);
+};
+const skittering = (state: GameState, f: Fight) => {
+  // (the tell: reared back, a hiss, her claws clicking)
+  if (f.ph === 'tell') {
+    if (f.t % 4 === 0) playSound('click', 0.35, 14);
+    if (f.t >= SKIT_TELL) { f.ph = 'run'; f.t = 0; playSound('whoosh', 0.7, 2); }
+    return;
+  }
+  // (across the floor at a scuttle, eased in and out, her legs going)
+  const k = Math.min(1, f.t / f.runT), e = k * k * (3 - 2 * k);
+  f.x = f.leapFrom + (f.dest - f.leapFrom) * e;
+  f.stride += 0.6;
+  if (f.t % 5 === 0) playSound('click', 0.5, 4 + (f.t % 10));
+  if (f.t % 3 === 0) state.particles.push({ pos: { x: f.x - f.facing * 30, y: GY - 4 }, vel: { x: -f.facing * (1 + Math.random() * 2), y: -0.5 - Math.random() }, life: 16, color: '#3F2A12', size: 2 + Math.random() * 2, grav: 0.2 });
+  if (k >= 1) { f.x = f.dest; f.side = f.x > (SIDE_X[-1] + SIDE_X[1]) / 2 ? 1 : -1; to(f, 'idle'); }
+};
+
+/** The big leap (to the far end of the hall, barfing), or with hopX a hop clean over him (no barf, no pool). */
+const startLeap = (state: GameState, f: Fight, hopX?: number) => {
+  to(f, 'leap'); f.ph = 'crouch'; f.forceLeap = false; f.leapFrom = f.x; moved(f);
+  f.hop = hopX !== undefined;
+  // (the big one: to whichever end of the hall's further off)
+  const dest = hopX ?? (Math.abs(f.x - SIDE_X[-1]) > Math.abs(f.x - SIDE_X[1]) ? SIDE_X[-1] : SIDE_X[1]);
+  f.dest = dest;
+  f.facing = (Math.sign(dest - f.x) || -f.side) as 1 | -1;
   f.barf = [];
-  for (let i = 0; i < n; i++) f.barf.push({ x: lo + BARF_W / 2 + i * (BARF_W + gap) + shift, let: false, due: 0, landed: 0 });
+  if (f.hop) { playSound('screams', 0.4, -2); playSound('snort', 0.6, -4); return; }
+  f.leapT = 0;
+  // (where the barf'll come down: spaced spots along the floor between her and where she's going, gaps between them to
+  // stand in; marked on the floor from now. As many as fit)
+  const lo = Math.min(f.x, dest) + BARF_IN, hi = Math.max(f.x, dest) - BARF_IN, span = Math.max(BARF_W, hi - lo);
+  const n = Math.max(1, Math.min(BARF_N[phase(f)], Math.floor((span + 40) / (BARF_W + 40))));
+  const gap = n > 1 ? (span - n * BARF_W) / (n - 1) : 0, shift = n > 1 ? (Math.random() - 0.5) * Math.min(60, gap * 0.4) : 0;
+  const first = n > 1 ? lo + BARF_W / 2 : lo + span / 2;
+  for (let i = 0; i < n; i++) f.barf.push({ x: first + i * (BARF_W + gap) + shift, let: false, due: 0, landed: 0 });
   playSound('screams', 0.6, -8);
   if (Math.random() < 0.6) bark(state, f, L.QUEEN_LEAP);
 };
 const leaping = (ctx: FrameContext, f: Fight) => {
   const { state } = ctx;
-  const from = f.leapFrom, dest = SIDE_X[(-f.side) as -1 | 1];
-  if (f.ph === 'crouch') { if (f.t >= CROUCH_T) { f.ph = 'air'; f.t = 0; playSound('whoosh', 1, -8); playSound('engine', 0.6, 6); } return; }
+  const from = f.leapFrom, dest = f.dest, hop = f.hop;
+  if (f.ph === 'crouch') { if (f.t >= (hop ? HOP_CROUCH : CROUCH_T)) { f.ph = 'air'; f.t = 0; playSound('whoosh', 1, hop ? -2 : -8); if (!hop) playSound('engine', 0.6, 6); } return; }
   if (f.ph === 'air') {
-    const k = f.t / AIR_T;
-    f.x = from + (dest - from) * k; f.y = Math.sin(k * Math.PI) * LEAP_UP;
+    const k = f.t / (hop ? HOP_AIR : AIR_T);
+    f.x = from + (dest - from) * k; f.y = Math.sin(k * Math.PI) * (hop ? HOP_UP : LEAP_UP);
     // (the barf: over each marked spot, a gush of it down out of her mouth onto that spot, a drop at a time, each
     // aimed at its own place in the spot; nothing in the gaps)
     const dir = Math.sign(dest - from) || 1;
@@ -607,8 +689,14 @@ const leaping = (ctx: FrameContext, f: Fight) => {
         f.drops.push({ x: x0, y: y0, vx: (tx - x0) / T, vy, tx });
       }
     }
+    if (hop && f.t >= HOP_AIR) {
+      // (a hop: down past him, turned round on him; no pool)
+      f.ph = 'land'; f.t = 0; f.x = dest; f.y = 0; f.side = f.x > (SIDE_X[-1] + SIDE_X[1]) / 2 ? 1 : -1;
+      f.facing = (pmid(state).x < f.x ? -1 : 1); playSound('thud', 1, -6); playSound('land', 0.8, -4); shakeScreen(state, 7, 4);
+      return;
+    }
     if (f.t >= AIR_T) {
-      f.ph = 'land'; f.t = 0; f.x = dest; f.y = 0; f.side = (-f.side) as -1 | 1; playSound('thud', 1.2, -10); playSound('land', 1, -8); shakeScreen(state, 12, 6);
+      f.ph = 'land'; f.t = 0; f.x = dest; f.y = 0; f.side = dest === SIDE_X[1] ? 1 : -1; playSound('thud', 1.2, -10); playSound('land', 1, -8); shakeScreen(state, 12, 6);
       // (down into a pool of it: hot, all round her, till her next birth)
       f.pool = { x: dest, k: 0, going: false }; playSound('gush', 1, -8);
       // (and a while before she births again: the pool's the keep-off till then; bat her kin back into her)
@@ -616,7 +704,7 @@ const leaping = (ctx: FrameContext, f: Fight) => {
     }
     return;
   }
-  if (f.t >= LAND_T) to(f, 'idle');
+  if (f.t >= (hop ? 14 : LAND_T)) to(f, 'idle');
 };
 /** The booth's spotlight: now and then (half way down her on), its spot marked on the floor under him (red, flashing,
  *  a whistle), then down it comes out of the rig: anything under it gets it (his, hers). */
@@ -1057,6 +1145,7 @@ const poseOf = (f: Fight): QueenPose => {
   if (f.mode === 'birth') return f.ph === 'push' ? 'birth' : 'idle';
   if (f.mode === 'flail') return f.ph === 'tell' ? 'wake' : 'flail';
   if (f.mode === 'leap') return f.ph === 'crouch' ? 'stalk' : f.ph === 'air' ? 'leap' : 'stalk';
+  if (f.mode === 'skitter') return f.ph === 'tell' ? 'tell' : 'stalk';
   if (f.mode === 'stun') return 'stunned';
   return 'idle';
 };
@@ -1195,7 +1284,7 @@ export const drawQueenFight = (c: Ctx, state: GameState, f: Fight) => {
     const crouch = f.mode === 'leap' && f.ph !== 'air' ? 0.9 : 1;
     c.save(); c.translate(sx, dy);
     c.translate(f.x, GY); c.scale(1 + burst * 0.08, crouch * (1 + burst * 0.06)); c.translate(-f.x, -GY);
-    const qd = { pose: poseOf(f), t: state.frame, ext: f.ext, alive: f.mode === 'dead' ? Math.max(0, 1 - f.deathT / 60) : f.alive, beat: Math.max(0, 1 - f.hp / HP), free: true, foam: f.foam, stride: 0, dents: f.dents };
+    const qd = { pose: poseOf(f), t: state.frame, ext: f.ext, alive: f.mode === 'dead' ? Math.max(0, 1 - f.deathT / 60) : f.alive, beat: Math.max(0, 1 - f.hp / HP), free: true, foam: f.foam, stride: f.mode === 'skitter' ? f.stride : 0, dents: f.dents };
     drawQueen(c, f.x, f.facing, qd);
     // (a mallet hit: she flashes, lit up over herself)
     if (f.flash > 8 && f.mode !== 'dead') { c.globalCompositeOperation = 'lighter'; c.globalAlpha = Math.min(1, (f.flash - 8) / 8) * 0.8; drawQueen(c, f.x, f.facing, qd); drawQueen(c, f.x, f.facing, qd); c.globalCompositeOperation = 'source-over'; c.globalAlpha = 1; }
