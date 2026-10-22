@@ -6,7 +6,7 @@
 // down into the pool, onto whoever's under it (him on his way across, the cast knocked in: `m2:fl_cliff_diver`), the
 // splash hitting whoever's swimming close. He can dive off the board himself (TEN. TEN. TEN.), swim across between
 // dives, and climb out at the far end; the way back up is the outcrops on the cliff's right face, under the board.
-// Then the last stretch to Norway: a tequila stand, the lot of the cast mixed.
+// Then the last stretch to Norway: a tequila stand, its hat thrower.
 
 import type { Light } from '../../../m1/game/render/lighting';
 import type { FrameContext } from '../../../m1/game/core/context';
@@ -48,11 +48,17 @@ const DX = 5600, EVERY = 330, WARN = 60, G = 0.6;
 const STAND = { a: 5900, b: 6020, h: 90 } as const;
 
 const ENEMIES: [string, number, number][] = [
-  ['m2:fl_pinata', 4300, 0], ['m2:fl_sombrero', 4420, 0],
-  ['m2:fl_sombrero', 4560, 390], ['m2:fl_mariachi', 4720, 520],
-  ['m2:fl_luchador', 4900, CLIFF.h], ['m2:fl_sombrero', 5040, CLIFF.h],
-  ['m2:fl_mariachi', 5200, 0],
-  ['m2:fl_luchador', 5880, 0], ['m2:fl_sombrero', 5960, STAND.h], ['m2:fl_mariachi', 6060, 0], ['m2:fl_pinata', 6120, 0],
+  // (the promenade by LA QUEBRADA's checkpoint left clear) the left face: hat throwers on the first and third outcrops
+  // (the hats roll off onto him below), the mariachi on the top one (its blast shoves him off the outcrop), the blind
+  // pinata host at the cliff's foot under them
+  ['m2:fl_sombrero', 4550, 130], ['m2:fl_sombrero', 4560, 390], ['m2:fl_mariachi', 4720, 520], ['m2:fl_pinata', 4740, 0],
+  // the top: a luchador, a hat thrower, and a pinata host between them (its swings get them too)
+  ['m2:fl_luchador', 4900, CLIFF.h], ['m2:fl_pinata', 4980, CLIFF.h], ['m2:fl_sombrero', 5040, CLIFF.h],
+  // a luchador out on the end of the diving board (charge him off it into the diver's pool, or be suplexed off it); a
+  // mariachi on the right face's outcrop, one on the near bank (blasting him out on the board, in the water)
+  ['m2:fl_luchador', 5420, BOARD.h], ['m2:fl_mariachi', 5180, 390], ['m2:fl_mariachi', 5200, 0],
+  // the tequila stand's hat thrower
+  ['m2:fl_sombrero', 5960, STAND.h],
 ];
 
 export const CLIFF_CHECKPOINTS = [

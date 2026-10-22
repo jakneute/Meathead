@@ -51,8 +51,10 @@ const ENEMIES: [string, number, number][] = [
   ['m2:fl_mariachi', 1900, 300], ['m2:fl_sombrero', 2060, 400], ['m2:fl_mariachi', 2560, 400], ['m2:fl_sombrero', 2860, 200],
   // in the plaza under it: the blind pinata host, the luchador
   ['m2:fl_pinata', 2000, 0], ['m2:fl_luchador', 2500, 0],
-  // the cantina: a hat thrower on the balcony; the lot of them out front
-  ['m2:fl_sombrero', 3610, BALCONY.h], ['m2:fl_luchador', 3400, 0], ['m2:fl_mariachi', 3850, 0], ['m2:fl_pinata', 4000, 0],
+  // the cantina (past its checkpoint's reach): a hat thrower on the balcony and the luchador right under it (the hats
+  // rolling at him while it lunges); out front the blind pinata host staggering about by a mariachi (its swings get the
+  // mariachi too: let it, or lure it)
+  ['m2:fl_sombrero', 3610, BALCONY.h], ['m2:fl_luchador', 3690, 0], ['m2:fl_pinata', 3880, 0], ['m2:fl_mariachi', 3960, 0],
 ];
 const PICKUPS: [number, number, 'small_health' | 'small_ammo'][] = [[2310, SHRINE.h, 'small_ammo'], [2720, 0, 'small_health']];
 
