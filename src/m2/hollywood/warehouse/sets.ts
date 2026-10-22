@@ -369,7 +369,11 @@ export const drawSets = (c: Ctx, v: View, f: number) => {
   const on = (a: number, b: number, d = PROP_D) => seenAt(v, X(a), X(b), d);
   // The floor's cables and dressing
   for (const [a, b, d, s] of [[300, 2400, 0.86, 1], [3300, 3720, 0.9, 2], [4300, 6300, 0.87, 3], [6300, 9900, 0.88, 4], [9900, 10690, 0.9, 5]] as const) if (on(a, b, d)) cable(c, v, X(a), X(b), d, s);
-  for (const [rx, k] of CLUTTER) if (on(rx - 80, rx + 80, GEAR_D)) atDepth(c, eye, GEAR_D, () => still(c, `hww-clutter-${k}`, X(rx), GY, -70, -150, 140, 152, g => paintClutter(g, k)));
+  // (the main stage's cyc first: it's further back than the cast's trailers beside it, which overlapped its batten)
+  if (on(ARENA.a - 50, ARENA.b + 50, CYC_D)) {
+    cyc(c, v, X(ARENA.a + 30), X(ARENA.b - 8), CYC_H + 60, 4);
+    atDepth(c, eye, CYC_D, () => still(c, 'hww-banner-main', X((ARENA.a + ARENA.b) / 2), 0, -340, ROOF_Y - 10, 680, 540, g => banner(g, 0, GY - 540, 600, 84, gg => revLogo(gg, 0, GY - 528, 2, "END-OF-THE-WORLD'S-DAY"), '#18181B')));
+  }
 
   // SET 1: the rooftop (its cyc, the painted city, the banner, the camera on its dolly, the slate, QUIET ON SET)
   if (on(700, 2600, CYC_D)) {
@@ -445,11 +449,9 @@ export const drawSets = (c: Ctx, v: View, f: number) => {
     if (on(REFILL - 40, REFILL + 180, GEAR_D)) atDepth(c, eye, GEAR_D, () => still(c, 'hww-principal', X(REFILL + 70), GY, -130, -170, 260, 172, g => standSign(g, 0, 0, ['PRINCIPAL CAST ONLY', 'BEYOND THIS POINT. NO EXCEPTIONS.'], plain(1, 1, '#FDE68A'), '#7F1D1D', 110)));
   }
 
-  // The main stage's cyc and its banner (the picture's title)
-  if (on(ARENA.a - 50, ARENA.b + 50, CYC_D)) {
-    cyc(c, v, X(ARENA.a + 30), X(ARENA.b - 8), CYC_H + 60, 4);
-    atDepth(c, eye, CYC_D, () => still(c, 'hww-banner-main', X((ARENA.a + ARENA.b) / 2), 0, -340, ROOF_Y - 10, 680, 540, g => banner(g, 0, GY - 540, 600, 84, gg => revLogo(gg, 0, GY - 528, 2, "END-OF-THE-WORLD'S-DAY"), '#18181B')));
-  }
+  // The grip clutter (apple boxes, flight cases, stands) at the gear's depth: after the cycs and the painted flats
+  // (further back), which were drawn over the ones stood in front of them (the skylines' especially)
+  for (const [rx, k] of CLUTTER) if (on(rx - 80, rx + 80, GEAR_D)) atDepth(c, eye, GEAR_D, () => still(c, `hww-clutter-${k}`, X(rx), GY, -70, -150, 140, 152, g => paintClutter(g, k)));
 };
 
 void floorY; void revLook; void STEVE; void signText;

@@ -34,7 +34,7 @@ import { dozerX, caseDown, caseTip, wallOpen, endingOn, drawDozer, scriptHoleX, 
 import { drawWarehouseFar } from './far';
 import { drawSets } from './sets';
 import {
-  type Ctx, type View, INK, WALL_D, PROP_D, dUp, zOf, dOfZ, wview, floorQ, seenAt, pal, pipe, riser, truss, spike, sandbag, TAPE, back,
+  type Ctx, type View, INK, WALL_D, PROP_D, REST, dUp, zOf, dOfZ, wview, floorQ, seenAt, pal, pipe, riser, truss, spike, sandbag, TAPE, back,
 } from './paint';
 
 export const drawWarehouseBackdrop = (c: Ctx, state: GameState) => {
@@ -102,7 +102,7 @@ const backWall = (c: Ctx, v: View, ang: number, f: number) => {
 /** The end wall (the section's left end), standing, then going over outward (to the left) about its foot. */
 const endWall = (c: Ctx, v: View, fall: number) => {
   const ang = fall * Math.PI / 2, xw = x0 - 2, Sd = pal().siding;
-  if (v.eye.x <= xw) return;
+  if (v.eye.x <= xw || (fall < 0.01 && (v.eye.x - xw) * (1 - WALL_D) < 0.75)) return;
   const P = (h: number, d: number): [number, number] => at(v.eye, xw - h * Math.sin(ang), GY - h * Math.cos(ang), d);
   const bands: [number, number, string][] = [[0, 60, Sd[2]], [60, 300, Sd[3]], [300, 500, Sd[2]], [500, WALL_H, Sd[1]]];
   for (const [h0, h1, col] of bands) poly(c, [P(h0, 1), P(h0, WALL_D), P(h1, WALL_D), P(h1, 1)], col);
@@ -267,7 +267,8 @@ const pitIn = (c: Ctx, v: View, a: number, b: number) => {
   for (let x = a + 40; x < b - 30; x += 80) { const [p, q] = at(eye, x, GY + 60, WALL_D); box(c, p - 4, q, 9, 1, TAPE.pink); box(c, p, q - 4, 1, 9, TAPE.pink); }
   // (its side walls, the near one's lit lip of floor at the top)
   for (const [e, side] of [[a, 1], [b, -1]] as const) {
-    if ((eye.x - e) * side <= 0) continue;
+    // (under a pixel wide on screen it's left out: a sliver flickers as the camera creeps)
+    if ((eye.x - e) * side * (1 - WALL_D) < 0.75) continue;
     for (const [h0, h1, col] of steps) poly(c, [at(eye, e, GY + h0, 1.25), at(eye, e, GY + h0, WALL_D), at(eye, e, GY + h1, WALL_D), at(eye, e, GY + h1, 1.25)], mix(col, '#000000', 0.25));
     c.strokeStyle = C[4]; c.lineWidth = 1; c.beginPath(); const [p, q] = at(eye, e, GY, 1.25), [r, s] = at(eye, e, GY, WALL_D); c.moveTo(p, q); c.lineTo(r, s); c.stroke();
   }
@@ -358,6 +359,11 @@ const boxBack = (c: Ctx, v: View, x: number, y: number, w: number, foot: number,
   sideBack(c, v.eye, x, -1, y, foot, 1, d1, R, 2, false);
   sideBack(c, v.eye, x + w, 1, y, foot, 1, d1, R, 2, false);
   topBack(c, v.eye, x, x + w, y, 1, d1, R, 2);
+};
+/** A deck's (a slab `t` thick, its top at y) two ends going back to d1, if he's looking at them (one step, no shadow). */
+const deckEnds = (c: Ctx, v: View, x: number, w: number, y: number, t: number, d1: number, R: string[]) => {
+  sideBack(c, v.eye, x, -1, y, y + t, 1, d1, R, 1, false);
+  sideBack(c, v.eye, x + w, 1, y, y + t, 1, d1, R, 1, false);
 };
 
 const paintMat = (g: Ctx, w: number, h: number) => {
@@ -455,7 +461,12 @@ const solidPiece = (c: Ctx, v: View, x: number, y: number, w: number, h: number,
     still(c, `hww-table-${w}-${h}`, x, y, -2, -40, w + 4, h + 42, g => { paintTableTop(g, w); paintTable(g, w, h); });
     lip(c, x, y, w);
   } else if (what === 'taxi') {
-    topBack(c, v.eye, x + 24, x + w - 26, y, 1, 0.95, ramp6('#F2C21A'), 2);
+    // (its body's ends and its hood and trunk going back, then the cabin's ends and roof on them)
+    const Yl = ramp6('#F2C21A'), Ys = Yl.map(cc => mix(cc, INK, 0.25));
+    topBack(c, v.eye, x, x + w, y + 16, 1, 0.95, Yl, 2);
+    deckEnds(c, v, x, w, y + 16, h - 28, 0.95, Ys);
+    deckEnds(c, v, x + 24, w - 50, y, 16, 0.95, Ys);
+    topBack(c, v.eye, x + 24, x + w - 26, y, 1, 0.95, Yl, 2);
     still(c, `hww-taxi-${w}-${h}`, x, y, -16, -4, w + 32, h + 8, g => paintTaxi(g, w, h));
     lip(c, x + 24, y, w - 50);
   }
@@ -475,6 +486,7 @@ const ledgePiece = (c: Ctx, v: View, x: number, y: number, w: number, what: Ledg
         poly(c, [[x - 87, GY - 1], [x + 21, y + 16], [x + 26, y + 16], [x - 82, GY - 1]], R[4]);
       });
     } else for (const cx of [x + 12, x + w - 12]) { box(c, cx - 2, ROOF_Y + 70, 4, y - ROOF_Y - 70, INK); for (let yy = ROOF_Y + 70; yy < y; yy += 6) box(c, cx - 1, yy + 1, 2, 4, (yy / 6) % 2 ? S[3] : S[4]); }
+    deckEnds(c, v, x, w, y, 20, 0.96, P);
     topBack(c, v.eye, x, x + w, y, 1, 0.96, P, 2);
     box(c, x - 1, y - 1, w + 2, 22, INK); box(c, x, y, w, 20, P[3]); box(c, x, y, w, 3, P[4]);
     box(c, x + 4, y + 6, w - 8, 10, P[2]); for (let k = x + 20; k < x + w - 10; k += 40) box(c, k, y + 3, 4, 17, P[1]);
@@ -485,6 +497,7 @@ const ledgePiece = (c: Ctx, v: View, x: number, y: number, w: number, what: Ledg
   if (what === 'truck') {
     // (the catering truck's fold-down counter: stainless, on its brackets)
     for (const bx of [x + 14, x + w - 22]) { c.strokeStyle = INK; c.lineWidth = 4; c.beginPath(); c.moveTo(bx, y + 10); c.lineTo(bx + 8, y + 40); c.stroke(); c.strokeStyle = S[3]; c.lineWidth = 2; c.stroke(); }
+    deckEnds(c, v, x, w, y, 10, 0.96, S);
     topBack(c, v.eye, x, x + w, y, 1, 0.96, S, 2);
     box(c, x - 1, y - 1, w + 2, 12, INK); box(c, x, y, w, 10, S[3]); box(c, x, y + 7, w, 3, S[1]);
     for (let k = x + 6; k < x + w - 6; k += 22) box(c, k, y + 3, 10, 1, S[5]);
@@ -500,6 +513,7 @@ const ledgePiece = (c: Ctx, v: View, x: number, y: number, w: number, what: Ledg
     for (let yy = y + 60; yy < GY - 20; yy += 70) pipe(c, x + 6, x + w - 6, yy, 3, S);
     c.strokeStyle = INK; c.lineWidth = 4; c.beginPath(); c.moveTo(x + 9, y + 12); c.lineTo(x + w - 9, GY - 6); c.moveTo(x + w - 9, y + 12); c.lineTo(x + 9, GY - 6); c.stroke();
     c.strokeStyle = S[3]; c.lineWidth = 2; c.stroke();
+    deckEnds(c, v, x, w, y, 11, 0.96, P);
     topBack(c, v.eye, x, x + w, y, 1, 0.96, P, 2);
     box(c, x - 1, y - 1, w + 2, 13, INK);
     for (let k = 0; k < w; k += 30) { box(c, x + k, y, Math.min(29, w - k), 11, P[3]); box(c, x + k, y, 1, 11, P[5]); box(c, x + k + 28, y, 1, 11, P[1]); }
@@ -511,6 +525,7 @@ const ledgePiece = (c: Ctx, v: View, x: number, y: number, w: number, what: Ledg
   for (const lx of [x + 6, x + w - 14]) { box(c, lx - 1, y + 14, 10, GY - y - 14, INK); box(c, lx, y + 14, 8, GY - y - 14, D[3]); box(c, lx, y + 14, 2, GY - y - 14, D[5]); }
   c.strokeStyle = INK; c.lineWidth = 4; c.beginPath(); c.moveTo(x + 12, y + 16); c.lineTo(x + w - 12, GY - 8); c.stroke();
   c.strokeStyle = D[4]; c.lineWidth = 2; c.stroke();
+  deckEnds(c, v, x, w, y, 15, 0.95, D);
   topBack(c, v.eye, x, x + w, y, 1, 0.95, D, 2);
   box(c, x - 1, y - 1, w + 2, 17, INK); box(c, x, y, w, 15, D[3]); box(c, x, y, w, 2, D[5]); box(c, x, y + 12, w, 3, D[1]);
   box(c, x + 2, y + 6, w - 4, 1, TAPE.glow);
@@ -755,17 +770,28 @@ const farWall = (c: Ctx, v: View, open: boolean, scriptHole: number | null = nul
   }
 };
 
+/** The parked bulldozer's depth (its tracks on the floor 42 px up the screen at rest, where it always stood), the
+ *  extra shrink that keeps its old size (it was 0.82), its world x (over DOZER_X at the main stage's camera), and the
+ *  keys sign's height at that depth (where it hung at rest). */
+const DOZER_D = dUp(42), DOZER_K = 0.82 / DOZER_D;
+const dozerWX = () => { const ex = X(ARENA_CAM) + 400; return ex + (X(DOZER_X) - ex) / DOZER_D; };
+const KEYS_Y = GY - REST + (REST - (GY - (BACK_Y - 142))) / DOZER_D;
 const mainStage = (c: Ctx, v: View, state: GameState) => {
   const o = whOf(state), F = o.fight, f = state.frame;
   if (!seenAt(v, X(ARENA.a) - 200, x1 + 200)) return;
   stageDoor(c, v, F.doorK, f);
   // (the bulldozer, parked at the back (set back: it's not in his way), till it goes)
   const dz = dozerX(state);
-  if (dz !== null && !endingOn(state) && seenAt(v, X(DOZER_X) - 200, X(DOZER_X) + 200)) {
-    c.save(); c.translate(dz, BACK_Y + 22); c.scale(0.82, 0.82); c.translate(-dz, -GY);
-    drawDozer(c, dz, f, false);
-    c.restore();
-    still(c, 'hww-keys', dz - 30, BACK_Y - 142, -40, -12, 80, 24, g => board(g, 0, 0, ['KEYS IN IT'], plain(1, 1, '#18181B'), '#FDE68A', BRASS, 4));
+  // (on the one eye at its depth, so it scrolls with the back of the floor as he walks up, not with the play plane;
+  // placed so it lands where it always has at the main stage's camera)
+  if (dz !== null && !endingOn(state)) {
+    const wx = dozerWX();
+    if (seenAt(v, wx - 200, wx + 200, DOZER_D)) atDepth(c, v.eye, DOZER_D, () => {
+      c.save(); c.translate(wx, GY); c.scale(DOZER_K, DOZER_K); c.translate(-wx, -GY);
+      drawDozer(c, wx, f, false);
+      c.restore();
+      still(c, 'hww-keys', wx - 30 / DOZER_D, KEYS_Y, -40, -12, 80, 24, g => board(g, 0, 0, ['KEYS IN IT'], plain(1, 1, '#18181B'), '#FDE68A', BRASS, 4));
+    });
   }
   showpiece(c, v, f, caseTip(state), caseDown(state), scriptInCase(state));
   // (the pages all over the stage, after)

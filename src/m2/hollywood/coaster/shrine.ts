@@ -381,7 +381,10 @@ export const drawBooth = (c: Ctx, v: CView, state: GameState, co: Coaster) => {
   const Wl = ramp6(hour('#A8A29E')), Rf = ramp6(hour('#7F1D1D'));
   sideBack(c, eye, cx0, -1, top, by, 1, 0.95, Wl, 2);
   sideBack(c, eye, cx0 + cw, 1, top, by, 1, 0.95, Wl, 2);
-  topBack(c, eye, cx0 - 8, cx0 + cw + 8, top - 10, 1, 0.95, Rf, 2);
+  // (the roof's overhang: its ends and its top going back from where its front's drawn)
+  sideBack(c, eye, cx0 - 10, -1, top - 12, top + 2, 1, 0.95, Rf, 1, false);
+  sideBack(c, eye, cx0 + cw + 10, 1, top - 12, top + 2, 1, 0.95, Rf, 1, false);
+  topBack(c, eye, cx0 - 10, cx0 + cw + 10, top - 12, 1, 0.95, Rf, 2);
   box(c, cx0 - 1, top - 1, cw + 2, 131, INK);
   box(c, cx0, top, cw, 130, Wl[3]);
   for (let x = cx0 + 3; x < cx0 + cw; x += 6) { box(c, x, top, 2, 130, Wl[2]); box(c, x + 2, top, 1, 130, Wl[4]); }

@@ -167,7 +167,10 @@ const riderOf = (co: Coaster): Rider | null => {
 /** Which pass a chunk's drawn in: behind the play plane ('far': before the stations and stops), in front of it
  *  ('near': after them), or nearer the camera than the train he's riding ('front': after him and the train). The
  *  stretch the train's on is never in front of it. */
-type Pass = 'far' | 'near' | 'front';
+type Pass = 'deep' | 'far' | 'near' | 'front';
+/** Behind the play plane, the track further back than the stops' sets and the queue's lanes ('deep': drawn before them;
+ *  they were drawn over by track and legs well behind them) and the rest ('far': after them). */
+const SPLIT = WALL_D - 0.02;
 const passOf = (ch: Chunk, rider: Rider | null): Pass => {
   if (rider) {
     const own = ch.tr === rider.tr && ch.s1 >= rider.s - CARS * CAR_GAP - 140 && ch.s0 <= rider.s + 200;
@@ -188,17 +191,22 @@ export const drawTrackPass = (c: Ctx, state: GameState, co: Coaster, pass: Pass)
     const a0 = ex + (ch.x0 - ex) * ch.d0, a1 = ex + (ch.x0 - ex) * ch.d1, b0 = ex + (ch.x1 - ex) * ch.d0, b1 = ex + (ch.x1 - ex) * ch.d1;
     if (Math.max(b0, b1) < l || Math.min(a0, a1) > r) continue;
     if (Math.min(ey + (ch.y0 - ey) * ch.d0, ey + (ch.y0 - ey) * ch.d1) > vb) continue;
-    if (passOf(ch, rider) === pass) PASS.push(ch);
+    const p = passOf(ch, rider);
+    if ((p === 'far' && ch.d < SPLIT ? 'deep' : p) === pass) PASS.push(ch);
   }
   PASS.sort(byDepth);
-  // (the NORMAL track's giant toilet, at its depth: its back behind the track going into it, its bowl over it)
-  if (pass !== 'far') { for (const ch of PASS) drawChunk(c, v, ch, state.frame); return; }
+  // (the NORMAL track's giant toilet, at its depth (in whichever of the passes behind the play plane it's in): its back
+  // behind the track going into it, its bowl over it)
   const gd = giant().d + 0.01;
-  drawGiantBack(c, v);
-  let front = false;
-  for (const ch of PASS) { if (!front && ch.d > gd) { drawGiantFront(c, v, state); front = true; } drawChunk(c, v, ch, state.frame); }
-  if (!front) drawGiantFront(c, v, state);
-  drawTrackEnd(c, v, state);
+  if (pass === 'near' || pass === 'front' || (pass === 'deep') !== (giant().d < SPLIT)) {
+    for (const ch of PASS) drawChunk(c, v, ch, state.frame);
+  } else {
+    drawGiantBack(c, v);
+    let front = false;
+    for (const ch of PASS) { if (!front && ch.d > gd) { drawGiantFront(c, v, state); front = true; } drawChunk(c, v, ch, state.frame); }
+    if (!front) drawGiantFront(c, v, state);
+  }
+  if (pass === 'far') drawTrackEnd(c, v, state);
 };
 
 /** The EXPERIMENTAL section's end (at the play plane: the flight goes off it from where it always did). */
@@ -542,6 +550,9 @@ const canopy = (c: Ctx, v: CView, y: number, f: number) => {
   atDepth(c, eye, WALL_D, () => { for (const rx of cols) { box(c, X(rx) - 1, top + 28, 14, y - top - 28, INK); box(c, X(rx), top + 28, 12, y - top - 28, G[2]); box(c, X(rx), top + 28, 3, y - top - 28, G[3]); } });
   topBack(c, eye, a, b, top, 1, WALL_D, R, 3);
   underBack(c, eye, a, b, top + 28, 1, WALL_D, R, 3);
+  // (the fascia's ends going back with it)
+  sideBack(c, eye, a, -1, top, top + 28, 1, WALL_D, R, 2, false);
+  sideBack(c, eye, b, 1, top, top + 28, 1, WALL_D, R, 2, false);
   // (the front columns: fluted, stepped, a capital and a base)
   for (const rx of cols) {
     const x = X(rx);
@@ -698,6 +709,7 @@ export const drawCoasterBack = (c: Ctx, state: GameState, co: Coaster) => {
   }
   // (what's set back at the station and the stops, then the track behind the play plane, then what's at the play
   // plane, then the track in front of it (what's nearer than the train he's on: after him, index.ts drawFront))
+  drawTrackPass(c, state, co, 'deep');
   drawQueueBack(c, v, state);
   for (let i = 0; i < 3; i++) drawStopBack(c, v, i);
   drawTrackPass(c, state, co, 'far');
