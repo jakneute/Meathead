@@ -178,8 +178,8 @@ export const grossChoke = (stage: number) => (c: Ctx, t: number, talking: boolea
   c.drawImage(chokePaint(stage), 0, 0, 256, 144);
   // (sweat running down him)
   for (let k = 0; k < 6; k++) { const ph = ((t * (0.4 + hash(k) * 0.4) + k * 30) % 60) / 60; const x = 30 + hash(k * 7) * 200, y = 20 + hash(k * 3) * 60 + ph * 50; c.fillStyle = 'rgba(200, 236, 252, 0.85)'; c.fillRect(x, y, 2 / 3, 2); c.fillStyle = '#ffffff'; c.fillRect(x, y, 1 / 3, 1 / 3); }
-  // (the G-man's mouth working, the tongue wagging, if he's the one talking)
-  if (talking && t % 8 < 4) { c.fillStyle = '#2a0410'; c.fillRect(102, 66 - stage * 3.3, 14, 3); }
+  // (the G-man's mouth working, if he's the one talking: the gap under his teeth (chokeArt's mouth, at the painting's 1/3))
+  if (talking && t % 8 < 4) { c.fillStyle = '#2a0410'; c.fillRect(94, (168 - stage * 10 + 104) / 3, 22, 2); }
   // (spit flying off Meathead's teeth as he says his piece)
   if (!talking || stage > 0) for (let k = 0; k < 4; k++) { const ph = (t + k * 9) % 30; if (ph < 14) { c.fillStyle = '#e8f4fc'; c.fillRect(190 + k * 14 + ph * 0.6, 32 + ph * 0.9, 2 / 3, 2 / 3); } }
   c.restore();
