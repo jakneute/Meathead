@@ -39,15 +39,24 @@ export const drawCheapGreen = (c: Ctx, x: number, y: number, f: number, s = 1, p
   // (its rod, chrome, and the plate it's bolted to)
   box(c, -4, -21, 8, 21, INK); box(c, -3, -20, 6, 20, LAME[2]); box(c, -3, -20, 2, 20, LAME[5]); box(c, 2, -20, 1, 20, LAME[0]);
   box(c, -10, -23, 20, 4, INK); box(c, -9, -22, 18, 2, LAME[3]);
-  // (the back arm first)
+  // (the scare poses (BOO, CLAW): elbows out, hands up beside the head, clear of its silhouette and its face, drawn
+  // over it after; the others: the back arm first)
+  const scare = pose === 'boo' || pose === 'claw';
   const arms = (): [number, number, number, number][] => {
-    if (pose === 'boo') return [[-10, -64, -28, -100], [10, -64, 28, -100]];
-    if (pose === 'claw') { const a = Math.sin(f * 0.5) * 6; return [[-10, -64, -30, -72 + a], [10, -64, 34, -74 - a]]; }
+    if (pose === 'boo') { const a = Math.sin(f * 0.6) * 3; return [[-10, -64, -46, -108 + a], [10, -64, 46, -108 - a]]; }
+    if (pose === 'claw') { const a = Math.sin(f * 0.5) * 6; return [[-10, -64, -50, -88 + a], [10, -64, 50, -90 - a]]; }
     if (pose === 'limp') return [[-10, -64, -14, -36], [10, -64, 16, -34]];
     const a = Math.sin(f * 0.15) * 10; return [[-10, -64, -22, -40], [10, -64, 30, -78 + a]];
   };
   const [back, front] = arms();
-  tube(c, back[0], back[1], back[2], back[3], 5); mitt(c, back[2], back[3]);
+  /** A scare arm: out to its elbow (low, wide, under the jaw's line), up to its hand; claws hooked out from it. */
+  const scareArm = (a: [number, number, number, number]) => {
+    const sx = Math.sign(a[2]), ex = sx * 34, ey = -64;
+    tube(c, a[0], a[1], ex, ey, 5); tube(c, ex, ey, a[2], a[3], 5);
+    for (let k = 0; k < 3; k++) limb(c, a[2], a[3], a[2] + sx * (5 + k * 2), a[3] - 9 + k * 3, 2, '#18181B');
+    mitt(c, a[2], a[3]);
+  };
+  if (!scare) { tube(c, back[0], back[1], back[2], back[3], 5); mitt(c, back[2], back[3]); }
   // (the jumpsuit: lamé in steps, lit down its left, a zipper, a pink belt, a collar ring)
   ink(c, () => c.roundRect(-12, -70, 24, 50, 6), LAME[3], 1.5);
   c.save(); c.beginPath(); c.roundRect(-12, -70, 24, 50, 6); c.clip();
@@ -58,9 +67,7 @@ export const drawCheapGreen = (c: Ctx, x: number, y: number, f: number, s = 1, p
   c.restore();
   box(c, -9, -72, 18, 4, INK); box(c, -8, -71, 16, 2, LAME[4]);
   // (the front arm, its hand, the toy ray gun when it's waving)
-  tube(c, front[0], front[1], front[2], front[3], 5);
-  if (pose === 'claw') for (const [hx, hy] of [[back[2], back[3]], [front[2], front[3]]]) for (let k = 0; k < 3; k++) limb(c, hx, hy, hx + (hx < 0 ? -8 : 8), hy - 6 + k * 6, 2, '#18181B');
-  mitt(c, front[2], front[3]);
+  if (!scare) { tube(c, front[0], front[1], front[2], front[3], 5); mitt(c, front[2], front[3]); }
   if (pose === 'wave') {
     const gx = front[2], gy = front[3];
     box(c, gx - 5, gy - 9, 18, 9, INK); box(c, gx - 4, gy - 8, 16, 7, '#DC2626'); box(c, gx - 4, gy - 8, 16, 2, '#F87171'); box(c, gx - 4, gy - 3, 16, 2, '#991B1B');
@@ -113,6 +120,8 @@ export const drawCheapGreen = (c: Ctx, x: number, y: number, f: number, s = 1, p
     c.fillStyle = look.eyes ? '#F7FEE7' : '#FEF08A'; c.beginPath(); c.arc(tip - 1, -153, 2, 0, Math.PI * 2); c.fill();
   }
   c.restore();
+  // (the scare arms, over everything: out wide, never across the face)
+  if (scare) { scareArm(back); scareArm(front); }
   // (let go: smoking, a spark now and then)
   if (pose === 'limp' && f % 30 < 3) { box(c, 6, -120, 3, 3, '#FDE047'); box(c, -10, -60, 3, 3, '#FFFFFF'); }
   c.restore();
