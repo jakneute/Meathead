@@ -301,7 +301,22 @@ const getSick = (state: GameState, e: Enemy, s: Sick) => {
 // ---------------------------------------------------------------------------------------------------------------
 // Being sick
 
-/** Somebody to throw up on: the nearest (one not already at it, if there's a choice), close enough. */
+/** Nothing solid between (ax, ay) and (bx, by): a wall, a floor, a ceiling (pits and one-way ledges don't block). */
+const seesTo = (state: GameState, ax: number, ay: number, bx: number, by: number) => {
+  const n = Math.max(1, Math.ceil(Math.hypot(bx - ax, by - ay) / 8));
+  for (const b of state.blocks) {
+    if (b.type === 'pit' || b.oneWay) continue;
+    if (Math.max(ax, bx) < b.x || Math.min(ax, bx) > b.x + b.w || Math.max(ay, by) < b.y || Math.min(ay, by) > b.y + b.h) continue;
+    for (let i = 1; i < n; i++) {
+      const t = i / n, x = ax + (bx - ax) * t, y = ay + (by - ay) * t;
+      if (x > b.x && x < b.x + b.w && y > b.y && y < b.y + b.h) return false;
+    }
+  }
+  return true;
+};
+
+/** Somebody to throw up on: the nearest (one not already at it, if there's a choice), close enough, and that he can
+ *  see (the user's: not at anybody behind a wall or up through a floor). */
 const pickTarget = (state: GameState, e: Enemy) => {
   const cx = e.pos.x + e.width / 2, cy = e.pos.y + e.height / 2;
   let best: Enemy | null = null, score = Infinity;
@@ -309,6 +324,7 @@ const pickTarget = (state: GameState, e: Enemy) => {
     if (o === e || !alive(o)) continue;
     const d = Math.hypot(o.pos.x + o.width / 2 - cx, o.pos.y + o.height / 2 - cy);
     if (d > PUKE.reach) continue;
+    if (!seesTo(state, cx, e.pos.y + e.height * 0.3, o.pos.x + o.width / 2, o.pos.y + o.height / 2)) continue;
     const sk = sickness.get(o);
     const sc = d + (sk && sk.t >= 0 ? 300 : 0);
     if (sc < score) { score = sc; best = o; }
@@ -331,7 +347,7 @@ const heave = (ctx: FrameContext, e: Enemy, s: Sick) => {
   if (n >= (specialsHalf(e) ? Math.ceil(HEAVES * HALF) : HEAVES)) { s.t = -1; s.tol = s.max; s.immuneUntil = state.frame + IMMUNE; s.target = null; e.pose = undefined; recover(e, s); return; }
   // (in no state to fight: his AI held off, no shooting, stood there; it's not a daze, no stars)
   e.pauseTimer = Math.max(e.pauseTimer || 0, 2); e.shootTimer = 0; e.vel.x *= 0.6;
-  if (cyc === 0 || (s.target && !alive(s.target)) || (s.target && !state.enemies.includes(s.target))) s.target = pickTarget(state, e);
+  if (cyc === 0 || (s.target && !alive(s.target)) || (s.target && !state.enemies.includes(s.target)) || (s.target && !seesTo(state, e.pos.x + e.width / 2, e.pos.y + e.height * 0.3, s.target.pos.x + s.target.width / 2, s.target.pos.y + s.target.height / 2))) s.target = pickTarget(state, e);
   if (cyc === 0 && n > 0) playSound('retch', 0.8);
   const t = s.target;
   const natural = (e.kind ? kindFacing(e, state) : e.facing ?? 1) as 1 | -1;
