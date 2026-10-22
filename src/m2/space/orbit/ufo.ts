@@ -235,8 +235,13 @@ export const updateSaucer = (ctx: FrameContext, controls: Controls): Controls | 
         const e = s.lift * s.lift * (3 - 2 * s.lift);
         p.pos.x = s.fromX + (s.x - p.width / 2 - s.fromX) * e;
         p.pos.y = s.fromY + (s.y + HATCH_Y - p.height * 0.4 - s.fromY) * e;
+        // (shrinking as he goes up the beam, down to a fraction of himself at the hatch (the user's))
+        const k = 1 - 0.8 * e;
+        p.spriteScaleX = k; p.spriteScaleY = k;
+        // (it shrinks about his feet: lift him so what's left of him is up at the hatch, not dangling at the bottom)
+        p.pos.y -= (1 - k) * p.height * 0.6;
         if (s.t % 12 === 0) playSound('suck', 0.4, 2);
-        if (s.lift >= 1) { p.hidden = true; go(s, 'inside'); playSound('clang', 0.7, -6); }
+        if (s.lift >= 1) { p.hidden = true; p.spriteScaleX = undefined; p.spriteScaleY = undefined; go(s, 'inside'); playSound('clang', 0.7, -6); }
       }
       break;
     case 'inside':
