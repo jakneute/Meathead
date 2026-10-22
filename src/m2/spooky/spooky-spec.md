@@ -42,3 +42,13 @@ placed within the safe start's reach of a checkpoint (spawnSafe.ts SAFE_X 360, S
 - The cells were a fork, a shield and a bride on the floor in a row. The fork's up on the first chains' ledge now, over
   the way through (shoot up, or meet him up there: no charging him), the shield on the floor with the bride behind it
   (her rush comes out from behind the lid). Left alone: the stairs, the chamber (the ceiling's the fight), the rope walk.
+
+**The clock tower (tower/layout.ts FOES: same)**
+
+- The climb already fights on its traversal (beams to ram, nets, ledges, a ladder perch over the bell ringer, brides up
+  the climbs): little walk-and-fire. One change: floor 4's igor stood 130 from THE TOWER, FLOOR 5's checkpoint, between
+  it and the beam. He's across the shaft now beside the wolfman at the climb's foot, the bride over them: the rusher a
+  shoulder charge is made for next to the fork that punishes one.
+- Left as is: the clock room's igor and bride sit inside THE CLOCK ROOM checkpoint's reach (the room's near half is all
+  inside it, and the igor at the main support is the point of the room): spawnSafe leaves them out of a start there,
+  and walking up into the room they're there.

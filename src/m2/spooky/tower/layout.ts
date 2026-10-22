@@ -201,9 +201,10 @@ export const FOES: FoeAt[] = [
   // floor 3: the bell ringer on the long half (the hammer: past the gear in the floor, not on it), an igor at the climb
   ['ringer', 1020, 'floor', 3],
   ['igor', 330, 'floor', 3],
-  // floor 4: an igor at the beam, a wolfman across the shaft (he comes when the beam's out), a bride up the climb
-  ['igor', 350, 'floor', 4],
+  // floor 4: a wolfman across the shaft (he comes when the beam's out), an igor beside him at the climb's foot (the
+  // rusher a shoulder charge is made for, and the fork that punishes one), a bride up the climb over them
   ['wolfman', 980, 'floor', 4],
+  ['igor', 1070, 'floor', 4],
   ['bride', 950, F(4) - 200, 4],
   // floor 5: the monster at the climb, a bride up it
   ['monster', 300, 'floor', 5],
