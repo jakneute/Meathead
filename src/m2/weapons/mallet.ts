@@ -16,6 +16,9 @@
 // It doesn't use ammo, it wears out: DURABILITY, a little gone every time it connects (only then: a swing at nothing
 // costs nothing). Ammo pickups fill
 // it the same. Its kills are cartoon ones: sent flying off into the distance with a twinkle, or flattened.
+// Worn right out, the head snaps off: a BROKEN STICK. It still swings (X, and a Y tap: the same plain swing), for a few
+// points and a little shove; the tornado, the launch, the smash down and the pancake smash are gone (trying the held
+// ones, the empty cue: weapons/dry.ts). Refilled (ammo pickups), it's a mallet again.
 
 import type { Enemy } from '../../m1/types';
 import type { FrameContext } from '../../m1/game/core/context';
@@ -41,6 +44,7 @@ import { shieldTakesBlow, clang } from './shield';
 import { m2Kind } from '../kinds';
 import { since } from '../frames';
 import { struckAt } from './strikes';
+import { emptyCue } from './dry';
 
 type Ctx = CanvasRenderingContext2D;
 const INK = '#1A0B06';
@@ -108,8 +112,31 @@ export const takeMalletHit = (e: Enemy): { how: MalletHow; frame: number } | nul
   return h;
 };
 const howNow = (): MalletHow => (mode === 'tornado' ? 'spin' : mode === 'launch' ? 'launch' : mode === 'pound' || mode === 'land' ? 'pound' : mode === 'smash' ? 'smash' : 'swing');
-const wearOut = (ctx: FrameContext, n = 1) => { if (!ctx.cheats.infiniteAmmo) ctx.state.player.weaponAmmo.MALLET = Math.max(0, ctx.state.player.weaponAmmo.MALLET - n); };
+const wearOut = (ctx: FrameContext, n = 1) => {
+  if (ctx.cheats.infiniteAmmo) return;
+  const pl = ctx.state.player, was = pl.weaponAmmo.MALLET;
+  pl.weaponAmmo.MALLET = Math.max(0, was - n);
+  if (was > 0 && pl.weaponAmmo.MALLET <= 0) snapped(ctx);
+};
+/** Worn right out, just now: the handle cracks, the head flies off in bits, SNAP! */
+const snapped = (ctx: FrameContext) => {
+  const { state } = ctx, pl = state.player;
+  playSound('stick_snap');
+  const hx = pl.pos.x + pl.width / 2 + pl.facing * 30, hy = pl.pos.y + 10;
+  word(hx, hy - 16, 'SNAP!', '#F87171');
+  for (let i = 0; i < 10; i++) state.particles.push({ pos: { x: hx, y: hy }, vel: { x: pl.facing * (1 + Math.random() * 4) + (Math.random() - 0.5) * 2, y: -2 - Math.random() * 4 }, life: 50 + Math.random() * 30, color: i < 4 ? '#DC2626' : i < 6 ? '#FACC15' : '#D6A35C', size: i < 4 ? 5 : 3, alpha: 1, chunk: true, grav: 0.35 });
+};
 const durable = (ctx: FrameContext) => ctx.cheats.infiniteAmmo || ctx.state.player.weaponAmmo.MALLET > 0;
+/** Worn right out: the broken stick (drawn so, everywhere: in his fist, the pause menu). */
+let brokenNow = false;
+/** Broken, its empty cue's been given (on the first use after it snapped; again only on a disabled move). */
+let brokeCued = false;
+export const malletBroken = () => brokenNow;
+/** The broken stick's swing: a few points, a little shove. */
+const STICK = { dmg: 4, knock: 5, lift: -2 };
+/** This swing's the stick's. */
+let stick = false;
+const stickCue = (ctx: FrameContext) => emptyCue(ctx, 'MALLET', { text: 'BROKEN!', sound: 'dry_stick' });
 
 // ---------------------------------------------------------------------------------------------------------------
 // The cartoon bits: comic words, twinkles, flattened men
@@ -142,7 +169,7 @@ const toonKill = (ctx: FrameContext, e: Enemy, how: 'fling' | 'launch' | 'flatte
     state.player.killSatisfactionTimer = 60;
     return;
   }
-  const v = how === 'launch' ? { x: d * 1.5, y: -30 } : { x: d * 34, y: -9 };
+  const v = how === 'launch' ? { x: d * 1.5, y: -30 } : stick ? { x: d * 9, y: -5 } : { x: d * 34, y: -9 };
   // (no blood: it's a cartoon; but he still hits whoever he flies into)
   fx.blowAwayEnemy(e, v, m2Kill('mallet_kill'), d, 0);
   e.meleeFlung = true;
@@ -155,6 +182,19 @@ const bonk = (ctx: FrameContext, e: Enemy, dmg: number, vel: { x: number; y: num
   const { fx, state } = ctx;
   struck.add(e);
   const cx = e.pos.x + e.width / 2, cy = e.pos.y + e.height * 0.4;
+  // (the broken stick: a little tok, no fanfare; a mid-boss just takes its few points)
+  if (stick) {
+    word(cx, cy - 20, Math.random() < 0.5 ? 'TOK!' : 'PLINK!', '#D6A35C');
+    playSound('dry_stick', 1, 4); playSound('punch', 0.4, 6);
+    if (isMidBoss(e) || specialsHalf(e)) { e.health -= dmg; fx.spawnDamageNumber(e.pos, dmg, false); e.vel = { x: vel.x * 0.5, y: 0 }; return; }
+    if (shieldTakesBlow(e, vel.x || (cx - (state.player.pos.x + state.player.width / 2)))) { clang(state, e, cy); e.vel = { x: vel.x, y: vel.y }; return; }
+    if (m2Kind(e.kind)?.malletOneShot) dmg = Math.max(dmg, e.health);
+    e.health -= dmg;
+    if (e.health <= 0) { toonKill(ctx, e, 'fling', Math.sign(vel.x) || dir); return; }
+    fx.spawnDamageNumber(e.pos, dmg, false);
+    e.vel = { x: vel.x, y: vel.y }; e.pauseTimer = Math.max(e.pauseTimer || 0, 12);
+    return;
+  }
   word(cx, cy - 20);
   // (the tornado's: a star where it lands, and (him hurt by it) bits of him flung off)
   const spun = mode === 'tornado', side = Math.sign(vel.x) || dir;
@@ -192,7 +232,7 @@ const inBox = (state: GameState, x0: number, y0: number, x1: number, y1: number)
 const ARMORED: Mode[] = ['windup', 'spinup', 'smash', 'tornado'];
 let armored = false;
 const syncArmor = () => { const want = ARMORED.includes(mode); if (want !== armored) { armored = want; setArmor(want, 'mallet'); } };
-const start = (m: Mode, pl: GameState['player']) => { mode = m; t = 0; rebound = false; dir = pl.facing; struck = new Set(); playSound('whoosh', m === 'tornado' ? 0.6 : 1, m === 'launch' ? 4 : -4); };
+const start = (m: Mode, pl: GameState['player'], asStick = false) => { mode = m; t = 0; stick = asStick; rebound = false; dir = pl.facing; struck = new Set(); playSound('whoosh', m === 'tornado' ? 0.6 : 1, m === 'launch' ? 4 : -4); };
 
 const tick = (ctx: FrameContext, input: { shoot: boolean }, equipped: boolean) => {
   const { state } = ctx;
@@ -215,6 +255,10 @@ const tick = (ctx: FrameContext, input: { shoot: boolean }, equipped: boolean) =
   // (the tornado's funnel frames: painted in idle moments once it's first in his hands)
   if (equipped) queueFunnel();
 
+  // (worn right out: the head snaps off, a stick's left; fixed (a pickup), a mallet again)
+  const whole = durable(ctx);
+  if (whole) brokeCued = false;
+  brokenNow = !whole;
   if (!equipped) { if (mode !== 'idle') { mode = 'idle'; pl.hidden = false; syncArmor(); } xHeld = yHeld = 0; return; }
   // (wound up for the smash or the tornado, the smash coming down, the tornado going: a hit hurts him, but nothing
   // knocks him out of it, whatever it was (a stage's own shove, a stun): the knock's taken off him, and X still held
@@ -246,6 +290,12 @@ const tick = (ctx: FrameContext, input: { shoot: boolean }, equipped: boolean) =
   }
   // (a grab on: the mallet's put away for it, whatever it was doing)
   if (grabBusy()) { if (mode !== 'idle') { mode = 'idle'; pl.hidden = false; syncArmor(); } return; }
+  // (broken: X, or a Y tap, is the stick's plain swing; the held one (the pancake smash's windup) only the empty cue.
+  // The first go with it broken gets the cue as well)
+  if (mode === 'idle' && !durable(ctx) && !pl.isCharging && !pl.isUppercutting && !pl.isDivekicking && !pl.isDucking) {
+    if (xPress || (tap && yFree)) { start(ground ? 'swing' : 'airSwing', pl, true); if (!brokeCued) { brokeCued = true; stickCue(ctx); } }
+    else if (yDown && yHeld === Y_HOLD && footed && yFree) { brokeCued = true; stickCue(ctx); }
+  }
   if (mode === 'idle' && durable(ctx) && !pl.isCharging && !pl.isUppercutting && !pl.isDivekicking && !pl.isDucking) {
     if (xPress) start(ground ? 'swing' : 'airSwing', pl);
     // (the smash down, from a vine: he lets go of it, to come down with it)
@@ -262,18 +312,20 @@ const tick = (ctx: FrameContext, input: { shoot: boolean }, equipped: boolean) =
   switch (mode) {
     case 'swing':
     case 'airSwing': {
-      const S = mode === 'swing' ? SWING : AIR_SWING;
+      const S0 = mode === 'swing' ? SWING : AIR_SWING;
+      const S = stick ? { ...S0, ...STICK } : S0;
       if (mode === 'swing') pl.vel.x *= 0.6;
       if (t === S.hitAt) {
         if (mode === 'swing') struckAt(px, fy - 95, px + dir * 100, fy, S.dmg); else struckAt(px, pl.pos.y - 30, px + dir * 95, fy + 40, S.dmg);
         const hits = mode === 'swing' ? inBox(state, px, fy - 95, px + dir * 100, fy) : inBox(state, px, pl.pos.y - 30, px + dir * 95, fy + 40);
         for (const e of hits) bonk(ctx, e, S.dmg, { x: dir * S.knock, y: S.lift }, 'fling');
-        if (hits.length) wearOut(ctx, WEAR.swing);
+        if (hits.length && !stick) wearOut(ctx, WEAR.swing);
       }
-      // (still holding it on the ground, or on a vine: held at the end of the swing, winding up into the tornado)
+      // (still holding it on the ground, or on a vine: held at the end of the swing, winding up into the tornado; the
+      // stick has no tornado in it: held on, the empty cue)
       if (t >= S.len) {
-        if (input.shoot && durable(ctx) && (mode === 'swing' ? ground : hang)) { mode = 'spinup'; t = 0; }
-        else mode = 'idle';
+        if (input.shoot && durable(ctx) && !stick && (mode === 'swing' ? ground : hang)) { mode = 'spinup'; t = 0; }
+        else { if (stick && input.shoot && (mode === 'swing' ? ground : hang)) stickCue(ctx); mode = 'idle'; }
       }
       break;
     }
@@ -426,6 +478,7 @@ const tick = (ctx: FrameContext, input: { shoot: boolean }, equipped: boolean) =
 
 /** The mallet: a long wooden handle, a big round-ended barrel of a head (red, yellow bands), drawn along the +x axis from the grip. */
 const drawMallet = (c: Ctx, len = 36) => {
+  if (brokenNow) { drawStick(c, len); return; }
   c.fillStyle = INK; c.fillRect(-2, -3, len + 2, 6); c.fillStyle = '#D6A35C'; c.fillRect(-1, -2, len, 4); c.fillStyle = '#F2C27D'; c.fillRect(-1, -2, len, 1);
   const hx = len, hw = 18, hh = 30;
   c.fillStyle = INK; c.beginPath(); c.roundRect(hx - 2, -hh / 2 - 2, hw + 4, hh + 4, 6); c.fill();
@@ -434,6 +487,21 @@ const drawMallet = (c: Ctx, len = 36) => {
   c.fillStyle = '#FACC15'; c.fillRect(hx, -hh / 2 + 4, hw, 3); c.fillRect(hx, hh / 2 - 7, hw, 3);
   c.fillStyle = INK; c.beginPath(); c.ellipse(hx + hw / 2, -hh / 2, hw / 2 + 1, 3.5, 0, 0, Math.PI * 2); c.ellipse(hx + hw / 2, hh / 2, hw / 2 + 1, 3.5, 0, 0, Math.PI * 2); c.fill();
   c.fillStyle = '#FEE2E2'; c.beginPath(); c.ellipse(hx + hw / 2, -hh / 2, hw / 2 - 0.5, 2.5, 0, 0, Math.PI * 2); c.fill();
+};
+
+/** The broken stick: the handle, snapped off short of where the head was, a jagged splintered end (a couple of
+ *  splinters sticking out, the pale wood inside showing), a crack running back down it. Along +x from the grip. */
+const drawStick = (c: Ctx, len: number) => {
+  const L = Math.round(len * 0.85);
+  c.fillStyle = INK; c.fillRect(-2, -3, L + 2, 6); c.fillStyle = '#D6A35C'; c.fillRect(-1, -2, L, 4); c.fillStyle = '#F2C27D'; c.fillRect(-1, -2, L, 1);
+  c.fillStyle = '#A8763A'; c.fillRect(-1, 1, L, 1);
+  // (the jagged break: teeth of wood out past the end, the light inside)
+  c.fillStyle = INK; c.fillRect(L, -3, 4, 3); c.fillRect(L, 1, 6, 2); c.fillRect(L + 3, -1, 3, 2);
+  c.fillStyle = '#F5DEB3'; c.fillRect(L, -2, 3, 1); c.fillRect(L, 1, 5, 1); c.fillRect(L + 3, 0, 2, 1); c.fillRect(L - 1, -1, 2, 2);
+  // (splinters off it)
+  c.fillStyle = '#F2C27D'; c.fillRect(L + 4, -5, 1, 3); c.fillRect(L + 6, 3, 2, 1);
+  // (the crack down it)
+  c.fillStyle = INK; c.fillRect(L - 8, -1, 5, 1); c.fillRect(L - 12, 0, 4, 1);
 };
 
 /**
@@ -451,7 +519,7 @@ const flatSwingPose = (c: Ctx, f: number, phi: number, tilt: number, airborne: b
   c.save(); c.translate(0, -22); c.rotate(0.12 - Math.cos(phi) * 0.12);
   const k = Math.cos(phi), grip = { x: 3 + k * 18, y: -16 + tilt * 10 };
   const mallet = () => {
-    if (Math.abs(k) >= 0.3) { c.save(); c.translate(grip.x, grip.y); c.rotate(tilt); c.scale(k, 1); drawMallet(c, 34); c.restore(); return; }
+    if (Math.abs(k) >= 0.3 || brokenNow) { c.save(); c.translate(grip.x, grip.y); c.rotate(tilt); c.scale(Math.abs(k) < 0.3 ? (k < 0 ? -0.3 : 0.3) : k, 1); drawMallet(c, 34); c.restore(); return; }
     // (end on, coming round at you: the face of the head, big, the handle hidden behind it)
     const hx = grip.x + k * 30, hy = grip.y, r = 16;
     c.fillStyle = INK; c.beginPath(); c.arc(hx, hy, r + 2, 0, Math.PI * 2); c.fill();
@@ -921,7 +989,7 @@ const vineArm = (state: GameState) => {
       const k = Math.cos(phi);
       if ((k < 0) !== behind) return;
       const grip = { x: sx - 10 + k * 22, y: sy + 9 + tilt * 10 };
-      if (Math.abs(k) >= 0.3) { c.save(); c.translate(grip.x, grip.y); c.rotate(tilt); c.scale(k, 1); drawMallet(c, 34); c.restore(); }
+      if (Math.abs(k) >= 0.3 || brokenNow) { c.save(); c.translate(grip.x, grip.y); c.rotate(tilt); c.scale(Math.abs(k) < 0.3 ? (k < 0 ? -0.3 : 0.3) : k, 1); drawMallet(c, 34); c.restore(); }
       else {
         // (end on, coming round at you: the face of the head, big, the handle hidden behind it)
         const hx = grip.x + k * 30, hy = grip.y, r = 16;
@@ -947,7 +1015,7 @@ const drawHeld = (c: Ctx) => { c.save(); c.translate(1, 3); c.rotate(-1.15); dra
 export const holdMalletForTests = (m: string, at: number) => { mode = m as Mode; t = at; };
 export const malletModeForTests = () => `${mode}:${t}:${xHeld}`;
 /** Everything it was in the middle of, stopped (through a door). */
-export const stopMallet = () => { mode = 'idle'; syncArmor(); words = []; twinkles = []; flat = []; flying = []; junk = []; impacts = []; scuffs = []; glimpse = null; };
+export const stopMallet = () => { mode = 'idle'; stick = false; syncArmor(); words = []; twinkles = []; flat = []; flying = []; junk = []; impacts = []; scuffs = []; glimpse = null; };
 
 export const registerMallet = () => registerWeapon('MALLET', {
   // (all its business is in tick: X and Y both, held and tapped)

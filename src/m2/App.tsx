@@ -29,6 +29,9 @@ import { portalArrivalPending } from './portalArrival';
 import { THEMES, PLAIN_PAUSE } from './hudThemes';
 import GoreBag from './GoreBag';
 import { M2_WEAPONS, M2WeaponArt, weaponName, registerWeapons, ammoName } from './weapons';
+import { dryAlert, dryAlertText } from './weapons/dry';
+import { malletBroken } from './weapons/mallet';
+import { BROKEN_STICK_ART } from './weapons/brokenStickArt';
 import BulkMeter from './BulkMeter';
 import { loadVoicePack } from '../m1/game/platform/voiceclips';
 // (its own little pack: just the lines it can say, out of Meathead 1's: tools/voices/m2pack.ts)
@@ -275,6 +278,11 @@ const App2: React.FC = () => {
   const pending = useRef<string | null>(first);
   const [fade, setFade] = useState(false);
   const [weapon, setWeapon] = useState<WeaponType>('GUN');
+  const dryRef = useRef(0), brokeRef = useRef(false);
+  const [dryFlash, setDryFlash] = useState<{ key: number; text: string } | null>(null);
+  useEffect(() => { if (!dryFlash) return; const id = setTimeout(() => setDryFlash(null), 1200); return () => clearTimeout(id); }, [dryFlash]);
+  /** The mallet worn right out: a broken stick, on the HUD as well. */
+  const [broke, setBroke] = useState(false);
   const [hud, setHud] = useState({ health: INITIAL_PLAYER_HEALTH, power: 0, ammo: STARTING_AMMO as Record<WeaponType, number> });
   const ammoRef = useRef(hud.ammo);
   const [initialAmmo, setInitialAmmo] = useState(STARTING_AMMO as Record<WeaponType, number>);
@@ -566,6 +574,10 @@ const App2: React.FC = () => {
   };
   const onPlayerUpdate = (health: number, power: number, ammo?: Record<WeaponType, number>, _forced?: WeaponType, lockedTo?: WeaponType) => {
     followLock(lockedTo);
+    // (a weapon tried empty (weapons/dry.ts): the HUD's weapon box flashes for it, a moment)
+    const dk = dryAlert();
+    if (dk !== dryRef.current) { dryRef.current = dk; setDryFlash({ key: dk, text: dryAlertText() }); }
+    if (malletBroken() !== brokeRef.current) { brokeRef.current = malletBroken(); setBroke(brokeRef.current); }
     if (ammo) ammoRef.current = ammo;
     // (the engine hands over the same ammo table every frame, changed in place: it's what's in it that's compared, and
     // a copy that's kept, or the HUD only caught up when something else changed, his health, his power)
@@ -633,7 +645,7 @@ const App2: React.FC = () => {
             : ui.broomHud
             // (on the broomstick: the PWR row's its boost; the weapon's the laser on the broom's end)
             ? <HUD health={hud.health} maxHealth={INITIAL_PLAYER_HEALTH} power={ui.broomBoost ?? 0} powerCells={1} currentWeapon={weapon} ammo={Infinity} maxAmmo={Infinity} weaponName="BROOM LASER" weaponArt={<BroomWand />} skin={theme?.hud} cellWidth={M2_CELL_W} />
-            : <HUD health={hud.health} maxHealth={INITIAL_PLAYER_HEALTH} power={hud.power} currentWeapon={weapon} ammo={hud.ammo[weapon] ?? 0} maxAmmo={maxAmmo(weapon)} weaponName={weapon === 'GUN' && ui.catHud ? 'HAIRBALL' : weaponName(weapon)} weaponArt={weapon === 'GUN' ? (ui.catHud ? HAIRBALL_ART : RAYGUN_ART) : undefined} weaponExtra={weapon === 'SOUL_SUCKER' ? <GoreBag /> : weapon === 'SPELLBOOK' ? <BulkMeter /> : undefined} ammoLabel={ammoName(weapon) === 'AMMO' ? undefined : ammoName(weapon)} skin={theme?.hud} cellWidth={M2_CELL_W} />
+            : <HUD health={hud.health} maxHealth={INITIAL_PLAYER_HEALTH} power={hud.power} currentWeapon={weapon} ammo={hud.ammo[weapon] ?? 0} maxAmmo={maxAmmo(weapon)} weaponName={weapon === 'GUN' && ui.catHud ? 'HAIRBALL' : weapon === 'MALLET' && broke ? 'BROKEN STICK' : weaponName(weapon)} weaponArt={weapon === 'GUN' ? (ui.catHud ? HAIRBALL_ART : RAYGUN_ART) : weapon === 'MALLET' && broke ? BROKEN_STICK_ART : undefined} alert={dryFlash?.key} alertText={dryFlash?.text} weaponExtra={weapon === 'SOUL_SUCKER' ? <GoreBag /> : weapon === 'SPELLBOOK' ? <BulkMeter /> : undefined} ammoLabel={ammoName(weapon) === 'AMMO' ? undefined : ammoName(weapon)} skin={theme?.hud} cellWidth={M2_CELL_W} />
         )}
         {/* What up does here */}
         {status === GameStatus.PLAYING && ui.map === null && (nearLand || ui.near === STAFF_SLOT || ui.nearExit || ui.nearAmerica) && (

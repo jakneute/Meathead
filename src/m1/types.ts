@@ -83,6 +83,8 @@ export type SoundType =
   | 'spawn' | 'chitter' | 'gnaw' | 'crumble'
   // (Meathead 2's crossbow of plagues: a dart loosed, somebody retching, the puke coming)
   | 'twang' | 'retch' | 'gush'
+  // (Meathead 2's weapons tried with nothing left in them (m2/weapons/dry.ts), one apiece; the mallet's handle snapping)
+  | 'dry_souvenir' | 'dry_suck' | 'dry_flint' | 'dry_spell' | 'dry_clap' | 'dry_spawn' | 'dry_bow' | 'dry_stick' | 'stick_snap'
   // (Meathead 2's Donnie Dracula, the glutton: a belch off a full gut, the last of a drink up a straw)
   | 'burp' | 'slurp'
   // (Meathead 2's STUPID DAD LIVE!: the canned laugh track, a beer can cracked, the show's tape stopping)

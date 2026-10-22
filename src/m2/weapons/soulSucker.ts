@@ -27,6 +27,7 @@ import { m2Kill } from '../moves/killLines';
 import { grabCallout } from '../moves/callouts';
 import { say, MEATHEAD_VOICE, pickLine } from '../../m1/game/platform/speech';
 import { FULL_BAG_LINES, EMPTY_BAG_LINES } from '../lines/weaponLines';
+import { emptyCue } from './dry';
 import { isRobot } from '../kinds';
 import { specialsHalf, specialsOff, realMax, halfKill } from './half';
 import { since } from '../frames';
@@ -344,7 +345,7 @@ const tick = (ctx: FrameContext, input: { secondary?: boolean; moveUp: boolean; 
   // (nothing in the bag: it splutters, a drip comes out; now and then he says so)
   else if (equipped && press && sprayLeft <= 0) {
     const mouth = muzzlePoint(pl, 'SOUL_SUCKER');
-    playSound('dry_gore');
+    emptyCue(ctx, 'SOUL_SUCKER', { text: 'BAG EMPTY!', sound: 'dry_gore', bits: false });
     for (let i = 0; i < 3; i++) state.particles.push({ pos: { x: mouth.x, y: mouth.y + 2 }, vel: { x: pl.facing * (0.3 + Math.random()), y: 0.5 + Math.random() }, life: 30, color: i ? '#991B1B' : 'rgba(200, 200, 200, 0.5)', size: i ? 2 : 4 });
     if (since(state.frame, emptySaidAt) > EMPTY_LINE_GAP && Math.random() < EMPTY_LINE_CHANCE) { emptySaidAt = state.frame; meatheadSays(state, pickLine(EMPTY_BAG_LINES)); }
   }

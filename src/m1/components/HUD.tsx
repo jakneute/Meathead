@@ -28,6 +28,9 @@ interface HUDProps {
   cellWidth?: number;
   /** Something on the PWR row to the right of the cells (Meathead 2's helicopter: its rockets). */
   powerExtra?: React.ReactNode;
+  /** Meathead 2's weapon tried empty: bumped each time (the weapon's box flashes red and shakes, `alertText` by it). */
+  alert?: number;
+  alertText?: string;
 }
 
 /** How the HUD plate looks: the plate, what's drawn on it, its words, its bars, its power cells, the weapon's box. */
@@ -48,7 +51,7 @@ export interface HudSkin {
 }
 
 /** The in-game HUD: health, power cells and the equipped weapon on a steel plate in the corner. */
-const HUD: React.FC<HUDProps> = ({ health, maxHealth, power, currentWeapon, ammo, maxAmmo, weaponName, weaponArt, weaponExtra, ammoLabel, skin, powerCells = POWER_CELLS, powerExtra, cellWidth }) => {
+const HUD: React.FC<HUDProps> = ({ health, maxHealth, power, currentWeapon, ammo, maxAmmo, weaponName, weaponArt, weaponExtra, ammoLabel, skin, powerCells = POWER_CELLS, powerExtra, cellWidth, alert, alertText }) => {
   const hp = Math.max(0, Math.min(1, health / maxHealth));
   const low = hp < 0.35;
   const limited = maxAmmo !== Infinity;
@@ -92,9 +95,15 @@ const HUD: React.FC<HUDProps> = ({ health, maxHealth, power, currentWeapon, ammo
 
         {/* Weapon */}
         <div className="flex items-center gap-2 pt-[2px]">
-          <div className="relative w-[34px] h-[34px] flex items-center justify-center border-2 border-zinc-700"
-            style={{ background: 'radial-gradient(circle, rgba(250,204,21,0.15) 0%, rgba(0,0,0,0.6) 75%)', ...skin?.slot }}>
+          <div key={alert || 0} className="relative w-[34px] h-[34px] flex items-center justify-center border-2 border-zinc-700"
+            style={{ background: 'radial-gradient(circle, rgba(250,204,21,0.15) 0%, rgba(0,0,0,0.6) 75%)', ...skin?.slot, ...(alert ? { animation: 'mh-hud-dry 0.6s steps(12, end)' } : undefined) }}>
             {weaponArt ? <svg viewBox="0 0 32 32" width={28} height={28} shapeRendering="crispEdges" style={{ imageRendering: 'pixelated' }}>{weaponArt}</svg> : <WeaponArt type={currentWeapon} size={28} />}
+            {/* (tried empty: its word stamped over the box, fading) */}
+            {alert ? <span className="absolute left-1/2 top-1/2 text-[6px] font-black text-white whitespace-nowrap px-[2px]" style={{ background: '#B91C1C', border: '1px solid #000', animation: 'mh-hud-dry-word 1.1s ease-in forwards' }}>{alertText ?? 'EMPTY!'}</span> : null}
+            {alert ? <style>{`
+              @keyframes mh-hud-dry { 0%, 100% { transform: translateX(0); } 10% { transform: translateX(-3px); border-color: #EF4444; background: rgba(220,38,38,0.6); } 25% { transform: translateX(3px); } 40% { transform: translateX(-2px); border-color: #EF4444; background: rgba(220,38,38,0.45); } 55% { transform: translateX(2px); } 70% { transform: translateX(-1px); border-color: #EF4444; } }
+              @keyframes mh-hud-dry-word { 0% { transform: translate(-50%, -50%) rotate(-8deg) scale(1.8); opacity: 0; } 12% { transform: translate(-50%, -50%) rotate(-8deg) scale(1); opacity: 1; } 75% { opacity: 1; } 100% { transform: translate(-50%, -50%) rotate(-8deg) scale(1); opacity: 0; } }
+            `}</style> : null}
           </div>
           <div className="relative flex flex-col gap-[4px]">
             <span className="text-[8px] font-black text-yellow-300 uppercase whitespace-nowrap" style={{ color: skin?.name }}>{weaponName ?? getWeaponInfo(currentWeapon).name}</span>

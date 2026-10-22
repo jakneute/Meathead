@@ -3,6 +3,7 @@ import type { WeaponType } from '../m1/types';
 import { maxAmmo } from '../m1/constants';
 import { Prompt } from '../m1/components/ButtonIcons';
 import { M2_WEAPON_INFO, M2WeaponArt, ammoName } from './weapons';
+import { malletBroken } from './weapons/mallet';
 import { HairballSvg } from './cartoon/whitehouse1/HairballArt';
 import ChordPrompt from './ChordPrompt';
 import { CardRowView, type PauseCard } from './PauseControls';
@@ -207,6 +208,8 @@ const PauseMenu: React.FC<Props> = ({ weapons, current, ammo, selected, onPick, 
             <div className="text-[7px] font-black uppercase tracking-wider mb-2 text-center" style={{ color: skin.accent }}>FROM {info?.from ?? ''}{shown === current && <span className="block text-red-500 whitespace-nowrap mt-[2px]">[ EQUIPPED ]</span>}</div>
             <div className="text-[7px] leading-[11px] uppercase font-bold mb-2 min-h-[44px]" style={{ color: skin.text }}>&ldquo;{info?.description ?? ''}&rdquo;</div>
             <div className="text-[7px] font-black tracking-wider" style={{ color: skin.muted }}>{ammoName(shown)}: {ammoText(shown)}</div>
+            {/* (worn right out: what's left of it) */}
+            {shown === 'MALLET' && malletBroken() && <div className="text-[7px] font-black tracking-wider text-red-500 mt-[2px]">BROKEN: JUST A STICK. NO TORNADO, NO SMASHES. AMMO FIXES IT.</div>}
             {/* How it's worked: a line per move, the buttons for whatever's being played on */}
             {info?.controls?.length ? (
               <div className="mt-2 w-full flex flex-col items-start gap-[3px] px-2 py-1 bg-black/60 border border-zinc-700 text-[6px] font-black text-zinc-200 tracking-wider">

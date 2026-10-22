@@ -6,6 +6,7 @@ import { FrameContext } from '../core/context';
 import { FrameInput, hasAmmo, armsBusy } from '../player/player';
 import { muzzlePoint, flamethrowerNozzle } from './muzzle';
 import { playSound } from '../platform/audio';
+import { customWeapon } from './customWeapons';
 
 /** Not again within this many frames (mashing an empty gun gets one gag every so often, not one a press). */
 const DRY_FIRE_GAP = 20;
@@ -108,7 +109,9 @@ export const updateDryFire = (ctx: FrameContext, input: FrameInput) => {
   const wasLive = !!player.dryWasLive && !ONE_PER_PRESS.has(currentWeapon);
   const due = (player.shootCooldown || 0) <= 0;
   player.dryWasLive = input.shoot && (loaded || (wasLive && !due));
-  if (!gag || loaded || !input.shoot) return;
+  // (a game's own weapon brings its own gag: combat/customWeapons.ts)
+  const own = customWeapon(currentWeapon)?.dry;
+  if ((!gag && !own) || loaded || !input.shoot) return;
   if (!input.shootPressed && !(wasLive && due)) return;
   if (armsBusy(player) || player.inCutscene || state.deathTimer > 0 || player.health <= 0) return;
   // (the taser still overloaded says so itself; the flamethrower in the water fizzles on its own)
@@ -116,8 +119,10 @@ export const updateDryFire = (ctx: FrameContext, input: FrameInput) => {
   if (currentWeapon === 'FLAMETHROWER' && (player.swimming || player.isDucking)) return;
   if (player.dryFireAt !== undefined && state.frame - player.dryFireAt >= 0 && state.frame - player.dryFireAt < DRY_FIRE_GAP) return;
   player.dryFireAt = state.frame;
+  if (own) { own(ctx); return; }
   // (no rocks left: there's nothing in his hand to fire, so nothing comes out; he just shrugs)
   if (currentWeapon === 'BOULDER') { player.shrugAt = state.frame; return; }
+  if (!gag) return;
   const m = currentWeapon === 'FLAMETHROWER' ? flamethrowerNozzle(player) : muzzlePoint(player, currentWeapon);
   // (carried along with him: he may be running)
   for (const b of gag.bits(m, player.facing, Math.random)) {

@@ -10,9 +10,11 @@ import { registerSoulSucker, stopSoulSucker } from './soulSucker';
 import { registerFlintlock, stopFlintlock } from './flintlock';
 import { registerSpellbook, stopSpellbook } from './spellbook';
 import { registerStuntCar, stopStuntCar } from './stuntCar';
-import { registerMallet, stopMallet } from './mallet';
+import { registerMallet, stopMallet, malletBroken } from './mallet';
+import { BROKEN_STICK_ART } from './brokenStickArt';
 import { registerSpawner, stopSpawner } from './spawner';
 import { registerCrossbow, stopCrossbow } from './crossbow';
+import { wireDry, resetDry } from './dry';
 import type { PadKey } from '../../m1/components/ButtonIcons';
 
 /** One line of how it's worked, for the pause menu: the buttons (pad, keyboard, mouse; `join`: '+' together), and what they do. */
@@ -83,15 +85,15 @@ export const M2_WEAPONS: WeaponType[] = ['GUN', 'SOUVENIR', 'SOUL_SUCKER', 'FLIN
 
 export const weaponName = (w: WeaponType) => M2_WEAPON_INFO[w]?.name ?? w;
 
-/** Its picture (the ray gun's its own; the rest are the engine's, by type). */
+/** Its picture (the ray gun's its own, the mallet worn out a broken stick; the rest are the engine's, by type). */
 export const M2WeaponArt: React.FC<{ type: WeaponType; size: number }> = ({ type, size }) =>
-  type === 'GUN'
-    ? React.createElement('svg', { viewBox: '0 0 32 32', width: size, height: size, shapeRendering: 'crispEdges', style: { imageRendering: 'pixelated' } }, RAYGUN_ART)
+  type === 'GUN' || (type === 'MALLET' && malletBroken())
+    ? React.createElement('svg', { viewBox: '0 0 32 32', width: size, height: size, shapeRendering: 'crispEdges', style: { imageRendering: 'pixelated' } }, type === 'GUN' ? RAYGUN_ART : BROKEN_STICK_ART)
     : React.createElement(WeaponArt, { type, size });
 
 /** Plugs the lands' weapons into the engine (startup). */
-export const registerWeapons = () => { registerSouvenirLauncher(); registerSoulSucker(); registerFlintlock(); registerSpellbook(); registerStuntCar(); registerMallet(); registerSpawner(); registerCrossbow(); };
+export const registerWeapons = () => { registerSouvenirLauncher(); registerSoulSucker(); registerFlintlock(); registerSpellbook(); registerStuntCar(); registerMallet(); registerSpawner(); registerCrossbow(); wireDry(M2_WEAPONS); };
 /** Whatever any of them was in the middle of, stopped (going through a door). */
-export const stopWeapons = () => { stopSoulSucker(); stopFlintlock(); stopSpellbook(); stopStuntCar(); stopMallet(); stopSpawner(); stopCrossbow(); };
+export const stopWeapons = () => { stopSoulSucker(); stopFlintlock(); stopSpellbook(); stopStuntCar(); stopMallet(); stopSpawner(); stopCrossbow(); resetDry(); };
 /** What its ammo's called (the spellbook's is mana). */
 export const ammoName = (w: WeaponType) => (w === 'SPELLBOOK' ? 'MANA' : w === 'MALLET' ? 'DURABILITY' : 'AMMO');

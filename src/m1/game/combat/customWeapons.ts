@@ -26,6 +26,9 @@ export interface CustomWeapon {
   drawOverlay?: (ctx: CanvasRenderingContext2D, state: GameState) => void;
   /** Behind him (after the enemies, before the player): its things that are further back than he is. */
   drawUnder?: (ctx: CanvasRenderingContext2D, state: GameState) => void;
+  /** Fire pressed with it empty (combat/dryFire.ts decides when: once a press, not while it's held, a moment apart):
+   *  its own little failure (Meathead 2's: m2/weapons/dry.ts). */
+  dry?: (ctx: FrameContext) => void;
   /**
    * Hanging off a vine (Meathead 2), mid-move with it (a swing, a cast): his weapon arm and what's in it, drawn its own
    * way this frame (null: the usual way, held out level). Called twice: `behind` before his torso is drawn (whatever's

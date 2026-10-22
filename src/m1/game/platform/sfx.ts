@@ -337,6 +337,52 @@ const SFX: Record<string, SfxDef> = {
     gain: 0.45, vary: 1, gap: 150,
     make: () => { const bp = bandpass(); return render(0.3, t => (Math.sin(TAU * 2600 * t) * 0.6 + rnd() * 0.4) * ex(t, 140) + (t > 0.09 ? bp(rnd(), 1200, 0.8) * Math.sin(Math.PI * Math.min(1, (t - 0.09) / 0.14)) * 0.9 : 0)); },
   },
+  // ---- Meathead 2's weapons with nothing left in them (m2/weapons/dry.ts), one apiece ----
+  dry_souvenir: {
+    // The souvenir launcher: the trigger's click, a hollow empty pop out of the drainpipe, and one bit of junk rattling down it (tink)
+    gain: 0.45, vary: 1, gap: 150,
+    make: () => { const lp = lowpass(), tink = metal(2400, [1, 2.7, 4.1], 35); return render(0.45, t => (Math.sin(TAU * 2800 * t) * 0.6 + rnd() * 0.4) * ex(t, 140) + (t > 0.06 ? lp(rnd(), 380) * Math.sin(Math.PI * Math.min(1, (t - 0.06) / 0.1)) * 1.2 : 0) + (t > 0.28 ? tink(t - 0.28) * 0.35 : 0)); },
+  },
+  dry_suck: {
+    // The soul sucker out of juice: the motor trying (a wheezy, sagging whine), a thin asthmatic suck, and it dies
+    gain: 0.4, vary: 1, gap: 200,
+    make: () => { const bp = bandpass(), lp = lowpass(); let ph = 0; return render(0.6, t => { ph += (150 * ex(t, 3) + 30) / SFX_SR; const motor = lp(Math.sign(Math.sin(TAU * ph)), 700) * 0.4; const wheeze = bp(rnd(), 1800 + 500 * Math.sin(TAU * 3 * t), 2.5) * (0.6 + 0.4 * Math.sin(TAU * 11 * t)); return (motor + wheeze * 0.7) * Math.min(1, t / 0.03) * ex(Math.max(0, t - 0.2), 6); }); },
+  },
+  dry_flint: {
+    // The flintlock with no ball: the hammer snapping down (a sharp click), the flint's weak spark, a puff off the pan
+    gain: 0.45, vary: 1, gap: 150,
+    make: () => { const hp = highpass(), lp = lowpass(); return render(0.35, t => (t < 0.006 ? rnd() : 0) + Math.sin(TAU * 2100 * t) * ex(t, 90) * 0.5 + (t > 0.01 && t < 0.05 ? hp(rnd(), 5000) * 0.5 : 0) + (t > 0.07 ? lp(rnd(), 900) * Math.sin(Math.PI * Math.min(1, (t - 0.07) / 0.2)) * 0.5 : 0)); },
+  },
+  dry_spell: {
+    // The spellbook out of mana: a little magic shimmer going up that sags and fizzles out (a sad, sputtering hiss)
+    gain: 0.35, vary: 1, gap: 150,
+    make: () => { const hp = highpass(); let a = 0; return render(0.55, t => { a += (900 + 900 * Math.min(1, t / 0.12) - 1300 * Math.max(0, t - 0.12)) / SFX_SR; const sput = Math.floor(t * 34) % 2 ? 1 : 0.25; return Math.sin(TAU * a) * 0.45 * ex(t, 6) * sput + hp(rnd(), 4500) * 0.35 * Math.min(1, t / 0.1) * ex(t, 5) * sput; }); },
+  },
+  dry_clap: {
+    // The clapperboard with no take left: a limp, dull little clack (the sticks barely meeting), nothing after it
+    gain: 0.45, vary: 0.6, gap: 150,
+    make: () => { const lp = lowpass(); return render(0.1, t => (lp(rnd(), 900) * 1.2 + Math.sin(TAU * 330 * t) * 0.5) * ex(t, 55)); },
+  },
+  dry_spawn: {
+    // The spawner gone dry: a squeeze on nothing, a wet empty gurgle, and a little fart of air out the end
+    gain: 0.4, vary: 1, gap: 150,
+    make: () => { const lp = lowpass(), bp = bandpass(); let ph = 0; return render(0.45, t => { ph += (80 + 30 * Math.sin(TAU * 22 * t)) / SFX_SR; const gurgle = lp(Math.tanh(3 * Math.sin(TAU * ph)), 600) * (t < 0.25 ? 1 : 0) * Math.min(1, t / 0.02); return gurgle * 0.7 + (t > 0.27 ? bp(rnd(), 500, 1.2) * ex(t - 0.27, 14) * 0.8 : 0); }); },
+  },
+  dry_bow: {
+    // The crossbow with no dart: the string let go on nothing, a slack, wobbly twang (low, flabby, buzzing out)
+    gain: 0.45, vary: 0.8, gap: 150,
+    make: () => { let a = 0; return render(0.5, t => { a += (150 + 25 * Math.sin(TAU * 7 * t)) / SFX_SR; return (Math.sign(Math.sin(TAU * a)) * 0.3 + Math.sin(TAU * a * 2) * 0.4) * ex(t, 7) + (t < 0.004 ? rnd() * 0.6 : 0); }); },
+  },
+  dry_stick: {
+    // The mallet broken down to its stick: a dry, hollow little wooden tok (nothing like the bonk it used to make)
+    gain: 0.4, vary: 1.5, gap: 120,
+    make: () => { const bp = bandpass(); return render(0.12, t => (Math.sin(TAU * (900 - 2000 * t) * t) * 0.7 + bp(rnd(), 1300, 2) * 0.6) * ex(t, 45)); },
+  },
+  stick_snap: {
+    // ...and the moment it goes: the handle cracking in two (a sharp splintering snap), the head thunking off
+    gain: 0.6, vary: 0.5, gap: 200,
+    make: () => { const bp = bandpass(), body = glide(180, 70, 20); const cracks = [0, 0.012, 0.03, 0.045]; return render(0.5, t => cracks.reduce((v, at) => v + (t > at && t < at + 0.004 ? rnd() * 1.3 : 0), 0) + bp(rnd(), 2600, 1.4) * ex(t, 25) * 0.7 + (t > 0.18 ? body(t - 0.18) * ex(t - 0.18, 14) * 0.9 : 0)); },
+  },
   // ---- Bodies ----
   punch: {
     gain: 0.6, vary: 2, gap: 35, voices: 3,

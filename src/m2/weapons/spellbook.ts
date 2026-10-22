@@ -12,6 +12,7 @@
 // rest of them), and then hard (ON_CAST: shares of its real health; a fresh one mostly lives through it, a hurt one
 // doesn't), the comet's freeze and the meteor's burn at half; it never dies the spell's death (its own fight's).
 
+import { emptyCue } from './dry';
 import type { Enemy, Projectile } from '../../m1/types';
 import type { FrameContext } from '../../m1/game/core/context';
 import type { GameState } from '../../m1/game/core/state';
@@ -372,8 +373,9 @@ const tick = (ctx: FrameContext, input: { secondary?: boolean }, equipped: boole
       meatheadSays(state, pickLine(BULK_LINES));
     } else if (posing <= 0) {
       // (it won't: a click, and he says why, a while apart)
-      playSound('click', 0.7, -4);
       const why = bulkLeft > 0 ? 'already' : bulkCool > 0 ? 'cooldown' : !mana ? 'mana' : 'air';
+      // (out of mana for it: the book's empty cue, weapons/dry.ts)
+      if (why === 'mana') emptyCue(ctx, 'SPELLBOOK'); else playSound('click', 0.7, -4);
       if (since(state.frame, bulkFailSaidAt) > 150) { bulkFailSaidAt = state.frame; const pool = BULK_FAIL_LINES[why]; meatheadSays(state, pickLine(pool)); }
     }
   }
