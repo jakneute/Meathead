@@ -4,7 +4,7 @@
 //   the pen:      he comes out of the drain with a pebble. The PEBBLE CUTSCENE (first visit, `pebbleSeen`): the
 //                 pebble flies on, over the fence; cut (full screen) to the maintenance booth: in through its window, it
 //                 flips the DINOSAUR MODE switch, FRIENDLY to HOSTILE. The maintenance man doesn't notice. Cut back: The raptors' eyes go red. Out of the pen up the feeding platforms and over the fence.
-//   the field:    the trikes charge along the ground; the boardwalks over it (a raptor up on the high one).
+//   the field:    the trikes charge along the ground; the boardwalks over it.
 //   the volcano:  a fake one, climbed and gone down, raptors leaping up after him, pteros overhead.
 //   the shop:     the gift shop's roof and the monorail track over it, or the ground under it.
 //   the paddock:  the rex's (the big one): fenced in, feeding platforms to keep above it.
@@ -49,15 +49,11 @@ const pick = pickLine;
 const ENEMIES: [keyof typeof DINO_KINDS, number, number][] = [
   // (well along the pen from where he starts in it: he's not in their jaws the moment he's back)
   ['raptor', D + 700, GY], ['raptor', D + 880, GY],
-  // (the field: a trike alone first, by the low boardwalk to get up out of its way (teach); then a raptor up on the
-  // high boardwalk over the second trike's run, so the way up isn't free (it drops in on him). The second trike kept
-  // out of THE VOLCANO checkpoint's safe reach)
-  ['trike', D + 1680, GY], ['raptor', D + 1950, GY - 220], ['trike', D + 2080, GY],
+  // (the second trike kept out of THE VOLCANO checkpoint's safe reach)
+  ['trike', D + 1750, GY], ['trike', D + 2080, GY],
   ['raptor', D + 2850, GY - 210], ['raptor', D + 3300, GY - 430], ['raptor', D + 3720, GY - 170],
   ['ptero', D + 3050, GY - 560], ['ptero', D + 3500, GY - 620],
-  // (the shop: down off its roof, a raptor and a trike's charge on the ground way (shove the raptor; the trike's horns
-  // don't take a charge), a raptor up on the monorail the other way)
-  ['raptor', D + 4950, GY], ['raptor', D + 5150, GY - 280], ['trike', D + 5200, GY], ['ptero', D + 4600, GY - 470],
+  ['raptor', D + 4950, GY], ['raptor', D + 5150, GY - 280], ['raptor', D + 5450, GY], ['ptero', D + 4600, GY - 470],
   ['ptero', D + 7900, GY - 520],
   // (the last stretch: raptors on the ground and up the trees (one drops on him from the last tree), a trike between
   // the trees in front of the fence: up a tree out of its way, then over)

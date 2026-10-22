@@ -2,15 +2,13 @@
 //
 //   0      the way in: a vine up a tree to a lookout (climbing, and climbing off the top), a pit with one vine over it
 //          (swinging), the first monkey up a tree, frogs.
-//   1900   CHECKPOINT. The monkey grove: the ground way (a chimp leaping at him while the monkey over it pelts him, then
-//          a frog and a chimp together: low and high at once) or up a vine into the canopy (a run of branches and a
-//          vine between them, monkeys up there with him, a frog on the branch with the health).
-//   3350   CHECKPOINT. The ravine: three vines across it (and a rock to rest on, a chimp on it: shoot it from the vine,
-//          or land and shove it off into the ravine), macaws coming at him on them; a gap that wants a good swing
-//          (pump it, or push it). Two frogs side by side past it (one slide).
+//   1900   CHECKPOINT. The monkey grove: the ground way (chimps, frogs, monkeys pelting down from above) or up a vine into the
+//          canopy (a run of branches and a vine between them, monkeys up there with him, some health).
+//   3350   CHECKPOINT. The ravine: three vines across it (and a rock to rest on), macaws coming at him on them; a gap
+//          that wants a good swing (pump it, or push it).
 //   5150   CHECKPOINT. The cliff: one long vine up it (the quick climb), a boa hung off it halfway, a monkey up top. The
-//          overlook along the top (a frog ahead of the first jaguar: low and the pounce at once), and (6750:
-//          CHECKPOINT) the gorge off the end of it: two long vines down and across.
+//          overlook along the top (a jaguar), and (6750: CHECKPOINT) the gorge off the end of it: two long vines down
+//          and across.
 //   7950   CHECKPOINT. Jaguar country: on the ground (a jaguar, a frog, a chimp, and a jaguar up on a branch over the
 //          way, pouncing down) or up in the canopy again (vines between branches, a boa over one with a monkey on it,
 //          that jaguar on the next one; ammo at the end).
@@ -69,17 +67,11 @@ export type AnimalKind = 'm2:monkey' | 'm2:chimp' | 'm2:jaguar' | 'm2:boa' | 'm2
 /** Who lives where: [kind, x, height of what it's stood on (or, for the boa, the branch it hangs off; a macaw, where it flies)]. */
 // (nobody within the safe start's reach of a checkpoint (spawnSafe.ts SAFE_X, 360): none waiting on the spot)
 export const ANIMALS: [AnimalKind, number, number][] = [
-  // the way in: a frog, the first monkey up a tree (teach)
-  ['m2:frog', 1350, 0], ['m2:monkey', 1510, 170],
-  // the grove: on the ground, a chimp under the canopy's first monkey (aim ahead and up at once), then a frog and a
-  // chimp together (low and high); up in the canopy, the monkeys, and a frog on the branch with the health
-  ['m2:chimp', 2380, 0], ['m2:monkey', 2470, 280], ['m2:frog', 2760, 300], ['m2:monkey', 2850, 300], ['m2:frog', 2900, 0], ['m2:chimp', 2980, 0], ['m2:monkey', 3200, 260],
-  // the ravine: macaws at him on the vines; a chimp on the rock to rest on (shoot it from the vine, or land and
-  // shove it off into the ravine); past it, two frogs side by side (one slide)
-  ['m2:macaw', 3800, 380], ['m2:chimp', 4090, 60], ['m2:macaw', 4250, 400],
+  ['m2:frog', 1350, 0], ['m2:monkey', 1510, 170], ['m2:frog', 1490, 0],
+  ['m2:monkey', 2470, 280], ['m2:chimp', 2650, 0], ['m2:monkey', 2850, 300], ['m2:frog', 2950, 0], ['m2:monkey', 3200, 260], ['m2:chimp', 2980, 0],
+  ['m2:macaw', 3800, 380], ['m2:macaw', 4250, 400],
   ['m2:frog', 4700, 0], ['m2:frog', 4760, 0],
-  // the cliff and the overlook: a frog ahead of the first jaguar (low, and the pounce)
-  ['m2:boa', 5205, 420], ['m2:monkey', 5420, 460], ['m2:frog', 5980, 460], ['m2:jaguar', 6150, 460],
+  ['m2:boa', 5205, 420], ['m2:monkey', 5420, 460], ['m2:frog', 5980, 460], ['m2:jaguar', 6100, 460],
   ['m2:macaw', 7450, 560],
   // jaguar country: on the ground a jaguar, a frog, a chimp; up in the canopy the boa over a monkey's branch, and a
   // jaguar on the next branch (over the ground way: it pounces down at him there; meets him head on up there)
