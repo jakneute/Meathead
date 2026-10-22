@@ -65,19 +65,21 @@ export const TRACK_LEGS = [6300, 6800, 7300, 7650];
 export type SquareKind = 'm2:space_rover' | 'm2:space_cadet' | 'm2:space_guard' | 'm2:space_robot' | 'm2:space_jetpack';
 /** Who's where: [kind, x, height (what it stands on; a jetpacker: where it flies)]. */
 export const ENEMIES: [SquareKind, number, number][] = [
-  // the shops: robot dogs, then a cadet
-  ['m2:space_rover', 900, 0], ['m2:space_rover', 1420, 0],
-  ['m2:space_cadet', 1650, 0],
-  // the people movers: a robot dog riding the first; a cadet at the end of the second, shooting down it
-  ['m2:space_rover', 2100, 0], ['m2:space_cadet', 2990, 0],
+  // the shops: a robot dog alone (slide it); then a cadet up on the kiosk's dome by its health, shooting down, and a
+  // robot dog under it at his ankles (low and high at once)
+  ['m2:space_rover', 900, 0], ['m2:space_rover', 1330, 0],
+  ['m2:space_cadet', 1200, 120],
+  // the people movers: a robot dog riding the first; a cadet on the second, carried at him as it shoots down it
+  ['m2:space_rover', 2100, 0], ['m2:space_cadet', 2770, 0],
   // the guard, alone
   ['m2:space_guard', 3620, 0],
-  // past the plates: a cadet
-  ['m2:space_cadet', 4760, 0],
-  // the robot, alone; a robot dog
-  ['m2:space_robot', 5700, 0], ['m2:space_rover', 5960, 0],
-  // the monorail: a jetpacker over the pit; cadets at the far end; another dog
-  ['m2:space_jetpack', 7000, 330], ['m2:space_cadet', 7560, 0], ['m2:space_cadet', 8000, 0],
+  // a cadet stood between the out-of-step plates, shooting at him while he times them (or shove him onto a live one)
+  ['m2:space_cadet', 4220, 0],
+  // the robot, alone (off the checkpoint); a robot dog
+  ['m2:space_robot', 5820, 0], ['m2:space_rover', 5960, 0],
+  // the monorail: a jetpacker over the pit; a cadet at the far end, another up the far station's steps shooting up the
+  // beam at him
+  ['m2:space_jetpack', 7000, 330], ['m2:space_cadet', 7560, 0], ['m2:space_cadet', 7730, 90],
   // the atom plaza: the mix
   ['m2:space_jetpack', 8500, 320], ['m2:space_guard', 9450, 0], ['m2:space_cadet', 8650, 150],
   ['m2:space_robot', 9620, 0], ['m2:space_jetpack', 9300, 340], ['m2:space_rover', 9720, 0],
