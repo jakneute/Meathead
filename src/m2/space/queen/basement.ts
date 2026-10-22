@@ -16,7 +16,11 @@
 //                 jumping, landing, charging are loud; walking's quiet; standing still, nothing): loud enough with her
 //                 about, she comes to it; loud enough with her away, she's out sooner, near the noise. Seen, she runs
 //                 him down, and up or down a level after him (she crouches and screeches first, then leaps). Getting past
-//                 her once is nothing: she's back, any time, right up to the disco's door. At the foot of the stairs
+//                 her once is nothing: she's back, any time, right up to the disco's door. And she can't be outrun:
+//                 the basement's in stretches (WINDOWS), each one a go he has to hide through; somewhere in each (rolled
+//                 each life) she's out for him if she hasn't been yet, ahead of him on his level, coming his way, a
+//                 hiding spot in reach (a breather after the last go first). Not hidden through it, it's owed: she's
+//                 back for it. The stairs' finale waits on them all (four from the top, fewer from the checkpoints). At the foot of the stairs
 //                 she comes for him for real, behind him, and it's a run up them for the door. Touched: one shot.
 //   THE KILL      she snatches him up to her face; a beat, her jaws opening in his face, her claw closing over his
 //                 head; she tears it off; the neck geysers; she drops the body (it twitches); she screeches over the head
@@ -71,8 +75,10 @@ const rnd = (a: number, b: number) => a + Math.random() * (b - a);
 const B = BASE_L;
 /** The checkpoint half way (the graveyard). */
 export const GRAVEYARD_CP = 72;
+/** The checkpoint on the far stretch (between the catwalks, clear of the hiding spots and her ways in). */
+export const TUNNEL_CP = 73, TUNNEL_CP_X = B + 5720;
 /** The boss's checkpoint (outside the disco's door, the refill by it): his once he's kicked the door in. */
-export const DISCO_CP = 73;
+export const DISCO_CP = 74;
 /** How big she's drawn down here (she has to fit under the catwalks). */
 const QS = 0.85;
 
@@ -138,12 +144,12 @@ export const DOOR_MEMO = 'm2:space:discoDoor';
 // The layout (two levels: the floor at BF, the catwalks at CATWALK_Y)
 
 /** The catwalks: [from, to] (one-way grating: up through from below, down through them). */
-export const CATWALKS: [number, number][] = [[B + 1500, B + 2200], [B + 2650, B + 3400], [B + 3800, B + 4700], [B + 5000, B + 5560]];
+export const CATWALKS: [number, number][] = [[B + 1500, B + 2200], [B + 2650, B + 3400], [B + 3800, B + 4700], [B + 5000, B + 5560], [B + 5850, B + 6350]];
 /** The pipe runs half way up (a hop up onto one, then on up through the catwalk): [x, w]. */
-export const PIPES: [number, number][] = [[B + 1700, 110], [B + 2950, 100], [B + 4100, 110], [B + 5200, 100]];
+export const PIPES: [number, number][] = [[B + 1700, 110], [B + 2950, 100], [B + 4100, 110], [B + 5200, 100], [B + 6100, 100]];
 export const PIPE_Y = BF - 130;
 /** The ladders up to the catwalks (each a little in from a catwalk's end: stepped off onto it). */
-const LADDER_X: [number, 1 | -1][] = [[B + 1550, 1], [B + 2150, -1], [B + 2700, 1], [B + 3850, 1], [B + 4650, -1], [B + 5050, 1]];
+const LADDER_X: [number, 1 | -1][] = [[B + 1550, 1], [B + 2150, -1], [B + 2700, 1], [B + 3850, 1], [B + 4650, -1], [B + 5050, 1], [B + 5900, 1], [B + 6300, -1]];
 export const LADDERS: LadderDef[] = LADDER_X.map(([x, inward]) => ({ x, top: CATWALK_Y, bottom: BF, ledge: { x: x + inward * 34, y: CATWALK_Y } }));
 /** The catwalk at x (or null). */
 const catwalkAt = (x: number) => CATWALKS.find(([a, b]) => x >= a && x <= b) ?? null;
@@ -152,14 +158,14 @@ const catwalkAt = (x: number) => CATWALKS.find(([a, b]) => x >= a && x <= b) ?? 
 export const HIDES: { x: number; y: number; kind: 'locker' | 'dark' | 'cabinet' }[] = [
   { x: B + 780, y: BF, kind: 'locker' }, { x: B + 1300, y: BF, kind: 'locker' }, { x: B + 1900, y: BF, kind: 'locker' }, { x: B + 2450, y: BF, kind: 'locker' },
   { x: B + 3200, y: BF, kind: 'dark' }, { x: B + 3600, y: BF, kind: 'locker' }, { x: B + 4380, y: BF, kind: 'locker' }, { x: B + 4880, y: BF, kind: 'dark' },
-  { x: B + 5420, y: BF, kind: 'locker' },
-  { x: B + 1800, y: CATWALK_Y, kind: 'cabinet' }, { x: B + 3100, y: CATWALK_Y, kind: 'cabinet' }, { x: B + 4200, y: CATWALK_Y, kind: 'cabinet' }, { x: B + 5350, y: CATWALK_Y, kind: 'cabinet' },
+  { x: B + 5420, y: BF, kind: 'locker' }, { x: B + 6000, y: BF, kind: 'locker' }, { x: B + 6280, y: BF, kind: 'dark' },
+  { x: B + 1800, y: CATWALK_Y, kind: 'cabinet' }, { x: B + 3100, y: CATWALK_Y, kind: 'cabinet' }, { x: B + 4200, y: CATWALK_Y, kind: 'cabinet' }, { x: B + 5350, y: CATWALK_Y, kind: 'cabinet' }, { x: B + 6080, y: CATWALK_Y, kind: 'cabinet' },
 ];
 /** The vents in the ceiling she comes and goes by; the ducts in the back wall at the floor (under the catwalks). */
-export const VENTS = [B + 1100, B + 1400, B + 1800, B + 2400, B + 2900, B + 3300, B + 3650, B + 4050, B + 4400, B + 4800, B + 5250, B + 5500];
-export const DUCTS = [B + 1000, B + 2050, B + 2550, B + 3400, B + 4500, B + 5150];
+export const VENTS = [B + 1100, B + 1400, B + 1800, B + 2400, B + 2900, B + 3300, B + 3650, B + 4050, B + 4400, B + 4800, B + 5250, B + 5500, B + 6050, B + 6320, B + 6450];
+export const DUCTS = [B + 1000, B + 2050, B + 2550, B + 3400, B + 4500, B + 5150, B + 6250];
 /** The emergency strips (flickering), along the ceiling. */
-export const STRIPS = [B + 420, B + 1180, B + 1960, B + 2640, B + 3300, B + 4080, B + 4600, B + 5150, B + 5600];
+export const STRIPS = [B + 420, B + 1180, B + 1960, B + 2640, B + 3300, B + 4080, B + 4600, B + 5150, B + 5600, B + 6100, B + 6520];
 
 /** The floor's height at x (the stairs at the east end). */
 const floorY = (x: number) => stairsY(x);
@@ -217,6 +223,10 @@ export interface Hunter {
   fgNext: number;
   /** On her way to a way out (a vent, a duct) to leave by. */
   leaving: boolean;
+  /** The goes he has to hide through: each stretch's trigger (rolled each life) and whether he's hidden through it. */
+  win: { a: number; b: number; at: number; done: boolean }[];
+  /** He's been hidden with her near, this go; the frame she last went (the breather's from then). */
+  hidNear: boolean; goneAt: number;
 }
 export const makeHunter = (state: GameState): Hunter => {
   const cx = state.player.pos.x + state.player.width / 2;
@@ -230,6 +240,7 @@ export const makeHunter = (state: GameState): Hunter => {
     door: state.stageMemo[DOOR_MEMO] ? 'in' : 'shut', doorT: 0, block: null,
     wasGrounded: true, lastVy: 0, lastShoot: false, lastJump: false, lastMove: false, warned: false, freeMove: false,
     cam: 0,
+    win: WINDOWS.map(([a, b]) => ({ a, b, at: rnd(a, b - 250), done: false })), hidNear: false, goneAt: -9999,
   };
 };
 export const buildHunter = (state: GameState, h: Hunter) => {
@@ -273,6 +284,8 @@ export const tickHunter = (ctx: FrameContext, h: Hunter, controls: Controls): Co
     h.init = true;
     h.opened = h.opened || cx > B + 620;
     h.saidDark = h.saidDark || cx > B + 400; h.saidSpot = h.saidSpot || cx > B + 700; h.lastX = cx;
+    // (the stretches behind where he starts (a checkpoint): done; the rest still owed)
+    for (const w of h.win) w.done = w.b < cx + 100;
   }
   h.t++;
   if (h.door === 'kicking') return kick(ctx, h);
@@ -377,6 +390,36 @@ const clampLvl = (h: Hunter, x: number) => {
 // ---------------------------------------------------------------------------------------------------------------
 // Her schedule: out again when she likes (sooner if he's loud), from where she likes
 
+/** The stretches he has to hide through (x): each a go of hers he can't get by without a hiding spot. */
+const WINDOWS: [number, number][] = [[B + 1650, B + 2550], [B + 3000, B + 4300], [B + 4500, B + 5500], [B + 5800, B + 6150]];
+/** Frames after she's gone before she's out for an owed go (never two back to back); on the last stretch, shorter. */
+const BREATHER = 300, BREATHER_LAST = 150;
+const owed = (h: Hunter) => h.win.some(w => !w.done);
+/** Hidden through a go of hers: it pays the first stretch still owed that he's in or past. */
+const paid = (h: Hunter, cx: number) => { const w = h.win.find(v => !v.done && v.a <= cx + 300); if (w) w.done = true; };
+
+/** An owed go: her out ahead of him (toward the stairs), on his level, from a way in a fair way off, coming his way and on
+ *  past; only with a hiding spot between them (or just behind him). False: nowhere fair yet (he's to keep walking). */
+const forceGo = (state: GameState, h: Hunter, end: boolean) => {
+  const cx = pmid(state), lv = plevel(state);
+  if (lv < 0 || onLadder(state)) return false;
+  const lvl: 0 | 1 = lv === 1 ? 1 : 0, min = end ? 300 : 400, max = 900;
+  let ways: number[];
+  if (lvl === 1) { const cw = catwalkAt(cx); if (!cw) return false; ways = VENTS.filter(v => v > cw[0] + 30 && v < cw[1] - 30); }
+  else ways = [...DUCTS, ...VENTS.filter(v => !catwalkAt(v))].filter(v => v > B + 100 && v < STAIRS_A - 40);
+  ways = ways.filter(v => v - cx >= min && v - cx <= max);
+  if (!ways.length) return false;
+  const nice = ways.filter(v => v - cx >= 450 && v - cx <= 750);
+  const from = (nice.length ? nice : ways)[Math.floor(Math.random() * (nice.length ? nice.length : ways.length))];
+  // (somewhere to hide, on his level: between them, or just behind him)
+  const y = levelY(lvl, cx);
+  if (!HIDES.some((sp, i) => i !== h.torn && Math.abs(sp.y - y) < 10 && sp.x > cx - (end ? 420 : 320) && sp.x < from - 200)) return false;
+  h.fake = null; h.fg = null;
+  const entry: Entry = lvl === 0 && DUCTS.includes(from) ? 'duct' : 'vent';
+  emerge(state, h, lvl, from, entry, [{ x: cx - rnd(400, 600), stop: Math.random() < 0.5 ? rnd(40, 110) : 0 }, { x: cx + rnd(-80, 160), stop: rnd(40, 90) }], rnd(1.7, 2.1), false);
+  return true;
+};
+
 const schedule = (state: GameState, h: Hunter) => {
   const p = state.player, cx = pmid(state);
   if (p.health <= 0 || state.deathTimer > 0 || p.inCutscene) return;
@@ -388,8 +431,14 @@ const schedule = (state: GameState, h: Hunter) => {
     }
     return;
   }
-  // (the stairs: she comes for him for real, from behind)
-  if (!h.finale && cx > STAIRS_A - 380) {
+  // (an owed go: its stretch's trigger passed, a breather since her last; on the last stretch and at the stairs, sooner)
+  if (!h.finale && p.isGrounded) {
+    const due = h.win.find(w => !w.done && cx >= w.at), last = cx > WINDOWS[WINDOWS.length - 1][0];
+    if (due && state.frame - h.goneAt >= (last ? BREATHER_LAST : BREATHER) && forceGo(state, h, cx > STAIRS_A - 380)) return;
+  }
+  // (the stairs: she comes for him for real, from behind; not till he's hidden through every go he owes (if nowhere's
+  // fair for one (up the stairs already), the finale it is))
+  if (!h.finale && cx > STAIRS_A - 380 && (!owed(h) || cx > STAIRS_A - 100)) {
     h.finale = true;
     const from = Math.max(B + 200, cx - 640);
     emerge(state, h, 0, from, 'duct', [], 3.9, false);
@@ -461,7 +510,7 @@ const pickFloorEntry = (x: number) => {
 const emerge = (state: GameState, h: Hunter, lvl: 0 | 1, from: number, entry: Entry, path: { x: number; stop?: number }[], speed: number, opener: boolean) => {
   h.lvl = lvl; h.x = from; h.y = levelY(lvl, from); h.entry = entry; h.huntOnDrop = false;
   h.path = path.map(q => ({ ...q, x: lvl ? Math.max((catwalkAt(from) ?? [from, from])[0] + 30, Math.min((catwalkAt(from) ?? [from, from])[1] - 30, q.x)) : Math.max(B + 40, Math.min(STAIRS_A - 30, q.x)) }));
-  h.leg = 0; h.speed = speed; h.out = 0; h.passedClose = false;
+  h.leg = 0; h.speed = speed; h.out = 0; h.passedClose = false; h.hidNear = false;
   h.fg = opener ? { t: 0, dir: from > pmid(state) ? -1 : 1 } : null;
   h.rattle = { x: from, t: 0 };
   h.dir = pmid(state) < from ? -1 : 1;
@@ -477,6 +526,8 @@ const runHer = (ctx: FrameContext, h: Hunter) => {
   if (h.fg) { h.fg.t++; if (h.fg.t > 170) h.fg = null; }
   if (h.rattle) { h.rattle.t++; if (h.rattle.t > 160) h.rattle = null; }
   if (inPlay(h)) h.out++;
+  // (hidden with her out and near (and not seen getting in): a go he's hidden through)
+  if (inPlay(h) && h.mode !== 'kill' && h.hid >= 0 && h.hidT >= 0 && Math.abs(h.x - cx) < 450) h.hidNear = true;
   switch (h.mode) {
     case 'away': return;
     case 'tell': {
@@ -584,7 +635,9 @@ const runHer = (ctx: FrameContext, h: Hunter) => {
     case 'climb':
       if (h.t === 2) playSound('clang', vol(state, h.x, 0.5), -2);
       if (h.t >= 24) {
-        to(h, 'away'); h.next = h.finale ? 9999 : rnd(200, 380);
+        to(h, 'away'); h.next = h.finale ? 9999 : rnd(200, 380); h.goneAt = state.frame;
+        if (h.hidNear) paid(h, cx);
+        h.hidNear = false;
         if (h.passedClose && p.health > 0) meatheadSays(state, pick(L.MH_PASSED), false);
         h.passedClose = false;
       }

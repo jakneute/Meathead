@@ -35,7 +35,7 @@ import { updateLadders, drawLadders } from '../../moves/ladders';
 import { markBossFight } from '../../bossQuiet';
 import { drawRoomBack, drawGlass, drawQueen, roomLights, drawAfterFall } from './art';
 import { type Show, makeShow, startShow, tickShow, showOn, showSkippable, drawShowQueen, drawShowSaid, drawShowFade, showHead, fell, collapsed, drawFallingSlabs, BASEMENT_CP } from './show';
-import { type Hunter, makeHunter, buildHunter, forceDoorIn, tickHunter, atDoor, startKick, doorIn, doorKicking, drawHunter, drawHides, drawHunterFront, hunterLighting, hunterZoom, drawDiscoDoor, layBasement, LADDERS, GRAVEYARD_CP, DISCO_CP } from './basement';
+import { type Hunter, makeHunter, buildHunter, forceDoorIn, tickHunter, atDoor, startKick, doorIn, doorKicking, drawHunter, drawHides, drawHunterFront, hunterLighting, hunterZoom, drawDiscoDoor, layBasement, LADDERS, GRAVEYARD_CP, TUNNEL_CP, TUNNEL_CP_X, DISCO_CP } from './basement';
 import { type Fight, makeFight, startFight, updateFight, fightOver, endFight, queenDrops, introOn, drawQueenFight, drawQueenSaid, drawFightHud, discoLights, drawPool, poolLights, oilLights, tellLights, boothOps, introCamX, discoZoom, queenHoldTick, drawBurstFlash, drawIntroCloseup } from './fight';
 import { drawBasement, drawDisco, discoLighting, discoGlow, drawShutter, drawDiscoShell } from './lowerArt';
 import { type Piece, type Splat, packPieces, unpackPieces, drawPieces, drawSplats } from './burst';
@@ -74,6 +74,7 @@ export const queen: SpaceSection = {
     { name: 'THE HOLD', cp: 70, x: x0 + 300, y: GY },
     { name: 'THE BASEMENT', cp: BASEMENT_CP, x: LAND_X + 80, y: BF },
     { name: 'THE ANIMATRONIC GRAVEYARD', cp: GRAVEYARD_CP, x: BASE_L + 2780, y: BF },
+    { name: 'THE SERVICE TUNNEL', cp: TUNNEL_CP, x: TUNNEL_CP_X, y: BF },
     // (outside the disco's door, on the landing, the refill by it (the user's standing rule: dead in a boss fight, he's
     // back outside its door and walks in himself): his once the door's kicked in (basement.ts), nobody about)
     { name: 'GALACTIC GROOVE', cp: DISCO_CP, x: DOOR_CP_X, y: GY, clear: [600, 900], manual: true },
