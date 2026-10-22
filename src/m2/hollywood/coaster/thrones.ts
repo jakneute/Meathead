@@ -17,7 +17,9 @@ import type { GameState } from '../../../m1/game/core/state';
 import type { FrameContext } from '../../../m1/game/core/context';
 import type { Controls } from '../../../m1/game/platform/input';
 import { hands, meatheadSays, box } from '../section';
-import { checker, mix } from '../../intro/art/kit';
+import { checker, mix, hash } from '../../intro/art/kit';
+import { still, hour, ramp6, BRASS } from '../blvd/kit';
+import { CHROME } from './paint';
 import { signText, signW } from '../../signLetters';
 import { pickLine, isTalking } from '../../../m1/game/platform/speech';
 import { playSound } from '../../../m1/game/platform/audio';
@@ -208,39 +210,218 @@ const lake = (c: Ctx, x: number, y: number, rx: number) => {
   box(c, x - rx * 0.3, y - 3, rx * 0.25, 1, POO[5]);
 };
 
+// ---------------------------------------------------------------------------------------------------------------
+// THE CLOG (a SHITTY toilet), peak SNES, painted once per toilet (by the hour) into a stamp: origin at the toilet's
+// middle (g.mx) on what it stands on (g.base); the toilet's own art sits at x -6 (its bowl -10..26, the seat -35..-25,
+// the tank -32..-8 from -76 up to its lid at -82). Only the flies, the stink and the drops running down are live.
+
+const PORC = ['#F4A6CC', '#9CAE3E', '#2A2830'];
+/** Poo for the hour, darkest first. */
+const pooH = () => POO.map(cc => hour(cc));
+const GLINT = '#FFF6E0';
+const ell = (g: Ctx, x: number, y: number, rx: number, ry: number, col: string, a = 0) => { if (rx <= 0 || ry <= 0) return; g.fillStyle = col; g.beginPath(); g.ellipse(x, y, rx, ry, a, 0, Math.PI * 2); g.fill(); };
+
+/** One lump of it: inked, stepped (lit up its upper left), dithered into its shadow, a wet glint. */
+const lump = (g: Ctx, P: string[], x: number, y: number, rx: number, ry: number, s: number) => {
+  ell(g, x, y, rx + 1.2, ry + 1.2, INK);
+  ell(g, x, y, rx, ry, P[1]);
+  ell(g, x - rx * 0.08, y - ry * 0.14, rx * 0.86, ry * 0.8, P[2]);
+  ell(g, x - rx * 0.2, y - ry * 0.3, rx * 0.6, ry * 0.52, P[3]);
+  ell(g, x - rx * 0.32, y - ry * 0.46, rx * 0.3, ry * 0.26, P[4]);
+  g.save(); g.beginPath(); g.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2); g.clip();
+  checker(g, x - rx * 0.1, y + ry * 0.15, rx * 1.2, ry, P[0], 0, 1);
+  checker(g, x - rx, y - ry * 0.25, rx * 0.9, 2, P[3], 1, 1);
+  g.restore();
+  // (texture: dark pits, a crease)
+  for (let k = 0; k < 2 + (rx >> 2); k++) box(g, x - rx * 0.6 + hash(s + k * 3.1) * rx * 1.2, y - ry * 0.4 + hash(s + k * 7.7) * ry * 0.9, 1, 1, P[0]);
+  if (rx > 6) box(g, x - rx * 0.3, y + ry * 0.2, rx * 0.5, 1, P[1]);
+  box(g, x - rx * 0.45, y - ry * 0.6, Math.max(1, rx * 0.18), 1, GLINT);
+  if (rx > 5) box(g, x + rx * 0.2, y - ry * 0.35, 1, 1, P[5]);
+};
+/** A corn kernel (it's always corn). */
+const corn = (g: Ctx, x: number, y: number) => { box(g, x - 1, y - 1, 4, 4, INK); box(g, x, y, 2, 2, hour('#F2C230')); box(g, x, y, 1, 1, hour('#FFF0A0')); };
+/** A run down something: wide where it came over, tapering, a bead at its foot, lit down its left. */
+const run = (g: Ctx, P: string[], x: number, y0: number, y1: number, w: number) => {
+  g.fillStyle = INK; g.beginPath(); g.moveTo(x - 1.5, y0); g.lineTo(x + w + 1.5, y0); g.lineTo(x + w * 0.62 + 1, y1); g.lineTo(x + w * 0.38 - 1, y1); g.closePath(); g.fill();
+  g.fillStyle = P[2]; g.beginPath(); g.moveTo(x, y0); g.lineTo(x + w, y0); g.lineTo(x + w * 0.62, y1); g.lineTo(x + w * 0.38, y1); g.closePath(); g.fill();
+  box(g, x + 1, y0, Math.max(1, w * 0.22), (y1 - y0) * 0.7, P[4]);
+  box(g, x + w * 0.7, y0, 1, (y1 - y0) * 0.5, P[1]);
+  ell(g, x + w / 2, y1 + 1, w * 0.3 + 2, w * 0.3 + 1.5, INK); ell(g, x + w / 2, y1 + 1, w * 0.3 + 1, w * 0.3 + 0.6, P[2]);
+  box(g, x + w / 2 - 1, y1, 1, 1, GLINT);
+};
+/** A splat: the blob, flung droplets round it, sometimes a run off it. */
+const splat = (g: Ctx, P: string[], x: number, y: number, r: number, s: number, runs = true) => {
+  for (let k = 0; k < 6; k++) { const a = hash(s + k) * Math.PI * 2, d = r * (1.3 + hash(s + k * 5.3) * 1.4), dr = 0.8 + hash(s + k * 2.2) * r * 0.3; ell(g, x + Math.cos(a) * d, y + Math.sin(a) * d * 0.8, dr + 1, dr + 1, INK); ell(g, x + Math.cos(a) * d, y + Math.sin(a) * d * 0.8, dr, dr, P[k % 2 ? 2 : 3]); }
+  ell(g, x, y, r + 1.2, r * 0.8 + 1.2, INK);
+  ell(g, x, y, r, r * 0.8, P[2]); ell(g, x - r * 0.25, y - r * 0.2, r * 0.6, r * 0.45, P[3]);
+  for (let k = 0; k < 3; k++) { const a = s + k * 2.1; ell(g, x + Math.cos(a) * r, y + Math.sin(a) * r * 0.7, r * 0.45 + 1, r * 0.35 + 1, INK); ell(g, x + Math.cos(a) * r, y + Math.sin(a) * r * 0.7, r * 0.45, r * 0.35, P[2]); }
+  box(g, x - r * 0.4, y - r * 0.4, 1, 1, GLINT);
+  if (runs && r > 2) run(g, P, x - 1, y + r * 0.5, y + r * 0.5 + 6 + hash(s * 3) * 12, Math.max(2, r * 0.6));
+};
+/** Toilet paper: a ribbon along the points (inked, lit, its perforations), stained in blots along it. */
+const tp = (g: Ctx, P: string[], pts: [number, number][], s: number) => {
+  const path = () => { g.beginPath(); g.moveTo(pts[0][0], pts[0][1]); for (let k = 1; k < pts.length; k++) g.lineTo(pts[k][0], pts[k][1]); };
+  g.lineJoin = 'round'; g.lineCap = 'butt';
+  path(); g.strokeStyle = INK; g.lineWidth = 7; g.stroke();
+  path(); g.strokeStyle = hour('#C8C0B0'); g.lineWidth = 5; g.stroke();
+  g.save(); g.translate(-1, -1); path(); g.strokeStyle = hour('#F4F0E6'); g.lineWidth = 3; g.stroke(); g.restore();
+  for (let k = 0; k < pts.length - 1; k++) {
+    const [ax, ay] = pts[k], [bx, by] = pts[k + 1];
+    box(g, (ax + bx) / 2 - 1, (ay + by) / 2 - 1, 2, 2, hour('#A8A090'));
+    if (hash(s + k) < 0.65) { const u = hash(s + k * 4.4); ell(g, ax + (bx - ax) * u, ay + (by - ay) * u, 2.4, 1.8, P[k % 2 ? 2 : 3]); }
+  }
+  g.lineJoin = 'miter';
+};
+/** The puddle on the floor: lobes run together, banded down to its middle, a dithered sheen, a ring round it. */
+const puddle = (g: Ctx, P: string[], cx: number, y: number, rxL: number, rxR: number, s: number) => {
+  const lobes: [number, number, number][] = [];
+  for (let k = 0; k < 9; k++) { const u = k / 8, x = cx - rxL + (rxL + rxR) * u, rr = (k === 0 || k === 8 ? 0.35 : 0.55 + hash(s + k) * 0.45) * (rxL + rxR) / 7; lobes.push([x, y + (hash(s + k * 3) - 0.5) * 2, rr]); }
+  const pass = (grow: number, k: number, col: string, dy = 0) => { for (const [x, yy, rr] of lobes) ell(g, x, yy + dy, rr * k + grow, (5 + rr * 0.12) * k + grow * 0.6, col); };
+  pass(4, 1, 'rgba(60, 36, 12, 0.35)', 1); // (the wet ring soaking out round it)
+  pass(1.5, 1, INK);
+  pass(0, 1, P[1]);
+  pass(0, 0.8, P[2], -0.5);
+  pass(0, 0.5, P[3], -1);
+  g.save(); g.beginPath(); for (const [x, yy, rr] of lobes) g.ellipse(x, yy - 1, rr * 0.5, (5 + rr * 0.12) * 0.5, 0, 0, Math.PI * 2); g.clip();
+  checker(g, cx - rxL, y - 6, rxL + rxR, 3, P[4], 0, 1);
+  g.restore();
+  // (the shine on it: a broken streak of glare, a couple of glints)
+  for (let k = 0; k < 5; k++) box(g, cx - rxL * 0.5 + k * (rxL + rxR) * 0.12, y - 3 + (k % 2), 4 + (k % 3) * 3, 1, P[5]);
+  box(g, cx - rxL * 0.3, y - 4, 2, 1, GLINT); box(g, cx + rxR * 0.4, y - 3, 1, 1, GLINT);
+  // (bubbles on it, floating chunks, corn)
+  for (let k = 0; k < 6; k++) { const bx = cx - rxL * 0.8 + hash(s + k * 9.1) * (rxL + rxR) * 0.85, by = y - 2 + hash(s + k * 2.7) * 3; g.strokeStyle = P[4]; g.lineWidth = 1; g.beginPath(); g.arc(bx, by - 1, 1.5 + (k % 2), Math.PI, 0); g.stroke(); box(g, bx - 1, by - 2, 1, 1, GLINT); }
+  for (let k = 0; k < 5; k++) lump(g, P, cx - rxL * 0.7 + hash(s + k * 5.5) * (rxL + rxR) * 0.8, y - 2, 3 + (k % 3), 2, s + k * 11);
+  for (let k = 0; k < 4; k++) corn(g, cx - rxL * 0.6 + hash(s + k * 13.3) * (rxL + rxR) * 0.7, y - 2 + (k % 2));
+};
+/** The heap: coiled up out of the bowl in tiers (each a row of lumps), slumped over the rim, hanging off it in runs. */
+const heap = (g: Ctx, P: string[], cx: number, rim: number, tiers: number, s: number) => {
+  // (slopped over the rim and down the bowl's front, under the heap)
+  for (const [x, w, d] of [[-12, 6, 14], [20, 7, 18], [4, 5, 22], [-4, 4, 10], [27, 4, 9]] as const) run(g, P, cx - 10 + x + 6, rim + 2, rim + d, w);
+  // (the base tier spills wider than the bowl, sagging over the seat's edges)
+  for (const [x, y, rx, ry] of [[-16, rim + 5, 7, 5], [34, rim + 4, 7, 5], [-20, rim + 10, 4, 4], [38, rim + 9, 4, 4]] as const) lump(g, P, cx - 10 + x + 2, y, rx, ry, s + x);
+  const W = [26, 20, 14, 9, 6];
+  for (let t = 0; t < tiers; t++) {
+    const w = W[t] + (tiers > 3 ? 2 : 0), y = rim - 2 - t * 8, sx = cx + Math.sin(s + t * 1.7) * 2, n = Math.max(2, Math.round(w / 6));
+    for (let k = 0; k < n; k++) { const u = n === 1 ? 0.5 : k / (n - 1), lx = sx - w + 6 + u * (w * 2 - 12); lump(g, P, lx, y + (hash(s + t * 7 + k) - 0.5) * 2, 6.5 - t * 0.7 + hash(s + k + t) * 1.5, 5 - t * 0.4, s + t * 13 + k); }
+  }
+  // (the coil's tip, curling over)
+  const ty = rim - 2 - tiers * 8 + 2, tx = cx + Math.sin(s) * 2;
+  g.fillStyle = INK; g.beginPath(); g.moveTo(tx - 6, ty + 2); g.quadraticCurveTo(tx - 4, ty - 10, tx + 5, ty - 9); g.quadraticCurveTo(tx + 7, ty - 4, tx + 4, ty + 2); g.closePath(); g.fill();
+  g.fillStyle = P[3]; g.beginPath(); g.moveTo(tx - 4.5, ty + 1); g.quadraticCurveTo(tx - 3, ty - 8.5, tx + 4, ty - 7.5); g.quadraticCurveTo(tx + 5.5, ty - 4, tx + 3, ty + 1); g.closePath(); g.fill();
+  box(g, tx - 3, ty - 6, 2, 2, P[4]); box(g, tx - 2, ty - 7, 1, 1, GLINT); box(g, tx + 1, ty - 2, 3, 2, P[1]);
+  // (corn in it, a couple of peanuts' worth of bits, the wet sheen down its lit side)
+  for (let k = 0; k < 5; k++) corn(g, cx - 14 + hash(s + k * 3.9) * 26, rim - 4 - hash(s + k * 8.3) * tiers * 7);
+  for (let k = 0; k < tiers * 3; k++) box(g, cx - 16 + hash(s + k * 6.1) * 14, rim - 4 - k * 2.4, 1, 1, GLINT);
+};
+
+/** Paint a toilet's clog (stops 1 and 2, on their plinths: ph down to the deck; stop 3 in its case). */
+const paintClog = (g: Ctx, i: number, sw: number, ph: number) => {
+  const P = pooH(), R = ramp6(hour(PORC[i])), C = (i === 0 ? BRASS : CHROME).map(cc => hour(cc)), s = 17 + i * 31;
+  const hw = sw / 2;
+  // The puddle on the deck, spreading out past the ropes; the flush handle in it (snapped off)
+  puddle(g, P, 14, ph - 1, hw + 110, hw + 130, s);
+  { const hx = hw + 52, hy = ph - 4; box(g, hx - 1, hy - 3, 11, 5, INK); box(g, hx, hy - 2, 9, 3, C[3]); box(g, hx, hy - 2, 9, 1, C[5]); box(g, hx + 7, hy - 2, 2, 3, C[1]); lump(g, P, hx + 10, hy, 3, 2, s + 99); }
+  // (stray bits flung further, and the wet footprints he didn't leave: just toilet paper scraps)
+  for (let k = 0; k < 7; k++) { const x = (k % 2 ? 1 : -1) * (hw + 30 + hash(s + k * 4.1) * 120); lump(g, P, x, ph - 2, 2 + (k % 2), 1.6, s + k * 21); }
+  for (const x of [-hw - 70, hw + 96]) { box(g, x - 1, ph - 4, 10, 4, INK); box(g, x, ph - 3, 8, 2, hour('#F4F0E6')); box(g, x + 3, ph - 3, 3, 2, P[3]); }
+  if (i < 2) {
+    // Down the plinth's front: sheets over its lip thinning into runs, one smeared right across the star
+    for (const [x, w, d] of [[-hw + 6, 9, ph - 8], [-hw + 22, 5, ph * 0.55], [hw - 26, 10, ph - 6], [hw - 12, 4, ph * 0.4], [16, 6, ph * 0.35]] as const) run(g, P, x, 0, d, w);
+    for (let x = -hw; x < hw; x += 3) { const h2 = 2 + hash(s + x) * 4; box(g, x, 0, 3, h2, P[2]); box(g, x, h2, 3, 1, INK); }
+    box(g, -hw, 0, sw, 1, P[4]);
+    splat(g, P, -3, ph / 2 - 3, 6, s + 5);
+    splat(g, P, 6, ph / 2 + 4, 3, s + 9, false);
+    // The brass plaque on its stand: it got some too
+    splat(g, P, -hw - 168, ph - 78, 3.5, s + 41);
+    splat(g, P, -hw - 132, ph - 66, 2.5, s + 43);
+    splat(g, P, -hw - 150, ph - 30, 2, s + 47, false);
+  } else {
+    // Out of the case's seams and down the steel base, in runs
+    for (const [x, w, d] of [[-hw + 2, 6, ph - 4], [-hw + 30, 4, ph * 0.5], [hw - 10, 7, ph - 3], [hw - 40, 4, ph * 0.6], [-6, 5, ph * 0.45]] as const) run(g, P, x, 0, d, w);
+    for (let x = -hw; x < hw; x += 3) box(g, x, 0, 3, 1 + hash(s + x) * 3, P[2]);
+  }
+  // The porcelain: streaks down the bowl, the seat splattered, the tank and its lid hit (it went everywhere)
+  for (const [x, d, w] of [[-8, 20, 4], [2, 26, 5], [12, 18, 3], [22, 24, 4]] as const) run(g, P, x, -25, -25 + d, w);
+  splat(g, P, -10, -30, 2.5, s + 61, false); splat(g, P, 27, -31, 3, s + 63, false); splat(g, P, 18, -29, 2, s + 65, false);
+  splat(g, P, -21, -52, 4, s + 71); splat(g, P, -14, -66, 2.5, s + 73); splat(g, P, -26, -42, 2, s + 75, false);
+  splat(g, P, -23, -78, 3, s + 77); splat(g, P, -12, -79, 2, s + 79, false);
+  // (the flush handle: snapped off at the tank, a stub left)
+  box(g, -31, -64, 4, 4, R[4]); box(g, -27, -64, 3, 4, R[3]);
+  box(g, -30, -63, 3, 2, INK); box(g, -29, -63, 1, 1, C[4]);
+  // The heap, up out of the bowl and over the rim
+  heap(g, P, 10, -30, i === 0 ? 4 : i === 1 ? 3 : 3, s);
+  if (i === 1) {
+    // (the plunger's still in there, buried to the stick: its stick up out of the heap, a ring of it where it goes in)
+    g.save(); g.translate(8, -30); g.rotate(0.32);
+    box(g, -3, -46, 6, 22, INK); box(g, -2, -45, 4, 20, hour('#A16207')); box(g, -2, -45, 1, 20, hour('#D4A040'));
+    box(g, -3, -27, 6, 3, P[1]); box(g, -2, -28, 4, 1, P[3]); box(g, -2, -33, 2, 3, P[2]);
+    g.restore();
+  }
+  if (i === 0) {
+    // (it got up onto his fedora and into the martini)
+    splat(g, P, -27, -86, 2.5, s + 81, false);
+    box(g, -11, -90, 4, 2, P[2]); box(g, -11, -90, 1, 1, P[4]);
+  }
+  // Toilet paper: a wad stuck to the seat, a long tail trailing off the heap over the rim, down the bowl and onto the floor
+  tp(g, P, [[-12, -36], [-8, -38], [-4, -35]], s + 3);
+  tp(g, P, i < 2
+    ? [[24, -40], [30, -33], [31, -26], [28, -16], [30, -6], [34, 0], [hw - 4, 3], [hw - 2, ph * 0.5], [hw + 6, ph - 4], [hw + 30, ph - 2]]
+    : [[24, -40], [30, -33], [31, -26], [28, -16], [30, -6], [36, -1], [44, -2]], s + 7);
+};
+
+/** The clog's live bits: flies buzzing over it and the puddle, the stink coming off it in stepped squiggles, drops
+ *  running down the plinth (or the base) and falling into the puddle, a bubble coming up in it. */
+const clogLive = (c: Ctx, g: ReturnType<typeof throneAt>, f: number, i: number) => {
+  const P = pooH(), ph = g.deck - g.base, hw = g.sw / 2;
+  flies(c, g.mx + 8, g.base - 62, f, 8);
+  flies(c, g.mx - hw - 30, g.deck - 18, f + 50, 4);
+  flies(c, g.mx + hw + 60, g.deck - 14, f + 90, 3);
+  // (the stink: wavy columns of green-brown squares, fading as they rise)
+  for (let k = 0; k < 5; k++) {
+    const bx = k < 3 ? g.mx - 6 + k * 14 : g.mx + (k === 3 ? -hw - 50 : hw + 70), by0 = k < 3 ? g.base - 58 : g.deck - 8;
+    const u = ((f * 0.8 + k * 23) % 70) / 70;
+    for (let j = 0; j < 6; j++) {
+      const v = u + j * 0.06, y = by0 - v * 50, x = bx + Math.sin(v * 9 + k) * 5, a = Math.max(0, 0.7 * (1 - v));
+      if (a <= 0) continue;
+      c.fillStyle = j % 2 ? `rgba(132, 204, 22, ${a})` : `rgba(120, 100, 30, ${a})`;
+      c.fillRect(Math.round(x), Math.round(y), 2, 2);
+    }
+  }
+  // (drops running down the front and off into the puddle, a little splash)
+  const rails = i < 2 ? [[-hw + 9, 0], [hw - 21, 0], [14, -25]] : [[-hw + 4, 0], [hw - 7, 0]];
+  rails.forEach(([rx, y0], k) => {
+    const len = (ph + (y0 < 0 ? 25 : 0)), u = ((f + k * 47) % 110) / 110, y = g.base + y0 + u * len, x = g.mx + rx;
+    if (u < 0.9) { box(c, x - 1, y - 1, 4, 5, INK); box(c, x, y, 2, 3, P[2]); box(c, x, y, 1, 1, GLINT); }
+    else { const sp = (u - 0.9) * 40; box(c, x - sp, g.deck - 4 - sp * 0.6, 2, 2, P[3]); box(c, x + sp, g.deck - 4 - sp * 0.6, 2, 2, P[3]); }
+  });
+  // (a bubble swelling up in the puddle and popping)
+  const bu = (f % 150) / 150;
+  if (bu < 0.3) { const bx = g.mx + 40 - (i * 37) % 60, r = 1 + bu * 12; c.strokeStyle = P[4]; c.lineWidth = 1; c.beginPath(); c.arc(bx, g.deck - 3, r, Math.PI, 0); c.stroke(); box(c, bx - r * 0.5, g.deck - 3 - r * 0.8, 1, 1, GLINT); }
+};
+
 /** A toilet's state on the shrine (behind him): the clog (heaped, overflowing, the lake on the deck), or the wreck. */
 export const drawThroneMess = (c: Ctx, state: GameState, i: number) => {
   const ts = throneState(state, i), f = state.frame, g = throneAt(i), tx = g.mx - 6;
   if (ts === 'clean') return;
-  lake(c, g.mx + 10, g.deck - 1, g.sw / 2 + 120);
   if (ts === 'shitty') {
+    const ph = g.deck - g.base, hw = g.sw / 2;
+    still(c, `hwc-clog-${i}`, g.mx, g.base, -hw - 250, -110, g.sw + 520, ph + 24, gg => paintClog(gg, i, g.sw, ph));
     if (i === 2) {
-      // (in the case: brown up the inside of the glass in bands, fogged; seeping out of its seams down the base)
-      for (let k = 0; k < 3; k++) { c.fillStyle = `rgba(92, 58, 22, ${0.6 - k * 0.15})`; c.fillRect(g.sx + 6, g.top + 72 - (k + 1) * 14, g.sw - 12, 14); }
-      c.fillStyle = 'rgba(120, 90, 40, 0.25)'; c.fillRect(g.sx + 6, g.top + 4, g.sw - 12, 26);
-      for (const x of [g.sx + 2, g.sx + g.sw - 8]) drip(c, x, g.top + 72, g.deck - 3, 5);
-    } else {
-      // (heaped over the rim in steps, down the bowl and the plinth's front)
-      const hx = tx + 16, hy = g.base - 30;
-      c.fillStyle = INK; c.beginPath(); c.ellipse(hx, hy, 23, 15, 0, Math.PI, 0); c.fill();
-      c.fillStyle = POO[2]; c.beginPath(); c.ellipse(hx, hy, 21, 13, 0, Math.PI, 0); c.fill();
-      c.fillStyle = POO[3]; c.beginPath(); c.ellipse(hx - 3, hy - 3, 14, 8, 0, Math.PI, 0); c.fill();
-      c.fillStyle = POO[4]; c.beginPath(); c.ellipse(hx - 6, hy - 6, 7, 4, 0, Math.PI, 0); c.fill();
-      box(c, hx - 9, hy - 10, 3, 2, POO[5]);
-      checker(c, hx - 20, hy - 2, 40, 2, POO[1], 0, 2);
-      for (const [x, w, y1] of [[tx + 26, 6, g.deck - 2], [tx + 33, 4, g.base - 4], [tx + 6, 5, g.deck - 2]] as const) drip(c, x, g.base - 30, y1, w);
-      for (const [x, w] of [[g.sx + 8, 7], [g.sx + g.sw - 20, 9]] as const) drip(c, x, g.base, g.deck - 2, w);
+      // (in the case: brown up the inside of the glass in bands, smeared, runs down it; fogged at the top)
+      const x0 = g.sx + 7, w = g.sw - 14;
+      for (let k = 0; k < 3; k++) { c.fillStyle = `rgba(92, 58, 22, ${0.5 - k * 0.13})`; c.fillRect(x0, g.top + 72 - (k + 1) * 12, w, 12); }
+      c.fillStyle = 'rgba(120, 90, 40, 0.22)'; c.fillRect(x0, g.top + 4, w, 26);
+      for (let k = 0; k < 6; k++) { const sx = x0 + 6 + ((k * 37) % (w - 12)), sy = g.top + 8 + ((k * 23) % 30), len = 12 + (k * 11) % 20; c.fillStyle = 'rgba(70, 42, 14, 0.55)'; c.fillRect(sx, sy, 3, len); c.fillRect(sx - 2, sy - 2, 7, 4); c.fillStyle = 'rgba(190, 140, 70, 0.4)'; c.fillRect(sx, sy, 1, len - 2); }
+      // (a handprint smeared down the inside of the glass)
+      const hx = x0 + w - 30, hy = g.top + 20;
+      c.fillStyle = 'rgba(70, 42, 14, 0.6)'; c.fillRect(hx, hy + 6, 10, 9);
+      for (let k = 0; k < 4; k++) c.fillRect(hx + k * 2.6, hy - 2 + Math.abs(k - 1.5) * 1.5, 2, 9);
+      c.fillRect(hx + 10, hy + 7, 4, 2); c.fillRect(hx + 2, hy + 15, 6, 14);
     }
-    flies(c, g.mx + 6, g.base - 60, f, 9);
-    // (the stink coming off it: wavy, in steps)
-    c.lineWidth = 2;
-    for (let k = 0; k < 3; k++) {
-      const x = g.mx - 14 + k * 16, u = ((f + k * 20) % 60) / 60, y = g.base - 50 - u * 30;
-      c.strokeStyle = `rgba(132, 204, 22, ${0.6 * (1 - u)})`;
-      c.beginPath(); c.moveTo(x, y); c.quadraticCurveTo(x + 6, y - 8, x, y - 16); c.quadraticCurveTo(x - 6, y - 24, x, y - 32); c.stroke();
-    }
+    clogLive(c, g, f, i);
     note(c, g.sx - 40, g.deck - 36, 'OUT OF ORDER', '#FEF9C3', '#7F1D1D', -0.08);
   } else {
+    lake(c, g.mx + 10, g.deck - 1, g.sw / 2 + 120);
     // EXPLODED: a stump of it (porcelain, stepped), shards, brown up everything; the case blown open (stop 3)
     const col = i === 0 ? '#F4A6CC' : i === 1 ? '#9CAE3E' : '#2A2830', lt2 = mix(col, '#FFFFFF', 0.35), dk2 = mix(col, '#000000', 0.3);
     c.fillStyle = INK; c.beginPath(); c.moveTo(tx - 3, g.base); c.lineTo(tx - 1, g.base - 13); c.lineTo(tx + 5, g.base - 8); c.lineTo(tx + 9, g.base - 17); c.lineTo(tx + 14, g.base - 10); c.lineTo(tx + 17, g.base); c.closePath(); c.fill();
