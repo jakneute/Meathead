@@ -221,13 +221,14 @@ const launch = () => {
   return t.done(2, 'warehouse');
 };
 
-/** Back to the station (the lever left on NORMAL): off stop 3's end, down the long drop and away (a cut to the
- *  station). */
+/** Back to the station (the lever left on NORMAL): off stop 3's end, down the long drop and away into the distance,
+ *  up over the lip of the GIANT TOILET and straight down into it (giant.ts: flushed); a cut to the station. */
 const back = () => {
   const p = parkAt(2), t = new Turtle(p.x, p.y);
   outOf(t, STOPS[2].b + 20);
-  // (away down the drop into the distance as it fades)
   t.depth(1).pitch(1.3, 140).mark('drop').fwd(700).pitch(0, 240).fwd(200).depth(0.72);
+  // (over the lip and down the hole)
+  t.pitch(-0.5, 90).fwd(40).pitch(1.5, 80).mark('flush').fwd(110);
   return t.done(2, 'fade');
 };
 

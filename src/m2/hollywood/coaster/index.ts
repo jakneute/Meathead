@@ -15,7 +15,8 @@
 // had his headphones on). Kept across his deaths (state.stageMemo; layout.ts): each stop's staff dead, the lever, the
 // launch, the walker. Checkpoints 10-14: the queue, the station, a stop each.
 //
-// With the lever left on NORMAL he won't board at stop 3: he wants that lever pulled first. The lines on the rides run
+// With the lever left on NORMAL he won't board at stop 3 the first time (he wants that lever pulled); again, and he rides
+// NORMAL: the drop away into the distance and down a giant toilet (giant.ts), flushed back to the station. The lines on the rides run
 // to a script (script.ts: one speaker at a time, every line said before the ride lets him off); stopped at a stop:
 // KILL THEM ALL. The lever's thrown by hand (../lever.ts, shared: him hauling it over).
 //
@@ -52,16 +53,17 @@ import { byPants } from '../blvd/kinds';
 import { PA_VOICE } from '../blvd/lines';
 import {
   x0, x1, X, Y, GY, QUEUE_GROUND, STATION, RAILS, RAIL_H, GUESTS, GATE_OPS, STEVE_STANDEE, STOPS, BOOTH, FUMES, WAVES, WIRES,
-  PICKUPS, CHECKPOINTS, queueH, parkAt, CLEARED_MEMO, LEVER_MEMO, LAUNCHED_MEMO, WALKER_MEMO, BOOTH_LEVER, type Place,
+  PICKUPS, CHECKPOINTS, queueH, parkAt, CLEARED_MEMO, LEVER_MEMO, LAUNCHED_MEMO, WALKER_MEMO, BOOTH_LEVER, CARS, CAR_GAP, type Place,
 } from './layout';
-import { tracks, rideFrom, Mode, stepRide, pointOn } from './track';
+import { giant, drawGiantFront } from './giant';
+import { tracks, rideFrom, Mode, stepRide, pointOn, at as trackAt } from './track';
 import { SCRIPTS, type Env, type RideName } from './script';
 import { startThrow, tickThrow } from '../lever';
 import { safeAhead } from '../../../m1/game/enemies/kinds';
 import { coasterOf, type Coaster } from './state';
 import { updatePlungers, staffBark, BEAM } from './kinds';
 import { drawPlunger } from './kindArt';
-import { drawCoasterBackdrop, drawCoasterBack, drawTrain, drawFlyingTrain, drawTrackPass, carsOn, carsParked, coasterLamps, SINK, rollScale } from './art';
+import { drawCoasterBackdrop, drawCoasterBack, drawTrain, drawFlyingTrain, drawTrackPass, carsOn, carsParked, coasterLamps, SINK, rollScale, type CarAt } from './art';
 import { cview } from './paint';
 import * as L from './lines';
 import { updateThrones, drawThroneFront, inCase, throneState, throneHere } from './thrones';
@@ -119,6 +121,7 @@ const board = (state: GameState, co: Coaster, pl: Place) => {
   Object.assign(r, { name, beats: [...SCRIPTS[name]], waiting: [], saying: 0, quiet: 0, said: new Map<string, string>(), held: 0, gone: false, sayingAt: '' });
   if (!co.said.boarded) r.said.set('#first', '1');
   co.said.boarded = true;
+  if (name === 'back') co.said.flushed = true;
   // (the camera from where it is: it glides onto the train, no jump)
   r.fx = state.camera.x + CANVAS_WIDTH / 2; r.fy = state.camera.y + CANVAS_HEIGHT / 2;
   p.carried = true; p.cartSeat = true; p.inCutscene = true;
@@ -177,6 +180,8 @@ const arrive = (state: GameState, co: Coaster, pl: Place, snap: boolean) => {
   state.cameraRestY = park.y - 550;
   if (snap) { state.camera.x = park.x - CANVAS_WIDTH / 2; state.camera.y = park.y - 550; }
   if (pl === 1 && co.said.walkerHit) { co.said.walkerHit = false; meatheadSays(state, pickLine(L.WALKER), true); }
+  // (back at the start, flushed down the NORMAL track's toilet)
+  if (pl === 'station' && co.said.flushed) { co.said.flushed = false; meatheadSays(state, pickLine(L.RIDE_BACK), true); }
   // (stopped at a stop with its staff still about: the order)
   if (pl !== 'station' && !memo(state, CLEARED_MEMO(pl))) setUi({ notice: { text: 'KILL THEM ALL', at: performance.now() } });
 };
@@ -285,7 +290,22 @@ const riding = (ctx: FrameContext, co: Coaster): Controls => {
   state.cameraOverride = { x: state.camera.x, y: state.camera.y };
   // (him in his seat, at the track's depth about the eye the camera's just given: art.ts draws the train there too)
   seat(state, x, y, a, roll, d);
+  // (the NORMAL track: over the giant toilet's lip, down it: the flush (giant.ts swirls it), him gone down the hole)
+  if (!r.fly && tr === T.back) {
+    const fl = r.s - giant().s;
+    if (fl > 0 && !r.cued.has('flush')) { r.cued.add('flush'); playSound('splash', 1, -4); playSound('glug', 1, -6); playSound('whoosh', 0.9, -8); shakeScreen(state, 6, 3); }
+    if (fl > 0 && state.frame % 10 === 0) playSound('glug', 0.5, -4 - Math.min(8, fl / 40));
+    p.hidden = fl > 70;
+  } else if (!r.fly && tr === T.arrive) p.hidden = false;
   return hands();
+};
+/** The cars of the train he's on: down the giant toilet, none goes further than the bottom of its bowl. */
+const riddenCars = (co: Coaster): CarAt[] => {
+  const r = co.ride, tr = r.track!;
+  if (tr !== tracks().back) return carsOn(tr, r.s);
+  const lim = giant().s + 160, out: CarAt[] = [];
+  for (let i = 0; i < CARS; i++) { const si = Math.min(r.s - i * CAR_GAP, lim); if (si >= 0) { const q = trackAt(tr, si); out.push({ x: q.x, y: q.y, a: q.a, roll: q.roll, d: q.d }); } }
+  return out;
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -412,10 +432,11 @@ const boarding = (state: GameState, co: Coaster, pl: Place, upIn: boolean) => {
   const park = parkAt(pl);
   if (!onDeckAt(state, park.x, park.y, 46)) return;
   const free = pl === 'station' || memo(state, CLEARED_MEMO(pl));
-  if (free) prompt(pl === 2 && memo(state, LEVER_MEMO) ? 'HOP ON (EXPERIMENTAL)' : 'HOP ON');
+  if (free) prompt(pl === 2 ? (memo(state, LEVER_MEMO) ? 'HOP ON (EXPERIMENTAL)' : 'HOP ON (NORMAL)') : 'HOP ON');
   if (!upIn) return;
   // (stop 3, the staff dead, the lever not pulled: he's not riding this on NORMAL)
-  if (free && pl === 2 && !memo(state, LEVER_MEMO)) { if (!isTalking()) meatheadSays(state, pickLine(L.LEVER_FIRST), true); return; }
+  // (the first time: he'd rather pull the lever; again, and he rides NORMAL: down the giant toilet, back to the station)
+  if (free && pl === 2 && !memo(state, LEVER_MEMO) && !co.said.normalOk) { if (!isTalking()) { co.said.normalOk = true; meatheadSays(state, pickLine(L.LEVER_FIRST), true); } return; }
   if (free) board(state, co, pl);
   else if (!co.said[`locked${pl}`]) { co.said[`locked${pl}`] = true; { if (fresh(L.LOCKED[0])) meatheadSays(state, L.LOCKED[0], true); }; }
 };
@@ -561,16 +582,18 @@ export const coaster: HollywoodSection = {
   drawOverWires: (c, state) => {
     const co = coasterOf(state), f = state.frame, r = co.ride;
     // The trains (after everything of the structure and the stunt rigs' chains: nothing of them across a car or him): parked at every place (one each: the ride runs a few), but the one he's on, going
-    if (r.on && r.track && !r.fly) drawTrain(c, carsOn(r.track, r.s), 'back', f, true, undefined, cview(state).eye);
+    if (r.on && r.track && !r.fly) drawTrain(c, riddenCars(co), 'back', f, true, undefined, cview(state).eye);
     else if (r.on && r.fly) drawFlyingTrain(c, r.fly.x, r.fly.y, r.fly.rot, 'back', f);
     if (!r.on) for (const pl of ['station', 0, 1, 2] as Place[]) drawTrain(c, carsParked(pl), 'back', f, false, pl === 'station' ? undefined : !state.stageMemo[CLEARED_MEMO(pl)]);
   },
   drawFront: (c, state) => {
     const co = coasterOf(state), f = state.frame, r = co.ride, p = state.player;
-    if (r.on && r.track && !r.fly) drawTrain(c, carsOn(r.track, r.s), 'front', f, true, undefined, cview(state).eye);
+    if (r.on && r.track && !r.fly) drawTrain(c, riddenCars(co), 'front', f, true, undefined, cview(state).eye);
     else if (r.on && r.fly) drawFlyingTrain(c, r.fly.x, r.fly.y, r.fly.rot, 'front', f);
     // (riding: the track nearer the camera than the train, over it and him: track.ts DEPTH)
     if (r.on) drawTrackPass(c, state, co, 'front');
+    // (down the giant toilet: its bowl over the train and him, the water swirling)
+    if (r.on && r.track === tracks().back && r.s > giant().s) drawGiantFront(c, cview(state), state, (r.s - giant().s) / 200);
     for (const s of co.plungers) drawPlunger(c, s.x, s.y, s.rot);
     if (co.faceStuck > 0 && p.health > 0) drawPlunger(c, p.pos.x + p.width / 2 + p.facing * 30, p.pos.y + 16, p.facing * Math.PI / 2);
     // (security's flashlight beams, while they aim)

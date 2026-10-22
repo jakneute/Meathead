@@ -323,7 +323,13 @@ export const door = (c: Ctx, v: CView, x: number, feetY: number, k: number, sign
   box(c, x - 28, top + 8, 56, feetY - top - 8, '#0E0C12');
   if (k > 0.05) {
     const P = PORCELAIN.map(cc => hour(mix(cc, '#0E0C12', 0.55)));
-    if (kind === 'stall') { box(c, x - 4, feetY - 44, 18, 26, P[2]); box(c, x - 8, feetY - 22, 24, 10, P[3]); box(c, x - 2, feetY - 12, 12, 12, P[1]); }
+    if (kind === 'stall') {
+      // (the tank and its lid, a handle; the seat; the bowl tapering to its foot)
+      box(c, x - 4, feetY - 44, 18, 26, P[2]); box(c, x - 4, feetY - 44, 4, 26, P[3]); box(c, x + 11, feetY - 44, 3, 26, P[1]);
+      box(c, x - 6, feetY - 48, 22, 4, P[3]); box(c, x - 6, feetY - 48, 22, 1, P[4]); box(c, x, feetY - 40, 4, 2, P[4]);
+      box(c, x - 8, feetY - 22, 24, 10, P[3]); box(c, x - 8, feetY - 22, 24, 2, P[4]); box(c, x - 8, feetY - 15, 24, 3, P[2]);
+      box(c, x - 2, feetY - 12, 12, 12, P[1]); box(c, x - 2, feetY - 12, 3, 12, P[2]);
+    }
     else if (kind === 'closet') { box(c, x + 4, feetY - 22, 18, 22, hour(mix('#EAB308', '#0E0C12', 0.5))); box(c, x + 12, feetY - 76, 3, 56, hour(mix('#A16207', '#0E0C12', 0.5))); }
     else for (let s = 0; s < 4; s++) box(c, x - 26 + s * 6, feetY - 20 - s * 18, 40, 4, hour(mix('#57534E', '#0E0C12', 0.5)));
   }

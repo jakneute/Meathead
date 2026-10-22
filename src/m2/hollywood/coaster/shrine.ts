@@ -14,7 +14,7 @@
 import type { GameState } from '../../../m1/game/core/state';
 import { GY } from '../geometry';
 import { drawPerson } from '../../adventure/temple/people';
-import { type Ctx, type CView, INK, vis, pal, lattice, member, rivets, hazard, goldStar, beam, chains, PORCELAIN, CHROME, MARBLE, BIO } from './paint';
+import { type Ctx, type CView, INK, vis, pal, lattice, member, rivets, hazard, goldStar, beam, chains, PORCELAIN, CHROME, MARBLE, BIO, POO } from './paint';
 import { box, checker, mix, hash, poly, at, atDepth, still, stillAt, signW, STEEL, BRASS, ramp6, hour, lit, board, deco, plain, words, sideBack, topBack, glassOf, ball } from '../blvd/kit';
 import { velvetRopePaint } from '../blvd/props';
 import { X, Y, STOPS, BOOTH, BOOTH_LEVER, FUMES, LAUNCHED_MEMO, LEVER_MEMO, CLEARED_MEMO } from './layout';
@@ -28,59 +28,189 @@ const PLAQUES: [string, string][] = [['AS SAT ON BY', 'DINO SINATRELLI 1961'], [
 const BODY = ['#F4A6CC', '#9CAE3E', '#2A2830'];
 
 // ---------------------------------------------------------------------------------------------------------------
-// A toilet (feet at the origin: the bowl's foot from 0 to 12, the tank from -26 to -2, up to the lid at -74)
+// A toilet (feet at the origin: the bowl's foot from -2 to 13, the bowl -4..32 under its seat (-35..-25), the tank from
+// -26 to -2 up to its lid at -78; the handle -25..-18 at -64..-60). thrones.ts paints the clog over this in the same
+// places (its x is ours - 6: the snapped handle's stub covers ours exactly): keep the two lined up.
 
-const paintToilet = (g: Ctx, i: number) => {
+const ellF = (g: Ctx, x: number, y: number, rx: number, ry: number, col: string) => { if (rx <= 0 || ry <= 0) return; g.fillStyle = col; g.beginPath(); g.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2); g.fill(); };
+/** A run of something down a face (inked, lit down its left, a bead at its foot). */
+const dribble = (g: Ctx, M: string[], x: number, y0: number, y1: number) => {
+  box(g, x - 1, y0, 4, y1 - y0, INK); box(g, x, y0, 2, y1 - y0, M[2]); box(g, x, y0, 1, y1 - y0, M[4]);
+  ellF(g, x + 1, y1, 2.4, 2, INK); ellF(g, x + 1, y1, 1.5, 1.2, M[2]); box(g, x, y1 - 1, 1, 1, M[5]);
+};
+
+export const paintToilet = (g: Ctx, i: number) => {
   const R = ramp6(hour(BODY[i])), C = (i === 0 ? BRASS : CHROME).map(c => hour(c));
-  // (the pedestal and the bowl: one shape, lit up its left, shaded under the rim, ink round it)
+  // (its shadow on the plinth)
+  g.fillStyle = 'rgba(24, 14, 20, 0.32)'; g.beginPath(); g.ellipse(4, 0, 26, 2.4, 0, 0, Math.PI * 2); g.fill();
+
+  // The tank: rounded, stepped across (lit up its left, a streak of shine down it, dithered into the shade on its
+  // right), the shadow under its lid, its foot in shade
+  g.fillStyle = INK; g.beginPath(); g.roundRect(-27, -71, 26, 42, 3); g.fill();
+  g.save(); g.beginPath(); g.roundRect(-26, -70, 24, 40, 2); g.clip();
+  box(g, -26, -70, 24, 40, R[3]);
+  box(g, -26, -70, 6, 40, R[4]); checker(g, -20, -70, 2, 40, R[4], 0, 1);
+  box(g, -25, -66, 1, 22, R[5]); checker(g, -25, -44, 1, 8, R[5], 0, 1); box(g, -24, -67, 7, 1, R[5]); box(g, -24, -66, 2, 1, R[5]);
+  box(g, -7, -70, 5, 40, R[2]); checker(g, -10, -70, 3, 40, R[2], 0, 1); box(g, -3, -70, 1, 40, R[1]);
+  box(g, -26, -70, 24, 2, R[2]); checker(g, -26, -68, 24, 1, R[2], 0, 1);
+  box(g, -26, -34, 24, 4, R[1]); checker(g, -26, -37, 24, 3, R[2], 0, 1);
+  box(g, -24, -32, 18, 1, R[2]);
+  g.restore();
+  // (the lid: overhanging, its top lit, its front, its underside in shade; the trim on it)
+  g.fillStyle = INK; g.beginPath(); g.roundRect(-30, -78, 32, 10, 3); g.fill();
+  g.fillStyle = R[3]; g.beginPath(); g.roundRect(-29, -77, 30, 8, 2); g.fill();
+  box(g, -28, -77, 28, 1, R[5]); box(g, -28, -76, 28, 2, R[4]); box(g, -29, -71, 30, 1, R[2]); box(g, -28, -70, 28, 1, R[1]);
+  box(g, -29, -76, 2, 5, R[4]); box(g, -28, -76, 1, 3, R[5]); box(g, -1, -76, 2, 5, R[2]);
+  if (i === 0) { box(g, -28, -73, 28, 1, C[4]); box(g, -28, -73, 9, 1, C[5]); }
+  else if (i === 1) { box(g, -28, -73, 28, 1, C[3]); box(g, -28, -73, 6, 1, C[5]); }
+  else for (let x = -26; x <= -4; x += 4) { box(g, x, -74, 2, 2, C[1]); box(g, x, -74, 1, 1, C[5]); }
+  // (the flush handle: a round escutcheon, the lever off it)
+  ellF(g, -23, -62, 2.3, 2.3, INK); ellF(g, -23, -62, 1.5, 1.5, C[3]); box(g, -24, -63, 1, 1, C[5]);
+  box(g, -22, -63, 4, 3, INK); box(g, -21, -62, 3, 1, C[4]); box(g, -19, -62, 1, 1, C[5]);
+  // (the maker's badge low on the tank: a little oval)
+  ellF(g, -14, -38, 3.4, 1.8, INK); ellF(g, -14, -38, 2.6, 1.1, C[3]); box(g, -15, -39, 2, 1, C[5]);
+  if (i === 0) goldStar(g, -15, -53, 4);
+
+  // The supply line: out of the plinth by its shutoff (an oval handle), a braided hose up to the tank, its nut
+  box(g, -20, -9, 4, 9, INK); box(g, -19, -9, 2, 9, C[3]); box(g, -19, -9, 1, 9, C[5]);
+  box(g, -22, -13, 8, 5, INK); box(g, -21, -12, 6, 3, C[3]); box(g, -21, -12, 6, 1, C[5]); box(g, -16, -12, 1, 3, C[1]);
+  ellF(g, -24, -11, 2.4, 3.4, INK); ellF(g, -24, -11, 1.4, 2.4, C[2]); box(g, -25, -13, 1, 2, C[4]);
+  box(g, -20, -29, 4, 16, INK); box(g, -19, -29, 2, 16, C[2]);
+  for (let y = -29; y < -13; y += 2) box(g, -19 + ((y >> 1) & 1), y, 1, 1, C[4]);
+  box(g, -22, -31, 8, 4, INK); box(g, -21, -30, 6, 2, C[3]); box(g, -21, -30, 6, 1, C[5]);
+
+  // The pedestal and the bowl: one shape, rounded to the light (stepped in ovals), a streak of shine round its top, the
+  // trapway's hump down its side, shaded under the rim and off its right, light bounced up under its belly; ink round it
   const bowl = () => { g.beginPath(); g.moveTo(-4, -26); g.lineTo(32, -26); g.quadraticCurveTo(31, -9, 16, -6); g.lineTo(13, 0); g.lineTo(-2, 0); g.lineTo(-1, -12); g.closePath(); };
   g.save(); bowl(); g.clip();
-  box(g, -6, -28, 40, 30, R[3]); box(g, -6, -28, 9, 30, R[4]); box(g, -6, -28, 3, 14, R[5]);
-  box(g, 20, -28, 14, 30, R[2]); checker(g, 17, -28, 3, 30, R[2], 0, 2); box(g, -6, -22, 40, 3, R[1]); box(g, 8, -6, 10, 8, R[1]);
+  box(g, -6, -28, 40, 30, R[2]);
+  ellF(g, 10, -17, 17, 12, R[3]); checker(g, 25, -26, 3, 20, R[3], 0, 1);
+  ellF(g, 5, -19, 9, 6, R[4]); checker(g, 13, -23, 3, 8, R[4], 1, 1);
+  box(g, -3, -14, 3, 14, R[4]); box(g, -2, -12, 1, 9, R[5]);
+  box(g, 29, -26, 5, 16, R[1]); checker(g, 27, -26, 2, 16, R[1], 0, 1);
+  box(g, -6, -26, 40, 2, R[3]); box(g, -6, -26, 22, 1, R[4]);
+  box(g, -6, -24, 40, 1, R[1]); checker(g, -6, -23, 40, 2, R[1], 0, 1);
+  box(g, 1, -21, 9, 1, R[5]); box(g, 0, -20, 3, 1, R[5]); checker(g, 10, -21, 4, 1, R[5], 0, 1);
+  g.strokeStyle = R[1]; g.lineWidth = 1; g.beginPath(); g.moveTo(13, -5); g.quadraticCurveTo(5, -6, 6, -11); g.quadraticCurveTo(7, -17, 1, -18); g.stroke();
+  g.strokeStyle = R[5]; g.beginPath(); g.moveTo(12, -4); g.quadraticCurveTo(4, -5, 5, -11); g.stroke();
+  g.strokeStyle = R[3]; g.beginPath(); g.moveTo(28, -15); g.quadraticCurveTo(26, -9, 17, -8); g.stroke();
+  box(g, -6, -2, 40, 2, R[1]); checker(g, -6, -4, 40, 2, R[1], 0, 1);
   g.restore();
   bowl(); g.strokeStyle = INK; g.lineWidth = 1.5; g.stroke();
-  // (the bolt caps on the foot)
-  box(g, -3, -4, 3, 3, R[4]); box(g, 11, -4, 3, 3, R[2]);
-  // (the seat: a ring, its edge lit; the hinges)
-  box(g, -7, -35, 42, 10, INK); box(g, -6, -34, 40, 8, R[3]); box(g, -6, -34, 40, 2, R[5]); box(g, -6, -28, 40, 2, R[2]); box(g, -6, -34, 3, 8, R[4]);
-  box(g, -4, -36, 5, 3, C[3]); box(g, -4, -36, 2, 1, C[5]);
-  // (the tank: stepped, its lid, the handle)
-  box(g, -27, -71, 26, 42, INK); box(g, -26, -70, 24, 40, R[3]); box(g, -26, -70, 5, 40, R[4]); box(g, -26, -70, 1, 40, R[5]); box(g, -6, -70, 4, 40, R[2]);
-  checker(g, -9, -70, 3, 40, R[2], 0, 2); box(g, -26, -34, 24, 4, R[1]);
-  box(g, -29, -76, 30, 8, INK); box(g, -28, -75, 28, 6, R[4]); box(g, -28, -75, 28, 1, R[5]); box(g, -28, -70, 28, 1, R[2]);
-  box(g, -25, -64, 7, 4, INK); box(g, -24, -63, 5, 2, C[4]); box(g, -24, -63, 2, 1, C[5]);
+  // (the bolt caps on the foot: domed, a glint each)
+  for (const bx of [-1, 12]) { ellF(g, bx, -3, 2.6, 2.4, INK); ellF(g, bx, -3.2, 1.9, 1.7, C[2]); ellF(g, bx - 0.5, -3.8, 1, 0.9, C[4]); box(g, bx - 1, -5, 1, 1, C[5]); }
+
+  // The lid, up against the tank: the Chairman's pink with a gold edge, the Godfather's in its shag cover (1972),
+  // the Rock God's with a sticker slapped on
+  const LR = i === 1 ? ramp6(hour('#8A5A26')) : R;
+  const lid = () => { g.beginPath(); g.moveTo(-3, -31); g.lineTo(4, -31); g.lineTo(3, -63); g.quadraticCurveTo(1, -68, -2, -65); g.closePath(); };
+  g.save(); g.translate(0.5, 0); lid(); g.strokeStyle = INK; g.lineWidth = 2; g.stroke(); g.fillStyle = LR[3]; g.fill(); g.restore();
+  g.save(); g.translate(0.5, 0); lid(); g.clip();
+  box(g, -4, -70, 3, 40, LR[4]); box(g, -2, -66, 1, 30, LR[5]); box(g, 2, -70, 3, 40, LR[2]);
+  if (i === 1) for (let y = -66; y < -32; y++) for (let x = -3; x < 4; x++) { const h = hash(x * 7.1 + y * 3.3); if (h < 0.22) box(g, x, y, 1, 1, LR[1]); else if (h > 0.84) box(g, x, y, 1, 1, LR[5]); }
+  if (i === 0) { box(g, 2, -64, 1, 32, C[4]); box(g, -2, -64, 1, 4, C[5]); }
+  if (i === 2) { box(g, -2, -56, 6, 7, INK); box(g, -1, -55, 5, 5, hour('#DC2626')); box(g, 0, -54, 1, 1, hour('#F8FAFC')); box(g, 2, -54, 1, 1, hour('#F8FAFC')); box(g, 0, -52, 3, 1, hour('#F8FAFC')); }
+  g.restore();
+
+  // The seat: a ring seen from just above (its rim edge under, lit along its top), the hinge, the bowl's opening
+  box(g, -6, -35, 7, 4, INK); box(g, -5, -34, 5, 2, C[3]); box(g, -5, -34, 2, 1, C[5]);
+  ellF(g, 15, -29, 21, 5, INK); box(g, -6, -31, 42, 2, INK); ellF(g, 15, -31, 21, 5, INK);
+  ellF(g, 15, -29, 20, 4, R[2]); box(g, -5, -31, 40, 2, R[2]); box(g, -4, -30, 6, 1, R[4]);
+  ellF(g, 15, -31, 20, 4, R[3]); ellF(g, 11, -32, 15, 2.6, R[4]); box(g, 3, -34, 7, 1, R[5]); box(g, 28, -29, 4, 1, R[2]);
+  if (i === 0) { g.strokeStyle = C[4]; g.lineWidth = 1; g.beginPath(); g.ellipse(15, -29.5, 19.5, 3.6, 0, 0.15, Math.PI - 0.15); g.stroke(); }
+  if (i === 2) for (let x = -1; x <= 31; x += 5) { const y = -29 + 4 * Math.sqrt(Math.max(0, 1 - ((x - 15) / 20) ** 2)); box(g, x, y - 1, 2, 2, C[1]); box(g, x, y - 1, 1, 1, C[5]); }
+  ellF(g, 16, -31, 13, 2.4, INK);
+  ellF(g, 16, -31.2, 12, 1.7, R[1]);
   if (i === 0) {
-    // THE CHAIRMAN: his fedora on the lid (a band round it), his martini (an olive), a butt on the seat, the ring
-    box(g, -29, -80, 18, 4, INK); box(g, -28, -79, 16, 2, hour('#2A2622')); box(g, -24, -88, 10, 9, INK); box(g, -23, -87, 8, 8, hour('#3A3430')); box(g, -23, -87, 3, 8, hour('#54504A')); box(g, -23, -82, 8, 2, hour('#7F1D1D'));
+    // (clear water, a brown ring round it at the waterline)
+    ellF(g, 16, -30.6, 11, 1.2, hour('#7EB6CA')); box(g, 10, -31, 6, 1, hour('#CFEFF8'));
+    g.strokeStyle = hour('#8A6A3A'); g.lineWidth = 1; g.beginPath(); g.ellipse(16, -30.8, 11.5, 1.5, 0, Math.PI, Math.PI * 2); g.stroke();
+  } else if (i === 2) {
+    ellF(g, 16, -30.6, 11, 1.2, hour('#BEF264')); box(g, 12, -31, 5, 1, hour('#ECFCCB'));
+  }
+
+  if (i === 0) {
+    // THE CHAIRMAN: his fedora on the lid (pinched, a band round it, the brim lit), his martini (an olive), a butt on
+    // the seat
+    const F = ramp6(hour('#3A3430'));
+    box(g, -29, -82, 18, 4, INK); box(g, -28, -81, 16, 2, F[2]); box(g, -28, -81, 16, 1, F[4]);
+    box(g, -24, -90, 10, 9, INK); box(g, -23, -89, 8, 8, F[3]); box(g, -23, -89, 3, 8, F[4]); box(g, -22, -89, 1, 5, F[5]); box(g, -16, -89, 1, 8, F[1]);
+    box(g, -20, -90, 2, 2, INK); box(g, -23, -84, 8, 2, hour('#7F1D1D')); box(g, -23, -84, 8, 1, hour('#B91C1C'));
     const Gl = hour('#DCEAF0');
-    g.strokeStyle = INK; g.lineWidth = 2.4; g.beginPath(); g.moveTo(-10, -92); g.lineTo(-4, -84); g.lineTo(2, -92); g.closePath(); g.stroke();
-    g.fillStyle = Gl; g.beginPath(); g.moveTo(-9, -91); g.lineTo(-4, -85); g.lineTo(1, -91); g.closePath(); g.fill();
-    box(g, -5, -84, 2, 7, INK); box(g, -8, -77, 8, 2, INK); box(g, -7, -90, 2, 2, '#FFFFFF');
-    box(g, -6, -89, 3, 3, hour('#16A34A')); box(g, -5, -89, 1, 1, hour('#DC2626'));
-    box(g, 16, -35, 7, 2, hour('#F5F5F4')); box(g, 22, -35, 2, 2, hour('#F97316'));
-    box(g, 2, -32, 26, 1, hour('#8A6A3A'));
+    g.strokeStyle = INK; g.lineWidth = 2.4; g.beginPath(); g.moveTo(-10, -94); g.lineTo(-4, -86); g.lineTo(2, -94); g.closePath(); g.stroke();
+    g.fillStyle = Gl; g.beginPath(); g.moveTo(-9, -93); g.lineTo(-4, -87); g.lineTo(1, -93); g.closePath(); g.fill();
+    box(g, -8, -92, 10, 2, hour('#E8F4C8'));
+    box(g, -5, -86, 2, 7, INK); box(g, -8, -79, 8, 2, INK); box(g, -7, -92, 2, 2, '#FFFFFF');
+    box(g, -6, -91, 3, 3, hour('#16A34A')); box(g, -5, -91, 1, 1, hour('#DC2626'));
+    box(g, 3, -36, 7, 3, INK); box(g, 4, -35, 4, 1, hour('#F5F5F4')); box(g, 4, -35, 2, 1, hour('#D9A066')); box(g, 8, -35, 1, 1, hour('#A8A29E')); box(g, 9, -35, 1, 1, hour('#F97316'));
   } else if (i === 1) {
-    // THE GODFATHER'S: the plunger stuck in it, an orange on the lid, a rose across the seat
+    // THE GODFATHER'S CLOG: still in there since 1994. Murky water brimming up proud of the seat (scum on it), the
+    // plunger stuck in it to the cup, a wad of paper, floaters, a horse's head come up out of it; it's run over the
+    // seat and down the bowl into a puddle at its foot. An orange and a cannoli on the lid, a rose across the seat.
+    const M = ramp6(hour('#5E5628')), Pp = POO.map(cc => hour(cc));
+    dribble(g, M, 5, -28, -22); dribble(g, M, 27, -28, -13); dribble(g, M, 20, -28, -19);
+    ellF(g, 24, -0.6, 10, 2.2, INK); ellF(g, 24, -0.9, 9, 1.4, M[2]); box(g, 19, -2, 4, 1, M[4]); box(g, 27, -1, 2, 1, M[5]);
+    ellF(g, 16, -31.6, 13.6, 3.4, INK); ellF(g, 16, -31.6, 12.6, 2.6, M[2]); ellF(g, 14, -32.4, 9, 1.4, M[3]);
+    checker(g, 6, -33, 20, 1, M[4], 0, 1); box(g, 7, -34, 5, 1, M[5]);
+    // (the plunger: its handle (wood, grain, a hang hole at the top), the red cup down in it, ridged, lit)
     g.save(); g.translate(14, -30); g.rotate(0.32);
-    box(g, -3, -46, 6, 44, INK); box(g, -2, -45, 4, 42, hour('#A16207')); box(g, -2, -45, 1, 42, hour('#D4A040'));
-    g.fillStyle = INK; g.beginPath(); g.moveTo(-11, 2); g.quadraticCurveTo(0, -12, 11, 2); g.closePath(); g.fill();
-    g.fillStyle = hour('#B91C1C'); g.beginPath(); g.moveTo(-9, 1); g.quadraticCurveTo(0, -10, 9, 1); g.closePath(); g.fill();
-    box(g, -6, -4, 4, 2, hour('#E05050'));
+    const W = ramp6(hour('#A16207')), Rb = ramp6(hour('#B91C1C'));
+    box(g, -3, -48, 6, 46, INK); box(g, -2, -47, 4, 44, W[3]); box(g, -2, -47, 1, 44, W[5]); box(g, 1, -47, 1, 44, W[1]);
+    for (let y = -42; y < -6; y += 7) box(g, -1, y, 1, 3, W[2]);
+    box(g, -1, -45, 2, 2, INK);
+    g.fillStyle = INK; g.beginPath(); g.moveTo(-11, 1); g.quadraticCurveTo(0, -13, 11, 1); g.closePath(); g.fill();
+    g.fillStyle = Rb[2]; g.beginPath(); g.moveTo(-9.5, 0); g.quadraticCurveTo(0, -11, 9.5, 0); g.closePath(); g.fill();
+    g.fillStyle = Rb[3]; g.beginPath(); g.moveTo(-8, -1); g.quadraticCurveTo(-3, -9, 2, -5); g.lineTo(-4, -1); g.closePath(); g.fill();
+    box(g, -6, -6, 3, 1, Rb[5]); box(g, -7, -4, 1, 1, Rb[4]);
+    box(g, -8, -2, 16, 1, Rb[1]); box(g, 4, -6, 4, 1, Rb[1]);
     g.restore();
-    ball(g, -14, -81, 5, hour('#F97316')); box(g, -14, -87, 2, 2, hour('#4D7C0F'));
-    g.strokeStyle = INK; g.lineWidth = 3; g.beginPath(); g.moveTo(-2, -36); g.lineTo(18, -38); g.stroke();
-    g.strokeStyle = hour('#15803D'); g.lineWidth = 1.5; g.beginPath(); g.moveTo(-2, -36); g.lineTo(18, -38); g.stroke();
-    ball(g, 21, -39, 3.5, hour('#B91C1C'));
+    // (the murk's near lip back over the cup's foot)
+    ellF(g, 16, -30.4, 12.4, 1.6, M[2]); box(g, 8, -30, 4, 1, M[4]);
+    // (the wad of paper, sodden)
+    ellF(g, 23, -33, 4.2, 2.8, INK); ellF(g, 23, -33.2, 3.4, 2, hour('#C8C0B0')); ellF(g, 22.4, -33.8, 2.2, 1.2, hour('#F4F0E6'));
+    box(g, 21, -34, 1, 1, '#FFFFFF'); box(g, 24, -32, 2, 1, M[3]);
+    // (floaters)
+    for (const [fx, fy, r] of [[9, -32.4, 2.6], [17, -31.6, 2], [12, -31, 1.4]] as const) { ellF(g, fx, fy, r + 1, r * 0.62 + 1, INK); ellF(g, fx, fy - 0.2, r, r * 0.6, Pp[2]); ellF(g, fx - r * 0.3, fy - r * 0.3, r * 0.5, r * 0.3, Pp[3]); box(g, fx - r * 0.5, fy - r * 0.5, 1, 1, Pp[5]); }
+    // (the horse's head, up out of it at the front: its mane, an ear back, a white blaze, the eye, a nostril; red in
+    // the murk round its neck)
+    const Hh = ramp6(hour('#6B3F1F'));
+    const head = () => { g.beginPath(); g.moveTo(26, -31); g.lineTo(26, -39); g.lineTo(27, -44); g.lineTo(28.5, -41); g.lineTo(30, -41); g.quadraticCurveTo(34, -39, 35, -36); g.lineTo(34.5, -34); g.lineTo(31, -34); g.lineTo(30, -31); g.closePath(); };
+    head(); g.strokeStyle = INK; g.lineWidth = 2; g.stroke(); g.fillStyle = Hh[3]; g.fill();
+    g.save(); head(); g.clip();
+    box(g, 26, -44, 2, 14, Hh[1]); box(g, 28, -41, 3, 2, Hh[4]); box(g, 31, -38, 4, 1, Hh[4]); box(g, 30, -34, 6, 1, Hh[2]);
+    box(g, 30, -40, 1, 1, hour('#F4F0E6')); box(g, 31, -39, 2, 1, hour('#F4F0E6'));
+    g.restore();
+    box(g, 29, -38, 1, 1, INK); box(g, 29, -39, 1, 1, '#FFFFFF'); box(g, 34, -36, 1, 1, INK);
+    ellF(g, 28.5, -31, 4, 1.4, INK); ellF(g, 28.5, -31.2, 3.2, 0.8, M[2]); box(g, 27, -31, 2, 1, hour('#991B1B')); box(g, 30, -31, 1, 1, hour('#DC2626'));
+    // (the rose across the back of the seat: stem, a thorn, a leaf, the bloom)
+    g.strokeStyle = INK; g.lineWidth = 3; g.beginPath(); g.moveTo(-6, -33); g.lineTo(4, -36); g.stroke();
+    g.strokeStyle = hour('#15803D'); g.lineWidth = 1.4; g.beginPath(); g.moveTo(-6, -33); g.lineTo(4, -36); g.stroke();
+    box(g, -2, -36, 1, 1, INK); box(g, 0, -34, 3, 2, INK); box(g, 0, -34, 2, 1, hour('#22C55E'));
+    ball(g, 6, -37, 3.2, hour('#B91C1C')); box(g, 5, -38, 2, 1, hour('#7F1D1D')); box(g, 6, -36, 2, 1, hour('#7F1D1D'));
+    // (on the lid: a cannoli (ridged shell, the cream at its ends, chips in it), an orange (dimpled, its leaf))
+    const Sh = ramp6(hour('#C8893E')), Cr = hour('#FFF6E0');
+    box(g, -27, -83, 10, 6, INK); box(g, -26, -82, 8, 4, Sh[3]); box(g, -26, -82, 8, 1, Sh[5]); box(g, -26, -79, 8, 1, Sh[1]);
+    for (let x = -25; x < -18; x += 2) box(g, x, -81, 1, 2, Sh[2]);
+    for (const ex of [-29, -18]) { box(g, ex, -82, 3, 4, INK); box(g, ex + (ex < -20 ? 1 : 0), -81, 2, 2, Cr); }
+    box(g, -28, -81, 1, 1, hour('#3A220C')); box(g, -17, -80, 1, 1, hour('#3A220C'));
+    ball(g, -9, -83, 5, hour('#F97316'));
+    const Or = ramp6(hour('#F97316'));
+    for (let k = 0; k < 7; k++) box(g, -12 + hash(k * 3.7) * 6, -86 + hash(k * 5.1) * 6, 1, 1, Or[2]);
+    box(g, -10, -89, 2, 2, INK); box(g, -9, -89, 1, 1, hour('#4D7C0F'));
+    g.fillStyle = INK; g.beginPath(); g.moveTo(-9, -89); g.quadraticCurveTo(-4, -93, -2, -89); g.quadraticCurveTo(-5, -87, -9, -89); g.fill();
+    g.fillStyle = hour('#4D7C0F'); g.beginPath(); g.moveTo(-8, -89); g.quadraticCurveTo(-4, -92, -3, -89.5); g.quadraticCurveTo(-5, -88, -8, -89); g.fill();
   } else {
     // THE ROCK GOD'S: band stickers all over it, a guitar pick on the lid, a lightning bolt in white paint marker
-    const st: [number, number, number, number, string][] = [[-24, -64, 8, 5, '#DC2626'], [-16, -50, 9, 6, '#FACC15'], [-22, -42, 6, 6, '#38BDF8'], [4, -22, 8, 5, '#F472B6'], [18, -18, 7, 6, '#F8FAFC'], [-12, -60, 6, 4, '#A3E635']];
-    for (const [sx, sy, w, h, col] of st) { box(g, sx - 1, sy - 1, w + 2, h + 2, INK); box(g, sx, sy, w, h, hour(col)); box(g, sx, sy, w, 1, hour(mix(col, '#FFFFFF', 0.4))); }
+    const st: [number, number, number, number, string][] = [[-24, -64, 8, 5, '#DC2626'], [-16, -50, 9, 6, '#FACC15'], [-22, -42, 6, 6, '#38BDF8'], [4, -21, 8, 5, '#F472B6'], [18, -18, 7, 6, '#F8FAFC'], [-12, -60, 6, 4, '#A3E635']];
+    for (const [sx, sy, w, h, col] of st) { box(g, sx - 1, sy - 1, w + 2, h + 2, INK); box(g, sx, sy, w, h, hour(col)); box(g, sx, sy, w, 1, hour(mix(col, '#FFFFFF', 0.4))); box(g, sx + w - 2, sy + h - 2, 2, 2, hour(mix(col, '#000000', 0.3))); }
+    box(g, -15, -48, 7, 1, hour('#18181B')); box(g, -15, -46, 5, 1, hour('#18181B'));
     g.strokeStyle = hour('#F8FAFC'); g.lineWidth = 1.5; g.beginPath(); g.moveTo(-8, -66); g.lineTo(-14, -56); g.lineTo(-9, -56); g.lineTo(-15, -46); g.stroke();
-    g.fillStyle = INK; g.beginPath(); g.moveTo(-20, -79); g.lineTo(-12, -79); g.lineTo(-16, -72); g.closePath(); g.fill();
-    g.fillStyle = hour('#9333EA'); g.beginPath(); g.moveTo(-19, -78.5); g.lineTo(-13, -78.5); g.lineTo(-16, -73.5); g.closePath(); g.fill();
+    g.fillStyle = INK; g.beginPath(); g.moveTo(-20, -81); g.lineTo(-12, -81); g.lineTo(-16, -74); g.closePath(); g.fill();
+    g.fillStyle = hour('#9333EA'); g.beginPath(); g.moveTo(-19, -80.5); g.lineTo(-13, -80.5); g.lineTo(-16, -75.5); g.closePath(); g.fill();
+    box(g, -18, -80, 2, 1, hour('#D8B4FE'));
   }
 };
-const toilet = (c: Ctx, i: number, x: number, y: number) => still(c, `hwc-toilet-${i}`, x, y, -34, -98, 76, 100, g => paintToilet(g, i));
+const toilet = (c: Ctx, i: number, x: number, y: number) => still(c, `hwc-toilet-${i}`, x, y, -36, -100, 80, 104, g => paintToilet(g, i));
 
 // ---------------------------------------------------------------------------------------------------------------
 // The plinths

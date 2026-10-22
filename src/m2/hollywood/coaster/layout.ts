@@ -18,7 +18,8 @@
 //          anybody), at the far end by the booth. Three waves, out of two doors on the deck. The CONTROL BOOTH up on
 //          its stilts at the right end (a wire up to its balcony, past the fumes), the sleeper, the lever (locked out
 //          till the staff are dead): EXPERIMENTAL. Next ride: THE LAUNCH (off the bent end of the track, through the
-//          air, into the warehouse's wall). He won't ride on NORMAL (pull the lever first).
+//          air, into the warehouse's wall). On NORMAL he balks once (pull the lever first); then NORMAL's the drop
+//          away and down a GIANT TOILET (giant.ts): flushed, back to the station.
 //   (The station and the stops are dressed as a bathroom: a tiled set wall, stalls, urinals, sinks: art.ts.)
 //
 // Every stop has a SERVICE STAIRS door at its left end (locked while the staff are at him): down and out at the

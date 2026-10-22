@@ -22,6 +22,7 @@ import { drawCoasterFar } from './far';
 import { drawStructureBack, drawFloor } from './structure';
 import { drawSet, deckTop, deckFront, deckRail, catwalk, door, pylon, WALL_D, WALL_H } from './set';
 import { drawShrine, drawShrineTitle, drawBooth } from './shrine';
+import { giant, drawGiantBack, drawGiantFront } from './giant';
 import {
   x0, X, Y, GY, QUEUE_GROUND, STATION, RAILS, RAIL_H, STOPS, BOOTH, CAR_GAP, CARS, STEVE_STANDEE, queueH, parkAt,
   LAUNCHED_MEMO, WALKER_MEMO, LEVER_MEMO, CLEARED_MEMO, type Place,
@@ -190,8 +191,14 @@ export const drawTrackPass = (c: Ctx, state: GameState, co: Coaster, pass: Pass)
     if (passOf(ch, rider) === pass) PASS.push(ch);
   }
   PASS.sort(byDepth);
-  for (const ch of PASS) drawChunk(c, v, ch, state.frame);
-  if (pass === 'far') drawTrackEnd(c, v, state);
+  // (the NORMAL track's giant toilet, at its depth: its back behind the track going into it, its bowl over it)
+  if (pass !== 'far') { for (const ch of PASS) drawChunk(c, v, ch, state.frame); return; }
+  const gd = giant().d + 0.01;
+  drawGiantBack(c, v);
+  let front = false;
+  for (const ch of PASS) { if (!front && ch.d > gd) { drawGiantFront(c, v, state); front = true; } drawChunk(c, v, ch, state.frame); }
+  if (!front) drawGiantFront(c, v, state);
+  drawTrackEnd(c, v, state);
 };
 
 /** The EXPERIMENTAL section's end (at the play plane: the flight goes off it from where it always did). */
@@ -264,8 +271,10 @@ const car = (c: Ctx, layer: 'back' | 'front', k: number) => {
     box(c, -23, -55, 48, 8, INK); box(c, -22, -54, 46, 6, G[2]); box(c, -22, -54, 46, 1, G[3]);
     // (the tank behind the seat: white porcelain, stepped; its lid; a gold handle)
     box(c, -21, -65, 14, 32, INK); box(c, -20, -64, 12, 30, P[3]); box(c, -20, -64, 3, 30, P[4]); box(c, -11, -64, 3, 30, P[2]);
-    box(c, -22, -68, 16, 5, INK); box(c, -21, -67, 14, 3, P[4]); box(c, -21, -67, 14, 1, P[5]);
-    box(c, -9, -58, 4, 2, G[4]);
+    box(c, -19, -62, 1, 18, P[5]); checker(c, -19, -44, 1, 6, P[5], 0, 1); checker(c, -14, -64, 3, 30, P[2], 0, 1); box(c, -9, -64, 1, 30, P[1]);
+    box(c, -20, -64, 12, 1, P[2]); box(c, -20, -37, 12, 3, P[1]);
+    box(c, -22, -69, 16, 6, INK); box(c, -21, -68, 14, 4, P[4]); box(c, -21, -68, 14, 1, P[5]); box(c, -21, -65, 14, 1, P[2]); box(c, -21, -66, 14, 1, G[4]);
+    box(c, -11, -59, 7, 4, INK); box(c, -10, -58, 2, 2, G[3]); box(c, -8, -58, 3, 1, G[4]); box(c, -10, -58, 1, 1, G[5]);
     // (the seat: the ring, lit; the bowl down under him in shade)
     box(c, -13, -41, 40, 8, INK); box(c, -12, -40, 38, 6, k ? G[4] : P[4]); box(c, -12, -40, 38, 1, k ? G[5] : P[5]); box(c, -12, -36, 38, 2, k ? G[2] : P[2]);
     box(c, -8, -35, 32, 14, P[2]); box(c, -8, -35, 32, 3, P[1]);
@@ -284,6 +293,9 @@ const car = (c: Ctx, layer: 'back' | 'front', k: number) => {
     c.fillStyle = INK; c.save(); c.translate(0.5, 0.5); bowl(); c.fill(); c.restore();
     c.save(); bowl(); c.clip();
     box(c, 20, -44, 22, 30, P[3]); box(c, 20, -44, 6, 30, P[4]); box(c, 23, -42, 2, 14, P[5]); box(c, 33, -44, 9, 30, P[2]); box(c, 20, -22, 22, 8, P[1]);
+    checker(c, 26, -44, 2, 30, P[4], 0, 1); checker(c, 31, -44, 2, 30, P[2], 0, 1); checker(c, 20, -24, 22, 2, P[1], 0, 1);
+    box(c, 20, -42, 22, 2, G[3]); box(c, 20, -42, 22, 1, G[5]); box(c, 20, -40, 22, 1, P[1]); box(c, 23, -39, 4, 1, P[5]);
+    c.strokeStyle = P[3]; c.lineWidth = 1; c.beginPath(); c.moveTo(36, -30); c.quadraticCurveTo(34, -20, 27, -17); c.stroke();
     c.restore();
     c.strokeStyle = INK; c.lineWidth = 1.2; bowl(); c.stroke();
     // (the near arm: rolled gold, a scroll at the front end)

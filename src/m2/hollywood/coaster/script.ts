@@ -67,5 +67,7 @@ export const SCRIPTS: Record<RideName, Beat[]> = {
     pa('board', () => L.SPIEL_EXPERIMENTAL),
     pa('loop', () => L.SPIEL_FLIGHT),
   ],
-  back: [],
+  back: [
+    mh('drop', () => R.drop),
+  ],
 };
