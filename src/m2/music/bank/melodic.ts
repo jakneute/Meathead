@@ -452,6 +452,62 @@ const orchStab = custom({
   },
 });
 
+/** THE orchestra hit (the user's word for it): the sampled-keyboard stab of the 80s and 90s, the Fairlight's ORCH2
+ *  (the Firebird chord) as every rompler had it, in Konami's SNES and Genesis games and all over "Techno Syndrome"
+ *  (Mortal Kombat, 1995). Not an orchestra: a synthetic, attention-grabbing stab. A dense cluster four octaves deep
+ *  on the note (an octave under, the root, fifth, octave, tenth, twelfth, two octaves up, their third), brass-ish
+ *  pulses and string-ish saws two a note a few cents apart; struck instantly and a touch sharp (it drops onto its
+ *  pitch in the first hundredths), a lowpass slamming shut from wide open, a crack of noise and a thump on the front,
+ *  held a breath, then gone in about a third of a second, no tail. Then made into a sample the 90s way: driven,
+ *  held at 22 kHz and quantized to 10 bits (the grit). `orch2` by name, anywhere. */
+const orch2 = custom({
+  sr: SR_HI, ch: 2, len: 0.5, fade: 0.06,
+  make: (f0, sr, seed) => {
+    const r = rng(seed);
+    // (the cluster: ratio to the note, level, pan; brass on the chord tones, strings wide over them)
+    const V: [number, number, number][] = [[0.5, 0.75, 0], [1, 1, -0.15], [1.5, 0.8, 0.2], [2, 0.9, 0.05], [2.52, 0.55, -0.35], [3, 0.6, 0.35], [4, 0.5, -0.45], [5.04, 0.28, 0.45]];
+    const hsr = sr / 2;
+    const brass = V.map(([m]) => table(`orch2|b|${Math.round(f0 * m)}`, harmonics(f0 * m * 1.05, hsr * 2, 10000), k => { const hz = k * f0 * m; return (Math.sin(Math.PI * k * 0.3) / k) * (1 + 1.2 * bump(hz, 1400, 600)); }));
+    const saws = V.map(([m]) => table(`orch2|s|${Math.round(f0 * m)}`, harmonics(f0 * m * 1.05, hsr * 2, 10000), k => 1 / k));
+    const det = [-9, 8].map(c => Math.pow(2, c / 1200));
+    const ph = V.map(() => [r(), r(), r(), r()]);
+    const fl = new SVF(hsr), fr = new SVF(hsr);
+    let hl = 0, hr = 0, nlp = 0;
+    const q = (x: number) => Math.round(clamp(x, -1, 1) * 512) / 512;
+    return (i) => {
+      // (held at half the rate: the sampler's 22 kHz, its stair-steps and all)
+      if (i & 1) return [hl, hr];
+      const t = i / sr, dt = 2 / sr;
+      // (struck sharp, dropping onto the note)
+      const bendMul = Math.pow(2, (55 * Math.exp(-t / 0.02)) / 1200);
+      let l = 0, rr = 0;
+      for (let j = 0; j < V.length; j++) {
+        const [m, a, p] = V[j], f = f0 * m * bendMul, P = ph[j];
+        let s = 0;
+        for (let d = 0; d < 2; d++) {
+          P[d] += f * det[d] * dt; P[d + 2] += f * det[1 - d] * 1.0007 * dt;
+          s += rd(brass[j], P[d]) * 0.6 + rd(saws[j], P[d + 2]) * 0.5;
+        }
+        s *= a;
+        l += s * (1 - p); rr += s * (1 + p);
+      }
+      // (the filter slamming shut: wide open on the hit, a bright blat, then dark)
+      const cut = 2000 + 9500 * Math.exp(-t / 0.045);
+      fl.set(cut, 1.4); fr.set(cut, 1.4);
+      l = fl.run(l * 0.09); rr = fr.run(rr * 0.09);
+      // (hit instantly, held a breath, gone)
+      const env = (t < 0.0015 ? t / 0.0015 : 1) * (t < 0.03 ? 1 : Math.exp(-(t - 0.03) / 0.085));
+      // (the front: a crack of noise and a thump)
+      const w = r(); nlp += 0.35 * (w - nlp);
+      const crack = t < 0.03 ? (w - nlp) * 0.7 * (1 - t / 0.03) : 0;
+      const thump = Math.sin(TAU * Math.max(45, f0 * 0.25) * t * (1 + 0.6 * Math.exp(-t / 0.02))) * Math.exp(-t / 0.06) * 0.5;
+      hl = q(drive(l * env + crack + thump, 2.2));
+      hr = q(drive(rr * env + crack + thump, 2.2));
+      return [hl, hr];
+    };
+  },
+});
+
 // Plucked
 const harpsichord = pluck({
   len: root => clamp(4 - (root - 40) * 0.04, 1.5, 4), t60: hz => clamp(9 * Math.pow(110 / hz, 0.6), 1.2, 9), bright: 0.95, hard: 1, pos: 0.08,
@@ -554,6 +610,7 @@ export const MELODIC: Record<string, InstDef> = {
   timpani: { family: 'orchestra', desc: 'Timpani (pitched: play the note)', zones: z(36, 60), job: timpani, env: { a: 0.001, d: 0, s: 1, r: 0.5 }, gain: 0.75, velBright: 0.5, poly: 4 },
   orchhit: { family: 'orchestra', desc: 'Orchestra hit (a major chord on the note: strings, brass, timpani)', zones: z(48, 72), job: orchHit, env: { a: 0.001, d: 0, s: 1, r: 0.2 }, gain: 0.55, poly: 4 },
   orchstab: { family: 'orchestra', desc: 'The BIG orchestra hit (early-90s arcade, Turtles in Time): a major chord on the note, brass blatting bright and strings an octave up, a timpani thump and a crack; punchy', zones: z(48, 72), job: orchStab, env: { a: 0.001, d: 0, s: 1, r: 0.25 }, gain: 0.6, poly: 4 },
+  orch2: { family: 'orchestra', desc: 'THE orchestra hit: the 80s/90s sampled-keyboard stab (Fairlight ORCH2; Konami SNES/Genesis, Mortal Kombat\'s "Techno Syndrome"): a four-octave cluster struck sharp and dropping, a filter slamming shut, crack and thump, gone in a third of a second; 22 kHz, 10-bit grit', zones: z(48, 72), job: orch2, env: { a: 0.001, d: 0, s: 1, r: 0.12 }, gain: 0.5, poly: 4 },
   // ---- Strings ----
   strings: { family: 'strings', desc: 'String section: eight players, bows biting in, a violin body', zones: z(36, 96), job: stringSection, env: { a: 0.08, d: 0.3, s: 0.9, r: 0.4 }, gain: 0.5, vib: [5.2, 7, 0.3], poly: 12 },
   slowstrings: { family: 'strings', desc: 'String section, slow swell (shares strings)', alias: 'strings', zones: z(36, 96), job: stringSection, env: { a: 0.7, d: 0.3, s: 0.95, r: 0.9 }, gain: 0.48, vib: [5, 6, 0.5], poly: 12 },
