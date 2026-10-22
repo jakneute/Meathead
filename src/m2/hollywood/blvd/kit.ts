@@ -99,7 +99,11 @@ export const viewIn = (state: GameState) => viewOf(state);
 
 /** A box's side going back from x = e at the play plane (from `top` to `bottom`) to depth `d`, if he's looking at it. */
 export const sideBack = (c: Ctx, eye: View['eye'], e: number, side: 1 | -1, top: number, bottom: number, d0: number, d1: number, R: string[], steps = 3, shadow = true) => {
-  if ((eye.x - e) * side <= 1) return false;
+  // (how wide it is on screen: under a pixel it's not drawn at all (a sub-pixel sliver flickers as the camera creeps);
+  // under two, just its fill, no lit corner or ink line popping on beside the front's edge)
+  const wide = (eye.x - e) * side * (d0 - d1);
+  if (wide < 0.75) return false;
+  if (wide < 2) { poly(c, [at(eye, e, top, d0), at(eye, e, top, d1), at(eye, e, bottom, d1), at(eye, e, bottom, d0)], R[1]); return true; }
   for (let i = 0; i < steps; i++) {
     const a = d0 - ((d0 - d1) * i) / steps, b = d0 - ((d0 - d1) * (i + 1)) / steps;
     poly(c, [at(eye, e, top, a), at(eye, e, top, b), at(eye, e, bottom, b), at(eye, e, bottom, a)], R[Math.max(0, 2 - i)]);
@@ -114,7 +118,7 @@ export const sideBack = (c: Ctx, eye: View['eye'], e: number, side: 1 | -1, top:
 /** A box's top going back from x0..x1 at height y (at depth d0) to depth d1, if he's looking down on it: in bands lighter
  *  at the front. */
 export const topBack = (c: Ctx, eye: View['eye'], x0: number, x1: number, y: number, d0: number, d1: number, R: string[], n = 3) => {
-  if (eye.y >= y - 1) return false;
+  if ((y - eye.y) * (d0 - d1) < 0.75) return false;
   for (let i = 0; i < n; i++) {
     const a = d0 - ((d0 - d1) * i) / n, b = d0 - ((d0 - d1) * (i + 1)) / n;
     poly(c, [at(eye, x0, y, a), at(eye, x1, y, a), at(eye, x1, y, b), at(eye, x0, y, b)], R[Math.max(0, 3 - i)]);
@@ -125,7 +129,7 @@ export const topBack = (c: Ctx, eye: View['eye'], x0: number, x1: number, y: num
 };
 /** A box's underside going back (he's under it: an awning's, a marquee's soffit), darker going back. */
 export const underBack = (c: Ctx, eye: View['eye'], x0: number, x1: number, y: number, d0: number, d1: number, R: string[], n = 3) => {
-  if (eye.y <= y + 1) return false;
+  if ((eye.y - y) * (d0 - d1) < 0.75) return false;
   for (let i = 0; i < n; i++) {
     const a = d0 - ((d0 - d1) * i) / n, b = d0 - ((d0 - d1) * (i + 1)) / n;
     poly(c, [at(eye, x0, y, a), at(eye, x1, y, a), at(eye, x1, y, b), at(eye, x0, y, b)], R[Math.max(0, 1 - Math.floor(i / 2))]);

@@ -104,6 +104,14 @@ const pave = (c: Ctx, v: View, a: number, b: number, z: Zone) => {
       poly(c, [[at(eye, a, 0, p)[0], top(p)], [at(eye, b, 0, p)[0], top(p)], [at(eye, b, 0, q)[0], top(q)], [at(eye, a, 0, q)[0], top(q)]], tint(bandsW[i], p));
     }
     for (let x = step(90, 0); x < b; x += 90) { const [p0] = at(eye, x, 0, WALK_D), [p1] = at(eye, x, 0, FRONT_D); c.strokeStyle = tint(BOARD[1], 0.89); c.lineWidth = 1; c.beginPath(); c.moveTo(p0, top(WALK_D)); c.lineTo(p1, top(FRONT_D)); c.stroke(); }
+    // (its ends going back to the fronts, where the eye's past them: the boards' thickness, not a flat cutout)
+    const yTop = GY - fh / WALK_D;
+    for (const [e, s] of [[a, -1], [b, 1]] as const) {
+      if ((eye.x - e) * s * (WALK_D - FRONT_D) < 1) continue;
+      poly(c, [at(eye, e, yTop, WALK_D), at(eye, e, yTop, FRONT_D), at(eye, e, GY, FRONT_D), at(eye, e, GY, WALK_D)], tint(BOARD[1], WALK_D));
+      const [ex, ey] = at(eye, e, yTop, WALK_D);
+      box(c, Math.round(ex) - (s > 0 ? 0 : 1), ey, 1, fh, tint(BOARD[4], WALK_D));
+    }
   } else if (z === 'burb') {
     // (the sidewalk, then the lawns going back in mower stripes, then the flower beds along the houses' feet)
     Q(c, eye, a, b, 1, CURB_D, tint(C[5], 1));

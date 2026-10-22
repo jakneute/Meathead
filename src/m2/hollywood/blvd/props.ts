@@ -568,6 +568,13 @@ export const drawPlayThings = (c: Ctx, v: View, f: number) => {
     } else if (what === 'awning') {
       // (the slope back to the front's wall, striped; its brackets; the valance at the play plane)
       const A = ramp6(hour('#B4243A')), Wt = ramp6(hour('#F4EEE2')), back = y - 26;
+      // (its end cheeks first: a triangle of the stripe under the slope at each end, seen from past that end)
+      for (const [e, s] of [[x, -1], [x + w, 1]] as const) {
+        if ((eye.x - e) * s * (1 - FRONT_D) < 1) continue;
+        const cheek: [number, number][] = [at(eye, e, y, 1), at(eye, e, back, FRONT_D), at(eye, e, y, FRONT_D)];
+        poly(c, cheek, A[1]);
+        c.strokeStyle = INK; c.lineWidth = 1; c.beginPath(); c.moveTo(cheek[0][0], cheek[0][1]); c.lineTo(cheek[1][0], cheek[1][1]); c.lineTo(cheek[2][0], cheek[2][1]); c.stroke();
+      }
       for (let sx = 0, k = 0; sx < w; sx += 10, k++) poly(c, [at(eye, x + sx, y, 1), at(eye, x + sx + 10, y, 1), at(eye, x + sx + 10, back, FRONT_D), at(eye, x + sx, back, FRONT_D)], (k % 2 ? Wt : A)[eye.y < y ? 4 : 1]);
       for (const bx of [x + 10, x + w - 10]) { const [px, py] = at(eye, bx, y + 50, FRONT_D); c.strokeStyle = INK; c.lineWidth = 3; c.beginPath(); c.moveTo(px, py); c.lineTo(bx, y + 14); c.stroke(); c.strokeStyle = IRON[4]; c.lineWidth = 1; c.stroke(); }
       still(c, `valance-${w}`, x, y, -6, -4, w + 12, 26, g => paintValance(g, w));
@@ -577,6 +584,7 @@ export const drawPlayThings = (c: Ctx, v: View, f: number) => {
       atDepth(c, eye, D, () => still(c, `shelterback-${steve ? 1 : 0}`, x, GY, -4, -h - 4, w + 8, h + 6, g => paintShelterBack(g, w, h, steve)));
       topBack(c, eye, x - 3, x + w + 3, y, 1, D, S);
       underBack(c, eye, x - 3, x + w + 3, y + 12, 1, D, S);
+      for (const [e, s] of [[x - 3, -1], [x + w + 3, 1]] as const) sideBack(c, eye, e, s, y, y + 12, 1, D, S, 2, false);
       for (const px of [x + 4, x + w - 8]) { box(c, px - 1, y + 10, 7, GY - y - 10, INK); box(c, px, y + 10, 5, GY - y - 10, S[3]); box(c, px, y + 10, 1, GY - y - 10, S[5]); }
       // (the side's glass, going back)
       const e = eye.x > x + w ? x + w - 4 : x + 4, [ax, ay] = at(eye, e, y + 14, D), [, by] = at(eye, e, GY - 26, D);
@@ -597,6 +605,7 @@ export const drawPlayThings = (c: Ctx, v: View, f: number) => {
       const d1 = what === 'deck' ? FRONT_D + 0.004 : FRONT_D + 0.012;
       topBack(c, eye, x, x + w, y, 1, d1, P);
       underBack(c, eye, x, x + w, y + 12, 1, d1, ramp6(hour(PLY[2])));
+      for (const [e, s] of [[x, -1], [x + w, 1]] as const) sideBack(c, eye, e, s, y, y + 12, 1, d1, P, 2, false);
       if (what === 'deck') { const [ax, ay] = at(eye, x, y - 36, d1), [bx] = at(eye, x + w, y - 36, d1); box(c, ax, ay - 1, bx - ax, 4, INK); box(c, ax, ay, bx - ax, 2, hour(STEEL[4])); }
       still(c, `planks-${w}`, x, y, -4, -4, w + 8, 18, g => paintPlanks(g, w));
     }

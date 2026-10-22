@@ -389,7 +389,8 @@ export const bracing = (c: Ctx, eye: View['eye'], x0: number, x1: number, top: n
     const ex = e - side * 6;
     // (the plywood's edge: a sliver of raw sheet going back)
     const P = (y: number, d: number) => at(eye, e, y, d);
-    if ((eye.x - e) * side > 1) poly(c, [P(top, FRONT_D), P(top, FRONT_D - 0.006), P(GY, FRONT_D - 0.006), P(GY, FRONT_D)], dimmed(PLY[4]));
+    // (only once it's a pixel across: thinner, it's a sliver flickering on and off as the camera creeps)
+    if ((eye.x - e) * side * 0.006 >= 1) poly(c, [P(top, FRONT_D), P(top, FRONT_D - 0.006), P(GY, FRONT_D - 0.006), P(GY, FRONT_D)], dimmed(PLY[4]));
     const B = (y: number, d: number) => at(eye, ex, y, d);
     const s = (FRONT_D + BACK_D) / 2;
     // (the long brace from up its back down to the lot behind; a short one lower; a stake and the sandbags at each foot)

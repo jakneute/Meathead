@@ -459,6 +459,7 @@ export const drawLotPlayThings = (c: Ctx, v: View, f: number) => {
       if (west) {
         // (the saloon's balcony: its deck going back, the rail along the back against the front)
         topBack(c, eye, x, x + w, y, 1, FRONT_D + 0.006, B, 4);
+        for (const [e, sd] of [[x, -1], [x + w, 1]] as const) sideBack(c, eye, e, sd, y, y + 14, 1, FRONT_D + 0.006, B, 2, false);
         const [ra, ry] = at(eye, x, y - 34, FRONT_D + 0.006), [rb] = at(eye, x + w, y - 34, FRONT_D + 0.006), [, rf] = at(eye, x, y, FRONT_D + 0.006);
         box(c, ra, ry - 1, rb - ra, 5, INK); box(c, ra, ry, rb - ra, 3, B[3]); box(c, ra, ry, rb - ra, 1, B[5]);
         for (let px = ra + 2; px < rb; px += 8) { box(c, px, ry + 3, 3, rf - ry - 3, INK); box(c, px, ry + 3, 2, rf - ry - 3, B[2]); }
@@ -466,6 +467,7 @@ export const drawLotPlayThings = (c: Ctx, v: View, f: number) => {
         // (the suburb's porch roof: shingles going back to the house, its white fascia)
         topBack(c, eye, x, x + w, y, 1, FRONT_D + 0.004, SHINGLE.map(col => hour(col)), 4);
         underBack(c, eye, x, x + w, y + 14, 1, FRONT_D + 0.004, ramp6(hour('#C8C0B0')), 3);
+        for (const [e, sd] of [[x, -1], [x + w, 1]] as const) sideBack(c, eye, e, sd, y, y + 14, 1, FRONT_D + 0.004, ramp6(hour('#C8C0B0')), 2, false);
       }
       still(c, `lot-porch-${west ? 1 : 0}-${w}`, x, y, -4, -4, w + 8, 20, g => {
         box(g, -2, -1, w + 4, 16, INK);
@@ -474,6 +476,7 @@ export const drawLotPlayThings = (c: Ctx, v: View, f: number) => {
       });
     } else if (what === 'shelf') {
       topBack(c, eye, x, x + w, y, 1, 0.95, ramp6(hour('#8A4A1E')));
+      sideBack(c, eye, eye.x > x + w ? x + w : x, eye.x > x + w ? 1 : -1, y, GY, 1, 0.95, ramp6(hour('#8A4A1E')));
       still(c, `lot-shelf-${w}-${h}`, x, GY, -6, -h - 4, w + 12, h + 6, g => paintShelfUnit(g, w, h));
     } else if (what === 'tower') {
       // THE WATER TOWER: its legs and braces down to the dirt, the catwalk ring (lit lip), the tank on it (riveted
@@ -494,6 +497,7 @@ export const drawLotPlayThings = (c: Ctx, v: View, f: number) => {
       if (timeOfDay().lamps > 0.25 && (f >> 5) % 2 === 0) box(c, cx - 2, tt - 78, 4, 3, '#FF5A5A');
       // (the catwalk ring: its rail behind him, its grating, the lit lip)
       if (!topBack(c, eye, x, x + w, y, 1, 0.95, S)) underBack(c, eye, x, x + w, y + 8, 1, 0.95, S, 3);
+      for (const [e, sd] of [[x - 2, -1], [x + w + 2, 1]] as const) sideBack(c, eye, e, sd, y, y + 8, 1, 0.95, S, 2, false);
       tube(c, x - 2, y - 30, x + w + 2, y - 30, 2, S[3], S[5]);
       for (let px = x; px <= x + w; px += 17) box(c, px, y - 30, 2, 30, S[2]);
       box(c, x - 3, y - 1, w + 6, 10, INK); box(c, x - 2, y, w + 4, 8, S[2]); for (let k = x; k < x + w; k += 4) box(c, k, y + 3, 2, 4, S[0]);
@@ -507,6 +511,7 @@ export const drawLotPlayThings = (c: Ctx, v: View, f: number) => {
       for (let yy = y + 24; yy < GY + 420; yy += 24) { c.strokeStyle = S[1]; c.lineWidth = 2; c.beginPath(); c.moveTo(mx - 10, yy); c.lineTo(mx + 10, yy + 12); c.moveTo(mx + 10, yy + 12); c.lineTo(mx - 10, yy + 24); c.stroke(); }
       box(c, x + 24, y + 12, w - 48, 14, INK); for (let k = x + 26; k < x + w - 26; k += 12) { c.strokeStyle = S[3]; c.lineWidth = 2; c.beginPath(); c.moveTo(k, y + 13); c.lineTo(k + 6, y + 25); c.lineTo(k + 12, y + 13); c.stroke(); } box(c, x + 24, y + 24, w - 48, 2, S[3]);
       topBack(c, eye, x, x + w, y, 1, 0.955, S);
+      for (const [e, sd] of [[x - 1, -1], [x + w + 1, 1]] as const) sideBack(c, eye, e, sd, y, y + 10, 1, 0.955, S, 2, false);
       // (the camera, on its fluid head; the seat)
       const G = ['#08080A', '#121216', '#1C1C22', '#28282F', '#36363E', '#4A4A54', '#6A6A76'];
       box(c, x + 40, y - 8, 14, 8, INK); box(c, x + 41, y - 7, 12, 7, G[4]);
@@ -527,6 +532,7 @@ export const drawLotPlayThings = (c: Ctx, v: View, f: number) => {
       for (const px of [fx + 8, fx + fw - 16]) { box(c, px - 1, top, 10, 440, INK); box(c, px, top, 8, 440, S[3]); box(c, px, top, 2, 440, S[5]); box(c, px + 6, top, 2, 440, S[1]); }
       for (let yy = top + 20; yy < top + 420; yy += 60) { tube(c, fx + 12, yy, fx + fw - 12, yy + 60, 2, S[2], S[4]); tube(c, fx + fw - 12, yy, fx + 12, yy + 60, 2, S[2], S[4]); tube(c, fx + 8, yy, fx + fw - 8, yy, 3, S[3], S[5]); }
       topBack(c, eye, fx, fx + fw, top, 1, 0.94, Bl);
+      for (const [e, sd] of [[fx, -1], [fx + fw, 1]] as const) sideBack(c, eye, e, sd, top, top + 14, 1, 0.94, Bl, 2, false);
       box(c, fx - 1, top - 1, fw + 2, 16, INK); box(c, fx, top, fw, 14, Bl[3]); box(c, fx, top + 10, fw, 4, Bl[1]);
       for (let k = fx + 12; k < fx + fw; k += 18) { box(c, k, top + 3, 1, 8, Bl[1]); box(c, k + 1, top + 3, 1, 8, Bl[4]); }
       signText(c, 'FALL PAD', fx + fw / 2, top + 11, plain(1, 1, '#F8FAFC'));

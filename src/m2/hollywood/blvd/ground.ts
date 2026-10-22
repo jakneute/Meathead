@@ -294,6 +294,12 @@ const paintStreet = (g: Ctx, x0: number, w: number) => {
   void tod;
 };
 
+/** How much the bent street spreads out from the eye at screen-world height y (bendFloor's own), and where world x on
+ *  the play line lands on it there: for things laid on the near street after it's bent (puddles, marks), so they stay
+ *  put on it instead of skating over it as he goes by. */
+export const bentK = (y: number) => 1 + Math.max(0, y - GY) * BEND;
+export const bentX = (v: View, x: number, y: number) => v.eye.x + (x - v.eye.x) * bentK(y);
+
 /** A hole's near lip at the play plane: the street's edge (bent like the street) and the wall hung under it, darker
  *  the deeper (seen when he's looking at it). */
 export const nearBank = (c: Ctx, v: View, e: number, side: 1 | -1, kind: PitKind) => {

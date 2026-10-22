@@ -529,6 +529,12 @@ export const rideGlow = (v: View) => at(v.eye, X(RIDE_DOORS) + 120, GY - RIDE.h 
 export const drawGiftShop = (c: Ctx, v: View) => {
   const a = X(GIFT.a), b = X(GIFT.b), eye = v.eye;
   if (!seen(v, a - 60, b + 60)) return;
+  // (its outsides going back from the posts and the fascia's ends, where the eye's past them: a box, not a cutout)
+  const Pw = ramp6(hour('#7F1D1D'));
+  for (const [e, s, fe] of [[a - 12, -1, a - 16], [b + 12, 1, b + 16]] as const) {
+    sideBack(c, eye, e, s, GY - GIFT_H, GY, 1, FRONT_D, Pw, 3);
+    sideBack(c, eye, fe, s, GY - GIFT_H - 50, GY - GIFT_H, 1, FRONT_D, Pw, 3, false);
+  }
   // (the floor in there: black and white linoleum going back)
   for (let i = 0; i < 6; i++) {
     const p = 0.99 - (0.99 - FRONT_D) * (i / 6), q = 0.99 - (0.99 - FRONT_D) * ((i + 1) / 6);

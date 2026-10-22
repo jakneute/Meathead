@@ -13,7 +13,7 @@ import { realDisastersOn } from '../section';
 import { GY } from '../geometry';
 import { X, DUMP, GIFT, LOT_BOARDED_MEMO } from './layout';
 import { type Ctx, INK, box, at, viewOf, seen, hash } from '../blvd/kit';
-import { drawLotStrip } from '../blvd/ground';
+import { drawLotStrip, bentX, bentK } from '../blvd/ground';
 import { drawLotFar } from './far';
 import { drawLotPavement, drawLotHoles, drawLotStreet } from './ground';
 import { drawLotFronts, drawGiftShop, drawGiftFront, drawRideMarquee, rideGlow, drawWallBreak } from './fronts';
@@ -65,10 +65,11 @@ export const drawLotBack = (c: Ctx, state: GameState) => {
   drawRainPuddles(c, state);
   if (real) {
     // (the weather's got in: puddles of ash-gray water on the near street, stepped)
+    // (laid on the bent street: fanned out to where their spots are at their rows, culled by where they land)
     for (let rx = 200; rx < 9000; rx += 260) {
-      if (X(rx) < state.camera.x - 100 || X(rx) > state.camera.x + 900) continue;
-      const py = GY + 20 + (rx % 3) * 20;
-      for (let r = 0; r < 5; r++) { const hw = 40 * Math.sqrt(Math.max(0, 1 - ((2 * (r + 0.5)) / 5 - 1) ** 2)); box(c, X(rx) - hw, py + r, hw * 2, 1, r ? 'rgba(90, 84, 80, 0.6)' : 'rgba(168, 160, 152, 0.7)'); }
+      const py = GY + 20 + (rx % 3) * 20, px = Math.round(bentX(v, X(rx), py)), sk = bentK(py);
+      if (px < v.v0 - 60 || px > v.v1 + 60) continue;
+      for (let r = 0; r < 5; r++) { const hw = Math.round(40 * sk * Math.sqrt(Math.max(0, 1 - ((2 * (r + 0.5)) / 5 - 1) ** 2))); box(c, px - hw, py + r, hw * 2, 1, r ? 'rgba(90, 84, 80, 0.6)' : 'rgba(168, 160, 152, 0.7)'); }
     }
   }
   drawLotPlayThings(c, v, f);

@@ -24,9 +24,9 @@ import { GY } from '../geometry';
 import { X, RAIN, TANK } from './layout';
 import {
   type View, INK, box, checker, mix, at, atDepth, still, seen, poly, bandedGradient, signText, board, plain, timeOfDay, skyAt,
-  FRONT_D, STEEL, CONCRETE, hour,
+  FRONT_D, STEEL, CONCRETE, hour, viewOf,
 } from '../blvd/kit';
-import { wallBack } from '../blvd/ground';
+import { wallBack, bentX, bentK } from '../blvd/ground';
 import { TILE } from './paint';
 import { TANK_GAG } from './lines';
 import { canDrown, drownEnemy } from '../../drown';
@@ -177,12 +177,14 @@ export const drawRainRig = (c: Ctx, v: View, state: GameState) => {
 
 /** The wet on the near street: puddles shining the sky, stepped. */
 export const drawRainPuddles = (c: Ctx, state: GameState) => {
-  const a = X(RAIN.a), b = X(RAIN.b), tod = timeOfDay();
-  if (b < state.camera.x - 100 || a > state.camera.x + 900) return;
+  const a = X(RAIN.a), b = X(RAIN.b), tod = timeOfDay(), v = viewOf(state);
+  if (bentX(v, b, GY + 140) < v.v0 - 100 || bentX(v, a, GY + 140) > v.v1 + 100) return;
   const sky = skyAt(0.4, tod), rim = skyAt(0.85, tod);
-  for (let x = a + 30, k = 0; x < b; x += 140, k++) {
-    const py = GY + 30 + (k % 3) * 34, rw = 40 + (k % 2) * 16, rh = Math.round(4 + (py - GY) / 30);
-    for (let r = 0; r < rh; r++) { const t = (r + 0.5) / rh, hw = rw * Math.sqrt(Math.max(0, 1 - (2 * t - 1) ** 2)); box(c, x - hw, py + r, hw * 2, 1, r < 1 ? rim : sky); }
+  // (laid on the bent street: each one where its spot has fanned out to at its row, as wide as the street's spread there)
+  for (let x0 = a + 30, k = 0; x0 < b; x0 += 140, k++) {
+    const py = GY + 30 + (k % 3) * 34, sk = bentK(py), x = Math.round(bentX(v, x0, py)), rw = (40 + (k % 2) * 16) * sk, rh = Math.round(4 + (py - GY) / 30);
+    if (x + rw < v.v0 || x - rw > v.v1) continue;
+    for (let r = 0; r < rh; r++) { const t = (r + 0.5) / rh, hw = Math.round(rw * Math.sqrt(Math.max(0, 1 - (2 * t - 1) ** 2))); box(c, x - hw, py + r, hw * 2, 1, r < 1 ? rim : sky); }
     box(c, x - rw * 0.4, py + 1, rw * 0.3, 1, '#FFFFFF');
   }
 };
