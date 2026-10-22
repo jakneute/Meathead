@@ -14,6 +14,7 @@ import type { Enemy } from '../../m1/types';
 import { stamp } from '../../m1/game/render/stamp';
 import { idleTasks } from '../../m1/game/scenes/art/raster';
 import { heldHow } from '../held';
+import { elbow, halfBone } from '../art/limb';
 import { lookOf, type Look } from '../adventure/temple/people';
 import { eyes as kitEyes, mouth as kitMouth, type EyeStyle, type MouthStyle } from '../cast/kit';
 
@@ -275,16 +276,16 @@ export interface ArmOpts { sleeve: string; hand: string; w?: number; /** how far
 export const arm = (g: Ctx, B: Body, side: -1 | 1, hx: number, hy: number, o: ArmOpts) => {
   const w = o.w ?? B.armW;
   const sx = side * (B.w / 2 - 3) + B.lean, sy = B.shY + 3;
-  const mx = (sx + hx) / 2, my = (sy + hy) / 2, dx = hx - sx, dy = hy - sy, d = Math.hypot(dx, dy) || 1;
-  // (the elbow: out from the shoulder-to-hand line, a bit, to the outside of the body (the far arm's to the back, the
-  // near arm's to the front) and down. Which of the two ways off the line that is depends on which arm it is: picking
-  // it by the line's own slope alone bent a hanging far arm's elbow in across the body and a near one's the other way)
+  const mx = (sx + hx) / 2, my = (sy + hy) / 2;
+  // (the elbow by anatomy (src/m2/art/limb.ts): drawn facing right, the forearm always folds toward the front of the
+  // upper arm, near arm or far: down when the hand's out in front, back when it hangs, forward when it's overhead,
+  // back and up when it's behind the hip. The old "out to that arm's side, and down" pick bent a hand behind the body
+  // backward at the elbow)
   // (the arm's bones a set length (longer only when it's reaching), so a hand in near the body bends the elbow right
   // out instead of folding the arm into a stick)
-  const L = Math.max(10.5, (d / 2) * 1.04);
-  const bend = Math.sqrt(Math.max(0, L * L - (d / 2) * (d / 2))) * (o.elbow ?? 1);
-  let nx = -dy / d, ny = dx / d; if (side * nx * 0.7 + ny < 0) { nx = -nx; ny = -ny; }
-  const ex = mx + nx * bend, ey = my + ny * bend;
+  const L = halfBone(sx, sy, hx, hy, 10.5);
+  const [ex0, ey0] = elbow(sx, sy, hx, hy, L, L, 1), bk = o.elbow ?? 1;
+  const ex = mx + (ex0 - mx) * bk, ey = my + (ey0 - my) * bk;
   const len = o.len ?? 1;
   const upCol = len > 0 ? o.sleeve : o.hand, foreCol = len >= 1 ? o.sleeve : o.hand;
   // (the shoulder: a round cap of deltoid over the top of the arm, joining it to the torso; inked with the arm as one)
