@@ -39,8 +39,9 @@ export const ENTERABLE: CarKind[] = ['caboose', 'coach', 'diner', 'baggage', 'ca
 export const TOP: Partial<Record<CarKind, number>> = { boxcar: ROOF, flat: DECK - 132, hopper: DECK - 230, tank: DECK - 206, tender: DECK - 70 };
 
 export type FoeKind = 'porter' | 'brakeman' | 'cook' | 'passenger' | 'steer' | 'fireman';
-/** Somebody on a car: who, x from the car's left end, inside (on the floor) or on top. */
-export type Foe = [FoeKind, number, 'in' | 'top'];
+/** Somebody on a car: who, x from the car's left end, inside (on the floor) or on top; inside, perched up on one of
+ *  the car's fittings that high over the deck (a rack, a shelf: a porter lobbing suitcases down from it). */
+export type Foe = [FoeKind, number, 'in' | 'top', number?];
 
 export interface CarDef {
   kind: CarKind; len: number;
@@ -63,16 +64,18 @@ export const CARS: CarDef[] = [
   /* 6 */ C('cattle', 580, { foes: [['steer', 260, 'in']] }),
   /* 7 */ C('flat', 520, { cut: { at: 0.3, tell: 110 }, foes: [['brakeman', 330, 'top']] }),
   /* 8 */ C('diner', 660, { cp: [13, 'THE DINING CAR'], foes: [['passenger', 160, 'in'], ['cook', 420, 'in']] }),
-  /* 9 */ C('coach', 620, { foes: [['passenger', 200, 'in'], ['passenger', 400, 'in']] }),
+  // (the encounter pass: a porter up on the coach's high rack over the passenger coming at him (aim up, or climb))
+  /* 9 */ C('coach', 620, { foes: [['porter', 275, 'in', 222], ['passenger', 400, 'in']] }),
   /* 10 */ C('tank', 480, { foes: [['brakeman', 350, 'top']] }),
   /* 11 */ C('coach', 620, { cp: [14, 'THE WATER TOWER'], foes: [['porter', 330, 'in']] }),
   /* 12 */ C('flat', 520, { cut: { at: 0.25, tell: 100 } }),
   /* 13 */ C('cattle', 580, { foes: [['steer', 180, 'in'], ['steer', 360, 'in']] }),
-  /* 14 */ C('baggage', 620, { cp: [15, 'THE MAIL CAR'], foes: [['porter', 200, 'in'], ['porter', 360, 'in']] }),
+  // (the second porter up on the high shelf (he stood inside the checkpoint's reach), lobbing down over the first)
+  /* 14 */ C('baggage', 620, { cp: [15, 'THE MAIL CAR'], foes: [['porter', 200, 'in'], ['porter', 450, 'in', 250]] }),
   /* 15 */ C('hopper', 460),
   /* 16 */ C('diner', 660, { foes: [['passenger', 160, 'in'], ['passenger', 290, 'in'], ['cook', 420, 'in']] }),
   /* 17 */ C('tank', 480, { cut: { at: 0.15, tell: 80 }, foes: [['brakeman', 300, 'top']] }),
-  /* 18 */ C('coach', 620, { cp: [16, 'THE LAST COACH'], foes: [['passenger', 180, 'in'], ['porter', 400, 'in']] }),
+  /* 18 */ C('coach', 620, { cp: [16, 'THE LAST COACH'], foes: [['passenger', 180, 'in'], ['porter', 415, 'in', 118]] }),
   /* 19 */ C('flat', 520, { cp: [17, 'THE LOG CAR'] }),
   // (the tender: nobody on it now (the playtest's: the fireman shoveling coal right before Tucker taken off); the kind
   // stays registered)

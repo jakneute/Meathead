@@ -1421,3 +1421,9 @@ later (+1 if heavyset; was 2 / 3 before playtest fixes E). Tucker's glimpsed ahe
     two wolves side by side (a charge flings one into the other), the buck past the second trap (wait him out and his
     charge puts him in it), and the third wolf is a cougar up on the gauntlet's first ledge, pouncing down among the
     traps. Counts the same (the last mile trades a wolf for the cougar).
+  - **The train (train/layout.ts CARS foes; the mechanics untouched):** the coaches and the mail car were everybody on
+    the floor walking at him down the car (walk in firing). A foe can now be put up on one of a car's fittings (Foe's
+    4th: how high over the deck); a porter put up there sees down to the floor (kinds.ts porter: 200 more reach down)
+    and lobs his suitcases from it. Car 9's first passenger is a porter up on the high rack over the second passenger
+    (aim up, or climb); the mail car's second porter (inside its checkpoint's reach) is up on the high shelf lobbing over
+    the first; the last coach's porter is up on the low rack behind the passenger (out of its checkpoint's reach too).

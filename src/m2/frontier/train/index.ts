@@ -57,8 +57,8 @@ const AWAY = -99999;
 const spawnCast = (state: GameState) => {
   CARS.forEach((d, i) => {
     const x = CAR_X[i];
-    for (const [kind, rx, where] of d.foes ?? []) {
-      const feet = where === 'in' ? DECK : TOP[d.kind] ?? ROOF;
+    for (const [kind, rx, where, up] of d.foes ?? []) {
+      const feet = where === 'in' ? DECK - (up ?? 0) : TOP[d.kind] ?? ROOF;
       const e = makeKindEnemy(`m2:fr_${kind}` as EnemyKind, x + rx, feet);
       e.homeX = e.pos.x; e.homeY = e.pos.y; e.variant = (i * 3 + rx) % 7; e.facing = -1;
       // (each keeps to its car: inside it, well clear of its doors (the playtest: nobody camps the doors), or along its

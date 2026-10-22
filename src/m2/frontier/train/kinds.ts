@@ -34,7 +34,7 @@ import { playSound } from '../../../m1/game/platform/audio';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
 import { lookOf } from '../../adventure/temple/people';
 import { GY } from '../geometry';
-import { CAR_X, ENGINE } from './layout';
+import { CAR_X, ENGINE, DECK } from './layout';
 import { trainOf, type Rider } from './state';
 import { playerRoom } from './where';
 import { viewOf } from './view';
@@ -96,15 +96,17 @@ const level = (state: GameState, e: Enemy, dy = 60) => Math.abs((state.player.po
 
 const porter = (ctx: FrameContext, e: Enemy) => {
   const { state } = ctx, p = state.player, pm = mid(p);
+  // (one put up on a rack or a shelf sees down to the floor from there: he lobs from up there)
+  const up = (e.homeY ?? 0) + e.height < DECK - 40 ? 200 : 0;
   tick(e);
   switch (e.aiState) {
     default:
       e.vel.x = 0;
-      if (sees(state, e, 400, 90) && e.aiTimer! > 20) setState(e, 'near');
+      if (sees(state, e, 400, 90 + up) && e.aiTimer! > 20) setState(e, 'near');
       break;
     case 'near': {
       const dx = Math.abs(pm.x - mid(e).x);
-      if (!sees(state, e, 460, 100)) { setState(e, 'idle'); break; }
+      if (!sees(state, e, 460, 100 + up)) { setState(e, 'idle'); break; }
       if (dx < 70 && level(state, e)) { setState(e, 'swingWind'); e.vel.x = 0; break; }
       if (dx > 120 && e.aiTimer! > 40) { setState(e, 'wind'); e.vel.x = 0; e.facing = dirTo(e, pm.x); break; }
       walkTo(ctx, e, pm.x, 1.0, 60);
