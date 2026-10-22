@@ -9,7 +9,7 @@ import { signText, signW, rampDown, type Look } from '../signLetters';
 import { MAP_W, MAP_H, HC, RX, RY, SECTORS, inLand, edgeQ, fromPolar, Q_RING, sectorOfLand, landMid, wrapNear } from './geo';
 import { ATTRACTIONS, NUMBERS, attractionOfZone, landIndex } from './data';
 import { paintTerrain, terrainJob, attractionAt } from './terrain';
-import { paintFeatures, featureTasks, paintDetails, ICONS, numberBadge, LEGEND } from './global';
+import { paintFeatures, featureTasks, paintDetails, ICONS, numberBadge, LEGEND, GATE_Y } from './global';
 import { R, hl, vl, ell, ramp, type Ctx } from './paint';
 
 /** The map's window on screen (game px). */
@@ -188,7 +188,7 @@ const GAGS: { t: string; x: number; y: number; li?: number }[] = [
   { t: 'OUTER SPACE (NOT TO SCALE) ^', x: 640, y: 30 }, { t: 'PARK PROPERTY ENDS', x: 790, y: 200 },
   { t: 'NOT RESPONSIBLE PAST HERE', x: 800, y: 212 }, { t: 'RESTROOMS: 2.4 MILES', x: 300, y: 940 },
   { t: 'MONORAIL TO THE OTHER MONORAIL', x: 140, y: 300 }, { t: 'FREEDOM WALKING ONLY', x: HC.x + 58, y: 560 },
-  { t: 'ONE WAY. NO RE-ENTRY.', x: HC.x - 62, y: 790 }, { t: 'REMEMBER WHERE YOU PARKED', x: HC.x, y: 862 },
+  { t: 'ONE WAY. NO RE-ENTRY.', x: HC.x + 76, y: GATE_Y + 12 }, { t: 'REMEMBER WHERE YOU PARKED', x: HC.x, y: 862 },
   { t: '1 INCH = 1 MILE (APPROX.)', x: LEGEND.x + LEGEND.w / 2, y: LEGEND.y + LEGEND.h + 8 },
   ...['MEXICO', 'NORWAY', 'CHINA', 'GERMANY', 'ITALY', 'JAPAN', 'MOROCCO', 'FRANCE', 'UK', 'CANADA'].map((t, k) => {
     const off: [number, number][] = [[-46, 6], [-40, -14], [-26, -28], [-6, -34], [14, -33], [32, -26], [44, -10], [46, 10], [-26, 22], [26, 22]];
@@ -231,7 +231,7 @@ export const levelCanvas = (i: number): HTMLCanvasElement => {
   // (the way in, named once there's room)
   if (s >= 0.75) {
     const tag = (t: string, x: number, y: number) => plate(g, placed, t, x * s, y * s, { ...SMALL, fill: '#FFFFFF', bold: s >= 1 }, '#1E3A8A', '#0F172A');
-    tag('AMERICA USA', HC.x, 720); tag('TICKETS + GATE', HC.x - 66, 806); tag('SECURITY', HC.x + 76, 832); tag('PARKING P1-P47', HC.x, 950); tag('WATER PARK', 128, 830);
+    tag('AMERICA USA', HC.x, 720); tag('TICKETS + GATE', HC.x - 70, GATE_Y + 30); tag('SECURITY', HC.x + 76, 832); tag('PARKING P1-P47', HC.x, 950); tag('WATER PARK', 128, 830);
     tag('THE HAPPY HUB', HC.x, HC.y + 40);
   }
   // Attractions: their numbers (nearer), their names (nearer still; every one named, each kept inside its own land)

@@ -37,7 +37,8 @@ const americaStreet = (g: Ctx) => {
   R(g, HC.x - 7, top, 14, foot - top, '#E8DCC0'); vl(g, HC.x - 8, top, foot - top, '#B8A884'); vl(g, HC.x + 7, top, foot - top, '#B8A884');
   for (let y = top + 4; y < foot; y += 14) hl(g, HC.x - 1, y, 2, '#D4C49C');
   const shops = ['#B5463A', '#3E6A9A', '#C9A04A', '#4E7A4A', '#8A4A7A', '#C26A3A'];
-  for (let y = top + 10, k = 0; y < foot - 8; y += 16, k++) {
+  // (its shopfronts start below the gate and the ticket booths at its top: America USA's the way up to them)
+  for (let y = top + 58, k = 0; y < foot - 8; y += 16, k++) {
     const half = (y - HC.y) * Math.tan((AMERICA.a1 - AMERICA.a0) / 2) * 0.95;
     for (const side of [-1, 1]) {
       const w = Math.max(10, Math.min(30, half - 9)), x0 = side < 0 ? HC.x - 9 - w : HC.x + 9;
@@ -51,12 +52,16 @@ const americaStreet = (g: Ctx) => {
   }
 };
 
-/** The way in: the gate and the ticket booths at the top of the plaza, security, the parking garage, the lot. */
+/** Where the gate stands: at the top of America USA, right on the hub (in through it, he's on the hub). */
+export const GATE_Y = Math.round(fromPolar(Math.PI / 2, Q_HUB + 0.05).y) + 4;
+/** The way in, from the bottom: the lot, the parking garage, security, America USA's street up, and at its top end the
+ *  ticket booths and the gate, straight onto the hub. */
 const wayIn = (g: Ctx) => {
-  // (the gate: an arch across the street, the park's name over it)
-  vl(g, HC.x - 24, 776, 20, '#7F1D1D'); vl(g, HC.x + 23, 776, 20, '#7F1D1D');
-  R(g, HC.x - 26, 774, 52, 6, '#EC4899'); hl(g, HC.x - 26, 774, 52, '#F9A8D4'); hl(g, HC.x - 26, 779, 52, '#9D174D');
-  for (let k = -2; k <= 2; k++) { block(g, HC.x + k * 12 - 4, 806, 8, 7, 3, '#F5F0E1', '#DC2626'); px(g, HC.x + k * 12, 802, '#1C1917'); }
+  // (the gate: an arch across the top of the street, the park's name over it; the ticket booths just below it)
+  const G = GATE_Y;
+  vl(g, HC.x - 24, G + 2, 20, '#7F1D1D'); vl(g, HC.x + 23, G + 2, 20, '#7F1D1D');
+  R(g, HC.x - 26, G, 52, 6, '#EC4899'); hl(g, HC.x - 26, G, 52, '#F9A8D4'); hl(g, HC.x - 26, G + 5, 52, '#9D174D');
+  for (let k = -2; k <= 2; k++) { block(g, HC.x + k * 12 - 4, G + 32, 8, 7, 3, '#F5F0E1', '#DC2626'); px(g, HC.x + k * 12, G + 28, '#1C1917'); }
   // (security: a row of detector arches, a little booth)
   for (let k = -3; k <= 3; k++) { const x = HC.x + k * 10; vl(g, x - 3, 826, 8, '#94A3B8'); vl(g, x + 3, 826, 8, '#94A3B8'); hl(g, x - 3, 826, 7, '#94A3B8'); }
   block(g, HC.x + 46, 840, 12, 8, 3, '#1E3A8A', '#172554');
@@ -218,9 +223,9 @@ export const paintDetails = (g: Ctx) => {
   // (the hub's crowd)
   for (let k = 0; k < 14; k++) { const a = (k / 14) * Math.PI * 2, p = fromPolar(a, Q_HUB * 0.7); guests(g, Math.round(p.x), Math.round(p.y), 2, k); }
   // (America USA's: shoulder to shoulder)
-  for (let y = 520; y < 780; y += 12) guests(g, HC.x, y, 3, y);
+  for (let y = GATE_Y + 56; y < 780; y += 12) guests(g, HC.x, y, 3, y);
   // (the line at the ticket booths, out round the plaza)
-  for (let k = 0; k < 18; k++) guests(g, HC.x - 70 + k * 4, 818 + (k % 2), 1, k);
+  for (let k = 0; k < 18; k++) guests(g, HC.x - 34 + (k % 6) * 12, GATE_Y + 40 + Math.floor(k / 6) * 5 + (k % 2), 1, k);
   void line; void spire;
 };
 

@@ -133,9 +133,9 @@ export const ATTRACTIONS: Attraction[] = [
   // ---- The hub, and the way in
   { id: 'hub', land: 'hub', name: 'THE HAPPY HUB', zones: ['hub'], art: 'hub', x: 450, y: 440,
     blurb: 'THE HEART OF THE PARK! EVERY LAND IS JUST A PORTAL AWAY.', info: 'LOST CHILDREN · LOST ADULTS · BOTH HERE' },
-  { id: 'america', land: 'hub', name: 'AMERICA USA', zones: ['america'], art: 'none', x: 450, y: 700,
+  { id: 'america', land: 'hub', name: 'AMERICA USA', zones: ['america'], art: 'none', x: 450, y: 690,
     blurb: 'NOW 20% MORE AMERICA! SHOP NEW ORLEANS-ISH, NASHVILLE-ISH, CHICAGO-ISH AND MORE. FREEDOM WALKING ONLY.', info: 'FREEDOM FRIES, TWO FOR $19.99' },
-  { id: 'gate', land: 'hub', name: 'TICKETS + FRONT GATE', zones: ['ticket'], art: 'none', x: 450, y: 806,
+  { id: 'gate', land: 'hub', name: 'TICKETS + FRONT GATE', zones: ['ticket'], art: 'none', x: 450, y: 548,
     blurb: 'ONE DAY: $189. WAIT TIME FROM HERE: YES.', info: 'NO RE-ENTRY · NO REFUNDS · NO EXCEPTIONS' },
   { id: 'security', land: 'hub', name: 'SECURITY', zones: ['security'], art: 'none', x: 450, y: 836,
     blurb: 'THE FREEDOM-SCAN. ALL BAGS SUBJECT TO PATRIOTISM.', info: 'SMILE! YOU ARE ON CAMERA' },
