@@ -33,13 +33,13 @@ export const TUCKER_SAWED: ByPants = {
 
 /** He cuts the whole line and goes for a log. */
 export const OP_CUT: ByPants = {
-  clean: ['HEY! BACK OF THE LINE!', 'SIR! THERE IS A NINETY MINUTE LINE!'],
+  clean: ['HEY! BACK OF THE LINE!', 'SIR! THAT FAMILY HAS A FAST PASS AND A LAWYER!'],
   shitty: ['SIR! BACK OF THE— OH GOD, THE SMELL.', 'NOT IN MY LOG! NOT IN THOSE PANTS!'],
   nude: ['SIR! YOU NEED CLOTHES TO RIDE!', 'NO! NAKED PEOPLE DO NOT GET LOGS!'],
 };
 /** Shoved out of the booth by Tucker. */
 export const OP_SHOVED: ByPants = {
-  clean: ['HEY! THAT IS MY BOOTH!', 'OW! YOU CANNOT BE IN HERE!'],
+  clean: ['HEY! THAT IS MY BOOTH!', "OW! SIR, THERE'S A HOLE IN YOUR HEAD! YOU CAN'T BE IN HERE!"],
   shitty: ['HEY! MY BOOTH! AND SOMETHING SMELLS!', 'OW! WHY DOES EVERYBODY TODAY SMELL?!'],
   nude: ['HEY! MY BOOTH! WHY IS EVERYBODY CRAZY TODAY?!', 'OW! FIRST A NAKED GUY, NOW THIS!'],
 };
@@ -72,7 +72,7 @@ export const SPIEL_BUZZMODE = ['BUZZSAW MODE ENGAGED. PLEASE KEEP ALL LIMBS INSI
 export const CREW_JUMP: ByPants = {
   clean: ['HEY! JUMP! JUMP!', 'GET OUT OF THE LOG! THE CHIPPER!'],
   shitty: ['JUMP! AND DO NOT LAND NEAR ME!', 'JUMP, STINKY! JUMP!'],
-  nude: ['NAKED GUY! JUMP!', 'JUMP! AND COVER UP!'],
+  nude: ['NAKED GUY! JUMP!', 'JUMP! TUCK YOUR NUTS!'],
 };
 /** He's down on their clearing, their log mulched: they come at him with the chainsaws. */
 export const CREW_MAD: ByPants = {
@@ -106,7 +106,7 @@ export const FIRST_SAW: ByPants = {
 };
 /** Up the lift hill. */
 export const LIFT_HILL: ByPants = {
-  clean: ['CLICK CLICK CLICK. BEST SOUND THERE IS.', 'LIFT HILL. HERE COMES THE GOOD PART.'],
+  clean: ['CLICK CLICK CLICK. BEST SOUND THERE IS.', "LIFT HILL. I'M HARD. FOR THE RIDE."],
   shitty: ['UP THE HILL. CLICK CLICK. SQUISH SQUISH.', 'LIFT HILL. MY PANTS ARE SLOSHING.'],
   nude: ['UP THE HILL BARE-ASSED. CLICK CLICK.', 'LIFT HILL. WIND ON MY BALLS.'],
 };
@@ -118,19 +118,19 @@ export const BIG_DROP: ByPants = {
 };
 /** The ride photo's flash at the bottom. */
 export const PHOTO: ByPants = {
-  clean: ['I AM BUYING THAT PHOTO.', 'GOT MY GOOD SIDE.'],
+  clean: ['I AM BUYING THAT PHOTO.', "I'M FLIPPING THE BIRD IN THAT ONE. TWENTY BUCKS."],
   shitty: ['DO NOT SELL THAT PHOTO.', 'THAT PHOTO IS EVIDENCE.'],
   nude: ['THAT PHOTO IS GOING ON MY WALL.', 'I WANT THAT ON A KEYCHAIN.'],
 };
 /** The flume cut ahead of him, the log jumping it. */
 export const BREAKOUT: ByPants = {
-  clean: ['THAT IS NOT THE TRACK!', 'OFF THE RAILS! I LOVE IT!'],
+  clean: ['THAT IS NOT THE TRACK!', 'OFF THE RAILS! BEST FIVE BUCKS I NEVER PAID!'],
   shitty: ['OFF THE TRACK, INTO THE SEWER. FITS.', 'WHERE ARE WE GOING?! OH. THE SEWER.'],
   nude: ['OFF THE TRACK! STILL NAKED!', 'NOT THE SEWER. NOT NAKED.'],
 };
 /** Down in the sewer. */
 export const SEWER: ByPants = {
-  clean: ['SEWER. SMELLS LIKE A PORTA-POTTY IN AUGUST.', 'THIS IS NOT PART OF THE RIDE.'],
+  clean: ['SEWER. SMELLS LIKE A PORTA-POTTY IN AUGUST.', "THERE'S A RUBBER ON MY LOG. A USED ONE."],
   shitty: ['THE SEWER. FINALLY, I BLEND IN.', 'SMELLS LIKE MY PANTS DOWN HERE.'],
   nude: ['NAKED IN A SEWER. NEW LOW.', 'SEWER WATER. BARE ASS. GREAT.'],
 };
@@ -164,7 +164,7 @@ export const JUMPED: ByPants = {
 
 export const HURT: HurtTable = {
   'm2:fr_saw': {
-    hurt: ['SAW! SAW! SAW!', 'THE RIDE CUT ME!', 'BUZZSAW! IN MY MEAT!'],
+    hurt: ['SAW! SAW! SAW!', 'IT SHAVED MY ASS!', 'BUZZSAW! IN MY MEAT!'],
     death: ['SAWED IN HALF ON A LOG RIDE', 'TIMBER TUMBLED', 'ARMS INSIDE. TORSO OUTSIDE.'],
   },
   'm2:fr_pipe': {
@@ -188,7 +188,7 @@ export const HURT: HurtTable = {
     death: ['BROKE HIS BACK ON SEWER JUNK', 'BUCKED OFF A SEWER LOG'],
   },
   'm2:fr_chainsaw': {
-    hurt: ['CHAINSAW! CHAINSAW!', 'A LUMBERJACK SAWED ME!', 'NOT THE CHAINSAW!'],
+    hurt: ['CHAINSAW! CHAINSAW!', 'A LUMBERJACK SAWED ME!', 'HE REVVED IT IN MY FACE!'],
     death: ['CUT DOWN BY THE CREW', 'FELLED BY A LOGGER', 'TIMBER'],
   },
 };

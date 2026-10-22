@@ -14,7 +14,7 @@ import { TUCKER_VOICE, allOf, type ByPants, type HurtTable } from '../talk';
 // Meathead, along the way (once each)
 
 export const ARRIVE: ByPants = {
-  clean: ['WILDERNESS LAND. THE ROCKS HAVE BOLTS IN THEM.', 'THE WILD FRONTIER. THE MOUNTAINS ARE PLYWOOD.'],
+  clean: ['WILDERNESS LAND. THE ROCKS HAVE BOLTS IN THEM.', 'EVERY TREE HAS A SPEAKER IN IT PLAYING BIRDS.'],
   shitty: ['THE FRONTIER. PIONEERS SHAT THEIR PANTS TOO. I FIT RIGHT IN.', 'OLD AMERICA. SMELLS LIKE ME.'],
   nude: ['THE FRONTIER. NAKED AS THE DAY THE PIONEERS MADE ME.', 'WILDERNESS LAND. I DRESSED FOR IT.'],
 };
@@ -42,17 +42,17 @@ export const GAGS: Record<'trap' | 'log' | 'wolves' | 'leeches' | 'rapids' | 'bi
   rapids: {
     clean: ['RAPIDS. ON A LOG. NO HELMET. LET\'S GO.'],
     shitty: ['RAPIDS. AT LEAST THE WATER WILL WASH MY PANTS.'],
-    nude: ['WHITE WATER. NAKED. THIS IS HOW BABIES ARE BAPTIZED.'],
+    nude: ['WHITE WATER. NAKED. MY BALLS ARE HITTING EVERY ROCK.'],
   },
   bison: {
-    clean: ['A BUFFALO. THEY STOCKED A FREAKING BUFFALO.'],
+    clean: ['A BUFFALO. ITS BALLS ARE BIGGER THAN MY HEAD.'],
     shitty: ['A BUFFALO. IT SMELLS WORSE THAN ME. BARELY.'],
     nude: ['A BUFFALO. DO NOT LOOK AT ME, BUFFALO.'],
   },
   falls: {
     clean: ['A WATERFALL AT THE END. GET OFF BEFORE IT. GOT IT.'],
     shitty: ['A WATERFALL. IF I GO OVER, I GO OVER CLEAN.'],
-    nude: ['A WATERFALL. NOTHING LEFT TO LOSE BUT MY LIFE.'],
+    nude: ['A WATERFALL. NOTHING LEFT TO LOSE. EXCEPT THE TWINS.'],
   },
   tracks: {
     clean: ['RAILROAD TRACKS. A TRAIN. FINALLY, A SEAT.'],
@@ -84,7 +84,7 @@ export const TUCKER_TICKET: ByPants = {
 };
 /** Meathead: no ticket. */
 export const NO_TICKET: ByPants = {
-  clean: ['TICKET? I\'VE GOT A FIST.', 'I DON\'T DO TICKETS.'],
+  clean: ['TICKET? I\'VE GOT A FIST.', 'I DON\'T PAY FOR SHIT. ASK MY EX.'],
   shitty: ['MY TICKET\'S IN MY PANTS. YOU DON\'T WANT IT.', 'NO TICKET. I\'VE GOT A LOAD, THOUGH.'],
   nude: ['DO I LOOK LIKE I HAVE POCKETS?', 'WHERE WOULD I PUT A TICKET?'],
 };
@@ -97,7 +97,7 @@ export const TUCKER_BLOCK: ByPants = {
 /** Punched: on his backside (a yelp: put out, not hurt). */
 export const TUCKER_OOF: ByPants = {
   clean: ['OOF! WELL, THAT\'S RUDE.', 'OOF! MY SPECTACLES. HONESTLY.'],
-  shitty: ['OOF! IT\'S ON YOUR HANDS!', 'OOF! YOU TOUCHED ME!'],
+  shitty: ['OOF! IT\'S ON YOUR HANDS!', 'OOF! IT\'S ON MY VEST! THIS IS FELT!'],
   nude: ['OOF! YOU\'RE TOUCHING ME WITH THAT?!', 'OOF! PUT IT AWAY!'],
 };
 /** The close-up, dusting himself off: the user's line, every pool. A warning, not yet the meltdown (that's when he
@@ -121,7 +121,7 @@ export const TUCKER_CAB: ByPants = {
 };
 /** Meathead, the train pulling away: after it. */
 export const CHASE: ByPants = {
-  clean: ['OH, IT\'S ON, CHOO-CHOO.', 'NOBODY OUTRUNS ME. EXCEPT TRAINS. NOT TODAY.'],
+  clean: ['OH, IT\'S ON, CHOO-CHOO.', 'GET BACK HERE, YOU FOUR-EYED DICK.'],
   shitty: ['I\'M CATCHING THAT TRAIN IF I HAVE TO SHIT MY WAY THERE.'],
   nude: ['NAKED TRAIN ROBBERY. HERE WE GO.'],
 };
@@ -133,7 +133,7 @@ export const STATION_EMPTY = ['NO TRAIN. JUST A BELL. I\'M RINGING IT.'];
 
 export const HURT: HurtTable = {
   'm2:fr_beartrap': {
-    hurt: ['MY LEG! MY LEG!', 'BEAR TRAP! I\'M NOT A BEAR!', 'IT\'S GOT MY ANKLE!', 'GET IT OFF! GET IT OFF!'],
+    hurt: ['MY LEG! MY LEG!', 'BEAR TRAP! I\'M NOT A BEAR!', 'IT ATE MY SOCK!', 'GET IT OFF! GET IT OFF!'],
     death: ['BEAR TRAP. NOT A BEAR.', 'THE BEAR TRAP WORKED'],
   },
   // (the bear trap's hurt has its own animation (hurtGags.ts: the jaws on his boot, hopping, howling), and its lines by
@@ -155,7 +155,7 @@ export const HURT: HurtTable = {
     death: ['FLATTENED BY A LOG', 'ROLLED OUT LIKE DOUGH'],
   },
   'm2:fr_bees': {
-    hurt: ['BEES! BEES!', 'THEY\'RE IN MY SHIRT!', 'NOT THE BEES!'],
+    hurt: ['BEES! BEES!', 'ONE STUNG MY TAINT!', 'NOT THE BEES!'],
     death: ['HE KNOCKED DOWN THE HIVE', 'THE BEES WON'],
   },
   'm2:fr_branch': {
@@ -175,11 +175,11 @@ export const HURT: HurtTable = {
     death: ['KICKED TO DEATH BY A DEER', 'BAMBI\'S MOM GOT REVENGE'],
   },
   'm2:fr_buck': {
-    hurt: ['THE BUCK RAMMED ME!', 'BIG DEER! BIG DEER!', 'HE HIT ME LIKE A TRUCK!'],
+    hurt: ['THE BUCK RAMMED ME!', 'HE GOT ME IN THE BEANS!', 'HE HIT ME LIKE A TRUCK!'],
     death: ['RAMMED TO DEATH BY A BUCK', 'THE DEER HUNTED HIM'],
   },
   'm2:fr_antlers': {
-    hurt: ['ANTLERS! I CHARGED INTO ANTLERS!', 'OW! POINTY END!', 'THEY STAB!'],
+    hurt: ['ANTLERS! I CHARGED INTO ANTLERS!', 'OW! POINTY END!', 'ANTLER IN MY ASS!'],
     death: ['SHOULDER CHARGED A BUCK', 'SKEWERED ON ANTLERS'],
   },
   'm2:fr_wolf': {
@@ -187,11 +187,11 @@ export const HURT: HurtTable = {
     death: ['EATEN BY WOLVES', 'THE WOLVES SHARED HIM'],
   },
   'm2:fr_cougar': {
-    hurt: ['COUGAR! FROM ABOVE!', 'IT CLAWED MY FACE!', 'BIG CAT! BIG CAT!'],
+    hurt: ['COUGAR! FROM ABOVE!', 'IT CLAWED MY FACE!', 'IT SAT ON MY FACE! IT SMELLS LIKE CAT ASS!'],
     death: ['MAULED BY A COUGAR', 'THE COUGAR PLAYED WITH HIM'],
   },
   'm2:fr_beaver': {
-    hurt: ['THE BEAVER BIT ME!', 'BEAVER TEETH!', 'IT SLAPPED ME WITH ITS TAIL!'],
+    hurt: ['THE BEAVER BIT ME!', 'IT WENT FOR MY WOOD!', 'IT SLAPPED ME WITH ITS TAIL!'],
     death: ['CHEWED UP BY A BEAVER', 'BUILT INTO A BEAVER DAM'],
   },
   'm2:fr_rattler': {
@@ -211,7 +211,7 @@ export const HURT: HurtTable = {
     death: ['KILLED BY A GOOSE. A GOOSE.', 'GOOSED TO DEATH'],
   },
   'm2:fr_porcupine': {
-    hurt: ['PORCUPINE!', 'IT POKED ME!', 'OW! THE BACK END!'],
+    hurt: ['PORCUPINE!', 'QUILLS IN MY HAND! MY JERKING HAND!', 'OW! THE BACK END!'],
     death: ['KILLED BY A PORCUPINE', 'A PORCUPINE. OF ALL THINGS.'],
   },
   'm2:fr_quills': {

@@ -13,7 +13,7 @@ import { TEEN_VOICES } from '../woods/lines';
 
 /** Off he goes, the pack behind him (the first time in a visit). */
 export const MH_START: ByPants = {
-  clean: ['COME GET YOUR TWENTY BUCKS, ZIT FACES.', 'LET\'S RIDE, PUNKS.'],
+  clean: ['COME GET YOUR TWENTY BUCKS, ZIT FACES.', 'SCHOOL\'S OUT, DIPSHITS.'],
   shitty: ['COME ON. I\'LL SKID MARK ALL OF YOU.', 'RIDING IN A FULL DIAPER. LET\'S GO.'],
   nude: ['NAKED ON A DIRT BIKE. THIS SEAT IS HOT.', 'COME ON, PUNKS. NOTHING BETWEEN ME AND THIS SEAT.'],
 };
@@ -26,8 +26,8 @@ export const MH_AGAIN: ByPants = {
 /** A teen knocked off with plain punches (now and then). */
 export const MH_KNOCKOFF: ByPants = {
   clean: ['NEXT.', 'GO HOME TO YOUR MOM.', 'GET A JOB.'],
-  shitty: ['SMELL THAT ON THE WAY DOWN.', 'NEXT. HOLD YOUR NOSE.'],
-  nude: ['NEXT. EYES UP HERE.', 'GO TELL YOUR MOM WHAT YOU SAW.'],
+  shitty: ['SMELL THAT ON THE WAY DOWN.', 'NEXT. THAT ONE CRIED.'],
+  nude: ['NEXT. TELL YOUR MOM I SAID HI.', 'NEXT. GO DO YOUR HOMEWORK.'],
 };
 
 /** The punch parries, one pool per weapon (said about half the time). */
@@ -40,12 +40,12 @@ export const MH_PARRY: Record<string, ByPants> = {
   bat: {
     clean: ['BATTER UP. INTO A TREE.', 'HOME RUN.'],
     shitty: ['YOU SWING LIKE MY BOWELS.', 'STRIKE THREE. YOU\'RE A TREE NOW.'],
-    nude: ['NICE BAT. MINE\'S BIGGER.', 'YOU\'RE OUT. IN A TREE.'],
+    nude: ['NICE BAT. TRY LITTLE LEAGUE.', 'YOU\'RE OUT. IN A TREE.'],
   },
   crowbar: {
     clean: ['EAT DIRT.', 'YOUR FRIENDS GOT YOU.'],
     shitty: ['FACE DOWN. I KNOW THE FEELING.', 'YOUR OWN PACK RAN YOU OVER. TEAMWORK.'],
-    nude: ['FACE IN THE DIRT, ASS IN THE AIR. WELCOME TO MY DAY.', 'EAT DIRT, KID.'],
+    nude: ['FACE IN THE DIRT. LIKE YOUR GRADES.', 'EAT DIRT, KID.'],
   },
   nunchucks: {
     clean: ['STRIKE!', 'BOWLING NIGHT.'],
@@ -76,15 +76,15 @@ export const MH_END: ByPants = {
 
 /** Pulling up alongside him (now and then). */
 export const TEEN_TAUNT: ByPants = {
-  clean: ['TWENTY BUCKS, OLD MAN!', 'HOLD STILL, GRANDPA!', 'YOUR HEAD\'S MINE!', 'I NEED THIS TWENTY!'],
+  clean: ['TWENTY BUCKS, OLD MAN!', 'HOLD STILL, GRANDPA!', 'YOUR HEAD\'S MINE!', 'I NEED THIS TWENTY FOR VAPE PODS!'],
   shitty: ['HE SMELLS LIKE A DIAPER!', 'EW! HE SHAT HIS JEANS!', 'I\'M NOT TOUCHING HIS PANTS!', 'TWENTY BUCKS ISN\'T ENOUGH FOR THIS SMELL!'],
-  nude: ['HE\'S NAKED ON A BIKE!', 'I CAN SEE HIS BALLS FLAPPING!', 'AIM FOR THE HEAD! NOT DOWN THERE!', 'PUT IT AWAY, MAN!'],
+  nude: ['HE\'S NAKED ON A BIKE!', "HE'S NAKED! THIS IS GOING ON TIKTOK!", 'AIM FOR THE HEAD! NOT DOWN THERE!', 'PUT IT AWAY, MAN!'],
 };
 /** Parried: the yelp on the way to whatever he does to them. */
 export const TEEN_PARRIED: ByPants = {
   clean: ['MOM!', 'NOT FAIR!', 'OH NO OH NO!', 'I WANT MY MOM!'],
   shitty: ['NOT THE SHIT HAND!', 'HE TOUCHED ME WITH THE SHIT HAND!', 'EW! EW! EW!'],
-  nude: ['HE TOUCHED ME NAKED!', 'NOT THE NAKED GUY!', 'HIS THING TOUCHED MY LEG!'],
+  nude: ["HE'S SO SWEATY!", 'NOT THE NAKED GUY!', "I'M TELLING MY MOM!"],
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -138,7 +138,7 @@ export const HURT: HurtTable = {
     death: ['DIED IN AN OUTHOUSE', 'DIED IN SOMEONE ELSE\'S SHIT'],
   },
   'm2:fr_bail_tractor': {
-    hurt: ['TRACTOR! PARKED! WHY?!', 'FARM EQUIPMENT! MY SPINE!'],
+    hurt: ['A JOHN DEERE! IN MY TEETH!', 'FARM EQUIPMENT! MY SPINE!'],
     death: ['RAN INTO A PARKED TRACTOR', 'THE TRACTOR WASN\'T EVEN ON'],
   },
   'm2:fr_bail_rock': {
@@ -170,7 +170,7 @@ export const HURT: HurtTable = {
     death: ['CROWBARRED BY A TEENAGER', 'PRIED OFF HIS BIKE'],
   },
   'm2:fr_nunchucks': {
-    hurt: ['NUNCHUCKS?! WHAT YEAR IS IT?!', 'OW! MY EAR!'],
+    hurt: ['NUNCHUCKS?! WHAT YEAR IS IT?!', 'HE WATCHED ONE YOUTUBE VIDEO!'],
     death: ['NUNCHUCKED TO DEATH', 'A KID SAW ONE KUNG FU MOVIE'],
   },
   'm2:fr_hockey': {

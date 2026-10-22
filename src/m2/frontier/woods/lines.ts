@@ -20,7 +20,7 @@ export const TEEN_VOICES = {
 export const REAL_WOODS: ByPants = {
   clean: ['THESE TREES DON\'T HAVE BOLTS IN THEM.', 'REAL WOODS. NO GIFT SHOP.'],
   shitty: ['REAL WOODS. NOBODY OUT HERE TO SMELL ME.', 'GOOD. TREES DON\'T JUDGE.'],
-  nude: ['NAKED IN THE REAL WOODS. NATURE\'S WAY.', 'REAL WOODS. REAL BREEZE. EVERYWHERE.'],
+  nude: ['NAKED IN THE REAL WOODS. TICKS. EVERYWHERE.', 'REAL WOODS. REAL BREEZE. EVERYWHERE.'],
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -28,9 +28,9 @@ export const REAL_WOODS: ByPants = {
 
 /** The first kid pulls up next to him, idling, friendly enough. */
 export const KID_HI: ByPants = {
-  clean: ['YO. YOU LOST, MISTER?', 'SICK. A GROWN MAN IN THE WOODS.'],
+  clean: ['YO. YOU LOST, MISTER?', 'YO. YOU LOOK LIKE MY STEPDAD.'],
   shitty: ['DUDE. DID YOU SHIT YOURSELF?', 'BRO, YOU SMELL LIKE A PORTA-POTTY.'],
-  nude: ['DUDE. WHERE ARE YOUR CLOTHES?', 'BRO. PUT IT AWAY.'],
+  nude: ['DUDE. WHERE ARE YOUR CLOTHES?', "BRO. THAT'S SO GROSS. I'M GONNA BARF."],
 };
 /** He kicks the kid off his bike (the user's line, in all three). */
 export const MINE: ByPants = {
@@ -70,7 +70,7 @@ export const TEENS_YES: ByPants = {
 };
 /** Him, on the kid's bike, looking at dozens of them revving up. */
 export const BOUNTY_BACK: ByPants = {
-  clean: ['TWENTY BUCKS? MY HEAD\'S WORTH WAY MORE THAN THAT.', 'TWENTY? I\'M INSULTED.'],
+  clean: ['TWENTY BUCKS? MY HEAD\'S WORTH WAY MORE THAN THAT.', 'TWENTY BUCKS. MY HEAD ALONE WEIGHS TWENTY POUNDS.'],
   shitty: ['TWENTY BUCKS? FOR THIS HEAD? INSULTING.', 'TWENTY BUCKS. AND I SHIT MYSELF FOR THIS.'],
   nude: ['TWENTY BUCKS? I\'M NAKED, NOT CHEAP.', 'TWENTY? FOR ALL THIS?'],
 };
@@ -80,7 +80,7 @@ export const BOUNTY_BACK: ByPants = {
 
 /** The kid he kicked off, sulking, when he walks back by. */
 export const KID_SULK: ByPants = {
-  clean: ['YOU STOLE MY BIKE, MAN.', 'MY DAD\'S GONNA KILL ME.', 'EVERYBODY\'S GONE. THANKS A LOT.'],
+  clean: ['YOU STOLE MY BIKE, MAN.', 'MY DAD\'S STILL MAKING PAYMENTS ON THAT BIKE.', 'EVERYBODY\'S GONE. THANKS A LOT.'],
   shitty: ['I\'M BURNING THAT SEAT.', 'YOU SHAT ON MY BIKE, DIDN\'T YOU.', 'IT STILL SMELLS LIKE YOU OVER HERE.'],
   nude: ['I SAW YOUR WHOLE ASS. I\'M TELLING EVERYBODY.', 'YOUR BARE ASS WAS ON MY SEAT, DUDE.', 'GO AWAY. AND PUT SOMETHING ON.'],
 };

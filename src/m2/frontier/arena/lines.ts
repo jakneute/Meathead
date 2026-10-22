@@ -32,7 +32,7 @@ export const TUCKER_RANT: ByPants = {
 };
 /** Meathead's say, in between. */
 export const MH_CAUGHT: ByPants = {
-  clean: ['YOU OWE ME TWENTY BUCKS.', 'THEY HAD IT COMING. SO DO YOU.'],
+  clean: ['YOU OWE ME TWENTY BUCKS.', 'THEY HAD IT COMING. SO DO YOU, FOUR EYES.'],
   shitty: ['I SHIT MYSELF OVER THIS. PAY UP.', 'YEAH. AND I SMELL LIKE A WINNER.'],
   nude: ['I GOT NAKED OVER THIS. PAY UP.', 'YEAH. AND I DID IT WITH MY DICK OUT.'],
 };
@@ -65,7 +65,7 @@ export const TUCKER_SKEWERED: ByPants = {
 };
 /** Meathead, pulled up under him, him hung on the oak. */
 export const MH_SKEWERED: ByPants = {
-  clean: ['SHISH KEBAB.', 'TREE ONE. TUCKER ZERO.'],
+  clean: ['SHISH KEBAB.', 'TUCKER ON A STICK. FAIR FOOD.'],
   shitty: ['AND I THOUGHT MY DAY WAS SHITTY.', 'HE GOT TREED. I GOT SHAT.'],
   nude: ['AND I THOUGHT I WAS EXPOSED.', 'HE\'S GOT WOOD. I\'VE GOT NOTHING ON.'],
 };
@@ -126,7 +126,7 @@ export const TUCKER_TAUNT: ByPants = {
 };
 /** Meathead, walked up to the tree, his hand on the axe. */
 export const MH_AXE: ByPants = {
-  clean: ['MAN TO MAN? SURE.', 'HOLD THAT THOUGHT.'],
+  clean: ['MAN TO MAN. AND AXE.', 'HOLD THAT THOUGHT.'],
   shitty: ['MAN TO MAN. ONE OF US SHIT HIMSELF.', 'HOLD THAT THOUGHT. AND YOUR NOSE.'],
   nude: ['MAN TO MAN. ONE OF US HAS PANTS.', 'HOLD THAT THOUGHT. I\'M GONNA NEED BOTH HANDS.'],
 };
@@ -163,7 +163,7 @@ export const TUCKER_MATTER: ByPants = {
 
 /** Listening, shuffling, now and then (blind, the ledger). */
 export const TF_TAUNT: ByPants = {
-  clean: ['I CAN HEAR YOU BREATHING! THAT\'S A BREATHING FEE!', 'ONE FARE! FOUR DOLLARS! NOW IT\'S A HUNDRED!', 'I DON\'T NEED EYES TO BALANCE A LEDGER!'],
+  clean: ['I CAN HEAR YOU BREATHING! THAT\'S A BREATHING FEE!', 'ONE FARE! FOUR DOLLARS! NOW IT\'S A HUNDRED!', 'I DON\'T NEED EYES TO BALANCE A LEDGER! WHERE\'S MY PENCIL?!'],
   shitty: ['I CAN\'T SEE YOU! I CAN SMELL EXACTLY WHERE YOU ARE!', 'FOLLOW THE STINK, TUCKER! FOLLOW THE STINK!', 'THAT\'S A CLEANING FEE! AND A NOSE FEE!'],
   nude: ['I CAN HEAR IT FLAPPING! THAT\'S A NOISE FEE!', 'BLIND! AND STILL NOT BLIND ENOUGH FOR YOU!', 'PUT SOMETHING ON! I CAN FEEL IT FROM HERE!'],
 };
@@ -175,7 +175,7 @@ export const TF_FIRE: ByPants = {
 };
 /** Heard him jump to his other side: round he comes. */
 export const TF_HEAR: ByPants = {
-  clean: ['I HEARD THAT!', 'BEHIND ME? NOBODY CUTS IN LINE!', 'OVER THERE, ARE YOU?'],
+  clean: ['I HEARD THAT!', 'BEHIND ME? NOBODY CUTS IN LINE!', 'OVER THERE! I HEARD A WALLET!'],
   shitty: ['I SMELLED THAT!', 'OVER THERE! THE WIND CHANGED!', 'BEHIND ME! I CAN TELL!'],
   nude: ['I HEARD IT SLAP!', 'OVER THERE! I FELT THE BREEZE!', 'BEHIND ME? DON\'T YOU DARE!'],
 };
@@ -187,7 +187,7 @@ export const TF_HIT: ByPants = {
 };
 /** Ramming the rod down, by feel. */
 export const TF_RELOAD: ByPants = {
-  clean: ['POWDER. BALL. RAMROD. ALL ON YOUR TAB.', 'EVERY SHOT GOES ON YOUR BILL!', 'HOLD STILL! I\'M RELOADING!'],
+  clean: ['POWDER. BALL. RAMROD. ALL ON YOUR TAB.', 'EVERY SHOT GOES ON YOUR BILL!', 'HOLD STILL! THIS GUN IS FROM 1840! SO AM I!'],
   shitty: ['POWDER. BALL. AND A CLOTHESPIN FOR MY NOSE.', 'EVERY SHOT GOES ON YOUR BILL! SO DOES THE SMELL!'],
   nude: ['POWDER. BALL. RAMROD. DON\'T SAY IT.', 'EVERY SHOT GOES ON YOUR BILL! PANTS GO ON IT TOO!'],
 };
@@ -223,7 +223,7 @@ export const TF_MAULED: ByPants = {
 };
 /** Up again after a mauling, more chewed. */
 export const TF_GETUP: ByPants = {
-  clean: ['I\'M FINE! THAT\'S A DEDUCTIBLE!', 'STILL HERE! STILL BILLING!', 'THEY TOOK A CHUNK! I\'M ADDING IT!'],
+  clean: ['I\'M FINE! THAT\'S A DEDUCTIBLE!', 'STILL HERE! I CAN\'T FEEL MY ASS! BILLING YOU FOR IT!', 'THEY TOOK A CHUNK! I\'M ADDING IT!'],
   shitty: ['I\'M FINE! THEY COULDN\'T FINISH ME! YOU RUINED MY FLAVOR!', 'STILL HERE! STILL SMELL YOU!'],
   nude: ['I\'M FINE! THEY LOST THEIR APPETITE! WONDER WHY!', 'STILL HERE! STILL GRATEFUL I\'M BLIND!'],
 };
@@ -272,7 +272,7 @@ export const MH_SPRAY: ByPants = {
 };
 /** ...and the lions come out of the trees. */
 export const MH_LIONS: ByPants = {
-  clean: ['MOUNTAIN LIONS. RIGHT ON TIME.', 'GET HIM, PUSSYCATS.'],
+  clean: ['MOUNTAIN LIONS. MORE ON TIME THAN HIS TRAIN.', 'GET HIM, PUSSYCATS.'],
   shitty: ['EAT HIM. NOT ME. I\'M SPOILED.', 'GOOD KITTIES. HE\'S THE TASTY ONE.'],
   nude: ['EAT HIM. I\'M ALL SKIN AND BONE.', 'GOOD KITTIES. DON\'T LOOK AT ME.'],
 };
@@ -290,7 +290,7 @@ export const MH_BAG: ByPants = {
 };
 /** The standard death: walking up to the body. */
 export const MH_WALKUP: ByPants = {
-  clean: ['YOU DEAD? FOR REAL THIS TIME?', 'DON\'T YOU DARE.'],
+  clean: ['YOU DEAD? FOR REAL THIS TIME?', 'DON\'T YOU DARE, YOU LITTLE TURD.'],
   shitty: ['YOU DEAD? I\'M OUT OF SHIT TO SCARE OUT.', 'DON\'T. I\'M EMPTY.'],
   nude: ['YOU DEAD? I\'VE GOT NOTHING LEFT TO SHRINK.', 'DON\'T YOU DARE. I\'M NAKED.'],
 };
@@ -313,7 +313,7 @@ export const MH_LIONS_WON: ByPants = {
   nude: ['PAID IN FULL. NOW WHERE ARE MY PANTS.', 'THEY ATE HIM. NOT ME. I\'LL TAKE IT.'],
 };
 /** A grab at him (too far gone to get a hold of). */
-export const GRAB_TUCKER = ['HE\'S TOO SLIPPERY! IT\'S ALL BLOOD!', 'I\'M NOT HUGGING THAT!', 'HE\'S FALLING APART IN MY HANDS!'];
+export const GRAB_TUCKER = ['HE\'S TOO SLIPPERY! IT\'S ALL BLOOD!', 'HE\'S A WET BAG OF HAMBURGER!', 'HE\'S FALLING APART IN MY HANDS!'];
 
 /** What hurts him in the fight (by source), and the death screen. (The critters' own: critters.ts.) */
 export const FIGHT_HURT: HurtTable = {
@@ -325,11 +325,11 @@ export const FIGHT_HURT: HurtTable = {
     hurt: ['BEES! BEES!', 'WHY ARE THE BEES MAD AT ME?!', 'HE\'S THE ONE SHOOTING!'],
     death: ['STUNG. TOO MUCH RACKET.', 'THE BEES HATED THE NOISE'],
   },
-  'm2:fr_rabbit': { hurt: ['A BUNNY HIT ME!', 'RABBIT! TO THE SHIN!'], death: ['TRAMPLED BY A BUNNY', 'KILLED BY A BUNNY. A BUNNY.'] },
-  'm2:fr_squirrel': { hurt: ['SQUIRREL! IN MY FACE!', 'IT RAN UP MY LEG!'], death: ['RUN OVER BY A SQUIRREL', 'THE SQUIRREL DIDN\'T STOP'] },
+  'm2:fr_rabbit': { hurt: ['A BUNNY HIT ME!', 'A BUNNY KICKED ME IN THE DICK!'], death: ['TRAMPLED BY A BUNNY', 'KILLED BY A BUNNY. A BUNNY.'] },
+  'm2:fr_squirrel': { hurt: ['SQUIRREL! IN MY FACE!', 'IT RAN UP MY SHORTS!'], death: ['RUN OVER BY A SQUIRREL', 'THE SQUIRREL DIDN\'T STOP'] },
   'm2:fr_raccoon': { hurt: ['RACCOON! IT BIT ME!', 'TRASH PANDA!'], death: ['MUGGED BY A RACCOON', 'A RACCOON TOOK HIS LIFE'] },
   'm2:fr_skunk': { hurt: ['SKUNK! OH GOD, THE SMELL!', 'IT SPRAYED ME!'], death: ['KILLED BY A SKUNK', 'HE SMELLED IT COMING'] },
-  'm2:fr_turkey': { hurt: ['TURKEY! TURKEY!', 'THE BIRD KICKED ME!'], death: ['STAMPEDED BY A TURKEY', 'GOBBLED'] },
+  'm2:fr_turkey': { hurt: ['A TURKEY! WITH A BALLSACK ON ITS FACE!', 'THE BIRD KICKED ME!'], death: ['STAMPEDED BY A TURKEY', 'GOBBLED'] },
   'm2:fr_duck': { hurt: ['A DUCK! TO THE FACE!', 'DUCK! I SHOULD\'VE DUCKED!'], death: ['HIT BY A DUCK. DIDN\'T DUCK.', 'QUACKED TO DEATH'] },
   'm2:fr_bat': { hurt: ['BAT! IN MY HAIR!', 'GET IT OUT! GET IT OUT!'], death: ['FLOWN INTO BY A BAT', 'BATTED TO DEATH'] },
 };
