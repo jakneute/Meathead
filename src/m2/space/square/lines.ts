@@ -18,7 +18,7 @@ export const ARRIVE = [
 /** His first proper look at the giant atom, over the rooftops. */
 export const ATOM_SEEN = [
   'A GIANT ATOM. NOBODY WHO BUILT THAT EVER GOT LAID.',
-  "THAT'S ONE BIG BALL WITH THREE HULA HOOPS. I'M GOING IN THERE.",
+  "ONE BIG BALL, THREE HULA HOOPS. I'M GOING IN.",
 ];
 /** The gags along the way, passing each (once each). */
 export const GAG_LINES: Record<'mover' | 'zap' | 'pad' | 'wall' | 'mono' | 'pit' | 'queue', string[]> = {
@@ -27,8 +27,8 @@ export const GAG_LINES: Record<'mover' | 'zap' | 'pad' | 'wall' | 'mono' | 'pit'
     "MOVING SIDEWALK. I'M STILL WALKING. WHAT AM I PAYING FOR?",
   ],
   zap: [
-    'ELECTRIC SIDEWALK. SAFE AS MILK, IT SAYS. MILK NEVER TRIED TO KILL ME.',
-    'THE FLOOR IS BUZZING. THAT IS NEVER GOOD NEWS.',
+    'SAFE AS MILK, SAYS THE SIGN. MILK NEVER ZAPPED MY NUTS.',
+    'THE FLOOR IS BUZZING. SO ARE MY BALLS.',
   ],
   pad: [
     'FEEL THE THRUST. DON\'T MIND IF I DO.',
@@ -36,7 +36,7 @@ export const GAG_LINES: Record<'mover' | 'zap' | 'pad' | 'wall' | 'mono' | 'pit'
   ],
   wall: [
     'THE WALL OF TOMORROW. IT\'S A WALL. TOMORROW\'S GONNA SUCK.',
-    'THEY PUT A WALL IN THE MIDDLE OF THE STREET. THAT\'S THE FUTURE. WALLS.',
+    'A WALL IN THE MIDDLE OF THE STREET. SOME ARCHITECT GOT PAID FOR THIS.',
   ],
   mono: [
     'EXPRESS. DOES NOT STOP. SO HOW THE HELL DO YOU GET ON?',
@@ -44,21 +44,21 @@ export const GAG_LINES: Record<'mover' | 'zap' | 'pad' | 'wall' | 'mono' | 'pit'
   ],
   pit: [
     "FUTURE SITE OF TOMORROW. COMING 1964. THEY'RE A LITTLE BEHIND.",
-    "A HOLE WITH A SIGN ON IT. SIXTY YEARS. NOBODY'S FILLED IT.",
+    'A HOLE WITH A SIGN ON IT. SIXTY YEARS. UNION JOB.',
   ],
   queue: [
     "NINETY MINUTES FROM THIS POINT. I DON'T WAIT NINETY MINUTES TO SHIT.",
-    'NINETY MINUTES. I HAVE A COUPON FOR THE FRONT. IT SAYS MEATHEAD.',
+    "NINETY MINUTES? I'M THE FAST PASS.",
   ],
 };
 /** Launched off a thrust pad, the first time. */
 export const PAD_LAUNCHED = [
-  "WHOO! I'M AN ASTRONAUT!",
+  'HOUSTON, WE HAVE A BONER!',
   'THAT WENT RIGHT UP MY SHORTS!',
 ];
 /** Riding the monorail's roof (the first time). */
 export const MONO_RIDE = [
-  'TICKET, PLEASE. HERE IS MY TICKET. IT IS MY ASS ON YOUR ROOF.',
+  'TICKET? MY ASS IS THE TICKET.',
   'EXPRESS SERVICE. I SAT ON TOP. FIRST CLASS.',
 ];
 /** Over the edge into the construction pit (once a fall). */
@@ -72,19 +72,19 @@ export const PA_VOICE = 'm2.space.futurepa';
 export const PA_WELCOME: ByPants = {
   clean: [
     'WELCOME TO FUTURELAND, WHERE IT IS ALWAYS TOMORROW! TOMORROW IS CLOSED FOR REFURBISHMENT.',
-    'GOOD DAY, CITIZEN OF TOMORROW! KEEP YOUR CIGARETTE LIT AT ALL TIMES.',
+    'GOOD DAY, CITIZEN OF TOMORROW! SMOKING IS PERMITTED IN ALL AREAS, INCLUDING THE NURSERY.',
   ],
   shitty: [
     'ATTENTION, GUEST IN THE BROWN TROUSERS. THE FUTURE HAS TOILETS. USE THEM.',
-    'WELCOME, CITIZEN! IN THE FUTURE, WE DO NOT SHIT OURSELVES. NOT IN PUBLIC.',
+    'WELCOME, CITIZEN! IN THE FUTURE, PANTS CLEAN THEMSELVES. YOURS ARE NOT FROM THE FUTURE.',
   ],
   nude: [
     'ATTENTION! A NUDE MAN IS LOOSE IN FUTURELAND. IN THE FUTURE, THAT IS STILL A CRIME.',
-    'WELCOME, CITIZEN! THE FUTURE HAS PANTS. SILVER ONES. GET SOME.',
+    'WELCOME, CITIZEN! IN THE FUTURE, GENITALS ARE KEPT IN A SILVER POUCH.',
   ],
 };
 /** The people mover, as he gets to it (the same for anybody). */
-export const PA_MOVER = ['THE PEOPLE MOVER! IN THE FUTURE, NOBODY WALKS. EVERYBODY IS FAT AND HAPPY.'];
+export const PA_MOVER = ['THE PEOPLE MOVER! WALKING IS FOR COMMUNISTS.'];
 /** Once he's killed a few of the cast. */
 export const PA_SECURITY: ByPants = {
   clean: [
@@ -93,11 +93,11 @@ export const PA_SECURITY: ByPants = {
   ],
   shitty: [
     'SECURITY TO THE SQUARE. FOLLOW THE SMELL.',
-    'SECURITY TO THE SQUARE. HE CRAPPED HIS PANTS AND HE IS KILLING EVERYBODY.',
+    "SECURITY TO THE SQUARE. HE SHIT HIMSELF AND HE'S WINNING.",
   ],
   nude: [
     'SECURITY TO THE SQUARE. HE IS NAKED. AIM LOW.',
-    'SECURITY TO THE SQUARE. NAKED GUY. YOU CANNOT MISS HIM. GOD KNOWS WE TRIED.',
+    'SECURITY, NAKED MAN IN THE SQUARE. DO NOT TASE THE DANGLY PART.',
   ],
 };
 /** At the monorail station. */
@@ -105,11 +105,11 @@ export const PA_MONO = ['THE MONORAIL OF TOMORROW IS EXPRESS ONLY. IT HAS NEVER 
 /** At the atom's doors. */
 export const PA_ATOM: ByPants = {
   clean: [
-    'THE GIANT ATOM WELCOMES YOU! THE LINE STARTS BACK THERE, SIR. SIR?',
+    'THE GIANT ATOM WELCOMES YOU! NINETY MINUTE WAIT. SIR. SIR!',
     'NOW ENTERING THE GIANT ATOM! PLEASE DO NOT SPLIT IT.',
   ],
   shitty: [
-    'SIR, PLEASE DO NOT TAKE THAT SMELL INTO THE GIANT ATOM. IT IS A CLOSED SYSTEM.',
+    'SIR, THE GIANT ATOM IS A CLOSED SYSTEM. WHATEVER YOU BRING IN, WE ALL BREATHE.',
     'THE GIANT ATOM IS NOT A RESTROOM, SIR. NO MATTER WHAT YOU HAVE HEARD.',
   ],
   nude: [
@@ -123,8 +123,8 @@ export const PA_ATOM: ByPants = {
 
 export const GUARD_VOICES = { m: 'm2.space.guard', f: 'm2.space.guardf' } as const;
 export const GUARD_BARK: ByPants = {
-  clean: ['SIR! NO RUNNING IN THE FUTURE!', 'STOP! I HAVE A SCOOTER!'],
-  shitty: ['CODE BROWN! CODE BROWN!', 'SIR! YOU SHIT IN TOMORROW!'],
+  clean: ['SIR! NO RUNNING IN THE FUTURE!', 'HALT! I HAVE A SCOOTER AND A GED!'],
+  shitty: ['CODE BROWN! CODE BROWN!', "HE'S LEAKING! DON'T LET HIM SIT ON ANYTHING!"],
   nude: ['CODE NUDE! I REPEAT, CODE NUDE!', 'SIR! PUT YOUR WIENER AWAY!'],
 };
 
@@ -133,7 +133,7 @@ export const GUARD_BARK: ByPants = {
 
 export const HURT: Record<string, { hurt: string[]; death: string[] }> = {
   'm2:space_cadet': {
-    hurt: ['SPACE CADET! I WILL END YOUR MISSION!', 'GET YOUR FISHBOWL OFF ME!', 'OW! YOU NERD!'],
+    hurt: ["I'LL SHOVE THAT FISHBOWL UP YOUR ASS!", 'GET YOUR FISHBOWL OFF ME!', "I'LL GIVE YOU A SWIRLY IN THAT FISHBOWL!"],
     death: ['BEATEN UP BY A SPACE CADET', 'KILLED BY A FISHBOWL HEAD'],
   },
   'm2:space_cadet_shot': {
@@ -141,23 +141,23 @@ export const HURT: Record<string, { hurt: string[]; death: string[] }> = {
     death: ['SHOT DEAD WITH A TOY', 'PEW PEW'],
   },
   'm2:space_robot': {
-    hurt: ['BEEP BOOP, MOTHERFUCKER!', 'THE CARDBOARD ROBOT GOT ME!', 'OW! YOUR ARMS ARE DRYER HOSE!'],
+    hurt: ['BEEP BOOP, MOTHERFUCKER!', 'I GOT BEAT UP BY RECYCLING!', 'OW! YOUR ARMS ARE DRYER HOSE!'],
     death: ['DESTROYED BY A CARDBOARD BOX', 'DOES NOT COMPUTE'],
   },
   'm2:space_robot_antenna': {
-    hurt: ['ZAPPED MY TAINT!', 'THE ANTENNA! IT GOT MY BALLS!', 'WHY IS IT LIVE?!'],
+    hurt: ['ZAPPED MY TAINT!', 'THE ANTENNA! IT GOT MY BALLS!', "WHO WIRED A ROBOT'S DICK TO THE GRID?!"],
     death: ['SAT ON A ROBOT\'S ANTENNA', 'FRIED FROM THE TAINT UP'],
   },
   'm2:space_guard': {
-    hurt: ['RUN OVER BY A SCOOTER!', 'GET OFF YOUR SEGWAY AND FIGHT ME!', 'THAT THING DOES NOT HOVER!'],
-    death: ['RUN OVER BY A MALL COP', 'HOVER-PATROLLED'],
+    hurt: ['A MALL COP RAN ME OVER! A MALL COP!', 'GET OFF YOUR SEGWAY AND FIGHT ME!', 'THAT THING DOES NOT HOVER!'],
+    death: ['RUN OVER BY A MALL COP', 'FLATTENED BY A SEGWAY'],
   },
   'm2:space_guard_baton': {
     hurt: ['STUN STICK! RIGHT IN THE TITS!', 'OW! MY NIPPLES ARE ON FIRE!', 'DON\'T TASE ME, BRO! I MEAN IT!'],
     death: ['CHARGED INTO A STUN BATON', 'TASED, BRO'],
   },
   'm2:space_jetpack': {
-    hurt: ['JETPACK IN MY FACE!', 'YOUR EXHAUST IS IN MY HAIR!', 'GET DOWN HERE, ROCKET BOY!'],
+    hurt: ['JETPACK IN MY FACE!', 'HE FARTED FIRE ON ME!', 'GET DOWN HERE, ROCKET BOY!'],
     death: ['BURNED UP BY A JETPACK', 'ROCKETEERED'],
   },
   'm2:space_icecream': {
@@ -165,7 +165,7 @@ export const HURT: Record<string, { hurt: string[]; death: string[] }> = {
     death: ['STONED WITH SPACE ICE CREAM', 'FREEZE-DRIED'],
   },
   'm2:space_rover': {
-    hurt: ['THE ROBOT DOG BIT ME!', 'BAD DOG! BAD ROBOT!', 'IT HUMPED MY ANKLE!'],
+    hurt: ['THE ROBOT DOG BIT ME!', "BAD DOG! I'LL PULL YOUR BATTERIES!", 'IT HUMPED MY ANKLE!'],
     death: ['MAULED BY A ROBOT DOG', 'GOOD BOY'],
   },
   'm2:space_zap': {
@@ -173,7 +173,7 @@ export const HURT: Record<string, { hurt: string[]; death: string[] }> = {
     death: ['ELECTROCUTED BY THE SIDEWALK', 'SAFE AS MILK'],
   },
   'm2:space_monorail': {
-    hurt: ['HIT BY A TRAIN!', 'IT DIDN\'T EVEN SLOW DOWN!', 'EXPRESS! OW! EXPRESS!'],
+    hurt: ['HIT BY A TRAIN!', "IT DIDN'T EVEN HONK!", 'EXPRESS! OW! EXPRESS!'],
     death: ['HIT BY A MONORAIL', 'THE EXPRESS DOES NOT STOP'],
   },
 };
