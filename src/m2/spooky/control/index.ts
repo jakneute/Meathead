@@ -31,7 +31,6 @@ import { drawBars, Lines } from './cine';
 import { tickStaff, drawGlobes, drawStaffSaid, resetStaff } from './staff';
 import { type Shop, makeShop, setShopGeo, buildShop, startChase, shopAftermath, tickShop, shopDonnieOut, shopDonnieGone, drawShop, drawShopFront } from './shop';
 import { type Doors, makeDoors, buildDoors, doorsDown, lockDoors, tickDoors, forgetDoors, doorsKicked, drawDoors, drawDoorsFront, drawDoorsTrim, drawDoorsHud } from './doors';
-import { forgetFightIntro } from '../ballroom/fight';
 import * as L from './lines';
 import { x0, x1, HOLE_X, DESK_X, RACK_X, ROOM_DOOR, SHOP_X, BALL_DOOR, PICKUP_X, MIC_X } from './geo';
 import { drawRoom as paintRoom, drawPartition, drawPartitionFront, roomLighting } from './room';
@@ -206,7 +205,7 @@ export const control: SpookySection = {
     // come. Done here, not on the first frame: a fresh start (the checkpoint-skip cheat, a new go at the land) builds
     // at checkpoint 0 whatever checkpoint it then starts at, so nothing from a go before carries over into it; back
     // from dying, it's built at the checkpoint he's got to)
-    if (state.checkpoint < 60) { revealSeen = false; forgetDoors(); forgetFightIntro(); }
+    if (state.checkpoint < 60) { revealSeen = false; forgetDoors(); }
     layOwn(state, [{ x1: x0 - 200, y1: GY, x2: x1 + 200, y2: GY, surface: 'tile' }]);
     endWalls(state, 'control');
     resetStaff();

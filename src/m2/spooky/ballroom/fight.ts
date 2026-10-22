@@ -46,6 +46,7 @@ import { shakeScreen } from '../../../m1/game/core/state';
 import { playSound } from '../../../m1/game/platform/audio';
 import { say, silenceAll, cutVoice, pickLine, pickFreshLine } from '../../../m1/game/platform/speech';
 import { SKIP_AFTER, offerSkip, takeSkip } from '../../../m1/game/platform/skip';
+import { bossIntroSeen, markBossIntroSeen } from '../../bossIntro';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { isShat, isNude } from '../../../m1/game/player/gut';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
@@ -319,14 +320,12 @@ export const startFight = (state: GameState): Fight => {
   live = f;
   // (a retry: he's up and waiting already, powered, no cutscene; a beat for his entrance first (a loop and a taunt,
   // nothing at him): the user's "give a beat for him to make his entrance before you can take damage")
-  if (introSeen) { f.x = ARENA_MID + 140; f.y = GY - HOVER_UP; beginFight(state, f, true); return f; }
+  if (bossIntroSeen(state, 'donnie')) { f.x = ARENA_MID + 140; f.y = GY - HOVER_UP; beginFight(state, f, true); return f; }
   state.player.inCutscene = true;
   line(f, 'donnie', L.DONNIE_PLEAD, () => { f.intro = 'open'; f.introT = 0; });
   return f;
 };
-/** Seen the intro this time through (a retry from outside the doors skips it). Reset coming at the land fresh. */
-let introSeen = false;
-export const forgetFightIntro = () => { introSeen = false; };
+// (seen the intro this visit, a retry from outside the doors skipping it: bossIntro.ts, set as the fight begins)
 const tokened = (fn: () => void) => { const tok = token; return () => { if (tok === token) fn(); }; };
 
 /** The intro, each frame (out of his hands; skippable, all of it). */
@@ -374,7 +373,7 @@ const intro = (ctx: FrameContext, f: Fight): Controls => {
 
 /** On: out of the cutscene, into the air, the circle shut. */
 const beginFight = (state: GameState, f: Fight, retry = false) => {
-  token++; introSeen = true;
+  token++; markBossIntroSeen(state, 'donnie');
   f.said = null; f.satanSaid = null;
   f.powered = true; f.circle = 0;
   if (f.y > GY - HOVER_UP + 20) { f.y = GY - HOVER_UP; f.x = ARENA_MID + 140; }

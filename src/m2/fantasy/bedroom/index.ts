@@ -91,7 +91,7 @@ export const bedroom: FantasySection = {
     // (her room's far wall: the end of the land; the wall over her door; her door, till it's kicked in; her ceiling)
     solid(state, ARENA_R, GY - 6000, 400, 6000, { hidden: true, tag: 'pp-end' });
     solid(state, DOOR_X - 40, GY - 6000, 80, 6000 - 232, { hidden: true, tag: 'pp-over-door' });
-    if (!cleared && !introSeen()) solid(state, DOOR_X - 46, GY - 232, 92, 232, { hidden: true, tag: 'pp-door' });
+    if (!cleared && !introSeen(state)) solid(state, DOOR_X - 46, GY - 232, 92, 232, { hidden: true, tag: 'pp-door' });
     solid(state, ARENA_L - 40, CEIL_Y - 40, ARENA_R - ARENA_L + 80, 40, { hidden: true, tag: 'pp-ceiling' });
     // (the furniture to stand on: the canopy's down for good on a revisit)
     for (const [lx, w, h, what] of LEDGES) if (!(cleared && what === 'canopy')) ledge(state, R(lx), GY - h, w, { hidden: true, tag: `pp-${what}` });
@@ -109,16 +109,16 @@ export const bedroom: FantasySection = {
       if (cleared) return controls;
       // (a fresh start at her checkpoint (the checkpoint-skip cheat: set after the build): the world as a run there left
       // it, her door kicked in and the intro seen; he walks in and she's waiting)
-      if (state.checkpoint >= CP_FIGHT && !introSeen()) { markIntroSeen(); state.blocks = state.blocks.filter(b => b.tag !== 'pp-door'); }
+      if (state.checkpoint >= CP_FIGHT && !introSeen(state)) { markIntroSeen(state); state.blocks = state.blocks.filter(b => b.tag !== 'pp-door'); }
       // (naked: up since the glass, till he sees her)
-      keepErect(state, introSeen() ? 0 : 1);
-      if (!introSeen() && !p.inCutscene && isNude(state) && state.frame % 40 === 0) state.particles.push({ pos: { x: pmidX(state) + (Math.random() - 0.5) * 16, y: p.pos.y - 6 }, vel: { x: (Math.random() - 0.5) * 0.6, y: -1.2 }, life: 40, color: Math.random() < 0.5 ? '#F472B6' : '#FB7185', size: 4 });
+      keepErect(state, introSeen(state) ? 0 : 1);
+      if (!introSeen(state) && !p.inCutscene && isNude(state) && state.frame % 40 === 0) state.particles.push({ pos: { x: pmidX(state) + (Math.random() - 0.5) * 16, y: p.pos.y - 6 }, vel: { x: (Math.random() - 0.5) * 0.6, y: -1.2 }, life: 40, color: Math.random() < 0.5 ? '#F472B6' : '#FB7185', size: 4 });
       // (his line in the hall, once a visit, once the glass is done with)
-      if (!p.inCutscene && hallVisit !== landVisit() && !introSeen()) { hallVisit = landVisit(); meatheadSays(state, pickLine(byPants(state, MH_HALL))); }
+      if (!p.inCutscene && hallVisit !== landVisit() && !introSeen(state)) { hallVisit = landVisit(); meatheadSays(state, pickLine(byPants(state, MH_HALL))); }
       const me = pmidX(state);
       // (the first time: up to her door and it's the intro; after (or already through it): straight in)
       // (right up at it, walked there himself: the user's "the player has to physically walk up to the door")
-      if (!introSeen() && me < DOOR_X && me >= KICK_AT - 8 && p.isGrounded && !p.inCutscene) { s.f = startFight(state, false); s.fight = 'on'; }
+      if (!introSeen(state) && me < DOOR_X && me >= KICK_AT - 8 && p.isGrounded && !p.inCutscene) { s.f = startFight(state, false); s.fight = 'on'; }
       else if (me > ARENA_L + 40 && p.health > 0) { s.f = startFight(state, true); s.fight = 'on'; }
       return controls;
     }
@@ -163,7 +163,7 @@ export const bedroom: FantasySection = {
     const s = bedroomOf(state);
     if (s.walls.length) return { min: ARENA_L, max: ARENA_R - CANVAS_WIDTH };
     // (in the hall with her door shut: nothing past it shows (her room's hidden till he's in it))
-    if (s.fight === 'wait' && !introSeen() && !isLandCleared('fantasy')) return { min: x0, max: DOOR_X + 60 - CANVAS_WIDTH };
+    if (s.fight === 'wait' && !introSeen(state) && !isLandCleared('fantasy')) return { min: x0, max: DOOR_X + 60 - CANVAS_WIDTH };
     return { min: x0, max: ARENA_R - CANVAS_WIDTH };
   },
   // (his feet wherever he is, the camera's top held at CAM_Y: the floor low, the ceiling up under the HUD's band)
@@ -176,7 +176,7 @@ export const bedroom: FantasySection = {
     const bits = roomBits(f);
     const look = cleared
       ? { stage: MAX_STAGE, doorT: 999, barrier: false, chandelierDown: 0, roofHole: end?.how === 'cork' ? end.x : null, piperX: null }
-      : { ...bits, doorT: f ? f.doorT : introSeen() ? 999 : null, barrier: s.walls.length > 0 };
+      : { ...bits, doorT: f ? f.doorT : introSeen(state) ? 999 : null, barrier: s.walls.length > 0 };
     drawChamber(c, state, look);
     drawEndWall(c, state);
     drawHall(c, state, look);

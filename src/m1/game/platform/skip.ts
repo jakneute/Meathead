@@ -19,7 +19,13 @@ const now = () => (typeof performance !== 'undefined' ? performance.now() : Date
 const live = () => now() - offeredAt < 120;
 
 /** A stage cutscene that can be skipped right now (called every frame it can). */
-export const offerSkip = () => { offeredAt = now(); };
+export const offerSkip = () => {
+  // (a new offer, the last one lapsed: a press made for that one doesn't carry over into this. A Start pressed to skip a
+  // death screen just as it ran out by itself was left standing, and skipped the next cutscene the moment it could be:
+  // the queen's whole intro, 30 frames in)
+  if (!live()) requested = false;
+  offeredAt = now();
+};
 /** Is there a cutscene in a stage that can be skipped? (Start / Esc skips it instead of pausing.) */
 export const canSkip = () => live();
 /** Start / Esc, while one's on offer. */

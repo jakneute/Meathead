@@ -43,7 +43,7 @@ import {
 } from './layout';
 import type { Block } from '../../../m1/types';
 import { playSound } from '../../../m1/game/platform/audio';
-import { amphiOf, introSeen, saidOnce, GUARD_DOWN, type Amphi } from './state';
+import { amphiOf, introSeen, markIntroSeen, saidOnce, GUARD_DOWN, type Amphi } from './state';
 import { updateShow, stageLook } from './show';
 import { startKick, updateKick, guardPoseOf, startIntro, updateIntro, drawKickHud, drawIntroHud } from './scene';
 import {
@@ -149,7 +149,8 @@ export const amphi: CartoonSection = {
     if (s.intro) {
       markBossFight(state, 'stupid-dad');
       const { out, done } = updateIntro(ctx, s);
-      if (done) { s.intro = null; beginFight(state, s, false); }
+      // (seen this visit only once it's over, played through or skipped: bossIntro.ts)
+      if (done) { s.intro = null; markIntroSeen(state); beginFight(state, s, false); }
       return out;
     }
     if (s.fight) {
@@ -184,7 +185,7 @@ export const amphi: CartoonSection = {
     // Up onto the stage: STUPID DAD (the first time this visit, the intro; a retry, straight on)
     if (!cleared && s.guard === 'down' && p.health > 0 && p.isGrounded && rx > DECK_A + 70) {
       markBossFight(state, 'stupid-dad');
-      if (startIntro(state, s, introSeen())) return updateIntro(ctx, s).out;
+      if (startIntro(state, s, introSeen(state))) return updateIntro(ctx, s).out;
       beginFight(state, s, true);
       return controls;
     }

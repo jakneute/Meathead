@@ -48,6 +48,7 @@ import { playSound } from '../../../m1/game/platform/audio';
 import { say, silenceAll, pickLine, announce, isTalking } from '../../../m1/game/platform/speech';
 import { GRAB_CALLOUTS } from '../../moves/callouts';
 import { SKIP_AFTER, offerSkip, takeSkip } from '../../../m1/game/platform/skip';
+import { bossIntroSeen, markBossIntroSeen } from '../../bossIntro';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { isShat, isNude } from '../../../m1/game/player/gut';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
@@ -142,8 +143,6 @@ const fileLines = (state: GameState) => {
 /** The pool of hot oil she lands in after a leap: how wide; what it does to him. Up till her next birth. */
 const POOL_R = 190, POOL_DMG = 22;
 
-/** Kept across his deaths: the disco's cutscene's been (a retry skips it). */
-const INTRO_MEMO = 'm2:space:discoIntro';
 
 // ---------------------------------------------------------------------------------------------------------------
 // The state
@@ -211,7 +210,7 @@ export interface Fight {
   entrance: number;
 }
 export const makeFight = (state: GameState): Fight => {
-  const seen = !!state.stageMemo[INTRO_MEMO];
+  const seen = bossIntroSeen(state, 'queen');
   return {
     mode: 'wait', t: 0, total: 0, hp: HP, iframes: 0, flash: 0, moveSeen: undefined,
     side: 1, x: seen ? SIDE_X[1] : INTRO_X, y: 0, facing: -1, ext: 0, ph: null,
@@ -318,7 +317,7 @@ const begin = (state: GameState, f: Fight) => {
   f.birthT = 120; f.leapT = 0; f.canT = 0;
   // (out of the cutscene she's mid-hall: first thing, she's off to the far end)
   if (Math.abs(f.x - SIDE_X[1]) > 40) { f.side = -1; f.forceLeap = true; }
-  state.stageMemo[INTRO_MEMO] = '1';
+  markBossIntroSeen(state, 'queen');
   state.player.inCutscene = false; state.player.kickPose = 0; state.player.extinguisher = undefined;
   const e = makeKindEnemy(QUEEN_KIND as EnemyKind, f.x, GY);
   e.facing = f.facing; e.seen = true;

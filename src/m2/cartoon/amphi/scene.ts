@@ -31,7 +31,7 @@ import { meatheadSays, byPants, pantsOf, saidOver, box } from '../section';
 import { INK } from '../kit';
 import { checker } from '../../../m1/game/render/pixelArt';
 import type { Amphi, Speaker } from './state';
-import { GUARD_DOWN, markIntroSeen } from './state';
+import { GUARD_DOWN } from './state';
 import { X, x0, x1, PIT_Y, STAGE_Y, KICK_AT, MARK, DAD_SEAT, COUCH_HOME, CP_STEPS, CP_DAD } from './layout';
 import { stageSays, freezeShow, laughTrack } from './show';
 import { drawGuardCloseup, type GuardPose } from './guard';
@@ -156,7 +156,6 @@ const FLY_T = 70, DRAG_T = 96;
 
 /** Up onto the stage: the intro (true), or a retry, straight on (false: the wall down, the fight's to start). */
 export const startIntro = (state: GameState, s: Amphi, retry: boolean) => {
-  markIntroSeen();
   freezeShow(state, s);
   state.checkpoint = Math.max(state.checkpoint, CP_DAD);
   if (retry) { s.intro = null; return false; }

@@ -45,7 +45,8 @@ import { registerM2Kind } from '../../kinds';
 import { setStormPick, setStormHit } from '../../weapons/spellbook';
 import { TOO_BIG_BY_KIND } from '../../lines/weaponLines';
 import { drawSteveGross, drawSteveGrossBack } from './steveGross';
-import { box, label, saidOver, hands, speak, voice, meatheadSays, landVisit, getHollywood } from '../section';
+import { box, label, saidOver, hands, speak, voice, meatheadSays, getHollywood } from '../section';
+import { bossIntroSeen, markBossIntroSeen } from '../../bossIntro';
 import { ARENA_L, ARENA_R, ARENA_MID, GY, ZK, CUT, CAM_ROW, DOORS_X, STEVE_AT, LANE_FRONT, BARRIER_Y } from './arena';
 import {
   type Garage, newRamps, spawnRed, spawnBlue, spawnTow, pickRamp, updateRamps, updateCars, tickLaunch, launchHim, boom, freeze,
@@ -202,8 +203,7 @@ const paSays = (f: Fight, lines: L.ByPants, onDone?: () => void) => {
 // ---------------------------------------------------------------------------------------------------------------
 // Starting
 
-/** Seen the intro this visit (a retry from the checkpoint skips it). */
-let introVisit = -1;
+// (seen the intro this visit, a retry from the checkpoint skipping it: bossIntro.ts, set as the fight begins)
 
 /** Every shot kept to the arena: never past either end of it. */
 const clampCam = (x: number) => Math.max(ARENA_L, Math.min(ARENA_R - CANVAS_WIDTH, x));
@@ -233,7 +233,7 @@ export const startFight = (state: GameState): Fight => {
   live = f;
   // (a retry: straight in, but a beat for his entrance first: the user's "give a beat for him to make his entrance
   // before you can take damage")
-  if (introVisit === landVisit()) { beginFight(state, f); f.entrance = ENTRANCE_T; f.act = 'wave'; f.hype = 1; return f; }
+  if (bossIntroSeen(state, 'steve')) { beginFight(state, f); f.entrance = ENTRANCE_T; f.act = 'wave'; f.hype = 1; return f; }
   state.player.inCutscene = true;
   f.replay = 1;
   return f;
@@ -246,7 +246,7 @@ const GROSS_T = 105;
 
 /** On: out of the cutscene, Steve in the world, the posse on its way. */
 const beginFight = (state: GameState, f: Fight) => {
-  token++; introVisit = landVisit();
+  token++; markBossIntroSeen(state, 'steve');
   f.said = null; f.paSaid = null;
   state.cameraOverride = null;
   const p = state.player;

@@ -140,7 +140,7 @@ export const harry: ForeignSection = {
   drawBack: (c, state) => {
     const s = harryOf(state), f = s.f, cleared = isLandCleared('foreign');
     // (a retry, before he's on the slab: her up already, him waiting)
-    const waiting = !f && !cleared && introSeen() ? drawWaiting(c, state) : null;
+    const waiting = !f && !cleared && introSeen(state) ? drawWaiting(c, state) : null;
     drawScene(c, state, {
       gate: s.gate === 'up' ? { kind: 'standing' } : s.gate === 'kick' ? (s.gateT < KICK_HIT ? { kind: 'standing' } : { kind: 'falling', k: Math.min(1, (s.gateT - KICK_HIT) / (KICK_DONE - KICK_HIT)) }) : { kind: 'down' },
       aftermath: cleared && !f ? leftovers(state) : null,

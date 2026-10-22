@@ -70,7 +70,7 @@ export const setFelled = (state: GameState, s: Arena) => {
 export const startEntry = (state: GameState) => {
   const s = arenaOf(state), p = state.player;
   s.phase = 'entry'; next(s, 'run'); s.busy = false; s.said = null; s.talking = false;
-  setBranchMemos(state); state.stageMemo[UP_MEMO] = '1'; markIntroSeen();
+  setBranchMemos(state); state.stageMemo[UP_MEMO] = '1';
   s.tMode = 'up'; s.ty = GY; s.hop = null; s.tvx = 0; s.tvy = 0; s.tFacing = 1; s.pose = 'run'; s.face = 'manic'; s.snapped = true;
   p.inCutscene = true; p.vel.x = 0; p.isDucking = false;
 };
@@ -258,7 +258,7 @@ export const finishEntry = (state: GameState, skipped: boolean) => {
   if (skipped) silenceAll();
   dropTreeWall(state);
   setBranchMemos(state);
-  state.stageMemo[UP_MEMO] = '1'; state.stageMemo[SPLIT_MEMO] = '1'; markIntroSeen();
+  state.stageMemo[UP_MEMO] = '1'; state.stageMemo[SPLIT_MEMO] = '1'; markIntroSeen(state);
   setFelled(state, s);
   s.step = ''; s.busy = false; s.said = null; s.talking = false; s.squash = 0; s.splitK = 1;
   s.tMode = 'up'; s.tx = FIGHT_X; s.ty = GY; s.tvx = 0; s.tvy = 0; s.hop = null; s.pose = 'grope'; s.face = 'manic';

@@ -3,6 +3,7 @@
 // stage on every death; what has to outlive one: the guard down (GUARD_DOWN in state.stageMemo: checkpoints restore
 // the world as the run left it), the intro seen (once a visit, keyed by landVisit()), what he's said (once a visit).
 
+import { bossIntroSeen, markBossIntroSeen } from '../../bossIntro';
 import type { GameState } from '../../../m1/game/core/state';
 import type { Block } from '../../../m1/types';
 import type { Said } from '../section';
@@ -77,9 +78,8 @@ export const amphiOf = (state: GameState) => cartoonState<Amphi>(state, 'amphi',
 }));
 
 /** STUPID DAD's intro seen this visit (a death or a checkpoint doesn't show it again). */
-let introVisit = -1;
-export const introSeen = () => introVisit === landVisit();
-export const markIntroSeen = () => { introVisit = landVisit(); };
+export const introSeen = (state: GameState) => bossIntroSeen(state, 'dad');
+export const markIntroSeen = (state: GameState) => markBossIntroSeen(state, 'dad');
 
 /** What he's said this visit (once each a visit: a death doesn't make him say it again). */
 let saidVisit = -1;

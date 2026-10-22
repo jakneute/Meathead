@@ -35,6 +35,7 @@
 //   smash, no suicide after; Harry enraged (faster, the walls more often); the crossbow's sickness is grief and
 //   airsickness, doubled over puking on the floor, wide open; and his third death: BARFED TO DEATH.
 
+import { bossIntroSeen, markBossIntroSeen } from '../../bossIntro';
 import { drawHarryGross, drawHarryGrossBack } from './harryGross';
 import type { GameState } from '../../../m1/game/core/state';
 import type { FrameContext } from '../../../m1/game/core/context';
@@ -190,8 +191,8 @@ export const resetFight = () => { live = null; };
 /** His gross-up's length in the intro (frames): the first go only (a retry has no intro). */
 const GROSS_T = 105;
 /** Seen the intro this visit (a retry from the checkpoint skips it); said once a visit. */
-let introVisit = -1, stuckSaidVisit = -1, concreteSaidVisit = -1, griefSaidVisit = -1;
-export const introSeen = () => introVisit === landVisit();
+let stuckSaidVisit = -1, concreteSaidVisit = -1, griefSaidVisit = -1;
+export const introSeen = (state: GameState) => bossIntroSeen(state, 'harry');
 
 registerHurts(L.HURT);
 
@@ -256,7 +257,7 @@ export const startFight = (state: GameState): Fight => {
   game = state; token++;
   const e = makeKindEnemy(HARRY_KIND as EnemyKind, HARRY_START, GY);
   e.facing = -1; e.seen = true;
-  const seen = introSeen();
+  const seen = introSeen(state);
   const f: Fight = {
     mode: 'intro', t: 0, total: 0, entrance: 0, hp: HP, iframes: 0, flash: 0,
     hx: HARRY_START, hy: seen ? GY : sy(-80), facing: -1, act: 'idle', actT: 0, aim: 0, firing: false, moving: false, scale: 1, called: false,
@@ -285,7 +286,7 @@ export const startFight = (state: GameState): Fight => {
 
 /** On: out of the cutscene, Harry in the world. */
 const beginFight = (state: GameState, f: Fight) => {
-  token++; introVisit = landVisit();
+  token++; markBossIntroSeen(state, 'harry');
   f.said = null;
   state.cameraOverride = null;
   const p = state.player;

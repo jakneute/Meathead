@@ -42,6 +42,7 @@
 //     him too: naked, it's back up, hopeful), then on down, dangerously thin, skin and bone, and she CRUMBLES (a heap
 //     of gown, a tiara on top, dust).
 
+import { bossIntroSeen, markBossIntroSeen } from '../../bossIntro';
 import type { GameState } from '../../../m1/game/core/state';
 import type { FrameContext } from '../../../m1/game/core/context';
 import type { Controls } from '../../../m1/game/platform/input';
@@ -61,7 +62,7 @@ import { setErect } from '../../../m1/game/render/player/body';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
 import { TOO_BIG_BY_KIND } from '../../lines/weaponLines';
 import { setUi } from '../../store';
-import { box, label, saidOver, voice, meatheadSays, landVisit } from '../section';
+import { box, label, saidOver, voice, meatheadSays } from '../section';
 import { hash, polyF, GOLD as GD } from '../kit';
 import type { ByPants } from '../talk';
 import { drawPiper, drawPiperCloseup, piperBodyW, PIPER_H, type PiperPose, type PiperFace } from '../piper';
@@ -173,10 +174,9 @@ export interface Fight {
 }
 
 /** Seen the intro this visit (a retry from a checkpoint skips it: the door's already down). */
-let introVisit = -1;
-export const introSeen = () => introVisit === landVisit();
+export const introSeen = (state: GameState) => bossIntroSeen(state, 'piper');
 /** Counted as seen (a fresh start at her checkpoint: the world as a run there left it). */
-export const markIntroSeen = () => { introVisit = landVisit(); };
+export const markIntroSeen = (state: GameState) => markBossIntroSeen(state, 'piper');
 let game: GameState | null = null;
 const pants = (): Pants => (!game ? 'clean' : isNude(game) ? 'nude' : isShat(game) ? 'shitty' : 'clean');
 
@@ -270,7 +270,7 @@ export const startFight = (state: GameState, retry: boolean): Fight => {
 /** How far off her he is at the least as it starts. */
 const START_GAP = 460;
 const beginFight = (state: GameState, f: Fight) => {
-  token++; introVisit = landVisit();
+  token++; markIntroSeen(state);
   f.said = null; f.closeup = null;
   state.cameraOverride = null;
   const p = state.player;

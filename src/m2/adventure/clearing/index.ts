@@ -37,6 +37,7 @@ import { type Fight, startFight as beginFight, updateFight, fightOver, endFight,
 import { type Victory, startVictory, tickVictory, drawVictory, victoryDone } from '../../victory';
 import { type WalkAway, playWalkAway, tickWalkAway, drawWalkAway } from '../../walkAway';
 import { markBossFight } from '../../bossQuiet';
+import { bossIntroSeen, markBossIntroSeen } from '../../bossIntro';
 import { drawArtieGross, drawArtieGrossBack } from '../river/artieGross';
 
 /** His gross-up's length (frames): the first go only (a retry's kick isn't played, so neither is this). */
@@ -46,6 +47,8 @@ const pick = pickLine;
 const dressed = (state: GameState): Dressed => (isNude(state) ? 'nude' : isShat(state) ? 'shitty' : 'clean');
 /** First time through (a return trip will differ). One flag per set piece. */
 const firstVisit = (_state: GameState) => true;
+/** The checkpoint this visit started at (state.stageMemo: the first time the clearing runs this visit). */
+const START_MEMO = 'adv-clearing-start';
 /** The rock on the way in. */
 const ROCK = { x: x0 + 700, w: 70, h: 56 };
 
@@ -231,6 +234,7 @@ const startFight = (state: GameState, cl: Clearing) => {
 const endKick = (state: GameState, cl: Clearing, skipped: boolean) => {
   if (skipped) { silenceAll(); state.playerVulgarityTimer = 0; treesDown(state, cl); }
   cl.token++; cl.said = null; cl.scene = null; cl.domino = false; cl.close = -1;
+  markBossIntroSeen(state, 'artie');
   const p = state.player; p.inCutscene = false; p.kickPose = 0;
   state.cameraOverride = null;
 };
@@ -297,8 +301,12 @@ const run = (ctx: FrameContext, controls: Controls): Controls => {
   if (import.meta.env.DEV) (window as unknown as { __clearingWin: (weak?: boolean) => void }).__clearingWin = (weak = false) => { if (!cl.walk) { cl.fight = 'won'; cl.victory = null; leave(state, weak); } };
   if (!cl.init) {
     cl.init = true;
-    // (back for another go, or not the first time: they're down already, he's waiting)
-    if (!cl.domino || state.checkpoint >= 71) { cl.domino = false; treesDown(state, cl); }
+    // (back for another go this visit (the kick's been seen), or the cheat starting him at the boss: they're down
+    // already, he's waiting. Dead past the boss's checkpoint before the kick's played (the guides got him), it's still
+    // to come: the full intro on the first encounter, every visit)
+    if (state.stageMemo[START_MEMO] === undefined) state.stageMemo[START_MEMO] = String(state.checkpoint);
+    if (+state.stageMemo[START_MEMO] >= 71) markBossIntroSeen(state, 'artie');
+    if (!cl.domino || bossIntroSeen(state, 'artie')) { cl.domino = false; treesDown(state, cl); }
   }
   runBooms(ctx, cl);
   if (cl.scene === 'kick') return kick(ctx, cl);

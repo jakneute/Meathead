@@ -59,13 +59,13 @@ const setUp = (state: GameState, s: Arena) => {
   // (a start at his checkpoint, or anything past the catch-up: the world as a run left it; past the fight's start (61):
   // the entry's been, the tree down, him split)
   if (state.checkpoint >= 60) setBranchMemos(state);
-  if (state.checkpoint >= 61) { state.stageMemo[UP_MEMO] = '1'; state.stageMemo[SPLIT_MEMO] = '1'; markIntroSeen(); }
+  if (state.checkpoint >= 61) { state.stageMemo[UP_MEMO] = '1'; state.stageMemo[SPLIT_MEMO] = '1'; markIntroSeen(state); }
   if (isLandCleared('frontier')) { s.phase = 'body'; s.tMode = 'gone'; s.snapped = true; s.wreck = true; s.mx = MH_PARK; setFelled(state, s); return; }
   if (!branchDone(state)) { s.phase = 'wait'; s.tMode = 'gone'; s.wreck = false; s.mx = null; return; }
   s.phase = 'body'; s.wreck = true; s.mx = MH_PARK;
   // (a retry this visit: the axe tree down, him flat by it, split, the branch up out of his chest, waiting to pop up
   // again; else hung on the oak, the axe tree standing)
-  if (introSeen() && state.stageMemo[UP_MEMO] === '1') { setFelled(state, s); state.stageMemo[SPLIT_MEMO] = '1'; layFlat(s); }
+  if (introSeen(state) && state.stageMemo[UP_MEMO] === '1') { setFelled(state, s); state.stageMemo[SPLIT_MEMO] = '1'; layFlat(s); }
   else { s.tMode = 'impaled'; s.face = 'out'; s.snapped = false; }
 };
 

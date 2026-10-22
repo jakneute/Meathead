@@ -28,7 +28,7 @@ import { box, hash, type Ctx } from '../kit';
 import { drawTuckerGross, drawTuckerGrossBack } from '../tuckerGross';
 import { GY, TREE_X, HANG_X, HANG_FEET, UP_X, ROOT, FIGHT_X } from './layout';
 import { startEntry, skipToWalk } from './entry';
-import { arenaOf, next, markIntroSeen, UP_MEMO, type Arena } from './state';
+import { arenaOf, next, UP_MEMO, type Arena } from './state';
 import { tuckerSays, tuckerBarks, meatheadLine, camSnap, tickTucker } from './cast';
 import { leafBurst } from './art';
 import { setBranchMemos } from './catchup';
@@ -106,7 +106,7 @@ const pop = (state: GameState, s: Arena) => {
   s.tMode = 'pop'; s.tx = HANG_X; s.ty = HANG_FEET; s.tvy = -7; s.tvx = (UP_X - HANG_X) / 24; s.tFacing = -1; s.pose = 'pop'; s.face = 'yell';
   leafBurst(s, TREE_X, GY - 300, 50, 3, 340); leafBurst(s, ROOT.x - 20, ROOT.y, 16, 7, 40);
   for (let i = 0; i < 10; i++) state.particles.push({ pos: { x: ROOT.x - 14, y: ROOT.y + (Math.random() - 0.5) * 10 }, vel: { x: -1 - Math.random() * 3, y: -1 - Math.random() * 3 }, life: 30, color: i % 2 ? '#D8B886' : '#5A3C20', size: 2 + Math.random() * 2 });
-  state.stageMemo[UP_MEMO] = '1'; markIntroSeen();
+  state.stageMemo[UP_MEMO] = '1';
   // (Meathead out of his skin: back and up)
   p.vel.x = -4.5 * p.facing; p.vel.y = -7;
   tuckerSays(state, s, TUCKER_JUMP);
@@ -117,7 +117,8 @@ export const finishFakeout = (state: GameState, skipped: boolean) => {
   const s = arenaOf(state), p = state.player;
   if (skipped) silenceAll();
   setBranchMemos(state);
-  state.stageMemo[UP_MEMO] = '1'; markIntroSeen();
+  // (the intro's seen only at the entry's end (entry.ts finishEntry): it goes on from here, the same cutscene)
+  state.stageMemo[UP_MEMO] = '1';
   s.step = ''; s.busy = false; s.said = null; s.talking = false;
   standUp(state, s);
   p.inCutscene = false;

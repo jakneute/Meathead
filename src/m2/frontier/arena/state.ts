@@ -1,8 +1,9 @@
 // The catch-up and Tucker's arena: its own state (state.stage's 'arena' slot: rebuilt on every death), and the memos
 // that outlive a death (state.stageMemo).
 
+import { bossIntroSeen, markBossIntroSeen } from '../../bossIntro';
 import type { GameState } from '../../../m1/game/core/state';
-import { frontierState, landVisit } from '../section';
+import { frontierState } from '../section';
 import type { Victory } from '../../victory';
 import type { WalkAway } from '../../walkAway';
 import type { TuckerPose, TuckerFace } from '../tucker';
@@ -18,9 +19,8 @@ export const UP_MEMO = 'frontier-arena-up';
 export const SPLIT_MEMO = 'frontier-tucker-split';
 
 /** Seen the fake-out this visit (a retry from the checkpoint gets the entrance beat instead). */
-let introVisit = -1;
-export const introSeen = () => introVisit === landVisit();
-export const markIntroSeen = () => { introVisit = landVisit(); };
+export const introSeen = (state: GameState) => bossIntroSeen(state, 'tucker');
+export const markIntroSeen = (state: GameState) => markBossIntroSeen(state, 'tucker');
 
 export type Phase = 'wait' | 'catchup' | 'body' | 'fakeout' | 'entry' | 'entrance' | 'up' | 'won';
 /** The axe tree: standing, coming down (chopped through), down along the ground. */
