@@ -11,13 +11,15 @@
 //          alone; a runner (a PA with a walkie and the coffee); a boom op up on the roof.
 //   2600   SET 2, THE ABYSS (checkpoint): a soundstage pit dressed in green, too wide to jump: a wire over it; the
 //          lighting rig over the landing (a par can comes down). Then the wider one: a wire out to a set flat hung on
-//          chains over the pit, another on from it; a wind machine blowing back at it. Mocap stunt doubles, alone, then two.
+//          chains over the pit, another on from it; a wind machine blowing back at it; a runner out on the flat. Mocap
+//          stunt doubles, alone, then two.
 //   4600   VIDEO VILLAGE AND CRAFT SERVICES (checkpoint): the craft services table (stand on it), the catering truck's
 //          counter, the monitors, the director's chair. Craft services, alone (lobbing the food); the director (ACTION!:
 //          his crew speeds up) with a grip and a runner. The lighting rig again. Stuntman Steve's headshot on the board.
 //   6300   SET 3, THE MOTHERSHIP (checkpoint): scaffold rostrums up, a pyro trench along the floor (PYRO: HOT SET, the
 //          jets going off in turn), the camera crane over it (a wire on its own loop: catch it), a landing over the far
-//          end. Mocap doubles up the rostrums, a boom op, the stunt coordinator (alone: the tackle).
+//          end. Mocap doubles up the rostrums, a boom op on the landing, the stunt coordinator (alone: the tackle) on
+//          the floor under it.
 //   8200   SET 4, THE BATTLE OF NEW NEW YORK (checkpoint): a fake taxi, a toppled building flat (up it, or the wire), a
 //          wind machine, the lighting rig, a pyro jet; everybody.
 //   9600   THE CAST'S HOLDING AREA: the big health and ammo; PRINCIPAL CAST ONLY BEYOND THIS POINT (checkpoint).
@@ -107,17 +109,24 @@ export type CrewKind = 'm2:hww_grip' | 'm2:hww_boom' | 'm2:hww_runner' | 'm2:hww
 export const ENEMIES: [CrewKind, number, number][] = [
   // the burst-in's own foreground crew (on the set he comes down on: they come at him on KILL THEM ALL)
   ['m2:hww_grip', 720, 0], ['m2:hww_runner', 840, 0],
-  // the rooftop: a grip alone, a runner, a boom op up on the roof, a grip down its far side
-  ['m2:hww_grip', 1060, 0], ['m2:hww_runner', 1470, 0], ['m2:hww_boom', 2070, 300], ['m2:hww_grip', 2420, 0],
-  // the abyss: a runner between the pits; a mocap double alone past the second, then two
-  ['m2:hww_runner', 3560, 0], ['m2:hww_mocap', 4640, 0], ['m2:hww_mocap', 4790, 0], ['m2:hww_mocap', 4870, 0],
-  // craft services alone (up on the truck's counter); the director with a grip and a runner
-  ['m2:hww_craft', 5330, 110], ['m2:hww_director', 5760, 0], ['m2:hww_grip', 5880, 0], ['m2:hww_runner', 6000, 0],
-  // the mothership: doubles up the rostrums, a boom op over the far end, the stunt coordinator alone
-  ['m2:hww_mocap', 6760, 240], ['m2:hww_mocap', 6540, 120], ['m2:hww_boom', 7720, 130], ['m2:hww_stuntco', 8060, 0],
-  // New New York: everybody
-  ['m2:hww_grip', 8380, 0], ['m2:hww_director', 8640, 0], ['m2:hww_stuntco', 8820, 0], ['m2:hww_mocap', 8960, 240],
-  ['m2:hww_craft', 9230, 0], ['m2:hww_boom', 9420, 0], ['m2:hww_runner', 9500, 0],
+  // the rooftop: a grip alone on the floor; a runner up on the high rostrum lobbing down while he climbs to the wire;
+  // a boom op up on the roof where the wire drops him; a grip down its far side
+  ['m2:hww_grip', 1060, 0], ['m2:hww_runner', 1600, 200], ['m2:hww_boom', 2070, 300], ['m2:hww_grip', 2420, 0],
+  // the abyss: the floor between the pits quiet (the par can over the landing); a runner out on the hung flat, lobbing
+  // at him out on the wire (shoot it off from the wire); a mocap double alone past the second pit, then two side by
+  // side (charge one into the other)
+  ['m2:hww_runner', 3960, 60], ['m2:hww_mocap', 4760, 0], ['m2:hww_mocap', 4900, 0], ['m2:hww_mocap', 4960, 0],
+  // video village: craft services up on the truck's counter with a runner (two lobbing from up there); a grip on the
+  // floor, by the par can (lure him under it), the director behind him (ACTION!: get past the grip to him)
+  ['m2:hww_craft', 5330, 110], ['m2:hww_runner', 5250, 110], ['m2:hww_grip', 5600, 0], ['m2:hww_director', 5820, 0],
+  // the mothership: a double up the high rostrum; the stunt coordinator alone on the floor at the trench's far end (his
+  // tackle comes along the floor: through the pyro, if he's lured), a boom op on the landing, a double up over it
+  ['m2:hww_mocap', 6800, 240], ['m2:hww_stuntco', 7720, 0], ['m2:hww_boom', 7720, 130], ['m2:hww_mocap', 7950, 250],
+  // New New York (past the checkpoint's reach): a grip behind the taxi; the director up on the scaffold (ACTION! from
+  // up there: get up to him); the stunt coordinator in the wind machine's gust (it blows him into the tackle); a double
+  // up on the toppled flat; craft services under the par can; a boom op by the pyro jet (knock him in); a runner
+  ['m2:hww_grip', 8620, 0], ['m2:hww_director', 8770, 120], ['m2:hww_stuntco', 8900, 0], ['m2:hww_mocap', 8960, 240],
+  ['m2:hww_craft', 9150, 0], ['m2:hww_boom', 9400, 0], ['m2:hww_runner', 9500, 0],
 ];
 
 /** Lying about (lean: small ones, each for going somewhere for it). */

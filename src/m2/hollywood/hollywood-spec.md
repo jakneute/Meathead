@@ -241,7 +241,7 @@ before the stage's door. The walk-away is walkAway/stuntmanSteve.ts (his toy: th
 Existing kinds, ledges, solids and hazards only; about the same counts; scenes, the coaster's stop waves, the Ensemble
 Cast and Steve untouched. Nobody placed within a checkpoint's safe reach ahead of it (spawnSafe.ts SAFE_X 360).
 
-**The blvd (blvd/layout.ts ENEMIES: 23 before, 23 after)**
+**The blvd (blvd/layout.ts ENEMIES: 22 before, 22 after)**
 
 - The palace: a Marilyn and a statue side by side on the street, the marquee free. Now the Marilyn's out front and the
   statue's posed up on the marquee by the small ammo (still: it wakes only when he's up there with it).
@@ -256,3 +256,21 @@ Cast and Steve untouched. Nobody placed within a checkpoint's safe reach ahead o
 - The queue plaza's five stood inside THRONES OF THE STARS' checkpoint's reach (most gone on a start there). Now past
   it, in an order: a statue (on him from behind once he's by), a pirate (shoot him), a Marilyn and an Elvis side by
   side (charge one into the other), a hero behind them (the bodies fly into him round his shield).
+
+**The warehouse (warehouse/layout.ts ENEMIES: 27 before, 27 after)**
+
+- The rooftop: the runner on the floor walked into his gun with the grip. Now he's up on the high rostrum, lobbing
+  down while he climbs to the wire.
+- The abyss: a runner stood on the floor between the pits, and the mocap doubles sat 270 past CRAFT SERVICES'
+  checkpoint. Now the floor between is quiet (the par can over the landing), the runner's out on the hung flat lobbing
+  at him on the wire (shoot it from the wire), and the doubles are past the checkpoint's reach: one alone, then two
+  side by side (charge one into the other).
+- Video village: craft services up on the truck's counter now has a runner beside it (two lobbing from up there); the
+  grip's by the par can (lure him under it), the director behind him (get past the grip to the one to kill first).
+- The mothership: a double stood on the low rostrum inside the checkpoint's reach, the coordinator by the next one's.
+  Now one double up the high rostrum, the stunt coordinator alone on the floor at the pyro trench's far end (his
+  tackle comes along the floor: lure it through the jets), the boom op on the landing, a double up over it.
+- New New York: "everybody" was a line along the floor, its grip 150 past the checkpoint. Now: a grip behind the taxi,
+  the director up on the scaffold (ACTION! from up there: get up to him), the coordinator in the wind machine's gust
+  (it blows him into the tackle), the double on the toppled flat, craft services under the par can, the boom op by the
+  pyro jet (knock him in), the runner.
