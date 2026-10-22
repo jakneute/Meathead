@@ -12,6 +12,7 @@ import { setGutBlowout, setGutLines, setGutDeathLines } from '../m1/game/player/
 // (the blowout's spray hurts whoever it hits: a quiet bonus)
 import './blowoutHit';
 import { setSnesShat } from '../m1/game/render/player/body';
+import { setSfxScale } from '../m1/game/platform/sfx';
 import { setFootstepVolume } from '../m1/game/player/footsteps';
 import { setHurtScale, setShoveSetDistance, setWallSplatDeath } from '../m1/game/core/resist';
 import { setDeathMessageDrawer } from '../m1/game/render/world';
@@ -167,6 +168,8 @@ if (import.meta.env.DEV) {
 setGutBlowout(true);
 // (and his shitty pants in its own SNES-grain look)
 setSnesShat(true);
+// (the puking, well down: the user's "lower the volume of the puking sounds by quite a bit")
+setSfxScale(['barf', 'retch', 'gush'], 0.4);
 setGutLines(M2_GUT_LINES);
 setGutDeathLines(M2_GUT_DEATH);
 // (his footsteps, up where they can be heard over everything)

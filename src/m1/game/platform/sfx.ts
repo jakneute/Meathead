@@ -700,8 +700,13 @@ const bufferOf = (c: AudioContext, name: string) => {
   return b;
 };
 
+/** A game's own volume for some of the sounds (Meathead 2's: the puking, turned well down); 1 for the rest. */
+const scaled: Record<string, number> = {};
+export const setSfxScale = (names: string[], k: number) => { for (const n of names) scaled[n] = k; };
+
 /** Plays a sound effect (`vol` a multiplier, `pitch` in semitones). Dropped if it's playing too much already. */
 export const playSfx = (c: AudioContext, name: string, vol = 1, pitch = 0) => {
+  vol *= scaled[name] ?? 1;
   const def = SFX[name];
   if (!def) return;
   const now = performance.now();
