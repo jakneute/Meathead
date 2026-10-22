@@ -37,6 +37,7 @@ import { drawMom, drawGramps, drawSis, drawBoy } from './family';
 import { drawGuard, type GuardPose } from './guard';
 import type { StageLook } from './show';
 import { drawRim, BANK_Y } from './rim';
+import { boxSides, drumTop } from '../kit';
 import { drawShell, drawFlown, drawBanner, drawSetWall, drawSwingDoor, drawLaughHorn, drawTV, drawRug } from './stage';
 import {
   box, mix, hash, checker, hour, dimmed, INK, NR, DR, r6, CONC, ALU, DECK, STEEL, BRASS, RED, NAVY, PURP, AWNG, GRASS,
@@ -160,7 +161,9 @@ const fan = (g: Ctx, seed: number, what: Fan, f: number) => {
 // The concourse: the ticket booth, the marquee, the BEER GARDEN, the high-top, the trash can
 
 /** The ticket booth and its turnstiles (WINDOW CLOSED). */
-const booth = (c: Ctx, x: number) => {
+const booth = (c: Ctx, x: number, E: P) => {
+  // (its depth: the booth's sides going back (drawn inside its own depth: back to D_FAR's side of it), its roof)
+  boxSides(c, E, x - 41, x + 41, TOP_Y - 94, TOP_Y, 0.94, NR(r6('#3B5BB8')), { lines: [TOP_Y - 30] });
   stamp(c, key('booth'), x - 60, TOP_Y - 130, 160, 134, g => {
     const W = NR(r6('#3B5BB8')), Rd = NR(RED), S = NR(STEEL);
     box(g, x - 41, TOP_Y - 94, 82, 94, INK); box(g, x - 40, TOP_Y - 93, 80, 93, W[3]); box(g, x - 40, TOP_Y - 93, 5, 93, W[4]); box(g, x + 32, TOP_Y - 93, 8, 93, W[2]); checker(g, x + 30, TOP_Y - 93, 2, 93, W[2], 0, 1);
@@ -236,8 +239,9 @@ const marquee = (c: Ctx, f: number) => {
 
 /** The BEER GARDEN's stand: a plywood hut, the green and white awning, the menu, the taps, the cups, the tip jar, the
  *  vendor behind the counter; the neon BEER in the window, buzzing, one E dead. */
-const beerStand = (c: Ctx, f: number) => {
+const beerStand = (c: Ctx, f: number, E: P) => {
   const a = X(STAND.a), w = STAND.b - STAND.a, top = TOP_Y - 190;
+  boxSides(c, E, a, a + w, top, TOP_Y, 0.93, DR(PLY), { lines: [top + 26, top + 120, top + 131] });
   c.save(); c.translate(a, 0);
   stamp(c, key('stand2'), -16, top - 76, w + 32, TOP_Y - top + 80, g => {
     const P = DR(PLY), Aw = DR(AWNG), Nv = DR(NAVY), S = DR(STEEL), T = dimmed;
@@ -300,9 +304,10 @@ const beerStand = (c: Ctx, f: number) => {
 };
 
 /** The high-top by the stand: two regulars stood at it with their beers, swaying; an ashtray, a pitcher. */
-const highTop = (c: Ctx, f: number) => {
+const highTop = (c: Ctx, f: number, E: P) => {
   const x = X(HIGHTOP), S = NR(STEEL);
   shadowAt(c, x - 30, TOP_Y, 60, 0.3);
+  drumTop(c, E, x - 23, x + 23, TOP_Y - 50, 0.96, S);
   tube(c, x, TOP_Y - 46, TOP_Y - 2, 6, S);
   box(c, x - 17, TOP_Y - 3, 34, 3, INK); box(c, x - 16, TOP_Y - 3, 32, 2, S[3]);
   box(c, x - 24, TOP_Y - 50, 48, 7, INK); box(c, x - 23, TOP_Y - 49, 46, 5, S[3]); box(c, x - 23, TOP_Y - 49, 46, 1, S[5]); box(c, x - 23, TOP_Y - 45, 46, 1, S[1]);
@@ -826,9 +831,9 @@ export const drawAmphiBack = (c: Ctx, state: GameState, look: AmphiLook) => {
   const items: { d: number; x: number; draw: () => void }[] = [];
   const S = look.stage;
   // (the concourse)
-  items.push({ d: 0.84, x: X((STAND.a + STAND.b) / 2), draw: () => beerStand(c, f) });
-  items.push({ d: 0.88, x: X(90), draw: () => booth(c, X(90)) });
-  items.push({ d: 0.9, x: X(HIGHTOP), draw: () => highTop(c, f) });
+  items.push({ d: 0.84, x: X((STAND.a + STAND.b) / 2), draw: () => beerStand(c, f, E) });
+  items.push({ d: 0.88, x: X(90), draw: () => booth(c, X(90), E) });
+  items.push({ d: 0.9, x: X(HIGHTOP), draw: () => highTop(c, f, E) });
   items.push({ d: 0.95, x: X(260), draw: () => trash(c, X(260)) });
   items.push({ d: 0.97, x: X(MARQUEE), draw: () => marquee(c, f) });
   // (the crowd: everybody while there's a show; once it's over, the one asleep)
