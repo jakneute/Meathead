@@ -2,9 +2,9 @@
 // dithered between, inked; so whoever's in the costume shows: their skin, build and face, man or woman; the princess
 // and the knight on anybody). Each seeded: no two the same. Each drawn hurt (eyes shut), knocked about (held, flung,
 // dazed) and dead (limp, crossed-out eyes), so the engine's special deaths all play out on their real sprites; and dead,
-// the costume gives (the clerk's hat off beside him, the knight's helmet off, the princess's tiara knocked crooked, the
-// bro's cap off, the troll's and the dragon's big heads off: the sweaty performer underneath, the zip down the back
-// showing). Feet at the origin, facing right (the engine mirrors them). Every frame's painted once into a stamp.
+// the costume gives (the clerk's hat, the princess's tiara and the bro's cap knocked crooked, the knight's helmet
+// pushed back, the troll's and the dragon's big heads off and hanging down their fronts: the sweaty performer
+// underneath; all kept on the body, never on the floor by it, since the engine's deaths tip the body over). Feet at the origin, facing right (the engine mirrors them). Every frame's painted once into a stamp.
 //
 //   clerk     a black robe with its house's trim and crest, folds down it, a striped scarf, a pointy hat with its band
 //             and buckle on some; the wand (its tip sparkling in the tell)
@@ -94,9 +94,10 @@ const paintClerk = (g: Ctx, F: Frame) => {
   const hat = (F.seed >> 2) % 3 !== 0;
   const hatPath = (ox: number, oy: number) => () => { g.moveTo(ox - 11, oy - 7); g.lineTo(ox + 13, oy - 7); g.lineTo(ox + 6, oy - 30); g.quadraticCurveTo(ox + 4, oy - 38, ox - 6, oy - 34); g.lineTo(ox - 3, oy - 28); g.closePath(); };
   if (dead(F)) {
-    // (dead: the hat's come off, lying by him)
-    if (hat) { partTop(g, () => { g.moveTo(B.hx + 16, -2); g.lineTo(B.hx + 36, -2); g.lineTo(B.hx + 42, -18); g.quadraticCurveTo(B.hx + 44, -22, B.hx + 38, -20); g.closePath(); }, '#2A2440', B.hx + 16, -22, 28, 20, 1); px(g, B.hx + 18, -5, 16, 2, trim); }
+    // (dead: the hat knocked crooked, tipped off the back of his head (on him, never on the floor by him, where it'd float
+    // once a death tips him over))
     hairTop(g, B);
+    if (hat) { g.save(); g.translate(B.hx, B.hy - 7); g.rotate(-0.75); partTop(g, hatPath(0, 7), '#2A2440', -11, -31, 24, 31, 1); px(g, -9, -5, 20, 3, trim); g.restore(); }
   } else if (hat) {
     partTop(g, hatPath(B.hx, B.hy), '#2A2440', B.hx - 11, B.hy - 38, 24, 31, 1);
     px(g, B.hx - 13, B.hy - 9, 28, 3, INK); px(g, B.hx - 12, B.hy - 8, 26, 2, '#3A3456');
@@ -187,10 +188,13 @@ const paintKnight = (g: Ctx, F: Frame) => {
   face(g, B, F, couched ? 'angry' : 'open', couched ? 'teeth' : 'flat');
   whiskers(g, B);
   if (dead(F)) {
-    // (dead: the helmet's off, rolled away; their own hair)
+    // (dead: the helmet knocked back off the face, hanging crooked off the back of the head; their own hair (on them,
+    // never on the floor by them, where it'd float once a death tips the body over))
     hairTop(g, B);
-    partTop(g, () => g.ellipse(B.hx + 26, -9, 10, 9, 0.4, 0, Math.PI * 2), PLATE, B.hx + 16, -18, 20, 18, 1);
-    px(g, B.hx + 20, -12, 10, 2, '#5A5E66');
+    g.save(); g.translate(B.hx - 9, B.hy - 6); g.rotate(-0.7);
+    partTop(g, () => g.ellipse(0, 0, 10, 9, 0, 0, Math.PI * 2), PLATE, -10, -9, 20, 18, 1);
+    px(g, -5, -3, 10, 2, '#5A5E66');
+    g.restore();
   } else {
     // (the helmet round the face, the visor up, its rivets, the plume)
     part(g, () => { g.moveTo(B.hx - 11, B.hy + 9); g.lineTo(B.hx - 11, B.hy - 6); g.quadraticCurveTo(B.hx, B.hy - 16, B.hx + 11, B.hy - 6); g.lineTo(B.hx + 11, B.hy - 3); g.lineTo(B.hx - 3, B.hy - 3); g.lineTo(B.hx - 3, B.hy + 9); g.closePath(); }, PLATE, B.hx - 11, B.hy - 16, 22, 25, 1);
@@ -227,8 +231,9 @@ const paintBro = (g: Ctx, F: Frame) => {
   // (face paint: two stripes on the cheek)
   px(g, B.hx + 1, B.hy + 1, 5, 1, jer); px(g, B.hx + 1, B.hy + 3, 5, 1, fin);
   whiskers(g, B); glasses(g, B);
-  // (the cap on backwards (off when dead), its peak out behind, its button)
-  if (dead(F)) { hairTop(g, B); partTop(g, () => g.ellipse(B.hx - 24, -6, 9, 5, 0, Math.PI, 0), jer, B.hx - 33, -11, 18, 6, 1); px(g, B.hx - 36, -7, 6, 2, dk(jer, 0.3)); }
+  // (the cap on backwards (knocked crooked when dead: on him, never on the floor by him, where it'd float once a death
+  // tips him over), its peak out behind, its button)
+  if (dead(F)) { hairTop(g, B); g.save(); g.translate(B.hx, B.hy - 7); g.rotate(0.6); partTop(g, () => g.ellipse(0, 0, 10, 7, 0, Math.PI, 0), jer, -10, -7, 20, 8, 1); px(g, -16, -2, 8, 3, dk(jer, 0.3)); g.restore(); }
   else { partTop(g, () => g.ellipse(B.hx, B.hy - 7, 10, 7, 0, Math.PI, 0), jer, B.hx - 10, B.hy - 14, 20, 8, 1); px(g, B.hx - 16, B.hy - 9, 8, 3, dk(jer, 0.3)); px(g, B.hx - 16, B.hy - 9, 8, 1, lt(jer, 0.2)); px(g, B.hx, B.hy - 14, 2, 1, fin); }
   arm(g, B, 1, H.near[0], H.near[1], { sleeve: L.skin, hand: L.skin });
   if (wind && !H.held) { ball(g, H.far[0] - 4, H.far[1] - 4, 5, '#F97316', 1); px(g, H.far[0] - 8, H.far[1] - 5, 8, 1, '#7C2D12'); }

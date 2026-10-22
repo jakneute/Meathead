@@ -7,7 +7,7 @@
 //              gold trim, a jade disc on the sash; the name tag pinned to it), shin wraps and sandals; a jaguar pelt
 //              over the shoulders of some; a wristwatch on some (it's a costume). The spear's real (ash, a leather
 //              grip, a steel leaf head, a feather tassel): carried, drawn back high for the tell, driven out for the
-//              thrust. Knocked about it flails, or drops; dead, the headdress is off and on the floor by them.
+//              thrust. Knocked about it flails, or drops; dead, the headdress is knocked crooked and the spear let go.
 //   stagehand  the crew in blacks: a black tee, black cargos, work boots, gray work gloves; the headset (its boom mic,
 //              the cable down to the belt pack), a roll of gaffer tape and a flashlight on the belt, keys on a
 //              carabiner; a beanie or a backwards cap on some. At their trick: cranking the catapult's winch, both
@@ -51,7 +51,7 @@ const FEATHERS = [['#16A34A', '#DC2626', '#16A34A', '#2563EB', '#16A34A'], ['#DC
 const CLOTH = ['#B45309', '#9A3412', '#A16207', '#7C2D12'];
 const GOLD = '#E8B400', JADE = '#10B981';
 
-/** The headdress: a fan of feathers behind the head on a gold band, a jade medallion; laid by them on the floor when dead. */
+/** The headdress: a fan of feathers behind the head on a gold band, a jade medallion; knocked crooked on their head when dead. */
 const headdress = (g: Ctx, hx: number, hy: number, seed: number, lying: boolean) => {
   const cols = pickOf(seed, 3, FEATHERS);
   const n = 5;
@@ -98,8 +98,8 @@ const paintActor = (g: Ctx, F: Frame) => {
   } else {
     near = [B.w / 2 + 5, B.shY + 15]; far = [B.w / 2 - 6, B.shY + 14]; sp = { x: near[0], y: near[1], a: -0.1 };
   }
-  // (a body: the spear on the floor in front)
-  if (dead && B.held === 'limp') sp = null;
+  // (a body: the spear let go (on them, or let go and gone: never on the floor by them, where it'd float once a death tips the body over))
+  if (dead) sp = null;
   // Far arm (bare; a gold band, the watch on some)
   arm(g, B, -1, far[0], far[1], { sleeve: dk(L.skin, 0.1), hand: dk(L.skin, 0.1), len: 0 });
   if (watch) { px(g, far[0] - 3, far[1] - 4, 5, 3, INK); px(g, far[0] - 2, far[1] - 3, 3, 1, '#CBD5E1'); }
@@ -127,6 +127,7 @@ const paintActor = (g: Ctx, F: Frame) => {
   px(g, B.hx - B.w / 2 + 3, B.shY + 7, B.w - 6, 1, dk(GOLD, 0.2));
   // The head: the feathers behind it, the face and its paint, the band
   if (!dead) headdress(g, B.hx, B.hy, F.seed, false);
+  else { g.save(); g.translate(B.hx, B.hy); g.rotate(0.55); headdress(g, 0, 0, F.seed, false); g.restore(); }
   hairBack(g, B);
   headShape(g, B, L.skin);
   if (paintStyle === 0) { px(g, B.hx - 6, B.hy - 4, 15, 5, '#18181B'); px(g, B.hx - 6, B.hy - 4, 15, 1, '#3F3F46'); }
@@ -145,9 +146,8 @@ const paintActor = (g: Ctx, F: Frame) => {
   // Near arm (a gold band above the elbow)
   const a = arm(g, B, 1, near[0], near[1], { sleeve: L.skin, hand: L.skin, len: 0 });
   px(g, (a.sx + a.ex) / 2 - 3, (a.sy + a.ey) / 2 - 1, 6, 2, GOLD); px(g, (a.sx + a.ex) / 2 - 3, (a.sy + a.ey) / 2 - 1, 6, 1, lt(GOLD, 0.45));
-  // The spear, in hand (or on the floor, and the headdress, by a body)
+  // The spear, in hand
   if (sp) spear(g, sp.x, sp.y, sp.a);
-  if (dead) { headdress(g, B.hx + 30, -2, F.seed, true); if (!sp) spear(g, 12, -3, 0.04, 30, 22); }
 };
 
 /** A warrior from its state: the walk, the tell (drawn back), the thrust; knocked about and dead via the engine. */

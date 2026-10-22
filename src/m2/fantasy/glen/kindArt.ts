@@ -126,10 +126,14 @@ const paintHuntsman = (g: Ctx, F: Frame) => {
   part(g, () => g.ellipse(B.hx - 10, B.shY - 2, 8, 6, 0, 0, Math.PI * 2), cape, B.hx - 18, B.shY - 8, 16, 12, 1);
   part(g, () => g.arc(2, B.shY + 2, 2.5, 0, Math.PI * 2), GILT, -1, B.shY - 1, 6, 6, 0.8);
   if (dead(F)) {
-    // (dead: the cap's off, by him, its feather bent)
+    // (dead: the cap knocked crooked, down over an ear, its feather bent (on him, so it goes down with him, never left
+    // floating where the floor was))
     hairTop(g, B);
-    partTop(g, () => { g.moveTo(B.hx + 18, -2); g.lineTo(B.hx + 36, -2); g.lineTo(B.hx + 30, -10); g.closePath(); }, cape, B.hx + 18, -10, 18, 8, 1);
-    part(g, () => { g.moveTo(B.hx + 30, -10); g.quadraticCurveTo(B.hx + 40, -18, B.hx + 46, -12); g.lineTo(B.hx + 31, -8); g.closePath(); }, '#DC2626', B.hx + 30, -18, 16, 10, 0.8);
+    g.save(); g.translate(B.hx, B.hy - 6); g.rotate(0.55); g.translate(-B.hx, -B.hy + 6);
+    partTop(g, () => { g.moveTo(B.hx - 12, B.hy - 6); g.lineTo(B.hx + 14, B.hy - 6); g.lineTo(B.hx + 4, B.hy - 19); g.lineTo(B.hx - 7, B.hy - 15); g.closePath(); }, cape, B.hx - 12, B.hy - 19, 26, 13, 1);
+    px(g, B.hx - 11, B.hy - 9, 24, 2, dk(cape, 0.45));
+    part(g, () => { g.moveTo(B.hx - 4, B.hy - 13); g.quadraticCurveTo(B.hx - 12, B.hy - 24, B.hx - 22, B.hy - 14); g.lineTo(B.hx - 4, B.hy - 11); g.closePath(); }, '#DC2626', B.hx - 22, B.hy - 24, 18, 13, 0.8);
+    g.restore();
   } else {
     hairTop(g, B);
     // (the feathered cap: a peaked felt hat, its band, a long red feather back off it)
@@ -192,9 +196,12 @@ const paintDwarf = (g: Ctx, F: Frame) => {
   ball(g, B.hx + 9, B.hy + 1, 3.2, '#E88A7A', 0.8);
   if (dead(F)) {
     hairTop(g, B);
-    // (the hat's off, rolled away, the candle out: a wisp off it)
-    partTop(g, () => g.ellipse(B.hx + 30, -6, 11, 7, 0.2, Math.PI, 0), '#CA8A04', B.hx + 19, -13, 22, 8, 1);
-    px(g, B.hx + 29, -17, 4, 7, INK); px(g, B.hx + 30, -16, 2, 6, '#F5F5F4'); px(g, B.hx + 31, -21, 1, 3, '#A8A29E'); px(g, B.hx + 32, -24, 1, 2, '#D6D3D1');
+    // (the helmet knocked crooked on his head, the candle out: a wisp off it (on him, so it goes down with him))
+    g.save(); g.translate(B.hx, B.hy - 7); g.rotate(0.6);
+    partTop(g, () => g.ellipse(0, 0, 13, 9, 0, Math.PI, 0), '#CA8A04', -13, -9, 26, 10, 1);
+    part(g, () => g.rect(-15, -1, 30, 3), dk('#CA8A04', 0.15), -15, -1, 30, 3, 1);
+    px(g, -2, -16, 4, 8, INK); px(g, -1, -15, 2, 7, '#F5F5F4'); px(g, 0, -20, 1, 3, '#A8A29E'); px(g, 1, -23, 1, 2, '#D6D3D1');
+    g.restore();
   } else {
     // (the miner's helmet: brass, a brim, a riveted band; the candle stuck on top, wax down it, the flame flickering)
     partTop(g, () => g.ellipse(B.hx, B.hy - 7, 13, 9, 0, Math.PI, 0), '#CA8A04', B.hx - 13, B.hy - 16, 26, 10, 1);
@@ -270,8 +277,9 @@ interface CupidLook { seed: number; isDead: boolean; md: string; pose: string | 
 const paintCupid = (g: Ctx, P: CupidLook) => {
   const L = lookOf(P.seed), sash = SASHES[((Math.floor(P.seed) % SASHES.length) + SASHES.length) % SASHES.length], hearts = Math.floor(P.seed / 5) % 2 === 0;
   const fat = L.heavy ? 4 : 0, man = !L.woman, { isDead, md, pose } = P;
-  // (the wings off its back: on it alive; dead, torn off and lying beside it)
+  // (the wings on its back: up alive; dead, torn half off and hanging down its back (on it, so they go down with it))
   if (!isDead) { wing(g, -6, -43, P.flap + 0.25, '#E5E7EB'); wing(g, -9, -38, P.flap, '#FFFFFF'); }
+  else { wing(g, -5, -42, 0.8, '#E5E7EB'); wing(g, -8, -38, 1.05, '#FFFFFF'); }
   // (the harness between the wings, the wire's ring)
   if (P.onWire) { px(g, -9, -45, 6, 3, INK); px(g, -8, -44, 4, 1, '#A8AEB8'); px(g, -7, -48, 2, 3, '#A8AEB8'); }
   // (the legs dangling, bare, knees bent, kicking a little; little feet)
@@ -319,9 +327,7 @@ const paintCupid = (g: Ctx, P: CupidLook) => {
   if (hearts) { part(g, () => g.rect(-8, -57 + tilt, 18, 4), '#F472B6', -8, -57 + tilt, 18, 4, 1); heart(g, 7, -57 + tilt, 3.5, '#EF4444'); }
   else for (let k = 0; k < 5; k++) part(g, () => g.ellipse(-7 + k * 4, -57 + tilt + (k % 2), 2.6, 1.6, -0.5 + k * 0.25, 0, Math.PI * 2), '#4D7C0F', -10 + k * 4, -60 + tilt, 6, 5, 0.8);
   if (isDead) {
-    // (dead: the wings off beside it, the bow dropped, the wire snapped: a curl of it on the harness)
-    wing(g, 34, -4, 0.9, '#E5E7EB'); wing(g, 48, 0, 1.4, '#FFFFFF');
-    for (const [w, col] of [[4, INK], [2.4, '#CA8A04']] as const) { g.strokeStyle = col; g.lineWidth = w; g.beginPath(); g.moveTo(20, 4); g.quadraticCurveTo(30, -6, 40, 6); g.stroke(); }
+    // (dead: the bow dropped, the wire snapped: a curl of it on the harness)
     g.strokeStyle = 'rgba(200, 200, 220, 0.6)'; g.lineWidth = 1; g.beginPath(); g.moveTo(-6, -40); g.bezierCurveTo(-18, -48, -20, -30, -10, -32); g.bezierCurveTo(-2, -34, -14, -22, -22, -26); g.stroke();
   }
 };
@@ -368,15 +374,16 @@ const paintGinger = (g: Ctx, seed: number, pose: { crouch: boolean; leap: boolea
   ball(g, 1, -66, 2.4, '#F9A8D4', 0.8);
   piping(g, -18, -30, 36);
   if (isDead) {
-    // (dead: the cookie head's off at his feet, a bite out of it; the performer's own head, small, on the big body)
-    g.save(); g.translate(40, -14); g.rotate(0.4);
-    part(g, () => g.ellipse(0, 0, 19, 17, 0, 0, Math.PI * 2), COOKIE, -19, -17, 38, 34, 1.4);
-    g.restore();
-    g.fillStyle = '#4A2A14'; for (const [bx, by, r] of [[54, -24, 7], [58, -14, 6], [52, -30, 5]] as const) { g.beginPath(); g.arc(bx, by, r, 0, Math.PI * 2); g.fill(); }
-    g.fillStyle = '#E8C898'; for (const [bx, by, r] of [[54, -24, 5], [58, -14, 4]] as const) { g.beginPath(); g.arc(bx - 1, by, r, 0, Math.PI * 2); g.fill(); }
-    ball(g, 34, -20, 2.5, ICE, 0.8); ball(g, 44, -14, 2.5, ICE, 0.8);
+    // (dead: the cookie head knocked off, hanging down his chest by the neck, a bite out of it; the performer's own head,
+    // small, on the big body (all on him, so it goes down with him, never left floating where the floor was))
     px(g, -6, -70, 12, 4, dk(COOKIE, 0.4));
     performer(g, seed, 2, -76, 9, true, true, true);
+    g.save(); g.translate(14, -46); g.rotate(1.15);
+    part(g, () => g.ellipse(0, 0, 17, 15, 0, 0, Math.PI * 2), COOKIE, -17, -15, 34, 30, 1.4);
+    g.fillStyle = '#4A2A14'; for (const [bx, by, r] of [[13, -9, 6], [16, 0, 5]] as const) { g.beginPath(); g.arc(bx, by, r, 0, Math.PI * 2); g.fill(); }
+    g.fillStyle = '#E8C898'; for (const [bx, by, r] of [[12, -9, 4], [15, 0, 3]] as const) { g.beginPath(); g.arc(bx, by, r, 0, Math.PI * 2); g.fill(); }
+    ball(g, -5, -6, 2.5, ICE, 0.8); ball(g, 5, -6, 2.5, ICE, 0.8);
+    g.restore();
   } else {
     // (the cookie head, round; its baked rim; icing eyes and an icing smile round the face hole)
     part(g, () => g.ellipse(2, -88, 22, 21, 0, 0, Math.PI * 2), COOKIE, -20, -109, 44, 42, 1.6);
@@ -429,14 +436,16 @@ const paintUnicorn = (g: Ctx, seed: number, P: { paw: boolean; charge: boolean; 
   part(g, () => g.ellipse(7, -46, 13, 18, 0, 0, Math.PI * 2), lt(coat, 0.4), -6, -64, 26, 36, 0.8);
   for (const [sx, sy] of [[-12, -62], [-4, -40], [-16, -46]] as const) { px(g, sx - 2, sy, 5, 1, '#F6D365'); px(g, sx, sy - 2, 1, 5, '#F6D365'); }
   if (isDead) {
-    // (dead: the head's off, rolled away, the horn snapped beside it; the performer's own head on the plush body)
-    part(g, () => g.ellipse(48, -14, 19, 13, 0.3, 0, Math.PI * 2), coat, 29, -27, 38, 26, 1.4);
-    for (let k = 0; k < 5; k++) px(g, 36 + k * 3, -26 + k, 4, 10, MANE[k]);
-    px(g, 56, -16, 2, 2, INK);
-    horn(g, 66, -6, 0.9, 14);
-    part(g, () => { g.moveTo(32, -100); g.lineTo(40, -96); g.lineTo(36, -104); g.closePath(); }, '#F6D365', 32, -104, 8, 8, 1);
+    // (dead: the head knocked off, hanging down its chest by the neck, the horn snapped short; the performer's own head
+    // on the plush body (all on it, so it goes down with it, never left floating where the floor was))
     px(g, -6, -82, 12, 6, dk(coat, 0.3));
     performer(g, seed, 4, -88, 9, true, true, true);
+    g.save(); g.translate(20, -54); g.rotate(1.2);
+    horn(g, 2, -10, -0.9, 10);
+    part(g, () => g.ellipse(0, 0, 18, 12, 0, 0, Math.PI * 2), coat, -18, -12, 36, 24, 1.4);
+    for (let k = 0; k < 5; k++) px(g, -12 + k * 3, -12 + k, 4, 9, MANE[k]);
+    px(g, 10, -3, 2, 2, INK);
+    g.restore();
   } else {
     // (the neck up front, the performer's face through a hole in it; the horse head, its felt eye, the mane, the horn)
     const hd = charge || paw ? 10 : 0;

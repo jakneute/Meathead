@@ -10,8 +10,8 @@
 // a carved knob, a leather wrist loop, the troop's shield medallions tacked up it, a steel ferrule.
 //
 // Poses: walking with the staff, the windup (the staff up and back over the shoulder, the whistle in the mouth), the
-// swing (lunged out, the staff through); knocked about (flailing, the staff still in a fist); dead, the helmet's off and
-// lying by them, spikes and all, the staff on the ground in front.
+// swing (lunged out, the staff through); knocked about (flailing, the staff still in a fist); dead, the helmet's knocked
+// crooked, spikes and all, the staff let go (nothing on the floor by them: the engine's deaths tip the body over).
 
 import type { Enemy } from '../../../m1/types';
 import {
@@ -96,7 +96,8 @@ const paintGuide = (g: Ctx, F: Frame) => {
   } else {
     near = [B.w / 2 + 5, B.shY + 16]; far = [-B.w / 2 - 1, B.shY + 21]; st = { x: near[0], y: near[1], a: -1.28, fore: 28 };
   }
-  if (dead && B.held === 'limp') st = null;
+  // (a body: the staff let go (on them, or let go and gone: never on the floor by them, where it'd float once a death tips the body over))
+  if (dead) st = null;
   // Far arm (sleeve rolled to the elbow)
   arm(g, B, -1, far[0], far[1], { sleeve: dk(KHAKI, 0.12), hand: dk(L.skin, 0.1), len: 0.45 });
   // (the canteen on the far hip, its strap)
@@ -120,7 +121,7 @@ const paintGuide = (g: Ctx, F: Frame) => {
   part(g, () => g.rect(B.w / 2 - 9 + B.lean, B.shY + 16, 7, 3), '#F8FAFC', B.w / 2 - 9 + B.lean, B.shY + 16, 7, 3, 0.5); px(g, B.w / 2 - 8 + B.lean, B.shY + 17, 5, 1, '#2E4A2A');
   // (the web belt, its buckle)
   px(g, -B.hipW / 2, B.hipY - 2, B.hipW + 1, 3, '#4A5A2A'); px(g, -B.hipW / 2, B.hipY - 2, B.hipW + 1, 1, '#6E7E44'); part(g, () => g.rect(-2, B.hipY - 3, 5, 4), '#C0C8D4', -2, B.hipY - 3, 5, 4, 0.6);
-  // The head: the neckerchief at the collar (its woggle), the face, the whistle; the helmet (dead: off, by them)
+  // The head: the neckerchief at the collar (its woggle), the face, the whistle; the helmet (dead: knocked crooked)
   hairBack(g, B);
   headShape(g, B, L.skin);
   faceOn(g, B, { skin: L.skin, eyes: 'angry', mouth: strike ? 'teeth' : tell ? 'o' : 'frown', md: F.md, blink: F.blink });
@@ -135,11 +136,10 @@ const paintGuide = (g: Ctx, F: Frame) => {
   ball(g, B.hx + B.lean, B.shY + 3, 1.8, '#C08A3A', 0.6);
   if (dead || L.long) hairTop(g, B);
   if (!dead) helmet(g, B.hx, B.hy - 3);
-  else helmet(g, B.hx - 30, -2, -1.4, true);
-  // Near arm, and the staff in its fist (dead: on the ground in front)
+  else helmet(g, B.hx + 2, B.hy - 3, 0.6);
+  // Near arm, and the staff in its fist
   arm(g, B, 1, near[0], near[1], { sleeve: KHAKI, hand: L.skin, len: 0.45 });
   if (st) staff(g, st.x, st.y, st.a, st.fore ?? 30);
-  if (dead && !st) staff(g, 16, -3, 0.03, 26, 22);
   void dither;
 };
 

@@ -6,13 +6,13 @@
 // name tag), khaki work pants with a belt and a radio on it, boots, the teal visor; whatever they're doing instead of
 // their job (a cigarette, a phone, sat on an upturned bucket, leant on a push broom, the operator stood with a hand
 // on the podium mic). Hurt, knocked about (grabbed, flung, dazed) and dead too, so the engine's special deaths read:
-// dead, the visor's off and on the ground by them.
+// dead, the visor's knocked crooked (on them: the engine's deaths tip the body over, and a visor on the floor would float).
 
 import type { Enemy } from '../../../m1/types';
 import type { FrameContext } from '../../../m1/game/core/context';
 import { registerM2Kind } from '../../kinds';
 import {
-  type Pose, type Body, type Frame, INK, dk, lt, part, partTop, px, ball, dither, limb, shoe,
+  type Pose, type Body, type Frame, INK, dk, lt, part, px, ball, dither, limb, shoe,
   bodyOf, flailHands, legs, torso, arm, headShape, faceOn, whiskers, hairTop, hairBack, frameOf, putFrame, moodOf, reaction,
 } from '../../spooky/costume';
 
@@ -86,7 +86,7 @@ const paintStaffer = (g: Ctx, F: Frame, doing: StaffDoing, talk: boolean) => {
   part(g, () => g.rect(B.w / 2 - 9, sh + 6, 7, 4), '#F8FAFC', B.w / 2 - 9, sh + 6, 7, 4, 0.6); px(g, B.w / 2 - 8, sh + 8, 5, 1, '#3A3A48');
   px(g, -B.hipW / 2 + 1, B.hipY - 2, B.hipW - 2, 3, INK); px(g, -B.hipW / 2 + 2, B.hipY - 1, B.hipW - 4, 1, '#5A3A22'); px(g, -1, B.hipY - 2, 3, 3, '#C8A040');
   part(g, () => g.roundRect(-B.hipW / 2 - 2, B.hipY - 3, 5, 9, 1), '#26262C', -B.hipW / 2 - 2, B.hipY - 3, 5, 9, 0.8); px(g, -B.hipW / 2 - 1, B.hipY - 7, 1, 4, '#26262C'); px(g, -B.hipW / 2 - 1, B.hipY - 1, 2, 1, '#4ADE80');
-  // The head: hair, bored face, the visor (dead: off, on the ground by them)
+  // The head: hair, bored face, the visor (dead: knocked crooked (on them, or let go and gone: never on the floor by them, where it'd float once a death tips the body over))
   hairBack(g, B);
   headShape(g, B, L.skin);
   const mouth = talk ? (F.v.endsWith('1') ? 'o' : 'flat') : doing === 'smoke' ? 'smirk' : 'flat';
@@ -94,8 +94,10 @@ const paintStaffer = (g: Ctx, F: Frame, doing: StaffDoing, talk: boolean) => {
   whiskers(g, B);
   hairTop(g, B);
   if (F.md === 'dead') {
-    partTop(g, () => g.ellipse(B.hx + 26, -3, 9, 3, 0.2, Math.PI, 0), POLO, B.hx + 17, -6, 18, 4, 1);
-    part(g, () => g.ellipse(B.hx + 35, -2, 7, 2, 0.1, 0, Math.PI * 2), dk(POLO, 0.1), B.hx + 28, -4, 14, 4, 0.8);
+    g.save(); g.translate(B.hx, B.hy - 6); g.rotate(0.6); g.translate(-B.hx, -B.hy + 6);
+    px(g, B.hx - 9, B.hy - 7, 19, 3, INK); px(g, B.hx - 8, B.hy - 6, 17, 2, POLO);
+    part(g, () => g.ellipse(B.hx + 10, B.hy - 5, 8, 2.2, 0.08, 0, Math.PI * 2), POLO, B.hx + 2, B.hy - 7, 16, 5, 1);
+    g.restore();
   } else {
     px(g, B.hx - 9, B.hy - 7, 19, 3, INK); px(g, B.hx - 8, B.hy - 6, 17, 2, POLO); px(g, B.hx - 8, B.hy - 6, 17, 1, lt(POLO, 0.3));
     part(g, () => g.ellipse(B.hx + 10, B.hy - 5, 8, 2.2, 0.08, 0, Math.PI * 2), POLO, B.hx + 2, B.hy - 7, 16, 5, 1);

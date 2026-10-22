@@ -94,7 +94,8 @@ const paintRideOp = (g: Ctx, F: Frame) => {
   hairTop(g, B);
   // (the zone's teal visor on some, its brim out front)
   if (F.seed % 3 === 0 && !dead(F)) { part(g, () => { g.moveTo(B.hx - B.rx, B.hy - B.ry * 0.45); g.lineTo(B.hx + B.rx, B.hy - B.ry * 0.45); g.lineTo(B.hx + B.rx, B.hy - B.ry * 0.2); g.lineTo(B.hx - B.rx, B.hy - B.ry * 0.2); g.closePath(); }, POLO, B.hx - B.rx, B.hy - B.ry * 0.45, B.rx * 2, B.ry * 0.25, 0.8); part(g, () => { g.moveTo(B.hx + B.rx * 0.2, B.hy - B.ry * 0.25); g.quadraticCurveTo(B.hx + B.rx + 8, B.hy - B.ry * 0.3, B.hx + B.rx + 10, B.hy - B.ry * 0.05); g.lineTo(B.hx + B.rx * 0.2, B.hy - B.ry * 0.12); g.closePath(); }, lt(POLO, 0.15), B.hx, B.hy - B.ry * 0.3, B.rx + 10, B.ry * 0.25, 0.8); }
-  if (dead(F)) headset(g, B.hx + 30, -6, 2.6);
+  // (dead: knocked crooked on his head, not on the floor: whatever's on the floor floats once a death tips him over)
+  if (dead(F)) headset(g, B.hx + 1, B.hy + 2, 0.6);
   else headset(g, B.hx, B.hy, 0);
   arm(g, B, 1, H.near[0], H.near[1], { sleeve: POLO, hand: L.skin, len: 0.4 });
   // (the wand: an orange glow-stick of a thing; the cone held up overhead in both hands)
@@ -170,9 +171,10 @@ const paintSkate = (g: Ctx, F: Frame) => {
   part(g, () => { g.moveTo(2, B.shY + 4); g.lineTo(-3, B.shY + 12); g.lineTo(1, B.shY + 12); g.lineTo(-2, B.shY + 20); g.lineTo(5, B.shY + 10); g.lineTo(1, B.shY + 10); g.closePath(); }, '#FDE047', -3, B.shY + 4, 8, 16, 0.8);
   g.strokeStyle = '#D4D4D8'; g.lineWidth = 1; g.beginPath(); g.moveTo(-B.hipW / 2, B.hipY + 2); g.quadraticCurveTo(-B.hipW / 2 + 2, B.hipY + 12, 4, B.hipY + 6); g.stroke();
   if (dead(F)) {
-    // (the head's come off: lying by him; the performer underneath, sweaty)
+    // (the head's come off: hanging down his chest by the neck (on him, so it goes down with him); the performer
+    // underneath, sweaty)
     hairBack(g, B); face(g, B, F, 'open', 'o'); whiskers(g, B); hairTop(g, B);
-    ratHead(g, B.hx + 34, -12, 1.6);
+    ratHead(g, B.hx + 8, B.shY + 16, 1.5);
   } else ratHead(g, B.hx + 1, B.hy - 3, rush ? 0.12 : 0);
   arm(g, B, 1, H.near[0], H.near[1], { sleeve: TEE, hand: '#E5E7EB', len: 0.45 });
   // (the gloves: grey rat paws)
@@ -235,8 +237,8 @@ const paintFlea = (g: Ctx, F: Frame) => {
   // (the head: the cowl over the top half, white lenses; the performer's square jaw under it)
   if (dead(F)) {
     hairBack(g, B); face(g, B, F, 'open', 'o'); whiskers(g, B); hairTop(g, B);
-    // (the cowl and its antennae off, lying by him)
-    g.save(); g.translate(B.hx + 34, -8); g.rotate(1.3); part(g, () => g.ellipse(0, 0, 9, 7, 0, Math.PI, 0), SUIT, -9, -7, 18, 7, 1); antennae(g, 0, -4, 0, 0); g.restore();
+    // (the cowl and its antennae pushed off, hanging down the back of his neck like a hood (on him, so it goes down with him))
+    g.save(); g.translate(B.hx - 9, B.shY + 2); g.rotate(-1.3); part(g, () => g.ellipse(0, 0, 9, 7, 0, Math.PI, 0), SUIT, -9, -7, 18, 7, 1); antennae(g, 0, -4, 0, 0); g.restore();
   } else {
     face(g, B, F, pose ? 'smug' : hang ? 'angry' : 'open', pose ? 'grin' : dive ? 'teeth' : stuck ? 'o' : 'grin');
     whiskers(g, B);
@@ -306,9 +308,9 @@ const paintChurro = (g: Ctx, F: Frame) => {
   const cartX = B.w / 2 + 14;
   if (push) B.lean = 5;
   if (winded) B.lean = 7;
-  // (the cart: in front, unless he's dead (tipped over beside him) or knocked about)
+  // (the cart: in front, unless he's dead (let go: gone, not drawn on the floor by him, where it'd float once a death
+  // tips him over) or knocked about)
   const held = !!B.held;
-  if (dead(F)) cart(g, cartX + 6, F.fr, true, false);
   legs(g, B, { col: '#1F2937', shoe: 'shoe', shoeCol: '#18181B' });
   const H = handsAt(B, F,
     sugar ? [B.w / 2 - 2, B.shY + 12] : [-B.w / 2 - 4, B.shY + 18],
@@ -325,9 +327,9 @@ const paintChurro = (g: Ctx, F: Frame) => {
   face(g, B, F, sugar ? 'smug' : push ? 'angry' : winded ? 'tired' : 'open', sugar ? 'grin' : push ? 'teeth' : winded ? 'o' : 'smile');
   whiskers(g, B); glasses(g, B);
   hairTop(g, B);
-  // (the paper hat (dead: off))
+  // (the paper hat (dead: knocked crooked))
   const hat = (x: number, y: number, a: number) => { g.save(); g.translate(x, y); g.rotate(a); part(g, () => { g.moveTo(-10, 0); g.lineTo(10, 0); g.lineTo(6, -7); g.lineTo(-7, -7); g.closePath(); }, '#FFFFFF', -10, -7, 20, 7, 1); px(g, -9, -2, 18, 2, STRIPE); g.restore(); };
-  if (dead(F)) hat(B.hx - 30, -2, -0.3); else hat(B.hx, B.hy - 8, -0.08);
+  if (dead(F)) hat(B.hx + 3, B.hy - 7, 0.6); else hat(B.hx, B.hy - 8, -0.08);
   arm(g, B, 1, H.near[0], H.near[1], { sleeve: '#FFFFFF', hand: L.skin, len: 0.45 });
   // (the sugar bag, the churro shaking in it; the churro cocked back to throw)
   if (sugar && !H.held) { part(g, () => g.rect(H.near[0] - 6, H.near[1] - 6, 12, 14), '#F5F5F4', H.near[0] - 6, H.near[1] - 6, 12, 14, 1); churroStick(g, H.near[0], H.near[1] - 6, -1.4, 20); }
@@ -404,11 +406,14 @@ export const drawGloppy = (c: Ctx, e: Enemy, f: number) => {
     c.fillStyle = INK; c.fillRect(dx - 2, -16, 7, len + 1); c.fillStyle = GLOPR[3]; c.fillRect(dx - 1, -16, 5, len); c.fillStyle = GLOPR[4]; c.fillRect(dx - 1, -16, 1, len - 2); c.fillStyle = GLOPR[2]; c.fillRect(dx + 3, -16, 1, len);
     c.fillStyle = INK; c.beginPath(); c.arc(dx + 1.5, -16 + len, 4, 0, Math.PI * 2); c.fill(); c.fillStyle = GLOPR[3]; c.beginPath(); c.arc(dx + 1.5, -16 + len, 3, 0, Math.PI * 2); c.fill(); c.fillStyle = GLOPR[5]; c.fillRect(dx, -17 + len, 1, 1);
   }
-  // (the head: the top lump, its eye stalks (or off, lying by him: dead), the mouth hole with the performer in it)
+  // (the head: the top lump, its eye stalks (or off, hanging down his front: dead), the mouth hole with the performer in it)
   if (isDead) {
-    // (the top lump's come off: lying by him, its eye stalks flopped; the performer's sweaty head out of the neck hole)
-    blob(c, 52, -14, 18, 12, GLOP);
-    for (const [sx, ex] of [[46, 34], [58, 70]] as [number, number][]) { c.strokeStyle = INK; c.lineWidth = 5; c.lineCap = 'round'; c.beginPath(); c.moveTo(sx, -20); c.quadraticCurveTo((sx + ex) / 2, -30, ex, -6); c.stroke(); c.strokeStyle = GLOPR[3]; c.lineWidth = 3; c.stroke(); c.fillStyle = INK; c.beginPath(); c.arc(ex, -5, 5, 0, Math.PI * 2); c.fill(); c.fillStyle = '#F4F4F5'; c.beginPath(); c.arc(ex, -5, 4, 0, Math.PI * 2); c.fill(); c.fillStyle = INK; c.fillRect(ex - 2, -6, 3, 1); c.fillRect(ex - 1, -7, 1, 3); }
+    // (the top lump's come off: hanging down his front by the neck, its eye stalks flopped (on him, so it goes down with
+    // him, never left floating where the floor was); the performer's sweaty head out of the neck hole)
+    c.save(); c.translate(22, -50); c.rotate(1.2);
+    blob(c, 0, 0, 16, 11, GLOP);
+    for (const [sx, ex] of [[-6, -16], [6, 16]] as [number, number][]) { c.strokeStyle = INK; c.lineWidth = 5; c.lineCap = 'round'; c.beginPath(); c.moveTo(sx, -4); c.quadraticCurveTo((sx + ex) / 2, -14, ex, 4); c.stroke(); c.strokeStyle = GLOPR[3]; c.lineWidth = 3; c.stroke(); c.fillStyle = INK; c.beginPath(); c.arc(ex, 5, 5, 0, Math.PI * 2); c.fill(); c.fillStyle = '#F4F4F5'; c.beginPath(); c.arc(ex, 5, 4, 0, Math.PI * 2); c.fill(); c.fillStyle = INK; c.fillRect(ex - 2, 4, 3, 1); c.fillRect(ex - 1, 3, 1, 3); }
+    c.restore();
     c.fillStyle = INK; c.beginPath(); c.ellipse(2, -76, 14, 5, 0, 0, Math.PI * 2); c.fill(); c.fillStyle = GLOPR[1]; c.beginPath(); c.ellipse(2, -76, 12, 3.5, 0, 0, Math.PI * 2); c.fill();
     performerFace(c, e, 2, -84, 9, 'dead', false);
     c.fillStyle = lookOf(seed).hair; c.fillRect(-7, -96, 16, 4);

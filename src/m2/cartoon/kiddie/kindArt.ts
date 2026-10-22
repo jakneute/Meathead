@@ -2,8 +2,9 @@
 // ramps, lit down its left and shaded down its right, dithered where the steps meet, inked; whoever's in the costume
 // shows: their skin, build and face, man or woman). Each seeded: no two the same. Each drawn hurt (eyes shut), knocked
 // about (held, flung, dazed) and dead (limp, crossed-out eyes), so the engine's special deaths all play out on their
-// real sprites; and dead, the costume gives (the cat's hat rolled off, the Whatsit's wig off, the vendor's balloons
-// away, the painter's beret, the mascot's frosted head come off: the sweaty performer underneath). Feet at the origin,
+// real sprites; and dead, the costume gives (the cat's hat and the painter's beret knocked crooked, the Whatsit's wig
+// half off, the vendor's balloons away: all kept on the body, never on the floor by it, since the engine's deaths tip
+// the body over and anything on the floor would float). Feet at the origin,
 // facing right (the engine mirrors them). The frames painted once into a stamp (the mascot's too, by pose and walk
 // frame: live only while he's tumbling, his googly pupils and his candle's flame live over it).
 //
@@ -21,8 +22,8 @@
 //   mascot     CAPTAIN SPRINKLES: a pleated paper-cup body (its pleats in steps, a scalloped rim), a frosting-swirl head
 //              in three stepped tiers with sprinkles and googly eyes, a lit candle on top (striped, dripping wax), the
 //              performer's wide eyes in the mouth hole (vibrating: the tell; arms up in a leap; slumped in the crash,
-//              the candle out). Dead, laid out on his side: the cup tipped over, the stumpy legs up, the head rolled
-//              off, the performer's own sweaty head out of the cup's top
+//              the candle out). Dead: stood still, the candle out, the performer's face dead in the mouth hole (the
+//              engine's deaths lay him down)
 //   balloondog three twisted balloons' worth of dog, glossy, the twists pinched in, the knot at its tail
 
 import type { Enemy } from '../../../m1/types';
@@ -114,8 +115,9 @@ const paintHatCat = (g: Ctx, F: Frame) => {
   glasses(g, B);
   hairTop(g, B);
   for (const s of [-1, 1]) { part(g, () => { g.moveTo(B.hx + s * 7 - 4, B.hy - 7); g.lineTo(B.hx + s * 9, B.hy - 16); g.lineTo(B.hx + s * 7 + 4, B.hy - 7); g.closePath(); }, SUIT, B.hx + s * 7 - 4, B.hy - 16, 8, 9, 1); px(g, B.hx + s * 8 - 1, B.hy - 12, 2, 4, '#F4A6C0'); }
-  // (the hat: on, or lifted in the far hand (the tell), or off and gone (out flying), or rolled off dead)
-  if (dead(F)) stovepipe(g, B.hx + 30, -2, 1.45, 30);
+  // (the hat: on, or lifted in the far hand (the tell), or off and gone (out flying), or knocked crooked dead (on him,
+  // not on the floor: whatever's on the floor floats once a death tips him over))
+  if (dead(F)) stovepipe(g, B.hx + 3, B.hy - 7, 0.55);
   else if (wind && !H.held) stovepipe(g, H.far[0] + 2, H.far[1] + 2, -0.5);
   else if (!hatless) stovepipe(g, B.hx, B.hy - 8, 0.05);
   arm(g, B, 1, H.near[0], H.near[1], { sleeve: SUIT, hand: BIB });
@@ -163,9 +165,10 @@ const paintWhatsit = (g: Ctx, F: Frame) => {
   face(g, B, F, crouch ? 'wide' : dizzy ? 'tired' : 'wide', crouch ? 'grin' : dash ? 'teeth' : 'grin');
   whiskers(g, B); glasses(g, B);
   if (dead(F)) {
-    // (dead: the wig's come off, lying by him; their own hair (or none) under it)
+    // (dead: the wig knocked half off, slid down over an ear; their own hair (or none) showing under it (on him, so it
+    // goes down with him))
     hairTop(g, B);
-    g.save(); g.translate(B.hx + 32, -6); fright(g, 0, 0, 9); g.restore();
+    g.save(); g.translate(B.hx + 4, B.hy - 1); g.rotate(0.6); fright(g, 0, 0, 11); g.restore();
   } else fright(g, B.hx, B.hy - 4, 13);
   arm(g, B, 1, H.near[0], H.near[1], { sleeve: JUMP, hand: B.L.skin, len: 0.85 });
   g.restore();
@@ -214,7 +217,7 @@ const paintVendor = (g: Ctx, F: Frame) => {
   hairBack(g, B);
   face(g, B, F, twist ? 'smug' : kick ? 'angry' : 'open', twist ? 'smirk' : kick ? 'teeth' : 'smile');
   whiskers(g, B); glasses(g, B);
-  // (the boater: straw in steps, its weave, a red band; dead: knocked off by him)
+  // (the boater: straw in steps, its weave, a red band; dead: knocked crooked on his head)
   const boater = (x: number, y: number, a: number) => {
     g.save(); g.translate(x, y); g.rotate(a);
     partTop(g, () => g.ellipse(0, 0, 14, 3, 0, 0, Math.PI * 2), '#EAB308', -14, -3, 28, 6, 1);
@@ -223,7 +226,7 @@ const paintVendor = (g: Ctx, F: Frame) => {
     px(g, -8, -4, 16, 3, '#DC2626'); px(g, -8, -4, 16, 1, lt('#DC2626', 0.3));
     g.restore();
   };
-  if (dead(F)) { hairTop(g, B); boater(B.hx + 30, -4, 0.3); } else boater(B.hx, B.hy - 8, -0.05);
+  if (dead(F)) { hairTop(g, B); boater(B.hx + 3, B.hy - 7, 0.55); } else boater(B.hx, B.hy - 8, -0.05);
   arm(g, B, 1, H.near[0], H.near[1], { sleeve: '#F8FAFC', hand: L.skin });
   // (twisting: a long squeaky balloon between his fists, glossy)
   if (twist && !H.held) { g.save(); g.translate(H.near[0] - 6, H.near[1] - 4); g.rotate(-0.7 + (F.fr % 2) * 0.2); const col = pickOf(F.seed, 9, DOG_COLORS); part(g, () => g.roundRect(-14, -3, 28, 6, 3), col, -14, -3, 28, 6, 1); px(g, -10, -2, 8, 1, '#FFFFFF'); px(g, 1, -3, 1, 6, dk(col, 0.35)); g.restore(); }
@@ -258,10 +261,10 @@ const paintPainter = (g: Ctx, F: Frame) => {
   hairBack(g, B);
   face(g, B, F, dip ? 'smug' : smear ? 'angry' : 'open', dip ? 'smirk' : smear ? 'teeth' : 'smile');
   whiskers(g, B); glasses(g, B);
-  // (a butterfly painted on their own cheek, the beret (dead: off))
+  // (a butterfly painted on their own cheek, the beret (dead: knocked crooked))
   px(g, B.hx - 4, B.hy + 2, 2, 2, '#EC4899'); px(g, B.hx - 2, B.hy + 2, 2, 2, '#3B82F6'); px(g, B.hx - 3, B.hy + 2, 1, 3, INK);
   const beret = (x: number, y: number, a: number) => { g.save(); g.translate(x, y); g.rotate(a); partTop(g, () => g.ellipse(0, 0, 12, 5, 0, 0, Math.PI * 2), '#BE123C', -12, -5, 24, 10, 1); px(g, -1, -7, 2, 3, INK); px(g, -9, -2, 6, 1, lt('#BE123C', 0.35)); g.restore(); };
-  if (dead(F)) { hairTop(g, B); beret(B.hx + 28, -3, 0.2); } else { hairTop(g, B); beret(B.hx - 1, B.hy - 9, -0.25); }
+  if (dead(F)) { hairTop(g, B); beret(B.hx + 2, B.hy - 8, 0.6); } else { hairTop(g, B); beret(B.hx - 1, B.hy - 9, -0.25); }
   arm(g, B, 1, H.near[0], H.near[1], { sleeve: SMOCK, hand: L.skin });
   // (the brush: its handle stepped, the ferrule, its tip loaded)
   if (!H.held) {
