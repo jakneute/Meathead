@@ -417,7 +417,9 @@ const drawShelf = (c: Ctx, eye: Eye, L: number, R: number) => {
   const ds = [WALL_D, 0.8, 0.88, 0.95, 1.02, 1.08];
   for (let i = 0; i < ds.length - 1; i++) {
     const col = [r[0], mix(r[0], r[1], 0.5), r[1], mix(r[1], r[2], 0.5), r[2]][i];
-    quad(c, col, at(eye, SHELF_X0, GY, ds[i]), at(eye, SHELF_X1, GY, ds[i]), at(eye, SHELF_X1, GY, ds[i + 1]), at(eye, SHELF_X0, GY, ds[i + 1]));
+    // (on to the front edge, the next band over it: no antialiased hairline between bands)
+    const dn = ds[ds.length - 1];
+    quad(c, col, at(eye, SHELF_X0, GY, ds[i]), at(eye, SHELF_X1, GY, ds[i]), at(eye, SHELF_X1, GY, dn), at(eye, SHELF_X0, GY, dn));
   }
   // (grit on it: as far back as 0.75, so culled by where that lands on screen, not by his plane's edges)
   const [g0, g1] = spanAt(eye, 0.75, 10);

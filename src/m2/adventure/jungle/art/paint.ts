@@ -58,9 +58,10 @@ export const sideFace = (c: Ctx, eye: { x: number; y: number }, e: number, side:
   if ((eye.x - e) * side <= 1) return;
   const pt = (k: number, y: number) => at(eye, e, y, 1 - (1 - depth) * k);
   const steps = cols.length;
+  // (each step drawn from its start to the back, the next over it: no antialiased hairline between steps)
   for (let i = 0; i < steps; i++) {
-    const k0 = i / steps, k1 = (i + 1) / steps;
-    poly(c, [pt(k0, top), pt(k1, top), pt(k1, bottom), pt(k0, bottom)], cols[i]);
+    const k0 = i / steps;
+    poly(c, [pt(k0, top), pt(1, top), pt(1, bottom), pt(k0, bottom)], cols[i]);
   }
   // (layers in the rock, going back with it)
   if (strata) for (const y of strata) {

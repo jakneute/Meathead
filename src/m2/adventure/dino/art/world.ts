@@ -77,7 +77,8 @@ export const drawDinoWorld = (c: Ctx, state: GameState, look: DinoLook, drawRex:
   zoo?.near();
   // The ground toward him (bent: the rows nearer, wider)
   floor(c, state, v);
-  bendFloor(c, eye, GY, GY, GY + 170, v.x - 10, v.x + v.w + 10);
+  // (the whole depth of the stamped floor: rows left under the bend kept their straight-down seams, a jog where it stopped)
+  bendFloor(c, eye, GY, GY, GY + 200, v.x - 10, v.x + v.w + 10);
   // (the paddock's gates: whichever of them lands on screen anywhere from the walk plane back to its back fence)
   const gates = [PADDOCK_IN, PADDOCK_OUT].filter(gx => vis(gx - 140, gx + 160) || visAt(gx - 140, gx + 160, PAD_BACK));
   // (their side fences and the arches' back halves: well back, before anything standing in front of them)

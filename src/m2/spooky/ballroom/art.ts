@@ -182,7 +182,8 @@ const endWall = (c: Ctx, eye: Eye, X: number, side: -1 | 1, f: number) => {
   if (side < 0 ? eye.x >= X : eye.x <= X) return;
   const p = (y: number, d: number): P => at(eye, X, y, d), top = CEIL - 300;
   const ds = [1, 0.97, 0.94, 0.91, 0.885, WALL_D];
-  for (let i = 0; i < ds.length - 1; i++) quad(c, mix('#2E1065', INK, i * 0.1), p(top, ds[i]), p(top, ds[i + 1]), p(GY, ds[i + 1]), p(GY, ds[i]));
+  // (each band on to the back wall, the next over it: no antialiased hairline between them crawling as it scrolls)
+  for (let i = 0; i < ds.length - 1; i++) quad(c, mix('#2E1065', INK, i * 0.1), p(top, ds[i]), p(top, WALL_D), p(GY, WALL_D), p(GY, ds[i]));
   quad(c, '#1E0A33', p(GY - 112, 1), p(GY - 112, WALL_D), p(GY, WALL_D), p(GY, 1));
   seg(c, p(GY - 114, 1), p(GY - 114, WALL_D), GOLD, 2);
   seg(c, p(CEIL, 1), p(CEIL, WALL_D), GOLD, 2);

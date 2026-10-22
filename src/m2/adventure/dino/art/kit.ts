@@ -57,7 +57,9 @@ export const prism = (c: Ctx, eye: Eye, x: number, top: number, w: number, botto
     if ((eye.x - e) * s <= 2) continue;
     const [x1, t1] = at(e, top, 1), [, b1] = at(e, bottom, 1);
     quad(c, [[e, top], [x1, t1], [x1, b1], [e, bottom]], r[1]);
-    for (const [k0, k1, a] of [[0.5, 0.8, 0.13], [0.8, 1, 0.26]] as const) {
+    // (the shades laid over each other to the back rather than side by side: no antialiased hairline between them;
+    // 0.13 then 0.15 over it makes the back fifth's 0.26 as before)
+    for (const [k0, k1, a] of [[0.5, 1, 0.13], [0.8, 1, 0.15]] as const) {
       const [xa, ta] = at(e, top, k0), [, ba] = at(e, bottom, k0), [xb, tb] = at(e, top, k1), [, bb] = at(e, bottom, k1);
       quad(c, [[xa, ta], [xb, tb], [xb, bb], [xa, ba]], `rgba(12, 10, 28, ${a})`);
     }
