@@ -38,7 +38,9 @@ export type LedgeLook = 'stair' | 'balcony' | 'table' | 'shelf' | 'canopy' | 'to
 export const LIB = X(5100);
 export const LEDGES: [number, number, number, LedgeLook][] = [
   // the foyer's grand stair up to its balcony and down again
-  [X(480), GY - 80, 120, 'stair'], [X(600), GY - 160, 120, 'stair'], [X(720), GY - 240, 520, 'balcony'], [X(1250), GY - 160, 80, 'stair'], [X(1320), GY - 80, 70, 'stair'],
+  // (no gaps between the steps: a sliver of floor showing between the balcony and the step down off it made the
+  // camera's look-ahead for somewhere to land flick between the step and the floor as he walked, jittering it)
+  [X(480), GY - 80, 120, 'stair'], [X(600), GY - 160, 120, 'stair'], [X(720), GY - 240, 520, 'balcony'], [X(1240), GY - 160, 90, 'stair'], [X(1320), GY - 80, 70, 'stair'],
   // the dining table, the whole length of the room
   [X(1700), GY - 72, 1200, 'table'],
   // the kitchen: the pot rack between the stoves (up off a stove top, between its flare-ups: a little health up there),
