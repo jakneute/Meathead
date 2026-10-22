@@ -32,7 +32,7 @@ import type { FrameContext } from '../../../m1/game/core/context';
 import type { Controls } from '../../../m1/game/platform/input';
 import type { Enemy, EnemyKind } from '../../../m1/types';
 import type { SpookySection } from '../section';
-import { layOwn, solid, ledge, endWalls, runExits, teleport, hands, meatheadSays, saidOver, spookyState } from '../section';
+import { layOwn, solid, ledge, endWalls, teleport, hands, meatheadSays, saidOver, spookyState } from '../section';
 import { DOORS, GY, SECTIONS } from '../geometry';
 import { floorTopAt } from '../../../m1/game/core/terrain';
 /** Down the DOWN shaft, he lands in hell's pit here (hell's agent: anywhere hell.x0+500..880 at its start's height). */
@@ -52,8 +52,9 @@ import { TK, updateThrown, drawThrown, thrown } from './kinds';
 import { runHazards, drawDebris, storyOf, canHurt, cover, clearView, worksKill, type Debris } from './hazards';
 import { newRide, runRide, lampOn, upCar, loadedCar, type Ride, type Car } from './ride';
 import { drawTowerBackdrop, drawTowerBack } from './art';
+import { tickDoors, useDoor, arrive } from '../dungeon/stairs';
 import {
-  x0, x1, HOW_BOARD_X, ASK_X, BOOTH_X, STAFF_DOOR_X, TX0, TX1, U, WALL, SH0, SH1, SHM, SHX, SHU, SHD, CH0, CH1, DOOR_H, F, STORY, STORIES, SLAB, TOP, ROOF, B1,
+  x0, x1, ENTRY_DOOR_X, HOW_BOARD_X, ASK_X, BOOTH_X, STAFF_DOOR_X, TX0, TX1, U, WALL, SH0, SH1, SHM, SHX, SHU, SHD, CH0, CH1, DOOR_H, F, STORY, STORIES, SLAB, TOP, ROOF, B1,
   HELL_AT, LEDGES, SHELF, CHUTE_LEDGES, BEAMS, beamTop, WHOLE, WRECK, JAMS, pieceY, floorAt, CUCKOOS, FOES, DESCENT_FOES, SECURITY, PICKUPS, CAR_TOP,
   LIFT, liftY, ROTTEN, TORN_NET, LADDER_SPOTS, type TowerFoe, type FoeAt, type Piece,
 } from './layout';
@@ -559,6 +560,8 @@ export const tower: SpookySection = {
     const t = towerOf(state);
     // (the ladders first: what he does on one is theirs)
     if (!t.crash) controls = updateLadders(ctx, t.crashed ? LADDERS_DOWN : LADDERS_UP, controls);
+    // (the dungeon's door at the bay's left end: swinging shut behind him, come up out of the dungeon through it)
+    tickDoors(state, controls);
     const cx = p.pos.x + p.width / 2, feet = p.pos.y + p.height;
     // (the first frame: as it was at the checkpoint he's starting from (the stage only says which once it's built). Past
     // a floor, its beam's out; on the way down, or back from hell, it's all wrecked)
@@ -604,8 +607,9 @@ export const tower: SpookySection = {
     t.ride.cars = t.ride.cars.filter(c => !(c.crash && c.y > HELL_AT + 500));
     if (t.crash) return runCrash(ctx, t);
     if (t.auto !== undefined && t.dive) t.auto = undefined;
-    // The way back to the hallway
-    runExits(state, [{ x0: x0 - 40, x1: x0 + 60, yTop: GY - 40, yBot: GY + 2, to: DOORS.dungeon.end }]);
+    // The way back to the dungeon: its door at the bay's left end (up at it: through, out of its other side, the door
+    // at the dungeon's far end: dungeon/stairs.ts)
+    { const out = useDoor(state, 'bay', ENTRY_DOOR_X + 10, GY, 'TO THE DUNGEON', 'clang', () => { teleport(state, DOORS.dungeon.end.x, DOORS.dungeon.end.y); arrive(state, 'exit', -1); }); if (out) return out; }
     runBay(state, t);
     updateThrown(ctx);
     runLift(state);

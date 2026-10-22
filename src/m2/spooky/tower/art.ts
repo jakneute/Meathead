@@ -29,6 +29,7 @@ import { drawTodSky, timeOfDay, hourMix, skyAt, skyRamp, farTint, type TimeOfDay
 import { shrunk, farMark } from '../../parkFar';
 import { paintCrags } from '../town/sky';
 import { farOtherCastle } from '../teases';
+import { paintBayRideDoor, RIDE_W, RIDE_H } from '../dungeon/stairs';
 
 /** A polygon, filled. */
 const poly = (g: CanvasRenderingContext2D, pts: [number, number][], col: string) => { g.fillStyle = col; g.beginPath(); pts.forEach(([x, y], i) => (i ? g.lineTo(x, y) : g.moveTo(x, y))); g.closePath(); g.fill(); };
@@ -490,11 +491,9 @@ const drawBay = (c: Ctx, state: GameState, look: TowerLook, eye: Eye, v: View) =
       seg(c, at(eye, e, top, BAY_D), at(eye, e, bot, BAY_D), INK, 1);
     }
   }
-  // the way back to the hallway (an arch of the dungeon's stone)
-  bayDoor(c, eye, ENTRY_DOOR_X + 10, 64, 136, '#4A4458', '#06050A', (g, l, t) => {
-    for (let y = t + 10; y < GY; y += 26) box(g, l, y, 64, 1, '#120E16');
-  });
-  plaque(c, ENTRY_DOOR_X + 10, GY - 166, 'DUNGEON', '#2E1065', '#BBF7D0');
+  // the way back to the dungeon: the ride's steel door (its bay side), swinging (dungeon/stairs.ts)
+  bayDoor(c, eye, ENTRY_DOOR_X + 10, RIDE_W, RIDE_H, '#4A4458', '#06050A', paintBayRideDoor);
+  plaque(c, ENTRY_DOOR_X + 10, GY - 166, 'TO THE DUNGEON', '#2E1065', '#BBF7D0');
   // the wait sign, on its posts
   {
     const sx = WAIT_SIGN_X;

@@ -16,8 +16,8 @@ import type { GameState } from '../../../m1/game/core/state';
 import type { FrameContext } from '../../../m1/game/core/context';
 import type { Block } from '../../../m1/types';
 import type { SpookySection } from '../section';
-import { layOwn, endWalls, endExits, runExits, solid, ledge, meatheadSays, getSpooky, spookyState } from '../section';
-import { SECTIONS, GY } from '../geometry';
+import { layOwn, endWalls, solid, ledge, meatheadSays, getSpooky, spookyState, teleport } from '../section';
+import { SECTIONS, GY, DOORS } from '../geometry';
 import { setUi } from '../../store';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
@@ -34,13 +34,24 @@ import { skewer, skewerRise, SKEWERED } from './death';
 import * as L from './lines';
 import { CELLS, STAIR_TOP, stairRuns, buildStairs, runStairs, drawStairs, stairsLighting, resetStairs, initStairs } from './stairs';
 import { floorRuns, buildRopes, runRopes, drawRopeWalk, ropeRow } from './ropes';
-import { signAt, led } from '../letters';
+import { resetDoors, tickDoors, useDoor, arrive, drawTopDoor, drawGalleryLeaf, drawRideDoor } from './stairs';
 
 registerHurtLines('spooky_ceiling', L.HURT_CEILING, L.DEATH_CEILING);
 
 const { x0, x1 } = SECTIONS.dungeon;
 /** (the cells and everything after them: from the foot of the stairs) */
 const X = (dx: number) => CELLS + dx;
+/** The doors: the oak one at the top of the stairs (back up into the castle's gallery), the ride's at the far end. */
+const TOP_X = DOORS.dungeon.start.x, EXIT_X = DOORS.dungeon.end.x;
+/** The last frame he was in here (back after a gap: he's just come in from somewhere). */
+let hereAt = 0;
+/** The oak door at the top of the stairs, and the same door from the gallery's side (standing open in the arch at the
+ *  gallery's end: the castle's doorways.ts draws the arch; drawn from here, as the dungeon's door). */
+const drawDoorsAtTop = (c: CanvasRenderingContext2D, state: GameState) => {
+  if (seen(state, x0 - 300, x0 + 200)) drawTopDoor(c, TOP_X, STAIR_TOP);
+  const gx = SECTIONS.castle.x1 - 140;
+  if (seen(state, gx - 20, gx + 60)) drawGalleryLeaf(c, gx, DOORS.castle.end.y);
+};
 /** The chamber: its walls (the doors in them), the ceiling's spikes at the top (their tips), how fast it comes down. */
 const RA = X(1400), RB = X(3400), TIP0 = GY - 470, CEIL_WAIT = 30;
 /** Down for good: the spikes driven into the floor (the chamber's a solid block of it after; no way back through). */
@@ -381,18 +392,8 @@ const drawDungeon = (c: CanvasRenderingContext2D, state: GameState, dg: Dungeon)
       }
     });
   }
-  // The corridor on, up the steps to the emergency exit
-  if (seen(state, RB, x1)) {
-    put(c, 'dExit', x1 - 90, GY, -140, -200, 240, 202, g => {
-      for (let k = 0; k < 6; k++) { box(g, -30 + k * 10, -20 - k * 18, 70, 7, INK); box(g, -29 + k * 10, -19 - k * 18, 68, 5, STONE[2]); box(g, -29 + k * 10, -19 - k * 18, 68, 2, STONE[3]); }
-      box(g, -46, -150, 92, 150, INK); box(g, -44, -148, 88, 148, STONE[2]); box(g, -44, -148, 88, 3, STONE[3]);
-      box(g, -32, -136, 64, 136, '#0A0908'); bandedGradient(g, -32, -136, 64, 136, ['#060504', '#0E0C0A', '#141210'], 4);
-      // (a modern convenience: the lit EMERGENCY EXIT box over it)
-      box(g, -40, -176, 80, 18, INK); box(g, -39, -175, 78, 16, '#0E3A1A'); box(g, -39, -175, 78, 2, '#1E5A2A');
-    });
-    if (seen(state, x1 - 140, x1)) signAt(c, 'EMERGENCY', x1 - 90, GY - 164, 6, led(6, '#4ADE80', '#0E3A1A'));
-    plaque(c, x1 - 90, GY - 200, 'TO THE LOADING BAY', '#27272A', '#FCD34D');
-  }
+  // The corridor's end: the ride's door (dungeon/stairs.ts)
+  if (seen(state, x1 - 400, x1)) drawRideDoor(c, EXIT_X, GY, f);
   // Torches
   for (let x = CELLS + 200; x < x1; x += 400) if (seen(state, x - 20, x + 20) && (x < RA || x > RB)) torch(c, x, GY - 300, f);
   const talking = !!paSaying(state);
@@ -412,6 +413,7 @@ export const dungeon: SpookySection = {
   build: (state) => {
     if (state.checkpoint < 10) toldDungeon = false;
     resetStairs(state);
+    resetDoors(); hereAt = state.frame;
     layOwn(state, [...stairRuns(), ...floorRuns(CELLS, x1 + 200)]);
     buildRopes(state);
     buildStairs(state);
@@ -442,14 +444,23 @@ export const dungeon: SpookySection = {
       if (ctx.state.checkpoint >= 22) toldDungeon = true;
       if (ctx.state.checkpoint >= 23) { dg.room = 'jammed'; dg.tip = CRUSHED; dg.levB = dg.lever = true; dg.door = 1; }
     }
-    // (the way on: the emergency exit; the way back: up the stairs, out at the top into the castle)
-    if (runExits(ctx.state, endExits('dungeon'))) { ctx.state.player.leverPull = undefined; return controls; }
+    // The doors (dungeon/stairs.ts): the way on, the ride's steel door at the far end; the way back, the oak door at the
+    // top of the stairs (in through it from the castle's gallery: it swings shut behind him)
+    {
+      const state = ctx.state, p = state.player, gap = state.frame - hereAt;
+      hereAt = state.frame;
+      if (gap > 2 && Math.abs(p.pos.x + p.width / 2 - TOP_X) < 6 && Math.abs(p.pos.y + p.height - STAIR_TOP) < 8) arrive(state, 'top', 1);
+      tickDoors(state, controls);
+      const out = useDoor(state, 'top', TOP_X, STAIR_TOP, 'TO THE CASTLE', 'grind', () => { teleport(state, DOORS.castle.end.x, DOORS.castle.end.y); p.facing = -1; })
+        ?? useDoor(state, 'exit', EXIT_X, GY, 'TO THE RIDE', 'clang', () => { teleport(state, DOORS.tower.start.x, DOORS.tower.start.y); arrive(state, 'bay', 1); });
+      if (out) { p.leverPull = undefined; return out; }
+    }
     run(ctx, dg);
     leverPose(ctx.state, dg);
     return runRopes(ctx, controls);
   },
   drawBackdrop: (c) => { bandedGradient(c, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, ['#050403', '#0C0A09', '#120E0C'], 8); return true; },
-  drawBack: (c, state) => { drawStairs(c, state); drawDungeon(c, state, dungeonOf(state)); drawRopeWalk(c, state); },
+  drawBack: (c, state) => { drawStairs(c, state); drawDoorsAtTop(c, state); drawDungeon(c, state, dungeonOf(state)); drawRopeWalk(c, state); },
   cameraRow: (state) => ropeRow(state),
   drawFront: (c, state) => { if (getSpooky(state)?.section === 'dungeon') drawPaWords(c, state, HORNS); },
   lighting: (state) => {
