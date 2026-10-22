@@ -17,9 +17,9 @@
 // the first time this visit: the intro. After that (a retry), it's down: walk in and she's waiting (cp 61, the fight's
 // start, is set as it starts). Beaten: VICTORY, the walk-away with the SPELLBOOK (walkAway/piper.ts), the hub, Fairy
 // Land cleared. Revisits (cleared): the hall, the door down, her room wrecked and empty (the hole in her roof, or the
-// heap she crumbled into); the way back.
+// heap she crumbled into).
 //
-// The way back: the left end (to the broomsticks' end). No way on (the end of the land).
+// No way back: in through the window is one-way (the hall's left end is a wall). No way on (the end of the land).
 
 import type { GameState } from '../../../m1/game/core/state';
 import type { Block } from '../../../m1/types';
@@ -27,7 +27,7 @@ import { pickLine } from '../../../m1/game/platform/speech';
 import { isNude } from '../../../m1/game/player/gut';
 import { topBand, CANVAS_WIDTH } from '../../../m1/constants';
 import type { FantasySection } from '../section';
-import { layOwn, endWalls, endExits, runExits, fantasyState, hands, ledge, solid, landVisit, meatheadSays, byPants } from '../section';
+import { layOwn, endWalls, fantasyState, hands, ledge, solid, landVisit, meatheadSays, byPants } from '../section';
 import { DOORS } from '../geometry';
 import { goTo, markLandCleared, markBossDeath, noteBossKill, isLandCleared, setUi } from '../../store';
 import { type Victory, startVictory, tickVictory, drawVictory, victoryDone } from '../../victory';
@@ -105,7 +105,8 @@ export const bedroom: FantasySection = {
     const { state } = ctx, p = state.player, s = bedroomOf(state);
     const cleared = isLandCleared('fantasy');
     if (s.fight === 'wait') {
-      runExits(state, endExits('bedroom'));
+      // (no way back out to the broomsticks: he came in through the window, one-way (the user's rule); the hall's left
+      // end is a wall)
       if (cleared) return controls;
       // (a fresh start at her checkpoint (the checkpoint-skip cheat: set after the build): the world as a run there left
       // it, her door kicked in and the intro seen; he walks in and she's waiting)

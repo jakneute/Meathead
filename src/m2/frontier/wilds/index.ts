@@ -6,7 +6,7 @@
 // (station.ts), whose scene sends him on to the train.
 //
 // The ways: the land's start (no going off its left); its right end, after the station's scene (or on a revisit), on
-// to the train (DOORS.train.start); back from the train, he's on the platform (DOORS.wilds.end).
+// to the train (DOORS.train.start); no way back from the train (it carried him off: one-way).
 
 import { pickLine } from '../../../m1/game/platform/speech';
 import type { EnemyKind } from '../../../m1/types';

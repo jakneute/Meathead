@@ -11,7 +11,7 @@ import type { GameState } from '../../../m1/game/core/state';
 import type { Light } from '../../../m1/game/render/lighting';
 import { realDisastersOn } from '../section';
 import { GY } from '../geometry';
-import { X, DUMP, GIFT } from './layout';
+import { X, DUMP, GIFT, LOT_BOARDED_MEMO } from './layout';
 import { type Ctx, INK, box, at, viewOf, seen, hash } from '../blvd/kit';
 import { drawLotStrip } from '../blvd/ground';
 import { drawLotFar } from './far';
@@ -60,7 +60,7 @@ export const drawLotBack = (c: Ctx, state: GameState) => {
   drawLotStanding(c, v, f);
   drawRainRig(c, v, state);
   drawGiftFront(c, v);
-  drawWallBreak(c, v);
+  drawWallBreak(c, v, state.stageMemo[LOT_BOARDED_MEMO] === '1');
   drawLotStreet(c, v);
   drawRainPuddles(c, state);
   if (real) {

@@ -19,10 +19,10 @@
 // speed. Down on the tracks after that (through a cut coupling), he's under the wheels.
 //
 // Checkpoints 10-18. A death puts the train back as it was at that checkpoint (cars cut loose before it stay gone).
-// The ways: back off the back of the rearmost car (or the section's left end) to the station's platform
-// (DOORS.wilds.end); on, only by the crash (the town, DOORS.town.start). After the crash (a revisit), the train's stood
-// still at the end of the line, whole again (the park towed the cars back, and billed him), nobody on it: walk it end to
-// end; into the cab's back to go on to the town; the town's left end brings him back to the tender (TRAIN_END).
+// The ways: no way back to the station (the train carried him off: one-way, the user's rule; the caboose's back porch
+// has its rail, the section's left end is a wall); on, only by the crash (the town, DOORS.town.start). After the crash
+// (a revisit), the train's stood still at the end of the line, whole again (the park towed the cars back, and billed
+// him), nobody on it: walk it end to end; into the cab's back to go on to the town (no way back from the town either).
 
 import type { EnemyKind } from '../../../m1/types';
 import type { GameState } from '../../../m1/game/core/state';
@@ -33,7 +33,7 @@ import { SKIP_AFTER, offerSkip, takeSkip, drawSkipPrompt } from '../../../m1/gam
 import { CANVAS_WIDTH } from '../../../m1/constants';
 import { todLight } from '../../timeOfDay';
 import type { FrontierSection } from '../section';
-import { layOwn, endWalls, endExits, runExits, teleport, meatheadSays, byPants, hands } from '../section';
+import { layOwn, endWalls, teleport, meatheadSays, byPants, hands } from '../section';
 import { SECTIONS, DOORS, GY } from '../geometry';
 import { trainOf } from './state';
 import { CARS, CAR_X, CHECKPOINTS, DECK, ROOF, END, TOP, ENGINE, V_FULL, V_INTRO, PICKUPS, TRAIN_END, EVENTS, eventX } from './layout';
@@ -132,18 +132,14 @@ export const train: FrontierSection = {
     }
     // ---- the engine's scene, the cuts, what goes by, what flies, the tracks
     out = updateEngine(ctx, out);
-    // (off the back of the caboose, while it's coupled (or off the back of the train stood still): back to the station.
-    // The playtest's: once cars have been cut loose, off the back of what's left of the moving train is down on the
-    // tracks: under the wheels (updateTracks), not a way back)
+    // (the caboose's back porch, while it's coupled (or the back of the train stood still): its rail. No way back to the
+    // station: the train carried him off, one-way (the user's rule). The playtest's: once cars have been cut loose, off
+    // the back of what's left of the moving train is down on the tracks: under the wheels (updateTracks))
     const rearFloor = tr.cars[tr.rear]?.blocks[0];
     if (tr.phase !== 'intro' && rearFloor && (tr.rear === 0 || tr.phase === 'still') && (!tr.cut || tr.cut.phase === 'tell' || tr.cut.k < tr.rear) && cx < rearFloor.x + 2 && feet < GY - 6 && feet > DECK - 40 && p.health > 0 && !p.inCutscene) {
-      if (tr.phase === 'ride') { tr.phase = 'intro'; tr.v = V_INTRO; tr.vTarget = V_INTRO; tr.introT = 0; }
-      // (the riders in the near lane stay with the train)
-      tr.riders = [];
-      teleport(state, DOORS.wilds.end.x, DOORS.wilds.end.y);
-      return out;
+      p.pos.x = rearFloor.x + 2 - p.width / 2;
+      if (p.vel.x < 0) p.vel.x = 0;
     }
-    runExits(state, endExits('train', { right: false }));
     // (stood still: into the back of the cab, on to the town)
     if (tr.phase === 'still' && cx > CAR_X[ENGINE] - 30 && feet <= DECK + 4 && feet > DECK - 120) { teleport(state, DOORS.town.start.x, DOORS.town.start.y); return out; }
     updateCut(ctx);

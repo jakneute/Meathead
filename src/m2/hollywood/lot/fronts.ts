@@ -436,7 +436,7 @@ const paintRide = (g: Ctx) => {
 /** The warehouse's far wall, smashed out by the bulldozer: corrugated siding (lit rib by rib), its girt lines, the roof's
  *  edge, the jagged hole (the stage's dark in there going back, the green screen glimpsed, a light still on), siding torn
  *  outward and rebar with it, NO ENTRY up on the wall. Drawn at the play plane, world coordinates. */
-const wallBreak = (c: Ctx, v: View) => {
+const wallBreak = (c: Ctx, v: View, boarded: boolean) => {
   const wx = X(BREAK.x), top = GY - 360, left = X(-600);
   const S = SIDING.map(col => hour(col, 0.12)), eye = v.eye;
   // (its side going back from the corner: corrugated, darker)
@@ -461,6 +461,19 @@ const wallBreak = (c: Ctx, v: View) => {
   c.fillStyle = 'rgba(255, 242, 192, 0.12)'; c.beginPath(); c.moveTo(ha + 45, ht + 48); c.lineTo(ha + 10, GY); c.lineTo(ha + 90, GY); c.lineTo(ha + 53, ht + 48); c.closePath(); c.fill();
   // (the stage floor going back in there)
   box(c, ha - 10, GY - 24, hb - ha + 30, 24, '#151318'); box(c, ha - 10, GY - 24, hb - ha + 30, 1, '#34303A');
+  // (boarded up once he's out (LOT_BOARDED_MEMO): plywood sheets nailed over the whole hole, ground to top, no way
+  // back in: the bulldozer's cut is one-way)
+  if (boarded) {
+    const P = PLY.map(col => hour(col, 0.12)), sw = 44;
+    for (let x = ha - 10, k = 0; x < hb + 20; x += sw, k++) {
+      const w = Math.min(sw, hb + 20 - x);
+      box(c, x, ht - 30, w, GY - ht + 30, INK); box(c, x + 1, ht - 29, w - 2, GY - ht + 29, P[k % 2 ? 2 : 3]);
+      box(c, x + 1, ht - 29, 2, GY - ht + 29, P[4]); box(c, x + w - 3, ht - 29, 2, GY - ht + 29, P[1]);
+      for (let y = ht - 10; y < GY - 6; y += 46) { box(c, x + 5, y, 2, 2, P[0]); box(c, x + w - 8, y, 2, 2, P[0]); }
+    }
+    // (a two-by across it, nailed at the ends)
+    for (const y of [ht + 50, GY - 70]) { box(c, ha - 14, y - 1, hb - ha + 38, 14, INK); box(c, ha - 13, y, hb - ha + 36, 12, P[4]); box(c, ha - 13, y, hb - ha + 36, 2, P[5]); box(c, ha - 13, y + 10, hb - ha + 36, 2, P[2]); }
+  }
   c.restore();
   // (the siding round the hole: bent, torn out toward us, its ribs; rebar bent out with it)
   for (const [y, l, s] of [[ht + 10, 50, 1], [ht + 74, 38, 1], [ht + 140, 56, 1], [ht + 40, 26, -1]] as const) {
@@ -538,6 +551,6 @@ export const drawGiftFront = (c: Ctx, v: View) => {
 };
 
 /** The warehouse's smashed far wall (at the start). */
-export const drawWallBreak = (c: Ctx, v: View) => { if (seen(v, X(-600), X(BREAK.x) + 60)) wallBreak(c, v); };
+export const drawWallBreak = (c: Ctx, v: View, boarded = false) => { if (seen(v, X(-600), X(BREAK.x) + 60)) wallBreak(c, v, boarded); };
 
-void PLY; void timeOfDay; void signW; void BOARD;
+void timeOfDay; void signW; void BOARD;

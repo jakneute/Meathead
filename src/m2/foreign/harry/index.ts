@@ -8,12 +8,12 @@
 // the SOUVENIR launcher). Revisits: once the land's cleared, the slab stands empty (her rubble, the gun and the torch
 // lying, a chalk outline, his tie-dye in shreds), the gate open.
 //
-// The way back: the left end (to the helipad's end, DOORS.heli.end). No way on (the end of the land).
+// No way back: the crash is one-way (the left end's a wall, the wreck burning by it). No way on (the end of the land).
 
 import type { GameState } from '../../../m1/game/core/state';
 import type { Block } from '../../../m1/types';
 import type { ForeignSection } from '../section';
-import { layOwn, endWalls, endExits, runExits, foreignState, hands } from '../section';
+import { layOwn, endWalls, foreignState, hands } from '../section';
 import { DOORS, GY } from '../geometry';
 import { topBand } from '../../../m1/constants';
 import { goTo, markLandCleared, markBossDeath, noteBossKill, isLandCleared, keptForRevisits } from '../../store';
@@ -79,7 +79,8 @@ export const harry: ForeignSection = {
   update: (ctx, controls) => {
     const { state } = ctx, p = state.player, s = harryOf(state);
     if (s.fight === 'wait') {
-      runExits(state, endExits('harry'));
+      // (no way back to the helipad: Harry's rocket and the crash put him here, one-way (the user's rule); the land's
+      // end: no way on either)
       // The gate: walk up to it, and he kicks it in (a beat: it goes over flat onto the slab)
       if (s.gate === 'up' && p.health > 0 && !p.inCutscene && p.isGrounded && p.pos.x + p.width >= ARENA_L - WALL_W - 4) {
         s.gate = 'kick'; s.gateT = 0; p.facing = 1; p.vel.x = 0; p.kickPose = KICK_POSE_FRAMES; playSound('whoosh', 0.7, -4);

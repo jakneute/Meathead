@@ -8,8 +8,8 @@
 // the catwalks throwing wrenches. Then out a backstage door into the line: he walks straight up it to the front and
 // takes a star sled (hijack.ts): on to the ride (SECTIONS.ride).
 //
-// Backtrackable: out through the CAST ONLY door at the start, to the square. Coming back from the ride's end (it
-// launched him out onto the drag: walking back in from there), he's put at the platform, the sled waiting.
+// Backtrackable: out through the CAST ONLY door at the start, to the square. The ride launches him out onto the drag,
+// and there's no walking back in from there (one-way).
 //
 // ~7500 px, ~1.5 min. Checkpoints 10-14. Indoors (no time of day). Painted in art.ts.
 

@@ -23,8 +23,8 @@
 //
 // Revisits differ: the walls down for good, the hole in the roof, the wreck where it landed, the bodies gone (to the
 // dumpster), the bulldozer gone (outside, in the dumpster), the case on its side, empty, the pages all over the stage,
-// the far wall smashed open (the way out to the lot, and back in from it). Back the other way, off the left end: the
-// coaster's stop 3.
+// the far wall smashed open (the way out to the lot; boarded up from the lot's side, no way back in). No way back
+// to the coaster either (the launch is one-way): the left end's a wall.
 
 import type { GameState } from '../../../m1/game/core/state';
 import type { EnemyKind } from '../../../m1/types';
@@ -32,7 +32,7 @@ import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { pickLine } from '../../../m1/game/platform/speech';
 import { CANVAS_WIDTH } from '../../../m1/constants';
 import type { HollywoodSection } from '../section';
-import { layOwn, solid, ledge, endWalls, endExits, runExits, meatheadSays, saidOver } from '../section';
+import { layOwn, solid, ledge, endWalls, runExits, meatheadSays, saidOver } from '../section';
 import { DOORS } from '../geometry';
 import { flash } from '../blvd/paint';
 import {
@@ -109,10 +109,9 @@ export const warehouse: HollywoodSection = {
     const busy = () => !!o.ad || o.adBusy;
     if (!p.inCutscene) for (const [a, b, k] of GAGS) if (rx > a && rx < b && !o.said[k] && !busy()) { o.said[k] = true; meatheadSays(state, pickLine(GAG_LINES[k]), true); }
     if (rx > 4700 && !o.said.adSteve && !busy()) { o.said.adSteve = true; adSay(state, AD_STEVE, undefined, false); }
-    // The ways out: back off the left end (the coaster's stop 3); out through the bulldozer's hole once it's open (the
-    // lot)
+    // The way out: through the bulldozer's hole once it's open (the lot). No way back to the coaster: the launch put
+    // him here (one-way set piece, the user's rule; the left end's a wall)
     if (!endingOn(state)) {
-      runExits(state, endExits('warehouse').filter(e => e.to === DOORS.coaster.end));
       if (leaked(state)) runExits(state, [{ x0: X(FAR_WALL) + 10, x1: x1 + 40, yTop: GY - 300, yBot: GY + 2, to: DOORS.lot.start }]);
     }
     return controls;

@@ -35,6 +35,9 @@ export const R = (x: number) => x - SECTIONS.lot.x0;
 
 export const DUMP = { a: R(LOT_DUMPSTER.x0), b: R(LOT_DUMPSTER.x1), h: GY - LOT_DUMPSTER.top } as const;
 export const BREAK = { x: R(LOT_WALL_BREAK.x), a: R(LOT_WALL_BREAK.hole.x0), b: R(LOT_WALL_BREAK.hole.x1), top: GY - LOT_WALL_BREAK.hole.top } as const;
+/** The bulldozer's hole boarded up (state.stageMemo: set once it's gone off screen, never popped in under his eyes; kept
+ *  across his deaths): no way back into the warehouse (the bulldozer's cut is one-way, the user's rule). */
+export const LOT_BOARDED_MEMO = 'hw-lot-boarded';
 export const RAIN = { a: 1600, b: 2800, period: 330, tell: 230, zap: 290, zapEnd: 310 } as const;
 export const TANK = { a: 3300, b: 4200, depth: 160, period: 420, warn: 330, surge: 360, surgeEnd: 400, surgeH: 130 } as const;
 export const TOWER = { x: 5400, w: 170, h: 300 } as const;

@@ -9,12 +9,13 @@
 // and ammo) walks back in through the way on and goes straight to the fight. Beaten: VICTORY, the walk-away (walkAway/stuntmanSteve.ts), the hub, Hollywood
 // Land cleared. Revisits: once the land's cleared, the stage stands empty (SHOW CANCELED, the wrecks).
 //
-// The way back: the left end (back to where the tornado caught him: DOORS.havoc.end). No way on (the end of the land).
+// No way back: the fling is one-way (the left end's a wall; dead, he's back at the checkpoint outside and walks in).
+// No way on (the end of the land).
 
 import type { GameState } from '../../../m1/game/core/state';
 import type { Block } from '../../../m1/types';
 import type { HollywoodSection } from '../section';
-import { layOwn, endWalls, endExits, runExits, hollywoodState, hands } from '../section';
+import { layOwn, endWalls, hollywoodState, hands } from '../section';
 import { DOORS, GY } from '../geometry';
 import { topBand } from '../../../m1/constants';
 import { goTo, markLandCleared, markBossDeath, noteBossKill, isLandCleared } from '../../store';
@@ -61,7 +62,8 @@ export const stunt: HollywoodSection = {
   update: (ctx, controls) => {
     const { state } = ctx, p = state.player, s = stuntOf(state);
     if (s.fight === 'wait') {
-      runExits(state, endExits('stunt'));
+      // (no way back to the havoc: the tornado's fling put him here, one-way (the user's rule); a retry from the
+      // checkpoint outside walks in through the havoc's way on; the land's end: no way on either)
       // (on the stage, not cleared: it's on; the walls up, the truss over it)
       if (!isLandCleared('hollywood') && p.pos.x + p.width / 2 > ARENA_L + 40 && p.pos.x + p.width / 2 < ARENA_R) {
         s.fight = 'on';

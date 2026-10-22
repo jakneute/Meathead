@@ -23,8 +23,8 @@ import { playSound } from '../../../m1/game/platform/audio';
 import { CANVAS_WIDTH } from '../../../m1/constants';
 import type { HollywoodSection, Said } from '../section';
 import { layOwn, ledge, solid, endWalls, endExits, runExits, meatheadSays, speak, saidOver, realDisastersOn, hands } from '../section';
-import { SECTIONS, GY } from '../geometry';
-import { X, Y, R, GROUND, SOLIDS, LEDGES, WIRES, ENEMIES, PICKUPS, CHECKPOINTS, TANK, FALL_TOWER, PIT1, PIT2, RAIN, TOWER, GIFT, RIDE_DOORS, SPEAKERS, READERS, DUMP } from './layout';
+import { SECTIONS, GY, LOT_WALL_BREAK } from '../geometry';
+import { X, Y, R, GROUND, SOLIDS, LEDGES, WIRES, ENEMIES, PICKUPS, CHECKPOINTS, TANK, FALL_TOWER, PIT1, PIT2, RAIN, TOWER, GIFT, RIDE_DOORS, SPEAKERS, READERS, DUMP, LOT_BOARDED_MEMO } from './layout';
 import './kinds';
 import { byPants } from '../blvd/kinds';
 import { outOf } from '../blvd/state';
@@ -109,7 +109,10 @@ export const lot: HollywoodSection = {
     const inPit = (rx > PIT1.a && rx < PIT1.b) || (rx > PIT2.a && rx < PIT2.b);
     if (p.isGrounded || p.carried) lt.falling = false;
     else if (!lt.falling && inPit && p.pos.y + p.height > GY + 30) { lt.falling = true; meatheadSays(state, pick(FALL_SCREAM), false); playSound('whoosh', 0.8, -8); }
-    runExits(state, endExits('lot'));
+    // (on only, at the right end: no way back into the warehouse, the bulldozer's cut put him out here (one-way set
+    // piece, the user's rule); once its hole's off screen, it's boarded up)
+    runExits(state, endExits('lot').filter(e => e.x0 > x0 + 100));
+    if (state.stageMemo[LOT_BOARDED_MEMO] !== '1' && state.camera.x > LOT_WALL_BREAK.hole.x1 + 40) state.stageMemo[LOT_BOARDED_MEMO] = '1';
     // (flung back out of the flood tank: none of his own say in where he goes till he's down on the bank)
     if (flungOut(state)) return hands();
     return controls;

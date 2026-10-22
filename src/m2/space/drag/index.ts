@@ -4,8 +4,7 @@
 // holes in the street now (layout.ts). Up to Space Needle 2 (a parody of the Space Needle that goes way higher: into
 // actual space), towering ahead the whole way; its lift at the end: on to the needle section's start.
 //
-// Way back: walking off the left end puts him back in the atom at the ride's load platform (DOORS.ride.end: the
-// ride's owner's call), the launch being one-way.
+// No way back: the launch put him here, so the atom's behind him for good (the left end's a wall). On: the needle.
 //
 // Target: ~7500 px of play, ~1.5 min. Checkpoints 30-39. Outdoors: the time of day's light (timeOfDay.ts).
 
@@ -16,7 +15,7 @@ import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { playSound } from '../../../m1/game/platform/audio';
 import { CANVAS_WIDTH } from '../../../m1/constants';
 import type { SpaceSection } from '../section';
-import { layOwn, ledge, endWalls, runExits, meatheadSays, saidOver, teleport } from '../section';
+import { layOwn, ledge, endWalls, meatheadSays, saidOver, teleport } from '../section';
 import { setUi } from '../../store';
 import { SECTIONS, DOORS, GY } from '../geometry';
 import { X, Y, GROUND, LEDGES, SAUCERS as SAUCER_DEFS, BELTS, PLATES, PADS, MONO, TRACK, TRACK_LEGS, ENEMIES, PICKUPS, CHECKPOINTS, T1, T2, LIFT_X, SPEAKERS, SMEAR } from './layout';
@@ -95,8 +94,7 @@ export const drag: SpaceSection = {
     else if (!o.said.falling && ((rx > T1.a && rx < T1.b) || (rx > T2.a && rx < T2.b)) && p.pos.y + p.height > GY + 30) {
       o.said.falling = true; meatheadSays(state, pick(FALL_SCREAM), false); playSound('whoosh', 0.8, -8);
     }
-    // In at the lift (up the needle: its start); back off the left end (the atom's load platform: the ride's call)
-    runExits(state, [{ x0, x1: x0 + 50, yTop: GY - 40, yBot: GY + 2, to: DOORS.ride.end }]);
+    // In at the lift (up the needle: its start). No going back into the atom: the launch is one-way (the user's rule)
     // (the needle's doors: up, with its prompt, to go in)
     const atLift = p.isGrounded && !p.inCutscene && Math.abs(p.pos.x + p.width / 2 - X(LIFT_X)) < 40;
     if (atLift) {

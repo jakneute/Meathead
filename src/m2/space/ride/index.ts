@@ -13,9 +13,8 @@
 // smear. He's fine: on to the drag (DOORS.drag.start).
 //
 // Kept across his deaths and on fresh starts (state.stageMemo): the breaker (layout.ts BREAKER_MEMO: from checkpoint 23
-// on it's gone), the launch (LAUNCHED_MEMO: the drag draws the smear). One-way: coming back in from the drag puts him at
-// the atom's load platform (DOORS.ride.end), the sled waiting; a second ride is the warehouse version all the way, the
-// show and the PA dead.
+// on it's gone), the launch (LAUNCHED_MEMO: the drag draws the smear). One-way: there's no coming back in from the drag
+// (the launch is a one-way set piece); DOORS.ride.end (the atom's load platform) is kept for the record only.
 //
 // ~16000 px of track: about 70 s of riding plus the reveal, ~10 s of scenes (the brake run, the launch). Checkpoints 20-23.
 

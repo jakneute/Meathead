@@ -18,7 +18,7 @@
 //   lines.ts   every line, clean / shitty / naked; the new hurts and their death screens
 //
 // The side view (this file): only for after (a revisit): a short landing high on the castle, the deathmatch done,
-// walkable both ways (back to the runway, on to her chambers). Before it's won, being here is being in the fight: in
+// on to her chambers only (no way back to the runway: the flight's one-way). Before it's won, being here is being in the fight: in
 // off the runway's scene (DOORS.broom.start) or back at its checkpoints (50 the start, 51 the late entries) he's
 // straight up on his broom. Once it's on there's no leaving it (the sub-boss rule) till the last suitor's down.
 
@@ -42,8 +42,8 @@ DOORS.broom.end = { x: x0 + LEN - 250, y: GY };
 interface Side { first: boolean }
 const sideOf = (state: GameState) => fantasyState<Side>(state, 'broom-side' as 'broom', () => ({ first: true }));
 
+// (on only: no way back to the runway, the broomsticks' flight is one-way (the user's rule); the left end's a wall)
 const exits = (): Exit[] => [
-  { x0, x1: x0 + 60, yTop: GY - 40, yBot: GY + 2, to: DOORS.keep.end },
   { x0: x0 + LEN - 60, x1: x0 + LEN, yTop: GY - 40, yBot: GY + 2, to: DOORS.bedroom.start },
 ];
 
