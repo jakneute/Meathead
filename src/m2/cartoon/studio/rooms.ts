@@ -27,6 +27,7 @@ import { WALL_EXTRAS, PROP_EXTRAS } from './clutter';
 import { grossSocks, grossChelsea, grossBack } from './gross';
 import { paintDavePortrait } from './daveGross';
 import { GY } from '../geometry';
+import { flipGlobe } from './flipGlobe';
 
 /** The park's letters (fat, bouncing). */
 export const park = (cell = 2, fill?: string[]) => toonLetters(cell, fill);
@@ -676,7 +677,8 @@ export const nightShift = (c: Ctx, x: number, k: number, f: number) => {
     px(g, x + 46, GY - 40, 30, 2, '#A78BFA');
   });
 };
-/** The park's banner over the night shift (hung on two wires from the ceiling): OUR OVERSEAS PARTNERS!, a grinning globe. */
+/** The park's banner over the night shift (hung on two wires from the ceiling): OUR OVERSEAS PARTNERS!, the
+ *  globe flipping them the bird. */
 export const paintBanner = (g: Ctx) => {
   const x = X(6600), y = Y(380), w = 420, h = 76;
   wires(g, [x - w / 2 + 30, x + w / 2 - 30], CEIL, y);
@@ -686,14 +688,8 @@ export const paintBanner = (g: Ctx) => {
   for (let k = 0; k < 14; k++) { box(g, x - w / 2 + k * 32, y, 14, 3, '#FDE047'); }
   g.restore();
   box(g, x - w / 2 + 10, y + 1, w - 20, 1, '#E0F2FE');
-  // (the globe, grinning, a thumbs up)
-  const gx = x - w / 2 + 44, gy = y + h / 2;
-  ball(g, gx, gy, 27, '#3B82F6', 1.6);
-  flat(g, () => { g.moveTo(gx - 14, gy - 14); g.quadraticCurveTo(gx - 4, gy - 22, gx + 10, gy - 12); g.lineTo(gx + 4, gy + 2); g.closePath(); }, '#22C55E', 1);
-  flat(g, () => { g.moveTo(gx + 8, gy + 8); g.quadraticCurveTo(gx + 18, gy + 4, gx + 20, gy + 14); g.lineTo(gx + 10, gy + 18); g.closePath(); }, '#22C55E', 1);
-  px(g, gx - 10, gy - 8, 6, 7, '#FFFFFF'); px(g, gx + 4, gy - 8, 6, 7, '#FFFFFF'); px(g, gx - 8, gy - 6, 3, 4, INK); px(g, gx + 6, gy - 6, 3, 4, INK);
-  g.strokeStyle = SINK; g.lineWidth = 2; g.beginPath(); g.arc(gx, gy + 4, 11, 0.2, Math.PI - 0.2); g.stroke(); box(g, gx - 7, gy + 8, 14, 3, '#FFFFFF');
-  limb(g, gx + 24, gy + 4, gx + 34, gy - 6, 5, '#FFFFFF'); ball(g, gx + 35, gy - 8, 5, '#FFFFFF', 1); limb(g, gx + 35, gy - 12, gx + 35, gy - 20, 3, '#FFFFFF');
+  // (the globe: smug, the finger up at the night shift below: flipGlobe.ts)
+  flipGlobe(g, x - w / 2 + 58, y + h / 2, 37);
   txt(g, 'OUR OVERSEAS', x + 24, y + 34, park(2));
   txt(g, 'PARTNERS!', x + 24, y + 62, park(2, ['#FFFFFF', '#FCE7F3', '#F9A8D4', '#EC4899']));
 };

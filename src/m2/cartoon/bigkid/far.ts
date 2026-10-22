@@ -461,11 +461,22 @@ export const drawBigkidFar = (c: Ctx, state: GameState) => {
   //  going: the studios and the White House back left, PUNCHY & KICKY (next) ahead, STUPID DAD LIVE! coming in last)
   const up = LIFT, sx = cx - SECTIONS.bigkid.x0;
   tile(c, 'suburbs', sx * 0.03, hz - HH + 10 - up, HH, HW, g => paintSuburbs(g, tod));
+  // (the water tower up on its hill BEHIND the park (the playtest: it stood over STUPID DAD LIVE!'s band shell): its
+  //  drift (about 0.04 a pixel) is slower than the park's (0.07), so it's farther back, and it's drawn so: after the
+  //  suburbs, before the park, its feet on a far hill whose foot the park's buildings stand in front of; hazed a step)
+  const m = MONUMENT_AT.bigkid;
+  if (m) {
+    const foot = m.foot - 36 + (hz - 440) - up, { x0: s0, x1: s1 } = SECTIONS.bigkid;
+    const pr = Math.max(0, Math.min(1, (cx + W / 2 - s0) / (s1 - s0))), tx = Math.round(m.x0 + (m.x1 - m.x0) * pr);
+    const pg = hz - PH + 24 - up + PG, Hl = farCol(tod, 0.42), rx = 200;
+    // (the hill: a stepped mound from the tower's feet down behind the park, lit on its left)
+    c.fillStyle = Hl('#4E8A4E'); c.beginPath(); c.ellipse(tx, pg + 6, rx, pg + 6 - foot + 4, 0, Math.PI, 0); c.closePath(); c.fill();
+    c.fillStyle = Hl('#62A05E'); c.beginPath(); c.ellipse(tx - 14, pg + 6, rx * 0.82, pg + 6 - foot + 2, 0, Math.PI, Math.PI * 1.62); c.lineTo(tx - 14, pg + 6); c.closePath(); c.fill();
+    for (let x = tx - rx; x < tx + rx; x += 2) { const yy = pg + 6 - (pg + 6 - foot + 4) * Math.sqrt(Math.max(0, 1 - ((x - tx) / rx) ** 2)); box(c, x, Math.round(yy), 1, 1, Hl('#86C27A')); }
+    c.save(); c.globalAlpha = 0.86; drawMonument(c, state, m, foot); c.restore();
+  }
   tile(c, 'park', sx * 0.07 + 300, hz - PH + 24 - up, PH, PW, g => paintPark(g, tod));
   box(c, 0, hz + 23 - up, W, H, farCol(tod, 0.3)('#5A9658'));
-  // (the water tower up on its hill over the park, drifting across as he goes: the landmark, kept clear)
-  const m = MONUMENT_AT.bigkid;
-  if (m) drawMonument(c, state, m, m.foot - 36 + (hz - 440) - up);
   const ry = hz + 34 - RG;
   tile(c, 'roofs', cx * 0.17, ry, RH, RW, g => paintRoofs(g, tod));
   box(c, 0, ry + RH - 1, W, H, farCol(tod, 0.14)('#9A94B4'));

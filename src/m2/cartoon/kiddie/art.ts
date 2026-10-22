@@ -27,7 +27,7 @@ import type { GameState } from '../../../m1/game/core/state';
 import type { Light } from '../../../m1/game/render/lighting';
 import { timeOfDay } from '../../timeOfDay';
 import { signText } from '../../signLetters';
-import { bendFloor } from '../../intro/art/kit';
+import { bendFloor, BEND } from '../../intro/art/kit';
 import { tilePattern } from '../../../m1/game/render/pixelArt';
 import {
   type Ctx, type View, INK, box, mix, hash, checker, onScreen, viewOf, at, still, polyF, sideBack, topBack, drumTop, ballR, eggR,
@@ -79,30 +79,74 @@ const ballPattern = (c: Ctx, r: number) => tilePattern(c, `ct-ki-balls-${r}-${ti
     for (const oy of [0, -th, th]) { if (y + oy < -r - 1 || y + oy > th + r + 1) continue; ballR(g, x, y + oy, r, R, false); g.fillStyle = 'rgba(26,16,40,0.35)'; g.beginPath(); g.arc(x, y + oy, r, 0.2, Math.PI - 0.2); g.lineTo(x, y + oy); g.fill(); }
   }
 });
-/** The ground runs (and the pits' near halves), coming toward him, bent; the curb along the edge, lit. */
+/** One row of balls (no ground under them) at radius r, a tile: what the near half's rows are drawn from. */
+const ballStrip = (c: Ctx, r: number) => tilePattern(c, `ct-ki-ballrow-${r}-${timeOfDay().key}`, (r * 2 + 1) * 7, r * 2 + 2, g => {
+  for (let k = -1; k < 8; k++) {
+    const x = k * (r * 2 + 1) + r, R = ramp6(hour(BALLS[(k * 3 + 70) % BALLS.length]));
+    ballR(g, x, r + 1, r, R, false);
+    g.fillStyle = 'rgba(26,16,40,0.28)'; g.beginPath(); g.arc(x, r + 1, r, 0.2, Math.PI - 0.2); g.lineTo(x, r + 1); g.fill();
+  }
+});
+/** The ground runs (and the pits' near halves), coming toward him. The floor's painted flat and bent ONCE, all together
+ *  (the playtest: each run bent on its own left flat slivers standing past its fanned ends: vertical cuts at the pits'
+ *  edges that jumped about as he went); the pits' padded bumpers bent with it, so they fan back to the eye like the
+ *  cobbles' joints. The balls aren't bent (bending stretched them into wide lozenges): they're laid in rows coming
+ *  toward him, each row k = 1 + (y - GY) * BEND times the play plane's size about the eye (the bend's own scale), round
+ *  at every size, nearer rows over farther ones, between the bumpers. The candy curb over it all, on the line. */
 const drawNearGround = (c: Ctx, state: GameState, v: View) => {
   const L = state.camera.x - 40, R = state.camera.x + 840, Cb = rampH(['#4A1A30', '#8E2A54', '#E2465E', '#F4F0F4', '#FFFFFF', '#FFFFFF']);
+  const runs: [number, number][] = [];
   for (const [ga, gb] of GROUND) {
     // (the first run carries on off the land's start, under where the camera can still see)
     const a = X(ga === GROUND[0][0] ? ga - 700 : ga), b = X(gb), s = Math.max(a, L), e = Math.min(b, R);
     if (e <= s) continue;
+    runs.push([s, e]);
     box(c, s, GY, e - s, 700, hour('#6A4A7A'));
     c.fillStyle = cobbles(c); c.fillRect(s, GY + 8, e - s, 600);
     // (a mint gutter, then a flower bed nearer still)
     box(c, s, GY + 40, e - s, 6, hour(MINT[2])); box(c, s, GY + 40, e - s, 1, hour(MINT[4]));
-    for (let x = Math.floor(s / 7) * 7; x < e; x += 7) if (hash(x * 0.21) > 0.45) box(c, x, GY + 70 + Math.floor(hash(x) * 20), 3, 3, hour(['#F472B6', '#FDE047', '#FFFFFF', '#C084FC'][Math.floor(hash(x * 3) * 4)]));
-    bendFloor(c, v.eye, GY, GY, GY + 150, a, b);
-    // (the curb: candy-striped, lit along its top)
-    box(c, s, GY, e - s, 10, INK);
-    for (let x = Math.floor(s / 16) * 16; x < e; x += 16) { const red = (x / 16) % 2 === 0, C3 = red ? Cb[2] : Cb[3]; box(c, Math.max(s, x), GY + 1, Math.min(16, e - Math.max(s, x)), 8, C3); box(c, Math.max(s, x), GY + 7, Math.min(16, e - Math.max(s, x)), 2, red ? Cb[1] : hour('#C8B8D0')); }
-    box(c, s, GY, e - s, 2, LIP[2]); box(c, s, GY, e - s, 1, LIP[3]);
+    for (let x = Math.floor(s / 7) * 7; x < e; x += 7) if (x >= s && hash(x * 0.21) > 0.45) box(c, x, GY + 70 + Math.floor(hash(x) * 20), 3, 3, hour(['#F472B6', '#FDE047', '#FFFFFF', '#C084FC'][Math.floor(hash(x * 3) * 4)]));
   }
+  const BW = 9;
   for (const [pa, pb] of PITS) {
     const a = X(pa), b = X(pb), s = Math.max(a, L), e = Math.min(b, R);
     if (e <= s) continue;
     box(c, s, GY, e - s, 700, hour('#2A1E4A'));
-    c.fillStyle = ballPattern(c, 7); c.fillRect(s, GY + 4, e - s, 600);
-    bendFloor(c, v.eye, GY, GY, GY + 150, a, b);
+    // (the padded bumpers inside each end: striped vinyl, inked, lit down the edge that faces the balls)
+    for (const [ex, sd] of [[a, 1], [b, -1]] as [number, number][]) {
+      if (ex < L - 20 || ex > R + 20) continue;
+      const x0 = sd > 0 ? ex : ex - BW - 1;
+      box(c, x0, GY, BW + 1, 700, INK);
+      const ix = sd > 0 ? ex + 1 : ex - BW;
+      for (let y = GY + 1, i = 0; y < GY + 700; y += 10, i++) box(c, ix, y, BW - 1, 10, i % 2 ? hour('#F8F0F4') : hour('#E2465E'));
+      box(c, sd > 0 ? ix + BW - 3 : ix, GY + 1, 2, 699, 'rgba(26,16,40,0.3)');
+      box(c, sd > 0 ? ix : ix + BW - 3, GY + 1, 1, 699, 'rgba(255,255,255,0.45)');
+    }
+  }
+  bendFloor(c, v.eye, GY, GY, GY + 150);
+  // (the balls: rows from the line toward him, clipped between the bumpers' fanned inner edges)
+  const ex = v.eye.x, kk = (t: number) => 1 + (t - GY) * BEND, Tn = GY + 260, r0 = 7;
+  for (const [pa, pb] of PITS) {
+    const a = X(pa) + BW, b = X(pb) - BW, ka = kk(Tn);
+    const la = ex + (a - ex) * ka, lb = ex + (b - ex) * ka;
+    if (Math.max(b, lb) < L || Math.min(a, la) > R) continue;
+    c.save(); c.beginPath(); c.moveTo(a, GY); c.lineTo(b, GY); c.lineTo(lb, Tn); c.lineTo(la, Tn); c.closePath(); c.clip();
+    c.imageSmoothingEnabled = false;
+    const pat = ballStrip(c, r0);
+    for (let t = GY - 3, n = 0; t < Tn; n++) {
+      const k = kk(t);
+      c.save(); c.translate(ex, t); c.scale(k, k); c.translate(-ex + (n % 2 ? r0 + 0.5 : 0) + ((pa * 7) % (r0 * 2 + 1)), -r0 - 1);
+      c.fillStyle = pat; c.fillRect(X(pa) - 40 - (n % 2 ? r0 + 0.5 : 0), 0, X(pb) - X(pa) + 80, r0 * 2 + 2);
+      c.restore();
+      t += (r0 * 2 - 3) * k;
+    }
+    c.restore();
+  }
+  // (the curb: candy-striped, lit along its top)
+  for (const [s, e] of runs) {
+    box(c, s, GY, e - s, 10, INK);
+    for (let x = Math.floor(s / 16) * 16; x < e; x += 16) { const red = (x / 16) % 2 === 0, C3 = red ? Cb[2] : Cb[3]; box(c, Math.max(s, x), GY + 1, Math.min(16, e - Math.max(s, x)), 8, C3); box(c, Math.max(s, x), GY + 7, Math.min(16, e - Math.max(s, x)), 2, red ? Cb[1] : hour('#C8B8D0')); }
+    box(c, s, GY, e - s, 2, LIP[2]); box(c, s, GY, e - s, 1, LIP[3]);
   }
 };
 

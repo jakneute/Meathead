@@ -7,7 +7,7 @@
 //                  graffiti tags low down, posters pasted up; at street level, a business each: the GAME ZONE arcade
 //                  (cabinet screens glowing in the dark), SLIME TIME snacks (the menu board, glop drinks), RAD RAT'S
 //                  SKATE SHOP (decks racked in the window), RIDE PHOTOS (screens of riders screaming), DUDES / BETTIES
-//                  restrooms, LOCKERS, T-SHIRTS (NO TRACK NO FEAR), OUCH! (first aid, a band-aid), PIZZA PIT, a ride's
+//                  restrooms, LOCKERS, T-SHIRTS (NO FEAR), OUCH! (first aid, a band-aid), PIZZA PIT, a ride's
 //                  show building (its roll-up door, KEEP CLEAR); AC units, vents, satellite dishes, ladders.
 //   THE ALLEY      asphalt behind them, a painted line, chain-link.
 //   THE CONCRETE   skate-park slabs coming toward him from the fronts, their joints running back to the eye, gum,
@@ -203,7 +203,7 @@ const shopFront = (g: Ctx, f: Front, w: number, h: number) => {
       frame(); glass(g, sx, top + 18, sw, -top - 18);
       // (tees hung on a line in the window, each a slogan)
       g.strokeStyle = D('#E5E7EB'); g.lineWidth = 1; g.beginPath(); g.moveTo(sx, top + 30); g.lineTo(sx + sw, top + 30); g.stroke();
-      const tees = ['NO TRACK', 'GNARLY', 'BOY! BEER!', 'GLOP', 'RAD'];
+      const tees = ['NO FEAR', 'GNARLY', 'BOY! BEER!', 'GLOP', 'RAD'];
       for (let k = 0; k < Math.floor(sw / 46); k++) { const tx = sx + 8 + k * 46, C = DR(['#F8FAFC', '#1F2937', '#22D3EE', '#A3E635', '#F472B6'][((Math.floor(k + f.seed) % 5) + 5) % 5]); polyF(g, [[tx - 2, top + 30], [tx + 38, top + 30], [tx + 44, top + 40], [tx + 36, top + 44], [tx + 34, top + 72], [tx + 4, top + 72], [tx + 2, top + 44], [tx - 6, top + 40]], ink); polyF(g, [[tx, top + 32], [tx + 36, top + 32], [tx + 41, top + 40], [tx + 34, top + 42], [tx + 32, top + 70], [tx + 6, top + 70], [tx + 4, top + 42], [tx - 3, top + 40]], C[3]); box(g, tx + 6, top + 32, 4, 38, C[4]); signText(g, tees[((Math.floor(k + f.seed) % tees.length) + tees.length) % tees.length], tx + 19, top + 54, { sx: 1, sy: 1, fill: D(k % 2 ? '#DC2626' : '#7C3AED'), gap: 0, space: 2 }); }
       break;
     }

@@ -56456,6 +56456,11 @@
  },
  {
   "voice": "meathead",
+  "text": "A BIG-KID RIDE. FOUR FEET UP. MY BARSTOOL GOES HIGHER.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "A BOAT DOESN'T FIT IN THE MAIL. NO.",
   "from": "OSCAR_LINES"
  },
@@ -56856,7 +56861,7 @@
  },
  {
   "voice": "meathead",
-  "text": "A COUCH THAT DRIVES ITSELF. NO TRACK. PUSSY COUCH.",
+  "text": "A COUCH THAT DRIVES ITSELF. A FOOT OFF THE GROUND. PUSSY COUCH.",
   "from": "CARTOON"
  },
  {
@@ -58346,7 +58351,7 @@
  },
  {
   "voice": "meathead",
-  "text": "A ROBOT EGG THAT HOPS. NO TRACK. NO DIGNITY.",
+  "text": "A ROBOT EGG THAT HOPS SIX INCHES. NO DIGNITY.",
   "from": "CARTOON"
  },
  {
@@ -58631,7 +58636,7 @@
  },
  {
   "voice": "meathead",
-  "text": "A SPINNING CLOWN WITH NO TRACK. FOR PUSSIES WHO LIKE CLOWNS.",
+  "text": "A SPINNING CLOWN THREE FEET UP. FOR PUSSIES WHO LIKE CLOWNS.",
   "from": "CARTOON"
  },
  {
@@ -60506,17 +60511,17 @@
  },
  {
   "voice": "meathead",
-  "text": "BIG-KID RIDES. NOW WE TALK. OH. NO TRACKS. FUCK.",
+  "text": "BIG-KID RIDES. NOT ONE OF THEM TALLER THAN MY SMELL.",
   "from": "CARTOON"
  },
  {
   "voice": "meathead",
-  "text": "BIG-KID ZONE. STILL NOT ONE TRACK.",
+  "text": "BIG-KID RIDES. NOW WE TALK. OH. THEY GO TWO FEET UP. FUCK.",
   "from": "CARTOON"
  },
  {
   "voice": "meathead",
-  "text": "BIGGER RIDES. NO TRACKS. MY ASS LEFT ITS OWN TRACKS.",
+  "text": "BIG-KID ZONE. STILL NOTHING OVER FOUR FEET.",
   "from": "CARTOON"
  },
  {
@@ -62228,6 +62233,11 @@
   "voice": "meathead",
   "text": "CORROSIVE SLIME IS CATABOLIC AS FUCK!",
   "from": "HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "COUCH HEIGHT. NO SLIPCOVER. A HUNDRED OTHER ASSES.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -69686,6 +69696,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I PISS HIGHER THAN THAT THING GOES.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "I PISSED. JUST A LITTLE. A LOT.",
   "from": "FANTASY"
  },
@@ -70476,7 +70491,7 @@
  },
  {
   "voice": "meathead",
-  "text": "I'M NAKED AND STILL TOO MUCH MAN FOR A TRACKLESS RIDE.",
+  "text": "I'M NAKED AND STILL TOO MUCH MAN FOR A RIDE THAT LOW.",
   "from": "CARTOON"
  },
  {
@@ -70996,6 +71011,11 @@
  },
  {
   "voice": "meathead",
+  "text": "IF I CAN SEE OVER IT, IT'S NOT A RIDE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "IF I FALL IN, AT LEAST I RINSE OFF.",
   "from": "FRONTIER"
  },
@@ -71018,11 +71038,6 @@
   "voice": "meathead",
   "text": "IF I STAY SQUATTED DOWN LIKE THIS, IT'S COMING OUT.",
   "from": "GUT"
- },
- {
-  "voice": "meathead",
-  "text": "IF IT CAN STEER, IT CAN STEER ITSELF UP ITS ASS.",
-  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -71396,6 +71411,21 @@
  },
  {
   "voice": "meathead",
+  "text": "IT DOESN'T EVEN GO UP. THAT'S FOR PUSSIES.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT DOESN'T GO HIGH. I'M NOT SHITTING MYSELF ON A PUSSY RIDE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT DOESN'T GO UP. NOTHING ON ME DOES EITHER. IT'S COLD.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "IT EATS SHOES BUT IT WON'T BURN? BULLSHIT.",
   "from": "SPACE"
  },
@@ -71428,6 +71458,11 @@
   "voice": "meathead",
   "text": "IT GAVE ME A SPIKE HAIRCUT!",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT GOES HALFWAY UP AND QUITS. LIKE MY DICK ON TEQUILA.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -75761,6 +75796,16 @@
  },
  {
   "voice": "meathead",
+  "text": "NO DROP, NO THRILL. MY PANTS ONLY SHIT FROM UP HIGH.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "NO DROP. NO HILL. NO BALLS.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "NO FIRE. I'M THE HOTTEST THING IN HERE. NAKED.",
   "from": "SPACE"
  },
@@ -75916,11 +75961,6 @@
  },
  {
   "voice": "meathead",
-  "text": "NO RAILS. NO RESPECT. NO BALLS.",
-  "from": "CARTOON"
- },
- {
-  "voice": "meathead",
   "text": "NO REFUNDS, MOTHERFUCKER!",
   "from": "M2_KILL_LINES"
  },
@@ -76031,11 +76071,6 @@
  },
  {
   "voice": "meathead",
-  "text": "NO TRACK, NO THRILL. MY PANTS ONLY SHIT FOR REAL RIDES.",
-  "from": "CARTOON"
- },
- {
-  "voice": "meathead",
   "text": "NO TRACK! MY BALLS JUST CRAWLED UP!",
   "from": "FANTASY"
  },
@@ -76058,51 +76093,6 @@
   "voice": "meathead",
   "text": "NO TRACK! THERE GOES MORE SHIT!",
   "from": "FANTASY"
- },
- {
-  "voice": "meathead",
-  "text": "NO TRACK? I'M NOT SHITTING MYSELF ON A PUSSY RIDE.",
-  "from": "CARTOON"
- },
- {
-  "voice": "meathead",
-  "text": "NO TRACK? NO PANTS? ONE OF US HAS BALLS.",
-  "from": "CARTOON"
- },
- {
-  "voice": "meathead",
-  "text": "NO TRACK? THAT'S AN UBER WITH A PAINT JOB.",
-  "from": "CARTOON"
- },
- {
-  "voice": "meathead",
-  "text": "NO TRACK? THAT'S FOR PUSSIES.",
-  "from": "CARTOON"
- },
- {
-  "voice": "meathead",
-  "text": "NO TRACK. IT'S A GO-KART FOR COWARDS.",
-  "from": "CARTOON"
- },
- {
-  "voice": "meathead",
-  "text": "NO TRACK. JUST A BIG BOARD AND A DREAM. PUSSY.",
-  "from": "CARTOON"
- },
- {
-  "voice": "meathead",
-  "text": "NO TRACK. JUST CARS HITTING EACH OTHER. THAT'S A WALMART PARKING LOT.",
-  "from": "CARTOON"
- },
- {
-  "voice": "meathead",
-  "text": "NO TRACK. NO SLIPCOVER. A HUNDRED OTHER ASSES.",
-  "from": "CARTOON"
- },
- {
-  "voice": "meathead",
-  "text": "NO TRACKS AND NO PANTS. ONE OF THOSE IS A CHOICE.",
-  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -76313,6 +76303,11 @@
   "voice": "meathead",
   "text": "NOBODY'S LOOKING AT MY DICK NOW.",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "NONE OF THESE GO HIGHER THAN MY NUTS. AND MY NUTS HANG LOW.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -83981,6 +83976,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THAT RIDE TOPS OUT AT MY BALLS.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "THAT RIDE'S GETTING ONE STAR.",
   "from": "SPOOKY"
  },
@@ -84786,7 +84786,7 @@
  },
  {
   "voice": "meathead",
-  "text": "THE BIG-KID ZONE. FINALLY. WAIT. NONE OF THESE HAVE TRACKS.",
+  "text": "THE BIG-KID ZONE. FINALLY. WAIT. NONE OF THESE LEAVE THE GROUND.",
   "from": "CARTOON"
  },
  {
@@ -87236,7 +87236,7 @@
  },
  {
   "voice": "meathead",
-  "text": "THE ZONE AGAIN. STILL NAKED. STILL NO TRACKS.",
+  "text": "THE ZONE AGAIN. STILL NAKED. STILL ALL ANKLE-HIGH.",
   "from": "CARTOON"
  },
  {
@@ -87492,6 +87492,11 @@
  {
   "voice": "meathead",
   "text": "THEY DON'T CARE I'M NAKED. DEADLINE'S FRIDAY.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "THEY DON'T EVEN LEAVE THE FLOOR. THAT'S A WALMART PARKING LOT.",
   "from": "CARTOON"
  },
  {
@@ -88498,16 +88503,6 @@
   "voice": "meathead",
   "text": "TRACK'S OUT! EVERYTHING'S FLAPPING!",
   "from": "FANTASY"
- },
- {
-  "voice": "meathead",
-  "text": "TRACKLESS RIDES ARE FOR PUSSIES AND GUYS WHO CRY AT MOVIES.",
-  "from": "CARTOON"
- },
- {
-  "voice": "meathead",
-  "text": "TRACKLESS. MY DICK HAS A BETTER SENSE OF DIRECTION.",
-  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -91083,6 +91078,11 @@
   "voice": "meathead",
   "text": "YOU CAN SEE THE WHOLE PARK FROM UP HERE. IT'S ALL PARKING LOT.",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "YOU CAN'T EVEN FALL OFF IT. WHAT'S THE POINT?",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",

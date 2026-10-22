@@ -3,7 +3,8 @@
 // twice within 45 s). Meathead's lines and everybody reacting to him in clean / shitty / naked pools.
 //
 // The user's: "meathead still refuses to ride them because he is prejudiced against rides that don't have a track. he
-// thinks those rides are for 'pussies'." Every ride gets its own lament, and TRACKLESS is the running sneer. STUPID
+// thinks those rides are for 'pussies'." And (the user, later): he's above them "because 'they don't go high'". Every
+// ride gets its own lament, and LOWRIDE is the running sneer. STUPID
 // DAD (a failed mid-90s show, its posters everywhere): he's never heard of it. Never anything about his age (it stays
 // ambiguous). Pure data.
 
@@ -25,38 +26,39 @@ export const CAST_VOICES = {
 
 /** Out the White House's stage door, into the zone. */
 export const ARRIVE: ByPants = {
-  clean: ['THE BIG-KID ZONE. FINALLY. WAIT. NONE OF THESE HAVE TRACKS.', 'BIG-KID RIDES. NOW WE TALK. OH. NO TRACKS. FUCK.'],
-  shitty: ['THE BIG-KID ZONE. I BROUGHT MY OWN THRILL. IT\'S IN MY PANTS.', 'BIGGER RIDES. NO TRACKS. MY ASS LEFT ITS OWN TRACKS.'],
-  nude: ["THE BIG-KID ZONE. NAKED. SECURITY'S GONNA EARN THEIR FOUR TWENTY-FIVE.", 'NO TRACKS AND NO PANTS. ONE OF THOSE IS A CHOICE.'],
+  clean: ['THE BIG-KID ZONE. FINALLY. WAIT. NONE OF THESE LEAVE THE GROUND.', 'BIG-KID RIDES. NOW WE TALK. OH. THEY GO TWO FEET UP. FUCK.'],
+  shitty: ['THE BIG-KID ZONE. I BROUGHT MY OWN THRILL. IT\'S IN MY PANTS.', 'BIG-KID RIDES. NOT ONE OF THEM TALLER THAN MY SMELL.'],
+  nude: ["THE BIG-KID ZONE. NAKED. SECURITY'S GONNA EARN THEIR FOUR TWENTY-FIVE.", 'NONE OF THESE GO HIGHER THAN MY NUTS. AND MY NUTS HANG LOW.'],
 };
 /** Back on a later visit. */
 export const REVISIT: ByPants = {
-  clean: ['THE PUSSY RIDES AGAIN.', 'BIG-KID ZONE. STILL NOT ONE TRACK.'],
+  clean: ['THE PUSSY RIDES AGAIN.', 'BIG-KID ZONE. STILL NOTHING OVER FOUR FEET.'],
   shitty: ['BACK WITH THE PUSSY RIDES. AND THE PANTS.', 'THE ZONE AGAIN. IT SMELLS LIKE CHURROS AND MY ASS.'],
-  nude: ['THE ZONE AGAIN. STILL NAKED. STILL NO TRACKS.', 'BACK. NAKED. EVEN THE COUCH LOOKS EMBARRASSED.'],
+  nude: ['THE ZONE AGAIN. STILL NAKED. STILL ALL ANKLE-HIGH.', 'BACK. NAKED. EVEN THE COUCH LOOKS EMBARRASSED.'],
 };
 
 /**
- * The running sneer: no track, no respect (the user's "pussies"). Said now and then when a ride lines up on him.
+ * The running sneer: they don't go high, so no respect (the user's "pussies"). Said now and then when a ride lines up
+ * on him.
  */
-export const TRACKLESS: ByPants = {
+export const LOWRIDE: ByPants = {
   clean: [
-    "NO TRACK? THAT'S FOR PUSSIES.",
-    "NO TRACK. IT'S A GO-KART FOR COWARDS.",
-    'NO RAILS. NO RESPECT. NO BALLS.',
-    "NO TRACK? THAT'S AN UBER WITH A PAINT JOB.",
-    'TRACKLESS RIDES ARE FOR PUSSIES AND GUYS WHO CRY AT MOVIES.',
-    'IF IT CAN STEER, IT CAN STEER ITSELF UP ITS ASS.',
+    "IT DOESN'T EVEN GO UP. THAT'S FOR PUSSIES.",
+    'A BIG-KID RIDE. FOUR FEET UP. MY BARSTOOL GOES HIGHER.',
+    "YOU CAN'T EVEN FALL OFF IT. WHAT'S THE POINT?",
+    "IF I CAN SEE OVER IT, IT'S NOT A RIDE.",
+    'NO DROP. NO HILL. NO BALLS.',
+    'I PISS HIGHER THAN THAT THING GOES.',
   ],
   shitty: [
-    "NO TRACK? I'M NOT SHITTING MYSELF ON A PUSSY RIDE.",
+    "IT DOESN'T GO HIGH. I'M NOT SHITTING MYSELF ON A PUSSY RIDE.",
     "I ALREADY SHAT MYSELF. NOT FOR THAT. THAT'S FOR PUSSIES.",
-    'NO TRACK, NO THRILL. MY PANTS ONLY SHIT FOR REAL RIDES.',
+    'NO DROP, NO THRILL. MY PANTS ONLY SHIT FROM UP HIGH.',
   ],
   nude: [
-    'NO TRACK? NO PANTS? ONE OF US HAS BALLS.',
-    "I'M NAKED AND STILL TOO MUCH MAN FOR A TRACKLESS RIDE.",
-    'TRACKLESS. MY DICK HAS A BETTER SENSE OF DIRECTION.',
+    "IT DOESN'T GO UP. NOTHING ON ME DOES EITHER. IT'S COLD.",
+    "I'M NAKED AND STILL TOO MUCH MAN FOR A RIDE THAT LOW.",
+    'THAT RIDE TOPS OUT AT MY BALLS.',
   ],
 };
 
@@ -76,9 +78,9 @@ export const GAGS: Record<'posters' | 'graffiti' | 'couch' | 'broke' | 'shop' | 
   },
   /** The Cruisin' Couch, first seen roaming. */
   couch: {
-    clean: ['A COUCH THAT DRIVES ITSELF. NO TRACK. PUSSY COUCH.', 'A COUCH WITH WHEELS. MY UNCLE GOT A DUI ON ONE OF THOSE.'],
+    clean: ['A COUCH THAT DRIVES ITSELF. A FOOT OFF THE GROUND. PUSSY COUCH.', 'A COUCH WITH WHEELS. MY UNCLE GOT A DUI ON ONE OF THOSE.'],
     shitty: ["A DRIVING COUCH. I'D RUIN THE CUSHIONS.", "A DRIVING COUCH. I'D SIT IN IT AND LEAVE A STAIN THE SHAPE OF OHIO."],
-    nude: ['A COUCH. MY BARE ASS ON VELOUR? NO.', 'NO TRACK. NO SLIPCOVER. A HUNDRED OTHER ASSES.'],
+    nude: ['A COUCH. MY BARE ASS ON VELOUR? NO.', 'COUCH HEIGHT. NO SLIPCOVER. A HUNDRED OTHER ASSES.'],
   },
   /** The couch, parked dead on a later visit. */
   broke: {
@@ -112,7 +114,7 @@ export const GAGS: Record<'posters' | 'graffiti' | 'couch' | 'broke' | 'shop' | 
   },
   /** Spaz & Stinky's Bumper Bash. */
   bumper: {
-    clean: ["BUMPER CARS. THE RIDE FOR GUYS WHO CAN'T DRIVE.", "NO TRACK. JUST CARS HITTING EACH OTHER. THAT'S A WALMART PARKING LOT."],
+    clean: ["BUMPER CARS. THE RIDE FOR GUYS WHO CAN'T DRIVE.", "THEY DON'T EVEN LEAVE THE FLOOR. THAT'S A WALMART PARKING LOT."],
     shitty: ['BUMPER CARS. ONE BUMP AND I SPRAY.', "THEY'D HAVE TO BURN THE SEAT AFTER ME."],
     nude: ['NAKED BUMPER CARS. MY NUTS WOULD BE THE BUMPER.', 'NO. THE BUMPER HITS AND MY BALLS HIT THE STEERING WHEEL.'],
   },
@@ -124,19 +126,19 @@ export const GAGS: Record<'posters' | 'graffiti' | 'couch' | 'broke' | 'shop' | 
   },
   /** Giggles the Clown's Hurl-a-Whirl. */
   whirl: {
-    clean: ['A SPINNING CLOWN WITH NO TRACK. FOR PUSSIES WHO LIKE CLOWNS.', 'IT WANDERS AROUND SPINNING. LIKE MY UNCLE ON AMBIEN.'],
+    clean: ['A SPINNING CLOWN THREE FEET UP. FOR PUSSIES WHO LIKE CLOWNS.', 'IT WANDERS AROUND SPINNING. LIKE MY UNCLE ON AMBIEN.'],
     shitty: ['SPIN ME AND I PAINT THE CLOWN BROWN.', 'THAT THING WOULD TURN MY PANTS INTO A SHAKE. A BROWN SHAKE.'],
     nude: ['SPINNING NAKED. EVERYTHING WOULD SLAP EVERYTHING.', 'NAKED IN A TEACUP. MY BALLS WOULD HIT THE RIM.'],
   },
   /** Detective Drake's Motion Madness (the hopping simulator pod). */
   pod: {
-    clean: ['A ROBOT EGG THAT HOPS. NO TRACK. NO DIGNITY.', "A SIMULATOR. YOU SIT IN A DARK BOX AND THEY SHAKE IT. THAT'S A VAN."],
+    clean: ['A ROBOT EGG THAT HOPS SIX INCHES. NO DIGNITY.', "A SIMULATOR. YOU SIT IN A DARK BOX AND THEY SHAKE IT. THAT'S A VAN."],
     shitty: ['SHAKE ME IN A BOX? THE BOX COMES OUT BROWN.', 'A SHAKE RIDE. MY PANTS ARE ALREADY A SMOOTHIE.'],
     nude: ['SHAKE ME NAKED IN A BOX. THAT IS A PEEP SHOW.', 'ME, NAKED, IN A POD SOMEBODY PUKED IN AT NOON. NO.'],
   },
   /** Rad Rat's Tubular Halfpipe. */
   halfpipe: {
-    clean: ["A SKATEBOARD RIDE. IT GOES BACK. IT GOES FORTH. I'M ASLEEP.", 'NO TRACK. JUST A BIG BOARD AND A DREAM. PUSSY.'],
+    clean: ["A SKATEBOARD RIDE. IT GOES BACK. IT GOES FORTH. I'M ASLEEP.", 'IT GOES HALFWAY UP AND QUITS. LIKE MY DICK ON TEQUILA.'],
     shitty: ['BACK AND FORTH. MY LOAD IS DOING THAT TOO.', "A SKATEBOARD RIDE. I'D LEAVE A SKID MARK."],
     nude: ['NAKED IN A HALFPIPE. ROAD RASH ON MY BALLS.', 'A GIANT SKATEBOARD. NAKED. GRIP TAPE ON MY TAINT.'],
   },
@@ -239,7 +241,7 @@ export const KILL_CALLS: Record<string, Record<string, string[]>> = {
 const pools = (b: ByPants) => allOf(b);
 export const VOICE_LINES: Record<string, string[]> = {
   meathead: [
-    ...[ARRIVE, REVISIT, TRACKLESS, ...Object.values(GAGS)].flatMap(allOf),
+    ...[ARRIVE, REVISIT, LOWRIDE, ...Object.values(GAGS)].flatMap(allOf),
     ...Object.values(HURT).flatMap(h => h.hurt),
   ],
   death: Object.values(HURT).flatMap(h => h.death),

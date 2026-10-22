@@ -5,8 +5,8 @@
 // top going back to the eye where the eye's past or over it; what he can stand on bright and lit along its top
 // (standable reads standable), the scenery dimmed a step toward the air:
 //
-//   THE GATES       spray-painted concrete pillars, a hazard-striped beam with its neon (THE BIG-KID ZONE / NO TRACKS.
-//                   NO LIMITS.; at the far end STUPID DAD: THE EXTENDED UNIVERSE >), glop dripping off it, tags
+//   THE GATES       spray-painted concrete pillars, a hazard-striped beam with its neon (THE BIG-KID ZONE / NO LIMITS.
+//                   NO MERCY.; at the far end STUPID DAD: THE EXTENDED UNIVERSE >), glop dripping off it, tags
 //   THE POSTERS     STUPID DAD everywhere: the advertising column, the plywood fence (POST NO BILLS), each poster aged
 //                   its own way: sun-bleached, faded, peeling, graffitied (a mustache, horns, SUCKS), CANCELED
 //   THE GARAGE      COUCH DUDES' cinder-block garage: the roll-up door up, the dark inside (a workbench, a tire stack,
@@ -39,7 +39,7 @@ import type { GameState } from '../../../m1/game/core/state';
 import type { Light } from '../../../m1/game/render/lighting';
 import { timeOfDay } from '../../timeOfDay';
 import { signText, signW, type Look } from '../../signLetters';
-import { bendFloor } from '../../intro/art/kit';
+import { bendFloor, BEND } from '../../intro/art/kit';
 import { tilePattern } from '../../../m1/game/render/pixelArt';
 import {
   type Ctx, type View, INK, box, mix, stamp, hash, onScreen, hour, dimmed, lit, checker, viewOf, at, still, stillAt, polyF, sideBack, topBack, drumTop,
@@ -667,9 +667,9 @@ const pitBacks = (c: Ctx, v: View, f: number) => {
     const rows = 4;
     for (let i = 0; i < rows; i++) {
       const d0 = PIT_D + ((1 - PIT_D) * i) / rows, d1 = PIT_D + ((1 - PIT_D) * (i + 1)) / rows;
-      const pts: [number, number][] = [at(v.eye, a, GY + 6, d0), at(v.eye, b, GY + 6, d0), at(v.eye, b, GY + 6, d1), at(v.eye, a, GY + 6, d1)];
+      const pts: [number, number][] = [at(v.eye, a, GY + 4, d0), at(v.eye, b, GY + 4, d0), at(v.eye, b, GY + 4, d1), at(v.eye, a, GY + 4, d1)];
       c.save(); c.beginPath(); pts.forEach(([x, y], k) => (k ? c.lineTo(x, y) : c.moveTo(x, y))); c.closePath(); c.clip();
-      c.save(); c.translate(-((f * 0.15 * (i + 1)) % 96), 0); c.fillStyle = slime(c); c.fillRect(Math.min(pts[0][0], pts[3][0]) - 100, pts[0][1] - 12, Math.max(pts[1][0], pts[2][0]) - Math.min(pts[0][0], pts[3][0]) + 200, pts[3][1] - pts[0][1] + 24); c.restore();
+      c.save(); c.translate(-Math.round((f * 0.15 * (i + 1)) % 96), 0); c.fillStyle = slime(c); c.fillRect(Math.min(pts[0][0], pts[3][0]) - 100, pts[0][1] - 12, Math.max(pts[1][0], pts[2][0]) - Math.min(pts[0][0], pts[3][0]) + 200, pts[3][1] - pts[0][1] + 24); c.restore();
       c.fillStyle = `rgba(20,40,10,${0.32 - i * 0.07})`; c.fill();
       c.restore();
     }
@@ -917,23 +917,54 @@ const halfpipe = (c: Ctx, v: View) => {
     c.strokeStyle = INK; c.lineWidth = 7; c.lineCap = 'round'; c.beginPath(); c.moveTo(n0, n1); c.lineTo(f0, f1); c.stroke();
     c.strokeStyle = hour(STEEL[4]); c.lineWidth = 4; c.stroke(); c.strokeStyle = hour(STEEL[5]); c.lineWidth = 1; c.beginPath(); c.moveTo(n0, n1 - 1); c.lineTo(f0, f1 - 1); c.stroke();
   }
-  // (the near cut face, at the play plane: the concrete's section under the surface, its lit edge (he walks it))
-  c.fillStyle = INK; c.beginPath(); c.moveTo(a - 2, GY);
+  // (the near half: the pipe runs on toward him, under the bent floor's rows. The floor's bend (bendFloor) makes a row y
+  //  below the line k = 1 + (y - GY) * BEND times as wide about the eye: every line running toward him goes to one
+  //  vanishing point. The pipe's cross-section at row t is the play plane's, scaled k about the eye and dropped to t, so
+  //  each run sweeps one flat quad, its lips land exactly on the slab runs' fanned ends (no vertical cut), and it reads
+  //  as a trench going away from him and toward him, not a wall cut off at the play plane. Clipped between the lips and
+  //  under the play plane's profile; drawn from the run farthest from the eye in, those facing away from the eye left
+  //  out (the slab past the lip hides them).)
+  const ex = v.eye.x, Tn = GY + 700, kk = (t: number) => 1 + (t - GY) * BEND;
+  const P = (x: number, d: number, t: number): [number, number] => { const k = kk(t); return [ex + (x - ex) * k, t + d * k]; };
+  const vpY = GY - 1 / BEND;
+  c.save(); c.beginPath(); c.moveTo(...P(a, 0, GY));
   for (const [p, d1, q, d2] of PIPE_RUNS) { c.lineTo(X(p), GY + d1); c.lineTo(X(q), GY + d2); }
-  c.lineTo(b + 2, GY); c.lineTo(b + 2, GY + PIPE.depth + 260); c.lineTo(a - 2, GY + PIPE.depth + 260); c.closePath(); c.fill();
-  c.fillStyle = Cc[2]; c.beginPath(); c.moveTo(a, GY + 3);
-  for (const [p, d1, q, d2] of PIPE_RUNS) { c.lineTo(X(p), GY + d1 + 3); c.lineTo(X(q), GY + d2 + 3); }
-  c.lineTo(b, GY + 3); c.lineTo(b, GY + PIPE.depth + 260); c.lineTo(a, GY + PIPE.depth + 260); c.closePath(); c.fill();
-  // (the section: board-formed courses with the boards' grain, lit under each seam; the footing darker; tie holes)
-  for (let y = GY + 20; y < GY + PIPE.depth + 200; y += 22) { box(c, a, y, b - a, 1, Cc[1]); box(c, a, y + 1, b - a, 1, Cc[3]); for (let x = a + ((y * 7) % 23); x < b; x += 23) box(c, x, y + 6 + ((x * 3) % 9), 4 + ((x + y) % 7), 1, (x + y) % 2 ? Cc[1] : Cc[3]); }
-  c.fillStyle = Cc[1]; c.fillRect(a, GY + PIPE.depth + 18, b - a, 200);
-  checker(c, a, GY + PIPE.depth + 16, b - a, 2, Cc[1], 0, 1);
-  for (let x = a + 4; x < b; x += 6) box(c, x, GY + PIPE.depth + 24 + ((x * 13) % 40), 1, 1, Cc[0]);
-  for (let x = a + 30; x < b; x += 80) for (let y = GY + PIPE.depth + 40; y < GY + PIPE.depth + 200; y += 44) { box(c, x, y, 4, 4, Cc[0]); box(c, x + 3, y + 3, 1, 1, Cc[4]); }
+  c.lineTo(...P(b, 0, GY)); c.lineTo(...P(b, 0, Tn)); c.lineTo(...P(a, 0, Tn)); c.closePath(); c.clip();
+  box(c, Math.min(P(a, 0, Tn)[0], a) - 4, GY, Math.max(P(b, 0, Tn)[0], b) - Math.min(P(a, 0, Tn)[0], a) + 8, 700, Cc[1]);
+  const order = PIPE_RUNS.map((r, i) => ({ r, i, far: Math.abs((X(r[0]) + X(r[2])) / 2 - ex) })).sort((m, n) => n.far - m.far);
+  for (const { r: [p, d1, q, d2] } of order) {
+    const x1 = X(p), y1 = GY + d1, x2 = X(q), y2 = GY + d2;
+    // (facing the vanishing point? its up-normal (the air's side) toward it)
+    if ((y2 - y1) * (ex - (x1 + x2) / 2) + -(x2 - x1) * (vpY - (y1 + y2) / 2) <= 0) continue;
+    const sl = (d2 - d1) / Math.max(1, q - p), col = sl > 0.3 ? Cc[2] : sl < -0.3 ? Cc[4] : sl > 0.05 ? Cc[3] : sl < -0.05 ? Cc[4] : Cc[3];
+    polyF(c, [P(x1, d1, GY), P(x2, d2, GY), P(x2, d2, Tn), P(x1, d1, Tn)], col);
+  }
+  // (its texture: the run joints running toward him; the pour seams across it, farther apart the nearer; scuffs)
+  c.strokeStyle = 'rgba(40,34,50,0.2)'; c.lineWidth = 1;
+  for (const [p, d1] of PIPE_RUNS) { const [x0, y0] = P(X(p), d1, GY), [x1, y1] = P(X(p), d1, Tn); c.beginPath(); c.moveTo(x0, y0); c.lineTo(x1, y1); c.stroke(); }
+  for (const t of [GY + 30, GY + 76, GY + 140, GY + 230]) {
+    c.strokeStyle = Cc[1]; c.lineWidth = 1 + (t - GY) / 120; c.beginPath(); c.moveTo(...P(a, 0, t));
+    for (const [p, d1, q, d2] of PIPE_RUNS) { c.lineTo(...P(X(p), d1, t)); c.lineTo(...P(X(q), d2, t)); }
+    c.stroke();
+    c.strokeStyle = 'rgba(255,255,255,0.22)'; c.lineWidth = 1; c.beginPath(); c.moveTo(...P(a, 1.5, t + 2));
+    for (const [p, d1, q, d2] of PIPE_RUNS) { c.lineTo(...P(X(p), d1 + 1.5, t + 2)); c.lineTo(...P(X(q), d2 + 1.5, t + 2)); }
+    c.stroke();
+  }
+  { const [x0, y0] = P(a + PIPE.ramp + 60, PIPE.depth, GY + 20), [x1, y1] = P(b - PIPE.ramp - 60, PIPE.depth, GY + 20); c.strokeStyle = 'rgba(255,255,255,0.16)'; c.lineWidth = 4; c.beginPath(); c.moveTo(x0, y0); c.lineTo(x1, y1); c.stroke(); }
+  for (let k = 0; k < 40; k++) { const run = PIPE_RUNS[Math.floor(hash(k * 4.3) * PIPE_RUNS.length)], u = hash(k * 1.7), t = GY + hash(k * 6.1) ** 1.5 * 200, [px, py] = P(X(run[0] + (run[2] - run[0]) * u), run[1] + (run[3] - run[1]) * u, t); box(c, px, py, k % 4 ? 1 : 3, 1, k % 3 ? Cc[1] : Cc[5]); }
+  c.restore();
+  // (the line he walks, lit, across the play plane: standable reads standable)
   c.strokeStyle = LIP[2]; c.lineWidth = 2; c.beginPath(); c.moveTo(a, GY + 1);
   for (const [p, d1, q, d2] of PIPE_RUNS) { c.lineTo(X(p), GY + d1 + 1); c.lineTo(X(q), GY + d2 + 1); }
   c.stroke();
-  for (const lx of [a, b]) { ballR(c, lx, GY + 2, 5, rampH(STEEL)); }
+  // (the coping on both lips, running on toward him: steel pipe, fattening as it comes, inked, lit along its top)
+  for (const lx of [a, b]) {
+    const w0 = 4.5;
+    polyF(c, [P(lx - w0, -2, GY), P(lx + w0, -2, GY), P(lx + w0, -2, Tn), P(lx - w0, -2, Tn)], INK);
+    polyF(c, [P(lx - w0 + 1.5, -2, GY), P(lx + w0 - 1.5, -2, GY), P(lx + w0 - 1.5, -2, Tn), P(lx - w0 + 1.5, -2, Tn)], hour(STEEL[3]));
+    polyF(c, [P(lx - w0 + 1.5, -2, GY), P(lx - 0.5, -2, GY), P(lx - 0.5, -2, Tn), P(lx - w0 + 1.5, -2, Tn)], hour(STEEL[5]));
+    ballR(c, lx, GY, 4.5, rampH(STEEL));
+  }
 };
 /** The STUPID DAD LIVE billboard: up on lattice legs behind the path (the live show: where he's headed), its catwalk
  *  and lamps (on after dark). */
@@ -991,36 +1022,50 @@ const slabs = (c: Ctx) => tilePattern(c, `ct-bk-slabs-${timeOfDay().key}`, 128, 
   g.fillStyle = 'rgba(40,30,50,0.16)'; g.beginPath(); g.ellipse(100, 12, 12, 4, 0, 0, Math.PI * 2); g.fill();
 });
 /** The ground runs, coming toward him, bent; the red-painted curb along the edge, lit along its top; the pits' near
- *  halves (slime) bent too, their banks inked. */
+ *  halves (slime) and their banks. Everything on the floor is painted flat first and bent ONCE, all together (the
+ *  playtest: each run bent on its own left the flat paint standing in slivers past its fanned ends: hard vertical cuts
+ *  between the slabs, the slime and the banks that jumped about as he went). Bent together, every boundary between
+ *  them fans out from the one eye like the slab joints do, and nothing's left behind. */
 const nearGround = (c: Ctx, state: GameState, v: View) => {
   const L = state.camera.x - 40, R = state.camera.x + 840, Rd = NR('#DC2626'), f = state.frame;
+  const runs: [number, number][] = [];
   for (const [ga, gb] of GROUND) {
     const a = X(ga === GROUND[0][0] ? ga - 700 : ga), b = X(gb === GROUND[GROUND.length - 1][1] ? gb + 700 : gb), s = Math.max(a, L), e = Math.min(b, R);
     if (e <= s) continue;
+    runs.push([s, e]);
     box(c, s, GY, e - s, 700, hour('#6A6470'));
     c.fillStyle = slabs(c); c.fillRect(s, GY + 10, e - s, 600);
     // (a painted lane line nearer, a lightning bolt painted on the slab now and then)
-    for (let x = Math.floor(s / 40) * 40; x < e; x += 40) box(c, x, GY + 54, 22, 3, hour('#FDE047'));
+    for (let x = Math.floor(s / 40) * 40; x < e; x += 40) box(c, Math.max(s, x), GY + 54, Math.min(22, e - Math.max(s, x)), 3, hour('#FDE047'));
     for (let x = Math.floor(s / 520) * 520 + 200; x < e; x += 520) polyF(c, [[x, GY + 92], [x + 20, GY + 80], [x + 16, GY + 88], [x + 36, GY + 84], [x + 12, GY + 100], [x + 16, GY + 92]], hour('#22D3EE'));
-    bendFloor(c, v.eye, GY, GY, GY + 150, a, b);
-    // (the curb: painted red, lit along its top, its face shaded)
-    box(c, s, GY, e - s, 10, INK);
-    box(c, s, GY + 1, e - s, 8, Rd[3]); box(c, s, GY + 6, e - s, 3, Rd[1]);
-    for (let x = Math.floor(s / 48) * 48; x < e; x += 48) { box(c, x, GY + 1, 1, 8, Rd[0]); if (hash(x * 0.3) > 0.6) box(c, x + 10 + hash(x) * 20, GY + 2, 6, 3, Rd[4]); }
-    box(c, s, GY, e - s, 2, LIP[2]); box(c, s, GY, e - s, 1, LIP[3]);
   }
+  // (under the halfpipe: its concrete, so nothing stray's bent in under its near half)
+  { const s = Math.max(X(PIPE.a), L), e = Math.min(X(PIPE.b), R); if (e > s) box(c, s, GY, e - s, 700, NR('#C7C2B8')[1]); }
   for (const [pa, pb] of PITS) {
     const a = X(pa), b = X(pb), s = Math.max(a, L), e = Math.min(b, R);
     if (e <= s) continue;
     box(c, s, GY, e - s, 700, hour('#1E5A08'));
-    c.save(); c.translate((f * 0.25) % 96, 0); c.fillStyle = slime(c); c.fillRect(s - 96, GY + 4, e - s + 96, 600); c.restore();
-    bendFloor(c, v.eye, GY, GY, GY + 150, a, b);
-    // (the banks: the concrete's cut edge, hazard stripes down it)
+    c.save(); c.beginPath(); c.rect(s, GY, e - s, 700); c.clip();
+    c.translate(Math.round((f * 0.25) % 96), 0); c.fillStyle = slime(c); c.fillRect(s - 96, GY + 4, e - s + 96, 600);
+    c.restore();
+    // (the banks: the concrete's cut edge inside each end, hazard stripes down it (bent with the floor: they fan back to
+    //  the eye with it), inked where the slab meets them)
     for (const [ex, sd] of [[a, 1], [b, -1]] as [number, number][]) {
       if (ex < L - 20 || ex > R + 20) continue;
-      c.fillStyle = INK; c.beginPath(); c.moveTo(ex, GY); c.lineTo(ex + sd * 2, GY + 260); c.lineTo(ex - sd * 8, GY + 260); c.lineTo(ex - sd * 8, GY); c.closePath(); c.fill();
-      for (let y = GY + 4; y < GY + 60; y += 12) box(c, ex - (sd > 0 ? 6 : -2), y, 4, 6, hour('#FDE047'));
+      const x0 = sd > 0 ? ex : ex - 10;
+      box(c, x0, GY, 10, 700, INK);
+      box(c, sd > 0 ? ex + 2 : ex - 9, GY + 1, 7, 699, hour('#1F2937'));
+      for (let y = GY + 4; y < GY + 700; y += 12) box(c, sd > 0 ? ex + 2 : ex - 9, y, 7, 6, hour('#FDE047'));
+      box(c, sd > 0 ? ex + 2 : ex - 9, GY + 1, 7, 1, hour('#FEF9C3'));
     }
+  }
+  bendFloor(c, v.eye, GY, GY, GY + 150);
+  // (the curb: painted red, lit along its top, its face shaded; over the bent floor, on the line)
+  for (const [s, e] of runs) {
+    box(c, s, GY, e - s, 10, INK);
+    box(c, s, GY + 1, e - s, 8, Rd[3]); box(c, s, GY + 6, e - s, 3, Rd[1]);
+    for (let x = Math.floor(s / 48) * 48; x < e; x += 48) { if (x >= s) box(c, x, GY + 1, 1, 8, Rd[0]); if (hash(x * 0.3) > 0.6 && x + 30 < e && x + 10 > s) box(c, x + 10 + hash(x) * 20, GY + 2, 6, 3, Rd[4]); }
+    box(c, s, GY, e - s, 2, LIP[2]); box(c, s, GY, e - s, 1, LIP[3]);
   }
 };
 
@@ -1035,7 +1080,7 @@ export const drawBigkidBack = (c: Ctx, state: GameState, dollTalking: boolean) =
   if (onV(v, X(RINK.a) - 120, X(RINK.b) + 120)) rinkBack(c, state, v);
   drawFurniture(c, v);
   // (the set pieces behind the play plane, each with its sides going back)
-  if (onV(v, X(420) - 300, X(420) + 300)) gateArch(c, v, X(420), 'THE BIG-KID ZONE', 'NO TRACKS. NO LIMITS.', '#F472B6', 'TOTALLY EXTREME!');
+  if (onV(v, X(420) - 300, X(420) + 300)) gateArch(c, v, X(420), 'THE BIG-KID ZONE', 'NO LIMITS. NO MERCY.', '#F472B6', 'TOTALLY EXTREME!');
   if (onV(v, X(GATE.a) - 340, X(GATE.b) + 300)) gateArch(c, v, X((GATE.a + GATE.b) / 2) - 50, 'STUPID DAD', 'THE EXTENDED UNIVERSE >', '#FDE047', 'MORE STUPID DAD!');
   if (onV(v, X(640) - 80, X(640) + 80)) posterColumn(c, X(640));
   if (onV(v, X(820), X(1300))) posterFence(c, 820, 1300);

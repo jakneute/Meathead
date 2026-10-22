@@ -27,7 +27,7 @@ import { bigkidOf, saidOnce } from './state';
 import { makeRides, updateRides, noteSafe, inPuddle, onSneer, COUCH_DONE_MEMO } from './rides';
 import { drawRidesBack, drawRidesFront } from './rideArt';
 import { drawBigkidBackdrop, drawBigkidBack, drawGlopHeaps, bigkidLamps } from './art';
-import { ARRIVE, REVISIT, GAGS, TRACKLESS, DOLL_LINES, CAST_VOICES } from './lines';
+import { ARRIVE, REVISIT, GAGS, LOWRIDE, DOLL_LINES, CAST_VOICES } from './lines';
 import './kinds';
 
 const { x0, x1 } = SECTIONS.bigkid;
@@ -37,7 +37,7 @@ export { COUCH_DONE_MEMO as BIGKID_DONE_MEMO };
 onSneer(state => {
   const p = state.player, k = bigkidOf(state);
   if (p.inCutscene || p.health <= 0 || Math.random() > 0.55) return;
-  const line = pickFreshLine(byPants(state, TRACKLESS));
+  const line = pickFreshLine(byPants(state, LOWRIDE));
   if (!line) return;
   k.sneerAt = state.frame;
   meatheadSays(state, line, false);

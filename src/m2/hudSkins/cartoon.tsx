@@ -112,7 +112,7 @@ export const CARTOON_THEMES: Record<CartoonZone, Theme> = {
       slot: { background: 'rgba(30,27,75,0.45)', borderColor: '#FDE047' },
     },
     pause: pause({
-      title: 'PAUSED, DUDE', sub: 'NO TRACK, NO DICE.',
+      title: 'PAUSED, DUDE', sub: 'TOTALLY BOGUS.',
       titleStyle: { color: '#FDE047', textShadow: '3px 3px 0 #EC4899, 5px 5px 0 #000' },
       frame: { background: 'linear-gradient(135deg, #0F766E, #5B21B6)', border: '6px solid #FDE047', borderRadius: 4, boxShadow: FRAME_SHADOW() },
       stripe: 'repeating-linear-gradient(90deg, #EC4899 0 10px, #FDE047 10px 20px, #14B8A6 20px 30px)',

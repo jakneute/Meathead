@@ -124,7 +124,7 @@ export const ATTRACTIONS: Attraction[] = [
   { id: 'whitehouse', land: 'cartoon', name: 'THE WACKY WHITE HOUSE', u: -0.28, v: 0.42, zones: ['whitehouse'], art: 'whiteHouse',
     blurb: 'HELP CHELSEA AND SOCKS THE CAT SAVE THE WHITE HOUSE FROM THE MEAN MEN! INTERACTIVE!', info: 'SOME GUESTS MAY BECOME A CAT' },
   { id: 'bigkid', land: 'cartoon', name: 'THE BIG-KID ZONE', u: 0.05, v: 0.62, zones: ['bigkid'], art: 'bigKid',
-    blurb: 'TOTALLY EXTREME! BUMPER BASH, HURL-A-WHIRL, MOTION MADNESS! NO TRACK! ALL CRASH!', info: 'MUST BE 48 IN. AND RAD · THRILL 3/5' },
+    blurb: 'TOTALLY EXTREME! BUMPER BASH, HURL-A-WHIRL, MOTION MADNESS! ALL CRASH!', info: 'MUST BE 48 IN. AND RAD · THRILL 3/5' },
   { id: 'punchy', land: 'cartoon', name: 'PUNCHY & KICKY', u: -0.3, v: 0.8, zones: ['itchy'], art: 'punchy',
     blurb: 'THE CAT AND MOUSE THE WHOLE FAMILY LOVES! NOW 40% MORE KILLING!', info: 'FAMILY FRIENDLY · WATCH FOR ANVILS' },
   { id: 'amphi', land: 'cartoon', name: 'STUPID DAD LIVE!', u: 0.25, v: 0.86, zones: ['amphi'], art: 'amphi',

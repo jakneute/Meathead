@@ -168,11 +168,11 @@ export const GAG_AT: [string, number][] = [['posters', 600], ['graffiti', 960], 
 
 /** The zone's signs: [x, feet height, lines, board color]. */
 export const SIGNS: [number, number, string[], string][] = [
-  [1160, 0, ['COUCH DUDES', "CRUISIN' COUCH", 'NO TRACK! NO RULES!'], '#7C3AED'],
+  [1160, 0, ['COUCH DUDES', "CRUISIN' COUCH", 'IT DRIVES ITSELF!'], '#7C3AED'],
   [3470, 0, ['THE GLOP PIT', 'NO LIFEGUARD ON DUTY. EVER.'], '#16A34A'],
-  [4990, 0, ["SPAZ & STINKY'S", 'BUMPER BASH', 'NO TRACK! ALL CRASH!'], '#DB2777'],
+  [4990, 0, ["SPAZ & STINKY'S", 'BUMPER BASH', 'ALL CRASH! ALL DAY!'], '#DB2777'],
   [7130, 0, ["GIGGLES THE CLOWN'S", 'HURL-A-WHIRL', 'IT GOES WHERE IT WANTS!'], '#EA580C'],
-  [8560, 0, ["DETECTIVE DRAKE'S", 'MOTION MADNESS', 'THE TRACKLESS SIMULATOR'], '#0E7490'],
+  [8560, 0, ["DETECTIVE DRAKE'S", 'MOTION MADNESS', 'FEEL EVERY BUMP!'], '#0E7490'],
   [9170, 0, ['THE GLOP PIT, PART 2', 'NOW WITH MORE GLOP'], '#16A34A'],
-  [10580, 0, ["RAD RAT'S", 'TUBULAR HALFPIPE', 'NO TRACK! JUST GNARLY!'], '#7C3AED'],
+  [10580, 0, ["RAD RAT'S", 'TUBULAR HALFPIPE', 'TOTALLY GNARLY!'], '#7C3AED'],
 ];
