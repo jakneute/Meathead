@@ -1339,15 +1339,14 @@ const sideWall = (c: Ctx, cam: number, corner: number, side: -1 | 1) => {
   const P = (y: number, d: number): [number, number] => [ex + (corner - ex) * d, EYE_Y + (y - EYE_Y) * d];
   const quad = (pts: [number, number][], col: string) => { c.fillStyle = col; c.beginPath(); pts.forEach(([x, y], i) => (i ? c.lineTo(x, y) : c.moveTo(x, y))); c.closePath(); c.fill(); };
   const far = 2000;
-  // The ceiling over it and the floor under it, on to the edge
-  const [cx1, cy1] = P(CEIL_Y, D), [fx1, fy1] = P(G, D);
+  // The ceiling over it, on to the edge. (The floor under it is the bent floor's own: bendFloor fans its ends out from
+  // the corners along the wall's foot, its tiles running on toward him. A flat fill over it here cut the floor straight
+  // down at the corner, the tiles one side, plain the other.)
+  const [cx1, cy1] = P(CEIL_Y, D);
   quad([[corner, CEIL_Y], [cx1, cy1], [cx1, -far], [corner, -far]], '#4E4B3E');
-  quad([[corner, G], [fx1, fy1], [fx1, far], [corner, far]], '#6C6750');
-  // (the floor's tile rows and the ceiling's T-bars, going on toward him)
+  // (the ceiling's T-bars, going on toward him)
   for (let d = 1.12; d < D; d *= 1.12) {
-    const [x0, y0] = P(G, d);
-    c.fillStyle = 'rgba(40, 36, 24, 0.55)'; c.fillRect(Math.min(corner, x0), Math.round(y0), Math.abs(x0 - corner), 1);
-    const [, yc] = P(CEIL_Y, d);
+    const [x0] = P(G, d), [, yc] = P(CEIL_Y, d);
     c.fillStyle = 'rgba(196, 192, 174, 0.35)'; c.fillRect(Math.min(corner, x0), Math.round(yc), Math.abs(x0 - corner), 1);
   }
   // The wall itself, band by band

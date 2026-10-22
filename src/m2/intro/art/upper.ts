@@ -11,6 +11,7 @@ import { GROUND_Y, CANVAS_HEIGHT } from '../../../m1/constants';
 import {
   type Ctx, INK, RED, WHITE, BLUE, box, text, flag, sign, slab, pole, ball, shinyStar, star, eagle, bunting,
   rampOf, lite, dim, mix, hash, checker, bandedGradient, steppedGlow, pixelBlob, tilePattern, brickPattern, stamp,
+  type Eye, sideFace,
 } from './kit';
 import { signAt, signText, stencil, led, marker, federal, flag as flagType, print } from './letters';
 
@@ -685,39 +686,8 @@ const paintCheck = (g: Ctx) => {
 };
 
 /** Out on the deck: the walkway's canopy and its ads on posts, the checkpoint's tents, its office, the metal detector. */
-/** Where the camera's looking from (its middle, across and up): for the sides of things, going back from where he is. */
-export interface Eye { x: number; y: number }
-
-/**
- * The side of something standing out in the open, going back from its front (at x = e, from `top` down to `bottom`)
- * toward where he's looking: whichever side faces him, wider the further off to that side it is (the way the SNES
- * faked depth). `depth`: how far back it goes (how much smaller its far end is: 1 none, less, deeper). `paint` puts the
- * face's own detail on it, given where a point at (along, y) on it is drawn (along 0 at the front, 1 at the back).
- */
-const sideFace = (c: Ctx, eye: Eye, e: number, side: 1 | -1, top: number, bottom: number, depth: number, col: string,
-  paint?: (pt: (along: number, y: number) => [number, number]) => void, ground?: string) => {
-  if ((eye.x - e) * side <= 2) return;
-  const pt = (k: number, y: number): [number, number] => { const d = 1 - (1 - depth) * k; return [eye.x + (e - eye.x) * d, eye.y + (y - eye.y) * d]; };
-  const [x1, t1] = pt(1, top), [, b1] = pt(1, bottom);
-  const r = rampOf(col);
-  // (what it stands on, going back with it: the ground under its far end, up to where he walks, and its shadow along
-  // the foot of it, so it's stood on something, not hung in the air)
-  if (ground) {
-    const g = rampOf(ground);
-    c.fillStyle = g[2]; c.beginPath(); c.moveTo(e, bottom); c.lineTo(x1, b1); c.lineTo(x1 + (x1 - e) * 0.15, b1); c.lineTo(x1 + (x1 - e) * 0.15, bottom); c.closePath(); c.fill();
-    c.fillStyle = 'rgba(20, 16, 12, 0.35)'; c.beginPath(); c.moveTo(e, bottom); c.lineTo(x1, b1); c.lineTo(x1, b1 + 4); c.lineTo(e, bottom + 2); c.closePath(); c.fill();
-  }
-  c.fillStyle = r[1]; c.beginPath(); c.moveTo(e, top); c.lineTo(x1, t1); c.lineTo(x1, b1); c.lineTo(e, bottom); c.closePath(); c.fill();
-  // (in steps going back: darker the further)
-  for (const [k0, k1, shade] of [[0.45, 0.75, 'rgba(10, 12, 30, 0.14)'], [0.75, 1, 'rgba(10, 12, 30, 0.26)']] as const) {
-    const [xa, ta] = pt(k0, top), [, ba] = pt(k0, bottom), [xb, tb] = pt(k1, top), [, bb] = pt(k1, bottom);
-    c.fillStyle = shade; c.beginPath(); c.moveTo(xa, ta); c.lineTo(xb, tb); c.lineTo(xb, bb); c.lineTo(xa, ba); c.closePath(); c.fill();
-  }
-  paint?.(pt);
-  // (its edges: the near corner lit, the far one inked)
-  box(c, e - (side > 0 ? 0 : 1), top, 1, bottom - top, r[3]);
-  c.strokeStyle = INK; c.lineWidth = 1; c.beginPath(); c.moveTo(e, top); c.lineTo(x1, t1); c.lineTo(x1, b1); c.stroke();
-};
+// (the eye and the sides of things going back from it: the kit's, shared with the plaza and the street)
+export type { Eye };
 const line = (c: Ctx, a: [number, number], b: [number, number], col: string, w = 1) => { c.strokeStyle = col; c.lineWidth = w; c.beginPath(); c.moveTo(a[0], a[1]); c.lineTo(b[0], b[1]); c.stroke(); };
 
 /** Out on the deck: the garage's end wall going back (its levels, their openings, the railings), and the security

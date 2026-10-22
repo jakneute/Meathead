@@ -73,10 +73,11 @@ const plane = (c: Ctx, E: P, x0: number, x1: number, y: number, d0: number, d1: 
   path(c, [proj(E, x0, y, d0), proj(E, x1, y, d0), proj(E, x1, y, d1), proj(E, x0, y, d1)]); c.strokeStyle = INK; c.lineWidth = 1; c.stroke();
 };
 /** A box in the room (x0..x1, y0 top..y1 bottom, depth d0..d1): its side toward the eye and its top (seen from above)
- *  or its underside (from below), in depth; its front's the caller's (on the play line, d1 = 1). */
-const box3 = (c: Ctx, E: P, x0: number, x1: number, y0: number, y1: number, d0: number, d1: number, side: string[], top?: string[]) => {
-  if (E.x < x0) face(c, E, x0, y0, y1, d0, d1, side);
-  else if (E.x > x1) face(c, E, x1, y0, y1, d0, d1, side);
+ *  or its underside (from below), in depth; its front's the caller's (on the play line, d1 = 1). `flush`: an end that's
+ *  up against something else in the room (its side's buried there: never drawn, wherever the eye is). */
+const box3 = (c: Ctx, E: P, x0: number, x1: number, y0: number, y1: number, d0: number, d1: number, side: string[], top?: string[], flush?: 'left' | 'right') => {
+  if (E.x < x0) { if (flush !== 'left') face(c, E, x0, y0, y1, d0, d1, side); }
+  else if (E.x > x1) { if (flush !== 'right') face(c, E, x1, y0, y1, d0, d1, side); }
   if (top && y0 > E.y) plane(c, E, x0, x1, y0, d0, d1, top);
   if (top && y1 < E.y) plane(c, E, x0, x1, y1, d0, d1, top);
 };
@@ -167,7 +168,7 @@ const ceiling = (c: Ctx, state: GameState, E: P) => {
   // (the T-bar grid: along, fanning out from the eye, and across)
   c.strokeStyle = '#A8A290'; c.lineWidth = 1; c.beginPath();
   for (let x = Math.ceil(a / 64) * 64; x < b; x += 64) { const p = proj(E, x, CEIL_Y, D_WALL), q = proj(E, x, CEIL_Y, D_CEIL_NEAR); c.moveTo(p.x, p.y); c.lineTo(q.x, q.y); }
-  for (let i = 1; i < n; i++) { const p = proj(E, a, CEIL_Y, CEIL_ROWS[i]), q = proj(E, b, CEIL_Y, CEIL_ROWS[i]); c.moveTo(p.x, p.y); c.lineTo(q.x, q.y); }
+  for (let i = 1; i < n; i++) { const p = proj(E, a, CEIL_Y, CEIL_ROWS[i]), q = proj(E, b, CEIL_Y, CEIL_ROWS[i]); c.moveTo(p.x, Math.round(p.y) + 0.5); c.lineTo(q.x, Math.round(q.y) + 0.5); }
   c.stroke();
   // (where it meets the wall: the dark of the angle, dithered off)
   strip(c, E, a, b, CEIL_Y, D_WALL, zStep(D_WALL, 0.02), 'rgba(20,14,10,0.45)');
@@ -184,7 +185,7 @@ const beams = (c: Ctx, state: GameState, E: P) => {
     strip(c, E, x, x + 3, CEIL_Y + 8, D_WALL, D_CEIL_NEAR, '#71717A');
     // (rivets along it)
     c.fillStyle = '#8A8A94';
-    for (const d of CEIL_ROWS.slice(1, -1)) { const p = proj(E, x + 7, CEIL_Y + 8, d); c.fillRect(p.x - d, p.y - 0.5, 2 * d, 1.2 * d); }
+    for (const d of CEIL_ROWS.slice(1, -1)) { const p = proj(E, x + 7, CEIL_Y + 8, d); c.fillRect(Math.round(p.x - d), Math.round(p.y), Math.max(1, Math.round(2 * d)), Math.max(1, Math.round(1.2 * d))); }
   }
 };
 
@@ -251,7 +252,8 @@ const floor = (c: Ctx, state: GameState, E: P) => {
       if (((Math.round(x / 64) + i) & 1) === 0) strip(c, E, xa, xb, Y, s0, s1, mix('#202020', '#080808', shade));
       for (let k = 0; k < 2; k++) {
         const h = hash(x * 0.37 + i * 11 + k * 5.1), p = proj(E, x + 6 + h * 52, Y, s0 + (s1 - s0) * hash(h * 91 + k));
-        c.fillStyle = FLECKS[Math.floor(h * 4)]; c.fillRect(p.x, p.y, 1.5 * s0, s0);
+        // (on the pixel grid: a fraction of a pixel would shimmer as it slides by)
+        c.fillStyle = FLECKS[Math.floor(h * 4)]; c.fillRect(Math.round(p.x), Math.round(p.y), Math.max(1, Math.round(1.5 * s0)), 1);
       }
     }
   }
@@ -261,7 +263,7 @@ const floor = (c: Ctx, state: GameState, E: P) => {
   c.stroke();
   // (the chalk scuffed about, the odd one)
   c.fillStyle = 'rgba(231,229,228,0.5)';
-  for (let x = Math.ceil(a / 210) * 210; x < b; x += 210) { const p = proj(E, x + 30, Y, FLOOR_ROWS[1 + Math.floor(hash(x) * (n - 2))]); c.fillRect(p.x, p.y, 3, 1.5); c.fillRect(p.x + 4, p.y + 1, 2, 1); }
+  for (let x = Math.ceil(a / 210) * 210; x < b; x += 210) { const p = proj(E, x + 30, Y, FLOOR_ROWS[1 + Math.floor(hash(x) * (n - 2))]), px = Math.round(p.x), py = Math.round(p.y); c.fillRect(px, py, 3, 1); c.fillRect(px + 4, py + 1, 2, 1); }
   // (the light pools under the troffers: three steps out, and the sheen up the middle of each)
   const f = state.frame;
   for (const d of FIX_ROWS) {
@@ -431,21 +433,26 @@ const handTruck = (c: Ctx, x: number) => {
  *  tops and sides in depth, the lit lip at his feet), the duct (its side going back). */
 export const drawGymMid = (c: Ctx, state: GameState) => {
   const E = eyeOf(state);
-  if (seen(state, E, MEZZ.x1 - 40, MEZZ.x2 + 40, D_WALL) || seen(state, E, MEZZ.x1 - 40, MEZZ.x2 + 40, 1)) { mezz3(c, E); mezzanine(c); }
+  // (the mezzanine's deck and side first, its front last: the plyo box up against it is in front of its side, and its
+  // own top and buried end go back behind the lockers' front)
+  const mezzOn = seen(state, E, MEZZ.x1 - 40, MEZZ.x2 + 40, D_WALL) || seen(state, E, MEZZ.x1 - 40, MEZZ.x2 + 40, 1);
+  if (mezzOn) mezz3(c, E);
   for (const l of LEDGES) {
     if (!seen(state, E, l.x - 20, l.x + l.w + 20, D_BOX) && !seen(state, E, l.x - 20, l.x + l.w + 20, 1)) continue;
     footShadow(c, E, l.x, l.x + l.w, D_BOX, 1);
+    const flush = l.x + l.w === MEZZ.x1 ? 'right' : l.x === MEZZ.x2 ? 'left' : undefined;
     if (l.look === 'step') {
-      box3(c, E, l.x, l.x + l.w, l.y + 50, Y, D_BOX, 1, ['#6A4626', '#7A5230', '#8A5E38'], undefined);
-      box3(c, E, l.x, l.x + l.w, l.y, l.y + 50, D_BOX, 1, ['#7E5630', '#8E6238', '#A06E40'], ['#9A6A3C', '#B07A44', '#C48A50', '#D89C60']);
+      box3(c, E, l.x, l.x + l.w, l.y + 50, Y, D_BOX, 1, ['#6A4626', '#7A5230', '#8A5E38'], undefined, flush);
+      box3(c, E, l.x, l.x + l.w, l.y, l.y + 50, D_BOX, 1, ['#7E5630', '#8E6238', '#A06E40'], ['#9A6A3C', '#B07A44', '#C48A50', '#D89C60'], flush);
       drawLedge(c, { x: l.x, y: l.y, w: l.w, look: 'step' });
     } else {
-      box3(c, E, l.x, l.x + l.w, l.y, Y, D_BOX, 1, ['#1E1E24', '#26262C', '#2E2E35', '#36363E'], ['#3F3F46', '#4A4A52', '#5A5A62', '#6A6A72']);
+      box3(c, E, l.x, l.x + l.w, l.y, Y, D_BOX, 1, ['#1E1E24', '#26262C', '#2E2E35', '#36363E'], ['#3F3F46', '#4A4A52', '#5A5A62', '#6A6A72'], flush);
       drawLedge(c, { x: l.x, y: l.y, w: l.w, look: 'rack' });
     }
     // (the lit lip along the top's front edge: stood on)
     c.fillStyle = '#F4F4F5'; c.fillRect(l.x + 1, l.y, l.w - 2, 1.4);
   }
+  if (mezzOn) mezzanine(c);
   if (seen(state, E, DUCT.x1 - 20, DUCT.x2 + 20, D_BOX) || seen(state, E, DUCT.x1 - 20, DUCT.x2 + 20, 1)) {
     // (the dark on the floor under it, the gap he goes through)
     strip(c, E, DUCT.x1 - 6, DUCT.x2 + 6, Y, zStep(D_BOX, -0.02), 1, 'rgba(0,0,0,0.4)');
@@ -465,7 +472,7 @@ const mezz3 = (c: Ctx, E: P) => {
   }
   plane(c, E, x1, x2, MEZZ_Y, D_WALL, 1, ['#34343B', '#3F3F46', '#4A4A52', '#56565E']);
   c.fillStyle = '#7A7A84';
-  for (const d of zRows(D_WALL, 1, 5).slice(1, -1)) for (let x = x1 + 12; x < x2; x += 24) { const p = proj(E, x, MEZZ_Y, d); c.fillRect(p.x, p.y, 2 * d, d); }
+  for (const d of zRows(D_WALL, 1, 5).slice(1, -1)) for (let x = x1 + 12; x < x2; x += 24) { const p = proj(E, x, MEZZ_Y, d); c.fillRect(Math.round(p.x), Math.round(p.y), Math.max(1, Math.round(2 * d)), 1); }
   // (the side rails, going back)
   for (const rx of [x1 + 3, x2 - 3]) {
     c.strokeStyle = INK; c.lineWidth = 3; c.beginPath();
@@ -536,6 +543,18 @@ const ring = (c: Ctx, state: GameState, E: P) => {
   c.stroke();
   for (const tx of [x1 + 150, x1 + 420]) strip(c, E, tx - 16, tx + 16, mat, 0.93, 0.955, '#A1A1AA');
   for (let j = 0; j < 3; j++) strip(c, E, mid - 90 - j * 70, mid + 90 + j * 70, mat, Math.max(D_RING, zStep(0.93, -0.02 - j * 0.025)), Math.min(1, zStep(0.93, 0.04 + j * 0.03)), `rgba(236, 252, 203, ${(0.07 * flick).toFixed(3)})`);
+  // (the wooden steps up, each end: two treads, boxes in depth, lit along their tops. Before the apron's front: the far
+  // end's go back behind it; their ends against the ring are buried, never drawn; the high tread's box only from the
+  // low one's top up, so its side doesn't come down over the low tread's top)
+  for (const side of [-1, 1]) {
+    const o = side < 0 ? x1 : x2;
+    for (const [w, top, bot] of [[40, Y - 17, Y], [20, mat, Y - 17]] as [number, number, number][]) {
+      const a = side < 0 ? o - w : o, b = side < 0 ? o : o + w;
+      box3(c, E, a, b, top, bot, 0.93, 1, ['#4A3220', '#5A3E28', '#6A4A30'], ['#7A5636', '#8E6640', '#A2764A'], side < 0 ? 'right' : 'left');
+      shadedTop(c, () => c.rect(a, top, b - a, Y - top), '#7A5636', a, top, b - a, Y - top, 0.8);
+      c.fillStyle = '#C8A070'; c.fillRect(a + 1, top, b - a - 2, 1.4);
+    }
+  }
   // (the far posts and their ropes, at the back of the mat)
   atDepth(c, E, D_RING, () => ringRopes(c, x1 + 8, x2 - 8, mat, 1));
   // (the side ropes, from the near posts back to the far ones)
@@ -566,16 +585,6 @@ const ring = (c: Ctx, state: GameState, E: P) => {
     for (let i = 0; i < word.length; i++) { if (i !== gone) { g.fillStyle = 'rgba(0,0,0,0.45)'; g.fillText(word[i], lx + 1, mat + 27); g.fillStyle = '#C8B060'; g.fillText(word[i], lx, mat + 26); } lx += g.measureText(word[i]).width; }
     for (const tx of [x1 + 150, x1 + 420]) { g.save(); g.translate(tx, mat + 5); for (const a of [0.5, -0.5]) { g.save(); g.rotate(a); ink(g, () => g.rect(-12, -2, 24, 4), '#A1A1AA', 0.6); g.restore(); } g.restore(); }
   });
-  // (the wooden steps up, each end: two treads, boxes in depth, lit along their tops)
-  for (const side of [-1, 1]) {
-    const o = side < 0 ? x1 : x2;
-    for (const [w, top] of [[40, Y - 17], [20, mat]] as [number, number][]) {
-      const a = side < 0 ? o - w : o, b = side < 0 ? o : o + w;
-      box3(c, E, a, b, top, Y, 0.93, 1, ['#4A3220', '#5A3E28', '#6A4A30'], ['#7A5636', '#8E6640', '#A2764A']);
-      shadedTop(c, () => c.rect(a, top, b - a, Y - top), '#7A5636', a, top, b - a, Y - top, 0.8);
-      c.fillStyle = '#C8A070'; c.fillRect(a + 1, top, b - a - 2, 1.4);
-    }
-  }
 };
 const ringRopes = (c: Ctx, a: number, b: number, base: number, dim: number) => {
   for (const x of [a, b]) {

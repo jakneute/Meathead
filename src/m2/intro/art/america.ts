@@ -9,6 +9,7 @@ import { GROUND_Y } from '../../../m1/constants';
 import {
   type Ctx, INK, RED, WHITE, BLUE, FLAG_RED, FLAG_WHITE, FLAG_BLUE, box, shinyStar, flag, bunting, sign, dim, eagle,
   slab, pole, ball, rampOf, dark, lite, mix, hash, checker, bandedGradient, hazeBands, pixelBlob, tilePattern, stamp,
+  sideFace,
 } from './kit';
 import { type Look, signAt, signText, federal, gilt, tube, marker, print } from './letters';
 
@@ -1226,6 +1227,17 @@ const paintCart = (g: Ctx, x: number, words: string, col: string, kind: 'fries' 
     ball(g, wx, GY - 12, 2, '#E8B400', false);
   }
 };
+/** A cart's depth (live polygons under its stamp): the steel counter's top going back toward where he's looking (seen
+ *  from above), and the end of the body that faces him, the way the shop fronts' sides go. */
+const CART_DEPTH = 0.94;
+const cartDepth = (c: Ctx, eye: Eye, x: number, col: string) => {
+  const back = (px: number, py: number): [number, number] => [eye.x + (px - eye.x) * CART_DEPTH, eye.y + (py - eye.y) * CART_DEPTH];
+  for (const [e, side] of [[x - 50, -1], [x + 50, 1]] as const) sideFace(c, eye, e, side, GY - 66, GY - 22, CART_DEPTH, col);
+  const y = GY - 70, a = back(x - 55, y), b = back(x + 55, y);
+  c.fillStyle = INK; c.beginPath(); c.moveTo(x - 55, y); c.lineTo(...a); c.lineTo(...b); c.lineTo(x + 55, y); c.closePath(); c.fill();
+  const a2 = back(x - 54, y), b2 = back(x + 54, y);
+  c.fillStyle = '#8A9098'; c.beginPath(); c.moveTo(x - 54, y); c.lineTo(a2[0], a2[1] + 1); c.lineTo(b2[0], b2[1] + 1); c.lineTo(x + 54, y); c.closePath(); c.fill();
+};
 const steam = (c: Ctx, x: number, f: number) => {
   for (let i = 0; i < 3; i++) {
     const t = ((f + i * 30) % 90) / 90;
@@ -1277,6 +1289,7 @@ export const america = (c: Ctx, f: number, vis: (a: number, b: number) => boolea
   }
   // Carts out front: FREEDOM FRIES, EAGLE DOGS, apple pie on a stick
   for (const k of CARTS) if (vis(k.x - 100, k.x + 80)) {
+    cartDepth(c, eye, k.x, k.col);
     stamp(c, `usa-cart-${k.kind}`, k.x - 96, GY - 128, 170, 130, g => paintCart(g, k.x, k.words, k.col, k.kind));
     steam(c, k.x, f);
   }

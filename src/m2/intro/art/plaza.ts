@@ -8,7 +8,7 @@ import { R, USA_END, FRONT_X, WINDOW_X, TURN_X, GATE_X, END_X, QUEUE_START } fro
 import { GROUND_Y, CANVAS_WIDTH } from '../../../m1/constants';
 import {
   type Ctx, INK, RED, WHITE, BLUE, FLAG_RED, FLAG_WHITE, FLAG_BLUE, box, star, flag, bunting, sign, dim, slab, pole,
-  ball, shinyStar, checker, steppedGlow, pixelBlob, stamp, mix, hash, snap, PIX,
+  ball, shinyStar, checker, steppedGlow, pixelBlob, stamp, mix, hash, snap, PIX, type Eye, sideFace, dark,
 } from './kit';
 import { getIntro } from '../index';
 import { signAt, extruded, federal, gilt, print } from './letters';
@@ -64,7 +64,7 @@ const bigText = (c: Ctx, s: string, x: number, y: number, size: number, depth: n
 // ---------------------------------------------------------------------------------------------------------------
 // The ticket plaza and the gate
 
-export const plaza = (c: Ctx, state: GameState, f: number) => {
+export const plaza = (c: Ctx, state: GameState, f: number, eye?: Eye) => {
   const intro = getIntro(state);
   const cam = state.camera.x;
   const vis = (a: number, b: number) => b > cam - 60 && a < cam + CANVAS_WIDTH + 60;
@@ -73,6 +73,9 @@ export const plaza = (c: Ctx, state: GameState, f: number) => {
   // The park's fence (left of the gate) and its wall (right of it)
   if (vis(P0, GX - 180)) stamp(c, 'plaza-fence', P0, G - 160, GX - 180 - P0 + 4, 160, fence);
   if (vis(GX + 180, P1)) stamp(c, 'plaza-wall', GX + 176, G - 320, P1 - GX - 176, 320, parkWall);
+  // The ticket booth's sides, going back toward where he's looking (the street's eye): behind everything that stands
+  // on the plaza's front (the lamps, the gate's towers), over the fence and the park
+  if (eye && vis(BX - 160, BX + 420)) boothSides(c, eye);
   // Plaza dressing: lamps with flags and bunting, the eagle (a shrub), urns of flowers, the map
   for (const lx of LAMPS) if (vis(lx - 40, lx + 40)) { stamp(c, `plaza-lamp-${lx}`, lx - 28, G - 312, 56, 312, g => lamp(g, lx)); flag(c, lx + 1, G - 346, f + lx, 30, 18, G - 312); }
   if (vis(LAMPS[0], LAMPS[1])) stamp(c, 'plaza-bunting-0', LAMPS[0] - 4, G - 300, LAMPS[1] - LAMPS[0] + 8, 70, g => bunting(g, LAMPS[0], LAMPS[1], G - 292, 22));
@@ -554,6 +557,35 @@ const booth = (c: Ctx) => {
   ellipse(c, BX + 130, G - 286, 17, 12, FLAG_BLUE[2], Math.PI, Math.PI * 2);
   ellipse(c, BX + 125, G - 288, 9, 8, FLAG_BLUE[3], Math.PI, Math.PI * 2); box(c, BX + 120, G - 294, 3, 3, FLAG_BLUE[4]);
   box(c, BX + 112, G - 287, 36, 2, GOLD[2]);
+};
+
+/** The booth's ends, whichever faces him (a live polygon apiece: the front's the stamp): the same bands as its front
+ *  turned side on (the gold cornice, the navy frieze, the white clapboard with its boards running back, the navy
+ *  beadboard, the plinth), standing on the plaza going back with it; darker in steps the further back. */
+const BOOTH_DEPTH = 0.9;
+const boothSides = (c: Ctx, eye: Eye) => {
+  const top = G - 196;
+  for (const [e, side] of [[BX, -1], [BX + 260, 1]] as const) sideFace(c, eye, e, side, top, G, BOOTH_DEPTH, '#ECE5D6', pt => {
+    const band = (y0: number, y1: number, col: string) => {
+      const a = pt(0, y0), b = pt(1, y0), d = pt(1, y1), e0 = pt(0, y1);
+      c.fillStyle = col; c.beginPath(); c.moveTo(...a); c.lineTo(...b); c.lineTo(...d); c.lineTo(...e0); c.closePath(); c.fill();
+    };
+    band(top, top + 6, GOLD[1]);
+    band(top + 4, G - 146, dark(FLAG_BLUE[1], 0.2));
+    band(G - 146, G - 68, '#B9AE98');
+    band(G - 68, G - 10, FLAG_BLUE[0]);
+    band(G - 10, G, '#4E463E');
+    // (the clapboard's boards and the beadboard's gold rail, running back to the eye)
+    c.strokeStyle = 'rgba(96, 84, 64, 0.55)'; c.lineWidth = 1; c.beginPath();
+    for (let y = G - 140; y < G - 68; y += 6) { const a = pt(0, y), b = pt(1, y); c.moveTo(...a); c.lineTo(...b); }
+    c.stroke();
+    const ra = pt(0, G - 68), rb = pt(1, G - 68); c.strokeStyle = GOLD[1]; c.lineWidth = 2; c.beginPath(); c.moveTo(...ra); c.lineTo(...rb); c.stroke();
+    // (darker in steps going back, over the bands)
+    for (const [k0, k1, shade] of [[0.4, 0.7, 'rgba(10, 12, 30, 0.12)'], [0.7, 1, 'rgba(10, 12, 30, 0.24)']] as const) {
+      const a = pt(k0, top), b = pt(k1, top), d = pt(k1, G), e0 = pt(k0, G);
+      c.fillStyle = shade; c.beginPath(); c.moveTo(...a); c.lineTo(...b); c.lineTo(...d); c.lineTo(...e0); c.closePath(); c.fill();
+    }
+  }, '#DCC9A2');
 };
 
 /** A window's counter: a slim brass ledge, dark (it's a ledge at the back, not a step), a slot for the money. */
