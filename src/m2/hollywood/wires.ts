@@ -32,6 +32,7 @@ import { pickLine } from '../../m1/game/platform/speech';
 import { playSound } from '../../m1/game/platform/audio';
 import { meatheadSays, type StuntWire } from './section';
 import { FIRST_WIRE, WIRE_WHOOP } from './blvd/lines';
+import { grabBusy } from '../moves/grab';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -173,6 +174,8 @@ export const updateWires = (ctx: FrameContext, wires: StuntWire[], c: Controls):
   const { state } = ctx, p = state.player, s = storeOf(state), h = s.hold;
   while (s.runs.length < wires.length) s.runs.push({ u: 0, v: 0, th: 0, om: 0, ext: 0, wait: 0, idle: 999 });
   if (!wires.length && h.on < 0) return c;
+  // (in the middle of any grab (the air grab too): he goes on past them, no catching hold)
+  if ((p.airGrab || grabBusy()) && h.on < 0) return c;
   const cx = p.pos.x + p.width / 2;
   if (h.cd > 0) h.cd--;
   if (h.jumpLatch && !c.jump) h.jumpLatch = false;

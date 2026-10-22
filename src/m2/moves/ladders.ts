@@ -48,6 +48,7 @@ import { PLAYER_MOVE_SPEED } from '../../m1/constants';
 import { rectsOverlap } from '../../m1/game/core/utils';
 import { playSound } from '../../m1/game/platform/audio';
 import { stamp } from '../../m1/game/render/stamp';
+import { grabBusy } from './grab';
 
 export interface LadderDef {
   /** Its middle (world). */
@@ -166,7 +167,7 @@ const hands = (c: Controls): Controls => ({ ...c, left: false, right: false, up:
 export const updateLadders = (ctx: FrameContext, defs: LadderDef[], c: Controls): Controls => {
   const { state } = ctx, p = state.player, h = holdOf(state);
   // (mid air grab: he flies on past them)
-  if (p.airGrab && !p.ladder) return c;
+  if ((p.airGrab || grabBusy()) && !p.ladder) return c;
   if (h.cd > 0) h.cd--;
   if (h.rattle > 0) h.rattle--;
   if (h.jumpLatch && !c.jump) h.jumpLatch = false;

@@ -29,6 +29,7 @@ import { jungleOf, type Hold, type VineRun } from './state';
 import type { GameState as GS } from '../../../m1/game/core/state';
 import { FIRST_VINE } from './lines';
 import { INK, LEAF, leaf } from './art/paint';
+import { grabBusy } from '../../moves/grab';
 
 // ---------------------------------------------------------------------------------------------------------------
 // Other places that swing on things (Spooky Land's dungeon ropes) use the same: their own state (where their swings
@@ -153,7 +154,7 @@ export const updateVines = (ctx: FrameContext, defs: VineDef[], c: Controls, opt
 const updateVinesIn = (ctx: FrameContext, defs: VineDef[], c: Controls): Controls => {
   const { state } = ctx, p = state.player, j = storeOf(state), h = j.hold;
   // (mid air grab: he flies on past them, ropes and vines alike)
-  if (p.airGrab && !h.on) return c;
+  if ((p.airGrab || grabBusy()) && h.on < 0) return c;
   while (j.vines.length < defs.length) j.vines.push({ th: 0, om: 0 });
   const held = h.on;
   // The free ones swing themselves still (only the ones near enough to matter)
