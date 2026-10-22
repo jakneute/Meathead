@@ -33,6 +33,7 @@ import { paSay, runThieves } from '../blvd';
 import { flash, BACK_Y } from '../blvd/paint';
 import { updateEffects, drawRainFront, drawFloodFront, flungOut } from './effects';
 import { drawLotBackdrop, drawLotBack, lotLamps } from './art';
+import { drawLotDozer, drawLotDozerFront } from '../warehouse/ending';
 import { ARRIVE, DUMPSTER_AGAIN, GAG_LINES, FALL_SCREAM, LOT_VOICES, GOSSIP, GOSSIP_HIM, PA_LOT, PA_LEAK, PA_RAIN, PA_FLOOD, PA_STEVE_LOT, PA_DISASTER } from './lines';
 
 const { x0, x1 } = SECTIONS.lot;
@@ -120,9 +121,10 @@ export const lot: HollywoodSection = {
     return controls;
   },
   drawBackdrop: (c, state) => drawLotBackdrop(c, state),
-  drawBack: (c, state) => drawLotBack(c, state),
+  drawBack: (c, state) => { drawLotBack(c, state); drawLotDozer(c, state); },
   drawFront: (c, state) => {
     const o = outOf(state), lt = mine(state);
+    drawLotDozerFront(c, state);
     drawFloodFront(c, state); drawRainFront(c, state);
     drawShots(c, state);
     for (const fl of o.flashes) flash(c, fl.x, fl.y, state.frame - fl.at);

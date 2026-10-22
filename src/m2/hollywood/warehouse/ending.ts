@@ -47,6 +47,16 @@ const BLADE = 124, HALF = 100, ROWS = [9, 8, 6, 4, 2, 1], SPACE = 22;
 /** Where the bodies come out of the hole, and where they come down (into the dumpster, under its rim). */
 const OUT = { x: LOT_WALL_BREAK.hole.x1 - 30, y: GY - 80 };
 const RIM = GY - 132;
+/** The bulldozer outside: where it ends up (its middle; the blade's front just into the dumpster's left end), where it
+ *  bursts out from (back in the hole), and how long it takes to get there. */
+export const LOT_DOZER_X = LOT_DUMPSTER.x0 - BLADE + 8;
+const DOZER_OUT_X = LOT_WALL_BREAK.hole.x0 - 150, DOZER_OUT_T = 26;
+const lotDozerAt = (state: GameState) => {
+  const E = whOf(state).ending;
+  if (E.phase !== 'lot') return LOT_DOZER_X;
+  const u = Math.min(1, E.t / DOZER_OUT_T);
+  return DOZER_OUT_X + (LOT_DOZER_X - DOZER_OUT_X) * (1 - (1 - u) ** 2);
+};
 /** The exec: where he stands at the back of the stage (by the script, past it: never in the bulldozer's way), how big
  *  he's drawn back there; where he stands to rant outside. */
 const EX_BACK_X = CASE_X + 85, EX_BACK = 0.82, EX_RANT_X = LOT0 + 210;
@@ -139,9 +149,10 @@ const finish = (state: GameState, skipped: boolean) => {
   o.fight.bodies = []; o.castSaid.clear(); o.crowd = null; o.ad = null;
   if (o.farWall) o.farWall.x = -1e7;
   p.hidden = false; p.carried = false; p.cartSeat = false; p.inCutscene = false; p.spriteRot = 0; p.facing = 1;
-  p.pos.x = LOT0 + 312 - p.width / 2; p.pos.y = GY - 150 - p.height; p.vel.x = 2.5; p.vel.y = -3; p.isGrounded = false;
+  // (down off the cab, where it ended up against the dumpster)
+  seat(state, LOT_DOZER_X); p.vel.x = 2.5; p.vel.y = -3; p.isGrounded = false;
   state.cameraOverride = null;
-  state.camera.x = LOT0 + 312 - CANVAS_WIDTH / 2; state.camera.y = GY - 550; state.cameraRestY = GY - 550;
+  state.camera.x = LOT_DOZER_X - 34 - CANVAS_WIDTH / 2; state.camera.y = GY - 550; state.cameraRestY = GY - 550;
   // (down off it: he cares about neither; it stands in for the lot's own arrival line)
   if (!skipped) { outOf(state).said['lot-arrive'] = true; meatheadSays(state, pickLine(SHRUG), true); }
 };
@@ -299,7 +310,8 @@ export const updateEnding =(ctx: FrameContext): Controls | null => {
       E.zoomK = 0;
       // Outside: the dust out of the hole, the bodies out of it and into the dumpster, the pages down the lot
       if (E.t === 1) {
-        p.hidden = true; p.cartSeat = false;
+        // (still up in the cab: out through the hole with it)
+        p.hidden = false; p.cartSeat = true;
         state.camera.x = LOT0 - 90; state.camera.y = GY - 550;
         playSound('crash', 0.9, -10); shakeScreen(state, 18, 7);
         E.flying = E.heap.map((h, k) => {
@@ -310,6 +322,9 @@ export const updateEnding =(ctx: FrameContext): Controls | null => {
       }
       state.cameraOverride = { x: LOT0 - 90, y: GY - 550 };
       E.white = Math.max(0, E.white - 0.08);
+      seat(state, lotDozerAt(state));
+      // (the blade into the dumpster's end: the stop)
+      if (E.t === DOZER_OUT_T) { playSound('crunch', 1, -8); playSound('clang', 0.8, -12); shakeScreen(state, 14, 6); }
       for (const b of E.flying) {
         if (++b.t < 0 || b.inBin) continue;
         b.vy += 0.45; b.x += b.vx; b.y += b.vy;
@@ -539,6 +554,16 @@ const drawLotBeat = (c: Ctx, state: GameState) => {
   }
   if (outside && ex.said) saidOver(c, ex.said.text, ex.x, ex.y - 118, '#FDE68A', 260);
   c.restore();
+};
+/** The lot's own drawing: the bulldozer outside, bursting out of the hole with him in it (the beat), crashed into the
+ *  dumpster's end ever after (he hopped down off it). */
+export const drawLotDozer = (c: Ctx, state: GameState) => {
+  const E = whOf(state).ending;
+  drawDozer(c, lotDozerAt(state), state.frame, E.phase === 'lot' && E.t < DOZER_OUT_T);
+};
+/** Over him in the cab, while it's coming out. */
+export const drawLotDozerFront = (c: Ctx, state: GameState) => {
+  if (whOf(state).ending.phase === 'lot') dozerFront(c, lotDozerAt(state), state.frame);
 };
 /** The cuts (the black, the white), and SKIP >>. */
 export const drawEndingHud = (c: Ctx, state: GameState) => {
