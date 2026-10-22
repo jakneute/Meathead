@@ -7,7 +7,8 @@
 // off to make room. When whoever they're on dies, they let go and go looking for the next.
 // Gnawed to death is a death of its own, for everybody: the flesh eaten off him bite by bite down to a bloody skeleton,
 // left standing (or lying, or dropped out of the sky) a while, and then it crumbles: the bones come apart and fall in a
-// heap.
+// heap. A machine's chewed down to what it's built on instead (its frame, rams, servos, boards, wires: machineFrame),
+// and that comes apart the same way.
 
 import type { Enemy } from '../../m1/types';
 import { poofEnemy } from '../../m1/game/core/cartoonKills';
@@ -92,7 +93,17 @@ interface Alien {
 }
 
 /** One bone, in the skeleton's own space (its feet the origin, facing right). */
-interface Bone { kind: 'long' | 'vert' | 'rib' | 'hrib' | 'pelvis' | 'skull' | 'snout' | 'beak'; x: number; y: number; a: number; l: number; s: number; flip: 1 | -1; blood: number; /** A robot's endoskeleton: steel, no blood, its eyes still lit. */ metal?: boolean }
+interface Bone {
+  /** A body's bones (long..beak), or a machine's parts (strut..hoop: see machineFrame). */
+  kind: 'long' | 'vert' | 'rib' | 'hrib' | 'pelvis' | 'skull' | 'snout' | 'beak'
+    | 'strut' | 'piston' | 'servo' | 'board' | 'head' | 'jaw' | 'dome' | 'rotor' | 'wheel' | 'wire' | 'gear' | 'battery' | 'orb' | 'spike' | 'hoop';
+  x: number; y: number; a: number; l: number; s: number; flip: 1 | -1; blood: number;
+  /** A machine's part: what it's made of (steel unset). */
+  mat?: Mat;
+  /** A machine's eye lamp (a head, a jaw's eyeball, a mine's core, an LED on a board), still lit: its color. */
+  lit?: string;
+}
+type Mat = 'steel' | 'chrome' | 'brass' | 'wood';
 /** ...and come loose: in the world, falling. */
 interface Piece { b: Bone; x: number; y: number; a: number; vx: number; vy: number; va: number; face: 1 | -1; t: number; still: boolean }
 
@@ -500,18 +511,23 @@ const rot = (ctx: FrameContext, c: Corpse) => {
 
 /** Down it goes: every bone loose, falling in a heap (the long ones snapping, sometimes), a puff of bone dust. */
 const crumble = (state: GameState, c: Corpse) => {
+  const machine = c.bones.some(b => b.mat);
   for (const b of c.bones) {
     const x = c.x + c.face * b.x;
-    const bits = b.kind === 'long' && b.l > 14 && Math.random() < 0.35
+    // (a long one snapping in two: a bone, or a machine's beam (its piston's rod comes out of the cylinder))
+    const bits = (b.kind === 'long' || b.kind === 'strut' || b.kind === 'piston') && b.l > 14 && Math.random() < 0.35
       ? [{ ...b, l: b.l / 2, x: b.x - Math.cos(b.a) * b.l / 4, y: b.y - Math.sin(b.a) * b.l / 4 }, { ...b, l: b.l / 2, x: b.x + Math.cos(b.a) * b.l / 4, y: b.y + Math.sin(b.a) * b.l / 4 }]
       : [b];
     for (const k of bits) {
-      const skull = k.kind === 'skull' || k.kind === 'snout' || k.kind === 'beak';
-      pieces.push({ b: { ...k, x: 0, y: 0 }, x: c.x + c.face * k.x, y: c.y + k.y, a: c.face * k.a, vx: (x - c.x) * 0.03 + (Math.random() - 0.5) * 2, vy: skull ? -3 - Math.random() * 2 : -Math.random() * 2, va: (Math.random() - 0.5) * 0.3, face: c.face, t: 0, still: false });
+      const skull = k.kind === 'skull' || k.kind === 'snout' || k.kind === 'beak' || k.kind === 'head' || k.kind === 'jaw' || k.kind === 'dome' || k.kind === 'orb';
+      // (a machine's lamps: some still on in the heap, some knocked out)
+      pieces.push({ b: { ...k, x: 0, y: 0, lit: k.lit && Math.random() < 0.5 ? k.lit : undefined }, x: c.x + c.face * k.x, y: c.y + k.y, a: c.face * k.a, vx: (x - c.x) * 0.03 + (Math.random() - 0.5) * 2, vy: skull ? -3 - Math.random() * 2 : -Math.random() * 2, va: (Math.random() - 0.5) * 0.3, face: c.face, t: 0, still: false });
     }
   }
+  // (a puff of bone dust, or of a machine's grit and sparks)
   c.bones = [];
-  for (let i = 0; i < 12; i++) state.particles.push({ pos: { x: c.x + (Math.random() - 0.5) * c.e.width, y: c.y - Math.random() * c.e.height }, vel: { x: (Math.random() - 0.5) * 2, y: -0.5 - Math.random() }, life: 30, color: i % 2 ? 'rgba(231, 229, 228, 0.6)' : 'rgba(168, 162, 158, 0.5)', size: 4 + Math.random() * 4 });
+  for (let i = 0; i < 12; i++) state.particles.push({ pos: { x: c.x + (Math.random() - 0.5) * c.e.width, y: c.y - Math.random() * c.e.height }, vel: { x: (Math.random() - 0.5) * 2, y: -0.5 - Math.random() }, life: 30, color: machine ? (i % 2 ? 'rgba(113, 113, 122, 0.6)' : 'rgba(63, 63, 70, 0.5)') : i % 2 ? 'rgba(231, 229, 228, 0.6)' : 'rgba(168, 162, 158, 0.5)', size: 4 + Math.random() * 4 });
+  if (machine) for (let i = 0; i < 6; i++) state.particles.push({ pos: { x: c.x + (Math.random() - 0.5) * c.e.width * 0.6, y: c.y - Math.random() * c.e.height }, vel: { x: (Math.random() - 0.5) * 4, y: -1.5 - Math.random() * 2 }, life: 12, color: i % 2 ? '#FDE047' : '#FFFFFF', size: 1.5 + Math.random(), grav: 0.3 });
   playSound('crumble');
 };
 
@@ -519,7 +535,10 @@ const crumble = (state: GameState, c: Corpse) => {
 const tumble = (state: GameState, p: Piece) => {
   p.t++;
   if (p.still) return;
-  const reach = p.b.kind === 'long' ? p.b.s * 0.9 + Math.abs(Math.sin(p.a)) * p.b.l * 0.5 : p.b.kind === 'rib' || p.b.kind === 'hrib' ? p.b.l * 0.4 : p.b.l * 0.6 + 1;
+  const k = p.b.kind;
+  const reach = k === 'long' || k === 'strut' || k === 'piston' || k === 'rotor' || k === 'spike' ? p.b.s * 0.9 + Math.abs(Math.sin(p.a)) * p.b.l * 0.5
+    : k === 'wheel' || k === 'gear' || k === 'orb' ? p.b.l + 1
+    : k === 'rib' || k === 'hrib' || k === 'wire' || k === 'board' || k === 'battery' ? p.b.l * 0.4 : p.b.l * 0.6 + 1;
   p.vy += 0.45; p.x += p.vx; p.y += p.vy; p.a += p.va;
   const floor = floorBelow(state, p.x, p.y - 10);
   if (p.y + reach >= floor) {
@@ -529,7 +548,9 @@ const tumble = (state: GameState, p: Piece) => {
     p.vx *= 0.7;
     // (rolling over to lie flat)
     const flat = Math.round(p.a / Math.PI) * Math.PI;
-    if (p.b.kind === 'long' || p.b.kind === 'vert') p.a += (flat - p.a) * 0.25;
+    if (k === 'long' || k === 'vert' || k === 'strut' || k === 'piston' || k === 'servo' || k === 'board' || k === 'battery' || k === 'spike') p.a += (flat - p.a) * 0.25;
+    // (a wheel or a gear rolls on a bit)
+    if (k === 'wheel' || k === 'gear') p.va = p.vx / Math.max(1, p.b.l);
     p.va *= 0.5;
     if (p.vy === 0 && Math.abs(p.vx) < 0.15 && Math.abs(p.va) < 0.01) p.still = true;
   }
@@ -542,6 +563,8 @@ const tumble = (state: GameState, p: Piece) => {
 /** The fish (and eels): their own skeleton, not a four-legged one with legs. */
 const FISH = /fish|:eel|koi|trout|piranha|shark/i;
 const skeleton = (e: Enemy): Bone[] => {
+  // (a machine: what's under the casing is what it's built on, not bones)
+  if (isRobot(e)) return machineFrame(e);
   const w = e.width, h = e.height;
   const s = Math.max(1.6, Math.min(4.5, h * 0.05));
   const out: Bone[] = [];
@@ -599,15 +622,262 @@ const skeleton = (e: Enemy): Bone[] => {
       long(hx + sd * w * 0.02, -s * 0.6, hx + sd * w * 0.02 + w * 0.13, -s * 0.6, s * 0.8);
     }
   }
-  // (a robot: what's under the casing is a steel endoskeleton, no blood on it, its eyes still lit red)
-  if (isRobot(e)) for (const b of out) { b.metal = true; b.blood = 0; }
   return out;
 };
 
-/** Bone (or a robot's steel): set per bone as it's drawn. */
-let BONE = '#EFE7D2', BONE_LO = '#C9BC9C';
-const BONE_WHITE = BONE, BONE_WHITE_LO = BONE_LO, STEEL = '#A1A1AA', STEEL_LO = '#52525B';
+// ---------------------------------------------------------------------------------------------------------------
+// The machines: chewed out of their casings down to what they're built on (no blood: the oil drips, rot()), each the
+// way it's made:
+//   a robot that stands up (the generic, the queen's spitter, the clock's bell ringer in wood and brass): a servo
+//     spine (stacked actuators), a cracked circuit board for a ribcage (the ringer: its clockwork, brass gears),
+//     piston limbs on ball joints, cable bundles, a box skull frame, its eye lamp still lit
+//   the dino park's animatronics (raptor and rex on two legs, trike on four, ptero on wings): the steel armature, a
+//     servo spine and tail, hydraulic rams for legs, a battery pack and frayed wiring, the snout frame on its jaw
+//     hinge with the leftover eyeball rig
+//   the robot dog (ROVER-1): its chassis bar, four strut legs on hip servos, the board, the bucket head frame, the
+//     tail aerial with its lamp
+//   the queen's kids (chrome): the biter a bug's chassis on six thin rams, the charger a hunched beam on two fat rams
+//     with its ram crest; both with the long eyeless head's frame
+//   the spy blimp: its envelope's hoops on the keel, the gondola, the camera, the tail rotor
+//   the space mine: its shell cracked open on the core, the spikes; the TNT crate and the keg: their timbers
+//   anything else: flying, a drone (the cross frame, rotor hubs with bent blades, battery pack, dangling wires);
+//     wide, on wheels (chassis, axles, wheels, a sensor mast); tall, the standing robot
+const RED_EYE = '#EF4444';
+const machineFrame = (e: Enemy): Bone[] => {
+  const w = e.width, h = e.height, kind = e.kind ?? '';
+  const s = Math.max(1.6, Math.min(4.5, h * 0.05));
+  const out: Bone[] = [];
+  let mat: Mat = 'steel';
+  const part = (k: Bone['kind'], x: number, y: number, l: number, a = 0, ss = s, lit?: string, flip: 1 | -1 = 1, m = mat) => out.push({ kind: k, x, y, a, l, s: ss, flip, blood: 0, mat: m, lit });
+  const beam = (k: 'strut' | 'piston' | 'wire', x0: number, y0: number, x1: number, y1: number, ss = s, m = mat) =>
+    out.push({ kind: k, x: (x0 + x1) / 2, y: (y0 + y1) / 2, a: Math.atan2(y1 - y0, x1 - x0), l: Math.hypot(x1 - x0, y1 - y0), s: ss, flip: k === 'wire' && Math.random() < 0.5 ? -1 : 1, blood: 0, mat: m });
+  /** A row of servos from one point to another (a spine, a neck, a tail), tapering to `taper` of `s`. */
+  const servos = (x0: number, y0: number, x1: number, y1: number, n: number, taper = 1) => {
+    for (let i = 0; i < n; i++) { const u = n > 1 ? i / (n - 1) : 0; part('servo', x0 + (x1 - x0) * u, y0 + (y1 - y0) * u, 0, 0, s * (1 + (taper - 1) * u)); }
+  };
+  /** A leg on rams: hip, knee, ankle, then a foot along the floor. */
+  const ramLeg = (hx: number, hy: number, kx: number, ky: number, ax: number, ss: number, foot: number) => {
+    beam('piston', hx, hy, kx, ky, ss); beam('piston', kx, ky, ax, -ss * 0.6, ss);
+    if (foot) beam('strut', ax - foot * 0.3, -ss * 0.6, ax + foot * 0.7, -ss * 0.6, ss);
+  };
+  /** The animatronic dinosaur's head: the snout frame on its hinge, the eyeball rig. */
+  const dinoHead = (x: number, y: number, l: number) => part('jaw', x, y, l, 0, s, RED_EYE);
+
+  /** A robot standing up. */
+  const standing = (o: { arms?: boolean; chest?: 'board' | 'gears'; head?: 'head' | 'dome'; limb?: 'piston' | 'strut'; lit?: string }) => {
+    const limb = o.limb ?? 'piston', arms = o.arms ?? true;
+    const L = Math.max(4.5, Math.min(12, h * 0.1));
+    const leg = (sd: number, ss: number) => {
+      const hx = sd * w * 0.12;
+      beam(limb, hx, -h * 0.45, hx + sd * w * 0.03, -h * 0.24, ss); beam(limb, hx + sd * w * 0.03, -h * 0.24, hx + sd * w * 0.01, -h * 0.04, ss);
+      beam('strut', hx - w * 0.05, -ss * 0.6, hx + w * 0.15, -ss * 0.6, ss * 0.9);
+    };
+    const arm = (sd: number, ss: number) => {
+      const sx = sd * w * 0.26;
+      beam(limb, sx, -h * 0.75, sx + sd * w * 0.05, -h * 0.58, ss); beam(limb, sx + sd * w * 0.05, -h * 0.58, sx + sd * w * 0.08, -h * 0.42, ss);
+      // (its grip: two fingers, open)
+      beam('strut', sx + sd * w * 0.08, -h * 0.42, sx + sd * w * 0.12, -h * 0.36, ss * 0.5); beam('strut', sx + sd * w * 0.08, -h * 0.42, sx + sd * w * 0.04, -h * 0.35, ss * 0.5);
+    };
+    leg(-1, s * 0.85);
+    if (arms) arm(-1, s * 0.75);
+    beam('strut', -w * 0.17, -h * 0.45, w * 0.17, -h * 0.45, s * 1.3);
+    servos(0, -h * 0.47, 0, -h * 0.76, 6);
+    if (o.chest === 'gears') {
+      part('gear', -w * 0.07, -h * 0.66, w * 0.12, Math.random(), s, undefined, 1, 'brass');
+      part('gear', w * 0.09, -h * 0.6, w * 0.085, Math.random(), s, undefined, 1, 'brass');
+      part('gear', -w * 0.01, -h * 0.53, w * 0.06, Math.random(), s, undefined, 1, 'brass');
+    } else part('board', w * 0.02, -h * 0.63, w * 0.4, 0.08, s, '#22C55E');
+    beam('wire', w * 0.1, -h * 0.74, w * 0.17, -h * 0.5);
+    beam('wire', -w * 0.12, -h * 0.7, -w * 0.09, -h * 0.4);
+    leg(1, s);
+    beam('strut', -w * 0.27, -h * 0.76, w * 0.27, -h * 0.76, s * 1.2);
+    if (arms) arm(1, s * 0.9);
+    part(o.head ?? 'head', w * 0.05, -h * 0.87, L, 0, s, o.lit);
+  };
+
+  // The dino park's animatronics
+  if (/raptor|:rex$/.test(kind)) {
+    // on two legs: the hip, the leg rams, the spine up to the neck, the stiff tail out behind
+    const hx = -w * 0.06, hy = -h * 0.56, L = Math.max(4, Math.min(11, h * 0.16));
+    const leg = (dx: number, ss: number) => {
+      ramLeg(hx + dx, hy, hx + dx + w * 0.1, -h * 0.32, hx + dx - w * 0.02, ss, 0);
+      beam('strut', hx + dx - w * 0.02, -ss * 0.6, hx + dx + w * 0.11, -ss * 0.6, ss);
+      part('spike', hx + dx + w * 0.02, -ss * 1.6, ss * 2.4, -Math.PI / 2 + 0.4, ss * 0.6);
+    };
+    leg(-w * 0.03, s * 0.8);
+    servos(hx, hy, -w * 0.46, -h * 0.64, 5, 0.45);
+    servos(hx, hy, w * 0.18, -h * 0.72, 4);
+    servos(w * 0.2, -h * 0.76, w * 0.25, -h * 0.86, 2, 0.8);
+    part('battery', w * 0.04, -h * 0.5, w * 0.18, 0, s, '#22C55E');
+    beam('wire', w * 0.06, -h * 0.55, w * 0.1, -h * 0.25, s);
+    beam('wire', -w * 0.02, -h * 0.55, -w * 0.06, -h * 0.3, s);
+    beam('piston', w * 0.08, -h * 0.6, w * 0.24, -h * 0.82, s * 0.55);
+    beam('strut', w * 0.18, -h * 0.68, w * 0.25, -h * 0.56, s * 0.6); beam('strut', w * 0.25, -h * 0.56, w * 0.29, -h * 0.6, s * 0.5);
+    leg(0, s);
+    dinoHead(w * 0.28, -h * 0.9, L);
+    return out;
+  }
+  if (/trike/.test(kind)) {
+    // on four pillars: the spine along the top, the frill's hoop, three horns, the tail
+    const sy = -h * 0.66, L = Math.max(4, Math.min(11, h * 0.16));
+    const leg = (lx: number, ss: number) => ramLeg(lx, sy + 2, lx + 3, -h * 0.3, lx, ss, 8);
+    leg(w * 0.14, s * 0.8); leg(-w * 0.3, s * 0.8);
+    part('hoop', w * 0.3, -h * 0.76, h * 0.26, 0.25, s * 0.8);
+    servos(-w * 0.36, sy, w * 0.24, sy, 7);
+    servos(-w * 0.4, sy + 2, -w * 0.5, -h * 0.48, 3, 0.6);
+    part('battery', -w * 0.02, -h * 0.45, w * 0.2, 0, s, '#22C55E');
+    part('board', -w * 0.2, -h * 0.5, w * 0.13, 0.15, s);
+    beam('wire', w * 0.06, -h * 0.5, w * 0.1, -h * 0.22, s); beam('wire', -w * 0.15, -h * 0.55, -w * 0.12, -h * 0.28, s);
+    leg(w * 0.18, s); leg(-w * 0.26, s);
+    dinoHead(w * 0.38, -h * 0.64, L);
+    part('spike', w * 0.48, -h * 0.9, h * 0.26, -0.35, s * 0.7); part('spike', w * 0.44, -h * 0.84, h * 0.22, -0.3, s * 0.6);
+    part('spike', w * 0.58, -h * 0.74, h * 0.12, -0.7, s * 0.6);
+    return out;
+  }
+  if (/ptero/.test(kind)) {
+    // on wings: the membrane gone off the steel fingers, the body's servos, the long beak's frame with its crest
+    const sy = -h * 0.5, L = Math.max(3.5, Math.min(7, h * 0.2));
+    for (const [k, far] of [[0.8, true], [1, false]] as const) {
+      const root = { x: far ? w * 0.04 : -w * 0.02, y: sy - 2 }, wrist = { x: -w * 0.12 * k, y: -h * (far ? 0.95 : 1.05) }, tip = { x: -w * 0.45 * k, y: -h * (far ? 1.05 : 1.2) };
+      beam('piston', root.x, root.y, wrist.x, wrist.y, s * 0.7); beam('strut', wrist.x, wrist.y, tip.x, tip.y, s * 0.5);
+      beam('wire', wrist.x, wrist.y, wrist.x - w * 0.06, wrist.y + h * 0.4, s);
+      if (!far) servos(-w * 0.16, sy, w * 0.14, sy, 5, 0.8);
+    }
+    part('battery', 0, -h * 0.3, w * 0.13, 0, s);
+    for (const dx of [-3, 3]) { beam('strut', dx, -h * 0.3, dx + w * 0.03, -h * 0.12, s * 0.5); beam('strut', dx + w * 0.03, -h * 0.12, dx + w * 0.03, -1, s * 0.5); }
+    dinoHead(w * 0.25, -h * 0.62, L);
+    part('spike', w * 0.18, -h * 0.82, L * 1.6, Math.PI + 0.35, s * 0.6);
+    return out;
+  }
+  // The robot dog
+  if (/rover/.test(kind)) {
+    const by = -h * 0.55;
+    for (const x of [-w * 0.18, w * 0.14]) { part('servo', x, by + 2, 0, 0, s * 0.8); beam('strut', x, by + 2, x + 1, -1, s * 0.7); }
+    beam('strut', -w * 0.42, by, w * 0.3, by, s * 1.4);
+    part('board', -w * 0.04, by - 3, w * 0.36, 0, s, RED_EYE);
+    beam('strut', -w * 0.42, by - 1, -w * 0.6, -h * 0.92, s * 0.5);
+    part('orb', -w * 0.6, -h * 0.95, 1.8, 0, s, RED_EYE);
+    for (const x of [-w * 0.3, w * 0.24]) { part('servo', x, by + 2, 0, 0, s * 0.8); beam('strut', x, by + 2, x - 1, -1, s * 0.8); }
+    beam('wire', w * 0.05, by + 1, w * 0.02, -h * 0.15, s);
+    const L = Math.max(4.5, Math.min(8, h * 0.2));
+    part('head', w * 0.45, -h * 0.82, L, 0, s, RED_EYE);
+    beam('strut', w * 0.4, -h * 0.82 - L * 0.85, w * 0.36, -h * 0.82 - L * 1.6, s * 0.4); beam('strut', w * 0.6, -h * 0.82 - L * 0.85, w * 0.58, -h * 0.82 - L * 1.6, s * 0.4);
+    return out;
+  }
+  // The queen's kids: chrome
+  if (/kin_biter/.test(kind)) {
+    mat = 'chrome';
+    const hy = -h * 0.4;
+    for (let i = 0; i < 3; i++) beam('piston', -w * 0.33 + i * w * 0.3, hy, -w * 0.4 + i * w * 0.3, -1, s * 0.55);
+    beam('strut', -w * 0.42, hy - 1, w * 0.38, hy - 1, s * 1.4);
+    part('battery', -w * 0.04, hy - 3, w * 0.3, 0, s, RED_EYE);
+    beam('wire', -w * 0.2, hy, -w * 0.25, -h * 0.1, s);
+    for (let i = 0; i < 3; i++) beam('piston', -w * 0.27 + i * w * 0.3, hy + 1, -w * 0.33 + i * w * 0.3 + (i % 2 ? 3 : -3), -1, s * 0.6);
+    part('dome', w * 0.36, -h * 0.76, Math.max(4, h * 0.22));
+    return out;
+  }
+  if (/kin_charger/.test(kind)) {
+    mat = 'chrome';
+    const leg = (sd: number, ss: number) => { beam('piston', sd * w * 0.27, -h * 0.4, sd * w * 0.3, -ss * 0.8, ss); beam('strut', sd * w * 0.3 - 6, -ss * 0.6, sd * w * 0.3 + 6, -ss * 0.6, ss); };
+    leg(-1, s * 1.3);
+    beam('strut', -w * 0.42, -h * 0.64, w * 0.26, -h * 0.5, s * 1.7);
+    servos(-w * 0.36, -h * 0.68, w * 0.18, -h * 0.56, 5);
+    part('battery', -w * 0.08, -h * 0.44, w * 0.3, 0, s, RED_EYE);
+    part('board', w * 0.12, -h * 0.4, w * 0.2, -0.2, s);
+    beam('wire', -w * 0.2, -h * 0.5, -w * 0.24, -h * 0.18, s); beam('wire', w * 0.1, -h * 0.48, w * 0.16, -h * 0.2, s);
+    leg(1, s * 1.6);
+    part('dome', w * 0.34, -h * 0.62, Math.max(6, Math.min(12, h * 0.15)));
+    beam('strut', w * 0.4, -h * 0.82, w * 0.5, -h * 0.5, s * 2);
+    return out;
+  }
+  if (/kin_spitter/.test(kind)) {
+    mat = 'chrome';
+    standing({ arms: false, head: 'dome' });
+    // (its pipe arm, its tailpipe mouth)
+    beam('piston', w * 0.3, -h * 0.72, w * 0.58, -h * 0.52, s * 0.8);
+    beam('strut', w * 0.3, -h * 0.84, w * 0.55, -h * 0.84, s * 1.6);
+    return out;
+  }
+  // The clock's bell ringer: a wooden automaton, its works brass
+  if (/tower_ringer/.test(kind)) {
+    mat = 'wood';
+    standing({ chest: 'gears', limb: 'strut' });
+    return out;
+  }
+  // The spy blimp
+  if (/blimp/.test(kind)) {
+    for (const [x, k] of [[-0.3, 0.75], [-0.1, 1], [0.1, 1], [0.3, 0.8]] as const) part('hoop', w * x, -h * 0.6, h * 0.36 * k, 0, s * 0.6);
+    beam('strut', -w * 0.48, -h * 0.6, w * 0.46, -h * 0.6, s);
+    beam('strut', -w * 0.4, -h * 0.92, w * 0.38, -h * 0.92, s * 0.6);
+    beam('strut', -w * 0.44, -h * 0.6, -w * 0.52, -h * 0.95, s * 0.6);
+    part('rotor', -w * 0.5, -h * 0.6, h * 0.3, Math.PI / 2, s);
+    beam('wire', -w * 0.05, -h * 0.55, -w * 0.02, -h * 0.25, s);
+    part('battery', 0, -h * 0.2, w * 0.22, 0, s);
+    part('head', w * 0.14, -h * 0.12, 3.5, 0, s, RED_EYE);
+    return out;
+  }
+  // The space mine
+  if (/zmine/.test(kind)) {
+    const cy = -h * 0.5, r = w * 0.28;
+    for (let i = 0; i < 6; i++) { const t = (i / 6) * Math.PI * 2 + 0.3, l = w * 0.22; part('spike', Math.cos(t) * (r + l / 2), cy + Math.sin(t) * (r + l / 2), l, t, s * 0.8); }
+    part('orb', 0, cy, r, 0, s, RED_EYE);
+    return out;
+  }
+  // The TNT crate, the keg: timbers and hoops
+  if (/tntcrate/.test(kind)) {
+    mat = 'wood';
+    const t = s * 1.3, b = -t * 0.6;
+    beam('strut', -w * 0.45, b, w * 0.45, b, t); beam('strut', -w * 0.45, -h * 0.95, w * 0.45, -h * 0.95, t);
+    beam('strut', -w * 0.45, b, -w * 0.45, -h * 0.95, t); beam('strut', w * 0.45, b, w * 0.45, -h * 0.95, t);
+    beam('strut', -w * 0.45, b, w * 0.45, -h * 0.95, t);
+    return out;
+  }
+  if (/keg/.test(kind)) {
+    mat = 'wood';
+    for (const x of [-0.36, -0.12, 0.12, 0.36]) beam('strut', w * x * 0.9, -1, w * x, -h * 0.97, s * 1.4);
+    for (const y of [0.15, 0.5, 0.85]) beam('strut', -w * 0.46, -h * y, w * 0.46, -h * y, s * 0.8, 'steel');
+    return out;
+  }
+  // Anything else: flying, a drone
+  if (flies(e)) {
+    const ay = -h * 0.62, ax = w * 0.42;
+    for (const sd of [-1, 1]) beam('strut', sd * w * 0.2, -h * 0.4, sd * w * 0.26, -1, s * 0.6);
+    beam('strut', -ax, ay, ax, ay, s);
+    part('board', 0, -h * 0.5, w * 0.3, 0, s, RED_EYE);
+    part('battery', 0, -h * 0.3, w * 0.22, 0, s);
+    part('rotor', -ax, ay - s * 2.2, w * 0.24, 0, s, undefined, 1);
+    part('rotor', ax, ay - s * 2.2, w * 0.24, 0, s, undefined, -1);
+    beam('wire', -w * 0.1, -h * 0.45, -w * 0.14, -h * 0.12, s); beam('wire', w * 0.08, -h * 0.4, w * 0.12, -h * 0.05, s);
+    part('head', w * 0.22, -h * 0.38, Math.max(3, Math.min(6, h * 0.12)), 0, s, RED_EYE);
+    return out;
+  }
+  // ...wide, on wheels
+  if (!isHumanoidKind(e.kind) && w > h * 1.1) {
+    const r = Math.max(4, Math.min(h * 0.24, w * 0.18)), cy = -h * 0.45;
+    part('wheel', -w * 0.3, -r, r * 0.95, Math.random() * 6);
+    beam('strut', -w * 0.44, cy, w * 0.44, cy, s * 1.6);
+    part('battery', -w * 0.12, cy - s * 2.5, w * 0.24, 0, s, '#22C55E');
+    beam('strut', w * 0.15, cy, w * 0.15, -h * 0.92, s * 0.7);
+    part('head', w * 0.18, -h * 0.95, Math.max(4, Math.min(9, h * 0.12)), 0, s, RED_EYE);
+    beam('wire', w * 0.02, cy, w * 0.06, -h * 0.15, s);
+    part('wheel', w * 0.3, -r, r, Math.random() * 6);
+    for (const x of [-w * 0.3, w * 0.3]) beam('strut', x, -r, x, cy, s * 0.8);
+    return out;
+  }
+  // ...tall, standing up
+  standing({ lit: RED_EYE });
+  return out;
+};
+
+const BONE = '#EFE7D2', BONE_LO = '#C9BC9C';
 const BLOOD = 'rgba(127, 29, 29, 0.9)';
+/** A machine's materials, light to dark. */
+const MATS: Record<Mat, readonly [string, string, string]> = {
+  steel: ['#E4E4E7', '#A1A1AA', '#52525B'],
+  chrome: ['#F8FAFC', '#CBD5E1', '#64748B'],
+  brass: ['#FDE68A', '#CA8A04', '#713F12'],
+  wood: ['#DDB27A', '#A0703C', '#5C3A1A'],
+};
 
 const circle = (c: Ctx, x: number, y: number, r: number) => { c.beginPath(); c.arc(x, y, Math.max(0.5, r), 0, Math.PI * 2); c.fill(); };
 
@@ -615,9 +885,14 @@ const circle = (c: Ctx, x: number, y: number, r: number) => { c.beginPath(); c.a
 const drawBone = (c: Ctx, b: Bone) => {
   c.save(); c.translate(b.x, b.y); c.rotate(b.a); c.scale(b.flip, 1);
   const s = b.s, l = b.l;
-  BONE = b.metal ? STEEL : BONE_WHITE; BONE_LO = b.metal ? STEEL_LO : BONE_WHITE_LO;
-  // (a robot's skull: its eye still lit, red, and on)
-  const eyeAt = b.metal ? (b.kind === 'skull' ? [0.42, -0.05, 0.3] : b.kind === 'snout' ? [0.35, -0.2, 0.26] : b.kind === 'beak' ? [0.1, -0.15, 0.42] : null) : null;
+  const [HI, MID, LO] = MATS[b.mat ?? 'steel'];
+  /** An eye lamp (or an LED): its glow, the lamp, a glint. */
+  const lamp = (x: number, y: number, r: number, col: string) => {
+    const ga = c.globalAlpha;
+    c.globalAlpha = ga * 0.35; c.fillStyle = col; circle(c, x, y, r * 2.1);
+    c.globalAlpha = ga; circle(c, x, y, r);
+    c.fillStyle = '#FFFFFF'; circle(c, x - r * 0.3, y - r * 0.3, r * 0.35);
+  };
   switch (b.kind) {
     case 'long': {
       const h = l / 2, r = s * 0.62;
@@ -691,12 +966,178 @@ const drawBone = (c: Ctx, b: Bone) => {
       if (b.blood > 0.15) { c.fillStyle = BLOOD; circle(c, -l * 0.4, l * 0.3, l * 0.45); }
       break;
     }
-  }
-  if (eyeAt) {
-    const [ex, ey, er] = eyeAt;
-    c.fillStyle = 'rgba(239, 68, 68, 0.35)'; circle(c, l * ex, l * ey, l * er * 1.6);
-    c.fillStyle = '#EF4444'; circle(c, l * ex, l * ey, l * er * 0.75);
-    c.fillStyle = '#FECACA'; circle(c, l * ex, l * ey, l * er * 0.3);
+    // A machine's parts
+    case 'strut': {
+      // (a beam: lit along the top, shade under, a rivet each end)
+      const h = l / 2;
+      c.fillStyle = INK; c.fillRect(-h - 1, -s / 2 - 1, l + 2, s + 2);
+      c.fillStyle = MID; c.fillRect(-h, -s / 2, l, s);
+      c.fillStyle = HI; c.fillRect(-h, -s / 2, l, Math.max(0.6, s * 0.28));
+      c.fillStyle = LO; c.fillRect(-h, s * 0.2, l, s * 0.3);
+      if (s >= 2 && l > 8) { c.fillStyle = INK; c.fillRect(-h + s * 0.5 - 0.5, -0.5, 1, 1); c.fillRect(h - s * 0.5 - 0.5, -0.5, 1, 1); }
+      break;
+    }
+    case 'piston': {
+      // (a hydraulic ram: the fat cylinder, the bright rod out of it, a ball joint each end)
+      const h = l / 2, cw = s * 1.3, rw = Math.max(1, s * 0.55), sp = l * 0.08, j = s * 0.75;
+      c.fillStyle = INK; c.fillRect(-h, -cw / 2 - 1, h + sp + 1, cw + 2); c.fillRect(sp, -rw / 2 - 1, h - sp, rw + 2);
+      circle(c, -h, 0, j + 1); circle(c, h, 0, j + 1);
+      c.fillStyle = MID; c.fillRect(-h, -cw / 2, h + sp, cw);
+      c.fillStyle = LO; c.fillRect(-h, cw * 0.15, h + sp, cw * 0.35); c.fillRect(sp - 1, -cw / 2, 1.5, cw);
+      c.fillStyle = HI; c.fillRect(-h, -cw / 2, h + sp, Math.max(0.6, cw * 0.25));
+      c.fillStyle = '#F4F4F5'; c.fillRect(sp + 0.5, -rw / 2, h - sp, rw);
+      c.fillStyle = MID; circle(c, -h, 0, j); circle(c, h, 0, j);
+      c.fillStyle = HI; c.fillRect(-h - j * 0.4, -j * 0.5, 1, 1); c.fillRect(h - j * 0.4, -j * 0.5, 1, 1);
+      break;
+    }
+    case 'servo': {
+      // (an actuator: a block, its hub)
+      const z = s * 1.9;
+      c.fillStyle = INK; c.fillRect(-z / 2 - 1, -z / 2 - 1, z + 2, z + 2);
+      c.fillStyle = MID; c.fillRect(-z / 2, -z / 2, z, z);
+      c.fillStyle = HI; c.fillRect(-z / 2, -z / 2, z, Math.max(0.6, z * 0.2));
+      c.fillStyle = LO; c.fillRect(-z / 2, z * 0.25, z, z * 0.25);
+      c.fillStyle = INK; circle(c, 0, 0, z * 0.28); c.fillStyle = HI; circle(c, 0, 0, z * 0.1);
+      break;
+    }
+    case 'board': {
+      // (a circuit board, cracked: its traces, a chip, an LED still on)
+      const W = l, H = l * 0.62, x0 = -W / 2, y0 = -H / 2;
+      c.fillStyle = INK; c.fillRect(x0 - 1, y0 - 1, W + 2, H + 2);
+      c.fillStyle = '#15803D'; c.fillRect(x0, y0, W, H);
+      c.fillStyle = '#14532D'; c.fillRect(x0, H * 0.2, W, H * 0.3);
+      c.fillStyle = '#EAB308'; c.fillRect(x0 + W * 0.08, y0 + H * 0.25, W * 0.6, 1); c.fillRect(x0 + W * 0.3, y0 + H * 0.25, 1, H * 0.5); c.fillRect(x0 + W * 0.3, y0 + H * 0.75, W * 0.6, 1);
+      c.fillStyle = '#18181B'; c.fillRect(x0 + W * 0.55, y0 + H * 0.15, W * 0.28, H * 0.35);
+      c.strokeStyle = INK; c.lineWidth = 1; c.beginPath(); c.moveTo(x0 + W * 0.15, y0); c.lineTo(x0 + W * 0.3, y0 + H * 0.45); c.lineTo(x0 + W * 0.2, y0 + H * 0.6); c.lineTo(x0 + W * 0.4, y0 + H); c.stroke();
+      if (b.lit) lamp(x0 + W * 0.82, y0 + H * 0.75, Math.max(0.8, W * 0.045), b.lit);
+      break;
+    }
+    case 'head': {
+      // (a box of a skull, its plates off: the frame, the brainpan's works dark in it, the jaw, the eye lamp)
+      for (const [col, g] of [[INK, 1], [MID, 0]] as const) {
+        c.fillStyle = col; c.fillRect(-l * 0.85 - g, -l * 0.85 - g, l * 1.75 + g * 2, l * 1.35 + g * 2);
+        c.fillRect(-l * 0.5 - g, l * 0.6 - g, l * 1.35 + g * 2, l * 0.4 + g * 2);
+      }
+      c.fillStyle = HI; c.fillRect(-l * 0.85, -l * 0.85, l * 1.75, Math.max(0.6, l * 0.15));
+      c.fillStyle = '#18181B'; c.fillRect(-l * 0.65, -l * 0.55, l * 0.8, l * 0.8);
+      c.fillStyle = LO; circle(c, -l * 0.3, -l * 0.15, l * 0.2);
+      c.fillStyle = '#DC2626'; c.fillRect(-l * 0.6, l * 0.08, l * 0.7, Math.max(0.6, l * 0.08));
+      c.fillStyle = INK; for (let i = 0; i < 3; i++) c.fillRect(l * (-0.3 + i * 0.35), l * 0.68, Math.max(0.6, l * 0.12), l * 0.25);
+      c.fillStyle = INK; circle(c, l * 0.45, -l * 0.15, l * 0.3);
+      if (b.lit) lamp(l * 0.45, -l * 0.15, l * 0.2, b.lit);
+      break;
+    }
+    case 'jaw': {
+      // (an animatronic's snout frame: the cranium a ring, the upper jaw a beam out front, the lower one hanging open
+      // on its hinge servo, the teeth; the eyeball rig up on its stalk, staring)
+      c.save(); c.translate(l * 0.2, l * 0.25); c.rotate(0.3);
+      c.fillStyle = INK; c.fillRect(0, -1, l * 1.6 + 1, l * 0.3 + 2);
+      c.fillStyle = MID; c.fillRect(0, 0, l * 1.6, l * 0.3);
+      c.fillStyle = '#F8FAFC'; for (let i = 0; i < 3; i++) c.fillRect(l * (0.5 + i * 0.35), -l * 0.18, Math.max(0.6, l * 0.1), l * 0.18);
+      c.restore();
+      c.fillStyle = INK; circle(c, 0, 0, l * 0.75 + 1); c.fillRect(l * 0.3, -l * 0.5 - 1, l * 1.9 + 1, l * 0.4 + 2);
+      c.fillStyle = MID; circle(c, 0, 0, l * 0.75); c.fillRect(l * 0.3, -l * 0.5, l * 1.9, l * 0.4);
+      c.fillStyle = HI; c.fillRect(l * 0.3, -l * 0.5, l * 1.9, Math.max(0.6, l * 0.12));
+      c.fillStyle = '#18181B'; circle(c, 0, 0, l * 0.45);
+      c.fillStyle = '#F8FAFC'; for (let i = 0; i < 4; i++) c.fillRect(l * (0.7 + i * 0.38), -l * 0.1, Math.max(0.6, l * 0.1), l * 0.2);
+      c.fillStyle = INK; circle(c, l * 0.2, l * 0.25, l * 0.2); c.fillStyle = LO; circle(c, l * 0.2, l * 0.25, l * 0.11);
+      c.strokeStyle = INK; c.lineWidth = Math.max(1, l * 0.12); c.beginPath(); c.moveTo(0, 0); c.lineTo(l * 0.35, -l * 0.75); c.stroke();
+      c.fillStyle = INK; circle(c, l * 0.35, -l * 0.75, l * 0.34 + 1); c.fillStyle = '#F8FAFC'; circle(c, l * 0.35, -l * 0.75, l * 0.34);
+      if (b.lit) lamp(l * 0.5, -l * 0.75, l * 0.15, b.lit); else { c.fillStyle = INK; circle(c, l * 0.5, -l * 0.75, l * 0.12); }
+      break;
+    }
+    case 'dome': {
+      // (a long eyeless head's frame: its shell off, the ribbed dome bare, the jaw under it, chrome teeth)
+      c.fillStyle = INK; c.fillRect(-l * 0.1, l * 0.3, l * 1.2 + 2, l * 0.32 + 2);
+      c.fillStyle = MID; c.fillRect(-l * 0.1 + 1, l * 0.3 + 1, l * 1.2, l * 0.32);
+      c.save(); c.rotate(0.35);
+      c.fillStyle = INK; c.beginPath(); c.ellipse(-l * 0.4, 0, l * 1.4 + 1, l * 0.65 + 1, 0, 0, Math.PI * 2); c.fill();
+      c.fillStyle = MID; c.beginPath(); c.ellipse(-l * 0.4, 0, l * 1.4, l * 0.65, 0, 0, Math.PI * 2); c.fill();
+      c.fillStyle = '#18181B'; c.beginPath(); c.ellipse(-l * 0.5, l * 0.05, l * 1.05, l * 0.4, 0, 0, Math.PI * 2); c.fill();
+      c.strokeStyle = MID; c.lineWidth = Math.max(1, l * 0.15); c.beginPath();
+      for (let i = 0; i < 3; i++) { c.moveTo(-l * (1.2 - i * 0.45), -l * 0.4); c.lineTo(-l * (1.2 - i * 0.45), l * 0.45); }
+      c.stroke();
+      c.fillStyle = HI; c.fillRect(-l * 1.2, -l * 0.58, l * 1.4, Math.max(0.6, l * 0.12));
+      c.restore();
+      c.fillStyle = '#F8FAFC'; for (let i = 0; i < 4; i++) c.fillRect(l * (0.15 + i * 0.25), l * 0.18, Math.max(0.6, l * 0.1), l * 0.16);
+      break;
+    }
+    case 'rotor': {
+      // (a rotor hub on its stub, the blades: one straight, one bent back)
+      c.lineCap = 'round';
+      c.beginPath(); c.moveTo(0, 0); c.lineTo(l * 0.5, 0); c.moveTo(0, 0); c.lineTo(-l * 0.3, 0); c.lineTo(-l * 0.5, l * 0.25);
+      c.strokeStyle = INK; c.lineWidth = s * 0.8 + 2; c.stroke(); c.strokeStyle = MID; c.lineWidth = s * 0.8; c.stroke();
+      c.fillStyle = INK; c.fillRect(-s * 0.5 - 1, 0, s + 2, s * 2.2 + 1); c.fillStyle = LO; c.fillRect(-s * 0.5, 0, s, s * 2.2);
+      c.fillStyle = INK; circle(c, 0, 0, s * 1.1 + 1); c.fillStyle = MID; circle(c, 0, 0, s * 1.1); c.fillStyle = HI; circle(c, -s * 0.3, -s * 0.3, s * 0.35);
+      break;
+    }
+    case 'wheel': {
+      // (the tire, the rim with its holes, the hub)
+      c.fillStyle = INK; circle(c, 0, 0, l + 1);
+      c.fillStyle = '#27272A'; circle(c, 0, 0, l);
+      c.fillStyle = MID; circle(c, 0, 0, l * 0.6);
+      c.fillStyle = INK; for (let i = 0; i < 3; i++) { const t = (i / 3) * Math.PI * 2; circle(c, Math.cos(t) * l * 0.35, Math.sin(t) * l * 0.35, l * 0.11); }
+      c.fillStyle = LO; circle(c, 0, 0, l * 0.16);
+      c.fillStyle = HI; c.fillRect(-l * 0.4, -l * 0.42, l * 0.25, Math.max(0.6, l * 0.1));
+      break;
+    }
+    case 'wire': {
+      // (a cable bundle, slack, its end frayed: copper bristling)
+      const h = l / 2;
+      c.lineCap = 'round';
+      c.beginPath(); c.moveTo(-h, 0); c.quadraticCurveTo(0, l * 0.3, h, 0);
+      c.strokeStyle = INK; c.lineWidth = 3.2; c.stroke();
+      c.strokeStyle = '#DC2626'; c.lineWidth = 1.3; c.stroke();
+      c.beginPath(); c.moveTo(-h, -0.9); c.quadraticCurveTo(0, l * 0.3 - 0.9, h, -0.9); c.strokeStyle = '#FACC15'; c.lineWidth = 0.9; c.stroke();
+      c.beginPath(); c.moveTo(h, 0); c.lineTo(h + 2.5, -1.5); c.moveTo(h, 0); c.lineTo(h + 3, 0.5); c.moveTo(h, 0); c.lineTo(h + 2, 2);
+      c.strokeStyle = '#F59E0B'; c.lineWidth = 0.8; c.stroke();
+      break;
+    }
+    case 'gear': {
+      // (a gear: its teeth, the web, the hole)
+      const n = 8;
+      c.beginPath();
+      for (let i = 0; i < n * 4; i++) { const t = (i / (n * 4)) * Math.PI * 2, r = i % 4 < 2 ? l : l * 0.78; if (i) c.lineTo(Math.cos(t) * r, Math.sin(t) * r); else c.moveTo(Math.cos(t) * r, Math.sin(t) * r); }
+      c.closePath(); c.strokeStyle = INK; c.lineWidth = 2; c.stroke(); c.fillStyle = MID; c.fill();
+      c.fillStyle = LO; circle(c, 0, 0, l * 0.5);
+      c.fillStyle = INK; circle(c, 0, 0, l * 0.18);
+      c.fillStyle = HI; c.fillRect(-l * 0.55, -l * 0.55, Math.max(1, l * 0.2), Math.max(0.6, l * 0.1));
+      break;
+    }
+    case 'battery': {
+      // (a battery pack: its terminals, the label band, an LED)
+      const W = l, H = l * 0.55;
+      c.fillStyle = INK; c.fillRect(-W / 2 - 1, -H / 2 - 1, W + 2, H + 2); c.fillRect(-W * 0.3 - 1, -H / 2 - 3, W * 0.15 + 2, 3); c.fillRect(W * 0.15 - 1, -H / 2 - 3, W * 0.15 + 2, 3);
+      c.fillStyle = '#3F3F46'; c.fillRect(-W / 2, -H / 2, W, H);
+      c.fillStyle = '#EAB308'; c.fillRect(-W / 2, -H * 0.15, W, H * 0.3);
+      c.fillStyle = '#18181B'; c.fillRect(-W / 2, H * 0.25, W, H * 0.25);
+      c.fillStyle = MID; c.fillRect(-W * 0.3, -H / 2 - 2, W * 0.15, 2); c.fillRect(W * 0.15, -H / 2 - 2, W * 0.15, 2);
+      if (b.lit) lamp(W * 0.35, -H * 0.3, Math.max(0.8, W * 0.05), b.lit);
+      break;
+    }
+    case 'orb': {
+      // (a shell cracked open: the dark in it, the core's lamp)
+      c.fillStyle = INK; circle(c, 0, 0, l + 1);
+      c.fillStyle = MID; circle(c, 0, 0, l);
+      c.fillStyle = LO; c.beginPath(); c.arc(0, 0, l, 0.2, Math.PI - 0.2); c.fill();
+      c.fillStyle = '#18181B'; c.beginPath(); c.moveTo(0, 0); c.arc(0, 0, l * 0.85, -0.9, 0.1); c.closePath(); c.fill();
+      c.fillStyle = HI; c.fillRect(-l * 0.55, -l * 0.6, l * 0.35, Math.max(0.6, l * 0.15));
+      if (b.lit) lamp(l * 0.3, -l * 0.2, Math.max(0.8, l * 0.22), b.lit);
+      break;
+    }
+    case 'spike': {
+      // (a spike, a horn: its point out along it)
+      c.beginPath(); c.moveTo(-l / 2, -s); c.lineTo(l / 2, 0); c.lineTo(-l / 2, s); c.closePath();
+      c.strokeStyle = INK; c.lineWidth = 2; c.stroke(); c.fillStyle = MID; c.fill();
+      c.fillStyle = HI; c.fillRect(-l / 2, -s * 0.6, l * 0.5, Math.max(0.6, s * 0.3));
+      break;
+    }
+    case 'hoop': {
+      // (a hoop seen edge on: a frame ring)
+      c.beginPath(); c.ellipse(0, 0, l * 0.28, l, 0, 0, Math.PI * 2);
+      c.strokeStyle = INK; c.lineWidth = s + 2; c.stroke(); c.strokeStyle = MID; c.lineWidth = s; c.stroke();
+      break;
+    }
   }
   c.restore();
 };
