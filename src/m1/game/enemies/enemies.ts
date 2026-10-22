@@ -40,6 +40,7 @@ import { isMidBoss } from '../combat/midBoss';
 import { isBeingTased } from '../combat/statusEffects';
 import { hurtTaken, gritty, shoveSetDistance, wallSplatDeath } from '../core/resist';
 import { startWallSplat } from './wallSplatDeath';
+import { sweepBody, pushOutOfSolid, type BodyHit } from './bodySweep';
 import { inFinale } from '../combat/finaleBuffs';
 import { ROOM_L, ROOM_R } from '../stages/finale/geometry';
 import { noteAnimalKill } from '../player/animalDeaths';
@@ -77,15 +78,17 @@ export const updateEnemy = (ctx: FrameContext, e: Enemy, enemies: Enemy[]): bool
     if (state.cartoonKills && e.overdosed) { poofEnemy(state, e); return false; }
     if (e.overdosed) return flyOverdosedBody(ctx, e, enemies);
     // Dead bodies tumble off-screen (one he sent flying with a move of his takes out whoever it hits on the way)
-    e.pos.x += e.vel.x;
-    e.pos.y += e.vel.y;
+    // (swept, however fast: never through a wall or a ledge; one put down inside something is out of it first)
+    pushOutOfSolid(state, e);
+    const vx = e.vel.x, vy = e.vel.y;
+    const hit = sweepBody(state, e, vx, vy);
     e.vel.y += GRAVITY * 0.5;
     // (tumbling as it goes; one sliding down a wall it hit just slides)
     if (e.vel.x !== 0) e.rotation = (e.rotation || 0) + 0.3;
     if (e.meleeFlung) flungIntoEnemies(ctx, e, enemies);
     // A body in flight splats on whatever it hits: a wall (it slaps against it and slides down it), a ceiling (it bonks
     // off it), the ground (it's done: it lies there, flat, where it came down: like an overdose)
-    if (splatBody(ctx, e)) return false;
+    if (splatBody(ctx, e, hit, vx, vy)) return false;
     return e.pos.y < state.camera.y + 1000;
   }
   if (e.health <= 0) return false;
@@ -104,8 +107,26 @@ export const updateEnemy = (ctx: FrameContext, e: Enemy, enemies: Enemy[]): bool
 
   const shoveSpeed = e.vel.x;
   const shockedAt = e.shockedUntil !== undefined && e.shockedUntil >= ctx.state.frame && e.type !== 'boss' ? e.pos.x : null;
-  const xWas = e.pos.x;
+  // (knocked about (shoved, thrown, blasted, let go of in the air): wherever moving it takes it this frame is gone over
+  // again in small steps, so it stops against a wall or a ledge's side, lands on a top, bonks a ceiling, and never
+  // ends up through one or inside it and dropping out of the world)
+  const throughWindow0 = e.kind === 'jetagent' && (e.aiState === 'enter' || e.aiState === 'flee');
+  const guarded = e.type !== 'boss' && !throughWindow0 && ((e.pauseTimer || 0) > 0 || !!e.dropping) && !LIVES_INSIDE.has(e.kind ?? '');
+  if (guarded) pushOutOfSolid(state, e);
+  const xWas = e.pos.x, yWas = e.pos.y;
   moveEnemy(ctx, e);
+  let guardHit: BodyHit | null = null;
+  if (guarded && !e.isBlownAway && e.health > 0) {
+    const dx = e.pos.x - xWas, dy = e.pos.y - yWas;
+    e.pos.x = xWas; e.pos.y = yWas;
+    guardHit = sweepBody(state, e, dx, dy, SHOVE_STEP);
+    if (guardHit.side) e.vel.x = 0;
+    // (up into a ceiling it went through before: it bonks it, as if it'd been caught there)
+    if (guardHit.ceil && dy < 0) { e.vel.y = -dy * 0.25; bonkCeiling(ctx, e, -dy); }
+    // (down onto a top it'd have gone into: it lands there, the landing's hurt and all)
+    else if (guardHit.floor && dy > 0) { slamIntoFloor(ctx, e, Math.max(dy, e.vel.y)); e.vel.y = 0; e.vel.x *= 0.6; }
+    if (e.health <= 0 && !e.isBlownAway) return false;
+  }
   // (one that walls stop, going along under its own steam: stopped against them, not into them)
   if (kindDef(e.kind)?.solid && !e.isBlownAway && !((e.pauseTimer || 0) > 0)) keepOutOfWalls(ctx.state, e, xWas);
   // (being electrocuted: going nowhere, whatever it was doing)
@@ -122,7 +143,7 @@ export const updateEnemy = (ctx: FrameContext, e: Enemy, enemies: Enemy[]): bool
     // (killed against it: gone, unless he's a body sliding down it now)
     // (a jetpack man coming in through his window, or going out of it, passes through the wall there)
     const throughWindow = e.kind === 'jetagent' && (e.aiState === 'enter' || e.aiState === 'flee');
-    if (!throughWindow && slamIntoWalls(ctx, e, shoveSpeed, xWas)) return !!e.isBlownAway;
+    if (!throughWindow && slamIntoWalls(ctx, e, shoveSpeed, xWas, guardHit ? guardHit.side?.b ?? null : undefined)) return !!e.isBlownAway;
     if (!e.isOiled && isBeingShoved(e) && (!e.enemyCollisionCooldown || e.enemyCollisionCooldown <= 0)) {
       resolveShoveCollision(ctx, e, enemies);
     }
@@ -1401,6 +1422,8 @@ const wallAgainst = (state: FrameContext['state'], e: Enemy) => {
 };
 /** A lip this low he's shoved up onto; any higher and it's a wall to him. */
 const SHOVE_STEP = 26;
+/** What lives down in something (water, muck) and is never pushed out of it or stopped at its edge like a body. */
+const LIVES_INSIDE = new Set(['shark', 'magmafish', 'sludgeling', 'mutantfish', 'gator']);
 
 /** A shield goon crushed flat between Meathead and a wall: dead on the spot, and messily. */
 const compact = (ctx: FrameContext, e: Enemy, wall: { x: number; w: number }, side: number) => {
@@ -1437,8 +1460,10 @@ const thawBurst = (ctx: FrameContext, e: Enemy, dir: number, at: { x: number; y:
 };
 
 /** Knocked into a wall: damage scales with speed (hugely if frozen). Returns true if it died. */
-const slamIntoWalls = (ctx: FrameContext, e: Enemy, speed: number, xWas = e.pos.x - speed): boolean => {
+/** `found`: the wall it's already been stopped against this frame (null: none), when its move's been swept (bodySweep). */
+const slamIntoWalls = (ctx: FrameContext, e: Enemy, speed: number, xWas = e.pos.x - speed, found?: Block | null): boolean => {
   const { state, fx } = ctx;
+  if (found === null) return false;
   if ((e.pauseTimer || 0) <= 0 && Math.abs(speed) < 1) return false;
   // Only walls hit side-on: a ceiling it was launched up into isn't one (it would get
   // teleported to the end of the ceiling block). Where it was before this move tells which.
@@ -1447,7 +1472,7 @@ const slamIntoWalls = (ctx: FrameContext, e: Enemy, speed: number, xWas = e.pos.
   // or so far into one its middle's past the wall's and it's put out the far side)
   const sx0 = Math.min(xWas, e.pos.x), sx1 = Math.max(xWas, e.pos.x) + e.width;
   const sweep = { x: sx0, y: e.pos.y, w: sx1 - sx0, h: e.height };
-  const wall = state.blocks.filter(b => (b.type === 'wall' || (b.type === 'door' && state.doorState !== 'opening' && state.doorState !== 'open' && state.doorState !== 'closing'))
+  const wall = found ?? state.blocks.filter(b => (b.type === 'wall' || (b.type === 'door' && state.doorState !== 'opening' && state.doorState !== 'open' && state.doorState !== 'closing'))
     && rectsOverlap(sweep, b) && !(prevMidX > b.x && prevMidX < b.x + b.w)
     // (one it's stood on top of, or coming down onto, is its floor, not a wall: a rock step, a wall's top)
     && b.y < e.pos.y + e.height - 8 - Math.max(0, e.vel.y))
@@ -1473,9 +1498,11 @@ const slamIntoWalls = (ctx: FrameContext, e: Enemy, speed: number, xWas = e.pos.
     e.health -= damage;
     return thawBurst(ctx, e, -dir, { x: dir > 0 ? wall.x : wall.x + wall.w, y: e.pos.y + e.height / 2 }, damage, 'wallsplat');
   }
-  if (damage <= IMPACT_DAMAGE_THRESHOLD) return false;
+  // (pushed into it, not hard: just a thud against it)
+  if (damage <= IMPACT_DAMAGE_THRESHOLD) { if (Math.abs(speed) > 3) { fx.playGunSound('thud'); shakeScreen(state, 4, 2); } return false; }
   e.health -= damage;
   fx.spawnDamageNumber(e.pos, Math.round(damage), isFrozen(e) || charged);
+  fx.playGunSound('thud');
   if (charged) fx.spawnExplosion({ x: dir > 0 ? wall.x : wall.x + wall.w, y: e.pos.y + e.height / 2 }, '#FFFFFF', 8, -dir * 5, 10);
   fx.spawnExplosion({ x: dir > 0 ? wall.x : wall.x + wall.w, y: e.pos.y + e.height / 2 }, '#FDE047', 5, -dir * 4, 8);
   shakeScreen(state, 8, Math.min(10, toGml(speed)) * GML_SCALE * 0.6);
@@ -1582,19 +1609,23 @@ export const ceilingSplat = (ctx: FrameContext, e: Enemy, ceilY: number, callout
 /** Obliterated into a gooey puddle on a wall (Meathead 2's wall kills: see wallSplatDeath.ts): `wx` the wall's face,
  *  `side` the way out from it into the air. The burst, the callout (unless the caller's given its own), a crunch and a
  *  shake; the enemy itself is gone. */
-export const wallSplatOn = (ctx: FrameContext, e: Enemy, wx: number, side: 1 | -1, callout = true) => {
+export const wallSplatOn = (ctx: FrameContext, e: Enemy, wx: number, side: 1 | -1, callout = true, speed = 16) => {
   const { state, fx } = ctx;
   const at = { x: wx, y: e.pos.y + e.height / 2 };
   e.health = 0; e.isBlownAway = false; e.vel = { x: 0, y: 0 };
-  fx.spawnDeathShower(at, side, 2.5);
-  fx.spawnExplosion(at, '#8B0000', 22, side * 3, 14);
+  fx.spawnDeathShower(at, side, 1.2);
+  // (a spray of small wet drops back off it, out from the wall: the splat on the wall's the show, not big blobs)
+  if (!state.cartoonKills) for (let i = 0; i < 14; i++) {
+    state.particles.push({ pos: { x: wx, y: at.y + (Math.random() - 0.5) * e.height * 0.5 }, vel: { x: side * (1 + Math.random() * 5), y: -1 - Math.random() * 4 }, life: 20 + Math.random() * 25, color: i % 3 ? '#8B1010' : '#B91C1C', size: 1.5 + Math.random() * 2 });
+  }
   const n = state.enemyDeaths.length;
   startEnemyDeath(state, e, 'wallsplatted');
   const d = state.enemyDeaths[n];
-  if (d && d.kind === 'wallsplatted') startWallSplat(state, d, wx, side, at.y);
+  if (d && d.kind === 'wallsplatted') startWallSplat(state, d, wx, side, at.y, speed);
   if (callout && !e.splatCalled) { e.splatCalled = true; fx.spawnKillCallout(e, 'wallsplat'); }
-  shakeScreen(state, 12, 8);
+  shakeScreen(state, 12, Math.min(12, 5 + speed * 0.3));
   fx.playGunSound('crunch');
+  fx.playGunSound('thud');
 };
 
 /** A live enemy knocked up into a ceiling: it takes the hit (its weight and how fast it was going up). If that kills it, it's
@@ -1621,42 +1652,35 @@ const bonkCeiling = (ctx: FrameContext, e: Enemy, speed: number): boolean => {
 const SPLAT_CALLOUT_SPEED = 12;
 
 /** A dead body in flight meeting the level. True once it's come down for good (it's become a flattened body on the ground). */
-const splatBody = (ctx: FrameContext, e: Enemy): boolean => {
+const splatBody = (ctx: FrameContext, e: Enemy, hit: BodyHit, vx: number, vy: number): boolean => {
   const { state, fx } = ctx;
-  const box = boundsOf(e);
-  const solid = (b: Block) => b.type !== 'pit' && b.type !== 'door' && rectsOverlap(box, b);
-  // A wall: against it, a smear of it, and down it goes
-  if (e.vel.x !== 0) {
-    const wall = state.blocks.find(b => b.type === 'wall' && solid(b) && e.pos.y + e.height > b.y + 4 && e.pos.y < b.y + b.h - 4
-      && (e.vel.x > 0 ? e.pos.x + e.width - e.vel.x <= b.x + 2 : e.pos.x - e.vel.x >= b.x + b.w - 2));
-    if (wall) {
-      const hitSpeed = Math.abs(e.vel.x);
-      e.pos.x = e.vel.x > 0 ? wall.x - e.width : wall.x + wall.w;
-      // (Meathead 2: hit hard, he goes to a puddle on it; nothing slides down)
-      if (wallSplatDeath() && hitSpeed > SPLAT_CALLOUT_SPEED && !isMidBoss(e)) {
-        wallSplatOn(ctx, e, e.vel.x > 0 ? wall.x : wall.x + wall.w, e.vel.x > 0 ? -1 : 1);
-        return true;
-      }
-      const at = { x: e.vel.x > 0 ? wall.x : wall.x + wall.w, y: e.pos.y + e.height / 2 };
-      fx.spawnDeathShower(at, -Math.sign(e.vel.x), 2, true, 90);
-      fx.spawnExplosion(at, '#8B0000', 14, -Math.sign(e.vel.x) * 3, 10);
-      if (!e.splatCalled && hitSpeed > SPLAT_CALLOUT_SPEED) { e.splatCalled = true; fx.spawnKillCallout(e, 'wallsplat'); }
-      shakeScreen(state, 8);
-      fx.playGunSound('thud');
-      e.vel.x = 0; e.vel.y = Math.max(e.vel.y, 1);
-      e.rotation = 0;
-      return false;
+  // A wall (or the side of a ledge, a shut door): against it, a smear of it, and down it goes
+  if (hit.side) {
+    const wall = hit.side.b, dir = hit.side.dir;
+    const hitSpeed = Math.abs(vx);
+    const face = dir > 0 ? wall.x : wall.x + wall.w;
+    // (Meathead 2: hit hard, he goes to a puddle on it; nothing slides down)
+    if (wallSplatDeath() && hitSpeed > SPLAT_CALLOUT_SPEED && !isMidBoss(e)) {
+      wallSplatOn(ctx, e, face, dir > 0 ? -1 : 1, true, hitSpeed);
+      return true;
     }
+    const at = { x: face, y: e.pos.y + e.height / 2 };
+    fx.spawnDeathShower(at, -dir, 2, true, 90);
+    fx.spawnExplosion(at, '#8B0000', 10, -dir * 3, 6);
+    if (!e.splatCalled && hitSpeed > SPLAT_CALLOUT_SPEED) { e.splatCalled = true; fx.spawnKillCallout(e, 'wallsplat'); }
+    shakeScreen(state, 8, Math.min(10, 2 + hitSpeed * 0.35));
+    fx.playGunSound('thud');
+    e.vel.x = 0; e.vel.y = Math.max(e.vel.y, 1);
+    e.rotation = 0;
+    return false;
   }
   // A ceiling on the way up: that's where it ends (like an overdose): flattened on the underside of it, and it stays
-  if (e.vel.y < 0) {
-    const ceil = ceilingHit(state, e);
-    if (ceil) { ceilingSplat(ctx, e, ceil.y + ceil.h); return true; }
-  }
+  if (hit.ceil && vy < 0) { ceilingSplat(ctx, e, hit.ceil.y + hit.ceil.h); return true; }
   // The ground: splat, and that's where it stays
-  if (e.vel.y > 0) {
-    const floor = state.blocks.find(b => b.type !== 'wall' && solid(b) && e.pos.y + e.height - e.vel.y <= b.y + 2);
-    if (floor) {
+  if (hit.floor && vy > 0) {
+    const floor = hit.floor;
+    e.vel.y = vy;
+    {
       e.pos.y = floor.y - e.height;
       const c = { x: e.pos.x + e.width / 2, y: floor.y - 4 };
       // (a greased one comes down in a slick of its own oil; anything else, a pancake)

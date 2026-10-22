@@ -19,6 +19,8 @@ export interface WallSplat {
   /** The floor at the wall's foot (world y), or null (none near: no pool). */
   foot: number | null;
   seed: number;
+  /** How hard he hit it (the spray off it). */
+  speed: number;
   runs: GooRun[];
   chunks: Chunk[];
 }
@@ -29,8 +31,17 @@ export const WALLSPLAT_FRAMES = 1100, WALLSPLAT_FADE = 140;
 const MEAT = ['#B45353', '#F0A3A3', '#7F1D1D', '#E8DCC8', '#9F1239'];
 
 /** Turns a fresh death into the puddle on the wall: `wx` the wall's face, `side` the way out from it into the air. */
-export const startWallSplat = (state: GameState, d: EnemyDeath, wx: number, side: 1 | -1, cy: number) => {
-  const r = Math.max(18, Math.min(44, Math.max(d.w, d.h) * 0.42));
+/** How many can be on the walls at once: past that, the oldest start fading out. */
+const MAX_LIVE = 10;
+
+export const startWallSplat = (state: GameState, d: EnemyDeath, wx: number, side: 1 | -1, cy: number, speed = 16) => {
+  // (bigger the harder he hit)
+  const k = Math.max(0.8, Math.min(1.35, 0.7 + speed * 0.025));
+  const r = Math.max(16, Math.min(52, Math.max(d.w, d.h) * 0.42 * k));
+  // (too many up at once: the oldest go)
+  const live = state.enemyDeaths.filter(o => o !== d && o.kind === 'wallsplatted' && o.t < WALLSPLAT_FRAMES - WALLSPLAT_FADE);
+  live.sort((p, q) => q.t - p.t);
+  for (let i = 0; i <= live.length - MAX_LIVE; i++) live[i].t = WALLSPLAT_FRAMES - WALLSPLAT_FADE;
   const f = floorTopAt(state.blocks, wx + side * 6, cy, 0);
   const foot = f !== null && f - cy < 700 ? f : null;
   const seed = Math.random() * 1000;
@@ -50,7 +61,7 @@ export const startWallSplat = (state: GameState, d: EnemyDeath, wx: number, side
     const y0 = cy + (Math.random() - 0.5) * r;
     chunks.push({ x: wx - side * (2 + Math.random() * r * 0.9), y0, y: y0, vy: 0, r: 2.5 + Math.random() * 3.5, col: MEAT[k % MEAT.length], stick: Math.floor(Math.random() * 30) });
   }
-  d.ws = { wx, side, cy, r, foot, seed, runs, chunks };
+  d.ws = { wx, side, cy, r, foot, seed, runs, chunks, speed };
   d.vx = 0; d.vy = 0;
 };
 

@@ -331,7 +331,8 @@ const release = (state: GameState, e: Enemy) => {
     const b = state.blocks.find(b => !b.oneWay && b.type !== 'pit' && e.pos.x < b.x + b.w && e.pos.x + e.width > b.x && e.pos.y + 4 < b.y + b.h && e.pos.y + e.height - 4 > b.y);
     if (!b) break;
     e.pos.x = mid < b.x + b.w / 2 ? b.x - e.width : b.x + b.w;
-    if (Math.sign(e.vel.x) === Math.sign(b.x + b.w / 2 - mid)) e.vel.x = 0;
+    // (thrown at it hard, he keeps going at it: splatted on it right there (flyInto); anything gentler just stops)
+    if (Math.sign(e.vel.x) === Math.sign(b.x + b.w / 2 - mid) && Math.abs(e.vel.x) < WALL_SPLAT_SPEED) e.vel.x = 0;
   }
   state.enemies.push(e);
 };
