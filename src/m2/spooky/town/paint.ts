@@ -80,11 +80,9 @@ export const inked = (c: Ctx, pts: [number, number][], col: string, t = 1) => {
 export const sideFace = (c: Ctx, eye: { x: number; y: number }, e: number, side: 1 | -1, top: number, bottom: number, d0: number, d1: number, cols: string[]) => {
   if ((eye.x - e) * side <= 1) return false;
   const n = cols.length;
-  // (each step drawn from its own start all the way to the back, the next one over it: no hairline of whatever's behind
-  // showing through where two steps' antialiased edges meet, flickering as it scrolls)
   for (let i = 0; i < n; i++) {
-    const a = d0 + ((d1 - d0) * i) / n;
-    poly(c, [at(eye, e, top, a), at(eye, e, top, d1), at(eye, e, bottom, d1), at(eye, e, bottom, a)], cols[i]);
+    const a = d0 + ((d1 - d0) * i) / n, b = d0 + ((d1 - d0) * (i + 1)) / n;
+    poly(c, [at(eye, e, top, a), at(eye, e, top, b), at(eye, e, bottom, b), at(eye, e, bottom, a)], cols[i]);
   }
   const [x1, t1] = at(eye, e, top, d1), [, b1] = at(eye, e, bottom, d1);
   c.strokeStyle = INK; c.lineWidth = 1;
@@ -98,10 +96,9 @@ export const sideFace = (c: Ctx, eye: { x: number; y: number }, e: number, side:
 export const flatFace = (c: Ctx, eye: { x: number; y: number }, x0: number, x1: number, y: number, d0: number, d1: number, cols: string[]) => {
   if (Math.abs(eye.y - y) < 1) return;
   const n = cols.length;
-  // (each band to the back, the next over it: no seams between them)
   for (let i = 0; i < n; i++) {
-    const a = d0 + ((d1 - d0) * i) / n;
-    poly(c, [at(eye, x0, y, a), at(eye, x1, y, a), at(eye, x1, y, d1), at(eye, x0, y, d1)], cols[i]);
+    const a = d0 + ((d1 - d0) * i) / n, b = d0 + ((d1 - d0) * (i + 1)) / n;
+    poly(c, [at(eye, x0, y, a), at(eye, x1, y, a), at(eye, x1, y, b), at(eye, x0, y, b)], cols[i]);
   }
 };
 

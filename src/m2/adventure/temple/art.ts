@@ -250,8 +250,7 @@ const drawRoomEnd = (c: Ctx, eye: Eye, X: number) => {
   if (Math.max(...xs) < L || Math.min(...xs) > R) return;
   const ds = [1, 0.9, 0.8, 0.7, 0.6, WALL_D];
   const cols = ['#2E2620', '#29221C', '#241D18', '#1E1814', '#191310'];
-  // (each band on to the far wall, the next over it: no antialiased hairline between bands crawling as it scrolls)
-  for (let i = 0; i < cols.length; i++) quad(c, cols[i], p(CHAIN_TOP, ds[i]), p(CHAIN_TOP, WALL_D), p(GY, WALL_D), p(GY, ds[i]));
+  for (let i = 0; i < cols.length; i++) quad(c, cols[i], p(CHAIN_TOP, ds[i]), p(CHAIN_TOP, ds[i + 1]), p(GY, ds[i + 1]), p(GY, ds[i]));
   // (the dado band low down, as on the far wall)
   quad(c, '#1F1813', p(GY - 118, 1), p(GY - 118, WALL_D), p(GY, WALL_D), p(GY, 1));
   seg(c, p(GY - 119, 1), p(GY - 119, WALL_D), '#2A221C', 2);

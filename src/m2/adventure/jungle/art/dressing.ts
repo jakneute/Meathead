@@ -13,7 +13,7 @@ import { timeOfDay, farTint, skyAt, type TimeOfDay } from '../../../timeOfDay';
 import { stamp, steppedGlow, pixelBlob, rampOf } from '../../../intro/art/kit';
 import { GROUND_Y } from '../../../../m1/constants';
 import { X } from '../layout';
-import { RUNS, PITS, atDepth, clipRaised } from './ground';
+import { RUNS, PITS, atDepth } from './ground';
 import { signAt, print, stencil as stencilLook } from '../../letters';
 import { type Ctx, type View, INK, box, checker, mix, hash, poly, at, clump, fern, leaf, bigLeaf, post, lashing, bamboo, LEAF, MOSS, BARK, PIX } from './paint';
 
@@ -592,13 +592,10 @@ export const drawDressing = (c: Ctx, v: View, upTo: number) => {
     // (only where the ground going back is seen, or it'd stand in the air: from above the run it's on)
     if (eye.y > p.foot + 400) continue;
     const t = tintFor(p.d, tod);
-    // (hidden wherever the overlook or the rock stands in front of it)
-    c.save(); clipRaised(c, v, p.d, p.foot);
     atDepth(c, eye, p.d, () => {
       stamp(c, `jg-dress-${p.i}-${tod.key}`, p.x - HALF[p.kind] - 20, p.foot - 240, HALF[p.kind] * 2 + 40, 250, g => PAINT[p.kind](g, p.x, p.foot, t, p.i * 13 + 5));
       live(c, p, v.f, tod);
     });
-    c.restore();
   }
 };
 

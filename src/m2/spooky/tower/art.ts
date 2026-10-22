@@ -474,22 +474,6 @@ const drawBay = (c: Ctx, state: GameState, look: TowerLook, eye: Eye, v: View) =
   }
   drawBayWall(c, eye, v, f);
   drawBayFloor(c, eye, v);
-  // the tower's outside wall going back from the play plane to the bay's back wall, seen from the bay (eye left of it):
-  // it stood flat, the bay's floor, wall and ceiling running on behind where its side should be
-  {
-    const e = TX0 - WALL;
-    if (eye.x < e - 1 && e > v.x0 - 400 && e < v.x1 + 400) {
-      const top = BAY_TOP + 10, bot = GY, steps = [STONE[3], STONE[2], STONE[2], STONE[1]];
-      for (let i = 0; i < steps.length; i++) {
-        const d = 1 - ((1 - BAY_D) * i) / steps.length;
-        quad(c, steps[i], at(eye, e, top, d), at(eye, e, top, BAY_D), at(eye, e, bot, BAY_D), at(eye, e, bot, d));
-      }
-      c.strokeStyle = STONE[0]; c.lineWidth = 1; c.beginPath();
-      for (let y = Math.ceil(top / 32) * 32; y < bot; y += 32) { const a = at(eye, e, y, 1), b = at(eye, e, y, BAY_D); c.moveTo(a[0], a[1]); c.lineTo(b[0], b[1]); }
-      c.stroke();
-      seg(c, at(eye, e, top, BAY_D), at(eye, e, bot, BAY_D), INK, 1);
-    }
-  }
   // the way back to the hallway (an arch of the dungeon's stone)
   bayDoor(c, eye, ENTRY_DOOR_X + 10, 64, 136, '#4A4458', '#06050A', (g, l, t) => {
     for (let y = t + 10; y < GY; y += 26) box(g, l, y, 64, 1, '#120E16');
@@ -703,8 +687,7 @@ const drawRoomSides = (c: Ctx, eye: Eye, v: View) => {
     if (X === TX0 ? eye.x <= X : eye.x >= X) continue;
     const ds = [1, 0.98, 0.96, WALL_D];
     const cols = ['#2C2634', '#25202C', '#1E1A24'];
-    // (each band on to the back wall, the next over it: no antialiased hairline between them)
-    for (let i = 0; i < cols.length; i++) quad(c, cols[i], at(eye, X, y0, ds[i]), at(eye, X, y0, WALL_D), at(eye, X, y1, WALL_D), at(eye, X, y1, ds[i]));
+    for (let i = 0; i < cols.length; i++) quad(c, cols[i], at(eye, X, y0, ds[i]), at(eye, X, y0, ds[i + 1]), at(eye, X, y1, ds[i + 1]), at(eye, X, y1, ds[i]));
     c.strokeStyle = '#141118'; c.lineWidth = 1; c.beginPath();
     for (let y = Math.ceil(y0 / 32) * 32; y < y1; y += 32) { const a = at(eye, X, y, 1), b = at(eye, X, y, WALL_D); c.moveTo(a[0], a[1]); c.lineTo(b[0], b[1]); }
     c.stroke();

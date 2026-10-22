@@ -111,9 +111,7 @@ const groundBack = (c: Ctx, v: View, xa: number, ya: number, xb: number, yb: num
   const n = 6;
   for (let i = 0; i < n; i++) {
     const d0 = 1 - ((1 - d) * i) / n, d1 = 1 - ((1 - d) * (i + 1)) / n;
-    // (each band drawn on to the back, the next over it: no antialiased hairline between bands crawling as it scrolls)
-    back(c, eye, L, yAt(L), Rr, yAt(Rr), d0, d, tint(R[[4, 3, 3, 2, 2, 1][i]], k, d0));
-    void d1;
+    back(c, eye, L, yAt(L), Rr, yAt(Rr), d0, d1, tint(R[[4, 3, 3, 2, 2, 1][i]], k, d0));
     if (i) { const [lx, sy] = at(eye, L, yAt(L), d0), [rx, ry] = at(eye, Rr, yAt(Rr), d0); if (Math.abs(ry - sy) < 1) checker(c, lx, sy - 1, rx - lx, 2, tint(R[[4, 3, 3, 2, 2, 1][i - 1]], k, d0)); }
   }
   // (rows of seams across, closer together going back)
@@ -387,13 +385,7 @@ export const drawPlayPlane = (c: Ctx, v: View) => {
     }
   }
   // (and under the band, however far down the camera looks: the street's darkest, never the sky)
-  // (its ends where the bend leaves them, fanned out from the moat's lips like the street's last row: a straight cut at
-  // the lip under the band stepped back from the bent street above it)
-  const kB = 1 + BAND * BEND, fanB = (e: number) => v.eye.x + (e - v.eye.x) * kB;
-  for (const [a, b] of FLOOR) {
-    const fa = Math.max(fanB(a), v.v0), fb = Math.min(fanB(b), v.v1);
-    if (fb > fa && v.bot > GY + BAND) box(c, fa, GY + BAND - 1, fb - fa, v.bot - GY - BAND + 1, farTint(COBBLE[0], 0.15, tod));
-  }
+  for (const [a, b] of FLOOR) if (b > v.v0 && a < v.v1 && v.bot > GY + BAND) box(c, Math.max(a, v.v0), GY + BAND - 1, Math.min(b, v.v1) - Math.max(a, v.v0), v.bot - GY - BAND + 1, farTint(COBBLE[0], 0.15, tod));
   bendFloor(c, v.eye, GY, GY, GY + BAND, FLOOR[0][0], FLOOR[FLOOR.length - 1][1]);
   // The moat's lips, hung under the street's edge
   nearBank(c, v, MA, 1);
@@ -405,19 +397,15 @@ export const drawPlayPlane = (c: Ctx, v: View) => {
 export const drawMoatDressing = (c: Ctx, v: View) => {
   if (MB < v.v0 - 100 || MA > v.v1 + 100) return;
   const f = v.f;
-  // (all of it on the bent street's rows: across, it fans out from the eye as the street's lips do, row by row (it sat
-  // at the flat lip's x, coming loose of the bent edge the further down))
-  const fx = (x: number, y: number) => v.eye.x + (x - v.eye.x) * (1 + Math.max(0, Math.min(BAND, y - GY)) * BEND);
-  const F = (pts: [number, number][]) => pts.map(([x, y]) => [fx(x, y), y] as [number, number]);
   for (const [ex, s] of [[MA, 1], [MB, -1]] as const) {
-    poly(c, F([[ex, GY], [ex + s * 22, GY], [ex + s * 14, GY + 8], [ex + s * 26, GY + 14], [ex + s * 8, GY + 22], [ex, GY + 18]]), INK);
-    poly(c, F([[ex, GY + 1], [ex + s * 20, GY + 1], [ex + s * 12, GY + 8], [ex + s * 23, GY + 13], [ex + s * 7, GY + 20], [ex, GY + 16]]), STONE[3]);
+    poly(c, [[ex, GY], [ex + s * 22, GY], [ex + s * 14, GY + 8], [ex + s * 26, GY + 14], [ex + s * 8, GY + 22], [ex, GY + 18]], INK);
+    poly(c, [[ex, GY + 1], [ex + s * 20, GY + 1], [ex + s * 12, GY + 8], [ex + s * 23, GY + 13], [ex + s * 7, GY + 20], [ex, GY + 16]], STONE[3]);
     box(c, Math.min(ex, ex + s * 18), GY + 1, 18, 2, STONE[5]);
   }
   for (let i = 0; i < 6; i++) {
     const ph = ((f * 0.012 + i * 0.37) % 1), side = i % 2 ? MB - 14 - (i % 3) * 6 : MA + 10 + (i % 3) * 6;
     const fy = GY + ph * ph * 520, sz = 3 - Math.floor(ph * 3);
-    if (sz > 0) box(c, fx(side + Math.sin(i + ph * 4) * 4, fy), fy, sz, sz, ph < 0.5 ? STONE[5] : STONE[3]);
+    if (sz > 0) box(c, side + Math.sin(i + ph * 4) * 4, fy, sz, sz, ph < 0.5 ? STONE[5] : STONE[3]);
   }
   // (the updraft: pale mist rising out of the black at the bottom of the screen, in flat steps)
   const sb = v.cam.y + 600;

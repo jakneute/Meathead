@@ -7,7 +7,7 @@ import { GROUND_Y } from '../../../../m1/constants';
 import { timeOfDay, farTint, skyAt } from '../../../timeOfDay';
 import { stamp } from '../../../intro/art/kit';
 import { BRANCHES, VINES, BOA_BRANCHES, X, Y } from '../layout';
-import { RUNS, FAR, atDepth, clipRaised } from './ground';
+import { RUNS, FAR, atDepth } from './ground';
 import { type Ctx, type View, INK, box, mix, hash, bark, roots, limb, clump, leaf, plank, lashing, LEAF, BARK, MOSS } from './paint';
 import { signText, print } from '../../letters';
 
@@ -174,7 +174,6 @@ export const drawBackTrees = (c: Ctx, v: View, between?: (d: number) => void) =>
     if (v.eye.y > t.base + 400) continue;
     const k = (1 - t.d) * 1.6;
     const pal = BARK.map(col => mix(farTint(mix(col, '#000000', 0.1), 0.5, tod), haze, k * 0.5));
-    c.save(); clipRaised(c, v, t.d, t.base);
     atDepth(c, v.eye, t.d, () => {
       const topY = v.eye.y + (v.top - v.eye.y) / t.d;
       trunk(c, v, t, pal, `b${Math.round(t.d * 100)}-${tod.key}`, topY);
@@ -184,7 +183,6 @@ export const drawBackTrees = (c: Ctx, v: View, between?: (d: number) => void) =>
       const cy = t.base - 640 - hash(t.seed) * 160;
       if (cy > topY - 80) { c.save(); c.translate(Math.round(t.x + t.w / 2), Math.round(cy)); stamp(c, `jg-crown-${Math.round(t.d * 100)}-${t.seed % 3}-${tod.key}`, -120, -70, 240, 140, g => clump(g, 0, 0, 100, 50, t.seed % 3 * 11 + 4, lf, 1)); c.restore(); }
     });
-    c.restore();
   }
   void FAR;
 };

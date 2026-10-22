@@ -9,7 +9,7 @@
 import type { GameState } from '../../../m1/game/core/state';
 import { CANVAS_WIDTH } from '../../../m1/constants';
 import { timeOfDay, farTint, hourMix } from '../../timeOfDay';
-import { bendFloor, BEND, sign, steppedGlow, ball } from '../../intro/art/kit';
+import { bendFloor, sign, steppedGlow, ball } from '../../intro/art/kit';
 import { SECTIONS, GY } from '../geometry';
 import { drawGuest, guestAt, drawGuestsDimmed, type Guest } from './crowd';
 import { drawLaunch } from '../river/boat';
@@ -117,9 +117,7 @@ const drawFloor = (c: Ctx, eye: Eye) => {
   const g0 = farTint('#6E5A3A', 0.25), g1 = farTint('#5A4A30', 0.6);
   const xa = Math.max(x0 - 300, eye.x - CANVAS_WIDTH), xb = Math.min(x1 + 300, eye.x + CANVAS_WIDTH);
   const bands = [1, 0.85, 0.7, 0.58, 0.48, WALL_S - 0.04];
-  // (each band on to the back, the next over it: no antialiased hairline between bands)
-  const bk = bands[bands.length - 1];
-  for (let i = 0; i < bands.length - 1; i++) quad(c, P(eye, xa, GY, bands[i]), P(eye, xb, GY, bands[i]), P(eye, xb, GY, bk), P(eye, xa, GY, bk), mix(g0, g1, i / (bands.length - 2)));
+  for (let i = 0; i < bands.length - 1; i++) quad(c, P(eye, xa, GY, bands[i]), P(eye, xb, GY, bands[i]), P(eye, xb, GY, bands[i + 1]), P(eye, xa, GY, bands[i + 1]), mix(g0, g1, i / (bands.length - 2)));
   // (the jungle's edge along the back of it: low scrub, dark)
   atDepth(c, eye, WALL_S - 0.04);
   // (in tiles, painted once each for the hour: banana plants, palms, bushes in the leaves' ramp, ferns along the foot)
@@ -721,24 +719,13 @@ const dock = (c: Ctx, eye: Eye, f: number) => {
   }
   // KEEP HANDS AND FEET INSIDE THE BOAT, on a post at the edge
   poleSign(c, 'q-hands', R(1852), 108, 32, '#F4F0E0', '#2A5A3A', [['KEEP HANDS & FEET', '#2A3A2A', 5], ['INSIDE THE BOAT', '#2A3A2A', 5]], 54);
-};
-
-/** The water at the dock's end, and the boat waiting in it: after the ground's bent (nearGround), its edge along the
- *  dock's end fanned out the same way the boards are (it was a straight up-and-down cut at the dock's end: the bent
- *  boards hung out over the boat one way and left a sliver of unbent dock the other). */
-const dockWater = (c: Ctx, eye: Eye, f: number) => {
-  const wcol = hourMix('#1E5A68', '#4A5268', '#121E38');
+  // The water at the dock's end, and the boat waiting in it
   {
-    const wtop = GY + 38, e = R(1900), fan = (y: number) => eye.x + (e - eye.x) * (1 + Math.max(0, Math.min(80, y - GY)) * BEND);
-    const water = (y0: number, y1: number, col: string) => {
-      c.fillStyle = col; c.beginPath(); c.moveTo(fan(y0), y0);
-      for (let y = y0 + 8; y < y1; y += 8) c.lineTo(fan(y), y);
-      c.lineTo(fan(y1), y1); c.lineTo(e + 300, y1); c.lineTo(e + 300, y0); c.closePath(); c.fill();
-    };
-    water(GY, wtop, mix(wcol, '#BFE6F0', 0.1));
+    const wtop = GY + 38;
+    box(c, R(1900), GY, 100 + 200, wtop - GY, mix(wcol, '#BFE6F0', 0.1));
     for (let k = 0; k < 6; k++) box(c, R(1904 + ((k * 37 + f * 0.5) % 180)), GY + 10 + (k % 3) * 8, 12, 1, 'rgba(230, 248, 255, 0.5)');
     drawLaunch(c, R(1904), GY + 24, f, { rock: Math.round(Math.sin(f * 0.05) * 1) });
-    water(wtop, wtop + 400, dark(wcol, 0.2));
+    box(c, R(1900), wtop, 300, 400, dark(wcol, 0.2));
     for (let x = 1900; x < 2200; x += 16) box(c, R(x), wtop - 1 + Math.round(Math.sin(x * 0.05 + f * 0.08)), 10, 2, 'rgba(220, 245, 255, 0.8)');
     // (the dock's end: its pilings, its edge)
     const pr2 = rampOf('#6A4A2A');
@@ -774,11 +761,10 @@ const nearGround = (c: Ctx, eye: Eye, f: number) => {
     for (let x = 1480; x < 1900; x += 60) for (let y = GY; y < GY + 80; y += 8) box(g, R(x + ((y >> 3) % 2) * 30), y + 1, 1, 6, pr[0]);
   });
   // (deeper down: plain fill, it's all off the bottom)
-  box(c, x0, GY + 80, 2200, H, '#3A3328');
+  box(c, x0, GY + 80, 1900, H, '#3A3328');
   // (the edge where he walks: a lit lip)
   box(c, x0, GY, 1900, 2, '#C8B898');
-  // (bent the whole depth of the stamp: rows under the bend kept the flat stamp's straight-down seams, a jog in them)
-  bendFloor(c, eye, GY, GY, GY + 80, x0 - 200, R(1900));
+  bendFloor(c, eye, GY, GY, GY + 70, x0 - 200, R(1900));
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -834,7 +820,6 @@ export const drawQueueBack = (c: Ctx, state: GameState, q: QueueArt, S: QueueSpo
   if (vis(R(440), R(1480))) { dumpster(c, eye, S.dumpster, f); acUnit(c, eye, S.ac, f); pallets(c, eye, S.pallets); alleyBits(c, eye, f); }
   if (vis(R(1440), x1 + 200)) dock(c, eye, f);
   nearGround(c, eye, f);
-  if (vis(R(1440), x1 + 200)) dockWater(c, eye, f);
   // The front of the line, at the dock (live, at his depth)
   for (const g of q.front) drawGuest(c, g, f);
 };

@@ -56,10 +56,9 @@ const sideFace = (c: Ctx, e: Pt, sx: number, y0: number, y1: number, d0: number,
   const wide = Math.abs(sx - e[0]) * (d1 - d0);
   if (wide < 0.5) return;
   const n = 4;
-  // (each band on to the back, the next over it: no antialiased hairline between bands crawling as it scrolls)
   for (let i = 0; i < n; i++) {
-    const a = d1 - (d1 - d0) * i / n;
-    quad(c, mix(S[1], S[0], i / (n - 1)), at(e, sx, y0, a), at(e, sx, y0, d0), at(e, sx, y1, d0), at(e, sx, y1, a));
+    const a = d1 - (d1 - d0) * i / n, b = d1 - (d1 - d0) * (i + 1) / n;
+    quad(c, mix(S[1], S[0], i / (n - 1)), at(e, sx, y0, a), at(e, sx, y0, b), at(e, sx, y1, b), at(e, sx, y1, a));
   }
   if (wide < 3) return;
   c.strokeStyle = S[0]; c.lineWidth = 1; c.beginPath();
