@@ -729,19 +729,51 @@ const giftShop = (c: Ctx, state: GameState, eye: Eye, f: number) => {
   // a stick of dynamite, its fuse lit)
   atDepth(c, eye, 0.84, () => {
     stamp(c, 'dshop-billboard', x + 20, top - 120, w - 40, 120, g => {
-      for (const px of [x + 60, x + w - 70]) { box(g, px, top - 40, 6, 40, '#3A3A3A'); box(g, px + 30, top - 40, 6, 40, '#3A3A3A'); }
+      // (the frame up behind the roof: steel uprights, a cross brace, bolted plates)
+      for (const px of [x + 60, x + w - 70]) for (const dx of [0, 30]) { box(g, px + dx - 1, top - 41, 8, 41, INK); box(g, px + dx, top - 40, 6, 40, '#4A4A4E'); box(g, px + dx, top - 40, 2, 40, '#6E6E74'); box(g, px + dx + 4, top - 40, 2, 40, '#2E2E32'); }
+      for (const px of [x + 60, x + w - 70]) { g.strokeStyle = '#3A3A3E'; g.lineWidth = 2; g.beginPath(); g.moveTo(px + 3, top - 36); g.lineTo(px + 33, top - 6); g.moveTo(px + 33, top - 36); g.lineTo(px + 3, top - 6); g.stroke(); }
       sign(g, x + 30, top - 110, w - 60, 70, '#1E5A3A', '', '#000', 8, '#5A3A1A');
+      // (the board: banded jungle green, a lit bevel and a dark one, the wood frame's grain, a carved vine down each end)
+      const bx = x + 38, by = top - 102, bw = w - 76, bh = 54;
+      const G = ['#0E2A1A', '#143A24', '#1A4A2E', '#1E5A3A', '#246A44', '#2E7C50'];
+      for (let k = 0; k < 6; k++) box(g, bx, by + (k * bh) / 6, bw, bh / 6 + 1, G[5 - k]);
+      for (let k = 0; k < 6; k += 2) checker(g, bx, by + ((k + 1) * bh) / 6 - 1, bw, 2, G[4 - k]);
+      box(g, bx, by, bw, 2, '#5AA070'); box(g, bx, by + bh - 2, bw, 2, '#08180E');
+      for (const [vx, d] of [[bx + 6, 1], [bx + bw - 7, -1]] as const) for (let y = by + 4; y < by + bh - 4; y += 7) { box(g, vx + d * ((y >> 3) % 2 ? 1 : -1), y, 2, 5, '#4A8A3A'); box(g, vx + d * 3, y + 2, 3, 2, '#6AB04A'); }
+      // (marquee bulbs round its edge, every other one lit warm)
+      const bulbs = (x0: number, y0: number, x1: number, y1: number, n: number) => { for (let i = 0; i <= n; i++) { const u = i / n, cx = x0 + (x1 - x0) * u, cy = y0 + (y1 - y0) * u; box(g, cx - 2, cy - 2, 5, 5, INK); box(g, cx - 1, cy - 1, 3, 3, i % 2 ? '#FFE9A0' : '#C8A040'); if (i % 2) box(g, cx - 1, cy - 1, 1, 1, '#FFFFFF'); } };
+      bulbs(x + 34, top - 106, x + w - 34, top - 106, 26); bulbs(x + 34, top - 44, x + w - 34, top - 44, 26);
+      bulbs(x + 34, top - 106, x + 34, top - 44, 4); bulbs(x + w - 34, top - 106, x + w - 34, top - 44, 4);
+      // (bolt heads at its corners; a three-toed track stamped under GIFTS, a crack in the paint)
+      for (const [qx, qy] of [[bx + 2, by + 2], [bx + bw - 5, by + 2], [bx + 2, by + bh - 5], [bx + bw - 5, by + bh - 5]]) { box(g, qx, qy, 3, 3, '#8A8A90'); box(g, qx, qy, 1, 1, '#E8E8EC'); }
+      for (const tx of [x + w / 2 - 20, x + w / 2 + 80]) { const ty = top - 52; box(g, tx, ty, 4, 3, '#0E2A1A'); box(g, tx - 4, ty - 4, 2, 4, '#0E2A1A'); box(g, tx + 1, ty - 5, 2, 5, '#0E2A1A'); box(g, tx + 6, ty - 4, 2, 4, '#0E2A1A'); }
+      g.strokeStyle = '#0A2014'; g.lineWidth = 1; g.beginPath(); g.moveTo(bx + bw - 40, by + 2); g.lineTo(bx + bw - 46, by + 12); g.lineTo(bx + bw - 42, by + 18); g.stroke();
       signAt(g, 'DINO-MITE', x + w / 2 + 30, top - 82, 14, dino(14, ['#FFF2B0', '#FFD23A', '#F2A41E', '#C8641A'], '#3A1A0A', '#0E2A1A'));
       signAt(g, 'GIFTS', x + w / 2 + 30, top - 58, 10, dino({ sx: 2, sy: 2 }, ['#FFFFFF', '#F4F0E8', '#D8D4CC', '#B8B2A6'], '#3A1A0A', '#0E2A1A'));
-      // (the cartoon raptor, grinning, and its dynamite)
+      // (the cartoon raptor, grinning, its little arms round a bundle of dynamite: head, snout, the brow ridge, its spots)
       const rx = x + 70, ry = top - 60;
-      g.fillStyle = INK; g.beginPath(); g.ellipse(rx, ry - 6, 22, 16, 0, 0, Math.PI * 2); g.fill();
-      g.fillStyle = '#6ABA4A'; g.beginPath(); g.ellipse(rx, ry - 6, 21, 15, 0, 0, Math.PI * 2); g.fill();
-      g.fillStyle = '#8AD46A'; g.beginPath(); g.ellipse(rx - 5, ry - 10, 12, 8, 0, 0, Math.PI * 2); g.fill();
-      box(g, rx + 4, ry - 12, 6, 6, '#FFFFFF'); box(g, rx + 7, ry - 10, 3, 3, INK);
-      box(g, rx - 12, ry + 2, 26, 3, INK); for (let k = 0; k < 6; k++) box(g, rx - 10 + k * 4, ry + 2, 2, 2, '#FFFFFF');
-      box(g, rx + 18, ry - 20, 8, 22, INK); box(g, rx + 19, ry - 19, 6, 20, '#D8282A'); box(g, rx + 19, ry - 19, 2, 20, '#F05050');
-      box(g, rx + 21, ry - 26, 2, 7, '#3A3A3A');
+      const R = ['#2A5A1E', '#3A7A2A', '#4E9A38', '#6ABA4A', '#8AD46A', '#B4EC90'];
+      const head = (grow: number) => { g.beginPath(); g.ellipse(rx - 4, ry - 6, 17 + grow, 15 + grow, 0, 0, Math.PI * 2); g.ellipse(rx + 8, ry - 2, 14 + grow, 9 + grow, 0.15, 0, Math.PI * 2); };
+      g.fillStyle = INK; head(1.5); g.fill();
+      g.save(); head(0); g.clip();
+      for (let k = 0; k < 6; k++) { g.fillStyle = R[5 - k]; g.fillRect(rx - 24, ry - 22 + k * 6, 50, 6); }
+      checker(g, rx - 24, ry - 4, 50, 2, R[1]);
+      for (const [sx2, sy2] of [[rx - 14, ry - 14], [rx - 8, ry - 18], [rx - 16, ry - 6], [rx - 4, ry - 12]]) box(g, sx2, sy2, 3, 2, R[1]);
+      g.restore();
+      // (the brow, the eye (white, the slit pupil, a glint), the nostril)
+      box(g, rx - 1, ry - 17, 12, 3, INK); box(g, rx, ry - 16, 10, 1, R[2]);
+      box(g, rx + 2, ry - 13, 8, 7, INK); box(g, rx + 3, ry - 12, 6, 5, '#FFFBEA'); box(g, rx + 6, ry - 12, 2, 5, '#E0A000'); box(g, rx + 6, ry - 11, 1, 3, INK); box(g, rx + 4, ry - 11, 1, 1, '#FFFFFF');
+      box(g, rx + 18, ry - 6, 3, 2, INK);
+      // (the grin: the jaw line, a row of teeth top and bottom, the tongue)
+      g.strokeStyle = INK; g.lineWidth = 2; g.beginPath(); g.moveTo(rx - 10, ry + 1); g.quadraticCurveTo(rx + 6, ry + 8, rx + 20, ry + 1); g.stroke();
+      for (let k = 0; k < 7; k++) { box(g, rx - 8 + k * 4, ry + 1 + (k > 2 && k < 5 ? 2 : 1), 2, 3, '#FFFFFF'); box(g, rx - 8 + k * 4, ry + 4 + (k > 2 && k < 5 ? 2 : 1), 1, 1, '#C8C0B0'); }
+      box(g, rx + 2, ry + 5, 6, 2, '#C8384A');
+      // (the dynamite: three red sticks, a black tape band, TNT on it, the fuse up out of the middle one)
+      for (let k = 0; k < 3; k++) { const dx = rx + 15 + k * 4; box(g, dx - 1, ry - 20, 5, 23, INK); box(g, dx, ry - 19, 3, 21, '#D8282A'); box(g, dx, ry - 19, 1, 21, '#F06060'); box(g, dx + 2, ry - 19, 1, 21, '#9A1818'); box(g, dx, ry - 20, 3, 2, '#E8D8B0'); }
+      box(g, rx + 14, ry - 10, 14, 4, INK); box(g, rx + 15, ry - 9, 12, 2, '#2A2A2E');
+      box(g, rx + 21, ry - 26, 2, 7, '#3A3A3A'); box(g, rx + 22, ry - 26, 1, 3, '#7A6A4A');
+      // (its little arms round the bundle: three claws over the front)
+      for (const ay of [ry - 14, ry - 4]) { box(g, rx + 9, ay - 1, 8, 5, INK); box(g, rx + 10, ay, 6, 3, R[3]); for (let k = 0; k < 3; k++) box(g, rx + 16 + k * 3, ay + 1, 2, 2, '#F4F0E0'); }
     });
     // (the fuse's spark, live)
     const sx = x + 70 + 22, sy = top - 60 - 27;
