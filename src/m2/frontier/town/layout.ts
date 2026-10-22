@@ -173,16 +173,21 @@ export type TownKind = 'deputy' | 'sheriff' | 'snakeoil' | 'barber' | 'bouncer' 
 /** Who's where (outside the fights: the saloon's and the showdown's casts are theirs, scenes.ts): [kind, x, height of
  *  what it stands on, which pine it fells (PINES index)]. None in a hazard's path. */
 export const CAST: [TownKind, number, number, number?][] = [
-  // (main street)
-  ['deputy', 1150, 0], ['deputy', 1450, 0], ['deputy', 1700, 160],
+  // (main street: one deputy alone, then one in the street and one up on the bank's balcony over him at once (low and
+  // high; the balcony's was inside MAIN STREET's reach); the snake-oil man's fumes; a deputy up the water tower; the
+  // quartet in a row (one charge into the first takes the line); the undertaker out in front of his own parlor (he
+  // stood inside THE SALOON's reach), measuring him while the quartet comes)
+  ['deputy', 1150, 0], ['deputy', 1450, 0], ['deputy', 1590, 160],
   ['snakeoil', 2250, 80],
   ['deputy', 2700, 190],
   ['barber', 3000, 0], ['barber', 3050, 0], ['barber', 3100, 0], ['barber', 3150, 0],
-  ['undertaker', 3520, 0],
+  ['undertaker', 3300, 0],
   // (the rooftops)
   ['deputy', 5450, 280], ['deputy', 5760, 200],
   // (the livery, the smithy)
-  ['farmhand', 7300, 170], ['farmhand', 7520, 0], ['blacksmith', 7720, 0],
+  // (the loft's farmhand drops in behind him; the other's fork right out in front of the blacksmith (no charging
+  // through to him) while the hot shoes come over his head)
+  ['farmhand', 7300, 170], ['farmhand', 7650, 0], ['blacksmith', 7720, 0],
   // (the mill pond: the bank's feller, the island's)
   ['feller', 8365, 0, 0], ['feller', 8860, 20, 1],
   // (the mill's deck end; the lumber yard)

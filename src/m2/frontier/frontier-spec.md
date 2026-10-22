@@ -1427,3 +1427,11 @@ later (+1 if heavyset; was 2 / 3 before playtest fixes E). Tucker's glimpsed ahe
     and lobs his suitcases from it. Car 9's first passenger is a porter up on the high rack over the second passenger
     (aim up, or climb); the mail car's second porter (inside its checkpoint's reach) is up on the high shelf lobbing over
     the first; the last coach's porter is up on the low rack behind the passenger (out of its checkpoint's reach too).
+  - **Sawdust Gulch (town/layout.ts CAST):** main street's balcony deputy was inside MAIN STREET's reach: now at the
+    balcony's near end over the street deputy (low and high at once). The undertaker stood inside THE SALOON's reach:
+    now in front of his own parlor, coming at him with the quartet. The livery's ground farmhand is right in front of the
+    blacksmith (the fork out front, no charging through to him, the hot shoes over). Left as they are: the saloon's
+    brawl, the showdown, the mill, the mine (the TNT crate among its miners, the alcoves' miners, the gas's
+    prospectors) already work its hazards; the snake-oil man, the lumber yard's fellers and the gas's prospectors stand
+    inside checkpoints' reach but their stretches are no wider than it (left out on a respawn there, as before). The
+    log ride has no cast to place; the woods are a scene.
