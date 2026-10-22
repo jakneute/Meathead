@@ -62,6 +62,10 @@ export interface Mesh { p: V3[]; g: number[]; vp: number[]; faces: Face[]; parts
 export class MB {
   p: V3[] = []; g: number[] = []; vp: number[] = []; faces: Face[] = []; parts: V3[] = []; partGroup: number[] = [];
   m: Mat = mat('#808080'); grp = 0; part = -1; detail = false;
+  /** Every primitive closed (bottoms, both ends of a lathe, uncapped tops): the landmarks, whose wrecks lie over on
+   *  their sides and show their undersides to the helicopter's camera (the user: "make sure the underneath of the
+   *  monuments are shown when you fly past a defeated monument"). The park's pavilions never tip: left open. */
+  constructor(public closed = false) {}
   begin(m: Mat, grp = 0, detail = false) { this.m = m; this.grp = grp; this.detail = detail; this.part = this.parts.length; this.parts.push({ x: 0, y: 0, z: 0 }); this.partGroup.push(grp); return this; }
   v(x: number, y: number, z: number) { this.p.push({ x, y, z }); this.g.push(this.grp); this.vp.push(this.part); return this.p.length - 1; }
   /** A face (convex, in order round it), its normal turned to point away from `c`. */
@@ -98,7 +102,7 @@ export const box = (b: MB, x0: number, x1: number, y0: number, y1: number, z0: n
   b.f([v[4], v[0], v[3], v[7]], c, d.left ?? d.sides);
   b.f([v[1], v[5], v[6], v[2]], c, d.right ?? d.sides);
   b.f([v[3], v[2], v[6], v[7]], c, d.top);
-  if (bottom) b.f([v[0], v[4], v[5], v[1]], c);
+  if (bottom || b.closed) b.f([v[0], v[4], v[5], v[1]], c);
 };
 /** A ring of `n` (its middle at cx, cz; radii rx, rz) from y0 to y1, its radii times `k` at the top (a frustum; 0: to a
  *  point). `rot` turns the ring. Sides get `dec`; a top cap unless `cap` is false. */
@@ -111,9 +115,9 @@ export const frustum = (b: MB, cx: number, cz: number, rx: number, rz: number, y
   } else {
     const T = ring(y1, k);
     for (let i = 0; i < n; i++) b.f([B[i], B[(i + 1) % n], T[(i + 1) % n], T[i]], c, dec);
-    if (cap) b.f(T.slice(), { x: cx, y: y0 - 1, z: cz });
+    if (cap || b.closed) b.f(T.slice(), { x: cx, y: y0 - 1, z: cz });
   }
-  if (bottom) b.f(B.slice().reverse(), { x: cx, y: y1 + 1, z: cz });
+  if (bottom || b.closed) b.f(B.slice().reverse(), { x: cx, y: y1 + 1, z: cz });
 };
 /** A lathe (a dome, a head): `prof` [radius, y] from the bottom up, turned round `n` times. */
 export const lathe = (b: MB, cx: number, cz: number, prof: [number, number][], n: number, zk = 1, rot = 0, dec?: Decal) => {
@@ -124,6 +128,12 @@ export const lathe = (b: MB, cx: number, cz: number, prof: [number, number][], n
       const a0 = A[i % A.length], a1 = A[(i + 1) % A.length], b0 = B[i % B.length], b1 = B[(i + 1) % B.length];
       if (A.length === 1) b.f([a0, b1, b0], cc, dec); else if (B.length === 1) b.f([a0, a1, b0], cc, dec); else b.f([a0, a1, b1, b0], cc, dec);
     }
+  }
+  // (closed: its open ends capped, each facing out (away from the inside))
+  if (b.closed && rings.length > 1) {
+    const r0 = rings[0], r1 = rings[rings.length - 1], y0 = prof[0][1], y1 = prof[prof.length - 1][1];
+    if (r0.length > 2) b.f(r0.slice(), { x: cx, y: y0 + (y1 > y0 ? 1 : -1), z: cz });
+    if (r1.length > 2) b.f(r1.slice(), { x: cx, y: y1 + (y1 > y0 ? -1 : 1), z: cz });
   }
 };
 /** A beam from a to b (a strut, a thigh): w across (x-ish), d deep, its ends capped. */

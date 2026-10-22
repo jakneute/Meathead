@@ -306,7 +306,7 @@ export const HURT: HurtTable = {
   'm2:fl_mech_redeemer': { hurt: ['I HIT THE BIG GUY!', "OW! HE'S MADE OF CONCRETE!"], death: ['FLEW INTO THE BIG GUY', 'SMASHED ON A MOUNTAIN STATUE'] },
   'm2:fl_mech_redeemer_shot': { hurt: ["OW! IT'S SHOOTING AT ME FROM ITS HANDS!", 'THE HALO! THE HALO HURTS!'], death: ['SHOT BY A STATUE', 'REDEEMED'] },
   'm2:fl_redeemer_arms': { hurt: ['HE HUGGED ME! IT HURTS!', 'OW! THE ARMS! THE BIG ARMS!'], death: ['HUGGED TO DEATH', 'CRUSHED IN A CONCRETE HUG'] },
-  'm2:fl_pisa_fall': { hurt: ['THE TOWER FELL ON ME!'], death: ['THE LEANING TOWER FELL', 'IT FINALLY FELL. ON HIM.'] },
+  'm2:fl_pisa_fall': { hurt: ['THE TOWER FELL ON ME!', 'NOT ON ME! NOT ON MEEE!', 'OH SHIT, IT ACTUALLY FELL!'], death: ['FIXED THE LEAN WITH HIS FACE', 'IT FINALLY FELL. ON HIM.', 'NOW IT STANDS UP STRAIGHT'] },
   'm2:fl_mech_pisa': { hurt: ['I FLEW INTO THE TOWER!', "OW! IT'S HARD AS HELL!"], death: ['FLEW INTO A CROOKED TOWER', 'KILLED BY ITALIAN MARBLE'] },
   'm2:fl_mech_taj': { hurt: ['I HIT THE TAJ MAHAL!', 'OW! THE DOME!'], death: ['CRASHED INTO A TOMB', 'BURIED IN THE TAJ MAHAL'] },
   'm2:fl_mech_taj_shot': { hurt: ['IT SPITS MARBLES!', "OW! THE DOME'S SHOOTING!"], death: ['MARBLED', 'SHOT BY A MONUMENT TO LOVE'] },

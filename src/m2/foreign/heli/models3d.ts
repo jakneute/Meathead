@@ -43,7 +43,7 @@ const FLAGB = mat(['#1E3A8A', '#1D4ED8', '#2563EB', '#3B82F6', '#60A5FA']), FLAG
 // ---------------------------------------------------------------------------------------------------------------
 
 const eiffel = () => {
-  const b = new MB();
+  const b = new MB(true);
   // (the four legs, raking in to the first deck, latticed; the arches between them)
   b.begin(IRON);
   for (const sx of [-1, 1]) for (const sz of [-1, 1]) beam(b, { x: sx * 90, y: 0, z: sz * 90 }, { x: sx * 56, y: 112, z: sz * 56 }, 12, 12, { k: 'lattice', a: 4 });
@@ -75,7 +75,7 @@ const eiffel = () => {
 /** The Opera House's shells: [middle x, size, height, z]. */
 const SHELLS: [number, number, number, number][] = [[-120, 0.6, 80, 6], [-70, 1, 140, 0], [10, 1.2, 168, 0], [70, 0.9, 120, 0], [-10, 0.55, 72, 48], [74, 0.5, 64, 48]];
 const opera = () => {
-  const b = new MB();
+  const b = new MB(true);
   // (the podium, its granite steps down the front; the glass walls)
   b.begin(GRANITE); box(b, -156, 156, 0, 62, -70, 90, { front: { k: 'hlines', a: 6 }, sides: { k: 'hlines', a: 3 } });
   b.begin(GLASSG); box(b, -120, 120, 62, 100, -40, 64, { sides: { k: 'vlines', a: 16, col: '#D9A441' } });
@@ -96,7 +96,7 @@ const opera = () => {
 };
 
 const redeemer = () => {
-  const b = new MB();
+  const b = new MB(true);
   b.begin(PED); box(b, -52, 52, 0, 62, -52, 52, { sides: { k: 'panel' } });
   b.begin(PED); box(b, -46, 46, 62, 70, -46, 46);
   // (the robe, flaring at the hem, its folds; the sash)
@@ -116,7 +116,7 @@ const redeemer = () => {
 /** The Leaning Tower's tiers' ledges (from its base). */
 const PISA_Y = [0, 40, 92, 144, 196, 248, 300, 352, 404, 440];
 const pisa = () => {
-  const b = new MB(), n = 10;
+  const b = new MB(true), n = 10;
   for (let k = 0; k + 1 < PISA_Y.length; k++) { b.begin(PISAM, 1); frustum(b, 0, 0, 42, 42, PISA_Y[k], PISA_Y[k + 1], n, 1, 0, { k: 'arches', a: 1, b: 1, col: k % 2 ? '#78716C' : '#57534E' }, k === PISA_Y.length - 2); }
   for (let k = 1; k + 1 < PISA_Y.length; k++) { b.begin(PISAM, 1, true); frustum(b, 0, 0, 46.5, 46.5, PISA_Y[k] - 3, PISA_Y[k] + 5, n, 1, 0, undefined, true); }
   b.begin(PISAM, 1); frustum(b, 0, 0, 30, 30, 440, 478, n, 1, 0, { k: 'arches', a: 1, b: 1, col: '#57534E' });
@@ -125,7 +125,7 @@ const pisa = () => {
 };
 
 const taj = () => {
-  const b = new MB();
+  const b = new MB(true);
   b.begin(SANDST); box(b, -170, 170, 0, 8, -170, 170, { sides: { k: 'courses', a: 1, b: 12 } });
   // (the long pool down its front, between the walks)
   b.begin(POOL, 0, true); box(b, -16, 16, 8, 8.6, -168, -124);
@@ -156,7 +156,7 @@ const taj = () => {
 };
 
 const bigben = () => {
-  const b = new MB();
+  const b = new MB(true);
   // (the shaft in three stages of gothic windows, ledges between; its corner buttresses)
   for (const [y0, y1] of [[0, 100], [100, 200], [200, 300]]) { b.begin(BENS); box(b, -52, 52, y0, y1, -52, 52, { sides: { k: 'windows', a: 4, b: 3, col: '#5B2A10' } }); }
   for (const y of [100, 200, 300]) { b.begin(BENS, 0, true); box(b, -55, 55, y - 3, y + 3, -55, 55); }
@@ -172,7 +172,7 @@ const bigben = () => {
 };
 
 const colosseum = () => {
-  const b = new MB(), N = 20, RX = 172, RZ = 130;
+  const b = new MB(true), N = 20, RX = 172, RZ = 130;
   // (its height round it: full on the left, broken down on the right, jagged)
   const hAt = (i: number) => { const a = (i / N) * Math.PI * 2, x = Math.cos(a); if (x < 0.25) return 222; const j = ((i * 37) % 5) * 7; return Math.max(138, 222 - ((x - 0.25) / 0.75) * 84 - j); };
   const P = (i: number, k: number, y: number) => { const a = (i / N) * Math.PI * 2; return b.v(Math.cos(a) * RX * k, y, -Math.sin(a) * RZ * k); };
@@ -191,7 +191,7 @@ const colosseum = () => {
 };
 
 const pyramid = () => {
-  const b = new MB(), tiers = 8, top = 262;
+  const b = new MB(true), tiers = 8, top = 262;
   // (stepped courses, each a little in from the last: lit steps up its faces; the gold capstone, its eye)
   for (let t = 0; t < tiers; t++) {
     const y0 = (t / tiers) * top, y1 = ((t + 1) / tiers) * top, h0 = 182 * (1 - y0 / 302) - (t ? 3 : 0), h1 = 182 * (1 - y1 / 302);
@@ -209,7 +209,7 @@ const pyramid = () => {
 };
 
 const moai = () => {
-  const b = new MB();
+  const b = new MB(true);
   // (the body, risen up out of the ground under it: arms carved down its sides, hands on its belly)
   b.begin(MOAI, 2); box(b, -110, 110, 0, 150, -62, 62, { front: { k: 'moaiArms' }, sides: { k: 'vlines', a: 2 } });
   // (the head: long, the heavy brow, the long nose, pursed lips, the jutting chin; its ears; the red topknot)
@@ -256,7 +256,7 @@ export const EYE_AT: Record<MechId, { z: number; g: number }> = {
 let plinthMesh: Mesh | null = null;
 export const plinthOf = () => {
   if (plinthMesh) return plinthMesh;
-  const b = new MB();
+  const b = new MB(true);
   // (a stepped plinth: its foot, the dado in panels, the cornice; a gold plaque on its front)
   b.begin(PLINTHM); box(b, -70, 70, 0, 6, -70, 70);
   b.begin(PLINTHM); box(b, -64, 64, 6, LEG - 6, -64, 64, { sides: { k: 'panel' } });
@@ -270,7 +270,7 @@ export interface LegPose { u: number; f: number; wreck: boolean; feet?: { x: num
 export const hipH = (u: number) => LEG * (0.5 + 0.5 * u);
 /** The chassis and legs, posed (local, the ground at y 0): stomping in place, or each foot where it is (walking in). */
 export const legsMesh = (P: LegPose): Mesh => {
-  const b = new MB(), u = P.u, H = hipH(u), ph = P.wreck ? 0 : P.f * 0.09;
+  const b = new MB(true), u = P.u, H = hipH(u), ph = P.wreck ? 0 : P.f * 0.09;
   for (const s of [-1, 1]) {
     const lift = u > 0.95 && !P.feet ? Math.max(0, Math.sin(ph + (s > 0 ? Math.PI : 0))) * 9 : 0;
     let foot = { x: s * (28 + (1 - u) * 6) + (u > 0.95 && !P.feet ? Math.cos(ph + (s > 0 ? Math.PI : 0)) * 5 : 0), y: lift, z: 0 };

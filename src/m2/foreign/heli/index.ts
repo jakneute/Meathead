@@ -50,6 +50,7 @@ import { WAVES, goonsLeft, sweepGoons, fightGroup, tickEntrances, drawEntrances 
 import { shredHold } from './shred';
 import { drawPark, roadY, panicAt, inWorld, RISE, fireLamps } from './park';
 import { drawAttacks } from './mechArt';
+import { pancakeOf, drawPancakeFront, pancakeFlash } from './pisaDeath';
 import { drawLandmarkWorld } from './landmarks3d';
 import { drawStreetsBackdrop } from '../backdrop';
 import { drawHarry } from './harryArt';
@@ -607,7 +608,11 @@ export const heli: ForeignSection = {
     if (!h.over && h.phase !== 'gone') {
       const piv = h.phase === 'pad' || (h.phase === 'board' && h.step < 2) ? { x: PAD_O.x + SEAT_BACK, y: PAD_O.y } : feetOf(state);
       const rot = h.phase === 'fly' || h.phase === 'end' || h.phase === 'tour' ? { tilt: h.tilt, flip: h.flip } : { tilt: 0, flip: 0 };
-      drawCopter(c, 'back', piv.x, piv.y, { seat: h.phase === 'pad' || (h.phase === 'board' && h.step < 2) ? SEAT_BACK : h.seat, tilt: rot.tilt, flip: rot.flip, rotor: h.rotor }, f, { flash: state.player.invincibilityTimer > 0 && (f >> 2) % 2 === 0 });
+      // (flattened under the Leaning Tower: squashed about his feet, pisaDeath.ts)
+      const pc = pancakeOf(state);
+      if (pc) { c.save(); c.translate(piv.x, piv.y); c.scale(pc.sx, pc.sy); c.translate(-piv.x, -piv.y); }
+      drawCopter(c, 'back', piv.x, piv.y, { seat: h.phase === 'pad' || (h.phase === 'board' && h.step < 2) ? SEAT_BACK : h.seat, tilt: rot.tilt, flip: rot.flip, rotor: h.rotor }, f, { flash: !pc && state.player.invincibilityTimer > 0 && (f >> 2) % 2 === 0 });
+      if (pc) c.restore();
       // (Harry in the pilot's seat)
       if (h.hpose === 'pilot') drawHarry(c, h.hx, h.hy, { pose: 'pilot', f, talking: !!h.harry });
     }
@@ -621,7 +626,10 @@ export const heli: ForeignSection = {
       const onPad = h.phase === 'pad' || (h.phase === 'board' && h.step < 2);
       const piv = onPad ? { x: PAD_O.x + SEAT_BACK, y: PAD_O.y } : feetOf(state);
       const rot = h.phase === 'fly' || h.phase === 'end' || h.phase === 'tour' ? { tilt: h.tilt, flip: h.flip } : { tilt: 0, flip: 0 };
-      drawCopter(c, 'front', piv.x, piv.y, { seat: onPad ? SEAT_BACK : h.seat, tilt: rot.tilt, flip: rot.flip, rotor: h.rotor }, f, { harryDoor: !!h.flags.door, burning: (h.phase === 'end' && h.step >= 2) || p.health <= 0 });
+      const pc = pancakeOf(state);
+      if (pc) { c.save(); c.translate(piv.x, piv.y); c.scale(pc.sx, pc.sy); c.translate(-piv.x, -piv.y); }
+      drawCopter(c, 'front', piv.x, piv.y, { seat: onPad ? SEAT_BACK : h.seat, tilt: rot.tilt, flip: rot.flip, rotor: pc && pc.k > 0 ? 0 : h.rotor }, f, { harryDoor: !!h.flags.door, burning: !pc && ((h.phase === 'end' && h.step >= 2) || p.health <= 0) });
+      if (pc) { c.restore(); drawPancakeFront(c, state, h.seat); }
     }
     drawRockets(c, state);
     // (lackeys swooping in from up close, over everything)
@@ -664,7 +672,9 @@ export const heli: ForeignSection = {
     const cut = (h.phase === 'board' || h.phase === 'lift' || h.phase === 'tour' || h.phase === 'end') && h.t > SKIP_AFTER;
     if (cut) drawSkipPrompt(c, CANVAS_WIDTH);
     if (h.white > 0) { c.fillStyle = 'rgba(255,255,255,' + h.white + ')'; c.fillRect(0, 0, SW, SH); }
-    if (h.phase !== 'fly' || p.inCutscene) return;
+    // (flattened by the Leaning Tower: a tourist's camera flash at the end of it)
+    { const fl = pancakeFlash(state); if (fl > 0) { c.fillStyle = 'rgba(255,255,255,' + fl.toFixed(3) + ')'; c.fillRect(0, 0, SW, SH); } }
+    if (h.phase !== 'fly' || p.inCutscene || pancakeOf(state)) return;
     // The landmark's bar (the top band, clear of the HUD): filling up as it arrives
     const m = h.mechs[h.cur];
     if (m && !h.transit && (m.st === 'intro' || m.st === 'fight' || m.st === 'dying')) {

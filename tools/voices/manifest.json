@@ -9676,6 +9676,11 @@
  },
  {
   "voice": "death",
+  "text": "FIXED THE LEAN WITH HIS FACE",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "death",
   "text": "FLAG PLANTED",
   "from": "SPACE"
  },
@@ -12818,6 +12823,11 @@
   "voice": "death",
   "text": "NOW IN LOW EARTH ORBIT",
   "from": "m1/game/stages/hector/tower.ts:168"
+ },
+ {
+  "voice": "death",
+  "text": "NOW IT STANDS UP STRAIGHT",
+  "from": "FOREIGN"
  },
  {
   "voice": "death",
@@ -16098,11 +16108,6 @@
   "voice": "death",
   "text": "THE LAVA SPIT",
   "from": "content/deaths"
- },
- {
-  "voice": "death",
-  "text": "THE LEANING TOWER FELL",
-  "from": "FOREIGN"
  },
  {
   "voice": "death",
@@ -76416,6 +76421,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NOT ON ME! NOT ON MEEE!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
   "text": "NOT ON MY BARE ASS! NOT ON MY BARE ASS!",
   "from": "CARTOON"
  },
@@ -76943,6 +76953,11 @@
   "voice": "meathead",
   "text": "OH SHIIIIT!",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "OH SHIT, IT ACTUALLY FELL!",
+  "from": "FOREIGN"
  },
  {
   "voice": "meathead",

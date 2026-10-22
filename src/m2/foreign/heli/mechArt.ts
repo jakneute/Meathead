@@ -407,7 +407,7 @@ export const drawAttacks = (c: Ctx, state: GameState, h: Heli) => {
   const f = state.frame;
   // The Leaning Tower's landing zone, while it leans: the arc its top sweeps, where it'll lie (red, hatched)
   const pm = h.mechs[h.cur];
-  if (pm?.id === 'pisa' && pm.st === 'fight' && pm.b >= 1 && pm.b < 3) {
+  if (pm?.id === 'pisa' && pm.st === 'fight' && pm.b >= 1 && pm.b < 3 && state.deathTimer <= 0) {
     const px = pisaPivot().x, py = pisaPivot().y, Lh = 440 + LEG + 36;
     c.save();
     c.globalAlpha = 0.2 + (f % 20 < 10 ? 0.1 : 0);

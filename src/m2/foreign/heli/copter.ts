@@ -38,7 +38,10 @@ export const ROCKETS_ON = true;
 /** The gun: frames between rounds, a round's speed and damage (to the goons: the engine's; to a landmark: mechs.ts). */
 const GUN_CD = 4, ROUND_V = 21, ROUND_DMG = 22;
 /** Rockets: how long one takes to come back, top speed, turn, life, blast. */
-const ROCKET_BACK = 225, ROCKET_V = 11, ROCKET_TURN = 0.13, ROCKET_LIFE = 200, ROCKET_R = 64, ROCKET_MECH = 70;
+const ROCKET_BACK = 225, ROCKET_V = 11, ROCKET_TURN = 0.13, ROCKET_LIFE = 200, ROCKET_R = 64;
+/** A rocket on a landmark: its own cut (the user: "a fair amount less damage to monuments"), not the lackeys' (still
+ *  140 / 120: one shot each). Was 70; now 70 x 0.62 = 43 (x1.6 HP_SCALE: 112 -> 69 off a landmark's bar). */
+const ROCKET_MECH_K = 0.62, ROCKET_MECH = Math.round(70 * ROCKET_MECH_K);
 /** The boost: frames, speed, cooldown; how far past the helicopter its blades reach. Its own recharge, not his power
  *  cells (the user: more often than he can charge on land: on foot a charge every 60 frames at best (the 30-frame
  *  charge, a cell back every 30); up here one every 30). */

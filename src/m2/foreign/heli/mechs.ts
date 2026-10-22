@@ -462,7 +462,8 @@ const fight = (ctx: FrameContext, m: Mech) => {
 
 /** THE LEANING TOWER OF PISA: taunting (shots ping off), then the long lean (its landing zone shown, creaking), then
  *  the fall: on him, he's dead; missed, it's smashed, its bar's empty, and on to the next. */
-const PISA_TAUNT = 420, PISA_LEAN = 320, PISA_LEN = 440 + LEG;
+const PISA_TAUNT = 420, PISA_LEAN = 320;
+export const PISA_LEN = 440 + LEG;
 /** Where the tower's lying when it's down (radians over to the left). */
 export const PISA_DOWN = Math.PI / 2 - 0.12;
 const pisa = (ctx: FrameContext, h: Heli, m: Mech) => {
