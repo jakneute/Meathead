@@ -117,17 +117,25 @@ export const IN_RINK = [3, 4];
 // ---------------------------------------------------------------------------------------------------------------
 // The cast, the pickups, the checkpoints
 
-/** [kind, x, height of its feet]. */
+/** [kind, x, height of its feet]. Encounter pass (cartoon-spec.md, 2026-10-21): nobody within a checkpoint's safe
+ *  reach (spawnSafe.ts SAFE_X); the cast up on the stands and the drums, set on him with the rides and over the glop. */
 export const CAST: [string, number, number][] = [
+  // (the gate: a ride op alone, taught; the couch's street stays the couch's)
   ['m2:ct_rideop', 820, 0],
-  ['m2:ct_churro', 2960, 0], ['m2:ct_rideop', 3300, 0],
-  ['m2:ct_gloppy', 4800, 0],
-  ['m2:ct_skatepunk', 6330, 0],
-  ['m2:ct_rideop', 7170, 0], ['m2:ct_flea', 8330, 0],
-  ['m2:ct_skatepunk', 8570, 0], ['m2:ct_churro', 9210, 0],
-  ['m2:ct_gloppy', 10530, 0], ['m2:ct_flea', 10420, 140],
-  ['m2:ct_skatepunk', 11400, 0],
-  ['m2:ct_rideop', 11620, 0], ['m2:ct_churro', 11720, 0], ['m2:ct_gloppy', 11800, 0], ['m2:ct_flea', 11900, 0],
+  // (the gift shack, out of its checkpoint's reach: the churro vendor; then the Flea by the first glop pit: up on the
+  // lids, he leaps and dives at where he was: keep moving and he goes into the glop)
+  ['m2:ct_churro', 3180, 0], ['m2:ct_flea', 3520, 0],
+  // (the bumper bash: Gloppy on the near scorer's stand hocking loogies onto the rink floor (half speed in a puddle,
+  // with the cars lining up); a ride op on the far stand, on his headset setting the cars on him)
+  ['m2:ct_gloppy', STANDS[0][0] + 50, STANDS[0][2]], ['m2:ct_rideop', STANDS[1][0] + 50, STANDS[1][2]],
+  // (past the memorial: Rad Rat (spiky: no dive kick); then the hurl-a-whirl's op who sets it on him with Gloppy at
+  // the plaza's mouth, puddles to wade through as it lurches over (and they're in its way when it does))
+  ['m2:ct_skatepunk', 6960, 0], ['m2:ct_rideop', 7170, 0], ['m2:ct_gloppy', 7250, 0],
+  // (the second glop pit, past the pod's plaza (the pod alone): the Flea up on the near drums, the step up, diving
+  // after him once he's out on the lids; the churro vendor below them throwing flat at him from behind)
+  ['m2:ct_churro', 9190, 0], ['m2:ct_flea', DRUMS[2][0] + 50, DRUMS[2][2]],
+  // (the way on: the mixed crowd at the gate, past the checkpoint's reach)
+  ['m2:ct_rideop', 11730, 0], ['m2:ct_skatepunk', 11790, 0], ['m2:ct_gloppy', 11850, 0], ['m2:ct_flea', 11905, 0],
 ];
 /** Pickups (lean): [x, height, type]. */
 export const PICKUPS: [number, number, 'small_health' | 'small_ammo'][] = [
@@ -145,7 +153,8 @@ export const CHECKPOINTS = [
   { name: 'IN LOVING MEMORY', cp: 43, x: X(6500), y: GY },
   { name: 'THE MOTION MADNESS', cp: 44, x: X(8480), y: GY },
   { name: 'THE TUBULAR HALFPIPE', cp: 45, x: X(10630), y: GY },
-  { name: 'THE EXTENDED UNIVERSE', cp: 46, x: X(11460), y: GY },
+  // (just off the halfpipe's lip: the gate's crowd stands clear of its safe reach)
+  { name: 'THE EXTENDED UNIVERSE', cp: 46, x: X(11330), y: GY },
 ];
 
 /** The memorial: the plaque on its stone, the bench, the mural on the wall behind. */
