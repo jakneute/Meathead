@@ -16,6 +16,7 @@ import { stencil } from './letters';
 import { ALIEN } from '../../../m1/game/scenes/alienLook';
 import { type Ramp, LAT, GLOSS, SPEC, CHROME, STEELR, SACR, FOAMR, GUM, TOOTH, GREEN, dith, tube, hose, quad, blob, shapeShade, rings } from './paint';
 import { elbow } from '../../art/limb';
+import { drawFoamOn } from './foam';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -34,6 +35,8 @@ export interface QueenDraw {
   stride?: number;
   /** Foam on her (the extinguisher: 0..1). */
   foam?: number;
+  /** Shaking the foam off (it shrinks, thins, pops). */
+  foamShed?: boolean;
   /** Her outer jaws open this far (0..1), whatever the pose (the kill's slow opening). */
   jaw?: number;
   /** Her inner jaws out this far (0..1.6), whatever the pose (0: kept in; the kill draws its own strike). */
@@ -131,12 +134,10 @@ export const drawQueen = (c: Ctx, x: number, facing: 1 | -1, q: QueenDraw) => {
     const u = ((t * 0.02 + i * 0.25) % 1), sx = 4 + Math.sin(u * 6 + i) * 6 - u * 10, sy = -236 - u * 70;
     c.fillStyle = u < 0.5 ? '#4B4B57' : dith(c, '#6B6B78', 2, i % 2); c.beginPath(); c.ellipse(sx, sy, 5 + u * 10, 4 + u * 8, 0, 0, Math.PI * 2); c.fill();
   }
-  // (the extinguisher's foam all over her, in clumps: white, blue-gray in its shade)
-  if (q.foam && q.foam > 0) for (let i = 0; i < Math.round(14 * q.foam); i++) {
-    const fx = -30 + ((i * 37) % 90), fy = -280 + ((i * 53) % 220), r = 9 + (i % 3) * 3;
-    blob(c, fx, fy, r, 7, ['#64748B', '#CBD5E1', '#E2E8F0', '#F8FAFC', '#FFFFFF'], false);
-  }
   c.restore();
+  // (the extinguisher's foam all over her (foam.ts): globs, drips, a pile at her feet; her lean done here, unrotated,
+  // so its lumps come off stamps)
+  if (q.foam && q.foam > 0) drawFoamOn(c, q.foam, !!q.foamShed, t, lean + sag * 0.35, -110, A.map(a => ({ x: a.hx, y: a.hy })), q.free ? -36 : 0);
   c.restore();
 };
 

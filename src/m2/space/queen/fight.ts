@@ -76,6 +76,7 @@ import * as L from './lines';
 import { setDropTable } from '../../../m1/game/core/effects';
 import { since } from '../../frames';
 import { drawQueenGross, drawQueenGrossBack } from './queenGross';
+import { type Sud, addSud, tickSuds, drawSuds } from './foam';
 
 type Ctx = CanvasRenderingContext2D;
 const pick = pickLine;
@@ -175,7 +176,10 @@ export interface Fight {
   ext: number; ph: string | null;
   step: Step; stepT: number; skipT: number; token: number;
   glass: boolean; booth: number; beam: number; alive: number;
-  lights: number; down: number; foam: number; ext2: 'wall' | 'held' | 'air' | 'gone'; ex: { x: number; y: number; vx: number; vy: number; r: number };
+  lights: number; down: number; foam: number;
+  /** The extinguisher's foam loose in the air (the clouds, the globs at her, what she shakes off, the popped specks). */
+  suds: Sud[];
+  ext2: 'wall' | 'held' | 'air' | 'gone'; ex: { x: number; y: number; vx: number; vy: number; r: number };
   said: string | null; boothSaid: string | null;
   birthT: number; leapT: number; linger: number; forceLeap: boolean; stunT: number;
   /** When a close mallet hit last stunned her (f.total). */
@@ -229,7 +233,7 @@ export const makeFight = (state: GameState): Fight => {
     side: 1, x: seen ? SIDE_X[1] : INTRO_X, y: 0, facing: -1, ext: 0, ph: null,
     step: 'lights', stepT: 0, skipT: 0, token: 0,
     glass: !seen, booth: 1, beam: 0, alive: 1,
-    lights: seen ? 1 : 0, down: seen ? 1 : 0, foam: 0, ext2: seen ? 'gone' : 'wall', ex: { x: EXTINGUISHER_X, y: GY - 90, vx: 0, vy: 0, r: 0 },
+    lights: seen ? 1 : 0, down: seen ? 1 : 0, foam: 0, suds: [], ext2: seen ? 'gone' : 'wall', ex: { x: EXTINGUISHER_X, y: GY - 90, vx: 0, vy: 0, r: 0 },
     said: null, boothSaid: null,
     birthT: 120, leapT: 0, linger: 0, forceLeap: false, stunT: 0, closeAt: -9999, pool: null,
     dents: 0, pieces: [], splats: [], glitchAt: -9999, stopT: 0, barFrom: HP, barT: 0, blown: false, slow: null, whiteT: 99, lastWords: false,
@@ -326,7 +330,7 @@ export const startFight = (state: GameState, f: Fight) => {
 const begin = (state: GameState, f: Fight) => {
   f.token++;
   to(f, 'idle'); f.glass = false; f.booth = 1; f.beam = 0; f.alive = 1; f.said = null; f.boothSaid = null;
-  f.lights = 1; f.down = 1; f.foam = 0; f.ext2 = 'gone'; f.cheapSaid = false;
+  f.lights = 1; f.down = 1; f.foam = 0; f.suds = []; f.ext2 = 'gone'; f.cheapSaid = false;
   f.birthT = 120; f.canT = 0;
   // (the big leap's ready from the off: the first time she's to move, that's it; a retry, she's off soon after her entrance)
   f.leapT = LEAP_EVERY[1]; f.stay = 80; f.acts = 0;
@@ -360,6 +364,8 @@ const intro = (ctx: FrameContext, f: Fight): Controls => {
   const pose = (step: NonNullable<typeof p.extinguisher>['step'], pt: number) => { p.extinguisher = { step, t: pt }; };
   const at = (lp: readonly [number, number]) => ({ x: cx + p.facing * lp[0], y: feet + lp[1] });
   if (p.extinguisher && p.extinguisher.step !== 'reach') p.extinguisher.t++;
+  // (the loose foam: the spray's globs spent on her once they reach her (the heap on her is f.foam); the rest falls, lands, pops)
+  if (f.suds.length) tickSuds(f.suds, s => f.step === 'spray' && Math.abs(s.x - (f.x - 20)) < 50 && s.y > GY - 320 && s.y < GY - 30);
   if (p.extinguisher?.step === 'throw' && p.extinguisher.t > 34) p.extinguisher = undefined;
   switch (f.step) {
     case 'lights':
@@ -396,12 +402,13 @@ const intro = (ctx: FrameContext, f: Fight): Controls => {
       f.ex.x = tip.x; f.ex.y = tip.y;
       if (t > 6 && (out ? t % 2 === 0 : t % 5 === 0)) {
         playSound(out ? 'oil' : 'squish', out ? 0.35 : 0.3, out ? 8 : 12);
-        for (let i = 0; i < (out ? 4 : 1); i++) {
+        // (globs of it, blasting at her (gone into the heap on her where they hit); sputtering at the end, dribbling)
+        for (let i = 0; i < (out ? 2 : 1); i++) {
           const sp = (out ? 9 : 3) + Math.random() * 3, aa = a + (Math.random() - 0.5) * (out ? 0.22 : 0.6);
-          state.particles.push({ pos: { x: tip.x, y: tip.y }, vel: { x: Math.cos(aa) * sp * p.facing, y: Math.sin(aa) * sp }, life: out ? 44 : 20, color: i % 2 ? '#F8FAFC' : '#E2E8F0', size: 4 + Math.random() * 5, grav: out ? 0.06 : 0.25 });
+          addSud(f.suds, { x: tip.x, y: tip.y, vx: Math.cos(aa) * sp * p.facing, vy: Math.sin(aa) * sp, r: out ? 4 + Math.random() * 4 : 2.5 + Math.random() * 2, dr: out ? 0.12 : 0, life: out ? 44 : 22, grav: out ? 0.06 : 0.25, look: t + i });
         }
-        // (the cloud billowing round the nozzle)
-        if (out) state.particles.push({ pos: { x: tip.x + p.facing * 8, y: tip.y }, vel: { x: p.facing * (0.6 + Math.random()), y: -0.4 - Math.random() * 0.5 }, life: 36, color: 'rgba(241, 245, 249, 0.55)', size: 10 + Math.random() * 8 });
+        // (the cloud billowing round the nozzle: swelling, hanging there, popping)
+        if (out && t % 4 === 0) addSud(f.suds, { x: tip.x + p.facing * 8, y: tip.y, vx: p.facing * (0.6 + Math.random()), vy: -0.4 - Math.random() * 0.5, r: 5 + Math.random() * 3, dr: 0.2, life: 30, grav: 0, look: t + 3 });
       }
       if (out && t % 12 === 0) shakeScreen(state, 1, 1);
       f.foam = Math.min(1, t / 70);
@@ -410,8 +417,13 @@ const intro = (ctx: FrameContext, f: Fight): Controls => {
     }
     case 'shake': {
       // (nothing: she shakes it all off, like a dog; him, shaking his empty can at his face)
-      if (t % 6 === 0) { playSound('whoosh', 0.4, 6); for (let i = 0; i < 6; i++) state.particles.push({ pos: { x: f.x + (Math.random() - 0.5) * 80, y: GY - 120 - Math.random() * 160 }, vel: { x: (Math.random() - 0.5) * 9, y: -2 - Math.random() * 4 }, life: 34, color: '#F8FAFC', size: 4 + Math.random() * 4, grav: 0.3 }); }
-      if (t % 9 === 0) { playSound('clink', 0.3, 10); const tip = at(shakeNozzle(p.extinguisher ?? { step: 'shake', t })); state.particles.push({ pos: { x: tip.x, y: tip.y }, vel: { x: p.facing * 0.4, y: 0.5 }, life: 26, color: '#F8FAFC', size: 3, grav: 0.2 }); }
+      if (t % 6 === 0) {
+        playSound('whoosh', 0.4, 6);
+        // (flung off her like off a wet dog: globs out both ways, arcing down, landing in heaps that go)
+        const n = Math.max(1, Math.round(5 * f.foam + 1));
+        for (let i = 0; i < n; i++) addSud(f.suds, { x: f.x + (Math.random() - 0.5) * 80, y: GY - 120 - Math.random() * 160, vx: (Math.random() - 0.5) * 10, vy: -2 - Math.random() * 4, r: 3 + Math.random() * 5 * (0.4 + f.foam), dr: -0.04, life: 60, grav: 0.3, look: t + i });
+      }
+      if (t % 9 === 0) { playSound('clink', 0.3, 10); const tip = at(shakeNozzle(p.extinguisher ?? { step: 'shake', t })); addSud(f.suds, { x: tip.x, y: tip.y, vx: p.facing * 0.4, vy: 0.5, r: 2.5, dr: 0, life: 26, grav: 0.2, look: t }); }
       f.foam = Math.max(0, f.foam - 0.025);
       if (t === 40) meatheadSays(state, pick(L.MH_FOAM_FAIL), true, tokened(f, () => { go(f, 'throw'); pose('wind', 0); }));
       break;
@@ -1284,7 +1296,7 @@ export const drawQueenFight = (c: Ctx, state: GameState, f: Fight) => {
     const crouch = f.mode === 'leap' && f.ph !== 'air' ? 0.9 : 1;
     c.save(); c.translate(sx, dy);
     c.translate(f.x, GY); c.scale(1 + burst * 0.08, crouch * (1 + burst * 0.06)); c.translate(-f.x, -GY);
-    const qd = { pose: poseOf(f), t: state.frame, ext: f.ext, alive: f.mode === 'dead' ? Math.max(0, 1 - f.deathT / 60) : f.alive, beat: Math.max(0, 1 - f.hp / HP), free: true, foam: f.foam, stride: f.mode === 'skitter' ? f.stride : 0, dents: f.dents };
+    const qd = { pose: poseOf(f), t: state.frame, ext: f.ext, alive: f.mode === 'dead' ? Math.max(0, 1 - f.deathT / 60) : f.alive, beat: Math.max(0, 1 - f.hp / HP), free: true, foam: f.foam, foamShed: f.mode === 'intro' && f.step === 'shake', stride: f.mode === 'skitter' ? f.stride : 0, dents: f.dents };
     drawQueen(c, f.x, f.facing, qd);
     // (a mallet hit: she flashes, lit up over herself)
     if (f.flash > 8 && f.mode !== 'dead') { c.globalCompositeOperation = 'lighter'; c.globalAlpha = Math.min(1, (f.flash - 8) / 8) * 0.8; drawQueen(c, f.x, f.facing, qd); drawQueen(c, f.x, f.facing, qd); c.globalCompositeOperation = 'source-over'; c.globalAlpha = 1; }
@@ -1292,6 +1304,7 @@ export const drawQueenFight = (c: Ctx, state: GameState, f: Fight) => {
     if (blink) c.globalAlpha = 1;
   }
   drawPieces(c, f.pieces, state.frame);
+  if (f.suds.length) drawSuds(c, f.suds);
   // (the flail's tell: her reach marked on the floor, red, flashing)
   if (f.mode === 'flail' && f.ph === 'tell') box(c, f.x - FLAIL_WIDE, GY - 3, FLAIL_WIDE * 2, 3, f.t % 6 < 3 ? '#EF4444' : '#7F1D1D');
   // (the impregnator ray: pink rings down out of the DJ booth into her belly)
