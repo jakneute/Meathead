@@ -23,11 +23,13 @@ const BUDGET = 320 * 1024 * 1024;
 let bytes = 0;
 /** Asked for once but not painted yet: a stamp's only painted the second time it's wanted at that scale (a zoom
  * sweeping through scales frame by frame never fills the cache with ones it'll never use again). */
-const asked = new Set<string>();
-/** First asked for this frame: asked again in the same frame (the same picture put down more than once: a row of
- *  repeated trees) isn't the scale holding still, it's the one frame of a zoom (a boss's punch-in): scaled, not painted.
- *  (Tucker's mauling punch-in painted his woods' repeated back rank afresh every frame of it: the slowdown.) */
-const askedNow = new Set<string>();
+const asked = new Map<string, number>();
+/** ...and the frame it was first asked for in: the scale's only holding still once it's been wanted at it SETTLE frames
+ *  running. Asked again in the same frame (a picture put down more than once: a row of repeated trees) or a frame or two
+ *  on (a zoom in slow motion, the scale held the frames a tick's held) is still mid-zoom: scaled, not painted afresh.
+ *  (Tucker's mauling punch-in and slow-mo kill cam painted his woods afresh at nearly every scale they went through.) */
+let frameNo = 0;
+const SETTLE = 6;
 const MAX = 400;
 /** Each picture's newest stamp, whatever scale it was painted at: while the scale's sweeping (a zoom), that one's put
  *  down scaled (smoothed) rather than the whole thing painted afresh every frame (slow, and the dithering crawls). */
@@ -60,7 +62,7 @@ const CLIP_PAD = 0.5;
 let spent = 0;
 const PAINT_MS = 6;
 /** A new frame (world.ts, before the world's drawn). */
-export const newStampFrame = () => { spent = 0; askedNow.clear(); };
+export const newStampFrame = () => { spent = 0; frameNo++; };
 /** Painting that isn't stamps' but shares their budget (hub/crowd.ts's guests): how long it took; and is this frame's
  *  budget spent, while the screen's covered (setStampCover)? */
 export const notePaint = (ms: number) => { spent += ms; };
@@ -131,8 +133,9 @@ export const stamp = (ctx: Ctx, key: string, x: number, y: number, w: number, h:
       Object.assign(ctx, l!.s.after);
       return;
     }
-    if (!asked.has(id)) {
-      if (asked.size > MAX) asked.clear(); asked.add(id); askedNow.add(id);
+    const askedAt = asked.get(id);
+    if (askedAt === undefined) {
+      if (asked.size > MAX) asked.clear(); asked.set(id, frameNo);
       // (a new scale (a zoom sweeping through them): the one it was last painted at, scaled to this, if it's near
       // enough. Too far off, it's painted at this scale right now and that's the one scaled from here on: never live
       // paint mid-sweep (its column seams shift every frame, and it pops against the scaled ones either side))
@@ -145,7 +148,7 @@ export const stamp = (ctx: Ctx, key: string, x: number, y: number, w: number, h:
         return;
       }
       if (!l && !sweep) { paint(ctx); return; }
-    } else if (near && (spent > PAINT_MS || askedNow.has(id))) {
+    } else if (near && (spent > PAINT_MS || frameNo - askedAt < SETTLE)) {
       // (wanted at a settled scale, but this frame's painted plenty already: the one it has, scaled, for now)
       const ka = m.a / l!.s.a, kd = m.d / l!.s.d;
       putDown(ctx, m, l!.s.c, l!.s.L * ka, l!.s.T * kd, l!.s.c.width * ka, l!.s.c.height * kd);

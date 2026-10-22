@@ -151,6 +151,9 @@ let live: Fight | null = null;
 let game: GameState | null = null;
 let token = 0;
 export const resetFight = () => { live = null; token++; };
+/** Dev only (tools/perf): the next frame, him showered (the lions called); 'kill': at 1 HP first, so it's the kill. */
+let devShower: '' | 'maul' | 'kill' = '';
+if (import.meta.env.DEV) (window as unknown as { __m2TuckerShower: (k?: 'maul' | 'kill') => void }).__m2TuckerShower = (k = 'maul') => { devShower = k; };
 
 // ---------------------------------------------------------------------------------------------------------------
 // Tucker, the enemy (the engine's: for the hits; drawn here)
@@ -257,6 +260,7 @@ export const updateFight = (ctx: FrameContext, f: Fight): Controls | null => {
     sync(state, f);
     return walk ? ({ ...hands(), right: walk > 0, left: walk < 0 } as Controls) : hands();
   }
+  if (devShower && f.act !== 'mauled' && f.act !== 'bloody') { if (devShower === 'kill') f.hp = 1; devShower = ''; showered(ctx, f); }
   takeHits(ctx, f);
   if (f.hp <= 0) { die(ctx, f, false); sync(state, f); return hands(); }
   listen(state, f);
@@ -943,6 +947,9 @@ const tickCam = (f: Fight) => {
   if (!cam) return;
   cam.t++;
   cam.z += (cam.zt - cam.z) * (cam.zt > cam.z ? 0.2 : 0.07);
+  // (there, once it's a hair off: easing in forever, its scale crept a hair a frame, and each hair the woods' stamps
+  // took for the scale held still and painted afresh at it (the mauling's slowdown); a hair's jump nobody sees)
+  if (Math.abs(cam.zt - cam.z) < 0.004) cam.z = cam.zt;
   if (cam.zt === 1 && cam.z < 1.004 && cam.slow >= 1) f.cam = null;
 };
 /** Held this tick (slow motion): true. */
