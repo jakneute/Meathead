@@ -20,7 +20,7 @@ import type { GameState } from '../../../m1/game/core/state';
 import { CANVAS_WIDTH } from '../../../m1/constants';
 import { signText, signW } from '../../signLetters';
 import { timeOfDay } from '../../timeOfDay';
-import { box, mix, hash, checker, toonLetters, toonSign, onScreen, INK, still, topBack, ramp6, LICORICE, CHERRY, GRASS, STEEL, BRASS, type Ctx } from '../kit';
+import { box, mix, hash, checker, toonLetters, toonSign, onScreen, INK, still, boxSides, ramp6, LICORICE, CHERRY, GRASS, STEEL, BRASS, type Ctx } from '../kit';
 import { GY } from '../geometry';
 import { whOf } from './state';
 import { chandelierAt, sprinklerAt, BALL_R, SPRAY_H, SPRAY_W, ROSE_H } from './hazards';
@@ -40,8 +40,6 @@ const litTop = (c: Ctx, x: number, y: number, w: number) => { box(c, x + 1, y - 
 /** Scenery's colors (dimmed toward the air: none of it reads as somewhere to stand). */
 const dim = (col: string) => mix(col, '#8E86B4', 0.3);
 const dimR = (Rm: string[]) => Rm.map(dim);
-/** A top going back from the play plane (when the eye's over it). */
-const top = (c: Ctx, E: P, x0: number, x1: number, y: number, d: number, Rm: string[]) => topBack(c, E, x0, x1, y, 1, d, Rm, 3);
 
 // ---------------------------------------------------------------------------------------------------------------
 // The outdoors: the South Portico behind the balcony and the garden, the lawn going back, the hedges, the colonnade
@@ -146,7 +144,7 @@ const PLACARDS: [number, number, string[]][] = [
 
 const piano = (c: Ctx, E: P) => {
   const a = X(PIANO.a), b = X(PIANO.b), t = Y(PIANO.h), L = LICORICE;
-  top(c, E, a, b, t, 0.9, L);
+  boxSides(c, E, a, b, t, GY, 0.9, L, { apron: 34, leg: 10, lines: [t + 30] });
   still(c, 'wh1-piano', a, t, -6, -84, b - a + 12, GY - t + 90, g => {
     const w = b - a;
     // (the lid propped up behind (scenery: dimmed), its prop stick; the music stand)
@@ -169,7 +167,7 @@ const piano = (c: Ctx, E: P) => {
 };
 const chairStack = (c: Ctx, E: P) => {
   const a = X(CHAIRS.a), w = CHAIRS.b - CHAIRS.a, t = Y(CHAIRS.h);
-  top(c, E, a, a + w, t, 0.92, CHERRY);
+  boxSides(c, E, a, a + w, t, GY, 0.92, CHERRY, { sideR: GILT, lines: Array.from({ length: 9 }, (_, i) => t + ((i + 1) * (GY - t)) / 10) });
   still(c, 'wh1-chairs', a, GY, -10, -(GY - t) - 6, w + 20, GY - t + 10, g => {
     // (gilt ballroom chairs, stacked too high to jump: each a gilt frame, a red cushion, staggered as they're piled)
     const n = 10, hh = (GY - t) / n;
@@ -184,7 +182,7 @@ const chairStack = (c: Ctx, E: P) => {
   litTop(c, a, t, w);
   // (the bandstand risers down the far side: blue skirting with stars, carpeted tops)
   const ra = X(RISER.a), rw = RISER.b - RISER.a, rt = Y(RISER.h);
-  top(c, E, ra, ra + rw, rt, 0.9, NAVY);
+  boxSides(c, E, ra, ra + rw, rt, GY, 0.9, NAVY, { lines: [rt + 8] });
   still(c, 'wh1-riser', ra, rt, -2, -2, rw + 4, GY - rt + 6, g => {
     slabI(g, 0, 0, rw, GY - rt, NAVY);
     for (let x = 4; x < rw - 4; x += 12) { box(g, x, 10, 6, GY - rt - 14, NAVY[2]); box(g, x, 10, 1, GY - rt - 14, NAVY[4]); }
@@ -195,7 +193,7 @@ const chairStack = (c: Ctx, E: P) => {
 };
 const podium = (c: Ctx, E: P) => {
   const a = X(PODIUM.a), w = PODIUM.b - PODIUM.a, t = Y(PODIUM.h);
-  top(c, E, a, a + w, t, 0.94, OAK);
+  boxSides(c, E, a, a + w, t, GY, 0.94, OAK, { lines: [t + 8, GY - 8] });
   still(c, 'wh1-podium', a, t, -8, -34, w + 16, GY - t + 40, g => {
     // (the lectern: oak in steps, tapering, the Seal on its front, a gooseneck mic)
     stepsAcross(g, () => { g.moveTo(0, 0); g.lineTo(w, 0); g.lineTo(w - 6, GY - t); g.lineTo(6, GY - t); g.closePath(); }, 0, 0, w, GY - t, OAK, 2.4);
@@ -211,7 +209,7 @@ const podium = (c: Ctx, E: P) => {
 const arenaLedges = (c: Ctx, E: P, ledges: [number, number, number][], kind: 'gallery' | 'shelf') => {
   for (const [a0, b0, h] of ledges) {
     const a = X(a0), b = X(b0), y = Y(h), w = b - a;
-    top(c, E, a, b, y, 0.94, kind === 'gallery' ? GILT : OAK);
+    boxSides(c, E, a, b, y, y + 14, 0.94, kind === 'gallery' ? GILT : OAK);
     still(c, `wh1-ledge-${kind}-${w}`, a, y, -4, -2, w + 8, 46, g => {
       if (kind === 'gallery') {
         // (the press gallery's ledge: a gilt-edged board on brass brackets, bunting under it)
@@ -234,8 +232,8 @@ const dining = (c: Ctx, E: P, state: GameState) => {
   const ta = X(TABLE.a), tw = TABLE.b - TABLE.a, tt = Y(TABLE.h);
   // (the chairs' backs along the back of the table: scenery, dimmed)
   still(c, 'wh1-chairbacks', ta, tt, 0, -52, tw, 54, g => { for (let x = 30; x < tw - 20; x += 80) { stepsAcross(g, () => g.roundRect(x, -50, 32, 50, [12, 12, 0, 0]), x, -50, 32, 50, dimR(OAK), 1.6); stepsDown(g, () => g.roundRect(x + 5, -44, 22, 26, [8, 8, 2, 2]), x + 5, -44, 22, 26, dimR(VELVET), 1); } });
-  top(c, E, sa, sa + sw, st, 0.92, OAK);
-  top(c, E, ta, ta + tw, tt, 0.86, ['#C8C4D6', '#D8D4E4', '#E8E4F0', '#F4F2FA', '#FFFFFF', '#FFFFFF']);
+  boxSides(c, E, sa, sa + sw, st, GY, 0.92, OAK, { lines: [st + 6, st + 50] });
+  boxSides(c, E, ta, ta + tw, tt, GY, 0.86, ['#C8C4D6', '#D8D4E4', '#E8E4F0', '#F4F2FA', '#FFFFFF', '#FFFFFF'], { sideR: ['#6A6684', '#9A96B4', '#C2BED6', '#E2DEEE', '#F6F4FC', '#FFFFFF'], lines: [GY - 9] });
   // (the place settings and the feast on the cloth going back (behind where he walks), eaten through)
   const back = (x: number) => proj(E, x, tt, 0.9);
   for (let x = ta + 40; x < ta + tw - 20; x += 80) { const p = back(x); c.fillStyle = INK; c.beginPath(); c.ellipse(p.x, p.y, 11, 3.5, 0, 0, Math.PI * 2); c.fill(); c.fillStyle = '#FFFFFF'; c.beginPath(); c.ellipse(p.x, p.y, 10, 2.6, 0, 0, Math.PI * 2); c.fill(); c.fillStyle = GILT[3]; c.fillRect(p.x - 6, p.y - 1, 12, 1); box(c, p.x + 13, p.y - 2, 1, 5, '#C8CCD8'); box(c, p.x - 14, p.y - 2, 1, 5, '#C8CCD8'); }
@@ -293,7 +291,7 @@ const stairs = (c: Ctx, state: GameState) => {
 };
 const bed = (c: Ctx, E: P) => {
   const a = X(BED.a), w = BED.b - BED.a, t = Y(BED.h), fl = Y(F2);
-  top(c, E, a - 4, a + w + 4, t, 0.86, LILACISH);
+  boxSides(c, E, a - 4, a + w + 4, t, fl, 0.86, LILACISH, { sideR: R('#5B2E1A'), lines: [t + 22] });
   // (the pillows at the head, back on the bed (behind where he stands))
   const p = proj(E, a + w - 30, t, 0.9);
   inkP(c, () => c.roundRect(p.x - 26, p.y - 12, 44, 14, 6), '#F8F6FF', 1.6); box(c, p.x - 22, p.y - 10, 20, 2, '#FFFFFF');
@@ -322,7 +320,7 @@ const garden = (c: Ctx, state: GameState, E: P) => {
   // (the bench: a white teak garden bench, its slats; the arbor: white posts, roses climbing, its crossbeams)
   const ka = X(BENCH.a), kw = BENCH.b - BENCH.a, kt = Y(BENCH.h);
   if (onScreen(state, ka - 40, ka + kw + 40)) {
-    top(c, E, ka, ka + kw, kt, 0.93, MARBLE);
+    boxSides(c, E, ka - 2, ka + kw + 2, kt, GY, 0.93, MARBLE, { apron: 12, leg: 6 });
     still(c, 'wh1-bench', ka, kt, -6, -40, kw + 12, GY - kt + 44, g => {
       for (const x of [2, kw - 8]) { box(g, x, -34, 6, 34, INK); box(g, x + 1, -34, 4, 34, MARBLE[3]); }
       for (let k = 0; k < 3; k++) { box(g, 0, -32 + k * 9, kw, 6, INK); box(g, 1, -31 + k * 9, kw - 2, 4, MARBLE[4]); box(g, 1, -31 + k * 9, kw - 2, 1, MARBLE[5]); }
@@ -333,7 +331,7 @@ const garden = (c: Ctx, state: GameState, E: P) => {
   }
   const aa = X(ARBOR.a), aw = ARBOR.b - ARBOR.a, at = Y(ARBOR.h);
   if (onScreen(state, aa - 60, aa + aw + 60)) {
-    top(c, E, aa - 6, aa + aw + 6, at, 0.93, MARBLE);
+    boxSides(c, E, aa - 6, aa + aw + 6, at, GY, 0.93, MARBLE, { apron: 12, leg: 8 });
     still(c, 'wh1-arbor', aa, at, -24, -16, aw + 48, GY - at + 20, g => {
       for (const x of [4, aw - 12]) slabI(g, x, 0, 8, GY - at, MARBLE);
       slabI(g, -6, 0, aw + 12, 12, MARBLE);
@@ -381,6 +379,7 @@ const garden = (c: Ctx, state: GameState, E: P) => {
 // The hazards in the play plane (behind him): the vacuum, the chandelier, the ball return and the balls
 
 const hazards = (c: Ctx, state: GameState) => {
+  const E = eyeOf(state);
   const s = whOf(state), f = state.frame;
   // The vacuum: a 1990s upright, nobody pushing it: its bag puffing, its headlamp, the cord whipping behind it
   const v = s.vac;
@@ -444,6 +443,7 @@ const hazards = (c: Ctx, state: GameState) => {
   const rx = X(BALL_RETURN), ry = Y(F2);
   if (onScreen(state, rx - 80, rx + 120)) {
     const tell = s.ballTell > 0;
+    boxSides(c, E, rx - 10, rx + 80, ry - 48, ry, 0.94, NAVY, { noTop: true, lines: [ry - 16] });
     still(c, 'wh1-ballreturn', rx, ry, -14, -76, 100, 78, g => {
       stepsAcross(g, () => g.roundRect(-10, -70, 90, 70, [22, 22, 0, 0]), -10, -70, 90, 70, NAVY, 2.4);
       box(g, -8, -16, 86, 4, STEEL[4]); box(g, -8, -16, 86, 1, '#FFFFFF');

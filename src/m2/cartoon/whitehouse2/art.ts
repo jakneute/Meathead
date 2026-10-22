@@ -22,7 +22,7 @@ import type { GameState } from '../../../m1/game/core/state';
 import { CANVAS_WIDTH } from '../../../m1/constants';
 import { signText, signW } from '../../signLetters';
 import { timeOfDay } from '../../timeOfDay';
-import { box, mix, hash, checker, toonLetters, toonSign, onScreen, INK, still, topBack, sideBack, GRASS, STEEL, BRASS, CHERRY, LICORICE, type Ctx } from '../kit';
+import { box, mix, hash, checker, toonLetters, toonSign, onScreen, INK, still, sideBack, boxSides, GRASS, STEEL, BRASS, CHERRY, LICORICE, type Ctx } from '../kit';
 import { GY } from '../geometry';
 import { wh2Of } from './state';
 import { drawerOut, burnerAt, blinkAt, sweepAt, jelloWobble, FIRE_H, FIRE_W } from './hazards';
@@ -42,8 +42,6 @@ const litTop = (c: Ctx, x: number, y: number, w: number) => { box(c, x + 1, y - 
 /** Scenery's colors (dimmed toward the air: none of it reads as somewhere to stand). */
 const dim = (col: string) => mix(col, '#8E86B4', 0.3);
 const dimR = (Rm: R6): R6 => Rm.map(dim);
-/** A top going back from the play plane (when the eye's over it). */
-const top = (c: Ctx, E: P, x0: number, x1: number, y: number, d: number, Rm: string[]) => topBack(c, E, x0, x1, y, 1, d, Rm, 3);
 const STEELG: R6 = ['#2A3430', '#3E4C46', '#56665E', '#728478', '#9AAC9E', '#C8D6CA'];
 const CHROME: R6 = ['#3A3E4C', '#5E6476', '#8A90A2', '#B4BACA', '#DCE0EA', '#FFFFFF'];
 const MAHOG: R6 = ['#2A0E08', '#4A1A0E', '#6E2814', '#94381E', '#BA5A34', '#DE8A5E'];
@@ -206,7 +204,7 @@ const PLACARDS: [number, string[]][] = [
  *  a stack of files), the live drawers out of either face. */
 const cabinetArt = (c: Ctx, E: P, C: Cabinet, f: number, ci: number) => {
   const a = X(C.a), w = C.b - C.a, t = Y(C.h);
-  top(c, E, a, a + w, t, 0.9, STEELG);
+  boxSides(c, E, a, a + w, t, GY, 0.9, STEELG, { lines: [t + 8, ...Array.from({ length: Math.max(0, Math.floor((GY - t - 46) / 40)) }, (_, k) => t + 14 + k * 40), GY - 10] });
   { const p = proj(E, a + w * 0.7, t, 0.93); inkP(c, () => c.roundRect(p.x - 5, p.y - 12, 10, 12, 2), '#F8F8F0', 1.2); box(c, p.x - 4, p.y - 8, 8, 2, '#DC2626'); const q = proj(E, a + w * 0.3, t, 0.94); for (let k = 0; k < 3; k++) box(c, q.x - 12, q.y - 3 - k * 3, 24, 3, k % 2 ? '#E8C890' : '#D8B070'); }
   still(c, `wh2-cab-${ci}`, a, GY, -4, -(GY - t) - 4, w + 8, GY - t + 6, g => {
     const h = GY - t;
@@ -242,7 +240,7 @@ const cabinetArt = (c: Ctx, E: P, C: Cabinet, f: number, ci: number) => {
 /** Limbaugh's broadcast desk: the console in navy, the EIB plate, the board's faders going back, the boom mic, a mug. */
 const eibDesk = (c: Ctx, E: P, f: number) => {
   const a = X(DESK_EIB.a), w = DESK_EIB.b - DESK_EIB.a, t = Y(DESK_EIB.h);
-  top(c, E, a, a + w, t, 0.88, LICORICE);
+  boxSides(c, E, a, a + w, t, GY, 0.88, LICORICE, { sideR: NAVY, lines: [t + 8, GY - 8] });
   // (the board on the top going back: faders, VU meters (live), the cough button)
   const p0 = proj(E, a + 10, t, 0.93), p1 = proj(E, a + w - 10, t, 0.93);
   if (E.y < t) { for (let k = 0; k < 8; k++) { const x = p0.x + (k / 7) * (p1.x - p0.x); box(c, x - 1, p0.y - 1, 3, 3, INK); box(c, x - 2, p0.y - 2 + ((k * 3 + (f >> 4)) % 3), 4, 2, k % 3 ? '#E5E7EB' : '#DC2626'); } }
@@ -264,7 +262,7 @@ const eibDesk = (c: Ctx, E: P, f: number) => {
 };
 const studioShelf = (c: Ctx, E: P, a0: number, b0: number, h: number, k: number) => {
   const a = X(a0), b = X(b0), y = Y(h), w = b - a;
-  top(c, E, a, b, y, 0.94, OAK);
+  boxSides(c, E, a, b, y, y + 14, 0.94, OAK);
   { const p = proj(E, a + 14, y, 0.95); for (let j = 0; j < 4; j++) { box(c, p.x + j * 13, p.y - 18, 11, 18, INK); box(c, p.x + j * 13 + 1, p.y - 17, 9, 16, ['#F8F4EC', '#E8C890', '#BFDBFE', '#F8F4EC'][(j + k) % 4]); box(c, p.x + j * 13 + 2, p.y - 13, 7, 2, '#DC2626'); } }
   still(c, `wh2-sshelf-${w}-${k}`, a, y, -4, -2, w + 8, 46, g => {
     slabI(g, 0, 0, w, 14, OAK); box(g, 3, 10, w - 6, 2, OAK[1]);
@@ -300,7 +298,7 @@ const jello = (c: Ctx, E: P, f: number) => {
 /** THE RANGE: a big commercial range in stainless, its top (grates, the burners live) going back. */
 const range = (c: Ctx, E: P, f: number) => {
   const a = X(RANGE.a), w = RANGE.b - RANGE.a, t = Y(RANGE.h);
-  top(c, E, a, a + w, t, 0.9, LICORICE);
+  boxSides(c, E, a, a + w, t, GY, 0.9, LICORICE, { sideR: CHROME, lines: [t + 12, GY - 12] });
   if (E.y < t) for (let x = a + 30; x < a + w - 20; x += 36) { const p0 = proj(E, x, t, 1), p1 = proj(E, x, t, 0.9); c.strokeStyle = '#4A4A58'; c.lineWidth = 1; c.beginPath(); c.moveTo(p0.x, p0.y); c.lineTo(p1.x, p1.y); c.stroke(); }
   still(c, 'wh2-range', a, t, -4, -2, w + 8, GY - t + 6, g => {
     const h = GY - t;
@@ -338,7 +336,7 @@ const range = (c: Ctx, E: P, f: number) => {
   litTop(c, a, t, w);
 };
 /** THE POT RACK: an iron bar hung off the ceiling on chains, copper pots swaying under it. */
-const potRack = (c: Ctx, f: number) => {
+const potRack = (c: Ctx, E: P, f: number) => {
   const a = X(POT_RACK.a), w = POT_RACK.b - POT_RACK.a, t = Y(POT_RACK.h);
   for (const x of [a + 20, a + w - 20]) { for (let y = Y(CEIL); y < t; y += 8) { box(c, x - 2, y, 5, 6, INK); box(c, x - 1, y + 1, 3, 4, (y / 8) % 2 ? STEEL[3] : STEEL[4]); } }
   for (let x = a + 40; x < a + w - 20; x += 64) {
@@ -350,6 +348,7 @@ const potRack = (c: Ctx, f: number) => {
     else { stepsAcross(c, () => c.roundRect(-12, 12, 24, 26, [2, 2, 6, 6]), -12, 12, 24, 26, CHROME, 2); box(c, -14, 12, 28, 3, CHROME[4]); }
     c.restore();
   }
+  boxSides(c, E, a, a + w, t, t + 10, 0.94, R('#3A3A48'));
   slabI(c, a, t, w, 10, R('#3A3A48'));
   for (let x = a + 12; x < a + w - 6; x += 32) { box(c, x, t + 10, 2, 4, INK); }
   litTop(c, a, t, w);
@@ -358,7 +357,7 @@ const potRack = (c: Ctx, f: number) => {
 const cabinetTable = (c: Ctx, E: P) => {
   const a = X(CAB_TABLE.a), w = CAB_TABLE.b - CAB_TABLE.a, t = Y(CAB_TABLE.h);
   still(c, 'wh2-cabchairs', a, t, 0, -64, w, 66, g => { for (let x = 26; x < w - 30; x += 62) { stepsAcross(g, () => g.roundRect(x, -62, 36, 62, [14, 14, 0, 0]), x, -62, 36, 62, dimR(R('#3A2418')), 1.8); for (let k = 0; k < 4; k++) box(g, x + 4 + k * 9, -54, 2, 2, dim(GILT[4])); slabI(g, x + 10, -38, 16, 6, dimR(GILT), 1); } });
-  top(c, E, a, a + w, t, 0.86, MAHOG);
+  boxSides(c, E, a, a + w, t, GY, 0.86, MAHOG, { apron: 28, leg: 12, lines: [t + 10] });
   if (E.y < t) {
     for (let x = a + 40; x < a + w - 30; x += 62) { const p = proj(E, x + 4, t, 0.93); box(c, p.x - 12, p.y - 2, 24, 4, '#2E5A3E'); box(c, p.x - 12, p.y - 2, 24, 1, '#4A8A5E'); }
     for (const dx of [80, 250]) { const p = proj(E, a + dx, t, 0.9); inkP(c, () => { c.moveTo(p.x - 5, p.y); c.lineTo(p.x - 6, p.y - 16); c.quadraticCurveTo(p.x, p.y - 22, p.x + 6, p.y - 16); c.lineTo(p.x + 5, p.y); c.closePath(); }, 'rgba(219,234,254,0.85)', 1.2); box(c, p.x - 3, p.y - 12, 2, 8, '#FFFFFF'); }
@@ -377,7 +376,7 @@ const cabinetTable = (c: Ctx, E: P) => {
 };
 const giltShelf = (c: Ctx, E: P, a0: number, b0: number, h: number, what: 'books' | 'ship' | 'bust') => {
   const a = X(a0), b = X(b0), y = Y(h), w = b - a;
-  top(c, E, a, b, y, 0.94, GILT);
+  boxSides(c, E, a, b, y, y + 12, 0.94, GILT);
   const p = proj(E, a + w / 2, y, 0.95);
   if (what === 'books') for (let j = 0; j < 5; j++) { const bx = p.x - 24 + j * 10; box(c, bx, p.y - 20 + (j % 2) * 2, 8, 20 - (j % 2) * 2, INK); box(c, bx + 1, p.y - 19 + (j % 2) * 2, 6, 18 - (j % 2) * 2, ['#7A1E2E', '#1E3A8A', '#2E6A3A', '#7A5A1E', '#5A2E6A'][j]); box(c, bx + 1, p.y - 15, 6, 1, GILT[4]); }
   else if (what === 'ship') { stepsDown(c, () => { c.moveTo(p.x - 24, p.y - 10); c.lineTo(p.x + 24, p.y - 10); c.lineTo(p.x + 16, p.y - 2); c.lineTo(p.x - 18, p.y - 2); c.closePath(); }, p.x - 24, p.y - 10, 48, 8, OAK, 1.4); for (const mx of [-10, 6]) { box(c, p.x + mx, p.y - 40, 2, 30, OAK[1]); inkP(c, () => { c.moveTo(p.x + mx + 2, p.y - 38); c.quadraticCurveTo(p.x + mx + 14, p.y - 28, p.x + mx + 2, p.y - 14); c.closePath(); }, '#F8F4EC', 1); } box(c, p.x - 12, p.y - 44, 6, 4, '#DC2626'); }
@@ -443,7 +442,7 @@ const SKYR: R6 = ['#0E3460', '#18568E', '#2A80C4', '#4CA8E8', '#86CAF4', '#C6E8F
 /** The library step, the map chest, the footstool. */
 const mapFurniture = (c: Ctx, E: P) => {
   const sa = X(MAP_STEP.a), sw = MAP_STEP.b - MAP_STEP.a, st = Y(MAP_STEP.h);
-  top(c, E, sa, sa + sw, st, 0.92, OAK);
+  boxSides(c, E, sa, sa + sw, st, GY, 0.92, OAK, { lines: [st + 10] });
   still(c, 'wh2-mapstep', sa, st, -4, -2, sw + 8, GY - st + 6, g => {
     const h = GY - st;
     slabI(g, 0, 0, sw, 10, OAK); stepsAcross(g, () => g.rect(4, 10, sw - 8, h - 10), 4, 10, sw - 8, h - 10, OAK, 2);
@@ -451,7 +450,7 @@ const mapFurniture = (c: Ctx, E: P) => {
   });
   litTop(c, sa, st, sw);
   const ma = X(MAP_CAB.a), mw = MAP_CAB.b - MAP_CAB.a, mt = Y(MAP_CAB.h);
-  top(c, E, ma, ma + mw, mt, 0.88, OAK);
+  boxSides(c, E, ma, ma + mw, mt, GY, 0.88, OAK, { lines: [mt + 10, ...[0, 1, 2, 3].map(k => mt + 14 + k * ((GY - mt - 30) / 4)), GY - 8] });
   if (E.y < mt) { const p = proj(E, ma + mw * 0.6, mt, 0.92); stepsAcross(c, () => c.roundRect(p.x - 40, p.y - 9, 80, 9, 4), p.x - 40, p.y - 9, 80, 9, R('#F2E2B8'), 1.4); box(c, p.x - 2, p.y - 9, 4, 9, '#DC2626'); const q = proj(E, ma + 30, mt, 0.95); inkP(c, () => c.arc(q.x, q.y - 6, 6, 0, Math.PI * 2), 'rgba(219,234,254,0.7)', 1.6); box(c, q.x + 4, q.y - 3, 10, 3, OAK[2]); }
   still(c, 'wh2-mapcab', ma, mt, -6, -2, mw + 12, GY - mt + 6, g => {
     const h = GY - mt;
@@ -462,7 +461,7 @@ const mapFurniture = (c: Ctx, E: P) => {
   });
   litTop(c, ma, mt, mw);
   const fa = X(MAP_STOOL.a), fw = MAP_STOOL.b - MAP_STOOL.a, ft = Y(MAP_STOOL.h);
-  top(c, E, fa, fa + fw, ft, 0.93, VELVET);
+  boxSides(c, E, fa - 2, fa + fw + 2, ft, GY, 0.93, VELVET, { apron: 24, leg: 6, sideR: OAK });
   still(c, 'wh2-stool', fa, ft, -4, -2, fw + 8, GY - ft + 6, g => {
     const h = GY - ft;
     stepsDown(g, () => g.roundRect(-2, 0, fw + 4, 22, [8, 8, 3, 3]), -2, 0, fw + 4, 22, VELVET, 2.2);
@@ -509,7 +508,7 @@ const STEELR: R6 = ['#1C1A2C', '#2E2C44', '#46445E', '#64627E', '#8A88A4', '#B8B
  *  (the green leather, the phones, a pen set, the name plate, THE BUCK STOPS HERE). */
 const resolute = (c: Ctx, E: P) => {
   const a = X(RESOLUTE.a), w = RESOLUTE.b - RESOLUTE.a, t = Y(RESOLUTE.h);
-  top(c, E, a, a + w, t, 0.86, OAK);
+  boxSides(c, E, a - 6, a + w + 6, t, GY, 0.86, OAK, { lines: [t + 10, GY - 8] });
   if (E.y < t) {
     const bl = [proj(E, a + 18, t, 0.97), proj(E, a + w - 18, t, 0.97), proj(E, a + w - 18, t, 0.9), proj(E, a + 18, t, 0.9)];
     quad(c, bl, '#2E5A3E'); quad(c, [bl[0], bl[1], { x: bl[1].x, y: bl[1].y - 1 }, { x: bl[0].x, y: bl[0].y - 1 }], '#4A8A5E');
@@ -580,7 +579,7 @@ export const drawWh2Back = (c: Ctx, state: GameState) => {
     eibDesk(c, E, f);
     LIMBAUGH_ARENA.ledges.forEach(([a, b, h], k) => studioShelf(c, E, a, b, h, k));
   }
-  if (onScreen(state, X(JELLO.a) - 60, X(POT_RACK.b) + 60)) { potRack(c, f); range(c, E, f); jello(c, E, f); }
+  if (onScreen(state, X(JELLO.a) - 60, X(POT_RACK.b) + 60)) { potRack(c, E, f); range(c, E, f); jello(c, E, f); }
   if (onScreen(state, X(DOLE_ARENA.a), X(DOLE_ARENA.b))) {
     cabinetTable(c, E);
     DOLE_ARENA.ledges.forEach(([a, b, h]) => giltShelf(c, E, a, b, h, 'books'));

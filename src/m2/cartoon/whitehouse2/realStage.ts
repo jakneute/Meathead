@@ -25,7 +25,7 @@ import type { GameState } from '../../../m1/game/core/state';
 import type { Light } from '../../../m1/game/render/lighting';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { signText } from '../../signLetters';
-import { box, mix, hash, onScreen, checker, stamp, ramp6, type Ctx } from '../kit';
+import { box, mix, hash, onScreen, checker, stamp, ramp6, boxSides, type Ctx } from '../kit';
 import { GY } from '../geometry';
 
 type P = { x: number; y: number };
@@ -371,7 +371,11 @@ export const scaffoldDeck = (c: Ctx, a: number, b: number, top: number, fy: numb
 };
 /** The whole play plane of a half's plan (behind him). */
 export const drawStageProps = (c: Ctx, state: GameState, plan: StagePlan) => {
-  const ok = (a: number, b: number) => onScreen(state, a - 40, b + 40);
+  const ok = (a: number, b: number) => onScreen(state, a - 40, b + 40), E = eyeOf(state);
+  // (their depth: the decks' and the planks' thickness going back, a standard at the back corner; the cases' sides)
+  for (const [a, b, top] of plan.decks) if (ok(a, b)) boxSides(c, E, a, b, top, GY, 0.86, PLYR, { apron: 12, leg: 5, sideR: STL });
+  for (const [a, b, top] of plan.planks) if (ok(a, b)) boxSides(c, E, a, b, top, plan.floorAt((a + b) / 2), 0.94, PLYR, { apron: 10, leg: 5, sideR: PLYR });
+  for (const [a, b, top] of plan.boxes) if (ok(a, b)) boxSides(c, E, a, b, top, plan.floorAt((a + b) / 2), 0.92, BLK, { lines: [top + 3] });
   for (const [a, b, top] of plan.decks) if (ok(a, b)) scaffoldDeck(c, a, b, top, GY);
   if (plan.stairs && ok(plan.stairs.a, plan.stairs.b)) scaffoldStairs(c, plan.stairs.a, plan.stairs.b, plan.stairs.n, GY, plan.stairs.top);
   for (const [a, b, top] of plan.planks) if (ok(a, b)) stagePlank(c, a, b, top, plan.floorAt((a + b) / 2));
