@@ -31,7 +31,7 @@ import { whOf } from './state';
 import { BURST, BURST_WHAT, BURST_NEVER, BACK_AGAIN, CROWD_GASP, DIR_WHO, DIR_TITLE, DIR_SECRET, DIR_PONDER, DIR_KILL, PROD_RULES, PROD_ASSASSIN } from './lines';
 import { crowdSay, dirSay, prodSay } from './talk';
 import { drawDirector } from './kindArt';
-import { INK as KINK, stamp, signText } from '../blvd/kit';
+import { INK as KINK, stamp, signText, checker, pixelBlob, hash, poly } from '../blvd/kit';
 import { bodyOf, legs, arm, torso, part, px, dk, headShape, faceOn } from '../../spooky/costume';
 
 /** Where the wreck comes down (its middle), where he lands, where the director stands (x from the section's start). */
@@ -140,6 +140,8 @@ export const updateBurst = (ctx: FrameContext): Controls | null => {
           P.mode = 'dead'; P.said = null; P.at = state.frame;
           playSound('splat', 1, -6); playSound('crunch', 1, -4);
           for (let k = 0; k < 44; k++) state.particles.push({ pos: { x: X(PROD_X) + (Math.random() - 0.5) * 70, y: GY - 10 }, vel: { x: (Math.random() - 0.5) * 12, y: -2 - Math.random() * 9 }, life: 40 + Math.random() * 30, color: ['#B91C1C', '#7F1D1D', '#DC2626'][k % 3], size: 2 + Math.random() * 4, grav: 0.4 });
+          // (bits of him: gut, khaki, the vest, the shirt, teeth)
+          for (let k = 0; k < 14; k++) state.particles.push({ pos: { x: X(PROD_X) + (Math.random() - 0.5) * 60, y: GY - 12 }, vel: { x: (k % 2 ? 1 : -1) * (2 + Math.random() * 6), y: -3 - Math.random() * 7 }, life: 50 + Math.random() * 30, color: ['#A84850', '#D07078', '#C8B48A', '#1E2E5A', '#8AB4E8', '#F4F0E8', '#4A0E18'][k % 7], size: k % 7 === 5 ? 2 : 3 + Math.random() * 3, grav: 0.5 });
         }
         // (the director up out of his chair at the noise)
         d.mode = 'up';
@@ -218,11 +220,152 @@ export const drawProducer = (c: CanvasRenderingContext2D, state: GameState) => {
   }
   // Flat under the train: the blood out from under it (spreading, stepped), the legs out the left end (the khakis, a
   // sneaker on, one off), the clipboard flung, its pages
-  const k = b.on ? Math.min(1, (f - P.at) / 120) : 1;
-  for (const [dx, rx, ry, col] of [[-10, 34 + 70 * k, 3.5 + 3 * k, '#3A0606'], [-10, 30 + 66 * k, 3 + 3 * k, '#6A0E0E'], [-18, 20 + 48 * k, 2 + 2 * k, '#9A1414'], [-26, 8 + 20 * k, 1 + k, '#C83030']] as const) { c.fillStyle = col; c.beginPath(); c.ellipse(x + dx, y + 1, rx, ry, 0, 0, Math.PI * 2); c.fill(); }
-  box(c, x - 40 - 30 * k, y - 1, 6, 1, '#E86A5A');
-  c.save(); c.translate(x, y); stamp(c, 'hww-producer-flat', -110, -30, 190, 34, paintProducerFlat); c.restore();
-  for (let i = 0; i < 4; i++) { box(c, x - 41 + i * 26, y - 31 - ((i * 13) % 20), 4, 4, '#3A0606'); box(c, x - 40 + i * 26, y - 30 - ((i * 13) % 20), 2, 2, '#B91C1C'); }
+  // (the pool spreads in eight stepped stamps; the spatter and what's left of him are one stamp each; only the fingers
+  // are live)
+  const since = f - P.at, k = b.on ? Math.min(1, since / 120) : 1, step = Math.round(k * POOL_STEPS);
+  c.save(); c.translate(x, y);
+  stamp(c, `hww-producer-pool-${step}`, -170, -8, 340, 24, g => paintPool(g, step / POOL_STEPS));
+  stamp(c, 'hww-producer-spatter', -170, -8, 340, 24, paintSpatter);
+  stamp(c, 'hww-producer-flat2', -170, -44, 340, 52, paintProducerFlat);
+  // (the fingers of the hand out the right end: twitching a while after, and now and then for good)
+  const twitch = since < 600 || f % 420 < 24;
+  for (let i = 0; i < 4; i++) {
+    const curl = twitch && Math.sin(f * 0.7 + i * 1.9) > 0.2, fy = -10 + i * 2.5, len = curl ? 2 : 5 - (i === 3 ? 1 : 0);
+    box(c, 71, fy - 0.5, len + 1, 3, KINK); box(c, 71, fy, len, 2, i % 2 ? '#D49A74' : '#E2AC86'); if (!curl) box(c, 71 + len - 1, fy, 1, 1, '#F2C8A8');
+  }
+  c.restore();
+};
+
+/** The stepped reds of him: the dried edge to the wet shine. Guts: their pinks. */
+const BLOOD = ['#2A0404', '#4A0808', '#7A1010', '#A81818', '#D03030', '#F07070', '#FFD0D0'];
+const GUT = ['#3A0E12', '#7A2A30', '#A84850', '#D07078', '#F0A8A8'];
+const BONE = ['#8A8270', '#C8C0B0', '#F4F0E8'];
+const POOL_STEPS = 8;
+/** The pool out from under the wreck (feet at 0): stepped rings of red, each dithered into the next, lobes where it's
+ *  run off along the floor, a wet shine on it. k: how far it's spread (0..1). */
+const paintPool = (g: CanvasRenderingContext2D, k: number) => {
+  const cx = -14, rx = 30 + 110 * k, ry = 3 + 5 * k;
+  const lobes: [number, number, number][] = [[-0.85, 2, 0.28], [0.7, 3, 0.24], [-0.4, 5, 0.2], [0.95, 1, 0.14], [-1.05, 4, 0.12]];
+  const ring = (s: number, col: string, dither?: string) => {
+    pixelBlob(g, cx, 3, rx * s, ry * s, col);
+    for (const [dx, dy, r] of lobes) pixelBlob(g, cx + dx * rx * s, 3 + dy * k * s, rx * r * s, ry * 0.55 * s, col);
+    if (dither) { g.save(); g.beginPath(); g.ellipse(cx, 3, rx * s * 0.97, ry * s * 0.9, 0, 0, Math.PI * 2); g.clip(); checker(g, cx - rx * s, 3 - ry * s, rx * s * 2, ry * s * 2, dither); g.restore(); }
+  };
+  ring(1, BLOOD[0], BLOOD[1]);
+  ring(0.9, BLOOD[1], BLOOD[2]);
+  ring(0.68, BLOOD[2], BLOOD[3]);
+  ring(0.42, BLOOD[3]);
+  pixelBlob(g, cx - 6, 2, rx * 0.2, Math.max(1, ry * 0.3), BLOOD[4]);
+  // (the wet: the ceiling lights in it, long thin shines along the floor)
+  for (let i = 0; i < 6; i++) {
+    const sx = cx + (hash(i * 4.7) - 0.5) * rx * 1.3, sy = 1 + hash(i * 2.3) * ry * 1.2, w = 3 + hash(i * 9.1) * 8 * (0.4 + k);
+    box(g, sx, sy, w, 1, BLOOD[5]); if (i % 2 === 0) box(g, sx + 1, sy, 2, 1, BLOOD[6]);
+  }
+};
+/** The spatter, flung out both ways along the floor from where it came down on him: drops with their tails pointing
+ *  back at him, bigger near, specks between. */
+const paintSpatter = (g: CanvasRenderingContext2D) => {
+  for (let i = 0; i < 34; i++) {
+    const side = i % 2 ? 1 : -1, dist = 40 + hash(i * 7.7) * 120, near = 1 - (dist - 40) / 120;
+    const x = 2 + side * dist, y = -4 + hash(i * 5.3) * 14, s = Math.round(1 + near * 3 + hash(i * 1.9));
+    // (its tail, back toward him)
+    for (let t = 1; t <= s + 2; t++) box(g, x - side * (s / 2 + t * 1.6), y + (hash(i) - 0.5) * t * 0.3, 2, 1, t > s ? BLOOD[1] : BLOOD[2]);
+    box(g, x - s / 2 - 1, y - s / 2, s + 2, s + 1, BLOOD[0]); box(g, x - s / 2, y - s / 2, s, s, BLOOD[3]);
+    if (s > 2) box(g, x - s / 2, y - s / 2, 1, 1, BLOOD[5]);
+    // (a speck or two past it)
+    box(g, x + side * (s + 3 + hash(i * 3.3) * 6), y + 1, 1, 1, BLOOD[2]);
+  }
+};
+const shape = (g: CanvasRenderingContext2D, pts: [number, number][], col: string, ink = true) => {
+  if (ink) { g.strokeStyle = KINK; g.lineWidth = 2; g.lineJoin = 'round'; g.beginPath(); pts.forEach(([a, b], i) => (i ? g.lineTo(a, b) : g.moveTo(a, b))); g.closePath(); g.stroke(); }
+  poly(g, pts, col);
+};
+/** A loop of gut: beads along a wiggle, inked, each lit on its upper left. */
+const gut = (g: CanvasRenderingContext2D, x: number, y: number, n: number, dir: number, amp: number, ph: number) => {
+  const at = (t: number): [number, number] => [x + dir * t * 2.4, y + Math.sin(t * 0.9 + ph) * amp - t * 0.15];
+  for (let t = 0; t < n; t++) { const [a, b] = at(t); pixelBlob(g, a, b, 4, 3.5, KINK); }
+  for (let t = 0; t < n; t++) { const [a, b] = at(t); pixelBlob(g, a, b, 3, 2.5, t % 3 === 0 ? GUT[1] : GUT[2]); }
+  for (let t = 0; t < n; t += 2) { const [a, b] = at(t); box(g, a - 2, b - 2, 2, 1, GUT[3]); if (t % 4 === 0) box(g, a - 2, b - 2, 1, 1, GUT[4]); }
+};
+/** What's left showing of him under the wreck (feet at 0; the wreck's left car down over -35..+45). Out the left end:
+ *  the khakis, pressed flat and soaked dark toward the car, a thighbone out through them, a sneaker on and a sock foot,
+ *  the other sneaker flung; the gush of him out the edge (the fleece vest and the checked shirt in rags, the ribs, the
+ *  guts in loops, the liver), the laminate on its lanyard. Out the right end: an arm, palm up (the fingers live), an
+ *  eye out on its cord, teeth, the clipboard flung and bloodied, the glasses snapped, the headset. */
+const paintProducerFlat = (g: CanvasRenderingContext2D) => {
+  const K = ['#5A4A2A', '#8A7650', '#B8A47A', '#C8B48A', '#DCCCA8'];
+  const SOAK = ['#3A0A06', '#5A1A10', '#7A3420'];
+  const VEST = ['#0E1630', '#1E2E5A', '#34488A'], SHIRT = ['#3A5A98', '#5A84C8', '#8AB4E8'];
+  const skin = ['#A86A4A', '#D49A74', '#E2AC86', '#F2C8A8'];
+  // The legs: the far one (on top, toes up), the near one (flat, sock foot); thinner as they go in under it (squashed)
+  shape(g, [[-34, -16], [-86, -19], [-88, -10], [-34, -12]], K[2]);
+  box(g, -86, -19, 50, 1, K[3]); box(g, -70, -16, 1, 4, K[1]); box(g, -58, -15, 8, 1, K[1]);
+  shape(g, [[-34, -9], [-94, -11], [-95, -1], [-34, -3]], K[3]);
+  box(g, -94, -11, 58, 2, K[4]); box(g, -94, -3, 58, 1, K[1]); box(g, -76, -9, 1, 5, K[1]); box(g, -60, -8, 1, 4, K[2]);
+  // (soaked through, toward the car: dithered from the khaki into the dark)
+  checker(g, -64, -20, 8, 20, SOAK[2]); box(g, -56, -19, 8, 18, SOAK[2]); checker(g, -48, -19, 6, 18, SOAK[1]); box(g, -42, -18, 9, 17, SOAK[1]);
+  box(g, -56, -19, 20, 1, '#9A4A30'); box(g, -42, -9, 9, 1, '#8A3A26');
+  // (the thighbone out through a tear, the knob of it, the blood round the hole)
+  pixelBlob(g, -60, -18, 6, 3, BLOOD[1]);
+  shape(g, [[-62, -18], [-50, -27], [-47, -25], [-59, -16]], BONE[1]);
+  box(g, -60, -19, 9, 1, BONE[2]); pixelBlob(g, -48, -27, 3.5, 3, KINK); pixelBlob(g, -48, -27, 2.5, 2, BONE[2]); box(g, -49, -28, 1, 1, '#FFFFFF');
+  box(g, -51, -24, 3, 2, BLOOD[3]); box(g, -55, -21, 2, 3, BLOOD[2]);
+  // (the sneaker still on, toes up; laces; the sock foot of the other, flopped over)
+  box(g, -101, -19, 10, 18, KINK); box(g, -100, -18, 8, 16, '#E8E8E4'); box(g, -100, -18, 8, 2, '#FFFFFF'); box(g, -100, -4, 8, 2, '#A8A8A4');
+  for (let i = 0; i < 3; i++) box(g, -98, -15 + i * 3, 4, 1, '#3F3F46');
+  box(g, -94, -25, 8, 7, KINK); box(g, -93, -24, 6, 5, '#F4F0E8'); box(g, -93, -24, 6, 1, '#FFFFFF'); box(g, -90, -21, 2, 2, BLOOD[3]);
+  shape(g, [[-95, -10], [-104, -9], [-106, -3], [-95, -1]], '#F1EFEA'); box(g, -104, -4, 8, 2, '#C8C4BC'); box(g, -101, -8, 2, 2, BLOOD[3]); box(g, -98, -4, 1, 2, BLOOD[2]);
+  // (the other sneaker, flung, on its side, its laces out)
+  box(g, -137, -9, 16, 9, KINK); box(g, -136, -8, 14, 7, '#E8E8E4'); box(g, -136, -8, 14, 1, '#FFFFFF'); box(g, -136, -3, 14, 2, '#A8A8A4'); box(g, -136, -1, 14, 1, '#6A6A70');
+  box(g, -132, -10, 6, 2, '#E8E8E4'); g.strokeStyle = '#E8E8E4'; g.lineWidth = 1; g.beginPath(); g.moveTo(-128, -9); g.quadraticCurveTo(-120, -14, -116, -4); g.stroke();
+  // The gush of him out the left edge: the vest in rags, the checked shirt, soaked; the ribs; the liver; the guts
+  shape(g, [[-30, -30], [-46, -26], [-52, -20], [-44, -18], [-40, -12], [-30, -10]], VEST[1]);
+  box(g, -44, -25, 10, 1, VEST[2]); checker(g, -48, -22, 8, 6, VEST[0]); box(g, -34, -28, 1, 18, '#A8A8B0');
+  shape(g, [[-30, -36], [-40, -34], [-38, -30], [-44, -29], [-36, -26], [-30, -27]], SHIRT[2]);
+  for (let i = 0; i < 4; i++) box(g, -40 + i * 3, -35, 1, 9, SHIRT[1]); box(g, -40, -31, 10, 1, SHIRT[0]);
+  checker(g, -40, -32, 6, 6, BLOOD[2]);
+  for (let i = 0; i < 3; i++) { g.strokeStyle = KINK; g.lineWidth = 3; g.beginPath(); g.arc(-30, -18 + i * 6, 11 - i, Math.PI * 0.95, Math.PI * 1.5); g.stroke(); g.strokeStyle = BONE[2]; g.lineWidth = 1.4; g.stroke(); }
+  pixelBlob(g, -40, -6, 9, 5, KINK); pixelBlob(g, -40, -6, 8, 4, '#4A0E18'); box(g, -45, -9, 5, 1, '#7A2A38'); box(g, -45, -9, 2, 1, '#B85868');
+  gut(g, -32, -4, 11, -1, 3, 0.4);
+  gut(g, -36, -14, 7, -1, 2.5, 2.1);
+  gut(g, -30, 0, 9, -1, 2, 4.0);
+  box(g, -58, -2, 2, 3, GUT[3]); box(g, -62, -1, 3, 2, GUT[2]);
+  // (dripping off the guts, beading on the floor)
+  for (let i = 0; i < 5; i++) { const dx = -34 - i * 6, h = 2 + (i * 3) % 5; box(g, dx, -h, 1, h, BLOOD[3]); box(g, dx - 1, 0, 3, 1, BLOOD[1]); }
+  // (the laminate on its lanyard, in the pool)
+  g.strokeStyle = '#DC2626'; g.lineWidth = 1; g.beginPath(); g.moveTo(-36, -2); g.quadraticCurveTo(-56, 2, -68, -1); g.stroke();
+  box(g, -76, -6, 10, 7, KINK); box(g, -75, -5, 8, 5, '#F8FAFC'); box(g, -75, -5, 8, 1, '#B91C1C'); box(g, -74, -2, 5, 1, '#3F3F46'); box(g, -71, -3, 3, 2, BLOOD[3]);
+  // Out the right end: his arm, palm up (the fingers are live), the checked sleeve, a run of red out the cuff
+  shape(g, [[38, -12], [58, -11], [58, -4], [38, -3]], SHIRT[2]);
+  for (let i = 0; i < 5; i++) box(g, 41 + i * 4, -11, 1, 7, SHIRT[1]); box(g, 38, -8, 20, 1, SHIRT[1]); box(g, 38, -5, 20, 1, SHIRT[0]);
+  checker(g, 38, -12, 8, 9, BLOOD[2]);
+  shape(g, [[58, -10], [66, -11], [71, -12], [72, -2], [66, -3], [58, -4]], skin[2]);
+  box(g, 59, -10, 7, 1, skin[3]); box(g, 59, -5, 12, 1, skin[1]); box(g, 64, -8, 3, 2, skin[1]);
+  box(g, 64, -14, 4, 3, KINK); box(g, 65, -13, 2, 2, skin[2]);
+  box(g, 56, -3, 8, 2, BLOOD[3]); box(g, 58, -1, 10, 1, BLOOD[2]);
+  // (his eye, out on its cord: the white, the blue, the pupil, the veins; the cord back in under the car)
+  g.strokeStyle = GUT[2]; g.lineWidth = 1.5; g.beginPath(); g.moveTo(40, -1); g.quadraticCurveTo(70, 4, 86, 0); g.stroke();
+  pixelBlob(g, 90, -3, 5, 4.5, KINK); pixelBlob(g, 90, -3, 4, 3.5, '#F4F0E8'); box(g, 90, -5, 4, 4, '#4A84C8'); box(g, 91, -4, 2, 2, '#0A0A0E'); box(g, 92, -5, 1, 1, '#FFFFFF');
+  box(g, 86, -4, 2, 1, BLOOD[4]); box(g, 87, -1, 3, 1, BLOOD[4]); box(g, 88, -6, 1, 1, BLOOD[4]);
+  // (teeth)
+  for (const [tx, ty] of [[76, -1], [81, 2], [100, 1], [-84, 3]]) { box(g, tx - 1, ty - 1, 4, 4, KINK); box(g, tx, ty, 2, 2, '#F4F0E8'); }
+  // (the clipboard, flung and bloodied: board, page, clip)
+  shape(g, [[104, -8], [128, -10], [129, -3], [105, -1]], '#7A4A1E');
+  shape(g, [[107, -8], [125, -10], [126, -4], [108, -3]], '#F4F0E8', false);
+  box(g, 113, -11, 6, 2, '#A8A8B0'); for (let i = 0; i < 3; i++) box(g, 109, -7 + i * 1.5, 12, 1, '#8A8A94');
+  box(g, 110, -8, 3, 3, BLOOD[3]); box(g, 118, -6, 2, 2, BLOOD[3]); box(g, 122, -9, 1, 1, BLOOD[2]); box(g, 108, -1, 18, 1, '#4A2A10');
+  // (his glasses, snapped at the bridge: one lens cracked, the other gone, an arm bent back)
+  g.strokeStyle = KINK; g.lineWidth = 1.6;
+  g.strokeRect(136, -7, 6, 4); g.strokeRect(145, -5, 6, 4);
+  box(g, 137, -6, 4, 2, '#A8D0E8'); box(g, 137, -6, 1, 1, '#FFFFFF');
+  g.lineWidth = 1; g.strokeStyle = '#E8F4FA'; g.beginPath(); g.moveTo(137, -3); g.lineTo(139, -5); g.lineTo(141, -6); g.stroke();
+  g.strokeStyle = KINK; g.beginPath(); g.moveTo(151, -3); g.lineTo(156, -8); g.moveTo(136, -5); g.lineTo(132, -2); g.stroke();
+  box(g, 159, -1, 3, 2, '#A8D0E8');
+  // (the headset, kicked off on the other side: band, cup, mic)
+  g.strokeStyle = KINK; g.lineWidth = 3; g.beginPath(); g.arc(-152, -2, 8, Math.PI * 1.05, Math.PI * 1.95); g.stroke();
+  g.strokeStyle = '#3F3F46'; g.lineWidth = 1.4; g.stroke();
+  pixelBlob(g, -160, -3, 3.5, 4, KINK); pixelBlob(g, -160, -3, 2.5, 3, '#27272A'); box(g, -161, -5, 1, 2, '#52525B');
+  g.strokeStyle = '#3F3F46'; g.lineWidth = 1; g.beginPath(); g.moveTo(-144, -3); g.lineTo(-138, -7); g.stroke(); box(g, -139, -8, 2, 2, KINK);
 };
 
 /** A director's chair (feet at 0, its left): the frame crossed under the seat, the canvas, DIRECTOR on its back. */
@@ -275,19 +418,6 @@ const paintProducer = (g: CanvasRenderingContext2D, pose: 'stand' | 'jab' | 'loo
   // (the jabbing finger)
   if (pose === 'jab') px(g, near[0] + 3, near[1] - 1, 5, 2, skin);
 };
-/** What's left showing of him under the wreck (feet at 0): the khakis out from under its left end, a sneaker on, one
- *  off, a hand; the clipboard flung, its page. */
-const paintProducerFlat = (g: CanvasRenderingContext2D) => {
-  const K = ['#5A4A2A', '#8A7650', '#B8A47A', '#C8B48A', '#DCCCA8'];
-  box(g, -93, -10, 58, 10, KINK); box(g, -92, -9, 56, 8, K[3]); box(g, -92, -9, 56, 2, K[4]); box(g, -92, -3, 56, 2, K[1]);
-  box(g, -85, -18, 50, 9, KINK); box(g, -84, -17, 48, 7, K[2]); box(g, -84, -17, 48, 1, K[3]);
-  box(g, -101, -17, 10, 16, KINK); box(g, -100, -16, 8, 14, '#E8E8E4'); box(g, -100, -16, 8, 2, '#FFFFFF'); box(g, -100, -4, 8, 2, '#A8A8A4');
-  box(g, -93, -23, 8, 7, KINK); box(g, -92, -22, 6, 5, '#E2AC86'); box(g, -92, -22, 2, 2, '#F2C8A8');
-  box(g, -65, -5, 14, 5, KINK); box(g, -64, -4, 12, 4, '#E8E8E4'); box(g, -64, -4, 12, 1, '#FFFFFF');
-  box(g, 47, -4, 18, 5, KINK); box(g, 48, -3, 16, 3, '#7A4A1E'); box(g, 50, -4, 12, 1, '#F4F0E8');
-  box(g, 68, -2, 9, 2, '#F4F0E8');
-};
-
 /** The director's (and before him the producer's) words over him (in front of everything). */
 export const drawBurstSaid = (c: CanvasRenderingContext2D, state: GameState, saidOver: (c: CanvasRenderingContext2D, s: string, x: number, y: number, col: string, w: number) => void) => {
   const b = whOf(state).burst, d = b.dir;

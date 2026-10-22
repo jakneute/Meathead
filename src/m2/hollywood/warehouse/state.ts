@@ -63,6 +63,8 @@ export interface Fight {
   /** Shaking them off: the move that last threw them (each charge once), the last shot that knocked one loose (frame),
    *  his shots already counted, his weapon's cooldown last frame (a shot that makes no projectile). */
   moveId: number; knockAt: number; seen: WeakSet<Projectile>; lastCd: number;
+  /** The frame the last one got on him (they get on a beat apart, not all at once). */
+  latchAt?: number;
   /** The pile's had him (the crush). */
   crushed: boolean;
 }

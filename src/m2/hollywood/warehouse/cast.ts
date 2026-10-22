@@ -26,7 +26,7 @@ type Ctx = CanvasRenderingContext2D;
 
 type Mask = 'none' | 'helmetA' | 'faceplate' | 'full' | 'helmet' | 'cowl' | 'ears' | 'domino' | 'goggles' | 'tiara' | 'crown' | 'leaves' | 'raccoon';
 type Prop = 'shield' | 'hammer' | 'gauntlet' | 'bow' | 'webs' | 'hands' | 'blaster' | 'sword' | 'knives' | 'batons' | 'arm' | 'wings' | 'fist' | 'claws' | 'katanas' | 'baton' | 'tiara' | 'batarang' | 'gun' | 'none';
-type Emblem = 'none' | 'star' | 'discs' | 'reactor' | 'hourglass' | 'spider' | 'amulet' | 'gem' | 'tattoo' | 'star8' | 'bolt' | 'circle' | 'phoenix' | 'W' | 'S' | 'bat' | 'bark';
+type Emblem = 'none' | 'star' | 'bean' | 'window' | 'discs' | 'reactor' | 'hourglass' | 'spider' | 'amulet' | 'gem' | 'tattoo' | 'star8' | 'bolt' | 'circle' | 'phoenix' | 'W' | 'S' | 'bat' | 'bark';
 
 export interface CastMember {
   hero: string; actor: string;
@@ -45,36 +45,36 @@ export interface CastMember {
 }
 
 export const CAST: CastMember[] = [
-  { hero: 'CAPTAIN AMERICANO', actor: 'CHAZ EVANSTON', woman: false, seed: 12, suit: '#1D4ED8', trim: '#DC2626', boots: '#7F1D1D', gloves: '#7F1D1D', emblem: 'star', mask: 'helmetA', prop: 'shield', hp: 125, speed: 1.4 },
-  { hero: 'THUD, GOD OF THUNDER-ISH', actor: 'LIAM HAMSWORTH', woman: false, seed: 25, look: { hair: '#F5D27A', long: true }, suit: '#3F3F46', trim: '#A1A1AA', boots: '#57534E', emblem: 'discs', cape: '#B91C1C', mask: 'none', prop: 'hammer', hp: 138, speed: 1.2 },
-  { hero: 'IRONIC MAN', actor: 'ROBBIE DOWNLY JR. JR.', woman: false, seed: 8, suit: '#B91C1C', trim: '#FACC15', boots: '#B91C1C', gloves: '#B91C1C', emblem: 'reactor', mask: 'faceplate', prop: 'gauntlet', hp: 125, speed: 1.3 },
-  { hero: 'THE INCREDIBLE BULK', actor: 'MARK RUFFLO', woman: false, seed: 3, look: { skin: '#65A30D', heavy: true, hair: '#1F1611' }, suit: '#65A30D', trim: '#6D28D9', boots: '#65A30D', legs: '#6D28D9', bare: true, emblem: 'none', mask: 'none', prop: 'none', hp: 244, speed: 1.0 },
-  { hero: 'BLACK WINDOW', actor: 'SCARLETT JOHANSWAN', woman: true, seed: 30, look: { hair: '#B91C1C' }, suit: '#18181B', trim: '#71717A', boots: '#18181B', gloves: '#18181B', emblem: 'hourglass', mask: 'none', prop: 'batons', hp: 131, speed: 1.7 },
-  { hero: 'HAWKGUY', actor: 'JEREMY RENTER', woman: false, seed: 17, suit: '#581C87', trim: '#18181B', boots: '#18181B', gloves: '#18181B', emblem: 'none', mask: 'none', prop: 'bow', hp: 106, speed: 1.4 },
-  { hero: 'SPIDER-TEEN', actor: 'TOM HOLLOWAY', woman: false, seed: 41, suit: '#DC2626', trim: '#1D4ED8', boots: '#1D4ED8', gloves: '#DC2626', emblem: 'spider', mask: 'full', prop: 'webs', hp: 94, speed: 1.9 },
-  { hero: 'DOCTOR STRANGLE', actor: 'BENEDICT CUMBERSOME', woman: false, seed: 22, look: { hair: '#1F1611' }, suit: '#1E3A8A', trim: '#A16207', boots: '#57534E', emblem: 'amulet', cape: '#B91C1C', mask: 'none', prop: 'hands', hp: 113, speed: 1.2 },
-  { hero: 'THE SCARLET WHICH', actor: 'ELIZABETH OLSONNE', woman: true, seed: 51, look: { hair: '#7F1D1D', long: true }, suit: '#9F1239', trim: '#7F1D1D', boots: '#7F1D1D', emblem: 'none', cape: '#9F1239', mask: 'crown', prop: 'hands', hp: 113, speed: 1.2 },
-  { hero: 'VISIONARY', actor: 'PAUL BETTERNY', woman: false, seed: 14, look: { skin: '#DC2626', bald: true }, suit: '#15803D', trim: '#FACC15', boots: '#15803D', emblem: 'gem', cape: '#FACC15', mask: 'none', prop: 'none', hp: 125, speed: 1.0 },
-  { hero: 'STAR-LARD', actor: 'CHRIS PRATTLE', woman: false, seed: 29, suit: '#7F1D1D', trim: '#1F2937', boots: '#3F2A14', legs: '#1F2937', emblem: 'none', mask: 'none', prop: 'blaster', hp: 113, speed: 1.5 },
-  { hero: 'GAMMA-RAY', actor: 'ZOE SALAMANDA', woman: true, seed: 37, look: { skin: '#4D7C0F', hair: '#7F1D1D', long: true }, suit: '#18181B', trim: '#7F1D1D', boots: '#18181B', emblem: 'none', mask: 'none', prop: 'sword', hp: 131, speed: 1.7 },
-  { hero: 'DRAKS THE DEMOLISHER', actor: 'DAVE BOTTISTA', woman: false, seed: 45, look: { skin: '#64748B', bald: true, heavy: true }, suit: '#64748B', trim: '#B91C1C', boots: '#3F2A14', legs: '#57534E', bare: true, emblem: 'tattoo', mask: 'none', prop: 'knives', hp: 225, speed: 1.0 },
-  { hero: 'AUNT-MAN', actor: 'PAUL RUDDER', woman: false, seed: 33, suit: '#B91C1C', trim: '#18181B', boots: '#18181B', gloves: '#18181B', emblem: 'none', mask: 'helmet', prop: 'none', hp: 106, speed: 1.4 },
-  { hero: 'CAPTAIN MARVELOUS', actor: 'BREE LARSONG', woman: true, seed: 63, look: { hair: '#F5D27A', long: false }, suit: '#1E3A8A', trim: '#DC2626', boots: '#DC2626', emblem: 'star8', mask: 'none', prop: 'hands', hp: 131, speed: 1.3 },
-  { hero: 'THE WINTER SOLDER', actor: 'SEBASTIEN STANLEY', woman: false, seed: 58, look: { hair: '#1F1611', long: true }, suit: '#18181B', trim: '#3F3F46', boots: '#18181B', gloves: '#18181B', emblem: 'none', mask: 'domino', prop: 'arm', hp: 150, speed: 1.5 },
-  { hero: 'THE FALCONER', actor: 'ANTONY MACKEREL', woman: false, seed: 4, suit: '#52525B', trim: '#B91C1C', boots: '#18181B', emblem: 'none', mask: 'goggles', prop: 'wings', hp: 125, speed: 1.0 },
-  { hero: 'SHE-BULK', actor: 'TATIANA MASLANKY', woman: true, seed: 18, look: { skin: '#65A30D', hair: '#111827', long: true, heavy: true }, suit: '#6D28D9', trim: '#F8FAFC', boots: '#6D28D9', emblem: 'none', mask: 'none', prop: 'none', hp: 225, speed: 1.0 },
-  { hero: 'MISS MARBLE', actor: 'IMAN VANILLI', woman: true, seed: 48, look: { hair: '#1F1611' }, suit: '#B91C1C', trim: '#1D4ED8', boots: '#FACC15', emblem: 'bolt', mask: 'domino', prop: 'fist', hp: 106, speed: 1.6 },
-  { hero: 'QUICKSHILL', actor: 'ERIN TAILOR-JOHANSEN', woman: false, seed: 26, look: { hair: '#D6D3D1' }, suit: '#1E3A8A', trim: '#93C5FD', boots: '#F8FAFC', emblem: 'bolt', mask: 'none', prop: 'none', hp: 106, speed: 1.9 },
-  { hero: 'WOLVERINO', actor: 'HUGH JACKHAMMER', woman: false, seed: 21, look: { hair: '#1F1611' }, suit: '#FACC15', trim: '#1E3A8A', boots: '#1E3A8A', gloves: '#1E3A8A', emblem: 'none', mask: 'ears', prop: 'claws', hp: 138, speed: 1.6 },
-  { hero: 'DEADPAN', actor: 'BRYAN RAYNOLDS', woman: false, seed: 35, suit: '#B91C1C', trim: '#18181B', boots: '#18181B', gloves: '#18181B', emblem: 'circle', mask: 'full', prop: 'katanas', hp: 131, speed: 1.8 },
-  { hero: 'DRIZZLE', actor: 'HALLE BURRY', woman: true, seed: 46, look: { hair: '#F5F5F4', long: true }, suit: '#18181B', trim: '#F5F5F4', boots: '#18181B', emblem: 'none', cape: '#27272A', mask: 'none', prop: 'hands', hp: 113, speed: 1.2 },
-  { hero: 'NEBULOUS', actor: 'KAREN GILLIGAN', woman: true, seed: 44, look: { skin: '#3B82F6', bald: true }, suit: '#7F1D1D', trim: '#3F3F46', boots: '#3F3F46', gloves: '#3F3F46', emblem: 'none', mask: 'none', prop: 'baton', hp: 138, speed: 1.6 },
-  { hero: 'JEAN BEIGE', actor: 'FAMKE JANSEN-SEN', woman: true, seed: 55, look: { hair: '#B45309', long: true }, suit: '#15803D', trim: '#FACC15', boots: '#FACC15', gloves: '#FACC15', emblem: 'phoenix', mask: 'none', prop: 'hands', hp: 113, speed: 1.2 },
-  { hero: 'WONDER WOMANISH', actor: 'GAL GADGET', woman: true, seed: 59, look: { hair: '#1F1611', long: true }, suit: '#B91C1C', trim: '#FACC15', boots: '#B91C1C', legs: '#1D4ED8', emblem: 'W', mask: 'tiara', prop: 'tiara', hp: 131, speed: 1.5 },
-  { hero: 'SUPERBMAN', actor: 'HENRY CAVITY', woman: false, seed: 2, look: { hair: '#111827' }, suit: '#1D4ED8', trim: '#DC2626', boots: '#DC2626', emblem: 'S', cape: '#DC2626', mask: 'none', prop: 'hands', hp: 138, speed: 1.3 },
-  { hero: 'BATTMAN', actor: 'BEN AFFLECKTION', woman: false, seed: 23, suit: '#3F3F46', trim: '#FACC15', boots: '#18181B', gloves: '#18181B', emblem: 'bat', cape: '#18181B', mask: 'cowl', prop: 'batarang', hp: 131, speed: 1.3 },
-  { hero: 'GROAT', actor: 'VIN DEISEL', woman: false, seed: 39, look: { skin: '#92400E', heavy: true, bald: true }, suit: '#78350F', trim: '#4D7C0F', boots: '#57534E', emblem: 'bark', mask: 'leaves', prop: 'none', hp: 225, speed: 0.9 },
-  { hero: 'SOCKET', actor: 'BRADLEY COOPERSMITH', woman: false, seed: 31, suit: '#78716C', trim: '#F5F5F4', boots: '#3F3F46', emblem: 'none', mask: 'raccoon', prop: 'gun', hp: 94, speed: 1.5, short: true },
+  { hero: 'CAPTAIN AMERICANO', actor: 'CHAZ EVANSTON', woman: false, seed: 12, suit: '#7C2D12', trim: '#F5DEB3', boots: '#3F1D0B', gloves: '#3F1D0B', emblem: 'bean', mask: 'helmetA', prop: 'shield', hp: 125, speed: 1.4 },
+  { hero: 'THUD, GOD OF THUNDER-ISH', actor: 'LIAM HAMSWORTH', woman: false, seed: 25, look: { hair: '#F5D27A', long: true }, suit: '#5A3A22', trim: '#D97706', boots: '#3F2A14', emblem: 'discs', cape: '#15803D', mask: 'none', prop: 'hammer', hp: 138, speed: 1.2 },
+  { hero: 'IRONIC MAN', actor: 'ROBBIE DOWNLY JR. JR.', woman: false, seed: 8, suit: '#0F766E', trim: '#C2703D', boots: '#0F766E', gloves: '#0F766E', emblem: 'reactor', mask: 'faceplate', prop: 'gauntlet', hp: 125, speed: 1.3 },
+  { hero: 'THE INCREDIBLE BULK', actor: 'MARK RUFFLO', woman: false, seed: 3, look: { skin: '#E8833A', heavy: true, hair: '#1F1611' }, suit: '#E8833A', trim: '#1E3A8A', boots: '#E8833A', legs: '#1E3A8A', bare: true, emblem: 'none', mask: 'none', prop: 'none', hp: 244, speed: 1.0 },
+  { hero: 'BLACK WINDOW', actor: 'SCARLETT JOHANSWAN', woman: true, seed: 30, look: { hair: '#E5E7EB' }, suit: '#2A1B3D', trim: '#A78BFA', boots: '#2A1B3D', gloves: '#2A1B3D', emblem: 'window', mask: 'none', prop: 'batons', hp: 131, speed: 1.7 },
+  { hero: 'HAWKGUY', actor: 'JEREMY RENTER', woman: false, seed: 17, suit: '#B45309', trim: '#365314', boots: '#365314', gloves: '#365314', emblem: 'none', mask: 'none', prop: 'bow', hp: 106, speed: 1.4 },
+  { hero: 'SPIDER-TEEN', actor: 'TOM HOLLOWAY', woman: false, seed: 41, suit: '#F97316', trim: '#1F2937', boots: '#1F2937', gloves: '#F97316', emblem: 'spider', mask: 'full', prop: 'webs', hp: 94, speed: 1.9 },
+  { hero: 'DOCTOR STRANGLE', actor: 'BENEDICT CUMBERSOME', woman: false, seed: 22, look: { hair: '#1F1611' }, suit: '#4C1D95', trim: '#B45309', boots: '#57534E', emblem: 'amulet', cape: '#0F766E', mask: 'none', prop: 'hands', hp: 113, speed: 1.2 },
+  { hero: 'THE SCARLET WHICH', actor: 'ELIZABETH OLSONNE', woman: true, seed: 51, look: { hair: '#3F2A14', long: true }, suit: '#065F46', trim: '#A3E635', boots: '#064E3B', emblem: 'none', cape: '#065F46', mask: 'crown', prop: 'hands', hp: 113, speed: 1.2 },
+  { hero: 'VISIONARY', actor: 'PAUL BETTERNY', woman: false, seed: 14, look: { skin: '#A3A3B5', bald: true }, suit: '#1E40AF', trim: '#F97316', boots: '#1E40AF', emblem: 'gem', cape: '#F97316', mask: 'none', prop: 'none', hp: 125, speed: 1.0 },
+  { hero: 'STAR-LARD', actor: 'CHRIS PRATTLE', woman: false, seed: 29, suit: '#4D5A1E', trim: '#57534E', boots: '#3F2A14', legs: '#1E3A8A', emblem: 'none', mask: 'none', prop: 'blaster', hp: 113, speed: 1.5 },
+  { hero: 'GAMMA-RAY', actor: 'ZOE SALAMANDA', woman: true, seed: 37, look: { skin: '#9F7AEA', hair: '#0F172A', long: true }, suit: '#7C2D12', trim: '#F59E0B', boots: '#3F1D0B', emblem: 'none', mask: 'none', prop: 'sword', hp: 131, speed: 1.7 },
+  { hero: 'DRAKS THE DEMOLISHER', actor: 'DAVE BOTTISTA', woman: false, seed: 45, look: { skin: '#A07A5A', bald: true, heavy: true }, suit: '#A07A5A', trim: '#0E7490', boots: '#3F2A14', legs: '#1F2937', bare: true, emblem: 'tattoo', mask: 'none', prop: 'knives', hp: 225, speed: 1.0 },
+  { hero: 'AUNT-MAN', actor: 'PAUL RUDDER', woman: false, seed: 33, suit: '#CA8A04', trim: '#1F2937', boots: '#1F2937', gloves: '#1F2937', emblem: 'none', mask: 'helmet', prop: 'none', hp: 106, speed: 1.4 },
+  { hero: 'CAPTAIN MARVELOUS', actor: 'BREE LARSONG', woman: true, seed: 63, look: { hair: '#F5D27A', long: false }, suit: '#047857', trim: '#F472B6', boots: '#F472B6', emblem: 'star8', mask: 'none', prop: 'hands', hp: 131, speed: 1.3 },
+  { hero: 'THE WINTER SOLDER', actor: 'SEBASTIEN STANLEY', woman: false, seed: 58, look: { hair: '#1F1611', long: true }, suit: '#3F4F3A', trim: '#A8A29E', boots: '#27301F', gloves: '#27301F', emblem: 'none', mask: 'domino', prop: 'arm', hp: 150, speed: 1.5 },
+  { hero: 'THE FALCONER', actor: 'ANTONY MACKEREL', woman: false, seed: 4, suit: '#A16207', trim: '#1F2937', boots: '#1F2937', emblem: 'none', mask: 'goggles', prop: 'wings', hp: 125, speed: 1.0 },
+  { hero: 'SHE-BULK', actor: 'TATIANA MASLANKY', woman: true, seed: 18, look: { skin: '#8E7CA8', hair: '#111827', long: true, heavy: true }, suit: '#F59E0B', trim: '#1F2937', boots: '#F59E0B', emblem: 'none', mask: 'none', prop: 'none', hp: 225, speed: 1.0 },
+  { hero: 'MISS MARBLE', actor: 'IMAN VANILLI', woman: true, seed: 48, look: { hair: '#1F1611' }, suit: '#0E7490', trim: '#F472B6', boots: '#F8FAFC', emblem: 'bolt', mask: 'domino', prop: 'fist', hp: 106, speed: 1.6 },
+  { hero: 'QUICKSHILL', actor: 'ERIN TAILOR-JOHANSEN', woman: false, seed: 26, look: { hair: '#D6D3D1' }, suit: '#15803D', trim: '#BEF264', boots: '#F8FAFC', emblem: 'bolt', mask: 'none', prop: 'none', hp: 106, speed: 1.9 },
+  { hero: 'WOLVERINO', actor: 'HUGH JACKHAMMER', woman: false, seed: 21, look: { hair: '#1F1611' }, suit: '#7C3AED', trim: '#18181B', boots: '#18181B', gloves: '#18181B', emblem: 'none', mask: 'ears', prop: 'claws', hp: 138, speed: 1.6 },
+  { hero: 'DEADPAN', actor: 'BRYAN RAYNOLDS', woman: false, seed: 35, suit: '#DB2777', trim: '#1F2937', boots: '#1F2937', gloves: '#1F2937', emblem: 'circle', mask: 'full', prop: 'katanas', hp: 131, speed: 1.8 },
+  { hero: 'DRIZZLE', actor: 'HALLE BURRY', woman: true, seed: 46, look: { hair: '#A78BFA', long: true }, suit: '#475569', trim: '#FACC15', boots: '#FACC15', emblem: 'none', cape: '#FACC15', mask: 'none', prop: 'hands', hp: 113, speed: 1.2 },
+  { hero: 'NEBULOUS', actor: 'KAREN GILLIGAN', woman: true, seed: 44, look: { skin: '#F472B6', bald: true }, suit: '#1F2937', trim: '#64748B', boots: '#64748B', gloves: '#64748B', emblem: 'none', mask: 'none', prop: 'baton', hp: 138, speed: 1.6 },
+  { hero: 'JEAN BEIGE', actor: 'FAMKE JANSEN-SEN', woman: true, seed: 55, look: { hair: '#3F2A14', long: true }, suit: '#D6C29A', trim: '#8B5E34', boots: '#8B5E34', gloves: '#8B5E34', emblem: 'phoenix', mask: 'none', prop: 'hands', hp: 113, speed: 1.2 },
+  { hero: 'WONDER WOMANISH', actor: 'GAL GADGET', woman: true, seed: 59, look: { hair: '#1F1611', long: true }, suit: '#86198F', trim: '#E5E7EB', boots: '#86198F', legs: '#334155', emblem: 'W', mask: 'tiara', prop: 'tiara', hp: 131, speed: 1.5 },
+  { hero: 'SUPERBMAN', actor: 'HENRY CAVITY', woman: false, seed: 2, look: { hair: '#111827' }, suit: '#E2E8F0', trim: '#16A34A', boots: '#16A34A', emblem: 'S', cape: '#16A34A', mask: 'none', prop: 'hands', hp: 138, speed: 1.3 },
+  { hero: 'BATTMAN', actor: 'BEN AFFLECKTION', woman: false, seed: 23, suit: '#1E3A8A', trim: '#CBD5E1', boots: '#0F172A', gloves: '#0F172A', emblem: 'bat', cape: '#0F172A', mask: 'cowl', prop: 'batarang', hp: 131, speed: 1.3 },
+  { hero: 'GROAT', actor: 'VIN DEISEL', woman: false, seed: 39, look: { skin: '#D6D3D1', heavy: true, bald: true }, suit: '#E7E5E4', trim: '#CA8A04', boots: '#57534E', emblem: 'bark', mask: 'leaves', prop: 'none', hp: 225, speed: 0.9 },
+  { hero: 'SOCKET', actor: 'BRADLEY COOPERSMITH', woman: false, seed: 31, suit: '#C2410C', trim: '#F5F5F4', boots: '#3F3F46', emblem: 'none', mask: 'raccoon', prop: 'gun', hp: 94, speed: 1.5, short: true },
 ];
 
 /** The engine's health for one (it never runs out: what comes off it each frame is the hit, fight.ts keeps the real). */
@@ -88,7 +88,7 @@ const castOf = (e: Enemy) => CAST[e.variant ?? 0] ?? CAST[0];
 
 const can = (state: GameState) => state.player.health > 0 && !holdingOff(state) && !state.player.inCutscene && !state.player.carried;
 /** How quick they come (px a frame). */
-export const actorSpeed = (i: number) => (CAST[i]?.speed ?? 1.3) * 1.8;
+export const actorSpeed = (i: number) => (CAST[i]?.speed ?? 1.3) * 1.55;
 
 const actorAI = (ctx: FrameContext, e: Enemy) => {
   const { state } = ctx, p = mid(state.player), m = mid(e), dx = p.x - m.x, dy = p.y - m.y;
@@ -99,7 +99,7 @@ const actorAI = (ctx: FrameContext, e: Enemy) => {
     // The hero landing (down on one knee, a fist on the floor: the beat after they come down)
     case 'land':
       e.vel.x = 0;
-      if (e.aiTimer > 30) setState(e, 'approach');
+      if (e.aiTimer > 36) setState(e, 'approach');
       break;
     default:
       setState(e, 'approach');
@@ -110,7 +110,7 @@ const actorAI = (ctx: FrameContext, e: Enemy) => {
       e.vel.x = Math.abs(dx) > 4 && safeAhead(ctx, e, e.facing) ? e.facing * actorSpeed(e.variant ?? 0) : 0;
       // (he's up off the floor over them: a hop up at him, arms out)
       if ((e.leapCd ?? 0) <= 0 && dy < -46 && Math.abs(dx) < 130) {
-        e.vel.y = -10.5; e.vel.x = Math.max(-5, Math.min(5, dx / 18)); e.leapCd = 38;
+        e.vel.y = -10.5; e.vel.x = Math.max(-5, Math.min(5, dx / 18)); e.leapCd = 46;
         playSound('jump', 0.4, 2 + ((e.variant ?? 0) % 5));
       }
       break;
@@ -145,24 +145,37 @@ const emblem = (g: Ctx, a: CastMember, B: Person) => {
   const x = 1, y = B.shY + 10, t = a.trim;
   switch (a.emblem) {
     case 'star': case 'star8': {
-      const col = a.emblem === 'star' ? '#F8FAFC' : '#FACC15';
-      flat(g, () => { for (let k = 0; k < 10; k++) { const r = k % 2 ? 2.2 : 5, an = -Math.PI / 2 + (k * Math.PI) / 5; g.lineTo(x + Math.cos(an) * r, y + Math.sin(an) * r); } g.closePath(); }, col, 0.8);
+      // (Captain Marvelous's: a six-point burst in her trim, not a star)
+      const col = a.emblem === 'star' ? '#F8FAFC' : a.trim, pts = a.emblem === 'star' ? 10 : 12;
+      flat(g, () => { for (let k = 0; k < pts; k++) { const r = k % 2 ? 2.2 : 5, an = -Math.PI / 2 + (k * 2 * Math.PI) / pts; g.lineTo(x + Math.cos(an) * r, y + Math.sin(an) * r); } g.closePath(); }, col, 0.8);
       if (a.emblem === 'star') for (let k = 0; k < 3; k++) px(g, -B.w / 2 + 2, B.hipY - 8 + k * 3, B.w - 4, 1.5, k % 2 ? '#F8FAFC' : t);
       break;
     }
+    // (Captain Americano's: a coffee bean, its crease; a cream-and-roast band at the waist)
+    case 'bean':
+      flat(g, () => g.ellipse(x, y, 4, 5.5, 0.35, 0, Math.PI * 2), t, 0.8);
+      limb(g, x - 1.4, y - 4, x + 1.4, y + 4, 0.8, a.suit, false);
+      for (let k = 0; k < 2; k++) px(g, -B.w / 2 + 2, B.hipY - 7 + k * 3, B.w - 4, 1.5, k ? a.boots : t);
+      break;
+    // (Black Window's: a window, four panes, the frame in her trim)
+    case 'window':
+      px(g, x - 5, y - 4, 10, 10, a.trim); px(g, x - 4, y - 3, 3.5, 3.5, '#BAE6FD'); px(g, x + 0.5, y - 3, 3.5, 3.5, '#BAE6FD'); px(g, x - 4, y + 1.5, 3.5, 3.5, '#7DD3FC'); px(g, x + 0.5, y + 1.5, 3.5, 3.5, '#7DD3FC'); px(g, x - 4, y - 3, 1, 1, '#F8FAFC');
+      px(g, -B.w / 2 + 2, B.hipY - 4, B.w - 4, 2, t);
+      break;
     case 'discs': for (let k = 0; k < 3; k++) ball(g, -6 + k * 6, y - 1, 2.4, t, 0.7); break;
-    case 'reactor': ball(g, x, y, 3.6, '#BAE6FD', 0.9); px(g, x - 1, y - 1, 2, 2, '#F8FAFC'); px(g, -B.w / 2 + 2, B.hipY - 6, B.w - 4, 3, t); break;
+    case 'reactor': ball(g, x, y, 3.6, '#FCD34D', 0.9); px(g, x - 1, y - 1, 2, 2, '#F8FAFC'); px(g, -B.w / 2 + 2, B.hipY - 6, B.w - 4, 3, t); break;
     case 'hourglass': flat(g, () => { g.moveTo(x - 3, y + 2); g.lineTo(x + 3, y + 2); g.lineTo(x - 3, y + 8); g.lineTo(x + 3, y + 8); g.closePath(); }, '#DC2626', 0.6); px(g, -B.w / 2 + 2, B.hipY - 4, B.w - 4, 2, t); break;
     case 'spider': ball(g, x, y, 2.2, '#18181B', 0.4); for (const s of [-1, 1]) for (let k = 0; k < 3; k++) limb(g, x, y, x + s * 6, y - 4 + k * 4, 0.8, '#18181B', false); break;
-    case 'amulet': ball(g, x, y - 2, 3.4, '#FACC15', 0.9); px(g, x - 1, y - 3, 2, 2, '#16A34A'); break;
-    case 'gem': ball(g, x, y - 12, 2, '#FACC15', 0.6); px(g, -B.w / 2 + 2, y, B.w - 4, 2, t); break;
-    case 'tattoo': for (let k = 0; k < 4; k++) limb(g, -8 + k * 5, y - 4, -6 + k * 5, y + 10, 1, '#B91C1C', false); break;
-    case 'bolt': flat(g, () => { g.moveTo(x + 2, y - 6); g.lineTo(x - 3, y + 1); g.lineTo(x, y + 1); g.lineTo(x - 2, y + 7); g.lineTo(x + 4, y - 1); g.lineTo(x + 1, y - 1); g.closePath(); }, a.suit === '#1E3A8A' && a.trim === '#93C5FD' ? '#F8FAFC' : '#FACC15', 0.6); break;
+    case 'amulet': ball(g, x, y - 2, 3.4, '#CBD5E1', 0.9); px(g, x - 1, y - 3, 2, 2, '#DC2626'); break;
+    case 'gem': ball(g, x, y - 12, 2, '#22D3EE', 0.6); px(g, -B.w / 2 + 2, y, B.w - 4, 2, t); break;
+    case 'tattoo': for (let k = 0; k < 4; k++) limb(g, -8 + k * 5, y - 4, -6 + k * 5, y + 10, 1, t, false); break;
+    case 'bolt': flat(g, () => { g.moveTo(x + 2, y - 6); g.lineTo(x - 3, y + 1); g.lineTo(x, y + 1); g.lineTo(x - 2, y + 7); g.lineTo(x + 4, y - 1); g.lineTo(x + 1, y - 1); g.closePath(); }, a.hero === 'QUICKSHILL' ? '#F8FAFC' : a.trim, 0.6); break;
     case 'circle': ball(g, x, y, 4, '#18181B', 0.6); px(g, x - 0.5, y - 4, 1, 8, a.suit); break;
-    case 'phoenix': flat(g, () => { g.moveTo(x, y - 5); g.lineTo(x - 6, y + 2); g.lineTo(x, y); g.lineTo(x + 6, y + 2); g.closePath(); }, '#FACC15', 0.6); px(g, -B.w / 2 + 2, B.hipY - 4, B.w - 4, 3, t); break;
-    case 'W': flat(g, () => { g.moveTo(x - 7, y - 3); g.lineTo(x - 3, y + 3); g.lineTo(x, y - 1); g.lineTo(x + 3, y + 3); g.lineTo(x + 7, y - 3); g.lineTo(x + 3, y); g.lineTo(x, y - 4); g.lineTo(x - 3, y); g.closePath(); }, '#FACC15', 0.6); break;
-    case 'S': flat(g, () => { g.moveTo(x - 6, y - 4); g.lineTo(x + 6, y - 4); g.lineTo(x + 7, y - 1); g.lineTo(x, y + 7); g.lineTo(x - 7, y - 1); g.closePath(); }, '#FACC15', 0.7); px(g, x - 3, y - 2, 6, 2, '#DC2626'); px(g, x - 2, y + 1, 4, 2, '#DC2626'); break;
-    case 'bat': flat(g, () => { g.moveTo(x - 8, y - 2); g.lineTo(x - 3, y - 1); g.lineTo(x - 1, y - 4); g.lineTo(x + 1, y - 4); g.lineTo(x + 3, y - 1); g.lineTo(x + 8, y - 2); g.lineTo(x + 5, y + 3); g.lineTo(x, y + 1); g.lineTo(x - 5, y + 3); g.closePath(); }, '#18181B', 0.4); px(g, -B.w / 2 + 2, B.hipY - 5, B.w - 4, 3, t); break;
+    case 'phoenix': flat(g, () => { g.moveTo(x, y - 5); g.lineTo(x - 6, y + 2); g.lineTo(x, y); g.lineTo(x + 6, y + 2); g.closePath(); }, a.trim, 0.6); px(g, -B.w / 2 + 2, B.hipY - 4, B.w - 4, 3, t); break;
+    case 'W': flat(g, () => { g.moveTo(x - 7, y - 3); g.lineTo(x - 3, y + 3); g.lineTo(x, y - 1); g.lineTo(x + 3, y + 3); g.lineTo(x + 7, y - 3); g.lineTo(x + 3, y); g.lineTo(x, y - 4); g.lineTo(x - 3, y); g.closePath(); }, a.trim, 0.6); break;
+    // (Superbman's: a round badge in his green, an S-ish squiggle in white)
+    case 'S': ball(g, x, y + 1, 5.5, t, 0.8); g.strokeStyle = '#F8FAFC'; g.lineWidth = 1.4; g.beginPath(); g.moveTo(x + 2.5, y - 2); g.quadraticCurveTo(x - 3, y - 2.5, x - 1, y + 1); g.quadraticCurveTo(x + 3, y + 2, x - 2.5, y + 4); g.stroke(); break;
+    case 'bat': flat(g, () => { g.moveTo(x - 8, y - 2); g.lineTo(x - 3, y - 1); g.lineTo(x - 1, y - 4); g.lineTo(x + 1, y - 4); g.lineTo(x + 3, y - 1); g.lineTo(x + 8, y - 2); g.lineTo(x + 5, y + 3); g.lineTo(x, y + 1); g.lineTo(x - 5, y + 3); g.closePath(); }, t, 0.4); px(g, -B.w / 2 + 2, B.hipY - 5, B.w - 4, 3, t); break;
     case 'bark': for (let k = 0; k < 5; k++) px(g, -B.w / 2 + 3 + k * 5, B.shY + 4, 1, B.hipY - B.shY, dk(a.suit, 0.3)); ball(g, 6, B.shY + 4, 3, t, 0.6); break;
     default: break;
   }
@@ -173,8 +186,9 @@ const mask = (g: Ctx, a: CastMember, B: Person) => {
   switch (a.mask) {
     case 'helmetA':
       part(g, () => { g.moveTo(hx - 9.5, hy + 1); g.quadraticCurveTo(hx - 9, hy - 12, hx + 1, hy - 12); g.quadraticCurveTo(hx + 10, hy - 12, hx + 10, hy - 2); g.lineTo(hx + 8, hy - 2); g.lineTo(hx - 7, hy + 3); g.closePath(); }, s, hx - 9.5, hy - 12, 20, 15, 1);
-      px(g, hx - 1, hy - 10, 3, 5, '#F8FAFC');
-      flat(g, () => { g.moveTo(hx - 8, hy - 4); g.lineTo(hx - 13, hy - 9); g.lineTo(hx - 8, hy - 7); g.closePath(); }, '#F8FAFC', 0.6);
+      // (a cream stripe over the crown and a cream handle-loop at the side: a mug's)
+      px(g, hx - 1, hy - 12, 3, 7, a.trim);
+      g.strokeStyle = a.trim; g.lineWidth = 1.4; g.beginPath(); g.arc(hx - 10, hy - 5, 3, Math.PI * 0.5, Math.PI * 1.5); g.stroke();
       break;
     case 'faceplate':
       part(g, () => g.ellipse(hx, hy - 1, B.rx + 1, B.ry + 1, 0, Math.PI * 0.95, Math.PI * 2.05), s, hx - B.rx - 1, hy - B.ry - 1, B.rx * 2 + 2, B.ry + 2, 1);
@@ -184,12 +198,12 @@ const mask = (g: Ctx, a: CastMember, B: Person) => {
     case 'full':
       part(g, () => g.ellipse(hx, hy, B.rx + 0.5, B.ry + 0.5, 0, 0, Math.PI * 2), s, hx - B.rx, hy - B.ry, B.rx * 2 + 1, B.ry * 2 + 1, 1.2);
       if (a.emblem === 'spider') { g.strokeStyle = dk(s, 0.35); g.lineWidth = 0.6; for (let k = -2; k <= 2; k++) { g.beginPath(); g.moveTo(hx + 2, hy); g.lineTo(hx + 2 + k * 5, hy - 9); g.stroke(); } }
-      for (const dxx of [-1, 6]) flat(g, () => g.ellipse(hx + dxx, hy - 1, 2.6, 3.2, dxx < 0 ? 0.4 : -0.4, 0, Math.PI * 2), a.emblem === 'circle' ? '#18181B' : '#F8FAFC', 0.9);
+      for (const dxx of [-1, 6]) flat(g, () => g.ellipse(hx + dxx, hy - 1, 2.6, 3.2, dxx < 0 ? 0.4 : -0.4, 0, Math.PI * 2), a.emblem === 'circle' ? '#18181B' : a.emblem === 'spider' ? '#A3E635' : '#F8FAFC', 0.9);
       if (a.emblem === 'circle') for (const dxx of [-1, 6]) px(g, hx + dxx - 1, hy - 2, 2, 2, '#F8FAFC');
       break;
     case 'helmet':
       part(g, () => g.ellipse(hx, hy - 1, B.rx + 2, B.ry + 2, 0, 0, Math.PI * 2), '#A1A1AA', hx - B.rx - 2, hy - B.ry - 3, B.rx * 2 + 4, B.ry * 2 + 4, 1.2);
-      for (const dxx of [0, 6]) flat(g, () => g.ellipse(hx + dxx, hy - 1, 2.4, 2.8, 0, 0, Math.PI * 2), '#DC2626', 0.8);
+      for (const dxx of [0, 6]) flat(g, () => g.ellipse(hx + dxx, hy - 1, 2.4, 2.8, 0, 0, Math.PI * 2), '#22D3EE', 0.8);
       px(g, hx - 3, hy + 5, 10, 2, '#52525B');
       break;
     case 'cowl': case 'ears':
@@ -197,12 +211,12 @@ const mask = (g: Ctx, a: CastMember, B: Person) => {
       if (a.mask === 'ears') px(g, hx - 2, hy - 9, 10, 4, '#18181B');
       break;
     case 'domino': px(g, hx - 3, hy - 3, 12, 3.4, '#18181B'); break;
-    case 'goggles': px(g, hx - 3, hy - 3.4, 13, 4, '#7F1D1D'); px(g, hx + 1, hy - 3, 3, 2, '#FCA5A5'); px(g, hx + 6, hy - 3, 3, 2, '#FCA5A5'); break;
+    case 'goggles': px(g, hx - 3, hy - 3.4, 13, 4, '#0E7490'); px(g, hx + 1, hy - 3, 3, 2, '#67E8F9'); px(g, hx + 6, hy - 3, 3, 2, '#67E8F9'); break;
     case 'tiara': case 'crown':
-      flat(g, () => { g.moveTo(hx - 7, hy - 8); g.lineTo(hx + 1, hy - (a.mask === 'crown' ? 18 : 13)); g.lineTo(hx + 9, hy - 8); g.lineTo(hx + 1, hy - 10); g.closePath(); }, a.mask === 'crown' ? '#9F1239' : '#FACC15', 0.8);
-      if (a.mask === 'tiara') ball(g, hx + 1, hy - 10, 1.4, '#DC2626', 0.4);
+      flat(g, () => { g.moveTo(hx - 7, hy - 8); g.lineTo(hx + 1, hy - (a.mask === 'crown' ? 18 : 13)); g.lineTo(hx + 9, hy - 8); g.lineTo(hx + 1, hy - 10); g.closePath(); }, a.mask === 'crown' ? a.suit : a.trim, 0.8);
+      if (a.mask === 'tiara') ball(g, hx + 1, hy - 10, 1.4, '#22D3EE', 0.4);
       break;
-    case 'leaves': for (let k = 0; k < 5; k++) ball(g, hx - 8 + k * 4, hy - 9 - (k % 2) * 3, 3, '#4D7C0F', 0.7); break;
+    case 'leaves': for (let k = 0; k < 5; k++) ball(g, hx - 8 + k * 4, hy - 9 - (k % 2) * 3, 3, k % 2 ? '#CA8A04' : '#C2410C', 0.7); break;
     case 'raccoon':
       for (const dxx of [-6, 5]) flat(g, () => { g.moveTo(hx + dxx - 3, hy - 8); g.lineTo(hx + dxx, hy - 15); g.lineTo(hx + dxx + 3, hy - 8); g.closePath(); }, a.suit, 0.8);
       part(g, () => g.ellipse(hx, hy - 3, B.rx + 0.6, B.ry - 3, 0, Math.PI, Math.PI * 2), a.suit, hx - B.rx, hy - B.ry, B.rx * 2, B.ry, 1);
@@ -217,22 +231,23 @@ const prop = (g: Ctx, a: CastMember, x: number, y: number, up: boolean, out: boo
   g.save(); g.translate(x, y); g.rotate(rot);
   switch (a.prop) {
     case 'shield': {
-      g.rotate(-rot); ball(g, 6, 0, 10, '#DC2626', 1); ball(g, 6, 0, 7.4, '#F8FAFC', 0.6); ball(g, 6, 0, 5, '#DC2626', 0.5); ball(g, 6, 0, 3.6, '#1D4ED8', 0.5);
-      flat(g, () => { for (let k = 0; k < 10; k++) { const r = k % 2 ? 1 : 2.6, an = -Math.PI / 2 + (k * Math.PI) / 5; g.lineTo(6 + Math.cos(an) * r, Math.sin(an) * r); } g.closePath(); }, '#F8FAFC', 0);
+      // (a saucer, not a shield: cream rim, the roast ring, the bean in the middle)
+      g.rotate(-rot); ball(g, 6, 0, 10, '#F5DEB3', 1); ball(g, 6, 0, 7.4, '#7C2D12', 0.6); ball(g, 6, 0, 5, '#F5DEB3', 0.5);
+      flat(g, () => g.ellipse(6, 0, 2.2, 3, 0.35, 0, Math.PI * 2), '#3F1D0B', 0); limb(g, 5.4, -2, 6.6, 2, 0.6, '#F5DEB3', false);
       px(g, 0, -6, 2, 2, '#FFFFFF');
       break;
     }
-    case 'hammer': limb(g, 0, 0, 14, 0, 2.2, '#78350F'); px(g, 2, -1, 10, 1, '#A16207'); part(g, () => g.roundRect(12, -6, 9, 12, 1), '#A1A1AA', 12, -6, 9, 12, 1); px(g, 13, -2, 7, 1, '#71717A'); px(g, 13, 2, 7, 1, '#71717A'); px(g, 14, -5, 2, 2, '#E4E4E7'); break;
-    case 'bow': g.rotate(-rot - 1.57); g.strokeStyle = INK; g.lineWidth = 2.6; g.beginPath(); g.arc(0, 0, 14, -1.2, 1.2); g.stroke(); g.strokeStyle = '#581C87'; g.lineWidth = 1.6; g.beginPath(); g.arc(0, 0, 14, -1.2, 1.2); g.stroke(); break;
-    case 'blaster': case 'gun': part(g, () => g.roundRect(0, -3, 14, 6, 1), a.prop === 'gun' ? '#F97316' : '#71717A', 0, -3, 14, 6, 0.9); px(g, 2, 2, 3, 4, '#3F3F46'); break;
+    case 'hammer': limb(g, 0, 0, 14, 0, 2.2, '#78350F'); px(g, 2, -1, 10, 1, '#A16207'); part(g, () => g.roundRect(12, -7, 9, 14, 3), '#B45309', 12, -7, 9, 14, 1); px(g, 12, -4, 9, 1.5, '#FACC15'); px(g, 12, 3, 9, 1.5, '#FACC15'); px(g, 14, -6, 2, 2, '#F59E0B'); break;
+    case 'bow': g.rotate(-rot - 1.57); g.strokeStyle = INK; g.lineWidth = 2.6; g.beginPath(); g.arc(0, 0, 14, -1.2, 1.2); g.stroke(); g.strokeStyle = '#365314'; g.lineWidth = 1.6; g.beginPath(); g.arc(0, 0, 14, -1.2, 1.2); g.stroke(); break;
+    case 'blaster': case 'gun': part(g, () => g.roundRect(0, -3, 14, 6, 1), a.prop === 'gun' ? '#22D3EE' : '#71717A', 0, -3, 14, 6, 0.9); px(g, 2, 2, 3, 4, '#3F3F46'); break;
     case 'sword': limb(g, 0, 0, 26, 0, 2.4, '#D4D4D8'); px(g, -2, -3, 3, 6, '#78350F'); break;
     case 'knives': limb(g, 0, 0, 14, 0, 2, '#A1A1AA'); break;
-    case 'batons': case 'baton': limb(g, -3, 0, 16, 0, 2.4, a.prop === 'batons' ? '#18181B' : '#3F3F46'); break;
+    case 'batons': case 'baton': limb(g, -3, 0, 16, 0, 2.4, a.prop === 'batons' ? '#7C3AED' : '#3F3F46'); break;
     case 'claws': for (let k = -1; k <= 1; k++) limb(g, 2, k * 2.4, 16, k * 3, 1, '#E5E7EB', false); break;
     case 'katanas': limb(g, 0, 0, 24, 0, 2, '#D4D4D8'); break;
     case 'fist': ball(g, 4, 0, 7, a.suit, 1); break;
-    case 'batarang': flat(g, () => { g.moveTo(0, 0); g.lineTo(8, -4); g.lineTo(5, 0); g.lineTo(8, 4); g.closePath(); }, '#18181B', 0.5); break;
-    case 'tiara': if (up || out) flat(g, () => { g.moveTo(0, -3); g.lineTo(5, -8); g.lineTo(10, -3); g.closePath(); }, '#FACC15', 0.6); break;
+    case 'batarang': flat(g, () => { g.moveTo(0, 0); g.lineTo(8, -4); g.lineTo(5, 0); g.lineTo(8, 4); g.closePath(); }, '#CBD5E1', 0.5); break;
+    case 'tiara': if (up || out) flat(g, () => { g.moveTo(0, -3); g.lineTo(5, -8); g.lineTo(10, -3); g.closePath(); }, a.trim, 0.6); break;
     default: break;
   }
   g.restore();
@@ -241,16 +256,16 @@ const prop = (g: Ctx, a: CastMember, x: number, y: number, up: boolean, out: boo
 /** Behind them (drawn first): what's on their back (a quiver, katana hilts, a tail, a coat's tails). */
 const extrasBack = (g: Ctx, a: CastMember, B: Person) => {
   switch (a.hero) {
-    case 'HAWKGUY': part(g, () => { g.moveTo(-B.w / 2 + 2, B.shY - 2); g.lineTo(-B.w / 2 + 8, B.shY - 4); g.lineTo(-B.w / 2 + 2, B.hipY - 4); g.lineTo(-B.w / 2 - 4, B.hipY - 2); g.closePath(); }, '#5A3A1A', -B.w / 2 - 4, B.shY - 4, 12, B.hipY - B.shY, 1); for (let k = 0; k < 3; k++) { px(g, -B.w / 2 + 2 + k * 2, B.shY - 10, 1, 7, '#D4D4D8'); px(g, -B.w / 2 + 1 + k * 2, B.shY - 12, 3, 3, '#B91C1C'); } break;
+    case 'HAWKGUY': part(g, () => { g.moveTo(-B.w / 2 + 2, B.shY - 2); g.lineTo(-B.w / 2 + 8, B.shY - 4); g.lineTo(-B.w / 2 + 2, B.hipY - 4); g.lineTo(-B.w / 2 - 4, B.hipY - 2); g.closePath(); }, '#5A3A1A', -B.w / 2 - 4, B.shY - 4, 12, B.hipY - B.shY, 1); for (let k = 0; k < 3; k++) { px(g, -B.w / 2 + 2 + k * 2, B.shY - 10, 1, 7, '#D4D4D8'); px(g, -B.w / 2 + 1 + k * 2, B.shY - 12, 3, 3, '#16A34A'); } break;
     case 'DEADPAN': for (const s of [0, 1]) { limb(g, -4 + s * 6, B.shY + 18, -10 + s * 14, B.shY - 12, 2, '#3A3A44'); px(g, -12 + s * 14, B.shY - 14, 4, 3, '#18181B'); } break;
-    case 'SOCKET': part(g, () => { g.moveTo(-B.hipW / 2, B.hipY); g.quadraticCurveTo(-B.hipW / 2 - 18, B.hipY + 4, -B.hipW / 2 - 16, B.hipY - 16); g.quadraticCurveTo(-B.hipW / 2 - 10, B.hipY - 6, -B.hipW / 2 + 2, B.hipY - 6); g.closePath(); }, '#78716C', -B.hipW / 2 - 18, B.hipY - 16, 20, 20, 1); for (let k = 0; k < 3; k++) px(g, -B.hipW / 2 - 14 + k * 5, B.hipY - 8 + (k % 2) * 3, 3, 2, '#27272A'); break;
-    case 'STAR-LARD': part(g, () => { g.moveTo(-B.w / 2 + 1, B.shY + 4); g.lineTo(-B.hipW / 2 - 5, -8); g.lineTo(B.hipW / 2 + 3, -8); g.lineTo(B.w / 2 - 1, B.shY + 4); g.closePath(); }, '#6A1414', -B.hipW / 2 - 5, B.shY + 4, B.hipW + 8, -8 - B.shY - 4, 1); break;
+    case 'SOCKET': part(g, () => { g.moveTo(-B.hipW / 2, B.hipY); g.quadraticCurveTo(-B.hipW / 2 - 18, B.hipY + 4, -B.hipW / 2 - 16, B.hipY - 16); g.quadraticCurveTo(-B.hipW / 2 - 10, B.hipY - 6, -B.hipW / 2 + 2, B.hipY - 6); g.closePath(); }, a.suit, -B.hipW / 2 - 18, B.hipY - 16, 20, 20, 1); for (let k = 0; k < 3; k++) px(g, -B.hipW / 2 - 14 + k * 5, B.hipY - 8 + (k % 2) * 3, 3, 2, '#27272A'); break;
+    case 'STAR-LARD': part(g, () => { g.moveTo(-B.w / 2 + 1, B.shY + 4); g.lineTo(-B.hipW / 2 - 5, -8); g.lineTo(B.hipW / 2 + 3, -8); g.lineTo(B.w / 2 - 1, B.shY + 4); g.closePath(); }, dk(a.suit, 0.2), -B.hipW / 2 - 5, B.shY + 4, B.hipW + 8, -8 - B.shY - 4, 1); break;
     default: break;
   }
 };
 /** On them (after the torso): the costume's own seams, belts, bracers, a few of the heroes' own touches. */
 const extrasFront = (g: Ctx, a: CastMember, B: Person, F: Frame) => {
-  const s = a.suit, ownBelt = ['star', 'reactor', 'hourglass', 'gem', 'phoenix', 'bat'].includes(a.emblem);
+  const s = a.suit, ownBelt = ['star', 'bean', 'window', 'reactor', 'hourglass', 'gem', 'phoenix', 'bat'].includes(a.emblem);
   if (!a.bare) {
     // (the suit's seams: down the middle, under the chest, the abs in shade; a lit seam across the shoulders)
     px(g, 0, B.shY + 4, 1, B.hipY - B.shY - 6, dk(s, 0.22));
@@ -261,13 +276,13 @@ const extrasFront = (g: Ctx, a: CastMember, B: Person, F: Frame) => {
   }
   switch (a.hero) {
     case 'SPIDER-TEEN': { g.strokeStyle = dk(s, 0.4); g.lineWidth = 0.6; g.beginPath(); for (let k = -2; k <= 2; k++) { g.moveTo(0, B.shY + 10); g.lineTo(k * 6, B.hipY); } for (let y = B.shY + 14; y < B.hipY; y += 6) { g.moveTo(-B.w / 2 + 2, y); g.quadraticCurveTo(0, y + 2, B.w / 2 - 2, y); } g.stroke(); break; }
-    case 'BATTMAN': for (let k = 0; k < 4; k++) part(g, () => g.rect(-B.hipW / 2 + 1 + k * 6, B.hipY - 6, 4, 5), '#CA8A04', -B.hipW / 2 + 1 + k * 6, B.hipY - 6, 4, 5, 0.6); break;
+    case 'BATTMAN': for (let k = 0; k < 4; k++) part(g, () => g.rect(-B.hipW / 2 + 1 + k * 6, B.hipY - 6, 4, 5), '#94A3B8', -B.hipW / 2 + 1 + k * 6, B.hipY - 6, 4, 5, 0.6); break;
     case 'WONDER WOMANISH': part(g, () => g.ellipse(B.hipW / 2 - 2, B.hipY + 2, 4, 3, 0, 0, Math.PI * 2), '#E8C25A', B.hipW / 2 - 6, B.hipY - 1, 8, 6, 0.8); break;
     case 'NEBULOUS': px(g, B.hx - 6, B.hy - 9, 7, 3, '#8A8A94'); px(g, B.hx - 6, B.hy - 9, 7, 1, '#C8C8D0'); break;
     case 'THE WINTER SOLDER': break;
     case 'JEAN BEIGE': case 'CAPTAIN MARVELOUS': part(g, () => { g.moveTo(-B.w / 2 + 2, B.shY + 2); g.lineTo(-B.w / 2 + 6, B.shY + 2); g.lineTo(B.hipW / 2, B.hipY - 2); g.lineTo(B.hipW / 2 - 4, B.hipY); g.closePath(); }, a.trim, -B.w / 2 + 2, B.shY + 2, B.w, B.hipY - B.shY, 0.6); break;
-    case 'GROAT': for (let k = 0; k < 6; k++) px(g, -B.w / 2 + 2 + ((k * 7) % (B.w - 4)), B.shY + 6 + ((k * 11) % 20), 3, 1, '#4D7C0F'); break;
-    case 'GAMMA-RAY': for (const [dx, dy] of [[-3, -4], [-4, 0], [-3, 4]] as const) px(g, B.hx + dx, B.hy + dy, 1, 1, '#B91C1C'); break;
+    case 'GROAT': for (let k = 0; k < 6; k++) px(g, -B.w / 2 + 2 + ((k * 7) % (B.w - 4)), B.shY + 6 + ((k * 11) % 20), 3, 1, '#44403C'); break;
+    case 'GAMMA-RAY': for (const [dx, dy] of [[-3, -4], [-4, 0], [-3, 4]] as const) px(g, B.hx + dx, B.hy + dy, 1, 1, '#FACC15'); break;
     case 'DOCTOR STRANGLE': if (a.cape) part(g, () => { g.moveTo(-B.w / 2 + 1, B.shY + 2); g.lineTo(-B.w / 2 - 2, B.shY - 10); g.lineTo(-B.w / 2 + 6, B.shY - 2); g.closePath(); }, a.cape, -B.w / 2 - 2, B.shY - 10, 8, 12, 0.8); break;
     case 'STAR-LARD': px(g, -B.hipW / 2 + 2, B.hipY - 8, 6, 5, '#1C1C24'); px(g, -B.hipW / 2 + 3, B.hipY - 7, 4, 1, '#F97316'); break;
     default: break;
@@ -308,7 +323,7 @@ const paintActor = (g: Ctx, a: CastMember, F: Frame, headless = false) => {
   const near: [number, number] = fl ? fl[1] : flop ? [B.w / 2 + 12, B.shY - 12] : land ? [-B.w / 2 - 10, B.shY - 8] : reach ? [B.w / 2 + 14, B.shY + 8] : [B.w / 2 + 3, -32];
   const metal = a.prop === 'arm';
   const A1 = arm(g, B, -1, far[0], far[1], { sleeve: metal ? '#A1A1AA' : arms, hand: metal ? '#A1A1AA' : hand });
-  if (metal) { px(g, A1.ex - 2, A1.ey - 1, 4, 1, '#E4E4E7'); px(g, (A1.sx + A1.ex) / 2 - 1, (A1.sy + A1.ey) / 2 - 1, 3, 3, '#B91C1C'); }
+  if (metal) { px(g, A1.ex - 2, A1.ey - 1, 4, 1, '#E4E4E7'); px(g, (A1.sx + A1.ex) / 2 - 1, (A1.sy + A1.ey) / 2 - 1, 3, 3, '#F59E0B'); }
   if (a.gloves && !metal) cuff(g, A1, far[0], far[1], a.gloves, B.armW);
   torso(g, B, a.bare ? L.skin : a.suit);
   if (a.bare) {
@@ -337,7 +352,7 @@ const paintActor = (g: Ctx, a: CastMember, F: Frame, headless = false) => {
   if (a.hero === 'QUICKSHILL') px(g, B.hx - 4, B.hy - 11, 6, 2, '#F4F4F6');
   const A2 = arm(g, B, 1, near[0], near[1], { sleeve: arms, hand });
   if (a.gloves) cuff(g, A2, near[0], near[1], a.gloves, B.armW);
-  if (a.hero === 'WONDER WOMANISH' || a.hero === 'BLACK WINDOW') { const wx = near[0] + (A2.ex - near[0]) * 0.3, wy = near[1] + (A2.ey - near[1]) * 0.3; ball(g, wx, wy, B.armW * 0.6, a.hero === 'BLACK WINDOW' ? '#CA8A04' : '#D4D4D8', 0.8); }
+  if (a.hero === 'WONDER WOMANISH' || a.hero === 'BLACK WINDOW') { const wx = near[0] + (A2.ex - near[0]) * 0.3, wy = near[1] + (A2.ey - near[1]) * 0.3; ball(g, wx, wy, B.armW * 0.6, a.hero === 'BLACK WINDOW' ? '#A78BFA' : '#D4D4D8', 0.8); }
   if (!fl) prop(g, a, near[0], near[1], false, reach);
 };
 

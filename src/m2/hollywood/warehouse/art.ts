@@ -809,7 +809,7 @@ export const drawWarehouseBack = (c: Ctx, state: GameState) => {
   for (const [rx, h, w, what] of LEDGES) if (seenAt(v, X(rx) - 20, X(rx) + w + 20)) ledgePiece(c, v, X(rx), Y(h), w, what);
   // The wreck (where it stopped; tumbling in, in the burst-in), the producer under it
   const wx = b.on ? b.tx : X(WRECK_X);
-  if (seenAt(v, X(PROD_X) - 160, X(PROD_X) + 160)) drawProducer(c, state);
+  if (seenAt(v, X(PROD_X) - 180, X(PROD_X) + 180)) drawProducer(c, state);
   if ((!b.on || roofHoled(state)) && seenAt(v, wx - 260, wx + 260)) drawWreck(c, wx, b.on ? b.ty : GY, b.on ? b.tilt : 1, f);
   // Steve, foreshadowed (yellow): fliers taped up, posters, standees
   for (const [rx, h, kind] of STEVES) {

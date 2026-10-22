@@ -50,7 +50,9 @@ const NO_DROPS = { health: 0, ammo: 0 }, PARK_DROPS = { health: 0.06, ammo: 0.05
 /** How many on him and he's down under them, dead. */
 export const CRUSH = 6;
 /** How many may be up (on the floor, on him, or coming down) at once: a few at first, more as they die. */
-const capOf = (killed: number) => Math.min(10, 5 + Math.floor(killed / 2));
+const capOf = (killed: number) => Math.min(9, 4 + Math.floor(killed / 2));
+/** The least gap between two of them getting on him (frames): staggered, not a swarm in one frame. */
+const LATCH_GAP = 14;
 const L0 = X(ARENA.a) + 50, R0 = X(ARENA.b) - 50;
 const clampX = (x: number) => Math.max(L0, Math.min(R0, x));
 const DOOR_H = 700;
@@ -229,7 +231,7 @@ const shakeOff = (ctx: FrameContext, a: Actor, how: 'charge' | 'shot', dmg: numb
   e.pos.x = Math.max(X(ARENA.a) + 2, Math.min(X(ARENA.b) - e.width - 2, px + side * (p.width / 2 + e.width / 2 + 2) - e.width / 2));
   e.pos.y = Math.min(GY, p.pos.y + p.height) - e.height - 2;
   e.vel = how === 'charge' ? { x: side * 8, y: -7 } : { x: side * 4.5, y: -4 };
-  e.pauseTimer = how === 'charge' ? 40 : 22; e.leapCd = how === 'charge' ? 40 : 30;
+  e.pauseTimer = how === 'charge' ? 48 : 26; e.leapCd = how === 'charge' ? 48 : 36;
   e.health = BIG; e.aiState = 'approach'; e.aiTimer = 0; e.facing = (-side) as 1 | -1;
   state.enemies.push(e);
   a.cling = null;
@@ -323,6 +325,7 @@ export const updateFight = (ctx: FrameContext): Controls | null => {
   }
   // Getting on him: anyone touching him (a little reach: they jump at him), not dazed off a shove, not mid-landing
   if (alive && !p.inCutscene && !attacking) for (const a of F.actors) {
+    if (state.frame - (F.latchAt ?? -9999) < LATCH_GAP) break;
     const e = a.e;
     if (!e || a.cling || e.health <= 0 || (e.leapCd ?? 0) > 0 || e.aiState === 'land') continue;
     if ((e.pauseTimer ?? 0) > 0 && Math.abs(e.vel.x) > 1) continue;
@@ -332,7 +335,7 @@ export const updateFight = (ctx: FrameContext): Controls | null => {
     const gx = 30;
     if (e.pos.x + e.width + gx < p.pos.x || e.pos.x - gx > p.pos.x + p.width) continue;
     if (e.pos.y > p.pos.y + p.height + 4 || e.pos.y + e.height < p.pos.y - 8) continue;
-    latch(ctx, a);
+    latch(ctx, a); F.latchAt = state.frame;
   }
   // On him: carried along (their enemy kept with him, for when they come off), the pile slowing him; CRUSH and he's
   // down under them
@@ -368,7 +371,7 @@ export const updateFight = (ctx: FrameContext): Controls | null => {
   const up = F.actors.filter(a => a.e).length + F.arrivals.length;
   if (alive && F.next < F.order.length && up < capOf(F.killed) && F.arrivals.length < 2 && (F.spawnT <= 0 || up === 0)) {
     F.arrivals.push({ i: F.order[F.next++], mode: Math.random() < 0.7 ? 'drop' : 'wire', x: spawnX(state), y: 0, vy: 0, t: 0 });
-    F.spawnT = 40 + Math.floor(Math.random() * 35);
+    F.spawnT = 48 + Math.floor(Math.random() * 42);
   }
   // All of them dead
   if (F.next >= F.order.length && F.killed >= F.order.length && !F.arrivals.length) {
