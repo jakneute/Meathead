@@ -11,7 +11,8 @@
 // Revisits: once the land's cleared, the control room's empty (the mic left on the desk, the foam head bald, the hole
 // in the floor still there), the gift shop's racks still lying where Donnie knocked them over.
 //
-// The way back: the left end (down to hell); on: the ballroom's doors at the right end.
+// No way back: once he's up in the control room, hell's behind him for good (the hole he came up through is just a
+// hole; the left end's a wall). On: the ballroom's doors at the right end.
 
 import type { GameState } from '../../../m1/game/core/state';
 import type { FrameContext } from '../../../m1/game/core/context';
@@ -236,7 +237,8 @@ export const control: SpookySection = {
     if (cs.shop.d && shopDonnieGone(cs.shop)) lockDoors(state, cs.doors);
     { const out = tickDoors(ctx, cs.doors); if (out) return out; }
     // (through the ballroom's doors: Donnie's in there already, if he wasn't)
-    if (runExits(state, endExits('control'))) shopDonnieOut(cs.shop);
+    // (on only: no going back down to hell from up here)
+    if (runExits(state, endExits('control').filter((e) => e.x0 > x0))) shopDonnieOut(cs.shop);
     return controls;
   },
   // (the reveal: the room, held still, all of it in the picture)
