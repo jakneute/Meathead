@@ -210,14 +210,21 @@ export type HavocKind = 'm2:hwh_looter' | 'm2:hwh_crew' | 'm2:hwh_poppy';
 export const ENEMIES: [HavocKind, number, number | null][] = [
   // the street: each alone first, then mixed
   ['m2:hwh_looter', 1000, null],
-  ['m2:hwh_looter', 1880, null], ['m2:hwh_poppy', 2380, null],
-  ['m2:hwh_crew', 3350, null], ['m2:hwh_looter', 3520, null],
-  ['m2:hwh_crew', 4380, null], ['m2:hwh_poppy', 4800, null], ['m2:hwh_looter', 5050, null],
-  ['m2:hwh_crew', 5700, null], ['m2:hwh_poppy', 5950, null],
+  // Paris street: a looter in the open, Poppy past the cafe (it hops at him into the cafe's shadow as it comes down)
+  ['m2:hwh_looter', 1880, null], ['m2:hwh_poppy', 2450, null],
+  // the wind: the storm crew alone at the near bank of LAVA RIVER 3 (shove it in; its blower shoves him back); a looter
+  // and a crew on the far bank, at the wire's landing (the lobs and the blower at him out over the lava)
+  ['m2:hwh_crew', 3560, null], ['m2:hwh_looter', 4250, null], ['m2:hwh_crew', 4380, null],
+  // the quake: Poppy and a looter together (the hop low, the lob high, in the falling bricks); past the billboard, Poppy
+  // right behind a crew (its butter clap gets the crew too)
+  ['m2:hwh_poppy', 4920, null], ['m2:hwh_looter', 5000, null],
+  ['m2:hwh_crew', 5700, null], ['m2:hwh_poppy', 5790, null],
   // the climb (up on the ledges and roofs, above the water to start)
   ['m2:hwh_looter', 6470, 295], ['m2:hwh_crew', 7380, 520], ['m2:hwh_poppy', 7330, 885], ['m2:hwh_looter', 7730, 1315],
   // the hill (between the bunkers: never in one)
-  ['m2:hwh_crew', 8900, null], ['m2:hwh_poppy', 10700, null], ['m2:hwh_looter', 12000, null], ['m2:hwh_crew', 13200, null],
+  // (the third bunker's crew downhill of it: when the hill rumbles, its blower holds him back from the shed; the
+  // avalanche gets it if he gets in)
+  ['m2:hwh_crew', 8900, null], ['m2:hwh_poppy', 10700, null], ['m2:hwh_looter', 12000, null], ['m2:hwh_crew', 12800, null],
   // the chase (light: it's about the running; the tornado eats them too)
   ['m2:hwh_looter', 15000, null], ['m2:hwh_poppy', 15900, null], ['m2:hwh_looter', 17450, null], ['m2:hwh_crew', 18050, null],
   ['m2:hwh_poppy', 19500, null], ['m2:hwh_looter', 20250, null], ['m2:hwh_crew', 20950, null],

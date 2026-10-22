@@ -257,7 +257,7 @@ Cast and Steve untouched. Nobody placed within a checkpoint's safe reach ahead o
   it, in an order: a statue (on him from behind once he's by), a pirate (shoot him), a Marilyn and an Elvis side by
   side (charge one into the other), a hero behind them (the bodies fly into him round his shield).
 
-**The warehouse (warehouse/layout.ts ENEMIES: 27 before, 27 after)**
+**The warehouse (warehouse/layout.ts ENEMIES: 25 before, 25 after)**
 
 - The rooftop: the runner on the floor walked into his gun with the grip. Now he's up on the high rostrum, lobbing
   down while he climbs to the wire.
@@ -274,3 +274,43 @@ Cast and Steve untouched. Nobody placed within a checkpoint's safe reach ahead o
   the director up on the scaffold (ACTION! from up there: get up to him), the coordinator in the wind machine's gust
   (it blows him into the tackle), the double on the toppled flat, craft services under the par can, the boom op by the
   pyro jet (knock him in), the runner.
+
+**The lot (lot/layout.ts ENEMIES: 19 before, 18 after)**
+
+- New York: the cart, the guide and a centurion each on their own, the centurion 120 from THE FLASH FLOOD's
+  checkpoint. Now a centurion on the wet street under the fire escapes, the guide up the high one, the cart down the
+  far end: it runs down whoever's in its way (up a fire escape or a crate and the centurion's flattened; the fake
+  lightning gets whoever's left on the street).
+- The flood tank's far side: both centurions sat inside THE WESTERN TOWN's checkpoint's reach. Now one's right at the
+  last wire's landing (shoot him off it or reel up over the spear), one back from the bank.
+- The western town: a line of cowboys and a centurion on the street (two inside the checkpoint's reach). Now past
+  it: a cowboy alone (the lasso), then a cowboy and a centurion shoulder to shoulder (charge the cowboy into him) with
+  a security cart behind them down Main Street (it runs them down too; the dolly up the water tower out of its way).
+- The suburb: a guide and a cowboy by THE FAKE SUBURB's checkpoint, a cart by THE GIFT SHOP's. Now a cowboy at the
+  foundation pit's lip (shove him in, or he lassos him off the wire over it) and the guide up on the camera crane's
+  platform, waiting where the swoop lands him (its blast shoves him back off it).
+- The gift shop: past its checkpoint's reach now, a centurion under the shelf, a guide up on it, a cart through the
+  shop at him (up on the counter: the centurion's run down), a cowboy at the doors.
+
+**Disaster: The Ride (disaster/layout.ts: same counts)**
+
+- The queue's tech stood 180 from THE PRE-SHOW's checkpoint; it's up on the LAVA NACHOS counter with the health now,
+  fogging down the queue at him.
+- The theater: the first usher walked out onto the floor 360 from its checkpoint; he's up on the high truss now, on
+  the climb to the catwalk (the way up is his). The floor under the wire left as it was (the climb, the wire and the
+  booth's usher are the theater's fight).
+
+**The havoc (havoc/layout.ts ENEMIES: 25 before, 25 after)**
+
+- Paris street: Poppy past the cafe now (it hops at him into the cafe's shadow as it comes down).
+- The wind: a crew and a looter on the open street, the crew 230 past THE LAVA RIVERS' checkpoint. Now the crew's alone
+  at LAVA RIVER 3's near bank (shove it in; its blower shoves him back), and a looter joins the crew on the far bank
+  at the wire's landing (lobs and the blower at him out over the lava).
+- The quake: Poppy 280 past THE QUAKE's checkpoint, then three to shoot one at a time. Now Poppy and a looter together
+  (the hop low, the lob high, in the falling bricks), and past the billboard Poppy right behind the crew (its butter
+  clap gets the crew too).
+- The hill: the last crew stood on its own on the slope. Now it's downhill of the snow shed: when the hill rumbles,
+  its blower holds him back from the shed (and the avalanche gets it if he gets in).
+- Left alone: the climb (already up on the ledges and roofs), the chase (it's about the running).
+
+**Not touched**: the coaster (its stop fights are wave-gated, out of service doors), the Ensemble Cast, Steve.
