@@ -66,6 +66,9 @@ const EW = 768, EH = 124;
 /** The limb's curve (screen px down from its middle, at screen x). */
 const LIMB_R = 2600;
 export const limbDip = (x: number) => ((x - W / 2) ** 2) / (2 * LIMB_R);
+/** How far below the limb's middle the space behind it has to reach: past where the limb meets the screen's sides (no
+ *  seam of nothing in the corners over the curve). */
+const LIMB_EDGE = Math.ceil(limbDip(-8)) + 8;
 const OCEAN = ['#071848', '#0A2160', '#0E2C78', '#123A8F', '#1A4BA3', '#2560B5', '#3374C4'];
 const LAND = ['#24481F', '#2E5E2A', '#3D7A33', '#55903A', '#7E9A48', '#A8955A', '#C4AE78'];
 const CLOUD = ['#9FB3CC', '#C9D6E8', '#E6EEF8', '#FFFFFF'];
@@ -383,7 +386,7 @@ export const DECK_LIMB = 300;
 /** Out of the deck's windows: `pan` the bearing at the middle of the screen (world px round the ring, `circ` all the
  *  way round). */
 export const drawDeckView = (c: Ctx, state: GameState, pan: number, circ: number) => {
-  spaceBands(c, 0, DECK_LIMB + 30);
+  spaceBands(c, 0, DECK_LIMB + LIMB_EDGE);
   drawNebula(c, pan, 170);
   drawStars(c, pan, state.frame);
   const at = (u: number) => W / 2 + ((((u - pan) % circ) + circ * 1.5) % circ) - circ / 2;
@@ -446,6 +449,76 @@ const skyline = (c: Ctx, y: number, tod: TimeOfDay) => {
   c.restore();
 };
 
+/**
+ * The country round the park, seen from up high (looking out at the horizon): a patchwork of fields in perspective (the
+ * rows squashing up toward the horizon), hedgerows between, the odd town, a river winding off, roads running out to
+ * the horizon; stepped, the field edges dithered, the haze thick along the horizon. Under the park as it drops away and
+ * on to the bottom of the screen, so the ground's always there under him; the Earth's curve comes in over it higher up.
+ * Painted once an hour's look (art px: half the screen's), a few rows at a time when there's time for it.
+ */
+const LAND_W = W / PX, LAND_H = 180;
+const FIELD_COLS = ['#5E8A3E', '#4E7A34', '#7A9446', '#9A9A52', '#B4A060', '#6E8E40', '#43683A', '#8C8A4A'];
+const TOWN = ['#6E6A66', '#8A847C', '#A49C90', '#C4B8A6'];
+const WATER = ['#2A4E8A', '#3A66A2', '#5A86BC'];
+const HEDGE = '#2E4A26', ROAD = '#B8AE92';
+let land: { key: string; c: HTMLCanvasElement } | null = null;
+function* landRows(tod: TimeOfDay): Generator<void, HTMLCanvasElement> {
+  const c = canvas(LAND_W, LAND_H), g = c.getContext('2d')!, img = g.createImageData(LAND_W, LAND_H), d = img.data;
+  const T = (col: string) => rgb(farTint(col, 0.8, tod));
+  const fields = FIELD_COLS.map(col => [T(mixHex(col, '#20301A', 0.18)), T(col), T(mixHex(col, '#F0E8C0', 0.16))]);
+  const town = TOWN.map(T), water = WATER.map(T), hedge = T(HEDGE), road = T(ROAD), haze = rgb(tod.haze);
+  for (let j = 0; j < LAND_H; j++) {
+    // (how far off this row is, and how much ground one art px across covers there)
+    const gz = 900 / (j + 6), across = gz / 40;
+    const hz = c01(1 - j / 34) ** 1.3, hq = Math.floor(hz * 5 + (j % 2) * 0.5) / 5;
+    for (let i = 0; i < LAND_W; i++) {
+      const gx = (i - LAND_W / 2) * across, chk = (i + j) % 2;
+      // (the fields: long strips, rows of them going back, each its own crop)
+      const fx = gx / 26 + Math.floor(gz / 14) * 0.37, fz = gz / 14;
+      const ci = Math.floor(fx), cj = Math.floor(fz), id = ci * 31 + cj * 17;
+      const ex = fx - ci, ez = fz - cj;
+      let v: RGB;
+      if (hash(id + 0.5) < 0.07) {
+        // (a town: roofs in a speckle)
+        v = town[Math.floor(h2(Math.floor(gx / 2), Math.floor(gz / 1.5)) * town.length)];
+      } else {
+        const ramp = fields[Math.floor(hash(id) * fields.length)];
+        // (each field a touch lighter on its far side: the light across the furrows)
+        v = ramp[ez > 0.66 ? 2 : ez > 0.33 || chk ? 1 : 0];
+      }
+      // (hedgerows round the fields, thinner going back: dithered where they're less than a pixel)
+      const rowPx = 900 / ((j + 6) * (j + 6)) / 14;
+      if ((ex < across / 26 && (chk || across < 2)) || (ez < rowPx && rowPx < 0.5 && (chk || rowPx < 0.25))) v = hedge;
+      // (roads running out to the horizon, and one across now and then)
+      const rx = Math.abs(((gx + 60) % 180 + 180) % 180 - 90);
+      if (rx < Math.max(across * 0.6, 1.2) && (rx < across * 0.4 || chk)) v = road;
+      // (the river, winding off)
+      const rv = Math.abs(gx - 40 - Math.sin(gz * 0.045) * 70 - Math.sin(gz * 0.013) * 120);
+      if (rv < 7 + gz * 0.02 || (rv < 9 + gz * 0.02 && chk)) v = water[rv < 3 ? 2 : (j + i) % 3 === 0 ? 0 : 1];
+      // (the haze, thick along the horizon, in steps)
+      const o = (j * LAND_W + i) * 4, k = hq * 0.85;
+      d[o] = v[0] + (haze[0] - v[0]) * k; d[o + 1] = v[1] + (haze[1] - v[1]) * k; d[o + 2] = v[2] + (haze[2] - v[2]) * k; d[o + 3] = 255;
+    }
+    yield;
+  }
+  g.putImageData(img, 0, 0);
+  return c;
+}
+const landFor = (tod: TimeOfDay) => {
+  if (!land || land.key !== tod.key) land = { key: tod.key, c: finish('land|' + tod.key, () => landRows(tod)) };
+  return land.c;
+};
+/** The country below, its horizon at screen y `L` (`alpha`: fading out as the Earth's curve comes in over it). */
+const drawLand = (c: Ctx, L: number, tod: TimeOfDay, alpha = 1) => {
+  if (alpha <= 0) return;
+  const img = landFor(tod), top = Math.round(L / PX) * PX;
+  c.save(); c.imageSmoothingEnabled = false; c.globalAlpha = alpha;
+  c.drawImage(img, 0, top, W, LAND_H * PX);
+  // (and past its bottom, its nearest row carried on down to the bottom of the screen)
+  if (top + LAND_H * PX < H) c.drawImage(img, 0, LAND_H - 1, LAND_W, 1, 0, top + LAND_H * PX, W, H - top - LAND_H * PX + PX);
+  c.restore();
+};
+
 /** A cumulus, painted once (art px): puffs on a flat base, lit from the upper left in four steps, its belly in shadow,
  *  every edge broken up in a checker. */
 const CUMULUS = ['#7C8AA8', '#A6B4CC', '#CCD6E6', '#EEF2F8', '#FFFFFF'];
@@ -489,6 +562,9 @@ export const drawCloud = (c: Ctx, x: number, y: number, s: number, seed: number,
   c.restore();
 };
 
+/** The horizon's screen y, `a` of the way up: just behind the park's hills at the foot, dipping a touch as he rises,
+ *  then up to where the deck sees the Earth's limb. */
+const horizonAt = (a: number) => 440 + 40 * smoothstep(0, 0.45, a) - (480 - DECK_LIMB) * smoothstep(0.5, 1, a);
 /**
  * Out of the elevator's glass, going up: `a` how far up (0 the ground, 1 space), `speed` how fast it's going (0..1, the
  * shaft's girders and streaks). The sky as the hour has it, darkening to space; the park dropping away; the clouds
@@ -506,7 +582,17 @@ export const drawAscent = (c: Ctx, state: GameState, a: number, speed: number, c
   // (the high cirrus, far off: what's seen from the ground, dropping away slowly, gone into the dark)
   const hi = 1 - smoothstep(0.35, 0.6, a);
   if (hi > 0) for (let k = 0; k < 5; k++) drawCloud(c, (k * 211 + 60) % (W + 160) - 80, 70 + k * 34 + a * 900, 0.55 + hash(k + 20) * 0.3, 20 + k, tod, hi * 0.85);
-  // (the park far below, dropping away)
+  // (the ground, always there under him to the bottom of the screen: the country out to the horizon (dipping a touch as
+  // he rises), the Earth's curve coming in over it once he's high enough, its horizon coming up to where the deck sees
+  // it; the park far below, dropping away over the lot)
+  const L = horizonAt(a);
+  const curve = smoothstep(0.38, 0.62, a);
+  drawLand(c, L, tod, 1 - smoothstep(0.6, 0.72, a));
+  if (curve > 0) {
+    c.save(); c.globalAlpha = curve;
+    drawEarth(c, L, climbed * 0.05, a > 0.7 ? 640 : undefined);
+    c.restore();
+  }
   skyline(c, 470 + a * a * 5200, tod);
   // (the clouds, coming down past: a layer of them, then the deck of them far below)
   for (let k = 0; k < 9; k++) {
@@ -514,9 +600,6 @@ export const drawAscent = (c: Ctx, state: GameState, a: number, speed: number, c
     if (y < -60 || y > H + 90) continue;
     drawCloud(c, (hash(k + 1) * 900 + k * 37) % 900 - 50, y + 20, 0.9 + hash(k + 5) * 0.9, k, tod);
   }
-  // (the Earth's curve, coming up from below once he's out of the air)
-  const rise = smoothstep(0.5, 1, a);
-  if (rise > 0) drawEarth(c, H + 40 - rise * (H + 40 - DECK_LIMB), climbed * 0.05, a > 0.7 ? 640 : undefined);
   // (the shaft's girders, whipping down past behind him: speed lines with them when it's going fast)
   if (!shaft) return;
   drawShaft(c, climbed);
@@ -560,7 +643,7 @@ const drawShaft = (c: Ctx, climbed: number) => {
 
 /** The shot from outside: the stars, the sun, the Earth a long way down (its limb at screen y `L`). */
 export const drawOrbitBack = (c: Ctx, state: GameState, pan: number, L = 470) => {
-  spaceBands(c, 0, L + 30);
+  spaceBands(c, 0, L + LIMB_EDGE);
   drawNebula(c, pan * 2, L * 0.45);
   drawStars(c, pan, state.frame);
   drawSunDisc(c, 120, 110);
@@ -595,6 +678,13 @@ export const prewarmSky = () => {
   const steps: ((until: number) => boolean)[] = [
     u => !!(earth ??= slice('earth', earthRows, u)),
     () => !!(atmo ??= paintAtmo()),
+    u => {
+      const tod = timeOfDay();
+      if (land?.key === tod.key) return true;
+      const r = slice('land|' + tod.key, () => landRows(tod), u);
+      if (r) land = { key: tod.key, c: r };
+      return !!r;
+    },
     () => !!(starsFar ??= paintStars(false)),
     () => !!(starsNear ??= paintStars(true)),
     () => !!(moon ??= paintMoon()),

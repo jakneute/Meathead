@@ -518,51 +518,193 @@ export const drawSuitCase = (c: Ctx, state: GameState, taken: boolean, smashT: n
     if (smashT > 0 && smashT < 40) { c.fillStyle = `rgba(255, 255, 255, ${(0.5 * (1 - smashT / 40)).toFixed(3)})`; c.fillRect(gx - 10, gy - 10, gw + 20, gh + 20); }
   }
 };
-/** The suit itself, on its stand (feet at y): white, puffy, ringed at the joints, its pack, the gold-visored helmet. */
-export const drawSuitFigure = (c: Ctx, x: number, y: number, f: number) => {
-  const S = ['#4E5A6C', '#7C8AA0', '#A8B4C6', '#CCD5E1', '#E8EDF3', '#FFFFFF'];
-  /** A puffy limb or body part: inked, its middle tone, lit down its left, shaded down its right. */
-  const part = (px: number, py: number, w: number, h: number, r: number, base = 3) => {
+/** The suit's whites (off-white fabric in steps), its metal rings, its gloves' rubber, its visor's gold. */
+const SUIT = ['#3E4858', '#5E6A7E', '#8A96A8', '#B4BDCA', '#D6DCE4', '#EEF0EE', '#FFFFFF'];
+const RING = ['#14306E', '#1F4BA8', '#3B76D6', '#7FAEEA', '#D8E6F8'];
+const GLOVE = ['#2C3442', '#4A5568', '#6E7B90', '#98A4B6', '#C2CAD6'];
+const GOLD = ['#3A2406', '#5E3C0A', '#8A5A12', '#B7791F', '#E0B634', '#F6E05E', '#FFF6C2'];
+/** The visor's middle (from the suit's feet). */
+const VISOR_Y = -101;
+/**
+ * The display suit (painted once, its feet at 0,0; drawn live over it: the visor's glint, the panel's blinking lamp):
+ * off-white fabric in steps, lit from the left, every turn dithered; quilted seams stitched down it, folds at the knees
+ * and elbows; metal rings (anodized blue) at the neck, the waist and the wrists; the chest control box with its lamps,
+ * dials and switches, the hoses round to the pack; the pack (vents, valves) behind; a flag on the right shoulder, the
+ * park's mission patch on the left; gloves with fingers, the rubber at their tips; boots with treads; the helmet, its
+ * lamps, the gold visor with the deck reflected in it and a streak of light across. All inked.
+ */
+const paintSuitFigure = (c: Ctx) => {
+  const S = SUIT;
+  /** A puffy part: inked, its middle tone, lit down its left (a highlight sliver), shaded down its right, the turns
+   *  dithered; its top lit, its underside in shadow. */
+  const puff = (px: number, py: number, w: number, h: number, r: number, base = 4) => {
     rr(c, px - 1, py - 1, w + 2, h + 2, r + 1); c.fillStyle = INK; c.fill();
     c.save(); rr(c, px, py, w, h, r); c.clip();
     box(c, px, py, w, h, S[base]);
-    box(c, px, py, Math.max(2, w * 0.3), h, S[base + 1]); box(c, px + 1, py + 1, Math.max(1, w * 0.12), h - 2, S[Math.min(5, base + 2)]);
-    box(c, px + w * 0.72, py, w * 0.28, h, S[base - 1]); checker(c, px + w * 0.6, py, 2, h, S[base - 1], 0);
+    const lw = Math.max(2, Math.round(w * 0.3)), dw = Math.max(2, Math.round(w * 0.26));
+    box(c, px, py, lw, h, S[base + 1]); box(c, px + 1, py + 1, Math.max(1, Math.round(w * 0.1)), h - 2, S[Math.min(6, base + 2)]);
+    checker(c, px + lw, py, 2, h, S[base + 1], 0);
+    box(c, px + w - dw, py, dw, h, S[base - 1]); checker(c, px + w - dw - 2, py, 2, h, S[base - 1], 1);
+    box(c, px + w - 2, py, 2, h, S[base - 2]);
+    box(c, px, py, w, 1, S[Math.min(6, base + 1)]); box(c, px, py + h - 2, w, 2, S[base - 1]);
     c.restore();
   };
-  // the pack behind
-  part(x - 18, y - 76, 36, 40, 4, 2);
-  box(c, x - 14, y - 70, 6, 4, '#3B82F6'); box(c, x - 6, y - 70, 6, 4, '#DC2626');
-  // legs, their rings, the boots
+  /** A fold across a part: a dark crease, the fabric lit under it, short of the edges (the part's round). */
+  const fold = (px: number, y: number, w: number) => {
+    box(c, px + 2, y, w - 4, 1, S[1]); box(c, px + 2, y + 1, w - 4, 1, S[5]);
+    box(c, px + 1, y - 1, 2, 1, S[2]); box(c, px + w - 3, y - 1, 2, 1, S[2]);
+  };
+  /** A quilted seam: a stitched line down a part. */
+  const seam = (x: number, y0: number, y1: number) => { for (let y = y0; y < y1; y += 3) box(c, x, y, 1, 2, S[2]); };
+  /** A metal ring round a part: inked, anodized blue banded top to bottom, a bright lip, bolts. */
+  const ring = (px: number, py: number, w: number, h: number) => {
+    box(c, px - 1, py - 1, w + 2, h + 2, INK);
+    bands(c, px, py, w, h, h >= 4 ? [RING[3], RING[2], RING[1], RING[0]] : [RING[3], RING[1]]);
+    box(c, px, py, w, 1, RING[4]);
+    for (let k = px + 2; k < px + w - 1; k += 5) box(c, k, py + Math.floor(h / 2), 1, 1, CHROME[6]);
+  };
+  /** A point along a hose (`s` the side, `t` 0 at the control box .. 1 behind the arm). */
+  const hose = (s: number, t: number) => [Math.round(s * (9 + Math.sin(t * Math.PI) * 6 + t * 6)), Math.round(-60 + Math.sin(t * Math.PI) * 6 - t * 4)];
+
+  // the pack behind (its top over the shoulders, its sides past the body): its vents, its valves
+  puff(-21, -90, 42, 46, 4, 3);
+  for (const vx of [-17, 7]) for (let k = 0; k < 4; k++) { box(c, vx + k * 3, -86, 2, 8, INK); box(c, vx + k * 3, -86, 1, 8, S[1]); }
+  box(c, -21, -62, 3, 4, INK); box(c, -20, -61, 2, 2, '#2563EB'); box(c, 18, -62, 3, 4, INK); box(c, 18, -61, 2, 2, '#DC2626');
+
+  // the legs: thighs, knees (bellows), shins, the boots with their treads
   for (const s of [-1, 1]) {
-    part(x + s * 7 - 6, y - 36, 12, 32, 4);
-    box(c, x + s * 7 - 6, y - 22, 12, 2, S[1]); box(c, x + s * 7 - 6, y - 20, 12, 1, S[4]);
-    part(x + s * 7 - 8, y - 7, 16, 7, 2, 1);
+    const lx = s * 8 - 7;
+    puff(lx, -48, 14, 20, 5);
+    seam(lx + 4, -46, -30);
+    puff(lx, -29, 14, 7, 3, 3);
+    for (const y of [-27, -25]) box(c, lx + 1, y, 12, 1, S[1]);
+    puff(lx + 1, -23, 12, 15, 4);
+    fold(lx + 1, -17, 12); seam(lx + 4, -21, -10);
+    // (the boot: a white upper, a strap with its buckle, the dark sole notched for its tread)
+    const bx = s * 8 - 8;
+    puff(bx, -10, 16, 8, 3, 4);
+    box(c, bx + 1, -7, 14, 2, GLOVE[1]); box(c, bx + 1, -7, 14, 1, GLOVE[3]); box(c, bx + (s < 0 ? 3 : 10), -8, 3, 4, CHROME[5]);
+    box(c, bx - 1, -3, 18, 3, INK); box(c, bx, -3, 16, 2, '#2A2F38');
+    for (let k = bx + 1; k < bx + 15; k += 3) box(c, k, -2, 2, 2, '#4A515E');
+    box(c, bx, -3, 16, 1, '#5A6270');
   }
-  // the body, its control box, the patch
-  part(x - 15, y - 72, 30, 40, 7, 3);
-  rr(c, x - 8, y - 61, 16, 12, 2); c.fillStyle = INK; c.fill();
-  rr(c, x - 7, y - 60, 14, 10, 2); c.fillStyle = S[2]; c.fill(); box(c, x - 7, y - 60, 14, 2, S[4]);
-  box(c, x - 5, y - 57, 3, 3, '#DC2626'); box(c, x + 1, y - 57, 3, 3, '#2563EB'); box(c, x - 2, y - 53, 4, 2, '#16A34A');
-  box(c, x + 5, y - 69, 7, 7, INK); box(c, x + 6, y - 68, 5, 5, ORANGE[3]); box(c, x + 6, y - 68, 5, 1, ORANGE[5]);
-  // arms, their rings, gloves
+
+  // the body: puffy, quilted, its waist ring
+  puff(-17, -82, 34, 38, 8, 4);
+  seam(-11, -78, -50); seam(10, -78, -50);
+  for (const y of [-74, -66]) { box(c, -15, y, 4, 1, S[2]); box(c, 12, y, 4, 1, S[2]); }
+  fold(-16, -52, 32);
+  ring(-16, -48, 32, 4);
+  // (the hoses: from the control box's sides out and round behind the arms, ribbed, blue and red; their connectors)
+  for (const [s, col, lit] of [[-1, '#1D4ED8', '#60A5FA'], [1, '#B91C1C', '#F87171']] as const) {
+    for (let k = 0; k <= 16; k++) { const [hx, hy] = hose(s, k / 16); box(c, hx - 2, hy - 2, 4, 4, INK); }
+    for (let k = 0; k <= 16; k++) { const [hx, hy] = hose(s, k / 16); box(c, hx - 1, hy - 1, 2, 2, k % 2 ? col : lit); }
+    box(c, s < 0 ? -12 : 9, -62, 3, 4, INK); box(c, s < 0 ? -11 : 9, -61, 2, 2, CHROME[5]);
+  }
+  // (the chest control box: grey, bezeled; a row of lamps, two dials, a toggle, switches; its straps up to the shoulders)
+  box(c, -11, -76, 1, 6, S[1]); box(c, 10, -76, 1, 6, S[1]);
+  rr(c, -10, -71, 20, 15, 2); c.fillStyle = INK; c.fill();
+  rr(c, -9, -70, 18, 13, 2); c.fillStyle = GLOVE[2]; c.fill();
+  box(c, -9, -70, 18, 1, GLOVE[4]); box(c, -9, -58, 18, 1, GLOVE[0]); box(c, 8, -70, 1, 13, GLOVE[1]);
+  for (const [k, col] of [[0, '#DC2626'], [1, '#F59E0B'], [2, '#16A34A'], [3, '#2563EB']] as const) { box(c, -7 + k * 4, -68, 3, 2, INK); box(c, -7 + k * 4, -68, 2, 1, col); }
+  for (const dx of [-4, 4]) {
+    c.fillStyle = INK; c.beginPath(); c.arc(dx, -62, 3, 0, Math.PI * 2); c.fill();
+    c.fillStyle = CREAM[3]; c.beginPath(); c.arc(dx, -62, 2, 0, Math.PI * 2); c.fill();
+    box(c, dx, -63, 1, 1, '#B91C1C'); box(c, dx - 1, -62, 1, 1, INK);
+  }
+  box(c, -1, -64, 2, 4, INK); box(c, -1, -64, 1, 2, CHROME[6]);
+  for (const dx of [-7, -5, 4, 6]) box(c, dx, -59, 1, 1, CHROME[6]);
+  // (the name tape over it: a white strip, a few dark letter strokes)
+  box(c, -8, -78, 16, 4, INK); box(c, -7, -77, 14, 2, S[6]);
+  for (let k = -6; k < 6; k += 2) box(c, k, -77, 1, 2, k % 4 ? S[1] : S[2]);
+
+  // the arms: the shoulder's bearing ring, the upper arm, the elbow folded, the forearm, the wrist ring, the glove
   for (const s of [-1, 1]) {
-    part(x + s * 19 - 5, y - 70, 10, 30, 4);
-    box(c, x + s * 19 - 5, y - 54, 10, 2, S[1]);
-    part(x + s * 19 - 5, y - 42, 10, 8, 3, 1);
+    const ax = s * 22 - 5;
+    ring(ax, -81, 10, 3);
+    puff(ax, -77, 10, 19, 4);
+    seam(ax + 3, -75, -60);
+    fold(ax, -60, 10); fold(ax, -57, 10);
+    puff(ax, -55, 10, 15, 4);
+    fold(ax, -47, 10);
+    ring(ax - 1, -40, 12, 3);
+    // (the glove: the back of the hand, its knuckles, four fingers, the thumb on the inside, rubber at the tips)
+    box(c, ax - 1, -37, 12, 8, INK); box(c, ax, -37, 10, 7, GLOVE[3]); box(c, ax, -37, 3, 7, GLOVE[4]); box(c, ax + 8, -37, 2, 7, GLOVE[2]);
+    box(c, ax + 1, -33, 8, 1, GLOVE[2]);
+    box(c, ax - 1, -30, 12, 6, INK);
+    for (let k = 0; k < 4; k++) {
+      const fx = ax + Math.round(k * 2.5);
+      box(c, fx, -30, 2, 4, k === 0 ? GLOVE[3] : GLOVE[2]); box(c, fx, -27, 2, 1, GLOVE[0]); box(c, fx, -30, 1, 1, GLOVE[4]);
+    }
+    const tx = s < 0 ? ax + 10 : ax - 3;
+    box(c, tx, -35, 3, 6, INK); box(c, tx + (s < 0 ? 0 : 1), -34, 2, 4, GLOVE[2]); box(c, tx + (s < 0 ? 0 : 1), -31, 2, 1, GLOVE[0]);
   }
-  // the helmet: the neck ring, the shell in steps, the gold visor (banded, a glint going across it)
-  box(c, x - 12, y - 77, 24, 6, INK); box(c, x - 11, y - 76, 22, 4, S[2]); box(c, x - 11, y - 76, 22, 1, S[4]);
-  c.fillStyle = INK; c.beginPath(); c.arc(x, y - 90, 16, 0, Math.PI * 2); c.fill();
-  for (const [r, dx, col] of [[15, 0, S[2]], [13, -1.5, S[3]], [10, -3, S[4]], [5, -6, S[5]]] as const) { c.fillStyle = col; c.beginPath(); c.arc(x + dx, y - 90 + dx, r, 0, Math.PI * 2); c.fill(); }
-  c.fillStyle = INK; c.beginPath(); c.ellipse(x + 2, y - 90, 12, 10, 0, 0, Math.PI * 2); c.fill();
-  c.save(); c.beginPath(); c.ellipse(x + 2, y - 90, 11, 9, 0, 0, Math.PI * 2); c.clip();
-  for (const [yy, col] of [[-99, '#F6E05E'], [-95, '#E0B634'], [-91, '#B7791F'], [-87, '#8A5A12'], [-84, '#5E3C0A']] as const) box(c, x - 10, y + yy, 24, 5, col);
-  checker(c, x - 10, y - 92, 24, 2, '#B7791F', 0);
+  // (the flag on his right shoulder (on the left, from here): stripes, the canton with stars a dither of white)
+  {
+    const fx = -26, fy = -76;
+    box(c, fx - 1, fy - 1, 10, 7, INK);
+    for (let k = 0; k < 5; k++) box(c, fx, fy + k, 8, 1, k % 2 ? '#F8FAFC' : '#C8102E');
+    box(c, fx, fy, 4, 3, '#1E3A8A');
+    for (const [dx, dy] of [[0, 0], [2, 0], [1, 1], [3, 1], [0, 2], [2, 2]]) box(c, fx + dx, fy + dy, 1, 1, '#F8FAFC');
+  }
+  // (the park's mission patch on the other: a round badge, its border orange, a rocket going up through a ring of
+  // orbit over a dark blue sky)
+  {
+    const px = 22, py = -71;
+    c.fillStyle = INK; c.beginPath(); c.arc(px, py, 5.5, 0, Math.PI * 2); c.fill();
+    c.fillStyle = ORANGE[3]; c.beginPath(); c.arc(px, py, 4.5, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#1E2A6E'; c.beginPath(); c.arc(px, py, 3.2, 0, Math.PI * 2); c.fill();
+    box(c, px - 3, py, 6, 1, TEAL[6]); box(c, px - 2, py + 1, 1, 1, TEAL[5]); box(c, px + 2, py - 1, 1, 1, TEAL[5]);
+    box(c, px, py - 3, 1, 5, '#FFFFFF'); box(c, px - 1, py + 1, 1, 1, '#FFFFFF'); box(c, px + 1, py + 1, 1, 1, '#FFFFFF'); box(c, px, py + 2, 1, 1, ORANGE[4]);
+    box(c, px - 2, py - 4, 1, 1, ORANGE[5]);
+  }
+
+  // the helmet: the neck ring (its locking lugs), the shell in steps, its lamps, the visor
+  ring(-13, -86, 26, 5);
+  for (const dx of [-11, 8]) { box(c, dx, -87, 3, 7, INK); box(c, dx + 1, -86, 1, 5, CHROME[5]); }
+  const hy = VISOR_Y;
+  c.fillStyle = INK; c.beginPath(); c.arc(0, hy, 17, 0, Math.PI * 2); c.fill();
+  for (const [r, d, col] of [[16, 0, S[2]], [15, -0.5, S[3]], [13, -1.5, S[4]], [10, -3, S[5]], [5, -6, S[6]]] as const) { c.fillStyle = col; c.beginPath(); c.arc(d, hy + d, r, 0, Math.PI * 2); c.fill(); }
+  // (the lamps, either side up top)
+  for (const s of [-1, 1]) {
+    const lx = s * 15 - 2;
+    box(c, lx - 1, hy - 10, 6, 7, INK); box(c, lx, hy - 9, 4, 5, CHROME[4]); box(c, lx, hy - 9, 4, 1, CHROME[6]);
+    box(c, lx + 1, hy - 7, 2, 2, '#FFF6C2');
+  }
+  // (the visor: inked, gold banded down it; the deck reflected bent across its middle: the windows' dark band, their
+  // frames, the floor's edge a bright line under it; a streak of light across its top)
+  c.fillStyle = INK; c.beginPath(); c.ellipse(1, hy + 1, 13, 11, 0, 0, Math.PI * 2); c.fill();
+  c.save(); c.beginPath(); c.ellipse(1, hy + 1, 12, 10, 0, 0, Math.PI * 2); c.clip();
+  bands(c, -12, hy - 10, 26, 22, [GOLD[5], GOLD[4], GOLD[4], GOLD[3], GOLD[3], GOLD[2], GOLD[1]]);
+  c.fillStyle = GOLD[1];
+  c.beginPath(); c.moveTo(-12, hy - 1); c.quadraticCurveTo(1, hy - 5, 14, hy - 1); c.lineTo(14, hy + 3); c.quadraticCurveTo(1, hy - 1, -12, hy + 3); c.closePath(); c.fill();
+  for (const dx of [-7, -1, 5, 10]) box(c, dx, hy - 4 + Math.round(Math.abs(dx - 1) * 0.2), 1, 5, GOLD[3]);
+  c.fillStyle = GOLD[5];
+  c.beginPath(); c.moveTo(-12, hy + 4); c.quadraticCurveTo(1, hy, 14, hy + 4); c.lineTo(14, hy + 5); c.quadraticCurveTo(1, hy + 1, -12, hy + 5); c.closePath(); c.fill();
+  checker(c, -12, hy + 6, 26, 2, GOLD[3], 0);
+  checker(c, -12, hy - 4, 26, 2, GOLD[3], 1);
+  c.fillStyle = GOLD[6]; c.beginPath(); c.moveTo(-8, hy - 6); c.lineTo(-4, hy - 9); c.lineTo(-3, hy - 8); c.lineTo(-7, hy - 5); c.closePath(); c.fill();
+  box(c, -9, hy - 3, 2, 1, '#FFFFFF'); box(c, -5, hy - 8, 2, 1, '#FFFFFF');
+  checker(c, -2, hy - 9, 3, 2, GOLD[6], 0);
   c.restore();
-  box(c, x - 4, y - 96, 5, 2, '#FFFBEB');
+  // (the hood's lip over the visor: the shell's rim, lit; the visor's hinges either side)
+  c.save(); c.beginPath(); c.ellipse(1, hy + 1, 14, 12, 0, Math.PI * 1.08, Math.PI * 1.92); c.lineWidth = 2; c.strokeStyle = S[5]; c.stroke(); c.restore();
+  box(c, -14, hy, 2, 4, S[2]); box(c, 14, hy, 2, 4, S[2]); box(c, -14, hy + 1, 1, 1, CHROME[6]); box(c, 15, hy + 1, 1, 1, CHROME[6]);
+};
+/** The suit itself, on its stand (feet at y): the painting, and what moves on it (a glint across the visor, the lamp
+ *  on its control box blinking). */
+export const drawSuitFigure = (c: Ctx, x: number, y: number, f: number) => {
+  c.save(); c.translate(Math.round(x), Math.round(y));
+  stamp(c, 'n2-suitfig', -34, -120, 68, 121, paintSuitFigure);
+  if (f % 80 < 40) { box(c, 1, -68, 2, 1, '#86EFAC'); box(c, 1, -68, 1, 1, '#FFFFFF'); }
   const g = (f % 240) / 240;
-  if (g < 0.2) { c.fillStyle = 'rgba(255, 255, 255, 0.8)'; c.fillRect(x - 8 + g * 80, y - 98, 2, 12); }
+  if (g < 0.16) {
+    c.save(); c.beginPath(); c.ellipse(1, VISOR_Y + 1, 12, 10, 0, 0, Math.PI * 2); c.clip();
+    const gx = -12 + g * 170;
+    box(c, gx, VISOR_Y - 11, 2, 24, 'rgba(255, 255, 255, 0.75)'); box(c, gx + 3, VISOR_Y - 11, 1, 24, 'rgba(255, 255, 255, 0.4)');
+    c.restore();
+  }
+  c.restore();
 };
 
 // ---------------------------------------------------------------------------------------------------------------
