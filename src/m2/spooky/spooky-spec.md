@@ -36,3 +36,9 @@ placed within the safe start's reach of a checkpoint (spawnSafe.ts SAFE_X 360, S
 - Left alone: the foyer's lone shield (the teach), the dining room's shields (shots bounce off them anyway; the table
   and the chandeliers are the play), the bedroom's brides (scripted out of the wardrobes and the bed), the nursery's
   flyers over the ball pit, the gallery's mummy alone then everything at once.
+
+**The dungeon (dungeon/index.ts CAST: same)**
+
+- The cells were a fork, a shield and a bride on the floor in a row. The fork's up on the first chains' ledge now, over
+  the way through (shoot up, or meet him up there: no charging him), the shield on the floor with the bride behind it
+  (her rush comes out from behind the lid). Left alone: the stairs, the chamber (the ceiling's the fight), the rope walk.

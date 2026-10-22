@@ -81,8 +81,10 @@ const leverAng = (dg: Dungeon) => {
 const RLEDGES: [number, number, number][] = [[RA + 130, GY - 120, 140], [RA + 310, GY - 240, 150]];
 /** The cells' ledges (chains hung off the wall), and who's in them. */
 const CLEDGES: [number, number, number][] = [[X(560), GY - 140, 170], [X(860), GY - 230, 170]];
+/** (the fork up on the first chains' ledge, over the way through: no charging him up there; the shield on the floor,
+ *  the bride behind it, rushing out from behind the lid when it's down: shots at her go off the lid) */
 const CAST: ['igor' | 'skeleton' | 'knight' | 'bride' | 'bat', number, number][] = [
-  ['igor', X(720), GY], ['skeleton', X(980), GY], ['bride', X(1060), GY], ['bat', X(700), GY - 330], ['bat', X(1000), GY - 360],
+  ['igor', X(650), GY - 140], ['skeleton', X(980), GY], ['bride', X(1060), GY], ['bat', X(700), GY - 330], ['bat', X(1000), GY - 360],
 ];
 const HORNS: [number, number][] = [[SECTIONS.dungeon.x0 + 420, STAIR_TOP - 60], [SECTIONS.dungeon.x0 + 1250, STAIR_TOP + 320], [X(420), GY - 350], [X(1060), GY - 350], [RA - 120, GY - 340], [RB + 60, GY - 340], [X(3600), GY - 350]];
 const CEIL_TOP = GY - 900;
