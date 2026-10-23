@@ -37,6 +37,7 @@ import {
 } from './lines';
 import { drawRiverBackdrop, drawRiverBack, drawRiverFront, COUGHS } from './draw';
 import { startPip, pipLine, stepPip, drawPip, type ArtiePip } from './artiePip';
+import { silenceAll } from '../../../m1/game/platform/speech';
 import { ARTIE_H } from './artie';
 import { warmGrossUps } from '../../grossKit';
 
@@ -265,14 +266,18 @@ const updateBoat = (state: GameState, rv: River) => {
     const wasRiding = b.phase !== 'moored';
     b.phase = 'jumped';
     t.q = [];
+    // (over the side mid-spiel: his spiel's cut off there and then, so the yell's next and nothing's left waiting on a
+    // long line (the playtest: his face came up and the yell never did))
+    if (wasRiding && t.busy && t.current?.voice === 'm2.safari') { silenceAll(); const l = t.current; t.busy = false; t.current = null; t.gap = 0; l.set?.(null); }
     // (off it, he's off it: Artie's not having him back aboard, there's no climbing back on)
     if (wasRiding && b.block) { const blk = b.block; state.blocks = state.blocks.filter(o => o !== blk); }
     if (wasRiding) t.q.push(mh(pick(MEATHEAD_JUMP)));
     if (wasRiding) {
       // (and up in the corner, Artie losing it: his line's the yell)
-      const rage = rv.rage = startPip('rage'), l = artieFrom(state, rv, 'jumped', ARTIE_JUMPED), set = l.set;
-      l.set = s => { set?.(s); pipLine(rage, s); };
-      t.q.push(l);
+      // (his face up as his yell starts, not before: never up there waiting on him)
+      const l = artieFrom(state, rv, 'jumped', ARTIE_JUMPED), set = l.set;
+      l.set = s => { set?.(s); if (s && !rv.rage) rv.rage = startPip('rage'); pipLine(rv.rage, s); };
+      t.q.unshift(l);
     }
   }
   if (b.phase === 'jumped' && b.rode && near && !t.q.length && !t.busy && p.swimming) {
