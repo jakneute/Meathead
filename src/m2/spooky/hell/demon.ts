@@ -91,7 +91,9 @@ const WALL_H = 4000, ROOF_H = 760;
 const BACK_X = ARENA_IN + 20, WALL_W = 30, D_MIN = BACK_X + WALL_W + 58, D_MAX = ARENA_OUT - 58;
 const FLOOR_L = BACK_X + WALL_W + 20, FLOOR_R = ARENA_OUT - 20;
 /** Damage, before M2's own cut (×0.65). The fat one's were 22-28 a hit; these are meant to be dodged. */
-const DMG = { crush: 44, wave: 24, airbody: 22, sweep: 34, rush: 40, pillar: 32, breath: 34, swing: 22, upswing: 22, smash: 46, bump: 14 };
+// (eased about a fifth (the user's: somewhat less): was crush 44, wave 24, airbody 22, sweep 34, rush 40, pillar 32,
+// breath 34, swing 22, upswing 22, smash 46, bump 14)
+const DMG = { crush: 34, wave: 19, airbody: 17, sweep: 27, rush: 31, pillar: 25, breath: 27, swing: 17, upswing: 17, smash: 36, bump: 11 };
 /** His moves on him (his own say, not the engine's: see demonTouch). */
 const MELEE = { charge: 34, slide: 22, uppercut: 110, divekick: 60 };
 /** Wind-ups (frames; ×0.8 under 40%). */
@@ -107,7 +109,7 @@ const WAVE_SPEED = 7.5, WAVE_H = 30;
 const STAGGER_AT = 450, STAGGER_FRAMES = 70;
 const GRAV = 0.6;
 /** Touching a fire wall (the engine's own fire hurt: its lines, the burnt death). */
-const FIRE_WALL_DMG = 12;
+const FIRE_WALL_DMG = 10;
 
 type Atk = 'leap' | 'sweep' | 'rush' | 'pillars' | 'breath' | 'combo';
 type St = 'lounge' | 'rise' | 'walk'
