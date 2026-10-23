@@ -41,6 +41,10 @@ const MECH_DMG = 1.3;
 /** Their shots' hurt (the engine halves it, then the M2 soak). */
 const SHOT = Math.round(14 * MECH_DMG), BIG_SHOT = Math.round(20 * MECH_DMG);
 const kindOf = (id: MechId) => `m2:fl_mech_${id}`;
+/** The high C's big notes: his rounds that shoot one down (the user: "the ones you can destroy"). Shot down, it shatters
+ *  and that's it: gone from play at once, nothing out of it. Left alone, it goes off in its ring. */
+export const HIGH_C_HP = 3;
+const POP_CALLS = ['FLAT!', 'OFF KEY!', 'B FLAT!', 'SHARP!', 'ENCORE? NO.'];
 
 /** Where the ground is under world x: the circuit's near side, down in the park (what they throw lands there). */
 export const groundY = (x: number) => CY + ringY(toScreen(x, 0).x) / Z;
@@ -243,7 +247,7 @@ const MOVES: Record<MechId, Move[]> = {
   opera: [
     { len: 130, tick: ({ state }, m, t) => { if (t % 9 === 0 && t < 120) for (const dy of [-200, -130, -60]) { const o = at(-120, -LEG + dy); const q = shot(state, m.id, o.x, o.y, -3.4, 0, L.note); const s = heliOf(state).shots.get(q)!; s.burst = undefined; (s as ShotLook & { wave?: number }).wave = dy; } } },
     { len: 90, tick: ({ state }, m, t) => { m.a = t < 30 ? t / 30 : Math.max(0, 1 - (t - 30) / 8); if (t === 32 || t === 52) { const o = at(0, -LEG - 120); ring(state, m.id, o.x, o.y, 16, 3.2, t === 52 ? 0.2 : 0, L.note); playSound('slam', 0.8, 4); shakeScreen(state, 4, 2); } } },
-    { len: 130, tick: ({ state }, m, t) => { if (t === 10 || t === 45 || t === 80) { const o = at(-60, -LEG - 180), a = aimAng(state, o.x, o.y); const q = shot(state, m.id, o.x, o.y, Math.cos(a) * 2.4, Math.sin(a) * 2.4, L.orb('#FDE047', 15), BIG_SHOT); heliOf(state).shots.get(q)!.burst = { at: 70, n: 8, speed: 3 }; playSound('ding', 0.6, 12); } } },
+    { len: 130, tick: ({ state }, m, t) => { if (t === 10 || t === 45 || t === 80) { const o = at(-60, -LEG - 180), a = aimAng(state, o.x, o.y); const q = shot(state, m.id, o.x, o.y, Math.cos(a) * 2.4, Math.sin(a) * 2.4, L.orb('#FDE047', 15), BIG_SHOT); const s = heliOf(state).shots.get(q)!; s.burst = { at: 70, n: 8, speed: 3 }; s.hp = HIGH_C_HP; playSound('ding', 0.6, 12); } } },
     { len: 90, tick: ({ state }, m, t) => { if (t === 10 || t === 30 || t === 50) { const o = at(-40 + t, -LEG - 210); minion(state, 'gull', o.x, o.y, -2, -3, 'm2:fl_opera_seagull'); playSound('chitter', 0.6, 8); } } },
   ],
   // CHRIST THE REDEEMER: arms out, spinning (a spiral off its hands), THE HUG (its arms swing in, top and bottom, out to
@@ -368,7 +372,7 @@ export const updateMechs = (ctx: FrameContext) => {
       if (boxes.some(r => overlap(r, pb))) hurtPlayer(ctx, Math.round(14 * MECH_DMG), kindOf(m.id), { x: -8, y: 0 });
     }
   }
-  updateShots(state);
+  updateShots(ctx);
   updateBeams(ctx);
   updateDrops(ctx);
   updateMinions(ctx);
@@ -539,8 +543,11 @@ export const mechDone = (state: GameState) => { const h = heliOf(state), m = h.m
 // ---------------------------------------------------------------------------------------------------------------
 // Shots, beams, drops, minions
 
-const updateShots = (state: GameState) => {
-  const h = heliOf(state), live = new Set(state.projectiles);
+const updateShots = (ctx: FrameContext) => {
+  const { state } = ctx, h = heliOf(state), live = new Set(state.projectiles);
+  const pops = (h.pops ??= []);
+  for (const o of pops) o.t++;
+  if (pops.length) h.pops = pops.filter(o => o.t < POP_T);
   // (shot down: gone for good. Its look comes off, and the engine's projectile with it: left in, it went on flying
   // unseen and hurt him out of nowhere)
   let downed: Set<unknown> | null = null;
@@ -550,6 +557,26 @@ const updateShots = (state: GameState) => {
     if (s.g) q.vel.y += s.g;
     const w = (s as ShotLook & { wave?: number }).wave;
     if (w !== undefined) q.vel.y = Math.cos(s.t * 0.07 + w) * 2.2;
+    if (s.hit) s.hit--;
+    // (one he can shoot down: his rounds into it (swept back along their way: they go 21 a frame), any part of it as
+    // drawn; down, it shatters, out of play this frame (look, engine projectile and all) and nothing comes out of it)
+    if (s.hp !== undefined) {
+      const cx = q.pos.x + q.width / 2, cy = q.pos.y + q.height / 2, rr = s.r * 1.25 + 4;
+      for (const b of state.projectiles) {
+        if (b.owner !== 'player' || b.health <= 0) continue;
+        const bx = b.pos.x + b.width / 2, by = b.pos.y + b.height / 2;
+        if (segDist(cx, cy, bx - b.vel.x, by - b.vel.y, bx, by) > rr + b.height / 2) continue;
+        b.health = 0; s.hp--; s.hit = 4;
+        playSound('clink', 0.4, 14 + (HIGH_C_HP - s.hp) * 3);
+        for (let i = 0; i < 3 && state.particles.length < 1400; i++) state.particles.push({ pos: { x: bx, y: by }, vel: { x: -1 - Math.random() * 3, y: (Math.random() - 0.5) * 4 }, life: 8, color: i ? '#FFFFFF' : s.col, size: 2 });
+        if (s.hp <= 0) break;
+      }
+      if (s.hp <= 0) {
+        q.health = 0; h.shots.delete(q); (downed ??= new Set()).add(q);
+        shatter(ctx, cx, cy, s);
+        continue;
+      }
+    }
     if (s.burst && s.t >= s.burst.at) {
       q.health = 0; h.shots.delete(q); (downed ??= new Set()).add(q);
       const id = (q.shooterKind ?? '').replace('m2:fl_mech_', '') as MechId;
@@ -558,6 +585,21 @@ const updateShots = (state: GameState) => {
     }
   }
   if (downed) state.projectiles = state.projectiles.filter(q => !downed!.has(q));
+};
+
+/** How long a shot-down one's shatter shows (mechArt). */
+export const POP_T = 16;
+/** A shot-down one: it cracks and flies apart (glass shards and sparkles in its color, a white flash, a ring out of
+ *  it), a bright glassy pop, a callout. Looks only: nothing in it hurts him. */
+const shatter = (ctx: FrameContext, x: number, y: number, s: ShotLook) => {
+  const { state } = ctx;
+  heliOf(state).pops.push({ x, y, r: s.r * 1.25, col: s.col, t: 0 });
+  for (let i = 0; i < 18 && state.particles.length < 1400; i++) {
+    const a = (i / 18) * Math.PI * 2 + Math.random() * 0.3, v = 2 + Math.random() * 4.5, glass = i % 3 === 0;
+    state.particles.push({ pos: { x: x + Math.cos(a) * s.r * 0.6, y: y + Math.sin(a) * s.r * 0.6 }, vel: { x: Math.cos(a) * v, y: Math.sin(a) * v }, life: 16 + Math.random() * 14, color: glass ? '#FEF9C3' : i % 3 === 1 ? s.col : '#FFFFFF', size: glass ? 4 + Math.random() * 3 : 2 + Math.random() * 3, isGlass: glass || undefined });
+  }
+  playSound('glass', 0.9, 10); playSound('ding', 0.5, 20);
+  ctx.fx.spawnDamageNumber({ x: x - 30, y: y - 34 }, POP_CALLS[Math.floor(Math.random() * POP_CALLS.length)], true, s.col);
 };
 
 const updateBeams = (ctx: FrameContext) => {

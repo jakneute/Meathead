@@ -43,7 +43,12 @@ export interface Mech {
 }
 
 /** A shot of theirs (an engine enemy projectile: the engine does its hurt): how it's drawn, any fall on it, any burst. */
-export interface ShotLook { col: string; r: number; shape: 'orb' | 'note' | 'rivet' | 'marble' | 'gear' | 'cup' | 'block' | 'rock' | 'feather'; g?: number; burst?: { at: number; n: number; speed: number }; t: number; bounce?: boolean }
+export interface ShotLook { col: string; r: number; shape: 'orb' | 'note' | 'rivet' | 'marble' | 'gear' | 'cup' | 'block' | 'rock' | 'feather'; g?: number; burst?: { at: number; n: number; speed: number }; t: number; bounce?: boolean;
+  /** One he can shoot down (the Opera House's high C): rounds it's got left in it, and frames of its hit flash. */
+  hp?: number; hit?: number }
+
+/** A shot he shot down, shattering (where, its size and color, frames since): looks only, nothing in it hurts. */
+export interface Pop { x: number; y: number; r: number; col: string; t: number }
 
 /** A beam (a searchlight, a clock hand, an eye laser, a stare, a hug): from (x, y) at angle `a`, `len` long; warning
  *  first (a thin line), then firing. */
@@ -71,7 +76,7 @@ export interface Heli {
   boost: { dx: number; dy: number; t: number } | null; boostCd: number;
   /** The machine gun's next round, the rockets' charges (0..3, fractional while one's coming back). */
   gunCd: number; charges: number; rockets: Rocket[]; wasY: boolean; wasB: boolean;
-  booms: Boom[];
+  booms: Boom[]; pops: Pop[];
   /** The circuit: which landmark's round in front (fractional while the park turns), the clouds' drift. */
   prog: number; spin: number;
   mechs: Mech[]; cur: number;
@@ -114,7 +119,7 @@ export interface Heli {
 
 export const heliOf = (state: GameState) => foreignState<Heli>(state, 'heli', () => ({
   phase: 'pad', t: 0, ox: 0, oy: 0, seat: 0, tilt: 0, flip: 0, rotor: 0, vx: 0, vy: 0, pb: 0, boost: null, boostCd: 0,
-  gunCd: 0, charges: 3, rockets: [], wasY: false, wasB: false, booms: [], prog: -2.6, spin: 0, mechs: [], cur: 0,
+  gunCd: 0, charges: 3, rockets: [], wasY: false, wasB: false, booms: [], pops: [], prog: -2.6, spin: 0, mechs: [], cur: 0,
   waves: [], waveAt: 0, transit: false, transitFrom: 0, transitT: 0, goons: [], goonLandAt: -9999, shots: new Map(), beams: [], drops: [], minions: [],
   harry: null, harryBusy: false, mech: null, guest: null, goonSaid: null, guestAt: -9999, heckleAt: 0, goonBarkAt: -9999, gloatAt: -9999, lastHp: -1,
   hx: 0, hy: 0, hvx: 0, hvy: 0, hpose: 'wave', turned: false, hop: 0, remote: 0, hfacing: 1, zoom: 1, pull: 1, up: 0, pullX: 400, pullY: 300, killAt: -999, fightGoonAt: 0, fightGoonN: 0, step: 0, flags: {}, cam: false, camX: 0, camY: 0,

@@ -10,9 +10,9 @@
 // Also their shots (outlined and haloed so they read over the busy park), beams, drops, minions; and the blasts.
 
 import type { GameState } from '../../../m1/game/core/state';
-import type { Mech, Heli, Boom } from './state';
+import type { Mech, Heli, Boom, ShotLook } from './state';
 import { LEG, CY } from './geo';
-import { EYES, PISA_DOWN, groundY, pisaPivot, BEAM_LOCK } from './mechs';
+import { EYES, PISA_DOWN, groundY, pisaPivot, BEAM_LOCK, HIGH_C_HP, POP_T } from './mechs';
 import type { MechId } from './lines';
 import { checker, mix } from '../../intro/art/kit';
 
@@ -520,9 +520,37 @@ export const drawAttacks = (c: Ctx, state: GameState, h: Heli) => {
  *  landmarks, whatever's behind it), then its own shape a size up. */
 const drawShots = (c: Ctx, h: Heli, f: number) => {
   for (const [q, s] of h.shots) {
-    const x = Math.round(q.pos.x + q.width / 2), y = Math.round(q.pos.y + q.height / 2), rr = s.r * 1.25;
+    // (one about to go off swells its last 20 frames, its rim flashing fast: the tell that it's going, not shot down)
+    const swell = s.burst ? Math.max(0, Math.min(1, (s.t - (s.burst.at - 20)) / 20)) : 0;
+    const x = Math.round(q.pos.x + q.width / 2), y = Math.round(q.pos.y + q.height / 2), rr = s.r * 1.25 * (1 + swell * 0.3);
     c.globalAlpha = 0.5; c.fillStyle = INK; c.beginPath(); c.arc(x, y, rr + 6, 0, Math.PI * 2); c.fill(); c.globalAlpha = 1;
-    c.strokeStyle = (f >> 2) % 2 ? '#FFFFFF' : s.col === '#F8FAFC' ? '#F87171' : s.col; c.lineWidth = 2.5; c.beginPath(); c.arc(x, y, rr + 4, 0, Math.PI * 2); c.stroke();
+    c.strokeStyle = (swell > 0 ? (f >> 1) % 2 : (f >> 2) % 2) ? '#FFFFFF' : s.col === '#F8FAFC' ? '#F87171' : s.col; c.lineWidth = 2.5; c.beginPath(); c.arc(x, y, rr + 4, 0, Math.PI * 2); c.stroke();
+    drawShot(c, s, x, y, rr);
+    // (one he can shoot down: cracked a crack more for each round in it, white for a moment as each lands)
+    if (s.hp !== undefined) {
+      const n = HIGH_C_HP - s.hp;
+      for (let k = 0; k < n; k++) {
+        const a = k * 2.3 + 0.6;
+        c.strokeStyle = INK; c.lineWidth = 1.6; c.beginPath(); c.moveTo(x + Math.cos(a) * rr * 0.1, y + Math.sin(a) * rr * 0.1);
+        c.lineTo(x + Math.cos(a + 0.35) * rr * 0.5, y + Math.sin(a + 0.35) * rr * 0.5); c.lineTo(x + Math.cos(a - 0.2) * rr * 0.95, y + Math.sin(a - 0.2) * rr * 0.95); c.stroke();
+      }
+      if (s.hit) { c.globalAlpha = 0.65; disc(c, x, y, rr, '#FFFFFF'); c.globalAlpha = 1; }
+    }
+  }
+  // Shot down: a white flash, a ring of its color going out (stepped, thinning), its middle gone (looks only)
+  for (const o of h.pops ?? []) {
+    const k = o.t / POP_T, R = rampOf(o.col);
+    if (o.t < 4) { c.globalAlpha = 1 - o.t / 4; disc(c, o.x, o.y, o.r * (1.1 + o.t * 0.15), '#FFFFFF'); c.globalAlpha = 1; }
+    c.globalAlpha = 1 - k;
+    c.strokeStyle = R[4]; c.lineWidth = Math.max(1, 5 * (1 - k)); c.beginPath(); c.arc(o.x, o.y, o.r * (1 + k * 1.8), 0, Math.PI * 2); c.stroke();
+    c.strokeStyle = o.col; c.lineWidth = Math.max(1, 3 * (1 - k)); c.beginPath(); c.arc(o.x, o.y, o.r * (0.7 + k * 1.3), 0, Math.PI * 2); c.stroke();
+    c.globalAlpha = 1;
+  }
+};
+
+/** One shot's own shape at (x, y), `rr` its size. */
+const drawShot = (c: Ctx, s: ShotLook, x: number, y: number, rr: number) => {
+  {
     const R = rampOf(s.col);
     switch (s.shape) {
       case 'rivet': {
