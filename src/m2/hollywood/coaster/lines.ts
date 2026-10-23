@@ -167,7 +167,7 @@ export const SPIEL_THRONE_UHOH = ['THE THRONE IS MAKING A NOISE IT SHOULD NOT MA
 /** The park's PA (the boulevard's trailer voice) in the queue: Stuntman Steve. */
 export const PA_STEVE_QUEUE = [
   "WHILE YOU WAIT: STUNTMAN STEVE'S STUPENDOUS STUNTERY! HE ONCE FELL OFF A HORSE IN A MOVIE! ON PURPOSE!",
-  'STUNTMAN STEVE! SEE HIM NOT GET HIT BY A CAR! KIDS UNDER TWO GET IN FREE!',
+  "STUNTMAN STEVE TESTED THIS RIDE! HE DOES NOT HAVE A THRONE! HE'S FINE WITH THAT! HE'S TOTALLY FINE!",
 ];
 
 // ---------------------------------------------------------------------------------------------------------------
