@@ -27,7 +27,7 @@ import { KIND_HEAD, KIND_TOP_REACH, kindFacing, isHumanoidKind } from '../../m1/
 import { CANVAS_WIDTH } from '../../m1/constants';
 import { m2Kill } from '../moves/killLines';
 import { grabCallout } from '../moves/callouts';
-import { drawEnemyAt } from '../moves/grab';
+import { drawEnemyAt, setHeldFilter } from '../moves/grab';
 import { drawComposited } from '../../m1/game/render/composite';
 import { isRobot } from '../kinds';
 import { specialsHalf, specialsOff, realMax, HALF } from './half';
@@ -892,4 +892,8 @@ export const stopCrossbow = () => {
 /** For tests: everybody's tolerance and sickness. */
 export const crossbowForTests = (state: GameState) => state.enemies.filter(e => sickness.has(e)).map(e => { const s = sickness.get(e)!; return `${e.kind}:${s.tol.toFixed(1)}/${s.max.toFixed(1)}:${s.t >= 0 ? 'SICK' + s.t : '-'}:${Math.round(e.health)}${s.t >= 0 ? `>${s.target?.kind ?? 'UP'}:face${e.pose?.face}:drawn${e.kind ? kindFacing(e, state) : '?'}` : ''}`; });
 
-export const registerCrossbow = () => registerWeapon('CROSSBOW', { fire: (ctx, input, muzzle) => fire(ctx, input, muzzle), update, draw, drawHeld: c => drawHeld(c), tick: (ctx, input, equipped) => tick(ctx, input, equipped), drawOverlay });
+export const registerCrossbow = () => {
+  // (in his hands, sick still looks sick)
+  setHeldFilter((e, f) => { const s = sickness.get(e); return s && s.t >= 0 ? (isRobot(e) ? ROBOT_SICK_LOOK : SICK_LOOK)[Math.floor(f / 10) % 2] : null; });
+  registerWeapon('CROSSBOW', { fire: (ctx, input, muzzle) => fire(ctx, input, muzzle), update, draw, drawHeld: c => drawHeld(c), tick: (ctx, input, equipped) => tick(ctx, input, equipped), drawOverlay });
+};

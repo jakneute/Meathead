@@ -1799,9 +1799,16 @@ export const grabbing = (g: Grab) => g.phase !== 'idle';
 /** An enemy drawn somewhere else than where it stands: its feet at (x, y), turned by `angle` about them. */
 /** `face`: which way he faces before he's turned (a person's drawn facing whoever's watching, so he's mirrored to it). */
 /** `how`: how he's holding it (the drawers that can pose it for that do: see held.ts). */
+/** A look a weapon puts on whoever's in his hands (the crossbow's: sick, green, still; the user's: "grabbing a sick enemy
+ *  should still show their sick state"): a canvas filter, or null. */
+let heldFilter: (e: Enemy, frame: number) => string | null = () => null;
+export const setHeldFilter = (f: (e: Enemy, frame: number) => string | null) => { heldFilter = f; };
+
 export const drawEnemyAt = (ctx: Ctx, e: Enemy, state: GameState, x: number, y: number, angle: number, face: 1 | -1, how?: HeldHow) => {
   const pos = e.pos, facing = e.facing;
   ctx.save();
+  const look = heldFilter(e, state.frame);
+  if (look) ctx.filter = look;
   ctx.translate(x, y); ctx.rotate(angle);
   e.pos = { x: -e.width / 2, y: -e.height };
   e.facing = face;
