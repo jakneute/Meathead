@@ -19,7 +19,7 @@ import { ALIEN } from '../../../m1/game/scenes/alienLook';
 import { GY } from '../geometry';
 import { drawAlien, type AlienPose } from '../crater/aliens';
 import { DOOR_X, DISCO_L, DISCO_R, DJ, BALL, EXTINGUISHER_X, REFILL_X } from './geo';
-import { type Ramp, CHROME, dith, tube, blob, hash } from './paint';
+import { type Ramp, CHROME, dith, tube, hose, quad, blob, hash } from './paint';
 import { neon, neonW, chrome, square, print } from './letters';
 import { DOORWAY, DOOR_SIGN } from './basement';
 
@@ -150,32 +150,268 @@ const speakers = (g: Ctx, x: number) => {
   }
 };
 
-/** The DJ booth: a saucer pod up on a chrome pole (its window: the operators drawn into it live). */
+// ---------------------------------------------------------------------------------------------------------------
+// The DJ booth: a saucer pod up on a chrome pole. Stamped: the pod (dome, ribs, portholes, the cabin's chrome frame,
+// the saucer rim and its neon front panel, the LED strip's sockets, the cables down the pole); the cabin's back wall
+// (record crates on a shelf, the cue monitor, the reel-to-reel, spare cans on a hook); the console (two turntables,
+// the mixer, the lava lamp, the plasma ball). Live over them, all small: the records' labels turning, the reels, the
+// VU meters, faders and the LED chase on the beat (the floor's beat), the lamp's blobs, the plasma's arcs, the neon
+// starbursts, the speakers' cones pumping, the mirror ball's glints sliding over the pod.
+
+/** Where the booth's bits are: the pod's middle, the window's foot, the rim's middle and size. */
+const BCX = DJ.x + DJ.w / 2, BH = DJ.y + DJ.h, RIM_Y = BH + 14, RIM_RX = DJ.w / 2 + 40, RIM_RY = 22;
+/** The decks (x), the mixer's upright (x, top), the console's deck surface (y). */
+const DECKS = [DJ.x + 60, DJ.x + 140], MIX_X = DJ.x + 88, MIX_TOP = BH - 34, DESK_Y = BH - 16;
+/** The lava lamp, the plasma ball. */
+const LAVA_X = DJ.x + 9, PLASMA = { x: DJ.x + 191, y: BH - 23, r: 7 };
+/** The rim's neon starbursts (x, y) and the LED bulbs round its lower edge. */
+const BURSTS = [BCX - 64, BCX + 64], BURST_Y = BH + 20;
+const RIM_LEDS = Array.from({ length: 22 }, (_, i) => { const a = Math.PI * (0.1 + 0.8 * (i / 21)); return { x: BCX + Math.cos(a) * (RIM_RX - 4), y: RIM_Y + Math.sin(a) * (RIM_RY - 1) }; });
+/** The speaker stacks round the booth (x): one left of the pole, two to the right. */
+const STACKS = [DJ.x - 30, DJ.x + DJ.w + 30, DJ.x + DJ.w + 118];
+/** The reel-to-reel's reels. */
+const REELS = [{ x: DJ.x + 126, y: DJ.y + 13 }, { x: DJ.x + 143, y: DJ.y + 13 }];
+const CABLE: Ramp = ['#05050A', '#18181B', '#27272A', '#3F3F46', '#71717A'];
+const RECORD_COLS = ['#BE185D', '#1D4ED8', '#CA8A04', '#15803D', '#7C3AED', '#E4E4E7', '#B91C1C', '#0E7490', '#F97316', '#18181B'];
+
+/** The pod, outside: the pole and its cables, the dome, the cabin's frame, the rim and its panel. */
 const booth = (g: Ctx) => {
-  const cx = DJ.x + DJ.w / 2;
-  // (the pole down to the floor, its foot)
-  tube(g, cx, DJ.y + DJ.h + 46, cx, GY - 8, 14, CHROME);
-  px(g, cx - 30, GY - 12, 60, 12, '#18181B'); px(g, cx - 29, GY - 11, 58, 10, '#52525B'); px(g, cx - 29, GY - 11, 58, 2, '#A1A1AA');
-  // (the pod: a cabin on a saucer rim, the dome over it)
+  const cx = BCX;
+  // (the pole down to the floor, its foot; the cables down it in loose loops to a junction box at its foot)
+  tube(g, cx, BH + 46, cx, GY - 8, 14, CHROME);
+  for (let y = BH + 70; y < GY - 30; y += 46) { px(g, cx - 9, y, 18, 5, '#18181B'); px(g, cx - 8, y + 1, 16, 3, '#52525B'); px(g, cx - 8, y + 1, 16, 1, '#A1A1AA'); }
+  hose(g, quad(cx - 4, BH + 34, cx - 34, (BH + GY) / 2 - 20, cx - 6, GY - 70, 12), 3, CABLE);
+  hose(g, quad(cx + 3, BH + 36, cx + 26, (BH + GY) / 2 + 30, cx + 16, GY - 52, 12), 2, CABLE);
+  hose(g, quad(cx - 6, GY - 70, cx - 22, GY - 20, cx - 60, GY - 10, 8), 3, CABLE);
+  px(g, cx + 9, GY - 66, 22, 30, '#05020B'); px(g, cx + 10, GY - 65, 20, 28, '#3F3F46'); px(g, cx + 10, GY - 65, 20, 2, '#71717A');
+  for (let i = 0; i < 3; i++) { px(g, cx + 13 + i * 6, GY - 58, 3, 4, '#18181B'); px(g, cx + 14 + i * 6, GY - 57, 1, 1, i === 0 ? '#22C55E' : '#71717A'); }
+  print(g, 'HI', cx + 20, GY - 49, 1, 1, ['#FDE047', '#A16207']);
+  px(g, cx + 10, GY - 40, 20, 2, '#FACC15'); for (let i = 0; i < 5; i++) px(g, cx + 10 + i * 4, GY - 40, 2, 2, '#18181B');
+  // (the dome: banded in steps, chrome meridian ribs, a row of portholes round its foot, the beacon up top)
   g.fillStyle = '#05020B'; g.beginPath(); g.ellipse(cx, DJ.y - 6, DJ.w / 2 + 6, 30, 0, Math.PI, 0); g.fill();
   g.fillStyle = '#4C1D95'; g.beginPath(); g.ellipse(cx, DJ.y - 6, DJ.w / 2 + 4, 28, 0, Math.PI, 0); g.fill();
+  g.fillStyle = dith(g, '#5B21B6'); g.beginPath(); g.ellipse(cx - 6, DJ.y - 7, DJ.w / 2 - 6, 25, 0, Math.PI, 0); g.fill();
   g.fillStyle = '#6D28D9'; g.beginPath(); g.ellipse(cx - 10, DJ.y - 10, DJ.w / 2 - 20, 20, 0, Math.PI, 0); g.fill();
   g.fillStyle = dith(g, '#A78BFA'); g.beginPath(); g.ellipse(cx - 24, DJ.y - 16, DJ.w / 2 - 50, 12, 0, Math.PI, 0); g.fill();
   px(g, cx - 40, DJ.y - 30, 24, 2, '#DDD6FE');
-  tube(g, cx, DJ.y - 34, cx, DJ.y - 58, 3, CHROME); blob(g, cx, DJ.y - 60, 5, 5, ['#450A0A', '#B91C1C', '#EF4444', '#FCA5A5', '#FFFFFF']);
-  // (the cabin's frame round the window)
+  for (const s of [0.36, 0.72]) {
+    g.lineWidth = 3; g.strokeStyle = '#2E1065'; g.beginPath(); g.ellipse(cx, DJ.y - 6, s * (DJ.w / 2 + 4), 28, 0, Math.PI, 0); g.stroke();
+    g.lineWidth = 1; g.strokeStyle = '#A1A1AA'; g.beginPath(); g.ellipse(cx, DJ.y - 7, s * (DJ.w / 2 + 4) + 1, 28, 0, Math.PI * 1.02, Math.PI * 1.45); g.stroke();
+  }
+  for (let i = 0; i < 7; i++) {
+    const u = (i - 3) / 3.6, x = cx + u * (DJ.w / 2 - 6), y = DJ.y - 13 - (1 - u * u) * 3;
+    blob(g, x, y, 4, 3, ['#05020B', '#3F3F46', '#8E8E99', '#D4D4D8', '#FFFFFF']);
+    px(g, x - 2, y - 1, 4, 2, i % 2 ? '#155E75' : '#831843'); px(g, x - 2, y - 1, 1, 1, '#E0F2FE');
+  }
+  px(g, cx - DJ.w / 2 - 2, DJ.y - 8, DJ.w + 4, 2, '#8E8E99'); px(g, cx - DJ.w / 2 - 2, DJ.y - 8, DJ.w + 4, 1, '#E4E4E7');
+  tube(g, cx, DJ.y - 34, cx, DJ.y - 58, 3, CHROME);
+  for (const [ax, ay] of [[cx - 8, DJ.y - 44], [cx + 8, DJ.y - 48]]) { px(g, Math.min(cx, ax), ay, Math.abs(ax - cx), 1, '#A1A1AA'); px(g, ax - 1, ay - 1, 3, 3, '#D4D4D8'); }
+  blob(g, cx, DJ.y - 60, 5, 5, ['#450A0A', '#7F1D1D', '#991B1B', '#B91C1C', '#EF4444']);
+  // (the cabin's frame round the window: stepped chrome, rivets along it)
   px(g, DJ.x - 12, DJ.y - 8, DJ.w + 24, DJ.h + 16, '#05020B');
-  px(g, DJ.x - 10, DJ.y - 6, DJ.w + 20, DJ.h + 12, '#71717A'); px(g, DJ.x - 10, DJ.y - 6, DJ.w + 20, 2, '#D4D4D8'); px(g, DJ.x + DJ.w + 4, DJ.y - 4, 6, DJ.h + 8, '#3F3F46');
+  px(g, DJ.x - 10, DJ.y - 6, DJ.w + 20, DJ.h + 12, '#71717A');
+  px(g, DJ.x - 10, DJ.y - 6, DJ.w + 20, 2, '#D4D4D8'); px(g, DJ.x - 10, DJ.y - 4, DJ.w + 20, 1, '#A1A1AA');
+  px(g, DJ.x - 10, DJ.y - 6, 2, DJ.h + 12, '#A1A1AA'); px(g, DJ.x + DJ.w + 4, DJ.y - 4, 6, DJ.h + 8, '#3F3F46'); px(g, DJ.x + DJ.w + 4, DJ.y - 4, 1, DJ.h + 8, '#52525B');
+  px(g, DJ.x - 10, BH + 4, DJ.w + 20, 2, '#3F3F46');
+  px(g, DJ.x - 2, DJ.y - 2, DJ.w + 4, DJ.h + 4, '#18181B'); px(g, DJ.x - 2, BH, DJ.w + 4, 2, '#A1A1AA');
+  for (let x = DJ.x - 6; x < DJ.x + DJ.w + 6; x += 16) for (const y of [DJ.y - 5, BH + 3]) { px(g, x, y, 2, 2, '#27272A'); px(g, x, y, 1, 1, '#F4F4F5'); }
   px(g, DJ.x, DJ.y, DJ.w, DJ.h, '#0A0510');
-  // (the saucer rim under it: banded, a ring of bulbs)
-  g.fillStyle = '#05020B'; g.beginPath(); g.ellipse(cx, DJ.y + DJ.h + 14, DJ.w / 2 + 40, 22, 0, 0, Math.PI * 2); g.fill();
-  const rim = ['#7C3AED', '#5B21B6', '#4C1D95', '#2E1065'];
-  for (let i = 0; i < 4; i++) { g.save(); g.beginPath(); g.ellipse(cx, DJ.y + DJ.h + 14, DJ.w / 2 + 38, 20, 0, 0, Math.PI * 2); g.clip(); px(g, cx - DJ.w / 2 - 40, DJ.y + DJ.h - 6 + i * 10, DJ.w + 80, 10, rim[i]); g.restore(); }
-  px(g, cx - DJ.w / 2 - 20, DJ.y + DJ.h - 2, DJ.w + 40, 1, '#C4B5FD');
+  // (the saucer rim under it: banded, its lit top lip)
+  g.fillStyle = '#05020B'; g.beginPath(); g.ellipse(cx, RIM_Y, RIM_RX, RIM_RY, 0, 0, Math.PI * 2); g.fill();
+  const rim = ['#7C3AED', '#6D28D9', '#5B21B6', '#4C1D95', '#3B0F7A', '#2E1065'];
+  g.save(); g.beginPath(); g.ellipse(cx, RIM_Y, RIM_RX - 2, RIM_RY - 2, 0, 0, Math.PI * 2); g.clip();
+  for (let i = 0; i < 6; i++) px(g, cx - RIM_RX, BH - 6 + i * 7, RIM_RX * 2, 7, rim[i]);
+  for (let i = 0; i < 5; i++) { g.fillStyle = dith(g, rim[i], 1, i % 2); g.fillRect(cx - RIM_RX, BH + 1 + i * 7, RIM_RX * 2, 1); }
+  // (a seam ring round it, chrome; the panel in its face: dark glass, chrome-trimmed, its ends following the rim)
+  g.strokeStyle = '#A1A1AA'; g.lineWidth = 1; g.beginPath(); g.ellipse(cx, RIM_Y + 2, RIM_RX - 8, RIM_RY - 6, 0, Math.PI * 0.05, Math.PI * 0.95); g.stroke();
+  px(g, cx - 88, BH + 6, 176, 26, '#05020B'); px(g, cx - 87, BH + 7, 174, 24, '#14061F');
+  g.fillStyle = dith(g, '#1E0B33'); g.fillRect(cx - 87, BH + 7, 174, 10);
+  px(g, cx - 87, BH + 7, 174, 1, '#8E8E99'); px(g, cx - 87, BH + 30, 174, 1, '#3F3F46');
+  g.restore();
+  px(g, cx - RIM_RX + 20, BH - 2, RIM_RX * 2 - 40, 1, '#C4B5FD');
+  // (the neon starbursts in it, unlit glass (lit live), either side of the sign)
+  for (const sx of BURSTS) {
+    for (let a = 0; a < 12; a++) { const an = a * Math.PI / 6, l = a % 2 ? 6 : 10; g.strokeStyle = '#2A1030'; g.lineWidth = 2; g.beginPath(); g.moveTo(sx + Math.cos(an) * 2, BURST_Y + Math.sin(an) * 2); g.lineTo(sx + Math.cos(an) * l, BURST_Y + Math.sin(an) * l * 0.8); g.stroke(); }
+    px(g, sx - 1, BURST_Y - 1, 3, 3, '#3A1A30');
+  }
+  for (const sx of [cx - 50, cx + 46]) for (let k = 0; k < 3; k++) px(g, sx + k * 2, BH + 12 + k * 6, 2, 2, '#3A1A30');
+  // (the LED strip's sockets round its lower edge)
+  for (const p of RIM_LEDS) { px(g, p.x - 2, p.y - 2, 4, 4, '#05020B'); px(g, p.x - 1, p.y - 1, 2, 2, '#3A1530'); }
   // (its sign, on the rim's face: DJ ZORP)
-  px(g, cx - 40, DJ.y + DJ.h + 11, 80, 22, '#05020B'); px(g, cx - 39, DJ.y + DJ.h + 12, 78, 20, '#1E0B33'); px(g, cx - 39, DJ.y + DJ.h + 12, 78, 1, '#5B21B6');
-  for (const sx of [cx - 37, cx + 35]) { px(g, sx, DJ.y + DJ.h + 20, 2, 2, '#71717A'); px(g, sx, DJ.y + DJ.h + 20, 1, 1, '#E4E4E7'); }
-  chrome(g, 'DJ ZORP', cx, DJ.y + DJ.h + 15, 1, 2, { shadow: '#6B21A8', glint: false });
+  px(g, cx - 40, BH + 11, 80, 22, '#05020B'); px(g, cx - 39, BH + 12, 78, 20, '#1E0B33'); px(g, cx - 39, BH + 12, 78, 1, '#5B21B6');
+  for (const sx of [cx - 37, cx + 35]) { px(g, sx, BH + 20, 2, 2, '#71717A'); px(g, sx, BH + 20, 1, 1, '#E4E4E7'); }
+  chrome(g, 'DJ ZORP', cx, BH + 15, 1, 2, { shadow: '#6B21A8', glint: false });
+};
+
+/** The cabin's back wall (inside the window, behind them): paneled, the record crates on their shelf, the cue
+ *  monitor, the reel-to-reel, spare cans on a hook, the back door's frame. */
+const paintCabin = (g: Ctx) => {
+  const X = DJ.x, Y = DJ.y, w = DJ.w, h = DJ.h;
+  px(g, X, Y, w, h, '#0E1A14');
+  for (let i = 0; i < 6; i++) { px(g, X + 4 + i * 34, Y + 2, 30, h - 4, i % 2 ? '#14261C' : '#10201A'); g.fillStyle = dith(g, '#0A140F'); g.fillRect(X + 4 + i * 34, Y + h - 30, 30, 26); }
+  for (let i = 0; i <= 6; i++) { px(g, X + 2 + i * 34, Y, 2, h, '#24342A'); px(g, X + 2 + i * 34, Y, 1, h, '#3E5246'); }
+  px(g, X, Y, w, 2, '#05080A');
+  // (the shelf: chrome, two milk crates of records on it, the sleeves standing up out of them)
+  px(g, X + 3, Y + 22, 84, 3, '#71717A'); px(g, X + 3, Y + 22, 84, 1, '#D4D4D8'); px(g, X + 3, Y + 25, 84, 1, '#05020B');
+  for (const bx of [X + 10, X + 78]) px(g, bx, Y + 26, 3, 6, '#3F3F46');
+  ([[X + 5, ['#05020B', '#9A3412', '#EA580C', '#FDBA74']], [X + 46, ['#05020B', '#1E3A8A', '#2563EB', '#93C5FD']]] as const).forEach(([cx0, cr], k) => {
+    for (let j = 0; j < 11; j++) {
+      const sx = cx0 + 2 + j * 3, sh = 11 + Math.floor(hash(j * 3.1 + k * 7) * 5), col = RECORD_COLS[Math.floor(hash(j * 1.7 + k * 11) * RECORD_COLS.length)];
+      px(g, sx, Y + 22 - sh, 3, sh, '#05020B'); px(g, sx, Y + 22 - sh, 2, sh, col); px(g, sx, Y + 22 - sh, 2, 1, '#FFFFFF');
+    }
+    px(g, cx0, Y + 13, 37, 9, cr[0]); px(g, cx0 + 1, Y + 14, 35, 8, cr[1]); px(g, cx0 + 1, Y + 14, 35, 2, cr[2]); px(g, cx0 + 1, Y + 14, 35, 1, cr[3]);
+    for (let s = 0; s < 4; s++) px(g, cx0 + 4 + s * 8, Y + 17, 5, 3, cr[0]);
+  });
+  // (the cue monitor: a bezel, its green screen (the waveform's live))
+  px(g, X + 89, Y + 3, 26, 21, '#05020B'); px(g, X + 90, Y + 4, 24, 19, '#3F3F46'); px(g, X + 90, Y + 4, 24, 1, '#A1A1AA');
+  px(g, X + 92, Y + 6, 20, 13, '#052E16'); px(g, X + 92, Y + 12, 20, 1, '#14532D'); px(g, X + 98, Y + 21, 8, 2, '#18181B');
+  // (the reel-to-reel: its body, the heads, the tape between; the reels' flanges (their spokes live))
+  px(g, X + 117, Y + 2, 35, 32, '#05020B'); px(g, X + 118, Y + 3, 33, 30, '#52525B'); px(g, X + 118, Y + 3, 33, 1, '#D4D4D8'); px(g, X + 149, Y + 4, 2, 29, '#3F3F46');
+  for (const r of REELS) { blob(g, r.x, r.y, 7, 7, ['#05050A', '#3B2416', '#5C3A22', '#7C5030', '#A0704A']); g.strokeStyle = '#A1A1AA'; g.lineWidth = 1; g.beginPath(); g.arc(r.x, r.y, 7.5, Math.PI * 1.1, Math.PI * 1.6); g.stroke(); }
+  px(g, X + 129, Y + 24, 10, 5, '#18181B'); px(g, X + 130, Y + 25, 3, 3, '#A1A1AA'); px(g, X + 135, Y + 25, 3, 3, '#A1A1AA');
+  g.strokeStyle = '#3B2416'; g.lineWidth = 1; g.beginPath(); g.moveTo(REELS[0].x - 6, REELS[0].y + 3); g.lineTo(X + 130, Y + 25); g.lineTo(X + 138, Y + 25); g.lineTo(REELS[1].x + 6, REELS[1].y + 3); g.stroke();
+  for (let i = 0; i < 4; i++) { px(g, X + 121 + i * 7, Y + 30, 4, 2, '#18181B'); px(g, X + 121 + i * 7, Y + 30, 4, 1, '#A1A1AA'); }
+  // (spare cans on a hook)
+  px(g, X + 15, Y + 28, 3, 3, '#A1A1AA');
+  g.strokeStyle = '#05020B'; g.lineWidth = 3; g.beginPath(); g.arc(X + 16, Y + 39, 8, Math.PI, 0); g.stroke();
+  g.strokeStyle = '#71717A'; g.lineWidth = 1; g.beginPath(); g.arc(X + 16, Y + 39, 8, Math.PI * 1.05, Math.PI * 1.7); g.stroke();
+  for (const hx of [X + 6, X + 22]) { px(g, hx, Y + 37, 6, 10, '#05020B'); px(g, hx + 1, Y + 38, 4, 8, '#831843'); px(g, hx + 1, Y + 38, 4, 2, '#EC4899'); }
+  hose(g, quad(X + 9, Y + 47, X + 12, Y + 58, X + 4, Y + 64, 6), 1, CABLE, false);
+  // (the back door's frame)
+  px(g, X + w - 48, Y + 4, 42, h - 4, '#3F3F46'); px(g, X + w - 48, Y + 4, 42, 1, '#A1A1AA');
+  print(g, 'EXIT', X + w - 27, Y + 30, 1, 1, ['#4ADE80', '#14532D']);
+};
+
+/** The console, in front of them: its deck and its face (chrome-trimmed, the LED strip's sockets, a starburst decal);
+ *  the two turntables (plinths, platters, records, the tonearms), the mixer's upright (the VU ladders' sockets, the
+ *  fader slots, the knobs) and its crossfader slot, the lava lamp's glass, the plasma ball's globe. */
+const paintDesk = (g: Ctx) => {
+  const X = DJ.x, w = DJ.w;
+  // (the mixer's upright: a dark box, bevelled; VU sockets either side, two fader slots, three knobs)
+  px(g, MIX_X - 1, MIX_TOP - 1, 26, DESK_Y - MIX_TOP + 1, '#05020B'); px(g, MIX_X, MIX_TOP, 24, DESK_Y - MIX_TOP, '#27272A'); px(g, MIX_X, MIX_TOP, 24, 1, '#71717A'); px(g, MIX_X + 23, MIX_TOP, 1, DESK_Y - MIX_TOP, '#18181B');
+  for (const vx of [MIX_X + 2, MIX_X + 19]) for (let s = 0; s < 6; s++) px(g, vx, MIX_TOP + 3 + s * 3, 3, 2, '#14141A');
+  for (const fx of [MIX_X + 8, MIX_X + 15]) px(g, fx, MIX_TOP + 4, 1, 14, '#05020B');
+  for (let k = 0; k < 3; k++) { px(g, MIX_X + 10, MIX_TOP + 3 + k * 6, 4, 4, '#05020B'); px(g, MIX_X + 11, MIX_TOP + 4 + k * 6, 2, 2, ['#E4E4E7', '#F472B6', '#22D3EE'][k]); }
+  // (the deck: its top surface, the face under it)
+  px(g, X, DESK_Y, w, 4, '#3F3A4A'); px(g, X, DESK_Y, w, 1, '#8E8A9A');
+  px(g, X, DESK_Y + 4, w, 12, '#1E0B33'); px(g, X, DESK_Y + 4, w, 2, '#D4D4D8'); px(g, X, DESK_Y + 5, w, 1, '#8E8E99'); px(g, X, BH - 2, w, 2, '#52525B');
+  g.fillStyle = dith(g, '#2E1065'); g.fillRect(X, DESK_Y + 6, w, 4);
+  for (let i = 0; i < 24; i++) px(g, X + 5 + i * 8, BH - 7, 4, 3, '#14061F');
+  for (let a = 0; a < 8; a++) { const an = a * Math.PI / 4, l = a % 2 ? 3 : 5; g.strokeStyle = '#A16207'; g.lineWidth = 1; g.beginPath(); g.moveTo(X + w / 2, DESK_Y + 9); g.lineTo(X + w / 2 + Math.cos(an) * l, DESK_Y + 9 + Math.sin(an) * l * 0.6); g.stroke(); }
+  // (the crossfader's slot on the deck in front of the upright)
+  px(g, MIX_X + 3, DESK_Y + 1, 18, 2, '#05020B');
+  // (the turntables: plinth, platter, record and its grooves, the tonearm on its pivot)
+  for (const tx of DECKS) {
+    px(g, tx - 22, DESK_Y - 4, 44, 6, '#05020B'); px(g, tx - 21, DESK_Y - 3, 42, 4, '#27272A'); px(g, tx - 21, DESK_Y - 3, 42, 1, '#71717A');
+    g.fillStyle = '#05050A'; g.beginPath(); g.ellipse(tx, DESK_Y - 5, 17, 4.5, 0, 0, Math.PI * 2); g.fill();
+    g.fillStyle = '#52525B'; g.beginPath(); g.ellipse(tx, DESK_Y - 5.5, 16, 4, 0, 0, Math.PI * 2); g.fill();
+    g.fillStyle = '#111114'; g.beginPath(); g.ellipse(tx, DESK_Y - 6, 15, 3.4, 0, 0, Math.PI * 2); g.fill();
+    g.strokeStyle = '#26262E'; g.lineWidth = 1; for (const r of [12, 9]) { g.beginPath(); g.ellipse(tx, DESK_Y - 6, r, r * 0.23, 0, 0, Math.PI * 2); g.stroke(); }
+    g.strokeStyle = '#3F3F46'; g.beginPath(); g.ellipse(tx, DESK_Y - 6, 13, 3, 0, Math.PI * 1.15, Math.PI * 1.45); g.stroke();
+    px(g, tx + 17, DESK_Y - 9, 4, 4, '#18181B'); px(g, tx + 18, DESK_Y - 8, 2, 2, '#A1A1AA');
+    g.strokeStyle = '#05020B'; g.lineWidth = 2; g.beginPath(); g.moveTo(tx + 19, DESK_Y - 8); g.lineTo(tx + 9, DESK_Y - 6); g.stroke();
+    g.strokeStyle = '#D4D4D8'; g.lineWidth = 1; g.beginPath(); g.moveTo(tx + 19, DESK_Y - 8.5); g.lineTo(tx + 9, DESK_Y - 6.5); g.stroke();
+    px(g, tx + 7, DESK_Y - 7, 3, 2, '#E4E4E7');
+    px(g, tx - 20, DESK_Y - 1, 3, 2, '#05020B'); px(g, tx - 15, DESK_Y - 1, 3, 2, '#05020B');
+  }
+  // (the lava lamp: chrome cone foot and cap, the glass between; the plasma ball's globe on its black base)
+  px(g, LAVA_X - 5, DESK_Y - 4, 10, 4, '#05020B'); px(g, LAVA_X - 4, DESK_Y - 4, 8, 3, '#A1A1AA'); px(g, LAVA_X - 4, DESK_Y - 4, 8, 1, '#F4F4F5');
+  g.fillStyle = '#05020B'; g.beginPath(); g.moveTo(LAVA_X - 3, BH - 40); g.lineTo(LAVA_X + 3, BH - 40); g.lineTo(LAVA_X + 5, DESK_Y - 4); g.lineTo(LAVA_X - 5, DESK_Y - 4); g.closePath(); g.fill();
+  g.fillStyle = '#7C2D12'; g.beginPath(); g.moveTo(LAVA_X - 2, BH - 39); g.lineTo(LAVA_X + 2, BH - 39); g.lineTo(LAVA_X + 4, DESK_Y - 4); g.lineTo(LAVA_X - 4, DESK_Y - 4); g.closePath(); g.fill();
+  px(g, LAVA_X - 3, BH - 43, 6, 4, '#A1A1AA'); px(g, LAVA_X - 3, BH - 43, 6, 1, '#F4F4F5');
+  px(g, PLASMA.x - 6, DESK_Y - 5, 12, 5, '#05020B'); px(g, PLASMA.x - 5, DESK_Y - 5, 10, 1, '#52525B');
+  blob(g, PLASMA.x, PLASMA.y, PLASMA.r, PLASMA.r, ['#05020B', '#1E0B33', '#2E1065', '#3B0F7A', '#6D28D9']);
+};
+
+/** The booth's live bits, in front of them: the records turning, the VU meters, faders, the LED chase on the beat, the
+ *  lava lamp, the plasma ball. `run`: the gear's on (the show's going, or they're at it). */
+const deskLive = (c: Ctx, f: number, run: boolean, on: boolean) => {
+  const ph = (f % BEAT) / BEAT, kick = on ? Math.pow(1 - ph, 1.6) : 0;
+  // (the records: their labels, a mark on each turning round, a glint off the grooves)
+  DECKS.forEach((tx, i) => {
+    const a = run ? f * 0.26 * (i ? 1 : 1.04) + i : 0.6, y = DESK_Y - 6;
+    c.fillStyle = i ? '#22D3EE' : '#F472B6'; c.beginPath(); c.ellipse(tx, y, 5, 1.4, 0, 0, Math.PI * 2); c.fill();
+    px(c, tx + Math.cos(a) * 3.5 - 1, y + Math.sin(a) * 0.9 - 0.5, 2, 1, '#FFFFFF');
+    px(c, tx + Math.cos(a + Math.PI) * 11 - 1, y + Math.sin(a + Math.PI) * 2.5 - 0.5, 3, 1, '#71717A');
+    px(c, tx, y, 1, 1, '#E4E4E7');
+  });
+  // (the VU ladders: green, green... yellow, red; up on the kick)
+  for (let k = 0; k < 2; k++) {
+    const lv = on ? Math.min(1, kick * 0.85 + hash(Math.floor(f / 3) * 1.3 + k * 9.7) * 0.3) : run ? 0.15 : 0, n = Math.round(lv * 6);
+    for (let s = 0; s < n; s++) px(c, MIX_X + (k ? 19 : 2), MIX_TOP + 3 + (5 - s) * 3, 3, 2, s >= 5 ? '#EF4444' : s >= 4 ? '#FDE047' : '#4ADE80');
+  }
+  // (the channel faders, riding a little each bar; the crossfader cutting on the beat)
+  const bar = Math.floor(f / (BEAT * 4));
+  for (let k = 0; k < 2; k++) { const fy = MIX_TOP + 4 + Math.round((run ? hash(bar * 2.1 + k * 5.3) : 0.5) * 10); px(c, MIX_X + 7 + k * 7, fy, 3, 3, '#05020B'); px(c, MIX_X + 7 + k * 7, fy, 3, 1, '#F4F4F5'); }
+  const xf = MIX_X + 4 + Math.round((run ? (Math.floor(f / BEAT) % 2 ? 0.8 : 0.2) + Math.sin(f * 0.07) * 0.15 : 0.5) * 12);
+  px(c, xf, DESK_Y, 3, 3, '#05020B'); px(c, xf, DESK_Y, 3, 1, '#E4E4E7');
+  // (the LED strip in the console's face: chasing, all of it flashing on the kick)
+  if (on) for (let i = 0; i < 24; i++) {
+    const lit = ph < 0.1 || (i + Math.floor(f / 3)) % 6 < 2 || (24 - i + Math.floor(f / 3)) % 6 === 0;
+    if (lit) px(c, DJ.x + 5 + i * 8, BH - 7, 4, 3, ['#F472B6', '#22D3EE', '#FDE047'][(i + Math.floor(f / BEAT)) % 3]);
+  }
+  // (the lava lamp: two blobs of wax rising and sinking)
+  for (let k = 0; k < 2; k++) {
+    const u = (Math.sin(f * 0.02 + k * 2.4) + 1) / 2, y = BH - 22 - u * 13 + k * 4, r = 2 + k;
+    c.fillStyle = '#F97316'; c.beginPath(); c.ellipse(LAVA_X + (k ? 1 : -1), y, r, r + 1, 0, 0, Math.PI * 2); c.fill();
+    px(c, LAVA_X - 1 + (k ? 1 : -1), y - r, 1, 1, '#FED7AA');
+  }
+  px(c, LAVA_X - 3, DESK_Y - 6, 6, 2, '#EA580C');
+  // (the plasma ball: arcs out from the core, jumping every few frames)
+  const p = PLASMA, seed = Math.floor(f / 4);
+  c.lineWidth = 1;
+  for (let k = 0; k < 3; k++) {
+    const an = hash(seed * 1.9 + k * 3.7) * Math.PI * 2, mid = an + (hash(seed + k) - 0.5);
+    c.strokeStyle = k ? '#E879F9' : '#F5D0FE'; c.beginPath(); c.moveTo(p.x, p.y);
+    c.lineTo(p.x + Math.cos(mid) * 3.5, p.y + Math.sin(mid) * 3.5); c.lineTo(p.x + Math.cos(an) * (p.r - 1), p.y + Math.sin(an) * (p.r - 1)); c.stroke();
+  }
+  px(c, p.x - 1, p.y - 1, 3, 3, '#FFFFFF');
+};
+
+/** The pod's live bits outside: the rim's neon starbursts and LED strip on the beat, the beacon blinking, the speakers'
+ *  cones pumping, the mirror ball's glints sliding over it all. */
+const boothOutLive = (c: Ctx, state: GameState, f: number, on: boolean) => {
+  const ph = (f % BEAT) / BEAT, beat = Math.floor(f / BEAT);
+  // (the beacon on the dome: on with each beat)
+  if (ph < 0.35) { px(c, BCX - 3, DJ.y - 63, 6, 6, '#FCA5A5'); px(c, BCX - 2, DJ.y - 62, 2, 2, '#FFFFFF'); }
+  // (the speakers: each woofer's cone out on the kick, its dust cap catching the light)
+  if (on && ph < 0.2) for (const sx of STACKS) {
+    if (!shown(state, sx, sx + 80)) continue;
+    for (let k = 0; k < 2; k++) for (let i = 0; i < 2; i++) {
+      const x = sx + 40, y = GY - 130 - k * 124 + 30 + i * 60, s = ph < 0.1 ? 1 : 0;
+      c.fillStyle = '#5A5A6A'; c.beginPath(); c.ellipse(x, y, 15 + s, 15 + s, 0, 0, Math.PI * 2); c.fill();
+      c.fillStyle = '#3F3F4C'; c.beginPath(); c.ellipse(x, y, 12 + s, 12 + s, 0, 0, Math.PI * 2); c.fill();
+      c.fillStyle = '#A1A1AA'; c.beginPath(); c.ellipse(x - 1, y - 1, 6 + s, 6 + s, 0, 0, Math.PI * 2); c.fill();
+      px(c, x - 3, y - 4, 2, 2, '#F4F4F5');
+    }
+  }
+  if (!on) return;
+  // (the neon starbursts: pink left, cyan right; the long rays on the beat, the short ones between)
+  BURSTS.forEach((sx, k) => {
+    const hot = k ? ['#0E7490', '#22D3EE', '#ECFEFF'] : ['#9D174D', '#EC4899', '#FDF2F8'], longs = ph < 0.5;
+    for (let a = 0; a < 12; a++) {
+      if ((a % 2 === 0) !== longs && ph > 0.1) continue;
+      const an = a * Math.PI / 6, l = a % 2 ? 6 : 10, x0 = sx + Math.cos(an) * 2, y0 = BURST_Y + Math.sin(an) * 2, x1 = sx + Math.cos(an) * l, y1 = BURST_Y + Math.sin(an) * l * 0.8;
+      c.strokeStyle = hot[1]; c.lineWidth = 2; c.beginPath(); c.moveTo(x0, y0); c.lineTo(x1, y1); c.stroke();
+      c.strokeStyle = hot[2]; c.lineWidth = 1; c.beginPath(); c.moveTo(x0, y0); c.lineTo(x1, y1); c.stroke();
+    }
+    px(c, sx - 1, BURST_Y - 1, 3, 3, '#FFFFFF');
+  });
+  for (const sx of [BCX - 50, BCX + 46]) for (let k = 0; k < 3; k++) if ((k + beat) % 3 !== 0) px(c, sx + k * 2, BH + 12 + k * 6, 2, 2, '#FDE047');
+  // (the LED strip round the rim: a chase both ways, meeting in the middle; all on with the kick)
+  const n = RIM_LEDS.length;
+  RIM_LEDS.forEach((p, i) => {
+    const j = Math.min(i, n - 1 - i), lit = ph < 0.08 || (j - Math.floor(f / 3) % 11 + 11) % 11 < 3;
+    if (lit) { px(c, p.x - 1, p.y - 1, 2, 2, ['#F472B6', '#A78BFA', '#22D3EE', '#FDE047'][(j + beat) % 4]); }
+  });
+  // (the mirror ball's glints: a few spots sliding over the dome, the frame and the rim)
+  for (let k = 0; k < 6; k++) {
+    const u = (f * 0.0035 + k * 0.173) % 1, x = BCX - RIM_RX + 10 + u * (RIM_RX * 2 - 20), d = (x - BCX) / RIM_RX;
+    const y = k % 3 === 0 ? DJ.y - 8 - Math.sqrt(Math.max(0, 1 - d * d * 1.8)) * 24 + 6 : k % 3 === 1 ? DJ.y - 5 : RIM_Y - Math.sqrt(Math.max(0, 1 - d * d)) * (RIM_RY - 3);
+    if (k % 3 === 0 && Math.abs(d) > 0.7) continue;
+    if (k % 3 === 1 && Math.abs(x - BCX) > DJ.w / 2 + 8) continue;
+    px(c, x - 1, y - 1, 3, 3, k % 2 ? '#F5F3FF' : '#FBCFE8'); px(c, x - 3, y, 7, 1, 'rgba(255, 255, 255, 0.7)'); px(c, x, y - 3, 1, 7, 'rgba(255, 255, 255, 0.7)');
+  }
 };
 
 const paintFixtures = (g: Ctx) => {
@@ -194,8 +430,8 @@ const paintFixtures = (g: Ctx) => {
   }
   // (the pillars)
   for (const x of [DISCO_L + 260, DISCO_L + 1060, DISCO_L + 1560, DISCO_R - 40]) pillar(g, x);
-  // (the speaker stacks by the booth)
-  speakers(g, DJ.x + DJ.w + 30); speakers(g, DJ.x + DJ.w + 118);
+  // (the speaker stacks round the booth)
+  for (const sx of STACKS) speakers(g, sx);
   booth(g);
   // (the bar at the far end: the back bar's mirror and its bottles, lit shelves; the bar's padded front; the stools)
   const bx = DISCO_R - 300;
@@ -327,15 +563,24 @@ export const drawDisco = (c: Ctx, state: GameState, o: { lights: number; ops: Bo
   // The DJ booth: the two of them in there (headsets on, working her), or losing it after, or gone out the back
   if (shown(state, DJ.x - 40, DJ.x + DJ.w + 40)) {
     c.save(); c.beginPath(); c.rect(DJ.x, DJ.y, DJ.w, DJ.h); c.clip();
-    // (the cabin inside: their green screens' light, the back wall's panels)
-    px(c, DJ.x, DJ.y, DJ.w, DJ.h, '#0E1A14');
-    for (let i = 0; i < 6; i++) px(c, DJ.x + 4 + i * 34, DJ.y + 4, 30, 30, i % 2 ? '#14261C' : '#10201A');
-    for (let i = 0; i < 5; i++) { px(c, DJ.x + 10 + i * 38, DJ.y + 10, 22, 14, '#052E16'); px(c, DJ.x + 12 + i * 38, DJ.y + 12 + ((f >> 3) + i) % 10, 18, 1, '#4ADE80'); }
+    // (the cabin inside: its back wall, stamped; the cue monitor's waveform and the reels turning, live)
+    stamp(c, 'sp-q-booth-cabin', DJ.x, DJ.y, DJ.w, DJ.h, paintCabin);
     const ops = o.ops, open = !ops || ops.mode === 'run' || ops.mode === 'gone';
+    const run = on || (!!ops && ops.mode === 'on');
+    if (run) {
+      for (let i = 0; i < 10; i++) { const hgt = 1 + Math.round((on ? Math.pow(1 - (f % BEAT) / BEAT, 1.5) * 0.6 : 0.15) * 5 + hash(i * 3.3 + Math.floor(f / 4)) * 3); px(c, DJ.x + 93 + i * 2, DJ.y + 12 - hgt, 1, hgt * 2, '#4ADE80'); }
+      px(c, DJ.x + 92 + ((f >> 1) % 20), DJ.y + 6, 1, 13, '#D9F99D');
+    }
+    REELS.forEach((r, k) => {
+      const a = run ? f * (k ? 0.09 : 0.07) : 0.4;
+      c.strokeStyle = '#D4D4D8'; c.lineWidth = 1; c.beginPath();
+      for (let s = 0; s < 3; s++) { const an = a + s * Math.PI * 2 / 3; c.moveTo(r.x, r.y); c.lineTo(r.x + Math.cos(an) * 5, r.y + Math.sin(an) * 5); }
+      c.stroke(); px(c, r.x - 1, r.y - 1, 2, 2, '#F4F4F5');
+    });
     // (the back door out of it, at the right: open once they've run)
     px(c, DJ.x + DJ.w - 46, DJ.y + 6, 38, DJ.h - 6, '#05020B');
     px(c, DJ.x + DJ.w - 44, DJ.y + 8, 34, DJ.h - 8, open ? '#020103' : '#4C1D95');
-    if (!open) { px(c, DJ.x + DJ.w - 44, DJ.y + 8, 34, 2, '#7C3AED'); px(c, DJ.x + DJ.w - 18, DJ.y + 40, 4, 6, '#FDE047'); }
+    if (!open) { px(c, DJ.x + DJ.w - 44, DJ.y + 8, 34, 2, '#7C3AED'); px(c, DJ.x + DJ.w - 40, DJ.y + 14, 26, 12, '#3B0F7A'); px(c, DJ.x + DJ.w - 40, DJ.y + 14, 26, 1, '#5B21B6'); px(c, DJ.x + DJ.w - 18, DJ.y + 40, 4, 6, '#FDE047'); }
     if (ops && ops.mode !== 'gone') for (let i = 0; i < 2; i++) {
       let x = DJ.x + 50 + i * 100, bob = 0;
       let pose: AlienPose = 'operate';
@@ -346,21 +591,16 @@ export const drawDisco = (c: Ctx, state: GameState, o: { lights: number; ops: Bo
       drawAlien(c, { seed: 201 + i * 7, headset: true, woman: i === 1 }, pose, f + i * 9, 0.85);
       c.restore();
     }
-    // (the console: the decks spinning, the faders, the lamps)
-    px(c, DJ.x, DJ.y + DJ.h - 14, DJ.w, 14, '#27272A'); px(c, DJ.x, DJ.y + DJ.h - 14, DJ.w, 2, '#71717A');
-    for (let i = 0; i < 2; i++) {
-      const tx = DJ.x + 60 + i * 80, ty = DJ.y + DJ.h - 7;
-      c.fillStyle = '#05050A'; c.beginPath(); c.ellipse(tx, ty, 14, 4, 0, 0, Math.PI * 2); c.fill();
-      c.fillStyle = '#18181B'; c.beginPath(); c.ellipse(tx, ty, 12, 3, 0, 0, Math.PI * 2); c.fill();
-      px(c, tx - 2, ty - 1, 4, 2, '#F472B6'); px(c, tx + Math.cos(f * 0.2) * 10, ty + Math.sin(f * 0.2) * 2.5, 2, 1, '#A1A1AA');
-    }
-    for (let i = 0; i < 6; i++) px(c, DJ.x + 92 + i * 4, DJ.y + DJ.h - 11 + ((f + i * 9) % 20 < 10 ? 0 : 3), 2, 4, '#E4E4E7');
+    // (the console: stamped; its live bits over it)
+    stamp(c, 'sp-q-booth-desk', DJ.x, MIX_TOP - 10, DJ.w, BH - MIX_TOP + 10, paintDesk);
+    deskLive(c, f, run, on);
     // (the glass: a sheen across it, their green on it; dust out the back as they run)
     c.fillStyle = 'rgba(74, 222, 128, 0.12)'; c.fillRect(DJ.x, DJ.y, DJ.w, DJ.h);
     c.fillStyle = dith(c, 'rgba(255, 255, 255, 0.18)'); c.beginPath(); c.moveTo(DJ.x + 20, DJ.y); c.lineTo(DJ.x + 50, DJ.y); c.lineTo(DJ.x + 20, DJ.y + DJ.h); c.lineTo(DJ.x - 10, DJ.y + DJ.h); c.closePath(); c.fill();
     if (ops && ops.mode === 'run' && ops.t > 6) for (let k = 0; k < 6; k++) { const u = ((ops.t - 6) * 0.04 + k * 0.17) % 1; c.fillStyle = u < 0.5 ? '#D6D3D1' : dith(c, '#D6D3D1', 2, k % 2); c.beginPath(); c.ellipse(DJ.x + DJ.w - 40 - u * 60 + k * 6, DJ.y + DJ.h - 20 - u * 20 + (k % 3) * 6, 10 + u * 14, 8 + u * 8, 0, 0, Math.PI * 2); c.fill(); }
     c.restore();
   }
+  if (shown(state, DJ.x - 80, DJ.x + DJ.w + 220)) boothOutLive(c, state, f, on);
   void ALIEN; void o.extinguisher;
 };
 
@@ -479,6 +719,8 @@ export const discoLighting = (state: GameState, lights: number): SceneLight => {
     // (the bar's back bar)
     ls.push({ x: DISCO_R - 180, y: GY - 180, r: 200, a: 0.6 * l, color: 'rgba(94, 234, 212, 0.14)' });
   }
+  // (the booth's rim: its neon panel and LED strip, pink, brighter on the kick)
+  if (on) ls.push({ x: BCX, y: BH + 22, r: 150, a: (0.45 + 0.25 * Math.pow(1 - (f % BEAT) / BEAT, 2)) * l, color: 'rgba(236, 72, 153, 0.16)' });
   // (the booth: their screens' green; the door's light; the refill's alcove (always: he must see it))
   ls.push({ x: DJ.x + DJ.w / 2, y: DJ.y + DJ.h / 2, r: 170, a: 0.75, color: 'rgba(74, 222, 128, 0.14)' });
   ls.push({ x: DOOR_X, y: GY - 100, r: 160, a: 0.6 });
