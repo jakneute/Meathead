@@ -128,7 +128,10 @@ const PUKE_TIER = [
   { wind: 34, kick: 4, slide: 0.991, bounce: 0.84, ride: 240 },
   { wind: 42, kick: 7, slide: 0.996, bounce: 0.91, ride: 480 },
 ];
-const pukeTierOf = (f: Fight) => (f.hp > HP * 0.6 ? 0 : f.hp > HP * 0.35 ? 1 : 2);
+// (by his health left or his family left, whichever's lower (the user's: "the puke attack from stupid dad's intensity can
+// come either from how much health is lost or the percentage of family members dead, whichever is lower"): two of the
+// four flattened is the middle tier, three the top)
+const pukeTierOf = (f: Fight) => { const k = Math.min(f.hp / HP, alive(f).length / MEMBERS.length); return k > 0.6 ? 0 : k > 0.35 ? 1 : 2; };
 /** The couch stopped off its spot: how fast he scoots it back (px a frame, while his heels are down). */
 const SCOOT = 3.4;
 const PUKE_DMG = 8, COUCH_DMG = 16, COUCH_HURTS = 3.4;
