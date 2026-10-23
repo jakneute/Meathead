@@ -89,6 +89,9 @@ export type SoundType =
   | 'burp' | 'slurp'
   // (Meathead 2's STUPID DAD LIVE!: the canned laugh track, a beer can cracked, the show's tape stopping)
   | 'laughtrack' | 'canopen' | 'tapestop'
+  // (Meathead 2's Stuntman Steve's last stunt: his suit sizzling on the loop, the burnt cloth giving way, a cartoon
+  // whistle all the way down)
+  | 'sizzle' | 'cloth' | 'fallwhistle'
   // his footsteps, by what he's walking on
   | 'step_hard' | 'step_snow' | 'step_metal' | 'step_wood' | 'step_dirt' | 'step_sand' | 'step_wet';
 

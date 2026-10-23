@@ -23,13 +23,19 @@
 // drawSteve(c, x, feetY, facing, pose, frame, look): his feet at (x, feetY), facing +x unless facing is -1.
 // drawSteveAsh / drawSteveBrace / drawStevePants: what's left of him (the lightning's ash pile with the aviators on
 // top; the brace rolled off; the jumpsuit's legs, burning, off in the ring of fire).
+//
+// His last stunt's poses (the user's: slumped over the burning loop, stomach first; his pants burn off; headfirst to
+// the pavement, missing the mat, landing awkwardly): 'drape' folded over the loop at the waist, 'plant' stood on his
+// head (drawn the right way up: the fight turns him over), 'heap' where he came down. Their elbows and knees from
+// art/limb.ts.
 
 import { type Ctx } from '../../cast/kit';
 import { smear, drip, cut, bloodFresh, bloodDark } from '../../../m1/game/render/player/gore';
+import { elbow, knee, reachTo } from '../../art/limb';
 
 export type StevePose =
   | 'idle' | 'thumb' | 'wave' | 'angry' | 'flail' | 'slip' | 'hurt' | 'zapped' | 'smoking' | 'towed' | 'getup'
-  | 'sidestep' | 'struck' | 'tumble' | 'hoop' | 'down' | 'charred' | 'stagger' | 'brace';
+  | 'sidestep' | 'struck' | 'tumble' | 'hoop' | 'down' | 'charred' | 'stagger' | 'brace' | 'drape' | 'plant' | 'heap';
 
 export interface SteveLook {
   /** How singed (0..1: the lightning's left its mark). */
@@ -44,6 +50,11 @@ export interface SteveLook {
   damage?: number;
   /** The STEVE SIDESTEP, and his back goes mid-step: a hand to it, the face, the crick. */
   back?: boolean;
+  /** The jumpsuit's legs catching on the loop (0..1): scorched from the knees up, going black, holes burned through,
+   *  on fire (till they burn off: pantsDown). */
+  scorch?: number;
+  /** The neck brace off him (flown off on the landing). */
+  noBrace?: boolean;
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -201,6 +212,23 @@ const toUpper = (wx: number, wy: number, drop: number, lean: number): [number, n
   return [wx * cs - y * sn, wx * sn + y * cs + HIP_Y];
 };
 
+/** A point in his upper body's space, in his leg space (toUpper the other way). */
+const fromUpper = (ux: number, uy: number, drop: number, lean: number): [number, number] => {
+  const y = uy - HIP_Y, cs = Math.cos(lean), sn = Math.sin(lean);
+  return [ux * cs - y * sn, ux * sn + y * cs + HIP_Y + drop];
+};
+/** An arm to a hand, the elbow from limb.ts (his own space faces +x). */
+const armTo = (sx: number, sy: number, tx: number, ty: number): Arm => {
+  const [hx, hy] = reachTo(sx, sy, tx, ty, UPPER, FORE), [ex, ey] = elbow(sx, sy, hx, hy, UPPER, FORE, 1);
+  return { sx, sy, ex, ey, hx, hy };
+};
+/** A leg from its hip to an ankle, the knee from limb.ts, the boot turned along the shin (and `toe` more). */
+const legTo = (hx: number, tx: number, ty: number, drop: number, toe = 0): LegP => {
+  const hy = HIP_Y + drop, [ax, ay] = reachTo(hx, hy, tx, ty, THIGH, SHIN), [kx, ky] = knee(hx, hy, ax, ay, THIGH, SHIN, 1);
+  const ul = Math.hypot(kx - ax, ky - ay) || 1;
+  return [hx, hy, kx, ky, ax, ay, Math.atan2((kx - ax) / ul, -(ky - ay) / ul) + toe];
+};
+
 const rig = (pose: StevePose, f: number, L: SteveLook): Rig => {
   const far = (x: number, y: number, ux: number, uy: number) => solve(SH_FAR[0], SH_FAR[1], x, y, ux, uy);
   const near = (x: number, y: number, ux: number, uy: number) => solve(SH_NEAR[0], SH_NEAR[1], x, y, ux, uy);
@@ -289,6 +317,35 @@ const rig = (pose: StevePose, f: number, L: SteveLook): Rig => {
       const tw = Math.sin(f * 0.6) > 0.8 ? 1 : 0;
       return { legs: [lg(-4, 8, ANKLE, 1, 0, 0), lg(4, 10 - tw * 6, ANKLE - tw * 3, 1, -tw * 0.4, 0)], drop: 0, lean: 0, bob: 0, far: far(-2, -42, -1, 0), near: near(16, -50, 1, 0), fk: 'knee', nk: 'open', head: [4, 3, 0.25], mood: 'dead', braceOff: [2, 1] };
     }
+    case 'drape': {
+      // (slumped over the burning loop, stomach first: folded at the waist over it (the loop's in the fold, (-4, -24)
+      //  here), the legs hanging down behind it, the top half down the front, the arms and the head dangling; a limp sway)
+      const drop = 0, lean = 2.45, sw = Math.sin(f * 0.07) * 1.5;
+      const legs: [LegP, LegP] = [legTo(-4, -17 + sw, -2, drop, 0.35), legTo(4, -11 + sw, 0, drop, 0.25)];
+      // (the arms straight down off the shoulders, wherever the lean's put those)
+      const hang = (sh: readonly [number, number], dx: number) => {
+        const [wx, wy] = fromUpper(sh[0], sh[1], drop, lean), [ux, uy] = toUpper(wx + dx + sw, wy + REACH - 1, drop, lean);
+        return armTo(sh[0], sh[1], ux, uy);
+      };
+      return { legs, drop, lean, bob: 0, far: hang(SH_FAR, -2), near: hang(SH_NEAR, 2), fk: 'open', nk: 'open', head: [0, 2, 0.45], mood: L.pantsDown ? 'strain' : 'ouch', braceOff: [0, 1] };
+    }
+    case 'plant':
+      // (headfirst into the pavement, stood on it: stiff as a post, the arms flopped out past his head, the legs
+      //  straight and apart, the head pushed down into the neck)
+      return {
+        legs: [legTo(-4, -10, ANKLE, 0), legTo(4, 12, ANKLE, 0)], drop: 0, lean: 0.05, bob: 0,
+        far: armTo(SH_FAR[0], SH_FAR[1], -17, -82), near: armTo(SH_NEAR[0], SH_NEAR[1], 19, -84), fk: 'open', nk: 'open', head: [0, 2, 0.35], mood: 'dead', braceOff: [0, -2],
+      };
+    case 'heap': {
+      // (where he came down, laid out face down as 'down' is: the head folded under him at the neck (the crown on the
+      //  floor), the gut propping him up, the knees bent and both boots up in the air, one flopped over the other; an
+      //  arm flung out toward the mat he missed; a boot twitching)
+      const tw = Math.sin(f * 0.6) > 0.85 ? 1 : 0;
+      return {
+        legs: [legTo(-4, -7, -27, 0, -0.1), legTo(4, tw, -22 - tw * 2, 0, 0.3)], drop: 0, lean: 0, bob: 0,
+        far: armTo(SH_FAR[0], SH_FAR[1], 4, -40), near: armTo(SH_NEAR[0], SH_NEAR[1], 12, -86), fk: 'open', nk: 'open', head: [4, 8, 1.3], mood: 'dead', braceOff: [3, -2],
+      };
+    }
     default:
       // (idle: a cocky wide stance, chest out, a fist on his hip, a thumb hooked in his belt by the buckle, the toothpick going)
       return { legs: [lg(-4, -9, ANKLE, 1, 0, 0), lg(4, 10, ANKLE, 1, 0, 0)], drop: 0, lean: -0.05, bob: breathe, far: onHip, near: near(8, -42, -1, 0), fk: 'hip', nk: 'hip', head: [0, 0, -0.06], mood: 'smug' };
@@ -313,18 +370,19 @@ export const drawSteve = (c: Ctx, x: number, feetY: number, facing: 1 | -1, pose
   if (pose === 'zapped') c.translate(f % 2 ? 1.5 : -1.5, 0);
   if (pose === 'tumble' || pose === 'struck') { c.translate(0, -50); c.rotate(pose === 'struck' ? -0.5 : f * 0.25); c.translate(0, 50); }
   else if (pose === 'towed') { c.translate(-2.5, -19); c.rotate(Math.PI / 2); c.translate(0, -HIP_Y); }
-  else if (pose === 'down') { c.translate(-8, -18); c.rotate(Math.PI / 2 + 0.06); c.translate(0, -HIP_Y); }
+  else if (pose === 'down' || pose === 'heap') { c.translate(-8, -18); c.rotate(Math.PI / 2 + 0.06); c.translate(0, -HIP_Y); }
   figure(c, R, pose, f, d, L);
   c.restore();
-  aftermath(c, pose, f, L);
+  aftermath(c, pose, f, L, R);
   c.restore();
   MODE = 'normal'; P = NORMAL;
 };
 
 const figure = (c: Ctx, R: Rig, pose: StevePose, f: number, d: number, L: SteveLook) => {
   const bare = !!L.pantsDown;
-  drawLeg(c, R.legs[0], false, d, bare, f);
-  drawLeg(c, R.legs[1], true, d, bare, f);
+  const sc = bare ? 0 : L.scorch ?? 0;
+  drawLeg(c, R.legs[0], false, d, bare, f, sc);
+  drawLeg(c, R.legs[1], true, d, bare, f, sc);
   c.save();
   c.translate(0, R.drop + R.bob);
   c.translate(0, HIP_Y); c.rotate(R.lean); c.translate(0, -HIP_Y);
@@ -333,7 +391,7 @@ const figure = (c: Ctx, R: Rig, pose: StevePose, f: number, d: number, L: SteveL
   const late = R.near.hy < -72;
   if (!late) drawArm(c, R.near, true, R.nk, d, f);
   const [hdx, hdy, nod] = R.head, bo = R.braceOff ?? [0, 0];
-  c.save(); c.translate(bo[0], bo[1]); drawBrace(c, d, f); c.restore();
+  if (!L.noBrace) { c.save(); c.translate(bo[0], bo[1]); drawBrace(c, d, f); c.restore(); }
   c.save(); c.translate(HEAD_X + hdx, HEAD_Y + hdy); c.rotate(nod); drawHead(c, R.mood, f, d, L, pose); c.restore();
   if (late) drawArm(c, R.near, true, R.nk, d, f);
   if (pose === 'sidestep' && L.back) crick(c, f);
@@ -343,7 +401,7 @@ const figure = (c: Ctx, R: Rig, pose: StevePose, f: number, d: number, L: SteveL
 // ---------------------------------------------------------------------------------------------------------------
 // Legs: the jumpsuit's (a stripe down each), the knee pads, the boots; or bare (pale, hairy, star-print briefs)
 
-const drawLeg = (c: Ctx, G: LegP, near: boolean, d: number, bare: boolean, f: number) => {
+const drawLeg = (c: Ctx, G: LegP, near: boolean, d: number, bare: boolean, f: number, scorch = 0) => {
   const [hx, hy, kx, ky, ax, ay, rot] = G;
   const N = MODE === 'normal';
   if (bare) {
@@ -375,6 +433,18 @@ const drawLeg = (c: Ctx, G: LegP, near: boolean, d: number, bare: boolean, f: nu
       fill(c, P.skin[1], () => { c.moveTo(tx - 2.2, ty - 0.8); c.lineTo(tx + 0.5, ty - 1.6); c.lineTo(tx + 2.2, ty + 0.4); c.lineTo(tx + 0.3, ty + 1.6); c.lineTo(tx - 1.9, ty + 1); c.closePath(); });
       cut(c, tx - 1, ty, tx + 1.2, ty + 0.4);
       if (d >= 0.7) drip(c, tx + 0.6, ty + 1, 2 + d * 3);
+    }
+    // (catching on the loop: soot up the shin, then the thigh, dithered in then solid; then holes burned through to
+    // his pale legs, rimmed in embers)
+    if (scorch > 0 && N) {
+      const soot = '#1C1917';
+      if (scorch > 0.15) line(c, [kx, ky, ax, ay - 4], 8, scorch > 0.4 ? soot : dith(c, soot));
+      if (scorch > 0.4) line(c, [hx, hy + 2, kx, ky], 9.4, scorch > 0.65 ? soot : dith(c, soot));
+      if (scorch > 0.6) for (let i = 0; i < 3; i++) {
+        const k = 0.25 + i * 0.3, bx = i === 1 ? lerp(kx, ax, 0.4) : lerp(hx, kx, k), by = i === 1 ? lerp(ky, ay, 0.4) : lerp(hy, ky, k);
+        const r = 1.2 + (scorch - 0.6) * 4;
+        ell(c, bx, by, r + 0.7, r * 0.8 + 0.6, (f + i * 3) % 6 < 3 ? '#F97316' : '#B91C1C'); ell(c, bx, by, r, r * 0.8, P.pale[2]);
+      }
     }
   }
   kneePad(c, kx, ky, ax, ay, near);
@@ -498,6 +568,8 @@ const drawBody = (c: Ctx, f: number, d: number, L: SteveLook, bare: boolean) => 
   } else briefs(c, f);
   // Beaten: blood on the suit (it shows on yellow)
   if (N) suitBlood(c, d, f);
+  // (the seat catching with the legs, below the belt)
+  if (N && !bare && (L.scorch ?? 0) > 0.3) { px(c, -16, -37.4, 40, 1.2, dith(c, '#1C1917')); if ((L.scorch ?? 0) > 0.6) px(c, -16, -36.2, 40, 3, '#1C1917'); }
   // X-rayed: his ribs, his spine, the pelvis (no bones in the gut, just the gut)
   if (MODE === 'xray') {
     line(c, [-4, -38, -5, -50, -3, -62, 0, -70], 2.6, BONE);
@@ -574,6 +646,12 @@ const briefs = (c: Ctx, f: number) => {
   px(c, 9, -44.6, 1, 10, dith(c, B[2])); px(c, 10, -44.6, 10, 10, B[2]);
   px(c, -16, -38.6, 40, 2, B[3]);
   if (MODE === 'normal') for (const [sx, sy] of [[-9, -41.4], [-3, -39.4], [3, -42], [8, -39.8], [-6, -38.4], [13, -41.4], [0, -43]]) star(c, sx, sy, 0.9, '#FFFFFF');
+  // (the waistband glued with rhinestones, like the brace: who's looking? he is. One catching the light)
+  if (MODE === 'normal') {
+    px(c, -16, -44.6, 40, 1.6, B[3]);
+    const tw = Math.floor(f / 5) % 9;
+    for (let i = 0; i < 9; i++) { const x = -12.6 + i * 3.4; px(c, x - 0.5, -44.4, 1, 1, '#DBEAFE'); px(c, x - 0.2, -44.2, 0.4, 0.4, '#FFFFFF'); if (i === tw) star(c, x, -44, 1.4, '#FFFFFF'); }
+  }
   // (the burnt edge: ragged, black, glowing in bits)
   const pts: number[] = [];
   for (let i = 0; i <= 15; i++) pts.push(-14 + i * 2.2, i % 2 ? -43.8 : -45.6);
@@ -941,7 +1019,7 @@ const headGore = (c: Ctx, f: number, d: number) => {
 // ---------------------------------------------------------------------------------------------------------------
 // What comes off him (in his own unrotated space: feet at 0)
 
-const aftermath = (c: Ctx, pose: StevePose, f: number, L: SteveLook) => {
+const aftermath = (c: Ctx, pose: StevePose, f: number, L: SteveLook, R: Rig) => {
   switch (pose) {
     case 'slip': {
       // (squirted out: drops of baby oil flung off him, amber, glinting; the shine on him)
@@ -991,6 +1069,30 @@ const aftermath = (c: Ctx, pose: StevePose, f: number, L: SteveLook) => {
       }
       break;
     }
+    case 'drape': {
+      // (on fire where the loop's got him: stepped tongues up off his legs while the suit goes, bigger as it catches;
+      //  smoke off him the whole time, black while it's the suit, thin once it's gone)
+      const sc = L.pantsDown ? 0 : L.scorch ?? 0;
+      if (sc > 0) R.legs.forEach((G, j) => {
+        for (let i = 0; i < 3; i++) {
+          const k = i * 0.35, fx = i < 2 ? lerp(G[0], G[2], 0.3 + k) : lerp(G[2], G[4], 0.45), fy = i < 2 ? lerp(G[1], G[3], 0.3 + k) : lerp(G[3], G[5], 0.45);
+          const h = (3 + sc * 7) * (0.8 + 0.3 * Math.sin(f * 0.7 + i * 2 + j * 3)), w = 1.6 + sc * 1.4;
+          fill(c, '#DC2626', () => { c.moveTo(fx - w, fy); c.lineTo(fx + 0.6, fy - h - 2); c.lineTo(fx + w, fy); c.closePath(); });
+          fill(c, '#F97316', () => { c.moveTo(fx - w * 0.66, fy); c.lineTo(fx + 0.4, fy - h); c.lineTo(fx + w * 0.66, fy); c.closePath(); });
+          fill(c, '#FDE047', () => { c.moveTo(fx - w * 0.33, fy); c.lineTo(fx, fy - h * 0.5); c.lineTo(fx + w * 0.33, fy); c.closePath(); });
+        }
+      });
+      for (let i = 0; i < 3; i++) {
+        const t = ((f * 0.5 + i * 20) % 60) / 60, r = 1.6 + t * 4, x = -8 + Math.sin(t * 5 + i) * 3, y = -30 - t * 34;
+        const col = L.pantsDown ? '#A8A29E' : '#44403C';
+        ell(c, x, y, r, r, t > 0.5 ? dith(c, col) : col);
+      }
+      break;
+    }
+    case 'heap':
+      // (the briefs' burnt edge still smoking, thin)
+      for (let i = 0; i < 2; i++) { const t = ((f * 0.4 + i * 30) % 60) / 60, r = 1.2 + t * 3; ell(c, -10 + Math.sin(t * 5 + i) * 2, -26 - t * 22, r, r, t > 0.5 ? dith(c, '#A8A29E') : '#78716C'); }
+      break;
     default: break;
   }
 };

@@ -146,6 +146,13 @@ export const STEVE_BACK: ByPants = {
   shitty: ['MY BACK! THIS IS YOUR FAULT!'],
   nude: ['MY BACK! STOP LOOKING!'],
 };
+/** Slumped over his own burning loop, his pants just burned off him, star-print briefs out for all to see: and
+ *  nobody's looking at him, even now. Said once it's quiet; then he tips off it. */
+export const STEVE_SLUMPED: ByPants = {
+  clean: ['...IS THE JUMBOTRON GETTING THIS?', '...RHINESTONE BRIEFS. AND NOBODY CLAPS.', '...HE FELL OUT OF THE SKY. THEY CLAPPED.'],
+  shitty: ["...MY PANTS ARE ON FIRE. THEY'RE STILL TALKING ABOUT HIS.", "...SMELL THAT? THAT'S ME. FOR ONCE."],
+  nude: ['...NOW WE BOTH GOT NO PANTS. LOOK AT ME.', '...MY UNDIES ARE RHINESTONE. AND THEY STARE AT HIS DICK.'],
+};
 /** Fried stood there, charred, still giving the thumbs-up, while the crowd goes wild. */
 export const STEVE_FRIED: ByPants = {
   clean: ["I'M... A LIGHTNING... ROD...", 'SHOULDA... WORN... THE DENIM...', "THEY'RE... CLAPPING... FOR ME..."],
@@ -217,6 +224,6 @@ export const VOICE_LINES: Record<string, string[]> = {
     ...pools(STEVE_FUMING), ...pools(STEVE_ENTRANCE), STEVE_SHOWN_UP, ...pools(STEVE_POSSE), ...pools(STEVE_TAUNT), ...pools(STEVE_SEND),
     ...pools(STEVE_RAMP), ...pools(STEVE_TOO_CLOSE), ...pools(STEVE_FLAIL), ...pools(STEVE_SLIP), ...pools(STEVE_TOW),
     ...pools(STEVE_HURT), STEVE_CONDUCTIVE, ...pools(STEVE_ZAPPED), ...pools(STEVE_PYRO), ...pools(STEVE_CAR_HIT), ...pools(STEVE_LOW),
-    ...pools(STEVE_STUMBLE), ...pools(STEVE_LAST_STUNT), ...pools(STEVE_BACK), ...pools(STEVE_FRIED),
+    ...pools(STEVE_STUMBLE), ...pools(STEVE_LAST_STUNT), ...pools(STEVE_BACK), ...pools(STEVE_SLUMPED), ...pools(STEVE_FRIED),
   ],
 };

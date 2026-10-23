@@ -34,6 +34,7 @@ const SSKIN: Ramp = ['#F3BE90', '#D88C5A', '#B66B3F', '#8B4A2A', '#45200F'];
 const SPALE: Ramp = ['#FFF1E4', '#F6D7BF', '#E2B699', '#BC8F74', '#6E4B39'];
 const BRACE: Ramp = ['#FFFFFF', '#F1F3F0', '#D5D9D0', '#A7AC9F', '#565A50'];
 const MAT: Ramp = ['#93C5FD', '#3B82F6', '#2563EB', '#1E40AF', '#0B1A45'];
+const BRIEF: Ramp = ['#7FB0F8', '#1D4ED8', '#1E3A8A', '#172554', '#070F2A'];
 const HSKIN: Ramp = ['#F6D2B0', '#E0AC82', '#C08660', '#966446', '#4A2C1C'];
 const DENIM: Ramp = ['#9CB8E0', '#5A7CB4', '#3E5C92', '#2A406C', '#101C34'];
 const CONCRETE: Ramp = ['#D4D2C8', '#B0AEA2', '#8E8C80', '#6C6A60', '#2E2C26'];
@@ -359,32 +360,45 @@ const SCENES: Record<string, Record<BossDeath, Scene>> = {
     },
   },
   hollywood: {
-    // THE STEVE SIDESTEP: face down a foot short of the crash mat, the pants burned off, his ring of fire still going.
+    // THE STEVE SIDESTEP, the end of it: off his burning loop headfirst onto the pavement, a foot short of the crash mat,
+    // in a heap: folded on his head, the rear up in his star-print briefs (the rhinestone waistband), both boots in the
+    // air, an arm out for the mat. His pants still burning under the loop; his neck brace made it onto the mat.
     normal: p => {
       stage(p, 30);
-      // (the ring of fire, still up, still lit)
-      p.fill(8, 2, 44, 34, (x, y) => { const d = Math.hypot(x - 26, (y - 18) * 1.1); return d <= 14 && d >= 11; }, (x, y) => 0.7 - (y - 6) / 40, ['#FFF1BE', '#FDBA4A', '#EA7A1E', '#B0480E', '#4A1A04']);
-      for (let k = 0; k < 14; k++) { const a = Math.PI + (k / 13) * Math.PI, x = 26 + Math.cos(a) * 12.5, y = 18 + Math.sin(a) * 11.5; p.px(x, y - 2, '#FDE047'); p.px(x, y - 3, k & 1 ? '#F97316' : '#FDE047'); }
-      p.line(26, 5, 26, 0, '#6C707A');
-      // (skids; the crash mat)
-      for (let k = 0; k < 2; k++) for (let x = 6; x < 60; x++) p.px(x, 40 + k * 4 + Math.round(Math.sin(x * 0.08) * 3), '#26262C');
-      p.poly([[60, 48], [86, 44], [86, 66], [62, 70]], MAT, { l: 0.85, l2: 0.35 });
-      for (let k = 1; k < 4; k++) p.line(60 + k * 6.5, 48 - k, 61 + k * 6.5, 70 - k, '#1E40AF');
-      // (him, face down: the bare rear up, the legs out back, the suit scorched to rags, the neck brace, the arm out short)
-      p.cap(4, 62, 14, 60, 2.6, 2.6, SPALE); p.cap(4, 66, 14, 63, 2.6, 2.6, SPALE);
-      p.ell(3, 62, 2.4, 3, BRACE); p.ell(3, 66, 2.4, 3, BRACE);
-      p.cap(22, 60, 44, 59, 5, 5, SUIT);
-      p.line(24, 56, 44, 56, '#DC2626');
-      p.ell(17, 57, 5, 4, SPALE); p.ell(18, 61, 5, 3.6, SPALE);
-      p.line(13, 59, 22, 59, '#BC8F74');
-      for (let x = 20; x < 27; x++) p.px(x, 54 + ((x * 3) % 3), '#18181B');
-      p.checker(20, 54, 7, 10, '#3A3430');
-      p.ell(47, 60, 3.6, 3.4, BRACE);
-      p.ell(52, 60, 4.4, 4, SSKIN); p.ell(52, 57, 4.2, 2.4, ['#C99A62', '#9A6A36', '#774D24', '#563416', '#2A1808']);
-      for (const [x, y] of [[46, 58], [48, 62], [45, 61]]) twinkle(p, x, y, '#FFFFFF');
-      p.cap(50, 64, 57, 67, 1.8, 1.6, SUIT); p.ell(58, 67, 1.8, 1.6, SSKIN);
-      p.smoke(17, 53, 16); p.smoke(24, 52, 12, '#6C707A');
-      p.marker(34, 72);
+      // (the loop up top, still lit, still swinging a little)
+      p.fill(10, 2, 40, 32, (x, y) => { const d = Math.hypot(x - 24, (y - 16) * 1.1); return d <= 14 && d >= 11; }, (x, y) => 0.7 - (y - 4) / 40, ['#FFF1BE', '#FDBA4A', '#EA7A1E', '#B0480E', '#4A1A04']);
+      for (let k = 0; k < 14; k++) { const a = Math.PI + (k / 13) * Math.PI, x = 24 + Math.cos(a) * 12.5, y = 16 + Math.sin(a) * 11.5; p.px(x, y - 2, '#FDE047'); p.px(x, y - 3, k & 1 ? '#F97316' : '#FDE047'); }
+      p.line(24, 3, 23, 0, '#6C707A');
+      // (the crash mat, right there)
+      p.poly([[57, 52], [86, 49], [86, 70], [59, 74]], MAT, { l: 0.85, l2: 0.35 });
+      for (let k = 1; k < 4; k++) p.line(57 + k * 7, 52 - k, 58 + k * 7, 74 - k, '#1E40AF');
+      // (his neck brace, on it: it made it)
+      p.ell(70, 58, 3.6, 2.6, BRACE); p.px(69, 58, '#565A50'); p.px(70, 58, '#565A50');
+      twinkle(p, 72, 57, '#FFFFFF', true);
+      // (his pants under the loop, burnt off him and still going; bits of them about)
+      p.cap(12, 50, 24, 51, 2.6, 2.6, SUIT); p.line(13, 49, 23, 50, '#DC2626'); p.checker(14, 48, 8, 5, '#1C1917');
+      for (let k = 0; k < 4; k++) { p.px(14 + k * 3, 47, '#F97316'); p.px(14 + k * 3, 46 - (k & 1), '#FDE047'); }
+      for (let i = 0; i < 9; i++) p.px(10 + p.rnd() * 30, 44 + p.rnd() * 14, '#1C1917');
+      // (him: the legs bent at the knee with the boots up in the air, soles to the sky, one flopped over the other)
+      p.cap(33, 61, 26, 66, 2.6, 2.4, SPALE); p.cap(26, 66, 24, 55, 2.4, 2.2, SPALE);
+      p.cap(34, 62, 30, 67, 2.6, 2.4, SPALE); p.cap(30, 67, 29, 56, 2.4, 2.2, SPALE);
+      p.ell(26, 66, 2.2, 1.8, POLY); p.ell(30, 67, 2.2, 1.8, POLY);
+      p.ell(24, 53, 2.6, 2.2, SOCKW); p.line(22, 51, 26, 51, '#2A2A2E');
+      p.ell(29, 54, 2.6, 2.2, SOCKW); p.line(27, 52, 31, 52, '#2A2A2E'); p.px(26, 54, '#DC2626'); p.px(31, 55, '#DC2626');
+      // (the gut on the deck, the suit scorched round the bottom of it; the head folded under him at the neck)
+      p.ell(41, 64, 7, 4.5, SUIT); p.cap(42, 63, 47, 64, 4.4, 3.8, SUIT); p.checker(35, 62, 6, 4, '#3A3430');
+      p.ell(50, 66, 3.6, 3.2, SSKIN); p.ell(49, 64, 3.6, 2, ['#C99A62', '#9A6A36', '#774D24', '#563416', '#2A1808']);
+      p.px(51, 67, '#FACC15'); p.px(53, 67, '#FACC15'); p.px(52, 67, '#CA8A04');
+      p.pool(52, 69, 4, 1.4, BLOOD);
+      // (an arm flung out for the mat: short)
+      p.cap(46, 62, 50, 60, 1.8, 1.6, SUIT); p.cap(50, 60, 54, 63, 1.6, 1.5, SSKIN); p.ell(55, 64, 1.5, 1.3, SSKIN);
+      // (the rear up in the briefs: blue, stars, the rhinestones along the waistband; the burnt edge smoking)
+      p.ell(34, 59, 4.6, 4, BRIEF);
+      p.px(33, 58, '#FFFFFF'); p.px(35, 60, '#FFFFFF'); p.px(32, 61, '#FFFFFF');
+      for (let x = 31; x <= 37; x += 2) p.px(x, 55 + (x === 31 || x === 37 ? 1 : 0), '#DBEAFE');
+      twinkle(p, 35, 55, '#FFFFFF');
+      p.smoke(36, 54, 12); p.smoke(18, 45, 14, '#6C707A');
+      p.marker(46, 75); p.marker(76, 76);
     },
     // Struck by lightning: burnt to a man-shaped heap of ash, the gold come through it, a charred thumbs-up still up.
     weakness: p => {
@@ -636,7 +650,7 @@ const CAPTIONS: Record<string, Record<BossDeath, [string, string]>> = {
   adventure: { normal: ['GORED AND', 'FOLDED'], weakness: ['DENTAL', 'RECORDS'] },
   spooky: { normal: ['FOUND', 'FACE DOWN'], weakness: ['ASHES TO', 'ASHES'] },
   space: { normal: ['BATTERY', 'DEAD'], weakness: ['PARTS NOT', 'INCLUDED'] },
-  hollywood: { normal: ['STUNT', 'FAILED'], weakness: ['STILL', 'THUMBS-UP'] },
+  hollywood: { normal: ['MISSED', 'THE MAT'], weakness: ['STILL', 'THUMBS-UP'] },
   foreign: { normal: ['OUT OF', 'AMMO'], weakness: ['LAID IN', 'CONCRETE'] },
   frontier: { normal: ['AAHHH!', '(LAST WORDS)'], weakness: ['ALL THAT', 'REMAINS'] },
   fantasy: { normal: ['SPACE C-14', 'OVERFLOW LOT'], weakness: ['SIZE', 'ZERO'] },

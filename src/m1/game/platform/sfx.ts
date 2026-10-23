@@ -714,6 +714,23 @@ SFX.tapestop = {
   make: () => { const lp = lowpass(); let p1 = 0, p2 = 0, p3 = 0; return render(0.9, t => { const k = Math.max(0, 1 - t / 0.8), sp = k * k; p1 += (220 * sp) / SFX_SR; p2 += (277 * sp) / SFX_SR; p3 += (330 * sp) / SFX_SR; const v = ((p1 % 1) * 2 - 1) + ((p2 % 1) * 2 - 1) * 0.7 + ((p3 % 1) * 2 - 1) * 0.6 + rnd() * 0.2 * sp; return lp(v, 300 + 2600 * sp) * Math.min(1, k * 4); }); },
 };
 
+// ---- Meathead 2's Stuntman Steve's last stunt (hollywood/stunt/fight.ts)
+/** His suit cooking on the loop: fat in a pan, a fizzing hiss that flutters, popping. */
+SFX.sizzle = {
+  gain: 0.3, vary: 1.5, gap: 120, voices: 2,
+  make: () => { const hp = highpass(), bp = bandpass(), flut = lowpass(), c = crackle(0.012); return render(0.7, t => (hp(rnd(), 3800) * 0.7 + bp(rnd(), 6500, 1.5) * 0.4) * Math.min(1, 0.55 + Math.abs(flut(rnd(), 18)) * 3) * Math.min(1, t / 0.04) * Math.min(1, (0.7 - t) / 0.15) + c() * 0.9); },
+};
+/** ...the burnt cloth giving way: a ragged rip, tearing faster and higher as it goes, and the soft whump of it dropping. */
+SFX.cloth = {
+  gain: 0.5, vary: 1, gap: 200,
+  make: () => { const bp = bandpass(), lp = lowpass(); return render(0.42, t => { const u = Math.min(1, t / 0.32), st = (t * (70 + 90 * u)) % 1; const rip = t < 0.32 ? bp(rnd(), 900 + 1700 * u, 0.9) * (st < 0.55 ? 1 : 0.25) * (0.7 + 0.3 * Math.random()) : 0; return rip * 1.3 + (t > 0.3 ? lp(rnd(), 260) * ex(t - 0.3, 14) * 0.8 : 0); }); },
+};
+/** ...and the cartoon slide whistle all the way down (cut off when he lands). */
+SFX.fallwhistle = {
+  gain: 0.3, gap: 600, voices: 1,
+  make: () => { const bp = bandpass(); let ph = 0; return render(1, t => { const fq = 380 + 1720 * Math.pow(1 - t, 1.6) + 14 * Math.sin(TAU * 6 * t); ph += fq / SFX_SR; return (Math.sin(TAU * ph) * 0.85 + bp(rnd(), fq, 4) * 0.35) * Math.min(1, t / 0.05) * Math.min(1, (1 - t) / 0.08); }); },
+};
+
 // ---- Eating noises written into a line (*CRUNCH*, *GULP*...): never said by the voice, played as these (cues.ts)
 /** A wet crunchy bite: teeth snapping through something crisp (a cracking burst of crackle), then a wet squelch. */
 SFX.bite = {

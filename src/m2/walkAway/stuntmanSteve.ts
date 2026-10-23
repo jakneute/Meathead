@@ -8,9 +8,9 @@
 // bars; smoke going up off the stage. Along the way, the posse's wrecks (red and blue: one on its roof, one stoved in,
 // still burning), hula hoops lying where they came down, cones, a tire, hubcaps, a dropped foam finger, Steve's yellow
 // fliers trodden on. And Steve's fate: killed by his weakness (the lightning), a pile of ash with his gold aviators on
-// top and his neck brace beside it; any other way, him face down by the crash mat he missed, rear up in his
-// star-spangled briefs, his yellow pants burnt off him lying by. His toy: the STUNT CAR (its walk-away act: the
-// clapperboard, walkAway/acts.ts).
+// top and his neck brace beside it; any other way, him in a heap a foot short of the crash mat he missed, folded on
+// his head, boots up, rear up in his star-spangled briefs, his yellow pants burnt off him lying by, his neck brace on
+// the mat. His toy: the STUNT CAR (its walk-away act: the clapperboard, walkAway/acts.ts).
 
 import { type Ctx, type Prop, type SceneDef, INK, HOR, LW, box, hash, smoke, fire, mix } from './kit';
 import { farStrip } from './farStrip';
@@ -252,9 +252,11 @@ const mat = (g: Ctx, w: number, h: number) => {
   box(g, 1, h * 0.45 + 1, w - 2, h * 0.55 - 2, M[2]); box(g, 1, h * 0.45 + 1, w - 2, 1, M[5]);
   for (const hx of [6, w - 14]) box(g, hx, h * 0.6, 8, 2, INK);
   signText(g, 'CRASH MAT', w / 2, h - 3, { sx: 1, sy: 1, fill: M[5], stencil: true, gap: 1 });
+  // (his neck brace made it onto it; he didn't)
+  g.save(); g.translate(Math.round(w * 0.3), Math.round(h * 0.45)); g.scale(0.8, 0.8); drawSteveBrace(g, 0, 0, 0); g.restore();
 };
-/** Him, face down by the mat he missed, rear up, pants off. */
-const steveDown = (g: Ctx, w: number, h: number) => { g.save(); g.translate(w * 0.5, h); g.scale(w / 100, w / 100); drawSteve(g, 0, 0, 1, 'down', 0, { pantsDown: true }); g.restore(); };
+/** Him in a heap where he came down off the loop, a foot short of the mat: folded on his head, boots up, pants off. */
+const steveDown = (g: Ctx, w: number, h: number) => { g.save(); g.translate(w * 0.36, h); g.scale(w / 100, w / 100); drawSteve(g, 0, 0, 1, 'heap', 0, { pantsDown: true, noBrace: true }); g.restore(); };
 /** His jumpsuit's legs, burnt off him: yellow in steps, the red stripe, scorched through. */
 const pants = (g: Ctx, w: number, h: number) => {
   const Y = STEVE;
@@ -296,7 +298,7 @@ const props = (weakness: boolean): Prop[] => {
   if (weakness) out.push({ id: 'sw-ash', x: 1.3, z: 4.2, w: 1.2, h: 0.5, ppm: 40, paint: ash, live: (c, sx, sy, s, t) => smoke(c, sx, sy - s * 0.3, s, t, 3, { n: 4, size: 0.3, rise: 0.02, col: ['#57534E', '#78716C', '#A8A29E'] }) });
   else {
     out.push({ id: 'sw-mat', x: -2.2, z: 5, w: 2, h: 0.5, ppm: 32, paint: mat });
-    out.push({ id: 'sw-steve', x: 1.2, z: 4.6, w: 1.9, h: 0.55, ppm: 50, paint: steveDown });
+    out.push({ id: 'sw-steve', x: 1.2, z: 4.6, w: 1.9, h: 0.8, ppm: 50, paint: steveDown });
     out.push({ id: 'sw-pants', x: 2.4, z: 6, w: 0.8, h: 0.35, ppm: 40, paint: pants, live: (c, sx, sy, s, t) => fire(c, sx, sy, s * 0.25, t, 4) });
   }
   // The wrecks, the hoops, the cones, the tires and hubcaps, his fliers (strewn the whole way)
