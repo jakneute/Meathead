@@ -19,8 +19,9 @@ import { drawTodSky, timeOfDay, farTint, skyAt, hourMix, cloudTint, type TimeOfD
 import { snap2, wave, jag, mist } from '../../adventure/farArt';
 import { stamp, hazeBands, pixelBlob } from '../../intro/art/kit';
 import { box, mix, hash, checker, INK, type Ctx } from '../kit';
+import { leafMass, limb, quad, knot } from './paint';
 import { MONUMENT_AT, drawCastleAt } from '../monument';
-import { SECTIONS } from '../geometry';
+import { SECTIONS, GY } from '../geometry';
 import { paintAlps, MW, MH, farPine } from '../square/far';
 import { farWheel, farTragons } from '../glimpse';
 
@@ -173,7 +174,7 @@ export const paintPark = (g: Ctx, tod: TimeOfDay) => {
 // ---------------------------------------------------------------------------------------------------------------
 // The storybook forest's far edge
 
-export const FW = 1600, FH = 230, FG = FH - 20;
+export const FW = 1600, FG = 210, FH = FG + 220;
 interface FarTree { x: number; r: number; y: number; kind: 'oak' | 'blossom' | 'lilac' | 'pine' | 'spire'; seed: number }
 const FAR_TREES: FarTree[] = (() => {
   const out: FarTree[] = [];
@@ -193,6 +194,7 @@ export const paintFarForest = (g: Ctx, tod: TimeOfDay) => {
   const OAK = r4(T, '#2E5E3E'), OAK2 = r4(T, '#3E6A34'), BLO = r4(T, '#C27AA4'), LIL = r4(T, '#8A78C0'), PIN = [T('#1A3634'), T('#2A4E46')], Sn = T('#E4ECF6');
   // (the forest's dark floor behind it all)
   box(g, 0, FG - 50, FW, FH - FG + 50, T('#1E3A2E'));
+  for (let i = 0; i < 4; i++) { const y = FG + 4 + i * 26, col = T(['#22402F', '#264532', '#2A4A35', '#2E5038'][i]); box(g, 0, y, FW, FH - y, col); checker(g, 0, y - 2, FW, 2, col, i % 2, 2); }
   // (the back rank: a dark wall of crowns)
   for (let x = 0; x < FW; x += 18) crown(g, x, FG - 54 - hash(x * 0.7) * 16, 22, [T('#14302A'), T('#1E3E30'), T('#28503A'), T('#36624A')], x);
   // (the clearing: a thatched cottage, hedges, a dark ride's castle front)
@@ -231,92 +233,243 @@ export const paintFarForest = (g: Ctx, tod: TimeOfDay) => {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
-// The forest proper (nearer): big oaks and beeches, fairy doors, fungus, ivy, lanterns strung between, toadstools
+// The forest proper (nearer): big oaks, beeches and birches standing on the forest floor (their roots gripping it, moss
+// heaped round their feet), fairy doors, glowing toadstools, fungus, ivy, boughs forking out into leaf, lanterns strung
+// between (the wire sagging trunk to trunk)
 
-const GW = 1400, GH = 600, GG = GH - 16;
+/** How far back the forest proper stands (one eye with the play: its floor's on the ground line for this depth, and it
+ *  slides along at this rate), behind everything in the glen (the meadow's far edge is at 0.62, a gorge's at 0.7). */
+export const FOREST_D = 0.58;
+const GW = 1400, GG = 684, GH = GG + 150;
 interface Big { x: number; w: number; top: number; kind: 'oak' | 'beech' | 'birch'; seed: number }
 const BIGS: Big[] = (() => {
   const out: Big[] = [];
-  for (let x = 30, i = 0; x < GW - 40; i++) {
+  for (let x = 30, i = 0; x < GW - 120; i++) {
     const s = i * 17 + 3, t = hash(s);
     const kind: Big['kind'] = t > 0.75 ? 'birch' : t > 0.45 ? 'beech' : 'oak';
     const w = kind === 'birch' ? 12 + hash(s * 2) * 6 : 22 + hash(s * 2) * 20;
-    out.push({ x, w, top: 30 + hash(s * 3) * 30, kind, seed: s });
+    out.push({ x, w, top: 130 + hash(s * 3) * 30, kind, seed: s });
     x += 120 + hash(s * 5) * 110;
   }
   return out;
 })();
-const paintForest = (g: Ctx, tod: TimeOfDay) => {
-  const T = farCol(tod, 0.12);
-  const floorR = [T('#1A3424'), T('#244632'), T('#30583C')];
-  // (the far trunks between, thin and misty, up into the canopy; the canopy only seen from up high: a ceiling of
-  //  leaves in steps across the top, hanging down in lobes)
-  const FT = farCol(tod, 0.42);
-  for (let x = 40; x < GW; x += 90 + Math.floor(hash(x) * 40)) { const w = 5 + hash(x) * 6; box(g, x, 20, w, GG - 60, FT('#2A3A34')); box(g, x, 20, 2, GG - 60, FT('#3E5248')); }
-  for (let x = 0; x < GW; x += 26) crown(g, x, 4 + hash(x * 1.3) * 26, 30, [T('#12281F'), T('#1C382A'), T('#284C36'), T('#3A6446')], x * 0.7);
-  mist(g, GW, 260, GG - 300, skyAt(0.9, tod), 0.0, 0.3, 6);
-  // (the floor: moss and ferns going off into the trees)
-  box(g, 0, GG - 20, GW, GH - GG + 20, floorR[1]); box(g, 0, GG - 20, GW, 3, floorR[2]); checker(g, 0, GG - 17, GW, 2, floorR[2], 0, 2);
-  for (let x = 0; x < GW; x += 7) if (hash(x * 0.9) > 0.5) poly(g, [[x, GG - 18], [x + 4, GG - 26 - hash(x) * 6], [x + 8, GG - 18]], floorR[2]);
-  // (the big trees: trunks in steps, roots spread, bark grooves, moss up the shaded side, ivy; fairy doors (lit after
-  //  dark), bracket fungi; their crowns over the top)
-  const BARK: Record<Big['kind'], string[]> = {
-    oak: [T('#2A1C16'), T('#3E2A1E'), T('#56402C'), T('#72583C')],
-    beech: [T('#3A3A42'), T('#565660'), T('#74747E'), T('#9696A0')],
-    birch: [T('#5A5A60'), T('#B4B2AC'), T('#D8D6CE'), T('#F2F0E8')],
+/** Six steps round a color (shadow .. highlight), for the hour. */
+const r6 = (T: (c: string) => string, col: string) => [mix(col, INK, 0.62), mix(col, INK, 0.36), mix(col, INK, 0.14), col, mix(col, '#FFFFFF', 0.28), mix(col, '#FFFFFF', 0.56)].map(T);
+const BARKC: Record<Big['kind'], string> = { oak: '#5E4432', beech: '#6E6E7E', birch: '#C8C6BC' };
+const LEAFC: Record<Big['kind'], string> = { oak: '#346440', beech: '#3E6E44', birch: '#5A8A44' };
+/** The forest floor's color nearest him (what's under the tile, if the floor runs off its foot). */
+const FLOORC = '#30583C';
+const ff = (tod: TimeOfDay) => r6(farCol(tod, 0.12), FLOORC);
+
+/** A toadstool that glows after dark (by day just pale): its stem, its cap in steps, its spots. */
+const glowCap = (g: Ctx, x: number, y: number, s: number, col: string, T: (c: string) => string, night: boolean) => {
+  const C = night ? [mix(col, INK, 0.4), col, mix(col, '#FFFFFF', 0.5)] : [T(mix(col, INK, 0.45)), T(mix(col, '#9AA0A8', 0.35)), T(mix(col, '#FFFFFF', 0.3))];
+  if (night) { g.globalAlpha = 0.22; g.fillStyle = col; g.fillRect(Math.round(x - 7 * s), Math.round(y - 12 * s), Math.round(14 * s), Math.round(14 * s)); g.globalAlpha = 0.35; g.fillRect(Math.round(x - 4 * s), Math.round(y - 9 * s), Math.round(8 * s), Math.round(8 * s)); g.globalAlpha = 1; }
+  box(g, x - 1.5 * s, y - 6 * s, 3 * s, 6 * s, T(INK)); box(g, x - s, y - 6 * s, 2 * s, 6 * s, night ? mix(col, '#FFFFFF', 0.6) : T('#E2DCC8'));
+  g.fillStyle = T(INK); g.beginPath(); g.ellipse(x, y - 6 * s, 5 * s + 1, 3.5 * s + 1, 0, Math.PI, 0); g.fill();
+  g.fillStyle = C[1]; g.beginPath(); g.ellipse(x, y - 6 * s, 5 * s, 3.5 * s, 0, Math.PI, 0); g.fill();
+  box(g, x - 5 * s, y - 7 * s, 10 * s, 1, C[0]); box(g, x - 3 * s, y - 9 * s, 3 * s, 1, C[2]); box(g, x + s, y - 8 * s, 1, 1, C[2]);
+};
+
+/** A fern: fronds fanned out from the ground, each lit along its top. */
+const fern = (g: Ctx, x: number, y: number, s: number, F: string[]) => {
+  for (let f = -3; f <= 3; f++) { const tx = x + f * 6 * s, ty = y - (14 - Math.abs(f) * 3) * s; poly(g, [[x, y], [tx, ty], [tx + Math.sign(f || 1) * 2 * s, ty + 3 * s], [x + f * 2 * s, y]], F[2 + (f & 1)]); box(g, tx - 1, ty, 2, 1, F[4]); }
+};
+
+/** The forest floor coming toward him from the trees (bands lighter as they come, dithered between) and what's on it
+ *  between y0 and y1 (ferns, stones, tufts and flowers, a fallen branch, toadstools that glow after dark). */
+const floorStuff = (g: Ctx, T: (c: string) => string, F: string[], y0: number, y1: number, night: boolean, salt: number) => {
+  const St = r6(T, '#7A7890'), Ca = ['#7AE8F0', '#F49AD8', '#C8F070'];
+  for (let x = 6; x < GW; x += 9 + Math.floor(hash(x * 0.37 + salt) * 14)) {
+    const y = y0 + hash(x * 1.31 + salt) * (y1 - y0), s = 0.7 + ((y - (GG - 24)) / 160) * 0.9, t = hash(x * 2.7 + salt);
+    if (t > 0.86) fern(g, x, y, s, F);
+    else if (t > 0.74) { pixelBlob(g, x, y - 2 * s, 5 * s, 3 * s, St[1]); pixelBlob(g, x - 1, y - 3 * s, 3.5 * s, 2 * s, St[3]); box(g, x - 2 * s, y - 4.5 * s, 2, 1, St[5]); }
+    else if (t > 0.7) for (let k = 0; k < 3; k++) glowCap(g, x + k * 5 * s - 4, y + (k % 2) * 2, s * (0.7 + (k % 2) * 0.3), Ca[Math.floor(hash(x) * 3)], T, night);
+    else if (t > 0.45) { box(g, x, y - 4 * s, 1, 4 * s, F[4]); box(g, x + 2, y - 6 * s, 1, 6 * s, F[3]); box(g, x + 4, y - 3 * s, 1, 3 * s, F[4]); }
+    else if (t > 0.38) { box(g, x, y - 3, 2, 2, T(['#F49AC8', '#FDE68A', '#FFFFFF', '#A8C8FF'][Math.floor(hash(x * 5) * 4)])); box(g, x, y - 1, 1, 2, F[2]); }
+    else if (t < 0.02 && y > GG + 16) {
+      // (a fallen branch, moss on it)
+      const B = r6(T, BARKC.oak), M = r6(T, '#4E7E3A'), l = 30 + hash(x) * 30;
+      box(g, x - 1, y - 6, l + 2, 7, T(INK)); box(g, x, y - 5, l, 5, B[2]); box(g, x, y - 5, l, 1, B[4]); box(g, x, y - 1, l, 1, B[0]);
+      box(g, x + l * 0.3, y - 7, l * 0.4, 2, M[3]); box(g, x + l * 0.3, y - 7, l * 0.2, 1, M[4]);
+      g.fillStyle = B[1]; g.beginPath(); g.ellipse(x + l, y - 3, 2, 3, 0, 0, Math.PI * 2); g.fill(); box(g, x + l - 1, y - 4, 1, 1, B[4]);
+    }
+  }
+};
+
+/** One of the big trees, standing on the floor at GG (`ox`: drawn again a tile over, so the tile wraps). */
+const paintBig = (g: Ctx, b: Big, ox: number, T: (c: string) => string, F: string[], tod: TimeOfDay) => {
+  const night = tod.lamps > 0.3, ink = T(INK), R = r6(T, BARKC[b.kind]), M = r6(T, '#4E7E3A'), Lf = r6(T, LEAFC[b.kind]);
+  const x = b.x + ox, w = b.w, top = b.top, cx = x + w / 2, birch = b.kind === 'birch', fy = GG - 72, foot = GG - 4;
+  const flare = (y: number) => (y <= fy ? 0 : w * 0.55 * Math.pow((y - fy) / (foot - fy), 2.4));
+  // (its shadow on the floor round its foot)
+  pixelBlob(g, cx + 4, GG - 1, w * 1.8, 6, F[0]); checker(g, cx - w * 1.9, GG - 6, w * 3.9, 2, F[0], 0, 1);
+  // (the boughs off it first: the trunk goes over where they join)
+  if (!birch) {
+    const s = b.seed % 2 ? 1 : -1, by = top + 120 + hash(b.seed * 7) * 120, ex = cx + s * (50 + w), ey = by - 10;
+    const main = quad(cx + s * w * 0.3, by + 30, cx + s * (w * 0.5 + 30), by, ex, ey);
+    const [fx, fy2] = main(0.6);
+    limb(g, quad(fx, fy2, fx + s * 8, fy2 - 22, fx - s * 4, fy2 - 40), Math.max(2, w * 0.12), 1, R, ink, 6);
+    limb(g, main, Math.max(3, w * 0.3), 1.5, R, ink, 10);
+    if (b.seed % 4 === 1) {
+      // (a lantern hung off it)
+      const [lx, ly] = main(0.5);
+      for (let y = ly + 3; y < ly + 18; y += 3) box(g, lx, y, 1, 2, T('#4C4A66'));
+      box(g, lx - 3, ly + 18, 7, 9, ink); box(g, lx - 2, ly + 19, 5, 7, night ? '#FFD88A' : T('#D8B880')); box(g, lx - 2, ly + 19, 5, 2, night ? '#FFF4C8' : T('#E8D0A0')); box(g, lx - 4, ly + 17, 9, 2, T('#36344E'));
+      if (night) { g.globalAlpha = 0.18; g.fillStyle = '#FFC870'; g.fillRect(Math.round(lx - 10), Math.round(ly + 12), 21, 21); g.globalAlpha = 1; }
+    }
+    leafMass(g, fx - s * 4, fy2 - 48, 16, Lf, b.seed + 5);
+    leafMass(g, ex, ey - 16, 22, Lf, b.seed + 3);
+  } else {
+    // (a birch's thin limbs drooping, little clumps along them)
+    for (let k = 0; k < 2; k++) {
+      const s = k ? 1 : -1, by = top + 90 + hash(b.seed * 3 + k) * 200, ex = cx + s * (26 + w), ey = by + 6;
+      limb(g, quad(cx, by + 10, cx + s * (w * 0.5 + 10), by - 12, ex, ey), 3, 1, R, ink, 6);
+      leafMass(g, ex, ey - 4, 11, Lf, b.seed + k * 7);
+    }
+  }
+  // (the trunk: its straight run, stepped across: lit left, its core shadow, light thrown back up off the floor down
+  //  its right; then its foot flaring out onto the floor, row by row)
+  const shade = (l: number, ww: number, y: number, h: number) => {
+    const q = (f: number) => Math.round(ww * f);
+    box(g, l - 1, y, ww + 2, h, ink); box(g, l, y, ww, h, R[3]); box(g, l, y, q(0.24), h, R[4]); box(g, l + 1, y, Math.max(1, q(0.07)), h, R[5]);
+    box(g, l + q(0.58), y, q(0.16), h, R[2]); box(g, l + q(0.72), y, q(0.16), h, R[1]); box(g, l + q(0.86), y, ww - q(0.86) - 1, h, R[2]); box(g, l + ww - 1, y, 1, h, R[0]);
   };
+  shade(x, w, top, fy - top);
+  checker(g, x + Math.round(w * 0.24), top, 2, fy - top, R[4], 0, 1); checker(g, x + Math.round(w * 0.58), top, 2, fy - top, R[2], 1, 1); checker(g, x + Math.round(w * 0.72), top, 2, fy - top, R[1], 0, 1);
+  for (let y = fy; y < foot; y += 2) { const e = flare(y); shade(x - e * 0.9, w + e * 1.9, y, 2); }
+  // (the bark: an oak's grooves and the cracks across its plates; a beech smooth, its rings and the eyes where limbs
+  //  fell; a birch's black marks; all following the flare out at the foot)
+  const along = (gx0: number, y: number) => { const e = flare(y), rel = (gx0 - cx) / (w / 2); return gx0 + rel * e * (rel < 0 ? 0.9 : 1); };
+  if (b.kind === 'oak') {
+    for (let k = 0; k < Math.floor(w / 5); k++) {
+      const gx0 = x + 3 + k * 5 + hash(b.seed + k) * 2, u = (gx0 - x) / w;
+      for (let y = top; y < foot - 2; y += 4) {
+        const wob = Math.round(Math.sin((y + k * 13 + b.seed) * 0.06) * 1.2), gx = along(gx0, y) + wob, r = hash(y * 0.13 + k + b.seed);
+        box(g, gx, y, 1, 4, u < 0.55 ? R[2] : R[0]);
+        if (r > 0.86) box(g, gx + 1, y, 2, 2, u < 0.3 ? R[5] : u < 0.6 ? R[4] : R[2]);
+        else if (r < 0.05 && u < 0.8) { box(g, gx + 1, y, 4, 1, R[1]); box(g, gx + 1, y + 1, 4, 1, u < 0.5 ? R[4] : R[2]); }
+      }
+    }
+  } else if (b.kind === 'beech') {
+    for (let y = top + 20; y < fy; y += 34 + Math.floor(hash(y + b.seed) * 40)) { box(g, x + w * 0.1, y, w * 0.5, 1, R[2]); box(g, x + w * 0.62, y, w * 0.25, 1, R[1]); box(g, x + w * 0.1, y + 1, w * 0.4, 1, R[4]); }
+    for (let k = 0; k < 3; k++) {
+      const ey = top + 60 + hash(b.seed * 5 + k) * (fy - top - 120), ex = x + w * (0.3 + hash(b.seed + k * 3) * 0.3);
+      for (let i = -4; i <= 4; i++) box(g, ex + i, ey + Math.round((i * i) / 6), 1, 1, R[0]);
+      box(g, ex - 3, ey - 2, 6, 1, R[4]);
+    }
+    for (let k = 0; k < 4; k++) pixelBlob(g, x + w * (0.12 + hash(b.seed * 9 + k) * 0.25), top + 40 + hash(b.seed * 11 + k) * (fy - top - 60), 3, 2, T('#A8B890'));
+  } else {
+    for (let y = top + 4; y < foot - 4; y += 5 + Math.floor(hash(y * 0.7 + b.seed) * 8)) { const bx = along(x + hash(y + b.seed) * (w - 5), y); box(g, bx, y, 3 + hash(y * 2) * 5, 2, R[0]); box(g, bx + 1, y + 2, 2, 1, R[1]); }
+    // (a birch's foot dark and rough)
+    for (let y = GG - 50; y < foot; y += 2) { const e = flare(y), l = x - e * 0.9, ww = w + e * 1.9; for (let k = 0; k < ww; k += 3) if (hash(k * 1.7 + y * 0.3 + b.seed) > 0.45 + (GG - y) / 120) box(g, l + k, y, 2, 2, R[k < ww * 0.5 ? 1 : 0]); }
+  }
+  if (!birch) for (let k = 0; k < 2; k++) if (hash(b.seed * 13 + k) > 0.3) knot(g, x + w * (0.3 + hash(b.seed * 17 + k) * 0.3), top + 120 + hash(b.seed * 19 + k) * (fy - top - 200), 2 + hash(b.seed + k) * 2, R);
+  // (moss up its shaded side from the floor, dithered off; on its root tops)
+  if (!birch) {
+    const mh = 90 + hash(b.seed * 23) * 110;
+    for (let y = foot - mh; y < foot; y += 2) {
+      const e = flare(y), l = x - e * 0.9, ww = w + e * 1.9, u = (foot - y) / mh, mw = ww * (0.38 - u * 0.12);
+      box(g, l + ww - mw - 1, y, mw, 2, u > 0.8 ? (Math.floor(y / 2) % 2 ? M[2] : R[1]) : M[2]);
+      if (u < 0.75 && hash(y * 0.31 + b.seed) > 0.8) box(g, l + ww - mw, y, 2, 1, M[4]);
+    }
+    checker(g, x + w * 0.56, foot - mh - 10, w * 0.32, 10, M[2], 0, 1);
+  }
+  // (ivy up some)
+  if (b.seed % 3 === 1) for (let y = foot - 6; y > top + 80; y -= 4) { const ix = cx + Math.sin(y * 0.045 + b.seed) * w * 0.36; box(g, ix, y, 1, 4, Lf[1]); if (Math.floor(y / 4) % 2 === 0) { const sd = Math.floor(y / 8) % 2 ? 1 : -2; box(g, ix + sd, y, 3, 3, Lf[2]); box(g, ix + sd, y, 1, 1, Lf[4]); } }
+  // (bracket fungi, in steps)
+  for (let k = 0; k < 3; k++) {
+    const fy3 = top + 80 + hash(b.seed + k * 3) * (fy - top - 120), fw = 8 + hash(b.seed * 2 + k) * 6, fx = k % 2 ? x - fw * 0.55 : x + w - fw * 0.45, Fu = r6(T, '#D8B888');
+    box(g, fx - 1, fy3 - 1, fw + 2, 6, ink); box(g, fx, fy3, fw, 2, Fu[4]); box(g, fx, fy3, fw * 0.5, 1, Fu[5]); box(g, fx + 1, fy3 + 2, fw - 2, 2, Fu[3]); box(g, fx + 2, fy3 + 4, fw - 4, 1, Fu[1]);
+  }
+  // (its roots: out over the floor either side and gripping down into it, one coming toward him; moss over their
+  //  backs, their tips going under)
+  const nr = 4 + (b.seed % 2);
+  for (let i = 0; i < nr; i++) {
+    const s = i % 2 ? 1 : -1, k = Math.floor(i / 2), sx = cx + s * (w * 0.35 + k * w * 0.12), l = w * (0.55 + hash(b.seed * 3 + i) * 0.5) * (1 - k * 0.2), ey = GG + 1 + k * 3 + hash(b.seed + i) * 3;
+    const P = quad(sx, foot - 8 - k * 3, sx + s * l * 0.55, foot - 6, sx + s * l, ey);
+    limb(g, P, Math.max(3, w * 0.2 - k * 1.5), 1, R, ink, 6);
+    const [mx, my] = P(0.35); box(g, mx - 2, my - 3, 5, 1, M[3]); box(g, mx - 1, my - 4, 2, 1, M[4]);
+    const [tx, ty] = P(1); pixelBlob(g, tx, ty, 4, 2, F[2]); box(g, tx - 2, ty - 2, 1, 2, F[4]); box(g, tx + 1, ty - 3, 1, 3, F[3]);
+  }
+  poly(g, [[cx - w * 0.22, foot - 2], [cx + w * 0.12, foot - 2], [cx + w * 0.02, GG + 9], [cx - w * 0.1, GG + 9]], ink);
+  poly(g, [[cx - w * 0.2, foot - 2], [cx + w * 0.1, foot - 2], [cx + w * 0.01, GG + 8], [cx - w * 0.09, GG + 8]], R[2]);
+  box(g, cx - w * 0.18, foot - 2, Math.max(1, w * 0.08), 8, R[4]);
+  // (moss and grass heaped round its foot, tufts lit at their tips)
+  const span = w * 1.5 + w * 0.6;
+  pixelBlob(g, cx, GG + 1, span * 0.62, 4, M[1]); pixelBlob(g, cx - 2, GG, span * 0.5, 3, M[2]);
+  for (let k = 0; k < span; k += 3) { const tx = cx - span / 2 + k, th = 2 + hash(k * 0.7 + b.seed) * 4; if (hash(k * 1.3 + b.seed) > 0.4) { box(g, tx, GG + 1 - th, 1, th, M[3]); box(g, tx, GG + 1 - th, 1, 1, M[5]); } }
+  // (a fairy door at the foot of the wide ones: its frame, its planks, its round window lit, a step; a lantern by it)
+  if (w > 28 && b.seed % 2 === 1) {
+    const dx = cx - w * 0.12, dy = foot - 2, dw = 10, dh = 15, Dc = r6(T, ['#8A2A5A', '#2A6A6A', '#6A3A8A'][b.seed % 3]);
+    const arch = (pad: number, col: string) => { g.fillStyle = col; g.beginPath(); g.moveTo(dx - dw / 2 - pad, dy); g.lineTo(dx - dw / 2 - pad, dy - dh + dw / 2); g.arc(dx, dy - dh + dw / 2, dw / 2 + pad, Math.PI, 0); g.lineTo(dx + dw / 2 + pad, dy); g.closePath(); g.fill(); };
+    arch(2, ink); arch(1, R[1]); arch(0, Dc[3]);
+    box(g, dx - dw / 2, dy - dh + 4, 2, dh - 4, Dc[4]); box(g, dx + dw / 2 - 2, dy - dh + 4, 2, dh - 4, Dc[1]); box(g, dx, dy - dh + 6, 1, dh - 6, Dc[1]);
+    box(g, dx - 2, dy - dh + 2, 4, 4, ink); box(g, dx - 1, dy - dh + 3, 2, 2, night ? '#FFD88A' : T('#C8A070'));
+    box(g, dx + 3, dy - 7, 1, 1, T('#F6D365'));
+    box(g, dx - 7, dy, 14, 2, ink); box(g, dx - 6, dy, 12, 1, T('#9A94AE'));
+    box(g, dx + dw / 2 + 3, dy - 12, 3, 5, ink); box(g, dx + dw / 2 + 4, dy - 11, 1, 3, night ? '#FFE8A0' : T('#E8C888'));
+    if (night) { g.globalAlpha = 0.2; g.fillStyle = '#FFC870'; g.fillRect(Math.round(dx - 8), Math.round(dy - 18), 22, 18); g.globalAlpha = 1; }
+  }
+  // (toadstools glowing round its roots after dark)
+  if (b.seed % 3 !== 2) { const col = ['#7AE8F0', '#F49AD8', '#C8F070'][b.seed % 3]; for (let k = 0; k < 3; k++) glowCap(g, cx + [-(w * 0.75 + 6), w * 0.7 + 4, w * 0.95 + 10][k], GG + 2 + (k % 2) * 3, 0.8 + hash(b.seed + k) * 0.5, col, T, night); }
+  // (its crown up in the canopy, the limbs forking up into it)
+  for (const s of [-1, 1]) limb(g, quad(cx, top + 40, cx + s * w * 0.3, top + 10, cx + s * w * 0.9, top - 14), Math.max(2, w * 0.32), 2, R, ink, 6);
+  leafMass(g, cx, top - 4, 40 + w * 0.6, Lf, b.seed);
+};
+
+/** The fairy lights between two trunks: the wire knotted round each, sagging between (lower in the middle the longer
+ *  the run), bulbs on it and little lanterns hung off it on drops; lit after dark. */
+const paintLights = (g: Ctx, ax: number, ya: number, bx: number, yb: number, i: number, T: (c: string) => string, tod: TimeOfDay) => {
+  const night = tod.lamps > 0.3, span = bx - ax, sag = 14 + span * 0.12, ink = T(INK), wire = T('#2A2430');
+  const Y = (t: number) => ya + (yb - ya) * t + 4 * sag * t * (1 - t);
+  box(g, ax - 3, ya - 1, 4, 3, ink); box(g, ax - 3, ya - 1, 4, 1, T('#4A4458')); box(g, bx - 1, yb - 1, 4, 3, ink); box(g, bx - 1, yb - 1, 4, 1, T('#4A4458'));
+  for (let x = 0; x <= span; x++) box(g, ax + x, Y(x / span), 1, 1, wire);
+  const n = Math.max(4, Math.floor(span / 16));
+  for (let k = 1; k < n; k++) {
+    const t = k / n, lx = ax + span * t, ly = Y(t), col = BULB[(i + k) % 4];
+    if (k % 3 === 0) {
+      box(g, lx, ly + 1, 1, 4, wire); box(g, lx - 2, ly + 5, 5, 6, ink); box(g, lx - 1, ly + 6, 3, 4, night ? '#FFD88A' : T('#E8C888')); box(g, lx - 1, ly + 6, 3, 1, night ? '#FFF4C8' : T('#F2DCA8'));
+      if (night) { g.globalAlpha = 0.18; g.fillStyle = '#FFC870'; g.fillRect(Math.round(lx - 6), Math.round(ly + 2), 13, 13); g.globalAlpha = 1; }
+    } else {
+      box(g, lx - 1, ly + 1, 3, 4, ink); box(g, lx, ly + 2, 1, 2, night ? col : T(mix(col, '#8A8A9A', 0.3))); box(g, lx - 1, ly + 1, 3, 1, T('#3A3A48'));
+      if (night) { g.globalAlpha = 0.25; g.fillStyle = col; g.fillRect(Math.round(lx - 3), Math.round(ly), 7, 7); g.globalAlpha = 1; }
+    }
+  }
+};
+
+const paintForest = (g: Ctx, tod: TimeOfDay) => {
+  const T = farCol(tod, 0.12), night = tod.lamps > 0.3, F = ff(tod);
+  // (the far trunks between, thin and misty, up into the canopy, standing on the floor's far edge; the canopy only
+  //  seen from up high: a ceiling of leaves in steps across the top, hanging down in lobes)
+  const FT = farCol(tod, 0.42);
+  for (let x = 40; x < GW; x += 90 + Math.floor(hash(x) * 40)) {
+    const w = 5 + hash(x) * 6;
+    box(g, x, 120, w, GG - 142, FT('#2A3A34')); box(g, x, 120, 2, GG - 142, FT('#3E5248'));
+    box(g, x - 2, GG - 30, w + 4, 8, FT('#2A3A34')); box(g, x - 4, GG - 26, w + 8, 4, FT('#22302C'));
+  }
+  for (let x = 0; x < GW; x += 26) crown(g, x, 104 + hash(x * 1.3) * 26, 30, [T('#12281F'), T('#1C382A'), T('#284C36'), T('#3A6446')], x * 0.7);
+  mist(g, GW, GG - 324, 284, skyAt(0.9, tod), 0.0, 0.3, 6);
+  // (the floor: its far edge at the far trunks' feet, coming toward him in bands, lighter as they come)
+  const bands: [number, string][] = [[GG - 24, F[1]], [GG - 12, F[1]], [GG + 4, F[2]], [GG + 30, F[2]], [GG + 66, F[3]], [GG + 110, F[3]]];
+  bands.forEach(([y, col], i) => { box(g, 0, y, GW, GH - y, col); if (i) checker(g, 0, y - 2, GW, 2, col, i % 2, 1); });
+  box(g, 0, GG - 24, GW, 1, F[2]);
+  floorStuff(g, T, F, GG - 20, GG - 6, night, 1);
+  // (the big trees, standing on it; drawn again a tile over where they'd cross its edge, so it wraps)
   for (const b of BIGS) {
-    const R = BARK[b.kind], x = b.x, w = b.w, top = b.top;
-    // (roots)
-    poly(g, [[x - w * 0.9, GG - 14], [x - w * 0.2, GG - 40], [x + w * 1.2, GG - 40], [x + w * 1.9, GG - 14]], R[0]);
-    poly(g, [[x - w * 0.7, GG - 15], [x, GG - 38], [x + w * 0.5, GG - 38], [x + w * 0.3, GG - 15]], R[1]);
-    box(g, x - 1, top, w + 2, GG - 30 - top, T(INK));
-    box(g, x, top, w, GG - 30 - top, R[2]); box(g, x, top, Math.max(2, w * 0.25), GG - 30 - top, R[3]); box(g, x + w * 0.7, top, w * 0.3, GG - 30 - top, R[1]);
-    checker(g, x + w * 0.6, top, 2, GG - 30 - top, R[1], 0, 1);
-    if (b.kind === 'birch') { for (let y = top + 6; y < GG - 34; y += 7 + Math.floor(hash(y + b.seed) * 9)) box(g, x + hash(y) * (w - 6), y, 3 + hash(y * 2) * 5, 2, R[0]); }
-    else for (let k = 0; k < Math.floor(w / 6); k++) { const gx = x + 3 + k * 6 + (hash(b.seed + k) * 3); box(g, gx, top + 4, 1, GG - 40 - top, R[1]); }
-    if (b.kind === 'oak') { box(g, x + w * 0.7, top + 30, w * 0.3, GG - 70 - top, T('#3E6A34')); checker(g, x + w * 0.6, top + 30, w * 0.12, GG - 70 - top, T('#3E6A34'), 1, 1); }
-    // (ivy up some)
-    if (b.seed % 3 === 1) for (let y = GG - 40; y > top + 40; y -= 5) box(g, x + w * 0.5 + Math.sin(y * 0.12) * w * 0.3, y, 3, 3, T(y % 10 ? '#3E7A3A' : '#5A9A4A'));
-    // (a fairy door at the foot of the wide ones)
-    if (w > 30 && b.seed % 2 === 1) {
-      const dx = x + w * 0.35, dy = GG - 34;
-      g.fillStyle = T(INK); g.beginPath(); g.moveTo(dx - 6, dy); g.lineTo(dx - 6, dy - 12); g.arc(dx, dy - 12, 6, Math.PI, 0); g.lineTo(dx + 6, dy); g.closePath(); g.fill();
-      g.fillStyle = T('#8A3A6A'); g.beginPath(); g.moveTo(dx - 5, dy); g.lineTo(dx - 5, dy - 12); g.arc(dx, dy - 12, 5, Math.PI, 0); g.lineTo(dx + 5, dy); g.closePath(); g.fill();
-      box(g, dx + 2, dy - 8, 1, 1, T('#F6D365')); box(g, dx - 2, dy - 16, 4, 3, winLit(tod, b.seed) ?? T('#4A2A40'));
-      box(g, dx - 7, dy, 14, 2, T('#6A6A6A'));
-    }
-    // (bracket fungi)
-    for (let k = 0; k < 3; k++) { const fy = top + 60 + hash(b.seed + k * 3) * (GG - 140 - top), fx = k % 2 ? x - 4 : x + w - 4; box(g, fx, fy, 9, 3, T('#D8B888')); box(g, fx, fy, 9, 1, T('#F2DCB0')); box(g, fx + 1, fy + 3, 7, 1, T('#8A6A44')); }
-    // (a low bough off it, leaves on it: the rest of its crown's up in the canopy)
-    const CR = b.kind === 'birch' ? [T('#2A4A28'), T('#3E6A34'), T('#5A8A44'), T('#7AAA5A')] : b.kind === 'beech' ? [T('#20402C'), T('#2E5638'), T('#3E6E44'), T('#5A8A58')] : [T('#1A3A2A'), T('#264E34'), T('#346440'), T('#4E7E50')];
-    crown(g, x + w / 2, top - 4, 40 + w * 0.6, CR, b.seed);
-    if (b.kind !== 'birch') {
-      const s = b.seed % 2 ? 1 : -1, by = 150 + hash(b.seed * 7) * 120, ex = x + w / 2 + s * (50 + w);
-      g.strokeStyle = T(INK); g.lineWidth = 7; g.beginPath(); g.moveTo(x + w / 2, by + 30); g.quadraticCurveTo(x + w / 2 + s * 30, by, ex, by - 10); g.stroke();
-      g.strokeStyle = R[2]; g.lineWidth = 5; g.stroke(); g.strokeStyle = R[3]; g.lineWidth = 1; g.stroke();
-      crown(g, ex, by - 16, 22, CR, b.seed + 3);
-    }
+    paintBig(g, b, 0, T, F, tod);
+    if (b.x < 220) paintBig(g, b, GW, T, F, tod);
+    if (b.x > GW - 260) paintBig(g, b, -GW, T, F, tod);
   }
   // (lanterns strung tree to tree, sagging; their glass lit after dark)
-  for (let i = 0; i < BIGS.length - 1; i++) {
-    const a = BIGS[i], b = BIGS[i + 1], ax = a.x + a.w, bx = b.x, y0 = GG - 230 - (i % 3) * 34;
-    g.strokeStyle = T('#2A2430'); g.lineWidth = 1; g.beginPath(); g.moveTo(ax, y0); g.quadraticCurveTo((ax + bx) / 2, y0 + 30, bx, y0); g.stroke();
-    for (let k = 1; k < 8; k++) {
-      const t = k / 8, lx = ax + (bx - ax) * t, ly = y0 + 2 * t * (1 - t) * 30;
-      if (k % 2) { box(g, lx - 2, ly, 4, 5, T(INK)); box(g, lx - 1, ly + 1, 2, 3, tod.lamps > 0.3 ? '#FFD88A' : T('#E8C888')); }
-      else box(g, lx, ly + 1, 1, 1, tod.lamps > 0.3 ? BULB[(i + k) % 4] : T(BULB[(i + k) % 4]));
-    }
+  for (let i = 0; i < BIGS.length; i++) {
+    const a = BIGS[i], last = i === BIGS.length - 1, b = last ? BIGS[0] : BIGS[i + 1], bxw = last ? b.x + GW : b.x;
+    const ya = GG - 230 - (i % 3) * 34, yb = GG - 236 - ((i + 1) % 3) * 30;
+    for (const ox of last ? [0, -GW] : [0]) paintLights(g, a.x + a.w + ox, ya, bxw + ox, yb, i, T, tod);
   }
-  // (toadstools, ferns and stumps at their feet)
-  for (let x = 20; x < GW; x += 50 + Math.floor(hash(x) * 60)) {
-    const t = hash(x * 3.7);
-    if (t > 0.55) { const s = 0.6 + hash(x) * 0.8; box(g, x - 2 * s, GG - 14 - 10 * s, 4 * s, 10 * s, T('#E8DFC6')); g.fillStyle = T('#B42A2A'); g.beginPath(); g.ellipse(x, GG - 14 - 10 * s, 9 * s, 6 * s, 0, Math.PI, 0); g.fill(); box(g, x - 4 * s, GG - 19 - 10 * s, 2, 2, T('#FFF2E0')); box(g, x + 2 * s, GG - 17 - 10 * s, 2, 2, T('#FFF2E0')); }
-    else if (t > 0.3) { for (let k = -2; k <= 2; k++) poly(g, [[x, GG - 14], [x + k * 7, GG - 26 + Math.abs(k) * 3], [x + k * 5, GG - 14]], T(k % 2 ? '#3E7A3A' : '#2E6030')); }
-    else { box(g, x - 8, GG - 26, 16, 12, T('#5A4030')); box(g, x - 8, GG - 26, 16, 3, T('#A08060')); box(g, x - 4, GG - 25, 8, 1, T('#7A5A40')); }
-  }
-  box(g, 0, GG - 14, GW, 14, floorR[0]); checker(g, 0, GG - 16, GW, 2, floorR[0], 0, 2);
-  mist(g, GW, GG - 70, 60, skyAt(0.94, tod), 0.0, 0.22, 4);
+  // (the floor in front of their feet)
+  floorStuff(g, T, F, GG + 4, GH - 4, night, 2);
+  mist(g, GW, GG - 160, 110, skyAt(0.94, tod), 0.0, 0.14, 4);
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -349,8 +502,14 @@ const motes = (c: Ctx, state: GameState, hz: number) => {
 
 // ---------------------------------------------------------------------------------------------------------------
 
+/** The far off's horizon lifted off the old one (so the far forest's feet show over the forest proper's floor). */
+const LIFT = 60;
 export const drawGlenFar = (c: Ctx, state: GameState) => {
-  const tod = timeOfDay(), hz = horizonY(state), cx = state.camera.x, f = state.frame;
+  const tod = timeOfDay(), cx = state.camera.x, f = state.frame;
+  // (the forest proper's floor on the ground line for its depth (the one eye: the play's); the far off's horizon kept
+  //  over it however he climbs or drops, its far forest's feet just over that floor's far edge)
+  const eyeY = H * 0.42, base = Math.round(eyeY + (GY - state.camera.y - eyeY) * FOREST_D);
+  const hz = Math.min(horizonY(state) - LIFT, base - 16);
   drawTodSky(c, 0, 0, W, H, SKY, { horizon: hz, sun: [640, 110], moon: [150, 84], t: f, scroll: cx * 0.01 });
   tile(c, 'clouds', cx * 0.015 + f * 0.06, hz - 390, CUH, CUW, g => paintClouds(g, tod));
   tile(c, 'alps', cx * 0.03, hz - MH + 6, MH, MW, g => paintAlps(g, tod));
@@ -360,10 +519,10 @@ export const drawGlenFar = (c: Ctx, state: GameState) => {
   // (laid from the section's start: the wheel he's come from back to the left, Truelling Tragons coming in on the right
   //  as he nears its queue)
   tile(c, 'park', (cx - x0) * 0.06, hz - PG - 20, PH, PW, g => paintPark(g, tod));
-  tile(c, 'farwood', cx * 0.13, hz - FG + 20, FH, FW, g => paintFarForest(g, tod));
-  const gy = hz - GG + 70;
-  tile(c, 'wood', cx * 0.24, gy, GH, GW, g => paintForest(g, tod));
-  if (gy + GH < H) box(c, 0, gy + GH - 1, W, H, farCol(tod, 0.12)('#1A3424'));
+  tile(c, 'farwood2', cx * 0.13, hz - FG - 12, FH, FW, g => paintFarForest(g, tod));
+  const gy = base - GG;
+  tile(c, 'wood2', cx * FOREST_D, gy, GH, GW, g => paintForest(g, tod));
+  if (gy + GH < H) box(c, 0, gy + GH - 1, W, H, ff(tod)[3]);
   if (tod.lamps > 0.2) fireflies(c, state, hz, tod); else motes(c, state, hz);
   return true;
 };

@@ -51,21 +51,83 @@ export const leafy = (g: Ctx, x: number, y: number, r: number, R: string[], seed
   checker(g, x - r * 0.9, y + r * 0.42, r * 1.8, 2, R[0], 0, 1);
 };
 
-/** Bark down a trunk (x0..x0+w, y0..y1): stepped across (lit left, shaded right, dithered seams), grooves, knots. */
+/** A leaf clump in stepped masses (the SNES pass): a dark mass under it all, lumps over it (each shaded under, its body,
+ *  lit up and left), leaf flecks catching the light, gaps of shadow through it, the underside dithered off. `R` any
+ *  ramp, darkest first (four steps or more). */
+export const leafMass = (g: Ctx, x: number, y: number, r: number, R: string[], seed: number) => {
+  const t = (k: number) => R[Math.round((k * (R.length - 1)) / 4)];
+  const n = 5 + Math.floor(hash(seed) * 3), lumps: [number, number, number][] = [];
+  for (let k = 0; k < n; k++) { const a = (k / n) * Math.PI * 2 + seed * 0.7, d = 0.42 + hash(seed + k * 2.3) * 0.18; lumps.push([x + Math.cos(a) * r * d, y + Math.sin(a) * r * d * 0.62, r * (0.42 + hash(seed * 3 + k) * 0.16)]); }
+  lumps.push([x - r * 0.1, y - r * 0.22, r * 0.5]);
+  lumps.sort((a, b) => a[1] - b[1]);
+  pixelBlob(g, x, y + r * 0.1, r, r * 0.74, t(0));
+  for (const [lx, ly, lr] of lumps) pixelBlob(g, lx, ly + 2, lr, lr * 0.8, t(0));
+  for (const [lx, ly, lr] of lumps) {
+    pixelBlob(g, lx, ly, lr * 0.92, lr * 0.74, t(1));
+    pixelBlob(g, lx - lr * 0.18, ly - lr * 0.2, lr * 0.62, lr * 0.46, t(2));
+    if (lx - x + (ly - y) * 1.4 < r * 0.15) pixelBlob(g, lx - lr * 0.3, ly - lr * 0.34, lr * 0.32, lr * 0.2, t(3));
+  }
+  // (leaves: little V's in the light up top, darker ones down the shaded side)
+  const m = Math.round(r * 0.9);
+  for (let k = 0; k < m; k++) {
+    const fx = x + (hash(seed * 5 + k) - 0.5) * r * 1.6, fy = y + (hash(seed * 7 + k) - 0.55) * r * 1.1, up = fx - x + (fy - y) * 1.5 < 0;
+    box(g, fx, fy, 1, 1, up ? t(4) : t(2)); box(g, fx + 1, fy - 1, 1, 1, up ? t(3) : t(1));
+  }
+  for (let k = 0; k < 3 + Math.floor(r / 14); k++) box(g, x + (hash(seed * 11 + k) - 0.4) * r * 1.1, y + hash(seed * 13 + k) * r * 0.45, 2, 2, t(0));
+  checker(g, x - r * 0.8, y + r * 0.52, r * 1.6, 2, t(0), 0, 1);
+};
+
+/** A limb along a path (P: 0 at its root, 1 at its tip), thick at the root, tapering to the tip: inked, its bark, shade
+ *  under it, light along its top. `R` a six-step ramp. */
+export const limb = (g: Ctx, P: (t: number) => [number, number], w0: number, w1: number, R: string[], ink = INK, n = 12) => {
+  g.lineCap = 'round';
+  for (let pass = 0; pass < 4; pass++) {
+    for (let i = 0; i < n; i++) {
+      const t0 = i / n, t1 = (i + 1) / n, w = w0 + (w1 - w0) * (t0 + t1) / 2, [ax, ay] = P(t0), [bx, by] = P(t1);
+      if (pass > 1 && w < 2.5) continue;
+      const col = pass === 0 ? ink : pass === 1 ? R[2] : pass === 2 ? R[1] : R[4];
+      const lw = pass === 0 ? w + 2.5 : pass === 1 ? w : Math.max(1, w * (pass === 2 ? 0.3 : 0.26));
+      const dy = pass === 2 ? w * 0.3 : pass === 3 ? -w * 0.28 : 0;
+      g.strokeStyle = col; g.lineWidth = lw; g.beginPath(); g.moveTo(ax, ay + dy); g.lineTo(bx, by + dy); g.stroke();
+    }
+  }
+  g.lineCap = 'butt';
+};
+/** A quadratic path (for limb). */
+export const quad = (ax: number, ay: number, cx: number, cy: number, bx: number, by: number) => (t: number): [number, number] =>
+  [(1 - t) * (1 - t) * ax + 2 * (1 - t) * t * cx + t * t * bx, (1 - t) * (1 - t) * ay + 2 * (1 - t) * t * cy + t * t * by];
+/** A knot in the bark: the swelling round it shaded, its lip lit up and left, the hole dark. */
+export const knot = (g: Ctx, kx: number, ky: number, r: number, R: string[]) => {
+  const e = (dx: number, dy: number, rx: number, ry: number, col: string) => { g.fillStyle = col; g.beginPath(); g.ellipse(Math.round(kx + dx), Math.round(ky + dy), rx, ry, 0, 0, Math.PI * 2); g.fill(); };
+  e(1, 1, r + 2, r * 1.4 + 2, R[1]); e(-1, -1, r + 1, r * 1.4, R[4]); e(0, 0, r, r * 1.3, R[2]); e(0.5, 0.8, r * 0.55, r * 0.85, R[0]);
+  box(g, kx - r * 0.5, ky - r * 1.1, 2, 1, R[5]);
+};
+
+/** Bark down a trunk (x0..x0+w, y0..y1): stepped across (lit left, its core shadow, light thrown back up off the forest
+ *  floor down its right, dithered seams), grooves and the cracks across the plates, knots (birch: its black marks). */
 const bark = (g: Ctx, x: number, w: number, y0: number, y1: number, R: string[], seed: number, birch: boolean) => {
-  const h = y1 - y0;
+  const h = y1 - y0, q = (f: number) => Math.round(w * f);
   box(g, x - 1, y0, w + 2, h, INK);
-  box(g, x, y0, w, h, R[3]); box(g, x, y0, Math.round(w * 0.22), h, R[4]); box(g, x + 2, y0, 1, h, R[5]);
-  box(g, x + Math.round(w * 0.64), y0, Math.round(w * 0.36), h, R[2]); box(g, x + Math.round(w * 0.82), y0, Math.round(w * 0.18), h, R[1]); box(g, x + w - 2, y0, 2, h, R[0]);
-  checker(g, x + Math.round(w * 0.22), y0, 2, h, R[4], 0, 1); checker(g, x + Math.round(w * 0.62), y0, 2, h, R[2], 1, 1); checker(g, x + Math.round(w * 0.8), y0, 2, h, R[1], 0, 1);
+  box(g, x, y0, w, h, R[3]); box(g, x, y0, q(0.22), h, R[4]); box(g, x + 2, y0, 1, h, R[5]);
+  box(g, x + q(0.6), y0, q(0.14), h, R[2]); box(g, x + q(0.74), y0, q(0.14), h, R[1]); box(g, x + q(0.88), y0, w - q(0.88) - 1, h, R[2]); box(g, x + w - 1, y0, 1, h, R[0]);
+  checker(g, x + q(0.22), y0, 2, h, R[4], 0, 1); checker(g, x + q(0.58), y0, 2, h, R[2], 1, 1); checker(g, x + q(0.72), y0, 2, h, R[1], 0, 1); checker(g, x + q(0.86), y0, 2, h, R[2], 1, 1);
   if (birch) {
     for (let y = y0 + 4; y < y1 - 2; y += 6 + Math.floor(hash(y * 0.7 + seed) * 10)) { const bx = x + hash(y + seed) * (w - 10); box(g, bx, y, 4 + hash(y * 2) * 8, 2, R[0]); box(g, bx + 1, y + 2, 3, 1, R[1]); }
+    // (the black chevrons where twigs were, curls of bark peeling)
+    for (let k = 0; k < Math.floor(h / 120); k++) { const cy = y0 + 40 + hash(seed + k * 5) * (h - 80), cx = x + w * (0.3 + hash(seed * 3 + k) * 0.3); for (let i = 0; i < 5; i++) { box(g, cx - i * 2, cy + i, 2, 1, R[0]); box(g, cx + i * 2, cy + i, 2, 1, R[0]); } box(g, cx - 1, cy + 1, 2, 4, R[1]); }
+    for (let k = 0; k < Math.floor(h / 90); k++) { const py = y0 + 20 + hash(seed * 7 + k) * (h - 40), px = x + w * (0.1 + hash(seed + k * 9) * 0.5); box(g, px, py, 6, 2, R[5]); box(g, px + 1, py + 2, 4, 1, R[2]); }
     return;
   }
   for (let k = 0; k < Math.floor(w / 7); k++) {
     const gx = x + 4 + k * 7 + Math.round(hash(seed + k) * 2);
-    for (let y = y0; y < y1; y += 4) { const wob = Math.round(Math.sin((y + k * 13 + seed) * 0.06) * 1.5); box(g, gx + wob, y, 1, 4, k * 7 < w * 0.6 ? R[2] : R[1]); if (hash(y * 0.13 + k + seed) > 0.86) box(g, gx + wob + 1, y, 2, 2, R[k * 7 < w * 0.3 ? 5 : 4]); }
+    for (let y = y0; y < y1; y += 4) {
+      const wob = Math.round(Math.sin((y + k * 13 + seed) * 0.06) * 1.5), r = hash(y * 0.13 + k + seed);
+      box(g, gx + wob, y, 1, 4, k * 7 < w * 0.6 ? R[2] : R[1]);
+      if (r > 0.86) box(g, gx + wob + 1, y, 2, 2, R[k * 7 < w * 0.3 ? 5 : 4]);
+      else if (r < 0.05 && k * 7 + 9 < w) { box(g, gx + wob + 1, y, 5, 1, R[1]); box(g, gx + wob + 1, y + 1, 5, 1, R[k * 7 < w * 0.5 ? 4 : 2]); }
+    }
   }
+  if (h >= 200) for (let k = 0; k < 2; k++) if (hash(seed * 17 + k) > 0.35) knot(g, x + w * (0.25 + hash(seed * 19 + k) * 0.4), y0 + 30 + hash(seed * 23 + k) * (h - 60), 3 + hash(seed + k) * 3, R);
 };
 
 /** A giant tree's foot (its x the trunk's middle, the ground at 0; up to -420): the flare and the roots over the moss,
@@ -149,17 +211,30 @@ export const paintTrunk = (g: Ctx, w: number, kind: TreeKind, seed: number, R: s
   if (seed % 3 === 1) for (let y = 0; y > -300; y -= 6) { const ix = Math.sin(y * 0.05 + seed) * w * 0.3; box(g, ix - 2, y, 4, 4, L[2]); box(g, ix - 2, y, 2, 2, L[4]); }
 };
 
-/** A bough off a giant (its root on the trunk's side at 0, 0, out `s` side): a crooked limb, leaves on it. */
+/** A bough off a giant (its root on the trunk's side at 0, 0, out `s` side): a crooked limb tapering out to its tip, a
+ *  fork up off it and a twig down, each into a clump of leaves in stepped masses; a lantern hung off some. */
 export const paintBough = (g: Ctx, s: 1 | -1, len: number, R: string[], seed: number, scenery = true) => {
   const L = rampH(LEAF, scenery), ex = s * len, ey = -30 - hash(seed) * 30;
-  g.strokeStyle = INK; g.lineWidth = 16; g.beginPath(); g.moveTo(0, 20); g.quadraticCurveTo(s * len * 0.4, -10, ex, ey); g.stroke();
-  g.strokeStyle = R[2]; g.lineWidth = 13; g.stroke();
-  g.strokeStyle = R[4]; g.lineWidth = 3; g.beginPath(); g.moveTo(0, 14); g.quadraticCurveTo(s * len * 0.4, -16, ex, ey - 4); g.stroke();
-  g.strokeStyle = INK; g.lineWidth = 6; g.beginPath(); g.moveTo(s * len * 0.6, -12); g.quadraticCurveTo(s * len * 0.75, -50, s * len * 0.7, -80); g.stroke();
-  g.strokeStyle = R[3]; g.lineWidth = 4; g.stroke();
-  leafy(g, ex, ey - 10, 42, L, seed);
-  leafy(g, s * len * 0.7, -86, 30, L, seed + 2);
-  leafy(g, s * len * 0.35, -30, 24, L, seed + 4);
+  const main = quad(0, 20, s * len * 0.4, -10, ex, ey);
+  const [fx, fy] = main(0.58), [tx, ty] = main(0.3);
+  const fork = quad(fx, fy, s * len * 0.75, -50, s * len * 0.7, -80);
+  const twig = quad(tx, ty, tx + s * len * 0.12, ty + 4, tx + s * len * 0.2, ty - 14);
+  limb(g, twig, 5, 1.5, R, INK, 6);
+  limb(g, fork, 8, 2, R, INK, 8);
+  limb(g, main, 16, 3, R, INK, 12);
+  // (the bark's grooves along it, a knot where it forks)
+  for (let k = 1; k < 9; k++) { const [px, py] = main(k / 10); box(g, px - 1, py - 1, 3, 1, R[1]); }
+  knot(g, fx - s * 2, fy + 1, 2, R);
+  if (seed % 4 === 0) {
+    // (a lantern hung off it on a chain)
+    const [lx, ly] = main(0.72), G = warmGlass(), I = rampH(ramp6('#36344E'), scenery);
+    for (let y = ly + 4; y < ly + 26; y += 3) box(g, lx, y, 1, 2, I[3]);
+    polyF(g, [[lx - 6, ly + 27], [lx + 7, ly + 27], [lx + 4, ly + 23], [lx - 3, ly + 23]], I[2]);
+    box(g, lx - 6, ly + 27, 13, 15, INK); for (let i = 0; i < 3; i++) box(g, lx - 5, ly + 28 + i * 4, 11, 4, G[5 - i]); box(g, lx, ly + 28, 1, 13, I[3]); box(g, lx - 7, ly + 41, 15, 3, I[2]);
+  }
+  leafMass(g, tx + s * len * 0.2, ty - 22, 22, L, seed + 4);
+  leafMass(g, s * len * 0.7, -90, 30, L, seed + 2);
+  leafMass(g, ex, ey - 12, 42, L, seed);
 };
 
 /** A round-crowned tree at the meadow's edge (its foot at 0): a short trunk, a big crown, blossom on some. */
