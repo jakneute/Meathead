@@ -282,7 +282,9 @@ const shock = (c: Ctx, pt: Show, vx: number, vy: number, u: number) => {
 
 /** Him (from behind, or the front), painted at 3x his picture's pixels on a canvas of his own (then drawn down to his
  * size here, smoothly: no crawl as the camera moves), and the same again solid in the portal's color (its light on him). */
-const HI = 3, ME_W = 150, ME_H = 206, ME_FOOT = 12;
+// (the picture's room round him: wide and tall enough for the biggest weapon held up or swung out (the mallet's head
+// was cut off): ME_H is his own height's room, PAD_TOP more over it)
+const HI = 3, ME_W = 260, ME_H = 206, ME_FOOT = 12, PAD_TOP = 80;
 let fig: HTMLCanvasElement | null = null, tint: HTMLCanvasElement | null = null;
 const pose: BackPose = { step: 0, t: 0, nude: false, shat: false, rim: '#FFFFFF', weapon: null };
 let held: import('../../m1/types').WeaponType = 'GUN';
@@ -292,8 +294,8 @@ const NO_GRIP: [[number, number], [number, number]] = [[0, 0], [0, 0]];
 const walking = { weapon: holdWeapon as ((c: Ctx, t: number) => void) | null };
 
 const paintFigure = (state: GameState, pt: Show, step: number, col: string, front = false) => {
-  if (!fig) { fig = document.createElement('canvas'); fig.width = ME_W * HI; fig.height = ME_H * HI; }
-  if (!tint) { tint = document.createElement('canvas'); tint.width = ME_W * HI; tint.height = ME_H * HI; }
+  if (!fig) { fig = document.createElement('canvas'); fig.width = ME_W * HI; fig.height = (ME_H + PAD_TOP) * HI; }
+  if (!tint) { tint = document.createElement('canvas'); tint.width = ME_W * HI; tint.height = (ME_H + PAD_TOP) * HI; }
   const g = fig.getContext('2d')!;
   g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, fig.width, fig.height);
   g.setTransform(HI, 0, 0, HI, 0, 0);
@@ -301,11 +303,11 @@ const paintFigure = (state: GameState, pt: Show, step: number, col: string, fron
   held = state.player.currentWeapon ?? 'GUN';
   if (!front) {
     pose.step = step; pose.t = pt.t; pose.nude = nude; pose.shat = shat; pose.rim = rim; pose.weapon = holdWeapon;
-    drawMeatheadBack(g, ME_W / 2, ME_H - ME_FOOT, pose);
+    drawMeatheadBack(g, ME_W / 2, PAD_TOP + ME_H - ME_FOOT, pose);
   } else {
     // (from the front, walking out at us: the walk-away's him, his arms swinging, his weapon down by his left side)
     fpose.step = step; fpose.t = pt.t; fpose.nude = nude; fpose.shat = shat; fpose.rim = rim;
-    drawMeatheadFront(g, ME_W / 2, ME_H - ME_FOOT, fpose, NO_GRIP, holdWeapon, walking);
+    drawMeatheadFront(g, ME_W / 2, PAD_TOP + ME_H - ME_FOOT, fpose, NO_GRIP, holdWeapon, walking);
   }
   const h = tint.getContext('2d')!;
   h.globalCompositeOperation = 'source-over'; h.clearRect(0, 0, tint.width, tint.height); h.drawImage(fig, 0, 0);
@@ -316,11 +318,11 @@ const paintFigure = (state: GameState, pt: Show, step: number, col: string, fron
 /** The figure (or its tinted twin) with its feet at (x, y), `s` world px a picture px, squeezed across (sx) and drawn
  * out long (sy), turned about his feet. */
 const blit = (c: Ctx, img: HTMLCanvasElement, x: number, y: number, s: number, sx = 1, sy = 1, rot = 0) => {
-  const w = ME_W * s * sx, h = ME_H * s * sy;
+  const w = ME_W * s * sx, h = (ME_H + PAD_TOP) * s * sy;
   c.save();
   c.imageSmoothingEnabled = true;
   c.translate(x, y); c.rotate(rot);
-  c.drawImage(img, -w / 2, -(ME_H - ME_FOOT) * s * sy, w, h);
+  c.drawImage(img, -w / 2, -(PAD_TOP + ME_H - ME_FOOT) * s * sy, w, h);
   c.restore();
 };
 
