@@ -329,6 +329,34 @@ const lavaTop = (c: Ctx, proj: Proj, a: number, b: number, f: number, seed: numb
     bubble(c, proj, a + 10 + hash(k * 9.1 + seed + cyc * 3.3) * (w - 20), 0.08 + hash(k * 2.9 + seed + cyc * 1.7) * 0.85, u);
   }
 };
+/** How far a crusted river spilled past its bank before it set (world px), at q along it (toward us from the curb;
+ *  going back, negative): a wobble, and now and then a lobe. Stable in the world. */
+const spill = (q: number, seed: number) => 3 + 6 * wob01(q, seed) + 12 * Math.max(0, wob(q * 0.45, seed + 5)) ** 2;
+/** A crusted river's ground (spent), between ragged edges: the pavement heat-darkened round it (dithered out, then a
+ *  darker step), the basalt (its bands painted by `body`, clipped to it), its edges crusted (a dark rim, a raised ridge
+ *  lit just inside it, ropy ticks across). `pt` puts (world x, q) on screen; `qs` runs from the curb out; `k` puts q in
+ *  px for the wobble. Returns the screen x's of its two ends at the curb. */
+const crustOver = (c: Ctx, l: typeof LAVA[number], pt: (x: number, q: number) => [number, number], qs: number[], k: number, body: () => void): [number, number] => {
+  const sa = l.a * 0.0137, sb = l.b * 0.0173 + 3;
+  const side = (extra: number) => ({ L: qs.map(q => pt(X(l.a) - spill(q * k, sa) - extra, q)), R: qs.map(q => pt(X(l.b) + spill(q * k, sb) + extra, q)) });
+  const shape = (extra: number) => { const { L, R } = side(extra); return [...L, ...[...R].reverse()]; };
+  const fillS = (pts: [number, number][], style: string | CanvasPattern) => { c.fillStyle = style; c.beginPath(); pts.forEach(([x, y], i) => (i ? c.lineTo(x, y) : c.moveTo(x, y))); c.closePath(); c.fill(); };
+  fillS(shape(13), checkerFill(c, 'rgba(26, 18, 16, 0.55)', 0));
+  fillS(shape(6), 'rgba(22, 14, 12, 0.42)');
+  const outer = shape(0);
+  fillS(outer, BASALT[2]);
+  c.save(); c.beginPath(); outer.forEach(([x, y], i) => (i ? c.lineTo(x, y) : c.moveTo(x, y))); c.closePath(); c.clip(); body(); c.restore();
+  const stroke = (pts: [number, number][], w: number, col: string) => { c.strokeStyle = col; c.lineWidth = w; c.lineJoin = 'miter'; c.beginPath(); pts.forEach(([x, y], i) => (i ? c.lineTo(x, y) : c.moveTo(x, y))); c.stroke(); };
+  const o = side(0), r = side(-3), m = side(-1.5);
+  stroke(o.L, 2, BASALT[0]); stroke(o.R, 2, BASALT[0]);
+  stroke(m.L, 2, BASALT[3]); stroke(m.R, 2, BASALT[3]);
+  stroke(r.L, 1, BASALT[5]); stroke(r.R, 1, BASALT[5]);
+  // (ropy ticks across the crusted edge)
+  c.strokeStyle = BASALT[1]; c.lineWidth = 1; c.beginPath();
+  for (let i = 1; i < qs.length; i++) for (const [P, Q] of [[o.L, r.L], [o.R, r.R]] as const) { c.moveTo(P[i][0], P[i][1]); c.lineTo(Q[i][0] + (Q[i][0] - P[i][0]) * 0.6, Q[i][1] - 1); }
+  c.stroke();
+  return [Math.round(o.L[0][0]), Math.round(o.R[0][0])];
+};
 /** A glowing crack in the cooled crust (spent): stepped, dark red round a dim orange core, slowly breathing. */
 const coldCrack = (c: Ctx, pts: [number, number][], br: number) => {
   for (const [w, col] of [[3, 'rgba(70, 14, 6, 0.55)'], [1, `rgba(226, 104, 36, ${(0.22 + 0.2 * br).toFixed(3)})`]] as const) {
@@ -341,6 +369,27 @@ export const lavaBack = (c: Ctx, v: View, l: typeof LAVA[number], done: boolean,
   const a = X(l.a), b = X(l.b), ya = Y(l.hl), yb = Y(l.hr);
   if (b < v.v0 - 200 || a > v.v1 + 200) return;
   const eye = v.eye, lo = Math.min(l.hl, l.hr), surf = Y(lo) + LAVA_DOWN;
+  if (done && l.hl === 0 && l.hr === 0) {
+    // (crusted over: black basalt flush with the street going back, its edges ragged where it spilled and set over the
+    // pavement, crusted along them, the pavement heat-darkened round it; its plates' seams, a few cracks faintly glowing)
+    const yc = Y(0), qs: number[] = [];
+    for (let i = 0; i <= 10; i++) qs.push(-((1 - D - 0.012) * i) / 10);
+    const pt = (x: number, q: number): [number, number] => at(eye, x, yc, 1 + q);
+    crustOver(c, l, pt, qs, 600, () => {
+      for (let i = 0; i < 4; i++) { const p = 1 - ((1 - D) * i) / 4, q = 1 - ((1 - D) * (i + 1)) / 4; levelQ(c, eye, a - 40, b + 40, yc, p, q, [BASALT[3], BASALT[2], BASALT[2], BASALT[1]][i]); }
+      c.strokeStyle = BASALT[0]; c.lineWidth = 1; c.beginPath();
+      for (let x = a + 20; x < b - 14; x += 38) { const [p0, q0] = at(eye, x, yc, 0.995), [p1, q1] = at(eye, x + 8 + hash(x) * 10, yc, D + 0.01); c.moveTo(p0, q0); c.lineTo(p1, q1); }
+      for (const d of [0.975, 0.945, 0.915]) if (d > D) { const [p0, q0] = at(eye, a - 10, yc, d), [p1, q1] = at(eye, b + 10, yc, d - 0.004); c.moveTo(p0, q0); c.lineTo(p1, q1); }
+      c.stroke();
+    });
+    const br = 0.5 + 0.5 * Math.sin(f * 0.025 + l.a), n = Math.max(2, Math.round((b - a) / 140));
+    for (let k = 0; k < n; k++) {
+      const x0c = a + ((k + 0.5) * (b - a)) / n + (hash(k * 3.1 + l.a) - 0.5) * 20, pts: [number, number][] = [];
+      for (let j = 0; j <= 5; j++) pts.push(at(eye, x0c + (hash(k * 7 + j + l.a) - 0.5) * 22, yc, 0.995 - (j * (0.995 - D - 0.015)) / 5));
+      coldCrack(c, pts, br);
+    }
+    return;
+  }
   if (done) {
     // (crusted over: black basalt flush with the banks going back, its plates' seams, a few cracks still faintly glowing)
     const yc = Y((l.hl + l.hr) / 2);
@@ -425,20 +474,27 @@ export const lavaNear = (c: Ctx, v: View, l: typeof LAVA[number], done: boolean,
   const N = 10, A: [number, number][] = [], B: [number, number][] = [], Af: [number, number][] = [], Bf: [number, number][] = [];
   for (let i = 0; i <= N; i++) { const y = GY + ((Y1 - GY) * i) / N; A.push([edge(a, y), y]); B.push([edge(b, y), y]); Af.push([edge(a, y), y]); Bf.push([edge(b, y), y]); }
   if (done) {
-    // (crusted: basalt banded toward us, its plates' seams, a few cracks still faintly glowing)
-    const cols = [BASALT[3], BASALT[2], BASALT[2], BASALT[1], BASALT[1]];
-    for (let i = 0; i < N; i++) poly(c, [Af[i], Bf[i], Bf[i + 1], Af[i + 1]], cols[i % cols.length]);
-    c.strokeStyle = BASALT[0]; c.lineWidth = 1; c.beginPath();
-    for (let x = a + 16; x < b - 10; x += 34) { c.moveTo(edge(x, GY + 6), GY + 6); c.lineTo(edge(x + 6 + hash(x) * 8, GY + 70), GY + 70); }
-    for (const y of [GY + 30, GY + 74, GY + 130]) { c.moveTo(edge(a + 4, y), y); c.lineTo(edge(b - 4, y + 3), y + 3); }
-    c.stroke();
+    // (crusted: basalt banded toward us between ragged, crusted edges where it spilled and set over the street, the
+    // street heat-darkened round it; its plates' seams, a few cracks still faintly glowing; a lit lip along its top)
+    const qs: number[] = [];
+    for (let i = 0; i <= 16; i++) qs.push(((Y1 - GY) * i) / 16);
+    const pt = (x: number, q: number): [number, number] => [edge(x, GY + q), GY + q];
+    const ends = crustOver(c, l, pt, qs, 1, () => {
+      const cols = [BASALT[3], BASALT[2], BASALT[2], BASALT[1], BASALT[1]];
+      for (let i = 0; i < N; i++) { const y0 = Af[i][1], y1 = Af[i + 1][1]; poly(c, [[edge(a - 40, y0), y0], [edge(b + 40, y0), y0], [edge(b + 40, y1), y1], [edge(a - 40, y1), y1]], cols[i % cols.length]); }
+      c.strokeStyle = BASALT[0]; c.lineWidth = 1; c.beginPath();
+      for (let x = a + 16; x < b - 10; x += 34) { c.moveTo(edge(x, GY + 6), GY + 6); c.lineTo(edge(x + 6 + hash(x) * 8, GY + 70), GY + 70); }
+      for (const y of [GY + 30, GY + 74, GY + 130]) { c.moveTo(edge(a - 10, y), y); c.lineTo(edge(b + 10, y + 3), y + 3); }
+      c.stroke();
+    });
     const br = 0.5 + 0.5 * Math.sin(f * 0.025 + l.b), n = Math.max(2, Math.round((b - a) / 140));
     for (let k = 0; k < n; k++) {
       const x0c = a + ((k + 0.5) * (b - a)) / n + (hash(k * 4.3 + l.b) - 0.5) * 20, pts: [number, number][] = [];
       for (let j = 0; j <= 5; j++) { const y = GY + 6 + j * 24; pts.push([edge(x0c + (hash(k * 9 + j + l.b) - 0.5) * 22, y), y]); }
       coldCrack(c, pts, br);
     }
-    box(c, a, GY - 1, b - a, 1, INK); box(c, a, GY, b - a, 3, LIP[2]); box(c, a, GY, b - a, 1, LIP[3]);
+    const [la, lb] = ends;
+    box(c, la, GY - 1, lb - la, 1, INK); box(c, la, GY, lb - la, 3, LIP[2]); box(c, la, GY, lb - la, 1, LIP[3]);
     return;
   }
   // (the lava between them: banded toward us, the bands carried on toward us, dithered where they meet; on it the flow,

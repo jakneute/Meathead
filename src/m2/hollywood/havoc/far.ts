@@ -4,7 +4,8 @@
 // is; under the real disasters' sky (the lot's: gone red with ash). The HAPPYWOOD hill far off burning (the quake's
 // fissure across it glowing, brush fires raging across its slopes, smoke going up off them, the letters on fire) till he's up
 // on it (it sinks away behind the city as he climbs); the city burning (the lot's smoke); the backlot's soundstages
-// burning (scorched, their roofs holed, fire along them, smoke columns leaning off). The storm's clouds rolling over in
+// wrecked (farWreck.ts: roofs holed, a corner fallen in, a wall caved, doors and windows blown, soot, rubble; fire along
+// them, smoke columns leaning off, smoldering spots). The storm's clouds rolling over in
 // two banks, dark, lit red from under, painted once for the hour and slid along. The weather: ash all over; snow on the
 // hill and after; the blizzard down the hill (banded whiteout, driving snow); lightning now and then (a stepped bolt with
 // its glow, the sky lit in bands). Spent (the revisit): a gray ash sky, the fires out, the smoke thin, a little ash.
@@ -14,7 +15,8 @@ import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { drawTodSky, type TimeOfDay } from '../../timeOfDay';
 import { mist } from '../../adventure/farArt';
 import { FAR, tile, farCol, paintMountains, paintFoothills, drawHill, paintCity, paintLot, paintPalms, HILL, hillY } from '../blvd/far';
-import { paintStages, smoke, stageRoofs, STAGES, roadUnder } from '../lot/far';
+import { smoke, STAGES, roadUnder } from '../lot/far';
+import { paintWrecked, wreckFires } from './farWreck';
 import { HWX, GY } from '../geometry';
 import { type Ctx, INK, box, checker, mix, hash, hazeBands as hazeBandsOf, bandedGradient as bandedOf, pixelBlob, steppedGlow, timeOfDay, skyAt } from '../blvd/kit';
 import { FIRE } from '../disaster/paint';
@@ -59,57 +61,9 @@ const paintClouds = (g: Ctx, tod: TimeOfDay, ash: boolean, seed: number) => {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
-// The backlot's soundstages, burning (the lot's tile, scorched)
+// The backlot's soundstages, wrecked (farWreck.ts: the damage follows each building; the fires and smolder live)
 
 const { SW, SH, SG } = STAGES;
-const ROOFS = stageRoofs();
-const burning = (i: number) => hash(i * 5.5 + 2) > 0.3;
-const paintBurnt = (g: Ctx, tod: TimeOfDay, done: boolean) => {
-  paintStages(g, tod);
-  const T = farCol(tod, 0.1), f = SH - SG, soot = T('#140C0A'), soot2 = T('#2A1C18');
-  for (const s of ROOFS) {
-    const { x, w, h } = s;
-    // (soot up the walls from the doors and windows: stepped plumes, dithered at their edges)
-    for (let k = 0; k < 4; k++) {
-      const sx = x + w * (0.2 + k * 0.2), base = f - 12 - hash(s.i * 3 + k) * (h - 50), ph = 30 + hash(s.i + k * 7) * 50;
-      for (let r = 0; r < ph; r += 4) { const hw = 6 + r * 0.35; box(g, sx - hw, base - r, hw * 2, 4, r < ph * 0.6 ? soot2 : soot); }
-      checker(g, sx - 20, base - ph - 6, 40, 8, soot2, 0, 2);
-    }
-    // (the roof holed where it's burnt through: jagged, dark, its rafters showing)
-    if (burning(s.i) || done) {
-      const hx = x + w * (0.3 + hash(s.i * 9) * 0.3), hw2 = 30 + hash(s.i * 4) * 30;
-      const roofY = (px: number) => f - h - 24 * (1 - Math.abs(px - (x + w / 2)) / (w / 2));
-      g.fillStyle = soot; g.beginPath(); g.moveTo(hx, roofY(hx) + 1);
-      for (let k = 0; k <= 6; k++) { const px = hx + (hw2 * k) / 6; g.lineTo(px, roofY(px) + 2 + (k % 2 ? 7 : 2) + hash(k + s.i) * 4); }
-      g.lineTo(hx + hw2, roofY(hx + hw2) + 1); g.closePath(); g.fill();
-      for (let k = 6; k < hw2; k += 9) box(g, hx + k, roofY(hx + k) - 1, 2, 9, T('#3A2A22'));
-    }
-    // (the windows blown out: dark)
-    for (let k = 0; k < 4; k++) if (hash(s.i * 7 + k) > 0.4) box(g, x + w * 0.46 + k * 16, f - h + 10, 8, 6, soot);
-  }
-  void INK;
-};
-
-/** Where each burning roof is (screen), for the fires and smoke live over the tile. */
-const stageFires = (c: Ctx, off: number, top: number, f: number, done: boolean) => {
-  const base = -((((off) % SW) + SW) % SW);
-  for (let tx = base; tx < W; tx += SW) for (const s of ROOFS) {
-    if (!burning(s.i)) continue;
-    const x0 = tx + s.x, eave = top + SH - SG - s.h;
-    if (x0 + s.w < -60 || x0 > W + 60) continue;
-    const roofY = (px: number) => eave - 24 * (1 - Math.abs(px - (x0 + s.w / 2)) / (s.w / 2));
-    if (done) { smokeWisp(c, x0 + s.w * 0.45, roofY(x0 + s.w * 0.45), f, s.i); continue; }
-    // (smoke going up off it, leaning off with the wind; the fire along the roof)
-    smoke(c, x0 + s.w * 0.5, roofY(x0 + s.w * 0.5) - 6, f, s.i + 3);
-    const n = 3 + (s.i % 3);
-    for (let j = 0; j < n; j++) {
-      const px = x0 + s.w * (0.18 + (j / n) * 0.66) + (hash(s.i * 3 + j) - 0.5) * 20;
-      flame(c, px, roofY(px) + 2, 12 + hash(s.i + j) * 10, 16 + hash(j * 2 + s.i) * 18, f, s.i * 11 + j);
-    }
-    // (out of a window or the elephant door)
-    flame(c, x0 + s.w * 0.58, eave + 16, 10, 14, f, s.i + 40);
-  }
-};
 const smokeWisp = (c: Ctx, x: number, y: number, f: number, seed: number) => {
   for (let k = 0; k < 4; k++) { const t = ((f * 0.3 + k * 50 + seed * 31) % 200) / 200, r = 3 + t * 12; c.fillStyle = `rgba(90, 86, 84, ${(0.28 * (1 - t)).toFixed(2)})`; c.fillRect(Math.round(x - r + t * 30), Math.round(y - t * 120), Math.round(r * 2), Math.round(r)); }
 };
@@ -264,8 +218,8 @@ export const drawHavocFar = (c: Ctx, state: GameState) => {
   under(groundAt(K.palms) + FAR.PG + drop(K.palms), 0.12, '#6E6668');
   // (the backlot's soundstages nearest: scorched, holed, burning)
   const sTop = groundAt(K.stages) - (SH - SG) + drop(K.stages), sOff = cam * K.stages + 300;
-  tile(c, `hh-stages-${tod.key}-${done ? 1 : 0}`, sOff, sTop, SH, SW, g => paintBurnt(g, tod, done));
-  stageFires(c, sOff, sTop, f, done);
+  tile(c, `hh-wreck-${tod.key}-${done ? 1 : 0}`, sOff, sTop, SH, SW, g => paintWrecked(g, tod, done));
+  wreckFires(c, sOff, sTop, f, done);
   roadUnder(c, tod, sOff, groundAt(K.stages) + SG + drop(K.stages), true);
   mist(c, W, Math.round(groundAt(K.stages) + drop(K.stages) - 40), 40, skyAt(0.9, tod), 0, 0.1, 3);
   // (the whole far off reddened, in bands, heavier up top; spent, grayed)
