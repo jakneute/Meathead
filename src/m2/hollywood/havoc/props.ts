@@ -52,7 +52,8 @@ const paintPAStub = (g: Ctx) => {
 /** The way on (the revisit): STUNTMAN STEVE'S STUPENDOUS STUNTERY > on two posts, in his yellow. */
 const paintStunterySign = (g: Ctx) => {
   const S = STEEL.map(c => hour(c));
-  for (const px of [-80, 80]) post(g, px, -120, 0, 6, S);
+  // (the posts run up behind the board to its top: it's bolted on, not floating over them)
+  for (const px of [-80, 80]) post(g, px, -172, 0, 6, S);
   board(g, 0, -150, ["STUNTMAN STEVE'S", 'STUPENDOUS STUNTERY >'], gate({ sx: 1, sy: 2 }, '#18181B', STEVE[3]), STEVE[3], STEVE, 7);
 };
 
