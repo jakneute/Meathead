@@ -319,6 +319,16 @@ const drawSuitorLive = (c: Ctx, x: number, feetY: number, facing: 1 | -1, ph: Ph
   const walking = pose === 'walk', wph = walking ? (walkFrame(opts.stride ?? 0) / WALK_FRAMES) * Math.PI * 2 : 0;
   const wb = walking ? Math.round(Math.abs(Math.sin(wph)) * 2) : 0;
   const hipY = -40 + wb, shY = -72 + bob + wb, gut = L.gut;
+  // THE CAPE (behind his torso, down his back, and behind his legs: the user's "the caped guy's cape is in front of his
+  // leg, not behind it"): put down before the legs, unless he's slumped (then it tips with his top half, below)
+  const cape = () => { c.fillStyle = INK; c.beginPath(); c.moveTo(-18, shY); c.lineTo(-30, -10); c.lineTo(-4, -16); c.lineTo(8, shY); c.closePath(); c.fill(); c.fillStyle = L.main; c.beginPath(); c.moveTo(-17, shY + 1); c.lineTo(-28, -12); c.lineTo(-5, -17); c.lineTo(6, shY + 1); c.closePath(); c.fill();
+    // (its folds: shaded troughs, lit crests, the lining's edge in gold, its hem scalloped by the folds)
+    c.strokeStyle = shadeOf(L.main, 0.35); c.lineWidth = 2; c.beginPath(); c.moveTo(-12, shY + 4); c.lineTo(-20, -14); c.moveTo(-4, shY + 4); c.lineTo(-11, -16); c.moveTo(-17, shY + 6); c.lineTo(-26, -13); c.stroke();
+    c.strokeStyle = liteOf(L.main, 0.25); c.lineWidth = 1; c.beginPath(); c.moveTo(-15, shY + 4); c.lineTo(-24, -13); c.moveTo(-7, shY + 5); c.lineTo(-15, -15); c.stroke();
+    c.strokeStyle = shadeOf(L.main, 0.5); c.beginPath(); c.moveTo(0, shY + 3); c.lineTo(-6, -16); c.stroke();
+    c.strokeStyle = L.trim; c.beginPath(); c.moveTo(-28, -12); c.lineTo(-5, -17); c.stroke();
+    c.strokeStyle = liteOf(L.trim, 0.5); c.beginPath(); c.moveTo(-27, -12.5); c.lineTo(-18, -14.5); c.stroke(); };
+  if (L.kit === 'cape' && !sp) cape();
   // LEGS: thick, the trunks or trousers (a muscle tee's cargo shorts: skin from the knee down)
   const legCol = L.kit === 'cape' ? sb : L.kit === 'viking' ? '#5A4A3A' : L.kit === 'tee' ? '#3A4A6A' : L.kit === 'knight' ? '#8A8A94' : L.kit === 'wizard' ? L.main : '#2A2A34';
   const legBare = L.kit === 'cape';
@@ -441,14 +451,7 @@ const drawSuitorLive = (c: Ctx, x: number, feetY: number, facing: 1 | -1, ph: Ph
     armCuff([-16, shY + 6], fe, farHand, true);
     fist(c, farHand[0], farHand[1], 5, sd);
   }
-  // THE CAPE (behind his torso, down his back)
-  if (L.kit === 'cape') { c.fillStyle = INK; c.beginPath(); c.moveTo(-18, shY); c.lineTo(-30, -10); c.lineTo(-4, -16); c.lineTo(8, shY); c.closePath(); c.fill(); c.fillStyle = L.main; c.beginPath(); c.moveTo(-17, shY + 1); c.lineTo(-28, -12); c.lineTo(-5, -17); c.lineTo(6, shY + 1); c.closePath(); c.fill();
-    // (its folds: shaded troughs, lit crests, the lining's edge in gold, its hem scalloped by the folds)
-    c.strokeStyle = shadeOf(L.main, 0.35); c.lineWidth = 2; c.beginPath(); c.moveTo(-12, shY + 4); c.lineTo(-20, -14); c.moveTo(-4, shY + 4); c.lineTo(-11, -16); c.moveTo(-17, shY + 6); c.lineTo(-26, -13); c.stroke();
-    c.strokeStyle = liteOf(L.main, 0.25); c.lineWidth = 1; c.beginPath(); c.moveTo(-15, shY + 4); c.lineTo(-24, -13); c.moveTo(-7, shY + 5); c.lineTo(-15, -15); c.stroke();
-    c.strokeStyle = shadeOf(L.main, 0.5); c.beginPath(); c.moveTo(0, shY + 3); c.lineTo(-6, -16); c.stroke();
-    c.strokeStyle = L.trim; c.beginPath(); c.moveTo(-28, -12); c.lineTo(-5, -17); c.stroke();
-    c.strokeStyle = liteOf(L.trim, 0.5); c.beginPath(); c.moveTo(-27, -12.5); c.lineTo(-18, -14.5); c.stroke(); }
+  if (L.kit === 'cape' && sp) cape();
   // THE TORSO: a V of shoulders, pecs, abs (or the gut)
   const torso = () => { c.beginPath(); c.moveTo(-24, shY + 6); c.quadraticCurveTo(-24, shY, -18, shY); c.lineTo(18, shY); c.quadraticCurveTo(24, shY, 24, shY + 6); c.quadraticCurveTo(20 + gut * 8, (shY + hipY) / 2 + 4, 13 + gut * 4, hipY); c.lineTo(-13 - gut * 2, hipY); c.quadraticCurveTo(-20, (shY + hipY) / 2, -24, shY + 6); c.closePath(); };
   c.fillStyle = INK; c.beginPath(); c.moveTo(-25, shY + 6); c.quadraticCurveTo(-25, shY - 1, -18, shY - 1); c.lineTo(18, shY - 1); c.quadraticCurveTo(25, shY - 1, 25, shY + 6); c.quadraticCurveTo(21 + gut * 8, (shY + hipY) / 2 + 4, 14 + gut * 4, hipY + 1); c.lineTo(-14 - gut * 2, hipY + 1); c.quadraticCurveTo(-21, (shY + hipY) / 2, -25, shY + 6); c.closePath(); c.fill();
