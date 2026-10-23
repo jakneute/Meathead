@@ -20,10 +20,14 @@ const BACK = 0.84, NEAR = 1.3;
 const MURK = '#160605';
 const far = (c: string, k = 0.45) => mix(c, MURK, k);
 
-/** The one eye everything's seen from. */
-const eyeOf = (state: GameState) => ({ x: state.camera.x + CANVAS_WIDTH / 2, y: state.camera.y + CANVAS_HEIGHT * 0.42 });
-/** Where world x at depth d lands on the screen (screen space). */
-const screenX = (state: GameState, x: number, d: number) => { const e = eyeOf(state); return e.x + (x - e.x) * d - state.camera.x; };
+/** What of the world's on the screen (a zoom's view as drawn: Satan's pull-back, the ride up the geyser). */
+const viewOf = (state: GameState) => state.view ?? { x: state.camera.x, y: state.camera.y, w: CANVAS_WIDTH, h: CANVAS_HEIGHT };
+/** The one eye everything's seen from (the view's, not the camera's: zoomed, the camera's not what's on the screen, and
+ *  up the geyser the gates went up with it instead of going by). */
+const eyeOf = (state: GameState) => { const v = viewOf(state); return { x: v.x + v.w / 2, y: v.y + v.h * 0.42 }; };
+/** Where world (x, y) at depth d lands on the screen (screen space). */
+const screenX = (state: GameState, x: number, d: number) => { const e = eyeOf(state), v = viewOf(state); return (e.x + (x - e.x) * d - v.x) * CANVAS_WIDTH / v.w; };
+const screenY = (state: GameState, y: number, d: number) => { const e = eyeOf(state), v = viewOf(state); return (e.y + (y - e.y) * d - v.y) * CANVAS_HEIGHT / v.h; };
 
 /** The far gate (local: its middle at 0, its foot at 0): two great basalt piers, an arch over, the skull keystone,
  *  the plaque under it; dim. */
@@ -97,7 +101,7 @@ export const drawGatesBack = (c: Ctx, state: GameState) => {
   const e = eyeOf(state);
   GATES.forEach(([x, words], i) => {
     const sx = screenX(state, x, BACK);
-    if (sx < -400 || sx > CANVAS_WIDTH + 400) return;
+    if (sx < -400 || sx > CANVAS_WIDTH + 400 || screenY(state, GY - 720, BACK) > CANVAS_HEIGHT || screenY(state, GY + 4, BACK) < 0) return;
     c.save(); c.translate(e.x, e.y); c.scale(BACK, BACK); c.translate(Math.round(x - e.x), Math.round(GY - e.y));
     stamp(c, `hell-gate-back-${i}`, -200, -720, 400, 724, g => paintBackGate(g, words));
     c.restore();
@@ -109,7 +113,7 @@ export const drawGatesFront = (c: Ctx, state: GameState) => {
   const e = eyeOf(state);
   GATES.forEach(([x], i) => {
     const sx = screenX(state, x, NEAR);
-    if (sx < -260 || sx > CANVAS_WIDTH + 260) return;
+    if (sx < -260 || sx > CANVAS_WIDTH + 260 || screenY(state, GY - 704, NEAR) > CANVAS_HEIGHT || screenY(state, GY + 176, NEAR) < 0) return;
     c.save(); c.translate(e.x, e.y); c.scale(NEAR, NEAR); c.translate(Math.round(x - e.x), 0 - e.y);
     stamp(c, `hell-gate-jaws-${i}`, -130, GY - 704, 260, 880, g => paintJaws(g, i * 13));
     c.restore();

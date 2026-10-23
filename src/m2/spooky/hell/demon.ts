@@ -1198,7 +1198,8 @@ const WALL_FIRE = [LAVA[1], LAVA[2], LAVA[3], LAVA[4], LAVA[5], LAVA[6], LAVA[7]
 export const drawFireWall = (c: Ctx, state: GameState) => {
   const d = demonOf(state), f = state.frame;
   if (!d) return;
-  const top = Math.floor((state.camera.y - 40) / 6) * 6;
+  // (from over the top of what's on the screen: zoomed out, that's higher than the camera)
+  const top = Math.floor(((state.view?.y ?? state.camera.y) - 40) / 6) * 6;
   for (const w of [d.back, d.lock]) {
     if (!w || w.x < -1e6) continue;
     const x = w.x + w.w / 2;

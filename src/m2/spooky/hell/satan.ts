@@ -140,12 +140,23 @@ export const runFinale = (ctx: FrameContext): Controls | null => {
   return hands();
 };
 
-/** The camera pulled back to take Satan in (eased), from his rise to the end. */
+/** Up the geyser: how far behind him the view's middle rides (world rows), and how long (frames) the pull-back takes
+ *  to ease back in to the normal camera. */
+const LAUNCH_LEAD = 100, LAUNCH_IN = 50;
+
+/** The camera pulled back to take Satan in (eased), from his rise to the end. Up the geyser it lets go of Satan and
+ *  rides up with him, easing back in as it goes (the user's: "when meathead gets launched by satan back to earth,
+ *  several scene elements don't scroll enough to sell the idea you're moving up fast. the gates around the sub boss
+ *  mainly": held on Satan, the whole world stood still while only the backdrop went by). */
 export const finaleZoom = (state: GameState) => {
-  const fin = hellOf(state).fin;
+  const fin = hellOf(state).fin, p = state.player;
   if (!fin?.full || fin.rise <= 0) return null;
-  const u = Math.min(1, fin.rise * 1.6), k = u * u * (3 - 2 * u);
-  const x = SATAN_X, y = GY - 330;
+  const u = Math.min(1, fin.rise * 1.6);
+  // (frames he's been going up: the pull-back eased off over them, and the view's middle kept under him)
+  const up = fin.step === 'launch' ? fin.t : fin.step === 'fade' ? 56 + fin.t : 0;
+  const b = Math.min(1, up / LAUNCH_IN), k = u * u * (3 - 2 * u) * (1 - b * b * (3 - 2 * b));
+  const x = SATAN_X, y = up > 0 ? Math.min(GY - 330, p.pos.y + p.height / 2 + LAUNCH_LEAD) : GY - 330;
+  if (k <= 0) return null;
   return { scale: 1 - 0.38 * k, x, y, shiftX: k * (state.camera.x + CANVAS_WIDTH / 2 - x), shiftY: k * (state.camera.y + CANVAS_HEIGHT / 2 - y) };
 };
 
@@ -193,10 +204,13 @@ export const drawGeyser = (c: Ctx, state: GameState) => {
     }
   }
   if (fin && (fin.step === 'launch' || fin.step === 'fade') && fin.geyser > 0) {
-    const top = Math.floor((state.camera.y - 400) / 6) * 6, w = 70, gx = Math.round(fin.gx);
+    // (from over the top of what's on the screen (zoomed out or not) down to the floor, or the bottom of the screen
+    // once the floor's gone by under him: no more of it than shows)
+    const v = state.view ?? { x: state.camera.x, y: state.camera.y, w: CANVAS_WIDTH, h: CANVAS_HEIGHT };
+    const top = Math.floor((v.y - 40) / 6) * 6, bot = Math.min(GY, v.y + v.h + 6), w = 70, gx = Math.round(fin.gx);
     for (let i = 0; i < GEYSER.length; i++) {
       const ww = w - i * 12;
-      for (let y = top; y < GY; y += 6) {
+      for (let y = top; y < bot; y += 6) {
         const wob = Math.round(Math.sin(f * 0.6 + y * 0.05 + i) * 4);
         box(c, gx - Math.round(ww / 2) + wob, y, ww, 6, GEYSER[i]);
       }

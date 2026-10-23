@@ -535,7 +535,7 @@ export const drawHellWorld = (c: Ctx, state: GameState, o: { extraWreck: boolean
   for (const [a, b] of POOLS) { if (vis(from, a)) floor(c, Math.max(from, cam - M), Math.min(a, cam + CANVAS_WIDTH + M)); from = b; }
   if (vis(from, x1 + 200)) floor(c, Math.max(from, cam - M), Math.min(x1 + 200, cam + CANVAS_WIDTH + M));
   // (the dressing: cages hung on chains, bone piles)
-  for (const [x, low] of CAGES) if (vis(x - 40, x + 40)) cage(c, x, low, f, state.camera.y);
+  for (const [x, low] of CAGES) if (vis(x - 40, x + 40)) cage(c, x, low, f, state.view?.y ?? state.camera.y);
   for (const x of BONES) if (vis(x - 40, x + 40)) bones(c, x);
   // Rocks (in the lava they go on down into it) and slabs
   for (const [x, top, w] of ROCKS) if (vis(x, x + w)) rock(c, x, top, w, overPool(x, w) ? GY + LAVA_DROP + 30 : GY);
