@@ -48031,17 +48031,17 @@
  },
  {
   "voice": "m2.hollywood.pa",
-  "text": "A MAN FELL OUT OF THE SKY AND SHIT HIMSELF ON IMPACT! GIVE IT UP!",
+  "text": "A MAN FELL OUT OF THE SKY AND SHIT HIMSELF ON IMPACT! STILL BEAT STEVE'S ENTRANCE!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.pa",
-  "text": "A MAN JUST FELL OUT OF A TORNADO! GIVE IT UP!",
+  "text": "A MAN JUST FELL OUT OF A TORNADO! STEVE, TAKE NOTES!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.pa",
-  "text": "A NAKED MAN JUST FELL OUT OF A TORNADO! GIVE IT UP!",
+  "text": "A NAKED MAN JUST FELL OUT OF A TORNADO! STEVE, THAT'S HOW YOU OPEN A SHOW!",
   "from": "HOLLYWOOD"
  },
  {
@@ -48166,11 +48166,6 @@
  },
  {
   "voice": "m2.hollywood.pa",
-  "text": "DON'T MISS STUNTMAN STEVE'S STUPENDOUS STUNTERY! SEE THE FACE YOU MIGHT HAVE SEEN IN A MOVIE!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.pa",
   "text": "ENJOY OUR FAMOUS RAINSTORM! THE LIGHTNING IS REAL! LEGAL SAYS STAY OFF THE PAVEMENT!",
   "from": "HOLLYWOOD"
  },
@@ -48181,7 +48176,7 @@
  },
  {
   "voice": "m2.hollywood.pa",
-  "text": "FOLKS, THAT WASN'T IN THE SHOW. AND HE STILL BEAT STEVE'S ENTRANCE. GIVE IT UP!",
+  "text": "FOLKS, THAT WASN'T IN THE SHOW. AND IT BEAT THE WHOLE SHOW. GIVE IT UP!",
   "from": "HOLLYWOOD"
  },
  {
@@ -48286,12 +48281,22 @@
  },
  {
   "voice": "m2.hollywood.pa",
-  "text": "STUNTMAN STEVE CONSULTED ON DISASTER: THE RIDE! HE SAID IT WAS FINE!",
+  "text": "STUNTMAN STEVE ASKS GUESTS TO STOP CLAPPING FOR THE IMPERSONATORS. IT UPSETS HIM. SHOWS HOURLY!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.pa",
+  "text": "STUNTMAN STEVE CONSULTED ON DISASTER: THE RIDE! HE ASKS THAT YOU DO NOT CLAP FOR THE TORNADO.",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.pa",
   "text": "STUNTMAN STEVE SURVIVED A TORNADO! IN A MOVIE! FOR TWO SECONDS!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.pa",
+  "text": "STUNTMAN STEVE TESTED THIS RIDE! HE DOES NOT HAVE A THRONE! HE'S FINE WITH THAT! HE'S TOTALLY FINE!",
   "from": "HOLLYWOOD"
  },
  {
@@ -48311,17 +48316,27 @@
  },
  {
   "voice": "m2.hollywood.pa",
+  "text": "STUNTMAN STEVE, FOLKS. THAT'S HIS TWO SECONDS. BIG HAND FOR THE TORNADO GUY.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.pa",
+  "text": "STUNTMAN STEVE, FOLKS. UPSTAGED BY A LOADED DIAPER, RIGHT TO THE END.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.pa",
+  "text": "STUNTMAN STEVE, FOLKS. UPSTAGED BY A NAKED MAN, RIGHT TO THE END.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.pa",
   "text": "STUNTMAN STEVE! HE WAS IN A FILM! YOU CAN SEE HIS ELBOW FOR TWO FRAMES! SHOWS HOURLY!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.pa",
   "text": "STUNTMAN STEVE! NINETEEN EIGHTY-SIX! THE ONE WHERE THE CAR GOES BY! THAT WAS NEAR HIM!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.pa",
-  "text": "STUNTMAN STEVE! SEE HIM NOT GET HIT BY A CAR! KIDS UNDER TWO GET IN FREE!",
   "from": "HOLLYWOOD"
  },
  {
@@ -48342,6 +48357,21 @@
  {
   "voice": "m2.hollywood.pa",
   "text": "THE FAMILIES OF THE REVENGERS CAST HAVE BEEN SENT A COUPON. THE SCRIPT'S FAMILY IS INCONSOLABLE.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.pa",
+  "text": "THE HUMAN LIGHTNING ROD, FOLKS! STEVE'S BIGGEST HAND EVER. HOLD YOUR NOSES.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.pa",
+  "text": "THE HUMAN LIGHTNING ROD, FOLKS! STEVE'S BIGGEST HAND EVER. NOT THE NAKED GUY'S. STEVE'S.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.pa",
+  "text": "THE HUMAN LIGHTNING ROD, FOLKS! STEVE'S BIGGEST HAND EVER. SHAME HE'S DEAD.",
   "from": "HOLLYWOOD"
  },
  {
@@ -49056,12 +49086,17 @@
  },
  {
   "voice": "m2.hollywood.steve",
-  "text": "A NAKED MAN THREW A CAR AT ME!",
+  "text": "ACTION!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.steve",
-  "text": "ACTION!",
+  "text": "AN INSTANT REPLAY. OF HIM SHITTING. I NEVER GOT AN INSTANT REPLAY.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "ANYBODY GETS CHEERED WITH HIS DICK OUT! THAT'S CHEATING!",
   "from": "HOLLYWOOD"
  },
  {
@@ -49086,6 +49121,16 @@
  },
  {
   "voice": "m2.hollywood.steve",
+  "text": "BOYS! HE STOLE MY CROWD! RUN HIM DOWN! HOLD YOUR NOSE!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "BOYS! NOBODY GETS CHEERED ON MY STAGE BUT ME!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
   "text": "BOYS! RUN HIM DOWN! AIM FOR THE... JUST AIM LOW!",
   "from": "HOLLYWOOD"
  },
@@ -49097,6 +49142,11 @@
  {
   "voice": "m2.hollywood.steve",
   "text": "BOYS! RUN HIM OFF MY STAGE!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "BOYS! THEY'RE CHEERING HIS DICK! RUN IT OVER!",
   "from": "HOLLYWOOD"
  },
  {
@@ -49126,12 +49176,57 @@
  },
  {
   "voice": "m2.hollywood.steve",
+  "text": "EYES ON ME! FORGET THE TORNADO GUY! EYES ON ME!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "EYES UP HERE, FOLKS! HE'S GONE! EYES ON STEVE!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "FALLING ISN'T A STUNT! I'VE FALLEN BETTER DRUNK!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "FINALLY... THEY'RE LOOKING... AT ME...",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "FIRST MY CROWD! NOW MY CARS!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "FIRST MY CROWD! NOW MY CARS! WITH SHIT ON THEM!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "FLATTEN THE NEW GUY!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
   "text": "FLOOR IT, GARY!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.steve",
+  "text": "FORTY YEARS I'VE BEGGED FOR THAT CHEER. HE FELL INTO IT.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
   "text": "FORTY YEARS OF STUNTS AND THEY CLAP FOR A DIAPER.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "FORTY YEARS. NOBODY EVER CHEERED ME LIKE THAT. NOT ONCE.",
   "from": "HOLLYWOOD"
  },
  {
@@ -49156,6 +49251,11 @@
  },
  {
   "voice": "m2.hollywood.steve",
+  "text": "HE GETS A TORNADO! I GET THIS?!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
   "text": "HE SHIT HIMSELF ON THE LANDING AND THEY'RE CLAPPING?",
   "from": "HOLLYWOOD"
  },
@@ -49176,12 +49276,12 @@
  },
  {
   "voice": "m2.hollywood.steve",
-  "text": "HE'S BACK, FOLKS! STILL SHIT HIS PANTS!",
+  "text": "HE'S BACK, FOLKS! STILL SHAT HIMSELF! NOW WHO'S THE STAR?",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.steve",
-  "text": "HE'S BACK! STILL NAKED! CUT TO THE CROWD!",
+  "text": "HE'S BACK! STILL NAKED! EYES ON STEVE, FOLKS! EYES ON STEVE!",
   "from": "HOLLYWOOD"
  },
  {
@@ -49191,7 +49291,22 @@
  },
  {
   "voice": "m2.hollywood.steve",
+  "text": "HE'S GOT NO PANTS AND HE STILL TOOK EVERYTHING I GOT!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
   "text": "HE'S NAKED AND I'M THE ONE GETTING ZAPPED?!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "HE'S ON MY JUMBOTRON. MY JUMBOTRON.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "HIS DICK'S ON MY JUMBOTRON. I GOT TWO SECONDS OF ELBOW.",
   "from": "HOLLYWOOD"
  },
  {
@@ -49211,12 +49326,17 @@
  },
  {
   "voice": "m2.hollywood.steve",
+  "text": "I BROKE MY BACK FOR THIS CROWD! YOU SHIT YOURSELF FOR IT!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
   "text": "I CAN'T FEEL MY NECK. THE BRACE IS HOLDING MY HEAD ON.",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.steve",
-  "text": "I DID THIS FOR CANNON! IN EIGHTY-SIX!",
+  "text": "I DID THIS FOR CANNON! IN EIGHTY-SIX! WHERE WERE YOU?",
   "from": "HOLLYWOOD"
  },
  {
@@ -49236,22 +49356,12 @@
  },
  {
   "voice": "m2.hollywood.steve",
-  "text": "I STILL GOT IT! MY CHIROPRACTOR SAYS I DON'T!",
+  "text": "I GOT TWO SECONDS! NOBODY GETS MORE THAN STEVE!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.steve",
-  "text": "I'M A PROFESSIONAL! STOP!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.steve",
-  "text": "I'M DYING ON MY OWN STAGE, AND IT SMELLS LIKE A PORTA-POTTY.",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.steve",
-  "text": "I'M FINE. I'VE BROKEN EVERY BONE TWICE. THIS IS THREE.",
+  "text": "I'M A PROFESSIONAL! YOU'RE A GUY WHO FELL!",
   "from": "HOLLYWOOD"
  },
  {
@@ -49326,12 +49436,22 @@
  },
  {
   "voice": "m2.hollywood.steve",
-  "text": "LADIES AND GENTLEMEN... THE STEVE SIDESTEP! COVER THE KIDS' EYES!",
+  "text": "LADIES AND GENTLEMEN... THE STEVE SIDESTEP! A REAL STUNT! CLEAN PANTS!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.steve",
   "text": "LADIES AND GENTLEMEN... THE STEVE SIDESTEP! HOLD YOUR NOSES!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "LADIES AND GENTLEMEN... THE STEVE SIDESTEP! NO TORNADO! JUST TALENT!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "LADIES AND GENTLEMEN... THE STEVE SIDESTEP! PANTS ON! THAT'S CALLED CLASS!",
   "from": "HOLLYWOOD"
  },
  {
@@ -49346,7 +49466,7 @@
  },
  {
   "voice": "m2.hollywood.steve",
-  "text": "LIGHTNING! AND SHIT! WORST SHOW EVER!",
+  "text": "LUCKY LANDING! ANYBODY CAN FALL OUT OF A TORNADO!",
   "from": "HOLLYWOOD"
  },
  {
@@ -49386,6 +49506,11 @@
  },
  {
   "voice": "m2.hollywood.steve",
+  "text": "NAKED IS A CHEAP POP! I NEVER NEEDED A CHEAP POP!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
   "text": "NAKED WRESTLING IS A DIFFERENT SHOW!",
   "from": "HOLLYWOOD"
  },
@@ -49396,7 +49521,12 @@
  },
  {
   "voice": "m2.hollywood.steve",
-  "text": "NOBODY HOLDS STEVE!",
+  "text": "NOBODY HOLDS STEVE! NOBODY UPSTAGES STEVE!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "NOBODY LEAVE! FORGET THE GUY WHO SHAT! EYES ON ME!",
   "from": "HOLLYWOOD"
  },
  {
@@ -49406,12 +49536,12 @@
  },
  {
   "voice": "m2.hollywood.steve",
-  "text": "NOT LIKE THIS. NOT WITH HIS THING OUT.",
+  "text": "NOT LIKE THIS. UPSTAGED BY A NAKED GUY.",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.steve",
-  "text": "NOT THE FACE! THE FACE IS INSURED!",
+  "text": "NOT THE FACE! THE FACE IS ON THE FLIERS!",
   "from": "HOLLYWOOD"
  },
  {
@@ -49422,6 +49552,61 @@
  {
   "voice": "m2.hollywood.steve",
   "text": "NOT WITH THE BROWN HANDS! NOT THE BROWN HANDS!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "NOW I SMELL LIKE HIM! AND THEY STILL LIKE HIM BETTER!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "NOW THAT'S AN ENTRANCE! LOOK AT THE CAR, FOLKS! NOT HIM!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "NOW THEY CHEER?! NOW?!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "OUT OF MY LIGHT! THAT'S MY LIGHT!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "OUT OF MY LIGHT! YOU'RE STINKING UP MY SPOTLIGHT!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "OUT OF MY SPOTLIGHT! AND TAKE THAT THING WITH YOU!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "OUT OF THE SKY, ONTO HIM! SEE HOW HE LIKES IT!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "OUT OF THE SKY, ONTO HIM! SHIT YOURSELF FOR THAT ONE!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "OUT OF THE SKY, ONTO THE NAKED GUY! NOW WHO FELL BETTER?",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "OW! A NAKED GUY'S BEATING ME AND THEY'RE ON HIS SIDE!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "OW! I BLEED, NOBODY CLAPS! YOU SHIT, THEY CLAP!",
   "from": "HOLLYWOOD"
  },
  {
@@ -49437,6 +49622,11 @@
  {
   "voice": "m2.hollywood.steve",
   "text": "OW! SOMETHING SLAPPED ME! I HOPE IT WAS A HAND!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "OW! YOU DON'T EVEN HAVE A HEADSHOT!",
   "from": "HOLLYWOOD"
  },
  {
@@ -49466,17 +49656,17 @@
  },
  {
   "voice": "m2.hollywood.steve",
-  "text": "RESET THE CARS! THE DUMMY CAME BACK!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.steve",
-  "text": "RETURN TO SENDER! THE SENDER IS A CAR!",
+  "text": "RUN DOWN EVERYBODY'S FAVORITE! HE SHIT HIMSELF!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.steve",
   "text": "RUN HIM OVER!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "RUN OVER HIS DICK! IT GOT MORE CHEERS THAN ME!",
   "from": "HOLLYWOOD"
  },
  {
@@ -49491,17 +49681,17 @@
  },
  {
   "voice": "m2.hollywood.steve",
+  "text": "SEE, FOLKS? HE DIES! STEVE DOESN'T! CLAP FOR STEVE!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
   "text": "SHOULDA... WORN... THE DENIM...",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.steve",
-  "text": "STAY OVER THERE! THAT'S YOUR MARK!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.steve",
-  "text": "STAY OVER THERE! THE FRONT ROW HAS A CHURCH GROUP!",
+  "text": "STAY OVER THERE! THAT'S YOUR MARK! THE SPOTLIGHT'S MINE!",
   "from": "HOLLYWOOD"
  },
  {
@@ -49541,11 +49731,6 @@
  },
  {
   "voice": "m2.hollywood.steve",
-  "text": "THAT'S HOW YOU DRIFT, YOU DUMB SON OF A BITCH!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.steve",
   "text": "THAT'S MY APPLAUSE. I PAID FOR THAT APPLAUSE.",
   "from": "HOLLYWOOD"
  },
@@ -49556,12 +49741,7 @@
  },
  {
   "voice": "m2.hollywood.steve",
-  "text": "THE CHEAP SEATS CAN SMELL YOU!",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "m2.hollywood.steve",
-  "text": "THE DRAG STUNT! I STILL GOT IT!",
+  "text": "THE DRAG STUNT! CLAP, DAMN IT! THIS ONE'S REAL!",
   "from": "HOLLYWOOD"
  },
  {
@@ -49571,17 +49751,32 @@
  },
  {
   "voice": "m2.hollywood.steve",
-  "text": "THE ZIPPER! THE ZIPPER'S METAL!",
+  "text": "THEY'D RATHER WATCH A GUY SHIT HIMSELF THAN WATCH ME DIE.",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.steve",
-  "text": "THEY'RE CHEERING HIS DICK. HIS DICK!",
+  "text": "THEY'RE CHEERING HIS DICK. HIS DICK GETS A STANDING OVATION.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "THEY'RE CLAPPING FOR THE CARS! MY CARS! NOT YOU!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.steve",
   "text": "THEY'RE CLAPPING. FOR HIM.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "THEY'RE CLAPPING... FOR ME... FINALLY...",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "THEY'RE... CLAPPING... FOR ME...",
   "from": "HOLLYWOOD"
  },
  {
@@ -49631,12 +49826,17 @@
  },
  {
   "voice": "m2.hollywood.steve",
-  "text": "YOU AGAIN? I'M NOT PAYING YOU FOR THIS!",
+  "text": "YOU AGAIN? GO GET YOUR OWN SHOW!",
   "from": "HOLLYWOOD"
  },
  {
   "voice": "m2.hollywood.steve",
   "text": "YOU GOT IT ON MY SUIT!",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "m2.hollywood.steve",
+  "text": "YOU SHIT YOURSELF AND THEY STILL LIKE YOU MORE! HOW?!",
   "from": "HOLLYWOOD"
  },
  {
@@ -50851,12 +51051,27 @@
  },
  {
   "voice": "m2.safari",
+  "text": "...BUZZ. I DO EVERY BUG TOO. I'M VERY TALENTED.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "...CAW. CAW. I AM A BIRD.",
   "from": "ADVENTURE"
  },
  {
   "voice": "m2.safari",
   "text": "...CAW. CAW. I AM A BIRD. I'VE NEVER SEEN A WORM THAT SMALL.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "...CAW. THAT WAS A TOUCAN. I DO EVERY BIRD IN THE PARK.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "...CAW. THAT WAS A TOUCAN. I'M VERY GOOD AT THIS.",
   "from": "ADVENTURE"
  },
  {
@@ -50896,7 +51111,32 @@
  },
  {
   "voice": "m2.safari",
+  "text": "A NAKED MAN HECKLED ME WITH HIS ASS! NOBODY WALKS OUT ON ARTIE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "A NAKED WALKOUT! IN THE MIDDLE OF MY BEST BIT!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "A PRO ALWAYS PACKS A CHUTE, BITCH!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "A PRO ALWAYS PACKS A CHUTE! AND CLEAN SHORTS!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "A PRO ALWAYS PACKS A CHUTE! AND PANTS!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "A SHIT-PANTS WALKED OUT ON ME?! ON ME?! I WILL FIND YOU!",
   "from": "ADVENTURE"
  },
  {
@@ -50916,7 +51156,17 @@
  },
  {
   "voice": "m2.safari",
-  "text": "ASS IN YOUR SEAT! THE SET STARTS NOW, FATSO!",
+  "text": "ARTIE ONE! NAKED GUY ZERO!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "ARTIE ONE! SHIT PANTS ZERO!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "ARTIE ONE! WALKOUT ZERO!",
   "from": "ADVENTURE"
  },
  {
@@ -50951,7 +51201,7 @@
  },
  {
   "voice": "m2.safari",
-  "text": "BAD! BAD ANIMAL!",
+  "text": "BEST HUNTER IN THE PARK! I'VE NEVER HUNTED ANYTHING THIS PINK!",
   "from": "ADVENTURE"
  },
  {
@@ -50966,42 +51216,22 @@
  },
  {
   "voice": "m2.safari",
-  "text": "BLOWGUN! FROM THE GIFT SHOP! AUTHENTIC!",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "m2.safari",
   "text": "CATCH ME! NO! DON'T CATCH ME!",
   "from": "ADVENTURE"
  },
  {
   "voice": "m2.safari",
-  "text": "COME TO DADDY, MY LOVELIES!",
+  "text": "COMING UP, THE BACKSIDE OF WATER. MY CLOSER. AND YOUR BACKSIDE IS UPSTAGING IT.",
   "from": "ADVENTURE"
  },
  {
   "voice": "m2.safari",
-  "text": "COME TO DADDY! FOLLOW THE STINK!",
+  "text": "COMING UP, THE BACKSIDE OF WATER. MY CLOSER. NOBODY LAUGHS. THEY'RE WRONG.",
   "from": "ADVENTURE"
  },
  {
   "voice": "m2.safari",
-  "text": "COME TO DADDY! GET THE BIG PINK ONE!",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "m2.safari",
-  "text": "COMING UP, THE BACKSIDE OF WATER. ...NOBODY EVER LAUGHS AT THE BACKSIDE OF WATER.",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "m2.safari",
-  "text": "COMING UP, THE BACKSIDE OF WATER. NOBODY NEEDED YOURS TOO.",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "m2.safari",
-  "text": "COMING UP, THE BACKSIDE OF WATER. YOUR BACKSIDE IS LEAKING ON MY BENCH.",
+  "text": "COMING UP, THE BACKSIDE OF WATER. MY CLOSER. NOBODY NEEDED YOUR BACKSIDE TOO.",
   "from": "ADVENTURE"
  },
  {
@@ -51016,12 +51246,37 @@
  },
  {
   "voice": "m2.safari",
-  "text": "EMPLOYEE SHORTCUTS, FATSO. I'VE GOT A SET TO FINISH.",
+  "text": "EMPLOYEE SHORTCUTS, FATSO. I KNOW THIS JUNGLE. I'VE GOT A SET TO FINISH.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "EVERY ANIMAL ANSWERS TO ARTIE! FOLLOW THE STINK!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "EVERY ANIMAL ANSWERS TO ARTIE! GET THE BIG PINK ONE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "EVERY ANIMAL IN THIS PARK ANSWERS TO ARTIE!",
   "from": "ADVENTURE"
  },
  {
   "voice": "m2.safari",
   "text": "FIELD DRESSING!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "FIELD DRESSING! A MASTER DOESN'T GAG!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "FIELD DRESSING! A MASTER DOESN'T LOOK DOWN!",
   "from": "ADVENTURE"
  },
  {
@@ -51036,12 +51291,7 @@
  },
  {
   "voice": "m2.safari",
-  "text": "FINE! GO! THE PIRANHAS ARE REAL, ASSHOLE! THAT ONE WAS A JOKE TOO!",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "m2.safari",
-  "text": "FINE! GO! THE PIRANHAS WON'T TOUCH YOU EITHER! THAT'S MATERIAL!",
+  "text": "FIELD DRESSING! WATCH THE MASTER!",
   "from": "ADVENTURE"
  },
  {
@@ -51056,11 +51306,6 @@
  },
  {
   "voice": "m2.safari",
-  "text": "FINE! NO MORE GAMES! STAMPEDE!",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "m2.safari",
   "text": "FINE! STAMPEDE! NOBODY GETS TO HIDE! ESPECIALLY YOU!",
   "from": "ADVENTURE"
  },
@@ -51071,7 +51316,12 @@
  },
  {
   "voice": "m2.safari",
-  "text": "FINE! THE PIRANHAS GO FOR THE DANGLY BITS, ASSHOLE! I WROTE THAT TOO!",
+  "text": "FINE! YOU WANT THE REAL ARTIE?! STAMPEDE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "FOUR HOURS A NIGHT IN A MIRROR ON THIS SET. AND YOU'RE THE ONE GETTING STARED AT.",
   "from": "ADVENTURE"
  },
  {
@@ -51082,6 +51332,31 @@
  {
   "voice": "m2.safari",
   "text": "FOUR HUNDRED GUESTS AN HOUR. THREE HUNDRED NINETY-NINE WEAR PANTS.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "FOUR HUNDRED TWELVE BENDS. A JOKE FOR EVERY ONE. ALL MINE. IN ORDER.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "FOUR HUNDRED TWELVE JOKES ON THIS BOAT. THE SMALLEST ONE IS IN YOUR LAP.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "FOUR HUNDRED TWELVE JOKES, ONE PER BEND. NOT ONE ABOUT THIS. I'M NOT WRITING ONE.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "FOUR HUNDRED TWELVE JOKES. YOU'RE HEARING EVERY ONE.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "FOUR YEARS... SKIPPER OF THE YEAR... AND I DIE... SMELLING THAT...",
   "from": "ADVENTURE"
  },
  {
@@ -51161,6 +51436,16 @@
  },
  {
   "voice": "m2.safari",
+  "text": "HA! A THOUSAND RIDES! NEVER HIT ONCE! NEVER NAKED ONCE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "HA! A THOUSAND RIDES! NEVER HIT ONCE! NEVER SHIT ONCE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "HA! COVER UP! NOT WITH YOUR HANDS!",
   "from": "ADVENTURE"
  },
@@ -51171,12 +51456,7 @@
  },
  {
   "voice": "m2.safari",
-  "text": "HA! DUMBASS!",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "m2.safari",
-  "text": "HA! EVEN THE RIDE WANTS YOU OFF IT!",
+  "text": "HA! I KNEW THAT WAS THERE! I KNOW EVERYTHING!",
   "from": "ADVENTURE"
  },
  {
@@ -51192,11 +51472,6 @@
  {
   "voice": "m2.safari",
   "text": "HA! THE RIDE HATES YOU TOO!",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "m2.safari",
-  "text": "HA! THE RIDE'S GOT A DRESS CODE TOO!",
   "from": "ADVENTURE"
  },
  {
@@ -51241,12 +51516,12 @@
  },
  {
   "voice": "m2.safari",
-  "text": "HIPPOS KILL MORE PEOPLE THAN ANY OTHER ANIMAL. EXCEPT THE CHURROS.",
+  "text": "HIPPOS KILL MORE PEOPLE THAN ANY OTHER ANIMAL. EXCEPT THE CHURROS. I WROTE THAT.",
   "from": "ADVENTURE"
  },
  {
   "voice": "m2.safari",
-  "text": "HIPPOS SPIN THEIR TAILS WHEN THEY SHIT. YOU TWO WOULD HIT IT OFF.",
+  "text": "HIPPOS SPIN THEIR TAILS WHEN THEY SHIT. TRUE FACT. YOU TWO WOULD HIT IT OFF.",
   "from": "ADVENTURE"
  },
  {
@@ -51262,6 +51537,16 @@
  {
   "voice": "m2.safari",
   "text": "I AM NOT DYING DOWNWIND OF YOU!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "I CALLED YOU! THE SMELLY ONE, YOU IDIOT!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "I CALLED YOU! YOU ANSWER TO ME!",
   "from": "ADVENTURE"
  },
  {
@@ -51286,11 +51571,6 @@
  },
  {
   "voice": "m2.safari",
-  "text": "I CAN SMELL YOU FROM HERE! THAT'S A WRITE-UP!",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "m2.safari",
   "text": "I CAN'T SEE YOU IN THE DARK! I CAN SMELL YOU, THOUGH!",
   "from": "ADVENTURE"
  },
@@ -51301,7 +51581,17 @@
  },
  {
   "voice": "m2.safari",
-  "text": "I DON'T GET PAID ENOUGH FOR THE SMELL ALONE!",
+  "text": "I DON'T LOSE! NOT TO A DIAPER! HERE, BIG FELLA!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "I DON'T LOSE! NOT TO A NAKED IDIOT! HERE, BIG FELLA!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "I DON'T LOSE! NOT TO AN IDIOT! HERE, BIG FELLA!",
   "from": "ADVENTURE"
  },
  {
@@ -51316,27 +51606,17 @@
  },
  {
   "voice": "m2.safari",
-  "text": "I HAD A TUNA SANDWICH FOR LUNCH! IT'S COMING BACK!",
+  "text": "I HAND-PICKED THAT VINE! I'M A NATURALIST!",
   "from": "ADVENTURE"
  },
  {
   "voice": "m2.safari",
-  "text": "I HAVE A PHD IN RIVER-OLOGY. FROM A BOX OF FROSTED FLAKES.",
+  "text": "I KNOW EVERY INCH OF THIS PARK! YOU KNOW THE SNACK BAR!",
   "from": "ADVENTURE"
  },
  {
   "voice": "m2.safari",
-  "text": "I HAVE A PHD IN RIVER-OLOGY. I'VE SEEN BIGGER SHRIMP.",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "m2.safari",
-  "text": "I HAVE A PHD IN RIVER-OLOGY. NOW I SIT DOWNWIND OF YOUR ASS.",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "m2.safari",
-  "text": "I MAKE NINE FIFTY AN HOUR, ASSHOLE!",
+  "text": "I LANDSCAPED THAT BUSH! WITH MY HANDS!",
   "from": "ADVENTURE"
  },
  {
@@ -51356,12 +51636,12 @@
  },
  {
   "voice": "m2.safari",
-  "text": "I SEE TOUCANS... THEY WANT MONEY...",
+  "text": "I SEE TOUCANS... THEY'RE CLAPPING... FOR ME...",
   "from": "ADVENTURE"
  },
  {
   "voice": "m2.safari",
-  "text": "I WAS GONNA BE A VET. FAILED THE PART WITH THE ANIMALS.",
+  "text": "I TRACKED A JAGUAR FOR THREE DAYS! YOU'RE LEAVING A TRAIL!",
   "from": "ADVENTURE"
  },
  {
@@ -51372,6 +51652,11 @@
  {
   "voice": "m2.safari",
   "text": "I WAS GONNA BE A VET. I'VE HAD MY ARM UP A COW. THE COW SMELLED BETTER.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "I WAS GONNA BE A VET. THE ANIMALS WEREN'T READY FOR ME.",
   "from": "ADVENTURE"
  },
  {
@@ -51396,27 +51681,47 @@
  },
  {
   "voice": "m2.safari",
-  "text": "I'M ARTIE, YOUR SKIPPER. HANDS IN THE BOAT, MOUTH SHUT.",
+  "text": "I'LL FIND HIM, GERALD. HE LEFT A TRAIL.",
   "from": "ADVENTURE"
  },
  {
   "voice": "m2.safari",
-  "text": "I'M ARTIE, YOUR SKIPPER. HANDS IN THE BOAT. BALLS TOO.",
+  "text": "I'LL FIND HIM, GERALD. HE'S THE PINK ONE.",
   "from": "ADVENTURE"
  },
  {
   "voice": "m2.safari",
-  "text": "I'M ARTIE, YOUR SKIPPER. HANDS IN THE BOAT. SHIT IN THE PANTS, APPARENTLY.",
+  "text": "I'LL FIND HIM, GERALD. I'VE TRACKED JAGUARS.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "I'M A NATURALIST! EAT THE NATURIST!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "I'M A NATURALIST! I'M ON YOUR SIDE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "I'M ARTIE. SKIPPER OF THE YEAR, FOUR YEARS RUNNING. HANDS IN THE BOAT.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "I'M ARTIE. SKIPPER OF THE YEAR. EYES ON ME. NOT ON THAT.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "I'M ARTIE. SKIPPER OF THE YEAR. FOUR YEARS, NOBODY SHIT ON MY BENCH. TILL TODAY.",
   "from": "ADVENTURE"
  },
  {
   "voice": "m2.safari",
   "text": "I'M HOLDING IT IN BETTER THAN YOU DID!",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "m2.safari",
-  "text": "I'M LOOKING AT THE TREES. ...I LOOKED. I'M SORRY.",
   "from": "ADVENTURE"
  },
  {
@@ -51461,7 +51766,12 @@
  },
  {
   "voice": "m2.safari",
-  "text": "I'M ON MY BREAK, YOU FAT FUCK!",
+  "text": "I'M ON MY BREAK, YOU FAT FUCK! THIS IS ME ON BREAK!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "I'M ON THE BROCHURE! YOU'RE GONNA BE ON A WARNING SIGN!",
   "from": "ADVENTURE"
  },
  {
@@ -51471,12 +51781,7 @@
  },
  {
   "voice": "m2.safari",
-  "text": "I'M STAYING UP HERE, ASSHOLE!",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "m2.safari",
-  "text": "I'M WRITING YOU UP! I'VE GOT A PEN IN HERE!",
+  "text": "I'M THE NATURALIST! HE'S THE BAIT!",
   "from": "ADVENTURE"
  },
  {
@@ -51487,16 +51792,6 @@
  {
   "voice": "m2.safari",
   "text": "I'M WRITING YOU UP. FOR THE ROOF. AND YOUR BALLS. SEPARATE FORMS.",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "m2.safari",
-  "text": "I'M WRITING YOU UP. I'M WRITING EVERYBODY UP.",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "m2.safari",
-  "text": "I'M WRITING YOU UP. THEN I'M BURNING THIS UNIFORM.",
   "from": "ADVENTURE"
  },
  {
@@ -51531,12 +51826,22 @@
  },
  {
   "voice": "m2.safari",
-  "text": "INCOMING TOUR GUIDE!",
+  "text": "I'VE NEVER LOST A GUEST! I'D LIKE TO LOSE YOU!",
   "from": "ADVENTURE"
  },
  {
   "voice": "m2.safari",
-  "text": "INCOMING TOUR GUIDE! NOSE SHUT!",
+  "text": "I'VE NEVER LOST A GUEST! I'M NOT STARTING WITH YOU!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "INCOMING APEX PREDATOR!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "INCOMING APEX PREDATOR! NOSE SHUT!",
   "from": "ADVENTURE"
  },
  {
@@ -51551,11 +51856,6 @@
  },
  {
   "voice": "m2.safari",
-  "text": "IS IT WARM? DON'T TELL ME.",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "m2.safari",
   "text": "IT STEPPED IN WHATEVER YOU LEFT BACK THERE!",
   "from": "ADVENTURE"
  },
@@ -51566,27 +51866,27 @@
  },
  {
   "voice": "m2.safari",
+  "text": "JUNIOR GUIDES! A NAKED MAN WALKED OUT ON YOUR SKIPPER! AVENGE ME!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "JUNIOR GUIDES! DON'T LOOK DIRECTLY AT IT! JUST HIT IT!",
   "from": "ADVENTURE"
  },
  {
   "voice": "m2.safari",
-  "text": "JUNIOR GUIDES! NO PANTS, NO TICKET! TAKE HIM OUT!",
+  "text": "JUNIOR GUIDES! HE SHIT ON YOUR SKIPPER'S BENCH! AVENGE ME!",
   "from": "ADVENTURE"
  },
  {
   "voice": "m2.safari",
-  "text": "JUNIOR GUIDES! THAT MAN WALKED OUT ON MY SET! TAKE HIM OFF THE TOUR!",
+  "text": "JUNIOR GUIDES! THAT MAN WALKED OUT ON ME! I TRAINED YOU! MAKE ME PROUD!",
   "from": "ADVENTURE"
  },
  {
   "voice": "m2.safari",
   "text": "JUNIOR GUIDES! WHACK HIM IN THE KIDNEYS! HE'S GOT TWO!",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "m2.safari",
-  "text": "JUNIOR GUIDES! WHACK HIM! WASH YOUR HANDS AFTER!",
   "from": "ADVENTURE"
  },
  {
@@ -51661,6 +51961,16 @@
  },
  {
   "voice": "m2.safari",
+  "text": "LUCK! YOU FOUND ME BY SMELL! THAT DOESN'T COUNT!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "MAINTENANCE, A GUEST SHIT ON MY BENCH. MY BENCH. OVER.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "MAINTENANCE, A GUEST WALKED OUT ON MY SET. BRING A HOSE FOR THE BENCH. OVER.",
   "from": "ADVENTURE"
  },
@@ -51711,11 +52021,6 @@
  },
  {
   "voice": "m2.safari",
-  "text": "MAINTENANCE, I CAN SEE YOU LAUGHING, YOU PRICK. IT'S RIGHT NEXT TO ME. OVER.",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "m2.safari",
   "text": "MAINTENANCE, I NEED GAS AND PANTS. SIZE HUSKY. OVER.",
   "from": "ADVENTURE"
  },
@@ -51726,12 +52031,12 @@
  },
  {
   "voice": "m2.safari",
-  "text": "MAINTENANCE, THAT'S A WORK ORDER. FORM NINE-B. IN TRIPLICATE. OVER.",
+  "text": "MAINTENANCE, THIS IS ARTIE. SKIPPER OF THE YEAR. I DON'T WAIT. OVER.",
   "from": "ADVENTURE"
  },
  {
   "voice": "m2.safari",
-  "text": "MAINTENANCE, THE FLIES FOUND US. THEY BROUGHT FRIENDS. OVER.",
+  "text": "MAINTENANCE, YOU'RE LAUGHING AT HIM, RIGHT? NOT ME? OVER.",
   "from": "ADVENTURE"
  },
  {
@@ -51776,22 +52081,17 @@
  },
  {
   "voice": "m2.safari",
-  "text": "MY BROTHER DIED OWING ME FORTY BUCKS. I'M STILL PISSED.",
+  "text": "MY BROTHER COULDN'T DO THIS! I'M THE TALENTED ARTIE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "MY BROTHER DIED OWING ME FORTY BUCKS. AND AN APOLOGY. I WAS THE FUNNY ONE.",
   "from": "ADVENTURE"
  },
  {
   "voice": "m2.safari",
   "text": "MY BROTHER SHIT HIMSELF ON A CHAIRLIFT ONCE. SAT IN IT ALL DAY. OUT OF SPITE.",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "m2.safari",
-  "text": "MY BROTHER WAS AN ASSHOLE, BUT HE KEPT HIS ASS COVERED!",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "m2.safari",
-  "text": "MY BROTHER WOULD'VE HAD YOU BY NOW! HE WAS AN ASSHOLE!",
   "from": "ADVENTURE"
  },
  {
@@ -51811,17 +52111,42 @@
  },
  {
   "voice": "m2.safari",
+  "text": "MY FACE! I NEED THAT FACE! IT IS ON THE BROCHURE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "MY FACE! THAT FACE IS ON THE BROCHURE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "MY FACE! THE BROCHURE FACE! EAT THE NAKED ONE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "MY SPECIAL BUSH! NOW IT SMELLS LIKE YOU!",
   "from": "ADVENTURE"
  },
  {
   "voice": "m2.safari",
-  "text": "MY SPECIAL BUSH! YOU NEED IT MORE THAN I DO!",
+  "text": "MY WHISTLE BRINGS ELEPHANTS. YOUR ASS BRINGS VULTURES.",
   "from": "ADVENTURE"
  },
  {
   "voice": "m2.safari",
-  "text": "MY WHISTLE BRINGS ELEPHANTS. YOUR ASS BRINGS VULTURES.",
+  "text": "NEVER MISSED! AND YOU'RE A BIG BROWN TARGET!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "NEVER MISSED! AND YOU'RE ALL TARGET!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "NEVER MISSED! NOT ONCE! ASK GERALD!",
   "from": "ADVENTURE"
  },
  {
@@ -51851,17 +52176,7 @@
  },
  {
   "voice": "m2.safari",
-  "text": "NO FAIR! AND YOU STUNK UP ALL THE OTHERS!",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "m2.safari",
   "text": "NO FAIR! I WAS DISTRACTED! YOU KNOW BY WHAT!",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "m2.safari",
-  "text": "NO NAKED ON THE RIDE! IT'S ON THE SIGN!",
   "from": "ADVENTURE"
  },
  {
@@ -51896,7 +52211,37 @@
  },
  {
   "voice": "m2.safari",
-  "text": "NOBODY GETS PAID ENOUGH TO SEE THAT!",
+  "text": "NOBODY FINDS ME! NOBODY! YOU PRICK!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "NOBODY JUMPS OUT OF MY BOAT! NOBODY! PUT SOME PANTS ON!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "NOBODY TOUCHES ARTIE! I'M ON THE BROCHURE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "NOBODY WALKS OUT ON ARTIE! I'LL FIND YOU! I KNOW THIS JUNGLE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "NOBODY'S EVER FOUND ME! NOBODY!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "NOBODY'S EVER FOUND ME! YOU CAN'T EVEN FIND A TOILET!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "NOBODY'S EVER FOUND ME! YOU CAN'T EVEN FIND PANTS!",
   "from": "ADVENTURE"
  },
  {
@@ -51906,12 +52251,32 @@
  },
  {
   "voice": "m2.safari",
-  "text": "NOT ME, SWEETHEART! THE FAT ONE!",
+  "text": "NOT IN FRONT OF A GUEST! I'M A PROFESSIONAL!",
   "from": "ADVENTURE"
  },
  {
   "voice": "m2.safari",
-  "text": "NOT ME! THE SMELLY ONE, YOU IDIOT!",
+  "text": "NOT IN FRONT OF A NAKED MAN! I HAVE A REPUTATION!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "NOT IN FRONT OF HIM! NOT IN FRONT OF SHIT PANTS!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "NOT ME, SWEETHEART! I'M THE TALENT!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "NOT ME, SWEETHEART! I'M THE TALENT! HE'S THE FREAK SHOW!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "NOT ME, SWEETHEART! I'M THE TALENT! THE FAT ONE!",
   "from": "ADVENTURE"
  },
  {
@@ -51936,17 +52301,27 @@
  },
  {
   "voice": "m2.safari",
+  "text": "NOT THE FACE! THE FACE IS ON THE BROCHURE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "NOT THE RAMP! NOT LOOKING UP AT HIS BALLS!",
   "from": "ADVENTURE"
  },
  {
   "voice": "m2.safari",
-  "text": "NOT TODAY, SWEETHEART! FOLLOW YOUR NOSE!",
+  "text": "NOTHING KEEPS ARTIE DOWN! NOT EVEN THAT SIGHT!",
   "from": "ADVENTURE"
  },
  {
   "voice": "m2.safari",
-  "text": "NOT TODAY, SWEETHEART! HE'S READY FOR YOU!",
+  "text": "NOTHING KEEPS ARTIE DOWN! NOT EVEN THAT SMELL!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "NOTHING KEEPS ARTIE DOWN! NOTHING!",
   "from": "ADVENTURE"
  },
  {
@@ -51986,17 +52361,17 @@
  },
  {
   "voice": "m2.safari",
+  "text": "OH, COME ON. OUT OF GAS. IN THE MIDDLE OF MY SET.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "OH, COME ON. OUT OF GAS. NOW I CAN'T OUTRUN THE SMELL.",
   "from": "ADVENTURE"
  },
  {
   "voice": "m2.safari",
   "text": "OH, COME ON. OUT OF GAS. WITH A NAKED MAN. AGAIN.",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "m2.safari",
-  "text": "OH, COME ON. WE'RE OUT OF GAS. AGAIN.",
   "from": "ADVENTURE"
  },
  {
@@ -52017,6 +52392,21 @@
  {
   "voice": "m2.safari",
   "text": "OLE! YOU SMELL HIM TOO, HUH?",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "ON YOUR LEFT, THE GREATEST HUNTER IN THE PARK! ON YOUR RIGHT, A PLUCKED BEAR!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "ON YOUR LEFT, THE GREATEST HUNTER IN THE PARK! ON YOUR RIGHT, A TURD!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "ON YOUR LEFT, THE GREATEST HUNTER IN THE PARK! ON YOUR RIGHT, LUNCH!",
   "from": "ADVENTURE"
  },
  {
@@ -52061,7 +52451,7 @@
  },
  {
   "voice": "m2.safari",
-  "text": "OW! NO FAIR! YOU PICKED THE RIGHT BUSH!",
+  "text": "OW! LUCKY! THAT WAS LUCK!",
   "from": "ADVENTURE"
  },
  {
@@ -52111,11 +52501,6 @@
  },
  {
   "voice": "m2.safari",
-  "text": "ROUND AND ROUND! LIKE THE FLIES ON YOUR ASS!",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "m2.safari",
   "text": "ROUND TWO, FOLKS! SAME SET, NEW GUTS!",
   "from": "ADVENTURE"
  },
@@ -52131,7 +52516,12 @@
  },
  {
   "voice": "m2.safari",
-  "text": "SEE THAT ROCK? THAT'S GERALD. GERALD'S MY BEST FRIEND.",
+  "text": "SEE THAT ROCK? THAT'S GERALD. GERALD SAYS I'M THE BEST SKIPPER HERE. GERALD'S RIGHT.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "SHOT BY A NAKED MAN! THAT'S NOT GOING ON MY RECORD!",
   "from": "ADVENTURE"
  },
  {
@@ -52161,12 +52551,37 @@
  },
  {
   "voice": "m2.safari",
-  "text": "SLIGHT DELAY, FOLKS. IT'S PART OF THE EXPERIENCE. THE SHITTY PART.",
+  "text": "SKIPPER OF THE YEAR! CHASING A TURD THROUGH A MINE!",
   "from": "ADVENTURE"
  },
  {
   "voice": "m2.safari",
-  "text": "SLIGHT DELAY. PLEASE REMAIN SEATED. ON A TOWEL. FIND A TOWEL.",
+  "text": "SKIPPER OF THE YEAR. FOUR YEARS RUNNING. AND THIS IS WHAT THEY GIVE ME.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "SKIPPER OF THE YEAR. ON A ROOF. DOWNWIND OF YOU.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "SKIPPER OF THE YEAR. ON MY BACK. ON A ROOF. BECAUSE OF YOU.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "SKIPPER... OF THE YEAR... BEATEN BY... A NAKED IDIOT...",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "SKIPPER... OF THE YEAR... KILLED BY... A WALKOUT...",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "SLIGHT DELAY, FOLKS. THE SKIPPER WILL CONTINUE. THE SKIPPER ALWAYS CONTINUES.",
   "from": "ADVENTURE"
  },
  {
@@ -52176,12 +52591,27 @@
  },
  {
   "voice": "m2.safari",
-  "text": "SO MUCH BARE FAT! I CAN'T MISS!",
+  "text": "SLIGHT DELAY. THE SET GOES ON. I'M A PROFESSIONAL. SIT ON A TOWEL.",
   "from": "ADVENTURE"
  },
  {
   "voice": "m2.safari",
   "text": "SOMEBODY'S GRANDMA SITS IN THAT SEAT NEXT!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "STILL... SKIPPER OF THE YEAR... STILL... CLEAN SHORTS...",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "STILL... THE BEST SKIPPER... ON THE RIVER...",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "STILL... THE BEST-LOOKING... ONE HERE...",
   "from": "ADVENTURE"
  },
  {
@@ -52201,11 +52631,6 @@
  },
  {
   "voice": "m2.safari",
-  "text": "THAT BUSH WAS LANDSCAPED!",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "m2.safari",
   "text": "THAT BUSH WAS LANDSCAPED! YOU SHOULD TRY IT!",
   "from": "ADVENTURE"
  },
@@ -52221,12 +52646,32 @@
  },
  {
   "voice": "m2.safari",
-  "text": "THAT DART WENT THROUGH YOUR STINK! NOW I'M POISONED TWICE!",
+  "text": "THAT DIDN'T HAPPEN! NOBODY SAW THAT!",
   "from": "ADVENTURE"
  },
  {
   "voice": "m2.safari",
-  "text": "THAT GORILLA IS DAVE. DAVE THROWS SHIT AT THE BOATS. DAVE SAW YOU AND PUT IT DOWN.",
+  "text": "THAT DIDN'T HAPPEN! NOBODY SAW THAT! THEY'RE ALL LOOKING AT YOU!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THAT DIDN'T HAPPEN! YOU SHITTING YOURSELF HAPPENED!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THAT DOESN'T COUNT! I HAD MY EYES SHUT!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THAT DOESN'T COUNT! YOU SHIT YOURSELF! IT DOESN'T COUNT!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THAT GORILLA IS DAVE. DAVE WANTED MY BOAT. DAVE SMELLED YOU. DAVE DOES NOT WANT IT NOW.",
   "from": "ADVENTURE"
  },
  {
@@ -52267,11 +52712,6 @@
  {
   "voice": "m2.safari",
   "text": "THAT WAS MY BROTHER. ALSO NAMED ARTIE.",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "m2.safari",
-  "text": "THAT WAS MY SPECIAL BUSH, YOU PRICK!",
   "from": "ADVENTURE"
  },
  {
@@ -52331,7 +52771,7 @@
  },
  {
   "voice": "m2.safari",
-  "text": "THE HAT CRACKED IN TWENTY NINETEEN. THEY SAID TAPE IT. I TAPED IT.",
+  "text": "THE HAT CRACKED IN TWENTY NINETEEN. I TAPED IT. IT'S STILL THE BEST HAT ON THE RIVER.",
   "from": "ADVENTURE"
  },
  {
@@ -52366,11 +52806,6 @@
  },
  {
   "voice": "m2.safari",
-  "text": "THE VULTURES ARE CIRCLING! THEY SMELL YOUR PANTS!",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "m2.safari",
   "text": "THERE'S A FLY ON YOUR ASS. NOW THERE'S A FAMILY. THEY'RE PUTTING IN A POOL.",
   "from": "ADVENTURE"
  },
@@ -52396,22 +52831,17 @@
  },
  {
   "voice": "m2.safari",
-  "text": "THEY CHEWED THROUGH MY VINE!",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "m2.safari",
-  "text": "THEY WEREN'T CREATIVE PEOPLE. HE WAS A FUCKING ASSHOLE, BY THE WAY.",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "m2.safari",
   "text": "THEY WEREN'T CREATIVE PEOPLE. HE WAS A FUCKING ASSHOLE. BUT HE WORE PANTS.",
   "from": "ADVENTURE"
  },
  {
   "voice": "m2.safari",
   "text": "THEY WEREN'T CREATIVE PEOPLE. HE WAS A FUCKING ASSHOLE. SHIT HIMSELF A LOT, TOO.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THEY WEREN'T CREATIVE PEOPLE. I WAS THE FUNNY ONE. HE WAS A FUCKING ASSHOLE.",
   "from": "ADVENTURE"
  },
  {
@@ -52476,17 +52906,7 @@
  },
  {
   "voice": "m2.safari",
-  "text": "THIS IS A FAMILY RIDE! QUIT BEING A FAT DICK!",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "m2.safari",
-  "text": "THIS IS AN UNAUTHORIZED RIDE EXPERIENCE!",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "m2.safari",
-  "text": "THIS IS AN UNAUTHORIZED RIDE EXPERIENCE! AND YOU'RE LEAVING A TRAIL!",
+  "text": "THIS IS MY PARK! I'M ON THE BROCHURE!",
   "from": "ADVENTURE"
  },
  {
@@ -52506,7 +52926,17 @@
  },
  {
   "voice": "m2.safari",
-  "text": "THIS TIME YOU STAY FOR THE WHOLE SET! PANTS OPTIONAL! APPARENTLY!",
+  "text": "THIS ISN'T HIDING! IT'S THE HIGH GROUND! DON'T STAND UNDER ME!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THIS ISN'T HIDING! IT'S THE HIGH GROUND! PROS TAKE THE HIGH GROUND!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THIS ISN'T HIDING! IT'S UPWIND!",
   "from": "ADVENTURE"
  },
  {
@@ -52531,7 +52961,7 @@
  },
  {
   "voice": "m2.safari",
-  "text": "THOSE GORILLAS ARE ALL DAVE. HI, DAVE. DAVE'S A PIECE OF SHIT.",
+  "text": "THOSE GORILLAS ARE ALL DAVE. DAVE WANTED MY BOAT. DAVE GOT A FUR SUIT.",
   "from": "ADVENTURE"
  },
  {
@@ -52571,11 +53001,6 @@
  },
  {
   "voice": "m2.safari",
-  "text": "WATCH IT! THIS IS A RENTAL HELMET!",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "m2.safari",
   "text": "WE'RE NEVER TALKING ABOUT THIS, GERALD. EXCEPT THE WALKOUT.",
   "from": "ADVENTURE"
  },
@@ -52597,16 +53022,6 @@
  {
   "voice": "m2.safari",
   "text": "WHICH BUSH? THE ONE THAT DOESN'T SMELL LIKE YOU!",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "m2.safari",
-  "text": "WHICH BUSH? WHICH BUSH?",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "m2.safari",
-  "text": "WHICH BUSH? YOU NEED A BUSH MORE THAN I DO!",
   "from": "ADVENTURE"
  },
  {
@@ -52686,11 +53101,6 @@
  },
  {
   "voice": "m2.safari",
-  "text": "YOU JUMPED OUT OF MY BOAT! PUT SOME PANTS ON!",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "m2.safari",
   "text": "YOU KNOW WHAT SUNBURNS FIRST OUT HERE? YOU'RE ABOUT TO FIND OUT.",
   "from": "ADVENTURE"
  },
@@ -52716,11 +53126,6 @@
  },
  {
   "voice": "m2.safari",
-  "text": "YOU SET THAT OFF ON PURPOSE!",
-  "from": "ADVENTURE"
- },
- {
-  "voice": "m2.safari",
   "text": "YOU SET THAT OFF ON PURPOSE! YOU AND YOUR BARE ASS!",
   "from": "ADVENTURE"
  },
@@ -52731,12 +53136,12 @@
  },
  {
   "voice": "m2.safari",
-  "text": "YOU STAYED... FOR THE END... NAKED... WORST STANDING OVATION... EVER...",
+  "text": "YOU SHOT SKIPPER OF THE YEAR, ASSHOLE!",
   "from": "ADVENTURE"
  },
  {
   "voice": "m2.safari",
-  "text": "YOU WALKED OUT ON MY SET, YOU PRICK.",
+  "text": "YOU STAYED... FOR THE END... NAKED... WORST STANDING OVATION... EVER...",
   "from": "ADVENTURE"
  },
  {
@@ -52747,6 +53152,21 @@
  {
   "voice": "m2.safari",
   "text": "YOU WALKED OUT ON MY SET. NAKED. IN FRONT OF GERALD.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "YOU WALKED OUT ON SKIPPER OF THE YEAR, YOU PRICK.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "YOU WALKED OUT ON SKIPPER OF THE YEAR. AND YOUR PANTS WALKED OUT ON YOU.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "YOU WALKED OUT ON SKIPPER OF THE YEAR. IN THOSE PANTS.",
   "from": "ADVENTURE"
  },
  {
@@ -72716,6 +73136,11 @@
  },
  {
   "voice": "meathead",
+  "text": "KEEP YOUR CROWD. I DIDN'T WANT IT.",
+  "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
   "text": "KEEP YOUR GUARD UP. OH. TOO LATE.",
   "from": "KILL_LINES"
  },
@@ -81761,6 +82186,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SKIPPER OF THE YEAR.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
   "text": "SKIPPING LEG DAY IS A SIN",
   "from": "VULGARITIES"
  },
@@ -87673,6 +88103,11 @@
   "voice": "meathead",
   "text": "THERE'S STILL SOMETHING IN IT! IT'S IN ME NOW!",
   "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "THERE'S YOUR STANDING OVATION.",
+  "from": "HOLLYWOOD"
  },
  {
   "voice": "meathead",
