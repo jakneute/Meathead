@@ -40,9 +40,10 @@ const COOLDOWN = [4, 3, 3, 3, 3, 3];
 export const SAUCER_SHARE = [0.06, 0.05, 0.04, 0.035, 0.035, 0.035];
 /** Bolts alone never take it below this share of its health: it's the beam that finishes it. */
 export const SAUCER_FLOOR = 0.35;
-/** The beam: its height, what it takes out of the saucer a frame (the saucer's left at most 35% by then: ~6.5 s of beam,
- *  so the gun's MAXIMUM RADIATION line is heard whole before it goes), out of anybody else. */
-export const BEAM_H = 70, BEAM_SAUCER = 8, BEAM_HIT = 400;
+/** The beam: its height, what it takes out of the saucer a frame (the saucer's left at most 35% by then: about 10 s of
+ *  held beam on it to finish it (the user's: "fairly rapidly chip away... but not so fast the comedic bit can be missed...
+ *  maybe 10 seconds of concentrated plasma beam fire"), its bar going down steadily the whole while), out of anybody else. */
+export const BEAM_H = 70, BEAM_SAUCER = 5.25, BEAM_HIT = 400;
 
 export interface GunTalk { text: string }
 const SAY = voice('m2.space.raygun');
