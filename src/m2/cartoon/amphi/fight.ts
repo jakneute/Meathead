@@ -525,9 +525,13 @@ const dad = (ctx: FrameContext, f: Fight) => {
       const W = f.swatWind;
       if (t === W) { playSound('whoosh', 1, -6); }
       // (it hurts where the mallet's head is, swept from last frame's spot to this one's)
-      if (t >= W && t <= W + SWAT_LIVE && !f.swatHit && hurtable(state) && swatSweep(f, state, swatT(f, t - 1), swatT(f, t))) {
+      // (close in on him on his couch, it always knocks him away (the user's): it hurts if he's open to it, in his
+      // i-frames it just shoves him back)
+      if (t >= W && t <= W + SWAT_LIVE && !f.swatHit && !state.player.inCutscene && state.player.health > 0 && swatSweep(f, state, swatT(f, t - 1), swatT(f, t))) {
         f.swatHit = true;
-        hurtPlayer(ctx, SWAT_DMG, hurtSrc(state, 'm2:ct_dad_swat'), { x: f.facing * 11, y: -8 });
+        const pl = state.player;
+        if (hurtable(state)) hurtPlayer(ctx, SWAT_DMG, hurtSrc(state, 'm2:ct_dad_swat'), { x: f.facing * 11, y: -8 });
+        else { pl.vel = { x: (pl.pos.x + pl.width / 2 < X(f.x) ? -1 : 1) * 11, y: -8 }; pl.pushbackTimer = Math.max(pl.pushbackTimer, 14); pl.isGrounded = false; }
         playSound('bonk', 1.1, -4); playSound('punch', 0.8, -6); shakeScreen(state, 8, 4);
         ctx.fx.spawnDamageNumber({ x: state.player.pos.x, y: state.player.pos.y - 24 }, 'BONK!', true, '#FDE047');
       }
@@ -1470,8 +1474,9 @@ export const killCamTick = (f: Fight): boolean => {
     if (cam.out) rate = 1;
   }
   if (cam.out && cam.z < 1.004) cam.z = 1;
-  // (pushed right in: the set's big stamps scaled, not painted again screens big (stamp.ts))
-  setStampHold(cam.z > 1.05);
+  // (pushed right in: every one of the set's stamps scaled, not painted again screens big; the head and bits are baked
+  // sharp of their own (dadBits.ts). The user's: the frame rate tanked once the linger held still (stamp.ts))
+  setStampHold(cam.z > 1.05, true);
   cam.acc += rate;
   if (cam.acc >= 1) { cam.acc -= 1; return false; }
   return true;

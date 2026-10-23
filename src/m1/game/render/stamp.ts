@@ -39,7 +39,7 @@ const latest = new Map<string, { s: Stamp; a: number; d: number }>();
 let stampStage: string | null | undefined;
 export const stampsForStage = (stageId: string | null | undefined) => {
   if (stageId === stampStage) return;
-  stampStage = stageId; stamps.clear(); asked.clear(); latest.clear(); bytes = 0; hold = false;
+  stampStage = stageId; stamps.clear(); asked.clear(); latest.clear(); bytes = 0; hold = false; holdAll = false;
 };
 
 /** A zoom pulling out (Meathead 2's hub, out of a portal): while it's on, art that's never been stamped is stamped the
@@ -59,7 +59,12 @@ export const stampSweep = () => sweep;
  *  pushed the rest of the basement's stamps out to be painted again too) is put down scaled from the one it has
  *  instead. Smaller art still settles sharp as usual. Off with every stage change. */
 let hold = false;
-export const setStampHold = (on: boolean) => { hold = on; };
+/** ...and `all`: every piece that has a stamp is scaled from it while held, however small (Stupid Dad's head linger: at
+ *  4.8x the zoom's slow ease only held still well into the linger, and then every piece of the set under HOLD_AREA was
+ *  painted afresh at 4.8x (screens-big canvases, a seam-free one bigger still behind each): seconds of 150 ms frames,
+ *  and their bytes pushed the set's own stamps out, so the pull-back after painted the hedges live every frame). */
+let holdAll = false;
+export const setStampHold = (on: boolean, all = false) => { hold = on; holdAll = on && all; };
 const HOLD_AREA = 1.5;
 /** How far round the screen a clipped stamp reaches (each side, a fraction of the canvas). */
 const CLIP_PAD = 0.5;
@@ -142,7 +147,7 @@ export const stamp = (ctx: Ctx, key: string, x: number, y: number, w: number, h:
       return;
     }
     // (a kill cam pushed in (setStampHold), and this one would be painted far bigger than the screen: scaled instead)
-    if (hold && near && Math.abs(m.a * w * m.d * h) > ctx.canvas.width * ctx.canvas.height * HOLD_AREA) {
+    if (hold && near && (holdAll || Math.abs(m.a * w * m.d * h) > ctx.canvas.width * ctx.canvas.height * HOLD_AREA)) {
       const ka = m.a / l!.s.a, kd = m.d / l!.s.d;
       putDown(ctx, m, l!.s.c, l!.s.L * ka, l!.s.T * kd, l!.s.c.width * ka, l!.s.c.height * kd);
       Object.assign(ctx, l!.s.after);
