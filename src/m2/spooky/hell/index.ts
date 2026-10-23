@@ -23,12 +23,13 @@ import { playSound } from '../../../m1/game/platform/audio';
 import { shakeScreen } from '../../../m1/game/core/state';
 import {
   x0, x1, D, SHAFT_L, SHAFT_R, SHAFT_TOP, LEFT_ROCK_BOTTOM, RIGHT_ROCK_BOTTOM, RIGHT_ROCK_W, POOLS, LAVA_DROP, ROCKS, LEDGES,
-  REFILL_X, VENT_X, WRECK_X, CAB_W, CAB_H, PICKUPS, WRECK_B_X, CAB_B_W, CAB_B_H,
+  REFILL_X, VENT_X, WRECK_X, CAB_W, CAB_H, PICKUPS, WRECK_B_X, CAB_B_W, CAB_B_H, ARENA_IN, ARENA_OUT,
 } from './layout';
 import { hellOf } from './state';
 import { HELL_KINDS } from './kinds';
 import { buildHazards, updateHazards, drawLava, drawHazards, drawHazardsFront } from './hazards';
-import { demonCamLock, buildDemon, updateDemon, drawDemon, drawDemonSaid, drawDemonHud, drawFireWall, demonOf, DONE_CP } from './demon';
+import { demonCamLock, buildDemon, updateDemon, drawDemon, drawDemonSaid, drawDemonHud, drawFireWall, demonOf, demonDeathNeed, DONE_CP } from './demon';
+import { frameDeath } from '../../deathFrame';
 import { startFinale, startVent, runFinale, finaleZoom, drawSatan, drawGeyser, drawFinaleHud } from './satan';
 import { drawHellBackdrop, drawHellWorld, drawLake } from './art';
 import { drawGatesBack, drawGatesFront } from './gates';
@@ -37,6 +38,8 @@ import { startFreefall, stepFreefall, landFreefall, drawFallDark, FREEFALL_LAND 
 
 /** The pit's camera: held at most this far in, till he's this far along. */
 const PIT_CAM = 190, PIT_HOLD = 880;
+/** The demon's pit as far as a camera taking him in may go (the hell over it; no lower than the floor's edge). */
+const PIT_ROOM = { x0: ARENA_IN - 200, y0: GY - 1200, x1: ARENA_OUT + 200, y1: GY + 50 };
 /** The landing beat after the fall down the shaft (frames) before he's his own again. */
 const LAND_BEAT = 42;
 /** The demon's pit's camera hold, the last it was (to ease out of once the walls are down). */
@@ -179,7 +182,8 @@ export const hell: SpookySection = {
     const min = Math.max(free.min, lim.min), max = Math.min(free.max, lim.max);
     return max >= min ? { min, max } : free;
   },
-  zoom: (state) => finaleZoom(state),
+  // (the demon beaten a way off the screen: the camera takes him in while he bawls and sinks (deathFrame.ts))
+  zoom: (state) => { const d = demonOf(state); return d ? frameDeath(state, d, finaleZoom(state), demonDeathNeed(state), PIT_ROOM) : finaleZoom(state); },
   drawBackdrop: (c, state) => { drawHellBackdrop(c, state); return true; },
   drawBack: (c, state) => {
     const d = demonOf(state);

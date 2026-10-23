@@ -85,6 +85,7 @@ import { type Sud, addSud, tickSuds, drawSuds } from './foam';
 import { type Endo, makeEndo, tickEndo, settleEndo, drawEndo, endoLights } from './endo';
 import { BURST_AT, PUNCH, tickSplit, drawSplit, splitLights } from './split';
 import { setStampHold } from '../../../m1/game/render/stamp';
+import { type Box, around, boxOf, join } from '../../deathFrame';
 
 type Ctx = CanvasRenderingContext2D;
 const pick = pickLine;
@@ -1173,6 +1174,16 @@ export const discoZoom = (state: GameState, f: Fight, k: number) => {
   const sc = Math.min(1, w / (x1 - x0), h / (y1 - y0));
   const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
   return { scale: 1 + (sc - 1) * e, x: cx, y: cy, shiftX: e * (state.camera.x + CANVAS_WIDTH / 2 - cx), shiftY: e * (state.camera.y + top + h / 2 - cy) };
+};
+
+/** Her plain death, what of it has to be on screen (deathFrame.ts: killed with her a way off it, the camera takes her
+ *  in): her burning, the skeleton, its lunge; then the heap, every piece of it where it's gone. Null for the mallet's
+ *  (its own camera's the whole hall) and once it's over. */
+export const deathNeed = (f: Fight): Box | null => {
+  const en = f.endo;
+  if (f.mode !== 'dead' || f.blown || !en) return null;
+  if (en.ph !== 'down') return around(f.x, GY, 240, 320, 12);
+  return join(around(en.bx, GY, 60, 120, 12), boxOf(en.bits.map(b => ({ x: en.bx + en.bf * b.x, y: GY + b.y })), 30));
 };
 
 /** Her weakness death: pulled right back, the whole disco wall to wall, its floor along the bottom of the screen, to

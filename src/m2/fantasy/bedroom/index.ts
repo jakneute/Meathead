@@ -25,7 +25,8 @@ import type { GameState } from '../../../m1/game/core/state';
 import type { Block } from '../../../m1/types';
 import { pickLine } from '../../../m1/game/platform/speech';
 import { isNude } from '../../../m1/game/player/gut';
-import { topBand, CANVAS_WIDTH } from '../../../m1/constants';
+import { topBand, CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
+import { frameDeath } from '../../deathFrame';
 import type { FantasySection } from '../section';
 import { layOwn, endWalls, fantasyState, hands, ledge, solid, landVisit, meatheadSays, byPants } from '../section';
 import { DOORS } from '../geometry';
@@ -38,13 +39,16 @@ import { x0, GY, DOOR_X, KICK_AT, REFILL_X, ARENA_L, ARENA_R, CEIL_Y, CAM_Y, LED
 import { drawHall, drawChamber, drawEndWall } from './room';
 import {
   type Fight, startFight, updateFight, fightOver, endFight, killedByWeakness, introSeen, markIntroSeen, drawFightBack, drawFightFront, drawFightHud,
-  killCamTick, killCamZoom, rangeZoom, roomBits, keepErect, drawRemains,
+  killCamTick, killCamZoom, deathNeed, rangeZoom, roomBits, keepErect, drawRemains,
 } from './fight';
 import { MH_HALL } from './lines';
 
 /** How she died (for a revisit's look): `cork:<x>` or `balloon:<x>` in state.stageMemo. */
 export const PIPER_END_MEMO = 'fa-piper-end';
 
+/** Her room as far as a camera taking her death in may go: wall to wall, the floor where it sits on the screen, up as far
+ *  as the long-range pull-out goes over the dollhouse cut (fight.ts rangeZoom: RANGE_Z). */
+const ROOM_VIEW = { x0: ARENA_L, y0: CAM_Y + CANVAS_HEIGHT - CANVAS_HEIGHT / 0.48, x1: ARENA_R, y1: CAM_Y + CANVAS_HEIGHT };
 interface Bedroom {
   fight: 'wait' | 'on' | 'won'; wonAt: number;
   f: Fight | null; walls: Block[];
@@ -197,6 +201,7 @@ export const bedroom: FantasySection = {
     if (s.victory) drawVictory(c, s.victory);
     if (s.walk) drawWalkAway(c, s.walk);
   },
-  zoom: (state) => { const f = bedroomOf(state).f; return f ? killCamZoom(state, f) ?? rangeZoom(state, f) : null; },
+  // (her plain death with her a way off the screen: the camera takes her in till it's caught up with her (deathFrame.ts))
+  zoom: (state) => { const f = bedroomOf(state).f; return f ? frameDeath(state, f, killCamZoom(state, f) ?? rangeZoom(state, f), deathNeed(f), ROOM_VIEW) : null; },
   holdTick: (ctx) => { const f = bedroomOf(ctx.state).f; return f ? killCamTick(f) : false; },
 };

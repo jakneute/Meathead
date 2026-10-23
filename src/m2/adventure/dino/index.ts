@@ -30,7 +30,8 @@ import { silenceAll, pickLine } from '../../../m1/game/platform/speech';
 import { SKIP_AFTER, offerSkip, takeSkip, drawSkipPrompt } from '../../../m1/game/platform/skip';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, KICK_POSE_FRAMES } from '../../../m1/constants';
 import { DINO_KINDS } from './kinds';
-import { buildRex, updateRex, drawRex, drawRexHud, drawRexSaid } from './rex';
+import { buildRex, updateRex, drawRex, drawRexHud, drawRexSaid, rexDeathNeed } from './rex';
+import { frameDeath } from '../../deathFrame';
 import { drawDinoBackdrop } from './art/sky';
 import { drawDinoWorld, dinoLamps } from './art/world';
 import { drawBoothCut } from './art/booth';
@@ -84,6 +85,22 @@ interface Dino {
   friendlyBark: number;
 }
 const dinoOf = (state: GameState) => sectionState<Dino>(state, 'dino', () => ({ hostile: true, held: false, pebbleSeen: false, pebble: null, doorKicked: false, kick: 0, friendlyBark: 0 }));
+/** The paddock as far as a camera taking the T. rex's death in may go (fence to fence, the jungle over it, the ground). */
+const PADDOCK_VIEW = { x0: PADDOCK_IN - 100, y0: GY - 1000, x1: PADDOCK_OUT + 100, y1: GY + 50 };
+/** The park's own zoom (the pebble, the temple). */
+const dinoZoom = (state: GameState) => {
+  const pb = dinoOf(state).pebble;
+  if (!pb) {
+    const p = state.player, cx = p.pos.x + p.width / 2;
+    const u = Math.max(0, Math.min(1, (cx - (LAST_FENCE - 900)) / 600)), k = u * u * (3 - 2 * u);
+    if (k <= 0) return null;
+    // (about him, eased over to the left of the screen, so the temple fills the rest of it)
+    return { scale: 1 - TEMPLE_ZOOM_OUT * k, x: cx, y: GY, shiftX: k * (170 - (cx - state.camera.x)) };
+  }
+  if (pb.pip > 0 || pb.closedAt >= 0 || pb.t < ZOOM_FROM) return null;
+  const u = Math.min(1, (pb.t - ZOOM_FROM) / (ZOOM_IN - ZOOM_FROM)), k = u * u * (3 - 2 * u);
+  return { scale: 1 + 1.8 * k, x: pb.x, y: pb.y, shiftX: k * (state.camera.x + CANVAS_WIDTH / 2 - pb.x), shiftY: k * (state.camera.y + CANVAS_HEIGHT / 2 - pb.y) };
+};
 
 let devPebble = false;
 
@@ -228,20 +245,9 @@ export const dino: Section = {
     }
     return controls;
   },
-  // (out of the drain: in on the pebble as it flies, till the cut; and coming up on the temple: out, to take it all in)
-  zoom: (state) => {
-    const pb = dinoOf(state).pebble;
-    if (!pb) {
-      const p = state.player, cx = p.pos.x + p.width / 2;
-      const u = Math.max(0, Math.min(1, (cx - (LAST_FENCE - 900)) / 600)), k = u * u * (3 - 2 * u);
-      if (k <= 0) return null;
-      // (about him, eased over to the left of the screen, so the temple fills the rest of it)
-      return { scale: 1 - TEMPLE_ZOOM_OUT * k, x: cx, y: GY, shiftX: k * (170 - (cx - state.camera.x)) };
-    }
-    if (pb.pip > 0 || pb.closedAt >= 0 || pb.t < ZOOM_FROM) return null;
-    const u = Math.min(1, (pb.t - ZOOM_FROM) / (ZOOM_IN - ZOOM_FROM)), k = u * u * (3 - 2 * u);
-    return { scale: 1 + 1.8 * k, x: pb.x, y: pb.y, shiftX: k * (state.camera.x + CANVAS_WIDTH / 2 - pb.x), shiftY: k * (state.camera.y + CANVAS_HEIGHT / 2 - pb.y) };
-  },
+  // (out of the drain: in on the pebble as it flies, till the cut; and coming up on the temple: out, to take it all in;
+  // the T. rex killed with it a way off the screen: the camera takes it in while it comes apart (deathFrame.ts))
+  zoom: (state) => frameDeath(state, dinoOf(state), dinoZoom(state), rexDeathNeed(state), PADDOCK_VIEW),
   // (over a fake jungle, at whatever hour it is: art/sky.ts)
   drawBackdrop: (c, state) => { drawDinoBackdrop(c, state); return true; },
   outdoors: () => 1,

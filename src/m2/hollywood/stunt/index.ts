@@ -17,18 +17,21 @@ import type { Block } from '../../../m1/types';
 import type { HollywoodSection } from '../section';
 import { layOwn, endWalls, hollywoodState, hands } from '../section';
 import { DOORS, GY } from '../geometry';
-import { topBand } from '../../../m1/constants';
+import { topBand, CANVAS_HEIGHT } from '../../../m1/constants';
 import { goTo, markLandCleared, markBossDeath, noteBossKill, isLandCleared } from '../../store';
 import { type Victory, startVictory, tickVictory, drawVictory, victoryDone } from '../../victory';
 import { type WalkAway, playWalkAway, tickWalkAway, drawWalkAway } from '../../walkAway';
 import { markBossFight } from '../../bossQuiet';
 import { x0, x1, ARENA_L, ARENA_R, CEIL_Y, CAM_ROW } from './arena';
+import { frameDeath } from '../../deathFrame';
 import { drawStuntBackdrop, drawStage, drawCrowd } from './art';
 import {
   type Fight, startFight, updateFight, fightOver, endFight, resetFight, drawFightBack, drawFightFront, drawFightHud,
-  killCamTick, killCamZoom, killedByWeakness, screenState, bayLooks,
+  killCamTick, killCamZoom, deathNeed, killedByWeakness, screenState, bayLooks,
 } from './fight';
 
+/** The stage as far as a camera taking his death in may go (wall to wall, the truss's ceiling, the front of the shot). */
+const STAGE_ROOM = { x0: ARENA_L, y0: CEIL_Y, x1: ARENA_R, y1: GY - CAM_ROW + CANVAS_HEIGHT };
 interface Stunt {
   fight: 'wait' | 'on' | 'won'; wonAt: number;
   f: Fight | null; walls: Block[];
@@ -122,7 +125,8 @@ export const stunt: HollywoodSection = {
     if (s.victory) drawVictory(c, s.victory);
     if (s.walk) drawWalkAway(c, s.walk);
   },
-  zoom: (state) => { const f = stuntOf(state).f; return f ? killCamZoom(state, f) : null; },
+  // (killed with him a way off the screen: the camera takes him in till it's caught up with him (deathFrame.ts))
+  zoom: (state) => { const f = stuntOf(state).f; return f ? frameDeath(state, f, killCamZoom(state, f), deathNeed(f), STAGE_ROOM) : null; },
   holdTick: (ctx) => { const f = stuntOf(ctx.state).f; return f ? killCamTick(f) : false; },
   outdoors: () => 1,
 };

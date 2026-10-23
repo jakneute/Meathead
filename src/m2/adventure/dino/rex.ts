@@ -26,6 +26,7 @@ import type { FrameContext } from '../../../m1/game/core/context';
 import type { GameState } from '../../../m1/game/core/state';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
+import { type Box, around, join } from '../../deathFrame';
 import { hazardVictims, hazardHit, setHazardZones } from '../../hazardHit';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import type { EnemyKind } from '../../../m1/types';
@@ -774,6 +775,17 @@ const ramPost = (ctx: FrameContext, r: Rex, q: Post) => {
 /** The rolling head's lowest point below its middle, turned `rot` (its box, the jaw hanging open off it included). */
 const HEAD_BOX = [[-HEAD_W / 2, -HEAD_H / 2], [HEAD_W / 2, -HEAD_H / 2], [HEAD_W / 2, 42], [-HEAD_W / 2, 42]];
 const headLow = (rot: number) => Math.max(...HEAD_BOX.map(([x, y]) => x * Math.sin(rot) + y * Math.cos(rot)));
+
+/** Killed with it a way off the screen (it's big, and the paddock's long): what has to be on screen while it comes
+ *  apart (deathFrame.ts): the body going over, the head rolling off, and him (he's still got the controls). Null
+ *  otherwise. */
+export const rexDeathNeed = (state: GameState): Box | null => {
+  const r = rexOf(state);
+  if (!r || r.fight !== 'dying') return null;
+  const p = state.player, h = r.head;
+  const body = { x0: r.x - (r.facing > 0 ? 230 : 190), y0: GY - 240, x1: r.x + (r.facing > 0 ? 190 : 230), y1: GY };
+  return join(join(body, h ? around(h.x, h.y, 70, 70, 50) : null), { x0: p.pos.x, y0: p.pos.y, x1: p.pos.x + p.width, y1: p.pos.y + p.height });
+};
 
 /** Coming apart: the head off and rolling, the body going over, the oil. */
 const updateDeath = (ctx: FrameContext, r: Rex) => {

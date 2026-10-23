@@ -67,6 +67,7 @@ import { hash, polyF, GOLD as GD } from '../kit';
 import type { ByPants } from '../talk';
 import { drawPiper, drawPiperCloseup, piperBodyW, piperTossHand, TOSS_RELEASE, PIPER_H, type PiperPose, type PiperFace } from '../piper';
 import { GY, DOOR_X, KICK_AT, ARENA_L, ARENA_R, ARENA_W, ARENA_MID, CEIL_Y, CAM_Y, LEDGES, CHANDELIERS, CHAISE_X, MAX_STAGE, CP_FIGHT, R } from './layout';
+import { type Box, around } from '../../deathFrame';
 import { drawChandelier, CHANDELIER_Y } from './room';
 import { drawMain, drawPatch, drawFireball, drawIceball, drawBolt, drawIceBlock, type MainDims } from './mains';
 import * as L from './lines';
@@ -1285,6 +1286,16 @@ const balloon = (ctx: FrameContext, f: Fight, d: Death) => {
 };
 const k3 = (t: number) => ['#D8C2B4', '#B49C8E', '#F45AAE', '#EDE4D8'][t % 4];
 
+/** Her plain death (the cork), what of it has to be on screen (deathFrame.ts): her, wherever the hit that did it caught
+ *  her (the camera's only on its way there), wedged in the floor; then the hole she's gone out of, floor to ceiling,
+ *  the mains gushing up it and what she left coming back down. Null for the balloon (its own kill cam) and till then. */
+export const deathNeed = (f: Fight): Box | null => {
+  const d = f.death;
+  if (f.mode !== 'dead' || !d || d.how !== 'cork') return null;
+  if (d.step === 'pop' || d.step === 'gone') return { x0: d.x - 100, y0: CEIL_Y - 10, x1: d.x + 100, y1: GY };
+  return around(d.x, Math.min(d.y, GY), 100, 230, 10);
+};
+
 /** Done with: her death played out, everybody's had their say. */
 export const fightOver = (f: Fight) => f.mode === 'dead' && !!f.death && f.deathSaid >= 4 && f.death.t > 200 && (!f.cam || f.cam.z <= 1);
 export const endFight = (state: GameState, f: Fight) => { state.player.inCutscene = false; if (f.ice || f.thawT > 0) { state.player.noSpecials = false; f.ice = null; f.thawT = 0; } state.cameraOverride = null; state.enemies = state.enemies.filter(o => o !== f.e); setUi({ iceMash: null }); };
@@ -1349,7 +1360,9 @@ export const killCamZoom = (state: GameState, f: Fight) => {
   const cam = f.cam;
   if (!cam || cam.z <= 1) return null;
   const k = (cam.z - 1) / (CAM_Z - 1), m = CANVAS_WIDTH / 2 / CAM_Z;
-  const fx = Math.max(state.camera.x + m, Math.min(state.camera.x + CANVAS_WIDTH - m, f.x)), fy = KILL_CAM_Y;
+  // (on her wherever she is, kept far enough in from the room's ends that it never shows past them: not the camera's
+  // edges, that's still on its way to her as it starts (the user's: "if any boss gets killed slightly offscreen"))
+  const fx = Math.max(ARENA_L + m, Math.min(ARENA_R - m, f.x)), fy = KILL_CAM_Y;
   return { scale: cam.z, x: fx, y: fy, shiftX: k * (state.camera.x + CANVAS_WIDTH / 2 - fx), shiftY: k * (state.camera.y + CANVAS_HEIGHT / 2 - fy) };
 };
 

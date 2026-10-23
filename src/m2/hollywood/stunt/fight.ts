@@ -48,6 +48,7 @@ import { drawSteveGross, drawSteveGrossBack } from './steveGross';
 import { box, label, saidOver, hands, speak, voice, meatheadSays, getHollywood } from '../section';
 import { bossIntroSeen, markBossIntroSeen } from '../../bossIntro';
 import { ARENA_L, ARENA_R, ARENA_MID, GY, ZK, CUT, CAM_ROW, DOORS_X, STEVE_AT, LANE_FRONT, BARRIER_Y, MAT_X } from './arena';
+import { type Box, around } from '../../deathFrame';
 import {
   type Garage, newRamps, spawnRed, spawnBlue, spawnTow, pickRamp, updateRamps, updateCars, tickLaunch, launchHim, boom, freeze,
   clearCars, dropCars, countCars, targetable, carOf, pmid, landingOf, tellsOf,
@@ -901,10 +902,20 @@ export const killCamTick = (f: Fight): boolean => {
 export const killCamZoom = (state: GameState, f: Fight) => {
   const cam = f.cam, d = f.death;
   if (!cam || !d || cam.z <= 1) return null;
-  // (its focus kept far enough in from the shot's edges that the zoomed view never shows past the arena's ends)
+  // (its focus kept far enough in from the arena's ends that the zoomed view never shows past them)
   const k = (cam.z - 1) / (CAM_Z - 1), m = CANVAS_WIDTH / 2 / CAM_Z;
-  const fx = Math.max(state.camera.x + m, Math.min(state.camera.x + CANVAS_WIDTH - m, d.x)), fy = GY - 60;
+  // (on him wherever he is, even a way off the screen as it starts: the camera's still on its way to him then (the user's:
+  // "make sure if any boss gets killed slightly offscreen, you zoom out so you can see everything"))
+  const fx = Math.max(ARENA_L + m, Math.min(ARENA_R - m, d.x)), fy = GY - 60;
   return { scale: cam.z, x: fx, y: fy, shiftX: k * (state.camera.x + CANVAS_WIDTH / 2 - fx), shiftY: k * (state.camera.y + CANVAS_HEIGHT / 2 + 40 - fy) };
+};
+
+/** His death, what of it has to be on screen (deathFrame.ts): him, wherever the hit that did it caught him (the camera's
+ *  only on its way there), the stunt's flight, the ring, the drop. Null till he's dead, and in the cut to black. */
+export const deathNeed = (f: Fight): Box | null => {
+  const d = f.death;
+  if (f.mode !== 'dead' || !d || d.fade > 0.5) return null;
+  return around(d.x, d.y, 60, d.step === 'fly' || d.step === 'hoop' ? 150 : 190, 12);
 };
 
 // ---------------------------------------------------------------------------------------------------------------

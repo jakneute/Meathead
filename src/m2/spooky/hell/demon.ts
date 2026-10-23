@@ -36,6 +36,7 @@ import type { FrameContext } from '../../../m1/game/core/context';
 import type { GameState } from '../../../m1/game/core/state';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { registerM2Kind, registerHurtLines } from '../../kinds';
+import { type Box, around, join } from '../../deathFrame';
 import { elbow, knee, reachTo } from '../../art/limb';
 import { registerDeathKind } from '../../../m1/game/player/deathAnim';
 import { hazardVictims, boxHits, setHazardZones } from '../../hazardHit';
@@ -345,6 +346,14 @@ export const demonCamLock = (state: GameState) => {
   if (!d || d.fight !== 'on') return null;
   const min = BACK_X + WALL_W / 2, max = ARENA_OUT + 15 - CANVAS_WIDTH;
   return max >= min ? { min, max } : { min: (min + max) / 2, max: (min + max) / 2 };
+};
+
+/** Beaten with him a way off the screen (the camera only goes so far across the pit): what has to be on it, him and
+ *  his guitar, while he bawls and sinks (deathFrame.ts). Null otherwise. */
+export const demonDeathNeed = (state: GameState): Box | null => {
+  const d = demonOf(state);
+  if (!d || d.fight !== 'beaten') return null;
+  return join(around(d.x, d.y, W / 2 + 30, H + 40, 8), d.guitarAt === null ? null : around(d.guitarAt, GY, 50, 60, 6));
 };
 
 /** Beaten (satan.ts takes it from here): he drops the guitar and sits down; the fire walls are out. */

@@ -36,8 +36,9 @@ import { markBossFight } from '../../bossQuiet';
 import { drawRoomBack, drawGlass, drawQueen, roomLights, drawAfterFall } from './art';
 import { type Show, makeShow, startShow, tickShow, showOn, showSkippable, drawShowQueen, drawShowSaid, drawShowFade, showHead, fell, collapsed, drawFallingSlabs, BASEMENT_CP } from './show';
 import { type Hunter, makeHunter, buildHunter, forceDoorIn, tickHunter, atDoor, startKick, doorIn, doorKicking, drawHunter, drawHides, drawHunterFront, hunterLighting, hunterZoom, drawDiscoDoor, layBasement, LADDERS, GRAVEYARD_CP, TUNNEL_CP, TUNNEL_CP_X, DISCO_CP } from './basement';
-import { type Fight, makeFight, startFight, updateFight, fightOver, endFight, queenDrops, introOn, drawQueenFight, drawQueenSaid, drawFightHud, discoLights, drawPool, poolLights, oilLights, tellLights, boothOps, introCamX, discoZoom, queenHoldTick, drawBurstFlash, drawIntroCloseup, deathSkippable, deathLights } from './fight';
+import { type Fight, makeFight, startFight, updateFight, fightOver, endFight, queenDrops, introOn, drawQueenFight, drawQueenSaid, drawFightHud, discoLights, drawPool, poolLights, oilLights, tellLights, boothOps, introCamX, discoZoom, deathNeed, queenHoldTick, drawBurstFlash, drawIntroCloseup, deathSkippable, deathLights } from './fight';
 import { type Heap, packEndo, unpackEndo, drawHeap } from './endo';
+import { frameDeath } from '../../deathFrame';
 import { drawBasement, drawDisco, discoLighting, discoGlow, drawShutter, drawDiscoShell } from './lowerArt';
 import { type Piece, type Splat, packPieces, unpackPieces, drawPieces, drawSplats } from './burst';
 
@@ -58,6 +59,8 @@ interface Queen {
   /** A revisit after her plain death: her burnt skeleton in its heap (kept: the store), or null. */
   heap: Heap | null | undefined;
 }
+/** The hall as far as a camera taking her death in may go (its walls, the ceiling's plenum, under the floor). */
+const DISCO_ROOM = { x0: DISCO_L - 60, y0: GY - 1000, x1: DISCO_R + 60, y1: GY + 160 };
 /** The store's key for her pieces (a revisit after her weakness death). */
 const WRECK_KEPT = 'space-queen-pieces';
 /** ...and her skeleton's heap (a revisit after her plain death). */
@@ -210,7 +213,14 @@ export const queen: SpaceSection = {
   },
   // (the basement: its whole height on one screen, the camera held level on it; dropping into it, it follows him down)
   cameraRow: (state) => (inBasement(state) ? feetOf(state) - (GY - 6) : undefined),
-  zoom: (state) => hunterZoom(state, hunterOf(state)) ?? discoZoom(state, fightOf(state), queenOf(state).deathCam),
+  // (her plain death killed with her a way off the screen: the camera takes in all of it, the heap too (deathFrame.ts))
+  zoom: (state) => {
+    const hz = hunterZoom(state, hunterOf(state));
+    if (hz) return hz;
+    const q = queenOf(state), f = fightOf(state), z = discoZoom(state, f, q.deathCam);
+    if (q.fight === 'wait' || !inLower(state)) return z;
+    return frameDeath(state, f, z, q.walk ? null : deathNeed(f), DISCO_ROOM);
+  },
   // (a mallet hit on her: a beat's hit-stop; her weakness death: slow motion on the burst)
   holdTick: (ctx) => (queenOf(ctx.state).fight === 'wait' ? false : queenHoldTick(fightOf(ctx.state))),
   drawBackdrop: (c) => { box(c, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, '#07040E'); return true; },

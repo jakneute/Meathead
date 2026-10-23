@@ -64,6 +64,7 @@ import { drawLion, drawGrizzly, lionJaw, bearJaw, BEAR_TUG_STEPS, type LionPose,
 import { drawTugged, drawTuckerHalf, halfEnd, drawStrand, drawNeckStump, drawHeadlessBody, drawBodyForNeck, drawStretchedNeck, drawTuckerHeadAt, BITE_TOP, BITE_LEGS, COLLAR, HEAD_CROWN, HEAD_SOCKET } from './gore';
 import { kindOf, GROUND_CRITTERS, FLYING_CRITTERS, critterSpeed, isCritter, isLion, LION_KIND, LION, MAULING, type Critter } from './critters';
 import { GY, ARENA_L, ARENA_R, ROCK_X, ROCK_HW, ROCK_H, LION_FROM_L, LION_FROM_R } from './layout';
+import { type Box, around } from '../../deathFrame';
 import { WOUNDS_SPLIT } from './cast';
 import * as L from './lines';
 
@@ -1162,11 +1163,20 @@ export const fightZoom = (state: GameState, f: Fight) => {
   const cam = f.cam;
   if (!cam || cam.z <= 1.001) return null;
   const m = CANVAS_WIDTH / 2 / cam.z;
-  const fx = Math.max(state.camera.x + m, Math.min(state.camera.x + CANVAS_WIDTH - m, f.tx)), fy = GY - 50;
+  // (on him wherever he is, kept far enough in from the arena's ends that it never shows past them: not the camera's
+  // edges, that's still on its way to him as it starts (the user's: "if any boss gets killed slightly offscreen"))
+  const fx = Math.max(ARENA_L + m, Math.min(ARENA_R - m, f.tx)), fy = GY - 50;
   const k = Math.min(1, (cam.z - 1) / Math.max(0.001, cam.top - 1));
   return { scale: cam.z, x: fx, y: fy, shiftX: k * (state.camera.x + CANVAS_WIDTH / 2 - fx), shiftY: k * (state.camera.y + CANVAS_HEIGHT / 2 + 40 - fy) };
 };
 
+/** His death, what of it has to be on screen (deathFrame.ts): him, wherever the shot that did it caught him (the
+ *  camera's only on its way there), through to what's left of him. Null till he's dead. */
+export const deathNeed = (f: Fight): Box | null => {
+  const d = f.death;
+  if (f.mode !== 'dead' || !d) return null;
+  return around(f.tx, Math.min(GY, d.ty), 70, 130, 10);
+};
 export const fightOver = (f: Fight) => f.mode === 'dead' && !!f.death?.done && (!f.cam || f.cam.z < 1.02);
 export const killedByWeakness = (f: Fight) => f.death?.how === 'lions';
 /** Won, under the VICTORY: the cats still on screen with their halves of him keep walking till they're off it (the user's). */

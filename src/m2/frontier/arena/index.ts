@@ -37,7 +37,7 @@ import type { Block } from '../../../m1/types';
 import type { FrontierSection } from '../section';
 import { layOwn, endWalls, endExits, runExits, hands } from '../section';
 import { DOORS } from '../geometry';
-import { topBand } from '../../../m1/constants';
+import { topBand, CANVAS_HEIGHT } from '../../../m1/constants';
 import { goTo, landsCleared, markLandCleared, markBossDeath, noteBossKill, isLandCleared, setWalkBack } from '../../store';
 import { startVictory, tickVictory, drawVictory, victoryDone } from '../../victory';
 import { playWalkAway, tickWalkAway, drawWalkAway, prewarmWalkAway } from '../../walkAway';
@@ -50,8 +50,11 @@ import { startCatchup, updateCatchup, drawCatchupHud, branchDone, setBranchMemos
 import { startFakeout, updateFakeout, startEntrance, tickEntrance, layFlat, drawIntroHud } from './intro';
 import { drawArenaCast, drawTuckerWords } from './cast';
 import { drawArenaBackdrop, drawArenaBack, drawBoulder, drawLeaves, tickLeaves, drawFallingTree, drawRemainsMark } from './art';
-import { startFight, updateFight, fightOver, endFight, tickFightWon, resetFight, holdIn, killedByWeakness, drawFightBack, drawFightFront, drawFightHud, fightZoom, fightHoldTick } from './fight';
+import { startFight, updateFight, fightOver, endFight, tickFightWon, resetFight, holdIn, killedByWeakness, drawFightBack, drawFightFront, drawFightHud, fightZoom, deathNeed, fightHoldTick } from './fight';
+import { frameDeath } from '../../deathFrame';
 
+/** The arena as far as a camera taking his death in may go (its two ends; the woods' sky over it; the fight's row). */
+const FIGHT_ROOM = { x0: ARENA_L, y0: GY - 1200, x1: ARENA_R, y1: GY - 550 + CANVAS_HEIGHT };
 const pmid = (state: GameState) => state.player.pos.x + state.player.width / 2;
 
 /** The world as it stands, on the first frame here since the rebuild (or a cheat start's pick). */
@@ -207,7 +210,8 @@ export const arena: FrontierSection = {
     if (s.victory) drawVictory(c, s.victory);
     if (s.walk) drawWalkAway(c, s.walk);
   },
-  zoom: (state) => { const s = arenaOf(state); return s.fight && s.phase === 'up' ? fightZoom(state, s.fight) : null; },
+  // (killed with him a way off the screen: the camera takes him in till it's caught up with him (deathFrame.ts))
+  zoom: (state) => { const s = arenaOf(state); return s.fight && s.phase === 'up' ? frameDeath(state, s.fight, fightZoom(state, s.fight), deathNeed(s.fight), FIGHT_ROOM) : null; },
   holdTick: (ctx) => { const s = arenaOf(ctx.state); return s.fight && s.phase === 'up' ? fightHoldTick(s.fight) : false; },
   outdoors: () => 1,
 };
