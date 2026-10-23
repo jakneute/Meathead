@@ -325,7 +325,8 @@ export const tickHunter = (ctx: FrameContext, h: Hunter, controls: Controls): Co
     } else if (h.hid >= 0) { h.hid = -1; p.hidden = false; playSound('clink', 0.4, -2); }
   }
   // (his heart, in there: quicker with her near)
-  if (h.hid >= 0 && --h.heart <= 0) { const near = inPlay(h) && Math.abs(h.x - cx) < 400; h.heart = near ? 22 : 44; playSound('thud', near ? 0.45 : 0.25, -14); }
+  // (the music's heartbeat carries it now: the low thud pitched down read as a whoosh (the user's))
+  if (h.hid >= 0 && --h.heart <= 0) { h.heart = 44; }
   // (his noise only counts in the tunnels: on the stairs (the run, and after it) he's meant to go fast, charging and
   // all; nothing he does there brings her, ambushes him or gets a warning)
   if (!h.finale) hearHim(state, h, controls);
@@ -595,7 +596,7 @@ const runHer = (ctx: FrameContext, h: Hunter) => {
         if (h.leaving && h.leg >= h.path.length) { h.leaving = false; to(h, 'climb'); h.entry = h.lvl === 0 && !VENTS.includes(Math.round(h.x)) && DUCTS.some(d => Math.abs(d - h.x) < 40) ? 'duct' : 'vent'; return; }
         // (the end of her way: now and then she doubles back a stretch before she goes)
         if (h.leg >= h.path.length && Math.random() < 0.3 && h.out < 600) h.path.push({ x: clampLvl(h, h.x - h.dir * rnd(250, 450)), stop: rnd(30, 90) });
-      } else if (h.sniff % 30 === 0) { h.dir = (-h.dir) as 1 | -1; playSound('snort', 0.4 + vol(state, h.x, 0.3), -10); }
+      } else if (h.sniff % 30 === 0) { h.dir = (-h.dir) as 1 | -1; if (h.sniff % 90 === 0) playSound('snort', 0.3 + vol(state, h.x, 0.25), -4); }
       h.x = clampLvl(h, h.x); h.y = levelY(h.lvl, h.x);
       steps(state, h, 24);
       if (sees(state, h)) spotted(state, h);
@@ -617,7 +618,7 @@ const runHer = (ctx: FrameContext, h: Hunter) => {
       const tgt = h.path[0];
       const sx = tgt ? clampLvl(h, tgt.x) : h.x;
       if (tgt && Math.abs(sx - h.x) > 4) { h.dir = sx < h.x ? -1 : 1; h.x += h.dir * Math.min(h.speed, Math.abs(sx - h.x)); }
-      else if (h.t % 30 === 0) { h.dir = (-h.dir) as 1 | -1; playSound('snort', 0.5, -10); }
+      else if (h.t % 30 === 0) { h.dir = (-h.dir) as 1 | -1; if (h.t % 90 === 0) playSound('snort', 0.4, -4); }
       h.x = clampLvl(h, h.x); h.y = levelY(h.lvl, h.x);
       steps(state, h, 26);
       if (h.hid >= 0 && Math.abs(h.x - cx) < 300) h.passedClose = true;
@@ -809,7 +810,7 @@ const tickChase = (state: GameState, h: Hunter) => {
   // screeches (spaced: the user's fewer-whooshes rule)
   if (c.t % 150 === 100) screech(state, 0.4 + 0.5 * k, -7 + 4 * k, 140);
   // closing (he's stopped): her breath, right behind
-  if (c.still > 6 && c.still % 8 === 0) playSound('snort', 0.5 + 0.4 * near, -12);
+  if (c.still > 6 && c.still % 8 === 0) playSound('snort', 0.5 + 0.4 * near, -4);
 };
 
 /** He stopped (or turned back, or let her close): a screech, and she's out of the dark behind him, at him. */

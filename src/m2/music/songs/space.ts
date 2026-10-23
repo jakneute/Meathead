@@ -370,6 +370,8 @@ export const SEQ_STALKER: Song = {
     low2: { inst: 'cello', pan: 0.2, rev: 0.45, vol: 0.45, mml: join(rest(8), ['_v80'], rep(swell4('o3 c'), 2), rest(8), rep(swell4('o2 g'), 2)) },
     pad: { inst: 'warmpad', pan: 0, rev: 0.5, vol: 0.35, mml: join(['_v65'], rep('o2 {f+ >c+}1^1^1^1', 8)) },
     high: { inst: 'slowstrings', pan: 0.3, rev: 0.55, vol: 0.3, mml: join(['_v70'], rep(ST_HIGH.join(' | '), 4)) },
+    // (out of every arrangement (the user: a constant whooshing over the stalk): the 'ooh's breathing in and out read as
+    // wind, not breath; the cello drone's swell carries the breathing)
     breath: { inst: 'oohs', pan: -0.25, rev: 0.6, vol: 0.4, mml: join(['_v60'], rep('_e5 _e70/1 o3 f+1 _e70 _e5/1 o3 f+1', 16)) },
     hits: { inst: 'taiko', drums: true, pan: 0.35, rev: 0.75, vol: 0.55, mml: join(rep(ST_HITS.join(' | '), 4)) },
     timp: { inst: 'timpani', pan: -0.3, rev: 0.55, vol: 0.5, mml: join(rep(ST_TIMP.join(' | '), 4)) },
@@ -387,9 +389,9 @@ export const SEQ_STALKER: Song = {
     trem: { inst: 'strings', pan: -0.3, rev: 0.4, vol: 0.3, only: ['hunt', 'panic'], mml: join(['_v85'], rep('o5 [f+32 g32]16', 32)) },
   },
   arrangements: {
-    dark: { solo: ['drone', 'pad', 'breath', 'hits', 'timp', 'gong', 'drips', 'high'], vol: { high: 0.6 }, level: 0.85 },
-    near: { solo: ['drone', 'low2', 'pad', 'breath', 'hits', 'timp', 'gong', 'drips', 'high', 'clicks', 'heart', 'horn'], level: 0.95 },
-    main: { solo: ['drone', 'low2', 'pad', 'breath', 'hits', 'timp', 'gong', 'drips', 'high', 'clicks', 'heart', 'horn'], level: 0.95 },
+    dark: { solo: ['drone', 'pad', 'hits', 'timp', 'gong', 'drips', 'high'], vol: { high: 0.6 }, level: 0.85 },
+    near: { solo: ['drone', 'low2', 'pad', 'hits', 'timp', 'gong', 'drips', 'high', 'clicks', 'heart', 'horn'], level: 0.95 },
+    main: { solo: ['drone', 'low2', 'pad', 'hits', 'timp', 'gong', 'drips', 'high', 'clicks', 'heart', 'horn'], level: 0.95 },
     hunt: { mute: ['breath', 'drips', 'heart'], vol: { drone: 0.8, horn: 1.2 } },
     // (the stairs' panic run, her heard and not seen: no beat, no guitars; the drone and the cluster up loud, her clicks,
     // his heart, the strings sawing at the minor second, the taiko under it)
