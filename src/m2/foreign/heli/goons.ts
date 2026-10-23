@@ -19,6 +19,7 @@ import { heliOf } from './state';
 import { goonSays } from './talk';
 import { GOON_BARK } from './lines';
 import { CAMX, CY, W, H, fx, fy } from './geo';
+import { inPlay } from '../../moves/grab';
 
 export const GOON_KIND = 'm2:fl_jetgoon';
 const SHOT = 12;
@@ -353,7 +354,7 @@ export const WAVES: ((state: GameState) => void)[][] = ([
 /** The goons still out (alive, on the screen, or still swooping in). */
 export const goonsLeft = (state: GameState) => {
   const h = heliOf(state);
-  h.goons = h.goons.filter(e => (state.enemies.includes(e) || isEntering(state, e)) && e.health > 0 && !e.isBlownAway && !(e as Enemy & { gone?: boolean }).gone);
+  h.goons = h.goons.filter(e => (inPlay(state, e) || isEntering(state, e)) && e.health > 0 && !e.isBlownAway && !(e as Enemy & { gone?: boolean }).gone);
   return h.goons.length;
 };
 /** Clears the gone ones out of the world (flown off). */

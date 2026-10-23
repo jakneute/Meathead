@@ -751,6 +751,9 @@ export const grabBusy = () => busy;
 /** Who he's got hold of right now (nobody else gets to eat him). */
 let holding: Enemy | null = null;
 export const grabHolding = () => holding;
+/** Still about (the stage's own lists of who's left): in the world, or in his hands right now (a held one's out of
+ *  state.enemies while he has it; the playtest: Meathead called the coaster clear with an attendant in his grip). */
+export const inPlay = (state: GameState, e: Enemy) => holding === e || state.enemies.includes(e);
 /** A grab's on (from the windup to the last frame of the throw): the stage's bounce pads, springs and the like keep off
  *  him (see envGuard, which puts right any that don't ask). */
 let locked = false;

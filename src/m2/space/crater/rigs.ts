@@ -30,6 +30,7 @@ import { drawCheapGreen, shown } from './art';
 import { alienSays, freshBark, barkPlace, GRUNT, BRUTE, isOperator, setOperating } from './kinds';
 import { RIGS, CEIL, type RigKind } from './layout';
 import * as L from './lines';
+import { inPlay } from '../../moves/grab';
 
 type Ctx = CanvasRenderingContext2D;
 const pick = pickLine;
@@ -100,7 +101,7 @@ export const tickRigs = (ctx: FrameContext, rigs: Rig[]) => {
   });
 };
 
-const opAlive = (state: GameState, r: Rig) => !!r.op && r.op.health > 0 && !r.op.isBlownAway && state.enemies.includes(r.op);
+const opAlive = (state: GameState, r: Rig) => !!r.op && r.op.health > 0 && !r.op.isBlownAway && inPlay(state, r.op);
 
 /** A taken-over rig: seized, then at him; its operator dead, a prop again. */
 const tickTaken = (ctx: FrameContext, r: Rig, working: Map<Enemy, number>) => {

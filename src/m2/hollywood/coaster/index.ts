@@ -67,6 +67,7 @@ import { drawCoasterBackdrop, drawCoasterBack, drawTrain, drawFlyingTrain, drawT
 import { cview } from './paint';
 import * as L from './lines';
 import { updateThrones, drawThroneFront, inCase, throneState, throneHere } from './thrones';
+import { inPlay } from '../../moves/grab';
 
 const narr = L.NARRATOR;
 
@@ -384,7 +385,7 @@ const runStop = (state: GameState, co: Coaster, i: number, ctx: FrameContext) =>
       if ((run.go && run.t > 50) || run.t > 900) startFight(state, i);
       break;
     case 'fight': {
-      run.out = run.out.filter(e => e.health > 0 && !e.isBlownAway && state.enemies.includes(e));
+      run.out = run.out.filter(e => e.health > 0 && !e.isBlownAway && inPlay(state, e));
       helpStaff(ctx, run, STOPS[i]);
       if (run.queue.length) { if (--run.spawnT <= 0) { spawn(state, co, i); run.spawnT = 28; } break; }
       if (run.out.length) { run.t = 0; break; }

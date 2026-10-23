@@ -31,6 +31,7 @@ import { unboard, feetY, riderX } from './ride';
 import { X, x0, x1, CHIPPER, JUMP_FROM, READY_FROM, LAND_X, END } from './layout';
 import { startGore, updateGore, chipperJammed } from './chipperGore';
 import { RIDE_VOICES, CREW_JUMP, CREW_MAD, CHIPPED_CALLS, JUMPED, HURT } from './lines';
+import { inPlay } from '../../moves/grab';
 
 const LEAP = 54;
 /** Whoever goes into the hopper: its own callout (the announcer's). */
@@ -44,7 +45,7 @@ const crewSays = (state: GameState, who: Enemy, pool: ByPants) => {
   ch.crewBy = who;
   speak(woman ? RIDE_VOICES.crewf : RIDE_VOICES.crew, pickLine(byPants(state, pool)), s => { ch.crew = s; }, false);
 };
-const crewAlive = (state: GameState) => rideOf(state).crew.filter(e => e.health > 0 && !e.isBlownAway && state.enemies.includes(e));
+const crewAlive = (state: GameState) => rideOf(state).crew.filter(e => e.health > 0 && !e.isBlownAway && inPlay(state, e));
 
 /** Anybody flung into the running chipper's hopper goes through it. */
 const chipThrown = (ctx: FrameContext) => {
