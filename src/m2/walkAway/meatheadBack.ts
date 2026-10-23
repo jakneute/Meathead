@@ -10,7 +10,8 @@
 // legs, swinging with every step, the lot, uncensored). His boots' heels; the soles coming up as each foot pushes off.
 
 import { type Ctx, INK, box, lump, poly, mix, stipple, hash } from './kit';
-import { SKIN, JEANS, BOOT, BELT, GOLD, HAIR, BAND, limb } from './meathead';
+import { SKIN, JEANS, BOOT, BELT, GOLD, HAIR, BAND } from './meathead';
+import { armOf, flesh, foreLines, legOf, upperLines, wristband } from './flesh';
 
 /** Where the sun never gets (under his jeans). */
 const PALE = ['#A2704C', '#C9946A', '#E4B890', '#F3D0AC', '#FFE8CE'];
@@ -41,8 +42,7 @@ const leg = (c: Ctx, side: number, p: BackPose, bob: number) => {
   const R = p.nude ? SKIN : JEANS;
   const lx = side * 13, hipY = -74 + bob;
   const bootTop = -15 - fwd * 5 - back * 5;
-  limb(c, lx, hipY, 25, lx - side * 1, bootTop + 3, 20 - fwd * 2, R, side > 0 ? p.rim : undefined);
-  if (side < 0) box(c, lx - 12, hipY + 4, 1, bootTop - hipY - 4, p.rim);
+  flesh(c, legOf(lx, hipY, lx - side * 1, bootTop + 3, side, p.nude), R, side > 0 ? p.rim : undefined);
   const ky = Math.round(hipY + (bootTop - hipY) * 0.52);
   if (!p.nude) {
     // (the creases behind the knee, the seams down the back, bunched at the ankle)
@@ -80,41 +80,16 @@ const leg = (c: Ctx, side: number, p: BackPose, bob: number) => {
   if (side > 0) box(c, bx + bw - 1, by, 1, bh - 3, p.rim);
 };
 
-/** An arm hanging at his side from behind: the rear delt, the tricep, the elbow, the forearm, the fist; one piece, inked
- * round the outside of the lot. Returns the fist. */
+/** An arm hanging at his side from behind: the rear delt, the triceps, the point of the elbow, the forearm; one mass
+ * (flesh.ts), inked round the outside of the lot, the light from where he's headed round its far edge. Returns the fist. */
 const arm = (c: Ctx, side: number, p: BackPose, ty: number, swing: number): [number, number] => {
-  const S = side < 0 ? SKIN : [SKIN[0], SKIN[1], SKIN[2], SKIN[2], SKIN[3]];
-  const sx = side * 45, sy = -132 + ty;
+  const S = side < 0 ? SKIN : [SKIN[0], SKIN[1], SKIN[2], SKIN[3], SKIN[3]];
   // (the elbow out a touch, the forearm back in toward his thigh; swung forward (away from us): the fist up and in a
   // touch, back: down and out)
-  const ex = side * 50, ey = -99 + ty;
   const fx = side * (44 - swing * 1.5), fy = -64 + ty - swing * 4;
-  // (the ink round the whole arm first, then the arm over it: no seams at the elbow)
-  c.strokeStyle = INK; c.lineCap = 'round'; c.lineJoin = 'round';
-  c.lineWidth = 22; c.beginPath(); c.moveTo(sx, sy); c.lineTo(ex, ey); c.stroke();
-  c.lineWidth = 15; c.beginPath(); c.moveTo(ex, ey); c.lineTo(fx, fy - 4); c.stroke();
-  c.lineCap = 'butt'; c.lineJoin = 'miter';
-  limb(c, sx, sy, 20, ex, ey, 14, S, side > 0 ? p.rim : undefined, null);
-  limb(c, ex, ey, 14, fx, fy - 4, 11, S, side > 0 ? p.rim : undefined, null);
-  c.fillStyle = S[2]; c.beginPath(); c.ellipse(ex, ey, 7, 5, 0, 0, Math.PI * 2); c.fill();
-  // (the tricep's horseshoe down the back of the upper arm, the point of the elbow, the forearm's meat under it)
-  lump(c, side * 47, -117 + ty, 8, 11, S, false);
-  box(c, side * 47 - 4, -108 + ty, 8, 1, S[1]);
-  box(c, ex - 2, ey - 1, 4, 3, S[1]); box(c, ex - 1, ey - 1, 2, 1, S[3]);
-  lump(c, ex + (fx - ex) * 0.3 - side * 1, ey + (fy - ey) * 0.3, 5, 8, S, false);
-  // (the wristband)
-  const wx = ex + (fx - ex) * 0.8, wy = ey + (fy - 4 - ey) * 0.8;
-  c.fillStyle = INK; c.beginPath(); c.ellipse(wx, wy, 7, 4, 0, 0, Math.PI * 2); c.fill();
-  c.fillStyle = BAND[2]; c.beginPath(); c.ellipse(wx, wy, 6, 3, 0, 0, Math.PI * 2); c.fill();
-  box(c, wx - 4, wy - 2, 4, 1, BAND[4]);
-  // The rear delt: the round cap over the top of it (its edge inked only up over the shoulder)
-  c.fillStyle = INK; c.beginPath(); c.ellipse(side * 43, -132 + ty, 13, 11, 0, Math.PI, 0); c.fill();
-  lump(c, side * 43, -131 + ty, 12, 10, S, false);
-  c.strokeStyle = p.rim; c.lineWidth = 1;
-  if (side > 0) { c.beginPath(); c.ellipse(side * 43, -131 + ty, 11, 10, 0, -Math.PI / 2.2, Math.PI / 2.6); c.stroke(); }
-  else { c.beginPath(); c.ellipse(side * 43, -131 + ty, 11, 10, 0, Math.PI - Math.PI / 2.6, Math.PI + Math.PI / 2.2); c.stroke(); }
-  // (the outer edge of the arm, lit from where he's going)
-  box(c, side * 56 - (side > 0 ? 1 : 0), -126 + ty, 1, 24, p.rim);
+  const a = armOf([side * 44, -128 + ty], [fx, fy], [side * 50, -99 + ty], side);
+  flesh(c, a.mass, S, p.rim, undefined, cc => { upperLines(a, S, true)(cc); foreLines(a, S, true)(cc); });
+  wristband(c, a, BAND);
   return [fx, fy];
 };
 

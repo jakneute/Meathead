@@ -4,6 +4,7 @@
 // ramp; lit from the front left, the wreck behind him catching his edges (rim).
 
 import { type Ctx, INK, box, lump, poly, mix, stipple } from './kit';
+import { type Arm, armOf, flesh, foreLines, foreRegion, legOf, upperLines, wristband } from './flesh';
 
 export const SKIN = ['#6E3F1C', '#A0662E', '#C68B45', '#E0AC69', '#F5D0A9'];
 export const GREEN = ['#3A4A12', '#5C6E1E', '#7E9434', '#A8BC5A', '#D2E08A'];
@@ -68,31 +69,14 @@ const TOY = 1.3;
 
 const lerpRamp = (a: string[], b: string[], k: number) => (k <= 0 ? a : a.map((col, i) => mix(col, b[i], k)));
 
-/** A tapered limb (a leg, a forearm): from (x0, y0) w0 wide to (x1, y1) w1 wide; lit down its left, shaded down its right. */
-export const limb = (c: Ctx, x0: number, y0: number, w0: number, x1: number, y1: number, w1: number, r: string[], rim?: string, ink: string | null = INK) => {
-  const pts = [[x0 - w0 / 2, y0], [x0 + w0 / 2, y0], [x1 + w1 / 2, y1], [x1 - w1 / 2, y1]];
-  poly(c, pts, r[2], ink);
-  // (lit along the left, shaded along the right, a stepped edge each)
-  c.save(); c.beginPath(); pts.forEach(([x, y], i) => (i ? c.lineTo(x, y) : c.moveTo(x, y))); c.closePath(); c.clip();
-  const n = 8;
-  for (let i = 0; i < n; i++) {
-    const k = i / n, xa = x0 + (x1 - x0) * k, ya = y0 + (y1 - y0) * k, wa = w0 + (w1 - w0) * k;
-    const h = Math.abs(y1 - y0) / n + 1;
-    box(c, xa - wa / 2, ya, 3, h, r[3]); box(c, xa - wa / 2 + 3, ya, 1, h, stipple(c, r[3]) as never);
-    box(c, xa + wa / 2 - 3, ya, 3, h, r[1]); box(c, xa + wa / 2 - 4, ya, 1, h, stipple(c, r[1], 1) as never);
-    if (rim) box(c, xa + wa / 2 - 1, ya, 1, h, rim);
-  }
-  c.restore();
-};
-
 const leg = (c: Ctx, side: number, step: number, bob: number, p: Pose) => {
   const s = Math.sin(step) * side;
   const lift = Math.max(0, -s) * 7, fwd = Math.max(0, s);
   const R = p.nude ? SKIN : JEANS;
   const lx = side * 13 + side * fwd * 0.5, hipY = -74 + bob;
   const bootTop = -15 - lift + fwd * 1.5;
-  // The leg (jeans): thigh to ankle, bunched over the boot
-  limb(c, lx, hipY, 25, lx - side * 1, bootTop + 3, 20, R, side > 0 ? p.rim : undefined);
+  // The leg (jeans): thigh to ankle, bunched over the boot; one mass (flesh.ts), the thigh's sweep, the knee, the calf
+  flesh(c, legOf(lx, hipY, lx - side * 1, bootTop + 3, side, p.nude), R, side > 0 ? p.rim : undefined);
   if (!p.nude) {
     // (the knee, the creases bunched at the ankle, the outer seam)
     const ky = hipY + (bootTop - hipY) * 0.55;
@@ -121,29 +105,69 @@ const leg = (c: Ctx, side: number, step: number, bob: number, p: Pose) => {
 
 let turnLayer: HTMLCanvasElement | null = null;
 
-/** The weapon with his hands on it: drawn in its frame, the grips found, his forearms to them, his fists over it. */
-const handsAndToy = (c: Ctx, p: Pose, bob: number, grip: [[number, number], [number, number]], drawWeapon: (c: Ctx, t: number) => void, R: string[]) => {
+/** His arms' ramps: his right (the screen's left) in the light; his left a step down (in the wreck's light). */
+const armRamp = (side: number, S: string[]) => (side < 0 ? S : [S[0], S[1], S[2], S[3], S[3]]);
+
+/** The toy turned over in his hands (the crossbow's): how far round it's turned, and where its grips are (his frame). */
+const toyGrips = (p: Pose, bob: number, grip: [[number, number], [number, number]]) => {
   const cs = Math.cos(p.turn);
   const sx = Math.abs(cs) < 0.08 ? 0.08 * Math.sign(cs || 1) : cs;
-  const at = ([gx, gy]: [number, number]) => {
+  const at = ([gx, gy]: [number, number]): Pt => {
     const x = gx * sx * TOY, y = gy * TOY;
-    return [p.wx + x * Math.cos(p.rot) - y * Math.sin(p.rot), p.wy + bob + x * Math.sin(p.rot) + y * Math.cos(p.rot)] as const;
+    return [p.wx + x * Math.cos(p.rot) - y * Math.sin(p.rot), p.wy + bob + x * Math.sin(p.rot) + y * Math.cos(p.rot)];
   };
   let [a, b] = [at(grip[0]), at(grip[1])];
   // (his left fist the one on the screen's left)
   if (a[0] > b[0]) [a, b] = [b, a];
-  const elbowL = [-47, -97 + bob] as const, elbowR = [47, -97 + bob] as const;
-  const FORE = [R[0], R[0], R[1], R[2], R[3]];
-  // Forearms (behind the toy): elbow to fist, the wristband by the fist
-  for (const [e, h, side] of [[elbowL, a, -1], [elbowR, b, 1]] as const) {
-    limb(c, e[0], e[1], 14, h[0] - side * 2, h[1] + 2, 11, FORE, side > 0 ? p.rim : undefined);
-    // (the elbow's point, the muscle down the top of it)
-    lump(c, e[0], e[1], 6, 5, FORE);
-    const k = 0.78, wx = e[0] + (h[0] - e[0]) * k, wy = e[1] + (h[1] - e[1]) * k;
-    c.fillStyle = INK; c.beginPath(); c.ellipse(wx, wy, 7, 5, 0, 0, Math.PI * 2); c.fill();
-    c.fillStyle = BAND[2]; c.beginPath(); c.ellipse(wx, wy, 6, 4, 0, 0, Math.PI * 2); c.fill();
-    box(c, wx - 4, wy - 3, 5, 1, BAND[4]);
+  return { cs, sx, a, b };
+};
+
+/** His arms this frame, shoulder to fist (`ty`: the walk's bob): [the screen's left, the screen's right]. */
+const armsOf = (p: Pose, ty: number, grip: [[number, number], [number, number]], walking: boolean): Arm[] => {
+  const sw = Math.sin(p.step), h = p.hold;
+  const toy = !walking && !h ? toyGrips(p, ty, grip) : null;
+  return [-1, 1].map(side => {
+    let F: Pt, hint: Pt = [side * 47, -97 + ty];
+    if (walking) {
+      // (his right arm swings with his left leg; his left, with the weapon in it, hardly at all. Swung toward us: the
+      // fist lower)
+      const swing = side < 0 ? sw : -sw * 0.35;
+      F = [side * (45 + swing * 1.2), -64 + ty + swing * 3];
+    } else if (h) {
+      const e = (side > 0 ? h.elbowL : h.elbowR) ?? (side > 0 ? ELBOW_L : ELBOW_R);
+      const f = (side > 0 ? h.left : h.right) ?? hangFist(side, p.step);
+      F = [f[0], f[1] + ty]; hint = [e[0], e[1] + ty];
+    } else F = side < 0 ? toy!.a : toy!.b;
+    return armOf([side * 44, -128 + ty], F, hint, side);
+  });
+};
+
+/** A forearm up in front of his face (or of anything drawn after his upper arms): drawn again over it. */
+const overHead = (a: Arm, ty: number) =>
+  Math.min(a.E[1], a.F[1]) < -134 + ty && (Math.min(Math.abs(a.E[0]), Math.abs(a.F[0])) < 32 || a.E[0] * a.F[0] < 0);
+
+/** The forearms' late pass (after his head): each forearm again where it must be over what's been drawn since (its
+ *  region of the same arm: no seam), the wrist wrap. */
+const forearms = (c: Ctx, p: Pose, arms: Arm[], ty: number, S: string[], redrawAll = false) => {
+  for (const a of arms) {
+    if (redrawAll || overHead(a, ty)) {
+      const r = armRamp(a.side, S);
+      flesh(c, a.mass, r, a.side > 0 ? p.rim : undefined, foreRegion(a), foreLines(a, r, false));
+    }
+    wristband(c, a, BAND);
   }
+};
+
+/** A fist, knuckles toward us. */
+const fistAt = (c: Ctx, x: number, y: number, R: string[], rx = 7, ry = 7) => {
+  lump(c, x, y, rx, ry, R);
+  box(c, x - 5, y - 2, 10, 1, R[1]); box(c, x - 4, y + 1, 8, 1, R[1]); box(c, x - 5, y - 4, 2, 1, R[4]);
+};
+
+/** The weapon with his hands on it: his forearms to the grips, the toy in its frame, his fists over it. */
+const handsAndToy = (c: Ctx, p: Pose, bob: number, grip: [[number, number], [number, number]], drawWeapon: (c: Ctx, t: number) => void, R: string[], arms: Arm[]) => {
+  const { cs, sx } = toyGrips(p, bob, grip);
+  forearms(c, p, arms, bob, R);
   // The toy
   c.save(); c.translate(p.wx, p.wy + bob); c.rotate(p.rot); c.scale(sx * TOY, TOY);
   if (cs >= 0 || typeof document === 'undefined') drawWeapon(c, p.t);
@@ -162,11 +186,7 @@ const handsAndToy = (c: Ctx, p: Pose, bob: number, grip: [[number, number], [num
   }
   c.restore();
   // Fists, over it
-  for (const h of [a, b]) {
-    lump(c, h[0], h[1], 7, 6, R);
-    box(c, h[0] - 5, h[1] - 2, 10, 1, R[1]); box(c, h[0] - 4, h[1] + 1, 8, 1, R[1]);
-    box(c, h[0] - 5, h[1] - 4, 2, 1, R[4]);
-  }
+  for (const a of arms) fistAt(c, a.F[0], a.F[1], R, 7, 6);
 };
 
 /** The weapon's drawn this much bigger than it is in the game, hanging from his fist (walking, not holding it up). */
@@ -176,63 +196,36 @@ const HANG = 2.4;
  * Walking, not admiring it: his arms hanging and swinging against his stride, what he's carrying down by his thigh
  * in his left fist (he's left-handed: from the front, the one on the screen's right), muzzle to the ground.
  */
-const swingingArms = (c: Ctx, p: Pose, ty: number, weapon: ((c: Ctx, t: number) => void) | null, R: string[]) => {
+const swingingArms = (c: Ctx, p: Pose, ty: number, weapon: ((c: Ctx, t: number) => void) | null, R: string[], arms: Arm[]) => {
   const sw = Math.sin(p.step);
-  const FORE = [R[0], R[0], R[1], R[2], R[3]];
-  for (const side of [-1, 1]) {
-    // (his right arm swings with his left leg; his left, with the weapon in it, hardly at all. Swung toward us: the
-    // fist lower and a touch bigger)
-    const swing = side < 0 ? sw : -sw * 0.35;
-    const ex = side * 47, ey = -97 + ty;
-    const fx = side * (45 + swing * 1.2), fy = -64 + ty + swing * 3;
-    limb(c, ex, ey, 14, fx, fy - 4, 11, FORE, side > 0 ? p.rim : undefined);
-    lump(c, ex, ey, 6, 5, FORE);
-    const wx = ex + (fx - ex) * 0.8, wy = ey + (fy - 4 - ey) * 0.8;
-    c.fillStyle = INK; c.beginPath(); c.ellipse(wx, wy, 7, 4, 0, 0, Math.PI * 2); c.fill();
-    c.fillStyle = BAND[2]; c.beginPath(); c.ellipse(wx, wy, 6, 3, 0, 0, Math.PI * 2); c.fill();
-    box(c, wx - 4, wy - 2, 5, 1, BAND[4]);
-    if (side > 0 && weapon) {
+  forearms(c, p, arms, ty, R);
+  for (const a of arms) {
+    const swing = a.side < 0 ? sw : -sw * 0.35;
+    const [fx, fy] = a.F;
+    if (a.side > 0 && weapon) {
       c.save(); c.translate(fx, fy + 1); c.rotate(Math.PI / 2 - 0.22 - swing * 0.04); c.scale(HANG, -HANG); c.translate(-5, -6);
       weapon(c, p.t);
       c.restore();
     }
-    // (the fist: knuckles toward us)
-    lump(c, fx, fy, 7 + Math.max(0, swing) * 0.5, 7, R);
-    box(c, fx - 5, fy - 2, 10, 1, R[1]); box(c, fx - 4, fy + 1, 8, 1, R[1]); box(c, fx - 5, fy - 4, 2, 1, R[4]);
+    fistAt(c, fx, fy, R, 7 + Math.max(0, swing) * 0.5, 7);
   }
 };
 
 /** His arms and the toy as a Hold has them (walkAway/acts.ts). Everything shifted by the walk's bob (`ty`). */
-const holdingIt = (c: Ctx, p: Pose, h: Hold, ty: number, R: string[]) => {
-  const FORE = [R[0], R[0], R[1], R[2], R[3]];
+const holdingIt = (c: Ctx, p: Pose, h: Hold, ty: number, R: string[], arms: Arm[]) => {
   const toy = () => {
     if (!h.draw) return;
     c.save(); c.translate(h.wx, h.wy + ty); c.rotate(h.rot); c.scale(h.sx ?? 1, h.sy ?? 1);
     h.draw(c, p.t);
     c.restore();
   };
+  // (the toy behind his forearms: his forearms drawn again over it)
   if (h.under) toy();
-  const fists: [number, number, number][] = [];
-  for (const side of [-1, 1]) {
-    const e = (side > 0 ? h.elbowL : h.elbowR) ?? (side > 0 ? ELBOW_L : ELBOW_R);
-    const f = (side > 0 ? h.left : h.right) ?? hangFist(side, p.step);
-    const ex = e[0], ey = e[1] + ty, fx = f[0], fy = f[1] + ty;
-    // (the forearm, elbow to fist; the wristband by the fist)
-    limb(c, ex, ey, 14, fx, fy - 4 * Math.sign(fy - ey || 1), 11, FORE, side > 0 ? p.rim : undefined);
-    lump(c, ex, ey, 6, 5, FORE);
-    const wx = ex + (fx - ex) * 0.8, wy = ey + (fy - ey) * 0.8;
-    c.fillStyle = INK; c.beginPath(); c.ellipse(wx, wy, 7, 4, 0, 0, Math.PI * 2); c.fill();
-    c.fillStyle = BAND[2]; c.beginPath(); c.ellipse(wx, wy, 6, 3, 0, 0, Math.PI * 2); c.fill();
-    box(c, wx - 4, wy - 2, 5, 1, BAND[4]);
-    fists.push([fx, fy, side]);
-  }
+  forearms(c, p, arms, ty, R, !!h.under && !!h.draw);
   if (!h.under) toy();
   h.mid?.(c, ty);
   // (the fists: knuckles toward us)
-  for (const [fx, fy] of fists) {
-    lump(c, fx, fy, 7, 7, R);
-    box(c, fx - 5, fy - 2, 10, 1, R[1]); box(c, fx - 4, fy + 1, 8, 1, R[1]); box(c, fx - 5, fy - 4, 2, 1, R[4]);
-  }
+  for (const a of arms) fistAt(c, a.F[0], a.F[1], R);
   h.over?.(c, ty);
 };
 
@@ -323,20 +316,13 @@ export const drawMeatheadFront = (c: Ctx, x: number, y: number, p: Pose, grip: [
   }
   box(c, -1, -113 + ty, 2, 28, S[0]);
   for (const side of [-1, 1]) for (let i = 0; i < 3; i++) box(c, side * (20 + i) - (side > 0 ? 3 : 0), -116 + i * 9 + ty, 3, 1, S[1]);
-  // Shoulders: delts, big round caps; biceps hanging under them out to his elbows
-  for (const side of [-1, 1]) {
-    const r = side < 0 ? S : [S[0], S[1], S[2], S[2], S[3]];
-    // (the upper arm, shoulder to elbow; the bicep bulging on its inside, the tricep's shade on its outside)
-    const [elx, ely] = (side > 0 ? p.hold?.elbowL : p.hold?.elbowR) ?? [side * 47, -97];
-    limb(c, side * 44, -132 + ty, 20, elx, ely + ty, 14, r, side > 0 ? p.rim : undefined);
-    const bx = side * 44 + (elx - side * 44) * 0.55 - side * 2, by = -132 + (ely + 132) * 0.55;
-    lump(c, bx, by + ty, 7, 10, r, false);
-    box(c, bx - 3, by + 7 + ty, 6, 1, r[1]);
-    lump(c, side * 43, -131 + ty, 12, 10, r);
-    box(c, side * 43 - 6, -124 + ty, 12, 1, r[1]);
-    if (side > 0) { c.strokeStyle = p.rim; c.lineWidth = 1; c.beginPath(); c.ellipse(side * 43, -131 + ty, 11, 10, 0, -Math.PI / 2.4, Math.PI / 2.4); c.stroke(); c.beginPath(); c.ellipse(bx + 3, by - 1 + ty, 9, 14, 0, -Math.PI / 3, Math.PI / 3); c.stroke(); }
-    // (a vein down the bicep)
-    box(c, bx + side * 3.5, by - 7 + ty, 1, 6, '#C2410C'); box(c, bx + side * 2.5, by - 1 + ty, 1, 5, '#C2410C');
+  // Arms: each one mass (flesh.ts), shoulder to wrist: the deltoid's cap, the biceps and triceps tapering to the elbow,
+  // the forearm swelling under it and tapering to the wrist; the veins. The forearms drawn again later where they're
+  // over his face or the toy (forearms())
+  const arms = armsOf(p, ty, grip, !!walking);
+  for (const a of arms) {
+    const r = armRamp(a.side, S);
+    flesh(c, a.mass, r, a.side > 0 ? p.rim : undefined, undefined, cc => { upperLines(a, r, false)(cc); foreLines(a, r, false)(cc); });
   }
   // The neck: a stump, the cords down it, his jaw's shadow over it
   const hy = ty + p.headY;
@@ -416,9 +402,9 @@ export const drawMeatheadFront = (c: Ctx, x: number, y: number, p: Pose, grip: [
   box(c, -1, eyeY, 2, 1, INK);
   // His forearms, the toy, his fists: last, in front of everything (his head too: up at his nose, it's in front of his
   // face; held at his chest, nothing's in its way)
-  if (walking) swingingArms(c, p, ty, walking.weapon, S);
-  else if (p.hold) holdingIt(c, p, p.hold, ty, S);
-  else handsAndToy(c, p, ty, grip, drawWeapon, S);
+  if (walking) swingingArms(c, p, ty, walking.weapon, S, arms);
+  else if (p.hold) holdingIt(c, p, p.hold, ty, S, arms);
+  else handsAndToy(c, p, ty, grip, drawWeapon, S, arms);
   c.restore();
   return { mouth: [x + 0, y + mouthY + 1], crotch: [x + crotch[0], y + crotch[1], crotch[2], crotch[3]] };
 };
