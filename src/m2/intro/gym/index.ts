@@ -45,7 +45,7 @@ import { grossChoke, grossTruck, prewarmGross, finishGross } from './gross';
 import {
   AGENT_VOICE, AGENTF_VOICE, GMAN_VOICE, ANCHOR_VOICE, OPEN_TV, OPEN_REPS, OPEN_AGENT_1, OPEN_AGENTF_1, OPEN_AGENT_2, OPEN_MH_1, OPEN_AGENTF_2, OPEN_MH_2, OPEN_MH_3,
   OPEN_AGENT_3, ROOM_LINES, RING_HELLO, RING_SHOVE, RING_THROWN, RING_JET, RING_DONE, CLOSE_MH_CORK, CLOSE_NO_CONTRACT, CLOSE_CONTINGENCY, CLOSE_TICKET, CLOSE_MH_HAPPY, CLOSE_TRUCK, CLOSE_NOTICED, CLOSE_UPHOLSTERY,
-  CLOSE_MH_TRUCK, CLOSE_GUANTANAMO, CLOSE_DISGUISE, CLOSE_MH_GLASSES, CLOSE_NOT_HOW, CLOSE_MH_GO, type Room,
+  CLOSE_MH_TRUCK, CLOSE_GUANTANAMO, CLOSE_DISGUISE, CLOSE_MH_GLASSES, CLOSE_MH_GO, type Room,
 } from './lines';
 
 export { GYM_STAGE };
@@ -138,7 +138,6 @@ const CLOSING = (d: Dressed): Beat[] => [
   { shot: shotGlasses, hold: 80, enter: sfx('ding', 0.8, 2) },
   { shot: shotGlassesOn, hold: 64, enter: () => setTimeout(() => playSound('clink', 0.8, 6), 560) },
   { shot: shotGlassesOn, who: 'MEATHEAD', voice: 'meathead', text: CLOSE_MH_GLASSES, hold: 16 },
-  { shot: shotAgentF, who: 'G-WOMAN', voice: AGENTF_VOICE, text: CLOSE_NOT_HOW, hold: 14 },
   { shot: shotToddler(2, true), who: 'MEATHEAD', voice: 'meathead', text: CLOSE_MH_GO, hold: 40 },
 ];
 

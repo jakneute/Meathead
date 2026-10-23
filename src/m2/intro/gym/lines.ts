@@ -138,8 +138,8 @@ export const CLOSE_DISGUISE: Record<Dressed, string> = {
   shitty: 'So you wear a disguise. And take a shower.',
   nude: 'So you wear a disguise. And pants.',
 };
+// (no comeback after it (the user's: the joke is he always had bad eyes and never knew it))
 export const CLOSE_MH_GLASSES = 'I CAN READ NOW.';
-export const CLOSE_NOT_HOW = "That's not how glasses work.";
 export const CLOSE_MH_GO = "LET'S GO TO HAPPY LAND!";
 
 /** Every line, by voice. */
@@ -149,6 +149,6 @@ export const VOICE_LINES: Record<string, string[]> = {
   [ANCHOR_VOICE]: OPEN_TV,
   [AGENT_VOICE]: [OPEN_AGENT_1, OPEN_AGENT_2, OPEN_AGENT_3, ...all(CLOSE_TRUCK), ...all(CLOSE_DISGUISE)],
   // (the women among the G-men say the rooms' lines in her voice)
-  [AGENTF_VOICE]: [OPEN_AGENTF_1, OPEN_AGENTF_2, CLOSE_GUANTANAMO, CLOSE_NOT_HOW, ...all(CLOSE_NOTICED), ...all(CLOSE_UPHOLSTERY),...Object.values(ROOM_LINES).flatMap(all)],
+  [AGENTF_VOICE]: [OPEN_AGENTF_1, OPEN_AGENTF_2, CLOSE_GUANTANAMO, ...all(CLOSE_NOTICED), ...all(CLOSE_UPHOLSTERY),...Object.values(ROOM_LINES).flatMap(all)],
   [GMAN_VOICE]: [...Object.values(ROOM_LINES).flatMap(all), ...all(RING_HELLO), ...all(RING_SHOVE), ...all(RING_THROWN), ...all(RING_JET), ...all(RING_DONE), ...all(CLOSE_NO_CONTRACT), CLOSE_CONTINGENCY, ...all(CLOSE_TICKET)],
 };
