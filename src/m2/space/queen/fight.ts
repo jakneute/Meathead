@@ -123,12 +123,14 @@ const FLAIL_REACH = 190, FLAIL_LINGER = 90, FLAIL_TELL = 20, FLAIL_T = 26, FLAIL
 // (anything flung into her, thrown or batted, big or small, is the one fairly heavy hit, once per contact however many
 // arrive together (the user's: it was compounding); a batted kid still stuns her and clears the brood)
 const FLUNG_DMG = 40, FLUNG_GAP = 45, BATTED_STUN = 90;
+/** One of hers batted back into her with the mallet (the rebound): a bit more than a throw (the user's: the hammer a bit harder). */
+const BATTED_DMG = 48;
 /** Her head bonked with the mallet: the extra, the stun. */
-const HEAD_EXTRA = 8, HEAD_STUN = 70;
+const HEAD_EXTRA = 10, HEAD_STUN = 70;
 /** The mallet's plain swing on her: a modest knock (the breather after it, like anything). */
-const MALLET_HIT = 45;
+const MALLET_HIT = 54;
 /** The held smash (Y held, the windup): twice and more a swing, and never swallowed by the breather after one. */
-const MALLET_SMASH = 95;
+const MALLET_SMASH = 112;
 /** Any straight mallet hit with him this close to her body (px, any height): stunned this long, and across she goes
  *  after it; not again within CLOSE_GAP frames of the last (nor while she's stunned or leaping). */
 const CLOSE_R = 150, CLOSE_STUN = 60, SMASH_STUN = 90, CLOSE_GAP = 180;
@@ -914,12 +916,12 @@ const thrownInto = (ctx: FrameContext, f: Fight) => {
     if (batted) {
       // (her own, batted back into her: the hit, and she's stunned, and the lot of them go)
       const before = f.hp;
-      f.hp -= FLUNG_DMG; f.flash = 16; f.iframes = IFRAMES;
+      f.hp -= BATTED_DMG; f.flash = 16; f.iframes = IFRAMES;
       malletFeel(state, f, 'batted', before, { x: f.x, y: GY - 170 }, (Math.sign(e.vel.x) || 1) as 1 | -1);
       for (const k of kinAbout(state)) destroyKin(ctx, k);
       if (state.enemies.includes(e)) destroyKin(ctx, e);
       f.sacs = []; f.litter = [];
-      ctx.fx.spawnDamageNumber({ x: f.x - 20, y: GY - 260 }, FLUNG_DMG, true);
+      ctx.fx.spawnDamageNumber({ x: f.x - 20, y: GY - 260 }, BATTED_DMG, true);
       // (its own callout, the announcer calling it)
       const call = pickLine(GRAB_CALLOUTS.batted.lines);
       state.damageNumbers.push({ id: `queen-bat-${state.frame}`, text: call, pos: { x: f.x - 60, y: GY - 300 }, vel: { x: 0, y: -2.8 }, life: 80, maxLife: 80, isCritical: true, isCallout: true, color: GRAB_CALLOUTS.batted.color });
