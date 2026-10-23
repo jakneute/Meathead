@@ -23821,6 +23821,51 @@
  },
  {
   "voice": "m2.donnie",
+  "text": "...DON'T LOOK. YOU OF ALL PEOPLE. DON'T LOOK.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "...IT'S CATCHING... YOU GAVE IT TO ME...",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "...NOT IN THE RENTAL CAPE... NOT IN THE...",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "...OH NO.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "...OH NO. AT LEAST MY PANTS ARE STILL... OH NO.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "...OH NO. NOT IN FRONT OF THE NAKED GUY.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "...OH NO. NOT LIKE HIM. ANYTHING BUT LIKE HIM.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "...OH NO. NOW I KNOW HOW YOU FEEL.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
+  "text": "...THAT LAST GUY... WAS LACTOSE INTOLERANT...",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.donnie",
   "text": "A NAKED GUY HUGGED ME! THANK GOD I SWEAT GREASE!",
   "from": "SPOOKY"
  },
@@ -53466,6 +53511,11 @@
  },
  {
   "voice": "m2.satan",
+  "text": "AN ASS IN THE CEILING. A NAKED MAN ON THE FLOOR. ...I WILL BE SEEING YOU, MEATHEAD. ALL OF YOU.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.satan",
   "text": "AND PUT SOMETHING ON. EVEN I HAVE LIMITS.",
   "from": "SPOOKY"
  },
@@ -53502,6 +53552,21 @@
  {
   "voice": "m2.satan",
   "text": "DONALD. EYES ON THE NECK. NOT THE GENITALS.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.satan",
+  "text": "DONALD. GET DOWN FROM THERE. ...FINE. I WILL TAKE THE SOUL. LEAVE THE ASS.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.satan",
+  "text": "DONALD. GET DOWN FROM THERE. ...FINE. I WILL TAKE THE SOUL. THE NAKED ONE CAN HAVE THE REST.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.satan",
+  "text": "DONALD. GET DOWN FROM THERE. ...NO. STAY. YOU TWO STINK ENOUGH.",
   "from": "SPOOKY"
  },
  {
@@ -53626,6 +53691,21 @@
  },
  {
   "voice": "m2.satan",
+  "text": "I GAVE YOU WINGS, DONALD. YOU FLEW ON YOUR OWN SHIT. ...ANOTHER DAY, MEATHEAD.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.satan",
+  "text": "I GAVE YOU WINGS, DONALD. YOU FLEW ON YOUR OWN SHIT. ...MEATHEAD JUST SITS IN HIS.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.satan",
+  "text": "I GAVE YOU WINGS, DONALD. YOU FLEW ON YOUR OWN SHIT. ...MEATHEAD. WE HAVE ROBES IN HELL.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.satan",
   "text": "I HAVE A MILLION OF THOSE. HIS, DONALD.",
   "from": "SPOOKY"
  },
@@ -53647,6 +53727,11 @@
  {
   "voice": "m2.satan",
   "text": "MEATHEAD. ONE OF THESE DAYS YOUR SOUL WILL BE MINE FOREVER. THAT TIME IS NOT NOW.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.satan",
+  "text": "MY POWER, DONALD. AND YOU WENT OUT THROUGH YOUR ASS. ...I WILL BE SEEING YOU, MEATHEAD.",
   "from": "SPOOKY"
  },
  {
@@ -53762,6 +53847,11 @@
  {
   "voice": "m2.satan",
   "text": "TICK TOCK, DONALD. YOUR SOUL, OR THE NAKED ONE.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "m2.satan",
+  "text": "TWO GROWN MEN SHAT THEMSELVES IN ONE ROOM. ...MEATHEAD. BATHE BEFORE YOU COME TO ME.",
   "from": "SPOOKY"
  },
  {
@@ -60306,6 +60396,11 @@
  },
  {
   "voice": "meathead",
+  "text": "AND I THOUGHT MINE WAS BAD.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
   "text": "AND I THOUGHT MY DAY WAS SHITTY.",
   "from": "FRONTIER"
  },
@@ -60323,6 +60418,11 @@
   "voice": "meathead",
   "text": "AND I'M THE ONE WHO SHIT HIMSELF.",
   "from": "ADVENTURE"
+ },
+ {
+  "voice": "meathead",
+  "text": "AND I'M THE ONE WITH NO PANTS.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -60563,6 +60663,11 @@
   "voice": "meathead",
   "text": "AT LEAST I STILL GOT MY BOOTS.",
   "from": "M2_GUT_LINES"
+ },
+ {
+  "voice": "meathead",
+  "text": "AT LEAST MY ASS ISN'T IN THE CEILING.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -66981,11 +67086,6 @@
  },
  {
   "voice": "meathead",
-  "text": "HE ATE HIMSELF TO DEATH. RESPECT.",
-  "from": "SPOOKY"
- },
- {
-  "voice": "meathead",
   "text": "HE BARFED FIRE ON ME! THAT'S NOT EVEN A MOVE!",
   "from": "HAZARD_HURT"
  },
@@ -67678,6 +67778,16 @@
   "voice": "meathead",
   "text": "HE SELLS PANTS. FOUR BEDROOMS. TV MATH.",
   "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE SHIT HARDER THAN ME. RESPECT.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "HE SHIT HIMSELF INTO THE CEILING. I'M NOT GETTING HIM DOWN.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",
@@ -81926,17 +82036,17 @@
  },
  {
   "voice": "meathead",
-  "text": "SHOULD'VE KEPT BEGGING.",
-  "from": "SPOOKY"
- },
- {
-  "voice": "meathead",
   "text": "SHOULD'VE KEPT THE FIRE ON THE STRING!",
   "from": "ENEMY_KILL_LINES"
  },
  {
   "voice": "meathead",
   "text": "SHOULD'VE SKIPPED DESSERT.",
+  "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHOULD'VE SKIPPED DESSERT. ME TOO.",
   "from": "SPOOKY"
  },
  {
@@ -84718,6 +84828,11 @@
   "voice": "meathead",
   "text": "THAT GURGLE WASN'T ME.",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT GUY WENT OUT WITH A BANG. OUT HIS ASS.",
+  "from": "SPOOKY"
  },
  {
   "voice": "meathead",

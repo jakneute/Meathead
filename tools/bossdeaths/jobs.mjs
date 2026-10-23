@@ -61,7 +61,7 @@ export const JOBS = [
     kill: when(donnieOn, () => { const f = window.__m2.stage.s.ballroom.f; f.hp = 1; f.iframes = 0; f.souvenir = { id: 'redeemer' }; f.e.health = 100000 - 30; }),
   },
   {
-    name: '02b-donnie-plain', label: ['DONNIE DRACULA', 'ANY OTHER WAY', 'GORGED AND DEFLATED'], q: 'spooky=62', memo: 'm2:boss-intro:donnie', on: donnieOn, lead: 2500,
+    name: '02b-donnie-plain', label: ['DONNIE DRACULA', 'ANY OTHER WAY', 'SHAT INTO THE CEILING'], q: 'spooky=62', memo: 'm2:boss-intro:donnie', on: donnieOn, lead: 2500,
     kill: when(donnieOn, () => { const f = window.__m2.stage.s.ballroom.f; f.hp = 0; }),
   },
   {
