@@ -341,17 +341,37 @@ const trash = (c: Ctx, x: number) => {
     deadCan(g, x + 22, TOP_Y, 3); box(g, x - 30, TOP_Y - 3, 10, 3, '#F5F5F4'); box(g, x - 30, TOP_Y - 3, 10, 1, '#FFFFFF');
   });
 };
-/** A light mast: lattice steel up to a bank of floodlights (two of them dead), a cage, the ladder. */
-const pole = (c: Ctx, x: number, footY: number, cleared: boolean) => {
-  const S = DR(STEEL), on = lampsOn() && !cleared;
-  lattice(c, x, footY - 420, footY, 10, S);
-  box(c, x - 30, footY - 452, 60, 32, INK); box(c, x - 29, footY - 451, 58, 30, S[2]); box(c, x - 29, footY - 451, 58, 1, S[4]);
-  for (let r = 0; r < 2; r++) for (let k = 0; k < 4; k++) {
-    const lx = x - 26 + k * 13, ly = footY - 448 + r * 14, dead = (r * 4 + k) === 2 || (r * 4 + k) === 7;
-    box(c, lx, ly, 11, 11, INK); box(c, lx + 1, ly + 1, 9, 9, dead ? dimmed('#3A3A40') : on ? '#FFF6D8' : dimmed('#D8DCE4')); if (!dead) box(c, lx + 1, ly + 1, 4, 4, on ? '#FFFFFF' : dimmed('#F4F4F8'));
-  }
-  box(c, x - 32, footY - 420, 64, 3, S[1]);
-  for (let y = footY - 410; y < footY - 20; y += 8) box(c, x + 7, y, 4, 1, S[3]);
+/** A light mast: lattice steel up to a bank of floodlights (two of them dead) on a yoke, each lamp in its visor, the
+ *  catwalk under them railed, the junction box, the ladder up the side with its cage hoops (stamped per mast and state). */
+const pole = (c: Ctx, x: number, footY: number, cleared: boolean, px: number) => {
+  const on = lampsOn() && !cleared;
+  stamp(c, key(`mast-${px}-${on ? 1 : 0}`), x - 44, footY - 476, 88, 478, g => {
+    const S = DR(STEEL);
+    lattice(g, x, footY - 420, footY, 10, S);
+    // (the footing: a concrete pad, the base plate bolted)
+    box(g, x - 14, footY - 6, 28, 6, INK); box(g, x - 13, footY - 5, 26, 5, dimmed('#8A8478')); box(g, x - 13, footY - 5, 26, 1, dimmed('#B8B0A4'));
+    box(g, x - 9, footY - 9, 18, 4, INK); box(g, x - 8, footY - 8, 16, 2, S[3]); box(g, x - 7, footY - 8, 1, 1, S[5]); box(g, x + 6, footY - 8, 1, 1, S[5]);
+    // (the junction box, the conduit up the mast)
+    box(g, x - 13, footY - 70, 9, 12, INK); box(g, x - 12, footY - 69, 7, 10, S[3]); box(g, x - 12, footY - 69, 7, 1, S[5]); box(g, x - 10, footY - 66, 3, 1, dimmed('#E8B424'));
+    box(g, x - 9, footY - 410, 1, 340, S[1]);
+    // (the ladder and its cage hoops)
+    for (let y = footY - 410; y < footY - 20; y += 8) box(g, x + 7, y, 4, 1, S[3]);
+    for (let y = footY - 410; y < footY - 140; y += 30) { box(g, x + 6, y, 10, 1, INK); box(g, x + 15, y, 1, 8, INK); box(g, x + 6, y + 1, 9, 1, S[2]); }
+    // (the catwalk and its rail)
+    box(g, x - 34, footY - 421, 68, 4, INK); box(g, x - 33, footY - 420, 66, 2, S[2]); box(g, x - 33, footY - 420, 66, 1, S[4]);
+    box(g, x - 34, footY - 432, 1, 12, INK); box(g, x + 33, footY - 432, 1, 12, INK); box(g, x - 34, footY - 432, 68, 1, INK); box(g, x - 33, footY - 431, 66, 1, S[3]); box(g, x - 34, footY - 426, 68, 1, S[2]);
+    // (the yoke, the frame, the lamps in their visors (two dead))
+    box(g, x - 32, footY - 466, 64, 36, INK); box(g, x - 31, footY - 465, 62, 34, S[1]); box(g, x - 31, footY - 465, 62, 1, S[4]); box(g, x - 31, footY - 449, 62, 1, S[3]);
+    box(g, x - 2, footY - 431, 4, 10, INK); box(g, x - 1, footY - 431, 2, 10, S[3]);
+    for (let r = 0; r < 2; r++) for (let k = 0; k < 4; k++) {
+      const lx = x - 29 + k * 15, ly = footY - 463 + r * 16, dead = (r * 4 + k) === 2 || (r * 4 + k) === 7;
+      box(g, lx - 1, ly - 2, 15, 3, INK); box(g, lx, ly - 1, 13, 1, S[4]);
+      box(g, lx, ly + 1, 13, 12, INK);
+      const C = dead ? [dimmed('#2A2A30'), dimmed('#3A3A40'), dimmed('#4A4A52')] : on ? ['#F8E0A0', '#FFF6D8', '#FFFFFF'] : [dimmed('#A8AEB8'), dimmed('#D8DCE4'), dimmed('#F4F4F8')];
+      pixelBlob(g, lx + 6.5, ly + 7, 5, 5, C[0]); pixelBlob(g, lx + 6, ly + 6.5, 4, 4, C[1]); box(g, lx + 3, ly + 3, 3, 3, C[2]);
+      if (dead) { box(g, lx + 4, ly + 5, 5, 1, dimmed('#1A1A1E')); box(g, lx + 7, ly + 4, 1, 4, dimmed('#1A1A1E')); }
+    }
+  });
 };
 /** The half-dead string lights sagging between the masts (live: the dead stay dead, one flickers). */
 const stringLights = (c: Ctx, E: P, state: GameState, f: number, cleared: boolean) => {
@@ -774,13 +794,27 @@ const nearCut = (c: Ctx, state: GameState) => {
     // (the deck's rim and the bunting along it)
     const ds = Math.max(dk, l);
     if (r > ds) {
-      box(c, ds, STAGE_Y + 2, r - ds, 6, Wd[2]); box(c, ds, STAGE_Y + 8, r - ds, 1, INK);
-      for (let x = Math.max(dk, Math.floor(l / 40) * 40); x < r; x += 40) {
-        const i = Math.floor((x - X(0)) / 40) % 3, col = ['#C83A3A', '#F4F1E8', '#2A4AC8'][i], dkc = ['#8A1A1A', '#C8C0B0', '#1A2A8A'][i];
-        c.fillStyle = INK; c.beginPath(); c.moveTo(x, STAGE_Y + 8); c.quadraticCurveTo(x + 20, STAGE_Y + 30, x + 40, STAGE_Y + 8); c.closePath(); c.fill();
-        c.fillStyle = col; c.beginPath(); c.moveTo(x + 1, STAGE_Y + 9); c.quadraticCurveTo(x + 20, STAGE_Y + 28, x + 39, STAGE_Y + 9); c.closePath(); c.fill();
-        c.fillStyle = dkc; c.beginPath(); c.moveTo(x + 8, STAGE_Y + 14); c.quadraticCurveTo(x + 20, STAGE_Y + 25, x + 32, STAGE_Y + 14); c.lineTo(x + 30, STAGE_Y + 17); c.quadraticCurveTo(x + 20, STAGE_Y + 22, x + 10, STAGE_Y + 17); c.closePath(); c.fill();
-        box(c, x - 2, STAGE_Y + 7, 4, 4, NR(BRASS)[4]);
+      // (stamped in 400 px runs from the deck's corner: the rim beam (grain, nail heads, lit along its top) and the
+      // bunting under it, the real thing: each swag pleated in a fan of blue (stars on it), white and red, a rosette at
+      // every hang point)
+      for (let i = Math.max(0, Math.floor((ds - dk) / 400)); dk + i * 400 < r; i++) {
+        const x0 = dk + i * 400;
+        stamp(c, key(`bunt-${i}`), x0 - 8, STAGE_Y, 416, 36, g => {
+          box(g, x0, STAGE_Y + 1, 400, 8, INK); box(g, x0, STAGE_Y + 2, 400, 6, Wd[2]); box(g, x0, STAGE_Y + 2, 400, 1, Wd[4]); box(g, x0, STAGE_Y + 7, 400, 1, Wd[1]);
+          for (let k = 0; k < 40; k++) { const gx = x0 + Math.floor(hash(i * 41 + k * 1.7) * 392); box(g, gx, STAGE_Y + 3 + (k % 3), 6 + (k % 5) * 3, 1, k % 2 ? Wd[1] : Wd[3]); }
+          for (let x = x0 + 20; x < x0 + 400; x += 40) box(g, x, STAGE_Y + 4, 1, 1, Wd[0]);
+          for (let n = 0; n < 10; n++) {
+            const x = x0 + n * 40, T = STAGE_Y + 8;
+            const swag = (dip: number, inset: number, col: string) => { g.fillStyle = col; g.beginPath(); g.moveTo(x + inset, T); g.lineTo(x + 40 - inset, T); g.quadraticCurveTo(x + 20, T + dip * 2, x + inset, T); g.closePath(); g.fill(); };
+            swag(23, 0, INK); swag(21, 1, '#B91C1C'); swag(14, 1, '#F4F1E8'); swag(7, 1, '#1E3A8A');
+            // (the pleats: folds fanned out from the middle, shaded; the lit fold on each band)
+            for (const fx of [-11, -4, 4, 11]) { g.strokeStyle = 'rgba(30,10,20,0.28)'; g.lineWidth = 1; g.beginPath(); g.moveTo(x + 20 + fx * 0.5, T + 1); g.lineTo(x + 20 + fx, T + 18 - Math.abs(fx) * 0.5); g.stroke(); }
+            box(g, x + 14, T + 15, 12, 1, '#E8706A'); box(g, x + 15, T + 9, 10, 1, '#FFFFFF'); box(g, x + 12, T + 2, 16, 1, '#3A5AB8');
+            for (const sx of [x + 12, x + 20, x + 28]) box(g, sx, T + 2 + (sx === x + 20 ? 1 : 0), 1, 1, '#FFFFFF');
+            // (the rosette)
+            pixelBlob(g, x, T, 4, 4, INK); pixelBlob(g, x, T, 3, 3, '#B91C1C'); box(g, x - 1, T - 1, 2, 2, '#F4F1E8'); box(g, x - 1, T - 1, 1, 1, '#1E3A8A');
+          }
+        });
       }
       box(c, dk - 1, STAGE_Y, 2, PIT_Y - STAGE_Y, INK);
     }
@@ -817,7 +851,7 @@ export const drawAmphiBack = (c: Ctx, state: GameState, look: AmphiLook) => {
   drawRim(c, state, E);
   floors(c, state, E);
   // (the light masts and the string lights between them, deep: behind everybody)
-  for (const px of POLES) { const x = X(px); if (seen(state, E, x - 34, x + 34, D_POLE)) atDepth(c, E, D_POLE, () => pole(c, x, treadAt(px), look.cleared)); }
+  for (const px of POLES) { const x = X(px); if (seen(state, E, x - 34, x + 34, D_POLE)) atDepth(c, E, D_POLE, () => pole(c, x, treadAt(px), look.cleared, px)); }
   stringLights(c, E, state, f, look.cleared);
   // (the stage's shell, the speakers flown off it, the banner; the set's wall, its door, the laugh horn)
   if (seen(state, E, X(SHELL.a) - 30, X(SHELL.b) + 40, D_SHELL)) atDepth(c, E, D_SHELL, () => { drawShell(c, f); drawBanner(c, f, look.stage.applause); });

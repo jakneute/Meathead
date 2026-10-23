@@ -15,6 +15,7 @@
 
 import { signText } from '../../signLetters';
 import { stamp } from '../../../m1/game/render/stamp';
+import { pixelBlob } from '../../../m1/game/render/pixelArt';
 import { timeOfDay } from '../../timeOfDay';
 import { dadArt } from '../bigkid/art';
 import { X, STAGE_Y, SHELL, SET, KITCHEN } from './layout';
@@ -169,21 +170,27 @@ const WIN_X = 2990, PORTRAIT_X = 3226, CLOCK_X = 3460;
 
 /** The painted backyard in the fake window (x, y its top left, 120 x 80): naive flat paint, a crease across it. */
 const backyard = (g: Ctx, x: number, y: number) => {
+  // (the sky in flat painted bands, the seams dithered; puffy clouds in two tones)
   const sky = ['#7EC4F0', '#94D0F2', '#AEDCF4', '#C8E8F6'];
-  sky.forEach((col, i) => box(g, x, y + i * 9, 120, 10, col));
-  g.fillStyle = '#FFFFFF'; for (const [cx, cy] of [[30, 10], [86, 16]]) { g.beginPath(); g.arc(x + cx, y + cy, 6, 0, Math.PI * 2); g.arc(x + cx + 8, y + cy - 2, 7, 0, Math.PI * 2); g.arc(x + cx + 16, y + cy, 5, 0, Math.PI * 2); g.fill(); }
-  // (the neighbor's house over the fence; a tree)
-  box(g, x + 64, y + 26, 50, 22, '#E8D4B0'); g.fillStyle = '#9A3A2A'; g.beginPath(); g.moveTo(x + 60, y + 27); g.lineTo(x + 89, y + 12); g.lineTo(x + 118, y + 27); g.closePath(); g.fill();
-  box(g, x + 72, y + 32, 8, 8, '#5A8AC0'); box(g, x + 96, y + 32, 8, 8, '#5A8AC0');
-  g.fillStyle = '#3A8A3A'; g.beginPath(); g.arc(x + 22, y + 30, 14, 0, Math.PI * 2); g.fill(); g.fillStyle = '#5AAA4A'; g.beginPath(); g.arc(x + 18, y + 26, 8, 0, Math.PI * 2); g.fill(); box(g, x + 20, y + 40, 4, 12, '#6A4A2A');
-  // (the lawn, the picket fence)
-  box(g, x, y + 50, 120, 30, '#5ABA4A'); box(g, x, y + 50, 120, 3, '#7ACA5A'); for (let k = 0; k < 12; k++) box(g, x + 4 + k * 10, y + 60 + (k % 3) * 5, 2, 2, '#4AA03A');
-  for (let k = 0; k < 15; k++) { box(g, x + k * 8 + 1, y + 42, 5, 14, '#FAFAF0'); box(g, x + k * 8 + 2, y + 40, 3, 2, '#FAFAF0'); } box(g, x, y + 46, 120, 2, '#E0E0D4'); box(g, x, y + 52, 120, 2, '#E0E0D4');
+  sky.forEach((col, i) => { box(g, x, y + i * 9, 120, 10, col); if (i) checker(g, x, y + i * 9 - 2, 120, 2, col, i % 2, 1); });
+  for (const [cx, cy] of [[30, 10], [86, 16]]) { for (const [dx, r] of [[0, 6], [8, 7], [16, 5]]) pixelBlob(g, x + cx + dx, y + cy + 1, r, r * 0.8, '#D8E8F4'); for (const [dx, r] of [[0, 6], [8, 7], [16, 5]]) pixelBlob(g, x + cx + dx - 1, y + cy - 1, r - 1, r * 0.7, '#FFFFFF'); }
+  // (the neighbor's house over the fence: siding, its roof shingled; a tree)
+  box(g, x + 64, y + 26, 50, 22, '#E8D4B0'); for (let k = 0; k < 5; k++) box(g, x + 64, y + 29 + k * 4, 50, 1, '#D2BC94'); box(g, x + 108, y + 26, 6, 22, '#D2BC94');
+  g.fillStyle = '#7A2A1E'; g.beginPath(); g.moveTo(x + 59, y + 28); g.lineTo(x + 89, y + 11); g.lineTo(x + 119, y + 28); g.closePath(); g.fill();
+  g.fillStyle = '#9A3A2A'; g.beginPath(); g.moveTo(x + 61, y + 27); g.lineTo(x + 89, y + 13); g.lineTo(x + 117, y + 27); g.closePath(); g.fill();
+  for (let k = 0; k < 3; k++) box(g, x + 72 + k * 2, y + 19 + k * 3, 34 - k * 4, 1, '#7A2A1E');
+  for (const wx of [72, 96]) { box(g, wx + x - 1, y + 31, 10, 10, '#F4F0E4'); box(g, x + wx, y + 32, 8, 8, '#5A8AC0'); box(g, x + wx, y + 32, 3, 3, '#9AC4E8'); }
+  box(g, x + 20, y + 36, 4, 16, '#6A4A2A'); box(g, x + 20, y + 36, 1, 16, '#8A6A4A');
+  pixelBlob(g, x + 22, y + 30, 15, 13, '#2A6A2A'); pixelBlob(g, x + 21, y + 29, 13, 11, '#3A8A3A'); pixelBlob(g, x + 17, y + 25, 8, 6, '#5AAA4A'); box(g, x + 14, y + 22, 3, 2, '#8ACA6A');
+  // (the lawn, the picket fence (each picket lit, shaded on the right))
+  box(g, x, y + 50, 120, 30, '#5ABA4A'); box(g, x, y + 50, 120, 3, '#7ACA5A'); box(g, x, y + 66, 120, 14, '#4EA840'); checker(g, x, y + 64, 120, 2, '#4EA840', 0, 1); for (let k = 0; k < 12; k++) box(g, x + 4 + k * 10, y + 60 + (k % 3) * 5, 2, 2, '#3E9030');
+  box(g, x, y + 55, 120, 2, '#3E9030');
+  for (let k = 0; k < 15; k++) { box(g, x + k * 8 + 1, y + 42, 5, 14, '#FAFAF0'); box(g, x + k * 8 + 2, y + 40, 3, 2, '#FAFAF0'); box(g, x + k * 8 + 5, y + 42, 1, 14, '#C8C8BC'); } box(g, x, y + 46, 120, 2, '#E0E0D4'); box(g, x, y + 52, 120, 2, '#E0E0D4');
   // (the swing set, the grill, REX's doghouse)
   g.strokeStyle = '#C83A3A'; g.lineWidth = 2; g.beginPath(); g.moveTo(x + 8, y + 74); g.lineTo(x + 18, y + 54); g.lineTo(x + 28, y + 74); g.moveTo(x + 42, y + 74); g.lineTo(x + 52, y + 54); g.lineTo(x + 62, y + 74); g.moveTo(x + 18, y + 54); g.lineTo(x + 52, y + 54); g.stroke();
   g.strokeStyle = '#3A3A3A'; g.lineWidth = 1; g.beginPath(); g.moveTo(x + 30, y + 55); g.lineTo(x + 30, y + 68); g.moveTo(x + 38, y + 55); g.lineTo(x + 38, y + 68); g.stroke(); box(g, x + 29, y + 68, 10, 2, '#3A3A3A');
-  g.fillStyle = '#2A2A2A'; g.beginPath(); g.arc(x + 76, y + 64, 6, 0, Math.PI); g.fill(); box(g, x + 75, y + 68, 2, 8, '#2A2A2A'); box(g, x + 72, y + 74, 8, 1, '#2A2A2A');
-  box(g, x + 92, y + 62, 18, 14, '#B86A3A'); g.fillStyle = '#7A3A1A'; g.beginPath(); g.moveTo(x + 90, y + 63); g.lineTo(x + 101, y + 54); g.lineTo(x + 112, y + 63); g.closePath(); g.fill(); box(g, x + 97, y + 67, 8, 9, '#2A1A10'); signText(g, 'REX', x + 101, y + 62, tiny('#FFFFFF'));
+  g.fillStyle = '#2A2A2A'; g.beginPath(); g.arc(x + 76, y + 64, 6, 0, Math.PI); g.fill(); box(g, x + 72, y + 64, 9, 1, '#5A5A5A'); box(g, x + 75, y + 68, 2, 8, '#2A2A2A'); box(g, x + 72, y + 74, 8, 1, '#2A2A2A');
+  box(g, x + 92, y + 62, 18, 14, '#B86A3A'); box(g, x + 106, y + 62, 4, 14, '#985426'); g.fillStyle = '#7A3A1A'; g.beginPath(); g.moveTo(x + 90, y + 63); g.lineTo(x + 101, y + 54); g.lineTo(x + 112, y + 63); g.closePath(); g.fill(); box(g, x + 97, y + 67, 8, 9, '#2A1A10'); signText(g, 'REX', x + 101, y + 62, tiny('#FFFFFF'));
   // (the crease across the painted drop, a stain at its corner)
   box(g, x, y + 36, 120, 1, 'rgba(40,30,20,0.25)'); box(g, x, y + 37, 120, 1, 'rgba(255,255,255,0.25)'); checker(g, x + 92, y + 2, 26, 14, 'rgba(120,90,40,0.25)', 0, 1);
 };
@@ -197,7 +204,12 @@ export const drawSetWall = (c: Ctx, cleared: boolean) => {
     for (const [ex, s] of [[a, -1], [b, 1]] as const) {
       g.strokeStyle = INK; g.lineWidth = 6; g.beginPath(); g.moveTo(ex + s * 2, top + 6); g.lineTo(ex + s * 56, STAGE_Y - 2); g.lineTo(ex + s * 2, STAGE_Y - 2); g.moveTo(ex + s * 2, top + 90); g.lineTo(ex + s * 30, STAGE_Y - 40); g.stroke();
       g.strokeStyle = P[3]; g.lineWidth = 4; g.stroke(); g.strokeStyle = P[5]; g.lineWidth = 1; g.beginPath(); g.moveTo(ex + s * 2 - 1, top + 6); g.lineTo(ex + s * 56 - 1, STAGE_Y - 3); g.stroke();
-      const sx = ex + s * 40; box(g, sx - 12, STAGE_Y - 12, 24, 12, INK); box(g, sx - 11, STAGE_Y - 11, 22, 10, '#B4A07A'); box(g, sx - 11, STAGE_Y - 11, 22, 3, '#D4C09A'); box(g, sx - 2, STAGE_Y - 14, 4, 4, '#8A7A5A');
+      // (a sandbag: canvas, stitched, slumped, its tied neck)
+      const sx = ex + s * 40, Sb = NR(r6('#A8946A'));
+      pixelBlob(g, sx, STAGE_Y - 6, 13, 7, INK); box(g, sx - 13, STAGE_Y - 6, 26, 6, INK);
+      pixelBlob(g, sx, STAGE_Y - 6, 12, 6, Sb[3]); box(g, sx - 12, STAGE_Y - 6, 24, 5, Sb[3]); pixelBlob(g, sx - 3, STAGE_Y - 9, 7, 3, Sb[4]); box(g, sx - 12, STAGE_Y - 3, 24, 2, Sb[2]); checker(g, sx - 12, STAGE_Y - 5, 24, 2, Sb[2], 0, 1);
+      for (let k = -9; k < 10; k += 3) box(g, sx + k, STAGE_Y - 4, 2, 1, Sb[1]);
+      box(g, sx - 3, STAGE_Y - 15, 6, 4, INK); box(g, sx - 2, STAGE_Y - 14, 4, 3, Sb[2]); box(g, sx - 3, STAGE_Y - 12, 6, 1, '#5A3A1A');
     }
     // (the flats: plywood edges, the wallpaper over the top two-thirds)
     box(g, a - 1, top - 1, b - a + 2, STAGE_Y - top + 1, INK);
@@ -209,6 +221,8 @@ export const drawSetWall = (c: Ctx, cleared: boolean) => {
       g.fillStyle = Wp[2]; g.beginPath(); g.moveTo(x, y - 7); g.lineTo(x + 6, y); g.lineTo(x, y + 7); g.lineTo(x - 6, y); g.closePath(); g.fill();
       g.fillStyle = Wp[4]; g.beginPath(); g.moveTo(x, y - 7); g.lineTo(x - 6, y); g.lineTo(x - 4, y); g.lineTo(x, y - 4); g.closePath(); g.fill();
       box(g, x - 1, y - 1, 2, 2, Wp[1]);
+      // (the little fleur between: a dot and its lit fleck, a dark one under)
+      if (y + 14 < wy + wh - 6) { box(g, x + 13, y + 13, 2, 2, Wp[4]); box(g, x + 13, y + 13, 1, 1, Wp[5]); box(g, x + 14, y + 15, 1, 1, Wp[1]); }
     }
     checker(g, a, wy, b - a, 4, Wp[1], 0, 1); box(g, a, wy + wh - 4, b - a, 4, Wp[2]); checker(g, a, wy + wh - 8, b - a, 4, Wp[2], 1, 1);
     // (clean squares where pictures used to hang; a water stain; a seam lifting)
@@ -222,11 +236,19 @@ export const drawSetWall = (c: Ctx, cleared: boolean) => {
     baseboard(g, a, STAGE_Y - 9, b - a, 8, Pn);
     // (the fake window: the frame, the painted backyard, the mullions, the orange curtains on their rod, the valance)
     const wx = X(WIN_X), wy2 = top + 30;
-    box(g, wx - 7, wy2 - 7, 134, 94, INK); box(g, wx - 6, wy2 - 6, 132, 92, '#F4F0E4'); box(g, wx - 6, wy2 - 6, 132, 2, '#FFFFFF'); box(g, wx + 122, wy2 - 6, 4, 92, '#C8C0AC');
+    const Fr = NR(r6('#E8E2D2'));
+    box(g, wx - 7, wy2 - 7, 134, 94, INK); box(g, wx - 6, wy2 - 6, 132, 92, Fr[3]); box(g, wx - 6, wy2 - 6, 132, 1, Fr[5]); box(g, wx - 6, wy2 - 5, 132, 1, Fr[4]); box(g, wx - 6, wy2 - 6, 2, 92, Fr[4]); box(g, wx + 122, wy2 - 6, 4, 92, Fr[2]); box(g, wx + 124, wy2 - 6, 2, 92, Fr[1]);
+    box(g, wx - 3, wy2 - 3, 126, 2, Fr[1]); box(g, wx - 3, wy2 - 3, 2, 86, Fr[1]);
     box(g, wx - 1, wy2 - 1, 122, 82, INK); backyard(g, wx, wy2);
-    box(g, wx + 58, wy2, 4, 80, '#F4F0E4'); box(g, wx, wy2 + 38, 120, 4, '#F4F0E4'); box(g, wx + 61, wy2, 1, 80, '#C8C0AC'); box(g, wx, wy2 + 41, 120, 1, '#C8C0AC');
-    box(g, wx + 4, wy2 + 4, 16, 2, 'rgba(255,255,255,0.5)'); box(g, wx + 4, wy2 + 6, 2, 10, 'rgba(255,255,255,0.4)');
-    box(g, wx - 10, wy2 + 82, 140, 6, INK); box(g, wx - 9, wy2 + 83, 138, 4, '#F4F0E4');
+    box(g, wx + 58, wy2, 4, 80, Fr[3]); box(g, wx, wy2 + 38, 120, 4, Fr[3]); box(g, wx + 58, wy2, 1, 80, Fr[5]); box(g, wx, wy2 + 38, 120, 1, Fr[5]); box(g, wx + 61, wy2, 1, 80, Fr[1]); box(g, wx, wy2 + 41, 120, 1, Fr[1]);
+    box(g, wx + 4, wy2 + 4, 16, 2, 'rgba(255,255,255,0.5)'); box(g, wx + 4, wy2 + 6, 2, 10, 'rgba(255,255,255,0.4)'); box(g, wx + 66, wy2 + 46, 10, 1, 'rgba(255,255,255,0.35)'); box(g, wx + 66, wy2 + 47, 1, 6, 'rgba(255,255,255,0.3)');
+    box(g, wx - 11, wy2 + 81, 142, 8, INK); box(g, wx - 10, wy2 + 82, 140, 6, Fr[3]); box(g, wx - 10, wy2 + 82, 140, 1, Fr[5]); box(g, wx - 10, wy2 + 83, 140, 1, Fr[4]); box(g, wx - 10, wy2 + 87, 140, 1, Fr[1]);
+    checker(g, wx - 8, wy2 + 89, 136, 3, mix(Wp[1], INK, 0.2), 0, 1);
+    // (on the sill: a dead fern in a pot, an ashtray)
+    { const fx = wx + 20, fy = wy2 + 81, Tc = NR(r6('#B8562A'));
+      box(g, fx - 7, fy - 10, 14, 10, INK); box(g, fx - 6, fy - 9, 12, 9, Tc[3]); box(g, fx - 6, fy - 9, 3, 9, Tc[4]); box(g, fx + 3, fy - 9, 3, 9, Tc[1]); box(g, fx - 7, fy - 11, 14, 3, INK); box(g, fx - 6, fy - 10, 12, 1, Tc[4]);
+      for (let k = 0; k < 7; k++) { const a = -Math.PI * (0.15 + k * 0.12); for (let t = 2; t < 12; t += 2) box(g, Math.round(fx + Math.cos(a) * t * 1.3), Math.round(fy - 11 + Math.sin(a) * t + t * t * 0.06), 2, 1, k % 2 ? '#8A7A3A' : '#6A5A2A'); }
+      box(g, wx + 92, fy - 3, 14, 3, INK); box(g, wx + 93, fy - 3, 12, 2, '#6A8AA0'); box(g, wx + 93, fy - 3, 12, 1, '#A8C8DC'); box(g, wx + 102, fy - 5, 6, 1, '#E8E4D8'); box(g, wx + 107, fy - 5, 1, 1, '#E84A2A'); }
     const Cu = NC('#E2701E');
     drape(g, wx - 20, wy2 - 10, 26, 100, Cu, 9); drape(g, wx + 114, wy2 - 10, 26, 100, Cu, 9);
     for (const tx of [wx - 8, wx + 128]) { box(g, tx - 3, wy2 + 36, 6, 4, NR(BRASS)[3]); }
@@ -243,32 +265,72 @@ export const drawSetWall = (c: Ctx, cleared: boolean) => {
     g.fillStyle = '#1A1A1E'; g.beginPath(); g.moveTo(px0 + 62, py0 - 5); g.lineTo(px0 + 89, py0 - 5); g.lineTo(px0 + 89, py0 + 22); g.closePath(); g.fill();
     g.fillStyle = '#3A3A44'; g.beginPath(); g.moveTo(px0 + 68, py0 - 5); g.lineTo(px0 + 89, py0 + 16); g.lineTo(px0 + 89, py0 + 10); g.lineTo(px0 + 76, py0 - 5); g.closePath(); g.fill();
     box(g, px0 + 30, py0 + 66, 24, 5, G[2]); box(g, px0 + 31, py0 + 67, 22, 3, G[4]);
-    // (the clock: stopped at five; the plaque under it)
-    const cx = X(CLOCK_X), cy = top + 40;
-    g.fillStyle = INK; g.beginPath(); g.arc(cx, cy, 17, 0, Math.PI * 2); g.fill(); g.fillStyle = Pn[3]; g.beginPath(); g.arc(cx, cy, 16, 0, Math.PI * 2); g.fill(); g.fillStyle = Pn[4]; g.beginPath(); g.arc(cx - 1, cy - 1, 15, Math.PI, Math.PI * 1.6); g.fill();
-    g.fillStyle = '#FEF3C7'; g.beginPath(); g.arc(cx, cy, 12, 0, Math.PI * 2); g.fill(); g.fillStyle = '#F4E4B0'; g.beginPath(); g.arc(cx + 1, cy + 1, 12, 0, Math.PI * 0.8); g.fill();
-    for (let k = 0; k < 12; k++) { const an = (k / 12) * Math.PI * 2; box(g, cx + Math.cos(an) * 10 - 0.5, cy + Math.sin(an) * 10 - 0.5, 1, 1, '#5A3A1A'); }
-    g.strokeStyle = INK; g.lineWidth = 2; g.beginPath(); g.moveTo(cx, cy); g.lineTo(cx, cy - 10); g.moveTo(cx, cy); g.lineTo(cx + Math.cos(Math.PI * (-0.5 + 5 / 6)) * 7, cy + Math.sin(Math.PI * (-0.5 + 5 / 6)) * 7); g.stroke();
-    box(g, cx - 1, cy - 1, 2, 2, '#C83A3A');
-    box(g, cx - 46, cy + 22, 92, 26, INK); box(g, cx - 45, cy + 23, 90, 24, Pn[4]); box(g, cx - 45, cy + 23, 90, 2, Pn[5]); box(g, cx + 41, cy + 23, 4, 24, Pn[2]);
-    signText(g, "IT'S FIVE O'CLOCK", cx, cy + 33, tiny(Pn[0])); signText(g, 'SOMEWHERE', cx, cy + 43, tiny(Pn[0]));
-    // (the shelf of bowling trophies, a stein)
-    const sx = X(3600), sy = top + 92; box(g, sx - 34, sy, 68, 5, INK); box(g, sx - 33, sy + 1, 66, 3, Pn[4]); box(g, sx - 30, sy + 5, 4, 6, Pn[2]); box(g, sx + 26, sy + 5, 4, 6, Pn[2]);
-    for (const [tx, th] of [[-24, 26], [-10, 18], [4, 30]] as const) { box(g, sx + tx - 4, sy - 5, 10, 5, '#3A2A1A'); box(g, sx + tx - 1, sy - th, 4, th - 5, G[3]); box(g, sx + tx - 1, sy - th, 1, th - 5, G[5]); box(g, sx + tx - 4, sy - th - 6, 10, 7, G[4]); box(g, sx + tx - 2, sy - th - 9, 6, 4, G[3]); }
-    box(g, sx + 16, sy - 16, 12, 16, '#E8E0D0'); box(g, sx + 16, sy - 16, 12, 3, '#F8F4EC'); box(g, sx + 27, sy - 12, 4, 8, '#C8C0B0'); box(g, sx + 18, sy - 10, 8, 4, '#3A5A8A');
-    // (the wall phone by the kitchen: beige, its cord coiled down)
-    const phx = X(3660), phy = STAGE_Y - 110; box(g, phx - 7, phy - 1, 14, 26, INK); box(g, phx - 6, phy, 12, 24, '#D8CCAA'); box(g, phx - 6, phy, 3, 24, '#ECE2C4'); box(g, phx - 8, phy + 2, 4, 20, '#C8BC9A');
-    g.strokeStyle = '#C8BC9A'; g.lineWidth = 1; g.beginPath(); for (let k = 0; k < 12; k++) g.arc(phx - 6, phy + 26 + k * 2.4, 1.6, 0, Math.PI * 2); g.stroke();
-    box(g, phx + 10, phy + 10, 6, 10, '#F4F0E4'); box(g, phx + 12, phy + 12, 2, 6, '#C8C0AC');
-    // (the kitchen doorway: the trim, the dark beyond it (backstage), a work light's sliver, a cable)
-    const kx = X(KITCHEN.x);
-    box(g, kx - 34, STAGE_Y - 132, 68, 132, INK); box(g, kx - 33, STAGE_Y - 131, 66, 131, '#F4F0E4'); box(g, kx - 33, STAGE_Y - 131, 66, 2, '#FFFFFF'); box(g, kx + 29, STAGE_Y - 131, 4, 131, '#C8C0AC');
+    // (the clock: a SWILL LITE bar clock off the brewery's truck, every number on it a 5, stopped at five; the routed
+    // plank under it, IT'S FIVE O'CLOCK cut in, SOMEWHERE painted on in the show's yellow)
+    const cx = X(CLOCK_X), cy = top + 38, Rr = NR(RED);
+    pixelBlob(g, cx + 2, cy + 3, 21, 21, mix(Wp[1], INK, 0.2));
+    pixelBlob(g, cx, cy, 21, 21, INK); pixelBlob(g, cx, cy, 20, 20, Rr[2]); pixelBlob(g, cx - 1, cy - 1, 18, 18, Rr[3]); pixelBlob(g, cx - 6, cy - 7, 10, 8, Rr[4]); box(g, cx - 12, cy - 15, 4, 1, Rr[5]);
+    pixelBlob(g, cx, cy, 16, 16, INK); pixelBlob(g, cx, cy, 15, 15, '#D8CCA4'); pixelBlob(g, cx - 1, cy - 1, 14, 14, '#FBF3DC'); checker(g, cx - 14, cy + 6, 28, 2, '#E8DCB8', 0, 1);
+    const FIVE = ['111', '100', '111', '001', '111'];
+    for (let k = 0; k < 12; k++) { const an = (k / 12) * Math.PI * 2 - Math.PI / 2, nx = Math.round(cx + Math.cos(an) * 11) - 1, ny = Math.round(cy + Math.sin(an) * 11) - 2; FIVE.forEach((row, r) => { for (let q = 0; q < 3; q++) if (row[q] === '1') box(g, nx + q, ny + r, 1, 1, '#3A1A0A'); }); }
+    const hand = (an: number, len: number, w: number, col: string) => { for (let t = 0; t <= len; t++) box(g, Math.round(cx + Math.cos(an) * t - w / 2), Math.round(cy + Math.sin(an) * t - w / 2), w, w, col); };
+    hand(-Math.PI / 2, 9, 2, INK); hand((5 / 12) * Math.PI * 2 - Math.PI / 2, 6, 3, INK); hand(0.4, 11, 1, '#C8102E');
+    box(g, cx - 1, cy - 1, 3, 3, Rr[3]); box(g, cx - 1, cy - 1, 1, 1, Rr[5]);
+    box(g, cx - 10, cy - 11, 5, 1, 'rgba(255,255,255,0.75)'); box(g, cx - 11, cy - 10, 1, 4, 'rgba(255,255,255,0.6)');
+    { const sw = 132, sh = 38, sx0 = cx - sw / 2, sy0 = cy + 27, Wd = NR(r6('#9A6A3A'));
+      box(g, sx0 + 3, sy0 + 3, sw, sh, mix(Wp[1], INK, 0.2)); checker(g, sx0 + sw + 3, sy0 + 3, 2, sh, mix(Wp[1], INK, 0.2), 0, 1);
+      box(g, sx0 - 1, sy0 - 1, sw + 2, sh + 2, INK); box(g, sx0, sy0, sw, sh, Wd[3]);
+      for (let y = sy0 + 2; y < sy0 + sh - 2; y += 2) for (let k = 0; k < 5; k++) { const s = hash(y * 3.1 + k * 7.7); if (s < 0.4) continue; box(g, sx0 + 2 + Math.floor(hash(y + k * 1.9) * (sw - 30)), y, 8 + Math.floor(s * 22), 1, s > 0.7 ? Wd[4] : Wd[2]); }
+      pixelBlob(g, sx0 + sw - 16, sy0 + sh - 8, 5, 2, Wd[1]); box(g, sx0 + sw - 18, sy0 + sh - 9, 3, 1, Wd[4]);
+      box(g, sx0, sy0, sw, 2, Wd[5]); box(g, sx0, sy0, 2, sh, Wd[4]); box(g, sx0, sy0 + sh - 2, sw, 2, Wd[1]); box(g, sx0 + sw - 2, sy0, 2, sh, Wd[2]); checker(g, sx0 + 2, sy0 + sh - 4, sw - 4, 2, Wd[2], 0, 1);
+      for (const [qx, qy] of [[sx0 + 4, sy0 + 4], [sx0 + sw - 6, sy0 + 4], [sx0 + 4, sy0 + sh - 6], [sx0 + sw - 6, sy0 + sh - 6]]) { box(g, qx, qy, 2, 2, Wd[0]); box(g, qx, qy, 1, 1, '#E8E4D8'); }
+      signText(g, "IT'S FIVE O'CLOCK", cx, sy0 + 13, { sx: 1, sy: 1, bold: true, fill: Wd[0], lip: Wd[5] });
+      signText(g, 'SOMEWHERE', cx, sy0 + 32, { sx: 1, sy: 2, bold: true, fill: ['#FFF4C2', '#FDE047', '#F2A81E'], dither: true, ink: INK, shadow: Wd[1], drop: 1 }); }
+    // (the shelf of bowling trophies on its iron brackets (the tallest a ball and a pin up top), a stein)
+    const sx = X(3600), sy = top + 92, Tw = NR(r6('#5A3418'));
+    checker(g, sx - 34, sy + 6, 68, 3, mix(Wp[1], INK, 0.15), 0, 1);
+    for (const bx of [sx - 28, sx + 24]) { box(g, bx - 1, sy + 4, 5, 14, INK); box(g, bx, sy + 5, 3, 12, '#3A3A44'); box(g, bx, sy + 5, 1, 12, '#6A6A78'); for (let k = 0; k < 8; k++) box(g, bx + (bx < sx ? 3 + k : -1 - k), sy + 5 + k, 2, 2, INK); }
+    box(g, sx - 36, sy - 1, 72, 7, INK); box(g, sx - 35, sy, 70, 5, Pn[3]); box(g, sx - 35, sy, 70, 1, Pn[5]); box(g, sx - 35, sy + 1, 70, 1, Pn[4]); box(g, sx - 35, sy + 4, 70, 1, Pn[1]);
+    for (const [tx, th, ball] of [[-24, 26, false], [-10, 18, false], [4, 30, true]] as const) {
+      const t0 = sx + tx;
+      box(g, t0 - 6, sy - 7, 13, 7, INK); box(g, t0 - 5, sy - 6, 11, 6, Tw[3]); box(g, t0 - 5, sy - 6, 11, 1, Tw[5]); box(g, t0 + 4, sy - 6, 2, 6, Tw[1]); box(g, t0 - 2, sy - 4, 5, 2, G[4]);
+      box(g, t0 - 2, sy - th, 5, th - 6, INK); box(g, t0 - 1, sy - th, 3, th - 6, G[3]); box(g, t0 - 1, sy - th, 1, th - 6, G[5]); box(g, t0 + 1, sy - th, 1, th - 6, G[1]);
+      if (ball) {
+        // (a pin and the ball up top, gold)
+        box(g, t0 + 1, sy - th - 13, 4, 13, INK); box(g, t0 + 2, sy - th - 12, 2, 11, G[4]); box(g, t0 + 1, sy - th - 9, 4, 2, G[1]);
+        pixelBlob(g, t0 - 2, sy - th - 4, 5, 5, INK); pixelBlob(g, t0 - 2, sy - th - 4, 4, 4, G[3]); pixelBlob(g, t0 - 3, sy - th - 5, 2, 2, G[5]); box(g, t0 - 1, sy - th - 5, 1, 1, G[0]); box(g, t0, sy - th - 3, 1, 1, G[0]);
+      } else {
+        // (a cup, handles out either side)
+        box(g, t0 - 5, sy - th - 8, 11, 9, INK); box(g, t0 - 4, sy - th - 7, 9, 7, G[3]); box(g, t0 - 4, sy - th - 7, 2, 7, G[5]); box(g, t0 + 3, sy - th - 7, 2, 7, G[1]); box(g, t0 - 4, sy - th - 7, 9, 1, G[5]);
+        for (const s of [-1, 1]) { box(g, t0 + (s < 0 ? -8 : 6), sy - th - 6, 3, 5, INK); box(g, t0 + (s < 0 ? -7 : 6), sy - th - 5, 1, 3, G[s < 0 ? 4 : 2]); }
+        box(g, t0 - 2, sy - th - 2, 5, 2, G[2]);
+      }
+    }
+    { const Sc = NR(r6('#D8D0BE')); box(g, sx + 15, sy - 18, 14, 18, INK); box(g, sx + 16, sy - 17, 12, 17, Sc[3]); box(g, sx + 16, sy - 17, 3, 17, Sc[4]); box(g, sx + 25, sy - 17, 3, 17, Sc[2]); box(g, sx + 16, sy - 10, 12, 4, '#3A5A8A'); box(g, sx + 16, sy - 10, 12, 1, '#6A8ABA');
+      box(g, sx + 14, sy - 21, 16, 4, INK); box(g, sx + 15, sy - 20, 14, 2, '#9AA0A8'); box(g, sx + 15, sy - 20, 14, 1, '#D4D8E0'); box(g, sx + 28, sy - 15, 5, 11, INK); box(g, sx + 29, sy - 14, 2, 9, Sc[2]); }
+    // (the wall phone by the kitchen: beige, its handset in the cradle, the keypad, the cord coiled down; a note taped by it)
+    const phx = X(3660), phy = STAGE_Y - 110, Bg = NR(r6('#D8CCAA'));
+    box(g, phx - 6, phy - 1, 15, 30, INK); box(g, phx - 5, phy, 13, 28, Bg[3]); box(g, phx - 5, phy, 13, 1, Bg[5]); box(g, phx + 5, phy, 3, 28, Bg[2]); box(g, phx - 5, phy + 27, 13, 1, Bg[1]);
+    for (let r = 0; r < 4; r++) for (let q = 0; q < 3; q++) { box(g, phx - 3 + q * 3, phy + 11 + r * 3, 2, 2, Bg[1]); box(g, phx - 3 + q * 3, phy + 11 + r * 3, 1, 1, Bg[5]); }
+    box(g, phx - 11, phy - 2, 6, 31, INK); box(g, phx - 10, phy - 1, 4, 29, Bg[3]); box(g, phx - 10, phy - 1, 1, 29, Bg[5]); box(g, phx - 7, phy - 1, 1, 29, Bg[1]);
+    for (const ey of [phy - 4, phy + 23]) { box(g, phx - 13, ey, 9, 7, INK); box(g, phx - 12, ey + 1, 7, 5, Bg[3]); box(g, phx - 12, ey + 1, 7, 1, Bg[5]); box(g, phx - 12, ey + 5, 7, 1, Bg[1]); }
+    for (let k = 0; k < 16; k++) { const cy2 = phy + 31 + k * 2; box(g, phx - 11 + (k % 2), cy2, 4, 1, Bg[1]); box(g, phx - 11 + (k % 2), cy2 - 1, 4, 1, Bg[4]); }
+    box(g, phx + 11, phy + 6, 11, 13, mix('#FEF3A0', INK, 0.1)); box(g, phx + 11, phy + 6, 11, 12, '#FEF3A0'); box(g, phx + 14, phy + 5, 5, 2, 'rgba(240,240,232,0.7)'); for (let k = 0; k < 3; k++) box(g, phx + 13, phy + 10 + k * 3, 4 + (k % 2) * 3, 1, '#2563EB');
+    // (the kitchen doorway: the casing stepped and lit, the head casing over it, the dark beyond it (backstage), a work
+    // light's sliver, a cable)
+    const kx = X(KITCHEN.x), Tr = NR(r6('#E8E2D2'));
+    box(g, kx - 38, STAGE_Y - 140, 76, 8, INK); box(g, kx - 37, STAGE_Y - 139, 74, 6, Tr[3]); box(g, kx - 37, STAGE_Y - 139, 74, 1, Tr[5]); box(g, kx - 37, STAGE_Y - 134, 74, 1, Tr[1]);
+    box(g, kx - 34, STAGE_Y - 132, 68, 132, INK); box(g, kx - 33, STAGE_Y - 132, 66, 132, Tr[3]);
+    for (const s of [-1, 1]) { const ex = s < 0 ? kx - 33 : kx + 28; box(g, ex, STAGE_Y - 132, 5, 132, Tr[3]); box(g, ex, STAGE_Y - 132, 1, 132, Tr[5]); box(g, ex + 2, STAGE_Y - 132, 1, 132, Tr[2]); box(g, ex + 4, STAGE_Y - 132, 1, 132, Tr[1]); box(g, ex, STAGE_Y - 12, 5, 12, Tr[2]); box(g, ex, STAGE_Y - 12, 5, 1, Tr[4]); }
+    box(g, kx - 28, STAGE_Y - 132, 56, 8, Tr[2]); box(g, kx - 28, STAGE_Y - 125, 56, 1, Tr[0]);
     box(g, kx - 28, STAGE_Y - 124, 56, 124, '#0E0A10'); box(g, kx + 10, STAGE_Y - 124, 18, 124, '#16121A'); checker(g, kx + 6, STAGE_Y - 124, 4, 124, '#16121A', 0, 1);
-    box(g, kx + 18, STAGE_Y - 124, 2, 40, '#2A2430'); box(g, kx + 14, STAGE_Y - 86, 10, 6, '#3A3440');
+    box(g, kx + 18, STAGE_Y - 124, 2, 40, '#2A2430'); box(g, kx + 14, STAGE_Y - 86, 10, 6, '#3A3440'); box(g, kx + 15, STAGE_Y - 81, 8, 1, '#8A7A50');
     g.strokeStyle = '#1C1C1C'; g.lineWidth = 2; g.beginPath(); g.moveTo(kx - 20, STAGE_Y - 2); g.quadraticCurveTo(kx, STAGE_Y - 10, kx + 22, STAGE_Y - 2); g.stroke();
-    // (the light switch; the outlet with a cheater plug)
-    box(g, X(3610) - 4, STAGE_Y - 96, 8, 12, '#F4F0E4'); box(g, X(3610) - 1, STAGE_Y - 93, 2, 4, '#C8C0AC');
-    box(g, X(3070) - 4, STAGE_Y - 30, 8, 10, '#F4F0E4'); box(g, X(3070) - 2, STAGE_Y - 28, 1, 2, INK); box(g, X(3070) + 1, STAGE_Y - 28, 1, 2, INK);
+    // (the light switch; the outlet with a cheater plug: plates inked and beveled)
+    const plate = (x: number, y: number, w: number, h: number) => { box(g, x - 1, y - 1, w + 2, h + 2, mix(Wp[1], INK, 0.3)); box(g, x, y, w, h, Tr[3]); box(g, x, y, w, 1, Tr[5]); box(g, x, y, 1, h, Tr[4]); box(g, x + w - 1, y, 1, h, Tr[1]); box(g, x, y + h - 1, w, 1, Tr[1]); };
+    plate(X(3610) - 5, STAGE_Y - 97, 10, 14); box(g, X(3610) - 1, STAGE_Y - 94, 3, 6, Tr[1]); box(g, X(3610) - 1, STAGE_Y - 94, 2, 3, Tr[5]);
+    plate(X(3070) - 5, STAGE_Y - 32, 10, 13); box(g, X(3070) - 3, STAGE_Y - 29, 1, 3, INK); box(g, X(3070) + 1, STAGE_Y - 29, 1, 3, INK);
+    box(g, X(3070) - 4, STAGE_Y - 24, 8, 4, INK); box(g, X(3070) - 3, STAGE_Y - 23, 6, 2, '#F4F1E8'); g.strokeStyle = '#1C1C1C'; g.lineWidth = 1; g.beginPath(); g.moveTo(X(3070), STAGE_Y - 20); g.quadraticCurveTo(X(3070) + 4, STAGE_Y - 10, X(3070) + 14, STAGE_Y - 9); g.stroke();
     if (cleared) { g.fillStyle = 'rgba(14,10,30,0.32)'; g.fillRect(a - 70, top - 10, b - a + 140, STAGE_Y - top + 12); }
   });
 };
@@ -280,7 +342,12 @@ export const drawSwingDoor = (c: Ctx, doorOpen: number) => {
   box(c, kx - 27, STAGE_Y - 121, dw - 2, 118, D[3]); box(c, kx - 27, STAGE_Y - 121, Math.max(1, dw * 0.12), 118, D[4]); box(c, kx - 27 + dw - 2 - Math.max(1, dw * 0.12), STAGE_Y - 121, Math.max(1, dw * 0.12), 118, D[2]);
   if (dw > 20) {
     const m = kx - 28 + dw / 2, s = dw / 54;
-    box(c, kx - 24, STAGE_Y - 58, dw - 8, 1, D[1]); box(c, kx - 24, STAGE_Y - 26, dw - 8, 1, D[1]);
+    // (a raised panel under the porthole: beveled, lit up and left; the grain; a brass kick plate scuffed)
+    const pl = kx - 22, pw = dw - 12;
+    box(c, pl, STAGE_Y - 66, pw, 40, D[2]); box(c, pl, STAGE_Y - 66, pw, 2, D[5]); box(c, pl, STAGE_Y - 66, 2, 40, D[4]); box(c, pl + pw - 2, STAGE_Y - 66, 2, 40, D[1]); box(c, pl, STAGE_Y - 28, pw, 2, D[1]);
+    box(c, pl + 4, STAGE_Y - 62, pw - 8, 32, D[3]); box(c, pl + 6, STAGE_Y - 56, 1, 20, D[2]); box(c, pl + pw * 0.6, STAGE_Y - 60, 1, 24, D[2]);
+    box(c, kx - 26, STAGE_Y - 116, 1, 20, D[2]); box(c, kx - 26 + dw * 0.7, STAGE_Y - 110, 1, 30, D[2]);
+    const Br = NR(BRASS); box(c, kx - 27, STAGE_Y - 18, dw - 2, 14, Br[2]); box(c, kx - 27, STAGE_Y - 18, dw - 2, 1, Br[5]); box(c, kx - 27, STAGE_Y - 17, dw - 2, 1, Br[4]); box(c, kx - 27, STAGE_Y - 5, dw - 2, 1, Br[0]); box(c, kx - 20, STAGE_Y - 12, 10, 1, Br[1]); box(c, kx - 6, STAGE_Y - 9, 8, 1, Br[1]);
     c.fillStyle = INK; c.beginPath(); c.ellipse(m, STAGE_Y - 88, 9 * s, 9, 0, 0, Math.PI * 2); c.fill();
     c.fillStyle = NR(BRASS)[3]; c.beginPath(); c.ellipse(m, STAGE_Y - 88, 8 * s, 8, 0, 0, Math.PI * 2); c.fill();
     c.fillStyle = '#5A7A8A'; c.beginPath(); c.ellipse(m, STAGE_Y - 88, 6 * s, 6, 0, 0, Math.PI * 2); c.fill();
@@ -384,11 +451,19 @@ export const drawRug = (c: Ctx, at: (x: number, d: number) => { x: number; y: nu
   const ring = (k: number) => { const pts: { x: number; y: number }[] = []; for (let i = 0; i < 40; i++) { const t = (i / 40) * Math.PI * 2; pts.push(at(cx + Math.cos(t) * ax * k, cd + Math.sin(t) * ad * k)); } return pts; };
   const path = (pts: { x: number; y: number }[]) => { c.beginPath(); pts.forEach((p, i) => (i ? c.lineTo(p.x, p.y) : c.moveTo(p.x, p.y))); c.closePath(); };
   const cols = ['#6A3A1A', '#B8622A', '#7A8A3A', '#C88A3A', '#8A3A2A', '#D8A858', '#5A6A3A'].map(col => hour(col, 0.06));
-  path(ring(1.03)); c.fillStyle = 'rgba(14,8,24,0.35)'; c.fill();
+  path(ring(1.04)); c.fillStyle = 'rgba(14,8,24,0.35)'; c.fill();
+  path(ring(1.005)); c.fillStyle = hour('#2A1408', 0.06); c.fill();
+  // (each coil of the braid: its color, then the plait: two strands' dashes laid alternately (one lit, one in the next
+  // coil's color), a dark seam between coils)
   cols.forEach((col, i) => {
     const k = 1 - i * 0.14; if (k <= 0) return;
     const pts = ring(k); path(pts); c.fillStyle = col; c.fill();
-    c.setLineDash([3, 3]); c.strokeStyle = cols[(i + 2) % cols.length]; c.lineWidth = 1.5; path(ring(k - 0.05)); c.stroke(); c.setLineDash([]);
+    const mid = ring(k - 0.07);
+    c.lineWidth = 2; c.setLineDash([3, 3]);
+    c.strokeStyle = mix(col, '#FFF0D0', 0.3); path(mid); c.stroke();
+    c.lineDashOffset = 3; c.strokeStyle = cols[(i + 2) % cols.length]; path(mid); c.stroke(); c.lineDashOffset = 0;
+    c.setLineDash([]);
+    c.lineWidth = 1; c.strokeStyle = mix(col, '#140A04', 0.45); path(ring(k - 0.135)); c.stroke();
   });
   // (the track: a steel slot in the boards, dead straight, the couch's end back to the kitchen door; bolts along it)
   const p0 = at(X(track.a.x), track.a.d), p1 = at(X(track.b.x), track.b.d);

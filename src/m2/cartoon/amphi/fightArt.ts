@@ -82,6 +82,10 @@ export const drawFridge = (c: Ctx, x: number, floorY: number, f: number, o: { op
   // (the freezer door, the main door: swung out to the left on its hinge, foreshortened)
   shape(c, () => c.roundRect(L + 2, -H + 2, W - 4, 44, 4), AVO, L, L + W);
   px(c, L + W - 12, -H + 14, 4, 22, CHROME[2]); px(c, L + W - 12, -H + 14, 1.4, 22, CHROME[0]);
+  // (the chrome nameplate on the freezer door, the hinges down the left)
+  px(c, L + 10, -H + 34, 22, 5, CHROME[4]); px(c, L + 11, -H + 35, 20, 3, CHROME[1]); px(c, L + 11, -H + 35, 20, 1, CHROME[0]); for (let k = 0; k < 5; k++) px(c, L + 13 + k * 4, -H + 36, 2, 1, '#6E7A2A');
+  for (const hy of [-H + 8, -H + 52, -18]) { px(c, L - 1, hy, 4, 7, CHROME[4]); px(c, L, hy + 1, 2, 5, CHROME[2]); px(c, L, hy + 1, 1, 2, CHROME[0]); }
+  for (let k = 0; k < 8; k++) px(c, L + 8 + k * 7, -7, 4, 1, '#6E7444');
   const dw = (W - 4) * Math.cos(open * Math.PI * 0.46);
   if (dw > 2) {
     shape(c, () => c.roundRect(L + 2, -H + 50, dw, H - 62, 4), AVO, L + 2, L + 2 + dw);
@@ -208,24 +212,48 @@ export const drawSideWall = (c: Ctx, E: P, near: number, far: number, drop = 1) 
   // (the inside face seen when the eye's on the room's side of it; else the flat's bare back, battens and all)
   const inside = far > near ? E.x > X(near) : E.x < X(near);
   const Wp = NR(WALLP), Pn = NR(PANELS), Pl = NR(PLY), N = 8;
+  const dq = (pts: P[], col: string) => q(pts, col);
   for (let i = 0; i < N; i++) {
-    const u0 = i / N, u1 = (i + 1) / N;
-    const shade = (r: string[]) => r[Math.max(1, Math.min(r.length - 2, 3 - Math.floor(i / 3)))];
+    const u0 = i / N, u1 = (i + 1) / N, um = (u0 + u1) / 2, du = (u1 - u0) * 0.34;
+    const si = Math.max(1, Math.min(4, 3 - Math.floor(i / 3)));
     if (inside) {
-      q([at(u0, top), at(u1, top), at(u1, rail), at(u0, rail)], shade(Wp));
-      q([at(u0, rail), at(u1, rail), at(u1, foot), at(u0, foot)], shade(Pn));
-      // (the diamonds down the middle of each strip)
-      for (let y = top + 22; y < rail - 8; y += 28) { const p = at((u0 + u1) / 2, y); box(c, p.x - 2, p.y - 3, 4, 6, Wp[2]); box(c, p.x - 2, p.y - 3, 2, 2, Wp[4]); }
+      q([at(u0, top), at(u1, top), at(u1, rail), at(u0, rail)], Wp[si]);
+      q([at(u0, rail), at(u1, rail), at(u1, foot), at(u0, foot)], Pn[si]);
+      // (the wallpaper's diamonds in the wall's perspective, staggered strip to strip as on the set: shaded, lit upper
+      // left, a fleck between)
+      for (let y = top + 18 + (i % 2) * 14; y < rail - 12; y += 28) {
+        dq([at(um, y - 7), at(um + du, y), at(um, y + 7), at(um - du, y)], Wp[Math.max(0, si - 1)]);
+        dq([at(um, y - 7), at(um - du, y), at(um - du * 0.6, y), at(um, y - 4)], Wp[Math.min(5, si + 1)]);
+        const d2 = at(u0, y + 14); box(c, d2.x - 1, d2.y - 1, 2, 2, Wp[Math.min(5, si + 1)]);
+      }
+      // (the paneling's grooves (one per plank), the grain between)
+      const g0 = at(u0, rail + 3), g1 = at(u0, foot - 9); c.strokeStyle = Pn[Math.max(0, si - 2)]; c.lineWidth = 1; c.beginPath(); c.moveTo(g0.x, g0.y); c.lineTo(g1.x, g1.y); c.stroke();
+      const h0 = at(u0 + 0.01, rail + 3), h1 = at(u0 + 0.01, foot - 9); c.strokeStyle = Pn[Math.min(5, si + 1)]; c.beginPath(); c.moveTo(h0.x, h0.y); c.lineTo(h1.x, h1.y); c.stroke();
+      const k0 = at(um, rail + 10 + (i % 3) * 5), k1 = at(um, foot - 16); c.strokeStyle = Pn[Math.max(0, si - 1)]; c.beginPath(); c.moveTo(k0.x, k0.y); c.lineTo(k1.x, k1.y); c.stroke();
     } else {
-      q([at(u0, top), at(u1, top), at(u1, foot), at(u0, foot)], shade(Pl));
-      const p = at((u0 + u1) / 2, top), b = at((u0 + u1) / 2, foot); box(c, p.x - 1, p.y, 2, b.y - p.y, Pl[1]);
+      q([at(u0, top), at(u1, top), at(u1, foot), at(u0, foot)], Pl[si]);
+      const p = at(um, top), b = at(um, foot); box(c, p.x - 1, p.y, 2, b.y - p.y, Pl[Math.max(0, si - 2)]); box(c, p.x + 1, p.y, 1, b.y - p.y, Pl[Math.min(5, si + 1)]);
     }
   }
-  // (its top edge lit, its near edge in ink, the chair rail)
-  const a0 = at(0, top), a1 = at(1, top), f0 = at(0, foot), r0 = at(0, rail), r1 = at(1, rail);
+  // (its top edge lit, its near edge in ink, the chair rail, the baseboard; on its back, the toggle rails and a stencil)
+  const a0 = at(0, top), a1 = at(1, top), f0 = at(0, foot), f1 = at(1, foot), r0 = at(0, rail), r1 = at(1, rail);
+  if (inside) {
+    const b0 = at(0, foot - 8), b1 = at(1, foot - 8);
+    q([b0, b1, f1, f0], Pn[1]);
+    c.lineWidth = 1; c.strokeStyle = Pn[4]; c.beginPath(); c.moveTo(b0.x, b0.y); c.lineTo(b1.x, b1.y); c.stroke();
+    c.strokeStyle = Pn[0]; c.beginPath(); c.moveTo(b0.x, b0.y - 1); c.lineTo(b1.x, b1.y - 1); c.stroke();
+    // (the wallpaper's lit top band and its shade down into the rail)
+    const t0 = at(0, top + 3), t1 = at(1, top + 3); c.strokeStyle = Wp[1]; c.beginPath(); c.moveTo(t0.x, t0.y); c.lineTo(t1.x, t1.y); c.stroke();
+    c.strokeStyle = INK; c.lineWidth = 4; c.beginPath(); c.moveTo(r0.x, r0.y + 1); c.lineTo(r1.x, r1.y + 1); c.stroke();
+    c.strokeStyle = Pn[3]; c.lineWidth = 2; c.beginPath(); c.moveTo(r0.x, r0.y + 1); c.lineTo(r1.x, r1.y + 1); c.stroke();
+    c.strokeStyle = Pn[5]; c.lineWidth = 1; c.beginPath(); c.moveTo(r0.x, r0.y); c.lineTo(r1.x, r1.y); c.stroke();
+  } else {
+    for (const y of [top + 4, (top + foot) / 2, foot - 4]) { const p = at(0, y), p2 = at(1, y); c.strokeStyle = Pl[1]; c.lineWidth = 3; c.beginPath(); c.moveTo(p.x, p.y); c.lineTo(p2.x, p2.y); c.stroke(); c.strokeStyle = Pl[4]; c.lineWidth = 1; c.beginPath(); c.moveTo(p.x, p.y - 1); c.lineTo(p2.x, p2.y - 1); c.stroke(); }
+  }
   c.strokeStyle = INK; c.lineWidth = 3; c.beginPath(); c.moveTo(f0.x, f0.y); c.lineTo(a0.x, a0.y); c.lineTo(a1.x, a1.y); c.stroke();
   c.strokeStyle = Pl[5]; c.lineWidth = 1; c.beginPath(); c.moveTo(a0.x, a0.y + 1); c.lineTo(a1.x, a1.y + 1); c.stroke();
-  if (inside) { c.strokeStyle = Pn[4]; c.lineWidth = 2; c.beginPath(); c.moveTo(r0.x, r0.y); c.lineTo(r1.x, r1.y); c.stroke(); }
+  // (the flat's raw plywood edge at the near end, the plies showing)
+  { const dx = far > near ? 1 : -1; box(c, Math.min(a0.x, a0.x + dx * 4), a0.y + 1, 4, f0.y - a0.y - 1, Pl[4]); for (let y = a0.y + 3; y < f0.y; y += 7) box(c, Math.min(a0.x, a0.x + dx * 4), y, 4, 1, Pl[2]); }
   // (flown: the lines up to the grid)
   if (drop < 1) for (const u of [0.15, 0.85]) { const p = at(u, top); c.strokeStyle = '#2A2A30'; c.lineWidth = 1; c.beginPath(); c.moveTo(p.x, p.y); c.lineTo(p.x, p.y - 600); c.stroke(); }
 };
