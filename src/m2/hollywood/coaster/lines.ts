@@ -58,7 +58,8 @@ export const LEVER = ['EXPERIMENTAL. HELL YES.', 'NO WAIVER. NO PROBLEM.'];
 /** Off the end of the track. */
 export const LAUNCH = ['EXPERIMENTAAAAL!', "THE TRACK ENDS! I DON'T CARE!"];
 /** The train back to the station (the lever on NORMAL). */
-export const RIDE_BACK = ['BACK TO THE START. LIKE MY CAREER.', "THAT'S IT? BACK TO THE STATION?"];
+// (the user's, verbatim: "make sure meathead says 'i should have pulled the lever' when he pulls back into the station")
+export const RIDE_BACK = ['I SHOULD HAVE PULLED THE LEVER.'];
 /** Back at stop 3 from the warehouse: the track's still bent where he left it. */
 export const BENT = ["THE TRACK'S STILL BENT. THEY JUST LEFT IT.", "NOBODY FIXED THE TRACK. UNION'S ON STRIKE. LAUNCH ME."];
 

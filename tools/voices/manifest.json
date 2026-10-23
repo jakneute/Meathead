@@ -60526,11 +60526,6 @@
  },
  {
   "voice": "meathead",
-  "text": "BACK TO THE START. LIKE MY CAREER.",
-  "from": "HOLLYWOOD"
- },
- {
-  "voice": "meathead",
   "text": "BACK UP. DEATH DIDN'T EVEN SOFTEN IT.",
   "from": "FANTASY"
  },
@@ -70388,6 +70383,11 @@
   "voice": "meathead",
   "text": "I SHOULD HAVE JUMPED!",
   "from": "FOREIGN"
+ },
+ {
+  "voice": "meathead",
+  "text": "I SHOULD HAVE PULLED THE LEVER.",
+  "from": "HOLLYWOOD"
  },
  {
   "voice": "meathead",
@@ -85083,11 +85083,6 @@
   "voice": "meathead",
   "text": "THAT'S IT? A RUBBER HEAD ON A STICK?",
   "from": "SPACE"
- },
- {
-  "voice": "meathead",
-  "text": "THAT'S IT? BACK TO THE STATION?",
-  "from": "HOLLYWOOD"
  },
  {
   "voice": "meathead",
