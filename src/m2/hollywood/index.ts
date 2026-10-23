@@ -109,8 +109,9 @@ export const hollywoodLayout: StageLayout = {
       }
       if (hs.grace === 0) { for (const e of hs.held) e.puppet = false; hs.held.clear(); }
     }
-    // Which section he's in (the one his middle's in), and the camera kept to it
-    const sec = sectionAt(p.pos.x + p.width / 2);
+    // Which section he's in (the one his middle's in, unless one's cutscene still has him: the warehouse's ending sits
+    // him in the bulldozer out in the lot, and only the warehouse can finish it), and the camera kept to it
+    const sec = SECTION_ORDER.map(id => ALL[id]).find(s => s.holds?.(state)) ?? sectionAt(p.pos.x + p.width / 2);
     hs.section = sec.id;
     const lim = sec.cameraX?.(state) ?? { min: sec.x0, max: sec.x1 - CANVAS_WIDTH };
     state.cameraMinX = lim.min; state.cameraMaxX = lim.max;

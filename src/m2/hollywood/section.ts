@@ -68,6 +68,9 @@ export interface HollywoodSection extends Section<HollywoodId> {
   wires?: (state: GameState) => StuntWire[];
   /** Drawn after the stunt wires' rigs, still behind him (the coaster's train: nothing of the rigs' chains across it). */
   drawOverWires?: (c: CanvasRenderingContext2D, state: GameState) => void;
+  /** A cutscene of its own that carries him out past its ends (the warehouse's ending, out into the lot): while it's
+   *  true the section keeps him (its update, its camera, its HUD), wherever his middle is. Left out: never. */
+  holds?: (state: GameState) => boolean;
 }
 /** Hollywood Land's own state (state.stage): which section he's in, each section's own state by its id. */
 export interface Hollywood extends Adv<HollywoodId> {

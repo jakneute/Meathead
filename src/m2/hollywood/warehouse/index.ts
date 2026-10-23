@@ -145,6 +145,8 @@ export const warehouse: HollywoodSection = {
   // (the camera: held on the main stage while the cast's at him; otherwise never past the main stage's far wall)
   cameraX: (state) => fightCam(state) ?? { min: x0, max: X(FAR_WALL) + 30 - CANVAS_WIDTH },
   zoom: (state) => endingZoom(state),
+  // (the ending's out in the lot at its end, him up in the bulldozer's cab: still ours till he hops down)
+  holds: (state) => endingOn(state),
   outdoors: (state) => (whOf(state).ending.phase === 'lot' ? 1 : 0.5),
   lamps: () => warehouseLamps(),
   wires: () => WIRES,
