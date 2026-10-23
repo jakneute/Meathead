@@ -127,13 +127,13 @@ const FLAIL_REACH = 190, FLAIL_LINGER = 90, FLAIL_TELL = 20, FLAIL_T = 26, FLAIL
 // arrive together (the user's: it was compounding); a batted kid still stuns her and clears the brood)
 const FLUNG_DMG = 40, FLUNG_GAP = 45, BATTED_STUN = 90;
 /** One of hers batted back into her with the mallet (the rebound): a bit more than a throw (the user's: the hammer a bit harder). */
-const BATTED_DMG = 48;
+const BATTED_DMG = 56; // (a bit more again, the user's: was 48)
 /** Her head bonked with the mallet: the extra, the stun. */
 const HEAD_EXTRA = 10, HEAD_STUN = 70;
 /** The mallet's plain swing on her: a modest knock (the breather after it, like anything). */
-const MALLET_HIT = 54;
+const MALLET_HIT = 64; // (a bit more again, the user's: was 54)
 /** The held smash (Y held, the windup): twice and more a swing, and never swallowed by the breather after one. */
-const MALLET_SMASH = 112;
+const MALLET_SMASH = 132; // (a bit more again, the user's: was 112)
 /** Any straight mallet hit with him this close to her body (px, any height): stunned this long, and across she goes
  *  after it; not again within CLOSE_GAP frames of the last (nor while she's stunned or leaping). */
 const CLOSE_R = 150, CLOSE_STUN = 60, SMASH_STUN = 90, CLOSE_GAP = 180;
