@@ -358,6 +358,8 @@ export const startFight = (state: GameState, retry = false): Fight => {
   // (the vine: up over his hands while he's hanging off it)
   f.vine = {
     get x() { return f.x - 8; }, get y() { return f.y - 86 - VINE_UP; }, w: 16, h: VINE_UP, air: true,
+    // (up it, some of the litter already at something else leave off and go for it, the user's)
+    pull: 0.5,
     alive: () => live === f && hanging(f),
     bite: d => { f.vineChewed += d; },
   };

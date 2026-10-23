@@ -54,6 +54,9 @@ export interface SpawnerBait {
   x: number; y: number; w: number; h: number; alive: () => boolean; bite: (dmg: number) => void;
   /** Up in the air (a vine he's hanging off): one fired at it flies straight to it. */
   air?: boolean;
+  /** The moment it comes up, this share of the ones already busy (on somebody, on another bait, about) leave off and go
+   *  for it (Safari Artie's vine, the user's: "some active goblins will detach and go for an active vine if one comes up"). */
+  pull?: number;
 }
 let baitsOf: (state: GameState) => SpawnerBait[] = () => [];
 export const setSpawnerBaits = (fn: ((state: GameState) => SpawnerBait[]) | null) => { baitsOf = fn ?? (() => []); };
@@ -213,6 +216,7 @@ const letGo = (a: Alien) => { a.on = null; a.target = null; a.retarget = 0; a.gr
 const tick = (ctx: FrameContext) => {
   const { state } = ctx;
   if (birthing > 0) birthing--;
+  pulls(state);
   const live: Alien[] = [];
   for (const a of aliens) {
     a.life--;
@@ -231,6 +235,25 @@ const tick = (ctx: FrameContext) => {
   for (const p of puddles) p.t++;
   puddles = puddles.filter(p => p.t < PUDDLE);
   pieces = pieces.filter(p => p.t < LIE + FADE);
+};
+
+/** A pulling bait just come up: some of them off whatever they're at, flying for it. */
+const upBaits = new WeakSet<SpawnerBait>();
+const pulls = (state: GameState) => {
+  if (!aliens.length) return;
+  for (const b of allBaits(state)) {
+    if (!b.pull) continue;
+    const up = b.alive();
+    if (up && !upBaits.has(b)) {
+      upBaits.add(b);
+      for (const a of aliens) {
+        if (a.onBait?.b === b || a.bait === b || Math.random() >= b.pull) continue;
+        a.onBait = null; letGo(a); a.bait = b; a.fresh = false;
+        a.homing = { e: null, b, t: 120 };
+        if (Math.random() < 0.4) playSound('chitter', 0.4, 6);
+      }
+    } else if (!up) upBaits.delete(b);
+  }
 };
 
 /** Latched on: hanging on where it bit in, chewing. False when it's done for. */
