@@ -25,6 +25,7 @@ import { shakeScreen } from '../../../m1/game/core/state';
 import { playSound } from '../../../m1/game/platform/audio';
 import { hazardHit, hazardVictims, setHazardZones, boxHits } from '../../hazardHit';
 import { envSound } from '../../bossQuiet';
+import { grabLocked } from '../../moves/grab';
 import { GY } from '../geometry';
 import { wh2Of, GLOBE_MEMO, type Drawer } from './state';
 import {
@@ -100,7 +101,8 @@ export const jelloWobble = { t: 0 };
 const updateJello = (state: GameState) => {
   const p = state.player;
   if (jelloWobble.t > 0) jelloWobble.t--;
-  if (!p.isGrounded || p.vel.y < 0) return false;
+  // (not mid-grab: stood on like a floor till he's done (grab.ts envGuard))
+  if (!p.isGrounded || p.vel.y < 0 || grabLocked()) return false;
   const feet = p.pos.y + p.height, cx = p.pos.x + p.width / 2;
   if (Math.abs(feet - Y(JELLO.h)) > 3 || cx < X(JELLO.a) || cx > X(JELLO.b)) return false;
   p.vel.y = -JELLO_BOUNCE; p.isGrounded = false;

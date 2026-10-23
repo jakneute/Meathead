@@ -54,6 +54,8 @@ import { markMachineGore } from '../../m1/game/enemies/machineGore';
 import { hurtPlayer } from '../../m1/game/bosses/shared';
 import { enemyGender } from '../../m1/content/gender';
 import { meatheadSays } from '../adventure/section';
+import { floorTopAt } from '../../m1/game/core/terrain';
+import { hazardOwnersIn } from '../hazardHit';
 import { TOO_BIG_LINES, TOO_BIG_BY_KIND, GRAB_IMMUNE_LINES } from '../lines/weaponLines';
 
 type Ctx = CanvasRenderingContext2D;
@@ -280,11 +282,15 @@ export interface Grab {
   calmed: Set<Enemy>;
   /** Buttons still held from the grab (the last punch): they don't start a charge or a shot till they're let go. */
   gate: Set<keyof Controls>;
+  /** His up/down speed as the last step left it (anything making him go up faster since, the grab didn't: see envGuard). */
+  lastVy: number;
+  /** Frames running he's been off the floor in a grab that needs one under him (the beatdown, the shakedown). */
+  airT: number;
 }
 
 export const createGrab = (state: GameState): Grab => ({
   phase: 'idle', t: 0, dir: 1, held: null, blow: 'punch', blowT: -1, want: null, window: BEAT_WINDOW, healBank: 0, punchN: 0, ammoLeft: 0, nextPunchAt: 0, hp: state.player.health, yHeld: 0, yChord: false, was: { ...NO_CONTROLS }, shaken: new WeakSet(), gate: new Set(), pend: null, clearT: 0, calmed: new Set(), toss: 'forward', thrown: null, flying: [], fall: 0, pitch: 'right', aim: null, queued: null, windHp: 0, pb: 0, bumpT: 0, airSpent: false,
-  airLock: false, diveOk: false, arcJump: true, arc: 'down', ang: 0, avx: 0, avy: 0, hitAt: null,
+  airLock: false, diveOk: false, arcJump: true, arc: 'down', ang: 0, avx: 0, avy: 0, hitAt: null, lastVy: 0, airT: 0,
 });
 
 const feetY = (state: GameState) => state.player.pos.y + state.player.height;
@@ -745,10 +751,17 @@ export const grabBusy = () => busy;
 /** Who he's got hold of right now (nobody else gets to eat him). */
 let holding: Enemy | null = null;
 export const grabHolding = () => holding;
+/** A grab's on (from the windup to the last frame of the throw): the stage's bounce pads, springs and the like keep off
+ *  him (see envGuard, which puts right any that don't ask). */
+let locked = false;
+export const grabLocked = () => locked;
 let beatTip = false;
 export const updateGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
   tintOf = ctx.state.player;
   const out = stepGrab(ctx, g, controls);
+  g.lastVy = ctx.state.player.vel.y;
+  if (g.phase === 'idle') g.airT = 0;
+  locked = g.phase !== 'idle';
   busy = g.phase !== 'idle' || g.yChord;
   finishing = g.phase === 'smash' || g.phase === 'stomp' || g.phase === 'hug';
   holding = g.held;
@@ -780,12 +793,68 @@ export const updateGrab = (ctx: FrameContext, g: Grab, controls: Controls): Cont
   return out;
 };
 
+// ---------------------------------------------------------------------------------------------------------------------
+// THE ENVIRONMENT GUARD (the user: grabbed a gingerbread man on the edge of a bouncy mushroom and stuck in the
+// shakedown forever: grabbed mid-bounce, the 'drop' waited for him to land, and the toadstool threw him back up every
+// time he did). Once a grab's on, the stage's own movers don't get a say in it, wherever they are (one check here, so a
+// new bounce pad in some land never needs to know about grabs; those that ask grabLocked() just skip their own work):
+//   - thrown up by something that doesn't hurt (a bounce pad, a toadstool, a trampoline, a spring, an updraft, a
+//     bucking ride): cancelled, him stood back on what's under him (coming down in a 'drop' or a 'plummet', or the air
+//     grab's arc: that's the landing, there and then); nothing under him to stand on (a pit's spring, an updraft over
+//     a gap), he lets go instead and goes where it sends him;
+//   - thrown by something that does (briars, lava, a hazard's knock), or thrown up inside a hazard's zone: he lets go,
+//     clean (whoever he had put back, alive), and the throw carries him off as it would have;
+//   - into the water holding somebody two-handed: lets go;
+//   - off the floor in the beatdown or the shakedown for more than a few frames (carried off a ledge, the floor gone
+//     out from under him): lets go, the other dropped where he is;
+//   - and every phase has a longest it can last (PHASE_MAX): past it, he lets go, clean, whatever it was waiting for.
+// (sideways, the world's left alone: a moving platform or a conveyor carries him and whoever he's got along together,
+// the held one being drawn at his hands; ladders, vines and wires already keep off him while grabBusy())
+// ---------------------------------------------------------------------------------------------------------------------
+/** Phases where he's stood on something (or should come down on it): a throw up from under him is cancelled. */
+const PINNED = new Set<Phase>(['windup', 'lunge', 'whiff', 'miss', 'reach', 'mount', 'kill', 'shake', 'toss', 'critter', 'pitch', 'smash', 'stomp', 'hug', 'aland', 'drop', 'plummet', 'aarc']);
+/** Both hands on somebody (no doing it swimming). */
+const TWO_HANDED = new Set<Phase>(['mount', 'kill', 'shake', 'toss', 'drop', 'plummet', 'smash', 'stomp', 'hug']);
+/** Needs the floor under him the whole time. */
+const FLOORED = new Set<Phase>(['mount', 'shake']);
+const OFF_FLOOR_MAX = 10;
+/** The longest each phase can go on (frames): well past its own end (the beatdown's bulked window is 225), a net only. */
+const PHASE_MAX: Record<Phase, number> = {
+  idle: Infinity, windup: 60, lunge: 60, whiff: 90, miss: 90, reach: 60, mount: 420, kill: 60, shake: 150, toss: 90,
+  critter: 200, pitch: 60, plummet: 150, drop: 150, smash: 120, stomp: 150, hug: 200, awind: 90, alunge: 90, aarc: 200, aland: 60,
+};
+/** Stood back down on whatever's just under his feet (a few pixels: a bounce pad lifts him a couple). False: nothing there. */
+const standBack = (state: GameState) => {
+  const p = state.player, feet = feetY(state);
+  const top = floorTopAt(state.blocks, centerX(state), feet, 6);
+  if (top === null || top - feet > 24) return false;
+  p.pos.y = top - p.height; p.vel.y = 0; p.isGrounded = true;
+  return true;
+};
+/** The world's had a go at him mid-grab: put right, or the grab ended clean. True: it's ended (nothing more this frame). */
+const envGuard = (ctx: FrameContext, g: Grab, hurt: boolean) => {
+  const { state } = ctx, p = state.player;
+  if (g.t > PHASE_MAX[g.phase]) { letGo(state, g); return true; }
+  if (p.swimming && TWO_HANDED.has(g.phase)) { letGo(state, g); return true; }
+  // (going up faster than the grab left him going: something else did that, the engine's gravity only pulls down)
+  if (PINNED.has(g.phase) && p.vel.y < Math.min(g.lastVy, 0) - 0.5) {
+    if (hurt || hazardOwnersIn(state, p.pos.x, p.pos.y, p.width, p.height).length) { letGo(state, g); return true; }
+    // (nothing under him to stand back on (a pit's spring, an updraft over a gap): let go, and it carries him off)
+    if (!standBack(state)) { letGo(state, g); return true; }
+  }
+  if (FLOORED.has(g.phase) && !p.isGrounded) { if (++g.airT > OFF_FLOOR_MAX) { letGo(state, g); return true; } }
+  else g.airT = 0;
+  return false;
+};
+
 const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
   const { state, fx } = ctx;
   const p = state.player;
   pollM2(state.frame);
   const was = g.was;
   g.was = controls;
+  // (hurt since the last step: by a hazard, say, as it threw him)
+  const hurt = p.health < g.hp;
   g.hp = p.health;
   // (mid air grab: nothing in the scenery takes hold of him (ladders, ropes, vines): see ladders.ts, vines.ts)
   const wasAir = !!p.airGrab;
@@ -798,6 +867,8 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
   const press = (k: keyof Controls) => !!controls[k] && !was[k];
   if (state.deathTimer > 0 || p.health <= 0) { if (g.phase !== 'idle') letGo(state, g); return controls; }
   g.t++;
+  // (the world never gets a say in a grab once it's on: see envGuard)
+  if (g.phase !== 'idle' && envGuard(ctx, g, hurt)) return { ...NO_CONTROLS };
   const hold = () => { p.vel.x = 0; return { ...NO_CONTROLS }; };
 
   switch (g.phase) {

@@ -35,6 +35,7 @@ import { endAt, type Stair } from '../stairs';
 import { updateThrows as updateSquareThrows, drawThrows as drawSquareThrows } from '../square/hazards';
 import { drawToadstool } from '../glen/hazards';
 import { keepOf } from './state';
+import { grabLocked } from '../../moves/grab';
 import { MUSHROOMS, CAP_H, CAP_W, ROSES, CAULDRONS, HOLES, HOLE_TELL, HOLE_POUR, HOLE_HALF, MOAT, X, Y, GY } from './layout';
 import { GAGS } from './lines';
 import { drawFan, drawPin } from './kindArt';
@@ -85,7 +86,8 @@ export const updateHazards = (ctx: FrameContext, controls: Controls) => {
   for (let i = 0; i < MUSHROOMS.length; i++) {
     if (k.squash[i] > 0) k.squash[i]--;
     const [mx, h] = MUSHROOMS[i];
-    if (!p.isGrounded || !alive(state) || Math.abs(feet - Y(CAP_H)) > 2 || Math.abs(cx - X(mx)) > CAP_W / 2 + 2) continue;
+    // (not mid-grab: he stands on it like a floor till he's done with whoever he's got (grab.ts envGuard))
+    if (!p.isGrounded || !alive(state) || grabLocked() || Math.abs(feet - Y(CAP_H)) > 2 || Math.abs(cx - X(mx)) > CAP_W / 2 + 2) continue;
     const up = h * (controls.jump ? 1.25 : 1);
     p.vel.y = -Math.sqrt(2 * PLAYER_GRAVITY * up); p.pos.y -= 2;
     p.isGrounded = false; p.jumpHoldTimer = 0; p.coyoteJumpTimer = 0; p.jumpBufferTimer = 0;
