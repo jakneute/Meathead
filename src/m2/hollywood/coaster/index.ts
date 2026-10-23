@@ -437,7 +437,15 @@ const boarding = (state: GameState, co: Coaster, pl: Place, upIn: boolean) => {
   if (!upIn) return;
   // (stop 3, the staff dead, the lever not pulled: he's not riding this on NORMAL)
   // (the first time: he'd rather pull the lever; again, and he rides NORMAL: down the giant toilet, back to the station)
-  if (free && pl === 2 && !memo(state, LEVER_MEMO) && !co.said.normalOk) { if (!isTalking()) { co.said.normalOk = true; meatheadSays(state, pickLine(L.LEVER_FIRST), true); } return; }
+  // (the user's: he contests NORMAL many more times, a rebuttal each try (no spamming up past him: nothing while he's
+  // still saying one), till at last: "FINE. NORMAL MODE I GUESS." and on he gets once that's said)
+  if (free && pl === 2 && !memo(state, LEVER_MEMO) && co.normalNo <= L.LEVER_FIRST.length) {
+    if (isTalking() || co.said.normalGiving) return;
+    if (co.normalNo < L.LEVER_FIRST.length) { meatheadSays(state, L.LEVER_FIRST[co.normalNo++], true); return; }
+    co.said.normalGiving = true;
+    meatheadSays(state, L.NORMAL_FINE, true, () => { co.normalNo++; co.said.normalGiving = false; if (onDeckAt(state, park.x, park.y, 46)) board(state, co, pl); });
+    return;
+  }
   if (free) board(state, co, pl);
   else if (!co.said[`locked${pl}`]) { co.said[`locked${pl}`] = true; { if (fresh(L.LOCKED[0])) meatheadSays(state, L.LOCKED[0], true); }; }
 };

@@ -52,7 +52,22 @@ export const BOOTH = ["A GUY ASLEEP NEXT TO A LEVER. I'M PULLING IT.", 'A GUY AS
 /** Stop 3: up at the lever with the staff still alive (it's locked out: its lamp's red). */
 export const LEVER_LOCKED = ["IT'S LOCKED. FINE. KILL FIRST, PULL AFTER.", "WON'T BUDGE. SOMEBODY'S STILL CLOCKED IN."];
 /** Stop 3, the staff dead: on the train without pulling the lever (he's not riding it on NORMAL). */
-export const LEVER_FIRST = ["FUCK NORMAL. I'M PULLING THAT LEVER.", 'NOT YET. I GOT A LEVER TO YANK. HEH. YANK.', "RIDE IT ON NORMAL? I'D RATHER SHIT MYSELF."];
+// (in order, one a try (the user's: "make sure meathead will contest the normal track many more times too"; "he has to
+// give many verbal rebuttals"), then NORMAL_FINE)
+export const LEVER_FIRST = [
+  "FUCK NORMAL. I'M PULLING THAT LEVER.",
+  'NOT YET. I GOT A LEVER TO YANK. HEH. YANK.',
+  "RIDE IT ON NORMAL? I'D RATHER SHIT MYSELF.",
+  'NO. NORMAL IS FOR GRANDMAS AND COWARDS.',
+  'THERE IS A LEVER RIGHT THERE. IT SAYS EXPERIMENTAL.',
+  "I DIDN'T KILL A WHOLE STAFF TO RIDE THE KIDDIE SETTING.",
+  'NORMAL. NORMAL? NO.',
+  "MY BODY SAYS NORMAL. MY BALLS SAY LEVER.",
+  "COME ON, THE LEVER. IT'S RIGHT THERE.",
+  "I'M NOT GETTING ON. I'M NOT. STOP ASKING.",
+];
+/** At last, after every rebuttal: he gives in (the user's, verbatim). */
+export const NORMAL_FINE = 'FINE. NORMAL MODE I GUESS.';
 /** The lever flipped. */
 export const LEVER = ['EXPERIMENTAL. HELL YES.', 'NO WAIVER. NO PROBLEM.'];
 /** Off the end of the track. */
@@ -224,7 +239,7 @@ const pools = (r: ByPants) => [...r.clean, ...r.shitty, ...r.nude];
 export const VOICE_LINES: Record<string, string[]> = {
   meathead: [
     ...CUT_LINE, ...SHOVE, ...STEVE_STANDEE, ...BOARD, ...BOARD_AGAIN, ...Object.values(RIDE_LINES).flat(), ...TOILET_LINES.flat(),
-    ...STAFF_OUT, ...CLEARED, ...LOCKED, ...WALKER, ...BOOTH, ...LEVER_LOCKED, ...LEVER_FIRST, ...LEVER, ...LAUNCH, ...RIDE_BACK, ...BENT,
+    ...STAFF_OUT, ...CLEARED, ...LOCKED, ...WALKER, ...BOOTH, ...LEVER_LOCKED, ...LEVER_FIRST, NORMAL_FINE, ...LEVER, ...LAUNCH, ...RIDE_BACK, ...BENT,
     ...THRONE_SIT.flat(), ...THRONE_SIT_AGAIN, ...THRONE_CASE, ...THRONE_STRAIN, ...THRONE_PLOP, ...THRONE_CLOG, ...THRONE_STAND,
     ...THRONE_DONE, ...THRONE_UHOH, ...THRONE_BLOW,
     ...Object.values(HURT).flatMap(h => h.hurt),

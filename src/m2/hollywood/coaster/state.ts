@@ -56,6 +56,8 @@ export interface Coaster {
   /** His face, plungered (frames left). */
   faceStuck: number;
   said: Record<string, boolean>;
+  /** Stop 3 on NORMAL: how many times he's argued his way off it (L.LEVER_FIRST in order; then he gives in). */
+  normalNo: number;
   /** The PA (the ride's narrator, or the park's), while it's said; busy (a line going or waiting); last word. */
   pa: Said | null; paBusy: boolean; paAt: number;
   /** Whose: the ride's narrator (in the thrones' headrests) or the park's PA (the horn on the queue's arch). */
@@ -90,7 +92,7 @@ export const coasterOf = (state: GameState): Coaster => {
     o = {
       ride: { on: false, track: null, s: 0, v: 0, t: 0, at: null, fly: null, fade: 0, cued: new Set(), lx: 0, ly: 0, zoom: 1, fx: 0, fy: 0, name: 'r1', beats: [], waiting: [], saying: 0, quiet: 0, said: new Map(), held: 0, n: 0, gone: false, sayingAt: '' },
       stops: [0, 1, 2].map(() => ({ phase: 'idle', wave: 0, t: 0, spawnT: 0, queue: [], out: [], door: 0, upper: 0, doorT: 0, upperT: 0, go: false, n: 0 })),
-      guests: [], plungers: [], faceStuck: 0, said: {},
+      guests: [], plungers: [], faceStuck: 0, said: {}, normalNo: 0,
       pa: null, paBusy: false, paAt: -9999, paFrom: 'train', barks: new WeakMap(), barkAt: -9999,
       guestSaid: null, guestAt: -9999, sleeper: null, sleepAt: -9999, fumeT: 0, fumeHit: new WeakSet(), lever: 0, upLatch: true, pull: null, walkerT: 0, walker: null, squat: { i: -1, t: 0 }, sit: null,
     };
