@@ -42411,11 +42411,6 @@
  },
  {
   "voice": "m2.gmanf",
-  "text": "That's not how glasses work.",
-  "from": "GYM"
- },
- {
-  "voice": "m2.gmanf",
   "text": "Towel on the seat. That upholstery is government property.",
   "from": "GYM"
  },
@@ -51206,6 +51201,11 @@
  },
  {
   "voice": "m2.safari",
+  "text": "AT LEAST THEY'RE IN MY FACE! NOT IN YOUR BARE ASS!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "ATTENTION, JUNIOR GUIDES! A GUEST SHIT HIMSELF! FOLLOW YOUR NOSES!",
   "from": "ADVENTURE"
  },
@@ -51271,12 +51271,37 @@
  },
  {
   "voice": "m2.safari",
+  "text": "COVER YOURS AND I COVER MINE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "DARTS IN MY FACE AND I STILL SMELL BETTER THAN YOU!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "DON'T CLIMB AFTER ME! NOT WITH ME LOOKING DOWN!",
   "from": "ADVENTURE"
  },
  {
   "voice": "m2.safari",
   "text": "DON'T LET ME LAND ON HIM! ANY OF HIM!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "DON'T LOOK AT IT! THE HAT STAYS ON!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "DON'T LOOK AT MY HEAD! I'M NOT LOOKING AT YOURS!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "DON'T LOOK AT MY HEAD! LOOK AT YOUR PANTS!",
   "from": "ADVENTURE"
  },
  {
@@ -51297,6 +51322,11 @@
  {
   "voice": "m2.safari",
   "text": "EVERY ANIMAL IN THIS PARK ANSWERS TO ARTIE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "EYES OFF THE SCALP, SHIT-PANTS!",
   "from": "ADVENTURE"
  },
  {
@@ -51352,6 +51382,21 @@
  {
   "voice": "m2.safari",
   "text": "FINE! YOU WANT THE REAL ARTIE?! STAMPEDE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "FLAT AS A PANCAKE! STILL BIGGER THAN YOUR DICK!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "FLAT! STILL SKIPPER OF THE YEAR!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "FLATTENED! STILL CLEANER THAN YOUR SEAT!",
   "from": "ADVENTURE"
  },
  {
@@ -51656,6 +51701,26 @@
  },
  {
   "voice": "m2.safari",
+  "text": "I LOOK GOOD WITH DARTS. THAT IS A FACT.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "I MEANT TO DO THAT! THAT'S A STUNT!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "I MEANT TO DO THAT! YOU DIDN'T MEAN TO DO THAT!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "I MEANT TO DO THAT! YOU MEANT TO DO THAT?!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "I NEED A BIGGER FIRST AID KIT! YOU NEED A DIAPER!",
   "from": "ADVENTURE"
  },
@@ -51752,6 +51817,31 @@
  {
   "voice": "m2.safari",
   "text": "I'M ARTIE. SKIPPER OF THE YEAR. FOUR YEARS, NOBODY SHIT ON MY BENCH. TILL TODAY.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "I'M BALD UP TOP! YOU'RE BALD EVERYWHERE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "I'M BALD! YOU'RE FULL OF SHIT! I WIN!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "I'M FINE! I'M GREAT! COVER THAT UP!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "I'M FINE! YOU'RE THE ONE WHO SHIT!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "I'M FLAT AND I STILL DON'T SMELL LIKE YOU!",
   "from": "ADVENTURE"
  },
  {
@@ -51892,6 +51982,11 @@
  {
   "voice": "m2.safari",
   "text": "IT STEPPED IN WHATEVER YOU LEFT BACK THERE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "IT'S NOT BALD! IT'S SUN-THINNED!",
   "from": "ADVENTURE"
  },
  {
@@ -52256,6 +52351,16 @@
  },
  {
   "voice": "m2.safari",
+  "text": "NOBODY SAW THAT! I'M ON THE BROCHURE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "NOBODY SEES THE HEAD! NOBODY!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "NOBODY TOUCHES ARTIE! I'M ON THE BROCHURE!",
   "from": "ADVENTURE"
  },
@@ -52491,6 +52596,21 @@
  },
  {
   "voice": "m2.safari",
+  "text": "OW! NOT THE BROCHURE FACE!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "OW! PRETTIER THAN SHIT-PANTS! STILL!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "OW! STILL PRETTIER THAN YOUR NAKED ASS!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "OW! THAT'S A WRITE-UP!",
   "from": "ADVENTURE"
  },
@@ -52696,12 +52816,32 @@
  },
  {
   "voice": "m2.safari",
+  "text": "THAT DIDN'T HAPPEN! YOUR PANTS HAPPENED!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THAT DIDN'T HAPPEN. I'M FINE. I'M GREAT.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THAT DIDN'T HAPPEN. THERE'S NOTHING IN MY FACE.",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "THAT DOESN'T COUNT! I HAD MY EYES SHUT!",
   "from": "ADVENTURE"
  },
  {
   "voice": "m2.safari",
   "text": "THAT DOESN'T COUNT! YOU SHIT YOURSELF! IT DOESN'T COUNT!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THAT DOESN'T COUNT! YOU'RE NAKED!",
   "from": "ADVENTURE"
  },
  {
@@ -52732,6 +52872,21 @@
  {
   "voice": "m2.safari",
   "text": "THAT VINE WAS UPWIND!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THAT WAS A STUNT! WHAT'S YOUR EXCUSE?!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THAT WAS A STUNT! YOUR PANTS ARE AN ACCIDENT!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THAT WAS FOAM! IT'S ALL FOAM!",
   "from": "ADVENTURE"
  },
  {
@@ -52771,6 +52926,11 @@
  },
  {
   "voice": "m2.safari",
+  "text": "THAT'S MY BOULDER! IT KNOWS ME!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
   "text": "THAT'S YOUR FAULT! EVERYTHING TODAY IS YOUR FAULT!",
   "from": "ADVENTURE"
  },
@@ -52792,6 +52952,11 @@
  {
   "voice": "m2.safari",
   "text": "THE BIG FINISH! RIGHT UP HIS SHITTY ASS!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "THE FACE IS ON THE BROCHURE! YOUR ASS IS ON A WARNING SIGN!",
   "from": "ADVENTURE"
  },
  {
@@ -53032,6 +53197,16 @@
  {
   "voice": "m2.safari",
   "text": "UP HERE, I CAN BREATHE, YOU STINKING TURD!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "UPSIDE DOWN AND I CAN STILL SEE YOUR BALLS!",
+  "from": "ADVENTURE"
+ },
+ {
+  "voice": "m2.safari",
+  "text": "UPSIDE DOWN AND I CAN STILL SMELL YOU!",
   "from": "ADVENTURE"
  },
  {
