@@ -22,6 +22,8 @@ import {
 
 const lampsOn = () => timeOfDay().lamps > 0.3;
 export const SAND = '#E7C9A0', CLAY = '#C2794A', ROSE = '#D08A6E', OCHRE = '#D6A25A', TILEBLUE = '#1D4ED8', TILEGREEN = '#15803D', CEDAR = '#7A4A26', BRASS = '#C8962E', LIME = '#F2EDE2';
+/** The dark inside an arch (a herd gate's: what a camel going in goes toward). */
+const DARK_IN = '#120A0C';
 
 // ---------------------------------------------------------------------------------------------------------------
 // Bits
@@ -757,10 +759,10 @@ const paintStall = (g: Ctx, w: number, h: number, seed: number) => {
 };
 /** A stall under its awning: the goods behind, the poles, the striped canvas (its stripes in steps, scalloped and
  *  fringed along its foot), its top going back (standable: the lit lip). */
-export const drawStallAwning = (c: Ctx, v: View, a: number, b: number, y: number, col: string, seed: number) => {
+export const drawStallAwning = (c: Ctx, v: View, a: number, b: number, y: number, col: string, seed: number, goods = true) => {
   if (!onScreen(v, a - 20, b + 20)) return;
   const gh = Math.min(140, GY - y - 30);
-  if (gh > 50) atDepth(c, v.eye, 0.96, () => still(c, `ma-stall-${b - a}-${gh}-${seed % 5}`, a + 6, GY, -2, -gh - 2, b - a - 8, gh + 4, g => paintStall(g, b - a - 12, gh, seed)));
+  if (goods && gh > 50) atDepth(c, v.eye, 0.96, () => still(c, `ma-stall-${b - a}-${gh}-${seed % 5}`, a + 6, GY, -2, -gh - 2, b - a - 8, gh + 4, g => paintStall(g, b - a - 12, gh, seed)));
   const Pl = ramp6(hour('#57534E'));
   for (const px0 of [a + 8, b - 8]) post(c, px0, y + 14, GY, 4, Pl);
   const C = ramp6(hour(col)), Wt = ramp6(hour('#F4EFE4'));
@@ -811,8 +813,10 @@ export const dustPuff = (c: Ctx, x: number, y: number, r: number) => {
  *  the body in its fiberglass steps (the seam and its bolts, a chip off it), the humps, the saddle blanket and its
  *  tassels, the ride pole snapped off in the saddle, the long neck, the head (the droopy lip, the eye and lashes, an
  *  ear), the bridle and its bells. */
-export const drawRideCamel = (c: Ctx, x: number, f: number, k: number) => {
-  const C = ramp6(hour(['#C08A4A', '#B47A3E', '#CC9A5A'][k % 3])), Bl = ramp6(hour(['#B91C1C', '#1E3A8A', '#15803D'][k % 3])), Gd = ramp6(hour('#E8B83A')), Ch = ramp6(hour('#C8CDD4'));
+export const drawRideCamel = (c: Ctx, x: number, f: number, k: number, dk = 0) => {
+  // (`dk`: how deep in a doorway's dark it is, 0..1: its colors go that far toward the dark in there)
+  const sh = (col: string) => (dk > 0 ? mix(hour(col), DARK_IN, dk) : hour(col)), WHITE = dk > 0 ? mix('#F4F2EE', DARK_IN, dk) : '#F4F2EE';
+  const C = ramp6(sh(['#C08A4A', '#B47A3E', '#CC9A5A'][k % 3])), Bl = ramp6(sh(['#B91C1C', '#1E3A8A', '#15803D'][k % 3])), Gd = ramp6(sh('#E8B83A')), Ch = ramp6(sh('#C8CDD4'));
   const leg = Math.sin(f * 0.6 + k) * 10, bob = Math.abs(Math.sin(f * 0.3 + k)) * 4, y = GY - bob;
   // (the legs: the far pair darker, the near pair; thigh, knee, shin, the pad)
   for (const [lx, s, far] of [[x + 24, -1, 1], [x + 66, -1, 1], [x + 14, 1, 0], [x + 76, 1, 0]] as const) {
@@ -832,7 +836,7 @@ export const drawRideCamel = (c: Ctx, x: number, f: number, k: number) => {
   box(c, x + 12, y - 58, 76, 8, C[2]); checker(c, x + 12, y - 62, 76, 4, C[2], 0, 1); box(c, x + 22, y - 50, 50, 4, C[1]);
   // (the fiberglass seam down its side and its bolts; a chip off the paint, white under it)
   box(c, x + 48, y - 80, 1, 32, C[1]); for (let yy = y - 76; yy < y - 50; yy += 7) box(c, x + 46, yy, 2, 2, Ch[2]);
-  if (k % 2) { box(c, x + 74, y - 66, 7, 5, '#F4F2EE'); box(c, x + 74, y - 66, 7, 1, C[1]); }
+  if (k % 2) { box(c, x + 74, y - 66, 7, 5, WHITE); box(c, x + 74, y - 66, 7, 1, C[1]); }
   // (the saddle blanket and its tassels between the humps, the snapped ride pole in the saddle)
   box(c, x + 38, y - 90, 22, 30, INK); box(c, x + 39, y - 89, 20, 28, Bl[3]); box(c, x + 39, y - 89, 4, 28, Bl[4]);
   for (let yy = y - 86; yy < y - 62; yy += 6) box(c, x + 41, yy, 16, 2, Gd[3]);
@@ -849,11 +853,110 @@ export const drawRideCamel = (c: Ctx, x: number, f: number, k: number) => {
   box(c, x - 29, y - 117, 26, 15, INK); box(c, x - 28, y - 116, 24, 13, C[3]); box(c, x - 28, y - 116, 24, 3, C[4]); box(c, x - 28, y - 106, 10, 3, C[2]);
   box(c, x - 30, y - 107, 9, 6, INK); box(c, x - 29, y - 106, 7, 4, C[2]); box(c, x - 28, y - 104, 5, 1, C[1]);
   box(c, x - 27, y - 113, 2, 2, INK);
-  box(c, x - 18, y - 115, 6, 5, '#F4F2EE'); box(c, x - 16, y - 114, 3, 3, INK); box(c, x - 19, y - 116, 8, 1, INK); box(c, x - 16, y - 117, 1, 1, INK); box(c, x - 13, y - 117, 1, 1, INK);
+  box(c, x - 18, y - 115, 6, 5, WHITE); box(c, x - 16, y - 114, 3, 3, INK); box(c, x - 19, y - 116, 8, 1, INK); box(c, x - 16, y - 117, 1, 1, INK); box(c, x - 13, y - 117, 1, 1, INK);
   box(c, x - 6, y - 122, 5, 7, INK); box(c, x - 5, y - 121, 3, 5, C[2]);
   // (the bridle and its bells)
   box(c, x - 26, y - 110, 22, 2, Bl[2]); box(c, x - 6, y - 116, 2, 12, Bl[2]);
   for (const [bx, by] of [[x - 2, y - 96], [x + 4, y - 88], [x + 10, y - 80]] as const) { ball(c, bx, by + ((f >> 2) % 2), 3, Gd[3], true); box(c, bx - 1, by + 3, 2, 1, INK); }
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// The herd's ways in and out (flush behind the alley, at HERD_D): the CAMEL RIDE's stable gate at the far end, where
+// they burst out (its doors rattle first, then fly open), and the souk's gate at the near end, where they go (its doors
+// shoved open, swinging shut after). Each a gatehouse of plaster under merlons, a carved frieze, a zellige panel round
+// a big horseshoe arch under a green tile hood, a brass lantern hung in the arch's head, its board over it; the dark
+// passage going back in steps. The doors and the threshold live (they move); the rest stamped.
+
+/** Where the herd's gates stand (just behind the alley, in front of the souk's wall). */
+export const HERD_D = 0.96;
+export interface HerdGate { w: number; r: number; h: number; H: number; col: string; lines: string[]; bg: string; seed: number; floor: 'straw' | 'paving'; hoof?: boolean }
+/** A herd gate's opening between its jambs (x from its left end). */
+export const herdJambs = (G: HerdGate): [number, number] => [G.w / 2 - G.r * 0.8, G.w / 2 + G.r * 0.8];
+const boardH = (n: number) => n * 18 - 4 + 6;
+
+const paintHerdGate = (g: Ctx, G: HerdGate) => {
+  const { w, r, h, H } = G, cx = w / 2, R = ramp6(dimmed(G.col)), T = ramp6(dimmed(LIME)), Wd = ramp6(dimmed(CEDAR)), Gt = ramp6(dimmed(TILEGREEN));
+  box(g, -1, -H - 1, w + 2, H + 1, INK); slab(g, 0, -H, w, H, R, true); stucco(g, 0, -H, w, H, R, G.seed * 17);
+  // (the merlons along its top, the zellige band under them, the carved plaster frieze (a run of little arches) under that)
+  merlons(g, 0, -H, w, R, 6);
+  box(g, 0, -H + 6, w, 14, INK); zellige(g, 0, -H + 7, w, 12);
+  const fy = -H + 21;
+  box(g, 0, fy, w, 12, T[3]); box(g, 0, fy, w, 1, T[5]); box(g, 0, fy + 11, w, 1, T[1]);
+  for (let x = 3; x < w - 7; x += 9) { box(g, x, fy + 3, 7, 7, T[1]); box(g, x + 1, fy + 2, 5, 1, T[1]); box(g, x, fy + 3, 1, 7, T[4]); }
+  box(g, 0, fy + 12, w, 1, INK);
+  // (the zellige panel round the arch, the green tile hood over it on its cedar shelf)
+  const px0 = Math.round(cx - r - 12), pw = Math.round((r + 12) * 2), ptop = -h - 14;
+  box(g, px0 - 1, ptop - 1, pw + 2, -ptop + 1, INK);
+  g.save(); g.beginPath(); g.rect(px0, ptop, pw, -ptop); g.clip(); zellige(g, px0, ptop, pw, -ptop); g.restore();
+  box(g, px0 - 6, ptop - 12, pw + 12, 12, INK); barrelTile(g, px0 - 5, ptop - 11, pw + 10, 10, Gt, 5);
+  box(g, px0 - 6, ptop - 1, pw + 12, 2, Wd[1]);
+  // (the arch: its ring, the passage going back in steps, darker deeper, its floor (straw in the stable, paving in the
+  // souk's))
+  archOpening(g, cx, 0, r, h, T, DARK_IN, () => {
+    ['#2A1A18', '#20141A', '#170D10'].forEach((col, i) => { const k = i + 1; fillShoe(g, cx, -k * 3, r - k * 8 + 1, h - k * 16 + 1, INK); fillShoe(g, cx, -k * 3, r - k * 8, h - k * 16, col); });
+    const F = G.floor === 'straw' ? ramp6(dimmed('#B8923A')) : ramp6(dimmed(SAND));
+    poly(g, [[cx - r, 0], [cx + r, 0], [cx + r - 26, -10], [cx - r + 26, -10]], mix(F[1], DARK_IN, 0.55));
+    poly(g, [[cx - r, 0], [cx + r, 0], [cx + r - 10, -4], [cx - r + 10, -4]], mix(F[2], DARK_IN, 0.35));
+    if (G.floor === 'straw') for (let k = 0; k < 14; k++) { const sx = cx - r + 6 + hash(G.seed + k * 1.7) * (r * 2 - 12), sy = -1 - hash(k * 2.3) * 8; box(g, sx, sy, 3 + (k % 3), 1, mix(F[4], DARK_IN, 0.3 + (-sy / 8) * 0.4)); }
+    else for (let x = cx - r + 4; x < cx + r - 4; x += 12) box(g, x, -3, 1, 3, mix(F[0], DARK_IN, 0.4));
+  });
+  // (the dado: zellige up its foot either side; the plinth)
+  box(g, 0, -23, w, 1, INK);
+  for (const [a, b] of [[0, px0 - 2], [px0 + pw + 2, w]] as [number, number][]) if (b - a > 4) zellige(g, a, -22, b - a, 18);
+  box(g, 0, -4, w, 4, R[1]); checker(g, 0, -6, w, 2, R[1], 0, 1);
+  // (its board over the hood, nothing over it; the souk's has a hoofprint stamped on it)
+  const bh = boardH(G.lines.length), by = Math.round(ptop - 14 - bh / 2 - 6);
+  const [bw] = board(g, cx, by, G.lines, LOOKS.morocco(1), dimmed(G.bg), ramp6(dimmed(BRASS)), 4);
+  if (G.hoof) {
+    const hx = Math.round(cx + bw / 2 - 12), hy = Math.round(by + bh / 2 - 12), Hf = mix(dimmed(G.bg), INK, 0.6);
+    pixelBlob(g, hx - 3, hy, 3, 5, Hf); pixelBlob(g, hx + 3, hy, 3, 5, Hf); box(g, hx - 1, hy - 3, 2, 6, dimmed(G.bg));
+  }
+};
+const paintHerdLeaf = (g: Ctx, G: HerdGate, side: -1 | 1) => {
+  const r = G.r, h = G.h, jw = r * 0.8, ccx = -side * jw, x0 = side < 0 ? ccx - r : ccx;
+  const W = ramp6(dimmed(CEDAR)), Bz = ramp6(dimmed(BRASS)), Fe = ramp6(dimmed('#52525B'));
+  g.save(); g.beginPath(); horseshoe(g, ccx, 0, r, h); g.clip(); g.beginPath(); g.rect(x0, -h, r, h); g.clip();
+  planks(g, x0, -h, r, h, W, true, G.seed * 7 + side, 6);
+  // (two iron straps across, the brass studs in rows, the dark seam where they meet)
+  for (const sy of [Math.round(-h * 0.3), Math.round(-h * 0.7)]) { box(g, x0, sy - 1, r, 6, INK); box(g, x0, sy, r, 4, Fe[2]); box(g, x0, sy, r, 1, Fe[4]); for (let x = x0 + 4; x < x0 + r; x += 9) box(g, x, sy + 1, 2, 2, Fe[0]); }
+  for (let y = -h + 12; y < -6; y += 12) for (let x = x0 + 3; x < x0 + r - 2; x += 7) { box(g, x, y, 2, 2, Bz[3]); box(g, x, y, 1, 1, Bz[5]); }
+  box(g, ccx - 1, -h, 2, h, INK);
+  g.restore();
+  // (the iron ring pull by the meeting edge)
+  const rx = ccx + side * 7, ry = Math.round(-h * 0.45);
+  g.strokeStyle = INK; g.lineWidth = 2; g.beginPath(); g.arc(rx, ry, 4, 0, Math.PI * 2); g.stroke();
+  g.strokeStyle = Fe[4]; g.lineWidth = 1; g.beginPath(); g.arc(rx, ry, 4, 0, Math.PI * 2); g.stroke();
+};
+/** A herd gate (its left end at world x): its ends and top going back, the gatehouse, its threshold out to the alley. */
+export const drawHerdGate = (c: Ctx, v: View, x: number, G: HerdGate) => {
+  if (!onScreen(v, x - 30, x + G.w + 30, HERD_D)) return;
+  const R = ramp6(dimmed(G.col)), D1 = HERD_D - 0.02;
+  sideBack(c, v.eye, x, -1, GY - G.H, GY, HERD_D, D1, R, 2, false);
+  sideBack(c, v.eye, x + G.w, 1, GY - G.H, GY, HERD_D, D1, R, 2, false);
+  topBack(c, v.eye, x, x + G.w, GY - G.H, HERD_D, D1, R, 2);
+  facade(c, v, `ma-herdgate-${G.seed}`, x, G.w, G.H, g => paintHerdGate(g, G), HERD_D, 24, 4, false);
+  // (the threshold: the passage's floor coming out from under the arch to the alley's paving)
+  const [l, rr] = herdJambs(G), F = ramp6(hour(G.floor === 'straw' ? '#9C8058' : SAND));
+  const p0 = at(v.eye, x + l, GY, HERD_D), p1 = at(v.eye, x + rr, GY, HERD_D);
+  poly(c, [p0, p1, [x + rr, GY], [x + l, GY]], mix(F[1], DARK_IN, 0.35));
+  box(c, x + l, GY - 1, rr - l, 1, F[3]);
+};
+/** A herd gate's doors (live: they move): `open` 0 (shut) .. 1 (swung back into the dark against the jambs); `shake`
+ *  px of rattle (the leaves knocking together: something big shoving on them). */
+export const drawHerdDoors = (c: Ctx, v: View, x: number, G: HerdGate, open: number, shake: number) => {
+  if (!onScreen(v, x, x + G.w, HERD_D)) return;
+  const jw = G.r * 0.8, cx = x + G.w / 2, r = G.r, h = G.h;
+  atDepth(c, v.eye, HERD_D, () => {
+    for (const side of [-1, 1] as const) {
+      const ccx = -side * jw, x0 = side < 0 ? ccx - r : ccx;
+      c.save(); c.translate(Math.round(cx + side * jw - shake * side), GY); c.scale(1 - 0.82 * open, 1);
+      still(c, `ma-herdleaf-${G.seed}-${side}`, 0, 0, x0 - 4, -h - 4, r + 16, h + 6, g => paintHerdLeaf(g, G, side));
+      if (open > 0) { c.beginPath(); horseshoe(c, ccx, 0, r, h); c.clip(); c.fillStyle = `rgba(18, 10, 12, ${(0.65 * open).toFixed(2)})`; c.fillRect(x0, -h, r, h); }
+      c.restore();
+    }
+    // (the brass lantern hung on its chain from the hood, over the crown of the arch: lit after dark)
+    brassLantern(c, cx, GY - h + 14, 6, false, 22);
+  });
 };
 
 // ---------------------------------------------------------------------------------------------------------------
