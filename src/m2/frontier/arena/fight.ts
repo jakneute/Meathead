@@ -81,6 +81,8 @@ const PAN: [number, number] = [22, 13], RECOIL: [number, number] = [16, 10], REL
 const TRACK: [number, number] = [0.05, 0.085], WOBBLE: [number, number] = [20, 58], JERK: [number, number] = [0.03, 0.1];
 /** The ball: how fast (px a frame: Oscar's rocket 19), how hard (before M2's x0.65: ~30 off his 100), a little spread. */
 const BALL_V: [number, number] = [18, 25], BALL_DMG = 46, SPREAD = 0.03;
+/** A wild shot off the hip on his blind run: a lot less than the planted, aimed one (the user's). */
+const HIP_DMG = 26;
 /** His shuffle (px a frame), how near he'll come (and backs off nearer), how far he wants to be; hurrying back on screen. */
 const WALK: [number, number] = [0.45, 0.85], TOO_NEAR = 150, WANT = 300, HURRY = 2.4;
 /** The blind run (the user's: now and then he runs about flailing, firing as he goes): how likely instead of a planted
@@ -112,7 +114,7 @@ const lerp = (r: [number, number], k: number) => r[0] + (r[1] - r[0]) * k;
 // The state
 
 type Act = 'listen' | 'cock' | 'aim' | 'pan' | 'recoil' | 'reload' | 'bloody' | 'mauled' | 'getup' | 'run';
-interface Shot { x: number; y: number; vx: number; vy: number; life: number }
+interface Shot { x: number; y: number; vx: number; vy: number; life: number; dmg: number }
 interface Queued { at: number; c: Critter; dir: 1 | -1; y: number; sp: number }
 interface Swarm { x: number; y: number; t: number; cd: number; off: number; gone: number }
 interface Lion { x: number; y: number; vx: number; vy: number; dir: 1 | -1; mode: 'wait' | 'run' | 'pounce' | 'maul' | 'tug' | 'drag' | 'gone'; t: number; wait: number; side: number; carry: LionCarry | null }
@@ -409,7 +411,7 @@ const tucker = (ctx: FrameContext, f: Fight) => {
         f.aimY = f.heard.y + (Math.random() - 0.5) * RUN_ERR * 0.6;
         f.aim = aimTarget(f);
         const n = f.runN, t = f.actT, d = f.runDir;
-        fire(ctx, f);
+        fire(ctx, f, true);
         // (on he runs: the shot doesn't stop him)
         f.act = 'run'; f.actT = t; f.runN = n; f.runDir = d; f.runShot = 10;
       }
@@ -430,10 +432,10 @@ const muzzleAt = (f: Fight, pan = false) => {
 };
 
 /** BANG: the ball, the smoke, the kick; the critters off and running, the bees up. */
-const fire = (ctx: FrameContext, f: Fight) => {
+const fire = (ctx: FrameContext, f: Fight, hip = false) => {
   const { state } = ctx, k = phaseK(f);
   const m = muzzleAt(f), a = f.aim + (Math.random() - 0.5) * 2 * SPREAD, v = lerp(BALL_V, k);
-  f.shots.push({ x: m.x, y: m.y, vx: f.facing * Math.cos(a) * v, vy: Math.sin(a) * v, life: 120 });
+  f.shots.push({ x: m.x, y: m.y, vx: f.facing * Math.cos(a) * v, vy: Math.sin(a) * v, life: 120, dmg: hip ? HIP_DMG : BALL_DMG });
   f.smoke.push({ x: m.x, y: m.y, t: 0 });
   playSound('flintlock', 1.1, -2); playSound('boom', 0.5, 4);
   shakeScreen(state, 6, 3);
@@ -464,7 +466,7 @@ const tickShots = (ctx: FrameContext, f: Fight) => {
     // (him: ducked under, it's over him)
     const top = p.isDucking ? p.pos.y + p.height - 26 : p.pos.y;
     if (p.health > 0 && !p.inCutscene && p.invincibilityTimer <= 0 && s.x > p.pos.x && s.x < p.pos.x + p.width && s.y > top && s.y < p.pos.y + p.height) {
-      hurtPlayer(ctx, BALL_DMG, 'm2:fr_tucker_shot', { x: Math.sign(s.vx) * 8, y: -5 });
+      hurtPlayer(ctx, s.dmg, 'm2:fr_tucker_shot', { x: Math.sign(s.vx) * 8, y: -5 });
       for (let i = 0; i < 10; i++) state.particles.push({ pos: { x: s.x, y: s.y }, vel: { x: Math.sign(s.vx) * Math.random() * 4, y: -Math.random() * 3 }, life: 26, color: i % 2 ? '#B91C1C' : '#7F1D1D', size: 2 + Math.random() * 2, grav: 0.3 });
       shakeScreen(state, 10, 5);
       if (f.mode === 'on' && Math.random() < 0.6) bark(f, L.TF_HIT);
