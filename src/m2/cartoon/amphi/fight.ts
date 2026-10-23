@@ -760,6 +760,9 @@ const batAway = (ctx: FrameContext, f: Fight) => {
   // (puking, riding the couch, he can't: that's the one time a move lands on him on it (the user's))
   if (f.mode !== 'on' || !f.seated || f.couch.crushed || f.act === 'puke' || p.inCutscene || p.health <= 0) return;
   if (!(p.isCharging || p.isSliding || p.isDivekicking || p.isUppercutting)) return;
+  // (a single jump's shoulder charge over him is clear, the same band as the swat's (the user's: "make sure i have enough
+  // clearance to shoulder charge jump over him and he doesn't bonk me"))
+  if (!lowEnough(state)) return;
   const cx = X(f.x), feet = STAGE_Y - f.y;
   if (!hits(pRect(state), { x0: cx - 36, x1: cx + 36, y0: feet - DAD_SIT_H - 18, y1: feet })) return;
   const dir = p.pos.x + p.width / 2 < cx ? -1 : 1;
