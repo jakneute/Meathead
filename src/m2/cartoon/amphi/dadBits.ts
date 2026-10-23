@@ -15,7 +15,6 @@
 // In his units (dad.ts: DAD_K to the world), his ramps; each bit about its own middle, its long way along x. Flying
 // they're drawn live (they spin); come to rest they're stamped (flat, mirrored at most), only the drips live.
 
-import { stamp } from '../../../m1/game/render/stamp';
 import { type Ctx, type Ramp, shape, shapeTop, ell, px, line, limb, fill, dith } from './paint';
 import { DAD_K, SKIN, FLUSH, TANK, BOXER, SOCK, SLIPPER, HAIR, STRIPE, STAIN, MUSTARD, SPOT, VEIN, TAT, MIC, IRIS, TEETH, can } from './dad';
 import { BLOOD, gutRope, tooth } from './carnage';
@@ -337,7 +336,9 @@ export const drawBit = (c: Ctx, b: Bit, f: number) => {
   c.save(); c.translate(b.x, b.y);
   if (b.still) {
     c.scale(DAD_K * b.fx, DAD_K * b.fy);
-    stamp(c, `ct-dadbit-${b.kind}-${b.seed}`, -46, -34, 92, 68, g => paintBit(g, b.kind, b.seed));
+    // (baked, not stamped: the stamp's keyed by the scale, and the kill cam's zoom easing in and out repainted every one
+    // of them every frame (the user's: the frame rate tanked lingering on his head))
+    bakedTurn(c, `ct-dadbit-${b.kind}-${b.seed}`, -46, -34, 92, 68, g => paintBit(g, b.kind, b.seed), 8);
   } else {
     c.rotate(b.rot); c.scale(DAD_K * b.fx, DAD_K * b.fy);
     bakedTurn(c, `ct-dadbit-${b.kind}-${b.seed}`, -46, -34, 92, 68, g => paintBit(g, b.kind, b.seed), 8);
@@ -351,7 +352,7 @@ export const drawBit = (c: Ctx, b: Bit, f: number) => {
 /** A splat where one came down (world, on the deck): stamped. */
 export const drawSplat = (c: Ctx, s: Splat, floorY: number) => {
   c.save(); c.translate(Math.round(s.x), Math.round(floorY));
-  stamp(c, `ct-dadsplat-${s.seed}-${Math.round(s.w)}`, -s.w * 2.4, -6, s.w * 4.8, 12, g => {
+  bakedTurn(c, `ct-dadsplat-${s.seed}-${Math.round(s.w)}`, -s.w * 2.4, -6, s.w * 4.8, 12, g => {
     ell(g, 0, 0, s.w, s.w * 0.18 + 1, BLOOD[1]); ell(g, -s.w * 0.1, -0.3, s.w * 0.7, s.w * 0.12 + 0.6, BLOOD[2]);
     for (let k = 0; k < 6; k++) { const a = hash(s.seed + k) - 0.5; ell(g, a * s.w * 3.4, (hash(s.seed + k * 3) - 0.5) * 3, 1 + hash(k + s.seed) * 2, 0.6 + hash(k) * 0.6, k % 2 ? BLOOD[2] : BLOOD[3]); }
     px(g, -s.w * 0.4, -0.6, s.w * 0.4, 0.6, BLOOD[4]);
@@ -465,7 +466,7 @@ export const drawHead = (c: Ctx, h: Head, floorY: number, f: number, rest: numbe
   // (the puddle under it, spreading)
   if (h.pool > 0) { const w = 6 + h.pool * 22; ell(c, h.x, floorY - 0.5, w, 1.4 + w * 0.12, BLOOD[1]); ell(c, h.x - 2, floorY - 0.8, w * 0.7, 0.6 + w * 0.08, BLOOD[2]); px(c, h.x - w * 0.5, floorY - 1.2, w * 0.3, 0.5, BLOOD[4]); }
   c.save(); c.translate(h.x, h.y);
-  if (h.state === 'rest') { c.scale(HEAD_S, HEAD_S); stamp(c, 'ct-dadhead', -22, -32, 44, 62, paintHead); }
+  if (h.state === 'rest') { c.scale(HEAD_S, HEAD_S); bakedTurn(c, 'ct-dadhead', -22, -32, 44, 62, paintHead); }
   else { c.rotate(h.rot); c.scale(HEAD_S, HEAD_S); bakedTurn(c, 'ct-dadhead', -22, -32, 44, 62, paintHead); }
   if (h.state !== 'fly') {
     // (a drip off the flaps of the neck, now and then, plopping into the puddle)

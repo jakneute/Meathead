@@ -70,7 +70,7 @@ import { registerM2Kind, registerHurtLines } from '../../kinds';
 import { setStuntCarHook, snapClapper } from '../../weapons/stuntCar';
 import type { ByPants } from '../talk';
 import { speak, meatheadSays, byPants, saidOver, box, label, getCartoon } from '../section';
-import { X, x0, x1, STAGE_Y, MOM, SIS, GRAMPS, BOY_TRACK, D_SET, ARENA, COUCH_HOME, FRIDGE } from './layout';
+import { X, x0, x1, STAGE_Y, MOM, SIS, GRAMPS, BOY_TRACK, D_SET, ARENA, COUCH_HOME, COUCH, FRIDGE } from './layout';
 import { laughTrack } from './show';
 import type { DadPose } from './state';
 import { drawDad, DAD_K, DAD_H, DAD_SIT_H, type DadFace, hammerGrip, swatGrip, malletHead, MALLET_HEAD } from './dad';
@@ -1464,7 +1464,7 @@ export const killCamZoom = (state: GameState, f: Fight) => {
 // ---------------------------------------------------------------------------------------------------------------
 // Drawing
 
-type Item = { d: number; x: number; draw: () => void };
+type Item = { d: number; x: number; draw: () => void; at?: number };
 
 /** His pose and how far through it, this frame. */
 const poseOf = (f: Fight): { pose: DadPose; t: number; face?: DadFace; can: 'near' | null; rot: number; crouch?: number } => {
@@ -1542,7 +1542,9 @@ export const fightItems = (c: Ctx, state: GameState, f: Fight): Item[] => {
       });
     } else at(fm.d - 0.0004, X(fm.x), () => drawDeadMember(c, m, X(fm.x), STAGE_Y, fr, (fm.x > f.x ? 1 : -1) as 1 | -1));
   }
-  for (const w of f.wrecks) at(w.onCouch ? 1.0012 : w.d + 0.0002, X(w.x), () => drawWreck(c, X(w.x), STAGE_Y - (w.onCouch ? 26 : 0), w.dir, w.paint, w.t, fr, f.death?.how === 'flat' && w === f.wrecks[f.wrecks.length - 1]));
+  // (the wrecks drawn where they crashed but under him and Meathead (the user's: they stay in front of the cars): sorted
+  // just behind the couch, him on it or off it)
+  for (const w of f.wrecks) items.push({ d: w.onCouch ? COUCH.d + 0.0001 : COUCH.d - 0.0005, at: w.onCouch ? 1.0012 : w.d + 0.0002, x: X(w.x), draw: () => drawWreck(c, X(w.x), STAGE_Y - (w.onCouch ? 26 : 0), w.dir, w.paint, w.t, fr, f.death?.how === 'flat' && w === f.wrecks[f.wrecks.length - 1]) });
   // (the stuntmen, flung at the wall: splatted on the wallpaper, down in a heap under it)
   for (const s of f.flung) {
     if (s.stuck) at(D_SET + 0.003, s.x, () => { drawWallSplat(c, s.x, s.y, s.seed); drawStuntmanAt(c, s.x + 6, STAGE_Y - 4, s.dir, 0, 'down'); });

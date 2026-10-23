@@ -808,7 +808,7 @@ export interface AmphiLook {
   /** The living room's left-hand wall flown in (0 up in the grid .. 1 down: the fight's on or coming). */
   flat?: number;
   /** The fight's on: everything of it on the stage (fight.ts fightItems), in place of the show's couch, family and him. */
-  fight?: { d: number; x: number; draw: () => void }[] | null;
+  fight?: { d: number; x: number; draw: () => void; at?: number }[] | null;
 }
 
 /** Behind him: all of it, back to front. */
@@ -828,7 +828,7 @@ export const drawAmphiBack = (c: Ctx, state: GameState, look: AmphiLook) => {
   if (X(ARENA.b) > cam - 300 && X(ARENA.b) < camR + 300) drawSideWall(c, E, ARENA.b, SET.b, 1);
   if ((look.flat ?? 0) > 0 && X(ARENA.a) > cam - 300 && X(ARENA.a) < camR + 300) drawSideWall(c, E, ARENA.a - 8, SET.a, look.flat ?? 0);
   // Everything else at its depth, far to near
-  const items: { d: number; x: number; draw: () => void }[] = [];
+  const items: { d: number; x: number; draw: () => void; at?: number }[] = [];
   const S = look.stage;
   // (the concourse)
   items.push({ d: 0.84, x: X((STAND.a + STAND.b) / 2), draw: () => beerStand(c, f, E) });
@@ -866,7 +866,8 @@ export const drawAmphiBack = (c: Ctx, state: GameState, look: AmphiLook) => {
   // (the empties: a pyramid of his cans by the couch; more once it's over)
   items.push({ d: 0.93, x: X(3190), draw: () => { const n = look.cleared ? 10 : 6; shadowAt(c, X(3166), STAGE_Y, 36, 0.3); for (let k = 0; k < n; k++) { const row = k < 4 ? 0 : k < 7 ? 1 : k < 9 ? 2 : 3, col = k - [0, 4, 7, 9][row]; can(c, X(3172) + col * 7 + row * 3.5, STAGE_Y - 8 - row * 13, 0, 0, false); } if (look.cleared) for (let k = 0; k < 3; k++) deadCan(c, X(3150 + k * 34), STAGE_Y, k + 40); } });
   items.sort((a, b) => a.d - b.d);
-  for (const it of items) if (seen(state, E, it.x - 220, it.x + 220, it.d)) atDepth(c, E, it.d, it.draw);
+  // (`at`: drawn at that depth, sorted by `d` (a wreck put down where it crashed, under whoever's about))
+  for (const it of items) if (seen(state, E, it.x - 220, it.x + 220, it.at ?? it.d)) atDepth(c, E, it.at ?? it.d, it.draw);
   litter(c, state, E);
   if (X(STEPS.a) > cam - 200 && X(STEPS.a) < camR + 200) rope(c, E, look.guard.pose === 'down' || look.guard.pose === 'keel');
   nearCut(c, state);
