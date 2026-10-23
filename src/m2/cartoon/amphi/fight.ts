@@ -41,7 +41,8 @@
 //                 counters, no puking, no hammer, and hardly any fight (double damage); then one more snap and the
 //                 last car comes down on HIM: the weakness death (a short slow-mo; flattened like a cartoon). No car
 //                 touches his health while any of the family's up (the user's); once they're all gone and the couch is
-//                 crushed (him up, flailing), ANY hit from anything kills him in one, whatever his health (doomed()).
+//                 crushed (him up, flailing), only the clapperboard's car kills him in one; anything else does double
+//                 (SAD_MULT; the user's: "everything else does a modestly multiplied value").
 //
 // Two deaths. The weakness: the kill cam, the car on him, burning; it tips off and he's a pancake on the deck, fluttering
 //   at the edges, the stuntman up out of the wreck with a thumbs-up, the laugh track, his last words, Meathead's. Any other
@@ -137,7 +138,7 @@ const SCOOT = 3.4;
 const PUKE_DMG = 8, COUCH_DMG = 16, COUCH_HURTS = 3.4;
 /** The rage: getting up, how long, the hammer's beat (frames up / down), his walk, his hops (how hard, how often), the
  *  gravity; the hurt; winded after. */
-const RISE_T = 30, RAGE_T = 420, HAMMER_BEAT = 7, RAGE_WALK = 1.5, HOP_VY = [-8.3, -9.2], HOP_GAP = [22, 56], G = 0.45, HAMMER_DMG = 18, TIRED_T = 60, RETURN_V = 3.4;
+const RISE_T = 30, RAGE_T = 420, HAMMER_BEAT = 7, RAGE_WALK = 1.5, HOP_VY = [-8.3, -9.2], HOP_GAP = [22, 56], G = 0.45, HAMMER_DMG = 28 /* (up a fair amount: it's easier to get clear of now, the user's; was 18) */, TIRED_T = 60, RETURN_V = 3.4;
 /** His hops float (the user's: "he should float long enough in the air on his jumps so you should be able to have just
  *  enough time to walk under him without charging. barely"): the same heights as before (apex about 148..182 px) on a
  *  lighter gravity, so 73..80 frames up (was 53..62). Worked out from the walk (4.44 px a frame, from his lerp), his
@@ -212,6 +213,8 @@ export interface Fight {
   bottles: Bottle[]; drops: Drop[]; puddles: Puddle[];
   cars: Car[]; wrecks: Wreck[]; flung: Flung[];
   kills: number; recharge: number; sad: boolean;
+  /** Since the last snap; his counter (or the throw off the couch) seen since it (the next take's ready after it). */
+  takeT: number; counterSeen: boolean;
   words: Map<'dad' | Member | 'crew', string>;
   /** The zoom (eased: out to take in the whole set while it's on), the clapperboard's ready flash, the crew's last excuse. */
   zoom: number; readyFlash: number; crewAt: number; blocked: number; blockSaidAt: number;
@@ -287,7 +290,7 @@ setStuntCarHook(ctx => {
   if (f.recharge > 0) { dud(ctx, f); return true; }
   snapClapper(ctx);
   launchCar(ctx.state, f);
-  f.recharge = RECHARGE;
+  f.recharge = RECHARGE; f.takeT = 0;
   return true;
 });
 const dud = (ctx: FrameContext, f: Fight) => {
@@ -344,7 +347,7 @@ export const startFight = (state: GameState, retry: boolean): Fight => {
     fridge: { open: 0, dx: 0, tilt: 0, jolt: 0 },
     family: fam, errand: null, callAt: retry ? 240 : 160,
     bottles: [], drops: [], puddles: [], cars: [], wrecks: [], flung: [],
-    kills: 0, recharge: 0, sad: false, words: new Map(),
+    kills: 0, recharge: 0, sad: false, takeT: 0, counterSeen: false, words: new Map(),
     chatAt: rnd(...CHAT_EVERY) * 0.6, bundy: 0, lowSaid: false, wrongN: 0, hintAt: -9999, dudAt: -9999, saidPuke: false, saidRage: false,
     flat: 1, death: null, deathSaid: 0, cam: null, zoom: 1, readyFlash: 0, crewAt: -9999, blocked: 0, blockSaidAt: -9999, pukeTier: 0,
   };
@@ -372,7 +375,15 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
   f.t++;
   if (f.iframes > 0) f.iframes--;
   if (f.flash > 0) f.flash--;
-  if (f.recharge > 0) { f.recharge--; if (f.recharge === 0 && f.mode === 'on') { f.readyFlash = 36; playSound('clap', 0.5, 4); } }
+  // (the next take's ready once his counter's done (the user's: "the next stuntman is ready after the couch attack is
+  // done, either the puking or the hammer"): the car's landed and he's back to sitting (or up off the crushed couch))
+  if (f.recharge > 0) {
+    f.takeT++;
+    const settled = !f.cars.length && f.takeT > 30 && (f.act === 'sit' || f.act === 'up') && f.counterSeen;
+    if (f.act === 'pukeWind' || f.act === 'puke' || f.act === 'rise' || f.act === 'rage' || f.act === 'thrown' || f.act === 'tired' || f.act === 'return') f.counterSeen = true;
+    if (settled) { f.recharge = 0; f.counterSeen = false; if (f.mode === 'on') { f.readyFlash = 36; playSound('clap', 0.5, 4); } }
+    else f.recharge = Math.max(1, f.recharge - 1);
+  }
   if (f.readyFlash > 0) f.readyFlash--;
   view(state, f);
   props(ctx, f);
@@ -1096,7 +1107,6 @@ const chatter = (ctx: FrameContext, f: Fight) => {
 // Hits on him
 
 /** Nothing left but him: the family all flattened, the couch crushed, him up flailing (any hit's the last). */
-const doomed = (f: Fight) => f.mode === 'on' && f.couch.crushed && !alive(f).length;
 const plainHit = (state: GameState, melee: boolean): number | null => {
   const p = state.player;
   if (melee) return p.isUppercutting || p.isDivekicking ? BOSS_UPPERCUT_DAMAGE : BOSS_CHARGE_DAMAGE;
@@ -1108,9 +1118,7 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
   e.health = BIG; e.maxHealth = BIG;
   const melee = e.hitByMove !== f.moveSeen;
   f.moveSeen = e.hitByMove;
-  // (the user's rule: once the family's all gone and the couch is crushed, him up flailing, anything kills him in one)
-  const done = doomed(f);
-  if (dealt <= 0 || !state.enemies.includes(e) || (f.iframes > 0 && !done)) return;
+  if (dealt <= 0 || !state.enemies.includes(e) || f.iframes > 0) return;
   // (in the rage nothing lands but what's fired at him (the moves get him hammered: touch above))
   if (melee && (f.act === 'rage' || f.act === 'rise')) return;
   // (one of the family in the way of his move: it eats it)
@@ -1120,7 +1128,8 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
   if (plain === null && state.player.availableWeapons.includes('STUNT_CAR') && state.player.currentWeapon !== 'STUNT_CAR' && f.kills === 0 && (++f.wrongN === 2 || f.wrongN % 5 === 0) && f.t - f.hintAt > HINT_GAP) {
     f.hintAt = f.t; meathead(state, L.MH_HINT);
   }
-  const dmg = done ? Math.max(1, f.hp) : (plain ?? Math.max(1, dealt * SHARE)) * (f.sad ? SAD_MULT : 1);
+  // (up off the couch: double, never the one-shot (that's the clapperboard's car's alone, the user's))
+  const dmg = (plain ?? Math.max(1, dealt * SHARE)) * (f.sad ? SAD_MULT : 1);
   f.hp -= dmg; f.iframes = f.sad ? SAD_IFRAMES : IFRAMES; f.flash = 8;
   const cx = X(f.x), feet = STAGE_Y - f.y;
   for (let i = 0; i < 4; i++) state.particles.push({ pos: { x: cx, y: feet - 60 }, vel: { x: (Math.random() - 0.5) * 3, y: -1 - Math.random() * 2 }, life: 18, color: '#B91C1C', size: 2 + Math.random() * 2, grav: 0.3 });
@@ -1134,7 +1143,7 @@ const sync = (state: GameState, f: Fight) => {
   const e = f.e;
   e.pos.x = X(f.x) - e.width / 2; e.pos.y = STAGE_Y - f.y - e.height - 2;
   e.vel.x = 0; e.vel.y = 0; e.facing = f.facing; e.initialY = e.pos.y;
-  e.hitCooldown = doomed(f) ? 0 : f.iframes;
+  e.hitCooldown = f.iframes;
   e.pauseTimer = 0; e.frozenTimer = 0; e.isTased = false; e.sludgeTimer = 0; e.returnHome = false; e.puppet = false;
   void state;
 };
