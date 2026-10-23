@@ -17,7 +17,7 @@
 //                   bunker slit), the painted canyon (a sky cyc and three rows of plywood mesas, braces and sandbags
 //                   showing, MOUSE MESA's title flat, cactus flats; the gorge's far wall and its strata down into the
 //                   dark), the live show's soundstage (velour drapes, the cartoon house flat, the lighting grid and its
-//                   cans, the APPLAUSE sign, the fly rail; the stage's black boards), the STUPID DAD LIVE! gate
+//                   cans, the APPLAUSE sign, the fly rail; the stage's black boards), the DAD MAN LIVE! gate
 //   THE PLAY PLANE  bright and inked, what he stands on lit along its top: the path's red-painted edge and its cream
 //                   pavers coming toward him (scanline-bent, chalk outlines and splats on them), the lawn, the canyon's
 //                   rim rocks, the set's crate steps, the pallet rack; the skull lamps on their bone posts; the signs.
@@ -753,7 +753,7 @@ const towerFeet = (c: Ctx, state: GameState) => {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
-// The STUPID DAD LIVE! gate at the end: two blue pillars with mustard bands (their sides going back), the board with
+// The DAD MAN LIVE! gate at the end: two blue pillars with mustard bands (their sides going back), the board with
 // the show's dad on it, THE AMPHITHEATER >.
 
 const exitGate = (c: Ctx, v: View) => {
@@ -772,7 +772,7 @@ const exitGate = (c: Ctx, v: View) => {
     bandsDown(g, () => g.rect(-w / 2 - 27, top - 107, w + 54, 106), -w / 2 - 27, top - 107, w + 54, 106, [P[4], P[3], P[3], P[2], P[1]]);
     g.save(); g.beginPath(); g.rect(-w / 2 - 27, top - 107, w + 54, 106); g.clip(); dadArt(g, -w / 2 + 40, top + 2, 1.15, 0.18, '#7C3AED'); g.restore();
     for (let k = 0; k < 14; k++) { const bx = -w / 2 - 24 + k * (w + 48) / 13; box(g, bx, top - 110, 4, 4, lit() && k % 2 ? '#FFF0B0' : M[4]); box(g, bx, top - 2, 4, 4, lit() && k % 2 === 0 ? '#FFF0B0' : M[4]); }
-    signText(g, 'STUPID DAD', 50, top - 80, { sx: 2, sy: 2, bold: true, slant: 1, fill: [dimmed('#FFFFFF'), dimmed('#FDE047'), dimmed('#F59E0B')], ink, shadow: dimmed('#3B0764'), drop: 2 });
+    signText(g, 'DAD MAN', 50, top - 80, { sx: 2, sy: 2, bold: true, slant: 1, fill: [dimmed('#FFFFFF'), dimmed('#FDE047'), dimmed('#F59E0B')], ink, shadow: dimmed('#3B0764'), drop: 2 });
     signText(g, 'LIVE!', 50, top - 50, { sx: 3, sy: 3, bold: true, slant: 1, fill: [dimmed('#FFFFFF'), dimmed('#FB7185'), dimmed('#DC2626')], ink, shadow: dimmed('#3B0764'), drop: 2 });
     signText(g, 'THE AMPHITHEATER >', 50, top - 16, small(dimmed('#A3E635'), ink));
   });
@@ -834,7 +834,7 @@ export const drawItchyBack = (c: Ctx, state: GameState, revisit: boolean) => {
   if (onV(v, X(CANYON[0]) - 120, X(CANYON[1]) + 120)) gorgeBack(c, v);
   if (onV(v, X(HOLES[0]) - 60, X(HOLES[1]) + 60)) holesBack(c, v);
   drawFurniture(c, v);
-  // (STUPID DAD's own, taped up on the drapes: the live show's next)
+  // (DAD MAN's own, taped up on the drapes: the live show's next)
   for (const [px, look] of [[9600, 'live'], [9700, 'faded']] as [number, 'live' | 'faded'][]) if (onV(v, X(px) - 80, X(px) + 80)) { const [sx, sy] = at(v.eye, X(px), Y(20), SET_BACK_D); c.save(); c.translate(sx, sy); c.scale(SET_BACK_D, SET_BACK_D); poster(c, 0, 0, look, true); c.restore(); }
   // (the set pieces behind the play plane, each with its sides going back)
   if (onV(v, X(420) - 320, X(420) + 320)) boneArch(c, v, X(420));

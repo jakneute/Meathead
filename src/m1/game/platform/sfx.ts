@@ -686,7 +686,7 @@ const SFX: Record<string, SfxDef> = {
 /** Their guns (the same crack, further off: quieter, and it doesn't crowd his own out). */
 SFX.egun = { ...SFX.gun, gain: 0.28, gap: 50, voices: 3 };
 
-/** Meathead 2's STUPID DAD LIVE!: the canned sitcom laugh track (a studio audience off an old tape: a dozen and more
+/** Meathead 2's DAD MAN LIVE!: the canned sitcom laugh track (a studio audience off an old tape: a dozen and more
  *  voices, men's and women's, each its own "ha-ha-ha" at its own pace, swelling in and dying off, dulled like tape). */
 SFX.laughtrack = {
   gain: 0.5, vary: 0.6, gap: 800, voices: 1,

@@ -85,7 +85,7 @@ export const FAST_TRAVEL: Record<string, Stop[]> = {
     { name: 'THE WEST WING', attraction: 'whitehouse', cp: 30 },
     { name: 'THE BIG-KID ZONE', attraction: 'bigkid', cp: 40 },
     { name: 'PUNCHY & KICKY', attraction: 'punchy', cp: 50 },
-    { name: 'STUPID DAD LIVE!', attraction: 'amphi', cp: 62 },
+    { name: 'DAD MAN LIVE!', attraction: 'amphi', cp: 62 },
   ],
 };
 

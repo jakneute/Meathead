@@ -1,15 +1,15 @@
-// What's said at STUPID DAD LIVE! (the amphitheater: the security guard, the show, STUPID DAD's intro), by voice
+// What's said at DAD MAN LIVE! (the amphitheater: the security guard, the show, DAD MAN's intro), by voice
 // (cartoon/voices.ts gathers it; tools/voices records it). In the user's voice: blunt, short, vulgar, specific; talk
 // less; fit the trigger. Picked with pickLine (no line twice within 45 s). Meathead's lines and everybody reacting to
-// him in clean / shitty / naked pools; STUPID DAD's (the boss's) in all three for every group from the moment he sees
+// him in clean / shitty / naked pools; DAD MAN's (the boss's) in all three for every group from the moment he sees
 // him. The show's own lines (him on the couch calling for beer, the family's tapes) don't react to Meathead (he hasn't
 // seen him yet): one pool each, the studio narrator's way.
 //
-// The setup (the user's): the lone surviving cast member of STUPID DAD, the man who voiced the dad, in his 70s now, an
+// The setup (the user's): the lone surviving cast member of DAD MAN, the man who voiced the dad, in his 70s now, an
 // alcoholic like the rest of them were (MOM, THE BOY, SIS and GRAMPS all dead of it: the plaque back in the big-kid zone
 // has their names); his TV family cheap animatronics on the tapes of the dead actors' voices; he sits on the couch and
 // asks the Boy for another beer so he can watch the game, and he drinks real beer doing it. Specifically (the user's):
-// HONK AZORIA was the VOICE of the cartoon dad; STUPID DAD LIVE! is a live-action stage recreation of the cartoon, him
+// HONK AZORIA was the VOICE of the cartoon dad; DAD MAN LIVE! is a live-action stage recreation of the cartoon, him
 // playing the character in person, no fat suit needed (a voice actor's vanity, typecast for life). Never anything about
 // Meathead's age. Pure data.
 
@@ -28,9 +28,9 @@ export const VOICES = {
 
 /** In through the gate. */
 export const ARRIVE: ByPants = {
-  clean: ['STUPID DAD LIVE. SHOWS DAILY. GOD HELP US.', 'A WHOLE AMPHITHEATER. FOR A SHOW THAT LASTED SIX WEEKS IN NINETY-FIVE.'],
+  clean: ['DAD MAN LIVE. SHOWS DAILY. GOD HELP US.', 'A WHOLE AMPHITHEATER. FOR A SHOW THAT LASTED SIX WEEKS IN NINETY-FIVE.'],
   shitty: ["A LIVE SHOW. I'LL TAKE THE BACK ROW.", 'BLEACHERS. ALUMINUM. THEY HOSE RIGHT OFF. PERFECT.'],
-  nude: ["A LIVE SHOW. I'LL BE THE ONE IN THE AISLE. NAKED.", "STUPID DAD LIVE. HE'S ABOUT TO SEE A LOT MORE LIVE."],
+  nude: ["A LIVE SHOW. I'LL BE THE ONE IN THE AISLE. NAKED.", "DAD MAN LIVE. HE'S ABOUT TO SEE A LOT MORE LIVE."],
 };
 /** Back once it's all over (the land cleared). */
 export const REVISIT: ByPants = {
@@ -73,7 +73,7 @@ export const MH_KICKED: ByPants = {
   shitty: ['THERE. NOW WE BOTH HAD A BAD DAY.', 'SORRY, PAL. YOUR NUTS, MY PANTS. WE BOTH LOST.'],
   nude: ['SKIN ON SKIN. WE BOTH FELT THAT.', 'A NAKED KICK. HE SAW EVERYTHING ON THE WAY UP.'],
 };
-/** STUPID DAD's mistaken him for the Boy. */
+/** DAD MAN's mistaken him for the Boy. */
 export const MH_SEES: ByPants = {
   clean: ["I'M NOT YOUR KID, GRANDPA.", "YOUR FAMILY'S A BUNCH OF ROBOTS, MAN. AND YOU'RE DRUNK."],
   shitty: ["I'M NOT YOUR KID. BUT YES. I SHIT MYSELF.", 'I CAN SMELL YOUR BREATH OVER MY PANTS. CONGRATULATIONS.'],
@@ -115,7 +115,7 @@ export const GUARD_LATER: ByPants = {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
-// The show (STUPID DAD, before he's seen him; the family's tapes)
+// The show (DAD MAN, before he's seen him; the family's tapes)
 
 /** Calling the Boy (the user's line first). */
 export const SHOW_CALL = ['BOY! GET ME ANOTHER BEER!', 'BOY! BEER!', 'BOY! ANOTHER COLD ONE!', "BOY! THIS ONE'S EMPTY!", "BOY! BEER! THE GAME'S ON!"];
@@ -150,7 +150,7 @@ export const GLITCH_TAPE: Record<'mom' | 'boy' | 'gramps', string[]> = {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
-// STUPID DAD, the intro (he's seen him: by pants, every group)
+// DAD MAN, the intro (he's seen him: by pants, every group)
 
 /** He squints at him: half in character (he thinks it's the Boy). */
 export const DAD_NOTICE: ByPants = {
@@ -179,7 +179,7 @@ export const DAD_SETTLE: ByPants = {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
-// THE FIGHT (fight.ts): STUPID DAD on his couch, drunk, the stolen mallet by him, yelling at his family for beer.
+// THE FIGHT (fight.ts): DAD MAN on his couch, drunk, the stolen mallet by him, yelling at his family for beer.
 // Everything he says is by pants (he's seen him). The family's tapes don't react to Meathead: one pool each.
 
 /** Screaming at the family for a beer (the whole fight). */

@@ -1,10 +1,10 @@
-// THE SHOW: STUPID DAD LIVE!, playing on a loop till Meathead walks on (the user's: "a sad pathetic playback of him
+// THE SHOW: DAD MAN LIVE!, playing on a loop till Meathead walks on (the user's: "a sad pathetic playback of him
 // interacting with his tv family - who are cheap animatronics - as he sits on the couch and asks his kid to get him
 // another beer so he can watch the football game ... he drinks actual beer during performances").
 //
 // A cycle (about 25 s): he watches the game (a swig now and then); he calls for the Boy ("BOY! GET ME ANOTHER BEER!");
 // the laugh track; the Boy rolls jerkily off along his floor track to the kitchen door, a clatter, back with a can; his
-// arm comes out in steps and the tape plays ("SURE THING, POP!"); STUPID DAD takes it, cracks it, drinks (a real
+// arm comes out in steps and the tape plays ("SURE THING, POP!"); DAD MAN takes it, cracks it, drinks (a real
 // swig, a belch now and then); then one more bit: a family member's tape and the laugh track, him at the TV (the
 // football's the same tape every show), or him off script, mumbling about the dead cast to nobody (no laugh). Only once
 // Meathead's down in the bowl does it run its lines (it's a PA: from the concourse it's the swigs, no words).

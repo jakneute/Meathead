@@ -1,9 +1,9 @@
-// The walk-away from STUPID DAD (Cartoon Land's boss), SNES'd with the amphitheater's look: down the concrete walk out
+// The walk-away from DAD MAN (Cartoon Land's boss), SNES'd with the amphitheater's look: down the concrete walk out
 // of THE UBX AMPHITHEATER toward the camera at whatever hour it is now (timeOfDay.ts): the lawn either side in stepped
 // tufts and clover, the walk's slabs with their joints, gum and cracks, a curb along it; oaks, steel light posts with
 // their globes (lit after dark), green trash cans with UBX stenciled on them overflowing, park benches. Far behind him:
 // the hills, THE CARTOON LAND WATER TOWER (cartoon/monument.ts), the bowl's rim and its hedge, the light masts, and
-// THE BAND SHELL (sun-faded cream and blue rings, its ribs, the red STUPID DAD LIVE! banner hung in it, the bulbs round
+// THE BAND SHELL (sun-faded cream and blue rings, its ribs, the red DAD MAN LIVE! banner hung in it, the bulbs round
 // its lip, some dead). Down the walk: his crushed cans of SWILL LITE (the show's real beer), plastic beer cups, a
 // popcorn box, a show program, the foam finger somebody dropped (#1). His new toy: the MALLET (walkAway/acts.ts).
 //
@@ -133,7 +133,7 @@ const cup = (g: Ctx, w: number, h: number) => { box(g, 0, h - 3, w, 3, '#C8CCD0'
 const finger = (g: Ctx, w: number, h: number) => { box(g, 0, h - 4, w, 4, INK); box(g, 1, h - 3, w - 2, 2, '#FDE047'); box(g, 1, h - 3, w - 2, 1, '#FEF08A'); box(g, w - 3, h - 6, 2, 3, '#FDE047'); box(g, 2, h - 3, 2, 1, '#1E3A8A'); box(g, 5, h - 3, 1, 1, '#1E3A8A'); };
 /** A popcorn box, tipped, popcorn spilled out of it. */
 const popcorn = (g: Ctx, w: number, h: number) => { box(g, 0, h - 4, w * 0.6, 4, INK); for (let k = 0; k < 3; k++) box(g, 1 + k * 2, h - 3, 1, 2, k % 2 ? '#FFFFFF' : '#DC2626'); for (let k = 0; k < 5; k++) box(g, w * 0.6 + k * 1.4, h - 1 - (k % 2), 1, 1, '#FEF3C7'); };
-/** The show's program, dropped: STUPID DAD's face on the cover (HONK AZORIA, the cartoon's original voice, live). */
+/** The show's program, dropped: DAD MAN's face on the cover (HONK AZORIA, the cartoon's original voice, live). */
 const program = (g: Ctx, w: number, h: number) => { box(g, 0, h - 3, w, 3, INK); box(g, 1, h - 3, w - 2, 2, '#7C3AED'); box(g, 2, h - 3, 3, 2, '#F4B8A0'); box(g, w - 4, h - 3, 2, 1, '#FDE047'); };
 
 /** A stunt car on its roof (the weakness: the last one, towed out and dumped by the walk), scorched, a wheel off. */

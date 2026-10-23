@@ -79,7 +79,7 @@ const tag = (g: Ctx, x: number, y: number, seed: number) => {
   g.beginPath(); path(); g.strokeStyle = D(a); g.lineWidth = 3; g.stroke();
   box(g, x + 56, y - 10, 3, 3, D(a)); box(g, x + 60, y - 4, 2, 6, D(a));
 };
-/** A little STUPID DAD poster pasted up (the show's: blue, the dad on his couch, a beer up), aged. */
+/** A little DAD MAN poster pasted up (the show's: blue, the dad on his couch, a beer up), aged. */
 const miniPoster = (g: Ctx, x: number, y: number, look: number) => {
   const P = look === 0 ? '#5EB4F4' : mix('#5EB4F4', '#F0E8D8', 0.5);
   box(g, x - 1, y - 1, 30, 40, D(INK)); box(g, x, y, 28, 38, D(P));

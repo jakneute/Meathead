@@ -7,10 +7,10 @@
 //
 // The zone (layout.ts: teach, then escalate): the land's swaying stack-towers (cartoon/sway.ts) over the glop pits and
 // in the bumper rink (where the cars ram their feet); the trackless rides roaming loose and running at him (rides.ts);
-// the zone's cast (kinds.ts); STUPID DAD everywhere (art.ts); his lines (lines.ts).
+// the zone's cast (kinds.ts); DAD MAN everywhere (art.ts); his lines (lines.ts).
 //
 // The ways: back out its left end to the White House's stage door (DOORS.whitehouse2.end); on out its right end, the
-// gate to STUPID DAD: THE EXTENDED UNIVERSE (DOORS.itchy.start); back from there, he's at DOORS.bigkid.end. Been out the
+// gate to DAD MAN: THE EXTENDED UNIVERSE (DOORS.itchy.start); back from there, he's at DOORS.bigkid.end. Been out the
 // far gate (`ct-bigkid-done`): a later visit's the revisit (the couch parked dead, OUT OF ORDER; his lines).
 
 import { drawPitBounce } from '../pitBounce';

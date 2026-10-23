@@ -1,4 +1,4 @@
-// STUPID DAD LIVE!'s paint box (the SNES pass): a sad, faded 90s outdoor amphitheater's materials in six-step ramps
+// DAD MAN LIVE!'s paint box (the SNES pass): a sad, faded 90s outdoor amphitheater's materials in six-step ramps
 // (darkest first, lit from the upper left) and the pieces every layer of it uses: weathered poured concrete, aluminum
 // bleacher plank, the band shell's cream and blue panels (sun-faded, peeling to the gray primer, rust bleeding off the
 // bolts), the stage's deck boards, the set's cheap flats (mustard diamond wallpaper, fake-wood paneling, raw plywood

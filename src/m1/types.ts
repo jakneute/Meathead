@@ -87,7 +87,7 @@ export type SoundType =
   | 'dry_souvenir' | 'dry_suck' | 'dry_flint' | 'dry_spell' | 'dry_clap' | 'dry_spawn' | 'dry_bow' | 'dry_stick' | 'stick_snap'
   // (Meathead 2's Donnie Dracula, the glutton: a belch off a full gut, the last of a drink up a straw)
   | 'burp' | 'slurp'
-  // (Meathead 2's STUPID DAD LIVE!: the canned laugh track, a beer can cracked, the show's tape stopping)
+  // (Meathead 2's DAD MAN LIVE!: the canned laugh track, a beer can cracked, the show's tape stopping)
   | 'laughtrack' | 'canopen' | 'tapestop'
   // (Meathead 2's Stuntman Steve's last stunt: his suit sizzling on the loop, the burnt cloth giving way, a cartoon
   // whistle all the way down)

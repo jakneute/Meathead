@@ -1,4 +1,4 @@
-// STUPID DAD LIVE!: section 7 of Cartoon Land, the boss. The user's design (cartoon-spec.md, verbatim there): "you will
+// DAD MAN LIVE!: section 7 of Cartoon Land, the boss. The user's design (cartoon-spec.md, verbatim there): "you will
 // eventually reach an amphitheater of the stage show where 'stupid dad' recreates scenes from the show. you approach the
 // stage from the left. there's a security guard who won't let you on. since most boss doors involve kicking down a door,
 // this 'boss door' is the security guards nuts. you kick him there, he keels over, and you have free access to the stage
@@ -8,19 +8,19 @@
 //
 //   layout.ts  the bowl: the concourse, the aisle steps, the pit, the stage steps, the deck; who and what's where
 //   art.ts     the place painted to the one eye (the marquee, the BEER GARDEN, the crowd, the band shell, the set)
-//   dad.ts     STUPID DAD at boss grade (sat, sipping, calling, reaching, getting up, crushing the can), his close-up,
+//   dad.ts     DAD MAN at boss grade (sat, sipping, calling, reaching, getting up, crushing the can), his close-up,
 //              the couch
 //   family.ts  the animatronic family (MOM, THE BOY on his track, SIS, GRAMPS): running, glitching, off
 //   guard.ts   the security guard (the boss door) and his close-up
 //   show.ts    the show on its loop (BOY! BEER!, the laugh track, the Boy's fetch), and what everybody's doing
-//   scene.ts   the guard's nuts (the boss door's cutscene), STUPID DAD's intro (him dragging the couch up front)
+//   scene.ts   the guard's nuts (the boss door's cutscene), DAD MAN's intro (him dragging the couch up front)
 //   fight.ts   THE FIGHT (the user's design): the couch, the mallet swat, the beer runs, the puke, the drunken rage, the
 //              clapperboard's cars for the family, both his deaths; fightArt.ts draws what's its own
 //   lines.ts   every line: his, the guard's, the show's, the intro's, the fight's, by pants
 //
 // The flow: in at the gate (cp 60); down through the bowl (the show's lines once he's in it); the boss-door refill in
 // the pit; up to the guard and it's the cutscene (cp 61 once he's down: GUARD_DOWN in state.stageMemo, so a death or a
-// checkpoint start finds him down); up the steps onto the stage and it's STUPID DAD's intro (cp 62; once a visit: a
+// checkpoint start finds him down); up the steps onto the stage and it's DAD MAN's intro (cp 62; once a visit: a
 // retry goes straight on, the room already shut); THE FIGHT (fight.ts; both sides locked: the living room's walls);
 // VICTORY, the walk-away (walkAway/stupidDad.ts: the MALLET; the wreck down the path if it was the weakness), the hub,
 // Cartoon Land cleared. Revisits (the land cleared): the guard still down (an ice pack on it now), the stage empty,
@@ -97,11 +97,11 @@ const groan = (state: GameState, s: Amphi, cleared: boolean) => {
 export const amphi: CartoonSection = {
   id: 'amphi', x0, x1,
   checkpoints: [
-    { name: 'STUPID DAD LIVE', cp: CP_GATE, x: DOORS.amphi.start.x, y: TOP_Y },
+    { name: 'DAD MAN LIVE', cp: CP_GATE, x: DOORS.amphi.start.x, y: TOP_Y },
     { name: 'THE STAGE STEPS', cp: CP_STEPS, x: X(GUARD_X + 6), y: PIT_Y, manual: true },
     // (the user's, every boss: dying, he's back outside the boss door (by the guard he kicked, at the foot of the stage
     // steps) and walks up onto the stage himself to have another go)
-    { name: 'STUPID DAD', cp: CP_DAD, x: X(GUARD_X + 40), y: PIT_Y, clear: [400, 3000], manual: true },
+    { name: 'DAD MAN', cp: CP_DAD, x: X(GUARD_X + 40), y: PIT_Y, clear: [400, 3000], manual: true },
   ],
   build: (state) => {
     resetFight();
@@ -145,7 +145,7 @@ export const amphi: CartoonSection = {
     if (!cleared && !s.intro) updateShow(state, s, rx > AISLE.a + 40, !!s.kick, () => { if (saidOnce('show')) meatheadSays(state, pickLine(byPants(state, GAGS.show)), true); });
     // The boss door's cutscene
     if (s.kick) return updateKick(ctx, s);
-    // STUPID DAD's intro, then the fight
+    // DAD MAN's intro, then the fight
     if (s.intro) {
       markBossFight(state, 'stupid-dad');
       const { out, done } = updateIntro(ctx, s);
@@ -182,7 +182,7 @@ export const amphi: CartoonSection = {
     // Up to the guard: the boss door
     if (s.guard === 'up' && p.health > 0 && !p.inCutscene && p.isGrounded && rx > KICK_AT - 14) { startKick(state, s); return updateKick(ctx, s); }
     if (s.guard === 'down') groan(state, s, cleared);
-    // Up onto the stage: STUPID DAD (the first time this visit, the intro; a retry, straight on)
+    // Up onto the stage: DAD MAN (the first time this visit, the intro; a retry, straight on)
     if (!cleared && s.guard === 'down' && p.health > 0 && p.isGrounded && rx > DECK_A + 70) {
       markBossFight(state, 'stupid-dad');
       if (startIntro(state, s, introSeen(state))) return updateIntro(ctx, s).out;

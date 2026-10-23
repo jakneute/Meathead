@@ -4,22 +4,22 @@
 // themed on legally distinct knockoffs of Y7 cartoons and early adult animation. Harder platforming than the kiddie
 // square: the land's swaying stack-towers (cartoon/sway.ts) over bottomless GLOP PITS (green slime: the big kids' ball
 // pit; in, and he's spat back out where he last stood, hurt), in a bumper-car rink where the cars ram the towers'
-// feet and set them swinging, a hopping simulator pod before the second pit. STUPID DAD's posters everywhere (the
+// feet and set them swinging, a hopping simulator pod before the second pit. DAD MAN's posters everywhere (the
 // failed mid-90s show, setting up the boss). Every bit of it goes both ways (he'll be back through here).
 //
 //   0      THE ZONE GATE (cp 40): out of the White House's stage door; the neon arch, THE BIG-KID ZONE; a poster column
-//          (STUPID DAD); a ride op alone (taught).
-//   860    THE POSTER WALL: a plywood construction fence pasted with STUPID DAD, faded, peeling; one graffitied.
+//          (DAD MAN); a ride op alone (taught).
+//   860    THE POSTER WALL: a plywood construction fence pasted with DAD MAN, faded, peeling; one graffitied.
 //   1250   COUCH DUDES' CRUISIN' COUCH: the couch out of its garage, roaming the street; it lines up on him (headlights,
 //          the horn) and charges. Jump it, or get up on the newsstand's awning or the bus shelter. Alone.
-//   2750   THE STUPID DAD GIFT SHACK (cp 41): EVERYTHING 90% OFF; the clearance bin of talking dolls; the awning (a
+//   2750   THE DAD MAN GIFT SHACK (cp 41): EVERYTHING 90% OFF; the clearance bin of talking dolls; the awning (a
 //          pickup); a churro vendor and a ride op.
 //   3700   THE GLOP PIT: three towers across it (lean to make each gap), a stack of glop drums on each bank (the way
 //          back up); Gloppy on the far bank hocking loogies at him on the lids.
 //   4900   SPAZ & STINKY'S BUMPER BASH (cp 42): a fenced rink, three bumper cars loose in it (they spin, line up, beep,
 //          ram); two towers in the rink up off the floor (the cars ram their feet and set them swinging); the scorer's
 //          stands up to them. The skate punk past it.
-//   6450   IN LOVING MEMORY (cp 43): breathing room. The memorial plaque for STUPID DAD's dead cast under the faded
+//   6450   IN LOVING MEMORY (cp 43): breathing room. The memorial plaque for DAD MAN's dead cast under the faded
 //          family mural, a bench, dead flowers, a beer can somebody left on it. A pickup.
 //   7250   GIGGLES THE CLOWN'S HURL-A-WHIRL: four cars on arms whirling round a clown-head hub that rolls loose about
 //          its plaza (it shudders, honks and lurches at him); the cars at two heights (jump the low ones, walk under
@@ -28,8 +28,8 @@
 //          its plaza (it crouches and hisses first); then THE GLOP PIT, PART 2: a harder chain of three towers; Gloppy.
 //   10560  RAD RAT'S TUBULAR HALFPIPE (cp 45): a giant skateboard rocking back and forth in a halfpipe; drop in,
 //          cross, jump it at the bottom; the skate punk on the far lip.
-//   11450  THE WAY ON (cp 46): the big STUPID DAD LIVE billboard (the amphitheater: setting up the boss); a mixed
-//          crowd; the gate to STUPID DAD: THE EXTENDED UNIVERSE (the right end: on to the knockoff area).
+//   11450  THE WAY ON (cp 46): the big DAD MAN LIVE billboard (the amphitheater: setting up the boss); a mixed
+//          crowd; the gate to DAD MAN: THE EXTENDED UNIVERSE (the right end: on to the knockoff area).
 
 import { SECTIONS, GY } from '../geometry';
 import type { TowerDef } from '../sway';
@@ -148,7 +148,7 @@ export const PICKUPS: [number, number, 'small_health' | 'small_ammo'][] = [
 ];
 export const CHECKPOINTS = [
   { name: 'THE BIG-KID ZONE', cp: 40, x: X(200), y: GY },
-  { name: 'THE STUPID DAD GIFT SHACK', cp: 41, x: X(2750), y: GY },
+  { name: 'THE DAD MAN GIFT SHACK', cp: 41, x: X(2750), y: GY },
   { name: 'THE BUMPER BASH', cp: 42, x: X(4900), y: GY },
   { name: 'IN LOVING MEMORY', cp: 43, x: X(6500), y: GY },
   { name: 'THE MOTION MADNESS', cp: 44, x: X(8480), y: GY },
@@ -159,7 +159,7 @@ export const CHECKPOINTS = [
 
 /** The memorial: the plaque on its stone, the bench, the mural on the wall behind. */
 export const MEMORIAL = { plaque: 6760, bench: 6600, wall: [6420, 7060] as [number, number] };
-/** The STUPID DAD LIVE billboard, the gate on (the right end). */
+/** The DAD MAN LIVE billboard, the gate on (the right end). */
 export const BILLBOARD = 11400;
 export const GATE = { a: 11860, b: 12000 };
 

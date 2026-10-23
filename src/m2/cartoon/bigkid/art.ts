@@ -6,16 +6,16 @@
 // (standable reads standable), the scenery dimmed a step toward the air:
 //
 //   THE GATES       spray-painted concrete pillars, a hazard-striped beam with its neon (THE BIG-KID ZONE / NO LIMITS.
-//                   NO MERCY.; at the far end STUPID DAD: THE EXTENDED UNIVERSE >), glop dripping off it, tags
-//   THE POSTERS     STUPID DAD everywhere: the advertising column, the plywood fence (POST NO BILLS), each poster aged
+//                   NO MERCY.; at the far end DAD MAN: THE EXTENDED UNIVERSE >), glop dripping off it, tags
+//   THE POSTERS     DAD MAN everywhere: the advertising column, the plywood fence (POST NO BILLS), each poster aged
 //                   its own way: sun-bleached, faded, peeling, graffitied (a mustache, horns, SUCKS), CANCELED
 //   THE GARAGE      COUCH DUDES' cinder-block garage: the roll-up door up, the dark inside (a workbench, a tire stack,
 //                   pizza boxes), COUCH FUEL's old pump
-//   THE NEWSSTAND   its striped awning (stand on it), the racks of 1994's magazines (TV WEEK: IS STUPID DAD OVER?)
+//   THE NEWSSTAND   its striped awning (stand on it), the racks of 1994's magazines (TV WEEK: IS DAD MAN OVER?)
 //   THE SHELTER     the PARK SHUTTLE's roof (stand on it), its ad panel, the bench
-//   THE STORE       THE STUPID DAD STORE: the dad's head on its roof board, the window of unsold merch (beer-can hats,
+//   THE STORE       THE DAD MAN STORE: the dad's head on its roof board, the window of unsold merch (beer-can hats,
 //                   WORLD'S STUPIDEST DAD mugs, foam couches, the dolls), EVERYTHING 90% OFF, NOW 95%, the standee
-//                   (HAVE YOU HUGGED A STUPID DAD TODAY?), the awning (stand on it), the clearance bin of dolls
+//                   (HAVE YOU HUGGED A DAD MAN TODAY?), the awning (stand on it), the clearance bin of dolls
 //   THE GLOP PITS   green slime to the brim, swirling, going back to a railed rim (NO LIFEGUARD), the banks hazard-
 //                   striped; GLOP drums stacked on the banks (their lids lit), glop heaped round the towers' feet
 //   THE RINK        SPAZ & STINKY'S BUMPER BASH: the canopy and the sparking ceiling grid overhead, the chain-link at
@@ -28,11 +28,11 @@
 //   THE POD         Detective Drake's quonset hangar (MOTION MADNESS, the duck detective painted big), its door open
 //   THE HALFPIPE    RAD RAT'S concrete pipe, its curve going back to the eye, the back wall tagged, steel coping, the
 //                   banner on its scaffold
-//   THE BILLBOARD   SEE STUPID DAD LIVE! (THE AMPHITHEATER, SHOWS DAILY. BEER GARDEN OPEN., THIS WAY >), its catwalk
+//   THE BILLBOARD   SEE DAD MAN LIVE! (THE AMPHITHEATER, SHOWS DAILY. BEER GARDEN OPEN., THIS WAY >), its catwalk
 //                   and lamps
 //   THE GROUND      skate-park slabs coming toward him (scanline-bent), a red-painted curb lit along its top
 //
-// STUPID DAD (the failed mid-90s show, the boss's setup): the fat balding dad in a stained tank top on the couch, a
+// DAD MAN (the failed mid-90s show, the boss's setup): the fat balding dad in a stained tank top on the couch, a
 // beer up, "BOY! BEER!"; AMERICA'S NEW FAVORITE FAMILY!; THIS FALL ON UBX.
 
 import type { GameState } from '../../../m1/game/core/state';
@@ -127,7 +127,7 @@ export const zoneSign = (c: Ctx, x: number, feetY: number, lines: string[], boar
 };
 
 // ---------------------------------------------------------------------------------------------------------------
-// STUPID DAD
+// DAD MAN
 
 /**
  * The show's star as the show drew him, the couch's foot at (x, y), scale k: on a saggy orange couch, the fat balding
@@ -183,7 +183,7 @@ export const dadArt = (g: Ctx, x: number, y: number, k: number, fade: number, pa
 };
 
 const UBX: Look = { sx: 1, sy: 1, bold: true, fill: '#FFFFFF', ink: INK };
-/** A STUPID DAD poster (104 x 140, its middle-bottom at (x, y)), aged: 'fresh' (only sun-bleached), 'faded', 'peel'
+/** A DAD MAN poster (104 x 140, its middle-bottom at (x, y)), aged: 'fresh' (only sun-bleached), 'faded', 'peel'
  *  (a corner torn and curled, strips gone), 'graffiti', 'canceled' (a CANCELED strip slapped across), 'live' (the live
  *  show's: SEE IT LIVE! THE AMPHITHEATER). Painted once for its look and the hour, in steps: the sunburst banded, the
  *  paste's wrinkles, the tape. */
@@ -214,7 +214,7 @@ export const poster = (c: Ctx, x: number, y: number, look: PosterLook, dim = fal
     dadArt(g, -4, top + 112, 0.82, fade + 0.05, paper, look === 'graffiti');
     g.restore();
     // (the title, the speech balloon, the tagline)
-    signText(g, look === 'live' ? 'SEE IT LIVE!' : 'STUPID DAD', 0, top + 20, { sx: 1, sy: 2, bold: true, fill: [T('#FFFFFF'), T('#FDE047'), T('#F59E0B')], ink: INK, shadow: T('#7F1D1D'), drop: 1 });
+    signText(g, look === 'live' ? 'SEE IT LIVE!' : 'DAD MAN', 0, top + 20, { sx: 1, sy: 2, bold: true, fill: [T('#FFFFFF'), T('#FDE047'), T('#F59E0B')], ink: INK, shadow: T('#7F1D1D'), drop: 1 });
     g.fillStyle = INK; g.beginPath(); g.roundRect(3, top + 27, 48, 15, 6); g.fill();
     g.fillStyle = T('#FFFFFF'); g.beginPath(); g.roundRect(4, top + 28, 46, 13, 5); g.fill(); box(g, 6, top + 29, 20, 1, T('#FFFFFF')); box(g, 6, top + 38, 42, 2, T('#E2E8F0'));
     g.beginPath(); g.moveTo(10, top + 41); g.lineTo(6, top + 48); g.lineTo(16, top + 41); g.fillStyle = T('#FFFFFF'); g.fill();
@@ -382,7 +382,7 @@ const newsstand = (c: Ctx, v: View) => {
       box(g, 8, top + 42 + r * 26, w - 16, 3, K[1]);
       for (let k = 0; k < 5; k++) { const [t, col] = mags[(k + r) % 5], mx = 12 + k * 18, my = top + 20 + r * 26, C = DR(col); box(g, mx - 1, my - 1, 16, 22, ink); box(g, mx, my, 14, 20, C[3]); box(g, mx, my, 14, 4, C[5]); box(g, mx + 2, my + 6, 10, 8, C[1]); if (t === 'TV WEEK') { box(g, mx + 3, my + 7, 8, 6, dimmed('#F4B8A0')); box(g, mx + 4, my + 12, 6, 2, dimmed('#F8FAFC')); } box(g, mx + 1, my + 16, 12, 2, dimmed('#1F2937')); }
     }
-    signText(g, 'IS STUPID DAD OVER?', w / 2, GY - 6, { sx: 1, sy: 1, fill: dimmed('#FDE047'), gap: 0, space: 2 });
+    signText(g, 'IS DAD MAN OVER?', w / 2, GY - 6, { sx: 1, sy: 1, fill: dimmed('#FDE047'), gap: 0, space: 2 });
     // (the poles)
     for (const px of [2, w - 6]) { box(g, px - 1, top + 4, 6, GY - top - 4, ink); box(g, px, top + 4, 4, GY - top - 4, NR('#A1A1AA')[3]); box(g, px, top + 4, 1, GY - top - 4, NR('#A1A1AA')[5]); }
     // (the awning: striped, scalloped, lit along its top)
@@ -392,7 +392,7 @@ const newsstand = (c: Ctx, v: View) => {
     box(g, -6, top, w + 12, 2, LIP[2]); box(g, -2, top, w * 0.5, 1, LIP[3]);
   });
 };
-/** The bus shelter: a roof on two poles (lit along its top: stand on it), a glass ad panel (THIS FALL: STUPID DAD), the
+/** The bus shelter: a roof on two poles (lit along its top: stand on it), a glass ad panel (THIS FALL: DAD MAN), the
  *  bench; the PARK SHUTTLE sign on its pole. */
 const shelter = (c: Ctx, v: View) => {
   const [a, b, h] = SHELTER, xa = X(a), xb = X(b), top = Y(h), w = xb - xa, Tl = NR('#0D9488');
@@ -420,9 +420,9 @@ const glassPanel = (g: Ctx, x: number, y: number, w: number, h: number) => {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
-// THE STUPID DAD STORE
+// THE DAD MAN STORE
 
-/** The gift shack: clapboard (its sides and roof going back), the dad's big head on the roof board, THE STUPID DAD
+/** The gift shack: clapboard (its sides and roof going back), the dad's big head on the roof board, THE DAD MAN
  *  STORE; the window of unsold merch; EVERYTHING 90% OFF across it, NOW 95% stuck over that; the door with its
  *  CLEARANCE card; the cardboard standee; the awning (lit: stand on it). */
 const shack = (c: Ctx, v: View) => {
@@ -435,11 +435,11 @@ const shack = (c: Ctx, v: View) => {
     for (let y = top + 2; y < GY; y += 10) { box(g, 0, y, w, 1, Cl[5]); box(g, 0, y + 8, w, 2, Cl[2]); }
     box(g, 0, top, 6, GY - top, Cl[4]); box(g, w - 14, top, 14, GY - top, Cl[2]); checker(g, w - 16, top, 2, GY - top, Cl[2], 0, 1);
     box(g, -6, top - 8, w + 12, 8, ink); box(g, -4, top - 6, w + 8, 4, Bl[3]); box(g, -4, top - 6, w + 8, 1, Bl[5]);
-    // (the roof board: the dad's big head, THE STUPID DAD STORE, its braces)
+    // (the roof board: the dad's big head, THE DAD MAN STORE, its braces)
     for (const bx of [w / 2 - 120, w / 2 + 120]) { box(g, bx - 2, top - 14, 4, 10, ink); }
     box(g, w / 2 - 152, top - 72, 304, 66, ink); bandsDown(g, () => g.rect(w / 2 - 150, top - 70, 300, 62), w / 2 - 150, top - 70, 300, 62, [Bl[4], Bl[3], Bl[3], Bl[2]]);
     box(g, w / 2 - 150, top - 70, 300, 2, Bl[5]);
-    signText(g, 'THE STUPID DAD STORE', w / 2 + 30, top - 42, { sx: 1, sy: 2, bold: true, fill: [dimmed('#FFFFFF'), dimmed('#FDE047')], ink, shadow: dimmed('#0F172A'), drop: 1 });
+    signText(g, 'THE DAD MAN STORE', w / 2 + 30, top - 42, { sx: 1, sy: 2, bold: true, fill: [dimmed('#FFFFFF'), dimmed('#FDE047')], ink, shadow: dimmed('#0F172A'), drop: 1 });
     signText(g, 'GIFTS! TOYS! COLLECTIBLES!', w / 2 + 30, top - 20, { sx: 1, sy: 1, fill: dimmed('#FFFFFF') });
     g.save(); g.beginPath(); g.rect(w / 2 - 148, top - 124, 80, 116); g.clip(); dadArt(g, w / 2 - 104, top + 8, 0.95, 0.2, '#1E3A8A'); g.restore();
     // (the window: shelves of beer-can hats, WORLD'S STUPIDEST DAD mugs, foam couches; the glass's glint)
@@ -469,10 +469,10 @@ const shack = (c: Ctx, v: View) => {
     glassPanel(g, 458, top + 80, 38, 40);
     box(g, 460, top + 100, 34, 14, dimmed('#FDE047')); signText(g, 'CLEARANCE', 477, top + 110, { sx: 1, sy: 1, fill: dimmed('#B91C1C'), gap: 0 });
     box(g, 492, top + 130, 4, 4, DR('#D09A30')[4]);
-    // (the standee by the door: him in cardboard, its easel leg; HAVE YOU HUGGED A STUPID DAD TODAY?)
+    // (the standee by the door: him in cardboard, its easel leg; HAVE YOU HUGGED A DAD MAN TODAY?)
     g.save(); g.beginPath(); g.rect(10, top + 40, 130, GY - top - 40); g.clip(); dadArt(g, 72, GY - 24, 1.05, 0.15, '#E7D8B8'); g.restore();
     box(g, 14, GY - 24, 120, 24, ink); box(g, 16, GY - 22, 116, 20, DR('#E7D8B8')[3]);
-    signText(g, 'HAVE YOU HUGGED', 74, GY - 14, { sx: 1, sy: 1, fill: dimmed('#1E3A8A'), gap: 0, space: 2 }); signText(g, 'A STUPID DAD TODAY?', 74, GY - 5, { sx: 1, sy: 1, fill: dimmed('#DC2626'), gap: 0, space: 2 });
+    signText(g, 'HAVE YOU HUGGED', 74, GY - 14, { sx: 1, sy: 1, fill: dimmed('#1E3A8A'), gap: 0, space: 2 }); signText(g, 'A DAD MAN TODAY?', 74, GY - 5, { sx: 1, sy: 1, fill: dimmed('#DC2626'), gap: 0, space: 2 });
   });
   // (the awning over the window: on brackets, striped, its top going back, lit along it)
   const [aa, ab, ah] = SHACK.awning, ty = Y(ah), Bl = NR('#1E3A8A'), Wt = NR('#F8FAFC');
@@ -771,7 +771,7 @@ const memorial = (c: Ctx, v: View) => {
     g.fillStyle = 'rgba(40,120,90,0.25)'; g.fillRect(-118, Y(100) + 80, 60, 14); g.fillRect(70, Y(100) + 70, 40, 24);
     const brass = (t: string, y: number, big = false) => signText(g, t, 0, Y(100) + y, { sx: 1, sy: big ? 2 : 1, bold: big, fill: hour('#FEF3C7'), shadow: hour('#713F12'), drop: 1, gap: big ? 1 : 0, space: 2 });
     brass('IN LOVING MEMORY', 22, true);
-    brass('THE VOICES OF STUPID DAD', 33);
+    brass('THE VOICES OF DAD MAN', 33);
     brass('MARLENE KOVACS, MOM, 1949-1996', 46);
     brass('DONNA PRUITT, THE BOY, 1957-1998', 56);
     brass('SHERRI BLAINE, SIS, 1961-1999', 66);
@@ -966,7 +966,7 @@ const halfpipe = (c: Ctx, v: View) => {
     ballR(c, lx, GY, 4.5, rampH(STEEL));
   }
 };
-/** The STUPID DAD LIVE billboard: up on lattice legs behind the path (the live show: where he's headed), its catwalk
+/** The DAD MAN LIVE billboard: up on lattice legs behind the path (the live show: where he's headed), its catwalk
  *  and lamps (on after dark). */
 const billboard = (c: Ctx) => {
   const x = X(BILLBOARD), w = 360, h = 180, top = Y(380);
@@ -982,7 +982,7 @@ const billboard = (c: Ctx) => {
     for (let k = 0; k < 14; k++) { const a2 = (k / 14) * Math.PI * 2; g.fillStyle = k % 2 ? Pu[4] : Pu[5]; g.globalAlpha = 0.5; g.beginPath(); g.moveTo(-90, top + h - 70); g.lineTo(-90 + Math.cos(a2) * 400, top + h - 70 + Math.sin(a2) * 400); g.lineTo(-90 + Math.cos(a2 + 0.2) * 400, top + h - 70 + Math.sin(a2 + 0.2) * 400); g.closePath(); g.fill(); g.globalAlpha = 1; }
     dadArt(g, -90, top + h - 6, 1.9, 0.18, '#7C3AED');
     g.restore();
-    signText(g, 'SEE STUPID DAD', 70, top + 34, { sx: 2, sy: 2, bold: true, slant: 1, fill: [dimmed('#FFFFFF'), dimmed('#FDE047'), dimmed('#F59E0B')], ink, shadow: dimmed('#3B0764'), drop: 2 });
+    signText(g, 'SEE DAD MAN', 70, top + 34, { sx: 2, sy: 2, bold: true, slant: 1, fill: [dimmed('#FFFFFF'), dimmed('#FDE047'), dimmed('#F59E0B')], ink, shadow: dimmed('#3B0764'), drop: 2 });
     signText(g, 'LIVE!', 70, top + 66, { sx: 3, sy: 3, bold: true, slant: 1, fill: [dimmed('#FFFFFF'), dimmed('#FB7185'), dimmed('#DC2626')], ink, shadow: dimmed('#3B0764'), drop: 2 });
     signText(g, 'THE ORIGINAL VOICE!', 70, top + 98, { sx: 1, sy: 1, bold: true, fill: dimmed('#FFFFFF'), ink });
     signText(g, 'AS SEEN (AND HEARD) ON TV!', 70, top + 112, { sx: 1, sy: 1, fill: dimmed('#FDE047') });
@@ -1081,7 +1081,7 @@ export const drawBigkidBack = (c: Ctx, state: GameState, dollTalking: boolean) =
   drawFurniture(c, v);
   // (the set pieces behind the play plane, each with its sides going back)
   if (onV(v, X(420) - 300, X(420) + 300)) gateArch(c, v, X(420), 'THE BIG-KID ZONE', 'NO LIMITS. NO MERCY.', '#F472B6', 'TOTALLY EXTREME!');
-  if (onV(v, X(GATE.a) - 340, X(GATE.b) + 300)) gateArch(c, v, X((GATE.a + GATE.b) / 2) - 50, 'STUPID DAD', 'THE EXTENDED UNIVERSE >', '#FDE047', 'MORE STUPID DAD!');
+  if (onV(v, X(GATE.a) - 340, X(GATE.b) + 300)) gateArch(c, v, X((GATE.a + GATE.b) / 2) - 50, 'DAD MAN', 'THE EXTENDED UNIVERSE >', '#FDE047', 'MORE DAD MAN!');
   if (onV(v, X(640) - 80, X(640) + 80)) posterColumn(c, X(640));
   if (onV(v, X(820), X(1300))) posterFence(c, 820, 1300);
   if (onV(v, X(COUCH.barn[0]) - 120, X(COUCH.barn[1]) + 120)) garage(c, v);

@@ -1,9 +1,9 @@
-// What's said in PUNCHY & KICKY's part of the park (the cat-and-mouse knockoff, STUPID DAD's extended universe), by
+// What's said in PUNCHY & KICKY's part of the park (the cat-and-mouse knockoff, DAD MAN's extended universe), by
 // voice (cartoon/voices.ts gathers it; tools/voices records it). In the user's voice: blunt, short, vulgar, specific;
 // talk less; fit the trigger. Picked with pickLine (no line twice within 45 s). Meathead's lines and everybody reacting
 // to him in clean / shitty / naked pools.
 //
-// Meathead's never seen the show (the show inside STUPID DAD: the cartoon the Boy watches), and he's fine with the
+// Meathead's never seen the show (the show inside DAD MAN: the cartoon the Boy watches), and he's fine with the
 // violence: "FINALLY, A CARTOON THAT GETS IT." The Looney Tunes gags (anvils, giant hammers, rakes, bear traps, safes,
 // a piano, cannons, dynamite, portable holes) are real here: they hurt for real and they kill for real, him included.
 // Never anything about his age (it stays ambiguous). Pure data.
@@ -39,7 +39,7 @@ export const REVISIT: ByPants = {
 export const GAGS: Record<'sign' | 'anvil' | 'rake' | 'merch' | 'tv' | 'killorama' | 'dock' | 'safe' | 'piano' | 'cannon' | 'fuse' | 'canyon' | 'tower' | 'holes' | 'exit', ByPants> = {
   /** The gate's sign: a show inside a show he's never seen. */
   sign: {
-    clean: ['PUNCHY AND KICKY. NEVER HEARD OF THEM. ALREADY A FAN.', 'A CARTOON FROM STUPID DAD? THE SHOW NOBODY WATCHED HAD A SHOW NOBODY WATCHED?'],
+    clean: ['PUNCHY AND KICKY. NEVER HEARD OF THEM. ALREADY A FAN.', 'A CARTOON FROM DAD MAN? THE SHOW NOBODY WATCHED HAD A SHOW NOBODY WATCHED?'],
     shitty: ['NEVER SEEN IT. STILL BETTER THAN MY PANTS.', "PUNCHY AND KICKY. I'D WATCH THIS ON THE TOILET. I'D BE ON THE TOILET A LOT."],
     nude: ["NEVER SEEN THE SHOW. THE SHOW'S ABOUT TO SEE ME.", 'PUNCHY AND KICKY. FIRST NAKED FAN. DAY ONE.'],
   },
@@ -121,11 +121,11 @@ export const GAGS: Record<'sign' | 'anvil' | 'rake' | 'merch' | 'tv' | 'killoram
     shitty: ['A HOLE. I COULD DROP THESE PANTS DOWN ONE.', "HOLES EVERYWHERE. ONE MORE AND IT'S A STRAINER. LIKE MY PANTS."],
     nude: ['A FLOOR OF HOLES. ALL OF ME DANGLING OVER THEM.', 'A FLOOR OF HOLES. NAKED. MY BALLS ARE AT RISK OF FALLING THROUGH.'],
   },
-  /** On, to the amphitheater (STUPID DAD LIVE). */
+  /** On, to the amphitheater (DAD MAN LIVE). */
   exit: {
-    clean: ['STUPID DAD LIVE. FOLLOWING THIS? POOR BASTARD.', 'AFTER THE CAT AND THE MOUSE? GOOD LUCK, STUPID DAD.'],
-    shitty: ["STUPID DAD LIVE. I'LL SIT IN THE FRONT ROW. THEY'LL MOVE.", 'A LIVE SHOW. HOPE THE SEATS ARE PLASTIC AND THE USHERS ARE BLIND.'],
-    nude: ['STUPID DAD LIVE. HE BETTER NOT HAVE A NO-SHIRT RULE.', "A LIVE SHOW. NAKED. HE'LL HAVE TO WORK TO UPSTAGE THIS."],
+    clean: ['DAD MAN LIVE. FOLLOWING THIS? POOR BASTARD.', 'AFTER THE CAT AND THE MOUSE? GOOD LUCK, DAD MAN.'],
+    shitty: ["DAD MAN LIVE. I'LL SIT IN THE FRONT ROW. THEY'LL MOVE.", 'A LIVE SHOW. HOPE THE SEATS ARE PLASTIC AND THE USHERS ARE BLIND.'],
+    nude: ['DAD MAN LIVE. HE BETTER NOT HAVE A NO-SHIRT RULE.', "A LIVE SHOW. NAKED. HE'LL HAVE TO WORK TO UPSTAGE THIS."],
   },
 };
 

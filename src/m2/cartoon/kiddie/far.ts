@@ -8,8 +8,8 @@
 //   OF CARTOON LAND beyond the square: the STUDIOS' soundstages (their numbers, the logo on its lattice up top), the
 //   WACKY WHITE HOUSE billboard (Socks, the White House, SATURDAY MORNINGS), PUNCHY & KICKY's KILL-O-RAMA pylon (the cat
 //   and the mouse with their mallets up), THE BIG-KID ZONE's tops (the neon bolt, the Hurl-A-Whirl's clown head and its
-//   barf buckets, the halfpipe and its giant board, Detective Drake's pod, chain-link), STUPID DAD LIVE!'s band shell
-//   and light towers over the bowl, the STUPID DAD billboard, a gift shop's striped dome; trees, flags and bunting
+//   barf buckets, the halfpipe and its giant board, Detective Drake's pod, chain-link), DAD MAN LIVE!'s band shell
+//   and light towers over the bowl, the DAD MAN billboard, a gift shop's striped dome; trees, flags and bunting
 //   between, lit up after dark; and nearest, Sillyville's own roofs past the square (drooping onion domes, floppy cones,
 //   stacked balls, cake-tier towers, corkscrew spires, a toadstool house, Truffula tufts, curly chimneys smoking).
 
@@ -260,7 +260,7 @@ const paintPark = (g: Ctx, tod: TimeOfDay) => {
     g.fillStyle = T(INK); g.beginPath(); g.ellipse(dx, PG - 44, 26, 18, 0, 0, Math.PI * 2); g.fill(); g.fillStyle = T('#3A3A5A'); g.beginPath(); g.ellipse(dx, PG - 44, 24, 16, 0, 0, Math.PI * 2); g.fill();
     box(g, dx - 14, PG - 50, 28, 6, T('#E8C84A')); box(g, dx - 4, PG - 64, 8, 4, lamps ? '#FF4A4A' : T('#C8283E'));
   }
-  // ---- STUPID DAD LIVE!: the band shell over the bowl, its light towers
+  // ---- DAD MAN LIVE!: the band shell over the bowl, its light towers
   { const cx = 1340, base = PG - 20, rx = 92, ry = 92;
     const bands = ['#F3E9D2', '#7DB7E8', '#F3E9D2', '#5B9BD5', '#F3E9D2', '#7DB7E8'];
     for (let i = 0; i < bands.length; i++) { const k = 1 - i / bands.length; g.fillStyle = T(INK); g.beginPath(); g.ellipse(cx, base, rx * k + 2, ry * k + 2, 0, Math.PI, 0); g.fill(); g.fillStyle = T(bands[i]); g.beginPath(); g.ellipse(cx, base, rx * k, ry * k, 0, Math.PI, 0); g.fill(); }
@@ -268,13 +268,13 @@ const paintPark = (g: Ctx, tod: TimeOfDay) => {
     for (let k = 1; k < 10; k++) { const a = Math.PI + (k / 10) * Math.PI; g.strokeStyle = T('#C9B98F'); g.lineWidth = 1; g.beginPath(); g.moveTo(cx + Math.cos(a) * rx * 0.2, base + Math.sin(a) * ry * 0.2); g.lineTo(cx + Math.cos(a) * rx, base + Math.sin(a) * ry); g.stroke(); }
     if (lamps) for (let k = 0; k < 24; k++) { const a = Math.PI + (k / 23) * Math.PI; box(g, cx + Math.cos(a) * rx - 1, base + Math.sin(a) * ry - 1, 2, 2, k % 2 ? '#FFF0B0' : '#FFC860'); }
     box(g, cx - 60, base - 46, 120, 16, T(INK)); box(g, cx - 59, base - 45, 118, 14, T('#B91C1C')); box(g, cx - 59, base - 45, 118, 2, T('#E2465E'));
-    signText(g, 'STUPID DAD LIVE!', cx, base - 35, tiny(T('#FFFFFF'), T(INK)));
+    signText(g, 'DAD MAN LIVE!', cx, base - 35, tiny(T('#FFFFFF'), T(INK)));
     // (the bowl's rim and bleachers in front of it, its light towers)
     g.fillStyle = T('#B4ACA0'); g.beginPath(); g.moveTo(cx - 150, PG); g.quadraticCurveTo(cx, PG - 34, cx + 150, PG); g.closePath(); g.fill();
     for (let k = 0; k < 4; k++) { g.strokeStyle = T('#D8D0C4'); g.lineWidth = 1; g.beginPath(); g.moveTo(cx - 140 + k * 8, PG - 2 - k * 2); g.quadraticCurveTo(cx, PG - 30 + k * 6, cx + 140 - k * 8, PG - 2 - k * 2); g.stroke(); }
     for (const lx of [cx - 140, cx + 140]) { box(g, lx - 2, PG - 150, 4, 150, T('#6A6488')); for (let y = PG - 146; y < PG; y += 10) { g.strokeStyle = T('#6A6488'); g.lineWidth = 1; g.beginPath(); g.moveTo(lx - 4, y); g.lineTo(lx + 4, y + 10); g.stroke(); } box(g, lx - 12, PG - 160, 24, 12, T('#3A3450')); for (let k = 0; k < 6; k++) box(g, lx - 10 + (k % 3) * 7, PG - 158 + Math.floor(k / 3) * 5, 5, 4, lamps ? '#FFF6D0' : T('#C8C4D8')); }
   }
-  // ---- the STUPID DAD billboard
+  // ---- the DAD MAN billboard
   billboard(g, T, tod, 1540, PG - 140, 180, 70, () => {
     for (let k = 0; k < 3; k++) box(g, 1540, PG - 140 + k * 24, 180, 24, T(['#F6D23A', '#F2C030', '#E8AE28'][k]));
     // (him: balding, the mustache, the can up)
@@ -283,7 +283,7 @@ const paintPark = (g: Ctx, tod: TimeOfDay) => {
     box(g, fx - 15, fy - 6, 4, 10, T('#6A4A2A')); box(g, fx + 11, fy - 6, 4, 10, T('#6A4A2A'));
     box(g, fx - 7, fy - 4, 4, 2, T(INK)); box(g, fx + 3, fy - 4, 4, 2, T(INK)); box(g, fx - 8, fy + 4, 16, 4, T('#6A4A2A')); box(g, fx - 4, fy + 10, 8, 2, T('#8A2A2A'));
     box(g, fx + 18, fy - 6, 9, 14, T(INK)); box(g, fx + 19, fy - 5, 7, 12, T('#D8D8E8')); box(g, fx + 19, fy - 1, 7, 4, T('#C8283E'));
-    signText(g, 'STUPID DAD', 1655, PG - 118, { sx: 2, sy: 2, bold: true, fill: [T('#FF6A6A'), T('#C8283E')], ink: T(INK) });
+    signText(g, 'DAD MAN', 1655, PG - 118, { sx: 2, sy: 2, bold: true, fill: [T('#FF6A6A'), T('#C8283E')], ink: T(INK) });
     signText(g, "AMERICA'S NEW", 1655, PG - 98, tiny(T('#2A1A4A')));
     signText(g, 'FAVORITE FAMILY!', 1655, PG - 88, tiny(T('#2A1A4A')));
   });

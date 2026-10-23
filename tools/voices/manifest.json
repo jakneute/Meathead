@@ -57596,7 +57596,7 @@
  },
  {
   "voice": "meathead",
-  "text": "A CARTOON FROM STUPID DAD? THE SHOW NOBODY WATCHED HAD A SHOW NOBODY WATCHED?",
+  "text": "A CARTOON FROM DAD MAN? THE SHOW NOBODY WATCHED HAD A SHOW NOBODY WATCHED?",
   "from": "CARTOON"
  },
  {
@@ -57833,6 +57833,11 @@
   "voice": "meathead",
   "text": "A CROSSBOW BOLT! IN ME!",
   "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "A DAD MAN EXTENDED UNIVERSE. FOR A SHOW NOBODY WATCHED.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -59586,11 +59591,6 @@
  },
  {
   "voice": "meathead",
-  "text": "A STUPID DAD EXTENDED UNIVERSE. FOR A SHOW NOBODY WATCHED.",
-  "from": "CARTOON"
- },
- {
-  "voice": "meathead",
   "text": "A TANK WON'T CRUSH THESE QUADS!",
   "from": "HAZARD_HURT"
  },
@@ -59986,12 +59986,12 @@
  },
  {
   "voice": "meathead",
-  "text": "A WHOLE STORE AND NOT ONE PAIR OF STUPID DAD PANTS.",
+  "text": "A WHOLE STORE AND NOT ONE PAIR OF DAD MAN PANTS.",
   "from": "CARTOON"
  },
  {
   "voice": "meathead",
-  "text": "A WHOLE STORE OF STUPID DAD SHIT. NINETY PERCENT OFF. STILL NO.",
+  "text": "A WHOLE STORE OF DAD MAN SHIT. NINETY PERCENT OFF. STILL NO.",
   "from": "CARTOON"
  },
  {
@@ -60141,7 +60141,7 @@
  },
  {
   "voice": "meathead",
-  "text": "AFTER THE CAT AND THE MOUSE? GOOD LUCK, STUPID DAD.",
+  "text": "AFTER THE CAT AND THE MOUSE? GOOD LUCK, DAD MAN.",
   "from": "CARTOON"
  },
  {
@@ -63368,6 +63368,76 @@
   "voice": "meathead",
   "text": "CUTLASS IN THE GUT!",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "DAD MAN LIVE. FOLLOWING THIS? POOR BASTARD.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "DAD MAN LIVE. HE BETTER NOT BE NAKED TOO.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "DAD MAN LIVE. HE BETTER NOT HAVE A NO-SHIRT RULE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "DAD MAN LIVE. HE'D SMELL ME FROM THE STAGE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "DAD MAN LIVE. HE'S ABOUT TO SEE A LOT MORE LIVE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "DAD MAN LIVE. I'LL SIT IN THE FRONT ROW. THEY'LL MOVE.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "DAD MAN LIVE. SHOWS DAILY. GOD HELP US.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "DAD MAN SUCKS. SO DO MY PANTS. WE'RE EVEN.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "DAD MAN SUCKS. TAKE IT FROM A NAKED GUY.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "DAD MAN. AT LEAST HE WEARS UNDERWEAR.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "DAD MAN. HE LOOKS LIKE HE SHITS HIMSELF IN A RECLINER.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "DAD MAN. LIVE. IN PERSON. SOMEHOW STILL GOING.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "DAD MAN. NEVER HEARD OF HIM. HE SMELLS LIKE ME, I BET.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "DAD MAN. NEVER HEARD OF IT.",
+  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -74781,6 +74851,11 @@
  },
  {
   "voice": "meathead",
+  "text": "MORE DAD MAN. MORE SHIT. FINALLY, A PLACE I FIT.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "MORE MOVING STAIRS. HER BEDROOM BETTER BE WORTH IT.",
   "from": "FANTASY"
  },
@@ -74813,11 +74888,6 @@
   "voice": "meathead",
   "text": "MORE STAIRS. WHO DESIGNED THIS, A SADIST?",
   "from": "FANTASY"
- },
- {
-  "voice": "meathead",
-  "text": "MORE STUPID DAD. MORE SHIT. FINALLY, A PLACE I FIT.",
-  "from": "CARTOON"
  },
  {
   "voice": "meathead",
@@ -76686,7 +76756,7 @@
  },
  {
   "voice": "meathead",
-  "text": "NINETY PERCENT OFF AND NO STUPID DAD BOXERS. I WOULD BUY THOSE.",
+  "text": "NINETY PERCENT OFF AND NO DAD MAN BOXERS. I WOULD BUY THOSE.",
   "from": "CARTOON"
  },
  {
@@ -81256,7 +81326,7 @@
  },
  {
   "voice": "meathead",
-  "text": "SEE STUPID DAD LIVE. WHO THE FUCK WOULD.",
+  "text": "SEE DAD MAN LIVE. WHO THE FUCK WOULD.",
   "from": "CARTOON"
  },
  {
@@ -84161,76 +84231,6 @@
  },
  {
   "voice": "meathead",
-  "text": "STUPID DAD LIVE. FOLLOWING THIS? POOR BASTARD.",
-  "from": "CARTOON"
- },
- {
-  "voice": "meathead",
-  "text": "STUPID DAD LIVE. HE BETTER NOT BE NAKED TOO.",
-  "from": "CARTOON"
- },
- {
-  "voice": "meathead",
-  "text": "STUPID DAD LIVE. HE BETTER NOT HAVE A NO-SHIRT RULE.",
-  "from": "CARTOON"
- },
- {
-  "voice": "meathead",
-  "text": "STUPID DAD LIVE. HE'D SMELL ME FROM THE STAGE.",
-  "from": "CARTOON"
- },
- {
-  "voice": "meathead",
-  "text": "STUPID DAD LIVE. HE'S ABOUT TO SEE A LOT MORE LIVE.",
-  "from": "CARTOON"
- },
- {
-  "voice": "meathead",
-  "text": "STUPID DAD LIVE. I'LL SIT IN THE FRONT ROW. THEY'LL MOVE.",
-  "from": "CARTOON"
- },
- {
-  "voice": "meathead",
-  "text": "STUPID DAD LIVE. SHOWS DAILY. GOD HELP US.",
-  "from": "CARTOON"
- },
- {
-  "voice": "meathead",
-  "text": "STUPID DAD SUCKS. SO DO MY PANTS. WE'RE EVEN.",
-  "from": "CARTOON"
- },
- {
-  "voice": "meathead",
-  "text": "STUPID DAD SUCKS. TAKE IT FROM A NAKED GUY.",
-  "from": "CARTOON"
- },
- {
-  "voice": "meathead",
-  "text": "STUPID DAD. AT LEAST HE WEARS UNDERWEAR.",
-  "from": "CARTOON"
- },
- {
-  "voice": "meathead",
-  "text": "STUPID DAD. HE LOOKS LIKE HE SHITS HIMSELF IN A RECLINER.",
-  "from": "CARTOON"
- },
- {
-  "voice": "meathead",
-  "text": "STUPID DAD. LIVE. IN PERSON. SOMEHOW STILL GOING.",
-  "from": "CARTOON"
- },
- {
-  "voice": "meathead",
-  "text": "STUPID DAD. NEVER HEARD OF HIM. HE SMELLS LIKE ME, I BET.",
-  "from": "CARTOON"
- },
- {
-  "voice": "meathead",
-  "text": "STUPID DAD. NEVER HEARD OF IT.",
-  "from": "CARTOON"
- },
- {
-  "voice": "meathead",
   "text": "STUPID FUCKING TURRET!",
   "from": "SPACE"
  },
@@ -86361,6 +86361,16 @@
  },
  {
   "voice": "meathead",
+  "text": "THE DAD MAN UNIVERSE. I BRING THE SMELL.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE DAD MAN UNIVERSE. NOW WITH ME. NAKED.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "THE DARK ICE IS THIN. THE SIGN DOESN'T SAY KEEP OFF. IT SAYS SORRY.",
   "from": "FOREIGN"
  },
@@ -87902,16 +87912,6 @@
  {
   "voice": "meathead",
   "text": "THE STOVE! MY FUR!",
-  "from": "CARTOON"
- },
- {
-  "voice": "meathead",
-  "text": "THE STUPID DAD UNIVERSE. I BRING THE SMELL.",
-  "from": "CARTOON"
- },
- {
-  "voice": "meathead",
-  "text": "THE STUPID DAD UNIVERSE. NOW WITH ME. NAKED.",
   "from": "CARTOON"
  },
  {
@@ -91426,7 +91426,7 @@
  },
  {
   "voice": "meathead",
-  "text": "WHO THE HELL IS STUPID DAD? WHY IS HE ON EVERY WALL?",
+  "text": "WHO THE HELL IS DAD MAN? WHY IS HE ON EVERY WALL?",
   "from": "CARTOON"
  },
  {
@@ -91576,6 +91576,11 @@
  },
  {
   "voice": "meathead",
+  "text": "WHO'S DAD MAN? HE'S GOT MORE CLOTHES THAN ME. AND A BEER.",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "meathead",
   "text": "WHO'S DRIVING THIS?! NOBODY?!",
   "from": "SPACE"
  },
@@ -91613,11 +91618,6 @@
   "voice": "meathead",
   "text": "WHO'S STILL RIDING THIS THING?!",
   "from": "SPOOKY"
- },
- {
-  "voice": "meathead",
-  "text": "WHO'S STUPID DAD? HE'S GOT MORE CLOTHES THAN ME. AND A BEER.",
-  "from": "CARTOON"
  },
  {
   "voice": "meathead",

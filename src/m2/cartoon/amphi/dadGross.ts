@@ -1,4 +1,4 @@
-// STUPID DAD'S GROSS-UP (the user's: close-ups are "gross ren and stimpy style close ups"): the intro's brief close-up
+// DAD MAN'S GROSS-UP (the user's: close-ups are "gross ren and stimpy style close ups"): the intro's brief close-up
 // when Meathead walks up on him, held still, his face huge in frame and painted in excruciating detail, the way the
 // fantasy land does Piper's (piperGross.ts). Seventy-odd years of beer on one face: the dome blotched with liver spots
 // and sweat, three strands of comb-over plastered across it, deep creases up his forehead, wild grey brows, the eyes

@@ -1,5 +1,5 @@
-// PUNCHY & KICKY, laid out (x from the section's start, heights up from the ground line: Y(h) = GY - h). STUPID DAD's
-// extended universe: the park's tie-in to the show inside the show (the cartoon the Boy watches on STUPID DAD), a clear
+// PUNCHY & KICKY, laid out (x from the section's start, heights up from the ground line: Y(h) = GY - h). DAD MAN's
+// extended universe: the park's tie-in to the show inside the show (the cartoon the Boy watches on DAD MAN), a clear
 // Itchy & Scratchy knockoff: PUNCHY the cat and KICKY the mouse, smashing each other to death with hammers. Painted the
 // show's way: blood red, mustard, black; cartoon gore splats for decor; bones; bandages. The Looney Tunes violence is
 // the area's hazards and set pieces, each taught alone on the flat first, then in combos, then with the land's swaying
@@ -28,7 +28,7 @@
 //   8650   THE SET (cp 56): the live show's soundstage: a floor of portable holes (in, and he's falling through holes
 //          forever: deaths.ts); two towers across it; a fuse along the fly rail and down a line to the
 //          TNT at the far tower's foot (it goes up and kicks the tower); a stagehand.
-//   9650   THE WAY ON (cp 57): a mixed crowd; the gate to STUPID DAD LIVE! (the amphitheater: the right end).
+//   9650   THE WAY ON (cp 57): a mixed crowd; the gate to DAD MAN LIVE! (the amphitheater: the right end).
 
 import { SECTIONS, GY } from '../geometry';
 import type { TowerDef } from '../sway';
@@ -185,7 +185,7 @@ export const MERCH = { a: 2420, b: 2740, tv: 2600 };
 export const EXIT_GATE = 9930;
 /** The signs: [x, feet height, lines, board color]. */
 export const SIGNS: [number, number, string[], string][] = [
-  [300, 0, ['PUNCHY & KICKY', 'AS SEEN ON STUPID DAD!', 'THEY FIGHT! THEY BITE!'], '#B91C1C'],
+  [300, 0, ['PUNCHY & KICKY', 'AS SEEN ON DAD MAN!', 'THEY FIGHT! THEY BITE!'], '#B91C1C'],
   [740, 0, ['ANVIL ALLEY', 'GENERIC-CO PROUDLY DROPS'], '#1F2937'],
   [1690, 0, ['KEEP OFF THE GRASS', 'BY ORDER OF PUNCHY'], '#15803D'],
   [4270, 0, ['THE GENERIC-CO DOCK', 'QUALITY. ALLEGEDLY.'], '#92400E'],

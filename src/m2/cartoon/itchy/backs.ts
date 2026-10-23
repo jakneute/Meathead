@@ -4,7 +4,7 @@
 //   THE FRONTS     the show's buildings at FRONT_D, boxy and straight, their sides going back to BACK_D where the eye's
 //                  past an end: blood-red, mustard, black, bone and cream stucco, a candy-striped band (red and black)
 //                  or a row of painted bones, blood running off every parapet, the cat-and-mouse mural on some, posters
-//                  pasted up (PUNCHY & KICKY, AS SEEN ON STUPID DAD!), roof junk (AC units, vents, a water tank, a fire
+//                  pasted up (PUNCHY & KICKY, AS SEEN ON DAD MAN!), roof junk (AC units, vents, a water tank, a fire
 //                  escape); at street level, a business each: PUNCHY'S GRILL (FISH STICKS, CATNIP SODA, the fish bones on
 //                  the menu), KICKY'S CHEESE HUT (the wedge awning, its holes, a mousetrap in the window), FIRST AID (the
 //                  cross in bandages, WE'VE SEEN WORSE), RESTROOMS (TOMCATS / LADY MICE), WHACK-A-MOUSE (mice up out of
@@ -65,7 +65,7 @@ const glass = (g: Ctx, x: number, y: number, w: number, h: number) => {
   checker(g, x, y + h / 2, w, 2, D(G[1]), 0, 1);
   g.fillStyle = 'rgba(255,255,255,0.2)'; g.beginPath(); g.moveTo(x + w * 0.15, y); g.lineTo(x + w * 0.35, y); g.lineTo(x + w * 0.1, y + h); g.lineTo(x - w * 0.1, y + h); g.closePath(); g.fill();
 };
-/** A PUNCHY & KICKY poster pasted up (the two of them, mallets up; AS SEEN ON STUPID DAD!), aged by `look`. */
+/** A PUNCHY & KICKY poster pasted up (the two of them, mallets up; AS SEEN ON DAD MAN!), aged by `look`. */
 export const pkPosterArt = (g: Ctx, x: number, y: number, look: number, T: (c: string) => string = D) => {
   const P = look === 1 ? mix('#FDE68A', '#F0E8D8', 0.5) : '#FDE68A';
   box(g, x - 1, y - 1, 46, 62, T(INK)); box(g, x, y, 44, 60, T(P));
@@ -76,7 +76,7 @@ export const pkPosterArt = (g: Ctx, x: number, y: number, look: number, T: (c: s
   g.restore();
   haze(g, x, y, 44, 60, 0.26);
   box(g, x, y, 44, 9, T('#B91C1C')); signText(g, 'P&K', x + 22, y + 8, small(T('#FFFFFF'), T(INK)));
-  box(g, x, y + 50, 44, 10, T('#1E3A8A')); signText(g, 'STUPID DAD!', x + 22, y + 58, { sx: 1, sy: 1, fill: T('#FDE047') });
+  box(g, x, y + 50, 44, 10, T('#1E3A8A')); signText(g, 'DAD MAN!', x + 22, y + 58, { sx: 1, sy: 1, fill: T('#FDE047') });
   if (look === 2) { g.fillStyle = T(mix(P, '#F0E8D8', 0.6)); g.beginPath(); g.moveTo(x + 44, y); g.lineTo(x + 26, y); g.lineTo(x + 44, y + 20); g.closePath(); g.fill(); g.strokeStyle = T(INK); g.lineWidth = 1; g.beginPath(); g.moveTo(x + 26, y); g.lineTo(x + 44, y + 20); g.stroke(); }
   if (look === 3) { box(g, x + 4, y - 3, 10, 5, T('#D4C8A0')); box(g, x + 30, y - 3, 10, 5, T('#D4C8A0')); }
 };
@@ -461,12 +461,12 @@ const paintFurn = (g: Ctx, kind: Furn, seed: number) => {
       break;
     }
     case 'kiosk': {
-      // (a poster kiosk on its legs: two P&K posters, a STUPID DAD LIVE! bill, a cap on top)
+      // (a poster kiosk on its legs: two P&K posters, a DAD MAN LIVE! bill, a cap on top)
       const T3 = DR(TAR);
       for (const s of [-1, 1]) postR(g, s * 24, -20, 0, 5, T3);
       box(g, -32, -136, 64, 118, ink); box(g, -30, -134, 60, 114, T3[3]);
       pkPosterArt(g, -24, -128, seed % 4);
-      box(g, -26, -62, 52, 38, D('#5EB4F4')); box(g, -26, -62, 52, 8, D('#FDE047')); signText(g, 'STUPID DAD', 0, -56, small(D('#B01C22'))); g.fillStyle = D('#F4B8A0'); g.beginPath(); g.arc(-8, -40, 7, 0, Math.PI * 2); g.fill(); box(g, -18, -34, 20, 8, D('#F8FAFC')); box(g, 6, -48, 5, 10, D('#DC2626'));
+      box(g, -26, -62, 52, 38, D('#5EB4F4')); box(g, -26, -62, 52, 8, D('#FDE047')); signText(g, 'DAD MAN', 0, -56, small(D('#B01C22'))); g.fillStyle = D('#F4B8A0'); g.beginPath(); g.arc(-8, -40, 7, 0, Math.PI * 2); g.fill(); box(g, -18, -34, 20, 8, D('#F8FAFC')); box(g, 6, -48, 5, 10, D('#DC2626'));
       polyF(g, [[-36, -136], [0, -150], [36, -136]], ink); polyF(g, [[-33, -137], [0, -147], [33, -137]], D('#B01C22'));
       break;
     }

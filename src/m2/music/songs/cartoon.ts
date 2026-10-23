@@ -1,5 +1,5 @@
 // CARTOON LAND's music (land id 'cartoon'): the land's theme, a version of it for every section and for the White
-// House's own moments. Its fights (the five pundits, STUPID DAD) are in cartoonBosses.ts.
+// House's own moments. Its fights (the five pundits, DAD MAN) are in cartoonBosses.ts.
 //
 // ---- "TUNE IN NEXT WEEK" (land:cartoon) ----
 // A park area frozen in 1994, scored as the theme song of a Saturday morning it never stopped being, played at
@@ -10,7 +10,7 @@
 // (staccato on a square lead, the leading tone creeping, palm-muted sixteenths). Every section re-orchestrates it (the
 // Banjo-Kazooie idea): a chiptune kiddie square, a 1994 corporate tour video in the studio, the show's own theme while
 // the projection's up, the same tune gone sour on the bare soundstage after, ska-punk in the big-kid zone, a Carl
-// Stalling chase at PUNCHY & KICKY, and a cheap laugh-track sitcom theme for STUPID DAD LIVE!.
+// Stalling chase at PUNCHY & KICKY, and a cheap laugh-track sitcom theme for DAD MAN LIVE!.
 // Written in C major, played in B-flat (every pitched part tr -2: every key's taken). 176, straight. 36 bars: a 4-bar
 // fanfare (once: G7sus - G7sus - Ab7 - G7, the brass's "ta-da-da-DAAA" twice, a snare roll, a tom run), then A1 (C -
 // A7 - Dm7 - G7 - Em7 A7 - Dm7 G7 - C A7 - D7 G7), A2 (C - A7 - Dm7 - G7 - C7 - F Fm6 - Dm7 G7 - C Bb7), B (Ebmaj7 -
@@ -32,7 +32,7 @@
 //                an organ skanking the offbeats, power chords, the polka-punk beat
 //   itchy        PUNCHY & KICKY: a Carl Stalling chase at Mega Man speed: harmon trumpet on the hook, a xylophone
 //                running sixteenths over everything, brass blats, trombone smears, a galloping snare, the bass pumping
-//   amphi        STUPID DAD LIVE!: a cheap laugh-track sitcom theme: alto sax over Rhodes, finger bass, oohs, a
+//   amphi        DAD MAN LIVE!: a cheap laugh-track sitcom theme: alto sax over Rhodes, finger bass, oohs, a
 //                half-time kit with a sidestick (calmer)
 //   empty        the amphitheater after (a revisit): the sitcom theme on a Rhodes, muffled, nobody there
 //   cutscene     under a scene: vibes, slow strings, the bass

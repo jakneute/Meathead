@@ -1,4 +1,4 @@
-// STUPID DAD's TV family on the live show: CHEAP ANIMATRONICS (the user's) on the tapes of the dead actors' voices, each
+// DAD MAN's TV family on the live show: CHEAP ANIMATRONICS (the user's) on the tapes of the dead actors' voices, each
 // one done up as the show drew them (bigkid/art.ts dadArt's family: MOM's big brown perm, pearls and pink sweater; THE
 // BOY's buzz cut and striped shirt; SIS's ponytail and braces; GRAMPS bald in his cardigan and glasses). Stiff, jerky,
 // wrong: waxy plastic skin too shiny under the lights, a ventriloquist's seam each side of the chin (the jaw drops as a
@@ -7,7 +7,7 @@
 // Glitching (the intro: the show's stopped and they haven't): heads ticking round, eyes spinning, sparks at the neck,
 // the arm's loop at triple time. Off (the show's over: a revisit): slumped, heads down, jaws hanging, eyes dark.
 //
-// Each is drawn about its feet's point (the floor under it), facing left, at STUPID DAD's scale.
+// Each is drawn about its feet's point (the floor under it), facing left, at DAD MAN's scale.
 
 import { mix } from '../kit';
 import { DAD_K } from './dad';

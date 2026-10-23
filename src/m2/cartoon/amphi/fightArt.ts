@@ -1,4 +1,4 @@
-// STUPID DAD's fight, drawn (fight.ts runs it): the stolen PUNCHY & KICKY mallet, the fridge (avocado green, 1975, the
+// DAD MAN's fight, drawn (fight.ts runs it): the stolen PUNCHY & KICKY mallet, the fridge (avocado green, 1975, the
 // show's), the beer bottles the family throws, the puke, the couch flying (and crushed), the stunt cars' wrecks and what's
 // left of each of the family under one, the living room's side walls (the right one always; the left one flown in from
 // the grid as the intro starts, so the room's shut while they fight), his pancake (the weakness death) and the SWILL LITE

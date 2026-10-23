@@ -7,8 +7,8 @@
 //   GENERIC-CO plant (its stacks, its smoke banded, the logo on its tank), a drive-in's screen, a cemetery on its knoll, a
 //   quarry; THE CARTOON LAND WATER TOWER (monument.ts: bigger again); THE REST OF CARTOON LAND: back the way he came the
 //   big-kid zone (the Hurl-A-Whirl, the halfpipe, the inflatable Rad Rat, the neon bolt, the slime bucket), the studios'
-//   logo, the WACKY WHITE HOUSE, Sillyville's domes; ahead STUPID DAD LIVE!'s band shell and light towers, the UBX
-//   AMPHITHEATER's sign, the beer garden's umbrellas, a STUPID DAD billboard; trees, bunting and lamps between; and
+//   logo, the WACKY WHITE HOUSE, Sillyville's domes; ahead DAD MAN LIVE!'s band shell and light towers, the UBX
+//   AMPHITHEATER's sign, the beer garden's umbrellas, a DAD MAN billboard; trees, bunting and lamps between; and
 //   nearest, THE KNOCKOFF'S OWN ROOFS: blood-red, mustard, black and bone show buildings dripping off their parapets,
 //   with the show's giant props on top (a mallet driven into a roof, an anvil through one, a cleaver stuck in another,
 //   the skull water tank, the inflatable Punchy with his X'd eye, Kicky's ears on a dome, a dynamite-stick chimney, a
@@ -181,7 +181,7 @@ const paintCountry = (g: Ctx, tod: TimeOfDay) => {
 
 // ---------------------------------------------------------------------------------------------------------------
 // The rest of Cartoon Land: the big-kid zone back the way he came, the studios, the White House, Sillyville; ahead,
-// STUPID DAD LIVE!
+// DAD MAN LIVE!
 
 const PW = 2200, PH = 270, PG = PH - 26;
 const paintPark = (g: Ctx, tod: TimeOfDay) => {
@@ -228,14 +228,14 @@ const paintPark = (g: Ctx, tod: TimeOfDay) => {
     tri(g, [zx + 330, base - 110, zx + 346, base - 110, zx + 338, base - 90, zx + 350, base - 90, zx + 328, base - 60, zx + 334, base - 84, zx + 324, base - 84], lamps ? '#FEF08A' : T('#F2D23A'));
     g.save(); g.translate(zx + 20, base - 76); g.rotate(-0.4); box(g, -14, -18, 28, 26, T(INK)); box(g, -13, -17, 26, 24, T('#2563EB')); box(g, -13, -17, 26, 4, T('#60A5FA')); g.restore();
     for (let k = 0; k < 4; k++) box(g, zx + 26 + k * 3, base - 74 + k * 4, 4, 30 - k * 4, T('#84CC16')); }
-  // ---- ahead: STUPID DAD LIVE!'s band shell over the bowl, its light towers, the UBX AMPHITHEATER sign
+  // ---- ahead: DAD MAN LIVE!'s band shell over the bowl, its light towers, the UBX AMPHITHEATER sign
   { const cx = 1150, base = PG - 16, rx = 110, ry = 104;
     const bands = ['#F3E9D2', '#7DB7E8', '#F3E9D2', '#5B9BD5', '#F3E9D2', '#7DB7E8'];
     for (let i = 0; i < bands.length; i++) { const k = 1 - i / bands.length; g.fillStyle = T(INK); g.beginPath(); g.ellipse(cx, base, rx * k + 2, ry * k + 2, 0, Math.PI, 0); g.fill(); g.fillStyle = T(bands[i]); g.beginPath(); g.ellipse(cx, base, rx * k, ry * k, 0, Math.PI, 0); g.fill(); g.fillStyle = T(mix(bands[i], '#FFFFFF', 0.3)); g.beginPath(); g.ellipse(cx - rx * k * 0.5, base - ry * k * 0.8, rx * k * 0.3, 2, -0.4, 0, Math.PI * 2); g.fill(); }
     g.fillStyle = T('#2A2440'); g.beginPath(); g.ellipse(cx, base, rx * 0.17, ry * 0.17, 0, Math.PI, 0); g.fill();
     if (lamps) for (let k = 0; k < 26; k++) { const a = Math.PI + (k / 25) * Math.PI; box(g, cx + Math.cos(a) * rx - 1, base + Math.sin(a) * ry - 1, 2, 2, k % 2 ? '#FFF0B0' : '#FFC860'); }
     box(g, cx - 64, base - 50, 128, 16, T(INK)); box(g, cx - 63, base - 49, 126, 14, T('#B91C1C')); box(g, cx - 63, base - 49, 126, 2, T('#E2465E'));
-    signText(g, 'STUPID DAD LIVE!', cx, base - 39, tiny(T('#FFFFFF'), T(INK)));
+    signText(g, 'DAD MAN LIVE!', cx, base - 39, tiny(T('#FFFFFF'), T(INK)));
     g.fillStyle = T('#B4ACA0'); g.beginPath(); g.moveTo(cx - 170, PG); g.quadraticCurveTo(cx, PG - 38, cx + 170, PG); g.closePath(); g.fill();
     for (let k = 0; k < 5; k++) { g.strokeStyle = T('#D8D0C4'); g.lineWidth = 1; g.beginPath(); g.moveTo(cx - 156 + k * 8, PG - 2 - k * 2); g.quadraticCurveTo(cx, PG - 34 + k * 6, cx + 156 - k * 8, PG - 2 - k * 2); g.stroke(); }
     for (const lx of [cx - 160, cx + 160]) { box(g, lx - 2, PG - 170, 4, 170, T('#6A6488')); for (let y = PG - 166; y < PG; y += 10) { g.strokeStyle = T('#6A6488'); g.lineWidth = 1; g.beginPath(); g.moveTo(lx - 4, y); g.lineTo(lx + 4, y + 10); g.stroke(); } box(g, lx - 12, PG - 180, 24, 12, T('#3A3450')); for (let k = 0; k < 6; k++) box(g, lx - 10 + (k % 3) * 7, PG - 178 + Math.floor(k / 3) * 5, 5, 4, lamps ? '#FFF6D0' : T('#C8C4D8')); }
@@ -243,14 +243,14 @@ const paintPark = (g: Ctx, tod: TimeOfDay) => {
     const sx = cx + 230; box(g, sx - 2, PG - 120, 4, 120, T('#5A5470')); box(g, sx - 50, PG - 150, 100, 34, T(INK)); box(g, sx - 49, PG - 149, 98, 32, T('#1E3A8A')); box(g, sx - 49, PG - 149, 98, 3, T('#3B5BB8'));
     signText(g, 'UBX', sx, PG - 136, { sx: 2, sy: 1, bold: true, fill: T('#FDE047'), ink: T(INK) }); signText(g, 'AMPHITHEATER', sx, PG - 122, tiny(T('#FFFFFF')));
     for (let k = 0; k < 5; k++) { const ux = cx + 200 + k * 26; box(g, ux, PG - 26, 1, 26, T('#E8E4F0')); tri(g, [ux - 12, PG - 24, ux, PG - 34, ux + 12, PG - 24], T(k % 2 ? '#E2465E' : '#F2D23A')); box(g, ux - 6, PG - 12, 12, 2, T('#8A6A4A')); } }
-  // ---- a STUPID DAD billboard (the live show's: TODAY, his can up)
+  // ---- a DAD MAN billboard (the live show's: TODAY, his can up)
   { const bx = 1500, by = PG - 140, bw = 180, bh = 70, S = T('#5A5470');
     for (const lx of [bx + bw * 0.2, bx + bw * 0.8]) box(g, lx - 2, by + bh, 4, PG - by - bh, S);
     box(g, bx - 2, by - 2, bw + 4, bh + 4, T(INK));
     for (let k = 0; k < 3; k++) box(g, bx, by + k * 24, bw, 24, T(['#5EB4F4', '#4AA4EC', '#3A94E0'][k]));
     const S3 = st3(T, '#F0B8A0'); oval(g, bx + 34, by + 38, 20, 22, T(INK)); oval(g, bx + 34, by + 38, 19, 21, S3[1]); oval(g, bx + 28, by + 30, 7, 7, S3[2]); box(g, bx + 26, by + 34, 6, 2, T(INK)); box(g, bx + 37, by + 34, 6, 2, T(INK)); disc(g, bx + 34, by + 42, 4, T('#FB7185')); box(g, bx + 26, by + 50, 16, 3, T('#7F1D1D'));
     box(g, bx + 56, by + 26, 9, 16, T(INK)); box(g, bx + 57, by + 27, 7, 14, T('#D8D8E8')); box(g, bx + 57, by + 31, 7, 4, T('#C8283E'));
-    signText(g, 'STUPID DAD', bx + 120, by + 24, { sx: 2, sy: 2, bold: true, fill: [T('#FFFFFF'), T('#FDE047')], ink: T(INK) });
+    signText(g, 'DAD MAN', bx + 120, by + 24, { sx: 2, sy: 2, bold: true, fill: [T('#FFFFFF'), T('#FDE047')], ink: T(INK) });
     signText(g, 'LIVE! TODAY', bx + 120, by + 44, tiny(T('#FFFFFF'))); signText(g, 'BEER GARDEN OPEN', bx + 120, by + 56, tiny(T('#FDE047')));
     box(g, bx - 4, by + bh + 2, bw + 8, 2, S);
     if (lamps) for (const lx of [bx + 30, bx + 90, bx + 150]) { box(g, lx - 3, by + bh + 4, 6, 3, '#FFF0C0'); } }
@@ -395,7 +395,7 @@ const paintRoofs = (g: Ctx, tod: TimeOfDay) => {
     }
     // (a rooftop billboard on some)
     if (r.seed % 5 === 3) {
-      const bw = Math.min(w - 10, 100), bx = x + 5, by = top - 48, labels = ['SPLATTER TEES', 'AS SEEN ON STUPID DAD!', 'THEY FIGHT!', 'OW!', 'P&K'], L = labels[((Math.floor(r.seed) % labels.length) + labels.length) % labels.length];
+      const bw = Math.min(w - 10, 100), bx = x + 5, by = top - 48, labels = ['SPLATTER TEES', 'AS SEEN ON DAD MAN!', 'THEY FIGHT!', 'OW!', 'P&K'], L = labels[((Math.floor(r.seed) % labels.length) + labels.length) % labels.length];
       box(g, bx + 10, by + 30, 3, 18, T('#5A5470')); box(g, bx + bw - 13, by + 30, 3, 18, T('#5A5470'));
       box(g, bx - 1, by - 1, bw + 2, 32, T(INK)); box(g, bx, by, bw, 30, T('#F4ECD8')); box(g, bx, by, bw, 2, T('#FFFFFF')); box(g, bx, by + 26, bw, 4, BL[1]);
       signText(g, L, bx + bw / 2, by + 18, { sx: 1, sy: L.length > 12 ? 1 : 2, bold: true, fill: [T('#E8474A'), T('#9A1A20')], ink: T(INK) });
@@ -422,7 +422,7 @@ export const drawItchyFar = (c: Ctx, state: GameState) => {
   drawPlane(c, state);
   // (the land rises behind the knockoff: the country, the rest of the park and the water tower stand up high enough to
   //  show over its own roofs and the fronts; the park laid from the section's start, in the order he's been and is
-  //  going: the big-kid zone back left, STUPID DAD LIVE! (next) ahead on the right)
+  //  going: the big-kid zone back left, DAD MAN LIVE! (next) ahead on the right)
   const up = LIFT, sx = cx - SECTIONS.itchy.x0;
   tile(c, 'country', sx * 0.03, hz - HH + 10 - up, HH, HW, g => paintCountry(g, tod));
   tile(c, 'park', sx * 0.07 + 400, hz - PH + 24 - up, PH, PW, g => paintPark(g, tod));
