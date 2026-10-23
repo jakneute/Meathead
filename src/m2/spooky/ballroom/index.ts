@@ -31,6 +31,7 @@ import { type Fight, startFight, updateFight, fightOver, endFight, resetFight, d
   deathNeed, drawDeathBars, ballSwing, drawStuckLeftovers, MEMO_STUCK } from './fight';
 import { frameDeath } from '../../deathFrame';
 import { CEIL } from '../control/paint';
+import { setStampHold } from '../../../m1/game/render/stamp';
 
 /** The built room: as far as a camera taking his death in (floor to ceiling) may go. */
 const ROOM = { x0: ARENA_L - 140, y0: CEIL - 140, x1: ARENA_R + 140, y1: GY + 100 };
@@ -123,7 +124,12 @@ export const ballroom: SpookySection = {
     if (b.victory) drawVictory(c, b.victory);
     if (b.walk) drawWalkAway(c, b.walk);
   },
-  zoom: (state) => { const f = ballOf(state).f; return f ? frameDeath(state, f, killCamZoom(state, f), deathNeed(f), ROOM) : null; },
+  zoom: (state) => {
+    const f = ballOf(state).f, z = f ? frameDeath(state, f, killCamZoom(state, f), deathNeed(f), ROOM) : null;
+    // (pushed in on his death: the room's big stamps (the wall's bays, the stage) scaled, not painted again screens big)
+    setStampHold(!!z && z.scale > 1.05);
+    return z;
+  },
   holdTick: (ctx) => { const f = ballOf(ctx.state).f; return f ? killCamTick(f) : false; },
 };
 
