@@ -22,8 +22,10 @@ import type { Dz } from './state';
 import { drawChip, tvBulbs, paintSockets } from './chip';
 import {
   type Ctx, type View, INK, WALL_D, NEAR_D, seenD, spanAt, levelQ, sideQ, MAROON, CARPET, INDIGO, TRUSS, GOLD, CASE, SHELL,
-  lip, tubeH, tubeV, truss, chain, hungBoard, oneSheet, horn, disasterLook, rideLook, showLook, still, deep, turned, faceWide,
+  lip, tubeH, tubeV, truss, chain, hungBoard, horn, disasterLook, rideLook, showLook, still, deep, turned, faceWide,
 } from './paint';
+import { posterCase, floodSheet, cowSheet } from './posters';
+import { paintCounter, menuBoard, WARMER_LAMP } from './concession';
 
 // ---------------------------------------------------------------------------------------------------------------
 // The shell (shared by the rooms)
@@ -211,34 +213,12 @@ const paintLobbyWall = (g: Ctx, x: number, w: number, real: boolean) => {
   }
   // (TO THE BACKLOT over the doors out)
   if (x < X(260)) board(g, X(70), GY - 196, ['TO THE BACKLOT'], showLook(1, 1, '#FEF3C7'), '#3A0A14', G, 5);
-  // (the menu board over the counter: the snacks, their prices, stepped panels)
+  // (the franchise's one-sheets in their cases (posters.ts), then the menu board over the counter (concession.ts),
+  // its glow over the cases' light)
+  const SHEETS: [number, typeof floodSheet][] = [[1460, floodSheet], [1800, cowSheet]];
+  for (const [rx, art] of SHEETS) if (x <= X(rx) + 90 && x + w >= X(rx) - 90) posterCase(g, X(rx), GY - 232, 100, 136, art);
   const mb = X(1635);
-  if (x < mb + 120 && x + w > mb - 120) {
-    box(g, mb - 106, GY - 214, 212, 104, INK); box(g, mb - 104, GY - 212, 208, 100, CASE[2]); box(g, mb - 104, GY - 212, 208, 3, CASE[4]);
-    const items: [string, string, string][] = [['LAVA NACHOS', '$14', '#F97316'], ['TORNADO DOG', '$11', '#E2E8F0'], ['FLOOD CUP', '$9', '#60A5FA'], ['ASH POPCORN', '$12', '#D6D3D1']];
-    items.forEach(([t, p, col], i) => { words(g, t, mb - 96, GY - 194 + i * 20, showLook(1, 1, col, '#000000'), 'left'); words(g, p, mb + 96, GY - 194 + i * 20, showLook(1, 1, '#FDE047', '#000000'), 'right'); });
-  }
-  // (the franchise's one-sheets in their cases (absurd sequel numbers))
-  const SHEETS: [number, string, string, string][] = [[1460, 'FLOOD 4', 'STILL WET', '#1D4ED8'], [1800, 'RIDE 2', 'COMING SOON SINCE 1991', '#4338CA']];
-  for (const [rx, t1, t2, col] of SHEETS) {
-    if (x > X(rx) + 70 || x + w < X(rx) - 70) continue;
-    oneSheet(g, X(rx), GY - 232, 100, 136, (gg, l, t, ww, hh) => {
-      const R = ramp6(col);
-      bandedGradient(gg, l, t, ww, hh, [R[1], R[2], R[3], R[2]], 6);
-      if (t1 === 'FLOOD 4') {
-        // (a man on a roof in a wave, banded)
-        for (let i = 0; i < 4; i++) box(gg, l, t + 70 + i * 10, ww, 10, ['#5A96D4', '#2E6AB2', '#1C4A88', '#12305E'][i]);
-        poly(gg, [[l + 30, t + 72], [l + 50, t + 56], [l + 70, t + 72]], '#7A1A16'); box(gg, l + 46, t + 46, 6, 10, '#E2B48C'); box(gg, l + 44, t + 40, 10, 6, '#3A2410');
-        for (let i = 0; i < 6; i++) box(gg, l + i * 18, t + 68 + (i % 2) * 2, 12, 2, '#A6CEF2');
-      } else {
-        // (the ride's building in silhouette, a question mark over it)
-        box(gg, l + 22, t + 64, 56, 46, '#1A1640'); box(gg, l + 30, t + 56, 40, 10, '#1A1640'); box(gg, l + 44, t + 90, 12, 20, '#F97316');
-        words(gg, '?', l + ww / 2, t + 50, showLook(3, 3, '#FDE047', '#1A1640'));
-      }
-      words(gg, t1, l + ww / 2, t + 22, showLook(2, 2, '#FDE047', '#000000'));
-      words(gg, t2, l + ww / 2, t + hh - 8, plain(1, 1, '#F8FAFC', '#000000'));
-    });
-  }
+  if (x < mb + 120 && x + w > mb - 120) menuBoard(g, mb, GY - 214);
   // (once it's real: cracks up the wall, stepped, a chunk of flock gone to the plaster)
   if (real) for (let k = Math.floor(x / 700) * 700 + 380; k < x + w + 60; k += 700) {
     const pts: [number, number][] = [[k, top + 18], [k + 30, top + 88], [k + 10, top + 148], [k + 50, top + 228], [k + 36, rail]];
@@ -350,26 +330,10 @@ const counter = (c: Ctx, v: View, f: number) => {
   sideBack(c, v.eye, x + w, 1, y, GY, 1, 0.94, Wd, 2);
   // (its top going back, the backbar behind it)
   levelQ(c, v.eye, x, x + w, y, 1, 0.94, '#D8CCB2'); levelQ(c, v.eye, x, x + w, y, 0.97, 0.94, '#BCAE92');
-  still(c, 'counter', x, y, -6, -54, w + 12, 60 + 56, g => {
-    const W = ramp6('#92400E'), G = GOLD;
-    box(g, -1, 0, w + 2, 60, INK);
-    box(g, 0, 1, w, 59, W[3]); box(g, 0, 1, 4, 59, W[4]); box(g, w - 6, 1, 6, 59, W[1]);
-    for (let k = 10; k < w - 10; k += 34) { box(g, k, 12, 26, 38, W[2]); box(g, k, 12, 26, 2, W[1]); box(g, k, 48, 26, 2, W[4]); box(g, k + 24, 12, 2, 38, W[4]); }
-    box(g, 0, 52, w, 8, W[0]); box(g, 0, 52, w, 1, G[2]);
-    box(g, -4, -2, w + 8, 6, INK); box(g, -3, -1, w + 6, 4, '#E8E0CC'); box(g, -3, -1, w + 6, 1, '#FFFFFF');
-    // (the nacho warmer: a glass box, the chips in it, its red lamp)
-    box(g, 14, -38, 52, 36, INK); box(g, 15, -37, 50, 34, 'rgba(186, 230, 253, 0.25)'); box(g, 15, -37, 50, 6, '#3A2A1A'); box(g, 18, -31, 44, 3, '#F97316');
-    for (let i = 0; i < 9; i++) poly(g, [[18 + i * 5, -4], [22 + i * 5, -14 - (i % 3) * 3], [26 + i * 5, -4]], i % 2 ? '#E8B830' : '#F2CC50');
-    box(g, 16, -36, 2, 30, 'rgba(255,255,255,0.4)');
-    // (the cheese pump, glowing orange; a cup stack)
-    box(g, 82, -30, 22, 28, INK); box(g, 83, -29, 20, 27, '#A8ACB0'); box(g, 83, -29, 4, 27, '#D0D4D8'); box(g, 86, -46, 6, 18, INK); box(g, 87, -45, 4, 16, '#71717A');
-    box(g, 88, -12, 10, 6, '#F97316'); box(g, 88, -12, 10, 2, '#FDBA74');
-    for (let i = 0; i < 4; i++) { box(g, 116, -10 - i * 6, 18, 6, INK); box(g, 117, -9 - i * 6, 16, 5, i % 2 ? '#DC2626' : '#F5F5F4'); }
-    words(g, 'LAVA NACHOS $14', w / 2, 34, showLook(1, 1, '#FDE047', '#000000'));
-  });
+  still(c, 'counter', x, y, -6, -60, w + 12, 124, g => paintCounter(g, w));
   lip(c, x, y, w);
   // (its warmer lamp flickering)
-  box(c, x + 18, y - 31, 44, 3, f % 50 < 47 ? '#FDBA74' : '#F97316');
+  box(c, x + WARMER_LAMP.x, y + WARMER_LAMP.y, WARMER_LAMP.w, 3, f % 50 < 47 ? '#FDBA74' : '#F97316');
 };
 
 /** The lobby's back wall, ceiling and floor going back (depth: drawn before any room's play plane). */
