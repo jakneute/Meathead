@@ -22,6 +22,7 @@ import { type Pt, type OrbitItem, viewOf, proj, depth, polar, camPos, orbitAngle
 import { drawSafariArtie, ROOF_SCUFFS, type ArtiePose } from '../river/artie';
 import { plaque } from '../roof/stone';
 import { crown } from '../roof/art';
+import { stamp } from '../../intro/art/kit';
 
 type Ctx = CanvasRenderingContext2D;
 type S = { x: number; y: number };
@@ -126,7 +127,7 @@ const boxFaces = (u0: number, u1: number, y0: number, y1: number, v0: number, v1
 const P = (L: Look, q: L3) => L.at(q[0], q[1], q[2]);
 
 /** A log (a stilt, a post): its faces in the log ramp, lit side light, a lashing or two round it. */
-const log = (c: Ctx, L: Look, u: number, vv: number, r: number, y0: number, y1: number, lash: number[]) => {
+const log = (c: Ctx, L: Look, u: number, vv: number, r: number, y0: number, y1: number, lash: number[], rich = false) => {
   for (const f of boxFaces(u - r, u + r, y0, y1, vv - r, vv + r)) {
     const s = f.p.map(q => P(L, q));
     if (area(s) > -0.2) continue;
@@ -136,6 +137,14 @@ const log = (c: Ctx, L: Look, u: number, vv: number, r: number, y0: number, y1: 
     // (bark: a dark seam down it; the lashings, rope round it)
     const at = (a: number, y: number) => { const A = s[0], B = s[1]; const ya = (y - y0) / (y1 - y0); const lo = { x: A.x + (B.x - A.x) * a, y: A.y + (B.y - A.y) * a }; const hi = { x: s[3].x + (s[2].x - s[3].x) * a, y: s[3].y + (s[2].y - s[3].y) * a }; return { x: lo.x + (hi.x - lo.x) * ya, y: lo.y + (hi.y - lo.y) * ya }; };
     line(c, at(0.7, y0), at(0.7, y1), LOG[Math.max(0, k - 2)], 1);
+    if (rich) {
+      // (on the strip, stamped: its lit edge down it, the bark's checks across it (a dark cut, lit under), a knot)
+      line(c, at(0.18, y0), at(0.18, y1), LOG[Math.min(4, k + 1)], 1);
+      for (let y = y0 + 7; y < y1 - 4; y += 11) { const a = 0.2 + hash(y, u + vv) * 0.45; line(c, at(a, y), at(a + 0.3, y + 1), LOG[Math.max(0, k - 2)], 1); line(c, at(a, y - 1), at(a + 0.3, y), LOG[Math.min(4, k + 1)], 1); }
+      const ky = y0 + (y1 - y0) * (0.3 + hash(u, vv) * 0.4);
+      fillPts(c, [at(0.35, ky - 2), at(0.65, ky - 2), at(0.65, ky + 2), at(0.35, ky + 2)], LOG[0]);
+      line(c, at(0.35, ky + 2), at(0.65, ky + 2), LOG[Math.min(4, k + 1)], 1);
+    }
     for (const ly of lash) fillPts(c, [at(0, ly - 2), at(1, ly - 2), at(1, ly + 2), at(0, ly + 2)], LASH[Math.min(2, k - 1)]);
   }
 };
@@ -152,9 +161,11 @@ export interface BlindLook {
  * The blind, its parts in order back to front. `part`: all of it; just what's behind Artie; or Artie and what's in
  * front of him (the strip's drawn him over its back, the netting over his legs).
  */
-const drawBlindParts = (c: Ctx, L: Look, o: BlindLook, part: 'all' | 'back' | 'front') => {
-  const parts: { layer: number; d: number; draw: () => void; artie?: boolean }[] = [];
-  const add = (layer: number, q: L3, draw: () => void, artie = false) => parts.push({ layer, d: L.far(q[0], q[1], q[2]), draw, artie });
+const drawBlindParts = (c0: Ctx, L: Look, o: BlindLook, part: 'all' | 'back' | 'front', rich = false) => {
+  // (`c`: where the parts paint; while a run of them is painted into a stamp, that stamp's)
+  let c = c0;
+  const parts: { layer: number; d: number; draw: () => void; artie?: boolean; live?: boolean; id: number }[] = [];
+  const add = (layer: number, q: L3, draw: () => void, artie = false, live = artie) => parts.push({ layer, d: L.far(q[0], q[1], q[2]), draw, artie, live, id: parts.length });
   const s1 = L.sy;
   // Its shadow on the ground (out on the loop: on the strip it's under it, edge on)
   add(0, [0, 0, 0], () => {
@@ -162,7 +173,7 @@ const drawBlindParts = (c: Ctx, L: Look, o: BlindLook, part: 'all' | 'back' | 'f
     if (Math.abs(area(sh)) > 4) fillPts(c, sh, 'rgba(18, 38, 10, 0.32)');
   });
   // Under the platform: the stilts, their braces, the ladder, the sign
-  for (const [u, vv] of [[-38, -28], [38, -28], [38, 28], [-38, 28]]) add(1, [u, 70, vv], () => log(c, L, u, vv, 4, 0, 142, [128, 60]));
+  for (const [u, vv] of [[-38, -28], [38, -28], [38, 28], [-38, 28]]) add(1, [u, 70, vv], () => log(c, L, u, vv, 4, 0, 142, [128, 60], rich));
   for (const [u0, v0, u1, v1, nu, nv] of [[-38, 28, 38, 28, 0, 1], [38, -28, -38, -28, 0, -1], [38, 28, 38, -28, 1, 0], [-38, -28, -38, 28, -1, 0]]) {
     add(1, [(u0 + u1) / 2, 75, (v0 + v1) / 2], () => {
       const k = stepOf(L, nu, nv, 1, 3);
@@ -195,6 +206,16 @@ const drawBlindParts = (c: Ctx, L: Look, o: BlindLook, part: 'all' | 'back' | 'f
         const lt = (a: number, b: number) => ({ x: s[3].x + (s[2].x - s[3].x) * a, y: s[3].y + (s[2].y - s[3].y) * a + b });
         fillPts(c, [s[3], s[2], lt(1, 2 * s1), lt(0, 2 * s1)], PLANK[k + 1]);
         line(c, s[0], s[1], PLANK[0], s1);
+        if (rich) {
+          // (the planks' ends along it: a dark joint, its lit left; a nail head up and down each)
+          const lp = (p: S, q: S, t: number) => ({ x: p.x + (q.x - p.x) * t, y: p.y + (q.y - p.y) * t });
+          for (let t = 1 / 8; t < 0.999; t += 1 / 8) {
+            line(c, lp(s[0], s[1], t), lp(s[3], s[2], t), PLANK[Math.max(0, k - 1)], s1);
+            line(c, lp(s[0], s[1], t + 0.006), lp(s[3], s[2], t + 0.006), PLANK[Math.min(4, k + 1)], s1);
+            const n1 = lp(lp(s[3], s[2], t + 0.03), lp(s[0], s[1], t + 0.03), 0.35);
+            fillPts(c, [n1, { x: n1.x + 2 * s1, y: n1.y }, { x: n1.x + 2 * s1, y: n1.y + 2 * s1 }, { x: n1.x, y: n1.y + 2 * s1 }], '#3A3A42');
+          }
+        }
       }
     }
   });
@@ -213,12 +234,30 @@ const drawBlindParts = (c: Ctx, L: Look, o: BlindLook, part: 'all' | 'back' | 'f
     if (Math.abs(a) < 0.5) return;
     const outside = a < 0;
     // (its inside: behind him, whatever its depth says; its outside: in front)
-    parts.push({ layer: 3, d: L.far(...mid) + (outside ? -2000 : 2000), draw: () => {
+    parts.push({ id: parts.length, layer: 3, d: L.far(...mid) + (outside ? -2000 : 2000), draw: () => {
       const k = stepOf(L, wl.nu, wl.nv, 2, 4) - (outside ? 0 : 2);
       fillPts(c, s, NET[k]);
       if (outside) {
         // (the camo netting: leaves stuck in it, a ragged hem; seen from outside, laid onto the face)
         onFace(c, s, s[3], s[2], s[0], wl.w, H1 - H0, g => {
+          if (rich) {
+            // (on the strip, stamped: the net's mesh, the scraps of leaf tied in it (pointed, inked, two-tone, lit on
+            // top), the ragged hem in tatters, the lashing along its top)
+            const H = H1 - H0;
+            g.fillStyle = NET[Math.max(0, k - 1)];
+            for (let y = 1; y < H; y += 4) for (let x = ((y >> 2) % 2) * 2; x < wl.w; x += 4) g.fillRect(x, y, 2, 1);
+            for (let j = 0; j < Math.round(wl.w * 0.5); j++) {
+              const lx = 3 + hash(j, i * 7 + 1) * (wl.w - 6), ly = 3 + hash(j, i * 7 + 2) * (H - 10), an = (hash(j, i * 7 + 3) - 0.5) * 2.4;
+              const col = NET_BITS[j % 4];
+              g.fillStyle = NET[0]; g.beginPath(); g.ellipse(lx, ly, 5, 2.8, an, 0, Math.PI * 2); g.fill();
+              g.fillStyle = col; g.beginPath(); g.ellipse(lx, ly, 4, 1.8, an, 0, Math.PI * 2); g.fill();
+              g.fillStyle = NET[5]; g.fillRect(Math.round(lx - 2), Math.round(ly - 1), 2, 1);
+            }
+            for (let x = 0; x < wl.w; x += 5) { const th = 4 + ((x * 7) % 9); g.fillStyle = NET[0]; g.fillRect(x, H - th - 1, 4, th + 1); g.fillStyle = NET[2]; g.fillRect(x + 1, H - th, 2, th - 1); g.fillStyle = NET[4]; g.fillRect(x + 1, H - th, 2, 1); }
+            g.fillStyle = LASH[1]; g.fillRect(0, 0, wl.w, 2); g.fillStyle = LASH[2]; g.fillRect(0, 0, wl.w, 1);
+            for (let x = 4; x < wl.w; x += 12) { g.fillStyle = LASH[0]; g.fillRect(x, 0, 2, 4); }
+            return;
+          }
           for (let j = 0; j < Math.round(wl.w * 0.42); j++) {
             const lx = hash(j, i * 7 + 1) * (wl.w - 6), ly = hash(j, i * 7 + 2) * (H1 - H0 - 6);
             g.fillStyle = NET_BITS[j % 4]; g.fillRect(lx, ly, 6, 4);
@@ -270,20 +309,39 @@ const drawBlindParts = (c: Ctx, L: Look, o: BlindLook, part: 'all' | 'back' | 'f
         line(c, e, { x: e.x, y: e.y + (j % 2 ? 4 : 7) * s1 }, THATCH[1], 1.6 * s1);
       }
       line(c, s[0], s[2], THATCH[Math.min(5, k + 1)], s1);
+      if (rich) {
+        // (on the strip, stamped: the thatch laid in tiers, each one's ragged lip over the next, lit along its top)
+        const lp = (p: S, q: S, t: number) => ({ x: p.x + (q.x - p.x) * t, y: p.y + (q.y - p.y) * t });
+        for (const tf of [0.3, 0.56, 0.78]) {
+          const A = lp(s[0], s[2], tf), B = lp(s[1], s[2], tf), m = Math.max(3, Math.round(n * (1 - tf)));
+          line(c, { x: A.x, y: A.y - s1 }, { x: B.x, y: B.y - s1 }, THATCH[Math.min(5, k + 1)], s1);
+          line(c, A, B, THATCH[Math.max(0, k - 1)], s1);
+          for (let j = 0; j <= m; j++) { const e = lp(A, B, j / m); line(c, e, { x: e.x, y: e.y + ((j * 5) % 3 + 2) * s1 }, THATCH[Math.max(0, k - 2)], s1); }
+        }
+      }
     }
   });
   // Hidden in the leaves, till the trees go: clumps all round it
   if (o.hidden) {
     const CL: [number, number, number, number][] = [[-30, 190, 44, 50], [32, 180, 44, 48], [0, 230, 40, 46], [-6, 150, 46, 44], [40, 130, 40, 36], [-44, 140, 40, 36], [-30, 200, -40, 48], [30, 190, -40, 46], [-56, 180, 0, 42], [56, 170, 0, 42]];
-    CL.forEach(([u, y, vv, r]) => add(5, [u, y, vv], () => { const p = L.at(u, y, vv); crown(c, p.x, p.y + Math.sin(o.frame * 0.03 + u) * s1, r * s1, LEAVES); }));
+    CL.forEach(([u, y, vv, r]) => add(5, [u, y, vv], () => { const p = L.at(u, y, vv); crown(c, p.x, p.y + Math.sin(o.frame * 0.03 + u) * s1, r * s1, LEAVES); }, false, true));
   }
   parts.sort((a, b) => a.layer - b.layer || b.d - a.d);
   const at = parts.findIndex(p => p.artie);
-  parts.forEach((p, i) => {
-    if (part === 'back' && at >= 0 && i >= at) return;
-    if (part === 'front' && (at < 0 || i < at)) return;
-    p.draw();
-  });
+  const list = parts.filter((_, i) => !(part === 'back' && at >= 0 && i >= at) && !(part === 'front' && (at < 0 || i < at)));
+  if (!rich) { list.forEach(p => p.draw()); return; }
+  // On the strip: every run of still parts painted once into a stamp (keyed by which parts, in what order, and the
+  // steps the sun puts on its faces: the same key, the same picture); the live ones (Artie, the swaying leaves round it
+  // while it's hid) drawn between, every frame
+  const sig = [[0, 1], [0, -1], [1, 0], [-1, 0]].map(([nu, nv]) => `${stepOf(L, nu, nv, 0, 2)}${stepOf(L, nu, nv, 0, 3)}`).join('');
+  let run: typeof list = [];
+  const flush = () => {
+    if (!run.length) return;
+    const r = run; run = [];
+    stamp(c0, `clBlind:${sig}:${r.map(p => p.id).join('.')}`, BLIND_X - 84, GY - 292, 168, 296, g => { c = g; try { r.forEach(p => p.draw()); } finally { c = c0; } });
+  };
+  for (const p of list) { if (p.live) { flush(); p.draw(); } else run.push(p); }
+  flush();
 };
 const hash = (a: number, b: number) => { const x = Math.sin(a * 127.1 + b * 311.7) * 43758.5; return x - Math.floor(x); };
 
@@ -304,7 +362,7 @@ export const blindOrbitItem = (c: Ctx, state: GameState, o: BlindLook): { item: 
 /** On the strip (all the way round): the blind in the world pass, side on. `part` as drawBlindParts. */
 export const drawBlindOnStrip = (c: Ctx, state: GameState, o: BlindLook, part: 'all' | 'back' | 'front') => {
   if (blindOnStrip(state) < 1) return;
-  drawBlindParts(c, lookAt(state, true), o, part);
+  drawBlindParts(c, lookAt(state, true), o, part, true);
 };
 
 /** Where his words go over him in it, on the screen (wherever it's got to). */

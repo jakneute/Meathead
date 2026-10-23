@@ -17,7 +17,6 @@
 
 import { INK, box, checker, mix, hash, pixelBlob, pole, ball, stamp, dim } from '../../intro/art/kit';
 import { STONE, MOSS, PLY, SHELL, DARK, stoneWall, vineDown, plaque, glyph } from '../roof/stone';
-import { crown } from '../roof/art';
 import { GY } from '../geometry';
 import { x0, TREE_H, TEMPLE_X, ARENA_L, PICKUP_X, BUSH_W, BUSH_H } from './arena';
 import { signAt, plank, stencil, print } from '../letters';
@@ -32,20 +31,82 @@ const BARK = ['#2A1A0E', '#432A16', '#5E3E20', '#7A5430', '#966C40'];
 // ---------------------------------------------------------------------------------------------------------------
 // The path
 
+/** The packed dirt, darkest first (the deep band under the ruts: DIRT's own two darkest, mixed). */
+const DIRT_DEEP = mix(DIRT[1], DIRT[0], 0.5);
+/** The path from L to R: painted in chunks, once each (the detail pass: grain, ruts, roots, stones, hoofprints, litter,
+ *  grass tufts over its lit lip). Everything's placed by world x, so the chunks meet without a seam. */
 export const drawPath = (c: Ctx, L: number, R: number) => {
-  L = Math.floor(L / 4) * 4;
-  box(c, L, GY, R - L, 400, DIRT[2]);
-  // (the lit edge, dithered down into it; darker going down, in bands)
-  box(c, L, GY, R - L, 2, DIRT[4]); box(c, L, GY + 2, R - L, 3, DIRT[3]); checker(c, L, GY + 5, R - L, 2, DIRT[3]);
-  box(c, L, GY + 40, R - L, 360, DIRT[1]); checker(c, L, GY + 38, R - L, 2, DIRT[1]);
-  // (ruts along it, pebbles, tufts of grass at its edge)
-  for (let x = Math.floor(L / 46) * 46; x < R; x += 46) {
-    const s = r1(x, 1);
-    box(c, x + s * 20, GY + 14 + (s > 0.5 ? 8 : 0), 14 + s * 10, 2, DIRT[1]);
-    box(c, x + s * 20, GY + 16 + (s > 0.5 ? 8 : 0), 14 + s * 10, 1, DIRT[3]);
-    if (s > 0.3) { box(c, x + 30 * s, GY + 26, 4, 3, DIRT[0]); box(c, x + 30 * s, GY + 26, 3, 1, DIRT[4]); }
-    if (s > 0.6) { for (let k = 0; k < 4; k++) box(c, x + 8 + k * 2, GY - 4 - (k % 2) * 3, 2, 5 + (k % 2) * 3, k % 2 ? LEAF[3] : LEAF[2]); }
+  const CH = 400;
+  for (let cx = Math.floor(L / CH) * CH; cx < R; cx += CH) stamp(c, `clPath2:${cx}`, cx, GY - 14, CH, 414, g => paintPath(g, cx, CH));
+};
+const paintPath = (g: Ctx, cx: number, CH: number) => {
+  g.save(); g.beginPath(); g.rect(cx, GY - 14, CH, 414); g.clip();
+  // (the bands: the lit lip (stood on), the trodden top, darker going down, each step dithered into the next)
+  box(g, cx, GY, CH, 400, DIRT[2]);
+  box(g, cx, GY, CH, 2, DIRT[4]); box(g, cx, GY + 2, CH, 3, DIRT[3]); checker(g, cx, GY + 5, CH, 2, DIRT[3]);
+  checker(g, cx, GY + 36, CH, 2, DIRT[1]); box(g, cx, GY + 38, CH, 362, DIRT[1]);
+  checker(g, cx, GY + 92, CH, 2, DIRT_DEEP); box(g, cx, GY + 94, CH, 306, DIRT_DEEP);
+  checker(g, cx, GY + 170, CH, 2, DIRT[0]); box(g, cx, GY + 172, CH, 228, DIRT[0]);
+  // (the grain: grit, a lighter and a darker fleck of it, thinning out going down into the shade)
+  for (let i = 0; i < CH * 1.6; i++) {
+    const x = cx + Math.floor(r1(cx + i, 61) * CH), t = r1(i, cx + 3), y = GY + 6 + Math.floor(t * t * 150);
+    const band = y < GY + 37 ? 2 : y < GY + 93 ? 1 : 0;
+    const dark = band === 2 ? DIRT[1] : band === 1 ? DIRT_DEEP : DIRT[0], lite = band === 2 ? DIRT[3] : band === 1 ? DIRT[2] : DIRT[1];
+    box(g, x, y, 1 + (i % 3 === 0 ? 1 : 0), 1, i % 2 ? dark : lite);
   }
+  for (let x = Math.floor((cx - 80) / 46) * 46; x < cx + CH + 80; x += 46) {
+    const s = r1(x, 1), s2 = r1(x, 2), s3 = r1(x, 3);
+    // (the ruts along it: a dark groove, its far lip lit, the near side shaded down into it)
+    const ry = GY + 14 + (s > 0.5 ? 8 : 0), rw = 18 + s * 16, rx = x + s * 20;
+    box(g, rx, ry - 1, rw, 1, DIRT[3]); box(g, rx, ry, rw, 2, DIRT[0]); box(g, rx + 2, ry + 2, rw - 4, 1, DIRT[1]); checker(g, rx + 2, ry + 3, rw - 4, 2, DIRT[1]);
+    // (a stone, inked, lit on its top and left, a shadow cast to the right)
+    if (s2 > 0.35) {
+      const px = x + 30 * s2, py = GY + 22 + Math.floor(s3 * 30), w = 4 + Math.floor(s3 * 5), h = 3 + Math.floor(s2 * 2);
+      box(g, px + 2, py + h - 1, w + 1, 2, DIRT[0]);
+      box(g, px - 1, py - 1, w + 2, h + 2, INK); box(g, px, py, w, h, '#8A8278'); box(g, px, py, w, 1, '#C8C0B4'); box(g, px, py, 1, h, '#ACA398'); box(g, px + w - 1, py + 1, 1, h - 1, '#5E5850');
+    }
+    // (a little scatter of gravel)
+    if (s3 > 0.55) for (let k = 0; k < 5; k++) { const gx = x + 6 + r1(k, x) * 34, gy = GY + 8 + r1(x, k) * 60; box(g, gx, gy, 2, 1, DIRT[4]); box(g, gx, gy + 1, 2, 1, DIRT[0]); }
+    // (hoofprints, the herd's been through: paired crescents, cut in, their far lip lit)
+    if (s > 0.62 && s3 < 0.7) for (let k = 0; k < 2; k++) {
+      const hx = x + 4 + k * 22 + Math.floor(s2 * 6), hy = GY + 30 + Math.floor(r1(x, 9 + k) * 40);
+      for (const dx of [0, 5]) { box(g, hx + dx, hy - 1, 4, 1, DIRT[3]); box(g, hx + dx, hy, 4, 3, DIRT[0]); box(g, hx + dx + 1, hy + 3, 2, 1, DIRT[0]); }
+    }
+    // (a fallen leaf, curled: lit edge, its midrib)
+    if (s2 < 0.18) { const lx = x + 10 + s * 20, ly = GY + 10 + Math.floor(s3 * 24); box(g, lx - 1, ly - 1, 8, 4, INK); box(g, lx, ly, 6, 2, s3 > 0.5 ? '#9A7A34' : LEAF[2]); box(g, lx, ly, 6, 1, s3 > 0.5 ? '#C8A050' : LEAF[4]); box(g, lx + 1, ly + 1, 4, 1, s3 > 0.5 ? '#6A4A20' : LEAF[1]); }
+    // (a root across it from the jungle at its back: inked, in its bark steps, lit along its top, sinking in)
+    if (s3 < 0.12) {
+      const len = 40 + s * 40;
+      for (let t = 0; t < len; t += 2) {
+        const yy = GY + 2 + t * 0.35 + Math.sin(t * 0.12 + s * 6) * 3, ww = Math.max(2, 5 - t * 0.06);
+        box(g, x + t, yy - 1, 3, ww + 2, INK); box(g, x + t, yy, 2, ww, BARK[2]); box(g, x + t, yy, 2, 1, BARK[4]); box(g, x + t, yy + ww - 1, 2, 1, BARK[1]);
+      }
+    }
+  }
+  g.restore();
+};
+
+/** The grass creeping in over the path's lip (tufts of blades, inked, in their steps; a little flower now and then):
+ *  drawn after the understory, whose shaded foot would hide them. Chunked and stamped as the path is. */
+export const drawPathTufts = (c: Ctx, L: number, R: number) => {
+  const CH = 400;
+  for (let cx = Math.floor(L / CH) * CH; cx < R; cx += CH) stamp(c, `clTufts:${cx}`, cx, GY - 16, CH, 20, g => {
+    g.save(); g.beginPath(); g.rect(cx, GY - 16, CH, 20); g.clip();
+    for (let x = Math.floor((cx - 80) / 46) * 46; x < cx + CH + 80; x += 46) {
+      const s = r1(x, 1), s2 = r1(x, 2);
+      // (grass creeping in over the lip: tufts of blades, inked, in their steps; a little flower now and then)
+      if (s > 0.45) {
+        const tx = x + 6 + Math.floor(s2 * 20);
+        for (let k = 0; k < 6; k++) {
+          const bh = 4 + ((k * 5 + Math.floor(s * 7)) % 6), bx = tx + k * 2 - (k > 2 ? 0 : 1), lean = k < 2 ? -1 : k > 3 ? 1 : 0;
+          box(g, bx - 1 + (lean < 0 ? -1 : 0), GY - bh - 1, 3 + Math.abs(lean), bh + 2, INK);
+          box(g, bx, GY - bh, 1, bh, k % 2 ? LEAF[3] : LEAF[2]); box(g, bx + lean, GY - bh, 1, 2, LEAF[4]);
+        }
+        if (s2 > 0.8) { box(g, tx + 4, GY - 12, 3, 3, INK); box(g, tx + 5, GY - 11, 1, 1, '#F2C21E'); box(g, tx + 4, GY - 11, 1, 1, '#F4F0E8'); box(g, tx + 6, GY - 11, 1, 1, '#F4F0E8'); }
+      }
+    }
+    g.restore();
+  });
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -338,12 +399,16 @@ export const drawFogger = (c: Ctx, x: number, f: number) => {
 /** A PA pole made up as a bamboo stalk (green, its nodes, a leaf or two glued on), the park's horn speakers up it, the
  *  junction box, the cable. Up it: Artie's whistle, his set. */
 export const drawSpeakerPole = (c: Ctx, x: number, h: number) => {
-  stamp(c, `clPA:${x}:${h}`, x - 40, GY - h - 30, 80, h + 30, g => {
+  stamp(c, `clPA2:${x}:${h}`, x - 40, GY - h - 30, 80, h + 30, g => {
     const B = ['#2E4A1E', '#466A2A', '#5E8A36', '#7EA84A'].map(dim);
     box(g, x - 5, GY - h, 10, h, INK); box(g, x - 4, GY - h, 8, h, B[2]); box(g, x - 4, GY - h, 2, h, B[3]); box(g, x + 2, GY - h, 2, h, B[1]);
     for (let y = GY - h + 18; y < GY - 4; y += 26) { box(g, x - 5, y, 10, 3, B[0]); box(g, x - 4, y, 8, 1, B[3]); }
     // (a leaf glued on: a seam of glue shows)
-    g.fillStyle = B[2]; g.beginPath(); g.ellipse(x + 12, GY - h + 50, 12, 4, 0.5, 0, Math.PI * 2); g.fill(); box(g, x + 3, GY - h + 46, 3, 2, dim('#E8E4D8'));
+    g.fillStyle = dim(INK); g.beginPath(); g.ellipse(x + 12, GY - h + 50, 13, 5, 0.5, 0, Math.PI * 2); g.fill();
+    g.fillStyle = B[2]; g.beginPath(); g.ellipse(x + 12, GY - h + 50, 12, 4, 0.5, 0, Math.PI * 2); g.fill();
+    g.fillStyle = B[3]; g.beginPath(); g.ellipse(x + 10, GY - h + 48, 8, 2, 0.5, 0, Math.PI * 2); g.fill();
+    g.strokeStyle = B[0]; g.lineWidth = 1; g.beginPath(); g.moveTo(x + 3, GY - h + 45); g.lineTo(x + 22, GY - h + 56); g.stroke();
+    box(g, x + 3, GY - h + 46, 3, 2, dim('#E8E4D8'));
     // (two horns, out either way, on their brackets)
     for (const s of [-1, 1]) {
       const sy = GY - h + 8;
@@ -362,7 +427,7 @@ export const drawSpeakerPole = (c: Ctx, x: number, h: number) => {
 // The rock, the signs, the first-aid stop
 
 export const drawRock = (c: Ctx, x: number, w: number, h: number) => {
-  stamp(c, `clRock:${x}`, x - 8, GY - h - 14, w + 16, h + 16, g => {
+  stamp(c, `clRock2:${x}`, x - 8, GY - h - 14, w + 16, h + 16, g => {
     const top = GY - h;
     // (the boulder: an ink edge, its ramp across it, lit up top and on the left)
     g.fillStyle = INK; g.beginPath(); g.moveTo(x - 4, GY); g.lineTo(x - 2, top + 10); g.lineTo(x + 8, top - 2); g.lineTo(x + w - 10, top - 2); g.lineTo(x + w + 2, top + 8); g.lineTo(x + w + 4, GY); g.fill();
@@ -371,6 +436,10 @@ export const drawRock = (c: Ctx, x: number, w: number, h: number) => {
     box(g, x + w * 0.62, top + 8, w * 0.38, h - 8, R[1]); checker(g, x + w * 0.56, top + 8, 6, h - 8, R[1]);
     box(g, x + 2, top + 10, 8, h - 12, R[3]); checker(g, x + 10, top + 10, 4, h - 12, R[3]);
     box(g, x + 14, top + 22, 22, 2, R[1]); box(g, x + 30, top + 30, 2, 12, R[1]); box(g, x + 14, top + 24, 22, 1, R[4]);
+    // (more of its weathering: cracks with a lit lip, pits, lichen in two greens dithered on its face)
+    for (const [cx, cy, l] of [[w * 0.45, 40, 18], [w * 0.75, 26, 14], [w * 0.2, h - 30, 12]] as const) if (cy > 10 && cy + l < h - 6) for (let k = 0; k < l; k += 2) { const sx = Math.round(Math.sin(k * 0.6) * 2); box(g, x + cx + sx, top + cy + k, 1, 2, R[0]); box(g, x + cx + 1 + sx, top + cy + k, 1, 2, R[4]); }
+    for (let k = 0; k < 14; k++) box(g, x + 8 + r1(k, x + 1) * (w - 16), top + 12 + r1(x, k) * Math.max(4, h - 24), 2, 2, k % 2 ? R[1] : R[0]);
+    for (const [lx, ly] of [[w * 0.3, 14], [w * 0.66, 34]] as const) if (ly < h - 14) { pixelBlob(g, x + lx, top + ly, 7, 4, '#6E8A4A'); checker(g, x + lx - 6, top + ly - 3, 12, 6, '#A0B868'); }
     // (its top: lit, flat enough to stand on)
     box(g, x + 6, top - 4, w - 12, 6, R[4]); box(g, x + 6, top - 4, w - 12, 2, R[5]);
     // (moss round its foot)
@@ -380,30 +449,72 @@ export const drawRock = (c: Ctx, x: number, w: number, h: number) => {
 
 /** A wooden sign on two posts: HUNTING AREA (antlers on top, a couple of bullet holes). */
 export const drawHuntSign = (c: Ctx, x: number) => {
-  stamp(c, 'clHunt', x - 70, GY - 132, 140, 134, g => {
-    for (const px of [x - 44, x + 40]) { pole(g, px, GY - 90, 6, 90, '#7A5430'); box(g, px - 1, GY - 4, 8, 4, MOSS[1]); }
+  stamp(c, 'clHunt2', x - 70, GY - 136, 140, 138, g => {
+    for (const px of [x - 44, x + 40]) {
+      pole(g, px, GY - 90, 6, 90, '#7A5430');
+      // (the posts' grain, a lashing at the board, moss and a tuft at the foot)
+      for (let y = GY - 84; y < GY - 8; y += 11) box(g, px + 1 + ((y >> 2) % 3), y, 1, 5, '#432A16');
+      box(g, px - 1, GY - 66, 8, 2, '#C9A86A'); box(g, px - 1, GY - 63, 8, 1, '#7A5A2A');
+      box(g, px - 2, GY - 6, 10, 6, INK); box(g, px - 1, GY - 5, 8, 5, MOSS[1]); checker(g, px - 1, GY - 8, 8, 3, MOSS[2]);
+    }
     plaque(g, x, GY - 80, 112, 38, '#8A5A2E', ['HUNTING AREA', 'TRESPASSERS', 'WILL BE STUFFED'], '#FDE68A', 5);
-    for (const [hx, hy] of [[x + 38, GY - 92], [x - 30, GY - 70]]) { box(g, hx - 1, hy - 1, 4, 4, INK); box(g, hx, hy, 2, 2, '#1A0E06'); }
-    // (antlers)
-    g.strokeStyle = '#E7DCC0'; g.lineWidth = 3; g.beginPath();
-    for (const s of [-1, 1]) { g.moveTo(x, GY - 100); g.quadraticCurveTo(x + s * 18, GY - 108, x + s * 24, GY - 126); g.moveTo(x + s * 12, GY - 106); g.lineTo(x + s * 8, GY - 120); g.moveTo(x + s * 20, GY - 114); g.lineTo(x + s * 30, GY - 118); }
-    g.stroke();
-    box(g, x - 6, GY - 104, 12, 8, '#8A5A2E'); box(g, x - 6, GY - 104, 12, 2, '#B07A44');
+    // (bullet holes: splintered round, the dark through them)
+    for (const [hx, hy] of [[x + 38, GY - 92], [x - 30, GY - 70], [x + 22, GY - 66]]) { box(g, hx - 2, hy - 1, 6, 4, '#B07A44'); box(g, hx - 1, hy - 1, 4, 4, INK); box(g, hx, hy, 2, 2, '#1A0E06'); box(g, hx + 3, hy - 2, 1, 1, '#D8A060'); }
+    // (the antlers on their mount: bone, inked, in steps, the tines lit along their tops)
+    const tine = (pts: [number, number][], w: number) => {
+      for (const [col, lw] of [[INK, w + 2], ['#B8A880', w], ['#E7DCC0', Math.max(1, w - 1.5)]] as const) {
+        g.strokeStyle = col; g.lineWidth = lw; g.lineCap = 'round'; g.beginPath();
+        pts.forEach(([px, py], k) => (k ? g.lineTo(px, py) : g.moveTo(px, py))); g.stroke();
+      }
+      g.lineCap = 'butt';
+    };
+    for (const s of [-1, 1]) {
+      tine([[x + s * 3, GY - 100], [x + s * 14, GY - 106], [x + s * 21, GY - 116], [x + s * 24, GY - 128]], 3);
+      tine([[x + s * 11, GY - 105], [x + s * 8, GY - 120]], 2);
+      tine([[x + s * 20, GY - 114], [x + s * 30, GY - 119]], 2);
+    }
+    // (the mount: a shield of wood, inked, its bevel lit, a brass tack)
+    g.fillStyle = INK; g.beginPath(); g.moveTo(x - 10, GY - 107); g.lineTo(x + 10, GY - 107); g.lineTo(x + 10, GY - 98); g.lineTo(x, GY - 93); g.lineTo(x - 10, GY - 98); g.closePath(); g.fill();
+    g.fillStyle = '#8A5A2E'; g.beginPath(); g.moveTo(x - 9, GY - 106); g.lineTo(x + 9, GY - 106); g.lineTo(x + 9, GY - 98); g.lineTo(x, GY - 94); g.lineTo(x - 9, GY - 98); g.closePath(); g.fill();
+    box(g, x - 9, GY - 106, 18, 2, '#B07A44'); box(g, x - 9, GY - 104, 2, 6, '#A06A38'); box(g, x + 7, GY - 104, 2, 6, '#5E3A1E');
+    box(g, x - 1, GY - 101, 2, 2, '#E8B400');
   });
 };
 
 /** Before the boss: a supply crate (what's on it is the big health and ammo) under a first-aid sign on a post. */
 export const drawAidStop = (c: Ctx, stocked: boolean) => {
   const x = PICKUP_X - 10;
-  stamp(c, `clAid:${stocked ? 1 : 0}`, x - 80, GY - 156, 200, 158, g => {
+  stamp(c, `clAid2:${stocked ? 1 : 0}`, x - 80, GY - 160, 200, 162, g => {
     pole(g, x + 60, GY - 120, 6, 120, '#7A5430');
+    box(g, x + 58, GY - 4, 10, 4, MOSS[1]);
     plaque(g, x + 63, GY - 126, 92, 32, '#F5F0E0', ['LAST CHANCE', 'FIRST AID'], '#B91C1C', 5);
-    box(g, x + 59 - 6, GY - 150, 18, 12, INK); box(g, x + 57, GY - 149, 10, 10, '#F8FAFC'); box(g, x + 60, GY - 148, 4, 8, '#DC2626'); box(g, x + 58, GY - 146, 8, 4, '#DC2626');
-    // (the crate it's all set out on, behind: planks, its lid ajar)
-    box(g, x - 60, GY - 44, 100, 44, INK); box(g, x - 58, GY - 42, 96, 42, '#9A7444');
-    for (let k = 0; k < 4; k++) { box(g, x - 58, GY - 42 + k * 11, 96, 1, '#6E5030'); box(g, x - 58, GY - 41 + k * 11, 96, 1, '#BE9660'); }
-    box(g, x - 58, GY - 42, 4, 42, '#BE9660'); box(g, x + 34, GY - 42, 4, 42, '#6E5030');
-    signAt(g, stocked ? 'PROPERTY OF S.A.' : 'EMPTY. SORRY.', x - 10, GY - 12, 5, stencil(5, '#3A2410'));
+    // (the first-aid plate on top: enameled tin, inked, rivets, its red cross in its steps, a dent)
+    const px = x + 63, py = GY - 152;
+    box(g, px - 10, py - 1, 20, 18, INK); box(g, px - 9, py, 18, 16, '#E8E4D8'); box(g, px - 9, py, 18, 2, '#FFFFFF'); box(g, px - 9, py + 14, 18, 2, '#B8B0A0');
+    box(g, px - 3, py + 2, 6, 12, '#B91C1C'); box(g, px - 7, py + 6, 14, 4, '#B91C1C'); box(g, px - 3, py + 2, 2, 12, '#DC2626'); box(g, px - 7, py + 6, 14, 1, '#EF4444');
+    for (const [rx, ry] of [[-8, 1], [6, 1], [-8, 13], [6, 13]]) box(g, px + rx, py + ry, 2, 2, '#8A929C');
+    box(g, px + 4, py + 10, 3, 2, '#C8C0B0');
+    // (the crate it's all set out on, behind: inked, its frame boards, the planks between with their grain, a brace
+    // across, nails, its lid shoved ajar on top)
+    const cx0 = x - 60, cw = 100, ct = GY - 44;
+    box(g, cx0, ct, cw, 44, INK); box(g, cx0 + 2, ct + 2, cw - 4, 42, '#9A7444');
+    for (let k = 0; k < 4; k++) {
+      const py2 = ct + 2 + k * 10;
+      box(g, cx0 + 2, py2, cw - 4, 1, '#BE9660'); box(g, cx0 + 2, py2 + 9, cw - 4, 1, '#6E5030');
+      for (let gx = cx0 + 8 + ((k * 13) % 17); gx < cx0 + cw - 10; gx += 19) box(g, gx, py2 + 3 + (gx % 3), 6, 1, '#856238');
+    }
+    // (the frame: a board down each end, lit edges; the brace on the slant)
+    for (const fx of [cx0 + 2, cx0 + cw - 10]) { box(g, fx, ct + 2, 8, 42, '#8A6438'); box(g, fx, ct + 2, 1, 42, '#C8A070'); box(g, fx + 7, ct + 2, 1, 42, '#5A4024'); }
+    g.strokeStyle = '#5A4024'; g.lineWidth = 6; g.beginPath(); g.moveTo(cx0 + 12, GY - 4); g.lineTo(cx0 + cw - 12, ct + 6); g.stroke();
+    g.strokeStyle = '#8A6438'; g.lineWidth = 4; g.beginPath(); g.moveTo(cx0 + 12, GY - 4); g.lineTo(cx0 + cw - 12, ct + 6); g.stroke();
+    g.strokeStyle = '#B08A58'; g.lineWidth = 1; g.beginPath(); g.moveTo(cx0 + 12, GY - 6); g.lineTo(cx0 + cw - 12, ct + 4); g.stroke();
+    for (const [nx, ny] of [[cx0 + 5, ct + 5], [cx0 + 5, GY - 5], [cx0 + cw - 7, ct + 5], [cx0 + cw - 7, GY - 5]]) { box(g, nx, ny, 2, 2, '#3A3A42'); box(g, nx, ny, 1, 1, '#9CA3AF'); }
+    // (the lid, shoved back a little and askew: its edge lit, its shadow on the crate)
+    g.fillStyle = INK; g.beginPath(); g.moveTo(cx0 + 6, ct - 1); g.lineTo(cx0 + cw + 8, ct - 7); g.lineTo(cx0 + cw + 8, ct - 1); g.lineTo(cx0 + 6, ct + 4); g.fill();
+    g.fillStyle = '#A88050'; g.beginPath(); g.moveTo(cx0 + 7, ct); g.lineTo(cx0 + cw + 7, ct - 6); g.lineTo(cx0 + cw + 7, ct - 2); g.lineTo(cx0 + 7, ct + 3); g.fill();
+    g.fillStyle = '#D0A870'; g.beginPath(); g.moveTo(cx0 + 7, ct); g.lineTo(cx0 + cw + 7, ct - 6); g.lineTo(cx0 + cw + 7, ct - 5); g.lineTo(cx0 + 7, ct + 1); g.fill();
+    checker(g, cx0 + 2, ct + 3, cw - 4, 2, '#6E5030');
+    signAt(g, stocked ? 'PROPERTY OF S.A.' : 'EMPTY. SORRY.', x - 10, GY - 14, 5, stencil(5, '#3A2410'));
   });
 };
 
@@ -413,15 +524,58 @@ export const drawAidStop = (c: Ctx, stocked: boolean) => {
 /** One tree, its foot at (x, GY), turned `a` (radians, over to the right). `down`: lying back there, dimmed. */
 export const drawTree = (c: Ctx, x: number, a: number, i: number, f: number, down: boolean) => {
   // (standing (before the kick, every frame he's in view of them): painted once each, stamped; the toucan's two bobs
-  // two stamps. Going over or down: live)
+  // two stamps. Going over: the standing one baked once at the screen's scale and put down turned (a stamp won't
+  // turn), so a row of them going down like dominoes costs a drawImage each, not a whole tree's painting each. Down: live)
   if (a === 0 && !down) {
     const bob = i === 2 ? Math.floor(f / 30) % 2 : 0;
-    stamp(c, `clTreeUp:${i}:${bob}`, x - 130, GY - TREE_H - 110, 260, TREE_H + 116, g => paintTree(g, x, 0, i, bob * 30, false));
+    stamp(c, `clTreeUp2:${i}:${bob}`, x - 130, GY - TREE_H - 110, 260, TREE_H + 116, g => paintTree(g, x, 0, i, bob * 30, false));
+    return;
+  }
+  if (!down && typeof document !== 'undefined') {
+    const m = c.getTransform(), sc = Math.max(1, Math.min(4, Math.round(Math.hypot(m.a, m.b) * 2) / 2));
+    const key = `${i}@${sc}`;
+    let cv = fallen.get(key);
+    if (!cv) {
+      if (fallen.size > 16) fallen.clear();
+      cv = document.createElement('canvas'); cv.width = Math.ceil(260 * sc); cv.height = Math.ceil((TREE_H + 116) * sc);
+      const g = cv.getContext('2d')!;
+      g.setTransform(sc, 0, 0, sc, 130 * sc, (TREE_H + 110) * sc);
+      // (its foot at 0, 0; no toucan: it's flown, the moment the tree's going)
+      paintTree(g, 0, 0, i, 0, false, true);
+      fallen.set(key, cv);
+    }
+    c.save(); c.translate(x, GY); c.rotate(a); c.imageSmoothingEnabled = true;
+    c.drawImage(cv, -130, -TREE_H - 110, 260, TREE_H + 116);
+    c.restore();
     return;
   }
   paintTree(c, x, a, i, f, down);
 };
-const paintTree = (c: Ctx, x: number, a: number, i: number, f: number, down: boolean) => {
+/** The trees going over, each baked once (its number, the scale): drawTree. */
+const fallen = new Map<string, HTMLCanvasElement>();
+/** A clump of the trees' leaves (the detail pass, at the bushes' level): inked under, the ramp in its steps dithered
+ *  between, leaf tips ragged round its edge, lit up top, dark underneath. */
+const leafClump = (c: Ctx, x: number, y: number, r: number, L: string[], seed: number) => {
+  pixelBlob(c, x + 2, y + 3, r + 1, r * 0.8 + 1, L[6]);
+  pixelBlob(c, x + r * 0.1, y + r * 0.1, r, r * 0.78, L[0]);
+  // (the leaf tips round its edge: pointed, inked, lit on the upper ones)
+  for (let k = 0; k < 11; k++) {
+    const an = (k / 11) * Math.PI * 2 + seed, lx = x + Math.cos(an) * r * 0.95, ly = y + Math.sin(an) * r * 0.74;
+    const up = Math.sin(an) < -0.25, col = up ? L[3] : Math.sin(an) > 0.4 ? L[0] : L[1];
+    c.fillStyle = L[6]; c.beginPath(); c.ellipse(lx, ly, 6.5, 3.6, an, 0, Math.PI * 2); c.fill();
+    c.fillStyle = col; c.beginPath(); c.ellipse(lx, ly, 5.2, 2.4, an, 0, Math.PI * 2); c.fill();
+  }
+  pixelBlob(c, x, y, r * 0.9, r * 0.7, L[1]);
+  checker(c, x - r * 0.7, y - r * 0.12, r * 1.3, 2, L[2]);
+  pixelBlob(c, x - r * 0.16, y - r * 0.2, r * 0.66, r * 0.48, L[2]);
+  checker(c, x - r * 0.5, y - r * 0.44, r * 0.95, 2, L[3]);
+  pixelBlob(c, x - r * 0.3, y - r * 0.34, r * 0.36, r * 0.24, L[3]);
+  // (single leaves picked out in the lit side, the shade's leaves down the underside)
+  for (let k = 0; k < 6; k++) { const lx = x - r * 0.55 + r1(k, seed) * r * 0.8, ly = y - r * 0.5 + r1(seed, k) * r * 0.4; box(c, lx, ly, 3, 1, L[4]); box(c, lx + 1, ly + 1, 2, 1, L[3]); }
+  checker(c, x - r * 0.6, y + r * 0.42, r * 1.2, 2, L[0], 1);
+  box(c, x - r * 0.38, y - r * 0.46, Math.max(2, r * 0.16), 2, L[5]);
+};
+const paintTree = (c: Ctx, x: number, a: number, i: number, f: number, down: boolean, noBird = false) => {
   const d = (col: string) => (down ? dim(mix(col, INK, 0.3)) : col);
   c.save();
   // (down: lying back off the path, nothing of it below the path's edge; the bark's light turned away from its top)
@@ -429,12 +583,22 @@ const paintTree = (c: Ctx, x: number, a: number, i: number, f: number, down: boo
   c.translate(x, down ? GY - 30 : GY); c.rotate(a);
   const H = TREE_H;
   // (buttress roots, flaring out at the foot)
-  for (const s of [-1, 1]) { c.fillStyle = d(BARK[1]); c.beginPath(); c.moveTo(s * 12, -50); c.quadraticCurveTo(s * 18, -10, s * 34, 0); c.lineTo(s * 8, 0); c.closePath(); c.fill(); }
+  for (const s of [-1, 1]) {
+    c.fillStyle = d(INK); c.beginPath(); c.moveTo(s * 11, -54); c.quadraticCurveTo(s * 19, -11, s * 37, 1); c.lineTo(s * 7, 1); c.closePath(); c.fill();
+    c.fillStyle = d(s < 0 ? BARK[3] : BARK[1]); c.beginPath(); c.moveTo(s * 12, -50); c.quadraticCurveTo(s * 18, -10, s * 34, 0); c.lineTo(s * 8, 0); c.closePath(); c.fill();
+    // (its lit ridge, a fold down it)
+    c.strokeStyle = d(s < 0 ? BARK[4] : BARK[2]); c.lineWidth = 1; c.beginPath(); c.moveTo(s * 12, -48); c.quadraticCurveTo(s * 15, -14, s * 28, -1); c.stroke();
+  }
   // (the trunk, banded: lit down its left, shadowed down its right, bark stripes)
   box(c, -16, -H, 32, H, d(INK));
   const bands = down ? [BARK[1], BARK[1], BARK[2], BARK[2], BARK[2], BARK[3], BARK[2]] : [BARK[3], BARK[4], BARK[3], BARK[2], BARK[2], BARK[1], BARK[1]];
   bands.forEach((col, k) => box(c, -15 + k * 4.3, -H, 4.6, H, d(col)));
   for (let y = -H + 12; y < -8; y += 18) { const s = r1(y, i); box(c, -12 + s * 10, y, 8, 2, d(BARK[0])); box(c, -12 + s * 10, y + 2, 8, 1, d(BARK[4])); }
+  // (the bark's fissures down it (a dark crack, its lit edge), knots, moss up its shaded side from the foot)
+  for (let k = 0; k < 6; k++) { const fx = -12 + ((k * 7 + i * 3) % 24), fy = -H + 20 + r1(k, i + 9) * (H - 80), fh = 20 + r1(i, k) * 40; box(c, fx, fy, 1, fh, d(BARK[0])); box(c, fx - 1, fy + 2, 1, fh - 4, d(BARK[4])); }
+  for (const ky of [-H * 0.42, -H * 0.7]) { const kx = -6 + r1(ky, i) * 10; box(c, kx - 1, ky - 1, 7, 6, d(BARK[0])); box(c, kx, ky, 5, 4, d(BARK[2])); box(c, kx + 1, ky + 1, 3, 2, d(BARK[0])); box(c, kx, ky, 5, 1, d(BARK[4])); }
+  for (let y = -70; y < -6; y += 4) { const w2 = Math.round(3 + r1(y, i + 4) * 6); box(c, 15 - w2, y, w2, 4, d(MOSS[1])); }
+  checker(c, 6, -76, 9, 6, d(MOSS[2]));
   // (a vine round it, a few leaves)
   vineDown(c, -6, -H + 30, H - 70, i);
   // (the park's speakers strapped up some of them (the jungle's noises; his set): a box, its grille, the straps round
@@ -449,11 +613,16 @@ const paintTree = (c: Ctx, x: number, a: number, i: number, f: number, down: boo
   }
   if (i === 3) { box(c, -10, -64, 20, 36, d(BARK[0])); box(c, -9, -63, 18, 34, d(BARK[2])); box(c, -9, -63, 18, 1, d(BARK[4])); box(c, -11, -58, 3, 4, d('#9CA3AF')); box(c, -11, -40, 3, 4, d('#9CA3AF')); box(c, 5, -48, 3, 3, d('#C8A040')); }
   // (the crown: clumps of leaves in their ramp, hanging vines)
-  const ramp = [LEAF[1], LEAF[2], LEAF[3], LEAF[5]].map(d);
-  for (const [dx, dy, r] of [[-46, 26, 40], [44, 24, 40], [0, -12, 52], [-24, 2, 40], [26, 4, 40]] as const) crown(c, dx, -H + dy, r, ramp);
-  for (const vx of [-52, -20, 30, 56]) { box(c, vx, -H + 40, 2, 40 + ((vx * 7) % 30), d(LEAF[1])); box(c, vx - 2, -H + 70 + ((vx * 7) % 30), 6, 4, d(LEAF[3])); }
+  const ramp = [LEAF[0], LEAF[1], LEAF[2], LEAF[3], LEAF[4], LEAF[5], INK].map(d);
+  for (const [dx, dy, r, k] of [[-46, 26, 40, 0], [44, 24, 40, 1], [0, -12, 52, 2], [-24, 2, 40, 3], [26, 4, 40, 4]] as const) leafClump(c, dx, -H + dy, r, ramp, k + i * 1.7);
+  for (const vx of [-52, -20, 30, 56]) {
+    const vl = 40 + (((vx * 7) % 30) + 30) % 30;
+    box(c, vx - 1, -H + 40, 4, vl, d(INK)); box(c, vx, -H + 40, 2, vl, d(LEAF[1])); for (let y = -H + 44; y < -H + 40 + vl; y += 6) box(c, vx, y, 1, 2, d(LEAF[3]));
+    // (a pair of leaves on its end, inked)
+    box(c, vx - 4, -H + 38 + vl, 10, 6, d(INK)); box(c, vx - 3, -H + 39 + vl, 4, 4, d(LEAF[3])); box(c, vx + 1, -H + 39 + vl, 4, 4, d(LEAF[2])); box(c, vx - 3, -H + 39 + vl, 4, 1, d(LEAF[4]));
+  }
   // (a toucan up there, not that anyone's looking)
-  if (i === 2 && !down && a < 0.05) { const bob = Math.floor(f / 30) % 2; box(c, 20, -H - 30 - bob, 10, 8, INK); box(c, 21, -H - 29 - bob, 8, 6, '#1C1917'); box(c, 29, -H - 29 - bob, 8, 4, '#F97316'); box(c, 22, -H - 27 - bob, 2, 2, '#F8FAFC'); }
+  if (i === 2 && !down && !noBird && a < 0.05) { const bob = Math.floor(f / 30) % 2; box(c, 20, -H - 30 - bob, 10, 8, INK); box(c, 21, -H - 29 - bob, 8, 6, '#1C1917'); box(c, 29, -H - 29 - bob, 8, 4, '#F97316'); box(c, 22, -H - 27 - bob, 2, 2, '#F8FAFC'); }
   c.restore();
 };
 
@@ -461,14 +630,21 @@ const paintTree = (c: Ctx, x: number, a: number, i: number, f: number, down: boo
 // The temple's wing across the path
 
 export const drawWing = (c: Ctx, hit: boolean) => {
-  stamp(c, `clWing:${hit ? 1 : 0}`, TEMPLE_X - 60, GY - 320, 1000, 324, g => {
+  stamp(c, `clWing2:${hit ? 1 : 0}`, TEMPLE_X - 60, GY - 320, 1000, 324, g => {
     stoneWall(g, TEMPLE_X + 40, GY - 300, 900, 80, 41, { seams: 192, base: 3 });
     stoneWall(g, TEMPLE_X, GY - 220, 900, 220, 29, { seams: 192, moss: 0.3, glyphs: true });
     // (its corner going back: the end of it, in shadow)
     box(g, TEMPLE_X, GY - 220, 8, 220, STONE[2]); checker(g, TEMPLE_X + 8, GY - 220, 4, 220, STONE[2]);
     // (the cornices: dark-capped, not lit like somewhere to stand)
-    box(g, TEMPLE_X, GY - 224, 900, 6, STONE[3]); box(g, TEMPLE_X, GY - 218, 900, 3, STONE[1]);
-    box(g, TEMPLE_X + 40, GY - 304, 900, 6, STONE[2]);
+    // (each a molding: its cap dark (nothing lit up there to stand on), its face in its steps, a row of dentils, the
+    // shadow it casts under it dithered down onto the wall)
+    const cornice = (cx: number, cy: number) => {
+      box(g, cx, cy - 1, 900, 1, INK); box(g, cx, cy, 900, 2, STONE[1]);
+      box(g, cx, cy + 2, 900, 3, STONE[3]); box(g, cx, cy + 3, 900, 1, STONE[4]);
+      for (let k = cx; k < cx + 900; k += 12) { box(g, k, cy + 5, 6, 2, STONE[3]); box(g, k + 6, cy + 5, 6, 2, STONE[1]); }
+      box(g, cx, cy + 7, 900, 2, STONE[0]); checker(g, cx, cy + 9, 900, 2, STONE[0]);
+    };
+    cornice(TEMPLE_X, GY - 226); cornice(TEMPLE_X + 40, GY - 306);
     for (let x = TEMPLE_X + 80; x < TEMPLE_X + 860; x += 140) glyph(g, x, GY - 260, STONE[3]);
     for (let i = 0; i < 6; i++) vineDown(g, TEMPLE_X + 20 + i * 47 + r1(i) * 20, GY - 218, 60 + r1(i, 2) * 120, i);
     if (!hit) return;
@@ -484,7 +660,17 @@ export const drawWing = (c: Ctx, hit: boolean) => {
     box(g, hx - 26, hy - 2, 4, 10, SHELL); box(g, hx + 22, hy - 8, 4, 12, SHELL);
     g.strokeStyle = STONE[0]; g.lineWidth = 2;
     for (const [dx, dy] of [[70, -50], [90, 30], [40, 80], [120, -10], [30, -70]] as const) { g.beginPath(); g.moveTo(hx, hy); g.lineTo(hx + dx * 0.5, hy + dy * 0.4 + 6); g.lineTo(hx + dx, hy + dy); g.stroke(); }
-    for (let i = 0; i < 9; i++) { const s = 8 + r1(i, 4) * 12, rx = TEMPLE_X - 50 + i * 12; box(g, rx, GY - s, s * 1.3, s, STONE[3]); box(g, rx, GY - s, s * 1.3, 2, STONE[5]); box(g, rx + s * 1.3 - 2, GY - s, 2, s, STONE[1]); }
+    // (the rubble: chunks of block, inked, a lit facet up top, its shaded side; plywood splinters among it)
+    for (let i = 0; i < 9; i++) {
+      const sz = 8 + r1(i, 4) * 12, rx = TEMPLE_X - 50 + i * 12 + r1(i, 8) * 4, w = sz * 1.3, sk = (r1(i, 6) - 0.5) * 6;
+      const pts: [number, number][] = [[rx, GY], [rx + 1, GY - sz * 0.7], [rx + w * 0.3 + sk, GY - sz], [rx + w - 2, GY - sz * 0.85], [rx + w, GY]];
+      g.fillStyle = INK; g.beginPath(); pts.forEach(([px, py], k) => (k ? g.lineTo(px + (px > rx + w / 2 ? 1 : -1), py - 1) : g.moveTo(px - 1, py))); g.closePath(); g.fill();
+      g.fillStyle = STONE[3]; g.beginPath(); pts.forEach(([px, py], k) => (k ? g.lineTo(px, py) : g.moveTo(px, py))); g.closePath(); g.fill();
+      g.fillStyle = STONE[4]; g.beginPath(); g.moveTo(rx + 1, GY - sz * 0.7); g.lineTo(rx + w * 0.3 + sk, GY - sz); g.lineTo(rx + w - 2, GY - sz * 0.85); g.lineTo(rx + w * 0.5, GY - sz * 0.6); g.closePath(); g.fill();
+      box(g, rx + w * 0.62, GY - sz * 0.6, w * 0.38 - 1, sz * 0.6, STONE[1]); checker(g, rx + w * 0.5, GY - sz * 0.6, 3, sz * 0.6, STONE[1]);
+      box(g, rx + w * 0.3 + sk, GY - sz, 2, 1, STONE[5]);
+      if (i % 3 === 1) { box(g, rx + w - 1, GY - 5, 7, 3, INK); box(g, rx + w, GY - 4, 5, 1, PLY[2]); }
+    }
   });
 };
 
@@ -583,6 +769,20 @@ export const drawBushArt = (c: Ctx, x: number, k: number, gone: boolean, fringe:
     if (step < 7) for (let i = 0; i < 7 - step; i++) { const bx = -40 + r1(i, step) * 80, by = -50 + r1(i, step + 1) * 36; box(g, bx, by, 3, 3, LEAF[0]); box(g, bx + 4, by + 2, 2, 2, '#7A8A34'); }
   });
   c.restore();
+};
+
+/** Artie crawling through the grass (live, a handful of fills a frame): the top of his pith helmet just showing, inked,
+ *  lit up top, its band; the grass parting round it, blades inked and lit, tossing as he goes. */
+export const drawCrawlRipple = (c: Ctx, x: number, fr: number) => {
+  x = Math.round(x);
+  c.fillStyle = INK; c.beginPath(); c.ellipse(x, GY - 3, 11, 8, 0, Math.PI, 0); c.fill();
+  c.fillStyle = '#C8BC90'; c.beginPath(); c.ellipse(x, GY - 3, 10, 7, 0, Math.PI, 0); c.fill();
+  c.fillStyle = '#E8DDB5'; c.beginPath(); c.ellipse(x - 2, GY - 5, 6, 4, 0, Math.PI, 0); c.fill();
+  box(c, x - 10, GY - 5, 20, 2, '#78350F'); box(c, x - 6, GY - 9, 2, 1, '#F8F4E4');
+  for (let i = -3; i <= 3; i++) {
+    const h = 8 + Math.round(Math.abs(Math.sin(fr * 0.5 + i)) * 8), bx = x + i * 7 - 2, lean = i < 0 ? -1 : i > 0 ? 1 : 0;
+    box(c, bx - 1, GY - h - 1, 5, h + 1, INK); box(c, bx, GY - h, 3, h, i % 2 ? LEAF[2] : LEAF[3]); box(c, bx, GY - h, 1, h, LEAF[4]); box(c, bx + 1 + lean, GY - h - 2, 1, 2, LEAF[4]);
+  }
 };
 
 /** His vine: twisted, leafy, from up out of sight down to his hands; chewed thin round `ny` (k: how much is left). */

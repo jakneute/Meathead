@@ -17,8 +17,9 @@ import { hazardZones } from '../../hazardHit';
 import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { GUIDE_KIND } from '../guides';
 import { lay, solid, speak, meatheadSays, saidOver, hands, sectionState } from '../section';
-import { drawTentFlap, drawPath, drawCamp, drawRock, drawHuntSign, drawAidStop, drawTree, drawWing, drawFence, CAMPFIRE, SPEAKER, drawSpeaker, drawUnderstory, drawFogger, drawSpeakerRock, drawParrot, drawSpeakerPole } from './art';
+import { drawTentFlap, drawPath, drawPathTufts, drawCamp, drawRock, drawHuntSign, drawAidStop, drawTree, drawWing, drawFence, CAMPFIRE, SPEAKER, drawSpeaker, drawUnderstory, drawFogger, drawSpeakerRock, drawParrot, drawSpeakerPole } from './art';
 import { GY } from '../geometry';
+import { setStampHold } from '../../../m1/game/render/stamp';
 import { goTo, setUi, markLandCleared, markBossDeath, noteBossKill } from '../../store';
 import { playSound } from '../../../m1/game/platform/audio';
 import { silenceAll, pickLine } from '../../../m1/game/platform/speech';
@@ -423,7 +424,8 @@ export const clearing: Section = {
     if (cl.walk) drawWalkAway(c, cl.walk);
   },
   // (his weakness death: the kill cam's close-up, in slow motion)
-  zoom: (state) => { const f = getClearing(state).f; return f ? killCamZoom(state, f) : null; },
+  // (pushed in, the room's big stamps (the path, the wing, the camp) are put down scaled, never painted afresh huge)
+  zoom: (state) => { const f = getClearing(state).f, z = f ? killCamZoom(state, f) : null; setStampHold(!!z && z.scale > 1.02); return z; },
   holdTick: (ctx) => { const f = getClearing(ctx.state).f; return f ? killCamTick(f) : false; },
 };
 
@@ -453,6 +455,8 @@ const drawClearing = (c: CanvasRenderingContext2D, state: GameState) => {
   // The understory along the back of it (dimmed: not to stand on), and the park's fakery in it: the fog nozzle, the
   // boulder with the jungle's soundtrack in it, the animatronic macaw, the PA poles made up as bamboo (Artie's PA)
   drawUnderstory(c, Math.max(x0 - 400, v.x - 60), Math.min(TEMPLE_X + 40, v.x + v.w + 60));
+  // (the grass creeping in over the path's lip: over the understory's shaded foot)
+  drawPathTufts(c, Math.max(x0 - 1200, v.x - 400), Math.min(x1 + 1200, v.x + v.w + 400));
   if (vis(x0 + 790, x0 + 1000)) { drawFogger(c, x0 + 812, f); drawSpeakerRock(c, x0 + 890, f); drawParrot(c, x0 + 975, f); }
   for (const [px, ph] of PA_POLES) if (vis(px - 40, px + 40)) drawSpeakerPole(c, px, ph);
   // The junior guides' camp, back off the path

@@ -460,11 +460,16 @@ const FAKES: { kind: Fake; r: number; a: number }[] = (() => {
 const FAKE_H: Record<Fake, number> = { torch: 120, rock: 70, pa: 260, zebra: 110, cell: 640 };
 
 const fakeSprite = (kind: Fake, band: number) => {
-  if (kind === 'torch') return { cv: spriteOf('ofake:torch', 24, 80, band, g => {
+  if (kind === 'torch') return { cv: spriteOf('ofake:torch2', 24, 80, band, g => {
+    // (a tiki torch: a bamboo pole, inked, in its steps, its nodes banded; the woven cup bound on with twine, its rim
+    // lit, the wick's char; a tuft of grass at its foot)
     const x = 12, f = 76;
-    rect(g, x - 2, f - 62, 4, 62, SINK); rect(g, x - 1, f - 62, 2, 62, '#8B6A3E');
-    for (let k = 0; k < 4; k++) rect(g, x - 2, f - 56 + k * 14, 4, 1, '#4A3018');
-    rect(g, x - 5, f - 70, 10, 9, SINK); rect(g, x - 4, f - 69, 8, 7, '#6B4A2A'); rect(g, x - 4, f - 69, 8, 2, '#A07A4A');
+    rect(g, x - 3, f - 62, 6, 62, SINK); rect(g, x - 2, f - 62, 4, 62, '#8B6A3E'); rect(g, x - 2, f - 62, 1, 62, '#B8925A'); rect(g, x + 1, f - 62, 1, 62, '#5E4424');
+    for (let k = 0; k < 4; k++) { rect(g, x - 3, f - 54 + k * 13, 6, 2, '#4A3018'); rect(g, x - 2, f - 55 + k * 13, 4, 1, '#C8A26A'); }
+    rect(g, x - 6, f - 72, 12, 11, SINK); rect(g, x - 5, f - 71, 10, 9, '#7A5A34'); rect(g, x - 5, f - 71, 10, 2, '#B8925A');
+    for (let k = 0; k < 3; k++) for (let j = 0; j < 5; j++) rect(g, x - 5 + j * 2 + (k % 2), f - 68 + k * 2, 1, 1, '#4E3820');
+    rect(g, x - 5, f - 63, 10, 1, '#C9A86A'); rect(g, x - 2, f - 74, 4, 2, '#2A1A0E');
+    for (const [dx, h] of [[-5, 5], [-3, 7], [3, 6], [5, 4]] as const) { rect(g, x + dx - 1, f - h, 2, h, SINK); rect(g, x + dx - 1, f - h + 1, 1, h - 1, '#3A8C44'); }
   }), fx: 12, fy: 76 };
   if (kind === 'rock') return { cv: spriteOf('ofake:rock', 90, 52, band, g => {
     const R = ['#3E3A36', '#57524C', '#736C64', '#8F877D', '#ACA398'];

@@ -67,7 +67,7 @@ import { type Eaten, startEaten, updateEaten, landEaten, collapse, drawEatenStan
 import { drawSafariArtie, ROOF_SCUFFS, type ArtiePose } from '../river/artie';
 import { box, label, saidOver, hands, speak, voice, meatheadSays } from '../section';
 import { GY } from '../geometry';
-import { drawBushArt, drawVine } from './art';
+import { drawBushArt, drawVine, drawCrawlRipple } from './art';
 import { ARENA_L, ARENA_R, ARENA_MID, BLIND_X, BLIND_Y, BUSH_X, BUSH_W, BUSH_H, VIEW_L, TEMPLE_X } from './arena';
 import { type Animal, type Beast, BEASTS, makeStampede, updateStampede, stampedeOver, nearestTo, clearStampede, drawStampede, drawWarnings, drawBeastAt, gallopFrame, rhinoHorn, drawDeadRhino, DEAD_HORN } from './stampede';
 import * as L from './lines';
@@ -1282,10 +1282,7 @@ export const drawFightFront = (c: Ctx, state: GameState, f: Fight) => {
     const m = f.mode === 'move' ? f.moves[f.moveI] : null;
     if (m && m.how === 'crawl') {
       // (a ripple through the grass, the top of his helmet just showing)
-      c.fillStyle = '#E8DDB5'; c.beginPath(); c.ellipse(f.x, GY - 3, 10, 7, 0, Math.PI, 0); c.fill();
-      c.fillStyle = '#78350F'; c.fillRect(f.x - 10, GY - 4, 20, 2);
-      c.fillStyle = '#4D7C0F';
-      for (let i = -3; i <= 3; i++) { const h = 8 + Math.abs(Math.sin(fr * 0.5 + i)) * 8; c.fillRect(f.x + i * 7 - 2, GY - h, 3, h); }
+      drawCrawlRipple(c, f.x, fr);
     } else {
       const k = f.mode === 'move' && m ? f.t / m.d : f.arc ? Math.min(1, f.t / f.arc.d) : 1;
       c.save(); c.translate(Math.round(f.x), Math.round(f.y - 43));
