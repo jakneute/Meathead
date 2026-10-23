@@ -396,6 +396,7 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
   view(state, f);
   props(ctx, f);
   if (f.mode === 'dead') return dying(ctx, f);
+  batAway(ctx, f);
   takeHits(ctx, f);
   if (f.hp <= 0) { die(ctx, f, 'fridge'); return dying(ctx, f); }
   dad(ctx, f);
@@ -457,8 +458,10 @@ const props = (ctx: FrameContext, f: Fight) => {
   for (const pu of f.puddles) pu.t++;
   f.puddles = f.puddles.filter(pu => pu.t < 600);
   if (f.puddles.length > 40) f.puddles.splice(0, f.puddles.length - 40);
-  // The couch coming at him (unless he's mid-move into it: the skilled way)
-  if (f.mode === 'on' && !c.crushed && Math.abs(c.vx) > COUCH_HURTS && hurtable(state) && !attacking(state)) {
+  // The couch coming at him: a move into it lands on Dad but the couch still flattens him (the user's: "charge moves can
+  // work during his barf phase but damage and only really be avoided if you time a dive kick well"): only a dive kick
+  // coming down onto it gets away clean
+  if (f.mode === 'on' && !c.crushed && Math.abs(c.vx) > COUCH_HURTS && hurtable(state) && !state.player.isDivekicking) {
     if (hits(pRect(state), { x0: X(c.x) - COUCH_HALF + 6, x1: X(c.x) + COUCH_HALF - 6, y0: STAGE_Y - 56, y1: STAGE_Y })) {
       hurtPlayer(ctx, COUCH_DMG, hurtSrc(state, 'm2:ct_dad_couch'), { x: Math.sign(c.vx) * 12, y: -7 });
       playSound('thud', 1, -6); playSound('punch', 0.8, -8); shakeScreen(state, 8, 4);
@@ -741,6 +744,24 @@ const hammer = (ctx: FrameContext, f: Fight) => {
 /** How high over his feet Meathead's feet must be for a charge or an uppercut to pass over him: his head (DAD_H) and a
  *  little more. A single jump peaks about 145 px; an uppercut then a charge gets well over it. */
 const OVER_TOP = DAD_H + 8;
+/** On the couch, a charge move into him (the shoulder charge, the slide, the dive kick, the uppercut) is batted away
+ *  with the mallet, every time, his i-frames or not, and it never hurts (the user's: "make sure charge attacks won't work
+ *  on stupid dad when he's on the couch. he will always bat you away, even during your iframes (won't hurt you though)"). */
+const batAway = (ctx: FrameContext, f: Fight) => {
+  const { state } = ctx, p = state.player;
+  // (puking, riding the couch, he can't: that's the one time a move lands on him on it (the user's))
+  if (f.mode !== 'on' || !f.seated || f.couch.crushed || f.act === 'puke' || p.inCutscene || p.health <= 0) return;
+  if (!(p.isCharging || p.isSliding || p.isDivekicking || p.isUppercutting)) return;
+  const cx = X(f.x), feet = STAGE_Y - f.y;
+  if (!hits(pRect(state), { x0: cx - 36, x1: cx + 36, y0: feet - DAD_SIT_H - 18, y1: feet })) return;
+  const dir = p.pos.x + p.width / 2 < cx ? -1 : 1;
+  p.isCharging = false; p.isSliding = false; p.isDivekicking = false; p.isUppercutting = false;
+  p.vel = { x: dir * 11, y: -8 }; p.isGrounded = false; p.pushbackTimer = Math.max(p.pushbackTimer, 14);
+  playSound('bonk', 1, -2); playSound('whoosh', 0.7, -6); shakeScreen(state, 5, 3);
+  ctx.fx.spawnDamageNumber({ x: p.pos.x, y: p.pos.y - 24 }, 'BATTED!', true, '#FDE047');
+  // (the swing itself, if he's not mid-swing already: it's spent, it won't hurt)
+  if (f.act === 'sit') { f.swatWind = SWAT_FAST; f.swatHit = true; setAct(f, 'swat'); }
+};
 const hammered = (ctx: FrameContext, f: Fight) => {
   const { state } = ctx;
   if (!hurtable(state)) return;
@@ -1130,6 +1151,8 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
   if (dealt <= 0 || !state.enemies.includes(e) || f.iframes > 0) return;
   // (in the rage nothing lands but what's fired at him (the moves get him hammered: touch above))
   if (melee && (f.act === 'rage' || f.act === 'rise')) return;
+  // (on his couch, no move lands either: he bats every one away (batAway)); but puking he can't, and they do
+  if (melee && f.seated && !f.couch.crushed && f.act !== 'puke') return;
   // (one of the family in the way of his move: it eats it)
   { const who = melee ? famBetween(state, f) : undefined; if (who) { const pr = pRect(state); eaten(state, f, (pr.x0 + pr.x1) / 2 + state.player.facing * 20, pr.y0 + 30, who); return; } }
   const plain = plainHit(state, melee);
