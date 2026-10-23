@@ -11,7 +11,7 @@ import { GROUND_Y, CANVAS_HEIGHT } from '../../../m1/constants';
 import {
   type Ctx, INK, RED, WHITE, BLUE, box, text, flag, sign, slab, pole, ball, shinyStar, star, eagle, bunting,
   rampOf, lite, dim, mix, hash, checker, bandedGradient, steppedGlow, pixelBlob, tilePattern, brickPattern, stamp,
-  type Eye, sideFace,
+  type Eye, sideFace, bendFloor,
 } from './kit';
 import { signAt, signText, stencil, led, marker, federal, flag as flagType, print } from './letters';
 
@@ -803,26 +803,345 @@ const slabGarage = (g: Ctx, a: number, b: number) => {
   box(g, a, fy, W, FACE, '#44444C'); box(g, a, fy, W, 2, '#82828C'); box(g, a, fy + 2, W, 2, '#5C5C66');
   box(g, a, fy + FACE - 5, W, 5, '#2C2C33'); checker(g, a, fy + FACE - 7, W, 2, '#2C2C33');
   for (let x = Math.floor(a / 120) * 120; x < b; x += 120) { box(g, x, fy + 8, 60, 6, '#C9A227'); box(g, x, fy + 8, 60, 1, '#E8C84A'); checker(g, x + 40, fy + 8, 20, 6, '#44444C'); }
-  // Level 2 under it, in the dark: its ceiling beam, dim tubes, pillars, parked shapes
-  const y2 = fy + FACE;
-  bandedGradient(g, a, y2, W, BOTTOM - y2, ['#1C1C22', '#16161B', '#111115', '#0C0C0F'], 6);
-  box(g, a, y2, W, 10, '#26262C'); checker(g, a, y2 + 10, W, 2, '#26262C'); box(g, a, y2, W, 1, '#0A0A0C');
-  for (let x = Math.floor(a / 200) * 200 + 100; x < b + 60; x += 200) {
-    checker(g, x - 6, y2 + 18, 62, 4, 'rgba(184, 208, 192, 0.08)'); box(g, x - 2, y2 + 18, 54, 2, 'rgba(184, 208, 192, 0.07)');
-    box(g, x, y2 + 14, 50, 4, '#202024'); box(g, x + 2, y2 + 15, 46, 2, '#8FA096');
+  // Level 2 under it, seen through the drop (see paintLower)
+  paintLower(g, a, b);
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// Level 2: the floor below the garage's, seen through the drop at the slab's edge. Painted as fully as the level he's
+// on (the soffit with its beams, conduit and spalled rebar, fluorescent banks, the back wall with its stripe and signs,
+// parked cars of a few makes, stall lines, a cart, cones), then hazed down darker for depth. Still, so it's in the
+// slab's stamps; live over it: its floor bent like the deck's, one tube on the blink, one car's hazards, and the
+// columns along its front edge (their sides going back from the shared eye, their fronts stamped).
+
+/** Under the slab's edge: level 2's ceiling; the back wall's top; its floor at the wall (the cars on it); its front edge. */
+const Y2 = UPPER + TB + FACE, LCEIL = Y2 + 24, LFL = Y2 + 128, LPF = LFL + 32;
+const LHAZE = 'rgba(12, 14, 26, 0.42)';
+const LPW = 46;
+/** Level 2's columns: under level 3's, standing along the front edge (so their sides show, going back). */
+const LPILLARS = PILLARS.filter(px => px > GX0 && px + LPW < GX1);
+/** Level 2's tubes: one to a bay like up top; a few dead, one on the blink. */
+const LDEAD = new Set(TUBES.filter(t => hash(t * 0.071) < 0.22));
+const LFLICKER = TUBES.filter(t => !LDEAD.has(t)).reduce<number | undefined>((best, t) => (best === undefined || Math.abs(t - R(860)) < Math.abs(best - R(860)) ? t : best), undefined);
+
+type CarKind = 'sedan' | 'hatch' | 'van';
+interface LowCar { x: number; w: number; col: string; kind: CarKind; flip: boolean; trunk?: boolean; blink?: boolean }
+const LCARS: LowCar[] = [
+  { x: R(-386), w: 104, col: '#2F6B58', kind: 'hatch', flip: false },
+  { x: R(-236), w: 122, col: '#A3A9B4', kind: 'sedan', flip: true },
+  { x: R(-64), w: 132, col: '#24466E', kind: 'van', flip: false },
+  { x: R(104), w: 120, col: '#8A3414', kind: 'sedan', flip: false, trunk: true },
+  { x: R(404), w: 104, col: '#B7791F', kind: 'hatch', flip: true },
+  { x: R(540), w: 122, col: '#E2E4E8', kind: 'sedan', flip: false, blink: true },
+  { x: R(716), w: 132, col: '#3F4652', kind: 'van', flip: true },
+  { x: R(880), w: 118, col: '#5B2A86', kind: 'sedan', flip: true },
+  { x: R(1056), w: 104, col: '#B32222', kind: 'hatch', flip: false },
+];
+
+/** Each make's side, facing right: the body's outline and the glass's (fractions across, rows up from the floor), the
+ * pillars between the windows, the beltline, the wheels. */
+const PROF: Record<CarKind, { body: [number, number][]; glass: [number, number][]; posts: number[]; belt: number; wheels: [number, number] }> = {
+  sedan: {
+    body: [[0.02, -10], [0, -22], [0.02, -34], [0.24, -37], [0.33, -55], [0.62, -56], [0.76, -39], [0.96, -35], [1, -24], [0.98, -10]],
+    glass: [[0.35, -52], [0.61, -53], [0.73, -40], [0.27, -40]], posts: [0.5], belt: -39, wheels: [0.2, 0.8],
+  },
+  hatch: {
+    body: [[0.02, -10], [0, -24], [0.03, -40], [0.12, -54], [0.56, -56], [0.72, -41], [0.95, -37], [1, -25], [0.98, -10]],
+    glass: [[0.14, -51], [0.55, -53], [0.69, -42], [0.07, -42]], posts: [0.38], belt: -41, wheels: [0.2, 0.8],
+  },
+  van: {
+    body: [[0.02, -10], [0, -24], [0.01, -64], [0.05, -70], [0.7, -70], [0.84, -46], [0.97, -41], [1, -25], [0.98, -10]],
+    glass: [[0.06, -66], [0.68, -66], [0.8, -47], [0.06, -47]], posts: [0.28, 0.5], belt: -46, wheels: [0.18, 0.82],
+  },
+};
+
+/** A parked car on level 2: shaded body in steps, the glass catching the tubes, chrome, real wheels; one with its trunk up. */
+const lowerCar = (g: Ctx, k: LowCar) => {
+  const { x, w, col, kind } = k, P = PROF[kind], r = rampOf(col), base = LFL;
+  const at = (p: [number, number]): [number, number] => [x + p[0] * w, base + p[1]];
+  const path = (pts: [number, number][]) => { g.beginPath(); pts.forEach((p, i) => { const [px, py] = at(p); if (i) g.lineTo(px, py); else g.moveTo(px, py); }); g.closePath(); };
+  // (its shadow on the floor)
+  checker(g, x - 4, base - 6, w + 8, 8, 'rgba(0, 0, 0, 0.5)'); box(g, x + 6, base - 4, w - 12, 6, 'rgba(0, 0, 0, 0.5)');
+  g.save();
+  if (k.flip) { g.translate(2 * x + w, 0); g.scale(-1, 1); }
+  // (the trunk lid, up: behind the body, hinged at the back window's foot, lit underneath by the trunk light)
+  if (k.trunk) {
+    const lid: [number, number][] = [[0.24, -37], [0.28, -41], [0.13, -74], [0.08, -72]];
+    path(lid); g.lineWidth = 3; g.strokeStyle = INK; g.lineJoin = 'round'; g.stroke(); g.fillStyle = r[1]; g.fill();
+    g.save(); path(lid); g.clip(); glint(g, x + w * 0.1, base - 72, base - 40, 3, r[3]); box(g, x + w * 0.08, base - 74, w * 0.2, 3, r[3]); g.restore();
+    box(g, x + w * 0.2, base - 52, 3, 3, '#FFF6C8');
   }
-  for (const px of PILLARS) if (px + 50 > a && px < b) {
-    box(g, px + 4, y2 + 10, 38, BOTTOM - y2, '#2A2A31'); box(g, px + 4, y2 + 10, 5, BOTTOM - y2, '#36363E'); box(g, px + 34, y2 + 10, 8, BOTTOM - y2, '#1E1E24');
-    hazard(g, px + 4, y2 + 118, 38, 30); box(g, px + 4, y2 + 118, 38, 30, 'rgba(8, 8, 12, 0.6)');
+  // (the body: roof lit, beltline, flanks in steps down to the rocker in shadow)
+  path(P.body); g.lineWidth = 4; g.strokeStyle = INK; g.lineJoin = 'round'; g.stroke(); g.fillStyle = col; g.fill();
+  const top = base + Math.min(...P.body.map(p => p[1])), bl = base + P.belt;
+  g.save(); path(P.body); g.clip();
+  box(g, x, top - 2, w, bl - top + 2, r[2]); box(g, x, top + 3, w, 2, r[4]); box(g, x, top + 1, w, 2, r[3]);
+  box(g, x, bl, w, 3, r[4]); box(g, x, bl + 3, w, 4, r[3]); checker(g, x, bl + 7, w, 2, r[3]);
+  box(g, x, base - 25, w, 1, r[4]); box(g, x, base - 24, w, 2, r[3]);
+  box(g, x, base - 20, w, 10, r[1]); checker(g, x, base - 22, w, 2, r[1]);
+  box(g, x, base - 13, w, 4, r[0]); checker(g, x, base - 15, w, 2, r[0]);
+  glint(g, x + w * 0.1, bl + 1, base - 14, 5, lite(col, 0.3)); glint(g, x + w * 0.1 + 8, bl + 1, base - 14, 2, lite(col, 0.45));
+  glint(g, x + w * 0.55, bl + 1, base - 14, 3, lite(col, 0.2));
+  if (kind === 'hatch') box(g, x + 2, bl - 2, w * 0.04, 1, r[0]);
+  g.restore();
+  // (the trunk open: a dark mouth along its top, a suitcase's corner, the trunk light)
+  if (k.trunk) {
+    box(g, x + w * 0.03, base - 37, w * 0.21, 5, INK); box(g, x + w * 0.04, base - 36, w * 0.19, 3, '#141418');
+    box(g, x + w * 0.08, base - 38, 12, 4, '#5A3A1A'); box(g, x + w * 0.08, base - 38, 12, 1, '#8A6A3A');
+    steppedGlow(g, x + w * 0.15, base - 38, 12, '#FFF0C0', 0.18, 0.02, 3);
   }
-  for (let x = Math.floor(a / 260) * 260 + 60; x < b + 140; x += 260) {
-    if (hash(x * 0.05) < 0.3) continue;
-    const w = 110 + Math.floor(hash(x) * 20), base = y2 + 150;
-    carPath(g, x, w, base); g.fillStyle = '#1E1E25'; g.fill();
-    box(g, x + w * 0.35, base - 50, w * 0.34, 9, '#2A303A'); box(g, x + 1, base - 33, 4, 5, '#4A1414');
-    for (const wx of [x + w * 0.2, x + w * 0.8]) { g.fillStyle = '#0A0A0D'; g.beginPath(); g.arc(wx, base - 10, 10, 0, Math.PI * 2); g.fill(); }
+  // (the glass: dark, the tubes' light along its top, glints, the pillars between)
+  const gx = P.glass.map(p => p[0]), gy = P.glass.map(p => p[1]);
+  const gx0 = x + Math.min(...gx) * w, gx1 = x + Math.max(...gx) * w, gt = base + Math.min(...gy), gb = base + Math.max(...gy);
+  g.save(); path(P.glass); g.fillStyle = '#1C2836'; g.fill(); g.clip();
+  box(g, x, gt - 2, w, 6, '#4A6A8C'); box(g, x, gt + 4, w, 3, '#34506C'); checker(g, x, gt + 7, w, 2, '#34506C');
+  box(g, gx0 + (gx1 - gx0) * 0.18, gt + 1, (gx1 - gx0) * 0.22, 2, 'rgba(220, 255, 236, 0.7)');
+  glint(g, gx0 + (gx1 - gx0) * 0.2, gt, gb, 4, 'rgba(220, 238, 255, 0.5)'); glint(g, gx0 + (gx1 - gx0) * 0.3, gt, gb, 2, 'rgba(220, 238, 255, 0.35)');
+  glint(g, gx0 + (gx1 - gx0) * 0.72, gt, gb, 3, 'rgba(220, 238, 255, 0.3)');
+  g.restore();
+  path(P.glass); g.strokeStyle = INK; g.lineWidth = 1; g.stroke();
+  for (const p of P.posts) box(g, x + w * p - 1, gt, 3, gb - gt, r[1]);
+  // (door seams, handles, the chrome strip, the mirror, the lights, the bumpers)
+  const front = x + P.glass[2][0] * w, rear = x + P.glass[3][0] * w;
+  for (const sx of [rear, front, ...P.posts.map(p => x + w * p)]) box(g, sx, bl + 1, 1, base - 12 - bl - 1, r[0]);
+  for (const hx of [front - w * 0.13, x + w * P.posts[P.posts.length - 1] - w * 0.12]) { box(g, hx, bl + 6, 7, 2, '#E4E8EE'); box(g, hx, bl + 8, 7, 1, '#6A707A'); }
+  box(g, x + 6, base - 27, w - 12, 1, '#E8ECF2');
+  box(g, front - 1, bl - 5, 6, 4, INK); box(g, front, bl - 4, 4, 2, r[3]);
+  box(g, x + w - 7, base - 33, 6, 4, '#FFF6C8'); box(g, x + w - 7, base - 33, 6, 1, '#FFFFFF'); box(g, x + w - 4, base - 28, 3, 2, '#F59E0B');
+  box(g, x + 1, base - 34, 4, 8, '#D01B28'); box(g, x + 1, base - 34, 4, 2, '#FF7A6A'); box(g, x + 1, base - 27, 4, 1, '#F59E0B');
+  for (const [bx, bw] of [[x - 2, 8], [x + w - 6, 8]] as [number, number][]) { box(g, bx, base - 22, bw, 7, INK); box(g, bx + 1, base - 21, bw - 2, 5, '#C8CCD2'); box(g, bx + 1, base - 21, bw - 2, 1, '#FFFFFF'); box(g, bx + 1, base - 17, bw - 2, 1, '#6A707A'); }
+  if (kind === 'van') { box(g, x + w * 0.1, top - 4, w * 0.55, 3, INK); box(g, x + w * 0.1 + 1, top - 3, w * 0.55 - 2, 1, '#8A9098'); for (const rx of [0.14, 0.6]) box(g, x + w * rx, top - 2, 3, 3, INK); }
+  // (the wheels in their arches: tires with tread, rims, lug nuts)
+  for (const fx of P.wheels) {
+    const wx = x + w * fx;
+    g.fillStyle = INK; g.beginPath(); g.arc(wx, base - 11, 14, Math.PI, 0); g.fill();
+    wheel(g, wx, base - 11, 11, '#A8ACB4');
   }
-  box(g, a, y2 + 150, W, 2, '#2A2A30'); box(g, a, y2 + 152, W, BOTTOM - y2 - 152, '#141418');
+  g.restore();
+};
+
+/** A shopping cart, abandoned (as they are): wire basket, a red handle, little wheels. */
+const cart = (g: Ctx, x: number, base: number) => {
+  const top = base - 34, bot = base - 14;
+  g.save(); g.beginPath(); g.moveTo(x, top); g.lineTo(x + 38, top); g.lineTo(x + 33, bot); g.lineTo(x + 5, bot); g.closePath();
+  g.fillStyle = 'rgba(150, 160, 172, 0.12)'; g.fill(); g.clip();
+  for (let i = x; i < x + 40; i += 4) box(g, i, top, 1, 20, '#7A808A');
+  for (let j = top + 4; j < bot; j += 4) box(g, x, j, 40, 1, '#6A707A');
+  g.restore();
+  g.strokeStyle = INK; g.lineWidth = 1; g.beginPath(); g.moveTo(x, top); g.lineTo(x + 38, top); g.lineTo(x + 33, bot); g.lineTo(x + 5, bot); g.closePath(); g.stroke();
+  box(g, x - 1, top - 1, 40, 2, '#C8CCD2'); box(g, x - 1, top + 1, 40, 1, '#5A606A');
+  box(g, x + 38, top - 8, 2, 9, '#8A9098'); box(g, x + 36, top - 10, 9, 4, INK); box(g, x + 37, top - 9, 7, 2, '#C81E1E'); box(g, x + 37, top - 9, 7, 1, '#F06A55');
+  box(g, x + 4, base - 8, 32, 2, '#8A9098'); box(g, x + 4, base - 8, 32, 1, '#C8CCD2');
+  for (const lx of [x + 6, x + 32]) { box(g, lx, bot, 1, 7, '#8A9098'); ball(g, lx + 0.5, base - 3, 2.5, '#2A2A30'); }
+};
+
+/** A traffic cone: orange in steps, two reflective bands, its square foot. */
+const cone = (g: Ctx, x: number, base: number) => {
+  box(g, x - 10, base - 4, 20, 4, INK); box(g, x - 9, base - 4, 18, 3, '#C2410C'); box(g, x - 9, base - 4, 18, 1, '#FB923C');
+  const tri = () => { g.beginPath(); g.moveTo(x - 7, base - 3); g.lineTo(x + 7, base - 3); g.lineTo(x + 2, base - 27); g.lineTo(x - 2, base - 27); g.closePath(); };
+  tri(); g.strokeStyle = INK; g.lineWidth = 2; g.stroke(); g.fillStyle = '#EA580C'; g.fill();
+  g.save(); tri(); g.clip();
+  box(g, x - 8, base - 28, 5, 26, '#FB923C'); box(g, x + 3, base - 28, 6, 26, '#9A3412');
+  box(g, x - 8, base - 12, 16, 3, '#E8ECF2'); box(g, x + 3, base - 12, 6, 3, '#A8ACB4');
+  box(g, x - 8, base - 20, 16, 2, '#E8ECF2'); box(g, x + 3, base - 20, 6, 2, '#A8ACB4');
+  g.restore();
+};
+
+const paintLower = (g: Ctx, a: number, b: number) => {
+  const W = b - a, near = (x0: number, x1: number) => x1 > a - 4 && x0 < b + 4;
+  g.save(); g.beginPath(); g.rect(a, Y2, W, BOTTOM - Y2); g.clip();
+  // The soffit: level 3's slab from under, board-formed, spalled here and there with the rebar showing; conduit, sprinkler main
+  bandedGradient(g, a, Y2, W, LCEIL - Y2, ['#121216', '#1A1A20', '#24242B'], 4);
+  for (let y = Y2 + 6; y < LCEIL; y += 6) box(g, a, y, W, 1, 'rgba(0, 0, 0, 0.3)');
+  for (let x = Math.floor(a / 150) * 150; x < b; x += 150) {
+    if (hash(x * 0.019) >= 0.45) continue;
+    const px = x + Math.floor(hash(x * 0.3) * 90), pw = 24 + Math.floor(hash(x * 0.7) * 20);
+    box(g, px, Y2 + 2, pw, 10, '#0C0C10'); box(g, px + 1, Y2 + 11, pw - 2, 1, '#3A3A42');
+    for (let j = 0; j < 2; j++) { box(g, px + 2, Y2 + 4 + j * 4, pw - 4, 1, '#8A4420'); checker(g, px + 2, Y2 + 5 + j * 4, pw - 4, 1, '#4A2410'); }
+    for (let i = px + 6; i < px + pw - 2; i += 8) box(g, i, Y2 + 3, 1, 8, '#6A3214');
+    checker(g, px, Y2 + 12, pw, 10, 'rgba(110, 50, 20, 0.25)');
+  }
+  box(g, a, Y2 + 13, W, 3, '#3E434A'); box(g, a, Y2 + 13, W, 1, '#6A707A'); box(g, a, Y2 + 16, W, 1, '#16181C');
+  for (let x = Math.floor(a / 240) * 240 + 100; x < b + 10; x += 240) slab(g, x, Y2 + 10, 10, 10, '#4E545C');
+  box(g, a, Y2 + 18, W, 4, '#6E1616'); box(g, a, Y2 + 18, W, 1, '#A83228'); box(g, a, Y2 + 21, W, 1, '#3A0A0A');
+  for (let x = Math.floor(a / 300) * 300 + 60; x < b + 10; x += 300) { box(g, x, Y2 + 22, 2, 3, '#7A6020'); box(g, x - 3, Y2 + 25, 8, 2, '#B8923A'); box(g, x - 3, Y2 + 25, 8, 1, '#E2C26A'); }
+
+  // The back wall: board-formed, pours and form ties, water stains, the level's stripe, its signs
+  bandedGradient(g, a, LCEIL, W, LFL - LCEIL, ['#24242B', '#30303A', '#3A3A44', '#383842', '#2C2C34'], 8);
+  for (let y = LCEIL + 12; y < LFL; y += 12) { box(g, a, y, W, 1, 'rgba(0, 0, 0, 0.18)'); box(g, a, y + 1, W, 1, 'rgba(255, 255, 255, 0.04)'); }
+  for (let x = Math.floor(a / 240) * 240 + 120; x < b; x += 240) { box(g, x, LCEIL, 2, LFL - LCEIL, '#1C1C22'); box(g, x + 2, LCEIL, 1, LFL - LCEIL, '#4A4A54'); }
+  for (let x = Math.floor(a / 60) * 60 + 30; x < b; x += 60) for (let y = LCEIL + 20; y < LFL - 16; y += 40) { box(g, x, y, 2, 2, '#18181E'); box(g, x, y + 2, 2, 1, '#4E4E58'); }
+  speckle(g, a, LCEIL, W, LFL - LCEIL, ['#4A4A54', '#24242A', '#52525C'], Math.floor(W * 0.3), a + 11);
+  for (let x = Math.floor(a / 90) * 90; x < b; x += 90) {
+    if (hash(x * 0.017) >= 0.4) continue;
+    const len = 20 + Math.floor(hash(x * 0.9) * 50);
+    box(g, x + 30, LCEIL, 8, 8, 'rgba(24, 18, 10, 0.3)'); checker(g, x + 30, LCEIL + 8, 8, len, 'rgba(24, 18, 10, 0.32)'); checker(g, x + 32, LCEIL, 2, len + 14, 'rgba(24, 18, 10, 0.3)', 1);
+  }
+  const sy = LFL - 64;
+  box(g, a, sy, W, 8, '#22408E'); box(g, a, sy, W, 2, '#3456A8'); box(g, a, sy + 6, W, 2, '#18306E');
+  box(g, a, sy + 9, W, 2, '#D4D4CE'); box(g, a, sy + 12, W, 4, '#A81E1E'); box(g, a, sy + 12, W, 1, '#C8302A');
+  for (let x = Math.floor(a / 36) * 36; x < b; x += 36) if (hash(x * 0.43) < 0.3) checker(g, x, sy, 10, 16, '#3A3A44');
+  for (const lx of [R(-150), R(640), R(1140)]) if (near(lx - 40, lx + 40)) signAt(g, 'LEVEL 2', lx, sy - 6, 6, { ...stencil({ sx: 2, sy: 2 }, '#8A909C', '#3A3A44', lx), shadow: '#1C1C22' });
+  if (near(R(430), R(490))) signAt(g, 'COMPACT ONLY', R(456), sy - 6, 5, { ...stencil(5, '#C8CCD2'), shadow: '#1C1C22' });
+  // (the vents high up)
+  for (const vx of [R(-330), R(560), R(1100)]) if (near(vx, vx + 52)) {
+    slab(g, vx, LCEIL + 6, 52, 24, '#50545C');
+    box(g, vx + 4, LCEIL + 10, 44, 16, '#0C0E12');
+    for (let j = 0; j < 4; j++) { box(g, vx + 4, LCEIL + 11 + j * 4, 44, 2, '#40454C'); box(g, vx + 4, LCEIL + 11 + j * 4, 44, 1, '#70767E'); }
+    checker(g, vx + 4, LCEIL + 30, 44, 10, 'rgba(20, 16, 12, 0.3)');
+  }
+  // (the signs: the level's name, the towing)
+  if (near(R(-70), R(120))) sign(g, R(-70), LCEIL + 8, 190, 16, BLUE, 'LEVEL 2: INDEPENDENCE', WHITE, 6);
+  if (near(R(800), R(970))) sign(g, R(800), LCEIL + 9, 170, 14, '#FEF3C7', 'VIOLATORS TOWED. AND JUDGED.', '#7F1D1D', 5);
+  // (the stair door, EXIT lit over it)
+  const dx = R(262);
+  if (near(dx - 10, dx + 70)) {
+    steppedGlow(g, dx + 28, LFL - 96, 26, '#FF4433', 0.2, 0, 4);
+    slab(g, dx, LFL - 84, 56, 84, '#5A5E66');
+    slab(g, dx + 5, LFL - 79, 46, 79, '#34506A');
+    box(g, dx + 28, LFL - 72, 14, 22, INK); box(g, dx + 29, LFL - 71, 12, 20, '#2A3C50'); box(g, dx + 29, LFL - 71, 12, 7, '#425C78');
+    for (let j = 0; j < 5; j++) box(g, dx + 29, LFL - 69 + j * 4, 12, 1, 'rgba(200, 214, 228, 0.25)');
+    box(g, dx + 9, LFL - 40, 38, 5, INK); box(g, dx + 10, LFL - 39, 36, 3, '#B8BCC4'); box(g, dx + 10, LFL - 39, 36, 1, '#E8ECF2');
+    box(g, dx + 8, LFL - 14, 40, 12, '#7A8088'); checker(g, dx + 8, LFL - 12, 40, 10, '#6A7078');
+    box(g, dx + 11, LFL - 104, 34, 14, INK); box(g, dx + 12, LFL - 103, 32, 12, '#2A0A08');
+    signAt(g, 'EXIT', dx + 28, LFL - 93, 5, led(5, '#FF5A48', '#2A0A08'));
+  }
+  // (a fire extinguisher in its red cabinet)
+  const ex = R(1030);
+  if (near(ex, ex + 20)) { slab(g, ex, LFL - 62, 18, 28, '#B91C1C'); box(g, ex + 4, LFL - 57, 10, 18, '#2A0A08'); box(g, ex + 6, LFL - 55, 6, 15, '#E23A2E'); box(g, ex + 6, LFL - 55, 2, 15, '#FF7A6A'); box(g, ex + 7, LFL - 58, 4, 3, INK); }
+  // (the dropped beams end on, over the wall's top, their shadow on it)
+  for (const bx of BEAMS) if (near(bx - 10, bx + 50)) {
+    const bh = 30;
+    checker(g, bx + 37, Y2, 10, bh + 8, 'rgba(0, 0, 0, 0.35)');
+    box(g, bx, Y2, 36, bh, '#34343C');
+    box(g, bx, Y2, 6, bh, '#46464F'); checker(g, bx + 6, Y2, 2, bh, '#46464F');
+    box(g, bx + 28, Y2, 8, bh, '#24242A'); checker(g, bx + 26, Y2, 2, bh, '#24242A');
+    for (let y = Y2 + 6; y < Y2 + bh; y += 8) box(g, bx + 1, y, 34, 1, 'rgba(0, 0, 0, 0.2)');
+    box(g, bx, Y2 + bh - 3, 36, 3, '#4A4A54'); box(g, bx, Y2 + bh, 36, 1, INK);
+    box(g, bx - 1, Y2, 1, bh, INK); box(g, bx + 36, Y2, 1, bh, INK);
+  }
+  // (the wall's foot in shadow)
+  checker(g, a, LFL - 14, W, 6, 'rgba(0, 0, 0, 0.22)'); box(g, a, LFL - 8, W, 8, 'rgba(0, 0, 0, 0.3)');
+
+  // The floor: worn concrete, the stalls' lines, arrows, oil, tire marks
+  bandedGradient(g, a, LFL, W, LPF - LFL, ['#3C3C44', '#36363E', '#303038', '#2A2A31'], 4);
+  speckle(g, a, LFL + 2, W, LPF - LFL - 2, ['#4A4A54', '#22222A', '#44444E'], Math.floor(W * 0.2), a + 5);
+  box(g, a, LFL, W, 1, '#121216');
+  const s0 = R(40);
+  for (let x = s0 + Math.floor((a - s0) / 70) * 70 - 70; x < b + 10; x += 70) {
+    if (x < GX0 + 10 || x > GX1 - 300) continue;
+    box(g, x, LFL + 3, 4, LPF - LFL - 5, '#C8A838'); box(g, x, LFL + 3, 1, LPF - LFL - 5, '#E8CC5A'); box(g, x + 3, LFL + 3, 1, LPF - LFL - 5, '#8A7224');
+    checker(g, x, LFL + 10 + Math.floor(hash(x * 1.3) * 10), 4, 6, '#34343C');
+  }
+  for (let x = Math.floor((a - GX0) / 560) * 560 + GX0 + 470; x < b + 50; x += 560) {
+    if (x > GX1 - 340) continue;
+    const ac = '#C8C8CE';
+    box(g, x + 12, LFL + 14, 28, 4, ac); g.fillStyle = ac; g.beginPath(); g.moveTo(x + 12, LFL + 8); g.lineTo(x, LFL + 16); g.lineTo(x + 12, LFL + 24); g.closePath(); g.fill();
+    checker(g, x, LFL + 8, 40, 16, '#36363E', 1);
+    signAt(g, 'TO LEVEL 1', x + 90, LFL + 22, 5, stencil(5, '#C8C8CE'));
+  }
+  for (let x = Math.floor(a / 70) * 70; x < b + 40; x += 70) {
+    const h = hash(x * 0.13 + 5);
+    if (h < 0.5) {
+      const cx = x + 35 + Math.floor(hash(x * 0.37) * 20) - 10, rw = 8 + Math.floor(h * 20);
+      pixelBlob(g, cx, LFL + 14, rw, 4 + h * 4, 'rgba(10, 8, 6, 0.35)'); pixelBlob(g, cx - 2, LFL + 14, rw * 0.5, 3, 'rgba(6, 4, 2, 0.4)');
+      box(g, cx - 4, LFL + 12, 4, 1, '#5A4E7A'); box(g, cx, LFL + 13, 3, 1, '#4E6A5A');
+    }
+    if (hash(x * 0.71 + 2) < 0.25) { const len = 40 + Math.floor(hash(x * 1.7) * 70); checker(g, x, LFL + 6, len, 2, 'rgba(8, 6, 4, 0.45)'); checker(g, x + 6, LFL + 24, len, 2, 'rgba(8, 6, 4, 0.4)', 1); }
+  }
+  // (what's parked down here, and what's been left)
+  for (const k of LCARS) if (near(k.x - 12, k.x + k.w + 12)) lowerCar(g, k);
+  if (near(R(296), R(342))) cart(g, R(296), LFL + 2);
+  for (const cx of [R(228), R(1186)]) if (near(cx - 12, cx + 12)) cone(g, cx, LFL + 4);
+  // (the front edge, then dark)
+  box(g, a, LPF, W, 2, '#4A4A52'); box(g, a, LPF + 2, W, 4, '#24242A'); box(g, a, LPF + 6, W, BOTTOM - LPF - 6, '#0E0E12');
+
+  // The haze over all of it (it's a floor down, a way back), the shade right under level 3's edge
+  box(g, a, Y2, W, BOTTOM - Y2, LHAZE);
+  box(g, a, Y2, W, 4, 'rgba(0, 0, 0, 0.45)'); checker(g, a, Y2 + 4, W, 4, 'rgba(0, 0, 0, 0.35)');
+  // The light: the banks of tubes (the dead ones dark), pools on the wall and the floor under the lit ones
+  for (const tx of TUBES) if (near(tx - 90, tx + 154)) {
+    const lit = !LDEAD.has(tx);
+    if (lit) {
+      steppedGlow(g, tx + 32, Y2 + 44, 84, '#D8F2E2', 0.11, 0.0, 5);
+      pixelBlob(g, tx + 32, LFL + 14, 86, 13, 'rgba(210, 236, 220, 0.07)'); pixelBlob(g, tx + 32, LFL + 13, 50, 7, 'rgba(210, 236, 220, 0.07)');
+    }
+    box(g, tx + 8, Y2 + 16, 1, 7, '#2A2E34'); box(g, tx + 56, Y2 + 16, 1, 7, '#2A2E34');
+    box(g, tx - 2, Y2 + 22, 68, 9, INK); box(g, tx, Y2 + 23, 64, 7, '#2E3238'); box(g, tx, Y2 + 23, 64, 1, '#525860');
+    if (lit) { box(g, tx + 2, Y2 + 26, 60, 3, '#E6FFF0'); box(g, tx + 2, Y2 + 26, 60, 1, '#FFFFFF'); box(g, tx + 2, Y2 + 29, 60, 1, '#9AB8A8'); }
+    else { box(g, tx + 2, Y2 + 26, 60, 3, '#3E4844'); box(g, tx + 2, Y2 + 26, 60, 1, '#56625C'); box(g, tx + 2, Y2 + 26, 5, 3, '#2A2E2C'); box(g, tx + 57, Y2 + 26, 5, 3, '#2A2E2C'); }
+    box(g, tx + 1, Y2 + 26, 2, 3, '#6A707A'); box(g, tx + 61, Y2 + 26, 2, 3, '#6A707A');
+  }
+  // (the daylight from the way out reaching down here too, fainter)
+  for (let i = 0; i < 6; i++) {
+    const x = GX1 - 300 + i * 50;
+    if (near(x, x + 50)) { box(g, x, Y2, 50, LPF - Y2, `rgba(255, 232, 180, ${(0.02 + i * 0.025).toFixed(3)})`); checker(g, x - 2, Y2, 2, LPF - Y2, `rgba(255, 232, 180, ${(0.03 + i * 0.025).toFixed(3)})`); }
+  }
+  g.restore();
+};
+
+/** A level 2 column's front: concrete in steps, the level's band with its number, the hazard foot; hazed like the rest. */
+const lowerPillarFront = (g: Ctx, x: number, k: number) => {
+  const w = LPW, y0 = Y2, h = LPF - Y2;
+  box(g, x, y0, w, h, '#50505A');
+  box(g, x, y0, 6, h, '#6A6A74'); box(g, x + 6, y0, 4, h, '#5C5C66'); checker(g, x + 10, y0, 2, h, '#5C5C66');
+  box(g, x + w - 12, y0, 12, h, '#3E3E46'); box(g, x + w - 5, y0, 5, h, '#30303A'); checker(g, x + w - 14, y0, 2, h, '#3E3E46');
+  speckle(g, x + 2, y0, w - 4, h, ['#42424A', '#686872', '#36363E'], 40, x + 3);
+  for (let y = y0 + 14; y < LPF - 32; y += 14) box(g, x + 1, y, w - 2, 1, 'rgba(0, 0, 0, 0.14)');
+  box(g, x + w - 3, y0 + 96, 3, 5, '#26262C'); box(g, x, y0 + 30, 2, 6, '#36363E');
+  const py = y0 + 42;
+  box(g, x, py, w, 24, '#DCD8CE'); box(g, x, py, w, 2, '#F4F0E6'); box(g, x + w - 10, py, 10, 24, '#B8B4AA'); checker(g, x + w - 12, py, 2, 24, '#B8B4AA');
+  box(g, x, py + 3, w, 3, '#1E3A8A'); box(g, x, py + 18, w, 3, '#B91C1C');
+  signAt(g, `2-${'ABCDEFGH'[k % 8]}`, x + w / 2 - 2, py + 16, 6, stencil(6, '#1E3A8A'));
+  hazard(g, x, LPF - 30, w, 30);
+  box(g, x, LPF - 30, 6, 30, 'rgba(255, 255, 255, 0.12)'); box(g, x + w - 10, LPF - 30, 10, 30, 'rgba(0, 0, 0, 0.28)');
+  for (let i = 0; i < 4; i++) box(g, x + 4 + Math.floor(hash(x + i * 3) * 36), LPF - 27 + Math.floor(hash(x * 3 + i) * 22), 4, 2, '#36363E');
+  box(g, x, y0, w, h, 'rgba(12, 14, 26, 0.3)');
+  box(g, x, y0, w, 6, 'rgba(0, 0, 0, 0.4)'); checker(g, x, y0 + 6, w, 4, 'rgba(0, 0, 0, 0.3)');
+  box(g, x, y0 + 26, w, 2, 'rgba(216, 242, 226, 0.12)');
+  box(g, x - 1, y0, 1, h, INK); box(g, x + w, y0, 1, h, INK); box(g, x - 1, LPF, w + 2, 1, INK);
+};
+
+/** Level 2, live: its floor bent like the deck's, the tube on the blink, the hazards, then the columns along its front. */
+const lowerLive = (c: Ctx, f: number, eye: Eye) => {
+  const [l, r] = view(c);
+  if (r < GX0 || l > GX1) return;
+  bendFloor(c, eye, LFL, LFL, LPF, GX0, GX1);
+  c.save(); c.beginPath(); c.rect(GX0, Y2, GX1 - GX0, BOTTOM - Y2); c.clip();
+  // (the tube on its way out, down here too)
+  if (LFLICKER !== undefined && LFLICKER + 154 > l && LFLICKER - 90 < r && typeof performance !== 'undefined') {
+    const now = performance.now() + 900, t = Math.floor(now / 60);
+    const off = hash(t * 0.53 + 3) < 0.25 || (Math.floor(now / 2300) % 4 === 1 && hash(t * 2.3) < 0.8);
+    if (off) {
+      steppedGlow(c, LFLICKER + 32, Y2 + 44, 84, '#06060A', 0.13, 0.0, 5);
+      box(c, LFLICKER + 2, Y2 + 26, 60, 3, '#46524C'); box(c, LFLICKER + 2, Y2 + 26, 60, 1, '#5E6A64');
+      box(c, LFLICKER + 2, Y2 + 26, 6, 3, '#D890A8'); box(c, LFLICKER + 56, Y2 + 26, 6, 3, '#B87890');
+    }
+  }
+  // (the white car's hazards, blinking)
+  for (const k of LCARS) if (k.blink && k.x + k.w + 20 > l && k.x - 20 < r && (f >> 4) % 2 === 0) {
+    for (const hx of [k.x + 2, k.x + k.w - 3]) {
+      steppedGlow(c, hx, LFL - 30, 16, '#FFB020', 0.3, 0.04, 3);
+      box(c, hx - 2, LFL - 32, 4, 4, '#FFC040'); box(c, hx - 1, LFL - 32, 2, 1, '#FFF4C0');
+    }
+  }
+  // (the columns: each side going back from the eye, then the front over it)
+  for (const px of LPILLARS) {
+    if (px + LPW + 60 < l || px - 60 > r) continue;
+    for (const [e, side] of [[px, -1], [px + LPW, 1]] as const) sideFace(c, eye, e, side, Y2, LPF, 0.95, '#3A3A44', pt => {
+      const band = (y0: number, y1: number, col: string) => {
+        const p0 = pt(0, y0), p1 = pt(1, y0), p2 = pt(1, y1), p3 = pt(0, y1);
+        c.fillStyle = col; c.beginPath(); c.moveTo(...p0); c.lineTo(...p1); c.lineTo(...p2); c.lineTo(...p3); c.closePath(); c.fill();
+      };
+      band(Y2 + 42, Y2 + 66, '#7E7A72'); band(Y2 + 45, Y2 + 48, '#1A2E6A'); band(Y2 + 60, Y2 + 63, '#7A1818');
+      band(LPF - 30, LPF, '#8A6E10');
+      for (let k = 0; k < 3; k++) band(LPF - 26 + k * 9, LPF - 22 + k * 9, '#1C1A1E');
+      band(Y2, LPF, 'rgba(12, 14, 26, 0.3)');
+      band(Y2, Y2 + 8, 'rgba(0, 0, 0, 0.4)');
+    });
+    stamp(c, `m2u-lpil:${px}`, px - 2, Y2, LPW + 4, LPF - Y2 + 2, g => lowerPillarFront(g, px, PILLARS.indexOf(px)));
+  }
+  c.restore();
 };
 
 const slabDeck = (g: Ctx, a: number, b: number) => {
@@ -1013,8 +1332,9 @@ const stairs = (c: Ctx, a: number, b: number, f: number) => {
 };
 
 /** The garage level's slab and the deck (its edge showing, the drop under it), the stairs down, the walkways. */
-export const drawUpperFloor = (c: Ctx, f: number) => {
+export const drawUpperFloor = (c: Ctx, f: number, eye: Eye) => {
   chunked(c, 'm2u-slab', GX0, R(CHECK_END), UPPER, BOTTOM - UPPER, paintSlab);
+  lowerLive(c, f, eye);
   stairs(c, R(CHECK_END), R(STAIRS_END), f);
   const [l, r] = view(c);
   for (const [a, b] of WALKWAYS) if (R(b) + 60 > l && R(a) - 60 < r) walkway(c, R(a), R(b), f);

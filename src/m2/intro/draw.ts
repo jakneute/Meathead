@@ -41,7 +41,7 @@ export const drawIntroBack = (c: Ctx, state: GameState) => {
   if (vis(R(USA_START) - 600, R(USA_END))) america(c, f, vis, eye);
   if (vis(R(USA_END) - 200, R(END_X) + 400)) plaza(c, state, f, eye);
   // The floors: the garage level's slab (its edge showing, the drop under it), the stairs down, brick in America USA,
-  drawUpperFloor(c, f);
+  drawUpperFloor(c, f, eye);
   if (vis(R(STAIRS_END), R(USA_END))) drawAmericaFloor(c);
   drawPlazaFloor(c);
   // (and the ground in perspective: the top of the deck's slab, the street and the plaza fanning out toward him)
