@@ -10,7 +10,7 @@ import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../../m1/constants';
 import { skyTint, farTint } from '../../../timeOfDay';
 import { drawPerson } from '../../temple/people';
 import { type Ctx, INK, box, text, sign, slab, pole, ball, rampOf, checker, steppedGlow, stamp, bandedGradient } from './kit';
-import { signAt, signText, enamel, print, led } from '../../letters';
+import { signAt, signText, enamel, print, led, type Look } from '../../letters';
 import { drawRaptorIdle } from './robots';
 
 export const PIP = { w: 340, h: 220 };
@@ -140,6 +140,147 @@ const windowView = (c: Ctx, f: number) => {
   c.restore();
 };
 
+/** The poster on the wall by the window: a vintage workplace-safety print, SAFETY FIRST over a sunburst, the park's
+ *  grinning raptor mascot in its yellow hard hat with a worker's legs kicking out of its jaws (one boot already off,
+ *  his own orange hat in the dirt, a puddle), FIRST under it. Sun-faded from the top down, its top-right corner folded
+ *  over, the bottom-left torn away (a scrap left under the tack), taped at one corner, nailed at two, the nails
+ *  rusting down it and down the wall, foxed, grimy where hands have been. Flat on the back wall (the room's straight on). */
+const safetyPoster = (g: Ctx) => {
+  const X0 = 120, Y0 = 46, W = 44, H = 58;
+  // (the paper's outline: the bottom-left torn away in steps, the top-right folded down)
+  const TEAR = [1, 2, 2, 4, 5, 5, 7, 8];
+  const left = (y: number) => (y >= H - 8 ? TEAR[y - (H - 8)] : 0);
+  const right = (y: number) => (y < 4 ? W - 3 + y : W);
+  const inPaper = (x: number, y: number) => y >= 0 && y < H && x >= left(y) && x < right(y);
+  // (its shadow on the block, down and to the right)
+  for (let y = 0; y < H; y++) box(g, X0 + left(y) + 1, Y0 + y + 1, right(y) - left(y), 1, 'rgba(20, 34, 22, 0.32)');
+  // (the paper: sun-faded toward the top, banded in three tones, a dithered row at each seam; foxed here and there)
+  const P = ['#F4EEDC', '#EBE2C8', '#DFD4B4'];
+  for (let y = 0; y < H; y++) {
+    const band = y < 22 ? 0 : y < 42 ? 1 : 2, seam = y === 22 || y === 42;
+    box(g, X0 + left(y), Y0 + y, right(y) - left(y), 1, P[band]);
+    if (seam) for (let x = left(y); x < right(y); x++) if ((x + y) % 2) box(g, X0 + x, Y0 + y, 1, 1, P[band - 1]);
+  }
+  // (the torn edge: white fibers along it, and the stepped edge's shadow)
+  for (let y = H - 8; y < H; y++) { box(g, X0 + left(y), Y0 + y, 1, 1, '#FFFFFA'); }
+  box(g, X0, Y0 + H - 8, 1, 1, '#C4B794');
+  // (the paper's edge, a shade darker where it's curled off the wall)
+  box(g, X0 + W - 1, Y0 + 4, 1, H - 4, '#CFC3A2');
+  for (let x = left(H - 1); x < W; x++) box(g, X0 + x, Y0 + H - 1, 1, 1, '#CFC3A2');
+
+  // The masthead: a green band, cream rules inset, SAFETY in fat sunshine letters with a drop shadow
+  const BX = 122, BY = 48, BW = 40, BH = 18;
+  const GR = ['#0E4A24', '#17693A', '#1E7F45', '#2E9656', '#5DB27A'];
+  box(g, BX, BY, BW, BH, GR[2]); box(g, BX, BY, BW, 1, GR[3]); box(g, BX, BY + BH - 2, BW, 2, GR[1]); box(g, BX, BY + BH - 1, BW, 1, GR[0]);
+  checker(g, BX, BY + 1, BW, 1, GR[3], 0, 1); checker(g, BX, BY + BH - 3, BW, 1, GR[1], 1, 1);
+  // (sun-bleached: the band's top paler, dithered into it)
+  checker(g, BX, BY + 1, BW, 3, GR[4], 1, 1); checker(g, BX, BY + 4, BW, 1, GR[3], 0, 1);
+  box(g, BX + 1, BY + 1, BW - 2, 1, '#E8DFC0'); box(g, BX + 1, BY + BH - 2, BW - 2, 1, '#C8BE9A');
+  box(g, BX + 1, BY + 1, 1, BH - 2, '#E8DFC0'); box(g, BX + BW - 2, BY + 1, 1, BH - 2, '#C8BE9A');
+  const sunny: Look = { sx: 1, sy: 2, fill: ['#FFFDF0', '#FFF0A8', '#FBD54A', '#F2B42A', '#C8861A'], dither: true, shadow: '#082E16', drop: 1 };
+  signText(g, 'SAFETY', 142, 64, sunny);
+
+  // The picture: a frame, a rising sun's rays behind (two tones, banded), the ground
+  const AX = 123, AY = 68, AW = 38, AH = 19;
+  box(g, AX - 1, AY - 1, AW + 2, AH + 2, '#5A4426');
+  const RAY = ['#F9E3AA', '#F3C77C'];
+  for (let y = 0; y < AH; y++) for (let x = 0; x < AW; x++) {
+    const dx = x - 17, dy = y - 19, r = Math.hypot(dx, dy);
+    const a = Math.atan2(dy, dx), ray = Math.floor(((a + Math.PI) / Math.PI) * 14) % 2;
+    let col = r < 7 ? '#FBD66A' : r < 8.5 ? ((x + y) % 2 ? '#FBD66A' : RAY[ray]) : RAY[ray];
+    if (y < 3 && (x + y) % 2) col = '#FAEBC4';
+    box(g, AX + x, AY + y, 1, 1, col);
+  }
+  box(g, AX, AY + AH - 2, AW, 2, '#B08A56'); box(g, AX, AY + AH - 2, AW, 1, '#C8A46A'); checker(g, AX, AY + AH - 3, AW, 1, '#C8A46A', 0, 1);
+  const p = (x: number, y: number, w: number, h: number, col: string) => box(g, AX + x, AY + y, w, h, col);
+  const RG = ['#2C5E22', '#3E7E2E', '#5FAF45', '#8FD46A', '#C4EE9A'];
+  const JN = ['#243C66', '#3A5E96', '#5A82BE'];
+  // (the blood: run off the jaw and pooled under it, dark at the rim)
+  p(4, 17, 16, 1, '#7A0E0E'); p(6, 16, 12, 1, '#B81818'); p(7, 16, 8, 1, '#D42A22'); p(9, 16, 2, 1, '#FF8A7A');
+  // (his own hard hat, knocked off: on its side by the tail)
+  p(31, 14, 7, 4, INK); p(32, 14, 5, 3, '#F07A1A'); p(32, 14, 2, 1, '#FFB070'); p(35, 16, 2, 1, '#B0500E'); p(30, 17, 8, 1, INK);
+  // (the far leg, behind: in the dark ramp)
+  p(28, 12, 4, 4, INK); p(29, 13, 2, 2, RG[0]); p(28, 15, 3, 3, INK); p(29, 15, 1, 2, RG[0]); p(26, 17, 7, 1, INK);
+  // (the tail, out behind, tapering; lit along its top)
+  p(29, 6, 6, 5, INK); p(30, 7, 5, 3, RG[2]); p(30, 7, 5, 1, RG[3]); p(30, 9, 5, 1, RG[1]);
+  p(34, 6, 4, 3, INK); p(35, 7, 3, 1, RG[2]); p(37, 5, 1, 2, INK);
+  // (the body: the ramp down it, a dithered seam, the belly cream)
+  p(18, 6, 13, 9, INK); p(19, 7, 11, 7, RG[2]); p(19, 7, 11, 1, RG[3]); p(20, 7, 4, 1, RG[4]);
+  p(19, 12, 11, 2, RG[1]); checker(g, AX + 19, AY + 11, 11, 1, RG[1], 1, 1);
+  p(20, 10, 7, 3, '#E6DCA0'); p(20, 10, 7, 1, '#F4ECC0'); p(20, 12, 7, 1, '#C8BC7E');
+  for (const sx of [22, 25, 28]) p(sx, 8, 1, 1, RG[1]);
+  // (the near leg: a fat thigh, the shin, the foot's claws in the dirt)
+  p(21, 11, 7, 5, INK); p(22, 12, 5, 3, RG[2]); p(22, 12, 5, 1, RG[3]); p(22, 14, 5, 1, RG[1]);
+  p(22, 15, 3, 3, INK); p(23, 15, 1, 2, RG[1]); p(19, 17, 8, 1, INK); p(19, 16, 1, 1, '#F4F0E0'); p(26, 16, 1, 1, '#F4F0E0');
+  // (the neck, up and forward)
+  p(14, 4, 7, 7, INK); p(15, 5, 5, 5, RG[2]); p(15, 5, 5, 1, RG[3]); p(19, 6, 1, 4, RG[1]);
+  // (the head, in profile facing left: the snout, the grin, the wink)
+  p(4, 2, 14, 8, INK); p(5, 3, 12, 6, RG[2]); p(5, 3, 12, 1, RG[3]); p(6, 3, 5, 1, RG[4]); p(3, 4, 1, 4, INK);
+  p(6, 5, 1, 1, RG[0]); // (the nostril)
+  p(13, 4, 1, 1, INK); p(14, 3, 2, 1, INK); p(16, 4, 1, 1, INK); // (the wink: shut, a happy ^)
+  p(15, 6, 2, 1, '#F08080'); // (a rosy cheek)
+  // (the jaws: clamped round a worker's middle; the mouth's red, the teeth, the lower jaw in shade)
+  p(4, 7, 12, 1, '#7A1010'); p(4, 8, 13, 1, RG[1]); p(4, 9, 13, 1, INK);
+  for (const tx of [5, 8, 11, 14]) p(tx, 6, 1, 1, '#FFFFFF');
+  // (a stubby arm, up: a claw's thumbs-up)
+  p(16, 9, 3, 3, INK); p(17, 10, 1, 1, RG[2]); p(15, 7, 2, 3, INK); p(15, 8, 1, 1, RG[3]);
+  // (his legs: out of the jaws, kicking; jeans, a belt, one work boot, one sock)
+  p(5, 7, 4, 7, INK); p(6, 8, 2, 6, JN[1]); p(6, 8, 1, 6, JN[2]); p(7, 9, 1, 4, JN[0]);
+  p(2, 12, 6, 4, INK); p(3, 13, 4, 2, '#6A4424'); p(3, 13, 2, 1, '#8A5E34'); p(2, 15, 6, 1, '#2A1A0E');
+  p(9, 7, 4, 6, INK); p(10, 8, 2, 4, JN[1]); p(10, 8, 1, 4, JN[2]);
+  p(9, 12, 5, 3, INK); p(10, 12, 3, 2, '#F4F2EA'); p(12, 13, 1, 1, '#E8A888'); // (the sock; a toe through it)
+  p(4, 7, 9, 1, '#4A2E14'); p(8, 7, 1, 1, '#D8B040'); // (the belt, its buckle)
+  for (const tx of [6, 10]) p(tx, 8, 1, 1, '#FFFFFF'); // (the lower teeth, in over the jeans)
+  p(4, 9, 1, 2, '#C81E1E'); p(4, 11, 1, 1, '#E83A2E'); // (a drip off the jaw)
+  // (motion lines by the kicking feet)
+  p(0, 11, 2, 1, '#8A6A3A'); p(1, 13, 1, 1, '#8A6A3A'); p(14, 11, 2, 1, '#8A6A3A');
+  // (the yellow hard hat, on the mascot: a dome, ramped, a ridge down it, the brim)
+  p(8, -2, 7, 1, INK); p(7, -1, 9, 3, INK); p(8, -1, 7, 2, '#F2C23A'); p(8, -1, 3, 1, '#FFE680'); p(11, -1, 1, 2, '#C08A1A'); p(14, 0, 1, 1, '#D0981E');
+  p(5, 1, 13, 2, INK); p(6, 1, 11, 1, '#E0A82A'); p(6, 1, 3, 1, '#FFD860');
+
+  // FIRST, under it: fat red letters, a dark drop shadow
+  const red: Look = { sx: 1, sy: 2, bold: true, fill: ['#F86A54', '#E2382A', '#C42420', '#9A1414', '#6A0A0A'], dither: true, shadow: '#3A0A08', drop: 1 };
+  signText(g, 'FIRST', 143, 102, red);
+
+  // Weathering: the sun's fade washed down from the top, dithered out; foxing; grime along the foot; a thumb smudge
+  for (let y = 0; y < 20; y++) {
+    const a = y < 10 ? 0.16 : 0.08;
+    g.fillStyle = `rgba(255, 250, 232, ${a})`;
+    for (let x = left(y); x < right(y); x++) if (y < 10 || (x + y) % 2) g.fillRect(X0 + x, Y0 + y, 1, 1);
+  }
+  const clearOf = (x: number, y: number) => !((y >= 3 && y <= 19 && x >= 2 && x < 42) || (y >= 41 && y <= 57 && x >= 6 && x < 40));
+  for (let i = 0; i < 26; i++) {
+    const x = (i * 37 + 11) % W, y = (i * 23 + 5) % H;
+    if (inPaper(x, y) && clearOf(x, y)) box(g, X0 + x, Y0 + y, 1, 1, i % 3 ? '#CFC09A' : '#B8A57C');
+  }
+  g.fillStyle = 'rgba(96, 76, 44, 0.22)';
+  for (let y = H - 2; y < H; y++) for (let x = left(y); x < W; x++) if ((x + y) % 2 || y === H - 1) g.fillRect(X0 + x, Y0 + y, 1, 1);
+  g.fillStyle = 'rgba(70, 58, 36, 0.16)'; g.fillRect(X0 + W - 4, Y0 + 30, 3, 4); g.fillRect(X0 + W - 3, Y0 + 29, 2, 1); g.fillRect(X0 + W - 5, Y0 + 32, 1, 2);
+  // (a water ring, half off the bottom-right)
+  for (const [rx, ry] of [[39, 55], [40, 54], [41, 54], [42, 55], [38, 56]]) if (inPaper(rx, ry) && clearOf(rx, ry)) box(g, X0 + rx, Y0 + ry, 1, 1, '#C4AE80');
+
+  // The top-right corner, folded down over itself: the paper's back, greyer, lit along the fold, its shadow under
+  for (let y = 1; y < 4; y++) {
+    box(g, X0 + W - 3, Y0 + y, y, 1, '#C9C0A6');
+    box(g, X0 + W - 3 + y - 1, Y0 + y, 1, 1, '#ECE6D2');
+  }
+  box(g, X0 + W - 3, Y0 + 4, 3, 1, 'rgba(60, 50, 30, 0.3)'); box(g, X0 + W - 4, Y0 + 1, 1, 3, 'rgba(60, 50, 30, 0.18)');
+  // (tape across the top-left corner: yellowed, its edges darker)
+  for (let k = 0; k < 6; k++) {
+    box(g, X0 - 3 + k, Y0 + 2 - k, 5, 1, 'rgba(236, 220, 160, 0.55)');
+    box(g, X0 - 3 + k, Y0 + 2 - k, 1, 1, 'rgba(160, 140, 80, 0.5)'); box(g, X0 + 1 + k, Y0 + 2 - k, 1, 1, 'rgba(160, 140, 80, 0.5)');
+  }
+  // (a scrap of the torn corner still on the wall under its tack)
+  box(g, X0, Y0 + H - 3, 3, 3, '#DFD4B4'); box(g, X0, Y0 + H - 3, 1, 1, '#FFFFFA'); box(g, X0 + 1, Y0 + H - 2, 1, 1, '#8A8E96');
+  // (the nails, their heads lit, the rust run down from them: down the margin, and off the foot down the wall)
+  const nail = (x: number, y: number) => { box(g, x, y, 2, 2, '#3A3A40'); box(g, x, y, 1, 1, '#9AA0A8'); };
+  nail(X0, Y0 + 26);
+  box(g, X0, Y0 + 28, 1, 7, '#9A5A2A'); box(g, X0 + 1, Y0 + 28, 1, 3, '#B8703A'); box(g, X0, Y0 + 36, 1, 1, '#9A5A2A'); box(g, X0, Y0 + 38, 1, 1, '#B8703A'); box(g, X0 + 1, Y0 + 32, 1, 1, '#C88A50');
+  nail(X0 + W - 2, Y0 + H - 3);
+  box(g, X0 + W - 2, Y0 + H - 1, 1, 9, 'rgba(140, 74, 30, 0.75)'); box(g, X0 + W - 1, Y0 + H, 1, 4, 'rgba(170, 96, 44, 0.6)');
+  box(g, X0 + W - 2, Y0 + H + 10, 1, 1, 'rgba(140, 74, 30, 0.5)'); box(g, X0 + W - 2, Y0 + H + 13, 1, 1, 'rgba(140, 74, 30, 0.35)');
+};
+
 const paintRoom = (g: Ctx) => {
   const W = PIP.w;
   // (cinder block, painted institutional green: each block lit along its top, shaded along its foot, the mortar
@@ -166,14 +307,7 @@ const paintRoom = (g: Ctx) => {
   g.fillStyle = 'rgba(255, 246, 214, 0.16)'; g.beginPath(); g.moveTo(20, 170); g.lineTo(108, 170); g.lineTo(150, 220); g.lineTo(40, 220); g.closePath(); g.fill();
   box(g, 0, 168, W, 3, '#3A362E'); box(g, 0, 171, W, 1, FL[3]);
   for (const [sx, sy] of [[200, 196], [240, 184], [70, 206]]) box(g, sx, sy, 12, 1, FL[0]);
-  // (a poster: SAFETY FIRST, a cartoon raptor in a hard hat; its corner curling)
-  slab(g, 120, 46, 44, 58, '#F1EFEA');
-  box(g, 122, 48, 40, 10, '#15803D'); signText(g, 'SAFETY', 142, 56, print(4, '#FFFFFF'));
-  box(g, 128, 64, 22, 14, '#6ABA4A'); box(g, 146, 58, 12, 10, '#6ABA4A'); box(g, 154, 62, 4, 2, '#1A0B06'); box(g, 146, 56, 12, 4, '#F2C23A'); box(g, 148, 54, 8, 2, '#F2C23A');
-  box(g, 132, 78, 3, 10, '#4A8A34'); box(g, 142, 78, 3, 10, '#4A8A34'); box(g, 122, 68, 8, 4, '#4A8A34');
-  signText(g, 'FIRST', 142, 100, print(4, '#B91C1C'));
-  box(g, 158, 98, 6, 6, '#C8C4B8'); box(g, 158, 98, 6, 1, '#8A8478');
-  box(g, 121, 46, 2, 2, '#8A8E96'); box(g, 161, 46, 2, 2, '#8A8E96');
+  safetyPoster(g);
   // The window (its frame; the view's drawn live)
   slab(g, 12, 32, 100, 84, '#D6D3D1');
   box(g, 16, 36, 92, 76, INK);
