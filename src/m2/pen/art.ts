@@ -23,6 +23,7 @@ import {
 } from '../intro/art/kit';
 import { X0, LEN, WALL, CEIL_Y, EXIT_X, SHELF } from './index';
 import { timeOfDay, skyAt, farTint, lampGlow } from '../timeOfDay';
+import { PHOTO_W, PHOTO_H, warmEmployeePhoto, drawEmployeePhoto } from './photoGross';
 
 const G = GROUND_Y;
 /** World x from a distance into the room (0 at the near wall's face). */
@@ -835,25 +836,29 @@ const breakTable = (c: Ctx) => {
   box(c, bx + 60, G - 3, 18, 3, INK); box(c, bx + 61, G - 3, 16, 2, '#8A929C');
 };
 
+/** The employee of the month's frame (its left at room distance `r`, its top at `top`) and the photo in it. */
+const EOTM = { r: 2148, top: 150, x: (ex: number) => ex + 12, y: (ey: number) => ey + 31 };
+
 /** The counter: the microwave (something exploded in it), the coffee maker (the pot burnt black), a cabinet door gone. */
 const counter = (c: Ctx) => {
   const x = rx(2142), w = 106, ty = 466;
   // (over it: the employee of the month, from 1994; a note about your mother)
-  const ex = rx(2148), ey = 150;
+  const ex = rx(EOTM.r), ey = EOTM.top;
   box(c, ex + 47, ey - 12, 2, 2, '#26282C'); line(c, [ex + 8, ey, ex + 48, ey - 11, ex + 88, ey], '#3A3F48', 1);
   shade(c, ex, ey, 96, 124, 0.38, 4);
   slab(c, ex, ey, 96, 124, '#B08A2A');
   box(c, ex + 6, ey + 6, 84, 112, '#F4ECD8');
   text(c, 'EMPLOYEE OF', ex + 48, ey + 18, '#1E3A8A', 6, 'center', null);
   text(c, 'THE MONTH', ex + 48, ey + 27, '#1E3A8A', 6, 'center', null);
-  bandedGradient(c, ex + 14, ey + 32, 68, 64, ['#8EA6B4', '#A8B8B8', '#B8B4A0'], 4);
-  oval(c, ex + 48, ey + 66, 14, 18, '#C8A88C'); oval(c, ex + 46, ey + 62, 10, 12, '#D8BCA0');
-  box(c, ex + 36, ey + 46, 24, 7, '#8E5A5A'); box(c, ex + 34, ey + 52, 30, 3, '#7A4A4A');
-  box(c, ex + 42, ey + 64, 3, 3, '#4A3A30'); box(c, ex + 52, ey + 64, 3, 3, '#4A3A30');
-  box(c, ex + 40, ey + 72, 16, 3, '#6A4A30'); box(c, ex + 43, ey + 77, 10, 2, '#9A6A5A');
-  poly(c, [ex + 28, ey + 96, ex + 34, ey + 84, ex + 62, ey + 84, ex + 68, ey + 96], '#9A6A6A');
-  text(c, 'MAR 1994', ex + 48, ey + 110, '#6A5A40', 6, 'center', null);
-  line(c, [ex + 20, ey + 90, ex + 40, ey + 40], 'rgba(255, 255, 255, 0.3)', 2);
+  // (the photo's mat: the gross-up itself, photoGross.ts, is drawn live over it, cached; then the brass plate under it)
+  box(c, EOTM.x(ex) - 2, EOTM.y(ey) - 2, PHOTO_W + 4, PHOTO_H + 4, INK); box(c, EOTM.x(ex) - 1, EOTM.y(ey) - 1, PHOTO_W + 2, PHOTO_H + 2, '#3A3226');
+  const px_ = ex + 20, py_ = ey + 97;
+  box(c, px_ - 1, py_ - 1, 58, 21, INK); box(c, px_, py_, 56, 19, '#C8A040');
+  box(c, px_, py_, 56, 1, '#F4DC80'); box(c, px_, py_, 1, 19, '#E8C860'); box(c, px_, py_ + 17, 56, 2, '#8A6A20'); box(c, px_ + 55, py_, 1, 19, '#8A6A20');
+  checker(c, px_ + 1, py_ + 15, 54, 2, '#A8822E', 1);
+  screw(c, px_ + 2, py_ + 8); screw(c, px_ + 52, py_ + 8);
+  text(c, 'GARY', ex + 48, py_ + 8, '#3A2A10', 6, 'center', null);
+  text(c, 'MAR 1994', ex + 48, py_ + 16, '#3A2A10', 6, 'center', null);
   note(c, rx(2150), 296, ["YOUR MOM", "DOESN'T WORK", 'HERE.'], { paper: '#F4F0E0', ink: '#7A1E1A' });
   note(c, rx(2196), 344, ['THIS MEANS', 'YOU, GARY'], { paper: '#F2E890', ink: '#26324A' });
   // (and taped on the wall over the microwave, an arrow drawn down at it)
@@ -1787,10 +1792,13 @@ export const drawPenBackdrop = (ctx: Ctx, _state: GameState) => {
 export const drawPenBack = (ctx: Ctx, state: GameState) => {
   const f = state.frame, cam = state.camera.x;
   const vis = (a: number, b: number) => b > cam - 20 && a < cam + CANVAS_WIDTH + 20;
+  warmEmployeePhoto();
   for (let i = 0; i < STRIPS(); i++) {
     const a = STRIP_X0() + i * CHUNK - 2, b = Math.min(STRIP_X0() + (i + 1) * CHUNK, X0 + LEN + WALL) + 2;
     if (vis(a, b)) stamp(ctx, `pen-strip-${i}`, a, -60, b - a, CANVAS_HEIGHT + 120, g => strip(g, i));
   }
+  // (the employee of the month's gross-up, in its frame over the counter)
+  { const x = EOTM.x(rx(EOTM.r)), y = EOTM.y(EOTM.top); if (vis(x, x + PHOTO_W)) drawEmployeePhoto(ctx, x, y); }
   // (the floor in perspective: fanning out toward him from where he walks, the rows deeper the nearer they are)
   bendFloor(ctx, { x: cam + CANVAS_WIDTH / 2 }, G, G, G + 120, X0, X0 + LEN);
   // (the side walls: after the bend, which is the floor's alone)
