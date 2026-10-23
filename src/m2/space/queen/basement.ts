@@ -20,7 +20,10 @@
 //                 the basement's in stretches (WINDOWS), each one a go he has to hide through; somewhere in each (rolled
 //                 each life) she's out for him if she hasn't been yet, ahead of him on his level, coming his way, a
 //                 hiding spot in reach (a breather after the last go first). Not hidden through it, it's owed: she's
-//                 back for it. The stairs' finale waits on them all (four from the top, fewer from the checkpoints).
+//                 back for it. Rushing doesn't skip them: past each stretch's FORCE point she's out for it right away,
+//                 and at the drop she's put down in front of wherever he's got to (anchor), so the first three are
+//                 certain at any speed (the user's: "certain to jump in front of you if you press on quickly").
+//                 The stairs' finale waits on them all (four from the top, fewer from the checkpoints).
 //   THE STAIRS    the panic run (the user's: "you don't see it coming, but you hear it"): at their foot she's out
 //                 behind him, unseen, and he hears her coming: her claws clicking faster and nearer, her footfalls,
 //                 the stairs rattling under her, screeches, the stalker song's panic arrangement. Keep going up and he
@@ -50,7 +53,7 @@ import { playSound } from '../../../m1/game/platform/audio';
 import { pickLine } from '../../../m1/game/platform/speech';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { isShat, isNude } from '../../../m1/game/player/gut';
-import { KICK_POSE_FRAMES, CANVAS_WIDTH, CANVAS_HEIGHT, PARTICLE_PALETTES } from '../../../m1/constants';
+import { KICK_POSE_FRAMES, CANVAS_WIDTH, CANVAS_HEIGHT, PARTICLE_PALETTES, PLAYER_MOVE_SPEED } from '../../../m1/constants';
 import { registerHurtLines } from '../../kinds';
 import { registerDeathKind, registerDeathAnim } from '../../../m1/game/player/deathAnim';
 import { registerDeathDraw, body } from '../../../m1/game/render/player/deathAnim';
@@ -228,8 +231,11 @@ export interface Hunter {
   fgNext: number;
   /** On her way to a way out (a vent, a duct) to leave by. */
   leaving: boolean;
-  /** The goes he has to hide through: each stretch's trigger (rolled each life) and whether he's hidden through it. */
-  win: { a: number; b: number; at: number; done: boolean }[];
+  /** The goes he has to hide through: each stretch's trigger (rolled each life), the point past which she's out for it
+   *  no matter what (FORCE), and whether he's hidden through it. */
+  win: { a: number; b: number; at: number; force: number; done: boolean }[];
+  /** This tell's a stretch's go: at the drop she's put ahead of wherever he's got to (anchor), not where the rattle was. */
+  forced: boolean;
   /** He's been hidden with her near, this go; the frame she last went (the breather's from then). */
   hidNear: boolean; goneAt: number;
   /** The stairs' panic run (heard, never seen till she has him): frames in, the furthest he's got (x), frames since he
@@ -248,7 +254,7 @@ export const makeHunter = (state: GameState): Hunter => {
     door: state.stageMemo[DOOR_MEMO] ? 'in' : 'shut', doorT: 0, block: null,
     wasGrounded: true, lastVy: 0, lastShoot: false, lastJump: false, lastMove: false, warned: false, freeMove: false,
     cam: 0,
-    win: WINDOWS.map(([a, b]) => ({ a, b, at: rnd(a, b - 250), done: false })), hidNear: false, goneAt: -9999,
+    win: WINDOWS.map(([a, b, force]) => ({ a, b, force, at: rnd(a, force), done: false })), forced: false, hidNear: false, goneAt: -9999,
     chase: null,
   };
 };
@@ -332,6 +338,11 @@ export const tickHunter = (ctx: FrameContext, h: Hunter, controls: Controls): Co
   if (!h.finale) hearHim(state, h, controls);
   if (!h.finale) maybeChase(state, h);
   if (h.chase) tickChase(state, h);
+  // (past a stretch's FORCE point with its go still owed: whatever she's off doing out of his sight (a go of her own
+  // somewhere, not on him) she drops it for this; nothing's popped off the screen)
+  if (!h.finale && h.opened && !h.forced && h.hid < 0 && (h.mode === 'tell' || h.mode === 'prowl' || h.mode === 'search')
+    && h.win.some(w => !w.done && cx >= w.force) && state.frame - h.goneAt >= FORCE_BREATHER
+    && (h.x < state.camera.x - 80 || h.x > state.camera.x + CANVAS_WIDTH + 80)) { to(h, 'away'); h.leaving = false; h.rattle = null; }
   if (h.mode === 'away') schedule(state, h);
   runHer(ctx, h);
   if (h.mode !== 'kill') h.cam = Math.max(0, h.cam - 0.03);
@@ -410,34 +421,79 @@ const clampLvl = (h: Hunter, x: number) => {
 // ---------------------------------------------------------------------------------------------------------------
 // Her schedule: out again when she likes (sooner if he's loud), from where she likes
 
-/** The stretches he has to hide through (x): each a go of hers he can't get by without a hiding spot. */
-const WINDOWS: [number, number][] = [[B + 1650, B + 2550], [B + 3000, B + 4300], [B + 4500, B + 5500], [B + 5800, B + 6150]];
-/** Frames after she's gone before she's out for an owed go (never two back to back); on the last stretch, shorter. */
-const BREATHER = 300, BREATHER_LAST = 150;
+/** The stretches he has to hide through (x): each a go of hers he can't get by without a hiding spot: [from, to, FORCE].
+ *  Each go comes by his progress, never a clock he can outrun: past its trigger (rolled each life, from the stretch's
+ *  start to its FORCE) with a breather since her last go, or past FORCE with only FORCE_BREATHER since (whatever she's off
+ *  doing out of sight dropped for it). Her tell's FORCE_TELL frames, and at the drop she's put FORCE_STAND ahead of
+ *  wherever he's got to (anchor), so speed can't outrun it: walking (PLAYER_MOVE_SPEED 4.44) he's ~400 on from where the
+ *  tell started, charging flat out (CHARGE_SPEED 14.4 the whole tell) ~1300, and she lands 480..820 in front of him
+ *  either way. The FORCE points keep that clear of the stairs' foot even at a flat-out charge (FORCE + 1300 + 480 short
+ *  of STAIRS_A - 30) for the first three: those three are certain, in front of him, at any speed; the last (right before
+ *  the stairs) is in front of anyone not charging the whole way (and the stairs' run is the end of it). */
+const WINDOWS: [number, number, number][] = [[B + 1650, B + 2550, B + 2150], [B + 3000, B + 4300, B + 3700], [B + 4500, B + 5500, B + 4700], [B + 5800, B + 6150, B + 5800]];
+/** Frames after she's gone before she's out for an owed go (never two back to back); on the last stretch, shorter; past
+ *  a stretch's FORCE, just this beat. */
+const BREATHER = 300, BREATHER_LAST = 150, FORCE_BREATHER = 90;
+/** A stretch's go: the tell (frames: her clicks, the rattle, the clang, as loud as a near one wherever she is); how far
+ *  ahead of him the rattle starts (where a walker's drop lands, FORCE_STAND on); at the drop, how far ahead of him she
+ *  lands (aimed for, the least, the most; the least right at the stairs' foot), and how far behind him a hiding spot
+ *  counts as in reach (a hiding spot's needed from there to 200 short of her, on his level). */
+const FORCE_TELL = 90, FORCE_STAND = 600, FORCE_MIN = 480, FORCE_MAX = 820, FORCE_END_MIN = 320, FORCE_BACK = 380;
+const FORCE_TELL_AT = Math.min(900, PLAYER_MOVE_SPEED * FORCE_TELL + FORCE_STAND);
 const owed = (h: Hunter) => h.win.some(w => !w.done);
 /** Hidden through a go of hers: it pays the first stretch still owed that he's in or past. */
 const paid = (h: Hunter, cx: number) => { const w = h.win.find(v => !v.done && v.a <= cx + 300); if (w) w.done = true; };
+/** The ways she can come out onto the floor: the ducts, and the vents with no catwalk under them. */
+const floorWays = () => [...DUCTS, ...VENTS.filter(v => !catwalkAt(v))].filter(v => v > B + 100 && v < STAIRS_A - 40);
 
-/** An owed go: her out ahead of him (toward the stairs), on his level, from a way in a fair way off, coming his way and on
- *  past; only with a hiding spot between them (or just behind him). False: nowhere fair yet (he's to keep walking). */
-const forceGo = (state: GameState, h: Hunter, end: boolean) => {
+/** An owed go: the tell, ahead of him (toward the stairs) on his level (the rattle where a walker would meet her);
+ *  where she really comes down is settled at the drop (anchor). False: not now (on a ladder, in the air). */
+const forceGo = (state: GameState, h: Hunter) => {
   const cx = pmid(state), lv = plevel(state);
   if (lv < 0 || onLadder(state)) return false;
-  const lvl: 0 | 1 = lv === 1 ? 1 : 0, min = end ? 300 : 400, max = 900;
-  let ways: number[];
-  if (lvl === 1) { const cw = catwalkAt(cx); if (!cw) return false; ways = VENTS.filter(v => v > cw[0] + 30 && v < cw[1] - 30); }
-  else ways = [...DUCTS, ...VENTS.filter(v => !catwalkAt(v))].filter(v => v > B + 100 && v < STAIRS_A - 40);
-  ways = ways.filter(v => v - cx >= min && v - cx <= max);
-  if (!ways.length) return false;
-  const nice = ways.filter(v => v - cx >= 450 && v - cx <= 750);
-  const from = (nice.length ? nice : ways)[Math.floor(Math.random() * (nice.length ? nice.length : ways.length))];
-  // (somewhere to hide, on his level: between them, or just behind him)
-  const y = levelY(lvl, cx);
-  if (!HIDES.some((sp, i) => i !== h.torn && Math.abs(sp.y - y) < 10 && sp.x > cx - (end ? 420 : 320) && sp.x < from - 200)) return false;
+  const cw = lv === 1 ? catwalkAt(cx) : null, lvl: 0 | 1 = cw ? 1 : 0;
+  const all = cw ? VENTS.filter(v => v > cw[0] + 30 && v < cw[1] - 30) : floorWays();
+  const ahead = all.filter(v => v > cx + 200), ways = ahead.length ? ahead : all;
+  const want = cx + FORCE_TELL_AT;
+  const from = ways.length ? ways.reduce((a, v) => (Math.abs(v - want) < Math.abs(a - want) ? v : a)) : Math.min(STAIRS_A - 30, want);
   h.fake = null; h.fg = null;
-  const entry: Entry = lvl === 0 && DUCTS.includes(from) ? 'duct' : 'vent';
-  emerge(state, h, lvl, from, entry, [{ x: cx - rnd(400, 600), stop: Math.random() < 0.5 ? rnd(40, 110) : 0 }, { x: cx + rnd(-80, 160), stop: rnd(40, 90) }], rnd(1.7, 2.1), false);
+  emerge(state, h, lvl, from, lvl === 0 && DUCTS.includes(from) ? 'duct' : 'vent', [], rnd(1.7, 2.1), false);
+  h.forced = true;
   return true;
+};
+
+/** A stretch's go, at the drop: her put down in front of him wherever he's got to (however fast he came), on his level
+ *  (the floor, if his catwalk hasn't the room ahead), FORCE_MIN..FORCE_MAX on (aimed at FORCE_STAND), out of a real
+ *  vent or duct there if there is one, else down off the ceiling (she's been crawling along it over him in the dark),
+ *  with a hiding spot in his reach (FORCE_BACK behind him up to 200 short of her); facing him, coming his way and on
+ *  past. Right at the stairs' foot, as near as FORCE_END_MIN; no room even for that: behind him, coming his way. */
+const anchor = (state: GameState, h: Hunter) => {
+  const cx = pmid(state), lv = plevel(state), cw = lv === 1 ? catwalkAt(cx) : null;
+  const lvl: 0 | 1 = cw && cw[1] - 30 - cx >= FORCE_MIN ? 1 : 0;
+  const hi = lvl ? cw![1] - 30 : STAIRS_A - 30, room = hi - cx;
+  const ys = [lvl ? CATWALK_Y : BF, lv === 1 ? CATWALK_Y : BF];
+  const cover = (x: number) => HIDES.some((sp, i) => i !== h.torn && ys.some(y => Math.abs(sp.y - y) < 10) && sp.x > cx - FORCE_BACK && sp.x < x - 200);
+  let x: number, entry: Entry, rattle = false;
+  if (room >= FORCE_END_MIN) {
+    const lo = cx + Math.min(FORCE_MIN, room), top = cx + Math.min(FORCE_MAX, room);
+    const inRange = (v: number) => v >= lo && v <= top;
+    // (the rattle's own way in, if it's still fair; else the fairest other)
+    const kept = h.lvl === lvl && inRange(h.x) && cover(h.x) && (lvl ? VENTS : floorWays()).includes(h.x) ? h.x : null;
+    const ways = (lvl ? VENTS.filter(v => v >= cw![0] + 30 && v <= cw![1] - 30) : floorWays()).filter(inRange)
+      .sort((a, b) => Math.abs(a - cx - FORCE_STAND) - Math.abs(b - cx - FORCE_STAND));
+    const way = kept ?? ways.find(cover) ?? null;
+    if (way !== null) { x = way; entry = lvl === 0 && DUCTS.includes(way) ? 'duct' : 'vent'; rattle = way !== kept; }
+    else {
+      let d = Math.min(FORCE_STAND, room);
+      for (let k = Math.min(FORCE_MIN, room); k <= Math.min(FORCE_MAX, room); k += 20) if (cover(cx + k)) { d = k; if (k >= Math.min(FORCE_STAND, room)) break; }
+      x = cx + d; entry = 'ceil';
+    }
+  } else { x = Math.max(B + 40, cx - FORCE_STAND); entry = 'ceil'; }
+  h.lvl = x < cx ? 0 : lvl; h.x = x; h.y = levelY(h.lvl, x); h.entry = entry; h.dir = cx < x ? -1 : 1;
+  h.rattle = rattle ? { x, t: 110 } : entry === 'ceil' ? null : h.rattle;
+  const on = Math.sign(cx - x) || -1;
+  h.path = [{ x: clampLvl(h, cx + on * rnd(350, 550)), stop: Math.random() < 0.5 ? rnd(40, 110) : 0 }, { x: clampLvl(h, cx + rnd(-80, 160)), stop: rnd(40, 90) }];
+  h.leg = 0; h.sniff = 0;
 };
 
 const schedule = (state: GameState, h: Hunter) => {
@@ -451,10 +507,12 @@ const schedule = (state: GameState, h: Hunter) => {
     }
     return;
   }
-  // (an owed go: its stretch's trigger passed, a breather since her last; on the last stretch and at the stairs, sooner)
-  if (!h.finale && p.isGrounded) {
+  // (an owed go: its stretch's trigger passed, a breather since her last; on the last stretch, sooner; past its FORCE
+  // point, right away (just a beat after her last))
+  if (!h.finale) {
     const due = h.win.find(w => !w.done && cx >= w.at), last = cx > WINDOWS[WINDOWS.length - 1][0];
-    if (due && state.frame - h.goneAt >= (last ? BREATHER_LAST : BREATHER) && forceGo(state, h, cx > STAIRS_A - 380)) return;
+    const wait = h.win.some(w => !w.done && cx >= w.force) ? FORCE_BREATHER : last ? BREATHER_LAST : BREATHER;
+    if (due && state.frame - h.goneAt >= wait && forceGo(state, h)) return;
   }
   // (the stairs: the panic run (maybeChase, below))
   if (h.finale) return;
@@ -522,7 +580,7 @@ const pickFloorEntry = (x: number) => {
 const emerge = (state: GameState, h: Hunter, lvl: 0 | 1, from: number, entry: Entry, path: { x: number; stop?: number }[], speed: number, opener: boolean) => {
   h.lvl = lvl; h.x = from; h.y = levelY(lvl, from); h.entry = entry; h.huntOnDrop = false;
   h.path = path.map(q => ({ ...q, x: lvl ? Math.max((catwalkAt(from) ?? [from, from])[0] + 30, Math.min((catwalkAt(from) ?? [from, from])[1] - 30, q.x)) : Math.max(B + 40, Math.min(STAIRS_A - 30, q.x)) }));
-  h.leg = 0; h.speed = speed; h.out = 0; h.passedClose = false; h.hidNear = false;
+  h.leg = 0; h.speed = speed; h.out = 0; h.passedClose = false; h.hidNear = false; h.forced = false;
   h.fg = opener ? { t: 0, dir: from > pmid(state) ? -1 : 1 } : null;
   h.rattle = { x: from, t: 0 };
   h.dir = pmid(state) < from ? -1 : 1;
@@ -544,13 +602,15 @@ const runHer = (ctx: FrameContext, h: Hunter) => {
     case 'away': return;
     case 'tell': {
       // (her clicks getting nearer, the vent (or the duct) rattling, dust down out of it; a screech; then out)
-      const T = h.finale ? 70 : 120;
-      if (h.t % 10 === 0) playSound('click', vol(state, h.x, 0.25 + h.t / 400), -2);
+      // (a stretch's go: quicker, and heard as near wherever she is: she's coming down in front of him)
+      const T = h.finale ? 70 : h.forced ? FORCE_TELL : 120;
+      if (h.t % 10 === 0) playSound('click', Math.max(h.forced ? 0.3 : 0, vol(state, h.x, 0.25 + h.t / 400)), -2);
       if (h.fg && h.fg.t === 40 && !h.saidSpot) { h.saidSpot = true; meatheadSays(state, pick(L.MH_SPOT), false); }
       if (h.t % 14 === 0) dust(state, h.x, h.entry === 'duct' ? h.y - 70 : CEIL_B + 4, 3);
-      if (h.t === T - 30) { playSound('clang', vol(state, h.x, 0.6), -4); shakeScreen(state, 2, 2); }
+      if (h.t === T - 30) { playSound('clang', Math.max(h.forced ? 0.5 : 0, vol(state, h.x, 0.6)), -4); shakeScreen(state, 2, 2); }
       if (h.t >= T) {
-        if (h.entry === 'ceil') { to(h, 'ceil'); h.y = CEIL_B; playSound('thud', vol(state, h.x, 0.5), -10); }
+        if (h.forced) { h.forced = false; anchor(state, h); to(h, 'drop'); playSound('thud', Math.max(0.4, vol(state, h.x, 0.8)), -8); }
+        else if (h.entry === 'ceil') { to(h, 'ceil'); h.y = CEIL_B; playSound('thud', vol(state, h.x, 0.5), -10); }
         else { to(h, 'drop'); playSound('thud', vol(state, h.x, 0.8), -8); }
       }
       return;
