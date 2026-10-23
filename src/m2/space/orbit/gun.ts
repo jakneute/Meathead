@@ -21,14 +21,15 @@ import { voice, saidOver, box, meatheadSays } from '../section';
 import { CANVAS_HEIGHT, HUD_CLEAR_X, HUD_CLEAR_Y } from '../../../m1/constants';
 import { orbitOf } from './state';
 import { steppedGlow, checker } from '../../../m1/game/render/pixelArt';
-import { X0, W } from './geo';
+import { X0, W, ARENA_CAM } from './geo';
 import { GUN_UPGRADE, MH_BEAM } from './lines';
 
 type Ctx = CanvasRenderingContext2D;
 
-/** Where (camera offset into the section) each level comes in, every couple of thousand px; the beam last, well before the
- *  saucer (time to enjoy it on the way). */
-export const LEVEL_AT = [0, 2000, 4200, 6400, 8800, 11200];
+/** Where (camera offset into the section) each level comes in: each just before the waves (waves.ts) that need it (twin
+ *  streams for the first real lines, the spread for the walls, five streams for the swarms, plasma for the armor, the
+ *  beam for the madness at the end); the beam well before the saucer (time to enjoy it on the way). */
+export const LEVEL_AT = [0, 2400, 5000, 7600, 10400, 13600];
 export const MAX_LEVEL = 5;
 /** How far out the radiation first gets into it (the plain ray gun till then, at its own rate). */
 export const RAPID_AT = 800;
@@ -118,10 +119,11 @@ const beam = (ctx: FrameContext) => {
   // (everybody in it, their bolts, the rocks)
   for (const e of hazardVictims(state)) if (e.pos.x + e.width > b.x0 && e.pos.x < b.x1 && e.pos.y + e.height > b.y0 && e.pos.y < b.y1) hazardHit(ctx, e, BEAM_HIT, b.x0, 'VAPORIZED!', { color: '#F9A8D4' });
   for (const q of state.projectiles) if (q.owner === 'enemy' && q.pos.x + q.width > b.x0 && q.pos.y + q.height > b.y0 && q.pos.y < b.y1) q.health = 0;
-  for (const k of o.rocks) if (k.x > b.x0 && Math.abs(k.y - b.y) < BEAM_H / 2 + k.r && !k.junk) k.hp -= 30;
-  // (the saucer: ufo.ts takes it out of it, if it's in it)
+  for (const k of o.rocks) if (k.x > b.x0 && Math.abs(k.y - b.y) < BEAM_H / 2 + k.r && k.hp !== Infinity) { k.hp -= 30; k.flash = 2; }
+  // (the saucer: ufo.ts takes it out of it, if it's in it; only once the screen's stopped for it (on the way it shrugs
+  // the beam off: the madness on the way's not skipped by beaming it down early))
   const s = o.saucer;
-  if (s && s.st === 'fight' && s.e.pos.x + s.e.width > b.x0 && s.e.pos.y < b.y1 && s.e.pos.y + s.e.height > b.y0) { s.hp -= BEAM_SAUCER; s.flash = 2; }
+  if (s && s.st === 'fight' && s.e.pos.x + s.e.width > b.x0 && s.e.pos.y < b.y1 && s.e.pos.y + s.e.height > b.y0) { if (o.scroll >= ARENA_CAM) s.hp -= BEAM_SAUCER; s.flash = 2; }
 };
 
 /** World: the beam (in front of everything), and the gun's words over him. */

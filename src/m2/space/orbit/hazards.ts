@@ -11,9 +11,10 @@ import { shakeScreen } from '../../../m1/game/core/state';
 import { hazardVictims, hazardHit, setHazardZones, type Zone } from '../../hazardHit';
 import { saidOver, voice } from '../section';
 import { say } from '../../../m1/game/platform/speech';
-import { drawRock, drawJunk } from './art';
+import { drawRock, drawJunk, drawScrap } from './art';
 import { orbitOf, type Rock } from './state';
 import { W } from './geo';
+import { HUD_CLEAR_Y } from '../../../m1/constants';
 
 type Ctx = CanvasRenderingContext2D;
 const mid = (p: { pos: { x: number; y: number }; width: number; height: number }) => ({ x: p.pos.x + p.width / 2, y: p.pos.y + p.height / 2 });
@@ -40,7 +41,11 @@ export const blast = (ctx: FrameContext, x: number, y: number, r: number, dmg: n
     const m = mid(e);
     if (Math.hypot(m.x - x, m.y - y) < r + Math.max(e.width, e.height) / 2) hazardHit(ctx, e, Math.max(dmg, 40) * 2, x, 'KABOOM!');
   }
+  // (and the rocks and the breakable junk in it: a fuel tank caught in it goes off next, and so on down the line)
+  for (const k of o.rocks) if (k.hp !== Infinity && Math.hypot(k.x - x, k.y - y) < r + k.r) { k.hp -= BLAST_ROCK; k.flash = 3; }
 };
+/** What a blast takes out of a rock or a breakable piece of junk in it. */
+const BLAST_ROCK = 90;
 
 // ---------------------------------------------------------------------------------------------------------------
 // Their bolts
@@ -80,9 +85,13 @@ export const drawAlienBolts = (c: CanvasRenderingContext2D, state: GameState) =>
 export const addRock = (state: GameState, x: number, y: number, r: number, vx: number, vy: number) => {
   orbitOf(state).rocks.push({ x, y, r, vx, vy, rot: Math.random() * 6, spin: (Math.random() - 0.5) * 0.04, seed: Math.random() * 100, hp: r * 2.2, flash: 0 });
 };
-export const addJunk = (state: GameState, x: number, y: number, what: number, vx = 0, vy = 0, spin = 0): Rock => {
-  const [w, h] = what === 0 ? [150, 60] : what === 1 ? [90, 54] : [44, 80];
-  const j: Rock = { x, y, r: Math.min(w, h) / 2, vx, vy, rot: 0, spin, seed: 0, hp: Infinity, flash: 0, junk: { w, h, what } };
+/** Junk's size by what it is: 0 a satellite, 1 a fuel tank, 2 a porta-potty, 3 a piece of Space Needle 2's deck (off in
+ *  the blowout), 4 a Star Sled car (off the ride), 5 the gift shop's big sign. */
+const JUNK_SIZE: [number, number][] = [[150, 60], [90, 54], [44, 80], [170, 44], [96, 40], [190, 78]];
+/** A piece of junk drifting through. `hp`: what it takes to break it up (Infinity: it doesn't). */
+export const addJunk = (state: GameState, x: number, y: number, what: number, vx = 0, vy = 0, spin = 0, hp = Infinity): Rock => {
+  const [w, h] = JUNK_SIZE[what] ?? JUNK_SIZE[0];
+  const j: Rock = { x, y, r: Math.min(w, h) / 2, vx, vy, rot: 0, spin, seed: 0, hp, max: hp, flash: 0, junk: { w, h, what } };
   orbitOf(state).rocks.push(j);
   return j;
 };
@@ -90,7 +99,26 @@ export const addJunk = (state: GameState, x: number, y: number, what: number, vx
 const rockBox = (k: Rock) => k.junk ? { x: k.x - k.junk.w / 2, y: k.y - k.junk.h / 2, w: k.junk.w, h: k.junk.h } : { x: k.x - k.r * 0.85, y: k.y - k.r * 0.85, w: k.r * 1.7, h: k.r * 1.7 };
 const overlaps = (a: { x: number; y: number; w: number; h: number }, x: number, y: number, w: number, h: number) => x < a.x + a.w && x + w > a.x && y < a.y + a.h && y + h > a.y;
 
-const ROCK_DMG = 12, JUNK_DMG = 14;
+const ROCK_DMG = 12, JUNK_DMG = 14, SCRAP_DMG = 8;
+/** Scrap off something broken can't hurt him till it's this old (frames): breaking a thing up in his face is no hit. */
+const SCRAP_GRACE = 30;
+/** A fuel tank going off: its reach, its hurt. */
+const TANK_R = 135, TANK_DMG = 16;
+/** Bits of scrap off something: how many, by what it was. */
+const SCRAP_N = [7, 0, 5, 7, 5, 9];
+/** Their colors, by what they came off. */
+const SCRAP_COL = [['#C2C4CC', '#16285E', '#B8892A'], ['#F97316'], ['#3B6FE0', '#1E40A0'], ['#2DD4BF', '#C2C4CC', '#F97316'], ['#DC2626', '#F5F5F4'], ['#0F172A', '#FDE047', '#DCEBFF']];
+
+/** Bits of scrap thrown off a piece of junk: flying out, then drifting; they hurt whoever they hit (him only once
+ *  they're clear of it). */
+const throwScrap = (k: Rock, n: number, out: Rock[], fast = 3.2) => {
+  const cols = SCRAP_COL[k.junk?.what ?? 0] ?? SCRAP_COL[0];
+  for (let i = 0; i < n; i++) {
+    const a = (i / n) * Math.PI * 2 + Math.random() * 0.6, s = 1.4 + Math.random() * fast;
+    const r = 8 + Math.random() * 6;
+    out.push({ x: k.x + Math.cos(a) * 14, y: k.y + Math.sin(a) * 10, r, vx: k.vx + Math.cos(a) * s, vy: Math.sin(a) * s, rot: Math.random() * 6, spin: (Math.random() - 0.5) * 0.3, seed: i, hp: 14, flash: 0, scrap: cols[i % cols.length], age: 0 });
+  }
+};
 
 export const updateRocks = (ctx: FrameContext) => {
   const { state } = ctx, o = orbitOf(state), p = state.player, cam = state.camera.x;
@@ -99,6 +127,7 @@ export const updateRocks = (ctx: FrameContext) => {
     k.x += k.vx; k.y += k.vy; k.rot += k.spin;
     if (k.flash > 0) k.flash--;
     const b = rockBox(k);
+    if (k.age !== undefined) k.age++;
     zones.push({ x0: b.x - 10, x1: b.x + b.w + 10, y0: b.y - 10, y1: b.y + b.h + 10 });
     // (his bolts: chip it, break it; junk just sparks)
     for (const q of state.projectiles) {
@@ -106,24 +135,39 @@ export const updateRocks = (ctx: FrameContext) => {
       q.health = 0;
       k.flash = 3;
       state.particles.push({ pos: { x: q.pos.x + q.width, y: q.pos.y + q.height / 2 }, vel: { x: -1 - Math.random() * 2, y: (Math.random() - 0.5) * 3 }, life: 10, color: k.junk ? '#FDE047' : '#A8A29E', size: 2 + Math.random() * 2 });
-      if (!k.junk) k.hp -= q.damage;
+      if (k.hp !== Infinity) k.hp -= q.damage;
     }
     // (him: knocked off it, hurt)
-    if (p.health > 0 && p.invincibilityTimer <= 0 && overlaps(b, p.pos.x + 6, p.pos.y + 6, p.width - 12, p.height - 12)) {
+    if (p.health > 0 && p.invincibilityTimer <= 0 && (k.age ?? SCRAP_GRACE) >= SCRAP_GRACE && overlaps(b, p.pos.x + 6, p.pos.y + 6, p.width - 12, p.height - 12)) {
       const m = mid(p), dx = m.x - k.x, dy = m.y - k.y, d = Math.hypot(dx, dy) || 1;
-      hurtPlayer(ctx, k.junk ? JUNK_DMG : ROCK_DMG, k.junk ? 'm2:space_junk' : 'm2:asteroid', { x: (dx / d) * 8, y: (dy / d) * 8 });
-      playSound(k.junk ? 'clang' : 'crunch', 0.8);
+      const metal = !!(k.junk || k.scrap);
+      hurtPlayer(ctx, k.scrap ? SCRAP_DMG : k.junk ? JUNK_DMG : ROCK_DMG, metal ? 'm2:space_junk' : 'm2:asteroid', { x: (dx / d) * 8, y: (dy / d) * 8 });
+      playSound(metal ? 'clang' : 'crunch', 0.8);
+      if (k.scrap) k.hp = 0;
     }
     // (anybody else it runs into)
     for (const e of hazardVictims(state)) {
-      if (!overlaps(b, e.pos.x, e.pos.y, e.width, e.height)) continue;
-      hazardHit(ctx, e, k.junk ? 80 : 30 + k.r, k.x, k.junk ? 'JUNKED!' : 'ROCKED!');
+      if (!overlaps(b, e.pos.x, e.pos.y, e.width, e.height) || k.riders?.includes(e)) continue;
+      hazardHit(ctx, e, k.junk ? 80 : k.scrap ? 60 : 30 + k.r, k.x, k.junk || k.scrap ? 'JUNKED!' : 'ROCKED!');
       if (!k.junk) k.hp -= 30;
     }
   }
-  // (broken up: the big ones into a couple of little ones)
+  // (broken up: the big ones into a couple of little ones; junk into scrap, a fuel tank with a bang)
   const kept: Rock[] = [];
   for (const k of o.rocks) {
+    // (the sign crumbling as it's shot: bits off it at two thirds and a third)
+    if (k.junk?.what === 5 && k.max && k.hp > 0) {
+      const stage = k.hp < k.max / 3 ? 2 : k.hp < (k.max * 2) / 3 ? 1 : 0;
+      if (stage > k.seed) { k.seed = stage; throwScrap(k, 3, kept, 2); playSound('crumble', 0.8, -3); shakeScreen(state, 4); }
+    }
+    if (k.hp <= 0 && k.junk) {
+      breakJunk(ctx, k, kept);
+      continue;
+    }
+    if (k.hp <= 0 && k.scrap) {
+      for (let i = 0; i < 5; i++) state.particles.push({ pos: { x: k.x, y: k.y }, vel: { x: (Math.random() - 0.5) * 5, y: (Math.random() - 0.5) * 5 }, life: 12 + Math.random() * 8, color: i % 2 ? k.scrap : '#FDE047', size: 2 + Math.random() * 2 });
+      continue;
+    }
     if (k.hp <= 0) {
       playSound('crumble', 0.7);
       for (let i = 0; i < 12; i++) state.particles.push({ pos: { x: k.x, y: k.y }, vel: { x: (Math.random() - 0.5) * 6, y: (Math.random() - 0.5) * 6 }, life: 20 + Math.random() * 15, color: i % 2 ? '#78716C' : '#A8A29E', size: 2 + Math.random() * 4 });
@@ -138,11 +182,24 @@ export const updateRocks = (ctx: FrameContext) => {
   setHazardZones(state, 'orbit-rocks', zones);
 };
 
+/** A piece of junk shot (or blown) apart: its gun pods with it, scrap everywhere, and a fuel tank goes off. */
+const breakJunk = (ctx: FrameContext, k: Rock, out: Rock[]) => {
+  const { state } = ctx, what = k.junk!.what;
+  for (const e of k.riders ?? []) if (e.health > 0) hazardHit(ctx, e, 9999, k.x, 'SCRAPPED!');
+  for (let i = 0; i < 14; i++) state.particles.push({ pos: { x: k.x + (Math.random() - 0.5) * k.junk!.w, y: k.y + (Math.random() - 0.5) * k.junk!.h }, vel: { x: (Math.random() - 0.5) * 6, y: (Math.random() - 0.5) * 6 }, life: 16 + Math.random() * 14, color: i % 3 ? '#FDE047' : '#FFFFFF', size: 2 + Math.random() * 3 });
+  // (the porta-potty: what was in it)
+  if (what === 2) for (let i = 0; i < 10; i++) state.particles.push({ pos: { x: k.x, y: k.y }, vel: { x: (Math.random() - 0.5) * 5, y: (Math.random() - 0.5) * 5 }, life: 30 + Math.random() * 20, color: i % 2 ? '#5B3A1A' : '#3F2A12', size: 3 + Math.random() * 4 });
+  if (what === 1) blast(ctx, k.x, k.y, TANK_R, TANK_DMG, 'm2:fuel_tank', { big: true });
+  else { playSound('clang', 1, -6); playSound('crumble', 0.8); shakeScreen(state, what === 5 ? 12 : 6); }
+  throwScrap(k, SCRAP_N[what] ?? 5, out, what === 5 ? 4 : 3.2);
+};
+
 export const drawRocks = (c: Ctx, state: GameState) => {
   const o = orbitOf(state), cam = state.camera.x;
   for (const k of o.rocks) {
     if (k.x < cam - 200 || k.x > cam + W + 200) continue;
-    if (k.junk) drawJunk(c, k.x, k.y, k.junk.w, k.junk.h, k.rot, k.junk.what);
+    if (k.scrap) drawScrap(c, k.x, k.y, k.r, k.rot, k.scrap);
+    else if (k.junk) drawJunk(c, k.x, k.y, k.junk.w, k.junk.h, k.rot, k.junk.what, k.max && k.max !== Infinity ? k.hp / k.max : 1, k.flash > 0);
     else drawRock(c, k.x, k.y, k.r, k.rot, k.seed, k.flash > 0);
   }
 };
@@ -199,4 +256,22 @@ export const bark = (state: GameState, e: Enemy, text: string, female: boolean, 
 };
 export const drawBarks = (c: Ctx, state: GameState) => {
   for (const b of orbitOf(state).barks) saidOver(c, b.said.text, b.e.pos.x + b.e.width / 2, b.e.pos.y - 14, '#BEF264');
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// Warnings: fighters coming up from behind him (chevrons flashing at the screen's left edge, at their height; kept
+// under the HUD's corner)
+
+export const drawWarns = (c: Ctx, state: GameState) => {
+  const o = orbitOf(state);
+  if (!o.warns.length) return;
+  const x = state.camera.x + 10;
+  for (const w of o.warns) {
+    if ((w.t >> 2) % 2) continue;
+    const y = Math.round(state.camera.y + Math.max(HUD_CLEAR_Y + 16, Math.min(580, w.sy)));
+    for (const dx of [0, 14]) {
+      c.fillStyle = '#08090F'; c.beginPath(); c.moveTo(x + dx - 2, y - 13); c.lineTo(x + dx + 13, y); c.lineTo(x + dx - 2, y + 13); c.closePath(); c.fill();
+      c.fillStyle = dx ? '#FDE047' : '#F97316'; c.beginPath(); c.moveTo(x + dx, y - 9); c.lineTo(x + dx + 9, y); c.lineTo(x + dx, y + 9); c.closePath(); c.fill();
+    }
+  }
 };

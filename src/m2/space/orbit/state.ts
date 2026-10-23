@@ -19,13 +19,22 @@ export const MEMO = {
   crashed: 'm2:orbit:crashed',
 } as const;
 
-/** A rock or a piece of junk drifting through (world space, its middle). Rocks break up when shot; junk doesn't. */
+/** A rock or a piece of junk drifting through (world space, its middle). Rocks break up when shot; junk with an `hp`
+ *  breaks up too (into scrap: `scrap`'s its color), the fuel tanks going off as they do; junk with Infinity just takes it. */
 export interface Rock {
   x: number; y: number; vx: number; vy: number;
   r: number; rot: number; spin: number; seed: number;
   hp: number; flash: number;
   junk?: { w: number; h: number; what: number };
+  /** Its health to start with (the sign crumbles by it). */
+  max?: number;
+  /** A bit of scrap off something broken (its color); frames since it came off (it can't hurt him for a moment). */
+  scrap?: string; age?: number;
+  /** The gun pods bolted on it (they go with it). */
+  riders?: Enemy[];
 }
+/** Fighters coming up from behind him: the warning at the screen's left first (its screen y, frames left). */
+export interface Warn { sy: number; t: number }
 /** A blast going off: its look, and (the first frame) its hurt. */
 export interface Boom { x: number; y: number; r: number; t: number; big: boolean }
 /** Somebody out here saying something (the words over them while it's said). */
@@ -73,6 +82,8 @@ export interface Orbit {
   tracked: Enemy[];
   /** Who's still to come out (of the saucer's hatch, one after another): when (state.frame), and how. */
   pending: { at: number; go: () => void }[];
+  /** Warnings up at the left edge (fighters coming up from behind him). */
+  warns: Warn[];
   /** The checkpoint as it was last frame (a new one: the saucer's health kept). */
   cpSeen: number;
   lastBark: number;
@@ -88,6 +99,6 @@ export interface Orbit {
 }
 
 export const orbitOf = (state: GameState) => spaceState<Orbit>(state, 'orbit', () => ({
-  on: false, scroll: 0, sv: 0, vx: 0, vy: 0, pb: 0, wave: 0, rocks: [], booms: [], barks: [], tracked: [], pending: [], cpSeen: -1, lastBark: -9999,
+  on: false, scroll: 0, sv: 0, vx: 0, vy: 0, pb: 0, wave: 0, rocks: [], booms: [], barks: [], tracked: [], pending: [], warns: [], cpSeen: -1, lastBark: -9999,
   saucer: null, quiet: false, refill: false, cam: false, level: 0, levelSaid: [], flashUp: 0, beam: false, gun: null,
 }));

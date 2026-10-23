@@ -11,6 +11,7 @@ import { stamp, checker } from '../../intro/art/kit';
 import { steppedGlow } from '../../../m1/game/render/pixelArt';
 import { spaceBands, drawNebula, drawStars, drawMoonDisc, drawEarth, hash } from '../needle/sky';
 import { W } from './geo';
+import { lettering } from '../square/lettering';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -418,11 +419,16 @@ export const drawRock = (c: Ctx, x: number, y: number, r: number, rot: number, s
 };
 
 // ---------------------------------------------------------------------------------------------------------------
-// Space junk: `what` 0 an old satellite, 1 a busted fuel tank, 2 a porta-potty (somebody's). At its middle.
+// Space junk: `what` 0 an old satellite, 1 a busted fuel tank, 2 a porta-potty (somebody's), 3 a piece of Space
+// Needle 2's deck (blown out with him), 4 a Star Sled car (off the ride), 5 the gift shop's big sign. At its middle.
+// `left`: its health left (0..1: the sign crumbles by it); `flash`: just hit.
 
-export const drawJunk = (c: Ctx, x: number, y: number, w: number, h: number, rot: number, what: number) => {
+export const drawJunk = (c: Ctx, x: number, y: number, w: number, h: number, rot: number, what: number, left = 1, flash = false) => {
   c.save(); c.translate(Math.round(x), Math.round(y)); c.rotate(rot);
-  if (what === 0) {
+  if (what === 5) drawGiftSign(c, w, h, left < 1 / 3 ? 2 : left < 2 / 3 ? 1 : 0, flash);
+  else if (what === 4) drawSledCar(c, w, h, flash);
+  else if (what === 3) drawDeckChunk(c, w, h, flash);
+  else if (what === 0) {
     // (the solar panels on their arms: cells in a grid, a glint going down them)
     R(c, -w * 0.32, -2, w * 0.64, 4, INK); R(c, -w * 0.32, -1, w * 0.64, 2, '#8A8E98');
     for (const sx of [-w / 2, w * 0.2]) {
@@ -466,6 +472,113 @@ export const drawJunk = (c: Ctx, x: number, y: number, w: number, h: number, rot
     R(c, -w * 0.2, h * 0.12, w * 0.32, 6, INK); R(c, -w * 0.2 + 1, h * 0.12 + 1, w * 0.16, 4, '#DC2626'); R(c, -w * 0.2 + 1 + w * 0.16, h * 0.12 + 1, w * 0.16 - 2, 4, '#F5F5F4');
     for (let i = 0; i < 3; i++) R(c, -w / 2 + 4, -h * 0.3 + i * 5, 4, 2, '#13286E');
   }
+  c.restore();
+};
+
+/** Space Needle 2's teal, its chrome, its orange rings (the same needle the lobby, the deck and the blowout show). */
+const NEEDLE_TEAL = ['#0B3B38', '#0F5C56', '#0F766E', '#14B8A6', '#5EEAD4'];
+const NEEDLE_CHROME = ['#5A5E6A', '#8A8E98', '#C2C4CC', '#F0F0F4'];
+/** A torn edge down one end of a piece (x the end, `dir` which way the tears point), inked. */
+const torn = (c: Ctx, x: number, h: number, dir: number) => {
+  const pts = [x, -h / 2 - 1];
+  for (let i = 0; i <= 6; i++) pts.push(x + dir * (i % 2 ? 9 : 2) + dir * ((i * 5) % 3), -h / 2 + (i / 6) * h);
+  pts.push(x, h / 2 + 1, x - dir * 4, h / 2 + 1, x - dir * 4, -h / 2 - 1);
+  poly(c, pts, INK);
+};
+/** A curved slab of Space Needle 2's deck, torn off in the blowout: its chrome rim, the windows, the teal band, the orange
+ *  ring under, the rebar sticking out of both torn ends. */
+const drawDeckChunk = (c: Ctx, w: number, h: number, flash: boolean) => {
+  const x0 = -w / 2, y0 = -h / 2;
+  // (the rebar out of the ends)
+  for (const [ex, dir] of [[x0, -1], [-x0, 1]] as const) for (const ry of [-h * 0.25, h * 0.15]) { R(c, ex, ry - 1, dir * 16, 3, INK); R(c, ex, ry, dir * 15, 1, '#8A5A3A'); }
+  R(c, x0 - 1, y0 - 1, w + 2, h + 2, INK);
+  // (the chrome rim along the top, the window strip, the teal band, the orange ring)
+  for (let i = 0; i < 4; i++) R(c, x0, y0 + i * 2, w, 2, NEEDLE_CHROME[3 - i]);
+  R(c, x0, y0 + 8, w, h * 0.34, '#0A1430');
+  for (let i = 0; i * 18 < w; i++) { const px = x0 + 3 + i * 18; R(c, px, y0 + 10, 14, h * 0.34 - 4, i % 3 === 1 ? '#16285E' : '#1E3A8A'); R(c, px + 1, y0 + 11, 4, 2, '#9CC4FF'); }
+  const ty = y0 + 8 + h * 0.34;
+  const band = (h * 0.66 - 14) / 4;
+  for (let i = 0; i < 4; i++) R(c, x0, ty + i * band, w, band + 1, NEEDLE_TEAL[4 - i]);
+  checker(c, x0, ty + band * 2 - 1, w, 2, NEEDLE_TEAL[2], 0);
+  R(c, x0, h / 2 - 6, w, 6, '#C2410C'); R(c, x0, h / 2 - 6, w, 2, '#F97316');
+  // (the torn ends)
+  torn(c, x0 + 6, h, 1); torn(c, -x0 - 6, h, -1);
+  if (flash) for (let i = 0; i < 5; i++) R(c, x0 + 20 + i * 28, y0 + 2, 6, 2, '#FFFFFF');
+};
+/** A Star Sled car off the ride: a red rocket sled, a white racing stripe, chrome fins, its empty seat and lap bar. */
+const drawSledCar = (c: Ctx, w: number, h: number, flash: boolean) => {
+  const RED_SLED = ['#F47258', '#DC3A2E', '#B01C1C', '#7A1212'];
+  // (the fins, chrome)
+  poly(c, [-w / 2 - 3, -h / 2 - 8, -w / 2 + 22, -h / 2 + 4, -w / 2 + 2, -h / 2 + 6], INK);
+  poly(c, [-w / 2 - 1, -h / 2 - 5, -w / 2 + 18, -h / 2 + 4, -w / 2 + 3, -h / 2 + 4], NEEDLE_CHROME[2]);
+  // (the body: a long capsule, nose to the right, banded)
+  disc(c, 0, 0, w / 2 + 1, h / 2 + 1, INK);
+  c.save(); c.beginPath(); c.ellipse(0, 0, w / 2, h / 2, 0, 0, Math.PI * 2); c.clip();
+  bandsIn(c, -w / 2, -h / 2, w, h, RED_SLED);
+  R(c, -w / 2, -2, w, 5, '#F5F5F4'); R(c, -w / 2, 3, w, 1, '#A8A29E');
+  c.restore();
+  // (the seat, the lap bar up)
+  R(c, -w * 0.18 - 1, -h / 2 - 5, w * 0.3 + 2, 8, INK); R(c, -w * 0.18, -h / 2 - 4, w * 0.3, 6, '#27272A');
+  R(c, -w * 0.12, -h / 2 - 14, 3, 11, INK); R(c, -w * 0.12, -h / 2 - 14, w * 0.22, 3, INK); R(c, -w * 0.12 + 1, -h / 2 - 13, w * 0.2, 1, NEEDLE_CHROME[3]);
+  // (its exhaust cone, dead)
+  R(c, -w / 2 - 6, -5, 7, 10, INK); R(c, -w / 2 - 5, -4, 5, 8, '#52525B');
+  // (the number, painted on its side)
+  for (const [i, dots] of [[0, '111101101101111'], [1, '111001001001001']] as const) for (let d = 0; d < 15; d++) if (dots[d] === '1') R(c, w * 0.12 + i * 8 + (d % 3) * 2, -h * 0.4 + Math.floor(d / 3) * 2, 2, 2, '#18181B');
+  if (flash) R(c, -w * 0.3, -h / 2 + 3, w * 0.5, 2, '#FFFFFF');
+};
+
+/** The gift shop's big sign, torn off its pylon in the blowout: painted once a crumble stage (0 whole, 1 a corner off,
+ *  2 holes all through it), drawn from that. */
+const signSprites: HTMLCanvasElement[] = [];
+const SIGN_PAD = 14;
+const drawGiftSign = (c: Ctx, w: number, h: number, stage: number, flash: boolean) => {
+  if (typeof document === 'undefined') return;
+  let img = signSprites[stage];
+  if (!img) { img = paintGiftSign(w, h, stage); signSprites[stage] = img; }
+  c.drawImage(img, -w / 2 - SIGN_PAD, -h / 2 - SIGN_PAD);
+  if (flash) { c.globalAlpha = 0.35; R(c, -w / 2, -h / 2, w, 3, '#FFFFFF'); c.globalAlpha = 1; }
+};
+const paintGiftSign = (w: number, h: number, stage: number) => {
+  const cv = document.createElement('canvas');
+  cv.width = w + SIGN_PAD * 2; cv.height = h + SIGN_PAD * 2;
+  const g = cv.getContext('2d')!;
+  g.translate(SIGN_PAD + w / 2, SIGN_PAD + h / 2);
+  // (the stub of its pylon, snapped, under it)
+  R(g, -9, h / 2 - 2, 18, 14, INK); R(g, -8, h / 2 - 2, 16, 10, '#4E5664'); R(g, -8, h / 2 - 2, 4, 10, '#929CAC');
+  poly(g, [-8, h / 2 + 8, -4, h / 2 + 13, 0, h / 2 + 9, 4, h / 2 + 13, 8, h / 2 + 8], '#4E5664');
+  // (the board: a chrome frame, the navy face, a row of bulbs top and bottom)
+  R(g, -w / 2 - 1, -h / 2 - 1, w + 2, h + 2, INK);
+  for (let i = 0; i < 4; i++) R(g, -w / 2 + i, -h / 2 + i, w - i * 2, h - i * 2, NEEDLE_CHROME[3 - i]);
+  R(g, -w / 2 + 4, -h / 2 + 4, w - 8, h - 8, '#0F172A');
+  R(g, -w / 2 + 4, -h / 2 + 4, w - 8, 3, '#1E293B');
+  for (let i = 0; i < 15; i++) { const bx = -w / 2 + 10 + i * ((w - 20) / 14); for (const by of [-h / 2 + 9, h / 2 - 9]) { R(g, bx - 2, by - 2, 4, 4, '#3A2A0A'); R(g, bx - 1, by - 1, 2, 2, i % 2 ? '#FDE047' : '#FEF9C3'); } }
+  lettering(g, 'GIFT SHOP', 0, -7, 'chrome2', '#DCEBFF', '#0F172A');
+  lettering(g, 'SOUVENIRS', 0, 16, 'neon', '#F472B6', '#0F172A', true);
+  // (crumbling: corners off, holes through it, cracks)
+  g.globalCompositeOperation = 'destination-out';
+  if (stage >= 1) poly(g, [w / 2 + 2, -h / 2 - 2, w / 2 - 34, -h / 2 - 2, w / 2 - 22, -h / 2 + 12, w / 2 - 30, -h / 2 + 24, w / 2 - 6, -h / 2 + 30, w / 2 + 2, -h / 2 + 34], '#000');
+  if (stage >= 2) {
+    poly(g, [-w / 2 - 2, h / 2 + 2, -w / 2 - 2, h / 2 - 30, -w / 2 + 14, h / 2 - 22, -w / 2 + 26, h / 2 - 34, -w / 2 + 40, h / 2 - 12, -w / 2 + 34, h / 2 + 2], '#000');
+    poly(g, [-20, -h / 2 - 2, -2, -h / 2 + 10, -14, -h / 2 + 16, -30, -h / 2 + 6], '#000');
+    poly(g, [30, h / 2 - 20, 44, h / 2 - 26, 52, h / 2 - 14, 38, h / 2 - 8], '#000');
+  }
+  g.globalCompositeOperation = 'source-over';
+  if (stage >= 1) {
+    // (the cracks running off the breaks)
+    g.strokeStyle = INK; g.lineWidth = 2;
+    g.beginPath(); g.moveTo(w / 2 - 30, -h / 2 + 22); g.lineTo(w / 2 - 52, -h / 2 + 30); g.lineTo(w / 2 - 60, -h / 2 + 46); g.stroke();
+    if (stage >= 2) { g.beginPath(); g.moveTo(-w / 2 + 34, h / 2 - 20); g.lineTo(-w / 2 + 60, h / 2 - 34); g.lineTo(-w / 2 + 70, -h / 2 + 20); g.moveTo(-14, -h / 2 + 14); g.lineTo(-6, 4); g.stroke(); }
+  }
+  return cv;
+};
+
+/** A bit of scrap off something broken: a bent plate in its color, inked, lit along one edge, turning. */
+export const drawScrap = (c: Ctx, x: number, y: number, r: number, rot: number, col: string) => {
+  c.save(); c.translate(Math.round(x), Math.round(y)); c.rotate(rot);
+  const w = r * 1.7, h = r * 0.9;
+  poly(c, [-w / 2 - 1, -h / 2 - 1, w / 2 + 1, -h / 2 + 2, w / 2 - 3, h / 2 + 1, -w / 2 + 4, h / 2 + 1], INK);
+  poly(c, [-w / 2, -h / 2, w / 2, -h / 2 + 3, w / 2 - 4, h / 2, -w / 2 + 4, h / 2], col);
+  R(c, -w / 2 + 1, -h / 2 + 1, w * 0.6, 2, '#FFFFFF');
   c.restore();
 };
 

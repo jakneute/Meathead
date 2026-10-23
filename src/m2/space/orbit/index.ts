@@ -27,7 +27,7 @@ import { putOnSuit, reapplySuit } from '../needle/suit';
 import { orbitOf, MEMO } from './state';
 import { X0, X1, CY, W, H, SCROLL, ARENA_CAM, FLY_Y, START_SX, FLY_SPEED, FLY_ACCEL, EDGE_L, EDGE_R, EDGE_T, EDGE_B, at } from './geo';
 import { drawSpace, drawNeedleTop } from './art';
-import { updateRocks, drawRocks, updateBooms, drawBooms, drawBarks, drawAlienBolts } from './hazards';
+import { updateRocks, drawRocks, updateBooms, drawBooms, drawBarks, drawAlienBolts, drawWarns } from './hazards';
 import { pilotOf, mineBlows, K } from './kinds';
 import { runWaves, skipWavesTo } from './waves';
 import { startSaucer, updateSaucer, drawSaucerFront, drawSaucerHud, noteSaucerHp } from './ufo';
@@ -165,6 +165,7 @@ export const orbit: SpaceSection = {
     drawSaucerFront(c, state);
     drawGun(c, state);
     drawBarks(c, state);
+    drawWarns(c, state);
   },
   drawHud: (c, state) => drawSaucerHud(c, state),
 };
