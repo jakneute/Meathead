@@ -26,6 +26,7 @@
 // drawTucker(c, x, feetY, facing, frame, pose, opts): world (or screen) point of his feet, facing 1 right / -1 left.
 
 import { type Ctx } from '../cast/kit';
+import { drawGrossBody, drawGrossHead, drawGoreGap, drawGoreMaking, grossCloseupsOn, splitStep } from './tuckerCloseGross';
 
 export type TuckerPose =
   | 'stand'    // thumbs hooked in his vest pockets, rocking on his heels, beaming
@@ -1025,7 +1026,7 @@ const drawFightWounds = (c: Ctx, w: TuckerWounds, layer: 'body' | 'head', f: num
  * the gap, out in front of his brow, and its snapped hanger up out of the top; the blood welling at the V's foot and
  * running off down his nose.
  */
-const drawSplitGap = (c: Ctx, d: number, f: number, capless: boolean) => {
+const drawSplitGap = (c: Ctx, d: number, f: number, capless: boolean, drip = true) => {
   const s = SPLIT.shear * d, { x: cx, py } = SPLIT;
   const g = (y: number) => s * (py - y);
   const top = capless ? -13.9 : -21.8;
@@ -1077,7 +1078,7 @@ const drawSplitGap = (c: Ctx, d: number, f: number, capless: boolean) => {
   if (d > 0.5) {
     line(c, [B[0], B[1], B[0] + 1.2, 1.4, 6.2, 3.6], 0.8, '#7A0E0E'); line(c, [B[0] + 0.2, B[1], B[0] + 1.3, 1.4], 0.3, '#C42A2A');
     const dd = ((f + 7) % 46) / 46;
-    if (dd < 0.65) ell(c, 6.4, 4.8 + dd * 6, 0.45, 0.7, '#991B1B');
+    if (drip && dd < 0.65) ell(c, 6.4, 4.8 + dd * 6, 0.45, 0.7, '#991B1B');
   }
 };
 
@@ -1305,6 +1306,8 @@ export const drawTuckerCloseup = (c: Ctx, cx: number, cy: number, scale: number,
   c.save();
   c.translate(Math.round(cx + (j ? Math.sin(f * 1.7) * j * scale : 0)), Math.round(cy + (j ? Math.cos(f * 2.3) * j * scale * 0.6 : 0)));
   c.scale(scale, scale);
+  // (at close-up size: the gross-up, tuckerCloseGross.ts; a figure-sized head (the dirt bike's sprite) stays as drawn here)
+  if (Math.abs(scale) >= 2 && grossCloseupsOn()) { drawCloseGross(c, f, face, !!opts.talking, !!opts.capless, red, wounds, mk); c.restore(); return; }
   // ---- his shoulders: the coat, its lapels and buttons, the collar and the bow tie, the badge (in the head's units)
   c.save(); c.translate(0, 0);
   shape(c, () => { c.moveTo(-26, 40); c.quadraticCurveTo(-24, 18, -12, 14); c.lineTo(14, 14); c.quadraticCurveTo(26, 18, 28, 40); c.closePath(); }, COAT, -26, 28, 0.6);
@@ -1349,4 +1352,45 @@ export const drawTuckerCloseup = (c: Ctx, cx: number, cy: number, scale: number,
   // ---- the wound being made (the mutilation rule), over all of it
   if (opts.making) PAINTERS.get(opts.making.wound)?.(c, Math.max(0, Math.min(1, opts.making.k)), f);
   c.restore();
+};
+
+/** The close-up as a gross-up (tuckerCloseGross.ts's stamps): his shoulders, his head (split: its halves sheared apart,
+ *  the gap between them), the live drips and glints, then the wound being made (its frames through the gore pass). */
+const drawCloseGross = (c: Ctx, f: number, face: TuckerFace, talking: boolean, capless: boolean, red: boolean, wounds: TuckerWounds, mk: CloseupOpts['making']) => {
+  const sd = splitOf(wounds);
+  drawGrossBody(c, red, wounds, sd);
+  const h = { face, f, talking, capless, red, wounds, sd };
+  if (sd <= 0) drawGrossHead(c, h);
+  else {
+    const s = SPLIT.shear * splitStep(sd), { x: cx, py } = SPLIT;
+    for (const side of [0, -1, 1] as const) {
+      c.save();
+      if (side) { c.translate(0, py); c.transform(1, 0, -side * s, 1, 0, 0); c.translate(0, -py); }
+      c.beginPath();
+      if (side === 0) c.rect(-40, py, 80, 60);
+      else if (side < 0) c.rect(-40, -60, 40 + cx, 60 + py);
+      else c.rect(cx, -60, 40, 60 + py);
+      c.clip();
+      drawGrossHead(c, h);
+      c.restore();
+    }
+    drawGoreGap(c, sd, capless, g => drawSplitGap(g, splitStep(sd), f, capless, false));
+  }
+  // ---- live: the drips off his wounds, a glint off his spectacles, a fleck of spit
+  const drip = (x: number, y0: number, len: number, period: number, off: number, upto = 0.6) => {
+    const d = ((f + off) % period) / period;
+    if (d >= upto) return;
+    const y = Math.round((y0 + d * len) * 4) / 4, xx = Math.round(x * 4) / 4;
+    px(c, xx - 0.25, y - 0.25, 0.75, 1, '#5A0808'); px(c, xx, y, 0.5, 0.75, '#B01C1C'); px(c, xx, y, 0.25, 0.25, '#F46A6A');
+  };
+  if (wounds.eye) drip(NEAR_EYE - 0.2, EYE_Y + 10.8, 4, 90, 0);
+  if (wounds.saw && sd <= 0) drip(5.6, 9.8, 4, 80, 45);
+  if (sd >= SPLIT_EYES_AT) drip(FAR_EYE - 0.3, EYE_Y + 11.6, 4, 70, 31);
+  if (sd > 0.5) drip(6.4, 4.8, 6, 46, 7, 0.65);
+  if (wounds.branch) { drip(8.7, 13.8, 5, 64, 13); drip(CLOSE_BRANCH_TIP + 1.5, closeBranchY(CLOSE_BRANCH_TIP + 1.5) + 0.6, 16, 50, 0, 0.7); }
+  if ((wounds.bloody ?? 0) > 0) { drip(-8.4, 8, 6, 30, 0); drip(9.4, 6, 6, 30, 15); }
+  if (!wounds.eye && sd < SPLIT_EYES_AT && f % 240 < 10) px(c, NEAR_EYE - 1.5, EYE_Y - 1.5, 0.75, 0.75, '#FFFFFF');
+  if (face === 'manic' && !talking && f % 50 < 20) px(c, 5.2 + 5.6, 8.6 + (f % 50) * 0.2, 0.5, 0.5, '#E0F2FE');
+  // ---- the wound being made (the mutilation rule), over all of it
+  if (mk) { const paint = PAINTERS.get(mk.wound), k = Math.max(0, Math.min(1, mk.k)); if (paint) drawGoreMaking(c, mk.wound, k, f, g => paint(g, k, f)); }
 };

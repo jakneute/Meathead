@@ -303,15 +303,18 @@ registerWoundPainter('eye', (c, k) => {
   const ki = (k - 0.22) / 0.78;
   // ---- the hole: the socket ripped open, a ring of meat, and clean through it the sky beyond his head
   const open = Math.min(1, ki * 6);
-  ell(EX, EY, 3.1 * open, 2.8 * open, '#5A0E0E');
-  ell(EX, EY, 2.5 * open, 2.2 * open, '#8A1414');
-  ell(EX + 0.2, EY + 0.1, 1.6 * open, 1.4 * open, '#2A0505');
-  ell(EX + 0.3, EY + 0.1, 1.05 * open, 0.95 * open, SKY);
-  ell(EX + 0.1, EY - 0.2, 0.4 * open, 0.3 * open, '#FFFFFF');
-  // (the spectacles' lens, starred: cracks out from the hole)
-  c.globalAlpha = 0.85;
-  for (let i = 0; i < 7; i++) { const a = (i / 7) * Math.PI * 2 + 0.3; line([EX + Math.cos(a) * 1.6, EY + Math.sin(a) * 1.5, EX + Math.cos(a) * 3.2, EY + Math.sin(a) * 2.9], 0.25, '#E8F0F8'); }
-  c.globalAlpha = 1;
+  // (torn open: from then on the close-up's own socket (the gross-up's, with the stacked eye wound) is the hole)
+  if (open < 1) {
+    ell(EX, EY, 3.1 * open, 2.8 * open, '#5A0E0E');
+    ell(EX, EY, 2.5 * open, 2.2 * open, '#8A1414');
+    ell(EX + 0.2, EY + 0.1, 1.6 * open, 1.4 * open, '#2A0505');
+    ell(EX + 0.3, EY + 0.1, 1.05 * open, 0.95 * open, SKY);
+    ell(EX + 0.1, EY - 0.2, 0.4 * open, 0.3 * open, '#FFFFFF');
+    // (the spectacles' lens, starred: cracks out from the hole)
+    c.globalAlpha = 0.85;
+    for (let i = 0; i < 7; i++) { const a = (i / 7) * Math.PI * 2 + 0.3; line([EX + Math.cos(a) * 1.6, EY + Math.sin(a) * 1.5, EX + Math.cos(a) * 3.2, EY + Math.sin(a) * 2.9], 0.25, '#E8F0F8'); }
+    c.globalAlpha = 1;
+  }
   // ---- out the front: the eye's jelly, blood, glass, blown out toward the gun
   if (ki < 0.6) {
     const t = ki / 0.6;
@@ -340,7 +343,7 @@ registerWoundPainter('eye', (c, k) => {
     c.globalAlpha = 1;
   }
   // (the exit wound at the back of his head)
-  ell(-10.4, -3.2, 1.6 * open, 2.1 * open, '#5A0E0E'); ell(-10.6, -3.2, 0.9 * open, 1.3 * open, '#2A0505');
+  if (open < 1) { ell(-10.4, -3.2, 1.6 * open, 2.1 * open, '#5A0E0E'); ell(-10.6, -3.2, 0.9 * open, 1.3 * open, '#2A0505'); }
   // ---- the blood: running out of the hole, down his cheek, over the muttonchop, dripping off his jaw
   const run = Math.min(1, ki * 1.6);
   line([EX - 0.6, EY + 2, EX - 0.8, EY + 2 + 6 * run, EX - 0.2, EY + 2 + 13 * run], 1.6, '#8A1414');
@@ -463,7 +466,7 @@ export const drawEngineHud = (c: Ctx, state: GameState) => {
     const face = k < 0.22 ? 'manic' : k < 0.55 ? 'shock' : 'out';
     const jolt = k > 0.2 && k < 0.36 ? 1.4 : k < 0.22 ? 0.15 : 0.05;
     c.translate(cx, 0); c.scale(-1, 1); c.translate(-cx, 0);
-    drawTuckerCloseup(c, cx + 6 + (k > 0.22 ? Math.min(14, (k - 0.22) * 60) : 0), cy + 10, 6.2, state.frame, { face, talking: s.talking && k > 0.4, red: k < 0.22, jolt, wounds: { eye: k > 0.26 }, making: { wound: 'eye', k } });
+    drawTuckerCloseup(c, cx + 6 + (k > 0.22 ? Math.min(14, (k - 0.22) * 60) : 0), cy + 10, 6.2, state.frame, { face, talking: s.talking && k > 0.4, red: k < 0.22, jolt, wounds: { eye: k > 0.22 + 0.78 / 6 }, making: { wound: 'eye', k } });
     c.restore();
     if (s.said) saidOver(c, s.said.text, cx, y + h + 34, '#FDE68A', 340);
   }
