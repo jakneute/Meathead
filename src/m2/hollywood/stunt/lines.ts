@@ -146,12 +146,12 @@ export const STEVE_BACK: ByPants = {
   shitty: ['MY BACK! THIS IS YOUR FAULT!'],
   nude: ['MY BACK! STOP LOOKING!'],
 };
-/** Slumped over his own burning loop, his pants just burned off him, star-print briefs out for all to see: and
- *  nobody's looking at him, even now. Said once it's quiet; then he tips off it. */
+/** Slumped over his own burning loop, his pants and then his briefs burned off him, his bare ass out for all to see:
+ *  and nobody's looking at him, even now. Said once it's quiet; then he tips off it. */
 export const STEVE_SLUMPED: ByPants = {
-  clean: ['...IS THE JUMBOTRON GETTING THIS?', '...RHINESTONE BRIEFS. AND NOBODY CLAPS.', '...HE FELL OUT OF THE SKY. THEY CLAPPED.'],
+  clean: ['...IS THE JUMBOTRON GETTING THIS?', '...MY ASS IS OUT. AND NOBODY CLAPS.', '...HE FELL OUT OF THE SKY. THEY CLAPPED.'],
   shitty: ["...MY PANTS ARE ON FIRE. THEY'RE STILL TALKING ABOUT HIS.", "...SMELL THAT? THAT'S ME. FOR ONCE."],
-  nude: ['...NOW WE BOTH GOT NO PANTS. LOOK AT ME.', '...MY UNDIES ARE RHINESTONE. AND THEY STARE AT HIS DICK.'],
+  nude: ['...NOW WE BOTH GOT NO PANTS. LOOK AT ME.', "...MY ASS IS OUT AND THEY'RE STILL STARING AT HIS DICK."],
 };
 /** Fried stood there, charred, still giving the thumbs-up, while the crowd goes wild. */
 export const STEVE_FRIED: ByPants = {

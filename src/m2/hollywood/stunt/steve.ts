@@ -24,8 +24,9 @@
 // drawSteveAsh / drawSteveBrace / drawStevePants: what's left of him (the lightning's ash pile with the aviators on
 // top; the brace rolled off; the jumpsuit's legs, burning, off in the ring of fire).
 //
-// His last stunt's poses (the user's: slumped over the burning loop, stomach first; his pants burn off; headfirst to
-// the pavement, missing the mat, landing awkwardly): 'drape' folded over the loop at the waist, 'plant' stood on his
+// His last stunt's poses (the user's: slumped over the burning loop, stomach first; his pants burn off, then his
+// underpants ("you see the side of his bare ass (no dick is shown, obstructed)"); headfirst to the pavement, missing
+// the mat, landing awkwardly): 'drape' folded over the loop at the waist, 'plant' stood on his
 // head (drawn the right way up: the fight turns him over), 'heap' where he came down. Their elbows and knees from
 // art/limb.ts.
 
@@ -55,6 +56,9 @@ export interface SteveLook {
   scorch?: number;
   /** The neck brace off him (flown off on the landing). */
   noBrace?: boolean;
+  /** Pants gone, the briefs catching after them (0..1): scorched, holed, burned down to the rhinestone waistband, then
+   *  that too: his bare ass, seen side-on (the front kept under the gut's shadow and his thigh: nothing shows). */
+  briefsBurn?: number;
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -381,8 +385,9 @@ export const drawSteve = (c: Ctx, x: number, feetY: number, facing: 1 | -1, pose
 const figure = (c: Ctx, R: Rig, pose: StevePose, f: number, d: number, L: SteveLook) => {
   const bare = !!L.pantsDown;
   const sc = bare ? 0 : L.scorch ?? 0;
-  drawLeg(c, R.legs[0], false, d, bare, f, sc);
-  drawLeg(c, R.legs[1], true, d, bare, f, sc);
+  const bb = bare ? L.briefsBurn ?? 0 : 0;
+  drawLeg(c, R.legs[0], false, d, bare, f, sc, bb);
+  drawLeg(c, R.legs[1], true, d, bare, f, sc, bb);
   c.save();
   c.translate(0, R.drop + R.bob);
   c.translate(0, HIP_Y); c.rotate(R.lean); c.translate(0, -HIP_Y);
@@ -401,7 +406,7 @@ const figure = (c: Ctx, R: Rig, pose: StevePose, f: number, d: number, L: SteveL
 // ---------------------------------------------------------------------------------------------------------------
 // Legs: the jumpsuit's (a stripe down each), the knee pads, the boots; or bare (pale, hairy, star-print briefs)
 
-const drawLeg = (c: Ctx, G: LegP, near: boolean, d: number, bare: boolean, f: number, scorch = 0) => {
+const drawLeg = (c: Ctx, G: LegP, near: boolean, d: number, bare: boolean, f: number, scorch = 0, bb = 0) => {
   const [hx, hy, kx, ky, ax, ay, rot] = G;
   const N = MODE === 'normal';
   if (bare) {
@@ -414,8 +419,11 @@ const drawLeg = (c: Ctx, G: LegP, near: boolean, d: number, bare: boolean, f: nu
     }
     // (the briefs' leg round the top of the thigh, a star on it)
     const br = near ? P.briefs : back(P.briefs);
-    tube(c, [hx, hy - 1, lerp(hx, kx, 0.28), lerp(hy, ky, 0.28)], [11.4], [br]);
-    if (N && near) star(c, lerp(hx, kx, 0.16), lerp(hy, ky, 0.16), 0.9, '#FFFFFF');
+    if (bb < 0.6) {
+      tube(c, [hx, hy - 1, lerp(hx, kx, 0.28), lerp(hy, ky, 0.28)], [11.4], [br]);
+      if (N && near && bb < 0.3) star(c, lerp(hx, kx, 0.16), lerp(hy, ky, 0.16), 0.9, '#FFFFFF');
+      if (N && bb > 0.15) line(c, [hx, hy - 1, lerp(hx, kx, 0.28), lerp(hy, ky, 0.28)], 10, dith(c, '#1C1917'));
+    } else if (N && bb < 1) px(c, lerp(hx, kx, 0.2) - 0.5, lerp(hy, ky, 0.2), 1, 1, (f >> 2) % 2 ? '#F97316' : '#1C1917');
   } else {
     const su = near ? P.suit : back(P.suit), st = near ? P.stripe : back(P.stripe);
     tube(c, [hx, hy, kx, ky, ax, ay], [10.6, 9], [su, su]);
@@ -565,7 +573,7 @@ const drawBody = (c: Ctx, f: number, d: number, L: SteveLook, bare: boolean) => 
     px(c, -14, -41.8, 34, 4.8, P.belt[4]); px(c, -14, -41.2, 34, 3.6, P.belt[1]); px(c, -14, -41.2, 34, 0.8, P.belt[0]); px(c, -14, -38.4, 34, 0.8, P.belt[2]);
     for (let i = 0; i < 8; i++) px(c, -12 + i * 3.2, -39.8, 1, 1, P.belt[3]);
     for (const lx of [-10, -3]) { px(c, lx, -42.4, 1.6, 6, S[3]); px(c, lx + 0.3, -42, 1, 5.2, S[1]); }
-  } else briefs(c, f);
+  } else briefs(c, f, L.briefsBurn ?? 0);
   // Beaten: blood on the suit (it shows on yellow)
   if (N) suitBlood(c, d, f);
   // (the seat catching with the legs, below the belt)
@@ -577,6 +585,15 @@ const drawBody = (c: Ctx, f: number, d: number, L: SteveLook, bare: boolean) => 
     ell(c, -1, -40.5, 6, 3.4, BONE);
   }
   c.restore();
+  // (the briefs burned off him too: his bare ass, side-on, out the back of him, pale as the legs; the crack; a pink
+  // scorch on the cheek; what's left of the waistband over the top while it holds)
+  const bb = bare ? L.briefsBurn ?? 0 : 0;
+  if (bb >= 0.75 && MODE !== 'xray') {
+    shape(c, () => c.ellipse(-11.6, -39.6, 5.8, 4.8, 0.2, 0, Math.PI * 2), P.pale, -17.4, -5.8, 0.8);
+    line(c, [-15.8, -43.8, -14, -40.4, -12.8, -36.8], 0.7, P.pale[4]);
+    if (MODE === 'normal') { ell(c, -10.4, -41.6, 1.6, 0.9, P.pale[0]); ell(c, -12.4, -37.6, 2.4, 1.4, dith(c, '#E8857A')); px(c, -9, -36.8, 0.8, 0.8, '#1C1917'); }
+    if (bb < 1) { px(c, -17, -45.4, 24, 1.6, P.briefs[3]); for (let i = 0; i < 6; i++) px(c, -15.6 + i * 3.8, -45.2, 1, 1, i === 2 ? '#1C1917' : '#DBEAFE'); }
+  }
   // (the hair out of the collar: curls, gray and brown, some over the edges of it)
   if (MODE !== 'xray') {
     for (let i = 0; i < 14; i++) {
@@ -639,8 +656,15 @@ const stitch = (c: Ctx, word: string, x: number, y: number, s: number) => {
 };
 
 /** The jumpsuit burned off below the waist: star-print briefs, the crisped black edge of what's left, embers in it. */
-const briefs = (c: Ctx, f: number) => {
+const briefs = (c: Ctx, f: number, bb = 0) => {
   const B = P.briefs;
+  if (bb >= 1) {
+    // (all gone: bare under there; the gut's shade over the front of it, so nothing's on show)
+    px(c, -16, -44.6, 40, 10, P.pale[1]); px(c, -16, -44.6, 4, 10, P.pale[0]); px(c, 8, -44.6, 1, 10, dith(c, P.pale[2])); px(c, 9, -44.6, 12, 10, P.pale[3]);
+    ell(c, 10, -38.6, 12, 4, P.suit[3]); ell(c, 10, -37.4, 11, 3, P.suit[4]);
+    if (MODE === 'normal') { px(c, -16, -44.6, 40, 1, dith(c, '#1C1917')); for (let i = 0; i < 3; i++) if ((f + i * 7) % 16 < 8) px(c, -8 + i * 6, -44.4, 0.8, 0.8, '#F97316'); }
+    return;
+  }
   px(c, -16, -44.6, 40, 10, B[1]);
   px(c, -16, -44.6, 3.6, 10, B[0]); px(c, -12.4, -44.6, 1, 10, dith(c, B[0]));
   px(c, 9, -44.6, 1, 10, dith(c, B[2])); px(c, 10, -44.6, 10, 10, B[2]);
@@ -657,6 +681,17 @@ const briefs = (c: Ctx, f: number) => {
   for (let i = 0; i <= 15; i++) pts.push(-14 + i * 2.2, i % 2 ? -43.8 : -45.6);
   line(c, pts, 1.6, '#1C1917');
   if (MODE === 'normal') for (let i = 0; i < 4; i++) if ((f + i * 5) % 14 < 8) px(c, -10 + i * 7, -45 + (i % 2), 1, 0.8, '#F97316');
+  // (catching after the pants: soot over them, holes burned through to him rimmed in embers, then burned down to the
+  // waistband (the rhinestones holding on), the gut's shade over the front)
+  if (bb > 0 && MODE === 'normal') {
+    px(c, -16, -43, 40, 8.4, dith(c, '#1C1917'));
+    if (bb > 0.4) for (const [hx, hy, k] of [[-10, -40, 0.4], [-3, -39, 0.5], [4, -41, 0.6], [-7, -37.6, 0.55]] as const) {
+      if (bb < k) continue;
+      const r = 1 + (bb - k) * 6;
+      ell(c, hx, hy, r + 0.7, r * 0.8 + 0.6, (f + hx) % 6 < 3 ? '#F97316' : '#B91C1C'); ell(c, hx, hy, r, r * 0.8, P.pale[1]);
+    }
+    if (bb >= 0.75) { px(c, -16, -42.6, 40, 8, P.pale[1]); px(c, 9, -42.6, 12, 8, P.pale[3]); ell(c, 10, -38.6, 12, 4, P.suit[3]); line(c, [-16, -42.8, 24, -42.8], 1.2, '#1C1917'); }
+  }
 };
 
 const SPOTS: [number, number, number][] = [[14, -50, 3], [6, -57, 2.4], [10, -44, 2.6], [-6, -52, 2.2], [16, -55, 2], [2, -46, 2.8], [-9, -60, 2], [8, -63, 1.8]];
@@ -1072,7 +1107,17 @@ const aftermath = (c: Ctx, pose: StevePose, f: number, L: SteveLook, R: Rig) => 
     case 'drape': {
       // (on fire where the loop's got him: stepped tongues up off his legs while the suit goes, bigger as it catches;
       //  smoke off him the whole time, black while it's the suit, thin once it's gone)
-      const sc = L.pantsDown ? 0 : L.scorch ?? 0;
+      const sc = L.pantsDown ? 0 : L.scorch ?? 0, bb = L.pantsDown ? L.briefsBurn ?? 0 : 0;
+      if (bb > 0 && bb < 1) {
+        // (the briefs going up: a little flare off his seat)
+        const [sx, sy] = fromUpper(-6, -42, R.drop, R.lean);
+        for (let i = 0; i < 3; i++) {
+          const fx = sx + (i - 1) * 4, h = (4 + 6 * Math.sin(bb * Math.PI)) * (0.8 + 0.3 * Math.sin(f * 0.8 + i * 2)), w = 1.8;
+          fill(c, '#DC2626', () => { c.moveTo(fx - w, sy); c.lineTo(fx + 0.5, sy - h - 2); c.lineTo(fx + w, sy); c.closePath(); });
+          fill(c, '#F97316', () => { c.moveTo(fx - w * 0.6, sy); c.lineTo(fx + 0.3, sy - h); c.lineTo(fx + w * 0.6, sy); c.closePath(); });
+          fill(c, '#FDE047', () => { c.moveTo(fx - w * 0.3, sy); c.lineTo(fx, sy - h * 0.5); c.lineTo(fx + w * 0.3, sy); c.closePath(); });
+        }
+      }
       if (sc > 0) R.legs.forEach((G, j) => {
         for (let i = 0; i < 3; i++) {
           const k = i * 0.35, fx = i < 2 ? lerp(G[0], G[2], 0.3 + k) : lerp(G[2], G[4], 0.45), fy = i < 2 ? lerp(G[1], G[3], 0.3 + k) : lerp(G[3], G[5], 0.45);

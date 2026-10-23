@@ -29,7 +29,8 @@
 //   over on the burning loop, stomach first. his pants burn off to show his underwear then he leans forward and falls
 //   headfirst to the pavement, missing the mat and landing awkwardly, dead": draped over it at the waist, the loop
 //   swinging; the suit sizzling, scorching black, smoking, bits of it dropping off, till it rips off him burning (his
-//   star-print briefs, a rhinestone waistband); a word from him; he tips forward off it, a slide whistle all the way
+//   star-print briefs, a rhinestone waistband), and then those burn off him too (the user's: his bare ass side-on, nothing
+//   frontal); a word from him; he tips forward off it, a slide whistle all the way
 //   down; crunch, on his head, a foot short of the crash mat (his neck brace flies off and lands on it), stood there a
 //   beat, and folds over in a heap; a beat of silence, then the crowd's OOOH. Meathead strolls in for the last word.
 //   Every shot's camera is kept to the arena (camFor, the kill cam's focus too): nothing past its ends.
@@ -109,9 +110,10 @@ interface Death {
   /** The stunt: the end whose ring of fire he goes into (the far one from Meathead, parked off the shot at the other);
    *  the stagger's beat ('go', 'trip', 'wheeze') and its clock; where the stagger started; the cut's black (0..1). */
   side: 1 | -1; sub: string; subT: number; from: number; fade: number;
-  /** Over the loop: when he landed on it (its swing's clock), how far his suit's burned (0..1). His neck brace, flown
+  /** Over the loop: when he landed on it (its swing's clock), how far his suit's burned (0..1), then his briefs
+   *  (bburn, 0..1). His neck brace, flown
    *  off him on the landing (onto the mat). */
-  hung: number; burn: number; brace: { x: number; y: number; vx: number; vy: number } | null;
+  hung: number; burn: number; bburn: number; brace: { x: number; y: number; vx: number; vy: number } | null;
 }
 interface KillCam { t: number; acc: number; z: number; out: boolean }
 
@@ -696,7 +698,7 @@ const die = (ctx: FrameContext, f: Fight, fried: boolean) => {
   const side: 1 | -1 = pmid(state).x < ARENA_MID ? 1 : -1;
   f.death = {
     how: fried ? 'fried' : 'stunt', t: 0, step: 'start', at: 0, x: f.sx, y: GY, vx: 0, vy: 0, rot: 0, car: null, pants: null,
-    side, sub: 'go', subT: 0, from: f.sx, fade: 0, hung: 0, burn: 0, brace: null,
+    side, sub: 'go', subT: 0, from: f.sx, fade: 0, hung: 0, burn: 0, bburn: 0, brace: null,
   };
   f.skipT = 0;
   f.facing = (-f.side) as 1 | -1;
@@ -746,10 +748,10 @@ const SS = {
   BRACE_T: 46, TRY_GAP: 330, HALF_T: 12, G: 0.42, WALK_STOP: 240,
 };
 /** Over the loop and off it (frames, px): the swing it takes as he lands on it; the suit catching, then burning through;
- *  his beat in his briefs before he says his piece; the tip forward (how far); the drop's gravity; where his head comes
+ *  then the briefs catching (after the rip) and burning through; his beat bare-assed before he says his piece; the tip forward (how far); the drop's gravity; where his head comes
  *  down, out from the loop toward the mat (short of it); stood on his head a beat, the fold over; the silence before
  *  the crowd's OOOH, and Meathead in after that. */
-const DR = { SWING: 0.14, CATCH: 30, BURN_T: 96, BEAT: 26, TIP_T: 44, TIP: 1, G: 0.3, LAND_DX: 70, PLANT_T: 18, FOLD_T: 14, HUSH_T: 50, IN_AT: 80 };
+const DR = { SWING: 0.14, CATCH: 30, BURN_T: 96, B_AT: 14, B_T: 70, BEAT: 26, TIP_T: 44, TIP: 1, G: 0.3, LAND_DX: 70, PLANT_T: 18, FOLD_T: 14, HUSH_T: 50, IN_AT: 80 };
 /** The top of the loop, where his gut goes over it (tilted with its swing); the swing, by the frame. */
 const perch = (side: 1 | -1, tilt: number) => { const r = ringAt(side), up = RING_R * 0.85 + 5; return { x: r.x + Math.sin(tilt) * up, y: r.y - Math.cos(tilt) * up }; };
 const swingOf = (d: Death) => (d.step === 'slump' || d.step === 'tip' ? DR.SWING * Math.sin((d.t - d.hung) * 0.24) * Math.exp(-(d.t - d.hung) / 45) : 0);
@@ -771,7 +773,7 @@ const sidestep = (ctx: FrameContext, f: Fight): Controls => {
   if (skippable && f.skipT > SKIP_AFTER && takeSkip()) {
     token++; silenceAll(); state.playerVulgarityTimer = 0;
     f.said = null; f.paSaid = null;
-    d.step = 'down'; d.at = t - DR.IN_AT; d.x = landX(d); d.y = GY; d.rot = 0; d.fade = 0; d.burn = 1;
+    d.step = 'down'; d.at = t - DR.IN_AT; d.x = landX(d); d.y = GY; d.rot = 0; d.fade = 0; d.burn = 1; d.bburn = 1;
     d.pants = { x: ring.x + side * 12, y: GY - 4, vy: 0 };
     d.brace = { x: MAT_X(side), y: GY - 7, vx: 0, vy: 0 };
     stopSound('fallwhistle');
@@ -882,9 +884,19 @@ const sidestep = (ctx: FrameContext, f: Fight): Controls => {
           crowd(ctx, f, d.x, 'wow', true);
         }
       }
-      const rip = DR.CATCH + DR.BURN_T;
-      if (u === rip + 10) playSound('twinkle', 0.4, 6);
-      if (u === rip + DR.BEAT) steveLine(f, L.STEVE_SLUMPED, tokened(() => { d.step = 'tip'; d.at = d.t; playSound('clang', 0.5, -12); }));
+      // (then the briefs (the user's: "not only do his pants burn, his underpants too. you see the side of his bare ass
+      // (no dick is shown, obstructed)"): they catch off what's left, a little flare, holes, down to the rhinestone
+      // waistband, then that goes; charred scraps, blue and black, dropping off him; his bare ass out over the loop)
+      const rip = DR.CATCH + DR.BURN_T, bAt = rip + DR.B_AT;
+      if (u === rip + 8) playSound('twinkle', 0.4, 6);
+      if (d.pants && u >= bAt && d.bburn < 1) {
+        d.bburn = Math.min(1, (u - bAt) / DR.B_T);
+        if (u === bAt) { playSound('ignite', 0.45, 12); playSound('sizzle', 0.6, 4); }
+        else if ((u - bAt) % 24 === 0) playSound('sizzle', 0.5, 6);
+        if (u % 4 === 0) state.particles.push({ pos: { x: d.x + f.facing * (8 + Math.random() * 10), y: d.y - 22 + Math.random() * 8 }, vel: { x: (Math.random() - 0.5) * 0.8, y: 1 + Math.random() * 1.6 }, life: 44, color: Math.random() < 0.45 ? '#1D4ED8' : Math.random() < 0.5 ? '#F97316' : '#1C1917', size: 2 });
+        if (d.bburn >= 1) { playSound('cloth', 0.6, 9); playSound('twinkle', 0.35, 10); crowd(ctx, f, d.x, 'boom', true); }
+      }
+      if (u === bAt + DR.B_T + DR.BEAT) steveLine(f, L.STEVE_SLUMPED, tokened(() => { d.step = 'tip'; d.at = d.t; playSound('clang', 0.5, -12); }));
       break;
     }
     case 'tip': {
@@ -1051,7 +1063,7 @@ const drawHim = (c: Ctx, f: Fight, fr: number) => {
       drawSteveBrace(c, d.x + f.facing * 100, GY, fr);
       return;
     }
-    const lk = { ...look, pantsDown: !!d.pants };
+    const lk = { ...look, pantsDown: !!d.pants, briefsBurn: d.bburn };
     // (on his last legs: the whole of him wobbling about his feet)
     const wobbly = (pose: StevePose, amt: number, dx = 0) => {
       c.save(); c.translate(d.x + dx, GY); c.rotate(Math.sin(fr * 0.13) * amt + Math.sin(fr * 0.31) * amt * 0.4);

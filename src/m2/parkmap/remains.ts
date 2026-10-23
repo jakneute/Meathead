@@ -34,7 +34,6 @@ const SSKIN: Ramp = ['#F3BE90', '#D88C5A', '#B66B3F', '#8B4A2A', '#45200F'];
 const SPALE: Ramp = ['#FFF1E4', '#F6D7BF', '#E2B699', '#BC8F74', '#6E4B39'];
 const BRACE: Ramp = ['#FFFFFF', '#F1F3F0', '#D5D9D0', '#A7AC9F', '#565A50'];
 const MAT: Ramp = ['#93C5FD', '#3B82F6', '#2563EB', '#1E40AF', '#0B1A45'];
-const BRIEF: Ramp = ['#7FB0F8', '#1D4ED8', '#1E3A8A', '#172554', '#070F2A'];
 const HSKIN: Ramp = ['#F6D2B0', '#E0AC82', '#C08660', '#966446', '#4A2C1C'];
 const DENIM: Ramp = ['#9CB8E0', '#5A7CB4', '#3E5C92', '#2A406C', '#101C34'];
 const CONCRETE: Ramp = ['#D4D2C8', '#B0AEA2', '#8E8C80', '#6C6A60', '#2E2C26'];
@@ -361,8 +360,9 @@ const SCENES: Record<string, Record<BossDeath, Scene>> = {
   },
   hollywood: {
     // THE STEVE SIDESTEP, the end of it: off his burning loop headfirst onto the pavement, a foot short of the crash mat,
-    // in a heap: folded on his head, the rear up in his star-print briefs (the rhinestone waistband), both boots in the
-    // air, an arm out for the mat. His pants still burning under the loop; his neck brace made it onto the mat.
+    // in a heap: folded on his head, his bare ass up (the briefs burned off after the pants: side-on, nothing else on
+    // show), both boots in the air, an arm out for the mat. His pants still burning under the loop, a scrap of the
+    // briefs by them (a rhinestone in it); his neck brace made it onto the mat.
     normal: p => {
       stage(p, 30);
       // (the loop up top, still lit, still swinging a little)
@@ -379,6 +379,7 @@ const SCENES: Record<string, Record<BossDeath, Scene>> = {
       p.cap(12, 50, 24, 51, 2.6, 2.6, SUIT); p.line(13, 49, 23, 50, '#DC2626'); p.checker(14, 48, 8, 5, '#1C1917');
       for (let k = 0; k < 4; k++) { p.px(14 + k * 3, 47, '#F97316'); p.px(14 + k * 3, 46 - (k & 1), '#FDE047'); }
       for (let i = 0; i < 9; i++) p.px(10 + p.rnd() * 30, 44 + p.rnd() * 14, '#1C1917');
+      p.rect(27, 52, 3, 2, '#1D4ED8'); p.px(27, 52, '#172554'); p.px(29, 53, '#1C1917'); twinkle(p, 28, 52, '#DBEAFE');
       // (him: the legs bent at the knee with the boots up in the air, soles to the sky, one flopped over the other)
       p.cap(33, 61, 26, 66, 2.6, 2.4, SPALE); p.cap(26, 66, 24, 55, 2.4, 2.2, SPALE);
       p.cap(34, 62, 30, 67, 2.6, 2.4, SPALE); p.cap(30, 67, 29, 56, 2.4, 2.2, SPALE);
@@ -392,11 +393,13 @@ const SCENES: Record<string, Record<BossDeath, Scene>> = {
       p.pool(52, 69, 4, 1.4, BLOOD);
       // (an arm flung out for the mat: short)
       p.cap(46, 62, 50, 60, 1.8, 1.6, SUIT); p.cap(50, 60, 54, 63, 1.6, 1.5, SSKIN); p.ell(55, 64, 1.5, 1.3, SSKIN);
-      // (the rear up in the briefs: blue, stars, the rhinestones along the waistband; the burnt edge smoking)
-      p.ell(34, 59, 4.6, 4, BRIEF);
-      p.px(33, 58, '#FFFFFF'); p.px(35, 60, '#FFFFFF'); p.px(32, 61, '#FFFFFF');
-      for (let x = 31; x <= 37; x += 2) p.px(x, 55 + (x === 31 || x === 37 ? 1 : 0), '#DBEAFE');
-      twinkle(p, 35, 55, '#FFFFFF');
+      // (the bare ass up, side-on: pale as the legs, the crack, a pink scorch on the cheek, a black edge where the
+      // waistband was; the thigh and the gut's shade over the front of him)
+      p.ell(34, 59, 4.6, 4, SPALE);
+      p.line(31, 57, 33, 61, '#BC8F74'); p.px(35, 57, '#FFF1E4'); p.px(36, 57, '#FFF1E4');
+      p.checker(34, 60, 3, 2, '#E8857A');
+      for (let x = 32; x <= 38; x++) p.px(x, 55 + (x & 1), '#1C1917');
+      p.rect(37, 61, 3, 3, '#A16207');
       p.smoke(36, 54, 12); p.smoke(18, 45, 14, '#6C707A');
       p.marker(46, 75); p.marker(76, 76);
     },

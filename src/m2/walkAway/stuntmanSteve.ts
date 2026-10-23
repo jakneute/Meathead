@@ -9,8 +9,8 @@
 // still burning), hula hoops lying where they came down, cones, a tire, hubcaps, a dropped foam finger, Steve's yellow
 // fliers trodden on. And Steve's fate: killed by his weakness (the lightning), a pile of ash with his gold aviators on
 // top and his neck brace beside it; any other way, him in a heap a foot short of the crash mat he missed, folded on
-// his head, boots up, rear up in his star-spangled briefs, his yellow pants burnt off him lying by, his neck brace on
-// the mat. His toy: the STUNT CAR (its walk-away act: the clapperboard, walkAway/acts.ts).
+// his head, boots up, his bare ass up (the briefs burned off after the pants), his yellow pants burnt off him lying
+// by, his neck brace on the mat. His toy: the STUNT CAR (its walk-away act: the clapperboard, walkAway/acts.ts).
 
 import { type Ctx, type Prop, type SceneDef, INK, HOR, LW, box, hash, smoke, fire, mix } from './kit';
 import { farStrip } from './farStrip';
@@ -255,8 +255,9 @@ const mat = (g: Ctx, w: number, h: number) => {
   // (his neck brace made it onto it; he didn't)
   g.save(); g.translate(Math.round(w * 0.3), Math.round(h * 0.45)); g.scale(0.8, 0.8); drawSteveBrace(g, 0, 0, 0); g.restore();
 };
-/** Him in a heap where he came down off the loop, a foot short of the mat: folded on his head, boots up, pants off. */
-const steveDown = (g: Ctx, w: number, h: number) => { g.save(); g.translate(w * 0.36, h); g.scale(w / 100, w / 100); drawSteve(g, 0, 0, 1, 'heap', 0, { pantsDown: true, noBrace: true }); g.restore(); };
+/** Him in a heap where he came down off the loop, a foot short of the mat: folded on his head, boots up, pants and
+ *  briefs burned off (the bare ass side-on, nothing else on show). */
+const steveDown = (g: Ctx, w: number, h: number) => { g.save(); g.translate(w * 0.36, h); g.scale(w / 100, w / 100); drawSteve(g, 0, 0, 1, 'heap', 0, { pantsDown: true, briefsBurn: 1, noBrace: true }); g.restore(); };
 /** His jumpsuit's legs, burnt off him: yellow in steps, the red stripe, scorched through. */
 const pants = (g: Ctx, w: number, h: number) => {
   const Y = STEVE;
