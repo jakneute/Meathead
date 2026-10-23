@@ -470,6 +470,8 @@ const draw = (c: Ctx, p: Projectile, frame: number) => {
 };
 
 const drawOverlay = (c: Ctx, state: GameState) => {
+  // (dead: no casting pose or flex left over his death (the user's: any death pose overwrites a special one))
+  if (state.deathTimer > 0 && (casting > 0 || posing > 0 || winding > 0)) { casting = 0; posing = 0; winding = 0; state.player.hidden = false; syncArmor(); }
   // The rifts: torn open in the sky, black and full of stars, a violet rim, swirling, motes drifting into them
   for (const r of rifts) {
     const open = Math.min(1, r.t / 10) * Math.min(1, (r.life - r.t) / 12);

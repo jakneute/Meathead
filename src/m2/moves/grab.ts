@@ -761,6 +761,12 @@ export const grabLocked = () => locked;
 let beatTip = false;
 export const updateGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
   tintOf = ctx.state.player;
+  // (dead mid-grab: whoever he had is let go and the grab's off, so his death plays, not a frozen grab pose)
+  if (ctx.state.deathTimer > 0 && g.phase !== 'idle') {
+    if (g.held) { release(ctx.state, g.held); g.held = null; }
+    g.phase = 'idle'; g.t = 0; locked = false; busy = false; holding = null; ctx.state.player.hidden = false;
+    return controls;
+  }
   const out = stepGrab(ctx, g, controls);
   g.lastVy = ctx.state.player.vel.y;
   if (g.phase === 'idle') g.airT = 0;
@@ -2295,7 +2301,7 @@ export const drawPulped = (ctx: Ctx, state: GameState) => {
 
 /** Draws whatever grab's on, in place of him (world space, over everything). */
 export const drawGrab = (ctx: Ctx, state: GameState, g: Grab) => {
-  if (g.phase === 'idle') return;
+  if (g.phase === 'idle' || state.deathTimer > 0) return;
   const p = state.player, f = state.frame;
   p.hidden = true;
   const x = centerX(state), y = feetY(state);

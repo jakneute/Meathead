@@ -54,7 +54,11 @@ const SWING = { dmg: 85, knock: 26, lift: -7, len: 18, hitAt: 7 };
 const AIR_SWING = { dmg: 75, knock: 22, lift: -4, len: 16, hitAt: 6 };
 const LAUNCH = { dmg: 70, up: -22, len: 18, hitAt: 7 };
 /** The smash down: how fast he comes down; how far round the landing it hits, and how hard (more, right under him). */
-const POUND = { fall: 17, radius: 130, dmg: 60, under: 50, up: -12, bounce: -13 };
+// (the bounce off a head well higher (the user's: "a fair amount higher off the enemies skull... some vertical juggling
+// abilities", "like scrooge mcduck in duck tales nes"); was -13)
+const POUND = { fall: 17, radius: 130, dmg: 60, under: 50, up: -12, bounce: -18 };
+/** Bounced off a head with Y still held: on the way down again it pounds again by itself, pogo style, till Y's let go. */
+let pogo = false;
 const SMASH = { windup: 42, len: 18, reach: 120 };
 /** How fast he can walk while he's winding it up. */
 const WINDUP_WALK = 2.2;
@@ -237,6 +241,8 @@ const start = (m: Mode, pl: GameState['player'], asStick = false) => { mode = m;
 const tick = (ctx: FrameContext, input: { shoot: boolean }, equipped: boolean) => {
   const { state } = ctx;
   const pl = state.player;
+  // (dead: whatever swing he was in is dropped, so his death plays, not a frozen swing (the user's))
+  if (state.deathTimer > 0 && mode !== 'idle') { mode = 'idle'; pl.hidden = false; syncArmor(); }
   // The cartoon bits go on whatever's in his hands
   words.forEach(w => w.t++); words = words.filter(w => w.t < 34);
   twinkles.forEach(w => w.t++); twinkles = twinkles.filter(w => w.t < 40);
@@ -302,6 +308,9 @@ const tick = (ctx: FrameContext, input: { shoot: boolean }, equipped: boolean) =
     else if (tap && yFree) { start(ground ? 'launch' : 'pound', pl); if (hang) pl.dropVine = true; }
     else if (yDown && yHeld === Y_HOLD && footed && yFree) start('windup', pl);
   }
+  // (the pogo: Y held off a head bounce, coming down again: down it pounds again, Scrooge style)
+  if (!yDown || ground) pogo = false;
+  if (pogo && mode === 'idle' && durable(ctx) && !ground && pl.vel.y > 0 && !hang) start('pound', pl);
   // (not swinging it: he's drawn as he is, or by whatever's got him; nothing of the mallet's to do)
   if (mode === 'idle') { syncArmor(); return; }
   t++;
@@ -361,7 +370,7 @@ const tick = (ctx: FrameContext, input: { shoot: boolean }, equipped: boolean) =
           bonk(ctx, under, POUND.dmg + POUND.under, { x: dir * 2, y: 3 }, 'flatten');
           wearOut(ctx, WEAR.head);
           if (alive(under)) {
-            pl.vel.y = POUND.bounce; pl.isGrounded = false;
+            pl.vel.y = POUND.bounce; pl.isGrounded = false; pogo = true;
             playSound('boing', 1, 2); word(px, fy - 30, 'BOING!', '#4ADE80');
             mode = 'idle'; t = 0;
             break;
@@ -560,6 +569,7 @@ const ease = (k: number) => { const q = Math.max(0, Math.min(1, k)); return q * 
 
 const drawOverlay = (c: Ctx, state: GameState) => {
   const pl = state.player, f = state.frame;
+  if (state.deathTimer > 0 && mode !== 'idle') { mode = 'idle'; pl.hidden = false; syncArmor(); }
   // The squashed: flat, then up like an accordion (wheezing), then flat for good, fading
   for (const s of flat) {
     const k = s.t < 40 ? 0.14 + Math.max(0, 0.1 - s.t * 0.01) : s.t < 70 ? 0.14 + Math.abs(Math.sin((s.t - 40) * 0.42)) * 0.45 : 0.12;
