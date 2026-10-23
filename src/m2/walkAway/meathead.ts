@@ -392,7 +392,10 @@ export const drawMeatheadFront = (c: Ctx, x: number, y: number, p: Pose, grip: [
   }
   // (his glasses: the thick black rims round his eyes, the brow bar heavy, the bridge over his nose, the arms back to his
   // ears; the glass a cold tint, a streak of light up its left; drawn here, behind whatever his hands hold up to his face)
-  box(c, -16, eyeY, 6, 2, INK); box(c, 10, eyeY, 6, 2, INK); box(c, -15, eyeY, 4, 1, BAND[3]); box(c, 11, eyeY, 4, 1, BAND[2]);
+  // (the arms: from the rims' outer corners back along his temples, rising to the roots of his ears and in behind
+  // them, each ear's rim over its end, a crease of shadow where it goes under)
+  box(c, -14, eyeY - 2, 4, 2, INK); box(c, 10, eyeY - 2, 4, 2, INK); box(c, -13, eyeY - 2, 3, 1, BAND[3]); box(c, 10, eyeY - 2, 3, 1, BAND[2]);
+  box(c, -16, eyeY - 1, 2, 1, H[0]); box(c, 14, eyeY - 1, 2, 1, H[0]); box(c, -17, eyeY, 1, 1, H[1]); box(c, 16, eyeY, 1, 1, H[0]);
   for (const rx of [-11, 1]) {
     c.fillStyle = 'rgba(190, 220, 248, 0.24)'; c.fillRect(rx + 1, eyeY - 1, 8, 6);
     box(c, rx + 2, eyeY + 2, 1, 1, '#F8FAFC'); box(c, rx + 3, eyeY + 1, 1, 1, '#F8FAFC'); box(c, rx + 4, eyeY, 1, 1, 'rgba(248, 250, 252, 0.6)');

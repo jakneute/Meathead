@@ -14,6 +14,8 @@ type Ctx = CanvasRenderingContext2D;
 
 export const ART_W = 256;
 export const ART_H = 144;
+/** His painting runs on below the shot (the gym closing's bounce lifts him: more chest comes up, never a gap). */
+const BODY_H = ART_H + 16;
 export type TitleMood = 'dumb' | 'stoked' | 'fury';
 
 /** His skin, darkest to lightest: the shadows going to oxblood (the dusk), the lit side warm and golden. */
@@ -105,21 +107,43 @@ const neonRim = (p: Painter) => {
 // ---------------------------------------------------------------------------
 
 const paintBody = (p: Painter) => {
-  const I = INK;
-  // The pecs, under it all (the marquee's over most of them): two slabs, the split between them deep
+  const I = INK, B = BODY_H + 6;
+  // The trunk under it all, on down past the bottom of the shot (a bounce shows more of him, never a gap): the ribs,
+  // the lats flaring out under the arms, the abs up between the pecs
+  const trunk = p.form(g => { g.moveTo(-6, 118); g.bezierCurveTo(30, 112, 70, 112, 100, 118); g.lineTo(156, 118); g.bezierCurveTo(186, 112, 226, 112, 262, 118); g.lineTo(262, B); g.lineTo(-6, B); g.closePath(); },
+    { ramp: SK, bevel: 18, amb: 0.1, ink: I, inkIn: SK[2], spec: SHINE, wet: 0.7 });
+  backGlow(p, trunk, 2, 5);
   for (const s of [-1, 1]) {
-    p.form(g => { g.ellipse(128 + s * 30, 142, 32, 18, s * 0.12, 0, Math.PI * 2); }, { ramp: SK, bevel: 16, amb: 0.1, ink: I, spec: SHINE, wet: 0.9 });
+    // (the lat's edge sweeping down and in from the armpit, lit along its outside)
+    for (let k = 0; k < 44; k++) { const y = 118 + k, x = 128 + s * Math.round(66 - k * 0.42 - (k * k) / 160); p.px(x, y, SK[3]); p.px(x + s, y, SK[8]); }
+    // (the serratus: teeth along the ribs under the pec)
+    for (const y0 of [138, 146, 154]) for (let k = 0; k < 7; k++) { const x = 128 + s * (58 - k), y = y0 + Math.round(k * 0.6); p.px(x, y, SK[3]); p.px(x, y - 1, SK[9]); }
+    // (the top row of the abs, between the pecs' bottoms)
+    for (let k = 3; k < 15; k++) { const x = 128 + s * k; p.px(x, 157 + (k >> 2), SK[3]); p.px(x, 158 + (k >> 2), SK[8]); }
   }
+  for (let y = 144; y < BODY_H; y++) { p.px(128, y, SK[2]); p.px(127, y, SK[4]); p.px(129, y, SK[8]); }
   // The traps and shoulders, off the bottom and the sides; sloping up into the neck like a mountainside
-  const traps = p.form(g => { g.moveTo(-6, 150); g.lineTo(-6, 132); g.bezierCurveTo(30, 124, 64, 112, 96, 92); g.lineTo(160, 92); g.bezierCurveTo(192, 112, 226, 124, 262, 132); g.lineTo(262, 150); g.lineTo(196, 150); g.bezierCurveTo(170, 128, 150, 126, 128, 126); g.bezierCurveTo(106, 126, 86, 128, 60, 150); g.closePath(); },
+  const traps = p.form(g => { g.moveTo(-6, B); g.lineTo(-6, 132); g.bezierCurveTo(30, 124, 64, 112, 96, 92); g.lineTo(160, 92); g.bezierCurveTo(192, 112, 226, 124, 262, 132); g.lineTo(262, B); g.lineTo(206, B); g.bezierCurveTo(176, 128, 150, 126, 128, 126); g.bezierCurveTo(106, 126, 80, 128, 50, B); g.closePath(); },
     { ramp: SK, bevel: 22, amb: 0.1, ink: I, inkIn: SK[2], spec: SHINE, wet: 0.85 });
   gloss(p, traps, 2.4, 4.4);
+  for (const s of [-1, 1]) striate(p, traps, 128 + s * 40, 112, 128 + s * 80, 126, 7, 6, s < 0 ? 1.15 : Math.PI - 1.15, SK[4]);
+  // The pecs, over the traps' bottom: two slabs, the split between them deep, each tied up into the armpit under the
+  // deltoid (so the arms come out of the chest, not off the air)
   for (const s of [-1, 1]) {
-    striate(p, traps, 128 + s * 40, 112, 128 + s * 80, 126, 7, 6, s < 0 ? 1.15 : Math.PI - 1.15, SK[4]);
+    const tie = p.mask(g => capsule(g, 128 + s * 40, 136, 15, 128 + s * 62, 116, 10));
+    const slab = p.mask(g => { g.ellipse(128 + s * 31, 146, 34, 21, -s * 0.18, 0, Math.PI * 2); });
+    for (let i = 0; i < slab.length; i++) slab[i] |= tie[i];
+    const pec = p.form(slab, { ramp: SK, bevel: 16, amb: 0.1, ink: I, inkIn: SK[2], spec: SHINE, wet: 0.9 });
+    gloss(p, pec, 2.4, 4.4);
+    castBelow(p, pec, 3, s < 0 ? 1 : -1);
+    // (the fibers fanning from the armpit across it)
+    striate(p, pec, 128 + s * 52, 124, 128 + s * 24, 150, 6, 5, s < 0 ? -0.5 : Math.PI + 0.5, SK[4]);
+  }
+  for (const s of [-1, 1]) {
     // (the collarbone, a ridge: lit along its top, shadow under)
     for (let k = 0; k < 30; k++) { const x = 128 + s * (14 + k), y = 128 + Math.round(k * 0.12 + (k * k) / 500); p.px(x, y + 1, SK[3]); p.px(x, y, SK[5]); p.px(x, y - 1, SK[10]); }
   }
-  p.line(128, 130, 128, 144, SK[2]); p.line(127, 132, 127, 144, SK[4]);
+  p.line(128, 130, 128, 150, SK[2]); p.line(127, 132, 127, 150, SK[4]);
   // The neck: a trunk, wider at the bottom than his jaw
   p.form(g => { g.moveTo(102, 86); g.lineTo(154, 86); g.bezierCurveTo(156, 102, 160, 114, 168, 124); g.bezierCurveTo(144, 132, 112, 132, 88, 124); g.bezierCurveTo(96, 114, 100, 102, 102, 86); g.closePath(); },
     { ramp: SK, bevel: 14, amb: 0.12, ink: I, inkIn: SK[2], spec: SHINE, wet: 0.6 });
@@ -295,7 +319,7 @@ const paintArm = (p: Painter, s: number, pump: number) => {
   for (const [x, y, b] of [[52, 78, 1], [36, 94, 0], [22, 64, 1], [82, 98, 0]] as const) bead(p, X(x) - (s < 0 ? 0 : 1), y - (y < 90 ? pk : 0), !!b);
 };
 
-const bodyStill = (pump: number) => painting(`m2-title-mh-${pump}`, ART_W, ART_H, p => {
+const bodyStill = (pump: number) => painting(`m2-title-mh-${pump}`, ART_W, BODY_H, p => {
   paintBody(p);
   paintArm(p, -1, pump);
   paintArm(p, 1, pump);
@@ -467,11 +491,27 @@ const onGlass = (p: Painter, x: number, y: number, col: string, a: number) => {
 };
 /** The glasses, painted once: the two rims (the brow bar heavy across the top), the keyhole bridge, the arms back to his
  *  ears, the glass a faint blue over his eyes with the light streaked across it, the shadow they throw on his cheeks. */
-const glassesStill = () => painting('m2-title-glasses', ART_W, ART_H, p => {
+const glassesStill = (worn = true) => painting(worn ? 'm2-title-glasses' : 'm2-title-glasses-held', ART_W, ART_H, p => {
   // (the shadow under the rims on his cheeks: a dithered step down)
   for (const l of LENS) for (let x = l.x0 + 3; x < l.x1 - 2; x++) { p.px(x, LENS_Y1 + 1, SK[3], 0.55); if (bayer(x, LENS_Y1 + 2) + 0.5 < 0.45) p.px(x, LENS_Y1 + 2, SK[4], 0.5); }
-  // (the arms first, under the rims' ends: back along his temples to the tops of his ears)
-  p.form(g => { g.rect(83, 50, 13, 4); g.rect(160, 50, 14, 4); }, { ramp: FRAME, bevel: 1.5, amb: 0.3, ink: INK, spec: '#c8c8e4', wet: 0.6 });
+  // (the arms first, under the rims' ends. Held (on their way onto him): straight out back, the agent's fingers on
+  // their ends. Worn: back along his temples, rising to the roots of his ears and on behind them, the ears over them,
+  // a crease of shadow where each goes in under the ear's rim)
+  if (!worn) p.form(g => { g.rect(83, 50, 13, 4); g.rect(160, 50, 14, 4); }, { ramp: FRAME, bevel: 1.5, amb: 0.3, ink: INK, spec: '#c8c8e4', wet: 0.6 });
+  else {
+    // (each ear as the body paints it, ellipse (87 | 169, 58) 6 x 11 and its ink, where it's out past the side of his
+    // head (x < 90 | x > 166))
+    const ear = p.mask(g => { g.ellipse(87, 58, 7, 12, -0.08, 0, Math.PI * 2); g.moveTo(176, 58); g.ellipse(169, 58, 7, 12, 0.08, 0, Math.PI * 2); });
+    for (let y = 0; y < ART_H; y++) for (let x = 90; x <= 166; x++) ear[y * ART_W + x] = 0;
+    const arms = p.mask(g => { for (const s of [-1, 1]) { const X = (x: number) => 128 + s * x; g.moveTo(X(30), 50); g.lineTo(X(30), 54); g.lineTo(X(41), 51); g.lineTo(X(43), 47); g.lineTo(X(40), 46.5); g.closePath(); } });
+    p.form(p.minus(arms, ear), { ramp: FRAME, bevel: 1.5, amb: 0.3, ink: INK, spec: '#c8c8e4', wet: 0.6 });
+    // (where it goes in behind the ear: the ear's rim shadowed over it, a dark slot, and on round behind (none of it
+    // seen: the ear's in the way))
+    for (const s of [-1, 1]) for (let k = 0; k < 4; k++) {
+      const x = 128 + s * (39 + k), y = 48 + (k >> 1);
+      if (ear[y * ART_W + x]) { p.px(x, y, SK[1]); p.px(x, y + 1, SK[2], 0.8); if (bayer(x, y + 2) + 0.5 < 0.5) p.px(x, y + 2, SK[3], 0.6); }
+    }
+  }
   // (the glass: a faint cold tint, see-through)
   for (const l of LENS) for (let y = LENS_Y0 + 4; y < LENS_Y1 - 3; y++) for (let x = l.x0 + 4; x < l.x1 - 3; x++) p.px(x, y, '#b4d4f0', 0.14);
   // The rims: thick, square-cornered with the corners eased, the top a heavy brow bar
@@ -502,8 +542,9 @@ const glassesStill = () => painting('m2-title-glasses', ART_W, ART_H, p => {
 /** The glasses on him (`dy` off where they sit: the gym's closing puts them on him from above). */
 /** Paints his stills ahead, one per idle moment (the title's intro, or the gym's opening, would otherwise stop to paint
  *  each the frame it's first wanted). */
-export const prewarmTitleMeathead = () => idleTasks([() => bodyStill(1), () => bodyStill(0), () => glassesStill()]);
-export const drawTitleGlasses = (ctx: Ctx, dy = 0) => { ctx.drawImage(glassesStill(), 0, Math.round(dy)); };
+export const prewarmTitleMeathead = () => idleTasks([() => bodyStill(1), () => bodyStill(0), () => glassesStill(), () => glassesStill(false)]);
+/** (off his face, coming down onto it: the arms held straight out; on it, round his ears) */
+export const drawTitleGlasses = (ctx: Ctx, dy = 0) => { ctx.drawImage(glassesStill(Math.round(dy) === 0), 0, Math.round(dy)); };
 
 /**
  * Him, frame `t`, onto a 256 x 144 canvas (cleared: nothing behind him), `mood` his face; `ft` the frames since the fury

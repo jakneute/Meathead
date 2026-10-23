@@ -442,17 +442,19 @@ export const glassesOn = () => glasses;
 
 /**
  * The glasses on his face as the sprite draws it (his eyes at (hx - 5, ey) and (hx + 4, ey), facing right; the ear back
- * at hx - 11): two thick square rims round the eyes, the brow bar heavier, the bridge over his nose, the arm back to his
- * ear, a cold tint on the glass, a streak of light up its left, the sheen along the rims' tops.
+ * at hx - 11): two thick square rims round the eyes, the brow bar heavier, the bridge over his nose, the arm back round
+ * his ear, a cold tint on the glass, a streak of light up its left, the sheen along the rims' tops.
  */
 export const drawGlasses = (ctx: Ctx, hx: number, ey: number) => {
   if (!glasses) return;
   const dmg = glassesDamage();
   const rims: [number, number][] = [[hx - 9, 8], [hx - 0.5, 8.5]];
   const top = ey - 3.3, h = 6.4;
-  // (the arm back to the top of his ear, the hinge)
-  ctx.fillStyle = '#09090B'; ctx.fillRect(hx - 12, ey - 2.3, 4, 1.3);
-  ctx.fillStyle = '#3F3F46'; ctx.fillRect(hx - 11.5, ey - 2.3, 3, 0.4);
+  // (the arm back to his ear and round it: from the hinge along his temple into the root of the ear, the ear's top
+  // over it there, its hooked end showing past the back of the ear)
+  ctx.fillStyle = '#09090B'; ctx.fillRect(hx - 11.4, ey - 2.5, 3, 1.2); ctx.fillRect(hx - 12.9, ey - 2.3, 1, 2.8);
+  ctx.fillStyle = '#3F3F46'; ctx.fillRect(hx - 10.3, ey - 2.5, 1.8, 0.4);
+  ctx.fillStyle = skinShadow; ctx.fillRect(hx - 12, ey - 2.8, 1.6, 1.3);
   rims.forEach(([x, w], i) => {
     // (at the worst of it the back rim's bent, knocked askew off the bridge)
     const bent = dmg >= 4 && i === 0;

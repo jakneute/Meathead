@@ -11,9 +11,10 @@
 //           his fingers clawing at the arm. Three stages of the squeeze (it tightens: the arm up, the face darker, the
 //           eyes further out).
 //   truck   the truck from the pillar crash (intro/art/upper.ts: the red lifted pickup, the yellow lift coils, the
-//           chrome bumpers and the big chrome wheels with a star on each hub, the eagle, USA #1, the flag on the
-//           antenna), head on, from down low: the grille a wall of chrome, the bull bar, the headlights, the plate (US
-//           GOV'T 001), U.S. GOV'T sprayed on the hood scoop, bugs splattered in the grille, a rust spot, truck nuts.
+//           chrome bumpers and the monster tires (end on, head on: the tread's lugs across them), the eagle, USA #1,
+//           the flag on the antenna), head on, from down low: the grille a wall of chrome, the bull bar, the
+//           headlights, the plate (US GOV'T 001), U.S. GOV'T sprayed on the hood scoop, bugs splattered in the
+//           grille, a rust spot, truck nuts.
 
 import { painting, paintingStep, idleJob, type Painter, type Paint } from '../../../m1/game/scenes/art/raster';
 import { GLYPH, SHOT_STILLS, shotDress } from './shots';
@@ -234,26 +235,58 @@ function* truckTopArt(p: Painter) {
   p.form(g => { g.ellipse(384, 46, 12, 14, 0, 0, Math.PI * 2); }, { ramp: CHROME, bevel: 6, amb: 0.3, ink: INK, spec: '#ffffff', wet: 0.8 }); yield;
   p.form(g => { g.moveTo(386, 40); g.lineTo(404, 46); g.lineTo(388, 50); g.closePath(); }, { ramp: YEL, bevel: 2, amb: 0.3, ink: INK }); yield;
 }
+/** The running gear, head on (in the shot's own coordinates: `Y` puts them into this layer's, which goes down
+ *  LIFT_WHEELS lower than the body's). The tires seen end on: tall slabs of rubber, the tread's lugs across their
+ *  faces; only the inside of each wheel turned our way (we're between them): a sliver of sidewall and of chrome rim. */
+const TIRES: [number, number, number][] = [[22, 156, 1], [612, 746, -1]];
+const TIRE_TOP = 268, TIRE_BOT = 418, HUB = 343;
 function* truckWheelsArt(p: Painter) {
-  // The axle and the diff between the wheels, the shocks up off it (chrome), the frame rails
-  p.form(g => { g.rect(150, 380, 468, 26); }, { ramp: BLACK, bevel: 8, amb: 0.25, ink: INK }); yield;
-  p.form(g => { g.ellipse(384, 392, 54, 34, 0, 0, Math.PI * 2); }, { ramp: BLACK, bevel: 16, amb: 0.25, ink: INK, spec: '#9090a0', wet: 0.3 }); yield;
-  for (const sx of [250, 518]) { p.form(p.strokeMask(g => { g.moveTo(sx, 386); g.lineTo(sx + (sx < 384 ? 30 : -30), 250); }, 12), { ramp: CHROME, bevel: 5, amb: 0.3, ink: INK, spec: '#ffffff', wet: 0.7 }); yield; }
-  for (const fx of [210, 540]) { p.form(g => { g.rect(fx, 230, 18, 150); }, { ramp: BLACK, bevel: 4, amb: 0.3, ink: INK }); yield; }
-  // The fender flares over the wheels, black, and the yellow lift coils under them (it's lifted a mile)
-  for (const [fx, fr] of [[150, 150], [618, 140]] as [number, number][]) {
-    p.form(g => { g.arc(fx, 396, fr, Math.PI * 1.02, Math.PI * 1.98); g.lineTo(fx + fr - 24, 396); g.arc(fx, 396, fr - 24, Math.PI * 1.98, Math.PI * 1.02, true); g.closePath(); }, { ramp: BLACK, bevel: 10, amb: 0.25, ink: INK }); yield;
-    for (let k = 0; k < 6; k++) { p.form(g => { g.ellipse(fx, 250 + k * 9, 36, 7, 0, 0, Math.PI * 2); }, { ramp: YEL, bevel: 4, amb: 0.25, ink: INK, spec: '#ffffff', wet: 0.5 }); yield; }
+  const Y = (y: number) => y - LIFT_WHEELS, R = (TIRE_BOT - TIRE_TOP) / 2;
+  // The lift: the yellow coils stood on the axle's pads, the chrome shocks, up behind the bumper (it's lifted a mile)
+  for (const cx of [228, 540]) for (let k = 0; k < 7; k++) { p.form(g => { g.ellipse(cx, Y(HUB - 12 - k * 9), 30, 7, 0, 0, Math.PI * 2); }, { ramp: YEL, bevel: 4, amb: 0.25, ink: INK, spec: '#ffffff', wet: 0.5 }); yield; }
+  for (const sx of [184, 584]) { p.form(p.strokeMask(g => { g.moveTo(sx, Y(HUB)); g.lineTo(sx + (sx < 384 ? 26 : -26), Y(HUB - 70)); }, 12), { ramp: CHROME, bevel: 5, amb: 0.3, ink: INK, spec: '#ffffff', wet: 0.7 }); yield; }
+  // (the track bar, slung corner to corner)
+  p.form(p.strokeMask(g => { g.moveTo(176, Y(HUB + 4)); g.lineTo(600, Y(HUB - 26)); }, 8), { ramp: BLACK, bevel: 3, amb: 0.3, ink: INK }); yield;
+  // The tires: the inside sidewall bulging out past each tread (toward the middle), the rim's chrome lip on it, the
+  // hub; then the tread face over it, rounded off top and bottom, squashed out a touch where it sits on the ground
+  for (const [x0, x1, s] of TIRES) {
+    const ix = s > 0 ? x1 : x0, cx = (x0 + x1) / 2, w = x1 - x0;
+    p.form(g => { g.ellipse(ix + s * 6, Y(HUB), 16, R - 6, 0, 0, Math.PI * 2); }, { ramp: TIRE, bevel: 8, amb: 0.2, ink: INK, tex: pores(0.08) }); yield;
+    p.form(g => { g.ellipse(ix + s * 12, Y(HUB), 6, R * 0.58, 0, 0, Math.PI * 2); }, { ramp: CHROME, bevel: 3, amb: 0.3, ink: INK, spec: '#ffffff', wet: 0.8 }); yield;
+    p.form(g => { g.ellipse(ix + s * 14, Y(HUB), 3, R * 0.2, 0, 0, Math.PI * 2); }, { ramp: BLACK, bevel: 2, amb: 0.3, ink: INK }); yield;
+    p.form(g => { g.roundRect(x0, Y(TIRE_TOP), w, TIRE_BOT - TIRE_TOP - 6, [34, 34, 22, 22]); g.ellipse(cx, Y(TIRE_BOT - 8), w / 2 + 3, 8, 0, 0, Math.PI * 2); },
+      { ramp: TIRE, bevel: 30, amb: 0.2, ink: INK, tex: pores(0.1) }); yield;
+    // (the tread: rows of chunky lugs across the face, staggered left and right, a block down the middle; the rows
+    // bunching up toward the top and the bottom as the tire turns away from us; each shoulder lug standing out past
+    // the edge)
+    const rows = 16;
+    for (let i = 0; i < rows; i++) {
+      const th = -Math.PI / 2 + ((i + 0.5) / rows) * Math.PI, y = HUB + Math.sin(th) * R, h = (Math.PI * R / rows) * Math.cos(th) * 0.6;
+      if (h < 2.5) continue;
+      const left = i % 2 === 0, out = 4 * Math.cos(th), lean = h * 0.5;
+      p.form(g => {
+        if (left) { g.moveTo(x0 - out, Y(y - h / 2)); g.lineTo(cx + 8, Y(y - h / 2 + lean)); g.lineTo(cx + 8, Y(y + h / 2 + lean)); g.lineTo(x0 - out, Y(y + h / 2)); }
+        else { g.moveTo(x1 + out, Y(y - h / 2)); g.lineTo(cx - 8, Y(y - h / 2 + lean)); g.lineTo(cx - 8, Y(y + h / 2 + lean)); g.lineTo(x1 + out, Y(y + h / 2)); }
+        g.closePath();
+      }, { ramp: TIRE, bevel: Math.min(4, h / 2), amb: 0.35, ink: INK, tex: pores(0.12) }); yield;
+      // (the light catching each lug's top edge)
+      p.line(left ? x0 + 4 : cx - 6, Y(y - h / 2) + (left ? 1 : Math.round(lean) + 1), left ? cx + 6 : x1 - 4, Y(y - h / 2) + (left ? Math.round(lean) + 1 : 1), TIRE[5]);
+    }
+    // (the light from behind the truck rimming the tire's top)
+    for (let x = x0 + 18; x < x1 - 18; x++) p.px(x, Y(TIRE_TOP) + 2, '#5a5060');
   }
-  // The wheels: huge, knobbly, raised letters round them, chrome rims, a star on each hub
-  for (const [wx, wr] of [[150, 126], [618, 116]] as [number, number][]) {
-    p.form(g => { g.arc(wx, 396, wr, 0, Math.PI * 2); }, { ramp: TIRE, bevel: 30, amb: 0.2, ink: INK, tex: pores(0.1) }); yield;
-    for (let k = 0; k < 28; k++) { const a = (k / 28) * Math.PI * 2; p.form(g => { g.save(); g.translate(wx + Math.cos(a) * (wr - 6), 396 + Math.sin(a) * (wr - 6)); g.rotate(a); g.rect(-8, -11, 16, 22); g.restore(); }, { ramp: TIRE, bevel: 4, amb: 0.3, ink: INK }); yield; }
-    letters(p, "GOV'T ISSUE", wx - 54, 396 - wr + 26, '#5a5a66', 3);
-    p.form(g => { g.arc(wx, 396, wr * 0.56, 0, Math.PI * 2); }, { ramp: CHROME, bevel: 20, amb: 0.25, ink: INK, spec: '#ffffff', wet: 0.6 }); yield;
-    for (let k = 0; k < 6; k++) { const a = (k / 6) * Math.PI * 2 + 0.3; p.form(p.strokeMask(g => { g.moveTo(wx + Math.cos(a) * 18, 396 + Math.sin(a) * 18); g.lineTo(wx + Math.cos(a) * wr * 0.5, 396 + Math.sin(a) * wr * 0.5); }, 12), { ramp: CHROME, bevel: 5, amb: 0.3, ink: INK, spec: '#ffffff', wet: 0.6 }); yield; }
-    p.form(g => { for (let k = 0; k < 10; k++) { const a = -Math.PI / 2 + (k * Math.PI) / 5, r = k % 2 ? 9 : 22; k ? g.lineTo(wx + Math.cos(a) * r, 396 + Math.sin(a) * r) : g.moveTo(wx + Math.cos(a) * r, 396 + Math.sin(a) * r); } g.closePath(); }, { ramp: CHROME, bevel: 5, amb: 0.4, ink: INK, spec: '#ffffff', wet: 0.9 }); yield;
-    for (let k = 0; k < 6; k++) { const a = (k / 6) * Math.PI * 2; p.disc(wx + Math.cos(a) * 32, 396 + Math.sin(a) * 32, 4, 4, '#2e3240'); p.px(wx + Math.cos(a) * 32 - 1, 396 + Math.sin(a) * 32 - 1, '#ffffff'); }
+  // The axle, out to the hubs, the diff a fat pumpkin in the middle of it, its cover's bolts round it
+  p.form(g => { g.rect(TIRES[0][1] + 16, Y(HUB) - 9, TIRES[1][0] - TIRES[0][1] - 32, 18); }, { ramp: BLACK, bevel: 6, amb: 0.25, ink: INK, spec: '#9090a0', wet: 0.3 }); yield;
+  p.form(g => { g.ellipse(384, Y(HUB + 6), 50, 36, 0, 0, Math.PI * 2); }, { ramp: BLACK, bevel: 16, amb: 0.25, ink: INK, spec: '#9090a0', wet: 0.3 }); yield;
+  for (let k = 0; k < 10; k++) { const a = (k / 10) * Math.PI * 2; p.disc(384 + Math.cos(a) * 38, Y(HUB + 6) + Math.sin(a) * 26, 3, 3, '#3a3f48'); p.px(384 + Math.cos(a) * 38 - 1, Y(HUB + 6) + Math.sin(a) * 26 - 1, '#d2d8e0'); }
+  // (the steering stabilizer along the front of the axle: a yellow can, its chrome ram)
+  p.form(g => { g.roundRect(460, Y(HUB + 12), 110, 12, 5); }, { ramp: YEL, bevel: 4, amb: 0.25, ink: INK, spec: '#ffffff', wet: 0.6 }); yield;
+  p.form(g => { g.rect(290, Y(HUB + 15), 170, 6); g.rect(284, Y(HUB + 13), 8, 10); }, { ramp: CHROME, bevel: 2, amb: 0.3, ink: INK, spec: '#ffffff', wet: 0.8 }); yield;
+  // The fender flares over the tires' tops, black, standing off the body's sides
+  for (const s of [-1, 1]) {
+    const X = (x: number) => (s < 0 ? x : 768 - x);
+    p.form(g => { g.moveTo(X(104), Y(232)); g.lineTo(X(42), Y(234)); g.quadraticCurveTo(X(10), Y(238), X(6), Y(268)); g.lineTo(X(26), Y(276)); g.quadraticCurveTo(X(32), Y(256), X(62), Y(256)); g.lineTo(X(104), Y(256)); g.closePath(); },
+      { ramp: BLACK, bevel: 8, amb: 0.25, ink: INK, spec: '#9090a0', wet: 0.3 }); yield;
   }
   // (oil seeping out under it, a puddle on the asphalt)
   p.form(g => { g.ellipse(240, 400 - LIFT_WHEELS + 20, 56, 8, 0, 0, Math.PI * 2); }, { ramp: ['#020204', '#0a0a10', '#1a1a28', '#3a2a5a'], bevel: 6, amb: 0.4, ink: null, spec: '#a0a0ff', wet: 0.5 }); yield;
@@ -337,7 +370,7 @@ export const grossTruck = (c: Ctx, t: number) => {
   const on = t > 24 || (t > 16 && t % 4 < 2);
   if (on) for (const lx of [55.3, 200.7]) for (let r = 4; r >= 1; r--) { c.fillStyle = `rgba(255, 250, 220, ${0.08 * (5 - r)})`; c.beginPath(); c.arc(lx, 65, 13 + r * 6, 0, Math.PI * 2); c.fill(); }
   // (oil dripping off the axle)
-  const d = (t % 50) / 50; c.fillStyle = '#0a0a10'; c.fillRect(80, 128 + d * 10, 1, 1.4);
+  const d = (t % 50) / 50; c.fillStyle = '#0a0a10'; c.fillRect(80, 117 + d * 21, 1, 1.4);
   c.restore();
   // (sparkles off it)
   for (let k = 0; k < 9; k++) { const ph = (t + k * 11) % 44; if (ph > 18) continue; const x = 20 + hash(k * 3) * 216, y = 10 + hash(k * 5) * 110, r = ph < 9 ? ph / 2.5 : (18 - ph) / 2.5; c.fillStyle = '#fffbe0'; c.fillRect(x - r, y, r * 2 + 0.5, 0.6); c.fillRect(x, y - r, 0.6, r * 2 + 0.5); }
