@@ -21,6 +21,7 @@
 // pitched; the big ones and the bosses can't be got hold of (the lunge stops dead against them, the hands close on air).
 // Swimming, or hanging off a vine, it's only the one-handed kind (no floor to slam anybody into).
 
+import { walkAwayOn } from '../walkAway';
 import { spawnShielded } from '../spawnSafe';
 import { pickLine } from '../../m1/game/platform/speech';
 import type { FrameContext } from '../../m1/game/core/context';
@@ -798,6 +799,9 @@ const stepGrab = (ctx: FrameContext, g: Grab, controls: Controls): Controls => {
 
   switch (g.phase) {
     case 'idle': {
+      // (in a cutscene (the walk-away, a scene): the buttons are read for nothing here, and a held-back X or B is dropped,
+      // never let through late as a shot or a charge (the user's: X fired the gun in the walk-away))
+      if (state.player.inCutscene || walkAwayOn()) { g.pend = null; return controls; }
       // (whatever was being pressed as the grab ended, still held: nothing till it's let go)
       if (g.gate.size) {
         const c = { ...controls };

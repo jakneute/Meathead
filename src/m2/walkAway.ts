@@ -153,8 +153,12 @@ const poseAt = (w: WalkAway): Pose => {
 // ---------------------------------------------------------------------------------------------------------------
 
 /** A frame. `controls`: the stage's (A is jump); left out, only Enter counts (the dev preview reads the pad itself). */
+/** A walk-away ticked lately (on screen now): the stage's own buttons (the grab's raw reads) leave the player alone. */
+let tickedAt = -1e9;
+export const walkAwayOn = () => performance.now() - tickedAt < 250;
 export const tickWalkAway = (w: WalkAway, controls?: Controls | null, padA = false) => {
   if (w.done) return;
+  tickedAt = performance.now();
   musicMoment('walkaway', w.boss);
   w.t++;
   const t = w.t, u = t % CYCLE;
