@@ -47,7 +47,15 @@ const paintAnte = (g: Ctx) => {
   const L = x0 - 200, W = ANTE_R - x0 + 230;
   // (the hall: banded dark to purple, pilasters every so often, a wainscot of quilted vinyl, a gold rail)
   bandedGradient(g, L, GY - 470, W, 470, ['#0A0414', '#1C0A33', '#2E1052', '#3B1468', '#2A0E4A'], 12);
-  for (let x = L + 40; x < L + W; x += 180) { px(g, x, GY - 440, 24, 440, '#1A0830'); px(g, x, GY - 440, 4, 440, '#4C1D95'); px(g, x + 20, GY - 440, 4, 440, '#0E041C'); }
+  const PIL = ['#5B21B6', '#4C1D95', '#3B1468', '#2E1052', '#1A0830', '#0E041C'];
+  for (let x = L + 40; x < L + W; x += 180) {
+    px(g, x - 1, GY - 440, 26, 440, '#05020B');
+    PIL.forEach((col, k) => px(g, x + k * 4, GY - 440, 4, 440, col));
+    for (const fx of [x + 7, x + 15]) { px(g, fx, GY - 420, 2, 250, '#14052A'); px(g, fx - 1, GY - 420, 1, 250, '#6D28D9'); }
+    for (const [y, ex, h] of [[GY - 440, 6, 5], [GY - 435, 4, 4], [GY - 431, 2, 3], [GY - 176, 2, 4], [GY - 172, 4, 5], [GY - 167, 6, 13]] as const) {
+      px(g, x - ex - 1, y - 1, 26 + ex * 2, h + 2, '#05020B'); px(g, x - ex, y, 24 + ex * 2, h, '#3B1468'); px(g, x - ex, y, 24 + ex * 2, 1, '#8B5CF6'); px(g, x - ex, y + h - 1, 24 + ex * 2, 1, '#14052A'); px(g, x - ex, y, 2, h, '#5B21B6');
+    }
+  }
   px(g, L, GY - 470, W, 30, '#05020B'); px(g, L, GY - 442, W, 2, '#3B1468');
   px(g, L, GY - 150, W, 150, '#22093C');
   for (let x = L; x < L + W; x += 20) for (let y = GY - 146; y < GY - 6; y += 20) { px(g, x + 2, y + 2, 16, 16, '#2E0E50'); px(g, x + 2, y + 2, 16, 2, '#4A1A78'); px(g, x + 9, y + 9, 2, 2, '#14052A'); }
@@ -60,7 +68,12 @@ const paintAnte = (g: Ctx) => {
   px(g, sx, sy, 300, 70, '#12061E'); px(g, sx, sy, 300, 3, '#2A1240');
   chrome(g, 'THE HOLD', sx + 150, sy + 10, 2, 4, { shadow: '#4C1D95', slant: 1 });
   square(g, 'MEET THE QUEEN (LEGALLY DISTINCT)', sx + 150, sy + 51, 1, 1, ['#12061E', '#5B21B6', '#8B5CF6', '#C4B5FD', '#EDE9FE'], { spacing: 1 });
-  px(g, sx + 140, sy - 30, 20, 8, '#27272A'); px(g, sx + 144, sy - 22, 12, 3, '#FEF3C7');
+  tube(g, sx + 150, sy - 4, sx + 150, sy - 20, 3, CHROME); px(g, sx + 144, sy - 6, 13, 4, '#05020B'); px(g, sx + 145, sy - 5, 11, 2, CHROME[2]);
+  px(g, sx + 108, sy - 30, 84, 10, '#05020B');
+  ['#F4F4F5', '#C9CBD3', '#8E8E99', '#52525B'].forEach((col, k) => px(g, sx + 109, sy - 29 + k * 2, 82, 2, col));
+  px(g, sx + 109, sy - 21, 82, 1, '#FEF3C7'); px(g, sx + 112, sy - 21, 76, 1, '#FFFFFF');
+  for (const ex of [sx + 107, sx + 189]) blob(g, ex + 2, sy - 25, 3, 4, CHROME);
+  g.fillStyle = dith(g, 'rgba(254, 243, 199, 0.22)'); g.beginPath(); g.moveTo(sx + 112, sy - 20); g.lineTo(sx + 188, sy - 20); g.lineTo(sx + 230, sy - 2); g.lineTo(sx + 70, sy - 2); g.closePath(); g.fill();
   // (a poster: NOW 40% MORE LEGALLY DISTINCT)
   const ppx = x0 + 500, ppy = GY - 300;
   px(g, ppx - 2, ppy - 2, 104, 144, '#05020B'); px(g, ppx, ppy, 100, 140, '#14532D'); px(g, ppx, ppy, 100, 3, '#22C55E');
@@ -111,9 +124,21 @@ const paintRoom = (g: Ctx) => {
   px(g, ARENA_L + 328, GY - 562, 32, 38, '#05020B'); px(g, ARENA_L + 330, GY - 560, 28, 34, '#27272A'); px(g, ARENA_L + 330, GY - 560, 28, 2, '#52525B');
   blob(g, ARENA_L + 344, GY - 543, 9, 9, ['#05050A', '#2A2A33', '#3F3F4C', '#5A5A6A', '#8A8A9A']);
   px(g, ARENA_L + 326, GY - 548, 36, 5, '#9CA3AF');
-  px(g, GLASS_X + 8, GY - 422, 304, 38, '#05020B'); px(g, GLASS_X + 10, GY - 420, 300, 34, '#7F1D1D'); px(g, GLASS_X + 10, GY - 420, 300, 3, '#B91C1C'); px(g, GLASS_X + 10, GY - 390, 300, 4, '#450A0A');
-  for (const tx of [GLASS_X + 10, GLASS_X + 306]) { px(g, tx, GY - 386, 4, 10, '#7F1D1D'); }
-  print(g, 'THE HOLD - LEGALLY DISTINCT', GLASS_X + 160, GY - 410, 1, 2, ['#FEF3C7', '#FDE68A', '#FDE68A', '#D6A84A'], { shadow: '#450A0A', drop: 2 });
+  const bnL = GLASS_X + 10, bnR = GLASS_X + 310, bnT = GY - 420, bnB = GY - 388, PT = 20;
+  const pts = () => { g.moveTo(bnL, bnT); g.lineTo(bnR, bnT); g.lineTo(bnR, bnB); for (let x = bnR; x > bnL; x -= PT) { g.lineTo(x - PT / 2, bnB + 9); g.lineTo(x - PT, bnB); } g.closePath(); };
+  g.fillStyle = '#05020B'; g.lineWidth = 3; g.strokeStyle = '#05020B'; g.beginPath(); pts(); g.stroke(); g.fill();
+  g.save(); g.beginPath(); pts(); g.clip();
+  const FOLD = ['#5A0F0F', '#7F1D1D', '#991B1B', '#B91C1C', '#C53030', '#991B1B', '#7F1D1D'];
+  for (let x = bnL, k = 0; x < bnR; x += 3, k++) px(g, x, bnT, 3, bnB + 10 - bnT, FOLD[k % FOLD.length]);
+  g.fillStyle = dith(g, '#450A0A'); g.fillRect(bnL, bnB - 8, bnR - bnL, 18);
+  px(g, bnL, bnT, bnR - bnL, 3, '#450A0A');
+  g.restore();
+  // (the gold fringe along its points, the rod and its finials, the cords up)
+  for (let x = bnL; x < bnR; x += PT) { g.strokeStyle = '#CA8A04'; g.lineWidth = 1; g.beginPath(); g.moveTo(x, bnB); g.lineTo(x + PT / 2, bnB + 9); g.lineTo(x + PT, bnB); g.stroke(); blob(g, x + PT / 2, bnB + 11, 2, 2.5, ['#2E1F02', '#854D0E', '#CA8A04', '#FACC15', '#FEF08A']); }
+  for (const cx of [bnL + 30, bnR - 30]) { g.strokeStyle = '#854D0E'; g.lineWidth = 1; g.beginPath(); g.moveTo(cx, bnT - 4); g.lineTo((bnL + bnR) / 2, bnT - 26); g.stroke(); }
+  tube(g, bnL - 8, bnT - 3, bnR + 8, bnT - 3, 5, ['#2E1F02', '#854D0E', '#CA8A04', '#FACC15', '#FEF08A']);
+  for (const fx of [bnL - 10, bnR + 10]) blob(g, fx, bnT - 3, 4, 4, ['#2E1F02', '#854D0E', '#CA8A04', '#FACC15', '#FEF08A']);
+  square(g, 'THE HOLD - LEGALLY DISTINCT', GLASS_X + 160, GY - 410, 1, 2, ['#2A0505', '#A16207', '#E8B84A', '#FDE68A', '#FFFBEB'], { spacing: 1 });
   // (the floor: dark, slick, its lip lit (stand on it); a reflection of the stage's footlights in it)
   px(g, l, GY, w, 4, '#18181B'); px(g, l, GY, w, 2, '#A78BFA'); px(g, l, GY + 2, w, 1, '#4C1D95');
   // (the stage: a raised lip of rock-look foam in front of her, shaded, cracked; the footlights)
@@ -133,6 +158,8 @@ const paintRoom = (g: Ctx) => {
   const bx = BOOTH.x - 14, by = BOOTH.y - 14, bw = BOOTH.w + 28, bh = BOOTH.h + 40;
   px(g, bx - 2, by - 2, bw + 4, bh + 4, '#05020B'); px(g, bx, by, bw, bh, STEELR[2]); px(g, bx, by, bw, 3, STEELR[4]); px(g, bx + bw - 8, by + 3, 8, bh - 3, STEELR[1]); px(g, bx, by + bh - 6, bw, 6, STEELR[1]);
   for (const [rx, ry] of [[bx + 4, by + 6], [bx + bw - 14, by + 6], [bx + 4, by + bh - 12], [bx + bw - 14, by + bh - 12]]) px(g, rx, ry, 3, 3, CHROME[3]);
+  px(g, BOOTH.x - 6, BOOTH.y - 6, BOOTH.w + 12, BOOTH.h + 12, '#05050A');
+  px(g, BOOTH.x - 5, BOOTH.y - 5, BOOTH.w + 10, BOOTH.h + 10, CHROME[1]); px(g, BOOTH.x - 5, BOOTH.y - 5, BOOTH.w + 10, 1, CHROME[4]); px(g, BOOTH.x - 5, BOOTH.y - 4, BOOTH.w + 10, 1, CHROME[3]); px(g, BOOTH.x - 5, BOOTH.y - 5, 1, BOOTH.h + 10, CHROME[3]); px(g, BOOTH.x + BOOTH.w + 4, BOOTH.y - 4, 1, BOOTH.h + 9, CHROME[0]);
   px(g, BOOTH.x - 2, BOOTH.y - 2, BOOTH.w + 4, BOOTH.h + 4, '#05050A');
   px(g, BOOTH.x, BOOTH.y, BOOTH.w, BOOTH.h, '#0A0A0A');
   stencil(g, 'CONTROL - STAFF ONLY', BOOTH.x + BOOTH.w / 2, BOOTH.y + BOOTH.h + 12, 1, '#FDE047', { seed: 3, spray: 'rgba(253, 224, 71, 0.3)', runs: false });
@@ -147,6 +174,30 @@ const paintRoom = (g: Ctx) => {
   g.restore();
 };
 
+/** The control booth's back wall, still: green-gray panels (banded, their seams lit), six screens in bezels (dark
+ *  green, a stippled grid, the top line). */
+const paintCtrlWall = (g: Ctx) => {
+  const X = BOOTH.x, Y = BOOTH.y, w = BOOTH.w, h = BOOTH.h;
+  ['#0E1C13', '#0C1810', '#0A140D', '#08100A'].forEach((col, k) => px(g, X, Y + k * (h / 4), w, Math.ceil(h / 4), col));
+  for (let x = X + 3; x < X + w; x += 39) { px(g, x, Y, 1, h, '#05080A'); px(g, x + 1, Y, 1, h, '#1E3A28'); }
+  for (let i = 0; i < 6; i++) {
+    const sx = X + 6 + i * 39, sy = Y + 6;
+    px(g, sx - 2, sy - 2, 36, 26, '#05050A'); px(g, sx - 1, sy - 1, 34, 24, '#3F3F46'); px(g, sx - 1, sy - 1, 34, 1, '#A1A1AA'); px(g, sx + 32, sy, 1, 23, '#27272A');
+    px(g, sx, sy, 32, 22, '#052E16'); g.fillStyle = dith(g, '#0A3A1E'); g.fillRect(sx, sy, 32, 22);
+    for (let gx = sx + 4; gx < sx + 32; gx += 8) px(g, gx, sy, 1, 22, '#0B3D20');
+    px(g, sx + 2, sy + 2, 28, 1, '#14532D'); px(g, sx + 1, sy + 1, 3, 2, '#86EFAC');
+    px(g, sx + 14, sy + 23, 4, 3, '#18181B');
+  }
+};
+/** The control booth's console, still: its top (lit lip), its banded face, the lamps' sockets, knobs between. */
+const paintCtrlDesk = (g: Ctx) => {
+  const X = BOOTH.x, Y = BOOTH.y + BOOTH.h - 14, w = BOOTH.w;
+  px(g, X, Y - 2, w, 2, '#05050A');
+  ['#52525B', '#3F3F46', '#34343B', '#2A2A30'].forEach((col, k) => px(g, X, Y + k * 3.5, w, 4, col));
+  px(g, X, Y, w, 2, '#A1A1AA'); px(g, X, Y, w, 1, '#E4E4E7');
+  for (let i = 0; i < 12; i++) { const lx = X + 8 + i * 18; px(g, lx - 1, Y + 3, 8, 6, '#18181B'); if (i < 11) { blob(g, lx + 12, Y + 7, 2, 2, CHROME); } }
+};
+
 export const drawRoomBack = (c: Ctx, state: GameState, r: RoomDraw) => {
   // The antechamber: a purple hall, the queue's velvet ropes, the sign
   if (shown(state, x0 - 200, ANTE_R)) stamp(c, 'sp-q-ante2', x0 - 200, GY - 470, ANTE_R - x0 + 230, 474, paintAnte);
@@ -156,14 +207,14 @@ export const drawRoomBack = (c: Ctx, state: GameState, r: RoomDraw) => {
   // The booth's insides (lit, them at the controls), live
   if (r.booth > 0) {
     c.save(); c.beginPath(); c.rect(BOOTH.x, BOOTH.y, BOOTH.w, BOOTH.h); c.clip();
-    // (its back wall: panels, their screens' green, scrolling)
-    px(c, BOOTH.x, BOOTH.y, BOOTH.w, BOOTH.h, '#0C1810');
-    for (let i = 0; i < 6; i++) { px(c, BOOTH.x + 6 + i * 39, BOOTH.y + 6, 32, 22, '#052E16'); px(c, BOOTH.x + 8 + i * 39, BOOTH.y + 8 + ((state.frame >> 3) + i * 3) % 18, 28, 1, '#4ADE80'); px(c, BOOTH.x + 8 + i * 39, BOOTH.y + 8, 28, 1, '#14532D'); }
+    // (its back wall: panels, their screens (stamped); the screens' green line scrolling, live)
+    stamp(c, 'sp-q-ctrl-wall', BOOTH.x, BOOTH.y, BOOTH.w, BOOTH.h, paintCtrlWall);
+    for (let i = 0; i < 6; i++) px(c, BOOTH.x + 8 + i * 39, BOOTH.y + 8 + ((state.frame >> 3) + i * 3) % 18, 28, 1, '#4ADE80');
     c.fillStyle = `rgba(74, 222, 128, ${(0.2 * r.booth).toFixed(2)})`; c.fillRect(BOOTH.x, BOOTH.y, BOOTH.w, BOOTH.h);
     if (r.operators) for (let i = 0; i < 2; i++) { c.save(); c.translate(BOOTH.x + 60 + i * 100, BOOTH.y + BOOTH.h + 50); drawAlien(c, { seed: 101 + i * 7, headset: true, woman: i === 1 }, 'operate', state.frame + i * 9, 0.95); c.restore(); }
     else for (let i = 0; i < 2; i++) { const bx = BOOTH.x + 60 + i * 100; c.fillStyle = ALIEN.hide[5]; c.beginPath(); c.roundRect(bx - 20, BOOTH.y + BOOTH.h - 34, 46, 40, 6); c.fill(); box(c, bx - 14, BOOTH.y + BOOTH.h - 40, 30, 8, ALIEN.gum); }
     // (the console under the window: its lamps blinking, a row of knobs)
-    px(c, BOOTH.x, BOOTH.y + BOOTH.h - 14, BOOTH.w, 14, '#3F3F46'); px(c, BOOTH.x, BOOTH.y + BOOTH.h - 14, BOOTH.w, 2, '#A1A1AA');
+    stamp(c, 'sp-q-ctrl-desk', BOOTH.x, BOOTH.y + BOOTH.h - 16, BOOTH.w, 16, paintCtrlDesk);
     for (let i = 0; i < 12; i++) { const on = (state.frame + i * 7) % 30 < 15; px(c, BOOTH.x + 8 + i * 18, BOOTH.y + BOOTH.h - 10, 6, 4, on ? '#EF4444' : '#22C55E'); px(c, BOOTH.x + 8 + i * 18, BOOTH.y + BOOTH.h - 10, 2, 1, '#FFFFFF'); }
     // (the glass: a sheen)
     c.fillStyle = dith(c, 'rgba(255, 255, 255, 0.16)'); c.beginPath(); c.moveTo(BOOTH.x + 30, BOOTH.y); c.lineTo(BOOTH.x + 70, BOOTH.y); c.lineTo(BOOTH.x + 30, BOOTH.y + BOOTH.h); c.lineTo(BOOTH.x - 10, BOOTH.y + BOOTH.h); c.closePath(); c.fill();

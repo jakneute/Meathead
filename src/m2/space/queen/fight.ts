@@ -1470,7 +1470,7 @@ export const drawQueenFight = (c: Ctx, state: GameState, f: Fight) => {
     }
   }
   // (the extinguisher: on the wall, in his hands, in the air at her)
-  if (f.ext2 === 'wall' || f.ext2 === 'air') { c.save(); c.translate(f.ext2 === 'wall' ? EXTINGUISHER_X : f.ex.x, f.ext2 === 'wall' ? GY - 110 : f.ex.y); c.rotate(f.ex.r); ink(c, () => c.roundRect(-7, -18, 14, 34, 4), '#DC2626'); box(c, -4, -24, 8, 6, '#18181B'); box(c, 2, -22, 10, 3, '#18181B'); box(c, -5, -6, 10, 6, '#F8FAFC'); c.restore(); }
+  if (f.ext2 === 'wall' || f.ext2 === 'air') { c.save(); c.translate(f.ext2 === 'wall' ? EXTINGUISHER_X : f.ex.x, f.ext2 === 'wall' ? GY - 110 : f.ex.y); c.rotate(f.ex.r); ink(c, () => c.roundRect(-7, -18, 14, 34, 4), '#DC2626'); box(c, -5, -15, 3, 29, '#F87171'); box(c, -4, -13, 1, 22, '#FECACA'); box(c, 3, -15, 3, 29, '#991B1B'); box(c, -6, 12, 12, 3, '#7F1D1D'); box(c, -5, -20, 10, 3, '#A1A1AA'); box(c, -5, -20, 10, 1, '#F4F4F5'); box(c, -4, -24, 8, 5, '#18181B'); box(c, -3, -24, 6, 1, '#71717A'); box(c, 2, -23, 10, 3, '#18181B'); box(c, 3, -23, 8, 1, '#71717A'); box(c, -2, -27, 4, 3, '#3F3F46'); c.strokeStyle = '#05020B'; c.lineWidth = 2; c.beginPath(); c.moveTo(-3, -22); c.quadraticCurveTo(-12, -14, -9, 6); c.stroke(); box(c, -11, 5, 4, 5, '#18181B'); box(c, -5, -6, 10, 7, '#F8FAFC'); box(c, -5, -6, 10, 1, '#FFFFFF'); box(c, -4, -4, 8, 1, '#B91C1C'); box(c, -4, -2, 6, 1, '#52525B'); c.restore(); }
 };
 /** Her words; theirs, up in the booth. */
 export const drawQueenSaid = (c: Ctx, f: Fight) => {

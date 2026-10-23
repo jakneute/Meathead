@@ -20,7 +20,7 @@ import { GY } from '../geometry';
 import { drawAlien, type AlienPose } from '../crater/aliens';
 import { DOOR_X, DISCO_L, DISCO_R, DJ, BALL, EXTINGUISHER_X, REFILL_X } from './geo';
 import { type Ramp, CHROME, dith, tube, hose, quad, blob, hash } from './paint';
-import { neon, neonW, chrome, square, print } from './letters';
+import { neon, neonW, chrome, square, print, lightbox } from './letters';
 import { DOORWAY, DOOR_SIGN } from './basement';
 
 type Ctx = CanvasRenderingContext2D;
@@ -119,7 +119,7 @@ const paintWall = (g: Ctx, tx: number) => {
   }
   // (down low: the tufted vinyl, a chrome rail along its top, the baseboard)
   g.fillStyle = tufted(g); g.fillRect(tx, GY - 150, 400, 142);
-  for (let y = GY - 150; y < GY - 8; y += 2) if (((y - (GY - 150)) >> 1) % 2 === 0) { /* (the shade toward the floor) */ }
+  px(g, tx, GY - 150, 400, 2, 'rgba(10, 2, 18, 0.6)'); g.fillStyle = dith(g, 'rgba(10, 2, 18, 0.5)'); g.fillRect(tx, GY - 148, 400, 4);
   g.fillStyle = dith(g, '#14041F'); g.fillRect(tx, GY - 40, 400, 32); px(g, tx, GY - 24, 400, 16, 'rgba(10, 2, 18, 0.55)');
   px(g, tx, GY - 156, 400, 6, '#2E2A3A'); px(g, tx, GY - 156, 400, 1, '#4A4658'); px(g, tx, GY - 151, 400, 1, '#18181F');
   px(g, tx, GY - 8, 400, 8, '#52525B'); px(g, tx, GY - 8, 400, 2, '#A1A1AA'); px(g, tx, GY - 2, 400, 2, '#27272A');
@@ -132,21 +132,45 @@ const pillar = (g: Ctx, x: number, w = 30) => {
   bands.forEach((col, i) => px(g, x + i * bw, GY - 600, Math.ceil(bw), 600, col));
   // (the hall's colors caught in it, down its shine)
   for (let y = GY - 560; y < GY - 20; y += 34) px(g, x + bw * 4, y, bw, 6, ['#F9A8D4', '#A5F3FC', '#C4B5FD', '#FEF08A'][((Math.floor(y / 34) % 4) + 4) % 4]);
-  for (const [y, h] of [[GY - 24, 24], [GY - 600, 16]] as const) { px(g, x - 6, y, w + 12, h, '#18181B'); px(g, x - 5, y + 1, w + 10, h - 2, '#71717A'); px(g, x - 5, y + 1, w + 10, 2, '#D4D4D8'); }
+  // (its foot and its head: stepped chrome collars, three tiers each (widest at the floor, and at the ceiling), each
+  // inked, banded round like the shaft, lit along its top, shaded under)
+  const tier = (y: number, ex: number, h: number) => {
+    const l = x - ex, tw = w + ex * 2, cb = tw / bands.length;
+    px(g, l - 1, y - 1, tw + 2, h + 2, '#05050A');
+    bands.forEach((col, i) => px(g, l + i * cb, y, Math.ceil(cb), h, col));
+    px(g, l, y, tw, 1, '#F4F4F5'); px(g, l, y + h - 1, tw, 1, '#18181B');
+    g.fillStyle = dith(g, '#18181B'); g.fillRect(l, y + h - 3, tw, 2);
+  };
+  tier(GY - 26, 3, 6); tier(GY - 20, 6, 6); tier(GY - 14, 9, 14);
+  tier(GY - 600, 9, 8); tier(GY - 592, 6, 5); tier(GY - 587, 3, 5);
+  g.fillStyle = dith(g, 'rgba(5, 2, 11, 0.6)'); g.fillRect(x, GY - 582, w, 6);
 };
 
 /** A speaker stack: two cabinets, woofers and a horn each, on the floor. */
 const speakers = (g: Ctx, x: number) => {
   for (let k = 0; k < 2; k++) {
     const y = GY - 130 - k * 124;
-    px(g, x - 1, y - 1, 82, 126, '#05050A'); px(g, x, y, 80, 124, '#18181D'); px(g, x, y, 80, 2, '#3A3A44'); px(g, x + 74, y, 6, 124, '#0E0E12');
+    // (the cabinet: inked, its tolex stippled, bevelled (lit top and left edge, its side face in shade), the baffle
+    // inset, chrome corner caps, a handle cut in its side)
+    px(g, x - 1, y - 1, 82, 126, '#05050A'); px(g, x, y, 80, 124, '#18181D');
+    g.fillStyle = dith(g, '#22222A', 1, k); g.fillRect(x, y, 74, 124);
+    px(g, x, y, 80, 2, '#3A3A44'); px(g, x, y, 80, 1, '#52525E'); px(g, x, y, 1, 124, '#2E2E38'); px(g, x + 74, y, 6, 124, '#0E0E12'); px(g, x + 74, y, 1, 124, '#05050A');
+    px(g, x + 75, y + 54, 4, 16, '#05050A'); px(g, x + 75, y + 54, 4, 1, '#26262E');
+    px(g, x + 4, y + 4, 66, 108, '#0C0C10'); px(g, x + 4, y + 111, 66, 1, '#2A2A33'); px(g, x + 4, y + 4, 66, 1, '#05050A');
+    for (const [cx, cy, fx, fy] of [[x, y, 1, 1], [x + 74, y, -1, 1], [x, y + 117, 1, -1], [x + 74, y + 117, -1, -1]] as const) {
+      const ox = fx > 0 ? cx : cx - 1, oy = fy > 0 ? cy : cy;
+      px(g, ox - 1, oy - 1, 9, 9, '#05050A'); px(g, ox, oy, 7, 7, CHROME[1]); px(g, ox, oy, 7, 1, CHROME[3]); px(g, ox, oy, 1, 7, CHROME[2]); px(g, ox + 3, oy + 3, 1, 1, CHROME[4]);
+    }
     for (let i = 0; i < 2; i++) {
       const cx = x + 40, cy = y + 30 + i * 60;
       blob(g, cx, cy, 24, 24, ['#05050A', '#2A2A33', '#3F3F4C', '#5A5A6A', '#8A8A9A'], true);
+      g.strokeStyle = '#7A7A8A'; g.lineWidth = 1; g.beginPath(); g.arc(cx, cy, 22.5, Math.PI * 1.05, Math.PI * 1.55); g.stroke();
       blob(g, cx, cy, 14, 14, ['#05050A', '#18181D', '#2A2A33', '#4A4A58', '#6A6A7A'], false);
       blob(g, cx, cy, 5, 5, ['#05050A', '#3A3A44', '#71717A', '#A1A1AA', '#E4E4E7'], false);
+      for (let s = 0; s < 4; s++) { const a = Math.PI / 4 + s * Math.PI / 2; px(g, cx + Math.cos(a) * 26 - 1, cy + Math.sin(a) * 26 - 1, 2, 2, '#05050A'); px(g, cx + Math.cos(a) * 26 - 1, cy + Math.sin(a) * 26 - 1, 1, 1, '#8E8E99'); }
     }
-    for (let s = 0; s < 4; s++) px(g, x + 6 + s * 18, y + 116, 12, 2, '#26262E');
+    // (the badge on its foot: a chrome plate, a lit dot)
+    px(g, x + 50, y + 116, 20, 6, '#05050A'); px(g, x + 51, y + 117, 18, 4, '#52525B'); px(g, x + 51, y + 117, 18, 1, '#D4D4D8'); px(g, x + 53, y + 118, 2, 2, '#F472B6'); px(g, x + 57, y + 119, 10, 1, '#18181B');
   }
 };
 
@@ -420,57 +444,233 @@ const paintFixtures = (g: Ctx) => {
   g.strokeStyle = '#6B6B76'; g.lineWidth = 2; g.beginPath();
   for (let x = DISCO_L - 40, k = 0; x < DISCO_R + 40; x += 16, k++) { g.lineTo(x, k % 2 ? TRUSS_Y + 9 : TRUSS_Y - 9); }
   g.stroke();
-  for (let x = DISCO_L + 100; x < DISCO_R; x += 420) px(g, x, GY - 600, 3, TRUSS_Y - 12 - (GY - 600), '#3F3F46');
-  // (the par cans under it: black cans, a colored lens each)
+  // (the hangers up to the ceiling: chrome rods, a clamp on the top chord, a turnbuckle half way)
+  for (let x = DISCO_L + 100; x < DISCO_R; x += 420) {
+    tube(g, x + 1, GY - 600, x + 1, TRUSS_Y - 12, 3, CHROME);
+    const mY = Math.round((GY - 600 + TRUSS_Y) / 2);
+    px(g, x - 3, mY - 6, 9, 12, '#05050A'); px(g, x - 2, mY - 5, 7, 10, '#52525B'); px(g, x - 2, mY - 5, 7, 1, '#D4D4D8'); px(g, x, mY - 3, 3, 6, '#18181B');
+    px(g, x - 6, TRUSS_Y - 15, 15, 7, '#05050A'); px(g, x - 5, TRUSS_Y - 14, 13, 5, '#3F3F46'); px(g, x - 5, TRUSS_Y - 14, 13, 1, '#A1A1AA'); px(g, x + 6, TRUSS_Y - 13, 1, 3, '#D4D4D8');
+  }
+  // (the par cans under it: a C-clamp on the bottom chord, the yoke round each can, the can (banded round, ribbed,
+  // inked), its lens ring and the gel's frame; the lens dark glass (lit live))
+  const CAN = ['#05050A', '#18181D', '#2A2A33', '#3F3F4C', '#5A5A6A', '#44444F', '#2A2A33', '#1E1E24', '#18181D', '#101014', '#05050A'];
   for (const cn of CANS) {
-    px(g, cn.x - 2, TRUSS_Y + 10, 4, 8, '#27272A');
-    g.fillStyle = '#05050A'; g.beginPath(); g.roundRect(cn.x - 11, TRUSS_Y + 16, 22, 26, 4); g.fill();
-    px(g, cn.x - 9, TRUSS_Y + 18, 18, 22, '#27272A'); px(g, cn.x - 9, TRUSS_Y + 18, 4, 22, '#3F3F46');
-    px(g, cn.x - 8, TRUSS_Y + 40, 16, 4, TILE[cn.col][1]);
+    const x = Math.round(cn.x), y = TRUSS_Y + 16, L = TILE[cn.col];
+    // (the clamp)
+    px(g, x - 5, TRUSS_Y + 7, 10, 8, '#05050A'); px(g, x - 4, TRUSS_Y + 8, 8, 6, '#3F3F46'); px(g, x - 4, TRUSS_Y + 8, 8, 1, '#8E8E99'); px(g, x + 3, TRUSS_Y + 6, 3, 3, '#A1A1AA');
+    // (the yoke: a U of flat steel round the can, its pivot knobs either side)
+    px(g, x - 2, TRUSS_Y + 14, 4, 4, '#18181B');
+    px(g, x - 15, y - 1, 30, 4, '#05050A'); px(g, x - 14, y, 28, 2, '#52525B'); px(g, x - 14, y, 28, 1, '#A1A1AA');
+    for (const ax of [x - 15, x + 12]) { px(g, ax, y - 1, 4, 18, '#05050A'); px(g, ax + 1, y, 2, 16, '#52525B'); px(g, ax + 1, y, 1, 16, '#8E8E99'); }
+    for (const kx of [x - 14, x + 13]) blob(g, kx, y + 14, 2.5, 2.5, CHROME);
+    // (the can: inked, banded round in steps, its ribs (dark grooves, a lit row over each), the rim flared at its foot)
+    g.fillStyle = '#05050A'; g.beginPath(); g.roundRect(x - 11, y, 22, 26, 3); g.fill();
+    CAN.forEach((col, i) => { if (i && i < CAN.length - 1) px(g, x - 11 + i * 2, y + 2, 2, 20, col); });
+    for (let r = 0; r < 4; r++) { px(g, x - 9, y + 4 + r * 5, 18, 1, '#05050A'); px(g, x - 9, y + 5 + r * 5, 18, 1, 'rgba(138, 138, 154, 0.35)'); }
+    px(g, x - 12, y + 21, 24, 5, '#05050A'); px(g, x - 11, y + 22, 22, 3, '#3F3F46'); px(g, x - 11, y + 22, 22, 1, '#A1A1AA'); px(g, x - 11, y + 22, 3, 3, '#71717A');
+    // (the gel frame's edge in its slot, the gel's color showing; the lens: dark glass, stippled)
+    px(g, x - 10, y + 21, 20, 1, L[2]);
+    px(g, x - 9, y + 24, 18, 6, '#05050A'); px(g, x - 8, TRUSS_Y + 40, 16, 4, L[1]);
+    g.fillStyle = dith(g, L[0]); g.fillRect(x - 8, TRUSS_Y + 42, 16, 2);
+    px(g, x - 6, TRUSS_Y + 40, 3, 1, L[2]);
+    // (the safety cable: a loop up round the chord)
+    g.strokeStyle = '#71717A'; g.lineWidth = 1; g.beginPath(); g.moveTo(x + 7, y + 2); g.quadraticCurveTo(x + 14, TRUSS_Y + 4, x + 6, TRUSS_Y + 8); g.stroke();
   }
   // (the pillars)
   for (const x of [DISCO_L + 260, DISCO_L + 1060, DISCO_L + 1560, DISCO_R - 40]) pillar(g, x);
   // (the speaker stacks round the booth)
   for (const sx of STACKS) speakers(g, sx);
   booth(g);
-  // (the bar at the far end: the back bar's mirror and its bottles, lit shelves; the bar's padded front; the stools)
+  // (the bar at the far end: the back bar (a chrome frame, its mirror in panels, the hall's color streaking down it, the
+  // glass shelves lit from under, the bottles shaped and labelled); the sign; the counter (dim: it's no ledge); the
+  // padded front, its foot rail and kick strip; the stools)
   const bx = DISCO_R - 300;
-  px(g, bx - 4, GY - 250, 248, 140, '#05020B'); px(g, bx, GY - 246, 240, 132, '#1A1030');
-  for (let i = 0; i < 6; i++) px(g, bx + 4 + i * 40, GY - 242, 36, 124, i % 2 ? '#241640' : '#2C1A4C');
-  for (const sy of [GY - 200, GY - 150]) {
-    px(g, bx, sy, 240, 4, '#A1A1AA'); px(g, bx, sy, 240, 1, '#F4F4F5');
-    for (let i = 0; i < 16; i++) {
-      const x = bx + 6 + i * 14.5, h = 18 + hash(i * 3.3 + sy) * 14, col = ['#15803D', '#B45309', '#9D174D', '#0E7490', '#CA8A04'][Math.floor(hash(i + sy) * 5)];
-      px(g, x, sy - h, 8, h, '#05020B'); px(g, x + 1, sy - h + 4, 6, h - 4, col); px(g, x + 3, sy - h, 2, 5, col); px(g, x + 1, sy - h + 6, 1, h - 8, '#FFFFFF');
+  px(g, bx - 6, GY - 254, 252, 146, '#05020B'); px(g, bx - 4, GY - 252, 248, 142, '#3F3F46'); px(g, bx - 4, GY - 252, 248, 1, '#A1A1AA'); px(g, bx - 4, GY - 252, 1, 142, '#71717A'); px(g, bx + 243, GY - 251, 1, 141, '#18181B');
+  const MIR = ['#120C24', '#181030', '#1E1638', '#241B44', '#1E1638', '#181030'];
+  for (let i = 0; i < 6; i++) {
+    const mx = bx + 1 + i * 40, my = GY - 247, mw = 38, mh = 133;
+    px(g, mx - 1, my - 1, mw + 2, mh + 2, '#05020B');
+    MIR.forEach((col, k) => px(g, mx, my + Math.round(k * mh / MIR.length), mw, Math.ceil(mh / MIR.length), col));
+    // (the reflections: slanted streaks, a hard one and its dithered fringe, the hall's pink and cyan caught in them)
+    g.save(); g.beginPath(); g.rect(mx, my, mw, mh); g.clip();
+    for (const [o, sw, col] of [[4, 5, '#3A3060'], [16, 2, '#4A4078'], [26, 3, i % 2 ? '#3A2050' : '#203A50']] as const) {
+      g.fillStyle = col; g.beginPath(); g.moveTo(mx + o + 30, my); g.lineTo(mx + o + 30 + sw, my); g.lineTo(mx + o + sw - 10, my + mh); g.lineTo(mx + o - 10, my + mh); g.closePath(); g.fill();
+      g.fillStyle = dith(g, col, 1, i % 2); g.beginPath(); g.moveTo(mx + o + 30 + sw, my); g.lineTo(mx + o + 34 + sw, my); g.lineTo(mx + o + sw - 6, my + mh); g.lineTo(mx + o + sw - 10, my + mh); g.closePath(); g.fill();
     }
+    g.restore();
+    px(g, mx, my, mw, 1, '#5A4E8A');
   }
-  // (its sign over the back bar: a lit box on two rods up to the truss's hanger, the words in the park's marquee type)
-  for (const rx of [bx + 60, bx + 180]) { px(g, rx - 1, GY - 300, 3, 26, '#18181B'); px(g, rx, GY - 300, 1, 26, '#71717A'); }
-  px(g, bx + 44, GY - 276, 152, 22, '#05020B'); px(g, bx + 45, GY - 275, 150, 20, '#0F2A2A'); px(g, bx + 45, GY - 275, 150, 1, '#2DD4BF'); px(g, bx + 45, GY - 256, 150, 1, '#042F2E');
+  const BOT: Ramp[] = [['#05020B', '#14532D', '#15803D', '#4ADE80', '#DCFCE7'], ['#05020B', '#78350F', '#B45309', '#F59E0B', '#FEF3C7'], ['#05020B', '#831843', '#BE185D', '#F472B6', '#FCE7F3'], ['#05020B', '#164E63', '#0E7490', '#22D3EE', '#ECFEFF'], ['#05020B', '#713F12', '#CA8A04', '#FDE047', '#FEFCE8']];
+  for (const sy of [GY - 200, GY - 150]) {
+    for (let i = 0; i < 16; i++) {
+      const x = Math.round(bx + 6 + i * 14.5), h = Math.round(18 + hash(i * 3.3 + sy) * 14), r = BOT[Math.floor(hash(i + sy) * 5)], top = sy - h;
+      // (each: inked, its shoulder narrowing to the neck, the foil cap; shaded round, a label, a glint down it)
+      px(g, x - 1, top + 5, 10, h - 5, r[0]); px(g, x + 2, top - 1, 4, 8, r[0]);
+      px(g, x, top + 6, 8, h - 6, r[1]); px(g, x + 1, top + 6, 4, h - 6, r[2]); px(g, x + 1, top + 7, 1, h - 9, r[3]);
+      px(g, x + 1, top + 5, 6, 1, r[1]); px(g, x + 3, top, 2, 6, r[1]); px(g, x + 3, top, 1, 6, r[2]);
+      px(g, x + 2, top - 1, 4, 2, i % 3 ? '#A1A1AA' : '#CA8A04'); px(g, x + 2, top - 1, 4, 1, '#F4F4F5');
+      const ly = top + Math.round(h * 0.5);
+      px(g, x, ly, 8, 6, '#E7E5E4'); px(g, x, ly, 8, 1, '#FFFFFF'); px(g, x + 6, ly, 2, 6, '#A8A29E'); px(g, x + 1, ly + 2, 4, 1, r[1]); px(g, x + 1, ly + 4, 3, 1, '#78716C');
+      px(g, x + 2, top + 8, 1, 3, r[4]);
+    }
+    // (the glass shelf: its chrome edge, lit from under (a teal strip, its light stippled down the mirror))
+    px(g, bx, sy, 240, 4, '#05020B'); px(g, bx, sy, 240, 3, '#A1A1AA'); px(g, bx, sy, 240, 1, '#F4F4F5');
+    px(g, bx, sy + 3, 240, 1, '#5EEAD4'); g.fillStyle = dith(g, 'rgba(45, 212, 191, 0.45)'); g.fillRect(bx, sy + 4, 240, 4); g.fillStyle = dith(g, 'rgba(45, 212, 191, 0.25)', 2, 1); g.fillRect(bx, sy + 8, 240, 6);
+  }
+  // (its sign over the back bar: a lit box on two rods (a chrome frame, the box's face backlit, banded), the words in
+  // the park's marquee type)
+  for (const rx of [bx + 60, bx + 180]) { tube(g, rx, GY - 300, rx, GY - 276, 2, CHROME); px(g, rx - 3, GY - 281, 7, 4, '#05020B'); px(g, rx - 2, GY - 280, 5, 2, '#71717A'); }
+  px(g, bx + 42, GY - 278, 156, 26, '#05020B'); px(g, bx + 43, GY - 277, 154, 24, '#71717A'); px(g, bx + 43, GY - 277, 154, 1, '#E4E4E7'); px(g, bx + 43, GY - 254, 154, 1, '#27272A');
+  px(g, bx + 45, GY - 275, 150, 20, '#0F2A2A'); px(g, bx + 45, GY - 275, 150, 6, '#123434'); g.fillStyle = dith(g, '#164040'); g.fillRect(bx + 45, GY - 269, 150, 4);
+  px(g, bx + 45, GY - 275, 150, 1, '#2DD4BF'); px(g, bx + 45, GY - 256, 150, 1, '#042F2E');
+  for (const sx of [bx + 47, bx + 191]) { px(g, sx, GY - 266, 2, 2, '#A1A1AA'); px(g, sx, GY - 266, 1, 1, '#FFFFFF'); }
   square(g, 'COSMIC COCKTAILS', bx + 120, GY - 272, 1, 2, ['#042F2E', '#0F766E', '#2DD4BF', '#5EEAD4', '#CCFBF1'], { spacing: 1 });
+  // (the front: inked, the padding (the tufts, the pink vinyl), shaded under the counter's lip, darker to the floor,
+  // chrome battens between its bays)
   g.fillStyle = '#05020B'; g.beginPath(); g.roundRect(bx - 4, GY - 94, 248, 94, 6); g.fill();
   g.fillStyle = tufted(g); g.fillRect(bx, GY - 82, 240, 78);
   px(g, bx, GY - 82, 240, 78, 'rgba(219, 39, 119, 0.35)');
-  px(g, bx - 2, GY - 92, 244, 10, '#3F3F46'); px(g, bx - 2, GY - 92, 244, 2, '#71717A');
+  px(g, bx, GY - 82, 240, 3, 'rgba(10, 2, 18, 0.6)'); g.fillStyle = dith(g, 'rgba(10, 2, 18, 0.55)'); g.fillRect(bx, GY - 79, 240, 4);
+  g.fillStyle = dith(g, 'rgba(10, 2, 18, 0.5)', 2, 1); g.fillRect(bx, GY - 30, 240, 16);
+  for (const sx of [bx, bx + 118, bx + 236]) { px(g, sx, GY - 82, 4, 68, '#05020B'); px(g, sx + 1, GY - 82, 2, 68, '#52525B'); px(g, sx + 1, GY - 82, 1, 68, '#A1A1AA'); }
+  // (the counter: mahogany, its edge rolled, lit only dimly)
+  px(g, bx - 4, GY - 94, 248, 12, '#05020B'); px(g, bx - 3, GY - 93, 246, 10, '#3A140E'); g.fillStyle = dith(g, '#4A1C12', 2, 1); g.fillRect(bx - 3, GY - 92, 246, 4);
+  px(g, bx - 3, GY - 93, 246, 1, '#5C2618'); px(g, bx - 3, GY - 87, 246, 3, '#2A0E0A'); px(g, bx - 3, GY - 84, 246, 1, '#160604');
+  // (the kick strip: chrome, banded; the foot rail on its brackets)
+  for (let k = 0; k < 4; k++) px(g, bx, GY - 14 + k * 3, 240, 3, ['#D4D4D8', '#8E8E99', '#52525B', '#27272A'][k]);
+  for (const fx of [bx + 14, bx + 90, bx + 150, bx + 226]) { px(g, fx - 1, GY - 30, 4, 10, '#05020B'); px(g, fx, GY - 30, 2, 10, '#71717A'); }
+  tube(g, bx + 4, GY - 22, bx + 236, GY - 22, 5, CHROME);
+  // (the stools: the base (a stepped disc), a chrome stem, the foot ring; the seat a cushion (its side band, its top
+  // shaded round, its button))
   for (let i = 0; i < 4; i++) {
     const sx = bx + 30 + i * 60;
-    tube(g, sx, GY - 52, sx, GY - 6, 4, CHROME); px(g, sx - 10, GY - 6, 20, 4, '#52525B');
-    g.fillStyle = '#05020B'; g.beginPath(); g.ellipse(sx, GY - 56, 15, 7, 0, 0, Math.PI * 2); g.fill();
-    g.fillStyle = '#DB2777'; g.beginPath(); g.ellipse(sx, GY - 57, 14, 6, 0, 0, Math.PI * 2); g.fill();
-    g.fillStyle = '#F472B6'; g.beginPath(); g.ellipse(sx - 3, GY - 59, 8, 3, 0, 0, Math.PI * 2); g.fill();
+    g.fillStyle = '#05020B'; g.beginPath(); g.ellipse(sx, GY - 4, 13, 4, 0, 0, Math.PI * 2); g.fill();
+    g.fillStyle = '#3F3F46'; g.beginPath(); g.ellipse(sx, GY - 5, 12, 3, 0, 0, Math.PI * 2); g.fill();
+    g.fillStyle = '#A1A1AA'; g.beginPath(); g.ellipse(sx - 2, GY - 6, 7, 1.5, 0, 0, Math.PI * 2); g.fill();
+    tube(g, sx, GY - 52, sx, GY - 6, 4, CHROME);
+    g.lineWidth = 3; g.strokeStyle = '#05020B'; g.beginPath(); g.ellipse(sx, GY - 26, 10, 3, 0, 0, Math.PI * 2); g.stroke();
+    g.lineWidth = 1; g.strokeStyle = '#71717A'; g.beginPath(); g.ellipse(sx, GY - 26, 10, 3, 0, 0, Math.PI); g.stroke();
+    g.strokeStyle = '#C9CBD3'; g.beginPath(); g.ellipse(sx, GY - 26, 10, 3, 0, Math.PI, Math.PI * 2); g.stroke();
+    g.fillStyle = '#05020B'; g.beginPath(); g.ellipse(sx, GY - 53, 15, 7, 0, 0, Math.PI * 2); g.fill(); g.fillRect(sx - 15, GY - 60, 30, 7);
+    g.fillStyle = '#831843'; g.beginPath(); g.ellipse(sx, GY - 54, 14, 6, 0, 0, Math.PI * 2); g.fill(); g.fillRect(sx - 14, GY - 59, 28, 5);
+    g.fillStyle = '#9D174D'; g.fillRect(sx - 14, GY - 58, 8, 4);
+    g.fillStyle = '#DB2777'; g.beginPath(); g.ellipse(sx, GY - 59, 14, 6, 0, 0, Math.PI * 2); g.fill();
+    g.fillStyle = dith(g, '#F472B6'); g.beginPath(); g.ellipse(sx - 2, GY - 60, 11, 4.5, 0, 0, Math.PI * 2); g.fill();
+    g.fillStyle = '#F472B6'; g.beginPath(); g.ellipse(sx - 3, GY - 61, 7, 2.5, 0, 0, Math.PI * 2); g.fill();
+    px(g, sx - 6, GY - 63, 3, 1, '#FCE7F3'); px(g, sx - 1, GY - 60, 2, 1, '#500724');
   }
-  // (the extinguisher's cabinet on the wall: red, a glass door; IN CASE OF FIRE over it)
+  // (the extinguisher's cabinet on the wall: red enamel (inked, bevelled, its side face in shade), the chrome-framed
+  // glass door (dark, streaked), hinges, the latch; the sign over it: a backlit red box, a flame, IN CASE OF FIRE)
   const ex = EXTINGUISHER_X;
-  px(g, ex - 22, GY - 152, 44, 74, '#05020B'); px(g, ex - 20, GY - 150, 40, 70, '#991B1B'); px(g, ex - 20, GY - 150, 40, 3, '#EF4444'); px(g, ex + 14, GY - 147, 6, 67, '#7F1D1D');
-  px(g, ex - 16, GY - 144, 32, 58, '#1A0606'); px(g, ex - 14, GY - 142, 3, 40, 'rgba(255, 255, 255, 0.25)');
-  px(g, ex - 30, GY - 178, 60, 21, '#05020B'); px(g, ex - 29, GY - 177, 58, 19, '#991B1B'); px(g, ex - 29, GY - 177, 58, 1, '#EF4444'); px(g, ex - 29, GY - 159, 58, 1, '#450A0A');
-  print(g, 'IN CASE', ex, GY - 175, 1, 1, ['#FFFFFF', '#FECACA'], { shadow: '#450A0A' });
-  print(g, 'OF FIRE', ex, GY - 167, 1, 1, ['#FFFFFF', '#FECACA'], { shadow: '#450A0A' });
-  // (the refill's alcove by the door: a first-aid cabinet, white, its red cross)
+  px(g, ex - 22, GY - 152, 44, 74, '#05020B'); px(g, ex - 20, GY - 150, 40, 70, '#991B1B');
+  px(g, ex - 20, GY - 150, 40, 3, '#EF4444'); px(g, ex - 20, GY - 150, 40, 1, '#FCA5A5'); px(g, ex - 20, GY - 147, 2, 67, '#B91C1C'); px(g, ex - 20, GY - 82, 40, 2, '#450A0A');
+  g.fillStyle = dith(g, '#7F1D1D'); g.fillRect(ex - 18, GY - 92, 32, 10);
+  px(g, ex + 14, GY - 147, 6, 67, '#7F1D1D'); px(g, ex + 14, GY - 147, 1, 67, '#5A0F0F');
+  px(g, ex - 17, GY - 145, 32, 60, '#05020B'); px(g, ex - 16, GY - 144, 30, 58, '#A1A1AA'); px(g, ex - 16, GY - 144, 30, 1, '#F4F4F5'); px(g, ex - 16, GY - 144, 1, 58, '#D4D4D8'); px(g, ex + 13, GY - 143, 1, 57, '#52525B'); px(g, ex - 16, GY - 87, 30, 1, '#3F3F46');
+  px(g, ex - 14, GY - 142, 26, 54, '#1A0606'); g.fillStyle = dith(g, '#2A0A0A'); g.fillRect(ex - 14, GY - 112, 26, 24); px(g, ex - 14, GY - 142, 26, 3, '#0A0202');
+  for (const [o, sw, a] of [[0, 3, 0.26], [7, 1, 0.2]] as const) { g.fillStyle = `rgba(255, 255, 255, ${a})`; g.beginPath(); g.moveTo(ex - 6 + o, GY - 142); g.lineTo(ex - 6 + o + sw, GY - 142); g.lineTo(ex - 14 + o + sw, GY - 112); g.lineTo(ex - 14 + o, GY - 112); g.closePath(); g.fill(); }
+  for (const hy of [GY - 138, GY - 96]) { px(g, ex - 19, hy, 3, 6, '#05020B'); px(g, ex - 18, hy + 1, 1, 4, '#D4D4D8'); }
+  px(g, ex + 9, GY - 120, 3, 10, '#05020B'); px(g, ex + 10, GY - 119, 1, 8, '#E4E4E7');
+  const sgx = ex - 36, sgy = GY - 180;
+  px(g, sgx - 1, sgy - 1, 74, 25, '#05020B');
+  for (let k = 0; k < 5; k++) px(g, sgx, sgy + k * 5, 72, 5, ['#DC2626', '#D02020', '#C81E1E', '#B91C1C', '#991B1B'][k]);
+  px(g, sgx, sgy, 72, 1, '#FCA5A5'); px(g, sgx, sgy + 22, 72, 1, '#450A0A');
+  px(g, sgx + 2, sgy + 2, 68, 1, '#FECACA'); px(g, sgx + 2, sgy + 20, 68, 1, '#FECACA'); px(g, sgx + 2, sgy + 2, 1, 19, '#FECACA'); px(g, sgx + 69, sgy + 2, 1, 19, '#FECACA');
+  // (the flame: stepped, white with its yellow core)
+  const fl = [[3, 0, 1], [2, 1, 3], [1, 2, 4], [1, 3, 5], [0, 4, 7], [0, 5, 7], [0, 6, 7], [0, 7, 7], [1, 8, 5], [2, 9, 3]];
+  for (const [ox, oy, w] of fl) px(g, sgx + 6 + ox, sgy + 4 + oy * 1.4, w, 2, '#FFFFFF');
+  for (const [ox, oy, w] of fl) if (oy > 3) px(g, sgx + 7 + ox, sgy + 5 + oy * 1.4, Math.max(1, w - 2), 1, '#FDE047');
+  print(g, 'IN CASE', sgx + 42, sgy + 4, 1, 1, ['#FFFFFF', '#FEE2E2'], { shadow: '#450A0A' });
+  print(g, 'OF FIRE', sgx + 42, sgy + 13, 1, 1, ['#FFFFFF', '#FEE2E2'], { shadow: '#450A0A' });
+  // (the refill's alcove by the door: recessed in the wall (its header's shadow, the left jamb's face, the back wall
+  // banded), a downlight in its head; the first-aid cabinet (white enamel, inked, bevelled; the cross, shaded); its plate)
   const rx = REFILL_X;
-  px(g, rx - 32, GY - 152, 76, 152, '#05020B'); px(g, rx - 30, GY - 150, 72, 150, '#1E1B4B'); px(g, rx - 30, GY - 150, 72, 3, '#4338CA');
-  px(g, rx - 18, GY - 134, 36, 36, '#05020B'); px(g, rx - 17, GY - 133, 34, 34, '#E7E5E4'); px(g, rx - 17, GY - 133, 34, 3, '#FFFFFF'); px(g, rx + 12, GY - 130, 5, 31, '#A8A29E');
-  px(g, rx - 3, GY - 128, 6, 22, '#DC2626'); px(g, rx - 10, GY - 120, 20, 6, '#DC2626'); px(g, rx - 3, GY - 128, 2, 22, '#F87171');
+  px(g, rx - 32, GY - 152, 76, 152, '#05020B');
+  ['#14123A', '#181540', '#1B1846', '#1E1B4B', '#211E52'].forEach((col, k) => px(g, rx - 30, GY - 150 + k * 30, 72, 30, col));
+  g.fillStyle = '#312E81'; g.beginPath(); g.moveTo(rx - 30, GY - 150); g.lineTo(rx - 22, GY - 142); g.lineTo(rx - 22, GY - 6); g.lineTo(rx - 30, GY); g.closePath(); g.fill();
+  px(g, rx - 30, GY - 150, 1, 150, '#4338CA'); px(g, rx - 22, GY - 142, 1, 136, '#1E1B4B');
+  px(g, rx - 30, GY - 150, 72, 4, '#0A0920'); g.fillStyle = dith(g, '#0A0920'); g.fillRect(rx - 22, GY - 146, 64, 6);
+  px(g, rx - 34, GY - 156, 80, 5, '#05020B'); px(g, rx - 33, GY - 155, 78, 3, '#71717A'); px(g, rx - 33, GY - 155, 78, 1, '#D4D4D8');
+  px(g, rx + 1, GY - 146, 12, 4, '#05020B'); px(g, rx + 2, GY - 145, 10, 2, '#FFF7ED');
+  g.fillStyle = dith(g, 'rgba(255, 245, 230, 0.10)'); g.beginPath(); g.moveTo(rx + 2, GY - 142); g.lineTo(rx + 12, GY - 142); g.lineTo(rx + 34, GY - 6); g.lineTo(rx - 20, GY - 6); g.closePath(); g.fill();
+  px(g, rx - 22, GY - 6, 64, 6, '#0E0C2A');
+  px(g, rx - 18, GY - 134, 36, 36, '#05020B'); px(g, rx - 17, GY - 133, 34, 34, '#E7E5E4'); px(g, rx - 17, GY - 133, 34, 3, '#FFFFFF'); px(g, rx - 17, GY - 133, 1, 34, '#FFFFFF');
+  g.fillStyle = dith(g, '#D6D3D1'); g.fillRect(rx - 16, GY - 112, 28, 13); px(g, rx - 17, GY - 100, 34, 1, '#78716C');
+  px(g, rx + 12, GY - 130, 5, 31, '#A8A29E'); px(g, rx + 12, GY - 130, 1, 31, '#78716C');
+  px(g, rx + 9, GY - 120, 2, 6, '#57534E');
+  px(g, rx - 4, GY - 129, 8, 24, '#7F1D1D'); px(g, rx - 11, GY - 121, 22, 8, '#7F1D1D');
+  px(g, rx - 3, GY - 128, 6, 22, '#DC2626'); px(g, rx - 10, GY - 120, 20, 6, '#DC2626');
+  px(g, rx - 3, GY - 128, 2, 22, '#F87171'); px(g, rx - 10, GY - 120, 20, 1, '#F87171'); px(g, rx + 1, GY - 114, 2, 8, '#991B1B'); px(g, rx - 10, GY - 115, 20, 1, '#991B1B');
+  const fw = 56;
+  px(g, rx - fw / 2 - 1, GY - 93, fw + 2, 12, '#05020B'); px(g, rx - fw / 2, GY - 92, fw, 10, '#B91C1C'); px(g, rx - fw / 2, GY - 92, fw, 1, '#F87171'); px(g, rx - fw / 2, GY - 83, fw, 1, '#7F1D1D');
+  print(g, 'FIRST AID', rx, GY - 91, 1, 1, ['#FFFFFF', '#FEE2E2'], { shadow: '#450A0A' });
+};
+
+/** The neon's board, still: its rods up to the truss (clamped), the board (inked, a chrome frame banded round it, riveted,
+ *  its black backing banded and stippled so the glass reads off it), the bulb row's sockets along its foot. */
+const paintNeonBoard = (g: Ctx) => {
+  const N = NEON;
+  for (const rx of [N.x + 24, N.x + N.w - 26]) {
+    tube(g, rx + 1, TRUSS_Y + 12, rx + 1, N.y - 2, 2, CHROME);
+    px(g, rx - 3, TRUSS_Y + 9, 9, 5, '#05020B'); px(g, rx - 2, TRUSS_Y + 10, 7, 3, '#52525B'); px(g, rx - 2, TRUSS_Y + 10, 7, 1, '#A1A1AA');
+    px(g, rx - 4, N.y - 6, 11, 5, '#05020B'); px(g, rx - 3, N.y - 5, 9, 3, '#71717A'); px(g, rx - 3, N.y - 5, 9, 1, '#D4D4D8');
+  }
+  px(g, N.x - 4, N.y - 4, N.w + 8, N.h + 8, '#05020B');
+  const fr = ['#E4E4E7', '#A1A1AA', '#71717A', '#3F3F46'];
+  fr.forEach((col, k) => { px(g, N.x - 3 + k, N.y - 3 + k, N.w + 6 - k * 2, 1, col); px(g, N.x - 3 + k, N.y - 3 + k, 1, N.h + 6 - k * 2, col); });
+  fr.slice().reverse().forEach((col, k) => { px(g, N.x - 3 + k, N.y + N.h + 2 - k, N.w + 6 - k * 2, 1, col === '#E4E4E7' ? '#52525B' : col); px(g, N.x + N.w + 2 - k, N.y - 3 + k, 1, N.h + 6 - k * 2, col === '#E4E4E7' ? '#52525B' : col); });
+  ['#160822', '#12061E', '#0F051A', '#0C0416'].forEach((col, k) => px(g, N.x + 1, N.y + 1 + k * ((N.h - 2) / 4), N.w - 2, Math.ceil((N.h - 2) / 4), col));
+  g.fillStyle = dith(g, '#1C0A2C'); g.fillRect(N.x + 1, N.y + 1, N.w - 2, 4);
+  px(g, N.x + 1, N.y + 1, N.w - 2, 1, '#3A2A4C');
+  for (let x = N.x + 6; x < N.x + N.w - 4; x += 40) for (const y of [N.y - 2, N.y + N.h + 1]) { px(g, x, y, 2, 2, '#27272A'); px(g, x, y, 1, 1, '#F4F4F5'); }
+  for (let i = 0; i < 24; i++) { const bx = N.x + 6 + i * ((N.w - 12) / 24); px(g, bx - 1, N.y + N.h - 8, 5, 4, '#05020B'); px(g, bx, N.y + N.h - 7, 3, 2, '#3F2A12'); px(g, bx, N.y + N.h - 7, 1, 1, '#6A4A1A'); }
+};
+
+/** The booth's back door, still (the two ways it's seen): shut (a purple slab, bevelled, its lit EXIT sign up top, a
+ *  porthole, the push bar, the light by it), or open (the dark corridor out the back, a strip of light down it, the
+ *  door swung back edge-on). */
+const DOOR_BX = DJ.x + DJ.w - 46, DOOR_BY = DJ.y + 6, DOOR_BW = 38, DOOR_BH = DJ.h - 6;
+const paintBoothDoor = (open: boolean) => (g: Ctx) => {
+  const x = DOOR_BX, y = DOOR_BY, w = DOOR_BW, h = DOOR_BH;
+  px(g, x, y, w, h, '#05020B');
+  if (open) {
+    px(g, x + 2, y + 2, w - 4, h - 2, '#020103');
+    ['#0A0414', '#07030F', '#05020B'].forEach((col, k) => px(g, x + 8 + k * 4, y + 2, 4, h - 2, col));
+    g.fillStyle = dith(g, '#1A0B2E'); g.fillRect(x + 20, y + 2, 4, h - 2);
+    px(g, x + 22, y + 2, 1, h - 2, '#2E1650');
+    px(g, x + w - 8, y + 2, 6, h - 2, '#3B0F7A'); px(g, x + w - 8, y + 2, 1, h - 2, '#7C3AED'); px(g, x + w - 3, y + 2, 1, h - 2, '#1E0B4B');
+    return;
+  }
+  const dx = x + 2, dy = y + 2, dw = w - 4, dh = h - 2;
+  px(g, dx, dy, dw, dh, '#4C1D95');
+  g.fillStyle = dith(g, '#3B0F7A'); g.fillRect(dx, dy + dh - 24, dw, 24);
+  px(g, dx, dy, dw, 2, '#7C3AED'); px(g, dx, dy, 1, dh, '#6D28D9'); px(g, dx + dw - 2, dy, 2, dh, '#2E1065');
+  // (the EXIT sign over it: a backlit box)
+  px(g, x + 5, dy + 2, w - 10, 12, '#05020B'); px(g, x + 6, dy + 3, w - 12, 10, '#0B2A18');
+  lightbox(g, 'EXIT', x + w / 2, dy + 4, 1, '#4ADE80', '#DCFCE7', '#14532D');
+  // (the porthole: a chrome ring, dark glass, a glint)
+  const cx = x + w / 2 - 1, cy = dy + 26;
+  blob(g, cx, cy, 8, 8, CHROME);
+  g.fillStyle = '#05020B'; g.beginPath(); g.arc(cx, cy, 5.5, 0, Math.PI * 2); g.fill();
+  g.fillStyle = '#0A1A12'; g.beginPath(); g.arc(cx, cy, 4.5, 0, Math.PI * 2); g.fill();
+  px(g, cx - 3, cy - 3, 2, 2, '#A7F3D0'); px(g, cx - 1, cy - 4, 1, 1, '#FFFFFF');
+  // (the push bar: chrome on two brackets)
+  for (const bx of [dx + 3, dx + dw - 6]) { px(g, bx, dy + 38, 3, 5, '#05020B'); px(g, bx + 1, dy + 38, 1, 5, '#A1A1AA'); }
+  tube(g, dx + 3, dy + 40, dx + dw - 3, dy + 40, 3, CHROME);
+  px(g, x + w - 18, DJ.y + 40, 4, 6, '#05020B'); px(g, x + w - 17, DJ.y + 41, 2, 4, '#FDE047'); px(g, x + w - 17, DJ.y + 41, 1, 1, '#FFFFF0');
+};
+
+/** The floor past the tiles at each end: diamond plate on a dark riser, its lip lit (it's floor: stand on it), a chrome
+ *  edge strip where it meets the tiles. */
+const FLOOR_END = T0 + TN * TW;
+const paintFloorEnd = (a: number, b: number, tileSide: number) => (g: Ctx) => {
+  const w = b - a;
+  px(g, a, GY, w, 56, '#18181D');
+  ['#2A2A31', '#24242A', '#1E1E24', '#18181D', '#121216'].forEach((col, k) => px(g, a, GY + 2 + k * 10, w, 10, col));
+  for (let y = GY + 5, r = 0; y < GY + 52; y += 6, r++) for (let x = a + (r % 2 ? 3 : 0); x < b - 2; x += 6) { px(g, x, y, 3, 1, '#4A4A55'); px(g, x + 1, y + 1, 2, 1, '#0A0A0E'); px(g, x, y, 1, 1, '#8E8E99'); }
+  px(g, a, GY, w, 2, '#E4E4E7'); px(g, a, GY + 2, w, 1, '#52525B');
+  const ex = tileSide < 0 ? a : b - 3;
+  px(g, ex, GY, 3, 56, '#05020B'); px(g, ex + 1, GY + 2, 1, 54, '#A1A1AA');
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -509,9 +709,8 @@ export const drawDisco = (c: Ctx, state: GameState, o: { lights: number; ops: Bo
   // glass till the lights come up)
   if (shown(state, NEON.x - 30, NEON.x + NEON.w + 30)) {
     const N = NEON;
-    for (const rx of [N.x + 24, N.x + N.w - 26]) { px(c, rx - 1, TRUSS_Y + 10, 4, N.y - TRUSS_Y - 10, '#05020B'); px(c, rx, TRUSS_Y + 10, 2, N.y - TRUSS_Y - 10, '#71717A'); px(c, rx, TRUSS_Y + 10, 1, N.y - TRUSS_Y - 10, '#D4D4D8'); }
-    px(c, N.x - 2, N.y - 2, N.w + 4, N.h + 4, '#05020B'); px(c, N.x, N.y, N.w, N.h, '#12061E'); px(c, N.x, N.y, N.w, 2, '#3A2A4C'); px(c, N.x, N.y + N.h - 2, N.w, 2, '#0A0410');
-    for (let i = 0; i < 24; i++) px(c, N.x + 6 + i * ((N.w - 12) / 24), N.y + N.h - 7, 3, 2, on && (i + (f >> 2)) % 4 === 0 ? '#FDE047' : '#3F2A12');
+    stamp(c, 'sp-q-neon-board', N.x - 4, TRUSS_Y + 8, N.w + 8, N.y + N.h + 4 - (TRUSS_Y + 8), paintNeonBoard);
+    if (on) for (let i = 0; i < 24; i++) if ((i + (f >> 2)) % 4 === 0) { const bx = N.x + 6 + i * ((N.w - 12) / 24); px(c, bx, N.y + N.h - 7, 3, 2, '#FDE047'); px(c, bx + 1, N.y + N.h - 7, 1, 1, '#FFFFF0'); }
     const lit = (k: number) => (i: number) => { const j = i + k; return !on || ((j + Math.floor(f / 5)) % 9 === 0 && f % 4 < 2) ? 0 : (j + Math.floor(f / 5)) % 4 === 0 ? 2 : 1; };
     neon(c, 'GALACTIC', N.ga, N.y + 10, NEON_S, N_PINK, { slant: 1, lit: lit(0) });
     neon(c, 'GROOVE', N.gr, N.y + 10, NEON_S, N_CYAN, { slant: 1, lit: lit(9) });
@@ -523,6 +722,8 @@ export const drawDisco = (c: Ctx, state: GameState, o: { lights: number; ops: Bo
     tile(c, x, GY, TW, 26, tileAt(i, 0, f, on));
     tile(c, x, GY + 26, TW, 30, tileAt(i, 1, f, on));
   }
+  if (shown(state, DISCO_L, T0)) stamp(c, 'sp-q-floor-end-l', DISCO_L, GY, T0 - DISCO_L, 56, paintFloorEnd(DISCO_L, T0, 1));
+  if (shown(state, FLOOR_END, DISCO_R + 40)) stamp(c, 'sp-q-floor-end-r', FLOOR_END, GY, DISCO_R + 40 - FLOOR_END, 56, paintFloorEnd(FLOOR_END, DISCO_R + 40, -1));
   if (shown(state, DISCO_L, DISCO_R)) { px(c, DISCO_L, GY - 1, W, 2, '#E4E4E7'); px(c, DISCO_L, GY + 1, W, 1, '#52525B'); }
   // The mirror ball, turning: its chain and motor; the facets, each catching the light as it comes round
   const bx = BALL.x, by = BALL.y, R = 30;
@@ -578,9 +779,7 @@ export const drawDisco = (c: Ctx, state: GameState, o: { lights: number; ops: Bo
       c.stroke(); px(c, r.x - 1, r.y - 1, 2, 2, '#F4F4F5');
     });
     // (the back door out of it, at the right: open once they've run)
-    px(c, DJ.x + DJ.w - 46, DJ.y + 6, 38, DJ.h - 6, '#05020B');
-    px(c, DJ.x + DJ.w - 44, DJ.y + 8, 34, DJ.h - 8, open ? '#020103' : '#4C1D95');
-    if (!open) { px(c, DJ.x + DJ.w - 44, DJ.y + 8, 34, 2, '#7C3AED'); px(c, DJ.x + DJ.w - 40, DJ.y + 14, 26, 12, '#3B0F7A'); px(c, DJ.x + DJ.w - 40, DJ.y + 14, 26, 1, '#5B21B6'); px(c, DJ.x + DJ.w - 18, DJ.y + 40, 4, 6, '#FDE047'); }
+    stamp(c, open ? 'sp-q-booth-door-open' : 'sp-q-booth-door-shut', DOOR_BX, DOOR_BY, DOOR_BW, DOOR_BH, paintBoothDoor(open));
     if (ops && ops.mode !== 'gone') for (let i = 0; i < 2; i++) {
       let x = DJ.x + 50 + i * 100, bob = 0;
       let pose: AlienPose = 'operate';
