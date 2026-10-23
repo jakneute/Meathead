@@ -50,7 +50,7 @@ import { startCatchup, updateCatchup, drawCatchupHud, branchDone, setBranchMemos
 import { startFakeout, updateFakeout, startEntrance, tickEntrance, layFlat, drawIntroHud } from './intro';
 import { drawArenaCast, drawTuckerWords } from './cast';
 import { drawArenaBackdrop, drawArenaBack, drawBoulder, drawLeaves, tickLeaves, drawFallingTree, drawRemainsMark } from './art';
-import { startFight, updateFight, fightOver, endFight, resetFight, holdIn, killedByWeakness, drawFightBack, drawFightFront, drawFightHud, fightZoom, fightHoldTick } from './fight';
+import { startFight, updateFight, fightOver, endFight, tickFightWon, resetFight, holdIn, killedByWeakness, drawFightBack, drawFightFront, drawFightHud, fightZoom, fightHoldTick } from './fight';
 
 const pmid = (state: GameState) => state.player.pos.x + state.player.width / 2;
 
@@ -160,6 +160,7 @@ export const arena: FrontierSection = {
       }
       case 'won': {
         p.inCutscene = true;
+        if (s.fight) tickFightWon(ctx, s.fight);
         if (s.victory) {
           tickVictory(state, s.victory);
           if (victoryDone(s.victory) && state.frame - s.wonAt > 60) { s.victory = null; leave(state, s.weak); }

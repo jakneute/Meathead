@@ -1169,6 +1169,8 @@ export const fightZoom = (state: GameState, f: Fight) => {
 
 export const fightOver = (f: Fight) => f.mode === 'dead' && !!f.death?.done && (!f.cam || f.cam.z < 1.02);
 export const killedByWeakness = (f: Fight) => f.death?.how === 'lions';
+/** Won, under the VICTORY: the cats still on screen with their halves of him keep walking till they're off it (the user's). */
+export const tickFightWon = (ctx: FrameContext, f: Fight) => tickLions(ctx, f);
 /** Over: the camera his again, nothing left about. */
 export const endFight = (state: GameState, f: Fight) => {
   state.player.inCutscene = false; state.cameraOverride = null; live = null;
