@@ -103,6 +103,10 @@ const DEBRIS_WARN = 80, DEBRIS_MAX = 6;
 //  main due to start waits, quiet, while the other two are both telling or on (tickHazards))
 const HAZ = { heat: [95, 70, 150], nitro: [90, 70, 140], wires: [85, 60, 140] } as const;
 const HEAT_DMG = 24, NITRO_DMG = 14, SHOCK_DMG = 26;
+/** When the mains come loose (frames into the fight), in the user's order (heat, nitrogen, wires): each at the first
+ *  slam that lands at or after its time, one a slam. (The user's: a bit sooner. They were the 2nd, 4th and 6th slams,
+ *  about 11.5, 24 and 36 s in; now about 8, 16.5 and 25 s, give or take the next slam.) */
+const LOOSE_AT = [480, 1000, 1500] as const, LOOSE_ORDER = ['heat', 'nitro', 'wires'] as const;
 /** After thawing, frames the nitrogen can't freeze him again (it's on for good: time to get clear of it). */
 // (just thawed: can't be frozen again for this long, by anything: no chain icing, the user's)
 const NITRO_REFREEZE = 150;
@@ -124,7 +128,8 @@ const ENTRANCE_T = 100;
 // ---------------------------------------------------------------------------------------------------------------
 // The state
 
-type Act = 'hop' | 'walk' | 'crouch' | 'rise' | 'hang' | 'lock' | 'fall' | 'sit' | 'rip' | 'throw' | 'bounce' | 'flop' | 'getup' | 'entrance';
+type Act = 'tell' | 'fly' | 'perch' | 'gone' | 'hop' | 'walk' | 'crouch' | 'rise' | 'hang' | 'lock' | 'fall' | 'sit' | 'rip' | 'throw' | 'bounce' | 'flop' | 'getup' | 'entrance';
+type Move = 'dash' | 'perch' | 'off' | 'poof';
 type Element = 'fire' | 'ice' | 'shock';
 type HazardKind = 'heat' | 'nitro' | 'wires';
 interface Hazard { kind: HazardKind; x: number; t: number; dir: 1 | -1; hit: boolean }
@@ -163,6 +168,12 @@ export interface Fight {
   throwAt: number; rip: Element | null;
   /** A hop over to a loose part to throw from it (from, to: x); the camera pulled out for a throw from far off (its scale, eased). */
   hopFrom: number; hopTo: number; zo: number;
+  /** Getting about (the user's: more mobile): frames she's been stood about in his sights since she last moved, goes at
+   *  him since (throws, slams), frames till the next slam's due, the frames of the fight; the move she's at (a
+   *  flutter-dash, up onto the furniture, off it, a poof), from and to (x, feet y) and how high the arc, the last one;
+   *  where the slam takes off from (the floor, or the furniture). */
+  stay: number; goes: number; slamIn: number; fightT: number;
+  mv: Move; mvFrom: number; mvTo: number; mvY0: number; mvY1: number; mvH: number; lastMv: Move; riseY: number;
   e: Enemy; moveSeen: number | undefined;
   said: string | null; tauntT: number; tauntHer: boolean; hintAt: number; wrongN: number; lowSaid: boolean;
   intro: IntroStep; introT: number; skipT: number; camX: number; doorT: number | null;
@@ -243,6 +254,7 @@ const fresh = (state: GameState, e: Enemy): Fight => ({
   slams: 0, stage: 0, slamHit: false,
   hazards: [], debris: [], rubble: [], shots: [], patches: [], splats: [], holes: [], thin: 0,
   chand: null, chandDown: null, roofHole: null, stun: 0, ice: null, thawT: 0, thawedAt: -9999, throwAt: -9999, rip: null, hopFrom: 0, hopTo: 0, zo: 1,
+  stay: 0, goes: 0, slamIn: 160, fightT: 0, mv: 'dash', mvFrom: 0, mvTo: 0, mvY0: GY, mvY1: GY, mvH: 0, lastMv: 'perch', riseY: GY,
   e, moveSeen: e.hitByMove, said: null, tauntT: 0, tauntHer: true, hintAt: -9999, wrongN: 0, lowSaid: false,
   intro: 'approach', introT: 0, skipT: 0, camX: state.camera.x, doorT: null, closeup: null,
   erect: 1, death: null, deathSaid: 0, cam: null, entrance: 0,
@@ -276,6 +288,7 @@ const beginFight = (state: GameState, f: Fight) => {
   const p = state.player;
   p.inCutscene = false; p.isDucking = false; p.kickPose = 0;
   f.mode = 'on'; f.act = 'walk'; f.actT = 0; f.actLen = walkLen(f); f.doorT = 999;
+  f.slamIn = f.actLen; f.stay = 0; f.goes = 0; f.y = GY;
   // (never starting on top of him (the user's): a good way off, on whichever side has the room)
   { const me = pmid(state).x;
     if (Math.abs(f.x - me) < START_GAP) f.x = me + START_GAP <= ARENA_R - 80 ? me + START_GAP : Math.max(ARENA_L + 80, me - START_GAP); }
@@ -397,6 +410,7 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
   game = state;
   f.total++;
   if (f.mode === 'intro') { const out = intro(ctx, f, controls); sync(state, f); return out; }
+  if (f.mode === 'on') f.fightT++;
   if (f.iframes > 0) f.iframes--;
   if (f.flash > 0) f.flash--;
   tickHazards(ctx, f);
@@ -464,6 +478,21 @@ const freezeHim = (ctx: FrameContext, f: Fight, dmg: number, src: string) => {
 
 /** Her hop over to a loose part: how often a frame (once the throws' gap is up), how long, how high. */
 const HOP_CHANCE = 0.008, HOP_T = 46, HOP_H = 170;
+
+/** Getting about (the user's: more mobile; "if I can land 5 seconds of sustained fire just standing and holding fire,
+ *  the boss is too docile"). By phase: the most frames she stays stood about in his line of fire (waddling, sat,
+ *  throwing) before she's off somewhere, and the goes at him (throws, slams) before she's off whatever the clock says. */
+const STAY = [0, 120, 100, 80], GOES = 2;
+/** The tells (frames): the flutter-dash (wings buzzing, sparkles), the hop up or off the furniture (a squat), the poof
+ *  (the wand up, sparkles gathering where she'll come out). */
+const DASH_TELL = [0, 26, 22, 18], LEAP_TELL = [0, 20, 17, 14], POOF_TELL = [0, 36, 32, 28];
+/** Sat up on the furniture (out of his line of fire) this long; gone in the poof; the little settle on landing. */
+const PERCH_T = [0, 70, 60, 50], GONE_T = 16, SETTLE_T = 12;
+/** How far past him she wants to come down (from, plus up to), the least from him a spot can be; kept this far in from
+ *  the screen's edges (she stays on it). */
+const SPOT_D = 220, SPOT_ADD = 120, SPOT_MIN = 170, VIEW_IN = 70;
+/** A slam off the furniture if one's due this soon anyway; else she hops back down past him. */
+const PERCH_SLAM = 90;
 /** Ripping a bit off a loose part (near it): the shout, the element. */
 const startRip = (f: Fight, h: { kind: string; x: number }) => {
   f.rip = h.kind === 'heat' ? 'fire' : h.kind === 'nitro' ? 'ice' : 'shock';
@@ -475,19 +504,161 @@ const startRip = (f: Fight, h: { kind: string; x: number }) => {
   playSound(f.rip === 'fire' ? 'ignite' : f.rip === 'ice' ? 'ice' : 'taser', 0.7, 4);
 };
 
+/** A spot on the floor past him on `side` (+1 right of him), on the screen and in the room, not too near him; or null. */
+const spotPast = (state: GameState, side: number): number | null => {
+  const m = pmid(state);
+  const lo = Math.max(ARENA_L + 60, state.camera.x + VIEW_IN), hi = Math.min(ARENA_R - 60, state.camera.x + CANVAS_WIDTH - VIEW_IN);
+  const x = Math.max(lo, Math.min(hi, m.x + side * (SPOT_D + Math.random() * SPOT_ADD)));
+  return Math.abs(x - m.x) >= SPOT_MIN && Math.sign(x - m.x) === Math.sign(side) ? x : null;
+};
+/** A bit of furniture to hop up onto (its middle, its top): on the screen, a way off him, not the one he's on; or null. */
+const perchSpot = (state: GameState, f: Fight): { x: number; y: number } | null => {
+  const p = state.player, m = pmid(state), feet = p.pos.y + p.height;
+  const ok = LEDGES.filter(([lx, w, h, what]) => {
+    if (what === 'canopy' && f.stage >= 3) return false;
+    const cx = R(lx) + w / 2;
+    if (cx < state.camera.x + VIEW_IN || cx > state.camera.x + CANVAS_WIDTH - VIEW_IN || Math.abs(cx - m.x) < 150) return false;
+    return !(feet < GY - 10 && m.x > R(lx) - 40 && m.x < R(lx) + w + 40);
+  });
+  if (!ok.length) return null;
+  const [lx, w, h] = ok[Math.floor(Math.random() * ok.length)];
+  return { x: R(lx) + w / 2, y: GY - h };
+};
+
+/** Off somewhere (the stay's up, or two goes at him): over his head to his back (a flutter-dash), up onto the furniture
+ *  (out of his line of fire), or a poof to his back (the second half on). Each with its tell. */
+const startMove = (state: GameState, f: Fight) => {
+  const m = pmid(state), ph = phase(f);
+  const behind = spotPast(state, -(Math.sign(f.x - m.x) || 1)), perch = perchSpot(state, f);
+  const opts: [Move, number][] = [];
+  if (behind !== null) { opts.push(['dash', 3]); opts.push(['poof', ph >= 2 ? 2 : 1]); }
+  if (perch) opts.push(['perch', behind !== null ? 2 : 5]);
+  // (backed against a wall with nowhere up: across the room the other way, far as the screen goes)
+  if (!opts.length) { const far = spotPast(state, Math.sign(f.x - m.x) || 1); if (far === null) { f.stay = 0; return false; } opts.push(['dash', 1]); }
+  const pool = opts.length > 1 ? opts.filter(([k]) => k !== f.lastMv) : opts;
+  let r = Math.random() * pool.reduce((s, [, w]) => s + w, 0), mv = pool[0][0];
+  for (const [k, w] of pool) { if ((r -= w) < 0) { mv = k; break; } }
+  f.mv = mv; f.lastMv = mv; f.mvFrom = f.x; f.mvY0 = f.y;
+  if (mv === 'perch') { f.mvTo = perch!.x; f.mvY1 = perch!.y; setAct(f, 'tell', LEAP_TELL[ph]); }
+  else {
+    f.mvTo = behind ?? spotPast(state, Math.sign(f.x - m.x) || 1)!; f.mvY1 = GY;
+    setAct(f, 'tell', mv === 'dash' ? DASH_TELL[ph] : POOF_TELL[ph]);
+  }
+  f.facing = f.mvTo < f.x ? -1 : 1;
+  if (mv === 'dash') playSound('whirl', 0.5, 8);
+  else if (mv === 'poof') playSound('spell', 0.6, 4);
+  else playSound('whoosh', 0.3, -6);
+  return true;
+};
+/** Down off the furniture past him (or a slam off it, if one's nearly due). */
+const offPerch = (state: GameState, f: Fight) => {
+  const m = pmid(state);
+  if (f.slamIn <= PERCH_SLAM) { f.riseY = f.y; setAct(f, 'crouch', CROUCH_T); playSound('whoosh', 0.4, -8); if (Math.random() < 0.55) bark(f, state, L.PIPER_LEAP[pants()]); return; }
+  const to = spotPast(state, -(Math.sign(f.x - m.x) || 1)) ?? spotPast(state, Math.sign(f.x - m.x) || 1);
+  if (to === null) { f.riseY = f.y; setAct(f, 'crouch', CROUCH_T); playSound('whoosh', 0.4, -8); return; }
+  f.mv = 'off'; f.mvFrom = f.x; f.mvY0 = f.y; f.mvTo = to; f.mvY1 = GY;
+  f.facing = to < f.x ? -1 : 1;
+  setAct(f, 'tell', LEAP_TELL[phase(f)]);
+};
+/** Done with whatever she was at, stood in his sights: off somewhere if the stay's up, else back to waddling. */
+const afterGo = (state: GameState, f: Fight) => {
+  if ((f.stay >= STAY[phase(f)] || f.goes >= GOES) && startMove(state, f)) return;
+  setAct(f, 'walk', walkLen(f));
+};
+/** A puff of her magic (the poof's out and in): pink and white smoke and sparkles. */
+const poofCloud = (state: GameState, x: number, y: number) => {
+  for (let k = 0; k < 26; k++) {
+    const a = Math.random() * Math.PI * 2, v = 1 + Math.random() * 4;
+    state.particles.push({ pos: { x: x + Math.cos(a) * 20, y: y - 80 + Math.sin(a) * 40 }, vel: { x: Math.cos(a) * v, y: Math.sin(a) * v * 0.7 - 0.5 }, life: 30 + Math.random() * 20, color: k % 3 === 0 ? '#FFF6FB' : k % 3 === 1 ? '#F9A8D4' : '#FDE68A', size: 5 + Math.random() * 8 });
+  }
+  playSound('twinkle', 0.8, 2); playSound('whoosh', 0.6, 6);
+};
+
 const ai = (ctx: FrameContext, f: Fight) => {
   const { state } = ctx, p = state.player, m = pmid(state);
   f.actT++;
   const ph = phase(f);
+  // (the clocks: stood about in his sights; the next slam (it keeps counting while she gets about))
+  if (f.act === 'walk' || f.act === 'sit' || f.act === 'rip' || f.act === 'throw') f.stay++;
+  if (!airborne(f) && f.act !== 'crouch' && f.act !== 'bounce' && f.act !== 'flop' && f.act !== 'getup' && f.act !== 'entrance') f.slamIn--;
   switch (f.act) {
     case 'entrance':
       f.facing = m.x < f.x ? -1 : 1;
       if (f.actT >= ENTRANCE_T) setAct(f, 'walk', walkLen(f));
       break;
+    case 'tell': {
+      // (the tells: the dash, the wings a blur, sparkles coming off them; the hop, a squat; the poof, the wand up and
+      // sparkles gathering on her and where she'll come out)
+      if (f.mv === 'poof') {
+        f.facing = m.x < f.x ? -1 : 1;
+        if (f.actT % 2 === 0) for (const [x, y] of [[f.x, f.y], [f.mvTo, GY]]) {
+          const a = Math.random() * Math.PI * 2, rr = 50 + Math.random() * 30;
+          state.particles.push({ pos: { x: x + Math.cos(a) * rr, y: y - 80 + Math.sin(a) * rr }, vel: { x: -Math.cos(a) * 2.2, y: -Math.sin(a) * 2.2 }, life: 20, color: f.actT % 4 ? '#FDE68A' : '#F9A8D4', size: 2 + Math.random() * 2 });
+        }
+        if (f.actT % 10 === 0) playSound('twinkle', 0.35, 4 + f.actT / 10);
+      } else if (f.mv === 'dash') {
+        if (f.actT % 3 === 0) state.particles.push({ pos: { x: f.x - f.facing * (30 + Math.random() * 20), y: f.y - 110 - Math.random() * 30 }, vel: { x: -f.facing * (1 + Math.random() * 2), y: (Math.random() - 0.5) * 2 }, life: 18, color: f.actT % 2 ? '#FDE68A' : '#E0F2FE', size: 2 + Math.random() * 2 });
+        if (f.actT % 6 === 0) playSound('whirl', 0.3, 10);
+      }
+      if (f.actT >= f.actLen) {
+        // (he's come over to where she was headed meanwhile: somewhere past him again, so she never lands on him)
+        if (f.mv !== 'perch' && Math.abs(f.mvTo - m.x) < SPOT_MIN - 30) {
+          const to = spotPast(state, Math.sign(f.mvTo - m.x) || 1) ?? spotPast(state, -(Math.sign(f.mvTo - m.x) || 1));
+          if (to !== null) f.mvTo = to;
+        }
+        f.stay = 0; f.goes = 0;
+        if (f.mv === 'poof') {
+          poofCloud(state, f.x, f.y);
+          state.enemies = state.enemies.filter(o => o !== f.e);
+          f.x = f.mvTo; f.y = GY;
+          setAct(f, 'gone', GONE_T);
+          break;
+        }
+        f.facing = f.mvTo < f.mvFrom ? -1 : 1;
+        const dist = Math.abs(f.mvTo - f.mvFrom);
+        const over = Math.sign(f.mvTo - m.x) !== Math.sign(f.mvFrom - m.x);
+        // (over his head when she crosses him (well clear of a stood man); the hop's arc over the furniture's top)
+        f.mvH = f.mv === 'dash' ? (over ? 170 : 90) : 110;
+        setAct(f, 'fly', Math.round(Math.max(28, Math.min(f.mv === 'dash' ? 48 : 44, (f.mv === 'dash' ? 24 : 30) + dist / 28))));
+        if (f.mv === 'dash') { playSound('whoosh', 0.9, -2); playSound('twinkle', 0.6, 6); } else { playSound('jump', 0.9, -8); playSound('whoosh', 0.6, -6); }
+      }
+      break;
+    }
+    case 'fly': {
+      const k = Math.min(1, f.actT / f.actLen), e = k < 0.5 ? 2 * k * k : 1 - 2 * (1 - k) * (1 - k);
+      f.x = f.mvFrom + (f.mvTo - f.mvFrom) * e;
+      f.y = f.mvY0 + (f.mvY1 - f.mvY0) * e - Math.sin(Math.PI * k) * f.mvH;
+      // (the trail: sparkles off her wings, a streak of them on the dash)
+      for (let i = 0; i < (f.mv === 'dash' ? 2 : 1); i++) state.particles.push({ pos: { x: f.x - f.facing * (20 + Math.random() * 30), y: f.y - 60 - Math.random() * 80 }, vel: { x: -f.facing * Math.random() * 1.5, y: 0.3 + Math.random() }, life: 24 + Math.random() * 12, color: Math.random() < 0.4 ? '#FFFFFF' : Math.random() < 0.5 ? '#FDE68A' : '#F9A8D4', size: 2 + Math.random() * 3, grav: 0.03 });
+      if (f.actT >= f.actLen) {
+        f.x = f.mvTo; f.y = f.mvY1;
+        playSound('thud', f.mv === 'dash' ? 0.6 : 0.9, -8); shakeScreen(state, f.mv === 'dash' ? 2 : 4, 3);
+        if (f.mv === 'perch') { playSound('crack', 0.4, -2); f.facing = m.x < f.x ? -1 : 1; setAct(f, 'perch', PERCH_T[ph]); }
+        else setAct(f, 'sit', SETTLE_T);
+      }
+      break;
+    }
+    case 'perch':
+      // (up out of his line of fire, delighted with herself; then down past him, or a slam off it)
+      f.facing = m.x < f.x ? -1 : 1;
+      if (f.actT >= f.actLen) offPerch(state, f);
+      break;
+    case 'gone':
+      if (f.actT % 2 === 0) state.particles.push({ pos: { x: f.x + (Math.random() - 0.5) * 60, y: GY - Math.random() * 150 }, vel: { x: 0, y: -0.5 }, life: 14, color: '#FDE68A', size: 2 });
+      if (f.actT >= f.actLen) {
+        poofCloud(state, f.x, f.y);
+        if (!state.enemies.includes(f.e)) state.enemies.push(f.e);
+        f.facing = m.x < f.x ? -1 : 1;
+        setAct(f, 'sit', SETTLE_T);
+      }
+      break;
     case 'walk': {
       f.facing = m.x < f.x ? -1 : 1;
       if (Math.abs(m.x - f.x) > 50) f.x += f.facing * WALK_V[ph];
       f.x = Math.max(ARENA_L + 60, Math.min(ARENA_R - 60, f.x));
+      // (a slam due goes first (it comes down on him: stood still, that's his spot punished); else, stood about in his
+      // sights long enough, or two goes at him, she's off)
+      if (f.slamIn > 0 && (f.stay >= STAY[ph] || f.goes >= GOES) && startMove(state, f)) break;
       // (near a loose part, now and then, with nobody talking (the shout has to be heard): rip a bit off it)
       if (f.total - f.throwAt > THROW_GAP && quiet(f, state) && Math.random() < 0.03) {
         const h = f.hazards.find(z => Math.abs(z.x - f.x) < THROW_NEAR);
@@ -499,13 +670,13 @@ const ai = (ctx: FrameContext, f: Fight) => {
         const h = f.hazards[Math.floor(Math.random() * f.hazards.length)];
         if (Math.abs(h.x - f.x) >= THROW_NEAR) {
           f.hopFrom = f.x; f.hopTo = Math.max(ARENA_L + 60, Math.min(ARENA_R - 60, h.x - Math.sign(h.x - m.x || 1) * 40));
-          f.throwAt = f.total;
+          f.throwAt = f.total; f.stay = 0; f.goes = 0;
           setAct(f, 'hop', HOP_T); playSound('jump', 0.9, -8); playSound('whoosh', 0.7, -6);
           break;
         }
       }
-      if (f.actT >= f.actLen) {
-        setAct(f, 'crouch', CROUCH_T);
+      if (f.slamIn <= 0) {
+        f.riseY = f.y = GY; setAct(f, 'crouch', CROUCH_T);
         if (Math.random() < 0.55) bark(f, state, L.PIPER_LEAP[pants()]);
         playSound('whoosh', 0.4, -8);
       }
@@ -518,7 +689,7 @@ const ai = (ctx: FrameContext, f: Fight) => {
       break;
     case 'rise': {
       const k = f.actT / RISE_T, e = 1 - (1 - k) * (1 - k);
-      f.y = GY + (APEX - GY) * e;
+      f.y = f.riseY + (APEX - f.riseY) * e;
       f.x += Math.max(-3, Math.min(3, m.x - f.x));
       if (f.actT >= RISE_T) setAct(f, 'hang', HANG_T);
       break;
@@ -558,7 +729,7 @@ const ai = (ctx: FrameContext, f: Fight) => {
       break;
     }
     case 'sit':
-      if (f.actT >= f.actLen) setAct(f, 'walk', walkLen(f));
+      if (f.actT >= f.actLen) afterGo(state, f);
       break;
     case 'rip':
       if (f.actT >= f.actLen) { setAct(f, 'throw', THROW_T); }
@@ -567,8 +738,8 @@ const ai = (ctx: FrameContext, f: Fight) => {
       f.facing = m.x < f.x ? -1 : 1;
       // (the ball leaves her hand at the throw's release: the wind-up before it, the follow-through after; rip and
       // throw together as long as ever, the ball out at the same moment)
-      if (f.actT === Math.round(THROW_T * TOSS_RELEASE) && f.rip) throwAt(ctx, f, f.rip);
-      if (f.actT >= f.actLen) { f.rip = null; setAct(f, 'walk', walkLen(f)); }
+      if (f.actT === Math.round(THROW_T * TOSS_RELEASE) && f.rip) { throwAt(ctx, f, f.rip); f.goes++; }
+      if (f.actT >= f.actLen) { f.rip = null; afterGo(state, f); }
       break;
     case 'bounce': bounce(ctx, f); break;
     case 'flop':
@@ -595,9 +766,9 @@ const land = (ctx: FrameContext, f: Fight) => {
   // (the canopy comes down at the third)
   if (was < 3 && f.stage >= 3) { state.blocks = state.blocks.filter(b => b.tag !== 'pp-canopy'); playSound('crack', 1, -6); }
   // (what's torn loose: the user's order)
-  if (f.slams === 2) loosen(ctx, f, 'heat');
-  if (f.slams === 4) loosen(ctx, f, 'nitro');
-  if (f.slams === 6) loosen(ctx, f, 'wires');
+  { const n = f.hazards.length;
+    if (n < LOOSE_ORDER.length && f.fightT >= LOOSE_AT[n]) loosen(ctx, f, LOOSE_ORDER[n]); }
+  f.goes++; f.slamIn = walkLen(f);
   if (f.slams === 5 && f.chandDown === null && !f.chand) {
     const i = Math.abs(R(CHANDELIERS[0]) - pmid(state).x) < Math.abs(R(CHANDELIERS[1]) - pmid(state).x) ? 0 : 1;
     f.chand = { i, x: R(CHANDELIERS[i]), y: CHANDELIER_Y, t: 0, vy: 0, falling: false, hit: false };
@@ -823,7 +994,8 @@ const contact = (ctx: FrameContext, f: Fight) => {
     if (Math.hypot(m.x - f.x, m.y - (f.y - 85)) < 78) hurtPlayer(ctx, BOUNCE_DMG, L.SRC.bounce, { x: away * 9, y: -7 });
     return;
   }
-  if (airborne(f) || f.act === 'flop' || attacking(state)) return;
+  // (getting about: never her body on him mid-move (the dash goes over his head; the poof's gone))
+  if (airborne(f) || f.act === 'flop' || f.act === 'fly' || f.act === 'gone' || attacking(state)) return;
   if (overlaps(state, f.x - 44, f.y - 150, f.x + 44, f.y)) hurtPlayer(ctx, BODY_DMG, L.SRC.body, { x: away * 9, y: -5 });
 };
 
@@ -1176,6 +1348,13 @@ const poseOf = (f: Fight): { pose: PiperPose; sx: number; sy: number; face?: Pip
   switch (f.act) {
     case 'crouch': { const k = Math.min(1, f.actT / 12); return { pose: 'enraged', sx: 1 + 0.12 * k, sy: 1 - 0.16 * k }; }
     case 'rise': case 'hop': return { pose: 'enraged', sx: 0.92, sy: 1.08 };
+    case 'tell': {
+      if (f.mv === 'poof') return { pose: 'point', sx: 1, sy: 1 + 0.04 * Math.sin(f.actT * 0.6) };
+      const k = Math.min(1, f.actT / 8);
+      return f.mv === 'dash' ? { pose: 'enraged', sx: 1 + 0.06 * k, sy: 1 - 0.08 * k } : { pose: 'enraged', sx: 1 + 0.12 * k, sy: 1 - 0.16 * k };
+    }
+    case 'fly': return f.mv === 'dash' ? { pose: 'enraged', sx: 1.06, sy: 0.94 } : { pose: 'enraged', sx: 0.92, sy: 1.08 };
+    case 'perch': { const k = Math.max(0, 1 - f.actT / 10); return { pose: 'gloat', sx: 1 + 0.18 * k, sy: 1 - 0.2 * k }; }
     case 'hang': case 'lock': return { pose: 'enraged', sx: 1, sy: 1 };
     case 'fall': return { pose: 'enraged', sx: 0.9, sy: 1.12, face: 'shock' };
     case 'sit': { const k = Math.max(0, 1 - f.actT / 10); return { pose: 'enraged', sx: 1 + 0.2 * k, sy: 1 - 0.25 * k }; }
@@ -1332,6 +1511,7 @@ const drawHer = (c: Ctx, f: Fight, fr: number) => {
     c.save(); c.translate(f.x, f.y); c.scale(f.facing, 1); drawHoles(c, f, fr, d.step === 'deflate' || d.step === 'deflate2'); c.restore();
     return;
   }
+  if (f.act === 'gone' && f.mode === 'on') return;
   const P = poseOf(f);
   const blink = f.iframes > 0 && Math.floor(fr / 3) % 2 === 0;
   if (blink) c.globalAlpha = 0.65;
@@ -1339,7 +1519,9 @@ const drawHer = (c: Ctx, f: Fight, fr: number) => {
   const waddle = f.mode === 'on' && f.act === 'walk' ? Math.sin(fr * 0.18) * 0.05 : 0;
   c.save();
   if (f.act === 'bounce') { c.translate(f.x, f.y - 85); c.rotate(f.rot); c.translate(-f.x, -(f.y - 85)); }
-  c.translate(f.x, f.y); c.rotate(waddle); c.scale(P.sx, P.sy); c.translate(-f.x, -f.y);
+  // (the flutter-dash: leant into it, head first)
+  const lean = f.mode === 'on' && f.act === 'fly' && f.mv === 'dash' ? f.facing * 0.28 * Math.sin(Math.PI * Math.min(1, f.actT / f.actLen)) : 0;
+  c.translate(f.x, f.y); c.rotate(waddle + lean); c.scale(P.sx, P.sy); c.translate(-f.x, -f.y);
   if (f.mode === 'intro' && P.pose === 'lounge') drawPiper(c, f.x, f.y, -1, fr, 'lounge', { talking: !!f.said });
   else {
     // (a throw: the wind-up, the release, the follow-through (unless a hit's knocked her out of it))
