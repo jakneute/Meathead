@@ -328,9 +328,12 @@ const placeAt = (state: GameState, x: number, from: number) => {
 /** Back into the world, but never inside anything solid: set down against it, on his side of it. */
 const release = (state: GameState, e: Enemy) => {
   const mid = centerX(state);
-  for (let k = 0; k < 2; k++) {
+  for (let k = 0; k < 3; k++) {
     const b = state.blocks.find(b => !b.oneWay && b.type !== 'pit' && e.pos.x < b.x + b.w && e.pos.x + e.width > b.x && e.pos.y + 4 < b.y + b.h && e.pos.y + e.height - 4 > b.y);
     if (!b) break;
+    // (only its feet in it, the floor or a step under it (a big one let go of at his height sinks into the floor he's
+    // on): stood up on top of it, never shoved out to that block's far end, off the floor and out of the world)
+    if (b.y > e.pos.y + e.height / 2) { e.pos.y = b.y - e.height; continue; }
     e.pos.x = mid < b.x + b.w / 2 ? b.x - e.width : b.x + b.w;
     // (thrown at it hard, he keeps going at it: splatted on it right there (flyInto); anything gentler just stops)
     if (Math.sign(e.vel.x) === Math.sign(b.x + b.w / 2 - mid) && Math.abs(e.vel.x) < WALL_SPLAT_SPEED) e.vel.x = 0;
@@ -1529,7 +1532,8 @@ const letFly = (ctx: FrameContext, g: Grab, e: Enemy) => {
   // (how far by how heavy he is: a pit bull goes a lot further than a bouncer)
   const w = heft(e);
   const v = g.toss === 'up' ? { x: g.dir * 2.5, y: -THROW_UP * w } : { x: dir * THROW_SPEED * w, y: -6 };
-  e.pos = { x: centerX(state) + dir * (p.width / 2 + e.width / 2 + 6) - e.width / 2, y: p.pos.y - (g.toss === 'up' ? 40 : 16) };
+  // (let go of up at his chest, but never with its feet below his: a tall one (a robot, a moose) would start in the floor)
+  e.pos = { x: centerX(state) + dir * (p.width / 2 + e.width / 2 + 6) - e.width / 2, y: Math.min(p.pos.y - (g.toss === 'up' ? 40 : 16), feetY(state) - e.height) };
   e.vel = { ...v };
   // (the throw itself doesn't hurt him: what he hits does, another body, a wall, the floor coming up at him)
   release(state, e);
