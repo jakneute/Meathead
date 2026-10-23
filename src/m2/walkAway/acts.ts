@@ -466,11 +466,25 @@ const SOUL_SUCKER: Act = {
       },
       over: (c, ty) => {
         if (!hickey) return;
-        // (the hickey: a ring round his mouth, red going purple)
+        // (the hickey: the nozzle's ring sucked into his face round his mouth: a puffy swollen rim, a bruise round
+        // that blotched with burst capillaries, red going purple as it sets; no hard outline, it's skin)
         const [mx, my] = MOUTH(p);
-        const col = u < 400 ? '#DC2626' : '#9D174D';
-        c.strokeStyle = col; c.lineWidth = 2; c.beginPath(); c.ellipse(mx, my + ty, 7, 6, 0, 0, Math.PI * 2); c.stroke();
-        box(c, mx - 5, my - 5 + ty, 2, 1, '#FCA5A5');
+        const k = Math.min(1, (u - 276) / 140);
+        const rim = k < 0.5 ? ['#7F1D1D', '#B91C1C', '#E0596A', '#F7A8B0'] : ['#4A1035', '#7E1D4F', '#B0436E', '#E08AA6'];
+        const yy = my + ty;
+        // (the bruise: an uneven blotch, darker in a band just outside the rim)
+        c.save(); c.globalAlpha = 0.55;
+        c.fillStyle = rim[1]; c.beginPath(); c.ellipse(mx, yy, 9.5, 8, 0, 0, Math.PI * 2); c.ellipse(mx, yy, 6, 4.8, 0, 0, Math.PI * 2); c.fill('evenodd');
+        c.globalAlpha = 1; c.restore();
+        // (the swollen rim: a fat ring, lit on top, darker under)
+        for (let a = 0; a < 24; a++) {
+          const th = (a / 24) * Math.PI * 2, rx = mx + Math.cos(th) * 7.2, ry = yy + Math.sin(th) * 6;
+          box(c, rx - 1, ry - 1, 2, 2, Math.sin(th) < -0.3 ? rim[3] : Math.sin(th) > 0.4 ? rim[0] : rim[2]);
+        }
+        // (burst capillaries: specks in the bruise, the same few each time)
+        for (let i = 0; i < 9; i++) { const th = i * 2.39 + 0.4, d = 8 + (i % 3) * 0.9; box(c, mx + Math.cos(th) * d, yy + Math.sin(th) * d * 0.85, 1, 1, rim[0]); }
+        // (a wet shine on the top of the rim)
+        box(c, mx - 4, yy - 6, 3, 1, '#FFE4E8');
       },
     });
   },
