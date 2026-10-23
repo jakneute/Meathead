@@ -286,8 +286,8 @@ export const DAD_HURT: ByPants = {
   shitty: ['DON\'T TOUCH ME WITH THOSE HANDS!', 'OW! YOU GOT YOUR SHIT ON MY BEER SHIRT!', 'WATCH THE THROAT! THAT VOICE PAYS MY BAR TAB!'],
   nude: ["OW! DON'T HIT ME WITH YOUR BALLS OUT!", 'OW! SOMETHING SLAPPED ME. I HOPE IT WAS A HAND.', 'NOT THE THROAT, YOU NAKED FREAK! I NEED THAT!'],
 };
-/** A family member flattened by a stunt car: more baffled, more fed up, every time (by how many: 1, 2, 3 (his couch
- *  goes with it), 4 (the last)). */
+/** A family member flattened by a stunt car: more baffled, more fed up, every time (by how many: 1, 2, 3; then the last
+ *  one's car on his couch: the couch, then that's everybody). */
 export const DAD_KILL: ByPants[] = [
   {
     clean: ['WHAT THE HELL? WHERE\'D THAT CAR COME FROM?', 'WHO THE HELL PARKED ON MY FAMILY?'],
@@ -298,6 +298,11 @@ export const DAD_KILL: ByPants[] = [
     clean: ['TWO! WHO KEEPS PARKING ON MY FAMILY?!', 'AGAIN? THOSE ROBOTS COST NINETY BUCKS! EACH!'],
     shitty: ['ANOTHER ONE? QUIT IT, YOU SMELLY BASTARD!', 'TWO! AND THE SMELL STAYS! WHY DOES THE SMELL STAY?'],
     nude: ['ANOTHER ONE? YOU NAKED LUNATIC!', 'QUIT IT! PUT ON PANTS AND QUIT KILLING MY FAMILY!'],
+  },
+  {
+    clean: ["THREE! THAT'S THREE! I'M RUNNING OUT OF FAMILY!", "THREE! I CAN'T AFFORD ANOTHER WIFE! OR KID! WHATEVER THAT ONE WAS!"],
+    shitty: ['THREE! AND EVERY TIME, THAT SMELL GETS CLOSER!', 'ANOTHER ONE! YOU SHIT YOURSELF AND YOU STILL PARK BETTER THAN ME!'],
+    nude: ["THREE! IN FRONT OF A NAKED GUY! THEY DIDN'T EVEN GET DIGNITY!", 'ANOTHER ONE! PUT SOMETHING ON AND STOP KILLING!'],
   },
   {
     clean: ['MY COUCH! NOT THE COUCH!', 'THAT COUCH WAS IN THE PILOT! I LOST MY VIRGINITY ON THAT COUCH!'],

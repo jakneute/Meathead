@@ -36,9 +36,9 @@
 //   THE WEAKNESS  The CLAPPERBOARD: here each snap sends one stunt car that homes in on one of his TV family and
 //                 flattens it (wrecks and bodies stay put); the scene takes a while to reset before another
 //                 (RECHARGE: it can't be spammed in this fight; it's itself everywhere else). He's more baffled and fed up
-//                 with each, and each sets off his counter (a puke or the hammer). The second-to-last one's car comes on
-//                 down onto his couch and crushes it: he's up, pathetic, no couch, no counters, no puking, no hammer, and
-//                 hardly any fight (double damage). The last of the family goes the same way; then one more snap and the
+//                 with each, and each sets off his counter (a puke or the hammer). The last one's car comes on down onto
+//                 his couch and crushes it (only once they're all dead, the user's): he's up, pathetic, no couch, no
+//                 counters, no puking, no hammer, and hardly any fight (double damage); then one more snap and the
 //                 last car comes down on HIM: the weakness death (a short slow-mo; flattened like a cartoon). No car
 //                 touches his health while any of the family's up (the user's); once they're all gone and the couch is
 //                 crushed (him up, flailing), ANY hit from anything kills him in one, whatever his health (doomed()).
@@ -1012,8 +1012,9 @@ const cars = (ctx: FrameContext, f: Fight) => {
     m.alive = false;
     f.flung.push({ x: X(c.bx), y: STAGE_Y - 60, d: c.bd, vx: c.dir * 1.2, vy: -6, t: 0, dir: c.dir, seed: f.kills + 3, stuck: false });
     onKill(ctx, f, who);
-    // (the second-to-last one: on it goes, a hop off the wreck, down onto his couch)
-    if (f.kills === 3 && !f.couch.crushed) {
+    // (the last one: on it goes, a hop off the wreck, down onto his couch (the user's: "the couch should only get
+    // destroyed when all the family members are dead"))
+    if (f.kills === MEMBERS.length && !f.couch.crushed) {
       f.couch.vx = 0;
       c.hop = true; c.couch = true; c.t = 0; c.T = 30; c.ax = c.bx; c.ay = STAGE_Y - 30; c.bx = f.couch.x; c.by = STAGE_Y - 30; c.bd = 1;
       continue;
@@ -1043,14 +1044,13 @@ const onKill = (ctx: FrameContext, f: Fight, who: Member) => {
   if (Math.random() < 0.6) meathead(state, L.MH_KILL);
   // (whatever he was at, he stops; the puke's cut off; the couch slides on by itself)
   const n = f.kills;
-  if (n === 3) { setAct(f, 'baffled'); return; }
-  dadSays(f, state, L.DAD_KILL[Math.min(3, n - 1)]);
+  // (the last: his couch is next (crushCouch has his words))
+  if (n === MEMBERS.length) { setAct(f, 'baffled'); return; }
+  dadSays(f, state, L.DAD_KILL[Math.min(2, n - 1)]);
   setAct(f, 'baffled');
-  // (the last of them: no counter (he's up, pathetic: no drunken anything))
-  if (n === 4) f.sad = true;
 };
 
-/** The second-to-last car comes down on the couch: it's crushed, he's thrown off it, up for good and pathetic. */
+/** The last car (the family's last) comes down on the couch: it's crushed, he's thrown off it, up for good and pathetic. */
 const crushCouch = (ctx: FrameContext, f: Fight, c: Car) => {
   const { state } = ctx, m = pmid(state);
   const cc = f.couch;
@@ -1063,8 +1063,7 @@ const crushCouch = (ctx: FrameContext, f: Fight, c: Car) => {
   f.vy = -9; f.y = 1;
   if (f.errand) f.errand.step = 'back';
   setAct(f, 'thrown');
-  dadSays(f, state, L.DAD_KILL[2]);
-  meathead(state, L.MH_COUCH, true);
+  dadSays(f, state, L.DAD_KILL[3], () => dadSays(f, state, L.DAD_KILL[4], () => meathead(state, L.MH_COUCH, true)));
 };
 
 // ---------------------------------------------------------------------------------------------------------------
