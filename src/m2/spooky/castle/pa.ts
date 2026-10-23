@@ -22,7 +22,7 @@ interface Pa {
   busy: boolean;
   /** What's left of the story going (and what Meathead says back after it), and the one waiting (the newest). */
   left: string[]; reply: string | null; fin: (() => void) | null;
-  next: { lines: string[]; reply: string | null; fin: (() => void) | null }[];
+  next: { lines: string[]; reply: string | null; fin: (() => void) | null; at: number }[];
 }
 let gen = 0;
 const PAS = new WeakMap<object, Pa>();
@@ -42,6 +42,8 @@ export const byPants = (state: GameState, r: ByPants) => r[dressed(state)];
 export const once = (f: () => void) => { let done = false; return () => { if (!done) { done = true; f(); } }; };
 /** How often to look again, waiting for the floor (ms). */
 const WAIT_MS = 150;
+/** A story waiting behind another this long (ms) is stale: dropped (the dungeon's ceiling line a minute after it was cleared). */
+const STORY_STALE_MS = 7000;
 const sayNext = (pa: Pa) => {
   if (pa.gen !== gen) return;
   pa.said = null;
@@ -50,7 +52,10 @@ const sayNext = (pa: Pa) => {
     if (pa.fin) { const f = pa.fin; pa.fin = null; f(); }
     // (the story's done: Meathead's say back, and the PA waits for him)
     if (pa.reply) { const r = pa.reply; pa.reply = null; pa.busy = true; afterQuiet(pa, () => meatheadSays(pa.state, r, true, once(() => sayNext(pa)))); return; }
-    const nx = pa.next.shift();
+    // (one that's waited too long is about something long past (the user's: "make sure dialogue doesn't fall too far
+    // back to what is going on"): dropped unsaid, its follow-on still run so nothing hangs on it)
+    let nx = pa.next.shift();
+    while (nx && Date.now() - nx.at > STORY_STALE_MS) { nx.fin?.(); nx = pa.next.shift(); }
     if (!nx) { pa.busy = false; return; }
     pa.left = nx.lines; pa.reply = nx.reply; pa.fin = nx.fin;
   }
@@ -83,7 +88,7 @@ const sayLine = (pa: Pa, line: string) => afterQuiet(pa, () => {
 export const paStory = (state: GameState, lines: readonly string[], reply: string | null = null, fin: (() => void) | null = null) => {
   const pa = paOf(state);
   // (one going: this one after it, and after any others waiting; none skipped)
-  if (pa.busy) { pa.next.push({ lines: [...lines], reply, fin }); return; }
+  if (pa.busy) { pa.next.push({ lines: [...lines], reply, fin, at: Date.now() }); return; }
   pa.left = [...lines]; pa.reply = reply; pa.fin = fin;
   sayNext(pa);
 };
