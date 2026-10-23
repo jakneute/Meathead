@@ -15,6 +15,7 @@ import { LIB, sy, ARENA_L, ARENA_R } from './arena';
 import { signText } from '../../signLetters';
 import { dith } from '../heli/harryArt';
 import { stamp } from '../../../m1/game/render/stamp';
+import { gooDrip, gooRun, ageOf, PUKE_GOO, CONC_GOO } from './goo';
 
 type Ctx = CanvasRenderingContext2D;
 const INK = '#0A1F1B';
@@ -190,7 +191,20 @@ const face = (c: Ctx, L: LibLook, hx: number, hy: number) => {
   const my = hy + 44;
   if (m === 'puke') {
     fl(c, '#0B1512', () => c.ellipse(hx, my + 4, 22, 18, 0, 0, Math.PI * 2), 3);
-    r(c, hx - 14, my - 10, 28, 4, CONC[3]);
+    // (her concrete welling up in it, heaving, lumpy; slopping out over her lip and down her chin in gloopy drips)
+    const G = CONC_GOO, R = G.R, heave = Math.sin(L.f * 0.18) * 2;
+    c.save(); c.beginPath(); c.ellipse(hx, my + 4, 21, 17, 0, 0, Math.PI * 2); c.clip();
+    const surf = () => { c.beginPath(); c.moveTo(hx - 24, my + 30); for (let i = 0; i <= 8; i++) { const x = hx - 24 + i * 6; c.lineTo(x, my - 6 + heave + Math.sin(i * 1.9 + L.f * 0.12) * 2.5); } c.lineTo(hx + 24, my + 30); c.closePath(); };
+    surf(); c.fillStyle = R[3]; c.fill();
+    c.translate(0, 3); surf(); c.fillStyle = R[2]; c.fill(); c.translate(0, 5); surf(); c.fillStyle = dith(c, R[1]) as unknown as string; c.fill();
+    c.restore();
+    for (const [ox, oy] of [[-10, -1], [6, 1], [-2, 6], [12, 7]] as const) { r(c, hx + ox, my + oy + heave, 3, 2, G.bits[(ox + 20) % 5]); r(c, hx + ox, my + oy + heave + 2, 3, 1, G.ink); }
+    // (over the lip: a tongue of it, inked, lit, to the stream)
+    fl(c, R[2], () => { c.moveTo(hx - 17, my + 10); c.quadraticCurveTo(hx - 20, my + 26, hx - 12, my + 30); c.lineTo(hx + 12, my + 30); c.quadraticCurveTo(hx + 20, my + 26, hx + 17, my + 10); c.closePath(); }, 2);
+    r(c, hx - 15, my + 12, 4, 14, R[3]); r(c, hx - 14, my + 13, 1, 6, R[4]); dr(c, hx + 8, my + 12, 6, 16, R[1]);
+    // (drips off the corners of her mouth, stretching and snapping)
+    gooDrip(c, hx - 19, my + 16, 26, 6, G, (L.f / 130) % 1);
+    gooDrip(c, hx + 18, my + 14, 20, 5, G, (L.f / 105 + 0.45) % 1);
   } else if (m === 'strain') {
     fl(c, PAT[1], () => c.rect(hx - 20, my - 5, 40, 11), 2.5);
     r(c, hx - 18, my - 4, 36, 4, PAT[6]); r(c, hx - 18, my + 2, 36, 3, PAT[5]);
@@ -451,24 +465,116 @@ export const gunLine = (hand: Pt) => {
 /** The hole the shot blew out of her head: on the far side, where the shot came out (on its line from the muzzle),
  *  jagged, hollow, rebar sticking out along the shot's way, chips; dust still coming off it. */
 const hole = (c: Ctx, hand: Pt, f: number) => {
-  const g = gunLine(hand), d = g.dir, cx = g.exit.x - d.x * 8, cy = g.exit.y - d.y * 8, pts: [number, number][] = [];
-  for (let i = 0; i < 14; i++) { const a = (i / 14) * Math.PI * 2, rr = 40 + ((i * 37) % 11) * 2 - (i % 2) * 10; pts.push([cx + Math.cos(a) * rr * 0.9, cy + Math.sin(a) * rr]); }
-  fl(c, CONC[1], () => { pts.forEach(([x, y], i) => (i ? c.lineTo(x, y) : c.moveTo(x, y))); c.closePath(); }, 3);
-  // (the hollow inside: darker in, the broken shell's rim lit)
-  // (the shell's thickness round the break: her green copper outside, its concrete backing; the hollow stepped in)
-  c.strokeStyle = PAT[2]; c.lineWidth = 5; c.beginPath(); pts.forEach(([x, y], i) => (i ? c.lineTo(x, y) : c.moveTo(x, y))); c.closePath(); c.stroke();
-  c.strokeStyle = PAT[5]; c.lineWidth = 1.5; c.stroke();
-  fl(c, dith(c, CONC[0]) as unknown as string, () => c.ellipse(cx - d.x * 4, cy - d.y * 4, 32, 30, 0, 0, Math.PI * 2), 0);
-  fl(c, CONC[0], () => c.ellipse(cx - d.x * 4, cy - d.y * 4, 24, 22, 0, 0, Math.PI * 2), 0);
-  fl(c, '#0C0A09', () => c.ellipse(cx - d.x * 6, cy - d.y * 6, 12, 11, 0, 0, Math.PI * 2), 0);
-  c.strokeStyle = CONC[4]; c.lineWidth = 2; c.beginPath(); pts.forEach(([x, y], i) => (i ? c.lineTo(x + 2, y + 2) : c.moveTo(x + 2, y + 2))); c.closePath(); c.stroke();
-  // (rebar sticking out, rusty, bent out the way the shot went)
-  const da = Math.atan2(d.y, d.x);
-  c.strokeStyle = '#7C2D12'; c.lineWidth = 3;
-  for (const [a, l] of [[0.35, 40], [-0.4, 30], [0.9, 34]] as const) { c.strokeStyle = INK; c.lineWidth = 5; c.beginPath(); c.moveTo(cx, cy); c.lineTo(cx + Math.cos(da + a) * (50 + l), cy + Math.sin(da + a) * (50 + l)); c.stroke(); c.strokeStyle = '#7C2D12'; c.lineWidth = 3; c.stroke(); c.strokeStyle = '#C2410C'; c.lineWidth = 1; c.stroke(); }
+  const g = gunLine(hand), d = g.dir, cx = g.exit.x - d.x * 8, cy = g.exit.y - d.y * 8;
+  const qa = Math.round(Math.atan2(d.y, d.x) * 16) / 16;
+  // (the wound's still part, stamped (by the way the shot went): the petals, the shell's thickness, the core, the rebar)
+  c.save(); c.translate(cx, cy);
+  stamp(c, `liberty-wound-${qa}`, -150, -150, 300, 300, gg => woundStill(gg, qa));
+  c.restore();
+  const rimAt = (a: number) => { const rr = woundR(a, qa); return { x: cx + Math.cos(a) * rr * 0.9, y: cy + Math.sin(a) * rr }; };
+  // (wires out of it: the old floodlights' cables, dangling, swaying, frayed copper at the ends)
+  for (const [ao, len, col, ph] of [[1.0, 44, '#B91C1C', 0], [-1.3, 34, '#CA8A04', 2], [1.6, 26, '#1D4ED8', 4]] as const) {
+    const p = rimAt(qa + ao), sw = Math.sin(f * 0.045 + ph) * 7, ex = p.x + d.x * 10 + sw, ey = p.y + len;
+    const mx = p.x + d.x * 16 + sw * 0.4, my = p.y + len * 0.4;
+    c.lineCap = 'round';
+    c.strokeStyle = INK; c.lineWidth = 3.2; c.beginPath(); c.moveTo(p.x, p.y); c.quadraticCurveTo(mx, my, ex, ey); c.stroke();
+    c.strokeStyle = col; c.lineWidth = 1.6; c.stroke();
+    c.strokeStyle = '#FFFFFF'; c.globalAlpha = 0.35; c.lineWidth = 0.6; c.stroke(); c.globalAlpha = 1;
+    r(c, ex - 2, ey, 1, 3, '#F59E0B'); r(c, ex, ey + 1, 1, 3, '#FBBF24'); r(c, ex + 1, ey, 1, 2, '#D97706');
+  }
+  // (her concrete still dribbling out of the bottom of it, gloopy)
+  const lo = rimAt(Math.PI / 2 - 0.2);
+  gooDrip(c, lo.x, lo.y - 3, 22, 6, CONC_GOO, (f / 170) % 1);
+  // (chips and grit still falling out of it, tumbling)
+  for (let k = 0; k < 5; k++) {
+    const p = (f * 0.011 + k * 0.2) % 1, s = rimAt(qa + (k - 2) * 0.5), x = s.x + d.x * 26 * p, y = s.y + p * p * 170, sz = 2 + (k % 3);
+    const spin = Math.floor(f * 0.3 + k) % 2;
+    r(c, x - 0.6, y - 0.6, (spin ? sz : sz * 0.6) + 1.2, (spin ? sz * 0.6 : sz) + 1.2, INK);
+    r(c, x, y, spin ? sz : sz * 0.6, spin ? sz * 0.6 : sz, k % 2 ? PAT[3] : CONC[3]); r(c, x, y, 1, 1, k % 2 ? PAT[5] : CONC[5]);
+  }
   // (dust still coming off it, out along the shot's way and up)
   for (let k = 0; k < 4; k++) { const t = ((f * 0.8 + k * 25) % 100) / 100; c.globalAlpha = 0.5 * (1 - t); c.fillStyle = CONC[4]; c.beginPath(); c.arc(g.exit.x + d.x * (20 + t * 40), g.exit.y + d.y * (20 + t * 40) - t * 60, 10 + t * 20, 0, Math.PI * 2); c.fill(); }
   c.globalAlpha = 1;
+};
+const wj = (n: number) => { const s = Math.sin(n * 91.73 + 17.1) * 43758.5453; return s - Math.floor(s); };
+/** The wound's rim's radius at angle a (blown out wider the way the shot went), jagged. */
+const woundR = (a: number, da: number) => {
+  const i = Math.round(((a % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2) / (Math.PI * 2) * 22) % 22;
+  return (36 + wj(i) * 14 - (i % 2) * 8) * (1 + 0.28 * Math.max(0, Math.cos(a - da)));
+};
+/** Oxidized copper (the inside of her shell: brown, the cut edge bright). */
+const COP = ['#2A1206', '#4E2410', '#7A3E1C', '#A85E2C', '#D88A4E'];
+const RUST = ['#3B1606', '#7C2D12', '#A4441A', '#D2692E', '#F59E5B'];
+/** The exit wound (origin its middle; `da` the way the shot went): her copper torn and peeled back in petals (green
+ *  outside, the oxidized brown underside curling up), the shell's thickness round the ragged hole, the crumbled
+ *  concrete core with its aggregate, the dark inside stepped back, cracks running off over her, rebar bent out the way
+ *  the shot went (ribbed, rusty, some snapped bright, one curled), rust bleeding down from it. */
+const woundStill = (g: Ctx, da: number) => {
+  const rim: [number, number][] = [];
+  for (let i = 0; i < 22; i++) { const a = (i / 22) * Math.PI * 2, rr = woundR(a, da); rim.push([Math.cos(a) * rr * 0.9, Math.sin(a) * rr]); }
+  const poly = (k: number, jit = 0, ox = 0, oy = 0) => { g.beginPath(); rim.forEach(([x, y], i) => { const q = k * (1 + (jit ? (wj(i * 3 + jit) - 0.5) * jit * 0.01 : 0)); i ? g.lineTo(ox + x * q, oy + y * q) : g.moveTo(ox + x * q, oy + y * q); }); g.closePath(); };
+  // (cracks running off over her from the rim: inked zigzags, a lit lip)
+  for (let k = 0; k < 6; k++) {
+    const a = da + Math.PI * 0.3 + k * 1.05 + wj(k) * 0.5, r0 = woundR(a, da), pts: [number, number][] = [];
+    for (let s = 0; s < 4; s++) { const rr = r0 + s * 14, aa = a + (s % 2 ? 0.12 : -0.1) * (1 + wj(k + s)); pts.push([Math.cos(aa) * rr * 0.9, Math.sin(aa) * rr]); }
+    g.strokeStyle = INK; g.lineWidth = 2; g.beginPath(); pts.forEach(([x, y], i) => (i ? g.lineTo(x, y) : g.moveTo(x, y))); g.stroke();
+    g.strokeStyle = PAT[5]; g.lineWidth = 1; g.beginPath(); pts.forEach(([x, y], i) => (i ? g.lineTo(x + 1, y + 1.5) : g.moveTo(x + 1, y + 1.5))); g.stroke();
+  }
+  // (the petals: her copper torn and peeled back out of it, more of them and longer the way the shot went)
+  for (let k = 0; k < 9; k++) {
+    const a = da + (k / 9) * Math.PI * 2 + (wj(k + 40) - 0.5) * 0.3, out = Math.max(0, Math.cos(a - da));
+    const rr = woundR(a, da), len = 10 + out * 26 + wj(k + 7) * 8, hw = 0.16 + wj(k + 9) * 0.08;
+    const b1: [number, number] = [Math.cos(a - hw) * rr * 0.86, Math.sin(a - hw) * rr * 0.96], b2: [number, number] = [Math.cos(a + hw) * rr * 0.86, Math.sin(a + hw) * rr * 0.96];
+    const tip: [number, number] = [Math.cos(a + 0.1) * (rr + len) * 0.9, Math.sin(a + 0.1) * (rr + len)];
+    const curl: [number, number] = [Math.cos(a + 0.04) * (rr + len * 0.62) * 0.9, Math.sin(a + 0.04) * (rr + len * 0.62)];
+    // (its shadow on her, its outer face, the lit edge; the underside curling up at the tip: oxidized copper)
+    g.fillStyle = dith(g, PAT[0]) as unknown as string; g.beginPath(); g.moveTo(b1[0] + 2, b1[1] + 3); g.lineTo(tip[0] + 3, tip[1] + 4); g.lineTo(b2[0] + 2, b2[1] + 3); g.closePath(); g.fill();
+    fl(g, out > 0.3 ? PAT[3] : PAT[2], () => { g.moveTo(b1[0], b1[1]); g.quadraticCurveTo(curl[0] - Math.sin(a) * 4, curl[1] + Math.cos(a) * 4, tip[0], tip[1]); g.lineTo(b2[0], b2[1]); g.closePath(); }, 2);
+    g.strokeStyle = PAT[5]; g.lineWidth = 1; g.beginPath(); g.moveTo(b1[0], b1[1]); g.quadraticCurveTo(curl[0] - Math.sin(a) * 3, curl[1] + Math.cos(a) * 3, tip[0], tip[1]); g.stroke();
+    fl(g, COP[3], () => { g.moveTo(curl[0], curl[1]); g.lineTo(tip[0], tip[1]); g.lineTo(curl[0] + Math.cos(a + 1.6) * 5, curl[1] + Math.sin(a + 1.6) * 5); g.closePath(); }, 1.5);
+    r(g, tip[0] - 1, tip[1] - 1, 2, 1, COP[4]);
+  }
+  // (the hole: the shell's thickness round it (green lip, the copper's cut, its brown inside face), the concrete core)
+  g.fillStyle = INK; poly(1.06); g.fill();
+  g.fillStyle = PAT[2]; poly(1); g.fill();
+  g.fillStyle = COP[3]; poly(0.92, 6); g.fill();
+  g.fillStyle = COP[1]; poly(0.86, 9); g.fill();
+  g.strokeStyle = PAT[5]; g.lineWidth = 1; g.beginPath(); rim.slice(8, 17).forEach(([x, y], i) => (i ? g.lineTo(x, y) : g.moveTo(x, y))); g.stroke();
+  g.fillStyle = CONC[3]; poly(0.8, 22); g.fill();
+  g.fillStyle = dith(g, CONC[2]) as unknown as string; poly(0.74, 26); g.fill();
+  g.fillStyle = CONC[2]; poly(0.68, 30, -Math.cos(da) * 2, -Math.sin(da) * 2); g.fill();
+  // (the aggregate in the broken core: gravel, lit, a dark under)
+  for (let i = 0; i < 34; i++) {
+    const a = wj(i + 60) * Math.PI * 2, rr = woundR(a, da) * (0.6 + wj(i + 90) * 0.18), x = Math.cos(a) * rr * 0.9, y = Math.sin(a) * rr, s = 1.5 + wj(i + 120) * 2.2;
+    r(g, x - s / 2, y - s / 2 + s, s, 1, CONC[0]); r(g, x - s / 2, y - s / 2, s, s, i % 3 ? CONC[4] : CONC[1]); r(g, x - s / 2, y - s / 2, 1, 1, CONC[5]);
+  }
+  // (the dark inside, stepped back in, the far wall's lit sliver)
+  const bx = -Math.cos(da) * 6, by = -Math.sin(da) * 6;
+  g.fillStyle = CONC[0]; poly(0.56, 40, bx * 0.5, by * 0.5); g.fill();
+  g.fillStyle = dith(g, '#0C0A09') as unknown as string; poly(0.48, 44, bx, by); g.fill();
+  g.fillStyle = '#0C0A09'; poly(0.38, 48, bx * 1.4, by * 1.4); g.fill();
+  g.strokeStyle = CONC[3]; g.lineWidth = 2; g.beginPath(); g.arc(bx, by, 14, 0.1, 1.3); g.stroke();
+  // (the rebar: out of the core, bent the way the shot went; ribbed, rusty; snapped bright, or curled over)
+  for (const [ao, l, kind] of [[0.3, 46, 'snap'], [-0.45, 36, 'bend'], [0.85, 30, 'curl'], [-1.1, 22, 'snap'], [1.5, 18, 'bend'], [-0.1, 56, 'snap']] as const) {
+    const a0 = da + ao, r0 = 14, x0 = Math.cos(a0) * r0, y0 = Math.sin(a0) * r0;
+    const a1 = da + ao * 0.55, x1 = x0 + Math.cos(a1) * l * 0.55, y1 = y0 + Math.sin(a1) * l * 0.55;
+    const a2 = kind === 'bend' ? a1 + 0.7 * Math.sign(ao || 1) : a1 + 0.15, x2 = x1 + Math.cos(a2) * l * 0.45, y2 = y1 + Math.sin(a2) * l * 0.45;
+    const pts: number[] = [x0, y0, x1, y1, x2, y2];
+    if (kind === 'curl') for (let s = 1; s <= 6; s++) { const aa = a2 + s * 0.55, rr = 7 - s * 0.5; pts.push(x2 + Math.cos(a2) * 4 + Math.cos(aa - Math.PI / 2) * rr, y2 + Math.sin(a2) * 4 + Math.sin(aa - Math.PI / 2) * rr); }
+    // (rust run down her from where it comes out of her)
+    const rx = Math.cos(a0) * woundR(a0, da) * 0.9, ry = Math.sin(a0) * woundR(a0, da);
+    g.fillStyle = dith(g, RUST[2]) as unknown as string; g.fillRect(Math.round(rx), Math.round(ry), 2, 10 + l * 0.3); r(g, rx, ry, 2, 3, RUST[2]);
+    const pl = (w: number, col: string, ox = 0, oy = 0) => { g.strokeStyle = col; g.lineWidth = w; g.lineCap = 'round'; g.lineJoin = 'round'; g.beginPath(); for (let i = 0; i < pts.length; i += 2) (i ? g.lineTo(pts[i] + ox, pts[i + 1] + oy) : g.moveTo(pts[i] + ox, pts[i + 1] + oy)); g.stroke(); };
+    pl(6, INK); pl(4, RUST[1]); pl(2, RUST[2], 0.4, 0.4); pl(1, RUST[3], -0.9, -0.9);
+    // (the ribs along it)
+    for (let i = 0; i < pts.length - 2; i += 2) {
+      const sx = pts[i], sy0 = pts[i + 1], ex = pts[i + 2], ey = pts[i + 3], len = Math.hypot(ex - sx, ey - sy0), nx = -(ey - sy0) / (len || 1), ny = (ex - sx) / (len || 1);
+      for (let t = 2; t < len; t += 4) { const px = sx + ((ex - sx) * t) / len, py = sy0 + ((ey - sy0) * t) / len; g.strokeStyle = RUST[0]; g.lineWidth = 1; g.beginPath(); g.moveTo(px - nx * 2.4 + (ex - sx) / len, py - ny * 2.4 + (ey - sy0) / len); g.lineTo(px + nx * 2.4, py + ny * 2.4); g.stroke(); r(g, px - nx * 2, py - ny * 2, 1, 1, RUST[4]); }
+    }
+    // (snapped: the bright cut end, a burr)
+    if (kind === 'snap') { g.fillStyle = INK; g.beginPath(); g.ellipse(x2, y2, 3.2, 3.2, 0, 0, Math.PI * 2); g.fill(); g.fillStyle = '#A8A29E'; g.beginPath(); g.ellipse(x2, y2, 2.2, 2.2, 0, 0, Math.PI * 2); g.fill(); r(g, x2 - 1, y2 - 1, 1, 1, '#F5F5F4'); r(g, x2 + 1.5, y2 - 3, 2, 1, RUST[3]); }
+    else r(g, x2 - 1, y2 - 1, 2, 2, RUST[3]);
+  }
 };
 
 // The wear (the user: "the statue gets more cracked the more often it does it"): each smash shows more of it. Cracks
@@ -540,11 +646,8 @@ export const drawLibertyBody = (c: Ctx, L: LibLook, arm?: (c: Ctx) => void) => {
   crown(c, L, hx, hy);
   if (L.gun) { leftArm(); revolver(c, hx2 - 10, hy2 - 10, GUN_A, L.f, L.broken > 0 && L.broken < 5); }
   // (his puke on her)
-  for (const s of L.stains) {
-    fl(c, PUKE[1], () => c.ellipse(hx + s.x, hy + s.y, s.r, s.r * 0.7, 0, 0, Math.PI * 2), 1.5);
-    r(c, hx + s.x - s.r * 0.4, hy + s.y - s.r * 0.3, s.r * 0.5, 3, PUKE[3]);
-    r(c, hx + s.x - 2, hy + s.y + s.r * 0.5, 4, s.r * 1.3, PUKE[0]);
-  }
+  // (goo.ts: a splat stuck to her, chunks in it, a run creeping down off it, globs dropping off the end)
+  L.stains.forEach((s, i) => gooRun(c, hx + s.x, hy + s.y, s.r, PUKE_GOO, 20 + i, ageOf(s, L.f), L.f));
   if (L.wear) wearMarks(c, L.wear);
   if (L.broken > 0) hole(c, L.hand, L.f);
   if (arm) arm(c);

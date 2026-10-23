@@ -99,11 +99,25 @@ const MARKS: Record<string, Mark> = {
       // (the castle: the curtain wall, the keep, round towers under slate cones, pennants; windows lit after dark)
       box(g, 9, 54, 70, 46, INK); shaded(g, 10, 55, 68, 45, St);
       for (let x = 10; x < 78; x += 6) { box(g, x, 50, 4, 5, INK); box(g, x, 51, 3, 4, St[3]); }
-      shaded(g, 32, 24, 22, 32, St); box(g, 31, 23, 24, 1, INK);
+      const Gd = rampT(t, '#D4A020');
+      // (the keep: its body, its battlements, the round belfry up out of it (the cone used to float over a gap here))
+      box(g, 31, 23, 24, 34, INK); shaded(g, 32, 24, 22, 32, St);
+      for (let x = 31; x < 55; x += 5) { box(g, x, 20, 3, 4, INK); box(g, x + 0.5, 21, 2, 3, St[3]); }
+      box(g, 35, 11, 16, 13, INK); shaded(g, 36, 12, 14, 12, St);
+      box(g, 41, 15, 3, 5, INK); box(g, 41, 16, 2, 3, tod.lamps > 0.3 ? '#FFD88A' : St[0]);
       for (const [tx, tt] of [[12, 40], [74, 34], [43, 12]] as const) {
-        if (tx !== 43) shaded(g, tx - 7, tt, 14, 100 - tt, St);
-        poly(g, [[tx - 9, tt + 1], [tx, tt - 22], [tx + 9, tt + 1]], INK); poly(g, [[tx - 8, tt], [tx, tt - 20], [tx + 8, tt]], Sl[2]); poly(g, [[tx - 8, tt], [tx, tt - 20], [tx - 2, tt]], Sl[3]);
-        box(g, tx, tt - 28, 1, 8, INK); poly(g, [[tx + 1, tt - 28], [tx + 7, tt - 26], [tx + 1, tt - 24]], t('#1E5AA8'));
+        if (tx !== 43) { box(g, tx - 8, tt, 16, 100 - tt, INK); shaded(g, tx - 7, tt, 14, 100 - tt, St); }
+        // (the corbelled ring of battlements under the cone, as the castle has it in Germany)
+        box(g, tx - 9, tt - 3, 18, 5, INK); shaded(g, tx - 8, tt - 2, 16, 3, St); box(g, tx - 8, tt - 2, 16, 1, St[4]);
+        for (let x = tx - 8; x < tx + 8; x += 4) box(g, x, tt + 1, 2, 1, St[0]);
+        // (the slate cone: scales in rows, lit left, shaded right)
+        const ct = tt - 2, tip = ct - 20;
+        poly(g, [[tx - 9, ct + 1], [tx, tip - 2], [tx + 9, ct + 1]], INK); poly(g, [[tx - 8, ct], [tx, tip], [tx + 8, ct]], Sl[2]);
+        poly(g, [[tx - 8, ct], [tx, tip], [tx - 2, ct]], Sl[3]); poly(g, [[tx + 3, ct], [tx, tip], [tx + 8, ct]], Sl[1]);
+        for (let r = 1; r < 5; r++) { const yy = ct - r * 4, hw = 8 * (1 - (r * 4) / 20); for (let x = tx - hw + 1; x < tx + hw - 1; x += 2) box(g, x, yy, 1, 1, Sl[(x - tx) < -2 ? 4 : 0]); }
+        // (the gold finial and its ball, the blue-and-white pennant)
+        box(g, tx - 1, tip - 9, 2, 10, INK); box(g, tx, tip - 8, 1, 9, Gd[3]); box(g, tx - 1, tip - 2, 3, 2, Gd[2]); box(g, tx - 1, tip - 2, 1, 1, Gd[4]);
+        poly(g, [[tx + 1, tip - 9], [tx + 9, tip - 7], [tx + 1, tip - 5]], t('#1E5AA8')); poly(g, [[tx + 1, tip - 9], [tx + 5, tip - 8], [tx + 1, tip - 7]], t('#F8FAFC'));
       }
       for (const [wx, wy] of [[22, 66], [38, 32], [46, 32], [60, 66], [40, 70]] as const) { box(g, wx, wy, 3, 6, INK); box(g, wx, wy + 1, 2, 4, tod.lamps > 0.3 ? '#FFD88A' : St[0]); }
       // (the world's biggest cuckoo clock beside it: the carved house, its dial, the bird on the peak)
@@ -318,7 +332,8 @@ export const drawMark = (c: Ctx, id: string, x: number, foot: number, k: number,
   const M = markOf(id), w = M.w * s, h = M.h * s, x0 = Math.round(x - w / 2), top = Math.round(foot - h);
   if (x0 > W + 10 || x0 + w < -10) return;
   c.save(); c.translate(x0, top); if (s !== 1) c.scale(s, s);
-  stamp(c, `fl-mark-${id}-${k}-${tod.key}`, -2, -2, M.w + 4, M.h + 4, g => { M.paint(g, farCol(tod, k), tod); mist(g, M.w + 4, M.h * 0.55, M.h * 0.45 + 4, skyAt(0.9, tod), 0, 0.3, 3); });
+  // (room over the top for what pokes out of it: finials, pennants (the castle's keep's were cut off))
+  stamp(c, `fl-mark-${id}-${k}-${tod.key}`, -2, -26, M.w + 4, M.h + 28, g => { M.paint(g, farCol(tod, k), tod); mist(g, M.w + 4, M.h * 0.55, M.h * 0.45 + 4, skyAt(0.9, tod), 0, 0.3, 3); });
   c.restore();
 };
 

@@ -62,6 +62,7 @@ import {
 } from './arena';
 import { drawRambo, mouthAt, muzzleAt, type RamboPose } from './rambo';
 import { drawLibertyBody, drawArm, gunLine, drawChunk, drawRubble, drawRevolverAt, drawTorchAt, CONC, PUKE, type Face, type LibLook, type Stain } from './liberty';
+import { gooStream, gooSplat, gooPile, gooDrip, ageOf, PUKE_GOO, BLOODY_GOO, CONC_GOO } from './goo';
 import * as L from './lines';
 
 type Ctx = CanvasRenderingContext2D;
@@ -1053,7 +1054,7 @@ const barfing = (ctx: FrameContext, f: Fight) => {
       // (puking and sobbing; every hit a big one; it takes it out of him)
       f.green = 1;
       if (b.t % 22 === 4) playSound(b.t % 44 === 4 ? 'barf' : 'retch', 0.8, -2 + Math.random() * 2);
-      if (b.t % 3 === 0) state.particles.push({ pos: { x: f.hx + f.facing * 40, y: GY - 6 }, vel: { x: (Math.random() - 0.5) * 4, y: -1 - Math.random() * 2 }, life: 24, color: PUKE[b.t % 3], size: 2 + Math.random() * 3, grav: 0.35 });
+      if (b.t % 3 === 0) state.particles.push({ pos: { x: f.hx + f.facing * 40, y: GY - 6 }, vel: { x: (Math.random() - 0.5) * 4, y: -1 - Math.random() * 2 }, life: 24, color: PUKE_P[b.t % PUKE_P.length], size: 2 + Math.random() * 3, grav: 0.35 });
       if (f.puddle) f.puddle.k = Math.min(1, f.puddle.k + 1 / GRIEF_T);
       f.hp -= GRIEF_DRAIN / GRIEF_T;
       if (b.t % 50 === 25) ctx.fx.spawnDamageNumber({ x: f.hx - 10, y: f.hy - 100 }, Math.round(GRIEF_DRAIN / 4), false);
@@ -1239,7 +1240,7 @@ const barfedToDeath = (ctx: FrameContext, f: Fight, d: Death, t: number) => {
       if (k === 1) { playSound('barf', 0.8 + n * 0.1, -2 - n * 3); playSound('gush', 0.6 + n * 0.12, -n * 2); shakeScreen(state, 3 + n * 2, 3); }
       if (k < 28) {
         pd.k = Math.min(1, pd.k + (0.25 + n * 0.1) / 28);
-        const cols = n < 2 ? PUKE : BLOODY;
+        const cols = n < 2 ? PUKE_P : BLOODY;
         if (k % 2 === 0) state.particles.push({ pos: { x: pd.x + (Math.random() - 0.5) * 30, y: GY - 6 }, vel: { x: (Math.random() - 0.5) * (4 + n * 2), y: -1 - Math.random() * (2 + n) }, life: 26, color: cols[(k >> 1) % cols.length], size: 2 + Math.random() * (3 + n), grav: 0.35 });
       } else if (k === 34) playSound('bellow', 0.4, 6 - n * 2);
       if (u >= BARF_HEAVES * HEAVE_T) { d.step = 'pale'; d.at = t; harryLine(f, L.HARRY_BARF_DEATH, tokened(() => { d.lineDone = true; })); }
@@ -1249,7 +1250,7 @@ const barfedToDeath = (ctx: FrameContext, f: Fight, d: Death, t: number) => {
       if (u >= 70) { d.step = 'keel'; d.at = t; }
       break;
     case 'keel':
-      if (u === 22) { playSound('splat', 1, -10); playSound('glug', 0.8, -8); for (let i = 0; i < 14; i++) state.particles.push({ pos: { x: pd.x, y: GY - 4 }, vel: { x: (Math.random() - 0.5) * 7, y: -2 - Math.random() * 4 }, life: 30, color: i % 2 ? PUKE[1] : BLOODY[1], size: 2 + Math.random() * 3, grav: 0.35 }); }
+      if (u === 22) { playSound('splat', 1, -10); playSound('glug', 0.8, -8); for (let i = 0; i < 14; i++) state.particles.push({ pos: { x: pd.x, y: GY - 4 }, vel: { x: (Math.random() - 0.5) * 7, y: -2 - Math.random() * 4 }, life: 30, color: i % 2 ? PUKE_P[i % PUKE_P.length] : BLOODY[1], size: 2 + Math.random() * 3, grav: 0.35 }); }
       if (u >= 30) { d.step = 'gurgle'; d.at = t; }
       break;
     case 'gurgle':
@@ -1269,6 +1270,8 @@ const barfedToDeath = (ctx: FrameContext, f: Fight, d: Death, t: number) => {
   if (d.step === 'set' && d.st === 'wait' && t - d.at > 50 && f.crumble < 0) { d.st = f.crumbled ? 'gone' : 'look'; d.stT = 0; }
 };
 const BLOODY = ['#450A0A', '#7F1D1D', '#B91C1C', '#5B3A1A'];
+/** His barf's specks flying (the goo's ramp and the chunks in it). */
+const PUKE_P = [PUKE_GOO.R[1], PUKE_GOO.bits[0], PUKE_GOO.R[2], PUKE_GOO.bits[1], PUKE_GOO.R[3], PUKE_GOO.bits[2]];
 
 /** Her arm, while it's not the fight's any more (up, then the beats' business). */
 const statueArmOnly = (f: Fight) => {
@@ -1520,35 +1523,28 @@ const drawHim = (c: Ctx, f: Fight, fr: number) => {
 /** What's left of him on a revisit, by how he died (the standard death: the chalk outline, the scene's). */
 export const drawLeftovers = (c: Ctx, how: string, fr: number) => {
   if (how === 'buried') drawBuried(c, MID + 40, 1, fr, 9999);
-  else if (how === 'barfed') drawPuddle(c, MID + 90, 1, 1);
+  else if (how === 'barfed') drawPuddle(c, MID + 90, 1, 1, fr, 0);
 };
 
-/** His own puke on the floor: a pool in steps (its rim dithered into the slab, chunks in it, a wet sheen, a bubble
- *  now and then), its middle swirling red the bloodier it got. */
-const drawPuddle = (c: Ctx, x: number, k: number, bloody: number, fr = 0) => {
+/** How long the puddle's held its size (it dries once he's stopped adding to it). */
+const puddleStill = new WeakMap<object, { k: number; at: number }>();
+/** His own puke on the floor: an irregular pancake (goo.ts: inked, its rim deep, chunks of lunch from the Mexico
+ *  pavilion in it, a sheen, bubbles), drying once he's done; its middle a red pool on top the bloodier it got. */
+const drawPuddle = (c: Ctx, x: number, k: number, bloody: number, fr = 0, wetness?: number) => {
   if (k <= 0.02) return;
   const w = 24 + 90 * k, h = 4 + 7 * k, y = GY - 1;
-  ellR(c, x, y, w + 4, h + 3, dith(c, PUKE[0]));
-  ellR(c, x, y, w + 2, h + 2, '#1A0B06');
-  ellR(c, x, y, w, h, PUKE[0]);
-  ellR(c, x - w * 0.06, y - 0.6, w * 0.82, h * 0.74, dith(c, PUKE[1]));
-  ellR(c, x - w * 0.1, y - 1, w * 0.66, h * 0.56, PUKE[1]);
-  ellR(c, x - w * 0.18, y - 1.6, w * 0.36, h * 0.3, dith(c, PUKE[2]));
-  if (bloody > 0) {
-    ellR(c, x + w * 0.1, y, w * 0.56 * bloody, h * 0.6 * bloody, dith(c, BLOODY[1]));
-    ellR(c, x + w * 0.12, y, w * 0.44 * bloody, h * 0.48 * bloody, BLOODY[1]);
-    ellR(c, x + w * 0.04, y - 0.6, w * 0.2 * bloody, h * 0.24 * bloody, BLOODY[2]);
-    box(c, x - w * 0.2, GY - 3, w * 0.25 * bloody, 1, BLOODY[2]);
+  let wet = wetness ?? 1;
+  if (wetness === undefined) {
+    const key = f0Puddle(x), s = puddleStill.get(key);
+    if (!s || Math.abs(s.k - k) > 0.001 || s.at > fr) puddleStill.set(key, { k, at: fr });
+    else wet = 1 - Math.min(1, (fr - s.at) / 1500) * 0.8;
   }
-  // (chunks in it: what he had for lunch at the Mexico pavilion)
-  for (let i = 0; i < Math.round(3 + k * 6); i++) {
-    const cx = x + (((i * 37) % 100) / 100 - 0.5) * w * 1.4, cy = y + (((i * 53) % 100) / 100 - 0.5) * h * 0.9;
-    box(c, cx - 1.5, cy - 1, 3, 2, i % 3 ? '#CA8A04' : '#A16207'); box(c, cx - 1.5, cy - 1, 1, 1, '#FDE68A');
-  }
-  box(c, x - w * 0.5, y - h * 0.6, w * 0.3, 1, PUKE[3]); box(c, x - w * 0.42, y - h * 0.62, 3, 1, '#FFFFFF');
-  const bub = (fr % 70) / 70;
-  if (bub < 0.4) { c.strokeStyle = PUKE[3]; c.lineWidth = 1; c.beginPath(); c.arc(x + w * 0.3, y - 1 - bub * 3, 1.4 + bub * 3, 0, Math.PI * 2); c.stroke(); }
+  gooSplat(c, x, y, w, h, PUKE_GOO, 3, wet, fr);
+  if (bloody > 0) gooSplat(c, x + w * 0.1, y, w * 0.5 * bloody, h * 0.6 * bloody + 0.5, BLOODY_GOO, 5, Math.max(0.3, wet), fr);
 };
+/** (one key per puddle spot: the WeakMap wants an object) */
+const puddleKeys = new Map<number, object>();
+const f0Puddle = (x: number) => { const r = Math.round(x); let o = puddleKeys.get(r); if (!o) { if (puddleKeys.size > 32) puddleKeys.clear(); o = {}; puddleKeys.set(r, o); } return o; };
 /** Barfed to death: kneeling over the pool heaving; pale; face first into it; gurgling; still. */
 const drawBarfed = (c: Ctx, f: Fight, d: Death, fr: number) => {
   const pd = f.puddle, u = d.t - d.at, heaves = d.step === 'heave' ? Math.floor(u / HEAVE_T) : 0;
@@ -1565,8 +1561,7 @@ const drawBarfed = (c: Ctx, f: Fight, d: Death, fr: number) => {
     c.restore();
     if (d.step === 'heave' && k > 2 && k < 30) {
       const m = mouthAt(lean, 1, face), sx = d.x + m.x, syy = GY + sink + m.y, ex = pd ? pd.x : d.x + face * 46;
-      const cols = heaves < 2 ? PUKE : BLOODY;
-      stream(c, sx, syy, (sx + ex) / 2 + face * 20, syy + 6, ex, GY - 4, 7 + heaves * 3, cols, fr, true);
+      gooStream(c, sx, syy, (sx + ex) / 2 + face * 20, syy + 6, ex, GY - 4, 7 + heaves * 3, heaves < 2 ? PUKE_GOO : BLOODY_GOO, fr, true, heaves);
     }
     return;
   }
@@ -1578,7 +1573,7 @@ const drawBarfed = (c: Ctx, f: Fight, d: Death, fr: number) => {
   c.restore();
   if (pd && (d.step === 'gurgle' || d.step === 'last')) for (let i = 0; i < 3; i++) {
     const ph = ((fr * 0.04 + i / 3) % 1), bx = d.x + face * (60 + i * 8), by = GY - 4 - ph * 14;
-    c.globalAlpha = 1 - ph; c.strokeStyle = PUKE[3]; c.lineWidth = 1.5; c.beginPath(); c.arc(bx, by, 2 + ph * 3, 0, Math.PI * 2); c.stroke(); c.globalAlpha = 1;
+    c.globalAlpha = 1 - ph; c.strokeStyle = PUKE_GOO.R[4]; c.lineWidth = 1.5; c.beginPath(); c.arc(bx, by, 2 + ph * 3, 0, Math.PI * 2); c.stroke(); c.globalAlpha = 1;
   }
 };
 
@@ -1602,23 +1597,22 @@ const drawBuried = (c: Ctx, x: number, k: number, fr: number, setT: number) => {
   // (the mound: her concrete, slopped, pale and wet, going darker and still as it sets; the pour's slumps round it)
   const h = 18 + 52 * k, w = 70 + 30 * k;
   const R = set > 0.5 ? CONC_HARD : CONC_WET;
-  const mound = () => { c.moveTo(x - w, GY); c.quadraticCurveTo(x - w * 0.7, GY - h * 0.9, x - 10, GY - h); c.quadraticCurveTo(x + w * 0.5, GY - h * 0.9, x + w * 0.8, GY); c.closePath(); };
-  shapeR(c, mound, R, x - w, x + w * 0.8, 2);
-  c.save(); c.beginPath(); mound(); c.clip();
-  for (let i = 0; i < 4; i++) {
-    const yy = GY - h * (0.2 + i * 0.2);
-    c.strokeStyle = R[3]; c.lineWidth = 1.4; c.beginPath(); c.moveTo(x - w, yy + 6); c.quadraticCurveTo(x - 10, yy - 6, x + w, yy + 8); c.stroke();
-    c.strokeStyle = R[0]; c.lineWidth = 1; c.beginPath(); c.moveTo(x - w, yy + 4); c.quadraticCurveTo(x - 10, yy - 8, x + w, yy + 6); c.stroke();
+  // (the blood pool goes under it: seeping out from under the slump)
+  const bleed0 = Math.min(1, Math.max(0, k - 0.6) + setT / 160);
+  if (bleed0 > 0) {
+    ellR(c, x - 6, GY - 1, (w + 18) * bleed0, 8 * bleed0 + 1, dith(c, BLOOD_R[0]));
+    ellR(c, x - 6, GY - 1, (w + 14) * bleed0, 7 * bleed0 + 1, BLOOD_R[0]);
+    ellR(c, x - 10, GY - 1, (w + 4) * bleed0, 5 * bleed0 + 1, BLOOD_R[1]);
+    ellR(c, x - 16, GY - 1.6, (w - 20) * bleed0, 3 * bleed0 + 0.5, dith(c, BLOOD_R[2]));
+    box(c, x - w * 0.6 * bleed0, GY - 3, w * 0.5 * bleed0, 1, BLOOD_R[3]); box(c, x - w * 0.5 * bleed0, GY - 3, 3, 1, '#FCA5A5');
   }
-  for (let i = 0; i < 26; i++) box(c, x - w + ((i * 47) % 100) / 100 * w * 1.8, GY - ((i * 31) % 100) / 100 * h, 1.4, 1.4, i % 3 ? R[3] : R[0]);
-  box(c, x - w * 0.5, GY - h * 0.86, w * 0.5, 3, R[0]); box(c, x - w * 0.3, GY - h * 0.55, 10, 2, R[0]);
-  c.restore();
-  // (wet: it's still running down, a sheen on it)
-  if (set < 1) for (let i = 0; i < 4; i++) {
-    const dx = x - w * 0.6 + i * 20, dy0 = GY - h * 0.6 + ((fr * 0.3 + i * 5) % 14);
-    box(c, dx - 0.6, dy0 - 0.6, 4.2, 7.2, R[4]); box(c, dx, dy0, 3, 6, R[1]); box(c, dx, dy0, 1, 6, R[0]);
+  // (the slump: her slurry heaped over him (goo.ts), sagging and drying paler from its edges as it sets)
+  gooPile(c, x - w * 0.1, GY, w * 0.9, h, CONC_GOO, 7, set, fr);
+  // (wet: gloopy drips still sliding down its slopes)
+  if (set < 1) for (let i = 0; i < 3; i++) {
+    const u = -0.6 + i * 0.55, dx = x - w * 0.1 + u * w * 0.9, dy0 = GY - h * (1 - u * u) ** 0.65 * 0.7;
+    gooDrip(c, dx, dy0, 10 + i * 3, 5, CONC_GOO, ((fr * (1 - set)) / 140 + i * 0.33) % 1);
   }
-  if (set < 0.5) box(c, x - w * 0.35, GY - h * 0.92, 6, 1, '#FFFFFF');
   // (the user: "some of his limbs stick out along with blood") Out of the top, his arm, clawing up, then set hard
   // flipping the bird; out the near slope, the top of his head and the bandana's knot out the slope; the blood seeping
   // out through the cracks as it sets, down the mound into a pool round its foot, red-stained chunks)
@@ -1656,13 +1650,6 @@ const drawBuried = (c: Ctx, x: number, k: number, fr: number, setT: number) => {
   const bleed = Math.min(1, Math.max(0, k - 0.6) + setT / 160);
   if (bleed <= 0) return;
   const BL = BLOOD_R;
-  ellR(c, x - 6, GY - 1, (w + 18) * bleed, 8 * bleed + 1, dith(c, BL[0]));
-  ellR(c, x - 6, GY - 1, (w + 14) * bleed, 7 * bleed + 1, BL[0]);
-  ellR(c, x - 10, GY - 1, (w + 4) * bleed, 5 * bleed + 1, BL[1]);
-  ellR(c, x - 16, GY - 1.6, (w - 20) * bleed, 3 * bleed + 0.5, dith(c, BL[2]));
-  box(c, x - w * 0.6 * bleed, GY - 3, w * 0.5 * bleed, 1, BL[3]); box(c, x - w * 0.5 * bleed, GY - 3, 3, 1, '#FCA5A5');
-  // (re-edge the mound's foot over the pool)
-  c.strokeStyle = R[4]; c.lineWidth = 2; c.beginPath(); c.moveTo(x - w, GY); c.quadraticCurveTo(x - w * 0.7, GY - h * 0.9, x - 10, GY - h); c.quadraticCurveTo(x + w * 0.5, GY - h * 0.9, x + w * 0.8, GY); c.stroke();
   for (const [cx, cy, len] of [[-0.45, 0.7, 0.55], [0.2, 0.8, 0.7], [-0.15, 0.55, 0.45], [0.5, 0.45, 0.4]] as const) {
     const sx = x + w * cx, sy0 = GY - h * cy, L2 = h * len * bleed;
     c.strokeStyle = R[4]; c.lineWidth = 2; c.beginPath(); c.moveTo(sx - 6, sy0 - 4); c.lineTo(sx, sy0); c.lineTo(sx + 5, sy0 - 6); c.stroke();
@@ -1685,41 +1672,18 @@ const drawStreams = (c: Ctx, f: Fight, fr: number) => {
     const tx = LIB.head.x + (f.hx - MID) * 0.35, ty = LIB.head.y + 190 + f.lib.dy;
     const u = Math.min(1, (b.t - 4) / 12), ex = sx + (tx - sx) * u, ey = syy + (ty - syy) * u;
     const cx = (sx + ex) / 2, cy = Math.min(syy, ey) - 60 * u;
-    stream(c, sx, syy, cx, cy, ex, ey, 9, PUKE, fr, b.t < 64);
+    gooStream(c, sx, syy, cx, cy, ex, ey, 11, PUKE_GOO, fr, b.t < 64);
   }
   if (b && b.stage === 'grief' && b.t % 22 < 16) {
     const lean = 0.38, m = mouthAt(lean, f.scale, f.facing), sx = f.hx + m.x, syy = f.hy + m.y, ex = f.puddle ? f.puddle.x : f.hx + f.facing * 46;
-    stream(c, sx, syy, (sx + ex) / 2 + f.facing * 16, syy + 6, ex, GY - 4, 8, PUKE, fr, true);
+    gooStream(c, sx, syy, (sx + ex) / 2 + f.facing * 16, syy + 6, ex, GY - 4, 9, PUKE_GOO, fr, true, 1);
   }
   const pouring = (b && b.stage === 'pour') || (d && d.how === 'buried' && d.step === 'pour');
   if (pouring) {
     const t = b ? b.t : d!.t, sx = LIB.mouth.x, syy = LIB.mouth.y + 16 + f.lib.dy;
     const tx = d ? d.x : f.hx, ty = d ? GY - 30 : f.hy - 90;
     const u = Math.min(1, t / 14), ex = sx + (tx - sx) * u, ey = syy + (ty - syy) * u;
-    stream(c, sx, syy, (sx + ex) / 2, syy + 20, ex, ey, 26, CONC.slice(2), fr, true);
-  }
-};
-/** A stream (his puke, her concrete): inked, its body in steps (the shade under, the lit top, a dithered seam), lumps
- *  tumbling down it, a wobble in its width, and a splatter where it lands. */
-const stream = (c: Ctx, x0: number, y0: number, cx: number, cy: number, x1: number, y1: number, w: number, cols: string[], fr: number, flowing: boolean) => {
-  const path = (o: number) => { c.beginPath(); c.moveTo(x0, y0 + o); c.quadraticCurveTo(cx, cy + o, x1, y1 + o); };
-  c.lineCap = 'round';
-  c.strokeStyle = '#1A0B06'; c.lineWidth = w + 4; path(0); c.stroke();
-  c.strokeStyle = cols[0]; c.lineWidth = w + 1; path(0.6); c.stroke();
-  c.strokeStyle = cols[1]; c.lineWidth = w * 0.8; path(-0.4); c.stroke();
-  c.strokeStyle = dith(c, cols[2] ?? cols[1]); c.lineWidth = w * 0.6; path(-w * 0.14); c.stroke();
-  c.strokeStyle = cols[2] ?? cols[1]; c.lineWidth = w * 0.34; path(-w * 0.22); c.stroke();
-  if (cols[3]) { c.strokeStyle = cols[3]; c.lineWidth = Math.max(1, w * 0.1); path(-w * 0.3); c.stroke(); }
-  // (lumps along it, tumbling down it, each lit on top)
-  if (flowing) for (let i = 0; i < 7; i++) {
-    const u = ((fr * 0.05 + i / 7) % 1), a = 1 - u;
-    const x = a * a * x0 + 2 * a * u * cx + u * u * x1, y = a * a * y0 + 2 * a * u * cy + u * u * y1, r = w * (0.36 + ((i * 37) % 10) / 50);
-    ellR(c, x, y, r + 1, r + 1, '#1A0B06'); ellR(c, x, y, r, r, cols[0]); ellR(c, x - r * 0.3, y - r * 0.3, r * 0.5, r * 0.5, cols[1]);
-  }
-  // (the splatter where it hits)
-  if (flowing) for (let i = 0; i < 5; i++) {
-    const ph = ((fr * 0.09 + i * 0.21) % 1), dx = (i - 2) * w * 0.5 * ph * 2, dy = -Math.sin(ph * Math.PI) * w * 0.9;
-    ellR(c, x1 + dx, y1 + dy, w * 0.18 * (1 - ph) + 0.8, w * 0.18 * (1 - ph) + 0.8, cols[i % 2 ? 1 : 2] ?? cols[1]);
+    gooStream(c, sx, syy, (sx + ex) / 2, syy + 20, ex, ey, 28, CONC_GOO, fr, true, 2);
   }
 };
 
@@ -1770,16 +1734,9 @@ export const drawFightBack = (c: Ctx, state: GameState, f: Fight) => {
   const fr = state.frame, a = f.arm;
   // (the concrete she's puked: mounds on the floor, set)
   for (const pl of f.piles) {
-    // (a mound of her concrete, set: in steps, its slumps, grit, a lit crest)
-    const h = 6 + 20 * pl.k, w = 50 + 30 * pl.k;
-    const pile = () => c.ellipse(pl.x, GY, w, h, 0, Math.PI, Math.PI * 2);
-    ellR(c, pl.x, GY, w + 4, 3, dith(c, CONC[1]));
-    shapeR(c, pile, CONC_HARD, pl.x - w, pl.x + w, 1.6);
-    c.save(); c.beginPath(); pile(); c.clip();
-    c.strokeStyle = CONC_HARD[3]; c.lineWidth = 1.2; c.beginPath(); c.ellipse(pl.x - 4, GY + 2, w * 0.7, h * 0.6, 0, Math.PI, Math.PI * 2); c.stroke();
-    for (let i = 0; i < 9; i++) box(c, pl.x - w + ((i * 41 + pl.x) % 100) / 100 * w * 2, GY - ((i * 29) % 100) / 100 * h, 1.4, 1.4, i % 2 ? CONC_HARD[0] : CONC_HARD[3]);
-    c.restore();
-    box(c, pl.x - w * 0.4, GY - h * 0.82, w * 0.4, 2, CONC_HARD[0]);
+    // (a slump of her concrete (goo.ts): heaped wet and dark, sagging, spreading and drying paler from its edges)
+    const h = 6 + 20 * pl.k, w = 50 + 30 * pl.k, settle = Math.min(1, ageOf(pl, fr) / 900);
+    gooPile(c, pl.x, GY, w, h, CONC_GOO, (Math.round(pl.x) % 89) + 11, settle, fr);
   }
   // (spent brass all over the slab where he's been shooting, the ride's M60's)
   for (let i = 0; i < Math.min(46, f.spentN ?? 0); i++) {
