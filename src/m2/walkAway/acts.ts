@@ -224,7 +224,7 @@ const SPELLBOOK: Act = {
         }
         // (its light on his face: from under, purple)
         const hy = ty + p.headY;
-        c.save(); c.globalAlpha = 0.16 + 0.06 * Math.sin(t * 0.15);
+        c.save(); c.globalAlpha = 0.06 + 0.03 * Math.sin(t * 0.15);
         c.fillStyle = '#C084FC'; c.beginPath(); c.ellipse(0, -156 + hy, 13, 8, 0, 0, Math.PI * 2); c.fill();
         c.restore();
         // (runes floating up off the pages, wobbling, fading)
