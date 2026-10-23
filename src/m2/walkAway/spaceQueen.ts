@@ -10,7 +10,9 @@
 // it XENOSCARE's fiberglass alien head (the haunted spaceship he came through), its eyes still lit green.
 // In the drag, the mess he's left: glitter, the mirror ball's tiles glinting, records, her acid oil in glowing puddles
 // and drips down the path, the fire extinguisher, the DJ's headset, the inner jaw on its rod (the one too many),
-// her offspring belly up and bleeding (machines bleed); killed by the mallet, her head, flattened. His new toy: the
+// her offspring belly up and bleeding (machines bleed); killed by the mallet, her head, flattened; otherwise (her oil
+// caught, her skin burnt off her: the skeleton's heap stays in the disco) a flake or two of her burnt latex blown out
+// here on the smoke, still smoldering. His new toy: the
 // OTHERWORLDLY SPAWNER.
 
 import { type Ctx, type Prop, type SceneDef, INK, HOR, F, CAM_H, VP_X, ME_X, box, hash, lump, poly, smoke, mix, stipple, rampOf } from './kit';
@@ -442,6 +444,20 @@ const paintHerHead = (g: Ctx, w: number, h: number) => {
   // (teeth, knocked out all round it)
   for (let i = 0; i < 7; i++) box(g, m - 18 + hash(i * 2.2) * 44, h - 4 - hash(i * 5.5) * 6, 2, 3, '#F3F4F6');
 };
+/** A flake of her burnt latex (her plain death): curled, charred black, its edge burnt orange, foam on its back. */
+const paintFlake = (g: Ctx, w: number, h: number) => {
+  const m = w / 2, y = h - 3;
+  poly(g, [[m - 12, y], [m - 9, y - 5], [m - 2, y - 7], [m + 8, y - 6], [m + 13, y - 1], [m + 6, y + 1], [m - 6, y + 1]], '#16100C');
+  box(g, m - 8, y - 5, 12, 1, '#3A2A1E'); box(g, m - 4, y - 3, 9, 1, '#2A1E16');
+  box(g, m + 9, y - 4, 3, 2, '#7C2D12'); box(g, m - 11, y - 1, 3, 1, '#7C2D12');
+  box(g, m + 1, y - 1, 4, 2, '#A07B22'); box(g, m + 2, y - 1, 2, 1, '#D6AE4A');
+};
+/** ...still smoldering: an ember winking on its edge, a thread of smoke off it. */
+const liveSmolder = (c: Ctx, sx: number, sy: number, s: number, t: number) => {
+  if (s < 2) return;
+  box(c, sx + s * 0.3, sy - s * 0.12, 2, 2, t % 20 < 10 ? '#F97316' : '#FACC15');
+  smoke(c, sx, sy - s * 0.15, s, t, 4, { n: 4, size: 0.18, rise: 0.02 });
+};
 const liveSpark = (c: Ctx, sx: number, sy: number, s: number, t: number) => {
   if (t % 46 < 5) { box(c, sx + s * 0.4, sy - s * 0.45, 2, 2, '#FDE047'); box(c, sx + s * 0.4 - 2, sy - s * 0.45 + 1, 1, 1, '#FFFFFF'); box(c, sx + s * 0.4 + 3, sy - s * 0.45 - 1, 1, 1, '#FFFFFF'); }
 };
@@ -474,6 +490,11 @@ const props = (weakness: boolean): Prop[] => {
   out.push({ id: 'wq-kin', x: ME_X - 1.1, z: 22, w: 1.4, h: 0.8, ppm: 30, paint: paintKin });
   // (killed by the mallet: her head, flattened, in the middle of the path behind him, still sparking)
   if (weakness) out.push({ id: 'wq-head', x: ME_X + 2.4, z: 6, w: 2, h: 0.8, ppm: 30, paint: paintHerHead, live: liveSpark });
+  // (otherwise: a flake or two of her burnt skin, blown out here on the smoke, smoldering)
+  else {
+    out.push({ id: 'wq-flake', x: ME_X + 1.9, z: 7, w: 1, h: 0.4, ppm: 30, paint: paintFlake, live: liveSmolder });
+    out.push({ id: 'wq-flake', x: ME_X - 2.2, z: 14, w: 1, h: 0.4, ppm: 30, paint: paintFlake, live: liveSmolder });
+  }
   return out;
 };
 /** A lamp's neon after dark: its rings and globe glowing, stepped. */

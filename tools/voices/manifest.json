@@ -54941,6 +54941,11 @@
  },
  {
   "voice": "m2.space.queen",
+  "text": "BURNING... STILL SMELLS... BETTER THAN YOU...",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.queen",
   "text": "DENT DETECTED. FILING A CLAIM.",
   "from": "SPACE"
  },
@@ -54967,6 +54972,11 @@
  {
   "voice": "m2.space.queen",
   "text": "DOES NOT COMPUTE. WHERE ARE YOUR PANTS.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "ENTERING... MORE FATAL MODE.",
   "from": "SPACE"
  },
  {
@@ -55046,6 +55056,11 @@
  },
  {
   "voice": "m2.space.queen",
+  "text": "IT IS HOT... IN THE DISCO... BZZT...",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.queen",
   "text": "IT'S A BOY. HE IS WEARING MORE THAN YOU.",
   "from": "SPACE"
  },
@@ -55057,6 +55072,26 @@
  {
   "voice": "m2.space.queen",
   "text": "IT'S A BOY. IT'S A ROBOT. KILL HIM, SON.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "LATEX... NOT... FIRE RATED...",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "LATEX... NOT... FIRE RATED... NEITHER ARE... YOUR PANTS...",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "LATEX... NOT... FIRE RATED... YOU HAVE... NONE...",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "LESS FATAL MODE... DISABLED.",
   "from": "SPACE"
  },
  {
@@ -55137,6 +55172,11 @@
  {
   "voice": "m2.space.queen",
   "text": "NOW ENTERING LESS FATAL MODE.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "NOW WE ARE... BOTH... NAKED... BZZT...",
   "from": "SPACE"
  },
  {
@@ -55327,6 +55367,21 @@
  {
   "voice": "m2.space.queen",
   "text": "WARNING. STRUCTURAL INTEGRITY. AND ODOR.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "WARNING... OIL TEMPERATURE... CRITICAL...",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "WARNING... OIL TEMPERATURE... CRITICAL... COVER... YOURSELF...",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.queen",
+  "text": "WARNING... OIL TEMPERATURE... CRITICAL... ODOR... ALSO CRITICAL...",
   "from": "SPACE"
  },
  {
@@ -71151,6 +71206,11 @@
  },
  {
   "voice": "meathead",
+  "text": "INCOMING BABIES!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "INCOMING! I ALWAYS WANTED TO SAY INCOMING!",
   "from": "FOREIGN"
  },
@@ -71781,6 +71841,16 @@
  },
  {
   "voice": "meathead",
+  "text": "IT TRIPPED. I SHIT MYSELF OVER A ROBOT THAT TRIPPED.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT TRIPPED. I'M NAKED AND EVEN I DIDN'T TRIP.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "IT WANDERS AROUND SPINNING. LIKE MY UNCLE ON AMBIEN.",
   "from": "CARTOON"
  },
@@ -72303,6 +72373,11 @@
   "voice": "meathead",
   "text": "IT'S RAINING PEOPLE! GROSS PEOPLE!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT'S RAINING ROBOT TURDS.",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -77061,6 +77136,11 @@
  },
  {
   "voice": "meathead",
+  "text": "OH, NOW THE OIL BURNS.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "OH, NOW WE FIGURE OUT THE DOOHICKEY. SLOW CLAP.",
   "from": "m1/game/stages/victor/doorman.ts:540"
  },
@@ -80191,6 +80271,16 @@
  },
  {
   "voice": "meathead",
+  "text": "SCARIEST THING I EVER SAW. GOOD THING I ALREADY SHIT.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "SCARIEST THING I EVER SAW. THEN IT TRIPPED.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "SCENE. TAKE A BOW.",
   "from": "CARTOON"
  },
@@ -80461,6 +80551,11 @@
  },
  {
   "voice": "meathead",
+  "text": "SHE GOT NAKED TOO. LOOKED WORSE THAN ME. BARELY.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "SHE HIT A NOTE AND MY FILLINGS HURT.",
   "from": "FOREIGN"
  },
@@ -80568,6 +80663,11 @@
   "voice": "meathead",
   "text": "SHE SHAT ON THE WAY UP. NOW WE'RE EVEN.",
   "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
+  "text": "SHE SHITS THEM OUT MID-AIR NOW?",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -84243,6 +84343,11 @@
   "voice": "meathead",
   "text": "THAT WAS THE WHOLE POLICE DEPARTMENT.",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT WAS UNDER THERE THE WHOLE TIME? I'M NEVER SLEEPING AGAIN.",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",

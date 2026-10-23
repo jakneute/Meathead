@@ -17,7 +17,8 @@
 //   THE LEAP      every so often (and straight after she's had her head bonked) she crouches (the tell: down, a
 //                 screech), leaps across the hall to the other side in a big arc, and all along it barfs "acid" (motor
 //                 oil) down on the floor: it burns, and it leaves slicks (Meathead 1's oil: he slides on them). She
-//                 lands in a pool of it, hot, glowing: keep out.
+//                 lands in a pool of it, hot, glowing: keep out. Now and then a sac or two of her young drops out of
+//                 her mid-leap (over the screen), or pops out of her where a hop lands (inside her cap).
 //   THE BOOTH     from half way down her, the operators chip in: a spotlight dropped on him out of the rig (its spot
 //                 marked red on the floor and a whistle first). Lower she gets, the more of hers at once, the quicker
 //                 they come, the more she leaps.
@@ -34,8 +35,11 @@
 //                     once she's over it she's off to the other side;
 //                   - the mallet's plain swings: a modest knock, the breather after each like anything else.
 //                 No instant kills.
-//   HER DEATH     her circuits going: sparks, her head drops, her crest bends, a gush of green hydraulic fluid, her
-//                 recording slurring out of her; her offspring drop dead where they stand. Then the operators, Saturday-
+//   HER DEATH     (anything but the mallet; endo.ts) her motor oil boils over and, NOW, it burns: her latex chars and
+//                 peels off her in burning flakes, and under it a steel endoskeleton, eyes lit; LESS FATAL MODE...
+//                 DISABLED; it screams, lunges at him one last time, trips over its own feet and breaks apart on the
+//                 floor, one heap. His say. (A cutscene: no input, no HUD, skip all-or-nothing.) The mallet's: she
+//                 bursts all over the hall. Either way her offspring drop dead where they stand. Then the operators, Saturday-
 //                 morning villains: fists shaking at him through the glass, stomping, CURSES, WE'LL SEE YOU AGAIN,
 //                 MEATHEAD!, and out the booth's back door in a cloud of dust. His say. Over. (After: the booth empty.)
 //
@@ -77,6 +81,7 @@ import { setDropTable } from '../../../m1/game/core/effects';
 import { since } from '../../frames';
 import { drawQueenGross, drawQueenGrossBack } from './queenGross';
 import { type Sud, addSud, tickSuds, drawSuds } from './foam';
+import { type Endo, makeEndo, tickEndo, settleEndo, drawEndo, endoLights } from './endo';
 
 type Ctx = CanvasRenderingContext2D;
 const pick = pickLine;
@@ -134,6 +139,9 @@ const SLICK_LIFE = 1100;
 /** The barf on a leap: in gushes, onto spaced spots along the floor between her two sides (marked from her crouch on),
  *  safe gaps between: how many (by phase), how wide each, the drops in each, kept this far in from her two sides. */
 const BARF_N = [0, 3, 4, 4], BARF_W = 110, BARF_DROPS = 7, BARF_IN = 130;
+/** Her young on the move: the odds a leap (or a hop) brings some; how many at most (and never past her cap, KIN_CAP);
+ *  not on the very first leap of a go. */
+const BROOD_ODDS = 0.35, BROOD_MAX = 2, BROOD_AFTER = 240;
 /** The drips off her all the time (frames between), the puddles she leaves stood about (how often, how long they last). */
 const DRIP_EVERY = 2, SPOT_EVERY = 50, SPOT_LIFE = 700;
 /** How often she says something at him (frames). */
@@ -222,6 +230,12 @@ export interface Fight {
   /** Frames stood in this one spot; goes at him (litters, flails) made from it. */
   stay: number; acts: number;
   deathT: number; deathSaid: number; byWeakness: boolean;
+  /** Her plain death: the burn, the skeleton, the lunge, the heap (endo.ts); null till then (and for the mallet's). */
+  endo: Endo | null;
+  /** Sacs still to drop out of her on this leap (or out where this hop lands). */
+  brood: number;
+  /** When it went on (f.total): her young don't come on the move till a while into it. */
+  onAt: number;
   e: Enemy | null;
   /** A retry's entrance beat (frames left): she rears and screeches, a greeting, nothing at him (the user's). */
   entrance: number;
@@ -238,7 +252,7 @@ export const makeFight = (state: GameState): Fight => {
     birthT: 120, leapT: 0, linger: 0, forceLeap: false, stunT: 0, closeAt: -9999, pool: null,
     dents: 0, pieces: [], splats: [], glitchAt: -9999, stopT: 0, barFrom: HP, barT: 0, blown: false, slow: null, whiteT: 99, lastWords: false,
     drops: [], sacs: [], slicks: [], barf: [], spots: [], litter: [], cheapSaid: false, grabT: 0, tauntT: 0, saidBirth: -9999, barked: new Set(), throwAt: -1, throwHintAt: -9999, flungAt: -9999, eventAt: -99,
-    ops: { mode: 'on', t: 0 }, can: null, canT: 0, leapFrom: SIDE_X[1], dest: SIDE_X[1], hop: false, runT: 0, stride: 0, stay: 0, acts: 0, deathT: 0, deathSaid: 0, byWeakness: false, e: null, entrance: 0,
+    ops: { mode: 'on', t: 0 }, can: null, canT: 0, leapFrom: SIDE_X[1], dest: SIDE_X[1], hop: false, runT: 0, stride: 0, stay: 0, acts: 0, deathT: 0, deathSaid: 0, byWeakness: false, endo: null, brood: 0, onAt: 0, e: null, entrance: 0,
   };
 };
 
@@ -329,7 +343,7 @@ export const startFight = (state: GameState, f: Fight) => {
 /** On: out of the cutscene, the enemy into the world. */
 const begin = (state: GameState, f: Fight) => {
   f.token++;
-  to(f, 'idle'); f.glass = false; f.booth = 1; f.beam = 0; f.alive = 1; f.said = null; f.boothSaid = null;
+  to(f, 'idle'); f.onAt = f.total; f.glass = false; f.booth = 1; f.beam = 0; f.alive = 1; f.said = null; f.boothSaid = null;
   f.lights = 1; f.down = 1; f.foam = 0; f.suds = []; f.ext2 = 'gone'; f.cheapSaid = false;
   f.birthT = 120; f.canT = 0;
   // (the big leap's ready from the off: the first time she's to move, that's it; a retry, she's off soon after her entrance)
@@ -604,6 +618,8 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
   tickPool(ctx, f);
   if (f.mode !== 'dead') tickCan(ctx, f, ph);
   sync(f);
+  // (her plain death's a cutscene: hands off, the HUD down, from its first frame)
+  if (f.mode === 'dead' && !f.blown) { p.inCutscene = true; p.vel.x *= 0.8; return hands(); }
   return controls;
 };
 
@@ -670,6 +686,9 @@ const startLeap = (state: GameState, f: Fight, hopX?: number) => {
   f.dest = dest;
   f.facing = (Math.sign(dest - f.x) || -f.side) as 1 | -1;
   f.barf = [];
+  // (some of her young on the way, now and then: as many as her cap has room for)
+  const room = KIN_CAP[phase(f)] - kinAbout(state).length - f.sacs.length;
+  f.brood = f.total - f.onAt > BROOD_AFTER && Math.random() < BROOD_ODDS ? Math.max(0, Math.min(room, 1 + Math.floor(Math.random() * BROOD_MAX))) : 0;
   if (f.hop) { playSound('screams', 0.4, -2); playSound('snort', 0.6, -4); return; }
   f.leapT = 0;
   // (where the barf'll come down: spaced spots along the floor between her and where she's going, gaps between them to
@@ -701,13 +720,27 @@ const leaping = (ctx: FrameContext, f: Fight) => {
         f.drops.push({ x: x0, y: y0, vx: (tx - x0) / T, vy, tx });
       }
     }
+    // (her young: out of her rear in mid-air, a sac at a time, only over the screen (they land where he can see them))
+    if (!hop && f.brood > 0 && k > 0.25 && k < 0.85 && f.t % 10 === 0 && onScreen(state, f.x, 80)) {
+      f.brood--;
+      f.sacs.push({ x: f.x - dir * 50, y: GY - f.y - 110, vx: dir * (1 + Math.random() * 1.5), vy: -1 - Math.random(), t: 0, kind: broodKind(f), landed: 0 });
+      broodOut(state, f, f.x - dir * 50, GY - f.y - 110, -dir as 1 | -1);
+    }
     if (hop && f.t >= HOP_AIR) {
       // (a hop: down past him, turned round on him; no pool)
       f.ph = 'land'; f.t = 0; f.x = dest; f.y = 0; f.side = f.x > (SIDE_X[-1] + SIDE_X[1]) / 2 ? 1 : -1;
       f.facing = (pmid(state).x < f.x ? -1 : 1); playSound('thud', 1, -6); playSound('land', 0.8, -4); shakeScreen(state, 7, 4);
+      // (and her young burst out of her as she comes down, off to either side of her)
+      for (let i = 0; i < f.brood; i++) {
+        const side = ((i % 2 ? 1 : -1) * (Math.random() < 0.5 ? 1 : -1)) as 1 | -1;
+        f.sacs.push({ x: f.x + side * 40, y: GY - 120, vx: side * (2 + Math.random() * 2), vy: -4 - Math.random() * 2, t: 0, kind: broodKind(f), landed: 0 });
+        broodOut(state, f, f.x + side * 40, GY - 120, side);
+      }
+      f.brood = 0;
       return;
     }
     if (f.t >= AIR_T) {
+      f.brood = 0;
       f.ph = 'land'; f.t = 0; f.x = dest; f.y = 0; f.side = dest === SIDE_X[1] ? 1 : -1; playSound('thud', 1.2, -10); playSound('land', 1, -8); shakeScreen(state, 12, 6);
       // (down into a pool of it: hot, all round her, till her next birth)
       f.pool = { x: dest, k: 0, going: false }; playSound('gush', 1, -8);
@@ -717,6 +750,20 @@ const leaping = (ctx: FrameContext, f: Fight) => {
     return;
   }
   if (f.t >= (hop ? 14 : LAND_T)) to(f, 'idle');
+};
+/** Is world x on the screen (this far in from its edges)? */
+const onScreen = (state: GameState, x: number, inset: number) => x > state.camera.x + inset && x < state.camera.x + CANVAS_WIDTH - inset;
+/** Which of her young comes out (her odds by phase, no more than two chargers on their way). */
+const broodKind = (f: Fight) => {
+  const odds = KIN_ODDS[phase(f)], r = Math.random();
+  const kind = r < odds[0] ? BITER : r < odds[0] + odds[1] ? SPITTER : CHARGER;
+  return kind === CHARGER && f.sacs.filter(s => s.kind === CHARGER).length >= 2 ? BITER : kind;
+};
+/** One coming out of her on the move: the noise of it, the slime, his say (now and then). */
+const broodOut = (state: GameState, f: Fight, x: number, y: number, dir: 1 | -1) => {
+  playSound('fart', 0.8, -4 + Math.random() * 4); playSound('splat', 0.6, -2);
+  for (let q = 0; q < 8; q++) state.particles.push({ pos: { x, y }, vel: { x: dir * (1 + Math.random() * 3), y: -1 - Math.random() * 2 }, life: 26, color: q % 3 === 0 ? ALIEN.slime : q % 3 === 1 ? '#0A0604' : '#3F2A12', size: 2 + Math.random() * 3, grav: 0.3 });
+  if (state.frame - f.saidBirth > 900) { f.saidBirth = state.frame; meatheadSays(state, pick(L.MH_AIRDROP), false); }
 };
 /** The booth's spotlight: now and then (half way down her on), its spot marked on the floor under him (red, flashing,
  *  a whistle), then down it comes out of the rig: anything under it gets it (his, hers). */
@@ -776,7 +823,7 @@ const KIN_KINDS = [...KIN];
 
 /** She leaks all the time: drips off her joints, a trail of it in the air, puddles where she stands (looks only). */
 const leak = (state: GameState, f: Fight) => {
-  if (f.down < 1 || f.mode === 'intro' || f.mode === 'wait') return;
+  if (f.down < 1 || f.mode === 'intro' || f.mode === 'wait' || (f.endo && f.endo.ph === 'down')) return;
   const dead = f.mode === 'dead';
   if (state.frame % (dead ? DRIP_EVERY * 3 : DRIP_EVERY) === 0) {
     const x = f.x + (Math.random() - 0.5) * 80, y = GY - f.y - 40 - Math.random() * 170;
@@ -818,7 +865,9 @@ const tickSacs = (state: GameState, f: Fight) => {
       return true;
     }
     if (++s.landed >= 26) {
-      if (f.mode !== 'dead') spawnKin(state, s.kind, Math.max(ARENA_L + 40, Math.min(ARENA_R - 40, s.x)), s.vx > 0 ? 1 : -1);
+      // (out where he can see it: kept on the screen as well as in the hall)
+      const cam = state.camera.x, x = Math.max(ARENA_L + 40, cam + 40, Math.min(ARENA_R - 40, cam + CANVAS_WIDTH - 40, s.x));
+      if (f.mode !== 'dead') spawnKin(state, s.kind, x, s.vx > 0 ? 1 : -1);
       playSound('crack', 0.6, 6);
       return false;
     }
@@ -1016,7 +1065,13 @@ const die = (ctx: FrameContext, f: Fight) => {
   // (her weakness: a beat of slow motion on the killing blow, she swells and shudders, and bursts; her last words come
   // out of her head wherever it lands. Otherwise: her circuits going, said where she stands)
   if (f.byWeakness) { f.blown = true; f.slow = { t: 0, acc: 0 }; f.stopT = 0; f.whiteT = 99; shakeScreen(state, 10, 6); }
-  else queenSays(state, f, L.QUEEN_DIES, tokened(f, () => { f.deathSaid = 1; }));
+  else {
+    // (anything else: her oil boils over and catches (endo.ts); her speaker cooking while it does)
+    const en = f.endo = makeEndo();
+    f.stunT = 0; f.flash = 0; f.iframes = 0;
+    playSound('oil', 1, -8); playSound('glug', 0.8, -10);
+    queenSays(state, f, L.QUEEN_BURNS, tokened(f, () => { en.burnSaid = true; }));
+  }
 };
 /** Game frames into her weakness death that she bursts. */
 const BURST_AT = 7;
@@ -1044,10 +1099,17 @@ const dying = (ctx: FrameContext, f: Fight) => {
       queenSays(state, f, L.QUEEN_DIES, tokened(f, () => { f.deathSaid = 1; }));
     }
   }
-  if (!f.blown && t % 5 === 0 && t < 200) state.particles.push({ pos: queenHead(f.x, f.facing, f.ext), vel: { x: (Math.random() - 0.5) * 6, y: -1 - Math.random() * 3 }, life: 16, color: Math.random() < 0.5 ? '#FDE047' : '#FFFFFF', size: 2 + Math.random() * 2, grav: 0.3 });
-  if (!f.blown && t > 30 && t < 120 && t % 2 === 0) state.particles.push({ pos: { x: f.x, y: GY - 180 }, vel: { x: f.facing * (2 + Math.random() * 4), y: -3 - Math.random() * 3 }, life: 40, color: [ALIEN.slime, ALIEN.slimeDark, ALIEN.slimeLight][t % 3], size: 3 + Math.random() * 3, grav: 0.35 });
-  if (!f.blown && t === 30) playSound('gush', 1, -6);
-  if (!f.blown && t === 140) { playSound('thud', 1, -8); shakeScreen(state, 10, 5); }
+  const en = f.endo;
+  if (!f.blown && en) {
+    // (all of it skippable, all or nothing: straight to her in pieces and the booth empty)
+    if (t > SKIP_AFTER) offerSkip();
+    if (t > SKIP_AFTER && takeSkip()) { skipDeath(state, f, en); return; }
+    // (her last line once her burn line's done; the lunge once that is; his say once she's in pieces)
+    if (en.ph === 'bare' && en.t >= 50 && en.burnSaid && !en.fatalAsked) { en.fatalAsked = true; queenSays(state, f, L.QUEEN_MORE_FATAL, tokened(f, () => { en.go = true; })); }
+    tickEndo(state, en, f, pmid(state).x);
+    if (en.ph === 'down' && en.t >= 50 && !en.quipped) { en.quipped = true; meatheadSays(state, pick(L.MH_ENDO[dressed(state)]), true, tokened(f, () => { f.deathSaid = 1; })); }
+    if (en.ph === 'down' && en.t > 1500 && f.deathSaid === 0) f.deathSaid = 1;
+  }
   // (her last words done: the booth's two lose it (fists, stomping, CURSES), WE'LL SEE YOU AGAIN, out the back; then
   // him)
   const o = f.ops;
@@ -1064,6 +1126,19 @@ const dying = (ctx: FrameContext, f: Fight) => {
   if (t > 2400) f.deathSaid = 3;
 };
 
+/** Her plain death skipped: her in pieces where she'd have ended up, the booth's two gone, over. */
+const skipDeath = (state: GameState, f: Fight, en: Endo) => {
+  f.token++;
+  silenceAll(); state.playerVulgarityTimer = 0;
+  f.said = null; f.boothSaid = null;
+  settleEndo(en, f);
+  f.ops.mode = 'gone'; f.ops.t = 0;
+  f.deathSaid = 3; f.deathT = Math.max(f.deathT, 221);
+};
+/** Her plain death on (and skippable): the SKIP prompt's up. */
+export const deathSkippable = (f: Fight) => f.mode === 'dead' && !f.blown && !!f.endo && f.deathT > SKIP_AFTER && f.deathSaid < 3;
+/** The glow off her burning (the lighting pass). */
+export const deathLights = (f: Fight): Light[] => (f.mode === 'dead' ? endoLights(f.endo, f) : []);
 /** Her death and the booth's two running out on it: the camera pulled back (eased in by `k`, 0..1) to take in the
  *  booth (and what they say over it), her and him; the booth's words kept clear below the HUD. */
 export const discoZoom = (state: GameState, f: Fight, k: number) => {
@@ -1287,7 +1362,10 @@ export const drawQueenFight = (c: Ctx, state: GameState, f: Fight) => {
   for (const s of f.sacs) drawSac(c, s.x, s.y, state.frame, s.landed > 10 ? Math.min(1, (s.landed - 10) / 16) : 0);
   // (what's come off her: the splashes, the pieces)
   drawSplats(c, f.splats);
-  if (f.down > 0 && !(f.blown && f.deathT >= BURST_AT)) {
+  if (f.mode === 'dead' && f.endo) {
+    // (her plain death: burning, the skeleton, the lunge, the heap)
+    drawEndo(c, f.endo, f, state.frame, { pose: 'stunned', t: state.frame, ext: f.ext, alive: Math.max(0, 1 - f.deathT / 60), beat: 1, free: true, dents: f.dents });
+  } else if (f.down > 0 && !(f.blown && f.deathT >= BURST_AT)) {
     const blink = f.iframes > 0 && Math.floor(state.frame / 3) % 2 === 0 && f.mode !== 'dead';
     if (blink) c.globalAlpha = 0.65;
     // (about to burst: shuddering, swelling)

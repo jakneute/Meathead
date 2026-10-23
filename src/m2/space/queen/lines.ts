@@ -245,6 +245,28 @@ export const QUEEN_DIES: ByPants = {
   nude: ['THANK YOU... FOR VISITING... XENOSCARE... PLEASE... GET DRESSED...', 'ANY RESEMBLANCE... TO A DRESSED MAN... IS PURELY... COINCIDENTAL...', 'WE ARE... A PEACEFUL... PEOPLE... PUT IT... AWAY... BZZT...'],
 };
 
+/** Beaten by anything but the mallet: her motor oil boils over and catches (NOW it burns), her latex chars and peels
+ *  off her; her speaker, cooking. */
+export const QUEEN_BURNS: ByPants = {
+  clean: ['WARNING... OIL TEMPERATURE... CRITICAL...', 'LATEX... NOT... FIRE RATED...', 'IT IS HOT... IN THE DISCO... BZZT...'],
+  shitty: ['WARNING... OIL TEMPERATURE... CRITICAL... ODOR... ALSO CRITICAL...', 'LATEX... NOT... FIRE RATED... NEITHER ARE... YOUR PANTS...', 'BURNING... STILL SMELLS... BETTER THAN YOU...'],
+  nude: ['WARNING... OIL TEMPERATURE... CRITICAL... COVER... YOURSELF...', 'LATEX... NOT... FIRE RATED... YOU HAVE... NONE...', 'NOW WE ARE... BOTH... NAKED... BZZT...'],
+};
+/** ...her skin burnt off her: the steel skeleton under it, its eyes lit, and this out of it before the lunge. */
+export const QUEEN_MORE_FATAL: ByPants = {
+  clean: ['LESS FATAL MODE... DISABLED.', 'ENTERING... MORE FATAL MODE.'],
+  shitty: ['LESS FATAL MODE... DISABLED.', 'ENTERING... MORE FATAL MODE.'],
+  nude: ['LESS FATAL MODE... DISABLED.', 'ENTERING... MORE FATAL MODE.'],
+};
+/** Him, after: the skeleton tripped over itself and fell to pieces. */
+export const MH_ENDO: ByPants = {
+  clean: ['OH, NOW THE OIL BURNS.', 'SCARIEST THING I EVER SAW. THEN IT TRIPPED.', "THAT WAS UNDER THERE THE WHOLE TIME? I'M NEVER SLEEPING AGAIN."],
+  shitty: ['OH, NOW THE OIL BURNS.', 'SCARIEST THING I EVER SAW. GOOD THING I ALREADY SHIT.', 'IT TRIPPED. I SHIT MYSELF OVER A ROBOT THAT TRIPPED.'],
+  nude: ['OH, NOW THE OIL BURNS.', 'SHE GOT NAKED TOO. LOOKED WORSE THAN ME. BARELY.', "IT TRIPPED. I'M NAKED AND EVEN I DIDN'T TRIP."],
+};
+/** Him: her young dropping out of her mid-leap (or popping out where she lands). */
+export const MH_AIRDROP = ['SHE SHITS THEM OUT MID-AIR NOW?', "IT'S RAINING ROBOT TURDS.", 'INCOMING BABIES!'];
+
 // ---- What he says when hers hurt him, and the death screen
 
 export const HURT_OIL = ['MOTOR OIL! IN MY EYES!', 'SHE BARFED A QUART OF OIL ON ME!', "IT'S HOT! IT'S 10W-40!"];
@@ -286,10 +308,10 @@ export const DEATH_SPIT = ['SPAT TO DEATH', 'GREASED', 'SPIT-ROASTED'];
 export const VOICE_LINES: Record<string, string[]> = {
   meathead: [
     ...all(MH_GLASS), ...all(MH_KICK), ...all(MH_FALL), ...MH_DARK, ...MH_SPOT, ...all(MH_HIDE), ...all(MH_HIDE_DARK), ...MH_PASSED, ...MH_SEEN, ...MH_WARN_SHOOT, ...MH_WARN_MOVE, ...MH_USELESS,
-    ...all(MH_DISCO), ...MH_EXTINGUISHER, ...MH_FOAM_FAIL, ...MH_THROW, ...all(MH_LESS_FATAL), ...MH_RAY, ...MH_BIRTH, ...all(MH_THROW_HINT), ...MH_BAT, ...MH_HEAD, ...MH_GRAB,...all(MH_CHEAP_OIL), ...all(MH_OPS_GONE), ...HURT_CAN,
+    ...all(MH_DISCO), ...MH_EXTINGUISHER, ...MH_FOAM_FAIL, ...MH_THROW, ...all(MH_LESS_FATAL), ...MH_RAY, ...MH_BIRTH, ...all(MH_THROW_HINT), ...MH_BAT, ...MH_HEAD, ...MH_GRAB,...all(MH_CHEAP_OIL), ...all(MH_OPS_GONE), ...all(MH_ENDO), ...MH_AIRDROP, ...HURT_CAN,
     ...HURT_SPIT, ...HURT_JAW, ...HURT_OIL, ...all(HURT_FLAIL), ...all(HURT_POOL), ...HURT_BITER, ...HURT_SPITTER, ...HURT_CHARGER,
   ],
   death: [...DEATH_CAN, ...DEATH_SPIT, ...DEATH_JAW, ...DEATH_OIL, ...all(DEATH_FLAIL), ...all(DEATH_POOL), ...DEATH_BITER, ...DEATH_SPITTER, ...DEATH_CHARGER],
   'm2.space.alien': [...all(BOOTH_TAKEOVER), ...all(BOOTH_STUDY), ...all(BOOTH_RITUAL), ...all(BOOTH_RAY), ...all(BOOTH_BIRTH), ...all(BOOTH_MATING), ...all(BOOTH_DROP), ...all(BOOTH_CURSES), BOOTH_EXIT.clean[0]],
-  'm2.space.queen': ['NOW ENTERING LESS FATAL MODE.', ...[QUEEN_TAUNT, QUEEN_ENTRANCE, QUEEN_BIRTH, QUEEN_LEAP, QUEEN_STUN, QUEEN_MALLET, QUEEN_FLAIL, QUEEN_DIES].flatMap(all)],
+  'm2.space.queen': ['NOW ENTERING LESS FATAL MODE.', ...[QUEEN_TAUNT, QUEEN_ENTRANCE, QUEEN_BIRTH, QUEEN_LEAP, QUEEN_STUN, QUEEN_MALLET, QUEEN_FLAIL, QUEEN_DIES, QUEEN_BURNS, QUEEN_MORE_FATAL].flatMap(all)],
 };
