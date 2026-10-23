@@ -169,6 +169,9 @@ export const bedroom: FantasySection = {
   },
   // (his feet wherever he is, the camera's top held at CAM_Y: the floor low, the ceiling up under the HUD's band)
   cameraRow: (state) => state.player.pos.y + state.player.height - CAM_Y,
+  // (her fight, intro to walk-away, and her room any time: dead level, only panning (the user's: "a steady horizontal
+  // plane"; the follow's look-down for landings dipped it as he dropped off the furniture))
+  cameraFixedY: (state) => { const s = bedroomOf(state); return s.fight !== 'wait' || pmidX(state) > DOOR_X - 200 ? CAM_Y : undefined; },
   // (the sky by the hour: only seen round the spire's cone when the camera pulls out over the dollhouse cut)
   drawBackdrop: (c) => { drawTodSky(c, 0, 0, CANVAS_WIDTH, 600, ['#23307A', '#3A55B4', '#6E8EDC', '#A8C4F0', '#E8D4F0', '#F8C8D8'], { horizon: 600, moon: [620, 80], sun: [160, 90] }); return true; },
   drawBack: (c, state) => {

@@ -20,6 +20,7 @@
 // opts.thin (her fight's flintlock holes, the deflated balloon: bedroom/): 0 her .. 1 a SUPERMODEL .. 2 skin and bone.
 
 import { drawGrossUp } from './piperGross';
+import { elbow, reachTo } from '../art/limb';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -46,7 +47,57 @@ export interface PiperOpts {
   /** (her fight's flintlock holes: the deflated balloon) How much of her's leaked out: 0 her (morbidly obese) .. 1 a
    *  SUPERMODEL (slim, cheekbones, the gown fitting) .. 2 dangerously thin (skin and bone, the gown hanging off her). */
   thin?: number;
+  /** (her fight's elemental throws) An overhand throw: `k` 0 .. TOSS_RELEASE the wind-up (the arm drawn back, the
+   *  ball in her hand (`grow`: how formed, 0..1; default whole)), the release at TOSS_RELEASE, on to 1 the follow-through; the ball's element. Over the
+   *  pose's arms and lean. */
+  toss?: { k: number; kind: 'fire' | 'ice' | 'shock'; grow?: number };
 }
+
+// ---------------------------------------------------------------------------------------------------------------
+// The throw (her fight's fireballs, iceballs, bolts)
+
+/** Where in the throw the ball leaves her hand. */
+export const TOSS_RELEASE = 0.5;
+const TOSS_UPPER = 27, TOSS_FORE = 25;
+const lerpKeys = (keys: readonly (readonly [number, number, number])[], k: number): [number, number] => {
+  for (let i = 1; i < keys.length; i++) {
+    const [k1, x1, y1] = keys[i], [k0, x0, y0] = keys[i - 1];
+    if (k <= k1) { const t = (k - k0) / (k1 - k0 || 1), e = t * t * (3 - 2 * t); return [x0 + (x1 - x0) * e, y0 + (y1 - y0) * e]; }
+  }
+  const l = keys[keys.length - 1]; return [l[1], l[2]];
+};
+// (local, facing right, about her feet: the throwing (near) hand drawn back up behind her beehive, whipped over to the
+// release up in front, on down across her; the far hand (the wand in it) out at him for the aim, then swung back)
+const TOSS_NEAR = [[0, 46, -104], [0.32, -12, -154], [TOSS_RELEASE, 46, -152], [0.75, 70, -104], [1, 54, -72]] as const;
+const TOSS_FAR = [[0, 30, -112], [0.32, 50, -122], [TOSS_RELEASE, 20, -116], [0.75, -40, -98], [1, -36, -92]] as const;
+const TOSS_LEAN = [[0, 0, 0], [0.32, -0.09, 0], [TOSS_RELEASE, 0.08, 0], [0.75, 0.15, 0], [1, 0.06, 0]] as const;
+/** The throw's pose at `k`: her lean, the near shoulder, the throwing hand (in reach), its elbow (bent the way elbows
+ *  bend: limb.ts), the far hand. */
+const tossPose = (k: number, bw: number, hk: number, sh: number) => {
+  const lean = lerpKeys(TOSS_LEAN, k)[0];
+  const sx = 38 * bw, [nx, ny] = lerpKeys(TOSS_NEAR, k);
+  const hand = reachTo(sx, sh, nx * hk, ny, TOSS_UPPER, TOSS_FORE);
+  const elb = elbow(sx, sh, hand[0], hand[1], TOSS_UPPER, TOSS_FORE, 1);
+  const [fx, fy] = lerpKeys(TOSS_FAR, k);
+  return { lean, sx, hand, elb, far: [fx * hk, fy] as [number, number] };
+};
+/** Where her throwing hand is at `k` (local to her feet, facing right): the ball's spawn point at the release. */
+export const piperTossHand = (k: number, thin = 0): [number, number] => {
+  const t = Math.max(0, Math.min(2, thin)), bw = piperBodyW(t), hk = 0.45 + 0.55 * bw;
+  const P = tossPose(k, bw, hk, -114);
+  const cs = Math.cos(P.lean), sn = Math.sin(P.lean);
+  return [P.hand[0] * cs - P.hand[1] * sn, P.hand[0] * sn + P.hand[1] * cs];
+};
+/** The ball in her hand: an element's orb, forming (`grow` 0..1), glowing. */
+const tossBall = (c: Ctx, x: number, y: number, kind: 'fire' | 'ice' | 'shock', grow: number, f: number) => {
+  const r = 3 + 6 * grow;
+  const R = kind === 'fire' ? ['#7A1A04', '#E0420C', '#F98A1C', '#FDCB4A', '#FFF4C0'] : kind === 'ice' ? ['#1E4A7A', '#4A90C8', '#8ED0F0', '#D4F0FF', '#FFFFFF'] : ['#3A1A6A', '#7A3ACC', '#B47AF4', '#E8D4FF', '#FFFFFF'];
+  c.globalAlpha = 0.22 + 0.08 * Math.sin(f * 0.5); ell(c, x, y, r * 2.4, r * 2.4, R[2]); c.globalAlpha = 0.35; ell(c, x, y, r * 1.6, r * 1.6, R[3]); c.globalAlpha = 1;
+  ell(c, x, y, r + 1, r + 1, R[0]); ell(c, x, y, r, r, R[1]); ell(c, x - r * 0.15, y - r * 0.15, r * 0.7, r * 0.7, R[2]); ell(c, x - r * 0.3, y - r * 0.3, r * 0.4, r * 0.4, R[3]); px(c, x - r * 0.45, y - r * 0.5, 1.5, 1.5, R[4]);
+  if (kind === 'fire') for (let k = 0; k < 3; k++) { const ph = (f + k * 3) % 9; ell(c, x + (k - 1) * r * 0.5, y - r - ph * 0.8, 1.8 - ph * 0.15, 2.6 - ph * 0.2, ph < 4 ? R[3] : R[2]); }
+  else if (kind === 'ice') for (let k = 0; k < 4; k++) { const a = k * Math.PI / 2 + f * 0.05; sparkle(c, x + Math.cos(a) * (r + 3), y + Math.sin(a) * (r + 3), 1.5, R[4]); }
+  else for (let k = 0; k < 3; k++) { const a = ((f * 7 + k * 41) % 63) / 10; line(c, [x, y, x + Math.cos(a) * (r + 3), y + Math.sin(a) * (r + 3), x + Math.cos(a + 0.4) * (r + 7), y + Math.sin(a + 0.4) * (r + 7)], 1, k % 2 ? R[3] : R[4]); }
+};
 
 /** How wide her body is drawn at `thin` (1 her own width .. 0.45 the supermodel .. 0.23 the bones). */
 export const piperBodyW = (thin = 0) => { const t1 = Math.min(1, Math.max(0, thin)), t2 = Math.max(0, Math.min(1, thin - 1)); return 1 - 0.55 * t1 - 0.22 * t2; };
@@ -616,17 +667,19 @@ export const drawPiper = (c: Ctx, x: number, feetY: number, facing: 1 | -1, f: n
   const breathe = Math.sin(f * 0.06) * 1;
   const stamp = enraged ? (Math.floor(f / 8) % 2 ? 1 : -1) : pose === 'gloat' ? 0.5 + Math.sin(f * 0.2) * 0.5 : 0;
   const shake = enraged ? (f % 4 < 2 ? 1 : -1) : 0;
-  const lean = pose === 'hurt' ? -0.12 : 0;
-  c.translate(shake, pose === 'gloat' ? -Math.abs(stamp) * 3 : 0); c.rotate(lean);
   // (leaked down: the body drawn in to bw of her width, the arms and the hands in with it)
   const thin = Math.max(0, Math.min(2, opts.thin ?? 0)), bw = piperBodyW(thin), hk = 0.45 + 0.55 * bw;
+  const toss = opts.toss ? tossPose(Math.max(0, Math.min(1, opts.toss.k)), bw, hk, -114) : null;
+  const lean = toss ? toss.lean : pose === 'hurt' ? -0.12 : 0;
+  c.translate(shake, pose === 'gloat' ? -Math.abs(stamp) * 3 : 0); c.rotate(lean);
   // the wings, behind her
   wings(c, -30 * bw, -112, f, enraged || pose === 'gloat');
   // the far arm, behind her
   const sh = -114 + breathe;
   const farHand: [number, number, 'open' | 'fist' | 'wand' | 'clasp' | 'bonbon'] =
     enraged ? [-38, -150 + (f % 8 < 4 ? 0 : 6), 'fist'] : pose === 'gloat' ? [-4, -112, 'clasp'] : pose === 'talk' || pose === 'point' ? [-48, -70, 'open'] : [-26, -150, 'open'];
-  armTo(c, -34 * bw, sh, farHand[0] * hk, farHand[1], false, farHand[2], f, enraged, thin);
+  if (toss) armTo(c, -34 * bw, sh, toss.far[0], toss.far[1], false, 'wand', f, enraged, thin);
+  else armTo(c, -34 * bw, sh, farHand[0] * hk, farHand[1], false, farHand[2], f, enraged, thin);
   legs(c, stamp, thin);
   body(c, j, f, thin);
   // the head (its beehive behind it)
@@ -641,7 +694,13 @@ export const drawPiper = (c: Ctx, x: number, feetY: number, facing: 1 | -1, f: n
           : pose === 'point' ? [70, -108, 'wand']
             : pose === 'hurt' ? [60, -126, 'open']
               : [50, -62, 'wand'];
-  armTo(c, 38 * bw, sh, nearHand[0] * hk, nearHand[1], true, nearHand[2], f, enraged, thin);
+  if (toss && opts.toss) {
+    // (the throwing arm, its elbow from limb.ts (breath and all: the shoulder's where the pose has it); the ball in the
+    // hand till it's let go, forming as she draws back)
+    const dy = sh + 114;
+    armTo(c, toss.sx, sh, toss.hand[0], toss.hand[1] + dy, true, 'open', f, enraged, thin, [toss.elb[0], toss.elb[1] + dy]);
+    if (opts.toss.k < TOSS_RELEASE) tossBall(c, toss.hand[0], toss.hand[1] + dy, opts.toss.kind, Math.max(0, Math.min(1, opts.toss.grow ?? 1)), f);
+  } else armTo(c, 38 * bw, sh, nearHand[0] * hk, nearHand[1], true, nearHand[2], f, enraged, thin);
   // (steam off her when she's furious)
   if (enraged) for (let k = 0; k < 3; k++) { const t = (f * 2 + k * 20) % 60; c.globalAlpha = 1 - t / 60; ell(c, hx - 10 + k * 12, hy - 60 - t * 0.6, 4 + t * 0.1, 3 + t * 0.08, '#FFFFFF'); c.globalAlpha = 1; }
   c.restore();

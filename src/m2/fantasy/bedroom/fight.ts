@@ -65,7 +65,7 @@ import { setUi } from '../../store';
 import { box, label, saidOver, voice, meatheadSays } from '../section';
 import { hash, polyF, GOLD as GD } from '../kit';
 import type { ByPants } from '../talk';
-import { drawPiper, drawPiperCloseup, piperBodyW, PIPER_H, type PiperPose, type PiperFace } from '../piper';
+import { drawPiper, drawPiperCloseup, piperBodyW, piperTossHand, TOSS_RELEASE, PIPER_H, type PiperPose, type PiperFace } from '../piper';
 import { GY, DOOR_X, KICK_AT, ARENA_L, ARENA_R, ARENA_W, ARENA_MID, CEIL_Y, CAM_Y, LEDGES, CHANDELIERS, CHAISE_X, MAX_STAGE, CP_FIGHT, R } from './layout';
 import { drawChandelier, CHANDELIER_Y } from './room';
 import { drawMain, drawPatch, drawFireball, drawIceball, drawBolt, drawIceBlock, type MainDims } from './mains';
@@ -110,7 +110,7 @@ const NITRO_REFREEZE = 150;
  *  flooded patch (half-width). */
 const HEAT_HW = 44, HEAT_FLOOR = 90, NITRO_LEN = 260, NITRO_H = 70, PUDDLE_HW = 140;
 /** Her throws: how often at most, how near a loose part she has to be; their damage. */
-const THROW_GAP = 360, THROW_NEAR = 170, RIP_T = 36, THROW_T = 18, FIREBALL_DMG = 12, ICEBALL_DMG = 6, BOLT_DMG = 14;
+const THROW_GAP = 360, THROW_NEAR = 170, RIP_T = 30, THROW_T = 24, FIREBALL_DMG = 12, ICEBALL_DMG = 6, BOLT_DMG = 14;
 /** Frozen: a press's worth of the meter, its drain a frame, out on his own at the most. */
 // (way fewer mashes, the user's: three A presses break it; it thaws on its own sooner too)
 const MASH_STEP = 0.34, MASH_DRAIN = 0.0035, ICE_MAX = 150;
@@ -565,7 +565,9 @@ const ai = (ctx: FrameContext, f: Fight) => {
       break;
     case 'throw':
       f.facing = m.x < f.x ? -1 : 1;
-      if (f.actT === 6 && f.rip) throwAt(ctx, f, f.rip);
+      // (the ball leaves her hand at the throw's release: the wind-up before it, the follow-through after; rip and
+      // throw together as long as ever, the ball out at the same moment)
+      if (f.actT === Math.round(THROW_T * TOSS_RELEASE) && f.rip) throwAt(ctx, f, f.rip);
       if (f.actT >= f.actLen) { f.rip = null; setAct(f, 'walk', walkLen(f)); }
       break;
     case 'bounce': bounce(ctx, f); break;
@@ -759,7 +761,9 @@ const tickChandelier = (ctx: FrameContext, f: Fight) => {
 
 const throwAt = (ctx: FrameContext, f: Fight, kind: Element) => {
   const { state } = ctx, m = pmid(state);
-  const sx = f.x + f.facing * 46, sy = f.y - 150;
+  // (out of her hand, where the throw lets it go)
+  const [hx, hy] = piperTossHand(TOSS_RELEASE, f.thin);
+  const sx = f.x + f.facing * hx, sy = f.y + hy;
   if (kind === 'fire') {
     // (lobbed: it lands where he is now)
     // (from far off it takes longer, so it's seen coming)
@@ -1143,15 +1147,20 @@ export const rangeZoom = (state: GameState, f: Fight) => {
   const k = Math.min(1, (1 - f.zo) / (1 - RANGE_Z)), m = pmid(state);
   const half = CANVAS_WIDTH / 2 / f.zo;
   const want = ARENA_W > half * 2 ? Math.max(ARENA_L + half, Math.min(ARENA_R - half, (f.x + m.x) / 2)) : ARENA_MID;
-  const c0x = state.camera.x + CANVAS_WIDTH / 2, c0y = state.camera.y + CANVAS_HEIGHT / 2;
-  const cx = c0x + (want - c0x) * k, cy = c0y + (GY - CANVAS_HEIGHT / 2 / f.zo + 30 - c0y) * k;
+  const c0x = state.camera.x + CANVAS_WIDTH / 2;
+  // (level: the floor held where it sits on the screen unzoomed (CAM_Y's bottom edge), the view only growing upward,
+  // whatever height she's at)
+  const cx = c0x + (want - c0x) * k, cy = CAM_Y + CANVAS_HEIGHT - CANVAS_HEIGHT / 2 / f.zo;
   return { scale: f.zo, x: cx, y: cy, shiftX: CANVAS_WIDTH / 2 - (cx - state.camera.x), shiftY: CANVAS_HEIGHT / 2 - (cy - state.camera.y) };
 };
+/** The kill cam's height, fixed (the user's: a steady horizontal plane; it used to ride down with her): her chest
+ *  stood on the floor, the middle of the room she bounces round. */
+const KILL_CAM_Y = GY - 180;
 export const killCamZoom = (state: GameState, f: Fight) => {
   const cam = f.cam;
   if (!cam || cam.z <= 1) return null;
   const k = (cam.z - 1) / (CAM_Z - 1), m = CANVAS_WIDTH / 2 / CAM_Z;
-  const fx = Math.max(state.camera.x + m, Math.min(state.camera.x + CANVAS_WIDTH - m, f.x)), fy = Math.max(state.camera.y + 160, Math.min(GY - 80, f.y - 90));
+  const fx = Math.max(state.camera.x + m, Math.min(state.camera.x + CANVAS_WIDTH - m, f.x)), fy = KILL_CAM_Y;
   return { scale: cam.z, x: fx, y: fy, shiftX: k * (state.camera.x + CANVAS_WIDTH / 2 - fx), shiftY: k * (state.camera.y + CANVAS_HEIGHT / 2 - fy) };
 };
 
@@ -1332,7 +1341,14 @@ const drawHer = (c: Ctx, f: Fight, fr: number) => {
   if (f.act === 'bounce') { c.translate(f.x, f.y - 85); c.rotate(f.rot); c.translate(-f.x, -(f.y - 85)); }
   c.translate(f.x, f.y); c.rotate(waddle); c.scale(P.sx, P.sy); c.translate(-f.x, -f.y);
   if (f.mode === 'intro' && P.pose === 'lounge') drawPiper(c, f.x, f.y, -1, fr, 'lounge', { talking: !!f.said });
-  else drawPiper(c, f.x, f.y, f.facing, fr, P.pose, { face: P.face, mess, thin: f.thin, talking: !!f.said });
+  else {
+    // (a throw: the wind-up, the release, the follow-through (unless a hit's knocked her out of it))
+    // (ripping it off the loose part: her hand out at it, the ball forming in it; then the throw)
+    const toss = f.mode !== 'on' || !f.rip || P.pose === 'hurt' ? undefined
+      : f.act === 'rip' ? { k: 0, kind: f.rip, grow: Math.min(1, f.actT / f.actLen) }
+        : f.act === 'throw' ? { k: f.actT / f.actLen, kind: f.rip } : undefined;
+    drawPiper(c, f.x, f.y, f.facing, fr, P.pose, { face: P.face, mess, thin: f.thin, talking: !!f.said, toss });
+  }
   c.translate(f.x, f.y); c.scale(f.facing, 1); drawHoles(c, f, fr, f.act === 'bounce');
   c.restore();
   c.globalAlpha = 1;
@@ -1525,4 +1541,8 @@ export const drawFightHud = (c: Ctx, state: GameState, f: Fight, band: { x1: num
 };
 
 /** The room's look this frame (room.ts draws it). */
-export const roomBits = (f: Fight | null) => ({ stage: f?.stage ?? 0, chandelierDown: f?.chandDown ?? null, roofHole: f?.roofHole ?? null, piperX: f && !f.death ? f.x : null });
+export const roomBits = (f: Fight | null) => ({ stage: f?.stage ?? 0, chandelierDown: f?.chandDown ?? null, roofHole: f?.roofHole ?? null,
+  // (the mirror: her, whatever she's doing, death throes and all, by her own drawing)
+  piperX: !f || (f.death?.how === 'cork' && f.death.step === 'gone') ? null : f.death?.how === 'cork' ? f.death.x : f.x,
+  piperY: !f ? GY : f.death?.how === 'cork' ? Math.min(GY, f.death.y) : f.y,
+  reflect: f ? (c: Ctx, fr: number) => drawHer(c, f, fr) : null });

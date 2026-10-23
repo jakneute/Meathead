@@ -68,6 +68,8 @@ export interface Section<Id extends string = SectionId> {
   lamps?: (state: GameState) => Light[];
   /** Where on screen his feet sit (default 550 of 600). */
   cameraRow?: (state: GameState) => number | undefined;
+  /** The camera's top held at this height (no vertical follow, only panning), or undefined. */
+  cameraFixedY?: (state: GameState) => number | undefined;
   /** The world wrapped round a turning cylinder of this radius (Meathead 1's storm-climb trick), or null: flat. */
   cylinder?: (state: GameState) => { radius: number } | null;
   /** The camera's limits in it (default its x0..x1). */

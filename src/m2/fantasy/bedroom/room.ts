@@ -33,7 +33,7 @@
 import type { GameState } from '../../../m1/game/core/state';
 import { box, mix, hash, INK, gilt, checker, polyF, still, ballR, GOLD as GD, TIMBER, type Ctx } from '../kit';
 import { signText } from '../../signLetters';
-import { drawPiper, type PiperPose } from '../piper';
+import { type PiperPose } from '../piper';
 import { R as gR } from '../../grossKit';
 import { bust as grossBust, drawBust } from '../../grossBust';
 import { drawSuitor, type SuitorLook } from '../suitors';
@@ -142,8 +142,12 @@ export interface RoomLook {
   /** The chandelier that's come down (its index), and its lying x; the hole she corked out through (x), or none. */
   chandelierDown: number | null;
   roofHole: number | null;
-  /** Her reflection in the vanity's mirror (where she is now), if she's about. */
+  /** Her reflection in the vanity's mirror (where she is now: her middle, her feet), if she's about. */
   piperX: number | null;
+  piperY?: number;
+  /** Her, exactly as she's drawn this frame (world space: her own draw, pose, frame, facing, mess and all), for the
+   *  mirror to show. */
+  reflect?: ((c: Ctx, fr: number) => void) | null;
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -836,7 +840,8 @@ const vanityArt = (g: Ctx) => {
 };
 /** The mirror's glass, live: banded silver with the room in it soft, her in it when she's near, cracked (stage 2 on),
  *  a piece out (stage 5 on); the bulbs' soft glow. */
-const vanityGlass = (c: Ctx, x: number, f: number, stage: number, piperX: number | null) => {
+const vanityGlass = (c: Ctx, x: number, f: number, stage: number, look: RoomLook) => {
+  const piperX = look.piperX;
   const mx = x + MIR.dx, my = GY + MIR.dy, { rx, ry } = MIR;
   c.save(); c.beginPath(); c.ellipse(mx, my, rx, ry, 0, 0, Math.PI * 2); c.clip();
   const bands = ['#7A6A94', '#968ABA', '#B4A8D4', '#C8BEE4', '#B4A8D4', '#9A8EBE'];
@@ -844,7 +849,16 @@ const vanityGlass = (c: Ctx, x: number, f: number, stage: number, piperX: number
   // (the room in it: the far wall's rose, the window's light, a chandelier's glow)
   B(c, mx - rx, my + ry * 0.45, rx * 2, ry, '#8A5A84'); B(c, mx - rx, my + ry * 0.45, rx * 2, 2, '#B07AA4');
   c.globalAlpha = 0.35; B(c, mx + 10, my - 60, 22, 70, '#E8E4FF'); c.globalAlpha = 0.2; c.fillStyle = '#FFF0C0'; c.beginPath(); c.arc(mx - 20, my - 62, 16, 0, Math.PI * 2); c.fill(); c.globalAlpha = 1;
-  if (piperX !== null && Math.abs(piperX - mx) < 280) { c.globalAlpha = 0.6; c.translate(mx + (piperX - mx) * 0.35, my + 118); c.scale(0.9, 0.9); drawPiper(c, 0, 0, -1, f, 'stand'); c.globalAlpha = 1; }
+  if (piperX !== null && look.reflect && Math.abs(piperX - mx) < 280) {
+    // (her, as she is this very frame (her own drawing, moved and shrunk into the glass: a mirror on the wall behind
+    // her flips her front to back, not left to right, so she faces the way she does), then the glass's tint over her)
+    const wy = look.piperY ?? GY;
+    c.save();
+    c.translate(mx + (piperX - mx) * 0.35, my + 118 + (wy - GY) * 0.35); c.scale(0.9, 0.9); c.translate(-piperX, -wy);
+    look.reflect(c, f);
+    c.restore();
+    c.globalAlpha = 0.3; B(c, mx - rx, my - ry, rx * 2, ry * 2, '#B4A8D4'); c.globalAlpha = 1;
+  }
   c.restore();
   c.save(); c.beginPath(); c.ellipse(mx, my, rx, ry, 0, 0, Math.PI * 2); c.clip();
   c.globalAlpha = 0.5; polyF(c, [[mx - rx, my - 10], [mx - 6, my - ry], [mx + 10, my - ry], [mx - rx, my + 18]], '#FFFFFF'); polyF(c, [[mx - rx, my + 34], [mx + 20, my - ry], [mx + 26, my - ry], [mx - rx, my + 44]], '#FFFFFF'); c.globalAlpha = 1;
@@ -1031,7 +1045,7 @@ export const drawChamber = (c: Ctx, state: GameState, look: RoomLook) => {
   const [blx, bw, bh] = LEDGES[0];
   stillW(c, `bed-${s >= 3 ? 1 : 0}`, R(blx), GY, -24, -bh - 12, bw + 66, bh + 16, g => { g.translate(R(blx), GY); bedArt(g, bw, bh, s >= 3); });
   stillW(c, 'vanity', VANITY_X, GY, -20, MIR.dy - MIR.ry - 50, 180, -MIR.dy + MIR.ry + 52, g => { g.translate(VANITY_X, GY); vanityArt(g); });
-  vanityGlass(c, VANITY_X, f, s, look.piperX);
+  vanityGlass(c, VANITY_X, f, s, look);
   const w1 = LEDGES[1], w2 = LEDGES[2];
   stillW(c, 'wardrobe1', R(w1[0]), GY, -10, -w1[2] - 4, w1[1] + 30, w1[2] + 6, g => { g.translate(R(w1[0]), GY); wardrobeArt(g, w1[1], w1[2], true); });
   stillW(c, 'chaise', CHAISE_X, GY, -112, -110, 246, 112, g => { g.translate(CHAISE_X, GY); chaiseArt(g); });

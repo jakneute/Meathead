@@ -127,6 +127,9 @@ export interface StageLayout {
   cameraRow?: (state: GameState) => number | undefined;
   /** How quickly the vertical camera settles (default 0.2 a frame): lower is gentler, for a climb of lots of little ledges. */
   cameraEaseY?: (state: GameState) => number | undefined;
+  /** The camera's top held at exactly this height (a fight on a steady horizontal plane: no vertical follow at all),
+   *  or undefined for the usual. */
+  cameraFixedY?: (state: GameState) => number | undefined;
 }
 
 const LAYOUTS: Record<string, StageLayout> = {

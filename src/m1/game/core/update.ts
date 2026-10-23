@@ -824,7 +824,10 @@ const updateCamera = (ctx: FrameContext) => {
     if (Math.abs(state.cameraOverride.y - state.camera.y) < 0.5) state.camera.y = state.cameraOverride.y;
     return;
   }
-  if (layout?.verticalCamera && !state.arenaLocked && state.victoryString === "" && state.doorState !== 'done') {
+  // (a set piece held on one level: the camera only pans)
+  const fixedY = layout?.cameraFixedY?.(state);
+  if (fixedY !== undefined) state.camera.y = fixedY;
+  else if (layout?.verticalCamera && !state.arenaLocked && state.victoryString === "" && state.doorState !== 'done') {
     const row = player.skiing ? CAMERA_SKI_ROW : (layout.cameraRow?.(state) ?? CAMERA_GROUND_ROW);
     const feet = player.pos.y + player.height;
     // (the bottom of the sea only counts once he's under: bobbing at the surface, or falling in, it stays up top)
@@ -878,7 +881,7 @@ const updateCamera = (ctx: FrameContext) => {
     // No ceiling (Tommy's arena): follow high jumps
     const targetCamY = player.pos.y < 220 ? player.pos.y - 220 : 0;
     state.camera.y += (targetCamY - state.camera.y) * 0.15;
-  } else if (!layout?.verticalCamera || state.arenaLocked || state.doorState === 'done') {
+  } else if (fixedY === undefined && (!layout?.verticalCamera || state.arenaLocked || state.doorState === 'done')) {
     state.camera.y = 0;
   }
 };

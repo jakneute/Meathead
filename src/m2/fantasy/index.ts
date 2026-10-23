@@ -185,6 +185,7 @@ export const fantasyLayout: StageLayout = {
     return sec.lighting ? sec.lighting(state, base) : base;
   },
   cameraRow: (state) => current(state).cameraRow?.(state),
+  cameraFixedY: (state) => current(state).cameraFixedY?.(state),
   cylinder: (state) => current(state).cylinder?.(state) ?? null,
   worldTilt: (state) => current(state).worldTilt?.(state) ?? null,
 };
