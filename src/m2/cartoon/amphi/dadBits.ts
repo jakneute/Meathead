@@ -311,6 +311,27 @@ const paintBit = (c: Ctx, kind: BitKind, seed: number) => {
   }
 };
 
+/** Art turning in the air (the stamp cache won't take a turned transform, and painting it live every frame at the kill
+ *  cam's zoom crawled: the user's "slows down massively during the zoom in"): painted once, flat, into its own canvas at
+ *  the scale it's showing at (stepped up in doubles, so a zoom paints it a few times at most), then put down turned. */
+const baked = new Map<string, HTMLCanvasElement>();
+const bakedTurn = (c: Ctx, key: string, x: number, y: number, w: number, h: number, paint: (g: Ctx) => void, most = 16) => {
+  const m = c.getTransform(), sc = Math.hypot(m.a, m.b);
+  const res = Math.min(most, 2 ** Math.ceil(Math.log2(Math.max(1, sc))));
+  const id = `${key}@${res}`;
+  let cv = baked.get(id);
+  if (!cv) {
+    cv = document.createElement('canvas');
+    cv.width = Math.ceil(w * res); cv.height = Math.ceil(h * res);
+    const g = cv.getContext('2d')!;
+    g.imageSmoothingEnabled = false; g.scale(res, res); g.translate(-x, -y);
+    paint(g);
+    baked.set(id, cv);
+  }
+  const was = c.imageSmoothingEnabled;
+  c.imageSmoothingEnabled = false; c.drawImage(cv, x, y, w, h); c.imageSmoothingEnabled = was;
+};
+
 /** A bit (world: its middle), live while it moves, stamped once it's down; the drip off a torn end while it's fresh. */
 export const drawBit = (c: Ctx, b: Bit, f: number) => {
   c.save(); c.translate(b.x, b.y);
@@ -319,7 +340,7 @@ export const drawBit = (c: Ctx, b: Bit, f: number) => {
     stamp(c, `ct-dadbit-${b.kind}-${b.seed}`, -46, -34, 92, 68, g => paintBit(g, b.kind, b.seed));
   } else {
     c.rotate(b.rot); c.scale(DAD_K * b.fx, DAD_K * b.fy);
-    paintBit(c, b.kind, b.seed);
+    bakedTurn(c, `ct-dadbit-${b.kind}-${b.seed}`, -46, -34, 92, 68, g => paintBit(g, b.kind, b.seed), 8);
   }
   c.restore();
   if (b.still && b.t < 900 && b.kind !== 'tank' && b.kind !== 'boxer' && b.kind !== 'can' && b.kind !== 'pack') {
@@ -445,7 +466,7 @@ export const drawHead = (c: Ctx, h: Head, floorY: number, f: number, rest: numbe
   if (h.pool > 0) { const w = 6 + h.pool * 22; ell(c, h.x, floorY - 0.5, w, 1.4 + w * 0.12, BLOOD[1]); ell(c, h.x - 2, floorY - 0.8, w * 0.7, 0.6 + w * 0.08, BLOOD[2]); px(c, h.x - w * 0.5, floorY - 1.2, w * 0.3, 0.5, BLOOD[4]); }
   c.save(); c.translate(h.x, h.y);
   if (h.state === 'rest') { c.scale(HEAD_S, HEAD_S); stamp(c, 'ct-dadhead', -22, -32, 44, 62, paintHead); }
-  else { c.rotate(h.rot); c.scale(HEAD_S, HEAD_S); paintHead(c); }
+  else { c.rotate(h.rot); c.scale(HEAD_S, HEAD_S); bakedTurn(c, 'ct-dadhead', -22, -32, 44, 62, paintHead); }
   if (h.state !== 'fly') {
     // (a drip off the flaps of the neck, now and then, plopping into the puddle)
     const u = (f % 38) / 38;
