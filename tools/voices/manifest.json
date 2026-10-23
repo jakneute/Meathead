@@ -19406,7 +19406,7 @@
  },
  {
   "voice": "m2.cartoon.dad",
-  "text": "BOY! BEER! DON'T LOOK AT HIM, JUST BRING IT!",
+  "text": "BOY! BEER! DON'T LOOK AT HIM!",
   "from": "CARTOON"
  },
  {
@@ -19421,12 +19421,12 @@
  },
  {
   "voice": "m2.cartoon.dad",
-  "text": "BOY! BEER! I'M BEING ATTACKED HERE!",
+  "text": "BOY! BEER! I'M UNDER ATTACK!",
   "from": "CARTOON"
  },
  {
   "voice": "m2.cartoon.dad",
-  "text": "BOY! BEER! MOVE IT, YOU TIN SHIT!",
+  "text": "BOY! BEER! MOVE IT, TIN SHIT!",
   "from": "CARTOON"
  },
  {
@@ -19456,7 +19456,7 @@
  },
  {
   "voice": "m2.cartoon.dad",
-  "text": "BOY! TWO BEERS! ONE TO DRINK, ONE TO POUR ON HIM!",
+  "text": "BOY! TWO BEERS! ONE TO POUR ON HIM!",
   "from": "CARTOON"
  },
  {
@@ -19606,7 +19606,7 @@
  },
  {
   "voice": "m2.cartoon.dad",
-  "text": "GRAMPS! BEER! AND PUT YOUR TEETH IN, THERE'S A NAKED GUY!",
+  "text": "GRAMPS! BEER! AND PUT YOUR TEETH IN!",
   "from": "CARTOON"
  },
  {
@@ -19616,22 +19616,22 @@
  },
  {
   "voice": "m2.cartoon.dad",
-  "text": "GRAMPS! BEER! YOU LOST YOUR NOSE IN KOREA, YOU'RE FINE!",
+  "text": "GRAMPS! BEER! I SEE YOU TWITCHING!",
   "from": "CARTOON"
  },
  {
   "voice": "m2.cartoon.dad",
-  "text": "GRAMPS! BEER! YOU SEEN WORSE. IN THE WAR.",
+  "text": "GRAMPS! BEER! MAKE YOURSELF USEFUL!",
   "from": "CARTOON"
  },
  {
   "voice": "m2.cartoon.dad",
-  "text": "GRAMPS! BEER! YOU'RE CLOSEST TO DEATH, MAKE YOURSELF USEFUL!",
+  "text": "GRAMPS! BEER! YOU GOT NO NOSE ANYWAY!",
   "from": "CARTOON"
  },
  {
   "voice": "m2.cartoon.dad",
-  "text": "GRAMPS! BEER! YOU'RE NOT DEAD, I CAN SEE YOU TWITCHING!",
+  "text": "GRAMPS! BEER! YOU SEEN WORSE IN THE WAR!",
   "from": "CARTOON"
  },
  {
@@ -19831,12 +19831,7 @@
  },
  {
   "voice": "m2.cartoon.dad",
-  "text": "MARLENE! A BEER! YOU HAD ONE JOB!",
-  "from": "CARTOON"
- },
- {
-  "voice": "m2.cartoon.dad",
-  "text": "MARLENE! BEER! AND A TOWEL FOR THE NAKED GUY!",
+  "text": "MARLENE! BEER! AND A TOWEL!",
   "from": "CARTOON"
  },
  {
@@ -19846,22 +19841,27 @@
  },
  {
   "voice": "m2.cartoon.dad",
+  "text": "MARLENE! BEER! HE SHIT HIMSELF!",
+  "from": "CARTOON"
+ },
+ {
+  "voice": "m2.cartoon.dad",
   "text": "MARLENE! BEER! MOVE YOUR FAT ASS!",
   "from": "CARTOON"
  },
  {
   "voice": "m2.cartoon.dad",
-  "text": "MARLENE! BEER! QUIT LOOKING AT HIS THING! IT'S SMALLER THAN MINE!",
+  "text": "MARLENE! BEER! QUIT STARING AT IT!",
   "from": "CARTOON"
  },
  {
   "voice": "m2.cartoon.dad",
-  "text": "MARLENE! BEER! THE GUEST SHIT HIMSELF!",
+  "text": "MARLENE! BEER! WE GOT COMPANY!",
   "from": "CARTOON"
  },
  {
   "voice": "m2.cartoon.dad",
-  "text": "MARLENE! BEER! THERE'S A FAN IN THE HOUSE!",
+  "text": "MARLENE! BEER! YOU HAD ONE JOB!",
   "from": "CARTOON"
  },
  {
@@ -20126,7 +20126,7 @@
  },
  {
   "voice": "m2.cartoon.dad",
-  "text": "SIS! BEER! AND A CLOTHESPIN FOR YOUR NOSE!",
+  "text": "SIS! BEER! AND A CLOTHESPIN!",
   "from": "CARTOON"
  },
  {
@@ -20136,7 +20136,7 @@
  },
  {
   "voice": "m2.cartoon.dad",
-  "text": "SIS! BEER! AND QUIT LOOKING AT ME LIKE THAT!",
+  "text": "SIS! BEER! AND WIPE THAT LOOK OFF!",
   "from": "CARTOON"
  },
  {
@@ -20151,7 +20151,7 @@
  },
  {
   "voice": "m2.cartoon.dad",
-  "text": "SIS! BEER! YOU'RE GROUNDED! FOREVER! YOU'RE DEAD!",
+  "text": "SIS! BEER! YOU'RE GROUNDED! FOREVER!",
   "from": "CARTOON"
  },
  {

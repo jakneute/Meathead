@@ -103,12 +103,15 @@ const SWAT_WIND = 16, SWAT_FAST = 7, SWAT_LIVE = 6, SWAT_RECOVER = 40, SWAT_GAP 
 /** The beer: how often he yells for one (frames, a range); armfuls a trip (the last has the one he catches); the gap
  *  between them; their flight; how many fly all over the set with each armful (more once he's lost some of them); the
  *  hurt one does Meathead; the family's jerky walk (px a step, a step every 8 frames). */
-const CALL_EVERY: [number, number] = [300, 420], BOTTLES: [number, number] = [1, 2], TOSS_GAP = 30, BOTTLE_T = 34, SPRAY = 3, BEER_DMG = 6;
+// (quicker, the user's: were [300, 420] and 30)
+const CALL_EVERY: [number, number] = [220, 310], BOTTLES: [number, number] = [1, 2], TOSS_GAP = 24, BOTTLE_T = 34, SPRAY = 3, BEER_DMG = 6;
 /** The beer run's rush (the user's: "they will move very quickly to the fridge and throw it then back to their
  *  'default' track"): px a frame there and back. */
 const RUSH = 9;
 /** The beer runner's tell before it bolts (a klaxon, a lean, a rev). */
-const READY_T = 34;
+const READY_T = 30;
+/** The call: on a hard clock (the user's: not waiting on the voice), about as long as his line (each one's that long). */
+const CALL_T = 84;
 /** THE FAMILY ON THEIR TRACKS (the user's: "the various animatronics ... will move on a set track and attempt to slap
  *  you"): each living one patrols its own stretch of the front of the set (they overlap end to end, so nowhere's out of
  *  reach for long), a jerk at a time; in reach, a slap: a wind-up (the slap arm cocking back with a servo whine), a
@@ -909,9 +912,9 @@ const errand = (ctx: FrameContext, f: Fight) => {
   };
   switch (er.step) {
     case 'ready':
-      // (it waits for its name to be called (a few seconds at most), then the tell: a klaxon off its chest, it leans the
-      // way it's going and revs (sparks at its wheels), then it bolts)
-      if (!er.called) { er.wait++; if (er.wait < 300) { er.t = 0; break; } }
+      // (its name called (a hard clock: CALL_T, never waiting on the voice), then the tell: a klaxon off its chest, it
+      // leans the way it's going and revs (sparks at its wheels), then it bolts)
+      if (er.wait < CALL_T) { er.wait++; er.t = 0; break; }
       m.dir = (AT_FRIDGE.x < m.x ? -1 : 1) as 1 | -1;
       if (er.t % 6 === 0) { const E = eyeOf(state), q = proj(E, X(m.x), STAGE_Y - 2, m.d); for (let i = 0; i < 3; i++) state.particles.push({ pos: q, vel: { x: -m.dir * (1 + Math.random() * 3), y: -1 - Math.random() * 2 }, life: 12, color: '#FDE047', size: 1.5, grav: 0.2 }); }
       if (er.t === 14) playSound('alarm', 0.5, 6);

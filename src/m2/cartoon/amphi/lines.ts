@@ -185,26 +185,27 @@ export const DAD_SETTLE: ByPants = {
 /** Screaming at the family for a beer (the whole fight). */
 /** Yelling for a beer, at whoever's going to get it (the user's: "make sure the callouts match": the runner's picked
  *  first, his line from that one's own pool). */
+// (all about the same length (the user's: the run goes on a hard timer now, so each call's done about when the runner bolts))
 export const DAD_BEER_FOR: Record<'mom' | 'boy' | 'sis' | 'gramps', ByPants> = {
   mom: {
-    clean: ['MARLENE! BEER! THERE\'S A FAN IN THE HOUSE!', 'MARLENE! BEER! MOVE YOUR FAT ASS!', 'MARLENE! A BEER! YOU HAD ONE JOB!'],
-    shitty: ['MARLENE! BEER! THE GUEST SHIT HIMSELF!', 'MARLENE! BEER! AND THE FEBREZE!'],
-    nude: ['MARLENE! BEER! AND A TOWEL FOR THE NAKED GUY!', "MARLENE! BEER! QUIT LOOKING AT HIS THING! IT'S SMALLER THAN MINE!"],
+    clean: ['MARLENE! BEER! WE GOT COMPANY!', 'MARLENE! BEER! MOVE YOUR FAT ASS!', 'MARLENE! BEER! YOU HAD ONE JOB!'],
+    shitty: ['MARLENE! BEER! HE SHIT HIMSELF!', 'MARLENE! BEER! AND THE FEBREZE!'],
+    nude: ['MARLENE! BEER! AND A TOWEL!', 'MARLENE! BEER! QUIT STARING AT IT!'],
   },
   boy: {
-    clean: ['BOY! BEER! I\'M BEING ATTACKED HERE!', 'BOY! BEER! MOVE IT, YOU TIN SHIT!', 'BOY! GET YOUR OLD MAN A BEER!'],
-    shitty: ['BOY! TWO BEERS! ONE TO DRINK, ONE TO POUR ON HIM!', "BOY! BEER! DON'T STEP IN HIM!"],
-    nude: ['BOY! BEER! DON\'T LOOK AT HIM, JUST BRING IT!', 'BOY! BEER! EYES ON THE FRIDGE!'],
+    clean: ["BOY! BEER! I'M UNDER ATTACK!", 'BOY! BEER! MOVE IT, TIN SHIT!', 'BOY! GET YOUR OLD MAN A BEER!'],
+    shitty: ['BOY! TWO BEERS! ONE TO POUR ON HIM!', "BOY! BEER! DON'T STEP IN HIM!"],
+    nude: ["BOY! BEER! DON'T LOOK AT HIM!", 'BOY! BEER! EYES ON THE FRIDGE!'],
   },
   sis: {
-    clean: ['SIS! BEER! AND QUIT LOOKING AT ME LIKE THAT!', "SIS! BEER! YOU'RE GROUNDED! FOREVER! YOU'RE DEAD!", 'SIS! A BEER! AND NO LIP!'],
-    shitty: ['SIS! BEER! BREATHE THROUGH YOUR MOUTH!', 'SIS! BEER! AND A CLOTHESPIN FOR YOUR NOSE!'],
+    clean: ['SIS! BEER! AND WIPE THAT LOOK OFF!', "SIS! BEER! YOU'RE GROUNDED! FOREVER!", 'SIS! A BEER! AND NO LIP!'],
+    shitty: ['SIS! BEER! BREATHE THROUGH YOUR MOUTH!', 'SIS! BEER! AND A CLOTHESPIN!'],
     nude: ['SIS! BEER! AND COVER YOUR EYES!', 'SIS! BEER! LOOK AT THE FLOOR!'],
   },
   gramps: {
-    clean: ['GRAMPS! BEER! YOU\'RE CLOSEST TO DEATH, MAKE YOURSELF USEFUL!', "GRAMPS! BEER! YOU'RE NOT DEAD, I CAN SEE YOU TWITCHING!", 'GRAMPS! A BEER! BEFORE YOU DIE!'],
-    shitty: ['GRAMPS! BEER! HE SMELLS WORSE THAN YOU!', "GRAMPS! BEER! YOU LOST YOUR NOSE IN KOREA, YOU'RE FINE!"],
-    nude: ['GRAMPS! BEER! AND PUT YOUR TEETH IN, THERE\'S A NAKED GUY!', 'GRAMPS! BEER! YOU SEEN WORSE. IN THE WAR.'],
+    clean: ['GRAMPS! BEER! MAKE YOURSELF USEFUL!', 'GRAMPS! BEER! I SEE YOU TWITCHING!', 'GRAMPS! A BEER! BEFORE YOU DIE!'],
+    shitty: ['GRAMPS! BEER! HE SMELLS WORSE THAN YOU!', 'GRAMPS! BEER! YOU GOT NO NOSE ANYWAY!'],
+    nude: ['GRAMPS! BEER! AND PUT YOUR TEETH IN!', 'GRAMPS! BEER! YOU SEEN WORSE IN THE WAR!'],
   },
 };
 /** ...nobody in particular (spare). */
