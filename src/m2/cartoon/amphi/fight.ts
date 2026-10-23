@@ -39,13 +39,16 @@
 //                 with each, and each sets off his counter (a puke or the hammer). Once they're all dead, the next car comes
 //                 down on his couch and crushes it (the user's: 1-4 the family, the 5th the couch, the 6th him): he's up, pathetic, no couch, no
 //                 counters, no puking, no hammer, and hardly any fight (double damage); then one more snap and the
-//                 last car comes down on HIM: the weakness death (a short slow-mo; flattened like a cartoon). No car
+//                 last car comes down on HIM: the weakness death (smashed to bits, the kill cam on his head). No car
 //                 touches his health while any of the family's up (the user's); once they're all gone and the couch is
 //                 crushed (him up, flailing), only the clapperboard's car kills him in one; anything else does double
 //                 (SAD_MULT; the user's: "everything else does a modestly multiplied value").
 //
-// Two deaths. The weakness: the kill cam, the car on him, burning; it tips off and he's a pancake on the deck, fluttering
-//   at the edges, the stuntman up out of the wreck with a thumbs-up, the laugh track, his last words, Meathead's. Any other
+// Two deaths. The weakness (the user's: "stupid dad won't say anything after getting killed by the car that smashes him
+//   to death. his parts will be everywhere. the zoomed in camera will linger on his decapitated head"): the car comes
+//   down on him and he's in bits all over the set at once (dadBits.ts); the kill cam rides his head up end over end in
+//   slow motion, down, bouncing, up onto its stump, and lingers on it there, gross-up close; back out on the lot, the
+//   stuntman up out of the wreck with a thumbs-up, the laugh track, Meathead's. Not a word out of him. Any other
 //   way (the standard death, the user's): FINE, I'LL GET IT MYSELF: he gets up for a beer at last, shuffles to the
 //   fridge and yanks on it; it rocks off the wall, wobbles, wobbles, and tips over on him (UH OH): crushed flat under it,
 //   his head and his hands out the end; the laugh track; he shits himself under there (the seep, his line); one can rolls
@@ -74,8 +77,10 @@ import { drawDad, DAD_K, DAD_H, DAD_SIT_H, type DadFace, hammerGrip, swatGrip, m
 import { pantsOf } from '../section';
 import {
   type P, type Member, type PileCan, eyeOf, proj, drawMallet, drawFridge, drawBottle, drawDrop, drawPuddle, drawCouchAt,
-  drawCarAt, drawWreck, drawStuntmanAt, drawWallSplat, drawMember, drawDeadMember, drawDadGore, drawPancake, drawPile, drawSeep, drawBlood,
+  drawCarAt, drawWreck, drawStuntmanAt, drawWallSplat, drawMember, drawDeadMember, drawDadGore, drawPile, drawSeep, drawBlood,
 } from './fightArt';
+import { type Bit, type Splat, type Head, burst, tickBits, tickHead, settleAll, stumpOf, drawBit, drawSplat, drawHead } from './dadBits';
+import { setStampHold } from '../../../m1/game/render/stamp';
 import type { Anim } from './family';
 import * as L from './lines';
 
@@ -188,6 +193,9 @@ interface Death {
   creep: number; fall: number;
   /** The car on him (the weakness): where it is, its tip off him. */
   car: { x: number; rot: number; vx: number } | null;
+  /** The weakness: him in bits (dadBits.ts), the splats where they came down, his head; the kill cam's eye on it (eased
+   *  after it), the frame it sat still. */
+  bits: Bit[]; splats: Splat[]; head: Head | null; focus: { x: number; y: number } | null; restAt: number;
   pile: PileCan[]; heap: number; seep: number;
   roll: { x: number; vx: number; open: number } | null;
   stunt: { x: number; y: number; vy: number; up: boolean } | null;
@@ -826,14 +834,15 @@ const famBetween = (state: GameState, f: Fight): Member | undefined => {
 
 /** The camera through the fight (the user's: "zoom out so the whole set is always visible"): eased out to take in the
  *  whole living room, wall to wall, his feet low on the screen, the camera parked on the middle of it; the whole view's
- *  the screen for the rules. His weakness death zooms back in for its kill cam (it's in 1 by then); the standard death
- *  stays out (it's all on the set). */
+ *  the screen for the rules. His weakness death zooms back in for its kill cam (it's in 1 by then), and back out on the
+ *  set after it (where his bits all came down); the standard death stays out (it's all on the set). */
 const SET_ZOOM = 0.66, SET_FEET = 520;
 const view = (state: GameState, f: Fight) => {
-  const want = f.mode === 'dead' && f.death?.how === 'flat' ? 1 : SET_ZOOM;
+  // (the weakness death: in to 1 under the kill cam, so it lets go of it without a jump; back out on the set after)
+  const want = f.mode === 'dead' && f.death?.how === 'flat' && !wideSet(f) ? 1 : SET_ZOOM;
   f.zoom += Math.max(-0.008, Math.min(0.008, want - f.zoom));
   state.viewIsScreen = f.zoom < 0.999;
-  if (f.mode === 'on' || f.death?.how === 'fridge') {
+  if (f.mode === 'on' || f.death?.how === 'fridge' || wideSet(f)) {
     const cx = X((ARENA.a + ARENA.b) / 2) - CANVAS_WIDTH / 2;
     const cy = STAGE_Y - CANVAS_HEIGHT / 2 - (SET_FEET - CANVAS_HEIGHT / 2) / f.zoom;
     const cam = state.camera;
@@ -1160,13 +1169,27 @@ const die = (ctx: FrameContext, f: Fight, how: 'fridge' | 'flat', car?: Car) => 
   state.damageNumbers = [];
   f.errand = null; f.bottles = []; f.drops = []; f.cars = []; f.couch.vx = 0; f.fridge.open = 0;
   p.inCutscene = true;
-  f.death = { how, t: 0, step: 'start', at: 0, creep: 0, fall: 0, car: null, pile: [], heap: 0, seep: 0, roll: null, stunt: null, skipT: 0, walk: 0, tip: 1 };
+  f.death = { how, t: 0, step: 'start', at: 0, creep: 0, fall: 0, car: null, bits: [], splats: [], head: null, focus: null, restAt: 0, pile: [], heap: 0, seep: 0, roll: null, stunt: null, skipT: 0, walk: 0, tip: 1 };
   if (how === 'flat') {
     f.seated = false; f.y = 0;
     f.death.car = { x: f.x, rot: 0, vx: 0 };
     f.wrecks.push({ x: f.x, d: 1, dir: car?.dir ?? 1, paint: car?.paint ?? 0, t: 0, onCouch: false });
     f.cam = { t: 0, acc: 0, z: 1, out: false };
-    playSound('crunch', 1.2, -8); playSound('squish', 1, -10);
+    // (the user's: "stupid dad won't say anything after getting killed by the car that smashes him to death. his parts
+    // will be everywhere": he goes off under it like a water balloon full of meat, the head up and away (off from
+    // Meathead, if there's room that way: it comes down a good 250 px off), the rest of him everywhere at once (the
+    // user's: "stupid dad's other parts go flying elsewhere too"))
+    const mx = p.pos.x + p.width / 2;
+    let side: 1 | -1 = mx < X(f.x) ? 1 : -1;
+    if (f.x + side * 300 > ARENA.b - 60 || f.x + side * 300 < ARENA.a + 60) side = -side as 1 | -1;
+    const b = burst(X(f.x), STAGE_Y, side);
+    f.death.bits = b.bits; f.death.head = b.head; f.death.tip = side;
+    f.death.focus = { x: b.head.x, y: b.head.y };
+    for (let i = 0; i < 70; i++) {
+      const a = -Math.PI * (0.05 + Math.random() * 0.9), v = 2 + Math.random() * 9;
+      state.particles.push({ pos: { x: X(f.x) + (Math.random() - 0.5) * 60, y: STAGE_Y - 20 - Math.random() * 20 }, vel: { x: Math.cos(a) * v, y: Math.sin(a) * v }, life: 40 + Math.random() * 30, color: ['#3A0306', '#8A1018', '#B91C1C', '#E04848'][i % 4], size: 2 + Math.random() * 4, grav: 0.3 });
+    }
+    playSound('crunch', 1.2, -8); playSound('squish', 1, -10); playSound('gorespray', 1, -4); playSound('splat', 1, -6);
   } else playSound('hurt', 0.8, -6);
 };
 
@@ -1181,9 +1204,10 @@ const dying = (ctx: FrameContext, f: Fight): Controls => {
   if (skippable && d.skipT > SKIP_AFTER) offerSkip();
   if (skippable && d.skipT > SKIP_AFTER && takeSkip()) { token++; silenceAll(); state.playerVulgarityTimer = 0; f.words.clear(); finish(state, f); return out; }
   out = d.how === 'flat' ? flatDeath(ctx, f, d) : fridgeDeath(ctx, f, d);
-  // (the camera on him, kept to the arena)
-  if (d.how === 'flat') {
-    const want = camFor(X(f.x));
+  // (the camera on his head (it flies: the kill cam's on it), kept to the arena; once it's pulled back out, the set's
+  // (view))
+  if (d.how === 'flat' && !wideSet(f)) {
+    const want = camFor(d.head ? d.head.x : X(f.x));
     const cam = state.camera.x + (want - state.camera.x) * 0.08;
     state.cameraOverride = { x: cam, y: state.camera.y + (STAGE_Y - 500 - state.camera.y) * 0.1 };
   }
@@ -1198,11 +1222,12 @@ const camFor = (x: number) => Math.max(X(ARENA.a - 100), Math.min(x1 - CANVAS_WI
 const finish = (state: GameState, f: Fight) => {
   const d = f.death!;
   if (d.how === 'flat') {
-    const w = f.wrecks[f.wrecks.length - 1];
-    if (f.x + d.tip * 150 > ARENA.b - 90 || f.x + d.tip * 150 < ARENA.a + 90) d.tip = -d.tip;
-    if (w) w.x = f.x + d.tip * 150;
-    d.stunt = { x: X(f.x + d.tip * 150) - d.tip * 30, y: STAGE_Y, vy: 0, up: true }; if (f.cam) f.cam.out = true;
-    d.t = Math.max(d.t, 200); d.step = 'flop'; d.at = d.t - FLOP_T - 10;
+    // (everything down where it ends up, the head sat on its stump in its puddle, the stuntman up; the shot pulled back)
+    if (d.head) settleAll(d.head, d.bits, d.splats, STAGE_Y, X(ARENA.a) + 14, X(ARENA.b) - 14);
+    d.stunt = { x: X(f.x) - d.tip * 60, y: STAGE_Y, vy: 0, up: true };
+    if (f.cam) { f.cam.out = true; f.cam.z = 1; }
+    setStampHold(false);
+    d.t = Math.max(d.t, 200); d.step = 'wide'; d.at = d.t - WIDE_SAY - 10; d.restAt = d.t;
   }
   else {
     // (the fridge down on him, flat; the cans out of it on the deck; the seep, the blood)
@@ -1216,10 +1241,10 @@ const finish = (state: GameState, f: Fight) => {
   f.deathSaid = 4; d.t = Math.max(d.t, 200);
 };
 
-/** The weakness: the kill cam, the car on him burning, tipped off; the pancake. */
+/** The weakness: the car on him, him in bits everywhere, the kill cam riding his head up and over and down, lingering on
+ *  it sat there; pulled back to the whole set; Meathead's. Not a word out of him (the user's). */
 const flatDeath = (ctx: FrameContext, f: Fight, d: Death): Controls => {
   const { state } = ctx, t = d.t, p = state.player;
-  const w = f.wrecks[f.wrecks.length - 1];
   // (Meathead off out of the way of it, if he was stood right by him: a few steps back)
   const dx = p.pos.x + p.width / 2 - X(f.x);
   let out: Controls = { ...NO_CONTROLS };
@@ -1228,54 +1253,52 @@ const flatDeath = (ctx: FrameContext, f: Fight, d: Death): Controls => {
     d.walk = room > 160 ? away : -away;
   }
   if (d.walk !== 0 && dx * d.walk < 150 && p.isGrounded) out = { ...NO_CONTROLS, [d.walk < 0 ? 'left' : 'right']: true };
-  if (d.step === 'start') {
-    if (t % 9 === 0 && t < 80) playSound('flame', 0.4, Math.random() * 4);
-    if (t === 60 && f.cam) f.cam.out = true;
-    if (t >= 96) {
-      d.step = 'tip'; d.at = t; playSound('crunch', 0.8, -2);
-      // (off him the side away from Meathead, if there's room)
-      let side = d.walk !== 0 ? -d.walk : (p.pos.x + p.width / 2 < X(f.x) ? 1 : -1);
-      if (f.x + side * 150 > ARENA.b - 90 || f.x + side * 150 < ARENA.a + 90) side = -side;
-      d.tip = side;
+  if (t % 9 === 0 && t < 120) playSound('flame', 0.4, Math.random() * 4);
+  const lo = X(ARENA.a) + 14, hi = X(ARENA.b) - 14;
+  // The bits: flying, coming down all over (a splat each, a squish, the odd thud), whizzing through the head's shot
+  let squishes = 0;
+  tickBits(d.bits, d.splats, STAGE_Y, lo, hi, (b, hard) => {
+    if (squishes++ < 2) playSound(b.kind === 'can' ? 'clink' : b.kind === 'gut' || b.kind === 'seat' ? 'thud' : 'squish', Math.min(0.8, 0.25 + hard * 0.05), b.kind === 'gut' ? -8 : 2 + Math.random() * 6);
+  });
+  // (the blood off them as they go, the fresh ones)
+  for (const b of d.bits) if (!b.landed && b.g > 0.3 && (t + b.seed) % 3 === 0) state.particles.push({ pos: { x: b.x, y: b.y }, vel: { x: b.vx * 0.2 + (Math.random() - 0.5), y: b.vy * 0.2 }, life: 24, color: b.seed % 2 ? '#8A1018' : '#B91C1C', size: 1.5 + Math.random() * 1.5, grav: 0.3 });
+  // The head: up end over end, the neck spraying, down, bouncing, rolling, up onto its stump
+  const h = d.head;
+  if (h) {
+    tickHead(h, STAGE_Y, lo, hi, (first, hard) => {
+      playSound('squish', Math.min(1, 0.4 + hard * 0.06), first ? -2 : 4); playSound('thud', first ? 0.8 : 0.4, first ? -6 : 0);
+      d.splats.push({ x: h.x, w: first ? 14 : 8, seed: 90 + d.splats.length });
+      if (first) shakeScreen(state, 4, 4);
+    });
+    if (h.state === 'fly') {
+      const st = stumpOf(h);
+      for (let i = 0; i < 2; i++) state.particles.push({ pos: { x: st.x, y: st.y }, vel: { x: st.ux * (1.5 + Math.random() * 2) + h.vx * 0.3 + (Math.random() - 0.5), y: st.uy * (1.5 + Math.random() * 2) + h.vy * 0.3 }, life: 30, color: i ? '#B91C1C' : '#E04848', size: 1.6 + Math.random() * 2, grav: 0.25 });
     }
+    // (the kill cam's eye eased after it, so it swings about in the shot a touch)
+    const fo = d.focus ?? (d.focus = { x: h.x, y: h.y });
+    fo.x += (h.x - fo.x) * 0.35; fo.y += (h.y - fo.y) * 0.35;
+    if (h.state === 'rest' && d.step === 'start') { d.step = 'hold'; d.at = t; d.restAt = t; }
   }
-  if (d.step === 'tip') {
-    // (the wreck tips off him, over onto its roof the other side)
-    const k = Math.min(1, (t - d.at) / 26);
-    if (w) w.x = f.x + d.tip * 150 * k;
-    if (k >= 1) {
-      d.step = 'flat'; d.at = t;
-      playSound('thud', 1, -8); laughTrack(state, 1);
-      d.stunt = { x: X(f.x + d.tip * 150) - d.tip * 10, y: STAGE_Y - 20, vy: -7, up: false };
-      playSound('squish', 0.8, 6);
-    }
+  // (the user's: "the zoomed in camera will linger on his decapitated head": a good long look at it sat there, the fly
+  // finding it; then back out on the lot (where it all came down), the stuntman up out of the wreck with a thumbs-up, the
+  // laugh track; Meathead's)
+  if (d.step === 'hold' && t >= d.at + LINGER) {
+    d.step = 'wide'; d.at = t;
+    if (f.cam) f.cam.out = true;
+    d.stunt = { x: X(f.x) - d.tip * 10, y: STAGE_Y - 20, vy: -7, up: false };
+    playSound('crunch', 0.6, 4); laughTrack(state, 1);
   }
-  if (d.step === 'flat' || d.step === 'peel' || d.step === 'paper' || d.step === 'flop') {
-    // (the stuntman up out of the wreck, a thumbs-up to the house)
+  if (d.step === 'wide') {
     const s = d.stunt;
     if (s && !s.up) { s.y += s.vy; s.vy += 0.4; s.x -= 2 * d.tip; if (s.y >= STAGE_Y) { s.y = STAGE_Y; s.up = true; playSound('land', 0.8, 0); } }
+    if (t === d.at + WIDE_SAY && f.deathSaid === 0) { f.deathSaid = 1; meathead(state, L.MH_WON_WEAK, true, tokened(() => { f.deathSaid = 4; })); }
   }
-  // (a pancake on the deck a beat; he peels up off it, paper-thin, wobbling in the draft; his last words; over he goes,
-  // fluttering down flat again like a sheet of paper; Meathead's)
-  if (d.step === 'flat' && t >= d.at + 46) { d.step = 'peel'; d.at = t; playSound('squish', 0.7, 10); }
-  if (d.step === 'peel' && t >= d.at + PEEL_T) { d.step = 'paper'; d.at = t; }
-  if (d.step === 'paper' && t === d.at + 10 && f.deathSaid === 0) {
-    f.deathSaid = 1;
-    dadSays(f, state, L.DAD_FLAT, tokened(() => { d.step = 'flop'; d.at = d.t; playSound('whoosh', 0.5, 8); }));
-  }
-  if (d.step === 'flop' && t === d.at + FLOP_T) { playSound('squish', 0.5, 4); laughTrack(state, 0.8); meathead(state, L.MH_WON_WEAK, true, tokened(() => { f.deathSaid = 4; })); }
   return out;
 };
-/** The paper man: peeling up off the deck (frames), toppling back down. */
-const PEEL_T = 34, FLOP_T = 46;
-/** How the pancake's standing (0 flat on the deck .. 1 up on end), and its tip over (radians), this frame. */
-const paperOf = (d: Death) => {
-  const u = d.t - d.at;
-  if (d.step === 'peel') return { up: Math.min(1, u / PEEL_T), rot: 0 };
-  if (d.step === 'paper') return { up: 1, rot: 0 };
-  if (d.step === 'flop') { const k = Math.min(1, u / FLOP_T); return { up: 1 - k * k, rot: k * 0.3 + Math.sin(u * 0.4) * 0.08 * (1 - k) }; }
-  return { up: 0, rot: 0 };
-};
+/** The linger on the head sat there (frames), the beat after pulling back before Meathead's line. */
+const LINGER = 170, WIDE_SAY = 80;
+/** Pulled back out of the kill cam on the whole set (the weakness death's last shot). */
+const wideSet = (f: Fight) => f.death?.how === 'flat' && f.death.step === 'wide' && (!f.cam || f.cam.z <= 1);
 
 /** The standard death (the user's): up for a beer at last, to the fridge; it rocks off the wall, wobbles, and comes
  *  down on him. */
@@ -1389,7 +1412,7 @@ const fridgeDeath = (ctx: FrameContext, f: Fight, d: Death): Controls => {
 
 /** Done with: his death played out, everybody's had their say. */
 export const fightOver = (f: Fight) => f.mode === 'dead' && !!f.death && f.deathSaid >= 4 && f.death.t > 150 && (!f.cam || f.cam.z <= 1);
-export const endFight = (state: GameState, f: Fight) => { state.player.inCutscene = false; state.cameraOverride = null; state.viewIsScreen = false; live = null; void f; };
+export const endFight = (state: GameState, f: Fight) => { setStampHold(false); state.player.inCutscene = false; state.cameraOverride = null; state.viewIsScreen = false; live = null; void f; };
 export const killedByWeakness = (f: Fight) => f.death?.how === 'flat';
 /** For the music: the fight's mood (on, him up and pathetic, the end). */
 export const fightMood = (f: Fight): 'on' | 'sad' | 'dead' => (f.mode === 'dead' ? 'dead' : f.sad ? 'sad' : 'on');
@@ -1398,14 +1421,28 @@ export const fightMood = (f: Fight): 'on' | 'sad' | 'dead' => (f.mode === 'dead'
 // The kill cam (the weakness death): Steve's, near enough
 
 const CAM_Z = 2.1, SLOW = 0.25, SLOW_HOLD = 50, SLOW_RAMP = 90;
+/** On his head (the weakness: the user's "his decapitated head as it flies through the air"): the zoom riding it up and
+ *  down, slowed right down till it's first down; further in once it's down and sat (the gross-up linger); the slow-mo
+ *  through the flight, less through the bounces. */
+const HEAD_Z = 3.2, HEAD_HOLD_Z = 4.8, HEAD_SLOW = 0.34, HEAD_BOUNCE_SLOW = 0.6;
 export const killCamTick = (f: Fight): boolean => {
   const cam = f.cam;
   if (!cam) return false;
   cam.t++;
-  cam.z += ((cam.out ? 1 : CAM_Z) - cam.z) * (cam.out ? 0.05 : cam.t < 6 ? 0.35 : 0.08);
+  const h = f.death?.head;
+  let rate: number;
+  if (h) {
+    const flying = h.state === 'fly' && !h.landed;
+    cam.z += ((cam.out ? 1 : flying ? HEAD_Z : HEAD_HOLD_Z) - cam.z) * (cam.out ? 0.05 : cam.t < 6 ? 0.35 : flying ? 0.08 : 0.03);
+    rate = cam.out ? 1 : flying ? HEAD_SLOW : h.state === 'fly' ? HEAD_BOUNCE_SLOW : 1;
+  } else {
+    cam.z += ((cam.out ? 1 : CAM_Z) - cam.z) * (cam.out ? 0.05 : cam.t < 6 ? 0.35 : 0.08);
+    rate = cam.t < SLOW_HOLD ? SLOW : Math.min(1, SLOW + ((1 - SLOW) * (cam.t - SLOW_HOLD)) / SLOW_RAMP);
+    if (cam.out) rate = 1;
+  }
   if (cam.out && cam.z < 1.004) cam.z = 1;
-  let rate = cam.t < SLOW_HOLD ? SLOW : Math.min(1, SLOW + ((1 - SLOW) * (cam.t - SLOW_HOLD)) / SLOW_RAMP);
-  if (cam.out) rate = 1;
+  // (pushed right in: the set's big stamps scaled, not painted again screens big (stamp.ts))
+  setStampHold(cam.z > 1.05);
   cam.acc += rate;
   if (cam.acc >= 1) { cam.acc -= 1; return false; }
   return true;
@@ -1413,6 +1450,12 @@ export const killCamTick = (f: Fight): boolean => {
 export const killCamZoom = (state: GameState, f: Fight) => {
   const cam = f.cam;
   if (!cam || cam.z <= 1) return null;
+  const fo = f.death?.head ? f.death.focus : null;
+  if (fo) {
+    // (the head in the middle of the screen, wherever it's got to)
+    const k = Math.min(1, (cam.z - 1) / (HEAD_Z - 1)), fx = fo.x, fy = fo.y + 2;
+    return { scale: cam.z, x: fx, y: fy, shiftX: k * (state.camera.x + CANVAS_WIDTH / 2 - fx), shiftY: k * (state.camera.y + CANVAS_HEIGHT / 2 - fy) };
+  }
   const k = (cam.z - 1) / (CAM_Z - 1), m = CANVAS_WIDTH / 2 / CAM_Z;
   const fx = Math.max(state.camera.x + m, Math.min(state.camera.x + CANVAS_WIDTH - m, X(f.x))), fy = STAGE_Y - 50;
   return { scale: cam.z, x: fx, y: fy, shiftX: k * (state.camera.x + CANVAS_WIDTH / 2 - fx), shiftY: k * (state.camera.y + CANVAS_HEIGHT / 2 + 40 - fy) };
@@ -1524,22 +1567,13 @@ export const fightItems = (c: Ctx, state: GameState, f: Fight): Item[] => {
   }
   const d = f.death;
   if (d?.how === 'flat') {
-    // (under the car, then a pancake once it's tipped off him, then up on end like a sheet of paper and down again;
-    // the stuntman up out of the wreck)
+    // (his gore under the car; the splats where his bits came down; the bits; his head (over everything: the shot's on
+    // it); the stuntman up out of the wreck)
     items.push({ d: 1.0001, x: X(f.x), draw: () => drawDadGore(c, X(f.x), STAGE_Y, fr, f.facing, d.t) });
-    if (d.step === 'tip' || d.step === 'flat') items.push({ d: 1.0004, x: X(f.x), draw: () => drawPancake(c, X(f.x), STAGE_Y, fr, d.step === 'flat' ? 1 : 0, f.facing) });
-    else if (d.step !== 'start') {
-      const pp = paperOf(d);
-      items.push({ d: 1.0004, x: X(f.x), draw: () => {
-        c.save(); c.translate(X(f.x), STAGE_Y); c.rotate(-f.facing * pp.rot);
-        // (paper in a draft: the top of him swaying side to side over his flat feet)
-        // (flattened: a squat, wide paper man (a cartoon's accordion squash), never back to his full height)
-        c.transform(1, 0, Math.sin(fr * 0.13) * 0.3 * pp.up, 1, 0, 0);
-        c.scale(1.6 - 0.25 * pp.up, 0.12 + 0.36 * pp.up);
-        drawDad(c, 0, 0, 'stand', fr, { face: 'out', can: null, sway: 0, facing: f.facing, talking: f.words.has('dad') });
-        c.restore();
-      } });
-    }
+    for (const sp of d.splats) at(1.00012, sp.x, () => drawSplat(c, sp, STAGE_Y));
+    d.bits.forEach((b, i) => at((b.still ? 1.0003 : 1.0006) + i * 0.000001, b.x, () => drawBit(c, b, fr)));
+    const h = d.head;
+    if (h) at(1.0014, h.x, () => drawHead(c, h, STAGE_Y, fr, h.state === 'rest' ? d.t - d.restAt : 0));
     const s = d.stunt;
     if (s) items.push({ d: 1.0013, x: s.x, draw: () => drawStuntmanAt(c, s.x, s.y, -1, 0, s.up ? 'up' : 'tumble', fr) });
   } else {
@@ -1603,7 +1637,7 @@ const drawFightWords = (c: Ctx, state: GameState, f: Fight) => {
     if (who === 'dad') {
       const d = f.death;
       const crushed = d?.how === 'fridge' && (d.step === 'crushed' || d.step === 'roll' || d.step === 'done');
-      const top = d?.how === 'flat' ? STAGE_Y - 30 - DAD_H * 0.48 * paperOf(d).up : crushed ? STAGE_Y - 90 : STAGE_Y - f.y - (f.seated ? DAD_SIT_H : DAD_H) - 14;
+      const top = d?.how === 'flat' ? STAGE_Y - 40 : crushed ? STAGE_Y - 90 : STAGE_Y - f.y - (f.seated ? DAD_SIT_H : DAD_H) - 14;
       p = { x: crushed ? X(f.x) - 90 : X(f.x), y: top };
     } else { const m = f.family[who]; p = proj(E, X(m.x), STAGE_Y - 130 * DAD_K, m.d); }
     const q = toScreen(state, f, p.x, p.y);

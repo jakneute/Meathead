@@ -30,16 +30,16 @@ export const DAD_H = 106, DAD_SIT_H = 90;
 // ---------------------------------------------------------------------------------------------------------------
 // Ramps
 
-const SKIN: Ramp = ['#FCE0CF', '#EFBFA6', '#D59B82', '#B27461', '#5E3026'];
-const FLUSH: Ramp = ['#F7A3B0', '#DE6178', '#BE4260', '#932C49', '#4A0F20'];
-const TANK: Ramp = ['#FFFFFF', '#EEEBE2', '#D2CDBF', '#ABA596', '#5A564C'];
-const BOXER: Ramp = ['#EAF2FC', '#C7DCF3', '#9CBAE0', '#7393BE', '#2C3E66'];
-const SOCK: Ramp = ['#55555E', '#2E2E35', '#1F1F24', '#141418', '#000000'];
-const SLIPPER: Ramp = ['#C49466', '#9A6A40', '#7A4F2C', '#58361C', '#24140A'];
-const HAIR: Ramp = ['#FFFFFF', '#E8E8E8', '#C4C4C4', '#9A9A9A', '#545454'];
-const CAN: Ramp = ['#F25A6E', '#C8102E', '#9E0C24', '#760819', '#38030B'];
-const STRIPE = '#3B6FB6', STAIN = '#DCC67C', MUSTARD = '#C99A2E', SPOT = '#C99474', VEIN = '#8A92C4', TAT = '#5B7A9C';
-const EYE_W = '#F5E4DC', EYE_RED = '#E0707A', IRIS = '#7EA4C8', BAG = '#B98478', MIC = '#E3C2A2', TEETH = '#E8DCAE';
+export const SKIN: Ramp = ['#FCE0CF', '#EFBFA6', '#D59B82', '#B27461', '#5E3026'];
+export const FLUSH: Ramp = ['#F7A3B0', '#DE6178', '#BE4260', '#932C49', '#4A0F20'];
+export const TANK: Ramp = ['#FFFFFF', '#EEEBE2', '#D2CDBF', '#ABA596', '#5A564C'];
+export const BOXER: Ramp = ['#EAF2FC', '#C7DCF3', '#9CBAE0', '#7393BE', '#2C3E66'];
+export const SOCK: Ramp = ['#55555E', '#2E2E35', '#1F1F24', '#141418', '#000000'];
+export const SLIPPER: Ramp = ['#C49466', '#9A6A40', '#7A4F2C', '#58361C', '#24140A'];
+export const HAIR: Ramp = ['#FFFFFF', '#E8E8E8', '#C4C4C4', '#9A9A9A', '#545454'];
+export const CAN: Ramp = ['#F25A6E', '#C8102E', '#9E0C24', '#760819', '#38030B'];
+export const STRIPE = '#3B6FB6', STAIN = '#DCC67C', MUSTARD = '#C99A2E', SPOT = '#C99474', VEIN = '#8A92C4', TAT = '#5B7A9C';
+export const EYE_W = '#F5E4DC', EYE_RED = '#E0707A', IRIS = '#7EA4C8', BAG = '#B98478', MIC = '#E3C2A2', TEETH = '#E8DCAE';
 
 // ---------------------------------------------------------------------------------------------------------------
 // His parts (facing left, in his units, about his feet)

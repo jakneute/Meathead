@@ -291,9 +291,9 @@ export const drawCarnage = (c: Ctx, who: Member, x: number, floorY: number, f: n
 // ---------------------------------------------------------------------------------------------------------------
 // STUPID DAD's own: flesh, under the last car
 
-const GUT: Ramp = ['#FBC4D4', '#EC8FB0', '#D46A8E', '#A84A6A', '#5A1E33'];
-const BLOOD = ['#3A0306', '#5A0A10', '#8A1018', '#B91C1C', '#E04848'];
-const tooth = (c: Ctx, x: number, y: number, rot: number, gold = false) => {
+export const GUT: Ramp = ['#FBC4D4', '#EC8FB0', '#D46A8E', '#A84A6A', '#5A1E33'];
+export const BLOOD = ['#3A0306', '#5A0A10', '#8A1018', '#B91C1C', '#E04848'];
+export const tooth = (c: Ctx, x: number, y: number, rot: number, gold = false) => {
   c.save(); c.translate(x, y); c.rotate(rot);
   fill(c, '#5A4A3A', () => { c.moveTo(-1.6, -1.4); c.lineTo(1.6, -1.4); c.lineTo(1.8, 1.8); c.lineTo(0.6, 3.2); c.lineTo(0, 1.8); c.lineTo(-0.6, 3.2); c.lineTo(-1.8, 1.8); c.closePath(); });
   fill(c, gold ? '#F2C84A' : '#F4EDD6', () => { c.moveTo(-1.2, -1); c.lineTo(1.2, -1); c.lineTo(1.4, 1.4); c.lineTo(0.5, 2.6); c.lineTo(0, 1.6); c.lineTo(-0.5, 2.6); c.lineTo(-1.4, 1.4); c.closePath(); });
@@ -301,7 +301,7 @@ const tooth = (c: Ctx, x: number, y: number, rot: number, gold = false) => {
   c.restore();
 };
 /** A rope of gut: a chain of fat tubes along the points, a bead of shine on each. */
-const gutRope = (c: Ctx, pts: number[], r: number) => {
+export const gutRope = (c: Ctx, pts: number[], r: number) => {
   for (let i = 0; i + 3 < pts.length; i += 2) limb(c, pts[i], pts[i + 1], r, pts[i + 2], pts[i + 3], r * 0.94, GUT, 0, 0.8);
   for (let i = 0; i + 1 < pts.length; i += 4) ell(c, pts[i] - 0.6, pts[i + 1] - r * 0.5, r * 0.4, r * 0.22, '#FFE4EC');
 };
