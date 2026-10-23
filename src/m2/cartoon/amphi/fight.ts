@@ -748,8 +748,9 @@ const hammer = (ctx: FrameContext, f: Fight) => {
  *  little more. A single jump peaks about 145 px; an uppercut then a charge gets well over it. */
 const OVER_TOP = DAD_H + 8;
 /** On the couch, a charge move into him (the shoulder charge, the slide, the dive kick, the uppercut) is batted away
- *  with the mallet, every time, his i-frames or not, and it never hurts (the user's: "make sure charge attacks won't work
- *  on stupid dad when he's on the couch. he will always bat you away, even during your iframes (won't hurt you though)"). */
+ *  with the mallet, every time, his i-frames or not: it hurts like the swat when he's open to it, and in his i-frames it
+ *  just shoves him back (the user's: "the mallet move will hurt you if you don't have iframes but it will always push you
+ *  back"). */
 const batAway = (ctx: FrameContext, f: Fight) => {
   const { state } = ctx, p = state.player;
   // (puking, riding the couch, he can't: that's the one time a move lands on him on it (the user's))
@@ -759,7 +760,9 @@ const batAway = (ctx: FrameContext, f: Fight) => {
   if (!hits(pRect(state), { x0: cx - 36, x1: cx + 36, y0: feet - DAD_SIT_H - 18, y1: feet })) return;
   const dir = p.pos.x + p.width / 2 < cx ? -1 : 1;
   p.isCharging = false; p.isSliding = false; p.isDivekicking = false; p.isUppercutting = false;
-  p.vel = { x: dir * 11, y: -8 }; p.isGrounded = false; p.pushbackTimer = Math.max(p.pushbackTimer, 14);
+  if (hurtable(state)) hurtPlayer(ctx, SWAT_DMG, hurtSrc(state, 'm2:ct_dad_swat'), { x: dir * 11, y: -8 });
+  else { p.vel = { x: dir * 11, y: -8 }; p.pushbackTimer = Math.max(p.pushbackTimer, 14); }
+  p.isGrounded = false;
   playSound('bonk', 1, -2); playSound('whoosh', 0.7, -6); shakeScreen(state, 5, 3);
   ctx.fx.spawnDamageNumber({ x: p.pos.x, y: p.pos.y - 24 }, 'BATTED!', true, '#FDE047');
   // (the swing itself, if he's not mid-swing already: it's spent, it won't hurt)
