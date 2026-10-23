@@ -31,7 +31,8 @@ import { woods } from './woods';
 import { dirtbike } from './dirtbike';
 import { arena } from './arena';
 import { SALOON } from './town/layout';
-import { inSewer, realAt } from './logride/layout';
+import { inSewer, realAt, zoneAt } from './logride/layout';
+import { STATION } from './wilds/layout';
 import type { Zone } from '../hudThemes';
 export { FRONTIER_VOICE_LINES } from './voices';
 
@@ -46,15 +47,16 @@ const sectionAt = (x: number): FrontierSection => {
   return best;
 };
 const current = (state: GameState) => ALL[getFrontier(state)?.section ?? 'wilds'];
-/** The HUD's look for where he is (hudSkins/frontier.tsx): the section's, and the town's and the log ride's stretches. */
+/** The HUD's look for where he is (hudSkins/frontier.tsx): the section's, and the town's and the log ride's stretches
+ *  (the wilds' station platform is the railroad's; past the chipper, the crew's clearing is the real woods'). */
 const hudZone = (id: FrontierId, x: number): Zone => {
-  if (id === 'wilds') return 'frontier';
+  if (id === 'wilds') return x >= STATION.deck.a - 80 ? 'train' : 'frontier';
   if (id === 'arena') return 'tucker';
   if (id === 'town') {
     const rx = x - SECTIONS.town.x0;
     return x >= SALOON.a && x < SALOON.b ? 'saloon' : rx >= 14420 ? 'logride' : rx >= 11050 ? 'mine' : rx >= 8300 ? 'mill' : 'gulch';
   }
-  if (id === 'logride') { const rx = x - SECTIONS.logride.x0; return inSewer(rx) ? 'sewer' : realAt(rx) ? 'river' : 'logride'; }
+  if (id === 'logride') { const rx = x - SECTIONS.logride.x0; return inSewer(rx) ? 'sewer' : zoneAt(rx) === 'clearing' ? 'woods' : realAt(rx) ? 'river' : 'logride'; }
   return id;
 };
 /** Every checkpoint in the stage, in order (the checkpoint-skip cheat lists them all). */

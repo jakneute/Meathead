@@ -1,4 +1,5 @@
-// The HUD and the pause menu, done up for wherever he is: a parking stub in the garage, a visitor badge through
+// The HUD and the pause menu, done up for wherever he is: a rubber gym mat and a plate in his gym (the opening), a
+// parking stub in the garage, a visitor badge through
 // security, stars and stripes down America USA, a ticket in the line, a brochure at the hub, a timecard in the staff
 // room; and in Adventure Land, a bamboo sign in the jungle, a wait-time board in the queue, a tour-boat placard on the
 // river and a brass porthole under it, a control terminal in the dino park, carved (fiberglass) stone in the temple,
@@ -8,7 +9,7 @@
 
 import React from 'react';
 import type { HudSkin } from '../m1/components/HUD';
-import { edge, tag, rivets, PIXEL_SHADOW } from './hudKit';
+import { edge, tag, rivets, bit, word, PIXEL_SHADOW, FRAME_SHADOW } from './hudKit';
 import { SPOOKY_THEMES, type SpookyZone } from './hudSkins/spooky';
 import { SPACE_THEMES, type SpaceZone } from './hudSkins/space';
 import { HOLLYWOOD_THEMES, type HollywoodZone } from './hudSkins/hollywood';
@@ -18,7 +19,7 @@ import { FANTASY_THEMES, type FantasyZone } from './hudSkins/fantasy';
 import { CARTOON_THEMES, type CartoonZone } from './hudSkins/cartoon';
 
 export type Zone =
-  | 'garage' | 'security' | 'america' | 'ticket' | 'hub' | 'staff'
+  | 'gym' | 'garage' | 'security' | 'america' | 'ticket' | 'hub' | 'staff'
   | 'jungle' | 'queue' | 'boat' | 'underwater' | 'dino' | 'temple' | 'cart' | 'roof' | 'clearing'
   | SpookyZone | SpaceZone | HollywoodZone | ForeignZone | FrontierZone | FantasyZone | CartoonZone;
 
@@ -46,6 +47,34 @@ export interface PauseSkin {
 export interface Theme { hud: HudSkin; pause: PauseSkin }
 
 export const THEMES: Record<Zone, Theme> = {
+  // His gym (the Iron Pit, the opening): the black rubber floor mat, its colored flecks, a diamond-plate edge, a 45
+  gym: {
+    hud: {
+      panel: { backgroundImage: 'radial-gradient(circle at 20% 30%, rgba(239,68,68,0.5) 0.8px, transparent 1.2px), radial-gradient(circle at 70% 65%, rgba(59,130,246,0.45) 0.8px, transparent 1.2px), radial-gradient(circle at 45% 85%, rgba(250,250,250,0.3) 0.6px, transparent 1px), linear-gradient(180deg, rgba(39,39,42,0.97), rgba(18,18,20,0.97))', backgroundSize: '9px 9px, 13px 13px, 7px 7px, auto', border: '3px solid transparent', borderImage: 'repeating-linear-gradient(45deg, #D4D4D8 0 2px, #71717A 2px 4px, #3F3F46 4px 6px) 3', boxShadow: PIXEL_SHADOW },
+      deco: <>
+        {bit({ right: 5, bottom: 4, width: 16, height: 16, borderRadius: '50%', background: 'radial-gradient(circle, #18181B 2px, #A1A1AA 2.5px 3.5px, #B91C1C 4px 6px, #7F1D1D 6.5px)', boxShadow: '0 0 0 1px #000' })}
+        {word('45', { right: 10, bottom: 1, color: '#FECACA' })}
+        {tag('IRON PIT', { background: '#FACC15', color: '#18181B', transform: 'rotate(-3deg)', boxShadow: '0 0 0 1px #000' })}
+      </>,
+      label: '#FDE047', value: '#FAFAFA', name: '#F87171',
+      track: { background: '#09090B', borderColor: '#52525B' },
+      hp: 'linear-gradient(180deg, #FCA5A5, #DC2626 50%, #7F1D1D)',
+      slot: { background: 'rgba(9,9,11,0.7)', borderColor: '#A1A1AA' },
+      cellOn: { border: '#FEF08A', fill: 'linear-gradient(180deg, #FEF08A, #EAB308)', glow: 'rgba(250,204,21,0.8)' },
+      cellOff: { border: '#3F3F46', fill: 'linear-gradient(180deg, #52525B, #27272A)' },
+    },
+    pause: {
+      title: 'BETWEEN SETS', sub: "IT'S LEG DAY. NOBODY LEAVES ON LEG DAY.",
+      titleStyle: { color: '#FACC15', textShadow: '3px 3px 0 #7F1D1D, 5px 5px 0 #000' },
+      frame: { backgroundImage: 'radial-gradient(circle at 20% 30%, rgba(239,68,68,0.35) 1px, transparent 1.5px), radial-gradient(circle at 70% 65%, rgba(59,130,246,0.3) 1px, transparent 1.5px), radial-gradient(circle at 45% 85%, rgba(250,250,250,0.2) 0.8px, transparent 1.3px), linear-gradient(180deg, #27272A, #0F0F11)', backgroundSize: '14px 14px, 19px 19px, 11px 11px, auto', border: '6px solid transparent', borderImage: 'repeating-linear-gradient(45deg, #D4D4D8 0 3px, #71717A 3px 6px, #3F3F46 6px 9px) 6', boxShadow: FRAME_SHADOW() },
+      stripe: 'repeating-linear-gradient(90deg, #FACC15 0 14px, #18181B 14px 18px)',
+      deco: <div className="absolute right-6 top-3 text-[7px] font-black px-2 py-1 -rotate-3" style={{ background: '#F4F4F5', color: '#B91C1C', border: '1px solid #A1A1AA', boxShadow: '2px 2px 0 rgba(0,0,0,0.5)' }}>RE-RACK YOUR WEIGHTS</div>,
+      accent: '#FACC15', text: '#FAFAFA', muted: '#A1A1AA',
+      well: { background: 'rgba(9,9,11,0.6)', border: '1px solid #52525B' },
+      slot: 'rgba(9,9,11,0.92)', slotOn: 'rgba(250,204,21,0.9)',
+      button: 'linear-gradient(180deg, #DC2626, #7F1D1D)', buttonEdge: '#450A0A',
+    },
+  },
   // The parking garage: a concrete pillar, the curb paint, the level marker
   garage: {
     hud: {

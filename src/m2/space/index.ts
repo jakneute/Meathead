@@ -31,6 +31,7 @@ import { orbit } from './orbit';
 import { crater } from './crater';
 import { queen } from './queen';
 import { HOUSE_DOOR } from './crater/layout';
+import { DOOR_X } from './queen/geo';
 import type { Zone } from '../hudThemes';
 export { SPACE_VOICE_LINES } from './voices';
 
@@ -45,8 +46,11 @@ const sectionAt = (x: number): SpaceSection => {
   return best;
 };
 const current = (state: GameState) => ALL[getSpace(state)?.section ?? 'square'];
-/** The HUD's look for where he is (hudSkins/space.tsx): the section's; in through XENOSCARE's mouth, the haunted house's. */
-const hudZone = (id: SpaceId, x: number): Zone => id === 'square' ? 'space' : id === 'crater' && x >= HOUSE_DOOR ? 'xenoscare' : id;
+/** The HUD's look for where he is (hudSkins/space.tsx): the section's; in through XENOSCARE's mouth, the haunted house's,
+ *  and still the haunted house's through the queen's hold, the basement under it and the stairs up out of it (the
+ *  horror); the disco's only in at its door, for the fight. */
+const hudZone = (id: SpaceId, x: number): Zone =>
+  id === 'square' ? 'space' : id === 'crater' && x >= HOUSE_DOOR ? 'xenoscare' : id === 'queen' && x < DOOR_X ? 'xenoscare' : id;
 /** Every checkpoint in the stage, in order (the checkpoint-skip cheat lists them all). */
 export const SPACE_CHECKPOINTS = SECTION_ORDER.flatMap(id => ALL[id].checkpoints).sort((a, b) => a.cp - b.cp);
 

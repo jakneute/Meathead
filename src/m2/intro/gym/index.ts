@@ -219,8 +219,8 @@ export const gymLayout: StageLayout = {
     p.pos = { x: START_X - p.width / 2, y: Y - p.height }; p.vel = { x: 0, y: 0 }; p.facing = 1;
     if (gym.phase === 'opening') {
       p.hidden = true; p.inCutscene = true;
-      setUi({ introCutscene: true, gymTip: null, zone: 'staff' });
-    } else { p.hidden = false; p.inCutscene = false; setUi({ introCutscene: false, zone: 'staff' }); }
+      setUi({ introCutscene: true, gymTip: null, zone: 'gym' });
+    } else { p.hidden = false; p.inCutscene = false; setUi({ introCutscene: false, zone: 'gym' }); }
     skipAsked = false;
   },
   update: (ctx, controls) => {
