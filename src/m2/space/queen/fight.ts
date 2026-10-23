@@ -147,6 +147,8 @@ const DRIP_EVERY = 2, SPOT_EVERY = 50, SPOT_LIFE = 700;
 /** How often she says something at him (frames). */
 const TAUNT_EVERY = 900;
 
+/** Touching her: her body's box (narrower than she's drawn: the legs and torso), and what it does. */
+const TOUCH_W = 70, TOUCH_H = 210, TOUCH_DMG = 18;
 const OIL = 'm2:sp_queen_oil', FLAIL = 'm2:sp_queen_flail', POOL = 'm2:sp_queen_pool', CAN = 'm2:sp_queen_can';
 registerHurtLines(OIL, L.HURT_OIL, L.DEATH_OIL);
 registerHurtLines(CAN, L.HURT_CAN, L.DEATH_CAN);
@@ -536,6 +538,14 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
   }
   const ph = phase(f), p = state.player, pm = pmid(state);
   const toward = (pm.x < f.x ? -1 : 1) as 1 | -1;
+  // (her body: run into her, or her into him, and it hurts (the user's: she does contact damage); her body rides up with
+  // her leaps and hops, so under her in the air he's clear)
+  if (f.mode !== 'dead' && canHurt(state)) {
+    const bx0 = f.x - TOUCH_W / 2, bx1 = f.x + TOUCH_W / 2, by1 = GY - f.y, by0 = by1 - TOUCH_H;
+    if (p.pos.x < bx1 && p.pos.x + p.width > bx0 && p.pos.y < by1 && p.pos.y + p.height > by0) {
+      hurtPlayer(ctx, TOUCH_DMG, FLAIL, { x: toward * 9, y: -6 }, 14); playSound('punch', 0.8, -4);
+    }
+  }
   if (f.mode !== 'dead' && ++f.tauntT >= TAUNT_EVERY) { f.tauntT = Math.floor(Math.random() * 200); bark(state, f, L.QUEEN_TAUNT); }
   // (him in close: the flail's coming if he stays; backing off, it's off)
   // (not with the pool up round her: that's the keep-off then)
