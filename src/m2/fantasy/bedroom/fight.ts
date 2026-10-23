@@ -119,7 +119,8 @@ const THROW_GAP = 360, THROW_NEAR = 170, RIP_T = 30, THROW_T = 24, FIREBALL_DMG 
 // (way fewer mashes, the user's: three A presses break it; it thaws on its own sooner too)
 const MASH_STEP = 0.34, MASH_DRAIN = 0.0035, ICE_MAX = 150;
 /** The bounce: how long (and longer each hole), how fast. */
-const BOUNCE_T = 150, BOUNCE_EACH = 30, BOUNCE_V = 10;
+// (quite a bit more of it, the user's: was 150 and 30)
+const BOUNCE_T = 230, BOUNCE_EACH = 45, BOUNCE_V = 10;
 /** Taunts; the hint's gap. */
 const TAUNT_EVERY = 700, HINT_GAP = 600;
 /** A retry's entrance beat (frames): her waiting, no slams. */
@@ -1018,7 +1019,8 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
   if (dealt <= 0 || !state.enemies.includes(e) || f.mode !== 'on') return;
   const p = state.player;
   // (the flintlock: a hole, breather or no)
-  if (!melee && p.currentWeapon === 'FLINTLOCK') { hole(ctx, f); return; }
+  // (not while she's off round the room (the user's: "you cannot pop her as she bounces around"))
+  if (!melee && p.currentWeapon === 'FLINTLOCK') { if (f.act !== 'bounce') hole(ctx, f); return; }
   if (f.iframes > 0) return;
   const plain = plainHit(state, melee);
   // (him thinking out loud about the flintlock, now and then; never about a weapon he hasn't got)
@@ -1047,9 +1049,10 @@ const hole = (ctx: FrameContext, f: Fight) => {
   ctx.fx.spawnDamageNumber({ x: f.x - 20, y: f.y - PIPER_H - 30 }, 'POP!', true, '#F6E7A8');
   for (let k = 0; k < 24; k++) state.particles.push({ pos: { x: f.x, y: f.y - 90 }, vel: { x: (Math.random() - 0.5) * 9, y: -2 - Math.random() * 5 }, life: 40, color: k % 2 ? '#8B0000' : '#F6E7A8', size: 3 + Math.random() * 3, grav: 0.35 });
   if (f.holes.length >= HOLES_TO_DIE || f.hp <= 0) { die(ctx, f, true); return; }
-  // (the pop tears the next of the three loose right away (the user's: "popping pixie with the flintlock will enable one
-  // of the environmental hazards right away that isn't active. nothing if all 3 are active"))
-  if (f.hazards.length < LOOSE_ORDER.length) loosen(ctx, f, LOOSE_ORDER[f.hazards.length], true);
+  // (the pop sets one of the three going right away, one that isn't (the user's: "popping pixie with the flintlock will
+  // enable one of the environmental hazards right away that isn't active. nothing if all 3 are active"; "all three can be
+  // off at once": the two-at-once hold doesn't stop this one): a loose one that's not on, else the next torn loose)
+  popHazard(ctx, f);
   // (whatever she was at, she's off: a let-go balloon)
   f.slamHit = true;
   setAct(f, 'bounce', BOUNCE_T + f.holes.length * BOUNCE_EACH);
@@ -1057,6 +1060,16 @@ const hole = (ctx: FrameContext, f: Fight) => {
   state.enemies = state.enemies.filter(o => o !== f.e);
   token++; f.said = null;
   herMaybe(f, L.PIPER_HOLE, tokened(() => hisLine(state, L.MH_HOLE)));
+};
+
+/** A pop's hazard: one not going off, set off now (next frame, through its tell's last frame, so it comes on as ever). */
+const popHazard = (ctx: FrameContext, f: Fight) => {
+  const idle = f.hazards.filter(h => hazPhase(h).s !== 'on');
+  let h = idle.length ? idle[Math.floor(Math.random() * idle.length)] : null;
+  if (!h && f.hazards.length < LOOSE_ORDER.length) { loosen(ctx, f, LOOSE_ORDER[f.hazards.length], true); h = f.hazards[f.hazards.length - 1]; }
+  if (!h) return;
+  const [q, tl, on] = HAZ[h.kind], cyc = q + tl + on;
+  h.t = h.t - (h.t % cyc) + q + tl - 1;
 };
 
 /** Round the room like a let-go balloon: a jet of her out of every hole, off the walls and the ceiling. */
