@@ -39,7 +39,7 @@ import { bust as grossBust, drawBust } from '../../grossBust';
 import { drawSuitor, type SuitorLook } from '../suitors';
 import { timeOfDay, skyRamp } from '../../timeOfDay';
 import { parkView } from './view';
-import { ROOF, PALE, PINK, lip, sconce, flame, banner } from '../keep/paint';
+import { ROOF, PALE, PINK, lip, sconce, flame, banner, ashlar } from '../keep/paint';
 import { GY, HALL_L, DOOR_X, ARENA_L, ARENA_R, ARENA_W, ARENA_MID, CEIL_Y, LEDGES, CHANDELIERS, CHAISE_X, VANITY_X, TROPHY_X, R } from './layout';
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -114,6 +114,45 @@ const ragged = (x: number, y: number, w: number, h: number, seed: number, N = 16
   return pts;
 };
 const pathOf = (g: Ctx, pts: [number, number][], k = 1, cx = 0, cy = 0) => { g.beginPath(); pts.forEach(([px, py], i) => { const X = cx + (px - cx) * k, Y = cy + (py - cy) * k; if (i) g.lineTo(X, Y); else g.moveTo(X, Y); }); g.closePath(); };
+
+/** White fur (the throws): pile in tufts, lilac shade under, inked. */
+const FUR = ['#5E4E66', '#9C8CA8', '#CBBED4', '#E8E0EC', '#F8F4FA', '#FFFFFF'];
+const fur = (g: Ctx, x: number, y: number, w: number, h: number) => {
+  B(g, x - 1, y - 1, w + 2, h + 3, INK);
+  B(g, x, y, w, h, FUR[3]); B(g, x, y, w, 2, FUR[4]); B(g, x, y + h - 3, w, 3, FUR[2]); checker(g, x, y + h - 5, w, 2, FUR[2], 0, 1); B(g, x, y + h, w, 1, FUR[1]);
+  for (let r = y + 3; r < y + h - 3; r += 2) for (let k = (r & 2); k < w - 1; k += 4) { const t = hash(x * 0.31 + k * 1.7 + r * 0.9); if (t > 0.55) B(g, x + k, r, 2, 1, FUR[4]); else if (t < 0.22) B(g, x + k, r, 1, 2, FUR[2]); else if (t > 0.5) B(g, x + k, r, 1, 1, FUR[5]); }
+  // (a tufted top edge and a shaggy hem)
+  for (let k = 0; k < w - 1; k += 3) {
+    const up = hash(x + k * 2.3) > 0.5 ? 2 : 1;
+    B(g, x + k, y - 1 - up, 2, 1, INK); B(g, x + k, y - up, 2, up + 1, FUR[4]); B(g, x + k, y - up, 1, 1, FUR[5]);
+    const dn = hash(x * 1.1 + k) > 0.6 ? 2 : 1; B(g, x + k + 1, y + h, 1, dn, FUR[2]); B(g, x + k + 1, y + h + dn, 1, 1, INK);
+  }
+};
+
+/** A velvet drape hanging in folds: its outline from the top (x0..x1 at y), in at the tie-back, out at the hem; the
+ *  folds stepped (lit ridge, highlight, shaded trough) running the drape's length, shade under the valance, inked. */
+const foldDrape = (g: Ctx, top: [number, number, number], mid: [number, number, number], bot: [number, number, number], R = VELV, n = 5) => {
+  const pts: [number, number][] = [[top[0], top[2]], [top[1], top[2]], [mid[1], mid[2]], [bot[1], bot[2]], [bot[0], bot[2]], [mid[0], mid[2]]];
+  pathOf(g, pts); g.fillStyle = R[2]; g.fill();
+  g.save(); pathOf(g, pts); g.clip();
+  const lerp = (e: [number, number, number], t: number) => e[0] + (e[1] - e[0]) * t;
+  const run = (t: number, dx: number, w: number, col: string) => { g.strokeStyle = col; g.lineWidth = w; g.beginPath(); g.moveTo(lerp(top, t) + dx, top[2]); g.lineTo(lerp(mid, t) + dx * 0.5, mid[2]); g.lineTo(lerp(bot, t) + dx, bot[2]); g.stroke(); };
+  const sp = Math.max(4, (top[1] - top[0]) / n);
+  for (let i = 0; i < n; i++) { const t = (i + 0.5) / n; run(t, sp * 0.35, sp * 0.4, R[1]); run(t, 0, sp * 0.45, R[3]); run(t, -sp * 0.1, Math.max(1, sp * 0.18), R[4]); run(t, -sp * 0.15, 1, R[5]); }
+  const minX = Math.min(top[0], mid[0], bot[0]) - 2, maxX = Math.max(top[1], mid[1], bot[1]) + 2;
+  B(g, minX, top[2], maxX - minX, 4, R[0]); checker(g, minX, top[2] + 4, maxX - minX, 2, R[0], 0, 1);
+  checker(g, minX, bot[2] - 4, maxX - minX, 4, R[1], 0, 1);
+  g.restore();
+  pathOf(g, pts); g.strokeStyle = INK; g.lineWidth = 1.5; g.stroke();
+};
+/** A gold tie-back: the cord across, a knob, the tassel hanging (stepped, its skirt fringed). */
+const tassel = (g: Ctx, x: number, y: number) => {
+  ballR(g, x, y, 3, GD);
+  B(g, x - 1, y + 3, 3, 4, INK); B(g, x, y + 3, 1, 4, GD[4]);
+  polyF(g, [[x - 4, y + 16], [x - 3, y + 8], [x + 3, y + 8], [x + 4, y + 16]], INK); polyF(g, [[x - 3, y + 15], [x - 2, y + 8], [x + 2, y + 8], [x + 3, y + 15]], GD[3]);
+  B(g, x - 2, y + 8, 1, 7, GD[5]); B(g, x + 2, y + 9, 1, 6, GD[1]);
+  for (let k = -3; k <= 3; k++) B(g, x + k, y + 15, 1, 2 + ((k + 3) % 2), k < 0 ? GD[4] : GD[2]);
+};
 
 /** Still art painted in world coordinates (a stamp about (x, y), the box bx, by, bw, bh round it). */
 const stillW = (c: Ctx, key: string, x: number, y: number, bx: number, by: number, bw: number, bh: number, paint: (g: Ctx) => void) => {
@@ -356,24 +395,57 @@ const paintWreck = (g: Ctx, a: number, b: number, s: number) => {
     if (!near(x)) continue;
     crack(g, x, up ? RAIL - 4 : FRIEZE_B + 2, up ? -1 : 1, k + 1, s >= 5 ? 9 : 6);
   }
-  if (s >= 5) for (let k = 0; k < 3; k++) { const x = R(200 + hash(k * 3.7 + 1) * 1250); if (near(x)) { const pts = ragged(x, CEIL_Y + 120 + k * 60, 16, 90, k + 90, 10); pathOf(g, pts); g.fillStyle = PLAST[2]; g.fill(); g.strokeStyle = DAM[0]; g.lineWidth = 1; g.stroke(); } }
+  if (s >= 5) for (let k = 0; k < 3; k++) {
+    // (gashes: the paper split open on bare plaster, the plaster gouged to its lath, inked, a lit lip along the foot)
+    const x = R(200 + hash(k * 3.7 + 1) * 1250), gy = CEIL_Y + 120 + k * 60;
+    if (!near(x)) continue;
+    const pts = ragged(x, gy, 16, 90, k + 90, 10);
+    pathOf(g, pts, 1.35, x, gy); g.fillStyle = PLAST[3]; g.fill(); pathOf(g, pts, 1.35, x, gy); g.strokeStyle = DAM[1]; g.lineWidth = 1; g.stroke();
+    pathOf(g, pts); g.fillStyle = PLAST[1]; g.fill();
+    g.save(); pathOf(g, pts); g.clip(); B(g, x - 10, gy - 50, 20, 100, PLAST[1]); for (let y = gy - 46; y < gy + 46; y += 7) { B(g, x - 10, y, 20, 3, WALNUT[2]); B(g, x - 10, y, 20, 1, WALNUT[4]); } B(g, x - 10, gy - 50, 3, 100, CAV); checker(g, x - 7, gy - 50, 2, 100, CAV, 0, 1); g.restore();
+    pathOf(g, pts); g.strokeStyle = INK; g.lineWidth = 1.5; g.stroke();
+    for (const [px, py] of pts) if (px > x) B(g, px, py, 1, 2, PLAST[5]);
+  }
   // (2: plaster down: holes through the cornice, a streak of dust down the wall under each, rubble on the floor)
   for (let k = 0; k < ceilHoles(s); k++) {
     const { x, w } = holeAt(k);
     if (!near(x, w + 40)) continue;
-    g.globalAlpha = 0.35; for (let y = CEIL_Y + 40; y < GY - 130; y += 3) B(g, x - w * 0.2 + Math.sin(y * 0.05 + k) * 3, y, w * 0.4 * (1 - (y - CEIL_Y) / 600), 2, PLAST[4]); g.globalAlpha = 1;
+    // (the dust down the wall: a dithered streak, thinning as it goes down)
+    for (let y = CEIL_Y + 40; y < GY - 130; y += 2) { const ww = Math.round(w * 0.4 * (1 - (y - CEIL_Y) / 600)), sx = Math.round(x - w * 0.2 + Math.sin(y * 0.05 + k) * 3); if (ww > 1) checker(g, sx, y, ww, 2, y < CEIL_Y + 160 ? PLAST[4] : PLAST[3], (y >> 1) & 1, 1); }
     paintCavity(g, x, CEIL_Y + 22, w, 40, k + 1);
-    for (let m = 0; m < 4; m++) { const rx = x + (hash(k * 11 + m) - 0.5) * w, rw = 8 + hash(k + m * 5) * 12; polyF(g, [[rx - rw, GY + 4], [rx - rw * 0.4, GY - rw * 0.6 + 4], [rx + rw * 0.5, GY - rw * 0.4 + 4], [rx + rw, GY + 4]], PLAST[3]); B(g, rx - rw * 0.4, GY - rw * 0.6 + 4, rw * 0.6, 1, PLAST[5]); B(g, rx - rw, GY + 3, rw * 2, 2, PLAST[1]); }
+    for (let m = 0; m < 4; m++) {
+      // (rubble under it: broken lumps, inked, a lit top, a shaded side, a bit of painted face, dust round them)
+      const rx = x + (hash(k * 11 + m) - 0.5) * w, rw = 8 + hash(k + m * 5) * 12;
+      checker(g, rx - rw * 1.6, GY + 2, rw * 3.2, 3, PLAST[3], 0, 1);
+      polyF(g, [[rx - rw - 1, GY + 5], [rx - rw * 0.4, GY - rw * 0.6 + 3], [rx + rw * 0.5, GY - rw * 0.4 + 3], [rx + rw + 1, GY + 5]], INK);
+      polyF(g, [[rx - rw, GY + 4], [rx - rw * 0.4, GY - rw * 0.6 + 4], [rx + rw * 0.5, GY - rw * 0.4 + 4], [rx + rw, GY + 4]], PLAST[3]);
+      polyF(g, [[rx - rw, GY + 4], [rx - rw * 0.4, GY - rw * 0.6 + 4], [rx - rw * 0.1, GY + 4]], PLAST[4]);
+      polyF(g, [[rx + rw * 0.5, GY - rw * 0.4 + 4], [rx + rw, GY + 4], [rx + rw * 0.3, GY + 4]], PLAST[1]);
+      if (m % 2) polyF(g, [[rx - rw * 0.1, GY - rw * 0.5 + 4], [rx + rw * 0.45, GY - rw * 0.4 + 4], [rx + rw * 0.3, GY + 1], [rx, GY + 1]], DAM[3]);
+      B(g, rx - rw * 0.4, GY - rw * 0.6 + 4, rw * 0.6, 1, PLAST[5]); B(g, rx - rw, GY + 3, rw * 2, 2, PLAST[1]);
+    }
   }
   // (3: the damask torn and hanging in strips: the plaster bare where it was, the paper's back curling)
   if (s >= 3) for (let k = 0; k < (s >= 6 ? 20 : 12); k++) {
     const x = R(40 + hash(k * 11.3 + 2) * 1610), y = FRIEZE_B + 4 + hash(k * 2.9) * 150, w = 12 + hash(k * 4.1) * 12, len = 40 + hash(k) * 70;
     if (!near(x)) continue;
-    B(g, x, y, w, len * 0.8, PLAST[3]); B(g, x, y, w, 1, PLAST[1]); B(g, x, y, 1, len * 0.8, PLAST[4]); checker(g, x + 1, y + len * 0.8 - 2, w - 1, 2, PLAST[2], 0, 1);
+    // (the bare plaster where it came off: inked round, the paste's stain in dither, its torn foot ragged)
+    const bh = len * 0.8;
+    B(g, x - 1, y, w + 2, bh + 1, DAM[0]); B(g, x, y, w, bh, PLAST[3]); B(g, x, y, w, 2, PLAST[1]); B(g, x, y, 1, bh, PLAST[4]); B(g, x + w - 2, y, 2, bh, PLAST[2]);
+    checker(g, x + 2, y + 3, w - 4, bh * 0.4, PLAST[2], 0, 1); checker(g, x + 1, y + bh - 2, w - 1, 2, PLAST[2], 0, 1);
+    for (let t = x; t < x + w; t += 3) B(g, t, y + bh - (hash(t * 1.3) > 0.5 ? 1 : 0), 3, 2, DAM[2]);
     const lean = (hash(k * 3) - 0.5) * 12;
-    polyF(g, [[x, y], [x + w, y], [x + w * 0.8 + lean, y + len], [x + w * 0.25 + lean, y + len - 6]], CREAM[3]);
+    // (the strip hanging off it: the paper's back curling out (cream, shaded down its fold), the rose face showing at
+    // the curl, inked)
+    const back: [number, number][] = [[x, y], [x + w, y], [x + w * 0.8 + lean, y + len], [x + w * 0.25 + lean, y + len - 6]];
+    pathOf(g, back.map(([px, py]) => [px + 1, py + 1] as [number, number])); g.fillStyle = INK; g.fill();
+    polyF(g, back, CREAM[3]);
+    polyF(g, [[x + 1, y], [x + w * 0.3, y], [x + w * 0.4 + lean, y + len - 4], [x + w * 0.25 + lean, y + len - 6]], CREAM[4]);
     polyF(g, [[x + w * 0.6, y], [x + w, y], [x + w * 0.8 + lean, y + len], [x + w * 0.65 + lean, y + len - 2]], CREAM[2]);
-    polyF(g, [[x + w * 0.25 + lean, y + len - 6], [x + w * 0.8 + lean, y + len], [x + w * 0.55 + lean, y + len + 5]], DAM[3]);
+    polyF(g, [[x + w * 0.85, y], [x + w, y], [x + w * 0.8 + lean, y + len], [x + w * 0.75 + lean, y + len - 1]], CREAM[1]);
+    const face: [number, number][] = [[x + w * 0.25 + lean, y + len - 6], [x + w * 0.8 + lean, y + len], [x + w * 0.55 + lean, y + len + 6]];
+    polyF(g, face.map(([px, py]) => [px, py + 1] as [number, number]), INK); polyF(g, face, DAM[3]); B(g, x + w * 0.45 + lean, y + len - 2, 2, 1, DAM[5]);
+    pathOf(g, back); g.strokeStyle = INK; g.lineWidth = 1; g.stroke();
     B(g, x, y - 1, w, 2, DAM[0]);
   }
   // (4: holes in the walls)
@@ -495,23 +567,42 @@ const paintRoofHole = (g: Ctx, hx: number) => {
   for (let y = CEIL_Y + 30; y >= top; y -= 20) col.push([hx - 50 - hash(y * 0.3) * 18, y]);
   for (let y = top; y <= CEIL_Y + 30; y += 20) col.push([hx + 50 + hash(y * 0.7) * 18, y]);
   g.save(); pathOf(g, col); g.clip();
-  for (let i = 0; i < 4; i++) B(g, hx - 80, top - 20 + i * 30, 160, 31, S[i]);
+  // (the sky in bands, dithered where they meet; a cloud drifting over; stars after dark)
+  for (let i = 0; i < 4; i++) { B(g, hx - 80, top - 20 + i * 30, 160, 31, S[i]); if (i) checker(g, hx - 80, top - 22 + i * 30, 160, 2, S[i], 0, 1); }
   B(g, hx - 80, top + 100, 160, CEIL_Y - top, S[3]);
+  ell(g, hx - 20, top + 46, 26, 6, mix(S[3], '#FFFFFF', 0.4)); ell(g, hx - 26, top + 43, 14, 5, mix(S[3], '#FFFFFF', 0.65)); B(g, hx - 44, top + 50, 48, 2, mix(S[2], '#FFFFFF', 0.2));
   if (tod.stars > 0.3) for (let k = 0; k < 8; k++) B(g, hx - 60 + hash(k * 3.1) * 120, top + hash(k) * 60, 1, 1, '#FFFFFF');
   g.restore();
   pathOf(g, col); g.strokeStyle = INK; g.lineWidth = 2; g.stroke();
-  // (the snapped ends either side: joists, pipes bent up and away, slates)
+  // (the snapped ends either side: joists splintered, the mains bent up and away (each in its ramp, lit along its top,
+  // its torn mouth dark), slates and sarking broken open, a rafter snapped)
   for (const s of [-1, 1]) {
     const ex = hx + s * 52;
-    B(g, ex - (s < 0 ? 14 : 0), CEIL_Y - 16, 14, 16, WALNUT[3]); polyF(g, [[ex, CEIL_Y - 16], [ex + s * 10, CEIL_Y - 30], [ex + s * 4, CEIL_Y - 14]], WALNUT[4]);
-    for (const [y, R6] of [[PLATE + 48, STEEL], [PLATE + 66, HEATC], [PLATE + 88, LN2C]] as const) { polyF(g, [[ex, y], [ex + s * 18, y - 22], [ex + s * 26, y - 18], [ex + s * 8, y + 8]], R6[3]); B(g, ex + s * 18, y - 22, 4, 2, R6[5]); }
+    const jx = ex - (s < 0 ? 14 : 0);
+    B(g, jx - 1, CEIL_Y - 17, 16, 18, INK); B(g, jx, CEIL_Y - 16, 14, 16, WALNUT[3]); B(g, jx, CEIL_Y - 16, 14, 2, WALNUT[5]); B(g, jx + (s < 0 ? 0 : 11), CEIL_Y - 16, 3, 16, WALNUT[2]);
+    for (let y = CEIL_Y - 12; y < CEIL_Y; y += 4) B(g, jx + 2, y, 10, 1, WALNUT[2]);
+    polyF(g, [[ex, CEIL_Y - 17], [ex + s * 11, CEIL_Y - 32], [ex + s * 5, CEIL_Y - 13]], INK); polyF(g, [[ex, CEIL_Y - 16], [ex + s * 10, CEIL_Y - 30], [ex + s * 4, CEIL_Y - 14]], WALNUT[4]);
+    for (let k = 0; k < 3; k++) polyF(g, [[ex, CEIL_Y - 4 - k * 4], [ex + s * (8 + k * 3), CEIL_Y - 6 - k * 5], [ex, CEIL_Y - 2 - k * 4]], k % 2 ? WALNUT[5] : WALNUT[3]);
+    for (const [y, R6] of [[PLATE + 48, STEEL], [PLATE + 66, HEATC], [PLATE + 88, LN2C]] as const) {
+      const p: [number, number][] = [[ex, y], [ex + s * 18, y - 22], [ex + s * 26, y - 18], [ex + s * 8, y + 8]];
+      polyF(g, p.map(([px, py]) => [px + s, py + 1] as [number, number]), INK); polyF(g, p, R6[3]);
+      polyF(g, [[ex, y], [ex + s * 18, y - 22], [ex + s * 21, y - 21], [ex + s * 3, y + 2]], R6[4]); polyF(g, [[ex + s * 5, y + 5], [ex + s * 24, y - 19], [ex + s * 26, y - 18], [ex + s * 8, y + 8]], R6[1]);
+      polyF(g, [[ex + s * 18, y - 22], [ex + s * 26, y - 18], [ex + s * 23, y - 17], [ex + s * 18, y - 19]], CAV); B(g, ex + s * 18, y - 23, 4, 1, R6[5]);
+    }
     const cy = coneY(ex);
-    polyF(g, [[ex, cy], [ex + s * 20, cy - 26], [ex + s * 30, cy - 18], [ex + s * 6, cy + 10]], ROOF[3]); B(g, ex + s * 20, cy - 26, 4, 3, '#ECF2FC');
-    g.strokeStyle = WALNUT[3]; g.lineWidth = 5; g.beginPath(); g.moveTo(ex, PLATE - 60); g.lineTo(ex + s * 24, PLATE - 120); g.stroke();
+    const sl: [number, number][] = [[ex, cy], [ex + s * 20, cy - 26], [ex + s * 30, cy - 18], [ex + s * 6, cy + 10]];
+    polyF(g, sl.map(([px, py]) => [px + s, py + 1] as [number, number]), INK); polyF(g, sl, ROOF[3]);
+    for (let k = 1; k < 4; k++) B(g, ex + s * (k * 6) - 1, cy - k * 7, 6, 1, ROOF[1]);
+    polyF(g, [[ex, cy], [ex + s * 20, cy - 26], [ex + s * 22, cy - 24], [ex + s * 3, cy + 4]], ROOF[5]); B(g, ex + s * 20, cy - 27, 5, 3, '#ECF2FC'); B(g, ex + s * 22, cy - 26, 3, 1, '#FFFFFF');
+    g.strokeStyle = INK; g.lineWidth = 7; g.beginPath(); g.moveTo(ex, PLATE - 60); g.lineTo(ex + s * 24, PLATE - 120); g.stroke();
+    g.strokeStyle = WALNUT[3]; g.lineWidth = 5; g.stroke(); g.strokeStyle = WALNUT[5]; g.lineWidth = 1; g.beginPath(); g.moveTo(ex - 1, PLATE - 61); g.lineTo(ex + s * 24 - 1, PLATE - 121); g.stroke();
+    polyF(g, [[ex + s * 22, PLATE - 124], [ex + s * 30, PLATE - 132], [ex + s * 27, PLATE - 120]], WALNUT[4]);
   }
-  // (the plaster's broken edge where it went through the cornice)
+  // (the plaster's broken edge where it went through the cornice: lath ends sticking out, the edge lit along its foot)
   const pts = ragged(hx, CEIL_Y + 16, 150, 34, 77);
-  pathOf(g, pts, 1.1, hx, CEIL_Y + 16); g.strokeStyle = PLAST[4]; g.lineWidth = 3; g.stroke();
+  pathOf(g, pts, 1.1, hx, CEIL_Y + 16); g.strokeStyle = INK; g.lineWidth = 5; g.stroke();
+  pathOf(g, pts, 1.1, hx, CEIL_Y + 16); g.strokeStyle = PLAST[3]; g.lineWidth = 3; g.stroke();
+  for (let k = 0; k < pts.length; k++) { const [px, py] = pts[k], X = hx + (px - hx) * 1.1, Y = CEIL_Y + 16 + (py - CEIL_Y - 16) * 1.1; if (Y > CEIL_Y + 16) B(g, X - 2, Y + 1, 4, 1, PLAST[5]); if (k % 3 === 0) B(g, X - 1, Y - 3, 2, 6, WALNUT[4]); }
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -693,7 +784,7 @@ const bedArt = (g: Ctx, w: number, h: number, wrecked: boolean) => {
     B(g, 91, -71, w - 94, 3, SATIN[5]);
     for (let x = 110; x < w - 20; x += 40) { pmap(g, HEART5, x, -58, SATIN[1]); pmap(g, HEART5, x - 1, -59, SATIN[5]); }
     // (a fur throw across the foot)
-    B(g, w - 90, -76, 50, 10, '#F8F0F4'); for (let x = w - 90; x < w - 40; x += 3) B(g, x, -78 + (x % 6 ? 0 : 1), 2, 3, '#FFFFFF'); B(g, w - 90, -68, 50, 2, '#C8B8C4');
+    fur(g, w - 90, -76, 50, 10);
     // (the pillows: big ones stacked, a heart, a bolster)
     const pill = (px: number, py: number, rw: number, rh: number, R6: string[]) => { ell(g, px, py, rw + 1, rh + 1, INK); ell(g, px, py, rw, rh, R6[3]); ell(g, px - rw * 0.2, py - rh * 0.25, rw * 0.7, rh * 0.5, R6[4]); B(g, px - rw * 0.5, py - rh * 0.5, 3, 1, R6[5]); };
     pill(62, -78, 24, 10, CREAM); pill(84, -80, 22, 10, SATIN); pill(70, -90, 20, 9, CREAM);
@@ -725,18 +816,58 @@ const bedArt = (g: Ctx, w: number, h: number, wrecked: boolean) => {
     }
   } else {
     // (wrecked: plaster all over the duvet, the canopy slumped across from a snapped post, the curtains heaped)
-    polyF(g, [[60, -72], [w - 2, -72], [w - 2, -36], [60, -40]], SATIN[2]);
-    for (let x = 62; x < w - 4; x += 14) { B(g, x, -70, 4, 32, SATIN[3]); B(g, x + 9, -70, 3, 32, SATIN[1]); }
-    post(4, -118, 0); polyF(g, [[3, -118], [7, -128], [9, -120], [12, -126], [12, -118]], GD[2]);
-    g.save(); g.translate(w - 8, 0); g.rotate(0.22); post(-3, -h + 10, 0); g.restore();
-    g.save(); g.translate(w / 2, -88); g.rotate(-0.16);
-    B(g, -w / 2 - 10, -12, w + 20, 22, INK); B(g, -w / 2 - 9, -11, w + 18, 20, VELV[2]); B(g, -w / 2 - 9, -11, w + 18, 3, VELV[4]); giltBand(g, -w / 2 - 9, -6, w + 18, 4, false);
-    for (let k = 0; k < 9; k++) { const sx = -w / 2 - 6 + k * ((w + 12) / 9), sw = (w + 12) / 9; g.fillStyle = k % 2 ? VELV[1] : VELV[3]; g.beginPath(); g.moveTo(sx, 9); g.quadraticCurveTo(sx + sw / 2, 24 + (k % 3) * 4, sx + sw, 9); g.closePath(); g.fill(); B(g, sx, 9, 2, 6, GD[2]); }
-    polyF(g, [[30, 9], [44, 9], [36, 20]], VELV[0]);
+    // (the duvet thrown half off: satin in crumpled folds, inked, torn open on its feathers)
+    const duv: [number, number][] = [[40, -70], [120, -76], [w - 2, -72], [w + 4, -40], [w - 6, -6], [w - 40, -2], [w - 46, -36], [60, -40]];
+    pathOf(g, duv.map(([px, py]) => [px + 1, py + 1] as [number, number])); g.fillStyle = INK; g.fill(); pathOf(g, duv); g.strokeStyle = INK; g.lineWidth = 2; g.stroke();
+    pathOf(g, duv); g.fillStyle = SATIN[2]; g.fill();
+    g.save(); pathOf(g, duv); g.clip();
+    for (let x = 44; x < w + 6; x += 13) { const lean = (hash(x * 0.7) - 0.5) * 10; polyF(g, [[x, -78], [x + 6, -78], [x + 6 + lean, 0], [x + lean, 0]], SATIN[3]); polyF(g, [[x + 1, -78], [x + 3, -78], [x + 3 + lean, 0], [x + 1 + lean, 0]], SATIN[4]); B(g, x + 1, -74, 1, 6, SATIN[5]); polyF(g, [[x + 9, -78], [x + 11, -78], [x + 11 + lean, 0], [x + 9 + lean, 0]], SATIN[1]); }
+    checker(g, 40, -44, w - 30, 4, SATIN[1], 0, 1); B(g, 40, -40, w, 40, SATIN[1]); checker(g, 40, -40, w, 2, SATIN[2], 0, 1);
+    for (let x = 120; x < w - 20; x += 46) { pmap(g, HEART5, x, -62, SATIN[0]); pmap(g, HEART5, x - 1, -63, SATIN[4]); }
     g.restore();
-    g.globalAlpha = 0.7; for (const s of [0, 1]) { const px = s ? w - 40 : -10; polyF(g, [[px, 0], [px + 10, -24], [px + 30, -30], [px + 48, -14], [px + 52, 0]], '#FFE4F2'); } g.globalAlpha = 1;
-    for (let k = 0; k < 12; k++) { const rx = 40 + hash(k * 3.7) * (w - 70), rw = 4 + hash(k) * 8; polyF(g, [[rx - rw, -64], [rx - rw * 0.3, -64 - rw * 0.7], [rx + rw, -64]], PLAST[3]); B(g, rx - rw * 0.3, -64 - rw * 0.7, rw * 0.6, 1, PLAST[5]); }
-    for (let k = 0; k < 10; k++) B(g, 70 + hash(k * 9.1) * 200, -96 - hash(k * 2.3) * 40, 3, 1, '#FFFFFF');
+    // (the tear, feathers out of it)
+    polyF(g, [[150, -66], [176, -70], [190, -60], [168, -56]], INK); polyF(g, [[152, -65], [175, -68], [187, -60], [168, -58]], '#F4F0F8');
+    for (let k = 0; k < 9; k++) { const fx = 150 + hash(k * 4.1) * 50, fy = -82 + hash(k * 2.9) * 22; B(g, fx, fy, 3, 1, '#FFFFFF'); B(g, fx + 1, fy + 1, 1, 1, FUR[2]); }
+    // (a pillow knocked onto the floor at the foot)
+    ell(g, w + 18, -8, 17, 8, INK); ell(g, w + 18, -8, 16, 7, CREAM[3]); ell(g, w + 15, -10, 11, 4, CREAM[4]); B(g, w + 8, -12, 4, 1, CREAM[5]); B(g, w + 6, -3, 24, 2, CREAM[1]);
+    // (the left post snapped off, its splintered top; the right one leaning)
+    post(4, -118, 0);
+    polyF(g, [[2, -118], [5, -131], [8, -121], [11, -128], [13, -118]], INK); polyF(g, [[3, -118], [5, -128], [7, -120], [10, -125], [12, -118]], GD[2]); B(g, 4, -124, 1, 5, GD[5]); B(g, 10, -122, 1, 3, WALNUT[4]);
+    g.save(); g.translate(w - 8, 0); g.rotate(0.22); post(-3, -h + 10, 0); g.restore();
+    // (the canopy slumped across from the snapped post: velvet, the gilt band, its scallops inked, fringe, tassels;
+    // its top dim, not lit (nothing to stand on now))
+    g.save(); g.translate(w / 2, -88); g.rotate(-0.16);
+    B(g, -w / 2 - 10, -12, w + 20, 22, INK); B(g, -w / 2 - 9, -11, w + 18, 20, VELV[2]); B(g, -w / 2 - 9, -11, w + 18, 2, VELV[3]); B(g, -w / 2 - 9, 5, w + 18, 4, VELV[1]); checker(g, -w / 2 - 9, 3, w + 18, 2, VELV[1], 0, 1);
+    giltBand(g, -w / 2 - 9, -6, w + 18, 4, false);
+    for (let k = 0; k < 9; k++) {
+      const sx = -w / 2 - 6 + k * ((w + 12) / 9), sw = (w + 12) / 9, dip = 24 + (k % 3) * 4;
+      g.fillStyle = INK; g.beginPath(); g.moveTo(sx - 1, 9); g.quadraticCurveTo(sx + sw / 2, dip + 2, sx + sw + 1, 9); g.closePath(); g.fill();
+      g.fillStyle = k % 2 ? VELV[2] : VELV[3]; g.beginPath(); g.moveTo(sx, 9); g.quadraticCurveTo(sx + sw / 2, dip, sx + sw, 9); g.closePath(); g.fill();
+      g.fillStyle = k % 2 ? VELV[3] : VELV[4]; g.beginPath(); g.moveTo(sx + 2, 9); g.quadraticCurveTo(sx + sw * 0.4, dip - 6, sx + sw * 0.6, 9); g.closePath(); g.fill();
+      for (let t = 0.12; t < 0.92; t += 0.14) { const fx = sx + sw * t, fy = 9 + Math.sin(t * Math.PI) * (dip - 9) * 0.5; B(g, fx, fy, 1, 3, GD[t < 0.5 ? 4 : 2]); }
+      B(g, sx - 1, 9, 3, 6, INK); B(g, sx, 9, 1, 5, GD[3]); if (k % 2) { B(g, sx - 2, 14, 5, 6, INK); B(g, sx - 1, 15, 3, 4, GD[3]); B(g, sx - 1, 15, 1, 4, GD[5]); }
+    }
+    polyF(g, [[30, 9], [44, 9], [36, 22]], INK); polyF(g, [[32, 9], [42, 9], [36, 19]], CAV);
+    g.restore();
+    // (the sheers in a heap at either end: pale tulle in folds, inked)
+    for (const s of [0, 1]) {
+      const px = s ? w - 40 : -10, heap: [number, number][] = [[px, 0], [px + 10, -24], [px + 30, -30], [px + 48, -14], [px + 52, 0]];
+      pathOf(g, heap); g.strokeStyle = INK; g.lineWidth = 1.5; g.stroke();
+      g.globalAlpha = 0.85; pathOf(g, heap); g.fillStyle = '#FFE4F2'; g.fill(); g.globalAlpha = 1;
+      g.save(); pathOf(g, heap); g.clip();
+      for (let k = 0; k < 6; k++) { const fx = px + 4 + k * 8; g.strokeStyle = SATIN[3]; g.lineWidth = 2; g.beginPath(); g.moveTo(fx, 0); g.quadraticCurveTo(fx + 6, -16, fx + 14, -28); g.stroke(); g.strokeStyle = '#FFFFFF'; g.lineWidth = 1; g.beginPath(); g.moveTo(fx - 2, 0); g.quadraticCurveTo(fx + 4, -16, fx + 12, -28); g.stroke(); }
+      checker(g, px, -6, 54, 6, SATIN[4], 0, 1);
+      g.restore();
+    }
+    // (plaster all over it: broken lumps, lit on top, shaded down their sides, inked; dust)
+    for (let k = 0; k < 12; k++) {
+      const rx = 40 + hash(k * 3.7) * (w - 70), rw = 4 + hash(k) * 8, ry = -64 + (rx > w - 46 ? 28 : 0);
+      polyF(g, [[rx - rw - 1, ry + 1], [rx - rw * 0.3, ry - rw * 0.7 - 1], [rx + rw * 0.4, ry - rw * 0.5 - 1], [rx + rw + 1, ry + 1]], INK);
+      polyF(g, [[rx - rw, ry], [rx - rw * 0.3, ry - rw * 0.7], [rx + rw * 0.4, ry - rw * 0.5], [rx + rw, ry]], PLAST[3]);
+      polyF(g, [[rx + rw * 0.4, ry - rw * 0.5], [rx + rw, ry], [rx + rw * 0.2, ry]], PLAST[1]);
+      B(g, rx - rw * 0.3, ry - rw * 0.7, rw * 0.6, 1, PLAST[5]); if (k % 3 === 0) B(g, rx - rw * 0.6, ry - rw * 0.4, rw * 0.5, 2, DAM[3]);
+    }
+    for (let k = 0; k < 16; k++) B(g, 50 + hash(k * 9.1) * 230, -86 - hash(k * 2.3) * 44, k % 3 ? 1 : 2, 1, k % 2 ? '#FFFFFF' : PLAST[4]);
   }
 };
 
@@ -747,9 +878,18 @@ const bedArt = (g: Ctx, w: number, h: number, wrecked: boolean) => {
 const wardrobeArt = (g: Ctx, w: number, h: number, ajar: boolean) => {
   const top = -h, C = CREAM;
   for (const fx of [4, w - 12]) { B(g, fx - 1, -16, 10, 16, INK); polyF(g, [[fx, -16], [fx + 8, -16], [fx + 6, -4], [fx + 9, 0], [fx, 0], [fx + 2, -4]], GD[3]); B(g, fx, -16, 2, 12, GD[5]); }
-  B(g, 1, -28, w - 2, 13, INK); B(g, 2, -27, w - 4, 11, C[3]);
-  for (let k = 0; k < 3; k++) { const sx = 2 + k * ((w - 4) / 3); g.fillStyle = C[3]; g.beginPath(); g.moveTo(sx, -17); g.quadraticCurveTo(sx + (w - 4) / 6, -10, sx + (w - 4) / 3, -17); g.fill(); }
-  pmap(g, HEART5, w / 2 - 2, -24, GD[3]);
+  B(g, 1, -28, w - 2, 13, INK); B(g, 2, -27, w - 4, 11, C[3]); B(g, 2, -27, w - 4, 1, C[5]); B(g, 2, -26, w - 4, 1, C[4]); B(g, w - 6, -27, 4, 11, C[2]);
+  // (the apron's scallops: inked, lit along their curve, a gilt bead on each point)
+  for (let k = 0; k < 3; k++) {
+    const sx = 2 + k * ((w - 4) / 3), sw = (w - 4) / 3;
+    g.fillStyle = INK; g.beginPath(); g.moveTo(sx, -17); g.quadraticCurveTo(sx + sw / 2, -8, sx + sw, -17); g.closePath(); g.fill();
+    g.fillStyle = C[2]; g.beginPath(); g.moveTo(sx + 1, -17); g.quadraticCurveTo(sx + sw / 2, -10, sx + sw - 1, -17); g.closePath(); g.fill();
+    g.fillStyle = C[3]; g.beginPath(); g.moveTo(sx + 1, -17); g.quadraticCurveTo(sx + sw / 2, -12, sx + sw - 1, -17); g.closePath(); g.fill();
+    B(g, sx + sw / 2 - 1, -12, 3, 1, C[1]);
+    if (k) { disc(g, sx, -16, 2, INK); disc(g, sx, -16, 1.4, GD[3]); B(g, sx - 1, -17, 1, 1, GD[5]); }
+  }
+  for (let x = 6; x < w - 6; x += 4) { B(g, x, -21, 1, 1, GD[4]); B(g, x + 1, -20, 1, 1, GD[1]); }
+  pmap(g, HEART5, w / 2 - 1, -25, GD[0]); pmap(g, HEART5, w / 2 - 2, -26, GD[3]); B(g, w / 2 - 2, -26, 1, 1, GD[5]);
   B(g, 0, top + 12, w, h - 40, INK); B(g, 1, top + 13, w - 2, h - 42, C[3]); B(g, 1, top + 13, 4, h - 42, C[4]); B(g, 1, top + 13, 1, h - 42, C[5]); B(g, w - 7, top + 13, 6, h - 42, C[2]); checker(g, w - 9, top + 13, 2, h - 42, C[2], 0, 1);
   const door = (dx: number, dw: number) => {
     const py = top + 22, ph = h - 62;
@@ -770,15 +910,40 @@ const wardrobeArt = (g: Ctx, w: number, h: number, ajar: boolean) => {
   if (ajar) {
     // (inside: dark, the rail, her gowns, a boa trailing out, a glass slipper on the floor of it)
     const ix = 5 + dw, iy = top + 22, ih = h - 62;
-    B(g, ix, iy, dw, ih, '#1A0814'); B(g, ix, iy + 6, dw, 2, GD[2]);
+    // (the inside: a lilac-papered back in the dark, darker toward the top and the hinge side (banded, dithered), a
+    // shelf over the rail, the brass rail, lit)
+    const IN = ['#0E040A', '#1A0814', '#2A1024', '#3A1A34'];
+    B(g, ix, iy, dw, ih, IN[2]); B(g, ix, iy, dw, 14, IN[0]); checker(g, ix, iy + 14, dw, 2, IN[0], 0, 1); B(g, ix, iy, 5, ih, IN[1]); checker(g, ix + 5, iy, 2, ih, IN[1], 0, 1);
+    for (let x = ix + 9; x < ix + dw - 2; x += 8) for (let y = iy + 20; y < iy + ih - 4; y += 10) B(g, x, y + ((x >> 3) & 1) * 5, 1, 1, IN[3]);
+    B(g, ix, iy + 2, dw, 2, C[1]); B(g, ix, iy + 2, dw, 1, C[3]);
+    B(g, ix, iy + 7, dw, 3, INK); B(g, ix, iy + 7, dw, 1, GD[5]); B(g, ix, iy + 8, dw, 1, GD[3]);
+    // (her gowns on hangers: bodices and full skirts, stepped (lit left, shaded right), inked, a sash on one)
     const gowns = ['#F45AAE', '#B892D8', '#F2C84A', '#FF8AC8'];
-    for (let k = 0; k < 4; k++) { const gx = ix + 4 + k * (dw - 8) / 4; B(g, gx + 4, iy + 6, 1, 6, GD[3]); polyF(g, [[gx + 1, iy + 12], [gx + 8, iy + 12], [gx + 12, iy + ih - 14], [gx - 3, iy + ih - 14]], gowns[k]); B(g, gx + 1, iy + 12, 2, ih - 26, mix(gowns[k], '#FFFFFF', 0.35)); B(g, gx + 7, iy + 12, 2, ih - 26, mix(gowns[k], '#000000', 0.3)); }
-    polyF(g, [[ix + dw - 10, iy + ih - 6], [ix + dw - 2, iy + ih - 10], [ix + dw, iy + ih - 4], [ix + dw - 10, iy + ih - 2]], '#C8EEFF'); B(g, ix + dw - 8, iy + ih - 8, 2, 1, '#FFFFFF');
-    // (the door swung out toward us: narrow, its edge lit)
-    B(g, w - 2, top + 20, 14, h - 58, INK); B(g, w - 1, top + 21, 12, h - 60, C[4]); B(g, w - 1, top + 21, 2, h - 60, C[5]); B(g, w + 8, top + 21, 3, h - 60, C[2]);
-    ell(g, w + 5, top + 21 + (h - 60) * 0.3, 3, 8, GD[3]);
-    // (the boa: pink feathers draped out over the sill and down)
-    for (let k = 0; k < 18; k++) { const t = k / 17, bx = ix + dw * 0.4 + t * 30, by = iy + ih * 0.5 + Math.sin(t * Math.PI) * 30 + t * 40; disc(g, bx, by, 4, k % 2 ? '#FF7AC0' : '#FFB0DC'); B(g, bx - 1, by - 2, 2, 1, '#FFE4F2'); }
+    for (let k = 0; k < 4; k++) {
+      const gx = ix + 4 + k * (dw - 8) / 4, R6 = [mix(gowns[k], INK, 0.55), mix(gowns[k], INK, 0.3), mix(gowns[k], INK, 0.12), gowns[k], mix(gowns[k], '#FFFFFF', 0.3), mix(gowns[k], '#FFFFFF', 0.6)];
+      g.strokeStyle = GD[2]; g.lineWidth = 1; g.beginPath(); g.moveTo(gx + 4.5, iy + 10); g.lineTo(gx + 4.5, iy + 12); g.moveTo(gx, iy + 15); g.lineTo(gx + 4.5, iy + 12); g.lineTo(gx + 9, iy + 15); g.stroke();
+      const sk: [number, number][] = [[gx + 1, iy + 15], [gx + 8, iy + 15], [gx + 7, iy + 26], [gx + 12, iy + ih - 14], [gx - 3, iy + ih - 14], [gx + 2, iy + 26]];
+      pathOf(g, sk); g.fillStyle = R6[3]; g.fill(); g.strokeStyle = INK; g.lineWidth = 1; g.stroke();
+      g.save(); pathOf(g, sk); g.clip();
+      polyF(g, [[gx, iy + 15], [gx + 3, iy + 15], [gx + 3, iy + 26], [gx + 1, iy + ih - 14], [gx - 4, iy + ih - 14]], R6[4]); B(g, gx + 1, iy + 16, 1, 9, R6[5]);
+      polyF(g, [[gx + 6, iy + 15], [gx + 9, iy + 15], [gx + 13, iy + ih - 14], [gx + 7, iy + ih - 14], [gx + 6, iy + 26]], R6[2]); polyF(g, [[gx + 8, iy + 26], [gx + 13, iy + ih - 14], [gx + 10, iy + ih - 14]], R6[1]);
+      B(g, gx - 4, iy + 25, 18, 2, k === 1 ? GD[3] : R6[1]); B(g, gx - 4, iy + 25, 18, 1, k === 1 ? GD[5] : R6[2]);
+      checker(g, gx - 4, iy + ih - 18, 18, 4, R6[1], 0, 1);
+      g.restore();
+    }
+    // (a glass slipper on the floor of it: glass in steps, a glint)
+    polyF(g, [[ix + dw - 11, iy + ih - 6], [ix + dw - 2, iy + ih - 11], [ix + dw + 1, iy + ih - 4], [ix + dw - 11, iy + ih - 1]], INK);
+    polyF(g, [[ix + dw - 10, iy + ih - 6], [ix + dw - 2, iy + ih - 10], [ix + dw, iy + ih - 4], [ix + dw - 10, iy + ih - 2]], '#9ACCF0');
+    polyF(g, [[ix + dw - 10, iy + ih - 6], [ix + dw - 3, iy + ih - 9], [ix + dw - 4, iy + ih - 6]], '#E0F4FF'); B(g, ix + dw - 8, iy + ih - 8, 2, 1, '#FFFFFF'); B(g, ix + dw - 2, iy + ih - 3, 2, 1, '#3A72AA');
+    // (the door swung out toward us: narrow, its inside face in the light (a raised panel, a mirror strip), its edge
+    // lit, the hinges)
+    B(g, w - 2, top + 20, 14, h - 58, INK); B(g, w - 1, top + 21, 12, h - 60, C[3]); B(g, w - 1, top + 21, 2, h - 60, C[5]); B(g, w + 1, top + 21, 1, h - 60, C[4]); B(g, w + 8, top + 21, 3, h - 60, C[2]); B(g, w + 10, top + 21, 1, h - 60, C[1]);
+    B(g, w + 3, top + 30, 5, h - 78, C[1]); B(g, w + 4, top + 31, 3, h - 80, '#B4A8D4'); B(g, w + 4, top + 31, 1, h - 80, '#E8E4FF'); checker(g, w + 5, top + 31 + (h - 80) * 0.6, 2, (h - 80) * 0.4, '#7A6A94', 0, 1);
+    for (const hy of [top + 34, top + h - 56]) { B(g, w - 3, hy, 4, 8, INK); B(g, w - 2, hy + 1, 2, 6, GD[3]); B(g, w - 2, hy + 1, 1, 2, GD[5]); }
+    ell(g, w + 5, top + 21 + (h - 60) * 0.3, 3, 8, INK); ell(g, w + 5, top + 21 + (h - 60) * 0.3, 2, 7, GD[3]); B(g, w + 4, top + 16 + (h - 60) * 0.3, 1, 3, GD[5]);
+    // (the boa: pink feathers draped out over the sill and down, each plume stepped, inked under)
+    for (let k = 0; k < 18; k++) { const t = k / 17, bx = ix + dw * 0.4 + t * 30, by = iy + ih * 0.5 + Math.sin(t * Math.PI) * 30 + t * 40; disc(g, bx + 0.5, by + 1, 4.6, '#6A1440'); }
+    for (let k = 0; k < 18; k++) { const t = k / 17, bx = ix + dw * 0.4 + t * 30, by = iy + ih * 0.5 + Math.sin(t * Math.PI) * 30 + t * 40; disc(g, bx, by, 4, k % 2 ? '#E8509E' : '#FF7AC0'); disc(g, bx - 1, by - 1, 2.6, k % 2 ? '#FF8ACB' : '#FFB0DC'); B(g, bx - 2, by - 2, 2, 1, '#FFE4F2'); B(g, bx + 2 - (k % 3), by + 3, 1, 2, '#FF9AD0'); }
   } else {
     door(5 + dw, dw);
     B(g, 5 + dw - 1, top + 22, 2, h - 62, C[1]);
@@ -896,8 +1061,14 @@ const chaiseArt = (g: Ctx) => {
   B(g, -95, -13, 192, 4, INK); B(g, -94, -12, 190, 3, GD[3]); B(g, -94, -12, 190, 1, GD[5]);
   for (const fx of [-86, -6, 80]) { B(g, fx - 1, -10, 10, 10, INK); S([[fx, -10], [fx + 8, -10], [fx + 6, -3], [fx + 9, 0], [fx, 0], [fx + 2, -4]], GD[3]); B(g, fx, -10, 2, 7, GD[5]); }
   // (a fur throw over the arm, the bonbons)
-  B(g, -88, -48, 38, 18, '#F8F0F4'); for (let x = -88; x < -50; x += 3) B(g, x, -50 + (x % 6 ? 0 : 1), 2, 3, '#FFFFFF'); B(g, -88, -32, 38, 2, '#C8B8C4');
-  polyF(g, [[30, -50], [44, -54], [52, -48], [48, -42], [32, -42]], INK); g.fillStyle = '#E8205A'; g.beginPath(); g.arc(38, -49, 5, 0, Math.PI * 2); g.arc(45, -49, 5, 0, Math.PI * 2); g.fill(); polyF(g, [[33, -47], [41, -40], [50, -47]], '#E8205A'); B(g, 36, -51, 2, 1, '#FF8AA4');
+  fur(g, -88, -48, 38, 16);
+  // (the bonbons: a heart box, its lid off and leaning, chocolates in paper cups, one bitten)
+  const RB = ['#3A0614', '#6A0E26', '#A8183E', '#E8205A', '#FF6A8E', '#FFB4C8'], CH = ['#1E0C06', '#3A1A0C', '#5A2C14', '#7A4220'];
+  const hb = (cx: number, cy: number, k: number, col: string) => { g.fillStyle = col; g.beginPath(); g.arc(cx - 4 * k, cy, 4.6 * k, Math.PI * 0.8, Math.PI * 2); g.arc(cx + 4 * k, cy, 4.6 * k, Math.PI, Math.PI * 2.2); g.lineTo(cx, cy + 8 * k); g.closePath(); g.fill(); };
+  hb(56, -52, 1.12, INK); hb(56, -52, 1, RB[3]); hb(55, -53, 0.6, RB[4]); B(g, 52, -56, 2, 1, RB[5]); B(g, 56, -46, 1, 2, RB[1]);
+  B(g, 25, -46, 26, 4, INK); B(g, 26, -45, 24, 2, RB[2]); B(g, 26, -45, 24, 1, RB[4]);
+  for (let k = 0; k < 4; k++) { const bx = 29 + k * 6; B(g, bx - 1, -49, 5, 4, '#F4E4C8'); B(g, bx - 1, -46, 5, 1, '#C8B490'); disc(g, bx + 1.5, -49, 2.2, CH[1]); B(g, bx, -50, 2, 1, CH[3]); }
+  B(g, 49, -51, 2, 2, '#F4D8A0'); B(g, 50, -51, 1, 1, RB[3]);
 };
 
 /** The footstool and THE VIEWING BALCONY (world): the stool tufted, its top lit; the balcony a marble slab, its top lit,
@@ -917,19 +1088,31 @@ const balconyArt = (g: Ctx) => {
   g.save(); arch(8, '#000'); g.clip(); windowView(g); g.restore();
   for (const s of [-1, 1]) {
     const ex = s < 0 ? l + 8 : r - 8, lw = 16;
-    B(g, ex - (s < 0 ? 0 : lw), top + w / 2 - 20, lw, bot - top - w / 2 + 20, INK);
-    B(g, ex - (s < 0 ? -1 : lw - 1), top + w / 2 - 19, lw - 2, bot - top - w / 2 + 18, GD[2]);
-    for (let y = top + w / 2 - 16; y < bot - 4; y += 10) { B(g, ex - (s < 0 ? -3 : lw - 3), y, lw - 6, 8, '#9AB8E8'); B(g, ex - (s < 0 ? -3 : lw - 3), y, 2, 8, '#E0F0FF'); }
+    // (a leaf folded back against the reveal: its gilt frame stepped, leaded panes (diamonds in cames) catching the
+    // sky, a sheen across them)
+    const lx = ex - (s < 0 ? 0 : lw), ly = top + w / 2 - 20, lh = bot - ly;
+    B(g, lx, ly, lw, lh, INK); B(g, lx + 1, ly + 1, lw - 2, lh - 2, GD[3]); B(g, lx + 1, ly + 1, 1, lh - 2, GD[5]); B(g, lx + 1, ly + 1, lw - 2, 1, GD[4]); B(g, lx + lw - 2, ly + 1, 1, lh - 2, GD[1]); B(g, lx + 1, ly + lh - 2, lw - 2, 1, GD[1]);
+    const gx = lx + 3, gw = lw - 6, gy = ly + 4, gh = lh - 8;
+    g.save(); g.beginPath(); g.rect(gx, gy, gw, gh); g.clip();
+    const GL = ['#4A64A8', '#6E8CD0', '#9AB8E8', '#C8DCF8', '#E8F4FF'];
+    for (let y = gy, r = 0; y < gy + gh; y += 8, r++) { const t = (y - gy) / gh; B(g, gx, y, gw, 8, t < 0.3 ? GL[3] : t < 0.6 ? GL[2] : GL[1]); }
+    checker(g, gx, gy + gh * 0.3 - 1, gw, 2, GL[2], 0, 1); checker(g, gx, gy + gh * 0.6 - 1, gw, 2, GL[1], 0, 1);
+    g.globalAlpha = 0.45; polyF(g, [[gx, gy + 20], [gx + gw, gy + 6], [gx + gw, gy + 14], [gx, gy + 28]], '#FFFFFF'); polyF(g, [[gx, gy + gh * 0.55], [gx + gw, gy + gh * 0.45], [gx + gw, gy + gh * 0.48], [gx, gy + gh * 0.58]], '#FFFFFF'); g.globalAlpha = 1;
+    g.strokeStyle = '#2A2238'; g.lineWidth = 1;
+    g.beginPath(); for (let d = -gh; d < gh + gw; d += 8) { g.moveTo(gx + d, gy); g.lineTo(gx + d + gh, gy + gh); g.moveTo(gx + d + gh, gy); g.lineTo(gx + d, gy + gh); } g.stroke();
+    g.restore();
+    for (let y = gy + 10; y < gy + gh; y += 22) { B(g, gx, y, gw, 1, GD[2]); B(g, gx, y - 1, gw, 1, GD[4]); }
   }
   for (let k = 0; k < 9; k++) { const a = Math.PI + (k / 8) * Math.PI; g.strokeStyle = INK; g.lineWidth = 2; g.beginPath(); g.moveTo(l + w / 2, top + w / 2 + 6); g.lineTo(l + w / 2 + Math.cos(a) * (w / 2 - 8), top + w / 2 + Math.sin(a) * (w / 2 - 8)); g.stroke(); }
   pmap(g, HEART, l + w / 2 - 7, top + w / 2 - 20, INK, 2); pmap(g, HEART, l + w / 2 - 6, top + w / 2 - 19, '#F45AAE', 2);
   // (the drapes either side, swagged, gold tassels; a valance over)
   for (const s of [-1, 1]) {
     const ex = s < 0 ? l - 4 : r + 4;
-    polyF(g, [[ex, top + 10], [ex + s * -22, top + 10], [ex + s * -10, bot - 90], [ex + s * -18, bot + 30], [ex + s * 8, bot + 30], [ex + s * 2, bot - 90]], INK);
-    polyF(g, [[ex, top + 11], [ex + s * -20, top + 11], [ex + s * -9, bot - 90], [ex + s * -16, bot + 28], [ex + s * 7, bot + 28], [ex + s * 1, bot - 90]], VELV[3]);
-    for (let k = 0; k < 3; k++) { g.strokeStyle = k % 2 ? VELV[4] : VELV[1]; g.lineWidth = 2; g.beginPath(); g.moveTo(ex + s * (-4 - k * 6), top + 12); g.quadraticCurveTo(ex + s * -4, bot - 90, ex + s * (-14 + k * 7), bot + 26); g.stroke(); }
-    B(g, ex + s * -10 - 4, bot - 96, 8, 6, GD[3]); B(g, ex + s * -10 - 2, bot - 90, 4, 14, GD[2]); B(g, ex + s * -10 - 3, bot - 78, 6, 8, GD[3]);
+    const sp = (a: number, b: number, y: number): [number, number, number] => { const p = ex + s * a, q = ex + s * b; return [Math.min(p, q), Math.max(p, q), y]; };
+    foldDrape(g, sp(0, -21, top + 10), sp(1, -10, bot - 90), sp(8, -18, bot + 29), VELV, 4);
+    // (the tie-back cord round it, the tassel)
+    B(g, Math.min(ex + s * 2, ex + s * -11) - 1, bot - 93, 14, 4, INK); B(g, Math.min(ex + s * 2, ex + s * -11), bot - 92, 12, 2, GD[3]); B(g, Math.min(ex + s * 2, ex + s * -11), bot - 92, 12, 1, GD[5]);
+    tassel(g, ex + s * -10, bot - 90);
   }
   B(g, l - 24, top - 4, w + 48, 16, INK); B(g, l - 23, top - 3, w + 46, 14, VELV[3]); B(g, l - 23, top - 3, w + 46, 3, VELV[5]); giltBand(g, l - 23, top + 8, w + 46, 3, false);
   for (let k = 0; k < 6; k++) { const sx = l - 22 + k * ((w + 44) / 6); g.fillStyle = VELV[k % 2 ? 2 : 4]; g.beginPath(); g.moveTo(sx, top + 11); g.quadraticCurveTo(sx + (w + 44) / 12, top + 24, sx + (w + 44) / 6, top + 11); g.fill(); B(g, sx, top + 11, 2, 8, GD[3]); }
@@ -993,13 +1176,49 @@ const chandArt = (g: Ctx, x: number, y: number, chain = true) => {
  *  (the ring crumpled on its side, the arms bent, candles snapped, crystals everywhere, the chain in a heap). */
 export const drawChandelier = (c: Ctx, x: number, y: number, f: number, down: boolean) => {
   if (down) {
-    stillW(c, `chand-down-${Math.round(x)}`, x, GY, -90, -50, 180, 60, g => {
-      for (let k = 0; k < 26; k++) { const px = x - 80 + hash(k * 1.7) * 160, py = GY - 2 - hash(k) * 6; polyF(g, [[px - 2, py], [px, py - 3], [px + 2, py], [px, py + 2]], k % 3 ? '#E8F4FF' : '#C8E4FF'); B(g, px - 1, py - 1, 1, 1, '#FFFFFF'); }
-      for (let k = 0; k < 10; k++) { const px = x - 50 + k * 5, py = GY - 4 - Math.abs(Math.sin(k)) * 4; B(g, px, py, 4, 3, GD[k % 2 ? 2 : 3]); }
-      ell(g, x, GY - 14, 34, 12, INK); ell(g, x, GY - 14, 32, 10, GD[2]); ell(g, x, GY - 14, 24, 6, INK); ell(g, x - 4, GY - 17, 22, 3, GD[4]);
-      for (const [dx, a] of [[-30, -2.4], [-12, -1.9], [14, -1.2], [32, -0.6]] as const) { g.strokeStyle = INK; g.lineWidth = 5; g.beginPath(); g.moveTo(x + dx * 0.5, GY - 16); g.quadraticCurveTo(x + dx, GY - 30, x + dx + Math.cos(a) * 14, GY - 26 + Math.sin(a) * 10); g.stroke(); g.strokeStyle = GD[3]; g.lineWidth = 3; g.stroke(); }
-      B(g, x - 44, GY - 10, 12, 4, '#FFF8E8'); B(g, x + 30, GY - 8, 4, 10, '#FFF8E8'); B(g, x + 36, GY - 6, 10, 4, '#FFF8E8');
-      ballR(g, x + 4, GY - 22, 7, GD); polyF(g, [[x + 40, GY - 2], [x + 52, GY - 6], [x + 50, GY]], '#C8E4FF');
+    stillW(c, `chand-down-${Math.round(x)}`, x, GY, -96, -58, 192, 70, g => {
+      const CRY = ['#3A5A8A', '#6A8ABA', '#9ABCE4', '#C8E4FF', '#E8F4FF', '#FFFFFF'];
+      // (the dent it made: the carpet crushed dark round it, dithered off)
+      ell(g, x, GY + 5, 70, 3, CARP[1]); checker(g, x - 80, GY + 4, 160, 3, CARP[1], 0, 1);
+      // (the chain in a heap, link by link)
+      for (let k = 0; k < 16; k++) {
+        const lx = Math.round(x - 74 + hash(k * 2.3) * 26), ly = Math.round(GY - 3 - hash(k * 4.1) * (9 - Math.abs(k - 8) * 0.6));
+        if (k % 2) { B(g, lx - 1, ly - 1, 6, 5, INK); B(g, lx, ly, 4, 3, GD[3]); B(g, lx, ly, 4, 1, GD[5]); B(g, lx + 1, ly + 1, 2, 1, INK); }
+        else { B(g, lx, ly - 2, 4, 6, INK); B(g, lx + 1, ly - 1, 2, 4, GD[2]); B(g, lx + 1, ly - 1, 1, 2, GD[4]); }
+      }
+      // (crystals scattered wide: prisms and drops, each faceted (lit top left, a dark facet), a glint on some)
+      for (let k = 0; k < 30; k++) {
+        const px = Math.round(x - 88 + hash(k * 1.7) * 176), py = Math.round(GY - 1 - hash(k) * 6);
+        polyF(g, [[px - 3, py], [px, py - 4], [px + 3, py], [px, py + 3]], INK);
+        polyF(g, [[px - 2, py], [px, py - 3], [px + 2, py], [px, py + 2]], CRY[k % 3 ? 3 : 2]);
+        polyF(g, [[px - 2, py], [px, py - 3], [px, py]], CRY[4]); B(g, px, py, 1, 2, CRY[1]);
+        if (k % 4 === 0) B(g, px - 1, py - 2, 1, 1, CRY[5]);
+      }
+      // (a bead swag lying in a loop)
+      for (let s = 0; s <= 12; s++) { const t = s / 12, bx = x - 50 + t * 34, by = GY - 3 - Math.sin(t * Math.PI) * 5; B(g, bx, by, 2, 2, s % 2 ? CRY[3] : CRY[5]); B(g, bx + 1, by + 1, 1, 1, CRY[1]); }
+      // (the ring, crumpled on its side: gilt in steps, its far rim inked dark inside, a dent bitten out of it)
+      ell(g, x, GY - 14, 35, 13, INK); ell(g, x, GY - 14, 33, 11, GD[1]); ell(g, x - 1, GY - 15, 31, 9, GD[3]); ell(g, x - 3, GY - 17, 24, 4, GD[4]);
+      ell(g, x, GY - 14, 25, 6, INK); ell(g, x, GY - 13, 23, 4, '#2A1424'); B(g, x - 18, GY - 16, 30, 1, GD[1]);
+      for (let k = 0; k < 14; k++) { const a = (k / 14) * Math.PI * 2; B(g, x + Math.cos(a) * 29 - 1, GY - 14 + Math.sin(a) * 9.5 - 1, 2, 2, a > Math.PI ? GD[5] : GD[2]); }
+      polyF(g, [[x + 14, GY - 25], [x + 22, GY - 20], [x + 18, GY - 13], [x + 10, GY - 18]], INK); polyF(g, [[x + 15, GY - 23], [x + 21, GY - 20], [x + 18, GY - 15], [x + 12, GY - 18]], GD[1]); B(g, x + 15, GY - 22, 3, 1, GD[4]);
+      // (the arms bent every which way, their cups and candles snapped off)
+      for (const [dx, a] of [[-30, -2.4], [-12, -1.9], [14, -1.2], [32, -0.6]] as const) {
+        const ex = x + dx + Math.cos(a) * 14, ey = GY - 26 + Math.sin(a) * 10;
+        const arm = () => { g.beginPath(); g.moveTo(x + dx * 0.5, GY - 16); g.quadraticCurveTo(x + dx, GY - 30, ex, ey); };
+        g.strokeStyle = INK; g.lineWidth = 5; arm(); g.stroke(); g.strokeStyle = GD[2]; g.lineWidth = 3; arm(); g.stroke();
+        g.strokeStyle = GD[5]; g.lineWidth = 1; g.save(); g.translate(-0.5, -1); arm(); g.stroke(); g.restore();
+        B(g, ex - 4, ey - 2, 8, 4, INK); B(g, ex - 3, ey - 1, 6, 2, GD[3]); B(g, ex - 3, ey - 1, 6, 1, GD[5]);
+        for (let d = 0; d < 2; d++) B(g, ex - 1, ey + 3 + d * 3, 2, 2, d ? CRY[3] : CRY[5]);
+      }
+      // (the snapped candles lying about: wax in steps, inked, a burnt wick)
+      const candle = (cx: number, cy: number, len: number, up: boolean) => {
+        if (up) { B(g, cx - 1, cy - len - 1, 6, len + 1, INK); B(g, cx, cy - len, 4, len, '#F4E8D0'); B(g, cx, cy - len, 1, len, '#FFFFFF'); B(g, cx + 3, cy - len, 1, len, '#C8B898'); B(g, cx + 1, cy - len - 3, 1, 3, INK); }
+        else { B(g, cx - 1, cy - 5, len + 2, 6, INK); B(g, cx, cy - 4, len, 4, '#F4E8D0'); B(g, cx, cy - 4, len, 1, '#FFFFFF'); B(g, cx, cy - 1, len, 1, '#C8B898'); B(g, cx + len, cy - 3, 2, 1, INK); }
+      };
+      candle(x - 46, GY - 6, 12, false); candle(x + 30, GY - 2, 10, true); candle(x + 38, GY - 2, 10, false); candle(x - 64, GY, 7, false);
+      // (the baluster's ball knocked loose, and the big prism on its side)
+      ballR(g, x + 4, GY - 22, 7, GD);
+      polyF(g, [[x + 39, GY - 1], [x + 53, GY - 8], [x + 51, GY + 1]], INK); polyF(g, [[x + 41, GY - 1], [x + 52, GY - 6], [x + 50, GY]], CRY[3]); polyF(g, [[x + 41, GY - 1], [x + 52, GY - 6], [x + 47, GY - 2]], CRY[5]); B(g, x + 48, GY - 1, 2, 1, CRY[1]);
     });
     if (f % 50 < 3) B(c, x - 40 + ((f * 7) % 80), GY - 6, 1, 1, '#FFFFFF');
     return;
@@ -1059,9 +1278,13 @@ export const drawChamber = (c: Ctx, state: GameState, look: RoomLook) => {
 export const drawEndWall = (c: Ctx, state?: GameState) => {
   if (state && state.camera.x + 1800 < ARENA_R) return;
   stillW(c, 'endwall', ARENA_R, CEIL_Y, 0, -160, 420, GY - CEIL_Y + 300, g => {
-    B(g, ARENA_R, CEIL_Y - 160, 420, GY - CEIL_Y + 300, PALE[2]);
-    for (let y = CEIL_Y - 160, r = 0; y < GY + 140; y += 16, r++) { B(g, ARENA_R, y, 420, 1, PALE[0]); for (let x = ARENA_R + (r % 2) * 18; x < ARENA_R + 420; x += 36) { B(g, x, y, 1, 16, PALE[0]); B(g, x + 1, y + 1, 34, 1, PALE[3]); } }
-    B(g, ARENA_R, CEIL_Y - 160, 6, GY - CEIL_Y + 300, INK); B(g, ARENA_R + 6, CEIL_Y - 160, 3, GY - CEIL_Y + 300, PALE[1]);
+    // (dressed ashlar a step darker than the castle's outside (it's in the room's shadow): blocks picked out, chips;
+    // quoins down the corner, the room's light falling off away from it, the ink of the corner)
+    const S = PALE.map(col => mix(col, '#2A1428', 0.22));
+    ashlar(g, ARENA_R, CEIL_Y - 160, 420, GY - CEIL_Y + 300, S, 41, 16, 36);
+    for (let y = CEIL_Y - 160, r = 0; y < GY + 140; y += 32, r++) { const qw = r % 2 ? 22 : 34; B(g, ARENA_R + 6, y, qw, 31, S[4]); B(g, ARENA_R + 6, y, qw, 1, S[5]); B(g, ARENA_R + 6 + qw - 2, y, 2, 31, S[2]); B(g, ARENA_R + 6, y + 30, qw, 1, S[1]); B(g, ARENA_R + 6 + qw, y, 1, 32, S[0]); }
+    B(g, ARENA_R + 60, CEIL_Y - 160, 50, GY - CEIL_Y + 300, 'rgba(26, 16, 40, 0.1)'); B(g, ARENA_R + 110, CEIL_Y - 160, 310, GY - CEIL_Y + 300, 'rgba(26, 16, 40, 0.2)');
+    B(g, ARENA_R, CEIL_Y - 160, 6, GY - CEIL_Y + 300, INK); B(g, ARENA_R + 6, CEIL_Y - 160, 2, GY - CEIL_Y + 300, S[5]);
   });
 };
 
@@ -1156,8 +1379,11 @@ const paintHall = (g: Ctx, a: number, b: number) => {
     g.restore();
     B(g, l - 12, WIN_BOT, WIN_W + 24, 8, INK); B(g, l - 11, WIN_BOT + 1, WIN_W + 22, 6, PALE[2]); B(g, l - 11, WIN_BOT + 1, WIN_W + 22, 1, PALE[3]); B(g, l - 11, WIN_BOT + 5, WIN_W + 22, 2, PALE[1]);
     // (the drape, the right one torn half down by the broom)
-    polyF(g, [[l - 28, WIN_TOP - 30], [l - 6, WIN_TOP - 30], [l - 2, GY - 60], [l - 30, GY]], VELV[3]); for (let k = 0; k < 3; k++) B(g, l - 24 + k * 7, WIN_TOP - 28, 2, WIN_BOT - WIN_TOP + 60, k % 2 ? VELV[4] : VELV[1]);
-    polyF(g, [[r + 6, WIN_TOP - 30], [r + 26, WIN_TOP - 30], [r + 30, WIN_TOP + 40], [r + 40, GY - 8], [r + 10, GY], [r + 4, WIN_TOP + 60]], VELV[2]); polyF(g, [[r + 30, WIN_TOP + 40], [r + 24, WIN_TOP + 54], [r + 36, WIN_TOP + 50]], VELV[0]);
+    foldDrape(g, [l - 28, l - 6, WIN_TOP - 30], [l - 30, l - 3, GY - 60], [l - 32, l - 4, GY], VELV, 4);
+    foldDrape(g, [r + 6, r + 26, WIN_TOP - 30], [r + 4, r + 31, WIN_TOP + 50], [r + 10, r + 40, GY - 4], VELV, 4);
+    // (the right one's rip: the torn flap hanging, its lining showing, the threads)
+    polyF(g, [[r + 31, WIN_TOP + 38], [r + 23, WIN_TOP + 56], [r + 37, WIN_TOP + 51]], INK); polyF(g, [[r + 30, WIN_TOP + 40], [r + 24, WIN_TOP + 54], [r + 35, WIN_TOP + 50]], SATIN[4]); B(g, r + 27, WIN_TOP + 48, 3, 1, SATIN[5]);
+    for (let k = 0; k < 4; k++) B(g, r + 25 + k * 3, WIN_TOP + 54 - k, 1, 3 + (k % 2) * 2, VELV[4]);
     B(g, l - 34, WIN_TOP - 36, WIN_W + 70, 8, INK); B(g, l - 33, WIN_TOP - 35, WIN_W + 68, 6, GD[3]); B(g, l - 33, WIN_TOP - 35, WIN_W + 68, 1, GD[5]); ballR(g, l - 36, WIN_TOP - 32, 5, GD); ballR(g, r + 36, WIN_TOP - 32, 5, GD);
   }
   // (her portraits, the tapestry, the console with roses, the plaque and a little oval of her over it)
@@ -1170,7 +1396,11 @@ const paintHall = (g: Ctx, a: number, b: number) => {
     // (the console: gilt legs, a marble top (not lit), a vase of roses)
     B(g, x - 44, GY - 84, 88, 7, INK); B(g, x - 43, GY - 83, 86, 5, CREAM[3]); B(g, x - 43, GY - 83, 86, 1, CREAM[4]);
     for (const s of [-1, 1]) { g.strokeStyle = INK; g.lineWidth = 5; g.beginPath(); g.moveTo(x + s * 38, GY - 77); g.quadraticCurveTo(x + s * 30, GY - 40, x + s * 40, GY); g.stroke(); g.strokeStyle = GD[3]; g.lineWidth = 3; g.stroke(); }
-    B(g, x - 30, GY - 77, 60, 10, GD[2]); pmap(g, HEART5, x - 2, GY - 75, GD[4]);
+    // (its carved apron: gilt in steps, a scalloped hem, a heart cartouche, beads)
+    B(g, x - 31, GY - 78, 62, 11, INK); B(g, x - 30, GY - 77, 60, 9, GD[3]); B(g, x - 30, GY - 77, 60, 1, GD[5]); B(g, x - 30, GY - 76, 60, 1, GD[4]); B(g, x - 30, GY - 70, 60, 2, GD[1]);
+    for (let k = 0; k < 4; k++) { const sx = x - 30 + k * 15; g.fillStyle = INK; g.beginPath(); g.moveTo(sx, GY - 68); g.quadraticCurveTo(sx + 7.5, GY - 62, sx + 15, GY - 68); g.closePath(); g.fill(); g.fillStyle = GD[2]; g.beginPath(); g.moveTo(sx + 1, GY - 68); g.quadraticCurveTo(sx + 7.5, GY - 64, sx + 14, GY - 68); g.closePath(); g.fill(); }
+    for (let k = x - 27; k < x + 28; k += 4) if (Math.abs(k - x) > 7) { B(g, k, GY - 74, 2, 2, GD[4]); B(g, k + 1, GY - 73, 1, 1, GD[1]); }
+    disc(g, x, GY - 72, 6, INK); disc(g, x, GY - 72, 5, '#6E1E4E'); pmap(g, HEART5, x - 2, GY - 74, GD[4]); B(g, x - 2, GY - 74, 1, 1, GD[5]);
     polyF(g, [[x - 10, GY - 84], [x - 13, GY - 104], [x - 6, GY - 114], [x + 6, GY - 114], [x + 13, GY - 104], [x + 10, GY - 84]], INK);
     polyF(g, [[x - 9, GY - 85], [x - 12, GY - 104], [x - 5, GY - 113], [x + 5, GY - 113], [x + 12, GY - 104], [x + 9, GY - 85]], '#E0ECFF'); B(g, x - 8, GY - 108, 3, 18, '#FFFFFF');
     for (let k = 0; k < 9; k++) { const rx = x - 16 + hash(k * 3.1) * 32, ry = GY - 118 - hash(k * 1.9) * 26; B(g, rx, ry + 4, 1, GY - 112 - ry, LEAF[2]); rose(g, rx, ry, 1.4); }

@@ -63,7 +63,7 @@ import { registerM2Kind, registerHurtLines } from '../../kinds';
 import { TOO_BIG_BY_KIND } from '../../lines/weaponLines';
 import { setUi } from '../../store';
 import { box, label, saidOver, voice, meatheadSays } from '../section';
-import { hash, polyF, GOLD as GD } from '../kit';
+import { hash, polyF, still, GOLD as GD } from '../kit';
 import type { ByPants } from '../talk';
 import { drawPiper, drawPiperCloseup, piperBodyW, piperTossHand, TOSS_RELEASE, PIPER_H, type PiperPose, type PiperFace } from '../piper';
 import { GY, DOOR_X, KICK_AT, ARENA_L, ARENA_R, ARENA_W, ARENA_MID, CEIL_Y, CAM_Y, LEDGES, CHANDELIERS, CHAISE_X, MAX_STAGE, CP_FIGHT, R } from './layout';
@@ -1443,6 +1443,35 @@ const debrisChunk = (c: Ctx, x: number, bot: number, w: number, seed: number, h 
   box(c, l + w * 0.6, t - 4 + j(8), 2, 6, WOODS[4]); box(c, l + w * 0.2, t - 3, 2, 5, WOODS[4]);
 };
 
+/** A chunk of fallen ceiling lying on the carpet (local: its middle at 0, the floor at 0; w across): dust round it, the
+ *  plaster's broken faces in steps (lit top, shaded side, a dither between), the painted face (cream cove, gilt bead,
+ *  rose damask), lath ends, crumbs, all inked. */
+const rubbleArt = (g: Ctx, w: number, sd: number) => {
+  const j = (k: number) => (hash(sd * 3.7 + k) - 0.5) * w * 0.12;
+  const pts: [number, number][] = [[-w * 0.62, 0], [-w * 0.22 + j(1), -w * 0.47], [w * 0.05 + j(2), -w * 0.5], [w * 0.32 + j(3), -w * 0.37], [w * 0.62, 0]];
+  // (dust in a dithered scatter round its foot)
+  for (let k = 0; k < 14; k++) { const dx = Math.round((hash(sd + k * 1.9) - 0.5) * w * 1.7), dy = Math.round(-hash(sd * 2 + k) * 2); box(g, dx, dy, 2, 1, k % 3 ? PLAS[3] : PLAS[4]); }
+  polyF(g, pts.map(([px, py]) => [px + (px < 0 ? -1 : 1), py - 1] as [number, number]), '#1A1028');
+  polyF(g, pts, PLAS[3]);
+  // (the lit face up left, the shaded face down right, the painted side showing on the right)
+  polyF(g, [pts[0], pts[1], pts[2], [w * -0.05, 0]], PLAS[4]); polyF(g, [pts[1], [pts[1][0] + w * 0.12, pts[1][1] + 2], [-w * 0.4, 0], pts[0]], PLAS[5]);
+  polyF(g, [pts[3], pts[4], [w * 0.3, 0], [w * 0.15, pts[3][1] + w * 0.15]], PLAS[2]);
+  const face: [number, number][] = [[w * 0.12, pts[2][1] + w * 0.12], [pts[3][0], pts[3][1]], [w * 0.62, 0], [w * 0.28, 0]];
+  polyF(g, face, PAPER[3]);
+  polyF(g, [face[0], face[1], [face[1][0] + w * 0.06, face[1][1] + w * 0.12], [face[0][0] + w * 0.04, face[0][1] + w * 0.12]], '#D8C0CE');
+  box(g, face[0][0] + 2, face[0][1] + w * 0.12, w * 0.24, 2, GD[3]); box(g, face[0][0] + 2, face[0][1] + w * 0.12, w * 0.24, 1, GD[5]);
+  for (let k = 0; k < 3; k++) box(g, w * 0.3 + k * 4, -w * 0.12, 1, 3, PAPER[1 + (k % 2) * 3]);
+  box(g, -w * 0.3, -w * 0.3, w * 0.4, 1, PLAS[3]); box(g, -w * 0.12, -w * 0.2, 1, w * 0.15, PLAS[2]);
+  pathOf(g, pts); g.strokeStyle = '#1A1028'; g.lineWidth = 1; g.stroke();
+  box(g, pts[1][0], pts[1][1], w * 0.2, 1, '#FFFFFF');
+  // (lath ends poking out, crumbs, the shadow under)
+  box(g, w * 0.36, -w * 0.32, 8, 3, '#1A1028'); box(g, w * 0.36, -w * 0.31, 7, 1, WOODS[5]); box(g, w * 0.36, -w * 0.3, 7, 1, WOODS[3]);
+  box(g, -w * 0.5, -w * 0.22, 6, 2, WOODS[4]);
+  box(g, -w * 0.58, -2, w * 1.16, 2, PLAS[1]); box(g, -w * 0.6, 0, w * 1.2, 1, '#1A1028');
+  for (let k = 0; k < 5; k++) { const cx = Math.round((hash(sd * 5 + k) - 0.5) * w * 1.6); box(g, cx - 1, -3, 3, 3, '#1A1028'); box(g, cx, -2, 2, 2, PLAS[k % 2 ? 4 : 3]); }
+};
+const pathOf = (g: Ctx, pts: [number, number][]) => { g.beginPath(); pts.forEach(([px, py], i) => (i ? g.lineTo(px, py) : g.moveTo(px, py))); g.closePath(); };
+
 /** The room under hers, cut away under the floor where she's wedged (x her middle): the carpet and the boards in
  *  section, joists end on, insulation; under them the Great Pixie's closet (its ceiling, a cove, blue striped paper, a
  *  rail of gowns, a shelf of glass slippers), the plaster broken where she's come through it. */
@@ -1633,14 +1662,10 @@ export const drawFightBack = (c: Ctx, state: GameState, f: Fight) => {
     }
   }
   for (const r of f.rubble) {
-    // (a chunk of her ceiling: the plaster's broken faces in steps, its painted side, a bit of gilt, lath poking out)
-    const w = r.w;
-    polyF(c, [[r.x - w * 0.62, r.y + 1], [r.x - w * 0.22, r.y - w * 0.47], [r.x + w * 0.32, r.y - w * 0.37], [r.x + w * 0.62, r.y + 1]], '#1A1028');
-    polyF(c, [[r.x - w * 0.6, r.y], [r.x - w * 0.2, r.y - w * 0.45], [r.x + w * 0.3, r.y - w * 0.35], [r.x + w * 0.6, r.y]], PLAS[3]);
-    polyF(c, [[r.x - w * 0.6, r.y], [r.x - w * 0.2, r.y - w * 0.45], [r.x - w * 0.05, r.y]], PLAS[4]);
-    polyF(c, [[r.x + w * 0.1, r.y - w * 0.4], [r.x + w * 0.3, r.y - w * 0.35], [r.x + w * 0.6, r.y], [r.x + w * 0.25, r.y]], PAPER[3]);
-    box(c, r.x - w * 0.2, r.y - w * 0.45, w * 0.18, 1, PLAS[5]); box(c, r.x + w * 0.12, r.y - w * 0.32, w * 0.2, 2, GD[3]);
-    box(c, r.x + w * 0.4, r.y - w * 0.3, 8, 2, WOODS[4]); box(c, r.x - w * 0.5, r.y - 3, w, 3, PLAS[2]);
+    // (a chunk of her ceiling: the plaster's broken faces in steps, its painted side, a bit of gilt, lath poking out;
+    // painted once (a stamp: it lies still))
+    const w = Math.round(r.w), sd = Math.round(r.seed * 10);
+    still(c, `bed-rubble-${w}-${sd}`, r.x, r.y, -w - 4, -w - 4, w * 2 + 8, w + 10, g => rubbleArt(g, w, sd));
   }
   for (const h of f.hazards) drawHazard(c, h, fr);
   for (const q of f.patches) drawPatch(c, q.x, fr);
