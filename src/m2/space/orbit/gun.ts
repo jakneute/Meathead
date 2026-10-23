@@ -21,7 +21,7 @@ import { voice, saidOver, box, meatheadSays } from '../section';
 import { CANVAS_HEIGHT, HUD_CLEAR_X, HUD_CLEAR_Y } from '../../../m1/constants';
 import { orbitOf } from './state';
 import { steppedGlow, checker } from '../../../m1/game/render/pixelArt';
-import { X0, W, ARENA_CAM } from './geo';
+import { X0, W } from './geo';
 import { GUN_UPGRADE, MH_BEAM } from './lines';
 
 type Ctx = CanvasRenderingContext2D;
@@ -40,10 +40,10 @@ const COOLDOWN = [4, 3, 3, 3, 3, 3];
 export const SAUCER_SHARE = [0.06, 0.05, 0.04, 0.035, 0.035, 0.035];
 /** Bolts alone never take it below this share of its health: it's the beam that finishes it. */
 export const SAUCER_FLOOR = 0.35;
-/** The beam: its height, what it takes out of the saucer a frame (the saucer's left at most 35% by then: about 10 s of
- *  held beam on it to finish it (the user's: "fairly rapidly chip away... but not so fast the comedic bit can be missed...
- *  maybe 10 seconds of concentrated plasma beam fire"), its bar going down steadily the whole while), out of anybody else. */
-export const BEAM_H = 70, BEAM_SAUCER = 5.25, BEAM_HIT = 400;
+/** The beam: its height, what it takes out of the saucer a frame (about 10 s of held beam from full to nothing, the bolts'
+ *  floor no bar to it, anywhere: the user's: "fairly rapidly chip away... not so fast the comedic bit can be missed";
+ *  "the ufo's health should drop to zero before it abducts you. it stops draining at a certain point"), out of anybody else. */
+export const BEAM_H = 70, BEAM_SAUCER = 15, BEAM_HIT = 400;
 
 export interface GunTalk { text: string }
 const SAY = voice('m2.space.raygun');
@@ -121,11 +121,9 @@ const beam = (ctx: FrameContext) => {
   for (const e of hazardVictims(state)) if (e.pos.x + e.width > b.x0 && e.pos.x < b.x1 && e.pos.y + e.height > b.y0 && e.pos.y < b.y1) hazardHit(ctx, e, BEAM_HIT, b.x0, 'VAPORIZED!', { color: '#F9A8D4' });
   for (const q of state.projectiles) if (q.owner === 'enemy' && q.pos.x + q.width > b.x0 && q.pos.y + q.height > b.y0 && q.pos.y < b.y1) q.health = 0;
   for (const k of o.rocks) if (k.x > b.x0 && Math.abs(k.y - b.y) < BEAM_H / 2 + k.r && k.hp !== Infinity) { k.hp -= 30; k.flash = 2; }
-  // (the saucer: ufo.ts takes it out of it, if it's in it; on the way it hurts it down to the bolts' floor (the user's: it
-  // seemed to do nothing at all), and only once the screen's stopped for it does it finish it (the madness on the way's
-  // not skipped by beaming it down early))
+  // (the saucer: ufo.ts takes it out of it, if it's in it: all the way down)
   const s = o.saucer;
-  if (s && s.st === 'fight' && s.e.pos.x + s.e.width > b.x0 && s.e.pos.y < b.y1 && s.e.pos.y + s.e.height > b.y0) { s.hp = o.scroll >= ARENA_CAM ? s.hp - BEAM_SAUCER : Math.max(Math.min(s.hp, s.max * SAUCER_FLOOR), s.hp - BEAM_SAUCER); s.flash = 2; }
+  if (s && s.st === 'fight' && s.e.pos.x + s.e.width > b.x0 && s.e.pos.y < b.y1 && s.e.pos.y + s.e.height > b.y0) { s.hp -= BEAM_SAUCER; s.flash = 2; }
 };
 
 /** World: the beam (in front of everything), and the gun's words over him. */
