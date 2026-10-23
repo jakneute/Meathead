@@ -66,7 +66,7 @@ export const M2_WEAPON_INFO: Partial<Record<WeaponType, M2Weapon>> = {
   CROSSBOW: {
     name: 'CROSSBOW OF PLAGUES', from: 'JUNGLE LAND',
     controls: [{ pad: ['X'], kb: ['@fire'], label: 'HOLD: RAPID FIRE' }, { pad: ['DPAD_UP', 'X'], kb: ['@up', '@fire'], join: '+', label: 'AIM UP' }, { pad: ['DPAD_DOWN', 'X'], kb: ['@down', '@fire'], join: '+', label: 'IN THE AIR: AIM DOWN' }],
-    description: "Darts dipped in something the tour guide warned us about. Keep sticking a guy and he projectile vomits on whoever's closest. Then they're next. The big ones take more darts.",
+    description: "Darts dipped in something the tour guide warned us about. Aim up or down and it locks onto guys above and below you. Keep sticking a guy and he projectile vomits on whoever's closest. Then they're next. The big ones take more darts.",
   },
   SOUL_SUCKER: {
     name: 'SOUL SUCKER', from: 'SPOOKY LAND',
