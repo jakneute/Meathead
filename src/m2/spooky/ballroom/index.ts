@@ -6,7 +6,9 @@
 //
 // Through the foyer (the coat check, the buffet, stacks of folding chairs) onto the dance floor: the velvet rope's gate
 // goes up behind him, and the view's fixed on the floor. Beaten: VICTORY, the walk-away (walkAway/donnie.ts), the hub.
-// Revisits: once the land's cleared, the floor's empty: the circle's scorch in it, the disco ball down, the chairs over.
+// Revisits: once the land's cleared, the floor's empty: the circle's scorch in it, the chairs over; and as he died:
+// burnt up, the disco ball down; the usual way, him still wedged up in the ceiling, legs hanging, the floor under him
+// brown (the ball still up: he only clipped it).
 //
 // The way back: the left end (into the gift shop). No way on (the end of the land).
 
@@ -18,14 +20,20 @@ import { drawBallroomArt, drawBallroomFront, ballroomLighting } from './art';
 import { GY } from '../geometry';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, topBand } from '../../../m1/constants';
 import { drawSkipPrompt, SKIP_AFTER } from '../../../m1/game/platform/skip';
-import { goTo, markLandCleared, markBossDeath, noteBossKill, isLandCleared } from '../../store';
+import { goTo, markLandCleared, markBossDeath, noteBossKill, isLandCleared, bossDeath, keptForRevisits } from '../../store';
 import { type Victory, startVictory, tickVictory, drawVictory, victoryDone } from '../../victory';
 import { type WalkAway, playWalkAway, tickWalkAway, drawWalkAway } from '../../walkAway';
 import { markBossFight } from '../../bossQuiet';
 import { hands } from '../section';
 import { drawBars } from '../control/cine';
-import { x0, x1, ARENA_L, ARENA_R, TRIGGER_X, CHANDELIERS, RISER } from './arena';
-import { type Fight, startFight, updateFight, fightOver, endFight, resetFight, drawFightBack, drawFightFront, drawFightHud, killCamTick, killCamZoom, drawKillCam, killedByWeakness, introOn, introSkipT, deathLights, drawIntroCloseup } from './fight';
+import { x0, x1, ARENA_L, ARENA_R, ARENA_MID, TRIGGER_X, CHANDELIERS, RISER } from './arena';
+import { type Fight, startFight, updateFight, fightOver, endFight, resetFight, drawFightBack, drawFightFront, drawFightHud, killCamTick, killCamZoom, drawKillCam, killedByWeakness, introOn, introSkipT, deathLights, drawIntroCloseup,
+  deathNeed, drawDeathBars, ballSwing, drawStuckLeftovers, MEMO_STUCK } from './fight';
+import { frameDeath } from '../../deathFrame';
+import { CEIL } from '../control/paint';
+
+/** The built room: as far as a camera taking his death in (floor to ceiling) may go. */
+const ROOM = { x0: ARENA_L - 140, y0: CEIL - 140, x1: ARENA_R + 140, y1: GY + 100 };
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -111,11 +119,11 @@ export const ballroom: SpookySection = {
     if (b.f) drawIntroCloseup(c, b.f, state.frame);
     if (b.f && introOn(b.f)) { drawBars(c, Math.min(1, introSkipT(b.f) / 20)); if (introSkipT(b.f) > SKIP_AFTER) drawSkipPrompt(c, CANVAS_WIDTH); }
     if (b.fight === 'on' && b.f) drawFightHud(c, b.f, topBand(), !!state.player.inCutscene);
-    if (b.f) drawKillCam(c, b.f);
+    if (b.f) { drawKillCam(c, b.f); drawDeathBars(c, b.f); }
     if (b.victory) drawVictory(c, b.victory);
     if (b.walk) drawWalkAway(c, b.walk);
   },
-  zoom: (state) => { const f = ballOf(state).f; return f ? killCamZoom(state, f) : null; },
+  zoom: (state) => { const f = ballOf(state).f; return f ? frameDeath(state, f, killCamZoom(state, f), deathNeed(f), ROOM) : null; },
   holdTick: (ctx) => { const f = ballOf(ctx.state).f; return f ? killCamTick(f) : false; },
 };
 
@@ -126,7 +134,9 @@ const drawBallroom = (c: Ctx, state: GameState) => {
   const v = state.view ?? { x: state.camera.x, y: state.camera.y, w: CANVAS_WIDTH, h: CANVAS_HEIGHT };
   if (v.x > x1 + 200 || v.x + v.w < x0 - 200) return;
   const b = ballOf(state), cleared = isLandCleared('spooky');
-  // (the disco ball: down on the floor once it's all over, or once the fight's death has brought it down)
-  const ballDown = cleared || (b.f?.mode === 'dead' && b.f.death?.how === 'flat' && (b.f.death.land ? b.f.death.t - b.f.death.land > 60 : false));
-  drawBallroomArt(c, state, { cleared, ballDown: !!ballDown });
+  // (the disco ball: down on the floor once it's all over (burnt up); the usual way, still up, swinging if he clipped it)
+  const usual = cleared && bossDeath('spooky') !== 'weakness';
+  drawBallroomArt(c, state, { cleared, ballDown: cleared && !usual, swing: b.f ? ballSwing(b.f) : 0 });
+  // (a revisit after the usual death: him, still up there)
+  if (usual && !(b.f && b.fight !== 'wait')) drawStuckLeftovers(c, Number(keptForRevisits(MEMO_STUCK) ?? ARENA_MID + 62), state.frame);
 };

@@ -248,32 +248,45 @@ const SCENES: Record<string, Record<BossDeath, Scene>> = {
     },
   },
   spooky: {
-    // Belly flop, the trousers round his ankles, the bat boxers up, the mirror ball on them, and he shat.
+    // Shat himself into the ceiling, wedged there to the gut: the bottom of him hanging out of the hole (the gut's
+    // underside, the bat boxers gone brown, hairy legs, the trousers round his ankles), the stain round the hole, a drip
+    // on its way; under him on the parquet the whole of it, plaster in it, his wig fallen in it; the mirror ball off to
+    // the side, still up, crooked on its wire.
     normal: p => {
-      ballroom(p, 36);
-      // (mirror shards)
-      for (let i = 0; i < 14; i++) twinkle(p, 6 + p.rnd() * 76, 40 + p.rnd() * 36, i & 1 ? '#DCE4F0' : '#FFFFFF');
-      p.pool(60, 66, 9, 3, SHIT, 1);
-      // (the cape out flat round him, the lining up)
-      p.poly([[8, 62], [20, 50], [46, 48], [58, 56], [52, 70], [14, 72]], LINING, { l: 0.65, l2: 0.3 });
-      p.ell(32, 60, 17, 8.5, POLY);
-      p.cap(14, 66, 6, 70, 2, 1.8, DSKIN);
-      p.ell(14, 60, 5.2, 4.6, DSKIN);
-      p.ell(12, 56, 6, 3, WIG, { rot: -0.4 }); p.rect(14, 54, 2, 1, '#FFFFFF');
-      // (the bat boxers, up; the seat gone brown; the legs out; the trousers round the ankles)
-      p.cap(56, 58, 70, 62, 2.6, 2.2, ['#FFFFFF', '#F6EEEA', '#E0D2CC', '#BCAAA2', '#6E5E58']);
-      for (let x = 58; x < 70; x += 2) p.px(x, 59 + (x % 3), '#5A4A40');
-      p.ell(73, 62, 4, 3.2, POLY); p.ell(79, 63, 3.6, 2.2, POLY);
-      p.ell(50, 54, 9, 8, BATS);
-      for (const [x, y] of [[46, 50], [52, 52], [48, 56], [54, 57]]) { p.px(x, y, '#22103E'); p.px(x - 1, y - 1, '#22103E'); p.px(x + 1, y - 1, '#22103E'); }
-      p.checker(48, 56, 9, 5, '#6C4420'); p.ell(53, 59, 3, 1.8, SHIT, { ink: false });
-      // (the mirror ball, sat on his rear)
-      p.ell(50, 38, 8, 8, MIRROR);
-      for (let k = -6; k <= 6; k += 3) { p.line(42, 38 + k, 58, 38 + k, '#707C94'); p.line(50 + k, 31, 50 + k, 45, '#707C94'); }
-      twinkle(p, 47, 34, '#FFFFFF', true); twinkle(p, 54, 37, '#FFFFFF');
-      p.line(50, 30, 50, 22, '#9EA2AC'); p.px(49, 22, '#6C707A');
-      stink(p, 60, 52);
-      p.marker(4, 76); p.marker(80, 72);
+      ballroom(p, 50);
+      // (the ceiling across the top, dark; the crack and the stain round the hole)
+      p.bands(0, 9, ['#1A0A28', '#200C30', '#26103A', '#2E1444']);
+      p.line(0, 9, PW, 9, '#6B4A10');
+      p.spatter(42, 8, 14, 22, SHIT);
+      for (const [x0, dir] of [[30, -1], [54, 1]] as const) { let y = 6; for (let k = 0; k < 14; k++) { p.px(x0 + dir * k, y, '#05020A'); if (k % 4 === 3) y += 1; } }
+      p.ell(42, 8, 11, 3.4, ['#E7E0D6', '#B8AEA2', '#857B70', '#5E554C', '#2A2420']);
+      p.ell(42, 7.6, 8.5, 2.2, ['#0A0610', '#06040A', '#050208', '#050208', '#000000'], { ink: false });
+      // (the cape hanging down out of the hole behind him, its red lining this way, ragged at the hem)
+      p.poly([[32, 9], [52, 9], [54, 29], [49, 27], [44, 30], [39, 27], [30, 29]], LINING, { l: 0.6, l2: 0.3 });
+      // (him: the underside of the gut wedged in it, the shirt split; the boxers; the legs dangling; the trousers; shoes)
+      p.ell(42, 11, 9, 3.6, ['#FFFFFF', '#F1EEE6', '#D6D1C2', '#ADA796', '#5E5A4E']);
+      p.px(40, 12, '#B97E66'); p.px(44, 12, '#B97E66');
+      p.ell(42, 17, 7.5, 4.6, BATS);
+      for (const [x, y] of [[39, 16], [45, 17]]) { p.px(x, y, '#22103E'); p.px(x - 1, y - 1, '#22103E'); p.px(x + 1, y - 1, '#22103E'); }
+      p.checker(39, 18, 7, 4, '#6C4420'); p.ell(42, 20, 2.6, 1.6, SHIT, { ink: false });
+      p.cap(38, 20, 37, 33, 2.2, 1.8, DSKIN); p.cap(46, 20, 47, 33, 2.2, 1.8, DSKIN);
+      for (let k = 0; k < 4; k++) { p.px(36, 23 + k * 3, '#6E4234'); p.px(48, 24 + k * 3, '#6E4234'); }
+      p.ell(37, 34, 3.4, 2, POLY); p.ell(47, 34, 3.4, 2, POLY);
+      p.ell(36, 37, 3, 1.6, PATENT); p.ell(48, 37, 3, 1.6, PATENT);
+      // (the drip, falling)
+      p.rect(42, 24, 1, 3, '#6C4420'); p.px(42, 31, '#503014'); p.px(42, 32, '#6C4420');
+      // (the mirror ball, crooked on its wire off to the side)
+      p.line(66, 9, 69, 22, '#9EA2AC');
+      p.ell(70, 27, 6, 6, MIRROR);
+      for (let k = -4; k <= 4; k += 3) { p.line(64, 27 + k, 76, 27 + k, '#707C94'); p.line(70 + k, 21, 70 + k, 33, '#707C94'); }
+      twinkle(p, 68, 24, '#FFFFFF', true);
+      // (the floor under him: the lot, spread wide, plaster bits in it; the wig fallen in it)
+      p.pool(42, 64, 26, 6, SHIT, 2);
+      p.spatter(42, 63, 30, 26, SHIT);
+      for (let i = 0; i < 10; i++) p.px(24 + p.rnd() * 36, 60 + p.rnd() * 8, i & 1 ? '#E7E0D6' : '#B8AEA2');
+      p.ell(26, 61, 6, 2.6, WIG, { rot: -0.2 }); p.rect(29, 59, 2, 1, '#FFFFFF');
+      stink(p, 48, 58); stink(p, 36, 20);
+      p.marker(8, 74); p.marker(76, 74);
     },
     // Burned up by a souvenir Redeemer: a pile of ash on a scorched floor, his wig on it, the little statue stood in it.
     weakness: p => {
@@ -656,7 +669,7 @@ const SCENES: Record<string, Record<BossDeath, Scene>> = {
 /** What the caption plate says, by land and death. */
 const CAPTIONS: Record<string, Record<BossDeath, [string, string]>> = {
   adventure: { normal: ['GORED AND', 'FOLDED'], weakness: ['DENTAL', 'RECORDS'] },
-  spooky: { normal: ['FOUND', 'FACE DOWN'], weakness: ['ASHES TO', 'ASHES'] },
+  spooky: { normal: ['STUCK', 'UP'], weakness: ['ASHES TO', 'ASHES'] },
   space: { normal: ['BATTERY', 'DEAD'], weakness: ['PARTS NOT', 'INCLUDED'] },
   hollywood: { normal: ['MISSED', 'THE MAT'], weakness: ['STILL', 'THUMBS-UP'] },
   foreign: { normal: ['WHAT GOES', 'UP...'], weakness: ['LAID IN', 'CONCRETE'] },

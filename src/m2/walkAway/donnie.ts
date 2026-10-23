@@ -8,7 +8,9 @@
 // stopped (still plain to see), its sign hanging off a bolt, its track torn off the top and the cable swinging, a thin
 // smoke blowing off to the side and a dim red glow at its foot (and now and then another car, still being sent,
 // dropping in). In the foreground, a little of the ballroom's carnage: gift-shop junk strewn about, a dropped HELLO MY
-// NAME IS DONNIE sticker; killed by his weakness, a trail of his ash. His new toy: the SOUL SUCKER.
+// NAME IS DONNIE sticker; killed by his weakness, a trail of his ash; the usual way (Donnie shat himself into the
+// ballroom's ceiling, and the dance floor under him got the rest), Meathead's own brown footprints down the cobbles
+// behind him the whole way: he walked out through it. His new toy: the SOUL SUCKER.
 
 import { type Ctx, type Prop, type SceneDef, INK, HOR, F, CAM_H, VP_X, ME_X, SPEED, box, hash, lump, smoke, fire, project, mix } from './kit';
 import { spriteOf, fogAt, wobble } from './screen';
@@ -200,12 +202,22 @@ const paintAsh = (g: Ctx, w: number, h: number) => {
   g.fillStyle = '#1A1C26'; g.beginPath(); g.ellipse(w * 0.55, h * 0.4, w * 0.2, h * 0.18, 0.2, 0, Math.PI * 2); g.fill();
   box(g, w * 0.5, h * 0.3, w * 0.25, 1, '#7C8AA8');
 };
-
+/** One of his footprints, brown (he walked out of the ballroom through what came out of Donnie): a boot's sole, its
+ *  heel apart from it, lying flat on the cobbles, dark round the edge, a wet glint on it. */
+const paintPrint = (g: Ctx, w: number, h: number) => {
+  g.fillStyle = '#26160A'; g.beginPath(); g.ellipse(w / 2, h * 0.36, w * 0.48, h * 0.34, 0, 0, Math.PI * 2); g.fill();
+  g.beginPath(); g.ellipse(w / 2, h * 0.84, w * 0.36, h * 0.16, 0, 0, Math.PI * 2); g.fill();
+  g.fillStyle = '#6C4420'; g.beginPath(); g.ellipse(w / 2, h * 0.36, w * 0.36, h * 0.24, 0, 0, Math.PI * 2); g.fill();
+  g.beginPath(); g.ellipse(w / 2, h * 0.84, w * 0.24, h * 0.09, 0, 0, Math.PI * 2); g.fill();
+  box(g, w * 0.3, h * 0.24, Math.max(1, w * 0.18), 1, '#B08040');
+};
 
 const props = (weakness: boolean): Prop[] => {
   const out: Prop[] = [];
   // Donnie's tag; his ash, if it was the little statue that did for him
   out.push({ id: 'dw-tag', x: 1.4, z: 3.4, w: 0.7, h: 0.4, ppm: 40, paint: paintTag });
+  // (the usual way: his own footprints, brown, left and right down the road behind him; they keep coming)
+  if (!weakness) for (let i = 0; i < 40; i++) out.push({ id: 'dw-print', x: ME_X + (i % 2 ? 0.16 : -0.16), z: 2.2 + i * 0.75, w: 0.26, h: 0.3, ppm: 60, paint: paintPrint, wrap: true });
   if (weakness) out.push({ id: 'dw-ash', x: -1.6, z: 5.5, w: 1.2, h: 0.5, ppm: 32, paint: paintAsh, live: (c, sx, sy, s, t) => smoke(c, sx, sy - s * 0.3, s, t, 2, { n: 4, size: 0.3, rise: 0.02, col: ['#57534E', '#78716C', '#A8A29E'] }) });
   // The junk, strewn the whole way (in the road: in from the lamps, so nothing in it's ever over one nearer)
   for (let i = 0; i < 12; i++) {

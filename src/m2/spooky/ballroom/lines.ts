@@ -7,7 +7,7 @@
 // ('m2.satan': the omnipotent voice, out of the circle). Their two reasons, the same end: Satan wants Meathead's SOUL;
 // Donnie just wants to show off his sick new powers (and kill him doing it). Every line by either of them three ways,
 // all the same size: clean, shitty pants, naked. His sin is GLUTTONY: Satan wants a soul, Donnie wants a snack; he
-// gorges on anybody he can get his fangs in, burps after every drink, and in the end eats himself to death.
+// gorges on anybody he can get his fangs in, burps after every drink, and in the end it all comes out of him at once.
 
 import { type ByPants, all } from '../control/lines';
 export type { ByPants, Dressed } from '../control/lines';
@@ -200,12 +200,19 @@ export const SATAN_NAG: ByPants = {
   shitty: ['THE SOUL, DONALD. YES, I SMELL IT TOO. DRAIN HIM.', 'STOP HOLDING YOUR NOSE AND DRAIN HIM, DONALD.', 'DONALD. YOU WORK IN A THEME PARK. YOU HAVE SMELLED WORSE.'],
   nude: ['THE SOUL, DONALD. STOP LOOKING AWAY.', 'YOU ARE BOTH SHOWING OFF, DONALD. IT IS UNBEARABLE.', 'DONALD. EYES ON THE NECK. NOT THE GENITALS.'],
 };
-/** Beaten (the usual way): the powers out, and everything he's drunk catches up with him; he swells up, keels over and
- *  shits himself. */
+/** Beaten (the usual way): the powers out, reeling, everything he's drunk catching up with him; then he keels over
+ *  backwards (and DONNIE_GURGLE, flat on his back, and the rest of it). */
 export const DONNIE_DIES: ByPants = {
   clean: ['TOO... MUCH... BLOOD... UNBUTTON... MY PANTS...', "I SHOULDN'T HAVE HAD... THAT LAST GUY...", 'TELL MY MOTHER... I CLEANED MY PLATE...'],
   shitty: ['TOO MUCH BLOOD... AND IT ALL TASTED LIKE YOUR ASS...', "I SHOULDN'T HAVE... EATEN... NEAR YOU...", 'TELL MY MOTHER... I CLEANED MY PLATE... THEN I SHIT MYSELF... LIKE HIM...'],
   nude: ['TOO MUCH BLOOD... AND A DICK... WITH MY MOUTH FULL...', "I SHOULDN'T HAVE... EATEN... NEAR THAT...", 'TELL MY MOTHER... I CLEANED MY PLATE... AND I SAW A DICK...'],
+};
+/** Flat on his back after it, a beat, and his gut starts going: he knows what's coming. (Then he shits so hard it
+ *  launches him into the ceiling.) */
+export const DONNIE_GURGLE: ByPants = {
+  clean: ['...OH NO.', '...THAT LAST GUY... WAS LACTOSE INTOLERANT...', '...NOT IN THE RENTAL CAPE... NOT IN THE...'],
+  shitty: ['...OH NO. NOW I KNOW HOW YOU FEEL.', "...IT'S CATCHING... YOU GAVE IT TO ME...", '...OH NO. NOT LIKE HIM. ANYTHING BUT LIKE HIM.'],
+  nude: ['...OH NO. NOT IN FRONT OF THE NAKED GUY.', "...DON'T LOOK. YOU OF ALL PEOPLE. DON'T LOOK.", '...OH NO. AT LEAST MY PANTS ARE STILL... OH NO.'],
 };
 /** Beaten by the little statue: he burns up. */
 export const DONNIE_BURNS: ByPants = {
@@ -213,7 +220,13 @@ export const DONNIE_BURNS: ByPants = {
   shitty: ['NOT LIKE THIS! NOT BY A GUY WHO SHIT HIMSELF!', "I'M BURNING! AT LEAST I CAN'T SMELL YOU!", 'OKAY! I BELIEVE! I BELIEVE YOU NEED A SHOWER! AAAAGH!'],
   nude: ['NOT LIKE THIS! NOT BY A NAKED MAN!', "I'M BURNING! AND THE LAST THING I SEE IS... AAAAGH!", 'OKAY! I BELIEVE! I BELIEVE IN PANTS! AAAAGH!'],
 };
-/** Satan, taking what's left of him. */
+/** Satan, taking what's left of him: the usual way, up through the dance floor at what's hanging out of the ceiling. */
+export const SATAN_STUCK: ByPants = {
+  clean: ['DONALD. GET DOWN FROM THERE. ...FINE. I WILL TAKE THE SOUL. LEAVE THE ASS.', 'I GAVE YOU WINGS, DONALD. YOU FLEW ON YOUR OWN SHIT. ...ANOTHER DAY, MEATHEAD.', 'MY POWER, DONALD. AND YOU WENT OUT THROUGH YOUR ASS. ...I WILL BE SEEING YOU, MEATHEAD.'],
+  shitty: ['DONALD. GET DOWN FROM THERE. ...NO. STAY. YOU TWO STINK ENOUGH.', 'TWO GROWN MEN SHAT THEMSELVES IN ONE ROOM. ...MEATHEAD. BATHE BEFORE YOU COME TO ME.', 'I GAVE YOU WINGS, DONALD. YOU FLEW ON YOUR OWN SHIT. ...MEATHEAD JUST SITS IN HIS.'],
+  nude: ['DONALD. GET DOWN FROM THERE. ...FINE. I WILL TAKE THE SOUL. THE NAKED ONE CAN HAVE THE REST.', 'I GAVE YOU WINGS, DONALD. YOU FLEW ON YOUR OWN SHIT. ...MEATHEAD. WE HAVE ROBES IN HELL.', 'AN ASS IN THE CEILING. A NAKED MAN ON THE FLOOR. ...I WILL BE SEEING YOU, MEATHEAD. ALL OF YOU.'],
+};
+/** Satan, taking what's left of him (the little statue's way: the ash). */
 export const SATAN_CLAIM: ByPants = {
   clean: ['YOUR SOUL WILL DO FOR NOW, DONALD. ...ANOTHER DAY, MEATHEAD.', 'COME, DONALD. YOUR PAPERWORK IS WAITING. IN TRIPLICATE.', 'POOR DONALD. ...I WILL BE SEEING YOU, MEATHEAD.'],
   shitty: ['YOUR SOUL WILL DO FOR NOW, DONALD. ...MEATHEAD. BATHE BEFORE YOU COME TO ME.', 'COME, DONALD. WE WILL BURN THE CAPE. AND THE CARPET.', 'POOR DONALD. ...I WILL BE SEEING YOU, MEATHEAD. FROM A DISTANCE.'],
@@ -239,8 +252,12 @@ export const MEATHEAD_SOUVENIR_HINT = [
   'COME ON, BAG. GIVE ME SOMETHING HOLY.',
   'I NEED SOMETHING CHURCHY. WHAT ELSE IS IN HERE?',
 ];
-/** Meathead, after. */
-export const MEATHEAD_WON = ["SHOULD'VE SKIPPED DESSERT.", 'HE ATE HIMSELF TO DEATH. RESPECT.', "SHOULD'VE KEPT BEGGING."];
+/** Meathead, after (the usual way: Donnie's legs hanging out of the ceiling, the floor brown under them). */
+export const MEATHEAD_WON: ByPants = {
+  clean: ["SHOULD'VE SKIPPED DESSERT.", "HE SHIT HIMSELF INTO THE CEILING. I'M NOT GETTING HIM DOWN.", 'THAT GUY WENT OUT WITH A BANG. OUT HIS ASS.'],
+  shitty: ['AND I THOUGHT MINE WAS BAD.', 'HE SHIT HARDER THAN ME. RESPECT.', "SHOULD'VE SKIPPED DESSERT. ME TOO."],
+  nude: ["AND I'M THE ONE WITH NO PANTS.", "AT LEAST MY ASS ISN'T IN THE CEILING.", "SHOULD'VE SKIPPED DESSERT."],
+};
 /** ...after the little statue did it. */
 export const MEATHEAD_WON_WEAK = ['NEVER LEAVE HOME WITHOUT A SOUVENIR.', 'HE REALLY HATED THAT LITTLE JESUS.', 'ASHES TO ASHES. DORK TO DUST. JESUS TO MY BAG.'];
 
@@ -255,12 +272,12 @@ export const HURT_BLOOD = ["HE SPIT SOMEBODY ELSE'S BLOOD AT ME!", "IT'S IN MY M
 export const DEATH_BLOOD = ['HOSED DOWN', 'DROWNED IN SECONDHAND BLOOD', 'SPRAYED'];
 
 export const VOICE_LINES: Record<string, string[]> = {
-  meathead: [...MEATHEAD_WON, ...MEATHEAD_WON_WEAK, ...MEATHEAD_SOUVENIR_HINT, ...MEATHEAD_CHARGE_HINT, ...MEATHEAD_GREASE, ...HURT_DRAIN, ...HURT_BLOOD],
+  meathead: [...all(MEATHEAD_WON), ...MEATHEAD_WON_WEAK, ...MEATHEAD_SOUVENIR_HINT, ...MEATHEAD_CHARGE_HINT, ...MEATHEAD_GREASE, ...HURT_DRAIN, ...HURT_BLOOD],
   death: [...DEATH_DRAIN, ...DEATH_BLOOD],
   'm2.donnie': [
-    ...[DONNIE_PLEAD, DONNIE_ENAMORED, DONNIE_ENTRANCE, DONNIE_SHOWOFF, DONNIE_SATAN_PANIC, DONNIE_GUEST, DONNIE_STUN, DONNIE_LOW, DONNIE_DIVE, DONNIE_DRAIN, DONNIE_ESCAPED, DONNIE_GREASED, DONNIE_SNATCH, DONNIE_SPEW, DONNIE_HURT, DONNIE_REDEEMER, DONNIE_TAUNT, DONNIE_DIES, DONNIE_BURNS, DONNIE_GORGE, DONNIE_TEMPTED].flatMap(all),
+    ...[DONNIE_PLEAD, DONNIE_ENAMORED, DONNIE_ENTRANCE, DONNIE_SHOWOFF, DONNIE_SATAN_PANIC, DONNIE_GUEST, DONNIE_STUN, DONNIE_LOW, DONNIE_DIVE, DONNIE_DRAIN, DONNIE_ESCAPED, DONNIE_GREASED, DONNIE_SNATCH, DONNIE_SPEW, DONNIE_HURT, DONNIE_REDEEMER, DONNIE_TAUNT, DONNIE_DIES, DONNIE_GURGLE, DONNIE_BURNS, DONNIE_GORGE, DONNIE_TEMPTED].flatMap(all),
   ],
-  'm2.satan': [...[SATAN_GRANT, SATAN_SOUL, SATAN_NAG, SATAN_GUEST, SATAN_STUN, SATAN_LOW, SATAN_CLAIM].flatMap(all)],
+  'm2.satan': [...[SATAN_GRANT, SATAN_SOUL, SATAN_NAG, SATAN_GUEST, SATAN_STUN, SATAN_LOW, SATAN_STUCK, SATAN_CLAIM].flatMap(all)],
   'm2.guest': [...GUEST_SCREAM],
   'm2.guest2': [...GUEST_SCREAM],
 };

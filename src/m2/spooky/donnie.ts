@@ -17,10 +17,12 @@
 // His sin is gluttony: `look.bloat` swells him a step at a time as he gorges (the gut out over his belt and sagging,
 // the buttons going, the shirt splitting; the chins and the cheeks puffing out), the 'stuffed' pose holds the gut with
 // both hands, a burp coming; a drumstick in his other hand on the PA, a blood slushie off the buffet in the shop; and in
-// his last moments, his trousers down, `look.soiled` spreads the stain across the seat of his bat boxers.
+// his last moments, his trousers down, `look.soiled` spreads the stain across the seat of his bat boxers, and
+// `look.kick` kicks his legs (hung up in the ceiling by it).
 
 import { type Ctx } from '../cast/kit';
 import { smear, drip, cut, bloodFresh, bloodDark } from '../../m1/game/render/player/gore';
+import { knee } from '../art/limb';
 
 export type DonniePose =
   | 'stand'   // standing about, gut out
@@ -64,6 +66,9 @@ export interface DonnieLook {
   powered?: boolean;
   /** His trousers down round his ankles (his last moments): hairy white legs, purple boxers with little bats on them. */
   pantsDown?: boolean;
+  /** His legs kicking (any pose): how hard (0 still .. 1 flailing for his life), each knee bent the way a knee bends
+   *  (art/limb.ts). His last moments: hung up in the ceiling, kicking, then not. */
+  kick?: number;
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -170,7 +175,7 @@ const TALKERS = new Set<DonniePose>(['talk', 'mic', 'panic', 'bite', 'run', 'fum
 export const drawDonnie = (c: Ctx, x: number, feetY: number, facing: number, frame: number, pose: DonniePose = 'stand', damage = 0, look: DonnieLook = {}) => {
   const f = frame, d = Math.max(0, Math.min(1, damage));
   const bl = Math.max(0, Math.min(4, Math.round(look.bloat ?? 0)));
-  const L = { wig: !!look.wig, cape: !!look.cape, fangs: !!look.fangs, held: look.held ?? null, pantsDown: !!look.pantsDown, powered: !!look.powered, snack: look.snack ?? null, bloat: bl, soiled: Math.max(0, Math.min(1, look.soiled ?? 0)) };
+  const L = { wig: !!look.wig, cape: !!look.cape, fangs: !!look.fangs, held: look.held ?? null, pantsDown: !!look.pantsDown, powered: !!look.powered, snack: look.snack ?? null, bloat: bl, soiled: Math.max(0, Math.min(1, look.soiled ?? 0)), kick: Math.max(0, Math.min(1, look.kick ?? 0)) };
   c.save();
   c.translate(Math.round(x), Math.round(feetY));
   c.scale(facing < 0 ? -1 : 1, 1);
@@ -196,7 +201,7 @@ export const drawDonnie = (c: Ctx, x: number, feetY: number, facing: number, fra
     c.restore();
   }
   // ---- the legs
-  drawLegs(c, pose, f, d, L.pantsDown, L.soiled);
+  drawLegs(c, pose, f, d, L.pantsDown, L.soiled, L.kick);
   c.translate(0, b);
   c.translate(0, HIP_Y); c.rotate(lean); c.translate(0, -HIP_Y);
   // ---- the far arm, the body, the near lapel of the cape, the near arm, the head (and any hand up at it, over it)
@@ -229,7 +234,7 @@ export const drawDonnie = (c: Ctx, x: number, feetY: number, facing: number, fra
 // ---------------------------------------------------------------------------------------------------------------
 // Legs: shiny polyester tux trousers (a satin stripe down the side), patent dress shoes
 
-const drawLegs = (c: Ctx, pose: DonniePose, f: number, d: number, down = false, soiled = 0) => {
+const drawLegs = (c: Ctx, pose: DonniePose, f: number, d: number, down = false, soiled = 0, kick = 0) => {
   // [hipX, hipY, kneeX, kneeY, ankleX, ankleY, shoe angle]: the far leg, then the near
   let L: number[][];
   const H = HIP_Y;
@@ -257,6 +262,14 @@ const drawLegs = (c: Ctx, pose: DonniePose, f: number, d: number, down = false, 
   else if (pose === 'summon') L = [[-5, H, -7, -14, -9, -4, 0], [5, H, 7, -14, 9, -4, 0]];
   else if (pose === 'dead') L = [[-4, H, -5, -13, -6, -4, 0.5], [4, H, 5, -13, 6, -4, 0.6]];
   else L = [[-4.5, H, -5, -14, -5.5, -4, 0], [4.5, H, 5, -14, 5.5, -4, 0]];
+  // (kicking: each foot flung out and up and back, out of step with the other, the knees bent forward (limb.ts); the
+  // shoes flapping with it)
+  if (kick > 0) L = [-1, 1].map(s => {
+    const ph = f * 0.42 + (s > 0 ? Math.PI : 0) + Math.sin(f * 0.11) * 0.8, hx = s * 4;
+    const ax = s * 5 + Math.sin(ph) * 7 * kick, ay = -4 - Math.max(0, Math.cos(ph)) * 10 * kick;
+    const [kx, ky] = knee(hx, H, ax, ay, 11.5, 11, 1);
+    return [hx, H, kx, ky, ax, ay, 0.5 + Math.sin(ph) * 0.45 * kick];
+  });
   // (the seat of the trousers, between the two: a big one)
   const [h0, h1] = L;
   shape(c, () => c.roundRect(Math.min(h0[0], h1[0]) - 7, H - 3, Math.abs(h1[0] - h0[0]) + 14, 8, [2, 2, 4, 4]), down ? BOXERS : POLY, Math.min(h0[0], h1[0]) - 7, Math.max(h0[0], h1[0]) + 7);

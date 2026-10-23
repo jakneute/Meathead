@@ -31,11 +31,13 @@
 // Donnie is always the Redeemer's (the weakness death: the kill cam, and he burns up to a pile of ash).
 //
 // Two deaths: by the Redeemer (the weakness: the kill cam, a white flash, the cut in close, slow motion; he catches
-// fire, flails, and crumbles to a pile of ash, his wig on top of it, the little statue standing in it); any other way,
-// everything he's drunk catches up with him: he swells up in the air past full (the buttons popping, a burp to shake
-// the room), his powers go out and he drops out of the air in a belly flop, his trousers down round his ankles, rear up
-// in his bat boxers, the disco ball comes down on it, and he shits himself, going down like a balloon. Satan takes his
-// soul either way.
+// fire, flails, and crumbles to a pile of ash, his wig on top of it, the little statue standing in it); any other way
+// (the user's: "he keels over backwards. then he shits. he shits so hard it propels him upwards and he gets stuck in the
+// ceiling"), his powers go out, he reels, keels over backwards flat on the dance floor; a beat; everything he's drunk
+// catches up with him (he swells past full, his gut gurgling), and it all comes out at once, a jet, blowing his
+// trousers down and him up off the floor on it, head first into the ceiling, wedged there to the gut, his legs kicking
+// out of the hole (then not), never to come down. Satan takes his soul either way. (A cutscene, skippable: SKIP lands
+// him up there, still.)
 
 import { paintSatan, drawSatanFace } from '../hell/satanArt';
 import type { GameState } from '../../../m1/game/core/state';
@@ -45,7 +47,7 @@ import type { Enemy, EnemyKind } from '../../../m1/types';
 import { shakeScreen } from '../../../m1/game/core/state';
 import { playSound } from '../../../m1/game/platform/audio';
 import { say, silenceAll, cutVoice, pickLine, pickFreshLine } from '../../../m1/game/platform/speech';
-import { SKIP_AFTER, offerSkip, takeSkip } from '../../../m1/game/platform/skip';
+import { SKIP_AFTER, offerSkip, takeSkip, drawSkipPrompt } from '../../../m1/game/platform/skip';
 import { bossIntroSeen, markBossIntroSeen } from '../../bossIntro';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { isShat, isNude } from '../../../m1/game/player/gut';
@@ -61,8 +63,10 @@ import { inputDevice, padFamily } from '../../../m1/game/platform/device';
 import { drawPadFace } from '../../../m1/game/render/padGlyph';
 import { DRAIN, drawHusk } from './husk';
 import { ARENA_L, ARENA_R, ARENA_MID, CIRCLE_X } from './arena';
-import { discoBall } from './art';
-import { checker, pixelBlob } from '../control/paint';
+import { BALL_WIRE } from './art';
+import { INK, checker, pixelBlob, hash, CEIL } from '../control/paint';
+import { keepForRevisits } from '../../store';
+import type { Box } from '../../deathFrame';
 import * as L from './lines';
 import { since } from '../../frames';
 import { drawBurn, burnLights } from './burn';
@@ -148,8 +152,19 @@ const FULL_SLOW = 0.12, FULL_TELL = 6, FULL_SAG = 22, FULL_WINDED = 0.25, FULL_S
 const BURP_AT = 8, BURP_SAY = 34, BURP_T = 46;
 /** A guest this near (px across) while he's at Meathead pulls him off it to feed, this often (each guest the once). */
 const TEMPT_R = 260, TEMPT_CHANCE = 0.6;
-/** Eating himself to death (the usual death): how long he swells up in the air before he drops. */
-const GORGE_T = 100;
+/** The usual death (frames): reeling, going over, flat on his back a beat (at least), his gut going (at least), the
+ *  flight up to the ceiling, the jet sputtering out up there, his legs kicking, the last drip. How far off the floor
+ *  his feet are lying flat (he's lying on his back, not in the floor). */
+const REEL_T = 72, KEEL_T = 26, LIE_T = 50, GURGLE_T = 96, FLY_T = 58, SPUTTER_T = 110, KICK_T = 170, DRIP_AT = 190, LIE_UP = 12;
+/** The hole he's wedged in: its lip (the ceiling at his plane, a touch back into it), how far his feet hang under it
+ *  (the gut's bottom, the boxers, the legs: the rest of him's up in there). */
+const HOLE_Y = CEIL + 8, HANG = 46;
+/** Where across the floor he goes up: this far off the middle (between the chandeliers, by the disco ball). */
+const STUCK_OFF = 62;
+/** The gobs of it in the air at once, at most (a pool). */
+const GOO_N = 160;
+/** Broken plaster: light, base, shade. */
+const PLASTER = ['#E7E0D6', '#B8AEA2', '#857B70'];
 
 /** Sources of hurt (each with its lines and its death screen). */
 const BLOOD = 'm2:donnie_blood';
@@ -169,6 +184,19 @@ interface Guest { x: number; dir: 1 | -1; seed: number; state: 'run' | 'held' | 
   tempted?: boolean }
 interface Drop { x: number; y: number; vx: number; vy: number; r: number }
 interface Splat { x: number; w: number; t: number }
+/** A gob of it in the air (the usual death's jet), pooled: `on` while it's flying. */
+interface Goo { on: boolean; x: number; y: number; vx: number; vy: number; r: number }
+/** The usual death's beats (usual(), below). */
+type Step = 'drop' | 'reel' | 'keel' | 'lie' | 'gurgle' | 'fly' | 'stuck' | 'hang';
+/** His death: which (the usual, or burnt up by the Redeemer), how far in, where his feet are, how he's turned. The usual
+ *  one's beat and when it began; the flight's from and to; the jet (how hard, which way out of him); the hole made; his
+ *  legs' kicking; the trousers down, the seat soiled; his last words over his gut; the disco ball clipped; the last drip. */
+interface Death {
+  how: 'flat' | 'burn'; t: number; x: number; y: number; vy: number; facing: 1 | -1; land: number; bloat: number;
+  step: Step; at: number; rot: number; r0?: number; x0: number; y0: number; xe: number; jx: number; jy: number;
+  hole: boolean; jet: number; kick: number; pants: boolean; soil: number; said: boolean; ballHit: boolean;
+  drip: { x: number; y: number; vy: number; hang: number } | null;
+}
 export interface KillCam { t: number; acc: number; z: number; out: boolean }
 
 export interface Fight {
@@ -206,7 +234,10 @@ export interface Fight {
   moveSeen: number | undefined;
   /** Gluttony: how full he is (steps, 0..FULL_MAX), when he last had a gulp; the burp after a drink (frames into it). */
   full: number; fullAt: number; burpT: number;
-  death: { how: 'flat' | 'burn'; t: number; x: number; y: number; vy: number; facing: 1 | -1; land: number; bloat: number } | null;
+  death: Death | null;
+  /** The usual death's mess: the gobs in the air, the stains on the floor, how splattered the ceiling round the hole is;
+   *  the disco ball's swing (radians, how fast). */
+  goo: Goo[]; muck: Splat[]; ceilSplat: number; ball: { a: number; v: number };
   deathSaid: number;
   cam: KillCam | null;
   /** Satan and Donnie's beats: the next one waiting its turn, one going now, which have gone (the once-only ones),
@@ -323,6 +354,7 @@ export const startFight = (state: GameState): Fight => {
     guests: [], guestT: 0, prey: null, drops: [], splats: [], aimX: 0, aimY: 0, stunT: 0, side: -1, redeemAt: 0, staggerAt: -99999, wrongN: 0, hintAt: -99999, knockedLoose: false,
     said: null, satanSaid: null, nagT: 0, tauntT: 0, souvenir: null, moveSeen: e.hitByMove,
     death: null, deathSaid: 0, cam: null, wigOff: null, e, full: 0, fullAt: -9999, burpT: 0,
+    goo: [], muck: [], ceilSplat: 0, ball: { a: 0, v: 0 },
     beat: null, beatOn: false, beatEnd: -9999, beatsDone: new Set(), guestKills: 0,
   };
   live = f;
@@ -586,7 +618,7 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
       if (f.t % 40 === 1) playSound('twinkle', 0.4, 6);
       if (f.t >= f.stunT) { to(f, 'rise'); f.vy = -3; }
       break;
-    case 'dead': dying(ctx, f); break;
+    case 'dead': dying(ctx, f); out = hands(); break;
   }
   f.x = Math.max(ARENA_L + 30, Math.min(ARENA_R - 30, f.x));
   updateDrops(ctx, f);
@@ -876,8 +908,14 @@ const die = (ctx: FrameContext, f: Fight, redeemer = false) => {
   if (f.held) { f.held = null; state.player.vel.y = -4; }
   if (f.prey) { f.prey.state = 'run'; f.prey.y = GY; f.prey = null; }
   state.enemies = state.enemies.filter(o => o !== e);
-  // (the usual way: up off the floor to swell up first, so he always lands after it)
-  f.death = { how: redeemer ? 'burn' : 'flat', t: 0, x: f.x, y: f.y, vy: 0, facing: f.facing, land: redeemer && f.y >= GY - 1 ? 1 : 0, bloat: steps(f) };
+  // (the usual way: facing Meathead, so he reels back off him)
+  const facing = redeemer ? f.facing : (pmid(state).x < f.x ? -1 : 1);
+  f.death = {
+    how: redeemer ? 'burn' : 'flat', t: 0, x: f.x, y: f.y, vy: 0, facing, land: redeemer && f.y >= GY - 1 ? 1 : 0, bloat: steps(f),
+    step: f.y < GY - 1 ? 'drop' : 'reel', at: 0, rot: 0, x0: f.x, y0: GY, xe: stuckX(f.x), jx: 0, jy: 1,
+    hole: false, jet: 0, kick: 0, pants: false, soil: 0, said: false, ballHit: false, drip: null,
+  };
+  f.skipT = 0;
   state.damageNumbers = [];
   f.said = null;
   if (redeemer) {
@@ -894,6 +932,8 @@ const die = (ctx: FrameContext, f: Fight, redeemer = false) => {
     playSound('ding', 1.2, 0); playSound('thunder', 0.8, 2); playSound('ignite', 1, -2);
     line(f, 'donnie', L.DONNIE_BURNS, () => { f.deathSaid = 1; });
   } else {
+    // (out of his hands from the killing blow on: a cutscene, all of it, skippable all at once)
+    state.player.inCutscene = true;
     playSound('hurt', 0.8, -4);
     line(f, 'donnie', L.DONNIE_DIES, () => { f.deathSaid = 1; });
   }
@@ -904,29 +944,15 @@ const dying = (ctx: FrameContext, f: Fight) => {
   const { state } = ctx, d = f.death!;
   d.t++;
   const t = d.t;
-  if (d.how === 'flat' && t <= GORGE_T) {
-    // (first, everything he's drunk catching up with him: up off the floor if he's low, swelling a step at a time past
-    // full, the buttons popping off him, a burp to shake the room)
-    if (d.y > GY - 70) d.y -= Math.min(2.5, d.y - (GY - 70));
-    for (const [at, k] of [[16, 2], [40, 3], [64, 4]] as const) if (t === at) {
-      d.bloat = Math.max(d.bloat, k);
-      playSound('squish', 0.9, -k); playSound('crunch', 0.4, 6);
-      shakeScreen(state, 2 + k, 3);
-      // (buttons, off like shots)
-      if (k >= 3) for (let i = 0; i < 3; i++) state.particles.push({ pos: { x: d.x + d.facing * 20, y: d.y - 50 + i * 6 }, vel: { x: d.facing * (3 + Math.random() * 4), y: -2 - Math.random() * 3 }, life: 40, color: '#F1EEE6', size: 2, grav: 0.35 });
-    }
-    if (t === 84) {
-      playSound('burp', 1.3, -6); shakeScreen(state, 8, 5);
-      for (let i = 0; i < 16; i++) state.particles.push({ pos: { x: d.x + d.facing * 16, y: d.y - 74 }, vel: { x: d.facing * (1.5 + Math.random() * 3), y: -1 - Math.random() * 1.6 }, life: 34 + Math.random() * 16, color: i % 3 === 0 ? 'rgba(185, 28, 28, 0.7)' : 'rgba(230, 200, 200, 0.5)', size: 5 + Math.random() * 5, grav: -0.02 });
-    }
-  } else if (d.how === 'flat') {
-    // (the powers out: the eyes go dark, down he drops, flailing; a belly flop (the gut bounces him); the trousers down;
-    // the disco ball; and then he shits himself, going down like a balloon)
-    if (d.y < GY) { d.vy += 0.5; d.y = Math.min(GY, d.y + d.vy); if (d.y >= GY) { playSound('thud', 1.2, -6); playSound('splat', 0.6, -4); playSound('squish', 1, -6); shakeScreen(state, 12, 6); d.land = t; } }
-    if (d.land && t === d.land + 70) { playSound('whoosh', 0.6, 6); }
-    if (d.land && t === d.land + 90) { playSound('bonk', 1, -2); playSound('glass', 0.5, 2); shakeScreen(state, 6, 3); }
-    if (d.land && t === d.land + 150) { playSound('fart', 0.9, -3); playSound('poopsplat', 0.6, -2); }
-    if (d.land && t === d.land + 190) playSound('fart', 0.6, 2);
+  if (d.how === 'flat') {
+    // (Meathead out of it the whole way: no input, nothing can touch him (nothing's left to), the SKIP on offer)
+    const p = state.player;
+    p.inCutscene = true; p.vel.x = 0;
+    p.noContactUntil = Math.max(p.noContactUntil ?? 0, state.frame + 2);
+    f.skipT++;
+    if (f.deathSaid < 4 && f.skipT > SKIP_AFTER) { offerSkip(); if (takeSkip()) { skipDeath(state, f); return; } }
+    usual(ctx, f, d);
+    gooTick(state, f);
   } else {
     // (alight: flailing, then down, then ash)
     if (d.y < GY) { d.vy += 0.3; d.y = Math.min(GY, d.y + d.vy); }
@@ -934,18 +960,211 @@ const dying = (ctx: FrameContext, f: Fight) => {
     if (t === 100) playSound('crumble', 1, -4);
     if (f.cam && t > 170) f.cam.out = true;
   }
-  // (Satan takes what's his, then Meathead has his say; then it's over)
-  if (f.deathSaid === 1 && t > (d.how === 'flat' ? GORGE_T + 160 : 160)) { f.deathSaid = 2; f.circle = 0.001; line(f, 'satan', L.SATAN_CLAIM, () => { f.deathSaid = 3; meatheadSays(state, pick(d.how === 'burn' ? L.MEATHEAD_WON_WEAK : L.MEATHEAD_WON), true, tokened(() => { f.deathSaid = 4; })); }); }
+  // (the disco ball, if he clipped it on his way up: swinging on its wire, dying down)
+  f.ball.v = (f.ball.v - Math.sin(f.ball.a) * 0.0045) * 0.993; f.ball.a += f.ball.v;
+  // (Satan takes what's his, then Meathead has his say; then it's over. The usual way: once he's hung up there still)
+  const satan = d.how === 'flat' ? d.step === 'hang' && t - d.at > 30 : t > 160;
+  if (f.deathSaid === 1 && satan) {
+    f.deathSaid = 2; f.circle = 0.001;
+    line(f, 'satan', d.how === 'flat' ? L.SATAN_STUCK : L.SATAN_CLAIM, () => { f.deathSaid = 3; meatheadSays(state, d.how === 'burn' ? pick(L.MEATHEAD_WON_WEAK) : pick(L.MEATHEAD_WON[pants()]), true, tokened(() => { f.deathSaid = 4; })); });
+  }
   if (f.deathSaid >= 2 && f.deathSaid < 4) f.circle = Math.min(0.6, f.circle + 0.02);
   if (f.deathSaid >= 4) f.circle = Math.max(0, f.circle - 0.03);
   // (it never hangs)
-  if (t > 1500) f.deathSaid = 4;
+  if (t > 2400) f.deathSaid = 4;
+};
+
+/**
+ * The usual death (the user's: "he keels over backwards. then he shits. he shits so hard it propels him upwards and he
+ * gets stuck in the ceiling"). Out of the air if he's up (his powers gone out with him), onto his feet; reeling, his
+ * last words; over backwards, flat on the dance floor; a beat; his gut going, the gluttony catching up with him (he
+ * swells past full, it gurgles, he knows: his say); and then it comes out of him all at once, a jet, out the seat of his
+ * trousers (blown down round his ankles) over the floor both ways; it skids him off along the floor and stands him up
+ * on it, up past the disco ball (clipped: swinging), head first through the ceiling, wedged up there to the gut; the jet
+ * sputtering out, a last spurt or two; his legs kicking, slower, a twitch; still. A last drip. Satan's turn.
+ */
+const usual = (ctx: FrameContext, f: Fight, d: Death) => {
+  const { state } = ctx, u = d.t - d.at;
+  const go = (s: Step) => { d.step = s; d.at = d.t; };
+  switch (d.step) {
+    case 'drop':
+      // (the powers out: the eyes dark, the wings gone limp, down out of the air like a sack onto his feet)
+      d.vy += 0.6; d.y = Math.min(GY, d.y + d.vy);
+      if (d.y >= GY) { d.vy = 0; playSound('thud', 1.1, -6); playSound('squish', 0.7, -6); shakeScreen(state, 9, 4); go('reel'); }
+      break;
+    case 'reel': {
+      // (on his feet, reeling: lurching back off Meathead a step at a time, swaying, his last words going)
+      const k = Math.sin(u * 0.17);
+      d.x = Math.max(ARENA_L + 50, Math.min(ARENA_R - 50, d.x - d.facing * (0.3 + Math.max(0, k) * 0.7)));
+      d.rot = d.facing * (k * 0.13 - 0.05 - (u / REEL_T) * 0.05);
+      if (u % 18 === 9) playSound('land', 0.35, -2);
+      if (u >= REEL_T) { d.r0 = d.rot; go('keel'); playSound('whoosh', 0.45, -6); }
+      break;
+    }
+    case 'keel': {
+      // (over backwards, stiff as a board, quicker as he goes; flat on his back on the dance floor)
+      const k = Math.min(1, (u / KEEL_T) ** 2);
+      const r0 = d.r0 ?? 0;
+      d.rot = r0 + (-d.facing * (Math.PI / 2) - r0) * k; d.y = GY - LIE_UP * k;
+      if (u >= KEEL_T) {
+        go('lie'); d.land = d.t;
+        playSound('thud', 1.3, -9); playSound('squish', 1, -8); playSound('crunch', 0.4, -6); shakeScreen(state, 12, 6);
+        for (let i = 0; i < 12; i++) state.particles.push({ pos: { x: d.x - d.facing * (10 + Math.random() * 60), y: GY - 2 }, vel: { x: (Math.random() - 0.5) * 3, y: -0.5 - Math.random() * 1.5 }, life: 30, color: 'rgba(196, 181, 253, 0.4)', size: 5 + Math.random() * 4, grav: -0.01 });
+      }
+      break;
+    }
+    case 'lie':
+      // (flat out, a beat; his last words finished first, whatever's going)
+      if ((u >= LIE_T && f.deathSaid >= 1) || u > 900) go('gurgle');
+      break;
+    case 'gurgle':
+      // (his gut going: swelling past full a step at a time, gurgling like a drain, a squeak getting out; he knows)
+      for (const [at, k] of [[8, 2], [34, 3], [60, 4]] as const) if (u === at) { d.bloat = Math.max(d.bloat, k); playSound('glug', 0.9, -10 - k); playSound('rumble', 0.5, -12); shakeScreen(state, 2 + k, 3); }
+      if (u % 22 === 11) playSound('glug', 0.5, -7 + Math.random() * 2);
+      if (u === 72 || u === 90) playSound('fart', 0.35, 9);
+      if (u === 20) line(f, 'donnie', L.DONNIE_GURGLE, () => { d.said = true; });
+      if ((u >= GURGLE_T && d.said) || u > 800) blast(state, d);
+      break;
+    case 'fly': {
+      // (the jet: skidding him off along the floor first, then standing him up on it and up, a bit of a spin, the trail of
+      // it behind him; up past the disco ball; head first into the ceiling)
+      const s = Math.min(1, u / FLY_T), px = d.x, py = d.y;
+      d.x = d.x0 + (d.xe - d.x0) * (1 - (1 - s) ** 5);
+      d.y = d.y0 + (HOLE_Y + HANG - d.y0) * s ** 2.5;
+      const up = Math.min(1, s * 1.6), e = up * up * (3 - 2 * up);
+      d.rot = -d.facing * (Math.PI / 2) * (1 - e) + Math.sin(s * Math.PI * 2.5) * 0.32 * (1 - s) * d.facing;
+      // (the jet out of the seat of him: down, and back the way he's come; low, it hits the floor and fans out along it)
+      const vx = d.x - px, vy = d.y - py, n = Math.hypot(-vx * 0.5, 4 - vy) || 1;
+      d.jx = -vx * 0.5 / n; d.jy = (4 - vy) / n;
+      const [sx, sy] = seatOf(d);
+      for (let i = 0; i < 3; i++) goo(f, sx + (Math.random() - 0.5) * 6, sy, d.jx * (6 + Math.random() * 4) + (Math.random() - 0.5) * 2, d.jy * (6 + Math.random() * 4), 2 + Math.random() * 2.5);
+      if (sy > GY - 60) for (let i = 0; i < 3; i++) goo(f, sx, GY - 4, (Math.random() < 0.5 ? -1 : 1) * (3 + Math.random() * 6), -1 - Math.random() * 3, 2 + Math.random() * 2);
+      if (u % 5 === 0) playSound('fart', 0.75, -10 + Math.sin(u) * 2);
+      if (u % 12 === 0) playSound('gush', 0.6, -5);
+      // (the disco ball: clipped on his way past it, sent swinging, a few of its mirrors off)
+      const by = CEIL + BALL_WIRE;
+      if (!d.ballHit && Math.abs(d.x - ARENA_MID) < 100 && d.y - 50 < by + 30 && d.y - 50 > by - 70) {
+        d.ballHit = true; f.ball.v += (d.x < ARENA_MID ? 1 : -1) * 0.055;
+        playSound('glass', 0.7, 4); playSound('clink', 0.7, 2);
+        for (let i = 0; i < 8; i++) state.particles.push({ pos: { x: ARENA_MID + (Math.random() - 0.5) * 20, y: by + (Math.random() - 0.5) * 20 }, vel: { x: (Math.random() - 0.5) * 3, y: -1 - Math.random() * 2 }, life: 50, color: i % 2 ? '#FFFFFF' : '#D4D4D8', size: 2, grav: 0.3 });
+      }
+      // (into the ceiling: his head through it, wedged up to the gut)
+      if (!d.hole && d.y - 92 <= CEIL + 6) {
+        d.hole = true;
+        playSound('crash', 1.2, -4); playSound('crack', 1, -6); playSound('crumble', 1, -4); playSound('thud', 1, -10); shakeScreen(state, 18, 9);
+        for (let i = 0; i < 26; i++) state.particles.push({ pos: { x: d.x + (Math.random() - 0.5) * 60, y: HOLE_Y + Math.random() * 6 }, vel: { x: (Math.random() - 0.5) * 4, y: -1 + Math.random() * 2 }, life: 60 + Math.random() * 30, color: PLASTER[i % 3], size: 2 + Math.random() * 4, grav: 0.35, chunk: i % 3 === 0 });
+        for (let i = 0; i < 10; i++) state.particles.push({ pos: { x: d.x + (Math.random() - 0.5) * 70, y: HOLE_Y + 6 + Math.random() * 10 }, vel: { x: (Math.random() - 0.5) * 2, y: 0.2 + Math.random() * 0.6 }, life: 50 + Math.random() * 30, color: 'rgba(214, 205, 196, 0.35)', size: 8 + Math.random() * 8, grav: 0.005 });
+        // (the wig, if it was still on him: knocked off up there, down it comes)
+        if (!f.wigOff) f.wigOff = { x: d.x + 4, y: HOLE_Y + 6, vy: 0 };
+      }
+      if (s >= 1) { go('stuck'); d.kick = 1; }
+      break;
+    }
+    case 'stuck': {
+      // (wedged: the jet sputtering out of him up there (a good long spurt as he goes in, then fits and starts, further
+      // apart, weaker), all of it coming down under him and up round the hole; his legs kicking, slower; a twitch or two)
+      const was = d.jet, k = u / SPUTTER_T;
+      d.jet = u < 14 ? 1 : u < SPUTTER_T && Math.sin(u * 0.45) > k * 1.7 - 0.5 ? 1 - k * 0.8 : 0;
+      d.jx = 0; d.jy = 1;
+      if (d.jet > 0) {
+        const [sx, sy] = seatOf(d);
+        for (let i = 0; i < 2; i++) goo(f, sx + (Math.random() - 0.5) * 6, sy, (Math.random() - 0.5) * 2.4, 2 + Math.random() * 3 * d.jet, 2 + Math.random() * 2 * d.jet);
+        f.ceilSplat = Math.min(1, f.ceilSplat + 0.025 * d.jet);
+        if (!was) playSound('fart', 0.85 - k * 0.5, 1 + k * 9);
+      }
+      d.kick = u < KICK_T ? (1 - u / KICK_T) ** 0.6 : u < KICK_T + 60 && (u - KICK_T) % 26 < 5 ? 0.3 : 0;
+      if (u === DRIP_AT) { const [sx, sy] = seatOf(d); d.drip = { x: sx, y: sy, vy: 0, hang: 0 }; }
+      if (d.drip) {
+        // (the last drip: hanging off him, stretching, letting go, all the way down; the smallest splat)
+        const dr = d.drip;
+        if (dr.hang < 34) dr.hang++;
+        else { dr.vy += 0.35; dr.y += dr.vy; }
+        if (dr.y >= GY - 2) { d.drip = null; muck(f, dr.x, 10); playSound('splat', 0.35, 10); playSound('poopsplat', 0.25, 6); go('hang'); d.kick = 0; }
+      }
+      if (u > DRIP_AT + 200) go('hang');
+      break;
+    }
+    case 'hang': break;
+  }
+};
+
+/** It all comes out: the trousers blown down, the jet lit, off he goes (to stuck at the middle, his side of the ball). */
+const blast = (state: GameState, d: Death) => {
+  d.x0 = d.x; d.y0 = d.y; d.xe = stuckX(d.x);
+  d.pants = true; d.soil = 1; d.jet = 1; d.kick = 0.8;
+  d.step = 'fly'; d.at = d.t;
+  playSound('fart', 1.5, -12); playSound('gush', 1.1, -8); playSound('poopsplat', 1, -6); playSound('rumble', 1, -10);
+  shakeScreen(state, 16, 8);
+};
+
+/** Where on the floor he ends up hung over: between the chandeliers, past the disco ball on his own side of it. */
+const stuckX = (x: number) => ARENA_MID + (x >= ARENA_MID ? 1 : -1) * STUCK_OFF;
+/** The seat of his trousers (where it comes out), in the world, however he's turned. */
+const seatOf = (d: Death): [number, number] => {
+  const lx = -7 * d.facing, ly = -24, c = Math.cos(d.rot), s = Math.sin(d.rot);
+  return [d.x + lx * c - ly * s, d.y + lx * s + ly * c];
+};
+
+/** A gob of it, out of the pool (nothing made new once it's full). */
+const goo = (f: Fight, x: number, y: number, vx: number, vy: number, r: number) => {
+  let g = f.goo.find(q => !q.on);
+  if (!g) { if (f.goo.length >= GOO_N) return; g = { on: false, x: 0, y: 0, vx: 0, vy: 0, r: 0 }; f.goo.push(g); }
+  g.on = true; g.x = x; g.y = y; g.vx = vx; g.vy = vy; g.r = r;
+};
+/** The gobs flying, down onto the floor (a stain there, spreading as more lands). */
+const gooTick = (state: GameState, f: Fight) => {
+  for (const g of f.goo) {
+    if (!g.on) continue;
+    g.vy += 0.3; g.x += g.vx; g.y += g.vy;
+    if (g.x < ARENA_L - 40 || g.x > ARENA_R + 40) { g.on = false; continue; }
+    if (g.y >= GY - 1) {
+      g.on = false; muck(f, g.x, 6 + g.r * 2);
+      if (state.frame % 5 === 0) playSound('splat', 0.2, 4 + Math.random() * 4);
+    }
+  }
+};
+/** A stain on the floor where some landed (onto one already there, it spreads). */
+const muck = (f: Fight, x: number, w: number) => {
+  const near = f.muck.find(m => Math.abs(m.x - x) < m.w / 2 + 4);
+  if (near) near.w = Math.min(110, near.w + 1.5);
+  else if (f.muck.length < 70) f.muck.push({ x, w, t: 0 });
+};
+
+/** Skipped: straight to how it ends (up in the ceiling, still, the floor under him brown), done. */
+const skipDeath = (state: GameState, f: Fight) => {
+  const d = f.death!;
+  token++; silenceAll(); state.playerVulgarityTimer = 0; f.said = null; f.satanSaid = null;
+  if (d.step !== 'fly' && d.step !== 'stuck' && d.step !== 'hang') { d.x0 = d.x; d.xe = stuckX(d.x); }
+  for (let i = 0; i < 9; i++) muck(f, d.x0 + (d.xe - d.x0) * (i / 8) + (hash(i * 3.1) - 0.5) * 40, 14 + hash(i * 7.3) * 26);
+  muck(f, d.xe, 70);
+  d.x = d.xe; d.y = HOLE_Y + HANG; d.rot = 0; d.hole = true; d.pants = true; d.soil = 1; d.bloat = 4; d.kick = 0; d.jet = 0; d.drip = null;
+  d.step = 'hang'; d.at = d.t - 999;
+  for (const g of f.goo) g.on = false;
+  f.ceilSplat = 1; f.ball.a = 0; f.ball.v = 0;
+  if (!f.wigOff || f.wigOff.y < GY - 4) f.wigOff = { x: d.xe + 4, y: GY - 4, vy: 0 };
+  f.circle = 0; f.deathSaid = 4;
 };
 
 /** Done with: his death played out, everybody's had their say. */
-export const fightOver = (f: Fight) => f.mode === 'dead' && !!f.death && f.deathSaid >= 4 && (f.death.how === 'burn' ? f.death.t > 260 : !!f.death.land && f.death.t > f.death.land + 270) && (!f.cam || f.cam.z <= 1);
-export const endFight = (state: GameState, f: Fight) => { state.player.inCutscene = false; f.drops = []; live = null; };
+export const fightOver = (f: Fight) => f.mode === 'dead' && !!f.death && f.deathSaid >= 4 && (f.death.how === 'burn' ? f.death.t > 260 : f.death.step === 'hang' && f.death.t - f.death.at > 90) && (!f.cam || f.cam.z <= 1);
+/** Kept for revisits (store.ts keepForRevisits): where across the floor he's hung up in the ceiling (the usual way). */
+export const MEMO_STUCK = 'm2:sp_donnie_stuck';
+export const endFight = (state: GameState, f: Fight) => {
+  if (f.death?.how === 'flat') keepForRevisits(MEMO_STUCK, String(Math.round(f.death.xe)));
+  state.player.inCutscene = false; f.drops = []; live = null;
+};
 export const killedByWeakness = (f: Fight) => f.death?.how === 'burn';
+/** The disco ball's swing (art.ts draws it). */
+export const ballSwing = (f: Fight) => f.ball.a;
+
+/** What of the usual death has to be in the shot (deathFrame.ts: the standard deaths' way): the floor to the ceiling,
+ *  across from where he is to where he ends up, with room for the cutscene's bars top and bottom. Null once it's over. */
+export const deathNeed = (f: Fight): Box | null => {
+  const d = f.death;
+  if (f.mode !== 'dead' || !d || d.how !== 'flat' || f.deathSaid >= 4) return null;
+  const a = Math.min(d.x, d.xe, d.x0), b = Math.max(d.x, d.xe, d.x0);
+  return { x0: a - 80, y0: CEIL - 56, x1: b + 80, y1: GY + 52 };
+};
 
 /** The enemy, where he is (in the world while it's on; out of it for the intro and after). */
 const sync = (state: GameState, f: Fight) => {
@@ -1083,6 +1302,7 @@ export const drawFightBack = (c: Ctx, state: GameState, f: Fight) => {
     box(c, sp.x - sp.w * 0.25, GY - 2, Math.max(2, sp.w * 0.3), 2, '#991B1B');
     box(c, sp.x - sp.w * 0.2, GY - 2, Math.max(2, sp.w * 0.12), 1, '#EF4444');
   }
+  drawMuck(c, f.muck);
   drawCircle(c, state, f);
   for (const g of f.guests) if (g.state === 'husk') drawHusk(c, g.x, GY, g.facing, 0.85, 1);
   if (f.wigOff) drawLooseWig(c, f.wigOff.x, f.wigOff.y, state.frame, 1, 0.5);
@@ -1166,38 +1386,123 @@ export const drawFightFront = (c: Ctx, state: GameState, f: Fight) => {
   if (f.said) saidOver(c, f.said, f.mode === 'dead' && f.death ? f.death.x : f.x, (f.mode === 'dead' && f.death ? f.death.y : f.y) - DONNIE_H - 16, '#FDE68A');
   if (f.satanSaid) saidOver(c, f.satanSaid, CIRCLE_X, GY - 330, '#F87171', 300);
 };
-
 /** His two deaths, drawn. */
 const drawDeath = (c: Ctx, f: Fight, fr: number) => {
-  const d = f.death!, t = d.t;
+  const d = f.death!, u = d.t - d.at;
   if (d.how === 'flat') {
-    // (swelling up in the air, both hands on it, shaking with it; the powers still on him till he drops)
-    if (t <= GORGE_T) { const j = d.bloat >= 3 ? Math.sin(fr * 1.7) * (d.bloat - 2) : 0; drawDonnie(c, d.x + j, d.y, d.facing, fr, 'stuffed', 1, { cape: true, wig: !f.wigOff, powered: true, bloat: d.bloat }); return; }
-    if (d.y < GY) { drawDonnie(c, d.x, d.y, d.facing, fr, 'hurt', 1, { cape: true, wig: !f.wigOff, bloat: d.bloat }); return; }
-    // Face down, rear up, trousers round his ankles, the bat boxers; the disco ball down on him and off again; then
-    // the shit spreading across the seat of them, and him going down like a balloon with it, a step at a time
-    const lt = d.land ? t - d.land : 0;
-    const bounce = lt < 16 ? Math.sin((lt / 16) * Math.PI) * 0.16 : 0;
-    const bloat = lt < 150 ? d.bloat : Math.max(1, d.bloat - Math.floor((lt - 150) / 25));
-    // (propped up off the floor on his gut, the fuller the higher)
-    c.save(); c.translate(d.x, GY - 22 - bloat * 4); c.rotate(d.facing * (Math.PI / 2 + 0.25 - bounce));
-    drawDonnie(c, 0, 22, d.facing, fr, 'dead', 1, { cape: true, wig: !f.wigOff, pantsDown: lt > 20, bloat, soiled: Math.max(0, Math.min(1, (lt - 150) / 40)) });
+    // The usual one: on his feet reeling, over backwards, flat out, his gut going, the flight, wedged in the ceiling
+    if (d.hole) drawHoleBack(c, d.xe, f.ceilSplat);
+    const pose: DonniePose = d.step === 'drop' || d.step === 'reel' || d.step === 'fly' ? 'hurt' : d.step === 'keel' ? (u < KEEL_T * 0.6 ? 'hurt' : 'dead') : d.step === 'gurgle' ? 'stuffed' : 'dead';
+    // (his gut going: shaking with it, the fuller the harder)
+    const j = d.step === 'gurgle' ? Math.sin(fr * 1.3) * Math.max(0, d.bloat - 1) * 0.6 : 0;
+    c.save();
+    // (wedged: the top of him's up in the ceiling, gone; just the bottom of the gut, the boxers and the legs hang out)
+    if (d.hole) { c.beginPath(); c.rect(d.x - 200, HOLE_Y + 1, 400, 900); c.clip(); }
+    c.translate(d.x + j, d.y); c.rotate(d.rot);
+    drawDonnie(c, 0, 0, d.facing, fr, pose, 1, { cape: true, wig: !f.wigOff, bloat: d.bloat, pantsDown: d.pants, soiled: d.soil, kick: d.step === 'fly' ? 0.8 : d.kick });
     c.restore();
-    // (the disco ball: down on its snapped wire, onto his rear, a bonk, off and rolling)
-    if (lt > 60) {
-      const k = Math.min(1, (lt - 60) / 30), rx = d.x - d.facing * 26;
-      const by = lt < 90 ? 60 + (GY - 60 - 40) * k * k : GY - 40 - Math.max(0, Math.sin(((lt - 90) / 20) * Math.PI)) * 30 * (lt < 110 ? 1 : 0) + (lt >= 110 ? 26 : 0);
-      const roll = Math.sign(ARENA_MID - rx) || 1, bx = lt < 110 ? rx : rx + roll * Math.min(140, (lt - 110) * 2);
-      const by2 = lt >= 110 ? GY - 14 : by;
-      // (rolling: turned by how far it's gone, the way a ball turns)
-      discoBall(c, bx, by2, 14, fr, (bx - rx) / 14);
+    if (d.jet > 0) drawJet(c, d, fr);
+    // (the gobs of it flying: inked, a lit fleck on the bigger ones)
+    for (const g of f.goo) {
+      if (!g.on) continue;
+      const r = Math.max(1, Math.round(g.r));
+      box(c, g.x - r - 1, g.y - r - 1, r * 2 + 2, r * 2 + 2, JET[0]); box(c, g.x - r, g.y - r, r * 2, r * 2, JET[1]);
+      if (r > 2) box(c, g.x - r + 1, g.y - r + 1, 1, 1, JET[2]);
     }
-    // (the last one out of him)
-    if (lt > 150 && lt < 260) { const s = (lt - 150) / 110; c.fillStyle = `rgba(163, 190, 60, ${(0.5 * (1 - s)).toFixed(2)})`; c.beginPath(); c.arc(d.x - d.facing * 30, GY - 40 - s * 30, 6 + s * 20, 0, Math.PI * 2); c.fill(); }
+    if (d.hole) drawHoleFront(c, d.xe);
+    // (the last drip: hanging off him, stretching, then falling)
+    if (d.drip) { const dr = d.drip, len = dr.hang < 34 ? 1 + dr.hang / 6 : 3; box(c, dr.x - 2, dr.y - 1, 4, len + 3, INK); box(c, dr.x - 1, dr.y, 2, len + 1, '#6C4420'); box(c, dr.x - 1, dr.y, 1, 1, '#B08040'); }
     return;
   }
   // Burning up: alight and flailing; down; to a pile of ash, the wig on top, the little statue standing in it (burn.ts)
   drawBurn(c, d, !f.wigOff, fr);
+};
+
+/** The jet out of the seat of him: a column of it, stepped, widening as it goes, its lit core flickering; cut off at
+ *  the floor. */
+const JET = ['#26160A', '#6C4420', '#B08040'];
+const drawJet = (c: Ctx, d: Death, fr: number) => {
+  const [sx, sy] = seatOf(d), n = 9, step = 6 + d.jet * 3;
+  for (let i = 0; i < n; i++) {
+    const x = sx + d.jx * i * step + Math.sin(fr * 0.9 + i) * 1.5, y = sy + d.jy * i * step;
+    if (y > GY) break;
+    const w = (5 + i * 1.8) * (0.5 + d.jet * 0.5);
+    box(c, x - w / 2 - 1, y - 4, w + 2, 9, JET[0]);
+    box(c, x - w / 2, y - 3, w, 7, JET[1]);
+    if ((i + fr) % 3) box(c, x - w * 0.2, y - 2, Math.max(2, w * 0.35), 4, JET[2]);
+  }
+};
+
+/** The hole in the ceiling, behind him: the stain round it (spreading as it's sprayed), the cracks running off it,
+ *  the plaster's broken edge, the dark up in it, a lath or two snapped across. */
+const drawHoleBack = (c: Ctx, x: number, splat: number) => {
+  for (let i = 0; i < 12; i++) {
+    const k = Math.min(1, splat * 1.4 - i * 0.04);
+    if (k <= 0) continue;
+    const sx = x + (hash(i * 4.1) - 0.5) * 120 * k, sy = HOLE_Y + 2 + hash(i * 2.7) * 22 * k, r = 3 + hash(i * 5.9) * 9 * k;
+    pixelBlob(c, sx, sy, r + 1, r * 0.45 + 1, '#26160A'); pixelBlob(c, sx, sy, r, r * 0.45, '#503014');
+    box(c, sx - r * 0.4, sy - 1, Math.max(2, r * 0.5), 1, '#8A5C2C');
+    // (some of it hanging off, about to go)
+    if (i % 3 === 0) { box(c, sx - 1, sy, 3, 3 + hash(i) * 8 * k, '#26160A'); box(c, sx, sy, 1, 2 + hash(i) * 7 * k, '#6C4420'); }
+  }
+  // (the cracks, off along the ceiling both ways, stepped)
+  for (let i = 0; i < 6; i++) {
+    const dir = i % 2 ? 1 : -1, len = 18 + hash(i * 3.3) * 40;
+    let cy = HOLE_Y + 2 + hash(i * 1.7) * 10;
+    for (let s = 0; s < len; s += 3) { box(c, x + dir * (26 + s), cy, 3, 1, '#05020A'); if (hash(i * 9 + s) > 0.6) cy += hash(s + i) > 0.5 ? 1 : -1; }
+  }
+  pixelBlob(c, x, HOLE_Y, 32, 9, PLASTER[2]);
+  pixelBlob(c, x, HOLE_Y - 1, 28, 7, '#050208');
+  box(c, x - 34, HOLE_Y - 7, 16, 2, '#5A3818'); box(c, x + 16, HOLE_Y - 5, 18, 2, '#7A5028');
+};
+/** The hole's near lip, over him (wedged in it): jagged broken plaster, lit along its top. */
+const drawHoleFront = (c: Ctx, x: number) => {
+  for (let i = -6; i <= 6; i++) {
+    const cx = x + i * 5, h = 3 + Math.round(hash(i * 2.3 + 1) * 3), y = HOLE_Y + 2 + Math.abs(i) * 0.6 - h / 2;
+    box(c, cx - 3, y - 1, 7, h + 2, INK);
+    box(c, cx - 2, y, 5, h, PLASTER[1 + (i & 1)]);
+    box(c, cx - 2, y, 5, 1, PLASTER[0]);
+  }
+};
+
+/** The floor's stains (the usual death: under the jet's way across it and under him), dark round the edge, a sheen. */
+const drawMuck = (c: Ctx, list: readonly Splat[]) => {
+  for (const m of list) {
+    pixelBlob(c, m.x, GY, m.w / 2 + 2, 4, '#26160A');
+    pixelBlob(c, m.x, GY, m.w / 2, 3, '#503014');
+    box(c, m.x - m.w * 0.25, GY - 2, Math.max(2, m.w * 0.3), 2, '#6C4420');
+    box(c, m.x - m.w * 0.2, GY - 2, Math.max(2, m.w * 0.12), 1, '#B08040');
+  }
+};
+
+/** Screen space: the usual death's cutscene bars and SKIP (the kill cam has its own). */
+export const drawDeathBars = (c: Ctx, f: Fight) => {
+  if (f.mode !== 'dead' || f.death?.how !== 'flat') return;
+  const bar = Math.round(Math.min(1, f.skipT / 20) * 44);
+  if (bar > 0) { c.fillStyle = '#000'; c.fillRect(0, 0, CANVAS_WIDTH, bar); c.fillRect(0, CANVAS_HEIGHT - bar, CANVAS_WIDTH, bar); }
+  if (f.deathSaid < 4 && f.skipT > SKIP_AFTER) drawSkipPrompt(c, CANVAS_WIDTH);
+};
+
+/** A revisit after the usual death (world space, with the room): he's still up there. The floor under him brown and
+ *  dried, his wig where it fell; the hole, the stain round it; the bottom half of him hanging out of it, still, the bat
+ *  boxers brown, the trousers round his ankles; a drip that dried before it fell; a couple of flies at him. */
+const LEFT_MUCK: Splat[] = [];
+export const drawStuckLeftovers = (c: Ctx, x: number, fr: number) => {
+  if (!LEFT_MUCK.length || LEFT_MUCK[0].x !== x) {
+    LEFT_MUCK.length = 0;
+    LEFT_MUCK.push({ x, w: 80, t: 0 });
+    for (let i = 0; i < 10; i++) LEFT_MUCK.push({ x: x + (hash(i * 3.1) - 0.5) * 220, w: 12 + hash(i * 7.3) * 30, t: 0 });
+  }
+  drawMuck(c, LEFT_MUCK);
+  drawLooseWig(c, x + 4, GY - 4, fr, 1, 0.5);
+  drawHoleBack(c, x, 1);
+  c.save(); c.beginPath(); c.rect(x - 200, HOLE_Y + 1, 400, 900); c.clip();
+  drawDonnie(c, x, HOLE_Y + HANG, x >= ARENA_MID ? -1 : 1, 0, 'dead', 1, { cape: true, bloat: 4, pantsDown: true, soiled: 1 });
+  c.restore();
+  drawHoleFront(c, x);
+  const sx = x, sy = HOLE_Y + HANG - 22;
+  box(c, sx - 2, sy, 4, 7, INK); box(c, sx - 1, sy, 2, 6, '#503014');
+  for (let i = 0; i < 2; i++) { const a = fr * (0.13 + i * 0.05) + i * 2; box(c, sx + Math.cos(a) * (12 + i * 6), sy - 6 + Math.sin(a * 1.7) * 7, 2, 2, '#111827'); }
 };
 
 /** The fire's light (the weakness death), for the room's lighting. */

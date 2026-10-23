@@ -207,7 +207,10 @@ const endWall = (c: Ctx, eye: Eye, X: number, side: -1 | 1, f: number) => {
 // ---------------------------------------------------------------------------------------------------------------
 // The room, drawn (world space, behind everything)
 
-export interface BallLook { cleared: boolean; ballDown: boolean }
+/** `swing`: the disco ball knocked swinging on its wire (radians off straight down; Donnie on his way up past it). */
+export interface BallLook { cleared: boolean; ballDown: boolean; swing?: number }
+/** The disco ball's wire: hung from the ceiling over the middle of the floor, this long to the ball's middle. */
+export const BALL_WIRE = GY - 366 - CEIL;
 
 export const drawBallroomArt = (c: Ctx, state: GameState, look: BallLook) => {
   const v = state.view ?? { x: state.camera.x, y: state.camera.y, w: CANVAS_WIDTH, h: CANVAS_HEIGHT };
@@ -286,9 +289,16 @@ export const drawBallroomArt = (c: Ctx, state: GameState, look: BallLook) => {
   }
   // The disco ball over the middle of the floor (its spots going round the walls); down once it's all over
   if (!look.ballDown) {
-    box(c, ARENA_MID - 1, CEIL, 2, GY - 382 - CEIL, '#71717A');
-    discoBall(c, ARENA_MID, GY - 366, 16, f);
-    for (let i = 0; i < 8; i++) { const a = f * 0.01 + i * 0.8; box(c, ARENA_MID + Math.cos(a) * 340, GY - 250 + Math.sin(a * 1.7) * 140, 4, 4, ['#F472B6', '#60A5FA', '#FDE047', '#FFFFFF'][i % 4]); }
+    const sw = look.swing ?? 0;
+    if (Math.abs(sw) < 0.004) box(c, ARENA_MID - 1, CEIL, 2, GY - 382 - CEIL, '#71717A');
+    else {
+      // (swinging: the wire in 2px steps along it, the ball at its end, its spots swept about with it)
+      const sx = Math.sin(sw), sy = Math.cos(sw);
+      for (let k = 0; k < BALL_WIRE - 16; k += 2) box(c, ARENA_MID + sx * k - 1, CEIL + sy * k, 2, 2, '#71717A');
+    }
+    const bx = ARENA_MID + Math.sin(sw) * BALL_WIRE, by = CEIL + Math.cos(sw) * BALL_WIRE;
+    discoBall(c, bx, by, 16, f, sw * 3);
+    for (let i = 0; i < 8; i++) { const a = f * 0.01 + i * 0.8 + sw * 4; box(c, bx + Math.cos(a) * 340, GY - 250 + Math.sin(a * 1.7) * 140, 4, 4, ['#F472B6', '#60A5FA', '#FDE047', '#FFFFFF'][i % 4]); }
   } else if (look.cleared) discoBall(c, ARENA_MID - 160, GY - 14, 14, 0);
 };
 
