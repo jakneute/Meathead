@@ -9,10 +9,11 @@ import { FREEFALL_LAND, freefallLandRot } from '../../m1/game/render/player/free
 
 export { FREEFALL_LAND };
 
-/** The pose goes with what he hollers going over: a cannonball for CANNONBALL, flailing for anything else. */
-export const startFreefall = (p: Player, line: string) => {
+/** The pose goes with what he hollers going over: a cannonball for CANNONBALL, flailing for anything else (`ball`: his
+ *  cannonball, whatever he hollers: the tower's dive). */
+export const startFreefall = (p: Player, line: string, ball = false) => {
   if (p.freefall) return;
-  p.freefall = { style: /CANNON/i.test(line) ? 'ball' : 'flail', t: 0, rot: 0, land: 0 };
+  p.freefall = { style: ball || /CANNON/i.test(line) ? 'ball' : 'flail', t: 0, rot: 0, land: 0 };
 };
 
 /** How fast he turns over (radians a frame): a slow tumble, or a cannonball's spin. */

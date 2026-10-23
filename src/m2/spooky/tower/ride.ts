@@ -49,8 +49,10 @@ export interface Car {
   /** The brakes have caught it (the clank, the sparks). */
   braked?: boolean;
 }
-/** The ride: its cars, all of them somewhere round the loop; whether the top's holding the one there. */
-export interface Ride { cars: Car[]; count: number; held: boolean; alt?: boolean }
+/** The ride: its cars, all of them somewhere round the loop; whether the top's holding the one there; `clear`: the
+ *  shafts kept empty under the top (he's up there after the crash to go down one, or on his way down: nothing rolls
+ *  out to the foot, goes up or comes down; any already on its way, out of his sight, back round underground). */
+export interface Ride { cars: Car[]; count: number; held: boolean; alt?: boolean; clear?: boolean }
 export const newRide = (): Ride => ({ cars: [], count: 0, held: false });
 
 /** The rise is slow (a tense click-clack crawl he keeps pace with, climbing), the drop's a free fall. */
@@ -124,6 +126,12 @@ export const runRide = (state: GameState, r: Ride, crashed: boolean, ev: RideEve
   // (unlimited cars: one more on its way round underground whenever the fleet's short, out of sight)
   if (r.cars.length < FLEET && !r.cars.some(c => c.phase === 'under')) r.cars.push(emptyCar(r));
   const busy = (...ph: CarPhase[]) => r.cars.some(c => ph.includes(c.phase));
+  // (the shafts kept clear: whatever's out of the bay on its way up, well off the screen from him, back underground,
+  // so nothing's down a shaft, its cable up it, as he goes down)
+  if (r.clear) for (const c of r.cars) {
+    if ((c.phase !== 'roll' && c.phase !== 'wait' && c.phase !== 'rise') || Math.abs(state.player.pos.y - c.y) < 900) continue;
+    Object.assign(c, { phase: 'under', t: 0, x: DOCK_X, y: LIFT_FOOT, vy: 0, riders: [], saidUp: false, screamed: false, hit: false });
+  }
   for (const c of [...r.cars]) {
     c.t++;
     // (its noise heard only from on the screen or just off it: bossQuiet.ts)
@@ -142,7 +150,7 @@ export const runRide = (state: GameState, r: Ride, crashed: boolean, ev: RideEve
         if (near && c.t === Math.round(BOARDED - 50)) playSound('clang', 0.6, -4);
         if (near && c.t === Math.round(BOARDED - 10)) playSound('slam', 0.5, 4);
         // (off once it's loaded and the foot of the shaft is free)
-        if (boarded(c) && !busy('roll', 'wait')) { c.phase = 'roll'; c.t = 0; if (near) playSound('beep', 0.5, 6); }
+        if (boarded(c) && !busy('roll', 'wait') && !r.clear) { c.phase = 'roll'; c.t = 0; if (near) playSound('beep', 0.5, 6); }
         break;
       case 'roll':
         c.x = Math.min(SHU, c.x + ROLL);
@@ -151,7 +159,7 @@ export const runRide = (state: GameState, r: Ride, crashed: boolean, ev: RideEve
         break;
       case 'wait':
         // (at the foot of the shaft, loaded: up it once the one before has come down past, and been taken off its floor)
-        if (!upCar(r)) { c.phase = 'rise'; c.t = 0; if (near) playSound('clang', 0.4, -10); }
+        if (!upCar(r) && !r.clear) { c.phase = 'rise'; c.t = 0; if (near) playSound('clang', 0.4, -10); }
         break;
       case 'rise':
         c.y = Math.max(CAR_TOP, c.y - (crashed ? RISE * 2 : RISE));
@@ -161,7 +169,7 @@ export const runRide = (state: GameState, r: Ride, crashed: boolean, ev: RideEve
         break;
       case 'top':
         // (after: every other one goes straight back down the UP shaft, the crossing's broken)
-        if (crashed && r.alt && !r.held && c.t > LAMP_HOLD) { r.alt = false; c.phase = 'drop'; c.t = 0; c.real = true; if (near) playSound('whoosh', 1, -10); ev.dropped?.(c); }
+        if (crashed && r.alt && !r.held && !r.clear && c.t > LAMP_HOLD) { r.alt = false; c.phase = 'drop'; c.t = 0; c.real = true; if (near) playSound('whoosh', 1, -10); ev.dropped?.(c); }
         else if (!downCar(r) && !(crashed && r.alt)) { c.phase = 'cross'; c.t = 0; if (crashed) r.alt = true; }
         break;
       case 'cross':
@@ -172,7 +180,7 @@ export const runRide = (state: GameState, r: Ride, crashed: boolean, ev: RideEve
       case 'hold':
         // (a beat at the top: tick, tock; the clock room's held one waits there for the drop, the last beam still up)
         if (c.t % 30 === 0 && near) playSound('click', 0.4, c.t % 60 ? -6 : 6);
-        if (!r.held && c.t > (crashed ? LAMP_HOLD : 70)) { c.phase = 'drop'; c.t = 0; c.real = crashed; if (near) playSound('whoosh', 1, -10); ev.dropped?.(c); }
+        if (!r.held && !r.clear && c.t > (crashed ? LAMP_HOLD : 70)) { c.phase = 'drop'; c.t = 0; c.real = crashed; if (near) playSound('whoosh', 1, -10); ev.dropped?.(c); }
         break;
       case 'drop': {
         const from = c.y;

@@ -1330,7 +1330,8 @@ export const drawTowerBack = (c: Ctx, state: GameState, look: TowerLook) => {
     }
     if (look.crashed && !look.nets[k]) {
       drawNetShreds(c, y);
-      drawRubble(c, SH0 - 40, y, 4); drawRubble(c, SH1 + 40, y, 3);
+      // (on the floors' ends, never out over the open shaft)
+      drawRubble(c, SH0 - 48, y, 4); drawRubble(c, SH1 + 40, y, 3);
     }
     if (look.crashed && JAMS.includes(k)) drawJam(c, k);
     // (floor 4, caved in: the broken planks hanging off the edge)

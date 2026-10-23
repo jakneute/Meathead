@@ -123,8 +123,9 @@ LEDGES.push(SHELF);
 // the clock room: up to the bell's gallery, and a ledge over the way in
 export const GALLERY: [number, number, number] = [U(860), TOP - 230, 290];
 LEDGES.push([U(760), TOP - 115, 100], GALLERY, [U(40), TOP - 150, 200]);
-// down the chute: rock shelves to catch himself on (or not)
-export const CHUTE_LEDGES: [number, number, number][] = [[U(310), GY + 560, 110], [U(740), GY + 760, 110], [U(320), GY + 960, 100], [U(700), GY + 1130, 120]];
+// down the chute: rock shelves to catch himself on (or not), off its walls either side of the shafts (none out under
+// either one: straight down it's clear)
+export const CHUTE_LEDGES: [number, number, number][] = [[U(306), GY + 560, 110], [U(748), GY + 760, 106], [U(316), GY + 960, 100], [U(748), GY + 1130, 108]];
 
 // ---------------------------------------------------------------------------------------------------------------
 // The support beams: one per floor, floor to ceiling, on the half he comes in on (he can't get by without ramming it);
@@ -169,22 +170,24 @@ export const GEARS: GearDef[] = [
 
 /** The pendulums: the pivot (the ceiling), the length, the swing (radians either side), its period (frames), phase.
  *  At the ends of its swing it's up over his head; at the bottom it's not. (None swings out over the shaft far: the
- *  car's way, and his, down it.) `wild`: after, the tower leaning, it swings further and faster; `snaps`: after, it's
- *  down, its blade stuck in the floor (jump it). */
-export interface PendDef { x: number; y: number; len: number; amp: number; period: number; phase: number; snaps?: boolean; wildOnly?: boolean }
+ *  car's way, and his, down it: after, never in it at all.) `wild`: after, the tower leaning, it swings further and
+ *  faster (`wildAmp`: no further than that); `snaps`: after, it's down, its blade stuck in the floor (jump it). */
+export interface PendDef { x: number; y: number; len: number; amp: number; period: number; phase: number; snaps?: boolean; wildOnly?: boolean; wildAmp?: number }
 export const PENDULUMS: PendDef[] = [
   // floor 2: the first (time it: the beam's under the end of its swing)
   { x: U(360), y: F(3) + SLAB, len: 280, amp: 0.4, period: 140, phase: 0, snaps: true },
   // floor 6 (k 5): still on the way up (the hatch's ladder comes up under it); after, it's loose, swinging wild over the sag
-  { x: U(880), y: F(6) + SLAB, len: 290, amp: 0.55, period: 130, phase: 0.25, wildOnly: true },
+  // (and the gap past it: its blade's near end stays right of the DOWN shaft, his straight drop down it from the top)
+  { x: U(920), y: F(6) + SLAB, len: 300, amp: 0.55, period: 130, phase: 0.25, wildOnly: true, wildAmp: 0.5 },
 ];
 
 /** The cuckoo clocks on the walls (their birds come out at him): [x, y] (the clock's middle). */
 export const CUCKOOS: [number, number][] = [
-  // floor 1: the cuckoo floor (one by the way in, one over the beam, one up the climb)
-  [U(940), F(1) - 240], [U(560), F(1) - 300], [U(330), F(1) - 300],
+  // floor 1: the cuckoo floor (one by the way in, one by the beam, one up the climb). None over the shaft: after, it's
+  // his straight drop to hell, nothing in it
+  [U(940), F(1) - 240], [U(850), F(1) - 310], [U(330), F(1) - 300],
   [U(340), F(3) - 260],
-  [U(500), F(4) - 280],
+  [U(270), F(4) - 280],
   [U(940), F(5) - 260],
   [U(1040), TOP - 380],
 ];

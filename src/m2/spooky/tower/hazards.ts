@@ -15,7 +15,7 @@ import type { Enemy } from '../../../m1/types';
 import { box } from '../section';
 import { ball, rampOf } from '../../intro/art/kit';
 import { setHazardZones } from '../../hazardHit';
-import { GEARS, PENDULUMS, TX0, TX1, F, U, STORY, SLAB, STORIES, ROOF, BLADE_U, type GearDef, type PendDef } from './layout';
+import { GEARS, PENDULUMS, TX0, TX1, SH0, SH1, F, U, STORY, SLAB, STORIES, ROOF, BLADE_U, type GearDef, type PendDef } from './layout';
 import { HURT_GEAR, DEATH_GEAR, HURT_PENDULUM, DEATH_PENDULUM, HURT_DEBRIS, DEATH_DEBRIS, HURT_CAR, DEATH_CAR } from './lines';
 
 type Ctx = CanvasRenderingContext2D;
@@ -143,7 +143,7 @@ export const pendAt = (p: PendDef, frame: number, crashed: boolean) => {
   if (crashed && p.snaps) return null;
   // (tied back up to the ceiling, out of the way, till the crash shakes it loose)
   if (!crashed && p.wildOnly) return { a: -1.2, x: p.x + Math.sin(-1.2) * p.len, y: p.y + Math.cos(-1.2) * p.len, period: p.period, amp: 0, still: true };
-  const amp = crashed ? Math.min(1.05, p.amp * 1.7) : p.amp, period = crashed ? p.period * 0.8 : p.period;
+  const amp = crashed ? Math.min(1.05, p.wildAmp ?? p.amp * 1.7) : p.amp, period = crashed ? p.period * 0.8 : p.period;
   const a = amp * Math.sin(((frame / period) + p.phase) * Math.PI * 2);
   return { a, x: p.x + Math.sin(a) * p.len, y: p.y + Math.cos(a) * p.len, period, amp };
 };
@@ -251,16 +251,19 @@ export const storyOf = (state: GameState) => {
 };
 const TELL = 44;
 /** Each frame: shaken loose over him (the more beams down, the more often), the tell, the fall, the hit. */
-const runDebris = (ctx: FrameContext, list: Debris[], broken: number) => {
+const runDebris = (ctx: FrameContext, list: Debris[], broken: number, crashed: boolean) => {
   const { state } = ctx, p = state.player;
   const k = storyOf(state);
   const every = broken >= 3 ? Math.max(80, 330 - broken * 36) : 0;
   if (every && k >= 0 && !p.inCutscene && state.frame % every === 0 && list.length < 3) {
     const ceil = k < STORIES ? F(k + 1) + SLAB : ROOF;
     const x = Math.max(TX0 + 20, Math.min(TX1 - 20, p.pos.x + p.width / 2 + p.vel.x * 30 + (Math.random() - 0.5) * 200));
-    const floor = floorTopAt(state.blocks, x, ceil + 30, 0) ?? F(k);
-    list.push({ x, y: ceil + 4, vy: 0, tell: TELL, kind: Math.floor(Math.random() * 3), rot: 0, floor });
-    playSound('crumble', 0.35, 6);
+    // (never down the open shaft, after: nothing in his way down it)
+    if (!crashed || x < SH0 - 30 || x > SH1 + 30) {
+      const floor = floorTopAt(state.blocks, x, ceil + 30, 0) ?? F(k);
+      list.push({ x, y: ceil + 4, vy: 0, tell: TELL, kind: Math.floor(Math.random() * 3), rot: 0, floor });
+      playSound('crumble', 0.35, 6);
+    }
   }
   for (let i = list.length - 1; i >= 0; i--) {
     const d = list[i];
@@ -306,6 +309,6 @@ export const drawDebris = (c: Ctx, list: Debris[]) => {
 export const runHazards = (ctx: FrameContext, debris: Debris[], broken: number, crashed: boolean) => {
   runPendulums(ctx, crashed);
   runGears(ctx, crashed);
-  runDebris(ctx, debris, broken);
+  runDebris(ctx, debris, broken, crashed);
   setHazardZones(ctx.state, 'tower', dangerZones);
 };

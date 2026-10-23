@@ -84,7 +84,7 @@ export const MEATHEAD_WOBBLE = [
 export const MEATHEAD_MAIN = ['THE MAIN SUPPORT. COME TO DADDY.', 'THAT ONE HOLDS UP THE WHOLE RIDE. PERFECT.'];
 /** The car going through the floor (once it's done). */
 export const MEATHEAD_CRASH = ['...THAT WAS NOT THE GIFT SHOP.', 'WELL. THEY WANTED HELL.', "OOPS. THEY'RE GONNA NEED A BIGGER WAIVER."];
-/** Meathead, jumping into the shaft after it. (CANNONBALL picks the cannonball pose: freefall.ts.) */
+/** Meathead, a way down the shaft after it, going into his cannonball (any of them: the dive's pose is his cannonball). */
 export const MEATHEAD_JUMP = ['CANNONBAAAALL!', 'GERONIMOOOO!', 'WAIT FOR MEEEE!'];
 
 // ---------------------------------------------------------------------------------------------------------------
