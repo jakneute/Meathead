@@ -29,8 +29,10 @@ export const OVEN_FROM = 4000;
 // Layout (x from Italy's start, heights up from the promenade). He jumps ~145 up, ~210 across.
 
 /** The oven: its tunnel (x), the inside's ceiling (h) and the roof's top (h); the flour sacks up to it. */
-const OVEN = { a: 4300, b: 5000, ceil: 130, roof: 200 } as const;
-const SACKS = { a: 4200, b: 4280, h: 100 } as const;
+// (room to walk in and out at the bottom, both ends (the user's): the sacks set back off its mouth, the tunnel ended
+// short of the Vespa; were 4200-4280 and 5000)
+const OVEN = { a: 4300, b: 4930, ceil: 130, roof: 200 } as const;
+const SACKS = { a: 4160, b: 4225, h: 100 } as const;
 /** The burners (rx) and their beat: each PERIOD frames, offset by its turn; WARN of pilot flicker, then FIRE. The
  *  chimneys over them go on the off beat (half a period on). */
 const BURNERS = [4420, 4650, 4880];
@@ -45,7 +47,7 @@ const ENEMIES: [string, number, number][] = [
   // them into the flare); on the roof, a nonna, the opera singer, a pizza tosser at the far end (pies along the roof
   // at him between the chimneys)
   ['m2:fl_pizzaiolo', 4560, 0], ['m2:fl_nonna', 4760, 0],
-  ['m2:fl_nonna', 4520, OVEN.roof], ['m2:fl_opera', 4800, OVEN.roof], ['m2:fl_pizzaiolo', 4950, OVEN.roof],
+  ['m2:fl_nonna', 4520, OVEN.roof], ['m2:fl_opera', 4800, OVEN.roof], ['m2:fl_pizzaiolo', 4900, OVEN.roof],
   // the rooftops: the opera singer and a pizza tosser up the houses; down the last one, a nonna on the high balcony,
   // the opera singer and a pizza tosser below
   ['m2:fl_opera', 5380, 300], ['m2:fl_pizzaiolo', 5560, 420],
@@ -53,8 +55,8 @@ const ENEMIES: [string, number, number][] = [
 ];
 
 export const OVEN_CHECKPOINTS = [
-  { name: 'ITALY: IL FORNO', cp: 44, x: X(4140), y: GY },
-  { name: 'ITALY: THE ROOFTOPS', cp: 45, x: X(5030), y: GY },
+  { name: 'ITALY: IL FORNO', cp: 44, x: X(4110), y: GY },
+  { name: 'ITALY: THE ROOFTOPS', cp: 45, x: X(4970), y: GY },
 ];
 
 /** A burner's state at frame f: the pilot (warn), the fire (0..1 up), or out. `off`: its chimney (the off beat). */
@@ -157,7 +159,7 @@ export const drawOvenBack = (c: Ctx, v: View, state: GameState) => {
   // (laundry strung between the houses: scenery, high over the alleys)
   for (const [a, b, h] of [[5250, 5300, 330], [5450, 5500, 450]] as const) if (onScreen(v, X(a) - 40, X(b) + 40)) laundry(c, X(a) - 30, Y(h), X(b) + 30, Y(h), 5, a);
   // (signs: held up, nothing over them)
-  if (onScreen(v, X(4180), X(4300))) postBoard(c, X(4180), GY, ['IL FORNO', "WORLD'S LONGEST", 'PIZZA OVEN'], LOOKS.italy(1), '#7F1D1D', undefined, 220);
+  if (onScreen(v, X(4090), X(4300))) postBoard(c, X(4090), GY, ['IL FORNO', "WORLD'S LONGEST", 'PIZZA OVEN'], LOOKS.italy(1), '#7F1D1D', undefined, 220);
   if (onScreen(v, X(5700), X(5860))) postBoard(c, X(5785), GY, ['LEAVING ITALY', 'ARRIVEDERCI (BYE)'], LOOKS.italy(1), '#14532D', undefined, 100);
 };
 
