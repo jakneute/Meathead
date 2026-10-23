@@ -187,6 +187,8 @@ interface Flight {
   lob?: boolean;
   /** Done: it came apart on whoever it hit (a boss's weakness says so: setSouvenirHit returning true). */
   gone?: boolean;
+  /** It's bounced off something (a wall, the floor, somebody): the little Jesus goes looking for Donnie after that. */
+  bounced?: boolean;
 }
 const flightOf = (p: Projectile) => p.customData as Flight;
 
@@ -206,11 +208,17 @@ const solidAt = (state: GameState, x: number, y: number, w: number, h: number) =
 const floorAt = (state: GameState, x: number, w: number, prevBottom: number, bottom: number) =>
   state.blocks.find(b => b.type !== 'pit' && b.type !== 'door' && x < b.x + b.w && x + w > b.x && prevBottom <= b.y + 0.5 && bottom >= b.y);
 
+/** The last one out of the launcher was the little Jesus (the next can't be). */
+let lastWasRedeemer = false;
 const fire = (ctx: FrameContext, input: { moveUp: boolean; moveDown: boolean }, muzzle: { x: number; y: number }) => {
   const { state, fx, cheats } = ctx;
   const pl = state.player;
   const want = forced ?? pickHook?.(TRINKETS) ?? null;
-  const t = TRINKETS.find(k => k.id === want) ?? TRINKETS[Math.floor(Math.random() * TRINKETS.length)];
+  let t = TRINKETS.find(k => k.id === want) ?? TRINKETS[Math.floor(Math.random() * TRINKETS.length)];
+  // (no two Jesuses in a row (the user's): after one, the next pull's always something else in the bag; the cheat that
+  // forces one aside)
+  if (t.id === 'redeemer' && forced !== 'redeemer' && lastWasRedeemer) { const rest = TRINKETS.filter(k => k.id !== 'redeemer'); t = rest[Math.floor(Math.random() * rest.length)]; }
+  lastWasRedeemer = t.id === 'redeemer';
   // Up + fire: a lob, a mortar's arc, high over and down on the head of whoever's out in front (no wobble: it's the
   // shot that's aimed; or, nobody about, just a high one out in front). Otherwise aimed a bit: down (in the air) sends it
   // at the floor; a little wild either way: it's junk out a pipe
@@ -336,6 +344,7 @@ const hitEnemy = (ctx: FrameContext, p: Projectile, e: Enemy) => {
 const BANK_REACH = 320, BANK_SPEED = 5.5;
 const bankShot = (state: GameState, p: Projectile) => {
   const f = flightOf(p);
+  f.bounced = true;
   const speed = Math.hypot(p.vel.x, p.vel.y);
   if (speed < 1.5) return;
   const cx = p.pos.x + p.width / 2, cy = p.pos.y + p.height / 2;
@@ -359,6 +368,22 @@ const bankShot = (state: GameState, p: Projectile) => {
   f.line = speed >= BANK_SPEED ? Math.ceil(d / speed) + 2 : 0;
 };
 
+/** The little Christ the Redeemer, once it's bounced off something, semi-homes in on Donnie (the user's: it hurts him
+ *  straight on or off a rebound): its heading eased toward him each frame, gravity still on it, never slower than it
+ *  needs to get there. Only him: the vampire's the one it wants. */
+const SEEK_K = 0.09, SEEK_MIN = 6.5, SEEK_REACH = 900;
+const seekDonnie = (state: GameState, p: Projectile, f: Flight) => {
+  if (f.t.id !== 'redeemer' || !f.bounced || f.gone) return;
+  const d = state.enemies.find(e => e.kind === 'm2:donnie' && e.health > 0);
+  if (!d) return;
+  const cx = p.pos.x + p.width / 2, cy = p.pos.y + p.height / 2;
+  const dx = d.pos.x + d.width / 2 - cx, dy = d.pos.y + d.height * 0.4 - cy, dist = Math.hypot(dx, dy);
+  if (dist > SEEK_REACH || dist < 1) return;
+  const sp = Math.max(SEEK_MIN, Math.hypot(p.vel.x, p.vel.y));
+  p.vel.x += ((dx / dist) * sp - p.vel.x) * SEEK_K;
+  p.vel.y += ((dy / dist) * sp - p.vel.y) * SEEK_K;
+};
+
 /** Up there in the air (a bird, a drone). */
 const flies = (e: Enemy) => e.enemyType === 'flyer' || e.enemyType === 'drone' || e.behavior === 'fly' || e.behavior === 'hover';
 
@@ -374,6 +399,7 @@ const popOf = (t: Trinket) => 6 + (1 - t.mass) * 6;
 const RICOCHET_REACH = 300;
 const ricochet = (state: GameState, p: Projectile, from: Enemy) => {
   const f = flightOf(p), { t } = f;
+  f.bounced = true;
   const cx = p.pos.x + p.width / 2, cy = p.pos.y + p.height / 2;
   let best: Enemy | null = null, bestD = RICOCHET_REACH;
   for (const o of state.enemies) {
@@ -438,6 +464,7 @@ const update = (ctx: FrameContext, p: Projectile): boolean => {
     }
     p.pos.y = ny;
   }
+  seekDonnie(state, p, f);
   f.ang += f.spin * Math.min(1, Math.hypot(p.vel.x, p.vel.y) / 6);
   if (grounded) { f.ang *= 0.8; p.vel.x *= 0.9; }
   // Anybody in its way, while it's still got some go in it

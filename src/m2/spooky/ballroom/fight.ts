@@ -84,8 +84,13 @@ const SHARE = 0.35, IFRAMES = ENEMY_HIT_COOLDOWN;
 const SOUV_SHARE = 0.15, SOUV_IFRAMES = ENEMY_HIT_COOLDOWN;
 /** The Redeemer: what it takes off him, how long he's down for. */
 const REDEEMER_DMG = 90, REDEEMER_STUN = 120;
+/** Any other little Jesus on him (down already, wise to it): the full REDEEMER_DMG; in his i-frames, this much (it
+ *  always hurts). */
+const REDEEMER_CHIP = 55;
 /** After one's put him down, he's wise to it a while: another in that time is just a souvenir (unless it'd finish him). */
 const REDEEMER_GRACE = 300;
+/** How long a little Jesus that doesn't put him down has him flapping about (frames). */
+const SHOO_T = 46;
 /** In his fight, the launcher's bag is loaded for him: this often the next one out is the Redeemer outright, on top of
  *  its usual 1 in 9 (so 0.25 + 0.75 / 9 = 1 in 3 all told); everywhere else it's just one of the nine. */
 const REDEEMER_BOOST = 0.25;
@@ -154,7 +159,7 @@ registerHurtLines(BLOOD, L.HURT_BLOOD, L.DEATH_BLOOD);
 // The state
 
 type Intro = 'plead' | 'reply' | 'open' | 'bestow' | 'rise' | 'gross' | 'powered' | 'soul' | 'panic' | 'mh' | 'close';
-export type Mode = 'intro' | 'hover' | 'aim' | 'dive' | 'drain' | 'rise' | 'hunt' | 'suck' | 'spew' | 'winded' | 'flinch' | 'stunned' | 'dead';
+export type Mode = 'intro' | 'hover' | 'aim' | 'dive' | 'drain' | 'rise' | 'hunt' | 'suck' | 'spew' | 'winded' | 'flinch' | 'shoo' | 'stunned' | 'dead';
 
 interface Guest { x: number; dir: 1 | -1; seed: number; state: 'run' | 'held' | 'fall' | 'husk'; y: number; vy: number; t: number; said: string | null; facing: 1 | -1;
   /** Got away from him once (he was knocked off them): he won't go after that one again. */
@@ -562,6 +567,14 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
       f.vy = (f.vy + (GY - HOVER_UP + 30 - f.y) * 0.04) * 0.85; f.y += f.vy; f.x += Math.sin(f.t * 1.3) * 1.2;
       if (f.t >= 50) to(f, 'hover');
       break;
+    case 'shoo':
+      // (a little Jesus on him, not the one that puts him down: whatever he was at, dropped, and he flaps about blind in
+      // the air swatting at himself, trying to get the love off him (the user's); not a stun: he's back at it after)
+      f.vy = (f.vy + (GY - HOVER_UP - f.y) * 0.03) * 0.86; f.y += f.vy + Math.sin(f.t * 0.9) * 2;
+      f.x += f.vx + Math.sin(f.t * 0.55) * 3.5; f.vx *= 0.9; f.facing = (Math.sin(f.t * 0.35) > 0 ? 1 : -1) as 1 | -1;
+      if (f.t % 8 === 0) playSound('whoosh', 0.35, 8 + Math.random() * 4);
+      if (f.t >= SHOO_T) to(f, 'hover');
+      break;
     case 'stunned':
       // (down out of the air, onto his backside, smoking; then back up)
       if (f.y < GY) { f.vy += 0.6; f.y = Math.min(GY, f.y + f.vy); if (f.y >= GY) { playSound('thud', 1, -4); shakeScreen(state, 8, 4); } }
@@ -767,6 +780,20 @@ const takeHits = (ctx: FrameContext, f: Fight) => {
     else bark(f, L.DONNIE_REDEEMER);
     return;
   }
+  // (any other little Jesus on him (in his breather, down already, wise to it): no stun, but it gets him: whatever he
+  // was at, dropped, and he flaps about blind trying to get rid of it (the user's: every hit disrupts him))
+  // (and it always hurts him (the user's): in full, or through his breather a bit less)
+  if (sv?.id === 'redeemer') {
+    if (f.mode !== 'stunned' && f.mode !== 'intro') shoo(state, f);
+    const dmg = f.iframes > 0 ? REDEEMER_CHIP : REDEEMER_DMG;
+    f.hp -= dmg; f.flash = 10; f.iframes = Math.max(f.iframes, IFRAMES);
+    playSound('ding', 0.8, 8);
+    state.damageNumbers.push({ id: `donnie-christd-${state.frame}`, text: pick(REDEEMER_CALLOUTS), pos: { x: f.x, y: f.y - DONNIE_H - 20 }, vel: { x: 0, y: -2.4 }, life: 60, maxLife: 60, isCritical: true, isCallout: true, color: '#D9F99D' });
+    ctx.fx.spawnDamageNumber({ x: f.x - 10, y: f.y - 90 }, dmg, true);
+    for (let i = 0; i < 8; i++) state.particles.push({ pos: { x: f.x, y: f.y - 50 }, vel: { x: (Math.random() - 0.5) * 5, y: -1 - Math.random() * 3 }, life: 24, color: ['#FEF9C3', '#FDE047', '#ECFCCB'][i % 3], size: 2 + Math.random() * 2, grav: 0.15 });
+    if (f.hp <= 0) { f.hp = 0; die(ctx, f, true); }
+    return;
+  }
   if (f.iframes > 0) return;
   // (the ray gun and his own moves in full; any other special weapon a land boss mostly shrugs off; the lesser souvenirs
   // least of all)
@@ -816,6 +843,16 @@ const dodge = (state: GameState, f: Fight) => {
   for (let i = 0; i < 6; i++) state.particles.push({ pos: { x: f.x, y: f.y - 30 }, vel: { x: -dir * (1 + Math.random() * 2), y: (Math.random() - 0.5) * 2 }, life: 18, color: 'rgba(24, 24, 27, 0.7)', size: 4 + Math.random() * 3 });
 };
 
+/** A little Jesus that doesn't put him down: let go of whatever he had, off his dive, flapping blind (SHOO_T). */
+const shoo = (state: GameState, f: Fight) => {
+  if (f.held) { const p = state.player; p.vel.x = -f.facing * 5; p.vel.y = -5; f.held = null; }
+  if (f.prey) { f.prey.state = 'run'; f.prey.y = GY; f.prey.spared = true; f.prey = null; }
+  f.dive = null; f.mark = null; f.vx = (Math.random() < 0.5 ? -1 : 1) * 3; f.vy = -3;
+  const again = f.mode === 'shoo';
+  to(f, 'shoo');
+  playSound('screams', 0.4, 10); playSound('ding', 0.5, 9);
+  if (!again && Math.random() < 0.6) bark(f, L.DONNIE_REDEEMER);
+};
 /** The Redeemer got him: whatever he was at, dropped (Meathead let go, the guest let go: they run), and down. */
 const stun = (state: GameState, f: Fight) => {
   if (f.held) { const p = state.player; p.vel.x = -f.facing * 5; p.vel.y = -5; f.held = null; }
@@ -969,7 +1006,7 @@ const poseOf = (f: Fight): DonniePose => {
     case 'drain': case 'suck': return 'bite';
     case 'spew': return f.t > SPEW_AIM ? 'spew' : 'fly';
     case 'stunned': return 'stunned';
-    case 'flinch': return 'panic';
+    case 'flinch': case 'shoo': return 'panic';
     case 'aim': return 'summon';
     case 'hunt': case 'dive': return 'lunge';
     case 'winded': return f.t < 12 ? 'fly' : 'fumble';
