@@ -162,6 +162,10 @@ const hustler = (h: Hustler) => (ctx: FrameContext, e: Enemy) => {
       e.vel.x = Math.abs(gap) > 6 && ok ? dir * Math.min(sp, Math.abs(gap)) : 0;
       // (running on ahead to cut him off: facing the way they run till they're there, then round to him)
       if (Math.abs(gap) > 30 && !h.turn) e.facing = (dir || e.facing) as 1 | -1;
+      // (a slow turner (the shield-holder) keeps the shield on him while he gets into place, backing up or sidling, and
+      // comes round only after a beat: never left facing wherever he last looked (the user's: they "glitch out and face
+      // the wrong way"))
+      else if (h.turn) faceTo(e, p.x, h.turn);
       if (!sees(state, e, 760, 280)) setState(e, 'idle');
       // (a shout now and then, closing in)
       if (e.aiTimer % 150 === 75) bark(state, e, h.voice(e), byPants(state, h.pool), 0.35);
@@ -253,7 +257,8 @@ const heroOwn = (ctx: FrameContext, e: Enemy) => {
   const out = outOf(state).shots.some(s => s.from === e && s.kind === 'shield');
   if (e.aiState === 'aim') {
     e.vel.x = 0; faceTo(e, p.x, HERO_TURN);
-    if (e.aiTimer > 24) { throwShield(state, e, e.facing!); setState(e, 'thrown'); }
+    // (never thrown off the wrong way while he's still coming round)
+    if (e.aiTimer > 24 && e.facing === dirTo(e, p.x)) { throwShield(state, e, e.facing!); setState(e, 'thrown'); }
   } else if (e.aiState === 'thrown') {
     e.vel.x = 0;
     if (e.aiTimer > 40 && !out) { setState(e, 'approach'); e.leapCd = 70; }
