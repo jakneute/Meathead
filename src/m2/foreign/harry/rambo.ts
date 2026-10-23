@@ -22,7 +22,9 @@ type Ctx = CanvasRenderingContext2D;
 const INK = '#1A0B06';
 
 export type RamboPose =
-  | 'stand' | 'walk' | 'fire' | 'leap' | 'cling' | 'rant' | 'command' | 'hurt' | 'sick' | 'barf' | 'fall' | 'spin' | 'dead' | 'flex';
+  | 'stand' | 'walk' | 'fire' | 'leap' | 'cling' | 'rant' | 'command' | 'hurt' | 'sick' | 'barf' | 'fall' | 'spin' | 'dead' | 'flex'
+  // (the standard death: the M60 emptied straight up at the sky, braced; then hanging off his hands, puffed)
+  | 'skyfire' | 'pant';
 export interface RamboLook {
   pose: RamboPose; f: number; facing?: 1 | -1; aim?: number; talking?: boolean;
   /** Airsick (0..1): green in the face and the skin. */
@@ -36,6 +38,9 @@ export interface RamboLook {
   flash?: boolean;
   /** Dead: the bandana down over his eyes, the seat of his jeans split (tie-dye underpants). */
   dead?: boolean;
+  /** His own rounds come back down on him (0..1: the first hole to shot to bits): holes all over, bleeding, the denim
+   *  in tatters, the blood down him. */
+  holes?: number;
 }
 
 /** Where his mouth is, from his feet, standing (facing right) and leaning `lean` about his hips. */
@@ -50,7 +55,9 @@ export const muzzleAt = (pose: RamboPose, aim: number, scale = 1, facing: 1 | -1
   return { x: (pv.x + Math.cos(aim) * 56) * scale * facing, y: (pv.y + Math.sin(aim) * 56) * scale };
 };
 /** The gun's pivot (the rear grip) by pose. */
-const pivotOf = (pose: RamboPose) => (pose === 'cling' ? { x: 10, y: -60 } : { x: 6, y: -46 });
+const pivotOf = (pose: RamboPose) => (pose === 'cling' ? { x: 10, y: -60 } : pose === 'skyfire' ? { x: 12, y: -54 } : { x: 6, y: -46 });
+/** The M60 at the sky (the standard death): a hair off straight up, out in front of his face. Hanging, puffed, after. */
+export const SKY_AIM = -1.5, PANT_AIM = 0.8;
 
 // ---------------------------------------------------------------------------------------------------------------
 // Materials
@@ -246,6 +253,9 @@ const legs = (c: Ctx, L: RamboLook, S: Ramp) => {
     a = [-5, -40, -14, -28, -16, -14]; b = [5, -40, 6, -21, 5, -3];
   } else if (pose === 'dead') {
     a = [-5, -40, -10, -21, -13, -2]; b = [5, -40, 11, -21, 14, -2];
+  } else if (pose === 'skyfire') {
+    // (braced wide against it, the knees given a little)
+    a = [-5, -40, -9, -21, -12, -2]; b = [5, -40, 10, -21, 13, -2];
   } else {
     a = [-5, -40, -6, -21, -7, -2]; b = [5, -40, 6, -21, 8, -2];
   }
@@ -266,6 +276,8 @@ const legs = (c: Ctx, L: RamboLook, S: Ramp) => {
     pxR(c, fx - 3.4, fy + 3.8, 12, 0.8, LEATHER_R[3]);
     shapeR(c, () => c.rect(fx + 1, fy - 0.6, 2.4, 2.6), LEATHER_R, fx + 1, fx + 3.4, 0.6);
     for (let k = 0; k < 3; k++) { pxR(c, fx + 4.4 + k * 1.4, fy + 0.4, 1.3, 1.4, S[1]); pxR(c, fx + 4.4 + k * 1.4, fy + 0.4, 1.3, 0.5, S[0]); }
+    // (shot full of holes: down the leg, hip to knee to ankle, however it's bent)
+    if (L.holes) legHoles(c, g, i, L.holes, S);
   });
   // (the seat: the jeans over his hips, the fly's seam and its rivets, a back pocket)
   const hips = () => { c.moveTo(-11.4, -43); c.lineTo(12.4, -43); c.lineTo(11.4, -33); c.lineTo(6, -29.6); c.lineTo(0.4, -31.6); c.lineTo(-5, -29.6); c.lineTo(-10.4, -33); c.closePath(); };
@@ -314,6 +326,59 @@ const concreteCoat = (c: Ctx, k: number, f: number) => {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
+// His own rounds, back down on him (the standard death): the holes
+
+const h01 = (n: number) => { const v = Math.sin(n * 12.9898 + 78.233) * 43758.5453; return v - Math.floor(v); };
+/** Where each hole goes, in the order they land (seeded: the same mess every time): over the torso, the head (the
+ *  bandana with it), a big one every so often (the swiss cheese). */
+const BODY_HOLES = Array.from({ length: 40 }, (_, i) => {
+  const onHead = i % 5 === 1, big = i % 7 === 3;
+  return onHead
+    ? { x: -7 + h01(i) * 16, y: -97 + h01(i + 40) * 18, r: 1.2 + h01(i + 80) * 0.8, big: false, drip: 2 + h01(i + 120) * 5 }
+    : { x: -13 + h01(i) * 28, y: -72 + h01(i + 40) * 30, r: big ? 2.4 : 1.1 + h01(i + 80) * 1, big, drip: 3 + h01(i + 120) * 7 };
+});
+/** One hole: punched in (ink), dark red in it, its lit lip, the blood run down out of it. */
+const hole = (c: Ctx, x: number, y: number, r: number, big: boolean, drip: number, k: number) => {
+  const d = Math.round(drip * Math.min(1, k * 1.4));
+  if (d > 0) { pxR(c, x - 0.6, y + r * 0.6, 1.6, d, '#5A0A0A'); pxR(c, x - 0.2, y + r * 0.6, 0.8, d - 0.6, '#B91C1C'); pxR(c, x - 0.6, y + r * 0.6 + d - 0.4, 1.8, 1.4, '#7F1D1D'); }
+  if (big) {
+    // (the swiss cheese: torn open, ragged, dark right through)
+    ellR(c, x, y, r + 1, r + 0.6, INK); ellR(c, x + 0.3, y + 0.3, r, r * 0.8, '#2A0404');
+    pxR(c, x - r, y - r * 0.8, r * 0.8, 0.8, '#E04848'); pxR(c, x + r * 0.2, y + r * 0.5, r * 0.8, 0.8, '#8B1010');
+    for (const [ox, oy] of [[-1, -1], [1, -0.6], [0.6, 1], [-1, 0.6]] as const) pxR(c, x + ox * (r + 0.8) - 0.4, y + oy * (r + 0.6) - 0.4, 0.9, 0.9, INK);
+    return;
+  }
+  pxR(c, x - r, y - r, r * 2, r * 2, INK); pxR(c, x - r * 0.5, y - r * 0.5, r, r, '#450A0A');
+  pxR(c, x - r, y + r - 0.6, r * 2, 0.6, '#B91C1C');
+};
+/** The torso and the head: the holes so far, the blood down him, his front gone red with it. */
+const bodyHoles = (c: Ctx, k: number, f: number) => {
+  const n = Math.round(BODY_HOLES.length * Math.min(1, k));
+  if (n <= 0) return;
+  // (the blood down his front: dithered in, heavier the more holes there are)
+  c.save(); c.beginPath(); torsoPath(c); c.clip();
+  c.globalAlpha = Math.min(0.85, k * 0.9); pxR(c, -20, -74, 42, 34, dith(c, '#8B1010'));
+  c.globalAlpha = Math.min(0.6, k * 0.6); pxR(c, -14, -60, 30, 20, dith(c, '#5A0A0A'));
+  c.globalAlpha = 1; c.restore();
+  if (k > 0.5) { c.globalAlpha = Math.min(0.7, (k - 0.5) * 1.4); pxR(c, -10, -98, 22, 20, dith(c, '#8B1010')); c.globalAlpha = 1; }
+  for (let i = 0; i < n; i++) { const h = BODY_HOLES[i]; hole(c, h.x, h.y, h.r, h.big, h.drip, k); }
+  // (a fresh spurt off one of them now and then)
+  if ((f >> 2) % 3 === 0) { const h = BODY_HOLES[(f >> 3) % n]; pxR(c, h.x + 1, h.y - 2, 2, 1, '#E04848'); pxR(c, h.x + 2.6, h.y - 3, 1, 1, '#B91C1C'); }
+};
+/** A leg's holes (its own seeds), down its hip, knee and ankle as bent; the denim in tatters round them. */
+const legHoles = (c: Ctx, g: readonly number[], leg: number, k: number, S: Ramp) => {
+  const n = Math.round(9 * Math.min(1, k));
+  for (let j = 0; j < n; j++) {
+    const s = leg * 9 + j, t = 0.08 + h01(s + 300) * 0.84, up = t < 0.5, u = up ? t * 2 : (t - 0.5) * 2;
+    const x0 = up ? g[0] : g[2], y0 = up ? g[1] : g[3], x1 = up ? g[2] : g[4], y1 = up ? g[3] : g[5] - 4;
+    const x = x0 + (x1 - x0) * u + (h01(s + 400) - 0.5) * 6, y = y0 + (y1 - y0) * u;
+    // (every third, the denim shot away round it: a tatter, his skin through it, the threads hanging)
+    if (j % 3 === 0 && k > 0.3) { pxR(c, x - 2.6, y - 2, 5.2, 4, INK); pxR(c, x - 2, y - 1.4, 4, 2.8, S[2]); pxR(c, x - 2, y - 1.4, 4, 0.8, S[1]); pxR(c, x - 3, y + 1.6, 1, 1.6, DENIM_R[0]); pxR(c, x + 2, y + 1.6, 1, 1.2, DENIM_R[0]); }
+    hole(c, x, y, 1 + h01(s + 500) * 0.7, false, 2 + h01(s + 600) * 4, k);
+  }
+};
+
+// ---------------------------------------------------------------------------------------------------------------
 // Him
 
 /** His face by what he's at. */
@@ -323,7 +388,8 @@ const moodOf = (L: RamboLook): Mood => {
     case 'cling': return L.flash ? 'yell' : 'mad';
     case 'rant': return L.talking ? 'yell' : 'mad';
     case 'command': return 'yell';
-    case 'hurt': case 'fall': return 'ouch';
+    case 'hurt': case 'fall': case 'pant': return 'ouch';
+    case 'skyfire': return 'yell';
     case 'spin': return L.talking ? 'yell' : 'ouch';
     case 'sick': return 'queasy';
     case 'barf': return 'barf';
@@ -341,6 +407,8 @@ export const drawRambo = (c: Ctx, x: number, y: number, L: RamboLook) => {
   if (L.rot) { c.translate(0, -44); c.rotate(L.rot); c.translate(0, 44); }
   // (firing: the recoil shakes him)
   if (pose === 'fire' && L.flash) c.translate(-1 + (f % 2) * 0.6, (f % 3) * 0.3 - 0.3);
+  // (into the sky: the whole of him shaking with it)
+  if (pose === 'skyfire' && L.flash) c.translate((f % 2) * 2.4 - 1.2, (f % 3) * 0.8 - 0.8);
   const bob = pose === 'walk' ? Math.abs(Math.sin(f * 0.16)) * -1.5 : 0;
   c.translate(0, bob);
   legs(c, L, S);
@@ -362,7 +430,9 @@ export const drawRambo = (c: Ctx, x: number, y: number, L: RamboLook) => {
   head(c, f, true, !!L.talking, 1, -86, { bandana: true, green: L.green, mood: moodOf(L), slip: !!L.dead, gray: (L.concrete ?? 0) > 0.5 ? (L.concrete! - 0.5) : 0 });
   if (pose === 'rant' && L.talking) steamOff(c, f, 2, -104);
   // Front arm and the gun
-  if (pose === 'stand' || pose === 'walk' || pose === 'fire' || pose === 'hurt' || pose === 'leap') {
+  if (pose === 'skyfire' || pose === 'pant') {
+    gunHeld(c, L, S, pivotOf(pose), pose === 'skyfire' ? SKY_AIM : PANT_AIM, shB, shF);
+  } else if (pose === 'stand' || pose === 'walk' || pose === 'fire' || pose === 'hurt' || pose === 'leap') {
     const a = pose === 'stand' ? 0.45 : pose === 'hurt' ? -0.6 : pose === 'leap' ? -0.25 : aim;
     gunHeld(c, L, S, pivotOf(pose), a, shB, shF);
   } else if (pose === 'cling') {
@@ -382,6 +452,7 @@ export const drawRambo = (c: Ctx, x: number, y: number, L: RamboLook) => {
   // (the flex: the veins up, a sparkle off the oil)
   if (pose === 'flex' && (f >> 3) % 4 === 0) { pxR(c, 29, -96, 1, 5, '#FFFFFF'); pxR(c, 27, -94, 5, 1, '#FFFFFF'); }
   concreteCoat(c, L.concrete ?? 0, f);
+  if (L.holes) bodyHoles(c, L.holes, f);
   c.restore();
   c.restore();
 };

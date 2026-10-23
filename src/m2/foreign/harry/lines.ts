@@ -242,13 +242,20 @@ export const HARRY_BARF_DEATH: ByPants = {
 export const BARFED_CAPTION = ['PUKED HIMSELF TO DEATH!', 'DEATH BY BARF!', 'GRIEF-PUKED TO DEATH!'];
 
 // ---------------------------------------------------------------------------------------------------------------
-// His deaths: the machine gun's recoil spinning him round on his back (any way but the weakness), and buried in her
-// concrete puke (the plague crossbow's)
+// His deaths: the M60 emptied at the sky in a rage, and every round of it back down on him (any way but the weakness),
+// and buried in her concrete puke (the plague crossbow's)
 
+/** Howled into the sky, the M60 going the whole time (the user's: "he shoots his machine gun in the air"). */
 export const HARRY_DEATH: ByPants = {
-  clean: ['NOT... ON FOREIGN... OH, WAIT. AMERICAAAAAA!', 'I REGRET... NOTHING... EXCEPT THE STRAWS... AMERICAAAA!', 'YOU... COCKSUCKER... AMERICAAAAA!'],
-  shitty: ['KILLED BY A GUY... WHO SHIT HIMSELF... AMERICAAAAA!', 'THE LAST THING I SMELL... IS YOU... AMERICAAAA!'],
-  nude: ['KILLED... BY A NAKED... EUROPEAN... AMERICAAAAA!', 'THE LAST THING I SEE... IS THAT... AMERICAAAA!'],
+  clean: ['FUCK YOU! FUCK THE SKY! AMERICAAAAA!', 'TWENTY YEARS OF PEACE! FOR WHAT?! AMERICAAAAA!', 'I HATE EVERYTHING! AMERICAAAAA!'],
+  shitty: ['BEATEN BY A GUY WHO SHIT HIMSELF! AMERICAAAAA!', 'I CAN STILL SMELL HIM! AMERICAAAAA!'],
+  nude: ['BEATEN BY A NAKED GUY! AMERICAAAAA!', 'I CAN STILL SEE IT! AMERICAAAAA!'],
+};
+/** Shot to bits by his own rounds, swaying, before he goes over (the last of him). */
+export const HARRY_PERFORATED: ByPants = {
+  clean: ['...OW.', '...WHAT GOES UP...'],
+  shitty: ['...STILL SMELL HIM.'],
+  nude: ['...STILL SEE IT.'],
 };
 export const HARRY_BURIED: ByPants = {
   clean: ["MMF! IT'S SETTING! MMMF! LADY! DIG ME OUT! MMMF!", "MMMF! I CAN'T MOVE MY... MMMF... ANYTHING!"],
@@ -320,7 +327,7 @@ export const VOICE_LINES = pavilionVoices({ pa: { clean: [], shitty: [], nude: [
     ...allOf(HARRY_TAUNT), ...allOf(HARRY_FIRE), ...allOf(HARRY_CROWN), ...levels(HARRY_STUCK), ...allOf(HARRY_UNSTUCK), ...allOf(HARRY_FAKE),
     ...allOf(HARRY_CLING_DOWN), ...allOf(HARRY_CLING_UP), ...allOf(HARRY_HURT), ...allOf(HARRY_GLOAT), ...allOf(HARRY_COUNTER), ...allOf(HARRY_LOW),
     ...allOf(HARRY_SICK_FIRST), ...allOf(HARRY_SICK), ...allOf(HARRY_CONCRETED), ...allOf(HARRY_FOLLOWUP),
-    ...allOf(HARRY_DEATH), ...allOf(HARRY_BURIED),
+    ...allOf(HARRY_DEATH), ...allOf(HARRY_PERFORATED), ...allOf(HARRY_BURIED),
     ...allOf(HARRY_CRUMBLE), ...allOf(HARRY_ENRAGED), ...allOf(HARRY_GRIEF_SICK), ...allOf(HARRY_BARF_DEATH),
   ],
 });

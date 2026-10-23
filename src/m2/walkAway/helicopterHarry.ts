@@ -8,7 +8,7 @@
 // revolver, her torch (or, if she came apart, her torch snapped and her pieces), chunks of her green shell, his tie-dye
 // in shreds, the ride's emergency jetpack. And Harry's fate, as it went: buried under her concrete (his socks and
 // sandals out of one end, his arm out the top flipping the bird, his blood seeped out round it), face down in his own
-// puke pool (barfed to death), or flat on his back, the bandana down over his eyes (anything else). His toy: the
+// puke pool (barfed to death), or in a heap on his back shot full of his own rounds, in his blood (anything else). His toy: the
 // SOUVENIR launcher (its walk-away act: walkAway/acts.ts).
 
 import { type Ctx, type Prop, type SceneDef, INK, HOR, LW, box, hash, smoke, fire, mix } from './kit';
@@ -225,11 +225,15 @@ const jetpack = (g: Ctx, w: number, h: number) => {
   }
   box(g, w * 0.5, 0, 2, h, LEATHER_R[2]); box(g, w * 0.62, 0, 2, h, LEATHER_R[2]);
 };
-/** Harry, flat on his back, the M60 by him, the bandana down over his eyes. */
+/** Harry in a heap on his back, shot full of his own rounds (what goes up), the bandana down over his eyes, in his
+ *  blood: the pool in steps, its lit lip. */
 const harryDown = (g: Ctx, w: number, h: number) => {
+  const px = w * 0.44, py = h * 0.86;
+  ellR(g, px, py, w * 0.4 + 2, h * 0.14 + 1, INK); ellR(g, px, py, w * 0.4, h * 0.14, BLOOD[0]); ellR(g, px - w * 0.04, py - 0.5, w * 0.3, h * 0.09, BLOOD[1]);
+  ellR(g, px - w * 0.1, py - 1, w * 0.14, h * 0.05, BLOOD[2]); box(g, px - w * 0.3, py - h * 0.1, w * 0.12, 1, BLOOD[3]);
   const s = w / 110;
   g.save(); g.translate(w * 0.42, h * 0.95 + 42 * s); g.scale(s, s);
-  drawRambo(g, 0, 0, { pose: 'dead', f: 0, facing: 1, rot: -Math.PI / 2, dead: true });
+  drawRambo(g, 0, 0, { pose: 'dead', f: 0, facing: 1, rot: -Math.PI / 2, dead: true, holes: 1 });
   g.restore();
 };
 /** Harry face down in his own pool of puke (barfed to death): the pool in steps going red in its middle, him in it. */
@@ -279,10 +283,10 @@ const mound = (g: Ctx, w: number, h: number) => {
 const props = (weakness: boolean): Prop[] => {
   const out: Prop[] = [];
   const how = keptForRevisits(MEMO_DEATH) ?? (weakness ? 'buried' : 'spin'), crumbled = keptForRevisits(MEMO_CRUMBLED) === '1';
-  // Harry, close by: under her concrete, face down in his puke, or flat on his back
+  // Harry, close by: under her concrete, face down in his puke, or in a heap on his back shot to bits
   if (how === 'buried') out.push({ id: 'hw-mound2', x: 1.4, z: 4.4, w: 1.8, h: 0.9, ppm: 44, paint: mound });
   else if (how === 'barfed') out.push({ id: 'hw-barfed', x: 1.3, z: 4.4, w: 2, h: 0.5, ppm: 50, paint: harryBarfed });
-  else out.push({ id: 'hw-harry', x: 1.3, z: 4.4, w: 2, h: 0.5, ppm: 50, paint: harryDown });
+  else out.push({ id: 'hw-harry2', x: 1.3, z: 4.4, w: 2, h: 0.5, ppm: 50, paint: harryDown });
   // Her: the head blown open, the gun, the torch (she came apart: no head, no gun, the torch snapped, more of her)
   if (!crumbled) {
     out.push({ id: 'hw-head2', x: -2.6, z: 7, w: 3, h: 1.6, ppm: 28, paint: head, live: (c, sx, sy, s, t) => smoke(c, sx - s * 0.6, sy - s * 0.9, s, t, 9, { n: 4, size: 0.3, rise: 0.02, col: ['#78716C', '#A8A29E', '#D6D3D1'] }) });

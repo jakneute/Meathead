@@ -428,7 +428,7 @@ export interface SceneState {
   /** She's in the dig behind (drawn by the fight between the sky and the berm). */
   between?: (c: Ctx) => void;
   /** Revisits: the aftermath on the floor (null: none): whether she crumbled in the winning run, and what's left of him
-   *  (drawn by the fight: his concrete mound, his puke pool; null: the chalk outline). */
+   *  (drawn by the fight: his concrete mound, his puke pool, his blood dried under the chalk). */
   aftermath: { crumbled: boolean; him: ((c: Ctx) => void) | null; outline: boolean } | null;
 }
 

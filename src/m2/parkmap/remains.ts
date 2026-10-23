@@ -427,16 +427,18 @@ const SCENES: Record<string, Record<BossDeath, Scene>> = {
     },
   },
   foreign: {
-    // On his back on the slab, the M60 still pointed at the sky, the casings in a ring round him from the spinning, the
-    // jeans split and the tie-dye showing.
+    // In a heap on his back on the slab, shot full of his own rounds (what goes up): holes all over him, each bleeding,
+    // the blood pooled wide round him, the M60 dropped by him, the brass everywhere, the slab pocked with the misses,
+    // the jeans split and the tie-dye showing.
     normal: p => {
       dig(p, 30);
       // (a chunk of her, fallen in the dig: a big green finger)
       p.cap(60, 22, 84, 26, 6, 5, COPPER); p.line(70, 18, 70, 31, '#2E7058');
       p.cap(4, 28, 16, 20, 4, 3, COPPER);
-      // (the casings, in a ring)
-      for (let k = 0; k < 22; k++) { const a = (k / 22) * Math.PI * 2, x = 40 + Math.cos(a) * 34, y = 60 + Math.sin(a) * 13; p.px(x, y, '#F4CC4E'); p.px(x + 1, y, '#926E16'); }
-      p.pool(40, 63, 18, 4, BLOOD, 7);
+      // (the blood, pooled wide; the brass scattered all over; the pocks the misses left in the slab)
+      p.pool(42, 63, 30, 7, BLOOD, 7);
+      for (let k = 0; k < 26; k++) { const x = 6 + p.rnd() * 76, y = 48 + p.rnd() * 26; p.px(x, y, '#F4CC4E'); p.px(x + 1, y, '#926E16'); }
+      for (let k = 0; k < 8; k++) { const x = 6 + p.rnd() * 76, y = 46 + p.rnd() * 28; p.px(x, y, '#2E2C26'); p.px(x + 1, y + 1, '#C8C6BC'); }
       // (him, on his back, feet to the right)
       p.cap(46, 59, 62, 56, 3.4, 2.8, DENIM); p.cap(46, 62, 62, 66, 3.4, 2.8, DENIM);
       p.ell(64, 55, 2.4, 2, SOCKW); p.ell(64, 67, 2.4, 2, SOCKW);
@@ -451,11 +453,14 @@ const SCENES: Record<string, Record<BossDeath, Scene>> = {
       p.cap(14, 57, 15, 63, 1.8, 1.8, ['#F87171', '#DC2626', '#B91C1C', '#7F1D1D', '#3B0A0A']);
       xEye(p, 18, 59);
       p.rect(20, 61, 2, 1, '#4A2C1C');
-      // (the M60 on his chest, muzzle up, smoking; the belt run out)
-      p.cap(31, 56, 31, 40, 2, 2, GUN); p.cap(31, 40, 31, 30, 0.9, 0.9, GUN);
-      p.rect(29, 46, 4, 3, '#18181C');
-      p.line(33, 52, 38, 57, '#926E16');
-      p.smoke(31, 28, 20);
+      // (shot through: holes all over him (only where he is), each one bleeding)
+      const on = (x: number, y: number) => ((x - 31) / 11) ** 2 + ((y - 60) / 6.5) ** 2 <= 1 || ((x - 17) / 4.8) ** 2 + ((y - 60) / 4.4) ** 2 <= 1 || (x > 44 && x < 62 && y > 55 && y < 67);
+      for (let k = 0, n = 0; k < 120 && n < 34; k++) { const x = Math.round(12 + p.rnd() * 52), y = Math.round(54 + p.rnd() * 14); if (!on(x, y)) continue; n++; p.px(x, y, '#2A0404'); p.px(x, y + 1, '#B91C1C'); if (n % 3 === 0) p.px(x, y + 2, '#7F1D1D'); }
+      // (the M60 dropped by him, smoking; the belt run out)
+      p.cap(24, 73, 46, 74, 2, 2, GUN); p.cap(46, 74, 56, 74, 0.9, 0.9, GUN);
+      p.rect(30, 75, 3, 3, '#18181C');
+      p.line(22, 72, 18, 69, '#926E16');
+      p.smoke(57, 70, 14);
       p.marker(8, 72); p.marker(78, 74);
     },
     // Under her concrete: a mound of it, setting, face down, just the socks and sandals up out of the top.
@@ -654,7 +659,7 @@ const CAPTIONS: Record<string, Record<BossDeath, [string, string]>> = {
   spooky: { normal: ['FOUND', 'FACE DOWN'], weakness: ['ASHES TO', 'ASHES'] },
   space: { normal: ['BATTERY', 'DEAD'], weakness: ['PARTS NOT', 'INCLUDED'] },
   hollywood: { normal: ['MISSED', 'THE MAT'], weakness: ['STILL', 'THUMBS-UP'] },
-  foreign: { normal: ['OUT OF', 'AMMO'], weakness: ['LAID IN', 'CONCRETE'] },
+  foreign: { normal: ['WHAT GOES', 'UP...'], weakness: ['LAID IN', 'CONCRETE'] },
   frontier: { normal: ['AAHHH!', '(LAST WORDS)'], weakness: ['ALL THAT', 'REMAINS'] },
   fantasy: { normal: ['SPACE C-14', 'OVERFLOW LOT'], weakness: ['SIZE', 'ZERO'] },
   cartoon: { normal: ['GOT IT', 'HIMSELF'], weakness: ['IN BITS', 'ALL OVER'] },

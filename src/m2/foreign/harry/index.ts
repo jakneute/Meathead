@@ -15,7 +15,7 @@ import type { Block } from '../../../m1/types';
 import type { ForeignSection } from '../section';
 import { layOwn, endWalls, foreignState, hands } from '../section';
 import { DOORS, GY } from '../geometry';
-import { topBand } from '../../../m1/constants';
+import { topBand, CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { goTo, markLandCleared, markBossDeath, noteBossKill, isLandCleared, keptForRevisits } from '../../store';
 import { type Victory, startVictory, tickVictory, drawVictory, victoryDone } from '../../victory';
 import { type WalkAway, playWalkAway, tickWalkAway, drawWalkAway } from '../../walkAway';
@@ -28,13 +28,17 @@ import { drawSky, drawScene } from './scene';
 import { torchFlame } from './liberty';
 import {
   type Fight, startFight, updateFight, fightOver, endFight, resetFight, drawStatue, drawFightBack, drawFightFront, drawFightHud,
-  drawWaiting, introSeen, killCamTick, killCamZoom, killedByWeakness, drawLeftovers, MEMO_CRUMBLED, MEMO_DEATH,
+  drawWaiting, introSeen, killCamTick, killCamZoom, killedByWeakness, drawLeftovers, deathNeed, MEMO_CRUMBLED, MEMO_DEATH,
 } from './fight';
+import { frameDeath } from '../../deathFrame';
+
+/** The fight's one screen: as far as a camera taking his death in may go. */
+const SHOT = { x0: VIEW_X, y0: sy(0), x1: VIEW_X + CANVAS_WIDTH, y1: sy(CANVAS_HEIGHT) };
 
 /** A revisit: what's left, as the winning run left it. */
 const leftovers = (state: GameState) => {
   const how = keptForRevisits(MEMO_DEATH) || 'spin';
-  return { crumbled: keptForRevisits(MEMO_CRUMBLED) === '1', him: how === 'spin' ? null : (g: CanvasRenderingContext2D) => drawLeftovers(g, how, state.frame), outline: how !== 'buried' };
+  return { crumbled: keptForRevisits(MEMO_CRUMBLED) === '1', him: (g: CanvasRenderingContext2D) => drawLeftovers(g, how, state.frame), outline: how !== 'buried' };
 };
 
 interface Harry {
@@ -160,7 +164,7 @@ export const harry: ForeignSection = {
     if (s.victory) drawVictory(c, s.victory);
     if (s.walk) drawWalkAway(c, s.walk);
   },
-  zoom: (state) => { const f = harryOf(state).f; return f ? killCamZoom(state, f) : null; },
+  zoom: (state) => { const f = harryOf(state).f; return f ? frameDeath(state, f, killCamZoom(state, f), deathNeed(f), SHOT) : null; },
   holdTick: (ctx) => { const f = harryOf(ctx.state).f; return f ? killCamTick(f) : false; },
   outdoors: () => 1,
   // (her torch's gold flame glows, wherever it is: held up, or planted in the floor)

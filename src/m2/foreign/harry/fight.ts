@@ -26,9 +26,12 @@
 //               shut till it's landed).
 //
 // Two deaths, each followed by the same beat. The weakness (her concrete's what does it; the kill cam): buried in it,
-//   face down, just his socks and sandals sticking out of the mound, kicking, setting. Any other way: on his back, the
-//   M60 still going straight up, its recoil spinning him round and round on the slab like a breakdancing turtle till
-//   it clicks empty (his jeans split: tie-dye underpants). THEN, either way (the user's): she's heartbroken (a concrete
+//   face down, just his socks and sandals sticking out of the mound, kicking, setting. Any other way (the user's: "he
+//   shoots his machine gun in the air. a comic beat later, all the bullets he fired in the air all come raining back
+//   down on him"): in a rage he empties the M60 straight up into the sky, howling; stops, puffed; looks up (a beat, a
+//   little whistle); and every round comes back down on him, thwip, thwip-thwip, then the lot, till he's a perforated,
+//   bleeding mess; he sways, and goes over in a heap (his jeans split: tie-dye underpants). THEN, either way (the
+//   user's: "statue of liberty still kills itself afterwards if still there"): she's heartbroken (a concrete
 //   tear, sobbing), lets the torch go, drops the tablet, brings out a statue-sized revolver, puts it to her head, and
 //   blows her concrete brains out (no gore: concrete, rebar, dust); over backward into the dig. Meathead's word.
 // HER WEAR (the user's): each smash cracks her more; her STATUE_LIFE-th, she comes apart into the dig. Then no crown, no
@@ -60,7 +63,8 @@ import { drawHarry, TIEDYE, shapeR, tubeR, lineR, ellR, dith, SKIN_R, DENIM_R, S
 import {
   GY, VIEW_X, ARENA_L, ARENA_R, ARENA_W, MID, CAM_ROW, CLING_H, CLING_IN, CROWN, CROWN_SCALE, WINDOW, LIB, FIST_UP, FIST_W, FIST_H, sy,
 } from './arena';
-import { drawRambo, mouthAt, muzzleAt, type RamboPose } from './rambo';
+import { drawRambo, mouthAt, muzzleAt, SKY_AIM, PANT_AIM, type RamboPose } from './rambo';
+import { around, type Box } from '../../deathFrame';
 import { drawLibertyBody, drawArm, gunLine, drawChunk, drawRubble, drawRevolverAt, drawTorchAt, CONC, PUKE, type Face, type LibLook, type Stain } from './liberty';
 import { gooStream, gooSplat, gooPile, gooDrip, ageOf, PUKE_GOO, BLOODY_GOO, CONC_GOO } from './goo';
 import * as L from './lines';
@@ -136,6 +140,9 @@ interface Death {
   st: string; stT: number; fade: number;
   /** His last words are done. */
   lineDone: boolean;
+  /** The standard death: rounds fired at the sky; how many of the ones coming back are to hit him, how many have;
+   *  when the last lands (frames into the rain); the jerk off the last hit (frames left); his blood on the slab (0..1). */
+  shots: number; bodyN: number; hits: number; rainEnd: number; jolt: number; pool: number;
 }
 interface KillCam { t: number; acc: number; z: number; out: boolean }
 
@@ -1134,9 +1141,11 @@ const die = (ctx: FrameContext, f: Fight, how: How) => {
   if (f.crumbled || f.crumble >= 0) { /* (she's gone, or going: no arm to put up) */ }
   else if (f.arm.st === 'stuck') unstick(state, f, true);
   else if (f.arm.st === 'wind' || f.arm.st === 'drop') { f.arm.from = { x: f.arm.fx, y: f.arm.fy }; f.arm.st = 'snap'; f.arm.t = 0; }
-  f.death = { how, t: 0, step: f.hy < GY - 2 ? 'fall' : 'start', at: 0, x: f.hx, y: f.hy, vy: 0, spin: 0, spinV: 0.32, mound: 0, st: 'wait', stT: 0, fade: 0, lineDone: false };
+  f.death = { how, t: 0, step: f.hy < GY - 2 ? 'fall' : 'start', at: 0, x: f.hx, y: f.hy, vy: 0, spin: 0, spinV: 0.32, mound: 0, st: 'wait', stT: 0, fade: 0, lineDone: false, shots: 0, bodyN: 0, hits: 0, rainEnd: 0, jolt: 0, pool: 0 };
+  for (const r of RAIN) { r.on = false; r.done = true; }
   if (weak) { f.cam = { t: 0, acc: 0, z: 1, out: false }; playSound(how === 'barfed' ? 'barf' : 'splat', 1, -12); }
-  else { playSound('hurt', 0.8, -4); harryLine(f, L.HARRY_DEATH, tokened(() => { if (f.death) f.death.lineDone = true; })); }
+  // (the standard death: his words come with the gun at the sky)
+  else playSound('hurt', 0.8, -4);
 };
 
 /** Skipped: straight to how it ends (him dead, her gone, rubble), done. */
@@ -1151,6 +1160,8 @@ const skipToEnd = (state: GameState, f: Fight) => {
   }
   f.crumble = -1;
   if (f.puddle && d.how === 'barfed') f.puddle.k = 1;
+  // (the standard death: shot to bits, lying in it; nothing still up there to come down)
+  if (d.how === 'spin') { d.bodyN = Math.max(1, d.bodyN); d.hits = d.bodyN; d.pool = 1; d.jolt = 0; f.rounds = []; for (const r of RAIN) { r.on = false; r.done = true; } }
   f.barf = null; f.cam = null; f.deathSaid = 4; d.t = Math.max(d.t, 400);
 };
 
@@ -1158,6 +1169,8 @@ const dying = (ctx: FrameContext, f: Fight): Controls => {
   const { state } = ctx, d = f.death!, p = state.player;
   d.t++;
   p.inCutscene = true; p.vel.x = 0;
+  // (nothing in here touches him while it plays: the rounds coming down are all Harry's)
+  p.noContactUntil = Math.max(p.noContactUntil ?? 0, state.frame + 2);
   holdCam(state);
   statueArmOnly(f);
   f.skipT++;
@@ -1179,44 +1192,143 @@ const dying = (ctx: FrameContext, f: Fight): Controls => {
       if (t > 600) { d.step = 'set'; d.at = t; if (f.cam) f.cam.out = true; }
     }
     if (d.step === 'set' && d.st === 'wait' && t - d.at > 50 && f.crumble < 0) { d.st = f.crumbled ? 'gone' : 'look'; d.stT = 0; }
-  } else {
-    switch (d.step) {
-      case 'fall':
-        d.vy += 0.6; d.y = Math.min(GY, d.y + d.vy); f.scale += (1 - f.scale) * 0.2;
-        if (d.y >= GY) { d.step = 'start'; d.at = t; f.scale = 1; playSound('thud', 1, -8); }
-        break;
-      case 'start':
-        // (staggering back, hit)
-        d.x += -f.facing * 0.6;
-        if (t - d.at > 34) { d.step = 'over'; d.at = t; playSound('thud', 1, -10); shakeScreen(state, 6, 3); }
-        break;
-      case 'over':
-        if (t - d.at > 10) { d.step = 'spin'; d.at = t; }
-        break;
-      case 'spin': {
-        // (on his back, the gun still going straight up; the recoil spins him round on the slab)
-        d.spin += d.spinV; d.spinV = Math.max(0.05, d.spinV * 0.994);
-        if ((t - d.at) % 3 === 0) {
-          const mx = d.x, my = GY - 50;
-          f.rounds.push({ x: mx, y: my, vx: (Math.random() - 0.5) * 2, vy: -14, src: '', dmg: 0, life: 60, harmless: true });
-          if ((t - d.at) % 6 === 0) playSound('lmg', 0.4, -2);
-        }
-        if (t - d.at > 150) { d.step = 'click'; d.at = t; playSound('dry_lmg', 0.8, 0); }
-        break;
-      }
-      case 'click':
-        d.spin += d.spinV * 0.4; d.spinV *= 0.9;
-        if ((t - d.at) % 14 === 0 && t - d.at < 60) playSound('click', 0.8, -2);
-        if (t - d.at > 70) { d.step = 'still'; d.at = t; }
-        break;
-      case 'still':
-        if (d.st === 'wait' && t - d.at > 40 && (d.lineDone || quiet(f)) && f.crumble < 0) { d.st = f.crumbled ? 'gone' : 'look'; d.stT = 0; }
-        break;
-    }
-  }
+  } else rainedOn(ctx, f, d, t);
   heartbroken(ctx, f, d);
   if (t > 3000) f.deathSaid = 4;
   return hands();
+};
+
+/**
+ * The standard death (the user's: "when helicopter harry has his normal death, he shoots his machine gun in the air. a
+ * comic beat later, all the bullets he fired in the air all come raining back down on him, perforating him into a
+ * nearly unrecognizable mess"). Wrath, the pacifist snapped: he empties the M60 straight up into the sky, howling at it,
+ * the brass pouring off it; stops, puffed, the barrel smoking; looks up (a beat; a little whistle); thwip... thwip...
+ * thwip-thwip, then all of them, every hit jerking him, the holes coming, the blood; shot to bits, he sways ("...OW."),
+ * and goes over in a heap in it. Only he's hit: the rounds are his (`harmless`), and Meathead's out of it anyway.
+ * (Kept as 'spin', the old death's name: saved revisits still read it.)
+ */
+/** The burst at the sky (at least; till he's done howling), a round every so many frames; puffed; looking up; the
+ *  rounds' speed coming back; the crumple. */
+const SKY_T = 150, SKY_EVERY = 3, PANT_T = 64, LOOK_T = 66, RAIN_V = 20, CRUMPLE_T = 30;
+/** A round coming back down (pooled: one set of them, reused): where, where it stops (him, or the slab), when it gets
+ *  there (frames into the rain); in the shot; landed. */
+interface Drop { x: number; y: number; ty: number; land: number; body: boolean; on: boolean; done: boolean }
+const RAIN_N = 48;
+const RAIN: Drop[] = Array.from({ length: RAIN_N }, () => ({ x: 0, y: 0, ty: 0, land: 0, body: true, on: false, done: true }));
+let rainN = 0;
+/** They come in over the top of the shot. */
+const RAIN_TOP = sy(-30);
+
+/** Every round he sent up, scheduled down: a few spaced out, quickening to all at once; the last a beat late, on his
+ *  head. One in six misses him (a spark off the slab). */
+const rainSetup = (f: Fight, d: Death) => {
+  rainN = Math.max(24, Math.min(RAIN_N, d.shots));
+  // (the first one's in over the top of the shot as the rain starts: its whole way down to his head)
+  let land = Math.ceil((GY - 98 - RAIN_TOP) / RAIN_V) + 2, body = 0;
+  for (let i = 0; i < rainN; i++) {
+    const r = RAIN[i], last = i === rainN - 1, head = i === 0 || last;
+    if (i > 0) land += last ? 44 : Math.max(2, 30 * Math.pow(0.68, i - 1));
+    r.body = i < 4 || last || i % 6 !== 5;
+    r.x = d.x + (head ? f.facing * 2 : r.body ? (Math.random() - 0.5) * 26 : (Math.random() < 0.5 ? -1 : 1) * (24 + Math.random() * 30));
+    r.ty = !r.body ? GY - 2 : head ? GY - 98 : GY - 8 - Math.random() * 86;
+    r.land = Math.round(land); r.on = false; r.done = false; r.y = RAIN_TOP;
+    if (r.body) body++;
+  }
+  d.bodyN = body; d.hits = 0; d.rainEnd = Math.round(land);
+};
+
+const rainedOn = (ctx: FrameContext, f: Fight, d: Death, t: number) => {
+  const { state } = ctx, u = t - d.at;
+  if (d.jolt > 0) d.jolt--;
+  switch (d.step) {
+    case 'fall':
+      d.vy += 0.6; d.y = Math.min(GY, d.y + d.vy); f.scale += (1 - f.scale) * 0.2;
+      if (d.y >= GY) { d.step = 'start'; d.at = t; f.scale = 1; playSound('thud', 1, -8); }
+      break;
+    case 'start':
+      // (staggering back, hit; then he snaps)
+      d.x += -f.facing * 0.6;
+      if (u > 30) { d.step = 'sky'; d.at = t; }
+      break;
+    case 'sky': {
+      // (the M60 at the sky, howling at it, shaking with it, the brass pouring off it onto the slab)
+      if (u === 1) { playSound('bellow', 0.6, -4); harryLine(f, L.HARRY_DEATH, tokened(() => { d.lineDone = true; })); }
+      if (u % SKY_EVERY === 0) {
+        const mz = muzzleAt('skyfire', SKY_AIM, 1, f.facing);
+        f.rounds.push({ x: d.x + mz.x, y: GY + mz.y, vx: (Math.random() - 0.5) * 1.6, vy: -18, src: '', dmg: 0, life: 60, harmless: true });
+        d.shots++; f.spentN = (f.spentN ?? 0) + 1;
+        state.particles.push({ pos: { x: d.x + f.facing * 16, y: GY - 62 }, vel: { x: -f.facing * (1.2 + Math.random() * 2.2), y: -2 - Math.random() * 2 }, life: 34, color: Math.random() < 0.5 ? BRASS_R[1] : BRASS_R[2], size: 2, grav: 0.4 });
+        if (u % (SKY_EVERY * 2) === 0) { playSound('lmg', 0.55, -2); shakeScreen(state, 2, 2); }
+      }
+      if (u % 9 === 4) playSound('clink', 0.15, 6 + Math.random() * 4);
+      if (u >= SKY_T && (d.lineDone || u > 520)) { d.step = 'pant'; d.at = t; }
+      break;
+    }
+    case 'pant': {
+      // (done: puffed, the gun hanging off his hands, the barrel smoking; quiet)
+      if (u % 6 === 0) { const mz = muzzleAt('pant', PANT_AIM, 1, f.facing); state.particles.push({ pos: { x: d.x + mz.x, y: GY + mz.y }, vel: { x: (Math.random() - 0.5) * 0.4, y: -0.5 - Math.random() * 0.4 }, life: 34, color: u % 12 ? '#A8A29E' : '#D6D3D1', size: 3 + Math.random() * 2 }); }
+      if (u >= PANT_T) { d.step = 'look'; d.at = t; }
+      break;
+    }
+    case 'look':
+      // (he looks up. A beat. A little whistle, way up)
+      if (u === 26) playSound('fallwhistle', 0.25, 12);
+      if (u >= LOOK_T) { d.step = 'rain'; d.at = t; rainSetup(f, d); }
+      break;
+    case 'rain': {
+      for (let i = 0; i < rainN; i++) {
+        const r = RAIN[i];
+        if (r.done) continue;
+        const left = r.land - u;
+        r.y = r.ty - left * RAIN_V; r.on = r.y > RAIN_TOP;
+        if (left > 0) continue;
+        r.done = true; r.on = false;
+        if (!r.body) {
+          // (a miss: a spark and a chip off the slab)
+          spark(state, r.x, GY - 2, '#FDE047'); puff(state, r.x, GY, 1, '#A8A29E'); playSound('clink', 0.3, 4 + Math.random() * 4);
+          continue;
+        }
+        // (a hit: the thwip, the jerk, the blood out of it, a bit of him (the bandana, the denim, the skin) off it)
+        d.hits++; d.jolt = 7;
+        playSound('gunhit', 0.7, Math.random() * 6 - 2);
+        if (d.hits % 3 === 0) playSound('squish', 0.35, 4);
+        shakeScreen(state, 2, 2);
+        for (let k = 0; k < 3; k++) state.particles.push({ pos: { x: r.x, y: r.ty }, vel: { x: (Math.random() - 0.5) * 6, y: -1 - Math.random() * 3 }, life: 24, color: BLOODY[k % 3], size: 2 + Math.random() * 2, grav: 0.35 });
+        if (Math.random() < 0.35) state.particles.push({ pos: { x: r.x, y: r.ty }, vel: { x: (Math.random() - 0.5) * 4, y: -2 - Math.random() * 2 }, life: 40, color: r.ty > GY - 40 ? DENIM_R[1] : r.ty < GY - 84 ? BAND_R[1] : SKIN_R[2], size: 2 + Math.random(), grav: 0.25 });
+      }
+      d.pool = Math.min(0.35, d.pool + d.hits * 0.0002);
+      if (u >= d.rainEnd + 34) { d.step = 'sway'; d.at = t; d.lineDone = false; }
+      break;
+    }
+    case 'sway':
+      // (shot to bits, still up, swaying, leaking out of every hole; his last word)
+      if (u === 4) playSound('gush', 0.4, 6);
+      if (u === 24) { d.lineDone = false; harryLine(f, L.HARRY_PERFORATED, tokened(() => { d.lineDone = true; })); }
+      if (u % 3 === 0 && u < 140) state.particles.push({ pos: { x: d.x + (Math.random() - 0.5) * 22, y: GY - 20 - Math.random() * 72 }, vel: { x: (Math.random() - 0.5) * 3, y: -1 - Math.random() * 2 }, life: 26, color: BLOODY[(u / 3) % 3], size: 1.5 + Math.random() * 2, grav: 0.32 });
+      d.pool = Math.min(0.55, d.pool + 0.003);
+      if (u >= 70 && (d.lineDone || u > 420)) { d.step = 'crumple'; d.at = t; playSound('cloth', 0.5, -4); }
+      break;
+    case 'crumple':
+      d.pool = Math.min(1, d.pool + 0.006);
+      if (u >= CRUMPLE_T) {
+        d.step = 'still'; d.at = t; d.lineDone = true;
+        playSound('thud', 1, -10); playSound('splat', 0.7, -6); shakeScreen(state, 8, 4);
+        for (let k = 0; k < 10; k++) state.particles.push({ pos: { x: d.x + (Math.random() - 0.5) * 60, y: GY - 4 }, vel: { x: (Math.random() - 0.5) * 6, y: -1 - Math.random() * 3 }, life: 28, color: BLOODY[k % 3], size: 2 + Math.random() * 2, grav: 0.35 });
+      }
+      break;
+    case 'still':
+      d.pool = Math.min(1, d.pool + 0.006);
+      if (d.st === 'wait' && t - d.at > 40 && (d.lineDone || quiet(f)) && f.crumble < 0) { d.st = f.crumbled ? 'gone' : 'look'; d.stT = 0; }
+      break;
+  }
+};
+
+/** What of the standard death has to be in the shot (deathFrame.ts: the standard deaths' way): him, and the sky over
+ *  him the rounds come down out of. One screen, all of it in it anyway; null once her end's begun. */
+export const deathNeed = (f: Fight): Box | null => {
+  const d = f.death;
+  if (f.mode !== 'dead' || !d || d.how !== 'spin' || d.st !== 'wait') return null;
+  return around(d.x, GY, 70, 130, 12);
 };
 
 /**
@@ -1496,13 +1608,24 @@ const drawHim = (c: Ctx, f: Fight, fr: number) => {
     if (d.how === 'buried') { drawBuried(c, d.x, d.mound, fr, d.step === 'set' ? d.t - d.at : 0); return; }
     if (d.how === 'barfed') { drawBarfed(c, f, d, fr); return; }
     if (d.step === 'fall') { drawRambo(c, d.x, d.y, { pose: 'fall', f: fr, facing: f.facing, rot: d.t * 0.2, scale: f.scale }); return; }
+    // (the standard death: his blood on the slab under him, spreading)
+    const u = d.t - d.at, k = d.bodyN ? Math.min(1, d.hits / d.bodyN) : 0;
+    if (d.pool > 0) bloodPool(c, d.x, d.pool);
     if (d.step === 'start') { drawRambo(c, d.x, GY, { pose: 'hurt', f: fr, facing: f.facing, talking: !!f.said }); return; }
-    // (on his back: turned about his hips; spinning: seen from the side, he flips side to side)
-    const k = d.step === 'over' ? Math.min(1, (d.t - d.at) / 10) : 1;
-    const sx = d.step === 'spin' || d.step === 'click' ? Math.cos(d.spin) : 1, face = (sx < 0 ? -1 : 1) as 1 | -1;
-    // (turned about his hips, 44 up: shifted down so he lies on the slab)
-    c.save(); c.translate(d.x, GY + 30 * k); c.scale(Math.max(0.2, Math.abs(sx)), 1);
-    drawRambo(c, 0, 0, { pose: d.step === 'still' ? 'dead' : 'spin', f: fr, facing: face, rot: -(Math.PI / 2) * k, flash: d.step === 'spin' && fr % 4 < 2, dead: d.step === 'still' || d.step === 'click', talking: !!f.said });
+    if (d.step === 'sky') { drawRambo(c, d.x, GY, { pose: 'skyfire', f: fr, facing: f.facing, flash: fr % 4 < 2, talking: !!f.said }); return; }
+    if (d.step === 'pant' || d.step === 'look' || d.step === 'rain' || d.step === 'sway') {
+      // (puffed: heaving; looking up: leaned back; the rain: jerked about by every hit, the holes coming; swaying)
+      const back = d.step === 'look' ? -0.24 * ease(Math.min(1, u / 18)) : d.step === 'rain' ? -0.24 * (1 - k) : 0;
+      const heave = d.step === 'pant' ? 0.1 + Math.sin(u * 0.3) * 0.05 : 0;
+      const jo = d.jolt > 0 ? (d.jolt / 7) * (d.hits % 2 ? 1 : -1) : 0;
+      const sway = d.step === 'sway' ? Math.sin(u * 0.09) * Math.min(1, u / 30) * 0.14 : 0;
+      drawRambo(c, d.x + jo * 2.5 + sway * 8, GY, { pose: 'pant', f: fr, facing: f.facing, lean: back + heave + jo * 0.16 + sway, rot: sway * 0.3, holes: d.step === 'sway' ? 1 : k, talking: !!f.said });
+      return;
+    }
+    // (over in a heap onto his back, then lying in it, a mess)
+    const kk = d.step === 'crumple' ? ease(Math.min(1, u / CRUMPLE_T)) : 1;
+    c.save(); c.translate(d.x, GY + 30 * kk);
+    drawRambo(c, 0, 0, { pose: kk > 0.5 ? 'dead' : 'pant', f: fr, facing: f.facing, rot: -(Math.PI / 2) * kk, dead: kk >= 1, holes: 1 });
     c.restore();
     return;
   }
@@ -1524,6 +1647,21 @@ const drawHim = (c: Ctx, f: Fight, fr: number) => {
 export const drawLeftovers = (c: Ctx, how: string, fr: number) => {
   if (how === 'buried') drawBuried(c, MID + 40, 1, fr, 9999);
   else if (how === 'barfed') drawPuddle(c, MID + 90, 1, 1, fr, 0);
+  else {
+    // (the standard death: his blood dried dark on the slab under the chalk, the pocks his own rounds left round it)
+    ellR(c, MID + 36, GY - 1, 60, 6, dith(c, '#3A0A0A')); ellR(c, MID + 36, GY - 1, 52, 5, '#4A0E0E'); ellR(c, MID + 30, GY - 1.4, 30, 3, '#5A1414');
+    box(c, MID + 4, GY - 4, 16, 1, '#7F1D1D');
+    for (let i = 0; i < 9; i++) { const px = MID + 40 + ((i * 53) % 130) - 65, py = GY - 1 - (i % 3); box(c, px - 1.5, py - 1, 3, 2, '#1A0B06'); box(c, px - 1, py - 1, 2, 1, '#57534E'); }
+  }
+};
+/** His blood on the slab (the standard death): spreading out from under him, in steps, its lit lip at the back. */
+const bloodPool = (c: Ctx, x: number, k: number) => {
+  const w = 16 + 54 * k, h = 2 + 5 * k;
+  ellR(c, x, GY - 1, w + 4, h + 1, dith(c, BLOOD_R[0]));
+  ellR(c, x, GY - 1, w, h, BLOOD_R[0]);
+  ellR(c, x - 4, GY - 1.2, w * 0.8, h * 0.7, BLOOD_R[1]);
+  ellR(c, x - 8, GY - 1.6, w * 0.45, h * 0.4, dith(c, BLOOD_R[2]));
+  box(c, x - w * 0.5, GY - h * 0.6 - 1, w * 0.3, 1, BLOOD_R[3]); box(c, x - w * 0.5, GY - h * 0.6 - 1, 2, 1, '#FCA5A5');
 };
 
 /** How long the puddle's held its size (it dries once he's stopped adding to it). */
@@ -1826,6 +1964,17 @@ export const drawFightFront = (c: Ctx, state: GameState, f: Fight) => {
     c.strokeStyle = '#B91C1C'; c.lineWidth = 3.4; c.beginPath(); c.moveTo(r.x - ux * 13, r.y - uy * 13); c.lineTo(r.x, r.y); c.stroke();
     c.strokeStyle = '#F97316'; c.lineWidth = 2.6; c.beginPath(); c.moveTo(r.x - ux * 10, r.y - uy * 10); c.lineTo(r.x, r.y); c.stroke();
     c.strokeStyle = '#FDE047'; c.lineWidth = 1.6; c.beginPath(); c.moveTo(r.x - ux * 6, r.y - uy * 6); c.lineTo(r.x, r.y); c.stroke();
+    box(c, r.x - 1.2, r.y - 1.2, 2.4, 2.4, '#FFFBEB');
+  }
+  // (the standard death: his rounds coming back down on him, tracers falling, a streak up behind each)
+  if (f.death && f.death.how === 'spin' && f.death.step === 'rain') for (let i = 0; i < rainN; i++) {
+    const r = RAIN[i];
+    if (!r.on) continue;
+    c.lineCap = 'round';
+    c.strokeStyle = dith(c, 'rgba(249, 115, 22, 0.6)'); c.lineWidth = 5; c.beginPath(); c.moveTo(r.x, r.y - 26); c.lineTo(r.x, r.y); c.stroke();
+    c.strokeStyle = '#B91C1C'; c.lineWidth = 3; c.beginPath(); c.moveTo(r.x, r.y - 20); c.lineTo(r.x, r.y); c.stroke();
+    c.strokeStyle = '#F97316'; c.lineWidth = 2.2; c.beginPath(); c.moveTo(r.x, r.y - 14); c.lineTo(r.x, r.y); c.stroke();
+    c.strokeStyle = '#FDE047'; c.lineWidth = 1.4; c.beginPath(); c.moveTo(r.x, r.y - 8); c.lineTo(r.x, r.y); c.stroke();
     box(c, r.x - 1.2, r.y - 1.2, 2.4, 2.4, '#FFFBEB');
   }
   drawStreams(c, f, fr);
