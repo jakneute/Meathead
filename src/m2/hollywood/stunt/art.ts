@@ -259,7 +259,7 @@ const paintGas = (g: Ctx, x: number, w: number, B: number) => {
   box(g, x + 2, ct - 1, cw + 2, 9, INK); box(g, x + 3, ct, cw, 7, Wt[2]); box(g, x + 3, ct, cw, 1, Wt[3]); checker(g, x + 3, ct + 5, cw, 2, Wt[1], 0, 1);
   box(g, x + 2, ct + 8, cw + 2, 16, INK); box(g, x + 3, ct + 9, cw, 14, Rd[3]); box(g, x + 3, ct + 9, cw, 2, Rd[4]); box(g, x + 3, ct + 20, cw, 3, Rd[1]);
   box(g, x + 3, ct + 15, cw, 2, Wt[4]);
-  words(g, 'GAS', x + 60, ct + 22, { sx: 1, sy: 1, fill: Wt[4] });
+  words(g, 'GAS', x + 60, ct + 21, { sx: 2, sy: 1, fill: [Wt[5], Wt[4]], shadow: Rd[0], gap: 1 });
   box(g, x + 3, ct + 24, cw, 2, I[0]);
   for (const lx of [x + 24, x + 112]) post(g, lx, ct + 24, B, 8, Wt);
   // (the pumps on their island: red bodies, white faces, globes on top, hoses)
@@ -295,7 +295,17 @@ const paintBank = (g: Ctx, x: number, w: number, B: number) => {
   }
   // (barred windows between them; the doors in the middle in brass)
   for (const k of [0, 2]) windowAt(g, x + 56 + k * ((w - 72) / 3), top + 92, 40, 60, St, true);
-  box(g, x + w / 2 - 22, B - 76, 44, 64, INK); box(g, x + w / 2 - 21, B - 75, 42, 63, Gd[2]); box(g, x + w / 2 - 1, B - 75, 2, 63, Gd[0]); box(g, x + w / 2 - 21, B - 75, 42, 2, Gd[4]);
+  {
+    const dl = x + w / 2 - 21, dt = B - 75;
+    box(g, dl - 1, dt - 1, 44, 64, INK); box(g, dl, dt, 42, 63, Gd[2]); box(g, dl, dt, 42, 2, Gd[4]);
+    // (the transom's bars over them; two leaves, each two panels in bevels, their pulls)
+    box(g, dl, dt + 2, 42, 12, glassOf().map(dimmed)[2]); for (let k = dl + 4; k < dl + 42; k += 6) box(g, k, dt + 2, 1, 12, Gd[1]); box(g, dl, dt + 13, 42, 2, Gd[1]);
+    for (const lx of [dl + 2, dl + 22]) for (const [py, ph] of [[dt + 18, 18], [dt + 40, 20]]) {
+      box(g, lx, py, 18, ph, Gd[1]); box(g, lx + 1, py + 1, 16, ph - 2, Gd[3]); box(g, lx + 1, py + 1, 16, 1, Gd[5]); box(g, lx + 1, py + 1, 1, ph - 2, Gd[4]); box(g, lx + 15, py + 2, 2, ph - 3, Gd[2]);
+    }
+    box(g, dl + 20, dt + 15, 2, 48, Gd[0]);
+    for (const hx of [dl + 17, dl + 23]) { box(g, hx, dt + 34, 2, 8, INK); box(g, hx, dt + 34, 1, 8, Gd[5]); }
+  }
   // (the steps up to it)
   for (let k = 0; k < 3; k++) { box(g, x + 10 - k * 4, B - 12 + k * 4, w - 20 + k * 8, 4, St[4 - k]); box(g, x + 10 - k * 4, B - 12 + k * 4, w - 20 + k * 8, 1, St[5]); }
 };
@@ -324,10 +334,37 @@ const paintBay = (g: Ctx, dx: number, B: number, n: number) => {
   // (the inside: dark, banded, the far wall's pegboard and a stack of tires)
   const ol = dx - 100, ot = B - 128;
   box(g, ol - 10, ot - 12, 220, B - ot + 12, INK);
-  const D = ['#060507', '#0C0A0E', '#141118', '#1C1820'];
-  D.forEach((col, i) => box(g, ol, ot + i * 30, 200, i === 3 ? B - ot - 90 : 31, col));
-  for (let k = 0; k < 18; k++) box(g, ol + 20 + (k % 6) * 12, ot + 40 + Math.floor(k / 6) * 10, 2, 2, '#26222C');
-  for (let k = 0; k < 4; k++) { box(g, ol + 150, B - 16 - k * 12, 34, 11, '#0A0A0C'); box(g, ol + 152, B - 15 - k * 12, 30, 2, '#1E1E24'); }
+  const D = ['#060507', '#0C0A0E', '#141118', '#1C1820', '#24202A', '#2E2934'];
+  D.slice(0, 4).forEach((col, i) => box(g, ol, ot + i * 30, 200, i === 3 ? B - ot - 90 : 31, col));
+  // (the back wall's block courses, barely there in the dark)
+  for (let y = ot + 40, r = 0; y < B - 24; y += 9, r++) { box(g, ol, y, 200, 1, D[0]); for (let k = ol + (r % 2 ? 11 : 0); k < ol + 200; k += 22) box(g, k, y, 1, 9, D[0]); }
+  // (the floor going back: oil-stained concrete, lighter toward the door, a drain in the middle, the drip pan's stain)
+  box(g, ol, B - 24, 200, 24, D[3]); box(g, ol, B - 24, 200, 1, D[0]); box(g, ol, B - 12, 200, 12, D[4]); checker(g, ol, B - 14, 200, 2, D[4], 0, 1);
+  box(g, ol, B - 3, 200, 3, D[5]);
+  g.fillStyle = D[1]; g.beginPath(); g.ellipse(dx, B - 10, 34, 5, 0, 0, Math.PI * 2); g.fill();
+  g.fillStyle = D[0]; g.beginPath(); g.ellipse(dx + 4, B - 10, 18, 3, 0, 0, Math.PI * 2); g.fill();
+  box(g, dx - 6, B - 19, 12, 3, D[0]); for (let k = -5; k < 6; k += 2) box(g, dx + k, B - 18, 1, 1, D[3]);
+  // (the pegboard on the back wall, its tools hung in their outlines: a wrench, a hammer, pliers, a coil of rope)
+  const pb = ol + 14, pt = ot + 40;
+  box(g, pb - 1, pt - 1, 72, 34, INK); box(g, pb, pt, 70, 32, D[3]); box(g, pb, pt, 70, 1, D[5]);
+  for (let k = 0; k < 7; k++) for (let j = 0; j < 4; j++) box(g, pb + 4 + k * 10, pt + 4 + j * 8, 1, 1, D[1]);
+  box(g, pb + 6, pt + 6, 3, 20, D[0]); box(g, pb + 4, pt + 4, 7, 4, D[0]); box(g, pb + 7, pt + 6, 1, 18, D[5]);
+  box(g, pb + 20, pt + 6, 2, 22, D[0]); box(g, pb + 16, pt + 4, 10, 5, D[0]); box(g, pb + 17, pt + 4, 8, 1, D[5]);
+  box(g, pb + 34, pt + 8, 2, 18, D[0]); box(g, pb + 38, pt + 8, 2, 18, D[0]); box(g, pb + 33, pt + 6, 8, 4, D[0]);
+  g.strokeStyle = D[0]; g.lineWidth = 2; g.beginPath(); g.ellipse(pb + 56, pt + 16, 8, 10, 0, 0, Math.PI * 2); g.stroke(); g.strokeStyle = D[5]; g.lineWidth = 1; g.beginPath(); g.ellipse(pb + 56, pt + 15, 7, 9, 0, Math.PI, Math.PI * 1.6); g.stroke();
+  // (a workbench under it: its top lit along the front, a vise, a toolbox; a drum of oil by it)
+  box(g, ol + 8, B - 46, 84, 6, INK); box(g, ol + 9, B - 45, 82, 4, D[4]); box(g, ol + 9, B - 45, 82, 1, D[5]);
+  for (const lx of [ol + 12, ol + 84]) { box(g, lx - 1, B - 40, 5, 28, INK); box(g, lx, B - 40, 3, 28, D[3]); }
+  box(g, ol + 40, B - 54, 22, 9, INK); box(g, ol + 41, B - 53, 20, 7, '#3A1414'); box(g, ol + 41, B - 53, 20, 1, '#5A2420'); box(g, ol + 48, B - 56, 6, 2, INK);
+  box(g, ol + 18, B - 52, 10, 7, INK); box(g, ol + 19, B - 51, 8, 5, D[4]);
+  box(g, ol + 98, B - 34, 20, 30, INK); box(g, ol + 99, B - 33, 18, 28, '#1A2430'); box(g, ol + 99, B - 33, 4, 28, '#26323E'); box(g, ol + 99, B - 25, 18, 1, INK); box(g, ol + 99, B - 15, 18, 1, INK); box(g, ol + 99, B - 33, 18, 1, '#34404C');
+  // (the stack of spare tires on the right: each a tire's face, its tread, lit along its top)
+  for (let k = 0; k < 4; k++) {
+    const ty = B - 16 - k * 12;
+    box(g, ol + 150, ty, 34, 11, INK); box(g, ol + 151, ty + 1, 32, 9, '#121114'); box(g, ol + 152, ty + 1, 30, 2, '#2A2830'); box(g, ol + 153, ty + 1, 8, 1, '#3A3842');
+    for (let t = ol + 154; t < ol + 181; t += 4) box(g, t, ty + 5, 2, 1, '#060507');
+    box(g, ol + 151, ty + 8, 32, 2, '#08080A');
+  }
   // (the jambs: hazard stripes, the header beam, the roll-up door's drum, the door rolled up: slats in steps)
   hazard(g, ol - 10, ot - 12, 10, B - ot + 12, n * 5, dimmed('#FACC15'));
   hazard(g, ol + 200, ot - 12, 10, B - ot + 12, n * 5 + 8, dimmed('#FACC15'));
@@ -341,18 +378,43 @@ const paintBay = (g: Ctx, dx: number, B: number, n: number) => {
   words(g, `BAY ${n}`, l + 24, top + 30, { sx: 1, sy: 1, fill: dimmed('#F4EEE2'), stencil: true, gap: 1 });
 };
 
-/** Street furniture along the set's foot (dimmed): lamps, a hydrant, a mailbox, a bench, a newspaper box. */
+/** Street furniture along the set's foot (dimmed): cast-iron lamps (fluted, a collar, an acorn head in steps), a
+ *  hydrant, a mailbox (its arched top, the slot, legs), a newspaper box (its window, the coin slot, legs). */
 const paintFurniture = (g: Ctx, B: number) => {
-  const I = scen('#2E3A38'), Lmp = lit() ? '#FFF2C0' : dimmed('#E2DCC8');
+  const I = scen('#2E3A38'), on = lit(), Gl = on ? ['#FFFBEA', '#FFF2C0', '#F2D08A'] : [dimmed('#F4F0E2'), dimmed('#E2DCC8'), dimmed('#B8B0A0')];
   for (const lx of [140, 640, 1158, 1682]) {
-    post(g, lx, B - 156, B, 6, I);
-    box(g, lx - 6, B - 10, 12, 10, INK); box(g, lx - 5, B - 9, 10, 9, I[3]);
-    box(g, lx - 12, B - 164, 24, 8, INK); box(g, lx - 11, B - 163, 22, 6, I[3]); box(g, lx - 8, B - 158, 16, 6, INK); box(g, lx - 7, B - 157, 14, 4, Lmp);
+    // (the base: flared in steps; the post fluted; a collar partway up)
+    box(g, lx - 9, B - 6, 18, 6, INK); box(g, lx - 8, B - 5, 16, 5, I[3]); box(g, lx - 8, B - 5, 16, 1, I[5]); box(g, lx + 4, B - 5, 4, 5, I[1]);
+    box(g, lx - 7, B - 14, 14, 9, INK); box(g, lx - 6, B - 13, 12, 8, I[3]); box(g, lx - 6, B - 13, 2, 8, I[4]); box(g, lx + 3, B - 13, 3, 8, I[1]);
+    post(g, lx, B - 150, B - 14, 6, I);
+    box(g, lx - 1, B - 146, 1, 128, I[2]);
+    box(g, lx - 5, B - 84, 10, 5, INK); box(g, lx - 4, B - 83, 8, 3, I[4]); box(g, lx - 4, B - 83, 8, 1, I[5]);
+    // (the head: a finial, the cap, the acorn globe in steps, its fitter)
+    box(g, lx - 1, B - 178, 3, 5, INK); box(g, lx, B - 177, 1, 4, I[4]);
+    box(g, lx - 8, B - 174, 16, 5, INK); box(g, lx - 7, B - 173, 14, 3, I[3]); box(g, lx - 7, B - 173, 14, 1, I[5]);
+    box(g, lx - 7, B - 169, 14, 16, INK); box(g, lx - 6, B - 168, 12, 14, Gl[1]); box(g, lx - 5, B - 168, 4, 12, Gl[0]); box(g, lx + 3, B - 167, 3, 12, Gl[2]); checker(g, lx + 1, B - 167, 2, 12, Gl[2], 0, 1);
+    box(g, lx - 5, B - 153, 10, 4, INK); box(g, lx - 4, B - 152, 8, 2, I[3]);
   }
-  // (a hydrant, a mailbox, a newspaper box)
-  const Hy = scen('#C82828'); box(g, 584, B - 24, 16, 24, INK); box(g, 585, B - 23, 14, 23, Hy[3]); box(g, 585, B - 23, 3, 23, Hy[4]); box(g, 581, B - 16, 22, 5, INK); box(g, 582, B - 15, 20, 3, Hy[3]); box(g, 586, B - 28, 12, 5, INK); box(g, 587, B - 27, 10, 3, Hy[4]);
-  const Mb = scen('#1E46B8'), mx = 1938; box(g, mx, B - 44, 26, 44, INK); box(g, mx + 1, B - 43, 24, 34, Mb[3]); box(g, mx + 1, B - 43, 24, 3, Mb[4]); box(g, mx + 1, B - 9, 24, 9, Mb[1]); box(g, mx + 6, B - 36, 14, 2, INK);
-  const Nb = scen('#D8B020'), nx = 398; box(g, nx, B - 36, 18, 36, INK); box(g, nx + 1, B - 35, 16, 26, Nb[3]); box(g, nx + 1, B - 35, 16, 2, Nb[4]); box(g, nx + 3, B - 30, 12, 8, dimmed('#E8E4DA'));
+  // (a hydrant: its bonnet, the nozzles, banded)
+  const Hy = scen('#C82828');
+  box(g, 584, B - 24, 16, 24, INK); box(g, 585, B - 23, 14, 23, Hy[3]); box(g, 585, B - 23, 3, 23, Hy[4]); box(g, 596, B - 23, 3, 23, Hy[1]);
+  box(g, 581, B - 16, 22, 5, INK); box(g, 582, B - 15, 20, 3, Hy[3]); box(g, 582, B - 15, 20, 1, Hy[5]);
+  box(g, 586, B - 30, 12, 7, INK); box(g, 587, B - 29, 10, 5, Hy[4]); box(g, 587, B - 29, 10, 1, Hy[5]); box(g, 590, B - 33, 4, 3, INK);
+  box(g, 583, B - 4, 18, 4, INK); box(g, 584, B - 3, 16, 2, Hy[2]);
+  // (a mailbox: blue, its arched top in steps, the slot's pull, its legs)
+  const Mb = scen('#1E46B8'), mx = 1938;
+  box(g, mx + 2, B - 48, 22, 4, INK); box(g, mx, B - 45, 26, 37, INK);
+  box(g, mx + 3, B - 47, 20, 3, Mb[4]); box(g, mx + 1, B - 44, 24, 35, Mb[3]); box(g, mx + 1, B - 44, 4, 35, Mb[4]); box(g, mx + 20, B - 44, 5, 35, Mb[1]); checker(g, mx + 17, B - 44, 3, 35, Mb[2], 0, 1);
+  box(g, mx + 5, B - 38, 16, 5, INK); box(g, mx + 6, B - 37, 14, 3, Mb[2]); box(g, mx + 6, B - 37, 14, 1, Mb[5]);
+  box(g, mx + 7, B - 26, 12, 6, Mb[5]); box(g, mx + 8, B - 25, 10, 4, dimmed('#C82828'));
+  for (const lx of [mx + 2, mx + 20]) { box(g, lx - 1, B - 9, 6, 9, INK); box(g, lx, B - 9, 4, 9, Mb[1]); }
+  // (a newspaper box: yellow, its window with the day's paper behind it, the coin slot, legs)
+  const Nb = scen('#D8B020'), nx = 398;
+  box(g, nx, B - 38, 20, 30, INK); box(g, nx + 1, B - 37, 18, 28, Nb[3]); box(g, nx + 1, B - 37, 18, 2, Nb[5]); box(g, nx + 15, B - 35, 4, 26, Nb[1]);
+  box(g, nx + 3, B - 33, 11, 12, INK); box(g, nx + 4, B - 32, 9, 10, dimmed('#E8E4DA')); for (let k = 0; k < 4; k++) box(g, nx + 5, B - 29 + k * 2, 7, 1, dimmed('#8A8478'));
+  box(g, nx + 4, B - 32, 9, 2, dimmed('#2A2228'));
+  box(g, nx + 15, B - 32, 3, 4, INK);
+  for (const lx of [nx + 2, nx + 15]) { box(g, lx - 1, B - 9, 5, 9, INK); box(g, lx, B - 9, 3, 9, scen('#5A5E66')[2]); }
 };
 
 const paintSet = (g: Ctx) => {
@@ -371,18 +433,29 @@ const paintSet = (g: Ctx) => {
 };
 const lit = () => timeOfDay().lamps > 0.35;
 
+/** A bay's signal head (still: stamped): its arm off the block, the housing in painted steel, a hood over each lens. */
+const paintSignal = (g: Ctx) => {
+  const S = STEEL.map(dimmed);
+  box(g, 7, 8, 7, 4, INK); box(g, 7, 9, 6, 2, S[3]);
+  box(g, -7, 0, 14, 26, INK); box(g, -6, 1, 12, 24, '#1E1E24'); box(g, -6, 1, 12, 1, '#3A3A44'); box(g, -6, 1, 1, 24, '#2E2E36'); box(g, 4, 2, 2, 23, '#121216');
+  for (const ly of [3, 14]) { box(g, -5, ly - 1, 10, 10, INK); box(g, -6, ly - 3, 12, 3, INK); box(g, -5, ly - 3, 10, 1, '#3A3A44'); }
+  box(g, -3, 26, 6, 3, INK); box(g, -2, 26, 4, 2, S[2]);
+};
+
 /** The bays' live bits: the signal over each (red; green with the show on), the beacon, the headlights in the dark. */
 /** A garage door in the fight: how far up it is; a car's tell on in it (about to come out). */
 export interface BayLook { open: number; tell: boolean }
 const drawBayLive = (c: Ctx, dx: number, base: number, on: boolean, f: number, bay?: BayLook) => {
   const sx = dx + PORT - 16, sy = base - 176, tell = !!bay?.tell;
-  box(c, sx - 7, sy, 14, 26, INK); box(c, sx - 6, sy + 1, 12, 24, '#18181B');
-  box(c, sx - 4, sy + 3, 8, 8, tell ? ((f >> 2) % 2 ? '#FBBF24' : '#7A4A08') : on ? '#3A0A0A' : (f >> 4) % 2 ? '#F05040' : '#8A1A14');
-  box(c, sx - 4, sy + 14, 8, 8, on ? ((f >> 3) % 2 ? '#7CF08A' : '#3AC85A') : '#0A2A12');
+  stillH(c, 'signal', sx, sy, -14, -6, 28, 36, paintSignal);
+  const lens = (ly: number, col: string) => { box(c, sx - 4, ly, 8, 8, col); box(c, sx - 3, ly + 1, 2, 2, mix(col, '#FFFFFF', 0.55)); };
+  lens(sy + 3, tell ? ((f >> 2) % 2 ? '#FBBF24' : '#7A4A08') : on ? '#3A0A0A' : (f >> 4) % 2 ? '#F05040' : '#8A1A14');
+  lens(sy + 14, on ? ((f >> 3) % 2 ? '#7CF08A' : '#3AC85A') : '#0A2A12');
   if (on) {
     // (the beacon on the block, turning (fast, a car coming out))
     const bx = dx - PORT + 16, by = base - 190, k = (f >> (tell ? 1 : 2)) % 4;
-    box(c, bx - 5, by, 10, 8, INK); box(c, bx - 4, by + 1, 8, 6, k < 2 ? '#F59E0B' : '#B45309'); box(c, bx - 4 + k * 2, by + 2, 2, 3, '#FFF2B0');
+    box(c, bx - 4, by - 1, 8, 1, INK); box(c, bx - 5, by, 10, 8, INK); box(c, bx - 4, by + 1, 8, 6, k < 2 ? '#F59E0B' : '#B45309'); box(c, bx - 3, by, 6, 1, k < 2 ? '#FCD34D' : '#D97706'); box(c, bx - 4 + k * 2, by + 2, 2, 3, '#FFF2B0');
+    box(c, bx - 6, by + 7, 12, 4, INK); box(c, bx - 5, by + 8, 10, 2, '#3A3A44'); box(c, bx - 5, by + 8, 10, 1, '#5A5A66');
     // (two cars' headlights waiting in the dark)
     if (!bay) for (const s of [-1, 1]) { box(c, dx + s * 40 - 9, base - 42, 18, 8, '#3A2E10'); box(c, dx + s * 40 - 8, base - 41, 7, 6, '#FEF3C7'); box(c, dx + s * 40 + 1, base - 41, 7, 6, '#FEF3C7'); }
   }
@@ -584,12 +657,34 @@ const EYE_ABOVE = (y: number) => y > EYE_Y + 1;
 const GELS = ['#FCA526', '#F25A52', '#FDE047', '#F8FAFC'];
 const PARS = Array.from({ length: Math.floor((ARENA_W + 40) / 120) }, (_, i) => ARENA_L + 40 + i * 120);
 
+/** A leg of the truss (stamped; local: its left chord's x at 0, the truss at 0): two chords, laced in a zigzag, a strut at
+ *  each node, a sleeve block where it meets the truss, its base plate bolted down with a ballast block on it. */
+const paintTrussLeg = (g: Ctx) => {
+  const R = TRUSS.map(c2 => hour(c2, 0.06)), H = GY - TRUSS_Y;
+  for (const [w, col] of [[3, INK], [1, R[2]]] as const) {
+    g.strokeStyle = col; g.lineWidth = w; g.beginPath();
+    for (let y = 18, k = 0; y < H - 22; y += 14, k++) { g.moveTo(k % 2 ? 14 : 2, y); g.lineTo(k % 2 ? 2 : 14, Math.min(H - 22, y + 14)); }
+    g.stroke();
+  }
+  tubeV(g, 0, 0, H, 4, R); tubeV(g, 12, 0, H, 4, R);
+  for (let y = 18; y < H - 22; y += 28) { box(g, 0, y, 16, 2, R[1]); box(g, 0, y, 16, 1, R[4]); }
+  // (the sleeve block up top)
+  box(g, -3, 0, 22, 16, INK); box(g, -2, 1, 20, 14, R[3]); box(g, -2, 1, 20, 2, R[5]); box(g, 14, 1, 4, 14, R[1]);
+  for (const bx of [1, 13]) { box(g, bx, 6, 2, 2, R[0]); box(g, bx, 6, 1, 1, R[5]); }
+  // (the base: a plate, bolted, a ballast block on it in stunt red)
+  box(g, -9, H - 4, 34, 5, INK); box(g, -8, H - 3, 32, 3, R[2]); box(g, -8, H - 3, 32, 1, R[4]);
+  for (const bx of [-6, 21]) { box(g, bx, H - 3, 2, 2, R[0]); box(g, bx, H - 3, 1, 1, R[5]); }
+  const Rd = RED_R.map(c2 => hour(c2, 0.08));
+  box(g, -3, H - 22, 22, 18, INK); box(g, -2, H - 21, 20, 16, Rd[3]); box(g, -2, H - 21, 20, 2, Rd[4]); box(g, -2, H - 21, 2, 16, Rd[4]); box(g, 14, H - 19, 4, 14, Rd[1]); checker(g, -2, H - 9, 20, 2, Rd[2], 0, 1);
+  hazard(g, -2, H - 15, 20, 4, 0);
+};
+
 const drawTruss = (c: Ctx, state: GameState) => {
   if (!inView(state, ARENA_L - 80, ARENA_R + 80)) return;
   const a = Math.floor(Math.max(ARENA_L - 60, state.camera.x - 60) / 28) * 28, b = Math.min(ARENA_R + 60, state.camera.x + CANVAS_WIDTH + 60);
   const R = TRUSS.map(c2 => hour(c2, 0.06)), on = lit();
   // (its legs at the ends, down behind the stands)
-  for (const lx of [ARENA_L - 50, ARENA_R + 40]) if (inView(state, lx - 10, lx + 20)) { tubeV(c, lx, TRUSS_Y, GY, 4, R); tubeV(c, lx + 12, TRUSS_Y, GY, 4, R); for (let y = TRUSS_Y + 20; y < GY; y += 28) { box(c, lx, y, 16, 2, R[2]); } }
+  for (const lx of [ARENA_L - 50, ARENA_R + 40]) if (inView(state, lx - 20, lx + 30)) stillH(c, 'tleg', lx, TRUSS_Y, -12, -2, 40, GY - TRUSS_Y + 4, paintTrussLeg);
   truss(c, a, b, TRUSS_Y, 22, R, 14);
   // (its underside, a shade under the bottom chord)
   box(c, a, TRUSS_Y + 22, b - a, 2, R[0]);
@@ -637,19 +732,63 @@ const paintBanner = (g: Ctx) => {
   for (const gx of [8, w / 2, w - 10]) for (const gy of [7, h - 40]) { box(g, gx - 2, gy - 2, 5, 5, INK); box(g, gx - 1, gy - 1, 3, 3, '#C8CDD4'); }
 };
 
-/** STEVE-O-VISION, hung on its chains: the case, its speaker stacks, the header; what's on it live. */
-const drawJumbotron = (c: Ctx, x: number, y: number, f: number, o: { replay: number; hurtFlash: number; cleared: boolean }) => {
-  const S = STEEL.map(c2 => hour(c2, 0.06)), Bk = ['#08080A', '#121216', '#1C1C22', '#28282F', '#36363E', '#4A4A54'];
-  for (const s of [-1, 1]) chain(c, x + s * 100, TRUSS_Y + 24, y - 4, TRUSS);
-  // (the speaker stacks either side)
+/** STEVE-O-VISION's still parts, painted once for the hour (local: its top middle at 0, 0): the chains and their
+ *  shackles off a yoke, the speaker stacks either side (grille cloth, cones in stepped rings, steel corners), the case
+ *  (bevelled steel, riveted, its bracket plates), the screen's well, the header in lit lettering, the louvers. */
+const paintJumbo = (g: Ctx, top: number) => {
+  const S = STEEL.map(c2 => hour(c2, 0.06)), Bk = ['#08080A', '#121216', '#1C1C22', '#28282F', '#36363E', '#4A4A54'], R = TRUSS.map(c2 => hour(c2, 0.06));
+  // (the chains, the yoke they hang it by, shackles at both ends)
   for (const s of [-1, 1]) {
-    const sx = x + s * 146 - 20;
-    box(c, sx - 1, y - 1, 42, 132, INK); box(c, sx, y, 40, 130, Bk[2]); box(c, sx, y, 40, 2, Bk[4]); box(c, sx + 36, y, 4, 130, Bk[1]);
-    for (let k = 0; k < 3; k++) { const cy = y + 22 + k * 42; c.fillStyle = INK; c.beginPath(); c.arc(sx + 20, cy, 15, 0, Math.PI * 2); c.fill(); c.fillStyle = Bk[3]; c.beginPath(); c.arc(sx + 20, cy, 13, 0, Math.PI * 2); c.fill(); c.fillStyle = Bk[1]; c.beginPath(); c.arc(sx + 21, cy + 1, 7, 0, Math.PI * 2); c.fill(); box(c, sx + 17, cy - 4, 2, 2, Bk[5]); }
+    chain(g, s * 100, top, -10, R);
+    box(g, s * 100 - 3, top - 1, 7, 5, INK); box(g, s * 100 - 2, top, 5, 3, R[4]);
+    box(g, s * 100 - 3, -14, 7, 6, INK); box(g, s * 100 - 2, -13, 5, 4, R[3]); box(g, s * 100 - 2, -13, 5, 1, R[5]);
   }
-  // (the case: steel, its bezel, its louvers along the foot)
-  box(c, x - 126, y - 6, 252, 154, INK); box(c, x - 125, y - 5, 250, 152, S[2]); box(c, x - 125, y - 5, 250, 1, S[5]); box(c, x - 125, y + 146, 250, 1, S[0]);
-  box(c, x - 120, y, 240, 130, '#0B1020');
+  box(g, -168, -9, 336, 6, INK); box(g, -167, -8, 334, 4, R[3]); box(g, -167, -8, 334, 1, R[5]); box(g, -167, -5, 334, 1, R[1]);
+  for (let k = -160; k <= 160; k += 40) { box(g, k, -7, 2, 2, R[1]); box(g, k, -7, 1, 1, R[5]); }
+  // (the speaker stacks: cabinets in black carpet, the grille cloth's weave, cones in steps, steel corners)
+  for (const s of [-1, 1]) {
+    const sx = s * 146 - 20;
+    box(g, sx - 1, -1, 42, 132, INK);
+    box(g, sx, 0, 40, 130, Bk[2]); box(g, sx, 0, 40, 2, Bk[5]); box(g, sx, 2, 2, 128, Bk[4]); box(g, sx + 36, 0, 4, 130, Bk[1]); checker(g, sx + 34, 2, 2, 128, Bk[1], 0, 1);
+    box(g, sx, 128, 40, 2, Bk[0]);
+    for (let k = 0; k < 3; k++) {
+      const cy = 22 + k * 42, cx = sx + 20;
+      box(g, sx + 2, cy - 19, 32, 1, Bk[0]); box(g, sx + 2, cy - 18, 32, 1, Bk[3]);
+      // (the grille cloth: a weave of darker cells)
+      checker(g, sx + 3, cy - 17, 30, 36, Bk[1], k, 2);
+      const disc = (dx: number, dy: number, r: number, col: string) => { g.fillStyle = col; g.beginPath(); g.arc(cx + dx, cy + dy, r, 0, Math.PI * 2); g.fill(); };
+      disc(0, 0, 15, INK); disc(0, 0, 13, Bk[4]); disc(1, 1, 12, Bk[3]); disc(1, 1, 10, Bk[2]); disc(1, 1, 8, Bk[1]); disc(2, 2, 6, Bk[0]);
+      disc(0, 0, 4, Bk[3]); disc(-1, -1, 2, Bk[5]);
+      box(g, cx - 9, cy - 9, 3, 1, Bk[5]); box(g, cx - 10, cy - 8, 1, 3, Bk[5]);
+      for (const [bx, by] of [[-13, -13], [12, -13], [-13, 12], [12, 12]]) { box(g, cx + bx, cy + by, 2, 2, S[2]); box(g, cx + bx, cy + by, 1, 1, S[5]); }
+    }
+    for (const [cx, cy] of [[sx - 1, -1], [sx + 35, -1], [sx - 1, 125], [sx + 35, 125]]) { box(g, cx, cy, 6, 6, INK); box(g, cx + 1, cy + 1, 4, 4, S[3]); box(g, cx + 1, cy + 1, 4, 1, S[5]); box(g, cx + 2, cy + 2, 1, 1, S[6]); }
+  }
+  // (the case: steel, bevelled (lit along its top and left, shaded right and under), dithered into its face, riveted)
+  box(g, -126, -6, 252, 154, INK);
+  box(g, -125, -5, 250, 152, S[3]);
+  box(g, -125, -5, 250, 2, S[5]); box(g, -125, -3, 250, 1, S[4]); box(g, -125, -5, 2, 152, S[5]); box(g, -123, -5, 1, 152, S[4]);
+  box(g, -125, 140, 250, 7, S[2]); checker(g, -125, 138, 250, 2, S[2], 0, 1); box(g, -125, 146, 250, 1, S[0]);
+  box(g, 121, -5, 4, 152, S[1]); checker(g, 119, -5, 2, 152, S[2], 0, 1);
+  for (let k = -116; k <= 116; k += 16) for (const ry of [-3, 144]) { box(g, k, ry, 2, 2, S[1]); box(g, k, ry, 1, 1, S[6]); }
+  for (let k = 6; k <= 126; k += 20) for (const rx of [-124, 122]) { box(g, rx, k, 2, 2, S[1]); box(g, rx, k, 1, 1, S[6]); }
+  // (bracket plates at its corners, where the chains' yoke takes it)
+  for (const s of [-1, 1]) { const px = s * 100 - 8; box(g, px - 1, -7, 18, 10, INK); box(g, px, -6, 16, 8, S[2]); box(g, px, -6, 16, 1, S[5]); box(g, px + 3, -3, 2, 2, INK); box(g, px + 11, -3, 2, 2, INK); }
+  // (the screen's well: inked, a lip of shine along its top and left)
+  box(g, -121, -1, 242, 132, INK); box(g, -120, 0, 240, 130, '#0B1020'); box(g, -117, 3, 234, 1, '#2A3450'); box(g, -117, 3, 1, 111, '#1E2840');
+  // (the header strip: black, the name in lit lettering, bulbs either end)
+  box(g, -120, 114, 240, 16, '#0E0E12'); box(g, -120, 114, 240, 1, S[1]); box(g, -120, 129, 240, 1, '#26262C');
+  words(g, 'STEVE-O-VISION', 0, 127, { sx: 1, sy: 1, fill: ['#FFFBD8', '#FDE047', '#E8A60C'], glow: '#4A3206', gap: 1 });
+  for (const bx of [-110, -100, 98, 108]) { box(g, bx - 1, 119, 5, 5, INK); box(g, bx, 120, 3, 3, '#FACC15'); box(g, bx, 120, 1, 1, '#FFFBD8'); }
+  // (the louvers along its foot: slats, lit tops, the dark between)
+  box(g, -118, 132, 236, 12, INK);
+  for (let k = -116; k < 116; k += 8) { box(g, k, 133, 6, 10, S[2]); box(g, k, 133, 6, 1, S[5]); box(g, k + 5, 134, 1, 9, S[1]); }
+};
+
+/** STEVE-O-VISION, hung on its chains (the still parts: paintJumbo, stamped); what's on it live. */
+const drawJumbotron = (c: Ctx, x: number, y: number, f: number, o: { replay: number; hurtFlash: number; cleared: boolean }) => {
+  const top = TRUSS_Y + 24 - y;
+  stillH(c, 'jumbo', x, y, -172, top - 4, 344, 156 - top, g => paintJumbo(g, top));
   c.save(); c.beginPath(); c.rect(x - 116, y + 4, 232, 110); c.clip();
   if (o.cleared) {
     // (NO SIGNAL over the color bars, snow over them)
@@ -696,9 +835,6 @@ const drawJumbotron = (c: Ctx, x: number, y: number, f: number, o: { replay: num
   // (scanlines)
   c.fillStyle = 'rgba(0, 0, 0, 0.18)'; for (let yy = y + 4; yy < y + 114; yy += 3) c.fillRect(x - 116, yy, 232, 1);
   c.restore();
-  box(c, x - 120, y + 114, 240, 16, '#18181B'); box(c, x - 120, y + 114, 240, 1, S[1]);
-  words(c, 'STEVE-O-VISION', x, y + 127, { sx: 1, sy: 1, fill: ['#FFF08A', '#FACC15'], gap: 1 });
-  for (let k = x - 116; k < x + 116; k += 8) box(c, k, y + 134, 5, 8, S[1]);
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -895,16 +1031,32 @@ export const drawRing = (c: Ctx, side: 1 | -1, front: boolean, lit3: boolean, f:
  *  fire when they go off (stepped tongues, a white core, the glow on the floor). */
 export const PYRO_X = Array.from({ length: Math.floor(ARENA_W / 130) }, (_, i) => ARENA_L + 65 + i * 130)
   .filter(px => Math.abs(px - MAT_X(-1)) > MAT_HW + 20 && Math.abs(px - MAT_X(1)) > MAT_HW + 20);
+/** A pyro jet's still parts (stamped): the floor plate it's set in (diamond plate, bolted at the corners, hazard paint
+ *  round its front), the nozzle's grille in slots lit along their lips, the armed lamp's housing, the cable going back. */
+const paintPyroJet = (g: Ctx) => {
+  const S = STEEL.map(c2 => hour(c2, 0.08));
+  // (the cable back to the board, taped down)
+  box(g, 12, -7, 10, 2, INK); box(g, 12, -7, 10, 1, '#3A3A44'); box(g, 16, -8, 3, 4, '#B8A060');
+  // (the plate: inked, lit along its back edge, diamond plate studs, a bolt at each corner)
+  box(g, -20, -6, 40, 13, INK); box(g, -19, -5, 38, 11, S[2]); box(g, -19, -5, 38, 1, S[4]); box(g, -19, 5, 38, 1, S[1]);
+  for (let k = -17; k < 18; k += 4) for (const yy of [-3, 1]) box(g, k + (yy > 0 ? 2 : 0), yy, 2, 1, (k / 4 + yy) % 2 ? S[4] : S[1]);
+  for (const [bx, by] of [[-18, -4], [16, -4], [-18, 3], [16, 3]]) { box(g, bx, by, 2, 2, S[0]); box(g, bx, by, 1, 1, S[5]); }
+  hazard(g, -19, 4, 38, 2, 0);
+  // (the nozzle: a raised steel box, its grille's slots, scorched round them)
+  box(g, -12, -5, 24, 9, INK); box(g, -11, -4, 22, 7, S[3]); box(g, -11, -4, 22, 1, S[5]); box(g, 9, -4, 2, 7, S[1]);
+  box(g, -10, -3, 20, 5, '#2A2220');
+  for (let k = -8; k <= 6; k += 4) { box(g, k, -2, 2, 4, '#0A0A0C'); box(g, k, 1, 2, 1, S[4]); }
+  // (the armed lamp's cage)
+  box(g, 8, -8, 5, 5, INK);
+};
 export const drawPyro = (c: Ctx, state: GameState, fire: Map<number, number>) => {
   const f = state.frame;
   for (const px of PYRO_X) {
     if (!inView(state, px - 40, px + 40)) continue;
     const y = GY + 30 * ZK;
     const t = fire.get(px) ?? 0;
-    box(c, px - 12, y - 4, 24, 8, INK); box(c, px - 11, y - 3, 22, 6, STEEL[2]); box(c, px - 11, y - 3, 22, 1, STEEL[4]);
-    for (let k = -8; k <= 6; k += 4) box(c, px + k, y - 2, 2, 4, '#141418');
-    hazard(c, px - 11, y + 2, 22, 2, px);
-    box(c, px + 8, y - 6, 3, 3, t > 0 ? '#FDE047' : (f >> 4) % 2 ? '#F02A2A' : '#7A1414');
+    stillH(c, 'pyro', px, y, -24, -10, 48, 20, paintPyroJet);
+    box(c, px + 9, y - 6, 3, 3, t > 0 ? '#FDE047' : (f >> 4) % 2 ? '#F02A2A' : '#7A1414');
     if (t <= 0) continue;
     const k = Math.min(1, t / 10), h = 180 * k + Math.sin(f * 0.7 + px) * 12;
     c.fillStyle = `rgba(252, 165, 38, ${(0.18 * k).toFixed(2)})`; c.beginPath(); c.ellipse(px, y, 60, 14, 0, 0, Math.PI * 2); c.fill();
