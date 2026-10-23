@@ -804,7 +804,7 @@ const debrisFloor = (f: Fight, x: number) => {
 };
 
 /** A part torn loose where she landed (kept clear of the others and the walls): one of the three unsafe areas. */
-const loosen = (ctx: FrameContext, f: Fight, kind: HazardKind) => {
+const loosen = (ctx: FrameContext, f: Fight, kind: HazardKind, quiet = false) => {
   const { state } = ctx;
   const ok = (x: number) => x > ARENA_L + 260 && x < ARENA_R - 260 && f.hazards.every(h => Math.abs(h.x - x) > 480);
   let x = f.x;
@@ -815,7 +815,8 @@ const loosen = (ctx: FrameContext, f: Fight, kind: HazardKind) => {
   if (kind === 'nitro') playSound('ice', 0.8, -6);
   if (kind === 'wires') { playSound('splash', 0.9, -4); playSound('taser', 0.6, 0); }
   for (let k = 0; k < 20; k++) state.particles.push({ pos: { x: x + (Math.random() - 0.5) * 60, y: CEIL_Y + 10 }, vel: { x: (Math.random() - 0.5) * 3, y: Math.random() * 3 }, life: 50, color: 'rgba(240, 230, 220, 0.85)', size: 3 + Math.random() * 5, grav: 0.2 });
-  hisLine(state, L.MH_LOOSE[kind]);
+  // (not over the pop's own lines)
+  if (!quiet) hisLine(state, L.MH_LOOSE[kind]);
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -1046,6 +1047,9 @@ const hole = (ctx: FrameContext, f: Fight) => {
   ctx.fx.spawnDamageNumber({ x: f.x - 20, y: f.y - PIPER_H - 30 }, 'POP!', true, '#F6E7A8');
   for (let k = 0; k < 24; k++) state.particles.push({ pos: { x: f.x, y: f.y - 90 }, vel: { x: (Math.random() - 0.5) * 9, y: -2 - Math.random() * 5 }, life: 40, color: k % 2 ? '#8B0000' : '#F6E7A8', size: 3 + Math.random() * 3, grav: 0.35 });
   if (f.holes.length >= HOLES_TO_DIE || f.hp <= 0) { die(ctx, f, true); return; }
+  // (the pop tears the next of the three loose right away (the user's: "popping pixie with the flintlock will enable one
+  // of the environmental hazards right away that isn't active. nothing if all 3 are active"))
+  if (f.hazards.length < LOOSE_ORDER.length) loosen(ctx, f, LOOSE_ORDER[f.hazards.length], true);
   // (whatever she was at, she's off: a let-go balloon)
   f.slamHit = true;
   setAct(f, 'bounce', BOUNCE_T + f.holes.length * BOUNCE_EACH);
