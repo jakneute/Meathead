@@ -36,8 +36,8 @@
 //   THE WEAKNESS  The CLAPPERBOARD: here each snap sends one stunt car that homes in on one of his TV family and
 //                 flattens it (wrecks and bodies stay put); the scene takes a while to reset before another
 //                 (RECHARGE: it can't be spammed in this fight; it's itself everywhere else). He's more baffled and fed up
-//                 with each, and each sets off his counter (a puke or the hammer). The last one's car comes on down onto
-//                 his couch and crushes it (only once they're all dead, the user's): he's up, pathetic, no couch, no
+//                 with each, and each sets off his counter (a puke or the hammer). Once they're all dead, the next car comes
+//                 down on his couch and crushes it (the user's: 1-4 the family, the 5th the couch, the 6th him): he's up, pathetic, no couch, no
 //                 counters, no puking, no hammer, and hardly any fight (double damage); then one more snap and the
 //                 last car comes down on HIM: the weakness death (a short slow-mo; flattened like a cartoon). No car
 //                 touches his health while any of the family's up (the user's); once they're all gone and the couch is
@@ -971,16 +971,18 @@ const smash = (state: GameState, x: number, y: number) => {
 // ---------------------------------------------------------------------------------------------------------------
 // The stunt cars (scripted: each homes in on its one)
 
-/** The nearest of the family to him (or him, once they're all gone). */
+/** The nearest of the family to him; once they're all gone, his couch; then him (the user's: "1-4 get the family
+ *  members, the 5th gets the couch, the 6th gets him"). */
 const launchCar = (state: GameState, f: Fight) => {
   const m = pmid(state), al = alive(f);
   const target: Member | 'dad' = al.length ? al.sort((a, b) => Math.abs(f.family[a].x - m.x) - Math.abs(f.family[b].x - m.x))[0] : 'dad';
-  const to = target === 'dad' ? { x: f.x, d: 1 } : { x: f.family[target].x, d: f.family[target].d };
+  const couch = target === 'dad' && !f.couch.crushed;
+  const to = couch ? { x: f.couch.x, d: 1 } : target === 'dad' ? { x: f.x, d: 1 } : { x: f.family[target].x, d: f.family[target].d };
   // (out of nowhere, up off a ramp nobody can see, from behind him)
   const ax = Math.max(ARENA.a - 420, Math.min(ARENA.b + 420, m.x - state.player.facing * 560));
   const dir = (to.x >= ax ? 1 : -1) as 1 | -1;
   const T = Math.max(34, Math.min(64, Math.abs(to.x - ax) / CAR_V));
-  f.cars.push({ t: 0, T, ax, ay: STAGE_Y - 250, bx: to.x, by: STAGE_Y - 10, bd: to.d, dir, paint: Math.floor(Math.random() * 8), wheel: 0, target, hop: false, couch: false });
+  f.cars.push({ t: 0, T, ax, ay: STAGE_Y - 250, bx: to.x, by: couch ? STAGE_Y - 30 : STAGE_Y - 10, bd: to.d, dir, paint: Math.floor(Math.random() * 8), wheel: 0, target, hop: false, couch });
   if (target === 'dad') { bark(f, state, L.DAD_SEES_CAR); }
 };
 /** Where a car is this frame: x, y (world), depth, its nose's angle. */
@@ -999,7 +1001,8 @@ const cars = (ctx: FrameContext, f: Fight) => {
     c.t++; c.wheel += 1.2;
     // (homing: on whoever it's for, wherever they've got to)
     if (!c.hop) {
-      if (c.target === 'dad') c.bx = f.x;
+      if (c.couch) c.bx = f.couch.x;
+      else if (c.target === 'dad') c.bx = f.x;
       else { const m = f.family[c.target]; c.bx = m.x; c.bd = m.d; }
     }
     if (c.t % 2 === 0) { const at = carAt(c), E = eyeOf(state), p = proj(E, X(at.x) - c.dir * 50, at.y, at.d); state.particles.push({ pos: p, vel: { x: -c.dir, y: -0.4 }, life: 16, color: 'rgba(120, 113, 108, 0.5)', size: 4 + Math.random() * 3 }); }
@@ -1012,13 +1015,6 @@ const cars = (ctx: FrameContext, f: Fight) => {
     m.alive = false;
     f.flung.push({ x: X(c.bx), y: STAGE_Y - 60, d: c.bd, vx: c.dir * 1.2, vy: -6, t: 0, dir: c.dir, seed: f.kills + 3, stuck: false });
     onKill(ctx, f, who);
-    // (the last one: on it goes, a hop off the wreck, down onto his couch (the user's: "the couch should only get
-    // destroyed when all the family members are dead"))
-    if (f.kills === MEMBERS.length && !f.couch.crushed) {
-      f.couch.vx = 0;
-      c.hop = true; c.couch = true; c.t = 0; c.T = 30; c.ax = c.bx; c.ay = STAGE_Y - 30; c.bx = f.couch.x; c.by = STAGE_Y - 30; c.bd = 1;
-      continue;
-    }
     f.wrecks.push({ x: c.bx, d: c.bd, dir: c.dir, paint: c.paint, t: 0, onCouch: false });
     c.t = -1;
   }
@@ -1044,13 +1040,12 @@ const onKill = (ctx: FrameContext, f: Fight, who: Member) => {
   if (Math.random() < 0.6) meathead(state, L.MH_KILL);
   // (whatever he was at, he stops; the puke's cut off; the couch slides on by itself)
   const n = f.kills;
-  // (the last: his couch is next (crushCouch has his words))
-  if (n === MEMBERS.length) { setAct(f, 'baffled'); return; }
-  dadSays(f, state, L.DAD_KILL[Math.min(2, n - 1)]);
+  // (1, 2, 3, then that's everybody (the couch's line is crushCouch's))
+  dadSays(f, state, L.DAD_KILL[n >= MEMBERS.length ? 4 : Math.min(2, n - 1)]);
   setAct(f, 'baffled');
 };
 
-/** The last car (the family's last) comes down on the couch: it's crushed, he's thrown off it, up for good and pathetic. */
+/** The car after the family's last (the 5th) comes down on the couch: it's crushed, he's thrown off it, up for good and pathetic. */
 const crushCouch = (ctx: FrameContext, f: Fight, c: Car) => {
   const { state } = ctx, m = pmid(state);
   const cc = f.couch;
@@ -1063,7 +1058,7 @@ const crushCouch = (ctx: FrameContext, f: Fight, c: Car) => {
   f.vy = -9; f.y = 1;
   if (f.errand) f.errand.step = 'back';
   setAct(f, 'thrown');
-  dadSays(f, state, L.DAD_KILL[3], () => dadSays(f, state, L.DAD_KILL[4], () => meathead(state, L.MH_COUCH, true)));
+  dadSays(f, state, L.DAD_KILL[3], () => meathead(state, L.MH_COUCH, true));
 };
 
 // ---------------------------------------------------------------------------------------------------------------

@@ -286,8 +286,8 @@ export const DAD_HURT: ByPants = {
   shitty: ['DON\'T TOUCH ME WITH THOSE HANDS!', 'OW! YOU GOT YOUR SHIT ON MY BEER SHIRT!', 'WATCH THE THROAT! THAT VOICE PAYS MY BAR TAB!'],
   nude: ["OW! DON'T HIT ME WITH YOUR BALLS OUT!", 'OW! SOMETHING SLAPPED ME. I HOPE IT WAS A HAND.', 'NOT THE THROAT, YOU NAKED FREAK! I NEED THAT!'],
 };
-/** A family member flattened by a stunt car: more baffled, more fed up, every time (by how many: 1, 2, 3; then the last
- *  one's car on his couch: the couch, then that's everybody). */
+/** A family member flattened by a stunt car: more baffled, more fed up, every time (by index: kills 1, 2, 3; the couch
+ *  (the 5th car, crushCouch); 4, that's everybody). */
 export const DAD_KILL: ByPants[] = [
   {
     clean: ['WHAT THE HELL? WHERE\'D THAT CAR COME FROM?', 'WHO THE HELL PARKED ON MY FAMILY?'],
