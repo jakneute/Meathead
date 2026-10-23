@@ -56,3 +56,15 @@ export const sceneEye = (state: GameState, t: Tragons): Eye => {
 export const at = (e: Eye, x: number, y: number, d: number): [number, number] => [e.x + (x - e.x) * d, e.y + (y - e.y) * d];
 /** The ground's y at depth d (it rises toward the eye's height going back). */
 export const groundAt = (e: Eye, d: number) => e.y + (GY - e.y) * d;
+
+/** Draws `fn` with the world's offset snapped to whole device pixels (the scale kept, as Future Land's square does:
+ *  space/square/paint.ts snapPx). The lawns' and paths' dither is a checker pattern anchored to the world, and the
+ *  halls and props are stamps: put down between pixels at a fractional camera, the checker was resampled to a new
+ *  phase every frame and the stamps blended across two pixels, so the ground flickered like an animating checkerboard
+ *  as he walked. On whole pixels a step of the camera moves the lot along unchanged. */
+export const snapPx = (c: CanvasRenderingContext2D, fn: () => void) => {
+  const m = c.getTransform();
+  if (m.b !== 0 || m.c !== 0) { fn(); return; }
+  c.save(); c.setTransform(m.a, 0, 0, m.d, Math.round(m.e), Math.round(m.f));
+  try { fn(); } finally { c.restore(); }
+};

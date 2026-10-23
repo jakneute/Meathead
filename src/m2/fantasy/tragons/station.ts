@@ -20,7 +20,7 @@
 // The still parts (the back walls, the crowd, the booth) are painted once per hour into stamps.
 
 import type { GameState } from '../../../m1/game/core/state';
-import { signText, signW } from '../../signLetters';
+import { signText } from '../../signLetters';
 import { paintedOn } from '../kit';
 import {
   INK, mix, box, hash, checker, ramp6, rampH, dimmed, warmGlass, lit, polyF, ballR, postR, slab, gilt, storySign, sideBack,
@@ -34,12 +34,13 @@ import { inView, scrollOf, at } from './scene';
 import { guest, rails, lampPost, type GPose } from './scenery';
 import type { Eye } from './track';
 import { banded } from './cache';
+import { paintLogo } from './logo';
 import { timeOfDay } from '../../timeOfDay';
 
 /** How far back the halls' back walls stand; how tall they are; the canopy's height. */
 const HALL_D = 0.84, WALL_H = 600, ROOF_H = 640;
 /** The heads' height on the wall (from its top), under the canopy where they're seen. */
-const HEAD_Y = 140;
+const HEAD_Y = 176;
 const D = (col: string) => rampH(ramp6(col), true);
 /** Still art for the hour (and the sign font's arrival), cached at a whole device scale (cache.ts: the ride's zoom never
  *  repaints it). */
@@ -106,13 +107,10 @@ const paintWall = (g: Ctx, w: number, heads: boolean) => {
     box(g, tx - 40, -WALL_H - 84, 80, 4, Gd[3]); box(g, tx, -WALL_H - 186, 1, 18, I[3]); polyF(g, [[tx + 1, -WALL_H - 186], [tx + 16, -WALL_H - 182], [tx + 1, -WALL_H - 178]], D('#F49AC8')[3]);
   }
   if (!heads) return;
-  // (the three dragon heads over the hall, the gilt name on its board over them)
+  // (the three dragon heads over the hall, the ride's crest over them: logo.ts, stood off the wall on iron brackets)
   const mid = w * 0.5;
   for (const [ox, col, kind] of [[-230, '#C42828', 'fire'], [0, '#3A9AD8', 'ice'], [230, '#E0B020', 'bolt']] as const) { g.save(); g.translate(mid + ox - 20, -WALL_H + HEAD_Y); g.scale(1.2, 1.2); paintHead(g, col, kind); g.restore(); }
-  const sy = -WALL_H + 40;
-  box(g, mid - 236, sy - 26, 472, 52, INK); box(g, mid - 234, sy - 24, 468, 48, D('#3B0764')[3]); box(g, mid - 234, sy - 24, 468, 3, Gd[4]); box(g, mid - 234, sy + 21, 468, 3, Gd[2]);
-  for (const x of [mid - 226, mid + 226]) ballR(g, x, sy, 3, Gd);
-  signText(g, 'TRUELLING TRAGONS', mid, sy + 9, gilt(3));
+  paintLogo(g, mid, -WALL_H + 62, { dim: true, wall: true, glow: lit() });
 };
 
 /** The platform's flagstones going back from the play plane to the wall (x0..x1 at the ground). */
@@ -247,27 +245,16 @@ export const drawStationNear = (c: Ctx, state: GameState, t: Tragons) => {
 
 // ---------------------------------------------------------------------------------------------------------------
 // The marquee: hung on chains from the canopy over the platform, low enough to be read whole as he comes in (under the
-// HUD band, left of the dragons): a gilt-framed velvet board, the full name big in gilt, its tag line, a gothic crest
-// with the ICE dragon's head in a roundel, the FIRE and LIGHTNING heads off its ends, the three tracks' pennants under
-// it, a chase of bulbs round the frame (live). Not to stand on: no lit top (a crest, dark).
+// HUD band, left of the dragons): a gilt-framed velvet board, the ride's crest on it whole (logo.ts: the name, the
+// three dragons at each other), its tag line, the FIRE and LIGHTNING heads off its ends, a chase of bulbs round the
+// frame (live). Not to stand on: no lit top.
 
-const MQ_TOP = -392, MQ_BOT = -288;
-const mqW = () => Math.max(560, signW('TRUELLING TRAGONS', gilt(3)) + 120);
+const MQ_TOP = -404, MQ_BOT = -234;
+const mqW = () => 560;
 const paintMarquee = (g: Ctx, w: number) => {
-  const Gd = GOLD, I = IRON, V = D('#4A1478'), Vd = D('#24083C'), h = MQ_BOT - MQ_TOP, x0 = -w / 2;
+  const Gd = GOLD, I = IRON, V = D('#4A1478'), h = MQ_BOT - MQ_TOP, x0 = -w / 2;
   // (the chains up into the canopy)
   for (const cx of [x0 + 60, -x0 - 60]) for (let y = MQ_TOP - 300; y < MQ_TOP; y += 8) { box(g, cx - 2, y, 4, 6, INK); box(g, cx - 1, y + 1, 2, 4, Math.floor(y / 8) & 1 ? I[3] : I[4]); }
-  // (the crest: a gothic gable over the middle, the roundel in it; dark slate, gilt edged, not a ledge)
-  polyF(g, [[-150, MQ_TOP + 2], [-60, MQ_TOP - 40], [0, MQ_TOP - 76], [60, MQ_TOP - 40], [150, MQ_TOP + 2]], INK);
-  polyF(g, [[-144, MQ_TOP + 1], [-58, MQ_TOP - 37], [0, MQ_TOP - 71], [58, MQ_TOP - 37], [144, MQ_TOP + 1]], Vd[2]);
-  polyF(g, [[-144, MQ_TOP + 1], [-58, MQ_TOP - 37], [0, MQ_TOP - 71], [-6, MQ_TOP + 1]], Vd[3]);
-  for (const s of [-1, 1]) { g.strokeStyle = Gd[3]; g.lineWidth = 2; g.beginPath(); g.moveTo(s * 144, MQ_TOP); g.lineTo(s * 58, MQ_TOP - 37); g.lineTo(0, MQ_TOP - 71); g.stroke(); }
-  ballR(g, 0, MQ_TOP - 80, 6, Gd);
-  g.fillStyle = INK; g.beginPath(); g.arc(0, MQ_TOP - 26, 34, 0, Math.PI * 2); g.fill();
-  g.fillStyle = Gd[3]; g.beginPath(); g.arc(0, MQ_TOP - 26, 32, 0, Math.PI * 2); g.fill();
-  g.fillStyle = D('#1E3A6E')[2]; g.beginPath(); g.arc(0, MQ_TOP - 26, 27, 0, Math.PI * 2); g.fill();
-  g.fillStyle = D('#1E3A6E')[3]; g.beginPath(); g.arc(-4, MQ_TOP - 30, 18, 0, Math.PI * 2); g.fill();
-  g.save(); g.translate(-8, MQ_TOP - 24); g.scale(0.5, 0.5); paintHead(g, '#3A9AD8', 'ice'); g.restore();
   // (the board: an ink edge, a gilt frame in steps, the velvet field, its nap banded, rivets)
   box(g, x0 - 3, MQ_TOP - 3, w + 6, h + 6, INK);
   box(g, x0 - 2, MQ_TOP - 2, w + 4, h + 4, Gd[1]); box(g, x0, MQ_TOP, w, h, Gd[3]); box(g, x0, MQ_TOP, w, 2, Gd[5]); box(g, x0, MQ_BOT - 2, w, 2, Gd[1]);
@@ -275,18 +262,9 @@ const paintMarquee = (g: Ctx, w: number) => {
   for (let y = MQ_TOP + 10; y < MQ_BOT - 10; y += 6) box(g, x0 + 8, y, w - 16, 2, V[(y / 6) % 2 ? 3 : 2]);
   box(g, x0 + 8, MQ_TOP + 8, w - 16, 3, V[4]); box(g, x0 + 8, MQ_BOT - 12, w - 16, 4, V[1]);
   for (let x = x0 + 14; x < -x0 - 10; x += 32) { box(g, x, MQ_TOP + 3, 2, 2, Gd[5]); box(g, x, MQ_BOT - 5, 2, 2, Gd[0]); }
-  // (the name, big and whole, and its tag line)
-  signText(g, 'TRUELLING TRAGONS', 0, MQ_TOP + 52, gilt(3));
-  signText(g, 'THREE DRAGONS. THREE TRACKS. NO SEATS.', 0, MQ_TOP + 82, gilt(1));
-  // (the pennants of the three tracks under it, in their colors)
-  ([[-160, '#E2B21E', '#6D28D9'], [0, '#C42828', '#F97316'], [160, '#3A8ED8', '#F0F9FF']] as const).forEach(([px, col, trim]) => {
-    const P = D(col);
-    polyF(g, [[px - 22, MQ_BOT + 2], [px + 22, MQ_BOT + 2], [px + 22, MQ_BOT + 34], [px, MQ_BOT + 48], [px - 22, MQ_BOT + 34]], INK);
-    polyF(g, [[px - 20, MQ_BOT + 3], [px + 20, MQ_BOT + 3], [px + 20, MQ_BOT + 33], [px, MQ_BOT + 45], [px - 20, MQ_BOT + 33]], P[3]);
-    polyF(g, [[px - 20, MQ_BOT + 3], [px - 12, MQ_BOT + 3], [px - 12, MQ_BOT + 39], [px - 20, MQ_BOT + 33]], P[4]);
-    box(g, px - 20, MQ_BOT + 3, 40, 3, D(trim)[3]);
-    ballR(g, px, MQ_BOT + 20, 5, Gd);
-  });
+  // (the ride's crest on it, whole (logo.ts), and its tag line under)
+  paintLogo(g, 0, MQ_TOP + 80, { glow: lit() });
+  signText(g, 'THREE DRAGONS. THREE TRACKS. NO SEATS.', 0, MQ_BOT - 13, gilt(1));
   // (the FIRE head off the left end facing out, the LIGHTNING head off the right)
   g.save(); g.translate(x0 - 14, MQ_TOP + h / 2); g.scale(-1.3, 1.3); paintHead(g, '#C42828', 'fire'); g.restore();
   g.save(); g.translate(-x0 + 14, MQ_TOP + h / 2); g.scale(1.3, 1.3); paintHead(g, '#E0B020', 'bolt'); g.restore();

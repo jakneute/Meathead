@@ -23,18 +23,19 @@
 //                    (ribs on a spine; the skull, its jaw open, THE PRICE TAG STILL ON); foam gold heaped round a chest;
 //                    the back wall he goes over; ledges on iron brackets
 //   THE QUEUE        TRUELLING TRAGONS' front (castle stone, turrets, banners, arrow slits lit, the three dragon heads
-//                    (fire, ice, lightning) breathing (live), the name in gilt, the door's dark arch, the PA horn), its
-//                    three tracks swooping over it with their loops and a train on them; the queue's rails and the
-//                    crowd in it
+//                    (fire, ice, lightning) breathing (live), the ride's crest over them (tragons/logo.ts), the
+//                    door's dark arch, the PA horn), its three tracks swooping over it with their loops and a
+//                    train on them; the queue's rails and the crowd in it
 
 import type { GameState } from '../../../m1/game/core/state';
 import type { Light } from '../../../m1/game/render/lighting';
 import { timeOfDay, skyAt } from '../../timeOfDay';
 import { signText } from '../../signLetters';
+import { paintLogo, logoStuds } from '../tragons/logo';
 import { paintedOn } from '../kit';
 import { hazeBands, pixelBlob } from '../../intro/art/kit';
 import {
-  type Ctx, type View, INK, box, mix, hash, checker, onScreen, gilt, at, still, stillAt, seen, polyF, sideBack, topBack, slab, postR, ballR,
+  type Ctx, type View, INK, box, mix, hash, checker, onScreen, at, still, stillAt, seen, polyF, sideBack, topBack, slab, postR, ballR,
   STONE, IRON, GOLD, SLATE, TIMBER, LIP, ramp6, rampH, dimmed, lit, warmGlass,
 } from '../kit';
 import { GY } from '../geometry';
@@ -750,8 +751,8 @@ const drawCrowd = (c: Ctx, v: View) => {
 };
 const HEADS: [number, string, 'fire' | 'ice' | 'bolt'][] = [[-150, '#C42828', 'fire'], [0, '#3A9AD8', 'ice'], [150, '#E0B020', 'bolt']];
 /** The facade's middle (the marquee's, the heads'): left of the door, so the whole of it's in the picture at the glen's
- *  end (the camera stops at X(14000)); the marquee's width and its middle's height; the heads' height (off the ground). */
-const FACADE_C = 13780, MQ_W = 426, MQ_Y = -352, HEAD_Y = -252;
+ *  end (the camera stops at X(14000)); the banners' height, the crest's middle (tragons/logo.ts); the heads' height. */
+const FACADE_C = 13780, MQ_Y = -352, LOGO_Y = -362, HEAD_Y = -252;
 export const paintHead = (g: Ctx, col: string, kind: 'fire' | 'ice' | 'bolt') => {
   const R = D(col), Hn = D('#F2EAD0'), M = D('#2A1A1A');
   // (a sculpted dragon's head out over the door, facing right: its snout, a jaw open, horns back, the brow, scales)
@@ -830,37 +831,19 @@ const drawRide = (c: Ctx, state: GameState, v: View) => {
     // (the PA horn over the door: Piper calls trial two out of it)
     polyF(g, [[d + 4, -182], [d + 38, -200], [d + 38, -162]], INK); polyF(g, [[d + 6, -182], [d + 36, -197], [d + 36, -165]], rampH(ramp6('#F472B6'), true)[3]); polyF(g, [[d + 6, -182], [d + 36, -197], [d + 36, -190]], rampH(ramp6('#F472B6'), true)[5]);
     box(g, d - 2, -188, 8, 12, Ir[2]);
-    // THE MARQUEE (the user's: the full title readable as he comes up): kept inside what the camera shows at the end of
-    // the glen (its right edge is the glen's: X(14000)), under the HUD band: a crest over it with the three tracks'
-    // pennants, a gilt frame in steps, the velvet field, the full name big in gilt, its tag line; the bulbs round it
-    // live (below)
-    const Vt = rampH(ramp6('#4A1478'), true), mw = MQ_W, x0 = C - mw / 2, y0 = MQ_Y - 30, h = 60;
-    polyF(g, [[C - 120, y0 + 2], [C - 50, y0 - 30], [C, y0 - 58], [C + 50, y0 - 30], [C + 120, y0 + 2]], INK);
-    polyF(g, [[C - 114, y0 + 1], [C - 48, y0 - 27], [C, y0 - 53], [C + 48, y0 - 27], [C + 114, y0 + 1]], rampH(ramp6('#24083C'), true)[2]);
-    polyF(g, [[C - 114, y0 + 1], [C - 48, y0 - 27], [C, y0 - 53], [C - 4, y0 + 1]], rampH(ramp6('#24083C'), true)[3]);
-    for (const s of [-1, 1]) { g.strokeStyle = Gd[3]; g.lineWidth = 2; g.beginPath(); g.moveTo(s * 114 + C, y0); g.lineTo(s * 48 + C, y0 - 27); g.lineTo(C, y0 - 53); g.stroke(); }
-    ballR(g, C, y0 - 60, 5, Gd);
-    // (the crest's emblem: three dragons' eyes in a gilt roundel, red, blue and gold)
-    g.fillStyle = INK; g.beginPath(); g.arc(C, y0 - 20, 17, 0, Math.PI * 2); g.fill(); g.fillStyle = Gd[3]; g.beginPath(); g.arc(C, y0 - 20, 15, 0, Math.PI * 2); g.fill();
-    g.fillStyle = '#1A1028'; g.beginPath(); g.arc(C, y0 - 20, 11, 0, Math.PI * 2); g.fill();
-    ([[-5, -23, '#DC2626'], [5, -23, '#38BDF8'], [0, -15, '#FACC15']] as const).forEach(([ex, ey, col]) => { box(g, C + ex - 2, y0 + ey - 1, 4, 3, col); box(g, C + ex - 1, y0 + ey - 1, 1, 1, '#FFFFFF'); });
-    ([[-90, '#C42828'], [0, '#3A8ED8'], [90, '#E2B21E']] as const).forEach(([px, col], i) => { const P = rampH(ramp6(col), true), py = y0 - (i === 1 ? 70 : 34); box(g, C + px, py - 18, 1, 18, Ir[3]); polyF(g, [[C + px + 1, py - 18], [C + px + 14, py - 14], [C + px + 1, py - 10]], P[3]); });
-    box(g, x0 - 3, y0 - 3, mw + 6, h + 6, INK);
-    box(g, x0 - 2, y0 - 2, mw + 4, h + 4, Gd[1]); box(g, x0, y0, mw, h, Gd[3]); box(g, x0, y0, mw, 2, Gd[5]); box(g, x0, y0 + h - 2, mw, 2, Gd[1]);
-    box(g, x0 + 6, y0 + 6, mw - 12, h - 12, INK); box(g, x0 + 7, y0 + 7, mw - 14, h - 14, Vt[2]);
-    for (let y = y0 + 9; y < y0 + h - 9; y += 6) box(g, x0 + 7, y, mw - 14, 2, Vt[((y - y0) / 6) % 2 ? 3 : 2]);
-    box(g, x0 + 7, y0 + 7, mw - 14, 3, Vt[4]); box(g, x0 + 7, y0 + h - 11, mw - 14, 4, Vt[1]);
-    signText(g, 'TRUELLING TRAGONS', C, y0 + 36, gilt(3));
-    signText(g, 'THREE DRAGONS. ONE SURVIVOR.', C, y0 + 50, gilt(1));
-    // (the three dragon heads, sculpted big, out over the way in under the marquee)
+    // (the three dragon heads, sculpted big, out over the way in)
     for (const [ox, col, kind] of HEADS) { g.save(); g.translate(C + ox, HEAD_Y); g.scale(1.4, 1.4); paintHead(g, col, kind); g.restore(); }
+    // THE NAME (the user's: the full title readable as he comes up): the ride's crest (tragons/logo.ts), stood off the
+    // facade on iron brackets over the heads, kept inside what the camera shows at the end of the glen (its right edge
+    // is the glen's: X(14000)), under the HUD band; bulbs in its rim's studs (live, below)
+    paintLogo(g, C, LOGO_Y, { dim: true, wall: true, glow: lit() });
   });
-  // (the marquee's bulbs, live: chasing round it, brighter after dark)
+  // (the crest's bulbs, live: in the studs round its rim, chasing, brighter after dark)
   const f = state.frame, C = X(FACADE_C), on = lit();
-  for (let k = 0, n = Math.floor(MQ_W / 18); k <= n; k++) {
-    const hot = (k + (f >> 3)) % 3 === 0, col = hot ? (on ? '#FFF8D8' : '#FFE9A8') : on ? '#F0A83E' : '#B08848', bx = C - MQ_W / 2 + (k * MQ_W) / n;
-    box(c, bx - 1.5, GY + MQ_Y - 35, 3, 3, col); box(c, bx - 1.5, GY + MQ_Y + 32, 3, 3, col);
-  }
+  logoStuds().forEach(([sx, sy], k) => {
+    const hot = (k + (f >> 3)) % 3 === 0, col = hot ? (on ? '#FFF8D8' : '#FFE9A8') : on ? '#F0A83E' : '#B08848';
+    box(c, Math.round(C) + sx - 1, GY + LOGO_Y + sy - 1, 3, 3, col);
+  });
   // (their breath (live): fire flickering, ice glittering, lightning sparking)
   for (const [ox, , kind] of HEADS) {
     const mx = C + ox + 80, my = GY + HEAD_Y + 11;

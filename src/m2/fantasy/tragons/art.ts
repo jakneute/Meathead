@@ -28,7 +28,7 @@ import { trackPt, proj, type Eye, type Pt } from './track';
 import { roofSpan } from './cars';
 import { tragonsOf, type Tragons, type Obst, type Train, type Car } from './state';
 import { toScreen, hisTrainD, UNLOAD_SPOTS, FRAME_TOP, FRAME_BOT } from './ride';
-import { viewBox, boxIn, sceneEye, fog } from './scene';
+import { viewBox, boxIn, sceneEye, fog, snapPx } from './scene';
 import { paintCar } from './dragon';
 import { drawSteel, RAIL } from './steel';
 import { drawFloor, drawMountain, sceneryItems } from './scenery';
@@ -425,7 +425,9 @@ const items = (c: Ctx, state: GameState, t: Tragons): { back: Item[]; front: Ite
   return sorted;
 };
 
-export const drawTragonsBack = (c: Ctx, state: GameState) => {
+// (both layers on whole device pixels: scene.ts snapPx, the ground's dither stops flickering as the camera moves)
+export const drawTragonsBack = (c: Ctx, state: GameState) => snapPx(c, () => drawBackLayer(c, state));
+const drawBackLayer = (c: Ctx, state: GameState) => {
   const t = tragonsOf(state);
   sorted = null;
   const it = items(c, state, t), e = it.e;
@@ -440,10 +442,10 @@ export const drawTragonsBack = (c: Ctx, state: GameState) => {
   for (const x of it.back) x.draw();
 };
 
-export const drawTragonsFront = (c: Ctx, state: GameState) => {
+export const drawTragonsFront = (c: Ctx, state: GameState) => snapPx(c, () => {
   const t = tragonsOf(state);
   for (const x of items(c, state, t).front) x.draw();
-};
+});
 
 // ---------------------------------------------------------------------------------------------------------------
 // Screen space: the dark in the mountain, the warnings, the PA, the suitors' words
