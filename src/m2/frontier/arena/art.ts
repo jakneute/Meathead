@@ -17,10 +17,10 @@ import { bendFloor } from '../../intro/art/kit';
 import { drawWoodsFar } from '../woods/far';
 import {
   type Ctx, type View, type TreeKind, box, checker, mix, hash, bands, hr, INK, timeOfDay, skyAt, viewOf, at, atDepth, seen,
-  paintTree, treeBox, bush, clump, pine, poly, pixelBlob, leafAt, firOf, printed, FAR,
+  paintTree, treeBox, bush, clump, pine, poly, pixelBlob, leafAt, firOf, printed, FAR, ASPEN, SNAG,
   DIRT, DUFF, LIP, GOLD, BROWN, GRANITE, BARK, NEEDLE, MOSS, GRASS, RINGS, STEEL, OAK,
 } from '../woods/paint';
-import { still as put, fern, rampOf } from '../wilds/paint';
+import { still as put, fern, rampOf, extrude } from '../wilds/paint';
 import { onScreen } from '../kit';
 import { drawBough, drawTuckerCap } from '../tucker';
 import { drawDirtBike } from '../woods/teens';
@@ -121,32 +121,63 @@ const paintBackRank = (g: Ctx) => {
   const dim = (R: string[], k = 0.3) => R.map(col => mix(mix(col, '#1A2430', 0.14), haze, k));
   const N = dim(hr('needle', NEEDLE, 0.4)), B = dim(hr('bark', BARK, 0.4));
   const fir = firOf(N), spr = N.map(col => mix(col, '#2A4A5A', 0.2)), Au = dim(hr('gold', GOLD, 0.4), 0.26), Ru = dim(hr('russet', RUSSET, 0.4), 0.3);
-  // (the deep ones behind: a ragged crest, darker)
-  const back = N.map(col => mix(col, '#0A1410', 0.35));
+  // (the deep ones behind: a ragged crest of real firs, darker and flatter in the haze (low contrast, the same tiers))
+  const back = N.map(col => mix(col, '#0A1410', 0.35)), backFar = back.map((col, i) => mix(col, back[Math.min(3, Math.max(1, i))], 0.55)), backB = B.map(col => mix(col, '#0A1410', 0.45));
   for (let i = 0; i < 18; i++) {
     const x = i * 36 + hash(i * 1.3 + 9) * 20, h = 210 + hash(i * 2.7 + 9) * 120;
-    for (const xx of [x, x - TW, x + TW]) if (xx > -80 && xx < TW + 80) {
-      g.fillStyle = back[1]; g.beginPath(); g.moveTo(xx, -h); g.lineTo(xx + h * 0.16, -20); g.lineTo(xx - h * 0.16, -20); g.closePath(); g.fill();
-      g.fillStyle = back[2]; g.beginPath(); g.moveTo(xx, -h); g.lineTo(xx - h * 0.16, -20); g.lineTo(xx - h * 0.05, -20); g.closePath(); g.fill();
-    }
+    for (const xx of [x, x - TW, x + TW]) if (xx > -80 && xx < TW + 80) pine(g, xx, -20, h - 20, (h - 20) * 0.3, i * 23 + 101, backFar, backB);
   }
-  box(g, -80, -40, TW + 160, 40, back[1]);
+  // (their feet: the deep shade under them, banded down, dithered up into the boughs)
+  bands(g, -80, -40, TW + 160, 40, [back[2], back[1], back[1], back[0]]);
+  checker(g, -80, -42, TW + 160, 2, back[2], 0, 1); checker(g, -80, -26, TW + 160, 2, back[1], 1, 1);
   // (the rank: firs, spruce, an aspen stand gone gold, a scrub oak gone russet, a snag)
+  const A = dim(ASPEN, 0.3), S = dim(SNAG), Rg = dim(hr('rings', RINGS, 0.4));
   const kinds: ('fir' | 'spruce' | 'aspen' | 'snag' | 'oak')[] = ['spruce', 'fir', 'aspen', 'fir', 'spruce', 'oak', 'fir', 'snag', 'spruce', 'fir', 'aspen', 'spruce'];
   for (let i = 0; i < kinds.length; i++) {
     const x = 26 + i * (TW / kinds.length) + hash(i * 4.4 + 2) * 30, h = 180 + hash(i * 3.9 + 2) * 110, k = kinds[i];
     for (const xx of [x, x - TW, x + TW]) {
       if (xx < -120 || xx > TW + 120) continue;
       if (k === 'fir' || k === 'spruce') pine(g, xx, 0, h, h * (k === 'fir' ? 0.36 : 0.3), i * 17 + 3, k === 'fir' ? fir : spr, B);
-      else if (k === 'aspen') { const th = h * 0.7; box(g, xx - 3, -th, 6, th, INK); box(g, xx - 2, -th, 4, th, mix('#D8D4C8', haze, 0.3)); for (let e = 0; e < 7; e++) box(g, xx - 2 + (e % 2) * 2, -th + 8 + e * th / 8, 2, 1, mix('#2A2620', haze, 0.3)); clump(g, xx, -th - 6, 30, 26, i * 7, Au, 0); clump(g, xx - 16, -th + 14, 18, 14, i * 7 + 3, Au, 1); }
-      else if (k === 'oak') { const th = h * 0.45; box(g, xx - 4, -th, 8, th, INK); box(g, xx - 3, -th, 6, th, B[3]); box(g, xx - 3, -th, 2, th, B[5]); clump(g, xx, -th - 20, 44, 30, i * 9, Ru, 1); clump(g, xx + 10, -th - 4, 30, 20, i * 9 + 4, Ru, 0); }
-      else { const sh = h * 0.6, S = dim(['#2A2824', '#4A4640', '#6E6860', '#8E887E', '#B0AAA0', '#D0CAC0']); box(g, xx - 4, -sh, 8, sh, INK); box(g, xx - 3, -sh, 6, sh, S[3]); box(g, xx - 3, -sh, 2, sh, S[5]); for (let e = 0; e < 5; e++) box(g, e % 2 ? xx + 3 : xx - 11, -sh * 0.85 + e * sh * 0.14, 8, 2, S[2]); }
+      else if (k === 'aspen') {
+        // (a clump of three chalky trunks, lit left, black eyes in the bark, a round gold crown each)
+        for (const [ox, sc] of [[-9, 0.82], [8, 0.74], [0, 1]] as const) {
+          const th = h * 0.7 * sc, tx = xx + ox;
+          box(g, tx - 3, -th, 7, th, INK); box(g, tx - 2, -th, 5, th, A[4]); box(g, tx - 2, -th, 1, th, A[6]); box(g, tx + 2, -th, 1, th, A[2]);
+          checker(g, tx + 1, -th, 1, th, A[3], 0, 1);
+          for (let e = 0; e < 7; e++) { const ey = -th + 8 + e * th / 8; box(g, tx - 2 + (e % 2) * 2, ey, 2, 1, A[0]); box(g, tx - 1 + (e % 2) * 2, ey + 1, 1, 1, A[1]); }
+          clump(g, tx, -th - 6, 26 * sc + 4, 22 * sc + 4, i * 7 + ox, Au, ox > 0 ? 1 : 0);
+        }
+        clump(g, xx - 16, -h * 0.5, 18, 14, i * 7 + 3, Au, 1);
+      } else if (k === 'oak') {
+        // (a scrub oak: a short forked trunk, stepped across, its plates; a russet crown in lobes)
+        const th = h * 0.45;
+        box(g, xx - 5, -th, 10, th, INK); box(g, xx - 4, -th, 8, th, B[3]); box(g, xx - 4, -th, 2, th, B[5]); box(g, xx + 2, -th, 2, th, B[1]);
+        for (let y = -th + 6; y < -4; y += 7) { box(g, xx - 2 + ((y * 3) & 3), y, 1, 4, B[1]); box(g, xx - 3 + ((y * 3) & 3), y, 1, 4, B[4]); }
+        g.strokeStyle = INK; g.lineWidth = 5; g.beginPath(); g.moveTo(xx, -th + 4); g.lineTo(xx - 16, -th - 18); g.moveTo(xx, -th + 4); g.lineTo(xx + 14, -th - 14); g.stroke();
+        g.strokeStyle = B[3]; g.lineWidth = 3; g.stroke();
+        clump(g, xx - 4, -th - 24, 44, 30, i * 9, Ru, 1); clump(g, xx + 12, -th - 6, 30, 20, i * 9 + 4, Ru, 0); clump(g, xx - 18, -th - 4, 22, 16, i * 9 + 6, Ru, 0);
+      } else {
+        // (a snag: silver deadwood, its top snapped in a jag, limb stubs, a woodpecker's holes)
+        const sh = h * 0.6;
+        box(g, xx - 5, -sh, 10, sh, INK); box(g, xx - 4, -sh, 8, sh, S[3]); box(g, xx - 4, -sh, 2, sh, S[5]); box(g, xx + 2, -sh, 2, sh, S[1]);
+        for (let y = -sh + 8; y < -4; y += 7) box(g, xx - 2 + ((y * 3) & 3), y, 1, 4, S[2]);
+        g.fillStyle = INK; g.beginPath(); g.moveTo(xx - 5, -sh); g.lineTo(xx - 2, -sh - 14); g.lineTo(xx + 1, -sh - 5); g.lineTo(xx + 5, -sh - 18); g.lineTo(xx + 5, -sh); g.closePath(); g.fill();
+        g.fillStyle = S[2]; g.beginPath(); g.moveTo(xx - 3, -sh); g.lineTo(xx - 2, -sh - 10); g.lineTo(xx + 1, -sh - 2); g.lineTo(xx + 3, -sh - 13); g.lineTo(xx + 3, -sh); g.closePath(); g.fill();
+        for (let e = 0; e < 5; e++) { const ey = -sh * 0.85 + e * sh * 0.14, r = e % 2; box(g, r ? xx + 4 : xx - 12, ey, 8, 3, INK); box(g, r ? xx + 4 : xx - 11, ey + 1, 7, 1, S[4]); }
+        for (let e = 0; e < 3; e++) box(g, xx - 1, -sh * 0.5 + e * 7, 2, 2, INK);
+      }
     }
   }
   // (the undergrowth along its foot: bushes, ferns, a deadfall log)
-  const O = dim(hr('oak', OAK, 0.4)).map(col => mix(col, '#2A2A10', 0.3)), Gs = dim(hr('grass', GRASS, 0.4));
+  const O = dim(hr('oak', OAK, 0.4)).map(col => mix(col, '#2A2A10', 0.3)), Gs = dim(hr('grass', GRASS, 0.4)), Ms = dim(hr('moss', MOSS, 0.4));
   for (let i = 0; i < 16; i++) { const x = i * 40 + hash(i * 1.9 + 5) * 20; for (const xx of [x, x - TW, x + TW]) if (xx > -40 && xx < TW + 40) clump(g, xx, -12, 22 + hash(i + 5) * 12, 14, i * 5 + 11, i % 3 ? O : Ru, 1); }
-  box(g, 380, -12, 96, 9, INK); box(g, 381, -11, 94, 7, B[3]); box(g, 381, -11, 94, 2, B[5]); box(g, 472, -12, 6, 9, mix('#C8A070', haze, 0.3));
+  // (the deadfall: a peeled log, banded round (lit on top), its bark in plates, moss on its back, the sawn end's rings)
+  box(g, 380, -13, 96, 11, INK); bands(g, 381, -12, 94, 9, [B[5], B[4], B[3], B[3], B[2], B[1]]);
+  for (let x = 384; x < 466; x += 9) { box(g, x + ((x * 3) & 3), -9, 5, 1, B[1]); box(g, x + ((x * 3) & 3), -10, 5, 1, B[5]); }
+  for (let x = 386; x < 460; x += 6) if (hash(x * 0.9) > 0.45) { box(g, x, -13, 5, 2, Ms[4]); box(g, x + 1, -14, 3, 1, Ms[6]); }
+  g.fillStyle = INK; g.beginPath(); g.ellipse(475, -7.5, 4, 6, 0, 0, Math.PI * 2); g.fill();
+  g.fillStyle = Rg[4]; g.beginPath(); g.ellipse(475, -7.5, 3, 5, 0, 0, Math.PI * 2); g.fill();
+  box(g, 474, -10, 2, 5, Rg[2]); box(g, 473, -11, 1, 1, Rg[5]);
   for (let i = 0; i < 14; i++) fern(g, i * 46 + hash(i * 5.3 + 1) * 20, 0, 14 + hash(i + 1) * 10, i * 3 + 7, 0, Gs, 3);
 };
 
@@ -229,6 +260,13 @@ export const paintBearSign = (g: Ctx) => {
   const nt = top + bh + 8, nw = 92, nh = 34;
   box(g, -nw / 2 - 1, nt - 1, nw + 2, nh + 2, INK); box(g, -nw / 2, nt, nw, nh, '#E8C21E'); box(g, -nw / 2, nt, nw, 1, '#F8E060'); box(g, -nw / 2, nt + nh - 1, nw, 1, '#B08E10');
   box(g, -nw / 2 + 2, nt + 2, nw - 4, nh - 4, '#141414'); box(g, -nw / 2 + 3, nt + 3, nw - 6, nh - 6, '#E8C21E');
+  // (sun-faded along its top, dithered down into the yellow; its four screws in the margin, rust bled round them)
+  box(g, -nw / 2 + 3, nt + 3, nw - 6, 1, '#F4DC70'); checker(g, -nw / 2 + 3, nt + 4, nw - 6, 1, '#F4DC70', 0, 1);
+  for (const sx of [-nw / 2, nw / 2 - 2]) for (const sy of [nt, nt + nh - 2]) { box(g, sx, sy, 2, 2, '#8A5A1E'); box(g, sx, sy, 1, 1, S[5]); }
+  // (and a hunter's been at the Forest Service's board: two bullet holes under the bear, the paint starred round them)
+  for (const [hx, hy] of [[-bw / 2 + 12, top + 51], [-bw / 2 + 23, top + 57]] as const) {
+    box(g, hx - 2, hy, 5, 1, FS[4]); box(g, hx, hy - 2, 1, 5, FS[4]); box(g, hx - 1, hy - 1, 3, 3, FS[1]); box(g, hx, hy, 1, 1, INK); box(g, hx - 1, hy - 1, 1, 1, '#C8BCA8');
+  }
   signText(g, 'MOUNTAIN LIONS', 0, nt + 12, printed('#141414'));
   signText(g, 'ACTIVE IN AREA', 0, nt + 21, printed('#141414'));
   // (the hint: what brings them out)
@@ -490,40 +528,86 @@ export const drawRemainsMark = (c: Ctx, state: GameState) => {
   drawTuckerCap(c, x + 30, GY - 4, 0.35);
 };
 
-/** The fight's boulder: real granite (gray, lichen, moss in its crack), its flat top a ledge (lit along its lip). */
+/** The fight's boulder: real granite (gray, lichen, moss in its crack), its flat top a ledge (lit along its lip). Its
+ *  bulk going back (the shared eye's: its top lit, the side he's looking at shaded) live (a few polygons), then its
+ *  front, painted once. */
 export const drawBoulder = (c: Ctx, state: GameState) => {
   if (!onScreen(state, ROCK_X - ROCK_HW - 30, ROCK_X + ROCK_HW + 30)) return;
-  put(c, 'ar-boulder', ROCK_X, GY, -ROCK_HW - 26, -ROCK_H - 6, 2 * ROCK_HW + 54, ROCK_H + 10, paintBoulder);
+  const Gr = hr('granite', GRANITE, 0.2);
+  extrude(c, viewOf(state).eye, ROCK_PTS.map(([x, y]) => [ROCK_X + x, GY + y] as [number, number]), 0.94, Gr[5], Gr[1]);
+  put(c, 'ar-boulder', ROCK_X, GY, -ROCK_HW - 30, -ROCK_H - 8, 2 * ROCK_HW + 62, ROCK_H + 14, paintBoulder);
 };
+/** The boulder's outline (about its foot's middle, convex: up its left, across its top, down its right). */
+const ROCK_PTS: [number, number][] = (() => {
+  const w = ROCK_HW, top = -ROCK_H, out: [number, number][] = [];
+  const q = (p0: number[], p1: number[], p2: number[]) => { for (let i = 0; i <= 6; i++) { const t = i / 6, u = 1 - t; out.push([u * u * p0[0] + 2 * u * t * p1[0] + t * t * p2[0], u * u * p0[1] + 2 * u * t * p1[1] + t * t * p2[1]]); } };
+  q([-w - 18, 2], [-w - 14, top + 14], [-w + 4, top]);
+  q([w - 2, top], [w + 16, top + 10], [w + 22, 2]);
+  return out;
+})();
 const paintBoulder = (g: Ctx) => {
-  const Gr = hr('granite', GRANITE, 0.2), Ms = hr('moss', MOSS, 0.2), L = hr('lip', LIP, 0.2);
+  const Gr = hr('granite', GRANITE, 0.2), Ms = hr('moss', MOSS, 0.2), L = hr('lip', LIP, 0.2), St = hr('straw', STRAW, 0.2);
   const w = ROCK_HW, h = ROCK_H, top = -h;
-  const path = (e: number) => { g.beginPath(); g.moveTo(-w - 18 - e, 2); g.quadraticCurveTo(-w - 14 - e, top + 14, -w + 4, top - e); g.lineTo(w - 2, top - e); g.quadraticCurveTo(w + 16 + e, top + 10, w + 22 + e, 2); g.closePath(); };
-  path(1.5); g.fillStyle = INK; g.fill();
-  g.save(); path(0); g.clip();
-  // (banded down: lit near the top, the body, the shade, dark at its foot; the right flank in shadow; dithered)
-  const rows = [Gr[6], Gr[5], Gr[5], Gr[4], Gr[4], Gr[3], Gr[3], Gr[2]];
-  for (let i = 0; i < rows.length; i++) box(g, -w - 24, top + (i * (h + 4)) / rows.length, 2 * w + 50, (h + 4) / rows.length + 1, rows[i]);
-  checker(g, -w - 24, top + h * 0.36, 2 * w + 50, 2, Gr[4], 0); checker(g, -w - 24, top + h * 0.72, 2 * w + 50, 2, Gr[3], 1);
-  g.fillStyle = Gr[2]; g.beginPath(); g.moveTo(w - 16, top); g.quadraticCurveTo(w + 8, top + 14, w + 14, 2); g.lineTo(w - 10, 2); g.quadraticCurveTo(w - 4, top + 26, w - 22, top); g.closePath(); g.fill();
-  checker(g, w - 26, top + 4, 8, h, Gr[3], 0);
-  g.fillStyle = Gr[1]; g.beginPath(); g.moveTo(w + 4, top + 10); g.quadraticCurveTo(w + 16, top + 22, w + 22, 2); g.lineTo(w + 8, 2); g.closePath(); g.fill();
-  // (the granite's grain: feldspar flecks, dark mica, a quartz vein)
-  for (let n = 0; n < 70; n++) { const fx = -w - 12 + hash(n * 2.1) * (2 * w + 30), fy = top + 3 + hash(n * 3.7) * (h - 4); box(g, fx, fy, 1, 1, n % 3 ? Gr[1] : '#D8C8B8'); }
-  g.strokeStyle = Gr[7]; g.lineWidth = 1.5; g.beginPath(); g.moveTo(-w - 8, top + 30); g.lineTo(-20, top + 40); g.lineTo(20, top + 36); g.stroke();
-  // (the crack, moss down it; lichen in rosettes; moss heaped at its foot)
-  g.strokeStyle = Gr[0]; g.lineWidth = 1.4; g.beginPath(); g.moveTo(6, top + 2); g.lineTo(12, top + 20); g.lineTo(6, top + 34); g.lineTo(10, 0); g.stroke();
-  box(g, 8, top + 18, 5, 3, Ms[4]); box(g, 5, top + 30, 4, 3, Ms[5]); box(g, 7, top + 44, 4, 2, Ms[4]);
-  for (const [lx, ly, r, col] of [[-30, 18, 7, '#9AAA6A'], [24, 30, 8, '#C8B858'], [-8, 40, 5, '#9AAA6A'], [-44, 10, 4, '#D8C878'], [36, 12, 5, '#9AAA6A']] as const) {
-    g.fillStyle = mix(col, '#000000', 0.25); g.beginPath(); g.ellipse(lx, top + ly, r, r * 0.6, 0, 0, Math.PI * 2); g.fill();
-    g.fillStyle = col; g.beginPath(); g.ellipse(lx - 1, top + ly - 1, r * 0.7, r * 0.4, 0, 0, Math.PI * 2); g.fill();
+  const path = () => { g.beginPath(); ROCK_PTS.forEach(([x, y], i) => (i ? g.lineTo(x, y) : g.moveTo(x, y))); g.closePath(); };
+  for (const [ox, oy] of [[0, -1], [-1, 0], [1, 0]] as const) { g.save(); g.translate(ox, oy); path(); g.fillStyle = INK; g.fill(); g.restore(); }
+  g.save(); path(); g.clip();
+  // (the body in facets, the way granite breaks: a lit shoulder up and left, the face, a lower shelf, the flank turned
+  // away in shade; dithered where the light turns)
+  box(g, -w - 30, top - 4, 2 * w + 62, h + 10, Gr[4]);
+  const facet = (pts: number[], col: string) => { g.fillStyle = col; g.beginPath(); g.moveTo(pts[0], top + pts[1]); for (let i = 2; i < pts.length; i += 2) g.lineTo(pts[i], top + pts[i + 1]); g.closePath(); g.fill(); };
+  facet([-w - 24, -4, w - 10, -4, w - 18, 7, -6, 12, -w - 4, 20, -w - 24, 26], Gr[5]);
+  facet([-w - 24, -4, 6, -4, -10, 4, -w - 2, 9, -w - 24, 14], Gr[6]);
+  facet([-w - 24, h * 0.62, -20, h * 0.56, 30, h * 0.6, w + 30, h * 0.66, w + 30, h + 6, -w - 24, h + 6], Gr[3]);
+  facet([w - 18, 7, w + 30, 6, w + 30, h + 6, w - 4, h + 6, w - 10, h * 0.6, w - 20, h * 0.3], Gr[2]);
+  facet([w + 4, 12, w + 30, 12, w + 30, h + 6, w + 10, h + 6], Gr[1]);
+  checker(g, -w - 24, top + 10, 2 * w + 10, 2, Gr[5], 0, 1); checker(g, -w - 24, top + 20, w + 16, 2, Gr[4], 1, 1);
+  checker(g, w - 24, top + 10, 6, h, Gr[3], 0, 1); checker(g, w - 2, top + 14, 4, h, Gr[2], 1, 1);
+  checker(g, -w - 24, top + h * 0.56, 2 * w + 40, 2, Gr[3], 0, 1);
+  // (the joints between facets: a dark line, lit along its upper side)
+  const joint = (pts: number[]) => {
+    g.lineWidth = 1;
+    g.strokeStyle = Gr[7]; g.beginPath(); g.moveTo(pts[0], top + pts[1] - 1); for (let i = 2; i < pts.length; i += 2) g.lineTo(pts[i], top + pts[i + 1] - 1); g.stroke();
+    g.strokeStyle = Gr[0]; g.beginPath(); g.moveTo(pts[0], top + pts[1]); for (let i = 2; i < pts.length; i += 2) g.lineTo(pts[i], top + pts[i + 1]); g.stroke();
+  };
+  joint([-w - 4, 20, -6, 12, w - 18, 7]);
+  joint([-w - 24, h * 0.62 + 0.5, -20, h * 0.56 + 0.5, 30, h * 0.6 + 0.5, w - 10, h * 0.64]);
+  // (exfoliation sheets: thin slabs peeling along its face, each a lit top over a shadowed underside)
+  for (const [x0, x1, y] of [[-w - 10, -18, 30], [12, w - 14, 38], [-40, 4, 46]] as const) {
+    box(g, x0, top + y, x1 - x0, 1, Gr[6]); box(g, x0 + 2, top + y + 1, x1 - x0 - 4, 1, Gr[1]); checker(g, x0 + 2, top + y + 2, x1 - x0 - 4, 2, Gr[2], 0, 1);
   }
-  box(g, -w - 24, -12, 2 * w + 50, 14, Gr[1]); checker(g, -w - 24, -14, 2 * w + 50, 2, Gr[2], 0);
-  for (let x = -w - 16; x < w + 18; x += 5) if (hash(x) > 0.45) { box(g, x, -6 - hash(x * 3) * 6, 6, 8, Ms[3]); box(g, x + 1, -7 - hash(x * 3) * 6, 3, 1, Ms[5]); }
+  // (the granite's grain: pink feldspar and white quartz crystals, dark mica flecks)
+  for (let n = 0; n < 120; n++) {
+    const fx = Math.round(-w - 14 + hash(n * 2.1 + 0.3) * (2 * w + 32)), fy = Math.round(top + 3 + hash(n * 3.7 + 0.9) * (h - 8)), k = n % 5;
+    if (k === 0) { box(g, fx, fy, 2, 1, '#C8A494'); box(g, fx, fy, 1, 1, '#E4C4B4'); }
+    else if (k === 1) box(g, fx, fy, 1, 1, '#E4DED4');
+    else box(g, fx, fy, k === 2 ? 2 : 1, 1, Gr[1]);
+  }
+  // (the quartz vein, lit along its top)
+  g.lineWidth = 2; g.strokeStyle = Gr[1]; g.beginPath(); g.moveTo(-w - 8, top + 33); g.lineTo(-20, top + 42); g.lineTo(22, top + 37); g.stroke();
+  g.lineWidth = 1.2; g.strokeStyle = '#E4DED4'; g.beginPath(); g.moveTo(-w - 8, top + 31.6); g.lineTo(-20, top + 40.6); g.lineTo(22, top + 35.6); g.stroke();
+  // (the crack, moss down it in stepped cushions)
+  g.lineWidth = 2; g.strokeStyle = Gr[0]; g.beginPath(); g.moveTo(6, top + 2); g.lineTo(12, top + 20); g.lineTo(6, top + 34); g.lineTo(10, 0); g.stroke();
+  g.lineWidth = 1; g.strokeStyle = Gr[6]; g.beginPath(); g.moveTo(4, top + 3); g.lineTo(10, top + 20); g.lineTo(4, top + 34); g.stroke();
+  for (const [mx, my, mr] of [[11, 19, 4], [7, 31, 4], [9, 45, 3]] as const) { pixelBlob(g, mx, top + my, mr, mr * 0.7, Ms[2], 1); pixelBlob(g, mx - 1, top + my - 1, mr * 0.7, mr * 0.45, Ms[4], 1); box(g, mx - 2, top + my - 2, 2, 1, Ms[6]); }
+  // (lichen in rosettes, stepped rings: a dark rim, the body, a pale middle, crumbs round it)
+  for (const [lx, ly, r, col] of [[-30, 18, 7, '#9AAA6A'], [24, 30, 8, '#C8B858'], [-8, 40, 5, '#9AAA6A'], [-44, 10, 4, '#D8C878'], [36, 12, 5, '#9AAA6A'], [-58, 30, 4, '#C8B858']] as const) {
+    pixelBlob(g, lx, top + ly, r, r * 0.6, mix(col, '#000000', 0.35), 1);
+    pixelBlob(g, lx, top + ly, r - 1, r * 0.6 - 1, col, 1);
+    pixelBlob(g, lx - 1, top + ly - 1, r * 0.45, r * 0.28, mix(col, '#FFFFFF', 0.35), 1);
+    for (let k = 0; k < 4; k++) box(g, Math.round(lx + Math.cos(k * 1.7) * (r + 1)), Math.round(top + ly + Math.sin(k * 1.7) * (r + 1) * 0.6), 1, 1, col);
+  }
+  // (its foot: the ground's shade on it, dithered up into the stone)
+  bands(g, -w - 30, -10, 2 * w + 62, 12, [Gr[2], Gr[1], Gr[1], Gr[0]]); checker(g, -w - 30, -12, 2 * w + 62, 2, Gr[2], 0, 1);
   g.restore();
+  // (moss heaped against it in cushions, dry grass up round it)
+  for (let x = -w - 14; x < w + 18; x += 7) if (hash(x * 1.1) > 0.4) {
+    const mh = 4 + hash(x * 3) * 5;
+    pixelBlob(g, x, -mh * 0.5, 5, mh * 0.6, INK, 1); pixelBlob(g, x, -mh * 0.5, 4, mh * 0.6 - 1, Ms[3], 1); pixelBlob(g, x - 1, -mh * 0.7, 2.5, mh * 0.3, Ms[5], 1);
+  }
+  for (let x = -w - 24; x < w + 28; x += 3) if (hash(x * 0.77 + 4) > 0.55) { const gh = 3 + hash(x * 2.3) * 7; box(g, x, -gh + 2, 1, gh, St[hash(x) > 0.6 ? 5 : 4]); box(g, x + 1, -gh + 4, 1, gh - 2, St[2]); }
   // (the lit lip: it's a ledge)
-  box(g, -w + 4, top - 1, 2 * w - 6, 1, L[3]); box(g, -w + 4, top, 2 * w - 6, 2, L[2]); box(g, -w + 6, top + 2, 2 * w - 10, 1, L[1]);
-  for (let x = -w + 8; x < w - 6; x += 6) if (hash(x * 1.3) > 0.5) box(g, x, top - 3, 1, 3, L[2]);
+  box(g, -w + 4, top - 1, 2 * w - 6, 1, INK); box(g, -w + 4, top, 2 * w - 6, 1, L[3]); box(g, -w + 4, top + 1, 2 * w - 6, 1, L[2]); box(g, -w + 6, top + 2, 2 * w - 10, 1, L[1]);
+  for (let x = -w + 8; x < w - 6; x += 6) if (hash(x * 1.3) > 0.5) { box(g, x, top - 3, 1, 3, St[5]); box(g, x + 1, top - 2, 1, 2, St[3]); }
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -574,9 +658,19 @@ const paintStump = (g: Ctx, cut: boolean) => {
   g.save(); path(0); g.clip();
   box(g, -w - 14, top, 2 * w + 28, CUT_H + 4, B[3]); box(g, -w - 14, top, w * 0.5 + 14, CUT_H + 4, B[4]); box(g, -w + 1, top, 2, CUT_H + 4, B[5]); box(g, w - 4, top, 20, CUT_H + 4, B[2]); box(g, w + 2, top, 20, CUT_H + 4, B[1]);
   checker(g, -w + 3, top, 4, CUT_H + 4, B[4], 0, 1); checker(g, w - 6, top, 4, CUT_H + 4, B[3], 1, 1);
-  for (let k = 0; k < 6; k++) { box(g, -w + 5 + k * 3, top + 5 + ((k * 7) % 20), 2, 7, B[1]); box(g, -w + 4 + k * 3, top + 5 + ((k * 7) % 20), 1, 7, B[5]); }
-  for (let x = -w - 12; x < w + 12; x += 3) if (hash(x * 1.9) > 0.5) box(g, x, -4 - hash(x) * 4, 3, 6, Ms[3]);
+  // (its bark in plates (the trunk's above): dark furrows between, each plate's top catching the light)
+  for (let y = top + 3; y < -6; y += 6) for (let k = 0; k < 3; k++) {
+    const px = -w + 2 + ((k * 8 + ((y * 13) & 7)) % (2 * w - 4));
+    box(g, px, y, 4, 1, B[1]); box(g, px, y - 1, 4, 1, px < 0 ? B[6] : B[4]); box(g, px + 4, y - 3, 1, 4, B[1]);
+  }
+  // (the root flare: ridges running out each side, lit along their tops)
+  for (const [rx, dir] of [[-w + 2, -1], [-w + 7, -1], [w - 6, 1], [w - 2, 1]] as const) {
+    g.strokeStyle = B[1]; g.lineWidth = 3; g.beginPath(); g.moveTo(rx, -14); g.quadraticCurveTo(rx + dir * 2, -3, rx + dir * 12, 2); g.stroke();
+    g.strokeStyle = dir < 0 ? B[5] : B[3]; g.lineWidth = 1; g.beginPath(); g.moveTo(rx - 1, -14); g.quadraticCurveTo(rx + dir * 2 - 1, -4, rx + dir * 12 - 1, 0); g.stroke();
+  }
   g.restore();
+  // (moss up round its foot in stepped cushions, lit on top)
+  for (let x = -w - 10; x < w + 12; x += 5) if (hash(x * 1.9) > 0.5) { const mh = 3 + hash(x) * 4; pixelBlob(g, x, -mh * 0.5, 3.5, mh * 0.6, Ms[2], 1); pixelBlob(g, x - 1, -mh * 0.7, 2, mh * 0.3, Ms[4], 1); box(g, x - 1, -mh, 1, 1, Ms[6]); }
   if (!cut) return;
   // (the cut's face: pale, its rings, the heart darker, the splintered hinge on the far side where it broke)
   g.fillStyle = INK; g.beginPath(); g.ellipse(0, top, w + 1, 4, 0, 0, Math.PI * 2); g.fill();
@@ -608,18 +702,41 @@ const trunkAt = (c: Ctx, th: number, drop: number, clipGround: boolean) => {
  *  kept in the bark's middle tones, never a lit lip (it's no ledge). */
 const paintLog = (g: Ctx) => {
   const N = firOf(hr('needle', NEEDLE, 0.2)), Df = hr('duff', DUFF, 0.2);
-  // (its shadow along the ground, under it)
-  box(g, -6, AXE_TR - 2, LOG_LEN + 30, 3, Df[1]); checker(g, -6, AXE_TR - 4, LOG_LEN + 30, 2, Df[1], 0);
+  const B = hr('bark', BARK, 0.2), Rg = hr('rings', RINGS, 0.2), St = hr('straw', STRAW, 0.2);
+  // (its shadow along the ground, under it: banded, dithered out at its edges, thinning toward the spire)
+  box(g, -6, AXE_TR - 2, LOG_LEN * 0.6, 3, Df[0]); box(g, LOG_LEN * 0.6 - 6, AXE_TR - 2, LOG_LEN * 0.4 + 36, 2, Df[1]);
+  checker(g, -6, AXE_TR - 4, LOG_LEN + 30, 2, Df[1], 0, 1); checker(g, -6, AXE_TR + 1, LOG_LEN * 0.6, 2, Df[1], 1, 1);
+  // (the meadow grass it came down on, crushed flat and splayed out under it)
+  for (let x = -4; x < LOG_LEN + 20; x += 4) if (hash(x * 0.61 + 3) > 0.5) { box(g, x, AXE_TR, 4, 1, St[hash(x) > 0.5 ? 4 : 3]); box(g, x + 3, AXE_TR - 1, 3, 1, St[2]); }
   g.save(); g.beginPath(); g.rect(-60, -400, LOG_LEN + 200, 400 + AXE_TR + 2); g.clip();
   g.rotate(Math.PI / 2);
   pineTrunk(g, LOG_LEN, AXE_TR, 77);
   g.restore();
   // (the top dulled: no light along it (it isn't somewhere to stand))
   g.save(); g.globalAlpha = 0.45; box(g, 0, -AXE_TR - 1, LOG_LEN * 0.4, 4, hr('bark', BARK, 0.2)[2]); g.restore();
-  // (needles shaken off round it, a snapped bough lying by it)
+  // (the butt's axe-cut end, toward him: pale wood in rings, the heart darker, the hinge's splinters torn out of it)
+  g.fillStyle = INK; g.beginPath(); g.ellipse(0, 0, 4, AXE_TR + 1, 0, 0, Math.PI * 2); g.fill();
+  g.fillStyle = Rg[3]; g.beginPath(); g.ellipse(0, 0, 3, AXE_TR, 0, 0, Math.PI * 2); g.fill();
+  g.fillStyle = Rg[5]; g.beginPath(); g.ellipse(-1, -2, 1.6, AXE_TR * 0.6, 0, 0, Math.PI * 2); g.fill();
+  for (const ry of [-7, -4, 4, 7]) box(g, -1, ry, 2, 1, Rg[2]);
+  box(g, -1, -1, 2, 2, Rg[1]);
+  for (const [sy, sl] of [[-AXE_TR + 2, 7], [-3, 5], [4, 8]] as const) { g.fillStyle = INK; g.beginPath(); g.moveTo(-2, sy - 1); g.lineTo(-2 - sl, sy + 1); g.lineTo(-2, sy + 3); g.closePath(); g.fill(); g.fillStyle = Rg[4]; g.beginPath(); g.moveTo(-2, sy); g.lineTo(-sl + 1, sy + 1); g.lineTo(-2, sy + 2); g.closePath(); g.fill(); }
+  // (chips and sawdust round the butt)
+  for (let i = 0; i < 10; i++) { const cx = -26 + hash(i * 4.7 + 1) * 40, cy = AXE_TR - 2 + hash(i * 2.3 + 1) * 3; box(g, cx, cy, 3, 2, INK); box(g, cx, cy, 2, 1, Rg[4 + (i % 2)]); }
+  // (needles shaken off round it)
   for (let i = 0; i < 40; i++) { const nx = LOG_LEN * 0.3 + hash(i * 1.9) * LOG_LEN * 0.8, ny = AXE_TR - 1 + hash(i * 3.1) * 3; box(g, nx, ny, 3, 1, N[2 + (i % 3)]); }
-  g.strokeStyle = INK; g.lineWidth = 3; g.beginPath(); g.moveTo(LOG_LEN * 0.5, AXE_TR); g.lineTo(LOG_LEN * 0.5 + 30, AXE_TR - 2); g.stroke();
-  g.strokeStyle = hr('bark', BARK, 0.2)[3]; g.lineWidth = 1.4; g.stroke();
+  // (a bough snapped off in the fall, lying by it: stepped bark, its spray of needles in tufts, lit up and left)
+  const sx = LOG_LEN * 0.5, sy = AXE_TR;
+  g.lineCap = 'round';
+  g.strokeStyle = INK; g.lineWidth = 4; g.beginPath(); g.moveTo(sx, sy); g.lineTo(sx + 30, sy - 2); g.moveTo(sx + 14, sy - 1); g.lineTo(sx + 22, sy - 7); g.stroke();
+  g.strokeStyle = B[3]; g.lineWidth = 2; g.stroke();
+  g.strokeStyle = B[5]; g.lineWidth = 1; g.beginPath(); g.moveTo(sx, sy - 1); g.lineTo(sx + 30, sy - 3); g.stroke();
+  g.lineCap = 'butt';
+  box(g, sx - 2, sy - 2, 3, 3, INK); box(g, sx - 1, sy - 1, 1, 1, Rg[4]);
+  for (const [tx, ty, tr] of [[sx + 32, sy - 3, 6], [sx + 24, sy - 8, 5], [sx + 20, sy - 1, 4]] as const) {
+    pixelBlob(g, tx, ty, tr + 1, tr * 0.6 + 1, INK, 1); pixelBlob(g, tx, ty, tr, tr * 0.6, N[2], 1); pixelBlob(g, tx - 1, ty - 1, tr * 0.6, tr * 0.35, N[4], 1);
+    for (let k = 0; k < 5; k++) box(g, Math.round(tx - tr + hash(tx + k) * tr * 2), Math.round(ty - tr * 0.5 + hash(ty + k * 1.7) * tr), 2, 1, k % 2 ? N[5] : N[1]);
+  }
 };
 
 /** A lumberjack's axe, its head at (hx, hy), the handle back from it along angle `a` (butt to head): hickory, the head
@@ -666,7 +783,7 @@ export const drawAxeTree = (c: Ctx, state: GameState, s: Arena) => {
   }
   // ---- chopped through: the stump and its cut face
   put(c, 'ar-stump', x, GY, -60, -CUT_H - 12, 120, CUT_H + 16, g => paintStump(g, true));
-  if (s.tree === 'down') put(c, 'ar-log', LOG_X, GY - AXE_TR, -40, -AXE_TR - 120, LOG_LEN + 120, AXE_TR + 126, paintLog);
+  if (s.tree === 'down') put(c, 'ar-log', LOG_X, GY - AXE_TR, -40, -AXE_TR - 120, LOG_LEN + 120, 2 * AXE_TR + 125, paintLog);
   if (s.axe === 'stump') axeAt(c, x + 2, top + 1, 0.93, true);
 };
 
