@@ -6,13 +6,12 @@
 
 import type { Light } from '../../../../m1/game/render/lighting';
 import { GROUND_Y } from '../../../../m1/constants';
-import { timeOfDay, skyRamp, skyAt, farTint } from '../../../timeOfDay';
-import { stamp, bandedGradient, steppedGlow } from '../../../intro/art/kit';
+import { timeOfDay } from '../../../timeOfDay';
+import { stamp, steppedGlow } from '../../../intro/art/kit';
 import { SIGNS, X, Y, type SignStyle } from '../layout';
-import { atDepth } from './ground';
 import { signAt, routed as routedLook } from '../../letters';
 import { doorLamp } from './trees';
-import { type Ctx, type View, INK, box, mix, hash, poly, clump, fern, leaf, plank, post, lashing, bamboo, carved, carvedW, painted, paintedW, LEAF, MOSS, ROCK, BARK } from './paint';
+import { type Ctx, type View, INK, box, mix, hash, poly, fern, leaf, plank, post, lashing, bamboo, carved, carvedW, painted, paintedW, LEAF, MOSS, ROCK, BARK } from './paint';
 
 const GY = GROUND_Y;
 const WOOD = '#7A5634';
@@ -253,40 +252,6 @@ const exitLive = (c: Ctx, v: View) => {
     box(c, lx - 5 + sw, GY - 172, 11, 14, INK); box(c, lx - 4 + sw, GY - 171, 9, 12, lamps > 0.05 ? '#FFE08A' : '#C8A060'); box(c, lx - 4 + sw, GY - 171, 9, 2, '#3A2A14'); box(c, lx - 4 + sw, GY - 161, 9, 2, '#3A2A14');
     if (lamps > 0.05) steppedGlow(c, lx + sw, GY - 165, 26, '#FFD27A', 0.2 * lamps, 0, 3);
   }
-};
-
-/** The park through the gap at the end: the sky, the Jungle Cruise's dock shed, bunting, the river; jungle round it. */
-export const drawExitView = (c: Ctx, v: View) => {
-  if (exitX < v.v0 - 900 || exitX > v.v1 + 900) return;
-  const tod = timeOfDay(), d = 0.55;
-  atDepth(c, v.eye, d, () => {
-    const x0 = X(11780), x1 = X(12500), top = Y(560);
-    stamp(c, `jg-exitview-${tod.key}`, x0 - 160, top - 140, x1 - x0 + 320, GY - top + 260, g => {
-      g.save(); g.beginPath(); g.ellipse((x0 + x1) / 2, GY - 40, (x1 - x0) / 2, GY - top, 0, Math.PI, 0); g.lineTo(x1, GY + 100); g.lineTo(x0, GY + 100); g.closePath(); g.clip();
-      bandedGradient(g, x0, top, x1 - x0, GY - top, skyRamp(['#8DB4E2', '#B4CEE6', '#DCE6E4'], tod, 0.4, 1), 8);
-      // (the river, the far bank)
-      const fh = (col: string) => mix(farTint(col, 0.8, tod), skyAt(0.9, tod), 0.2);
-      box(g, x0, GY - 60, x1 - x0, 60, fh('#3E7A6A')); box(g, x0, GY - 60, x1 - x0, 3, fh('#9ACFC0'));
-      for (let k = 0; k < 12; k++) box(g, x0 + hash(k) * (x1 - x0), GY - 52 + hash(k * 2) * 40, 18, 1, fh('#BCE4D8'));
-      box(g, x0, GY - 80, x1 - x0, 20, fh('#3E6E2E'));
-      // (the dock shed: thatch, posts, a sign)
-      const sx = (x0 + x1) / 2 - 70;
-      for (const px of [sx, sx + 46, sx + 92, sx + 136]) box(g, px, GY - 150, 6, 90, fh('#6A4A28'));
-      poly(g, [[sx - 26, GY - 146], [sx + 70, GY - 200], [sx + 168, GY - 146]], fh('#A4863A'));
-      for (let k = 0; k < 6; k++) box(g, sx - 20 + k * 32, GY - 146, 26, 3, fh('#7A6026'));
-      box(g, sx + 30, GY - 140, 82, 16, fh('#F2E6C4')); box(g, sx + 32, GY - 138, 78, 12, fh('#2E5A3A'));
-      painted(g, 'JUNGLE CRUISE', sx + 71, GY - 129, 5, fh('#F2E6C4'), null);
-      // (a boat at the dock, its striped canopy)
-      box(g, sx + 10, GY - 74, 120, 12, fh('#E8E0C8')); box(g, sx + 10, GY - 64, 120, 4, fh('#8A3A1E'));
-      for (let k = 0; k < 8; k++) box(g, sx + 14 + k * 14, GY - 96, 14, 6, fh(k % 2 ? '#F1EFEA' : '#2E7A4A'));
-      for (const px of [sx + 16, sx + 120]) box(g, px, GY - 90, 2, 16, fh('#6A4A28'));
-      // (bunting across)
-      for (let k = 0; k < 14; k++) { const bx = x0 + 40 + k * ((x1 - x0 - 80) / 14), by = top + 90 + Math.sin((k / 13) * Math.PI) * 26; poly(g, [[bx, by], [bx + 14, by], [bx + 7, by + 10]], fh(['#C81E1E', '#F2C21E', '#2E7A4A', '#1E5AA8'][k % 4])); }
-      g.restore();
-      // (the jungle round the gap)
-      for (let i = 0; i < 16; i++) { const a = Math.PI + (i / 15) * Math.PI; clump(g, (x0 + x1) / 2 + Math.cos(a) * (x1 - x0) / 2, GY - 40 + Math.sin(a) * (GY - top), 54, 40, i * 3 + 70, LEAF.map(col => mix(farTint(col, 0.6, tod), skyAt(0.9, tod), 0.2)), 1); }
-    });
-  });
 };
 
 // ---------------------------------------------------------------------------------------------------------------

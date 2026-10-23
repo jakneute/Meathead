@@ -7,7 +7,8 @@ import type { GameState } from '../../../m1/game/core/state';
 import { viewOf } from './art/paint';
 import { drawGoingBack, drawPlayPlane } from './art/ground';
 import { drawBackTrees, drawTrees } from './art/trees';
-import { drawSigns, drawProps, drawLife, drawExitView } from './art/props';
+import { drawSigns, drawProps, drawLife } from './art/props';
+import { drawExitView } from './art/exitView';
 import { drawDressing, drawRavineDressing, startDressing } from './art/dressing';
 
 export { drawJungleBackdrop } from './art/backdrop';
