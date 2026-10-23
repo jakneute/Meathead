@@ -86,7 +86,8 @@ const REGEN_AFTER = 120, REGEN = 0.03;
 const HEAVE = 90, HEAVES = 4, REAR = 14, SPEW_END = 72, IMMUNE = 90;
 /** The puke: a glob every so often while he's spewing; what one does to whoever it lands on (his own, coming down on
  *  him, hurts a bit more); how far he'll look for somebody to throw up on. */
-const PUKE = { every: 2, gravity: 0.35, dmg: 1.1, selfDmg: 1, sick: 0.6, reach: 460 };
+// (a bit harder, the user's: a good hurling should be a sure kill; was 1.1 and 1)
+const PUKE = { every: 2, gravity: 0.35, dmg: 1.5, selfDmg: 1.4, sick: 0.6, reach: 460 };
 /** How green he looks, sick. */
 /** ...a robot, sick: on the fritz (flickering, washed out). */
 const ROBOT_SICK_LOOK = ['saturate(0.3) brightness(1.25)', 'saturate(0.6) brightness(0.8) contrast(1.4)'];
