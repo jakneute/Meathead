@@ -28,7 +28,7 @@ import {
   QUEUE_DOOR, LINE_X0, LINE_X1, PLATFORM_X, CONSOLE_X, SLED_X, TUNNEL_X, QUEUE, LEDGES, SOLIDS, POSTS, type Thruster,
 } from './layout';
 import { crewed } from './rigs';
-import { drawAtomPerson } from './people';
+import { drawAtomPerson, drawAtomPersonTurned } from './people';
 import { drawSled, seatedIn, HIS_SLED, FRONT_SLED, SEATS } from '../ride/sled';
 import { cyl, sphere, neonBar, lamp, truss, rivets, hazard, screenGlass, stencil } from './snes';
 import { lettering, letterSize } from '../square/lettering';
@@ -1080,7 +1080,7 @@ export const drawPlatformSleds = (c: Ctx, state: GameState, hj: Hijack, back: bo
   c.restore();
   if (!back) {
     // (the thrown one, over the rail; the one walking off)
-    for (const g of hj.flying) { c.save(); c.translate(g.x, g.y); c.rotate(g.rot); drawAtomPerson(c, 'guest', { seed: g.seed, f, pose: g.landed ? 'limp' : 'thrown', md: 'hurt', talk: hj.said?.who === 'g0' }); c.restore(); }
+    for (const g of hj.flying) { c.save(); c.translate(g.x, g.y); drawAtomPersonTurned(c, 'guest', { seed: g.seed, f, pose: g.landed ? 'limp' : 'thrown', md: 'hurt', talk: hj.said?.who === 'g0' }, g.rot); c.restore(); }
     if (hj.walker) { c.save(); c.translate(hj.walker.x, GY); c.scale(-1, 1); drawAtomPerson(c, 'guest', { seed: GUEST_SEEDS[1], f, pose: 'walk', md: 'ok', talk: hj.said?.who === 'g1' }); c.restore(); }
   }
 };

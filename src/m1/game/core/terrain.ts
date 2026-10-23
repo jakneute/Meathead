@@ -121,6 +121,39 @@ export const floorTopAt = (blocks: Block[], x: number, feetY: number, reach = 26
 };
 
 /**
+ * floorTopAt for a lot of lookups against the same blocks (a frame's particles): the blocks sorted into columns by x
+ * the first time it's asked, then each lookup only looks at the blocks in its column. The same answers: a stage laid
+ * as slopes is thousands of narrow column blocks, and a few hundred sparks and drops each scanning all of them was
+ * most of a frame (the Voyage's brake run, its flying bodies bleeding).
+ */
+const FLOOR_COL = 128;
+export const floorFinder = (blocks: Block[]) => {
+  let cols: Map<number, Block[]> | null = null;
+  const wide: Block[] = [];
+  return (x: number, feetY: number, reach = 26): number | null => {
+    if (!Number.isFinite(x)) return floorTopAt(blocks, x, feetY, reach);
+    if (!cols) {
+      cols = new Map();
+      for (const b of blocks) {
+        if (!standable(b)) continue;
+        const c0 = Math.floor(b.x / FLOOR_COL), c1 = Math.floor((b.x + b.w) / FLOOR_COL);
+        if (!Number.isFinite(c0) || !Number.isFinite(c1) || c1 - c0 > 32) { wide.push(b); continue; }
+        for (let k = c0; k <= c1; k++) { const l = cols.get(k); if (l) l.push(b); else cols.set(k, [b]); }
+      }
+    }
+    let best: number | null = null;
+    const top = feetY - reach;
+    for (const list of [cols.get(Math.floor(x / FLOOR_COL)), wide]) {
+      if (list) for (const b of list) {
+        if (x < b.x || x > b.x + b.w || b.y < top) continue;
+        if (best === null || b.y < best) best = b.y;
+      }
+    }
+    return best;
+  };
+};
+
+/**
  * Height of the ground line at x, cheaply (for particles): the stage's profile
  * if it has one (Infinity over a pit), otherwise the usual flat floor.
  */

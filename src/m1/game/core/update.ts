@@ -39,7 +39,7 @@ import { tickMeatheadDeath } from '../player/deathAnim';
 import { updateVictoryPee, peeFinished } from '../scenes/victoryPee';
 import { getBossDef, getArenaRight, getStageWidth } from '../bosses/registry';
 import { getStageLayout } from '../stages';
-import { groundLineAt, floorTopAt, runYAt } from './terrain';
+import { groundLineAt, floorTopAt, floorFinder, runYAt } from './terrain';
 import { landOnFloor } from './splatSurface';
 import { scrapMachineGore } from '../enemies/machineGore';
 import { purgeCartoonGore } from './cartoonKills';
@@ -737,6 +737,8 @@ const updateParticles = (ctx: FrameContext) => {
   const bloodSplatsOnFloor = !(state.arenaLocked && getBossDef(stageId)?.arena?.floorless);
   const waterAt = getStageLayout(stageId)?.waterBodyAt;
   if (state.frame % 8 === 0) easeSplats(state);
+  // (what's under each falling bit: the blocks looked up by column, not all of them for every bit)
+  const floorAt = floorFinder(state.blocks);
   state.particles = state.particles.filter(p => {
     if (p.isSplat) {
       p.life--;
@@ -773,7 +775,7 @@ const updateParticles = (ctx: FrameContext) => {
       else if (p.grav) {
         p.vel.y += p.grav;
         // (on whatever's under it: a ledge, a platform, the ground)
-        const floor = (floorTopAt(state.blocks, p.pos.x, p.pos.y + p.size - p.vel.y, 2) ?? groundLineAt(state.groundRuns, p.pos.x)) - p.size;
+        const floor = (floorAt(p.pos.x, p.pos.y + p.size - p.vel.y, 2) ?? groundLineAt(state.groundRuns, p.pos.x)) - p.size;
         if (p.pos.y > floor && p.pos.y < floor + 30) { p.pos.y = floor; p.vel.y = Math.abs(p.vel.y) > 1.5 ? -p.vel.y * 0.35 : 0; p.vel.x *= 0.6; }
       }
       p.life--;

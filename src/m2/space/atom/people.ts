@@ -15,6 +15,7 @@ import {
   type Pose, type Mood, type Body, type Frame, INK, dk, lt, part, partTop, flat, px, limb, ball,
   bodyOf, flailHands, legs, torso, arm, headShape, faceOn, whiskers, glasses, hairTop, hairBack, frameOf, putFrame, pickOf,
 } from '../../spooky/costume';
+import { idleTasks } from '../../../m1/game/scenes/art/raster';
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -192,10 +193,54 @@ const paint = (g: Ctx, F: Frame, outfit: Outfit, talk: boolean) => {
   }
 };
 
+/** The box about their feet they're painted in. */
+const PERSON_BOX: [number, number, number, number] = [-64, -112, 150, 118];
 /** One of them, from its stamp. */
 export const drawAtomPerson = (c: Ctx, outfit: Outfit, w: Wear) => {
   const F = frameOf(w.seed, w.f, w.pose, w.md, w.t ?? 0, w.woman, `${outfit}${w.talk ? 't' : ''}`);
-  putFrame(c, `atom-${outfit}`, F, [-64, -112, 150, 118], g => paint(g, F, outfit, !!w.talk));
+  putFrame(c, `atom-${outfit}`, F, PERSON_BOX, g => paint(g, F, outfit, !!w.talk));
+};
+/** One of them turned (`rot`, about the feet): sent flying, spinning. The stamp cache won't take a turned transform, so
+ *  this was painted live every frame for each of them (the Voyage's brake run, two dozen at once: the user's "frame
+ *  rate drops to around 45 during the new brake run carnage"). Painted once, flat, into its own canvas at the scale
+ *  it's showing at (stepped up in doubles), then put down turned. */
+const turned = new Map<string, HTMLCanvasElement>();
+const turnedId = (outfit: Outfit, w: Wear, c: Ctx) => {
+  const F = frameOf(w.seed, w.f, w.pose, w.md, w.t ?? 0, w.woman, `${outfit}${w.talk ? 't' : ''}`);
+  const m = c.getTransform(), sc = Math.hypot(m.a, m.b);
+  const res = Math.min(8, 2 ** Math.ceil(Math.log2(Math.max(1, sc))));
+  return { F, res, id: `${outfit}|${F.seed}|${F.pose}|${F.fr}|${F.md}|${F.t}|${F.blink ? 1 : 0}|${F.woman}|${F.v}@${res}` };
+};
+const bakeTurned = (outfit: Outfit, w: Wear, F: Frame, res: number, id: string) => {
+  const [bx, by, bw, bh] = PERSON_BOX;
+  if (turned.size > 200) turned.clear();
+  const cv = document.createElement('canvas');
+  cv.width = Math.ceil(bw * res); cv.height = Math.ceil(bh * res);
+  const g = cv.getContext('2d')!;
+  g.scale(res, res); g.translate(-bx, -by);
+  g.beginPath(); g.rect(bx, by, bw, bh); g.clip();
+  paint(g, F, outfit, !!w.talk);
+  turned.set(id, cv);
+  return cv;
+};
+export const drawAtomPersonTurned = (c: Ctx, outfit: Outfit, w: Wear, rot: number) => {
+  if (typeof document === 'undefined') { c.rotate(rot); drawAtomPerson(c, outfit, w); return; }
+  const { F, res, id } = turnedId(outfit, w, c);
+  const cv = turned.get(id) ?? bakeTurned(outfit, w, F, res, id);
+  const [bx, by, bw, bh] = PERSON_BOX;
+  c.rotate(rot);
+  c.drawImage(cv, bx, by, bw, bh);
+};
+/** ...painted ahead, in idle moments, at the scale `c` is drawing at now (a crowd about to be flung all at once: not
+ *  a dozen painted in the one frame). */
+const primedTurn = new Set<string>();
+export const primeAtomPersonTurned = (c: Ctx, outfit: Outfit, w: Wear) => {
+  if (typeof document === 'undefined') return;
+  const { F, res, id } = turnedId(outfit, w, c);
+  if (turned.has(id) || primedTurn.has(id)) return;
+  if (primedTurn.size > 512) primedTurn.clear();
+  primedTurn.add(id);
+  idleTasks([() => { if (!turned.has(id)) bakeTurned(outfit, w, F, res, id); }]);
 };
 /** Just their top half, sat in something (a ride's sled), from the waist up: the rest of them is the sled's. */
 export const drawSeated = (c: Ctx, outfit: Outfit, w: Wear, sink = 30) => {

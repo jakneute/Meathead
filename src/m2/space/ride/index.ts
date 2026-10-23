@@ -39,7 +39,7 @@ import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { ATOM, homeFacing } from '../atom/kinds';
 import { OP_SEED } from '../atom/art';
-import { drawAtomPerson, type Outfit } from '../atom/people';
+import { drawAtomPerson, drawAtomPersonTurned, primeAtomPersonTurned, type Outfit } from '../atom/people';
 import { box } from '../../intro/art/kit';
 import {
   x0, x1, R, RUNS, GAPS, OBS, PA_CUES, BREAKER_X, ACT3_X, BRAKE_AT, FINS_X0, FINS_X1, BRAKE_X, BRAKE_BOX_X, FRONT_AT,
@@ -507,7 +507,16 @@ const drawSleds = (c: CanvasRenderingContext2D, state: GameState, back: boolean)
       if (v.paddle) { box(c, v.x - 30, GY - 70, 4, 40, '#1C1917'); box(c, v.x - 40, GY - 92, 24, 24, '#1C1917'); box(c, v.x - 38, GY - 90, 20, 20, '#FACC15'); }
     });
   }
-  if (!back) for (const fl of s.fliers) { c.save(); c.translate(fl.x, fl.y); c.rotate(fl.rot); drawAtomPerson(c, fl.outfit, { seed: fl.seed, f, pose: 'thrown', md: 'hurt' }); c.restore(); }
+  // (stopped at the brake control: everybody about to go flying painted ahead, in idle moments, not all in one frame)
+  if (!back && s.mode === 'crash' && s.brakeT && !s.lurchT) {
+    // (the four frames of their flail)
+    const prime = (o: Outfit, seed: number) => { for (let k = 0; k < 16; k += 4) primeAtomPersonTurned(c, o, { seed, f: f + k, pose: 'thrown', md: 'hurt' }); };
+    QUEUE.forEach(q => prime('guest', q.seed));
+    STATION_FOLK.forEach(v => prime(v.outfit, v.seed));
+    for (const seed of [8811, 9922]) prime('guest', seed);
+    prime('op', UNLOAD_OP.seed); prime('op', OP_SEED);
+  }
+  if (!back) for (const fl of s.fliers) { c.save(); c.translate(fl.x, fl.y); drawAtomPersonTurned(c, fl.outfit, { seed: fl.seed, f, pose: 'thrown', md: 'hurt' }, fl.rot); c.restore(); }
   if (s.mode === 'off' || s.mode === 'gone' || s.mode === 'out') return;
   const rot = sledRot(s);
   drawSled(c, s.x, s.y, f, HIS_SLED, back, rot, lit);
