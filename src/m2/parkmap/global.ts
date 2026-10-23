@@ -6,9 +6,9 @@
 import { LANDS } from '../hub/lands';
 import { signText, rampDown, tone } from '../signLetters';
 import { type Ctx, R, px, hl, vl, dith, line, ell, block, windows, spire, flag, tree, ramp, mix, hash, type TreeKind } from './paint';
-import { MAP_W, HC, RX, RY, Q_HUB, SECTORS, AMERICA, fromPolar, polar, edgeQ, sectorAt } from './geo';
+import { MAP_W, HC, RX, RY, Q_HUB, Q_RING, SECTORS, AMERICA, fromPolar, polar, edgeQ, sectorAt } from './geo';
 import { ATTRACTIONS } from './data';
-import { attractionAt, WALKS, POOLS, RIVERS } from './terrain';
+import { attractionAt, WALKS, POOLS, RIVERS, frontierWoods } from './terrain';
 import { LANDMARKS, guests } from './landmarks';
 
 /** The hub plaza: the ring of portals (each its land's swirl), the HAPPY fountain in the middle. */
@@ -114,8 +114,10 @@ const monorail = (g: Ctx) => {
 /** Every land's trees, scattered wherever there's nothing: its own kind of tree. */
 const TREES: Record<string, TreeKind[]> = {
   space: ['round', 'round'], frontier: ['pine', 'pine', 'round'], spooky: ['dead', 'cypress', 'dead'], cartoon: ['candy', 'round'],
-  hollywood: ['palm', 'palm'], fantasy: ['round', 'cypress', 'mushroom'], adventure: ['palm', 'round', 'palm'], foreign: ['cypress', 'round'],
+  hollywood: ['palm', 'palm'], fantasy: ['snowpine', 'snowpine', 'snowround'], adventure: ['palm', 'round', 'palm'], foreign: ['cypress', 'round'],
 };
+/** Wilderness Land's desert scrub between its pine woods (terrain.ts frontierWoods). */
+const DESERT: TreeKind[] = ['cactus', 'scrub', 'scrub'];
 const scatterTrees = (g: Ctx) => {
   const spots = ATTRACTIONS.map(attractionAt);
   const pts: { x: number; y: number; k: TreeKind }[] = [];
@@ -130,7 +132,8 @@ const scatterTrees = (g: Ctx) => {
     if (POOLS.some(p => Math.hypot((x - p.cx) / (p.rx + 6), (y - p.cy) / (p.ry + 6)) < 1)) continue;
     if (RIVERS.some(r => r.segs.some(w => near(w, x, y) < w.w + 5))) continue;
     if (pts.some(p => Math.abs(p.x - x) < 7 && Math.abs(p.y - y) < 6)) continue;
-    const kinds = TREES[LANDS[s.land].id];
+    const id = LANDS[s.land].id;
+    const kinds = id === 'frontier' && frontierWoods(x, y, (q - Q_RING) / (edgeQ(ang) - Q_RING)) < 0.5 ? DESERT : TREES[id];
     pts.push({ x, y, k: kinds[n % kinds.length] });
   }
   pts.sort((a, b) => a.y - b.y).forEach(p => tree(g, p.x, p.y, p.k));

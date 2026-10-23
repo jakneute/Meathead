@@ -116,13 +116,43 @@ export const flag = (g: Ctx, x: number, y: number, col: string, h = 9) => {
 };
 
 // ---- trees, the map's filler: each a few px, in its land's own kind
-export type TreeKind = 'round' | 'pine' | 'palm' | 'dead' | 'candy' | 'mushroom' | 'cypress';
+export type TreeKind = 'round' | 'pine' | 'palm' | 'dead' | 'candy' | 'mushroom' | 'cypress' | 'snowpine' | 'snowround' | 'cactus' | 'scrub';
 export const tree = (g: Ctx, x: number, y: number, kind: TreeKind, s = 1) => {
   switch (kind) {
     case 'pine': {
       const r = ramp('#2F6B3A');
       for (let j = 0; j < 9 * s; j++) { const hw = Math.round(((j % (3 * s)) + j * 0.4) / (1.2 * s) + 1); R(g, x - hw, y - 2 - (9 * s - j), hw, 1, r.base); R(g, x, y - 2 - (9 * s - j), hw, 1, r.shade); }
       R(g, x, y - 2, 1, 2, '#5A3A1E'); px(g, x - 1, y - 9 * s - 1, r.lit);
+      break;
+    }
+    case 'snowpine': {
+      // (a pine under snow: its tiers' tops caked white, the shade side blue-gray)
+      const r = ramp('#2A5A3E');
+      for (let j = 0; j < 9 * s; j++) {
+        const hw = Math.round(((j % (3 * s)) + j * 0.4) / (1.2 * s) + 1), yy = y - 2 - (9 * s - j), top = j % (3 * s) === 0;
+        R(g, x - hw, yy, hw, 1, top ? '#F4F8FC' : r.base); R(g, x, yy, hw, 1, top ? '#C2CEDF' : r.shade);
+      }
+      R(g, x, y - 2, 1, 2, '#5A3A1E'); px(g, x, y - 9 * s - 2, '#FFFFFF');
+      break;
+    }
+    case 'snowround': {
+      // (a bare-ish broadleaf, snow along its crown's top)
+      R(g, x, y - 2, 1, 2, '#5A3A1E');
+      ell(g, x, y - 5 * s, 4 * s, 3.5 * s, ramp('#3E6A4A'));
+      hl(g, x - 2 * s, y - 8 * s, 5 * s, '#F4F8FC'); hl(g, x - 3 * s, y - 7 * s, 4 * s, '#E2EAF4');
+      break;
+    }
+    case 'cactus': {
+      // (a saguaro: trunk, two arms up)
+      const r = ramp('#5E8A3A');
+      R(g, x, y - 7 * s, 2, 7 * s, r.base); vl(g, x + 1, y - 7 * s, 7 * s, r.shade);
+      vl(g, x - 2, y - 5 * s, 3, r.base); px(g, x - 1, y - 3 * s, r.base);
+      vl(g, x + 3, y - 6 * s, 3, r.shade); px(g, x + 2, y - 4 * s, r.shade);
+      break;
+    }
+    case 'scrub': {
+      // (a sagebrush clump)
+      ell(g, x, y - 2, 3 * s, 2 * s, ramp('#8A9A62'));
       break;
     }
     case 'palm': {

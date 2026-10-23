@@ -27,6 +27,16 @@ const carousel = (g: Ctx, x: number, y: number, r: number, a: string, b: string)
   tent(g, x, y - 6, r * 2, 6, a, b);
   vl(g, x, y - 16, 4, '#D4A017'); px(g, x, y - 17, b);
 };
+/** Snow on a pointed roof: a white cap down its top, and a lip of it along the eaves. */
+const snowCap = (g: Ctx, cx: number, y: number, w: number, h: number) => {
+  spire(g, cx, y - Math.round(h * 0.45), Math.max(2, Math.round(w * 0.6)), Math.max(2, Math.round(h * 0.55)), '#EEF3F9');
+  hl(g, cx - Math.round(w / 2), y, Math.round(w) + 1, '#F4F8FC');
+};
+/** A snowman (Fairy Land's everywhere). */
+const snowman = (g: Ctx, x: number, y: number) => {
+  ell(g, x, y - 2, 2, 2, '#F4F8FC', false); ell(g, x, y - 5, 1.5, 1.5, '#F4F8FC', false); hl(g, x - 2, y, 5, '#B8C6D8');
+  px(g, x + 1, y - 5, '#F97316'); hl(g, x - 1, y - 7, 3, '#1C1917');
+};
 const person = (g: Ctx, x: number, y: number, col: string) => { px(g, x, y - 3, '#F2C29A'); vl(g, x, y - 2, 2, col); };
 
 export const LANDMARKS: Record<string, Art> = {
@@ -276,8 +286,9 @@ export const LANDMARKS: Record<string, Art> = {
   // ---- Fairy Land
   village: (g, x, y) => {
     // (HOGSMEAT: crooked snowy-roofed shops, a carousel)
-    for (let k = 0; k < 4; k++) { const bx = x - 24 + k * 12; block(g, bx, y - (k % 2) * 2, 10, 10 + (k % 3) * 2, 2, ['#7C5A3A', '#5E4A6E', '#3E5A7A', '#7A3A3A'][k], '#F5F5F4'); spire(g, bx + 5, y - 13 - (k % 3) * 2 - (k % 2) * 2, 10, 7, '#475569'); windows(g, bx + 1, y - 7 - (k % 2) * 2, 8, 2, '#FDE68A'); }
+    for (let k = 0; k < 4; k++) { const bx = x - 24 + k * 12, ry = y - 13 - (k % 3) * 2 - (k % 2) * 2; block(g, bx, y - (k % 2) * 2, 10, 10 + (k % 3) * 2, 2, ['#7C5A3A', '#5E4A6E', '#3E5A7A', '#7A3A3A'][k], '#F5F5F4'); spire(g, bx + 5, ry, 10, 7, '#475569'); snowCap(g, bx + 5, ry, 10, 7); windows(g, bx + 1, y - 7 - (k % 2) * 2, 8, 2, '#FDE68A'); }
     carousel(g, x + 4, y + 8, 7, '#EC4899', '#FDE68A');
+    snowman(g, x - 20, y + 9); snowman(g, x + 18, y + 6);
   },
   wheel: (g, x, y) => {
     // (THE FAIRY WHEEL: a big Ferris wheel, colored cars)
@@ -289,7 +300,7 @@ export const LANDMARKS: Record<string, Art> = {
     line(g, x, cy, x - 8, y, '#6B7280', 2); line(g, x, cy, x + 8, y, '#6B7280', 2); ell(g, x, cy, 2, 2, ramp('#FDE047'));
   },
   glen: (g, x, y) => {
-    for (let k = 0; k < 6; k++) tree(g, x - 18 + k * 7, y - 2 + (k % 2) * 4, k % 2 ? 'mushroom' : 'round', k === 2 ? 1.6 : 1);
+    for (let k = 0; k < 6; k++) tree(g, x - 18 + k * 7, y - 2 + (k % 2) * 4, k % 2 ? 'mushroom' : 'snowpine', k === 2 ? 1.6 : 1);
     // (Cupid, on his wire)
     line(g, x - 20, y - 26, x + 20, y - 22, '#9CA3AF'); px(g, x + 2, y - 23, '#F2C29A'); px(g, x + 1, y - 24, '#FFFFFF'); px(g, x + 3, y - 24, '#FFFFFF');
   },
@@ -302,13 +313,14 @@ export const LANDMARKS: Record<string, Art> = {
       track(g, pts, c, mix(c, '#000000', 0.55));
     });
     for (let i = -20; i <= 20; i += 8) leg(g, x + i, y - 8, y, '#57534E');
-    block(g, x - 26, y, 8, 6, 2, '#3F6212', '#1A2E05'); px(g, x - 23, y - 7, '#FDE047');
+    block(g, x - 26, y, 8, 6, 2, '#3F6212', '#E8EEF6'); px(g, x - 23, y - 7, '#FDE047');
   },
   pixieCastle: (g, x, y) => {
     // (the Great Pixie's castle, the tallest thing in the land: pink and gold spires; the drained moat round it)
     const W = '#F9E6F0';
-    block(g, x - 14, y, 28, 12, 4, W, '#F0C4DA');
-    for (const [dx, h] of [[-14, 22], [-6, 34], [0, 44], [6, 34], [14, 22]] as [number, number][]) { block(g, x + dx - 3, y - 2, 6, h, 2, W, '#F0C4DA'); spire(g, x + dx, y - h - 4, 8, dx === 0 ? 14 : 10, '#DB2777'); px(g, x + dx, y - h - (dx === 0 ? 18 : 14), '#FDE047'); }
+    // (snow on its wall walks and roofs, caps on the spires)
+    block(g, x - 14, y, 28, 12, 4, W, '#EEF3F9');
+    for (const [dx, h] of [[-14, 22], [-6, 34], [0, 44], [6, 34], [14, 22]] as [number, number][]) { block(g, x + dx - 3, y - 2, 6, h, 2, W, '#EEF3F9'); spire(g, x + dx, y - h - 4, 8, dx === 0 ? 14 : 10, '#DB2777'); snowCap(g, x + dx, y - h - 4, 8, dx === 0 ? 14 : 10); px(g, x + dx, y - h - (dx === 0 ? 18 : 14), '#FDE047'); }
     R(g, x - 3, y - 7, 6, 7, '#7A3A5A'); hl(g, x - 3, y - 7, 6, '#FDE047');
     // (the runway off the back: a long ramp out)
     line(g, x + 16, y - 16, x + 30, y - 24, '#A8A29E', 2);

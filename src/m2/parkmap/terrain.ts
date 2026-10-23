@@ -58,7 +58,7 @@ export const WALKS: Seg[] = (() => {
 
 /** Water: rivers (polylines) and pools (ellipses), each with its own color family. */
 interface Pool { cx: number; cy: number; rx: number; ry: number; kind: Water }
-type Water = 'river' | 'moat' | 'mud' | 'lagoon' | 'pool' | 'slime';
+type Water = 'river' | 'moat' | 'mud' | 'lagoon' | 'pool' | 'slime' | 'ice';
 const L = (id: string) => LANDS.findIndex(l => l.id === id);
 const land = (id: string, pts: [number, number][]) => pts.map(([u, v]) => inLand(L(id), u, v));
 export const RIVERS: { segs: Seg[]; kind: Water }[] = [
@@ -70,7 +70,8 @@ export const RIVERS: { segs: Seg[]; kind: Water }[] = [
 export const POOLS: Pool[] = [
   { ...ctr('foreign', 0, 0.44), rx: 46, ry: 30, kind: 'lagoon' },
   { ...ctr('spooky', -0.1, 0.52), rx: 30, ry: 20, kind: 'moat' },
-  { ...ctr('fantasy', 0.15, 0.88), rx: 30, ry: 18, kind: 'mud' },
+  // (the Great Pixie's castle's drained moat: mud, partly frozen over, skaters' ice in patches)
+  { ...ctr('fantasy', 0.15, 0.88), rx: 30, ry: 18, kind: 'ice' },
   { ...ctr('space', -0.08, 0.2), rx: 14, ry: 6, kind: 'pool' },
   { ...ctr('cartoon', 0.05, 0.62), rx: 12, ry: 7, kind: 'slime' },
   // (the water park, off in its own corner: coming soon-ish)
@@ -86,6 +87,7 @@ const WATER: Record<Water, RGB[]> = {
   moat: ['#1E3A2E', '#2A4E3A', '#3A6448', '#6E9A6A'].map(C),
   mud: ['#4A3420', '#5E4228', '#745434', '#9A7A52'].map(C),
   slime: ['#3F7A14', '#5EA01E', '#84CC16', '#C6F06A'].map(C),
+  ice: ['#7A9CC0', '#9ABCDA', '#BCD6EC', '#E4F0F8'].map(C),
 };
 const SAND = C('#E8D7A0'), SAND_D = C('#C9B47C');
 const GROUND: Record<string, RGB[]> = {
@@ -94,11 +96,41 @@ const GROUND: Record<string, RGB[]> = {
   spooky: ['#57506E', '#635B7C', '#4A4360', '#3A6448'].map(C),
   cartoon: ['#9EE6A8', '#B4F0BC', '#86D492', '#FDE68A'].map(C),
   hollywood: ['#9A98A2', '#ACAAB4', '#86848E', '#FDE047'].map(C),
-  fantasy: ['#6CC04A', '#82D45E', '#58A83C', '#F9A8D4'].map(C),
+  // (Fairy Land's under snow: white, its drifts' shadows stepped down into blue-gray)
+  fantasy: ['#E6ECF4', '#F6F9FC', '#C6D2E2', '#9FB0C8'].map(C),
   adventure: ['#2F6B2A', '#3E8236', '#245822', '#6AA83A'].map(C),
   foreign: ['#E2D2AE', '#ECDFBF', '#CCBA92', '#C2564A'].map(C),
   america: ['#D8B08A', '#E4C29E', '#C49A74', '#B23A3A'].map(C),
 };
+/** Wilderness Land's pine woods: round the trailhead's wilds, and out past the gulch and the mine (the log flume's
+ *  hills, the woods off the map); desert scrub between (the flats, the town, the railroad). 0 desert .. 1 woods, with a
+ *  band between the dither crosses. */
+const WILDS = (() => { const a = ATTRACTIONS.find(t => t.id === 'wilds')!; return attractionAt(a); })();
+export const frontierWoods = (x: number, y: number, dq: number) =>
+  Math.max(Math.min(1, Math.max(0, (dq - 0.66) / 0.08)), Math.min(1, Math.max(0, (1.15 - Math.hypot((x - WILDS.x) / 46, (y - WILDS.y + 4) / 28)) / 0.15)));
+const FOREST = ['#3E5A2E', '#4A6A36', '#2E4824', '#6A5A3A'].map(C);
+/** Hollywood Land's Happywood hills (its outer edge): dry grass in contour bands, scrub on them. */
+const HILLS = ['#B09A64', '#C2AE78', '#94804E', '#6A7A3A'].map(C);
+const STARWALK = C('#C9B4B0'), STARWALK_D = C('#A8949A');
+/** Spooky Land's graveyard ground and its headstones. */
+const GRAVE = ['#3E4A48', '#48564E', '#323C3C'].map(C), STONE = C('#A8A4B4'), STONE_D = C('#5E5A6C');
+/** The White House's lawn, mown in stripes. */
+const LAWN = ['#4CC85E', '#6ADC74'].map(C);
+/** Future Land's crater (Xenoscare's new neighbor): scorched. */
+const SCORCH = ['#5E5A56', '#44403C', '#7A746C'].map(C);
+/** Foreign Lands' ground round each pavilion: the regions' own (base, shade), in the lagoon art's pavilion order. */
+const REGION: { dx: number; dy: number; c: RGB[]; kind: 'plain' | 'cobble' | 'raked' | 'lawn' }[] = [
+  { dx: -46, dy: 6, c: ['#D9A066', '#C08650'].map(C), kind: 'plain' },   // Mexico: terracotta
+  { dx: -40, dy: -14, c: ['#7E9A5E', '#66824A'].map(C), kind: 'lawn' },  // Norway: turf
+  { dx: -26, dy: -28, c: ['#CDB98E', '#B09C72'].map(C), kind: 'cobble' }, // China: stone court
+  { dx: -6, dy: -34, c: ['#B8AC98', '#9A8E7A'].map(C), kind: 'cobble' },  // Germany: cobbles
+  { dx: 14, dy: -33, c: ['#DCC8A0', '#C2AC82'].map(C), kind: 'cobble' },  // Italy: piazza
+  { dx: 32, dy: -26, c: ['#D8D2C2', '#B8B2A2'].map(C), kind: 'raked' },  // Japan: raked gravel
+  { dx: 44, dy: -10, c: ['#E2B87A', '#C89C5E'].map(C), kind: 'plain' },  // Morocco: sand
+  { dx: 46, dy: 10, c: ['#C8BCA2', '#ACA086'].map(C), kind: 'raked' },   // France: gravel allees
+  { dx: -26, dy: 22, c: ['#7FA85A', '#668E46'].map(C), kind: 'lawn' },   // UK: lawn
+  { dx: 26, dy: 22, c: ['#5E7E4A', '#4A6838'].map(C), kind: 'lawn' },    // Canada: forest floor
+];
 const GRASS = ['#7CB65A', '#8CC466', '#6CA44E'].map(C);
 const BERM = ['#2C5E2E', '#3A7238', '#22482A', '#4E8A44'].map(C);
 const WOODS = ['#1E4A2A', '#2A5C32', '#173A22'].map(C);
@@ -119,6 +151,10 @@ export const terrainJob = () => {
   const img = g.createImageData(MAP_W, MAP_H), d = img.data;
   const walks = WALKS, rivers = RIVERS.flatMap(r => r.segs.map(s => ({ s, kind: r.kind })));
   const frontier = SECTORS.find(s => s.land === L('frontier'))!;
+  const lagoon = POOLS.find(p => p.kind === 'lagoon')!;
+  const regAng = REGION.map(r => Math.atan2(r.dy, r.dx));
+  const wh = attractionAt(ATTRACTIONS.find(a => a.id === 'whitehouse')!);
+  const xs = attractionAt(ATTRACTIONS.find(a => a.id === 'xenoscare')!), crater = { x: xs.x + 20, y: xs.y - 1 };
   let row = 0, done = false;
   const step = (until: number): boolean => {
   if (done) return true;
@@ -143,26 +179,80 @@ export const terrainJob = () => {
       const s = sectorAt(ang);
       const id = s.land === null ? 'america' : LANDS[s.land].id;
       const P = GROUND[id];
+      // (how far out into the land, 0 at the ring walk .. 1 at its edge)
+      const dq = (q - Q_RING) / (e - Q_RING);
+      const a0 = wrapNear(ang, s.a0) - s.a0, a1 = s.a1 - wrapNear(ang, s.a1);
       // (the land's ground: its tone, speckled, a few patches of its accent)
       c = h < 0.18 ? P[1] : h > 0.86 ? P[2] : P[0];
       const blob = noise(x * 0.06, y * 0.06);
       if (blob > 0.72) c = P[2];
       if (id === 'space' && ((x % 12 === 0) || (y % 12 === 0))) c = P[2];
       if (id === 'space' && blob > 0.8 && chk) c = P[3];
-      if (id === 'hollywood' && (x % 16 === 0 || y % 20 === 0)) c = P[1];
-      if (id === 'foreign' && ((x + (y >> 3)) % 9 === 0)) c = P[2];
       if (id === 'america' && ((y % 5 === 0) || ((x + (Math.floor(y / 5) % 2) * 5) % 10 === 0))) c = P[2];
       if (id === 'cartoon' && ((x % 14 - 7) ** 2 + (y % 14 - 7) ** 2 < 4)) c = P[3];
-      if (id === 'fantasy' && h > 0.985) c = P[3];
       if (id === 'adventure' && blob > 0.55 && chk) c = P[2];
       if (id === 'adventure' && blob < 0.25) c = P[3];
       if (id === 'frontier' && blob < 0.28 && chk) c = P[3];
       if (id === 'spooky' && blob < 0.25 && chk) c = P[3];
+      if (id === 'fantasy') {
+        // (snow: sunlit crust, then the drifts' shadows in stepped bands, dithered between; a sparkle here and there)
+        c = blob < 0.3 || h < 0.14 ? P[1] : P[0];
+        if (blob > 0.6 && chk) c = P[2];
+        if (blob > 0.66) c = P[2];
+        if (blob > 0.78 && chk) c = P[3];
+        if (blob > 0.84) c = P[3];
+        if (h > 0.992) c = [255, 255, 255];
+      }
+      const woods = id === 'frontier' ? frontierWoods(x, y, dq) : 0;
+      if (woods > 0) {
+        // (the pine woods: needle floor, dithered into the desert scrub where they meet)
+        const f = h < 0.2 ? FOREST[1] : blob > 0.66 ? FOREST[2] : FOREST[0];
+        if (woods >= 1 || (woods > 0.5 ? chk || h < woods : chk && h < woods)) c = blob < 0.22 && chk ? FOREST[3] : f;
+      }
+      if (id === 'hollywood' && (x % 16 === 0 || y % 20 === 0)) c = P[1];
+      if (id === 'hollywood' && dq > 0.8) {
+        // (the Happywood hills along its back: contour bands, scrub on them)
+        const band = Math.floor((dq - 0.8) * AV_R * 0.32 + blob * 3);
+        c = band % 3 === 0 ? HILLS[1] : band % 3 === 1 ? HILLS[0] : HILLS[2];
+        if (h > 0.9 || (blob > 0.6 && chk && h > 0.6)) c = HILLS[3];
+        if (dq < 0.84 && chk) c = P[0];
+      }
+      if (id === 'hollywood' && dq < 0.3) {
+        // (the blvd's walk of fame either side of the street in: pink terrazzo, a gold star every few steps)
+        const off = Math.abs(wrapNear(ang, s.mid) - s.mid) * q * AV_R;
+        if (off < 9) { c = (x + y) % 5 === 0 ? STARWALK_D : STARWALK; if (y % 7 === 0 && x % 3 === 1) c = P[3]; }
+      }
+      if (id === 'spooky' && noise(x * 0.035 + 40, y * 0.035 + 7) > 0.64) {
+        // (the graveyard: dank turf, headstones in crooked rows)
+        c = h < 0.2 ? GRAVE[1] : chk && blob > 0.6 ? GRAVE[2] : GRAVE[0];
+        const col = Math.floor(x / 5), rowI = Math.floor(y / 6), jx = x - col * 5, jy = y - rowI * 6;
+        if (hashI(col, rowI) > 0.35) { if (jx === 2 && (jy === 1 || jy === 2)) c = STONE; else if (jx === 2 && jy === 3) c = STONE_D; }
+      }
+      if (id === 'cartoon') {
+        // (the White House's lawn, mown in stripes)
+        const ld = Math.hypot((x - wh.x) / 34, (y - wh.y + 4) / 18);
+        if (ld < 1) c = Math.floor((x + y * 0.5) / 4) % 2 ? LAWN[0] : LAWN[1];
+      }
+      if (id === 'space') {
+        // (the crater: scorched in rings out from it)
+        const cd = Math.hypot((x - crater.x) / 20, (y - crater.y) / 10);
+        if (cd < 1 && (cd < 0.7 || chk)) c = cd < 0.45 ? SCORCH[1] : h < 0.25 ? SCORCH[2] : SCORCH[0];
+      }
+      if (id === 'foreign') {
+        // (each pavilion's region round the lagoon its own ground: by which pavilion it's nearest round the shore)
+        const pa = Math.atan2(y - lagoon.cy, x - lagoon.cx);
+        let bi = 0, bd = Infinity;
+        regAng.forEach((ra, i) => { const dd = Math.abs(wrapNear(pa, ra) - ra); if (dd < bd) { bd = dd; bi = i; } });
+        const rg = REGION[bi], Rc = rg.c;
+        c = h < 0.12 ? Rc[1] : Rc[0];
+        if (rg.kind === 'cobble' && (x % 4 === 0 || (y + ((x >> 2) & 1) * 2) % 3 === 0)) c = Rc[1];
+        if (rg.kind === 'raked' && y % 3 === 0) c = Rc[1];
+        if (rg.kind === 'lawn' && blob > 0.6 && chk) c = Rc[1];
+      }
       // (the edge: two stepped bands in, dithered between)
       const ed = (e - q) * AV_R;
       if (ed < 2) c = shade(c, 0.6); else if (ed < 4) c = shade(c, 0.78); else if (ed < 5 && chk) c = shade(c, 0.78);
       // (the hedges between lands: along each slice's edges; America USA's has a wall)
-      const a0 = wrapNear(ang, s.a0) - s.a0, a1 = s.a1 - wrapNear(ang, s.a1);
       const hd = Math.min(Math.abs(a0), Math.abs(a1)) * q * AV_R;
       if (hd < 2.5) c = s.land === null || sectorAt(ang + (a0 < a1 ? -0.05 : 0.05)).land === null ? C('#8A5A44') : (h < 0.3 ? HEDGE_L : HEDGE);
       else if (hd < 3.5 && chk) c = HEDGE;
@@ -206,9 +296,9 @@ export const terrainJob = () => {
       if (dd < wd) { wd = dd; wk = p.kind; wr = Math.min(p.rx, p.ry); }
     }
     if (wk && wd < 1 + 2 / wr) {
-      const P = WATER[wk];
+      const P = wk === 'ice' && noise(x * 0.22, y * 0.22) < 0.4 ? WATER.mud : WATER[wk];
       const dpx = (1 - wd) * wr;
-      if (wd >= 1) c = chk ? SAND : SAND_D;
+      if (wd >= 1) c = wk === 'ice' ? (chk ? GROUND.fantasy[2] : GROUND.fantasy[0]) : chk ? SAND : SAND_D;
       else if (dpx < 1.2) c = P[3];
       else if (dpx < 2.5) c = P[2];
       else if (dpx < 3.5) c = chk ? P[2] : P[1];

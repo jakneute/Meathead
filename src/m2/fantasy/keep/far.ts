@@ -330,7 +330,9 @@ export const drawKeepFar = (c: Ctx, state: GameState) => {
   // (THE INNER WARD: inside the walls it drifts slowly across as he goes; out on the runway it's off to his left, the
   //  keep beside the deck, her window right up over it)
   const mid = cx + W / 2 - x0;
-  const keepX = mid < RUNWAY - 150 ? 560 - 300 * Math.max(0, Math.min(1, mid / RUNWAY)) : 300 - 200 * Math.max(0, Math.min(1, (mid - RUNWAY) / 3000));
+  //  (one continuous slide: inside it eases 560 -> 300 by the runway's start, then on along the deck 300 -> 100; the two
+  //  pieces meet at the same x, so there's no handover jump where they join)
+  const keepX = 560 - 260 * Math.max(0, Math.min(1, mid / RUNWAY)) - 200 * Math.max(0, Math.min(1, (mid - RUNWAY) / 3000));
   drawInnerWard(c, keepX, hz + 4, f, tod);
   balloons(c, f, cx, up);
   snowfall(c, state, 36, 1, 0.35, 0.15, 0.55, 13);
