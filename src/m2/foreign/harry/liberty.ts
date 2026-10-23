@@ -930,6 +930,11 @@ export const drawArm = (c: Ctx, L: LibLook, fx: number, fy: number, opts: { torc
 
 /** The rubble on the floor (concrete chunks and her green shell, a crown ray, a broken nose), around x. */
 export const drawRubble = (c: Ctx, x: number, gy: number, f: number) => {
+  // (still: painted once into a stamp)
+  stamp(c, `liberty-rubble-${Math.round(x)}-${Math.round(gy)}`, x - 230, gy - 64, 470, 70, g => rubbleStill(g, x, gy));
+  void f;
+};
+const rubbleStill = (c: Ctx, x: number, gy: number) => {
   const chunks: [number, number, number, string][] = [[-150, 22, 16, CONC[3]], [-110, 30, 22, PAT[3]], [-60, 18, 14, CONC[4]], [-20, 26, 20, PAT[2]], [30, 20, 18, CONC[3]], [80, 34, 26, PAT[3]], [140, 16, 12, CONC[4]], [190, 24, 18, PAT[4]]];
   for (const [i, [dx, w, h, col]] of chunks.entries()) {
     const green = col.startsWith('#') && PAT.includes(col);
@@ -944,11 +949,26 @@ export const drawRubble = (c: Ctx, x: number, gy: number, f: number) => {
     if (i % 3 === 1) { c.strokeStyle = '#7C2D12'; c.lineWidth = 2.5; c.beginPath(); c.moveTo(x + dx, gy - h * 0.6); c.lineTo(x + dx + 8, gy - h - 14); c.lineTo(x + dx + 14, gy - h - 16); c.stroke(); c.strokeStyle = '#C2410C'; c.lineWidth = 1; c.stroke(); }
   }
   // (a crown ray, broken off, lying)
+  // (faceted like the ones still on her: the lit face above its ridge, the shadow face under, stepped and dithered; a
+  // glint; the riveted collar; the snapped end jagged with the concrete in the break)
   fl(c, PAT[3], () => { c.moveTo(x - 40, gy - 2); c.lineTo(x + 70, gy - 12); c.lineTo(x - 40, gy - 22); c.closePath(); }, 2);
-  r(c, x - 36, gy - 14, 100, 2, PAT[5]);
-  // (her nose)
+  c.save(); c.beginPath(); c.moveTo(x - 40, gy - 2); c.lineTo(x + 70, gy - 12); c.lineTo(x - 40, gy - 22); c.closePath(); c.clip();
+  r(c, x - 40, gy - 24, 112, 11, PAT[4]); dr(c, x - 40, gy - 22, 112, 3, PAT[5]); r(c, x - 40, gy - 12, 112, 12, PAT[2]); dr(c, x - 40, gy - 7, 112, 3, PAT[1]);
+  r(c, x - 36, gy - 13, 104, 1, PAT[6]); r(c, x - 36, gy - 12, 104, 1, PAT[1]);
+  r(c, x - 12, gy - 18, 8, 1, PAT[6]); run(c, x + 10, gy - 16, 4);
+  c.restore();
+  fl(c, PAT[2], () => c.rect(x - 46, gy - 24, 10, 24), 2); r(c, x - 45, gy - 23, 2, 22, PAT[4]);
+  for (const ry of [gy - 19, gy - 12, gy - 5]) { r(c, x - 42, ry, 2, 2, PAT[0]); r(c, x - 42, ry, 1, 1, PAT[6]); }
+  fl(c, CONC[3], () => { c.moveTo(x - 46, gy - 24); c.lineTo(x - 52, gy - 19); c.lineTo(x - 48, gy - 13); c.lineTo(x - 54, gy - 7); c.lineTo(x - 46, gy); c.closePath(); }, 1.5);
+  r(c, x - 51, gy - 18, 3, 1, CONC[5]);
+  // (her nose, snapped off: the bridge lit, the far side in shade, a nostril, the concrete showing where it broke)
   fl(c, PAT[4], () => { c.moveTo(x + 110, gy); c.lineTo(x + 116, gy - 30); c.lineTo(x + 128, gy); c.closePath(); }, 2);
-  void f;
+  c.save(); c.beginPath(); c.moveTo(x + 110, gy); c.lineTo(x + 116, gy - 30); c.lineTo(x + 128, gy); c.closePath(); c.clip();
+  r(c, x + 108, gy - 32, 7, 32, PAT[5]); r(c, x + 115, gy - 32, 2, 32, PAT[6]); r(c, x + 120, gy - 32, 10, 32, PAT[2]); dr(c, x + 118, gy - 32, 2, 32, PAT[2]);
+  r(c, x + 116, gy - 5, 6, 3, PAT[0]);
+  c.restore();
+  fl(c, CONC[3], () => { c.moveTo(x + 113, gy - 16); c.lineTo(x + 116, gy - 30); c.lineTo(x + 120, gy - 18); c.closePath(); }, 1.2);
+  r(c, x + 115, gy - 25, 1, 3, CONC[5]);
 };
 /** The revolver at (x, y) (its grip), turned `a` (0: lying, barrel to the right). */
 export const drawRevolverAt = (c: Ctx, x: number, y: number, a: number) => revolver(c, x, y, a, 0, false);

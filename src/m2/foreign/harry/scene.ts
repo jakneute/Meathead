@@ -12,7 +12,7 @@
 
 import type { GameState } from '../../../m1/game/core/state';
 import { drawTodSky } from '../../timeOfDay';
-import { box, mix, hour, dimmed, ramp6, viewIn, onScreen, postBoard, flagPole, stamp, atDepth, timeOfDay, lit, LOOKS, LIP, INK, signText } from '../kit';
+import { box, mix, hour, dimmed, ramp6, viewIn, onScreen, postBoard, post, ball, stamp, atDepth, timeOfDay, lit, LOOKS, LIP, INK, signText } from '../kit';
 import { drawCopter } from '../heli/copter';
 import type { MechId } from '../heli/lines';
 import { drawWreck3d } from '../heli/landmarks3d';
@@ -29,6 +29,61 @@ type Ctx = CanvasRenderingContext2D;
 const CRUMBS: [number, number, number, boolean][] = [[-300, 14, 0.4, true], [-200, 9, 1.2, true], [-60, 18, 2.1, true], [30, 11, 0.8, false], [120, 16, 2.7, true], [210, 8, 1.9, true], [300, 13, 0.2, true]];
 const TIEDYE_SHREDS: [number, string][] = TIEDYE.map((col, i) => [-150 + i * 23 + (i % 2) * 9, col]);
 const hsh = (n: number) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
+
+// ---------------------------------------------------------------------------------------------------------------
+// Old Glory (the sign's two flags: thirteen stripes and the canton's stars, not two plain bands). The cloth painted
+// once for the hour into a little canvas; waving, it's put down in 2px strips (the same few calls a frame as before)
+
+const glories = new Map<string, HTMLCanvasElement>();
+const GW = 48, GH = 30;
+const gloryCloth = () => {
+  const key = timeOfDay().key;
+  let cv = glories.get(key);
+  if (!cv && typeof document !== 'undefined') {
+    cv = document.createElement('canvas'); cv.width = GW; cv.height = GH;
+    const g = cv.getContext('2d')!, Rd = ramp6(hour('#B91C1C')), Wh = ramp6(hour('#F1F5F9')), Bl = ramp6(hour('#1E3A8A'));
+    for (let k = 0; k < 13; k++) {
+      const y0 = Math.round((k * GH) / 13), y1 = Math.round(((k + 1) * GH) / 13), R = k % 2 ? Wh : Rd;
+      box(g, 0, y0, GW, y1 - y0, R[3]); box(g, 0, y1 - 1, GW, 1, R[2]);
+    }
+    const ch = Math.round((7 * GH) / 13);
+    box(g, 0, 0, 20, ch, Bl[2]); box(g, 0, 0, 20, 1, Bl[3]); box(g, 19, 0, 1, ch, Bl[1]);
+    for (let r = 0; r < 4; r++) for (let q = 0; q < 5 - (r % 2); q++) box(g, 2 + q * 4 + (r % 2) * 2, 2 + r * 4, 1, 1, Wh[4]);
+    glories.set(key, cv);
+  }
+  return cv;
+};
+/** A flag on a pole (kit.flagPole's pole, its wave): Old Glory. */
+const gloryPole = (c: Ctx, x: number, feetY: number, h: number, f: number) => {
+  const P = ramp6(hour('#9CA3AF'));
+  post(c, x, feetY - h, feetY, 4, P);
+  box(c, x - 5, feetY - 5, 11, 5, INK); box(c, x - 4, feetY - 5, 9, 4, P[2]); box(c, x - 4, feetY - 5, 9, 1, P[4]);
+  ball(c, x, feetY - h - 4, 3, '#CA8A04');
+  box(c, x + 2, feetY - h + 2, 1, h - 40, P[1]);
+  const cv = gloryCloth(), top = feetY - h + 2;
+  for (let i = 0; i < GW; i += 2) {
+    const ph = f * 0.08 + i * 0.12, wave = Math.round(Math.sin(ph) * 2 * (i / GW + 0.3)), lk = Math.cos(ph);
+    box(c, x + 2 + i, top + wave - 1, 2, GH + 2, INK);
+    if (cv) c.drawImage(cv, i, 0, 2, GH, x + 2 + i, top + wave, 2, GH);
+    if (lk > 0.55) box(c, x + 2 + i, top + wave, 2, GH, 'rgba(255, 255, 255, 0.16)');
+    else if (lk < -0.55) box(c, x + 2 + i, top + wave, 2, GH, 'rgba(10, 6, 20, 0.24)');
+  }
+};
+
+/** Poured concrete's aggregate (a speckle tile, for one fill: lit stones and pits), per tone. */
+const grits = new Map<string, CanvasPattern>();
+const grit = (c: Ctx, lo: string, hi: string) => {
+  const key = lo + hi;
+  let p = grits.get(key);
+  if (!p && typeof document !== 'undefined') {
+    const cv = document.createElement('canvas'); cv.width = 64; cv.height = 24;
+    const g = cv.getContext('2d')!;
+    for (let i = 0; i < 46; i++) { const x = Math.floor(hsh(i * 2.3) * 64), y = Math.floor(hsh(i * 5.9 + 1) * 24); box(g, x, y, i % 5 ? 1 : 2, 1, i % 3 ? lo : hi); if (i % 7 === 0) box(g, x + 1, y + 1, 1, 1, lo); }
+    p = c.createPattern(cv, 'repeat') ?? undefined;
+    if (p) grits.set(key, p);
+  }
+  return p;
+};
 
 // ---------------------------------------------------------------------------------------------------------------
 // The eye (one for the scene): the screen row its horizon's on, the 3D camera the wrecks go through (the heli's park
@@ -205,6 +260,9 @@ const floor = (c: Ctx, state: GameState) => {
   // (the approach: trampled dirt going back, coming on toward him in steps darker; tire tracks; pebbles)
   box(c, a, GY - 22, b - a, 22, D[3]); box(c, a, GY - 22, b - a, 4, dith(c, D[4]) as unknown as string); box(c, a, GY - 22, b - a, 1, D[4]);
   box(c, a, GY, b - a, 120, D[2]); box(c, a, GY + 26, b - a, 8, dith(c, D[1]) as unknown as string); box(c, a, GY + 34, b - a, 90, D[1]); box(c, a, GY + 62, b - a, 6, dith(c, D[0]) as unknown as string); box(c, a, GY + 68, b - a, 60, D[0]);
+  // (the dirt's grit: clods lit, pits dark; one patterned fill)
+  const dg = grit(c, D[0], D[4]);
+  if (dg) { c.fillStyle = dg; c.fillRect(a, GY - 22, b - a, 142); }
   const s0 = Math.max(a, ARENA_L - WALL_W), s1 = Math.min(b, ARENA_R + WALL_W);
   for (const ty of [GY + 14, GY + 44]) for (let x = Math.ceil(a / 8) * 8; x < Math.min(b, ARENA_L - WALL_W); x += 8) { box(c, x, ty, 6, 5, D[0]); box(c, x, ty, 6, 1, D[1]); }
   for (let x = Math.ceil(a / 23) * 23; x < Math.min(b, ARENA_L - WALL_W); x += 23) { const y = GY - 18 + hsh(x) * 16, y2 = GY + 6 + hsh(x * 1.7) * 60; box(c, x, y, 3, 2, D[4]); box(c, x + 9, y2, 3, 2, D[3]); box(c, x + 9, y2 + 2, 3, 1, D[0]); }
@@ -222,6 +280,9 @@ const floor = (c: Ctx, state: GameState) => {
     // (coming on toward him: a step darker, the near rows darker again)
     box(c, w0, GY, sw, 120, S[2]); box(c, w0, GY + 30, sw, 8, dith(c, S[1]) as unknown as string); box(c, w0, GY + 38, sw, 90, S[1]); box(c, w0, GY + 70, sw, 8, dith(c, S[0]) as unknown as string);
     box(c, w0, GY + 36, sw, 1, S[0]); box(c, w0, GY + 37, sw, 1, S[3]);
+    // (the pour's aggregate: stones lit, pits dark; one patterned fill over the lot)
+    const sg = grit(c, S[1], S[4]);
+    if (sg) { c.fillStyle = sg; c.fillRect(w0, GY - 26, sw, 146); }
     // (the joints: sawn every 120, going back to the eye and coming on toward him, each a dark cut with a lit lip)
     for (let x = Math.ceil(s0 / 120) * 120; x < s1; x += 120) {
       const bx = x + (ex - x) * back, nx = x + (x - ex) * (80 / (GY - horY));
@@ -274,36 +335,59 @@ const panel = (c: Ctx, w: number) => {
   // (the placard, zip-tied on: a warning triangle)
   c.fillStyle = INK; c.beginPath(); c.moveTo(w / 2, -134); c.lineTo(w / 2 + 13, -112); c.lineTo(w / 2 - 13, -112); c.closePath(); c.fill();
   c.fillStyle = '#FACC15'; c.beginPath(); c.moveTo(w / 2, -131); c.lineTo(w / 2 + 10, -114); c.lineTo(w / 2 - 10, -114); c.closePath(); c.fill();
+  c.fillStyle = '#A16207'; c.beginPath(); c.moveTo(w / 2 + 3, -126); c.lineTo(w / 2 + 10, -114); c.lineTo(w / 2 + 3, -114); c.closePath(); c.fill();
+  c.fillStyle = '#FEF08A'; c.beginPath(); c.moveTo(w / 2, -131); c.lineTo(w / 2 - 10, -114); c.lineTo(w / 2 - 8, -114); c.lineTo(w / 2, -128); c.closePath(); c.fill();
   box(c, w / 2 - 1, -127, 2, 7, INK); box(c, w / 2 - 1, -118, 2, 2, INK);
   box(c, w / 2 - 12, -112, 2, 2, '#F8FAFC'); box(c, w / 2 + 10, -112, 2, 2, '#F8FAFC');
 };
-export type GateLook = { kind: 'none' | 'open' | 'standing' | 'down' } | { kind: 'falling'; k: number };
-/** A scaffold tower with plywood hoarding to the top of the shot: a wall (its face toward the floor at `side`). */
-const tower = (c: Ctx, xa: number, side: 1 | -1, gate: GateLook, f: number) => {
+/** A scaffold tower's still part (all but the gate), painted once for the hour into a stamp: plywood hoarding to the
+ *  top of the shot (a wall: its face toward the floor at `side`), what's painted on it, the scaffold out front. */
+const towerStill = (c: Ctx, xa: number, side: 1 | -1) => {
   const P = ramp6(hour('#B08B5A')), top = sy(-40);
   box(c, xa - 2, top, WALL_W + 4, GY - top, INK);
   // (the hoarding: 4x8 plywood sheets in steps (the grain, a knot, the screws, the lit edge, the shaded edge), seams)
   for (let y = GY - 120, n = 0; y > top - 120; y -= 120, n++) {
     const y0 = Math.max(top, y), h = y + 120 - y0;
     if (h <= 0) continue;
-    const tone = P[3 - (n % 2 ? 0 : 0)];
-    box(c, xa, y0, WALL_W, h, tone);
+    box(c, xa, y0, WALL_W, h, P[3]);
     for (let k = 0; k < 6; k++) { const gx = xa + 6 + k * 8 + Math.sin(n + k) * 2; for (let yy = y0 + 2; yy < y0 + h - 2; yy += 6) box(c, gx + Math.sin(yy * 0.07 + k) * 1.4, yy, 1, 4, (k + n) % 2 ? P[2] : P[4]); }
     if (n % 3 === 1) { ellR(c, xa + 30, y0 + h * 0.5, 4, 2.6, P[1]); ellR(c, xa + 30, y0 + h * 0.5, 2, 1.2, P[0]); }
     for (let yy = y0 + 8; yy < y0 + h; yy += 24) { box(c, xa + 3, yy, 1, 1, P[0]); box(c, xa + WALL_W - 4, yy, 1, 1, P[0]); }
+    // (the weather's on it: a water stain darkening up from each sheet's foot, dithered off)
+    box(c, xa, y0 + h - 10, WALL_W, 6, dith(c, P[2]) as unknown as string); box(c, xa, y0 + h - 4, WALL_W, 2, P[2]);
     box(c, xa, y0, WALL_W, 2, P[1]); box(c, xa, y0 + 2, WALL_W, 1, P[4]);
   }
   box(c, side > 0 ? xa + WALL_W - 3 : xa, top, 3, GY - top, P[4]);
   box(c, side > 0 ? xa : xa + WALL_W - 4, top, 4, GY - top, P[1]); box(c, side > 0 ? xa + 4 : xa + WALL_W - 6, top, 2, GY - top, dith(c, P[1]) as unknown as string);
-  // (what's painted on the hoarding: Old Glory's stripes up top, a big stenciled star, weathered; the hazard tape)
-  for (let k = 0; k < 7; k++) box(c, xa + 2, sy(-40) + 30 + k * 8, WALL_W - 4, 4, k % 2 ? '#F1F5F9' : '#B91C1C');
-  box(c, xa + 2, sy(-40) + 30, 22, 26, '#1E3A8A'); for (let k = 0; k < 6; k++) box(c, xa + 5 + (k % 3) * 7, sy(-40) + 34 + Math.floor(k / 3) * 9, 2, 2, '#F8FAFC');
-  box(c, xa + 2, sy(-40) + 30, WALL_W - 4, 56, dith(c, 'rgba(176, 139, 90, 0.4)') as unknown as string);
+  // (Old Glory painted on the hoarding up top, by a roller, weathered: stripes in steps (a lit top, a shaded foot), the
+  // canton's stars, the grain showing back through, chips down to bare ply, runs off the bottom stripe)
+  const fx0 = xa + 2, fy0 = top + 30, fw = WALL_W - 4, Rd = ramp6(hour('#B91C1C')), Wh = ramp6(hour('#F1F5F9')), Bl = ramp6(hour('#1E3A8A'));
+  for (let k = 0; k < 7; k++) { const R = k % 2 ? Wh : Rd, y = fy0 + k * 8; box(c, fx0, y, fw, 8, R[3]); box(c, fx0, y, fw, 1, R[4]); box(c, fx0, y + 7, fw, 1, R[2]); }
+  box(c, fx0, fy0, 22, 26, Bl[2]); box(c, fx0, fy0, 22, 1, Bl[3]); box(c, fx0, fy0, 1, 26, Bl[3]); box(c, fx0 + 21, fy0, 1, 26, Bl[1]); box(c, fx0, fy0 + 25, 22, 1, Bl[1]);
+  for (let k = 0; k < 9; k++) { const sx2 = fx0 + 4 + (k % 3) * 7, sy2 = fy0 + 4 + Math.floor(k / 3) * 8; box(c, sx2, sy2 - 1, 1, 3, Wh[4]); box(c, sx2 - 1, sy2, 3, 1, Wh[4]); box(c, sx2, sy2, 1, 1, Wh[5]); }
+  c.save(); c.globalAlpha = 0.35;
+  for (let k = 0; k < 6; k++) { const gx = xa + 6 + k * 8; for (let yy = fy0; yy < fy0 + 56; yy += 6) box(c, gx + Math.sin(yy * 0.07 + k) * 1.4, yy, 1, 4, P[2]); }
+  c.restore();
+  for (let i = 0; i < 16; i++) { const cx = fx0 + Math.floor(hsh(i * 4.1 + xa) * (fw - 4)), cy = fy0 + Math.floor(hsh(i * 9.3 + xa) * 54), w = 2 + (i % 3); box(c, cx, cy, w, 1 + (i % 2), P[3]); box(c, cx, cy, w, 1, P[4]); }
+  for (let i = 0; i < 5; i++) { const rx = fx0 + 6 + Math.floor(hsh(i * 7.7 + xa) * (fw - 12)), l = 3 + (i % 3) * 2; box(c, rx, fy0 + 56, 1, l, Rd[2]); box(c, rx, fy0 + 56 + l, 1, 1, Rd[1]); }
+  box(c, fx0, fy0 + 56, fw, 1, P[1]);
+  // (a big stencilled star: its shadow edge, the stencil's ties left bare across its arms, sprayed thin at the edges)
   const sx0 = xa + WALL_W / 2, sty = GY - 260;
-  c.fillStyle = 'rgba(248, 250, 252, 0.8)'; c.beginPath(); for (let k = 0; k < 10; k++) { const a = -Math.PI / 2 + (k * Math.PI) / 5, rr = k % 2 ? 7 : 17; c[k ? 'lineTo' : 'moveTo'](sx0 + Math.cos(a) * rr, sty + Math.sin(a) * rr); } c.closePath(); c.fill();
-  box(c, sx0 - 12, sty - 2, 24, 4, dith(c, P[3]) as unknown as string);
-  for (let k = xa; k < xa + WALL_W; k += 8) { box(c, k, GY - 46, 8, 7, ((k - xa) / 8) % 2 ? INK : '#FACC15'); }
-  box(c, xa, GY - 46, WALL_W, 1, '#FEF08A');
+  const starPath = (dx: number, dy: number) => { c.beginPath(); for (let k = 0; k < 10; k++) { const a = -Math.PI / 2 + (k * Math.PI) / 5, rr = k % 2 ? 7 : 17; c[k ? 'lineTo' : 'moveTo'](sx0 + dx + Math.cos(a) * rr, sty + dy + Math.sin(a) * rr); } c.closePath(); };
+  starPath(1, 1); c.fillStyle = P[1]; c.fill();
+  starPath(0, 0); c.fillStyle = Wh[3]; c.fill();
+  c.save(); starPath(0, 0); c.clip();
+  box(c, sx0 - 18, sty - 18, 36, 6, Wh[4]); box(c, sx0 + 2, sty - 2, 18, 20, Wh[2]); box(c, sx0 - 18, sty + 6, 36, 12, dith(c, Wh[2]) as unknown as string);
+  box(c, sx0 - 1, sty - 18, 2, 7, P[3]); box(c, sx0 - 18, sty - 3, 8, 2, P[3]); box(c, sx0 + 10, sty - 3, 8, 2, P[3]); box(c, sx0 - 12, sty + 8, 6, 2, P[3]); box(c, sx0 + 6, sty + 8, 6, 2, P[3]);
+  for (let i = 0; i < 8; i++) box(c, sx0 - 14 + Math.floor(hsh(i * 3.9 + xa) * 28), sty - 12 + Math.floor(hsh(i * 6.1 + xa) * 26), 2, 1, dith(c, P[3]) as unknown as string);
+  c.restore();
+  // (the hazard tape, round it at waist height: black and yellow chevrons, its lit top edge, its shaded foot)
+  const ty = GY - 46;
+  box(c, xa, ty - 1, WALL_W, 9, INK); box(c, xa, ty, WALL_W, 7, '#FACC15');
+  c.save(); c.beginPath(); c.rect(xa, ty, WALL_W, 7); c.clip(); c.fillStyle = '#1C1917';
+  for (let k = xa - 8; k < xa + WALL_W; k += 10) { c.beginPath(); c.moveTo(k, ty + 7); c.lineTo(k + 5, ty); c.lineTo(k + 10, ty); c.lineTo(k + 5, ty + 7); c.closePath(); c.fill(); }
+  c.restore();
+  box(c, xa, ty, WALL_W, 1, '#FEF08A'); box(c, xa, ty + 6, WALL_W, 1, dith(c, '#854D0E') as unknown as string);
   // (the scaffold out front: standards, ledgers every 90, couplers, a brace, the planks Harry hangs off (dimmed: no lip))
   const px = side > 0 ? xa + WALL_W - 9 : xa + 4, px2 = side > 0 ? xa + 6 : xa + WALL_W - 10;
   pipeV(c, px, top, GY); pipeV(c, px2, top, GY);
@@ -311,16 +395,30 @@ const tower = (c: Ctx, xa: number, side: 1 | -1, gate: GateLook, f: number) => {
   lineR(c, [px + 2, GY - 60, px2 + 2, GY - 150], 5, INK, 'butt'); lineR(c, [px + 2, GY - 60, px2 + 2, GY - 150], 3, '#8A8F98', 'butt'); lineR(c, [px + 1, GY - 61, px2 + 1, GY - 151], 1, '#E4E4E7', 'butt');
   const ply = GY - CLING_H - 6, PL = ramp6(dimmed('#C8A272'));
   box(c, xa - 4, ply - 1, WALL_W + 8, 8, INK); box(c, xa - 3, ply, WALL_W + 6, 6, PL[3]); box(c, xa - 3, ply, WALL_W + 6, 1, PL[4]); box(c, xa - 3, ply + 4, WALL_W + 6, 2, PL[1]);
-  for (let k = xa; k < xa + WALL_W; k += 14) box(c, k, ply, 1, 6, PL[1]);
+  for (let k = xa; k < xa + WALL_W; k += 14) { box(c, k, ply, 1, 6, PL[1]); box(c, k + 6, ply + 2, 3, 1, PL[2]); }
+  for (const ex2 of [xa - 3, xa + WALL_W + 1]) { box(c, ex2, ply, 2, 6, PL[2]); box(c, ex2, ply + 1, 2, 1, PL[0]); }
   // (the base plates on the slab)
-  for (const p0 of [px, px2]) { box(c, p0 - 4, GY - 3, 12, 3, INK); box(c, p0 - 3, GY - 3, 10, 2, '#71717A'); }
-  // (the right tower: DANGER, the dig behind it)
+  for (const p0 of [px, px2]) { box(c, p0 - 4, GY - 3, 12, 3, INK); box(c, p0 - 3, GY - 3, 10, 2, '#71717A'); box(c, p0 - 3, GY - 3, 10, 1, '#A1A1AA'); }
+  // (the right tower: DANGER, the dig behind it: an enamel plate bolted to the ply, its red header stepped, a chip or
+  // two down to the steel, rust weeping from its bolts)
   if (side > 0) {
-    const bx = xa + 6, by = GY - 128;
-    box(c, bx - 1, by - 1, WALL_W - 10, 30, INK); box(c, bx, by, WALL_W - 12, 28, '#F8FAFC'); box(c, bx, by, WALL_W - 12, 11, '#B91C1C');
-    signText(c, 'DANGER', bx + (WALL_W - 12) / 2, by + 9, { sx: 1, sy: 1, fill: '#FFFFFF' });
-    signText(c, 'DIG', bx + (WALL_W - 12) / 2, by + 24, { sx: 1, sy: 1, fill: '#1A0B06' });
+    const bx = xa + 6, by = GY - 128, bw = WALL_W - 12, bh = 28;
+    box(c, bx - 1, by - 1, bw + 2, bh + 2, INK); box(c, bx, by, bw, bh, '#E7E5E4');
+    box(c, bx, by, bw, 1, '#FFFFFF'); box(c, bx, by, 1, bh, '#FFFFFF'); box(c, bx + bw - 1, by, 1, bh, '#A8A29E'); box(c, bx, by + bh - 1, bw, 1, '#A8A29E');
+    box(c, bx + 2, by + 2, bw - 4, 11, '#B91C1C'); box(c, bx + 2, by + 2, bw - 4, 1, '#EF4444'); box(c, bx + 2, by + 12, bw - 4, 1, '#7F1D1D');
+    box(c, bx + 2, by + 13, bw - 4, 1, INK);
+    for (const [qx, qy] of [[bx + 1, by + 1], [bx + bw - 3, by + 1], [bx + 1, by + bh - 3], [bx + bw - 3, by + bh - 3]] as const) { box(c, qx, qy, 2, 2, '#44403C'); box(c, qx, qy, 1, 1, '#D6D3D1'); }
+    for (const qx of [bx + 1, bx + bw - 3]) { box(c, qx, by + bh + 1, 2, 5, dith(c, '#9A3412') as unknown as string); box(c, qx, by + bh + 1, 2, 1, '#7C2D12'); }
+    box(c, bx + bw - 9, by + bh - 5, 3, 2, '#57534E'); box(c, bx + 4, by + 16, 2, 1, '#78716C');
+    signText(c, 'DANGER', bx + bw / 2, by + 10, { sx: 1, sy: 1, fill: '#FFFFFF', shadow: '#450A0A', drop: 1 });
+    signText(c, 'DIG', bx + bw / 2, by + 24, { sx: 1, sy: 1, fill: '#1A0B06', bold: true, gap: 1 });
   }
+};
+export type GateLook = { kind: 'none' | 'open' | 'standing' | 'down' } | { kind: 'falling'; k: number };
+/** A scaffold tower (stamped: towerStill) and, at its foot, the gate (live: it moves). */
+const tower = (c: Ctx, xa: number, side: 1 | -1, gate: GateLook, f: number) => {
+  const top = sy(-40);
+  stamp(c, `hh-tower-${side}-${timeOfDay().key}`, xa - 10, top - 2, WALL_W + 20, GY - top + 4, g => towerStill(g, xa, side));
   // (the gate: a chain-link panel in the doorway at the foot of it: shut, padlocked, till he kicks it in)
   if (gate.kind !== 'none') {
     const gy0 = GY - 150;
@@ -391,30 +489,85 @@ const pavilion = (c: Ctx, state: GameState) => {
   if (!onScreen(v, PAV_X - 260, PAV_X + PAV_W + 120, PAV_D)) return;
   atDepth(c, v.eye, PAV_D, () => stamp(c, `hh-pav-${timeOfDay().key}`, PAV_X - 260, GY - 540, PAV_W + 380, 544, (g) => {
     const R = ramp6(dimmed('#9A3A22')), C = ramp6(dimmed('#9C948A')), Y = ramp6(dimmed('#E0A82E'));
-    // (the floors poured: two concrete decks, in steps)
-    for (const [y, w] of [[GY - 110, PAV_W], [GY - 220, PAV_W * 0.66]] as const) { box(g, PAV_X - 2, y - 1, w + 4, 12, INK); box(g, PAV_X, y, w, 10, C[3]); box(g, PAV_X, y + 7, w, 3, C[1]); }
-    // (the columns and the girders: I-beams in red primer, their flanges lit, bolted)
+    // (the shoring under the decks: timber props every 24 on their sole plates, the formwork's ply soffit along the
+    // deck's underside; the props cross-braced)
+    const Wd = ramp6(dimmed('#B08B5A'));
+    for (const [y0, y1, w] of [[GY - 100, GY, PAV_W], [GY - 210, GY - 112, PAV_W * 0.66]] as const) {
+      for (let x = PAV_X + 12; x < PAV_X + w - 6; x += 24) { box(g, x - 1, y0, 4, y1 - y0, INK); box(g, x, y0, 2, y1 - y0, Wd[2]); box(g, x, y0, 1, y1 - y0, Wd[4]); box(g, x - 3, y1 - 3, 8, 3, Wd[1]); }
+      for (let x = PAV_X + 12; x < PAV_X + w - 30; x += 48) lineR(g, [x + 1, y1 - 6, x + 25, y0 + 6], 1, Wd[1]);
+      box(g, PAV_X, y0 - 3, w, 3, Wd[3]); box(g, PAV_X, y0 - 1, w, 1, Wd[1]);
+    }
+    // (the floors poured: two concrete decks, in steps: the lit edge, the face with its aggregate, the shaded foot,
+    // the form-tie holes along it)
+    for (const [y, w] of [[GY - 110, PAV_W], [GY - 220, PAV_W * 0.66]] as const) {
+      box(g, PAV_X - 2, y - 1, w + 4, 12, INK); box(g, PAV_X, y, w, 10, C[3]); box(g, PAV_X, y, w, 1, C[5]); box(g, PAV_X, y + 1, w, 1, C[4]);
+      box(g, PAV_X, y + 6, w, 1, dith(g, C[2]) as unknown as string); box(g, PAV_X, y + 7, w, 3, C[1]);
+      for (let x = PAV_X + 3; x < PAV_X + w - 2; x += 5) { box(g, x + Math.floor(hsh(x) * 3), y + 3 + Math.floor(hsh(x * 1.3) * 3), 1, 1, (x / 5) % 2 ? C[2] : C[4]); }
+      for (let x = PAV_X + 10; x < PAV_X + w; x += 20) box(g, x, y + 4, 1, 1, C[0]);
+      for (let x = PAV_X + 40; x < PAV_X + w; x += 80) { box(g, x, y, 1, 10, C[1]); box(g, x + 1, y, 1, 10, C[4]); }
+    }
+    // (the safety netting round the top deck's open bay: orange mesh, sagging between the columns)
+    const NT = dimmed('#F97316');
+    box(g, PAV_X + 4, GY - 326, PAV_W * 0.5 - 8, 100, dith(g, NT) as unknown as string);
+    for (let x = PAV_X + 4; x < PAV_X + PAV_W * 0.5 - 4; x += 6) box(g, x, GY - 326, 1, 100, mix(NT, '#000000', 0.25));
+    for (let y = GY - 326; y < GY - 226; y += 6) box(g, PAV_X + 4, y, PAV_W * 0.5 - 8, 1, mix(NT, '#000000', 0.25));
+    box(g, PAV_X + 4, GY - 326, PAV_W * 0.5 - 8, 2, mix(NT, '#FFFFFF', 0.3));
+    // (the columns and the girders: I-beams in red primer, their flanges lit, bolted, the splice plates)
     for (let k = 0; k <= 4; k++) {
       const cx = PAV_X + k * (PAV_W / 4), h = k < 3 ? 330 : 220;
       box(g, cx - 5, GY - h, 10, h, INK); box(g, cx - 4, GY - h, 8, h, R[2]); box(g, cx - 4, GY - h, 2, h, R[4]); box(g, cx + 2, GY - h, 2, h, R[1]);
+      box(g, cx - 1, GY - h, 1, h, dith(g, R[1]) as unknown as string);
+      for (const sy2 of [GY - 60, GY - 170, GY - 280]) {
+        if (sy2 < GY - h + 10) continue;
+        box(g, cx - 6, sy2 - 8, 12, 16, INK); box(g, cx - 5, sy2 - 7, 10, 14, R[3]); box(g, cx - 5, sy2 - 7, 10, 1, R[5]);
+        for (const [bx2, by2] of [[-3, -4], [2, -4], [-3, 3], [2, 3]] as const) { box(g, cx + bx2, sy2 + by2, 2, 2, R[0]); box(g, cx + bx2, sy2 + by2, 1, 1, R[5]); }
+      }
+      // (the rebar left sticking up out of the topmost columns' tops, rusty)
+      for (const dx of [-3, 2]) { box(g, cx + dx, GY - h - 14, 1, 14, dimmed('#7C2D12')); box(g, cx + dx, GY - h - 14, 1, 1, dimmed('#D97706')); }
     }
     for (const [y, w] of [[GY - 112, PAV_W], [GY - 222, PAV_W], [GY - 330, PAV_W / 2]] as const) {
       box(g, PAV_X - 4, y - 5, w + 8, 10, INK); box(g, PAV_X - 3, y - 4, w + 6, 8, R[3]); box(g, PAV_X - 3, y - 4, w + 6, 2, R[4]); box(g, PAV_X - 3, y + 2, w + 6, 2, R[1]);
-      for (let x = PAV_X; x <= PAV_X + w; x += PAV_W / 4) { box(g, x - 2, y - 2, 2, 2, R[5]); box(g, x + 1, y - 2, 2, 2, R[5]); }
+      box(g, PAV_X - 3, y - 4, w + 6, 1, R[5]); box(g, PAV_X - 3, y, w + 6, 1, dith(g, R[2]) as unknown as string);
+      for (let x = PAV_X; x <= PAV_X + w; x += PAV_W / 4) { box(g, x - 2, y - 2, 2, 2, R[5]); box(g, x + 1, y - 2, 2, 2, R[5]); box(g, x - 2, y + 1, 2, 1, R[0]); box(g, x + 1, y + 1, 2, 1, R[0]); }
+      // (primer runs and rust bloom down the web)
+      for (let x = PAV_X + 30; x < PAV_X + w; x += 70) { box(g, x, y + 4, 1, 3 + (x % 3), dimmed('#5A1E10')); }
     }
-    // (the cross bracing in the bays)
-    for (let k = 0; k < 2; k++) { const xa = PAV_X + k * (PAV_W / 4); lineR(g, [xa + 6, GY - 8, xa + PAV_W / 4 - 6, GY - 104], 2, R[1]); lineR(g, [xa + PAV_W / 4 - 6, GY - 8, xa + 6, GY - 104], 2, R[1]); }
-    // (the tower crane: its mast latticed, the jib out over it, the counterweight, the hook down, the flag)
+    // (the cross bracing in the bays: rods with their turnbuckles)
+    for (let k = 0; k < 2; k++) {
+      const xa = PAV_X + k * (PAV_W / 4), xb = xa + PAV_W / 4;
+      lineR(g, [xa + 6, GY - 8, xb - 6, GY - 104], 2, R[1]); lineR(g, [xb - 6, GY - 8, xa + 6, GY - 104], 2, R[1]);
+      lineR(g, [xa + 6, GY - 9, xb - 6, GY - 105], 1, R[3]);
+      const mx2 = (xa + xb) / 2; box(g, mx2 - 3, GY - 59, 6, 6, INK); box(g, mx2 - 2, GY - 58, 4, 4, R[3]); box(g, mx2 - 2, GY - 58, 4, 1, R[5]);
+    }
+    // (the tower crane: its mast latticed, the jib out over it with its lattice under, the trolley and the hook block on
+    // its falls, the counterweight's blocks, the cab's glazing, the flag)
     const mx = PAV_X + PAV_W - 30, mt = GY - 500;
-    box(g, mx - 9, mt, 18, GY - mt, INK); box(g, mx - 8, mt, 16, GY - mt, Y[2]);
-    for (let y = mt; y < GY; y += 16) { lineR(g, [mx - 7, y, mx + 7, y + 16], 1, Y[0]); lineR(g, [mx + 7, y, mx - 7, y + 16], 1, Y[0]); box(g, mx - 8, y, 16, 1, Y[4]); }
-    box(g, mx - 260, mt - 8, 330, 10, INK); box(g, mx - 259, mt - 7, 328, 8, Y[3]); box(g, mx - 259, mt - 7, 328, 2, Y[5]);
+    box(g, mx - 9, mt, 18, GY - mt, INK); box(g, mx - 8, mt, 16, GY - mt, Y[2]); box(g, mx - 8, mt, 2, GY - mt, Y[4]); box(g, mx + 6, mt, 2, GY - mt, Y[1]);
+    for (let y = mt; y < GY; y += 16) { lineR(g, [mx - 6, y, mx + 6, y + 16], 1, Y[0]); lineR(g, [mx + 6, y, mx - 6, y + 16], 1, Y[0]); box(g, mx - 8, y, 16, 1, Y[4]); box(g, mx - 8, y + 1, 16, 1, Y[1]); }
+    box(g, mx - 14, GY - 12, 28, 12, INK); box(g, mx - 13, GY - 11, 26, 11, C[3]); box(g, mx - 13, GY - 11, 26, 1, C[5]);
+    box(g, mx - 260, mt - 8, 330, 10, INK); box(g, mx - 259, mt - 7, 328, 8, Y[3]); box(g, mx - 259, mt - 7, 328, 2, Y[5]); box(g, mx - 259, mt - 1, 328, 2, Y[1]);
     for (let x = mx - 256; x < mx + 66; x += 14) lineR(g, [x, mt - 6, x + 7, mt], 1, Y[1]);
-    box(g, mx + 40, mt + 2, 28, 20, INK); box(g, mx + 41, mt + 3, 26, 18, C[2]);
-    box(g, mx - 14, mt - 24, 18, 18, INK); box(g, mx - 13, mt - 23, 16, 16, Y[2]); box(g, mx - 11, mt - 21, 6, 5, dimmed('#7AA2C8'));
-    lineR(g, [mx - 180, mt + 2, mx - 180, GY - 260], 1, INK); box(g, mx - 184, GY - 262, 8, 6, Y[2]);
-    for (let k = 0; k < 7; k++) box(g, mx - 250, mt - 34 + k * 3, 30, 3, k % 2 ? dimmed('#F1F5F9') : dimmed('#B91C1C'));
-    box(g, mx - 250, mt - 34, 12, 12, dimmed('#1E3A8A')); box(g, mx - 251, mt - 36, 1, 30, INK);
+    box(g, mx - 230, mt + 2, 300, 2, INK); box(g, mx - 230, mt + 2, 300, 1, Y[2]);
+    for (let x = mx - 228; x < mx + 66; x += 14) lineR(g, [x, mt + 2, x + 7, mt + 4], 1, Y[1]);
+    lineR(g, [mx, mt - 50, mx - 240, mt - 8], 1, INK); lineR(g, [mx, mt - 50, mx + 60, mt - 8], 1, INK);
+    box(g, mx - 2, mt - 54, 4, 30, INK); box(g, mx - 1, mt - 54, 2, 30, Y[3]);
+    for (let k = 0; k < 3; k++) { const cy = mt + 3 + k * 7; box(g, mx + 40, cy, 28, 7, INK); box(g, mx + 41, cy + 1, 26, 5, C[2]); box(g, mx + 41, cy + 1, 26, 1, C[4]); box(g, mx + 53, cy + 1, 1, 5, C[0]); }
+    box(g, mx - 14, mt - 24, 18, 18, INK); box(g, mx - 13, mt - 23, 16, 16, Y[2]); box(g, mx - 13, mt - 23, 16, 1, Y[4]);
+    box(g, mx - 11, mt - 21, 8, 7, dimmed('#3E5A78')); box(g, mx - 11, mt - 21, 8, 3, dimmed('#7AA2C8')); box(g, mx - 10, mt - 20, 2, 1, dimmed('#E0F2FE'));
+    const tx = mx - 180;
+    box(g, tx - 6, mt + 2, 12, 5, INK); box(g, tx - 5, mt + 3, 10, 3, Y[2]);
+    lineR(g, [tx - 2, mt + 6, tx - 2, GY - 262], 1, INK); lineR(g, [tx + 2, mt + 6, tx + 2, GY - 262], 1, INK);
+    box(g, tx - 5, GY - 266, 10, 9, INK); box(g, tx - 4, GY - 265, 8, 7, Y[2]); box(g, tx - 4, GY - 265, 8, 1, Y[4]);
+    g.strokeStyle = INK; g.lineWidth = 2; g.beginPath(); g.arc(tx, GY - 252, 4, -0.2, Math.PI + 0.6); g.stroke();
+    // (the flag on the jib's end: Old Glory, waving stiff in the smoke wind, its folds shaded)
+    const fx = mx - 250, fy = mt - 36, Rf = ramp6(dimmed('#B91C1C')), Wf = ramp6(dimmed('#F1F5F9')), Bf = ramp6(dimmed('#1E3A8A'));
+    box(g, fx - 1, fy - 2, 1, 34, INK);
+    for (let i = 0; i < 32; i += 2) {
+      const wv = Math.round(Math.sin(i * 0.25) * 1.5), lk = Math.cos(i * 0.25), st = lk > 0.5 ? 4 : lk < -0.5 ? 2 : 3;
+      box(g, fx + i, fy + wv - 1, 2, 23, INK);
+      for (let k = 0; k < 7; k++) box(g, fx + i, fy + wv + k * 3, 2, 3, (k % 2 ? Wf : Rf)[st]);
+      if (i < 12) { box(g, fx + i, fy + wv, 2, 12, Bf[st - 1]); if ((i / 2) % 2 === 0) { box(g, fx + i, fy + wv + 3, 1, 1, Wf[4]); box(g, fx + i + 1, fy + wv + 8, 1, 1, Wf[4]); } }
+    }
   }));
 };
 
@@ -441,8 +594,8 @@ export const drawScene = (c: Ctx, state: GameState, S: SceneState) => {
   if (onScreen(v, WRECK_X - 220, WRECK_X + 220)) crash(c, f);
   // (the pavilion's sign, on the way in, clear of everything; its flags)
   if (onScreen(v, X(SIGN_X) - 180, X(SIGN_X) + 180)) {
-    flagPole(c, X(SIGN_X) - 128, GY, 190, ['#B91C1C', '#F8FAFC'], f);
-    flagPole(c, X(SIGN_X) + 128, GY, 190, ['#B91C1C', '#F8FAFC'], f + 40);
+    gloryPole(c, X(SIGN_X) - 128, GY, 190, f);
+    gloryPole(c, X(SIGN_X) + 128, GY, 190, f + 40);
     postBoard(c, X(SIGN_X), GY, ['AMERICA', 'THE ONLY COUNTRY', 'COMING SOON'], LOOKS.land(2), '#1E3A8A', undefined, 140);
   }
   if (onScreen(v, VIEW_X - 60, VIEW_X + 860)) {
