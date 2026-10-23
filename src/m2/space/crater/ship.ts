@@ -12,6 +12,7 @@ import type { GameState } from '../../../m1/game/core/state';
 import { CANVAS_WIDTH } from '../../../m1/constants';
 import { GY } from '../geometry';
 import { drawCheapGreen } from './green';
+import { drawPosterArt } from './posterGross';
 import { lettering, letterSize, type Letter } from '../square/lettering';
 import { x1, HOUSE_DOOR, QUEUE_END, PRESHOW, HALLS, CATWALKS, CRATES, CEIL, TRAMS } from './layout';
 import {
@@ -400,37 +401,39 @@ const drawShows = (c: Ctx, state: GameState) => {
 };
 
 const paintQueue = (g: Ctx) => {
-  const P: [string, string, string][] = [['THEY WANT', 'YOUR PLANET', '#B91C1C'], ['IN SPACE NO ONE', 'HEARS YOU WHINE', '#1E3A8A'], ['THEY', 'PROBE!', '#6D28D9'], ['THE QUEEN', '(LEGALLY DISTINCT)', '#0A0A0A']];
-  P.forEach(([l1, l2, col], i) => {
+  // (the posters: B-movie one-sheets, grossed up (posterGross.ts); their titles, taglines, the billing block, the wear)
+  const P: [string, string, string, string][] = [['THEY WANT', 'YOUR PLANET', '#B91C1C', 'AND THE GIFT SHOP'], ['IN SPACE NO ONE', 'HEARS YOU WHINE', '#1E3A8A', 'HIS CREW CAN.'], ['THEY', 'PROBE!', '#6D28D9', 'BEND OVER, EARTH'], ['THE QUEEN', '(LEGALLY DISTINCT)', '#0A0A0A', "PLEASE DON'T SUE"]];
+  P.forEach(([l1, l2, col, tag], i) => {
     const px = HOUSE_DOOR + 140 + i * 220, py = GY - 304;
     // (a lit poster case: chrome frame, the print, its glass's glare)
     box(g, px - 7, py - 7, 144, 164, INK); box(g, px - 6, py - 6, 142, 162, CHROME[3]); box(g, px - 6, py - 6, 142, 2, CHROME[5]); box(g, px - 6, py + 154, 142, 2, CHROME[1]);
     box(g, px - 1, py - 1, 132, 152, INK);
     box(g, px, py, 130, 150, '#FEF3C7');
-    const rr = [mix(col, INK, 0.45), mix(col, INK, 0.2), col, mix(col, '#FFFFFF', 0.2)];
-    bandedGradient(g, px + 6, py + 6, 118, 96, [rr[3], rr[2], rr[1], rr[0]], 6);
+    // (the paper yellowed in at its edges)
+    for (const [ex, ey, ew, eh] of [[0, 0, 130, 2], [0, 148, 130, 2], [0, 0, 2, 150], [128, 0, 2, 150]] as const) box(g, px + ex, py + ey, ew, eh, 'rgba(180, 130, 50, 0.22)');
+    // (the art in its keyline, the movie's color)
+    box(g, px + 3, py + 3, 124, 94, col === '#0A0A0A' ? '#14532D' : col); box(g, px + 4, py + 4, 122, 92, INK);
+    drawPosterArt(g, i, px + 5, py + 5);
     if (i === 3) {
-      // (her silhouette: the long crested head, the jaws; LEGALLY DISTINCT stamped over it)
-      g.fillStyle = '#3F3F46'; g.beginPath(); g.ellipse(px + 70, py + 44, 46, 16, -0.4, 0, Math.PI * 2); g.fill();
-      g.fillStyle = '#52525B'; g.beginPath(); g.ellipse(px + 66, py + 38, 36, 8, -0.4, 0, Math.PI * 2); g.fill();
-      g.fillStyle = '#3F3F46'; g.beginPath(); g.ellipse(px + 40, py + 70, 18, 26, 0, 0, Math.PI * 2); g.fill();
-      for (let t = 0; t < 4; t++) { box(g, px + 22 + t * 6, py + 54, 3, 6, '#E5E7EB'); box(g, px + 22 + t * 6, py + 54, 3, 1, '#FFFFFF'); }
-      g.save(); g.translate(px + 64, py + 52); g.rotate(-0.3); g.strokeStyle = '#DC2626'; g.lineWidth = 2; g.strokeRect(-56, -9, 112, 18); lettering(g, 'LEGALLY DISTINCT', 0, 0, 'small', '#DC2626', '#3F3F46'); g.restore();
-    } else {
-      // (the green: a big head, the eyes, a menacing glow)
-      g.fillStyle = INK; g.beginPath(); g.ellipse(px + 64, py + 50, 25, 29, 0, 0, Math.PI * 2); g.fill();
-      g.fillStyle = '#16A34A'; g.beginPath(); g.ellipse(px + 64, py + 50, 24, 28, 0, 0, Math.PI * 2); g.fill();
-      g.fillStyle = '#4ADE80'; g.beginPath(); g.ellipse(px + 60, py + 44, 18, 20, 0, 0, Math.PI * 2); g.fill();
-      g.fillStyle = '#86EFAC'; g.beginPath(); g.ellipse(px + 55, py + 36, 7, 6, 0, 0, Math.PI * 2); g.fill();
-      g.fillStyle = '#0A0A0A'; g.beginPath(); g.ellipse(px + 54, py + 50, 8, 5, 0.5, 0, Math.PI * 2); g.ellipse(px + 74, py + 50, 8, 5, -0.5, 0, Math.PI * 2); g.fill();
-      box(g, px + 50, py + 48, 3, 2, '#FFFFFF'); box(g, px + 70, py + 48, 3, 2, '#FFFFFF');
-      if (i === 2) { line(g, [px + 90, py + 60], [px + 112, py + 30], INK, 4); line(g, [px + 90, py + 60], [px + 112, py + 30], CHROME[4], 2); orb(g, px + 113, py + 28, 4, ['#7F1D1D', '#DC2626', '#F87171', '#FECACA']); }
-      if (i === 0) { orb(g, px + 22, py + 82, 14, ['#1E3A8A', '#2563EB', '#3B82F6', '#22C55E', '#86EFAC']); }
+      // (LEGALLY DISTINCT stamped over her, crooked)
+      g.save(); g.translate(px + 66, py + 76); g.rotate(-0.22); g.fillStyle = 'rgba(254, 243, 199, 0.85)'; g.fillRect(-56, -9, 112, 18); g.strokeStyle = '#DC2626'; g.lineWidth = 2; g.strokeRect(-56, -9, 112, 18); lettering(g, 'LEGALLY DISTINCT', 0, 0, 'small', '#DC2626', '#FEF3C7'); g.restore();
     }
-    // (the title in the movie's dripping lettering, in its color; the tagline under it, printed)
-    lettering(g, l1, px + 65, py + 115, fit(l1, 124, ['drip', 'enamel', 'small']), col, '#FEF3C7', true);
-    lettering(g, l2, px + 65, py + 139, fit(l2, 124, ['enamel', 'small']), '#1C1917', '#FEF3C7');
-    poly(g, [[px + 90, py], [px + 110, py], [px + 40, py + 150], [px + 20, py + 150]], 'rgba(255, 255, 255, 0.12)');
+    // (the tagline across the top of the art)
+    lettering(g, tag, px + 65, py + 11, fit(tag, 116, ['small']), '#FEF3C7', INK);
+    // (the title in the movie's dripping lettering, in its color; the second line printed under it)
+    lettering(g, l1, px + 65, py + 107, fit(l1, 124, ['drip', 'enamel', 'small']), col, '#FEF3C7', true);
+    lettering(g, l2, px + 65, py + 129, fit(l2, 124, ['enamel', 'small']), '#1C1917', '#FEF3C7');
+    // (the billing block: two rows of tiny condensed print)
+    for (const [ry, seed] of [[py + 140, i * 37 + 1], [py + 143, i * 53 + 7]] as const) {
+      for (let x = px + 14, k = 0; x < px + 114; k++) { const w = 2 + Math.floor(hash(seed + k) * 6); box(g, x, ry, Math.min(w, px + 116 - x), 1, '#78716C'); x += w + (hash(seed + k * 3) > 0.7 ? 3 : 1); }
+    }
+    // (the wear: tape at the top corners, staples at the foot, a fold across, scuffs, a corner torn off)
+    for (const [tx, s] of [[px - 2, 1], [px + 118, -1]] as const) for (let k = 0; k < 6; k++) box(g, tx + (s > 0 ? k * 2 : 12 - k * 2), py - 2 + k, 6, 2, 'rgba(253, 230, 138, 0.55)');
+    for (const sx of [px + 6, px + 120]) { box(g, sx, py + 146, 4, 1, '#A1A1AA'); box(g, sx, py + 146, 1, 1, '#E4E4E7'); }
+    for (let k = 0; k < 120; k += 2) { const fy = py + 30 + k * 0.4 + (i % 2) * 20; box(g, px + 5 + k, fy, 2, 1, 'rgba(255, 255, 255, 0.14)'); box(g, px + 5 + k, fy + 1, 2, 1, 'rgba(0, 0, 0, 0.14)'); }
+    for (let k = 0; k < 10; k++) box(g, px + 4 + hash(i * 19 + k) * 120, py + 4 + hash(i * 23 + k * 7) * 140, 1 + (k % 2), 1, 'rgba(255, 255, 255, 0.3)');
+    if (i % 2 === 1) for (let k = 0; k < 8; k++) { box(g, px + 129 - k, py + 142 + k, k + 1, 1, INK); box(g, px + 128 - k, py + 142 + k, 1, 1, '#D6C79A'); }
+    poly(g, [[px + 90, py], [px + 110, py], [px + 40, py + 150], [px + 20, py + 150]], 'rgba(255, 255, 255, 0.10)');
   });
   // (the stanchions: chrome, the velvet ropes swagged between)
   for (let x = HOUSE_DOOR + 60; x < QUEUE_END - 40; x += 90) {
