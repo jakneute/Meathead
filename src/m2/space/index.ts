@@ -103,7 +103,7 @@ export const spaceLayout: StageLayout = {
     const { state } = ctx;
     const sp = getSpace(state) as SpaceState | null;
     if (import.meta.env.DEV) (window as unknown as { __m2: GameState }).__m2 = state;
-    if (isLeaving()) { stopWeapons(); carryGut(state.player.gut); state.player.vel.x = 0; return { ...NO_CONTROLS }; }
+    if (isLeaving()) { stopWeapons(); carryGut(state.player); state.player.vel.x = 0; return { ...NO_CONTROLS }; }
     if (!sp) return controls;
     wakeNear(state);
     const p = state.player;

@@ -96,7 +96,7 @@ export const hollywoodLayout: StageLayout = {
     const { state } = ctx;
     const hs = getHollywood(state) as HollywoodState | null;
     if (import.meta.env.DEV) (window as unknown as { __m2: GameState }).__m2 = state;
-    if (isLeaving()) { stopWeapons(); carryGut(state.player.gut); state.player.vel.x = 0; return { ...NO_CONTROLS }; }
+    if (isLeaving()) { stopWeapons(); carryGut(state.player); state.player.vel.x = 0; return { ...NO_CONTROLS }; }
     if (!hs) return controls;
     wakeNear(state);
     const p = state.player;

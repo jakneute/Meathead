@@ -115,7 +115,7 @@ export const penLayout: StageLayout = {
     // (dev builds: the state on the window, for poking at it)
     if (import.meta.env.DEV) (window as unknown as { __m2: GameState }).__m2 = state;
     // (on the way out: out of his hands, and whatever he had going stopped)
-    if (isLeaving()) { stopWeapons(); carryGut(state.player.gut); state.player.vel.x = 0; return { ...NO_CONTROLS }; }
+    if (isLeaving()) { stopWeapons(); carryGut(state.player); state.player.vel.x = 0; return { ...NO_CONTROLS }; }
     if (!pen) return controls;
     const out = updateGrab(ctx, pen.grab, updateLadders(ctx, LADDERS, controls));
     practice(state);

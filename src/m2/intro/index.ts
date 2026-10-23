@@ -234,7 +234,7 @@ export const introLayout: StageLayout = {
     const intro = getIntro(state);
     if (import.meta.env.DEV) (window as unknown as { __m2: GameState }).__m2 = state;
     // (off out of it: the walk back, if it was one, is over)
-    if (isLeaving()) { stopWeapons(); carryGut(state.player.gut); state.player.vel.x = 0; setWalkBack(false); walkedIn = false; return { ...NO_CONTROLS }; }
+    if (isLeaving()) { stopWeapons(); carryGut(state.player); state.player.vel.x = 0; setWalkBack(false); walkedIn = false; return { ...NO_CONTROLS }; }
     if (!intro) return controls;
     const p = state.player, px = p.pos.x + p.width / 2;
     // (where he is, for the HUD's look)

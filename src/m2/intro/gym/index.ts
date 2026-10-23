@@ -226,7 +226,7 @@ export const gymLayout: StageLayout = {
     const { state } = ctx;
     const gym = getGym(state);
     if (import.meta.env.DEV) (window as unknown as { __m2: GameState }).__m2 = state;
-    if (isLeaving()) { stopWeapons(); carryGut(state.player.gut); state.player.vel.x = 0; return { ...NO_CONTROLS }; }
+    if (isLeaving()) { stopWeapons(); carryGut(state.player); state.player.vel.x = 0; return { ...NO_CONTROLS }; }
     if (!gym) return controls;
     const p = state.player;
     p.noContactHurt = true;
@@ -238,7 +238,7 @@ export const gymLayout: StageLayout = {
       setUi({ introCutscene: true });
       // (the scene's kept up (its last frame, faded to black) till the parking lot's in: dropped here, the gym itself
       // showed for a frame or so under the travel's fade)
-      if (gym.scene && tickScene(gym.scene)) { carryGut(p.gut); goTo('intro'); }
+      if (gym.scene && tickScene(gym.scene)) { carryGut(p); goTo('intro'); }
       return { ...NO_CONTROLS };
     }
     return play(ctx, gym, controls);

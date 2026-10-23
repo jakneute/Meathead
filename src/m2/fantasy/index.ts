@@ -109,7 +109,7 @@ export const fantasyLayout: StageLayout = {
     const { state } = ctx;
     const fs = getFantasy(state) as FantasyState | null;
     if (import.meta.env.DEV) (window as unknown as { __m2: GameState }).__m2 = state;
-    if (isLeaving()) { stopWeapons(); carryGut(state.player.gut); state.player.vel.x = 0; return { ...NO_CONTROLS }; }
+    if (isLeaving()) { stopWeapons(); carryGut(state.player); state.player.vel.x = 0; return { ...NO_CONTROLS }; }
     if (!fs) return controls;
     // (in through Piper's window: the glass flying apart over the scene, him held a moment: broom/fight.ts)
     tickShatter(state);

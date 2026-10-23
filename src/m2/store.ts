@@ -139,7 +139,10 @@ if (import.meta.env.DEV) (window as unknown as { __m2GoTo: typeof goTo }).__m2Go
  * next room's built.
  */
 let carriedGut: import('../m1/types').Player['gut'] | undefined;
-export const carryGut = (gut: import('../m1/types').Player['gut'] | undefined) => {
+export const carryGut = (p: import('../m1/types').Player) => {
+  // (in the space suit: the pants under it, as they were before it went on (space/needle/suit.ts takeOffSuit); the suit
+  // itself stays behind, as everything the stage put on him does (state.ts plainLook))
+  const gut = p.spaceSuit ? p.spaceSuit.before : p.gut;
   carriedGut = gut ? { t: 0, stage: gut.stage, at: gut.at, debris: undefined, rearmed: gut.rearmed, washed: gut.washed } : undefined;
 };
 export const takeGut = () => { const g = carriedGut; carriedGut = undefined; return g; };

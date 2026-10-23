@@ -437,6 +437,28 @@ export const calmPlayer = (player: Player) => {
 };
 
 /**
+ * Back to plain Meathead: whatever a stage's set piece had him in or as (a suit, a seat, a ride, a hold, a rope, a dye,
+ * a cat...) comes off. On every new stage and every respawn (resetStageState): a stage that wants him in one again puts
+ * it back itself as it builds (Meathead 2's space suit: reapplySuit, off the stage's own memo, which a new stage
+ * clears). His pants aren't a look (they go with him: Meathead 2's carryGut, taking the suit's off him first), nor are
+ * Meathead 2's glasses (his for good).
+ */
+export const plainLook = (p: Player) => {
+  p.skiing = false; p.jetski = false; p.bike = false; p.moto = false; p.skiSpeed = 0;
+  p.suit = false; p.spaceSuit = undefined; p.catForm = undefined;
+  p.dyeTimer = 0; p.dyeColor = undefined; p.dyeParts = undefined; p.sootTimer = 0;
+  p.headless = undefined; p.shownDead = undefined; p.stabbed = undefined; p.deathFace = undefined;
+  p.hidden = false; p.inCutscene = false; p.carried = undefined; p.noSpecials = false; p.holstered = undefined;
+  p.swimming = false; p.swimDash = undefined;
+  p.vine = undefined; p.ladder = undefined; p.dropVine = undefined; p.leverPull = undefined; p.freefall = undefined;
+  p.extinguisher = undefined; p.throne = undefined; p.copterSeat = undefined; p.tragon = undefined; p.broomRide = undefined;
+  p.cartSeat = undefined; p.logSeat = undefined; p.logRoll = undefined; p.seatPunch = undefined; p.kickPose = undefined;
+  p.gunslinger = undefined; p.axeSwing = undefined; p.airGrab = undefined; p.untouchable = undefined;
+  p.noContactUntil = undefined; p.noContactHurt = false; p.throwPitch = undefined; p.throwKeg = undefined;
+  p.spriteRot = undefined; p.spriteScaleX = undefined; p.spriteScaleY = undefined;
+};
+
+/**
  * Wipes everything tied to the current attempt at a stage: entities, hazards,
  * timers and speech. Used when leaving to the menu, starting a stage and respawning.
  * The level itself is rebuilt separately by buildLevel().
@@ -544,6 +566,8 @@ export const resetStageState = (s: GameState) => {
   p.inCutscene = false;
   p.catForm = undefined;
   p.noSpecials = false;
+  // (and himself: nothing the last stage, or the last go at this one, put on him)
+  plainLook(p);
   s.cameraLeadX = 0;
   s.lockWeapon = undefined;
   s.groundOil = undefined;
