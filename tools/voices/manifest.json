@@ -56412,7 +56412,7 @@
  {
   "voice": "meathead",
   "text": "...WAS THAT THE DOOR? OR WAS THAT ME? THAT WAS ME.",
-  "from": "m1/game/core/update.ts:358"
+  "from": "m1/game/core/update.ts:359"
  },
  {
   "voice": "meathead",
@@ -63087,7 +63087,7 @@
  {
   "voice": "meathead",
   "text": "DOORS ARE FOR PEOPLE WHO CAN'T KICK. ...SHOULDN'T HAVE KICKED.",
-  "from": "m1/game/core/update.ts:358"
+  "from": "m1/game/core/update.ts:359"
  },
  {
   "voice": "meathead",
@@ -63367,7 +63367,7 @@
  {
   "voice": "meathead",
   "text": "EIGHTEEN FIFTY-NINE. GOOD RUN. SPEAKING OF RUNS.",
-  "from": "m1/game/core/update.ts:358"
+  "from": "m1/game/core/update.ts:359"
  },
  {
   "voice": "meathead",
@@ -70842,7 +70842,7 @@
  {
   "voice": "meathead",
   "text": "I'M ON THE LIST NOW. UNDER \"DO NOT SEAT.\"",
-  "from": "m1/game/core/update.ts:358"
+  "from": "m1/game/core/update.ts:359"
  },
  {
   "voice": "meathead",
@@ -76152,7 +76152,7 @@
  {
   "voice": "meathead",
   "text": "NO SMOKING. GOOD. NOBODY LIGHT A MATCH NEAR ME.",
-  "from": "m1/game/core/update.ts:358"
+  "from": "m1/game/core/update.ts:359"
  },
  {
   "voice": "meathead",
@@ -78307,7 +78307,7 @@
  {
   "voice": "meathead",
   "text": "OW. ...THAT DOOR WAS LIVE. NOW SO ARE MY SHORTS.",
-  "from": "m1/game/core/update.ts:358"
+  "from": "m1/game/core/update.ts:359"
  },
  {
   "voice": "meathead",
@@ -79317,7 +79317,7 @@
  {
   "voice": "meathead",
   "text": "RATED FOR HURRICANES. NOT FOR WHAT JUST SHIFTED IN MY PANTS.",
-  "from": "m1/game/core/update.ts:358"
+  "from": "m1/game/core/update.ts:359"
  },
  {
   "voice": "meathead",
@@ -81597,7 +81597,7 @@
  {
   "voice": "meathead",
   "text": "SIGNED FOR IT. WITH MY FOOT. LEFT A LITTLE SOMETHING EXTRA.",
-  "from": "m1/game/core/update.ts:358"
+  "from": "m1/game/core/update.ts:359"
  },
  {
   "voice": "meathead",
@@ -85672,7 +85672,7 @@
  {
   "voice": "meathead",
   "text": "The field? The union? The bar? Water under the bridge, pal. Burning water. Now let's talk about YOU. What are you driving these days?",
-  "from": "m1/game/core/update.ts:229"
+  "from": "m1/game/core/update.ts:230"
  },
  {
   "voice": "meathead",
@@ -89027,7 +89027,7 @@
  {
   "voice": "meathead",
   "text": "Two jet skis, sonny. Two tour groups. And now my front hall's caved in. I schedule my quakes AROUND the tour groups!",
-  "from": "m1/game/core/update.ts:229"
+  "from": "m1/game/core/update.ts:230"
  },
  {
   "voice": "meathead",
@@ -91297,12 +91297,12 @@
  {
   "voice": "meathead",
   "text": "You blew my whole power room, man. With Gary in it. My... roommate. Eleven years. One bedroom. We were ROOMMATES, man.",
-  "from": "m1/game/core/update.ts:229"
+  "from": "m1/game/core/update.ts:230"
  },
  {
   "voice": "meathead",
   "text": "You blew up my whole fleet! And Riggs! Who's gonna feed Sir Reginald now?!",
-  "from": "m1/game/core/update.ts:229"
+  "from": "m1/game/core/update.ts:230"
  },
  {
   "voice": "meathead",
@@ -91362,7 +91362,7 @@
  {
   "voice": "meathead",
   "text": "You crashed my VIP lounge, bro. Those were investors. Now they're a geothermal feature.",
-  "from": "m1/game/core/update.ts:229"
+  "from": "m1/game/core/update.ts:230"
  },
  {
   "voice": "meathead",
@@ -91457,12 +91457,12 @@
  {
   "voice": "meathead",
   "text": "You killed my Eye, and you dropped my whole storm on a daycare! Watch out, Meatface, the logs of shit are coming back around.",
-  "from": "m1/game/core/update.ts:229"
+  "from": "m1/game/core/update.ts:230"
  },
  {
   "voice": "meathead",
   "text": "You killed my moose, you flattened the ranger station and you punted a man off my mountain. And I'M the terrorist?",
-  "from": "m1/game/core/update.ts:229"
+  "from": "m1/game/core/update.ts:230"
  },
  {
   "voice": "meathead",
@@ -91542,7 +91542,7 @@
  {
   "voice": "meathead",
   "text": "You put the neighbors down. You knocked over my water tower and surfed it through the block. That took WEEKS to fill!",
-  "from": "m1/game/core/update.ts:229"
+  "from": "m1/game/core/update.ts:230"
  },
  {
   "voice": "meathead",
@@ -91752,7 +91752,7 @@
  {
   "voice": "meathead",
   "text": "YOU'RE TOAST.",
-  "from": "m1/game/core/update.ts:229"
+  "from": "m1/game/core/update.ts:230"
  },
  {
   "voice": "meathead",
