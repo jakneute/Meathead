@@ -1695,7 +1695,7 @@ const drawBarfed = (c: Ctx, f: Fight, d: Death, fr: number) => {
     const sink = Math.min(1, (d.step === 'kneel' ? u : 99) / 10) * 22, k = d.step === 'heave' ? u % HEAVE_T : 99;
     const lean = 0.45 + (k < 28 ? Math.sin(k * 0.5) * 0.12 + 0.15 : 0) + pale * 0.15;
     c.save(); c.beginPath(); c.rect(d.x - 200, GY - 400, 400, 400); c.clip();
-    drawRambo(c, d.x, GY + sink, { pose: 'sick', f: fr, facing: face, lean, scale: 1 - pale * 0.06, green: 1 - pale * 0.5, concrete: pale * 0.35, talking: !!f.said });
+    drawRambo(c, d.x, GY + sink, { pose: 'sick', f: fr, facing: face, lean, scale: 1 - pale * 0.06, green: 1 - pale * 0.5, talking: !!f.said });
     c.restore();
     if (d.step === 'heave' && k > 2 && k < 30) {
       const m = mouthAt(lean, 1, face), sx = d.x + m.x, syy = GY + sink + m.y, ex = pd ? pd.x : d.x + face * 46;
@@ -1707,7 +1707,7 @@ const drawBarfed = (c: Ctx, f: Fight, d: Death, fr: number) => {
   const k = d.step === 'keel' ? Math.min(1, u / 22) : 1;
   const tw = d.step === 'last' && u < 24 ? Math.sin(u * 1.4) * 3 : 0;
   c.save(); c.translate(d.x + tw, GY + 30 * k);
-  drawRambo(c, 0, 0, { pose: k >= 1 ? 'dead' : 'sick', f: fr, facing: face, rot: (Math.PI / 2) * k * face, dead: k >= 1, green: 0.5, concrete: 0.35 });
+  drawRambo(c, 0, 0, { pose: k >= 1 ? 'dead' : 'sick', f: fr, facing: face, rot: (Math.PI / 2) * k * face, dead: k >= 1, green: 0.5 });
   c.restore();
   if (pd && (d.step === 'gurgle' || d.step === 'last')) for (let i = 0; i < 3; i++) {
     const ph = ((fr * 0.04 + i / 3) % 1), bx = d.x + face * (60 + i * 8), by = GY - 4 - ph * 14;
