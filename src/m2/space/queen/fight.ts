@@ -38,8 +38,9 @@
 //   HER DEATH     (anything but the mallet; endo.ts) her motor oil boils over and, NOW, it burns: her latex chars and
 //                 peels off her in burning flakes, and under it a steel endoskeleton, eyes lit; LESS FATAL MODE...
 //                 DISABLED; it screams, lunges at him one last time, trips over its own feet and breaks apart on the
-//                 floor, one heap. His say. (A cutscene: no input, no HUD, skip all-or-nothing.) The mallet's: she
-//                 bursts all over the hall. Either way her offspring drop dead where they stand. Then the operators, Saturday-
+//                 floor, one heap. His say. (A cutscene: no input, no HUD, skip all-or-nothing.) The mallet's: in slow
+//                 motion, pushed in on her, she comes apart at every seam at once (split.ts), then bursts, and the
+//                 camera pulls back to the whole hall to see her pieces land everywhere. Either way her offspring drop dead where they stand. Then the operators, Saturday-
 //                 morning villains: fists shaking at him through the glass, stomping, CURSES, WE'LL SEE YOU AGAIN,
 //                 MEATHEAD!, and out the booth's back door in a cloud of dust. His say. Over. (After: the booth empty.)
 //
@@ -82,6 +83,8 @@ import { since } from '../../frames';
 import { drawQueenGross, drawQueenGrossBack } from './queenGross';
 import { type Sud, addSud, tickSuds, drawSuds } from './foam';
 import { type Endo, makeEndo, tickEndo, settleEndo, drawEndo, endoLights } from './endo';
+import { BURST_AT, PUNCH, tickSplit, drawSplit, splitLights } from './split';
+import { setStampHold } from '../../../m1/game/render/stamp';
 
 type Ctx = CanvasRenderingContext2D;
 const pick = pickLine;
@@ -206,6 +209,9 @@ export interface Fight {
   /** Her weakness death: burst into pieces; its slow motion (real ticks, game time banked); its white flash (real
    *  ticks); her last words said (from her head, wherever it lands). */
   blown: boolean; slow: { t: number; acc: number } | null; whiteT: number; lastWords: boolean;
+  /** Her weakness death: real ticks since the killing blow (the camera's push-in on her splitting, then the pull-back
+   *  from the burst on), and the real tick she burst at (-1: not yet). */
+  blowT: number; burstRT: number;
   /** The pool round her (after a leap; gone with her next birth): where, how far up it is (0..1), going. */
   pool: { x: number; k: number; going: boolean } | null;
   drops: Drop[]; sacs: Sac[]; slicks: Slick[]; barf: Barf[]; spots: Spot[];
@@ -254,7 +260,7 @@ export const makeFight = (state: GameState): Fight => {
     lights: seen ? 1 : 0, down: seen ? 1 : 0, foam: 0, suds: [], ext2: seen ? 'gone' : 'wall', ex: { x: EXTINGUISHER_X, y: GY - 90, vx: 0, vy: 0, r: 0 },
     said: null, boothSaid: null,
     birthT: 120, leapT: 0, linger: 0, forceLeap: false, stunT: 0, closeAt: -9999, pool: null,
-    dents: 0, pieces: [], splats: [], glitchAt: -9999, stopT: 0, barFrom: HP, barT: 0, blown: false, slow: null, whiteT: 99, lastWords: false,
+    dents: 0, pieces: [], splats: [], glitchAt: -9999, stopT: 0, barFrom: HP, barT: 0, blown: false, slow: null, whiteT: 99, lastWords: false, blowT: 0, burstRT: -1,
     drops: [], sacs: [], slicks: [], barf: [], spots: [], litter: [], cheapSaid: false, grabT: 0, tauntT: 0, saidBirth: -9999, barked: new Set(), throwAt: -1, throwHintAt: -9999, flungAt: -9999, eventAt: -99,
     ops: { mode: 'on', t: 0 }, can: null, canT: 0, leapFrom: SIDE_X[1], dest: SIDE_X[1], hop: false, runT: 0, stride: 0, stay: 0, acts: 0, deathT: 0, deathSaid: 0, byWeakness: false, endo: null, brood: 0, onAt: 0, e: null, entrance: 0,
   };
@@ -631,7 +637,9 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
   if (f.mode !== 'dead') tickCan(ctx, f, ph);
   sync(f);
   // (her plain death's a cutscene: hands off, the HUD down, from its first frame)
-  if (f.mode === 'dead' && !f.blown) { p.inCutscene = true; p.vel.x *= 0.8; return hands(); }
+  // (and her weakness death, through her coming apart, the push-in, the burst and the pull-back to see it all land:
+  // nothing of it can touch him (it's all hers, harmless), and none of it off screen anyway)
+  if (f.mode === 'dead' && (!f.blown || f.deathT < BURST_AT + BLOWN_HOLD)) { p.inCutscene = true; p.vel.x *= 0.8; return hands(); }
   return controls;
 };
 
@@ -1074,9 +1082,13 @@ const die = (ctx: FrameContext, f: Fight) => {
   state.damageNumbers = [];
   f.said = null; f.boothSaid = null;
   playSound('rayFizzle', 1, -8); playSound('crash', 0.6, -4);
-  // (her weakness: a beat of slow motion on the killing blow, she swells and shudders, and bursts; her last words come
-  // out of her head wherever it lands. Otherwise: her circuits going, said where she stands)
-  if (f.byWeakness) { f.blown = true; f.slow = { t: 0, acc: 0 }; f.stopT = 0; f.whiteT = 99; shakeScreen(state, 10, 6); }
+  // (her weakness: slow motion on the killing blow, pushed in on her, she comes apart at every seam at once (split.ts),
+  // and bursts, the camera pulling back to the whole hall to see it land; her last words come out of her head wherever
+  // it lands. Otherwise: her circuits going, said where she stands)
+  if (f.byWeakness) {
+    f.blown = true; f.slow = { t: 0, acc: 0 }; f.stopT = 0; f.whiteT = 99; f.blowT = 0; f.burstRT = -1; shakeScreen(state, 10, 6);
+    state.player.noContactUntil = Math.max(state.player.noContactUntil ?? 0, state.frame + BURST_AT + BLOWN_HOLD + 60);
+  }
   else {
     // (anything else: her oil boils over and catches (endo.ts); her speaker cooking while it does)
     const en = f.endo = makeEndo();
@@ -1085,22 +1097,20 @@ const die = (ctx: FrameContext, f: Fight) => {
     queenSays(state, f, L.QUEEN_BURNS, tokened(f, () => { en.burnSaid = true; }));
   }
 };
-/** Game frames into her weakness death that she bursts. */
-const BURST_AT = 7;
+/** Her weakness death: game frames past the burst that it's a cutscene (the pull-back, the pieces coming down). */
+const BLOWN_HOLD = 110;
 const dying = (ctx: FrameContext, f: Fight) => {
   const { state } = ctx;
   const t = ++f.deathT;
-  f.ext *= 0.95;
+  // (her lunge held where it was while she comes apart (her painting's frozen at the killing blow: split.ts))
+  if (!f.blown) f.ext *= 0.95;
   if (f.blown) {
-    if (t < BURST_AT) {
-      // (swelling, shuddering, sparks out of every seam)
-      for (let i = 0; i < 4; i++) state.particles.push({ pos: { x: f.x + (Math.random() - 0.5) * 90, y: GY - 60 - Math.random() * 220 }, vel: { x: (Math.random() - 0.5) * 6, y: -2 - Math.random() * 3 }, life: 14, color: i % 2 ? '#FDE047' : '#FFFFFF', size: 2 + Math.random() * 2, grav: 0.2 });
-      if (t % 2 === 0) playSound('rayFizzle', 0.7, 4 + t);
-    }
+    // (cracking at every seam at once, then parting along all of them: sparks, her green, the wiring snapping)
+    if (t < BURST_AT) tickSplit(state, f.x, f.facing, f.ext, t);
     if (t === BURST_AT) {
-      f.pieces.push(...burstQueen(f.x, f.facing));
-      burstSpray(state, f.x);
-      f.whiteT = 0;
+      f.pieces.push(...burstQueen(f.x + f.facing * f.ext, f.facing));
+      burstSpray(state, f.x + f.facing * f.ext);
+      f.whiteT = 0; f.burstRT = f.blowT;
       playSound('boom', 1.2, -6); playSound('crash', 1.2, -4); playSound('gush', 1, -4); playSound('bonk', 1, -10);
       shakeScreen(state, 30, 16);
     }
@@ -1150,12 +1160,12 @@ const skipDeath = (state: GameState, f: Fight, en: Endo) => {
 /** Her plain death on (and skippable): the SKIP prompt's up. */
 export const deathSkippable = (f: Fight) => f.mode === 'dead' && !f.blown && !!f.endo && f.deathT > SKIP_AFTER && f.deathSaid < 3;
 /** The glow off her burning (the lighting pass). */
-export const deathLights = (f: Fight): Light[] => (f.mode === 'dead' ? endoLights(f.endo, f) : []);
+export const deathLights = (f: Fight): Light[] => (f.mode !== 'dead' ? [] : f.blown ? splitLights(f.x, f.facing, f.ext, f.deathT) : endoLights(f.endo, f));
 /** Her death and the booth's two running out on it: the camera pulled back (eased in by `k`, 0..1) to take in the
  *  booth (and what they say over it), her and him; the booth's words kept clear below the HUD. */
 export const discoZoom = (state: GameState, f: Fight, k: number) => {
   if (k <= 0) return null;
-  if (f.blown) return wideZoom(state, k);
+  if (f.blown) return blownZoom(state, f, k);
   const e = k * k * (3 - 2 * k), px = pmid(state).x;
   const x0 = Math.min(BOOTH.x - 40, f.x - 140, px - 50), x1 = Math.max(BOOTH.x + BOOTH.w + 40, f.x + 140, px + 50);
   const y0 = BOOTH.y - 80, y1 = GY + 16;
@@ -1167,26 +1177,48 @@ export const discoZoom = (state: GameState, f: Fight, k: number) => {
 
 /** Her weakness death: pulled right back, the whole disco wall to wall, its floor along the bottom of the screen, to
  *  see her pieces go to every corner of it. */
-const wideZoom = (state: GameState, k: number) => {
-  const e = k * k * (3 - 2 * k);
+const wideView = () => {
   const x0 = ARENA_L - 20, x1 = ARENA_R + 20;
   const sc = Math.min(1, (CANVAS_WIDTH - 16) / (x1 - x0));
   // (the floor (GY + 16) this far down the screen; the hall's middle across it)
   const floorAt = CANVAS_HEIGHT - 70, mid = CANVAS_HEIGHT / 2;
-  const cx = (x0 + x1) / 2, cy = GY + 16 - (floorAt - mid) / sc;
+  return { sc, mid, cx: (x0 + x1) / 2, cy: GY + 16 - (floorAt - mid) / sc };
+};
+const wideZoom = (state: GameState, k: number) => {
+  const e = k * k * (3 - 2 * k), { sc, mid, cx, cy } = wideView();
   return { scale: 1 + (sc - 1) * e, x: cx, y: cy, shiftX: e * (state.camera.x + CANVAS_WIDTH / 2 - cx), shiftY: e * (state.camera.y + mid - cy) };
 };
 
-/** Every real tick: a mallet hit's hit-stop, her weakness death's slow motion (held, then back up to speed). True: this
- *  tick passes no game time. */
-const SLOW = 0.22, SLOW_HOLD = 40, SLOW_RAMP = 70;
+/** Her weakness death's camera: pushed in on her as she comes apart (her filling the screen), held there till she
+ *  bursts, then pulled right back (wideView) over the pieces' flight to take in every one of them where it comes down;
+ *  held wide through the rest (her last words, the booth's two running out), back in for the walk-away (`k`). */
+const CAM_IN = 16, CAM_OUT = 90;
+const blownZoom = (state: GameState, f: Fight, k: number) => {
+  if (f.deathSaid >= 3) return wideZoom(state, k);
+  const sm = (u: number) => { const v = Math.max(0, Math.min(1, u)); return v * v * (3 - 2 * v); };
+  const cam = state.camera, push = sm(f.blowT / CAM_IN), pull = f.burstRT < 0 ? 0 : sm((f.blowT - f.burstRT) / CAM_OUT);
+  // (each view: a world point put at a screen point, at a scale; normal, pushed in on her, the whole hall)
+  const wv = wideView();
+  const mix = (a: number, b: number, w: number) => (a + (b - a) * push) * (1 - pull) + w * pull;
+  const wx = mix(cam.x + CANVAS_WIDTH / 2, f.x + f.facing * (f.ext + 6), wv.cx), wy = mix(cam.y + CANVAS_HEIGHT / 2, GY - 140, wv.cy);
+  const sx = CANVAS_WIDTH / 2, sy = mix(CANVAS_HEIGHT / 2, CANVAS_HEIGHT / 2 + 20, wv.mid);
+  // (pushed in, the hall's big stamps are scaled up from the ones they have, not painted afresh huge for a moment)
+  if (push > 0 && pull < 1) setStampHold(true);
+  return { scale: mix(1, PUNCH, wv.sc), x: wx, y: wy, shiftX: sx + cam.x - wx, shiftY: sy + cam.y - wy };
+};
+
+/** Every real tick: a mallet hit's hit-stop, her weakness death's slow motion (held through her coming apart and the
+ *  first of the burst, then back up to speed). True: this tick passes no game time. */
+const SLOW = 0.24, SLOW_PAST = 8, SLOW_RAMP = 70;
 export const queenHoldTick = (f: Fight): boolean => {
   if (f.whiteT < 99) f.whiteT++;
+  if (f.blown) f.blowT++;
   if (f.stopT > 0) { f.stopT--; return true; }
   const s = f.slow;
   if (!s) return false;
   s.t++;
-  const rate = s.t < SLOW_HOLD ? SLOW : Math.min(1, SLOW + ((1 - SLOW) * (s.t - SLOW_HOLD)) / SLOW_RAMP);
+  if (f.deathT < BURST_AT + SLOW_PAST) s.t = 0;
+  const rate = s.t <= 0 ? SLOW : Math.min(1, SLOW + ((1 - SLOW) * s.t) / SLOW_RAMP);
   if (rate >= 1) { f.slow = null; return false; }
   s.acc += rate;
   if (s.acc >= 1) { s.acc -= 1; return false; }
@@ -1377,15 +1409,18 @@ export const drawQueenFight = (c: Ctx, state: GameState, f: Fight) => {
   if (f.mode === 'dead' && f.endo) {
     // (her plain death: burning, the skeleton, the lunge, the heap)
     drawEndo(c, f.endo, f, state.frame, { pose: 'stunned', t: state.frame, ext: f.ext, alive: Math.max(0, 1 - f.deathT / 60), beat: 1, free: true, dents: f.dents });
-  } else if (f.down > 0 && !(f.blown && f.deathT >= BURST_AT)) {
+  } else if (f.blown && f.deathT < BURST_AT) {
+    // (her weakness death: coming apart at every seam at once, in slow motion (split.ts); smoothed between the game
+    // frames the slow motion holds, so it creeps rather than steps)
+    const tS = f.deathT + (f.slow ? f.slow.acc : 0);
+    drawSplit(c, f.x, f.facing, f.ext, tS, f.total - f.deathT, { pose: 'stunned', t: state.frame, ext: f.ext, alive: 1, beat: Math.max(0, 1 - f.hp / HP), free: true, dents: f.dents }, state.frame);
+  } else if (f.down > 0 && !f.blown) {
     const blink = f.iframes > 0 && Math.floor(state.frame / 3) % 2 === 0 && f.mode !== 'dead';
     if (blink) c.globalAlpha = 0.65;
-    // (about to burst: shuddering, swelling)
-    const burst = f.blown ? f.deathT / BURST_AT : 0;
-    const dy = -420 * (1 - f.down) - f.y, sx = f.mode === 'intro' && f.step === 'shake' ? Math.sin(state.frame * 1.3) * 6 : burst ? (state.frame % 2 ? 4 : -4) * burst : 0;
+    const dy = -420 * (1 - f.down) - f.y, sx = f.mode === 'intro' && f.step === 'shake' ? Math.sin(state.frame * 1.3) * 6 : 0;
     const crouch = f.mode === 'leap' && f.ph !== 'air' ? 0.9 : 1;
     c.save(); c.translate(sx, dy);
-    c.translate(f.x, GY); c.scale(1 + burst * 0.08, crouch * (1 + burst * 0.06)); c.translate(-f.x, -GY);
+    c.translate(f.x, GY); c.scale(1, crouch); c.translate(-f.x, -GY);
     const qd = { pose: poseOf(f), t: state.frame, ext: f.ext, alive: f.mode === 'dead' ? Math.max(0, 1 - f.deathT / 60) : f.alive, beat: Math.max(0, 1 - f.hp / HP), free: true, foam: f.foam, foamShed: f.mode === 'intro' && f.step === 'shake', stride: f.mode === 'skitter' ? f.stride : 0, dents: f.dents };
     drawQueen(c, f.x, f.facing, qd);
     // (a mallet hit: she flashes, lit up over herself)
