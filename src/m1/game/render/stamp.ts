@@ -39,7 +39,7 @@ const latest = new Map<string, { s: Stamp; a: number; d: number }>();
 let stampStage: string | null | undefined;
 export const stampsForStage = (stageId: string | null | undefined) => {
   if (stageId === stampStage) return;
-  stampStage = stageId; stamps.clear(); asked.clear(); latest.clear(); bytes = 0;
+  stampStage = stageId; stamps.clear(); asked.clear(); latest.clear(); bytes = 0; hold = false;
 };
 
 /** A zoom pulling out (Meathead 2's hub, out of a portal): while it's on, art that's never been stamped is stamped the
@@ -53,6 +53,14 @@ let sweep = false;
 export const setStampSweep = (on: boolean) => { sweep = on; };
 /** Is a zoom pulling out (setStampSweep)? (Other caches of the art's own, sized to the screen: hub/crowd.ts.) */
 export const stampSweep = () => sweep;
+/** A kill cam pushing in (Meathead 2's XENOSCARE basement: the head-rip, in the hall and on the stairs): while it's on,
+ *  a piece of art that would come out far bigger than the screen at the new scale (the stairs' one stamp, ~1200x1500
+ *  world, was ~3000x3600 device pixels and more, painted again once the push-in held still: a long stall, and its bytes
+ *  pushed the rest of the basement's stamps out to be painted again too) is put down scaled from the one it has
+ *  instead. Smaller art still settles sharp as usual. Off with every stage change. */
+let hold = false;
+export const setStampHold = (on: boolean) => { hold = on; };
+const HOLD_AREA = 1.5;
 /** How far round the screen a clipped stamp reaches (each side, a fraction of the canvas). */
 const CLIP_PAD = 0.5;
 
@@ -128,6 +136,13 @@ export const stamp = (ctx: Ctx, key: string, x: number, y: number, w: number, h:
     // (pulling out: scaled down from the one it has (just painted, at a bigger scale), never blown up)
     const near = !!l && Math.sign(l.a) === Math.sign(a) && Math.sign(l.d) === Math.sign(d) && (!sweep || Math.abs(l.s.a) >= Math.abs(m.a) - 1e-6);
     if (sweep && near) {
+      const ka = m.a / l!.s.a, kd = m.d / l!.s.d;
+      putDown(ctx, m, l!.s.c, l!.s.L * ka, l!.s.T * kd, l!.s.c.width * ka, l!.s.c.height * kd);
+      Object.assign(ctx, l!.s.after);
+      return;
+    }
+    // (a kill cam pushed in (setStampHold), and this one would be painted far bigger than the screen: scaled instead)
+    if (hold && near && Math.abs(m.a * w * m.d * h) > ctx.canvas.width * ctx.canvas.height * HOLD_AREA) {
       const ka = m.a / l!.s.a, kd = m.d / l!.s.d;
       putDown(ctx, m, l!.s.c, l!.s.L * ka, l!.s.T * kd, l!.s.c.width * ka, l!.s.c.height * kd);
       Object.assign(ctx, l!.s.after);

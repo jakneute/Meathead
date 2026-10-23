@@ -59,7 +59,7 @@ import { onLadder, type LadderDef } from '../../moves/ladders';
 import { setUi, isLandCleared } from '../../store';
 import { hands, meatheadSays, box } from '../section';
 import { ink, limb } from '../../../m1/game/render/npc/kit';
-import { stamp } from '../../../m1/game/render/stamp';
+import { stamp, setStampHold } from '../../../m1/game/render/stamp';
 import { GY } from '../geometry';
 import { BASE_L, BASE_R, DOOR_X, BF, CATWALK_Y, CEIL_B, STAIRS_A, STAIRS_B, LAND_X, stairsY } from './geo';
 import { drawQueen } from './art';
@@ -911,6 +911,9 @@ const headFlight = (h: Hunter, t: number) => {
 /** The camera in on the kill: her head and his, filling the screen. */
 export const hunterZoom = (state: GameState, h: Hunter) => {
   const cam = camK(state, h);
+  // (pushed in, the big stamps (the stairs' one above all) are scaled up from the ones they have, not painted again
+  // huge at the held scale: that stall was the push-in's slowdown)
+  setStampHold(cam > 0);
   if (cam <= 0) return null;
   const k = cam * cam * (3 - 2 * cam), m = mouthAt(h), fx = m.x + h.dir * 30, fy = m.y + 10;
   const z = 1 + k * 1.4;
@@ -1233,6 +1236,104 @@ const drawDoor = (c: Ctx, state: GameState, h: Hunter) => {
   if (f % 30 < 3) box(c, x - 50, GY - 200, 100, 194, 'rgba(255, 255, 255, 0.08)');
 };
 
+// ---- Her red, in the air: a soft banded falloff (stamped once into small sprites, ordered-dithered between steps,
+// drawn up 2x unsmoothed so the bands and the dither read as pixels), never a flat filled shape. Low and dim: the
+// basement stays near black; it's a hint of her, not a lamp on her.
+
+/** A sprite of `w`x`h` (drawn 2x): intensity `fn(u, v)` (0..1 over -1..1) quantized to `steps` with a 2x2 Bayer
+ *  dither between them, in one color up to alpha `maxA`. */
+const glowSprite = (w: number, h: number, fn: (u: number, v: number) => number, rgb: [number, number, number], maxA: number, steps: number) => {
+  const s = document.createElement('canvas'); s.width = w; s.height = h;
+  const g = s.getContext('2d')!, img = g.createImageData(w, h), d = img.data;
+  const bayer = [0.125, 0.625, 0.875, 0.375];
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const v = Math.max(0, Math.min(1, fn((x + 0.5) / w * 2 - 1, (y + 0.5) / h * 2 - 1))) * steps;
+    const lv = Math.min(steps, Math.floor(v) + (v - Math.floor(v) > bayer[(y & 1) * 2 + (x & 1)] ? 1 : 0));
+    const i = (y * w + x) * 4;
+    d[i] = rgb[0]; d[i + 1] = rgb[1]; d[i + 2] = rgb[2]; d[i + 3] = Math.round(lv / steps * maxA * 255);
+  }
+  g.putImageData(img, 0, 0);
+  return s;
+};
+let redSprites: { halo: HTMLCanvasElement; shaft: HTMLCanvasElement; edge: HTMLCanvasElement; top: HTMLCanvasElement } | null = null;
+const reds = () => redSprites ??= {
+  // (round her: falls off fast, the middle no brighter than a dim ember)
+  halo: glowSprite(96, 96, (u, v) => Math.pow(Math.max(0, 1 - Math.hypot(u, v)), 1.6), [150, 22, 22], 0.34, 6),
+  // (a haze shaft down from her: narrow at the top, spreading, fading to nothing by the foot; soft at its sides)
+  shaft: glowSprite(48, 128, (u, v) => { const k = (v + 1) / 2, wd = 0.25 + 0.75 * k; return Math.max(0, 1 - Math.abs(u) / wd) * Math.pow(1 - k, 1.4); }, [170, 30, 30], 0.2, 5),
+  // (her light bleeding in at the screen's left edge (mirrored for the right): strongest at the edge, round in height)
+  edge: glowSprite(64, 150, (u, v) => Math.pow(Math.max(0, (1 - u) / 2), 1.8) * Math.max(0, 1 - v * v), [160, 24, 24], 0.3, 5),
+  // (and down from the top edge, over her in a vent)
+  top: glowSprite(120, 40, (u, v) => Math.pow(Math.max(0, (1 - v) / 2), 1.8) * Math.max(0, 1 - u * u), [160, 24, 24], 0.3, 5),
+};
+const sprite = (c: Ctx, s: HTMLCanvasElement, x: number, y: number, w: number, h: number, a: number) => {
+  if (a <= 0.004) return;
+  c.globalAlpha = Math.min(1, a); c.drawImage(s, Math.round(x), Math.round(y), Math.round(w), Math.round(h)); c.globalAlpha = 1;
+};
+/** Her pulse: a slow breath, a tick up on each click (`clickT` frames since her last), now and then a dropout. */
+const redPulse = (f: number, clickT: number) => 0.82 + 0.12 * Math.sin(f * 0.075) + 0.16 * Math.max(0, 1 - clickT / 4) - ((f * 7919) % 211 < 4 ? 0.3 : 0);
+
+/** Her glow up on the ceiling round her (screen space; sx, top: her body's middle, the ceiling's line), `k` 0..1 how
+ *  much of it (fading in/out with her), `s` its size: a halo, a little bloom along the pipes over her, two haze shafts
+ *  angling down through the dark, a spill where they land on the floor, a few motes drifting in them. */
+const redAir = (c: Ctx, f: number, sx: number, cy: number, top: number, floor: number, k: number, s: number, clickT: number, seed: number) => {
+  if (k <= 0.01) return;
+  const R = reds(), p = redPulse(f, clickT) * k, sm = c.imageSmoothingEnabled;
+  c.imageSmoothingEnabled = false;
+  sprite(c, R.halo, sx - 230 * s, cy - 170 * s, 460 * s, 340 * s, 0.75 * p);
+  // (the ceiling over her: the bloom caught along the pipes and ducts up there, stepped out from her)
+  for (const [w, a] of [[320, 0.05], [200, 0.06], [100, 0.08]] as const) { c.fillStyle = `rgba(200, 40, 40, ${(a * p).toFixed(3)})`; c.fillRect(Math.round(sx - w * s), top, Math.round(2 * w * s), 3); c.fillRect(Math.round(sx - w * s * 0.8), top + 8, Math.round(1.6 * w * s), 2); }
+  // (the shafts: two, leaning a little either way, swaying slowly)
+  const len = Math.max(60, floor - cy);
+  for (let i = 0; i < 2; i++) {
+    const lean = (i ? 0.16 : -0.12) + Math.sin(f * 0.011 + i * 2 + seed) * 0.04, w = (i ? 150 : 120) * s;
+    c.save(); c.translate(sx + (i ? 24 : -30) * s, cy); c.rotate(lean);
+    sprite(c, R.shaft, -w / 2, 0, w, len, (i ? 0.7 : 0.85) * p);
+    c.restore();
+  }
+  // (the spill on the floor under her: a flat smear of it, dim)
+  sprite(c, R.halo, sx - 170 * s, floor - 16 * s, 340 * s, 32 * s, 0.45 * p);
+  // (dust in the light: a few motes going down slow, faint)
+  for (let i = 0; i < 7; i++) {
+    const ph = ((f * 0.35 + i * 61 + seed * 37) % 260) / 260, y = cy + ph * len * 0.85, x = sx + Math.sin(f * 0.02 + i * 1.9) * (14 + ph * 70) * s;
+    const a = Math.sin(ph * Math.PI) * 0.4 * p;
+    if (a > 0.02) { c.fillStyle = `rgba(254, 202, 202, ${a.toFixed(3)})`; c.fillRect(Math.round(x), Math.round(y), 2, 2); }
+  }
+  c.imageSmoothingEnabled = sm;
+};
+
+/** How much her edge hint's showing each side (eased, so it fades in and out). */
+const edgeK = { l: 0, r: 0, t: 0 };
+/** Her coming at him from off the screen (the stalk, not the stairs): her red bleeding in at that edge ahead of her,
+ *  growing a little as she nears, ticking with her clicks; gone once she's on the screen or turns off. Screen space. */
+const drawEdgeHint = (c: Ctx, state: GameState, h: Hunter) => {
+  const cam = state.camera, f = state.frame, cx = pmid(state);
+  let l = 0, r = 0, t = 0, y = CANVAS_HEIGHT / 2;
+  if (!h.finale && !h.chase && h.mode !== 'kill' && h.mode !== 'away') {
+    const sx = h.x - cam.x, coming = h.mode === 'tell' || Math.sign(cx - h.x) === h.dir || h.mode === 'hunt';
+    y = (h.mode === 'tell' || h.mode === 'ceil' ? CEIL_B + 60 : h.y - 110) - cam.y;
+    const off = sx < 0 ? -sx : sx > CANVAS_WIDTH ? sx - CANVAS_WIDTH : 0;
+    const near = Math.max(0, Math.min(1, 1 - off / 700));
+    if (off > 30 && coming) { const v = 0.35 + 0.65 * near; if (sx < 0) l = v; else r = v; }
+    // (on the screen but up in a vent, coming: a little down out of the top over her)
+    else if (off === 0 && h.mode === 'tell' && h.entry !== 'duct') t = Math.min(1, h.t / 60);
+  }
+  const ease = (a: number, b: number) => a + (b - a) * (b > a ? 0.04 : 0.08);
+  edgeK.l = ease(edgeK.l, l); edgeK.r = ease(edgeK.r, r); edgeK.t = ease(edgeK.t, t);
+  if (edgeK.l + edgeK.r + edgeK.t < 0.01) return;
+  const period = h.mode === 'tell' ? 10 : h.mode === 'ceil' ? 7 : 13, p = redPulse(f, h.t % period);
+  const R = reds(), sm = c.imageSmoothingEnabled, H = 420, yy = Math.max(H / 2 - 60, Math.min(CANVAS_HEIGHT - H / 2 + 60, y));
+  c.imageSmoothingEnabled = false;
+  sprite(c, R.edge, 0, yy - H / 2, 150, H, 0.55 * edgeK.l * p);
+  if (edgeK.r > 0.004) { c.save(); c.translate(CANVAS_WIDTH, 0); c.scale(-1, 1); sprite(c, R.edge, 0, yy - H / 2, 150, H, 0.55 * edgeK.r * p); c.restore(); }
+  sprite(c, R.top, h.x - cam.x - 180, 0, 360, 120, 0.4 * edgeK.t * p);
+  c.imageSmoothingEnabled = sm;
+};
+
+/** Her on the ceiling (the real go, in the world): how much of her glow's showing (eased in, and off as she drops),
+ *  and where it was last. */
+let ceilK = 0, ceilX = 0;
+
 /** Screen space, over everything: the foreground pipes (parallax, near), and her silhouette crawling along them. */
 let sil: HTMLCanvasElement | null = null;
 export const drawHunterFront = (c: Ctx, state: GameState, h: Hunter) => {
@@ -1242,6 +1343,10 @@ export const drawHunterFront = (c: Ctx, state: GameState, h: Hunter) => {
   if (state.camera.y < GY - 200) return;
   c.save(); c.beginPath(); c.rect(0, 0, Math.max(0, Math.min(CANVAS_WIDTH, STAIRS_A - 60 - cam)), CANVAS_HEIGHT); c.clip();
   const off = -((cam - B) * 1.35);
+  // (her real go along the ceiling: her red in the air round her and down under her, behind the near pipes)
+  ceilK += ((inPlay(h) && h.mode === 'ceil' ? 1 : 0) - ceilK) * (h.mode === 'ceil' ? 0.05 : 0.1);
+  if (h.mode === 'ceil') ceilX = h.x;
+  if (ceilK > 0.01) { const camY = state.camera.y; redAir(c, state.frame, ceilX - cam, CEIL_B + 100 - camY, CEIL_B - 2 - camY, BF - camY, ceilK, 0.75, h.t % 7, 3); }
   // (the pipes: near, out of focus, nearly black; shaded round in steps, a lit line along the top, the emergency
   // strips' red caught along their undersides; their joints and brackets)
   const run = (y: number, h: number) => {
@@ -1269,15 +1374,21 @@ export const drawHunterFront = (c: Ctx, state: GameState, h: Hunter) => {
     drawQueen(g, 0, h.fg.dir, { pose: 'stalk', t: state.frame, ext: 0, alive: 1, beat: 0, free: true, stride: h.fg.t * 0.2 });
     g.restore();
     g.globalCompositeOperation = 'source-in'; g.fillStyle = '#030306'; g.fillRect(0, 0, 640, 420); g.globalCompositeOperation = 'source-over';
-    c.fillStyle = 'rgba(127, 29, 29, 0.28)'; c.beginPath(); c.ellipse(sx, 190, 260, 150, 0, 0, Math.PI * 2); c.fill();
-    c.fillStyle = 'rgba(185, 28, 28, 0.18)'; c.beginPath(); c.ellipse(sx, 190, 170, 100, 0, 0, Math.PI * 2); c.fill();
+    // (her red round her: in the air, on the pipes, down through the dark to the floor; in and out with her)
+    const env = Math.max(0, Math.min(1, h.fg.t / 24, (170 - h.fg.t) / 24)), pulse = redPulse(state.frame, h.fg.t % 9);
+    redAir(c, state.frame, sx, 190, 36, BF - state.camera.y, env, 1, h.fg.t % 9, 0);
     c.save(); c.translate(Math.round(sx), 40); c.scale(1, -1);
     c.drawImage(sil, -320, -390, 640, 420);
     c.restore();
     const ex = sx + h.fg.dir * 120, ey = 40 + 300;
+    // (her eyes: a touch brighter than the rest of her, a faint halo round them stepped out)
+    c.fillStyle = `rgba(132, 255, 80, ${(0.07 * env * pulse).toFixed(3)})`; c.fillRect(ex - 18, ey - 5, 39, 14); c.fillRect(ex - 14, ey - 2, 31, 8);
     box(c, ex - 10, ey, 7, 4, '#84FF50'); box(c, ex + 4, ey, 7, 4, '#84FF50');
+    box(c, ex - 8, ey + 1, 3, 2, '#D9FFC8'); box(c, ex + 6, ey + 1, 3, 2, '#D9FFC8');
   }
   c.restore();
+  // (her coming from off the screen: her red ahead of her at that edge)
+  drawEdgeHint(c, state, h);
   // (the kill cam's bars)
   const camB = camK(state, h);
   if (camB > 0) { const bar = Math.round(camB * 44); c.fillStyle = '#000'; c.fillRect(0, 0, CANVAS_WIDTH, bar); c.fillRect(0, CANVAS_HEIGHT - bar, CANVAS_WIDTH, bar); }
@@ -1299,8 +1410,19 @@ export const hunterLighting = (state: GameState, h: Hunter): SceneLight | null =
   // (her: the green under her crest; a little of her shape out of the dark, so she reads)
   if (inPlay(h)) {
     const hy = h.mode === 'ceil' ? CEIL_B + 160 : h.y - 190;
-    lights.push({ x: h.x + h.dir * 50, y: hy, r: 80, a: 0.8, color: 'rgba(132, 255, 80, 0.22)' });
-    lights.push({ x: h.x, y: h.mode === 'ceil' ? CEIL_B + 110 : h.y - 110, r: 170, a: 0.3 });
+    if (h.mode === 'ceil') {
+      // (on the ceiling: her red, soft, round her and up along the pipes over her, a faint cone of it down through the
+      // dark, a little on the floor under her; breathing, ticking with her clicks, in as she comes on)
+      const k = Math.min(1, h.t / 30), q = redPulse(state.frame, h.t % 7) * k;
+      lights.push({ x: h.x + h.dir * 50, y: hy, r: 80, a: 0.8 * k, color: 'rgba(132, 255, 80, 0.22)' });
+      lights.push({ x: h.x, y: CEIL_B + 100, r: 160, a: 0.32 * q, color: 'rgba(200, 30, 30, 0.22)' });
+      lights.push({ x: h.x, y: CEIL_B + 14, r: 260, a: 0.22 * q, color: 'rgba(170, 30, 30, 0.2)' });
+      lights.push({ x: h.x, y: CEIL_B + 150, r: BF - CEIL_B - 150, cone: 120, a: 0.12 * q, color: 'rgba(150, 25, 25, 0.16)' });
+      lights.push({ x: h.x, y: BF - 4, r: 130, a: 0.14 * q, color: 'rgba(150, 25, 25, 0.18)' });
+    } else {
+      lights.push({ x: h.x + h.dir * 50, y: hy, r: 80, a: 0.8, color: 'rgba(132, 255, 80, 0.22)' });
+      lights.push({ x: h.x, y: h.y - 110, r: 170, a: 0.3 });
+    }
   }
   // (the hold's light down through the hole he came down)
   if (state.stageMemo[FELL_MEMO] && Math.abs(LAND_X - cx) < 900) lights.push({ x: LAND_X, y: CEIL_B + 140, r: 240, a: 0.55, color: 'rgba(167, 139, 250, 0.10)' });
