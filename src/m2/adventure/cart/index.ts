@@ -24,7 +24,7 @@ import {
 } from './layout';
 import { drawCartBackdrop, drawCartTrack, drawCartFront, cartLighting } from './art';
 import { setUi } from '../../store';
-import { silenceAll, pickLine } from '../../../m1/game/platform/speech';
+import { silenceAll, pickLine, isTalking } from '../../../m1/game/platform/speech';
 import { SKIP_AFTER, offerSkip, takeSkip, drawSkipPrompt } from '../../../m1/game/platform/skip';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { playSound } from '../../../m1/game/platform/audio';
@@ -33,15 +33,17 @@ import { isShat, isNude } from '../../../m1/game/player/gut';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { registerHurtLines } from '../../kinds';
 import { drawRideCart, SEAT_DX, JAGUAR_EXPRESS, TOUR_CART, type CartLook } from '../rideCart';
-import { drawSafariArtie } from '../river/artie';
+import { drawSafariArtie, type ArtieFx, type ArtiePose } from '../river/artie';
+import { stamp } from '../../intro/art/kit';
+import { bloodFresh } from '../../../m1/game/render/player/gore';
 import { startPip, pipLine, stepPip, drawPip, type ArtiePip } from '../river/artiePip';
 import { warmGrossUps } from '../../grossKit';
 import {
   type Dressed, MEATHEAD_UNFRIENDLY, MEATHEAD_ARTIE_AGAIN, ARTIE_CHASE_START, ARTIE_TAUNT, ARTIE_CHIDE, ARTIE_SHOT, ARTIE_RAMP,
-  ARTIE_TRAPPED, ARTIE_GLOATS, MEATHEAD_SEES_DARTS, MEATHEAD_SEES_SNAKE, MEATHEAD_SEES_LOB, MEATHEAD_SEES_CHASE,
+  ARTIE_DARTED, ARTIE_BALDED, ARTIE_FLATTENED, ARTIE_FLIPPED, ARTIE_GLOATS, MEATHEAD_SEES_DARTS, MEATHEAD_SEES_SNAKE, MEATHEAD_SEES_LOB, MEATHEAD_SEES_CHASE,
   HURT_BEAM, DEATH_BEAM, HURT_PIT, DEATH_PIT,
 } from './lines';
-import { type Tricks, type Rider, newTricks, runTricks } from './tricks';
+import { type Tricks, type Rider, type TrapKind, newTricks, runTricks } from './tricks';
 import { drawTrickFront } from './trickArt';
 import { eyeOf } from '../temple/art';
 
@@ -51,6 +53,8 @@ registerHurtLines('cart_pit', HURT_PIT, DEATH_PIT);
 
 const pick = pickLine;
 const dressed = (state: GameState): Dressed => (isNude(state) ? 'nude' : isShat(state) ? 'shitty' : 'clean');
+/** A pool of lines, three ways: whatever Meathead's wearing as it's said. */
+const byPants = <T,>(state: GameState, r: Record<Dressed, T>): T => r[dressed(state)];
 /** First time through (return trips will differ: no Artie, say). One flag per set piece. */
 const firstVisit = (_state: GameState) => true;
 
@@ -93,6 +97,8 @@ export interface Cart {
     on: boolean; x: number; v: number; said: Said | null; next: number; bumpT: number; chideAt: number; shotSaid: number; end: Flier | null;
     /** (one of the ride's tricks has just had him: not again for a moment) */
     trapT: number;
+    /** ...and how he's taking it (frames in; darts: how many he's got in his face). */
+    react: { kind: TrapKind; t: number; darts: number } | null;
   };
   /** The ride's tricks (tricks.ts): reset and loaded again every go. */
   tricks: Tricks;
@@ -103,7 +109,7 @@ const getCart = (state: GameState) => sectionState<Cart>(state, 'cart', () => ({
   mode: 'off', x: X + 150, y: GY, railY: GY, vy: 0, speed: 0, air: false, beamsHit: new Set(), jumpWas: false,
   t: 0, lead: 150, scanned: false, scanT: 0, outT: 0, me: null, fade: 0,
   chase: firstVisit(state),
-  artie: { on: false, x: 0, v: 0, said: null, next: 0, bumpT: 0, chideAt: 0, shotSaid: 0, end: null, trapT: 0 },
+  artie: { on: false, x: 0, v: 0, said: null, next: 0, bumpT: 0, chideAt: 0, shotSaid: 0, end: null, trapT: 0, react: null },
   tricks: newTricks(),
 }));
 
@@ -248,7 +254,8 @@ const artieChase = (ctx: FrameContext, cart: Cart) => {
     speak('m2.safari', pick(ARTIE_CHASE_START[dressed(state)]), s => { a.said = s; pipLine(pip, s ? s.text : null); }, true, () => meatheadSays(state, pick(MEATHEAD_ARTIE_AGAIN)));
     return;
   }
-  if (cart.mode !== 'ride') { a.x += a.v; return; }
+  if (cart.mode !== 'ride') { a.x += a.v; a.react = null; return; }
+  stepReact(state, cart);
   const dist = cart.x - a.x;
   // (well back, he closes right up; then he sits on his tail, the same pace: the ride sets it, his cart too, so he can't
   // ram him. He just chews him out)
@@ -275,18 +282,60 @@ const artieChase = (ctx: FrameContext, cart: Cart) => {
   if (--a.next <= 0) { a.next = 600 + Math.floor(Math.random() * 300); artieSays(cart, pick(ARTIE_TAUNT[dressed(state)])); }
 };
 
-/** Artie, to the ride's tricks: knocked back (the cart and him), and it's Meathead's fault. */
+/** Artie, to the ride's tricks: knocked back (the cart and him), and it's Meathead's fault. Each has him its own way
+ *  (the user's: "for the various traps on the minecart ride, any that miss you and hit artie will show a quick, unique
+ *  funny reaction from artie depending on what hit him"): a beat of him (drawArtieReact), its sound, and a line, his
+ *  pride hurt worse than him. Looks only: nothing held up, nothing at Meathead, the ride the same. */
 const riderOf = (state: GameState, cart: Cart): Rider => {
   const a = cart.artie;
   return {
     on: a.on && cart.mode === 'ride', x: a.x,
-    hit: () => {
+    hit: (what) => {
+      // (the rest of a volley, into his face too: one more dart in him)
+      if (what === 'dart' && a.react?.kind === 'dart' && a.react.t < 30) { a.react.darts = Math.min(3, a.react.darts + 1); playSound('dart', 0.5, 6 + a.react.darts * 2); return; }
       if (a.trapT > 0) return;
-      a.trapT = 50; a.v = Math.max(2, a.v - 4); a.bumpT = 70;
-      playSound('punch', 0.7, 4); playSound('clang', 0.6, 2);
-      if (Math.random() < 0.7) artieSays(cart, pick(ARTIE_TRAPPED[dressed(state)]));
+      a.trapT = REACT_T[what]; a.v = Math.max(2, a.v - 4); a.bumpT = 70;
+      a.react = { kind: what, t: 0, darts: 1 };
+      if (what === 'dart') { playSound('dart', 0.7, 4); playSound('punch', 0.4, 10); }
+      else if (what === 'snake') { playSound('snort', 0.8, 6); playSound('bonk', 0.9, 2); playSound('whoosh', 0.6, 8); }
+      else if (what === 'boulder') { playSound('squish', 1, -4); playSound('crunch', 0.5, 2); }
+      else { playSound('bonk', 1, -6); playSound('whoosh', 0.9, 4); }
+      // (his line: never over anybody else's; the beat plays either way)
+      if (!isTalking() && state.playerVulgarityTimer <= 0 && !a.said) {
+        const text = pick(byPants(state, REACT_LINES[what]));
+        a.said = { text };
+        speak('m2.safari', text, s => { a.said = s; }, false);
+      }
     },
   };
+};
+
+/** How long each beat of him takes (frames: quick, well under a second and a half). */
+const REACT_T: Record<TrapKind, number> = { dart: 66, snake: 64, boulder: 60, chase: 66 };
+const REACT_LINES: Record<TrapKind, Record<Dressed, string[]>> = { dart: ARTIE_DARTED, snake: ARTIE_BALDED, boulder: ARTIE_FLATTENED, chase: ARTIE_FLIPPED };
+/** The darts: quivering in his face till DART_GRAB, the hand up to the nose one, yanked out at DART_YANK. The serpent:
+ *  his helmet up off his head, spinning, back down on it at HAT_DOWN. The boulder: flat till FLAT_T, then boing. The big
+ *  one: flipped up out of his seat till FLIP_IN (head first into the cart), legs kicking, out again from FLIP_OUT. */
+const DART_GRAB = 18, DART_YANK = 34, HAT_DOWN = 46, FLAT_T = 10, FLIP_IN = 18, FLIP_OUT = 50;
+
+/** His reaction, on: its sounds on their beats. */
+const stepReact = (state: GameState, cart: Cart) => {
+  const a = cart.artie, r = a.react;
+  if (!r) return;
+  r.t++;
+  if (r.t >= REACT_T[r.kind]) { a.react = null; return; }
+  const ay = artieTrackY(a.x);
+  if (r.kind === 'dart' && r.t === DART_YANK + 3) {
+    // (out it comes, with a pop and a squirt)
+    playSound('squish', 0.5, 10); playSound('click', 0.6, 4);
+    for (let i = 0; i < 6; i++) state.particles.push({ pos: { x: a.x + 6, y: ay - SINK - 66 }, vel: { x: 1 + Math.random() * 2.5, y: -1.5 - Math.random() * 2 }, life: 18, color: bloodFresh, size: 1.5 + Math.random() * 1.5, grav: 0.25 });
+  }
+  if (r.kind === 'snake' && r.t === HAT_DOWN) { playSound('bonk', 0.8, 8); playSound('clink', 0.5, -2); }
+  if (r.kind === 'boulder' && r.t === FLAT_T) { playSound('boing', 0.9); playSound('twinkle', 0.35, 4); }
+  if (r.kind === 'chase') {
+    if (r.t === FLIP_IN) { playSound('clang', 0.8, -4); playSound('thud', 0.7); }
+    if (r.t === FLIP_OUT) playSound('boing', 0.7, 3);
+  }
 };
 
 /** The first of each of the ride's tricks this go at the land: he's seen them all from behind, and says so (once). */
@@ -518,7 +567,8 @@ const drawCarts = (c: CanvasRenderingContext2D, state: GameState, back = false) 
     else {
     // (sat in it, turned with it along the track)
     c.save(); c.translate(a.x, ay); c.rotate(ar);
-    drawSafariArtie(c, -4, -SINK, 1, f, ducking ? 'duck' : a.said?.text ? 'talk' : 'sit');
+    if (a.react && !ducking) drawArtieReact(c, a.react, f);
+    else drawSafariArtie(c, -4, -SINK, 1, f, ducking ? 'duck' : a.said?.text ? 'talk' : 'sit');
     c.restore();
     drawCartBox(c, a.x, ay, f, TOUR_CART, ar);
     if (a.said?.text) saidOver(c, a.said.text, a.x, ay - 110, '#FDE68A');
@@ -527,4 +577,82 @@ const drawCarts = (c: CanvasRenderingContext2D, state: GameState, back = false) 
   if (cart.mode === 'off') return;
   if (cart.mode === 'outro' && cart.me) { drawCartBox(c, cart.me.x + cart.me.drift, cart.me.y, f, JAGUAR_EXPRESS, cart.me.rot, back); return; }
   drawCartBox(c, cart.x, cart.y, f, JAGUAR_EXPRESS, rideRot(cart), back);
+};
+
+// ---------------------------------------------------------------------------------------------------------------
+// Artie's reactions to the ride's tricks (sat in his cart, at its seat: (0, 0) on the rail under it)
+
+const ease = (u: number) => { const k = Math.max(0, Math.min(1, u)); return k * k * (3 - 2 * k); };
+const DART_FX: ArtieFx = {}, HAT_FX: ArtieFx = {}, FACE_FX: ArtieFx = {};
+
+const drawArtieReact = (c: CanvasRenderingContext2D, r: { kind: TrapKind; t: number; darts: number }, f: number) => {
+  const t = r.t;
+  switch (r.kind) {
+    case 'dart': {
+      // Darts: stuck in his face like a pincushion, quivering, eyes screwed shut; then the hand up, a jerk, and the one
+      // in his nose out, held up to look at, bloody (gritting his teeth, then furious)
+      DART_FX.darts = r.darts;
+      DART_FX.yank = t < DART_GRAB ? 0 : t < DART_YANK ? (t - DART_GRAB) / (DART_YANK - DART_GRAB) : 1 + Math.min(1, (t - DART_YANK) / 4);
+      DART_FX.face = t < DART_GRAB ? 'yelp' : t < DART_YANK + 4 ? 'grit' : 'angry';
+      const jit = t < 10 ? Math.sin(t * 2.6) * 1.5 : t >= DART_YANK && t < DART_YANK + 4 ? 2 : 0;
+      drawSafariArtie(c, -4 + jit, -SINK, 1, f, 'yank', 0, DART_FX);
+      return;
+    }
+    case 'snake': {
+      // The serpent: his helmet knocked clean off, up over him spinning, the bald spot (and the helmet's tan line, and
+      // the comb-over) out for all to see, both hands clapped over it; back down on his head, a bonk, and he's furious
+      if (t < HAT_DOWN) {
+        const u = t / HAT_DOWN;
+        HAT_FX.hat = { dx: -6 * Math.sin(Math.PI * u), dy: -30 * Math.sin(Math.PI * u), rot: ease(u) * Math.PI * 4 };
+        HAT_FX.face = undefined;
+        drawSafariArtie(c, -4, -SINK, 1, f, 'bald', 0, HAT_FX);
+      } else {
+        FACE_FX.face = 'angry';
+        drawSafariArtie(c, -4, -SINK + (t < HAT_DOWN + 4 ? 2 : 0), 1, f, 'sit', 0, FACE_FX);
+      }
+      return;
+    }
+    case 'boulder': {
+      // The boulder: flat as a pancake over the cart's rim, then boing, back up, wobbling, dazed, stars round his helmet
+      const RIM = -45;
+      let sy: number;
+      if (t < FLAT_T) sy = 0.3;
+      else { const k = t - FLAT_T; sy = 1 - 0.7 * Math.exp(-k / 9) * Math.cos(k * 0.5); }
+      const sx = Math.max(0.8, 1 + (1 - sy) * 0.6);
+      FACE_FX.face = t < FLAT_T ? 'yelp' : 'dazed';
+      c.save(); c.translate(0, RIM); c.scale(sx, sy); c.translate(0, -RIM);
+      drawSafariArtie(c, -4, -SINK, 1, f, 'sit', 0, FACE_FX);
+      c.restore();
+      if (t >= FLAT_T) stars(c, -2, -SINK - 96 * sy, t);
+      return;
+    }
+    case 'chase': {
+      // The big one, right over him: flipped up out of his seat, head over heels, head first back down into the cart,
+      // his legs sticking up out of it kicking; then up and over, back in his seat
+      const CY = -SINK - 44;
+      let rot: number, lift: number, pose: ArtiePose;
+      if (t < FLIP_IN) { const u = t / FLIP_IN; rot = Math.PI * ease(u); lift = Math.sin(Math.PI * u) * 60; pose = 'hurt'; }
+      else if (t < FLIP_OUT) { rot = Math.PI + Math.sin(t * 0.5) * 0.06; lift = 0; pose = 'agitated'; }
+      else { const u = Math.min(1, (t - FLIP_OUT) / (REACT_T.chase - FLIP_OUT)); rot = Math.PI + Math.PI * ease(u); lift = Math.sin(Math.PI * u) * 34; pose = 'hurt'; }
+      c.save(); c.translate(-4, CY - lift); c.rotate(rot);
+      drawSafariArtie(c, 0, -SINK - CY, 1, f, pose);
+      c.restore();
+      return;
+    }
+  }
+};
+
+/** Cartoon stars, three, round his head (stamped: a pixel star, painted the once). */
+const stars = (c: CanvasRenderingContext2D, x: number, y: number, t: number) => {
+  for (let i = 0; i < 3; i++) {
+    const a = t * 0.22 + (i * Math.PI * 2) / 3;
+    const sx = Math.round(x + Math.cos(a) * 16), sy = Math.round(y + Math.sin(a) * 4);
+    c.save(); c.translate(sx, sy);
+    stamp(c, 'cart:artieStar', -4, -4, 9, 9, g => {
+      g.fillStyle = '#7C4A03'; g.fillRect(-1, -4, 3, 9); g.fillRect(-4, -1, 9, 3);
+      g.fillStyle = '#FACC15'; g.fillRect(0, -3, 1, 7); g.fillRect(-3, 0, 7, 1); g.fillRect(-1, -1, 3, 3);
+      g.fillStyle = '#FEF9C3'; g.fillRect(0, -1, 1, 1);
+    });
+    c.restore();
+  }
 };

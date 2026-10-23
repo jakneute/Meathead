@@ -102,7 +102,9 @@ export const newTricks = (): Tricks => ({
 });
 
 /** Who else is on the track (Artie, in his cart): where he is, and what happens when one of these has him. */
-export interface Rider { on: boolean; x: number; hit: (what: 'dart' | 'snake' | 'boulder', dmgX: number) => void }
+/** What of the ride's tricks has had Artie (a lobbed boulder, or the big one right over him): he reacts to each its own way. */
+export type TrapKind = 'dart' | 'snake' | 'boulder' | 'chase';
+export interface Rider { on: boolean; x: number; hit: (what: TrapKind, dmgX: number) => void }
 /** What the tricks need of the cart. */
 export interface CartView { x: number; y: number; air: boolean; ride: boolean; /** frames it's been rolling (just back at a checkpoint: nothing's cued till it's going) */ t: number }
 
@@ -250,7 +252,7 @@ export const runTricks = (ctx: FrameContext, tr: Tricks, cart: CartView, artie: 
       return false;
     }
     if (artie.on && !b.had.has(ARTIE) && circleBox(b.x, b.y, b.r, artieBox(artie.x))) {
-      b.had.add(ARTIE); artie.hit('boulder', b.x + 60);
+      b.had.add(ARTIE); artie.hit(b.big ? 'chase' : 'boulder', b.x + 60);
       if (!b.big) { smash(state, b); return false; }
     }
     for (const e of hazardVictims(state)) if (!b.had.has(e) && boxHits(e, b.x - b.r, b.y - b.r, b.r * 2, b.r * 2)) {

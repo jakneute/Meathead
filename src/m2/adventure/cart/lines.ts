@@ -59,6 +59,31 @@ export const ARTIE_TRAPPED: Record<Dressed, string[]> = {
   shitty: ['YOU SET THAT OFF ON PURPOSE, YOU STINKING PRICK!', "THAT DIDN'T HAPPEN! YOU SHITTING YOURSELF HAPPENED!", "I'M PUTTING THAT ON YOUR TAB! AND THE CART CLEANING!"],
   nude: ['YOU SET THAT OFF ON PURPOSE! YOU AND YOUR BARE ASS!', "OW! AND THAT'S NOT EVEN THE WORST THING I'VE SEEN TODAY!", "PUT IT ON YOUR TAB! YOU DON'T EVEN HAVE POCKETS!", "THAT DIDN'T HAPPEN! NOBODY SAW THAT! THEY'RE ALL LOOKING AT YOU!"],
 };
+/** ...each of the ride's tricks that misses Meathead and has him instead, its own (his sin's pride: the face, the
+ *  brochure, skipper of the year; it didn't happen). Darts: stuck in his face, he yanks one out. */
+export const ARTIE_DARTED: Record<Dressed, string[]> = {
+  clean: ['OW! NOT THE BROCHURE FACE!', "THAT DIDN'T HAPPEN. THERE'S NOTHING IN MY FACE.", 'I LOOK GOOD WITH DARTS. THAT IS A FACT.'],
+  shitty: ['DARTS IN MY FACE AND I STILL SMELL BETTER THAN YOU!', 'OW! PRETTIER THAN SHIT-PANTS! STILL!', "THAT DIDN'T HAPPEN! YOUR PANTS HAPPENED!"],
+  nude: ['OW! STILL PRETTIER THAN YOUR NAKED ASS!', 'THE FACE IS ON THE BROCHURE! YOUR ASS IS ON A WARNING SIGN!', "AT LEAST THEY'RE IN MY FACE! NOT IN YOUR BARE ASS!"],
+};
+/** ...the Serpent of Doom: knocks his helmet off, and there's the bald spot under it (he covers it). */
+export const ARTIE_BALDED: Record<Dressed, string[]> = {
+  clean: ["DON'T LOOK AT IT! THE HAT STAYS ON!", "IT'S NOT BALD! IT'S SUN-THINNED!", 'NOBODY SEES THE HEAD! NOBODY!'],
+  shitty: ["DON'T LOOK AT MY HEAD! LOOK AT YOUR PANTS!", "I'M BALD! YOU'RE FULL OF SHIT! I WIN!", 'EYES OFF THE SCALP, SHIT-PANTS!'],
+  nude: ["DON'T LOOK AT MY HEAD! I'M NOT LOOKING AT YOURS!", "I'M BALD UP TOP! YOU'RE BALD EVERYWHERE!", 'COVER YOURS AND I COVER MINE!'],
+};
+/** ...a lobbed boulder: flattened like a pancake, then he pops back up. */
+export const ARTIE_FLATTENED: Record<Dressed, string[]> = {
+  clean: ["THAT DIDN'T HAPPEN. I'M FINE. I'M GREAT.", 'FLAT! STILL SKIPPER OF THE YEAR!', "THAT WAS FOAM! IT'S ALL FOAM!"],
+  shitty: ["I'M FLAT AND I STILL DON'T SMELL LIKE YOU!", "I'M FINE! YOU'RE THE ONE WHO SHIT!", 'FLATTENED! STILL CLEANER THAN YOUR SEAT!'],
+  nude: ['FLAT AS A PANCAKE! STILL BIGGER THAN YOUR DICK!', "I'M FINE! I'M GREAT! COVER THAT UP!", "THAT DOESN'T COUNT! YOU'RE NAKED!"],
+};
+/** ...the big one, right over him: flipped up out of his seat, head first into the cart, legs kicking. */
+export const ARTIE_FLIPPED: Record<Dressed, string[]> = {
+  clean: ["I MEANT TO DO THAT! THAT'S A STUNT!", "THAT'S MY BOULDER! IT KNOWS ME!", "NOBODY SAW THAT! I'M ON THE BROCHURE!"],
+  shitty: ["I MEANT TO DO THAT! YOU DIDN'T MEAN TO DO THAT!", 'THAT WAS A STUNT! YOUR PANTS ARE AN ACCIDENT!', 'UPSIDE DOWN AND I CAN STILL SMELL YOU!'],
+  nude: ['I MEANT TO DO THAT! YOU MEANT TO DO THAT?!', "THAT WAS A STUNT! WHAT'S YOUR EXCUSE?!", 'UPSIDE DOWN AND I CAN STILL SEE YOUR BALLS!'],
+};
 /** ...when one of them gets Meathead, and Artie saw it. */
 export const ARTIE_GLOATS: Record<Dressed, string[]> = {
   clean: ['HA! THE RIDE HATES YOU TOO!', "BEST TIME I EVER HAD ON THIS RIDE! AND I'VE HAD SEX ON IT!", 'HA! I KNEW THAT WAS THERE! I KNOW EVERYTHING!'],
@@ -94,5 +119,5 @@ export const VOICE_LINES: Record<string, string[]> = {
     ...HURT_BEAM, ...HURT_PIT, ...HURT_CART_DART, ...HURT_CART_SNAKE, ...HURT_CART_BOULDER, ...HURT_CART_CHASE,
   ],
   death: [...DEATH_BEAM, ...DEATH_PIT, ...DEATH_CART_DART, ...DEATH_CART_SNAKE, ...DEATH_CART_BOULDER, ...DEATH_CART_CHASE],
-  'm2.safari': [...all(ARTIE_CHASE_START), ...all(ARTIE_TAUNT), ...all(ARTIE_CHIDE), ...all(ARTIE_SHOT), ...all(ARTIE_TRAPPED), ...all(ARTIE_GLOATS), ...all(ARTIE_RAMP)],
+  'm2.safari': [...all(ARTIE_CHASE_START), ...all(ARTIE_TAUNT), ...all(ARTIE_CHIDE), ...all(ARTIE_SHOT), ...all(ARTIE_TRAPPED), ...all(ARTIE_DARTED), ...all(ARTIE_BALDED), ...all(ARTIE_FLATTENED), ...all(ARTIE_FLIPPED), ...all(ARTIE_GLOATS), ...all(ARTIE_RAMP)],
 };

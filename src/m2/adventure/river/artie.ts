@@ -17,6 +17,7 @@
 
 import { type Ctx } from '../../cast/kit';
 import { smear, drip, cut, bloodFresh, bloodDark } from '../../../m1/game/render/player/gore';
+import { elbow, reachTo } from '../../art/limb';
 
 export type ArtiePose =
   | 'stand'   // standing about
@@ -40,7 +41,25 @@ export type ArtiePose =
   // (his standard death: gored by his own rhino. Both folded backward at the waist, the wrong way, his back on the
   // inside of the fold: the caller puts his hip (29 up off his feet) on the horn and turns him)
   | 'skewered' // on the horn, carried: screaming, legs kicking, arms flailing
-  | 'broken';  // against the wall after: folded right over the horn, a knee bent the wrong way, an arm too, dead
+  | 'broken'   // against the wall after: folded right over the horn, a knee bent the wrong way, an arm too, dead
+  // (the mine cart: sat in it, one of the ride's tricks has just had him; legs hidden, as 'sit')
+  | 'yank'     // darts in his face (ArtieFx.darts): the far hand up yanking the one in his nose out (ArtieFx.yank)
+  | 'bald';    // his helmet knocked off (ArtieFx.hat: where it's got to): both hands clapped over the bald spot under it
+
+/** Sat in a cart: from the waist up (the legs hidden in it). */
+const SEATED = new Set<ArtiePose>(['sit', 'yank', 'bald']);
+
+/**
+ * A quick reaction played over a pose (the mine cart: one of the ride's tricks has had him instead of Meathead).
+ *  - darts: stuck in his face (1..3: his nose, his cheek, his brow), quivering; `yank` how far the far hand's got
+ *    pulling the nose one out ('yank' pose: 0 on the cart's rim, 1 hold of it, 2 out, held up, bloody).
+ *  - hat: his helmet off his head, where it's got to from where it sits (head units) and its spin: the bald spot it
+ *    hides (a pale band where it sat, a comb-over) on show.
+ *  - face: his face, whatever the pose would give him.
+ */
+export interface ArtieFx { darts?: number; yank?: number; hat?: { dx: number; dy: number; rot: number }; face?: ArtieFace }
+/** (this draw's reaction: set for the one call) */
+let fx: ArtieFx | null = null;
 
 // ---------------------------------------------------------------------------------------------------------------
 // Ramps: light, base, shade, deep, line
@@ -153,8 +172,9 @@ const FOLD: Partial<Record<ArtiePose, number>> = { skewered: -1.85, broken: -2.5
 /** Gored: which way's down for his arms, in his folded top half's own space (it's the caller's turn of him, undone). */
 const ARM_DOWN: Partial<Record<ArtiePose, [number, number]>> = { skewered: [-0.84, -0.55], broken: [-0.1, -1] };
 
-export const drawSafariArtie = (c: Ctx, x: number, feetY: number, facing: number, frame: number, pose: ArtiePose = 'stand', damage = 0) => {
+export const drawSafariArtie = (c: Ctx, x: number, feetY: number, facing: number, frame: number, pose: ArtiePose = 'stand', damage = 0, react: ArtieFx | null = null) => {
   const f = frame;
+  fx = react;
   // (gored: upside down, near enough, so nothing of the beating that runs down him (it would run up): the drops off him)
   const d = Math.max(0, Math.min(FOLD[pose] ? 0.74 : 1, damage));
   c.save();
@@ -181,7 +201,7 @@ export const drawSafariArtie = (c: Ctx, x: number, feetY: number, facing: number
     c.restore();
   }
   // ---- the legs
-  if (pose !== 'sit') drawLegs(c, pose, f, d);
+  if (!SEATED.has(pose)) drawLegs(c, pose, f, d);
   c.translate(0, b);
   bend();
   // ---- the shirt, the belt and what's on it
@@ -193,8 +213,8 @@ export const drawSafariArtie = (c: Ctx, x: number, feetY: number, facing: number
   const hx = pose === 'stunned' ? Math.sin(f * 0.12) * 2.5 : reach ? -5 : 0.5;
   const [far, near] = armsFor(pose, f, hx, hy);
   // (arms up over his head go behind it, their hands back on over the helmet after; the hand at his face after it)
-  const up = pose === 'dive' || pose === 'dodge' || pose === 'hurt' || pose === 'agitated' || pose === 'duck' || !!fold;
-  const atFace = pose === 'radio' || pose === 'whistle';
+  const up = pose === 'dive' || pose === 'dodge' || pose === 'hurt' || pose === 'agitated' || pose === 'duck' || pose === 'bald' || !!fold;
+  const atFace = pose === 'radio' || pose === 'whistle' || pose === 'yank';
   if (!atFace) drawArm(c, far, false, d, pose, f);
   if (!reach) drawArm(c, near, true, d, pose, f);
   drawNeck(c, hx, hy, pose, f, d);
@@ -211,7 +231,16 @@ export const drawSafariArtie = (c: Ctx, x: number, feetY: number, facing: number
   if (pose === 'radio') { drawRadio(c, far.hx - 1.6, far.hy - 9, f, true); hand(c, far, false, pose, f); }
   if (pose === 'blowgun') drawBlowgun(c, hx, hy, f);
   if (pose === 'grab') drawKnife(c, far, f, d);
+  // (the dart he's yanked out, up in his fist)
+  if (pose === 'yank' && (fx?.yank ?? 0) >= 1.5) { heldDart(c, far.hx, far.hy, f); hand(c, far, false, pose, f); }
+  // (his helmet, off his head: up over him, spinning)
+  if (fx?.hat) {
+    c.save(); c.translate(hx, hy); c.rotate(nod); c.scale(HS, HS); c.translate(fx.hat.dx, fx.hat.dy);
+    drawHelmet(c, f, d, fx.hat.rot);
+    c.restore();
+  }
   c.restore();
+  fx = null;
 };
 
 /** What falling through the temple roof did to him: dirt on him, a scuffed helmet, nothing bleeding yet (the clearing
@@ -520,8 +549,28 @@ const armsFor = (pose: ArtiePose, f: number, hx: number, hy: number): [Arm, Arm]
       const a = Math.sin(f * 0.45) * 0.5 + 0.5, b = Math.sin(f * 0.45 + 2.2) * 0.5 + 0.5;
       return [far(lerp(-2, -21, a), lerp(-57, -72, a), -1, 0.4), near(lerp(6, 21, b), lerp(-40, -71, b), 1, 0.4)];
     }
+    case 'yank': {
+      // (the near hand on the cart's rim; the far one from the rim up to the dart in his nose, a jerk, and out ahead,
+      // held up)
+      const y = Math.max(0, fx?.yank ?? 0);
+      const nose = [hx + 15 * HS, hy + 1.5 * HS], out = [hx + 20 * HS, hy - 6 * HS];
+      const [tx, ty] = y < 1 ? [lerp(13, nose[0], y), lerp(-40, nose[1], y)] : [lerp(nose[0], out[0], Math.min(1, y - 1)), lerp(nose[1], out[1], Math.min(1, y - 1))];
+      return [limbArm(-SX, SY, tx, ty), limbArm(SX, SY, 19, -42)];
+    }
+    case 'bald': {
+      // (both hands clapped over the top of his head, patting: the bald spot covered)
+      const p = Math.sin(f * 0.8) * 1.2;
+      return [limbArm(-SX, SY, hx - 4.5 * HS, hy - 13 * HS + p), limbArm(SX, SY, hx + 4 * HS, hy - 14 * HS - p)];
+    }
     default: return [hip(), near(11.8 + sway * 0.4, -30.5, 1, 0.1)];
   }
+};
+
+/** An arm (the cart's reactions: limb.ts's elbow, bent the way an elbow bends; he's drawn facing +x here). */
+const limbArm = (sx: number, sy: number, tx: number, ty: number): Arm => {
+  const [hx, hy] = reachTo(sx, sy, tx, ty, UPPER, FORE);
+  const [ex, ey] = elbow(sx, sy, hx, hy, UPPER, FORE, 1);
+  return { sx, sy, ex, ey, hx, hy };
 };
 
 const drawArm = (c: Ctx, A: Arm, near: boolean, d: number, pose: ArtiePose, f: number) => {
@@ -616,8 +665,12 @@ const drawBlowgun = (c: Ctx, hx: number, hy: number, _f: number) => {
 const TALKERS = new Set<ArtiePose>(['talk', 'radio', 'angry', 'point', 'agitated', 'grab']);
 
 type Face = 'smug' | 'chat' | 'angry' | 'grit' | 'manic' | 'yelp' | 'dazed' | 'panic' | 'aim' | 'whistle' | 'dead';
+export type ArtieFace = Face;
 const faceOf = (pose: ArtiePose, d: number): Face => {
+  if (fx?.face) return fx.face;
   switch (pose) {
+    case 'yank': return 'yelp';
+    case 'bald': return 'panic';
     case 'skewered': return 'yelp';
     case 'broken': return 'dead';
     case 'talk': case 'radio': case 'point': return 'chat';
@@ -661,7 +714,7 @@ const drawHead = (c: Ctx, pose: ArtiePose, f: number, d: number, tilt: number) =
   // (the back of his head in shade, stepped; under the jaw; the shadow of the brim across his forehead)
   px(c, -12, -20, 4.6, 40, SKIN[2]); px(c, -7.4, -20, 1, 40, dith(c, SKIN[2])); px(c, -12, -20, 2.2, 40, SKIN[3]);
   ell(c, 1, 15, 9, 4, SKIN[2]); ell(c, 1, 16.4, 8, 3, SKIN[3]);
-  px(c, -12, -9.5, 24, 3, SKIN[2]); px(c, -12, -6.5, 24, 1, dith(c, SKIN[2]));
+  if (!fx?.hat) { px(c, -12, -9.5, 24, 3, SKIN[2]); px(c, -12, -6.5, 24, 1, dith(c, SKIN[2])); }
   // (the sunburn: cheek, the band of forehead the brim misses, the top of the ear side)
   ell(c, 6.2, 2.2, 3.6, 2.2, BURNT[1]); ell(c, 6.2, 2.2, 4.4, 2.9, dith(c, BURNT[1]));
   ell(c, -2.6, 2.6, 2.2, 1.4, dith(c, BURNT[1]));
@@ -702,9 +755,58 @@ const drawHead = (c: Ctx, pose: ArtiePose, f: number, d: number, tilt: number) =
   faceBlood(c, d, f, false);
   // ---- sweat: always a bead or two (it's the jungle), pouring when he's in trouble
   if (face !== 'dead') sweat(c, face, f, d);
-  // ---- the pith helmet
-  drawHelmet(c, f, d, tilt);
-  faceBlood(c, d, f, true);
+  // ---- the pith helmet (or, knocked off, what it hides)
+  if (fx?.hat) baldTop(c, f);
+  else { drawHelmet(c, f, d, tilt); faceBlood(c, d, f, true); }
+  // ---- darts stuck in him
+  if (fx?.darts) faceDarts(c, f, fx.darts, (fx.yank ?? 0) >= 1.5);
+};
+
+/** Under the helmet: bald as an egg on top, shining, a pale band where it sits (sunburnt everywhere else), and the
+ *  comb-over, three long strands from over the ear, one lifted and flapping. */
+const baldTop = (c: Ctx, f: number) => {
+  c.save();
+  c.beginPath(); c.moveTo(-10, -6); c.quadraticCurveTo(-11, -14.5, -1, -14.5); c.quadraticCurveTo(9.6, -14.5, 10.2, -5); c.lineTo(10.2, -3); c.lineTo(-10, -3); c.closePath(); c.clip();
+  // (the helmet's tan line: pale where it sat, stepped down into the burn)
+  px(c, -12, -16, 24, 10, PALE[1]); px(c, -12, -7, 24, 1, dith(c, PALE[1])); px(c, -12, -16, 4, 12, PALE[2]); px(c, -12, -16, 2, 12, PALE[3]);
+  // (the shine)
+  ell(c, 1.5, -11.6, 3.6, 1.6, '#FFFFFF'); ell(c, 1.5, -11.6, 4.6, 2.2, dith(c, '#FFFFFF'));
+  c.restore();
+  c.beginPath(); c.moveTo(-10, -6); c.quadraticCurveTo(-11, -14.5, -1, -14.5); c.quadraticCurveTo(9.6, -14.5, 10.2, -5); c.strokeStyle = SKIN[4]; c.lineWidth = 0.8; c.stroke();
+  // (the comb-over)
+  const flap = Math.sin(f * 0.9) * 2.2;
+  line(c, [-7.4, -6.4, -6, -12.6, 1, -14, 6.4, -11.2], 0.9, HAIR[2]);
+  line(c, [-7, -5.4, -4.6, -11.2, 1.6, -12.4, 7.4, -9.4], 0.8, HAIR[1]);
+  line(c, [-6.6, -4.6, -4, -13.4, 0, -16.4 + flap, 4, -18 + flap * 1.4], 0.8, HAIR[2]);
+  line(c, [-8.4, -6, -9.6, -10.6], 0.7, HAIR[3]);
+};
+
+/** The darts in his face (pointing back the way they came: out ahead of him), quivering: his nose (unless it's out, in
+ *  his hand), his cheek, his brow. Each its own shaft, its fletching, a bead of blood where it's in. */
+const DART_AT: [number, number, number][] = [[7.4, 2.2, 0.05], [8.6, 7.6, 0.3], [9.4, -6.4, -0.35]];
+const faceDarts = (c: Ctx, f: number, n: number, noseOut: boolean) => {
+  for (let i = 0; i < Math.min(3, n); i++) {
+    if (i === 0 && noseOut) { drip(c, 6.4, 3.4, 4); continue; }
+    const [x, y, a] = DART_AT[i];
+    c.save(); c.translate(x, y); c.rotate(a + Math.sin(f * 1.4 + i * 2) * 0.12);
+    ell(c, 0, 0, 1, 1, bloodFresh);
+    dartShape(c);
+    c.restore();
+  }
+};
+/** One dart, its point at (0, 0), its tail out along +x: a bone point, a cane shaft, red and yellow fletching. */
+const dartShape = (c: Ctx) => {
+  line(c, [-0.6, 0, 9, 0], 1.6, CANE[4]); line(c, [-0.2, 0, 9, 0], 0.8, CANE[1]);
+  fill(c, '#F5F0DC', () => { c.moveTo(-1.6, 0); c.lineTo(1.2, -0.7); c.lineTo(1.2, 0.7); c.closePath(); });
+  fill(c, '#B91C1C', () => { c.moveTo(6.4, 0); c.lineTo(10.6, -2.6); c.lineTo(9.6, 0); c.closePath(); });
+  fill(c, '#EAB308', () => { c.moveTo(6.4, 0); c.lineTo(10.6, 2.6); c.lineTo(9.6, 0); c.closePath(); });
+};
+/** The dart he's yanked out, up in his fist, point up, bloody. */
+const heldDart = (c: Ctx, x: number, y: number, f: number) => {
+  c.save(); c.translate(x + 0.6, y - 1); c.rotate(1.79 + Math.sin(f * 0.9) * 0.08); c.scale(HS, HS); c.translate(-4.6, 0);
+  dartShape(c);
+  fill(c, bloodFresh, () => { c.moveTo(-1.6, 0); c.lineTo(1.6, -0.9); c.lineTo(2.2, 0.8); c.closePath(); });
+  c.restore();
 };
 
 const eye = (c: Ctx, x: number, y: number, rx: number, ry: number, lid: number, look: number, pupil: number, bloodshot: boolean) => {
