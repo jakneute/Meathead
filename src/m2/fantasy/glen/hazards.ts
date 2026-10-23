@@ -35,6 +35,7 @@ import { glenOf, type GThrow } from './state';
 import { MUSHROOMS, CAP_H, CAP_W, BRIARS, CAULDRONS, X, Y } from './layout';
 import { GAGS } from './lines';
 import { heartArrow } from './kindArt';
+import { grabLocked } from '../../moves/grab';
 
 const alive = (state: GameState) => state.player.health > 0 && !state.player.inCutscene;
 const hits = (state: GameState, x: number, y: number, w: number, h: number) => { const p = state.player; return p.pos.x < x + w && p.pos.x + p.width > x && p.pos.y < y + h && p.pos.y + p.height > y; };
@@ -74,7 +75,8 @@ export const updateHazards = (ctx: FrameContext, controls: Controls) => {
   for (let i = 0; i < MUSHROOMS.length; i++) {
     if (g.squash[i] > 0) g.squash[i]--;
     const [mx, h] = MUSHROOMS[i];
-    if (!p.isGrounded || !alive(state) || Math.abs(feet - Y(CAP_H)) > 2 || Math.abs(cx - X(mx)) > CAP_W / 2 + 2) continue;
+    // (a grab on the cap: no boing while it's on (moves/grab.ts envGuard); he just stands on it)
+    if (grabLocked() || !p.isGrounded || !alive(state) || Math.abs(feet - Y(CAP_H)) > 2 || Math.abs(cx - X(mx)) > CAP_W / 2 + 2) continue;
     const up = h * (controls.jump ? 1.25 : 1);
     p.vel.y = -Math.sqrt(2 * PLAYER_GRAVITY * up); p.pos.y -= 2;
     p.isGrounded = false; p.jumpHoldTimer = 0; p.coyoteJumpTimer = 0; p.jumpBufferTimer = 0;
