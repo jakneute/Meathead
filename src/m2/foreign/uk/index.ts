@@ -44,8 +44,10 @@ const X = (rx: number) => x0 + rx, Y = (h: number) => GY - h;
 // Layout (x from the section's start, heights up from the promenade). He jumps ~145 up, ~210 across.
 
 const SENTRY: [number, number, number][] = [[150, 210, 160], [380, 440, 160]];
-const BOOTHS: [number, number, number][] = [[500, 550, 120], [1960, 2010, 120]];
-const SHELTER = { a: 570, b: 650, h: 100 } as const;
+// (the phone box and the shelter set along so the right-hand guard isn't pinched between the sentry box and the phone
+// box (the user's: "space it out so i can get a clear shot on him"); were 500 and 570-650)
+const BOOTHS: [number, number, number][] = [[545, 595, 120], [1960, 2010, 120]];
+const SHELTER = { a: 608, b: 676, h: 100 } as const;
 /** The bus: its length, where its left end runs between, its roof, its waits and runs (frames). */
 const BUS = { w: 300, l: 680, r: 1600, roof: 150, wait: 150, run: 320 } as const;
 const PUB = { a: 2050, b: 2300, h: 170 } as const;
@@ -61,7 +63,7 @@ const B_DOWN = 380, B_MOVE = 60, B_UP = 200, B_MAX = 1.05;
 const CART = { a: 3250, b: 3330, h: 80 } as const;
 
 const ENEMIES: [string, number, number][] = [
-  ['m2:fl_guard', 250, 0], ['m2:fl_guard', 470, 0],
+  ['m2:fl_guard', 250, 0], ['m2:fl_guard', 492, 0],
   // a bobby out on the bus's street (lure him into the bus's way: it runs over the cast too); past THE PUB's checkpoint's
   // reach, a hooligan on the pub roof's far edge and one on the barrels (pints down at him on the way over)
   ['m2:fl_bobby', 1250, 0], ['m2:fl_hooligan', 2295, PUB.h], ['m2:fl_hooligan', 2335, BARRELS.h],
@@ -72,7 +74,7 @@ const PICKUPS: [number, number, 'small_health' | 'small_ammo'][] = [[2720, TOWER
 
 export const UK_CHECKPOINTS = [
   { name: 'THE UNITED KINGDOM', cp: 80, x: X(100), y: GY },
-  { name: 'THE UK: THE BUS STOP', cp: 81, x: X(600), y: GY },
+  { name: 'THE UK: THE BUS STOP', cp: 81, x: X(642), y: GY },
   { name: 'THE UK: THE PUB', cp: 82, x: X(1930), y: GY },
   { name: 'THE UK: THE BRIDGE', cp: 83, x: X(2410), y: GY },
   ...TOWER_CHECKPOINTS,
@@ -200,7 +202,7 @@ export const uk: ForeignSection = {
     drawBridge(c, v, f);
     // (signs)
     if (onScreen(v, X(200), X(420))) postBoard(c, X(310), GY, ['UNITED KINGDOM', 'ENGLAND / BRITAIN / LONDON', '(SAME PLACE)'], LOOKS.uk(1), '#991B1B', undefined, 140);
-    if (onScreen(v, X(SHELTER.a), X(SHELTER.b))) hungBoard(c, X(610), Y(SHELTER.h), Y(SHELTER.h) + 24, ['BUS STOP', 'MIND THE GAP'], LOOKS.uk(1), '#991B1B');
+    if (onScreen(v, X(SHELTER.a), X(SHELTER.b))) hungBoard(c, X((SHELTER.a + SHELTER.b) / 2), Y(SHELTER.h), Y(SHELTER.h) + 24, ['BUS STOP', 'MIND THE GAP'], LOOKS.uk(1), '#991B1B');
     if (onScreen(v, X(2360), X(2440))) postBoard(c, X(2400), GY, ['TOWER BRIDGE', '(LONDON BRIDGE)', '(SAME BRIDGE)'], LOOKS.uk(1), '#1E3A8A', undefined, 150);
     drawTowerBack(c, v, state);
     if (onScreen(v, X(-60), X(60))) drawJack(c, X(20), GY, 200, f);
