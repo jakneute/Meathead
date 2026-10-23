@@ -62,10 +62,11 @@ import { drawPadFace } from '../../../m1/game/render/padGlyph';
 import { DRAIN, drawHusk } from './husk';
 import { ARENA_L, ARENA_R, ARENA_MID, CIRCLE_X } from './arena';
 import { discoBall } from './art';
-import { INK, checker, pixelBlob } from '../control/paint';
+import { checker, pixelBlob } from '../control/paint';
 import * as L from './lines';
 import { since } from '../../frames';
 import { drawBurn, burnLights } from './burn';
+import { type Pit, newPit, pitTick, drawPitBack, drawPitFront } from './pit';
 import { drawDonnieGross, drawDonnieGrossBack } from '../donnieGross';
 
 type Ctx = CanvasRenderingContext2D;
@@ -180,6 +181,8 @@ export interface Fight {
   admireT: number;
   /** The circle in the floor (0 shut, 1 open), and him changed. */
   circle: number; powered: boolean;
+  /** The hole's look: opening, closing, the scar it leaves (pit.ts). */
+  pit: Pit;
   /** The swoop: its curve (from, the bottom of it at him, on past), how long. */
   dive: { ax: number; ay: number; cx: number; cy: number; bx: number; by: number; d: number; tx: number; ty: number } | null;
   /** Where the swoop's going to bottom out (shown on the floor through the tell): following him, then locked. */
@@ -316,7 +319,7 @@ export const startFight = (state: GameState): Fight => {
   e.facing = -1; e.seen = true;
   const f: Fight = {
     hp: HP, iframes: 0, flash: 0, mode: 'intro', t: 0, total: 0, x: CORNER_X, y: GY, vx: 0, vy: 0, facing: -1,
-    intro: 'plead', introT: 0, skipT: 0, admireT: 0, circle: 0, powered: false, dive: null, mark: null, held: null,
+    intro: 'plead', introT: 0, skipT: 0, admireT: 0, circle: 0, pit: newPit(), powered: false, dive: null, mark: null, held: null,
     guests: [], guestT: 0, prey: null, drops: [], splats: [], aimX: 0, aimY: 0, stunT: 0, side: -1, redeemAt: 0, staggerAt: -99999, wrongN: 0, hintAt: -99999, knockedLoose: false,
     said: null, satanSaid: null, nagT: 0, tauntT: 0, souvenir: null, moveSeen: e.hitByMove,
     death: null, deathSaid: 0, cam: null, wigOff: null, e, full: 0, fullAt: -9999, burpT: 0,
@@ -404,6 +407,7 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
   const { state } = ctx;
   live = f; game = state;
   f.total++;
+  pitTick(state, f.pit, f.circle);
   if (f.mode === 'intro') { const out = intro(ctx, f); sync(state, f); return out; }
   f.t++;
   if (f.iframes > 0) f.iframes--;
@@ -1048,20 +1052,16 @@ const satanShade = () => {
   g.fillStyle = fade; g.fillRect(0, 380, 880, 360);
   return shade;
 };
-const drawCircle = (c: Ctx, k: number, fr: number) => {
-  if (k <= 0) return;
-  const x = CIRCLE_X, rx = 110 * k, ry = 16 * k, cy = GY - 4;
-  // (the light up out of it: stepped columns, a dither down each edge)
-  for (let i = 3; i >= 1; i--) {
-    const w = Math.round(rx * 2 * (0.4 + i * 0.2)), l = Math.round(x - w / 2), a = 0.07 * (4 - i) * k;
-    c.fillStyle = `rgba(220, 38, 38, ${a.toFixed(3)})`; c.fillRect(l + 2, GY - 420, w - 4, 420);
-    checker(c, l, GY - 420, 2, 420, `rgba(220, 38, 38, ${a.toFixed(3)})`); checker(c, l + w - 2, GY - 420, 2, 420, `rgba(220, 38, 38, ${a.toFixed(3)})`, 1);
-  }
+const drawCircle = (c: Ctx, state: GameState, f: Fight) => {
+  const k = f.circle, fr = state.frame, x = CIRCLE_X, view = state.view?.y ?? state.camera.y;
+  const top = GY - 440 + Math.sin(fr * 0.03) * 4;
+  // (the light up out of it, the hot halo he's a shadow against: pit.ts)
+  drawPitBack(c, k, fr, view, x, top + 20);
   // (him, in it: Satan as he is down in hell (his own painting), enormous and faint in the light, darkened to a shadow of
   // himself, the eyes burning through)
   if (k > 0.5) {
     const a = (k - 0.5) * 2 * (0.7 + 0.3 * Math.sin(fr * 0.05));
-    const img = satanShade(), S = SATAN_SCALE, top = GY - 440 + Math.sin(fr * 0.03) * 4;
+    const img = satanShade(), S = SATAN_SCALE;
     c.save();
     c.beginPath(); c.rect(x - 300, GY - 460, 600, 450); c.clip();
     c.globalAlpha = Math.min(1, a * 0.85);
@@ -1070,16 +1070,8 @@ const drawCircle = (c: Ctx, k: number, fr: number) => {
     c.translate(x, top); c.scale(S, S); drawSatanFace(c, fr, false);
     c.restore();
   }
-  // (the ring: the hole, in steps down to the fire in it; flames round its edge, inked)
-  const ring = (kx: number, ky: number, col: string) => { c.fillStyle = col; c.beginPath(); c.ellipse(x, cy, rx * kx, ry * ky, 0, 0, Math.PI * 2); c.fill(); };
-  ring(1.04, 1.12, INK); ring(1, 1, '#0A0000'); ring(0.8, 0.7, '#450A0A'); ring(0.62, 0.52, '#7F1D1D'); ring(0.45, 0.38, '#DC2626'); ring(0.25, 0.2, '#F97316');
-  for (let i = 0; i < 16; i++) {
-    const a = (i / 16) * Math.PI * 2, fx = Math.round(x + Math.cos(a) * rx), fy = Math.round(cy + Math.sin(a) * ry), h = Math.round((12 + 9 * Math.sin(fr * 0.4 + i * 1.7)) * k);
-    if (h < 3) continue;
-    box(c, fx - 4, fy - h - 1, 8, h + 2, INK);
-    box(c, fx - 3, fy - h, 6, h, i % 2 ? '#DC2626' : '#F97316');
-    box(c, fx - 1, fy - Math.round(h * 0.7), 3, Math.round(h * 0.7), '#FDE047');
-  }
+  // (the hole: the floor cracked open, the fire roaring up out of it, the smoke; shut, the scar: pit.ts)
+  drawPitFront(c, f.pit, k, fr, view);
 };
 
 /** World space, behind him: the circle, the blood on the floor, the husks, the wig once it's off. */
@@ -1091,7 +1083,7 @@ export const drawFightBack = (c: Ctx, state: GameState, f: Fight) => {
     box(c, sp.x - sp.w * 0.25, GY - 2, Math.max(2, sp.w * 0.3), 2, '#991B1B');
     box(c, sp.x - sp.w * 0.2, GY - 2, Math.max(2, sp.w * 0.12), 1, '#EF4444');
   }
-  drawCircle(c, f.circle, state.frame);
+  drawCircle(c, state, f);
   for (const g of f.guests) if (g.state === 'husk') drawHusk(c, g.x, GY, g.facing, 0.85, 1);
   if (f.wigOff) drawLooseWig(c, f.wigOff.x, f.wigOff.y, state.frame, 1, 0.5);
 };

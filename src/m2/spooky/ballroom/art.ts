@@ -18,6 +18,7 @@ import {
 import { type Passage, passageBack, passageSide, passageFront, passageLintel } from '../control/passage';
 import { rockWall } from '../control/shopArt';
 import { drawBallDoors } from '../control/ballDoors';
+import { pitLights } from './pit';
 import { x0, ARENA_L, ARENA_R, ARENA_MID, CIRCLE_X, CHANDELIERS, RISER } from './arena';
 import { signAt, haunt, print, candle } from '../letters';
 import { bust, drawBust, SKIN, HAIR, CLOTH, IRIS, type BustSpec } from '../../grossBust';
@@ -358,7 +359,7 @@ export const ballroomLighting = (state: GameState, circle: number): SceneLight =
   const lights: Light[] = [];
   for (const ch of CHANDELIERS) lights.push({ x: ch.x + ch.w / 2, y: GY - ch.h - 10, r: 230, a: 0.75, color: 'rgba(253, 224, 160, 0.07)' });
   lights.push({ x: ARENA_MID, y: GY - 366, r: 120, a: 0.5 });
-  if (circle > 0) lights.push({ x: CIRCLE_X, y: GY - 40, r: 160 + 120 * circle, a: 0.8 * circle, color: `rgba(220, 38, 38, ${(0.12 * circle).toFixed(3)})` });
+  lights.push(...pitLights(circle, state.frame));
   // (the shop's red through the doorway he kicked in)
   lights.push({ x: DOOR_X + 20, y: GY - 70, r: 140, a: 0.55, color: 'rgba(220, 38, 38, 0.08)' });
   return { dark: 0.3, shade: [18, 4, 30], lights };
