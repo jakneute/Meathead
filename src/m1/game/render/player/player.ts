@@ -8,6 +8,7 @@ import { drawThronePose } from './throne';
 import { drawCopterSeatPose } from './copterPose';
 import { drawTragonPose } from './tragonPose';
 import { drawBroomRidePose } from './broomPose';
+import { seatPunchLean, drawSeatPunchArm, drawSeatPunchBackArm } from './seatPunch';
 import { drawCatPlayer, setCatBody } from './catBody';
 import { BOULDER_THROW_FRAMES, GUN_COOLDOWN, COLORS, INITIAL_PLAYER_HEALTH, PLAYER_TERMINAL_VELOCITY, PLAYER_MOVE_SPEED, PLAYER_INVINCIBILITY_FRAMES, SPECIAL_HURT_FRAMES } from '../../../constants';
 import { peeProgress } from '../../scenes/victoryPee';
@@ -440,6 +441,9 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
   } else if (isUppercutting) {
     bodyRot = -0.15; // Dynamic backward launch arch
     bodyY = -6;
+  } else if (lounging && !logSeated && p.seatPunch !== undefined) {
+    // A haymaker from the seat: leaning back to load it, then up out of it and right into the throw
+    const l = seatPunchLean(p.seatPunch); bodyRot = l.rot; bodyY = l.y;
   } else if (lounging && isDucking) {
     // Ducked right down in it, hunched over, under whatever's coming
     bodyRot = 0.5;
@@ -580,6 +584,9 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     ctx.beginPath();
     ctx.arc(-30, -34, 5, 0, Math.PI * 2); // Fist
     ctx.fill();
+  } else if (lounging && !logSeated && p.seatPunch !== undefined) {
+    // (the haymaker: braced on the seat in front)
+    drawSeatPunchBackArm(ctx);
   } else if (lounging && isDucking) {
     // Ducked: hunched right over, both hands gripping the front of the cart, head down
     drawReachingArm(ctx, -6, -40, 6, -30, 18, -28, skinShadow);
@@ -1254,6 +1261,9 @@ export const drawPlayer = (ctx: CanvasRenderingContext2D, p: Player, state: Game
     ctx.fillStyle = skinTone; ctx.beginPath(); ctx.ellipse(ramX, ramY, 8.5, 7.5, 0.3, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = skinShadow; ctx.beginPath(); ctx.ellipse(ramX - 1, ramY + 5, 6, 1.6, 0.3, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = skinHighlight; ctx.beginPath(); ctx.ellipse(ramX + 2.5, ramY - 3, 3.5, 2, 0.3, 0, Math.PI * 2); ctx.fill();
+  } else if (lounging && !logSeated && p.seatPunch !== undefined) {
+    // The haymaker from the seat (render/player/seatPunch.ts)
+    drawSeatPunchArm(ctx, p.seatPunch, bodyRot);
   } else if (lounging && isDucking && !logSeated) {
     // Ducked in the cart: hunched over, gripping the front of it white-knuckled
     drawReachingArm(ctx, 8, -42, 18, -32, 26, -26, skinTone);

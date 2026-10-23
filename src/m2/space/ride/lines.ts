@@ -20,8 +20,10 @@ export const PA: Record<string, { lines: string[]; reply?: string[] }> = {
   space2: { lines: ["EVERY HOME WILL HAVE A VIDEO PHONE! YOU'LL SEE GRANDMA WHENEVER YOU WANT!", 'AND ALL HUMAN KNOWLEDGE WILL FIT ON ONE LASER DISC!'], reply: ["I DON'T WANT TO SEE GRANDMA."] },
   stars: { lines: ['AND HERE, THE BREATHTAKING MAJESTY OF THE STARS!'], reply: ["IT'S A WAREHOUSE.", 'THE STARS ARE CHRISTMAS LIGHTS.', "THE FUTURE'S A WAREHOUSE."] },
   station: { lines: ['THANKS TO ROBOTS, NOBODY IN 2010 WILL EVER HAVE TO WORK AGAIN!'], reply: ['NOT WORKING IS COOL.'] },
-  // (the brake run, the brake box blasted: the canned emergency tape, cut in ahead of anything waiting)
-  brakefail: { lines: ['ATTENTION. BRAKE FAILURE. PLEASE REMAIN SEATED. PROGRESSCO IS NOT LIABLE.'] },
+  // (the brake run, pulling in: the usual end-of-ride spiel, nothing wrong at all)
+  unload: { lines: ['PLEASE REMAIN SEATED UNTIL YOUR STAR SLED HAS COME TO A COMPLETE STOP.', 'THANK YOU FOR RIDING VOYAGE TO 2010! THE FUTURE IS RIGHT AROUND THE CORNER!'] },
+  // (the brake box punched in, the sled sat dead still: the canned emergency tape, calm as anything)
+  brakefail: { lines: ['BRAKE FAILURE. PROGRESSCO IS NOT LIABLE.'] },
 };
 
 /** A worker in the warehouse, the lights up and the sled still coming (m2.space.hand). */
@@ -37,11 +39,13 @@ export const SEES: Record<string, string[]> = {
   forklift: ['A FORKLIFT?! IN SPACE?!', 'MOVE THE FORKLIFT, DIPSHIT!'],
 };
 
-/** THE BRAKE RUN: its attendant (m2.space.hand), him after. */
-export const BRAKE_YELL = 'SLOW DOWN! THIS IS THE BRAKE RUN!';
+/** The MAIN BREAKER coming up (DO NOT TOUCH on it): him, a bark, just before he punches it going by. */
+export const PUNCH_BREAKER = ['DO NOT TOUCH? WATCH ME.', 'BIG RED BUTTON! MINE!'];
+/** THE BRAKE RUN: its attendant (m2.space.hand), bored, nothing wrong; him. */
+export const BRAKE_YELL = 'BRAKE RUN. KEEP YOUR HANDS IN THE SLED.';
 export const MEATHEAD_BRAKE = "WHAT'S A BRAKE RUN?";
-/** The two in the sled in front, sat at the platform, him coming (a man's voice). */
-export const FRONT_SCREAM = "HE'S NOT STOPPING!";
+/** Stopped dead at the platform, the ride over: his idea, before he punches the brake control in. */
+export const MEATHEAD_PUNCH_BRAKE = ["THAT'S IT? BULLSHIT.", 'THREE MILES AN HOUR? MY DAD SHITS FASTER THAN THIS.', "I'M NOT DONE. ONE MORE TIME."];
 export const MEATHEAD_RAM = 'BRAKES!';
 /** Landed out on the main drag, fine (the two from the sled in front are not). */
 export const MEATHEAD_LANDS = ["I'M GOOD.", 'STUCK IT.', 'BEST RIDE IN THE PARK.'];
@@ -67,10 +71,9 @@ export const DEATH_FORKLIFT = ['FORKLIFTED', 'AN OSHA VIOLATION'];
 export const VOICE_LINES: Record<string, string[]> = {
   'm2.space.ridepa': Object.values(PA).flatMap(s => s.lines),
   meathead: [
-    ...Object.values(PA).flatMap(s => s.reply ?? []), ...Object.values(SEES).flat(), MEATHEAD_BRAKE, MEATHEAD_RAM, ...MEATHEAD_LANDS,
+    ...Object.values(PA).flatMap(s => s.reply ?? []), ...Object.values(SEES).flat(), ...PUNCH_BREAKER, MEATHEAD_BRAKE, ...MEATHEAD_PUNCH_BRAKE, MEATHEAD_RAM, ...MEATHEAD_LANDS,
     ...HURT_SATELLITE, ...HURT_BUTLER, ...HURT_PIT, ...HURT_LASER, ...HURT_METEOR, ...HURT_FORKLIFT, ...HURT_MARTIAN, ...HURT_CRATES,
   ],
   death: [...DEATH_SATELLITE, ...DEATH_BUTLER, ...DEATH_PIT, ...DEATH_LASER, ...DEATH_METEOR, ...DEATH_FORKLIFT, ...DEATH_MARTIAN, ...DEATH_CRATES],
   'm2.space.hand': [...WORKER_YELLS, BRAKE_YELL],
-  'm2.guest2': [FRONT_SCREAM],
 };

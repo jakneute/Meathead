@@ -10,14 +10,14 @@
 //   LIFT   R+6200..7800    the chain lift up into the dome, slow: a laser band across it, head-high (duck)
 //   ACT 2  R+7800..13100   space, fast: a laser tripwire on the rail (jump), gaps, an asteroid lowered onto the track
 //                          (blast), a space station module hung low (duck), a laser band (duck)
-//   BREAKER R+13100        the sled smashes the MAIN BREAKER: the work lights bang on, bank by bank. It's a warehouse
+//   BREAKER R+13100        he punches the MAIN BREAKER going by: the work lights bang on, bank by bank. It's a warehouse
 //   ACT 3  R+13300..14900  the warehouse version, the show dead: workers on the track, the forklift's pallet (jump), a
 //                          stack of snack cases on the rail (blast); the last drop (R+14500..14850), down to the floor
 //   BRAKES R+14950..       the brake run (a scene from here), on the flat: the fins grab, a long crawl on in through the
 //                          gantry, past the attendant's booth, into the station's UNLOAD end (R+15270..15900: its
-//                          platform, gates, signs, attendant), plainly back where it started. He blasts the brake box,
-//                          they're gone, it creeps on (BRAKE FAILURE, the sled in front's scream), then the drive tires
-//                          kick it: a sudden lurch, impossibly fast
+//                          platform, gates, signs, attendant), plainly back where it started, and stops dead by the
+//                          brake box: an ordinary ride ending. He punches the brake box in: BRAKE FAILURE, then the
+//                          drive tires kick it from a dead stop: a sudden lurch, impossibly fast, everybody flung
 //   STATION R+15900..16600 the load end: everybody on the track flattened; the sled in front; the launch
 //
 // Every obstacle's beaten one way, shown by its cue (a glowing arrow: up jump, down duck; a crosshair: blast), and
@@ -56,7 +56,7 @@ export const GANTRY_X = R + 14930, BRAKE_AT = R + 14950, FINS_X0 = R + 14990, FI
 /** The station: from its UNLOAD end (STATION_X0) to its load end (LOAD_X0 on: the line, the platform, the sled in front)
  *  and out. */
 export const STATION_X0 = R + 15270, LOAD_X0 = R + 15900, STATION_X1 = R + 16600;
-/** The brake box, in its alcove on the rail at the unload end (he blasts it once it's up in front of him). */
+/** The brake box, in its alcove on the rail at the unload end (the sled stops right by it; he punches it in). */
 export const BRAKE_BOX_X = R + 15590;
 /** The sled in front, loading at the platform (he rams it). */
 export const FRONT_AT = LOAD_X0 + 420;
@@ -122,6 +122,11 @@ export const STATION_FOLK: { x: number; outfit: 'hand' | 'worker' | 'guest'; see
   { x: LOAD_X0 + 182, outfit: 'guest', seed: 7633 },
   { x: LOAD_X0 + 240, outfit: 'hand', seed: 7741 },
 ];
+/** The unload attendant, behind the gates by the brake control (the sled stops right by him); the line at the load end,
+ *  behind its rail; the operator at her console. All of them sent flying by the runaway. */
+export const UNLOAD_OP = { x: STATION_X0 + 230, seed: 6733 };
+export const QUEUE = Array.from({ length: 16 }, (_, j) => ({ x: LOAD_X0 + 20 + j * 34, y: GY - 20 - (j % 2) * 14, seed: 4001 + j * 337 }));
+export const CONSOLE_OP_X = LOAD_X0 + 600;
 /** The narrated scenes of 2010 (act 1), along the track: home, office, traffic, the moon. */
 export const TABLEAU_XS = [1100, 2800, 4100, 5200].map(x => R + x);
 

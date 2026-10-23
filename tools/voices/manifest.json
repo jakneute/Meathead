@@ -9661,6 +9661,11 @@
  },
  {
   "voice": "death",
+  "text": "FILLED UP. BLEW UP",
+  "from": "SPACE"
+ },
+ {
+  "voice": "death",
   "text": "FIREBALLED",
   "from": "SPOOKY"
  },
@@ -10161,6 +10166,11 @@
  },
  {
   "voice": "death",
+  "text": "FUEL TANK BARBECUE",
+  "from": "SPACE"
+ },
+ {
+  "voice": "death",
   "text": "FULL OF LEAD AND BARF",
   "from": "m1/game/stages/dale/convoy.ts:487"
  },
@@ -10618,6 +10628,11 @@
   "voice": "death",
   "text": "HIGH NOON",
   "from": "content/deaths"
+ },
+ {
+  "voice": "death",
+  "text": "HIGH OCTANE IDIOT",
+  "from": "SPACE"
  },
  {
   "voice": "death",
@@ -14382,6 +14397,11 @@
  {
   "voice": "death",
   "text": "SHORT-CIRCUITED",
+  "from": "SPACE"
+ },
+ {
+  "voice": "death",
+  "text": "SHOT A GAS TANK. POINT BLANK",
   "from": "SPACE"
  },
  {
@@ -44346,11 +44366,6 @@
  },
  {
   "voice": "m2.guest2",
-  "text": "HE'S NOT STOPPING!",
-  "from": "SPACE"
- },
- {
-  "voice": "m2.guest2",
   "text": "HE'S PUTTING IT ON WITH NO PANTS!",
   "from": "SPACE"
  },
@@ -54451,6 +54466,11 @@
  },
  {
   "voice": "m2.space.hand",
+  "text": "BRAKE RUN. KEEP YOUR HANDS IN THE SLED.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.hand",
   "text": "CAST ONLY! AND CLEAN PANTS ONLY!",
   "from": "SPACE"
  },
@@ -54537,11 +54557,6 @@
  {
   "voice": "m2.space.hand",
   "text": "SIR, THIS IS A CAST-ONLY AREA!",
-  "from": "SPACE"
- },
- {
-  "voice": "m2.space.hand",
-  "text": "SLOW DOWN! THIS IS THE BRAKE RUN!",
   "from": "SPACE"
  },
  {
@@ -55476,7 +55491,7 @@
  },
  {
   "voice": "m2.space.ridepa",
-  "text": "ATTENTION. BRAKE FAILURE. PLEASE REMAIN SEATED. PROGRESSCO IS NOT LIABLE.",
+  "text": "BRAKE FAILURE. PROGRESSCO IS NOT LIABLE.",
   "from": "SPACE"
  },
  {
@@ -55511,6 +55526,11 @@
  },
  {
   "voice": "m2.space.ridepa",
+  "text": "PLEASE REMAIN SEATED UNTIL YOUR STAR SLED HAS COME TO A COMPLETE STOP.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.ridepa",
   "text": "ROBO-BUTLER SERVES DINNER: THREE DELICIOUS MEAL PILLS!",
   "from": "SPACE"
  },
@@ -55522,6 +55542,11 @@
  {
   "voice": "m2.space.ridepa",
   "text": "TEN, NINE... OH, LET'S JUST GO!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "m2.space.ridepa",
+  "text": "THANK YOU FOR RIDING VOYAGE TO 2010! THE FUTURE IS RIGHT AROUND THE CORNER!",
   "from": "SPACE"
  },
  {
@@ -60576,6 +60601,11 @@
  },
  {
   "voice": "meathead",
+  "text": "BIG RED BUTTON! MINE!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "BIG RED CAPS. I KNOW THE FEELING.",
   "from": "FANTASY"
  },
@@ -62828,6 +62858,11 @@
   "voice": "meathead",
   "text": "DO NOT SELL THAT PHOTO.",
   "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "DO NOT TOUCH? WATCH ME.",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -70631,6 +70666,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I'M NOT DONE. ONE MORE TIME.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "I'M NOT DYING IN A THEME PARK CREEK.",
   "from": "FRONTIER"
  },
@@ -70783,6 +70823,11 @@
   "voice": "meathead",
   "text": "I'M ON FIRE! AND NOT THE GOOD KIND!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "I'M ON FIRE! IN SPACE! HOW?!",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -84331,6 +84376,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THAT WAS PREMIUM!",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "THAT WAS SOMEBODY'S FRIDGE!",
   "from": "HAZARD_HURT"
  },
@@ -84578,6 +84628,11 @@
   "voice": "meathead",
   "text": "THAT'S IT? BACK TO THE STATION?",
   "from": "HOLLYWOOD"
+ },
+ {
+  "voice": "meathead",
+  "text": "THAT'S IT? BULLSHIT.",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -85773,6 +85828,11 @@
   "voice": "meathead",
   "text": "THE GAS LIT THE GROUND! WHO PUTS GAS NEXT TO OIL?!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "THE GAS TANK! MY ASS HAIR!",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",
@@ -88286,6 +88346,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THREE MILES AN HOUR? MY DAD SHITS FASTER THAN THIS.",
+  "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
   "text": "THREE MILES OF WOODS IN SHITTY PANTS. CHAFED RAW.",
   "from": "INTRO"
  },
@@ -90248,6 +90313,11 @@
   "voice": "meathead",
   "text": "WHO KEEPS DRIVING A TRUCK THAT'S ON FIRE?!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "WHO LEAVES A FULL TANK UP HERE?!",
+  "from": "SPACE"
  },
  {
   "voice": "meathead",

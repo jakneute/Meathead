@@ -25,7 +25,7 @@ import { drawAtomPerson } from '../atom/people';
 import { cyl, sphere, neonBar, lamp, truss, rivets, hazard, screenGlass } from '../atom/snes';
 import {
   R, RUNS, GAPS, OBS, CUES, CUE_XS, TABLEAU_XS, LIFT_X0, LIFT_X1, BREAKER_X, STATION_X0, STATION_X1, LOAD_X0, FINS_X0, FINS_X1,
-  BRAKE_X, BRAKE_BOX_X, GANTRY_X, FRONT_AT, STATION_ROOF, WORKERS, STATION_FOLK, trackY, railLine, type Ob, type Verb,
+  BRAKE_X, BRAKE_BOX_X, GANTRY_X, FRONT_AT, STATION_ROOF, WORKERS, STATION_FOLK, UNLOAD_OP, QUEUE, CONSOLE_OP_X, trackY, railLine, type Ob, type Verb,
   slopeAt,
 } from './layout';
 import { CLEAR, BEAM_CLEAR, HURDLE, halfW, trayReach, rockHeight, ROCK_R, obLive, cueLive, type Tricks } from './tricks';
@@ -106,7 +106,66 @@ const drawSupports = (c: Ctx, cam: number, lit: boolean) => {
 export interface RideLook {
   k: number; tricks: Tricks; breakerT: number; brakeT: number; boxT: number; sledX: number; sledY: number; speed: number;
   frontGone: boolean; flat: Set<number>; crashing: boolean;
+  /** Who in the station's been flung (index.ts: q0.., unload, op); the runaway's off. */
+  gone: Set<string>; lurched: boolean;
 }
+
+/** A control panel he's punched in (its face's box: x, y, w, h): the face caved in round a fist-sized crater, creased
+ *  out to its bowed edges, a corner peeled up, the guts showing, wires hanging out of it, sparking, smoking. */
+const crumpledPanel = (c: Ctx, x: number, y: number, w: number, h: number, face: string, f: number, seed: number) => {
+  const r = rampOf(face), cx = x + w * 0.42, cy = y + h * 0.55;
+  // (the face, bowed in: its edges pulled toward the crater)
+  const edge: [number, number][] = [[x, y], [x + w * 0.5, y + 3], [x + w, y], [x + w - 3, y + h * 0.5], [x + w, y + h], [x + w * 0.5, y + h - 3], [x, y + h], [x + 3, y + h * 0.5]];
+  c.fillStyle = INK; c.beginPath(); edge.forEach(([ex, ey], i) => (i ? c.lineTo(ex + (ex < cx ? -1 : 1), ey + (ey < cy ? -1 : 1)) : c.moveTo(ex - 1, ey - 1))); c.closePath(); c.fill();
+  c.fillStyle = r[1]; c.beginPath(); edge.forEach(([ex, ey], i) => (i ? c.lineTo(ex, ey) : c.moveTo(ex, ey))); c.closePath(); c.fill();
+  // (stepped shading round the dent: lit on the far lip, dark on the near)
+  c.fillStyle = r[2]; c.beginPath(); c.moveTo(x + 4, y + 4); c.lineTo(cx, cy - 12); c.lineTo(x + w - 4, y + 4); c.closePath(); c.fill();
+  c.fillStyle = r[3]; c.beginPath(); c.moveTo(cx + 4, cy - 10); c.lineTo(x + w - 5, y + h - 6); c.lineTo(cx + 12, cy + 4); c.closePath(); c.fill();
+  c.fillStyle = r[0]; c.beginPath(); c.moveTo(x + 4, y + h - 4); c.lineTo(cx - 10, cy + 2); c.lineTo(cx - 2, cy + 10); c.closePath(); c.fill();
+  // (the creases, out from the crater to the corners)
+  c.strokeStyle = INK; c.lineWidth = 1;
+  c.beginPath();
+  for (const [ex, ey] of [[x + 2, y + 2], [x + w - 2, y + 2], [x + w - 2, y + h - 2], [x + 2, y + h - 2], [x + w * 0.5, y + 2], [x + 2, y + h * 0.5]]) { c.moveTo(cx, cy); c.lineTo((cx + ex) / 2 + (hash(ex + seed) - 0.5) * 6, (cy + ey) / 2 + (hash(ey + seed) - 0.5) * 6); c.lineTo(ex, ey); }
+  c.stroke();
+  // (the crater: the fist's shape punched in, its guts black, the lit lip along its bottom)
+  pixelBlob(c, cx, cy, 12, 10, INK);
+  box(c, cx - 9, cy - 7, 18, 14, '#0B0B12');
+  box(c, cx - 8, cy + 6, 16, 2, r[4]); box(c, cx + 8, cy - 5, 2, 10, r[3]);
+  for (let k = 0; k < 4; k++) box(c, cx - 7 + k * 4, cy - 6, 2, 3, r[0]);
+  // (a corner peeled up off it)
+  c.fillStyle = INK; c.beginPath(); c.moveTo(x + w - 1, y + h * 0.18); c.lineTo(x + w + 9, y + h * 0.05); c.lineTo(x + w + 4, y + h * 0.36); c.closePath(); c.fill();
+  c.fillStyle = r[4]; c.beginPath(); c.moveTo(x + w, y + h * 0.2); c.lineTo(x + w + 7, y + h * 0.1); c.lineTo(x + w + 3, y + h * 0.32); c.closePath(); c.fill();
+  // (wires hanging out of it, swaying)
+  const sway = Math.sin(f * 0.15) * 2;
+  ['#EF4444', '#FDE047', '#3B82F6'].forEach((col, k) => {
+    c.strokeStyle = INK; c.lineWidth = 3; c.beginPath(); c.moveTo(cx - 5 + k * 5, cy + 2); c.quadraticCurveTo(cx - 8 + k * 6, cy + 14, cx - 10 + k * 8 + sway, cy + 22 + k * 3); c.stroke();
+    c.strokeStyle = col; c.lineWidth = 1.5; c.beginPath(); c.moveTo(cx - 5 + k * 5, cy + 2); c.quadraticCurveTo(cx - 8 + k * 6, cy + 14, cx - 10 + k * 8 + sway, cy + 22 + k * 3); c.stroke();
+  });
+  // (sparking: in bursts, off the bared wire ends; a wisp of smoke up off it)
+  if ((f + seed) % 23 < 6) {
+    const k = hash(f * 1.7 + seed);
+    box(c, cx - 10 + k * 18 + sway, cy + 22 + k * 6, 4, 4, '#FDE047'); box(c, cx - 9 + k * 18 + sway, cy + 23 + k * 6, 2, 2, '#FFFFFF');
+    box(c, cx - 3 + hash(f * 3.1) * 8, cy - 4, 3, 3, '#FFFFFF');
+  }
+  for (let k = 0; k < 3; k++) {
+    const t = ((f + k * 30 + seed) % 90) / 90;
+    c.globalAlpha = 0.35 * (1 - t); pixelBlob(c, cx + Math.sin(t * 6 + k) * 6, cy - 14 - t * 50, 5 + t * 6, 4 + t * 5, '#71717A'); c.globalAlpha = 1;
+  }
+};
+
+/** The fist going in (index.ts: the frames since, counting down from 8): a white flash, a stepped starburst, rings. */
+export const drawPunchFlash = (c: Ctx, x: number, y: number, t: number) => {
+  const k = t / 8, r = 10 + (1 - k) * 26;
+  c.save(); c.translate(Math.round(x), Math.round(y));
+  c.globalAlpha = 0.35 * k; c.fillStyle = '#FEF9C3'; c.beginPath(); c.arc(0, 0, r * 1.5, 0, Math.PI * 2); c.fill();
+  c.globalAlpha = Math.min(1, k * 1.4);
+  for (const [rr, col] of [[r, INK], [r - 3, '#FDE047'], [r * 0.6, '#FFFFFF']] as const) {
+    c.fillStyle = col; c.beginPath();
+    for (let i = 0; i < 16; i++) { const a = (i / 16) * Math.PI * 2 + 0.2, d = i % 2 ? rr * 0.45 : rr; i ? c.lineTo(Math.cos(a) * d, Math.sin(a) * d) : c.moveTo(Math.cos(a) * d, Math.sin(a) * d); }
+    c.closePath(); c.fill();
+  }
+  c.restore();
+};
 const EMPTY_SLED: SledLook = { body: '#CBD5E1', stripe: '#64748B', num: 0 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -699,10 +758,10 @@ const drawReturnLeg = (c: Ctx, f: number) => {
 /** The station's UNLOAD end (STATION_X0..LOAD_X0), where the brake run brings the sleds in: UNLOAD hung over it, the
  *  platform's yellow edge, its row of exit gates (shut till a sled's stopped), the unload attendant behind them, PLEASE
  *  REMAIN SEATED on the wall, the EXIT door; the drive tires in the rail (they push the sleds along the platform: the
- *  brake box blasted, they spin up, flat out, and kick him off). Read at the crawl: he's plainly back where he started. */
-const UNLOAD_SEED = 6733;
+ *  brake control punched in, they spin up, flat out, and kick him off from a dead stop). Read at the crawl: he's plainly
+ *  back where he started; calm, an ordinary ride ending, till he punches it. */
 const drawUnload = (c: Ctx, look: RideLook, f: number) => {
-  const y = GY, failed = look.boxT > 0, coming = look.crashing && failed;
+  const y = GY, failed = look.boxT > 0, coming = look.crashing && failed && look.lurched;
   const alcove = (x: number, pad: number) => x > BRAKE_BOX_X - 50 - pad && x < BRAKE_BOX_X + 50 + pad;
   // UNLOAD, hung off the roof on cables (above the TVs)
   const ux = STATION_X0 + 130, [, u0] = plateBoxAt('UNLOAD', 'chrome2', ux, STATION_ROOF + 44, 6);
@@ -719,8 +778,9 @@ const drawUnload = (c: Ctx, look: RideLook, f: number) => {
   box(c, STATION_X0, y - 22, LOAD_X0 - STATION_X0, 22, INK); box(c, STATION_X0, y - 21, LOAD_X0 - STATION_X0, 21, '#334155'); box(c, STATION_X0, y - 21, LOAD_X0 - STATION_X0, 2, '#64748B');
   box(c, STATION_X0, y - 4, LOAD_X0 - STATION_X0, 4, '#FACC15'); box(c, STATION_X0, y - 4, LOAD_X0 - STATION_X0, 1, '#FEF9C3');
   for (let x = STATION_X0 + 12; x < LOAD_X0; x += 24) box(c, x, y - 3, 12, 2, '#1C1917');
-  // the unload attendant, behind the gates (wide-eyed once it's coming on with no brakes)
-  c.save(); c.translate(STATION_X0 + 230, y - 22); drawAtomPerson(c, 'op', { seed: UNLOAD_SEED, f, pose: coming ? 'after' : 'stand', md: 'ok' }); c.restore();
+  // the unload attendant, behind the gates by the brake control, bored (wide-eyed once it's punched in; flung by the
+  // runaway: index.ts draws him flying)
+  if (!look.gone.has('unload')) { c.save(); c.translate(UNLOAD_OP.x, y - 22); drawAtomPerson(c, 'op', { seed: UNLOAD_OP.seed, f, pose: failed ? 'after' : 'stand', md: 'ok' }); c.restore(); }
   // the exit gates along the platform's edge, shut (posts, a chrome panel, a red top rail)
   for (let gx = STATION_X0 + 40; gx < LOAD_X0 - 30; gx += 84) {
     if (alcove(gx, 20) || alcove(gx + 60, 20)) continue;
@@ -731,10 +791,10 @@ const drawUnload = (c: Ctx, look: RideLook, f: number) => {
   }
   // the drive tires in the rail (past the fins): still, the brakes on; spun up flat out, the box gone
   for (let x = FINS_X1 + 30; x < LOAD_X0 - 10; x += 44) {
-    const spin = failed ? (f + x) % 4 : 0;
+    const spin = coming ? (f + x) % 4 : 0;
     box(c, x - 7, y - 7, 14, 7, INK); box(c, x - 6, y - 6, 12, 6, '#27272A');
-    box(c, x - 5 + spin * 3, y - 6, 2, 5, failed ? '#71717A' : '#52525B');
-    if (failed && f % 3 === 0) box(c, x - 2 + spin * 2, y - 10 - spin * 2, 3, 3, 'rgba(212, 212, 216, 0.6)');
+    box(c, x - 5 + spin * 3, y - 6, 2, 5, coming ? '#71717A' : '#52525B');
+    if (coming && f % 3 === 0) box(c, x - 2 + spin * 2, y - 10 - spin * 2, 3, 3, 'rgba(212, 212, 216, 0.6)');
   }
 };
 
@@ -755,8 +815,8 @@ const drawBrakeRun = (c: Ctx, look: RideLook, f: number) => {
   // the fins along the rail (till they're torn off)
   if (!failed) for (let x = FINS_X0; x < FINS_X1; x += 26) { const y = trackY(x) ?? rail; box(c, x - 3, y - 16, 6, 16, INK); box(c, x - 2, y - 15, 4, 14, '#A1A1AA'); box(c, x - 2, y - 15, 1, 14, '#E4E4E7'); box(c, x - 2, y - 15, 4, 2, '#F4F4F5'); }
   else for (let x = FINS_X0; x < FINS_X1; x += 26) { const y = trackY(x) ?? rail; box(c, x - 3, y - 4, 6, 4, '#52525B'); if ((f + x) % 11 < 2) box(c, x - 1, y - 8, 2, 2, '#FDE047'); }
-  // the brake box, in a narrow hazard-striped alcove right on the rail, a work lamp on it: plain as day (blasted: its door
-  // off, its guts sparking)
+  // the brake box, in a narrow hazard-striped alcove right on the rail, a work lamp on it: plain as day (punched in: its
+  // face caved in round his fist, sparking, smoking)
   const bx = BRAKE_BOX_X, by = trackY(bx) ?? rail;
   for (const jx of [bx - 50, bx + 36]) { box(c, jx - 2, by - 190, 16, 190, INK); hazard(c, jx, by - 188, 12, 188, '#EAB308', '#3F3F46', 8); }
   box(c, bx - 52, by - 200, 104, 14, INK); box(c, bx - 50, by - 198, 100, 10, '#52525B'); box(c, bx - 50, by - 198, 100, 2, '#A1A1AA');
@@ -768,9 +828,10 @@ const drawBrakeRun = (c: Ctx, look: RideLook, f: number) => {
     lamp(c, bx - 8, by - 60, 4, '#22C55E', true, 0); lamp(c, bx + 8, by - 60, 4, '#22C55E', false, 0);
     box(c, bx - 16, by - 46, 32, 16, INK); box(c, bx - 15, by - 45, 30, 14, '#27272A'); label(c, 'ok', bx, by - 38, 'OK', 'small', '#4ADE80', '#27272A', 20, 12);
   } else {
-    box(c, bx - 24, by - 64, 48, 46, INK); box(c, bx - 21, by - 61, 42, 40, '#1F2937');
-    for (let j = 0; j < 4; j++) box(c, bx - 16 + j * 9, by - 58 + (j % 2) * 6, 3, 30, ['#EF4444', '#FDE047', '#3B82F6', '#22C55E'][j]);
-    if (f % 6 < 3) { box(c, bx - 6 + hash(f) * 16, by - 70 + hash(f * 3) * 30, 4, 4, '#FDE047'); box(c, bx + hash(f * 7) * 10, by - 60, 3, 3, '#FFFFFF'); }
+    crumpledPanel(c, bx - 24, by - 104, 48, 86, '#991B1B', f, 3);
+    // (its label knocked crooked; its lamps red now, one smashed)
+    c.save(); c.translate(bx - 2, by - 86); c.rotate(-0.18); label(c, 'brakectl', 0, 0, 'BRAKE\nCONTROL', 'small', '#FEF3C7', '#991B1B', 46, 22); c.restore();
+    lamp(c, bx + 12, by - 32, 3, '#EF4444', flash, 0);
   }
   // the gantry over the start of it
   const gy = (trackY(GANTRY_X) ?? rail) - 250;
@@ -808,17 +869,18 @@ const drawStation = (c: Ctx, state: GameState, look: RideLook) => {
   });
   parkedSleds(c, LOAD_X0 + 300, f);
   // (the line, behind its rail: the same people, still waiting; wide-eyed once it's coming, the nearest splattered)
+  // (relaxed till he's punched the brake control; flung by the runaway: index.ts draws them flying)
   const coming = look.crashing && look.boxT > 0;
-  for (let j = 0; j < 16; j++) {
-    const qx = LOAD_X0 + 20 + j * 34, seed = 4001 + j * 337;
-    c.save(); c.translate(qx, y - 20 - (j % 2) * 14); drawAtomPerson(c, 'guest', { seed, f, pose: coming ? 'after' : 'stand', md: 'ok' }); c.restore();
-  }
+  QUEUE.forEach((q, j) => {
+    if (look.gone.has(`q${j}`)) return;
+    c.save(); c.translate(q.x, q.y); drawAtomPerson(c, 'guest', { seed: q.seed, f, pose: coming ? 'after' : 'stand', md: 'ok' }); c.restore();
+  });
   box(c, LOAD_X0, y - 65, 560, 6, INK); box(c, LOAD_X0, y - 64, 560, 4, '#94A3B8'); box(c, LOAD_X0, y - 64, 560, 1, '#F8FAFC');
   box(c, LOAD_X0 + 560, y - 4, STATION_X1 - LOAD_X0 - 560, 4, '#FACC15'); box(c, LOAD_X0 + 560, y - 4, STATION_X1 - LOAD_X0 - 560, 1, '#FEF9C3');
   // (what's left on the platform of whoever was on the track)
   look.flat.forEach(i => { const x = STATION_FOLK[i].x + 10; box(c, x, y - 3, 90, 4, '#7F1D1D'); box(c, x + 20, y - 4, 40, 3, '#B91C1C'); box(c, x + 10, y - 60 - (i % 3) * 10, 6, 14, '#991B1B'); });
   // (the operator at her console)
-  c.save(); c.translate(LOAD_X0 + 600, y); drawAtomPerson(c, 'op', { seed: OP_SEED, f, pose: look.frontGone || coming ? 'after' : 'stand', md: 'ok' }); c.restore();
+  if (!look.gone.has('op')) { c.save(); c.translate(CONSOLE_OP_X, y); drawAtomPerson(c, 'op', { seed: OP_SEED, f, pose: look.frontGone || coming ? 'after' : 'stand', md: 'ok' }); c.restore(); }
   slab(c, LOAD_X0 + 630, y - 70, 60, 70, '#0F766E'); box(c, LOAD_X0 + 634, y - 66, 52, 4, '#5EEAD4');
   c.save(); c.beginPath(); c.rect(LOAD_X0 + 648, y - 90, 24, 18); c.clip(); sphere(c, LOAD_X0 + 660, y - 72, 8, '#22C55E'); c.restore();
 };
@@ -889,11 +951,11 @@ export const drawRideBack = (c: Ctx, state: GameState, look: RideLook) => {
     if (q.ob >= 0 && !look.tricks.broken.has(q.ob) && !obLive(state, look.tricks, q.ob)) return;
     cueSign(c, x, q.verb, cueLive(state, look.tricks, i, look.sledX), f);
   });
-  // The MAIN BREAKER (till it's smashed: then its door hanging off, sparking)
+  // The MAIN BREAKER (till he's punched it going by: then its face caved in, sparking, smoking)
   if (on(BREAKER_X - 100, BREAKER_X + 100)) {
     const rail = trackY(BREAKER_X) ?? GY, gone = look.breakerT > 0, bx = BREAKER_X;
     // a narrow service doorway the track squeezes through (its jambs barely clear of the sled, hazard-striped), and the
-    // main breaker panel hung right across it at the rider's height: the sled's nose goes through it
+    // main breaker panel hung in the back of it at the rider's height, DO NOT TOUCH: right where his fist goes by
     for (const jx of [bx - 110, bx + 96]) { box(c, jx - 2, rail - 260, 18, 260, INK); hazard(c, jx, rail - 258, 14, 258, '#EAB308', '#3F3F46', 10); box(c, jx, rail - 258, 2, 258, '#71717A'); }
     truss(c, bx - 112, rail - 272, 226, 16, '#52525B');
     cables(c, [bx - 50, bx + 46], rail - 256, rail - 248, '#A1A1AA');
@@ -907,10 +969,12 @@ export const drawRideBack = (c: Ctx, state: GameState, look: RideLook) => {
       lamp(c, bx + 26, rail - 112, 3, '#EF4444', (f >> 3) % 2 === 0, 2);
       label(c, 'donottouch', bx, rail - 58, 'DO NOT TOUCH', 'small', '#7F1D1D', '#9CA3AF', 80, 12);
     } else {
-      box(c, bx - 2, rail - 226, 4, 60, '#71717A');
-      box(c, bx - 14, rail - 170, 20, 12, '#52525B');
-      for (let k = 0; k < 6; k++) box(c, bx - 30 + k * 12, rail - 160 + (k % 3) * 5, 3, 10 + (k % 2) * 8, ['#EF4444', '#FDE047', '#3B82F6'][k % 3]);
-      if (f % 8 < 3) box(c, bx - 10 + hash(f) * 30, rail - 165 + hash(f * 3) * 20, 4, 4, '#FDE047');
+      // (knocked crooked on its pole: the face caved in, the big switch gone, DO NOT TOUCH hanging off it)
+      box(c, bx - 3, rail - 226, 6, 100, INK); box(c, bx - 2, rail - 226, 4, 100, '#71717A');
+      c.save(); c.translate(bx, rail - 128); c.rotate(0.08); c.translate(-bx, -(rail - 128));
+      crumpledPanel(c, bx - 40, rail - 128, 80, 88, '#9CA3AF', f, 11);
+      c.restore();
+      c.save(); c.translate(bx + 4, rail - 50); c.rotate(0.35); label(c, 'donottouch', 0, 0, 'DO NOT TOUCH', 'small', '#7F1D1D', '#9CA3AF', 80, 12); c.restore();
     }
   }
   drawStation(c, state, look);

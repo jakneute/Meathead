@@ -329,6 +329,9 @@ export interface Player extends Entity {
   logRoll?: { spin: number; lean: number };
   /** Frames left of a cutscene kick pose (drawn like the dive kick, standing). */
   kickPose?: number;
+  /** Sat in a ride's seat, a big haymaker with his lead fist (render/player/seatPunch.ts): 0..1 the wind-up, 1..2 the
+   *  throw (2: the fist in, at full reach), 2..3 back down into the seat. Set and cleared by whatever scripts it. */
+  seatPunch?: number;
   /** Squared up for a duel (Meathead 2's showdown: render/player/moves.ts drawGunslinger), till whatever set it clears
    *  it (his shot: he draws). */
   gunslinger?: boolean;
