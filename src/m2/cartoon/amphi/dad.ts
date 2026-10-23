@@ -18,6 +18,7 @@
 // sagging, the dent he's worn in it), his seat on it at DAD_SEAT.
 
 import { mix } from '../kit';
+import { elbow as elbowAt, knee as kneeAt, reachTo } from '../../art/limb';
 import { drawDadGross } from './dadGross';
 import type { DadPose } from './state';
 import { type Ctx, type Ramp, shape, shapeTop, ell, px, line, limb, fill, dith } from './paint';
@@ -149,101 +150,163 @@ const belly = (c: Ctx, bx: number, by: number, rx: number, ry: number) => {
   c.beginPath(); c.ellipse(bx, by, rx, ry, 0, 0, Math.PI * 2); c.strokeStyle = TANK[4]; c.lineWidth = 1; c.stroke();
 };
 
+/** His upper arm and forearm (units): every pose's hand is put within their reach, and the elbow worked out from it. */
+export const UPPER_ARM = 25, FOREARM = 25;
+/** The elbow for a hand (limb.ts: the hand pulled in to his reach first): he faces left in his own units, so the forearm
+ *  folds toward the front of the upper arm the way it does for any figure facing -x, whatever the pose. */
+export const elbowOf = (sh: readonly number[], hand: readonly number[]) => {
+  const h2 = reachTo(sh[0], sh[1], hand[0], hand[1], UPPER_ARM, FOREARM);
+  const el = elbowAt(sh[0], sh[1], h2[0], h2[1], UPPER_ARM, FOREARM, -1);
+  return { el: [el[0], el[1]], hand: [h2[0], h2[1]] };
+};
+
+/** A tube's outline (paint.ts limb's path: tapered from r1 to r2, `sag` flab off whichever side faces down). */
+const tubePath = (c: Ctx, x1: number, y1: number, r1: number, x2: number, y2: number, r2: number, sag = 0) => () => {
+  const dx = x2 - x1, dy = y2 - y1, d = Math.hypot(dx, dy) || 1, ux = dx / d, uy = dy / d;
+  let nx = -uy, ny = ux;
+  if (ny < 0 || (ny === 0 && nx < 0)) { nx = -nx; ny = -ny; }
+  const upA = Math.atan2(-ny, -nx), dnA = Math.atan2(ny, nx), ccw = !(ny * ux - nx * uy > 0), rm = (r1 + r2) / 2;
+  c.moveTo(x1 - nx * r1, y1 - ny * r1);
+  c.lineTo(x2 - nx * r2, y2 - ny * r2);
+  c.arc(x2, y2, r2, upA, dnA, ccw);
+  c.quadraticCurveTo((x1 + x2) / 2 + nx * (rm + sag * 1.5), (y1 + y2) / 2 + ny * (rm + sag * 1.5), x1 + nx * r1, y1 + ny * r1);
+  c.arc(x1, y1, r1, dnA, upA, ccw);
+  c.closePath();
+};
+/** Several pieces of one limb as ONE silhouette: the ink round the lot first (a little outside each piece), then every
+ *  piece's stepped fill over it, so no seam shows where they overlap (an elbow, a shoulder: no sausage links). */
+const fused = (c: Ctx, parts: { path: () => void; x0: number; x1: number }[], r: Ramp, ink = 1.5) => {
+  c.strokeStyle = r[4]; c.lineWidth = ink; c.lineJoin = 'round';
+  for (const p of parts) { c.beginPath(); p.path(); c.stroke(); }
+  for (const p of parts) shape(c, p.path, r, p.x0, p.x1, 0.001);
+};
+const hairTicks = (c: Ctx, a: readonly number[], b: readonly number[], off: number, n: number, col: string) => {
+  const dx = b[0] - a[0], dy = b[1] - a[1], d = Math.hypot(dx, dy) || 1;
+  let nx = -dy / d, ny = dx / d; if (ny > 0) { nx = -nx; ny = -ny; }
+  for (let k = 0; k < n; k++) {
+    const t = (k + 0.5) / n, x = a[0] + dx * t + nx * off, y = a[1] + dy * t + ny * off;
+    line(c, [x, y, x + nx * 1.4 + (dx / d) * 0.8, y + ny * 1.4 + (dy / d) * 0.8], 0.5, col);
+  }
+};
+
+/** A meaty hand at (hx, hy), the forearm coming in along (ux, uy): an open paw (four sausage fingers, the thumb on its
+ *  upper side) or a fist (the knuckles, the thumb over them). */
+const paw = (c: Ctx, hx: number, hy: number, ux: number, uy: number, r: Ramp, fist: boolean) => {
+  const a = Math.atan2(uy, ux);
+  // (the thumb on whichever side faces up and forward on screen)
+  const s = 0.6 * Math.sin(a) - 0.8 * Math.cos(a) >= 0 ? 1 : -1;
+  c.save(); c.translate(hx, hy); c.rotate(a);
+  if (fist) {
+    shape(c, () => c.ellipse(0.4, 0, 6.2, 5.6, 0, 0, Math.PI * 2), r, -6, 6.6, 0.8);
+    for (let k = 0; k < 4; k++) { const y = (k - 1.5) * 2.5; ell(c, 5, y, 1.6, 1.2, r[0]); if (k) line(c, [3.2, y - 1.25, 6.4, y - 1.25], 0.5, r[3]); }
+    limb(c, -1, s * 4.6, 2, 3.6, s * 1.6, 1.7, r, 0, 0.6);
+  } else {
+    // (the fingers first, the palm's back over their roots: knuckles)
+    for (let k = 0; k < 4; k++) { const y = (k - 1.5) * 2.4, len = 9.4 - Math.abs(k - 1.5) * 1.2; limb(c, 3, y, 1.75, len, y + 0.6, 1.45, r, 0, 0.6); px(c, len - 0.4, y - 0.2, 1, 0.8, '#E8D8A8'); }
+    shape(c, () => c.ellipse(0.6, 0, 5.8, 5.2, 0, 0, Math.PI * 2), r, -5.2, 6.4, 0.8);
+    limb(c, -0.6, s * 4, 2, 4.4, s * 6, 1.6, r, 0, 0.6);
+  }
+  // (liver spots on the back of it, a few white hairs)
+  ell(c, -1, -1, 0.9, 0.7, SPOT); ell(c, 1.6, 1.4, 0.7, 0.55, SPOT);
+  for (let k = 0; k < 3; k++) px(c, -3.4 + k * 1.6, -2.6 + (k % 2), 0.5, 1.2, HAIR[2]);
+  c.restore();
+};
+
+/** Fingers wrapped round something thin he's holding at `hold` (its middle) tipped `ang` (its long axis along local
+ *  y), his hand at `hand`: three fat fingers across the front of it where his hand is. `half`: how far up and down it
+ *  goes (the fingers kept on it), `w` its half width. */
+const wrap = (c: Ctx, hold: readonly number[], ang: number, hand: readonly number[], half: number, w: number, near: boolean) => {
+  const r: Ramp = near ? SKIN : [SKIN[1], SKIN[2], SKIN[3], SKIN[3], SKIN[4]];
+  const dx = hand[0] - hold[0], dy = hand[1] - hold[1], ca = Math.cos(-ang), sa = Math.sin(-ang);
+  const ly = Math.max(-half + 3, Math.min(half - 3, dx * sa + dy * ca));
+  c.save(); c.translate(hold[0], hold[1]); c.rotate(ang);
+  for (let k = -1; k <= 1; k++) limb(c, -w - 1.6, ly + k * 2.3, 1.35, w - 0.4, ly + k * 2.3 + 0.4, 1.2, r, 0, 0.55);
+  c.restore();
+};
+
+/** An arm from the shoulder to the hand, a fat old man's: the round of the shoulder, the big soft upper arm (the bingo
+ *  wing hanging off it), the elbow (a wrinkled knob), the thick forearm (liver spots, white hair, the Navy anchor on the
+ *  near one), a meaty paw. Shoulder, upper arm and forearm are one silhouette (no seams). Returns where the hand ended
+ *  up (pulled in to his reach). */
+const arm = (c: Ctx, sh: number[], handIn: number[], near: boolean, fist = false) => {
+  const r: Ramp = near ? SKIN : [SKIN[1], SKIN[2], SKIN[3], SKIN[3], SKIN[4]];
+  const { el, hand } = elbowOf(sh, handIn);
+  const fx = hand[0] - el[0], fy = hand[1] - el[1], fd = Math.hypot(fx, fy) || 1, ux = fx / fd, uy = fy / fd;
+  const wrist = [hand[0] - ux * 4.4, hand[1] - uy * 4.4];
+  const R1 = 10.5, R2 = 7.2, R3 = 6.8, R4 = 5.2;
+  const box = (x0: number, x1: number, rr: number) => ({ x0: Math.min(x0, x1) - rr, x1: Math.max(x0, x1) + rr });
+  fused(c, [
+    { path: () => c.ellipse(sh[0], sh[1] + 1, 11, 10, 0, 0, Math.PI * 2), ...box(sh[0], sh[0], 11) },
+    { path: tubePath(c, sh[0], sh[1] + 1, R1, el[0], el[1], R2, 3.4), ...box(sh[0], el[0], R1) },
+    { path: tubePath(c, el[0], el[1], R3, wrist[0], wrist[1], R4, 1.2), ...box(el[0], wrist[0], R3) },
+  ], r);
+  // (the elbow: the knob on its outside, wrinkled; the crease on the inside of the bend)
+  {
+    const ex = el[0] - sh[0], ey = el[1] - sh[1], ed = Math.hypot(ex, ey) || 1;
+    const ox = ex / ed - ux, oy = ey / ed - uy, ol = Math.hypot(ox, oy);
+    if (ol > 0.15) {
+      const kx = ox / ol, ky = oy / ol;
+      ell(c, el[0] + kx * 3.4, el[1] + ky * 3.4, 3.6, 3, r[2]);
+      for (let k = -1; k <= 1; k++) line(c, [el[0] + kx * 3.6 - ky * k * 1.6, el[1] + ky * 3.6 + kx * k * 1.6, el[0] + kx * 5.6 - ky * k * 1.9, el[1] + ky * 5.6 + kx * k * 1.9], 0.45, r[3]);
+      line(c, [el[0] - kx * 3.4 - ky * 2.2, el[1] - ky * 3.4 + kx * 2.2, el[0] - kx * 4.8, el[1] - ky * 4.8, el[0] - kx * 3.4 + ky * 2.2, el[1] - ky * 3.4 - kx * 2.2], 0.6, r[3]);
+    }
+  }
+  // (liver spots on the upper arm, white hair on the forearm's top)
+  ell(c, (sh[0] + el[0]) / 2 + 1, (sh[1] + el[1]) / 2 - 2, 1.4, 1, SPOT); ell(c, sh[0] * 0.3 + el[0] * 0.7 - 2, sh[1] * 0.3 + el[1] * 0.7 + 1, 0.9, 0.7, SPOT);
+  hairTicks(c, el, wrist, 4.6, 5, HAIR[2]);
+  if (near) {
+    // (the anchor, faded, on the forearm)
+    const ax = el[0] + (wrist[0] - el[0]) * 0.5, ay = el[1] + (wrist[1] - el[1]) * 0.5;
+    line(c, [ax, ay - 2.8, ax, ay + 2.4], 0.8, TAT); line(c, [ax - 2.2, ay + 1.2, ax, ay + 2.8, ax + 2.2, ay + 1.2], 0.8, TAT); px(c, ax - 1.4, ay - 1.9, 2.8, 0.7, TAT);
+    ell(c, ax + 2.6, ay - 2.4, 0.9, 0.7, SPOT);
+  }
+  paw(c, hand[0], hand[1], ux, uy, r, fist);
+  return hand;
+};
+
 const dimR = (r: Ramp, near: boolean): Ramp => (near ? r : [r[1], r[2], r[3], r[3], r[4]]);
-/** A knee: the bare kneecap (a knob, lit on top, the wrinkles round it, a liver spot), the thigh's skin above it out
+/** A knee: the bare kneecap (a big knob, lit on top, the wrinkles round it, a liver spot), the thigh's skin above it out
  *  of the boxers' cuff. Drawn with the leg, and again over the belly when he's sat (his knees stick out past the gut). */
 const kneecap = (c: Ctx, hip: number[], knee: number[], near: boolean) => {
   const r = dimR(SKIN, near);
   const dx = knee[0] - hip[0], dy = knee[1] - hip[1], d = Math.hypot(dx, dy) || 1, ux = dx / d, uy = dy / d;
-  shape(c, () => c.ellipse(knee[0] + ux * 0.6, knee[1] + uy * 0.6 - 0.4, 5, 4.4, Math.atan2(uy, ux), 0, Math.PI * 2), r, knee[0] - 5, knee[0] + 5, 0.8);
-  ell(c, knee[0] + ux * 1.2 - 1, knee[1] + uy * 1.2 - 1.8, 2, 1.2, r[0]);
-  line(c, [knee[0] - uy * 3 + ux * 2.6, knee[1] + ux * 3 + uy * 2.6, knee[0] + ux * 3.6, knee[1] + uy * 3.6 + 0.6, knee[0] + uy * 3 + ux * 2.6, knee[1] - ux * 3 + uy * 2.6], 0.5, r[3]);
-  line(c, [knee[0] - uy * 2.4 - ux * 2.2, knee[1] + ux * 2.4 - uy * 2.2, knee[0] - ux * 3, knee[1] - uy * 3 + 0.4], 0.45, r[2]);
-  ell(c, knee[0] - ux * 0.4 + 1.4, knee[1] - uy * 0.4 - 0.6, 0.8, 0.6, SPOT);
+  shape(c, () => c.ellipse(knee[0] + ux * 0.8, knee[1] + uy * 0.8 - 0.4, 5.9, 5.2, Math.atan2(uy, ux), 0, Math.PI * 2), r, knee[0] - 5.9, knee[0] + 5.9, 0.8);
+  ell(c, knee[0] + ux * 1.4 - 1.2, knee[1] + uy * 1.4 - 2.4, 2.6, 1.5, r[0]);
+  line(c, [knee[0] - uy * 3.8 + ux * 3.4, knee[1] + ux * 3.8 + uy * 3.4, knee[0] + ux * 4.6, knee[1] + uy * 4.6 + 0.8, knee[0] + uy * 3.8 + ux * 3.4, knee[1] - ux * 3.8 + uy * 3.4], 0.55, r[3]);
+  line(c, [knee[0] - uy * 3 - ux * 2.8, knee[1] + ux * 3 - uy * 2.8, knee[0] - ux * 3.8, knee[1] - uy * 3.8 + 0.5], 0.5, r[2]);
+  ell(c, knee[0] - ux * 0.4 + 1.8, knee[1] - uy * 0.4 - 0.8, 0.9, 0.7, SPOT);
 };
 
-/** A leg from the hip to the knee to the foot: boxer leg (the cuff above the knee), the bare knee, the bare shin
- *  (veins), the sock, the slipper. */
+/** A leg from the hip to the knee to the foot (the knee from limb.ts, worked out in drawDad): the baggy boxer leg over a
+ *  fat thigh (the cuff above the knee), the bare knee, the hairy shin with a calf on it (veins), the sock, the slipper. */
 const leg = (c: Ctx, hip: number[], knee: number[], foot: number[], near: boolean, sag = 0) => {
   const dim = (r: Ramp): Ramp => dimR(r, near);
-  // (the bare thigh between the cuff and the knee, then the boxer leg over it: baggy, striped, the cuff a little short
-  // of the knee)
-  const cuff = [hip[0] + (knee[0] - hip[0]) * 0.74, hip[1] + (knee[1] - hip[1]) * 0.74];
-  limb(c, cuff[0], cuff[1], 5.4, knee[0], knee[1], 4.6, dim(SKIN));
-  limb(c, hip[0], hip[1], 8, cuff[0], cuff[1], 7.2, dim(BOXER));
-  c.save(); c.beginPath(); c.moveTo(hip[0], hip[1] - 9); c.lineTo(cuff[0], cuff[1] - 8); c.lineTo(cuff[0], cuff[1] + 8); c.lineTo(hip[0], hip[1] + 9); c.closePath(); c.clip();
-  for (let k = -12; k <= 12; k += 4) line(c, [hip[0] + k, hip[1] - 10, cuff[0] + k, cuff[1] - 8, cuff[0] + k, cuff[1] + 8], 1, near ? STRIPE : mix(STRIPE, '#000000', 0.2));
+  const dx = knee[0] - hip[0], dy = knee[1] - hip[1], d = Math.hypot(dx, dy) || 1, nx = -dy / d, ny = dx / d;
+  const cuff = [hip[0] + dx * 0.72, hip[1] + dy * 0.72];
+  // (the shin first (its top under the knee): thick at the calf, thin at the ankle, hair and a varicose vein; the black
+  // sock pulled up (the near one's slid down))
+  const ankle = [foot[0] + 2, foot[1] - 4];
+  limb(c, knee[0], knee[1], 5, ankle[0], ankle[1], 3.7, dim(SKIN), 1.6);
+  line(c, [knee[0] - 1.4, knee[1] + 5, (knee[0] + ankle[0]) / 2 - 2, (knee[1] + ankle[1]) / 2, ankle[0] - 1.4, ankle[1] - 7], 0.6, VEIN);
+  hairTicks(c, knee, ankle, 4.4, 4, HAIR[3]);
+  const sockTop = 0.45 + (near ? sag : 0), st = [knee[0] + (ankle[0] - knee[0]) * sockTop, knee[1] + (ankle[1] - knee[1]) * sockTop];
+  limb(c, st[0], st[1], 4.5, ankle[0], ankle[1], 4, SOCK);
+  if (near && sag > 0) line(c, [st[0] - 4.2, st[1] + 1, st[0] + 4.2, st[1] + 2], 0.8, SOCK[0]);
+  // (the bare fat thigh between the cuff and the knee, then the boxer leg over it: baggy, striped, wide where it meets
+  // him, the cuff a little short of the knee)
+  limb(c, cuff[0], cuff[1], 8.4, knee[0], knee[1], 6.4, dim(SKIN), 1);
+  limb(c, hip[0], hip[1], 12, cuff[0], cuff[1], 9.6, dim(BOXER), 1.4);
+  c.save(); c.beginPath(); c.moveTo(hip[0] + nx * 14, hip[1] + ny * 14); c.lineTo(cuff[0] + nx * 12, cuff[1] + ny * 12); c.lineTo(cuff[0] - nx * 12, cuff[1] - ny * 12); c.lineTo(hip[0] - nx * 14, hip[1] - ny * 14); c.closePath(); c.clip();
+  for (let k = -16; k <= 16; k += 4) line(c, [hip[0] + k, hip[1] - 14, cuff[0] + k, cuff[1] - 12, cuff[0] + k, cuff[1] + 12], 1, near ? STRIPE : mix(STRIPE, '#000000', 0.2));
   c.restore();
   // (the cuff's hem: a dark fold across the end of the boxer leg)
-  { const dx = knee[0] - hip[0], dy = knee[1] - hip[1], d = Math.hypot(dx, dy) || 1, nx = -dy / d, ny = dx / d; line(c, [cuff[0] + nx * 7, cuff[1] + ny * 7, cuff[0] - nx * 7, cuff[1] - ny * 7], 1.1, dim(BOXER)[3]); }
-  // (the shin: thin, pale, a varicose vein; the black sock pulled up (the near one's slid down))
-  const ankle = [foot[0] + 2, foot[1] - 4];
-  limb(c, knee[0], knee[1], 4.2, ankle[0], ankle[1], 3, dim(SKIN));
+  line(c, [cuff[0] + nx * 9.4, cuff[1] + ny * 9.4, cuff[0] - nx * 9.4, cuff[1] - ny * 9.4], 1.2, dim(BOXER)[3]);
   kneecap(c, hip, knee, near);
-  line(c, [knee[0] - 1, knee[1] + 4, (knee[0] + ankle[0]) / 2 - 1.5, (knee[1] + ankle[1]) / 2, ankle[0] - 1, ankle[1] - 6], 0.6, VEIN);
-  const sockTop = 0.45 + (near ? sag : 0);
-  limb(c, knee[0] + (ankle[0] - knee[0]) * sockTop, knee[1] + (ankle[1] - knee[1]) * sockTop, 3.6, ankle[0], ankle[1], 3.3, SOCK);
-  if (near && sag > 0) line(c, [knee[0] + (ankle[0] - knee[0]) * sockTop - 3.4, knee[1] + (ankle[1] - knee[1]) * sockTop + 1, knee[0] + (ankle[0] - knee[0]) * sockTop + 3.4, knee[1] + (ankle[1] - knee[1]) * sockTop + 2], 0.8, SOCK[0]);
   // (the slipper: brown terry (its loops), flattened at the heel, the sole worn through at the toe)
-  shape(c, () => { c.moveTo(foot[0] + 6, foot[1]); c.lineTo(foot[0] + 6, foot[1] - 4); c.quadraticCurveTo(foot[0] - 2, foot[1] - 7, foot[0] - 10, foot[1] - 3.6); c.quadraticCurveTo(foot[0] - 13, foot[1], foot[0] - 9, foot[1]); c.closePath(); }, dim(SLIPPER), foot[0] - 13, foot[0] + 6);
-  px(c, foot[0] - 9, foot[1] - 4.6, 8, 1, SLIPPER[0]);
-  for (let k = 0; k < 5; k++) px(c, foot[0] - 9 + k * 2.6, foot[1] - 3 + (k % 2) * 1.2, 0.8, 0.8, near ? SLIPPER[2] : SLIPPER[3]);
-  px(c, foot[0] - 12, foot[1] - 1, 4, 1, SLIPPER[4]); px(c, foot[0] - 11, foot[1] - 1.6, 1.6, 0.8, SKIN[1]);
-};
-
-/** His upper arm and forearm (units): every pose's hand is put within their reach, and the elbow worked out from it. */
-export const UPPER_ARM = 25, FOREARM = 25;
-/** The elbow for a hand (two-bone: the hand pulled in to his reach if it's past it): it bends down and back when the
- *  hand's low, forward when it's up over his shoulder (raising a beer, the hammer over his head). */
-export const elbowOf = (sh: readonly number[], hand: readonly number[]) => {
-  let dx = hand[0] - sh[0], dy = hand[1] - sh[1], d = Math.hypot(dx, dy) || 1;
-  const reach = UPPER_ARM + FOREARM - 0.5;
-  let h2 = [hand[0], hand[1]];
-  if (d > reach) { h2 = [sh[0] + (dx / d) * reach, sh[1] + (dy / d) * reach]; dx = h2[0] - sh[0]; dy = h2[1] - sh[1]; d = reach; }
-  const dd = Math.max(4, d);
-  const a = (UPPER_ARM * UPPER_ARM - FOREARM * FOREARM + dd * dd) / (2 * dd), h = Math.sqrt(Math.max(0, UPPER_ARM * UPPER_ARM - a * a));
-  const mx = sh[0] + (dx / dd) * a, my = sh[1] + (dy / dd) * a, nx = -dy / dd, ny = dx / dd;
-  const e1 = [mx + nx * h, my + ny * h], e2 = [mx - nx * h, my - ny * h];
-  // (the way an elbow bends: the forearm swings toward the front of the upper arm, never back past it. He faces left
-  // in his units (mirrored for the right), so hanging down the forearm comes forward, -x: from the upper arm's way
-  // round to the forearm's is clockwise on screen (y down), the cross product positive. That side of the
-  // shoulder-to-hand line, whatever the pose)
-  const bend = (e: number[]) => (e[0] - sh[0]) * (h2[1] - e[1]) - (e[1] - sh[1]) * (h2[0] - e[0]);
-  return { el: bend(e1) >= bend(e2) ? e1 : e2, hand: h2 };
-};
-
-/** An arm from the shoulder to the hand: the round of the shoulder, the flabby upper arm (the bingo wing sagging off
- *  it), the elbow (a wrinkled knob), the forearm (liver spots, the Navy anchor on the near one, the hair), a fat hand.
- *  Returns where the hand ended up (pulled in to his reach). */
-const arm = (c: Ctx, sh: number[], handIn: number[], near: boolean, fist = false) => {
-  const r: Ramp = near ? SKIN : [SKIN[1], SKIN[2], SKIN[3], SKIN[3], SKIN[4]];
-  const { el, hand } = elbowOf(sh, handIn);
-  // (the shoulder: a soft round where the arm comes off him)
-  shape(c, () => c.ellipse(sh[0], sh[1] + 1, 7.4, 6.6, 0, 0, Math.PI * 2), r, sh[0] - 7.4, sh[0] + 7.4, 0.8);
-  limb(c, sh[0], sh[1], 6.6, el[0], el[1], 4.8, r, 2.4);
-  limb(c, el[0], el[1], 4.6, hand[0], hand[1], 3.8, r);
-  // (the elbow: the knob, wrinkled, a touch darker; the crease on the inside of the bend)
-  {
-    const ux = (el[0] - sh[0]) / UPPER_ARM, uy = (el[1] - sh[1]) / UPPER_ARM, vx = (hand[0] - el[0]) / FOREARM, vy = (hand[1] - el[1]) / FOREARM;
-    const ox = ux - vx, oy = uy - vy, ol = Math.hypot(ox, oy) || 1;
-    ell(c, el[0] + (ox / ol) * 2, el[1] + (oy / ol) * 2, 3.4, 3, r[2]);
-    for (let k = -1; k <= 1; k++) line(c, [el[0] + (ox / ol) * 3 - (oy / ol) * (k * 1.4) - (ox / ol) * Math.abs(k) * 0.6, el[1] + (oy / ol) * 3 + (ox / ol) * (k * 1.4) - (oy / ol) * Math.abs(k) * 0.6, el[0] + (ox / ol) * 4.4 - (oy / ol) * (k * 1.6), el[1] + (oy / ol) * 4.4 + (ox / ol) * (k * 1.6)], 0.4, r[3]);
-    if (ol > 0.3) line(c, [el[0] - (ox / ol) * 2.6 - (oy / ol) * 1.6, el[1] - (oy / ol) * 2.6 + (ox / ol) * 1.6, el[0] - (ox / ol) * 3.4, el[1] - (oy / ol) * 3.4], 0.5, r[3]);
-  }
-  ell(c, (sh[0] + el[0]) / 2 + 1, (sh[1] + el[1]) / 2 - 1, 1.2, 0.9, SPOT);
-  if (near) {
-    // (the anchor, faded, on the forearm)
-    const ax = (el[0] + hand[0]) / 2, ay = (el[1] + hand[1]) / 2;
-    line(c, [ax, ay - 2.4, ax, ay + 2], 0.7, TAT); line(c, [ax - 1.8, ay + 1, ax, ay + 2.4, ax + 1.8, ay + 1], 0.7, TAT); px(c, ax - 1.2, ay - 1.6, 2.4, 0.6, TAT);
-    ell(c, ax + 2, ay - 2, 0.9, 0.7, SPOT);
-  }
-  shape(c, () => c.ellipse(hand[0], hand[1], fist ? 4.4 : 4, fist ? 4 : 3.4, 0, 0, Math.PI * 2), r, hand[0] - 4.4, hand[0] + 4.4, 0.8);
-  if (!fist) for (let k = 0; k < 3; k++) { px(c, hand[0] - 3 + k * 2, hand[1] - 3.6, 0.7, 2, r[3]); px(c, hand[0] - 3 + k * 2, hand[1] - 3.8, 0.7, 0.6, '#E8D8A8'); }
-  else for (let k = 0; k < 3; k++) px(c, hand[0] - 2.6 + k * 2, hand[1] - 3.4, 1.4, 0.6, r[0]);
-  // (liver spots on the back of the hand, the hair on the forearm)
-  ell(c, hand[0] + 1, hand[1] - 1, 0.8, 0.6, SPOT); ell(c, hand[0] - 1.6, hand[1] + 0.6, 0.6, 0.5, SPOT);
-  for (let k = 0; k < 4; k++) { const t = 0.3 + k * 0.15; px(c, el[0] + (hand[0] - el[0]) * t, el[1] + (hand[1] - el[1]) * t - 3, 0.6, 1.4, HAIR[2]); }
-  return hand;
+  shape(c, () => { c.moveTo(foot[0] + 6.5, foot[1]); c.lineTo(foot[0] + 6.5, foot[1] - 4.6); c.quadraticCurveTo(foot[0] - 2, foot[1] - 8, foot[0] - 11, foot[1] - 4); c.quadraticCurveTo(foot[0] - 14.5, foot[1], foot[0] - 10, foot[1]); c.closePath(); }, dim(SLIPPER), foot[0] - 14.5, foot[0] + 6.5);
+  px(c, foot[0] - 10, foot[1] - 5.2, 9, 1, SLIPPER[0]);
+  for (let k = 0; k < 5; k++) px(c, foot[0] - 10 + k * 2.8, foot[1] - 3.2 + (k % 2) * 1.2, 0.8, 0.8, near ? SLIPPER[2] : SLIPPER[3]);
+  px(c, foot[0] - 13, foot[1] - 1, 4, 1, SLIPPER[4]); px(c, foot[0] - 12, foot[1] - 1.6, 1.6, 0.8, SKIN[1]);
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -318,26 +381,32 @@ export const drawDad = (c: Ctx, x: number, feetY: number, pose: DadPose, f: numb
   const cr = up < 1 ? 0 : Math.max(0, Math.min(1, o.crouch ?? 0)), dropY = cr * 11;
   // The skeleton: sat (the couch's seat at -30; the knees out past the gut) to stood
   const hip = [L(8, 0) + rock * 0.3, L(-32, -44) + dropY];
-  const kneeN = [L(-28, -4 + sway * 0.3) - cr * 9, L(-31, -24) + cr * 3], kneeF = [L(-20, 6 + sway * 0.3) - cr * 9, L(-33, -24) + cr * 3];
   const step = pose === 'shuffle' ? Math.sin(f * 0.2) * 5 : 0;
-  const footN = [L(-26, -6 + step), 0], footF = [L(-17, 8 - step), L(-1, 0)];
+  const footN = [L(-38, -6 + step), 0], footF = [L(-29, 8 - step), L(-1, 0)];
+  // (the knees from limb.ts, facing left: sat, the fat thighs out level from under the gut, the knees past it, the shins
+  // down to the slippers planted under them; stood, all but straight; crouched, they come forward. The bones longer sat: the thigh's seen end on less)
+  const hipN = [hip[0] - 6, hip[1] + 1], hipF = [hip[0] + 6, hip[1]];
+  const thighL = L(42, 20.4), shinL = L(27.5, 20.4);
+  const kneeOf = (h: number[], ft: number[]) => { const k = kneeAt(h[0], h[1], ft[0] + 2, ft[1] - 4, thighL, shinL, -1); return [k[0], k[1]]; };
+  const kneeN = kneeOf(hipN, footN), kneeF = kneeOf(hipF, footF);
   const bx = L(-4, -6) + sway * 0.5 + rock, by = L(-50, -66) + breathe + dropY, brx = 31, bry = L(25, 27);
   const lean = pose === 'rise' && t < 0.6 ? 10 * (1 - up) : pose === 'heave' ? 16 + Math.sin(f * 0.3) * 2 : pose === 'drag' ? -6 : pose === 'hammer' ? 7 * Math.min(1, t) : 0;
   const shN = [L(-20, -22) + sway + rock - lean, L(-76, -96) + breathe + lean * 0.6 + dropY], shF = [L(16, 12) + sway + rock - lean, L(-80, -100) + breathe + lean * 0.6 + dropY];
   let hx = L(-8, -10) + sway * 1.2 + rock - lean * 1.2, hy = L(-98, -118) + breathe + lean + dropY;
   let tilt = 0, hdir = -1;
   let face: DadFace = o.face ?? 'bleary';
-  // The hands, by pose
+  // The hands, by pose (sat, his far hand planted on the cushion beside him, past the gut where it shows)
+  const SEAT_HAND = [34, -42];
   let handN = [L(-14, -24) + sway, L(-50, -78)], handF = [34, -70];
   let canAt: number[] | null = null, canAng = 0;
   const holding = o.can === undefined ? 'near' : o.can;
   switch (pose) {
-    case 'sit': handN = [-24 + Math.sin(f * 0.02), -38]; handF = [8, -48]; break;
-    case 'sip': handN = [-22, -94]; handF = [8, -48]; tilt = 0.28; face = o.face ?? 'sip'; break;
-    case 'call': handN = [-24, -38]; handF = [12, -96]; hdir = 1; tilt = 0.12; face = o.face ?? (talking ? 'yell' : 'bleary'); break;
-    case 'reach': handN = [-24, -38]; handF = [46 + t * 18, -58]; hdir = 1; break;
-    case 'tv': handN = [-46 + Math.sin(f * 0.5) * 3, -84 + Math.cos(f * 0.5) * 2]; handF = [8, -48]; face = o.face ?? (talking ? 'yell' : 'angry'); break;
-    case 'squint': handN = [-24, -38]; handF = [8, -48]; hx -= 3; hy += 2; face = o.face ?? 'squint'; break;
+    case 'sit': handN = [-38 + Math.sin(f * 0.02), -41]; handF = SEAT_HAND.slice(); break;
+    case 'sip': handN = [-22, -94]; handF = SEAT_HAND.slice(); tilt = 0.28; face = o.face ?? 'sip'; break;
+    case 'call': handN = [-38, -41]; handF = [12, -96]; hdir = 1; tilt = 0.12; face = o.face ?? (talking ? 'yell' : 'bleary'); break;
+    case 'reach': handN = [-38, -41]; handF = [46 + t * 18, -58]; hdir = 1; break;
+    case 'tv': handN = [-46 + Math.sin(f * 0.5) * 3, -84 + Math.cos(f * 0.5) * 2]; handF = SEAT_HAND.slice(); face = o.face ?? (talking ? 'yell' : 'angry'); break;
+    case 'squint': handN = [-38, -41]; handF = SEAT_HAND.slice(); hx -= 3; hy += 2; face = o.face ?? 'squint'; break;
     case 'rise': handN = [L(kneeN[0] + 2, -24), L(kneeN[1] - 6, -78)]; handF = [L(kneeF[0] + 4, 14), L(kneeF[1] - 6, -64)]; face = o.face ?? 'strain'; break;
     case 'stand': handN = [-30 + sway, -50]; handF = [16 + sway, -52]; break;
     case 'shuffle': handN = [-30 + sway + step * 0.6, -50]; handF = [16 + sway - step * 0.6, -52]; break;
@@ -345,11 +414,11 @@ export const drawDad = (c: Ctx, x: number, feetY: number, pose: DadPose, f: numb
     // (the fight's)
     case 'swat': {
       // (grabbed up, wound back over his shoulder, swung through round it and down out in front: swatGrip)
-      handN = swatGrip(t).near; handF = [8, -48];
+      handN = swatGrip(t).near; handF = SEAT_HAND.slice();
       face = o.face ?? (t < 0.4 ? 'angry' : 'yell'); break;
     }
-    case 'catch': handN = [-14, -124]; handF = [8, -48]; tilt = -0.1; face = o.face ?? 'yell'; break;
-    case 'puke': hx -= 7; hy += 7; handN = [-8, -56]; handF = [8, -48]; face = 'puke'; break;
+    case 'catch': handN = [-14, -124]; handF = SEAT_HAND.slice(); tilt = -0.1; face = o.face ?? 'yell'; break;
+    case 'puke': hx -= 7; hy += 7; handN = [-8, -56]; handF = SEAT_HAND.slice(); face = 'puke'; break;
     case 'baffled': handN = [hx - 7, hy - 15]; handF = [hx + 9, hy - 17]; face = o.face ?? 'wide'; break;
     case 'drag': handN = [26 + sway, -70]; handF = [34 + sway, -66]; face = o.face ?? 'strain'; break;
     case 'hammer': {
@@ -370,7 +439,7 @@ export const drawDad = (c: Ctx, x: number, feetY: number, pose: DadPose, f: numb
   // Drawing, back to front: the far arm, the far leg, the near leg, the belly (sat: the knees over it), the near arm,
   // the head, the can
   handF = arm(c, shF, handF, false, pose === 'call');
-  if (holding === 'far' && canAt) can(c, canAt[0], canAt[1], canAng, o.crushed ?? 0);
+  if (holding === 'far' && canAt) { can(c, canAt[0], canAt[1], canAng, o.crushed ?? 0); wrap(c, canAt, canAng, handF, (15 - (o.crushed ?? 0) * 9) / 2, (7 + (o.crushed ?? 0) * 2) / 2, false); }
   leg(c, [hip[0] + 6, hip[1]], kneeF, footF, false);
   leg(c, [hip[0] - 6, hip[1] + 1], kneeN, footN, true, 0.2);
   // (the boxers' seat under the belly: the stripes, the fly's gap and its button, the waistband rolled under the gut;
@@ -386,8 +455,9 @@ export const drawDad = (c: Ctx, x: number, feetY: number, pose: DadPose, f: numb
   // (the shoulders and the chest behind the belly: the tank top's straps, grey chest hair over its neckline)
   shape(c, () => { c.moveTo(shN[0] - 4, shN[1] + 6); c.quadraticCurveTo(shN[0], shN[1] - 4, (shN[0] + shF[0]) / 2, shN[1] - 3); c.quadraticCurveTo(shF[0], shF[1] - 4, shF[0] + 6, shF[1] + 6); c.lineTo(bx + brx * 0.6, by - bry * 0.4); c.lineTo(bx - brx * 0.7, by - bry * 0.4); c.closePath(); }, SKIN, shN[0] - 6, shF[0] + 6);
   belly(c, bx, by, brx, bry);
-  // (sat (or getting up), his knees stick out past the gut: the kneecaps over its edge)
-  if (up < 0.6) { kneecap(c, [hip[0] + 6, hip[1]], kneeF, false); kneecap(c, [hip[0] - 6, hip[1] + 1], kneeN, true); }
+  // (sat (or getting up), his near knee sticks out past the gut: its kneecap over the belly's edge (the far one's behind
+  // the near thigh))
+  if (up < 0.6) kneecap(c, hipN, kneeN, true);
   // (the tank top's neckline and straps up over the shoulders, a tuft of white chest hair)
   const nx = (shN[0] + shF[0]) / 2 - 2, ny = Math.min(shN[1], shF[1]) + 6;
   shape(c, () => { c.moveTo(shN[0] + 2, shN[1] - 1); c.lineTo(shN[0] + 7, shN[1] - 2); c.quadraticCurveTo(nx, ny + 10, shF[0] - 5, shF[1] - 1); c.lineTo(shF[0], shF[1]); c.lineTo(shF[0] + 2, by - bry + 6); c.lineTo(shN[0] - 2, by - bry + 6); c.closePath(); }, TANK, shN[0], shF[0]);
@@ -400,10 +470,15 @@ export const drawDad = (c: Ctx, x: number, feetY: number, pose: DadPose, f: numb
   line(c, [hx - 6, hy + 16, hx + 10, hy + 17], 0.6, SKIN[3]);
   handN = arm(c, shN, handN, true, pose === 'tv' || pose === 'crush' || pose === 'hammer');
   head(c, hx, hy, face, f, hdir, tilt, talking);
-  if (holding === 'near' && canAt) can(c, canAt[0], canAt[1], canAng, o.crushed ?? 0);
+  if (holding === 'near' && canAt) { can(c, canAt[0], canAt[1], canAng, o.crushed ?? 0); if (pose !== 'crush') wrap(c, canAt, canAng, handN, (15 - (o.crushed ?? 0) * 9) / 2, (7 + (o.crushed ?? 0) * 2) / 2, true); }
   // (crushing it on his forehead: the thumb over the top of it)
   if (pose === 'crush' && canAt) ell(c, canAt[0] + 3, canAt[1] - 2, 3, 2.4, SKIN[1]);
   o.held?.(c, handN, handF);
+  // (his fists round the mallet's handle (the angles the fight puts it at: dad.ts swatGrip / hammerGrip))
+  if (o.held) {
+    const ang = pose === 'swat' ? swatGrip(t).ang : pose === 'hammer' ? hammerGrip(Math.min(1, t)).ang : pose === 'stagger' ? 2.1 : pose === 'heave' ? -1.7 : null;
+    if (ang !== null) { wrap(c, handN, ang, handN, 9, 3, true); if (pose === 'hammer') wrap(c, handF, ang, handF, 9, 3, true); }
+  }
   c.restore();
 };
 

@@ -54,7 +54,7 @@ export const burst = (x: number, floorY: number, side: 1 | -1): { head: Head; bi
   const bits: Bit[] = [];
   // (kind, how many, how heavy (slower, lower), whether it floats (a rag), how thick lying down)
   const set: [BitKind, number, number, boolean, number][] = [
-    ['arm', 1, 0.8, false, 6], ['upper', 1, 0.7, false, 6], ['hand', 1, 0.5, false, 4], ['leg', 1, 1, false, 8], ['shin', 1, 0.8, false, 4.5],
+    ['arm', 1, 0.8, false, 8.5], ['upper', 1, 0.7, false, 9], ['hand', 1, 0.5, false, 5], ['leg', 1, 1, false, 11], ['shin', 1, 0.8, false, 5],
     ['gut', 1, 1.6, false, 17], ['chest', 1, 1.3, false, 9], ['seat', 1, 1.3, false, 10], ['tank', 3, 1, true, 1], ['boxer', 2, 1, true, 1],
     ['slipper', 1, 0.6, false, 4], ['can', 1, 0.6, false, 4.5], ['pack', 1, 0.6, false, 5], ['meat', 6, 0.6, false, 4], ['rope', 2, 0.8, false, 4], ['spine', 1, 0.8, false, 3.5],
   ];
@@ -164,9 +164,9 @@ const torn = (c: Ctx, x: number, y: number, r: number, dir: 1 | -1, seed: number
 // The bits (his units, about the middle, lying along x)
 
 const hand = (c: Ctx, x: number, y: number, curl = 0) => {
-  shape(c, () => c.ellipse(x, y, 4.4, 3.6, 0, 0, Math.PI * 2), SKIN, x - 4.4, x + 4.4, 0.8);
-  for (let k = 0; k < 4; k++) { const fy = y - 2.6 + k * 1.8; limb(c, x + 3, fy, 1.2, x + 6.4 - curl * 2, fy + curl * 1.4, 1, SKIN, 0, 0.5); ell(c, x + 6.6 - curl * 2, fy + curl * 1.4, 0.6, 0.5, '#E8D8A8'); }
-  limb(c, x - 1, y - 3, 1.4, x + 2.4, y - 5.8, 1.1, SKIN, 0, 0.5);
+  shape(c, () => c.ellipse(x, y, 5.6, 5, 0, 0, Math.PI * 2), SKIN, x - 5.6, x + 5.6, 0.8);
+  for (let k = 0; k < 4; k++) { const fy = y - 3.6 + k * 2.4; limb(c, x + 4, fy, 1.7, x + 9 - curl * 2.6, fy + curl * 1.6, 1.4, SKIN, 0, 0.55); ell(c, x + 9.2 - curl * 2.6, fy + curl * 1.4, 0.6, 0.5, '#E8D8A8'); }
+  limb(c, x - 1, y - 4, 2, x + 3.6, y - 6.6, 1.6, SKIN, 0, 0.55);
   ell(c, x + 1, y - 1, 0.8, 0.6, SPOT); ell(c, x - 1.6, y + 0.6, 0.6, 0.5, SPOT);
 };
 const tattoo = (c: Ctx, ax: number, ay: number) => {
@@ -216,32 +216,32 @@ const paintBit = (c: Ctx, kind: BitKind, seed: number) => {
   switch (kind) {
     case 'arm': {
       // (the near arm, whole, off at the shoulder: the bingo wing, the elbow, the anchor, the fat hand)
-      limb(c, -20, 0, 6.4, 0, 1, 4.8, SKIN, 2.4); limb(c, 0, 1, 4.6, 19, 0, 3.8, SKIN);
-      ell(c, 0.6, 2.6, 3.2, 2.6, SKIN[2]); line(c, [-1, 4, 0.6, 5, 2, 4.2], 0.4, SKIN[3]);
+      limb(c, 0, 1, 6.8, 19, 0, 5.2, SKIN, 1.2); limb(c, -20, 0, 10, 0, 1, 7.2, SKIN, 3.4);
+      ell(c, 0.6, 3.6, 3.6, 3, SKIN[2]); line(c, [-1, 6, 0.6, 7, 2, 6.2], 0.45, SKIN[3]);
       ell(c, -10, -1, 1.2, 0.9, SPOT); tattoo(c, 10, 0.6); hairs(c, 4, 17, -2.6);
-      hand(c, 23, 0, 0.6); torn(c, -24, 0, 6.6, -1, seed);
+      hand(c, 24, 0, 0.6); torn(c, -26, 0, 10.4, -1, seed);
       break;
     }
     case 'upper': {
       // (the far upper arm, off at both ends)
-      limb(c, -13, 0, 6.4, 11, 1, 4.8, SKIN, 2.4); ell(c, -2, -1.6, 1.1, 0.8, SPOT);
-      torn(c, -17, 0, 6.6, -1, seed); torn(c, 14, 1, 5, 1, seed + 3);
+      limb(c, -13, 0, 10, 11, 1, 7.2, SKIN, 3.4); ell(c, -2, -2.6, 1.3, 1, SPOT);
+      torn(c, -19, 0, 10.4, -1, seed); torn(c, 16, 1, 7.4, 1, seed + 3);
       break;
     }
     case 'hand': hand(c, 2, 0, 1); torn(c, -3, 0, 3.6, -1, seed); break;
     case 'leg': {
       // (a leg off at the hip: the boxer leg shredded, the bare knee, the shin and its vein, the black sock, the slipper)
-      limb(c, -14, 0, 5.4, 4, 0.6, 4.6, SKIN);
-      limb(c, -26, 0, 8, -12, 0, 7.2, BOXER);
-      c.save(); c.beginPath(); c.rect(-34, -9, 22, 18); c.clip(); for (let x = -34; x < -12; x += 4) line(c, [x, -9, x + 0.6, 9], 1, STRIPE); c.restore();
+      limb(c, -14, 0, 8.4, 4, 0.6, 6.4, SKIN, 1);
+      limb(c, -26, 0, 12, -12, 0, 9.6, BOXER, 1.4);
+      c.save(); c.beginPath(); c.rect(-38, -13, 26, 26); c.clip(); for (let x = -38; x < -12; x += 4) line(c, [x, -13, x + 0.6, 13], 1, STRIPE); c.restore();
       for (let k = 0; k < 4; k++) fill(c, BOXER[2], () => { const y = -7 + k * 4; c.moveTo(-12, y); c.lineTo(-9 + hash(seed + k) * 2, y + 1.4); c.lineTo(-12, y + 3); c.closePath(); });
-      ell(c, 4.6, 0.4, 5, 4.4, SKIN[1]); ell(c, 3.6, -1.4, 2, 1.2, SKIN[0]);
-      limb(c, 5, 0.6, 4.2, 30, 0, 3, SKIN); line(c, [9, -1.6, 16, -2.4, 24, -1], 0.6, VEIN);
-      sock(c, 18, 31, 0, 3.6); slipper(c, 32, 0);
-      torn(c, -34, 0, 8.4, -1, seed);
+      limb(c, 5, 0.6, 5, 30, 0, 3.7, SKIN, 1.6);
+      ell(c, 4.6, 0.4, 6.6, 5.8, SKIN[1]); ell(c, 3.6, -1.8, 2.6, 1.5, SKIN[0]); line(c, [9, -1.6, 16, -2.4, 24, -1], 0.6, VEIN);
+      sock(c, 18, 31, 0, 4.4); slipper(c, 32, 0);
+      torn(c, -36, 0, 12.4, -1, seed);
       break;
     }
-    case 'shin': limb(c, -12, 0, 4.4, 10, 0, 3, SKIN); line(c, [-8, -1.6, 0, -2.2, 6, -1], 0.6, VEIN); sock(c, 2, 12, 0, 3.6); slipper(c, 13, 0); torn(c, -15, 0, 4.8, -1, seed); break;
+    case 'shin': limb(c, -12, 0, 5, 10, 0, 3.7, SKIN, 1.6); line(c, [-8, -1.6, 0, -2.2, 6, -1], 0.6, VEIN); sock(c, 2, 12, 0, 4.4); slipper(c, 13, 0); torn(c, -15, 0, 5.4, -1, seed); break;
     case 'gut': {
       // (the beer gut, whole, in the tank top: forty years of SWILL LITE; torn off top and bottom, the guts out of it)
       gutRope(c, [-14, -14, -18, -20, -10, -22, -4, -18, 2, -22, 8, -19], 3);
