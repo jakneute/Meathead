@@ -136,6 +136,13 @@ export const HARRY_LOST: Record<MechId, string[]> = {
   moai: [],
 };
 /** Harry heckling up at him now and then (by his pants; the clean ones go to every state). */
+/** The hint (the user's: "drop a hint during the helicopter section about how your helicopter blades are a weapon
+ *  too"): Harry, livid, yelling at him to keep the blades off his guys (which is how to kill them). Once, early. */
+export const HARRY_BLADES: ByPants = {
+  clean: ['KEEP MY BLADES AWAY FROM MY GUYS! THOSE THINGS CHOP PEOPLE, YOU ANIMAL!', 'DO NOT FLY THE ROTOR INTO MY MEN! IT TURNS THEM INTO SALSA!'],
+  shitty: ['KEEP MY BLADES OFF MY GUYS, YOU SHITTY ANIMAL! THEY CHOP PEOPLE!', "DON'T FLY THE ROTOR INTO MY MEN! YOU ALREADY RUINED THE SEAT!"],
+  nude: ['KEEP MY BLADES OFF MY GUYS, YOU NAKED ANIMAL! THEY CHOP PEOPLE!', "DON'T FLY THE ROTOR INTO MY MEN! PUT ON PANTS AND DON'T!"],
+};
 export const HARRY_HECKLE: ByPants = {
   clean: [
     'I HATE THE WORLD! ALL OF IT! EXCEPT AMERICA! AND NOT EVEN ALL OF AMERICA!',
@@ -332,7 +339,7 @@ export const VOICE_LINES = pavilionVoices({ pa: { clean: [], shitty: [], nude: [
   meathead: [...MH_TOUR, MH_SHUT_UP, ...MH_TAKES, ...MH_ROCKET, ...MH_PISA_MISSED, ...ALL(MH_KILL, l => l), ...MH_SHRED],
   [HARRY]: [
     ...pants(HARRY_BOARD), ...HARRY_TOUR, ...HARRY_SHOVED, ...HARRY_TURNS, ...ALL(HARRY_SEND, pants), ...ALL(HARRY_LOST, l => l),
-    ...pants(HARRY_HECKLE), ...HARRY_GOONS, ...HARRY_GLOAT, ...pants(HARRY_END), ...HARRY_HIT,
+    ...pants(HARRY_HECKLE), ...pants(HARRY_BLADES), ...HARRY_GOONS, ...HARRY_GLOAT, ...pants(HARRY_END), ...HARRY_HIT,
   ],
   ...Object.fromEntries(Object.entries(MECH_TALK).map(([id, t]) => [MECH_VOICE[id as MechId], [
     ...t.intro, ...t.taunt, ...t.hurt, ...t.die, ...(id === 'pisa' ? [...PISA_FALL, ...PISA_MISSED, ...PISA_GOT_HIM] : []),

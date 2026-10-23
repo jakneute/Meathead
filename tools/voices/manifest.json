@@ -31606,7 +31606,22 @@
  },
  {
   "voice": "m2.foreign.harry",
+  "text": "DO NOT FLY THE ROTOR INTO MY MEN! IT TURNS THEM INTO SALSA!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
   "text": "DON'T COME ANY CLOSER. I'M AIRSICK, I LOST MY PILLS, AND YOU SHIT YOURSELF.",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "DON'T FLY THE ROTOR INTO MY MEN! PUT ON PANTS AND DON'T!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "DON'T FLY THE ROTOR INTO MY MEN! YOU ALREADY RUINED THE SEAT!",
   "from": "FOREIGN"
  },
  {
@@ -32192,6 +32207,21 @@
  {
   "voice": "m2.foreign.harry",
   "text": "KAYLEE, YOU USELESS DIPSHIT! YOU HAD ONE JOB!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "KEEP MY BLADES AWAY FROM MY GUYS! THOSE THINGS CHOP PEOPLE, YOU ANIMAL!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "KEEP MY BLADES OFF MY GUYS, YOU NAKED ANIMAL! THEY CHOP PEOPLE!",
+  "from": "FOREIGN"
+ },
+ {
+  "voice": "m2.foreign.harry",
+  "text": "KEEP MY BLADES OFF MY GUYS, YOU SHITTY ANIMAL! THEY CHOP PEOPLE!",
   "from": "FOREIGN"
  },
  {

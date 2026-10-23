@@ -57,7 +57,7 @@ import { drawHarry } from './harryArt';
 import { harrySays, guestShouts, quiet, harryFrom, harryPick, harrySaid } from './talk';
 import {
   HURT, MECHS, MECH_NAME, QUEUE_SHOUT, QUEUE_SHOUT_SHAT, QUEUE_SHOUT_NUDE, HARRY_BOARD, HARRY_TOUR, MH_TOUR, MH_SHUT_UP, HARRY_SHOVED,
-  HARRY_TURNS, MH_TAKES, HARRY_HECKLE, HARRY_GOONS, HARRY_GLOAT, HARRY_END, MH_ROCKET, HARRY_HIT,
+  HARRY_TURNS, MH_TAKES, HARRY_HECKLE, HARRY_BLADES, HARRY_GOONS, HARRY_GLOAT, HARRY_END, MH_ROCKET, HARRY_HIT,
 } from './lines';
 
 registerHurts(HURT);
@@ -375,6 +375,8 @@ const flyUpdate = (ctx: FrameContext, h: Heli, controls: Controls): Controls => 
   { const cm = h.mechs[h.cur]; if (!h.transit && cm?.st === 'intro') { const q = Math.min(1, cm.t / (cm.introLen * 0.95)); h.prog = h.cur - RISE[h.cur].d * (1 - q * q * (3 - 2 * q)); } else if (!h.transit && cm && (cm.st === 'fight' || cm.st === 'dying')) h.prog = h.cur; }
   // Harry down on the ground, chasing after him, swearing up at him, working the remote
   harryRuns(state, h);
+  // (the blades' hint, once, the first time his guys are up here with him: before any heckling)
+  if (!h.flags.blades && p.health > 0 && !p.inCutscene && goonsLeft(state) > 0 && quiet(state)) { h.flags.blades = true; h.heckleAt = Math.max(h.heckleAt, f + 600); harrySays(state, harryFrom(state, HARRY_BLADES), false); }
   if (p.health > 0 && f > h.heckleAt && quiet(state)) { h.heckleAt = f + 800 + Math.random() * 400; harrySays(state, harryFrom(state, HARRY_HECKLE), false); }
   if (h.lastHp >= 0 && p.health < h.lastHp && p.health > 0 && f - h.gloatAt > 600 && Math.random() < 0.3) { h.gloatAt = f; harrySays(state, harryPick(HARRY_GLOAT), false); }
   h.lastHp = p.health;
