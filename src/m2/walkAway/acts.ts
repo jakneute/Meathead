@@ -396,7 +396,10 @@ const SOUVENIR: Act = {
   pose: (t, p) => {
     const u = t % 480, step = p.step;
     const bnc = Math.abs(Math.sin(step));
-    const shoulder = (): K => ({ L: [48, -102 + bnc * 1.5], rot: -1.42 - bnc * 0.04, sy: -1, EL: [60, -96] });
+    // (on his shoulder: his fist up in front of it on the grip, the pipe lying over the top of it, the muzzle up and out
+    // past his ear, the bag on top. Not stood up on end beside his arm (the pipe went down past his fist, through his
+    // forearm: the user's); the same way up as when it's lowered and tossed, so it never flips over between them)
+    const shoulder = (): K => ({ L: [40, -126 + bnc * 1.5], rot: -0.52 - bnc * 0.03, EL: [60, -100] });
     const toss = (a: number, b: number, h: number, turns: number) => (uu: number): K => {
       const k = (uu - a) / (b - a), y = -92 - h * 4 * k * (1 - k);
       return { L: [46, -100 + Math.sin(k * Math.PI) * 6], at: [44 - 12 * Math.sin(k * Math.PI), y], rot: -0.4 + k * Math.PI * 2 * turns, EL: [62, -98] };
@@ -418,7 +421,9 @@ const SOUVENIR: Act = {
     const caught = (u >= 196 && u < 216) || (u >= 386 && u < 400);
     p.face = flying ? 'smirk' : caught ? 'chuckle' : 'grin';
     p.headY = u >= 150 && u < 190 ? -2 : caught ? -((t >> 3) % 2) : 0;
-    p.hold = toHold(f, (c, tt) => T.souvenir(c, tt, caught ? Math.sin(u * 0.8) * 2 : 0), { under: !flying && !caught && (u < 110 || u >= 220) });
+    // (always in front of his forearm, under his fist: the pipe's over the top of his fist wherever it is, so his
+    // forearm's never across it, and there's no switching it behind and in front mid-swing)
+    p.hold = toHold(f, (c, tt) => T.souvenir(c, tt, caught ? Math.sin(u * 0.8) * 2 : 0));
   },
   tick: (_t, u, fx) => {
     if (u === 146 || u === 360) fx.sound('whoosh', 0.16, 2);
