@@ -20,8 +20,13 @@
 //                 the basement's in stretches (WINDOWS), each one a go he has to hide through; somewhere in each (rolled
 //                 each life) she's out for him if she hasn't been yet, ahead of him on his level, coming his way, a
 //                 hiding spot in reach (a breather after the last go first). Not hidden through it, it's owed: she's
-//                 back for it. The stairs' finale waits on them all (four from the top, fewer from the checkpoints). At the foot of the stairs
-//                 she comes for him for real, behind him, and it's a run up them for the door. Touched: one shot.
+//                 back for it. The stairs' finale waits on them all (four from the top, fewer from the checkpoints).
+//   THE STAIRS    the panic run (the user's: "you don't see it coming, but you hear it"): at their foot she's out
+//                 behind him, unseen, and he hears her coming: her claws clicking faster and nearer, her footfalls,
+//                 the stairs rattling under her, screeches, the stalker song's panic arrangement. Keep going up and he
+//                 makes the door (she's his pace, a gap behind); stop (no headway for half a second) or turn back down
+//                 (more than a step's worth) and she's on him: a screech and the lunge, in from off the screen behind,
+//                 the first he sees of her. The door kicked in, she's shut out. Touched: one shot.
 //   THE KILL      she snatches him up to her face; a beat, her jaws opening in his face, her claw closing over his
 //                 head; she tears it off; the neck geysers; she drops the body (it twitches); she screeches over the head
 //                 and pitches it (the camera in close for it: his own death, 'headripped').
@@ -51,7 +56,7 @@ import { registerDeathKind, registerDeathAnim } from '../../../m1/game/player/de
 import { registerDeathDraw, body } from '../../../m1/game/render/player/deathAnim';
 import { drawBloodPool } from '../../../m1/game/render/spatter';
 import { onLadder, type LadderDef } from '../../moves/ladders';
-import { setUi } from '../../store';
+import { setUi, isLandCleared } from '../../store';
 import { hands, meatheadSays, box } from '../section';
 import { ink, limb } from '../../../m1/game/render/npc/kit';
 import { stamp } from '../../../m1/game/render/stamp';
@@ -227,6 +232,9 @@ export interface Hunter {
   win: { a: number; b: number; at: number; done: boolean }[];
   /** He's been hidden with her near, this go; the frame she last went (the breather's from then). */
   hidNear: boolean; goneAt: number;
+  /** The stairs' panic run (heard, never seen till she has him): frames in, the furthest he's got (x), frames since he
+   *  last got further, where she is behind him (x, unseen), and her lunge on (he stopped, or turned back). */
+  chase: { t: number; best: number; still: number; herX: number; lunge: boolean } | null;
 }
 export const makeHunter = (state: GameState): Hunter => {
   const cx = state.player.pos.x + state.player.width / 2;
@@ -241,6 +249,7 @@ export const makeHunter = (state: GameState): Hunter => {
     wasGrounded: true, lastVy: 0, lastShoot: false, lastJump: false, lastMove: false, warned: false, freeMove: false,
     cam: 0,
     win: WINDOWS.map(([a, b]) => ({ a, b, at: rnd(a, b - 250), done: false })), hidNear: false, goneAt: -9999,
+    chase: null,
   };
 };
 export const buildHunter = (state: GameState, h: Hunter) => {
@@ -318,6 +327,8 @@ export const tickHunter = (ctx: FrameContext, h: Hunter, controls: Controls): Co
   // (his heart, in there: quicker with her near)
   if (h.hid >= 0 && --h.heart <= 0) { const near = inPlay(h) && Math.abs(h.x - cx) < 400; h.heart = near ? 22 : 44; playSound('thud', near ? 0.45 : 0.25, -14); }
   hearHim(state, h, controls);
+  if (!h.finale) maybeChase(state, h);
+  if (h.chase) tickChase(state, h);
   if (h.mode === 'away') schedule(state, h);
   runHer(ctx, h);
   if (h.mode !== 'kill') h.cam = Math.max(0, h.cam - 0.03);
@@ -442,15 +453,7 @@ const schedule = (state: GameState, h: Hunter) => {
     const due = h.win.find(w => !w.done && cx >= w.at), last = cx > WINDOWS[WINDOWS.length - 1][0];
     if (due && state.frame - h.goneAt >= (last ? BREATHER_LAST : BREATHER) && forceGo(state, h, cx > STAIRS_A - 380)) return;
   }
-  // (the stairs: she comes for him for real, from behind; not till he's hidden through every go he owes (if nowhere's
-  // fair for one (up the stairs already), the finale it is))
-  if (!h.finale && cx > STAIRS_A - 380 && (!owed(h) || cx > STAIRS_A - 100)) {
-    h.finale = true;
-    const from = Math.max(B + 200, cx - 640);
-    emerge(state, h, 0, from, 'duct', [], 3.9, false);
-    h.huntOnDrop = true;
-    return;
-  }
+  // (the stairs: the panic run (maybeChase, below))
   if (h.finale) return;
   // (a fake going: the vent rattling for nothing)
   if (h.fake) {
@@ -627,11 +630,15 @@ const runHer = (ctx: FrameContext, h: Hunter) => {
       break;
     case 'leap': {
       const lp = h.leap!;
-      const k = Math.min(1, h.t / 30);
+      // (the stairs' lunge: quicker, and at him wherever he's got to)
+      const lunge = !!h.chase?.lunge;
+      if (lunge) { lp.x1 = cx - 46; lp.y1 = levelY(0, lp.x1); }
+      const k = Math.min(1, h.t / (lunge ? LUNGE_T : 30));
       h.x = lp.x0 + (lp.x1 - lp.x0) * k;
-      h.y = lp.y0 + (lp.y1 - lp.y0) * k - Math.sin(k * Math.PI) * 90;
+      h.y = lp.y0 + (lp.y1 - lp.y0) * k - Math.sin(k * Math.PI) * (lunge ? 60 : 90);
       if (k >= 1) {
         h.lvl = lp.lvl; h.y = lp.y1; h.leap = null;
+        if (lp.then === 'kill') { if (p.health > 0 && state.deathTimer <= 0) startKill(state, h); else to(h, 'away'); return; }
         playSound('land', vol(state, h.x, 0.9), -10); shakeScreen(state, 5, 3); dust(state, h.x, h.y - 4, 6);
         to(h, lp.then); h.lastSeen = state.frame;
         if (lp.then === 'prowl') { h.path = [{ x: clampLvl(h, cx), stop: 60 }]; h.leg = 0; }
@@ -740,6 +747,77 @@ const dust = (state: GameState, x: number, y: number, n: number) => {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
+// The stairs: the panic run (the user's: "you can hear it coming after you and it will jump you and kill you if you stop
+// or backtrack before you get to the door"; "you don't see it coming, but you hear it"). She's never drawn till the
+// lunge: all of it's in the sounds (and the stalker song's 'panic', cues.ts).
+
+/** How far short of the stairs' foot it starts (with every go paid; with one still owed, right at the foot). */
+const CHASE_FOOT = 120, CHASE_FOOT_OWED = 40;
+/** Frames at the start before stopping counts (the first screech: his cue to go). */
+const CHASE_GRACE = 40;
+/** Stopped: this many frames with no headway (half a second). Turned back: this far back down from the furthest he's got. */
+const CHASE_STILL = 30, CHASE_BACK = 48;
+/** Her, behind him unseen: px a frame (his walk's PLAYER_MOVE_SPEED, 4.44: she's 88% of it), never further back than
+ *  CHASE_GAP (so running he holds her there; stood still she closes); this close and she has him anyway. */
+const CHASE_PACE = 3.9, CHASE_GAP = 560, CHASE_START = 520, CHASE_CATCH = 70;
+/** The lunge: frames from off the screen behind him to him. */
+const LUNGE_T = 18;
+
+const maybeChase = (state: GameState, h: Hunter) => {
+  const p = state.player, cx = pmid(state);
+  if (p.health <= 0 || state.deathTimer > 0 || p.inCutscene || h.hid >= 0) return;
+  if (cx <= STAIRS_A - (owed(h) ? CHASE_FOOT_OWED : CHASE_FOOT)) return;
+  // (her on him already (seen, leaping, the ambush, the kill): that's its own; out somewhere he can see her: not till
+  // she's off the screen (gone back up for this, never popped out of sight))
+  if (!['away', 'prowl', 'search', 'tell', 'climb'].includes(h.mode)) return;
+  if (h.mode !== 'away' && h.x > state.camera.x - 80 && h.x < state.camera.x + CANVAS_WIDTH + 80) return;
+  to(h, 'away'); h.next = 1e9; h.finale = true; h.fg = null; h.rattle = null; h.fake = null; h.leaving = false;
+  // (the door in already, or the land's done (a revisit): the basement's empty of her; no run)
+  if (h.door !== 'shut' || isLandCleared('space')) return;
+  h.chase = { t: 0, best: cx, still: 0, herX: cx - CHASE_START, lunge: false };
+  // (the cue: down there behind him, a duct's grille banged out, her screech; and him)
+  playSound('clang', 0.8, -6); playSound('screams', 0.85, -6); shakeScreen(state, 4, 3);
+  meatheadSays(state, pick(L.MH_SEEN), false);
+};
+
+const tickChase = (state: GameState, h: Hunter) => {
+  const c = h.chase!, p = state.player, cx = pmid(state);
+  if (c.lunge || h.mode === 'kill' || p.health <= 0 || state.deathTimer > 0 || h.door !== 'shut') return;
+  c.t++;
+  // (headway: any further toward the door than he's been (walking, or a jump up the steps), and the clock's reset)
+  if (cx > c.best + 0.25) { c.best = cx; c.still = 0; }
+  else if (c.t > CHASE_GRACE) c.still++;
+  // (her, coming up behind: his pace while he runs, closing when he doesn't)
+  c.herX = Math.max(c.herX + CHASE_PACE, cx - CHASE_GAP);
+  const gap = cx - c.herX;
+  if (c.still >= CHASE_STILL || c.best - cx > CHASE_BACK || gap < CHASE_CATCH) { lunge(state, h); return; }
+  // (what he hears: louder and quicker the longer it goes and the nearer she gets)
+  const near = Math.max(0, Math.min(1, (CHASE_GAP - gap) / (CHASE_GAP - CHASE_CATCH)));
+  const k = Math.min(1, Math.max(Math.min(1, c.t / 300) * 0.75, near));
+  // her claws on the steps, clicking faster
+  if (c.t % Math.round(12 - 7 * k) === 0) playSound('click', 0.3 + 0.5 * k, 2 + 5 * k + Math.random() * 2);
+  // her weight on them
+  if (c.t % Math.round(28 - 12 * k) === 0) playSound('thud', 0.25 + 0.4 * k, -12);
+  // the stairs rattling under her
+  if (c.t % 90 === 50) { playSound('clang', 0.25 + 0.4 * k, -8 + Math.random() * 4); shakeScreen(state, 1 + 2 * k, 2); }
+  // screeches (spaced: the user's fewer-whooshes rule)
+  if (c.t % 150 === 100) screech(state, 0.4 + 0.5 * k, -7 + 4 * k, 140);
+  // closing (he's stopped): her breath, right behind
+  if (c.still > 6 && c.still % 8 === 0) playSound('snort', 0.5 + 0.4 * near, -12);
+};
+
+/** He stopped (or turned back, or let her close): a screech, and she's out of the dark behind him, at him. */
+const lunge = (state: GameState, h: Hunter) => {
+  const c = h.chase!, cx = pmid(state);
+  c.lunge = true;
+  const from = Math.max(B + 40, Math.min(cx - 260, state.camera.x - 90));
+  h.lvl = 0; h.x = from; h.y = levelY(0, from); h.dir = 1; h.fg = null; h.rattle = null;
+  h.leap = { x0: from, y0: h.y, x1: cx - 46, y1: levelY(0, cx - 46), lvl: 0, then: 'kill' };
+  to(h, 'leap');
+  playSound('screams', 1, -2); playSound('roar', 0.8, -6); shakeScreen(state, 6, 3);
+};
+
+// ---------------------------------------------------------------------------------------------------------------
 // The kill: snatched up to her face, the beat, his head torn off, the body dropped; she screeches over the head and
 // pitches it
 
@@ -749,7 +827,8 @@ const startKill = (state: GameState, h: Hunter) => {
   p.inCutscene = true; p.carried = true; p.vel.x = 0; p.vel.y = 0;
   p.isCharging = false; p.isSliding = false; p.isUppercutting = false; p.isDivekicking = false;
   h.dir = pmid(state) < h.x ? -1 : 1;
-  ripKill.floor = h.y;
+  // (where his body drops: the floor under where she holds him (on the stairs, the step there))
+  ripKill.floor = h.lvl ? h.y : levelY(0, heldAt(h, K_RIP).x);
   playSound('roar', 1, -4); shakeScreen(state, 8, 4);
 };
 /** Where he's held (his feet), t frames into it: up off the floor in her claws, out in front of her face (yanked down
@@ -836,9 +915,11 @@ export const hunterZoom = (state: GameState, h: Hunter) => {
 // The disco's door, at the top of the stairs: up to it, the boot (the chase is over: she's held off for it)
 
 // (right up at it, walked there himself: the user's "the player has to physically walk up to the door")
-export const atDoor = (state: GameState, h: Hunter) => h.door === 'shut' && pmid(state) > DOOR_X - 100 && state.player.isGrounded && state.player.health > 0 && state.deathTimer <= 0 && h.mode !== 'kill';
+export const atDoor = (state: GameState, h: Hunter) => h.door === 'shut' && pmid(state) > DOOR_X - 100 && state.player.isGrounded && state.player.health > 0 && state.deathTimer <= 0 && h.mode !== 'kill' && !h.chase?.lunge;
 export const startKick = (state: GameState, h: Hunter) => {
   h.door = 'kicking'; h.doorT = 0;
+  // (made it: the run's over; her, down the stairs behind him, one last screech, shut out)
+  if (h.chase) { h.chase = null; playSound('screams', 0.7, -8); }
   const p = state.player;
   if (h.hid >= 0) { h.hid = -1; p.hidden = false; }
   p.inCutscene = true;

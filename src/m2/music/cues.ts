@@ -425,7 +425,7 @@ const spookyMoment = (s: GameState, sec: string): Cand | null => {
 interface SpaceOwn {
   ride?: { k?: number };
   orbit?: { quiet?: boolean; saucer?: { st?: string } | null };
-  queen?: { h?: { mode?: string; finale?: boolean; rattle?: unknown; fg?: unknown } | null };
+  queen?: { h?: { mode?: string; finale?: boolean; rattle?: unknown; fg?: unknown; chase?: unknown } | null };
 }
 const spaceOwn = (s: GameState) => ((s.stage as { s?: SpaceOwn } | null)?.s ?? {});
 /** The saucer's song by its fight: at it; pissed and the beam; it's got him, the blast, the fall; gone (back up here
@@ -441,6 +441,8 @@ const ufoArr = (s: GameState) => {
 const stalkerArr = (s: GameState) => {
   const h = spaceOwn(s).queen?.h;
   if (!h) return 'dark';
+  // (the stairs' panic run: heard, not seen: creepy, not the Mega Man chase)
+  if (h.chase) return 'panic';
   if (h.finale || ['hunt', 'crouch', 'leap', 'ambush', 'kill'].includes(h.mode ?? '')) return 'hunt';
   return h.mode !== 'away' || h.rattle || h.fg ? 'near' : 'dark';
 };

@@ -340,7 +340,8 @@ export const SEQ_SPACE_TRAIN: Song = {
 // double kick, taiko, tremolo strings sawing at the minor second, brass stabs on the tritone.
 // F-sharp (Locrian-ish: the G and the C), 80 (the hunt's sixteenths feel like a 160 chase). 32 bars, looping.
 // ARRANGEMENTS (cues.ts picks by what she's doing): dark (she's away), near (she's out: the tells, the prowl, the
-// search, the ceiling), hunt (she's seen him: the crouch, the leap, the run; and the stairs).
+// search, the ceiling), hunt (she's seen him: the crouch, the leap, the run), panic (the stairs' run: her heard behind
+// him, never seen: creepy, no beat).
 
 /** Four bars of a drone note: swelling up out of nothing over two, sinking back over two (re-bowed). */
 const swell4 = (n: string) => `_e20 _e110/1^1 ${n}1^1 _e110 _e20/1^1 ${n}1^1`;
@@ -381,14 +382,17 @@ export const SEQ_STALKER: Song = {
     chug: { inst: 'chug', pan: -0.4, rev: 0.05, vol: 0.45, only: ['hunt'], mml: join(['_v105'], rep(ST_CHUG, 32)) },
     scream: { inst: 'distlead', pan: 0.25, rev: 0.3, dly: 0.2, vol: 0.5, only: ['hunt'], mml: join(rest(8), rep(ST_SCREAM.join(' | '), 2), rest(8)) },
     groove: { inst: 'kick', drums: true, rev: 0.2, vol: 0.65, only: ['hunt'], mml: join(['_v105'], rep([X(ST_GROOVE), ...rep(ST_GROOVE, 6), ST_FILL].join(' | '), 4)) },
-    taiko: { inst: 'taiko', drums: true, rev: 0.35, vol: 0.6, only: ['hunt'], mml: join(['_v100'], rep(ST_TAIKO, 32)) },
+    taiko: { inst: 'taiko', drums: true, rev: 0.35, vol: 0.6, only: ['hunt', 'panic'], mml: join(['_v100'], rep(ST_TAIKO, 32)) },
     stabs: { inst: 'brass', pan: 0.3, rev: 0.3, vol: 0.45, only: ['hunt'], mml: join(rep(ST_STABS.join(' | '), 16)) },
-    trem: { inst: 'strings', pan: -0.3, rev: 0.4, vol: 0.3, only: ['hunt'], mml: join(['_v85'], rep('o5 [f+32 g32]16', 32)) },
+    trem: { inst: 'strings', pan: -0.3, rev: 0.4, vol: 0.3, only: ['hunt', 'panic'], mml: join(['_v85'], rep('o5 [f+32 g32]16', 32)) },
   },
   arrangements: {
     dark: { solo: ['drone', 'pad', 'breath', 'hits', 'timp', 'gong', 'drips', 'high'], vol: { high: 0.6 }, level: 0.85 },
     near: { solo: ['drone', 'low2', 'pad', 'breath', 'hits', 'timp', 'gong', 'drips', 'high', 'clicks', 'heart', 'horn'], level: 0.95 },
     main: { solo: ['drone', 'low2', 'pad', 'breath', 'hits', 'timp', 'gong', 'drips', 'high', 'clicks', 'heart', 'horn'], level: 0.95 },
     hunt: { mute: ['breath', 'drips', 'heart'], vol: { drone: 0.8, horn: 1.2 } },
+    // (the stairs' panic run, her heard and not seen: no beat, no guitars; the drone and the cluster up loud, her clicks,
+    // his heart, the strings sawing at the minor second, the taiko under it)
+    panic: { solo: ['drone', 'low2', 'pad', 'high', 'hits', 'timp', 'clicks', 'heart', 'horn', 'trem', 'taiko'], vol: { drone: 1.2, high: 1.4, heart: 1.3, clicks: 1.3, trem: 0.9, taiko: 0.6 }, level: 1 },
   },
 };
