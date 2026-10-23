@@ -582,7 +582,8 @@ const SCENES: Record<string, Record<BossDeath, Scene>> = {
       stink(p, 66, 62);
       p.marker(30, 76);
     },
-    // The fifth car: flattened to a quarter inch, the tread across him, the car on its nose, the family's wreckage round it.
+    // The sixth car: him in bits all over the set, his head sat up on its stump in a puddle, the car on its nose burning,
+    // the couch crushed at the back (the user's: "his parts will be everywhere").
     weakness: p => {
       livingRoom(p, 36);
       // (the couch, crushed, at the back; a robot arm out of the wreckage)
@@ -590,29 +591,42 @@ const SCENES: Record<string, Record<BossDeath, Scene>> = {
       for (let k = 0; k < 4; k++) p.line(8 + k * 7, 28, 10 + k * 7, 40, '#5C4224');
       p.px(20, 32, '#9EA2AC'); p.px(21, 31, '#9EA2AC'); p.px(22, 32, '#9EA2AC');
       p.cap(36, 42, 44, 38, 1.4, 1.2, STEEL); p.line(44, 38, 47, 36, '#DC2626'); p.line(44, 38, 47, 40, '#2563EB');
-      // (him, flat: the outline of a fat man pressed into the shag, its edges lifting)
-      p.fill(6, 48, 66, 76, (x, y) => {
-        const body = ((x - 34) / 16) ** 2 + ((y - 62) / 8) ** 2 <= 1;
-        const head = ((x - 13) / 6) ** 2 + ((y - 60) / 5) ** 2 <= 1;
-        const armA = y > 50 && y < 54 && x > 22 && x < 36 && Math.abs(y - (52 - (x - 22) * 0.05)) < 1.6;
-        const legs = (y > 58 && y < 61.5 || y > 64.5 && y < 68) && x > 46 && x < 64;
-        return body || head || armA || legs;
-      }, (x, y) => 0.6 + 0.12 * Math.sin(x * 0.9 + y), OSKIN);
-      p.fill(22, 55, 46, 69, (x, y) => ((x - 34) / 11) ** 2 + ((y - 62) / 6) ** 2 <= 1, () => 0.7, TANK);
-      p.ell(31, 62, 2.4, 1.6, ['#F2E2A8', '#DCC67C', '#BCA45A', '#94803E', '#4A3E1A'], { ink: false });
-      p.fill(44, 57, 52, 69, (x, y) => ((x - 48) / 4) ** 2 + ((y - 63) / 6) ** 2 <= 1, () => 0.7, BOXER);
-      p.rect(62, 58, 4, 4, '#2E2E35'); p.rect(62, 64, 4, 4, '#2E2E35');
-      p.ell(12, 59, 2.4, 1.6, FLUSH, { ink: false }); xEye(p, 15, 58, '#4A0F20');
-      for (let x = 8; x < 64; x += 5) p.px(x, 49 + ((x / 5) & 1) * 20, '#5E3026');
-      // (the tread, across him)
-      for (let y = 46; y < PH; y++) for (let k = 0; k < 9; k++) { const x = 30 + k + (y - 46) * 0.3; if (((y >> 1) + k) % 3 === 0) p.px(x, y, '#2A1C14'); }
-      // (the car, on its nose at the edge of the set, smoking; a can)
-      p.poly([[64, 30], [86, 22], [86, 56], [70, 52]], CAR, { l: 0.85, l2: 0.3 });
-      p.line(66, 36, 86, 30, '#FFFFFF'); p.line(66, 37, 86, 31, '#FFFFFF');
-      p.ell(70, 50, 3, 3, GUN); p.rect(72, 40, 4, 3, '#FEF9C3');
-      p.smoke(78, 22, 20); p.smoke(70, 28, 14, '#6C707A');
-      p.cap(6, 72, 12, 70, 2, 2, CAN);
-      p.marker(56, 74);
+      // (the blood: the lake under the car, splats where the bits came down)
+      p.pool(66, 60, 16, 5, BLOOD, 3);
+      for (const [x, y, r] of [[14, 70, 7], [40, 54, 5], [30, 74, 4], [52, 72, 5], [8, 50, 3], [80, 74, 4]]) p.pool(x, y, r, r / 3, BLOOD, x);
+      // (the car, on its nose where it landed on him, burning)
+      p.poly([[56, 30], [80, 22], [82, 56], [62, 54]], CAR, { l: 0.85, l2: 0.3 });
+      p.line(58, 36, 80, 30, '#FFFFFF'); p.line(58, 37, 80, 31, '#FFFFFF');
+      p.ell(62, 52, 3, 3, GUN); p.rect(66, 42, 4, 3, '#FEF9C3');
+      for (const [x, y] of [[64, 26], [74, 22], [70, 30]]) { p.ell(x, y, 2.4, 3.4, ['#FEF08A', '#FACC15', '#F97316', '#DC2626', '#7F1D1D'], { ink: false }); }
+      p.smoke(76, 16, 20); p.smoke(64, 20, 14, '#6C707A');
+      // (the beer gut, whole, in its stained tank top)
+      p.fill(34, 58, 50, 70, (x, y) => ((x - 42) / 8) ** 2 + ((y - 64) / 6) ** 2 <= 1, (x, y) => 0.75 - (y - 58) / 18, TANK);
+      p.ell(40, 63, 2.2, 1.4, ['#F2E2A8', '#DCC67C', '#BCA45A', '#94803E', '#4A3E1A'], { ink: false });
+      p.ell(48, 66, 2.4, 1.6, BLOOD, { ink: false });
+      // (an arm, the anchor on it; a leg, the boxer cuff, the slipper still on)
+      p.cap(6, 64, 18, 60, 2.2, 1.8, OSKIN); p.ell(4, 65, 2.2, 2, OSKIN); p.ell(19, 60, 1.8, 1.8, BLOOD);
+      p.px(11, 61, '#1E3A8A'); p.px(12, 62, '#1E3A8A'); p.px(11, 63, '#1E3A8A');
+      p.cap(22, 76, 36, 74, 2.6, 2, OSKIN); p.ell(22, 75, 3, 2.6, BOXER); p.ell(38, 74, 3.6, 2, SLIPPER); p.ell(20, 76, 1.8, 1.6, BLOOD);
+      // (the ropes of gut, a run of spine, lumps of him)
+      for (let k = 0; k < 10; k++) p.ell(50 + k * 2.2, 74 - Math.sin(k * 0.9) * 2, 1.6, 1.4, ['#F4A6A6', '#E07A7A', '#C25454', '#8E3434', '#4A1414'], { ink: k % 3 === 0 });
+      for (let k = 0; k < 5; k++) { p.rect(24 + k * 3, 48 - k, 2, 2, BONE[1]); p.px(25 + k * 3, 47 - k, BONE[0]); }
+      for (const [x, y] of [[30, 66], [54, 62], [12, 54], [78, 66]]) { p.ell(x, y, 2, 1.6, ['#C25454', '#A43C3C', '#862C2C', '#5E1C1C', '#2A0A0A']); p.px(x, y - 1, '#F4A6A6'); }
+      // (rags of the tank top and the boxers; the can, crushed)
+      p.poly([[44, 46], [50, 45], [49, 49], [45, 49]], TANK, { l: 0.8, l2: 0.4 });
+      p.poly([[70, 70], [75, 69], [76, 73], [71, 73]], BOXER, { l: 0.8, l2: 0.4 });
+      p.cap(82, 64, 86, 62, 1.8, 1.6, CAN);
+      // (his head: sat up on its stump, front and center, crossed eyes, the tongue out, the snapped headset)
+      p.pool(14, 44, 6, 2, BLOOD, 9);
+      p.ell(14, 43, 3.6, 1.4, ['#F4A6A6', '#C25454', '#8E3434', '#5E1C1C', '#2A0A0A']);
+      p.ell(14, 37, 6, 6, OSKIN);
+      p.ell(18, 34, 2.6, 3.4, ['#FFFFFF', '#E8E8E8', '#C4C4C4', '#9A9A9A', '#545454'], { rot: 0.3 });
+      p.ell(10, 38, 2.2, 2, FLUSH);
+      xEye(p, 12, 35, '#4A0F20'); xEye(p, 16, 35, '#4A0F20');
+      p.ell(13, 42, 1.6, 1.8, ['#F7A3B0', '#DE6178', '#BE4260', '#932C49', '#4A0F20']);
+      p.px(11, 40, '#FFFFFF'); p.px(12, 41, '#F4F0E6');
+      p.line(19, 33, 23, 39, '#2E2E35'); p.line(23, 39, 22, 42, '#2E2E35'); p.px(22, 43, '#3F3F46');
+      p.marker(14, 48); p.marker(44, 72);
     },
   },
 };
@@ -626,7 +640,7 @@ const CAPTIONS: Record<string, Record<BossDeath, [string, string]>> = {
   foreign: { normal: ['OUT OF', 'AMMO'], weakness: ['LAID IN', 'CONCRETE'] },
   frontier: { normal: ['AAHHH!', '(LAST WORDS)'], weakness: ['ALL THAT', 'REMAINS'] },
   fantasy: { normal: ['SPACE C-14', 'OVERFLOW LOT'], weakness: ['SIZE', 'ZERO'] },
-  cartoon: { normal: ['GOT IT', 'HIMSELF'], weakness: ['BACK TO', '2-D'] },
+  cartoon: { normal: ['GOT IT', 'HIMSELF'], weakness: ['IN BITS', 'ALL OVER'] },
 };
 const SEEDS: Record<string, number> = { adventure: 11, spooky: 23, space: 37, hollywood: 41, foreign: 53, frontier: 67, fantasy: 71, cartoon: 89 };
 
