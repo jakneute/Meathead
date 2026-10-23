@@ -320,7 +320,9 @@ const duct = (state: GameState, gym: Gym, controls: Controls): Controls => {
   if (!inside) {
     gym.ductDir = 0;
     const next = cx + p.vel.x;
-    if (!p.isSliding && next > DUCT.x1 - 4 && next < DUCT.x2 + 4 && p.pos.y + p.height > DUCT.bottom) {
+    // (the duct's a wall from the ceiling down to the gap, and the gap's only slid through: jumped, ducked or walked,
+    // at any height, he's stopped against it (the user's: he jumped through it))
+    if (!p.isSliding && next > DUCT.x1 - 4 && next < DUCT.x2 + 4) {
       p.pos.x = (cx < DUCT.x1 ? DUCT.x1 - 4 : DUCT.x2 + 4) - p.width / 2 - Math.sign(p.vel.x || 1) * 0.5; p.vel.x = 0;
     }
     return controls;
