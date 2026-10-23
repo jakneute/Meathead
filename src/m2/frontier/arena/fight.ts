@@ -62,7 +62,7 @@ import { pixelBlob, checker } from '../../../m1/game/render/pixelArt';
 import { drawTucker, drawTuckerCloseup, drawTuckerCap, tuckerMuzzle, TUCKER_H, type TuckerPose, type TuckerFace, type TuckerWounds } from '../tucker';
 import { drawLion, drawGrizzly, lionJaw, bearJaw, BEAR_TUG_STEPS, type LionPose, type BearPose, type LionCarry } from './beasts';
 import { drawTugged, drawTuckerHalf, halfEnd, drawStrand, drawNeckStump, drawHeadlessBody, drawBodyForNeck, drawStretchedNeck, drawTuckerHeadAt, BITE_TOP, BITE_LEGS, COLLAR, HEAD_CROWN, HEAD_SOCKET } from './gore';
-import { kindOf, GROUND_CRITTERS, FLYING_CRITTERS, critterSpeed, isCritter, isLion, LION_KIND, LION, MAULING, type Critter } from './critters';
+import { kindOf, GROUND_CRITTERS, FLYING_CRITTERS, critterSpeed, critterDmg, isCritter, isLion, LION_KIND, LION, MAULING, type Critter } from './critters';
 import { GY, ARENA_L, ARENA_R, ROCK_X, ROCK_HW, ROCK_H, LION_FROM_L, LION_FROM_R } from './layout';
 import { type Box, around } from '../../deathFrame';
 import { WOUNDS_SPLIT } from './cast';
@@ -95,10 +95,12 @@ const RUN_FIRE: [number, number] = [26, 46], RUN_ERR = 90;
 const ERR = { jump: 40, land: 30, step: 70, shot: 16, hit: 0 };
 /** The stampede after each bang: how many (more later), how soon the first comes, the gaps, how many fly. */
 // (toned down (the user's): still stampedes, a touch smaller and looser, with lulls between them (LULL))
-const CRITTERS: [number, number] = [4, 7], FIRST_IN = 22, GAP: [number, number] = [9, 24], FLY_SHARE = 0.3;
+// (a touch more often again (the user's): the gaps and the lull a bit shorter; were [9, 24] and 330)
+const CRITTERS: [number, number] = [4, 7], FIRST_IN = 22, GAP: [number, number] = [8, 20], FLY_SHARE = 0.3;
 /** A quiet spell after a stampede: a shot in it sends nothing running (frames from the last one's start, and while any are
  *  still coming or about). */
-const LULL = 330;
+// (the user's: always some gap between stampedes, smaller as the fight goes on: from the first to the last, by phaseK)
+const LULL: [number, number] = [330, 170];
 /** The most critters about at once (the user's: a lot, but limited; and the game slowed with tons of them), and the most
  *  of their bodies left lying (the oldest cleared away). */
 const MAX_CRITTERS = 8, MAX_CORPSES = 6;
@@ -504,7 +506,7 @@ const tickSmoke = (f: Fight) => { for (const s of f.smoke) { s.t++; s.y -= 0.3; 
 // ---- the stampedes
 const stampede = (state: GameState, f: Fight) => {
   // (the lull: one running, or one just gone by, and the shot's left alone)
-  if (f.queue.length || f.t - (f.lastStampede ?? -9999) < LULL) return;
+  if (f.queue.length || f.t - (f.lastStampede ?? -9999) < LULL[0] + (LULL[1] - LULL[0]) * phaseK(f)) return;
   f.lastStampede = f.t;
   const k = phaseK(f), n = Math.round(lerp(CRITTERS, k)) + (Math.random() < 0.5 ? 1 : 0);
   // (they come from one end, the view's edge, and run from the bang across it: all of them one way, and a stampede
@@ -556,6 +558,14 @@ const tickCritters = (ctx: FrameContext, f: Fight) => {
     state.enemies.push(e);
     return false;
   });
+  // (they hurt running into him, a little (the user's: "the critters should hurt... not a lot, but chippable if you are
+  // reckless"): their own AI runs them, so the engine's bump never got its turn; once a hit, the usual flinch after)
+  { const p = state.player;
+    if (f.mode === 'on' && p.health > 0 && p.invincibilityTimer <= 0 && !p.inCutscene && state.frame >= (p.noContactUntil ?? -1) && !p.untouchable) {
+      const hb = p.isDucking ? { x: p.pos.x + 2, y: p.pos.y + p.height - 26, w: p.width - 4, h: 26 } : { x: p.pos.x, y: p.pos.y, w: p.width, h: p.height };
+      const hit = state.enemies.find(e => isCritter(e) && e.health > 0 && !e.isBlownAway && !e.puppet && e.pos.x < hb.x + hb.w && e.pos.x + e.width > hb.x && e.pos.y < hb.y + hb.h && e.pos.y + e.height > hb.y);
+      if (hit) hurtPlayer(ctx, critterDmg(hit), hit.kind!, { x: (hit.facing ?? 1) * 4, y: -3 });
+    } }
   // (out: off the view's far edge (or the arena's), just gone: never a kill, never a callout)
   state.enemies = state.enemies.filter(e => {
     // (a lion leaving: off either edge of the view (it came on in it; the sucker can turn it round), or at the wall it's

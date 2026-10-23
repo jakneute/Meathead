@@ -54,6 +54,8 @@ const DEF: Record<Critter, { w: number; h: number; hp: number; dmg: number; mass
 };
 const CRITTER_KINDS = new Set<string>(Object.keys(DEF).map(k => kindOf(k as Critter)));
 export const critterSpeed = (c: Critter) => DEF[c].speed;
+/** Its bump (fight.ts: their run AI handles them, so the engine's own contact never gets to: the fight does it). */
+export const critterDmg = (e: Enemy) => { const c = (e.kind ?? '').replace('m2:fr_', '') as Critter; return DEF[c]?.dmg ?? 0; };
 
 /** How high the ground is at x for them: flat, always (the user's: a clear path across, nothing to collide with or
  *  climb; they got stuck on the boulder, lifted off the ground over it and held there). They run past it. */
