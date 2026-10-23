@@ -175,6 +175,8 @@ setStormPick((state, px, py) => {
     bolt: f.sx > a - 20 && f.sx < b + 20 ? f.e : null,
   };
 });
+let devBolt = false;
+if (import.meta.env.DEV) (window as unknown as { __m2SteveBolt: () => void }).__m2SteveBolt = () => { devBolt = true; };
 setStormHit((ctx, e, el, _dmg) => {
   const f = live;
   if (!f) return false;
@@ -411,6 +413,8 @@ export const updateFight = (ctx: FrameContext, f: Fight, controls: Controls): Co
   if (f.mode === 'dead') { updateCars(ctx, f); return dying(ctx, f); }
   takeHits(ctx, f);
   watchGrab(ctx, f);
+  // (dev only: the book's bolt on him, the last of him; tools/bossdeaths records his weakness death off it)
+  if (import.meta.env.DEV && devBolt) { devBolt = false; f.hp = Math.min(f.hp, 1); struck(ctx, f, 'bolt'); if ((f.mode as string) === 'dead') return hands(); }
   if (f.hp <= 0) { die(ctx, f, false); return hands(); }
   // (his entrance on a retry: waving to the stands, a taunt, the crowd going; no cars sent, no slaps)
   if (f.entrance > 0) {
