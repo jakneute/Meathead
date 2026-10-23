@@ -58,7 +58,9 @@ export const setGoreBag = (v: number) => setGore(v);
 // Poise
 
 /** Everybody's poise: how much pulling they'll take before they go in (the beefier, the more). */
-const poiseMax = (e: Enemy) => Math.round(realMax(e) * 0.6 + 10);
+// (a stage can set `poiseMul` on one: Tucker's lions leaving, very hard to get in (it wants `goreMul` to match, so the bag
+// gets no more off it))
+const poiseMax = (e: Enemy) => Math.round((realMax(e) * 0.6 + 10) * ((e as Enemy & { poiseMul?: number }).poiseMul ?? 1));
 interface Poise { left: number; lastPulled: number; fleeUntil: number; /** Panicking, he's no fight in him: what he was before, to put back. */ held?: { puppet?: boolean; harmless?: boolean } }
 /** Everybody panicking right now (their fight held off till they've got over it). */
 const panicking = new Set<Enemy>();

@@ -53,7 +53,8 @@ import { ENEMY_HIT_COOLDOWN, CANVAS_WIDTH, CANVAS_HEIGHT, BULLET_DAMAGE, BOSS_CH
 import { registerM2Kind } from '../../kinds';
 import { TOO_BIG_BY_KIND } from '../../lines/weaponLines';
 import { hazardHit, hazardVictims, boxHits } from '../../hazardHit';
-import { setGoreBag, goreBag, SPRAY, noBagFrom, onGlobHit } from '../../weapons/soulSucker';
+import { setGoreBag, goreBag, SPRAY, noBagFrom, onGlobHit, beingSucked } from '../../weapons/soulSucker';
+import { grabHolding } from '../../moves/grab';
 import { box, label, saidOver, speak, meatheadSays, byPants, hands } from '../section';
 import { TUCKER_VOICE, type ByPants } from '../talk';
 import { mix, INK, type Ctx } from '../kit';
@@ -61,7 +62,7 @@ import { pixelBlob, checker } from '../../../m1/game/render/pixelArt';
 import { drawTucker, drawTuckerCloseup, drawTuckerCap, tuckerMuzzle, TUCKER_H, type TuckerPose, type TuckerFace, type TuckerWounds } from '../tucker';
 import { drawLion, drawGrizzly, lionJaw, bearJaw, BEAR_TUG_STEPS, type LionPose, type BearPose, type LionCarry } from './beasts';
 import { drawTugged, drawTuckerHalf, halfEnd, drawStrand, drawNeckStump, drawHeadlessBody, drawBodyForNeck, drawStretchedNeck, drawTuckerHeadAt, BITE_TOP, BITE_LEGS, COLLAR, HEAD_CROWN, HEAD_SOCKET } from './gore';
-import { kindOf, GROUND_CRITTERS, FLYING_CRITTERS, critterSpeed, isCritter, isLion, LION_KIND, type Critter } from './critters';
+import { kindOf, GROUND_CRITTERS, FLYING_CRITTERS, critterSpeed, isCritter, isLion, LION_KIND, LION, MAULING, type Critter } from './critters';
 import { GY, ARENA_L, ARENA_R, ROCK_X, ROCK_HW, ROCK_H, LION_FROM_L, LION_FROM_R } from './layout';
 import { WOUNDS_SPLIT } from './cast';
 import * as L from './lines';
@@ -104,6 +105,8 @@ const MAX_CRITTERS = 8, MAX_CORPSES = 6;
 const BEE_V: [number, number] = [1.5, 2.3], STING = 3, STING_GAP = 55, BEE_OFF = 50, SECOND_SWARM = 0.4;
 /** The weakness: how many globs of the spray on him make him showered; the lions' wait (frames after the shower), their
  *  run, the mauling's length and its damage (in ticks), the punch-in. */
+/** The lions' leaps in out of the foreground and back out into it (frames each; how high the bound, px in the plane). */
+const LEAP_IN_T = 34, LEAP_OUT_T = 26, LEAP_H = 70;
 const SHOWERED = 5, LION_WAIT = 46, LION_V = 7.5, MAUL_T = 170, MAUL_DMG = 140, MAUL_TICKS = 5, PUNCH_T = 54;
 /** Talking: his taunts, Meathead's hints. */
 const TAUNT_EVERY = 520, HINT_GAP = 900;
@@ -117,7 +120,11 @@ type Act = 'listen' | 'cock' | 'aim' | 'pan' | 'recoil' | 'reload' | 'bloody' | 
 interface Shot { x: number; y: number; vx: number; vy: number; life: number; dmg: number }
 interface Queued { at: number; c: Critter; dir: 1 | -1; y: number; sp: number }
 interface Swarm { x: number; y: number; t: number; cd: number; off: number; gone: number }
-interface Lion { x: number; y: number; vx: number; vy: number; dir: 1 | -1; mode: 'wait' | 'run' | 'pounce' | 'maul' | 'tug' | 'drag' | 'gone'; t: number; wait: number; side: number; carry: LionCarry | null }
+interface Lion { x: number; y: number; vx: number; vy: number; dir: 1 | -1; mode: 'wait' | 'leapIn' | 'run' | 'pounce' | 'maul' | 'tug' | 'drag' | 'leapOut' | 'gone'; t: number; wait: number; side: number; carry: LionCarry | null;
+  /** Out of the play plane toward the lens (0 in it, 1 right up against the glass): the leaps in and out (see depthOf). */
+  z?: number;
+  /** On him: the real enemy it is while it mauls (it can be killed or sucked off him; then it's gone from here). */
+  e?: Enemy }
 interface Death {
   how: 'lions' | 'grizzly'; t: number; step: string; at: number; done: boolean;
   /** His last say's been said (the grizzly's: it's over once the bear's gone too). */
@@ -155,7 +162,7 @@ export interface Fight {
   // ---- the bees
   swarms: Swarm[];
   // ---- the weakness: the blood on him, how much of the spray's landed; the cats; how many times they've had him
-  bloody: number; shower: number; lions: Lion[]; maulT: number; maulDealt: number; clawed: number;
+  bloody: number; shower: number; lions: Lion[]; /** How many cats the shower called (each its share of the mauling). */ pack: number; maulT: number; maulDealt: number; clawed: number;
   // ---- talking
   said: string | null; talking: boolean; tauntT: number; hintAt: number; wrongN: number; lowSaid: boolean; bagSaid: boolean; beeSaidAt: number;
   // ---- the camera (held on them both), a death, the kill cam / punch-in, SKIP
@@ -239,7 +246,7 @@ export const startFight = (state: GameState, tx: number, facing: 1 | -1): Fight 
     tx, facing, act: 'listen', actT: 20, aim: 0.6, aimX: m.x, aimY: m.y, jerkX: 0, jerkY: 0,
     heard: { x: m.x, y: m.y, at: 0 }, runDir: 1, runN: 0, runFire: 0, runShot: 0, wasGrounded: state.player.isGrounded, pShots: 0, stepT: 0,
     shots: [], smoke: [], queue: [], rustle: null, stampedes: 0, swarms: [],
-    bloody: 0, shower: 0, lions: [], maulT: 0, maulDealt: 0, clawed: 0,
+    bloody: 0, shower: 0, lions: [], pack: 2, maulT: 0, maulDealt: 0, clawed: 0,
     said: null, talking: false, tauntT: 200, hintAt: -9999, wrongN: 0, lowSaid: false, bagSaid: false, beeSaidAt: -9999,
     camX: clampCam(state.camera.x), death: null, cam: null, skipT: 0,
   };
@@ -553,7 +560,15 @@ const tickCritters = (ctx: FrameContext, f: Fight) => {
     // (a lion leaving: off either edge of the view (it came on in it; the sucker can turn it round), or at the wall it's
     // heading for)
     if (isLion(e) && e.health > 0 && !e.isBlownAway) {
+      if (MAULING.has(e)) return true;
       const x = e.pos.x + e.width / 2, dir = e.facing ?? 1;
+      // (a short lope, then the leap out past the lens (the user's: out into the foreground): the fight's own again from
+      // there, out of reach; not while the sucker's on it or he's got hold of it)
+      if ((e.aiTimer ?? 0) >= LION.lope && !beingSucked(e, state.frame) && grabHolding() !== e && !e.puppet) {
+        f.lions.push({ x, y: GY, vx: 0, vy: 0, dir: dir > 0 ? 1 : -1, mode: 'leapOut', t: 0, wait: 0, side: e.variant ? 1 : -1, carry: null, z: 0 });
+        playSound('whoosh', 0.7, -4);
+        return false;
+      }
       return !(x < state.camera.x - 70 || x > state.camera.x + CANVAS_WIDTH + 70 || (dir > 0 ? e.pos.x + e.width >= ARENA_R - 4 : e.pos.x <= ARENA_L + 4));
     }
     if (!isCritter(e)) return true;
@@ -615,7 +630,7 @@ const showered = (ctx: FrameContext, f: Fight) => {
 };
 /** A shower's lions held back till the last lot have left or died. */
 let lionsWaiting = false;
-const lionsAbout = (state: GameState) => state.enemies.some(e => isLion(e) && e.health > 0 && !e.isBlownAway);
+const lionsAbout = (state: GameState) => state.enemies.some(e => isLion(e) && e.health > 0 && !e.isBlownAway) || !!live?.lions.some(l => l.mode === 'leapOut');
 /** Each frame: a held-back shower's lions come once the last lot's gone. */
 const tickLionsWaiting = (state: GameState, f: Fight) => {
   if (!lionsWaiting || f.mode !== 'on') { if (f.mode !== 'on') lionsWaiting = false; return; }
@@ -625,7 +640,7 @@ const tickLionsWaiting = (state: GameState, f: Fight) => {
 const callLions = (state: GameState, f: Fight, k: number) => {
   // (out of the woods, one from each end (a third later), a roar off in the trees first)
   const n = k > 0.6 ? 3 : 2;
-  f.lions = [];
+  f.lions = []; f.pack = n;
   for (let i = 0; i < n; i++) {
     const fromL = i % 2 === 0 ? f.tx > (ARENA_L + ARENA_R) / 2 : f.tx <= (ARENA_L + ARENA_R) / 2;
     f.lions.push({ x: fromL ? Math.max(LION_FROM_L, state.camera.x - 80) : Math.min(LION_FROM_R, state.camera.x + CANVAS_WIDTH + 80), y: GY, vx: 0, vy: 0, dir: fromL ? 1 : -1, mode: 'wait', t: 0, wait: LION_WAIT + i * 18, side: fromL ? -1 : 1, carry: null });
@@ -639,8 +654,27 @@ const tickLions = (ctx: FrameContext, f: Fight) => {
     l.t++;
     switch (l.mode) {
       case 'wait':
-        if (l.t >= l.wait) { l.mode = 'run'; l.t = 0; playSound('roar', 0.6, 4 + Math.random() * 4); if (l === f.lions[0]) mhSays(state, L.MH_LIONS, true); }
+        if (l.t >= l.wait) {
+          // (the user's: in out of the foreground, Mode 7 style: from right up at the lens, off to its side of the view,
+          // one bound down into the arena a way in from the edge it came from)
+          l.mode = 'leapIn'; l.t = 0; l.z = 1;
+          l.x = l.dir > 0 ? Math.max(ARENA_L + 60, state.camera.x + 150) : Math.min(ARENA_R - 60, state.camera.x + CANVAS_WIDTH - 150);
+          playSound('roar', 0.6, 4 + Math.random() * 4); playSound('whoosh', 0.7, -6);
+          if (l === f.lions[0]) mhSays(state, L.MH_LIONS, true);
+        }
         break;
+      case 'leapIn': {
+        const u = Math.min(1, l.t / LEAP_IN_T);
+        l.z = 1 - u; l.y = GY - Math.sin(u * Math.PI) * LEAP_H; l.x += l.dir * 2.5;
+        if (u >= 1) { l.z = 0; l.y = GY; l.mode = 'run'; l.t = 0; playSound('thud', 0.8, -4); shakeScreen(state, 4, 3); }
+        break;
+      }
+      case 'leapOut': {
+        const u = Math.min(1, l.t / LEAP_OUT_T);
+        l.z = u; l.y = GY - Math.sin(u * Math.PI) * LEAP_H; l.x += l.dir * LION.walk;
+        if (u >= 1) l.mode = 'gone';
+        break;
+      }
       case 'run': {
         // (flat out at him; near, the pounce)
         const to = f.tx - l.side * 30;
@@ -650,10 +684,15 @@ const tickLions = (ctx: FrameContext, f: Fight) => {
       }
       case 'pounce':
         l.x += l.vx; l.vy += 0.55; l.y += l.vy;
-        if (l.y >= GY) { l.y = GY; l.mode = 'maul'; l.t = 0; playSound('thud', 0.9, -6); if (f.act !== 'mauled' && f.mode === 'on') startMaul(ctx, f); }
+        if (l.y >= GY) { l.y = GY; l.mode = 'maul'; l.t = 0; playSound('thud', 0.9, -6); if (f.mode === 'on') l.e = maulingCat(state, l); if (f.act !== 'mauled' && f.mode === 'on') startMaul(ctx, f); }
         break;
       case 'maul':
         l.x += ((f.tx - l.side * 30) - l.x) * 0.2;
+        if (l.e) {
+          // (killed, or sucked off him: gone from the pile (the engine has the body))
+          if (l.e.health <= 0 || l.e.isBlownAway || !state.enemies.includes(l.e)) { MAULING.delete(l.e); l.e = undefined; l.mode = 'gone'; break; }
+          pinCat(l);
+        }
         if (l.t % 9 === 0) state.particles.push({ pos: { x: f.tx + (Math.random() - 0.5) * 40, y: GY - 10 - Math.random() * 20 }, vel: { x: (Math.random() - 0.5) * 4, y: -2 - Math.random() * 3 }, life: 30, color: Math.random() < 0.6 ? '#B91C1C' : '#7F1D1D', size: 2 + Math.random() * 3, grav: 0.3 });
         if (l.t % 16 === 0) playSound(Math.random() < 0.5 ? 'squish' : 'snort', 0.5, Math.random() * 6);
         break;
@@ -691,9 +730,13 @@ const maul = (ctx: FrameContext, f: Fight) => {
   // (the cats on him: whichever have got there pile in)
   for (const l of f.lions) if (l.mode === 'run' || l.mode === 'wait') { l.mode = 'run'; }
   const tickEvery = Math.floor(MAUL_T / (MAUL_TICKS + 1));
-  if (f.maulT % tickEvery === 0 && f.maulDealt < MAUL_TICKS) {
+  // (every cat killed or sucked off him early: it's over, and he's got off light)
+  const on = f.lions.filter(l => l.mode === 'maul').length, coming = f.lions.some(l => l.mode === 'run' || l.mode === 'pounce' || l.mode === 'leapIn' || l.mode === 'wait');
+  if (!on && !coming && f.maulT > 4) f.maulT = MAUL_T;
+  if (f.maulT % tickEvery === 0 && f.maulDealt < MAUL_TICKS && on) {
     f.maulDealt++;
-    const dmg = MAUL_DMG / MAUL_TICKS;
+    // (each cat its share: the fewer left on him, the less he takes)
+    const dmg = MAUL_DMG / MAUL_TICKS * Math.min(1, on / Math.max(1, f.pack));
     f.hp -= dmg; f.flash = 6;
     ctx.fx.spawnDamageNumber({ x: f.tx - 10, y: GY - 60 }, Math.round(dmg), true);
     playSound('crunch', 0.8, -2 + Math.random() * 4); playSound('splat', 0.6, 2);
@@ -704,7 +747,10 @@ const maul = (ctx: FrameContext, f: Fight) => {
   if (f.maulT >= MAUL_T) {
     // (done with him: off back into the trees, red to the eyes; real enemies now, each one (critters.ts): sucked up,
     // killed, or gone off the view's edge, none of it touches the next shower's cats)
-    for (const l of f.lions) leave(state, l);
+    for (const l of f.lions) {
+      if (l.e) { MAULING.delete(l.e); l.e.aiTimer = 0; l.e.facing = l.side < 0 ? -1 : 1; }
+      else if (l.mode !== 'gone') leave(state, l);
+    }
     f.lions = [];
     f.clawed++; f.bloody = 0.25; f.shower = 0;
     setAct(f, 'getup');
@@ -712,6 +758,23 @@ const maul = (ctx: FrameContext, f: Fight) => {
   }
 };
 
+/** A cat landing on him: a real enemy from here (harmless to Meathead), held on him by the fight (pinCat). */
+const maulingCat = (state: GameState, l: Lion) => {
+  const e = makeKindEnemy(LION_KIND as EnemyKind, l.x, GY);
+  e.seen = true; e.variant = l.side < 0 ? 0 : 1; e.noHeal = true; e.noCrowd = true;
+  Object.assign(e, { poiseMul: LION.poiseMul, goreMul: 1 / LION.poiseMul });
+  MAULING.add(e);
+  state.enemies.push(e);
+  const pinned = { ...l, e };
+  pinCat(pinned);
+  return e;
+};
+/** Held where the fight has it, facing him, whatever's knocked it about. */
+const pinCat = (l: Lion) => {
+  const e = l.e!;
+  e.pos.x = l.x - e.width / 2; e.pos.y = GY - e.height; e.vel.x = 0; e.vel.y = 0;
+  e.facing = l.side < 0 ? 1 : -1;
+};
 /** A cat done with him, made a real enemy where it stands, slinking off the way it came (critters.ts LION_KIND). */
 const leave = (state: GameState, l: Lion) => {
   const e = makeKindEnemy(LION_KIND as EnemyKind, l.x, GY);
@@ -719,6 +782,8 @@ const leave = (state: GameState, l: Lion) => {
   e.facing = l.side < 0 ? -1 : 1; e.seen = true; e.variant = l.side < 0 ? 0 : 1;
   // (it gives nothing back, like the critters: no heal or ammo off a beatdown or a shakedown; no drops, see updateFight)
   e.noHeal = true; e.noCrowd = true;
+  // (very hard to suck up (the user's): ×3 the pulling, the bag off it the same as it was)
+  Object.assign(e, { poiseMul: LION.poiseMul, goreMul: 1 / LION.poiseMul });
   state.enemies.push(e);
 };
 
@@ -788,6 +853,7 @@ const die = (ctx: FrameContext, f: Fight, lions: boolean) => {
   silenceAll();
   f.mode = 'dead'; f.said = null; f.talking = false;
   state.enemies = state.enemies.filter(o => o !== f.e);
+  for (const l of f.lions) if (l.e) { MAULING.delete(l.e); state.enemies = state.enemies.filter(o => o !== l.e); l.e = undefined; }
   clearCritters(state, f);
   f.shots = [];
   for (const s of f.swarms) s.gone = s.gone || 1;
@@ -799,7 +865,8 @@ const die = (ctx: FrameContext, f: Fight, lions: boolean) => {
     // (the kill cam: slowed, pushed in on them)
     f.cam = { t: 0, acc: 0, z: f.cam?.z ?? 1, zt: 2, top: 2, slow: 0.3 };
     playSound('roar', 1, -2); playSound('screams', 0.7, -6);
-    for (const l of f.lions) if (l.mode !== 'maul') { l.mode = 'maul'; l.x = f.tx - l.side * 30; l.y = GY; }
+    for (const l of f.lions) if (l.mode !== 'maul') { l.mode = 'maul'; l.x = f.tx - l.side * 30; l.y = GY; l.z = 0; }
+    f.lions = f.lions.filter(l => l.mode !== 'gone');
   } else {
     f.cam = null;
     playSound('hurt', 0.8, -4);
@@ -1225,7 +1292,30 @@ const bloodPool = (c: Ctx, x: number, w: number, h: number) => {
   for (const [dx, dy] of [[-1.12, 2], [-1.04, -1], [1.08, 1], [1.16, 3], [0.6, 4]] as const) box(c, Math.round(x + dx * w), Math.round(GY + dy), 2, 1, '#5F0F0F');
 };
 
-const lionPose = (l: Lion): LionPose => (l.mode === 'pounce' ? 'pounce' : l.mode === 'maul' ? 'maul' : l.mode === 'tug' ? 'tug' : l.mode === 'drag' ? 'drag' : 'run');
+/** Past this far out of the plane, a leaping cat's drawn over everything (drawFightFront). */
+const FRONT_Z = 0.12;
+/** Where a cat out of the play plane lands on screen (the Mode 7 trick): scaled up as it nears the lens, spread out from
+ *  the view's middle, its ground sliding down off the screen's bottom; its bound's height scaled with it. */
+const depthOf = (state: GameState, l: Lion) => {
+  const z = l.z ?? 0, s = 1 / (1 - z * 0.7), cx = state.camera.x + CANVAS_WIDTH / 2;
+  const gy = GY + z * (state.camera.y + CANVAS_HEIGHT + 150 - GY);
+  return { s, x: cx + (l.x - cx) * s, gy, y: gy - (GY - l.y) * s };
+};
+/** A cat, wherever it is in depth (in the plane: just itself). */
+const drawCat = (c: Ctx, state: GameState, l: Lion, fr: number) => {
+  const pose = lionPose(l), o = { carry: l.carry, bloody: l.mode === 'leapOut' ? 0.8 : undefined };
+  if (!l.z) { drawLion(c, l.x, l.y, lionFacing(l), fr + l.side * 13, pose, o); return; }
+  const d = depthOf(state, l);
+  // (its shadow on the near ground under it, the wider and fainter the higher it is)
+  const up = (GY - l.y) / LEAP_H;
+  c.globalAlpha = 0.28 * (1 - up * 0.5); c.fillStyle = INK;
+  c.beginPath(); c.ellipse(d.x, d.gy, 40 * d.s * (1 + up * 0.3), 7 * d.s, 0, 0, Math.PI * 2); c.fill();
+  c.globalAlpha = 1;
+  c.save(); c.translate(Math.round(d.x), Math.round(d.y)); c.scale(d.s, d.s);
+  drawLion(c, 0, 0, lionFacing(l), fr + l.side * 13, pose, o);
+  c.restore();
+};
+const lionPose = (l: Lion): LionPose => (l.mode === 'pounce' || l.mode === 'leapIn' || l.mode === 'leapOut' ? 'pounce' : l.mode === 'maul' ? 'maul' : l.mode === 'tug' ? 'tug' : l.mode === 'drag' ? 'drag' : 'run');
 /** Which way a cat's drawn: on him (mauling, tugging), toward him; backing off with half of him, still toward him. */
 const lionFacing = (l: Lion) => (l.mode === 'maul' || l.mode === 'tug' ? (l.side < 0 ? 1 : -1) : l.mode === 'drag' && (l.carry === 'top' || l.carry === 'legs') ? -l.dir : l.dir);
 
@@ -1268,7 +1358,7 @@ export const drawFightBack = (c: Ctx, state: GameState, f: Fight) => {
     if (look.pose === 'sit') drawTuckerCap(c, f.tx - f.facing * 30, GY - 4, 0.4);
   }
   // ---- the cats
-  for (const l of f.lions) drawLion(c, l.x, l.y, lionFacing(l), fr + l.side * 13, lionPose(l), { carry: l.carry });
+  for (const l of f.lions) if ((l.z ?? 0) < FRONT_Z && !l.e) drawCat(c, state, l, fr);
   // ---- the lions' tug of war: him over them, their jaws in him
   const d = f.death;
   if (d && d.how === 'lions' && d.step === 'tear') drawTugOfWar(c, f, d, fr);
@@ -1307,6 +1397,8 @@ const smokePuff = (c: Ctx, x: number, y: number, k: number, t: number) => {
 export const drawFightFront = (c: Ctx, state: GameState, f: Fight) => {
   const fr = state.frame;
   for (const s of f.swarms) drawSwarm(c, s.x, s.y, s.t, s.gone ? 1 - s.gone / 120 : 1);
+  // (the lions bounding in out of the foreground, or back out into it: over everything)
+  for (const l of f.lions) if ((l.z ?? 0) >= FRONT_Z) drawCat(c, state, l, fr);
   if (f.said) {
     const d = f.death;
     const screened = d && (d.step === 'close' || (d.step === 'pop' && d.t - d.at < 56));

@@ -95,20 +95,26 @@ for (const c of Object.keys(DEF) as Critter[]) {
 // ---------------------------------------------------------------------------------------------------------------
 // THE LIONS, LEAVING (the user's: "mountain lions after they're done with tucker can be sucked up/killed as well. they
 // have quite a lot of poise so you need to focus as they walk away offscreen"). On him, they're the fight's own
-// (fight.ts f.lions: not enemies, nothing gets at them, the mauling's never cut short); done with him, each one's made
+// (fight.ts f.lions; once on him, one of these held there (MAULING): kill one or suck it off and he takes less); done with him, each one's made
 // one of these where it stands, slinking off back the way it came: a real enemy, red to the eyes and full, that never
 // goes for Meathead (harmless: it's eaten; bumping it does nothing). Big and heavy: a lot of health, so a lot of
 // poise (the soul sucker's 0.6 of health + 10: it wants a second or two of it held right up on it; ground up, it's two
 // and a half sprays in the bag), heavy enough to drag in slowly; the big hits (dive kick, uppercut) to kill it.
-// Slower off than it used to slink (3.4), for the window. Like the critters: no heal or ammo off it, no drops, and
+// Off quick now (the user's: "quickly leave after mauling tucker"), a lope, then a leap out past the lens into the
+// foreground (fight.ts leapOut), and very hard to suck up (the user's): poise ×3 (`poiseMul`), the bag's worth the same. Like the critters: no heal or ammo off it, no drops, and
 // off the view's edge (or at the arena's wall it's heading for) it's just gone, never a kill, never a callout.
 
 export const LION_KIND = 'm2:fr_lion' as const;
 export const isLion = (e: Enemy) => e.kind === LION_KIND;
 /** Its health (poise 250), its mass (a man's 200), how fast it slinks off (px a frame). */
-export const LION = { hp: 400, mass: 260, walk: 1.9 };
+/** How hard to suck up (× its poise), and the bag off it kept what it was. How long it lopes before the leap out. */
+export const LION = { hp: 400, mass: 260, walk: 5.2, poiseMul: 3, lope: 30 };
 
+/** The ones on Tucker right now (fight.ts maul: it holds them on him; the user's: "you can prematurely kill the mountain
+ *  lions as they maul tucker, but you minimize the damage they can do"; harmless to Meathead). */
+export const MAULING = new WeakSet<Enemy>();
 const slink = (_ctx: FrameContext, e: Enemy) => {
+  if (MAULING.has(e)) return true;
   e.aiTimer = (e.aiTimer ?? 0) + 1;
   e.pos.x += (e.facing ?? 1) * LION.walk;
   e.pos.y = GY - humpAt(e.pos.x + e.width / 2) - e.height;
@@ -118,7 +124,7 @@ const slink = (_ctx: FrameContext, e: Enemy) => {
 registerM2Kind({
   kind: LION_KIND, stats: { w: 88, h: 46, hp: LION.hp, contact: 0, mass: LION.mass },
   ai: slink, make: b => ({ ...b, harmless: true }),
-  draw: (c, e, f) => drawLion(c, 0, 0, 1, f + (e.variant ?? 0) * 13, e.health <= 0 ? 'dead' : 'drag', { bloody: 0.8, hurt: (e.hitFlash ?? 0) > 0 }),
+  draw: (c, e, f) => drawLion(c, 0, 0, 1, f + (e.variant ?? 0) * 13, e.health <= 0 ? 'dead' : MAULING.has(e) ? 'maul' : 'drag', { bloody: MAULING.has(e) ? 1 : 0.8, hurt: (e.hitFlash ?? 0) > 0 }),
   head: { x: 36, y: -32, r: 9 }, gender: 'n', grab: 'body', solid: false, pathing: false,
 });
 registerKindCallouts(LION_KIND, LION_CALLS);
