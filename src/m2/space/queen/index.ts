@@ -90,7 +90,7 @@ export const queen: SpaceSection = {
     layOwn(state, [
       { x1: x0 - 200, y1: GY, x2: BASE_L - 50, y2: GY, surface: 'metal' },
       { x1: BASE_L - 50, y1: BF, x2: STAIRS_A, y2: BF, surface: 'metal' },
-      { x1: STAIRS_A, y1: BF, x2: STAIRS_B, y2: GY, surface: 'metal', steps: { n: 28 } },
+      { x1: STAIRS_A, y1: BF, x2: STAIRS_B, y2: GY, surface: 'metal', steps: { n: 35 } },
       { x1: STAIRS_B, y1: GY, x2: x1 + 200, y2: GY, surface: 'metal' },
     ]);
     endWalls(state, 'queen');

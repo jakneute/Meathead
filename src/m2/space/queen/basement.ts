@@ -24,7 +24,7 @@
 //   THE STAIRS    the panic run (the user's: "you don't see it coming, but you hear it"): at their foot she's out
 //                 behind him, unseen, and he hears her coming: her claws clicking faster and nearer, her footfalls,
 //                 the stairs rattling under her, screeches, the stalker song's panic arrangement. Keep going up and he
-//                 makes the door (she's his pace, a gap behind); stop (no headway for half a second) or turn back down
+//                 makes the door, just (she's quicker than his walk; charging up them, easily); stop (no headway for half a second) or turn back down
 //                 (more than a step's worth) and she's on him: a screech and the lunge, in from off the screen behind,
 //                 the first he sees of her. The door kicked in, she's shut out. Touched: one shot.
 //   THE KILL      she snatches him up to her face; a beat, her jaws opening in his face, her claw closing over his
@@ -326,7 +326,9 @@ export const tickHunter = (ctx: FrameContext, h: Hunter, controls: Controls): Co
   }
   // (his heart, in there: quicker with her near)
   if (h.hid >= 0 && --h.heart <= 0) { const near = inPlay(h) && Math.abs(h.x - cx) < 400; h.heart = near ? 22 : 44; playSound('thud', near ? 0.45 : 0.25, -14); }
-  hearHim(state, h, controls);
+  // (his noise only counts in the tunnels: on the stairs (the run, and after it) he's meant to go fast, charging and
+  // all; nothing he does there brings her, ambushes him or gets a warning)
+  if (!h.finale) hearHim(state, h, controls);
   if (!h.finale) maybeChase(state, h);
   if (h.chase) tickChase(state, h);
   if (h.mode === 'away') schedule(state, h);
@@ -757,9 +759,13 @@ const CHASE_FOOT = 120, CHASE_FOOT_OWED = 40;
 const CHASE_GRACE = 40;
 /** Stopped: this many frames with no headway (half a second). Turned back: this far back down from the furthest he's got. */
 const CHASE_STILL = 30, CHASE_BACK = 48;
-/** Her, behind him unseen: px a frame (his walk's PLAYER_MOVE_SPEED, 4.44: she's 88% of it), never further back than
- *  CHASE_GAP (so running he holds her there; stood still she closes); this close and she has him anyway. */
-const CHASE_PACE = 3.9, CHASE_GAP = 560, CHASE_START = 520, CHASE_CATCH = 70;
+/** Her, behind him unseen, a real race (the user's: "a standard walk without charging should just barely give you
+ *  enough time to clear it"; charging up them's encouraged): she starts CHASE_START back and comes CHASE_PACE px a
+ *  frame (his walk's PLAYER_MOVE_SPEED is 4.44), and this close she has him. From the trigger (120 short of the foot)
+ *  to the door (DOOR_X - 100) is 1180px: walking, 266 frames; her closing at 1.06 a frame, (385 - 70) / 1.06 = 297
+ *  frames: a steady walk makes it by ~31 frames (0.5 s: room for a first-timer's hop or hitch; the hallway taught him to
+ *  walk). Charging (14.4 a frame in bursts) makes it easily. */
+const CHASE_PACE = 5.5, CHASE_START = 385, CHASE_CATCH = 70;
 /** The lunge: frames from off the screen behind him to him. */
 const LUNGE_T = 18;
 
@@ -787,12 +793,12 @@ const tickChase = (state: GameState, h: Hunter) => {
   // (headway: any further toward the door than he's been (walking, or a jump up the steps), and the clock's reset)
   if (cx > c.best + 0.25) { c.best = cx; c.still = 0; }
   else if (c.t > CHASE_GRACE) c.still++;
-  // (her, coming up behind: his pace while he runs, closing when he doesn't)
-  c.herX = Math.max(c.herX + CHASE_PACE, cx - CHASE_GAP);
+  // (her, coming up behind: a touch quicker than his walk)
+  c.herX += CHASE_PACE;
   const gap = cx - c.herX;
   if (c.still >= CHASE_STILL || c.best - cx > CHASE_BACK || gap < CHASE_CATCH) { lunge(state, h); return; }
   // (what he hears: louder and quicker the longer it goes and the nearer she gets)
-  const near = Math.max(0, Math.min(1, (CHASE_GAP - gap) / (CHASE_GAP - CHASE_CATCH)));
+  const near = Math.max(0, Math.min(1, (CHASE_START - gap) / (CHASE_START - CHASE_CATCH)));
   const k = Math.min(1, Math.max(Math.min(1, c.t / 300) * 0.75, near));
   // her claws on the steps, clicking faster
   if (c.t % Math.round(12 - 7 * k) === 0) playSound('click', 0.3 + 0.5 * k, 2 + 5 * k + Math.random() * 2);

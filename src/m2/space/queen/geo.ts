@@ -36,7 +36,7 @@ export const BF = GY + 560, CATWALK_Y = BF - 250, CEIL_B = GY + 24;
 export const STAIRS_X = BASE_L + 60;
 export const LAND_X = (HOLE.a + HOLE.b) / 2;
 /** Its east end: the foot of the long flight of stairs up out of it, toward the park (the floor's level at the top). */
-export const STAIRS_A = x0 + 7400, STAIRS_B = x0 + 8200;
+export const STAIRS_A = x0 + 7400, STAIRS_B = x0 + 8400;
 export const BASE_R = STAIRS_A;
 /** The stairs' height at x (the floor's y: BF at their foot, GY at their top). */
 export const stairsY = (x: number) => (x <= STAIRS_A ? BF : x >= STAIRS_B ? GY : BF + ((x - STAIRS_A) / (STAIRS_B - STAIRS_A)) * (GY - BF));

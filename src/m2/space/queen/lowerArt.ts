@@ -215,8 +215,8 @@ const paintTunnel = (g: Ctx, tx: number) => {
  *  into the dark toward the park, the sign, the disco's light down it from the top. */
 const drawStairsUp = (c: Ctx, state: GameState) => {
   if (!shown(state, STAIRS_A - 100, DOOR_X + 100)) return;
-  stamp(c, 'sp-q-stairsup3', STAIRS_A - 60, GY - 620, DOOR_X - STAIRS_A + 160, BF - GY + 920, g => {
-    const n = 28, run = (STAIRS_B - STAIRS_A) / n, rise = (BF - GY) / n;
+  stamp(c, 'sp-q-stairsup4', STAIRS_A - 60, GY - 620, DOOR_X - STAIRS_A + 160, BF - GY + 920, g => {
+    const n = 35, run = (STAIRS_B - STAIRS_A) / n, rise = (BF - GY) / n;
     // (the stairwell: its wall in block, darker going down)
     g.fillStyle = brickPattern(g, 'sp-q-blk-s', 48, 24, ['#1F1A26', '#231D2B'], '#141019'); g.fillRect(STAIRS_A - 40, GY - 600, DOOR_X - STAIRS_A + 140, BF - GY + 600);
     // (up high the block darker into the dark, stepped; the ceiling slab over it all, its underside lit along the edge)
