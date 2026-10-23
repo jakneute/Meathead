@@ -5,17 +5,17 @@ export type Dressed = 'clean' | 'shitty' | 'nude';
 
 /** Safari Artie, on his back on the roof, the cart in bits round him. */
 export const ARTIE_LANDED: Record<Dressed, string[]> = {
-  clean: ['THAT. WAS NOT. ON THE TOUR.', "I'M WRITING YOU UP. I'M WRITING EVERYBODY UP."],
-  shitty: ['THAT WAS NOT ON THE TOUR. NEITHER IS YOUR ASS.', "I'M WRITING YOU UP. THEN I'M BURNING THIS UNIFORM."],
+  clean: ['THAT. WAS NOT. ON THE TOUR.', 'SKIPPER OF THE YEAR. ON MY BACK. ON A ROOF. BECAUSE OF YOU.'],
+  shitty: ['THAT WAS NOT ON THE TOUR. NEITHER IS YOUR ASS.', 'SKIPPER OF THE YEAR. ON A ROOF. DOWNWIND OF YOU.'],
   nude: ['THAT WAS NOT ON THE TOUR. I SAW EVERYTHING ON THE WAY UP.', "I'M WRITING YOU UP. FOR THE ROOF. AND YOUR BALLS. SEPARATE FORMS."],
 };
 /** Meathead, back on his feet. */
 export const MEATHEAD_LANDED = ['BEST RIDE IN THE PARK.', 'TEN OUT OF TEN. I PISSED A LITTLE.', 'I THINK I BROKE MY ASS. WORTH IT.'];
 /** Safari Artie, leaping off the roof as it goes, a gift-shop parachute popping open over him. */
 export const ARTIE_CHUTE: Record<Dressed, string[]> = {
-  clean: ['NINE NINETY-NINE AT THE GIFT SHOP, BITCH!'],
-  shitty: ["NINE NINETY-NINE AT THE GIFT SHOP! AND I'M UPWIND!"],
-  nude: ['NINE NINETY-NINE AT THE GIFT SHOP! THEY SELL PANTS TOO!'],
+  clean: ['NINE NINETY-NINE AT THE GIFT SHOP, BITCH!', 'A PRO ALWAYS PACKS A CHUTE, BITCH!'],
+  shitty: ["NINE NINETY-NINE AT THE GIFT SHOP! AND I'M UPWIND!", 'A PRO ALWAYS PACKS A CHUTE! AND CLEAN SHORTS!'],
+  nude: ['NINE NINETY-NINE AT THE GIFT SHOP! THEY SELL PANTS TOO!', 'A PRO ALWAYS PACKS A CHUTE! AND PANTS!'],
 };
 
 /** The people in line outside, watching the roof come in (a woman, a man). */
