@@ -132,7 +132,53 @@ const drawSplat = (ctx: CanvasRenderingContext2D, p: Particle, x: number, y: num
   paintSplat(ctx, p, x, y, r, onFloor, big);
 };
 
+/** A landed splat's shapes, made the once (it doesn't move: a few thousand of them after a big fight were being traced
+ *  point by point every frame): the blob with its spatter, the drip, the wet middle. Made again if it's moved or grown. */
+interface SplatPaths { x: number; y: number; r: number; floor: boolean; blob: Path2D; drip: Path2D | null; wet: Path2D }
+const splatPaths = new WeakMap<Particle, SplatPaths>();
+const canPath = typeof Path2D !== 'undefined';
+
+const pathsOf = (p: Particle, x: number, y: number, r: number, onFloor: boolean, big: number): SplatPaths => {
+  const had = splatPaths.get(p);
+  if (had && had.x === x && had.y === y && had.r === r && had.floor === onFloor) return had;
+  const blob = new Path2D();
+  const points = 9;
+  for (let i = 0; i < points; i++) {
+    const a = (i / points) * Math.PI * 2;
+    const rr = big * (0.65 + hash(p, i) * 0.55);
+    const px = x + Math.cos(a) * rr, py = y + Math.sin(a) * rr * (onFloor ? 0.35 : 1);
+    if (i === 0) blob.moveTo(px, py); else blob.lineTo(px, py);
+  }
+  blob.closePath();
+  for (let k = 0; k < 3; k++) {
+    const a = hash(p, 20 + k) * Math.PI * 2, d = big * (1.3 + hash(p, 30 + k));
+    const sx = x + Math.cos(a) * d, sy = y + Math.sin(a) * d * (onFloor ? 0.35 : 1), sr = Math.max(1, r * 0.3 * hash(p, 40 + k) + 0.8);
+    blob.moveTo(sx + sr, sy); blob.arc(sx, sy, sr, 0, Math.PI * 2);
+  }
+  let drip: Path2D | null = null;
+  if (!onFloor && hash(p, 50) > 0.5) {
+    const len = big * (1.5 + hash(p, 51) * 2.5);
+    drip = new Path2D();
+    drip.rect(x - r * 0.25, y, r * 0.5, len);
+    drip.moveTo(x + r * 0.45, y + len); drip.arc(x, y + len, r * 0.45, 0, Math.PI * 2);
+  }
+  const wet = new Path2D();
+  wet.ellipse(x, y, big * 0.45, big * 0.45 * (onFloor ? 0.35 : 1), 0, 0, Math.PI * 2);
+  const made = { x, y, r, floor: onFloor, blob, drip, wet };
+  splatPaths.set(p, made);
+  return made;
+};
+
 const paintSplat = (ctx: CanvasRenderingContext2D, p: Particle, x: number, y: number, r: number, onFloor: boolean, big: number) => {
+  if (canPath) {
+    const s = pathsOf(p, x, y, r, onFloor, big);
+    ctx.fillStyle = p.color;
+    ctx.fill(s.blob);
+    if (s.drip) ctx.fill(s.drip);
+    ctx.fillStyle = 'rgba(40, 0, 0, 0.35)';
+    ctx.fill(s.wet);
+    return;
+  }
   ctx.fillStyle = p.color;
   ctx.beginPath();
   const points = 9;

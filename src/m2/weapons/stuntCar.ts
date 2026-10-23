@@ -318,8 +318,9 @@ const splat = (ctx: FrameContext, p: Projectile, on: 'man' | 'floor' | 'wall') =
   playSound('splat', 1.2, -3); playSound('crunch', 0.8, 0); shakeScreen(state, 6, 4);
   fx.spawnDeathShower(at, part.dir, 2.2);
   fx.spawnExplosion(at, '#8B0000', 16, 0, 12);
-  // (what's left of him lying there: red, his white helmet, a bit of the jumpsuit)
-  const lie = (dx: number, dy: number, size: number, color: string) => state.particles.push({ pos: { x: at.x + dx, y: at.y + dy }, vel: { x: 0, y: 0 }, life: 260 + Math.random() * 120, color, size, ...(on === 'floor' ? { isSplat: true } : { isStuck: true }) });
+  // (what's left of him lying there: red, his white helmet, a bit of the jumpsuit; off a man, it drops to the floor and
+  // lies there its while (it was stuck fast in mid-air where he hit, for good: a stuck bit never goes, and they piled up))
+  const lie = (dx: number, dy: number, size: number, color: string) => state.particles.push({ pos: { x: at.x + dx, y: at.y + dy }, vel: { x: 0, y: 0 }, life: 260 + Math.random() * 120, color, size, ...(on === 'floor' ? { isSplat: true } : on === 'wall' ? { isStuck: true } : { grav: 0.35 }) });
   for (let i = 0; i < 6; i++) lie((Math.random() - 0.5) * (on === 'wall' ? 8 : 34), on === 'wall' ? (Math.random() - 0.5) * 30 + i * 3 : -1, 3 + Math.random() * 4, i % 3 ? '#7F1D1D' : '#991B1B');
   if (on !== 'man') { lie(part.dir * 4, on === 'floor' ? -2 : -4, 3, '#F8FAFC'); lie(-part.dir * 6, on === 'floor' ? -1 : 4, 3, '#DC2626'); }
 };

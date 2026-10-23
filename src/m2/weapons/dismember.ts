@@ -8,6 +8,7 @@ import type { GameState } from '../../m1/game/core/state';
 import { CANVAS_HEIGHT } from '../../m1/constants';
 import { kindFacing, isHumanoidKind, KIND_HEAD } from '../../m1/game/render/enemies';
 import { drawEnemyAt } from '../moves/grab';
+import { viewRectOf, inView } from '../../m1/game/render/viewCull';
 
 type Ctx = CanvasRenderingContext2D;
 /** A piece's shape, in the enemy's own picture (feet at the origin, facing right): a circle (its head) or a box. */
@@ -98,7 +99,11 @@ export const tickDismember = (state: GameState) => {
 
 /** The pieces (world space): each one its own bit of the enemy's picture, turned however it's landed. */
 export const drawDismember = (c: Ctx, state: GameState) => {
+  if (!pieces.length) return;
+  // (only the ones in view: a room's worth lying about off the screen isn't drawn)
+  const view = viewRectOf(c, 120);
   for (const p of pieces) {
+    if (!inView(view, p.x, p.y)) continue;
     const alpha = p.down && p.t > LIE - FADE ? (LIE - p.t) / FADE : 1;
     if (alpha <= 0) continue;
     c.save(); c.globalAlpha = alpha;

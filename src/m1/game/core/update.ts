@@ -10,6 +10,7 @@ import {
 } from '../../constants';
 import { BOSS_DIALOGUE, CHECKPOINT_CALLOUTS, DOOR_KICK_LINES, DOOR_KICK_LINES_SHAT } from '../../content/dialogue';
 import { FrameContext } from './context';
+import type { GameState } from './state';
 import { Controls } from '../platform/input';
 import { respawn, getStartX } from './level';
 import { updateSewerNuke } from '../scenes/sewerNuke';
@@ -709,6 +710,23 @@ const updateParticlesAndNumbers = (ctx: FrameContext) => {
   updateDamageNumbers(ctx);
 };
 
+/** How many splats can lie on the floor at once before the oldest start fading early: well past what a normal fight
+ *  leaves (and past that they're piled on each other in the same few pools anyway), but a weapon spammed into a room
+ *  of people made thousands, every one drawn every frame, and filled the particles up so nothing new could go off. */
+const SPLAT_SOFT_CAP = 1100;
+/** Over the cap: the ones nearest going anyway start their fade now (the usual fade, from full: nothing pops). */
+const easeSplats = (state: GameState) => {
+  let n = 0;
+  for (const p of state.particles) if (p.isSplat) n++;
+  if (n <= SPLAT_SOFT_CAP) return;
+  // (one meant to stay for good, a weapon's own decal, is left be)
+  const fresh = state.particles.filter(p => p.isSplat && p.life > 100 && p.life < 100000);
+  const fading = state.particles.filter(p => p.isSplat && p.life <= 100).length, over = n - SPLAT_SOFT_CAP - fading;
+  if (over <= 0) return;
+  fresh.sort((a, b) => a.life - b.life);
+  for (let i = 0; i < over && i < fresh.length; i++) fresh[i].life = 100;
+};
+
 const updateParticles = (ctx: FrameContext) => {
   const { state, stageId } = ctx;
   // (a game's own machines don't bleed: what comes off them is scrap, sparks and oil)
@@ -718,6 +736,7 @@ const updateParticles = (ctx: FrameContext) => {
   // Tommy's arena floor is a sludge pool: blood just sinks into it
   const bloodSplatsOnFloor = !(state.arenaLocked && getBossDef(stageId)?.arena?.floorless);
   const waterAt = getStageLayout(stageId)?.waterBodyAt;
+  if (state.frame % 8 === 0) easeSplats(state);
   state.particles = state.particles.filter(p => {
     if (p.isSplat) {
       p.life--;

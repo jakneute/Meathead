@@ -19,6 +19,7 @@ import { customWeapon, customWeapons } from '../combat/customWeapons';
 import { drawBullet, drawThrown, drawEnemyBullet, drawIcePellet, drawDart, drawPoopLog, drawCocaine, drawMethBarrel, drawSludgeBlob, drawDarkOrb, drawOilRocket } from './projectiles';
 import { drawSadBolt } from './bosses/alien';
 import { drawParticle } from './particles';
+import { viewRectOf, inView } from './viewCull';
 import { drawTsunamiBack, drawTsunamiFront } from './fx/tsunami';
 import { drawComposited, needsComposite } from './composite';
 import { drawBossCorpse } from './bosses/corpses';
@@ -1433,9 +1434,12 @@ const drawParticles = (ctx: CanvasRenderingContext2D, state: GameState) => {
   // Gore that's stuck fast to the walls and ceiling doesn't change: it's painted once onto a layer and the layer is
   // drawn (after a weakness kill that's a couple of thousand splats, which were being redrawn every frame)
   const layer = goreLayer(ctx, state);
+  // (only what's in view, or near enough to reach into it: a room full of gore down the far end isn't drawn)
+  const view = viewRectOf(ctx, 140);
   ctx.save();
   for (const p of particles) {
     if (layer && p.isStuck && layer.has(p)) continue;
+    if (!inView(view, p.pos.x, p.pos.y)) continue;
     ctx.globalAlpha = p.alpha ?? (p.isStuck ? 0.85 : (p.life < 100 ? p.life / 100 : 1));
     drawParticle(ctx, p);
   }

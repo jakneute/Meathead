@@ -1,5 +1,6 @@
 // Draws the special kill animations (see game/enemies/deaths.ts).
 
+import { viewRectOf, inView } from '../viewCull';
 import { drawComposited } from '../composite';
 import { drawDummy } from '../dummies';
 import { drawFlameLicks } from '../fx/fireball';
@@ -31,7 +32,10 @@ const mix = (a: string, b: string, t: number) => {
 const fadeOut = (d: EnemyDeath, n: number) => clamp01((DEATH_FRAMES[d.kind] - d.t) / n);
 
 export const drawEnemyDeaths = (ctx: Ctx, state: GameState) => {
+  // (the ones that lie where they are, off the screen: not drawn (a room hammered with explosions has dozens))
+  const view = state.enemyDeaths.length ? viewRectOf(ctx, 200) : null;
   for (const d of state.enemyDeaths) {
+    if ((d.kind === 'pancaked' || d.kind === 'ceilinged') && !inView(view, d.x, d.y) && !inView(view, d.x + d.w, d.y + d.h)) continue;
     ctx.save();
     switch (d.kind) {
       case 'charred': drawCharred(ctx, d, state.frame, state); break;
