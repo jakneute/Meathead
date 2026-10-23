@@ -30,11 +30,11 @@ import {
 } from './layout';
 import { whOf } from './state';
 import { WRECK_X, ROOF_HOLE, PROD_X, wallsDown, roofHoled, drawProducer } from './burst';
-import { dozerX, caseDown, caseTip, wallOpen, endingOn, drawDozer, scriptHoleX, scriptHoleY, flyingScript, scriptInCase } from './ending';
+import { dozerX, caseDown, caseTip, wallOpen, endingOn, drawDozer, scriptHole, scriptScale, flyingScript, scriptInCase } from './ending';
 import { drawWarehouseFar } from './far';
 import { drawSets } from './sets';
 import {
-  type Ctx, type View, INK, WALL_D, PROP_D, REST, dUp, zOf, dOfZ, wview, floorQ, seenAt, pal, pipe, riser, truss, spike, sandbag, TAPE, back,
+  type Ctx, type View, INK, WALL_D, PROP_D, CASE_D, REST, dUp, zOf, dOfZ, wview, floorQ, seenAt, pal, pipe, riser, truss, spike, sandbag, TAPE, back,
 } from './paint';
 
 export const drawWarehouseBackdrop = (c: Ctx, state: GameState) => {
@@ -585,7 +585,6 @@ const stageDoor = (c: Ctx, v: View, doorK: number, f: number) => {
 
 /** The script's showpiece: where it's drawn (its depth, and the world x that lands it right over CASE_X at the main
  *  stage's camera). */
-const CASE_D = dUp(44);
 const caseWX = () => { const ex = X(ARENA_CAM) + 400; return ex + (X(CASE_X) - ex) / CASE_D; };
 /** The plinth (marble, gold moldings, its plaque): scenery, dimmed, its top in shade (not a ledge). Feet at 0. */
 const paintPlinth = (g: Ctx) => {
@@ -693,6 +692,8 @@ const drawCase = (c: Ctx, tip: number, down: boolean, frameNow: number, scriptIn
   }
   c.restore();
 };
+/** The marquee's half width: THE SCRIPT's width in its bulbs, a margin each side. */
+const MQ = Math.round(signW('THE SCRIPT', bulbs(2, 2, '#FDE047', true)) / 2) + 14;
 const showpiece = (c: Ctx, v: View, f: number, tip: number, down: boolean, scriptIn: boolean) => {
   const wx = caseWX();
   if (!seenAt(v, wx - 200, wx + 200, CASE_D)) return;
@@ -700,9 +701,10 @@ const showpiece = (c: Ctx, v: View, f: number, tip: number, down: boolean, scrip
     // (its light: banded, down from a par can on the grid onto it)
     beam(c, wx, ROOF_Y + 90, GY - 4, 110, '#FEF9C3', down ? 0.08 : 0.16);
     box(c, wx - 8, ROOF_Y + 74, 16, 18, INK); box(c, wx - 7, ROOF_Y + 75, 14, 16, '#26222A'); box(c, wx - 8, ROOF_Y + 90, 16, 4, '#FFF6C8');
-    // (the marquee over it, hung on chains: THE SCRIPT in bulbs)
-    for (const cx of [wx - 70, wx + 70]) for (let y = ROOF_Y + 70; y < GY - 260; y += 6) box(c, cx - 1, y, 3, 4, (y / 6) % 2 ? pal().steel[3] : pal().steel[4]);
-    still(c, `hww-marquee-${down ? 1 : 0}`, wx, GY - 236, -96, -26, 192, 52, g => { box(g, -92, -22, 184, 44, INK); box(g, -91, -21, 182, 42, '#2A0A10'); box(g, -91, -21, 182, 2, BRASS[4]); box(g, -91, 19, 182, 2, BRASS[1]); });
+    // (the marquee over it, hung on chains: THE SCRIPT in bulbs; its board just the words' width and a margin, so it's
+    // all clear of the far wall's inside face going back past it)
+    for (const cx of [wx - MQ + 18, wx + MQ - 18]) for (let y = ROOF_Y + 70; y < GY - 260; y += 6) box(c, cx - 1, y, 3, 4, (y / 6) % 2 ? pal().steel[3] : pal().steel[4]);
+    still(c, `hww-marquee-${down ? 1 : 0}`, wx, GY - 236, -MQ - 4, -26, MQ * 2 + 8, 52, g => { box(g, -MQ, -22, MQ * 2, 44, INK); box(g, -MQ + 1, -21, MQ * 2 - 2, 42, '#2A0A10'); box(g, -MQ + 1, -21, MQ * 2 - 2, 2, BRASS[4]); box(g, -MQ + 1, 19, MQ * 2 - 2, 2, BRASS[1]); });
     words(c, 'THE SCRIPT', wx, GY - 222, bulbs(2, 2, down ? '#78716C' : '#FDE047', !down && (f % 40 < 32 || lit())));
     // (the ropes round it, the laser grid between their posts; after: the posts knocked over)
     if (!down) {
@@ -716,7 +718,7 @@ const showpiece = (c: Ctx, v: View, f: number, tip: number, down: boolean, scrip
 };
 
 /** The far wall: the one still up (FIRE EXIT, bricked up); smashed open by the bulldozer (daylight through it). */
-const farWall = (c: Ctx, v: View, open: boolean, scriptHole: number | null = null) => {
+const farWall = (c: Ctx, v: View, open: boolean, hole: { y: number; d: number } | null = null) => {
   const wx = X(FAR_WALL), top = ROOF_Y - 220, end = x1 + 400, Sd = pal().siding, O = pal().oxide;
   if (!seenAt(v, wx - 200, end)) return;
   // (its inside face going back, if he's left of it)
@@ -752,19 +754,22 @@ const farWall = (c: Ctx, v: View, open: boolean, scriptHole: number | null = nul
     for (let y = GY - 110, r = 0; y < GY; y += 8, r++) { box(c, dx, y, 60, 1, B[1]); for (let x = dx + (r % 2 ? 0 : 7); x < dx + 60; x += 14) box(c, x, y, 1, 8, B[1]); }
     box(c, dx + 6, GY - 132, 48, 16, INK); box(c, dx + 7, GY - 131, 46, 14, '#EF4444'); words(c, 'EXIT', dx + 30, GY - 120, plain(1, 1, '#FFF4F4'));
     still(c, 'hww-bricked', wx - 40, GY - 300, -100, -14, 200, 28, g => board(g, 0, 0, ['FIRE EXIT (BRICKED UP)'], plain(1, 1, '#E7E5E4'), '#3A1A1A', BRASS, 5));
-    // (where the script went through it: a hole its size, jagged, daylight through it, the siding's torn edge lit,
-    // cracks out from it; the bulldozer's makes it nothing later)
-    if (scriptHole !== null) {
-      const hx = scriptHoleX(), hy = scriptHole, n = 14;
-      const edge = (grow: number) => { c.beginPath(); for (let k = 0; k < n; k++) { const a = (k / n) * Math.PI * 2, r = (k % 2 ? 15 : 22) + hash(k * 3.7) * 6 + grow; const px = hx + Math.cos(a) * r * 1.15, py = hy + Math.sin(a) * r * 0.85; if (k) c.lineTo(px, py); else c.moveTo(px, py); } c.closePath(); };
-      c.fillStyle = INK; edge(3); c.fill();
-      c.fillStyle = Sd[4]; edge(1.5); c.fill();
+    // (where the script went through it: on the inside face going back (where it hit it, at its depth), so seen
+    // edge-on, narrow: a hole its size, jagged, daylight through it, the siding's torn edge lit, cracks out from it; the
+    // bulldozer's makes it nothing later)
+    if (hole) {
+      const zc = zOf(hole.d), n = 14;
+      /** A point on the face round the hole: `r` out from its middle at angle a (along the face going back, and up). */
+      const on = (a: number, r: number) => at(v.eye, wx, hole.y + Math.sin(a) * r * 0.9, dOfZ(zc + Math.cos(a) * r * 1.2));
+      const edge = (grow: number) => { c.beginPath(); for (let k = 0; k < n; k++) { const [px, py] = on((k / n) * Math.PI * 2, (k % 2 ? 15 : 22) + hash(k * 3.7) * 6 + grow); if (k) c.lineTo(px, py); else c.moveTo(px, py); } c.closePath(); };
+      c.fillStyle = INK; edge(4); c.fill();
+      c.fillStyle = Sd[5]; edge(2); c.fill();
       c.save(); edge(0); c.clip();
-      const tod = timeOfDay();
-      bandedGradient(c, hx - 34, hy - 26, 68, 52, [mix('#6C92C8', '#141832', tod.lamps * 0.8), mix('#C6BC9E', '#2A2840', tod.lamps * 0.8), mix('#DEBE8A', '#3A3048', tod.lamps * 0.8)], 4);
+      const [hx, hy] = on(0, 0), tod = timeOfDay();
+      bandedGradient(c, hx - 30, hy - 30, 60, 60, [mix('#6C92C8', '#141832', tod.lamps * 0.8), mix('#C6BC9E', '#2A2840', tod.lamps * 0.8), mix('#DEBE8A', '#3A3048', tod.lamps * 0.8)], 4);
       c.restore();
       c.strokeStyle = INK; c.lineWidth = 1; c.beginPath();
-      for (let k = 0; k < 6; k++) { const a = hash(k * 5.3) * Math.PI * 2, r0 = 26, r1 = 34 + hash(k * 2.1) * 16; c.moveTo(hx + Math.cos(a) * r0 * 1.1, hy + Math.sin(a) * r0 * 0.8); c.lineTo(hx + Math.cos(a + 0.15) * r1 * 1.1, hy + Math.sin(a + 0.15) * r1 * 0.8); }
+      for (let k = 0; k < 6; k++) { const a = hash(k * 5.3) * Math.PI * 2, [p, q] = on(a, 26), [r, s] = on(a + 0.15, 34 + hash(k * 2.1) * 16); c.moveTo(p, q); c.lineTo(r, s); }
       c.stroke();
     }
   }
@@ -796,11 +801,13 @@ const mainStage = (c: Ctx, v: View, state: GameState) => {
   showpiece(c, v, f, caseTip(state), caseDown(state), scriptInCase(state));
   // (the pages all over the stage, after)
   if (caseDown(state)) for (let rx = ARENA.a + 30; rx < ARENA.b - 10; rx += 37 + (rx % 23)) if (seenAt(v, X(rx), X(rx) + 12)) { const y = GY - 4 - (rx % 3) * 2 - (rx % 5) * 9; box(c, X(rx) - 1, y - 1, 14, 6, INK); box(c, X(rx), y, 12, 4, '#F5F5F4'); box(c, X(rx) + 2, y + 1, 8, 1, '#A8A29E'); }
-  farWall(c, v, wallOpen(state), scriptHoleY(state));
-  // (THE SCRIPT, flung out of the case, tumbling across to the far wall, shedding pages)
+  farWall(c, v, wallOpen(state), scriptHole(state));
+  // (THE SCRIPT, flung out of the case, tumbling up and out into the far wall, shedding pages: its size at the case's
+  // depth, coming forward as it goes; round its middle)
   const s = flyingScript(state);
   if (s) {
-    c.save(); c.translate(Math.round(s.x), Math.round(s.y)); c.rotate(s.a); c.scale(0.6, 0.6); c.translate(0, 40);
+    const k = scriptScale(state);
+    c.save(); c.translate(Math.round(s.x), Math.round(s.y)); c.rotate(s.a); c.scale(k, k); c.translate(1, 41);
     stamp(c, 'hww-script-book', -52, -76, 104, 80, g => paintScript(g, true));
     c.restore();
   }

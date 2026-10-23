@@ -28,6 +28,9 @@ export const dUp = (h: number) => 1 - h / REST;
 export const WALL_D = dUp(BACK);
 /** The cycs and the flats (just in front of the wall), and the gear stood in front of them (cameras, signs, chairs). */
 export const CYC_D = dUp(BACK - 4), PROP_D = dUp(BACK - 12), GEAR_D = dUp(BACK - 20);
+/** The script's showpiece on the main stage (its case, its plinth, its marquee), and where the script's flung out of it
+ *  from (ending.ts). */
+export const CASE_D = dUp(44);
 /** Depth as distance back (the eye's off the play plane by Z0): for things laid flat going back (the fallen wall). */
 const Z0 = 1100;
 export const zOf = (d: number) => Z0 * (1 / d - 1);

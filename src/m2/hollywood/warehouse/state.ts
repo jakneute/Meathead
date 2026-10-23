@@ -101,10 +101,11 @@ export interface Ending {
   zf: { x: number; y: number; z: number } | null;
   /** Through the far wall; the white flash of the cut to outside (0..1); frames since it started; the line's done. */
   wallHit: boolean; white: number; all: number; said: boolean;
-  /** THE SCRIPT, flung out of its case as it goes over, tumbling across the stage into the far wall; the hole it
-   *  punches through it (its height), before the bulldozer makes a bigger one. */
-  script: { x: number; y: number; vx: number; vy: number; a: number } | null;
-  scriptHole: number | null;
+  /** THE SCRIPT, flung out of its case as it goes over, tumbling up and out into the far wall's inside face (frames
+   *  into its flight: it comes forward off the case's depth as it goes); the hole it punches through it (its height
+   *  up the face, at the depth it hit it), before the bulldozer makes a bigger one. */
+  script: { x: number; y: number; vx: number; vy: number; a: number; t: number } | null;
+  scriptHole: { y: number; d: number } | null;
   /** The bulldozer: frames into its last go at starting (after the exec's call); its engine going (tracks turning). */
   catchT: number; running: boolean;
   ex: Exec;

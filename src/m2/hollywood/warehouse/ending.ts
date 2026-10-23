@@ -35,6 +35,7 @@ import { INK, checker, mix, poly, stamp, pixelBlob, board, plain } from '../blvd
 import { bodyOf, legs, arm, torso, part, px, dk, headShape, faceOn } from '../../spooky/costume';
 import { X, GY, BACK_Y, PILE_X, DOZER_X, DOZER_START, CASE_X, FAR_WALL, ARENA_CAM, LEAK_MEMO, CAST_MEMO } from './layout';
 import { whOf, type Ending } from './state';
+import { CASE_D, REST } from './paint';
 import { drawBody, CAST } from './cast';
 import { CLEAN_UP, CROWD_PAGES, SHRUG, AD_LEAK, EXEC_PHONE, EXEC_SEES, EXEC_RANT } from './lines';
 import { crowdSay, adSay, execSay } from './talk';
@@ -81,30 +82,51 @@ export const caseTip = (state: GameState) => (leaked(state) ? 1 : whOf(state).en
 /** Through the far wall (the hole's there). */
 export const wallOpen = (state: GameState) => leaked(state) || whOf(state).ending.wallHit;
 
-/** The script out of the case: how long after it goes over; its flight across to the far wall (frames, gravity); where
- *  it goes through the wall (up off the floor), and how far into the wall's face. */
-const SCRIPT_AT = 22, SCRIPT_T = 30, SCRIPT_G = 0.3, HOLE_UP = 176, HOLE_IN = 34;
-export const scriptHoleY = (state: GameState) => { const E = whOf(state).ending; return E.scriptHole !== null && !wallOpen(state) ? E.scriptHole : null; };
-export const scriptHoleX = () => X(FAR_WALL) + HOLE_IN;
+/** The script out of the case: how long after it goes over; its flight (frames, gravity, its tumble). It's flung up and
+ *  out toward us off the case's depth and into the far wall's inside face (the face going back from the wall's end to
+ *  the back of the stage: the one he's looking at, right of the case) at HIT_D, HOLE_UP up it there, and punches
+ *  straight through it. The flight's worked out where it lands on screen at the main stage's camera (held there for
+ *  it); the hole's drawn on the face itself (art.ts farWall), so it stays put on the wall after. */
+const SCRIPT_AT = 22, SCRIPT_T = 26, SCRIPT_G = 0.34, SPIN = 0.32, HOLE_UP = 196;
+const HIT_D = 0.93;
+/** The eye at the main stage's camera; where on screen there a world point at depth d lands. */
+const EYE_X = X(ARENA_CAM) + CANVAS_WIDTH / 2, EYE_Y = GY - REST;
+const onScreenX = (x: number, d: number) => EYE_X + (x - EYE_X) * d, onScreenY = (y: number, d: number) => EYE_Y + (y - EYE_Y) * d;
+/** The face (its x at depth d), and the hole's middle on it. */
+const faceX = (d: number) => onScreenX(X(FAR_WALL), d);
+const HOLE = { x: faceX(HIT_D), y: onScreenY(GY - HOLE_UP, HIT_D) };
+/** The book's half width (unscaled), its depth (it comes forward as it flies), its scale drawn. */
+const BOOK_HW = 24;
+const scriptD = (t: number) => CASE_D + (HIT_D - CASE_D) * Math.min(1, t / SCRIPT_T);
+export const scriptScale = (state: GameState) => { const s = whOf(state).ending.script; return s ? scriptD(s.t) : CASE_D; };
+export const scriptHole = (state: GameState) => { const E = whOf(state).ending; return E.scriptHole !== null && !wallOpen(state) ? E.scriptHole : null; };
 export const flyingScript = (state: GameState) => whOf(state).ending.script;
 /** Still in its case (up, or going over and not flung out yet). */
 export const scriptInCase = (state: GameState) => { const E = whOf(state).ending; return !caseDown(state) || (!leaked(state) && !E.wallHit && !E.script && E.scriptHole === null); };
 const tickScript = (state: GameState, E: Ending) => {
   if (E.caseDown && E.caseT === SCRIPT_AT && !E.script && E.scriptHole === null) {
-    const x = X(CASE_X), y = GY - 170, tx = X(FAR_WALL) + HOLE_IN, ty = GY - HOLE_UP;
-    E.script = { x, y, vx: (tx - x) / SCRIPT_T, vy: (ty - y - 0.5 * SCRIPT_G * SCRIPT_T * SCRIPT_T) / SCRIPT_T, a: 0 };
+    // (out of the case's open end as it goes over, at the case's depth)
+    const x = X(CASE_X) + 20 * CASE_D, y = onScreenY(GY - 136, CASE_D);
+    const tx = HOLE.x - BOOK_HW * HIT_D * 0.5, ty = HOLE.y;
+    E.script = { x, y, vx: (tx - x) / SCRIPT_T, vy: (ty - y - 0.5 * SCRIPT_G * SCRIPT_T * SCRIPT_T) / SCRIPT_T, a: 1.45, t: 0 };
     playSound('whoosh', 1, -4);
   }
   const s = E.script;
   if (!s) return;
-  s.vy += SCRIPT_G; s.x += s.vx; s.y += s.vy; s.a += 0.45;
-  // (pages shedding off it as it goes)
-  if (state.frame % 2 === 0) state.particles.push({ pos: { x: s.x, y: s.y }, vel: { x: -s.vx * 0.2 + (Math.random() - 0.5) * 2, y: -1 - Math.random() * 2 }, life: 90, color: '#F8FAFC', size: 4, grav: 0.05 });
-  if (s.x >= X(FAR_WALL) + HOLE_IN) {
-    // Through the wall: a hole its size punched in the siding, daylight through it, bits of wall out the far side
-    E.scriptHole = GY - HOLE_UP; E.script = null;
+  s.t++; s.vy += SCRIPT_G; s.x += s.vx; s.y += s.vy; s.a += SPIN;
+  // (pages shedding off it as it goes, fluttering down)
+  if (state.frame % 2 === 0) state.particles.push({ pos: { x: s.x, y: s.y }, vel: { x: -s.vx * 0.3 + (Math.random() - 0.5) * 1.5, y: -0.6 - Math.random() * 1.2 }, life: 110, color: Math.random() < 0.8 ? '#F8FAFC' : '#E7E5E4', size: 3 + Math.random() * 2, grav: 0.03 });
+  // Its leading edge into the face: straight through it (gone in the frame it hits), the hole its size left in the
+  // siding, the bits of siding and a burst of pages back off the face into the stage, a puff of dust
+  const d = scriptD(s.t);
+  if (s.x + BOOK_HW * d >= faceX(d) || s.t > SCRIPT_T + 20) {
+    // (the hole where it hit: on the face at the depth it was at, as high as it was)
+    E.scriptHole = { y: EYE_Y + (s.y - EYE_Y) / d, d }; E.script = null;
     playSound('crash', 0.9, -2); playSound('clang', 0.7, -6); shakeScreen(state, 10, 5);
-    for (let k = 0; k < 24; k++) state.particles.push({ pos: { x: X(FAR_WALL) + HOLE_IN + (Math.random() - 0.5) * 30, y: GY - HOLE_UP + (Math.random() - 0.5) * 30 }, vel: { x: -1 - Math.random() * 4, y: -2 - Math.random() * 4 }, life: 36, color: ['#78716C', '#A8A29E', '#57534E', '#E7E5E4'][k % 4], size: 2 + Math.random() * 4, grav: 0.35 });
+    const hx = faceX(d), hy = s.y;
+    for (let k = 0; k < 18; k++) state.particles.push({ pos: { x: hx - 2, y: hy + (Math.random() - 0.5) * 34 }, vel: { x: -0.8 - Math.random() * 3.5, y: -1.5 - Math.random() * 3.5 }, life: 40, color: ['#4D4752', '#635C68', '#3B363F', '#913A28'][k % 4], size: 2 + Math.random() * 3, grav: 0.35 });
+    for (let k = 0; k < 10; k++) state.particles.push({ pos: { x: hx - 4, y: hy + (Math.random() - 0.5) * 24 }, vel: { x: -0.4 - Math.random() * 2, y: -0.4 - Math.random() * 1.6 }, life: 50, color: k % 2 ? 'rgba(168, 162, 158, 0.6)' : 'rgba(120, 113, 108, 0.55)', size: 6 + Math.random() * 6, grav: -0.02 });
+    for (let k = 0; k < 12; k++) state.particles.push({ pos: { x: hx - 4, y: hy + (Math.random() - 0.5) * 20 }, vel: { x: -0.5 - Math.random() * 2.5, y: -1 - Math.random() * 2.5 }, life: 130 + Math.random() * 40, color: '#F8FAFC', size: 3 + Math.random() * 2, grav: 0.04 });
   }
 };
 
