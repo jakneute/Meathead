@@ -259,6 +259,12 @@ const mound = (g: Ctx, w: number, h: number) => {
     shapeR(g, () => g.rect(lx + w * 0.2, ly, 5, 5), SOCK_R, lx + w * 0.2, lx + w * 0.2 + 5, 0.8); box(g, lx + w * 0.2 + 1, ly, 1, 5, '#DC2626'); box(g, lx + w * 0.2 + 3, ly, 1, 5, '#2563EB');
     box(g, lx + w * 0.2 + 5, ly - 1, 2, 7, LEATHER_R[1]); box(g, lx + w * 0.2 + 5, ly - 1, 1, 7, LEATHER_R[0]);
   }
+  // (his arm up out of the top, set, the middle finger up: drawn first, rooted down inside the mound, so the mound's top
+  // goes over it (the user: "make sure it's a part of the concrete pile, not hovering over it"))
+  const ax = w * 0.34, ay = h * 0.1, S = SKIN_R;
+  shapeR(g, () => g.rect(ax - 3, ay - h * 0.42, 6, h * 0.62), S, ax - 3, ax + 3, 1);
+  shapeR(g, () => g.roundRect(ax - 5, ay - h * 0.52, 10, 8, 2), S, ax - 5, ax + 5, 1);
+  shapeR(g, () => g.roundRect(ax - 1.5, ay - h * 0.66, 4, 8, 1.5), S, ax - 1.5, ax + 2.5, 0.8);
   // (the mound itself: set concrete in steps, its slumps)
   const m = () => { g.moveTo(0, h); g.quadraticCurveTo(w * 0.1, h * 0.1, w * 0.38, h * 0.05); g.quadraticCurveTo(w * 0.66, h * 0.1, w * 0.74, h); g.closePath(); };
   shapeR(g, m, SET, 0, w * 0.74, 1.4);
@@ -268,12 +274,9 @@ const mound = (g: Ctx, w: number, h: number) => {
   box(g, w * 0.16, h * 0.3, w * 0.3, 2, SET[0]); box(g, w * 0.2, h * 0.5, 4, 2, SET[1]);
   // (blood run out through its cracks)
   for (const fx of [0.2, 0.46, 0.6]) { box(g, w * fx, h * 0.5, 2, h * 0.44, BLOOD[1]); box(g, w * fx, h * 0.5, 1, h * 0.3, BLOOD[3]); }
-  // (his arm out of the top, set, the middle finger up)
-  const ax = w * 0.34, ay = h * 0.1, S = SKIN_R;
-  shapeR(g, () => g.rect(ax - 3, ay - h * 0.42, 6, h * 0.44), S, ax - 3, ax + 3, 1);
-  shapeR(g, () => g.roundRect(ax - 5, ay - h * 0.52, 10, 8, 2), S, ax - 5, ax + 5, 1);
-  shapeR(g, () => g.roundRect(ax - 1.5, ay - h * 0.66, 4, 8, 1.5), S, ax - 1.5, ax + 2.5, 0.8);
-  box(g, ax - 6, ay - 1, 12, 3, SET[1]);
+  // (where it comes out of the top: a lip of the concrete heaped round it, crust up the arm, the shadow at its foot)
+  box(g, ax - 6, ay - 1, 12, 3, SET[1]); box(g, ax - 6, ay - 1, 12, 1, SET[0]); box(g, ax - 4, ay + 2, 8, 1, SET[3]);
+  box(g, ax - 3, ay - 4, 2, 3, SET[2]); box(g, ax + 1, ay - 6, 2, 2, SET[1]);
   // (the top of his head out the near slope: gray hair, the bandana)
   const tx = w * 0.12, ty = h * 0.62;
   shapeR(g, () => g.ellipse(tx, ty, 7, 5, -0.5, Math.PI, Math.PI * 2), GRAY_R, tx - 7, tx + 7, 1);

@@ -328,6 +328,17 @@ export const gooPile = (c: Ctx, x: number, gy: number, w: number, h: number, G: 
   c.restore();
 };
 
+/** Where a slump's top is (world y) at world x `at`: gooPile's own outline (its settled, snapped size, the same bumps),
+ *  for things that have to come up out of it (Harry's arm out of her concrete) rather than hover over it. Its foot
+ *  (gy) past its ends. */
+export const pileTop = (at: number, x: number, gy: number, w: number, h: number, seed: number, settle: number) => {
+  const sw = w * (1 + 0.14 * settle), sh = h * (1 - 0.2 * settle);
+  const qw = Math.round(sw / 3) * 3, qh = Math.max(2, Math.round(sh / 2) * 2);
+  if (qw < 2) return gy;
+  const u = (at - x) / qw, s1 = hh(seed) * 6, s2 = hh(seed + 3) * 6;
+  return gy - qh * Math.pow(Math.max(0, 1 - u * u), 0.65) * (1 + 0.16 * Math.sin(u * 7 + s1) + 0.08 * Math.sin(u * 15 + s2));
+};
+
 /** Frames since `o` was first seen drawn (for how fresh a splat or slump is: settling, drying). */
 const born = new WeakMap<object, number>();
 export const ageOf = (o: object, fr: number) => { let b = born.get(o); if (b === undefined || b > fr) { b = fr; born.set(o, b); } return fr - b; };

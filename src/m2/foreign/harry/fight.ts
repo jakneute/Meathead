@@ -66,7 +66,7 @@ import {
 import { drawRambo, mouthAt, muzzleAt, SKY_AIM, PANT_AIM, type RamboPose } from './rambo';
 import { around, type Box } from '../../deathFrame';
 import { drawLibertyBody, drawArm, gunLine, drawChunk, drawRubble, drawRevolverAt, drawTorchAt, CONC, PUKE, type Face, type LibLook, type Stain } from './liberty';
-import { gooStream, gooSplat, gooPile, gooDrip, ageOf, PUKE_GOO, BLOODY_GOO, CONC_GOO } from './goo';
+import { gooStream, gooSplat, gooPile, gooDrip, pileTop, ageOf, PUKE_GOO, BLOODY_GOO, CONC_GOO } from './goo';
 import * as L from './lines';
 
 type Ctx = CanvasRenderingContext2D;
@@ -1744,37 +1744,50 @@ const drawBuried = (c: Ctx, x: number, k: number, fr: number, setT: number) => {
     ellR(c, x - 16, GY - 1.6, (w - 20) * bleed0, 3 * bleed0 + 0.5, dith(c, BLOOD_R[2]));
     box(c, x - w * 0.6 * bleed0, GY - 3, w * 0.5 * bleed0, 1, BLOOD_R[3]); box(c, x - w * 0.5 * bleed0, GY - 3, 3, 1, '#FCA5A5');
   }
+  // (the user: "harry's arm and middle finger hover over the concrete pile. make sure it's a part of the concrete pile,
+  // not hovering over it") His arm comes up OUT of it: rooted under the slump's own top where it is (pileTop: the
+  // pile's outline, as it sags and sets), drawn before the slump so its lip goes over the forearm; the crust and the
+  // shadow where it comes out after. Clawing up, then set hard flipping the bird.
+  const px0 = x - w * 0.1, pw = w * 0.9, S = SKIN_R;
+  const up = Math.min(1, Math.max(0, (k - 0.35) / 0.4)), claw = set < 1 ? Math.sin(fr * 0.35) * 4 * (1 - set) : 0;
+  const ax = x - 18, surf = pileTop(ax, px0, GY, pw, h, 7, set), ay = surf + 10;
+  const ex = ax - 8 + claw, ey = ay - 40 * up, hx2 = ex - 2 + claw * 0.5, hy2 = ey - 26 * up;
+  if (up > 0) {
+    tubeR(c, [ax, ay, ex, ey, hx2, hy2 + 4], [10, 8.6], [S, S]);
+    // (the bicep's bulge, the peace sign tattoo)
+    ellR(c, (ax + ex) / 2 + 2, (ay + ey) / 2, 4, 8, S[0]);
+    c.strokeStyle = '#2E6E7E'; c.lineWidth = 1; c.beginPath(); c.arc((ax + ex) / 2, (ay + ey) / 2 + 2, 2.6, 0, Math.PI * 2); c.moveTo((ax + ex) / 2, (ay + ey) / 2 - 0.6); c.lineTo((ax + ex) / 2, (ay + ey) / 2 + 4.6); c.stroke();
+    // (the fist, the middle finger up once it's set; clawing before)
+    shapeR(c, () => c.roundRect(hx2 - 7.6, hy2 - 8, 15.2, 12.4, 3), S, hx2 - 7.6, hx2 + 7.6, 1.2);
+    for (let i = 0; i < 4; i++) box(c, hx2 - 6 + i * 3.4, hy2 - 7.4, 2, 1, S[0]);
+    box(c, hx2 - 6, hy2 - 2.4, 12, 1, S[3]);
+    if (set > 0.3) {
+      shapeR(c, () => c.roundRect(hx2 - 2.6, hy2 - 23, 6, 16.4, 2.6), S, hx2 - 2.6, hx2 + 3.4, 1.2);
+      box(c, hx2 - 1.4, hy2 - 22, 2, 1.4, S[0]); box(c, hx2 - 1.6, hy2 - 23, 4, 2.6, '#F8E0C8'); box(c, hx2 - 1.6, hy2 - 15, 4, 0.8, S[3]);
+    } else for (let i = 0; i < 3; i++) {
+      const fx = hx2 - 6.6 + i * 5, fy = hy2 - 15 + Math.abs(claw);
+      shapeR(c, () => c.roundRect(fx, fy, 3.6, 8.4, 1.6), S, fx, fx + 3.6, 1); box(c, fx + 0.6, fy, 2, 1.2, '#F8E0C8');
+    }
+  }
   // (the slump: her slurry heaped over him (goo.ts), sagging and drying paler from its edges as it sets)
-  gooPile(c, x - w * 0.1, GY, w * 0.9, h, CONC_GOO, 7, set, fr);
+  gooPile(c, px0, GY, pw, h, CONC_GOO, 7, set, fr);
+  if (up > 0) {
+    // (where it comes out: the shadow on the slump round it, the concrete crusted up the forearm, a lip heaped round it)
+    ellR(c, ax - 1, surf + 1.6, 11, 3, dith(c, R[4]));
+    const cx = (t: number) => ax + (ex - ax) * t, cy = (t: number) => ay + (ey - ay) * t, t0 = up > 0 ? 10 / (40 * up) : 1;
+    for (let i = 0; i < 4; i++) { const t = Math.min(1, t0 + i * 0.06); box(c, cx(t) - 5 + (i % 2) * 4, cy(t) - 2 - i, 3 + (i % 2), 3, i % 2 ? R[1] : R[2]); box(c, cx(t) - 5 + (i % 2) * 4, cy(t) - 2 - i, 2, 1, R[0]); }
+    shapeR(c, () => { c.moveTo(ax - 10, surf + 2); c.quadraticCurveTo(ax - 8, surf - 4, ax - 2, surf - 3.4); c.quadraticCurveTo(ax + 5, surf - 4.6, ax + 9, surf + 2); c.closePath(); }, R, ax - 10, ax + 9, 1.2);
+    box(c, ax - 7, surf - 3, 6, 1, R[0]);
+  }
   // (wet: gloopy drips still sliding down its slopes)
   if (set < 1) for (let i = 0; i < 3; i++) {
     const u = -0.6 + i * 0.55, dx = x - w * 0.1 + u * w * 0.9, dy0 = GY - h * (1 - u * u) ** 0.65 * 0.7;
     gooDrip(c, dx, dy0, 10 + i * 3, 5, CONC_GOO, ((fr * (1 - set)) / 140 + i * 0.33) % 1);
   }
-  // (the user: "some of his limbs stick out along with blood") Out of the top, his arm, clawing up, then set hard
-  // flipping the bird; out the near slope, the top of his head and the bandana's knot out the slope; the blood seeping
-  // out through the cracks as it sets, down the mound into a pool round its foot, red-stained chunks)
+  // (the user: "some of his limbs stick out along with blood") His arm out of the top (above, rooted in it); out the
+  // near slope, the top of his head and the bandana's knot; the blood seeping out through the cracks as it sets, down
+  // the mound into a pool round its foot, red-stained chunks)
   if (k < 0.35) return;
-  const up = Math.min(1, (k - 0.35) / 0.4), claw = set < 1 ? Math.sin(fr * 0.35) * 4 * (1 - set) : 0;
-  const ax = x - 18, ay = GY - h + 6, ex = ax - 8 + claw, ey = ay - 30 * up, hx2 = ex - 2 + claw * 0.5, hy2 = ey - 26 * up;
-  const S = SKIN_R;
-  tubeR(c, [ax, ay, ex, ey, hx2, hy2 + 4], [10, 8.6], [S, S]);
-  // (the bicep's bulge, the peace sign tattoo, the concrete splashed up it)
-  ellR(c, (ax + ex) / 2 + 2, (ay + ey) / 2, 4, 8, S[0]);
-  c.strokeStyle = '#2E6E7E'; c.lineWidth = 1; c.beginPath(); c.arc((ax + ex) / 2, (ay + ey) / 2 + 2, 2.6, 0, Math.PI * 2); c.moveTo((ax + ex) / 2, (ay + ey) / 2 - 0.6); c.lineTo((ax + ex) / 2, (ay + ey) / 2 + 4.6); c.stroke();
-  for (let i = 0; i < 3; i++) box(c, ax - 4 + i * 3, ay - 6 - i * 4, 3, 5, R[2]);
-  // (the fist, the middle finger up once it's set; clawing before)
-  shapeR(c, () => c.roundRect(hx2 - 7.6, hy2 - 8, 15.2, 12.4, 3), S, hx2 - 7.6, hx2 + 7.6, 1.2);
-  for (let i = 0; i < 4; i++) box(c, hx2 - 6 + i * 3.4, hy2 - 7.4, 2, 1, S[0]);
-  box(c, hx2 - 6, hy2 - 2.4, 12, 1, S[3]);
-  if (set > 0.3) {
-    shapeR(c, () => c.roundRect(hx2 - 2.6, hy2 - 23, 6, 16.4, 2.6), S, hx2 - 2.6, hx2 + 3.4, 1.2);
-    box(c, hx2 - 1.4, hy2 - 22, 2, 1.4, S[0]); box(c, hx2 - 1.6, hy2 - 23, 4, 2.6, '#F8E0C8'); box(c, hx2 - 1.6, hy2 - 15, 4, 0.8, S[3]);
-  } else for (let i = 0; i < 3; i++) {
-    const fx = hx2 - 6.6 + i * 5, fy = hy2 - 15 + Math.abs(claw);
-    shapeR(c, () => c.roundRect(fx, fy, 3.6, 8.4, 1.6), S, fx, fx + 3.6, 1); box(c, fx + 0.6, fy, 2, 1.2, '#F8E0C8');
-  }
-  shapeR(c, () => c.ellipse(ax, ay, 10, 3.6, 0, 0, Math.PI * 2), R, ax - 10, ax + 10, 1.2);
   // (the top of his head out the near slope: gray hair in strands, the red bandana, its knot and tails)
   const tx = x - w * 0.62, ty = GY - h * 0.42;
   shapeR(c, () => c.ellipse(tx, ty, 14, 9, -0.5, Math.PI, Math.PI * 2), GRAY_R, tx - 14, tx + 14, 1.2);
