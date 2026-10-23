@@ -56,6 +56,9 @@ export const HIT = {
 };
 /** A launch: the drag on it a frame; no other car gets him this long into one (no pinball). */
 const LAUNCH_DRAG = 0.992, LAUNCH_SAFE = 14;
+/** The tell before one comes out of a garage (frames: its headlights on in the dark, the door going up, the engine
+ *  revving): it comes out this much later than it's sent (the pacing's otherwise as it was). */
+export const TELL = 52;
 /** Thrown (bulked up): gravity on it; how long a wreck burns before it's dragged off; frozen before it shatters. */
 const THROWN_G = 0.32, WRECK_T = 170, FROZEN_T = 28;
 
@@ -105,6 +108,8 @@ export interface Garage {
   launch: Launch | null; hype: number;
   /** Phase 3: the hoops on fire. */
   hot: boolean;
+  /** The garage doors (arena.ts DOORS_X): how far up each one is (0 down, 1 all the way up). */
+  doorOpen: number[];
   /** Steve's box (for a thrown car), and what happens when one gets him (fight.ts). */
   steveBox: () => { x0: number; x1: number; y0: number; y1: number } | null;
   onThrownHit: (ctx: FrameContext, car: Car) => void;
@@ -139,11 +144,13 @@ const newCar = (state: GameState, g: Garage, color: CarColor, x: number, z: numb
     dir, speed: 3, mode: color === 'red' ? 'enter' : 'approach', t: 0,
     plan: 'none', swing: Math.random() < 0.5 ? 1 : -1, ox: 0, ang: 0,
     ramp: -1, airT: 0, airTotal: 1, z0: 0, rider: false, hit: false, crumple: 0, ice: 0, burnt: 0, wheel: 0, fade: 0,
+    hold: TELL,
   };
   carOfEnemy.set(e, car);
-  state.enemies.push(e);
+  // (in the world only once it's out of its garage: the tell first, the engine revving in there, now and then a horn)
   g.cars.push(car);
   playSound('carroar', 0.5, Math.random() * 4 - 2);
+  if (Math.random() < 0.45) playSound('horn', 0.3, color === 'red' ? 4 : 8);
   return car;
 };
 
@@ -303,7 +310,7 @@ const standingOn = (state: GameState, b: Block) => {
 const skid = (g: Garage, car: Car, state: GameState) => {
   if (state.frame % 2) return;
   const back = car.x - Math.cos(car.yaw) * CAR.L * 0.35, bz = car.z - Math.sin(car.yaw) * CAR.L * 0.35;
-  g.skids.push({ x: back, z: bz });
+  g.skids.push({ x: back, z: bz, yaw: car.yaw });
   if (g.skids.length > 280) g.skids.shift();
   if (state.frame % 4 === 0) state.particles.push({ pos: { x: back, y: GY + bz * 0.45 - 4 }, vel: { x: -car.dir * Math.random() * 1.5, y: -0.6 - Math.random() * 0.8 }, life: 36, color: 'rgba(214, 211, 209, 0.55)', size: 8 + Math.random() * 8 });
 };
@@ -346,6 +353,11 @@ export const updateCars = (ctx: FrameContext, g: Garage) => {
   const mx = pmid(state).x;
   const bulked = buffs.knock > 1;
   for (const car of g.cars) {
+    // Still in the garage (the tell): out, and into the world, once it's done
+    if (car.hold && car.hold > 0) {
+      if (--car.hold <= 0) { car.hold = 0; if (!state.enemies.includes(car.e)) state.enemies.push(car.e); playSound('engine', 0.5, 4); }
+      continue;
+    }
     car.t++;
     car.wheel += car.speed * 0.15;
     // In his hands (bulked up, the grab's critter throw), or thrown
@@ -565,11 +577,25 @@ export const updateCars = (ctx: FrameContext, g: Garage) => {
     g.cars = g.cars.filter(c => c.mode !== 'gone');
   }
   for (const r of g.ramps) if (r.lockT > 0 && !g.cars.some(c => c.ramp === g.ramps.indexOf(r) && (c.mode === 'approach' || c.mode === 'climb'))) r.lockT = 0;
+  // The garage doors: up over a tell (all the way by the time it comes out), up while one's going in or out of it,
+  // rolled back down slowly after
+  DOORS_X.forEach((dx, i) => {
+    const tell = g.cars.some(c => (c.hold ?? 0) > 0 && Math.abs(c.x - dx) < 4);
+    const busy = !tell && g.cars.some(c => !c.hold && c.mode !== 'gone' && c.z < BACK_Z + 80 && Math.abs(c.x - dx) < 150);
+    const o = g.doorOpen[i] ?? 0;
+    g.doorOpen[i] = tell || busy ? Math.min(1, o + (tell ? 1.25 / TELL : 0.08)) : Math.max(0, o - 0.02);
+  });
 };
+/** The tells on now (cars still in their garages, about to come out): where, what color, how far along (0..1). */
+export const tellsOf = (g: Garage) => g.cars.filter(c => (c.hold ?? 0) > 0).map(c => ({ x: c.x, color: c.color, k: 1 - (c.hold ?? 0) / TELL }));
 
 /** All of them off (the fight's over, or he's dead): the drivers bail, the cars back off out the doors. */
 export const clearCars = (g: Garage) => {
-  for (const c of g.cars) if (c.mode !== 'wreck' && c.mode !== 'gone' && c.mode !== 'held') { c.mode = 'exit'; c.t = 0; c.scripted = true; c.rider = false; }
+  for (const c of g.cars) {
+    // (one still in its garage just stays in there)
+    if (c.hold) { c.hold = 0; c.mode = 'gone'; continue; }
+    if (c.mode !== 'wreck' && c.mode !== 'gone' && c.mode !== 'held') { c.mode = 'exit'; c.t = 0; c.scripted = true; c.rider = false; }
+  }
 };
 /** Out of the world altogether (the stage going away). */
 export const dropCars = (state: GameState, g: Garage) => {

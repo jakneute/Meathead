@@ -26,7 +26,7 @@ import { x0, x1, ARENA_L, ARENA_R, CEIL_Y, CAM_ROW } from './arena';
 import { drawStuntBackdrop, drawStage, drawCrowd } from './art';
 import {
   type Fight, startFight, updateFight, fightOver, endFight, resetFight, drawFightBack, drawFightFront, drawFightHud,
-  killCamTick, killCamZoom, killedByWeakness, screenState,
+  killCamTick, killCamZoom, killedByWeakness, screenState, bayLooks,
 } from './fight';
 
 interface Stunt {
@@ -108,7 +108,7 @@ export const stunt: HollywoodSection = {
   drawBack: (c, state) => {
     const s = stuntOf(state), f = s.f;
     const sc = f ? screenState(f) : { replay: 0, hurtFlash: 0, hype: 0 };
-    drawStage(c, state, { cleared: isLandCleared('hollywood') && !f, hype: sc.hype, replay: sc.replay, hurtFlash: sc.hurtFlash, doorsLit: !!f });
+    drawStage(c, state, { cleared: isLandCleared('hollywood') && !f, hype: sc.hype, replay: sc.replay, hurtFlash: sc.hurtFlash, doorsLit: !!f, bays: f ? bayLooks(f) : undefined });
     if (f) drawFightBack(c, state, f);
   },
   drawFront: (c, state) => {

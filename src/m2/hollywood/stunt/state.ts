@@ -31,6 +31,9 @@ export interface Car {
   crumple: number; ice: number; burnt: number; wheel: number; fade: number;
   /** Steve's last stunt (the death): it hits nobody else. */
   scripted?: boolean;
+  /** Still in its garage, the tell on (headlights on, the door going up, the engine revving): frames till it comes
+   *  out (cars.ts TELL). Nothing of it is in the world till then. */
+  hold?: number;
 }
 
 /** A moving ramp in the back lane (its lip's x, which way it jumps), and its hoop on the truss over the jump's top. */
@@ -42,7 +45,7 @@ export interface Ramp {
   to: number; v: number;
 }
 
-export interface Skid { x: number; z: number }
+export interface Skid { x: number; z: number; /** The way it was pointing (its two back tires either side). */ yaw?: number }
 
 /** He's coming in off the tornado's fling (havoc/fling.ts sets it, putting him high over the stage's way in; the
  *  intro's landing takes it): his fall onto the stage, how high it starts (feet over the floor), how long it takes

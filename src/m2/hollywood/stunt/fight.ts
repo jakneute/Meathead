@@ -50,12 +50,12 @@ import { bossIntroSeen, markBossIntroSeen } from '../../bossIntro';
 import { ARENA_L, ARENA_R, ARENA_MID, GY, ZK, CUT, CAM_ROW, DOORS_X, STEVE_AT, LANE_FRONT, BARRIER_Y, MAT_X } from './arena';
 import {
   type Garage, newRamps, spawnRed, spawnBlue, spawnTow, pickRamp, updateRamps, updateCars, tickLaunch, launchHim, boom, freeze,
-  clearCars, dropCars, countCars, targetable, carOf, pmid, landingOf,
+  clearCars, dropCars, countCars, targetable, carOf, pmid, landingOf, tellsOf,
 } from './cars';
-import { CAR, drawCar, drawCarShadow, extents } from './carArt';
+import { CAR, drawCar, drawCarShadow, extents, onFloorX } from './carArt';
 import { type Car, FLUNG_IN, LAND_FALL } from './state';
 import { drawSteve, drawSteveAsh, drawSteveBrace, drawStevePants, STEVE_H, type StevePose } from './steve';
-import { drawSkids, drawRamp, drawHoop, drawRing, drawPyro, ringAt, PYRO_X } from './art';
+import { drawSkids, drawRamp, drawHoop, drawRing, drawPyro, ringAt, PYRO_X, drawTells } from './art';
 import * as L from './lines';
 
 type Ctx = CanvasRenderingContext2D;
@@ -215,7 +215,7 @@ export const startFight = (state: GameState): Fight => {
   const e = makeKindEnemy(STEVE_KIND as EnemyKind, STEVE_AT(side), GY);
   e.facing = -1; e.seen = true;
   const f: Fight = {
-    cars: [], ramps: newRamps(), skids: [], nextId: 0, launch: null, hype: 0, hot: false,
+    cars: [], ramps: newRamps(), skids: [], nextId: 0, launch: null, hype: 0, hot: false, doorOpen: DOORS_X.map(() => 0),
     steveBox: () => null, onThrownHit: () => {}, onCrowd: () => {},
     mode: 'intro', t: 0, total: 0, hp: HP, iframes: 0, flash: 0,
     sx: STEVE_AT(side), sz: 0, side, facing: -1, act: 'idle', actT: 0,
@@ -991,20 +991,35 @@ const drawHim = (c: Ctx, f: Fight, fr: number) => {
   }
 };
 
-/** A car, its shadow, and (blue, coming) the mark where it'll come down. */
-const drawOne = (c: Ctx, car: Car) => {
-  if (car.mode === 'held' || car.mode === 'gone') return;
+/** The scene's one eye (x): the bent floor in front of the line fans out from it, and what's on it with it. */
+const eyeX = (state: GameState) => state.camera.x + CANVAS_WIDTH / 2;
+/** A car (not while it's still in its garage): where it is on the bent floor; its tires smoking in a drift or a slide,
+ *  the suspension squashed coming down, sparks as it scrapes, the gas on, the wreck burning. */
+const drawOne = (c: Ctx, car: Car, ex: number, fr: number) => {
+  if (car.mode === 'held' || car.mode === 'gone' || car.hold) return;
   const fadeA = 1 - car.fade;
   if (fadeA <= 0) return;
   if (fadeA < 1) c.globalAlpha = fadeA;
-  drawCar(c, { color: car.color, x: car.x, y: car.y, z: car.z, yaw: car.yaw, pitch: car.pitch, crumple: car.crumple, ice: car.ice, burnt: car.burnt, driver: car.mode !== 'wreck', wheel: car.wheel });
+  const m = car.mode;
+  const smoke = m === 'drift' ? 1 : m === 'orbit' ? 0.7 : m === 'skid' ? Math.max(0, 1 - car.t / 40) : 0;
+  const squash = m === 'skid' && car.t < 16 ? Math.sin((car.t / 16) * Math.PI) * (1 - car.t / 24) : m === 'crash' && car.t < 10 ? (1 - car.t / 10) * 0.6 : 0;
+  const sparks = (m === 'skid' && car.t < 18) || (m === 'crash' && car.t < 14);
+  const throttle = m === 'climb' || m === 'enter' || m === 'approach' ? 1 : m === 'run' || m === 'recover' || m === 'tow' ? 0.5 : 0;
+  const fire = m === 'wreck' ? (car.burnt > 0.8 ? Math.max(0.25, 1 - car.t / 150) : 0.35) : 0;
+  drawCar(c, {
+    color: car.color, x: m === 'thrown' ? car.x : onFloorX(car.x, car.z, ex), y: car.y, z: car.z, yaw: car.yaw, pitch: car.pitch,
+    crumple: car.crumple, ice: car.ice, burnt: car.burnt, driver: m !== 'wreck', wheel: car.wheel,
+    smoke, squash, sparks, throttle, fire, f: fr + car.id * 17,
+  });
   c.globalAlpha = 1;
 };
 
 /** World space, behind him: the floor's marks, the pyro jets, the ramps and hoops, the cars back of him, Steve. */
 export const drawFightBack = (c: Ctx, state: GameState, f: Fight) => {
-  const fr = state.frame;
-  drawSkids(c, f.skids);
+  const fr = state.frame, ex = eyeX(state);
+  // (a car about to come out of its garage: its headlights on in there, their beams out across the floor)
+  drawTells(c, tellsOf(f), fr);
+  drawSkids(c, f.skids, ex);
   // (the blue cars' marks on the floor: where they'll come down, from the time they're on the ramp)
   for (const car of f.cars) {
     if (car.color !== 'blue' || (car.mode !== 'climb' && car.mode !== 'air')) continue;
@@ -1021,9 +1036,9 @@ export const drawFightBack = (c: Ctx, state: GameState, f: Fight) => {
   const ringsLit = f.mode !== 'dead' || f.death?.how === 'stunt';
   for (const s of [-1, 1] as const) if (!(inRing && s === ringSide)) drawRing(c, s, false, ringsLit, fr);
   for (const r of f.ramps) { drawHoop(c, r, false, f.hot, fr); drawRamp(c, r, fr); }
-  for (const car of f.cars) if (car.mode !== 'held' && car.mode !== 'gone') drawCarShadow(c, car.x, GY, car.mode === 'thrown' ? 0 : car.z, car.yaw, GY - car.y);
+  for (const car of f.cars) if (car.mode !== 'held' && car.mode !== 'gone' && !car.hold) { const z = car.mode === 'thrown' ? 0 : car.z; drawCarShadow(c, onFloorX(car.x, z, ex), GY, z, car.yaw, GY - car.y); }
   const back = f.cars.filter(c2 => c2.z < CUT && c2.mode !== 'thrown').sort((a, b) => a.z - b.z);
-  for (const car of back) drawOne(c, car);
+  for (const car of back) drawOne(c, car, ex, fr);
   for (const r of f.ramps) drawHoop(c, r, true, f.hot, fr);
   for (const s of [-1, 1] as const) if (!(inRing && s === ringSide)) drawRing(c, s, true, ringsLit, fr);
   drawPyro(c, state, f.fire);
@@ -1036,14 +1051,16 @@ export const drawFightBack = (c: Ctx, state: GameState, f: Fight) => {
 /** World space, in front of him: the cars in front, Steve dragged in front, thrown cars, the tow rope, the words,
  *  the barrier and the crowd. */
 export const drawFightFront = (c: Ctx, state: GameState, f: Fight) => {
-  const fr = state.frame;
+  const fr = state.frame, ex = eyeX(state);
   const front = f.cars.filter(c2 => c2.z >= CUT || c2.mode === 'thrown').sort((a, b) => a.z - b.z);
-  for (const car of front) drawOne(c, car);
-  if (f.mode !== 'dead' && f.sz >= CUT) drawHim(c, f, fr);
+  for (const car of front) drawOne(c, car, ex, fr);
+  // (him out in front of the line: on the bent floor, as his tow car is)
+  const sdx = f.mode !== 'dead' ? onFloorX(f.sx, f.sz, ex) - f.sx : 0;
+  if (f.mode !== 'dead' && f.sz >= CUT) { c.save(); c.translate(sdx, 0); drawHim(c, f, fr); c.restore(); }
   // (the tow rope: the car's back bumper to his fists)
   if (f.tow && (f.act === 'yank' || f.act === 'towed' || f.act === 'call')) {
-    const t = f.tow, rx = t.x - t.dir * CAR.L / 2, ry = GY + t.z * ZK - 18;
-    const hx = f.act === 'call' ? f.sx + f.facing * 20 : f.sx + t.dir * 46, hy = f.act === 'call' ? GY - 60 : GY + f.sz * ZK - 12;
+    const t = f.tow, rx0 = t.x - t.dir * CAR.L / 2, rx = onFloorX(rx0, t.z, ex), ry = GY + t.z * ZK - 18;
+    const hx = (f.act === 'call' ? f.sx + f.facing * 20 : f.sx + t.dir * 46) + (f.sz >= CUT ? sdx : 0), hy = f.act === 'call' ? GY - 60 : GY + f.sz * ZK - 12;
     c.strokeStyle = '#1A0B06'; c.lineWidth = 3; c.beginPath(); c.moveTo(rx, ry); c.quadraticCurveTo((rx + hx) / 2, Math.max(ry, hy) + (f.act === 'call' ? 20 : 4), hx, hy); c.stroke();
     c.strokeStyle = '#D6B98C'; c.lineWidth = 1.5; c.stroke();
   }
@@ -1082,4 +1099,6 @@ export const drawFightHud = (c: Ctx, f: Fight, band: { x1: number; x2: number; m
 };
 
 /** For the jumbotron: the replay while it's on; OUCH when he's hit. */
+/** The garage doors as they are (how far up; a car's tell on in it): for the set's art. */
+export const bayLooks = (f: Fight) => DOORS_X.map((dx, i) => ({ open: f.doorOpen[i] ?? 0, tell: f.cars.some(c => (c.hold ?? 0) > 0 && Math.abs(c.x - dx) < 4) }));
 export const screenState = (f: Fight) => ({ replay: f.replay, hurtFlash: f.flash, hype: f.hype });

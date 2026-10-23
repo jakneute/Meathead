@@ -32,7 +32,7 @@ import { ARENA_L, ARENA_R, ARENA_W, ARENA_MID, GY, ZK, BACK_Z, LANE_BACK, LANE_F
 import { RAMP, hoopOf } from './cars';
 import type { Ramp, Skid } from './state';
 import { drawSteve } from './steve';
-import { drawCar } from './carArt';
+import { drawCar, onFloorX, CAR, type CarColor } from './carArt';
 import { drawStuntFar } from './far';
 import {
   type Ctx, type View, INK, box, checker, mix, hash, poly, at, atDepth, timeOfDay, words, board, deco, plain, ball, post, slab, glassOf,
@@ -372,27 +372,86 @@ const paintSet = (g: Ctx) => {
 const lit = () => timeOfDay().lamps > 0.35;
 
 /** The bays' live bits: the signal over each (red; green with the show on), the beacon, the headlights in the dark. */
-const drawBayLive = (c: Ctx, dx: number, base: number, on: boolean, f: number) => {
-  const sx = dx + PORT - 16, sy = base - 176;
+/** A garage door in the fight: how far up it is; a car's tell on in it (about to come out). */
+export interface BayLook { open: number; tell: boolean }
+const drawBayLive = (c: Ctx, dx: number, base: number, on: boolean, f: number, bay?: BayLook) => {
+  const sx = dx + PORT - 16, sy = base - 176, tell = !!bay?.tell;
   box(c, sx - 7, sy, 14, 26, INK); box(c, sx - 6, sy + 1, 12, 24, '#18181B');
-  box(c, sx - 4, sy + 3, 8, 8, on ? '#3A0A0A' : (f >> 4) % 2 ? '#F05040' : '#8A1A14');
+  box(c, sx - 4, sy + 3, 8, 8, tell ? ((f >> 2) % 2 ? '#FBBF24' : '#7A4A08') : on ? '#3A0A0A' : (f >> 4) % 2 ? '#F05040' : '#8A1A14');
   box(c, sx - 4, sy + 14, 8, 8, on ? ((f >> 3) % 2 ? '#7CF08A' : '#3AC85A') : '#0A2A12');
   if (on) {
-    // (the beacon on the block, turning)
-    const bx = dx - PORT + 16, by = base - 190, k = (f >> 2) % 4;
+    // (the beacon on the block, turning (fast, a car coming out))
+    const bx = dx - PORT + 16, by = base - 190, k = (f >> (tell ? 1 : 2)) % 4;
     box(c, bx - 5, by, 10, 8, INK); box(c, bx - 4, by + 1, 8, 6, k < 2 ? '#F59E0B' : '#B45309'); box(c, bx - 4 + k * 2, by + 2, 2, 3, '#FFF2B0');
     // (two cars' headlights waiting in the dark)
-    for (const s of [-1, 1]) { box(c, dx + s * 40 - 9, base - 42, 18, 8, '#3A2E10'); box(c, dx + s * 40 - 8, base - 41, 7, 6, '#FEF3C7'); box(c, dx + s * 40 + 1, base - 41, 7, 6, '#FEF3C7'); }
+    if (!bay) for (const s of [-1, 1]) { box(c, dx + s * 40 - 9, base - 42, 18, 8, '#3A2E10'); box(c, dx + s * 40 - 8, base - 41, 7, 6, '#FEF3C7'); box(c, dx + s * 40 + 1, base - 41, 7, 6, '#FEF3C7'); }
+  }
+  // The roll-up door (the fight's on): down over the bay, the dark under it; up for a car coming out or going in
+  if (bay) {
+    const drop = Math.round((1 - bay.open) * 66), y0 = base - 92, Sl = scen('#A2A8B2');
+    if (drop > 2) {
+      box(c, dx - 101, y0, 202, drop, INK);
+      for (let y = y0; y < y0 + drop - 4; y += 5) { box(c, dx - 100, y, 200, 4, Sl[3]); box(c, dx - 100, y, 200, 1, Sl[5]); box(c, dx - 100, y + 3, 200, 1, Sl[1]); }
+      box(c, dx - 101, y0 + drop - 5, 202, 5, INK); box(c, dx - 100, y0 + drop - 4, 200, 3, dimmed('#FACC15')); box(c, dx - 100, y0 + drop - 4, 200, 1, dimmed('#FFF08A'));
+      box(c, dx - 7, y0 + drop - 10, 14, 4, INK); box(c, dx - 6, y0 + drop - 9, 12, 2, Sl[4]);
+    }
   }
 };
 
-const drawSet = (c: Ctx, state: GameState, doorsLit: boolean) => {
+// ---------------------------------------------------------------------------------------------------------------
+// The tell: a car about to come out of its garage, its headlights flicked on in the dark, their beams out across the
+// floor (warm for a red car, cold for a blue): cached beams, two lamps
+
+const TELL_BASE = FLOOR_BACK_Y + 2;
+const LAMP: Record<CarColor, { core: string; mid: string; halo: string; beam: [number, number, number]; hot: [number, number, number] }> = {
+  red: { core: '#FFF2D6', mid: 'rgba(255, 170, 110, 0.55)', halo: 'rgba(255, 90, 60, 0.3)', beam: [255, 150, 90], hot: [255, 226, 180] },
+  blue: { core: '#F0F8FF', mid: 'rgba(150, 200, 255, 0.55)', halo: 'rgba(70, 130, 255, 0.3)', beam: [120, 170, 255], hot: [220, 236, 255] },
+};
+const BEAM_W = 380, BEAM_H = 110;
+const beams = new Map<CarColor, HTMLCanvasElement | null>();
+const beamOf = (color: CarColor) => {
+  if (beams.has(color)) return beams.get(color)!;
+  if (typeof document === 'undefined') return null;
+  const cv = document.createElement('canvas'); cv.width = BEAM_W * 2; cv.height = BEAM_H * 2;
+  const g = cv.getContext('2d');
+  if (!g) { beams.set(color, null); return null; }
+  g.scale(2, 2);
+  const L = LAMP[color], mid = BEAM_W / 2;
+  // (stepped: bands of light going out, dimmer each; the two hot cores off the lamps)
+  const wedge = (x0: number, x1: number, X0: number, X1: number, rgb: [number, number, number], alphas: number[]) => {
+    g.save(); g.beginPath(); g.moveTo(x0, 0); g.lineTo(x1, 0); g.lineTo(X1, BEAM_H); g.lineTo(X0, BEAM_H); g.closePath(); g.clip();
+    alphas.forEach((a, i) => { g.fillStyle = `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${a})`; g.fillRect(0, (i * BEAM_H) / alphas.length, BEAM_W, BEAM_H / alphas.length + 0.5); });
+    g.restore();
+  };
+  wedge(mid - 34, mid + 34, 6, BEAM_W - 6, L.beam, [0.32, 0.22, 0.14, 0.08, 0.04]);
+  for (const s of [-1, 1]) wedge(mid + s * 23 - 4, mid + s * 23 + 4, mid + s * 60 - 34, mid + s * 60 + 34, L.hot, [0.3, 0.2, 0.12, 0.06]);
+  beams.set(color, cv);
+  return cv;
+};
+/** The tells on now (fight.ts), behind everything on the floor. */
+export const drawTells = (c: Ctx, tells: { x: number; color: CarColor; k: number }[], f: number) => {
+  for (const t of tells) {
+    // (flicked on: a stutter, then on)
+    const on = t.k > 0.3 || (t.k > 0.1 && (f >> 1) % 3 !== 0);
+    if (!on) continue;
+    const I = Math.min(1, (t.k - 0.08) / 0.45), L = LAMP[t.color], ly = TELL_BASE - 20;
+    c.save(); c.globalCompositeOperation = 'lighter';
+    const bm = beamOf(t.color);
+    if (bm) { c.globalAlpha = I; c.drawImage(bm, t.x - BEAM_W / 2, ly + 4, BEAM_W, BEAM_H); }
+    c.globalAlpha = 0.6 + 0.4 * I;
+    for (const s of [-1, 1]) { const lx = Math.round(t.x + s * 23); box(c, lx - 12, ly - 7, 24, 14, L.halo); box(c, lx - 8, ly - 5, 16, 10, L.mid); }
+    c.restore();
+    for (const s of [-1, 1]) { const lx = Math.round(t.x + s * 23); box(c, lx - 5, ly - 4, 10, 8, '#2A2A30'); box(c, lx - 4, ly - 3, 8, 6, L.core); box(c, lx - 3, ly - 2, 3, 2, '#FFFFFF'); }
+  }
+};
+
+const drawSet = (c: Ctx, state: GameState, doorsLit: boolean, bays?: BayLook[]) => {
   const base = FLOOR_BACK_Y + 2;
   if (!inView(state, SET_X, SET_X + SET_W)) return;
   const cv = painted('hst-set', SET_W, SET_H, paintSet);
   const sx = Math.max(0, Math.floor(state.camera.x - SET_X - 60)), sw = Math.min(SET_W - sx, CANVAS_WIDTH + 120);
   if (sw > 0) c.drawImage(cv, sx, 0, sw, SET_H, SET_X + sx, base - SET_H, sw, SET_H);
-  for (const dx of DOORS_X) if (inView(state, dx - PORT, dx + PORT)) drawBayLive(c, dx, base, doorsLit, state.frame);
+  DOORS_X.forEach((dx, i) => { if (inView(state, dx - PORT, dx + PORT)) drawBayLive(c, dx, base, doorsLit, state.frame, bays?.[i]); });
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -645,10 +704,10 @@ const drawJumbotron = (c: Ctx, x: number, y: number, f: number, o: { replay: num
 // ---------------------------------------------------------------------------------------------------------------
 
 /** The stage behind everything that moves (the cars, ramps, hoops: fight.ts draws those over it). */
-export const drawStage = (c: Ctx, state: GameState, opts: { cleared: boolean; hype: number; replay: number; hurtFlash: number; doorsLit: boolean }) => {
+export const drawStage = (c: Ctx, state: GameState, opts: { cleared: boolean; hype: number; replay: number; hurtFlash: number; doorsLit: boolean; bays?: BayLook[] }) => {
   const v = sview(state), f = state.frame;
   drawFloor(c, state, v);
-  drawSet(c, state, opts.doorsLit);
+  drawSet(c, state, opts.doorsLit, opts.bays);
   // The stands up both ends, going back to the set (over its ends, the floor's edges)
   drawStand(c, v, -1, opts.hype, f);
   drawStand(c, v, 1, opts.hype, f);
@@ -728,12 +787,18 @@ export const drawStage = (c: Ctx, state: GameState, opts: { cleared: boolean; hy
 // ---------------------------------------------------------------------------------------------------------------
 // The floor's marks, the ramps, the hoops, the rings of fire, the pyro
 
-/** The skid marks being laid down: two tones of rubber, a little smoke-gray at their edge. */
-export const drawSkids = (c: Ctx, skids: Skid[]) => {
-  c.fillStyle = 'rgba(10, 8, 8, 0.6)';
-  for (const s of skids) c.fillRect(Math.round(s.x - 3), Math.round(GY + s.z * ZK - 1), 6, 2);
-  c.fillStyle = 'rgba(40, 36, 36, 0.45)';
-  for (const s of skids) c.fillRect(Math.round(s.x - 3), Math.round(GY + s.z * ZK + 1), 6, 1);
+/** The skid marks being laid down: a pair of them (its two back tires), two tones of rubber, a little smoke-gray at
+ *  their edge; on the bent floor where it's bent (`ex` the eye). */
+export const drawSkids = (c: Ctx, skids: Skid[], ex: number) => {
+  const B = CAR.W * 0.42;
+  for (const [col, dy, h] of [['rgba(10, 8, 8, 0.6)', -1, 2], ['rgba(40, 36, 36, 0.45)', 1, 1]] as const) {
+    c.fillStyle = col; c.beginPath();
+    for (const s of skids) for (const sb of [-1, 1]) {
+      const yaw = s.yaw ?? 0, z = s.z + Math.cos(yaw) * sb * B, x = onFloorX(s.x - Math.sin(yaw) * sb * B, z, ex);
+      c.rect(Math.round(x - 3), Math.round(GY + z * ZK + dy), 6, h);
+    }
+    c.fill();
+  }
 };
 
 /** A ramp on its dolly in the back lane (going back across it: its deck in diamond plate, its near side's steel with
