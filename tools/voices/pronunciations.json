@@ -9,6 +9,7 @@
     { "in": "1840", "say": "EIGHTEEN FORTY", "word": true },
     { "in": "VIPS", "say": "VEE EYE PEES", "word": true },
     { "in": "VIP", "say": "VEE EYE PEE", "word": true },
+    { "in": "IBS", "say": "EYE BEE ESS", "word": true },
     { "in": "CABOOSE", "say": "KUH BOOSE", "word": true },
     { "in": "CABOOSES", "say": "KUH BOOSES", "word": true },
     { "in": "MY RESUME", "say": "MY REZ OO MAY" },
