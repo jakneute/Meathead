@@ -15,7 +15,7 @@
 import { GY } from '../geometry';
 import {
   type Ctx, type View, type Box3, INK, box, mix, poly, checker, hash, at, atDepth, ramp6, dimmed, hour, slab, post, ball, timeOfDay,
-  stoneBlocks, stucco, planks, shingles, hole, facade, still, board, words, plain, LOOKS, onScreen, lip, box3Back, ledge3, steppedGlow, pixelBlob,
+  stoneBlocks, stucco, planks, shingles, hole, facade, still, board, words, plain, LOOKS, onScreen, lip, box3Back, ledge3, steppedGlow, pixelBlob, riserSides,
 } from '../kit';
 
 const lampsOn = () => timeOfDay().lamps > 0.3;
@@ -623,6 +623,10 @@ export const drawEmbankment = (c: Ctx, v: View, a: number, rb: number, yb: numbe
   c.strokeStyle = '#FFF6D8'; c.lineWidth = 1; c.beginPath(); c.moveTo(a, GY - 1); c.lineTo(rb, top - 1); c.lineTo(yb, top - 1); c.stroke();
   // (the stairs down the far side: each tread's top going back, its riser in stone, its lit lip)
   const n = 12, tw = (sb - yb) / n;
+  // (every step's side going back first (toward the eye: solid stone blocks, no sky between), down to the promenade)
+  const flight = Array.from({ length: n }, (_, k) => ({ a: yb + tw * k, b: yb + tw * (k + 1), y: top + ((GY - top) / n) * k }));
+  flight.push({ a: sb, b: sb + tw, y: GY });
+  riserSides(c, v, flight.filter(t => t.b > xa - 40 && t.a < xb + 40), 0.94, S, [Math.round((GY - top) / n) - 3]);
   for (let k = 0; k < n; k++) {
     // (where the feet go: a descending run's tread at its top end, the engine's treadYAt)
     const x = yb + tw * k, rise = (GY - top) / n, y = top + rise * k;

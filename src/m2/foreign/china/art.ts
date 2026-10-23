@@ -17,7 +17,7 @@ import type { GroundRun } from '../../../m1/game/core/terrain';
 import { GY } from '../geometry';
 import {
   type Ctx, type View, type Box3, INK, box, mix, poly, checker, hash, at, atDepth, ramp6, dimmed, hour, slab, post, ball, timeOfDay, glassOf,
-  pixelBlob, stoneBlocks, planks, hole, facade, still, board, LOOKS, onScreen, lip, topBack, boxes3, box3Back, box3Front, ledge3, lantern, rockSlab,
+  pixelBlob, stoneBlocks, planks, hole, facade, still, board, LOOKS, onScreen, lip, topBack, boxes3, box3Back, box3Front, ledge3, lantern, rockSlab, riserSides,
 } from '../kit';
 
 type XY = (n: number) => number;
@@ -148,7 +148,7 @@ const walkTop = (c: Ctx, v: View, t: Tread, S: string[]) => {
 };
 /** The far parapet over a tread (dimmed: not somewhere to stand): its wall, its coping, battlements on the world's
  *  grid (lit left, shaded right, the odd arrow slit). */
-const PD = 0.9;
+export const PD = 0.9;
 const farParapet = (c: Ctx, v: View, t: Tread, D: string[]) => {
   const [pa, py] = at(v.eye, t.a, t.y, PD), [pb] = at(v.eye, t.b, t.y, PD), h = 24 * PD, top = Math.round(py - h);
   box(c, pa, top, pb - pa, py - top, D[2]); box(c, pa, top, pb - pa, 2, D[4]); box(c, pa, top + 2, pb - pa, 1, D[3]);
@@ -161,16 +161,21 @@ const farParapet = (c: Ctx, v: View, t: Tread, D: string[]) => {
     box(c, mx, top + 3, 1, Math.round(h * 0.5) - 3, D[1]);
   }
 };
-/** The wall along its runs (the ground ones skipped): the mountain under every run first, then every far parapet, every
- *  walk top, then every face (stamped) and the lit lips on the treads. */
-export const drawWall = (c: Ctx, v: View, runs: GroundRun[]) => {
+/** The wall along its runs (the ground ones skipped): the mountain under every run first, then every far parapet (and
+ *  `behind`: what stands on the parapet, at its depth), every walk top, the steps' sides, then every face (stamped) and
+ *  the lit lips on the treads. */
+export const drawWall = (c: Ctx, v: View, runs: GroundRun[], behind?: () => void) => {
   const vis: { r: GroundRun; i: number; t: Tread[] }[] = [];
   runs.forEach((r, i) => { if ((r.y1 === GY && r.y2 === GY) || !onScreen(v, r.x1, r.x2)) return; vis.push({ r, i, t: treadsOf(r) }); });
-  if (!vis.length) return;
+  if (!vis.length) { behind?.(); return; }
   const S = ramp6(hour(STONE)), D = ramp6(dimmed(STONE));
   for (const w of vis) mountain(c, v, w.r);
   for (const w of vis) for (const t of w.t) farParapet(c, v, t, D);
+  behind?.();
   for (const w of vis) for (const t of w.t) walkTop(c, v, t, S);
+  // (every step's side going back, toward the eye: the stairs solid stone blocks, never slabs with the sky between;
+  // across from one run to the next too, where a flight meets a flat)
+  riserSides(c, v, vis.flatMap(w => w.t), PD, S, [9, 18]);
   for (const { r, i, t } of vis) {
     const ox = r.x1, oy = Math.min(r.y1, r.y2), w = r.x2 - r.x1, H = Math.abs(r.y2 - r.y1) + 152;
     still(c, `cn-wall-${i}-${Math.round(w)}`, ox, oy, -1, -1, w + 2, H + 2, g => paintFace(g, r, t, ox, oy));

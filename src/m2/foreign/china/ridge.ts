@@ -142,7 +142,7 @@ export const drawRidgeBack = (c: Ctx, v: View, state: GameState) => {
     if (onScreen(v, mx - R, mx + R)) shellMark(c, mx, my, R, f);
   }
   // (the signs)
-  if (onScreen(v, X(4880), X(5040))) postBoard(c, X(4960), Y(860), ['THE SECOND RIDGE', '(THE FIRST ONE', 'WAS PRACTICE)'], LOOKS.china(1), '#991B1B', undefined, 110);
+  if (onScreen(v, X(4910), X(5070))) postBoard(c, X(4990), Y(860), ['THE SECOND RIDGE', '(THE FIRST ONE', 'WAS PRACTICE)'], LOOKS.china(1), '#991B1B', undefined, 110);
   if (onScreen(v, X(BEACON.a), X(BEACON.b))) hungBoard(c, X((BEACON.a + BEACON.b) / 2), Y(BEACON_TOP) + 4, Y(BEACON_TOP) + 40, ['BEACON TOWER', 'HIGHEST POINT IN OHIO'], LOOKS.china(1), '#991B1B');
   if (onScreen(v, X(7300), X(7600))) postBoard(c, X(7440), GY, ['LEAVING CHINA', 'NEXT: GERMANY (EUROPE)'], LOOKS.china(1), '#991B1B', undefined, 100);
   if (onScreen(v, X(6510), X(6760))) hungBoard(c, X(6640), Y(1260) + 10, Y(1260) + 60, ['UNDER REPAIR', 'SINCE 1987'], LOOKS.china(1), '#1C1917');
@@ -171,8 +171,8 @@ export const drawScaffold = (c: Ctx, v: View) => {
 
 export const ridgeLamps = (v: View): Light[] => {
   const out: Light[] = [];
-  for (const [rx, h] of [[4900, 860], [5250, 860], [5660, 1260], [6300, 1260], [6480, 1260]] as const) if (onScreen(v, X(rx), X(rx))) out.push({ x: X(rx), y: Y(h) - 74, r: 120, a: 0.45, color: '#FCA5A5' });
+  for (const [rx, h] of [[4912, 860], [5238, 860], [5660, 1260], [6300, 1260], [6480, 1260]] as const) if (onScreen(v, X(rx), X(rx))) out.push({ x: X(rx), y: Y(h) - 74, r: 120, a: 0.45, color: '#FCA5A5' });
   return out;
 };
 /** Where the lanterns on posts go along the new stretch (index.ts draws them with the others). */
-export const RIDGE_LANTERNS: [number, number][] = [[4900, 860], [5250, 860], [5660, 1260], [6300, 1260], [6480, 1260]];
+export const RIDGE_LANTERNS: [number, number][] = [[4912, 860], [5238, 860], [5660, 1260], [6300, 1260], [6480, 1260]];

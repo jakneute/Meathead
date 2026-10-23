@@ -203,6 +203,22 @@ export const box3Front = (c: Ctx, b: Box3) => {
 export const lip = (c: Ctx, x: number, y: number, w: number) => {
   box(c, x, y, w, 3, LIP[2]); box(c, x, y, w, 1, LIP[3]); box(c, x, y + 3, w, 1, LIP[1]);
 };
+/** A flight of steps' sides going back (every riser's end face, toward the eye's side, from one tread's top down to the
+ *  next's, back as far as the treads' tops go: without them a stair reads as floating slabs, the sky through between).
+ *  `treads` in order along x ({a, b, y}: world x a..b, top y); `d1` how far back the tops go; `joints` offsets down from
+ *  each riser's top for the course lines carried back along it. Draw after the tops, before the fronts. Jumps taller
+ *  than `maxRise` (a tower's wall, a cliff) aren't steps: left to whatever's there. */
+export const riserSides = (c: Ctx, v: View, treads: { a: number; b: number; y: number }[], d1: number, R: string[], joints: number[] = [], maxRise = 48) => {
+  for (let i = 0; i + 1 < treads.length; i++) {
+    const p = treads[i], q = treads[i + 1], dy = Math.abs(p.y - q.y);
+    if (Math.abs(p.b - q.a) > 1.5 || dy < 1 || dy > maxRise) continue;
+    const x = q.a, top = Math.min(p.y, q.y), bot = Math.max(p.y, q.y), side: 1 | -1 = q.y < p.y ? -1 : 1;
+    if (!sideBack(c, v.eye, x, side, top, bot, 1, d1, R, 3, false)) continue;
+    c.strokeStyle = R[0]; c.lineWidth = 1; c.beginPath();
+    for (const o of joints) if (o > 0 && o < dy) { const [x0, y0] = at(v.eye, x, top + o, 1), [x1, y1] = at(v.eye, x, top + o, d1); c.moveTo(x0, y0 + 0.5); c.lineTo(x1, y1 + 0.5); }
+    c.stroke();
+  }
+};
 /** A lot of boxes, in the right order (all the going-back faces, then the fronts). */
 export const boxes3 = (c: Ctx, v: View, list: Box3[]) => {
   const vis = list.filter(b => onScreen(v, b.x, b.x + b.w, 1));
