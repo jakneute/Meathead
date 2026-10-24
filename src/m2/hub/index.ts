@@ -13,7 +13,8 @@ import { say, MEATHEAD_VOICE, pickLine } from '../../m1/game/platform/speech';
 import { isShat, isNude } from '../../m1/game/player/gut';
 import { AMERICA_DENY } from '../lines/hubLines';
 import { getCheats } from '../cheats';
-import { setUi, getUi, goTo, isLeaving, arrived, carryGut, takeGut, setStartCheckpoint } from '../store';
+import { setUi, getUi, goTo, isLeaving, arrived, carryGut, takeGut, setStartCheckpoint, landsCleared, ALPHA_LAND_COUNT } from '../store';
+import { alphaEndOver } from '../alphaEnd';
 import { fastTravelStops, fastTravelPick, setFastTravelPick, takeFastTravelGo } from '../parkmap/fastTravel';
 import { stopWeapons } from '../weapons';
 import { pollM2, pressed } from '../input';
@@ -43,7 +44,7 @@ const COVERED_T = 2;
 
 const GATED: (keyof Controls)[] = ['jump', 'special', 'shoot', 'secondary', 'charge'];
 
-interface Hub { map: number | null; upWas: boolean; /** (the fast-travel pick: down held last frame) */ downWas?: boolean; /** Buttons held from closing the map: ignored till let go. */ gate: Set<keyof Controls>; /** The grabs work here too. */ grab: Grab; /** Going through a portal, or back out of one (portal.ts). */ portal?: Show | null }
+interface Hub { map: number | null; upWas: boolean; /** (the fast-travel pick: down held last frame) */ downWas?: boolean; /** Buttons held from closing the map: ignored till let go. */ gate: Set<keyof Controls>; /** The grabs work here too. */ grab: Grab; /** Going through a portal, or back out of one (portal.ts). */ portal?: Show | null; /** Out through America USA with every land cleared: the alpha's ending playing over it (alphaEnd.ts: it goes to the title). */ ending?: boolean }
 const getHub = (state: GameState) => state.stage as Hub | null;
 
 /** Round the lap: everything shifts by a whole lap, so he never runs out of roundabout. */
@@ -97,6 +98,7 @@ export const hubLayout: StageLayout = {
     if (isLeaving()) { stopWeapons(); carryGut(state.player); state.player.vel.x = 0; return { ...NO_CONTROLS }; }
     state.player.noContactHurt = false;
     if (!hub) return controls;
+    if (hub.ending) { state.player.inCutscene = true; state.player.vel.x = 0; return { ...NO_CONTROLS }; }
     pollM2(state.frame);
     // (out of a portal, the camera pulling back: the art stamped as it comes into view, not painted live every frame of
     // the pull-back (stamp.ts))
@@ -151,6 +153,11 @@ export const hubLayout: StageLayout = {
     // (the grabs: no use for them here, with nobody about, but he can still throw them)
     controls = updateGrab(ctx, hub.grab, controls);
     if (grabbing(hub.grab)) near = null;
+    // (every land cleared: out through America USA plays the alpha's ending again (the PA says so in it))
+    if (nearAmerica && near === null && controls.up && !hub.upWas && !grabbing(hub.grab) && landsCleared() >= ALPHA_LAND_COUNT) {
+      hub.ending = true; state.player.inCutscene = true; alphaEndOver();
+      return { ...NO_CONTROLS };
+    }
     if (nearAmerica && near === null && controls.up && !hub.upWas && !grabbing(hub.grab)) {
       const pool = AMERICA_DENY[isNude(state) ? 'nude' : isShat(state) ? 'shitty' : 'clean'];
       const text = pickLine(pool);

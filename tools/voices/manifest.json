@@ -50731,7 +50731,22 @@
  },
  {
   "voice": "m2.pa",
+  "text": "GOODBYE.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.pa",
   "text": "HAPPY LAND IS NOT RESPONSIBLE FOR LOST FINGERS.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.pa",
+  "text": "IF YOU CHOSE NOT TO SAVE YOUR GAME, YOU'RE SHIT OUT OF LUCK.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.pa",
+  "text": "IF YOU WANT TO HEAR MY WONDERFUL VOICE AGAIN, EXIT THROUGH AMERICA USA FROM YOUR SAVED GAME.",
   "from": "INTRO"
  },
  {
@@ -50756,7 +50771,17 @@
  },
  {
   "voice": "m2.pa",
+  "text": "OR YOU CAN LOAD YOUR SAVED GAME AND TEST THE NEW WEAPON YOU JUST GOT.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.pa",
   "text": "PLEASE DO NOT FEED THE SECURITY STAFF.",
+  "from": "INTRO"
+ },
+ {
+  "voice": "m2.pa",
+  "text": "SORRY TO HAVE INTERRUPTED YOU.",
   "from": "INTRO"
  },
  {

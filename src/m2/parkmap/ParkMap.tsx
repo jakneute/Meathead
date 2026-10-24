@@ -345,6 +345,8 @@ const CastPanel: React.FC<{ landIdx: number }> = ({ landIdx }) => {
       <div className="mx-2 my-2 h-[2px]" style={{ background: `repeating-linear-gradient(90deg, ${l.swirl[1]} 0 4px, transparent 4px 6px)` }} />
       <div className="px-2 pb-2 text-[5px] leading-[9px]" style={{ color: '#292524' }}>{c.piece}</div>
       {c.foot && <div className="px-2 pb-3 text-[5px] leading-[8px]" style={{ color: '#78716C' }}>{c.foot}</div>}
+      {/* (his weakness, hinted: a fun fact in the white space) */}
+      <div className="mx-2 mb-3 px-[5px] py-[4px] text-[5px] leading-[8px]" style={{ color: '#7C2D12', background: '#FEF3C7', border: `1px dashed ${l.swirl[1]}` }}>{c.hint}</div>
       <div className="px-2 pb-3 text-[5px] leading-[8px] italic" style={{ color: '#7C6A4A' }}>ASK ANY CAST MEMBER FOR AN AUTOGRAPH!</div>
     </div>
   );

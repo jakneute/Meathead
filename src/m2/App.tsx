@@ -247,6 +247,9 @@ const App2: React.FC = () => {
   // (a new game starts in his gym: the Iron Pit, intro/gym; ?gym in dev: straight into it, no title; ?intro: straight
   // into the way in after it)
   const [title, setTitle] = useState(first === GYM_STAGE && !devQ?.has('gym'));
+  /** The alpha's ending over everything, from the title (its cheat, or CONTINUE on a file that never saw it): the title
+   *  put away, but still "the title" as far as the game's concerned, so nothing starts behind it (it goes to the title). */
+  const [alphaOnly, setAlphaOnly] = useState(false);
   useEffect(() => { setMusicTitle(title); }, [title]);
   const startNew = (slot: Slot | null) => {
     if (slot !== null && readFile(slot)) deleteFile(slot);
@@ -264,7 +267,7 @@ const App2: React.FC = () => {
     setAlphaEndSeen(!!f.alphaSeen);
     playOnFile(slot, f.playTimeMs);
     // (all cleared, but quit before the alpha's ending played: it plays now, and on to the title as ever)
-    if (f.cleared.length >= ALPHA_LAND_COUNT && !f.alphaSeen) { setTitle(false); alphaEndOver(); return; }
+    if (f.cleared.length >= ALPHA_LAND_COUNT && !f.alphaSeen) { setAlphaOnly(true); alphaEndOver(); return; }
     // (onto the hub, where Meathead 1's goes onto the map: in off America USA's street)
     setHubStart(AMERICA_SLOT);
     pending.current = HUB_STAGE;
@@ -863,7 +866,7 @@ const App2: React.FC = () => {
           <div className="absolute left-1/2 top-[40%] -translate-x-1/2 z-40 px-4 py-3 text-[12px] text-yellow-300 bg-black/85 border-2 border-yellow-500">{ui.notice.text}</div>
         )}
         <div className="absolute inset-0 z-50 bg-black pointer-events-none transition-opacity duration-200" style={{ opacity: fade || status === GameStatus.START ? 1 : 0 }} />
-        {title && <TitleScreen onNew={startNew} onContinue={continueFile} onHub={startAtHub} onEnding={() => { setTitle(false); alphaEndOver(); }} />}
+        {title && !alphaOnly && <TitleScreen onNew={startNew} onContinue={continueFile} onHub={startAtHub} onEnding={() => { setAlphaOnly(true); alphaEndOver(); }} />}
       </div>
     </div>
   );

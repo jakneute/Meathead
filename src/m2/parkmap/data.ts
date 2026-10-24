@@ -159,7 +159,7 @@ export const NUMBERS: Record<string, number> = (() => {
 /** An obituary (the cast panel's, once he's dead): the dates (joke years), the notice, the in-lieu-of-flowers line. */
 export interface Obit { dates: string; text: string; flowers: string }
 export interface CastMember { land: string; name: string; role: string; piece: string; foot?: string;
-  /** A fun fact on his panel while he's alive: his weakness, hinted (never named outright). */
+  /** A fun fact on his KEY CAST MEMBERS panel (ParkMap.tsx) while he's alive: his weakness, hinted (never named outright). */
   hint: string;
   /** Dead: the obituary for his normal death and for his weakness death (store.ts bossDeath). */
   obit: { normal: Obit; weakness: Obit } }

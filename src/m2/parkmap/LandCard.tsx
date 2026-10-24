@@ -119,7 +119,7 @@ const LandCard: React.FC<{ land: number }> = ({ land }) => {
               {photo && <img src={photo.url} width={photo.w} height={photo.h} alt="" draggable={false} className="shrink-0" style={{ width: photo.w, height: photo.h, imageRendering: 'pixelated', transform: 'rotate(-3deg)' }} />}
               {dead
                 ? <div className="min-w-0">IN MEMORIAM:<br /><span className="font-black" style={{ color: '#18181B' }}>{star.name}</span><br /><span style={{ color: '#7F1D1D' }}>{star.obit[dead].dates}</span></div>
-                : <div className="min-w-0">KEY CAST MEMBER:<br /><span className="font-black" style={{ color: l?.sign }}>{star.name}</span><br />{star.role}<br /><span style={{ color: '#A16207' }}>{star.hint}</span></div>}
+                : <div className="min-w-0">KEY CAST MEMBER:<br /><span className="font-black" style={{ color: l?.sign }}>{star.name}</span><br />{star.role}</div>}
             </div>}
           </div>
         </div>
