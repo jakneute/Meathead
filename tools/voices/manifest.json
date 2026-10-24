@@ -26106,12 +26106,12 @@
  },
  {
   "voice": "m2.fantasy.courtier",
-  "text": "BACK, PEASANT! YOU COST THIRTY TWO DOLLARS!",
+  "text": "AN AUDIENCE MEANS SHE LOOKS AT YOU. THEN SHE LAUGHS.",
   "from": "FANTASY"
  },
  {
   "voice": "m2.fantasy.courtier",
-  "text": "HER GRACE SEES NO ONE. UNLESS THEY WIN.",
+  "text": "BACK, PEASANT! YOU COST THIRTY TWO DOLLARS!",
   "from": "FANTASY"
  },
  {
@@ -26141,12 +26141,12 @@
  },
  {
   "voice": "m2.fantasy.courtierf",
-  "text": "BACK, PEASANT! YOU COST THIRTY TWO DOLLARS!",
+  "text": "AN AUDIENCE MEANS SHE LOOKS AT YOU. THEN SHE LAUGHS.",
   "from": "FANTASY"
  },
  {
   "voice": "m2.fantasy.courtierf",
-  "text": "HER GRACE SEES NO ONE. UNLESS THEY WIN.",
+  "text": "BACK, PEASANT! YOU COST THIRTY TWO DOLLARS!",
   "from": "FANTASY"
  },
  {
@@ -26621,6 +26621,11 @@
  },
  {
   "voice": "m2.fantasy.piper",
+  "text": "EVERY WINNER THINKS HE'S GETTING LAID. EVERY WINNER DIES.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.piper",
   "text": "EW! YOUR SHIT'S ON MY DRESS!",
   "from": "FANTASY"
  },
@@ -26846,17 +26851,12 @@
  },
  {
   "voice": "m2.fantasy.piper",
-  "text": "LOOK WHO'S STANDING UP NOW.",
-  "from": "FANTASY"
- },
- {
-  "voice": "m2.fantasy.piper",
   "text": "MMM. A MAN WHO SOILS HIMSELF FOR ME.",
   "from": "FANTASY"
  },
  {
   "voice": "m2.fantasy.piper",
-  "text": "MMM. THE LAST ONE STANDING. COME TO MOMMA.",
+  "text": "MMM. THE LAST ONE STANDING. LET'S SEE WHAT I WON.",
   "from": "FANTASY"
  },
  {
@@ -26866,7 +26866,7 @@
  },
  {
   "voice": "m2.fantasy.piper",
-  "text": "NAKED ALREADY? THE BLOOD GOT YOU GOING TOO?",
+  "text": "NAKED ALREADY? WHO SAID YOU WERE GETTING ANYTHING?",
   "from": "FANTASY"
  },
  {
@@ -26961,11 +26961,6 @@
  },
  {
   "voice": "m2.fantasy.piper",
-  "text": "SAY FAT AGAIN. I DARE YOU, YOU LITTLE TURD.",
-  "from": "FANTASY"
- },
- {
-  "voice": "m2.fantasy.piper",
   "text": "SHOCKING, ISN'T IT?",
   "from": "FANTASY"
  },
@@ -26982,6 +26977,11 @@
  {
   "voice": "m2.fantasy.piper",
   "text": "STAND STILL, SHIT PANTS.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.piper",
+  "text": "STAND UP ALL YOU WANT. YOU'LL NEVER TOUCH THIS.",
   "from": "FANTASY"
  },
  {
@@ -27007,11 +27007,6 @@
  {
   "voice": "m2.fantasy.piper",
   "text": "THEY ALL DIED PRETTY FOR ME. YOU'LL DIE UGLY.",
-  "from": "FANTASY"
- },
- {
-  "voice": "m2.fantasy.piper",
-  "text": "THEY DIED FOR ME! YOU DON'T GET TO CALL ME FAT!",
   "from": "FANTASY"
  },
  {
@@ -27062,6 +27057,11 @@
  {
   "voice": "m2.fantasy.piper",
   "text": "YOU SMELL LIKE A TRUCK STOP TOILET AND I'M UGLY?!",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.piper",
+  "text": "YOU THINK YOU WON ME? I'VE SHAT OUT BETTER MEN!",
   "from": "FANTASY"
  },
  {
@@ -27416,7 +27416,7 @@
  },
  {
   "voice": "m2.fantasy.piper_pa",
-  "text": "ROUND AND ROUND. LAST ONE BREATHING GETS ME.",
+  "text": "ROUND AND ROUND. LAST ONE BREATHING GETS AN AUDIENCE.",
   "from": "FANTASY"
  },
  {
@@ -27426,7 +27426,7 @@
  },
  {
   "voice": "m2.fantasy.piper_pa",
-  "text": "STILL ALIVE? MMM. I'LL CHANGE MY SHEETS.",
+  "text": "STILL ALIVE? MMM. I'LL HAVE TO TRY HARDER.",
   "from": "FANTASY"
  },
  {
@@ -57931,6 +57931,11 @@
  },
  {
   "voice": "meathead",
+  "text": "A DOZEN DEAD GUYS. A HOLE IN THE ROOF. NO SEX. I'M THE IDIOT.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "A DRAGON'S LAIR. SMELLS LIKE BONDO.",
   "from": "FANTASY"
  },
@@ -58836,7 +58841,7 @@
  },
  {
   "voice": "meathead",
-  "text": "A MINE. SEVEN SHORT GUYS AND ONE WOMAN. SURE.",
+  "text": "A MINE. SEVEN DWARFS. ONE BATHROOM. NO THANKS.",
   "from": "FANTASY"
  },
  {
@@ -60376,6 +60381,11 @@
  },
  {
   "voice": "meathead",
+  "text": "AN AUDIENCE. I LOOKED IT UP. IT MEANS A MEETING.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "AN AUTHENTIC OLD WEST TOWN. EST. NINETEEN NINETY FOUR. SURE.",
   "from": "m1/game/stages/dale/town.ts:272"
  },
@@ -60418,6 +60428,11 @@
   "voice": "meathead",
   "text": "AN OIL DRUM! THAT'S A HAZMAT SITUATION!",
   "from": "HAZARD_HURT"
+ },
+ {
+  "voice": "meathead",
+  "text": "AND I GOT THE WET WIPES OUT FOR NOTHING.",
+  "from": "FANTASY"
  },
  {
   "voice": "meathead",
@@ -60707,11 +60722,6 @@
  {
   "voice": "meathead",
   "text": "AUDIENCE MEANS SEX. I LOOKED IT UP. IN MY HEART.",
-  "from": "FANTASY"
- },
- {
-  "voice": "meathead",
-  "text": "AUDIENCE OVER. NO SEX. TYPICAL.",
   "from": "FANTASY"
  },
  {
@@ -65316,7 +65326,7 @@
  },
  {
   "voice": "meathead",
-  "text": "FOR ONE SECOND THERE, I HAD A SHOT.",
+  "text": "FOR ONE SECOND THERE, I HAD A SHOT. NO I DIDN'T.",
   "from": "FANTASY"
  },
  {
@@ -74921,7 +74931,7 @@
  },
  {
   "voice": "meathead",
-  "text": "MORE OF THEM? SHE'S SELLING TICKETS TO HER OWN PUSSY?",
+  "text": "MORE OF THEM? SHE'S SELLING TICKETS. TO WATCH US DIE.",
   "from": "FANTASY"
  },
  {
@@ -81836,11 +81846,6 @@
  },
  {
   "voice": "meathead",
-  "text": "SHE'S A COAT RACK WITH TITS.",
-  "from": "FANTASY"
- },
- {
-  "voice": "meathead",
   "text": "SHE'S A CORK. SHE'S A CORK IN THE PLUMBING.",
   "from": "FANTASY"
  },
@@ -85828,11 +85833,6 @@
   "voice": "meathead",
   "text": "THAT'S WHAT THE SPINNY PART IS FOR.",
   "from": "FOREIGN"
- },
- {
-  "voice": "meathead",
-  "text": "THAT'S WHAT YOU GET FOR SOUNDING HOT.",
-  "from": "FANTASY"
  },
  {
   "voice": "meathead",

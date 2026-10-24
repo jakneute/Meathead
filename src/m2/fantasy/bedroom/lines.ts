@@ -28,9 +28,9 @@ export const MH_KICK: ByPants = {
 };
 /** Her, on her chaise, the door flat on her carpet: still purring (she can't see him yet for the dust). */
 export const PIPER_REVEAL: ByPants = {
-  clean: ['MMM. THE LAST ONE STANDING. COME TO MOMMA.', "YOU KILLED THEM ALL. I'M SO WET I SLID OFF THE CHAISE."],
+  clean: ["MMM. THE LAST ONE STANDING. LET'S SEE WHAT I WON.", "YOU KILLED THEM ALL. I'M SO WET I SLID OFF THE CHAISE."],
   shitty: ['YOU WADED THROUGH BLOOD AND SHIT FOR ME. I CAN SMELL IT.', 'MMM. A MAN WHO SOILS HIMSELF FOR ME.'],
-  nude: ['NAKED ALREADY? THE BLOOD GOT YOU GOING TOO?', 'OOH. YOU ALREADY TOOK OFF YOUR PANTS. EAGER.'],
+  nude: ['NAKED ALREADY? WHO SAID YOU WERE GETTING ANYTHING?', 'OOH. YOU ALREADY TOOK OFF YOUR PANTS. EAGER.'],
 };
 /** The dust settles: him seeing her. (Naked: as the boner goes down.) */
 export const MH_SEES: ByPants = {
@@ -52,7 +52,7 @@ export const MH_UGLY: ByPants = {
 };
 /** Insulted: the lust gone sour. She wanted men to die for her, not this. */
 export const PIPER_ENRAGED: ByPants = {
-  clean: ['FAT?! MEN DIED FOR THIS! DOZENS OF THEM!', "THEY DIED FOR ME! YOU DON'T GET TO CALL ME FAT!"],
+  clean: ['FAT?! MEN DIED FOR THIS! DOZENS OF THEM!', "YOU THINK YOU WON ME? I'VE SHAT OUT BETTER MEN!"],
   shitty: ['A MAN IN SHITTY PANTS DOES NOT CALL ME UGLY!', "YOU SMELL LIKE A TRUCK STOP TOILET AND I'M UGLY?!"],
   nude: ['YOUR LITTLE LIMP DICK DOESN\'T GET A VOTE!', 'I\'VE SEEN BIGGER ON A PIXIE! AND I EAT PIXIES!'],
 };
@@ -85,7 +85,7 @@ export const MH_AGAIN: ByPants = {
 
 /** Her, now and then (when nobody's talking). */
 export const PIPER_TAUNT: ByPants = {
-  clean: ['THEY ALL DIED PRETTY FOR ME. YOU\'LL DIE UGLY.', 'SAY FAT AGAIN. I DARE YOU, YOU LITTLE TURD.', 'I WAS GOING TO WATCH YOU DIE. NOW I\'LL DO IT.'],
+  clean: ['THEY ALL DIED PRETTY FOR ME. YOU\'LL DIE UGLY.', "EVERY WINNER THINKS HE'S GETTING LAID. EVERY WINNER DIES.", 'I WAS GOING TO WATCH YOU DIE. NOW I\'LL DO IT.'],
   shitty: ['STAND STILL, SHIT PANTS.', 'I CAN SMELL WHERE YOU\'RE HIDING.', 'EVEN THE SUITORS DIED CLEANER THAN YOU.'],
   nude: ['PUT THAT LITTLE THING AWAY AND DIE.', 'I NEED READING GLASSES FOR THAT THING.', 'COME HERE, SHRIMP. LET MOMMA FLATTEN YOU.'],
 };
@@ -189,7 +189,7 @@ export const MH_PRESSURE: ByPants = {
 export const PIPER_POP = ['NOOOOOOOOOO!', 'WHY DID I BUILD A TALL CASTLE!'];
 /** After the distant thud. */
 export const MH_WON: ByPants = {
-  clean: ['AUDIENCE OVER. NO SEX. TYPICAL.', 'THAT\'S WHAT YOU GET FOR SOUNDING HOT.', 'POP GOES THE PIGGY.'],
+  clean: ["A DOZEN DEAD GUYS. A HOLE IN THE ROOF. NO SEX. I'M THE IDIOT.", 'AN AUDIENCE. I LOOKED IT UP. IT MEANS A MEETING.', 'POP GOES THE PIGGY.'],
   shitty: ['SHE SHAT ON THE WAY UP. NOW WE\'RE EVEN.', 'NOBODY CALLS ME UGLY AND SHITTY AND LIVES.'],
   nude: ['I CAME. I SAW. IT WENT LIMP.', 'I CAME FOR PUSSY AND GOT A WHALE SHOW.'],
 };
@@ -198,7 +198,7 @@ export const MH_WON: ByPants = {
 export const PIPER_SUPERMODEL: ByPants = {
   clean: ['OH MY GOD. I\'M GORGEOUS.', "LOOK AT ME. I'M A TEN. FUCK ALL OF YOU."],
   shitty: ['LOOK AT ME! EVEN YOU STINK LESS NOW!', 'I\'M GORGEOUS! TOO GOOD FOR YOU, SHIT PANTS!'],
-  nude: ['OH, NOW IT WAKES UP? TYPICAL MAN.', 'LOOK WHO\'S STANDING UP NOW.'],
+  nude: ['OH, NOW IT WAKES UP? TYPICAL MAN.', "STAND UP ALL YOU WANT. YOU'LL NEVER TOUCH THIS."],
 };
 export const MH_SUPERMODEL: ByPants = {
   clean: ['WAIT. WAIT WAIT WAIT.', 'OKAY. HOLD ON. I TAKE BACK EVERY FAT THING.'],
@@ -213,7 +213,7 @@ export const PIPER_TOO_THIN: ByPants = {
 };
 export const MH_TOO_THIN: ByPants = {
   clean: ['NOPE. TOO FAR. WAY TOO FAR.', 'EAT A SANDWICH. EAT A SUBWAY.'],
-  shitty: ['NOW YOU NEED THE FOOD MORE THAN I NEED THE PANTS.', "SHE'S A COAT RACK WITH TITS."],
+  shitty: ['NOW YOU NEED THE FOOD MORE THAN I NEED THE PANTS.', 'AND I GOT THE WET WIPES OUT FOR NOTHING.'],
   nude: ['AND IT\'S GONE AGAIN.', 'DOWN AGAIN. MY DICK HAS WHIPLASH.'],
 };
 /** The last thing she says before she crumbles. */
@@ -221,7 +221,7 @@ export const PIPER_CRUMBLE = ['WORTH... IT...', 'AT LEAST... I DIED THIN...'];
 export const MH_WON_WEAK: ByPants = {
   clean: ['SHE WENT FROM TOO MUCH TO NOTHING.', 'POPPED. LIKE A BALLOON AT A FUNERAL.'],
   shitty: ['SHE LEAKED OUT WORSE THAN ME. RESPECT.', 'THAT\'S A LOT OF GRAVY ON THE FLOOR.'],
-  nude: ['FOR ONE SECOND THERE, I HAD A SHOT.', 'GOODBYE, SUPERMODEL. GOODBYE, BONER.'],
+  nude: ["FOR ONE SECOND THERE, I HAD A SHOT. NO I DIDN'T.", 'GOODBYE, SUPERMODEL. GOODBYE, BONER.'],
 };
 
 /** A grab at her: too much of her. */

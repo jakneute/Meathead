@@ -50,7 +50,7 @@ export const MH_WALL: ByPants = {
 };
 /** The late entries fly in. */
 export const MH_LATE: ByPants = {
-  clean: ["MORE OF THEM? SHE'S SELLING TICKETS TO HER OWN PUSSY?", 'LATE ENTRIES. LATE TO THEIR FUNERALS.'],
+  clean: ["MORE OF THEM? SHE'S SELLING TICKETS. TO WATCH US DIE.", 'LATE ENTRIES. LATE TO THEIR FUNERALS.'],
   shitty: ['NEW GUYS. THEY JUST FLEW INTO MY FART CLOUD.'],
   nude: ['MORE SUITORS. MORE WITNESSES TO THIS BONER.'],
 };
