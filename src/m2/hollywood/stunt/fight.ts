@@ -57,7 +57,7 @@ import { ARENA_L, ARENA_R, ARENA_MID, GY, ZK, CUT, CAM_ROW, DOORS_X, STEVE_AT, L
 import { type Box, around } from '../../deathFrame';
 import {
   type Garage, newRamps, spawnRed, spawnBlue, spawnTow, pickRamp, updateRamps, updateCars, tickLaunch, launchHim, boom, freeze,
-  clearCars, dropCars, countCars, targetable, carOf, pmid, landingOf, tellsOf,
+  clearCars, clearWrecks, dropCars, countCars, targetable, carOf, pmid, landingOf, tellsOf,
 } from './cars';
 import { CAR, drawCar, drawCarShadow, extents, onFloorX } from './carArt';
 import { type Car, FLUNG_IN, LAND_FALL } from './state';
@@ -694,6 +694,7 @@ const die = (ctx: FrameContext, f: Fight, fried: boolean) => {
   state.enemies = state.enemies.filter(o => o !== f.e);
   if (f.tow) dropTow(f);
   clearCars(f);
+  if (fried) clearWrecks(f);
   f.pyro = null;
   state.damageNumbers = [];
   f.said = null; f.paSaid = null;

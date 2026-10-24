@@ -590,6 +590,11 @@ export const updateCars = (ctx: FrameContext, g: Garage) => {
 export const tellsOf = (g: Garage) => g.cars.filter(c => (c.hold ?? 0) > 0).map(c => ({ x: c.x, color: c.color, k: 1 - (c.hold ?? 0) / TELL }));
 
 /** All of them off (the fight's over, or he's dead): the drivers bail, the cars back off out the doors. */
+/** Fried, the floor cleared for the shot (the user's: "make sure there are no cars in the way so he has a clear
+ *  shot"): the wrecks and the frozen ones dragged off now (their fade), not after their burn. */
+export const clearWrecks = (g: Garage) => {
+  for (const c of g.cars) if (c.mode === 'wreck' || c.mode === 'frozen') { c.mode = 'wreck'; c.t = Math.max(c.t, WRECK_T + 1); }
+};
 export const clearCars = (g: Garage) => {
   for (const c of g.cars) {
     // (one still in its garage just stays in there)
