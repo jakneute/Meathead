@@ -22,6 +22,7 @@ import { waterAt, layWaterSteps, waterZones, carrySwimmer, surfaceY, drawWaterFr
 import { buildLogs, updateLogs, updateFalls, updateBranches, drawLogs, drawBoomAndBranches } from './logs';
 import { buildHazards, updateTraps, updatePines, updateLoose, updateBees, updateRollers, updateQuills, drawHazardsBack, drawHazardsFront } from './hazards';
 import { updateLeeches, drawLeeches } from './leeches';
+import { updateFallsKill, drawFallsCam } from './fallsDeath';
 import { drawWildsBackdrop, drawWildsBack } from './art';
 import { updateStation, drawStationBack, drawStationFront, drawStationHud, stationGone } from './station';
 import { ARRIVE, GAGS } from './lines';
@@ -70,7 +71,7 @@ export const wilds: FrontierSection = {
     tickHurtGag(state);
     out = updateLogs(ctx, out);
     out = updateLeeches(ctx, out);
-    updatePines(ctx); updateLoose(ctx); updateBees(ctx); updateRollers(ctx); updateQuills(ctx); updateBranches(ctx); updateFalls(ctx);
+    updatePines(ctx); updateLoose(ctx); updateBees(ctx); updateRollers(ctx); updateQuills(ctx); updateBranches(ctx); updateFallsKill(ctx); updateFalls(ctx);
     carrySwimmer(state); waterZones(state);
     // What he's got to say about it (once each)
     const once = (k: string, pool: string[]) => { if (!w.said[k] && !p.inCutscene && p.health > 0) { w.said[k] = true; meatheadSays(state, pickLine(pool), false); } };
@@ -97,7 +98,8 @@ export const wilds: FrontierSection = {
     drawHazardsFront(c, state);
     drawStationFront(c, state);
   },
-  drawHud: (c, state) => drawStationHud(c, state),
+  // (over the falls: the kill cam, over everything (fallsDeath.ts))
+  drawHud: (c, state) => { if (!drawFallsCam(c, state)) drawStationHud(c, state); },
   cameraRow: () => 500,
   outdoors: () => 1,
   // (after dark: the station's lamps, the engine's headlamp)
