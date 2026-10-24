@@ -161,16 +161,98 @@ const paintSolid = (g: Ctx, i: number) => {
       box(g, x - 6, y - 5, w + 12, 2, S[6]); break;
     }
     case 'hearse': {
-      // A hearse, parked: VALET ONLY (its roof to stand on): long, black, its side windows curtained, chrome trim
+      // A hearse, parked, nose to the left: VALET ONLY (its roof to stand on). A long black fifties coach: the hood and
+      // its chrome grille, a skeleton chauffeur in his cap at the wheel, the long window behind him curtained in purple
+      // velvet (tied back: the casket's brass rail and a wreath), the vinyl landau panel and its chrome S-bar, a tail fin
+      // with a bullet tail light, whitewalls, chrome everywhere; the black in banded steps, dithered between, the sky's
+      // sheen raked across it
       const K = ['#050508', '#0E0E14', '#18181F', '#26262E', '#3A3A44', '#5A5A66'];
-      poly(g, [[x - 1, b - 9], [x - 1, y + 15], [x + 29, y + 15], [x + 39, y - 1], [x + w - 7, y - 1], [x + w + 1, y + 15], [x + w + 1, b - 9]], INK);
-      poly(g, [[x, b - 10], [x, y + 16], [x + 30, y + 16], [x + 40, y], [x + w - 8, y], [x + w, y + 16], [x + w, b - 10]], K[2]);
-      box(g, x, y + 16, w, 4, K[4]); box(g, x, y + 30, w, 2, K[5]); box(g, x, b - 18, w, 8, K[1]);
-      for (const [wx, ww] of [[x + 46, 44], [x + 96, 64]] as const) { box(g, wx - 1, y + 3, ww + 2, 12, INK); box(g, wx, y + 4, ww, 10, '#2A2238'); for (let k = 0; k < ww; k += 6) box(g, wx + k, y + 4, 3, 10, '#4A2A4A'); box(g, wx, y + 4, ww, 2, '#6A4A6A'); }
-      for (const k of [0, 1]) { const ex = x + 52 + k * 90; poly(g, [[ex, y + 24], [ex + 20, y + 22], [ex + 22, y + 26], [ex, y + 28]], '#A8A29E'); }
-      box(g, x + w - 6, y + 20, 6, 6, '#FDE68A'); box(g, x, y + 22, 4, 5, '#7F1D1D');
-      for (const wx of [x + 36, x + w - 36]) { g.fillStyle = INK; g.beginPath(); g.arc(wx, b - 10, 13, 0, Math.PI * 2); g.fill(); g.fillStyle = K[1]; g.beginPath(); g.arc(wx, b - 10, 11, 0, Math.PI * 2); g.fill(); g.fillStyle = '#A1A1AA'; g.beginPath(); g.arc(wx, b - 10, 5, 0, Math.PI * 2); g.fill(); box(g, wx - 2, b - 13, 2, 2, '#E4E4E7'); }
-      box(g, x + 40, y - 1, w - 48, 3, '#71717A'); box(g, x + 40, y - 1, w - 48, 1, '#D4D4D8');
+      const CH = ['#3F3F46', '#71717A', '#A1A1AA', '#D4D4D8', '#F4F4F5'];
+      const belt = y + 20, rock = b - 16, wy = b - 10;
+      const shell: [number, number][] = [[x - 2, b - 10], [x - 2, belt + 2], [x + 2, belt], [x + 30, belt - 2], [x + 42, y + 1], [x + w - 8, y + 1], [x + w - 3, y + 6], [x + w, belt - 2], [x + w + 3, belt + 4], [x + w + 3, b - 10]];
+      poly(g, shell.map(([px, py]) => [px + (px < x + w / 2 ? -1 : 1), py - (py < belt ? 1 : 0)] as [number, number]), INK);
+      poly(g, shell, K[2]);
+      // (the body's steps: lit along the beltline, darker toward the rocker, dithered between)
+      box(g, x - 1, belt, w + 3, 4, K[4]); checker(g, x - 1, belt + 4, w + 3, 2, K[3]);
+      box(g, x - 1, belt + 6, w + 3, 10, K[3]); checker(g, x - 1, belt + 16, w + 3, 2, K[2]);
+      box(g, x - 1, rock - 6, w + 3, 6, K[1]); checker(g, x - 1, rock - 8, w + 3, 2, K[1]);
+      box(g, x - 1, rock, w + 3, 6, K[0]);
+      // (the chrome spear down its flank, and the rocker strip)
+      box(g, x + 4, belt + 9, w - 10, 2, CH[2]); box(g, x + 4, belt + 9, w - 10, 1, CH[4]);
+      box(g, x, rock - 1, w + 2, 2, CH[1]); box(g, x, rock - 1, w + 2, 1, CH[3]);
+      // (the hood: a lit crown line, a winged-skull ornament on the nose)
+      box(g, x + 2, belt - 1, 28, 1, K[5]); box(g, x + 6, belt + 1, 22, 1, K[4]);
+      box(g, x + 4, belt - 5, 4, 3, CH[3]); box(g, x + 2, belt - 4, 2, 1, CH[2]); box(g, x + 8, belt - 4, 2, 1, CH[2]); box(g, x + 5, belt - 4, 1, 1, INK); box(g, x + 7, belt - 4, 1, 1, INK);
+      // (the glass: the windshield raked and the driver's window, tinted)
+      const glass = (pts: [number, number][], inner: [number, number][]) => { poly(g, pts, INK); poly(g, inner, '#1C1A2A'); };
+      glass([[x + 31, belt - 1], [x + 42, y + 2], [x + 47, y + 2], [x + 47, belt - 1]], [[x + 33, belt - 2], [x + 43, y + 3], [x + 46, y + 3], [x + 46, belt - 2]]);
+      glass([[x + 48, y + 2], [x + 75, y + 2], [x + 75, belt - 1], [x + 48, belt - 1]], [[x + 49, y + 3], [x + 74, y + 3], [x + 74, belt - 2], [x + 49, belt - 2]]);
+      for (let k = 0; k < 6; k++) box(g, x + 36 + k, belt - 4 - k * 2, 1, 2, 'rgba(200,190,230,0.22)');
+      // (the chauffeur: a skull under a peaked cap, a bony hand on the wheel)
+      box(g, x + 56, y + 5, 12, 4, INK); box(g, x + 55, y + 8, 15, 2, INK); box(g, x + 57, y + 6, 10, 2, '#27272A'); box(g, x + 57, y + 6, 10, 1, '#52525B'); box(g, x + 56, y + 8, 13, 1, CH[1]);
+      box(g, x + 57, y + 10, 10, 8, '#D6D3C4'); box(g, x + 57, y + 10, 3, 8, '#F5F3E7'); box(g, x + 65, y + 10, 2, 8, '#A8A491');
+      box(g, x + 58, y + 12, 3, 3, INK); box(g, x + 63, y + 12, 3, 3, INK); box(g, x + 61, y + 15, 2, 1, INK);
+      for (let k = 0; k < 4; k++) box(g, x + 58 + k * 2, y + 17, 1, 1, INK);
+      g.strokeStyle = INK; g.lineWidth = 1; g.beginPath(); g.ellipse(x + 51.5, belt - 5.5, 1.5, 4, 0, 0, Math.PI * 2); g.stroke();
+      box(g, x + 52, belt - 7, 5, 1, '#D6D3C4'); box(g, x + 52, belt - 5, 4, 1, '#D6D3C4');
+      // (the B-pillar)
+      box(g, x + 76, y + 2, 4, belt - y - 2, K[1]); box(g, x + 76, y + 2, 1, belt - y - 2, K[4]);
+      // (the long window: the casket's lid and its brass rail, a wreath; purple velvet pleated and tied back with gold tassels)
+      const lw0 = x + 81, lw1 = x + 127;
+      box(g, lw0 - 1, y + 2, lw1 - lw0 + 2, belt - y - 3, INK); box(g, lw0, y + 3, lw1 - lw0, belt - y - 5, '#120E1C');
+      box(g, lw0 + 10, belt - 9, lw1 - lw0 - 20, 6, '#3B2416'); box(g, lw0 + 10, belt - 9, lw1 - lw0 - 20, 1, '#6E4A30'); box(g, lw0 + 10, belt - 6, lw1 - lw0 - 20, 1, '#C8A040');
+      for (const hx of [lw0 + 14, lw0 + 20, lw0 + 26]) box(g, hx, belt - 5, 2, 1, '#FDE68A');
+      g.strokeStyle = '#14532D'; g.lineWidth = 2; g.beginPath(); g.arc(lw1 - 16, belt - 13, 4, 0, Math.PI * 2); g.stroke();
+      box(g, lw1 - 19, belt - 15, 1, 1, '#DC2626'); box(g, lw1 - 14, belt - 11, 1, 1, '#F5F5F4'); box(g, lw1 - 13, belt - 16, 1, 1, '#DC2626');
+      for (const [cx0, dir] of [[lw0, 1], [lw1, -1]] as const) {
+        poly(g, [[cx0, y + 3], [cx0 + dir * 11, y + 3], [cx0 + dir * 4, belt - 9], [cx0 + dir * 8, belt - 2], [cx0, belt - 2]], '#4A1D5E');
+        for (let k = 2; k < 10; k += 3) box(g, cx0 + dir * k - (dir < 0 ? 1 : 0), y + 4, 1, 7 - Math.abs(k - 5), '#6B2E86');
+        box(g, cx0 + dir * 3 - 1, belt - 11, 3, 3, '#C8A040'); box(g, cx0 + dir * 3, belt - 8, 1, 3, '#FDE68A');
+      }
+      box(g, lw0, y + 3, lw1 - lw0, 2, '#3B1550');
+      for (let k = lw0; k < lw1; k += 4) box(g, k, y + 5, 2, 1, '#6B2E86');
+      // (the landau panel: padded vinyl, its stitching, the chrome S-bar)
+      const l0 = x + 130, l1 = x + w - 6;
+      poly(g, [[l0, y + 2], [l1 - 3, y + 2], [l1, y + 7], [l1, belt - 1], [l0, belt - 1]], '#0A0A0E');
+      for (let k = l0 + 3; k < l1 - 2; k += 3) box(g, k, y + 4, 1, 1, '#26262E');
+      g.strokeStyle = CH[3]; g.lineWidth = 2; g.beginPath(); g.moveTo(l0 + 4, belt - 4); g.bezierCurveTo(l0 + 14, belt - 4, l0 + 10, y + 7, l1 - 6, y + 8); g.stroke();
+      g.strokeStyle = CH[4]; g.lineWidth = 1; g.beginPath(); g.moveTo(l0 + 4, belt - 5); g.bezierCurveTo(l0 + 14, belt - 5, l0 + 10, y + 6, l1 - 6, y + 7); g.stroke();
+      // (the doors' seams and their chrome handles)
+      for (const sx of [x + 47, x + 78]) box(g, sx, belt, 1, rock - belt - 2, K[0]);
+      for (const hx of [x + 68, x + 98]) { box(g, hx, belt + 4, 6, 2, INK); box(g, hx, belt + 4, 5, 1, CH[3]); }
+      // (the tail fin, a bullet tail light in it; the rear bumper, the plate, the exhaust and a last breath out of it)
+      poly(g, [[x + w - 26, belt + 1], [x + w + 1, belt - 7], [x + w + 4, belt - 6], [x + w + 4, belt + 4]], INK);
+      poly(g, [[x + w - 24, belt + 1], [x + w + 1, belt - 6], [x + w + 3, belt + 3]], K[4]);
+      box(g, x + w - 1, belt - 5, 4, 4, '#7F1D1D'); box(g, x + w, belt - 4, 2, 2, '#EF4444'); box(g, x + w, belt - 4, 1, 1, '#FECACA');
+      box(g, x + w - 4, b - 15, 9, 5, INK); box(g, x + w - 3, b - 14, 8, 3, CH[2]); box(g, x + w - 3, b - 14, 8, 1, CH[4]);
+      box(g, x + w - 18, b - 14, 9, 5, INK); box(g, x + w - 17, b - 13, 7, 3, '#E7E5E4'); box(g, x + w - 16, b - 12, 5, 1, '#1E3A8A');
+      box(g, x + w - 8, b - 9, 10, 3, INK); box(g, x + w - 7, b - 8, 8, 1, CH[1]);
+      for (const [px, py, r, a] of [[x + w + 6, b - 9, 3, 0.18], [x + w + 12, b - 12, 4, 0.12], [x + w + 20, b - 15, 5, 0.07]] as const) { g.globalAlpha = a; g.fillStyle = '#A1A1AA'; g.beginPath(); g.arc(px, py, r, 0, Math.PI * 2); g.fill(); }
+      g.globalAlpha = 1;
+      // (the nose: the grille's chrome bars, the headlights (one lit, one dead), the front bumper)
+      box(g, x - 4, belt + 2, 6, rock - belt - 4, INK); box(g, x - 3, belt + 3, 4, rock - belt - 6, CH[1]);
+      for (let k = belt + 4; k < rock - 3; k += 2) box(g, x - 3, k, 4, 1, CH[3]);
+      g.fillStyle = INK; g.beginPath(); g.arc(x + 5, belt + 5, 3.5, 0, Math.PI * 2); g.fill(); g.fillStyle = '#FDE68A'; g.beginPath(); g.arc(x + 5, belt + 5, 2.5, 0, Math.PI * 2); g.fill(); box(g, x + 4, belt + 4, 1, 1, '#FFFFFF');
+      g.fillStyle = INK; g.beginPath(); g.arc(x + 12, belt + 5, 3, 0, Math.PI * 2); g.fill(); g.fillStyle = '#44403C'; g.beginPath(); g.arc(x + 12, belt + 5, 2, 0, Math.PI * 2); g.fill();
+      box(g, x - 6, b - 15, 12, 5, INK); box(g, x - 5, b - 14, 11, 3, CH[2]); box(g, x - 5, b - 14, 11, 1, CH[4]);
+      // (the sky's sheen: pale streaks raked across the black)
+      for (const sx of [x + 18, x + 104, x + 140]) for (let k = 0; k < 10; k++) { box(g, sx + k, belt + 13 - k, 2, 1, 'rgba(200,190,230,0.16)'); if (k % 2) box(g, sx + k + 3, belt + 13 - k, 1, 1, 'rgba(200,190,230,0.1)'); }
+      // (the wheels: the arches dark, chrome-lipped; whitewalls, chrome caps and their spinner bars, a highlight)
+      for (const wx of [x + 34, x + w - 34]) {
+        g.fillStyle = INK; g.beginPath(); g.arc(wx, wy, 17, Math.PI, 0); g.fill();
+        g.strokeStyle = CH[2]; g.lineWidth = 1; g.beginPath(); g.arc(wx, wy, 16.5, Math.PI * 1.05, Math.PI * 1.95); g.stroke();
+        g.fillStyle = INK; g.beginPath(); g.arc(wx, wy, 13, 0, Math.PI * 2); g.fill();
+        g.fillStyle = '#141418'; g.beginPath(); g.arc(wx, wy, 12, 0, Math.PI * 2); g.fill();
+        g.fillStyle = '#D6D3D1'; g.beginPath(); g.arc(wx, wy, 8.5, 0, Math.PI * 2); g.fill();
+        g.fillStyle = '#141418'; g.beginPath(); g.arc(wx, wy, 6.5, 0, Math.PI * 2); g.fill();
+        g.fillStyle = CH[2]; g.beginPath(); g.arc(wx, wy, 5.5, 0, Math.PI * 2); g.fill();
+        g.fillStyle = CH[3]; g.beginPath(); g.arc(wx - 1, wy - 1, 3.5, 0, Math.PI * 2); g.fill();
+        box(g, wx - 5, wy, 10, 1, CH[1]); box(g, wx, wy - 5, 1, 10, CH[1]);
+        box(g, wx - 1, wy - 1, 2, 2, CH[4]); box(g, wx - 3, wy - 4, 2, 1, '#FFFFFF');
+      }
+      // (the roof's drip rail, and its lip: lit, to stand on)
+      box(g, x + 42, y + 2, w - 50, 1, CH[1]);
+      box(g, x + 42, y - 1, w - 50, 3, LIP[2]); box(g, x + 42, y - 1, w - 50, 1, LIP[3]);
       ironPost(g, x - 28, y - 30, b, 4);
       board(g, x - 28, y - 40, 'HEARSE PARKING - VALET ONLY', '#1C1917', '#FDE68A', 6); break;
     }
