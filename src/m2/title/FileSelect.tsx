@@ -54,8 +54,8 @@ const FileSelect: React.FC<{
     if (row === NO_SAVE) { onPick(null, 'new'); return; }
     const slot = SLOTS[row];
     if (!files[row]) { onPick(slot, 'new'); return; }
-    playMenuOk();
-    setAsk({ kind: 'choice', slot, at: 0 });
+    // (a used file: straight in, no CONTINUE / START OVER asked (the user's); starting over is delete, then the empty file)
+    playMenuOk(); onPick(slot, 'continue');
   };
   const askDelete = (row: number) => {
     if (row === NO_SAVE || !files[row]) return;
