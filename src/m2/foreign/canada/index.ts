@@ -205,7 +205,8 @@ export const canada: ForeignSection = {
     if (onScreen(v, X(1040), X(1100))) postBoard(c, X(1060), GY, ['LOG POND', 'LOGS: DO NOT RIDE'], LOOKS.canada(1), '#3F2A1C', undefined, 100);
     if (onScreen(v, X(1840), X(1950))) postBoard(c, X(1890), GY, ['THE FALLS', 'REAL WATER*', '*RECYCLED'], LOOKS.canada(1), '#14532D', undefined, 130);
     if (onScreen(v, X(CLIFF), X(2430))) postBoard(c, X(2370), Y(TOP), ['MAPLE LOG FLUME', 'CLOSED', '(THE LOGS GOT OUT)'], LOOKS.canada(1), '#7F1D1D', undefined, 130);
-    if (onScreen(v, X(TRAIL_A), X(TRAIL_A + 120))) postBoard(c, X(TRAIL_A + 30), Y(TOP), ['THE TRAIL', '1,000 STAIRS', '(15)'], LOOKS.canada(1), '#3F2A1C', undefined, 120);
+    // (stood back on the top, both posts on it: at TRAIL_A + 30 its far post stood out over the drop (the user's))
+    if (onScreen(v, X(TRAIL_A - 160), X(TRAIL_A + 20))) postBoard(c, X(TRAIL_A - 70), Y(TOP), ['THE TRAIL', '1,000 STAIRS', '(15)'], LOOKS.canada(1), '#3F2A1C', undefined, 120);
     if (onScreen(v, X(3400), X(3600))) postBoard(c, X(3500), GY, ['RANGER STATION', 'BACK IN 5 MINUTES (1998)'], LOOKS.canada(1), '#14532D', undefined, 150);
     if (onScreen(v, X(20), X(120))) drawMapleFlag(c, X(40), f);
     drawPondBack(c, v, state);
