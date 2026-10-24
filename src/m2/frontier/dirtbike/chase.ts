@@ -39,7 +39,7 @@ import {
   W, H, K, SEG_L, DRAW, PLAYER_Z, CAM_H, SPR, view, PS, PX, PY, PZ, CLIP,
   newTrack, generate, nextBiome, segAt, project, placeAt, roadYAt, drawRoad, drawBackground, fogStep, clearRoad, type Track, type Spr,
 } from './road';
-import { drawSpr, drawTeenRider, drawTeenBody, drawTeenDangle, drawEndo, drawMeathead, drawMhTumble, drawBikeTumble, drawTuckerRider, drawWeapon, digits, teenLookOf, parryHand, PUNCH_WIND, PUNCH_LEN, ART, type Weapon, type TeenLook, type RiderPose, type MhPose } from './art';
+import { drawSpr, drawTeenRider, drawTeenBody, drawTeenSprawl, drawLid, drawTeenDangle, drawEndo, drawMeathead, drawMhTumble, drawBikeTumble, drawTuckerRider, drawWeapon, digits, teenLookOf, parryHand, PUNCH_WIND, PUNCH_LEN, ART, type Weapon, type TeenLook, type RiderPose, type MhPose } from './art';
 import { signText, signW, type Look as Letters } from '../../signLetters';
 import { HURT, MH_START, MH_AGAIN, MH_KNOCKOFF, MH_PARRY, MH_END, MH_ADULTS, TEEN_TAUNT, TEEN_AGE, TEEN_AGE_FIRST, TEEN_DOWN, TEEN_PARRIED, TUCKER_RAISE, TUCKER_LEDGER, TUCKER_FLEE } from './lines';
 
@@ -90,7 +90,7 @@ interface Teen {
   hoverDz: number; ready: number;
   said: Said | null; taunted: boolean; alive: boolean;
 }
-type LooseKind = 'tumbler' | 'body' | 'wreck' | 'bomb' | 'blast' | 'flyer' | 'faceplant' | 'vault' | 'ramp' | 'blind' | 'mh' | 'mhbike' | 'gore';
+type LooseKind = 'tumbler' | 'body' | 'wreck' | 'bomb' | 'blast' | 'flyer' | 'faceplant' | 'vault' | 'ramp' | 'blind' | 'mh' | 'mhbike' | 'gore' | 'lid';
 interface Loose {
   kind: LooseKind; z: number; x: number; h: number; vz: number; vx: number; vh: number; t: number; rot: number;
   k?: TeenLook; color?: string; flat?: number; done?: boolean; side?: number;
@@ -101,6 +101,8 @@ interface Loose {
   hitAt?: number;
   /** (a tumbler that's hit the ground once: run over from then on, it goes up) */
   down?: boolean;
+  /** (a helmeted kid whose helmet came off on the first hard landing: it's off down the road on its own) */
+  lid?: boolean;
 }
 interface Particle { z: number; x: number; h: number; vz: number; vx: number; vh: number; life: number; col: string; size: number }
 interface Pop { text: string; t: number; col: string; y: number }
@@ -592,11 +594,18 @@ const tickLoose = (ctx: FrameContext | null, state: GameState, c: Chase) => {
         l.z += l.vz; l.x += l.vx; l.vh -= GRAV; l.h += l.vh; l.rot += l.kind === 'vault' ? 0.12 : 0.28;
         if (l.h <= 0) {
           l.h = 0; l.down = true;
-          if (l.vh < -6) { l.vh = -l.vh * 0.35; l.vz *= 0.6; l.vx *= 0.6; playSound('thud', 0.4, l.kind === 'mh' ? -4 : 2); blood(c, l.z, l.x, 20, 4); }
-          else { l.vh = 0; l.vz *= 0.85; if (l.vz < 4) { l.vz = 0; if (l.kind === 'tumbler') l.kind = 'body'; else if (l.kind === 'vault') { l.kind = 'ramp'; c.pops.push({ text: 'HUMAN RAMP!', t: 0, col: '#86EFAC', y: 130 }); } } }
+          if (l.vh < -6) { l.vh = -l.vh * 0.35; l.vz *= 0.6; l.vx *= 0.6; playSound('thud', 0.4, l.kind === 'mh' ? -4 : 2); blood(c, l.z, l.x, 20, 4); if (l.k) landHard(c, l); }
+          else { if (l.k && l.vz > 6 && l.t % 2 === 0) skidDust(c, l); l.vh = 0; l.vz *= 0.85; if (l.vz < 4) { l.vz = 0; if (l.kind === 'tumbler') l.kind = 'body'; else if (l.kind === 'vault') { l.kind = 'ramp'; c.pops.push({ text: 'HUMAN RAMP!', t: 0, col: '#86EFAC', y: 130 }); } } }
         }
         break;
+      case 'lid':
+        // (a knocked-off helmet: bouncing, then rolling off down the road)
+        l.z += l.vz; l.x += l.vx; l.vz *= 0.97; l.vx *= 0.97; l.vh -= GRAV; l.h += l.vh; l.rot += 0.08 + l.vz * 0.006;
+        if (l.h <= 0) { l.h = 0; l.vh = l.vh < -3 ? -l.vh * 0.45 : 0; }
+        if (l.vz < 2) l.vz = 0;
+        break;
       case 'wreck': case 'mhbike':
+        if (l.h === 0 && l.vz > 12 && l.t % 2 === 0) sparks(c, l.z, l.x, 1);
         l.z += l.vz; l.x += l.vx; l.vz *= 0.96; l.rot += l.vz * 0.004 + (l.vh > 0 ? 0.2 : 0);
         if (l.vh > 0 || l.h > 0) { l.vh -= GRAV; l.h = Math.max(0, l.h + l.vh); if (l.h === 0 && l.vh < 0) l.vh = l.vh < -4 ? -l.vh * 0.4 : 0; }
         if (l.vz < 3) l.vz = 0;
@@ -663,6 +672,34 @@ const tickLoose = (ctx: FrameContext | null, state: GameState, c: Chase) => {
   // (blood: arcs, then a spatter on the road)
   for (const q of c.parts) { q.z += q.vz; q.x += q.vx; q.vh -= GRAV * 0.8; q.h = Math.max(0, q.h + q.vh); if (q.h === 0) { q.vz *= 0.7; q.vx = 0; q.vh = 0; } q.life--; }
   c.parts = c.parts.filter(q => q.life > 0);
+};
+
+/** Dirt kicked up off the road (and sparks off a bike's metal scraping it), as particles. */
+const dust = (c: Chase, z: number, x: number, h: number, vz: number, n: number, size: number) => {
+  for (let i = 0; i < n; i++) {
+    if (c.parts.length > 220) c.parts.shift();
+    c.parts.push({ z: z + (rnd() - 0.5) * 40, x: x + (rnd() - 0.5) * 0.12, h, vz: vz * (0.3 + rnd() * 0.4), vx: (rnd() - 0.5) * 0.02, vh: 2 + rnd() * 4, life: 12 + rnd() * 10, col: rnd() < 0.6 ? '#9A7A50' : '#B89A6A', size: size * (0.7 + rnd() * 0.6) });
+  }
+};
+const sparks = (c: Chase, z: number, x: number, n: number) => {
+  for (let i = 0; i < n; i++) {
+    if (c.parts.length > 220) c.parts.shift();
+    c.parts.push({ z, x: x + (rnd() - 0.5) * 0.06, h: 4, vz: -10 - rnd() * 20, vx: (rnd() - 0.5) * 0.03, vh: 3 + rnd() * 5, life: 6 + rnd() * 5, col: rnd() < 0.5 ? '#FDE047' : '#FFFFFF', size: 16 });
+  }
+};
+/** A flung kid's first hard landing: a burst of dirt, and (now and then) the helmet off their head, away down the road. */
+const landHard = (c: Chase, l: Loose) => {
+  dust(c, l.z, l.x, 4, l.vz, 6, 60);
+  const k = l.k!;
+  if (k.helmet && !l.lid && (k.seed * 7) % 5 < 3) {
+    l.lid = true;
+    c.loose.push({ kind: 'lid', z: l.z + 20, x: l.x, h: 30, vz: l.vz * 1.25 + 10, vx: (rnd() - 0.5) * 0.03, vh: 9 + rnd() * 3, t: 0, rot: 0, color: k.helmet });
+  }
+};
+/** Skidding along the road on their back: dirt off them, and sparks off the helmet's shell or a buckle now and then. */
+const skidDust = (c: Chase, l: Loose) => {
+  dust(c, l.z - 30, l.x, 2, l.vz, 1, 50);
+  if (l.k?.helmet && !l.lid && l.t % 4 === 0) sparks(c, l.z, l.x, 1);
 };
 
 const GIB_POPS = ['SPLAT!', 'GIBLETS!', 'SPEED BUMP!', 'SPLATTER!'];
@@ -1054,8 +1091,16 @@ const drawLoose = (g: CanvasRenderingContext2D, c: Chase, l: Loose, f: number, s
   const s = artS(P.sc), y = P.sy - l.h * P.sc * K;
   if (y - 40 * s > P.clip) return;
   switch (l.kind) {
-    case 'tumbler': case 'vault': case 'flyer': if (l.k) { shadow(g, P.sx, P.sy, s * 0.7, P.clip); drawTeenBody(g, l.k, P.sx, y, s, l.rot, false); } break;
-    case 'body': case 'faceplant': case 'ramp': if (l.k) drawTeenBody(g, l.k, P.sx, P.sy, s, 0, true, l.flat ?? 0); break;
+    case 'tumbler': case 'vault': case 'flyer':
+      if (l.k) {
+        // (flying: the ragdoll tumble; down and skidding along on their back: the sprawl, sliding)
+        if (l.kind !== 'flyer' && l.down && l.h <= 0) drawTeenSprawl(g, l.k, P.sx, P.sy, s, !!l.lid);
+        else { shadow(g, P.sx, P.sy, s * 0.7, P.clip); drawTeenBody(g, l.k, P.sx, y, s, l.rot, false, 0, l.t, !!l.lid); }
+      }
+      break;
+    case 'body': case 'ramp': if (l.k) drawTeenSprawl(g, l.k, P.sx, P.sy, s, !!l.lid, l.flat ?? 0); break;
+    case 'faceplant': if (l.k) drawTeenBody(g, l.k, P.sx, P.sy, s, 0, true, l.flat ?? 0); break;
+    case 'lid': if (l.color) { shadow(g, P.sx, P.sy, s * 0.3, P.clip); drawLid(g, l.color, P.sx, y - 6 * s, s, l.rot); } break;
     case 'blind':
       if (l.k) {
         // (riding on blind, wearing their board round their neck, flailing)
@@ -1067,7 +1112,7 @@ const drawLoose = (g: CanvasRenderingContext2D, c: Chase, l: Loose, f: number, s
     case 'bomb':
       if (l.k) {
         // (the human bomb sailing on: tumbling, a fuse spitting sparks off them)
-        drawTeenBody(g, l.k, P.sx, y, s, l.rot, false);
+        drawTeenBody(g, l.k, P.sx, y, s, l.rot, false, 0, l.t);
         const sz = Math.max(2, Math.round(4 * s)), fx = Math.round(P.sx - sz / 2), fy = Math.round(y - 34 * s);
         g.fillStyle = (f >> 2) % 2 ? '#FDE047' : '#F97316'; g.fillRect(fx, fy, sz, sz);
         g.fillStyle = '#FFFFFF'; g.fillRect(fx + (f % 3) - 1, fy - sz, 1, 1); g.fillRect(fx + sz, fy + (f % 2), 1, 1);

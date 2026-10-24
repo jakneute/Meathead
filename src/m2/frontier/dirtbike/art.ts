@@ -15,7 +15,7 @@
 // head; px per unit is the slot's scale times ART (world units per art unit) times K (him: about 1, so his frames are
 // painted 1:1 and put down unscaled).
 
-import { elbowFront, halfBone } from '../../art/limb';
+import { elbow, elbowFront, halfBone, knee, kneeFront, reachTo } from '../../art/limb';
 import { mix } from '../kit';
 import { lookOf, type Look } from '../../adventure/temple/people';
 import { teenOf, bikeColor, type Teen } from '../woods/teens';
@@ -845,32 +845,195 @@ export const drawTeenDangle = (c: Ctx, k: TeenLook, x: number, y: number, s: num
   blit(c, sp, x, y, s);
 };
 
-/** A teen off their bike, tumbling or lying face down with their backside up (the undignified way), at `s`. */
-export const drawTeenBody = (c: Ctx, k: TeenLook, x: number, y: number, s: number, rot: number, lying: boolean, flat = 0) => {
-  const kq = bucketOf(s), rq = lying ? 0 : turnStep(rot), fl = lying ? Math.round(flat * 5) / 5 : 0;
-  const sp = frame(`b${k.seed}|${lying ? 1 : 0}|${rq.toFixed(2)}|${fl}|${kq}`, kq, -44, -46, 88, 90, g => {
+/** A sprite put down turned by `rot` (in 32 steps), its origin at (x, y), shown at scale s: painted once unturned and
+ *  turned as it's put down (nearest neighbour, so no soft pixels), never repainted per angle. */
+const blitTurned = (c: Ctx, sp: Sprite, x: number, y: number, s: number, rot: number) => {
+  let r = s / sp.k;
+  if (Math.abs(r - 1) < 0.12) r = 1;
+  const n = Math.round((rot / (Math.PI * 2)) * 32), a = (((n % 32) + 32) % 32) * (Math.PI / 16);
+  if (a === 0) { blit(c, sp, x, y, s); return; }
+  c.save(); c.translate(Math.round(x), Math.round(y)); c.rotate(a); c.imageSmoothingEnabled = false;
+  c.drawImage(sp.cv, Math.round(-sp.ox * r), Math.round(-sp.oy * r), Math.round(sp.cv.width * r), Math.round(sp.cv.height * r));
+  c.restore();
+};
+/** A limb in two bones (root, joint, end), inked round as one so the joint reads where it crosses the body. */
+const limb2 = (g: Ctx, R: string[], w: number, rx: number, ry: number, jx: number, jy: number, ex: number, ey: number) => {
+  line(g, INK, w + 1.6, [rx, ry, jx, jy, ex, ey]);
+  line(g, R[2], w, [rx, ry, jx, jy, ex, ey]);
+  line(g, R[4], Math.max(1, w * 0.28), [rx - 0.7, ry - 0.7, jx - 0.7, jy - 0.7, ex - 0.7, ey - 0.7]);
+};
+/** An arm: the sleeve to the elbow, the bare forearm on, the hand (gloved on the helmeted kids); inked as one. */
+const arm2 = (g: Ctx, S: string[], Kn: string[], glove: boolean, rx: number, ry: number, jx: number, jy: number, ex: number, ey: number) => {
+  line(g, INK, 5.4, [rx, ry, jx, jy, ex, ey]);
+  line(g, S[2], 4.4, [rx, ry, jx, jy]); line(g, S[4], 1.2, [rx - 0.6, ry - 0.6, jx - 0.6, jy - 0.6]);
+  line(g, Kn[2], 3.4, [jx, jy, ex, ey]); line(g, Kn[4], 1, [jx - 0.5, jy - 0.5, ex - 0.5, ey - 0.5]);
+  box(g, ex - 2, ey - 2, 4, 4, glove ? '#18181B' : Kn[3]); box(g, ex - 2, ey - 2, 2, 1, glove ? '#3F3F46' : Kn[4]);
+};
+/** Their shoe at a foot: moto boots (white, a black strap) on the helmeted kids, sneakers on the rest. */
+const shoe = (g: Ctx, k: TeenLook, x: number, y: number, w: number, h: number) => {
+  if (k.helmet) { box(g, x, y, w, h, '#F4F4F0'); box(g, x, y + Math.floor(h / 2), w, 1, '#18181B'); box(g, x, y + h - 1, w, 1, '#3F3F46'); }
+  else { box(g, x, y, w, h, '#F5F5F4'); box(g, x, y + h - 1, w, 1, '#A1A1AA'); box(g, x + 1, y, 2, 1, '#DC2626'); }
+};
+/** The kid as they look with their helmet knocked off (their hair out). */
+const bareOf = (k: TeenLook): TeenLook => ({ ...k, helmet: null, gear: 2 });
+
+/** Kicked off and flying: a ragdoll, not a stood figure turned. From behind (the jersey's number, the seat of their pants,
+ *  the shirt ridden up off the small of the back), both arms flung out and up over the head, the legs splayed (one
+ *  trailing near straight, one kicked out wide at the knee), all of it swept back against the spin (the tumble goes
+ *  clockwise on screen, so the arms trail up-left, the legs down-right), the four beats of the flail cycling. Painted in
+ *  its own frame about the belly, once per beat and size; turned as it's put down. */
+const paintTumble = (g: Ctx, k: TeenLook, ph: number) => {
+  const L = k.look, S = R6(L.shirt), P = R6(L.pants), Kn = R6(L.skin), bw = k.heavy ? 10 : 8;
+  const a = (ph * Math.PI) / 2, ca = Math.cos(a), sa = Math.sin(a);
+  // (the legs, behind: knees out to their own side (src/m2/art/limb.ts), the shoes on the ends)
+  const leg = (sd: number, tx: number, ty: number) => {
+    const hx = sd * 4, hy = 4, [ex, ey] = reachTo(hx, hy, tx, ty, 10, 10), [jx, jy] = kneeFront(hx, hy, ex, ey, 10, 10, sd);
+    limb2(g, P, 5.6, hx, hy, jx, jy, ex, ey);
+    if (k.helmet) { box(g, jx - 2.5, jy - 2.5, 5, 5, '#E5E7EB'); box(g, jx - 2.5, jy - 2.5, 5, 1, '#FFFFFF'); }
+    shoe(g, k, ex - 3.5, ey - 2, 7, 4);
+  };
+  leg(-1, -7 + sa * 2, 22 + ca * 1.5);
+  leg(1, 17 + ca * 4, 11 + sa * 4);
+  // (the seat of their pants, the underwear's band peeking over it, the shirt ridden up a strip of bare back)
+  box(g, -bw + 1, -1, (bw - 1) * 2, 8, P[3]); box(g, -bw + 1, 5, (bw - 1) * 2, 2, P[2]); box(g, -1, 0, 1, 7, P[1]);
+  box(g, -bw + 2, -2, (bw - 2) * 2, 2, '#F4F4F4');
+  box(g, -bw + 2, -4, (bw - 2) * 2, 2, Kn[3]);
+  // (the back, in their shirt or jersey: twisted a touch, the number on it)
+  poly(g, S[3], [-bw - 1, -15, bw + 1, -14, bw - 1, -4, -bw + 1, -4]);
+  box(g, -bw, -14, 3, 10, S[4]); box(g, bw - 3, -14, 3, 10, S[2]); box(g, -bw, -15, bw * 2, 1, S[5]);
+  if (k.helmet) digits(g, k.num, 0, -12, L.shirt === '#E5E7EB' ? '#18181B' : '#F4F4F0', 1);
+  else box(g, -1, -13, 2, 9, S[2]);
+  // (the head, lolling back against the spin)
+  g.save(); g.translate(-1.5, -21.5); g.rotate(-0.38 + sa * 0.12); g.scale(0.8, 0.8);
+  teenHead(g, k, 0, 0, ph);
+  g.restore();
+  // (the arms, flung: the near one out wide and up, the other up over the head, grabbing at nothing; elbows out by
+  // anatomy, never folded backward)
+  const glove = !!k.helmet;
+  const armTo = (sd: number, tx: number, ty: number) => {
+    const sx = sd * (bw - 1), sy = -12, [ex, ey] = reachTo(sx, sy, tx, ty, 8, 8), [jx, jy] = elbowFront(sx, sy, ex, ey, 8, 8, sd);
+    arm2(g, S, Kn, glove, sx, sy, jx, jy, ex, ey);
+    ell(g, sx, sy, 3, 2.6, S[3]); box(g, sx - 1, sy - 2, 2, 1, S[4]);
+  };
+  armTo(-1, -21 + ca * 3, -21 + sa * 4);
+  armTo(1, 3 + sa * 5, -35 + ca * 3);
+};
+
+/** A teen off their bike, tumbling (a ragdoll, turned by `rot`; `t` cycles the flail; `bare`: their helmet's come
+ *  off) or lying face down with their backside up (the faceplant: the undignified way), at `s`. */
+export const drawTeenBody = (c: Ctx, k: TeenLook, x: number, y: number, s: number, rot: number, lying: boolean, flat = 0, t = 0, bare = false) => {
+  const kq = bucketOf(s);
+  if (!lying) {
+    const ph = ((t + k.seed) >> 2) & 3, kk = bare && k.helmet ? bareOf(k) : k;
+    const sp = frame(`bf${k.seed}|${kk.helmet ? 1 : 0}|${ph}|${kq}`, kq, -48, -50, 96, 96, g => paintTumble(g, kk, ph));
+    blitTurned(c, sp, x, y, s, rot);
+    return;
+  }
+  const fl = Math.round(flat * 5) / 5;
+  const sp = frame(`b${k.seed}|1|${fl}|${kq}`, kq, -44, -46, 88, 90, g => {
     const L = k.look, S = R6(L.shirt), P = R6(L.pants), Kn = R6(L.skin), Hr = R6(L.hair);
-    if (lying) {
-      // (face down in the dirt, backside up, the underwear riding up out of their pants; flattened if run over)
-      g.scale(1, 1 - fl * 0.55);
-      ell(g, 0, -2, 22, 4, '#6A0A0A'); ell(g, -4, -2, 14, 2.5, '#8A1414');
-      box(g, -18, -9, 36, 9, S[3]); box(g, -18, -9, 36, 2, S[4]); box(g, -18, -2, 36, 2, S[1]);
-      if (k.helmet) digits(g, k.num, -2, -8, '#F4F4F0', 1);
-      ell(g, 8, -13, 9, 8, P[3]); ell(g, 6, -15, 5, 4, P[4]); box(g, 3, -21, 10, 3, '#F4F4F4');
-      line(g, P[2], 5, [12, -10, 22, -4, 26, -2]); line(g, P[2], 5, [6, -8, 18, 0]);
-      box(g, 24, -5, 6, 4, '#F5F5F4'); box(g, 16, -2, 6, 3, '#F5F5F4');
-      ell(g, -21, -5, 6.5, 5.5, k.helmet ? R6(k.helmet)[3] : Hr[3]); if (k.helmet) box(g, -26, -6, 10, 2, '#18181B');
-      line(g, Kn[3], 3.4, [-12, -6, -22, 2]); line(g, Kn[3], 3.4, [-6, -6, -2, 2]);
-      return;
-    }
-    g.rotate(rq);
-    box(g, -8, -14, 16, 18, S[3]); box(g, -8, -14, 4, 18, S[4]); box(g, 4, -14, 4, 18, S[2]);
-    line(g, P[2], 6, [-4, 4, -10, 16]); line(g, P[2], 6, [4, 4, 12, 14]); box(g, -13, 15, 6, 4, '#F5F5F4'); box(g, 10, 12, 6, 4, '#F5F5F4');
-    line(g, Kn[2], 3.6, [-8, -10, -18, -18]); line(g, Kn[2], 3.6, [8, -10, 18, -4]);
-    if (k.helmet) { ell(g, 0, -23, 8.5, 8.5, R6(k.helmet)[3]); ell(g, -2, -25, 4, 3.5, R6(k.helmet)[4]); box(g, -1, -32, 2, 17, '#F8FAFC'); }
-    else { ell(g, 0, -22, 8, 8, Kn[3]); ell(g, 0, -25, 8, 5, Hr[3]); box(g, -3, -20, 2, 2, INK); box(g, 2, -20, 2, 2, INK); box(g, -2, -16, 5, 3, '#5A0A0A'); box(g, -1, -16, 3, 1, '#F4F4F4'); }
+    // (face down in the dirt, backside up, the underwear riding up out of their pants; flattened if run over)
+    g.scale(1, 1 - fl * 0.55);
+    ell(g, 0, -2, 22, 4, '#6A0A0A'); ell(g, -4, -2, 14, 2.5, '#8A1414');
+    box(g, -18, -9, 36, 9, S[3]); box(g, -18, -9, 36, 2, S[4]); box(g, -18, -2, 36, 2, S[1]);
+    if (k.helmet) digits(g, k.num, -2, -8, '#F4F4F0', 1);
+    ell(g, 8, -13, 9, 8, P[3]); ell(g, 6, -15, 5, 4, P[4]); box(g, 3, -21, 10, 3, '#F4F4F4');
+    line(g, P[2], 5, [12, -10, 22, -4, 26, -2]); line(g, P[2], 5, [6, -8, 18, 0]);
+    box(g, 24, -5, 6, 4, '#F5F5F4'); box(g, 16, -2, 6, 3, '#F5F5F4');
+    ell(g, -21, -5, 6.5, 5.5, k.helmet ? R6(k.helmet)[3] : Hr[3]); if (k.helmet) box(g, -26, -6, 10, 2, '#18181B');
+    line(g, Kn[3], 3.4, [-12, -6, -22, 2]); line(g, Kn[3], 3.4, [-6, -6, -2, 2]);
   });
   blit(c, sp, x, y, s);
+};
+
+/** Knocked down and out on the road: sprawled on their back across it, the way a body lands. Painted as a figure in
+ *  profile (its front +x, head up, the back on the line x = 0) and laid down a quarter turn so the back's on the road,
+ *  the front up, the head off to one side (by the seed, either way): the head tipped back, the mouth hung open, the eyes
+ *  shut; one arm flung out past the head along the road, the other across the belly or flopped up by the face; one leg
+ *  out long, the other's knee up (knees and elbows from src/m2/art/limb.ts, so they bend the right way); the shirt
+ *  ridden up off the belly, a little blood under the head; a cap knocked off lies by it. `bare`: their helmet's come
+ *  off (it's off down the road). Origin: the middle of them on the road. */
+const paintSprawl = (g: Ctx, k: TeenLook, dir: number, v: number, fl: number) => {
+  const L = k.look, S = R6(L.shirt), P = R6(L.pants), Kn = R6(L.skin), Hr = R6(L.hair), dp = k.heavy ? 12 : 10;
+  g.scale(dir, 0.92 * (1 - fl * 0.55));
+  g.rotate(-Math.PI / 2);
+  g.translate(0, -1);
+  // (blood pooled under and past the head, flat on the road (the road's the line x = 0 here))
+  ell(g, 0.6, -29, 1.8, 11, '#6A0A0A'); ell(g, 0.6, -27, 1.2, 6, '#8A1414');
+  if (!k.helmet && k.gear < 2) { const C = R6(k.cap); ell(g, 2, -46, 2, 4.5, C[3]); box(g, 0, -47, 2, 3, C[2]); }
+  // (the far limbs first, darker: the arm flung out on the road past the head, the leg out long)
+  const S2 = [S[0], S[1], S[1], S[2], S[3], S[3]], P2 = [P[0], P[1], P[1], P[2], P[3], P[3]], K2 = [Kn[0], Kn[1], Kn[1], Kn[2], Kn[3], Kn[3]];
+  {
+    const sx = 5, sy = -18, [ex, ey] = reachTo(sx, sy, 2.2, -40, 9, 9), [jx, jy] = elbow(sx, sy, ex, ey, 9, 9, 1);
+    arm2(g, S2, K2, !!k.helmet, sx, sy, jx, jy, ex, ey);
+    const hx = 4, hy = 2, [fx, fy] = reachTo(hx, hy, 3, 27, 12, 12), [kx, ky] = knee(hx, hy, fx, fy, 12, 12, 1);
+    limb2(g, P2, 6, hx, hy, kx, ky, fx, fy);
+    shoe(g, k, fx - 1, fy - 1, 7, 4);
+  }
+  // (the hips: the seat of their pants on the road, the fly up; the underwear's band)
+  box(g, 0, -2, dp - 1, 7, P[3]); box(g, dp - 3, -2, 2, 7, P[4]); box(g, 0, -2, 2, 7, P[2]);
+  box(g, dp - 3, -3, 2, 3, '#F4F4F4');
+  // (the trunk on its back: the shirt ridden up a strip of belly)
+  poly(g, S[3], [0, -21, dp - 1, -21, dp, -13, dp + (k.heavy ? 2 : 0), -6, dp - 1, -3, 0, -3]);
+  box(g, 0, -21, 3, 18, S[2]); box(g, dp - 3, -20, 2, 14, S[4]); box(g, 3, -10, 1, 6, S[2]);
+  box(g, dp - 2, -6, 2 + (k.heavy ? 2 : 0), 3, Kn[3]); box(g, dp - 2, -6, 1, 3, Kn[4]);
+  // (the head, tipped back on the road)
+  g.save(); g.translate(7, -27.5); g.rotate(-0.32);
+  box(g, -3, 4, 6, 4, Kn[2]);
+  if (k.helmet) {
+    const Hm = R6(k.helmet), stripe = k.helmet === '#F8FAFC' ? '#DC2626' : '#F8FAFC';
+    ell(g, 0, 0, 8.4, 8.4, Hm[2]); ell(g, 1, -1, 7, 7, Hm[3]); ell(g, 2, -3, 3.6, 3, Hm[4]);
+    line(g, stripe, 2, [-6, -5, 0, -8, 6, -5]);
+    box(g, 4, -2, 5, 6, Kn[3]); box(g, 6, 2, 2, 2, '#5A0A0A');
+    poly(g, Hm[2], [4, -8, 13, -7, 12, -4, 4, -4]);
+    poly(g, Hm[2], [5, 4, 10, 4, 9, 8, 3, 8]); box(g, 5, 4, 4, 1, Hm[4]);
+    box(g, -8, -3, 14, 2, '#18181B'); box(g, 6, -4, 4, 3, '#F59E0B'); box(g, 7, -4, 2, 1, '#FDE68A');
+  } else {
+    if (L.long || k.woman) { box(g, -9, -4, 3, 14, Hr[2]); box(g, -8, -10, 2, 8, Hr[3]); }
+    ell(g, 0, 0, 7, 7.4, Kn[3]); ell(g, 2, -2, 4, 3, Kn[4]);
+    box(g, 6.4, -1.5, 2, 2.2, Kn[3]); box(g, 7.4, -1, 1, 1, Kn[2]);
+    box(g, 3, -3, 3, 1, INK); box(g, 2.6, -5, 3, 1, Hr[2]);
+    box(g, 3.6, 2.4, 3, 2.4, '#5A0A0A'); box(g, 3.6, 2.4, 3, 0.8, '#F4F4F4');
+    box(g, -1.5, -0.5, 2.4, 3, Kn[2]);
+    ell(g, -2.6, -2.4, 5.4, 5.6, Hr[3]); ell(g, 0.5, -5.5, 5.6, 2.8, Hr[3]); ell(g, -1, -6, 3, 1.4, Hr[4]);
+    box(g, 6.6, 1.8, 1.4, 1.6, '#B91C1C');
+  }
+  g.restore();
+  // (the near limbs: the leg's knee up (the foot drawn in by the backside) or out long and bent a little, and the arm
+  // across the belly or flopped up by the face)
+  {
+    const hx = 6, hy = 2, [fx, fy] = reachTo(hx, hy, 2, v ? 18 : 11, 12, 12), [kx, ky] = knee(hx, hy, fx, fy, 12, 12, 1);
+    limb2(g, P, 6, hx, hy, kx, ky, fx, fy);
+    if (k.helmet) { box(g, kx - 2.5, ky - 2.5, 5, 5, '#E5E7EB'); box(g, kx + 1.5, ky - 2.5, 1, 5, '#FFFFFF'); }
+    shoe(g, k, fx - 1, fy - 1, 7, 4);
+    const sx = 6, sy = -18, [ex, ey] = reachTo(sx, sy, v ? 12 : 13, v ? -6 : -32, 9, 9), [jx, jy] = elbow(sx, sy, ex, ey, 9, 9, 1);
+    arm2(g, S, Kn, !!k.helmet, sx, sy, jx, jy, ex, ey);
+    ell(g, sx, sy, 3, 3, S[3]); box(g, sx + 1, sy - 2, 2, 1, S[4]);
+  }
+};
+
+/** A teen knocked down and out on their back in the road (or skidding along it on their back), at `s`: `bare` with
+ *  their helmet knocked off; flattened `flat` if run over. */
+export const drawTeenSprawl = (c: Ctx, k: TeenLook, x: number, y: number, s: number, bare = false, flat = 0) => {
+  const kq = bucketOf(s), fl = Math.round(flat * 5) / 5, kk = bare && k.helmet ? bareOf(k) : k;
+  const dir = (k.seed >> 1) & 1 ? 1 : -1, v = (k.seed >> 2) & 1;
+  const sp = frame(`bs${k.seed}|${kk.helmet ? 1 : 0}|${fl}|${kq}`, kq, -52, -28, 104, 34, g => paintSprawl(g, kk, dir, v, fl));
+  blit(c, sp, x, y, s);
+};
+
+/** A helmet knocked off a kid, bouncing and rolling off down the road: the shell, its stripe, the peak, the open face's
+ *  dark hole; turned as it rolls. */
+export const drawLid = (c: Ctx, col: string, x: number, y: number, s: number, rot: number) => {
+  const kq = bucketOf(s);
+  const sp = frame(`lid${col}|${kq}`, kq, -12, -12, 24, 24, g => {
+    const Hm = R6(col), stripe = col === '#F8FAFC' ? '#DC2626' : '#F8FAFC';
+    ell(g, 0, 0, 7.6, 7.6, Hm[2]); ell(g, -1, -1, 6.4, 6.4, Hm[3]); ell(g, -2, -3, 3, 2.6, Hm[4]);
+    line(g, stripe, 1.8, [-5, -5, 0, -7.4, 5, -5]);
+    ell(g, 3, 2, 3.4, 3, '#18181B'); box(g, 1, 1, 3, 1, '#3F3F46');
+    poly(g, Hm[2], [-6, -6, 3, -9, 4, -7, -5, -4]);
+    box(g, -7, -1, 14, 2, '#18181B'); box(g, -2, -1, 4, 2, '#F59E0B');
+  });
+  blitTurned(c, sp, x, y, s, rot);
 };
 
 /** The hockey stick's endo, in his parry: the kid's bike stood up on its front wheel (k 0..1 how far), the kid hanging
