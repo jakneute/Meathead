@@ -23,7 +23,7 @@ export const inView = (state: GameState, x0: number, x1: number, m = 60) => { co
  * What of the world's on screen AS DRAWN (for drawing only: what to fill, what to cull): the zoomed view turned by the
  * grades' tilt (index.ts worldTilt: the world drawn turned by -tilt about the camera's middle at the deck), its bounding
  * box in world space. Level, it's viewOf's; on a grade the screen's corners reach further out and up and down than the
- * zoomed box does (at the steepest, ~50 px each way), so anything filled or culled to the plain box shows gaps (or pops)
+ * zoomed box does (at the steepest, the front's doubled tilt, ~100 px each way), so anything filled or culled to the plain box shows gaps (or pops)
  * in the corners. The rules (what's on screen for the cast, what's set off where) keep viewOf.
  */
 export const drawnView = (state: GameState) => {

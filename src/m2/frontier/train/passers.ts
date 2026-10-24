@@ -37,7 +37,7 @@ import { type Ctx, box, mix, hash, checker, INK, stillAt, N, near, fiberglass, p
 import { signText } from '../../signLetters';
 import { trainOf, type Passer } from './state';
 import { carAt, insideCar, playerRoom, roomAt, carXNow } from './where';
-import { EVENTS, eventX, RAIL, DECK, ROOF, CEIL, END, CARS, V_FULL } from './layout';
+import { EVENTS, eventX, RAIL, DECK, ROOF, CEIL, END, CARS, V_FULL, CAR_X, ENGINE } from './layout';
 import { FG_GROUND, FG_SCALE, leapK, leapAt, laneBlocked, addRiders, updateRiders } from './kinds';
 import { drawRider, drawHorse, drawRobberAt } from './kindArt';
 import { tubeSay } from './tube';
@@ -74,6 +74,9 @@ const gradeAt = (passers: Passer[], x: number) => {
   }
   return { g, h };
 };
+
+/** How much the view's tilt makes of the grade, him this far up the train: 1 at the caboose, 2 at the engine. */
+const tiltGain = (cx: number) => 1 + Math.max(0, Math.min(1, (cx - CAR_X[0]) / (CAR_X[ENGINE] - CAR_X[0])));
 
 /** Each frame: set off what he's got to, move what's coming by along, what it does to whoever's in its way. */
 export const updatePassers = (ctx: FrameContext) => {
@@ -119,7 +122,10 @@ export const updatePassers = (ctx: FrameContext) => {
   const gr = gradeAt(tr.passers, mid);
   tr.grade = tr.phase === 'still' ? 0 : gr.g;
   tr.climb += ((tr.phase === 'still' ? 0 : gr.h) - tr.climb) * 0.2;
-  tr.tilt += (tr.grade - tr.tilt) * 0.08;
+  // (the playtest: "i want the hill tilts to get a bit more aggressive during the train section as you progress further
+  // too" / "nothing that affects gravity, but intense enough where it looks neat": the view's tilt only (drawn turned,
+  // index.ts worldTilt), up to twice the grade by the front of the train; the grade itself (the speed) as it was)
+  tr.tilt += (tr.grade * tiltGain(cx) - tr.tilt) * 0.08;
   // (the waterfall coming: the roar first, louder as it nears; the first time, Tucker and him on it)
   const falls = tr.passers.find(q => q.kind === 'falls' && q.x + q.len > v.x);
   if (falls) {
