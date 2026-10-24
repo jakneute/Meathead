@@ -36,7 +36,7 @@ import { drawRideCart, SEAT_DX, JAGUAR_EXPRESS, TOUR_CART, type CartLook } from 
 import { drawSafariArtie, type ArtieFx, type ArtiePose } from '../river/artie';
 import { stamp } from '../../intro/art/kit';
 import { bloodFresh } from '../../../m1/game/render/player/gore';
-import { startPip, pipLine, stepPip, drawPip, type ArtiePip } from '../river/artiePip';
+import { startPip, pipLine, stepPip, drawPip, type ArtiePip, type PipKind } from '../river/artiePip';
 import { warmGrossUps } from '../../grossKit';
 import {
   type Dressed, MEATHEAD_UNFRIENDLY, MEATHEAD_ARTIE_AGAIN, ARTIE_CHASE_START, ARTIE_TAUNT, ARTIE_CHIDE, ARTIE_SHOT, ARTIE_RAMP,
@@ -102,7 +102,8 @@ export interface Cart {
   };
   /** The ride's tricks (tricks.ts): reset and loaded again every go. */
   tricks: Tricks;
-  /** Artie gloating in a TV inset up in the corner, coming up behind him the first time (river/artiePip.ts). */
+  /** Artie in a TV inset up in the corner (river/artiePip.ts): gloating, coming up behind him the first time; each of
+   *  the ride's tricks that has him, taking it. */
   pip?: ArtiePip;
 }
 const getCart = (state: GameState) => sectionState<Cart>(state, 'cart', () => ({
@@ -300,18 +301,24 @@ const riderOf = (state: GameState, cart: Cart): Rider => {
       else if (what === 'snake') { playSound('snort', 0.8, 6); playSound('bonk', 0.9, 2); playSound('whoosh', 0.6, 8); }
       else if (what === 'boulder') { playSound('squish', 1, -4); playSound('crunch', 0.5, 2); }
       else { playSound('bonk', 1, -6); playSound('whoosh', 0.9, 4); }
+      // (and up in the corner, his gross-up taking it (the user's: "when artie gets pelted by the mechanisms on the ride,
+      // show a side panel 'gross-up' of his face getting inconvenienced by it, along with in game"): in place of any
+      // up already, held through his line)
+      const pip = cart.pip = startPip(PIP_OF[what], cart.pip);
       // (his line: never over anybody else's; the beat plays either way)
       if (!isTalking() && state.playerVulgarityTimer <= 0 && !a.said) {
         const text = pick(byPants(state, REACT_LINES[what]));
         a.said = { text };
-        speak('m2.safari', text, s => { a.said = s; }, false);
-      }
+        speak('m2.safari', text, s => { a.said = s; pipLine(pip, s ? s.text : null); }, false, () => pipLine(pip, null));
+      } else pipLine(pip, null);
     },
   };
 };
 
 /** How long each beat of him takes (frames: quick, well under a second and a half). */
 const REACT_T: Record<TrapKind, number> = { dart: 66, snake: 64, boulder: 60, chase: 66 };
+/** Each trick's gross-up in the corner (river/artiePip.ts). */
+const PIP_OF: Record<TrapKind, PipKind> = { dart: 'darted', snake: 'balded', boulder: 'flattened', chase: 'flipped' };
 const REACT_LINES: Record<TrapKind, Record<Dressed, string[]>> = { dart: ARTIE_DARTED, snake: ARTIE_BALDED, boulder: ARTIE_FLATTENED, chase: ARTIE_FLIPPED };
 /** The darts: quivering in his face till DART_GRAB, the hand up to the nose one, yanked out at DART_YANK. The serpent:
  *  his helmet up off his head, spinning, back down on it at HAT_DOWN. The boulder: flat till FLAT_T, then boing. The big

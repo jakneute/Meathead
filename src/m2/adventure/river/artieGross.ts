@@ -8,7 +8,7 @@
 // Live: a bead of sweat running, his eye twitching, the nostrils flaring, a fly round his head.
 
 import {
-  type Ctx, type Buf, GW, R, hexU, mixU, WHITE, newBuf, setSeed, rnd, matAt, plot, shade, seg, path, ball, tint, poly, bead, eyeball, teeth, vein, skinPost, stubble, hairs, stamps, drawGrossStamp, grossBackdrop, hash2, bay, M_SKIN, M_HAIR, M_MOUTH, M_OTHER, M_CLOTH, M_METAL, SCLERA_R, MOUTH, GUM, BLOOD, HAIRLINE, DARK, TONGUE, TOOTH, TOOTH_B,
+  type Ctx, type Buf, GW, GH, R, hexU, mixU, WHITE, newBuf, setSeed, rnd, matAt, plot, shade, seg, path, ball, tint, poly, bead, eyeball, teeth, vein, skinPost, stubble, hairs, stamps, drawGrossStamp, grossBackdrop, hash2, bay, M_SKIN, M_HAIR, M_MOUTH, M_OTHER, M_CLOTH, M_METAL, SCLERA_R, MOUTH, GUM, BLOOD, HAIRLINE, DARK, TONGUE, TOOTH, TOOTH_B,
 } from '../../grossKit';
 
 const FX = 136, FY = 100;
@@ -34,8 +34,12 @@ const STEEL = R('#FFFFFF', '#E4E4E7', '#C4C4CC', '#A1A1AA', '#71717A', '#3F3F46'
  *  yell wide open; r2: half shut, between words), 'hat' his helmet alone (painted 40 down: the whole dome on it),
  *  'fist' his fist, shaken (the boat's picture-in-picture when Meathead goes over the side: artiePip.ts); 't' / 't2'
  *  gloating (a wink, one brow up, the nasty grin; t2: mouth open, mid-word), 'finger' his finger up, wagged (the mine
- *  cart's, when he first comes up behind him). */
-export type Key = 'a' | 'b' | 'rc' | 'r' | 'r2' | 'hat' | 'fist' | 't' | 't2' | 'finger';
+ *  cart's, when he first comes up behind him). The mine cart's tricks having him (the corner inset: artiePip.ts):
+ *  'xd' darted (three in his face, nose, cheek, brow, blood beading; eyes screwed shut, crying, teeth clenched), 'xs'
+ *  balded (the helmet gone: the fish-pale dome, the tan line, the comb-over lifting; mortified, flushed, aghast), 'xf'
+ *  flattened (pancaked under the boulder: squashed wide and short, eyes crossed, gob open), 'xu' flipped (upside down
+ *  in his cart, his face mashed on its floor, the blood all gone to his head, bawling). */
+export type Key = 'a' | 'b' | 'rc' | 'r' | 'r2' | 'hat' | 'fist' | 't' | 't2' | 'finger' | 'xd' | 'xs' | 'xf' | 'xu';
 /** The helmet painted down this far in the 'hat' stamp (the dome's off the buffer's top on him). */
 export const HAT_DY = 40;
 
@@ -43,9 +47,20 @@ function* build(key: Key): Generator<void, Buf> {
   if (key === 'hat') return yield* buildHat();
   if (key === 'fist') return yield* buildFist();
   if (key === 'finger') return yield* buildFinger();
+  const b = yield* face(key);
+  if (key === 'xd') { yield; darted(b); }
+  if (key === 'xs') { yield; for (const s of [-1, 1]) tint(b, FX + s * 40, 120, 30, 18, hexU('#E0304A'), 0.42, M_SKIN, 0.6); }
+  if (key === 'xf') { yield; return squashed(b); }
+  if (key === 'xu') { yield; const u = flipped(b); yield; cartFloor(u); return u; }
+  return b;
+}
+
+function* face(key: Key): Generator<void, Buf> {
   setSeed(5150);
   const rage = key === 'rc' || key === 'r' || key === 'r2', yell = key === 'r' || key === 'r2' || key === 't2', taunt = key === 't' || key === 't2';
-  const SKIN = rage ? SKIN_RAGE : SKIN_CALM, BURNT = rage ? BURNT_RAGE : BURNT_CALM;
+  // (the cart's: red as a beet hanging upside down; bald without his helmet; eyes shut on the darts)
+  const red = rage || key === 'xu', bald = rage || key === 'xs', shutBoth = key === 'xd';
+  const SKIN = red ? SKIN_RAGE : SKIN_CALM, BURNT = red ? BURNT_RAGE : BURNT_CALM;
   const b = newBuf();
   yield;
   // ---- the collar, an epaulette each side, the shirt sweated dark
@@ -62,7 +77,7 @@ function* build(key: Key): Generator<void, Buf> {
   ball(b, FX + 2, 182, 9, 11, SKIN, { mat: M_SKIN, line: (_dx, dy) => dy > 0.3 });
   for (const s of [-1, 1]) path(b, [FX + s * 18, 160, FX + s * 16, 180, FX + s * 20, 204], SKIN[6], 1, undefined, M_SKIN);
   // (enraged: the cords of it stood out, a vein up each side fit to burst)
-  if (rage) for (const s of [-1, 1]) { path(b, [FX + s * 10, 204, FX + s * 14, 176, FX + s * 22, 152], SKIN[2], 3, undefined, M_SKIN); vein(b, [FX + s * 26, 204, FX + s * 24, 186, FX + s * 28, 170, FX + s * 26, 156], RAGE_VEIN, 2); }
+  if (red) for (const s of [-1, 1]) { path(b, [FX + s * 10, 204, FX + s * 14, 176, FX + s * 22, 152], SKIN[2], 3, undefined, M_SKIN); vein(b, [FX + s * 26, 204, FX + s * 24, 186, FX + s * 28, 170, FX + s * 26, 156], RAGE_VEIN, 2); }
   yield;
   // (the lanyard's cord round his neck, the whistle hanging)
   for (const s of [-1, 1]) path(b, [FX + s * 30, 168, FX + s * 18, 196, FX + s * 6, 204], hexU('#C81E1E'), 2);
@@ -91,11 +106,11 @@ function* build(key: Key): Generator<void, Buf> {
   }
   yield;
   // ---- the face: long, narrow, the cheekbones, the weak chin (enraged, hatless: the dome of his head over it)
-  if (rage) ball(b, FX, 52, 60, 46, SKIN, { mat: M_SKIN, line: (_dx, dy) => dy < 0, lw: 1.5 });
+  if (bald) ball(b, FX, 52, 60, 46, SKIN, { mat: M_SKIN, line: (_dx, dy) => dy < 0, lw: 1.5 });
   ball(b, FX, FY + 4, 66, 84, SKIN, { mat: M_SKIN, line: (_dx, dy) => dy > -0.1, lw: 1.5 });
   for (const s of [-1, 1]) ball(b, FX + s * 40, 112, 26, 22, SKIN, { mat: M_SKIN, lit: 1.08 });
   // (the jaw dropped with the mouth, yelling)
-  const jaw = key === 'r' ? 14 : key === 'r2' || key === 't2' ? 6 : 0;
+  const jaw = key === 'r' || key === 'xu' ? 14 : key === 'r2' || key === 't2' || key === 'xs' || key === 'xf' ? 6 : 0;
   ball(b, FX, 168 + jaw, 26, 18, SKIN, { mat: M_SKIN, line: (_dx, dy) => dy > 0.2, lit: 1.05 });
   yield;
   // (the cheeks hollowed under the bones)
@@ -108,7 +123,11 @@ function* build(key: Key): Generator<void, Buf> {
   // ---- the brows: in a V, bushy, a few long ones curling off
   for (const s of [-1, 1]) {
     // (gloating: his right one cocked right up, the left down over the wink)
-    const pts = rage ? [FX + s * 56, 54, FX + s * 42, 60, FX + s * 26, 70, FX + s * 10, 84]
+    // (the darts: knotted down hard over the shut eyes; mortified: up in the middle, worried; flattened: one up, one down)
+    const pts = key === 'xd' ? [FX + s * 56, 60, FX + s * 42, 66, FX + s * 26, 76, FX + s * 10, 88]
+      : key === 'xs' ? [FX + s * 56, 70, FX + s * 42, 62, FX + s * 26, 54, FX + s * 10, 52]
+      : key === 'xf' ? (s < 0 ? [FX - 54, 58, FX - 40, 56, FX - 24, 60, FX - 10, 66] : [FX + 54, 72, FX + 40, 74, FX + 24, 76, FX + 10, 78])
+      : rage || key === 'xu' ? [FX + s * 56, 54, FX + s * 42, 60, FX + s * 26, 70, FX + s * 10, 84]
       : taunt && s < 0 ? [FX - 54, 80, FX - 42, 71, FX - 26, 70, FX - 10, 76]
       : taunt ? [FX + 54, 70, FX + 40, 74, FX + 24, 78, FX + 10, 80]
       : [FX + s * 54, 64, FX + s * 40, 68, FX + s * 24, 74, FX + s * 10, 82];
@@ -152,20 +171,37 @@ function* build(key: Key): Generator<void, Buf> {
     // (the socket shadow)
     tint(b, ex, ey, 22, 14, SKIN[6], 0.3, M_SKIN, 0.6);
     // (enraged: popped wide, the pupils pinpricks, threaded red all over)
-    const wink = taunt && s > 0;
+    const wink = (taunt && s > 0) || shutBoth;
     // (gloating: the wink, squeezed shut, the lashes down, the cheek pushed up under it)
     if (wink) {
       ball(b, ex, ey - 1, 16, 9, SKIN, { mat: M_SKIN, line: (_dx, dy) => dy < -0.3, lit: 1.05 });
       path(b, [ex - 15, ey - 1, ex - 6, ey + 3, ex + 6, ey + 3, ex + 15, ey - 2], HAIRLINE, 2, undefined, M_SKIN);
       for (let k = 0; k < 6; k++) { const x = ex - 11 + k * 4.4; seg(b, x, ey + 3, x - 1, ey + 6, HAIRLINE); }
       ball(b, ex, ey + 12, 18, 7, SKIN, { mat: M_SKIN, line: (_dx, dy) => dy < -0.4, lit: 1.1 });
-    } else if (taunt) eyeball(b, ex, ey, {
+      // (darted: squeezed tighter still, the crow's feet bunched, tears squeezed out of the corner)
+      if (shutBoth) {
+        for (let k = 0; k < 4; k++) path(b, [ex + s * 14, ey - 4 + k * 3, ex + s * 20, ey - 6 + k * 4, ex + s * 26, ey - 8 + k * 5], SKIN[6], 1, undefined, M_SKIN);
+        for (const [dx, dy, r] of [[-s * 14, 4, 2], [-s * 12, 12, 1.6], [-s * 13, 20, 1.4]] as const) bead(b, ex + dx, ey + dy, r, R('#E8F4FF', '#C8E4FA', '#A0CCF0', '#6EA8DC', '#3C78B4', '#1A4070'));
+      }
+    } else if (key === 'xs') eyeball(b, ex, ey, {
+      // (mortified: popped wide, staring off to the side at nothing, wet)
+      rx: 16, ry: 12, sclera: SCLERA_R, iris: IRIS, ir: 6, idx: 5, idy: 2, pr: 2.6, veins: 16, lid: SKIN,
+      top: (x) => ey - 10 + Math.abs(x - ex) * 0.06,
+      bot: (x) => ey + 9 - ((x - ex) / 16) ** 2 * 3,
+    });
+    else if (key === 'xf') eyeball(b, ex, ey, {
+      // (flattened: crossed, each in at his nose, one bigger than the other)
+      rx: s < 0 ? 17 : 14, ry: s < 0 ? 13 : 10, sclera: SCLERA_R, iris: IRIS, ir: 5, idx: -s * 7, idy: s < 0 ? 1 : -1, pr: 2, veins: 20, lid: SKIN,
+      top: (x) => ey - (s < 0 ? 11 : 8) + Math.abs(x - ex) * 0.05,
+      bot: (x) => ey + (s < 0 ? 11 : 8) - ((x - ex) / 16) ** 2 * 3,
+    });
+    else if (taunt) eyeball(b, ex, ey, {
       // (the other one narrowed at him, sly, sidelong)
       rx: 15, ry: 9, sclera: SCLERA_R, iris: IRIS, ir: 6, idx: 4, idy: 1, pr: 2.2, veins: 12, lid: SKIN,
       top: (x) => ey - 2 + Math.abs(x - ex) * 0.1,
       bot: (x) => ey + 4 - ((x - ex) / 15) ** 2 * 2,
     });
-    else if (rage) eyeball(b, ex, ey, {
+    else if (rage || key === 'xu') eyeball(b, ex, ey, {
       rx: 16, ry: 12, sclera: SCLERA_R, iris: IRIS, ir: 5, idx: -s * 1, idy: 0, pr: 1.2, veins: 34, lid: SKIN,
       top: (x) => ey - 9 + Math.abs(x - ex) * 0.08 + (s * (x - ex) < 0 ? 3 : 0),
       bot: (x) => ey + 9 - ((x - ex) / 16) ** 2 * 3,
@@ -185,7 +221,10 @@ function* build(key: Key): Generator<void, Buf> {
   yield;
   // ---- the mouth: the lip curled back off the buck teeth on his left (the sneer), the gums, the bottom lip under them
   // (yelling: wide open, yellMouth)
-  if (yell) yellMouth(b, key === 'r', SKIN);
+  if (key === 'xd') grimaceMouth(b, SKIN);
+  else if (key === 'xs' || key === 'xf') yellMouth(b, false, SKIN);
+  else if (key === 'xu') yellMouth(b, true, SKIN);
+  else if (yell) yellMouth(b, key === 'r', SKIN);
   else if (taunt) grinMouth(b, SKIN);
   else {
     const cx = FX + 2, cy = 154;
@@ -249,7 +288,7 @@ function* build(key: Key): Generator<void, Buf> {
     return nose ? 0.17 : cheek ? 0.11 : 0.06;
   }, { blackheads: (x, y) => ((x - FX) / 24) ** 2 + ((y - 120) / 20) ** 2 < 1 || (y > 160 && Math.abs(x - FX) < 30) });
   yield;
-  if (!rage) yield* helmet(b, 0);
+  if (!bald) yield* helmet(b, 0);
   else {
     // ---- no helmet (it's gone flying): the dome under it pale as a fish, the tan line hard where the band sat; the
     // comb-over plastered across it with sweat, a few strands of it stood up straight off it (he's that mad)
@@ -265,12 +304,24 @@ function* build(key: Key): Generator<void, Buf> {
       const y0 = 64 - k * 3, s = k % 2 ? 1 : -1;
       path(b, [FX + s * 62, y0, FX + s * 30, y0 - 14 - k, FX - s * 10, y0 - 22 - k * 1.5, FX - s * 48, y0 - 20 - k], HAIR[k % 3 ? 3 : 1], 1, M_HAIR);
     }
-    for (let k = 0; k < 5; k++) { const x = FX - 16 + k * 8; path(b, [x, 22 + (k % 2) * 3, x + (rnd() - 0.5) * 4, 10, x + (rnd() - 0.5) * 6, -2], HAIR[k % 2 ? 2 : 4], 1, M_HAIR); }
-    yield;
-    // (the veins up it: one forked up the middle of his forehead, one up each temple, fat and throbbing)
-    vein(b, [FX - 4, 84, FX - 6, 70, FX - 2, 56, FX - 8, 42, FX - 6, 28], RAGE_VEIN, 3);
-    vein(b, [FX - 7, 56, FX + 8, 46, FX + 12, 34], RAGE_VEIN, 2);
-    for (const s of [-1, 1]) vein(b, [FX + s * 56, 104, FX + s * 54, 88, FX + s * 50, 70, FX + s * 46, 52], RAGE_VEIN, 2);
+    if (rage) {
+      for (let k = 0; k < 5; k++) { const x = FX - 16 + k * 8; path(b, [x, 22 + (k % 2) * 3, x + (rnd() - 0.5) * 4, 10, x + (rnd() - 0.5) * 6, -2], HAIR[k % 2 ? 2 : 4], 1, M_HAIR); }
+      yield;
+      // (the veins up it: one forked up the middle of his forehead, one up each temple, fat and throbbing)
+      vein(b, [FX - 4, 84, FX - 6, 70, FX - 2, 56, FX - 8, 42, FX - 6, 28], RAGE_VEIN, 3);
+      vein(b, [FX - 7, 56, FX + 8, 46, FX + 12, 34], RAGE_VEIN, 2);
+      for (const s of [-1, 1]) vein(b, [FX + s * 56, 104, FX + s * 54, 88, FX + s * 50, 70, FX + s * 46, 52], RAGE_VEIN, 2);
+    } else {
+      // (balded: the comb-over's root, a greasy tuft over his left ear, the rest of it lifted off and flapping (live:
+      // artiePip), a bald patch shining where it was)
+      ball(b, FX - 66, 52, 14, 10, HAIR, { mat: M_HAIR, line: true });
+      tint(b, FX + 6, 30, 26, 12, WHITE, 0.45, M_SKIN, 0.7);
+      seg(b, FX - 6, 24, FX + 14, 22, WHITE); seg(b, FX - 2, 26, FX + 6, 26, WHITE);
+      // (a scab and a liver spot up there, a pimple at the tan line)
+      ball(b, FX + 30, 40, 4, 3, R('#C8885A', '#A86A42', '#86502E', '#643A1E', '#3E2010'), { mat: M_SKIN, soft: 0.4 });
+      ball(b, FX - 24, 44, 2.6, 2.2, R('#E07060', '#B84A40', '#8A2A24', '#5A1410', '#2A0604'), { mat: M_SKIN });
+      ball(b, FX + 44, 54, 2.4, 2.2, R('#FFFFF0', '#FFF4C0', '#F4C890', '#E07868', '#B84A44', '#6A2020'), { line: true, lw: 0.7, mat: M_OTHER });
+    }
     // (sweat pouring off the dome)
     for (let k = 0; k < 16; k++) { const x = FX - 50 + rnd() * 100, y = 22 + rnd() * 48; if (matAt(b, x, y) === M_SKIN) bead(b, x, y, 1.4 + rnd() * 1.8, SCALP); }
   }
@@ -488,10 +539,127 @@ function* buildFist(): Generator<void, Buf> {
   return b;
 }
 
+/** Teeth clenched, the lips skinned back off them (the darts): both rows bared and ground together, the buck ones over
+ *  the seam, the gums, spit bubbling through the gaps, the corners pulled down hard. */
+const grimaceMouth = (b: Buf, SKIN: number[]) => {
+  const cx = FX + 2, hw = 34;
+  const top = (x: number) => { const u = (x - cx) / hw; return 148 + 10 * u * u; };
+  const bot = (x: number) => { const u = (x - cx) / hw; return 168 - 6 * u * u; };
+  for (let x = cx - hw; x <= cx + hw; x++) for (let y = Math.floor(top(x)); y <= bot(x); y++) plot(b, x, y, MOUTH[2 + ((x + y) & 1)], M_MOUTH);
+  for (let x = cx - hw; x <= cx + hw; x++) {
+    const t = Math.round(top(x)), bt = Math.round(bot(x));
+    for (let d = 0; d < 2; d++) { if (matAt(b, x, t + d) === M_MOUTH) plot(b, x, t + d, GUM[d ? 1 : 3], M_OTHER); if (matAt(b, x, bt - d) === M_MOUTH) plot(b, x, bt - d, GUM[d ? 1 : 3], M_OTHER); }
+  }
+  teeth(b, cx - hw + 2, cx + hw - 2, (x) => top(x) + 2, 1, 7, { tw: 6, rot: [1, 8] });
+  teeth(b, cx - hw + 5, cx + hw - 2, (x) => bot(x) - 2, -1, 8, { tw: 6, gaps: [5], rot: [3] });
+  // (the seam where they grind)
+  for (let x = cx - hw + 2; x <= cx + hw - 2; x++) { const y = Math.round((top(x) + bot(x)) / 2 + 1); if (matAt(b, x, y) === M_OTHER) plot(b, x, y, TOOTH[5]); }
+  for (const s of [-1, 1]) {
+    const x0 = cx + (s < 0 ? -11 : 0), t = Math.round(top(x0 + 5)) + 2;
+    for (let yy = 0; yy < 12; yy++) for (let xx = 0; xx < 11; xx++) {
+      if (yy > 9 && (xx === 0 || xx === 10)) continue;
+      const k = xx === 0 ? 0 : xx > 8 ? 3 : yy > 8 ? 2 : 1;
+      plot(b, x0 + xx, t + yy, (xx === 10 || yy === 11) ? TOOTH[5] : TOOTH[bay(x0 + xx, t + yy) > 0.85 && k < 3 ? k + 1 : k], M_OTHER);
+    }
+    seg(b, x0 + 1, t + 1, x0 + 1, t + 7, WHITE, 1);
+  }
+  seg(b, cx, Math.round(top(cx)) + 2, cx, Math.round(top(cx)) + 13, TOOTH_B[5]);
+  // (spit bubbling out through the gaps)
+  for (const [x, y] of [[cx - 22, 160], [cx + 18, 161], [cx + 26, 158]] as const) { plot(b, x, y, WHITE); plot(b, x + 1, y, hexU('#DCEBFA')); plot(b, x, y + 1, hexU('#DCEBFA')); }
+  // (the lips stretched to nothing round it)
+  for (let x = cx - hw - 2; x <= cx + hw + 2; x++) {
+    const xc = Math.max(cx - hw, Math.min(cx + hw, x)), t = Math.round(top(xc)), bt = Math.round(bot(xc));
+    for (let d = 1; d <= 3; d++) {
+      if (matAt(b, x, t - d) === M_SKIN) plot(b, x, t - d, LIP[d === 1 ? 5 : 3], M_OTHER);
+      if (matAt(b, x, bt + d) === M_SKIN) plot(b, x, bt + d, LIP[d === 1 ? 5 : d === 2 ? 2 : 3], M_OTHER);
+    }
+  }
+  // (the corners dragged down, the cords of the chin and neck pulled tight under them)
+  for (const s of [-1, 1]) {
+    path(b, [cx + s * (hw + 1), 158, cx + s * (hw + 5), 168, cx + s * (hw + 3), 180], SKIN[6], 1, undefined, M_SKIN);
+    path(b, [cx + s * 20, 128, cx + s * (hw + 2), 140, cx + s * (hw + 4), 154], SKIN[6], 1, undefined, M_SKIN);
+    path(b, [cx + s * 14, 176, cx + s * 18, 186, cx + s * 16, 194], SKIN[5], 1, undefined, M_SKIN);
+  }
+};
+
+/** The darts in his face, out at the camera (foreshortened): a cane shaft, red and yellow fletching, each in a raised
+ *  welt, blood beading where it went in and running. Cheek, brow, nose (as the cart's figure has them). */
+const CANE = R('#F8ECC0', '#E4CC90', '#C4A868', '#9C8044', '#70562A', '#3E2C12');
+const FLETCH_R = R('#FF7070', '#E83838', '#C41C1C', '#961010', '#640808', '#320202');
+const FLETCH_Y = R('#FFF6A0', '#FBE050', '#EAB308', '#BC8A06', '#8A6004', '#4A3002');
+const darted = (b: Buf) => {
+  const DARTS: [number, number, number, number, number][] = [[FX - 44, 118, -0.82, -0.5, 46], [FX + 30, 64, 0.62, -0.72, 42], [FX + 6, 122, 0.4, -0.86, 40]];
+  for (const [ex, ey, dx, dy, L] of DARTS) {
+    // (the welt, angry and pink round the hole; the blood out of it, beaded and running down)
+    tint(b, ex, ey, 8, 7, hexU('#F06070'), 0.5, M_SKIN, 0.5);
+    ball(b, ex, ey, 3.4, 3, BLOOD, { mat: M_OTHER, line: (_x, y) => y > 0.2, lw: 0.8 });
+    const len = 10 + Math.round(rnd() * 14), w1 = rnd() * 2 - 1, w2 = rnd() * 2 - 1;
+    const run = [ex, ey + 2, ex + w1, ey + len * 0.5, ex + w2, ey + len];
+    path(b, run, BLOOD[5], 3); path(b, run, BLOOD[2], 2);
+    ball(b, ex + w2, ey + len + 2, 2.4, 3, BLOOD, { mat: M_OTHER, line: (_x, y) => y > 0.3, lw: 0.7 });
+    plot(b, ex + w2 - 1, ey + len + 1, WHITE); plot(b, ex - 1, ey, WHITE);
+    // (the shaft, out of him at the camera)
+    const tx = ex + dx * L, ty = ey + dy * L, px = -dy, py = dx;
+    path(b, [ex, ey, tx, ty], CANE[5], 5, M_OTHER); path(b, [ex, ey, tx, ty], CANE[2], 3, M_OTHER);
+    path(b, [ex - 1, ey - 1, tx - 1, ty - 1], CANE[0], 1, M_OTHER);
+    for (const k of [0.3, 0.55]) seg(b, ex + dx * L * k - px * 1.5, ey + dy * L * k - py * 1.5, ex + dx * L * k + px * 1.5, ey + dy * L * k + py * 1.5, CANE[4]);
+    // (the fletching: red one side, yellow the other)
+    poly(b, [tx - dx * 16, ty - dy * 16, tx + px * 11 + dx * 3, ty + py * 11 + dy * 3, tx + dx * 4, ty + dy * 4], FLETCH_R, M_OTHER);
+    poly(b, [tx - dx * 16, ty - dy * 16, tx - px * 11 + dx * 3, ty - py * 11 + dy * 3, tx + dx * 4, ty + dy * 4], FLETCH_Y, M_OTHER);
+  }
+};
+
+/** Pancaked: squashed down onto his collar (short and wide), the helmet's crown pressed flat, cracked across. */
+const squashed = (b: Buf): Buf => {
+  const n = newBuf(), SX = 1.4, SY = 0.62;
+  for (let y = 0; y < GH; y++) {
+    const sy = Math.round(GH - (GH - y) / SY);
+    if (sy < 0 || sy >= GH) continue;
+    for (let x = 0; x < GW; x++) {
+      const sx = Math.round(FX + (x - FX) / SX);
+      if (sx < 0 || sx >= GW) continue;
+      const i = y * GW + x, j = sy * GW + sx;
+      n.px[i] = b.px[j]; n.mat[i] = b.mat[j]; n.tone[i] = b.tone[j];
+    }
+  }
+  // (the top pressed flat: inked along it, the crack across the dome)
+  for (let x = 0; x < GW; x++) for (let y = 0; y < GH; y++) {
+    const m = n.mat[y * GW + x];
+    if (!m) continue;
+    if (m === M_OTHER) { plot(n, x, y, HELMET[7]); plot(n, x, y + 1, HELMET[5]); }
+    break;
+  }
+  path(n, [FX - 90, 84, FX - 60, 90, FX - 40, 86, FX - 10, 94, FX + 20, 88, FX + 50, 95, FX + 80, 90], HELMET[7], 1, undefined, M_OTHER);
+  return n;
+};
+
+/** Upside down (the big boulder's flipped him head first into his cart). */
+const flipped = (b: Buf): Buf => {
+  const n = newBuf();
+  for (let y = 0; y < GH; y++) {
+    const j = (GH - 1 - y) * GW, i = y * GW;
+    n.px.set(b.px.subarray(j, j + GW), i); n.mat.set(b.mat.subarray(j, j + GW), i); n.tone.set(b.tone.subarray(j, j + GW), i);
+  }
+  return n;
+};
+/** ...and his cart's floor under his head: riveted iron, rusted, the helmet's crown mashed on it (it stops right at
+ *  it), the shadow of him on it, a puddle of spit and tears where his face is. */
+const IRON = R('#B8A89A', '#988676', '#786656', '#5A4A3E', '#40342C', '#2A221C', '#16100C');
+const cartFloor = (b: Buf) => {
+  const top = (x: number) => 180 + Math.round((x - FX) * 0.02);
+  poly(b, [0, top(0), GW, top(GW), GW, GH, 0, GH], IRON, M_METAL, { tilt: 0.2 });
+  for (let x = 0; x < GW; x++) { plot(b, x, top(x), IRON[0], M_METAL); if (bay(x, top(x) + 1) < 0.5) plot(b, x, top(x) + 1, IRON[1], M_METAL); }
+  tint(b, FX, top(FX) + 6, 110, 8, hexU('#000000'), 0.45, M_METAL, 0.5);
+  for (let x = 14; x < GW; x += 30) { const y = top(x) + 13; ball(b, x, y, 3, 2.4, IRON, { mat: M_METAL, line: true, lw: 0.7 }); plot(b, x - 1, y - 1, IRON[0]); }
+  for (let k = 0; k < 14; k++) { const x = rnd() * GW, y = top(x) + 4 + rnd() * 18; tint(b, x, y, 4 + rnd() * 8, 2 + rnd() * 3, hexU('#8A3A14'), 0.5, M_METAL, 0.6); }
+  seg(b, 0, top(0) + 21, GW, top(GW) + 21, IRON[5]);
+  for (let x = FX - 60; x < FX + 60; x++) if (bay(x, top(x) + 2) < 0.7 - Math.abs(x - FX) / 90) plot(b, x, top(x) + 2, hexU('#DCEBFA'), M_METAL);
+};
+
 /** (is that pixel on his lips) */
 const pxAtLip = (b: Buf, x: number, y: number) => { const v = b.px[y * GW + x]; return v === LIP[1] || v === LIP[2] || v === LIP[0]; };
 
-const get = stamps<Key>(build, ['a', 'b', 'rc', 'r', 'r2', 'hat', 'fist', 't', 't2', 'finger']);
+const get = stamps<Key>(build, ['a', 'b', 'rc', 'r', 'r2', 'hat', 'fist', 't', 't2', 'finger', 'xd', 'xs', 'xf', 'xu']);
 /** One of his stamps (its canvas; null headless), and whether it's painted yet (never paint one the frame it's wanted). */
 export const artieStamp = (key: Key) => get(key).img;
 export const artieStampReady = (key: Key) => get.ready(key);
