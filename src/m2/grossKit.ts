@@ -344,7 +344,7 @@ export const stamps = <K extends string>(build: (key: K) => Buf | Steps<Buf>, wa
   const going = new Map<K, ReturnType<typeof stepper<Buf>>>();
   const job = (key: K) => { let j = going.get(key); if (!j) { j = stepper(() => build(key)); going.set(key, j); } return j; };
   const keep = (key: K, buf: Buf) => { const s = { img: toCanvas(buf), buf }; m.set(key, s); going.delete(key); return s; };
-  if (warm.length) paintAhead(until => {
+  const ahead = (until: number) => {
     for (const k of warm) {
       if (m.has(k)) continue;
       const j = job(k);
@@ -353,10 +353,15 @@ export const stamps = <K extends string>(build: (key: K) => Buf | Steps<Buf>, wa
       if (performance.now() >= until) return false;
     }
     return true;
-  });
+  };
+  if (warm.length) paintAhead(ahead);
   const get = (key: K) => m.get(key) ?? keep(key, job(key).finish());
   /** (painted already: asking for it won't paint it there and then) */
   get.ready = (key: K) => m.has(key);
+  /** Paint just this face's `warm` keys ahead now, a few ms per idle moment (ahead of the rest of warmGrossUps' queue:
+   *  a fight's intro, when its close-up's coming up). */
+  let warmed = false;
+  get.warm = () => { if (warmed || !warm.length || typeof document === 'undefined') return; warmed = true; idleJob(ahead); };
   return get;
 };
 

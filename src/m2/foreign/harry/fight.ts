@@ -39,7 +39,7 @@
 //   airsickness, doubled over puking on the floor, wide open; and his third death: BARFED TO DEATH.
 
 import { bossIntroSeen, markBossIntroSeen } from '../../bossIntro';
-import { drawHarryGross, drawHarryGrossBack } from './harryGross';
+import { drawHarryGross, drawHarryGrossBack, warmHarryGross } from './harryGross';
 import type { GameState } from '../../../m1/game/core/state';
 import type { FrameContext } from '../../../m1/game/core/context';
 import type { Controls } from '../../../m1/game/platform/input';
@@ -289,6 +289,8 @@ export const startFight = (state: GameState): Fight => {
   // before you can take damage")
   if (seen) { beginFight(state, f); f.entrance = 105; return f; }
   state.player.inCutscene = true;
+  // (his gross-up painted ahead a step at a time over the intro, if the hub hasn't already: no long frame at the cut)
+  warmHarryGross();
   return f;
 };
 
@@ -2004,7 +2006,8 @@ export const drawFightFront = (c: Ctx, state: GameState, f: Fight) => {
 export const drawFightHud = (c: Ctx, f: Fight, band: { x1: number; x2: number; mid: number }, inCutscene: boolean) => {
   if (f.mode === 'intro') {
     if (f.intro === 'gross') { drawHarryGrossBack(c, CANVAS_WIDTH, CANVAS_HEIGHT); drawHarryGross(c, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2 - 4, 0.9 + 0.1 * Math.min(1, f.introT / 10), game?.frame ?? f.total, f.introT < 14 ? 2 : 0); }
-    const k = Math.min(1, f.skipT / 20), bar = Math.round(k * 44);
+    // (the gross-up's the whole screen, all of him head to sandals: no bars over it)
+    const k = f.intro === 'gross' ? 0 : Math.min(1, f.skipT / 20), bar = Math.round(k * 44);
     c.fillStyle = '#000'; c.fillRect(0, 0, CANVAS_WIDTH, bar); c.fillRect(0, CANVAS_HEIGHT - bar, CANVAS_WIDTH, bar);
     if (f.skipT > SKIP_AFTER) drawSkipPrompt(c, CANVAS_WIDTH);
     return;
