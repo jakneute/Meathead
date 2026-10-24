@@ -8,10 +8,13 @@ import type { GameState } from '../m1/game/core/state';
 import { CANVAS_WIDTH as W, CANVAS_HEIGHT as H } from '../m1/constants';
 import { offerSkip, takeSkip, drawSkipPrompt } from '../m1/game/platform/skip';
 import { iris, mosaic } from './walkAway/screen';
+import { setStampCover } from '../m1/game/render/stamp';
 
 let pending = false;
 /** He's coming in through a portal (the walk in played): the land he's going to opens on him. */
 export const notePortalArrival = () => { pending = true; };
+// (dev builds: tools/perf's scenarios travel in through a portal without walking one)
+if (import.meta.env.DEV && typeof window !== 'undefined') (window as unknown as { __m2Arrive: () => void }).__m2Arrive = notePortalArrival;
 /** As the land's built: is he coming in through a portal? (Once.) */
 export const takePortalArrival = () => { const p = pending; pending = false; return p; };
 /** Is he on his way in through a portal (not taken yet)? (The HUD stays down from the moment he goes.) */
@@ -21,7 +24,8 @@ export const portalArrivalPending = () => pending;
 const HOLD = 20, OPEN = 36;
 
 export interface PortalArrival { t: number }
-export const startPortalArrival = (): PortalArrival => ({ t: 0 });
+// (the black beat: the land's art first painted under it, a few ms a frame (stamp.ts's cover), not all on its first frame)
+export const startPortalArrival = (): PortalArrival => { setStampCover(true); return { t: 0 }; };
 
 /**
  * A frame of it. `row`: where the land's camera keeps his feet on the screen. True: still going (he's not in control);
@@ -29,6 +33,7 @@ export const startPortalArrival = (): PortalArrival => ({ t: 0 });
  */
 export const tickPortalArrival = (state: GameState, a: PortalArrival, row: number): boolean => {
   a.t++;
+  setStampCover(a.t <= HOLD);
   const p = state.player;
   p.inCutscene = true; p.vel.x = 0;
   // (the camera put where it'd settle, under the black: when it opens it's already there)

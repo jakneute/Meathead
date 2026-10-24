@@ -82,11 +82,14 @@ export const newStampFrame = () => { spent = 0; frameNo++; };
 /** Painting that isn't stamps' but shares their budget (hub/crowd.ts's guests): how long it took; and is this frame's
  *  budget spent, while the screen's covered (setStampCover)? */
 export const notePaint = (ms: number) => { spent += ms; };
-export const coveredAndSpent = () => cover && spent > PAINT_MS;
-/** The screen's covered (the hub built under the black of the stage change and the portal's white): art not painted
- *  yet past this frame's budget is left for the next frame rather than all painted in the one (nobody can see it). */
-let cover = false;
-export const setStampCover = (on: boolean) => { cover = on; };
+export const coveredAndSpent = () => covered() && spent > PAINT_MS;
+/** The screen's covered (the hub built under the black of the stage change and the portal's white; a land's portal
+ *  arrival, black a beat): art not painted yet past this frame's budget is left for the next frame rather than all
+ *  painted in the one (nobody can see it). Said again every frame it's on (it lapses a few frames after the last: a
+ *  stage left mid-cover never leaves the next one's art unpainted). */
+let coverAt = -1e9;
+export const setStampCover = (on: boolean) => { coverAt = on ? frameNo : -1e9; };
+const covered = () => frameNo - coverAt <= 3;
 
 const q = (n: number) => Math.round(n * 4096) / 4096;
 /** Inside a stamp's paint (how deep). */
@@ -170,7 +173,8 @@ export const stamp = (ctx: Ctx, key: string, x: number, y: number, w: number, h:
         Object.assign(ctx, l!.s.after);
         return;
       }
-      if (!l && !sweep) { paint(ctx); return; }
+      // (covered: not painted live at all, nobody sees it; its stamp's painted when it's asked again, in budget)
+      if (!l && !sweep) { if (!covered()) paint(ctx); return; }
     } else if (near && (spent > PAINT_MS || frameNo - askedAt < SETTLE)) {
       // (wanted at a settled scale, but this frame's painted plenty already: the one it has, scaled, for now)
       const ka = m.a / l!.s.a, kd = m.d / l!.s.d;
@@ -179,7 +183,7 @@ export const stamp = (ctx: Ctx, key: string, x: number, y: number, w: number, h:
       return;
     }
     // (under cover, this frame's painted plenty: next frame)
-    if (cover && spent > PAINT_MS) return;
+    if (covered() && spent > PAINT_MS) return;
     // (the box in device pixels, from whole pixels: the art lands in the stamp on the same pixel grid it's shown on)
     // (at the transform's exact scale, not the rounded one that keys it: art out at world coordinates (x in the tens of
     // thousands, pushed back in depth by a scale that isn't whole) came down pixels off, the rounding times x)
