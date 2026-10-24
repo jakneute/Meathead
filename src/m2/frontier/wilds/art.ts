@@ -15,6 +15,7 @@ import { drawShelf } from './hazards';
 import { drawFar } from './far';
 import { drawGoingBack, drawPlayPlane, drawTracks } from './ground';
 import { drawWaterTop, drawWaterBack } from './water';
+import { drawCrossingsBack } from './crossings';
 
 // ---------------------------------------------------------------------------------------------------------------
 // The backdrop
@@ -225,6 +226,8 @@ export const drawWildsBack = (c: Ctx, state: GameState) => {
   drawWaterTop(c, v);
   drawGoingBack(c, v);
   drawStoodBack(c, v);
+  // (the crossings over the water: what holds each up on the far bank and in the water, its body going back)
+  drawCrossingsBack(c, v);
   // The play plane: the water's body, the floor coming toward him, the raised ground
   drawWaterBack(c, state);
   drawPlayPlane(c, v);

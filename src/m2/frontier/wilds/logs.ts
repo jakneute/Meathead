@@ -26,7 +26,8 @@ import { GY } from '../geometry';
 import { onScreen } from '../kit';
 import { setUi } from '../../store';
 import { heard } from '../../bossQuiet';
-import { type Ctx, box, checker, still, near, INK, NEEDLE } from './paint';
+import { type Ctx, box, checker, viewOf, INK } from './paint';
+import { LIMB_OUT, drawCrossingsFront } from './crossings';
 import { LOGS, WATERS, LOW_BRANCHES, BRANCH_GAP, X, Y, groundH } from './layout';
 import { surfaceY } from './water';
 import { wildsOf, type LogRun } from './state';
@@ -227,17 +228,15 @@ export const updateFalls = (ctx: FrameContext) => {
   }
 };
 
-/** How far the low limb reaches out either side of a fallen tree's [from, to] (drawn and hit alike). */
-const LIMB_OUT = 46;
-
-/** The fallen trees across the water: standing up as he goes under one (or jumping into it), it clotheslines him off
- *  backward (into the water, likely); ducked, he's under it. */
+/** The crossings over the water (crossings.ts: a fallen pine, a beaver-felled aspen, the park's fake-rock brow):
+ *  standing up as he goes under one (or jumping into it), it clotheslines him off backward (into the water, likely);
+ *  ducked, he's under it. */
 export const updateBranches = (ctx: FrameContext) => {
   const { state } = ctx, p = state.player, w = wildsOf(state);
   w.branchCd = Math.max(0, w.branchCd - 1);
   if (w.branchCd > 0 || p.health <= 0 || p.inCutscene) return;
   for (const [a, b] of LOW_BRANCHES) {
-    // (the limb drawn across it is wider than the trunk's line: it's the limb that hits)
+    // (the face drawn across it is wider than its [from, to]: it's the face that hits)
     const bx0 = X(a) - LIMB_OUT, bx1 = X(b) + LIMB_OUT, bottom = GY - BRANCH_GAP;
     const overlap = p.pos.x + p.width - 8 > bx0 && p.pos.x + 8 < bx1 && p.pos.y < bottom;
     if (overlap && !(p.isDucking && p.isGrounded)) {
@@ -333,8 +332,7 @@ export const drawLogs = (c: Ctx, state: GameState) => {
 };
 
 /** The long river's end: the river racing for the lip (streaks, spray), the snapped boom's snag, the falls (white
- *  water pouring off the edge, the mist), a log going down it and the spray where it hits the bottom. And the fallen trees across the water (foliage down to the
- *  gap: impassable reads impassable). */
+ *  water pouring off the edge, the mist), a log going down it and the spray where it hits the bottom. And the crossings' faces (crossings.ts). */
 export const drawBoomAndBranches = (c: Ctx, state: GameState) => {
   const f = state.frame;
   for (const W of WATERS) {
@@ -402,66 +400,6 @@ export const drawBoomAndBranches = (c: Ctx, state: GameState) => {
     // (the white water piling up against it)
     for (let k = 0; k < 3; k++) box(c, bx - 6 - k * 5, s - 2 - ((f + k * 5) >> 3) % 2, 4, 2, FL[5]);
   }
-  for (const [a, b] of LOW_BRANCHES) {
-    const bx0 = X(a), bx1 = X(b);
-    if (!onScreen(state, bx0 - 160, bx1 + 160)) continue;
-    drawLowTree(c, bx0, bx1, GY - BRANCH_GAP, f);
-  }
-};
-
-/**
- * A fallen tree across the water, to duck under (impassable reads impassable: the playtest's "more obvious"). Its
- * crown leans in from off the top of the screen, a solid wall of needles and boughs all the way down onto one great
- * low limb, thick as a man, lying flat across the water at ducking height: its underside is the gap's top, bark
- * scraped pale there, nothing at all under it but the open water. A park board nailed to the limb's face (DUCK! and a
- * down arrow, painted yellow and black), a fringe of needles under it that stops short of his ducked head.
- */
-const drawLowTree = (c: Ctx, bx0: number, bx1: number, bottom: number, f: number) => {
-  const L0 = bx0 - LIMB_OUT, L1 = bx1 + LIMB_OUT, limbTop = bottom - 34, w = L1 - L0;
-  // (painted once for the hour, about the limb's left end; the needles' sway is live over it)
-  still(c, `lowtree-${w}`, L0, limbTop, -140, -500, w + 240, 544, g => {
-    const N = near(NEEDLE), B = near(BARK), Wd = near(WOOD);
-    const lx0 = 0, lx1 = w, b0 = bx0 - L0, b1 = bx1 - L0;
-    // (the trunk leaning in from off the top: bark in stepped ridges, lit down its left)
-    const trunk = () => { g.moveTo(b0 - 76, -486); g.lineTo(b0 - 36, -486); g.lineTo(b1 + 22, 2); g.lineTo(b0 + 14, 2); g.closePath(); };
-    g.fillStyle = INK; g.beginPath(); trunk(); g.fill();
-    g.save(); g.beginPath(); trunk(); g.clip();
-    for (let k = 0; k < 8; k++) { g.fillStyle = [B[4], B[5], B[4], B[3], B[3], B[2], B[2], B[1]][k]; g.beginPath(); g.moveTo(b0 - 76 + k * 5, -486); g.lineTo(b0 - 71 + k * 5, -486); g.lineTo(b0 + 19 + k * 5.5, 2); g.lineTo(b0 + 14 + k * 5.5, 2); g.closePath(); g.fill(); }
-    g.restore();
-    // (the wall of boughs down onto the limb: tiers of drooping needles, stepped (shade under, body, the lit upper
-    // left, needle tufts along the edges), wider and lower as they come down)
-    for (let y = -470; y < -26; y += 20) {
-      const t = (y + 486) / 460, cx = b0 - 56 + t * (b1 - b0 + 60), hw = 46 + t * 52;
-      const edge = (i: number) => y + 22 + Math.sin(i * 1.7 + y) * 2 + (i % 2) * 3;
-      const shape = () => { g.moveTo(cx - hw * 0.4, y - 2); g.lineTo(cx + hw * 0.5, y); g.lineTo(cx + hw, y + 18); for (let i = 8; i >= 0; i--) g.lineTo(cx - hw + (i / 8) * hw * 2, edge(i)); g.closePath(); };
-      g.save(); g.translate(0, 2); g.fillStyle = INK; g.beginPath(); shape(); g.fill(); g.restore();
-      g.fillStyle = N[2]; g.beginPath(); shape(); g.fill();
-      g.save(); g.beginPath(); shape(); g.clip();
-      box(g, cx - hw, y + 12, hw * 2, 14, N[1]);
-      box(g, cx - hw, y - 2, hw * 1.1, 8, N[4]); box(g, cx - hw, y - 2, hw * 0.6, 3, N[5]);
-      checker(g, cx - hw, y + 6, hw * 1.4, 2, N[3], (y >> 1) % 2);
-      for (let i = 0; i < hw / 4; i++) box(g, cx - hw + ((i * 37 + y) % (hw * 2)), y + 4 + ((i * 13) % 12), 2, 3, i % 3 ? N[3] : N[5]);
-      g.restore();
-      for (let i = 0; i <= 8; i += 2) box(g, cx - hw + (i / 8) * hw * 2 - 1, edge(i) - 1, 2, 3, N[1]);
-    }
-    // (the limb: thick as a man, flat across the water: inked, banded round, bark plates, broken twig stubs)
-    box(g, lx0 - 2, -2, w + 4, 38, INK);
-    const bands: [number, number, string][] = [[0, 3, B[5]], [3, 6, B[4]], [9, 10, B[3]], [19, 8, B[2]], [27, 7, B[1]]];
-    for (const [y0, bh, col] of bands) box(g, lx0, y0, w, bh, col);
-    box(g, lx0, 1, w, 1, B[6]); checker(g, lx0, 8, w, 2, B[4], 0); checker(g, lx0, 18, w, 2, B[3], 1);
-    for (let x = 8; x < w - 8; x += 20) { box(g, x, 11 + (x % 3), 12, 2, B[0]); box(g, x + 1, 10 + (x % 3), 10, 1, B[5]); box(g, x + 6, 22 + (x % 4), 9, 2, B[0]); }
-    for (const sx of [14, w - 22, w * 0.5]) { box(g, sx - 1, -13, 8, 14, INK); box(g, sx, -12, 6, 12, B[3]); box(g, sx, -12, 2, 12, B[5]); box(g, sx, -13, 6, 2, Wd[4]); }
-    // (its cut end at each side: rings, heart to sap)
-    for (const ex of [lx0, lx1]) {
-      g.fillStyle = INK; g.beginPath(); g.ellipse(ex, 17, 9, 19, 0, 0, Math.PI * 2); g.fill();
-      g.fillStyle = B[2]; g.beginPath(); g.ellipse(ex, 17, 8, 18, 0, 0, Math.PI * 2); g.fill();
-      for (let i = 0; i < 4; i++) { const k = 1 - i * 0.24; g.fillStyle = Wd[5 - i]; g.beginPath(); g.ellipse(ex, 17, 6.5 * k, 16 * k, 0, 0, Math.PI * 2); g.fill(); }
-    }
-    // (its underside, the gap's top: scraped pale where heads have hit it; nothing under it but the open water)
-    box(g, 6, 30, w - 12, 3, Wd[4]);
-    for (let k = 0; k < 4; k++) box(g, b0 - 30 - L0 * 0 + k * 26, 31, 12, 2, Wd[5]);
-  });
-  // (a short fringe of needles under it, swaying: well clear of his ducked head)
-  for (let x = L0 + 4; x < L1 - 4; x += 7) box(c, x + Math.round(Math.sin(f * 0.05 + x) * 0.8), bottom - 1, 3, 3 + ((x >> 3) % 2) * 2, '#1E4222');
-  // (no DUCK! board on it (the user's: the player can tell))
+  // (the crossings to duck under: their faces at the play plane, in front of him (crossings.ts))
+  drawCrossingsFront(c, viewOf(state));
 };
