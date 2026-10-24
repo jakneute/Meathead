@@ -57,8 +57,18 @@ const partOf = (p: Projectile) => p.customData as Part;
 
 /** The clapperboard over his head (snapping shut, ACTION!), frames left. */
 let clap = 0, clapDir: 1 | -1 = 1;
-/** Burning wrecks left lying where the stunt went off. */
-let wrecks: { x: number; y: number; dir: 1 | -1; t: number; paint: number }[] = [];
+/** Burning wrecks left lying where the stunt went off (`rot0`: how it was tipped coming down, for its flip over). */
+let wrecks: { x: number; y: number; dir: 1 | -1; t: number; paint: number; rot0: number }[] = [];
+/** The flourishes (looks only: nothing here touches what the stunt does). Skid marks and gouges on the floor; the
+ *  fireball going up and its black smoke. Both capped. */
+let skids: { x0: number; x1: number; y: number; t: number; gouge: boolean }[] = [];
+let booms: { x: number; y: number; t: number; seed: number }[] = [];
+/** The wreck's flip over onto its roof: this many frames. */
+const FLIP = 16;
+/** Its own dice (the look's): never the game's. */
+let lookS = 0x57a7c4;
+const lr = () => { lookS = (lookS * 1664525 + 1013904223) >>> 0; return lookS / 4294967296; };
+const skid = (x0: number, x1: number, y: number, gouge = false) => { if (skids.length >= 70) skids.shift(); skids.push({ x0: Math.min(x0, x1), x1: Math.max(x0, x1), y, t: 0, gouge }); };
 
 /** A paint job for the next one: any of them, but not one that's already on the screen twice (cars and wrecks both). */
 const pickPaint = (state: GameState) => {
@@ -207,7 +217,15 @@ const stunt = (ctx: FrameContext, p: Projectile, car: Extract<Part, { kind: 'car
   for (let i = 0; i < 3; i++) fx.spawnExplosion({ x: cx + (i - 1) * 60, y: cy - 10 }, i === 1 ? '#FDE047' : '#F97316', 18, 0, 20);
   for (let i = 0; i < 14; i++) state.particles.push({ pos: { x: p.pos.x + Math.random() * p.width, y: p.pos.y + Math.random() * p.height }, vel: { x: car.dir * (2 + Math.random() * 5), y: -3 - Math.random() * 6 }, life: 60, color: [PAINT[car.paint].body, '#18181B', '#A1A1AA', '#7DD3FC'][i % 4], size: 2 + Math.random() * 3, grav: 0.35, chunk: true });
   // (the wreck, lying there burning a while)
-  wrecks.push({ x: p.pos.x + p.width / 2, y: surfaceUnder(state, p.pos.x + p.width / 2, p.pos.y + p.height - 6), dir: car.dir, t: 0, paint: car.paint });
+  const wy = surfaceUnder(state, p.pos.x + p.width / 2, p.pos.y + p.height - 6);
+  wrecks.push({ x: p.pos.x + p.width / 2, y: wy, dir: car.dir, t: 0, paint: car.paint, rot0: Math.atan2(p.vel.y, Math.abs(p.vel.x)) * 0.8 });
+  // (the flourish: the fireball going up, a gouge ploughed into the floor behind where it hit, dust rolling off both ways)
+  if (booms.length >= 4) booms.shift();
+  booms.push({ x: cx, y: cy, t: 0, seed: lr() * 100 });
+  if (wy < 2000 && Math.abs(wy - (p.pos.y + p.height)) < 40) {
+    skid(cx - car.dir * 130, cx + car.dir * 20, wy, true);
+    for (let i = 0; i < 12; i++) { const s = i % 2 ? 1 : -1; state.particles.push({ pos: { x: cx + s * lr() * 30, y: wy - 4 }, vel: { x: s * (2 + lr() * 5), y: -0.4 - lr() }, life: 34 + lr() * 20, color: i % 3 ? 'rgba(168, 162, 158, 0.55)' : 'rgba(214, 211, 209, 0.5)', size: 7 + lr() * 7 }); }
+  }
   // The stuntman, launched out over the hood, every time (out on the screen, wherever it went up): if there's
   // something flying near, he goes for it, a dive, arms out, straight at it; otherwise up and on, tumbling
   const from = { x: Math.max(state.camera.x + 30, Math.min(state.camera.x + CANVAS_WIDTH - 30, front.x)), y: front.y - STUNTMAN.h };
@@ -251,7 +269,15 @@ const update = (ctx: FrameContext, p: Projectile): boolean => {
     const passed = part.fromX === undefined || (frontNow - part.fromX) * part.dir > 0;
     if (p.vel.y > 0 && p.pos.y + p.height >= floor) {
       // (down behind him, short of his lane: it lands driving and keeps coming, along the ground; past him, the stunt)
-      if (!passed) { p.pos.y = floor - p.height; p.vel.y = 0; }
+      if (!passed) {
+        // (the flourish: rubber laid down under both wheels and dust kicked up off them; a puff each way the moment it lands)
+        const was = p.vel.y;
+        p.pos.y = floor - p.height; p.vel.y = 0;
+        const rear = part.dir > 0 ? p.pos.x + p.width * 0.18 : p.pos.x + p.width * 0.82, fore = part.dir > 0 ? p.pos.x + p.width * 0.8 : p.pos.x + p.width * 0.2;
+        skid(rear - p.vel.x, rear, floor); skid(fore - p.vel.x, fore, floor);
+        if (was > 3) for (let i = 0; i < 8; i++) { const s = i % 2 ? 1 : -1; state.particles.push({ pos: { x: rear + s * 10, y: floor - 3 }, vel: { x: s * (1.5 + lr() * 3), y: -0.5 - lr() * 1.2 }, life: 26 + lr() * 12, color: 'rgba(214, 211, 209, 0.55)', size: 6 + lr() * 5 }); }
+        if (state.frame % 2 === 0) state.particles.push({ pos: { x: rear, y: floor - 3 }, vel: { x: -part.dir * (1 + lr() * 2), y: -0.6 - lr() }, life: 20, color: 'rgba(168, 162, 158, 0.5)', size: 5 + lr() * 5 });
+      }
       else { p.pos.y = floor - p.height; stunt(ctx, p, part); return false; }
     }
     for (const e of state.enemies) {
@@ -279,6 +305,8 @@ const update = (ctx: FrameContext, p: Projectile): boolean => {
     // (and once it's come on screen, it never drives off it: going out of view, or out past the end of the stage, it
     // goes up right there)
     const onScreen = p.pos.x + p.width > state.camera.x && p.pos.x < state.camera.x + CANVAS_WIDTH;
+    // (coming into view: a burst of exhaust off the back of it, out of nowhere, off its ramp nobody can see)
+    if (onScreen && !part.seen) { const bx = part.dir > 0 ? p.pos.x : p.pos.x + p.width; for (let i = 0; i < 8; i++) state.particles.push({ pos: { x: bx, y: p.pos.y + p.height * (0.4 + lr() * 0.5) }, vel: { x: -part.dir * (1 + lr() * 3), y: (lr() - 0.5) * 2 }, life: 22 + lr() * 14, color: i % 3 ? 'rgba(120, 113, 108, 0.55)' : 'rgba(214, 211, 209, 0.6)', size: 7 + lr() * 7 }); }
     if (onScreen) part.seen = true;
     const front = part.dir > 0 ? p.pos.x + p.width : p.pos.x;
     const leaving = part.seen && (part.dir > 0 ? front > state.camera.x + CANVAS_WIDTH : front < state.camera.x);
@@ -335,6 +363,10 @@ const tick = (ctx: FrameContext) => {
     if (w.t < 140 && state.frame % 2 === 0) state.particles.push({ pos: { x: w.x + (Math.random() - 0.5) * 60, y: w.y - 20 - Math.random() * 10 }, vel: { x: (Math.random() - 0.5), y: -1 - Math.random() * 1.5 }, life: 24, color: Math.random() < 0.4 ? 'rgba(68, 64, 60, 0.55)' : Math.random() < 0.5 ? '#F97316' : '#FDE047', size: 4 + Math.random() * 5 });
   }
   wrecks = wrecks.filter(w => w.t < 200);
+  for (const s of skids) s.t++;
+  skids = skids.filter(s => s.t < 420);
+  for (const b of booms) b.t++;
+  booms = booms.filter(b => b.t < 90);
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -352,6 +384,19 @@ const drawStuntman = (c: Ctx, x: number, y: number, dir: number, rot: number, po
 
 const draw = (c: Ctx, p: Projectile, frame: number) => {
   const part = partOf(p);
+  // (motion lines streaming off the back of it, back along the way it's going: white, then grey, flickering in length)
+  {
+    const sp = Math.hypot(p.vel.x, p.vel.y) || 1, ux = -p.vel.x / sp, uy = -p.vel.y / sp, nx = -uy, ny = ux;
+    const cx = p.pos.x + p.width / 2, cy = p.pos.y + p.height / 2, car = part.kind === 'car';
+    const n = car ? 5 : 3, back = car ? p.width * 0.5 : p.width * 0.6, span = car ? p.height * 0.9 : p.height * 0.6;
+    c.lineCap = 'butt';
+    for (let i = 0; i < n; i++) {
+      const o = (i / (n - 1) - 0.5) * span, len = (car ? 46 : 26) * (0.6 + 0.4 * (((frame + i * 3) % 5) / 4)), gap = 6 + ((i * 7 + frame) % 3) * 4;
+      const x0 = cx + ux * (back + gap) + nx * o, y0 = cy + uy * (back + gap) + ny * o;
+      c.strokeStyle = i % 2 ? 'rgba(255, 255, 255, 0.75)' : 'rgba(214, 211, 209, 0.6)'; c.lineWidth = i % 2 ? 2 : 3;
+      c.beginPath(); c.moveTo(x0, y0); c.lineTo(x0 + ux * len, y0 + uy * len); c.stroke();
+    }
+  }
   // (the art's bigger than the box: its wheels' bottoms kept to the box's bottom)
   if (part.kind === 'car') { drawCar(c, p.pos.x + p.width / 2, p.pos.y + p.height - 15 * CAR_SCALE * ART_K + 4, part.dir, part.wheel, Math.atan2(p.vel.y, Math.abs(p.vel.x)) * 0.8, PAINT[part.paint], true, Math.min(3, part.hit.length + part.through)); return; }
   if (part.target && alive(part.target)) {
@@ -366,9 +411,25 @@ const draw = (c: Ctx, p: Projectile, frame: number) => {
 
 const drawOverlay = (c: Ctx, state: GameState) => {
   drawDismember(c, state);
-  // The wrecks: on their roofs, burning
+  // The fireballs: stepped lobes of flame boiling up and burning out, black smoke rolling up off the top of them (behind
+  // the wreck: it comes flipping over out of it)
+  for (const b of booms) drawBoom(c, b);
+  // The wrecks: on their roofs, burning; first, flipping over onto it, up off its nose and over, motion arcs round it
   for (const w of wrecks) {
     if (w.t > 170 && w.t % 4 < 2) continue;
+    if (w.t < FLIP) {
+      const k = w.t / FLIP, e = k * k * (3 - 2 * k), rot = w.rot0 + (Math.PI - w.rot0) * e;
+      // (up off the floor as it goes over: stood on its end it's never down through the floor)
+      const mx = w.x + w.dir * (e - 0.5) * 24, my = w.y - 15 * CAR_SCALE * ART_K + 4 - Math.sin(k * Math.PI) * 52 - Math.abs(Math.sin(rot)) * 75;
+      // (the arcs: three stepped curves trailing round behind the way it's turning)
+      for (let i = 0; i < 3; i++) {
+        const R = 58 + i * 12, a1 = (w.dir > 0 ? rot : Math.PI - rot) - Math.PI / 2 * w.dir, a0 = a1 - w.dir * (0.9 - i * 0.2);
+        c.strokeStyle = i === 1 ? 'rgba(255, 255, 255, 0.8)' : 'rgba(214, 211, 209, 0.6)'; c.lineWidth = i === 1 ? 3 : 2;
+        c.beginPath(); c.arc(mx, my, R, Math.min(a0, a1), Math.max(a0, a1)); c.stroke();
+      }
+      drawCar(c, mx, my, w.dir, 0, rot, PAINT[w.paint], false, 3);
+      continue;
+    }
     drawWreckArt(c, w.x, w.y, CAR_SCALE * ART_K, w.dir, w.paint, PAINT[w.paint], { t: w.t, f: state.frame, burn: w.t < 140 ? 1 : 0.5 });
   }
   // The clapperboard over his head: the clapper snapping down, ACTION!
@@ -383,9 +444,65 @@ const drawOverlay = (c: Ctx, state: GameState) => {
     c.fillStyle = INK; c.fillRect(-1, -8, 42, 8);
     for (let i = 0; i < 5; i++) { c.fillStyle = i % 2 ? '#18181B' : '#F8FAFC'; c.beginPath(); c.moveTo(1 + i * 8, -7); c.lineTo(9 + i * 8, -7); c.lineTo(7 + i * 8, -1); c.lineTo(-1 + i * 8, -1); c.closePath(); c.fill(); }
     c.restore();
-    if (shut) { c.fillStyle = `rgba(253, 224, 71, ${Math.min(1, k * 1.6).toFixed(2)})`; c.font = '8px "Press Start 2P"'; c.fillText('ACTION!', clapDir * 4, -18); }
+    if (shut) {
+      // (the snap: impact ticks off the top of the board the moment it claps shut)
+      const tt = 24 - clap;
+      if (tt < 5) { c.fillStyle = '#FFFFFF'; for (let i = 0; i < 5; i++) { const a = -Math.PI / 2 + (i - 2) * 0.5, d0 = 16 + tt * 3; for (let s = 0; s < 3; s++) c.fillRect(Math.round(Math.cos(a) * (d0 + s * 3)) - 1, Math.round(-12 + Math.sin(a) * (d0 + s * 3)) - 1, 2, 2); } }
+      // ACTION!: popping out of a spiky red burst, overshooting and settling, a hair crooked
+      const s = tt < 3 ? 0.4 + tt * 0.42 : tt < 7 ? 1.66 - (tt - 3) * 0.13 : 1.14 - (tt - 7) * 0.006, al = Math.min(1, k * 1.6);
+      c.save(); c.translate(clapDir * 4, -24); c.rotate(-0.08 * clapDir); c.scale(s, s); c.globalAlpha *= al;
+      const burst = (rx: number, ry: number, col: string, dx = 0, dy = 0) => { c.fillStyle = col; c.beginPath(); for (let i = 0; i < 28; i++) { const a = (i / 28) * Math.PI * 2, rr = i % 2 ? 0.72 : 1 + ((i * 5) % 3) * 0.06; const px = dx + Math.cos(a) * rx * rr, py = dy + Math.sin(a) * ry * rr; i ? c.lineTo(px, py) : c.moveTo(px, py); } c.closePath(); c.fill(); };
+      burst(42, 15, INK, 2, 2); burst(42, 15, INK); burst(39, 13, '#DC2626'); burst(30, 9, '#F97316');
+      c.font = '8px "Press Start 2P"'; c.textAlign = 'center';
+      c.lineWidth = 4; c.strokeStyle = INK; c.strokeText('ACTION!', 0, 4);
+      // (two-tone, stepped: white over, yellow under)
+      c.fillStyle = '#FFFFFF'; c.fillText('ACTION!', 0, 3);
+      c.fillStyle = '#FDE047'; c.save(); c.beginPath(); c.rect(-40, 1, 80, 6); c.clip(); c.fillText('ACTION!', 0, 4); c.restore();
+      c.restore();
+    }
     c.textAlign = 'left';
     c.restore();
+  }
+};
+
+/** A fireball (where the stunt went off): seven lobes of stepped flame boiling up out of it and burning out, white-hot
+ *  at first, going orange, red, then gone; black smoke rolling up off the top, stepped grey to black, thinning out. */
+const drawBoom = (c: Ctx, b: { x: number; y: number; t: number; seed: number }) => {
+  const t = b.t, h = (i: number) => { const s = Math.sin((b.seed + i) * 127.1) * 43758.5453; return s - Math.floor(s); };
+  // (the smoke first: behind the flame)
+  if (t > 6) for (let i = 0; i < 7; i++) {
+    const u = (t - 6 - i * 3) / 70; if (u <= 0 || u >= 1) continue;
+    const px = b.x + (h(i) - 0.5) * 90 + (h(i + 9) - 0.5) * 40 * u, py = b.y - 40 - u * 140 - h(i + 3) * 30, r = 12 + u * 26 + h(i + 5) * 8;
+    c.globalAlpha = u > 0.6 ? (1 - u) / 0.4 : 1;
+    c.fillStyle = '#09090B'; c.beginPath(); c.arc(px, py, r, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#27272A'; c.beginPath(); c.arc(px - r * 0.2, py - r * 0.22, r * 0.72, 0, Math.PI * 2); c.fill();
+    c.fillStyle = '#3F3F46'; c.beginPath(); c.arc(px - r * 0.38, py - r * 0.4, r * 0.32, 0, Math.PI * 2); c.fill();
+  }
+  c.globalAlpha = 1;
+  if (t >= 34) return;
+  // (the flame: each lobe's ramp stepped down as it burns out)
+  const RAMP = ['#7F1D1D', '#DC2626', '#F97316', '#FDE047', '#FFFBEB'];
+  const heat = t < 6 ? 4 : t < 14 ? 3 : t < 22 ? 2 : t < 28 ? 1 : 0;
+  for (let i = 0; i < 7; i++) {
+    const a = (i / 7) * Math.PI * 2 + h(i) * 0.6, grow = Math.min(1, t / 5), fall = t > 18 ? 1 - (t - 18) / 16 : 1;
+    const px = b.x + Math.cos(a) * 46 * grow * (0.6 + h(i + 2) * 0.5), py = b.y - t * 1.6 + Math.sin(a) * 30 * grow - (i === 0 ? 20 : 0);
+    const r = (26 + h(i + 4) * 18) * grow * (0.4 + 0.6 * fall);
+    if (r < 2) continue;
+    for (let j = 0; j <= heat; j++) {
+      c.fillStyle = RAMP[j]; c.beginPath(); c.arc(px + j * 1.5, py - j * 2, r * (1 - j * 0.19), 0, Math.PI * 2); c.fill();
+    }
+  }
+};
+
+/** Under him: the skid marks and gouges on the floor, fading. */
+const drawUnder = (c: Ctx) => {
+  for (const s of skids) {
+    const a = s.t > 300 ? (420 - s.t) / 120 : 1;
+    if (s.gouge) {
+      c.fillStyle = `rgba(28, 25, 23, ${(0.75 * a).toFixed(2)})`; c.fillRect(Math.round(s.x0), Math.round(s.y - 3), Math.round(s.x1 - s.x0), 4);
+      c.fillStyle = `rgba(120, 113, 108, ${(0.7 * a).toFixed(2)})`; c.fillRect(Math.round(s.x0), Math.round(s.y - 4), Math.round(s.x1 - s.x0), 1);
+      for (let x = s.x0 + 8; x < s.x1; x += 14) { c.fillStyle = `rgba(87, 83, 78, ${(0.8 * a).toFixed(2)})`; c.fillRect(Math.round(x), Math.round(s.y - 6), 3, 2); }
+    } else { c.fillStyle = `rgba(24, 24, 27, ${(0.55 * a).toFixed(2)})`; c.fillRect(Math.round(s.x0), Math.round(s.y - 2), Math.ceil(s.x1 - s.x0) + 1, 2); }
   }
 };
 
@@ -398,9 +515,9 @@ const drawHeld = (c: Ctx) => {
 };
 
 /** Everything it was in the middle of, stopped (through a door). */
-export const stopStuntCar = () => { clap = 0; wrecks = []; stopDismember(); };
+export const stopStuntCar = () => { clap = 0; wrecks = []; skids = []; booms = []; stopDismember(); };
 
 /** The car and the stuntman as drawn here (for a fight's own scripted stunts: the same cars). */
 export { drawCar as drawStuntCar, drawStuntman, PAINT as STUNT_PAINT, CAR_SCALE as STUNT_CAR_SCALE, ART_K as STUNT_ART_K };
 
-export const registerStuntCar = () => registerWeapon('STUNT_CAR', { fire: ctx => fire(ctx), update, draw, drawHeld: c => drawHeld(c), tick: ctx => tick(ctx), drawOverlay });
+export const registerStuntCar = () => registerWeapon('STUNT_CAR', { fire: ctx => fire(ctx), update, draw, drawHeld: c => drawHeld(c), tick: ctx => tick(ctx), drawOverlay, drawUnder: c => drawUnder(c) });

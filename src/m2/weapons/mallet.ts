@@ -146,10 +146,11 @@ const stickCue = (ctx: FrameContext) => emptyCue(ctx, 'MALLET', { text: 'BROKEN!
 // ---------------------------------------------------------------------------------------------------------------
 // The cartoon bits: comic words, twinkles, flattened men
 
-interface Word { text: string; x: number; y: number; t: number; color: string }
+interface Word { text: string; x: number; y: number; t: number; color: string; seed: number }
 let words: Word[] = [];
 const WORDS = ['BONK!', 'WHAM!', 'POW!', 'THWACK!', 'BAM!', 'KA-BLAM!', 'WHOMP!', 'SPROING!'];
-const word = (x: number, y: number, text = WORDS[Math.floor(Math.random() * WORDS.length)], color = ['#FDE047', '#F472B6', '#60A5FA', '#4ADE80', '#FB923C'][Math.floor(Math.random() * 5)]) => words.push({ text, x, y, t: 0, color });
+// (never more than a handful up at once: the oldest goes)
+const word = (x: number, y: number, text = WORDS[Math.floor(Math.random() * WORDS.length)], color = ['#FDE047', '#F472B6', '#60A5FA', '#4ADE80', '#FB923C'][Math.floor(Math.random() * 5)]) => { if (words.length >= 8) words.shift(); words.push({ text, x, y, t: 0, color, seed: rnd() * 100 }); };
 
 /** Bodies sent flying: when one goes off the edge of the screen, a twinkle where it went. */
 let flying: { e: Enemy; done: boolean }[] = [];
@@ -204,6 +205,8 @@ const bonk = (ctx: FrameContext, e: Enemy, dmg: number, vel: { x: number; y: num
   // (the tornado's: a star where it lands, and (him hurt by it) bits of him flung off)
   const spun = mode === 'tornado', side = Math.sign(vel.x) || dir;
   if (spun) tornadoStar(cx, cy, side);
+  // (any other hit: a bigger star, right where the head lands on him)
+  else { if (impacts.length >= 10) impacts.shift(); impacts.push({ x: cx, y: cy, t: 0, rot: rnd() * Math.PI, s: 1.35 }); }
   playSound('bonk'); shakeScreen(state, 8, 5);
   for (let i = 0; i < 8; i++) { const a = (i / 8) * Math.PI * 2; state.particles.push({ pos: { x: cx, y: cy }, vel: { x: Math.cos(a) * 4, y: Math.sin(a) * 4 }, life: 10, color: i % 2 ? '#FFFFFF' : '#FDE047', size: 3 }); }
   // (one opted in, weapons/half.ts: hurt, and sent half as far, dazed half as long; never the cartoon death)
@@ -373,6 +376,8 @@ const tick = (ctx: FrameContext, input: { shoot: boolean }, equipped: boolean) =
           if (alive(under)) {
             pl.vel.y = POUND.bounce; pl.isGrounded = false; pogo = true;
             playSound('boing', 1, 2); word(px, fy - 30, 'BOING!', '#4ADE80');
+            if (springs.length >= 4) springs.shift();
+            springs.push({ x: px, y: fy, t: 0 }); bounceAt = state.frame;
             mode = 'idle'; t = 0;
             break;
           }
@@ -390,6 +395,7 @@ const tick = (ctx: FrameContext, input: { shoot: boolean }, equipped: boolean) =
           bonk(ctx, e, Math.round(POUND.dmg + POUND.under * k), { x: Math.sign(e.pos.x + e.width / 2 - px) * 6, y: POUND.up }, 'flatten');
         }
         for (let i = 0; i < 16; i++) state.particles.push({ pos: { x: px + dir * 30, y: fy - 2 }, vel: { x: (i < 8 ? -1 : 1) * (2 + Math.random() * 6), y: -1 - Math.random() * 3 }, life: 26, color: '#A8A29E', size: 4 + Math.random() * 3 });
+        landFx(px, fy, true);
         // (worn only if it got anybody, under him on the way down or round where he landed)
         if (struck.size) wearOut(ctx, WEAR.pound);
       }
@@ -416,7 +422,7 @@ const tick = (ctx: FrameContext, input: { shoot: boolean }, equipped: boolean) =
           if (isMidBoss(e)) { e.health -= 120; if (ownNumber(e)) ctx.fx.spawnDamageNumber(e.pos, 120, true); noteBig(state, e, 'smash'); continue; }
           toonKill(ctx, e, 'flatten', dir);
         }
-        if (!hang) for (let i = 0; i < 14; i++) state.particles.push({ pos: { x: px + dir * 70, y: fy - 2 }, vel: { x: (Math.random() - 0.5) * 8, y: -1 - Math.random() * 4 }, life: 24, color: i % 2 ? '#D6D3D1' : '#A8A29E', size: 3 + Math.random() * 3 });
+        if (!hang) { for (let i = 0; i < 14; i++) state.particles.push({ pos: { x: px + dir * 70, y: fy - 2 }, vel: { x: (Math.random() - 0.5) * 8, y: -1 - Math.random() * 4 }, life: 24, color: i % 2 ? '#D6D3D1' : '#A8A29E', size: 3 + Math.random() * 3 }); landFx(px + dir * 70, fy, false); }
         if (struck.size) wearOut(ctx, WEAR.pancake);
       }
       if (t >= SMASH.len) mode = 'idle';
@@ -568,6 +574,114 @@ const malletPose = (c: Ctx, f: number, a: number, lean: number, crouch = 0, airb
 const lerp = (a: number, b: number, k: number) => a + (b - a) * Math.max(0, Math.min(1, k));
 const ease = (k: number) => { const q = Math.max(0, Math.min(1, k)); return q * q * (3 - 2 * q); };
 
+/**
+ * A cartoon smear frame: the head's sweep from `aTail` round to `aHead` (now), fat at the head and thinning off to
+ * nothing at the tail, in stepped bands (white, the head's red, a yellow streak down its middle at the head end), the
+ * tail breaking up into drybrush strands. `at(a)` says where the head is at angle a and which way's across the sweep.
+ * Only from s0 to s1 of it (0 the tail, 1 the head): the stretch behind him, or in front. The broken stick's is a thin
+ * white one.
+ */
+type At = (a: number) => { x: number; y: number; nx: number; ny: number };
+const smear = (c: Ctx, at: At, aTail: number, aHead: number, w: number, s0 = 0, s1 = 1, alpha = 1) => {
+  if (s1 <= s0 || Math.abs(aHead - aTail) < 0.05) return;
+  const N = 12, a0 = c.globalAlpha;
+  const band = (ww: number, col: string, from: number) => {
+    const lo = Math.max(s0, from); if (s1 <= lo) return;
+    const pts: { x: number; y: number }[] = [], back: { x: number; y: number }[] = [];
+    for (let i = 0; i <= N; i++) {
+      const s = lo + (s1 - lo) * (i / N), p = at(aTail + (aHead - aTail) * s), h = ww * Math.pow(s, 0.8) / 2;
+      pts.push({ x: p.x + p.nx * h, y: p.y + p.ny * h }); back.push({ x: p.x - p.nx * h, y: p.y - p.ny * h });
+    }
+    c.fillStyle = col; c.beginPath(); c.moveTo(pts[0].x, pts[0].y);
+    for (const p of pts) c.lineTo(p.x, p.y);
+    for (let i = back.length - 1; i >= 0; i--) c.lineTo(back[i].x, back[i].y);
+    c.closePath(); c.fill();
+  };
+  c.globalAlpha = a0 * alpha;
+  if (stick) { band(w * 0.35, 'rgba(255, 255, 255, 0.6)', 0.3); c.globalAlpha = a0; return; }
+  band(w, 'rgba(255, 255, 255, 0.8)', 0.32); band(w * 0.62, 'rgba(248, 113, 113, 0.85)', 0.45); band(w * 0.5, 'rgba(220, 38, 38, 0.9)', 0.6); band(w * 0.14, '#FDE047', 0.62);
+  // (the tail: drybrush strands, broken up)
+  const t1 = Math.min(s1, 0.4);
+  if (t1 > s0) {
+    c.strokeStyle = 'rgba(255, 255, 255, 0.7)'; c.lineWidth = 2;
+    for (const o of [-0.32, 0, 0.32]) {
+      c.beginPath();
+      for (let i = 0; i <= 6; i++) {
+        const s = s0 + (t1 - s0) * (i / 6), p = at(aTail + (aHead - aTail) * s), h = w * Math.pow(s, 0.8) * o;
+        if ((i + Math.round(o * 10)) % 3 === 2) { c.moveTo(p.x + p.nx * h, p.y + p.ny * h); continue; }
+        if (i === 0) c.moveTo(p.x + p.nx * h, p.y + p.ny * h); else c.lineTo(p.x + p.nx * h, p.y + p.ny * h);
+      }
+      c.stroke();
+    }
+  }
+  c.globalAlpha = a0;
+};
+/** Round an ellipse (the flat swing, seen from the side: the band stands up, the head's height). */
+const ellAt = (cx: number, cy: number, rx: number, ry: number, d: number): At => a => ({ x: cx + d * Math.cos(a) * rx, y: cy + Math.sin(a) * ry, nx: 0, ny: 1 });
+/** Round a circle (the launch, the overhead smash: the band across the arc). */
+const circAt = (cx: number, cy: number, r: number, d: number): At => a => ({ x: cx + d * Math.cos(a) * r, y: cy + Math.sin(a) * r, nx: d * Math.cos(a), ny: Math.sin(a) });
+/** A flat swing's head angle at frame tt (flatSwingPose's phi). */
+const swingPhi = (S: { hitAt: number }, tt: number) => (tt < S.hitAt ? lerp(Math.PI * 0.97, 0, ease(tt / S.hitAt)) : lerp(0, -0.9, (tt - S.hitAt) / 8));
+/** The flat swing's smear, behind him (the head round the back of him) or in front. */
+const swingSmear = (c: Ctx, cx: number, cy: number, rx: number, front: boolean, alpha = 1) => {
+  const S = mode === 'swing' ? SWING : AIR_SWING;
+  if (t < 2 || t > S.hitAt + 4) return;
+  const head = swingPhi(S, t), tail = swingPhi(S, Math.max(0, t - 4));
+  // (where it crosses his side: the head behind him past PI/2)
+  const cross = Math.abs(tail - head) > 1e-3 ? Math.max(0, Math.min(1, (Math.PI / 2 - tail) / (head - tail))) : 0;
+  const fade = t > S.hitAt ? 1 - (t - S.hitAt) / 5 : 1;
+  smear(c, ellAt(cx, cy, rx, 10, dir), tail, head, stick ? 12 : 30, front ? cross : 0, front ? 1 : cross, alpha * fade);
+};
+
+/** Dust rolling out off a landing: puffs round a widening ring on the floor, stepped, the far ones darker; a shock line
+ *  under them at first. */
+const drawDustRing = (c: Ctx, r: { x: number; y: number; t: number; big: boolean }) => {
+  const k = r.t / 26, R = (r.big ? 26 : 16) + (r.big ? 120 : 70) * (1 - (1 - k) * (1 - k)), ry = R * 0.16;
+  if (r.t < 6) { c.strokeStyle = `rgba(255, 255, 255, ${(0.7 * (1 - r.t / 6)).toFixed(2)})`; c.lineWidth = 3; c.beginPath(); c.ellipse(r.x, r.y, R * 0.8, ry * 0.8, 0, 0, Math.PI * 2); c.stroke(); }
+  const n = r.big ? 16 : 10, s = (r.big ? 9 : 6) * (1 - k * 0.7);
+  for (let i = 0; i < n; i++) {
+    const a = (i / n) * Math.PI * 2, sn = Math.sin(a), px = r.x + Math.cos(a) * R, py = r.y + sn * ry - s * 0.5 - (i % 3);
+    const R0 = sn < 0 ? DUST[1] : DUST[2], R1 = sn < 0 ? DUST[2] : DUST[3], R2 = sn < 0 ? DUST[3] : DUST[4];
+    c.globalAlpha = k > 0.6 ? (1 - k) / 0.4 : 1;
+    c.fillStyle = R0; c.beginPath(); c.arc(px, py, s, 0, Math.PI * 2); c.fill();
+    c.fillStyle = R1; c.beginPath(); c.arc(px - 1, py - 1, s * 0.66, 0, Math.PI * 2); c.fill();
+    c.fillStyle = R2; c.fillRect(Math.round(px - s * 0.5), Math.round(py - s * 0.6), Math.max(1, Math.round(s * 0.5)), 2);
+  }
+  c.globalAlpha = 1;
+};
+
+/** The pogo's spring: a coil from the head he bounced off up to his boots, stretching as he goes, then twanging back
+ *  down; wobble marks either side of it. */
+const drawSpring = (c: Ctx, s: { x: number; y: number; t: number }, feet: number) => {
+  const top = s.t < 7 ? Math.min(s.y - 4, feet) : s.y - 4 - 14 * Math.max(0, 1 - (s.t - 7) / 6) * (s.t % 2 ? 0.7 : 1);
+  const len = s.y - top;
+  if (len > 4) {
+    const turns = 6, w = 7, pts: [number, number][] = [];
+    for (let i = 0; i <= turns * 2; i++) pts.push([s.x + (i === 0 || i === turns * 2 ? 0 : i % 2 ? w : -w), s.y - (len * i) / (turns * 2)]);
+    for (const [lw, col] of [[4, INK], [2, '#A8A29E']] as const) { c.strokeStyle = col; c.lineWidth = lw; c.beginPath(); pts.forEach(([x, y], i) => (i ? c.lineTo(x, y) : c.moveTo(x, y))); c.stroke(); }
+    c.fillStyle = '#E7E5E4'; for (let i = 1; i < turns * 2; i += 2) c.fillRect(Math.round(pts[i][0]) - 1, Math.round(pts[i][1]) - 1, 2, 1);
+  }
+  // (the wobble marks: stepped brackets either side of the head, jittering)
+  if (s.t < 14) {
+    const j = s.t % 2 ? 1 : -1;
+    for (const side of [-1, 1]) for (let i = 0; i < 3; i++) { box(c, s.x + side * (14 + i * 2) + j, s.y - 6 + i * 3, 2, 2, '#FFFFFF'); box(c, s.x + side * (20 + i) - j, s.y - 4 + i * 2, 2, 2, DUST[4]); }
+  }
+};
+
+/** Cracks left in the floor: zigzags out each way from where it came down, inked, fading slowly. */
+const drawCracks = (c: Ctx) => {
+  for (const k of cracks) {
+    const a = k.t > 260 ? (360 - k.t) / 100 : 1, n = k.big ? 4 : 2;
+    c.strokeStyle = `rgba(28, 18, 12, ${(0.7 * a).toFixed(2)})`; c.lineWidth = 2;
+    for (let i = 0; i < n; i++) {
+      const side = i % 2 ? 1 : -1, reach = (k.big ? 40 : 26) + hash(k.seed + i) * 30;
+      c.beginPath(); c.moveTo(k.x + side * 4, k.y - 1);
+      for (let j = 1; j <= 4; j++) c.lineTo(k.x + side * (4 + reach * j / 4), k.y - 1 + (hash(k.seed + i * 5 + j) - 0.5) * 4);
+      c.stroke();
+    }
+  }
+};
+
 const drawOverlay = (c: Ctx, state: GameState) => {
   const pl = state.player, f = state.frame;
   if (state.deathTimer > 0 && mode !== 'idle') { mode = 'idle'; pl.hidden = false; syncArmor(); }
@@ -594,7 +708,7 @@ const drawOverlay = (c: Ctx, state: GameState) => {
   if (mode !== 'idle' && pl.currentWeapon === 'MALLET' && pl.vine) {
     // (on a vine he's drawn hanging off it, the mallet in his free hand (vineArm); round him, the blur of it)
     const s = vineShoulder(pl), cx = s.x - pl.facing * 12;
-    if ((mode === 'swing' || mode === 'airSwing') && t >= 3 && t <= 10) { c.strokeStyle = 'rgba(255, 255, 255, 0.45)'; c.lineWidth = 10; c.beginPath(); c.ellipse(cx, s.y + 6, 60, 14, 0, dir > 0 ? -0.2 : Math.PI - 1.4, dir > 0 ? 1.4 : Math.PI + 0.2); c.stroke(); }
+    if (mode === 'swing' || mode === 'airSwing') { swingSmear(c, cx, s.y + 6, 60, false, 0.8); swingSmear(c, cx, s.y + 6, 60, true, 0.8); }
     else if (mode === 'spinup' || mode === 'tornado') {
       const k = mode === 'tornado' ? 1 : Math.min(1, t / (TORNADO.after - SWING.len));
       c.strokeStyle = `rgba(255, 255, 255, ${(0.15 + 0.4 * k).toFixed(2)})`; c.lineWidth = 4 + 6 * k;
@@ -620,22 +734,54 @@ const drawOverlay = (c: Ctx, state: GameState) => {
       else if (mode === 'windup') { const k = t / SMASH.windup; a = lerp(0.3, -2.7, ease(k)); lean = lerp(0, -0.3, k); crouch = 2; }
       else if (mode === 'smash') { const k = t / 4; a = t < 4 ? lerp(-2.7, 0.9, ease(k)) : 0.9; lean = t < 4 ? lerp(-0.3, 0.45, k) : 0.45; crouch = 6; }
       else if (mode === 'land') { a = 1.2; lean = 0.4; crouch = 8; }
-      // (the swing's blur)
-      if ((mode === 'swing' || mode === 'airSwing') && t >= 3 && t <= 10) { c.strokeStyle = 'rgba(255, 255, 255, 0.45)'; c.lineWidth = 10; c.beginPath(); c.ellipse(x, y - 34, 64, 14, 0, dir > 0 ? -0.2 : Math.PI - 1.4, dir > 0 ? 1.4 : Math.PI + 0.2); c.stroke(); }
+      // (the swing's smear frames: the stretch of it round behind him under him, the stretch in front over him)
+      const swung = mode === 'swing' || mode === 'airSwing', scy = y - 39 + (mode === 'airSwing' ? 2.5 : -1.2);
+      if (swung) swingSmear(c, x + dir * 3, scy, 61, false);
+      // (the launch's, low to high in front of him; the held smash's, right over the top and down; round his shoulder)
+      if (mode === 'launch' && t >= 1 && t <= LAUNCH.hitAt + 2) {
+        const A = (tt: number) => (tt < LAUNCH.hitAt ? lerp(1.1, -1.4, ease(tt / LAUNCH.hitAt)) : -1.5) + lerp(0.3, -0.25, tt / LAUNCH.hitAt);
+        smear(c, circAt(x + dir * 2, y - 46, 60, dir), A(Math.max(0, t - 3)), A(t), 30, 0, 1, t > LAUNCH.hitAt ? 0.6 : 1);
+      }
+      if (mode === 'smash' && t >= 1 && t <= 7) {
+        const A = (tt: number) => (tt < 4 ? lerp(-2.7, 0.9, ease(tt / 4)) + lerp(-0.3, 0.45, tt / 4) : 1.35);
+        smear(c, circAt(x + dir * 2, y - 40, 60, dir), A(Math.max(0, t - 3)), A(t), 34, 0, 1, t > 4 ? 1 - (t - 4) / 4 : 1);
+      }
+      // (coming down with it: speed lines streaming up off him)
+      if (mode === 'pound' && t > 1) for (let i = 0; i < 4; i++) { const l = 18 + ((f + i * 5) % 4) * 6; box(c, x - 18 + i * 12, y - 100 - l - (i % 2) * 8, 2, l, i % 2 ? '#FFFFFF' : DUST[4]); }
       if (phi !== null) { const p = phi; drawPoseSprite(c, x, y, dir, g => flatSwingPose(g, f, p, mode === 'airSwing' ? 0.25 : -0.12, air)); }
       else { const walk = mode === 'windup' && !air && Math.abs(pl.vel.x) > 0.3 ? f * 0.3 * (Math.sign(pl.vel.x) === dir ? 1 : -1) : null; drawPoseSprite(c, x, y, dir, g => malletPose(g, f, a, lean, crouch, air, walk)); }
+      if (swung) swingSmear(c, x + dir * 3, scy, 61, true);
     }
   }
   // What the tornado's flung out of it; the stars where it landed
   for (const j of junk) if (j.fly) drawJunk(c, j);
+  // Dust rolling out off where he came down; the pogo's spring, and speed lines under him going back up off it
+  for (const r of dustRings) drawDustRing(c, r);
+  for (const s of springs) drawSpring(c, s, pl.pos.y + pl.height);
+  if (since(f, bounceAt) < 18 && pl.vel.y < -4 && state.deathTimer <= 0) {
+    const x = pl.pos.x + pl.width / 2, feet = pl.pos.y + pl.height;
+    for (let i = 0; i < 3; i++) { const l = Math.min(34, -pl.vel.y * 1.6) * (i === 1 ? 1 : 0.7); box(c, x - 10 + i * 10, feet + 6 + (i % 2) * 4, 2, l, i === 1 ? '#FFFFFF' : DUST[4]); }
+  }
   for (const m of impacts) drawImpact(c, m);
-  // The comic words, popping up
+  // The comic words, popping up: out of a spiky inked balloon, overshooting and settling, a hair crooked, drifting up
   for (const w of words) {
-    const k = w.t / 34, s = w.t < 5 ? 0.5 + w.t * 0.14 : 1.2 - k * 0.2;
-    c.save(); c.translate(w.x, w.y - w.t * 0.6); c.rotate(-0.12); c.scale(s, s);
+    const k = w.t / 34, s = w.t < 4 ? 0.35 + w.t * 0.3 : w.t < 8 ? 1.45 - (w.t - 4) * 0.08 : 1.13 - (k - 0.24) * 0.17;
+    const wob = w.t < 8 ? (w.t % 2 ? 0.05 : -0.05) : 0;
+    c.save(); c.translate(w.x, w.y - w.t * 0.6); c.rotate(-0.12 + wob); c.scale(s, s);
+    c.globalAlpha = w.t > 26 ? (34 - w.t) / 8 : 1;
+    const rx = w.text.length * 7 + 12, ry = 17;
+    const burst = (sc: number, col: string, dx = 0, dy = 0) => {
+      c.fillStyle = col; c.beginPath();
+      for (let i = 0; i < 24; i++) { const a = (i / 24) * Math.PI * 2, rr = (i % 2 ? 0.74 : 1 + hash(w.seed + i) * 0.22) * sc; const px = dx + Math.cos(a) * rx * rr, py = dy + Math.sin(a) * ry * rr; i ? c.lineTo(px, py) : c.moveTo(px, py); }
+      c.closePath(); c.fill();
+    };
+    // (the broken stick's little toks get no balloon: no fanfare)
+    if (w.color !== '#D6A35C') { burst(1.12, INK, 3, 3); burst(1.12, INK); burst(1, '#FFFFFF'); burst(0.7, '#FEF9C3'); }
     c.font = '14px "Press Start 2P"'; c.textAlign = 'center';
-    c.lineWidth = 6; c.strokeStyle = INK; c.strokeText(w.text, 0, 0);
-    c.fillStyle = w.color; c.globalAlpha = w.t > 26 ? (34 - w.t) / 8 : 1; c.fillText(w.text, 0, 0);
+    c.lineWidth = 6; c.strokeStyle = INK; c.strokeText(w.text, 0, 6);
+    c.fillStyle = w.color; c.fillText(w.text, 0, 6);
+    // (a lit band across the top of the letters: stepped, SNES)
+    c.save(); c.beginPath(); c.rect(-rx, -8, rx * 2, 6); c.clip(); c.fillStyle = 'rgba(255, 255, 255, 0.55)'; c.fillText(w.text, 0, 6); c.restore();
     c.restore(); c.textAlign = 'left';
   }
 };
@@ -726,7 +872,19 @@ type JunkKind = 'rock' | 'splinter' | 'paper' | 'can' | 'shoe' | 'hat' | 'blood'
 interface Junk { blood?: string; kind: JunkKind; fly: boolean; ang: number; rad: number; h: number; x: number; y: number; vx: number; vy: number; rot: number; vr: number; life: number; floor: number }
 let junk: Junk[] = [];
 /** Stars where it lands on somebody. */
-let impacts: { x: number; y: number; t: number; rot: number }[] = [];
+let impacts: { x: number; y: number; t: number; rot: number; s?: number }[] = [];
+/** The flourishes round the rest of it (looks only, every list capped): dust rings rolling out off a landing, cracks
+ *  left in the floor, the pogo's spring, and when he last bounced off a head. */
+let dustRings: { x: number; y: number; t: number; big: boolean }[] = [];
+let cracks: { x: number; y: number; t: number; seed: number; big: boolean }[] = [];
+let springs: { x: number; y: number; t: number }[] = [];
+let bounceAt = -9999;
+const landFx = (x: number, y: number, big: boolean) => {
+  if (dustRings.length >= 6) dustRings.shift();
+  dustRings.push({ x, y, t: 0, big });
+  if (cracks.length >= 6) cracks.shift();
+  cracks.push({ x, y, t: 0, seed: rnd() * 100, big });
+};
 /** Scuffs and scorches it leaves on the ground. */
 let scuffs: { x: number; y: number; t: number; w: number; seed: number }[] = [];
 /** What of him shows through the blur this moment. */
@@ -762,6 +920,9 @@ const artTick = (state: GameState) => {
   }
   junk = junk.filter(j => j.life > 0 && j.y < state.camera.y + 900);
   impacts.forEach(m => m.t++); impacts = impacts.filter(m => m.t < 16);
+  dustRings.forEach(r => r.t++); dustRings = dustRings.filter(r => r.t < 26);
+  cracks.forEach(r => r.t++); cracks = cracks.filter(r => r.t < 360);
+  springs.forEach(s => s.t++); springs = springs.filter(s => s.t < 18);
   scuffs.forEach(s => s.t++); scuffs = scuffs.filter(s => s.t < 300);
   if (glimpse) { glimpse.t++; if (glimpse.t > 6) glimpse = null; }
   if (!on) return;
@@ -807,9 +968,11 @@ const drawJunk = (c0: Ctx, j: Junk) => {
 };
 
 /** A star where it landed: a fat inked 8-point burst, yellow in white, popping out then shrinking. */
-const drawImpact = (c: Ctx, m: { x: number; y: number; t: number; rot: number }) => {
-  const k = m.t < 3 ? (m.t + 1) / 3 : 1 - (m.t - 3) / 13, r = 20 * k;
+const drawImpact = (c: Ctx, m: { x: number; y: number; t: number; rot: number; s?: number }) => {
+  const k = m.t < 3 ? (m.t + 1) / 3 : 1 - (m.t - 3) / 13, r = 20 * k * (m.s ?? 1);
   if (r < 1) return;
+  // (the first frames: a white flash disc behind it, the hit frame)
+  if (m.t < 2) { c.fillStyle = 'rgba(255, 255, 255, 0.85)'; c.beginPath(); c.arc(m.x, m.y, r + 10, 0, Math.PI * 2); c.fill(); }
   const star = (rr: number, col: string) => { c.fillStyle = col; c.beginPath(); for (let i = 0; i < 16; i++) { const a = m.rot + (i / 16) * Math.PI * 2, q = i % 2 ? rr * 0.45 : rr; i ? c.lineTo(m.x + Math.cos(a) * q, m.y + Math.sin(a) * q) : c.moveTo(m.x + Math.cos(a) * q, m.y + Math.sin(a) * q); } c.closePath(); c.fill(); };
   star(r + 3, INK); star(r, '#F59E0B'); star(r * 0.75, '#FDE047'); star(r * 0.4, '#FFFFFF');
   // (the bash lines, out from it)
@@ -888,6 +1051,7 @@ const drawSkirt = (c: Ctx, x: number, y: number, spd: number, near: boolean) => 
 
 /** Under him: the scuffs and scorches he's left, his shadow while he spins. */
 const drawUnder = (c: Ctx, state: GameState) => {
+  drawCracks(c);
   for (const s of scuffs) {
     const a = s.t < 200 ? 0.5 : 0.5 * (300 - s.t) / 100;
     c.fillStyle = `rgba(28, 18, 12, ${a.toFixed(2)})`;
@@ -937,6 +1101,13 @@ const drawTornado = (c: Ctx, x: number, y: number, f: number, pl: GameState['pla
   for (const j of junk) if (!j.fly && Math.sin(j.ang) >= 0) drawJunk(c, j);
   half(true);
   drawSkirt(c, x, y, spd, true);
+  // (wind wrapping round it: dotted streaks going round the outside, the near side only, stepped dust to white at the
+  // front of each; and gusts blowing off along the ground either side)
+  for (let i = 0; i < 5; i++) {
+    const h = 14 + i * 21, rr = FR0 + (FR1 - FR0) * Math.pow(h / FHT, 1.3) + 9 + spd * 4, a0 = spinPh * 0.2 + i * 1.9;
+    for (let q = 0; q < 9; q++) { const a = a0 + q * 0.14, sn = Math.sin(a); if (sn < 0.05) continue; box(c, L(h) + Math.cos(a) * rr - 1, y - h + sn * 5, q > 5 ? 3 : 2, q > 6 ? 2 : 1, q > 5 ? '#FFFFFF' : DUST[4]); }
+  }
+  if (pl.isGrounded) for (let i = 0; i < 4; i++) { const s = i % 2 ? 1 : -1, u = ((f * 2 + i * 23) % 40) / 40, l = Math.round(14 * (1 - u)) + 3, xx = x + s * (FR1 * 0.55 + u * 70); box(c, s > 0 ? xx : xx - l, y - 3 - (i >> 1) * 4, l, 1, u < 0.5 ? '#FFFFFF' : DUST[4]); }
   // (speed lines off its sides, stepped white to dust)
   for (let i = 0; i < 6; i++) {
     const h = 16 + i * 17, s = (f * 0.5 + i * 1.3) % 2 < 1 ? 1 : -1, rr = FR0 + (FR1 - FR0) * Math.pow(h / FHT, 1.3) + 6, l = 10 + spd * 14;
@@ -1027,7 +1198,7 @@ const drawHeld = (c: Ctx) => { c.save(); c.translate(1, 3); c.rotate(-1.15); dra
 export const holdMalletForTests = (m: string, at: number) => { mode = m as Mode; t = at; };
 export const malletModeForTests = () => `${mode}:${t}:${xHeld}`;
 /** Everything it was in the middle of, stopped (through a door). */
-export const stopMallet = () => { mode = 'idle'; stick = false; syncArmor(); words = []; twinkles = []; flat = []; flying = []; junk = []; impacts = []; scuffs = []; glimpse = null; };
+export const stopMallet = () => { mode = 'idle'; stick = false; syncArmor(); words = []; twinkles = []; flat = []; flying = []; junk = []; impacts = []; scuffs = []; glimpse = null; dustRings = []; cracks = []; springs = []; bounceAt = -9999; };
 
 export const registerMallet = () => registerWeapon('MALLET', {
   // (all its business is in tick: X and Y both, held and tapped)
