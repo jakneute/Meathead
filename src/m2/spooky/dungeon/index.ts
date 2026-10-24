@@ -34,7 +34,7 @@ import { skewer, skewerRise, SKEWERED } from './death';
 import * as L from './lines';
 import { CELLS, STAIR_TOP, stairRuns, buildStairs, runStairs, drawStairs, stairsLighting, resetStairs, initStairs } from './stairs';
 import { floorRuns, buildRopes, runRopes, drawRopeWalk, ropeRow } from './ropes';
-import { resetDoors, tickDoors, useDoor, arrive, drawTopDoor, drawGalleryLeaf, drawRideDoor } from './stairs';
+import { useDoor, drawTopDoor, drawGalleryLeaf, drawRideDoor } from './stairs';
 
 registerHurtLines('spooky_ceiling', L.HURT_CEILING, L.DEATH_CEILING);
 
@@ -43,8 +43,6 @@ const { x0, x1 } = SECTIONS.dungeon;
 const X = (dx: number) => CELLS + dx;
 /** The doors: the oak one at the top of the stairs (back up into the castle's gallery), the ride's at the far end. */
 const TOP_X = DOORS.dungeon.start.x, EXIT_X = DOORS.dungeon.end.x;
-/** The last frame he was in here (back after a gap: he's just come in from somewhere). */
-let hereAt = 0;
 /** The oak door at the top of the stairs, and the same door from the gallery's side (standing open in the arch at the
  *  gallery's end: the castle's doorways.ts draws the arch; drawn from here, as the dungeon's door). */
 const drawDoorsAtTop = (c: CanvasRenderingContext2D, state: GameState) => {
@@ -413,7 +411,6 @@ export const dungeon: SpookySection = {
   build: (state) => {
     if (state.checkpoint < 10) toldDungeon = false;
     resetStairs(state);
-    resetDoors(); hereAt = state.frame;
     layOwn(state, [...stairRuns(), ...floorRuns(CELLS, x1 + 200)]);
     buildRopes(state);
     buildStairs(state);
@@ -445,15 +442,11 @@ export const dungeon: SpookySection = {
       if (ctx.state.checkpoint >= 23) { dg.room = 'jammed'; dg.tip = CRUSHED; dg.levB = dg.lever = true; dg.door = 1; }
     }
     // The doors (dungeon/stairs.ts): the way on, the ride's steel door at the far end; the way back, the oak door at the
-    // top of the stairs (in through it from the castle's gallery: it swings shut behind him)
+    // top of the stairs. Walked on into, he's through (no up, no swinging)
     {
-      const state = ctx.state, p = state.player, gap = state.frame - hereAt;
-      hereAt = state.frame;
-      if (gap > 2 && Math.abs(p.pos.x + p.width / 2 - TOP_X) < 6 && Math.abs(p.pos.y + p.height - STAIR_TOP) < 8) arrive(state, 'top', 1);
-      tickDoors(state, controls);
-      const out = useDoor(state, 'top', TOP_X, STAIR_TOP, 'TO THE CASTLE', 'grind', () => { teleport(state, DOORS.castle.end.x, DOORS.castle.end.y); p.facing = -1; })
-        ?? useDoor(state, 'exit', EXIT_X, GY, 'TO THE RIDE', 'clang', () => { teleport(state, DOORS.tower.start.x, DOORS.tower.start.y); arrive(state, 'bay', 1); });
-      if (out) { p.leverPull = undefined; return out; }
+      const state = ctx.state, p = state.player;
+      if (useDoor(state, TOP_X, STAIR_TOP, -1, () => { teleport(state, DOORS.castle.end.x, DOORS.castle.end.y); p.facing = -1; })
+        || useDoor(state, EXIT_X, GY, 1, () => { teleport(state, DOORS.tower.start.x, DOORS.tower.start.y); p.facing = 1; })) { p.leverPull = undefined; return controls; }
     }
     run(ctx, dg);
     leverPose(ctx.state, dg);

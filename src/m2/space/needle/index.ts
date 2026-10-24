@@ -72,7 +72,7 @@ interface Needle {
   glass: 'whole' | 'gone' | 'sealed';
   ride: { a: number; speed: number; climbed: number; topped: boolean };
   linesDone: boolean;
-  fadeTo: 'ride' | 'top' | 'up' | 'down' | 'orbit';
+  fadeTo: 'ride' | 'top' | 'up' | 'down';
   /** The elevator's doors opening somewhere (x), frames since; the car fading in from black (frames left). */
   doors: { x: number; t: number } | null; fadeIn: number;
   /** (out of the window) he lives through it; him, as he's dragged out (world). */
@@ -80,6 +80,10 @@ interface Needle {
   mh: { x: number; y: number; rot: number; vx: number; cling: boolean; t: number };
 }
 let lobbySaid = false;
+/** The airlock (the door in the shutter at the deck's end, art.ts): on past its middle, he's through it. And whether
+ *  he's said he's got no helmet for it, this go at it. */
+const AIRLOCK_X = D1 - 75;
+let airlockSaid = false;
 
 const make = (state: GameState): Needle => {
   const sealed = !!state.stageMemo[SEALED_MEMO];
@@ -143,11 +147,10 @@ const ride = (state: GameState, ns: Needle) => {
     if (takeSkip()) { ns.tok++; silenceAll(); state.playerVulgarityTimer = 0; ns.pa = null; r.topped = true; startFade(state, ns, 'top'); }
   }
 };
-/** Every way through the elevator (or out the airlock): a fade through black, the move made while it's black (the camera
+/** Every way through the elevator: a fade through black, the move made while it's black (the camera
  *  put straight onto him there: nothing in between ever shows), and the doors opening on him at the other end. */
 const startFade = (state: GameState, ns: Needle, to: Needle['fadeTo']) => {
   ns.phase = 'fade'; ns.t = 0; ns.fadeTo = to; state.player.inCutscene = true; state.player.vel.x = 0;
-  if (to === 'orbit') playSound('whoosh', 0.6, 2);
 };
 const FADE = 24;
 const fade = (state: GameState, ns: Needle) => {
@@ -161,7 +164,6 @@ const fade = (state: GameState, ns: Needle) => {
       case 'up': arriveDeck(state, ns, false); break;
       case 'top': arriveDeck(state, ns, true); break;
       case 'down': teleport(state, LIFT_X, GY); p.facing = -1; snapCam(state); openDoors(ns, LIFT_X); playSound('ding', 0.8, 4); break;
-      case 'orbit': teleport(state, DOORS.orbit.start.x, DOORS.orbit.start.y); p.facing = 1; break;
     }
   }
   // (on the ride, the car's own fade in is part of the ride)
@@ -403,9 +405,15 @@ const free = (ctx: FrameContext, ns: Needle, controls: Controls): Controls => {
       if (up) { startSuit(state, ns); return hands(); }
     } else if (up && state.frame >= ns.nextCase) { ns.nextCase = state.frame + 300; meatheadSays(state, pickLine(L.MH_CASE_EMPTY), false); }
   }
-  if (ns.glass === 'sealed' && ground && cx > D1 - 130) {
-    setUi({ upPrompt: 'AIRLOCK' });
-    if (up) { if (wearingHelmet(state)) { startFade(state, ns, 'orbit'); return hands(); } meatheadSays(state, pickLine(L.MH_AIRLOCK_NO), false); }
+  // (the airlock in the shutter, at the deck's end: walked on into with the helmet on, he's out, there and then (the
+  // user's: "any transitions with a door at the edge just goes through automatically. no animation"); without it, he
+  // says so, once a go at it)
+  if (ns.glass === 'sealed') {
+    const feet = p.pos.y + p.height;
+    if (!p.inCutscene && p.health > 0 && cx > AIRLOCK_X && feet >= GY - 40 && feet <= GY + 2) {
+      if (wearingHelmet(state)) { teleport(state, DOORS.orbit.start.x, DOORS.orbit.start.y); p.facing = 1; return controls; }
+      if (!airlockSaid) { airlockSaid = true; meatheadSays(state, pickLine(L.MH_AIRLOCK_NO), false); }
+    } else if (cx < AIRLOCK_X - 120) airlockSaid = false;
   }
   if (ns.glass === 'whole') {
     // (shot at, by anything of his: each one chips it, the cracks spreading out from where they hit; enough of them, or

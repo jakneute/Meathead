@@ -52,7 +52,7 @@ import { TK, updateThrown, drawThrown, thrown } from './kinds';
 import { runHazards, drawDebris, storyOf, canHurt, cover, clearView, worksKill, type Debris } from './hazards';
 import { newRide, runRide, lampOn, upCar, loadedCar, type Ride, type Car } from './ride';
 import { drawTowerBackdrop, drawTowerBack } from './art';
-import { tickDoors, useDoor, arrive } from '../dungeon/stairs';
+import { useDoor } from '../dungeon/stairs';
 import {
   x0, x1, ENTRY_DOOR_X, HOW_BOARD_X, ASK_X, BOOTH_X, STAFF_DOOR_X, TX0, TX1, U, WALL, SH0, SH1, SHM, SHX, SHU, SHD, CH0, CH1, DOOR_H, F, STORY, STORIES, SLAB, TOP, ROOF, B1,
   HELL_AT, LEDGES, SHELF, CHUTE_LEDGES, BEAMS, beamTop, WHOLE, WRECK, JAMS, pieceY, floorAt, CUCKOOS, FOES, DESCENT_FOES, SECURITY, PICKUPS, CAR_TOP,
@@ -537,8 +537,6 @@ export const tower: SpookySection = {
     const t = towerOf(state);
     // (the ladders first: what he does on one is theirs)
     if (!t.crash) controls = updateLadders(ctx, t.crashed ? LADDERS_DOWN : LADDERS_UP, controls);
-    // (the dungeon's door at the bay's left end: swinging shut behind him, come up out of the dungeon through it)
-    tickDoors(state, controls);
     const cx = p.pos.x + p.width / 2, feet = p.pos.y + p.height;
     // (the first frame: as it was at the checkpoint he's starting from (the stage only says which once it's built). Past
     // a floor, its beam's out; on the way down, or back from hell, it's all wrecked)
@@ -584,9 +582,9 @@ export const tower: SpookySection = {
     });
     t.ride.cars = t.ride.cars.filter(c => !(c.crash && c.y > HELL_AT + 500));
     if (t.crash) return runCrash(ctx, t);
-    // The way back to the dungeon: its door at the bay's left end (up at it: through, out of its other side, the door
-    // at the dungeon's far end: dungeon/stairs.ts)
-    { const out = useDoor(state, 'bay', ENTRY_DOOR_X + 10, GY, 'TO THE DUNGEON', 'clang', () => { teleport(state, DOORS.dungeon.end.x, DOORS.dungeon.end.y); arrive(state, 'exit', -1); }); if (out) return out; }
+    // The way back to the dungeon: its door at the bay's left end (walked on into: through, out of its other side, the
+    // door at the dungeon's far end: dungeon/stairs.ts)
+    if (useDoor(state, ENTRY_DOOR_X + 10, GY, -1, () => { teleport(state, DOORS.dungeon.end.x, DOORS.dungeon.end.y); p.facing = -1; })) return controls;
     runBay(state, t);
     updateThrown(ctx);
     runLift(state);

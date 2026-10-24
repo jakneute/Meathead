@@ -9,13 +9,8 @@ import type { GameState } from '../../../m1/game/core/state';
 import type { FrameContext } from '../../../m1/game/core/context';
 import type { GroundRun } from '../../../m1/game/core/terrain';
 import type { Light } from '../../../m1/game/render/lighting';
-import type { Controls } from '../../../m1/game/platform/input';
-import type { SoundType } from '../../../m1/types';
-import { meatheadSays, hands } from '../section';
+import { meatheadSays } from '../section';
 import { INK, box, checker, plaque, rockFill, blockFill, stoneLedge, torch, STONE, IRON, mix, hazeBands, bandedGradient, stamp } from './paint';
-import { setUi } from '../../store';
-import { playSound } from '../../../m1/game/platform/audio';
-import { shakeScreen } from '../../../m1/game/core/state';
 import { signAt, candle, enamel, print, led } from '../letters';
 import { hash } from '../../intro/art/kit';
 import { SECTIONS, GY } from '../geometry';
@@ -153,58 +148,29 @@ export const drawStairs = (c: CanvasRenderingContext2D, state: GameState) => {
 // The dungeon's two real doors, and how he goes through them (no walking off the end of a section into thin air):
 //   the top door  the heavy oak door at the top of the stairs, in the wall at the end of the castle's portrait gallery.
 //                 From the gallery it stands open (the stairs going down through the arch: walk on through); through
-//                 it, he's at the top of the stairs with it swinging shut behind him, BOOM. Back up: walk up to it and
-//                 press up, it grinds open, and he's back in the gallery by the arch.
+//                 it, he's at the top of the stairs. Back up: walk on into it, and he's back in the gallery by the arch.
 //   the ride door the steel door at the dungeon's far end, under the EMERGENCY box: the ELEVATOR TO HELL's back way
-//                 into its loading bay (the ride's sign on its brackets over it). Up at it: it clanks open (the bay's
-//                 light through it) and he's in the bay, in front of the same door (its bay side), as it shuts behind
-//                 him. The bay's side the same way back (the tower: tower/index.ts, tower/art.ts).
-// One at a time: walk up to it (the up prompt), press up, it swings open, he's through; where he comes out, the door
-// he came out of swings shut behind him. A fresh press each time (held up through one never takes him straight back).
+//                 into its loading bay (the ride's sign on its brackets over it). Walk on into it and he's in the bay,
+//                 in front of the same door (its bay side). The bay's side the same way back (the tower: tower/index.ts,
+//                 tower/art.ts).
+// Plain walk-throughs, both ways (the user's: "any transitions with a door at the edge just goes through
+// automatically. no animation"): they stand open, and on past one toward the end of the section, he's through, there
+// and then. He comes out on the door at the other end, so it never takes him straight back: only walking on past it,
+// toward that end, does.
 
 type Ctx = CanvasRenderingContext2D;
-export type DoorId = 'top' | 'exit' | 'bay';
+type DoorId = 'top' | 'exit' | 'bay';
 
-/** Each door: how far open (0 shut, 1 open), and whether it's swinging shut (behind him, just through it). */
-const D: Record<DoorId, { open: number; closing: boolean }> = { top: { open: 0, closing: false }, exit: { open: 0, closing: false }, bay: { open: 0, closing: false } };
-let going: { id: DoorId; t: number } | null = null;
-let lastUp = false, upEdge = false;
-const OPEN_T = 16, THROUGH_T = 22, SHUT_T = 26;
+/** Each door: how far open (0 shut, 1 open). All standing open: walked straight through, the other side showing. */
+const D: Record<DoorId, { open: number }> = { top: { open: 1 }, exit: { open: 1 }, bay: { open: 1 } };
 
-/** All shut, nobody going through (a fresh build: a start, a respawn). */
-export const resetDoors = () => { for (const d of Object.values(D)) { d.open = 0; d.closing = false; } going = null; };
-export const doorOpen = (id: DoorId) => D[id].open;
-/** Every frame, in whichever section he's in that has one of the doors: the press, the doors swinging shut. */
-export const tickDoors = (state: GameState, controls: Controls) => {
-  upEdge = !!controls.up && !lastUp; lastUp = !!controls.up;
-  for (const d of Object.values(D)) {
-    if (!d.closing) continue;
-    d.open = Math.max(0, d.open - 1 / SHUT_T);
-    if (d.open === 0) { d.closing = false; playSound('slam', 0.7, -6); shakeScreen(state, 3, 6); }
-  }
-};
-/** Come out of a door: it's open behind him, swinging shut; him facing away from it. */
-export const arrive = (state: GameState, id: DoorId, facing: 1 | -1) => { D[id].open = 1; D[id].closing = true; state.player.facing = facing; };
-
-/** A door he can go through: at it, on its floor, the up prompt; up, and it opens and he's through (`go`). Returns his
- *  controls while it's his (opening, going through), else null. */
-export const useDoor = (state: GameState, id: DoorId, x: number, feet: number, label: string, sound: SoundType, go: () => void): Controls | null => {
-  const p = state.player, d = D[id];
-  if (going) {
-    if (going.id !== id) return null;
-    going.t++;
-    d.open = Math.min(1, going.t / OPEN_T); p.vel.x = 0;
-    // (through: this side of it's shut behind him (he's on the other side now))
-    if (going.t >= THROUGH_T) { going = null; d.open = 0; go(); }
-    return hands();
-  }
-  const cx = p.pos.x + p.width / 2, ft = p.pos.y + p.height;
-  if (p.health <= 0 || p.inCutscene || !p.isGrounded || d.closing || Math.abs(cx - x) > 34 || Math.abs(ft - feet) > 8) return null;
-  setUi({ upPrompt: label });
-  if (!upEdge) return null;
-  going = { id, t: 0 };
-  playSound(sound, 0.55, sound === 'grind' ? -12 : 4); p.vel.x = 0;
-  return hands();
+/** A door at a section's end (`edge`: which way that end is, -1 its left, 1 its right), at x, its floor at `feet`: on
+ *  past it toward that end (on its floor, or just over it) and he's through (`go`). True if he went through. */
+export const useDoor = (state: GameState, x: number, feet: number, edge: 1 | -1, go: () => void) => {
+  const p = state.player, cx = p.pos.x + p.width / 2, ft = p.pos.y + p.height;
+  if (p.health <= 0 || p.inCutscene || (cx - x) * edge < 6 || ft < feet - 60 || ft > feet + 8) return false;
+  go();
+  return true;
 };
 
 // ---------------------------------------------------------------------------------------------------------------
