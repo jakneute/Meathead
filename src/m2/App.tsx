@@ -102,6 +102,7 @@ import LandCard, { prewarmLandCards } from './parkmap/LandCard';
 import { warmGrossUps } from './grossKit';
 import ParkMap from './parkmap/ParkMap';
 import { openParkMap, closeParkMap, parkMapFrom, parkMapBusy, subscribeParkMap } from './parkmap/state';
+import { askCardBack } from './parkmap/fastTravel';
 import { prewarmParkMap } from './parkmap/render';
 import CheckpointPicker from '../m1/components/CheckpointPicker';
 import ChordPrompt from './ChordPrompt';
@@ -479,6 +480,8 @@ const App2: React.FC = () => {
         else if (e.code === 'Escape' || e.code === 'Backspace') setHubAsk(null);
         return;
       }
+      // (a land's card up at the hub: ESC is its back (the hub takes it), not the pause menu as well)
+      if (e.code === 'Escape' && playing() && getUi().map !== null) return;
       if (e.code === 'Escape' || e.code === 'KeyP') { togglePause(); return; }
       const digit = /^Digit([1-9])$/.exec(e.code);
       if (digit && (playing() || paused())) { const i = +digit[1] - 1; equip(i); if (paused() && i < arsenal().length && !noSwitching()) setPauseSel(i); return; }
@@ -490,7 +493,10 @@ const App2: React.FC = () => {
       else if (e.code === 'Enter' || e.code === 'Space') confirmPause();
     };
     // (right-click in the pause menu: back out of it)
-    const onContext = (e: MouseEvent) => { if (paused()) { e.preventDefault(); if (parkMapBusy()) return; if (inOptions() || rightFromOptions) { rightFromOptions = false; return; } if (hubAskRef.current !== null) setHubAsk(null); else if (!cheatPanelOpen()) resume(); } };
+    const onContext = (e: MouseEvent) => {
+      // (a land's card up at the hub: right-click backs out of it)
+      if (playing() && getUi().map !== null) { e.preventDefault(); askCardBack(); return; }
+      if (paused()) { e.preventDefault(); if (parkMapBusy()) return; if (inOptions() || rightFromOptions) { rightFromOptions = false; return; } if (hubAskRef.current !== null) setHubAsk(null); else if (!cheatPanelOpen()) resume(); } };
     window.addEventListener('wheel', onWheel);
     window.addEventListener('keydown', onKey);
     window.addEventListener('contextmenu', onContext);

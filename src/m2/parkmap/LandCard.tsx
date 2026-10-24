@@ -128,7 +128,7 @@ const LandCard: React.FC<{ land: number }> = ({ land }) => {
           <div className="flex gap-4 shrink-0">
             {stops && <Prompt pad={['DPAD_UP', 'DPAD_DOWN']} kb={['@up', '@down']} label="PICK" />}
             <Prompt pad={['OK']} kb={['ENTER']} mouse={stops ? 'left' : undefined} label="GO" />
-            <Prompt pad={['BACK']} kb={['ESC']} label="BACK" />
+            <Prompt pad={['BACK']} kb={['ESC']} mouse="right" label="BACK" />
           </div>
         </div>
       </div>

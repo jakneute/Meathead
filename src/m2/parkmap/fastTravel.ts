@@ -104,3 +104,7 @@ export const subscribeFastTravel = (l: () => void) => { listeners.add(l); return
 /** A click on the picked stop: go (the hub takes it as a confirm, once). */
 export const askFastTravelGo = () => { goAsked = true; };
 export const takeFastTravelGo = () => { const g = goAsked; goAsked = false; return g; };
+/** A right-click over the land's card: back out of it (the hub takes it as a back, once). */
+let backAsked = false;
+export const askCardBack = () => { backAsked = true; };
+export const takeCardBack = () => { const b = backAsked; backAsked = false; return b; };

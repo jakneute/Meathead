@@ -15,7 +15,7 @@ import { AMERICA_DENY } from '../lines/hubLines';
 import { getCheats } from '../cheats';
 import { setUi, getUi, goTo, isLeaving, arrived, carryGut, takeGut, setStartCheckpoint, landsCleared, ALPHA_LAND_COUNT } from '../store';
 import { alphaEndOver } from '../alphaEnd';
-import { fastTravelStops, fastTravelPick, setFastTravelPick, takeFastTravelGo } from '../parkmap/fastTravel';
+import { fastTravelStops, fastTravelPick, setFastTravelPick, takeFastTravelGo, takeCardBack } from '../parkmap/fastTravel';
 import { stopWeapons } from '../weapons';
 import { pollM2, pressed } from '../input';
 import { drawHubBackdrop, drawHubBack, drawHubFront, drawHubLampGlow, HUB_HORIZON } from './draw';
@@ -138,7 +138,7 @@ export const hubLayout: StageLayout = {
         else if (land.open) goTo(land.id);
         else { setUi({ notice: { text: `${land.name}: COMING SOON`, at: performance.now() } }); playMenuBack(); }
         hub.map = null;
-      } else if (pressed('back')) { hub.map = null; playMenuBack(); }
+      } else if (pressed('back') || takeCardBack()) { hub.map = null; playMenuBack(); }
       if (hub.map === null) for (const k of GATED) hub.gate.add(k);
       setUi({ near: hub.portal ? null : near, map: hub.map, nearExit: false, nearAmerica: false });
       hub.upWas = !!controls.up;
@@ -171,7 +171,7 @@ export const hubLayout: StageLayout = {
     }
     if (near !== null && controls.up && !hub.upWas) {
       if (near === STAFF_SLOT) goTo('pen');
-      else { const land = landAt(near); if (land) { hub.map = LANDS.indexOf(land); setFastTravelPick(0); takeFastTravelGo(); hub.downWas = !!controls.down; playMenuOk(); } }
+      else { const land = landAt(near); if (land) { hub.map = LANDS.indexOf(land); setFastTravelPick(0); takeFastTravelGo(); takeCardBack(); hub.downWas = !!controls.down; playMenuOk(); } }
     }
     hub.upWas = !!controls.up;
     setUi({ near, map: hub.map, nearExit: false, nearAmerica: nearAmerica && near === null });
