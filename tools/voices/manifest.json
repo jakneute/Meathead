@@ -57212,7 +57212,7 @@
  {
   "voice": "meathead",
   "text": "...WAS THAT THE DOOR? OR WAS THAT ME? THAT WAS ME.",
-  "from": "m1/game/core/update.ts:359"
+  "from": "m1/game/core/update.ts:360"
  },
  {
   "voice": "meathead",
@@ -62296,6 +62296,16 @@
  },
  {
   "voice": "meathead",
+  "text": "CAN'T CHARGE. ONE'S GOT ME BY THE NUTS.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "CAN'T CHARGE. THEY'RE HOLDING MY PANTS DOWN.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "CAN'T FLEX IN MIDAIR!",
   "from": "BULK_FAIL_LINES"
  },
@@ -63972,7 +63982,7 @@
  {
   "voice": "meathead",
   "text": "DOORS ARE FOR PEOPLE WHO CAN'T KICK. ...SHOULDN'T HAVE KICKED.",
-  "from": "m1/game/core/update.ts:359"
+  "from": "m1/game/core/update.ts:360"
  },
  {
   "voice": "meathead",
@@ -64252,7 +64262,7 @@
  {
   "voice": "meathead",
   "text": "EIGHTEEN FIFTY-NINE. GOOD RUN. SPEAKING OF RUNS.",
-  "from": "m1/game/core/update.ts:359"
+  "from": "m1/game/core/update.ts:360"
  },
  {
   "voice": "meathead",
@@ -69796,6 +69806,11 @@
  },
  {
   "voice": "meathead",
+  "text": "I CAN'T CHARGE IN THIS. IT'S LEECH SOUP.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "I CAN'T FEEL MY FACE! MORE!",
   "from": "HOLLYWOOD"
  },
@@ -71752,7 +71767,7 @@
  {
   "voice": "meathead",
   "text": "I'M ON THE LIST NOW. UNDER \"DO NOT SEAT.\"",
-  "from": "m1/game/core/update.ts:359"
+  "from": "m1/game/core/update.ts:360"
  },
  {
   "voice": "meathead",
@@ -73253,6 +73268,11 @@
   "voice": "meathead",
   "text": "IT'S MIXING WITH THE OTHER THING!",
   "from": "SPACE"
+ },
+ {
+  "voice": "meathead",
+  "text": "IT'S MORE LEECH THAN WATER. I CAN'T MOVE.",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -76156,6 +76176,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NAKED IN LEECH SOUP. NOTHING TO PUSH OFF WITH.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "NAKED IN THE KIDDIE AREA. THIS IS HOW YOU GET ON A LIST.",
   "from": "CARTOON"
  },
@@ -76846,6 +76871,16 @@
  },
  {
   "voice": "meathead",
+  "text": "NO CHARGE. MY PANTS ARE FULL OF LEECHES. AND WORSE.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
+  "text": "NO CHARGE. THEY'RE HANGING OFF MY DICK LIKE AN ANCHOR.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "No close-ups of the pants.",
   "from": "m1/components/WeaponGetScene.tsx:227"
  },
@@ -77051,6 +77086,11 @@
  },
  {
   "voice": "meathead",
+  "text": "NO RUN-UP. JUST LEECHES.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "NO SEAT IN THIS PARK DESERVES MY BARE ASS.",
   "from": "CARTOON"
  },
@@ -77072,7 +77112,7 @@
  {
   "voice": "meathead",
   "text": "NO SMOKING. GOOD. NOBODY LIGHT A MATCH NEAR ME.",
-  "from": "m1/game/core/update.ts:359"
+  "from": "m1/game/core/update.ts:360"
  },
  {
   "voice": "meathead",
@@ -79237,7 +79277,7 @@
  {
   "voice": "meathead",
   "text": "OW. ...THAT DOOR WAS LIVE. NOW SO ARE MY SHORTS.",
-  "from": "m1/game/core/update.ts:359"
+  "from": "m1/game/core/update.ts:360"
  },
  {
   "voice": "meathead",
@@ -80247,7 +80287,7 @@
  {
   "voice": "meathead",
   "text": "RATED FOR HURRICANES. NOT FOR WHAT JUST SHIFTED IN MY PANTS.",
-  "from": "m1/game/core/update.ts:359"
+  "from": "m1/game/core/update.ts:360"
  },
  {
   "voice": "meathead",
@@ -82527,7 +82567,7 @@
  {
   "voice": "meathead",
   "text": "SIGNED FOR IT. WITH MY FOOT. LEFT A LITTLE SOMETHING EXTRA.",
-  "from": "m1/game/core/update.ts:359"
+  "from": "m1/game/core/update.ts:360"
  },
  {
   "voice": "meathead",
@@ -86547,7 +86587,7 @@
  {
   "voice": "meathead",
   "text": "The field? The union? The bar? Water under the bridge, pal. Burning water. Now let's talk about YOU. What are you driving these days?",
-  "from": "m1/game/core/update.ts:230"
+  "from": "m1/game/core/update.ts:231"
  },
  {
   "voice": "meathead",
@@ -88826,6 +88866,11 @@
  },
  {
   "voice": "meathead",
+  "text": "THEY'RE HANGING OFF MY LEGS. NO CHARGE.",
+  "from": "FRONTIER"
+ },
+ {
+  "voice": "meathead",
   "text": "THEY'RE POINTY. I GOT IT.",
   "from": "CARTOON"
  },
@@ -88868,6 +88913,11 @@
   "voice": "meathead",
   "text": "THEY'RE STILL SENDING CARS?!",
   "from": "SPOOKY"
+ },
+ {
+  "voice": "meathead",
+  "text": "THEY'RE STUCK IN THE SHIT. SO AM I.",
+  "from": "FRONTIER"
  },
  {
   "voice": "meathead",
@@ -89902,7 +89952,7 @@
  {
   "voice": "meathead",
   "text": "Two jet skis, sonny. Two tour groups. And now my front hall's caved in. I schedule my quakes AROUND the tour groups!",
-  "from": "m1/game/core/update.ts:230"
+  "from": "m1/game/core/update.ts:231"
  },
  {
   "voice": "meathead",
@@ -92172,12 +92222,12 @@
  {
   "voice": "meathead",
   "text": "You blew my whole power room, man. With Gary in it. My... roommate. Eleven years. One bedroom. We were ROOMMATES, man.",
-  "from": "m1/game/core/update.ts:230"
+  "from": "m1/game/core/update.ts:231"
  },
  {
   "voice": "meathead",
   "text": "You blew up my whole fleet! And Riggs! Who's gonna feed Sir Reginald now?!",
-  "from": "m1/game/core/update.ts:230"
+  "from": "m1/game/core/update.ts:231"
  },
  {
   "voice": "meathead",
@@ -92237,7 +92287,7 @@
  {
   "voice": "meathead",
   "text": "You crashed my VIP lounge, bro. Those were investors. Now they're a geothermal feature.",
-  "from": "m1/game/core/update.ts:230"
+  "from": "m1/game/core/update.ts:231"
  },
  {
   "voice": "meathead",
@@ -92332,12 +92382,12 @@
  {
   "voice": "meathead",
   "text": "You killed my Eye, and you dropped my whole storm on a daycare! Watch out, Meatface, the logs of shit are coming back around.",
-  "from": "m1/game/core/update.ts:230"
+  "from": "m1/game/core/update.ts:231"
  },
  {
   "voice": "meathead",
   "text": "You killed my moose, you flattened the ranger station and you punted a man off my mountain. And I'M the terrorist?",
-  "from": "m1/game/core/update.ts:230"
+  "from": "m1/game/core/update.ts:231"
  },
  {
   "voice": "meathead",
@@ -92417,7 +92467,7 @@
  {
   "voice": "meathead",
   "text": "You put the neighbors down. You knocked over my water tower and surfed it through the block. That took WEEKS to fill!",
-  "from": "m1/game/core/update.ts:230"
+  "from": "m1/game/core/update.ts:231"
  },
  {
   "voice": "meathead",
@@ -92627,7 +92677,7 @@
  {
   "voice": "meathead",
   "text": "YOU'RE TOAST.",
-  "from": "m1/game/core/update.ts:230"
+  "from": "m1/game/core/update.ts:231"
  },
  {
   "voice": "meathead",
