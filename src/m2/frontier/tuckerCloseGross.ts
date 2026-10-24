@@ -864,3 +864,37 @@ const gap = new Gore(), making = new Gore();
 export const drawGoreGap = (c: Ctx, sd: number, capless: boolean, paint: (g: Ctx) => void) => gap.draw(c, `${splitStep(sd)}|${capless}`, paint);
 /** A wound being made: its frames at k (stepped finely) and the frame count (every other frame). */
 export const drawGoreMaking = (c: Ctx, wound: string, k: number, f: number, paint: (g: Ctx) => void) => making.draw(c, `${wound}|${Math.round(k * 400)}|${f >> 1}`, paint);
+
+/**
+ * Every stamp a close-up of this face needs, unwounded, capped (its eyes, mouth and mustache over every frame of it,
+ * talking or not; its base, its top, its shoulders): `run(until)` paints the ones not yet painted till then, a stamp at
+ * a time (true once all are); `ready()` all painted (drawing it then never paints on the spot). For a close-up wanted
+ * at short notice, painted ahead in idle moments (the train's speaking-tube pip).
+ */
+export const closeFaceWarmer = (face: TuckerFace, red: boolean) => {
+  const r = red || face === 'yell';
+  const jobs = new Map<string, () => unknown>();
+  jobs.set(`b|${r}|false`, () => baseOf(r, false));
+  jobs.set(`B|${r}|false|false|0`, () => bodyOf({ red: r, grime: false, branch: false, split: 0 }));
+  const tk: TopKey = { capless: false, eye: false, saw: false, grime: false, branch: false, sd: 0, clawed: 0, bloody: 0 };
+  const tKey = `t|false|false|false|false|false|0|0|0`;
+  jobs.set(tKey, () => stamp(tKey, () => paintTop(tk)));
+  for (let f = 0; f < 840; f++) for (const talking of [true, false]) {
+    const e = eyesFor(face, f), ek = `e|${e.key}|${r}|true|true`;
+    if (!jobs.has(ek)) { const ff = f; jobs.set(ek, () => stamp(ek, () => paintEyes(face, ff, r, true, true))); }
+    const m = mouthFor(face, f, talking), mk = `m|${m.key}|${r}`;
+    if (!jobs.has(mk)) jobs.set(mk, () => stamp(mk, () => paintMouth(m, r)));
+    const s = stacheFor(face, f, talking), sk = `s|${s.key}`;
+    if (!jobs.has(sk)) jobs.set(sk, () => stamp(sk, () => paintStache(s.curl, s.twitch)));
+  }
+  const keys = [...jobs.keys()];
+  let done = false;
+  const ready = () => done || (done = grossCloseupsOn() && keys.every(k => kept.has(k)));
+  return {
+    run: (until: number) => {
+      for (const [k, j] of jobs) { if (kept.has(k)) continue; j(); if (performance.now() >= until) return ready(); }
+      return true;
+    },
+    ready,
+  };
+};

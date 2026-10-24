@@ -45,6 +45,7 @@ import { drawScenery, drawTrackside, drawCarsBack, drawCarsFront, carLamps, step
 import { updateEngine, drawEngineBack, drawEngineFront, drawEngineHud, crashed, whenCrashed, headlamp } from './engine';
 import { ZOOM } from './view';
 import { tubeSay, drawTube } from './tube';
+import { warmTuckerPip, stepTuckerPip, drawTuckerPip } from './tuckerPip';
 import { BOARDED, TUBE_BOARD, TUBE_LEDGER, TRAIN_GAGS, REVISIT } from './lines';
 import { updateCage, updateMaul, drawMaul, drawEscape, trainOff } from './lion';
 
@@ -90,6 +91,8 @@ export const train: FrontierSection = {
     // there; on the train, it's moving; behind it, he's running it down; after the crash, it's stood still)
     if (!tr.settled) {
       tr.settled = true;
+      // (Tucker's corner gross-ups for the speaking tube, painted ahead in idle moments (tuckerPip.ts))
+      if (!crashed(state)) warmTuckerPip();
       if (crashed(state)) { tr.phase = 'still'; tr.v = 0; tr.vTarget = 0; }
       else if (state.checkpoint >= 10) {
         tr.phase = 'ride'; tr.v = V_FULL; tr.vTarget = V_FULL;
@@ -158,6 +161,8 @@ export const train: FrontierSection = {
       for (let i = tr.rear; i < CARS.length; i++) if (CARS[i].kind === 'cattle' && !tr.said.cattle && insideCar(state, tr, i)) { tr.said.cattle = true; meatheadSays(state, pickLine(byPants(state, TRAIN_GAGS.cattle)), false); }
       if (!tr.said.tower && tr.passers.some(q => q.kind === 'tower')) { tr.said.tower = true; meatheadSays(state, pickLine(byPants(state, TRAIN_GAGS.tower)), false); }
     }
+    // (Tucker on the tube off screen: his gross-up in the corner, play going on under it)
+    stepTuckerPip(state);
     if (tr.phase === 'still' && !tr.said.revisit && cx > x0 + 400 && p.health > 0) { tr.said.revisit = true; meatheadSays(state, pickLine(byPants(state, REVISIT)), false); }
     return out;
   },
@@ -207,6 +212,7 @@ export const train: FrontierSection = {
     if (tr.lion) return;
     drawWarnings(c, state);
     drawTube(c, state);
+    drawTuckerPip(c, state);
     drawEngineHud(c, state);
     if (tr.phase === 'intro' && tr.introT > SKIP_AFTER && state.player.inCutscene) drawSkipPrompt(c, CANVAS_WIDTH);
   },

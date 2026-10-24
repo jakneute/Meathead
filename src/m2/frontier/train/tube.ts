@@ -8,22 +8,28 @@ import { speak, saidOver, byPants } from '../section';
 import { TUCKER_VOICE, type ByPants } from '../talk';
 import { box, INK, type Ctx } from '../kit';
 import { trainOf } from './state';
+import type { TubeMood } from './tuckerPip';
+import { TUBE_BOARD, TUBE_MISSED, TUBE_ROBBERS, TUBE_UNCOUPLE, TUBE_FALLS } from './lines';
+
+/** His mood on each pool's lines (his gross-up in the corner, tuckerPip.ts): the meltdowns, the gleeful spite; the rest
+ *  (the ledger, the tunnel) petty bookkeeping. */
+const MOODS = new Map<ByPants, TubeMood>([[TUBE_BOARD, 'rage'], [TUBE_MISSED, 'rage'], [TUBE_ROBBERS, 'rage'], [TUBE_UNCOUPLE, 'glee'], [TUBE_FALLS, 'glee']]);
 
 /** A line from the pool (clean, shat or naked: the state of him), down the tube. */
-export const tubeSay = (state: GameState, pool: ByPants, onDone?: () => void, queued = true) => tubeLine(state, pickLine(byPants(state, pool)), onDone, queued);
+export const tubeSay = (state: GameState, pool: ByPants, onDone?: () => void, queued = true) => tubeLine(state, pickLine(byPants(state, pool)), onDone, queued, MOODS.get(pool));
 
 /** This line, down the tube (none if it's been said in the last while: on with whatever's next). */
-export const tubeLine = (state: GameState, text: string | null, onDone?: () => void, queued = true) => {
+export const tubeLine = (state: GameState, text: string | null, onDone?: () => void, queued = true, mood: TubeMood = 'petty') => {
   const tr = trainOf(state);
   if (!text) { setTimeout(() => onDone?.(), 0); return; }
   tr.tubeBusy = true;
-  speak(TUCKER_VOICE, text, s => { tr.tube = s; }, queued, () => { tr.tube = null; tr.tubeBusy = false; onDone?.(); });
+  speak(TUCKER_VOICE, text, s => { if (s && !tr.tube) tr.tubeMood = mood; tr.tube = s; }, queued, () => { tr.tube = null; tr.tubeBusy = false; onDone?.(); });
 };
 /** The `i`th line of a run of them (the rant), unless it was said just now (the rule: nothing twice in 45 s). */
 export const tubeNth = (state: GameState, pool: ByPants, i: number, onDone?: () => void) => {
   const list = byPants(state, pool);
   if (i >= list.length) { setTimeout(() => onDone?.(), 0); return; }
-  tubeLine(state, takeFreshLine([list[i]]), onDone);
+  tubeLine(state, takeFreshLine([list[i]]), onDone, true, MOODS.get(pool));
 };
 
 /** Screen space: his words up top (clear of the HUD), a brass speaking-tube horn by them. */

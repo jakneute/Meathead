@@ -23,8 +23,8 @@
 // (warmGrossUps, by the caller well before): it waits for them rather than paint on the spot.
 
 import type { GameState } from '../../../m1/game/core/state';
-import { CANVAS_WIDTH, HUD_CLEAR_Y } from '../../../m1/constants';
 import { hash2, GW, GH } from '../../grossKit';
+import { PIP_S as S, PIP_CW as CW, PIP_CH as CH, PIP_IN as IN, PIP_OUT as OUT, pipEase as ease, pipWordsUnder, pipAt, pipBezel, pipGlass } from '../../grossPip';
 import { artieStamp, artieStampReady, drawArtieGrossBack, ARTIE_FX as FX, ARTIE_FY as FY, HAT_DY, type Key } from './artieGross';
 
 type Ctx = CanvasRenderingContext2D;
@@ -40,8 +40,7 @@ export interface ArtiePip {
   ready: boolean; held: boolean;
 }
 
-/** Its picture's scale (screen pixels a buffer pixel), size; the bezel round it; the slides in and out. */
-const S = 0.8, CW = Math.round(GW * S), CH = Math.round(GH * S), BZ = 8, IN = 12, OUT = 14;
+// (its picture's scale and size, the bezel round it, the slides in and out: the shared pip's, grossPip.ts)
 /** Before his line, at most (his line out of earshot, never coming); his line without one; at the least. */
 const PRE_MAX = 200, YELL_MAX = 420, YELL_MIN = 110;
 /** Held after his line (the rage: seething a beat; the taunt: grinning through Meathead's answer; the tricks: a beat). */
@@ -78,9 +77,7 @@ export const stepPip = (state: GameState, r: ArtiePip, words: { x: number; y: nu
     r.ready = true;
   }
   if (r.t === 0) {
-    const ax = words.x - state.camera.x, ay = words.y - state.camera.y;
-    const x0 = CANVAS_WIDTH - 16 - CW - BZ * 2, y1 = 16 + CH + BZ * 2;
-    r.left = ax + 130 > x0 && ay - 44 < y1;
+    r.left = pipWordsUnder(words.x - state.camera.x, words.y - state.camera.y);
   }
   r.t++;
   if (r.yellAt < 0 && r.t > PRE_MAX) r.yellAt = r.t;
@@ -88,26 +85,15 @@ export const stepPip = (state: GameState, r: ArtiePip, words: { x: number; y: nu
   return r.endAt < 0 || r.t < outAt(r) + OUT;
 };
 const outAt = (r: ArtiePip) => Math.max(r.endAt, r.yellAt + MIN[r.kind]) + AFTER[r.kind];
-const ease = (k: number) => { k = Math.max(0, Math.min(1, k)); return k * k * (3 - 2 * k); };
 
 /** Screen space (the section's drawHud). */
 export const drawPip = (c: Ctx, r: ArtiePip, f: number) => {
   if (r.t <= 0 || !r.ready || typeof document === 'undefined') return;
   const t = r.t, out = r.endAt >= 0 ? ease((t - outAt(r)) / OUT) : 0, slid = 1 - ease(t / IN) + out;
   if (slid >= 1) return;
-  const W = CW + BZ * 2, H = CH + BZ * 2;
-  const X0 = r.left ? 16 : CANVAS_WIDTH - 16 - W, Y0 = r.left ? HUD_CLEAR_Y + 8 : 16;
-  const X = Math.round(X0 + (r.left ? -1 : 1) * slid * (W + 24)), Y = Y0;
-  // ---- the bezel: an old portable TV's, dark plastic, rounded, lit along the top; the red light on it blinking
-  c.fillStyle = '#09090B'; rr(c, X - 2, Y - 2, W + 4, H + 4, 10);
-  c.fillStyle = '#27272A'; rr(c, X, Y, W, H, 8);
-  c.fillStyle = '#3F3F46'; c.fillRect(X + 8, Y + 1, W - 16, 2); c.fillRect(X + 1, Y + 8, 2, H - 16);
-  c.fillStyle = '#18181B'; c.fillRect(X + 8, Y + H - 3, W - 16, 2);
-  if (f % 40 < 26) { c.fillStyle = '#EF4444'; c.fillRect(X + W - 9, Y + H - 7, 3, 3); c.fillStyle = '#FCA5A5'; c.fillRect(X + W - 9, Y + H - 7, 1, 1); }
-  const ox = X + BZ, oy = Y + BZ;
-  c.fillStyle = '#000000'; c.fillRect(ox - 1, oy - 1, CW + 2, CH + 2);
-  c.save();
-  c.beginPath(); c.rect(ox, oy, CW, CH); c.clip();
+  const { X, Y } = pipAt(r.left, slid);
+  // ---- the bezel (an old portable TV's), clipped to the picture
+  const { ox, oy } = pipBezel(c, X, Y, f);
   c.save(); c.translate(ox, oy); drawArtieGrossBack(c, CW, CH); c.restore();
   // ---- him: what phase of it
   const yell = r.yellAt >= 0 ? t - r.yellAt : -1, talking = yell >= 0 && (r.endAt < 0 || t < r.endAt);
@@ -247,20 +233,10 @@ export const drawPip = (c: Ctx, r: ArtiePip, f: number) => {
     }
   }
   // (the tube: scanlines, the glass's sheen)
-  c.fillStyle = 'rgba(0, 0, 0, 0.12)';
-  for (let y = oy + (f & 1); y < oy + CH; y += 3) c.fillRect(ox, y, CW, 1);
-  c.fillStyle = 'rgba(255, 255, 255, 0.06)'; c.fillRect(ox, oy, CW, 6); c.fillRect(ox, oy, 6, CH);
-  c.restore();
+  pipGlass(c, ox, oy, f);
 };
 
 /** The tricks' shake (the darts: a wince; the flip: his legs kicking up out of the cart). */
 const HURT_JOLT: Record<PipKind, number> = { rage: 0, taunt: 0, darted: 3, balded: 1, flattened: 0, flipped: 4 };
 /** Where the darts' tails are in the 'xd' stamp (artieGross.ts: darted). */
 const DART_TAILS: [number, number][] = [[FX - 82, 95], [FX + 56, 34], [FX + 22, 88]];
-
-/** A rounded rectangle, filled. */
-const rr = (c: Ctx, x: number, y: number, w: number, h: number, k: number) => {
-  c.beginPath(); c.moveTo(x + k, y); c.lineTo(x + w - k, y); c.quadraticCurveTo(x + w, y, x + w, y + k); c.lineTo(x + w, y + h - k);
-  c.quadraticCurveTo(x + w, y + h, x + w - k, y + h); c.lineTo(x + k, y + h); c.quadraticCurveTo(x, y + h, x, y + h - k); c.lineTo(x, y + k);
-  c.quadraticCurveTo(x, y, x + k, y); c.closePath(); c.fill();
-};
