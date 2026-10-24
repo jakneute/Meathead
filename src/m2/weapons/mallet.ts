@@ -33,6 +33,7 @@ import { playSound } from '../../m1/game/platform/audio';
 import { setArmor } from '../../m1/game/core/resist';
 import { CANVAS_WIDTH, HUD_CLEAR_X, HUD_CLEAR_Y, maxAmmo } from '../../m1/constants';
 import * as H from './heldArt';
+import { seated } from './seated';
 import { idleTasks } from '../../m1/game/scenes/art/raster';
 import { vineGrip, vineLean } from '../../m1/game/combat/muzzle';
 import { drawLeg, drawArmTo, drawTorsoFromHips } from '../../m1/game/render/player/body';
@@ -274,7 +275,8 @@ const tick = (ctx: FrameContext, input: { shoot: boolean }, equipped: boolean) =
   if (whole) brokeCued = false;
   brokenNow = !whole;
   wearNow = ctx.cheats.infiniteAmmo ? 0 : wearOf(pl.weaponAmmo.MALLET / Math.max(1, maxAmmo('MALLET', state.stageId)));
-  if (!equipped) { if (mode !== 'idle') { mode = 'idle'; pl.hidden = false; syncArmor(); } xHeld = yHeld = 0; return; }
+  // (sat in a set piece's own pose (the helicopter, a dragon, a cart...), or forced onto another weapon: put down)
+  if (!equipped || seated(pl) || pl.currentWeapon !== 'MALLET') { if (mode !== 'idle') { mode = 'idle'; pl.hidden = false; syncArmor(); } xHeld = yHeld = 0; return; }
   // (wound up for the smash or the tornado, the smash coming down, the tornado going: a hit hurts him, but nothing
   // knocks him out of it, whatever it was (a stage's own shove, a stun): the knock's taken off him, and X still held
   // through the frame the hit kept from him is still held)
@@ -748,7 +750,8 @@ const drawCracks = (c: Ctx) => {
 
 const drawOverlay = (c: Ctx, state: GameState) => {
   const pl = state.player, f = state.frame;
-  if (state.deathTimer > 0 && mode !== 'idle') { mode = 'idle'; pl.hidden = false; syncArmor(); }
+  // (dead, sat in a set piece's pose, or the weapon's been swapped out from under it: no swing of its own drawn over him)
+  if ((state.deathTimer > 0 || seated(pl) || pl.currentWeapon !== 'MALLET') && mode !== 'idle') { mode = 'idle'; pl.hidden = false; syncArmor(); }
   // The squashed: flat, then up like an accordion (wheezing), then flat for good, fading
   for (const s of flat) {
     const k = s.t < 40 ? 0.14 + Math.max(0, 0.1 - s.t * 0.01) : s.t < 70 ? 0.14 + Math.abs(Math.sin((s.t - 40) * 0.42)) * 0.45 : 0.12;
@@ -1220,7 +1223,7 @@ const vineShoulder = (pl: GameState['player']) => {
  */
 const vineArm = (state: GameState) => {
   const pl = state.player;
-  if (mode === 'idle' || pl.currentWeapon !== 'MALLET' || !pl.vine) return null;
+  if (mode === 'idle' || pl.currentWeapon !== 'MALLET' || !pl.vine || seated(pl)) return null;
   let phi: number | null = null, tilt = 0.25, a = 0;
   if (mode === 'swing' || mode === 'airSwing') { const S = mode === 'swing' ? SWING : AIR_SWING; phi = t < S.hitAt ? lerp(Math.PI * 0.97, 0, ease(t / S.hitAt)) : lerp(0, -0.9, (t - S.hitAt) / 8); }
   else if (mode === 'spinup') phi = -0.9 - t * t * 0.012;

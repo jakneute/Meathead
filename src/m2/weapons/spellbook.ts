@@ -24,6 +24,7 @@ import { setBuffs } from '../../m1/game/core/buffs';
 import { say, MEATHEAD_VOICE, pickLine } from '../../m1/game/platform/speech';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, HUD_CLEAR_Y } from '../../m1/constants';
 import * as H from './heldArt';
+import { seated } from './seated';
 import { m2Kill } from '../moves/killLines';
 import { grabCallout } from '../moves/callouts';
 import { BULK_LINES, BULK_FAIL_LINES } from '../lines/weaponLines';
@@ -159,6 +160,8 @@ const hurt = (ctx: FrameContext, e: Enemy, dmg: number, how: 'charred' | 'fried'
 const fire = (ctx: FrameContext) => {
   const { state, cheats } = ctx;
   const pl = state.player;
+  // (sat in a set piece's own pose: no reading, nothing spent)
+  if (seated(pl)) return;
   if (!cheats.infiniteAmmo) pl.weaponAmmo.SPELLBOOK = Math.max(0, pl.weaponAmmo.SPELLBOOK - (MANA.storm[0] + Math.floor(Math.random() * (MANA.storm[1] - MANA.storm[0] + 1))));
   pl.shootCooldown = CAST_COOLDOWN + WINDUP;
   winding = WINDUP; casting = WINDUP + CAST_POSE;
@@ -366,6 +369,8 @@ const syncArmor = () => { const want = casting > 0 || posing > 0; if (want !== a
 const tick = (ctx: FrameContext, input: { secondary?: boolean }, equipped: boolean) => {
   const { state } = ctx;
   const pl = state.player;
+  // (sat in a set piece's own pose, or forced onto another weapon: any reading or flexing dropped, so the seat's pose shows)
+  if ((seated(pl) || pl.currentWeapon !== 'SPELLBOOK') && (casting > 0 || posing > 0 || winding > 0)) { casting = 0; posing = 0; winding = 0; pl.hidden = false; syncArmor(); }
   if (casting > 0) {
     // (reading it out: struck in the pose a moment, standing his ground; hurt, he takes it, but nothing knocks him out
     // of it (armor: core/resist); only dying does)
@@ -387,7 +392,7 @@ const tick = (ctx: FrameContext, input: { secondary?: boolean }, equipped: boole
   // Bulk up: secondary, when it's ready
   const press = !!input.secondary && !secondaryWas;
   secondaryWas = !!input.secondary;
-  if (equipped && press) {
+  if (equipped && press && !seated(pl)) {
     const mana = ctx.cheats.infiniteAmmo || pl.weaponAmmo.SPELLBOOK >= BULK.mana;
     if (bulkLeft <= 0 && bulkCool <= 0 && posing <= 0 && (pl.isGrounded || !!pl.vine) && mana) {
       if (!ctx.cheats.infiniteAmmo) pl.weaponAmmo.SPELLBOOK -= BULK.mana;
@@ -760,7 +765,7 @@ const draw = (c: Ctx, p: Projectile, frame: number) => {
 
 const drawOverlay = (c: Ctx, state: GameState) => {
   // (dead: no casting pose or flex left over his death (the user's: any death pose overwrites a special one))
-  if (state.deathTimer > 0 && (casting > 0 || posing > 0 || winding > 0)) { casting = 0; posing = 0; winding = 0; state.player.hidden = false; syncArmor(); }
+  if ((state.deathTimer > 0 || seated(state.player) || state.player.currentWeapon !== 'SPELLBOOK') && (casting > 0 || posing > 0 || winding > 0)) { casting = 0; posing = 0; winding = 0; state.player.hidden = false; syncArmor(); }
   // The rifts: torn open in the sky, black and full of stars, a violet rim, swirling, motes drifting into them
   for (const r of rifts) {
     const open = Math.min(1, r.t / 10) * Math.min(1, (r.life - r.t) / 12);
@@ -870,7 +875,7 @@ const drawOverlay = (c: Ctx, state: GameState) => {
  */
 const vineArm = (state: GameState) => {
   const pl = state.player;
-  if (!pl.vine || pl.currentWeapon !== 'SPELLBOOK' || (casting <= 0 && posing <= 0)) return null;
+  if (!pl.vine || pl.currentWeapon !== 'SPELLBOOK' || (casting <= 0 && posing <= 0) || seated(pl)) return null;
   return (c: Ctx, f: number, sx: number, sy: number, behind: boolean) => {
     if (behind) return;
     if (posing > 0) {
