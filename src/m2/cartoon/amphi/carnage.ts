@@ -1,4 +1,4 @@
-// What the stunt cars leave of DAD MAN's TV family, and of him: a pre-drawn set piece of chaos for each of them,
+// What the stunt cars leave of DAD GUY's TV family, and of him: a pre-drawn set piece of chaos for each of them,
 // painted the once and stamped down from then on (only the sparks, the twitching, the fire and the smoke live).
 //
 // Each animatronic, under its wreck: torn in two (the half pinned under the car, the half flung out past it), the torn
@@ -11,7 +11,7 @@
 // the springs and the foam out of it, the newspaper everywhere, his glasses cracked, his toupee, his dentures chattering
 // on the floor by themselves.
 //
-// DAD MAN's own (the weakness): flesh, not a robot: a lake of blood out from under him, the spray across the deck,
+// DAD GUY's own (the weakness): flesh, not a robot: a lake of blood out from under him, the spray across the deck,
 // his guts squeezed out both sides (a can of SWILL LITE in them), an eyeball popped out on its stalk, his teeth all over,
 // the TV dinner's peas and corn in it all.
 
@@ -289,7 +289,7 @@ export const drawCarnage = (c: Ctx, who: Member, x: number, floorY: number, f: n
 };
 
 // ---------------------------------------------------------------------------------------------------------------
-// DAD MAN's own: flesh, under the last car
+// DAD GUY's own: flesh, under the last car
 
 export const GUT: Ramp = ['#FBC4D4', '#EC8FB0', '#D46A8E', '#A84A6A', '#5A1E33'];
 export const BLOOD = ['#3A0306', '#5A0A10', '#8A1018', '#B91C1C', '#E04848'];

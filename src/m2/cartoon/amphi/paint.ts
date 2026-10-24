@@ -1,4 +1,4 @@
-// The amphitheater's painting helpers for its people at boss grade (DAD MAN, the guard, the animatronic family):
+// The amphitheater's painting helpers for its people at boss grade (DAD GUY, the guard, the animatronic family):
 // color ramps (light, base, shade, deep, line) in stepped bands with a dithered seam between each, every material its
 // own darkest tone for an outline (Piper's way: fantasy/piper.ts). Everything's drawn about a local origin (translate
 // first): the bands' fills run ±4000 px.

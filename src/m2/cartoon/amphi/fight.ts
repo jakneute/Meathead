@@ -1,4 +1,4 @@
-// DAD MAN, the fight (the user's design, verbatim in cartoon-spec.md). HONK AZORIA on his couch (dragged up front at
+// DAD GUY, the fight (the user's design, verbatim in cartoon-spec.md). HONK AZORIA on his couch (dragged up front at
 // the end of the intro), drunk, the mallet he stole off the PUNCHY & KICKY robot by the gate leaning on the couch's arm,
 // screaming at his robot family for a beer. Every number that matters is up top, to tune.
 //
@@ -1721,7 +1721,7 @@ export const drawFightHud = (c: Ctx, state: GameState, f: Fight, band: { x1: num
   drawCooldown(c, state, f);
   const w = band.x2 - band.x1, k = Math.max(0, f.hp / HP);
   box(c, band.x1, 22, w, 14, '#18181B'); box(c, band.x1 + 2, 24, (w - 4) * k, 10, f.iframes > 0 && Math.floor(f.iframes / 4) % 2 ? '#FEF08A' : '#FACC15');
-  label(c, 'DAD MAN', band.mid, 50, '#FDE047', 7);
+  label(c, 'DAD GUY', band.mid, 50, '#FDE047', 7);
   // (the clapperboard's reset: only once he's got it)
   if (state.player.availableWeapons.includes('STUNT_CAR')) {
     const r = f.recharge > 0 ? 1 - f.recharge / RECHARGE : 1, bw = 90, bx = band.x2 - bw;

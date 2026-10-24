@@ -350,7 +350,7 @@ const cartoonMoment = (s: GameState, sec: string): Cand | null => {
   }
   return null;
 };
-/** DAD MAN's song by his intro and the fight: the show stopped dead, him squinting at Meathead (hush); the family
+/** DAD GUY's song by his intro and the fight: the show stopped dead, him squinting at Meathead (hush); the family
  *  glitching, him up off the couch, the can crushed (intro); him dragging the couch up front, the fight (main); up off
  *  his crushed couch, pathetic, no family left (intro again: no drums, deflated); his death (hush). */
 const stupidDadArr = (s: GameState) => {

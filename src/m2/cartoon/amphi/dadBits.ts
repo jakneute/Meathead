@@ -1,4 +1,4 @@
-// DAD MAN in bits: the weakness death (the user's: "stupid dad won't say anything after getting killed by the car
+// DAD GUY in bits: the weakness death (the user's: "stupid dad won't say anything after getting killed by the car
 // that smashes him to death. his parts will be everywhere. the zoomed in camera will linger on his decapitated head";
 // "his decapitated head as it flies through the air"; "stupid dad's other parts go flying elsewhere too"). The 6th
 // stunt car comes down on him and he goes off like a dropped water balloon full of meat: not a word out of him.

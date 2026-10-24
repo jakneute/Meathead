@@ -1,4 +1,4 @@
-// DAD MAN LIVE!, painted (the SNES pass). THE UBX AMPHITHEATER: a concrete bowl dug into the hill, aluminum
+// DAD GUY LIVE!, painted (the SNES pass). THE UBX AMPHITHEATER: a concrete bowl dug into the hill, aluminum
 // bleachers stepping down it, a band shell over the stage at its foot, sad and faded. All of it to the one eye (the
 // middle of the screen: studio/art.ts's way): the far off in far.ts (cached per hour); along the bowl's far rim the back
 // of house (rim.ts: restrooms, port-a-johns, the delay towers, the FUNNEL CAKE trailer, the SUMMER '96 billboard, HONK's
@@ -116,7 +116,7 @@ const fan = (g: Ctx, seed: number, what: Fan, f: number) => {
   faceOn(g, hb, { skin: L.skin, eyes: shut ? 'closed' : what === 'knit' ? 'droopy' : 'tired', mouth: what === 'asleep' ? 'o' : what === 'leaner' || what === 'finger' ? 'o' : 'flat', look: 1 });
   glasses(g, hb); whiskers(g, hb); hairTop(g, hb);
   if (what === 'hat') {
-    // (the beer-can hat off the DAD MAN STORE's shelf: the band, two cans, the straws down to his mouth)
+    // (the beer-can hat off the DAD GUY STORE's shelf: the band, two cans, the straws down to his mouth)
     box(g, B.hx - 11, B.hy - 14, 22, 7, INK); box(g, B.hx - 10, B.hy - 13, 20, 5, '#DC2626'); box(g, B.hx - 10, B.hy - 13, 20, 1, '#F87171'); box(g, B.hx - 10, B.hy - 9, 20, 1, '#991B1B');
     for (const s of [-1, 1]) { const cx = B.hx + s * 10; box(g, cx - 4, B.hy - 21, 8, 12, INK); box(g, cx - 3, B.hy - 20, 6, 10, '#C8102E'); box(g, cx - 3, B.hy - 20, 2, 10, '#F25A6E'); box(g, cx - 3, B.hy - 17, 6, 3, '#F4F1E8'); box(g, cx - 3, B.hy - 21, 6, 1, '#C9CDD4'); }
     g.strokeStyle = '#F5F5F4'; g.lineWidth = 1; g.beginPath(); g.moveTo(B.hx + 10, B.hy - 9); g.quadraticCurveTo(B.hx + 15, B.hy + 2, B.hx + 6, B.hy + 6); g.moveTo(B.hx - 10, B.hy - 9); g.quadraticCurveTo(B.hx - 4, B.hy + 4, B.hx + 4, B.hy + 6); g.stroke();
@@ -220,9 +220,9 @@ const marquee = (c: Ctx, f: number) => {
     streaks(g, -w / 2 + 4, top, w - 8, h * 0.7, 21, Pp[2], 8);
     g.restore();
     signText(g, 'THE UBX AMPHITHEATER PRESENTS', 60, top + 20, { sx: 1, sy: 1, bold: true, fill: T('#FDE68A'), ink: T(INK) });
-    signText(g, 'DAD MAN', 60, top + 52, SHOWL(2, T));
+    signText(g, 'DAD GUY', 60, top + 52, SHOWL(2, T));
     signText(g, 'THE ORIGINAL VOICE OF', 60, top + 114, { sx: 1, sy: 1, fill: T('#FFFFFF'), ink: T(INK) });
-    signText(g, 'DAD MAN, IN THE FLESH', 60, top + 126, { sx: 1, sy: 1, fill: T('#FFFFFF'), ink: T(INK) });
+    signText(g, 'DAD GUY, IN THE FLESH', 60, top + 126, { sx: 1, sy: 1, fill: T('#FFFFFF'), ink: T(INK) });
     signText(g, 'HONK AZORIA!', 60, top + 146, { sx: 1, sy: 2, bold: true, fill: [T('#FFFFFF'), T('#FDE047')], dither: true, ink: T(INK), shadow: T('#3B0764'), drop: 1 });
     box(g, -w / 2, top + h - 30, w, 26, Nv[3]); box(g, -w / 2, top + h - 30, w, 2, Nv[5]); box(g, -w / 2, top + h - 6, w, 2, Nv[1]);
     signText(g, 'SHOWS AT 11, 1, 3, 5 AND 7', 0, top + h - 12, { sx: 1, sy: 1, bold: true, fill: T('#FDE047'), ink: T(INK) });

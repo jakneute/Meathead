@@ -94,7 +94,7 @@ const surfaceUnder = (state: GameState, x: number, from: number) => {
   return best;
 };
 
-/** A fight's own say over the clapperboard (DAD MAN's: each snap's car goes for one of his TV family, with a wait
+/** A fight's own say over the clapperboard (DAD GUY's: each snap's car goes for one of his TV family, with a wait
  *  between takes so it can't be spammed): true, and it's dealt with there (no regular stunt). Elsewhere it's itself. */
 let fireHook: ((ctx: FrameContext) => boolean) | null = null;
 export const setStuntCarHook = (fn: ((ctx: FrameContext) => boolean) | null) => { fireHook = fn; };

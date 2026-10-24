@@ -2,7 +2,7 @@
 // stepping back to its dark heart, steel ribs, panel seams and their bolts bleeding rust, paint peeled to the gray
 // primer, water streaks, a few panels gone (the framework behind), pigeons on its lip and what they leave; the lip's
 // chasing bulbs, some dead; its straight side a concrete pier), two speaker clusters flown off it on chains, the red
-// DAD MAN LIVE! banner (vinyl, grommets, wrinkles, sun-faded up top, a torn corner), the APPLAUSE box (lit with the
+// DAD GUY LIVE! banner (vinyl, grommets, wrinkles, sun-faded up top, a torn corner), the APPLAUSE box (lit with the
 // laugh track). THE SET at its depth: the sitcom living room as the cheap set it is: plywood flats, their seams taped
 // (the tape a shade off), their raw top edges, a stage jack and sandbags at each end; mustard diamond wallpaper (a water
 // stain, clean squares where pictures hung, a seam lifting), fake-wood paneling, the chair rail, the baseboard; the
@@ -131,7 +131,7 @@ export const drawFlown = (c: Ctx, rx: number, n: number, bar: number) => {
   });
 };
 
-/** The banner hung off the shell on chains (DAD MAN LIVE!), the APPLAUSE box under it (lit with the laughs). */
+/** The banner hung off the shell on chains (DAD GUY LIVE!), the APPLAUSE box under it (lit with the laughs). */
 export const drawBanner = (c: Ctx, f: number, applause: boolean) => {
   const mid = (SET.a + SET.b) / 2, bx = X(mid), by = STAGE_Y - 300, S = NR(STEEL);
   for (const s of [-1, 1]) for (let y = STAGE_Y - shellH(mid + s * 160) + 8; y < by + 2; y += 6) { box(c, bx + s * 160 - 1, y, 3, 4, S[1]); box(c, bx + s * 160, y + 1, 1, 2, S[4]); }
@@ -147,7 +147,7 @@ export const drawBanner = (c: Ctx, f: number, applause: boolean) => {
     box(g, l, by, w, 3, R[5]); box(g, l, by + 3, w, 1, R[1]);
     g.restore();
     for (const gx of [l + 8, l + w - 8, bx]) { box(g, gx - 3, by + 3, 6, 6, INK); box(g, gx - 2, by + 4, 4, 4, NR(BRASS)[4]); box(g, gx - 1, by + 5, 2, 2, INK); }
-    signText(g, 'DAD MAN', bx - 40, by + 44, SHOWL(3));
+    signText(g, 'DAD GUY', bx - 40, by + 44, SHOWL(3));
     signText(g, 'LIVE!', bx + 120, by + 44, { sx: 3, sy: 3, bold: true, slant: 1, fill: ['#FFFFFF', '#FDE68A'], dither: true, ink: INK, shadow: '#3B0764', drop: 2 });
     signText(g, 'PRESENTED BY SWILL LITE', bx, by + 62, tiny(mix('#FDE68A', R[3], 0.3)));
   });

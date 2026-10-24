@@ -1,4 +1,4 @@
-// DAD MAN LIVE!'s far off (screen space: the backdrop), every layer painted once for the hour into a tile and slid
+// DAD GUY LIVE!'s far off (screen space: the backdrop), every layer painted once for the hour into a tile and slid
 // along (only the SWILL LITE blimp and the water tower's propeller live). The last of Cartoon Land, late in the day:
 //
 //   the sky by the hour (a tired blue down through a dusty lilac to an amber blush), fat stepped cumulus warm on their

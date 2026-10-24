@@ -1,17 +1,17 @@
-// DAD MAN LIVE!, laid out (x from the section's start; y is world y). The UBX AMPHITHEATER: a bowl dug into the hill,
+// DAD GUY LIVE!, laid out (x from the section's start; y is world y). The UBX AMPHITHEATER: a bowl dug into the hill,
 // the stage at its foot. He comes in from the left along the top concourse (the marquee, the beer garden), down the
 // aisle steps past the half-empty bleachers, across the pit (the empty front row, the boss-door refill), to the stage
 // steps, where the SECURITY GUARD stands (the boss door: his nuts). Up the steps: the stage under its band shell, the
-// sitcom living room set (the couch, the TV on its cart, the kitchen door), the cheap animatronic family and DAD MAN
+// sitcom living room set (the couch, the TV on its cart, the kitchen door), the cheap animatronic family and DAD GUY
 // himself on the couch with a real beer.
 //
-//   0      THE GATE (cp 60): in from PUNCHY & KICKY's DAD MAN LIVE! gate; the marquee.
+//   0      THE GATE (cp 60): in from PUNCHY & KICKY's DAD GUY LIVE! gate; the marquee.
 //   560    THE BEER GARDEN: the concession stand (COLD BEER), a high-top with two regulars at it.
 //   1000   THE AISLE STEPS: down the bowl, two steps to a bleacher row, twelve rows; the crowd (what there is of it).
 //   1960   THE PIT: the empty front row (RESERVED), litter; the boss-door refill (a big health, a big ammo).
 //   2580   THE GUARD at the foot of the stage steps (a wall till he's down: the boss door). (cp 61 once he's down.)
 //   2620   THE STAGE STEPS up to the deck.
-//   2780   THE STAGE (cp 62, the fight's, set as the intro starts): the band shell, the set, the family, DAD MAN.
+//   2780   THE STAGE (cp 62, the fight's, set as the intro starts): the band shell, the set, the family, DAD GUY.
 //
 // The fake 3D (one eye: the middle of the screen; cartoon/studio's way): the play plane is depth 1; the bleacher rows,
 // the pit's floor and the stage's deck run back from it to the bowl's far side (D_FAR); the stage's band shell (D_SHELL),
@@ -98,7 +98,7 @@ export const SIS = { x: 3132, d: 0.97 };
 export const KITCHEN = { x: 3720 };
 /** The Boy's floor track: from the couch's end (u 0) back to the kitchen door (u 1). */
 export const BOY_TRACK = { a: { x: 3418, d: 0.94 }, b: { x: KITCHEN.x, d: D_SET + 0.012 } };
-/** Where Meathead stops for the intro; where DAD MAN comes to, stood up, at the front (the play plane). */
+/** Where Meathead stops for the intro; where DAD GUY comes to, stood up, at the front (the play plane). */
 export const MARK = 3010;
 export const DAD_FRONT = 3230;
 /** THE FIGHT: the arena (the deck from the top of the steps to the living room's right-hand wall, where the left one's

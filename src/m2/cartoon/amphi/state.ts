@@ -1,5 +1,5 @@
 // The amphitheater's own state (in Cartoon Land's, under 'amphi'): the show as it plays (show.ts), the guard and the
-// boss door's cutscene, DAD MAN's intro and the placeholder's end, the VICTORY and the walk-away. Rebuilt with the
+// boss door's cutscene, DAD GUY's intro and the placeholder's end, the VICTORY and the walk-away. Rebuilt with the
 // stage on every death; what has to outlive one: the guard down (GUARD_DOWN in state.stageMemo: checkpoints restore
 // the world as the run left it), the intro seen (once a visit, keyed by landVisit()), what he's said (once a visit).
 
@@ -19,7 +19,7 @@ export const GUARD_DOWN = 'ct-amphi-guard';
 export type Speaker = 'dad' | 'mom' | 'boy' | 'sis' | 'gramps' | 'guard';
 
 /** The show, playing on a loop till he walks on: what it's at, for how long; the Boy along his track (0 at the couch,
- *  1 at the kitchen door) and whether he's got a beer; DAD MAN's pose; a token so a stale line's onDone is dropped. */
+ *  1 at the kitchen door) and whether he's got a beer; DAD GUY's pose; a token so a stale line's onDone is dropped. */
 export type ShowPhase = 'watch' | 'call' | 'laugh' | 'fetch' | 'kitchen' | 'back' | 'hand' | 'take' | 'drink' | 'tag' | 'frozen';
 export type DadPose = 'sit' | 'sip' | 'call' | 'reach' | 'tv' | 'squint' | 'rise' | 'stand' | 'crush' | 'shuffle' | 'gone'
   // (the fight's: sat, the mallet swat (t: wound back 0 .. swung through 1), catching a bottle, puking, baffled (hands on
@@ -42,7 +42,7 @@ export interface Show {
 export type KickStep = 'walk' | 'warn' | 'beat' | 'boot' | 'close' | 'keel' | 'line';
 export interface Kick { step: KickStep; t: number; skipT: number; waiting: boolean; camX: number }
 
-/** DAD MAN's intro (up to the fight: him dragging the couch up front and dropping back onto it). */
+/** DAD GUY's intro (up to the fight: him dragging the couch up front and dropping back onto it). */
 export type IntroStep = 'walk' | 'notice' | 'close' | 'sees' | 'glitch' | 'rise' | 'crush' | 'fight' | 'drag' | 'settle' | 'on';
 export interface Intro {
   step: IntroStep; t: number; skipT: number; waiting: boolean; camX: number;
@@ -77,7 +77,7 @@ export const amphiOf = (state: GameState) => cartoonState<Amphi>(state, 'amphi',
   won: false, wonAt: 0, victory: null, walk: null, groanAt: -99999,
 }));
 
-/** DAD MAN's intro seen this visit (a death or a checkpoint doesn't show it again). */
+/** DAD GUY's intro seen this visit (a death or a checkpoint doesn't show it again). */
 export const introSeen = (state: GameState) => bossIntroSeen(state, 'dad');
 export const markIntroSeen = (state: GameState) => markBossIntroSeen(state, 'dad');
 

@@ -6,7 +6,7 @@
 // Budget (the user: every land about as long to play as Jungle Land, ~76500 px of play): the kiddie square ~14000
 // (platform heavy, the swaying towers: about a fifth of the land), the studio walk-through ~10000, the White House in
 // two halves ~12000 each (the Socks segment, the five pundits), the big-kid rides ~12000, the Itchy & Scratchy knockoff
-// ~10000, the amphitheater ~4000 (the guard, the stage, DAD MAN). See OWNERSHIP.md and cartoon-spec.md.
+// ~10000, the amphitheater ~4000 (the guard, the stage, DAD GUY). See OWNERSHIP.md and cartoon-spec.md.
 //
 // The gaps between sections are generous on purpose (3000 each): each section's owner can grow theirs to the right
 // (x1) without touching anybody else's.
@@ -36,11 +36,11 @@ export const SECTIONS = {
   /** ...part two: LIMBAUGH, DOLE, GINGRICH in the Oval Office; the Clintons' thank-you; the projector's collapse; the
    *  bodies. */
   whitehouse2: { x0: CTX + 45000, x1: CTX + 57000 },
-  /** The big-kid rides: trackless, they ram him; DAD MAN's posters. */
+  /** The big-kid rides: trackless, they ram him; DAD GUY's posters. */
   bigkid: { x0: CTX + 60000, x1: CTX + 72000 },
-  /** The cat-and-mouse knockoff area (DAD MAN's extended universe): mallets. */
+  /** The cat-and-mouse knockoff area (DAD GUY's extended universe): mallets. */
   itchy: { x0: CTX + 75000, x1: CTX + 85000 },
-  /** The amphitheater: in from the left, the security guard (the boss door is his nuts), the stage, DAD MAN. */
+  /** The amphitheater: in from the left, the security guard (the boss door is his nuts), the stage, DAD GUY. */
   amphi: { x0: CTX + 88000, x1: CTX + 92000 },
 } as const;
 export type CartoonId = keyof typeof SECTIONS;

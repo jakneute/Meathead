@@ -8,8 +8,8 @@
 //   camera pans down him to the boot dug into his nuts, grinding, his hands clutched round it; back out: he keels over, onto
 //   his knees and over on his side, curled up round it, his line; Meathead's. The rope's unhooked; the way's open.
 //
-//   DAD MAN'S INTRO. Up the steps onto the stage: the show stops dead (the tape winds down, the laugh track's cut,
-//   the TV rolls) and the family doesn't (they keep going, glitching). Meathead walks to his mark; DAD MAN, CLOSE UP,
+//   DAD GUY'S INTRO. Up the steps onto the stage: the show stops dead (the tape winds down, the laugh track's cut,
+//   the TV rolls) and the family doesn't (they keep going, glitching). Meathead walks to his mark; DAD GUY, CLOSE UP,
 //   squinting at him over his can, half in character (he thinks it's the Boy); Meathead's answer; one of the family's
 //   tapes stuck and the laugh track in the wrong place; he heaves himself up off the couch (rocking twice first), his
 //   line; crushes the can on his forehead, drops it, belches; the threat; then he grabs the couch by its arm and drags it
@@ -149,7 +149,7 @@ export const updateKick = (ctx: FrameContext, s: Amphi): Controls => {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
-// DAD MAN's intro
+// DAD GUY's intro
 
 /** The left-hand wall flying in (frames), the couch dragged up front (frames). */
 const FLY_T = 70, DRAG_T = 96;
@@ -321,7 +321,7 @@ export const drawIntroHud = (c: Ctx, state: GameState, s: Amphi) => {
       box(c, bx - 2, by - 2, bw + 4, 40, INK); box(c, bx, by, bw, 22, '#7C3AED'); box(c, bx, by, bw, 2, '#A78BFA'); box(c, bx, by + 20, bw, 2, '#5B21B6');
       box(c, bx, by + 22, bw, 14, '#FDE047'); box(c, bx, by + 22, bw, 1, '#FEF9C3'); box(c, bx, by + 35, bw, 1, '#CA8A04');
       signText(c, 'HONK AZORIA', bx + 8, by + 18, { sx: 2, sy: 2, bold: true, fill: ['#FFFFFF', '#FDE68A'], ink: INK }, 'left');
-      signText(c, 'THE ORIGINAL VOICE OF DAD MAN', bx + 8, by + 32, { sx: 1, sy: 1, fill: INK }, 'left');
+      signText(c, 'THE ORIGINAL VOICE OF DAD GUY', bx + 8, by + 32, { sx: 1, sy: 1, fill: INK }, 'left');
     }
     const sd = s.said.get('dad');
     if (sd) saidOver(c, sd.text, CANVAS_WIDTH / 2, 92, '#FDE047', 520);

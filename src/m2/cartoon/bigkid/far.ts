@@ -2,12 +2,12 @@
 // along (only the park blimp and the water tower's propeller live):
 //
 //   the sky by the hour (a hot 90s blue down to a lilac and a peach blush, banded, dithered between), fat stepped cumulus
-//   and jet streaks drifting; THE PARK BLIMP (CARTOON LAND on its envelope, a banner trailing: SEE DAD MAN LIVE!);
+//   and jet streaks drifting; THE PARK BLIMP (CARTOON LAND on its envelope, a banner trailing: SEE DAD GUY LIVE!);
 //   far off, past the park's berm, the hazy hills, a radio mast, the interstate on its viaduct with its billboards and
 //   cars, the 1994 strip mall (VIDEO BARN, a pizza place, a tanning salon), cul-de-sacs of rooftops; THE CARTOON LAND
 //   WATER TOWER on its hill (monument.ts: bigger than from the square); then THE REST OF CARTOON LAND: Sillyville's
 //   drooping domes and Truffula tufts, the studios' soundstages, the WACKY WHITE HOUSE's cartoon dome, PUNCHY & KICKY's
-//   KILL-O-RAMA pylon, DAD MAN LIVE!'s band shell and light towers, a DAD MAN billboard with CANCELED slapped
+//   KILL-O-RAMA pylon, DAD GUY LIVE!'s band shell and light towers, a DAD GUY billboard with CANCELED slapped
 //   across it, trees, bunting and lamps between; and nearest, THE ZONE'S OWN ROOFS past the street: boxy show buildings
 //   with giant props on top (a soda cup and its straw, a pizza slice, a hi-top, a boombox, a slime bucket tipping, the
 //   inflatable Rad Rat, a Gloppy statue), neon (EXTREME!, the lightning bolt), rooftop billboards, satellite dishes, the
@@ -82,7 +82,7 @@ const paintClouds = (g: Ctx, tod: TimeOfDay) => {
 };
 
 // ---------------------------------------------------------------------------------------------------------------
-// The park blimp, live: CARTOON LAND on its envelope, a banner trailing on its rope (SEE DAD MAN LIVE!)
+// The park blimp, live: CARTOON LAND on its envelope, a banner trailing on its rope (SEE DAD GUY LIVE!)
 
 const BL = 150, BH = 46;
 const paintBlimp = (g: Ctx, tod: TimeOfDay) => {
@@ -104,7 +104,7 @@ const paintBlimp = (g: Ctx, tod: TimeOfDay) => {
   g.strokeStyle = T('#5A5470'); g.lineWidth = 1; g.beginPath(); g.moveTo(cx + BL / 2 + 6, cy + 10); g.quadraticCurveTo(cx + BL / 2 + 24, cy + 22, cx + BL / 2 + 40, cy + 18); g.stroke();
   const bx = cx + BL / 2 + 40, bw = 168;
   for (let x = 0; x < bw; x += 2) { const y = cy + 12 + Math.sin(x * 0.07) * 3; box(g, bx + x, y, 2, 14, T(INK)); box(g, bx + x, y + 1, 2, 12, T(x % 8 < 4 ? '#FFF7E8' : '#F6ECDA')); box(g, bx + x, y + 11, 2, 2, T('#D8CCB8')); }
-  signText(g, 'SEE DAD MAN LIVE!', bx + bw / 2, cy + 24, tiny(T('#C8283E')));
+  signText(g, 'SEE DAD GUY LIVE!', bx + bw / 2, cy + 24, tiny(T('#C8283E')));
 };
 const drawBlimp = (c: Ctx, state: GameState) => {
   const tod = timeOfDay(), period = 5200, t = (state.frame % period) / period;
@@ -246,25 +246,25 @@ const paintPark = (g: Ctx, tod: TimeOfDay) => {
   { const ax = 1010, Bn = st3(T, '#F4ECD8');
     for (const s of [-1, 1]) { box(g, ax + s * 34 - 4, PG - 70, 8, 70, Bn[1]); box(g, ax + s * 34 - 4, PG - 70, 2, 70, Bn[2]); ballR3(g, ax + s * 34 - 4, PG - 72, 6, Bn); ballR3(g, ax + s * 34 + 4, PG - 72, 6, Bn); }
     g.strokeStyle = T(INK); g.lineWidth = 9; g.beginPath(); g.arc(ax, PG - 64, 36, Math.PI * 1.1, Math.PI * 1.9); g.stroke(); g.strokeStyle = Bn[1]; g.lineWidth = 6; g.stroke(); }
-  // ---- DAD MAN LIVE!: the band shell over the bowl, its light towers
+  // ---- DAD GUY LIVE!: the band shell over the bowl, its light towers
   { const cx = 1240, base = PG - 20, rx = 96, ry = 94;
     const bands = ['#F3E9D2', '#7DB7E8', '#F3E9D2', '#5B9BD5', '#F3E9D2', '#7DB7E8'];
     for (let i = 0; i < bands.length; i++) { const k = 1 - i / bands.length; g.fillStyle = T(INK); g.beginPath(); g.ellipse(cx, base, rx * k + 2, ry * k + 2, 0, Math.PI, 0); g.fill(); g.fillStyle = T(bands[i]); g.beginPath(); g.ellipse(cx, base, rx * k, ry * k, 0, Math.PI, 0); g.fill(); g.fillStyle = T(mix(bands[i], '#FFFFFF', 0.3)); g.beginPath(); g.ellipse(cx - rx * k * 0.5, base - ry * k * 0.8, rx * k * 0.3, 2, -0.4, 0, Math.PI * 2); g.fill(); }
     g.fillStyle = T('#2A2440'); g.beginPath(); g.ellipse(cx, base, rx * 0.17, ry * 0.17, 0, Math.PI, 0); g.fill();
     if (lamps) for (let k = 0; k < 24; k++) { const a = Math.PI + (k / 23) * Math.PI; box(g, cx + Math.cos(a) * rx - 1, base + Math.sin(a) * ry - 1, 2, 2, k % 2 ? '#FFF0B0' : '#FFC860'); }
     box(g, cx - 60, base - 46, 120, 16, T(INK)); box(g, cx - 59, base - 45, 118, 14, T('#B91C1C')); box(g, cx - 59, base - 45, 118, 2, T('#E2465E'));
-    signText(g, 'DAD MAN LIVE!', cx, base - 35, tiny(T('#FFFFFF'), T(INK)));
+    signText(g, 'DAD GUY LIVE!', cx, base - 35, tiny(T('#FFFFFF'), T(INK)));
     g.fillStyle = T('#B4ACA0'); g.beginPath(); g.moveTo(cx - 154, PG); g.quadraticCurveTo(cx, PG - 34, cx + 154, PG); g.closePath(); g.fill();
     for (let k = 0; k < 4; k++) { g.strokeStyle = T('#D8D0C4'); g.lineWidth = 1; g.beginPath(); g.moveTo(cx - 140 + k * 8, PG - 2 - k * 2); g.quadraticCurveTo(cx, PG - 30 + k * 6, cx + 140 - k * 8, PG - 2 - k * 2); g.stroke(); }
     for (const lx of [cx - 144, cx + 144]) { box(g, lx - 2, PG - 156, 4, 156, T('#6A6488')); for (let y = PG - 152; y < PG; y += 10) { g.strokeStyle = T('#6A6488'); g.lineWidth = 1; g.beginPath(); g.moveTo(lx - 4, y); g.lineTo(lx + 4, y + 10); g.stroke(); } box(g, lx - 12, PG - 166, 24, 12, T('#3A3450')); for (let k = 0; k < 6; k++) box(g, lx - 10 + (k % 3) * 7, PG - 164 + Math.floor(k / 3) * 5, 5, 4, lamps ? '#FFF6D0' : T('#C8C4D8')); } }
-  // ---- a DAD MAN billboard: the show's star, CANCELED slapped across him
+  // ---- a DAD GUY billboard: the show's star, CANCELED slapped across him
   { const bx = 1460, by = PG - 136, bw = 176, bh = 70, S = T('#5A5470');
     for (const lx of [bx + bw * 0.2, bx + bw * 0.8]) { box(g, lx - 2, by + bh, 4, PG - by - bh, S); for (let yy = by + bh + 6; yy < PG - 4; yy += 12) { g.strokeStyle = S; g.lineWidth = 1; g.beginPath(); g.moveTo(lx - 2, yy); g.lineTo(lx + 2, yy + 12); g.stroke(); } }
     box(g, bx - 2, by - 2, bw + 4, bh + 4, T(INK));
     for (let k = 0; k < 3; k++) box(g, bx, by + k * 24, bw, 24, T(['#F6D23A', '#F2C030', '#E8AE28'][k]));
     dadFace(g, T, bx + 32, by + 38, 18);
     box(g, bx + 52, by + 30, 8, 14, T(INK)); box(g, bx + 53, by + 31, 6, 12, T('#D8D8E8')); box(g, bx + 53, by + 35, 6, 4, T('#C8283E'));
-    signText(g, 'DAD MAN', bx + 118, by + 24, { sx: 2, sy: 2, bold: true, fill: [T('#FF6A6A'), T('#C8283E')], ink: T(INK) });
+    signText(g, 'DAD GUY', bx + 118, by + 24, { sx: 2, sy: 2, bold: true, fill: [T('#FF6A6A'), T('#C8283E')], ink: T(INK) });
     signText(g, "AMERICA'S NEW", bx + 118, by + 42, tiny(T('#2A1A4A'))); signText(g, 'FAVORITE FAMILY!', bx + 118, by + 52, tiny(T('#2A1A4A')));
     g.save(); g.beginPath(); g.rect(bx, by, bw, bh); g.clip(); g.translate(bx + bw / 2, by + bh / 2); g.rotate(-0.3); box(g, -110, -8, 220, 16, T(INK)); box(g, -110, -7, 220, 14, T('#DC2626')); signText(g, 'CANCELED', 0, 4, tiny(T('#FFFFFF'))); g.restore();
     box(g, bx - 4, by + bh + 2, bw + 8, 2, S); }
@@ -458,10 +458,10 @@ export const drawBigkidFar = (c: Ctx, state: GameState) => {
   drawBlimp(c, state);
   // (the land rises behind the zone: the suburbs, the rest of the park and the water tower stand up high enough to show
   //  over the zone's own roofs and the fronts; the park laid from the section's start, in the order he's been and is
-  //  going: the studios and the White House back left, PUNCHY & KICKY (next) ahead, DAD MAN LIVE! coming in last)
+  //  going: the studios and the White House back left, PUNCHY & KICKY (next) ahead, DAD GUY LIVE! coming in last)
   const up = LIFT, sx = cx - SECTIONS.bigkid.x0;
   tile(c, 'suburbs', sx * 0.03, hz - HH + 10 - up, HH, HW, g => paintSuburbs(g, tod));
-  // (the water tower up on its hill BEHIND the park (the playtest: it stood over DAD MAN LIVE!'s band shell): its
+  // (the water tower up on its hill BEHIND the park (the playtest: it stood over DAD GUY LIVE!'s band shell): its
   //  drift (about 0.04 a pixel) is slower than the park's (0.07), so it's farther back, and it's drawn so: after the
   //  suburbs, before the park, its feet on a far hill whose foot the park's buildings stand in front of; hazed a step)
   const m = MONUMENT_AT.bigkid;
