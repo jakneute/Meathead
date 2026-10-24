@@ -76,6 +76,7 @@ add('meathead', [introLines.MEATHEAD_BACK_LOT, introLines.MEATHEAD_REENTRY, intr
 add('m2.ticket', [introLines.TICKET_LADY, introLines.TICKET_NEXT, introLines.TICKET_ALARM, introLines.TICKET_CUT, introLines.TICKET_REENTRY]);
 for (const v of ['m2.guard', 'm2.guardf']) add(v, [introLines.GUARD_ALERT, introLines.GUARD_BARK, introLines.GUARD_IDLE, introLines.GUARD_WELCOME, introLines.GUARD_WELCOME_BACK]);
 add('m2.pa', introLines.PA_LINES);
+add('m2.pa', introLines.PA_ALPHA_END);
 for (const byVoice of ADV_VOICE_LINES) for (const [v, lines] of Object.entries(byVoice)) add(v, lines);
 for (const byVoice of SPOOKY_VOICE_LINES) for (const [v, lines] of Object.entries(byVoice)) add(v, lines);
 for (const byVoice of SPACE_VOICE_LINES) for (const [v, lines] of Object.entries(byVoice)) add(v, lines);

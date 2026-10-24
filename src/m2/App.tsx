@@ -863,7 +863,7 @@ const App2: React.FC = () => {
           <div className="absolute left-1/2 top-[40%] -translate-x-1/2 z-40 px-4 py-3 text-[12px] text-yellow-300 bg-black/85 border-2 border-yellow-500">{ui.notice.text}</div>
         )}
         <div className="absolute inset-0 z-50 bg-black pointer-events-none transition-opacity duration-200" style={{ opacity: fade || status === GameStatus.START ? 1 : 0 }} />
-        {title && <TitleScreen onNew={startNew} onContinue={continueFile} onHub={startAtHub} />}
+        {title && <TitleScreen onNew={startNew} onContinue={continueFile} onHub={startAtHub} onEnding={() => { setTitle(false); alphaEndOver(); }} />}
       </div>
     </div>
   );

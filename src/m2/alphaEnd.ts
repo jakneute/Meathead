@@ -18,6 +18,7 @@ import type { Controls } from '../m1/game/platform/input';
 import { playSound } from '../m1/game/platform/audio';
 import { offerSkip, takeSkip } from '../m1/game/platform/skip';
 import { say, cutVoice } from '../m1/game/platform/speech';
+import { voicesLoaded } from '../m1/game/platform/voiceclips';
 import { inputDevice, padFamily } from '../m1/game/platform/device';
 import { drawPadFace } from '../m1/game/render/padGlyph';
 import { musicMoment } from './music/moments';
@@ -389,7 +390,8 @@ export const tickAlphaEnd = (a: AlphaEnd, controls?: Controls | null, padA = fal
   const skip = takeSkip();
   if (a.phase === 'pa') {
     if (skip && a.t > 20) { toEnd(a); return; }
-    if (a.t >= a.nextAt) { if (a.line + 1 < PA_ALPHA_END.length) sayLine(a, a.line + 1); else toEnd(a); }
+    // (the voice pack in first (a page that's only just loaded: it's still coming), ten seconds at most)
+    if (a.t >= a.nextAt && (a.line >= 0 || voicesLoaded() || a.t > 600)) { if (a.line + 1 < PA_ALPHA_END.length) sayLine(a, a.line + 1); else toEnd(a); }
     // (the grille spitting as he talks: dust off it, and spit)
     if (a.said && Math.random() < 0.6) {
       const ang = Math.random() * Math.PI * 2, r = Math.random() * 30;
