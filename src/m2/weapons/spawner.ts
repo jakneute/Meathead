@@ -587,6 +587,8 @@ const tumble = (state: GameState, p: Piece) => {
 
 /** The fish (and eels): their own skeleton, not a four-legged one with legs. */
 const FISH = /fish|:eel|koi|trout|piranha|shark/i;
+/** Four-legged whatever their box: the deer, the elk, the moose, the bison, wolves, goats, bears (on all fours). */
+const QUAD = /buck|deer|elk|moose|bison|buffalo|antler|horns|wolf(?!man)|coyote|goat|boar|horse|cow(?!boy)|bear|cougar|puma|lion|jaguar|rhino|hippo|elephant/i;
 const skeleton = (e: Enemy): Bone[] => {
   // (a machine: what's under the casing is what it's built on, not bones)
   if (isRobot(e)) return machineFrame(e);
@@ -620,7 +622,9 @@ const skeleton = (e: Enemy): Bone[] => {
       if (i > 0 && i < n - 1) { long(x, sy, x - reach * 0.35, sy - reach, ss * 0.55); long(x, sy, x - reach * 0.35, sy + reach, ss * 0.55); }
     }
     for (let f = 0; f < 4; f++) long(x0, sy, x0 - w * 0.16, sy - h * 0.34 + f * h * 0.23, ss * 0.5);
-  } else if (!isHumanoidKind(e.kind) && w > h * 1.1) {
+  // (anything that isn't a person and isn't stood up tall and thin: four legs (a deer's box, antlers and all, is near
+  // square: it got the man's skeleton, the user's))
+  } else if (!isHumanoidKind(e.kind) && (w > h * 0.75 || QUAD.test(e.kind))) {
     // Four legs: the spine along the top, the skull out front, ribs hanging, a tail
     const sy = -h * 0.64;
     for (let i = 0; i < 7; i++) bone('vert', -w * 0.36 + i * w * 0.095, sy, 0);
