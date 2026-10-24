@@ -128,6 +128,24 @@ let puddles: { x: number; y: number; w: number; t: number }[] = [];
 const GREEN_BLOOD = ['#65A30D', '#84CC16', '#3F6212'];
 const PUDDLE = 420;
 
+// The flourishes (looks only: none of it touches anybody)
+/** A litter just squirted out: the pop off the hole, and strings of slime still hanging between it and each of the
+ *  litter till they snap (`SNAP` frames in). */
+let squirts: { x: number; y: number; dir: 1 | -1; t: number; kids: Alien[] }[] = [];
+const SNAP = 9, SQUIRT_LIFE = 14;
+/** Where one's bitten in: a ring of tooth holes, raw in the middle (in his own blood's color), going with him. */
+let marks: { e: Enemy; ox: number; oy: number; t: number; seed: number }[] = [];
+const MARK_LIFE = 40, MAX_MARKS = 60;
+/** A swarm's got its teeth into somebody: GOBLINS!, gurgling, over his head. Not the same one again for a while. */
+let gobPops: { e: Enemy; x: number; y: number; t: number; seed: number }[] = [];
+const GOB_LIFE = 56, SWARM = 3, GOB_AGAIN = 300, MAX_GOBS = 3;
+const lastGob = new WeakMap<Enemy, number>();
+/** A frame count of its own (latch() has no state to ask). */
+let clock = 0;
+/** No more of its specks than this about (dust, drool, flecks): past it, they're just skipped. */
+const FX_BUDGET = 450;
+const fxRoom = (state: GameState) => state.particles.length < FX_BUDGET;
+
 // ---------------------------------------------------------------------------------------------------------------
 // The ground under their feet
 
@@ -160,6 +178,9 @@ const fire = (ctx: FrameContext, input: { moveUp: boolean }, muzzle: { x: number
   }
   // (born wet: slime off the end of it)
   for (let i = 0; i < 6; i++) state.particles.push({ pos: { x: muzzle.x, y: muzzle.y }, vel: { x: dir * (1 + Math.random() * 3), y: -1 + Math.random() * 2 }, life: 18, color: i % 2 ? '#BEF264' : '#F0ABFC', size: 2 + Math.random() * 2, grav: 0.25 });
+  // (and the pop, the strings of it still on them as they go: drawSquirts)
+  squirts.push({ x: muzzle.x, y: muzzle.y, dir, t: 0, kids: aliens.slice(-LITTER) });
+  if (squirts.length > 6) squirts.shift();
   birthing = 12;
   pl.shootCooldown = COOLDOWN;
   if (!cheats.infiniteAmmo) pl.weaponAmmo.SPAWNER--;
@@ -206,6 +227,12 @@ const latch = (a: Alien, e: Enemy) => {
   a.vx = 0; a.vy = 0; a.bite = 3 + Math.floor(Math.random() * BITE.every);
   a.target = e;
   if (Math.random() < 0.3) playSound('chitter', 0.4, 2);
+  // (the third on him: a swarm, and it says so)
+  if (aliensOn(e) === SWARM && gobPops.length < MAX_GOBS && !gobPops.some(g => g.e === e) && clock - (lastGob.get(e) ?? -1e9) > GOB_AGAIN) {
+    lastGob.set(e, clock);
+    gobPops.push({ e, x: e.pos.x + e.width / 2, y: e.pos.y - 16, t: 0, seed: Math.random() });
+    playSound('chitter', 0.5, -3);
+  }
 };
 
 /** Off whoever it was on (dead, or eaten down to the bone): a hop off, and looking for the next. */
@@ -217,6 +244,8 @@ const letGo = (a: Alien) => { a.on = null; a.target = null; a.retarget = 0; a.gr
 const tick = (ctx: FrameContext) => {
   const { state } = ctx;
   if (birthing > 0) birthing--;
+  clock++;
+  flourishes(state);
   pulls(state);
   const live: Alien[] = [];
   for (const a of aliens) {
@@ -236,6 +265,24 @@ const tick = (ctx: FrameContext) => {
   for (const p of puddles) p.t++;
   puddles = puddles.filter(p => p.t < PUDDLE);
   pieces = pieces.filter(p => p.t < LIE + FADE);
+};
+
+/** The squirts' strings snapping, the bite marks fading, the GOBLINS! going with whoever it's over. */
+const flourishes = (state: GameState) => {
+  for (const q of squirts) {
+    q.t++;
+    // (snapped: what was left of each string drops off in a couple of drips)
+    if (q.t === SNAP) for (const a of q.kids) {
+      if (!aliens.includes(a) || !fxRoom(state)) continue;
+      const mx = (q.x + a.x) / 2, my = (q.y + a.y - 8) / 2 + 6;
+      for (let i = 0; i < 2; i++) state.particles.push({ pos: { x: mx + (i ? 3 : -3), y: my }, vel: { x: Math.random() - 0.5, y: 0.5 }, life: 16, color: i ? '#BEF264' : '#84CC16', size: 1.5, grav: 0.3 });
+    }
+  }
+  squirts = squirts.filter(q => q.t < SQUIRT_LIFE);
+  for (const m of marks) m.t++;
+  marks = marks.filter(m => m.t < MARK_LIFE && alive(m.e) && state.enemies.includes(m.e));
+  for (const g of gobPops) { g.t++; if (state.enemies.includes(g.e)) { g.x = g.e.pos.x + g.e.width / 2; g.y = g.e.pos.y - 16; } }
+  gobPops = gobPops.filter(g => g.t < GOB_LIFE);
 };
 
 /** A pulling bait just come up: some of them off whatever they're at, flying for it. */
@@ -280,6 +327,10 @@ const gnaw = (ctx: FrameContext, a: Alien) => {
   bitten.set(e, (bitten.get(e) ?? 0) + bite);
   // (a squirt of him)
   if (Math.random() < 0.5) state.particles.push(kindGore({ pos: { x: a.x + a.face * 4, y: a.y - 6 }, vel: { x: -a.face * (0.5 + Math.random() * 2), y: -1 - Math.random() * 2 }, life: 16, color: Math.random() < 0.5 ? '#B91C1C' : '#7F1D1D', size: 1.5 + Math.random() * 2, grav: 0.3 }, e.kind));
+  // (flecks of him off the teeth, fine and fast; and where it bit, the marks of them: drawMarks)
+  if (fxRoom(state)) for (let i = 0; i < 2; i++) state.particles.push(kindGore({ pos: { x: a.x + a.face * 6, y: a.y - 8 }, vel: { x: a.face * (Math.random() - 0.3) * 3, y: -1.5 - Math.random() * 2 }, life: 10, color: i ? '#DC2626' : '#991B1B', size: 1, grav: 0.35 }, e.kind));
+  if (marks.length >= MAX_MARKS) marks.shift();
+  marks.push({ e, ox: (a.x + a.face * 5 - e.pos.x) / e.width, oy: (a.y - 8 - e.pos.y) / e.height, t: 0, seed: Math.random() });
   if (Math.random() < 0.25) playSound('gnaw', 0.5);
   if (e.health <= 0 && !isMidBoss(e)) eatenAlive(ctx, e);
   return true;
@@ -376,6 +427,9 @@ const roam = (ctx: FrameContext, a: Alien) => {
       const want = Math.sign(goal - a.x) * (Math.abs(goal - a.x) < 4 ? 0 : speed);
       a.vx += (want - a.vx) * 0.35;
       if (Math.abs(a.vx) > 0.3) a.face = (a.vx > 0 ? 1 : -1);
+      // (skittering: little kicks of dust off its heels; after somebody, drooling for him)
+      if (Math.abs(a.vx) > 1.6 && (clock + Math.floor(a.seed * 7)) % 7 === 0 && fxRoom(state)) state.particles.push({ pos: { x: a.x - a.face * 5, y: a.y - 1 }, vel: { x: -a.face * (0.3 + Math.random() * 0.7), y: -0.3 - Math.random() * 0.5 }, life: 12, color: Math.random() < 0.5 ? 'rgba(214, 211, 209, 0.55)' : 'rgba(168, 162, 158, 0.45)', size: 2 + Math.random() * 1.5 });
+      if (goalOf && Math.random() < 0.025 && fxRoom(state)) state.particles.push({ pos: { x: a.x + a.face * 7, y: a.y - 7 }, vel: { x: a.vx * 0.3, y: 0.4 }, life: 18, color: '#D9F99D', size: 1.5, grav: 0.25 });
     }
   } else a.vy += GRAVITY;
   // Across (a wall: up it goes over it, if it's on its feet)
@@ -389,7 +443,11 @@ const roam = (ctx: FrameContext, a: Alien) => {
   if (a.vy < 0 && wallAt(state, a.x - 5, ny - 9, 10, 2)) a.vy = 0;
   else {
     const floor = floorBelow(state, a.x, a.y - 2);
-    if (a.vy >= 0 && ny >= floor) { a.y = floor; a.vy = 0; a.ground = true; }
+    if (a.vy >= 0 && ny >= floor) {
+      // (down hard off a leap: a puff of dust either side of it)
+      if (!a.ground && a.vy > 5 && fxRoom(state)) for (const d of [-1, 1]) state.particles.push({ pos: { x: a.x + d * 4, y: floor - 1 }, vel: { x: d * (0.8 + Math.random() * 0.6), y: -0.4 }, life: 14, color: 'rgba(214, 211, 209, 0.55)', size: 2.5 });
+      a.y = floor; a.vy = 0; a.ground = true;
+    }
     else { a.y = ny; a.ground = a.vy === 0 && a.y >= floor - 0.5; if (!a.ground && a.vy === 0) a.vy = 0.1; }
   }
   // Anybody it runs (or leaps) into, it's on (or the bait it's after)
@@ -1243,6 +1301,95 @@ const drawAlien = (c: Ctx, a: Alien, f: number) => {
   c.save(); c.translate(Math.round(a.x), Math.round(a.y)); c.scale(a.face * 0.7 * sx, 0.7 * sy);
   stamp(c, `alien:${dying ? 'd' : a.skin}:${a.eyes}:${pose}:${step}:${open ? 1 : 0}:${a.on ? 1 : 0}`, -18, -38, 36, 40, g => paintAlien(g, skin, a.eyes, pose, step, open, !!a.on));
   c.restore();
+  // (after somebody: a string of drool off its lip, stretching, trailing the run, a drop on the end)
+  if (pose === 'run' && !dying && (a.target || a.bait)) {
+    const len = 1 + Math.floor(((f * 0.05 + a.seed * 3) % 1) * 5), x = Math.round(a.x + a.face * 7 - a.vx * 0.3), y = Math.round(a.y - 9);
+    c.fillStyle = '#A3E635'; c.fillRect(x, y, 1, len);
+    c.fillStyle = '#D9F99D'; c.fillRect(x - (a.face < 0 ? 1 : 0), y + len, 2, 2);
+  }
+};
+
+/** The pop off the gun's hole (a ring of goo flung out, stepped), and the strings of slime still on the litter. */
+const drawSquirts = (c: Ctx) => {
+  for (const q of squirts) {
+    if (q.t < 7) {
+      const r = 3 + q.t * 2.2, sz = q.t < 4 ? 2 : 1;
+      c.fillStyle = q.t < 2 ? '#FFFFFF' : q.t < 4 ? '#F0ABFC' : '#BEF264';
+      for (let i = 0; i < 8; i++) { const an = (i / 8) * Math.PI * 2 + q.dir * 0.2; c.fillRect(Math.round(q.x + Math.cos(an) * r) - 1, Math.round(q.y + Math.sin(an) * r * 0.8) - 1, sz, sz); }
+      if (q.t < 3) { c.fillStyle = '#D9F99D'; c.fillRect(Math.round(q.x) - 2, Math.round(q.y) - 2, 4, 4); }
+    }
+    if (q.t >= SNAP) continue;
+    const k = q.t / SNAP;
+    for (const a of q.kids) {
+      if (!aliens.includes(a)) continue;
+      // (stretched between, sagging more as it goes, thinner, then gone)
+      const ex = a.x, ey = a.y - 8, mx = (q.x + ex) / 2, my = (q.y + ey) / 2 + 4 + k * 8;
+      c.strokeStyle = '#4D7C0F'; c.lineWidth = 2 - k; c.beginPath(); c.moveTo(q.x, q.y); c.quadraticCurveTo(mx, my + 1, ex, ey); c.stroke();
+      c.strokeStyle = '#BEF264'; c.lineWidth = 1; c.beginPath(); c.moveTo(q.x, q.y - 0.5); c.quadraticCurveTo(mx, my, ex, ey - 0.5); c.stroke();
+    }
+  }
+};
+
+/** Bite marks: an oval of tooth holes and the raw middle, in his own blood (an alien's green: bloodCtx); the snap of the
+ *  jaws, the moment it bites. */
+const drawMarks = (c: Ctx) => {
+  for (const m of marks) {
+    const e = m.e, x = Math.round(e.pos.x + m.ox * e.width), y = Math.round(e.pos.y + m.oy * e.height);
+    const kc = bloodCtx(c, e.kind);
+    kc.globalAlpha = m.t > MARK_LIFE - 14 ? (MARK_LIFE - m.t) / 14 : 1;
+    kc.fillStyle = '#991B1B'; kc.fillRect(x - 1, y - 1, 3, 2);
+    kc.fillStyle = '#450A0A';
+    for (let i = 0; i < 6; i++) { const an = (i / 6) * Math.PI * 2 + m.seed; kc.fillRect(Math.round(x + Math.cos(an) * 3.5), Math.round(y + Math.sin(an) * 2.5), 1, 1); }
+    kc.globalAlpha = 1;
+    if (m.t < 4) { c.fillStyle = '#FFFFFF'; c.fillRect(x - 4 + m.t, y - 4, 2, 1); c.fillRect(x + 3 - m.t, y + 3, 2, 1); }
+  }
+};
+
+/** GOBLINS!, a letter at a time, each glyph painted once (an ink outline, a stepped green ramp: top light, bottom deep)
+ *  and then just put down: popping in big, the letters bobbing like they're floating in something, dripping, bubbles
+ *  coming off it. Till the font's in, it's written plain. */
+const GOB_WORD = 'GOBLINS!';
+let gobGlyphs: HTMLCanvasElement[] | null = null;
+const glyphs = () => {
+  if (gobGlyphs) return gobGlyphs;
+  if (typeof document === 'undefined' || !document.fonts?.check('8px "Press Start 2P"')) return null;
+  gobGlyphs = [...GOB_WORD].map(ch => {
+    const cv = document.createElement('canvas'); cv.width = 12; cv.height = 12;
+    const g = cv.getContext('2d')!;
+    g.font = '8px "Press Start 2P"'; g.textBaseline = 'top';
+    g.fillStyle = ALIEN_INK;
+    for (const [dx, dy] of [[1, 2], [3, 2], [2, 1], [2, 3], [3, 3]]) g.fillText(ch, dx, dy);
+    g.fillStyle = '#84CC16'; g.fillText(ch, 2, 2);
+    g.globalCompositeOperation = 'source-atop';
+    g.fillStyle = '#D9F99D'; g.fillRect(0, 0, 12, 4);
+    g.fillStyle = '#4D7C0F'; g.fillRect(0, 7, 12, 3);
+    g.fillStyle = ALIEN_INK; g.fillRect(0, 10, 12, 2);
+    return cv;
+  });
+  return gobGlyphs;
+};
+const drawGobPops = (c: Ctx) => {
+  const gl = glyphs();
+  for (const g of gobPops) {
+    const k = g.t, s = k < 6 ? 0.4 + (k / 6) * 0.85 : k < 10 ? 1.25 - ((k - 6) / 4) * 0.25 : 1;
+    c.save();
+    c.globalAlpha = k > GOB_LIFE - 10 ? (GOB_LIFE - k) / 10 : 1;
+    c.translate(Math.round(g.x), Math.round(g.y - k * 0.2)); c.scale(s, s);
+    for (let i = 0; i < GOB_WORD.length; i++) {
+      const lx = (i - GOB_WORD.length / 2) * 8, ly = Math.round(Math.sin(k * 0.45 + i * 0.9 + g.seed * 6) * 1.5);
+      if (gl) c.drawImage(gl[i], lx - 2, ly - 8);
+      else { c.font = '8px "Press Start 2P"'; c.fillStyle = ALIEN_INK; c.fillText(GOB_WORD[i], lx + 1, ly + 1); c.fillStyle = '#84CC16'; c.fillText(GOB_WORD[i], lx, ly); }
+      // (dripping off the odd letter)
+      if ((i + Math.floor(g.seed * 3)) % 3 === 0) { const d = Math.min(5, Math.floor(k * 0.15)); c.fillStyle = '#4D7C0F'; c.fillRect(lx + 3, ly + 2, 1, d); c.fillStyle = '#84CC16'; c.fillRect(lx + 2, ly + 2 + d, 2, 2); }
+    }
+    // (bubbles coming up off it, popping)
+    for (let i = 0; i < 3; i++) {
+      const ph = (k * 0.03 + i / 3 + g.seed) % 1, bx = Math.round(-20 + i * 18 + Math.sin(ph * 9 + i) * 2), by = Math.round(-12 - ph * 14);
+      if (ph > 0.85) { c.fillStyle = '#D9F99D'; c.fillRect(bx - 2, by, 1, 1); c.fillRect(bx + 2, by, 1, 1); c.fillRect(bx, by - 2, 1, 1); continue; }
+      c.fillStyle = ALIEN_INK; c.fillRect(bx - 1, by - 1, 3, 3); c.fillStyle = '#BEF264'; c.fillRect(bx, by, 1, 1);
+    }
+    c.restore();
+  }
 };
 
 /** The gun's shots are its litters (not projectiles): nothing to draw for those. */
@@ -1285,8 +1432,12 @@ const drawOverlay = (c: Ctx, state: GameState) => {
     drawBone(bloodCtx(c, p.kind), p.b);
     c.restore();
   }
+  // Bite marks on whoever they're on, under the ones biting
+  drawMarks(c);
   // The litter (not the ones on a bush: they're back there with it, behind him: drawUnder)
   for (const a of aliens) if (!a.onBait) drawAlien(c, a, f);
+  drawSquirts(c);
+  drawGobPops(c);
 };
 /** The litter latched on a bush, gnawing it: back with the bush, behind him. */
 const drawUnder = (c: Ctx, state: GameState) => {
@@ -1317,7 +1468,7 @@ const drawHeld = (c: Ctx, frame: number) => {
 };
 
 /** Everything it's got going, gone (through a door). */
-export const stopSpawner = () => { aliens = []; corpses = []; pieces = []; puddles = []; birthing = 0; };
+export const stopSpawner = () => { aliens = []; corpses = []; pieces = []; puddles = []; birthing = 0; squirts = []; marks = []; gobPops = []; };
 
 /** For tests: how many there are, what they're up to. */
 export const spawnerForTests = () => ({ aliens: aliens.length, latched: aliens.filter(a => a.on).length, corpses: corpses.length, pieces: pieces.length, puddles: puddles.length, skeletons: corpses.filter(c => c.bones.length).length, ages: corpses.map(c => c.t) });

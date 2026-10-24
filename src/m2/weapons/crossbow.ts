@@ -92,6 +92,8 @@ const PUKE = { every: 2, gravity: 0.35, dmg: 1.5, selfDmg: 1.4, sick: 0.6, reach
 /** ...a robot, sick: on the fritz (flickering, washed out). */
 const ROBOT_SICK_LOOK = ['saturate(0.3) brightness(1.25)', 'saturate(0.6) brightness(0.8) contrast(1.4)'];
 const SICK_LOOK = ['sepia(0.6) hue-rotate(42deg) saturate(2.3)', 'sepia(0.7) hue-rotate(48deg) saturate(2.8) brightness(0.92)'];
+/** ...and before it comes up: going green round the gills as his tolerance goes (a touch, then more). */
+const QUEASY_LOOK = ['sepia(0.25) hue-rotate(40deg) saturate(1.4)', 'sepia(0.45) hue-rotate(44deg) saturate(1.9)'];
 
 const alive = (e: Enemy) => e.health > 0 && !e.isBlownAway && !e.innocent && e.type !== 'boss';
 
@@ -107,6 +109,8 @@ interface Sick {
   hurk: number;
   /** While he's sick, his own goings-on held off (and harmless): what he was before, to put back after. */
   held: { puppet?: boolean; harmless?: boolean } | null;
+  /** Worn at but not sick yet: the queasy sway's on him (looks only: queasy()). */
+  queasy?: boolean;
 }
 const sickness = new WeakMap<Enemy, Sick>();
 const sickOf = (e: Enemy) => { let s = sickness.get(e); if (!s) { s = { tol: tolMax(e), max: tolMax(e), lastHit: -999, t: -1, immuneUntil: 0, target: null, dir: 1, doused: 0, hurk: 0, held: null }; sickness.set(e, s); } return s; };
@@ -114,7 +118,7 @@ const sickOf = (e: Enemy) => { let s = sickness.get(e); if (!s) { s = { tol: tol
 let tracked = new Set<Enemy>();
 
 /** A dart: `down`, shot down at him from up in the air (over a shield: it's an overhead shot). */
-type Part = { kind: 'dart'; down?: boolean } | { kind: 'puke'; from: Enemy; self: boolean; t: number; seed: number };
+type Part = { kind: 'dart'; down?: boolean; seed?: number } | { kind: 'puke'; from: Enemy; self: boolean; t: number; seed: number };
 const partOf = (p: Projectile) => p.customData as Part;
 
 /** Darts stuck in somebody (where on him, at what angle), or in a wall; puddles of it. */
@@ -167,7 +171,7 @@ const fire = (ctx: FrameContext, input: { moveUp: boolean }, muzzle: { x: number
   }
   state.projectiles.push({
     id: `dart-${state.frame}-${Math.random()}`, pos: { x: from.x - 5, y: from.y - 1.5 }, vel: { x: dir * Math.cos(a) * DART.speed, y: Math.sin(a) * DART.speed },
-    width: 10, height: 3, health: 1, maxHealth: 1, type: 'projectile', damage: 0, owner: 'player', custom: 'CROSSBOW', customData: { kind: 'dart', down: aim > DART.down * 0.5 } satisfies Part,
+    width: 10, height: 3, health: 1, maxHealth: 1, type: 'projectile', damage: 0, owner: 'player', custom: 'CROSSBOW', customData: { kind: 'dart', down: aim > DART.down * 0.5, seed: Math.random() } satisfies Part,
   });
   pl.shootCooldown = DART.cooldown;
   if (!cheats.infiniteAmmo) pl.weaponAmmo.CROSSBOW--;
@@ -386,6 +390,23 @@ const heave = (ctx: FrameContext, e: Enemy, s: Sick) => {
   s.t++;
 };
 
+/** Worn at, not sick yet: a sway on him that gets worse the less tolerance he's got left, going green round the gills
+ *  (a robot: the odd flicker), the odd string of drool. Looks only: his own goings-on go on as ever. Back to himself
+ *  when it's all come back. */
+const queasy = (state: GameState, e: Enemy, s: Sick) => {
+  const q = 1 - s.tol / s.max;
+  if (q <= 0.01) { if (s.queasy) { e.pose = undefined; s.queasy = false; } return; }
+  const f = state.frame, ph = e.pos.x * 0.01;
+  const lean = Math.sin(f * 0.21 + ph) * 0.045 * q, sy = 1 - Math.abs(Math.sin(f * 0.13 + ph)) * 0.025 * q;
+  const filter = isRobot(e) ? (q > 0.6 && (f + Math.floor(ph * 50)) % 23 < 2 ? ROBOT_SICK_LOOK[0] : undefined) : q > 0.66 ? QUEASY_LOOK[1] : q > 0.33 ? QUEASY_LOOK[0] : undefined;
+  e.pose = { lean, sx: 1, sy, filter };
+  s.queasy = true;
+  if (!isRobot(e) && q > 0.5 && Math.random() < 0.02 * q) {
+    const m = mouthOf(e, (e.kind ? kindFacing(e, state) : e.facing ?? 1) as number, lean);
+    puff(state, { pos: { x: m.x, y: m.y }, vel: { x: 0, y: 0.3 }, life: 20, color: '#C5D33B', size: 1.5, grav: 0.15 });
+  }
+};
+
 /** One glob of it landing on somebody: it stings, it's all over him, and it's working on him too. */
 const pukedOn = (ctx: FrameContext, e: Enemy, p: Projectile, part: Extract<Part, { kind: 'puke' }>) => {
   const { state } = ctx;
@@ -587,8 +608,14 @@ const pool = (state: GameState, x: number, y: number, w: number, grow = 0.8) => 
 /** On the floor: a splash, and a puddle (one spreading where there's one already). */
 const splat = (state: GameState, x: number, y: number, w = 6 + Math.random() * 4) => {
   for (let i = 0; i < 3; i++) puff(state, { pos: { x, y: y - 2 }, vel: { x: (Math.random() - 0.5) * 3, y: -1 - Math.random() * 1.5 }, life: 12, color: PUKE_COLORS[i], size: 2, grav: 0.3 });
+  // (and spatter: a flat splat, droplets thrown out low along the floor: drawOverlay)
+  if (spats.length >= MAX_SPATS) spats.shift();
+  spats.push({ x, y, t: 0, seed: Math.random() });
   pool(state, x, y, w);
 };
+/** Where a glob's just hit the floor: the spatter, a few frames. */
+let spats: { x: number; y: number; t: number; seed: number }[] = [];
+const SPAT = 12, MAX_SPATS = 24;
 
 /** A puddle as the goo drawing has it: no further than what it's on, and thicker the bigger it is. */
 const puddleShape = (q: Puddle) => {
@@ -632,8 +659,9 @@ const tick = (ctx: FrameContext, input: { moveUp: boolean; moveDown: boolean }, 
       tracked.delete(e); continue;
     }
     if (s.hurk > 0) s.hurk--;
-    if (s.t >= 0) heave(ctx, e, s);
+    if (s.t >= 0) { heave(ctx, e, s); s.queasy = false; }
     else if (state.frame - s.lastHit > REGEN_AFTER) s.tol = Math.min(s.max, s.tol + REGEN);
+    if (s.t < 0) queasy(state, e, s);
     // Dripping with it
     if (s.doused > 0) {
       s.doused--;
@@ -658,6 +686,8 @@ const tick = (ctx: FrameContext, input: { moveUp: boolean; moveDown: boolean }, 
   drip(ctx);
   for (const k of splashes) k.t++;
   splashes = splashes.filter(k => k.t < SPLASH);
+  for (const k of spats) k.t++;
+  spats = spats.filter(k => k.t < SPAT);
   for (const c of corpses) rotCorpse(ctx, c);
   corpses = corpses.filter(c => c.t < LIE_END + GONE);
 };
@@ -666,23 +696,51 @@ const tick = (ctx: FrameContext, input: { moveUp: boolean; moveDown: boolean }, 
 // Drawing
 
 /** A dart: a thin dark shaft, a green-smeared tip, red and green fletching. Drawn along +x, the tip at the origin. */
-const drawDart = (c: Ctx, x: number, y: number, a: number, len = 11) => {
+/** `spin`: in flight, the fletching turning (the vanes going edge on and round, swapping sides), a corkscrew of red and
+ *  green specks off it behind, and a sick glint on the tip. */
+const drawDart = (c: Ctx, x: number, y: number, a: number, len = 11, spin?: number) => {
   c.save(); c.translate(x, y); c.rotate(a);
   c.fillStyle = INK; c.fillRect(-len - 1, -1.5, len + 1, 3);
   c.fillStyle = '#A16207'; c.fillRect(-len, -0.5, len - 2, 1);
   c.fillStyle = '#84CC16'; c.fillRect(-3, -1, 3, 2);
-  c.fillStyle = '#DC2626'; c.fillRect(-len - 1, -3, 4, 2); c.fillStyle = '#16A34A'; c.fillRect(-len - 1, 1, 4, 2);
+  if (spin === undefined) { c.fillStyle = '#DC2626'; c.fillRect(-len - 1, -3, 4, 2); c.fillStyle = '#16A34A'; c.fillRect(-len - 1, 1, 4, 2); }
+  else {
+    const cs = Math.cos(spin), vh = Math.max(1, Math.round(Math.abs(cs) * 2.5)), top = cs >= 0 ? '#DC2626' : '#16A34A', bot = cs >= 0 ? '#16A34A' : '#DC2626';
+    c.fillStyle = top; c.fillRect(-len - 1, -1 - vh, 4, vh); c.fillStyle = bot; c.fillRect(-len - 1, 1, 4, vh);
+    for (let i = 1; i <= 3; i++) { c.globalAlpha = 0.75 - i * 0.18; c.fillStyle = i % 2 ? top : bot; c.fillRect(-len - 1 - i * 4, Math.round(Math.sin(spin - i * 1.2) * 2.5) - 0.5, 2, 1); }
+    c.globalAlpha = 1;
+    c.fillStyle = '#ECFCCB'; c.fillRect(-2, -1, 1, 1);
+  }
   c.restore();
 };
 
 const draw = (c: Ctx, p: Projectile, frame: number) => {
   const part = partOf(p);
-  if (part.kind === 'dart') { drawDart(c, p.vel.x > 0 ? p.pos.x + p.width : p.pos.x, p.pos.y + 1.5, Math.atan2(p.vel.y, p.vel.x)); return; }
+  if (part.kind === 'dart') {
+    const tx = p.vel.x > 0 ? p.pos.x + p.width : p.pos.x, ty = p.pos.y + 1.5, sd = part.seed ?? 0;
+    drawDart(c, tx, ty, Math.atan2(p.vel.y, p.vel.x), 11, frame * 0.9 + sd * 6);
+    // (what's on the tip catching the light: a sickly green twinkle, every so often)
+    if ((frame + Math.floor(sd * 12)) % 12 < 3) {
+      const gx = Math.round(tx), gy = Math.round(ty);
+      c.fillStyle = '#BEF264'; c.fillRect(gx - 3, gy, 7, 1); c.fillRect(gx, gy - 3, 1, 7);
+      c.fillStyle = '#FFFFFF'; c.fillRect(gx, gy, 1, 1);
+    }
+    return;
+  }
   // (a machine's: it can't throw up, so it throws up what it's got: nuts and bolts)
   if (isRobot(part.from)) { drawBolt(c, p.pos.x + G / 2, p.pos.y + G / 2, frame * 0.4 + part.seed * 6, part.seed); return; }
   // A glob: a lumpy wad of it, three or four lobes stretched out along the way it's going, wobbling; chunks of things in
   // it (carrot, corn, something brown nobody wants to know about); a wet shine on top
   const x = p.pos.x + G / 2, y = p.pos.y + G / 2, a = Math.atan2(p.vel.y, p.vel.x), sd = part.seed;
+  // (behind it, back along the way it came, chunky stepped wads of it on the 2px grid: one glob to the next, a stream)
+  for (let i = 3; i >= 1; i--) {
+    const k = i * 0.55;
+    if (k > part.t) continue;
+    const bx = Math.round((x - p.vel.x * k) / 2) * 2, by = Math.round((y - p.vel.y * k - PUKE.gravity * k * k * 0.5) / 2) * 2, r = 5 - i;
+    c.fillStyle = '#3F470A'; c.fillRect(bx - r - 1, by - r - 1, r * 2 + 2, r * 2 + 2);
+    c.fillStyle = i === 2 ? '#7C8A12' : '#A3B320'; c.fillRect(bx - r, by - r, r * 2, r * 2);
+    c.fillStyle = '#C5D33B'; c.fillRect(bx - r, by - r, r, 1);
+  }
   const lobes: [number, number, number][] = [[0, 0, 5.2], [-4.5, 1.5 - sd * 3, 3.6 + sd], [3.5, -1 + sd * 2.5, 3.4]];
   c.save(); c.translate(x, y); c.rotate(a);
   const wob = Math.sin(frame * 0.8 + sd * 9);
@@ -729,6 +787,33 @@ const drawOverlay = (c: Ctx, state: GameState) => {
     const sh = puddleShape(q);
     drawGooPuddle(c, state, sh, PUKE_GOO);
     if (q.ledge && q.t >= q.soak) drawGooOverhang(c, sh, q.ledge, f, PUKE_GOO, 0);
+  }
+  // (steam coming up off them, warm still: a couple of wisps of stepped specks a puddle, wavering, fading as they go;
+  // the nearest dozen or so)
+  let steamed = 0;
+  for (const q of puddles) {
+    if (steamed >= 14 || q.x + q.w < vx0 || q.x - q.w > vx1 || q.t > PUDDLE_LIFE - 90) continue;
+    steamed++;
+    const sh = puddleShape(q), warm = q.t < 30 ? q.t / 30 : 1;
+    for (let w = 0; w < 2; w++) {
+      const ph = (f * 0.012 + q.seed * 0.137 + w * 0.5) % 1, sx = sh.pos.x + sh.width * (0.25 + w * 0.5 + ((q.seed * (w + 3)) % 10) * 0.01);
+      c.globalAlpha = (1 - ph) * 0.4 * warm;
+      c.fillStyle = '#E2EC7A';
+      for (let d = 0; d < 3; d++) c.fillRect(Math.round(sx + Math.sin(ph * 6 + d * 0.8 + w) * 2.5), Math.round(q.y - 8 - ph * 22 - d * 4), 2, 2);
+    }
+  }
+  c.globalAlpha = 1;
+  // (the spatter where a glob's just hit the floor: a flat splat and droplets thrown out low either side)
+  for (const k of spats) {
+    const a = k.t / SPAT;
+    c.globalAlpha = 1 - a * 0.7;
+    if (k.t < 5) { c.fillStyle = '#3F470A'; c.fillRect(Math.round(k.x) - 6, Math.round(k.y) - 2, 12, 2); c.fillStyle = '#A3B320'; c.fillRect(Math.round(k.x) - 5, Math.round(k.y) - 2, 10, 1); }
+    for (let i = 0; i < 6; i++) {
+      const sd = i % 2 ? 1 : -1, sp = 1.2 + ((k.seed * 7 + i * 0.37) % 1) * 1.6, up = 1.4 + ((k.seed * 3 + i * 0.61) % 1) * 1.4;
+      const dx = sd * sp * k.t, dy = -up * k.t + 0.3 * k.t * k.t;
+      if (dy > 0) continue;
+      c.fillStyle = i < 2 ? '#C5D33B' : PUKE_COLORS[i % 3]; c.fillRect(Math.round(k.x + dx), Math.round(k.y - 2 + dy), 2, 2);
+    }
   }
   c.globalAlpha = 1;
   // Strings of it coming through a ledge, a glob on the end
@@ -789,13 +874,32 @@ const drawOverlay = (c: Ctx, state: GameState) => {
     }, { filter });
     c.restore();
     if (k.t > FALL_END && k.t < LIE_END) {
-      // (the flies)
+      // (the flies: turning up one at a time, five at most, looping figure eights over him; the odd one landing on him a
+      // while, rubbing its hands; the stink coming off him)
+      const lay = k.t - FALL_END, fade = k.t > LIE_END - 40 ? (LIE_END - k.t) / 40 : 1;
       const hx = k.animal ? k.x : k.x + k.face * e.height * 0.45, hy = k.animal ? k.y - e.height - 4 : k.y - e.width * 0.6 - 6;
-      for (let i = 0; i < 3; i++) {
-        const a = f * (0.17 + i * 0.03) + i * 2.1, fx = hx + Math.cos(a) * (8 + i * 3), fy = hy + Math.sin(a * 1.3) * 5 - i * 3;
-        c.fillStyle = '#0B0B0F'; c.fillRect(Math.round(fx), Math.round(fy), 2, 2);
-        if (f % 4 < 2) { c.fillStyle = 'rgba(226, 232, 240, 0.7)'; c.fillRect(Math.round(fx) - 1, Math.round(fy) - 1, 1, 1); c.fillRect(Math.round(fx) + 2, Math.round(fy) - 1, 1, 1); }
+      const n = Math.min(5, 1 + Math.floor(lay / 30));
+      c.globalAlpha = fade;
+      for (let i = 0; i < n; i++) {
+        const a = f * (0.17 + i * 0.03) + i * 2.1;
+        let fx = hx + Math.cos(a) * (8 + i * 3), fy = hy + Math.sin(a * 2) * 4 - i * 3;
+        // (landed: on him, somewhere along him, sat there)
+        const cyc = (f + i * 37) % 150, sits = i % 2 === 1 && cyc < 50, land = sits ? Math.min(1, Math.min(cyc, 50 - cyc) / 8) : 0;
+        if (land > 0) {
+          const sx = k.animal ? k.x + (i - 2) * e.width * 0.15 : k.x + k.face * e.height * (0.2 + i * 0.12), sy = k.animal ? k.y - e.height * 0.85 : k.y - e.width * 0.55;
+          fx += (sx - fx) * land; fy += (sy - fy) * land;
+        }
+        c.fillStyle = '#0B0B0F'; c.fillRect(Math.round(fx), Math.round(fy), 2, land >= 1 ? 1 : 2);
+        if (land >= 1) { if ((f >> 3) % 3 === 0) { c.fillStyle = '#0B0B0F'; c.fillRect(Math.round(fx) + (f % 2 ? -1 : 2), Math.round(fy), 1, 1); } }
+        else if (f % 4 < 2) { c.fillStyle = 'rgba(226, 232, 240, 0.7)'; c.fillRect(Math.round(fx) - 1, Math.round(fy) - 1, 1, 1); c.fillRect(Math.round(fx) + 2, Math.round(fy) - 1, 1, 1); }
       }
+      const sx = k.animal ? k.x : k.x + k.face * e.height * 0.3, sy = k.animal ? k.y - e.height * 0.8 : k.y - e.width * 0.5;
+      for (let i = 0; i < 2; i++) {
+        const ph = (f * 0.02 + i / 2) % 1, x = sx + (i ? 6 : -6), y = sy - ph * 18;
+        c.strokeStyle = `rgba(163, 179, 32, ${(0.55 * (1 - ph) * fade).toFixed(2)})`; c.lineWidth = 1.5;
+        c.beginPath(); c.moveTo(x, y); c.quadraticCurveTo(x + 3, y - 3, x, y - 6); c.quadraticCurveTo(x - 3, y - 9, x, y - 12); c.stroke();
+      }
+      c.globalAlpha = 1;
     }
   }
   // Darts stuck in people (they go with him, leaning the way he leans) and in walls
@@ -822,14 +926,25 @@ const drawOverlay = (c: Ctx, state: GameState) => {
     if (s.t < 0 && s.tol < s.max) {
       const w = Math.max(26, Math.min(56, e.width + 8)), x = Math.round(e.pos.x + e.width / 2 - w / 2), y = Math.round(top + Math.sin(f * 0.15 + e.pos.x) * 1.2);
       const k = Math.max(0, s.tol / s.max);
-      c.fillStyle = INK; c.fillRect(x - 1, y - 1, w + 2, 6);
-      c.fillStyle = '#3F3F46'; c.fillRect(x, y, w, 4);
-      c.fillStyle = k < 0.3 ? (f % 8 < 4 ? '#A3B320' : '#E2EC7A') : '#65A30D';
-      c.fillRect(x, y, Math.round(w * k), 4);
-      c.fillStyle = 'rgba(255, 255, 255, 0.4)'; c.fillRect(x, y, Math.round(w * k), 1);
-      // (and a little green face at the end of it, going greener)
-      c.fillStyle = INK; c.fillRect(x - 9, y - 2, 7, 8); c.fillStyle = k < 0.5 ? '#A3B320' : '#FCD34D'; c.fillRect(x - 8, y - 1, 5, 6);
-      c.fillStyle = INK; c.fillRect(x - 7, y + 1, 1, 1); c.fillRect(x - 5, y + 1, 1, 1); c.fillRect(x - 7, y + 3, 3, 1);
+      // (just hit: the bar jolts and flashes, and what's in it sloshes, settling)
+      const since = f - s.lastHit, jolt = since < 6 ? (since % 2 ? 1 : -1) : 0, slosh = 0.6 + 2 * Math.max(0, 1 - since / 36);
+      const bx = x + jolt;
+      c.fillStyle = since < 4 ? '#ECFCCB' : INK; c.fillRect(bx - 1, y - 1, w + 2, 6);
+      c.fillStyle = '#3F3F46'; c.fillRect(bx, y, w, 4);
+      // (liquid, not a plain bar: in rows, a stepped ramp top to bottom, its end slopping back and forth row by row)
+      const fw = w * k, low = k < 0.3, blink = f % 8 < 4;
+      const rows = low ? (blink ? ['#E2EC7A', '#A3B320', '#A3B320', '#7C8A12'] : ['#F4F8B8', '#E2EC7A', '#E2EC7A', '#A3B320']) : ['#BEF264', '#65A30D', '#65A30D', '#3F6212'];
+      for (let r = 0; r < 4; r++) {
+        const end = Math.round(fw + Math.sin(f * 0.3 + r * 0.9 + e.pos.x * 0.05) * slosh * Math.min(1, fw / 4));
+        if (end <= 0) continue;
+        c.fillStyle = rows[r]; c.fillRect(bx, y + r, Math.min(w, end), 1);
+      }
+      // (a bubble or two drifting in it)
+      if (fw > 4) { c.fillStyle = '#ECFCCB'; for (let i = 0; i < 2; i++) c.fillRect(bx + Math.floor((f * (0.4 + i * 0.25) + e.pos.x + i * 13) % Math.max(1, fw - 2)), y + 1 + i, 1, 1); }
+      // (and a little green face at the end of it, going greener, wobbling worse)
+      const fy = y + Math.round(Math.sin(f * 0.4 + e.pos.x) * (1 - k) * 1.5);
+      c.fillStyle = INK; c.fillRect(bx - 9, fy - 2, 7, 8); c.fillStyle = k < 0.5 ? '#A3B320' : '#FCD34D'; c.fillRect(bx - 8, fy - 1, 5, 6);
+      c.fillStyle = INK; c.fillRect(bx - 7, fy + 1, 1, 1); c.fillRect(bx - 5, fy + 1, 1, 1); c.fillRect(bx - 7, fy + 3, 3, 1);
     }
     // Sick: a green queasy face over his head (no bar: there's no wearing him down any more till he's over it), the
     // drool, the stink lines coming off him, and his HURK!
@@ -886,7 +1001,7 @@ const drawHeld = (c: Ctx) => {
 export const stopCrossbow = () => {
   aim = 0;
   for (const e of tracked) { e.pose = undefined; const s = sickness.get(e); if (s) { s.t = -1; recover(e, s); } }
-  tracked = new Set(); stuck = []; puddles = []; corpses = []; goo = []; drops = []; strands = []; splashes = [];
+  tracked = new Set(); stuck = []; puddles = []; corpses = []; goo = []; drops = []; strands = []; splashes = []; spats = [];
 };
 
 /** For tests: everybody's tolerance and sickness. */
