@@ -230,12 +230,12 @@ function* makeSnowMask(): Generator<void> {
         const x0 = x0s[i], fx = fxs[i], a = grid[r0 + x0], b = grid[r0 + x0 + 1], c = grid[r1 + x0], e = grid[r1 + x0 + 1];
         acc[o + i] += w * ((a + (b - a) * fx) * (1 - fy) + (c + (e - c) * fx) * fy);
       }
-      if ((j & 255) === 255) yield;
+      if ((j & 63) === 63) yield;
     }
   }
   // (stretched out so it's lying or thawed in clear patches, not a gray middle everywhere)
   const m = new Uint8Array(SM * SM);
-  for (let k = 0; k < SM * SM; k++) m[k] = Math.max(0, Math.min(255, Math.round((0.5 + (acc[k] - 0.5) * 2.4) * 255)));
+  for (let k = 0; k < SM * SM; k++) { m[k] = Math.max(0, Math.min(255, Math.round((0.5 + (acc[k] - 0.5) * 2.4) * 255))); if ((k & 0x3FFFF) === 0x3FFFF) yield; }
   snowMask = m;
 }
 
@@ -253,7 +253,7 @@ function* paintBase(img: ImageData): Generator<void> {
   const lay = (v: number, t: number, i: number, j: number) => (v > t ? 2 : v > t - 0.05 ? ((i + j) & 1) : v > t - 0.09 ? (i & j & 1) : 0);
   for (let j = j0; j < j1; j++) {
     const z = HALF - (j + 0.5) * TEXEL;
-    if (((j - j0) & 63) === 63) yield;
+    if (((j - j0) & 7) === 7) yield;
     for (let i = i0; i < i1; i++) {
       const x = (i + 0.5) * TEXEL - HALF, r = Math.sqrt(x * x + z * z);
       if (r > R1) continue;
@@ -937,11 +937,12 @@ export function* paintGroundSteps(gg: Ctx, tile: HTMLCanvasElement, tod: TimeOfD
   back(); seed = 1; frost = false;
   g.imageSmoothingEnabled = false;
   g.fillStyle = g.createPattern(tile, 'repeat')!; g.fillRect(0, 0, TS, TS);
-  const img = g.getImageData(0, 0, TS, TS);
+  // (read back and put back in bands, a step each: the whole 2048 square in one go was a long frame on the runway)
+  const img = g.createImageData(TS, TS), BAND = 128;
+  for (let y = 0; y < TS; y += BAND) { yield; back(); img.data.set(g.getImageData(0, y, TS, BAND).data, y * TS * 4); }
   yield; back();
   for (const _ of paintBase(img)) { yield; back(); }
-  g.putImageData(img, 0, 0);
-  yield; back();
+  for (let y = 0; y < TS; y += BAND) { g.putImageData(img, 0, 0, 0, y, TS, BAND); yield; back(); }
   beyond();
   yield; back(); frost = true;
   railAndWall();
