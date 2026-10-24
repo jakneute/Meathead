@@ -55,6 +55,7 @@ import { drawLandmarkWorld } from './landmarks3d';
 import { drawStreetsBackdrop } from '../backdrop';
 import { drawHarry } from './harryArt';
 import { harrySays, guestShouts, quiet, harryFrom, harryPick, harrySaid } from './talk';
+import { forceWeapon, releaseWeapon } from '../../weaponLock';
 import {
   HURT, MECHS, MECH_NAME, QUEUE_SHOUT, QUEUE_SHOUT_SHAT, QUEUE_SHOUT_NUDE, HARRY_BOARD, HARRY_TOUR, MH_TOUR, MH_SHUT_UP, HARRY_SHOVED,
   HARRY_TURNS, MH_TAKES, HARRY_HECKLE, HARRY_BLADES, HARRY_GOONS, HARRY_GLOAT, HARRY_END, MH_ROCKET, HARRY_HIT,
@@ -495,6 +496,7 @@ const finish = (state: GameState, h: Heli) => {
   for (const q of h.shots.keys()) q.health = 0;
   h.shots.clear(); h.beams = []; h.drops = []; h.minions = []; h.rockets = [];
   p.carried = false; p.cartSeat = false; p.copterSeat = undefined; p.hidden = false; p.spriteRot = 0; p.inCutscene = false; p.noSpecials = false;
+  releaseWeapon(state);
   p.vel.x = 0; p.vel.y = 0; p.facing = 1; p.invincibilityTimer = 0;
   setUi({ noSwitch: false, pauseControls: null, heliTips: false });
   setDropTable(PARK_DROPS);
@@ -531,6 +533,9 @@ const seatPose = (state: GameState, h: Heli, controls: Controls) => {
   const p = state.player, f = state.frame, b = h.boost;
   const seated = !h.over && ((h.phase === 'board' && h.step >= 2) || h.phase === 'lift' || h.phase === 'tour' || h.phase === 'fly' || h.phase === 'end');
   if (!seated) { p.copterSeat = undefined; return; }
+  // (in the seat, whatever he had out is put away: the same pose every time, never the mallet's or the book's (the user's);
+  // the app hands it back after (weaponLock.ts))
+  if (state.lockWeapon !== 'GUN') forceWeapon(state, 'GUN');
   const pilot = h.phase === 'fly' || h.phase === 'end' || (h.phase === 'tour' && !!h.flags.shoved);
   const hit = p.invincibilityTimer > 30 || (p.pushbackTimer ?? 0) > 0 || (h.phase === 'end' && h.step >= 2);
   p.copterSeat = {
