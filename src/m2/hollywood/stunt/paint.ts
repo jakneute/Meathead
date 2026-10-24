@@ -35,13 +35,21 @@ export {
 export const EYE_UP = CAM_ROW - Math.round(CANVAS_HEIGHT * 0.42);
 /** The eye, pinned: across with the camera, up at the rest's. */
 export const EYE_Y = GY - EYE_UP;
+/** The world on the screen: the camera's, and a zoom's too (his kill cam, taking him in a way off: world.ts's
+ *  state.view), so what's culled by it never leaves a hole where the zoom's looking (the user's: the set missing round
+ *  him as the camera went to him, and on the pan back). */
+export const shown = (state: GameState) => {
+  const cam = state.camera, z = state.view;
+  return z ? { x0: Math.min(cam.x, z.x), x1: Math.max(cam.x + CANVAS_WIDTH, z.x + z.w), y0: Math.min(cam.y, z.y), y1: Math.max(cam.y + CANVAS_HEIGHT, z.y + z.h) }
+    : { x0: cam.x, x1: cam.x + CANVAS_WIDTH, y0: cam.y, y1: cam.y + CANVAS_HEIGHT };
+};
 /** The scene's view. */
 export const sview = (state: GameState): View => {
-  const cam = state.camera;
+  const cam = state.camera, s = shown(state);
   return {
     cam: { x: cam.x, y: cam.y },
     eye: { x: cam.x + CANVAS_WIDTH / 2, y: EYE_Y },
-    v0: cam.x - 120, v1: cam.x + CANVAS_WIDTH + 120, top: cam.y - 40, bot: cam.y + CANVAS_HEIGHT + 40,
+    v0: s.x0 - 120, v1: s.x1 + 120, top: s.y0 - 40, bot: s.y1 + 40,
     f: state.frame,
   };
 };
@@ -53,7 +61,7 @@ export const seenAt = (v: View, a: number, b: number, d = 1, pad = 60) => {
   return sb > v.cam.x - pad && sa < v.cam.x + CANVAS_WIDTH + pad;
 };
 /** In view (the stage's own: world x, no depth). */
-export const inView = (state: GameState, a: number, b: number, pad = 40) => b > state.camera.x - pad && a < state.camera.x + CANVAS_WIDTH + pad;
+export const inView = (state: GameState, a: number, b: number, pad = 40) => { const s = shown(state); return b > s.x0 - pad && a < s.x1 + pad; };
 
 // ---------------------------------------------------------------------------------------------------------------
 // Materials (darkest first)

@@ -37,7 +37,7 @@ import { drawStuntFar } from './far';
 import {
   type Ctx, type View, INK, box, checker, mix, hash, poly, at, atDepth, timeOfDay, words, board, deco, plain, ball, post, slab, glassOf,
   STEVE, STEEL, IRON, LIP, CONCRETE, ramp6, dimmed, hour, TRUSS, SHELL, tubeV, truss, chain, flame, hazard,
-  RUBBER, MAT, STAND, SEAT_Y, SEAT_R, RED_R, near, scen, stillH, parCan, cone, sview, SET_D, EYE_Y, inView,
+  RUBBER, MAT, STAND, SEAT_Y, SEAT_R, RED_R, near, scen, stillH, parCan, cone, sview, SET_D, EYE_Y, inView, shown,
 } from './paint';
 
 const h01 = (n: number) => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
@@ -160,7 +160,7 @@ const paintFloor = (g: Ctx) => {
 
 const drawFloor = (c: Ctx, state: GameState, v: View) => {
   const cv = painted('hst-floor', FW, FH, paintFloor);
-  const sx = Math.max(0, Math.floor(state.camera.x - 60 - FX0)), sw = Math.min(FW - sx, CANVAS_WIDTH + 120);
+  const s = shown(state), sx = Math.max(0, Math.floor(s.x0 - 60 - FX0)), sw = Math.min(FW - sx, s.x1 - s.x0 + 120);
   if (sw <= 0) return;
   c.drawImage(cv, sx, 0, sw, FH, FX0 + sx, FY0, sw, FH);
   // (in front of the line: bent, fanning out from where he's looking)
@@ -522,7 +522,7 @@ const drawSet = (c: Ctx, state: GameState, doorsLit: boolean, bays?: BayLook[]) 
   const base = FLOOR_BACK_Y + 2;
   if (!inView(state, SET_X, SET_X + SET_W)) return;
   const cv = painted('hst-set', SET_W, SET_H, paintSet);
-  const sx = Math.max(0, Math.floor(state.camera.x - SET_X - 60)), sw = Math.min(SET_W - sx, CANVAS_WIDTH + 120);
+  const s = shown(state), sx = Math.max(0, Math.floor(s.x0 - SET_X - 60)), sw = Math.min(SET_W - sx, s.x1 - s.x0 + 120);
   if (sw > 0) c.drawImage(cv, sx, 0, sw, SET_H, SET_X + sx, base - SET_H, sw, SET_H);
   DOORS_X.forEach((dx, i) => { if (inView(state, dx - PORT, dx + PORT)) drawBayLive(c, dx, base, doorsLit, state.frame, bays?.[i]); });
 };
@@ -681,7 +681,7 @@ const paintTrussLeg = (g: Ctx) => {
 
 const drawTruss = (c: Ctx, state: GameState) => {
   if (!inView(state, ARENA_L - 80, ARENA_R + 80)) return;
-  const a = Math.floor(Math.max(ARENA_L - 60, state.camera.x - 60) / 28) * 28, b = Math.min(ARENA_R + 60, state.camera.x + CANVAS_WIDTH + 60);
+  const s = shown(state), a = Math.floor(Math.max(ARENA_L - 60, s.x0 - 60) / 28) * 28, b = Math.min(ARENA_R + 60, s.x1 + 60);
   const R = TRUSS.map(c2 => hour(c2, 0.06)), on = lit();
   // (its legs at the ends, down behind the stands)
   for (const lx of [ARENA_L - 50, ARENA_R + 40]) if (inView(state, lx - 20, lx + 30)) stillH(c, 'tleg', lx, TRUSS_Y, -12, -2, 40, GY - TRUSS_Y + 4, paintTrussLeg);
@@ -1133,7 +1133,7 @@ export const drawCrowd = (c: Ctx, state: GameState, hype: number) => {
   // that much further from the eye)
   const v = sview(state), k = 1 + (BARRIER_Y + 40 - GY) * BEND, ox = (1 - k) * v.eye.x;
   c.save(); c.translate(ox, 0);
-  const a = Math.max(x0 - 100 + ox, state.camera.x - 40) - ox, b = state.camera.x + CANVAS_WIDTH + 40 - ox;
+  const s = shown(state), a = Math.max(x0 - 100 + ox, s.x0 - 40) - ox, b = s.x1 + 40 - ox;
   const C = CONCRETE.map(c2 => hour(c2, 0.06)), f = state.frame;
   // (the jersey barrier: its cap seen from over it, the face under it banded, the joints between its sections, the
   // hazard paint along its foot)
