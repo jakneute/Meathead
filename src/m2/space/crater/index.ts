@@ -33,7 +33,7 @@ import { GRUNT, BRUTE, CRAWLER, FLEER, seedAlien, tickAliens, sweepGone, drawBol
 import { resetRigs } from './rigs';
 import { drawImpactBackdrop, drawCraterBack, drawCraterFront, floorAt, SITE_LAMPS } from './art';
 import { type House, tramKeepOut, makeHouse, buildHouse, tickHouse, showOn, showSkipT, drawHouseBack, drawHouseProps, drawHouseFront, houseLighting, AFTER_PRESHOW_CP } from './house';
-import { D, BOWL, RIM, DOME, CART, PYLON, CATWALKS, CRATES, FACADE_X, HOUSE_DOOR, PRESHOW, HALLS, WRECK_X, TRAMS } from './layout';
+import { D, BOWL, RIM, DOME, CART, PYLON, CATWALKS, CRATES, FACADE_X, HOUSE_DOOR, PRESHOW, HALLS, WRECK_X, TRAMS, CEIL } from './layout';
 import * as L from './lines';
 
 const { x0, x1 } = SECTIONS.crater;
@@ -109,6 +109,10 @@ export const crater: SpaceSection = {
     ledge(state, PYLON.x, PYLON.y, PYLON.w, { hidden: true, tag: 'crater-pylon' });
     for (const [x, y, w] of CATWALKS) ledge(state, x, y, w, { hidden: true, tag: 'xeno-catwalk' });
     for (const [x, w, h] of CRATES) solid(state, x, GY - h, w, h, { hidden: true, tag: 'xeno-crate' });
+    // (XENOSCARE's ceiling, all the way in from the queue's door; and the building's corner over that door, the lintel
+    // down to the opening's top and on up past the facade, so nothing out on the plaza jumps up onto its roof)
+    solid(state, HOUSE_DOOR, CEIL - 60, x1 + 200 - HOUSE_DOOR, 60, { hidden: true, tag: 'xeno-ceiling' });
+    solid(state, HOUSE_DOOR - 10, GY - 1200, 40, 1200 - 160, { hidden: true, tag: 'xeno-ceiling' });
     // (coming at it fresh: the lines again, the pre-show again)
     if (state.checkpoint < 60) fresh = true;
     resetAliens(); resetRigs(fresh);

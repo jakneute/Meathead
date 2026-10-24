@@ -73,6 +73,8 @@ export const END_S = Math.round(stretch(50000));
 export const DECK_X0 = RX + TL + 4, DECK_X1 = RX + TL + 460;
 export const EXIT_X = RX + TL + 1500;
 export const AWAY = -99999;
+/** The stations' canopies: their undersides this high over the platform (station.ts draws them; ride.ts's solids). */
+export const ROOF_H = 640;
 
 /** World x of track position s, with the trains `dist` along. */
 export const wxOf = (dist: number, s: number) => S0X + Math.min(dist, LOCK) + (s - dist);

@@ -106,6 +106,17 @@ export const queen: SpaceSection = {
     // (the hold's far wall; the disco's far wall)
     state.blocks.push({ x: ARENA_R, y: -4000, w: 40, h: 4000 + GY, type: 'wall', hidden: true, tag: 'queen-far' } as Block);
     state.blocks.push({ x: DISCO_R, y: -4000, w: 40, h: 4000 + GY, type: 'wall', hidden: true, tag: 'queen-disco-r' } as Block);
+    // The ceilings (hidden, under the drawn ones): the antechamber's cornice (GY - 440), the showpiece room's dome (its
+    // walls' tops, GY - 600); over the basement past the hold, the slab's underside (CEIL_B) on east to the stairwell, and
+    // the stairwell's west wall from there up to its own slab (GY - 600) over the flight, the landing and the door; the
+    // disco's (GY - 600, over the truss). The hole in the hold's floor and the ladders up to the catwalks stay as they are
+    const ceil = { hidden: true, tag: 'queen-ceiling' } as Partial<Block>;
+    solid(state, x0 - 200, GY - 660, ARENA_L - 60 - (x0 - 200), 220, ceil);
+    solid(state, ARENA_L - 60, GY - 660, ARENA_R + 40 - (ARENA_L - 60), 60, ceil);
+    solid(state, ARENA_R + 40, GY - 40, STAIRS_A - 60 - (ARENA_R + 40), CEIL_B - (GY - 40), ceil);
+    solid(state, STAIRS_A - 100, GY - 660, 60, CEIL_B - (GY - 660), ceil);
+    solid(state, STAIRS_A - 60, GY - 660, DOOR_X + 100 - (STAIRS_A - 60), 60, ceil);
+    solid(state, DISCO_L - 40, GY - 660, DISCO_R + 40 - (DISCO_L - 40), 60, ceil);
     layBasement(state);
     q.shutter = 0; q.shutterTo = 0;
     // (her glass: a wall till it's kicked in)

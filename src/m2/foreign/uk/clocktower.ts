@@ -89,6 +89,8 @@ const bigOf = (state: GameState) => foreignState<Big>(state, 'uk-tower' as 'uk',
 
 export const buildTower = (state: GameState) => {
   for (const [a, b, lo, hi] of T_WALLS) solid(state, X(a), Y(hi), b - a, hi - lo, { hidden: true, tag: 'uk-tower-wall' });
+  // (its roof, under the crown: nothing up out of the top of it (the way out's the panes))
+  solid(state, X(TOWER.a), Y(TOWER.top + 60), TOWER.b - TOWER.a, 60, { hidden: true, tag: 'uk-tower-roof' });
   for (const [a, b, h] of [...FLOORS, FACE, ...OUTSIDE]) ledge(state, X(a), Y(h), b - a, { hidden: true, tag: 'uk-tower-floor' });
   for (const [a, b, h] of HOUSES) solid(state, X(a), Y(h), b - a, h, { hidden: true, tag: 'uk-booth2' });
   spawnCast(state, ENEMIES, X, Y);

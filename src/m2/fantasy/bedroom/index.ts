@@ -35,7 +35,7 @@ import { type Victory, startVictory, tickVictory, drawVictory, victoryDone } fro
 import { type WalkAway, playWalkAway, tickWalkAway, drawWalkAway } from '../../walkAway';
 import { markBossFight } from '../../bossQuiet';
 import { drawTodSky } from '../../timeOfDay';
-import { x0, GY, DOOR_X, KICK_AT, REFILL_X, ARENA_L, ARENA_R, CEIL_Y, CAM_Y, LEDGES, CP_HALL, CP_FIGHT, MAX_STAGE, R } from './layout';
+import { x0, GY, HALL_L, DOOR_X, KICK_AT, REFILL_X, ARENA_L, ARENA_R, CEIL_Y, CAM_Y, LEDGES, CP_HALL, CP_FIGHT, MAX_STAGE, R } from './layout';
 import { drawHall, drawChamber, drawEndWall } from './room';
 import {
   type Fight, startFight, updateFight, fightOver, endFight, killedByWeakness, introSeen, markIntroSeen, drawFightBack, drawFightFront, drawFightHud,
@@ -97,6 +97,8 @@ export const bedroom: FantasySection = {
     solid(state, DOOR_X - 40, GY - 6000, 80, 6000 - 232, { hidden: true, tag: 'pp-over-door' });
     if (!cleared && !introSeen(state)) solid(state, DOOR_X - 46, GY - 232, 92, 232, { hidden: true, tag: 'pp-door' });
     solid(state, ARENA_L - 40, CEIL_Y - 40, ARENA_R - ARENA_L + 80, 40, { hidden: true, tag: 'pp-ceiling' });
+    // (the hall's: over its vault's top (room.ts paints it to GY-700; the sky over that), in to the wall over her door)
+    solid(state, HALL_L - 210, GY - 760, DOOR_X - 40 - (HALL_L - 210), 60, { hidden: true, tag: 'pp-hall-ceiling' });
     // (the furniture to stand on: the canopy's down for good on a revisit)
     for (const [lx, w, h, what] of LEDGES) if (!(cleared && what === 'canopy')) ledge(state, R(lx), GY - h, w, { hidden: true, tag: `pp-${what}` });
     // (the boss-door refill: a big health, a big ammo, before her door)

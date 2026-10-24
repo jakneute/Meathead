@@ -536,6 +536,9 @@ export const coaster: HollywoodSection = {
     layOwn(state, QUEUE_GROUND.map(([a, b, ha, hb]) => ({ x1: X(a), y1: Y(ha), x2: X(b), y2: Y(hb), surface: 'hard' as const })));
     for (const [rx, h] of RAILS) solid(state, X(rx) - 5, Y(h) - RAIL_H, 10, RAIL_H, { hidden: true, tag: 'coaster' });
     solid(state, X(STATION.b), Y(STATION.h) - 900, 40, 900, { hidden: true, tag: 'coaster' });
+    // (the station's canopy over the platform (art.ts canopy: the fascia 274 up, its underside 246): solid, fascia to
+    // crown, so nothing jumps up through its roof)
+    solid(state, X(STATION.a), Y(STATION.h) - 304, STATION.b - STATION.a, 58, { hidden: true, tag: 'coaster-canopy' });
     STOPS.forEach((s, i) => {
       layOwn(state, [{ x1: X(s.a), y1: Y(s.h), x2: X(s.b), y2: Y(s.h), surface: 'metal' }]);
       solid(state, X(s.a) - 40, Y(s.h) - 900, 40, 960, { hidden: true, tag: 'coaster' });

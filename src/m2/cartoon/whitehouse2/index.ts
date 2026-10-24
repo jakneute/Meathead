@@ -41,7 +41,7 @@ import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { wh2Of, saidOnce, presetMemos, deadList, markDead, deadAt, DEAD2_MEMO, COLLAPSED_MEMO, ACTRESS_GONE_MEMO, NEWT_MEMO } from './state';
 import {
   SOLIDS, LEDGES, CAST, PICKUPS, CHECKPOINTS, GAG_AT, HINT_AT, OVAL_WALL, STAGE_DOOR, CABINETS, DESK_EIB, JELLO, RANGE, POT_RACK, CAB_TABLE,
-  MAP_STEP, MAP_CAB, MAP_STOOL, RESOLUTE, LIMBAUGH_ARENA, DOLE_ARENA, NEWT_ARENA, BURNERS, BLINKERS, roomAt, X, Y,
+  MAP_STEP, MAP_CAB, MAP_STOOL, RESOLUTE, LIMBAUGH_ARENA, DOLE_ARENA, NEWT_ARENA, BURNERS, BLINKERS, ROOMS, CEIL, roomAt, X, Y,
 } from './layout';
 import { updateHazards2, makeDrawers } from './hazards';
 import { updateWaves } from './kinds';
@@ -55,7 +55,7 @@ import {
 import { drawWh2Back } from './art';
 import {
   drawStageBackdrop, drawStageShell, drawStageProps, drawSeats, drawStageDoor, drawFallenScreen, drawProjectorRig, stageLights, stageBox,
-  type StagePlan,
+  GRID_H, type StagePlan,
 } from './realStage';
 import { trampoline, deadBurner, tank, laserStand, globeHalf } from './stageBits';
 import { drawNewtBody, drawLimbaughBody, drawDoleBody, drawDeadActor, drawWigAndMess, bloodPool } from './bodies';
@@ -100,6 +100,24 @@ const PLAN: StagePlan = {
   cameras: [X(640), X(4980), X(9180), X(11200)],
 };
 
+/** The ceilings (hidden, under the drawn ones), solid up past the rooms' so no jump, launch or bounce off the jelly gets
+ *  out through one onto the roof: the colonnade's (its roof over the walk, 370 up), each room's in the West Wing (the
+ *  backstage's behind the Oval's wall: the real stage's). Over the real stage, once the screen's down: the pipe grid. */
+const COLONNADE_CEIL = 370, CEIL_TOP = CEIL + 80;
+const layCeilings = (state: GameState, real: boolean) => {
+  if (real) { solid(state, x0 - 200, Y(GRID_H) - 80, x1 - x0 + 400, 80, { hidden: true, tag: 'wh2-grid' }); return; }
+  for (const r of ROOMS) {
+    if (r.id === 'backstage') continue;
+    const h = r.id === 'colonnade' ? COLONNADE_CEIL : CEIL;
+    solid(state, X(r.a), Y(CEIL_TOP), r.b - r.a, CEIL_TOP - h, { hidden: true, tag: 'wh2-ceiling' });
+  }
+};
+/** The screen's come down mid-stage: the show's ceilings away, the grid's in. */
+const realCeilings = (state: GameState) => {
+  for (const b of state.blocks) if (b.tag === 'wh2-ceiling') b.x = -1e7;
+  layCeilings(state, true);
+};
+
 export const whitehouse2: CartoonSection = {
   id: 'whitehouse2', x0, x1,
   checkpoints: CHECKPOINTS,
@@ -112,6 +130,7 @@ export const whitehouse2: CartoonSection = {
     state.blocks.push({ x: x1, y: -6000, w: 40, h: 6000 + GY + 600, type: 'wall', hidden: true, tag: 'whitehouse2-end' });
     for (const [a, b, top] of SOLIDS) solid(state, X(a), Y(top), b - a, top + 40, { hidden: true });
     for (const [a, b, h] of LEDGES) ledge(state, X(a), Y(h), b - a, { hidden: true });
+    layCeilings(state, real);
     makeDrawers(state);
     buildArenas2(state);
     // (the Oval Office's far wall: the end of the show's White House, till the screen's down)
@@ -131,6 +150,7 @@ export const whitehouse2: CartoonSection = {
     // actors: they ran)
     if (!projectionUp(state) && !stripped.has(state.stage as object)) {
       stripped.add(state.stage as object); s.real = true; stripCast(state);
+      if (!state.blocks.some(b => b.tag === 'wh2-grid')) realCeilings(state);
       if (!finaleOn(state)) openOval(state);
     }
     const real = s.real, F = s.finale;

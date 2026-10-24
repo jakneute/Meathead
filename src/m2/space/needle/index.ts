@@ -33,7 +33,7 @@ import { shakeScreen } from '../../../m1/game/core/state';
 import { hurtPlayer } from '../../../m1/game/bosses/shared';
 import { isShat, isNude } from '../../../m1/game/player/gut';
 import { guestAt, type Guest } from '../../adventure/queue/crowd';
-import { GY, NX0, NX1, LOBBY0, LIFT_X, LOBBY1, CAR0, CAR1, CAR_X, D0, D1, DECK_LIFT, RING_R, RING_C, DECK_HORIZON, DECK_ROW, CASE_X, SLOT, SLOTS, slotX, SPEAKER_Y, WIN_TOP } from './layout';
+import { GY, NX0, NX1, LOBBY0, LIFT_X, LOBBY1, CAR0, CAR1, CAR_X, D0, D1, DECK_LIFT, RING_R, RING_C, DECK_HORIZON, DECK_ROW, CASE_X, SLOT, SLOTS, slotX, SPEAKER_Y, WIN_TOP, CEIL } from './layout';
 import { drawLobby, drawCar, drawDeck, drawSuitCase, drawEndGlass, drawLiftDoors } from './art';
 import { drawDeckView, drawAscent, prewarmSky, c01, hash } from './sky';
 import { DECOMP, VACUUM, setOutGuests, drawPuppet, drawDecompCam, drawFloat } from './death';
@@ -455,6 +455,9 @@ export const needle: SpaceSection = {
     ]);
     // (walls: the lobby's ends, the car's, the deck's bulkhead and its big window)
     for (const [x, tag] of [[LOBBY0 - 40, 'needle-lobby0'], [LOBBY1, 'needle-lobby1'], [CAR0 - 40, 'needle-car0'], [CAR1, 'needle-car1'], [D0 - 40, 'needle-bulkhead'], [D1, 'needle-window']] as const) solid(state, x, GY - 2000, 40, 2200, { hidden: true, tag });
+    // (the ceilings: the lobby's coffers (their underside GY - 490), the deck's soffit (its lit edge at CEIL + 24))
+    solid(state, LOBBY0, GY - 560, LOBBY1 - LOBBY0, 70, { hidden: true, tag: 'needle-ceiling' });
+    solid(state, D0, CEIL - 40, D1 - D0, 64, { hidden: true, tag: 'needle-ceiling' });
     st(state);
     reapplySuit(state);
     prewarmSky();

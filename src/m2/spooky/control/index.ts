@@ -18,7 +18,7 @@ import type { GameState } from '../../../m1/game/core/state';
 import type { FrameContext } from '../../../m1/game/core/context';
 import type { Controls } from '../../../m1/game/platform/input';
 import type { SpookySection, Said } from '../section';
-import { layOwn, endWalls, endExits, runExits, box, hands, speak, meatheadSays, saidOver, spookyState } from '../section';
+import { layOwn, endWalls, endExits, runExits, box, hands, speak, meatheadSays, saidOver, spookyState, solid } from '../section';
 import { GY } from '../geometry';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { playSound } from '../../../m1/game/platform/audio';
@@ -34,7 +34,8 @@ import { type Shop, makeShop, setShopGeo, buildShop, startChase, shopAftermath, 
 import { type Doors, makeDoors, buildDoors, doorsDown, lockDoors, tickDoors, forgetDoors, doorsKicked, drawDoors, drawDoorsFront, drawDoorsTrim, drawDoorsHud } from './doors';
 import * as L from './lines';
 import { x0, x1, HOLE_X, DESK_X, RACK_X, ROOM_DOOR, SHOP_X, BALL_DOOR, PICKUP_X, MIC_X } from './geo';
-import { drawRoom as paintRoom, drawPartition, drawPartitionFront, roomLighting } from './room';
+import { drawRoom as paintRoom, drawPartition, drawPartitionFront, roomLighting, STAFF } from './room';
+import { CEIL } from './paint';
 
 type Ctx = CanvasRenderingContext2D;
 const pick = pickLine;
@@ -209,6 +210,10 @@ export const control: SpookySection = {
     if (state.checkpoint < 60) { revealSeen = false; forgetDoors(); }
     layOwn(state, [{ x1: x0 - 200, y1: GY, x2: x1 + 200, y2: GY, surface: 'tile' }]);
     endWalls(state, 'control');
+    // (the drop ceiling over the room and the shop, all along: no uppercut off the mezzanine out through it; and the
+    // partition's block over the staff door, its lintel up to the ceiling: nobody over it through the wall)
+    solid(state, x0 - 200, CEIL - 60, x1 - x0 + 400, 60, { hidden: true, tag: 'control-ceiling' });
+    solid(state, STAFF.A, CEIL, STAFF.B - STAFF.A, STAFF.H - CEIL, { hidden: true, tag: 'control-lintel' });
     resetStaff();
     buildShop(state);
     buildDoors(state, ctl(state).doors);

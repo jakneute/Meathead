@@ -36,7 +36,7 @@ import { byPants } from '../blvd/kinds';
 import { PA_VOICE } from '../blvd/lines';
 import {
   x0, x1, X, Y, R, GY, GROUND, SOLIDS, LEDGES, WIRES, ENEMIES, THEATER_ENEMIES, PICKUPS, CHECKPOINTS, GUESTS, RAIL_H,
-  LOBBY, PRESHOW, THEATER, FAR_WALL, SCREEN, FX, CAT_L, CAT_R, BOOTH, HORNS, REAL_LEVER,
+  LOBBY, PRESHOW, THEATER, FAR_WALL, SCREEN, FX, CAT_L, CAT_R, BOOTH, HORNS, REAL_LEVER, DOOR_HALF,
 } from './layout';
 import { dzOf, type Dz } from './state';
 import './kinds';
@@ -119,6 +119,15 @@ export const disaster: HollywoodSection = {
     for (const [rx, h, w] of SOLIDS) solid(state, X(rx), Y(h), w, h, { hidden: true, tag: 'disaster' });
     for (const [rx, h, w] of LEDGES) ledge(state, X(rx), Y(h), w, { hidden: true, tag: 'disaster' });
     endWalls(state, 'disaster');
+    // (the ceilings: hidden under the drawn ones (the lobby's and the pre-show's 330, the theater's 620), all solid up to
+    // the one top so nothing's got a roof to get out onto; the headers over the doorways (the lobby's 170 high, the
+    // theater's 166) solid up to them, so nothing goes through the partitions over the doors; the building's end over
+    // the far wall, there when the wall's gone (the hole's its full height: nothing up over it onto the roof))
+    const top = 700;
+    for (const r of [LOBBY, PRESHOW, THEATER]) solid(state, X(r === LOBBY ? -200 : r.a), Y(top), (r === LOBBY ? r.b + 200 : r.b - r.a) + (r === THEATER ? 40 : 0), top - r.ceil, { hidden: true, tag: 'disaster-ceiling' });
+    solid(state, X(PRESHOW.a) - 8, Y(LOBBY.ceil), 16, LOBBY.ceil - 170, { hidden: true, tag: 'disaster-header' });
+    solid(state, X(THEATER.a) - DOOR_HALF, Y(THEATER.ceil), DOOR_HALF * 2, THEATER.ceil - 166, { hidden: true, tag: 'disaster-header' });
+    solid(state, X(FAR_WALL), GY - 2000, 40, 2000 - THEATER.ceil, { hidden: true, tag: 'disaster-far-top' });
     // (a fresh start further on (the checkpoint-skip cheat), or in from the havoc: it's real)
     if (state.checkpoint >= 43) setRealDisasters(state);
     const real = realDisastersOn(state);

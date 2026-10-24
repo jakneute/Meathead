@@ -37,7 +37,7 @@ import { DOORS } from '../geometry';
 import { flash } from '../blvd/paint';
 import {
   x0, x1, X, Y, R, GY, BACK_Y, GROUND, SOLIDS, LEDGES, WIRES, ENEMIES, PICKUPS, REFILL, CHECKPOINTS, FAR_WALL, ARENA,
-  WALLS_MEMO, CAST_MEMO, LEAK_MEMO,
+  WALLS_MEMO, CAST_MEMO, LEAK_MEMO, ROOF_Y,
 } from './layout';
 import { whOf } from './state';
 import './kinds';
@@ -45,7 +45,7 @@ import './cast';
 import { updateShots } from './kinds';
 import { drawShots } from './shots';
 import { updateHazards, drawHazards } from './hazards';
-import { takeLaunch, updateBurst, drawBurstHud, drawBurstDirector, drawBurstSaid } from './burst';
+import { takeLaunch, updateBurst, drawBurstHud, drawBurstDirector, drawBurstSaid, ROOF_HOLE } from './burst';
 import { updateFight, fightCam, castDone, drawFightBack, drawFightFront, drawFightHud } from './fight';
 import { startEnding, updateEnding, endingOn, leaked, endingZoom, drawEndingBack, drawEndingFront, drawEndingHud } from './ending';
 import { drawWarehouseBackdrop, drawWarehouseBack, warehouseLamps } from './art';
@@ -69,6 +69,15 @@ export const warehouse: HollywoodSection = {
     for (const [rx, h, w] of SOLIDS) solid(state, X(rx), Y(h), w, h, { hidden: true, tag: 'warehouse' });
     for (const [rx, h, w] of LEDGES) ledge(state, X(rx), Y(h), w, { hidden: true, tag: 'warehouse' });
     endWalls(state, 'warehouse');
+    // (the roof: hidden under its underside (the girder's depth, ROOF_Y-80 up to it), the far wall's end to the start;
+    // the train's hole in it left open (he comes in through it), walled up its sides so nothing gets out onto the roof)
+    const ha = X(ROOF_HOLE.a), hb = X(ROOF_HOLE.b), ra = x0 - 200, rb = X(FAR_WALL);
+    solid(state, ra, ROOF_Y - 80, ha - ra, 80, { hidden: true, tag: 'warehouse-roof' });
+    solid(state, hb, ROOF_Y - 80, rb - hb, 80, { hidden: true, tag: 'warehouse-roof' });
+    solid(state, ha - 20, ROOF_Y - 1200, 20, 1200, { hidden: true, tag: 'warehouse-roof' });
+    solid(state, hb, ROOF_Y - 1200, 20, 1200, { hidden: true, tag: 'warehouse-roof' });
+    // (the far wall over the bulldozer's hole (its top GY-236): there after the rest goes, nothing over it onto the roof)
+    solid(state, X(FAR_WALL), GY - 1300, 40, 1300 - 250, { hidden: true, tag: 'warehouse-far-top' });
     // (a fresh start further on (the checkpoint-skip cheat): what he'd have done on the way is done)
     if (state.checkpoint >= 20) state.stageMemo[WALLS_MEMO] = '1';
     if (state.checkpoint >= 30) { state.stageMemo[CAST_MEMO] = '1'; state.stageMemo[LEAK_MEMO] = '1'; }

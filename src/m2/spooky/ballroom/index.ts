@@ -15,7 +15,7 @@
 import type { GameState } from '../../../m1/game/core/state';
 import type { Block } from '../../../m1/types';
 import type { SpookySection } from '../section';
-import { layOwn, endWalls, endExits, runExits, box, ledge, spookyState } from '../section';
+import { layOwn, endWalls, endExits, runExits, box, ledge, solid, spookyState } from '../section';
 import { drawBallroomArt, drawBallroomFront, ballroomLighting } from './art';
 import { GY } from '../geometry';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, topBand } from '../../../m1/constants';
@@ -64,6 +64,8 @@ export const ballroom: SpookySection = {
     endWalls(state, 'ballroom');
     // (the stage's wall: the end of the floor)
     state.blocks.push({ x: ARENA_R, y: -4000, w: 40, h: 4000 + GY, type: 'wall', hidden: true, tag: 'ballroom-stage' } as Block);
+    // (the ceiling, under its cornice: nobody off a chandelier up through it)
+    solid(state, x0 - 40, CEIL - 60, ARENA_R - x0 + 40, 60, { hidden: true, tag: 'ballroom-ceiling' });
     // The arena's high ground: the two chandeliers (stood on: up level with him in the air, for a shot at him, or out of
     // the way of the blood), the bandstand's riser in the corner
     for (const ch of CHANDELIERS) ledge(state, ch.x, GY - ch.h, ch.w, { hidden: true, tag: 'ballroom-chandelier' });

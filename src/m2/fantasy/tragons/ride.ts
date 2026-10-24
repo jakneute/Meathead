@@ -23,7 +23,7 @@ import { piperLine, piperMust } from '../piperLines';
 import { RIVALS } from '../glen/rivals';
 import {
   GY, TL, LOCK, S0X, GATE_X, END_S, EXIT_X, AWAY, LANES, LANE_NAME, LANE_COL, SCRIPT, RIDE_CPS, UNLOAD_CP, DONE_MEMO,
-  TIPS_MEMO, LOOP_MEMO, DECK_X0, DECK_X1, TUNNEL, LAGOON, DROPS, laneY, rearX, speedAt, evDue, rideCp, V_TEACH, type Lane, type Ev,
+  TIPS_MEMO, LOOP_MEMO, DECK_X0, DECK_X1, STATION_X, ROOF_H, TUNNEL, LAGOON, DROPS, laneY, rearX, speedAt, evDue, rideCp, V_TEACH, type Lane, type Ev,
 } from './layout';
 import { trackPt, proj, spinAt, type Spin } from './track';
 import { tragonsOf, type Tragons, type Train, type Obst } from './state';
@@ -73,7 +73,14 @@ export const buildRide = (state: GameState) => {
   gate = solid(state, GATE_X, GY - 320, 20, 320, { hidden: true, tag: 'tragons-gate' });
   decks = LANES.map(lane => solid(state, DECK_X0, AWAY, DECK_X1 - DECK_X0 - (2 - lane) * 80, 16, { type: 'platform', oneWay: true, hidden: true, tag: 'tragons-deck' }));
   stairs = Array.from({ length: STAIR_N }, (_, k) => solid(state, DECK_X1 + k * STAIR_W, AWAY, STAIR_W, 12, { type: 'platform', oneWay: true, hidden: true, tag: 'tragons-stair' }));
+  // (the canopies' roofs (station.ts canopy), hidden under their undersides: the load station's, there while it's
+  // where it's drawn (loading, or done: it slides off with the ride); the unload hall's, out with the decks)
+  loadRoof = solid(state, STATION_X - 500 - 8, AWAY, GATE_X + 200 - (STATION_X - 500) + 16, 60, { hidden: true, tag: 'tragons-roof' });
+  unloadRoof = solid(state, DECK_X0 - 130, AWAY, DECK_X1 - DECK_X0 + 256, 60, { hidden: true, tag: 'tragons-roof' });
 };
+let loadRoof: { y: number } = { y: 0 };
+let unloadRoof: { y: number } = { y: 0 };
+const ROOF_Y = GY - ROOF_H - 60;
 /** The exit stairs down off the bottom deck's end to the yard (station.ts draws them): steps, each this wide. */
 export const STAIR_N = 8, STAIR_W = 26;
 /** Step k's top (world y). */
@@ -85,6 +92,7 @@ let decks: { y: number }[] = [];
 const setDecks = (on: boolean) => {
   decks.forEach((d, lane) => { d.y = on ? deckY(lane as Lane) : AWAY; });
   stairs.forEach((d, k) => { d.y = on ? stairY(k) : AWAY; });
+  unloadRoof.y = on ? ROOF_Y : AWAY;
 };
 export const deckY = (lane: Lane) => laneY(lane, END_S + TL / 2);
 
@@ -427,6 +435,7 @@ export const updateRide = (ctx: FrameContext, controls: Controls): Controls => {
   const want = takeCarHop();
   const riding = t.phase === 'dispatch' || t.phase === 'ride';
   const alive = p.health > 0;
+  loadRoof.y = t.phase === 'load' || t.phase === 'done' ? ROOF_Y : AWAY;
   eyeTo(t, false);
   // (who's stood on what, before it moves; how far along it he is)
   const pOn = alive && !t.hop && !t.lock && !t.flung ? trainUnder(p, t, 6) : null;

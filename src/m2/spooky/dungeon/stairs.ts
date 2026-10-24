@@ -9,7 +9,7 @@ import type { GameState } from '../../../m1/game/core/state';
 import type { FrameContext } from '../../../m1/game/core/context';
 import type { GroundRun } from '../../../m1/game/core/terrain';
 import type { Light } from '../../../m1/game/render/lighting';
-import { meatheadSays } from '../section';
+import { meatheadSays, solid } from '../section';
 import { INK, box, checker, plaque, rockFill, blockFill, stoneLedge, torch, STONE, IRON, mix, hazeBands, bandedGradient, stamp } from './paint';
 import { signAt, candle, enamel, print, led } from '../letters';
 import { hash } from '../../intro/art/kit';
@@ -47,6 +47,10 @@ export const resetStairs = (state: GameState) => { if (state.checkpoint < 10) { 
 export const initStairs = (state: GameState) => { if (state.checkpoint >= 21) { descended = true; told = 2; saidDark = 2; } };
 
 export const buildStairs = (state: GameState) => {
+  // (the tunnel's roof, HEAD over the steps all the way down: a block every 12 px, its foot on the roof's line where
+  // it's highest in it; and the cells' wall over the tunnel's mouth, up to their vault: no jumping out into the rock)
+  for (let x = S; x < CELLS; x += 12) solid(state, x, floorAt(x) - HEAD - 200, Math.min(12, CELLS - x), 200, { hidden: true, tag: 'dungeon-stair-roof' });
+  solid(state, CELLS - 40, GY - 960, 40, 660, { hidden: true, tag: 'dungeon-stair-roof' });
   spawnStaff(state, 'bat', S + 720, STAIR_TOP + 120, 71); spawnStaff(state, 'bat', S + 1320, STAIR_TOP + 430, 72);
   // (the skeleton lurking on the second landing, the igor at the foot)
   spawnStaff(state, 'skeleton', S + 1080, STAIR_TOP + 500, 73);

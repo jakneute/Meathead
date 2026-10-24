@@ -27,7 +27,7 @@ import {
   STONE, TIMBER, SLATE, SNOW, GOLD, IRON, FLAG, LIP, type Ctx,
 } from '../kit';
 import { paintHead } from '../glen/sets';
-import { GY, S0X, STATION_X, GATE_X, DECK_X0, DECK_X1, EXIT_X, END_S, TL, LANES, LANE_COL, wxOf, type Lane } from './layout';
+import { GY, S0X, STATION_X, GATE_X, DECK_X0, DECK_X1, EXIT_X, END_S, TL, LANES, LANE_COL, ROOF_H, wxOf, type Lane } from './layout';
 import type { Tragons } from './state';
 import { deckY, STAIR_N, STAIR_W, stairY } from './ride';
 import { inView, scrollOf, at } from './scene';
@@ -38,7 +38,7 @@ import { paintLogo } from './logo';
 import { timeOfDay } from '../../timeOfDay';
 
 /** How far back the halls' back walls stand; how tall they are; the canopy's height. */
-const HALL_D = 0.84, WALL_H = 600, ROOF_H = 640;
+const HALL_D = 0.84, WALL_H = 600;
 /** The heads' height on the wall (from its top), under the canopy where they're seen. */
 const HEAD_Y = 176;
 const D = (col: string) => rampH(ramp6(col), true);

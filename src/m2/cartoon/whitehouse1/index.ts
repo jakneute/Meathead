@@ -45,10 +45,10 @@ import type { Enemy, Block } from '../../../m1/types';
 import type { Tower } from '../sway';
 import { todLight } from '../../timeOfDay';
 import { presetMemos, deadList, markDead, deadAt, saidOnce as saidOnce2, DEAD1_MEMO } from '../whitehouse2/state';
-import { drawStageBackdrop, drawStageShell, drawStageProps, drawSeats, drawFallenScreen, stageLights, realLight, type StagePlan } from '../whitehouse2/realStage';
+import { drawStageBackdrop, drawStageShell, drawStageProps, drawSeats, drawFallenScreen, stageLights, realLight, GRID_H, type StagePlan } from '../whitehouse2/realStage';
 import { drawPerotBody, drawFalwellBody, drawDeadActor } from '../whitehouse2/bodies';
 import { STAGE_WH1, BODY_LINES } from '../whitehouse2/lines';
-import { PIANO, CHAIRS, RISER, PODIUM, SIDEBOARD, BED, BENCH, TABLE, ARBOR, PEROT_ARENA, FALWELL_ARENA, BALCONY_EDGE, F2, floorAt } from './layout';
+import { PIANO, CHAIRS, RISER, PODIUM, SIDEBOARD, BED, BENCH, TABLE, ARBOR, PEROT_ARENA, FALWELL_ARENA, BALCONY_EDGE, F2, CEIL2, floorAt } from './layout';
 import { clearWhLines, whMust } from './onceLines';
 import './kinds';
 import './catDeath';
@@ -79,6 +79,14 @@ const PLAN1: StagePlan = {
   marks: [[X(500), 'ENTRANCE'], [X(1600), 'CROSS HALL'], [X(2900), 'EAST RM'], [X(4300), 'PRESS RM'], [X(5700), 'DINING'], [X(11000), 'ROSE GDN']],
   cameras: [X(1000), X(5900), X(11900)],
 };
+/** The rooms' ceilings (hidden, under each room's drawn ceiling): solid from it up past the tallest (the ground floor's
+ *  run up to the Grand Staircase's), so no jump, launch or knock up gets out through one onto the roof; and the house's
+ *  outside wall over the Truman Balcony, up past the roof (nothing in off the balcony or the topiary over the top). */
+const CEIL_TOP = CEIL2 + 80;
+const layCeilings = (state: GameState) => {
+  for (const r of ROOMS) if (!r.outdoors) solid(state, X(r.a), Y(CEIL_TOP), r.b - r.a, CEIL_TOP - r.ceil, { hidden: true, tag: 'wh1-ceiling' });
+  solid(state, X(9950) - 40, Y(CEIL_TOP + 1200), 40, 1200 + 80, { hidden: true, tag: 'wh1-ceiling' });
+};
 /** The cast as built this stage, by its place in CAST (a kill marks the actor dead). */
 const castOf = new WeakMap<object, Map<Enemy, number>>();
 /** This stage's turned to the real stage (the cartoon's bits taken out). */
@@ -106,6 +114,9 @@ const toRealStage = (state: GameState) => {
   if (cast) state.enemies = state.enemies.filter(e => !cast.has(e) || e.health <= 0);
   s.balls = []; s.throws = []; s.scene = null;
   for (const [a, b, h] of STAGE_STEPS) solid(state, X(a), Y(h), b - a, h + 40, { hidden: true, tag: 'wh1-stage-step' });
+  // (the show's ceilings were the projection's; over the real stage, the pipe grid)
+  for (const b of state.blocks) if (b.tag === 'wh1-ceiling') away(b);
+  solid(state, x0 - 200, Y(GRID_H) - 80, x1 - x0 + 400, 80, { hidden: true, tag: 'wh1-grid' });
 };
 
 /** Is the White House the show (the projection's up: he's the cat, kills are puffs)? Not once the projector's come
@@ -130,6 +141,7 @@ export const whitehouse1: CartoonSection = {
     state.blocks.push({ x: x1, y: -6000, w: 40, h: 6000 + GY + 600, type: 'wall', hidden: true, tag: 'whitehouse1-end' });
     for (const [a, b, top] of SOLIDS) solid(state, X(a), Y(top), b - a, Math.min(GY + 40 - Y(top), top + 40), { hidden: true, tag: `wh1-solid-${a}` });
     for (const [a, b, h] of LEDGES) ledge(state, X(a), Y(h), b - a, { hidden: true });
+    layCeilings(state);
     const s = whOf(state);
     s.towers = makeTowers(state, [TOPIARY]);
     makeChandelier(state);

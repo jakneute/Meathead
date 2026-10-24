@@ -22,7 +22,7 @@ import { makeKindEnemy } from '../../../m1/game/enemies/kinds';
 import { CANVAS_WIDTH } from '../../../m1/constants';
 import { drawSkipPrompt } from '../../../m1/game/platform/skip';
 import {
-  x0, x1, A, LEDGES, SOLIDS, POSTS, CAST, deadPosts, markPostDead, HIJACK_MEMO, QUEUE_DOOR, TUNNEL_X,
+  x0, x1, A, LEDGES, SOLIDS, POSTS, CAST, deadPosts, markPostDead, HIJACK_MEMO, QUEUE_DOOR, TUNNEL_X, AIRLOCK_TOP,
 } from './layout';
 import { ATOM, homeFacing, drawBarks } from './kinds';
 import { runRigs, buildRigBlocks, type RigBlocks } from './rigs';
@@ -51,6 +51,9 @@ export const atom: SpaceSection = {
     solid(state, x0 - 60, GY - 800, 60, 800);
     for (const [x, top, w] of SOLIDS) solid(state, x, top, w, GY - top);
     for (const [x, y, w] of LEDGES) ledge(state, x, y, w);
+    // (the space station set's ceiling over the airlocks, the doors' housings: solid under it, and on up into the dark
+    // past anything he can jump to, so nobody goes over the doors through it or along its top)
+    solid(state, A + 3900, GY - 900, 960, AIRLOCK_TOP - (GY - 900), { tag: 'atom-airlock-ceiling' });
     for (let i = n0; i < state.blocks.length; i++) state.blocks[i].hidden = true;
     const as = atomOf(state);
     as.blocks = buildRigBlocks(state);

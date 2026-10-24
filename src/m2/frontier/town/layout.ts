@@ -108,6 +108,8 @@ export const SOLIDS: [number, number, number, number?][] = [
   [7040, 7100, 70],
   // (the sawmill's works under its deck)
   [9800, 10780, 220],
+  // (its shed's roof over the deck (places.ts drawMill: the underside at 560, the fascia over it): nothing up through it)
+  [9756, 10824, 587, 557],
   // (the mountain over the mine; the rock down into the flooded shaft, and the hump under it)
   [11600, 14420, 420, -210],
   [13120, 14300, -210, -560],

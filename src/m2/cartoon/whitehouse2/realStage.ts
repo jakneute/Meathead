@@ -59,6 +59,9 @@ const tube = (g: Ctx, x0: number, y0: number, x1: number, y1: number, w: number,
   for (const [k, col] of [[1, R[1]], [0.7, R[3]], [0.3, R[5]]] as [number, string][]) { g.strokeStyle = col; g.lineWidth = w * k; g.beginPath(); g.moveTo(x0 - (1 - k) * 0.4, y0 - (1 - k) * 0.4); g.lineTo(x1 - (1 - k) * 0.4, y1 - (1 - k) * 0.4); g.stroke(); }
 };
 
+/** The pipe grid's height over the stage floor (what's over the real stage: its hidden ceiling, both halves). */
+export const GRID_H = 660;
+
 /** What a half's stage is made of (world x; heights as world y tops). */
 export interface StagePlan {
   /** The span it covers (world x). */
@@ -176,7 +179,7 @@ export const drawStageShell = (c: Ctx, state: GameState, plan: StagePlan) => {
     for (let x = Math.floor((a - 400) / seg) * seg; x < b + 400; x += seg) {
       if (!seenAt(state, E, x, x + seg, D, 40)) continue;
       still(c, 'drapes', x, GY, 0, -H, seg, H, g => paintDrapes(g, seg, H));
-      still(c, `grid-${Math.abs(Math.round(x / seg)) % 4}`, x, GY - 660, 0, -4, seg, 92, g => paintGrid(g, seg, Math.abs(Math.round(x / seg)) % 4));
+      still(c, `grid-${Math.abs(Math.round(x / seg)) % 4}`, x, GY - GRID_H, 0, -4, seg, 92, g => paintGrid(g, seg, Math.abs(Math.round(x / seg)) % 4));
       // (safety lines and hanging cable down from the grid)
       box(c, x + seg * 0.3, GY - 634, 2, 60, '#0A0A0D');
     }

@@ -54,7 +54,7 @@ import { newRide, runRide, lampOn, upCar, loadedCar, type Ride, type Car } from 
 import { drawTowerBackdrop, drawTowerBack } from './art';
 import { useDoor } from '../dungeon/stairs';
 import {
-  x0, x1, ENTRY_DOOR_X, HOW_BOARD_X, ASK_X, BOOTH_X, STAFF_DOOR_X, TX0, TX1, U, WALL, SH0, SH1, SHM, SHX, SHU, SHD, CH0, CH1, DOOR_H, F, STORY, STORIES, SLAB, TOP, ROOF, B1,
+  x0, x1, ENTRY_DOOR_X, HOW_BOARD_X, ASK_X, BOOTH_X, STAFF_DOOR_X, BAY_TOP, TX0, TX1, U, WALL, SH0, SH1, SHM, SHX, SHU, SHD, CH0, CH1, DOOR_H, F, STORY, STORIES, SLAB, TOP, ROOF, B1,
   HELL_AT, LEDGES, SHELF, CHUTE_LEDGES, BEAMS, beamTop, WHOLE, WRECK, JAMS, pieceY, floorAt, CUCKOOS, FOES, DESCENT_FOES, SECURITY, PICKUPS, CAR_TOP,
   LIFT, liftY, ROTTEN, TORN_NET, LADDER_SPOTS, type TowerFoe, type FoeAt, type Piece,
 } from './layout';
@@ -502,6 +502,8 @@ export const tower: SpookySection = {
     state.groundRuns.push({ x1: CH0, y1: GY, x2: CH1, y2: GY, surface: 'wood' });
     const n0 = state.blocks.length;
     endWalls(state, 'tower');
+    // (the loading bay's ceiling, its underside where it's drawn, out to the tower's wall: indoors, no way out up)
+    solid(state, x0 - 200, BAY_TOP - 60, TX0 - WALL - (x0 - 200), 70);
     solid(state, CH0, GY, SH0 - CH0, 30); solid(state, SH1, GY, CH1 - SH1, 30);
     solid(state, SH0, GY, SH1 - SH0, 30, { tag: 'tw-grate' });
     solid(state, CH0, B1, SH0 - CH0, 30); solid(state, SH1, B1, CH1 - SH1, 30);
