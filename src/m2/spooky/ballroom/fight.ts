@@ -127,9 +127,9 @@ const HOME = [0, 2.8, 4.2, 5.6], HOME_TILL = [0, 0.45, 0.55, 0.64];
 /** How close his claws have to come (px, either way, across and up and down). */
 const CLAW_X = 42, CLAW_Y = 50;
 /** Held: a drain every so often (his damage, Donnie's heal), let go after this long at most, or this many presses. */
-const DRAIN_EVERY = 18, DRAIN_DMG = 5, DRAIN_HEAL = 5, DRAIN_MAX = 150, ESCAPE_PRESSES = 9;
+const DRAIN_EVERY = 18, DRAIN_DMG = 5, DRAIN_HEAL = 6, DRAIN_MAX = 150, ESCAPE_PRESSES = 9;
 /** The guests: how often one runs through (by phase), how fast; sucking one dry, how long and what it heals. */
-const GUEST_EVERY = [0, 640, 520, 420], GUEST_SPEED = 3.4, SUCK_T = 90, GUEST_HEAL = 3;
+const GUEST_EVERY = [0, 640, 520, 420], GUEST_SPEED = 3.4, SUCK_T = 90, GUEST_HEAL = 4;
 /** The spew: the aim first, then the stream (by phase), a drop every so often, how hard, how fast; how fast his aim
  *  can follow Meathead (px a frame: about his walk, so standing still or walking straight away gets you hosed). */
 // (the aim catches up quicker by phase too: was 3.2 throughout)
