@@ -32,6 +32,7 @@ import { trainOf, type Train } from './state';
 import { playerRoom, roomAt } from './where';
 import { shiftBounds } from './kinds';
 import { tubeSay } from './tube';
+import { throwDynamite } from './dynamite';
 import { inView } from './view';
 import { TUBE_UNCOUPLE, TUBE_MISSED, TRAIN_GAGS, LION_LOOSE } from './lines';
 import { startMaul, lionEscapes } from './lion';
@@ -179,6 +180,8 @@ export const updateCut = (ctx: FrameContext) => {
     if (cut.t >= cut.tell) {
       cut.phase = 'drift'; cut.t = 0; cut.v = 0;
       playSound('crack', 1, -6); playSound('clang', 1, -10); shakeScreen(state, 5, 3);
+      // (the dynamite lobbed into the cut-off cars: get off (the user's; only looks))
+      throwDynamite(state, tr, cut.k);
     }
     return;
   }

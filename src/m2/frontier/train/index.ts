@@ -46,6 +46,7 @@ import { updateEngine, drawEngineBack, drawEngineFront, drawEngineHud, crashed, 
 import { ZOOM } from './view';
 import { tubeSay, drawTube } from './tube';
 import { warmTuckerPip, stepTuckerPip, drawTuckerPip } from './tuckerPip';
+import { updateDynamite } from './dynamite';
 import { BOARDED, TUBE_BOARD, TUBE_LEDGER, TRAIN_GAGS, REVISIT } from './lines';
 import { updateCage, updateMaul, drawMaul, drawEscape, trainOff } from './lion';
 
@@ -149,6 +150,7 @@ export const train: FrontierSection = {
     // (stood still: into the back of the cab, on to the town)
     if (tr.phase === 'still' && cx > CAR_X[ENGINE] - 30 && feet <= DECK + 4 && feet > DECK - 120) { teleport(state, DOORS.town.start.x, DOORS.town.start.y); return out; }
     updateCut(ctx);
+    updateDynamite(state);
     updatePassers(ctx);
     updateShots(ctx, tr.phase === 'ride');
     updateRooms(ctx);

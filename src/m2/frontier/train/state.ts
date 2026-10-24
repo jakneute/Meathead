@@ -11,6 +11,7 @@ import type { Said } from '../section';
 import { frontierState } from '../section';
 import type { CarKind } from './layout';
 import type { TubeMood, TuckerPip } from './tuckerPip';
+import type { Dyn } from './dynamite';
 
 export interface Car { i: number; blocks: Block[]; gone: boolean }
 
@@ -84,6 +85,8 @@ export interface Train {
   /** The line's mood, and his gross-up in the corner while he's at it off screen (tuckerPip.ts). */
   tubeMood: TubeMood;
   pip: TuckerPip | null;
+  /** The dynamite thrown into the cut-off cars (dynamite.ts: only looks). */
+  dyn: Dyn[];
   ledgerT: number;
   said: Record<string, boolean>;
   cinderT: number;
@@ -115,6 +118,6 @@ export interface Maul {
 export const trainOf = (state: GameState) => frontierState<Train>(state, 'train', () => ({
   phase: 'intro', settled: false, cars: [], rear: 0, cut: null, cutsDone: new Set(), dist: 0, v: 0, vTarget: 0, passers: [], fired: new Set(), shots: [], wrecks: [], horses: [], riders: [],
   dark: 0, grade: 0, tilt: 0, climb: 0, soak: 0, roarT: 0, stash: [],
-  introT: 0, hopT: 0, tube: null, tubeBusy: false, tubeMood: 'petty', pip: null, ledgerT: 0, said: {}, cinderT: 0, hitCd: 0, shudder: 0,
+  introT: 0, hopT: 0, tube: null, tubeBusy: false, tubeMood: 'petty', pip: null, dyn: [], ledgerT: 0, said: {}, cinderT: 0, hitCd: 0, shudder: 0,
   cage: { rx: 260, facing: 1, walk: false, roar: 0, roarCd: 90, t: 0 }, escape: null, lion: null,
 }));

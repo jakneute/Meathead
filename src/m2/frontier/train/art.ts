@@ -22,6 +22,7 @@ import { FG_GROUND } from './kinds';
 import type { Train } from './state';
 import { WR, windows, WIN_T, WIN_H, truck, drawBase, drawExt, drawInt, drawTop, drawCarLive, drawLamp, drawWreckCar } from './carArt';
 import { drawCage, trainOff } from './lion';
+import { drawDynamite } from './dynamite';
 
 export { drawScenery } from './far';
 
@@ -136,6 +137,7 @@ export const drawCarsBack = (c: Ctx, state: GameState) => {
     } else if (d.circus) drawCage(c, state, x, d.len, tr.phase === 'still' ? 'open' : 'live');
     else drawTop(c, d.kind, d.len, x);
     drawCarLive(c, d.kind, d.len, x, f, open);
+    drawDynamite(c, state, i, x);
   }
 };
 
