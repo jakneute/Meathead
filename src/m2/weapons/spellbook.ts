@@ -23,6 +23,7 @@ import { playSound } from '../../m1/game/platform/audio';
 import { setBuffs } from '../../m1/game/core/buffs';
 import { say, MEATHEAD_VOICE, pickLine } from '../../m1/game/platform/speech';
 import { CANVAS_WIDTH, CANVAS_HEIGHT, HUD_CLEAR_Y } from '../../m1/constants';
+import * as H from './heldArt';
 import { m2Kill } from '../moves/killLines';
 import { grabCallout } from '../moves/callouts';
 import { BULK_LINES, BULK_FAIL_LINES } from '../lines/weaponLines';
@@ -895,16 +896,90 @@ const vineArm = (state: GameState) => {
   };
 };
 
-/** In his fist: the tome, black and bound in iron, a skull on the cover, the pages glowing out the edge. */
+/** In his fist: the tome, black leather in stepped bands, stitched round its border, a ribbed spine, iron corner
+ *  brackets riveted on; a skull embossed on the cover, four runes cut round it that light up one after another, the
+ *  skull's eyes glowing; the pages glowing out the fore-edge, a page corner flicking up now and then; a strap and a
+ *  brass buckle over the edge. The still parts are stamps (heldArt.ts); the glow, runes and pages are live. */
+const RUNES: readonly (readonly [number, number, number, number])[][] = [
+  [[1.6, -2.4, 0.6, 3], [1.6, -2.4, 1.6, 0.6], [2.6, -1, 0.6, 1.6]],
+  [[12.6, -2.4, 0.6, 3], [12, -1.2, 1.8, 0.6], [13.2, -2.4, 0.6, 1]],
+  [[6.8, -6, 2.4, 0.6], [7.7, -6, 0.6, 1.6]],
+  [[6.6, 4.8, 0.6, 1.6], [7.6, 4.4, 0.6, 2], [8.6, 4.8, 0.6, 1.6], [6.6, 4.8, 2.6, 0.5]],
+];
+const paintBook = (g: Ctx) => {
+  H.box(g, -2, -8, 20, 18, INK);
+  // (the cover: black leather, lit along the top, darkest along the bottom, dithered between; grain in it)
+  H.box(g, -1, -7, 18, 16, '#27272A');
+  H.box(g, -1, -7, 18, 2, '#3F3F46'); H.dither(g, -1, -5, 18, 1, '#3F3F46', 1);
+  H.box(g, -1, 7, 18, 2, '#18181B'); H.dither(g, -1, 6, 18, 1, '#18181B', 0);
+  H.speckle(g, 0, -4, 16, 10, '#1E1E22', 3, 7); H.speckle(g, 0, -4, 16, 10, '#38383F', 8, 9);
+  // (the spine: darker, ribbed)
+  H.box(g, -1, -7, 1.6, 16, '#1C1C20');
+  for (const y of [-4, 0, 4]) { H.box(g, -1, y, 2, 0.8, '#52525B'); H.box(g, -1, y + 0.8, 2, 0.5, '#0C0C0E'); }
+  // (stitched round the border)
+  for (let x = 2.5; x < 14; x += 1.6) { H.box(g, x, -5.6, 0.8, 0.4, '#57534E'); H.box(g, x, 7.2, 0.8, 0.4, '#44403C'); }
+  for (let y = -4.2; y < 7; y += 1.6) { H.box(g, 1.6, y, 0.4, 0.8, '#57534E'); H.box(g, 15, y, 0.4, 0.8, '#44403C'); }
+  // (the runes cut round the skull: dark grooves, lit live)
+  for (const r of RUNES) for (const [x, y, w, h] of r) { H.box(g, x, y, w, h, '#0C0C0E'); H.box(g, x, y + h, w, 0.3, '#45454D'); }
+  // (the skull, embossed: its shadow on the leather, bone lit from the top left)
+  H.box(g, 5.6, -3.4, 6, 5, '#0C0C0E'); H.box(g, 6.6, 1.6, 4, 2, '#0C0C0E');
+  H.box(g, 5, -4, 6, 5, '#D6D3D1'); H.box(g, 6, 1, 4, 2, '#D6D3D1');
+  H.box(g, 5, -4, 6, 1, '#F5F5F4'); H.box(g, 5, -4, 1, 4, '#E7E5E4'); H.box(g, 10.4, -3, 0.6, 4, '#A8A29E'); H.box(g, 6, 2.4, 4, 0.6, '#A8A29E');
+  H.box(g, 6, -2, 2, 2, INK); H.box(g, 9, -2, 2, 2, INK);
+  H.box(g, 8, 0, 1, 0.8, '#57534E');
+  H.box(g, 7, 1, 1, 2, INK); H.box(g, 9, 1, 1, 2, INK); H.box(g, 8, 1.4, 0.4, 1.2, '#78716C');
+  H.box(g, 9.6, -4, 0.4, 1.2, '#78716C'); H.box(g, 9.2, -2.8, 0.4, 0.6, '#78716C');
+  // (iron brackets on the corners: lit edges, a rivet each)
+  for (const [x, y, sx, sy] of [[-1, -7, 1, 1], [17, -7, -1, 1], [-1, 9, 1, -1], [17, 9, -1, -1]] as const) {
+    H.poly(g, [[x, y], [x + sx * 3.6, y], [x, y + sy * 3.6]], '#71717A');
+    H.poly(g, [[x, y], [x + sx * 3.6, y], [x + sx * 3, y + sy * 0.6], [x, y + sy * 0.6]], sy > 0 ? '#D4D4D8' : '#52525B');
+    H.rivet(g, x + sx * 0.8 - (sx < 0 ? 1 : 0), y + sy * 0.8 - (sy < 0 ? 1 : 0), '#27272A', '#E4E4E7');
+  }
+  // (the fore-edge: the page ends, lined)
+  H.box(g, 17, -6, 2, 14, '#E9D5FF');
+  for (let y = -5.5; y < 8; y += 1) H.box(g, 17, y, 2, 0.4, '#C4B5FD');
+};
+const paintClasp = (g: Ctx) => {
+  H.box(g, 13.6, -0.4, 6, 3.2, INK);
+  H.box(g, 14, 0, 5.6, 2.4, '#44403C'); H.box(g, 14, 0, 5.6, 0.5, '#78716C'); H.box(g, 14, 1.9, 5.6, 0.5, '#292524');
+  H.box(g, 15, -0.5, 2, 3.4, INK); H.box(g, 15.3, -0.2, 1.4, 2.8, '#CA8A04'); H.box(g, 15.3, -0.2, 1.4, 0.6, '#FDE68A'); H.box(g, 15.8, 0.6, 0.4, 1.2, INK);
+};
 const drawHeld = (c: Ctx, frame: number) => {
-  c.fillStyle = INK; c.fillRect(-2, -8, 20, 18);
-  c.fillStyle = '#27272A'; c.fillRect(-1, -7, 18, 16);
-  c.fillStyle = '#3F3F46'; c.fillRect(-1, -7, 18, 2);
-  c.fillStyle = frame % 30 < 15 ? '#C084FC' : '#E9D5FF'; c.fillRect(17, -6, 2, 14);
-  c.fillStyle = '#A1A1AA'; c.fillRect(-1, -7, 3, 3); c.fillRect(14, -7, 3, 3); c.fillRect(-1, 6, 3, 3); c.fillRect(14, 6, 3, 3);
-  c.fillStyle = '#E7E5E4'; c.fillRect(5, -4, 6, 5); c.fillRect(6, 1, 4, 2);
-  c.fillStyle = INK; c.fillRect(6, -2, 2, 2); c.fillRect(9, -2, 2, 2); c.fillRect(7, 1, 1, 2); c.fillRect(9, 1, 1, 2);
-  if (frame % 40 < 20) { c.fillStyle = 'rgba(192, 132, 252, 0.5)'; c.fillRect(19, -4 - (frame % 20) * 0.3, 2, 2); }
+  c.save();
+  H.snapOrigin(c);
+  H.heldStamp(c, 'book', -3, -9, 23, 20, paintBook);
+  // The pages glowing out the edge, breathing; a bloom off it
+  const gl = 0.5 + 0.5 * Math.sin(frame * 0.21);
+  c.fillStyle = `rgba(192, 132, 252, ${(0.35 + gl * 0.45).toFixed(2)})`; c.fillRect(17, -6, 2, 14);
+  c.fillStyle = `rgba(233, 213, 255, ${(gl * 0.6).toFixed(2)})`; c.fillRect(17.5, -5, 1, 12);
+  c.fillStyle = `rgba(192, 132, 252, ${(0.12 + gl * 0.15).toFixed(2)})`; c.fillRect(19, -5, 1.5, 12);
+  // (the runes, lighting up one after another; the skull's eyes glowing)
+  const step = Math.floor(frame / 14) % (RUNES.length + 2);
+  RUNES.forEach((r, i) => {
+    const on = i === step ? 1 : i === step - 1 ? 0.45 : 0.12;
+    c.fillStyle = `rgba(192, 132, 252, ${on.toFixed(2)})`;
+    for (const [x, y, w, h] of r) c.fillRect(x, y, w, h);
+    if (on === 1) { c.fillStyle = 'rgba(243, 232, 255, 0.9)'; c.fillRect(r[0][0], r[0][1], 0.6, 0.6); }
+  });
+  const eye = 0.35 + 0.35 * Math.sin(frame * 0.09);
+  c.fillStyle = `rgba(168, 85, 247, ${eye.toFixed(2)})`; c.fillRect(6, -2, 2, 2); c.fillRect(9, -2, 2, 2);
+  c.fillStyle = `rgba(243, 232, 255, ${(eye * 1.2).toFixed(2)})`; c.fillRect(6.6, -1.4, 0.8, 0.8); c.fillRect(9.6, -1.4, 0.8, 0.8);
+  // (a page corner flicking up off the top of the edge now and then, and settling)
+  const ft = frame % 110;
+  if (ft < 26) {
+    const k = Math.sin((ft / 26) * Math.PI) * (ft < 13 ? 1 : 0.8), h = 0.6 + k * 2.6;
+    c.fillStyle = INK; c.beginPath(); c.moveTo(15.4, -7.4); c.lineTo(19.6, -7.4 - h); c.lineTo(19.8, -6.2); c.closePath(); c.fill();
+    c.fillStyle = '#FAF5FF'; c.beginPath(); c.moveTo(16.2, -7.2); c.lineTo(19.2, -7.2 - h * 0.85); c.lineTo(19.2, -6.6); c.closePath(); c.fill();
+  }
+  H.heldStamp(c, 'book:clasp', 13, -1, 7.5, 4.5, paintClasp);
+  H.twinkle(c, frame, 15.7, 0.1, 160, 20, 1.3);
+  // (motes of it drifting up off the pages)
+  for (let j = 0; j < 2; j++) {
+    const t = ((frame + j * 23) % 46) / 46;
+    c.fillStyle = `rgba(216, 180, 254, ${(0.6 * (1 - t)).toFixed(2)})`;
+    c.fillRect(Math.round((19.5 + Math.sin(t * 7 + j * 3)) * 2) / 2, Math.round((-3 + j * 4 - t * 9) * 2) / 2, 1, 1);
+  }
+  c.restore();
 };
 
 export const registerSpellbook = () => registerWeapon('SPELLBOOK', { fire: ctx => fire(ctx), update, draw, drawHeld, tick, drawOverlay, vineArm, drawUnder: (c, state) => { drawPulped(c, state); drawUnderFx(c, state); } });

@@ -31,7 +31,8 @@ import { specialsHalf, heavyHit, HALF } from './half';
 import { subBossDmg } from './subBoss';
 import { playSound } from '../../m1/game/platform/audio';
 import { setArmor } from '../../m1/game/core/resist';
-import { CANVAS_WIDTH, HUD_CLEAR_X, HUD_CLEAR_Y } from '../../m1/constants';
+import { CANVAS_WIDTH, HUD_CLEAR_X, HUD_CLEAR_Y, maxAmmo } from '../../m1/constants';
+import * as H from './heldArt';
 import { idleTasks } from '../../m1/game/scenes/art/raster';
 import { vineGrip, vineLean } from '../../m1/game/combat/muzzle';
 import { drawLeg, drawArmTo, drawTorsoFromHips } from '../../m1/game/render/player/body';
@@ -272,6 +273,7 @@ const tick = (ctx: FrameContext, input: { shoot: boolean }, equipped: boolean) =
   const whole = durable(ctx);
   if (whole) brokeCued = false;
   brokenNow = !whole;
+  wearNow = ctx.cheats.infiniteAmmo ? 0 : wearOf(pl.weaponAmmo.MALLET / Math.max(1, maxAmmo('MALLET', state.stageId)));
   if (!equipped) { if (mode !== 'idle') { mode = 'idle'; pl.hidden = false; syncArmor(); } xHeld = yHeld = 0; return; }
   // (wound up for the smash or the tornado, the smash coming down, the tornado going: a hit hurts him, but nothing
   // knocks him out of it, whatever it was (a stage's own shove, a stun): the knock's taken off him, and X still held
@@ -495,17 +497,76 @@ const tick = (ctx: FrameContext, input: { shoot: boolean }, equipped: boolean) =
 // ---------------------------------------------------------------------------------------------------------------
 // Drawing
 
-/** The mallet: a long wooden handle, a big round-ended barrel of a head (red, yellow bands), drawn along the +x axis from the grip. */
+/** How beat up it looks (0 fresh out of the box to 3 about to go), from what's left of it: tick's. */
+let wearNow = 0;
+const wearOf = (left: number) => (left > 0.75 ? 0 : left > 0.5 ? 1 : left > 0.25 ? 2 : 3);
+
+/** The mallet: a long wooden handle (grained, a rubber grip wrapped round the bottom of it, a brass ferrule up top), a
+ *  big round-ended barrel of a head (red, two painted yellow bands, a cartoon shine), drawn along the +x axis from the
+ *  grip. Worn, it shows it: scuffs, then paint chipped off down to the wood, the bands flaking, dents in the striking
+ *  faces, and at the end a crack down the head. A stamp per length and wear (heldArt.ts): it's drawn swung, flipped and
+ *  squashed every frame of every move. */
 const drawMallet = (c: Ctx, len = 36) => {
   if (brokenNow) { drawStick(c, len); return; }
-  c.fillStyle = INK; c.fillRect(-2, -3, len + 2, 6); c.fillStyle = '#D6A35C'; c.fillRect(-1, -2, len, 4); c.fillStyle = '#F2C27D'; c.fillRect(-1, -2, len, 1);
+  H.heldStamp(c, `mallet:${len}:${wearNow}`, -3, -18, len + 25, 36, g => paintMallet(g, len, wearNow));
+};
+const paintMallet = (g: Ctx, len: number, wear: number) => {
+  // (the handle: wood, lit along the top, grained)
+  H.box(g, -2, -3, len + 2, 6, INK);
+  H.box(g, -1, -2, len, 4, '#D6A35C'); H.box(g, -1, -2, len, 1, '#F2C27D'); H.box(g, -1, 1, len, 1, '#A8763A');
+  for (let x = 10; x < len - 4; x += 5) H.box(g, x + H.hash(x) * 2, H.hash(x * 3) > 0.5 ? -0.6 : 0.4, 2.5, 0.4, '#B8864A');
+  // (the grip: black rubber wrapped round, the wraps lit)
+  H.box(g, -1, -2, 10, 4, '#27272A');
+  for (let x = 0; x < 9; x += 2) { H.poly(g, [[x, -2], [x + 0.8, -2], [x + 1.6, 2], [x + 0.8, 2]], '#52525B'); H.box(g, x, -2, 0.8, 0.5, '#A1A1AA'); }
+  H.box(g, -1, 1.4, 10, 0.6, '#18181B');
+  // (the ferrule: brass, where the handle goes in)
+  H.box(g, len - 5, -3.5, 4, 7, INK); H.box(g, len - 4.5, -3, 3, 6, '#CA8A04'); H.box(g, len - 4.5, -3, 3, 1, '#FDE68A'); H.box(g, len - 4.5, 2, 3, 1, '#A16207');
+  if (wear >= 3) { H.box(g, len - 14, -0.6, 5, 0.5, INK); H.box(g, len - 18, 0, 4, 0.5, INK); }
+  // (the head: inked, red, rounded off like a barrel, lit from the handle side)
   const hx = len, hw = 18, hh = 30;
-  c.fillStyle = INK; c.beginPath(); c.roundRect(hx - 2, -hh / 2 - 2, hw + 4, hh + 4, 6); c.fill();
-  c.fillStyle = '#DC2626'; c.beginPath(); c.roundRect(hx, -hh / 2, hw, hh, 5); c.fill();
-  c.fillStyle = '#F87171'; c.fillRect(hx + 2, -hh / 2 + 2, 4, hh - 4);
-  c.fillStyle = '#FACC15'; c.fillRect(hx, -hh / 2 + 4, hw, 3); c.fillRect(hx, hh / 2 - 7, hw, 3);
-  c.fillStyle = INK; c.beginPath(); c.ellipse(hx + hw / 2, -hh / 2, hw / 2 + 1, 3.5, 0, 0, Math.PI * 2); c.ellipse(hx + hw / 2, hh / 2, hw / 2 + 1, 3.5, 0, 0, Math.PI * 2); c.fill();
-  c.fillStyle = '#FEE2E2'; c.beginPath(); c.ellipse(hx + hw / 2, -hh / 2, hw / 2 - 0.5, 2.5, 0, 0, Math.PI * 2); c.fill();
+  g.fillStyle = INK; g.beginPath(); g.roundRect(hx - 2, -hh / 2 - 2, hw + 4, hh + 4, 6); g.fill();
+  g.save(); g.beginPath(); g.roundRect(hx, -hh / 2, hw, hh, 5); g.clip();
+  const bands = (cols: string[], y: number, h: number) => {
+    // dark lip, base, the lit band, the shine, shade, a dithered step into the dark rim
+    H.box(g, hx, y, hw, h, cols[2]);
+    H.box(g, hx + 1, y, 1.5, h, cols[3]); H.box(g, hx + 2.5, y, 1.5, h, cols[4]); H.box(g, hx + 3, y, 0.6, h, cols[5]);
+    H.box(g, hx + 11, y, 3, h, cols[2]); H.dither(g, hx + 11, y, 3, h, cols[1], 0);
+    H.box(g, hx + 14, y, 3, h, cols[1]); H.box(g, hx + 17, y, 1, h, cols[0]);
+  };
+  bands(['#7F1D1D', '#B91C1C', '#DC2626', '#EF4444', '#F87171', '#FEE2E2'], -hh / 2, hh);
+  for (const y of [-hh / 2 + 4, hh / 2 - 7]) {
+    bands(['#854D0E', '#CA8A04', '#FACC15', '#FDE047', '#FDE68A', '#FEF9C3'], y, 3);
+    H.box(g, hx, y - 0.4, hw, 0.4, '#7F1D1D'); H.box(g, hx, y + 3, hw, 0.4, '#7F1D1D');
+  }
+  // (the cartoon shine)
+  H.box(g, hx + 3, -5, 1.2, 3.4, '#FFFFFF'); H.box(g, hx + 3, -0.6, 1.2, 1.2, '#FFFFFF');
+  // (wear: scuffs, then the paint chipped down to the wood, the bands flaking, a crack)
+  const chip = (x: number, y: number, w: number, h: number) => { H.box(g, hx + x, y, w, h, '#E7C9A0'); H.box(g, hx + x, y + h, w, 0.4, '#7F1D1D'); };
+  if (wear >= 1) {
+    H.box(g, hx + 6, 2, 2.5, 0.5, '#991B1B'); H.box(g, hx + 9, 5, 1.6, 0.5, '#991B1B'); H.box(g, hx + 12, -4, 2, 0.5, '#991B1B');
+    chip(16, -hh / 2 + 4, 1.6, 1);
+  }
+  if (wear >= 2) {
+    chip(14, -hh / 2, 3, 1.5); chip(1, hh / 2 - 1.6, 3, 1.2); chip(8, -hh / 2 + 0.5, 2, 1);
+    H.dither(g, hx + 5, -hh / 2 + 4, 6, 3, '#DC2626', 1); H.dither(g, hx + 9, hh / 2 - 7, 5, 3, '#DC2626', 0);
+    H.box(g, hx + 13, 9, 2, 0.5, '#991B1B'); H.box(g, hx + 5, -9, 2.5, 0.5, '#991B1B');
+  }
+  if (wear >= 3) {
+    chip(0.5, -hh / 2 + 8, 2, 2); chip(15, 3, 2.5, 2); chip(10, hh / 2 - 2, 3, 1.5);
+    g.strokeStyle = INK; g.lineWidth = 0.7;
+    g.beginPath(); g.moveTo(hx + 9, -hh / 2); g.lineTo(hx + 8, -9); g.lineTo(hx + 10, -4); g.lineTo(hx + 8.5, 1); g.lineTo(hx + 10.5, 5); g.stroke();
+    g.strokeStyle = '#FCA5A5'; g.lineWidth = 0.35; g.beginPath(); g.moveTo(hx + 8.4, -9.4); g.lineTo(hx + 9.6, -4.6); g.stroke();
+  }
+  g.restore();
+  // (the striking faces, end on: the top one lit, a ring round it, dented as it wears; the bottom in shadow)
+  H.ell(g, hx + hw / 2, -hh / 2, hw / 2 + 1, 3.5, INK); H.ell(g, hx + hw / 2, hh / 2, hw / 2 + 1, 3.5, INK);
+  H.ell(g, hx + hw / 2, -hh / 2, hw / 2 - 0.5, 2.5, '#FECACA');
+  H.ell(g, hx + hw / 2 - 1.2, -hh / 2 - 0.4, hw / 2 - 3, 1.5, '#FFF1F2');
+  H.box(g, hx + 2, -hh / 2 - 0.3, 2, 0.6, '#FFFFFF');
+  H.box(g, hx + hw - 4, -hh / 2 + 0.6, 3, 0.6, '#F87171');
+  H.box(g, hx + 3, hh / 2 - 1.2, hw - 6, 0.5, '#7F1D1D');
+  if (wear >= 2) { H.ell(g, hx + 11, -hh / 2 + 0.2, 1.6, 0.7, '#F87171'); H.box(g, hx + 10, -hh / 2 - 0.6, 1.6, 0.4, '#FFFFFF'); }
+  if (wear >= 3) { H.ell(g, hx + 5.5, -hh / 2 + 0.6, 1.2, 0.6, '#F87171'); H.ell(g, hx + 14, -hh / 2 - 0.4, 1, 0.5, '#EF4444'); }
 };
 
 /** The broken stick: the handle, snapped off short of where the head was, a jagged splintered end (a couple of
@@ -1195,7 +1256,12 @@ const vineArm = (state: GameState) => {
 };
 
 /** In his fist, carried at the ready: gripped low on the handle, the head up in front of him, tipped forward. */
-const drawHeld = (c: Ctx) => { c.save(); c.translate(1, 3); c.rotate(-1.15); drawMallet(c, 28); c.restore(); };
+const drawHeld = (c: Ctx, frame: number) => {
+  c.save(); c.translate(1, 3); c.rotate(-1.15); drawMallet(c, 28);
+  // (the light catching it: a glint down the head's shine, the top face twinkling)
+  if (!brokenNow) { const gt = frame % 200; if (gt < 16) { c.fillStyle = 'rgba(255,255,255,0.5)'; c.fillRect(29 + gt, -13.5, 1.2, 27); } H.twinkle(c, frame, 33, -15.4, 200, 110, 1.8); }
+  c.restore();
+};
 
 /** (for tests: hold him at a frame of a move) */
 export const holdMalletForTests = (m: string, at: number) => { mode = m as Mode; t = at; };
@@ -1206,5 +1272,5 @@ export const stopMallet = () => { mode = 'idle'; stick = false; syncArmor(); wor
 export const registerMallet = () => registerWeapon('MALLET', {
   // (all its business is in tick: X and Y both, held and tapped)
   fire: ctx => { ctx.state.player.shootCooldown = 0; },
-  update: () => false, draw: () => {}, drawHeld: c => drawHeld(c), tick, drawOverlay, drawUnder, vineArm,
+  update: () => false, draw: () => {}, drawHeld, tick, drawOverlay, drawUnder, vineArm,
 });

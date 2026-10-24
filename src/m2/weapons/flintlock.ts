@@ -24,6 +24,7 @@ import { isRobot } from '../kinds';
 import { specialsHalf, halfKill } from './half';
 import { subBossDmg } from './subBoss';
 import { since } from '../frames';
+import * as H from './heldArt';
 import { struckAt } from './strikes';
 import { impactRing, smokePuff, spokes, wordPop, wordPopLimited, debris, nudge, clearFlourish, coneAt, starAt, puffAt } from './gunFlourish';
 type Ctx = CanvasRenderingContext2D;
@@ -285,19 +286,92 @@ const drawHeld = (c: Ctx, frame: number) => {
     }
   }
 };
-/** The pistol itself (drawHeld: kicked and flashing round it). */
+/** The pistol itself (drawHeld: kicked and flashing round it): the walnut stock, grained and checkered, a knot in it,
+ *  curving down to the brass butt cap; the engraved lock plate, the cocked hammer with its flint, the pan and frizzen,
+ *  a brass trigger guard; the long iron barrel in stepped flats, rust at the muzzle, banded in brass; the laser pointer
+ *  taped twice under it. The still part's a stamp (heldArt.ts); the brass glinting, the laser's eye and the pan's
+ *  wisp after a shot are live. */
+const paintPistol = (g: Ctx) => {
+  // (the trigger guard and trigger, under the stock)
+  g.strokeStyle = INK; g.lineWidth = 1.5; g.beginPath(); g.ellipse(6.6, 3.4, 2.2, 1.9, 0, 0, Math.PI); g.stroke();
+  g.strokeStyle = '#CA8A04'; g.lineWidth = 0.6; g.stroke();
+  H.box(g, 5.8, 3, 0.7, 2, INK);
+  // (the stock: walnut, lit along its top and down its back, shaded down the front of the grip)
+  H.poly(g, [[-3, -1], [10, -2], [10, 3], [4, 4], [1, 11], [-5, 10]], INK);
+  H.poly(g, [[-2, 0], [9, -1], [9, 2], [3, 3], [0.5, 9.5], [-4, 9]], '#92400E');
+  H.poly(g, [[-2, 0], [9, -1], [9, 0.4], [-1.6, 1.4]], '#B45309');
+  H.poly(g, [[-2, 0], [-1, 0.6], [-3, 9.1], [-4, 9]], '#B45309');
+  H.poly(g, [[3, 3], [0.5, 9.5], [-0.6, 9.4], [2, 3.3]], '#78350F');
+  H.box(g, -1, 0, 7, 0.5, '#D97706');
+  // (its grain, a knot, the checkering on the grip, a scratch)
+  g.strokeStyle = '#78350F'; g.lineWidth = 0.45;
+  g.beginPath(); g.moveTo(8, 1.2); g.quadraticCurveTo(2, 1.6, -1.2, 7.6); g.stroke();
+  g.beginPath(); g.moveTo(5, 2.4); g.quadraticCurveTo(1.6, 3.6, 0, 8.6); g.stroke();
+  H.ell(g, 1.6, 4.4, 0.9, 0.6, '#5C2A0A'); H.box(g, 1.2, 3.9, 0.8, 0.3, '#B45309');
+  H.dither(g, -2, 5, 3, 3, '#6B2F0C', 0);
+  H.box(g, 3.4, 0.9, 2.2, 0.35, '#E8A35A');
+  // (the butt cap: brass, lit on top, a screw)
+  H.box(g, -5.5, 7.5, 6, 4, INK);
+  H.box(g, -5, 8, 5, 3, '#CA8A04'); H.box(g, -5, 8, 5, 0.8, '#FDE68A'); H.box(g, -5, 10.2, 5, 0.8, '#A16207'); H.box(g, -4.6, 8.1, 1, 0.5, '#FEF9C3');
+  H.rivet(g, -2, 9.2, '#713F12', '#FEF3C7', true);
+  // (the lock plate under the hammer: engraved, screwed on)
+  H.poly(g, [[0.6, -0.8], [8.4, -1.4], [8.4, 1.8], [1.4, 2.2]], INK);
+  H.poly(g, [[1.2, -0.4], [8, -0.9], [8, 1.3], [1.8, 1.7]], '#52525B');
+  H.box(g, 1.4, -0.5, 6.4, 0.5, '#A1A1AA');
+  for (const [x, y] of [[3, 0.6], [4.2, 0.2], [5.4, 0.8], [6.6, 0.4]] as const) H.box(g, x, y, 0.6, 0.4, '#8B8B94');
+  H.rivet(g, 2, 0.4, '#27272A', '#E4E4E7', true); H.rivet(g, 7.1, 0.2, '#27272A', '#E4E4E7', true);
+  // (the barrel: iron in stepped flats, lit along the top, rust at the muzzle; the crown and bore)
+  H.box(g, 8, -2, 24, 5, INK);
+  H.box(g, 9, -1, 22, 3, '#52525B');
+  H.box(g, 9, -1, 22, 0.5, '#D4D4D8'); H.box(g, 9, -0.5, 22, 0.7, '#A1A1AA'); H.box(g, 9, 0.2, 22, 0.8, '#71717A'); H.box(g, 9, 1.5, 22, 0.5, '#3F3F46');
+  H.speckle(g, 22, 0, 8, 2, '#7C2D12', 4, 4); H.speckle(g, 25, -1, 5, 1, '#9A3412', 9, 5);
+  H.box(g, 30.4, -1, 0.6, 3, '#A1A1AA'); H.box(g, 31, -0.4, 0.6, 1.8, '#18181B');
+  H.box(g, 29.6, -2.8, 0.8, 1, INK); H.box(g, 10.4, -2.6, 1.2, 0.8, INK);
+  // (the brass bands round it)
+  for (const x of [17, 29]) { H.box(g, x - 0.5, -2.5, 3, 6, INK); H.box(g, x, -2, 2, 5, '#CA8A04'); H.box(g, x, -2, 2, 0.8, '#FDE68A'); H.box(g, x, 2.2, 2, 0.8, '#A16207'); H.box(g, x, -2, 0.5, 5, '#EAB308'); }
+  // (the pan and frizzen in front of the hammer)
+  H.box(g, 6.6, -3, 2.4, 1.8, INK); H.box(g, 7, -2.6, 1.6, 1, '#CA8A04'); H.box(g, 7, -2.6, 1.6, 0.4, '#FDE68A');
+  H.poly(g, [[8.2, -2.6], [8.4, -5.6], [9.6, -5.6], [9.4, -2.4]], INK); H.box(g, 8.7, -5.2, 0.5, 2.6, '#A1A1AA');
+  // (the hammer, cocked back, the flint in its jaws)
+  H.poly(g, [[4, -0.6], [4.2, -3.8], [3, -6], [5.6, -7], [7.2, -4.4], [7, -0.6]], INK);
+  H.poly(g, [[4.7, -1], [4.9, -3.8], [4, -5.6], [5.4, -6.1], [6.4, -4.2], [6.3, -1]], '#71717A');
+  H.box(g, 4.9, -3.8, 0.5, 2.6, '#D4D4D8');
+  H.box(g, 3.4, -6.9, 2.4, 1.2, INK); H.box(g, 3.8, -6.6, 1.7, 0.7, '#57534E'); H.box(g, 3.8, -6.6, 0.8, 0.3, '#D6D3D1');
+  // (the laser pointer: black, its lens dark till it's lit, taped on twice, a red button)
+  H.box(g, 17, 3, 11, 4, INK);
+  H.box(g, 18, 4, 9, 2, '#27272A'); H.box(g, 18, 4, 9, 0.5, '#52525B'); H.box(g, 18, 5.5, 9, 0.5, '#18181B');
+  H.box(g, 23, 3.6, 1, 0.5, '#DC2626');
+  H.box(g, 27, 4, 1, 2, '#7F1D1D');
+  H.box(g, 19.6, 2.6, 2.8, 4.8, INK); H.tape(g, 20, 3, 2, 4, 11);
+  H.box(g, 24.6, 2.6, 2, 4.8, INK); H.tape(g, 25, 3, 1.2, 4, 5);
+};
 const drawPistol = (c: Ctx, frame: number) => {
-  c.fillStyle = INK; c.beginPath(); c.moveTo(-3, -1); c.lineTo(10, -2); c.lineTo(10, 3); c.lineTo(4, 4); c.lineTo(1, 11); c.lineTo(-5, 10); c.closePath(); c.fill();
-  c.fillStyle = '#92400E'; c.beginPath(); c.moveTo(-2, 0); c.lineTo(9, -1); c.lineTo(9, 2); c.lineTo(3, 3); c.lineTo(0.5, 9.5); c.lineTo(-4, 9); c.closePath(); c.fill();
-  c.fillStyle = '#B45309'; c.fillRect(-1, 0, 8, 1);
-  c.fillStyle = '#CA8A04'; c.fillRect(-5, 8, 5, 3);
-  c.fillStyle = INK; c.fillRect(8, -2, 24, 5);
-  c.fillStyle = '#52525B'; c.fillRect(9, -1, 22, 3); c.fillStyle = '#A1A1AA'; c.fillRect(9, -1, 22, 1);
-  c.fillStyle = '#CA8A04'; c.fillRect(17, -2, 2, 5); c.fillRect(29, -2, 2, 5);
-  c.fillStyle = INK; c.fillRect(4, -6, 3, 5); c.fillStyle = '#71717A'; c.fillRect(5, -5, 1, 3); c.fillStyle = '#E5E7EB'; c.fillRect(5, -6, 2, 1);
-  if (frame % 50 < 25) { c.fillStyle = 'rgba(220, 220, 220, 0.4)'; c.fillRect(7, -9 - (frame % 25) * 0.2, 2, 2); }
-  c.fillStyle = INK; c.fillRect(17, 3, 11, 4); c.fillStyle = '#3F3F46'; c.fillRect(18, 4, 9, 2); c.fillStyle = '#EF4444'; c.fillRect(27, 4, 1, 2);
-  c.fillStyle = '#A1A1AA'; c.fillRect(20, 3, 2, 4);
+  c.save();
+  H.snapOrigin(c);
+  H.heldStamp(c, 'flintlock', -6, -8, 39, 20, paintPistol);
+  // (the laser's eye: a red glow, breathing)
+  const r = 0.5 + 0.5 * Math.sin(frame * 0.18);
+  c.fillStyle = r > 0.5 ? '#F87171' : '#EF4444'; c.fillRect(27, 4, 1, 2);
+  c.fillStyle = `rgba(239, 68, 68, ${(0.15 + r * 0.3).toFixed(2)})`; c.fillRect(28, 3.6, 0.8, 2.8);
+  c.fillStyle = '#FECACA'; c.fillRect(27, 4, 0.5, 0.5);
+  // (the brass catching the light, one bit then the next; a glint running up the barrel)
+  H.twinkle(c, frame, -4.2, 8.4, 150, 0, 1.6);
+  H.twinkle(c, frame, 17.4, -1.6, 150, 50, 1.4);
+  H.twinkle(c, frame, 29.4, -1.6, 150, 100, 1.4);
+  H.glint(c, frame, 9, 20, -1, 2, 170, 80);
+  // (the pan smoking after a shot: a wisp curling up off it, thinning out; now and then a faint one anyway)
+  const a = frame - shotAt;
+  const after = a >= 2 && a < 110, idle = !after && frame % 240 < 36;
+  if (after || idle) {
+    const n = after ? (a < 50 ? 3 : 2) : 1, fade = after ? 1 - a / 110 : 0.35;
+    for (let j = 0; j < n; j++) {
+      const ph = ((after ? a : frame) + j * 11) % 33, k = ph / 33;
+      c.fillStyle = `rgba(226, 226, 226, ${(0.65 * fade * (1 - k)).toFixed(2)})`;
+      const s = 1 + Math.round(k * 2) / 2;
+      c.fillRect(Math.round((7.6 + Math.sin(ph * 0.26 + j * 2) * 1.6 * k) * 2) / 2, Math.round((-3.5 - ph * 0.42) * 2) / 2, s, s);
+    }
+  }
+  c.restore();
 };
 
 /** Everything it was in the middle of, stopped (through a door). */

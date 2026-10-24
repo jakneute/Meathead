@@ -21,6 +21,7 @@ import { playSound } from '../../m1/game/platform/audio';
 import { groundLineAt } from '../../m1/game/core/terrain';
 import { isHumanoidKind, kindFacing } from '../../m1/game/render/enemies';
 import { CANVAS_WIDTH } from '../../m1/constants';
+import * as H from './heldArt';
 import { stamp } from '../../m1/game/render/stamp';
 import { drawEnemyAt, grabHolding } from '../moves/grab';
 import { m2Kill } from '../moves/killLines';
@@ -1445,27 +1446,91 @@ const drawUnder = (c: Ctx, state: GameState) => {
   for (const a of aliens) if (a.onBait) drawAlien(c, a, state.frame);
 };
 
-/** In his fist: a fat lump of purple shell, a see-through green sac on top with things moving in it, a puckered pink
- *  hole at the business end. Squeezing, as it gives birth. */
+/** In his fist: a fat lump of purple shell (stepped round like a beetle's back, plated, knobbly, veined, a biohazard
+ *  sticker some park guy slapped on it), a ribbed handle; the see-through green sac on top, goop sloshing in it and a
+ *  little goblin curled up in there, bobbing, blinking; a puckered pink hole at the business end, dribbling. Squeezing,
+ *  as it gives birth. The shell and handle are a stamp (heldArt.ts); the sac, the hole and the drip are live. */
+const paintSpawner = (g: Ctx) => {
+  // (the handle: ribbed, each rib lit)
+  H.box(g, -2, -1, 6, 10, INK); H.box(g, -1, 0, 4, 8, '#581C87');
+  for (let y = 0.6; y < 8; y += 2) { H.box(g, -1, y, 4, 0.8, '#7E22CE'); H.box(g, -1, y, 1.2, 0.4, '#C084FC'); H.box(g, -1, y + 0.8, 4, 0.4, '#3B0764'); }
+  // (the shell: round like a beetle's back, banded from the shaded underside up to its lit top, dithered between)
+  H.ell(g, 11, -3, 13, 6.5, INK);
+  g.save(); g.beginPath(); g.ellipse(11, -3, 12, 5.5, 0, 0, Math.PI * 2); g.clip();
+  H.box(g, -2, -10, 26, 14, '#4C1D95');
+  H.ell(g, 11, -3.8, 11.6, 4.6, '#6D28D9');
+  H.dither(g, -1, 0, 24, 1, '#6D28D9', 0);
+  H.ell(g, 10.4, -4.4, 10, 3.6, '#7C3AED');
+  H.dither(g, 0, -1.6, 22, 1, '#7C3AED', 1);
+  H.ell(g, 9.6, -5.6, 7, 1.7, '#A78BFA');
+  H.ell(g, 8, -6.4, 2.6, 0.6, '#DDD6FE');
+  // (its plates: seams curving round it, each lit along one side)
+  g.lineWidth = 0.5;
+  for (const x of [6, 16.5]) {
+    g.strokeStyle = '#2E1065'; g.beginPath(); g.moveTo(x, -9); g.quadraticCurveTo(x - 1.6, -3, x, 3); g.stroke();
+    g.strokeStyle = '#A78BFA'; g.lineWidth = 0.3; g.beginPath(); g.moveTo(x + 0.5, -8); g.quadraticCurveTo(x - 1.1, -3, x + 0.5, 2); g.stroke(); g.lineWidth = 0.5;
+  }
+  // (veins, red, branching)
+  g.strokeStyle = '#BE123C'; g.lineWidth = 0.8; g.beginPath(); g.moveTo(3, -2); g.quadraticCurveTo(8, 1, 14, -2); g.quadraticCurveTo(18, -4, 21, -1); g.stroke();
+  g.strokeStyle = '#881337'; g.lineWidth = 0.5;
+  g.beginPath(); g.moveTo(8, -0.6); g.lineTo(9, 1.6); g.moveTo(14, -2); g.lineTo(15.4, -4.2); g.moveTo(18.6, -3.2); g.lineTo(19.4, -0.4); g.stroke();
+  g.fillStyle = '#FB7185'; g.fillRect(10.5, -0.6, 1, 0.4);
+  // (knobs on it, each lit on top, a shadow under)
+  for (const [x, y] of [[4, -2.4], [13, -0.6], [19.4, -5], [20.6, 0.2]] as const) { H.ell(g, x, y + 0.5, 0.9, 0.6, '#2E1065'); H.ell(g, x, y, 0.9, 0.6, '#A78BFA'); H.box(g, x - 0.4, y - 0.5, 0.5, 0.4, '#EDE9FE'); }
+  // (a biohazard sticker, slapped on crooked, its corner lifting)
+  H.box(g, 15, -2.2, 3.6, 3, INK); H.box(g, 15.4, -1.8, 2.8, 2.2, '#FACC15'); H.box(g, 15.4, -1.8, 2.8, 0.4, '#FEF08A');
+  H.box(g, 16.5, -1.5, 0.6, 0.6, INK); H.box(g, 15.8, -0.4, 0.6, 0.6, INK); H.box(g, 17.3, -0.4, 0.6, 0.6, INK); H.box(g, 16.6, -0.6, 0.4, 0.4, INK);
+  H.poly(g, [[18.2, -1.8], [18.8, -1.8], [18.2, -1.1]], '#FEF9C3');
+  // (slime glistening along its belly)
+  H.box(g, 9, 1.6, 4, 0.5, '#65A30D'); H.box(g, 11.6, 2, 0.6, 1, '#84CC16'); H.box(g, 9.4, 1.6, 1, 0.3, '#D9F99D');
+  g.restore();
+};
 const drawHeld = (c: Ctx, frame: number) => {
   const sq = birthing > 0 ? Math.sin((birthing / 12) * Math.PI) : 0;
-  c.fillStyle = INK; c.fillRect(-2, -1, 6, 10); c.fillStyle = '#581C87'; c.fillRect(-1, 0, 4, 8);
-  c.fillStyle = INK; c.beginPath(); c.ellipse(11, -3, 13, 6.5, 0, 0, Math.PI * 2); c.fill();
-  c.fillStyle = '#7C3AED'; c.beginPath(); c.ellipse(11, -3, 12, 5.5, 0, 0, Math.PI * 2); c.fill();
-  c.fillStyle = '#A78BFA'; c.fillRect(2, -7, 16, 2); c.fillStyle = '#4C1D95'; c.fillRect(2, 0, 18, 2);
-  c.strokeStyle = '#BE123C'; c.lineWidth = 1; c.beginPath(); c.moveTo(3, -2); c.quadraticCurveTo(8, 1, 14, -2); c.quadraticCurveTo(18, -4, 21, -1); c.stroke();
-  // the sac, swelling and squeezing
+  c.save();
+  H.snapOrigin(c);
+  H.heldStamp(c, 'spawner', -3, -11, 28, 21, paintSpawner);
+  // The sac, swelling and squeezing: see-through green, goop sloshing in it, a goblin curled up in there
   const rx = 6.5 * (1 - sq * 0.3), ry = 5 * (1 - sq * 0.35);
   c.fillStyle = INK; c.beginPath(); c.ellipse(9, -9, rx + 1, ry + 1, 0, 0, Math.PI * 2); c.fill();
   c.fillStyle = 'rgba(163, 230, 53, 0.9)'; c.beginPath(); c.ellipse(9, -9, rx, ry, 0, 0, Math.PI * 2); c.fill();
-  c.fillStyle = '#D9F99D'; c.fillRect(6, -12, 3, 1);
+  c.save(); c.beginPath(); c.ellipse(9, -9, rx, ry, 0, 0, Math.PI * 2); c.clip();
+  const tip = Math.sin(frame * 0.12) * 1.4, lvl = -9.5 + Math.sin(frame * 0.27) * 0.3;
+  c.fillStyle = '#65A30D'; c.beginPath(); c.moveTo(1, lvl + tip); c.lineTo(17, lvl - tip); c.lineTo(17, -3); c.lineTo(1, -3); c.closePath(); c.fill();
+  c.fillStyle = '#4D7C0F'; c.fillRect(1, -6.4, 16, 3);
+  c.fillStyle = '#BEF264'; c.fillRect(5, lvl - 0.3, 6, 0.4);
+  // (the goblin: a silhouette, ears and all, bobbing; its eyes open, blinking)
+  const bob = Math.sin(frame * 0.05) * 0.8, gx = 9 + Math.sin(frame * 0.031) * 1.2 * (1 - sq), gy = -8.6 + bob;
   c.fillStyle = '#1A2E05';
-  for (let i = 0; i < 3; i++) { const t = frame * 0.15 + i * 2.1; c.fillRect(Math.round(9 + Math.cos(t) * rx * 0.5), Math.round(-9 + Math.sin(t * 1.3) * ry * 0.4), 2, 1); }
-  // the hole it comes out of
+  c.beginPath(); c.ellipse(gx, gy + 2.2, 2.2, 1.5, 0, 0, Math.PI * 2); c.fill();
+  c.beginPath(); c.arc(gx, gy, 1.7, 0, Math.PI * 2); c.fill();
+  c.beginPath(); c.moveTo(gx - 1.4, gy - 0.6); c.lineTo(gx - 3.2, gy - 1.8); c.lineTo(gx - 1, gy - 1.4); c.closePath(); c.fill();
+  c.beginPath(); c.moveTo(gx + 1.4, gy - 0.6); c.lineTo(gx + 3.2, gy - 1.8); c.lineTo(gx + 1, gy - 1.4); c.closePath(); c.fill();
+  if (frame % 150 > 5) { c.fillStyle = '#FDE047'; c.fillRect(gx - 1, gy - 0.4, 0.7, 0.6); c.fillRect(gx + 0.4, gy - 0.4, 0.7, 0.6); }
+  // (bubbles going up)
+  for (let i = 0; i < 2; i++) { const t = ((frame + i * 19) % 38) / 38; c.fillStyle = '#ECFCCB'; c.fillRect(Math.round((5.5 + i * 6 + Math.sin(t * 8) * 0.5) * 2) / 2, Math.round((-4.5 - t * 8) * 2) / 2, 0.6, 0.6); }
+  c.restore();
+  // (the light on the glass)
+  c.fillStyle = '#ECFCCB'; c.fillRect(5.6, -12.2, 3, 0.8); c.fillRect(4.6, -11.4, 1, 1.4);
+  c.fillStyle = '#FFFFFF'; c.fillRect(6, -12.2, 0.8, 0.6);
+  // (the fleshy collar it sits in)
+  c.fillStyle = INK; c.fillRect(4.6, -4.9, 8.8, 1.6); c.fillStyle = '#86198F'; c.fillRect(5, -4.6, 8, 1); c.fillStyle = '#E879F9'; c.fillRect(5, -4.6, 8, 0.4);
+  // The hole it comes out of: puckered, pulsing, opening up as it gives birth
   const r = 3 + Math.sin(frame * 0.3) * 0.5 + sq * 1.5;
   c.fillStyle = INK; c.beginPath(); c.ellipse(24, -3, r * 0.7 + 1, r + 1, 0, 0, Math.PI * 2); c.fill();
   c.fillStyle = '#F472B6'; c.beginPath(); c.ellipse(24, -3, r * 0.7, r, 0, 0, Math.PI * 2); c.fill();
+  c.fillStyle = '#DB2777'; c.beginPath(); c.ellipse(24.3, -3, r * 0.5, r * 0.78, 0, 0, Math.PI * 2); c.fill();
   c.fillStyle = '#450A0A'; c.beginPath(); c.ellipse(24.5, -3, r * 0.3, r * 0.55, 0, 0, Math.PI * 2); c.fill();
+  c.fillStyle = '#9D174D'; for (const a of [-1.2, -0.3, 0.6, 1.5]) c.fillRect(24 + Math.cos(a) * r * 0.55 - 0.25, -3 + Math.sin(a) * r * 0.75 - 0.25, 0.5, 0.5);
+  c.fillStyle = '#FBCFE8'; c.fillRect(23, -3 - r * 0.7, 0.8, 0.6);
+  // (a string of goo dribbling off its lip, stretching, letting go)
+  const d = frame % 96;
+  if (d < 40) {
+    const k = d / 40, len = k < 0.7 ? k / 0.7 * 3 : 3, fall = k < 0.7 ? 0 : (k - 0.7) / 0.3 * 6;
+    c.fillStyle = '#84CC16'; c.fillRect(24.2, -3 + r, 0.6, len); c.fillRect(24, -3 + r + len - 0.2 + fall, 1, 1);
+    c.fillStyle = '#D9F99D'; c.fillRect(24, -3 + r + len - 0.2 + fall, 0.4, 0.4);
+  }
+  c.restore();
 };
 
 /** Everything it's got going, gone (through a door). */

@@ -20,6 +20,7 @@ import { subBossDmg } from './subBoss';
 import { playSound } from '../../m1/game/platform/audio';
 import { groundLineAt } from '../../m1/game/core/terrain';
 import { CANVAS_WIDTH } from '../../m1/constants';
+import * as H from './heldArt';
 import { m2Kill } from '../moves/killLines';
 import { ART_K, drawCarArt, drawWreckArt, drawStuntmanArt, type StuntPose } from './stuntCarArt';
 import { grabCallout } from '../moves/callouts';
@@ -510,12 +511,60 @@ const drawUnder = (c: Ctx) => {
   }
 };
 
-/** In his fist: the clapperboard, striped arm on top, chalked up. */
-const drawHeld = (c: Ctx) => {
-  c.fillStyle = INK; c.fillRect(0, -10, 20, 16); c.fillStyle = '#27272A'; c.fillRect(1, -9, 18, 14);
-  c.fillStyle = '#E5E7EB'; c.fillRect(3, -6, 10, 1); c.fillRect(3, -3, 12, 1); c.fillRect(3, 0, 8, 1);
-  c.fillStyle = INK; c.fillRect(0, -15, 20, 5);
-  for (let i = 0; i < 4; i++) { c.fillStyle = i % 2 ? '#18181B' : '#F8FAFC'; c.fillRect(1 + i * 5, -14, 4, 3); }
+/** In his fist: the clapperboard. The slate black, lit along its top, chipped at the corners, ruled off in chalk and
+ *  chalked up (the picture's MEAT, take 69: it reads right whichever way he's facing), chalk dust smudged round it;
+ *  the clapper arm on top in diagonal stripes, on a hinge pin, twitching open now and then and snapping shut. The
+ *  slate and the arm are stamps (heldArt.ts). */
+const paintSlate = (g: Ctx, mir: boolean) => {
+  H.box(g, 0, -10, 20, 16, INK);
+  H.box(g, 1, -9, 18, 14, '#27272A');
+  H.box(g, 1, -9, 18, 1, '#3F3F46'); H.dither(g, 1, -8, 18, 1, '#3F3F46', 0);
+  H.box(g, 1, 4, 18, 1, '#18181B'); H.dither(g, 1, 3, 18, 1, '#18181B', 1);
+  // (chipped corners, the board under the paint)
+  H.box(g, 1, 4.2, 1, 0.8, '#57534E'); H.box(g, 18.2, -9, 0.8, 1, '#57534E'); H.box(g, 18.4, 3.4, 0.6, 0.6, '#57534E');
+  // (chalk dust: a wiped smear, specks)
+  H.dither(g, 11, 0.6, 6, 2, '#3A3A41', 0);
+  H.speckle(g, 2, -8, 16, 12, '#4B4B53', 21, 9);
+  // (ruled off: a line across, one down the middle under it)
+  H.box(g, 2, -2.6, 16, 0.5, '#C9CDD3'); H.box(g, 9.8, -2.1, 0.5, 6, '#C9CDD3');
+  H.box(g, 6, -2.6, 1.4, 0.5, '#27272A');
+  // (the chalk: the picture, the take)
+  H.chalk(g, 'MEAT', 2.5, -7.8, '#E5E7EB', mir, 1);
+  // (mirrored, the two fields swap sides too: still TK, then 69)
+  H.chalk(g, mir ? '69' : 'TK', 2.6, -1.2, '#D4D4D8', mir, 2);
+  H.chalk(g, mir ? 'TK' : '69', 11.6, -1.2, '#F4F4F5', mir, 3);
+};
+const paintArm = (g: Ctx) => {
+  H.box(g, 0, -15, 20, 5, INK);
+  g.save(); g.beginPath(); g.rect(1, -14, 18, 3); g.clip();
+  H.box(g, 1, -14, 18, 3, '#F8FAFC'); H.box(g, 1, -11.8, 18, 0.8, '#CBD5E1');
+  for (let x = 1; x < 22; x += 5) {
+    H.poly(g, [[x, -14], [x + 2.6, -14], [x + 1, -11], [x - 1.6, -11]], '#18181B');
+    H.poly(g, [[x, -14], [x + 2.6, -14], [x + 2.3, -13.4], [x - 0.3, -13.4]], '#3F3F46');
+  }
+  H.box(g, 1, -14, 18, 0.4, '#FFFFFF');
+  H.box(g, 13, -12.2, 1.6, 0.4, '#94A3B8'); H.box(g, 5.6, -13.2, 1, 0.4, '#94A3B8');
+  g.restore();
+  // (the hinge pin)
+  H.ell(g, 1.6, -10.4, 1.5, 1.5, INK); H.ell(g, 1.6, -10.4, 0.9, 0.9, '#A1A1AA'); H.box(g, 1.1, -10.9, 0.5, 0.5, '#F4F4F5');
+};
+const drawHeld = (c: Ctx, frame: number) => {
+  c.save();
+  H.snapOrigin(c);
+  H.heldStamp(c, 'slate', -1, -11, 22, 18, paintSlate, true);
+  // (the arm: now and then it twitches open on its hinge and snaps back shut, a puff of chalk off the snap)
+  const t = frame % 300, open = t < 10 ? Math.sin((t / 10) * Math.PI * 0.5) : t < 14 ? 1 - (t - 10) / 4 : 0;
+  c.save();
+  if (open > 0) { c.translate(1.6, -10.4); c.rotate(-0.22 * open); c.translate(-1.6, 10.4); }
+  H.heldStamp(c, 'slate:arm', -1, -16, 22, 8, paintArm);
+  c.restore();
+  if (t >= 14 && t < 26) {
+    const k = (t - 14) / 12;
+    c.fillStyle = `rgba(229, 231, 235, ${(0.6 * (1 - k)).toFixed(2)})`;
+    c.fillRect(20 + k * 3, -10.5 - k * 2, 1, 1); c.fillRect(19 + k * 2, -9.5 + k, 1, 1); c.fillRect(21 + k * 4, -9.5 - k * 0.5, 0.5, 0.5);
+  }
+  H.glint(c, frame, 2, 16, -14, 3, 190, 70);
+  c.restore();
 };
 
 /** Everything it was in the middle of, stopped (through a door). */
@@ -524,4 +573,4 @@ export const stopStuntCar = () => { clap = 0; wrecks = []; skids = []; booms = [
 /** The car and the stuntman as drawn here (for a fight's own scripted stunts: the same cars). */
 export { drawCar as drawStuntCar, drawStuntman, PAINT as STUNT_PAINT, CAR_SCALE as STUNT_CAR_SCALE, ART_K as STUNT_ART_K };
 
-export const registerStuntCar = () => registerWeapon('STUNT_CAR', { fire: ctx => fire(ctx), update, draw, drawHeld: c => drawHeld(c), tick: ctx => tick(ctx), drawOverlay, drawUnder: c => drawUnder(c) });
+export const registerStuntCar = () => registerWeapon('STUNT_CAR', { fire: ctx => fire(ctx), update, draw, drawHeld, tick: ctx => tick(ctx), drawOverlay, drawUnder: c => drawUnder(c) });

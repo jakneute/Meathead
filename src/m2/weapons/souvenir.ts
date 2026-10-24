@@ -23,6 +23,7 @@ import { groundLineAt } from '../../m1/game/core/terrain';
 import { CANVAS_WIDTH } from '../../m1/constants';
 import { m2Kill } from '../moves/killLines';
 import { grabCallout } from '../moves/callouts';
+import * as H from './heldArt';
 import { tickFlourish, drawFlourish, drawFlourishUnder, flareCone, flareStar, impactRing, smokePuff, sparkle, spokes, wordPopLimited, debris, nudge, ghostOf, putGhost } from './gunFlourish';
 
 type Ctx = CanvasRenderingContext2D;
@@ -582,20 +583,96 @@ const draw = (c: Ctx, p: Projectile) => {
   c.restore();
 };
 
-/** In his fist: the pipe (white, taped twice, a pink squirt-gun grip under it), the mesh bag of junk strapped on top. */
+/** In his fist: the drainpipe (white PVC in stepped bands, the maker's print on it, grimy, scuffed), taped twice with a
+ *  peeling flap, bungeed; a pink squirt-gun grip under it; the red mesh bag of junk strapped on top (a snow globe, a
+ *  little Easter Island head and a mug in there through the net; the Eiffel Tower and a gold pyramid poking out of
+ *  the top), a price tag swinging off it. The pipe and the bag are each a stamp (souvenirs: heldArt.ts); the jiggle,
+ *  the snow, the tag and the light on it are live. */
+const paintPipe = (g: Ctx) => {
+  // (the grip, a trigger nub in front of it)
+  H.box(g, 3.5, 5.5, 5, 6, INK); H.poly(g, [[8, 6], [10.2, 6], [9.4, 8.6], [8, 8.2]], INK);
+  H.box(g, 4, 6, 4, 5, '#DB2777'); H.box(g, 4, 6, 1, 5, '#F472B6'); H.box(g, 7, 6, 1, 5, '#9D174D'); H.box(g, 4.2, 6.2, 0.5, 2, '#FBCFE8');
+  for (const y of [7.5, 9]) H.box(g, 5, y, 2, 0.5, '#9D174D');
+  H.poly(g, [[8, 6.4], [9.5, 6.4], [9, 7.9], [8, 7.6]], '#EC4899');
+  // (the pipe: white plastic, banded from the lit top to the shaded underside, dithered between)
+  H.box(g, -2, -1, 31, 7, INK);
+  const rows = ['#FFFFFF', '#F4F4F5', '#E4E4E7', '#D4D4D8', '#A1A1AA'];
+  rows.forEach((col, i) => H.box(g, -1, i, 29, 1, col));
+  H.dither(g, -1, 3, 29, 1, '#A1A1AA', 0);
+  H.dither(g, -1, 1, 29, 1, '#E4E4E7', 1);
+  // (the maker's print along it, grime, scuffs)
+  for (const x of [8, 9.5, 11, 12.5, 14.5]) H.box(g, x, 2, 1, 0.6, '#9CA3AF');
+  H.box(g, 23, 2, 1.5, 0.6, '#9CA3AF');
+  H.speckle(g, -1, 0, 29, 5, '#C8BBA6', 5, 11);
+  H.box(g, 1, 3.6, 2.5, 0.4, '#71717A'); H.box(g, 13, 4.2, 3, 0.4, '#71717A'); H.box(g, 24.5, 0.8, 1.6, 0.4, '#A1A1AA');
+  // (bungees round it, holding the bag on: black, a hook glinting)
+  for (const x of [8.5, 14.5]) { H.box(g, x, -1, 1.2, 7, '#27272A'); H.box(g, x, -1, 0.4, 7, '#52525B'); H.box(g, x - 0.2, 4.6, 1.6, 1, '#EAB308'); H.box(g, x - 0.2, 4.6, 0.6, 0.4, '#FEF9C3'); }
+  // (the tape, twice round; the back one's end peeling off)
+  for (const [x, sd] of [[4, 2], [18, 7]] as const) { H.box(g, x - 0.5, -1.5, 4, 8, INK); H.tape(g, x, -1, 3, 7, sd); }
+  H.poly(g, [[20.4, 5.6], [22.2, 5.8], [21.2, 7.6]], INK); H.poly(g, [[20.6, 5.8], [21.8, 6], [21.1, 7.1]], '#C4C9D1');
+  // (the collar at the end: a ring, lit top, dark under; the bore black)
+  H.box(g, 26.5, -1.5, 3, 8, INK);
+  H.box(g, 27, -1, 2, 7, '#71717A'); H.box(g, 27, -1, 2, 1, '#D4D4D8'); H.box(g, 27, 5, 2, 1, '#3F3F46'); H.box(g, 27, -1, 0.5, 7, '#A1A1AA');
+  H.box(g, 29, 0, 1, 5, '#18181B'); H.box(g, 29, 0, 1, 0.5, '#52525B');
+};
+const paintBag = (g: Ctx) => {
+  H.ell(g, 11, -5, 9, 5, INK);
+  g.save(); g.beginPath(); g.ellipse(11, -5, 8, 4, 0, 0, Math.PI * 2); g.clip();
+  H.box(g, 2, -10, 18, 10, '#450A0A');
+  // (through the net: the snow globe, the little stone head, a mug)
+  H.ell(g, 6, -4.6, 2.6, 2.6, INK); H.ell(g, 6, -4.6, 2, 2, '#93C5FD'); H.dither(g, 4, -4, 4, 2, '#60A5FA', 1); H.box(g, 5, -6, 1, 0.8, '#FFFFFF');
+  H.box(g, 4.6, -2.6, 2.8, 1.4, '#78350F'); H.box(g, 4.6, -2.6, 2.8, 0.4, '#B45309');
+  H.poly(g, [[9.6, -1], [9.8, -7.4], [12.6, -7.6], [12.8, -1]], INK); H.box(g, 10.2, -7, 2, 6, '#78716C'); H.box(g, 10.2, -7, 0.6, 6, '#A8A29E');
+  H.box(g, 10.2, -5.4, 2, 0.6, '#44403C'); H.box(g, 11.6, -4.6, 0.6, 1.4, '#57534E'); H.box(g, 10.4, -3, 1.6, 0.4, '#44403C');
+  H.box(g, 14, -6.2, 3.6, 4.2, INK); H.box(g, 14.4, -5.8, 2.8, 3.4, '#F4F4F5'); H.box(g, 14.4, -5.8, 2.8, 0.6, '#FFFFFF'); H.box(g, 16.6, -5.8, 0.6, 3.4, '#D4D4D8');
+  H.box(g, 15, -4.6, 1.6, 1.2, '#DC2626'); H.box(g, 17.4, -5, 1.4, 2, INK);
+  // (the net over it all: red diamonds, knotted, lit up the top left)
+  g.lineWidth = 0.55;
+  for (let k = -12; k < 26; k += 2.4) {
+    g.strokeStyle = k < 8 ? '#F87171' : '#DC2626';
+    g.beginPath(); g.moveTo(k, -10); g.lineTo(k + 10, 0); g.stroke();
+    g.strokeStyle = k > 10 ? '#F87171' : '#DC2626';
+    g.beginPath(); g.moveTo(k + 10, -10); g.lineTo(k, 0); g.stroke();
+  }
+  // (its belly in shadow, the light on its top)
+  H.dither(g, 2, -3, 18, 2, '#450A0A', 0); H.box(g, 2, -1.6, 18, 1, '#450A0A');
+  H.box(g, 6, -8.6, 7, 0.6, '#FCA5A5');
+  g.restore();
+  // (the drawstring round its mouth, a bow)
+  H.box(g, 5, -9.4, 12, 0.6, '#F5F5F4');
+  H.ell(g, 11.5, -9.6, 1, 0.6, '#F5F5F4'); H.box(g, 11, -9.4, 0.6, 1.6, '#E7E5E4');
+  // (the Eiffel Tower, poking out: tapered, latticed, a spire)
+  H.poly(g, [[6.4, -8.4], [8.2, -14.6], [8.9, -14.6], [10.6, -8.4]], INK);
+  H.poly(g, [[7.1, -8.8], [8.3, -13.8], [8.8, -13.8], [9.9, -8.8]], '#CA8A04');
+  H.poly(g, [[7.1, -8.8], [8.3, -13.8], [8.5, -13.8], [7.9, -8.8]], '#FDE68A');
+  H.box(g, 7.2, -10.6, 2.6, 0.6, '#713F12'); H.box(g, 7.8, -12.4, 1.4, 0.5, '#713F12'); H.box(g, 8.3, -16, 0.6, 1.6, '#A16207');
+  // (the gold pyramid: lit face, shaded face)
+  H.poly(g, [[12.4, -7.6], [15.5, -12.8], [18.6, -7.6]], INK);
+  H.poly(g, [[13.2, -8], [15.5, -11.8], [17.8, -8]], '#CA8A04');
+  H.poly(g, [[13.2, -8], [15.5, -11.8], [15.5, -8]], '#FDE047');
+  H.box(g, 14.2, -9.2, 1, 0.5, '#A16207'); H.box(g, 16, -9.6, 1, 0.5, '#A16207');
+};
 const drawHeld = (c: Ctx, frame: number, kick: number) => {
-  box(c, 4, 6, 4, 5, '#DB2777'); box(c, 4, 6, 1, 5, '#F472B6');
-  box(c, -2, -1, 31, 7, INK);
-  box(c, -1, 0, 29, 5, '#F4F4F5'); box(c, -1, 0, 29, 1, '#FFFFFF'); box(c, -1, 4, 29, 1, '#A1A1AA');
-  for (const x of [4, 18]) { box(c, x, -1, 3, 7, '#9CA3AF'); box(c, x, -1, 3, 1, '#D4D4D8'); }
-  box(c, 27, -1, 2, 7, '#71717A'); box(c, 29, 0, 1, 5, '#18181B');
-  // (the bag, bulging, the Eiffel Tower poking out of it; it jiggles)
+  c.save();
+  H.snapOrigin(c);
+  H.heldStamp(c, 'souvenir:pipe', -3, -2, 34, 14, paintPipe);
+  // (the bag jiggles on its bungees; the tag swings off it)
   const j = Math.sin(frame * 0.3) * (0.5 + kick * 2);
-  c.fillStyle = INK; c.beginPath(); c.ellipse(11, -5 + j, 9, 5, 0, 0, Math.PI * 2); c.fill();
-  c.fillStyle = '#DC2626'; c.beginPath(); c.ellipse(11, -5 + j, 8, 4, 0, 0, Math.PI * 2); c.fill();
-  c.fillStyle = '#991B1B'; for (let x = 4; x < 19; x += 2) for (let y = -8; y < -1; y += 2) if ((x + y) % 4 === 0) c.fillRect(x, y + j, 1, 1);
-  box(c, 8, -13 + j, 1, 5, '#EAB308'); box(c, 7, -9 + j, 3, 1, '#CA8A04');
-  c.fillStyle = '#FCD34D'; c.beginPath(); c.moveTo(13, -8 + j); c.lineTo(15.5, -12 + j); c.lineTo(18, -8 + j); c.closePath(); c.fill();
+  c.save(); c.translate(0, j);
+  const sw = Math.sin(frame * 0.11) * 0.35 + kick * 0.9;
+  c.save(); c.translate(19.4, -4.4); c.rotate(sw);
+  c.strokeStyle = '#E7E5E4'; c.lineWidth = 0.5; c.beginPath(); c.moveTo(0, 0); c.lineTo(0.6, 3.2); c.stroke();
+  c.fillStyle = INK; c.fillRect(-0.6, 3, 3.2, 2.4); c.fillStyle = '#FEF3C7'; c.fillRect(-0.2, 3.4, 2.4, 1.6);
+  c.fillStyle = '#DC2626'; c.fillRect(0.8, 3.6, 1, 1.2);
+  c.restore();
+  H.heldStamp(c, 'souvenir:bag', 1, -17, 20, 18, paintBag);
+  // (snow in the globe, settling and going round again)
+  for (let i = 0; i < 3; i++) { const t = ((frame * 0.03 + i / 3) % 1); c.fillStyle = '#FFFFFF'; c.fillRect(Math.round((5 + i * 0.9 + Math.sin(t * 6 + i) * 0.6) * 2) / 2, -6.2 + t * 3, 0.5, 0.5); }
+  H.twinkle(c, frame, 15.5, -11.8, 140, 30, 1.6);
+  H.twinkle(c, frame, 8.5, -15.8, 140, 100, 1.2);
+  c.restore();
+  H.glint(c, frame, -1, 26, 0, 2, 160);
+  c.restore();
 };
 
 /** A boss fight's say over what comes out of the bag next (Donnie Dracula's: spooky/ballroom/fight.ts): an id, or null

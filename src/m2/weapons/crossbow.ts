@@ -26,6 +26,7 @@ import { playSound } from '../../m1/game/platform/audio';
 import { groundLineAt } from '../../m1/game/core/terrain';
 import { KIND_HEAD, KIND_TOP_REACH, kindFacing, isHumanoidKind } from '../../m1/game/render/enemies';
 import { CANVAS_WIDTH } from '../../m1/constants';
+import * as H from './heldArt';
 import { m2Kill } from '../moves/killLines';
 import { grabCallout } from '../moves/callouts';
 import { drawEnemyAt, setHeldFilter } from '../moves/grab';
@@ -80,6 +81,8 @@ const lockOn = (state: GameState, up: boolean): Enemy | null => {
  *  swings up, let go: back down level). */
 const TIP = { x: 27, y: -4 };
 let aim = 0;
+/** Looks only: his animation's frame at the last shot (the string snapping forward, humming; the skull kicked about). */
+let firedAt = -1000;
 /** Tolerance: a few darts' worth, and more by how much of him there is. Unhit a while, it comes back. */
 const tolMax = (e: Enemy) => 2 + realMax(e) / 35;
 const REGEN_AFTER = 120, REGEN = 0.03;
@@ -178,6 +181,7 @@ const fire = (ctx: FrameContext, input: { moveUp: boolean }, muzzle: { x: number
   pl.shootCooldown = DART.cooldown;
   if (!cheats.infiniteAmmo) pl.weaponAmmo.CROSSBOW--;
   playSound('twang');
+  firedAt = state.playerAnimFrame;
 };
 
 /** A dart in him: a scratch, and the stuff on it working on him. */
@@ -981,26 +985,90 @@ const drawOverlay = (c: Ctx, state: GameState) => {
   }
 };
 
-/** In his fist: a jungle crossbow, a bamboo stock wrapped in leather, a bow of bent horn strung across the front, a
- *  dart sat in the groove, a little skull hanging off it. */
-const drawHeld = (c: Ctx) => {
+/** In his fist: a jungle crossbow. A bamboo stock (lit along the top, its nodes ridged), a leather-wrapped grip, a bow
+ *  of bent horn lashed across the front with twine; the string humming after every shot, snapping forward and drawn
+ *  back, a dart nocked in the groove (fletched, its tip green with the stuff, a sickly bead forming and dripping off
+ *  it); a little skull hanging off it on a cord, swinging. The stock, bow and skull are stamps (heldArt.ts). */
+const paintBow = (g: Ctx) => {
+  // (the grip: leather wrapped round, stitched)
+  H.box(g, -3, -2, 6, 10, INK);
+  H.box(g, -2, -1, 4, 8, '#7C2D12');
+  for (let y = -1; y < 7; y += 1.6) { H.poly(g, [[-2, y], [2, y + 0.8], [2, y + 1.4], [-2, y + 0.6]], '#9A3412'); H.box(g, -2, y, 1.2, 0.4, '#C2410C'); }
+  H.box(g, 1.4, -1, 0.6, 8, '#431407');
+  for (let y = 0; y < 7; y += 2) H.box(g, -0.4, y + 0.4, 0.4, 0.4, '#FDBA74');
+  // (the stock: bamboo, banded from the lit top down, grained; its nodes ridged and lit)
+  H.box(g, -3, -5, 27, 6, INK);
+  H.box(g, -2, -4, 25, 4, '#CA8A04');
+  H.box(g, -2, -4, 25, 0.6, '#FDE047'); H.box(g, -2, -3.4, 25, 0.6, '#EAB308'); H.box(g, -2, -1.6, 25, 0.6, '#A16207'); H.box(g, -2, -1, 25, 1, '#854D0E');
+  for (const x of [1, 9, 15, 20]) H.box(g, x + H.hash(x) * 2, -2.6, 2.6, 0.35, '#B45309');
+  for (const x of [6, 12]) { H.box(g, x - 0.2, -5.5, 2.4, 7, INK); H.box(g, x, -5, 2, 6, '#78350F'); H.box(g, x, -5, 0.6, 6, '#B45309'); H.box(g, x, -5, 2, 0.5, '#FDE68A'); }
+  // (the bow: bent horn, inked, a dark side and a lit one, ridged; dark nocks on its tips)
+  const arc = (w: number, col: string, dx = 0) => { g.strokeStyle = col; g.lineWidth = w; g.beginPath(); g.moveTo(16 + dx, -14); g.quadraticCurveTo(23 + dx, -2, 16 + dx, 10); g.stroke(); };
+  arc(3.5, INK); arc(2.2, '#A8A29E'); arc(1, '#F5F5F4', -0.5);
+  for (let t = 0.12; t < 0.95; t += 0.11) {
+    const x = (1 - t) * (1 - t) * 16 + 2 * (1 - t) * t * 23 + t * t * 16, y = (1 - t) * (1 - t) * -14 + 2 * (1 - t) * t * -2 + t * t * 10;
+    H.box(g, x - 0.2, y, 1, 0.35, '#78716C');
+  }
+  H.ell(g, 16, -14, 1.2, 1.2, INK); H.ell(g, 16, 10, 1.2, 1.2, INK); H.box(g, 15.6, -14.6, 0.6, 0.6, '#78716C');
+  // (the twine lashing it to the stock)
+  H.box(g, 15, -5.8, 4.6, 7.4, INK);
+  H.box(g, 15.5, -5.3, 3.6, 6.4, '#A8A29E');
+  g.strokeStyle = '#E7E5E4'; g.lineWidth = 0.6;
+  g.beginPath(); g.moveTo(15.5, -5); g.lineTo(19, 0.8); g.moveTo(19, -5); g.lineTo(15.5, 0.8); g.moveTo(15.5, -2.2); g.lineTo(19, -2.2); g.stroke();
+  H.box(g, 15.5, 0.6, 3.6, 0.5, '#57534E');
+};
+const paintSkull = (g: Ctx) => {
+  g.strokeStyle = '#78350F'; g.lineWidth = 0.8; g.beginPath(); g.moveTo(4, 1); g.lineTo(4, 6.4); g.stroke();
+  H.box(g, 3.4, 2.6, 1.2, 0.8, '#A16207');
+  H.box(g, 1, 6, 7, 6, INK);
+  H.box(g, 2, 7, 5, 4, '#E7E0CC'); H.box(g, 2, 7, 5, 1, '#FFFBEB'); H.box(g, 2, 7, 1, 3, '#F5F0E1'); H.box(g, 6.2, 8, 0.8, 3, '#B8AE94'); H.box(g, 2, 10.4, 5, 0.6, '#B8AE94');
+  H.box(g, 3, 8, 1.2, 1.2, INK); H.box(g, 5, 8, 1.2, 1.2, INK);
+  H.box(g, 4.4, 9.4, 0.4, 0.5, '#57534E');
+  for (const x of [2.6, 3.8, 5, 6]) H.box(g, x, 10.6, 0.4, 0.8, INK);
+  H.box(g, 5.6, 7, 0.4, 1, '#78716C');
+};
+const drawHeld = (c: Ctx, frame: number) => {
+  const a = frame - firedAt;
   c.save(); c.rotate(aim);
-  // stock
-  c.fillStyle = INK; c.fillRect(-3, -5, 27, 6); c.fillRect(-3, -2, 6, 10);
-  c.fillStyle = '#CA8A04'; c.fillRect(-2, -4, 25, 4); c.fillStyle = '#FDE047'; c.fillRect(-2, -4, 25, 1); c.fillStyle = '#854D0E'; c.fillRect(-2, -1, 25, 1);
-  c.fillStyle = '#A16207'; c.fillRect(-2, -1, 4, 8);
-  for (const x of [6, 12]) { c.fillStyle = '#78350F'; c.fillRect(x, -5, 2, 6); }
-  // the bow, across the front
-  c.strokeStyle = INK; c.lineWidth = 3.5; c.beginPath(); c.moveTo(16, -14); c.quadraticCurveTo(23, -2, 16, 10); c.stroke();
-  c.strokeStyle = '#E7E5E4'; c.lineWidth = 2; c.beginPath(); c.moveTo(16, -14); c.quadraticCurveTo(23, -2, 16, 10); c.stroke();
-  c.strokeStyle = '#D6D3D1'; c.lineWidth = 1; c.beginPath(); c.moveTo(16, -14); c.lineTo(9, -2); c.lineTo(16, 10); c.stroke();
-  // the dart in it
-  c.fillStyle = '#A16207'; c.fillRect(9, -4, 18, 1); c.fillStyle = '#84CC16'; c.fillRect(25, -5, 3, 2);
-  // the skull hanging off it
-  c.strokeStyle = '#78350F'; c.lineWidth = 1; c.beginPath(); c.moveTo(4, 1); c.lineTo(4, 7); c.stroke();
-  c.fillStyle = INK; c.fillRect(1, 6, 7, 6); c.fillStyle = '#F5F0E1'; c.fillRect(2, 7, 5, 4);
-  c.fillStyle = INK; c.fillRect(3, 8, 1, 1); c.fillRect(5, 8, 1, 1);
+  H.snapOrigin(c);
+  // (the skull swinging on its cord: kicked about by the shots)
+  const sw = Math.sin(frame * 0.07) * 0.14 + (a >= 0 && a < 16 ? Math.sin(a * 0.8) * 0.4 * (1 - a / 16) : 0);
+  c.save(); c.translate(4, 1); c.rotate(sw); c.translate(-4, -1);
+  H.heldStamp(c, 'xbow:skull', 0, 0, 9, 13, paintSkull);
   c.restore();
+  H.heldStamp(c, 'xbow', -4, -16, 29, 28, paintBow);
+  // The string: let go, it snaps forward and shivers; then it's drawn back and the next dart's dropped in; cocked, it
+  // hums a while after
+  let mid = 9, nocked = true;
+  if (a >= 0 && a < 3) { mid = 16.4 + Math.sin(a * 2.6) * 1.4 * (1 - a / 3); nocked = false; }
+  else if (a >= 3 && a < 7) { mid = 16.4 - (16.4 - 9) * ((a - 3) / 4); nocked = a >= 5; }
+  else if (a >= 7 && a < 40) mid = 9 + Math.sin(a * 1.9) * 0.6 * (1 - (a - 7) / 33);
+  c.lineCap = 'round';
+  c.strokeStyle = INK; c.lineWidth = 1.2; c.beginPath(); c.moveTo(16, -14); c.lineTo(mid, -2); c.lineTo(16, 10); c.stroke();
+  c.strokeStyle = '#E7E5E4'; c.lineWidth = 0.6; c.stroke();
+  c.lineCap = 'butt';
+  if (nocked) {
+    // the dart: fletched at the nock, the shaft lit, the tip green with the stuff, the stuff smeared down the shaft
+    const x0 = Math.min(mid, 11);
+    c.fillStyle = INK; c.fillRect(x0 - 0.5, -4.6, 28 - x0, 2);
+    c.fillStyle = '#A16207'; c.fillRect(x0, -4, 26 - x0, 1); c.fillStyle = '#FDE68A'; c.fillRect(x0, -4, 26 - x0, 0.35);
+    c.fillStyle = '#DC2626'; c.beginPath(); c.moveTo(x0, -4); c.lineTo(x0 + 3, -4); c.lineTo(x0 + 0.6, -6); c.closePath(); c.fill();
+    c.fillStyle = '#16A34A'; c.beginPath(); c.moveTo(x0, -3); c.lineTo(x0 + 3, -3); c.lineTo(x0 + 0.6, -1.4); c.closePath(); c.fill();
+    c.fillStyle = '#3F6212'; c.fillRect(22, -4, 3, 1); c.fillStyle = '#65A30D'; c.fillRect(23, -4.2, 1, 0.5);
+    c.fillStyle = INK; c.beginPath(); c.moveTo(24.4, -5.8); c.lineTo(28.8, -3.5); c.lineTo(24.4, -2.2); c.closePath(); c.fill();
+    c.fillStyle = '#84CC16'; c.beginPath(); c.moveTo(25, -5); c.lineTo(28, -3.5); c.lineTo(25, -2.8); c.closePath(); c.fill();
+    c.fillStyle = '#D9F99D'; c.fillRect(25.2, -4.8, 1, 0.4);
+  }
+  c.restore();
+  // (a sickly bead forming under the tip, swelling, letting go and dripping straight down)
+  const d = frame % 84;
+  if (nocked && a >= 7 && d < 58) {
+    const tx = 26.4 * Math.cos(aim) + 2.8 * Math.sin(aim), ty2 = 26.4 * Math.sin(aim) - 2.8 * Math.cos(aim);
+    const grow = Math.min(1, d / 40), fall = d < 40 ? 0 : (d - 40) * (d - 40) * 0.05;
+    const s = 0.5 + grow * 0.7;
+    c.fillStyle = '#4D7C0F'; c.fillRect(tx - s / 2, ty2 + fall, s, s + (d < 40 ? grow * 0.5 : 0.4));
+    c.fillStyle = '#A3E635'; c.fillRect(tx - s / 2, ty2 + fall, s * 0.5, s * 0.5);
+  }
 };
 
 /** Everything going, stopped (through a door). */
@@ -1016,5 +1084,5 @@ export const crossbowForTests = (state: GameState) => state.enemies.filter(e => 
 export const registerCrossbow = () => {
   // (in his hands, sick still looks sick)
   setHeldFilter((e, f) => { const s = sickness.get(e); return s && s.t >= 0 ? (isRobot(e) ? ROBOT_SICK_LOOK : SICK_LOOK)[Math.floor(f / 10) % 2] : null; });
-  registerWeapon('CROSSBOW', { fire: (ctx, input, muzzle) => fire(ctx, input, muzzle), update, draw, drawHeld: c => drawHeld(c), tick: (ctx, input, equipped) => tick(ctx, input, equipped), drawOverlay });
+  registerWeapon('CROSSBOW', { fire: (ctx, input, muzzle) => fire(ctx, input, muzzle), update, draw, drawHeld, tick: (ctx, input, equipped) => tick(ctx, input, equipped), drawOverlay });
 };

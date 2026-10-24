@@ -34,6 +34,7 @@ import { subBossDmg } from './subBoss';
 import { since } from '../frames';
 import { setUi } from '../store';
 import { struckAt } from './strikes';
+import * as H from './heldArt';
 import { bloodOf, bloodCtx, bloodCtxOf, bloodGore, kindGore, markKindGore } from '../../m1/game/enemies/kindBlood';
 
 type Ctx = CanvasRenderingContext2D;
@@ -537,22 +538,100 @@ const draw = (c0: Ctx, p: Projectile) => {
   c.restore();
 };
 
-/** In his fist: the purple drum, its green window, the hose to the flared intake (the grinder's teeth turning in it), the gore bag under, as full as it is. */
+/** In his fist: the purple drum (stepped, riveted, a seam down it, a skull decal), its green window with something
+ *  in there going round (now and then a face), a clamp holding the bag on under it; the ribbed hose to the chrome
+ *  intake, flared, banded, stained round the lip, the grinder's teeth turning in its mouth and a ghostly glow in it;
+ *  the gore bag under, as full as it is, what's in it sloshing. The drum, hose and intake are a stamp (heldArt.ts). */
+const paintSucker = (g: Ctx) => {
+  // (the clamp the bag hangs off)
+  H.box(g, 5, 6.5, 6, 2.2, INK); H.box(g, 5.5, 7, 5, 1.2, '#71717A'); H.box(g, 5.5, 7, 5, 0.4, '#D4D4D8'); H.rivet(g, 9.4, 7.2, '#27272A', '#E4E4E7', true);
+  // (the drum: banded from the lit top to the shaded bottom, dithered between)
+  H.box(g, -3, -4, 18, 11, INK);
+  H.box(g, -2, -3, 16, 9, '#7C3AED');
+  H.box(g, -2, -3, 16, 2, '#A78BFA'); H.dither(g, -2, -1, 16, 1, '#A78BFA', 1);
+  H.box(g, -2, 3, 16, 3, '#6D28D9'); H.dither(g, -2, 2, 16, 1, '#6D28D9', 0);
+  H.box(g, -2, 5, 16, 1, '#4C1D95'); H.dither(g, -2, 4, 16, 1, '#4C1D95', 1);
+  H.box(g, -1, -3, 3, 0.6, '#DDD6FE'); H.box(g, 3, -2.6, 1, 0.5, '#DDD6FE');
+  // (its seams, riveted)
+  for (const x of [-0.4, 12.4]) { H.box(g, x, -3, 0.5, 9, '#2E1065'); H.box(g, x + 0.5, -3, 0.4, 9, '#C4B5FD'); }
+  for (const x of [1, 4, 7, 10]) H.rivet(g, x, -2.3, '#2E1065', '#EDE9FE');
+  for (const x of [1, 10]) H.rivet(g, x, 4.6, '#1E0B3C', '#A78BFA');
+  // (the skull decal, peeling a corner)
+  H.box(g, 7.6, -0.4, 4, 3.4, INK); H.box(g, 8, 0, 3.2, 2, '#E7E5E4'); H.box(g, 8.6, 2, 2, 0.8, '#E7E5E4'); H.box(g, 8, 0, 3.2, 0.5, '#FFFFFF');
+  H.box(g, 8.4, 0.8, 0.9, 0.9, INK); H.box(g, 10, 0.8, 0.9, 0.9, INK); H.box(g, 9.4, 1.8, 0.4, 0.5, INK);
+  H.poly(g, [[11.2, 0], [11.8, 0], [11.2, 0.8]], '#A8A29E');
+  // (the window's frame, chrome)
+  H.box(g, 0.2, -1.8, 6.6, 5.6, INK); H.box(g, 0.6, -1.4, 5.8, 4.8, '#A1A1AA'); H.box(g, 0.6, -1.4, 5.8, 0.4, '#E4E4E7');
+  H.box(g, 1, -1, 5, 4, '#052E16');
+  // (the hose: ribbed, each rib lit along its top)
+  H.box(g, 13.5, -1.5, 9, 5, INK);
+  for (let x = 14; x < 22; x += 1.5) { H.box(g, x, -1, 1, 4, '#52525B'); H.box(g, x + 1, -1, 0.5, 4, '#27272A'); H.box(g, x, -1, 1, 0.6, '#A1A1AA'); H.box(g, x, 2.4, 1, 0.6, '#3F3F46'); }
+  // (the intake: chrome, flared, banded round from the lit top to the dark underside)
+  H.poly(g, [[21, -2], [31, -7], [31, 10], [21, 5]], INK);
+  H.poly(g, [[22, -1], [30, -5.5], [30, 8.5], [22, 4]], '#71717A');
+  H.poly(g, [[22, -1], [30, -5.5], [30, 1.4], [22, 1.4]], '#A1A1AA');
+  H.poly(g, [[22, 2.6], [30, 5.2], [30, 8.5], [22, 4]], '#52525B');
+  H.poly(g, [[22.4, -0.7], [29.6, -4.9], [29.6, -3.9], [22.4, 0]], '#E4E4E7');
+  H.dither(g, 22, 1.4, 8, 1, '#71717A', 0);
+  // (a reinforcing band round it, riveted; scuffs; blood dried down from the lip)
+  H.poly(g, [[25.2, -3], [26, -3.4], [26, 6.4], [25.2, 6]], '#3F3F46'); H.poly(g, [[26, -3.4], [26.4, -3.6], [26.4, 6.6], [26, 6.4]], '#D4D4D8');
+  H.rivet(g, 25.4, -1.6, '#27272A', '#F4F4F5'); H.rivet(g, 25.4, 4.2, '#27272A', '#D4D4D8');
+  H.box(g, 23, 0.4, 1.6, 0.4, '#52525B'); H.box(g, 27.4, 3, 1.4, 0.4, '#3F3F46');
+  H.box(g, 28.2, 6.2, 0.8, 2.6, '#7F1D1D'); H.box(g, 28.2, 8.4, 0.8, 0.8, '#991B1B'); H.box(g, 27, 6.6, 0.6, 1.6, '#7F1D1D');
+  H.box(g, 28.4, -4.6, 0.6, 1.6, '#7F1D1D');
+  // (the mouth: the grinder's housing, black, its rim lit)
+  H.box(g, 29, -5, 2, 13, '#18181B'); H.box(g, 30.6, -5, 0.4, 13, '#52525B'); H.box(g, 29, -5, 2, 0.4, '#A1A1AA');
+};
 const drawHeld = (c: Ctx, frame: number) => {
+  c.save();
+  H.snapOrigin(c);
   const full = gore / (SPRAY * MAX_SPRAYS);
-  // (the bag, swelling with what's in it; mostly an alien's slime, green: kindBlood)
+  // (the bag, swelling with what's in it, sloshing about; mostly an alien's slime, green: kindBlood)
   const br = 3 + full * 5, b = bagBlood && bagOther > gore / 2 ? bloodCtxOf(c, bagBlood) : c;
-  b.fillStyle = INK; b.beginPath(); b.ellipse(8, 9 + br * 0.6, br + 1.2, br * 0.85 + 1.2, 0, 0, Math.PI * 2); b.fill();
-  b.fillStyle = full > 0 ? '#B91C1C' : '#78716C'; b.beginPath(); b.ellipse(8, 9 + br * 0.6, br, br * 0.85, 0, 0, Math.PI * 2); b.fill();
-  if (full > 0) { b.fillStyle = '#7F1D1D'; b.fillRect(9, 9 + br * 0.6, 2, 2); b.fillStyle = '#FCA5A5'; b.fillRect(6, 8 + br * 0.3, 1, 1); }
-  c.fillStyle = INK; c.fillRect(-3, -4, 18, 11);
-  c.fillStyle = '#7C3AED'; c.fillRect(-2, -3, 16, 9); c.fillStyle = '#A78BFA'; c.fillRect(-2, -3, 16, 2); c.fillStyle = '#4C1D95'; c.fillRect(-2, 4, 16, 2);
-  c.fillStyle = frame % 40 < 20 ? '#4ADE80' : '#86EFAC'; c.fillRect(1, -1, 5, 4);
-  c.fillStyle = '#3F3F46'; c.fillRect(14, -1, 8, 4);
-  c.fillStyle = INK; c.beginPath(); c.moveTo(21, -2); c.lineTo(31, -7); c.lineTo(31, 10); c.lineTo(21, 5); c.closePath(); c.fill();
-  c.fillStyle = '#A1A1AA'; c.beginPath(); c.moveTo(22, -1); c.lineTo(30, -5.5); c.lineTo(30, 8.5); c.lineTo(22, 4); c.closePath(); c.fill();
-  c.fillStyle = '#18181B'; c.fillRect(29, -5, 2, 13);
-  c.fillStyle = '#F4F4F5'; for (let k = 0; k < 4; k++) c.fillRect(28.5, -4 + ((k * 3 + frame) % 12), 1, 1.5);
+  const cx = 8, cy = 9 + br * 0.6, ry = br * 0.85;
+  b.fillStyle = INK; b.beginPath(); b.ellipse(cx, cy, br + 1.2, ry + 1.2, 0, 0, Math.PI * 2); b.fill();
+  if (full > 0) {
+    b.fillStyle = '#B91C1C'; b.beginPath(); b.ellipse(cx, cy, br, ry, 0, 0, Math.PI * 2); b.fill();
+    b.save(); b.beginPath(); b.ellipse(cx, cy, br, ry, 0, 0, Math.PI * 2); b.clip();
+    // (what's in it: the level tipping and rolling as he moves, darker under it)
+    const lvl = cy + ry * (0.9 - full * 1.3), tip = Math.sin(frame * 0.13) * br * 0.35, wob = Math.sin(frame * 0.31) * 0.5;
+    b.fillStyle = '#7F1D1D'; b.beginPath(); b.moveTo(cx - br - 1, lvl + tip); b.quadraticCurveTo(cx, lvl + wob, cx + br + 1, lvl - tip); b.lineTo(cx + br + 1, cy + ry + 1); b.lineTo(cx - br - 1, cy + ry + 1); b.closePath(); b.fill();
+    b.fillStyle = '#5F0F0F'; b.fillRect(cx - br, cy + ry * 0.5, br * 2, ry);
+    b.fillStyle = '#DC2626'; b.fillRect(cx - br * 0.6, lvl + wob - 0.5, br * 1.2, 0.5);
+    // (a lump of somebody bobbing in it)
+    b.fillStyle = '#FCA5A5'; b.fillRect(Math.round(cx + Math.sin(frame * 0.07) * br * 0.4), Math.round(lvl + 1 + wob), 1.5, 1);
+    b.restore();
+    b.fillStyle = '#FCA5A5'; b.fillRect(cx - br * 0.55, cy - ry * 0.6, Math.max(1, br * 0.3), 0.8);
+    b.fillStyle = '#FFFFFF'; b.fillRect(cx - br * 0.55, cy - ry * 0.6, 0.6, 0.6);
+  } else {
+    // (empty: hanging limp, creased)
+    b.fillStyle = '#78716C'; b.beginPath(); b.ellipse(cx, cy, br, ry, 0, 0, Math.PI * 2); b.fill();
+    b.fillStyle = '#57534E'; b.fillRect(cx - 1.5, cy - 1, 0.6, 2.4); b.fillRect(cx + 1, cy - 0.5, 0.6, 2); b.fillStyle = '#A8A29E'; b.fillRect(cx - 2, cy - ry * 0.6, 1.5, 0.6);
+  }
+  H.heldStamp(c, 'sucker', -4, -8, 36, 19, paintSucker);
+  // The window: something green going round in there; every few seconds it's a face, pressed up to the glass
+  const wp = frame * 0.09;
+  c.fillStyle = '#166534'; c.fillRect(1, -1, 5, 4);
+  c.fillStyle = `rgba(74, 222, 128, ${(0.55 + 0.35 * Math.sin(frame * 0.16)).toFixed(2)})`;
+  c.fillRect(Math.round((3 + Math.cos(wp) * 1.4) * 2) / 2, Math.round((0.5 + Math.sin(wp) * 0.9) * 2) / 2, 2, 2);
+  if (frame % 260 < 34) {
+    c.fillStyle = '#BBF7D0'; c.fillRect(2, -0.5, 3, 3);
+    c.fillStyle = INK; c.fillRect(2.5, 0, 0.8, 0.8); c.fillRect(3.9, 0, 0.8, 0.8); c.fillRect(3, 1.4, 1.2, 1);
+  }
+  c.fillStyle = 'rgba(240, 253, 244, 0.7)'; c.fillRect(1.2, -0.8, 0.6, 1.2); c.fillRect(1.8, -0.8, 0.5, 0.5);
+  // The intake: a ghostly glow in its mouth, breathing; the grinder's teeth going round
+  const gl = 0.5 + 0.5 * Math.sin(frame * 0.07);
+  c.fillStyle = `rgba(134, 239, 172, ${(0.12 + gl * 0.16).toFixed(2)})`; c.fillRect(28.5, -4, 3, 11); c.fillRect(31, -2.5, 1.5, 8);
+  c.fillStyle = `rgba(240, 253, 244, ${(0.1 + gl * 0.2).toFixed(2)})`; c.fillRect(29.5, -1, 1.5, 5);
+  for (let k = 0; k < 4; k++) {
+    const y = -4 + ((k * 3 + frame) % 12);
+    c.fillStyle = '#F4F4F5'; c.fillRect(28.5, y, 1, 1); c.fillStyle = '#A1A1AA'; c.fillRect(28.5, y + 1, 1, 0.5); c.fillStyle = '#FFFFFF'; c.fillRect(28.5, y, 0.5, 0.5);
+  }
+  // (now and then a wisp of somebody slips back out of it)
+  const ws = frame % 180;
+  if (ws < 40) { const k = ws / 40; c.fillStyle = `rgba(187, 247, 208, ${(0.5 * (1 - k)).toFixed(2)})`; c.fillRect(31 + k * 5, 1 - k * 7 + Math.sin(k * 9), 1 + k, 1); }
+  H.glint(c, frame, 22, 7, -1, 2, 170, 60);
+  c.restore();
 };
 
 const BLOOD = ['#5F0F0F', '#991B1B', '#DC2626', '#F87171'];
