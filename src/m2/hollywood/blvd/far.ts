@@ -13,6 +13,7 @@ import { drawTodSky, timeOfDay, farTint, skyAt, hourMix, type TimeOfDay } from '
 import { type RangeLook, range, mist, snap2, wave, jag, palm as farPalm, fillUnder } from '../../adventure/farArt';
 import { type Ctx, INK, box, checker, mix, hash, stamp, poly, bandedGradient, hazeBands, pixelBlob, signText, words, plain, deco } from './kit';
 import { hillside } from '../../hub/letters';
+import { steveBoard, revengersBoard, happywoodBoard, cityBoard, boardFrame } from '../posters';
 import { HWX } from '../geometry';
 import { drawHwSky, drawHwHorizon, drawHwLandmarks } from '../landmarks';
 
@@ -149,11 +150,13 @@ const paintCity = (g: Ctx, tod: TimeOfDay) => {
     if (hash(i * 5.1) > 0.7) { box(g, x + w * 0.3, f - h - 6, 6, 6, R[1]); box(g, x + w * 0.3 + 1, f - h - 7, 4, 1, R[3]); }
     x += w + (hash(i * 7.3) > 0.8 ? 6 : 0);
   }
-  // (billboards on poles over the rooftops)
-  for (const [bx, col] of [[120, '#EAB516'], [430, '#B4243A'], [880, '#3A6AB8']] as const) {
-    box(g, bx + 10, f - 60, 2, 30, T('#3A3438'));
-    box(g, bx - 1, f - 75, 30, 17, T('#2A2428')); box(g, bx, f - 74, 28, 15, T(col)); box(g, bx, f - 74, 28, 2, T(mix(col, '#FFFFFF', 0.4)));
-  }
+  // (billboards on poles over the rooftops: the injury lawyer, the burger, BOOM 4 (posters.ts))
+  [120, 430, 880].forEach((bx, i) => {
+    box(g, bx + 9, f - 62, 4, 32, T(INK)); box(g, bx + 10, f - 62, 2, 32, T('#4A4448')); box(g, bx + 10, f - 62, 1, 32, T('#6A6468'));
+    box(g, bx - 2, f - 84, 40, 24, T('#2A2428')); box(g, bx - 1, f - 83, 38, 22, T('#4A4448'));
+    cityBoard(g, T, bx, f - 82, 36, 20, i);
+    box(g, bx - 3, f - 60, 42, 2, T('#3A3438'));
+  });
   // (the tall skinny palms, sticking up over it all)
   for (let i = 0; i < 16; i++) {
     const x = snap2(hash(i * 4.7 + 3) * TW), h = 70 + hash(i * 2.3) * 46;
@@ -294,31 +297,16 @@ const paintPalms = (g: Ctx, tod: TimeOfDay) => {
     // (a billboard on its steel frame and legs, its catwalk under it, its lamps over it)
     for (const lx of [x + 12, x + w - 14]) { box(g, lx - 1, y + h, 3, f - y - h, INK); box(g, lx, y + h, 1, f - y - h, T('#6A6E78')); }
     g.strokeStyle = T('#4A4E58'); g.lineWidth = 1; g.beginPath(); g.moveTo(x + 12, y + h); g.lineTo(x + w - 14, f - 6); g.moveTo(x + w - 14, y + h); g.lineTo(x + 12, f - 6); g.stroke();
-    box(g, x - 2, y - 2, w + 4, h + 4, INK);
+    boardFrame(g, T, x, y, w, h, x);
     paintFace();
     box(g, x - 4, y + h + 2, w + 8, 2, T('#3A3E48'));
     for (let k = x + 10; k < x + w; k += 30) { box(g, k, y - 8, 1, 6, T('#3A3E48')); box(g, k - 2, y - 9, 5, 2, tod.lamps > 0.3 ? '#FFF2C8' : T('#5A5E68')); }
   };
-  // STUNTMAN STEVE (yellow, his face, his thumb), REVENGERS 15 (COMING SOON), HAPPYWOOD (THE STUDIO TOUR)
-  bill(200, f - 150, 150, 56, () => {
-    box(g, 200, f - 150, 150, 56, T('#EAB516')); box(g, 200, f - 150, 150, 3, T('#FFF08A')); box(g, 200, f - 98, 150, 4, T('#C08A10'));
-    box(g, 212, f - 144, 30, 40, T('#E2B48C')); box(g, 208, f - 148, 38, 10, T('#8A5A2A')); box(g, 240, f - 140, 8, 30, T('#8A5A2A'));
-    box(g, 214, f - 132, 26, 4, T('#2A2228')); box(g, 216, f - 120, 22, 3, T('#6A4020')); box(g, 216, f - 120, 3, 8, T('#6A4020')); box(g, 235, f - 120, 3, 8, T('#6A4020'));
-    box(g, 210, f - 108, 34, 5, T('#F4F0E8'));
-    signText(g, 'STUNTMAN STEVE', 296, f - 128, plain(1, 2, T('#2A1408')));
-    signText(g, 'LIVE! DAILY!', 296, f - 110, plain(1, 1, T('#B4243A')));
-  });
-  bill(760, f - 140, 160, 52, () => {
-    bandedGradient(g, 760, f - 140, 160, 52, [T('#1E2A6A'), T('#2E3E8A'), T('#4A2A6A')], 4);
-    for (let k = 0; k < 5; k++) { const hx = 776 + k * 30; box(g, hx, f - 116, 12, 26, T(['#B4243A', '#3A6AB8', '#2A8A4A', '#8A3AB8', '#C8962E'][k])); box(g, hx + 2, f - 126, 8, 9, T('#D8A880')); }
-    signText(g, 'REVENGERS 15', 840, f - 124, plain(1, 2, T('#FAD43A')));
-    signText(g, 'RESEMBLE. SOON.', 840, f - 94, plain(1, 1, T('#F4F0E8')));
-  });
-  bill(1240, f - 136, 140, 50, () => {
-    box(g, 1240, f - 136, 140, 50, T('#F4EEE2')); box(g, 1240, f - 136, 140, 3, T('#FFFFFF'));
-    signText(g, 'HAPPYWOOD', 1310, f - 112, plain(2, 2, T('#B4243A')));
-    signText(g, 'THE STUDIO TOUR', 1310, f - 96, plain(1, 1, T('#2A2228')));
-  });
+  // STUNTMAN STEVE (yellow, his gross-up, his thumb), REVENGERS 15 (COMING SOON), HAPPYWOOD (THE STUDIO TOUR): the
+  // faces painted like the print shop's (posters.ts)
+  bill(200, f - 150, 150, 56, () => steveBoard(g, T, 200, f - 150, 150, 56, [['STUNTMAN STEVE', 1, '#2A1408'], ['SEEN IN A MOVIE*', 1, '#2A1408']], { him: true, band: 'LIVE! DAILY!', seed: 11 }));
+  bill(760, f - 140, 160, 52, () => revengersBoard(g, T, 760, f - 140, 160, 52));
+  bill(1240, f - 136, 140, 50, () => happywoodBoard(g, T, 1240, f - 136, 140, 50));
   // (the palms: tall, skinny, leaning a little, their skirts of dead fronds, every so far along the street)
   for (let i = 0; i < 14; i++) {
     const x = snap2(40 + i * (PW / 14) + (hash(i * 3.3) - 0.5) * 40), h = 170 + hash(i * 7.7) * 70;

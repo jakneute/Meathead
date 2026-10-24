@@ -14,10 +14,9 @@ import { FAR, tile, farCol, rampF, paintMountains, paintFoothills, drawHill, pai
 import { HWX } from '../geometry';
 import { realDisastersOn } from '../section';
 import { isLandCleared } from '../../store';
-import { drawBust } from '../../grossBust';
-import { steveBust } from '../steveBust';
+import { steveBoard, boardFrame } from '../posters';
 import { GY, CAM_ROW } from './arena';
-import { type Ctx, INK, box, checker, mix, hash, poly, timeOfDay, hourMix, skyAt, words, deco, plain, STEVE, bunting, wisp, EYE_UP } from './paint';
+import { type Ctx, INK, box, mix, hash, poly, timeOfDay, hourMix, skyAt, STEVE, bunting, wisp, EYE_UP } from './paint';
 import { hazeBands, bandedGradient, steppedGlow } from '../blvd/kit';
 import { drawHwSky, drawHwHorizon, drawHwLandmarks } from '../landmarks';
 
@@ -83,26 +82,11 @@ const scaffold = (g: Ctx, T: T, x0: number, x1: number, top: number, f: number) 
   for (let y = top + 10; y < f; y += 26) { box(g, x0 + 4, y, x1 - x0 - 8, 2, S[1]); box(g, x0 + 4, y, x1 - x0 - 8, 1, S[3]); }
 };
 
-/** One of Steve's billboards (yellow, like everything of his): the board in steps, its frame, the words, him on it. */
-const billboard = (g: Ctx, T: T, tod: TimeOfDay, x: number, y: number, w: number, h: number, lines: [string, number, string][], him: boolean) => {
-  const Y = STEVE.map(T), F = rampF(T, '#5A5E66');
-  box(g, x - 3, y - 3, w + 6, h + 6, INK);
-  box(g, x - 2, y - 2, w + 4, h + 4, F[2]); box(g, x - 2, y - 2, w + 4, 1, F[4]); box(g, x - 2, y + h + 1, w + 4, 1, F[0]);
-  box(g, x, y, w, h, Y[3]);
-  box(g, x, y, w, 3, Y[4]); box(g, x, y, 2, h, Y[4]);
-  box(g, x, y + h - 6, w, 6, Y[2]); checker(g, x, y + h - 9, w, 3, Y[2], 0, 1);
-  // (a red band across its foot, the paste-up's seams)
-  box(g, x, y + h - 18, w, 12, T('#B42222')); box(g, x, y + h - 18, w, 1, T('#E05048'));
-  for (let k = x + 60; k < x + w; k += 60) box(g, k, y, 1, h - 18, Y[2]);
-  let ty = y + 4;
-  const tx = him ? x + w * 0.6 : x + w / 2;
-  for (const [text, s, col] of lines) {
-    const L = s >= 2 ? deco(T(col), T('#2A1408'), s + 1, s) : plain(1, 1, T(col));
-    ty += 7 * (s >= 2 ? s + 1 : 1) + 4;
-    words(g, text, tx, ty, L);
-  }
-  // (him: a gross-up, bigger than life (steveBust.ts), his shoulders on the red band)
-  if (him) drawBust(g, steveBust('poster', T('#FFFFFF')), x + 6, y + 2, w * 0.34, h - 8, 150);
+/** One of Steve's billboards (yellow, like everything of his): its frame, the face painted like the print shop's
+ *  (posters.ts: him or his car jumping the port-a-potties, the band, a starburst), the goosenecks over it. */
+const billboard = (g: Ctx, T: T, tod: TimeOfDay, x: number, y: number, w: number, h: number, lines: [string, number, string][], him: boolean, band: string, burst: string[]) => {
+  boardFrame(g, T, x, y, w, h, x);
+  steveBoard(g, T, x, y, w, h, lines, { him, band, burst: burst.length ? burst : undefined, seed: x });
   // (the goosenecks over it, lit after dark)
   for (let k = x + 30; k < x + w; k += 80) {
     box(g, k, y - 12, 2, 10, INK); box(g, k - 2, y - 14, 10, 3, INK); box(g, k + 4, y - 13, 5, 3, tod.lamps > 0.3 ? '#FFF2C0' : T('#7A7E86'));
@@ -130,9 +114,9 @@ const paintRig = (g: Ctx, tod: TimeOfDay) => {
   bunting(g, TOWERS[2][0] + 14, f - TOWERS[2][1] + 20, RW + TOWERS[0][0] - 14, f - TOWERS[0][1] + 20, 30, pen);
   // (the boards on their scaffold)
   scaffold(g, T, 330, 720, f - 140, f);
-  billboard(g, T, tod, 320, f - 252, 410, 120, [['STUNTMAN STEVE', 2, '#7A1A0A'], ['AS SEEN IN A REAL MOVIE*', 1, '#2A1408'], ['*FOR ABOUT TWO SECONDS', 1, '#5A2A10']], true);
+  billboard(g, T, tod, 320, f - 252, 410, 120, [['STUNTMAN STEVE', 2, '#7A1A0A'], ['AS SEEN IN A REAL MOVIE*', 1, '#2A1408'], ['*FOR ABOUT TWO SECONDS', 1, '#5A2A10']], true, 'NO NET. NO PERMIT. NO PROBLEM.', ['NOW', 'WITH', 'FIRE!']);
   scaffold(g, T, 1040, 1250, f - 110, f);
-  billboard(g, T, tod, 1030, f - 196, 230, 92, [['LIVE!', 2, '#7A1A0A'], ['TWICE DAILY', 1, '#2A1408'], ['NO REFUNDS', 1, '#5A2A10']], false);
+  billboard(g, T, tod, 1030, f - 196, 230, 92, [['LIVE!', 2, '#7A1A0A'], ['TWICE DAILY', 1, '#2A1408'], ['NO REFUNDS', 1, '#5A2A10']], false, 'SPLASH ZONE: ROWS 1-9', []);
   crane(g, T, 1290, f);
   for (const [x, h] of TOWERS) tower(g, T, tod, x, f, h);
   // (its foot: into the haze over the set's back)

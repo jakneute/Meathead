@@ -18,6 +18,7 @@ import {
   words, sideBack, topBack, underBack, ball,
 } from '../blvd/kit';
 import { paintStandee, steveCard, velvetRopePaint } from '../blvd/props';
+import { pasteUp } from '../posters';
 import { drawCoasterFar } from './far';
 import { drawStructureBack, drawFloor } from './structure';
 import { drawSet, deckTop, deckFront, deckRail, catwalk, door, pylon, WALL_D, WALL_H } from './set';
@@ -684,11 +685,17 @@ const paintBillboard = (g: Ctx) => {
   const Y2 = ramp6(STEVE[3]), S = STEEL.map(c => hour(c));
   box(g, -154, -124, 308, 128, INK); box(g, -152, -122, 304, 124, S[2]); box(g, -152, -122, 304, 1, S[4]);
   box(g, -148, -118, 296, 116, Y2[3]); box(g, -148, -118, 296, 3, Y2[5]); box(g, -148, -118, 3, 116, Y2[4]); box(g, -148, -6, 296, 4, Y2[2]);
-  for (let k = 0; k < 10; k++) { const a = (k / 10) * Math.PI * 2; if (k % 2) continue; poly(g, [[-100, -60], [-100 + Math.cos(a - 0.2) * 90, -60 + Math.sin(a - 0.2) * 90], [-100 + Math.cos(a + 0.2) * 90, -60 + Math.sin(a + 0.2) * 90]], Y2[4]); }
+  // (the sunburst off his flier, kept on the board; the half-tone dithered down its foot)
+  g.save(); g.beginPath(); g.rect(-148, -118, 296, 112); g.clip();
+  for (let k = 0; k < 20; k++) { const a = (k / 20) * Math.PI * 2; if (k % 2) continue; poly(g, [[-100, -60], [-100 + Math.cos(a - 0.16) * 260, -60 + Math.sin(a - 0.16) * 260], [-100 + Math.cos(a + 0.16) * 260, -60 + Math.sin(a + 0.16) * 260]], Y2[4]); }
+  g.globalAlpha = 0.2; checker(g, -148, -30, 296, 24, Y2[1], 0, 1); g.globalAlpha = 1;
+  g.restore();
   steveCard(g, -100, -60, 1.5, 1, 'flier');
   words(g, 'SAFETY TESTED BY', 40, -80, plain(1, 1, '#2A1408'));
   words(g, 'STUNTMAN STEVE', 40, -60, { sx: 1, sy: 2, fill: ['#5A3A04', '#2A1408', '#2A1408', '#2A1408', '#000000'], dither: true, shadow: STEVE[5] });
   words(g, 'HE IS FINE', 40, -38, plain(1, 1, '#7F1D1D'));
+  words(g, '(PROBABLY)', 40, -26, plain(1, 1, '#5A2A10'));
+  pasteUp(g, c => hour(c), -148, -118, 296, 112, 77);
   // (its catwalk, its lamps over it)
   box(g, -158, 2, 316, 6, INK); box(g, -157, 3, 314, 4, S[3]); box(g, -157, 3, 314, 1, S[5]);
   for (let x = -130; x <= 130; x += 65) { box(g, x, -140, 2, 16, S[2]); box(g, x - 6, -144, 14, 6, INK); box(g, x - 5, -143, 12, 4, lit() ? '#FFF2C8' : S[4]); }

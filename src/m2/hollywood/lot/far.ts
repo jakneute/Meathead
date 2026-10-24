@@ -15,11 +15,10 @@ import type { GameState } from '../../../m1/game/core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
 import { drawTodSky, timeOfDay, skyAt, hourMix, type TimeOfDay } from '../../timeOfDay';
 import { mist } from '../../adventure/farArt';
-import { type Ctx, INK, box, checker, mix, hash, poly, hazeBands, bandedGradient, signText, plain, STEVE } from '../blvd/kit';
+import { type Ctx, INK, box, checker, mix, hash, poly, hazeBands, bandedGradient, signText, plain } from '../blvd/kit';
 import { FAR, tile, farCol, rampF, paintMountains, paintFoothills, drawHill, paintCity, paintLot, paintPalms } from '../blvd/far';
 import { HWX, GY } from '../geometry';
-import { drawBust } from '../../grossBust';
-import { steveBust } from '../steveBust';
+import { steveBoard, boardFrame } from '../posters';
 import { realDisastersOn } from '../section';
 import { drawHwSky, drawHwHorizon, drawHwLandmarks } from '../landmarks';
 
@@ -167,10 +166,9 @@ const paintStages = (g: Ctx, tod: TimeOfDay) => {
     if (x < SW - 120) x += after[i % after.length](x) + 14;
     i++;
   }
-  // (Steve's billboard on the end of one: he's everywhere)
-  box(g, 560, f - 182, 60, 40, INK); box(g, 561, f - 181, 58, 38, T(STEVE[3])); box(g, 561, f - 181, 58, 2, T(STEVE[5]));
-  drawBust(g, steveBust('poster', T('#FFFFFF')), 563, f - 180, 20, 20, 130);
-  signText(g, 'STEVE', 600, f - 166, plain(1, 1, T('#2A1408'))); signText(g, 'LIVE!', 600, f - 156, plain(1, 1, T('#B4243A')));
+  // (Steve's billboard on the end of one: he's everywhere (posters.ts; LIVE! down its right, where the havoc tears it))
+  boardFrame(g, T, 561, f - 181, 58, 38, 5);
+  steveBoard(g, T, 561, f - 181, 58, 38, [['STEVE', 1, '#2A1408']], { him: true, band: 'LIVE!', seed: 5 });
   // (its asphalt: banded, the parking lines, a fire lane's red curb along the front)
   box(g, 0, f, SW, SG, T('#5E585A')); box(g, 0, f, SW, 1, T('#7E787A')); checker(g, 0, f + 6, SW, 2, T('#4E4A4C'));
   for (let k = 0; k < SW; k += 40) box(g, k, f + 3, 14, 1, T('#9A948A'));

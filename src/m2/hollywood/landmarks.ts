@@ -27,6 +27,8 @@ import { timeOfDay, farTint, skyAt, hourMix, cloudTint, type TimeOfDay } from '.
 import { type Ctx, INK, box, checker, mix, hash, stamp, poly, pixelBlob, signText, plain, STEVE } from './blvd/kit';
 import { SECTIONS, SECTION_ORDER, HWX } from './geometry';
 import { drawNeedle } from '../space/square/sky';
+import { drawBust } from '../grossBust';
+import { steveBust } from './steveBust';
 
 const W = CANVAS_WIDTH;
 type T = (c: string) => string;
@@ -415,19 +417,58 @@ const paintClouds = (g: Ctx, tod: TimeOfDay) => {
     }
   }
 };
-/** Stuntman Steve's blimp: yellow, stepped round, red fins, the gondola, STEVE on its side (and his thumb). */
+/** Stuntman Steve's blimp: yellow, round in stepped bands (lit up top, shaded under, its gores' seams), red fins, the
+ *  nose cap, the gondola with its two props; on its side his face in a roundel, a gross-up the size of a house
+ *  (steveBust.ts: the oiled tan, the aviators, the stained grin, sweating), the print curving round the envelope with
+ *  it; STEVE, and STILL GOT IT (he hasn't). */
 const paintBlimp = (g: Ctx, tod: TimeOfDay) => {
-  const Y = STEVE.map(c2 => farTint(c2, 0.5, tod)), Rd = farTint('#B4243A', 0.5, tod);
-  g.fillStyle = INK; g.beginPath(); g.ellipse(80, 26, 70, 22, 0, 0, Math.PI * 2); g.fill();
-  g.fillStyle = Y[2]; g.beginPath(); g.ellipse(80, 26, 69, 21, 0, 0, Math.PI * 2); g.fill();
-  g.fillStyle = Y[3]; g.beginPath(); g.ellipse(77, 23, 64, 16, 0, 0, Math.PI * 2); g.fill();
-  checker(g, 16, 34, 128, 4, Y[2], 0, 2);
-  g.fillStyle = Y[4]; g.beginPath(); g.ellipse(70, 16, 44, 7, 0, 0, Math.PI * 2); g.fill();
-  box(g, 44, 10, 28, 2, Y[5]);
-  for (const s of [-1, 1]) { g.fillStyle = INK; g.beginPath(); g.moveTo(22, 26 + s * 4); g.lineTo(2, 26 + s * 20); g.lineTo(10, 26 + s * 2); g.fill(); g.fillStyle = Rd; g.beginPath(); g.moveTo(20, 26 + s * 4); g.lineTo(4, 26 + s * 17); g.lineTo(11, 26 + s * 2); g.fill(); }
-  box(g, 66, 47, 26, 8, INK); box(g, 67, 47, 24, 6, Y[1]); for (let k = 0; k < 4; k++) box(g, 69 + k * 6, 48, 3, 2, tod.lamps > 0.3 ? '#FFE8A0' : '#3A3A4A');
-  signText(g, 'STEVE', 92, 33, plain(2, 2, farTint('#3A1E04', 0.5, tod)));
-  box(g, 40, 18, 12, 14, farTint('#E2B48C', 0.5, tod)); box(g, 39, 16, 14, 4, farTint('#8A5A2A', 0.5, tod)); box(g, 42, 26, 8, 2, farTint('#2A2228', 0.5, tod));
+  const P = (c2: string) => farTint(c2, 0.5, tod), Y = STEVE.map(P), Rd = P('#B4243A'), RdD = P('#7A1424');
+  const cx = 98, cy = 32, rx = 84, ry = 26;
+  const ell = (x: number, y: number, a: number, b: number) => { g.beginPath(); g.ellipse(x, y, a, b, 0, 0, Math.PI * 2); };
+  // (the fins, behind: inked, red, a lit edge)
+  for (const s2 of [-1, 1]) {
+    poly(g, [[30, cy + s2 * 4], [4, cy + s2 * 25], [16, cy + s2 * 2]], INK);
+    poly(g, [[28, cy + s2 * 4], [7, cy + s2 * 22], [17, cy + s2 * 2]], Rd);
+    poly(g, [[28, cy + s2 * 4], [7, cy + s2 * 22], [12, cy + s2 * 14]], s2 < 0 ? P('#D84A5A') : RdD);
+  }
+  // (the envelope: stepped bands, light from the upper left)
+  g.fillStyle = INK; ell(cx, cy, rx + 1, ry + 1); g.fill();
+  g.fillStyle = Y[1]; ell(cx, cy, rx, ry); g.fill();
+  g.fillStyle = Y[2]; ell(cx - 2, cy - 2, rx - 2, ry - 3); g.fill();
+  g.fillStyle = Y[3]; ell(cx - 5, cy - 4, rx - 7, ry - 7); g.fill();
+  g.fillStyle = Y[4]; ell(cx - 12, cy - 10, rx - 26, ry - 17); g.fill();
+  g.fillStyle = Y[5]; ell(cx - 22, cy - 15, 30, 3); g.fill();
+  g.save(); ell(cx, cy, rx, ry); g.clip();
+  checker(g, cx - rx, cy + 14, rx * 2, 2, Y[1], 0, 1); checker(g, cx - rx, cy - 8, rx * 2, 2, Y[3], 1, 1);
+  // (the gores' seams: lines round it, dithered, closer toward its ends)
+  for (const k of [-0.86, -0.66, -0.4, 0.4, 0.66, 0.86]) checker(g, Math.round(cx + k * rx), cy - ry, 1, ry * 2, Y[0], 0, 1);
+  box(g, cx - rx, cy, rx * 2, 1, Y[1]);
+  // (his roundel: inked, the red ring, his face (cream behind), the print bent round with the envelope)
+  const fx = 60, fy = 31, fr = 19;
+  g.fillStyle = INK; ell(fx, fy, fr + 3, fr + 2); g.fill();
+  g.fillStyle = Rd; ell(fx, fy, fr + 2, fr + 1); g.fill();
+  g.fillStyle = P('#D84A5A'); ell(fx - 1, fy - 1, fr + 1, fr); g.fill();
+  g.fillStyle = P('#FFF4C8'); ell(fx, fy, fr, fr - 1); g.fill();
+  g.save(); ell(fx, fy, fr, fr - 1); g.clip();
+  for (let k = 0; k < 16; k += 2) { const a0 = (k / 16) * Math.PI * 2; poly(g, [[fx, fy], [fx + Math.cos(a0) * 30, fy + Math.sin(a0) * 30], [fx + Math.cos(a0 + 0.39) * 30, fy + Math.sin(a0 + 0.39) * 30]], P('#FCE6A0')); }
+  drawBust(g, steveBust('poster', P('#FFFFFF')), fx - 20, fy - 21, 40, 42, 150);
+  g.globalAlpha = 0.28; checker(g, fx - fr, fy + 9, fr * 2, 10, P('#3A2408'), 0, 1); box(g, fx - fr, fy + 14, fr * 2, 6, P('#3A2408'));
+  g.globalAlpha = 0.16; box(g, fx - fr, fy - fr, fr * 2, 4, P('#FFFFFF')); g.globalAlpha = 1;
+  g.restore();
+  // (his name, and the claim)
+  signText(g, 'STEVE', 130, 34, { sx: 2, sy: 2, gap: 1, fill: ['#FFFFFF', '#FFE8C8', '#E83A2A', '#B4243A', '#7A1424'].map(P), dither: true, ink: P('#2A1408'), shadow: P('#3A1E04'), drop: 1 });
+  signText(g, 'STILL GOT IT', 128, 45, plain(1, 1, P('#5A2A08')));
+  // (the envelope's shade over everything printed on its underside)
+  g.globalAlpha = 0.22; box(g, cx - rx, cy + 16, rx * 2, 12, P('#3A2408')); g.globalAlpha = 1;
+  g.restore();
+  // (the nose cap: its battens, the mooring cone)
+  g.fillStyle = INK; ell(cx + rx - 4, cy, 6, 10); g.fill(); g.fillStyle = Y[1]; ell(cx + rx - 4, cy, 5, 9); g.fill();
+  box(g, cx + rx - 3, cy - 6, 2, 3, Y[3]); box(g, cx + rx + 1, cy - 1, 2, 2, P('#5A5E66'));
+  // (the gondola: inked, lit along its top, its windows (lit after dark), the props out either side, blurred)
+  box(g, 82, 56, 34, 10, INK); box(g, 83, 57, 32, 8, Y[2]); box(g, 83, 57, 32, 1, Y[4]); box(g, 83, 63, 32, 2, Y[0]);
+  for (let k = 0; k < 5; k++) { box(g, 85 + k * 6, 59, 4, 3, tod.lamps > 0.3 ? '#FFE8A0' : P('#3A4A6A')); box(g, 85 + k * 6, 59, 1, 1, tod.lamps > 0.3 ? '#FFFBEA' : P('#9AB4D0')); }
+  for (const ex of [76, 118]) { box(g, ex - 3, 58, 7, 5, INK); box(g, ex - 2, 59, 5, 3, P('#8A8E96')); box(g, ex - 2, 59, 5, 1, P('#C8CCD4')); checker(g, ex + (ex < 98 ? -5 : 4), 55, 2, 10, P('#C8CCD4'), 0, 1); }
+  box(g, 82, 54, 34, 2, Y[0]);
 };
 /** A little prop plane towing a banner: REVENGERS 15 (SOON). */
 const paintPlane = (g: Ctx, tod: TimeOfDay) => {
@@ -454,7 +495,7 @@ export const drawHwSky = (c: Ctx, state: GameState, hz: number, mode: 'calm' | '
   const top = Math.max(30, Math.round(hz - 300));
   if (mode === 'calm') {
     const bx = Math.round((((f * 0.1 - cam * 0.02) % 1900) + 1900) % 1900 - 300), by = top + Math.round(Math.sin(f * 0.01) * 3);
-    if (bx > -170 && bx < W + 10) { c.save(); c.translate(bx, by); stamp(c, `hwsky-blimp-${tod.key}`, -4, -4, 168, 66, g => paintBlimp(g, tod)); c.restore(); if (tod.lamps > 0.3 && (f >> 4) % 2) box(c, bx + 148, by + 25, 3, 3, '#FF4A4A'); }
+    if (bx > -210 && bx < W + 10) { c.save(); c.translate(bx, by); stamp(c, `hwsky-blimp-${tod.key}`, -4, -4, 208, 76, g => paintBlimp(g, tod)); c.restore(); if (tod.lamps > 0.3 && (f >> 4) % 2) box(c, bx + 184, by + 31, 3, 3, '#FF4A4A'); }
     const px = Math.round((((-f * 0.35 - cam * 0.03) % 2600) + 2600) % 2600 - 400), py = top + 70 + Math.round(Math.sin(f * 0.02) * 2);
     if (px > -180 && px < W + 10) { c.save(); c.translate(px, py); stamp(c, `hwsky-plane-${tod.key}`, -2, -2, 172, 22, g => paintPlane(g, tod)); c.restore(); box(c, px + 164, py + 2 + ((f >> 1) % 2) * 6, 1, 4, '#E8E8E8'); }
   } else {
