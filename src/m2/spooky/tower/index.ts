@@ -703,6 +703,8 @@ export const tower: SpookySection = {
     if (t.opSaid) saidOver(c, t.opSaid, BOOTH_X, GY - 176, '#FCA5A5');
     const car = t.riderCar;
     if (t.riderSaid && car) saidOver(c, t.riderSaid, car.x, car.y - 140, '#FDE68A');
+    // (the elevator wrecked at the top: a big arrow bobbing over the shaft, pointing down it (the user's): that's the way)
+    if (t.crashed && !t.dive && state.player.pos.y + state.player.height < TOP + 120) downArrow(c, SHM, TOP - 150 + Math.round(Math.sin(state.frame * 0.12) * 8), state.frame);
   },
   drawHud: (c, state) => {
     const t = towerOf(state), cr = t.crash;
@@ -713,4 +715,16 @@ export const tower: SpookySection = {
     c.fillStyle = '#000'; c.fillRect(0, 0, CANVAS_WIDTH, bar); c.fillRect(0, CANVAS_HEIGHT - bar, CANVAS_WIDTH, bar);
     if (cr.t > SKIP_AFTER) drawSkipPrompt(c, CANVAS_WIDTH);
   },
+};
+
+/** A down arrow (world: its point at (x, y)): fat, yellow, inked, blinking brighter now and then. */
+const downArrow = (c: CanvasRenderingContext2D, x: number, y: number, f: number) => {
+  const lit = (f >> 4) % 2 === 0;
+  const shape = () => { c.beginPath(); c.moveTo(x, y); c.lineTo(x - 30, y - 30); c.lineTo(x - 12, y - 30); c.lineTo(x - 12, y - 62); c.lineTo(x + 12, y - 62); c.lineTo(x + 12, y - 30); c.lineTo(x + 30, y - 30); c.closePath(); };
+  c.save();
+  c.fillStyle = 'rgba(0, 0, 0, 0.35)'; c.translate(3, 3); shape(); c.fill(); c.translate(-3, -3);
+  shape(); c.fillStyle = lit ? '#FDE047' : '#EAB308'; c.fill();
+  c.lineWidth = 3; c.strokeStyle = '#1C1917'; c.stroke();
+  c.fillStyle = lit ? '#FEF9C3' : '#FDE68A'; c.fillRect(x - 8, y - 58, 5, 26);
+  c.restore();
 };
