@@ -19,7 +19,10 @@ interface Stamp { c: HTMLCanvasElement; L: number; T: number; a: number; d: numb
 const stamps = new Map<string, Stamp>();
 // (a busy stretch of Adventure Land wants ~100 MB of them at once: under that, the whole lot is let go and painted
 // again every frame, and the frame rate goes through the floor. Twice that, so only stamps from somewhere else go)
-const BUDGET = 320 * 1024 * 1024;
+// (a PC with 4 GB or less (the browser's rough figure; none given, taken as plenty): half that, still well over what
+// one stretch wants)
+const deviceGB = typeof navigator !== 'undefined' ? (navigator as Navigator & { deviceMemory?: number }).deviceMemory : undefined;
+const BUDGET = (deviceGB !== undefined && deviceGB <= 4 ? 160 : 320) * 1024 * 1024;
 let bytes = 0;
 /** Asked for once but not painted yet: a stamp's only painted the second time it's wanted at that scale (a zoom
  * sweeping through scales frame by frame never fills the cache with ones it'll never use again). */
@@ -205,10 +208,14 @@ export const stamp = (ctx: Ctx, key: string, x: number, y: number, w: number, h:
     s = { c, L, T, a: pa, d: pd, after, clip };
     // (a clipped one's never what's wanted at its scale once the sweep's over: kept under a name of its own, only to be
     // scaled from)
-    stamps.set(clip ? `${id}#clip` : id, s);
+    // (one there under the name already (a clipped one painted again further into the sweep): its bytes off the count
+    // as it goes, or the count only creeps up and stamps get let go early)
+    const k = clip ? `${id}#clip` : id, was = stamps.get(k);
+    if (was) { stamps.delete(k); bytes -= was.c.width * was.c.height * 4; }
+    stamps.set(k, s);
     bytes += c.width * c.height * 4;
     for (const [oldId, old] of stamps) {
-      if (bytes <= BUDGET || oldId === id) break;
+      if (bytes <= BUDGET || oldId === k) break;
       stamps.delete(oldId); bytes -= old.c.width * old.c.height * 4;
       const ok = oldId.slice(0, oldId.lastIndexOf('@'));
       if (latest.get(ok)?.s === old) latest.delete(ok);

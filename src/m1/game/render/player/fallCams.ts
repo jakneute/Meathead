@@ -139,6 +139,8 @@ const sharpStill = (ctx: Ctx, key: string, W: number, H: number, paint: (g: Ctx)
     g.lineCap = ctx.lineCap; g.lineJoin = ctx.lineJoin; // (strokes end the way they would've in the picture)
     paint(g);
     sharpStills.set(id, c);
+    // (keyed by the exact scale: a resized window paints a fresh one each time; only the newest few kept)
+    while (sharpStills.size > 4) sharpStills.delete(sharpStills.keys().next().value!);
   }
   ctx.drawImage(c, 0, 0, W, H);
 };

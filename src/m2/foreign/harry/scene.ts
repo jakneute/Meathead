@@ -11,7 +11,7 @@
 // floor, a chalk outline, his tie-dye in shreds, the spent jetpack, the gate down.
 
 import type { GameState } from '../../../m1/game/core/state';
-import { drawTodSky } from '../../timeOfDay';
+import { drawTodSky, thisHour } from '../../timeOfDay';
 import { box, mix, hour, dimmed, ramp6, viewIn, onScreen, postBoard, post, ball, stamp, atDepth, timeOfDay, lit, LOOKS, LIP, INK, signText } from '../kit';
 import { drawCopter } from '../heli/copter';
 import type { MechId } from '../heli/lines';
@@ -38,7 +38,7 @@ const glories = new Map<string, HTMLCanvasElement>();
 const GW = 48, GH = 30;
 const gloryCloth = () => {
   const key = timeOfDay().key;
-  let cv = glories.get(key);
+  let cv = thisHour(glories).get(key);
   if (!cv && typeof document !== 'undefined') {
     cv = document.createElement('canvas'); cv.width = GW; cv.height = GH;
     const g = cv.getContext('2d')!, Rd = ramp6(hour('#B91C1C')), Wh = ramp6(hour('#F1F5F9')), Bl = ramp6(hour('#1E3A8A'));
@@ -196,6 +196,8 @@ const WRECKS = ([
 ] as { id: MechId; sx: number; z: number; yaw: number }[]).map(w => ({ ...w, g: groundAt(w.sx, w.z) }));
 
 let cache: { c: HTMLCanvasElement; key: string } | null = null;
+/** The berm let go (1600 x 1200: off out of Foreign Lands, landCaches.ts); painted again on the next visit, as on the first. */
+export const releaseBerm = () => { cache = null; };
 const crest = (x: number, base: number, a: number) => base + Math.sin(x * 0.03) * a + Math.sin(x * 0.071 + 1) * a * 0.6;
 const paintBerm = (g: Ctx) => {
   const D = ramp6(hour('#7C5A3C')), R = ramp6(hour('#8A7A68'));

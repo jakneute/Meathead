@@ -13,7 +13,7 @@
 
 import type { GameState } from '../../../m1/game/core/state';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../../../m1/constants';
-import { timeOfDay, skyRamp, farTint, type TimeOfDay } from '../../timeOfDay';
+import { timeOfDay, thisHour, skyRamp, farTint, type TimeOfDay } from '../../timeOfDay';
 import { bandedGradient, hazeBands, checker, steppedGlow } from '../../../m1/game/render/pixelArt';
 import { drawGiantAtom } from '../square/sky';
 import { idleJob } from '../../../m1/game/scenes/art/raster';
@@ -554,7 +554,7 @@ const paintCloud = (seed: number, tod: TimeOfDay) => {
 };
 export const drawCloud = (c: Ctx, x: number, y: number, s: number, seed: number, tod: TimeOfDay, alpha = 1) => {
   const key = `${seed}|${tod.key}`;
-  let img = clouds.get(key);
+  let img = thisHour(clouds).get(key);
   if (!img) { img = paintCloud(seed, tod); clouds.set(key, img); }
   const w = Math.round(img.width * PX * s / PX) * PX, h = Math.round(img.height * PX * s / PX) * PX;
   c.save(); c.imageSmoothingEnabled = false; c.globalAlpha = alpha;

@@ -13,7 +13,7 @@
 //   The BANNER POLES (gilt, a swallowtail pennant in four frames). PIPER'S HOT-AIR BALLOONS (gores in stepped pink and
 //   white, a gilt heart crest, ropes, the basket and its riders; the burner's flame is drawn live).
 
-import { timeOfDay, multiply, type TimeOfDay } from '../../timeOfDay';
+import { timeOfDay, thisHour, multiply, type TimeOfDay } from '../../timeOfDay';
 import { INK, hash, checker, SNOW, GOLD, IRON, TIMBER, SLATE } from '../kit';
 import { PALE, ROOF, PINK, PLUM, RED, LEAVES, ashlar, merlons, slit, lancet, banner, cone, drum } from '../keep/paint';
 import { PIPER_WINDOW } from '../monument';
@@ -38,7 +38,7 @@ const halve = (src: HTMLCanvasElement) => {
 };
 const sprite = (key: string, w: number, h: number, ax: number, ay: number, levels: number, paint: (g: Ctx, tod: TimeOfDay) => void): Sprite => {
   const tod = timeOfDay(), k = `${key}|${tod.key}`;
-  let s = cache.get(k);
+  let s = thisHour(cache).get(k);
   if (s) return s;
   const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
   const g = cv.getContext('2d')!; g.imageSmoothingEnabled = false;

@@ -12,7 +12,7 @@
 
 import { type Ctx, type Prop, LW, HOR, F, CAM_H, box, hash } from './kit';
 import { canvas, gradeOf, hazeOf, fogAt, type Look } from './screen';
-import { timeOfDay, hourMix, skyRamp, skyAt, farTint, cloudTint, sunAt, drawStars, drawMoon, type TimeOfDay } from '../timeOfDay';
+import { timeOfDay, thisHour, hourMix, skyRamp, skyAt, farTint, cloudTint, sunAt, drawStars, drawMoon, type TimeOfDay } from '../timeOfDay';
 import { SHOPS, paintFront } from '../spooky/town/buildings';
 import { paintLamp, paintGag } from '../spooky/town/props';
 import { X } from '../spooky/town/layout';
@@ -45,7 +45,7 @@ const worded = (p: Omit<Prop, 'id'>, id: string): Prop => Object.defineProperty(
 
 const SKY_BANDS = new Map<string, HTMLCanvasElement>();
 const skyOfTown = (tod: TimeOfDay) => {
-  let s = SKY_BANDS.get(tod.key);
+  let s = thisHour(SKY_BANDS).get(tod.key);
   if (!s) {
     s = canvas(LW, HOR + 2);
     const g = s.getContext('2d')!;
@@ -59,7 +59,7 @@ const TILE_W = 480;
 const tiles = new Map<string, HTMLCanvasElement>();
 const tileOf = (key: string, h: number, paint: (g: Ctx, tod: TimeOfDay) => void) => {
   const tod = timeOfDay(), k = `${key}|${tod.key}`;
-  let cv = tiles.get(k);
+  let cv = thisHour(tiles).get(k);
   if (!cv) { cv = canvas(TILE_W, h); paint(cv.getContext('2d')!, tod); tiles.set(k, cv); }
   return cv;
 };
@@ -312,7 +312,7 @@ const paintTower = (g: Ctx, ts: number, wrecked: boolean, tod: TimeOfDay) => {
 const towerCache = new Map<string, HTMLCanvasElement>();
 const towerOf = (ts: number, wrecked: boolean) => {
   const tod = timeOfDay(), key = `${ts}|${wrecked ? 1 : 0}|${tod.key}`;
-  let cv = towerCache.get(key);
+  let cv = thisHour(towerCache).get(key);
   if (!cv) {
     cv = canvas(Math.ceil((TX0 + TX1) * ts) + 2, Math.ceil(-TY0 * ts) + 2);
     paintTower(cv.getContext('2d')!, ts, wrecked, tod);

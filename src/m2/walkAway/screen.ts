@@ -5,7 +5,7 @@
 
 import { CANVAS_WIDTH as W, CANVAS_HEIGHT as H } from '../../m1/constants';
 import { type Ctx, type Prop, LW, LH, TOP, BOT, HOR, F, CAM_H, INK, stipple } from './kit';
-import { timeOfDay, multiply } from '../timeOfDay';
+import { timeOfDay, thisHour, multiply } from '../timeOfDay';
 import { takeSun, drawSunGhosts } from '../sunFlare';
 import { mix } from '../../m1/game/render/backdrops/core';
 
@@ -42,7 +42,7 @@ export const hazeOf = (look: Look) => mix(timeOfDay().haze, look.haze, 0.35);
 
 const tileOf = (look: Look) => {
   const key = timeOfDay().key;
-  let m = tiles.get(look.ground);
+  let m = thisHour(tiles).get(look.ground);
   if (!m) { m = new Map(); tiles.set(look.ground, m); }
   let t = m.get(key);
   if (!t) {
@@ -63,7 +63,7 @@ export const warmGround = (look: Look) => { tileOf(look); };
 /** The hour's sky, top to the horizon, banded (flat steps, a dithered row where each meets the next). */
 export const skyOf = () => {
   const tod = timeOfDay(), key = tod.key;
-  let s = skies.get(key);
+  let s = thisHour(skies).get(key);
   if (!s) {
     const sky = tod.sky.map(c => multiply(c, gradeOf()));
     s = canvas(LW, HOR + 2);
@@ -87,7 +87,7 @@ export const skyOf = () => {
 /** A prop's picture at a fog level (0..3: the haze laid over it in steps, a palette swap's worth). */
 export const spriteOf = (look: Look, p: Prop, fog: number) => {
   const key = `${p.id}|${p.w}|${p.h}|${timeOfDay().key}`;
-  let arr = sprites.get(key);
+  let arr = thisHour(sprites).get(key);
   if (!arr) {
     const ppm = p.ppm ?? 20, w = Math.max(2, Math.round(p.w * ppm)), h = Math.max(2, Math.round(p.h * ppm));
     const base = canvas(w, h);

@@ -34,9 +34,13 @@ import { SALOON } from './town/layout';
 import { inSewer, realAt, zoneAt } from './logride/layout';
 import { STATION } from './wilds/layout';
 import type { Zone } from '../hudThemes';
+import { onLandLeft } from '../landCaches';
+import { clearStills } from './train/paint';
 export { FRONTIER_VOICE_LINES } from './voices';
 
 export const FRONTIER_STAGE = 'M2 Wilderness Land';
+// (what's only wanted here, let go once he's gone: landCaches.ts)
+onLandLeft(FRONTIER_STAGE, () => clearStills());
 
 const ALL: Record<FrontierId, FrontierSection> = { wilds, train, town, logride, woods, dirtbike, arena };
 const sectionAt = (x: number): FrontierSection => {

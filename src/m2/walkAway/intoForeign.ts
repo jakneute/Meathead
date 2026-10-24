@@ -16,7 +16,7 @@
 
 import { type Ctx, type Prop, type PortalDef, HOR, LW, LH, F, CAM_H, ME_D, INK, box, hash, mix, stipple } from './kit';
 import { canvas } from './screen';
-import { timeOfDay, hourMix, skyRamp, sunAt, drawStars, drawMoon, skyAt, cloudTint, farTint, type TimeOfDay } from '../timeOfDay';
+import { timeOfDay, thisHour, hourMix, skyRamp, sunAt, drawStars, drawMoon, skyAt, cloudTint, farTint, type TimeOfDay } from '../timeOfDay';
 import { bandedGradient, hazeBands, pixelBlob } from '../../m1/game/render/pixelArt';
 import { ramp6, hour, post, ball, hungBoard, flagPole, two4, sandbags, LOOKS } from '../foreign/kit';
 import { paintGate, paintFront, type MxFront } from '../foreign/mexico/art';
@@ -115,7 +115,7 @@ const ground = (g: Ctx, w: number, h: number) => {
 const SKY = ['#1E3A8A', '#2563EB', '#60A5FA', '#93C5FD', '#BFDBFE', '#FDE68A'];
 const skies = new Map<string, HTMLCanvasElement>();
 const skyOfLand = (tod: TimeOfDay) => {
-  let s = skies.get(tod.key);
+  let s = thisHour(skies).get(tod.key);
   if (!s) { s = canvas(LW, HOR + 4); bandedGradient(s.getContext('2d')!, 0, 0, LW, HOR + 4, skyRamp(SKY, tod), 18, 1); skies.set(tod.key, s); }
   return s;
 };

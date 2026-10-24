@@ -33,9 +33,13 @@ import { queen } from './queen';
 import { HOUSE_DOOR } from './crater/layout';
 import { DOOR_X } from './queen/geo';
 import type { Zone } from '../hudThemes';
+import { onLandLeft } from '../landCaches';
+import { releaseLaunch } from './ride/launch';
 export { SPACE_VOICE_LINES } from './voices';
 
 export const SPACE_STAGE = 'M2 Space Land';
+// (what's only wanted here, let go once he's gone: landCaches.ts)
+onLandLeft(SPACE_STAGE, () => releaseLaunch());
 
 const ALL: Record<SpaceId, SpaceSection> = { square, atom, ride, drag, needle, orbit, crater, queen };
 const sectionAt = (x: number): SpaceSection => {

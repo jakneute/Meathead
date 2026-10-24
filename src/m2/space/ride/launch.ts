@@ -236,6 +236,9 @@ export const prewarmLaunch = () => {
   warming = true;
   idleJob(until => { const done = paintOn(startLayers(), until); if (done) warming = false; return done; });
 };
+/** The layers let go (off out of Future Land: landCaches.ts); the ride's build paints them ahead again. (Still being
+ *  painted ahead: left be, or the job would only start a fresh pair.) */
+export const releaseLaunch = () => { if (!warming) layers = null; };
 
 // ---------------------------------------------------------------------------------------------------------------
 // The live parts

@@ -194,6 +194,17 @@ export const farTint = (col: string, k = 1, tod = timeOfDay()) => {
   return v;
 };
 /**
+ * A cache of art painted for the hour (keyed by `tod.key` among the rest), kept to this hour's: the first ask at a new
+ * hour lets the last hour's lot go (never wanted again: the day only goes on). `drop` empties it, if a clear() alone
+ * won't (a byte count to reset with it). Gives the cache back.
+ */
+const hourOf = new WeakMap<object, string>();
+export const thisHour = <M extends { clear(): void }>(cache: M, drop?: () => void): M => {
+  const key = timeOfDay().key, was = hourOf.get(cache);
+  if (was !== key) { hourOf.set(cache, key); if (was !== undefined) { if (drop) drop(); else cache.clear(); } }
+  return cache;
+};
+/**
  * A color helper that depends only on the color (and an optional number) and the hour's look (a land's `dimmed`, its
  * `hour`), worked out once per color per look and kept: the same colors out, without the half-dozen mixes a call every
  * time. Only for helpers that read nothing but their arguments and timeOfDay().

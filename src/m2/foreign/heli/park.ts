@@ -28,7 +28,7 @@
 // sky's clouds painted once a size into sprites.
 
 import type { GameState } from '../../../m1/game/core/state';
-import { timeOfDay, skyRamp, farTint, hourMix, drawStars, drawMoon, sunAt, drawSun, cloudTint } from '../../timeOfDay';
+import { timeOfDay, thisHour, skyRamp, farTint, hourMix, drawStars, drawMoon, sunAt, drawSun, cloudTint } from '../../timeOfDay';
 import { pixelBlob, bandedGradient, checker, mix } from '../../intro/art/kit';
 import { hour, ramp6 } from '../kit';
 import { heliOf, type Heli, type Mech } from './state';
@@ -593,7 +593,7 @@ const SKY_CLOUDS = [{ u: 120, y: 150, s: 1.1 }, { u: 520, y: 90, s: 0.8 }, { u: 
 const skyCloudSprites = new Map<string, HTMLCanvasElement>();
 const skyCloud = (n: number, s: number) => {
   const tod = timeOfDay(), key = n + '|' + tod.key;
-  let cv = skyCloudSprites.get(key);
+  let cv = thisHour(skyCloudSprites).get(key);
   if (cv || typeof document === 'undefined') return cv ?? null;
   cv = document.createElement('canvas'); cv.width = Math.ceil(260 * s); cv.height = Math.ceil(100 * s);
   const g = cv.getContext('2d')!, cx = cv.width / 2, cy = cv.height * 0.62;

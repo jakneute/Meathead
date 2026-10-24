@@ -280,6 +280,13 @@ const canvasOf = (w: number, h: number, s: number, ox: number, oy: number, paint
   return cv;
 };
 const avArt = new Map<string, HTMLCanvasElement | CanvasPattern>();
+/** Kept, the oldest let go past AV_MAX (each scale the screen's at has its own: a zoom, a resized window, sweeps through
+ *  hundreds of them, each a fresh set never wanted again). A scale's whole set is a dozen. */
+const AV_MAX = 72;
+const keepAv = (k: string, v: HTMLCanvasElement | CanvasPattern) => {
+  avArt.set(k, v);
+  while (avArt.size > AV_MAX) avArt.delete(avArt.keys().next().value!);
+};
 /** Each pattern's tile size (world). */
 const tileSize = new WeakMap<CanvasPattern, [number, number, number, number]>();
 /** The billows' sizes (the body's, the front's). */
@@ -288,7 +295,7 @@ const billowBox = (r: number) => { const o = Math.ceil(r) + 3; return { o, w: Ma
 const billowSprite = (s: number, r: number) => {
   const k = `b${r}@${s}`;
   let cv = avArt.get(k) as HTMLCanvasElement | undefined;
-  if (!cv) { const { o, w } = billowBox(r); cv = canvasOf(w, w, s, -o, -o, g => paintBillow(g, 0, 0, r)); avArt.set(k, cv); }
+  if (!cv) { const { o, w } = billowBox(r); cv = canvasOf(w, w, s, -o, -o, g => paintBillow(g, 0, 0, r)); keepAv(k, cv); }
   return cv;
 };
 const billow = (c: Ctx, x: number, y: number, r: number) => {
@@ -299,7 +306,7 @@ const billow = (c: Ctx, x: number, y: number, r: number) => {
 const tile = (c: Ctx, key: string, s: number, w: number, h: number, paint: (g: Ctx) => void) => {
   const k = `${key}@${s}`;
   let p = avArt.get(k) as CanvasPattern | undefined;
-  if (!p) { const cv = canvasOf(w, h, s, 0, 0, paint); p = c.createPattern(cv, 'repeat')!; tileSize.set(p, [w, h, cv.width, cv.height]); avArt.set(k, p); }
+  if (!p) { const cv = canvasOf(w, h, s, 0, 0, paint); p = c.createPattern(cv, 'repeat')!; tileSize.set(p, [w, h, cv.width, cv.height]); keepAv(k, p); }
   return p;
 };
 /** The body's bands (four, 24 high, each dithered into the next along its foot): a 96-high tile, 60 across. */

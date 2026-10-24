@@ -32,9 +32,15 @@ import { keep } from './keep';
 import { broom, tickShatter, drawShatter } from './broom';
 import { bedroom } from './bedroom';
 import type { Zone } from '../hudThemes';
+import { onLandLeft } from '../landCaches';
+import { clearBanded } from './tragons/cache';
+import { clearDragonSprites } from './tragons/dragon';
 export { FANTASY_VOICE_LINES } from './voices';
 
 export const FANTASY_STAGE = 'M2 Fairy Land';
+// (what's only wanted here, let go once he's gone: landCaches.ts. Not the deathmatch's mode 7 ground: back in at its
+// checkpoint (fast travel), its floor's drawn on the first frame, and painting it all again there was a long stall)
+onLandLeft(FANTASY_STAGE, () => { clearBanded(); clearDragonSprites(); });
 
 const ALL: Record<FantasyId, FantasySection> = { square, wheel, glen, tragons, keep, broom, bedroom };
 const sectionAt = (x: number): FantasySection => {

@@ -9,7 +9,7 @@
 
 import { type Ctx, type Prop, type PortalDef, HOR, LW, box, hash } from './kit';
 import { canvas } from './screen';
-import { timeOfDay, hourMix, skyRamp, sunAt, drawStars, drawMoon, farTint, skyAt, cloudTint, type TimeOfDay } from '../timeOfDay';
+import { timeOfDay, thisHour, hourMix, skyRamp, sunAt, drawStars, drawMoon, farTint, skyAt, cloudTint, type TimeOfDay } from '../timeOfDay';
 import { drawTeaseStrip } from './teases';
 import { mix, checker, bandedGradient, hazeBands, pixelBlob, PAVE, PINK, TEAL, INK, ramp6, poly } from '../space/square/paint';
 import { drawGiantAtom, drawNeedle } from '../space/square/sky';
@@ -72,7 +72,7 @@ const ground = (g: Ctx, w: number, h: number) => {
 const SKY = ['#2456C8', '#3A7EE0', '#5AA6EE', '#86CCF0', '#B4E6EA', '#E4F6E4'];
 const skies = new Map<string, HTMLCanvasElement>();
 const skyOf = (tod: TimeOfDay) => {
-  let s = skies.get(tod.key);
+  let s = thisHour(skies).get(tod.key);
   if (!s) { s = canvas(LW, HOR + 4); bandedGradient(s.getContext('2d')!, 0, 0, LW, HOR + 4, skyRamp(SKY, tod), 18, 1); skies.set(tod.key, s); }
   return s;
 };
@@ -81,7 +81,7 @@ const skyOf = (tod: TimeOfDay) => {
 const skylines = new Map<string, HTMLCanvasElement>();
 const skylineOf = (tod: TimeOfDay, near: boolean) => {
   const key = `${tod.key}-${near ? 1 : 0}`;
-  let s = skylines.get(key);
+  let s = thisHour(skylines).get(key);
   if (s) return s;
   s = canvas(LW + 80, 70);
   const g = s.getContext('2d')!, f = 68, k = near ? 0.2 : 0.42;

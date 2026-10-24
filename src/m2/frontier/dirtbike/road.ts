@@ -14,7 +14,7 @@
 // beaten; the next one's road starts generating then (out past the horizon).
 
 import { mix } from '../kit';
-import { timeOfDay, drawTodSky, farTint, skyAt, hourMix, cloudTint, type TimeOfDay } from '../../timeOfDay';
+import { timeOfDay, thisHour, drawTodSky, farTint, skyAt, hourMix, cloudTint, type TimeOfDay } from '../../timeOfDay';
 import { range, mist, snap2, wave, jag, fillUnder, wrapAt, box, checker, hash, hazeBands, pixelBlob, type RangeLook } from '../../adventure/farArt';
 import { bandedGradient, NEEDLE } from '../wilds/paint';
 
@@ -406,7 +406,7 @@ const canvasOf = (w: number, h: number) => { const cv = document.createElement('
 /** A layer `w` x `h` (road view px), painted at twice that once for the hour. */
 const layer = (key: string, w: number, h: number, paint: (g: Ctx, tod: TimeOfDay) => void) => {
   const tod = timeOfDay(), k = key + tod.key;
-  let cv = layers.get(k);
+  let cv = thisHour(layers).get(k);
   if (!cv) {
     const big = canvasOf(w * 2, h * 2);
     paint(big.getContext('2d')!, tod);

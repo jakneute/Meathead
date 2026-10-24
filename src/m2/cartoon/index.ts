@@ -31,9 +31,13 @@ import { bigkid } from './bigkid';
 import { itchy } from './itchy';
 import { amphi } from './amphi';
 import type { Zone } from '../hudThemes';
+import { onLandLeft } from '../landCaches';
+import { clearDadBits } from './amphi/dadBits';
 export { CARTOON_VOICE_LINES } from './voices';
 
 export const CARTOON_STAGE = 'M2 Cartoon Land';
+// (what's only wanted here, let go once he's gone: landCaches.ts)
+onLandLeft(CARTOON_STAGE, () => clearDadBits());
 
 const ALL: Record<CartoonId, CartoonSection> = { kiddie, studio, whitehouse1, whitehouse2, bigkid, itchy, amphi };
 const sectionAt = (x: number): CartoonSection => {

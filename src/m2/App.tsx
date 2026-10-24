@@ -65,6 +65,7 @@ import GymTips from './intro/gym/GymTips';
 import { M2_PUBLIC } from './build';
 import FpsMeter from './FpsMeter';
 import { clearSkyCache } from './intro/art/sky';
+import { landLeft } from './landCaches';
 import { canSkip, requestSkip } from '../m1/game/platform/skip';
 import { getAudioContext } from '../m1/game/platform/audio';
 import { STAFF_SLOT, AMERICA_SLOT, landAt } from './hub/lands';
@@ -302,6 +303,8 @@ const App2: React.FC = () => {
     if (title || status !== GameStatus.START || !pending.current) return;
     const id = pending.current;
     pending.current = null;
+    // (the land he's leaving lets its own art go: landCaches.ts)
+    landLeft(stage, id);
     setStage(id);
     setStatus(GameStatus.LEVEL_INTRO);
     setTimeout(() => setFade(false), 120);

@@ -625,6 +625,8 @@ const gpu = new OrbitGl({
 /** Every sprite out round the loop (each tree kind and fake at each distance band) painted ahead, a few a moment,
  *  so none's first painted mid-walk (a fast charge round the loop crossed several bands a frame: a spike each). */
 let primed = false;
+/** (off out of Jungle Land: landCaches.ts) The sprites let go, to be painted ahead again on the next visit. */
+export const clearOrbitSprites = () => { sprites.clear(); primed = false; };
 const primeSprites = () => {
   if (primed || typeof document === 'undefined') return;
   primed = true;

@@ -14,6 +14,7 @@ import {
   inkEdges, hairs, vein, toCanvas, bay, hash2, GW, GH, M_SKIN, M_HAIR, M_MOUTH, M_OTHER, M_CLOTH, M_METAL, M_SCLERA, M_IRIS, M_GLASS,
   SCLERA, SCLERA_R, SCLERA_Y, MOUTH, TONGUE, GUM, TOOTH, TOOTH_B, GOLD, BLOOD,
 } from './grossKit';
+import { thisHour } from './timeOfDay';
 
 /** The box in the buffer the bust is painted in (its own pixels: one per world pixel at a 150 x 200 frame). */
 export const BOX_X = 61, BOX_Y = 4, BOX_W = 150, BOX_H = 200;
@@ -396,7 +397,8 @@ const tcache = new Map<Bust, Map<string, Bust>>();
 /** A bust under a color (multiplied over it: the time of day, a dimmed wall), kept per color. */
 export const tintBust = (bu: Bust, col: string): Bust => {
   if (!bu.img || /^#f{6}$/i.test(col)) return bu;
-  let m = tcache.get(bu); if (!m) tcache.set(bu, (m = new Map()));
+  // (the colors are the hour's light: a new hour, the last one's tints go)
+  let m = thisHour(tcache).get(bu); if (!m) tcache.set(bu, (m = new Map()));
   let t = m.get(col);
   if (!t) {
     const cv = document.createElement('canvas'); cv.width = GW; cv.height = GH;

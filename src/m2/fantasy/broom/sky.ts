@@ -5,7 +5,7 @@
 // tower, the beanstalk up into its cloud, a windmill, the frozen lake's glint). Live over it: the sun by day, birds by
 // day and fireworks after dark, all at their own bearings (turn and they stay where they are).
 
-import { timeOfDay, multiply, skyAt, skyRamp, cloudTint, drawStars, drawMoon, type TimeOfDay } from '../../timeOfDay';
+import { timeOfDay, thisHour, multiply, skyAt, skyRamp, cloudTint, drawStars, drawMoon, type TimeOfDay } from '../../timeOfDay';
 import { bandedGradient } from '../../intro/art/kit';
 import { hash, mix, INK } from '../kit';
 import { W, FOCAL } from './world';
@@ -23,7 +23,7 @@ const poly = (g: Ctx, col: string, p: number[]) => { g.fillStyle = col; g.beginP
 const layers = new Map<string, HTMLCanvasElement>();
 const layer = (key: string, w: number, h: number, paint: (g: Ctx, tod: TimeOfDay) => void) => {
   const tod = timeOfDay(), k = key + tod.key;
-  let cv = layers.get(k);
+  let cv = thisHour(layers).get(k);
   if (!cv) { cv = document.createElement('canvas'); cv.width = w; cv.height = h; const g = cv.getContext('2d')!; g.imageSmoothingEnabled = false; paint(g, tod); layers.set(k, cv); }
   return cv;
 };

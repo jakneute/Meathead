@@ -12,7 +12,7 @@
 // with the track: one drawImage a car); what moves (the lamps chasing or flashing red, the eye's glint, the breath's
 // puffs, a spare's flapping bat wings) is drawn live over it.
 
-import { timeOfDay } from '../../timeOfDay';
+import { timeOfDay, thisHour } from '../../timeOfDay';
 import { INK, mix, box, checker, hour, ramp6, GOLD, IRON, ballR, polyF, type Ctx } from '../kit';
 import { CAR, type Lane } from './layout';
 
@@ -225,10 +225,12 @@ export const paintDragon = (g: Ctx, lane: Lane, i: number, char: boolean) => {
 // The sprites (per lane, car, char and hour)
 
 const sprites = new Map<string, HTMLCanvasElement>();
+/** (off out of Fairy Land: landCaches.ts) */
+export const clearDragonSprites = () => sprites.clear();
 const sprite = (lane: Lane, i: number, char: boolean) => {
   if (typeof document === 'undefined') return null;
   const key = `${lane}-${i}-${char ? 1 : 0}-${timeOfDay().key}`;
-  let cv = sprites.get(key);
+  let cv = thisHour(sprites).get(key);
   if (!cv) {
     if (sprites.size > 60) sprites.clear();
     cv = document.createElement('canvas'); cv.width = SPR.w * RES; cv.height = SPR.h * RES;

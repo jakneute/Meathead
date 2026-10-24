@@ -42,9 +42,13 @@ import { uk } from './uk';
 import { canada } from './canada';
 import { heli } from './heli';
 import { harry } from './harry';
+import { onLandLeft } from '../landCaches';
+import { releaseBerm } from './harry/scene';
 export { FOREIGN_VOICE_LINES } from './voices';
 
 export const FOREIGN_STAGE = 'M2 Foreign Lands';
+// (what's only wanted here, let go once he's gone: landCaches.ts)
+onLandLeft(FOREIGN_STAGE, () => releaseBerm());
 
 const ALL: Record<ForeignId, ForeignSection> = { mexico, norway, china, germany, italy, japan, morocco, france, uk, canada, heli, harry };
 const sectionAt = (x: number): ForeignSection => {

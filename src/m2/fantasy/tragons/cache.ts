@@ -6,12 +6,16 @@
 // pixels, no seams) at or over the one it's shown at, and put down scaled to it (smoothed): a zoom sweeping anywhere
 // within a band costs one drawImage, never a repaint.
 
+import { thisHour } from '../../timeOfDay';
+
 type Ctx = CanvasRenderingContext2D;
 interface Entry { cv: HTMLCanvasElement; s: number }
 const cache = new Map<string, Entry>();
 /** Let the oldest go past this (bytes). */
 const BUDGET = 160 * 1024 * 1024;
 let bytes = 0;
+/** Every picture let go (off out of Fairy Land: landCaches.ts; or a new hour, its pictures all painted again for it). */
+export const clearBanded = () => { cache.clear(); bytes = 0; };
 
 /** Puts down `paint`'s art (in the current coordinates, inside the box bx, by, bw, bh), from a cached picture of it at
  *  a whole device scale. `key` names the picture: the same key, the same picture. No rotation (painted live then). */
@@ -35,7 +39,8 @@ export const bandedAt = (key: string, a: number, bx: number, by: number, bw: num
   // on whole pixels; and it's never brought down more than a third: a big strip scaled down hard every frame is slow)
   const s = a <= 1.02 ? 1 : a <= 1.52 ? 1.5 : a <= 2.02 ? 2 : 3;
   const id = `${key}@${s}`;
-  let e = cache.get(id);
+  // (every picture here's keyed by the hour: a new one, the last hour's go)
+  let e = thisHour(cache, clearBanded).get(id);
   if (e) { cache.delete(id); cache.set(id, e); }
   else {
     const cv = document.createElement('canvas');

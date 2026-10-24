@@ -7,7 +7,7 @@
 // stamps it keeps its cache under the grades' tilt (the world drawn turned), so a climb doesn't repaint every car every
 // frame.
 
-import { timeOfDay, farTint, skyAt } from '../../timeOfDay';
+import { timeOfDay, thisHour, farTint, skyAt } from '../../timeOfDay';
 import { box, checker, mix, hash, INK, part as wpart, slab, post, ball, fiberglass, pine, near, dimmed, rampOf, FIBER, STONE, DIRT, GRASS, NEEDLE, BARK, PLANK, PLY, STEEL, WATER, LIP, FIBER_LIP, bandedGradient, hazeBands, pixelBlob } from '../wilds/paint';
 
 export { box, checker, mix, hash, INK, slab, post, ball, fiberglass, pine, near, dimmed, rampOf, FIBER, STONE, DIRT, GRASS, NEEDLE, BARK, PLANK, PLY, STEEL, WATER, LIP, FIBER_LIP, bandedGradient, hazeBands, pixelBlob, timeOfDay, farTint, skyAt };
@@ -54,6 +54,8 @@ const CACHE = new Map<string, HTMLCanvasElement>();
 /** The cache's budget (pixels): past it, the longest unused go first. */
 const BUDGET = 16e6;
 let pixels = 0;
+/** Every still let go (off out of Wilderness Land: landCaches.ts; or a new hour, all painted again for it). */
+export const clearStills = () => { CACHE.clear(); pixels = 0; };
 const fontIn = () => (typeof document !== 'undefined' && document.fonts?.check('8px "Press Start 2P"') ? 'f' : 'n');
 /**
  * Still art: `paint` (in local units, the box bx, by, bw, bh) painted once for this hour at the screen's scale into its
@@ -63,7 +65,7 @@ export const still = (c: Ctx, key: string, bx: number, by: number, bw: number, b
   if (typeof document === 'undefined') { paint(c); return; }
   const m = c.getTransform(), s = Math.max(0.25, Math.round(Math.hypot(m.a, m.b) * 32) / 32);
   const id = `${key}-${timeOfDay().key}-${fontIn()}@${s}`;
-  let cv = CACHE.get(id);
+  let cv = thisHour(CACHE, clearStills).get(id);
   if (cv) { CACHE.delete(id); CACHE.set(id, cv); }
   else {
     cv = document.createElement('canvas');

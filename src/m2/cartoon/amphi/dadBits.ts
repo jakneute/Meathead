@@ -314,6 +314,8 @@ const paintBit = (c: Ctx, kind: BitKind, seed: number) => {
  *  cam's zoom crawled: the user's "slows down massively during the zoom in"): painted once, flat, into its own canvas at
  *  the scale it's showing at (stepped up in doubles, so a zoom paints it a few times at most), then put down turned. */
 const baked = new Map<string, HTMLCanvasElement>();
+/** (off out of Cartoon Land: landCaches.ts; up to ~50 MB of them after the kill cam) */
+export const clearDadBits = () => baked.clear();
 const bakedTurn = (c: Ctx, key: string, x: number, y: number, w: number, h: number, paint: (g: Ctx) => void, most = 16) => {
   const m = c.getTransform(), sc = Math.hypot(m.a, m.b);
   const res = Math.min(most, 2 ** Math.ceil(Math.log2(Math.max(1, sc))));

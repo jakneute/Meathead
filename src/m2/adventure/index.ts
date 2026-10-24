@@ -26,8 +26,12 @@ import { temple } from './temple';
 import { cart } from './cart';
 import { roof } from './roof';
 import { clearing } from './clearing';
+import { onLandLeft } from '../landCaches';
+import { clearOrbitSprites } from './clearing/orbit';
 
 export const ADV_STAGE = 'M2 Adventure Land';
+// (what's only wanted here, let go once he's gone: landCaches.ts)
+onLandLeft(ADV_STAGE, () => clearOrbitSprites());
 
 const ALL: Record<SectionId, Section> = { jungle, queue, river, dino, temple, cart, roof, clearing };
 const sectionAt = (x: number): Section => {
