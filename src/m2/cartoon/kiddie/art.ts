@@ -336,7 +336,9 @@ const drawHattery = (c: Ctx, state: GameState, v: View) => {
   sideBack(c, v.eye, xa, -1, top, GY, 1, SET_D, Sd, 3, hatInset);
   sideBack(c, v.eye, xb, 1, top, GY, 1, SET_D, Sd, 3, hatInset);
   topBack(c, v.eye, xa + 58, xb - 58, top, 1, SET_D, rampH(SKY), 3);
-  still(c, `ki-hattery-${closed ? 1 : 0}`, xa, 0, -30, top - 30, w + 60, GY - top + 34, g => {
+  // (tall enough for the trolley arch's top too: it rises past the roof, and was cut off flat (the user's))
+  const stTop = Math.min(top - 30, Y(TROLLEY.h) - 130);
+  still(c, `ki-hattery-${closed ? 1 : 0}-v2`, xa, 0, -30, stTop, w + 60, GY - stTop + 4, g => {
     for (const [t0, t1, col, band] of HAT_BANDS) {
       const R = rampH(ramp6(col)), Bd = rampH(ramp6(band)), y0 = GY - (GY - top) * t1, y1 = GY - (GY - top) * t0, inset = t0 * 14;
       const hat = () => { g.moveTo(inset, y1); g.quadraticCurveTo(inset - 12, (y0 + y1) / 2, inset + 4, y0); g.lineTo(w - inset - 4, y0); g.quadraticCurveTo(w - inset + 12, (y0 + y1) / 2, w - inset, y1); g.closePath(); };
