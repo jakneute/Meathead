@@ -68,11 +68,11 @@ const solidAt = (state: GameState, x: number, y: number) =>
  * One line of it: from (x, y) along (dx, dy) till it hits something solid or runs out, heads off everybody it passes
  * through; where it ends, and whether that was a surface.
  */
-const line = (ctx: FrameContext, x: number, y: number, dx: number, dy: number, killed: Set<Enemy>) => {
+const line = (ctx: FrameContext, x: number, y: number, dx: number, dy: number, killed: Set<Enemy>, max = RANGE) => {
   const { state, fx } = ctx;
   const STEP = 4;
   let cx = x, cy = y, wall = false, lodged = false;
-  for (let d = 0; d < RANGE && !lodged; d += STEP) {
+  for (let d = 0; d < max && !lodged; d += STEP) {
     cx = x + dx * d; cy = y + dy * d;
     if (d > 6 && solidAt(state, cx, cy)) { wall = true; break; }
     for (const e of state.enemies) {
@@ -140,7 +140,16 @@ const shoot = (ctx: FrameContext) => {
   let dx = pl.facing, dy = 0;
   if (target && alive(target)) { const h = headOf(target); const d = Math.hypot(h.x - m.x, h.y - m.y) || 1; dx = (h.x - m.x) / d; dy = (h.y - m.y) / d; }
   else if (state.player.steer) { const a = state.player.steer * 0.6; dx = pl.facing * Math.cos(a); dy = Math.sin(a); }
-  line(ctx, m.x, m.y, dx, dy, killed);
+  // (locked on: the line runs as far as his head and no further, so nobody behind him takes the ball meant for him)
+  const locked = target && alive(target) ? Math.hypot(headOf(target).x - m.x, headOf(target).y - m.y) + 6 : RANGE;
+  const end = line(ctx, m.x, m.y, dx, dy, killed, locked);
+  // (locked on, nothing in the way: it's his head, every time (the user's: "a locked in shot on a regular enemy is always a
+  // guaranteed decapitation so long as nothing is obstructing"): the ball's line runs at his head, but a head out past his
+  // body's box (an alien's, an animal's out front) could slip by it)
+  if (target && alive(target) && !killed.size && !isMidBoss(target) && !specialsHalf(target)) {
+    const h = headOf(target), toHead = Math.hypot(h.x - m.x, h.y - m.y);
+    if (!end.wall || Math.hypot(end.x - m.x, end.y - m.y) >= toHead - 8) { killed.add(target); headOff(ctx, target, dx, dy); }
+  }
   // The shot: the flint's spark, the flash, a great cloud of smoke, the kick
   playSound('flintlock');
   for (let i = 0; i < 10; i++) state.particles.push({ pos: { x: m.x + dx * 6, y: m.y + dy * 6 }, vel: { x: dx * (1 + Math.random() * 2) + (Math.random() - 0.5), y: dy * 2 - Math.random() * 1.2 }, life: 40 + Math.random() * 30, color: `rgba(${200 + Math.floor(Math.random() * 40)}, ${200 + Math.floor(Math.random() * 40)}, ${200 + Math.floor(Math.random() * 40)}, 0.55)`, size: 6 + Math.random() * 8 });
