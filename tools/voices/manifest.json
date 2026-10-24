@@ -27511,7 +27511,7 @@
  },
  {
   "voice": "m2.fantasy.piper_pa",
-  "text": "TRIAL TWO, BOYS. TRUELLING TRAGONS. THREE CARS. ONE WINNER.",
+  "text": "TRIAL TWO, BOYS. TRUELLING TRAGONS. SURVIVE IT. I DIDN'T SAY IT WAS SAFE.",
   "from": "FANTASY"
  },
  {
@@ -27521,7 +27521,7 @@
  },
  {
   "voice": "m2.fantasy.piper_pa",
-  "text": "TRIAL TWO. RIDE IT. SHOVE EACH OTHER OFF IT.",
+  "text": "TRIAL TWO. RIDE IT TO THE END. WHOEVER FALLS OFF, I GET TO WATCH.",
   "from": "FANTASY"
  },
  {
@@ -28996,6 +28996,11 @@
  },
  {
   "voice": "m2.fantasy.suitor_hank",
+  "text": "HANK NOT SCARED OF DRAGON. HANK SCARED OF NOTHING.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_hank",
   "text": "HANK NOT WANT TINY THING ON HANK BROOM.",
   "from": "FANTASY"
  },
@@ -29036,22 +29041,17 @@
  },
  {
   "voice": "m2.fantasy.suitor_hank",
-  "text": "I'LL SHOVE YOU OFF THAT TRACK AND PISS ON YOU.",
-  "from": "FANTASY"
- },
- {
-  "voice": "m2.fantasy.suitor_hank",
-  "text": "I'LL SHOVE YOU OFF THE TRACK MYSELF.",
-  "from": "FANTASY"
- },
- {
-  "voice": "m2.fantasy.suitor_hank",
   "text": "JOUST ME, COWARD!",
   "from": "FANTASY"
  },
  {
   "voice": "m2.fantasy.suitor_hank",
   "text": "KEEP IT AWAY FROM THE LAP BAR.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "m2.fantasy.suitor_hank",
+  "text": "LITTLE MAN FALL OFF. HANK WATCH. HANK LAUGH.",
   "from": "FANTASY"
  },
  {
@@ -29086,12 +29086,12 @@
  },
  {
   "voice": "m2.fantasy.suitor_hank",
-  "text": "SAVE IT FOR THE RIDE, LOSER!",
+  "text": "SAVE IT FOR THE SKY, LOSER.",
   "from": "FANTASY"
  },
  {
   "voice": "m2.fantasy.suitor_hank",
-  "text": "SAVE IT FOR THE SKY, LOSER.",
+  "text": "SAVE IT. YOU NEED BOTH HANDS FOR THE LOOPS.",
   "from": "FANTASY"
  },
  {
@@ -29416,7 +29416,7 @@
  },
  {
   "voice": "m2.fantasy.suitor_rafael",
-  "text": "SAVE IT FOR THE RIDE, LOSER!",
+  "text": "SAVE IT. YOU NEED BOTH HANDS FOR THE LOOPS.",
   "from": "FANTASY"
  },
  {
@@ -73916,6 +73916,11 @@
  },
  {
   "voice": "meathead",
+  "text": "LAST ONE OFF ALIVE GETS PIPER. THAT'S ME. I'M TOO DUMB TO LET GO.",
+  "from": "FANTASY"
+ },
+ {
+  "voice": "meathead",
   "text": "LAST ONE. PIPER, PUT ON SOMETHING NICE.",
   "from": "FANTASY"
  },
@@ -81241,7 +81246,7 @@
  },
  {
   "voice": "meathead",
-  "text": "SAVE ME A SEAT. I'LL THROW YOU OUT OF IT.",
+  "text": "SAVE ME A SEAT. OH WAIT. THERE AREN'T ANY.",
   "from": "FANTASY"
  },
  {
@@ -81438,11 +81443,6 @@
   "voice": "meathead",
   "text": "SEE YOU NEVER. SOMEBODY GET ME A ROBE.",
   "from": "SPACE"
- },
- {
-  "voice": "meathead",
-  "text": "SEE YOU ON THE RIDE, DICKHEADS. FROM ABOVE.",
-  "from": "FANTASY"
  },
  {
   "voice": "meathead",

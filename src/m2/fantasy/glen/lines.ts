@@ -77,7 +77,7 @@ export const GAGS: Record<'hollow' | 'bounce' | 'briars' | 'bridge' | 'cottage' 
 };
 /** His answer to the rivals in the queue. */
 export const RETORT: ByPants = {
-  clean: ["SAVE ME A SEAT. I'LL THROW YOU OUT OF IT.", 'SEE YOU ON THE RIDE, DICKHEADS. FROM ABOVE.'],
+  clean: ["SAVE ME A SEAT. OH WAIT. THERE AREN'T ANY.", "LAST ONE OFF ALIVE GETS PIPER. THAT'S ME. I'M TOO DUMB TO LET GO."],
   shitty: ["I'LL SHIT IN YOUR CAR. TERRITORY.", "SMELL THAT? THAT'S YOUR FUNERAL."],
   nude: ['MY DICK HAS A BETTER SHOT THAN YOU.', "SHE'LL PICK THE GUY WHO'S ALREADY UNDRESSED. SCIENCE."],
 };
@@ -90,7 +90,7 @@ export const PIPER_GLEN: Record<string, string[]> = {
   cottage: ['I CAN HEAR YOU OUT THERE. HIT HARDER.', 'EVERY BROKEN BONE GETS ME WET, BOYS.'],
   meadow: ['MMM. KEEP FIGHTING. I LIKE THE GRUNTING.', "MORE BLOOD, BOYS. I'M NEARLY THERE."],
   lair: ['THE STRONG ONES GET TO MY RIDE. THE REST FEED THE CROWS.', 'ALMOST THERE. SPILL SOMETHING ON THE WAY.'],
-  queue: ['TRIAL TWO, BOYS. TRUELLING TRAGONS. THREE CARS. ONE WINNER.', 'TRIAL TWO. RIDE IT. SHOVE EACH OTHER OFF IT.'],
+  queue: ["TRIAL TWO, BOYS. TRUELLING TRAGONS. SURVIVE IT. I DIDN'T SAY IT WAS SAFE.", 'TRIAL TWO. RIDE IT TO THE END. WHOEVER FALLS OFF, I GET TO WATCH.'],
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -108,13 +108,13 @@ export const RIVAL_SAY: Record<'blake' | 'rafael' | 'hank', ByPants> = {
     nude: ['NAKED? DESPERATE AND SMALL.', 'NICE PENIS. LOOKS LIKE A BABY CARROT.'],
   },
   hank: {
-    clean: ["I'LL SHOVE YOU OFF THE TRACK MYSELF.", "I'LL SHOVE YOU OFF THAT TRACK AND PISS ON YOU."],
+    clean: ['HANK NOT SCARED OF DRAGON. HANK SCARED OF NOTHING.', 'LITTLE MAN FALL OFF. HANK WATCH. HANK LAUGH.'],
     shitty: ['STAY OUT OF MY CAR. YOU STINK.', 'SIT IN THE BACK, SHIT BOY. LIKE THE BUS.'],
     nude: ['NOT IN MY CAR WITH THAT OUT.', 'KEEP IT AWAY FROM THE LAP BAR.'],
   },
 };
 /** Shot at in the queue: it bounces off them. */
-export const RIVAL_BOUNCE = ['HA! TICKLES!', "SAVE IT FOR THE RIDE, LOSER!"];
+export const RIVAL_BOUNCE = ['HA! TICKLES!', 'SAVE IT. YOU NEED BOTH HANDS FOR THE LOOPS.'];
 
 // ---------------------------------------------------------------------------------------------------------------
 // The cast (barks: rare, short, broken character)
