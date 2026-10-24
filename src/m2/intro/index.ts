@@ -30,6 +30,8 @@ import { GROUND_Y, CANVAS_WIDTH } from '../../m1/constants';
 import { NO_CONTROLS } from '../../m1/game/platform/input';
 import { registerKindDrawer } from '../../m1/game/render/enemies';
 import { drawSecurity, isWomanGuard } from '../cast/security';
+import { walking, strideOf } from '../cast/kit';
+import { stamp } from '../../m1/game/render/stamp';
 /** A guard's voice: hers or his. */
 const guardVoice = (e: Enemy) => (isWomanGuard(e) ? GUARD_F_VOICE : GUARD_VOICE);
 import { playSound, audioRunning, getAudioContext } from '../../m1/game/platform/audio';
@@ -49,7 +51,7 @@ import {
   MEATHEAD_BACK_LOT, GUARD_WELCOME_BACK, MEATHEAD_REENTRY, TICKET_REENTRY, MEATHEAD_REENTRY_BACK,
 } from './lines';
 import { drawIntroBackdrop, drawIntroBack, drawIntroFront } from './draw';
-import { X0, R, CEIL_Y, UPPER, floorY, GARAGE_END, CHECK_END, STAIRS_END, USA_START, WALKWAYS, WALKWAY_SPEED, OFFICE_X, DETECTOR_X, FRONT_X, WINDOW_X, SPACING, QUEUE_START, TURN_X, GATE_X, END_X } from './geometry';
+import { X0, R, CEIL_Y, UPPER, floorY, GARAGE_END, CHECK_END, STAIRS_END, USA_START, WALKWAYS, WALKWAY_SPEED, OFFICE_X, DETECTOR_X, DETECTOR_TOP, DETECTOR_BEAM, DETECTOR_GAP, DETECTOR_HALF, FRONT_X, WINDOW_X, SPACING, QUEUE_START, TURN_X, GATE_X, END_X } from './geometry';
 
 export const INTRO_STAGE = 'M2 America USA';
 
@@ -123,9 +125,16 @@ export const registerIntro = () => {
   registered = true;
   registerKindDrawer('parksec', (c, e, f) => drawSecurity(c, e, f));
   registerKindDrawer('parkguest', (c, e, f) => {
-    const g = guests.get(e);
+    const g = guests.get(e), who = castOf(e.homeX || 0);
+    // (on the move, up the line, off through the gate, running off out of it: a walk (a run, running), the stride kept
+    // to how far they've actually gone; knocked flying, or stood, it's them stood as ever)
+    const st = strideOf(e, e.pos.x, f, e.health > 0 && !e.isBlownAway && Math.abs(e.vel.y) < 0.5 && Math.abs(e.vel.x) < 0.5);
     c.save(); c.scale(1.12, 1.12);
-    castOf(e.homeX || 0).draw(c, f + (e.homeX || 0), !!g?.line);
+    if (st.amt > 0 && !g?.line) {
+      // (the frames stamped, an eighth of a stride apiece: a walk or a run)
+      const k = ((Math.round(st.ph / (Math.PI / 4)) % 8) + 8) % 8, amt = st.amt > 1.3 ? 1.6 : 1;
+      stamp(c, `m2guest-${who.id}-${amt}-${k}`, -40, -112, 92, 122, gc => walking(gc, k * (Math.PI / 4), amt, () => who.draw(gc, 0, false)));
+    } else walking(c, st.ph, st.amt, () => who.draw(c, f + (e.homeX || 0), !!g?.line));
     c.restore();
   });
 };
@@ -200,6 +209,9 @@ export const introLayout: StageLayout = {
       { x: X0 - 60, y: -3000, w: 60, h: 3600, type: 'wall', hidden: true, tag: 'intro-l' },
       { x: R(END_X), y: -3000, w: 60, h: 3600, type: 'wall', hidden: true, tag: 'intro-r' },
       { x: X0 - 60, y: -3000, w: R(GARAGE_END) - X0 + 60, h: 3000 + CEIL_Y, type: 'wall', hidden: true, tag: 'intro-ceiling' },
+      // (the metal detector's beam: a hop up onto it from either side (or up through it from under), along it and off
+      // the far end, and the detector never knows he was there)
+      { x: R(DETECTOR_X) - DETECTOR_BEAM, y: UPPER - DETECTOR_TOP, w: DETECTOR_BEAM * 2, h: 14, type: 'platform', oneWay: true, hidden: true, tag: 'intro-detector' },
     );
     // (the walk back: the truck's long since in the pillar, whatever this run's seen of the way in)
     const back = walkingBack(), walkIn = back && !walkedIn;
@@ -532,13 +544,21 @@ const security = (ctx: FrameContext, intro: Intro) => {
   if (intro.bark && (intro.bark.e.health <= 0 || intro.bark.e.isBlownAway)) intro.bark = null;
 };
 
-/** The metal detector: walked through, it goes off, and that's security on him (jumped over, it never knows). */
+/** The metal detector: walked through, it goes off, and that's security on him (over the top of it, along its beam, or
+ *  jumped clean over it, it never knows). */
 const detector = (ctx: FrameContext, intro: Intro) => {
   const { state } = ctx;
   const p = state.player, px = p.pos.x + p.width / 2;
   if (intro.alarm > 0) intro.alarm--;
   if (intro.cool > 0) intro.cool--;
-  const inIt = Math.abs(px - R(DETECTOR_X)) < 26 && p.pos.y + p.height > UPPER - 100;
+  // (in it: down in the opening, under the beam (his head under it, near enough), not up on it or going over it)
+  const inIt = Math.abs(px - R(DETECTOR_X)) < DETECTOR_HALF - 4 && p.pos.y + p.height > UPPER - (DETECTOR_GAP - p.height) - 6;
+  // (a guard flung up onto the beam won't step off a drop that high: walked off the nearer end of it)
+  for (const e of state.enemies) {
+    if (e.kind !== 'parksec' || e.health <= 0 || e.isBlownAway) continue;
+    const ex = e.pos.x + e.width / 2 - R(DETECTOR_X);
+    if (Math.abs(ex) < DETECTOR_BEAM + e.width / 2 && Math.abs(e.pos.y + e.height - (UPPER - DETECTOR_TOP)) < 4) e.pos.x += ex < 0 ? -2 : 2;
+  }
   // (resetting, it lets him through without a peep)
   if (inIt && !intro.inDetector && intro.cool <= 0) {
     intro.alarm = 120; intro.cool = PRACTICE.reset; intro.tripped = true;

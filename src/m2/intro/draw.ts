@@ -8,7 +8,7 @@ import { GROUND_Y, CANVAS_WIDTH, CANVAS_HEIGHT, HUD_CLEAR_X, HUD_CLEAR_Y } from 
 import { X0, R, STAIRS_END, USA_START, GARAGE_END, USA_END, END_X, WINDOW_X, UPPER, CHECK_END } from './geometry';
 import { type Ctx, INK, WHITE, RED, box, text, bendFloor } from './art/kit';
 import { drawIntroBackdrop } from './art/sky';
-import { garage, deck, drawUpperFloor, truckDoorFront } from './art/upper';
+import { garage, deck, drawUpperFloor, truckDoorFront, detectorFront } from './art/upper';
 import { america, drawAmericaFloor, gateFront } from './art/america';
 import { plaza, drawPlazaFloor } from './art/plaza';
 
@@ -65,6 +65,8 @@ export const drawIntroFront = (c: Ctx, state: GameState) => {
   const intro = getIntro(state);
   if (!intro) return;
   // (the gate in at the foot of the stairs: its front column and what's over the top, in front of him)
+  // (the metal detector's near upright and the face of its beam: in front of him going through it)
+  detectorFront(c, { x: state.camera.x + CANVAS_WIDTH / 2, y: state.camera.y + CANVAS_HEIGHT * 0.42 }, state.frame, intro.alarm, intro.cool);
   if (Math.abs(state.camera.x + CANVAS_WIDTH / 2 - R(USA_START)) < 1400) gateFront(c, { x: state.camera.x + CANVAS_WIDTH / 2, y: state.camera.y + CANVAS_HEIGHT * 0.42 }, state.frame);
   // (naked at the window: him panicking (sweat flying off him), then the punch, up close)
   const sc = intro.scene;

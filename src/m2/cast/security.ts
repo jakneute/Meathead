@@ -5,7 +5,8 @@
 // Fighting (e.melee: see copMelee): the nightstick off the belt, back over the head (the tell), down hard.
 
 import type { Enemy } from '../../m1/types';
-import { type Ctx, INK, dk, lt, blob, rect, dot, torso, arm, head, eyes, mouth, nose, specs } from './kit';
+import { type Ctx, INK, dk, lt, blob, rect, dot, legs, torso, arm, head, eyes, mouth, nose, specs, walking, strideOf } from './kit';
+import { stamp } from '../../m1/game/render/stamp';
 
 const SKINS = ['#F6DCC8', '#F0C8A2', '#D9A877', '#A86B43', '#6E4426', '#F4C2B0'];
 const HAIR = ['#1F1611', '#4A2E1A', '#A16207', '#D6D3D1', '#7F1D1D', '#111827'];
@@ -31,18 +32,20 @@ const lookOf = (seed: number) => ({
 export const isWomanGuard = (e: Enemy) => lookOf(Math.abs(Math.round(e.homeX || 0))).woman;
 
 export const drawSecurity = (c: Ctx, e: Enemy, f: number) => {
+  // (on the move, the stride kept to how far they've actually gone: strolling their beat, or coming at him)
+  const st = strideOf(e, e.pos.x, f, e.health > 0 && !e.isBlownAway && Math.abs(e.vel.y) < 0.5);
+  if (st.amt <= 0 || e.melee) { walking(c, st.ph, e.melee ? 0 : st.amt, () => guard(c, e, f, true)); return; }
+  // (walking: the frames stamped, an eighth of a stride apiece, by who it is and the mood they're in)
+  const seed = Math.abs(Math.round(e.homeX || 0)), k = ((Math.round(st.ph / (Math.PI / 4)) % 8) + 8) % 8, amt = Math.round(st.amt * 4) / 4;
+  stamp(c, `m2sec-${seed}-${e.puppet ? 1 : 0}-${amt}-${k}`, -36, -100, 80, 110, g => walking(g, k * (Math.PI / 4), amt, () => guard(g, e, 0, false)));
+};
+const guard = (c: Ctx, e: Enemy, f: number, stood: boolean) => {
   const seed = Math.abs(Math.round(e.homeX || 0));
   const L = lookOf(seed);
-  const walking = Math.abs(e.vel.x) > 0.3 || (e.puppet && (f + seed) % 200 < 160);
-  const stride = walking ? Math.sin(f * 0.25 + seed) * 4 : 0;
   const w = L.heavy && !L.woman ? 30 : L.woman ? 20 : 24, hipW = L.heavy && !L.woman ? 26 : L.woman ? 20 : 20;
-  // Legs: navy cargo pants, a pocket on each, black work shoes, striding when he walks
-  for (const s of [-1, 1]) {
-    const x = s * 4.5 + s * stride * 0.5 - 3.5;
-    rect(c, x, -30, 7, 27, s < 0 ? dk(PANTS, 0.15) : PANTS, 1.5);
-    dot(c, x + 1, -20, 5, 4, dk(PANTS, 0.3));
-    blob(c, () => c.roundRect(x - 1 + (s > 0 ? 1 : 0), -4.5, 10, 5, [2, 3, 1, 1]), '#111827', x - 1, x + 9);
-  }
+  // Legs: navy cargo pants (a pocket on each, stood), black work shoes, striding when he walks
+  legs(c, -30, 4.5, 7, PANTS, L.skin, '#111827', 'pants', 10);
+  if (stood) for (const s of [-1, 1]) dot(c, s * 4.5 - 2.5, -20, 5, 4, dk(PANTS, 0.3));
   // The far arm, the body (a belly on some), the belt
   arm(c, -w / 2 + 3, -52, -w / 2, -32, POLO, L.skin, 0.4, 6);
   torso(c, -30, -56, w, hipW + (L.heavy && !L.woman ? 6 : 0), POLO);

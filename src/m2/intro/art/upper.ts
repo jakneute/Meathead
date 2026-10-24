@@ -6,14 +6,14 @@
 // drawImage apiece. What moves is drawn live over them: the walkways' treads, handrails and skirt lights, the one
 // fluorescent tube that's on its way out, the office door, the metal detector's light, the camera's light, the flags.
 
-import { X0, R, CEIL_Y, UPPER, STAIRS_END, WALKWAYS, WALKWAY_SPEED, OFFICE_X, DETECTOR_X, GARAGE_END, HALL_END, CHECK_END } from '../geometry';
+import { X0, R, CEIL_Y, UPPER, STAIRS_END, WALKWAYS, WALKWAY_SPEED, OFFICE_X, DETECTOR_X, DETECTOR_TOP, DETECTOR_BEAM, DETECTOR_GAP, DETECTOR_HALF, GARAGE_END, HALL_END, CHECK_END } from '../geometry';
 import { GROUND_Y, CANVAS_HEIGHT } from '../../../m1/constants';
 import {
   type Ctx, INK, RED, WHITE, BLUE, box, text, flag, sign, slab, pole, ball, shinyStar, star, eagle, bunting,
   rampOf, lite, dim, mix, hash, checker, bandedGradient, steppedGlow, pixelBlob, tilePattern, brickPattern, stamp,
-  type Eye, sideFace, bendFloor,
+  type Eye, sideFace, bendFloor, BEND,
 } from './kit';
-import { signAt, signText, stencil, led, marker, federal, flag as flagType, print } from './letters';
+import { signAt, signW, signText, stencil, led, marker, federal, flag as flagType, print } from './letters';
 
 /** How far down the floors fill (past the bottom of the screen, so nothing behind ever shows under them). */
 const BOTTOM = CANVAS_HEIGHT + 120;
@@ -658,19 +658,6 @@ const paintCheck = (g: Ctx) => {
   box(g, ox + 50, UPPER - 56, 64, 26, INK); box(g, ox + 51, UPPER - 55, 62, 24, '#F4F2EC'); box(g, ox + 51, UPPER - 55, 62, 5, '#B91C1C');
   signAt(g, 'GUARDS', ox + 82, UPPER - 42, 5, print(5, '#1A1A1E')); signAt(g, 'ONLY', ox + 82, UPPER - 34, 5, print(5, '#1A1A1E'));
 
-  // The metal detector's arch (its light is live)
-  const dx = R(DETECTOR_X) - 40;
-  for (const ux of [dx, dx + 70]) {
-    box(g, ux - 4, UPPER - 6, 18, 6, INK); box(g, ux - 3, UPPER - 5, 16, 5, '#4A4F57'); box(g, ux - 3, UPPER - 5, 16, 1, '#8A9098');
-    slab(g, ux, UPPER - 112, 10, 106, '#C4C8CE');
-    for (let k = 0; k < 6; k++) { box(g, ux + 3, UPPER - 98 + k * 14, 4, 6, '#203020'); box(g, ux + 3, UPPER - 98 + k * 14, 4, 1, '#3A5A3A'); }
-  }
-  slab(g, dx - 4, UPPER - 122, 88, 14, '#9AA0AA');
-  signAt(g, 'FREEDOM-SCAN', dx + 40, UPPER - 112, 5, federal(5, '#1E3A8A'));
-  box(g, dx + 30, UPPER - 126, 20, 4, INK); box(g, dx + 31, UPPER - 125, 18, 3, '#3A3F46');
-  for (const rx of [dx + 4, dx + 72]) pole(g, rx, UPPER - 136, 4, 15, '#8A9098');
-  sign(g, dx - 20, UPPER - 150, 120, 16, '#FEF3C7', 'WALK THROUGH', '#7F1D1D', 6);
-
   // The camera on its pole (its light is live), the sign hung off it
   const px = R(CHECK_END) - 248;
   box(g, px - 6, UPPER - 4, 18, 4, INK); box(g, px - 5, UPPER - 4, 16, 3, '#6A707A');
@@ -722,6 +709,128 @@ const outdoorSides = (c: Ctx, eye: Eye, vis: (a: number, b: number) => boolean) 
   }, '#B8B2A4');
 };
 
+// ---------------------------------------------------------------------------------------------------------------
+// The metal detector: a walk-through arch he goes THROUGH. One upright's the far side of him, one the near side, the
+// beam across the top between them. The far upright stands where he walks (it slides by with him, depth 1), behind
+// him; the near one stands out on the floor, in front of him, as far out as the floor fans there (BEND) so its feet stay
+// planted on the mat as the floor swings under it. The beam's top runs back between them (seen from just above, as the
+// floor is: lit along its near edge, it's a thing to stand on, and he can), its ends showing on whichever side faces
+// him. The uprights and the beam's face are stamped (each at its own fixed scale); the LED bars, the light, the cable live.
+
+/** How far out on the floor the near upright's feet are, and its scale there (the floor's own fan, so it stays put on it). */
+const DET_OUT = 26, DET_K = 1 + DET_OUT * BEND;
+const DW = DETECTOR_HALF * 2, DH = DETECTOR_GAP, BW = DETECTOR_BEAM * 2, BH = DETECTOR_TOP - DETECTOR_GAP;
+/** Where a point (world x, a height up off the floor) on the near side of it is drawn. */
+const detNear = (eye: Eye, x: number, h: number): [number, number] => [eye.x + (x - eye.x) * DET_K, UPPER + DET_OUT - h * DET_K];
+const CASING = '#D6CDB6';
+/** An upright: beige casing on a dark plinth, a recessed panel with its vents, the slot the LED bar's lit in (live: see
+ *  detLeds); the near one with its sticker and the port the cable comes out of. Painted at (0, 0), its foot at DH. */
+const paintUpright = (g: Ctx, near: boolean) => {
+  const col = near ? CASING : mix(CASING, '#5A5A66', 0.18);
+  box(g, -2, DH - 7, DW + 4, 7, INK); box(g, -1, DH - 6, DW + 2, 6, '#4A4F57'); box(g, -1, DH - 6, DW + 2, 1, '#8A9098'); box(g, -1, DH - 2, DW + 2, 1, '#34383E');
+  slab(g, 0, 0, DW, DH - 6, col);
+  // (its rounded top, a lit cap on it)
+  box(g, 2, 1, DW - 4, 2, lite(col, 0.4));
+  // (the recessed panel: a shade darker, inked, its vents in rows near the foot)
+  const r = rampOf(col);
+  box(g, 13, 10, DW - 19, DH - 30, INK); box(g, 14, 11, DW - 21, DH - 32, r[1]); box(g, 14, 11, DW - 21, 1, r[0]); box(g, 14, DH - 22, DW - 21, 1, r[3]);
+  for (let y = DH - 34; y < DH - 24; y += 3) box(g, 18, y, DW - 29, 1, r[0]);
+  checker(g, 14, 12, DW - 21, 2, r[0]);
+  // (the LED bar's slot, up the leading edge)
+  box(g, 3, 9, 7, DH - 26, INK); box(g, 4, 10, 5, DH - 28, '#14181C');
+  if (near) {
+    // (the sticker: SECURITY on a red band, PLEASE WALK THROUGH under it; a corner peeling)
+    const sx = 10, sw = DW - 10, sy = 18;
+    box(g, sx, sy, sw, 40, INK); box(g, sx + 1, sy + 1, sw - 2, 38, '#F4F2EC'); box(g, sx + 1, sy + 1, sw - 2, 10, '#B91C1C'); box(g, sx + 1, sy + 11, sw - 2, 1, '#7F1D1D');
+    signAt(g, 'SECURITY', sx + sw / 2, sy + 6, 5, print(5, '#FFFFFF'));
+    signAt(g, 'PLEASE', sx + sw / 2, sy + 17, 5, print(5, '#1A1A1E'));
+    signAt(g, 'WALK', sx + sw / 2, sy + 25, 5, print(5, '#1A1A1E'));
+    signAt(g, 'THROUGH', sx + sw / 2, sy + 33, 5, print(5, '#1A1A1E'));
+    box(g, sx + sw - 4, sy + 36, 3, 3, '#C8C0AE'); box(g, sx + sw - 4, sy + 36, 1, 1, INK);
+    // (the cable's port, low down)
+    box(g, DW - 12, DH - 14, 8, 6, INK); box(g, DW - 11, DH - 13, 6, 4, '#3A3F46'); box(g, DW - 11, DH - 13, 6, 1, '#6A707A');
+  } else {
+    // (the far one's just its maker's plate)
+    box(g, 22, 26, DW - 37, 8, INK); box(g, 23, 27, DW - 39, 6, '#A8AEB8'); box(g, 23, 27, DW - 39, 1, '#D8DCE2');
+  }
+};
+/** The beam's face: grey, inked, a lit lip along its top (something to stand on), FREEDOM-SCAN on it. At (0, 0). */
+const paintBeam = (g: Ctx) => {
+  slab(g, 0, 0, BW, BH, '#9AA0AA');
+  box(g, 1, 0, BW - 2, 2, '#E4E8EE'); box(g, 1, 2, BW - 2, 1, '#BCC2CA');
+  const look = federal(5, '#1E3A8A');
+  signAt(g, signW('FREEDOM-SCAN', look) <= BW - 6 ? 'FREEDOM-SCAN' : 'F-SCAN 3000', BW / 2, BH / 2 + 3, 5, look);
+};
+/** The LED bar up an upright's slot (at x, its slot's top y, scale s): a couple of green ticks idling; going off, red,
+ *  filling up and down it with the beeps. */
+const detLeds = (c: Ctx, x: number, y: number, s: number, f: number, alarm: number) => {
+  const n = 12, step = ((DH - 30) / n) * s;
+  const lit = alarm > 0 ? Math.round(n * (0.5 + 0.5 * Math.sin(alarm * 0.4))) : -1;
+  for (let k = 0; k < n; k++) {
+    const yy = y + (DH - 30) * s - (k + 1) * step + 1;
+    const on = alarm > 0 ? k <= lit : k === ((f >> 3) % n) || k === 0;
+    box(c, x, yy, 4 * s, Math.max(1, step - 2), on ? (alarm > 0 ? (k > n * 0.7 ? '#FF6050' : '#EF4444') : '#22C55E') : alarm > 0 ? '#3A1010' : '#103018');
+  }
+};
+
+/** The far half of the metal detector (behind him): the far upright, the beam's top (he stands on it), its ends. */
+const detectorBack = (c: Ctx, eye: Eye, f: number, alarm: number) => {
+  const X = R(DETECTOR_X);
+  if (Math.abs(X - eye.x) > 600) return;
+  // The far upright, where he walks
+  stamp(c, 'm2u-det-far', X - DETECTOR_HALF - 3, UPPER - DH - 1, DW + 6, DH + 2, g => { g.save(); g.translate(X - DETECTOR_HALF, UPPER - DH); paintUpright(g, false); g.restore(); });
+  detLeds(c, X - DETECTOR_HALF + 4.5, UPPER - DH + 10, 1, f, alarm);
+  // The beam's ends, going from over the far upright out to over the near one (whichever end faces him)
+  const b0: [number, number] = [X - DETECTOR_BEAM, UPPER - DETECTOR_TOP], b1: [number, number] = [X + DETECTOR_BEAM, UPPER - DETECTOR_TOP];
+  for (const [ex, side] of [[X - DETECTOR_BEAM, -1], [X + DETECTOR_BEAM, 1]] as const) {
+    if ((eye.x - ex) * side <= 2) continue;
+    const [nx, nt] = detNear(eye, ex, DETECTOR_TOP), [, nb] = detNear(eye, ex, DETECTOR_GAP);
+    c.fillStyle = '#6E747E'; c.beginPath(); c.moveTo(ex, UPPER - DETECTOR_TOP); c.lineTo(nx, nt); c.lineTo(nx, nb); c.lineTo(ex, UPPER - DETECTOR_GAP); c.closePath(); c.fill();
+    c.strokeStyle = INK; c.lineWidth = 1; c.beginPath(); c.moveTo(ex, UPPER - DETECTOR_TOP); c.lineTo(nx, nt); c.lineTo(nx, nb); c.lineTo(ex, UPPER - DETECTOR_GAP); c.closePath(); c.stroke();
+  }
+  // The beam's top, from its far edge (where he stands) out to its near one: pale, lit, a seam down it
+  const n0 = detNear(eye, b0[0], DETECTOR_TOP), n1 = detNear(eye, b1[0], DETECTOR_TOP);
+  c.fillStyle = INK; c.beginPath(); c.moveTo(b0[0] - 1, b0[1] - 1); c.lineTo(b1[0] + 1, b1[1] - 1); c.lineTo(n1[0] + 1, n1[1]); c.lineTo(n0[0] - 1, n0[1]); c.closePath(); c.fill();
+  c.fillStyle = '#C4CAD2'; c.beginPath(); c.moveTo(...b0); c.lineTo(...b1); c.lineTo(...n1); c.lineTo(...n0); c.closePath(); c.fill();
+  box(c, b0[0], b0[1], BW, 1, '#E4E8EE');
+  const m0: [number, number] = [(b0[0] + n0[0]) / 2, (b0[1] + n0[1]) / 2], m1: [number, number] = [(b1[0] + n1[0]) / 2, (b1[1] + n1[1]) / 2];
+  c.strokeStyle = '#A4AAB4'; c.beginPath(); c.moveTo(...m0); c.lineTo(...m1); c.stroke();
+};
+
+/** The near half of the metal detector (in front of him): the near upright, the beam's face, its light on top (green,
+ *  blinking, ready; red, flashing, a red glow round it, going off; amber resetting), the cable off it along the floor. */
+export const detectorFront = (c: Ctx, eye: Eye, f: number, alarm: number, cool: number) => {
+  const X = R(DETECTOR_X);
+  if (Math.abs(X - eye.x) > 600) return;
+  const [ux, ut] = detNear(eye, X - DETECTOR_HALF, DH), [, foot] = detNear(eye, X, 0);
+  // (its shadow on the mat; the cable out of its port, down and along the floor and away back under the rail)
+  box(c, ux - 3, foot - 2, DW * DET_K + 6, 4, 'rgba(0, 0, 0, 0.35)');
+  const [px, py] = detNear(eye, X + DETECTOR_HALF - 8, 11);
+  c.strokeStyle = INK; c.lineWidth = 3; c.beginPath(); c.moveTo(px, py); c.quadraticCurveTo(px + 14, foot + 3, px + 34, foot + 2); c.lineTo(px + 64, foot - 6); c.stroke();
+  c.strokeStyle = '#3A3F46'; c.lineWidth = 1; c.beginPath(); c.moveTo(px, py); c.quadraticCurveTo(px + 14, foot + 2, px + 34, foot + 1); c.lineTo(px + 64, foot - 7); c.stroke();
+  // The near upright, the beam's face over it
+  c.save(); c.translate(ux, ut); c.scale(DET_K, DET_K);
+  stamp(c, 'm2u-det-near', -3, -1, DW + 6, DH + 2, g => paintUpright(g, true));
+  c.restore();
+  detLeds(c, ux + 4.5 * DET_K, ut + 10 * DET_K, DET_K, f, alarm);
+  const [bx, bt] = detNear(eye, X - DETECTOR_BEAM, DETECTOR_TOP);
+  c.save(); c.translate(bx, bt); c.scale(DET_K, DET_K);
+  stamp(c, 'm2u-det-beam', -1, -1, BW + 2, BH + 2, paintBeam);
+  c.restore();
+  // The light: a little lamp on top of the beam at its near end
+  const on = alarm > 0 && (alarm >> 3) % 2 === 0;
+  const [lx, ly] = detNear(eye, X + DETECTOR_BEAM - 9, DETECTOR_TOP);
+  if (alarm > 0) steppedGlow(c, lx, ly, on ? 150 : 120, '#EF4444', on ? 0.3 : 0.12, 0.03, 5);
+  else if (cool > 0) steppedGlow(c, lx, ly, 22, '#F59E0B', 0.3, 0.05, 3);
+  box(c, lx - 5, ly - 2, 10, 3, INK); box(c, lx - 4, ly - 2, 8, 2, '#3A3F46');
+  const lamp = alarm > 0 ? (on ? '#EF4444' : '#7F1D1D') : cool > 0 ? '#F59E0B' : ((f >> 5) % 2 ? '#22C55E' : '#15803D');
+  dome(c, lx, ly - 2, 4, lamp);
+  if (alarm > 0 && on) { box(c, lx - 2, ly - 5, 2, 1, '#FFFFFF'); steppedGlow(c, lx, ly - 3, 14, '#FFB0A0', 0.4, 0.1, 3); }
+  // (what it says, up over the top of it: clear of him stood up there)
+  if (alarm <= 0 && cool > 0) text(c, 'RESETTING...', X, UPPER - 210, '#F59E0B', 6);
+  if (alarm > 0 && on) text(c, 'BEEP BEEP BEEP', X, UPPER - 210, '#EF4444', 8);
+};
+
 export const deck = (c: Ctx, f: number, officeOpen: number, alarm: number, cool: number, vis: (a: number, b: number) => boolean, eye: Eye) => {
   outdoorSides(c, eye, vis);
   if (vis(R(GARAGE_END), R(HALL_END))) chunked(c, 'm2u-deck', GX1, R(HALL_END), CEIL_Y - 40, UPPER - CEIL_Y + 40, paintDeck);
@@ -744,15 +853,8 @@ export const deck = (c: Ctx, f: number, officeOpen: number, alarm: number, cool:
     if (dw > 20) { box(c, ox - 21 + (dw - 2) * 0.2, dy + 12, (dw - 2) * 0.6, 24, '#2A3A50'); box(c, ox - 21 + (dw - 2) * 0.2, dy + 12, (dw - 2) * 0.6, 4, '#4E7092'); }
     box(c, ox - 22 + dw - 9, dy + 48, 5, 7, INK); box(c, ox - 22 + dw - 8, dy + 49, 3, 3, '#FACC15');
     if (open > 0) box(c, ox - 22 + dw, dy, 3, dh, '#2A3442');
-    // (the metal detector's light: red, flashing, a red glow round it, going off; amber resetting; green, blinking, ready)
-    const dx = R(DETECTOR_X) - 40, on = alarm > 0 && (alarm >> 3) % 2 === 0;
-    if (alarm > 0) steppedGlow(c, dx + 40, UPPER - 110, on ? 150 : 120, '#EF4444', on ? 0.3 : 0.12, 0.03, 5);
-    else if (cool > 0) steppedGlow(c, dx + 40, UPPER - 128, 22, '#F59E0B', 0.3, 0.05, 3);
-    const lamp = alarm > 0 ? (on ? '#EF4444' : '#7F1D1D') : cool > 0 ? '#F59E0B' : ((f >> 5) % 2 ? '#22C55E' : '#15803D');
-    dome(c, dx + 40, UPPER - 126, 7, lamp);
-    if (alarm > 0 && on) { box(c, dx + 36, UPPER - 131, 3, 2, '#FFFFFF'); steppedGlow(c, dx + 40, UPPER - 128, 18, '#FFB0A0', 0.4, 0.1, 3); }
-    if (alarm <= 0 && cool > 0) text(c, 'RESETTING...', dx + 40, UPPER - 170, '#F59E0B', 6);
-    if (alarm > 0 && on) text(c, 'BEEP BEEP BEEP', dx + 40, UPPER - 170, '#EF4444', 8);
+    // (the metal detector's far upright and the top of its beam: behind him; the rest's in front, detectorFront)
+    detectorBack(c, eye, f, alarm);
     // (the camera's light, blinking; the flag)
     const px = R(CHECK_END) - 248;
     if ((f >> 4) % 2) { box(c, px - 16, UPPER - 258, 3, 3, '#FF3030'); box(c, px - 17, UPPER - 259, 5, 5, 'rgba(255, 60, 60, 0.3)'); } else box(c, px - 16, UPPER - 258, 3, 3, '#5A1010');

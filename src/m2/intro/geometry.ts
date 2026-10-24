@@ -17,8 +17,12 @@ export const WALKWAYS: [number, number][] = [[1650, 2250], [2350, 2950], [3050, 
 export const WALKWAY_SPEED = 2.4;
 /** The checkpoint's security office door. */
 export const OFFICE_X = 4420;
-/** The metal detector, just before the stairs down to America USA: walk through it and it goes off (jump it and it doesn't). */
+/** The metal detector, just before the stairs down to America USA: walk through it and it goes off (over the top of it,
+ *  or clean over it, and it doesn't). */
 export const DETECTOR_X = 4660;
+/** ...its arch: the top of the beam over it (above the floor; a hop up onto it and along skips the detector), the beam's
+ *  half length along the way through, its underside (the opening he walks through, under it), the uprights' half length. */
+export const DETECTOR_TOP = 120, DETECTOR_BEAM = 34, DETECTOR_GAP = 106, DETECTOR_HALF = 30;
 /** The line: where it starts (he joins it there), the spot at the window, the window, the gap between people. */
 export const QUEUE_START = 9550, FRONT_X = 10000, WINDOW_X = 10050, SPACING = 42;
 /** The turnstile (no further without being let in), the gate (through it: the hub), the far wall. */

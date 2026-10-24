@@ -2,7 +2,7 @@
 // but redesigned to be legally distinct from the reference art: different species, silhouettes, palettes and outfits;
 // only the people inside them carried over. Feet at (0, 0), facing right; `f` the frame, for the idle and the talking.
 
-import { type Ctx, INK, dk, lt, blob, rect, dot, legs, torso, arm, head, eyes, mouth, nose, specs, breathe, type MouthStyle } from './kit';
+import { type Ctx, INK, dk, lt, blob, rect, dot, legs, walkFeet, torso, arm, head, eyes, mouth, nose, specs, breathe, type MouthStyle } from './kit';
 
 export interface CastMember {
   id: string;
@@ -382,6 +382,7 @@ export const CAST: CastMember[] = [
     id: 'lucille', name: 'LUCILLE',
     draw: (c, f, talk) => {
       const b = breathe(f, 16);
+      walkFeet(c, 5, '#18181B');
       blob(c, () => { c.moveTo(-10, -30); c.lineTo(10, -30); c.lineTo(14, -2); c.lineTo(-14, -2); c.closePath(); }, '#15803D', -14, 14);
       for (let k = -12; k < 13; k += 5) dot(c, k, -6, 3, 3, '#FACC15');
       c.translate(0, b);

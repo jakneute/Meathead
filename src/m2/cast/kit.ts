@@ -3,6 +3,7 @@
 // (the caller mirrors them). Each character (people.ts) is these, put together and dressed their own way.
 
 import { mix } from '../../m1/game/render/backdrops/core';
+import { knee } from '../art/limb';
 
 export type Ctx = CanvasRenderingContext2D;
 export const INK = '#1A0B06';
@@ -27,17 +28,80 @@ export const blob = (c: Ctx, path: () => void, color: string, x0: number, x1: nu
 export const rect = (c: Ctx, x: number, y: number, w: number, h: number, color: string, r = 2) => blob(c, () => c.roundRect(x, y, w, h, r), color, x, x + w);
 export const dot = (c: Ctx, x: number, y: number, w: number, h: number, color: string) => { c.fillStyle = color; c.fillRect(x, y, w, h); };
 
+/**
+ * Somebody on the move (set round a drawing by whoever draws them walking: the way in's line and its guards): how far
+ * through their stride they are (radians: a full turn's a step with each foot) and how much of one it is (0 stood, 1
+ * a walk, up to 1.6 a run). legs() strides with it (the knees from art/limb.ts), arm() swings a hanging arm against
+ * the legs, walkFeet() steps the feet under a long skirt, and walking() bobs the lot (down a little with the feet
+ * apart, up tall as they pass; the feet kept on the ground).
+ * Null for everybody else, everywhere else: they're drawn stood, as ever.
+ */
+let gait: { ph: number; amt: number; bob: number } | null = null;
+export const walking = (c: Ctx, ph: number, amt: number, draw: () => void) => {
+  if (amt <= 0) { draw(); return; }
+  const bob = Math.abs(Math.sin(ph)) * 1.5 * amt;
+  gait = { ph, amt, bob };
+  c.save(); c.translate(0, bob);
+  try { draw(); } finally { c.restore(); gait = null; }
+};
+/** How far a foot reaches ahead of (and back behind) the hip, for a gait this big. */
+const reach = (amt: number) => 6 * amt;
+/** Each walker's stride, from how far they've actually gone (so the feet keep pace with the ground, never slide): its
+ *  phase and how big it is (0: stood). `f` the frame (counted once a frame, however many times they're drawn in it). */
+const strides = new WeakMap<object, { x: number; ph: number; v: number; f: number }>();
+export const strideOf = (who: object, x: number, f: number, moving = true) => {
+  let s = strides.get(who);
+  if (!s) { s = { x, ph: 0, v: 0, f }; strides.set(who, s); }
+  if (f !== s.f) {
+    const dx = moving ? Math.min(8, Math.abs(x - s.x)) : 0;
+    s.v += (dx - s.v) * (dx > s.v ? 0.5 : 0.3);
+    const amt = Math.min(1.6, 0.55 + s.v * 0.35);
+    // (a full stride, a step with each foot, carries them four reaches along)
+    s.ph += (dx * Math.PI * 2) / (4 * reach(amt));
+    s.f = f;
+  }
+  s.x = x;
+  return { ph: s.ph, amt: s.v < 0.25 ? 0 : Math.min(1.6, 0.55 + s.v * 0.35) };
+};
+/** Where one foot is in the stride (`s`: -1 the far leg, 1 the near), off where it'd stand: along, and up off the floor. */
+const footAt = (s: number) => {
+  if (!gait) return { dx: 0, lift: 0, y: 0 };
+  const a = gait.ph + (s > 0 ? 0 : Math.PI);
+  return { dx: Math.sin(a) * reach(gait.amt), lift: Math.max(0, Math.cos(a)) * 3.2 * gait.amt, y: -gait.bob };
+};
+
 /** Two legs from the hips down: trousers, shorts (skin below the knee), or under a skirt (`style`), and the shoes. */
 export const legs = (c: Ctx, hipY: number, gap: number, w: number, color: string, skin: string, shoe: string, style: 'pants' | 'shorts' | 'skirt' = 'pants', shoeL = 9) => {
   for (const s of [-1, 1]) {
-    const x = s * gap - w / 2, knee = hipY * 0.45;
+    const x = s * gap - w / 2, knee_ = hipY * 0.45;
+    if (gait) {
+      // (striding: thigh and shin, the knee bent forward the way knees bend, the foot planted or swinging through)
+      const ft = footAt(s), hx = s * gap, ax = hx + ft.dx, ay = ft.y - ft.lift - 3, bone = (-hipY - 3) / 2 + 0.4;
+      const [kx, ky] = knee(hx, hipY, ax, ay, bone, bone, 1);
+      const pant = s < 0 ? dk(color, 0.12) : color;
+      const seg = (x0: number, y0: number, x1: number, y1: number, col: string, ww: number) => {
+        c.lineCap = 'round';
+        c.strokeStyle = INK; c.lineWidth = ww + 2.4; c.beginPath(); c.moveTo(x0, y0); c.lineTo(x1, y1); c.stroke();
+        c.strokeStyle = col; c.lineWidth = ww; c.beginPath(); c.moveTo(x0, y0); c.lineTo(x1, y1); c.stroke();
+        c.lineCap = 'butt';
+      };
+      seg(kx, ky, ax, ay, style === 'pants' ? pant : skin, style === 'pants' ? w : w - 1);
+      seg(hx, hipY + 2, kx, ky, style === 'skirt' ? skin : pant, style === 'shorts' ? w + 1 : style === 'skirt' ? w - 1 : w);
+      blob(c, () => c.roundRect(ax - w / 2 - 1 + (s > 0 ? 1 : 0), ay - 1.5, shoeL, 5, [2, 3, 1, 1]), shoe, ax - w / 2 - 1, ax - w / 2 - 1 + shoeL);
+      continue;
+    }
     if (style === 'pants') rect(c, x, hipY, w, -hipY - 3, s < 0 ? dk(color, 0.12) : color, 1.5);
     else {
-      rect(c, x + 0.5, knee, w - 1, -knee - 3, skin, 1.5);
-      if (style === 'shorts') rect(c, x - 0.5, hipY, w + 1, knee - hipY + 2, s < 0 ? dk(color, 0.12) : color, 1.5);
+      rect(c, x + 0.5, knee_, w - 1, -knee_ - 3, skin, 1.5);
+      if (style === 'shorts') rect(c, x - 0.5, hipY, w + 1, knee_ - hipY + 2, s < 0 ? dk(color, 0.12) : color, 1.5);
     }
     blob(c, () => c.roundRect(x - 1 + (s > 0 ? 1 : 0), -4.5, shoeL, 5, [2, 3, 1, 1]), shoe, x - 1, x + shoeL);
   }
+};
+/** Under a skirt down to the floor: the feet, stepping out from under the hem when they're walking (nothing stood). */
+export const walkFeet = (c: Ctx, gap: number, shoe: string, shoeL = 7) => {
+  if (!gait) return;
+  for (const s of [-1, 1]) { const ft = footAt(s), x = s * gap + ft.dx - shoeL / 2; blob(c, () => c.roundRect(x, ft.y - ft.lift - 4, shoeL, 4, [2, 3, 1, 1]), shoe, x, x + shoeL); }
 };
 
 /** A torso from the hips up to the shoulders, `w` across at the shoulders, `hipW` at the hips (a pear, an apple, a box). */
@@ -46,6 +110,11 @@ export const torso = (c: Ctx, hipY: number, shY: number, w: number, hipW: number
 
 /** An arm from the shoulder to the hand: the sleeve down `sleeve` of it (0 bare, 1 to the wrist), the hand round. */
 export const arm = (c: Ctx, sx: number, sy: number, hx: number, hy: number, sleeveColor: string, skin: string, sleeve: number, w = 5.5) => {
+  // (walking: an arm hanging down swings, against the leg on its own side; one holding something stays as it is)
+  if (gait && hy - sy > 8) {
+    const a = (sx < 0 ? -1 : 1) * Math.sin(gait.ph) * 0.42 * Math.min(1.3, gait.amt), dx = hx - sx, dy = hy - sy;
+    hx = sx + dx * Math.cos(a) - dy * Math.sin(a); hy = sy + dx * Math.sin(a) + dy * Math.cos(a);
+  }
   c.lineCap = 'round';
   c.strokeStyle = INK; c.lineWidth = w + 2.4; c.beginPath(); c.moveTo(sx, sy); c.lineTo(hx, hy); c.stroke();
   c.strokeStyle = skin; c.lineWidth = w; c.beginPath(); c.moveTo(sx, sy); c.lineTo(hx, hy); c.stroke();
