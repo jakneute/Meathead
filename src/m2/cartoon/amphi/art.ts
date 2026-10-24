@@ -72,6 +72,13 @@ const back = (c: Ctx, E: P, x: number, y: number, d0: number, d1: number, col: s
 /** A wall face across depth at world x, from y0 up to y1 (a riser, the stage's front). */
 const side = (c: Ctx, E: P, x: number, y0: number, y1: number, d0: number, d1: number, fill: string) => quad(c, [proj(E, x, y0, d0), proj(E, x, y1, d0), proj(E, x, y1, d1), proj(E, x, y0, d1)], fill);
 
+/** A sign at a spot that moves with the eye (a riser's letter, the rope's tag): put down from one stamp wherever it is
+ *  (signText keys its stamp by where it's put: here that was a new one nearly every frame, never reused). The same
+ *  pixels: it lands on the same whole world pixel signText would've rounded it to. */
+const signAt = (c: Ctx, t: string, x: number, y: number, L: Parameters<typeof signText>[4]) => {
+  const rx = Math.round(x), ry = Math.round(y);
+  c.save(); c.translate(rx, ry); signText(c, t, x - rx, y - ry, L); c.restore();
+};
 const fontReady = () => typeof document !== 'undefined' && !!document.fonts?.check('8px "Press Start 2P"');
 const key = (k: string) => `ct-am-${k}-${timeOfDay().key}-${fontReady() ? 'f' : 'n'}`;
 const lampsOn = () => timeOfDay().lamps > 0.3;
@@ -437,7 +444,7 @@ const rope = (c: Ctx, E: P, open: boolean) => {
   c.lineCap = 'round';
   path(); c.strokeStyle = INK; c.lineWidth = 6; c.stroke(); path(); c.strokeStyle = V[2]; c.lineWidth = 4; c.stroke();
   c.save(); c.translate(0, -1); path(); c.strokeStyle = V[4]; c.lineWidth = 1; c.stroke(); c.restore();
-  if (!open) { const mx = (p0.x + p1.x) / 2, my = (p0.y + p1.y) / 2 + 12; box(c, mx - 1, my - 8, 2, 8, NR(BRASS)[3]); box(c, mx - 23, my - 2, 46, 15, INK); box(c, mx - 22, my - 1, 44, 13, '#F5F5F4'); box(c, mx - 22, my - 1, 44, 2, '#FFFFFF'); signText(c, 'CAST ONLY', mx, my + 9, small('#B91C1C')); }
+  if (!open) { const mx = (p0.x + p1.x) / 2, my = (p0.y + p1.y) / 2 + 12; box(c, mx - 1, my - 8, 2, 8, NR(BRASS)[3]); box(c, mx - 23, my - 2, 46, 15, INK); box(c, mx - 22, my - 1, 44, 13, '#F5F5F4'); box(c, mx - 22, my - 1, 44, 2, '#FFFFFF'); signAt(c, 'CAST ONLY', mx, my + 9, small('#B91C1C')); }
   else { box(c, p1.x - 31, PIT_Y - 7, 46, 7, INK); box(c, p1.x - 30, PIT_Y - 6, 44, 5, '#F5F5F4'); signText(c, 'CAST ONLY', p1.x - 8, PIT_Y - 2, tiny('#B91C1C')); }
   stanchion(c, x);
 };
@@ -659,7 +666,7 @@ const floors = (c: Ctx, state: GameState, E: P) => {
     if (E.x > a) {
       side(c, E, a, yPrev, y, D_FAR, D_AISLE, Cc[2]);
       const q0 = proj(E, a, yPrev, D_FAR), q1 = proj(E, a, yPrev, D_AISLE); c.strokeStyle = Al[4]; c.lineWidth = 2; c.beginPath(); c.moveTo(q0.x, q0.y + 1); c.lineTo(q1.x, q1.y + 1); c.stroke();
-      const n = proj(E, a, (yPrev + y) / 2 + 4, 0.88); signText(c, ROW_NAMES[k], n.x - 3, n.y, stencil(mix(Cc[4], '#FFFFFF', 0.2)));
+      const n = proj(E, a, (yPrev + y) / 2 + 4, 0.88); signAt(c, ROW_NAMES[k], n.x - 3, n.y, stencil(mix(Cc[4], '#FFFFFF', 0.2)));
     }
     if (E.y < y) {
       floorBands(c, E, a, b, y, D_AISLE, D_FAR, [Al[4], Al[3], Al[3], Al[2]]);

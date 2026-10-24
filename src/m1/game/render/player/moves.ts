@@ -78,16 +78,45 @@ const torso = (ctx: Ctx) => drawTorsoFromHips(ctx);
 const head = (ctx: Ctx, hx: number, hy: number, mouth: Mood) => drawHead(ctx, hx, hy, mouth, frameNow);
 
 /** Faded, tinted copies of a pose trailing behind it. */
-const ghosts = (ctx: Ctx, count: number, offset: (k: number) => [number, number], tint: string, draw: (k: number) => void) => {
+// (each copy's drawn faded into a layer of its own, untinted, and the layer's tinted once as it goes down: a canvas
+// filter set while drawing is a filter pass for every fill and stroke, hundreds a pose, and on the GPU that was most
+// of a frame's time whenever he charged, uppercut or dive kicked: the frame rate halved charging through anywhere busy
+// (the user's: "i get frame drops when charging through the ampitheater"). The same faded tinted copies)
+let ghostCv: HTMLCanvasElement | null = null;
+const ghostLayer = (ctx: Ctx): Ctx | null => {
+  if (typeof document === 'undefined') return null;
+  const cw = ctx.canvas.width, ch = ctx.canvas.height;
+  ghostCv ??= document.createElement('canvas');
+  if (ghostCv.width !== cw || ghostCv.height !== ch) { ghostCv.width = cw; ghostCv.height = ch; }
+  const g = ghostCv.getContext('2d');
+  if (!g) return null;
+  g.setTransform(1, 0, 0, 1, 0, 0);
+  g.globalAlpha = 1; g.filter = 'none'; g.globalCompositeOperation = 'source-over';
+  g.clearRect(0, 0, cw, ch);
+  g.setTransform(ctx.getTransform());
+  g.globalAlpha = ctx.globalAlpha; g.imageSmoothingEnabled = ctx.imageSmoothingEnabled;
+  g.lineCap = ctx.lineCap; g.lineJoin = ctx.lineJoin; g.lineWidth = ctx.lineWidth; g.miterLimit = ctx.miterLimit;
+  g.fillStyle = ctx.fillStyle; g.strokeStyle = ctx.strokeStyle; g.font = ctx.font; g.textAlign = ctx.textAlign; g.textBaseline = ctx.textBaseline;
+  return g;
+};
+const ghosts = (ctx: Ctx, count: number, offset: (k: number) => [number, number], tint: string, draw: (g: Ctx, k: number) => void) => {
+  const g = ghostLayer(ctx);
+  const into = g ?? ctx;
   for (let k = count; k >= 1; k--) {
-    ctx.save();
+    into.save();
     const [dx, dy] = offset(k);
-    ctx.translate(dx, dy);
-    ctx.globalAlpha *= 0.22 / k;
-    ctx.filter = tint;
-    draw(k);
-    ctx.restore();
+    into.translate(dx, dy);
+    into.globalAlpha *= 0.22 / k;
+    if (!g) into.filter = tint;
+    draw(into, k);
+    into.restore();
   }
+  if (!g || !ghostCv) return;
+  ctx.save();
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; ctx.filter = tint;
+  ctx.drawImage(ghostCv, 0, 0);
+  ctx.restore();
 };
 
 // ---------------------------------------------------------------------------
@@ -379,7 +408,7 @@ export const drawShoulderCharge = (ctx: Ctx, frame: number) => {
     ctx.fillStyle = `rgba(190, 175, 150, ${0.5 - d / 80})`;
     ctx.beginPath(); ctx.arc(-22 - d, -3 - (i % 2) * 4 - d * 0.1, 4 + d * 0.15, 0, Math.PI * 2); ctx.fill();
   }
-  ghosts(ctx, 2, k => [-k * 15, 0], 'sepia(1) saturate(6) hue-rotate(-25deg) brightness(1.1)', k => chargeBody(ctx, frame - k * 3, false));
+  ghosts(ctx, 2, k => [-k * 15, 0], 'sepia(1) saturate(6) hue-rotate(-25deg) brightness(1.1)', (g, k) => chargeBody(g, frame - k * 3, false));
   chargeBody(ctx, frame, true);
 };
 
@@ -445,7 +474,7 @@ export const drawSwimCharge = (ctx: Ctx, frame: number) => {
     ctx.lineWidth = 1.5;
     ctx.beginPath(); ctx.arc(-34 - d, -32 + Math.sin(i * 2.1 + frame * 0.3) * 8, 2 + (i % 3), 0, Math.PI * 2); ctx.stroke();
   }
-  ghosts(ctx, 2, k => [-k * 16, 0], 'saturate(0.4) brightness(1.3) hue-rotate(170deg)', k => torpedoBody(ctx, frame - k * 3, false));
+  ghosts(ctx, 2, k => [-k * 16, 0], 'saturate(0.4) brightness(1.3) hue-rotate(170deg)', (g, k) => torpedoBody(g, frame - k * 3, false));
   torpedoBody(ctx, frame, true);
 };
 
@@ -494,7 +523,7 @@ export const drawUppercut = (ctx: Ctx, frame: number) => {
     const y = 4 + ((frame * 8 + s * 13) % 30);
     ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y + 18 + (s % 2) * 8); ctx.stroke();
   }
-  ghosts(ctx, 2, k => [0, k * 16], 'sepia(1) saturate(4) hue-rotate(160deg) brightness(1.3)', () => uppercutBody(ctx, frame, false));
+  ghosts(ctx, 2, k => [0, k * 16], 'sepia(1) saturate(4) hue-rotate(160deg) brightness(1.3)', g => uppercutBody(g, frame, false));
   uppercutBody(ctx, frame, true);
 };
 
@@ -567,7 +596,7 @@ export const drawDivekick = (ctx: Ctx, frame: number) => {
       if (t < 0.5) { g.fillStyle = t < 0.25 ? '#FDE047' : '#F59E0B'; g.beginPath(); g.ellipse(px + rx * 0.2, py, rx * 0.5, ry * 0.5, 0, 0, Math.PI * 2); g.fill(); }
     }
   });
-  ghosts(ctx, 2, k => [-k * 16, 0], 'sepia(1) saturate(6) hue-rotate(-15deg) brightness(1.1)', () => diveBody(ctx, frame, false));
+  ghosts(ctx, 2, k => [-k * 16, 0], 'sepia(1) saturate(6) hue-rotate(-15deg) brightness(1.1)', g => diveBody(g, frame, false));
   diveBody(ctx, frame, true);
   ctx.restore();
 };
