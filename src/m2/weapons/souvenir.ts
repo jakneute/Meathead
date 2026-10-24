@@ -540,8 +540,8 @@ const update = (ctx: FrameContext, p: Projectile): boolean => {
   f.ang += f.spin * Math.min(1, Math.hypot(p.vel.x, p.vel.y) / 6);
   if (grounded) { f.ang *= 0.8; p.vel.x *= 0.9; }
   // Anybody in its way, while it's still got some go in it
-  // (a lob on its way up is going over everybody: it only comes down on them)
-  if (Math.hypot(p.vel.x, p.vel.y) > MIN_HIT_SPEED && !(f.lob && p.vel.y < 0)) {
+  // (a lob too, on its way up: whoever's in the arc gets it, locked on or not)
+  if (Math.hypot(p.vel.x, p.vel.y) > MIN_HIT_SPEED) {
     for (const e of state.enemies) {
       if (e.health <= 0 || e.isBlownAway || e.innocent || e.type === 'boss') continue;
       if (f.hits[e.id] !== undefined && state.frame - f.hits[e.id] < REHIT) continue;
