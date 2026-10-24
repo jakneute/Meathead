@@ -22,6 +22,7 @@ import { groundLineAt } from '../../m1/game/core/terrain';
 import { CANVAS_WIDTH } from '../../m1/constants';
 import { m2Kill } from '../moves/killLines';
 import { grabCallout } from '../moves/callouts';
+import { tickFlourish, drawFlourish, drawFlourishUnder, flareCone, flareStar, impactRing, smokePuff, sparkle, spokes, wordPopLimited, debris, nudge, ghostOf, putGhost } from './gunFlourish';
 
 type Ctx = CanvasRenderingContext2D;
 const INK = '#1A0B06';
@@ -189,6 +190,10 @@ interface Flight {
   gone?: boolean;
   /** It's bounced off something (a wall, the floor, somebody): the little Jesus goes looking for Donnie after that. */
   bounced?: boolean;
+  /** Where it's been (x, y, turn, every other frame): its ghosts, and a lob's dotted arc. Looks only. */
+  trail?: number[];
+  /** The frame of its last clatter (a bounce's bits and ring): a moment apart. */
+  fxAt?: number;
 }
 const flightOf = (p: Projectile) => p.customData as Flight;
 
@@ -244,8 +249,67 @@ const fire = (ctx: FrameContext, input: { moveUp: boolean; moveDown: boolean }, 
   pl.shootCooldown = COOLDOWN;
   if (!cheats.infiniteAmmo) pl.weaponAmmo.SOUVENIR--;
   fx.playGunSound('souvenir');
-  // (a puff out the end of the pipe)
-  for (let i = 0; i < 5; i++) state.particles.push({ pos: { x: muzzle.x + pl.facing * 6, y: muzzle.y }, vel: { x: pl.facing * (1 + Math.random() * 2), y: (Math.random() - 0.5) * 2 }, life: 12, color: 'rgba(230, 230, 230, 0.7)', size: 3 + Math.random() * 3 });
+  // (a pomf out the end of the pipe: a flat pink-white flare, a ring, puffs curling off, and the gift shop's tissue
+  // paper blown out with it)
+  shotAt = state.playerAnimFrame;
+  const f = pl.facing;
+  if (lob) flareStar(at.x, at.y, 9, ['#F472B6', '#FBCFE8', '#FFFFFF'], 4);
+  else flareCone(muzzle.x + f * 2, muzzle.y, f, 18, ['#F472B6', '#FBCFE8', '#FFFFFF'], 4);
+  impactRing(at.x + f * 4, at.y, 10, '#E4E4E7', 8);
+  for (let i = 0; i < 3; i++) smokePuff(at.x + f * (6 + i * 3), at.y + (Math.random() - 0.5) * 4, 3 + i, 0, 20 + i * 4, f * (1.4 - i * 0.3) + pl.vel.x * 0.2, -0.3 - Math.random() * 0.4);
+  for (let i = 0; i < 4; i++) debris(state, { pos: { x: at.x + f * 4, y: at.y - 2 }, vel: { x: f * (1.5 + Math.random() * 2.5), y: -1.5 - Math.random() * 2 }, life: 34 + Math.random() * 16, color: TISSUE[i % TISSUE.length], size: 2, grav: 0.07, chunk: true });
+};
+/** The gift shop's tissue paper, blown out of the pipe with every shot. */
+const TISSUE = ['#F9A8D4', '#FFFFFF', '#5EEAD4', '#FDE047'];
+/** The frame (his animation's) of the last shot: the pipe kicks. */
+let shotAt = -100;
+
+/** What it sounds like it'd sound like, hitting something (a word on a hit, and what comes off it): the keychain's
+ *  metal, the magnets' plastic, the snow globe's water, the stone's dust. */
+interface Clatter { word: string; pal: [string, string]; ring: string; bits: 'spark' | 'fleck' | 'water' | 'chips' | 'ash' | 'dust' }
+const CLATTER: Record<string, Clatter> = {
+  eiffel: { word: 'TINK!', pal: ['#FEF08A', '#EAB308'], ring: '#FDE047', bits: 'spark' },
+  opera: { word: 'PLINK!', pal: ['#FFFFFF', '#CBD5E1'], ring: '#F8FAFC', bits: 'fleck' },
+  redeemer: { word: 'PLONK!', pal: ['#ECFCCB', '#84CC16'], ring: '#D9F99D', bits: 'fleck' },
+  pisa: { word: 'BONK!', pal: ['#FFFFFF', '#A8A29E'], ring: '#E7E5E4', bits: 'chips' },
+  taj: { word: 'SPLOSH!', pal: ['#E0F2FE', '#38BDF8'], ring: '#BAE6FD', bits: 'water' },
+  bigben: { word: 'CLONK!', pal: ['#FEF3C7', '#D6A35C'], ring: '#FDE68A', bits: 'chips' },
+  colosseum: { word: 'CLUNK!', pal: ['#F5E6D3', '#C8A27A'], ring: '#E7C9A0', bits: 'ash' },
+  pyramid: { word: 'THUNK!', pal: ['#FEF3C7', '#D97706'], ring: '#FCD34D', bits: 'dust' },
+  moai: { word: 'KRONK!', pal: ['#E7E5E4', '#78716C'], ring: '#D6D3D1', bits: 'dust' },
+};
+/** Its clatter at (x, y): a ring and its bits; `onHim` (into somebody), bigger, its word, and a heavy one shakes things. */
+const clatter = (state: GameState, p: Projectile, x: number, y: number, onHim: boolean) => {
+  const f = flightOf(p), { t } = f, cl = CLATTER[t.id];
+  if (!cl) return;
+  if (!onHim && f.fxAt !== undefined && state.frame - f.fxAt < 5 && state.frame >= f.fxAt) return;
+  f.fxAt = state.frame;
+  impactRing(x, y, onHim ? 9 + t.mass * 14 : 5 + t.mass * 7, cl.ring, onHim ? 10 : 7);
+  const n = onHim ? 6 : 3, vx = Math.sign(p.vel.x) * 0.5;
+  for (let i = 0; i < n; i++) {
+    const a = Math.random() * Math.PI * 2, sp = 1 + Math.random() * 2.5;
+    switch (cl.bits) {
+      case 'spark': debris(state, { pos: { x, y }, vel: { x: Math.cos(a) * sp * 1.6, y: Math.sin(a) * sp * 1.6 }, life: 8 + Math.random() * 5, color: i % 2 ? '#FFFFFF' : '#FDE047', size: 1.5 }); break;
+      case 'fleck': case 'chips': debris(state, { pos: { x, y }, vel: { x: vx + Math.cos(a) * sp, y: -1 - Math.random() * 2.5 }, life: 20 + Math.random() * 12, color: t.colors[i % t.colors.length], size: cl.bits === 'chips' ? 2.5 : 1.5, grav: 0.25, chunk: true }); break;
+      case 'water':
+        debris(state, { pos: { x, y }, vel: { x: vx + Math.cos(a) * sp, y: -1.5 - Math.random() * 2.5 }, life: 18 + Math.random() * 10, color: i % 3 ? '#7DD3FC' : '#E0F2FE', size: 2, grav: 0.3, chunk: true });
+        if (i < 3) sparkle(x + (Math.random() - 0.5) * 18, y - Math.random() * 14, '#FFFFFF', 14);
+        break;
+      case 'ash':
+        if (i < 2) smokePuff(x + (Math.random() - 0.5) * 8, y, 4, 1, 26, (Math.random() - 0.5) * 1.2, -0.4);
+        else debris(state, { pos: { x, y }, vel: { x: vx + Math.cos(a) * sp, y: -1 - Math.random() * 2 }, life: 20, color: i % 2 ? '#57534E' : '#A8A29E', size: 1.5, grav: 0.2, chunk: true });
+        break;
+      case 'dust':
+        if (i < 3) smokePuff(x + (i - 1) * 6, y + 2, Math.round(4 + t.mass * 3), 0, 24, (i - 1) * 0.9, -0.25);
+        else debris(state, { pos: { x, y }, vel: { x: vx + Math.cos(a) * sp, y: -1 - Math.random() * 2 }, life: 22, color: t.colors[i % t.colors.length], size: 2.5, grav: 0.3, chunk: true });
+        break;
+    }
+  }
+  if (cl.bits === 'spark') spokes(x, y, onHim ? 8 : 5, '#FEF08A', 5);
+  if (onHim) {
+    wordPopLimited(state, x, y - 20 - t.mass * 6, cl.word, cl.pal, 16);
+    if (t.mass >= 0.6) nudge(state, 4, 1.2 + t.mass * 1.6);
+  }
 };
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -289,7 +353,9 @@ const disintegrate = (state: GameState, p: Projectile) => {
   const { t } = flightOf(p);
   const cx = p.pos.x + p.width / 2, cy = p.pos.y + p.height / 2;
   for (let i = 0; i < 14; i++) state.particles.push({ pos: { x: cx + (Math.random() - 0.5) * p.width, y: cy + (Math.random() - 0.5) * p.height }, vel: { x: p.vel.x * 0.5 + (Math.random() - 0.5) * 3, y: p.vel.y * 0.5 - 1 - Math.random() * 2.5 }, life: 28 + Math.random() * 24, color: i % 4 === 3 ? '#D4D4D8' : t.colors[i % t.colors.length], size: 2 + Math.random() * 2 });
-  for (let i = 0; i < 3; i++) state.particles.push({ pos: { x: cx, y: cy }, vel: { x: (Math.random() - 0.5) * 1.5, y: -0.6 }, life: 18, color: 'rgba(220, 220, 220, 0.5)', size: 5 + Math.random() * 4 });
+  // (and a poof: a ring, the smoke curling off it)
+  impactRing(cx, cy, 10, '#E4E4E7', 8);
+  for (let i = 0; i < 3; i++) smokePuff(cx + (i - 1) * 5, cy, 4 + (i & 1) * 2, 0, 22 + i * 3, (i - 1) * 0.6, -0.5 - Math.random() * 0.3);
   playSound('clink', 0.45, 9);
 };
 
@@ -306,6 +372,7 @@ const hitEnemy = (ctx: FrameContext, p: Projectile, e: Enemy) => {
   e.health -= dmg;
   const at = { x: e.pos.x + e.width / 2, y: p.pos.y + p.height / 2 };
   fx.spawnExplosion(at, '#8B0000', 4 + Math.round(t.mass * 8), 0, 6);
+  clatter(state, p, at.x, at.y, true);
   if (e.health <= 0) {
     // (killed by it: knocked out cold, the way the pistol does them in Meathead 1: over he goes, stiff, and bursts where
     // he comes down; anything the pistol has no fall for is blown away, as before)
@@ -441,7 +508,7 @@ const update = (ctx: FrameContext, p: Projectile): boolean => {
     const wall = solidAt(state, nx, p.pos.y, p.width, p.height);
     if (wall) {
       p.pos.x = p.vel.x > 0 ? wall.x - p.width - 0.01 : wall.x + wall.w + 0.01;
-      if (Math.abs(p.vel.x) > 2) playSound('clink', 0.3 + (1 - t.mass) * 0.2, 4 + (1 - t.mass) * 6);
+      if (Math.abs(p.vel.x) > 2) { playSound('clink', 0.3 + (1 - t.mass) * 0.2, 4 + (1 - t.mass) * 6); if (Math.abs(p.vel.x) > 4) clatter(state, p, p.vel.x > 0 ? p.pos.x + p.width : p.pos.x, p.pos.y + p.height / 2, false); }
       p.vel.x = -p.vel.x * t.rest; f.spin = -f.spin * 0.8;
       bankShot(state, p);
     } else p.pos.x = nx;
@@ -451,7 +518,7 @@ const update = (ctx: FrameContext, p: Projectile): boolean => {
       const floor = floorAt(state, p.pos.x, p.width, p.pos.y + p.height, ny + p.height);
       if (floor) {
         p.pos.y = floor.y - p.height;
-        if (p.vel.y > 2.2) { if (p.vel.y > 4) playSound('clink', 0.25 + (1 - t.mass) * 0.2, 2 + (1 - t.mass) * 8); p.vel.y = -p.vel.y * upRest(t); bankShot(state, p); }
+        if (p.vel.y > 2.2) { if (p.vel.y > 4) { playSound('clink', 0.25 + (1 - t.mass) * 0.2, 2 + (1 - t.mass) * 8); clatter(state, p, p.pos.x + p.width / 2, floor.y, false); } p.vel.y = -p.vel.y * upRest(t); bankShot(state, p); }
         else { p.vel.y = 0; grounded = true; }
         // (along the floor it scrapes and slows, the heavy ones quicker)
         p.vel.x *= 0.92 - t.mass * 0.12;
@@ -465,6 +532,8 @@ const update = (ctx: FrameContext, p: Projectile): boolean => {
     p.pos.y = ny;
   }
   seekDonnie(state, p, f);
+  // (where it's been, for its ghosts and a lob's arc)
+  if (f.age % 2 === 0) { const tr = (f.trail ??= []); tr.push(p.pos.x + p.width / 2, p.pos.y + p.height / 2, f.ang); if (tr.length > (f.lob ? 42 : 12)) tr.splice(0, 3); }
   f.ang += f.spin * Math.min(1, Math.hypot(p.vel.x, p.vel.y) / 6);
   if (grounded) { f.ang *= 0.8; p.vel.x *= 0.9; }
   // Anybody in its way, while it's still got some go in it
@@ -512,14 +581,14 @@ const draw = (c: Ctx, p: Projectile) => {
 };
 
 /** In his fist: the pipe (white, taped twice, a pink squirt-gun grip under it), the mesh bag of junk strapped on top. */
-const drawHeld = (c: Ctx, frame: number) => {
+const drawHeld = (c: Ctx, frame: number, kick: number) => {
   box(c, 4, 6, 4, 5, '#DB2777'); box(c, 4, 6, 1, 5, '#F472B6');
   box(c, -2, -1, 31, 7, INK);
   box(c, -1, 0, 29, 5, '#F4F4F5'); box(c, -1, 0, 29, 1, '#FFFFFF'); box(c, -1, 4, 29, 1, '#A1A1AA');
   for (const x of [4, 18]) { box(c, x, -1, 3, 7, '#9CA3AF'); box(c, x, -1, 3, 1, '#D4D4D8'); }
   box(c, 27, -1, 2, 7, '#71717A'); box(c, 29, 0, 1, 5, '#18181B');
   // (the bag, bulging, the Eiffel Tower poking out of it; it jiggles)
-  const j = Math.sin(frame * 0.3) * 0.5;
+  const j = Math.sin(frame * 0.3) * (0.5 + kick * 2);
   c.fillStyle = INK; c.beginPath(); c.ellipse(11, -5 + j, 9, 5, 0, 0, Math.PI * 2); c.fill();
   c.fillStyle = '#DC2626'; c.beginPath(); c.ellipse(11, -5 + j, 8, 4, 0, 0, Math.PI * 2); c.fill();
   c.fillStyle = '#991B1B'; for (let x = 4; x < 19; x += 2) for (let y = -8; y < -1; y += 2) if ((x + y) % 4 === 0) c.fillRect(x, y + j, 1, 1);
@@ -549,6 +618,7 @@ export const drawTrinketsForTests = (c: Ctx) => TRINKETS.forEach((t, i) => { c.s
 let aiming = false;
 const tick = (ctx: FrameContext, input: { moveUp: boolean }, equipped: boolean) => {
   const pl = ctx.state.player;
+  tickFlourish(ctx.state);
   aiming = equipped && input.moveUp && !pl.isDucking && (ctx.cheats.infiniteAmmo || pl.weaponAmmo.SOUVENIR > 0);
   tilt += ((aiming ? TILT : 0) - tilt) * 0.3;
 };
@@ -589,8 +659,37 @@ const drawOverlay = (c: Ctx, state: GameState) => {
     if (!(gy < p.pos.y + 900)) continue;
     const h = Math.max(0, gy - (p.pos.y + p.height)), k = Math.max(0.15, 1 - h / 320);
     c.fillStyle = `rgba(0, 0, 0, ${(0.35 * k).toFixed(2)})`; c.beginPath(); c.ellipse(cx, gy - 1, 4 + 10 * k, 2 + 2 * k, 0, 0, Math.PI * 2); c.fill();
-    c.strokeStyle = 'rgba(255, 255, 255, 0.35)'; c.lineWidth = 2; c.beginPath(); c.moveTo(cx, p.pos.y + p.height / 2); c.lineTo(cx - p.vel.x * 3, p.pos.y + p.height / 2 - p.vel.y * 3); c.stroke();
+  }
+  drawFlourish(c, state);
+};
+
+/** Behind them: a tumbling one's ghosts (where it was a few frames back, turned the way it was, dithered in its own
+ *  colour), and a lob's arc, dotted, the dots shrinking back along it. */
+const drawUnder = (c: Ctx, state: GameState) => {
+  drawFlourishUnder(c);
+  for (const p of state.projectiles) {
+    if (p.custom !== 'SOUVENIR') continue;
+    const f = flightOf(p), tr = f.trail;
+    if (!tr || tr.length < 6) continue;
+    const n = tr.length / 3;
+    if (f.lob && f.age < 140) {
+      for (let i = 0; i < n - 1; i++) {
+        const s = Math.max(1, Math.round(1 + (i / n) * 2.5)), x = Math.round(tr[i * 3]), y = Math.round(tr[i * 3 + 1]);
+        c.fillStyle = INK; c.fillRect(x - s - 1, y - s - 1, s * 2 + 2, s * 2 + 2);
+        c.fillStyle = i & 1 ? f.t.colors[0] : '#FFFFFF'; c.fillRect(x - s, y - s, s * 2, s * 2);
+      }
+    }
+    if (Math.hypot(p.vel.x, p.vel.y) < 3.5) continue;
+    const side = Math.max(f.t.w, f.t.h) * SIZE * 1.15;
+    const g = ghostOf(`sv:${f.t.id}`, side, side, f.t.colors[0], gc => { gc.scale(SIZE, SIZE); f.t.draw(gc); });
+    for (const back of [2, 4]) {
+      const i = n - back;
+      if (i < 0) continue;
+      if (back === 4) c.globalAlpha = 0.55;
+      putGhost(c, g, tr[i * 3], tr[i * 3 + 1], side, side, tr[i * 3 + 2]);
+      c.globalAlpha = 1;
+    }
   }
 };
 
-export const registerSouvenirLauncher = () => registerWeapon('SOUVENIR', { fire, update, draw: (c, p) => draw(c, p), drawHeld: (c, frame) => { c.save(); c.rotate(tilt); drawHeld(c, frame); c.restore(); }, tick: (ctx, input, equipped) => tick(ctx, input, equipped), drawOverlay });
+export const registerSouvenirLauncher = () => registerWeapon('SOUVENIR', { fire, update, draw: (c, p) => draw(c, p), drawHeld: (c, frame) => { const a = frame - shotAt, kick = a >= 0 && a < 9 ? (1 - a / 9) ** 2 : 0; c.save(); c.rotate(tilt - kick * 0.22); c.translate(-kick * 3, 0); drawHeld(c, frame, kick); c.restore(); }, tick: (ctx, input, equipped) => tick(ctx, input, equipped), drawOverlay, drawUnder });

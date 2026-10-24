@@ -24,6 +24,7 @@ import { isRobot } from '../kinds';
 import { specialsHalf, halfKill } from './half';
 import { since } from '../frames';
 import { struckAt } from './strikes';
+import { impactRing, smokePuff, spokes, wordPop, wordPopLimited, debris, nudge, clearFlourish, coneAt, starAt, puffAt } from './gunFlourish';
 type Ctx = CanvasRenderingContext2D;
 const INK = '#1A0B06';
 
@@ -35,6 +36,11 @@ const CHARGE = 48, LOCK_REACH = 560, RANGE = 1500, COOLDOWN = 34;
 const BOSS_HIT = 150;
 
 let charge = 0, chargedAt = -10, target: Enemy | null = null, lockFacing: 1 | -1 = 1;
+/** Looks only: the frame (his animation's) of the last shot (the kick, the flash in his fist, the barrel smoking); the
+ *  frame it primed (a ring snapping in on the bead). */
+let shotAt = -1000, primedAt = -100;
+/** The flash: hot orange out to the white in the middle of it. */
+const FLASH = ['#EA580C', '#F59E0B', '#FDE047', '#FFFFFF'] as const;
 /** The lines the last balls went down (and the sparks off what they ricocheted on), fading. */
 interface Trail { x0: number; y0: number; x1: number; y1: number; t: number; spark: boolean }
 let trails: Trail[] = [];
@@ -102,7 +108,12 @@ const line = (ctx: FrameContext, x: number, y: number, dx: number, dy: number, k
     }
   }
   trails.push({ x0: x, y0: y, x1: cx, y1: cy, t: 0, spark: wall });
-  if (wall) { fx.spawnExplosion({ x: cx, y: cy }, '#FDE047', 8, 0, 8); playSound('clang', 0.5, 6); struckAt(cx - 8, cy - 8, cx + 8, cy + 8, 150); }
+  if (wall) {
+    fx.spawnExplosion({ x: cx, y: cy }, '#FDE047', 8, 0, 8); playSound('clang', 0.5, 6); struckAt(cx - 8, cy - 8, cx + 8, cy + 8, 150);
+    // (a ricochet's ping off the stone: a ring, a starburst, a puff of grit, the word)
+    impactRing(cx, cy, 12, '#FDE047', 9); spokes(cx, cy, 7, '#FEF08A', 5); smokePuff(cx - dx * 4, cy - dy * 4, 4, 1, 26, -dx * 0.6, -0.3);
+    wordPopLimited(state, cx - dx * 10, cy - 16, 'PTANG!', ['#FEF08A', '#CA8A04'], 20);
+  }
   return { x: cx - dx * STEP, y: cy - dy * STEP, wall };
 };
 
@@ -120,6 +131,8 @@ const bossHit = (ctx: FrameContext, e: Enemy, x: number, y: number, dx: number, 
     state.particles.push({ pos: { x, y }, vel: { x: -dx * (1.5 + Math.random() * 3) + (Math.random() - 0.5) * 2, y: -1.5 - Math.random() * 2.5 }, life: 30 + Math.random() * 20, color: c, size: 2 + Math.random() * 2, grav: 0.3 });
   }
   if (robot) playSound('clang', 0.6, 2); else playSound('splat', 0.7, -2);
+  impactRing(x, y, 16, robot ? '#FDE047' : '#FCA5A5', 10);
+  wordPopLimited(state, x, y - 22, robot ? 'KLANG!' : 'THWUK!', robot ? ['#FEF08A', '#A1A1AA'] : ['#FECACA', '#DC2626'], 20);
 };
 
 /** His head, off: the headshot (the sniper's), the line, the callout. (A mid-boss never gets here: bossHit.) */
@@ -127,6 +140,9 @@ const headOff = (ctx: FrameContext, e: Enemy, dx: number, dy: number) => {
   const { fx } = ctx;
   const h = headOf(e);
   fx.spawnExplosion(h, '#8B0000', 14, dx * 6, 14);
+  // (the cork out of the bottle: a ring off where it was, the word)
+  impactRing(h.x, h.y, 14, '#FCA5A5', 9);
+  wordPop(h.x + dx * 8, h.y - 22, 'POP!', ['#FFFFFF', '#DC2626'], 36);
   fx.killWithAnimation(e, 'headshot', m2Kill('flintlock_kill'), grabCallout('flintlock'), { x: dx * 6, y: -6 + dy * 4 });
 };
 
@@ -152,8 +168,17 @@ const shoot = (ctx: FrameContext) => {
   }
   // The shot: the flint's spark, the flash, a great cloud of smoke, the kick
   playSound('flintlock');
-  for (let i = 0; i < 10; i++) state.particles.push({ pos: { x: m.x + dx * 6, y: m.y + dy * 6 }, vel: { x: dx * (1 + Math.random() * 2) + (Math.random() - 0.5), y: dy * 2 - Math.random() * 1.2 }, life: 40 + Math.random() * 30, color: `rgba(${200 + Math.floor(Math.random() * 40)}, ${200 + Math.floor(Math.random() * 40)}, ${200 + Math.floor(Math.random() * 40)}, 0.55)`, size: 6 + Math.random() * 8 });
-  for (let i = 0; i < 4; i++) state.particles.push({ pos: { x: m.x, y: m.y }, vel: { x: dx * 4, y: dy * 4 + (Math.random() - 0.5) * 2 }, life: 5, color: i % 2 ? '#FFFFFF' : '#FDE047', size: 8 + Math.random() * 6 });
+  // (the flash out the barrel's drawn with the gun, kicking with it: drawHeld; a ring blown out ahead of it)
+  impactRing(m.x + dx * 8, m.y + dy * 8, 16, '#FFFFFF', 8);
+  // (the great cloud: black powder smoke rolling out the barrel, slowing, curling up and hanging there)
+  for (let i = 0; i < 7; i++) smokePuff(m.x + dx * (6 + i * 4), m.y + dy * (6 + i * 4) + (Math.random() - 0.5) * 4, 4 + Math.round(Math.random() * 4), i % 3 === 2 ? 1 : 0, 48 + Math.random() * 30, dx * (0.6 + Math.random() * 2) + (Math.random() - 0.5) * 0.4, dy * 1.2 - 0.3 - Math.random() * 0.5, i);
+  // (the wadding out after the ball, smoldering, and an ember or two)
+  for (let i = 0; i < 3; i++) debris(state, { pos: { x: m.x + dx * 6, y: m.y + dy * 6 }, vel: { x: dx * (2 + Math.random() * 3) + (Math.random() - 0.5), y: dy * 3 - 1 - Math.random() * 1.5 }, life: 26 + Math.random() * 14, color: i === 0 ? '#FEF3C7' : i === 1 ? '#F97316' : '#FDE047', size: i === 0 ? 2.5 : 1.5, grav: 0.14, chunk: i === 0 });
+  // (smoke hanging down the line the ball took, one puff after the next out to where it stopped)
+  const len = Math.hypot(end.x - m.x, end.y - m.y), gap = Math.max(44, len / 12);
+  for (let d = 30, i = 0; d < len - 10; d += gap, i++) smokePuff(m.x + dx * d, m.y + dy * d, 2 + (i & 1), 0, 30 + Math.random() * 14, 0, -0.25 - Math.random() * 0.2, 1 + Math.floor(i * 0.7));
+  nudge(state, 6, 2.5);
+  shotAt = state.playerAnimFrame;
   pl.vel.x -= pl.facing * 2;
   if (!cheats.infiniteAmmo) pl.weaponAmmo.FLINTLOCK--;
   pl.shootCooldown = COOLDOWN;
@@ -174,7 +199,13 @@ const fire = (ctx: FrameContext) => { facingState = ctx.state;
   pl.facing = lockFacing;
   if (!target || !alive(target) || Math.hypot(headOf(target).x - m.x, headOf(target).y - m.y) > LOCK_REACH * 1.2 || (headOf(target).x - m.x) * pl.facing < -8) target = pick(state, m);
   // (primed: it'll go when he lets go)
-  if (charge < CHARGE && ++charge === CHARGE) playSound('primed');
+  if (charge < CHARGE && ++charge === CHARGE) {
+    playSound('primed');
+    // (the click, said: over the bead, and a ring snapping in on it)
+    primedAt = state.frame;
+    const at = target && alive(target) ? headOf(target) : { x: m.x + pl.facing * 160, y: m.y };
+    wordPop(at.x, at.y - 40, 'CLICK!', ['#FFFFFF', '#EF4444'], 26);
+  }
 };
 
 const tick = (ctx: FrameContext) => { facingState = ctx.state;
@@ -215,11 +246,44 @@ const drawOverlay = (c: Ctx, state: GameState) => {
   c.strokeStyle = red ? (state.frame % 6 < 3 ? '#EF4444' : '#FCA5A5') : '#F8FAFC'; c.lineWidth = 2; ticks();
   c.beginPath(); c.arc(at.x, at.y, r, 0, Math.PI * 2); c.strokeStyle = red ? 'rgba(239, 68, 68, 0.6)' : 'rgba(248, 250, 252, 0.4)'; c.lineWidth = 1; c.stroke();
   if (red) { c.fillStyle = '#EF4444'; c.fillRect(at.x - 1.5, at.y - 1.5, 3, 3); }
+  // (round it, a ring of twelve beads lighting up one by one as it draws, all red and blinking once it's primed)
+  const lit = Math.floor(k * 12), R = 26 + 13;
+  for (let i = 0; i < 12; i++) {
+    const a = (i / 12) * Math.PI * 2 - Math.PI / 2, x = Math.round(at.x + Math.cos(a) * R), y = Math.round(at.y + Math.sin(a) * R);
+    c.fillStyle = INK; c.fillRect(x - 2, y - 2, 4, 4);
+    c.fillStyle = i < lit ? (red ? (state.frame % 6 < 3 ? '#EF4444' : '#FCA5A5') : '#F8FAFC') : '#52525B';
+    c.fillRect(x - 1, y - 1, 2, 2);
+  }
+  // (a glint running down the laser to him)
+  const g = (state.frame * 0.06) % 1;
+  c.fillStyle = '#FFFFFF'; c.fillRect(Math.round(lm.x + (at.x - lm.x) * g) - 1, Math.round(lm.y + (at.y - lm.y) * g) - 1, 2, 2);
+  // (primed: a ring snapping in on him)
+  const pa = state.frame - primedAt;
+  if (pa >= 0 && pa < 8) { const rr = 30 - pa * 3; c.strokeStyle = INK; c.lineWidth = 3; c.beginPath(); c.arc(at.x, at.y, rr, 0, Math.PI * 2); c.stroke(); c.strokeStyle = '#EF4444'; c.lineWidth = 1.5; c.stroke(); }
 };
 
 /** In his fist: a long horse pistol, walnut stock curving down into his hand, a brass butt and fittings, the long iron
  * barrel, the flint in its hammer cocked back, a wisp of smoke off the pan, and the laser pointer taped under it. */
 const drawHeld = (c: Ctx, frame: number) => {
+  // The kick: flipped up at the wrist and shoved back in his fist, settling; the flash out the muzzle and the flint's
+  // spark off the pan the first frames; then the barrel smoking a while, a curl of it going up
+  const a = frame - shotAt, kick = a >= 0 && a < 14 ? (1 - a / 14) ** 2 : 0;
+  c.save();
+  if (kick) { c.translate(-4 * kick, 0); c.rotate(-0.45 * kick); }
+  drawPistol(c, frame);
+  if (a >= 0 && a < 4) coneAt(c, 32, 0.5, a < 2 ? 22 : 13, a < 2 ? FLASH : FLASH.slice(0, 2));
+  if (a >= 0 && a < 3) starAt(c, 6, -7, a < 1 ? 5 : 3, ['#F59E0B', '#FDE047', '#FFFFFF']);
+  c.restore();
+  if (a >= 3 && a < 96) {
+    const n = a < 40 ? 3 : a < 70 ? 2 : 1;
+    for (let j = 0; j < n; j++) {
+      const ph = (a + j * 12) % 36;
+      puffAt(c, Math.round(32 + Math.sin(ph * 0.22 + j * 2) * 2.5 * (ph / 36)), Math.round(-1 - ph * 0.55), 1 + Math.round(ph / 14), 0);
+    }
+  }
+};
+/** The pistol itself (drawHeld: kicked and flashing round it). */
+const drawPistol = (c: Ctx, frame: number) => {
   c.fillStyle = INK; c.beginPath(); c.moveTo(-3, -1); c.lineTo(10, -2); c.lineTo(10, 3); c.lineTo(4, 4); c.lineTo(1, 11); c.lineTo(-5, 10); c.closePath(); c.fill();
   c.fillStyle = '#92400E'; c.beginPath(); c.moveTo(-2, 0); c.lineTo(9, -1); c.lineTo(9, 2); c.lineTo(3, 3); c.lineTo(0.5, 9.5); c.lineTo(-4, 9); c.closePath(); c.fill();
   c.fillStyle = '#B45309'; c.fillRect(-1, 0, 8, 1);
@@ -234,6 +298,6 @@ const drawHeld = (c: Ctx, frame: number) => {
 };
 
 /** Everything it was in the middle of, stopped (through a door). */
-export const stopFlintlock = () => { charge = 0; target = null; trails = []; };
+export const stopFlintlock = () => { charge = 0; target = null; trails = []; clearFlourish(); };
 
 export const registerFlintlock = () => registerWeapon('FLINTLOCK', { fire: ctx => fire(ctx), update: () => false, draw: () => {}, drawHeld, tick: ctx => tick(ctx), drawOverlay });
