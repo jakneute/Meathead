@@ -69,7 +69,8 @@ import { landLeft } from './landCaches';
 import { canSkip, requestSkip } from '../m1/game/platform/skip';
 import { getAudioContext } from '../m1/game/platform/audio';
 import { STAFF_SLOT, AMERICA_SLOT, landAt } from './hub/lands';
-import { getUi, subscribeUi, onTravel, setUi, goTo, takeBossKill, setStartCheckpoint, requestCarHop, restoreClearedLands, restoreKept, restoreBossDeaths, restoreFound, isLandCleared, isLandComplete } from './store';
+import { getUi, subscribeUi, onTravel, setUi, goTo, takeBossKill, setStartCheckpoint, requestCarHop, restoreClearedLands, restoreKept, restoreBossDeaths, restoreFound, isLandCleared, isLandComplete, setAlphaEndSeen, ALPHA_LAND_COUNT } from './store';
+import { alphaEndOver } from './alphaEnd';
 import TitleScreen from './title/TitleScreen';
 import { readFile, deleteFile, playOnFile, saveProgress, closeFile, activeSlot, type Slot } from './save';
 import { setFrameHook } from '../m1/game/core/update';
@@ -249,6 +250,7 @@ const App2: React.FC = () => {
   useEffect(() => { setMusicTitle(title); }, [title]);
   const startNew = (slot: Slot | null) => {
     if (slot !== null && readFile(slot)) deleteFile(slot);
+    setAlphaEndSeen(false);
     playOnFile(slot);
     setTitle(false);
   };
@@ -259,7 +261,10 @@ const App2: React.FC = () => {
     restoreKept(f.kept);
     restoreBossDeaths(f.deaths);
     restoreFound(f.found ?? {});
+    setAlphaEndSeen(!!f.alphaSeen);
     playOnFile(slot, f.playTimeMs);
+    // (all cleared, but quit before the alpha's ending played: it plays now, and on to the title as ever)
+    if (f.cleared.length >= ALPHA_LAND_COUNT && !f.alphaSeen) { setTitle(false); alphaEndOver(); return; }
     // (onto the hub, where Meathead 1's goes onto the map: in off America USA's street)
     setHubStart(AMERICA_SLOT);
     pending.current = HUB_STAGE;

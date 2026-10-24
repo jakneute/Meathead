@@ -24,8 +24,8 @@ import { musicMoment } from './music/moments';
 import { PA_VOICE, PA_ALPHA_END } from './intro/lines';
 import { glyphDots } from './space/square/lettering';
 import { font, bar, canvas } from './walkAway/screen';
-import { closeFile } from './save';
-import { setAlphaEndDue } from './store';
+import { closeFile, saveProgress } from './save';
+import { setAlphaEndDue, setAlphaEndSeen } from './store';
 import { M2_PUBLIC } from './build';
 import {
   type Buf, type Steps, GW, GH, R, hexU, mixU, WHITE, newBuf, bay, hash2, setSeed, rnd, matAt, plot, shade, seg, path,
@@ -358,6 +358,8 @@ const listen = (on: boolean) => {
 const anyPad = () => { try { return (navigator.getGamepads?.() ?? []).some(p => p && p.buttons.some(b => b.pressed)); } catch { return false; } };
 
 export const startAlphaEnd = (onDone: () => void = toTitle): AlphaEnd => {
+  // (seen: onto the file now, so quitting part way doesn't bring it back; quitting before it starts does, on CONTINUE)
+  setAlphaEndSeen(true); saveProgress();
   listen(true);
   pa.warm();
   return { t: 0, phase: 'pa', line: -1, said: null, nextAt: 50, endAt: 0, outAt: 0, armed: false, sparks: [], flecks: [], onDone };
@@ -556,11 +558,16 @@ export const devAlphaEnd = () => {
   const q = new URLSearchParams(location.search);
   if (!q.has('alphaend')) return;
   if (q.get('alphaend') === 'walk') { setAlphaEndDue(true); return; }
+  alphaEndOver(true);
+};
+/** It on its own, over the page (a file all-cleared that never saw it, on CONTINUE: App.tsx; or the dev ?alphaend,
+ *  looping). */
+export const alphaEndOver = (loop = false) => {
   const cv = canvas(W, H);
   Object.assign(cv.style, { position: 'fixed', inset: '0', margin: 'auto', zIndex: '9999', background: '#000', imageRendering: 'pixelated', maxWidth: '100vw', maxHeight: '100vh', aspectRatio: '4 / 3', width: 'min(100vw, 133.33vh)' });
   document.body.appendChild(cv);
   const c = cv.getContext('2d')!;
-  const start = (): AlphaEnd => startAlphaEnd(() => setTimeout(() => { cur = start(); }, 600));
+  const start = (): AlphaEnd => (loop ? startAlphaEnd(() => setTimeout(() => { cur = start(); }, 600)) : startAlphaEnd());
   let cur = start();
   (window as unknown as { __alphaEnd: () => AlphaEnd }).__alphaEnd = () => cur;
   const frame = () => { tickAlphaEnd(cur); drawAlphaEnd(c, cur); requestAnimationFrame(frame); };

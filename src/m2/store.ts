@@ -174,6 +174,11 @@ let alphaEndDue = false;
 export const alphaEndDuePeek = () => alphaEndDue;
 /** ...and taken, once: true the one time. */
 export const takeAlphaEndDue = () => { const d = alphaEndDue; alphaEndDue = false; return d; };
+/** It's been seen on this file (saved: a file all-cleared that never saw it, quit before the A at the walk-away's end,
+ *  plays it on CONTINUE instead: App.tsx). */
+let alphaSeen = false;
+export const alphaEndSeen = () => alphaSeen;
+export const setAlphaEndSeen = (on: boolean) => { alphaSeen = on; };
 /** (dev: the next walk-away ends in it) */
 export const setAlphaEndDue = (on: boolean) => { alphaEndDue = on; };
 export const isLandCleared = (id: string) => cleared.has(id);
@@ -182,6 +187,7 @@ export const landsCleared = () => cleared.size;
 /** Every land he's cleared (for a save). */
 export const clearedLands = () => [...cleared];
 /** Put back from a save. */
+export const ALPHA_LAND_COUNT = ALPHA_LANDS;
 export const restoreClearedLands = (ids: string[]) => { cleared.clear(); ids.forEach(id => cleared.add(id)); progressListeners.forEach(l => l()); };
 export const subscribeProgress = (l: () => void) => { progressListeners.add(l); return () => { progressListeners.delete(l); }; };
 

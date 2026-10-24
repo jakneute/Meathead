@@ -8,7 +8,7 @@
 // nothing's written. Anything missing, corrupt or from a newer version reads as an empty slot: no crash.
 
 import { storage, readJson, writeJson } from '../m1/game/save/storage';
-import { clearedLands, allKept, allBossDeaths, allFound, subscribeProgress, type BossDeath } from './store';
+import { clearedLands, allKept, allBossDeaths, allFound, alphaEndSeen, subscribeProgress, type BossDeath } from './store';
 import { LANDS } from './hub/lands';
 
 export const SLOTS = [1, 2, 3] as const;
@@ -26,6 +26,8 @@ export interface Progress {
   deaths: Record<string, BossDeath>;
   /** The collectibles he's found, by land (store.ts; none in the game yet). Absent in older files. */
   found?: Record<string, string[]>;
+  /** The alpha's ending has played on this file (alphaEnd.ts). Absent in older files. */
+  alphaSeen?: boolean;
 }
 
 export interface SaveFile extends Progress {
@@ -52,7 +54,7 @@ const clean = (raw: unknown): SaveFile | null => {
   if (o.deaths && typeof o.deaths === 'object') for (const [k, v] of Object.entries(o.deaths as Record<string, unknown>)) if (LAND_IDS.includes(k) && (v === 'normal' || v === 'weakness')) deaths[k] = v;
   const found: Record<string, string[]> = {};
   if (o.found && typeof o.found === 'object') for (const [k, v] of Object.entries(o.found as Record<string, unknown>)) if (LAND_IDS.includes(k) && Array.isArray(v)) found[k] = v.filter((id): id is string => typeof id === 'string');
-  return { version: VERSION, cleared, kept, deaths, found, playTimeMs: num(o.playTimeMs), lastPlayed: num(o.lastPlayed) };
+  return { version: VERSION, cleared, kept, deaths, found, alphaSeen: o.alphaSeen === true, playTimeMs: num(o.playTimeMs), lastPlayed: num(o.lastPlayed) };
 };
 
 // ---- who's listening (the title's CONTINUE, the file select's cards)
@@ -105,7 +107,7 @@ export const playOnFile = (slot: Slot | null, playTimeMs = 0) => {
 export const saveProgress = () => {
   if (active === null) return;
   tick();
-  const file: SaveFile = { cleared: clearedLands(), kept: allKept(), deaths: allBossDeaths(), found: allFound(), version: VERSION, playTimeMs: playTime(), lastPlayed: Date.now() };
+  const file: SaveFile = { cleared: clearedLands(), kept: allKept(), deaths: allBossDeaths(), found: allFound(), alphaSeen: alphaEndSeen(), version: VERSION, playTimeMs: playTime(), lastPlayed: Date.now() };
   if (writeJson(keyOf(active), file)) changed();
 };
 
