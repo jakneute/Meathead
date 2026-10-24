@@ -20,7 +20,7 @@ const harryOn = () => { const f = window.__m2.stage?.s?.harry?.f; return !!f && 
 const tuckerOn = () => { const s = window.__m2.stage?.s?.arena; return !!s && s.phase === 'up' && !!s.fight && s.fight.mode === 'on'; };
 // ---- Piper (Fairy Land)
 const piperOn = () => { const f = window.__m2.stage?.s?.bedroom?.f; return !!f && f.mode === 'on' && f.act !== 'bounce' && f.act !== 'entrance' && window.__m2.enemies.includes(f.e); };
-// ---- Stupid Dad (Cartoon Land)
+// ---- Dad Guy (Cartoon Land)
 const dadOn = () => { const f = window.__m2.stage?.s?.amphi?.fight; return !!f && f.mode === 'on' && f.act !== 'enter'; };
 
 /** Poke once the predicate holds (checked and poked in the same evaluate: no frame in between). */
@@ -121,7 +121,7 @@ export const JOBS = [
   },
   {
     // (the clapperboard for real, the family and the couch already gone: the car's for him)
-    name: '08a-dad-weakness', label: ['STUPID DAD', 'WEAKNESS (CLAPPERBOARD)', 'IN PIECES'], q: 'cartoon=62', memo: 'm2:boss-intro:dad', on: dadOn, lead: 1200,
+    name: '08a-dad-weakness', label: ['DAD GUY', 'WEAKNESS (CLAPPERBOARD)', 'IN PIECES'], q: 'cartoon=62', memo: 'm2:boss-intro:dad', on: dadOn, lead: 1200,
     setup: setForDad,
     kill: async ({ page, js }) => {
       await js(() => { const f = window.__m2.stage.s.amphi.fight; f.recharge = 0; window.__m2.lockWeapon = 'STUNT_CAR'; window.__m2.player.currentWeapon = 'STUNT_CAR'; });
@@ -131,7 +131,7 @@ export const JOBS = [
     },
   },
   {
-    name: '08b-dad-plain', label: ['STUPID DAD', 'ANY OTHER WAY', 'THE FRIDGE'], q: 'cartoon=62', memo: 'm2:boss-intro:dad', on: dadOn, lead: 2500,
+    name: '08b-dad-plain', label: ['DAD GUY', 'ANY OTHER WAY', 'THE FRIDGE'], q: 'cartoon=62', memo: 'm2:boss-intro:dad', on: dadOn, lead: 2500,
     kill: when(dadOn, () => { window.__m2.stage.s.amphi.fight.hp = 0; }),
   },
 ];
