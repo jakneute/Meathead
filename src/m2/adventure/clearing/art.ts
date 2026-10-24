@@ -533,14 +533,17 @@ export const drawTree = (c: Ctx, x: number, a: number, i: number, f: number, dow
   }
   if (!down && typeof document !== 'undefined') {
     const m = c.getTransform(), sc = Math.max(1, Math.min(4, Math.round(Math.hypot(m.a, m.b) * 2) / 2));
-    const key = `${i}@${sc}`;
+    const key = `${i}@${sc}v2`;
     let cv = fallen.get(key);
     if (!cv) {
       if (fallen.size > 16) fallen.clear();
       cv = document.createElement('canvas'); cv.width = Math.ceil(260 * sc); cv.height = Math.ceil((TREE_H + 116) * sc);
       const g = cv.getContext('2d')!;
-      g.setTransform(sc, 0, 0, sc, 130 * sc, (TREE_H + 110) * sc);
-      // (its foot at 0, 0; no toucan: it's flown, the moment the tree's going)
+      // (paintTree puts its foot at (x, GY): GY taken back off so the foot lands at the canvas's (130, TREE_H + 110); it was
+      // painted a whole GY below the canvas, so the falling trees vanished (the user's: "you don't see the trees get knocked
+      // down... anymore"))
+      g.setTransform(sc, 0, 0, sc, 130 * sc, (TREE_H + 110 - GY) * sc);
+      // (its foot at 0, GY; no toucan: it's flown, the moment the tree's going)
       paintTree(g, 0, 0, i, 0, false, true);
       fallen.set(key, cv);
     }
